@@ -5,7 +5,7 @@ module PlutusLedgerApi.Common.SerialisedScript
     ( SerialisedScript
     , serialiseCompiledCode
     , serialiseUPLC
-    , deserialiseUPLC
+    , uncheckedDeserialiseUPLC
     , scriptCBORDecoder
     , ScriptForExecution (..)
     , ScriptDecodeError (..)
@@ -67,7 +67,7 @@ choice to use Flat was made to have a more efficient (most wins are in uncompres
 size) data serialisation format and use less space on-chain.
 
 To make `plutus-ledger` work with scripts serialised with Flat, and keep the CBOR
-format otherwise, we have defined the `serialiseUPLC` and `deserialiseUPLC` functions.
+format otherwise, we have defined the `serialiseUPLC` and `uncheckedDeserialiseUPLC` functions.
 
 Because Flat is not self-describing and it gets used in the encoding of Programs,
 data structures that include scripts (for example, transactions) no-longer benefit
@@ -90,13 +90,14 @@ serialiseUPLC =
     -- See Note [Using Flat for serialising/deserialising Script]
     -- Currently, this is off because the old implementation didn't actually work, so we need to be careful
     -- about introducing a working version
-    toShort . BSL.toStrict . serialise . SerialiseViaFlat
+    toShort . BSL.toStrict . serialise . SerialiseViaFlat . UPLC.UnrestrictedProgram
 
--- | Deserialises a 'SerialisedScript' back into an AST.
-deserialiseUPLC :: SerialisedScript -> UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun ()
-deserialiseUPLC = unSerialiseViaFlat . deserialise . BSL.fromStrict . fromShort
+-- | Deserialises a 'SerialisedScript' back into an AST. Does *not* do ledger-language-version-specific
+-- checks like for allowable builtins.
+uncheckedDeserialiseUPLC :: SerialisedScript -> UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun ()
+uncheckedDeserialiseUPLC = unSerialiseViaFlat . deserialise . BSL.fromStrict . fromShort
   where
-    unSerialiseViaFlat (SerialiseViaFlat a) = a
+    unSerialiseViaFlat (SerialiseViaFlat (UPLC.UnrestrictedProgram a)) = a
 
 -- | A variant of `Script` with a specialized decoder.
 newtype ScriptForExecution = ScriptForExecution (UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ())

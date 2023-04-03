@@ -210,9 +210,12 @@ instance Flat ann => Flat (Kind ann) where
               go 1 = KindArrow <$> decode <*> decode <*> decode
               go _ = fail "Failed to decode Kind ()"
 
-    size tm sz = kindTagWidth + sz + case tm of
-        Type ann           -> getSize ann
-        KindArrow ann k k' -> getSize ann + getSize k + getSize k'
+    size tm sz =
+      let
+        sz' = sz + kindTagWidth
+      in case tm of
+        Type ann           -> size ann sz'
+        KindArrow ann k k' -> size ann $ size k $ size k' sz'
 
 -- | Use 3 bits to encode type tags.
 typeTagWidth :: NumBits
@@ -244,14 +247,17 @@ instance (Closed uni, Flat ann, Flat tyname) => Flat (Type tyname uni ann) where
               go 6 = TyApp     <$> decode <*> decode <*> decode
               go _ = fail "Failed to decode Type TyName ()"
 
-    size tm sz = typeTagWidth + sz + case tm of
-        TyVar     ann tn      -> getSize ann + getSize tn
-        TyFun     ann t t'    -> getSize ann + getSize t   + getSize t'
-        TyIFix    ann pat arg -> getSize ann + getSize pat + getSize arg
-        TyForall  ann tn k t  -> getSize ann + getSize tn  + getSize k + getSize t
-        TyBuiltin ann con     -> getSize ann + getSize con
-        TyLam     ann n k t   -> getSize ann + getSize n   + getSize k + getSize t
-        TyApp     ann t t'    -> getSize ann + getSize t   + getSize t'
+    size tm sz =
+      let
+        sz' = sz + typeTagWidth
+      in case tm of
+        TyVar     ann tn      -> size ann $ size tn sz'
+        TyFun     ann t t'    -> size ann $ size t $ size t' sz'
+        TyIFix    ann pat arg -> size ann $ size pat $ size arg sz'
+        TyForall  ann tn k t  -> size ann $ size tn $ size k $ size t sz'
+        TyBuiltin ann con     -> size ann $ size con sz'
+        TyLam     ann n k t   -> size ann $ size n $ size k $ size t sz'
+        TyApp     ann t t'    -> size ann $ size t $ size t' sz'
 
 termTagWidth :: NumBits
 termTagWidth = 4
@@ -294,17 +300,20 @@ instance ( Closed uni
               go 9 = Builtin  <$> decode <*> decode
               go _ = fail "Failed to decode Term TyName Name ()"
 
-    size tm sz = termTagWidth + sz + case tm of
-        Var      ann n         -> getSize ann + getSize n
-        TyAbs    ann tn k t    -> getSize ann + getSize tn  + getSize k   + getSize t
-        LamAbs   ann n ty t    -> getSize ann + getSize n   + getSize ty  + getSize t
-        Apply    ann t t'      -> getSize ann + getSize t   + getSize t'
-        Constant ann c         -> getSize ann + getSize c
-        TyInst   ann t ty      -> getSize ann + getSize t   + getSize ty
-        Unwrap   ann t         -> getSize ann + getSize t
-        IWrap    ann pat arg t -> getSize ann + getSize pat + getSize arg + getSize t
-        Error    ann ty        -> getSize ann + getSize ty
-        Builtin  ann bn        -> getSize ann + getSize bn
+    size tm sz =
+      let
+        sz' = termTagWidth + sz
+      in case tm of
+        Var      ann n         -> size ann $ size n sz'
+        TyAbs    ann tn k t    -> size ann $ size tn $ size k  $ size t sz'
+        LamAbs   ann n ty t    -> size ann $ size n $ size ty $ size t sz'
+        Apply    ann t t'      -> size ann $ size t $ size t' sz'
+        Constant ann c         -> size ann $ size c sz'
+        TyInst   ann t ty      -> size ann $ size t $ size ty sz'
+        Unwrap   ann t         -> size ann $ size t sz'
+        IWrap    ann pat arg t -> size ann $ size pat $ size arg $ size t sz'
+        Error    ann ty        -> size ann $ size ty sz'
+        Builtin  ann bn        -> size ann $ size bn sz'
 
 instance ( Closed uni
          , Flat ann

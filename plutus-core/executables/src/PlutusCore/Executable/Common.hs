@@ -132,9 +132,9 @@ instance ProgramLike UplcProg where
     checkUniques = UPLC.checkProgram (const True)
     serialiseProgramFlat nameType p =
         case nameType of
-            Named         -> pure $ BSL.fromStrict $ flat p
-            DeBruijn      -> BSL.fromStrict . flat <$> toDeBruijn p
-            NamedDeBruijn -> BSL.fromStrict . flat <$> toNamedDeBruijn p
+            Named         -> pure $ BSL.fromStrict $ flat $ UPLC.UnrestrictedProgram p
+            DeBruijn      -> BSL.fromStrict . flat . UPLC.UnrestrictedProgram <$> toDeBruijn p
+            NamedDeBruijn -> BSL.fromStrict . flat . UPLC.UnrestrictedProgram <$> toNamedDeBruijn p
     loadASTfromFlat = loadUplcASTfromFlat
 
 -- We don't support de Bruijn names for typed programs because we really only
@@ -411,13 +411,13 @@ loadUplcASTfromFlat :: Flat ann => AstNameType -> Input -> IO (UplcProg ann)
 loadUplcASTfromFlat flatMode inp = do
     input <- getBinaryInput inp
     case flatMode of
-        Named -> handleResult $ unflat input
+        Named -> fmap UPLC.unUnrestrictedProgram . handleResult $ unflat input
         DeBruijn -> do
-            deserialised <- handleResult $ unflat input
+            (UPLC.UnrestrictedProgram deserialised) <- handleResult $ unflat input
             let namedProgram = UPLC.programMapNames UPLC.fakeNameDeBruijn deserialised
             fromDeBruijn namedProgram
         NamedDeBruijn -> do
-            deserialised <- handleResult $ unflat input
+            (UPLC.UnrestrictedProgram deserialised) <- handleResult $ unflat input
             fromDeBruijn deserialised
   where
     handleResult =

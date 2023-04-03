@@ -80,7 +80,7 @@ nix = {
 
 You will need to restart the nix-daemon on non-NixOS for the changes to take effect, or just restart your machine.
 
-=== Note on pre-commit hooks 
+=== Note on pre-commit hooks
 
 If you are committing code outside `nix develop`, you will get this error:
 ```
@@ -374,7 +374,14 @@ Set it up if you can, it's relatively easy to do.
 
 === Changelogs
 
-We write changelogs for our packages.
+We write changelogs for our versioned and published packages, which currently include:
+
+- plutus-core
+- plutus-ledger-api
+- plutus-tx
+- plutus-tx-plugin
+- prettyprinter-configurable
+
 To do this we use https://github.com/nedbat/scriv[`scriv`], a changelog management tool.
 
 ==== When to write a changelog entry

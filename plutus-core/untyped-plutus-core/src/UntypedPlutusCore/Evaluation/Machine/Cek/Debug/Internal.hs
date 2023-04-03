@@ -23,20 +23,23 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Internal
     ( CekState (..)
     , Context (..)
     , contextAnn
-    , ioToCekM
-    , cekMToIO
+    , liftCek
+    , PrimMonad (..)
     , lenContext
     , cekStateContext
     , cekStateAnn
     , runCekDeBruijn
     , computeCek
     , returnCek
-    , handleStep
-    , tryHandleStep
+    , tryError
+    , mkCekTrans
+    , CekTrans
+    , nilSlippage
     , module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     )
 where
 
+import Control.Monad.Primitive
 import PlutusCore.Builtin
 import PlutusCore.DeBruijn
 import PlutusCore.Evaluation.Machine.ExBudget
@@ -52,12 +55,10 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
 import Control.Lens hiding (Context, ix)
 import Control.Monad
 import Control.Monad.Except
-import Control.Monad.ST
 import Data.Proxy
 import Data.RandomAccessList.Class qualified as Env
 import Data.Semigroup (stimes)
 import Data.Text (Text)
-import GHC.IO (ioToST)
 import GHC.TypeNats
 
 {- Note [Debuggable vs Original versions of CEK]
@@ -87,6 +88,7 @@ instance Pretty (CekState uni fun ann) where
         Returning{}   -> "Returning"
         Terminating{} -> "Terminating"
 
+-- | Similar to 'Cek.Internal.Context', but augmented with an 'ann'
 data Context uni fun ann
     = FrameApplyFun ann !(CekValue uni fun ann) !(Context uni fun ann)                         -- ^ @[V _]@
     | FrameApplyArg ann !(CekValEnv uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann) -- ^ @[_ N]@
@@ -247,46 +249,70 @@ enterComputeCek
 enterComputeCek ctx env term = iterToFinalState $ Computing ctx env term
  where
    iterToFinalState :: CekState uni fun ann -> CekM uni fun s (NTerm uni fun ())
-   iterToFinalState = handleStep
+   iterToFinalState = cekTrans
                       >=>
                       \case
                           Terminating t -> pure t
                           x             -> iterToFinalState x
 
+-- | A CEK parameter that turns the slippage optimization *off*.
+--
+-- This is needed in the case of the debugger, where the accounting/budgeting costs
+-- must be *live* updated.
+nilSlippage :: Slippage
+-- Setting the slippage to 1 would also work and turn off slippage optimization.
+nilSlippage = 0
+
+-- the type of our state transition function, `s -> m s` , aka `Kleisli m a a`
+type Trans m state = state -> m state
+type CekTrans uni fun ann s = Trans (CekM uni fun s) (CekState uni fun ann)
+
 -- | The state transition function of the machine.
-handleStep :: forall uni fun ann s c.
-             (PrettyUni uni fun, GivenCekReqs uni fun ann s, c ~ CekState uni fun ann)
-           => c
-           -> CekM uni fun s c
-handleStep = \case
+cekTrans :: forall uni fun ann s
+           . (PrettyUni uni fun, GivenCekReqs uni fun ann s)
+           => CekTrans uni fun ann s
+cekTrans = \case
     Starting term          -> pure $ Computing NoFrame Env.empty term
     Computing ctx env term -> computeCek ctx env term
     Returning ctx val      -> returnCek ctx val
     self@Terminating{}     -> pure self -- FINAL STATE, idempotent
 
-{- | As 'handleStep' but captures any exception during a single-state transition
-
-Note that we use the "pure" MonadError.tryError and not the MonadCatch.tryError.
-See Note [Throwing exceptions in ST]
--}
-tryHandleStep :: forall uni fun ann s c.
-                (PrettyUni uni fun, GivenCekReqs uni fun ann s, c ~ CekState uni fun ann)
-              => c
-              -> CekM uni fun s (Either (CekEvaluationException NamedDeBruijn uni fun) c)
-tryHandleStep = tryError . handleStep
+-- | Based on the supplied arguments, initialize the CEK environment and
+-- construct a state transition function.
+-- Returns the constructed transition function paired with the methods to live access the running budget.
+mkCekTrans
+    :: forall cost uni fun ann m s
+    . ( PrettyUni uni fun
+      , PrimMonad m, s ~ PrimState m) -- the outer monad that initializes the transition function
+    => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+    -> ExBudgetMode cost uni fun
+    -> EmitterMode uni fun
+    -> Slippage
+    -> m (CekTrans uni fun ann s, ExBudgetInfo cost uni fun s)
+mkCekTrans (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) (EmitterMode getEmitterMode) slippage = do
+    exBudgetInfo@ExBudgetInfo{_exBudgetModeSpender, _exBudgetModeGetCumulative} <- liftPrim getExBudgetInfo
+    CekEmitterInfo{_cekEmitterInfoEmit} <- liftPrim $ getEmitterMode _exBudgetModeGetCumulative
+    ctr <- newCounter (Proxy @CounterSize)
+    let ?cekRuntime = runtime
+        ?cekEmitter = _cekEmitterInfoEmit
+        ?cekBudgetSpender = _exBudgetModeSpender
+        ?cekCosts = costs
+        ?cekSlippage = slippage
+        ?cekStepCounter = ctr
+      in pure (cekTrans, exBudgetInfo)
+         -- note that we do not call the final budget&emit getters like in `runCekM`,
+         -- since we do not need it for our usecase.
 
 -- * Helpers
 ------------
 
-ioToCekM :: IO a -> CekM uni fun RealWorld a
-ioToCekM = CekM . ioToST
-
-cekMToIO :: CekM uni fun RealWorld a -> IO a
-cekMToIO = stToIO . unCekM
+-- | Lift a CEK computation to a primitive.PrimMonad m
+liftCek :: (PrimMonad m, PrimState m ~ s)  => CekM uni fun s a -> m a
+liftCek= liftPrim . unCekM
 
 cekStateContext :: Traversal' (CekState uni fun ann) (Context uni fun ann)
 cekStateContext f = \case
-    Computing k e t -> (\k' -> Computing k' e t) <$> f k
+    Computing k e t -> Computing <$> f k <*> pure e <*> pure t
     Returning k v   -> Returning <$> f k <*> pure v
     x               -> pure x
 
@@ -294,8 +320,7 @@ cekStateAnn :: CekState uni fun ann -> Maybe ann
 cekStateAnn = \case
     Computing _ _ t -> pure $ termAnn t
     Returning ctx _ -> contextAnn ctx
-    Terminating{}   -> empty
-    Starting{}      -> empty
+    _               -> empty
 
 contextAnn :: Context uni fun ann -> Maybe ann
 contextAnn = \case
@@ -344,29 +369,6 @@ throwingDischarged
     -> CekValue uni fun ann
     -> CekM uni fun s x
 throwingDischarged l t = throwingWithCause l t . Just . dischargeCekValue
-
-runCekM
-    :: forall a cost uni fun ann.
-    (PrettyUni uni fun)
-    => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
-    -> ExBudgetMode cost uni fun
-    -> EmitterMode uni fun
-    -> (forall s. GivenCekReqs uni fun ann s => CekM uni fun s a)
-    -> (Either (CekEvaluationException NamedDeBruijn uni fun) a, cost, [Text])
-runCekM (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) (EmitterMode getEmitterMode) a = runST $ do
-    ExBudgetInfo{_exBudgetModeSpender, _exBudgetModeGetFinal, _exBudgetModeGetCumulative} <- getExBudgetInfo
-    CekEmitterInfo{_cekEmitterInfoEmit, _cekEmitterInfoGetFinal} <- getEmitterMode _exBudgetModeGetCumulative
-    ctr <- newCounter (Proxy @CounterSize)
-    let ?cekRuntime = runtime
-        ?cekEmitter = _cekEmitterInfoEmit
-        ?cekBudgetSpender = _exBudgetModeSpender
-        ?cekCosts = costs
-        ?cekSlippage = defaultSlippage
-        ?cekStepCounter = ctr
-    errOrRes <- unCekM $ tryError a
-    st <- _exBudgetModeGetFinal
-    logs <- _cekEmitterInfoGetFinal
-    pure (errOrRes, st, logs)
 
 -- | Look up a variable name in the environment.
 lookupVarName :: forall uni fun ann s . (PrettyUni uni fun) => NamedDeBruijn -> CekValEnv uni fun ann -> CekM uni fun s (CekValue uni fun ann)

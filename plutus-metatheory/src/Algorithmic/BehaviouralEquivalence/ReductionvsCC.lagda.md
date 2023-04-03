@@ -11,6 +11,7 @@ module Algorithmic.BehaviouralEquivalence.ReductionvsCC where
 ## Imports
 
 ```
+open import Data.Nat using (suc;zero)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;subst;inspect;cong;sym;trans) 
                                                   renaming ([_] to I[_])
 open import Data.Sum using (_⊎_;inj₁;inj₂)
@@ -20,7 +21,7 @@ open import Data.List using (_∷_;[])
 open import Data.Empty using (⊥;⊥-elim)
 open import Relation.Nullary using (¬_)
 
-open import Utils using (Kind;*;_⇒_;_<><_∈_;_<>>_∈_;start;bubble)
+open import Utils using (Kind;*;_⇒_;start;bubble)
 open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_)
 open _⊢⋆_
 open import Type.BetaNormal using (_⊢Nf⋆_)
@@ -156,19 +157,20 @@ dissect-lemma (wrap E)   F
 dissect-lemma (unwrap E / refl) F
   rewrite dissect-lemma E F = refl
 
-postulate
-  lemV : ∀{A B}(M : ∅ ⊢ B)(V : Value M)(E : EC A B) → (E ▻ M) -→s (E ◅ V)
+postulate lemV : ∀{A B}(M : ∅ ⊢ B)(V : Value M)(E : EC A B) → (E ▻ M) -→s (E ◅ V)
 
 {-
-lemV .(ƛ M)        (V-ƛ M)      E = step* refl base
-lemV .(Λ M)        (V-Λ M)      E = step* refl base
-lemV .(wrap _ _ _) (V-wrap V)   E = step*
-  refl
-  (step**
-    (lemV _ V (extEC E wrap-))
-    (step* (cong (stepV V) (dissect-lemma E wrap-))
-           base))
-lemV .(con cn)     (V-con cn)   E = step* refl base
+lemV .(ƛ M) (V-ƛ M) E = step* refl base
+lemV .(Λ M) (V-Λ M) E = step* refl base
+lemV .(wrap _ _ _) (V-wrap V) E = step* refl (step** (lemV _ V (extEC E wrap-)) 
+                                                     (step* (cong (stepV V) (dissect-lemma E wrap-)) base))
+lemV .(con cn) (V-con cn) E = step* refl base
+lemV M (V-I⇒ b {am = am} bt) E =  {! am  !}
+
+lemV (M ·⋆ A / x₁) (V-IΠ b x) E = {!   !}
+lemV (builtin b₁ / x₁) (V-IΠ b x) E
+-}
+{-
 -- v a brute force proof by pattern matching on builtins
 lemV .(ibuiltin addInteger)
      (V-I⇒ addInteger (start .(Term ∷ Term ∷ [])) base)
@@ -187,441 +189,8 @@ lemV .(ibuiltin addInteger · _)
 lemV M (V-I⇒ addInteger {as' = as'} (bubble (bubble {as = as} p)) q) E
   with <>>-cancel-both' as _ (([] ∷ Term) ∷ Term) (Term ∷ as') p refl
 ... | X ,, () ,, Y'
-lemV .(ibuiltin subtractInteger)
-     (V-I⇒ subtractInteger (start .(Term ∷ Term ∷ [])) base)
-     E = step* refl base
-lemV .(ibuiltin subtractInteger · _)
-     (V-I⇒ subtractInteger (bubble (start .(Term ∷ Term ∷ [])))
-     (step .(start (Term ∷ Term ∷ [])) base v))
-     E = step*
-  refl
-  (step*
-    refl
-    (step* (cong (stepV _) (dissect-lemma E (-· deval v)))
-           (step**
-             (lemV (deval v) v (extEC E (_ ·-)))
-             (step* (cong (stepV v) (dissect-lemma E (_ ·-))) base))))
-lemV M (V-I⇒ subtractInteger {as' = as'} (bubble (bubble {as = as} p)) q) E
-  with <>>-cancel-both' as _ (([] ∷ Term) ∷ Term) (Term ∷ as') p refl
-... | X ,, () ,, Y'
-
-lemV .(ibuiltin multiplyInteger)
-     (V-I⇒ multiplyInteger (start .(Term ∷ Term ∷ [])) base)
-     E = step* refl base
-lemV .(ibuiltin multiplyInteger · _)
-     (V-I⇒ multiplyInteger (bubble (start .(Term ∷ Term ∷ [])))
-     (step .(start (Term ∷ Term ∷ [])) base v))
-     E = step*
-  refl
-  (step*
-    refl
-    (step* (cong (stepV _) (dissect-lemma E (-· deval v)))
-           (step**
-             (lemV (deval v) v (extEC E (_ ·-)))
-             (step* (cong (stepV v) (dissect-lemma E (_ ·-))) base))))
-lemV M (V-I⇒ multiplyInteger {as' = as'} (bubble (bubble {as = as} p)) q) E
-  with <>>-cancel-both' as _ (([] ∷ Term) ∷ Term) (Term ∷ as') p refl
-... | X ,, () ,, Y'
-
-lemV .(ibuiltin divideInteger)
-     (V-I⇒ divideInteger (start .(Term ∷ Term ∷ [])) base)
-     E = step* refl base
-lemV .(ibuiltin divideInteger · _)
-     (V-I⇒ divideInteger (bubble (start .(Term ∷ Term ∷ [])))
-     (step .(start (Term ∷ Term ∷ [])) base v))
-     E = step*
-  refl
-  (step*
-    refl
-    (step* (cong (stepV _) (dissect-lemma E (-· deval v)))
-           (step**
-             (lemV (deval v) v (extEC E (_ ·-)))
-             (step* (cong (stepV v) (dissect-lemma E (_ ·-))) base))))
-lemV M (V-I⇒ divideInteger {as' = as'} (bubble (bubble {as = as} p)) q) E
-  with <>>-cancel-both' as _ (([] ∷ Term) ∷ Term) (Term ∷ as') p refl
-... | X ,, () ,, Y'
-lemV .(ibuiltin quotientInteger)
-     (V-I⇒ quotientInteger (start .(Term ∷ Term ∷ [])) base)
-     E = step* refl base
-lemV .(ibuiltin quotientInteger · _)
-     (V-I⇒ quotientInteger (bubble (start .(Term ∷ Term ∷ [])))
-     (step .(start (Term ∷ Term ∷ [])) base v))
-     E = step*
-  refl
-  (step*
-    refl
-    (step* (cong (stepV _) (dissect-lemma E (-· deval v)))
-           (step**
-             (lemV (deval v) v (extEC E (_ ·-)))
-             (step* (cong (stepV v) (dissect-lemma E (_ ·-))) base))))
-lemV M (V-I⇒ quotientInteger {as' = as'} (bubble (bubble {as = as} p)) q) E
-  with <>>-cancel-both' as _ (([] ∷ Term) ∷ Term) (Term ∷ as') p refl
-... | X ,, () ,, Y'
-
-lemV .(ibuiltin remainderInteger)
-     (V-I⇒ remainderInteger (start .(Term ∷ Term ∷ [])) base)
-     E = step* refl base
-lemV .(ibuiltin remainderInteger · _)
-     (V-I⇒ remainderInteger (bubble (start .(Term ∷ Term ∷ [])))
-     (step .(start (Term ∷ Term ∷ [])) base v))
-     E = step*
-  refl
-  (step*
-    refl
-    (step* (cong (stepV _) (dissect-lemma E (-· deval v)))
-           (step**
-             (lemV (deval v) v (extEC E (_ ·-)))
-             (step* (cong (stepV v) (dissect-lemma E (_ ·-))) base))))
-lemV M (V-I⇒ remainderInteger {as' = as'} (bubble (bubble {as = as} p)) q) E
-  with <>>-cancel-both' as _ (([] ∷ Term) ∷ Term) (Term ∷ as') p refl
-... | X ,, () ,, Y'
-lemV .(ibuiltin modInteger)
-     (V-I⇒ modInteger (start .(Term ∷ Term ∷ [])) base)
-     E = step* refl base
-lemV .(ibuiltin modInteger · _)
-     (V-I⇒ modInteger (bubble (start .(Term ∷ Term ∷ [])))
-     (step .(start (Term ∷ Term ∷ [])) base v))
-     E = step*
-  refl
-  (step*
-    refl
-    (step* (cong (stepV _) (dissect-lemma E (-· deval v)))
-           (step**
-             (lemV (deval v) v (extEC E (_ ·-)))
-             (step* (cong (stepV v) (dissect-lemma E (_ ·-))) base))))
-lemV M (V-I⇒ modInteger {as' = as'} (bubble (bubble {as = as} p)) q) E
-  with <>>-cancel-both' as _ (([] ∷ Term) ∷ Term) (Term ∷ as') p refl
-... | X ,, () ,, Y'
-lemV .(ibuiltin lessThanInteger)
-     (V-I⇒ lessThanInteger (start .(Term ∷ Term ∷ [])) base)
-     E = step* refl base
-lemV .(ibuiltin lessThanInteger · _)
-     (V-I⇒ lessThanInteger (bubble (start .(Term ∷ Term ∷ [])))
-     (step .(start (Term ∷ Term ∷ [])) base v))
-     E = step*
-  refl
-  (step*
-    refl
-    (step* (cong (stepV _) (dissect-lemma E (-· deval v)))
-           (step**
-             (lemV (deval v) v (extEC E (_ ·-)))
-             (step* (cong (stepV v) (dissect-lemma E (_ ·-))) base))))
-lemV M (V-I⇒ lessThanInteger {as' = as'} (bubble (bubble {as = as} p)) q) E
-  with <>>-cancel-both' as _ (([] ∷ Term) ∷ Term) (Term ∷ as') p refl
-... | X ,, () ,, Y'
-lemV .(ibuiltin lessThanEqualsInteger)
-     (V-I⇒ lessThanEqualsInteger (start .(Term ∷ Term ∷ [])) base)
-     E = step* refl base
-lemV .(ibuiltin lessThanEqualsInteger · _)
-     (V-I⇒ lessThanEqualsInteger (bubble (start .(Term ∷ Term ∷ [])))
-     (step .(start (Term ∷ Term ∷ [])) base v))
-     E = step*
-  refl
-  (step*
-    refl
-    (step* (cong (stepV _) (dissect-lemma E (-· deval v)))
-           (step**
-             (lemV (deval v) v (extEC E (_ ·-)))
-             (step* (cong (stepV v) (dissect-lemma E (_ ·-))) base))))
-lemV M (V-I⇒ lessThanEqualsInteger {as' = as'} (bubble (bubble {as = as} p)) q) E
-  with <>>-cancel-both' as _ (([] ∷ Term) ∷ Term) (Term ∷ as') p refl
-... | X ,, () ,, Y'
-lemV .(ibuiltin equalsInteger)
-     (V-I⇒ equalsInteger (start .(Term ∷ Term ∷ [])) base)
-     E = step* refl base
-lemV .(ibuiltin equalsInteger · _)
-     (V-I⇒ equalsInteger (bubble (start .(Term ∷ Term ∷ [])))
-     (step .(start (Term ∷ Term ∷ [])) base v))
-     E = step*
-  refl
-  (step*
-    refl
-    (step* (cong (stepV _) (dissect-lemma E (-· deval v)))
-           (step**
-             (lemV (deval v) v (extEC E (_ ·-)))
-             (step* (cong (stepV v) (dissect-lemma E (_ ·-))) base))))
-lemV M (V-I⇒ equalsInteger {as' = as'} (bubble (bubble {as = as} p)) q) E
-  with <>>-cancel-both' as _ (([] ∷ Term) ∷ Term) (Term ∷ as') p refl
-... | X ,, () ,, Y'
-lemV .(ibuiltin appendByteString)
-     (V-I⇒ appendByteString (start .(Term ∷ Term ∷ [])) base)
-     E = step* refl base
-lemV .(ibuiltin appendByteString · _)
-     (V-I⇒ appendByteString (bubble (start .(Term ∷ Term ∷ [])))
-     (step .(start (Term ∷ Term ∷ [])) base v))
-     E = step*
-  refl
-  (step*
-    refl
-    (step* (cong (stepV _) (dissect-lemma E (-· deval v)))
-           (step**
-             (lemV (deval v) v (extEC E (_ ·-)))
-             (step* (cong (stepV v) (dissect-lemma E (_ ·-))) base))))
-lemV M (V-I⇒ appendByteString {as' = as'} (bubble (bubble {as = as} p)) q) E
-  with <>>-cancel-both' as _ (([] ∷ Term) ∷ Term) (Term ∷ as') p refl
-... | X ,, () ,, Y'
-lemV .(ibuiltin lessThanByteString)
-     (V-I⇒ lessThanByteString (start .(Term ∷ Term ∷ [])) base)
-     E = step* refl base
-lemV .(ibuiltin lessThanByteString · _)
-     (V-I⇒ lessThanByteString (bubble (start .(Term ∷ Term ∷ [])))
-     (step .(start (Term ∷ Term ∷ [])) base v))
-     E = step*
-  refl
-  (step*
-    refl
-    (step* (cong (stepV _) (dissect-lemma E (-· deval v)))
-           (step**
-             (lemV (deval v) v (extEC E (_ ·-)))
-             (step* (cong (stepV v) (dissect-lemma E (_ ·-))) base))))
-lemV M (V-I⇒ lessThanByteString {as' = as'} (bubble (bubble {as = as} p)) q) E
-  with <>>-cancel-both' as _ (([] ∷ Term) ∷ Term) (Term ∷ as') p refl
-... | X ,, () ,, Y'
-lemV .(ibuiltin lessThanEqualsByteString)
-     (V-I⇒ lessThanEqualsByteString (start .(Term ∷ Term ∷ [])) base)
-     E = step* refl base
-lemV .(ibuiltin lessThanEqualsByteString · _)
-     (V-I⇒ lessThanEqualsByteString (bubble (start .(Term ∷ Term ∷ [])))
-     (step .(start (Term ∷ Term ∷ [])) base v))
-     E = step*
-  refl
-  (step*
-    refl
-    (step* (cong (stepV _) (dissect-lemma E (-· deval v)))
-           (step**
-             (lemV (deval v) v (extEC E (_ ·-)))
-             (step* (cong (stepV v) (dissect-lemma E (_ ·-))) base))))
-lemV M (V-I⇒ lessThanEqualsByteString {as' = as'} (bubble (bubble {as = as} p)) q) E
-  with <>>-cancel-both' as _ (([] ∷ Term) ∷ Term) (Term ∷ as') p refl
-... | X ,, () ,, Y'
-lemV .(ibuiltin sha2-256) (V-I⇒ sha2-256 (start .(Term ∷ [])) base) E =
-  step* refl base
-lemV M (V-I⇒ sha2-256 {as' = as'} (bubble {as = as} p) q) E with
-  <>>-cancel-both' as _ ([] ∷ Term) _ p refl
-... | _ ,, () ,, _
-lemV .(ibuiltin sha3-256) (V-I⇒ sha3-256 (start .(Term ∷ [])) base) E =
-  step* refl base
-lemV M (V-I⇒ sha3-256 {as' = as'} (bubble {as = as} p) q) E with
-  <>>-cancel-both' as _ ([] ∷ Term) _ p refl
-... | _ ,, () ,, _
-lemV .(ibuiltin verifyEd25519Signature) (V-I⇒ verifyEd25519Signature (start .(Term ∷ Term ∷ Term ∷ [])) base) E = step* refl base
-lemV (ibuiltin verifyEd25519Signature · t) (V-I⇒ verifyEd25519Signature (bubble (start .(Term ∷ Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ Term ∷ [])) base vt)) E = step* refl (step* refl (step* (cong (stepV _) (dissect-lemma E (-· t))) (step** (lemV t vt (extEC E (_ ·-))) (step* (cong (stepV vt) (dissect-lemma E (_ ·-))) base))))
-lemV ((ibuiltin verifyEd25519Signature · t) · u) (V-I⇒ verifyEd25519Signature (bubble (bubble (start .(Term ∷ Term ∷ Term ∷ [])))) (step .(bubble (start (Term ∷ Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ Term ∷ [])) base vt) vu)) E = step* refl (step* refl (step* refl (step* (cong (stepV _) (dissect-lemma (extEC E (-· u)) (-· t))) (step** (lemV t vt (extEC (extEC E (-· u)) (_ ·-))) (step* (cong (stepV vt) (dissect-lemma (extEC E (-· u)) (_ ·-)) ) (step* (cong (stepV _) (dissect-lemma E (-· u))) (step** (lemV u vu (extEC E (_ ·-))) (step* (cong (stepV vu) (dissect-lemma E (_ ·-))) base))))))))
-lemV M (V-I⇒ verifyEd25519Signature {as' = as'} (bubble (bubble (bubble {as = as} p))) q) E with <>>-cancel-both' as _ ((([] ∷ Term) ∷ Term) ∷ Term) _ p refl
-... | _ ,, () ,, _
-lemV .(ibuiltin verifyEcdsaSecp256k1Signature) (V-I⇒ verifyEcdsaSecp256k1Signature (start .(Term ∷ Term ∷ Term ∷ [])) base) E = step* refl base
-lemV (ibuiltin verifyEcdsaSecp256k1Signature · t) (V-I⇒ verifyEcdsaSecp256k1Signature (bubble (start .(Term ∷ Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ Term ∷ [])) base vt)) E = step* refl (step* refl (step* (cong (stepV _) (dissect-lemma E (-· t))) (step** (lemV t vt (extEC E (_ ·-))) (step* (cong (stepV vt) (dissect-lemma E (_ ·-))) base))))
-lemV ((ibuiltin verifyEcdsaSecp256k1Signature · t) · u) (V-I⇒ verifyEcdsaSecp256k1Signature (bubble (bubble (start .(Term ∷ Term ∷ Term ∷ [])))) (step .(bubble (start (Term ∷ Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ Term ∷ [])) base vt) vu)) E = step* refl (step* refl (step* refl (step* (cong (stepV _) (dissect-lemma (extEC E (-· u)) (-· t))) (step** (lemV t vt (extEC (extEC E (-· u)) (_ ·-))) (step* (cong (stepV vt) (dissect-lemma (extEC E (-· u)) (_ ·-)) ) (step* (cong (stepV _) (dissect-lemma E (-· u))) (step** (lemV u vu (extEC E (_ ·-))) (step* (cong (stepV vu) (dissect-lemma E (_ ·-))) base))))))))
-lemV M (V-I⇒ verifyEcdsaSecp256k1Signature {as' = as'} (bubble (bubble (bubble {as = as} p))) q) E with <>>-cancel-both' as _ ((([] ∷ Term) ∷ Term) ∷ Term) _ p refl
-... | _ ,, () ,, _
-lemV .(ibuiltin verifySchnorrSecp256k1Signature) (V-I⇒ verifySchnorrSecp256k1Signature (start .(Term ∷ Term ∷ Term ∷ [])) base) E = step* refl base
-lemV (ibuiltin verifySchnorrSecp256k1Signature · t) (V-I⇒ verifySchnorrSecp256k1Signature (bubble (start .(Term ∷ Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ Term ∷ [])) base vt)) E = step* refl (step* refl (step* (cong (stepV _) (dissect-lemma E (-· t))) (step** (lemV t vt (extEC E (_ ·-))) (step* (cong (stepV vt) (dissect-lemma E (_ ·-))) base))))
-lemV ((ibuiltin verifySchnorrSecp256k1Signature · t) · u) (V-I⇒ verifySchnorrSecp256k1Signature (bubble (bubble (start .(Term ∷ Term ∷ Term ∷ [])))) (step .(bubble (start (Term ∷ Term ∷ Term ∷ []))) (step .(start (Term ∷ Term ∷ Term ∷ [])) base vt) vu)) E = step* refl (step* refl (step* refl (step* (cong (stepV _) (dissect-lemma (extEC E (-· u)) (-· t))) (step** (lemV t vt (extEC (extEC E (-· u)) (_ ·-))) (step* (cong (stepV vt) (dissect-lemma (extEC E (-· u)) (_ ·-)) ) (step* (cong (stepV _) (dissect-lemma E (-· u))) (step** (lemV u vu (extEC E (_ ·-))) (step* (cong (stepV vu) (dissect-lemma E (_ ·-))) base))))))))
-lemV M (V-I⇒ verifySchnorrSecp256k1Signature {as' = as'} (bubble (bubble (bubble {as = as} p))) q) E with <>>-cancel-both' as _ ((([] ∷ Term) ∷ Term) ∷ Term) _ p refl
-... | _ ,, () ,, _
-lemV .(ibuiltin equalsByteString)
-     (V-I⇒ equalsByteString (start .(Term ∷ Term ∷ [])) base)
-     E = step* refl base
-lemV .(ibuiltin equalsByteString · _)
-     (V-I⇒ equalsByteString (bubble (start .(Term ∷ Term ∷ [])))
-     (step .(start (Term ∷ Term ∷ [])) base v))
-     E = step*
-  refl
-  (step*
-    refl
-    (step* (cong (stepV _) (dissect-lemma E (-· deval v)))
-           (step**
-             (lemV (deval v) v (extEC E (_ ·-)))
-             (step* (cong (stepV v) (dissect-lemma E (_ ·-))) base))))
-lemV M (V-I⇒ equalsByteString {as' = as'} (bubble (bubble {as = as} p)) q) E
-  with <>>-cancel-both' as _ (([] ∷ Term) ∷ Term) (Term ∷ as') p refl
-... | X ,, () ,, Y'
-lemV M (V-I⇒ ifThenElse (bubble (start .(Type ∷ Term ∷ Term ∷ Term ∷ []))) q) E with BApp2BAPP q
-lemV (ibuiltin ifThenElse ·⋆ A) (V-I⇒ ifThenElse (bubble (start .(arity ifThenElse))) (step⋆ .(start (Type ∷ Term ∷ Term ∷ Term ∷ [])) base)) E | step⋆ .(start (Type ∷ Term ∷ Term ∷ Term ∷ [])) base refl refl = step* refl (step** (lemV (ibuiltin ifThenElse) (ival ifThenElse) (extEC E (-·⋆ A))) (step* (cong (stepV _) (dissect-lemma E (-·⋆ A))) base))
-lemV .(_ · _) (V-I⇒ ifThenElse (bubble (bubble (start .(Type ∷ Term ∷ Term ∷ Term ∷ [])))) (step .(bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ []))) q vu)) E with BApp2BAPP q
-lemV ((ibuiltin ifThenElse ·⋆ A) · b) (V-I⇒ ifThenElse (bubble (bubble (start .(arity ifThenElse)))) (step .(bubble (start (arity ifThenElse))) (step⋆ .(start (Type ∷ Term ∷ Term ∷ Term ∷ [])) base) vb)) E | step⋆ .(start (Type ∷ Term ∷ Term ∷ Term ∷ [])) base refl refl = step* refl (step* refl (step** (lemV (ibuiltin ifThenElse) (ival ifThenElse) (extEC (extEC E (-· _)) (-·⋆ A))) (step* (cong (stepV _) (dissect-lemma (extEC E (-· _)) (-·⋆ A))) (step* (cong (stepV _) (dissect-lemma E (-· _))) (step** (lemV _ vb (extEC E (_ ·-))) (step* (cong (stepV vb) (dissect-lemma E _)) base))))))
-lemV .((_ · _) · _) (V-I⇒ ifThenElse (bubble (bubble (bubble (start .(Type ∷ Term ∷ Term ∷ Term ∷ []))))) (step .(bubble (bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ [])))) (step .(bubble (start (Type ∷ Term ∷ Term ∷ Term ∷ []))) q x₁) x)) E with BApp2BAPP q
-lemV (((ibuiltin ifThenElse ·⋆ A) · b) · t) (V-I⇒ ifThenElse (bubble (bubble (bubble (start .(arity ifThenElse))))) (step .(bubble (bubble (start (arity ifThenElse)))) (step .(bubble (start (arity ifThenElse))) (step⋆ .(start (Type ∷ Term ∷ Term ∷ Term ∷ [])) base) vb) vt)) E | step⋆ .(start (Type ∷ Term ∷ Term ∷ Term ∷ [])) base refl refl = step* refl (step* refl (step* refl (step** (lemV (ibuiltin ifThenElse) (ival ifThenElse) (extEC (extEC (extEC E (-· t)) (-· b)) (-·⋆ A))) (step* (cong (stepV _) (dissect-lemma (extEC (extEC E (-· t)) (-· b)) (-·⋆ A))) (step* (cong (stepV _) (dissect-lemma (extEC E (-· t)) (-· b))) (step** (lemV b vb (extEC (extEC E (-· t)) (_ ·-))) (step* (cong (stepV vb) (dissect-lemma (extEC E (-· t)) (_ ·-))) (step* (cong (stepV _) (dissect-lemma E (-· t))) (step** (lemV t vt (extEC E _)) (step* (cong (stepV vt) (dissect-lemma E _)) base))))))))))
-lemV M (V-I⇒ ifThenElse {as' = as'} (bubble (bubble (bubble (bubble {as = as} p)))) q) E with <>>-cancel-both' as _ ([] <>< arity ifThenElse) _ p refl
-... | X ,, () ,, Y'
-lemV .(ibuiltin appendString)
-     (V-I⇒ appendString (start .(Term ∷ Term ∷ [])) base)
-     E = step* refl base
-lemV .(ibuiltin appendString · _)
-     (V-I⇒ appendString (bubble (start .(Term ∷ Term ∷ [])))
-     (step .(start (Term ∷ Term ∷ [])) base v))
-     E = step*
-  refl
-  (step*
-    refl
-    (step* (cong (stepV _) (dissect-lemma E (-· deval v)))
-           (step**
-             (lemV (deval v) v (extEC E (_ ·-)))
-             (step* (cong (stepV v) (dissect-lemma E (_ ·-))) base))))
-lemV M (V-I⇒ appendString {as' = as'} (bubble (bubble {as = as} p)) q) E
-  with <>>-cancel-both' as _ (([] ∷ Term) ∷ Term) (Term ∷ as') p refl
-... | X ,, () ,, Y'
-lemV .(ibuiltin trace) (V-I⇒ trace (start .(Term ∷ [])) base) E =
-  step* refl base
-lemV M (V-I⇒ trace {as' = as'} (bubble {as = as} p) q) E with
-  <>>-cancel-both' as _ ([] ∷ Term) _ p refl
-... | _ ,, () ,, _
-lemV M (V-IΠ addInteger {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) ([] <>< arity addInteger) as' p refl
-... | X ,, Y ,, ()
-lemV M (V-IΠ subtractInteger {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
-... | X ,, Y ,, ()
-lemV M (V-IΠ multiplyInteger {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
-... | X ,, Y ,, ()
-lemV M (V-IΠ divideInteger {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
-... | X ,, Y ,, ()
-lemV M (V-IΠ quotientInteger {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
-... | X ,, Y ,, ()
-lemV M (V-IΠ remainderInteger {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
-... | X ,, Y ,, ()
-lemV M (V-IΠ modInteger {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
-... | X ,, Y ,, ()
-lemV M (V-IΠ lessThanInteger {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
-... | X ,, Y ,, ()
-lemV M (V-IΠ lessThanEqualsInteger {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
-... | X ,, Y ,, ()
-lemV M (V-IΠ equalsInteger {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
-... | X ,, Y ,, ()
-lemV M (V-IΠ appendByteString {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
-... | X ,, Y ,, ()
-lemV M (V-IΠ lessThanByteString {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
-... | X ,, Y ,, ()
-lemV M (V-IΠ lessThanEqualsByteString {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
-... | X ,, Y ,, ()
-lemV M (V-IΠ sha2-256 {as' = as'} p q) E with <>>-cancel-both' _ ([] ∷ Type) _ as' p refl
-... | X ,, Y ,, ()
-lemV M (V-IΠ sha3-256 {as' = as'} p q) E with <>>-cancel-both' _ ([] ∷ Type) _ as' p refl
-... | X ,, Y ,, ()
-lemV M (V-IΠ verifyEd25519Signature {as' = as'} (bubble (bubble p)) q) E with <>>-cancel-both' _ ((([] ∷ _) ∷ _) ∷ Type) _ as' p refl
-... | X ,, Y ,, ()
-lemV M (V-IΠ verifySchnorrSecp256k1Signature {as' = as'} (bubble (bubble p)) q) E with <>>-cancel-both' _ ((([] ∷ _) ∷ _) ∷ Type) _ as' p refl
-... | X ,, Y ,, ()
-lemV M (V-IΠ verifyEcdsaSecp256k1Signature {as' = as'} (bubble (bubble p)) q) E with <>>-cancel-both' _ ((([] ∷ _) ∷ _) ∷ Type) _ as' p refl
-... | X ,, Y ,, ()
-lemV M (V-IΠ equalsByteString {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
-... | X ,, Y ,, ()
-lemV .(ibuiltin ifThenElse) (V-IΠ ifThenElse (start .(Type ∷ Term ∷ Term ∷ Term ∷ [])) base) E = step* refl base
-lemV M (V-IΠ ifThenElse {as' = as'} (bubble (bubble (bubble p))) q) E with <>>-cancel-both' _ (((([] ∷ _) ∷ _) ∷ _) ∷ Type) _ as' p refl
-... | X ,, Y ,, ()
-lemV M (V-IΠ appendString {as' = as'} (bubble p) q) E with <>>-cancel-both' _ (([] ∷ _) ∷ Type) _ as' p refl
-... | X ,, Y ,, ()
-lemV M (V-IΠ trace {as' = as'} p q) E with <>>-cancel-both' _ ([] ∷ Type) _ as' p refl
-... | X ,, Y ,, ()
-lemV .(ibuiltin equalsString) (V-I⇒ equalsString (start .(arity equalsString)) base) E = step* refl base
-lemV M (V-I⇒ equalsString (bubble {as = az} p) x) E
-  with <>>-cancel-both' az _ ([] <>< arity equalsString) _ p refl
-lemV .(ibuiltin equalsString · _) (V-I⇒ equalsString (bubble {as = _} (start .(arity equalsString))) (step .(start (arity equalsString)) base v)) E | refl ,, refl ,, refl = step* refl (step* refl (step* (cong (stepV _) (dissect-lemma E (-· _))) (step** (lemV _ v (extEC E _)) (step* (cong (stepV v) (dissect-lemma E (_ ·-))) base))))
-lemV M (V-I⇒ encodeUtf8 {as = as} p x) E
-  with <>>-cancel-both' as _ ([] <>< arity encodeUtf8) _ p refl
-lemV M (V-I⇒ encodeUtf8 (start _) base) E | refl ,, refl ,, refl =
-  step* refl base
-lemV M (V-I⇒ decodeUtf8 {as = as} p x) E
-  with <>>-cancel-both' as _ ([] <>< arity decodeUtf8) _ p refl
-lemV M (V-I⇒ decodeUtf8 (start _) base) E | refl ,, refl ,, refl =
-  step* refl base
-lemV M (V-I⇒ fstPair (bubble (bubble {as = as} p)) x) E
-  with <>>-cancel-both' as _ ([] <>< arity fstPair) _ p refl
-lemV M (V-I⇒ fstPair (bubble (bubble (start .(arity fstPair)))) x) E | refl ,, refl ,, refl with BApp2BAPP x
-lemV (ibuiltin fstPair ·⋆ A ·⋆ B) (V-I⇒ fstPair (bubble (bubble (start .(arity fstPair)))) (step⋆ .(bubble (start (arity fstPair))) (step⋆ .(start (arity fstPair)) base))) E | refl ,, refl ,, refl | step⋆ .(bubble (start (Type ∷ Type ∷ Term ∷ []))) (step⋆ .(start (Type ∷ Type ∷ Term ∷ [])) base refl refl) refl refl = step*
-  refl
-  (step* refl
-         (step* refl
-                (step* (cong (stepV _) (dissect-lemma (extEC E (-·⋆ B))(-·⋆ A)))
-            (step* (cong (stepV _) (dissect-lemma E (-·⋆ _)))
-                   base))))
-lemV M (V-I⇒ sndPair (bubble (bubble {as = as} p)) x) E
-  with <>>-cancel-both' as _ ([] <>< arity sndPair) _ p refl
-lemV M (V-I⇒ sndPair (bubble (bubble (start .(arity sndPair)))) x) E | refl ,, refl ,, refl with BApp2BAPP x
-lemV (ibuiltin sndPair ·⋆ A ·⋆ B) (V-I⇒ sndPair (bubble (bubble (start .(arity sndPair)))) (step⋆ .(bubble (start (arity sndPair))) (step⋆ .(start (arity sndPair)) base))) E | refl ,, refl ,, refl | step⋆ .(bubble (start (Type ∷ Type ∷ Term ∷ []))) (step⋆ .(start (Type ∷ Type ∷ Term ∷ [])) base refl refl) refl refl = step*
-  refl
-  (step* refl
-         (step* refl
-                (step* (cong (stepV _) (dissect-lemma (extEC E (-·⋆ B))(-·⋆ A)))
-            (step* (cong (stepV _) (dissect-lemma E (-·⋆ _)))
-                   base))))
-lemV M (V-I⇒ nullList (bubble {as = as} p) x) E
-  with <>>-cancel-both' as _ ([] <>< arity nullList) _ p refl
-lemV M (V-I⇒ nullList (bubble (start .(arity nullList))) x) E | refl ,, refl ,, refl with BApp2BAPP x
-lemV (ibuiltin nullList ·⋆ A) (V-I⇒ nullList (bubble (start .(arity nullList))) (step⋆ .(start (arity nullList)) base)) E | refl ,, refl ,, refl | step⋆ .(start (Type ∷ Term ∷ [])) base refl refl = step*
-  refl
-  (step* refl (step* (cong (stepV _) (dissect-lemma E (-·⋆ A))) base))
-lemV M (V-I⇒ headList (bubble {as = as} p) x) E
-  with <>>-cancel-both' as _ ([] <>< arity headList) _ p refl
-lemV M (V-I⇒ headList (bubble (start .(arity headList))) x) E | refl ,, refl ,, refl with BApp2BAPP x
-lemV (ibuiltin headList ·⋆ A) (V-I⇒ headList (bubble (start .(arity headList))) (step⋆ .(start (arity headList)) base)) E | refl ,, refl ,, refl | step⋆ .(start (Type ∷ Term ∷ [])) base refl refl = step*
-  refl
-  (step* refl (step* (cong (stepV _) (dissect-lemma E (-·⋆ A))) base))
-lemV M (V-I⇒ tailList (bubble {as = as} p) x) E
-  with <>>-cancel-both' as _ ([] <>< arity tailList) _ p refl
-lemV M (V-I⇒ tailList (bubble (start .(arity tailList))) x) E | refl ,, refl ,, refl with BApp2BAPP x
-lemV (ibuiltin tailList ·⋆ A) (V-I⇒ tailList (bubble (start .(arity tailList))) (step⋆ .(start (arity tailList)) base)) E | refl ,, refl ,, refl | step⋆ .(start (Type ∷ Term ∷ [])) base refl refl = step*
-  refl
-  (step* refl (step* (cong (stepV _) (dissect-lemma E (-·⋆ A))) base))
-lemV M (V-I⇒ chooseList (bubble (bubble (start .(arity chooseList)))) x) E with BApp2BAPP x
-lemV (ibuiltin chooseList ·⋆ A ·⋆ B) (V-I⇒ chooseList (bubble (bubble (start .(arity chooseList)))) (step⋆ .(bubble (start (arity chooseList))) (step⋆ .(start (arity chooseList)) base))) E | step⋆ .(bubble (start (Type ∷ Type ∷ Term ∷ Term ∷ Term ∷ []))) (step⋆ .(start (Type ∷ Type ∷ Term ∷ Term ∷ Term ∷ [])) base refl refl) refl refl = step* refl (step* refl (step* refl (step* (cong (stepV _) (dissect-lemma (extEC E (-·⋆ B)) (-·⋆ A))) (step* (cong (stepV _) (dissect-lemma E (-·⋆ B))) base))))
-lemV M (V-I⇒ chooseList (bubble (bubble (bubble (start .(arity chooseList))))) x) E with BApp2BAPP x
-lemV ((ibuiltin chooseList ·⋆ A ·⋆ B) · M) (V-I⇒ chooseList (bubble (bubble (bubble (start .(arity chooseList))))) (step .(bubble (bubble (start (arity chooseList)))) (step⋆ .(bubble (start (arity chooseList))) (step⋆ .(start (arity chooseList)) base)) x₂)) E | step .(bubble (bubble (start (Type ∷ Type ∷ Term ∷ Term ∷ Term ∷ [])))) (step⋆ .(bubble (start (Type ∷ Type ∷ Term ∷ Term ∷ Term ∷ []))) (step⋆ .(start (Type ∷ Type ∷ Term ∷ Term ∷ Term ∷ [])) base refl refl) refl refl) x₁ = step* refl (step* refl (step* refl (step* refl (step* (cong (stepV _) (dissect-lemma (extEC (extEC E (-· M)) (-·⋆ B)) (-·⋆ A))) (step* (cong (stepV _) (dissect-lemma (extEC E (-· M)) (-·⋆ B))) (step* (cong (stepV _) (dissect-lemma E (-· M))) (step** (lemV M x₂ (extEC E (_ ·-))) (step* (cong (stepV x₂) (dissect-lemma E (_ ·-))) base))))))))
-lemV M (V-I⇒ chooseList (bubble (bubble (bubble (bubble {as = as} p)))) x) E
-  with <>>-cancel-both' as _ ([] <>< arity chooseList) _ p refl
-lemV .((_ · _) · _) (V-I⇒ chooseList (bubble (bubble (bubble (bubble {as = _} (start .(arity chooseList)))))) (step .(bubble (bubble (bubble (start (arity chooseList))))) (step .(bubble (bubble (start (arity chooseList)))) x x₂) x₁)) E | refl ,, refl ,, refl with BApp2BAPP x
-lemV (((ibuiltin chooseList ·⋆ A ·⋆ B) · M) · N) (V-I⇒ chooseList (bubble (bubble (bubble (bubble {_} {_} {.[]} (start .(arity chooseList)))))) (step .(bubble (bubble (bubble (start (arity chooseList))))) (step .(bubble (bubble (start (arity chooseList)))) (step⋆ .(bubble (start (arity chooseList))) (step⋆ .(start (arity chooseList)) base)) x₂) x₁)) E | refl ,, refl ,, refl | step⋆ .(bubble (start (Type ∷ Type ∷ Term ∷ Term ∷ Term ∷ []))) (step⋆ .(start (Type ∷ Type ∷ Term ∷ Term ∷ Term ∷ [])) base refl refl) refl refl = step* refl (step* refl (step* refl (step* refl (step* refl (step* (cong (stepV _) (dissect-lemma (extEC (extEC (extEC E (-· N)) (-· M)) (-·⋆ B)) (-·⋆ A))) (step* (cong (stepV _) (dissect-lemma (extEC (extEC E (-· N)) (-· M)) (-·⋆ B))) (step* (cong (stepV _) (dissect-lemma (extEC E (-· N)) (-· M))) (step** (lemV M x₂ (extEC (extEC E (-· N)) (_ ·-))) (step* (cong (stepV x₂) (dissect-lemma (extEC E (-· N)) (_ ·-))) (step* (cong (stepV _) (dissect-lemma E (-· N))) (step** (lemV N x₁ (extEC E (_ ·-))) (step* (cong (stepV x₁) (dissect-lemma E (_ ·-))) base))))))))))))
-lemV M (V-I⇒ constrData p x) E = {!!}
-lemV M (V-I⇒ mapData p x) E = {!!}
-lemV M (V-I⇒ listData p x) E = {!!}
-lemV M (V-I⇒ iData p x) E = {!!}
-lemV M (V-I⇒ bData p x) E = {!!}
-lemV M (V-I⇒ unconstrData p x) E = {!!}
-lemV M (V-I⇒ unMapData p x) E = {!!}
-lemV M (V-I⇒ unListData p x) E = {!!}
-lemV M (V-I⇒ unIData p x) E = {!!}
-lemV M (V-I⇒ unBData p x) E = {!!}
-lemV M (V-I⇒ equalsData p x) E = {!!}
-lemV M (V-I⇒ chooseData p x) E = {!!}
-lemV M (V-I⇒ chooseUnit p x) E = {!!}
-lemV M (V-I⇒ mkPairData p x) E = {!!}
-lemV M (V-I⇒ mkNilData p x) E = {!!}
-lemV M (V-I⇒ mkNilPairData p x) E = {!!}
-lemV M (V-I⇒ mkConsData p x) E = {!!}
-
-lemV M (V-IΠ fstPair {as = []} p x) E = {!!}
-lemV M (V-IΠ sndPair {as = []} p x) E = {!!}
-lemV M (V-IΠ nullList {as = []} p x) E = {!!}
-lemV M (V-IΠ headList {as = []} p x) E = {!!}
-lemV M (V-IΠ tailList {as = []} p x) E = {!!}
-lemV M (V-IΠ chooseList {as = []} p x) E = {!!}
-lemV M (V-IΠ chooseData {as = []} p x) E = {!!}
-lemV M (V-IΠ chooseUnit {as = []} p x) E = {!!}
-lemV M (V-IΠ equalsString {as = as ∷ x} (bubble p) x₁) E = {!!}
-lemV M (V-IΠ encodeUtf8 {as = as ∷ x} (bubble p) x₁) E = {!!}
-lemV M (V-IΠ decodeUtf8 {as = as ∷ x} (bubble p) x₁) E = {!!}
-lemV M (V-IΠ fstPair {as = as ∷ x} (bubble p) x₁) E = {!!}
-lemV M (V-IΠ sndPair {as = as ∷ x} (bubble p) x₁) E = {!!}
-lemV M (V-IΠ nullList {as = as ∷ x} (bubble p) x₁) E = {!!}
-lemV M (V-IΠ headList {as = as ∷ x} (bubble p) x₁) E = {!!}
-lemV M (V-IΠ tailList {as = as ∷ x} (bubble p) x₁) E = {!!}
-lemV M (V-IΠ chooseList {as = as ∷ x} (bubble p) x₁) E = {!!}
-lemV M (V-IΠ constrData {as = as ∷ x} (bubble p) x₁) E = {!!}
-lemV M (V-IΠ mapData {as = as ∷ x} (bubble p) x₁) E = {!!}
-lemV M (V-IΠ listData {as = as ∷ x} (bubble p) x₁) E = {!!}
-lemV M (V-IΠ iData {as = as ∷ x} (bubble p) x₁) E = {!!}
-lemV M (V-IΠ bData {as = as ∷ x} (bubble p) x₁) E = {!!}
-lemV M (V-IΠ unconstrData {as = as ∷ x} (bubble p) x₁) E = {!!}
-lemV M (V-IΠ unMapData {as = as ∷ x} (bubble p) x₁) E = {!!}
-lemV M (V-IΠ unListData {as = as ∷ x} (bubble p) x₁) E = {!!}
-lemV M (V-IΠ unIData {as = as ∷ x} (bubble p) x₁) E = {!!}
-lemV M (V-IΠ unBData {as = as ∷ x} (bubble p) x₁) E = {!!}
-lemV M (V-IΠ equalsData {as = as ∷ x} (bubble p) x₁) E = {!!}
-lemV M (V-IΠ chooseData {as = as ∷ x} (bubble p) x₁) E = {!!}
-lemV M (V-IΠ chooseUnit {as = as ∷ x} (bubble p) x₁) E = {!!}
-lemV M (V-IΠ mkPairData {as = as ∷ x} (bubble p) x₁) E = {!!}
-lemV M (V-IΠ mkNilData {as = as ∷ x} (bubble p) x₁) E = {!!}
-lemV M (V-IΠ mkNilPairData {as = as ∷ x} (bubble p) x₁) E = {!!}
-lemV M (V-IΠ mkConsData {as = as ∷ x} (bubble p) x₁) E = {!!}
 -}
+
 
 lem62 : ∀{A B C}(L : ∅ ⊢ C)(E : EC A B)(E' : EC B C)
       → (E ▻ (E' [ L ]ᴱ)) -→s (compEC' E E' ▻ L)
@@ -644,25 +213,30 @@ unwindVE : ∀{A B C}(M : ∅ ⊢ A)(N : ∅ ⊢ B)(E : EC C B)(E' : EC B A)
       → (compEC' E E' ◅ VM) -→s (E ◅ VN)
 unwindVE A B E E' refl VM VN with dissect E' | inspect dissect E'
 ... | inj₁ refl | I[ eq ] rewrite dissect-inj₁ E' refl eq rewrite uniqueVal A VM VN = base
-... | inj₂ (_ ,, E'' ,, (V-ƛ M ·-)) | I[ eq ] rewrite dissect-inj₂ E' E'' (V-ƛ M ·-) eq = ⊥-elim (lemVβ (lemVE _ E'' (subst Value (extEC-[]ᴱ E'' (V-ƛ M ·-) A) VN)))
-unwindVE A .(E' [ A ]ᴱ) E E' refl VM VN | inj₂ (_ ,, E'' ,, (V-I⇒ b {as' = []} p x ·-)) | I[ eq ] rewrite dissect-inj₂ E' E'' (V-I⇒ b p x ·-) eq = ⊥-elim (valred (lemVE _ E'' (subst Value (extEC-[]ᴱ E'' (V-I⇒ b p x ·-) A) VN)) (β-builtin b (deval (V-I⇒ b p x)) p x A VM))
-unwindVE A .(E' [ A ]ᴱ) E E' refl VM VN | inj₂ (_ ,, E'' ,, (V-I⇒ b {as' = x₁ ∷ as'} p x ·-)) | I[ eq ] rewrite dissect-inj₂ E' E'' (V-I⇒ b p x ·-) eq =
-  step* (trans (cong (λ E → stepV VM (dissect E)) (compEC'-extEC E E'' (V-I⇒ b p x ·-))) (cong (stepV VM) (dissect-lemma (compEC' E E'') (V-I⇒ b p x ·-)))) (unwindVE _ _ E E'' (extEC-[]ᴱ E'' (V-I⇒ b p x ·-) A) (V-I b (bubble p) (step p x VM)) VN)
-unwindVE .(Λ M) .(E' [ Λ M ]ᴱ) E E' refl (V-Λ M) VN | inj₂ (_ ,, E'' ,, -·⋆ C) | I[ eq ] rewrite dissect-inj₂ E' E'' (-·⋆ C) eq = ⊥-elim (lemVβ⋆ (lemVE _ E'' (subst Value (extEC-[]ᴱ E'' (-·⋆ C) (Λ M)) VN)))
-unwindVE A .(E' [ A ]ᴱ) E E' refl (V-IΠ b {as' = []} p x) VN | inj₂ (_ ,, E'' ,, -·⋆ C) | I[ eq ] rewrite dissect-inj₂ E' E'' (-·⋆ C) eq = ⊥-elim (valred (lemVE _ E'' (subst Value (extEC-[]ᴱ E'' (-·⋆ C) A) VN)) (β-builtin⋆ b A p x C refl))
-unwindVE A .(E' [ A ]ᴱ) E E' refl (V-IΠ b {as' = a ∷ as'} p x) VN | inj₂ (_ ,, E'' ,, -·⋆ C) | I[ eq ] rewrite dissect-inj₂ E' E'' (-·⋆ C) eq =
-  step* (trans (cong (λ E → stepV _ (dissect E)) (compEC'-extEC E E'' (-·⋆ C))) (cong (stepV (V-IΠ b p x)) (dissect-lemma (compEC' E E'') (-·⋆ C)))) (unwindVE _ _ E E'' (extEC-[]ᴱ E'' (-·⋆ C) A) (V-I b (bubble p) (step⋆ p x refl)) VN)
-... | inj₂ (_ ,, E'' ,, wrap-) | I[ eq ] rewrite dissect-inj₂ E' E'' wrap- eq = step* (trans (cong (λ E → stepV VM (dissect E)) (compEC'-extEC E E'' wrap-)) (cong (stepV VM) (dissect-lemma (compEC' E E'') wrap-))) (unwindVE _ _ E E'' (extEC-[]ᴱ E'' wrap- A) (V-wrap VM) VN)
-unwindVE .(wrap _ _ _) .(E' [ wrap _ _ _ ]ᴱ) E E' refl (V-wrap VM) VN | inj₂ (_ ,, E'' ,, unwrap-) | I[ eq ] rewrite dissect-inj₂ E' E'' unwrap- eq = ⊥-elim (valred (lemVE _ E'' (subst Value (extEC-[]ᴱ E'' unwrap- (deval (V-wrap VM))) VN)) (β-wrap VM refl))
+... | inj₂ (_ ,, E'' ,, (V-ƛ M ·-)) | I[ eq ] rewrite dissect-inj₂ E' E'' (V-ƛ M ·-) eq 
+    = ⊥-elim (lemVβ (lemVE _ E'' (subst Value (extEC-[]ᴱ E'' (V-ƛ M ·-) A) VN)))
+... | inj₂ (_ ,, E'' ,, (V-I⇒ b {am = zero} x ·-)) | I[ eq ] rewrite dissect-inj₂ E' E'' (V-I⇒ b x ·-) eq 
+    = ⊥-elim (valred (lemVE _ E'' (subst Value (extEC-[]ᴱ E'' (V-I⇒ b x ·-) A) VN)) (β-builtin b (deval (V-I⇒ b x)) x A VM))
+... | inj₂ (_ ,, E'' ,, (V-I⇒ b {am = suc am} x ·-)) | I[ eq ]  rewrite dissect-inj₂ E' E'' (V-I⇒ b x ·-) eq  
+    = step* (trans (cong (λ E → stepV VM (dissect E)) (compEC'-extEC E E'' (V-I⇒ b x ·-))) (cong (stepV VM) (dissect-lemma (compEC' E E'') (V-I⇒ b x ·-)))) 
+            (unwindVE _ _ E E'' (extEC-[]ᴱ E'' (V-I⇒ b x ·-) A) (V-I b (step x VM)) VN)
+unwindVE .(Λ M) .(E' [ Λ M ]ᴱ) E E' refl (V-Λ M) VN | inj₂ (_ ,, E'' ,, -·⋆ C) | I[ eq ] rewrite dissect-inj₂ E' E'' (-·⋆ C) eq 
+ = ⊥-elim (lemVβ⋆ (lemVE _ E'' (subst Value (extEC-[]ᴱ E'' (-·⋆ C) (Λ M)) VN)))
+unwindVE A .(E' [ A ]ᴱ) E E' refl (V-IΠ b x) VN | inj₂ (_ ,, E'' ,, -·⋆ C) | I[ eq ] rewrite dissect-inj₂ E' E'' (-·⋆ C) eq  
+ = step* (trans (cong (λ E → stepV _ (dissect E)) (compEC'-extEC E E'' (-·⋆ C))) (cong (stepV (V-IΠ b x)) (dissect-lemma (compEC' E E'') (-·⋆ C)))) (unwindVE _ _ E E'' (extEC-[]ᴱ E'' (-·⋆ C) A) (V-I b (step⋆ x refl refl)) VN) 
+... | inj₂ (_ ,, E'' ,, wrap-) | I[ eq ] rewrite dissect-inj₂ E' E'' wrap- eq 
+    = step* (trans (cong (λ E → stepV VM (dissect E)) (compEC'-extEC E E'' wrap-)) (cong (stepV VM) (dissect-lemma (compEC' E E'') wrap-))) (unwindVE _ _ E E'' (extEC-[]ᴱ E'' wrap- A) (V-wrap VM) VN)
+unwindVE _ _ E E' refl (V-wrap VM) VN | inj₂ (_ ,, E'' ,, unwrap-) | I[ eq ] rewrite dissect-inj₂ E' E'' unwrap- eq 
+    = ⊥-elim (valred (lemVE _ E'' (subst Value (extEC-[]ᴱ E'' unwrap- (deval (V-wrap VM))) VN)) (β-wrap VM refl))
 unwindVE .(ƛ M) .(E' [ ƛ M ]ᴱ) E E' refl (V-ƛ M) VN | inj₂ (_ ,, E'' ,, (-· M')) | I[ eq ] rewrite dissect-inj₂ E' E'' (-· M') eq = ⊥-elim (lemVβ (lemVE (ƛ M · M') E'' (subst Value (extEC-[]ᴱ E'' (-· M') (ƛ M)) VN)))
-unwindVE A .(E' [ A ]ᴱ) E E' refl V@(V-I⇒ b {as' = []} p x) VN | inj₂ (_ ,, E'' ,, (-· M')) | I[ eq ] rewrite dissect-inj₂ E' E'' (-· M') eq = ⊥-elim (valred (lemVE _ E'' (subst Value (extEC-[]ᴱ E'' (-· M') A) VN)) (β-builtin b A p x M' (lemVE _ (extEC E'' (V ·-)) (subst Value (trans (extEC-[]ᴱ E'' (-· M') A) (sym (extEC-[]ᴱ E'' (V ·-) M'))) VN))))
-unwindVE A .(E' [ A ]ᴱ) E E' refl V@(V-I⇒ b {as' = a ∷ as'} p x) VN | inj₂ (_ ,, E'' ,, (-· M')) | I[ eq ] rewrite dissect-inj₂ E' E'' (-· M') eq = step* (trans (cong (λ E → stepV (V-I⇒ b p x) (dissect E)) (compEC'-extEC E E'' (-· M'))) (cong (stepV (V-I⇒ b p x)) (dissect-lemma (compEC' E E'') (-· M')))) (step** (lemV M' (lemVE M' (extEC E'' (V-I⇒ b p x ·-)) (subst Value (trans (extEC-[]ᴱ E'' (-· M') A) (sym (extEC-[]ᴱ E'' (V-I⇒ b p x ·-) M'))) VN)) (extEC (compEC' E E'') (V-I⇒ b p x ·-))) (step* (cong (stepV _) (dissect-lemma (compEC' E E'') (V-I⇒ b p x ·-))) ((unwindVE (A · M') _ E E'' (extEC-[]ᴱ E'' (-· M') A) (V-I b (bubble p)
-  (step p x
-   (lemVE M' (extEC E'' (V-I⇒ b p x ·-))
-      (subst Value
-       (trans (extEC-[]ᴱ E'' (-· M') A)
-        (sym (extEC-[]ᴱ E'' (V-I⇒ b p x ·-) M')))
-       VN)))) VN))))
+unwindVE A .(E' [ A ]ᴱ) E E' refl V@(V-I⇒ b {am = zero} x) VN | inj₂ (_ ,, E'' ,, (-· M')) | I[ eq ] rewrite dissect-inj₂ E' E'' (-· M') eq 
+  = ⊥-elim (valred (lemVE _ E'' (subst Value (extEC-[]ᴱ E'' (-· M') A) VN)) (β-builtin b A x M' (lemVE _ (extEC E'' (V ·-)) (subst Value (trans (extEC-[]ᴱ E'' (-· M') A) (sym (extEC-[]ᴱ E'' (V ·-) M'))) VN))))
+unwindVE A .(E' [ A ]ᴱ) E E' refl V@(V-I⇒ b {am = suc am} x) VN | inj₂ (_ ,, E'' ,, (-· M')) | I[ eq ] rewrite dissect-inj₂ E' E'' (-· M') eq 
+  = step* (trans (cong (λ E → stepV (V-I⇒ b x) (dissect E)) (compEC'-extEC E E'' (-· M'))) (cong (stepV (V-I⇒ b x)) (dissect-lemma (compEC' E E'') (-· M')))) 
+             (step** (lemV M' (lemVE M' (extEC E'' (V-I⇒ b x ·-)) (subst Value (trans (extEC-[]ᴱ E'' (-· M') A) (sym (extEC-[]ᴱ E'' (V-I⇒ b x ·-) M'))) VN)) (extEC (compEC' E E'') (V-I⇒ b x ·-))) 
+                     (step* (cong (stepV _) (dissect-lemma (compEC' E E'') (V-I⇒ b x ·-))) 
+                            ((unwindVE (A · M') _ E E'' (extEC-[]ᴱ E'' (-· M') A) (V-I b (step x (lemVE M' (extEC E'' (V-I⇒ b x ·-))  
+                              (subst Value (trans (extEC-[]ᴱ E'' (-· M') A)  (sym (extEC-[]ᴱ E'' (V-I⇒ b x ·-) M'))) VN)))) VN))))  
 
 unwindE : ∀{A B C}(M : ∅ ⊢ A)(N : ∅ ⊢ B)(E : EC C B)(E' : EC B A)
       → N ≡ E' [ M ]ᴱ
@@ -672,6 +246,7 @@ unwindE : ∀{A B C}(M : ∅ ⊢ A)(N : ∅ ⊢ B)(E : EC C B)(E' : EC B A)
 unwindE M N E E' refl VN = step**
   (lemV M _ (compEC' E E'))
   (unwindVE M N E E' refl (lemVE M E' VN) VN)
+
 
 data Focussing {A B}(M : ∅ ⊢ A)(E : EC B A) M' (p : E [ M ]ᴱ —→ M') : Set
   where
@@ -735,13 +310,13 @@ refocus E .(ƛ M) (V-ƛ M) E₁ L r p | inj₂ (_ ,, E₂ ,, (-· N)) | I[ eq ] 
 ... | step ¬VEƛM E₃ x₁ x₂ U rewrite dissect-inj₂ E E₂ (-· N) eq with U E₁ p r
 ... | refl ,, refl ,, refl with U E₂ (extEC-[]ᴱ E₂ (-· N) (ƛ M)) (β (β-ƛ VN))
 ... | refl ,, refl ,, refl = locate E₂ (-· N) [] refl (V-ƛ M) (λ V → lemVβ V) [] (sym (extEC-[]ᴱ E₂ (-· N) (ƛ M)))
-refocus E M V@(V-I⇒ b {as' = []} p₁ x) E₁ L r p | inj₂ (_ ,, E₂ ,, (-· N)) | I[ eq ] | done VN with rlemma51! (E [ M ]ᴱ)
+refocus E M V@(V-I⇒ b {am = 0} x) E₁ L r p | inj₂ (_ ,, E₂ ,, (-· N)) | I[ eq ] | done VN with rlemma51! (E [ M ]ᴱ)
 ... | done VEM =
   ⊥-elim (valredex (lemVE L E₁ (subst Value p VEM)) r)
 ... | step ¬VEM E₃ x₂ x₃ U rewrite dissect-inj₂ E E₂ (-· N) eq with U E₁ p r
-... | refl ,, refl ,, refl with U E₂ (extEC-[]ᴱ E₂ (-· N) M) (β (β-builtin b M p₁ x N VN))
-... | refl ,, refl ,, refl = locate E₂ (-· N) [] refl V (λ V → valred V (β-builtin b M p₁ x N VN)) [] (sym (extEC-[]ᴱ E₂ (-· N) M))
-refocus E M (V-I⇒ b {as' = x₁ ∷ as'} p₁ x) E₁ L r p | inj₂ (_ ,, E₂ ,, (-· N)) | I[ eq ] | done VN rewrite dissect-inj₂ E E₂ (-· N) eq with refocus E₂ (M · N) (V-I b (bubble p₁) (step p₁ x VN)) E₁ L r (trans (sym (extEC-[]ᴱ E₂ (-· N) M)) p)
+... | refl ,, refl ,, refl with U E₂ (extEC-[]ᴱ E₂ (-· N) M) (β (β-builtin b M x N VN))
+... | refl ,, refl ,, refl = locate E₂ (-· N) [] refl V (λ V → valred V (β-builtin b M x N VN)) [] (sym (extEC-[]ᴱ E₂ (-· N) M))
+refocus E M (V-I⇒ b {am = suc _} x) E₁ L r p | inj₂ (_ ,, E₂ ,, (-· N)) | I[ eq ] | done VN rewrite dissect-inj₂ E E₂ (-· N) eq with refocus E₂ (M · N) (V-I b (step x VN)) E₁ L r (trans (sym (extEC-[]ᴱ E₂ (-· N) M)) p)
 ... | locate E₃ F E₄ x₂ x₃ x₄ E₅ x₅ = locate
   E₃
   F
@@ -761,14 +336,14 @@ refocus E M VM E₁ L r p | inj₂ (_ ,, E₂ ,, (V@(V-ƛ M₁) ·-))      | I[ 
   with U E₁ p r
 ... | refl ,, refl ,, refl with U E₂ (extEC-[]ᴱ E₂ (V ·-) M) (β (β-ƛ VM))
 ... | refl ,, refl ,, refl = locate E₂ (V ·-) [] refl VM (λ V → lemVβ V) [] (sym (extEC-[]ᴱ E₂ (V ·-) M))
-refocus E M VM E₁ L r p | inj₂ (_ ,, E₂ ,, (V@(V-I⇒ b {as' = []} p₁ x) ·-)) | I[ eq ] with rlemma51! (E [ M ]ᴱ)
+refocus E M VM E₁ L r p | inj₂ (_ ,, E₂ ,, (V@(V-I⇒ b {am = 0} x) ·-)) | I[ eq ] with rlemma51! (E [ M ]ᴱ)
 ... | done VEM =
   ⊥-elim (valredex (lemVE L E₁ (subst Value p VEM)) r)
 ... | step ¬VEM E₃ x₁ x₂ U rewrite dissect-inj₂ E E₂ (V ·-) eq
   with U E₁ p r
-... | refl ,, refl ,, refl with U E₂ (extEC-[]ᴱ E₂ (V ·-) M) (β (β-builtin b _ p₁ x M VM))
-... | refl ,, refl ,, refl = locate E₂ (V ·-) [] refl VM (λ V → valred V (β-builtin b _ p₁ x M VM)) [] (sym (extEC-[]ᴱ E₂ (V ·-) M))
-refocus E M VM E₁ L r p | inj₂ (_ ,, E₂ ,, _·- {t = t} (V@(V-I⇒ b {as' = _ ∷ as'} p₁ x))) | I[ eq ] rewrite dissect-inj₂ E E₂ (V ·-) eq with refocus E₂ (t · M) (V-I b (bubble p₁) (step p₁ x VM)) E₁ L r (trans (sym (extEC-[]ᴱ E₂ (V ·-) M)) p)
+... | refl ,, refl ,, refl with U E₂ (extEC-[]ᴱ E₂ (V ·-) M) (β (β-builtin b _ x M VM))
+... | refl ,, refl ,, refl = locate E₂ (V ·-) [] refl VM (λ V → valred V (β-builtin b _ x M VM)) [] (sym (extEC-[]ᴱ E₂ (V ·-) M))
+refocus E M VM E₁ L r p | inj₂ (_ ,, E₂ ,, _·- {t = t} (V@(V-I⇒ b {am = suc _} x))) | I[ eq ] rewrite dissect-inj₂ E E₂ (V ·-) eq with refocus E₂ (t · M) (V-I b (step x VM)) E₁ L r (trans (sym (extEC-[]ᴱ E₂ (V ·-) M)) p)
 ... | locate E₃ F E₄ x₂ x₃ x₄ E₅ x₅ = locate
   E₃
   F
@@ -784,13 +359,7 @@ refocus E .(Λ M) (V-Λ M) E₁ L r p | inj₂ (_ ,, E₂ ,, -·⋆ A) | I[ eq ]
 ... | step ¬VEƛM E₃ x₁ x₂ U rewrite dissect-inj₂ E E₂ (-·⋆ A) eq with U E₁ p r
 ... | refl ,, refl ,, refl with U E₂ (extEC-[]ᴱ E₂ (-·⋆ A) (Λ M)) (β (β-Λ refl))
 ... | refl ,, refl ,, refl = locate E₂ (-·⋆ A) [] refl (V-Λ M) (λ V → lemVβ⋆ V) [] (sym (extEC-[]ᴱ E₂ (-·⋆ A) (Λ M)))
-refocus E M V@(V-IΠ b {as' = []} p₁ x) E₁ L r p | inj₂ (_ ,, E₂ ,, -·⋆ A) | I[ eq ] with rlemma51! (E [ M ]ᴱ)
-... | done VEM =
-  ⊥-elim (valredex (lemVE L E₁ (subst Value p VEM)) r)
-... | step ¬VEM E₃ x₂ x₃ U rewrite dissect-inj₂ E E₂ (-·⋆ A) eq with U E₁ p r
-... | refl ,, refl ,, refl with U E₂ (extEC-[]ᴱ E₂ (-·⋆ A) M) (β (β-builtin⋆ b M p₁ x A refl))
-... | refl ,, refl ,, refl = locate E₂ (-·⋆ A) [] refl V (λ V → valred V (β-builtin⋆ b M p₁ x A refl)) [] (sym (extEC-[]ᴱ E₂ (-·⋆ A) M))
-refocus E M (V-IΠ b {as' = _ ∷ as'} p₁ x) E₁ L r p | inj₂ (_ ,, E₂ ,, -·⋆ A) | I[ eq ] rewrite dissect-inj₂ E E₂ (-·⋆ A) eq with refocus E₂ (M ·⋆ A / refl) (V-I b (bubble p₁) (step⋆ p₁ x refl)) E₁ L r (trans (sym (extEC-[]ᴱ E₂ (-·⋆ A) M)) p)
+refocus E M (V-IΠ b x) E₁ L r p | inj₂ (_ ,, E₂ ,, -·⋆ A) | I[ eq ] rewrite dissect-inj₂ E E₂ (-·⋆ A) eq with refocus E₂ (M ·⋆ A / refl) (V-I b (step⋆ x refl refl)) E₁ L r (trans (sym (extEC-[]ᴱ E₂ (-·⋆ A) M)) p)
 ... | locate E₃ F E₄ x₂ x₃ x₄ E₅ x₅ = locate
   E₃
   F
@@ -811,6 +380,7 @@ refocus E (wrap A B M) (V-wrap VM) E₁ L r p | inj₂ (_ ,, E₂ ,, unwrap-) | 
 ... | refl ,, refl ,, refl with U E₂ (extEC-[]ᴱ E₂ unwrap- (wrap A B M)) (β (β-wrap VM refl))
 ... | refl ,, refl ,, refl = locate E₂ unwrap- [] refl (V-wrap VM) (λ V → valred V (β-wrap VM refl)) [] (sym (extEC-[]ᴱ E₂ unwrap- (wrap A B M)))
 
+
 lem-→s⋆ : ∀{A B}(E : EC A B){L N} →  L —→⋆ N -> (E ▻ L) -→s (E ▻ N)
 lem-→s⋆ E (β-ƛ V) = step*
   refl
@@ -829,19 +399,12 @@ lem-→s⋆ E (β-wrap V refl) = step*
   (step** (lemV _ (V-wrap V) (extEC E unwrap-))
           (step* (cong (stepV (V-wrap V)) (dissect-lemma E unwrap-))
                  base))
-lem-→s⋆ E (β-builtin b t p bt u vu) with bappTermLem b t p bt
-... | _ ,, _ ,, refl = step*
-  refl
-  (step** (lemV t (V-I⇒ b p bt) (extEC E (-· u)))
-          (step* (cong (stepV (V-I⇒ b p bt)) (dissect-lemma E (-· u)))
-                 (step** (lemV u vu (extEC E (V-I⇒ b p bt ·-)))
-                         (step* (cong (stepV vu) (dissect-lemma E (V-I⇒ b p bt ·-)))
-                                base))))
-lem-→s⋆ E (β-builtin⋆ b t p bt A refl) with bappTypeLem b t p bt
-... | _ ,, _ ,, refl = step*
-  refl
-  (step** (lemV t (V-IΠ b p bt) (extEC E (-·⋆ A)))
-          (step* (cong (stepV (V-IΠ b p bt)) (dissect-lemma E (-·⋆ A))) base))
+lem-→s⋆ E (β-builtin b t bt u vu) = step* 
+   refl 
+   (step** (lemV t (V-I⇒ b bt) (extEC E (-· u)))
+           (step* (cong (stepV (V-I⇒ b bt)) (dissect-lemma E (-· u))) 
+                  (step** (lemV u vu (extEC E (V-I⇒ b bt ·-))) 
+                          (step* (cong (stepV vu) (dissect-lemma E (V-I⇒ b bt ·-))) base)))) 
 
 {-
 lemmaF : ∀{A A' B B'}(M : ∅ ⊢ A)(F : Frame B A)(E : EC B' B)
@@ -879,27 +442,27 @@ lemmaF' .(ƛ M) (-· N) E E' L _ (V-ƛ M) (β-ƛ _) ¬VFM x₁ | done VN | step 
   (step** (lemV N VN (extEC E (V-ƛ M ·-)))
           (step* (cong (stepV VN) (dissect-lemma E (V-ƛ M ·-))) (subst (λ E' →  (E ▻ (M [ N ])) -→s (E' ▻ (M [ N ]))) x base)))
 
-lemmaF' M (-· N) E E' L L' V@(V-I⇒ b {as' = []} p x) r ¬VFM x₁ | done VN with rlemma51! (extEC E (-· N) [ M ]ᴱ)
-... | done VMN = ⊥-elim (valred (lemVE _ E (subst Value (extEC-[]ᴱ E (-· N) M) VMN)) (β-builtin b M p x N VN))
-... | step ¬VMN E₁ x₃ x₄ U with U E (extEC-[]ᴱ E (-· N) M) (β (β-builtin b M p x N VN))
+lemmaF' M (-· N) E E' L L' V@(V-I⇒ b {am = 0} x) r ¬VFM x₁ | done VN with rlemma51! (extEC E (-· N) [ M ]ᴱ)
+... | done VMN = ⊥-elim (valred (lemVE _ E (subst Value (extEC-[]ᴱ E (-· N) M) VMN)) (β-builtin b M x N VN))
+... | step ¬VMN E₁ x₃ x₄ U with U E (extEC-[]ᴱ E (-· N) M) (β (β-builtin b M x N VN))
 ... | refl ,, refl ,, refl with U (compEC' E E') x₁ (β r)
-lemmaF' M (-· N) E E' .(M · N) _ V@(V-I⇒ b {as' = []} p x) (β-builtin b₁ .M p₁ bt .N vu) ¬VFM x₁ | done VN | step ¬VMN E x₃ x₄ U | refl ,, refl ,, refl | refl ,, q ,, refl with uniqueVal N VN vu | uniqueVal M V (V-I⇒ b₁ p₁ bt)
+lemmaF' M (-· N) E E' .(M · N) _ V@(V-I⇒ b {am = 0} x) (β-builtin b₁ .M bt .N vu) ¬VFM x₁ | done VN | step ¬VMN E x₃ x₄ U | refl ,, refl ,, refl | refl ,, q ,, refl with uniqueVal N VN vu | uniqueVal M V (V-I⇒ b₁ bt)
 ... | refl | refl = step*
   (cong (stepV V) (dissect-lemma E (-· N)))
   (step** (lemV N VN (extEC E (V ·-)))
           (step* (cong (stepV VN) (dissect-lemma E (V ·-))) (subst (λ E' → (E ▻ _) -→s (E' ▻ _)) q base)))
-lemmaF' M (-· N) E E' L L' (V-I⇒ b {as' = x₂ ∷ as'} p x) r ¬VFM x₁ | done VN =
-  ⊥-elim (¬VFM (V-I b (bubble p) (step p x VN)))
+lemmaF' M (-· N) E E' L L' (V-I⇒ b {am = suc _} x) r ¬VFM x₁ | done VN =
+  ⊥-elim (¬VFM (V-I b (step x VN)))
 
 lemmaF' M (VN ·-) E E' L L' V x x₁ x₂ with rlemma51! (extEC E (VN ·-) [ M ]ᴱ)
 ... | done VNM = ⊥-elim (x₁ (lemVE (deval VN · M) E (subst Value (extEC-[]ᴱ E (VN ·-) M) VNM)))
 lemmaF' M (V-ƛ M₁ ·-) E E' L L' V x x₁ x₂ | step ¬VƛM₁M E₁ x₃ x₄ U with U (compEC' E E') x₂ (β x)
 ... | refl ,, refl ,, refl with U E (extEC-[]ᴱ E (V-ƛ M₁ ·-) M) (β (β-ƛ V))
 lemmaF' M (V-ƛ M₁ ·-) E E' L L' V (β-ƛ _) x₁ x₂ | step ¬VƛM₁M E₁ x₃ x₄ U | refl ,, refl ,, refl | refl ,, q ,, refl = step* (cong (stepV V) (dissect-lemma E (V-ƛ M₁ ·-))) ((subst (λ E' → (E ▻ _) -→s (E' ▻ _)) (sym q) base))
-lemmaF' M (V-I⇒ b {as' = x₇ ∷ as'} p x₃ ·-) E E' L L' V x x₁ x₂ | step ¬VNM E₁ x₄ x₅ x₆ = ⊥-elim (x₁ (V-I b (bubble p) (step p x₃ V)))
-lemmaF' M (VN@(V-I⇒ b {as' = []} p x₃) ·-) E E' L L' V x x₁ x₂ | step ¬VNM E₁ x₄ x₅ U with U E (extEC-[]ᴱ E (VN ·-) M) (β (β-builtin b _ p x₃ M V))
+lemmaF' M (V-I⇒ b {am = suc _} x₃ ·-) E E' L L' V x x₁ x₂ | step ¬VNM E₁ x₄ x₅ x₆ = ⊥-elim (x₁ (V-I b (step x₃ V)))
+lemmaF' M (VN@(V-I⇒ b {am = 0} x₃) ·-) E E' L L' V x x₁ x₂ | step ¬VNM E₁ x₄ x₅ U with U E (extEC-[]ᴱ E (VN ·-) M) (β (β-builtin b _ x₃ M V))
 ... | refl ,, refl ,, refl with U (compEC' E E') x₂ (β x)
-lemmaF' M (VN@(V-I⇒ b {as' = []} p x₃) ·-) E E' L L' V x x₁ x₂ | step ¬VNM E₁ x₄ x₅ U | refl ,, refl ,, refl | refl ,, q ,, refl rewrite determinism⋆ x (β-builtin b _ p x₃ M V) = step*
+lemmaF' M (VN@(V-I⇒ b {am = 0} x₃) ·-) E E' L L' V x x₁ x₂ | step ¬VNM E₁ x₄ x₅ U | refl ,, refl ,, refl | refl ,, q ,, refl rewrite determinism⋆ x (β-builtin b _ x₃ M V) = step*
   (cong (stepV V) (dissect-lemma E (VN ·-)))
   (subst (λ E' → (E ▻ _) -→s (E' ▻ _)) q base)
 lemmaF' M (-·⋆ A) E E' L L' V x x₁ x₂ with rlemma51! (extEC E (-·⋆ A) [ M ]ᴱ)
@@ -909,11 +472,7 @@ lemmaF' .(Λ M) (-·⋆ A) E E' L L' (V-Λ M) x x₁ x₂ | step ¬VM·⋆A .(co
 lemmaF' .(Λ M) (-·⋆ A) E E' L L' (V-Λ M) x x₁ x₂ | step ¬VM·⋆A .(compEC' E E') x₃ x₄ U | refl ,, refl ,, refl | refl ,, q ,, refl rewrite determinism⋆ x (β-Λ refl) = step*
   (cong (stepV (V-Λ M)) (dissect-lemma E (-·⋆ A)))
   (subst (λ E' → (E ▻ _) -→s (E' ▻ _)) (sym q) base)
-lemmaF' M (-·⋆ A) E E' L L' (V-IΠ b {as' = []} p x₅) x x₁ x₂ | step ¬VM·⋆A .(compEC' E E') x₃ x₄ U | refl ,, refl ,, refl with U E (extEC-[]ᴱ E (-·⋆ A) M) (β (β-builtin⋆ b M p x₅ A refl))
-lemmaF' M (-·⋆ A) E E' L L' VM@(V-IΠ b {as' = []} p x₅) x x₁ x₂ | step ¬VM·⋆A .(compEC' E E') x₃ x₄ U | refl ,, refl ,, refl | refl ,, q ,, refl rewrite determinism⋆ x (β-builtin⋆ b M p x₅ A refl) = step*
-  (cong (stepV VM) (dissect-lemma E (-·⋆ A)))
-  (subst (λ E' → (E ▻ _) -→s (E' ▻ _)) (sym q) base)
-lemmaF' M (-·⋆ A) E E' L L' (V-IΠ b {as' = x₆ ∷ as'} p x₅) x x₁ x₂ | step ¬VM·⋆A .(compEC' E E') x₃ x₄ U | refl ,, refl ,, refl = ⊥-elim (x₁ (V-I b (bubble p) (step⋆ p x₅ refl)))
+lemmaF' M (-·⋆ A) E E' L L' (V-IΠ b x₅) x x₁ x₂ | step ¬VM·⋆A .(compEC' E E') x₃ x₄ U | refl ,, refl ,, refl = ⊥-elim (x₁ (V-I b (step⋆ x₅ refl refl)))
 lemmaF' M wrap- E E' L L' V x x₁ x₂ = ⊥-elim (x₁ (V-wrap V))
 lemmaF' (wrap A B M) unwrap- E E' L L' (V-wrap V) x x₁ x₂ with rlemma51! (extEC E unwrap- [ wrap A B M ]ᴱ)
 ... | done VEunwrapwrapV = ⊥-elim (x₁ (lemVE (unwrap (wrap A B M) refl) E (subst Value (extEC-[]ᴱ E unwrap- (wrap A B M)) VEunwrapwrapV)))
@@ -997,12 +556,12 @@ thm1bV M W M' E p N V (step* refl q) | inj₂ (_ ,, E' ,, (V-ƛ M₁ ·-)) | I[ 
   rewrite dissect-inj₂ E E' (V-ƛ M₁ ·-) eq = trans—↠
     (ruleEC E' (β-ƛ W) (trans p (extEC-[]ᴱ E' (V-ƛ M₁ ·-) M)) refl)
     (thm1b (M₁ [ M ]) _ E' refl N V q)
-thm1bV M W M' E p N V (step* refl q) | inj₂ (_ ,, E' ,, (VI@(V-I⇒ b {as' = []} p₁ x₁) ·-)) | I[ eq ] rewrite dissect-inj₂ E E' (VI ·-) eq = trans—↠
-  (ruleEC E' (β-builtin b _ p₁ x₁ M W) (trans p (extEC-[]ᴱ E' (VI ·-) M)) refl)
-  (thm1b (BUILTIN' b (bubble p₁) (step p₁ x₁ W)) _ E' refl N V q)
-thm1bV M W M' E p N V (step* refl q) | inj₂ (_ ,, E' ,, (VI@(V-I⇒ b {as' = x₂ ∷ as'} p₁ x₁) ·-)) | I[ eq ] rewrite dissect-inj₂ E E' (VI ·-) eq =
+thm1bV M W M' E p N V (step* refl q) | inj₂ (_ ,, E' ,, (VI@(V-I⇒ b {am = 0} x₁) ·-)) | I[ eq ] rewrite dissect-inj₂ E E' (VI ·-) eq = trans—↠
+  (ruleEC E' (β-builtin b _ x₁ M W) (trans p (extEC-[]ᴱ E' (VI ·-) M)) refl)
+  (thm1b (BUILTIN' b (step x₁ W)) _ E' refl N V q)
+thm1bV M W M' E p N V (step* refl q) | inj₂ (_ ,, E' ,, (VI@(V-I⇒ b {am = suc _} x₁) ·-)) | I[ eq ] rewrite dissect-inj₂ E E' (VI ·-) eq =
   thm1bV (_ · M)
-         (V-I b (bubble p₁) (step p₁ x₁ W))
+         (V-I b (step x₁ W))
          M'
          E'
          (trans p (extEC-[]ᴱ E' (VI ·-) M))
@@ -1010,12 +569,9 @@ thm1bV M W M' E p N V (step* refl q) | inj₂ (_ ,, E' ,, (VI@(V-I⇒ b {as' = x
          V
          q
 thm1bV .(Λ M) (V-Λ M) M' E p N V (step* refl q) | inj₂ (_ ,, E' ,, -·⋆ A) | I[ eq ] rewrite dissect-inj₂ E E' (-·⋆ A) eq = trans—↠ (ruleEC E' (β-Λ refl) (trans p (extEC-[]ᴱ E' (-·⋆ A) (Λ M))) refl) (thm1b (M [ A ]⋆) _ E' refl N V q)
-thm1bV M (V-IΠ b {as' = []} p₁ x₁) M' E p N V (step* refl q) | inj₂ (_ ,, E' ,, -·⋆ A) | I[ eq ] rewrite dissect-inj₂ E E' (-·⋆ A) eq = trans—↠
-  (ruleEC E' (β-builtin⋆ b _ p₁ x₁ A refl) (trans p (extEC-[]ᴱ E' (-·⋆ A) M)) refl)
-  (thm1b (BUILTIN' b (bubble p₁) (step⋆ p₁ x₁ refl)) _ E' refl N V q)
-thm1bV M (V-IΠ b {as' = x₂ ∷ as'} p₁ x₁) M' E p N V (step* refl q) | inj₂ (_ ,, E' ,, -·⋆ A) | I[ eq ] rewrite dissect-inj₂ E E' (-·⋆ A) eq =
+thm1bV M (V-IΠ b x₁) M' E p N V (step* refl q) | inj₂ (_ ,, E' ,, -·⋆ A) | I[ eq ] rewrite dissect-inj₂ E E' (-·⋆ A) eq =
   thm1bV (M ·⋆ A / refl)
-         (V-I b (bubble p₁) (step⋆ p₁ x₁ refl))
+         (V-I b (step⋆ x₁ refl refl))
          M'
          E'
          (trans p (extEC-[]ᴱ E' (-·⋆ A) M))

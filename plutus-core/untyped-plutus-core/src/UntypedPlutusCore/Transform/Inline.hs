@@ -18,7 +18,7 @@ things in sync, these are explicitly listed in Note [Differences from PIR inline
 If you add another difference, please note it there! Obviously fewer differences is
 better.
 
-See Note [The problem of inlining destructors].
+See Note [The problem of inlining destructors] for why this pass exists.
 -}
 module UntypedPlutusCore.Transform.Inline (inline, InlineHints (..)) where
 
@@ -44,6 +44,7 @@ import Data.Semigroup.Generic (GenericSemigroupMonoid (..))
 import Witherable (wither)
 
 {- Note [Differences from PIR inliner]
+See the module comment for explanation for why this exists and is similar to the PIR inliner.
 
 1. No types (obviously).
 2. No strictness information (we only have lambda arguments, which are always strict).

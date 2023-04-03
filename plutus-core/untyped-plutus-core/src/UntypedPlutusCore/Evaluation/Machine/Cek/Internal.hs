@@ -58,6 +58,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     , Slippage
     , defaultSlippage
     , NTerm
+    , runCekM
     )
 where
 
@@ -582,6 +583,7 @@ runCekM (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) (Emitte
     st <- _exBudgetModeGetFinal
     logs <- _cekEmitterInfoGetFinal
     pure (errOrRes, st, logs)
+{-# INLINE runCekM #-}
 
 -- | Look up a variable name in the environment.
 lookupVarName :: forall uni fun ann s . (PrettyUni uni fun) => NamedDeBruijn -> CekValEnv uni fun ann -> CekM uni fun s (CekValue uni fun ann)

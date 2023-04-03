@@ -106,8 +106,8 @@ getPlc
     => CompiledCodeIn uni fun a -> UPLC.Program UPLC.NamedDeBruijn uni fun SrcSpans
 getPlc wrapper = case wrapper of
     SerializedCode plc _ _ -> case unflat (BSL.fromStrict plc) of
-        Left e  -> throw $ ImpossibleDeserialisationFailure e
-        Right p -> p
+        Left e                             -> throw $ ImpossibleDeserialisationFailure e
+        Right (UPLC.UnrestrictedProgram p) -> p
     DeserializedCode plc _ _ -> plc
 
 getPlcNoAnn

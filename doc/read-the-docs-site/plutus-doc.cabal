@@ -72,9 +72,9 @@ executable doc-doctests
     , containers
     , flat               <0.5
     , lens
-    , plutus-core        ^>=1.3
-    , plutus-ledger-api  ^>=1.3
-    , plutus-tx          ^>=1.3
+    , plutus-core        ^>=1.4
+    , plutus-ledger-api  ^>=1.4
+    , plutus-tx          ^>=1.4
     , prettyprinter
     , random
     , serialise

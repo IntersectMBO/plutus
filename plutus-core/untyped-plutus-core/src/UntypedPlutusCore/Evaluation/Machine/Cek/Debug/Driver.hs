@@ -6,11 +6,12 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Driver
     ( Breakpointable (..)
     , CekState
     , Cmd (..)
-    , runDriver
+    , runDriverT
     , DebugF (..)
     -- | Reexport some functions for convenience
-    , handleStep
-    , tryHandleStep
+    , mkCekTrans
+    , CekTrans
+    , tryError
     , F.MonadFree
     , F.iterM
     , F.iterTM
@@ -87,10 +88,10 @@ type Driving m uni fun ann bps =
     )
 
 -- | Entrypoint of the driver
-runDriver :: forall uni fun ann bps m.
+runDriverT :: forall uni fun ann bps m.
             (Breakpointable ann bps, MonadFree (DebugF uni fun ann bps) m)
           => NTerm uni fun ann -> m ()
-runDriver = void . runReaderT driver . initState
+runDriverT = void . runReaderT driver . initState
     where
       initState :: NTerm uni fun ann -> CekState uni fun ann
       initState = Starting

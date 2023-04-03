@@ -75,7 +75,7 @@ data BApp (b : Builtin) :
     → {A : ∅ ⊢Nf⋆ *}
     → (q : C ≡ B [ A ]Nf)
     → {σC : SigTy (bubble pt) pa C}
-    → (σq : σC ≡ substEq (SigTy (bubble pt) pa) (sym q) (σB [ A ]SigTy))
+    → (σq : σC ≡ convSigTy (sym q) (σB [ A ]SigTy))
     → BApp b σC (t ·⋆ A / q)
 
 data Value where
