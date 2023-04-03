@@ -216,6 +216,7 @@ inline =
             , "letOverAppType3"
             , "letNonPure" -- multiple occurrences of a non-pure binding
             , "letNonPureMulti"
+            , "letNonPureMultiStrict"
             ]
 
 computeArityTest :: TestNested
