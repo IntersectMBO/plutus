@@ -210,6 +210,10 @@ inline =
             , "letAppMultiNotAcceptable"
             , "letOverApp" -- over-application of a function, single occurrence
             , "letOverAppMulti" -- multiple occurrences of an over-application of a function
+            -- multiple occurrences of an over-application of a function with type arguments
+            , "letOverAppType"
+            , "letOverAppType2"
+            , "letOverAppType3"
             , "letNonPure" -- multiple occurrences of a non-pure binding
             , "letNonPureMulti"
             ]
