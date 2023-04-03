@@ -11,12 +11,15 @@ for benchmark in os.getenv("BENCHMARKS").split():
                 name = line.split()[1]
             elif line.startswith("mean"):
                 parts = line.split()
-                mean = parts[1]
+                mean = float(parts[1])
                 unit = parts[2]
+                if unit == "ms":
+                    mean = mean * 1000
+                    unit = "μs"
                 result.append({
                     "name": f"{benchmark}-{name}",
                     "unit": unit,
-                    "value": float(mean)
+                    "value": mean
                 })
 
 with open("output.json", "w") as file: 
