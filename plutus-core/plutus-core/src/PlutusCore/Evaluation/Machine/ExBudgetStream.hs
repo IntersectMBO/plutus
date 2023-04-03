@@ -1,3 +1,5 @@
+{-# LANGUAGE BangPatterns #-}
+
 module PlutusCore.Evaluation.Machine.ExBudgetStream
     ( ExBudgetStream(..)
     , sumExBudgetStream
@@ -28,9 +30,15 @@ data ExBudgetStream
     deriving stock (Show)
 
 -- See Note [Global local functions].
+sumExBudgetStreamGo :: ExBudget -> ExBudgetStream -> ExBudget
+sumExBudgetStreamGo !acc (ExBudgetLast budget)         = acc <> budget
+sumExBudgetStreamGo !acc (ExBudgetCons budget budgets) = sumExBudgetStreamGo (acc <> budget) budgets
+
+-- | Add up all the budgets in a 'ExBudgetStream'.
 sumExBudgetStream :: ExBudgetStream -> ExBudget
-sumExBudgetStream (ExBudgetLast budget)         = budget
-sumExBudgetStream (ExBudgetCons budget budgets) = budget <> sumExBudgetStream budgets
+sumExBudgetStream (ExBudgetLast budget0)          = budget0
+sumExBudgetStream (ExBudgetCons budget0 budgets0) = sumExBudgetStreamGo budget0 budgets0
+{-# INLINE sumExBudgetStream #-}
 
 -- | Convert a 'CostStream' to an 'ExBudgetStream' by applying a function to each element.
 costToExBudgetStream :: (CostingInteger -> ExBudget) -> CostStream -> ExBudgetStream
@@ -60,6 +68,7 @@ zipCostStreamGo (CostCons cpu cpus) (CostCons mem mems) =
 -- respectively) to get an 'ExBudgetStream'.
 zipCostStream :: CostStream -> CostStream -> ExBudgetStream
 zipCostStream cpus0 mems0 = case (cpus0, mems0) of
+    -- See Note [Single-element streams].
     (CostLast cpu, CostLast mem) -> ExBudgetLast $ toExBudget cpu mem
     _                            -> zipCostStreamGo cpus0 mems0
 {-# INLINE zipCostStream #-}
