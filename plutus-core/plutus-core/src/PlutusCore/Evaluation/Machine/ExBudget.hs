@@ -1,12 +1,10 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE BangPatterns          #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE StrictData            #-}
-{-# LANGUAGE UndecidableInstances  #-}
 
 {- Note [Strict Data for budgeting]
 

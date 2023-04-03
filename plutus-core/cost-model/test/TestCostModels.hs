@@ -103,8 +103,8 @@ data TestDomain
 x ~= y
   | x==0 && y==0 = True
   | otherwise = err < 1/100
-    where x' = fromIntegral (unSatInt x) :: Double
-          y' = fromIntegral (unSatInt y) :: Double
+    where x' = fromSatInt x :: Double
+          y' = fromSatInt y :: Double
           err = abs ((x'-y')/y')
 
 -- Runs property tests in the `R` Monad.
@@ -161,7 +161,7 @@ testPredictOne haskellModelFun modelR1 = propertyR $ do
     predictR :: MonadR m => CostingInteger -> m CostingInteger
     predictR x =
         let
-            xD = fromIntegral (unSatInt x) :: Double
+            xD = fromSatInt x :: Double
         in
           microToPico . fromSomeSEXP <$> [r|predict(modelR_hs, data.frame(x_mem=xD_hs))[[1]]|]
     predictH :: CostingInteger -> CostingInteger
@@ -189,8 +189,8 @@ testPredictTwo haskellModelFun modelR1 domain = propertyR $ do
     predictR :: MonadR m => CostingInteger -> CostingInteger -> m CostingInteger
     predictR x y =
       let
-        xD = fromIntegral (unSatInt x) :: Double
-        yD = fromIntegral (unSatInt y) :: Double
+        xD = fromSatInt x :: Double
+        yD = fromSatInt y :: Double
       in
         microToPico . fromSomeSEXP <$>
           [r|predict(modelR_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs))[[1]]|]
@@ -219,9 +219,9 @@ testPredictThree haskellModelFun modelR1 = propertyR $ do
     predictR :: MonadR m => CostingInteger -> CostingInteger -> CostingInteger -> m CostingInteger
     predictR x y z =
       let
-        xD = fromIntegral (unSatInt x) :: Double
-        yD = fromIntegral (unSatInt y) :: Double
-        zD = fromIntegral (unSatInt z) :: Double
+        xD = fromSatInt x :: Double
+        yD = fromSatInt y :: Double
+        zD = fromSatInt z :: Double
       in
         microToPico . fromSomeSEXP <$>
           [r|predict(modelR_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs, z_mem=zD_hs))[[1]]|]
@@ -248,12 +248,12 @@ testPredictSix haskellModelFun modelR1 = propertyR $ do
              -> CostingInteger -> CostingInteger -> CostingInteger -> m CostingInteger
     predictR x y z u v  w =
       let
-        xD = fromIntegral (unSatInt x) :: Double
-        yD = fromIntegral (unSatInt y) :: Double
-        zD = fromIntegral (unSatInt z) :: Double
-        uD = fromIntegral (unSatInt u) :: Double
-        vD = fromIntegral (unSatInt v) :: Double
-        wD = fromIntegral (unSatInt w) :: Double
+        xD = fromSatInt x :: Double
+        yD = fromSatInt y :: Double
+        zD = fromSatInt z :: Double
+        uD = fromSatInt u :: Double
+        vD = fromSatInt v :: Double
+        wD = fromSatInt w :: Double
       in
         microToPico . fromSomeSEXP <$>
           [r|predict(modelR_hs, data.frame(x_mem=xD_hs, y_mem=yD_hs, z_mem=zD_hs,

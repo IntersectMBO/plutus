@@ -98,7 +98,19 @@ instance Pretty ExMemory where
 instance PrettyBy config ExMemory where
     prettyBy _ m = pretty m
 
--- Defining manually, because the 'Sum' instance doesn't have the @INLINE@ pragmas causing
+{- Note [Manual Semigroup and Monoid instances for Sum monoids]
+We don't do
+
+    deriving via Sum A Semigroup A
+    deriving via Sum A Monoid A
+
+because the 'Semigroup' and 'Monoid' instances for 'Sum' don't have @INLINE@ pragmas resulting in
+'<>' and 'mempty' appearing in the generated Core.
+
+So instead we implement @Semigroup A@ and @Monoid A@ instances manually for a 'Sum'-like @A@.
+-}
+
+-- See Note [Manual Semigroup and Monoid instances for Sum monoids].
 instance Semigroup ExMemory where
     (<>) = (+)
     {-# INLINE (<>) #-}
@@ -106,6 +118,7 @@ instance Semigroup ExMemory where
     stimes n mem = fromIntegral n * mem
     {-# INLINE stimes #-}
 
+-- See Note [Manual Semigroup and Monoid instances for Sum monoids].
 instance Monoid ExMemory where
     mempty = ExMemory 0
     {-# INLINE mempty #-}
@@ -123,6 +136,7 @@ instance Pretty ExCPU where
 instance PrettyBy config ExCPU where
     prettyBy _ m = pretty m
 
+-- See Note [Manual Semigroup and Monoid instances for Sum monoids].
 instance Semigroup ExCPU where
     (<>) = (+)
     {-# INLINE (<>) #-}
@@ -130,6 +144,7 @@ instance Semigroup ExCPU where
     stimes n mem = fromIntegral n * mem
     {-# INLINE stimes #-}
 
+-- See Note [Manual Semigroup and Monoid instances for Sum monoids].
 instance Monoid ExCPU where
     mempty = ExCPU 0
     {-# INLINE mempty #-}

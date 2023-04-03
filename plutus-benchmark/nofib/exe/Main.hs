@@ -251,7 +251,7 @@ measureBudget compiledCode =
           let (_, UPLC.TallyingSt _ budget) = UPLC.runCekNoEmit PLC.defaultCekParameters UPLC.tallying $ program ^. UPLC.progTerm
               ExCPU cpu = exBudgetCPU budget
               ExMemory mem = exBudgetMemory budget
-          in (Hs.fromIntegral (unSatInt cpu), Hs.fromIntegral (unSatInt mem))
+          in (fromSatInt cpu, fromSatInt mem)
 
 getInfo :: (Hs.String, CompiledCode a) -> (Hs.String, Integer, Integer, Integer)
 getInfo (name, code) =

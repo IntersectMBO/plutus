@@ -4,18 +4,16 @@ Adapted from 'Data.SafeInt' to perform saturating arithmetic (i.e. returning max
 
 This is not quite as fast as using 'Int' or 'Int64' directly, but we need the safety.
 -}
-{-# LANGUAGE BangPatterns       #-}
-{-# LANGUAGE CPP                #-}
-{-# LANGUAGE DataKinds          #-}
-{-# LANGUAGE DeriveAnyClass     #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE MagicHash          #-}
-{-# LANGUAGE UnboxedTuples      #-}
+{-# LANGUAGE DataKinds      #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE MagicHash      #-}
+{-# LANGUAGE UnboxedTuples  #-}
 
 module Data.SatInt
     ( -- Not exporting the constructor, so that 'coerce' doesn't work, see 'unsafeToSatInt'.
       SatInt (unSatInt)
     , unsafeToSatInt
+    , fromSatInt
     ) where
 
 import Codec.Serialise (Serialise)
@@ -38,11 +36,16 @@ newtype SatInt = SI { unSatInt :: Int }
     deriving Serialise via Int
     deriving anyclass NoThunks
 
+{-# INLINE unsafeToSatInt #-}
 -- | Wrap an 'Int' as a 'SatInt'. This is unsafe because the 'Int' can be a result of an arbitrary
 -- potentially underflowing/overflowing operation.
 unsafeToSatInt :: Int -> SatInt
 unsafeToSatInt = SI
-{-# INLINE unsafeToSatInt #-}
+
+{-# INLINE fromSatInt #-}
+-- | An optimized version of @fromIntegral . unSatInt@.
+fromSatInt :: forall a. Num a => SatInt -> a
+fromSatInt = coerce (fromIntegral :: Int -> a)
 
 -- | In the `Num' instance, we plug in our own addition, multiplication
 -- and subtraction function that perform overflow-checking.

@@ -191,7 +191,7 @@ evaluate (UPLC.Program _ _ prog) =
       (_res, Cek.TallyingSt _ budget, _logs) ->
           let ExCPU cpu = exBudgetCPU budget
               ExMemory mem = exBudgetMemory budget
-          in (fromIntegral $ unSatInt cpu, fromIntegral $ unSatInt mem)
+          in (fromSatInt cpu, fromSatInt mem)
 
 -- | Evaluate a script and print out the serialised size and the CPU and memory
 -- usage, both as absolute values and percentages of the maxima specified in the

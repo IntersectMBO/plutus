@@ -222,7 +222,7 @@ printBudgetStateTally term model (Cek.CekExTally costs) = do
     builtinCosts = mconcat (map snd builtinsAndCosts)
     -- \^ Total builtin evaluation time (according to the models) in picoseconds
     -- (units depend on BuiltinCostModel.costMultiplier)
-    getCPU b = let ExCPU b' = exBudgetCPU b in fromIntegral (unSatInt b') :: Double
+    getCPU b = let ExCPU b' = exBudgetCPU b in fromSatInt b' :: Double
     totalCost = getSpent Cek.BStartup <> totalComputeCost <> builtinCosts
     totalTime =
         (getCPU $ getSpent Cek.BStartup) + getCPU totalComputeCost + getCPU builtinCosts

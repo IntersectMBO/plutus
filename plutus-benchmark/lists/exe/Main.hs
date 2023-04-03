@@ -25,7 +25,7 @@ getBudgetUsage term =
     of
       (Left _, _)                 -> Nothing
       (Right _, Cek.CountingSt c) ->
-          let ExCPU cpu = exBudgetCPU c in Just $ fromIntegral (unSatInt cpu)
+          let ExCPU cpu = exBudgetCPU c in Just $ fromSatInt cpu
 
 getCekSteps :: Term -> Maybe Integer
 getCekSteps term =
@@ -36,7 +36,7 @@ getCekSteps term =
       (Right _, Cek.TallyingSt (Cek.CekExTally counts) _) ->
           let getCount k =
                   case H.lookup k counts of
-                    Just v  -> let ExCPU n = exBudgetCPU v in fromIntegral (unSatInt n)
+                    Just v  -> let ExCPU n = exBudgetCPU v in fromSatInt n
                     Nothing -> 0
               allNodeTags =
                 fmap

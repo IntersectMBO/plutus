@@ -27,6 +27,7 @@ data ExBudgetStream
     | ExBudgetCons !ExBudget ExBudgetStream
     deriving stock (Show)
 
+-- See Note [Global local functions].
 sumExBudgetStream :: ExBudgetStream -> ExBudget
 sumExBudgetStream (ExBudgetLast budget)         = budget
 sumExBudgetStream (ExBudgetCons budget budgets) = budget <> sumExBudgetStream budgets
