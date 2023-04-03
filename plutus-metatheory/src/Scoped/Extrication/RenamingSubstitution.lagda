@@ -90,6 +90,9 @@ ren-extricateTyConNf⋆ ρ⋆ AC.bool = refl
 ren-extricateTyConNf⋆ ρ⋆ (AC.list A) = cong SC.list (ren-extricateNf⋆ ρ⋆ A)
 ren-extricateTyConNf⋆ ρ⋆ (AC.pair A B) = cong₂ SC.pair (ren-extricateNf⋆ ρ⋆ A) (ren-extricateNf⋆ ρ⋆ B)
 ren-extricateTyConNf⋆ ρ⋆ AC.pdata = refl
+ren-extricateTyConNf⋆ ρ⋆ bls12-381-g1-element = refl
+ren-extricateTyConNf⋆ ρ⋆ bls12-381-g2-element = refl
+ren-extricateTyConNf⋆ ρ⋆ bls12-381-mlresult = refl
 
 ren-extricateNe⋆ ρ⋆ (` x)   = cong
   `
