@@ -85,17 +85,39 @@ data CostRose = CostRose {-# UNPACK #-} !CostingInteger ![CostRose]
     deriving stock (Show)
 
 -- See Note [Global local functions].
+-- This is one way to define the worker. There are many more, see
+-- https://github.com/input-output-hk/plutus/pull/5239#discussion_r1151197471
+-- We chose this one, because it's the simplest (no CPS shenanigans) among the safest (retrieving
+-- the next element takes O(1) time in the worst case).
+--
+-- The algorithm is a variation of the defunctionalization technique (see this post in particular:
+-- https://www.joachim-breitner.de/blog/778-Don%e2%80%99t_think,_just_defunctionalize), except we
+-- don't want a tail-recursive loop and instead emit costs lazily to the outside (as it's the whole
+-- point of the lazy costing approach)
 flattenCostRoseGo :: CostRose -> [CostRose] -> CostStream
 flattenCostRoseGo (CostRose cost1 forest1) forest2 =
     case forest1 of
+        -- The current subtree doesn't have its own subtrees.
         [] -> case forest2 of
+            -- No more elements in the entire tree, emit the last cost.
             []                -> CostLast cost1
+            -- There's at least one unhandled subtree encountered earlier, emit the current cost
+            -- and collapse the unhandled subtree.
             rose2' : forest2' -> CostCons cost1 $ flattenCostRoseGo rose2' forest2'
+        -- The current subtree has at least one its own subtree.
         rose1' : forest1' ->
+            -- Emit the current cost and handle the list of subtrees of the current subtree.
             CostCons cost1 $ case forest1' of
+                -- Same as the case below, except this one avoids creating a chain of
+                -- @[] ++ ([] ++ ([] ++ <...>))@, which would make retrieving the next element an
+                -- O(depth_of_the_tree) operation in the worst case.
                 [] -> flattenCostRoseGo rose1' forest2
+                -- Add the remaining subtrees of the current subtree (@forest1'@) to the stack of
+                -- all other subtrees (@forest2@) and handle the new current subtree (@rose1'@).
                 _  -> flattenCostRoseGo rose1' $ forest1' ++ forest2
 
+-- | Collapse a 'CostRose' to a lazy linear stream of costs. Retrieving the next element takes O(1)
+-- time in the worst case regardless of the recursion pattern of the given 'CostRose'.
 flattenCostRose :: CostRose -> CostStream
 flattenCostRose (CostRose cost [])              = CostLast cost
 flattenCostRose (CostRose cost (rose : forest)) = CostCons cost $ flattenCostRoseGo rose forest
@@ -103,20 +125,17 @@ flattenCostRose (CostRose cost (rose : forest)) = CostCons cost $ flattenCostRos
 
 class ExMemoryUsage a where
     -- Inlining the implementations of this method gave us a 1-2% speedup.
-    memoryUsage :: a -> CostRose -- ^ How much memory does 'a' use?
+    memoryUsage :: a -> CostRose
 
 instance (ExMemoryUsage a, ExMemoryUsage b) => ExMemoryUsage (a, b) where
     memoryUsage (a, b) = CostRose 1 [memoryUsage a, memoryUsage b]
     {-# INLINE memoryUsage #-}
 
--- See https://github.com/input-output-hk/plutus/issues/1861
 instance ExMemoryUsage (SomeTypeIn uni) where
-  memoryUsage _ = CostRose 1 [] -- TODO things like @list (list (list integer))@ take up a non-constant amount of space.
+  memoryUsage _ = CostRose 1 []
   {-# INLINE memoryUsage #-}
 
--- See https://github.com/input-output-hk/plutus/issues/1861
 instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (Some (ValueOf uni)) where
-  -- TODO this is just to match up with existing golden tests. We probably need to account for @uni@ as well.
   memoryUsage (Some (ValueOf uni x)) = bring (Proxy @ExMemoryUsage) uni (memoryUsage x)
   {-# INLINE memoryUsage #-}
 
@@ -124,6 +143,7 @@ instance ExMemoryUsage () where
   memoryUsage () = CostRose 1 []
   {-# INLINE memoryUsage #-}
 
+-- | Calculate a 'CostingInteger' for the given 'Integer'.
 memoryUsageInteger :: Integer -> CostingInteger
 -- integerLog2# is unspecified for 0 (but in practice returns -1)
 memoryUsageInteger 0 = 1
@@ -190,16 +210,17 @@ instance ExMemoryUsage a => ExMemoryUsage [a] where
    below compromises by charging four units per node, but we may wish to revise
    this after experimentation.
 -}
-{- This code runs on the chain and hence should be as efficient as possible. To
-   that end it's tempting to make these functions strict and tail recursive (and
-   similarly in the instance for lists above), but experiments showed that that
-   didn't improve matters and in fact some versions led to a slight slowdown.
--}
 instance ExMemoryUsage Data where
     memoryUsage = sizeData where
+        -- The cost of each node of the 'Data' object (in addition to the cost of its content).
         nodeMem = CostRose 4 []
         {-# INLINE nodeMem #-}
 
+        -- Add two 'CostRose's. We don't make this into a 'Semigroup' instance, because there exist
+        -- different ways to add two 'CostRose's (e.g. we could optimize the case when one of the
+        -- roses contains only one element). Here we choose the version that is most efficient
+        -- when the first argument is @nodeMem@ (we didn't do any benchmarking though, so it may not
+        -- be the most efficient one) -- we don't have any other cases.
         combine (CostRose cost1 forest1) (CostRose cost2 forest2) =
             CostRose (cost1 + cost2) (forest1 ++ forest2)
         {-# INLINE combine #-}

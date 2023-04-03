@@ -118,9 +118,9 @@ In order for @run*Model@ functions to be able to partially compute we need to de
 accordingly, i.e. by matching on the first argument and returning a lambda. We wrap one of the
 clauses with a call to 'lazy', so that GHC does not "optimize" the function by moving matching to
 the inside of the resulting lambda (which would defeat the whole purpose of caching the function).
-It's enough to put 'lazy' in only one of the clauses for all of them to be compiled the right way.
-We consistently choose the @*ConstantCost@ clause, because it doesn't need to be optimized anyway
-and so a call to 'lazy' doesn't hurt there.
+It's enough to put 'lazy' in only one of the clauses for all of them to be compiled the right way,
+however adding 'lazy' to all the other clauses too turned out to improve performance by a couple of
+percent, reasons are unclear.
 
 Alternatively, we could use @-fpedantic-bottoms@, which prevents GHC from moving matching above
 a lambda (see https://github.com/input-output-hk/plutus/pull/4621), however it doesn't make anything
@@ -157,6 +157,8 @@ runCostingFunOneArgument (CostingFun cpu mem) =
                 (runMem mem1)
 {-# INLINE runCostingFunOneArgument #-}
 
+-- | Take an intercept, a slope and a stream and scale each element of the stream by the slope and
+-- cons the intercept to the stream afterwards.
 scaleLinearly :: CostingInteger -> CostingInteger -> CostStream -> CostStream
 scaleLinearly intercept slope = addCostStream (CostLast intercept) . mapCostStream (slope *)
 {-# INLINE scaleLinearly #-}
