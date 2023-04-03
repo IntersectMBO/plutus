@@ -36,7 +36,7 @@ import Language.R.QQ (r)
 -- | Convert microseconds represented as a float to picoseconds represented as a
 -- CostingInteger.  We round up to be sure we don't underestimate anything.
 microToPico :: Double -> CostingInteger
-microToPico = toSatInt . ceiling . (1e6 *)
+microToPico = unsafeToSatInt . ceiling . (1e6 *)
 
 {- See CostModelGeneration.md for a description of what this does. -}
 

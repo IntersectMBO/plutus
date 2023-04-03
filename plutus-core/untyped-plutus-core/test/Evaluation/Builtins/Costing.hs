@@ -66,7 +66,7 @@ toRange cost = fromMaybe (error $ "an unexpected cost: " ++ show cost) $
 
 chooseSatInt :: (SatInt, SatInt) -> Gen SatInt
 chooseSatInt
-    = fmap (toSatInt . fromIntegral)
+    = fmap (unsafeToSatInt . fromIntegral)
     . chooseInt64
     . bimap (fromIntegral . unSatInt) (fromIntegral . unSatInt)
 
@@ -208,8 +208,8 @@ test_addCostStreamHandlesBottom :: TestTree
 test_addCostStreamHandlesBottom =
     testProperty "addCostStream handles bottom suffixes" . withMaxSuccess 5000 $ \(Positive n) ->
         let interleave xs ys = concat $ transpose [xs, ys]
-            zeroToN = map toSatInt [0 .. n] ++ bottom
-            nPlus1To2NPlus1 = map toSatInt [n + 1 .. n * 2 + 1] ++ bottom
+            zeroToN = map unsafeToSatInt [0 .. n] ++ bottom
+            nPlus1To2NPlus1 = map unsafeToSatInt [n + 1 .. n * 2 + 1] ++ bottom
             taken = take n . getNonEmpty . toCostList $ addCostStream
                 (fromCostList $ NonEmpty zeroToN)
                 (fromCostList $ NonEmpty nPlus1To2NPlus1)

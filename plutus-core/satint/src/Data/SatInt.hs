@@ -13,8 +13,9 @@ This is not quite as fast as using 'Int' or 'Int64' directly, but we need the sa
 {-# LANGUAGE UnboxedTuples      #-}
 
 module Data.SatInt
-    ( SatInt (unSatInt)
-    , toSatInt
+    ( -- Not exporting the constructor, so that 'coerce' doesn't work, see 'unsafeToSatInt'.
+      SatInt (unSatInt)
+    , unsafeToSatInt
     ) where
 
 import Codec.Serialise (Serialise)
@@ -37,9 +38,11 @@ newtype SatInt = SI { unSatInt :: Int }
     deriving Serialise via Int
     deriving anyclass NoThunks
 
-toSatInt :: Int -> SatInt
-toSatInt = SI
-{-# INLINE toSatInt #-}
+-- | Wrap an 'Int' as a 'SatInt'. This is unsafe because the 'Int' can be a result of an arbitrary
+-- potentially underflowing/overflowing operation.
+unsafeToSatInt :: Int -> SatInt
+unsafeToSatInt = SI
+{-# INLINE unsafeToSatInt #-}
 
 -- | In the `Num' instance, we plug in our own addition, multiplication
 -- and subtraction function that perform overflow-checking.

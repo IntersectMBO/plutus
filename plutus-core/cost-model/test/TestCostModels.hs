@@ -80,8 +80,8 @@ numberOfTests = 100
 memUsageGen :: Gen CostingInteger
 memUsageGen =
     Gen.choice [small, large]
-        where small = toSatInt <$> Gen.integral (Range.constant 0 2)
-              large = toSatInt <$> Gen.integral (Range.linear 0 5000)
+        where small = unsafeToSatInt <$> Gen.integral (Range.constant 0 2)
+              large = unsafeToSatInt <$> Gen.integral (Range.linear 0 5000)
 
 -- A type alias to make our signatures more concise.  This type is a record in
 -- which every field refers to an R SEXP (over some state s), the lm model for

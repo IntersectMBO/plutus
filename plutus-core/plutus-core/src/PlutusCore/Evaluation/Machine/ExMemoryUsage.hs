@@ -148,7 +148,7 @@ instance ExMemoryUsage Word8 where
    things whose sizes are multiples of 8. -}
 instance ExMemoryUsage BS.ByteString where
   -- Don't use `div` here!  That gives 1 instead of 0 for n=0.
-  memoryUsage bs = CostRose (toSatInt $ ((n - 1) `quot` 8) + 1) [] where
+  memoryUsage bs = CostRose (unsafeToSatInt $ ((n - 1) `quot` 8) + 1) [] where
       n = BS.length bs
   {-# INLINE memoryUsage #-}
 
