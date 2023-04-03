@@ -10,8 +10,8 @@ module PlutusCore.Crypto.BLS12_381.Pairing
      mlResultMemSizeBytes
     ) where
 
-import Crypto.External.EllipticCurve.BLS12_381 qualified as BlstBindings
-import Crypto.External.EllipticCurve.BLS12_381.Internal qualified as BlstBindings.Internal
+import Cardano.Crypto.EllipticCurve.BLS12_381 qualified as BlstBindings
+import Cardano.Crypto.EllipticCurve.BLS12_381.Internal qualified as BlstBindings.Internal
 
 import PlutusCore.Crypto.BLS12_381.G1 qualified as G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as G2
@@ -19,7 +19,6 @@ import PlutusCore.Pretty.PrettyConst (ConstConfig)
 import Text.PrettyBy (PrettyBy, prettyBy)
 
 import Control.DeepSeq (NFData, rnf)
-import Data.Bifunctor (second)
 import Flat
 import Prettyprinter
 
@@ -46,8 +45,8 @@ instance NFData MlResult where
     rnf _ = ()
 
 -- TODO: perhaps make this emit the error in the Left case.
-millerLoop :: G1.Element -> G2.Element -> Either BlstBindings.BLSTError MlResult
-millerLoop (G1.Element e1) (G2.Element e2) = second MlResult $ BlstBindings.millerLoop e1 e2
+millerLoop :: G1.Element -> G2.Element -> MlResult
+millerLoop (G1.Element e1) (G2.Element e2) = MlResult $ BlstBindings.millerLoop e1 e2
 
 mulMlResult :: MlResult -> MlResult -> MlResult
 mulMlResult (MlResult a) (MlResult b) = MlResult $ BlstBindings.ptMult a b

@@ -10,7 +10,7 @@ import Evaluation.Builtins.Common
 import PlutusCore.Crypto.BLS12_381.G1 qualified as G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as G2
 
-import Crypto.External.EllipticCurve.BLS12_381 (BLSTError)
+import Cardano.Crypto.EllipticCurve.BLS12_381 (BLSTError)
 import PlutusCore as PLC
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults

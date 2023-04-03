@@ -10,6 +10,14 @@ repository cardano-haskell-packages
     c00aae8461a256275598500ea0e187588c35a5d5d7454fb57eac18d9edb86a56
     d4a35cd3121aa00d18544bb0ac01c3e1691d618f462c46129271bccf39f7e8ee
 
+-- A temporary source-repository-package so that we get the BLS bindings in cardano-base.
+-- FIXME: delete this when the version in CHaP is updated.
+source-repository-package
+    type: git
+    location: https://github.com/input-output-hk/cardano-base
+    tag: 56a71b150b7ff7fb6d6bf588f3e9d88822c9048c
+    subdir: cardano-crypto-class
+    
 -- See CONTRIBUTING for some Nix commands you will need to run if you
 -- update either of these.
 

@@ -624,16 +624,14 @@ instance Pretty BuiltinBLS12_381_MlResult where
 {-# NOINLINE bls12_381_millerLoop #-}
 bls12_381_millerLoop :: BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_MlResult
 bls12_381_millerLoop (BuiltinBLS12_381_G1_Element a) (BuiltinBLS12_381_G2_Element b) =
-    case BLS12_381.Pairing.millerLoop a b of
-      Left err -> mustBeReplaced $ "BSL12_381.Pairing.millerLoop error: " ++ show err
-      Right c  -> BuiltinBLS12_381_MlResult c
+    BuiltinBLS12_381_MlResult $ BLS12_381.Pairing.millerLoop a b
 
 {-# NOINLINE bls12_381_mulMlResult #-}
 bls12_381_mulMlResult :: BuiltinBLS12_381_MlResult -> BuiltinBLS12_381_MlResult -> BuiltinBLS12_381_MlResult
 bls12_381_mulMlResult (BuiltinBLS12_381_MlResult a) (BuiltinBLS12_381_MlResult b)
-    = BuiltinBLS12_381_MlResult (BLS12_381.Pairing.mulMlResult a b)
+    = BuiltinBLS12_381_MlResult $ BLS12_381.Pairing.mulMlResult a b
 
 {-# NOINLINE bls12_381_finalVerify #-}
 bls12_381_finalVerify ::  BuiltinBLS12_381_MlResult ->  BuiltinBLS12_381_MlResult -> BuiltinBool
 bls12_381_finalVerify (BuiltinBLS12_381_MlResult a) (BuiltinBLS12_381_MlResult b)
-    = BuiltinBool (BLS12_381.Pairing.finalVerify a b)
+    = BuiltinBool $ BLS12_381.Pairing.finalVerify a b

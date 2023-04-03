@@ -10,7 +10,7 @@ import PlutusCore.Crypto.BLS12_381.G1 qualified as G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as G2
 import PlutusCore.Default
 
-import Crypto.External.EllipticCurve.BLS12_381 (scalarPeriod)
+import Cardano.Crypto.EllipticCurve.BLS12_381 (scalarPeriod)
 import Data.ByteString as BS (length)
 import Data.List (foldl', genericReplicate)
 import Text.Printf (printf)

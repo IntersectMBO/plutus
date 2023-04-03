@@ -11,7 +11,7 @@ import PlutusCore.Crypto.BLS12_381.G1 qualified as G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as Pairing
 
-import Crypto.External.EllipticCurve.BLS12_381 (BLSTError (..), scalarPeriod)
+import Cardano.Crypto.EllipticCurve.BLS12_381 (BLSTError (..), scalarPeriod)
 import Data.ByteString as BS (length)
 import Data.List (foldl', genericReplicate)
 import Text.Printf (printf)
@@ -300,12 +300,6 @@ test_compress_hash =
 -- The best we can do is to check elements (which can only be constructed by the
 -- pairing operation and multiplication in MlResult) using finalVerify.
 
-doPairing :: G1.Element -> G2.Element -> Pairing.MlResult
-doPairing p q =
-    case Pairing.millerLoop p q of
-      Left e  -> error $ show e
-      Right r -> r
-
 -- <p1+p2,q> = <p1,q>.<p2,q>
 test_pairing_left_additive :: TestTree
 test_pairing_left_additive =
@@ -315,8 +309,8 @@ test_pairing_left_additive =
       p1 <- arbitrary
       p2 <- arbitrary
       q  <- arbitrary
-      let e1 = doPairing (add p1 p2) q
-          e2 = Pairing.mulMlResult (doPairing p1 q) (doPairing p2 q)
+      let e1 = Pairing.millerLoop (add p1 p2) q
+          e2 = Pairing.mulMlResult (Pairing.millerLoop p1 q) (Pairing.millerLoop p2 q)
       pure $ Pairing.finalVerify e1 e2 === True
 
 -- <p,q1+q2> = <p,q1>.<p,q2>
@@ -328,8 +322,8 @@ test_pairing_right_additive =
       p <-  arbitrary
       q1 <- arbitrary
       q2 <- arbitrary
-      let e1 = doPairing p (G2.add q1 q2)
-          e2 = Pairing.mulMlResult (doPairing p q1) (doPairing p q2)
+      let e1 = Pairing.millerLoop p (G2.add q1 q2)
+          e2 = Pairing.mulMlResult (Pairing.millerLoop p q1) (Pairing.millerLoop p q2)
       pure $ Pairing.finalVerify e1 e2 === True
 
 -- <[n]p,q> = <p,[n]q> for all n in Z, p in G1, q in G2.
@@ -345,8 +339,8 @@ test_pairing_balanced =
        p <-  arbitrary
        q <-  arbitrary
        pure $ Pairing.finalVerify
-                (doPairing (scalarMul n p) q)
-                (doPairing p (scalarMul n q))
+                (Pairing.millerLoop (scalarMul n p) q)
+                (Pairing.millerLoop p (scalarMul n q))
                 === True
 
 -- finalVerify returns False for random inputs
@@ -361,7 +355,7 @@ test_random_pairing =
        a' <- arbitrary
        b' <- arbitrary
        pure $ a /= a' && b /= b' ==>
-            Pairing.finalVerify (doPairing a b) (doPairing a' b') === False
+            Pairing.finalVerify (Pairing.millerLoop a b) (Pairing.millerLoop a' b') === False
 
 -- All the tests
 

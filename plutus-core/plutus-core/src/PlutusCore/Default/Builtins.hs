@@ -1457,12 +1457,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     -- BLS12_381.Pairing
     toBuiltinMeaning _var Bls12_381_millerLoop =
         makeBuiltinMeaning
-            ml
+            BLS12_381.Pairing.millerLoop
             (runCostingFunTwoArguments . paramBls12_381_millerLoop)
-        where ml a b =
-                  case BLS12_381.Pairing.millerLoop a b of
-                    Left _  -> EvaluationFailure
-                    Right p -> EvaluationSuccess p
     toBuiltinMeaning _var Bls12_381_mulMlResult =
         makeBuiltinMeaning
             BLS12_381.Pairing.mulMlResult

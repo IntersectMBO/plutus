@@ -67,7 +67,7 @@ evaluate (UPLC.Program _ _ prog) =
 -- protocol parameters.
 printStatistics :: Integer -> UProg -> IO ()
 printStatistics n script = do
-    let serialised = Flat.flat (toAnonDeBruijnProg script)
+    let serialised = Flat.flat (UPLC.UnrestrictedProgram $ toAnonDeBruijnProg script)
         size = BS.length serialised
         (cpu, mem) = evaluate script
     -- BS.writeFile "output" serialised

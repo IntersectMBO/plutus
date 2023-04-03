@@ -15,8 +15,8 @@ module PlutusCore.Crypto.BLS12_381.G1
     , compressedSizeBytes
     ) where
 
-import Crypto.External.EllipticCurve.BLS12_381 qualified as BlstBindings
-import Crypto.External.EllipticCurve.BLS12_381.Internal qualified as BlstBindings.Internal
+import Cardano.Crypto.EllipticCurve.BLS12_381 qualified as BlstBindings
+import Cardano.Crypto.EllipticCurve.BLS12_381.Internal qualified as BlstBindings.Internal
 
 import PlutusCore.Crypto.Utils (byteStringAsHex)
 import PlutusCore.Pretty.PrettyConst (ConstConfig)

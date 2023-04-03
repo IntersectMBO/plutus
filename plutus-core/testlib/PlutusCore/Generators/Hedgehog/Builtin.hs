@@ -168,6 +168,4 @@ genBls12_381_MlResult :: Gen BLS12_381.Pairing.MlResult
 genBls12_381_MlResult = do
   p1 <- genBls12_381_G1_Element
   p2 <- genBls12_381_G2_Element
-  case BLS12_381.Pairing.millerLoop p1 p2 of
-    Left e  -> error $ "BLS12-381 Miller loop failed in genBls12_381_MlResult" ++ (show e)
-    Right r -> pure r
+  pure $ BLS12_381.Pairing.millerLoop p1 p2

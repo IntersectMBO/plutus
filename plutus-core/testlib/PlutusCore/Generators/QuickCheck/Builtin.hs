@@ -124,11 +124,7 @@ instance ArbitraryBuiltin BLS12_381.G2.Element where
     shrinkBuiltin _ = []
 
 instance ArbitraryBuiltin BLS12_381.Pairing.MlResult where
-    arbitraryBuiltin = millerLoop <$> arbitraryBuiltin <*> arbitraryBuiltin
-                       where millerLoop p1 p2 =
-                                 case BLS12_381.Pairing.millerLoop p1 p2 of
-                                   Left err -> error $ "pairing: " ++ show err
-                                   Right p  -> p
+    arbitraryBuiltin = BLS12_381.Pairing.millerLoop <$> arbitraryBuiltin <*> arbitraryBuiltin
     shrinkBuiltin _ = []
 
 -- | For providing an 'Arbitrary' instance deferring to 'ArbitraryBuiltin'. Useful for implementing

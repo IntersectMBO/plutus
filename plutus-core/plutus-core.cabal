@@ -17,8 +17,6 @@ extra-doc-files:
   README.md
 
 extra-source-files:
-  cbits/blst.h
-  cbits/blst_aux.h
   cost-model/data/*.R
   cost-model/data/benching.csv
   cost-model/data/builtinCostModel.json
@@ -66,11 +64,6 @@ common lang
     -Wincomplete-record-updates -Wredundant-constraints -Widentities
     -Wunused-packages -Wmissing-deriving-strategies
 
---  ghc-options:
---    -pgml gcc "-optl-Wl,--allow-multiple-definition"
---    "-optl-Wl,--whole-archive" "-optl-Wl,-Bstatic" "-optl-Wl,-lblst"
---    "-optl-Wl,-Bdynamic" "-optl-Wl,--no-whole-archive"
-
 -- This contains UPLC+TPLC, PIR must be explicitly included by depending
 -- on the public sub-library.
 -- In due course UPLC and TPLC should be split, with the main library
@@ -78,7 +71,6 @@ common lang
 library
   import:             lang
   exposed-modules:
-    Crypto.External.EllipticCurve.BLS12_381
     Data.ByteString.Hash
     Data.Either.Extras
     Data.MultiSet.Lens
@@ -182,7 +174,6 @@ library
     UntypedPlutusCore.Rename
 
   other-modules:
-    Crypto.External.EllipticCurve.BLS12_381.Internal
     Data.Aeson.Flatten
     Data.Aeson.THReader
     Data.Functor.Foldable.Monadic
@@ -264,7 +255,7 @@ library
     , bimap
     , bytestring
     , cardano-crypto
-    , cardano-crypto-class        >=2.0.0.1 && <2.2
+    , cardano-crypto-class
     , cassava
     , cborg
     , composition-prelude         >=1.1.0.1
@@ -315,8 +306,9 @@ library
     , unordered-containers
     , witherable
 
-  extra-libraries:    blst
-  c-sources:          cbits/blst_util.c
+  -- FIXME: remove these when nix/cabal can deal with libblst.a properly
+  --  extra-libraries: blst
+  extra-lib-dirs:     /usr/local/lib
 
   if impl(ghc <9.0)
     build-depends: integer-gmp

@@ -152,17 +152,11 @@ g2inputsB = fmap G2.hashToGroup byteStringsB
 -- Random values of type MlResult.  The only way we can manufacture values of
 -- this type is by using millerLoop, which should always succeed on the inputs
 -- we give it here.
-millerLoop :: G1.Element -> G2.Element -> Pairing.MlResult
-millerLoop e1 e2 =
-    case Pairing.millerLoop e1 e2 of
-      Left _  -> error "pairing failed while generating MlResult points"
-      Right p -> p
-
 gtinputsA :: [Pairing.MlResult]
-gtinputsA = zipWith millerLoop g1inputsA g2inputsA
+gtinputsA = zipWith Pairing.millerLoop g1inputsA g2inputsA
 
 gtinputsB :: [Pairing.MlResult]
-gtinputsB = zipWith millerLoop g1inputsB g2inputsB
+gtinputsB = zipWith Pairing.millerLoop g1inputsB g2inputsB
 
 benchBls12_381_G1_add :: Benchmark
 benchBls12_381_G1_add =
