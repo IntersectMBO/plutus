@@ -615,6 +615,7 @@ lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
             var = Var () varName
         Just val -> pure val
 
+-- | Spend each budget from the given stream of budgets.
 spendBudgetStreamCek
     :: GivenCekReqs uni fun ann s
     => ExBudgetCategory fun
