@@ -300,7 +300,7 @@ parseInput inp = do
                     error $ PP.render $ pretty err
                 Right _ -> pure (contents, p)
 
--- Read a UPLC/PLC/PIR file or a Flat file, depending on 'fmt'
+-- Read UPLC/PLC/PIR code in either textual or Flat format, depending on 'fmt'
 readProgram :: forall p.
     ( ProgramLike p
     , Functor p
@@ -315,7 +315,6 @@ readProgram fmt inp =
         Flat flatMode -> do
             prog <- loadASTfromFlat @p @() flatMode inp
             return $ topSrcSpan <$ prog
-        where
 
 -- | A made-up `SrcSpan` since there's no source locations in Flat.
 topSrcSpan :: PLC.SrcSpan
