@@ -218,9 +218,10 @@ instance ExMemoryUsage Data where
 
         -- Add two 'CostRose's. We don't make this into a 'Semigroup' instance, because there exist
         -- different ways to add two 'CostRose's (e.g. we could optimize the case when one of the
-        -- roses contains only one element). Here we choose the version that is most efficient
-        -- when the first argument is @nodeMem@ (we didn't do any benchmarking though, so it may not
-        -- be the most efficient one) -- we don't have any other cases.
+        -- roses contains only one element or we can make the function lazy in the second argument).
+        -- Here we chose the version that is most efficient when the first argument is @nodeMem@ (we
+        -- didn't do any benchmarking though, so it may not be the most efficient one) -- we don't
+        -- have any other cases.
         combine (CostRose cost1 forest1) (CostRose cost2 forest2) =
             CostRose (cost1 + cost2) (forest1 ++ forest2)
         {-# INLINE combine #-}

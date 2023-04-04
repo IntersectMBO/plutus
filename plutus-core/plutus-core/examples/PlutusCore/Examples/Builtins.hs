@@ -137,7 +137,8 @@ data ExtensionFun
     | SwapEls  -- For checking that nesting polymorphic built-in types and instantiating them with
                -- a mix of monomorphic types and type variables works correctly.
     | ExtensionVersion -- Reflect the version of the Extension
-    | TrackCosts
+    | TrackCosts  -- For checking that each cost is released and can be picked up by GC once it's
+                  -- accounted for in the evaluator.
     deriving stock (Show, Eq, Ord, Enum, Bounded, Ix, Generic)
     deriving anyclass (Hashable)
 
@@ -450,44 +451,81 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
                     ExtensionFunV1 -> 1)
             (\_ _ -> ExBudgetLast mempty)  -- Whatever
 
+    -- We want to know if the CEK machine releases individual budgets after accounting for them and
+    -- one way to ensure that is to check that individual budgets are GCed in chunks rather than all
+    -- at once when evaluation of the builtin finishes. This builtin returns a list of the maximum
+    -- numbers of individual budgets retained between GC calls. If the returned list is long (for
+    -- some definition of "long", see the tests), then chances are individual budgets are not
+    -- retained unnecessarily, and if it's too short (again, see the tests), then they are.
+    --
+    -- We track how many budgets get GCed by attaching a finalizer (see "System.Mem.Weak") to each
+    -- of them.
     toBuiltinMeaning _ TrackCosts = unsafePerformIO $ do
-        counterVar <- newMVar 0
-        resultsVar <- newIORef []
-        let finalize =
-                tryTakeMVar counterVar >>= \case
-                    Nothing      -> void $ atomicModifyIORef'_ resultsVar (0 :)
-                    Just counter -> do
-                        _ <- atomicModifyIORef'_ resultsVar (counter :)
-                        putMVar counterVar 0
+        -- A variable for storing the number of elements from the stream of budgets pending GC.
+        pendingGcVar <- newMVar 0
+        -- A variable for storing all the final numbers from @pendingGcVar@ appearing there right
+        -- before another GC is triggered. We store the results in reverse order for fast consing
+        -- and then 'reverse' them in the denotation of the builtin.
+        numsOfGcedVar <- newIORef []
+        let -- A function to run when GC picks up an individual budget.
+            finalize =
+                tryTakeMVar pendingGcVar >>= \case
+                    -- If @pendingGcVar@ happens to be empty, we say that no budgets were released
+                    -- and don't update @pendingGcVar@. I.e. this entire testing machinery can
+                    -- affect how budgets are retained, but the impact of the 'MVar' business is
+                    -- negligible, since @pendingGcVar@ is filled immediately after it's emptied.
+                    Nothing        -> void $ atomicModifyIORef'_ numsOfGcedVar (0 :)
+                    -- If @pendingGcVar@ is not empty, then we cons its content to the resulting
+                    -- list and put @0@ as the new content of the variable.
+                    Just pendingGc -> do
+                        _ <- atomicModifyIORef'_ numsOfGcedVar (pendingGc :)
+                        putMVar pendingGcVar 0
 
+            -- Register an element of the stream of budgets by incrementing the counter storing the
+            -- number of elements pending GC and attaching the @finalize@ finalizer to the element.
             regBudget budget = do
-                counter <- takeMVar counterVar
-                let counter' = succ counter
-                putMVar counterVar counter'
+                pendingGc <- takeMVar pendingGcVar
+                let pendingGc' = succ pendingGc
+                putMVar pendingGcVar pendingGc'
                 addFinalizer budget finalize
-                when (counter' >= 100) performMinorGC
+                -- We need to trigger GC occasionally (otherwise it can easily take more than 100k
+                -- elements before GC is triggered and the number can go much higher depending on
+                -- the RTS options), so we picked 100 elements as a cutoff number. Doing GC less
+                -- often makes tests slower (for lower cutoff numbers -- by a lot), doing GC more
+                -- often requires us to generate longer streams in tests in order to observe
+                -- meaningful results making tests slower.
+                when (pendingGc' >= 100) performMinorGC
 
+            -- Call @regBudget@ over each element of the stream of budgets.
             regBudgets (ExBudgetLast budget)         = do
                 regBudget budget
                 pure $ ExBudgetLast budget
             regBudgets (ExBudgetCons budget budgets) = do
                 regBudget budget
+                -- Without 'unsafeInterleaveIO' this function would traverse the entire stream
+                -- before returning anything, which isn't what costing functions normally do and so
+                -- we don't want to have such behavior in a test.
                 budgets' <- unsafeInterleaveIO $ regBudgets budgets
                 pure $ ExBudgetCons budget budgets'
 
+            -- Just a random model that keeps the original costs coming from the 'ExMemoryUsage'
+            -- instance.
             linear1 = ModelOneArgumentLinearCost $ ModelLinearSize 1 1
             model   = CostingFun linear1 linear1
         pure $ makeBuiltinMeaning
             @(Data -> [Integer])
             (\_ -> unsafePerformIO $ do
+                -- Pick up remaining budgets.
                 performMinorGC
                 -- Somehow this allows the remaining finalizers to complete, while 'yeild' doesn't.
                 -- No idea what's going on. Not that we care much though, since even if we lose
-                -- several dozens of remaining elements it would a bug for that to affect anything.
+                -- several dozens of remaining elements it would be a bug for that to affect
+                -- anything.
                 threadDelay 1
+                -- Run @finalize@ one final time.
                 finalize
-                results <- readIORef resultsVar
-                pure $ reverse results)
+                numsOfGced <- readIORef numsOfGcedVar
+                pure $ reverse numsOfGced)
             (\_ -> unsafePerformIO . regBudgets . runCostingFunOneArgument model)
 
 instance Default (BuiltinVersion ExtensionFun) where
