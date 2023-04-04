@@ -1,4 +1,0 @@
-nix/pkgs/haskell/materialized*/*.nix
-nix/sources.nix
-**/spago-packages.nix
-**/packages.nix

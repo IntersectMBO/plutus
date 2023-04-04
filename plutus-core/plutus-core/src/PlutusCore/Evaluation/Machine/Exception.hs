@@ -24,7 +24,6 @@ module PlutusCore.Evaluation.Machine.Exception
     , ErrorWithCause (..)
     , EvaluationException
     , throwNotAConstant
-    , mapCauseInMachineException
     , throwing
     , throwing_
     , throwingWithCause
@@ -130,12 +129,6 @@ type EvaluationException user internal =
 throwNotAConstant :: MonadError KnownTypeError m => m void
 throwNotAConstant = throwError $ KnownTypeUnliftingError "Not a constant"
 {-# INLINE throwNotAConstant #-}
-
-mapCauseInMachineException
-    :: (term1 -> term2)
-    -> EvaluationException user (MachineError fun) term1
-    -> EvaluationException user (MachineError fun) term2
-mapCauseInMachineException = fmap
 
 -- | "Prismatically" throw an error and its (optional) cause.
 throwingWithCause
