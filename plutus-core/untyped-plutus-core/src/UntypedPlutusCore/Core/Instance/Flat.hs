@@ -59,7 +59,7 @@ tags and their used/available encoding possibilities.
 | Data type        | Function          | Bit Width | Total | Used | Remaining |
 |------------------|-------------------|-----------|-------|------|-----------|
 | default builtins | encodeBuiltin     | 7         | 128   | 54   | 74        |
-| Terms            | encodeTerm        | 4         | 16    | 8    | 8         |
+| Terms            | encodeTerm        | 4         | 16    | 10   | 6         |
 
 For format stability we are manually assigning the tag values to the
 constructors (and we do not use a generic algorithm that may change this order).

@@ -70,7 +70,7 @@ tags and their used/available encoding possibilities.
 | default builtins | encodeBuiltin     | 7         | 128   | 54   | 74        |
 | Kinds            | encodeKind        | 1         | 2     | 2    | 0         |
 | Types            | encodeType        | 3         | 8     | 7    | 1         |
-| Terms            | encodeTerm        | 4         | 16    | 10   | 6         |
+| Terms            | encodeTerm        | 4         | 16    | 12   | 4         |
 
 For format stability we are manually assigning the tag values to the
 constructors (and we do not use a generic algorithm that may change this order).
