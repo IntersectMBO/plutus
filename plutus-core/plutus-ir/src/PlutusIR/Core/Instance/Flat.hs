@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveAnyClass       #-}
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-orphans       #-}
@@ -18,18 +19,18 @@ the underlying representation can vary. The `Generic` instances of the
 terms can thus be used as backwards compatibility is not required.
 -}
 
-instance ( PLC.Closed uni
+deriving anyclass instance ( PLC.Closed uni
          , uni `PLC.Everywhere` Flat
          , Flat a
          , Flat tyname
          , Flat name
          ) => Flat (Datatype tyname name uni a)
 
-instance Flat Recursivity
+deriving anyclass instance Flat Recursivity
 
-instance Flat Strictness
+deriving anyclass instance Flat Strictness
 
-instance ( PLC.Closed uni
+deriving anyclass instance ( PLC.Closed uni
          , uni `PLC.Everywhere` Flat
          , Flat fun
          , Flat a
@@ -37,7 +38,7 @@ instance ( PLC.Closed uni
          , Flat name
          ) => Flat (Binding tyname name uni fun a)
 
-instance ( PLC.Closed uni
+deriving anyclass instance ( PLC.Closed uni
          , uni `PLC.Everywhere` Flat
          , Flat fun
          , Flat a
@@ -45,7 +46,7 @@ instance ( PLC.Closed uni
          , Flat name
          ) => Flat (Term tyname name uni fun a)
 
-instance ( PLC.Closed uni
+deriving anyclass instance ( PLC.Closed uni
          , uni `PLC.Everywhere` Flat
          , Flat fun
          , Flat a

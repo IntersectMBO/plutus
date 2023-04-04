@@ -63,12 +63,14 @@ This requires specialised encode/decode functions for each constructor
 that encodes a different number of possibilities. Here is a list of the
 tags and their used/available encoding possibilities.
 
-| Data type        | Function          | Used | Available |
-|------------------|-------------------|------|-----------|
-| default builtins | encodeBuiltin     | 47   | 128       |
-| Kinds            | encodeKind        | 2    | 2         |
-| Types            | encodeType        | 7    | 8         |
-| Terms            | encodeTerm        | 10   | 16        |
+** The BELOW table is about Typed-PLC and not UPLC. See `UntypedPlutusCore.Core.Instance.Flat`**
+
+| Data type        | Function          | Bit Width | Total | Used | Remaining |
+|------------------|-------------------|-----------|-------|------|-----------|
+| default builtins | encodeBuiltin     | 7         | 128   | 54   | 74        |
+| Kinds            | encodeKind        | 1         | 2     | 2    | 0         |
+| Types            | encodeType        | 3         | 8     | 7    | 1         |
+| Terms            | encodeTerm        | 4         | 16    | 10   | 6         |
 
 For format stability we are manually assigning the tag values to the
 constructors (and we do not use a generic algorithm that may change this order).
@@ -124,11 +126,11 @@ instance Serialise a => Flat (AsSerialize a) where
     size = size . serialise
 
 safeEncodeBits :: NumBits -> Word8 -> Encoding
-safeEncodeBits n v =
-  if 2 ^ n < v
+safeEncodeBits maxBits v =
+  if 2 ^ maxBits <= v
   then error $ "Overflow detected, cannot fit "
-               <> show v <> " in " <> show n <> " bits."
-  else eBits n v
+               <> show v <> " in " <> show maxBits <> " bits."
+  else eBits maxBits v
 
 constantWidth :: NumBits
 constantWidth = 4
