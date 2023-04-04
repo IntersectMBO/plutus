@@ -37,7 +37,8 @@ open _≡β_
 
 open import Type.BetaNBE using (nf)
 open import Type.BetaNBE.Soundness using (soundness)
-open import Algorithmic using (_⊢_;Ctx;_∋_;btype)
+open import Algorithmic using (_⊢_;Ctx;_∋_)
+open import Algorithmic.Signature using (btype)
 open _⊢_
 open Ctx
 open _∋_

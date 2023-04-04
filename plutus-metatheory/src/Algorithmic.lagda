@@ -5,9 +5,7 @@ module Algorithmic where
 ## Imports
 
 \begin{code}
-open import Data.List using (List;[];replicate;_++_)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl)
-open import Data.List.NonEmpty using (length)
 
 open import Utils hiding (TermCon)
 open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_;_∋⋆_;Z;S;Φ)
@@ -17,19 +15,18 @@ open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;weakenNf;renNf;embNf)
 open _⊢Nf⋆_
 open _⊢Ne⋆_
 
-import Type.RenamingSubstitution as ⋆ using (Ren)
+import Type.RenamingSubstitution as ⋆
 open import Type.BetaNBE using (nf)
-open import Type.BetaNBE.RenamingSubstitution using (subNf;SubNf) renaming (_[_]Nf to _[_])
+open import Type.BetaNBE.RenamingSubstitution renaming (_[_]Nf to _[_])
 
-open import Builtin using (Builtin;signature)
-open Builtin.Builtin
-open import Builtin.Signature using (Sig;sig;nat2Ctx⋆;fin2∈⋆)
+open import Builtin using (Builtin)
 
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con using (TermCon)
 open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) using (TyCon)
 open TyCon
 
-open Builtin.Signature.FromSig Ctx⋆ (_⊢Nf⋆ *) nat2Ctx⋆ (λ x → ne (` (fin2∈⋆ x))) con _⇒_ Π using (sig2type)
+open import Algorithmic.Signature using (btype)
+
 \end{code}
 
 ## Fixity declarations
@@ -91,6 +88,7 @@ data _∋_ : (Γ : Ctx Φ) → Φ ⊢Nf⋆ * → Set where
       -------------------
     → Γ ,⋆ K ∋ weakenNf A
 \end{code}
+          
 Let `x`, `y` range over variables.
 
 ## Terms
@@ -100,12 +98,6 @@ an abstraction, an application, a type abstraction, or a type
 application.
 
 \begin{code}
-btype : Builtin → Φ ⊢Nf⋆ *
-btype b = subNf (λ()) (sig2type (signature b))
-
-postulate btype-ren : ∀{Φ Ψ} b (ρ : ⋆.Ren Φ Ψ) → btype b ≡ renNf ρ (btype b)
-postulate btype-sub : ∀{Φ Ψ} b (ρ : SubNf Φ Ψ) → btype b ≡ subNf ρ (btype b)
-
 infixl 7 _·⋆_/_
 
 data _⊢_ (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
@@ -188,26 +180,4 @@ conv⊢ : ∀ {Γ Γ'}{A A' : Φ ⊢Nf⋆ *}
  → Γ ⊢ A
  → Γ' ⊢ A'
 conv⊢ refl refl t = t
-
-Ctx2type : (Γ : Ctx Φ) → Φ ⊢Nf⋆ * → ∅ ⊢Nf⋆ *
-Ctx2type ∅        C = C
-Ctx2type (Γ ,⋆ J) C = Ctx2type Γ (Π C)
-Ctx2type (Γ , x)  C = Ctx2type Γ (x ⇒ C)
-
-data Arg : Set where
-  Term Type : Arg
-
-Arity = List Arg
-
-arity : Builtin → Arity
-arity b with signature b 
-... | sig n ar _ = replicate n Type ++ replicate (length ar) Term
-
 \end{code}
-  
-When signatures supported universal quantifiers to be interleaved with other 
-parameters it made sense for `Arity` to be defined as above. Now that we don't,
-`Arity` should be rewritten to be two numbers (`n` and `length ar` above), representing
-the number of quantifiers and the number of (term) parameters.
-We keep `Arity` this way in order to make the current implementation works, 
-but it will be changed.

@@ -18,14 +18,12 @@ The following packages are versioned and released:
 * The main library `plutus-tx-plugin:plutus-tx-plugin`
 - `prettyprinter-configurable`
 * The main library `prettyprinter-configurable:prettyprinter-configurable`
-- `word-array`
-* The main library `word-array:word-array`
 
 == Version Scheme
 
 All above packages are versioned and released in sync.
 That is, whenever one package releases version X, so do all other packages.
-Since `prettyprinter-configurable` and `word-array` change infrequently, we only release version X if they have been changed since the previous release.
+Since `prettyprinter-configurable` changes infrequently, we only release version X if they have been changed since the previous release.
 
 We follow https://pvp.haskell.org/[the PVP version scheme] for the packages, where version numbers have a `major.major.minor.patch` pattern with the following semantics:
 

@@ -19,7 +19,7 @@ open import Data.Empty using (⊥)
 open import Data.Nat using (ℕ;zero;suc)
 open import Data.Sum using (_⊎_;inj₁;inj₂)
 
-open import Utils using (Kind;*;_⇒_;Either;inj₁;_<>>_∈_;bubble;RuntimeError;Monad)
+open import Utils using (Kind;*;_⇒_;Either;inj₁;bubble;RuntimeError;Monad)
 open RuntimeError
 open Monad {{...}}
 
@@ -125,11 +125,10 @@ thm64 (E CC.◅ V) E' (CC.step* refl p) with CC.dissect E | inspect CC.dissect E
 ... | inj₂ (_ ,, E'' ,, (-· N)) | [[ eq ]] =
   step* (cong (λ p → p ▻ N) (lemmaH E'' (V ·-))) (thm64 _ E' p)
 ... | inj₂ (_ ,, E'' ,, (V-ƛ M ·-)) | [[ eq ]] = step* refl (thm64 _ E' p)
-thm64 (E CC.◅ V) E' (CC.step* refl p) | inj₂ (_ ,, E'' ,, (V-I⇒ b {as' = []} p₁ x ·-)) | [[ eq ]] = step* refl (thm64 _ E' p)
-thm64 (E CC.◅ V) E' (CC.step* refl p) | inj₂ (_ ,, E'' ,, (V-I⇒ b {as' = x₁ ∷ as'} p₁ x ·-)) | [[ eq ]] = step* refl (thm64 _ E' p)
+thm64 (E CC.◅ V) E' (CC.step* refl p) | inj₂ (_ ,, E'' ,, (V-I⇒ b {am = 0} x ·-)) | [[ eq ]] = step* refl (thm64 _ E' p)
+thm64 (E CC.◅ V) E' (CC.step* refl p) | inj₂ (_ ,, E'' ,, (V-I⇒ b {am = suc _} x ·-)) | [[ eq ]] = step* refl (thm64 _ E' p)
 thm64 (E CC.◅ V-Λ M) E' (CC.step* refl p) | inj₂ (_ ,, E'' ,, -·⋆ A) | [[ eq ]] = step* refl (thm64 _ E' p)
-thm64 (E CC.◅ V-IΠ b {as' = []} p₁ x) E' (CC.step* refl p) | inj₂ (_ ,, E'' ,, -·⋆ A) | [[ eq ]] = step* refl (thm64 _ E' p)
-thm64 (E CC.◅ V-IΠ b {as' = x₁ ∷ as'} p₁ x) E' (CC.step* refl p) | inj₂ (_ ,, E'' ,, -·⋆ A) | [[ eq ]] = step* refl (thm64 _ E' p)
+thm64 (E CC.◅ V-IΠ b x) E' (CC.step* refl p) | inj₂ (_ ,, E'' ,, -·⋆ A) | [[ eq ]] = step* refl (thm64 _ E' p)
 ... | inj₂ (_ ,, E'' ,, wrap-) | [[ eq ]] = step* refl (thm64 _ E' p)
 thm64 (E CC.◅ V-wrap V) E' (CC.step* refl p) | inj₂ (_ ,, E'' ,, unwrap-) | [[ eq ]] = step* refl (thm64 _ E' p)
 thm64 (CC.□ V) E' (CC.step* refl p) = step* refl (thm64 _ E' p)
@@ -154,22 +153,18 @@ thm64b ((s , (-· M)) ◅ V) s' (step* refl p) = CC.step*
 thm64b ((s , (V-ƛ M ·-)) ◅ V) s' (step* refl p) = CC.step*
   ((cong (CC.stepV V) (CC.dissect-lemma (Stack2EvalCtx s) (V-ƛ M ·-))))
   (thm64b _ s' p)
-thm64b ((s , (VI@(V-I⇒ b {as' = []} p₁ x) ·-)) ◅ V) s' (step* refl p) =
+thm64b ((s , (VI@(V-I⇒ b {am = 0} x) ·-)) ◅ V) s' (step* refl p) =
   CC.step*
     (cong (CC.stepV V) (CC.dissect-lemma (Stack2EvalCtx s) (VI ·-)))
     (thm64b _ s' p)
-thm64b ((s , (VI@(V-I⇒ b {as' = x₁ ∷ as'} p₁ x) ·-)) ◅ V) s' (step* refl p) =
+thm64b ((s , (VI@(V-I⇒ b {am = suc _} x) ·-)) ◅ V) s' (step* refl p) =
   CC.step*
     (cong (CC.stepV V) (CC.dissect-lemma (Stack2EvalCtx s) (VI ·-)))
     (thm64b _ s' p)
 thm64b ((s , -·⋆ A) ◅ V-Λ M) s' (step* refl p) = CC.step*
   (cong (CC.stepV (V-Λ M)) (CC.dissect-lemma (Stack2EvalCtx s) (-·⋆ A)))
   (thm64b _ s' p)
-thm64b ((s , -·⋆ A) ◅ VI@(V-IΠ b {as' = []} p₁ x)) s' (step* refl p) =
-  CC.step*
-    (cong (CC.stepV VI) (CC.dissect-lemma (Stack2EvalCtx s) (-·⋆ A)))
-    (thm64b _ s' p)
-thm64b ((s , -·⋆ A) ◅ VI@(V-IΠ b {as' = x₁ ∷ as'} p₁ x)) s' (step* refl p) =
+thm64b ((s , -·⋆ A) ◅ VI@(V-IΠ b x)) s' (step* refl p) =
   CC.step*
     (cong (CC.stepV VI) (CC.dissect-lemma (Stack2EvalCtx s) (-·⋆ A)))
     (thm64b _ s' p)
