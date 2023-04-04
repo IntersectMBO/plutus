@@ -74,6 +74,7 @@ library
     Crypto
     Data.ByteString.Hash
     Data.Either.Extras
+    Data.List.Extras
     Data.MultiSet.Lens
     PlutusCore
     PlutusCore.Annotation

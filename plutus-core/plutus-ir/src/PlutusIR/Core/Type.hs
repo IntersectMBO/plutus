@@ -43,6 +43,7 @@ import PlutusCore.MkPlc (Def (..), TermLike (..), TyVarDecl (..), VarDecl (..))
 import PlutusCore.Name qualified as PLC
 
 import Data.Text qualified as T
+import Data.Word
 
 -- Datatypes
 
@@ -131,7 +132,8 @@ data Term tyname name uni fun a =
                         | Error a (Type tyname uni a)
                         | IWrap a (Type tyname uni a) (Type tyname uni a) (Term tyname name uni fun a)
                         | Unwrap a (Term tyname name uni fun a)
-                        | Constr a (Type tyname uni a) Int [Term tyname name uni fun a]
+                        -- See Note [Constr tag type]
+                        | Constr a (Type tyname uni a) Word64 [Term tyname name uni fun a]
                         | Case a (Type tyname uni a) (Term tyname name uni fun a) [Term tyname name uni fun a]
                         deriving stock (Functor, Show, Generic)
 

@@ -37,14 +37,16 @@ import PlutusCore.Name
 import PlutusCore.Pretty (PrettyConfigPlc, PrettyConst)
 import PlutusCore.Subst
 
+import Control.Lens ((^?))
 import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.ST
 import Data.DList (DList)
 import Data.DList qualified as DList
-import Data.List.Extra ((!?))
+import Data.List.Extras (wix)
 import Data.STRef
 import Data.Text (Text)
+import Data.Word
 import Universe
 
 infix 4 |>, <|
@@ -59,7 +61,7 @@ data CkValue uni fun =
   | VLamAbs Name (Type TyName uni ()) (Term TyName Name uni fun ())
   | VIWrap (Type TyName uni ()) (Type TyName uni ()) (CkValue uni fun)
   | VBuiltin (Term TyName Name uni fun ()) (BuiltinRuntime (CkValue uni fun))
-  | VConstr (Type TyName uni ()) Int [CkValue uni fun]
+  | VConstr (Type TyName uni ()) Word64 [CkValue uni fun]
     deriving stock (Show)
 
 -- | Take pieces of a possibly partial builtin application and either create a 'CkValue' using
@@ -141,7 +143,7 @@ data Frame uni fun
     | FrameTyInstArg (Type TyName uni ())                   -- ^ @{_ A}@
     | FrameUnwrap                                           -- ^ @(unwrap _)@
     | FrameIWrap (Type TyName uni ()) (Type TyName uni ())  -- ^ @(iwrap A B _)@
-    | FrameConstr (Type TyName uni ()) Int [Term TyName Name uni fun ()] [CkValue uni fun]
+    | FrameConstr (Type TyName uni ()) Word64 [Term TyName Name uni fun ()] [CkValue uni fun]
     | FrameCase [Term TyName Name uni fun ()]
 
 type Context uni fun = [Frame uni fun]
@@ -232,7 +234,7 @@ FrameConstr ty i todo done : stack <| e =
         t : ts -> FrameConstr ty i ts done' : stack |> t
         []     -> stack <| VConstr ty i (reverse done')
 FrameCase cs : stack <| e = case e of
-    VConstr _ i args -> case cs !? i of
+    VConstr _ i args -> case cs ^? wix i of
         Just t  -> FrameApplyValues args : stack |> t
         Nothing -> throwingWithCause _MachineError (MissingCaseBranch i) (Just $ ckValueToTerm e)
     _ -> throwingWithCause _MachineError NonConstrScrutinized (Just $ ckValueToTerm e)

@@ -81,7 +81,7 @@ import PlutusCore.Pretty
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts (..))
 import UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
 
-import Control.Lens (ix, (^?))
+import Control.Lens ((^?))
 import Control.Lens.Review
 import Control.Monad.Catch
 import Control.Monad.Except
@@ -91,6 +91,7 @@ import Control.Monad.ST.Unsafe
 import Data.DList qualified as DList
 import Data.Hashable (Hashable)
 import Data.Kind qualified as GHC
+import Data.List.Extras (wix)
 import Data.Proxy
 import Data.Semigroup (stimes)
 import Data.Text (Text)
@@ -236,7 +237,7 @@ data CekValue uni fun ann =
       -- ^ The partial application and its costing function.
       -- Check the docs of 'BuiltinRuntime' for details.
     -- | A constructor value, including fully computed arguments and the tag.
-  | VConstr {-# UNPACK #-} !Int ![CekValue uni fun ann]
+  | VConstr {-# UNPACK #-} !Word64 ![CekValue uni fun ann]
     deriving stock (Show)
 
 type CekValEnv uni fun ann = Env.RAList (CekValue uni fun ann)
@@ -558,7 +559,7 @@ data Context uni fun ann
     | FrameForce !(Context uni fun ann)
     -- ^ @(force _)@
     -- See Note [Accumulators for terms]
-    | FrameConstr !(CekValEnv uni fun ann) {-# UNPACK #-} !Int ![NTerm uni fun ann] !(DList.DList (CekValue uni fun ann)) !(Context uni fun ann)
+    | FrameConstr !(CekValEnv uni fun ann) {-# UNPACK #-} !Word64 ![NTerm uni fun ann] !(DList.DList (CekValue uni fun ann)) !(Context uni fun ann)
     -- ^ @(constr i V0 ... Vj-1 _ Nj ... Nn)@
     | FrameCases !(CekValEnv uni fun ann) ![NTerm uni fun ann] !(Context uni fun ann)
     -- ^ @(case _ C0 .. Cn)@
@@ -740,7 +741,7 @@ enterComputeCek = computeCek
           _              -> returnCek ctx $ VConstr i (toList done')
     -- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci
     returnCek (FrameCases env cs ctx) e = case e of
-        (VConstr i args) -> case cs ^? ix i of
+        (VConstr i args) -> case cs ^? wix i of
             Just t  -> computeCek (FrameApplyValues args ctx) env t
             Nothing -> throwingDischarged _MachineError (MissingCaseBranch i) e
         _ -> throwingDischarged _MachineError NonConstrScrutinized e

@@ -43,9 +43,10 @@ import Control.Monad.Error.Lens
 import Control.Monad.Except
 -- Using @transformers@ rather than @mtl@, because the former doesn't impose the 'Monad' constraint
 -- on 'local'.
+import Control.Lens ((^?))
 import Control.Monad.Trans.Reader
 import Data.Foldable
-import Data.List.Extra ((!?))
+import Data.List.Extras (wix)
 import Universe
 
 {- Note [PLC Typechecker code reuse]
@@ -230,9 +231,9 @@ inferTypeM t@(Constr ann resTy i args) = do
 
     -- We don't know exactly what to expect, we only know what the i-th sum should look like, so we
     -- assert that we should have some types in the sum up to there, and then the known product type.
-    let expectedType = TySOP () (replicate (i-1) [dummyType] ++ [replicate (length args) dummyType])
+    let expectedType = TySOP () (replicate ((fromIntegral i)-1) [dummyType] ++ [replicate (length args) dummyType])
     case unNormalized vResTy of
-        TySOP _ vSTys -> case vSTys !? i of
+        TySOP _ vSTys -> case vSTys ^? wix i of
             Just pTys -> case zipExact args pTys of
                 -- pTy is a sub-part of a normalized type, so normalized
                 Just ps -> for_ ps $ \(arg, pTy) -> checkTypeM ann arg (Normalized pTy)

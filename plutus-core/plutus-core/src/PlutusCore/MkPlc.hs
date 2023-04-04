@@ -51,6 +51,7 @@ import Prelude hiding (error)
 
 import PlutusCore.Core
 
+import Data.Word
 import Universe
 
 -- | A final encoding for Term, to allow PLC terms to be used transparently as PIR terms.
@@ -65,7 +66,7 @@ class TermLike term tyname name uni fun | term -> tyname name uni fun where
     unwrap   :: ann -> term ann -> term ann
     iWrap    :: ann -> Type tyname uni ann -> Type tyname uni ann -> term ann -> term ann
     error    :: ann -> Type tyname uni ann -> term ann
-    constr   :: ann -> Type tyname uni ann -> Int -> [term ann] -> term ann
+    constr   :: ann -> Type tyname uni ann -> Word64 -> [term ann] -> term ann
     kase     :: ann -> Type tyname uni ann -> term ann -> [term ann] -> term ann
 
     termLet  :: ann -> TermDef term tyname name uni ann -> term ann -> term ann

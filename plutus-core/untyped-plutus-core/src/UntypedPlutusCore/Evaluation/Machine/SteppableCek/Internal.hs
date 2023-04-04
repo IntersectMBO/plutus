@@ -52,15 +52,16 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts
 import UntypedPlutusCore.Evaluation.Machine.Cek.Internal hiding (Context (..), runCekDeBruijn)
 import UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
 
-import Control.Lens (ix)
-import Control.Lens hiding (Context, ix)
+import Control.Lens hiding (Context)
 import Control.Monad
 import Control.Monad.Except
 import Data.DList qualified as DList
+import Data.List.Extras (wix)
 import Data.Proxy
 import Data.RandomAccessList.Class qualified as Env
 import Data.Semigroup (stimes)
 import Data.Text (Text)
+import Data.Word (Word64)
 import GHC.TypeNats
 
 {- Note [Debuggable vs Original versions of CEK]
@@ -96,7 +97,7 @@ data Context uni fun ann
     | FrameApplyArg ann !(CekValEnv uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann) -- ^ @[_ N]@
     | FrameApplyValues ann ![CekValue uni fun ann] !(Context uni fun ann)
     | FrameForce ann !(Context uni fun ann)                                               -- ^ @(force _)@
-    | FrameConstr ann !(CekValEnv uni fun ann) {-# UNPACK #-} !Int ![NTerm uni fun ann] !(DList.DList (CekValue uni fun ann)) !(Context uni fun ann)
+    | FrameConstr ann !(CekValEnv uni fun ann) {-# UNPACK #-} !Word64 ![NTerm uni fun ann] !(DList.DList (CekValue uni fun ann)) !(Context uni fun ann)
     | FrameCases ann !(CekValEnv uni fun ann) ![NTerm uni fun ann] !(Context uni fun ann)
     | NoFrame
     deriving stock (Show)
@@ -185,7 +186,7 @@ returnCek (FrameConstr ann env i todo done ctx) e = do
         _              -> returnCek ctx $ VConstr i (toList done')
 -- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci
 returnCek (FrameCases ann env cs ctx) e = case e of
-    (VConstr i args) -> case cs ^? ix i of
+    (VConstr i args) -> case cs ^? wix i of
         Just t  -> computeCek (FrameApplyValues ann args ctx) env t
         Nothing -> throwingDischarged _MachineError (MissingCaseBranch i) e
     _ -> throwingDischarged _MachineError NonConstrScrutinized e

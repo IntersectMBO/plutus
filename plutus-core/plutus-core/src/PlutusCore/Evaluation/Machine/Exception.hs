@@ -42,6 +42,7 @@ import Control.Monad.Except
 import Data.Either.Extras
 import Data.String (IsString)
 import Data.Text (Text)
+import Data.Word (Word64)
 import Prettyprinter
 
 -- | When unlifting of a PLC term into a Haskell value fails, this error is thrown.
@@ -74,7 +75,7 @@ data MachineError fun
       -- ^ A builtin received a term argument when something else was expected
     | UnknownBuiltin fun
     | NonConstrScrutinized
-    | MissingCaseBranch Int
+    | MissingCaseBranch Word64
     deriving stock (Show, Eq, Functor, Generic)
     deriving anyclass (NFData)
 

@@ -28,6 +28,7 @@ module UntypedPlutusCore.Core.Type
 import Control.Lens
 import PlutusPrelude
 
+import Data.Word
 import PlutusCore.Builtin qualified as TPLC
 import PlutusCore.Core qualified as TPLC
 import PlutusCore.MkPlc
@@ -82,7 +83,8 @@ data Term name uni fun ann
     | Error !ann
     -- TODO: worry about overflow, maybe use an Integer
     -- TODO: try spine-strict list or strict list or vector
-    | Constr !ann !Int ![Term name uni fun ann]
+    -- See Note [Constr tag type]
+    | Constr !ann !Word64 ![Term name uni fun ann]
     | Case !ann !(Term name uni fun ann) ![Term name uni fun ann]
     deriving stock (Show, Functor, Generic)
     deriving anyclass (NFData)

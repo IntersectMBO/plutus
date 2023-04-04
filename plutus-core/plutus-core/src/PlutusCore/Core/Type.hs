@@ -61,6 +61,7 @@ import PlutusCore.Version as Export
 import Control.Lens
 import Data.Hashable
 import Data.Kind qualified as GHC
+import Data.Word
 import Instances.TH.Lift ()
 import Language.Haskell.TH.Lift
 import Universe
@@ -111,7 +112,8 @@ data Term tyname name uni fun ann
     | TyInst ann (Term tyname name uni fun ann) (Type tyname uni ann) -- ^ instantiation
     | IWrap ann (Type tyname uni ann) (Type tyname uni ann) (Term tyname name uni fun ann) -- ^ wrapping
     | Unwrap ann (Term tyname name uni fun ann) -- ^ unwrapping
-    | Constr ann (Type tyname uni ann) Int [Term tyname name uni fun ann] -- ^ constructor
+    -- See Note [Constr tag type]
+    | Constr ann (Type tyname uni ann) Word64 [Term tyname name uni fun ann] -- ^ constructor
     | Case ann (Type tyname uni ann) (Term tyname name uni fun ann) [Term tyname name uni fun ann] -- ^ case
     | Constant ann (Some (ValueOf uni)) -- ^ constants
     | Builtin ann fun -- ^ builtin functions
@@ -233,3 +235,23 @@ mapFun f = go where
 -- This marking allows us to skip the (de)serialization of binders at LamAbs/TyAbs positions
 -- iff 'name' is DeBruijn-encoded (level or index). See for example the instance of  'UntypedPlutusCore.Core.Instance.Flat'
 newtype Binder name = Binder { unBinder :: name }
+
+{- Note [Constr tag type]
+Constructor tags are not dynamically created, they can only come from the program itself.
+
+So we do not have to worry about e.g. overflow.
+
+The main constraints that we have are:
+1. The use of the tags in the evaluator must be fast.
+2. We don't want to allow nonsensical things (e.g. negative tags)
+3. We don't want the format to change unexpectedly
+
+These are in tension. The structure we use for storing case branches is a list, which is
+traditionally indexed with an 'Int' (and most of the other alternatives are the same). That
+suggests using 'Int' as the tag, but 'Int' allows negative tags. A 'Word' would be more
+appropriate (of fixed size to satisfy 3), but then we need to be able to index lists by
+'Word's.
+
+Well, except there's nothing that _stops_ us indexing lists by 'Word's, we just need to
+write our own indexing functions. So that's what we have done.
+-}
