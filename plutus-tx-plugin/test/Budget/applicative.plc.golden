@@ -2,43 +2,69 @@ let
   data (Maybe :: * -> *) a | Maybe_match where
     Just : a -> Maybe a
     Nothing : Maybe a
+  !fFunctorMaybe_cfmap : all a. all b. (a -> b) -> Maybe a -> Maybe b
+    = /\a
+        b ->
+        \(f : a -> b)
+         (ds : Maybe a) ->
+          Maybe_match
+            {a}
+            ds
+            {all dead. Maybe b}
+            (\(a : a) -> /\dead -> Just {b} (f a))
+            (/\dead -> Nothing {b})
+            {all dead. dead}
+  data (Applicative :: (* -> *) -> *) (f :: * -> *) | Applicative_match where
+    CConsApplicative
+      : (\(f :: * -> *) -> all a. all b. (a -> b) -> f a -> f b) f -> (all a. a -> f a) -> (all a. all b. f (a -> b) -> f a -> f b) -> Applicative f
   !x : Maybe integer = Just {integer} 1
   !y : Maybe integer = Just {integer} 2
-  !ds : Maybe (integer -> integer)
-    = (let
-          b = integer -> integer
-        in
-        \(dFunctor
-            : (\(f :: * -> *) -> all a. all b. (a -> b) -> f a -> f b) Maybe)
-         (f : integer -> b)
-         (fa : Maybe integer) ->
-          dFunctor {integer} {b} f fa)
-        (/\a
-           b ->
-           \(f : a -> b)
-            (ds : Maybe a) ->
-             Maybe_match
-               {a}
-               ds
-               {all dead. Maybe b}
-               (\(a : a) -> /\dead -> Just {b} (f a))
-               (/\dead -> Nothing {b})
-               {all dead. dead})
-        (\(x : integer) (y : integer) -> addInteger x y)
-        x
 in
-Maybe_match
-  {integer -> integer}
-  ds
-  {all dead. Maybe integer}
-  (\(ipv : integer -> integer) ->
-     /\dead ->
-       Maybe_match
-         {integer}
-         y
-         {all dead. Maybe integer}
-         (\(ipv : integer) -> /\dead -> Just {integer} (ipv ipv))
-         (/\dead -> Nothing {integer})
-         {all dead. dead})
-  (/\dead -> Nothing {integer})
-  {all dead. dead}
+(let
+    !v : Applicative Maybe
+      = CConsApplicative
+          {Maybe}
+          fFunctorMaybe_cfmap
+          (/\a -> \(ds : a) -> Just {a} ds)
+          (/\a
+             b ->
+             \(ds : Maybe (a -> b))
+              (ds : Maybe a) ->
+               Maybe_match
+                 {a -> b}
+                 ds
+                 {all dead. Maybe b}
+                 (\(ipv : a -> b) ->
+                    /\dead ->
+                      Maybe_match
+                        {a}
+                        ds
+                        {all dead. Maybe b}
+                        (\(ipv : a) -> /\dead -> Just {b} (ipv ipv))
+                        (/\dead -> Nothing {b})
+                        {all dead. dead})
+                 (/\dead -> Nothing {b})
+                 {all dead. dead})
+  in
+  Applicative_match
+    {Maybe}
+    v
+    {all a. all b. Maybe (a -> b) -> Maybe a -> Maybe b}
+    (\(v : (\(f :: * -> *) -> all a. all b. (a -> b) -> f a -> f b) Maybe)
+      (v : all a. a -> Maybe a)
+      (v : all a. all b. Maybe (a -> b) -> Maybe a -> Maybe b) ->
+       v))
+  {integer}
+  {integer}
+  ((let
+       b = integer -> integer
+     in
+     \(dFunctor
+         : (\(f :: * -> *) -> all a. all b. (a -> b) -> f a -> f b) Maybe)
+      (f : integer -> b)
+      (fa : Maybe integer) ->
+       dFunctor {integer} {b} f fa)
+     fFunctorMaybe_cfmap
+     (\(x : integer) (y : integer) -> addInteger x y)
+     x)
+  y

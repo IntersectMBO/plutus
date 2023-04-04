@@ -31,6 +31,7 @@ packages: doc/read-the-docs-site
           plutus-tx-plugin
           prettyprinter-configurable
           stubs/plutus-ghc-stub
+with-compiler: /home/zliu41/ghc/_build/stage1/bin/ghc
 
 -- We never, ever, want this.
 write-ghc-environment-files: never

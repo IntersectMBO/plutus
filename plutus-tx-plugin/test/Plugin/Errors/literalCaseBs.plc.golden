@@ -1,1 +1,3 @@
-Error: Unsupported feature: Use of == from the Haskell Eq typeclass
+Error: Reference to a name which is not a local, a builtin, or an external INLINABLE function: Variable PlutusTx.Builtins.Internal.$fEqBuiltinByteString
+       [DFunId]
+       No unfolding

@@ -11,6 +11,7 @@ import PlutusLedgerApi.V1.Value
 import PlutusTx qualified as PlutusTx
 import PlutusTx.Builtins qualified as PlutusTx
 import PlutusTx.Prelude qualified as PlutusTx
+import Prelude as Haskell
 
 -- | A very crude deterministic generator for 'ScriptContext's with size
 -- approximately proportional to the input integer.
@@ -53,7 +54,7 @@ checkScriptContext1 d =
   let !sc = PlutusTx.unsafeFromBuiltinData d
       (ScriptContext txi _) = sc
   in
-  if PlutusTx.length (txInfoOutputs txi) `PlutusTx.modInteger` 2 PlutusTx.== 0
+  if PlutusTx.length (txInfoOutputs txi) `PlutusTx.modInteger` 2 Haskell.== 0
   then ()
   else PlutusTx.traceError "Odd number of outputs"
 
@@ -74,7 +75,7 @@ checkScriptContext2 d =
   -- for now!
   in case sc of
     !_ ->
-      if 48*9900 PlutusTx.== (475200 :: Integer)
+      if 48*9900 Haskell.== (475200 :: Integer)
       then ()
       else PlutusTx.traceError "Got my sums wrong"
 
@@ -119,7 +120,7 @@ mkScriptContextEqualityDataCode sc =
 scriptContextEqualityTerm :: ScriptContext -> PlutusTx.BuiltinData -> ()
 -- See note [Redundant arguments to equality benchmarks]
 scriptContextEqualityTerm sc _ =
-  if sc PlutusTx.== sc
+  if sc Haskell.== sc
   then ()
   else PlutusTx.traceError "The argument is not equal to itself"
 

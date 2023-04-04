@@ -38,6 +38,7 @@ module PlutusTx.Builtins (
                                 , lessThanInteger
                                 , lessThanEqualsInteger
                                 , equalsInteger
+                                , notEqualsInteger
                                 -- * Error
                                 , error
                                 -- * Data
@@ -303,6 +304,11 @@ lessThanEqualsInteger x y = fromBuiltin (BI.lessThanEqualsInteger (toBuiltin x) 
 -- | Check if two 'Integer's are equal.
 equalsInteger :: Integer -> Integer -> Bool
 equalsInteger x y = fromBuiltin (BI.equalsInteger (toBuiltin x) (toBuiltin y))
+
+{-# INLINABLE notEqualsInteger #-}
+-- | Check if two 'Integer's are not equal.
+notEqualsInteger :: Integer -> Integer -> Bool
+notEqualsInteger x y = BI.ifThenElse (BI.equalsInteger x y) False True
 
 {-# INLINABLE error #-}
 -- | Aborts evaluation with an error.

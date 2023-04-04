@@ -32,7 +32,7 @@ import PlutusBenchmark.Common (Term, compiledCodeToTerm)
 
 import PlutusCore.Pretty qualified as PLC
 import PlutusTx qualified as Tx
-import PlutusTx.Prelude as TxPrelude hiding (abs, sortBy)
+import PlutusTx.Prelude as TxPrelude hiding (abs, sortBy, (*), (+), (-), (<), (<=), (>), (>=))
 
 -----------------------------
 -- The main program
@@ -102,6 +102,9 @@ mkQueensCode sz alg =
               `Tx.unsafeApplyCode` Tx.liftCode sz
               `Tx.unsafeApplyCode` Tx.liftCode alg
 
+snooker :: Tx.CompiledCode [State]
+snooker = $$(Tx.compile [|| runQueens 4 Bt ||])
+
 mkQueensTerm :: Integer -> Algorithm -> Term
 mkQueensTerm sz alg = compiledCodeToTerm $ mkQueensCode sz alg
 
@@ -130,18 +133,18 @@ unindent d = map (dropWhile isSpace) $ (Haskell.lines . Haskell.show $ d)
 iterateN :: Integer -> (a -> a) -> a -> [a]
 iterateN k f x =
     if k == 0 then []
-    else x : iterateN (k-1) f (f x)
+    else x : iterateN (k Haskell.- 1) f (f x)
 
 -- % Replacement for [a..b]
 {-# INLINABLE interval #-}
 interval :: Integer -> Integer -> [Integer]
 interval a b =
-    if a > b then []
-    else a : (interval (a+1) b)
+    if a Haskell.> b then []
+    else a : (interval (a Haskell.+ 1) b)
 
 {-# INLINABLE abs #-}
 abs :: Integer -> Integer
-abs n = if n<0 then 0-n else n
+abs n = if n Haskell.< 0 then -n else n
 
 -- % Things needed for `union`
 
@@ -199,12 +202,13 @@ type Var = Integer
 type Value = Integer
 
 data Assign = Var := Value
-    deriving stock (Haskell.Show, Haskell.Eq, Haskell.Ord, Generic)
+    deriving stock (Haskell.Show, Generic)
     deriving anyclass (NFData)
-instance TxPrelude.Eq Assign
-    where (a := b) == (a' := b') = a==a' && b==b'
-instance TxPrelude.Ord Assign
-    where (a := b) < (a' := b') = (a<a') || (a==a' && b < b')
+instance Haskell.Eq Assign where
+    (a := b) == (a' := b') = a Haskell.== a' && b Haskell.== b'
+instance Haskell.Ord Assign where
+    (a := b) < (a' := b') = (a Haskell.< a') || (a Haskell.== a' && b Haskell.< b')
+    (a := b) <= (a' := b') = (a Haskell.< a') || (a Haskell.== a' && b Haskell.<= b')
 
 type Relation = Assign -> Assign -> Bool
 
@@ -233,12 +237,12 @@ complete CSP{vars=vars} s = maxLevel s == vars
 generate :: CSP -> [State]
 generate CSP{vals=vals,vars=vars} = g vars
   where g 0   = [[]]
-        g var = [ (var := val):st | val <- interval 1 vals, st <- g (var-1) ]
+        g var = [ (var := val):st | val <- interval 1 vals, st <- g (var Haskell.- 1) ]
 
 {-# INLINABLE inconsistencies #-}
 inconsistencies :: CSP -> State -> [(Var,Var)]
 inconsistencies CSP{rel=rel} as =
-  [ (level a, level b) | a <- as, b <- reverse as, a > b, not (rel a b) ]
+  [ (level a, level b) | a <- as, b <- reverse as, a Haskell.> b, not (rel a b) ]
 
 {-# INLINABLE consistent #-}
 consistent :: CSP -> State -> Bool
@@ -256,7 +260,7 @@ solver csp  = test csp candidates
 {-# INLINABLE queens #-}
 queens :: Integer -> CSP
 queens n = CSP {vars = n, vals = n, rel = safe}
-  where safe (i := m) (j := n) = (m /= n) && abs (i - j) /= abs (m - n)
+  where safe (i := m) (j := n) = (m /= n) && abs (i Haskell.- j) /= abs (m Haskell.- n)
 
 -------------------------------
 -- Figure 2.  Trees in Haskell.
@@ -303,7 +307,7 @@ initTree f a = Node a (map (initTree f) (f a))
 mkTree :: CSP -> Tree State
 mkTree CSP{vars=vars,vals=vals} = initTree next []
         -- Removed [1..vals]
-  where next ss = [ ((maxLevel ss + 1) := j):ss | maxLevel ss < vars, j <- vallist ]
+  where next ss = [ ((maxLevel ss Haskell.+ 1) := j):ss | maxLevel ss Haskell.< vars, j <- vallist ]
         vallist = interval 1 vals
 
 {-# INLINABLE earliestInconsistency #-}
@@ -392,8 +396,8 @@ btr seed csp = bt csp . hrandom seed
 
 {-# INLINABLE random2 #-}
 random2 :: Integer -> Integer
-random2 n = if test > 0 then test else test + 2147483647
-  where test = 16807 * lo - 2836 * hi
+random2 n = if test Haskell.> 0 then test else test Haskell.+ 2147483647
+  where test = 16807 Haskell.* lo Haskell.- 2836 Haskell.* hi
         hi   = n `Haskell.div` 127773
         lo   = n `Haskell.rem` 127773
 
@@ -403,7 +407,7 @@ randoms k = iterateN k random2
 
 {-# INLINABLE random #-}
 random :: Integer -> Integer
-random n = (a * n + c) -- mod m
+random n = (a Haskell.* n Haskell.+ c) -- mod m
   where a = 994108973
         c = a
 
@@ -435,7 +439,8 @@ cacheChecks csp tbl (Node s cs) =
 fillTable :: State -> CSP -> Table -> Table
 fillTable [] csp tbl = tbl
 fillTable ((var' := val'):as) CSP{vars=vars,vals=vals,rel=rel} tbl =
-    zipWith (zipWith f) tbl [[(var,val) | val <- interval 1 vals] | var <- interval (var'+1) vars]
+    zipWith (zipWith f) tbl
+        [[(var,val) | val <- interval 1 vals] | var <- interval (var' Haskell.+ 1) vars]
           where f cs (var,val) = if cs == Unknown && not (rel (var' := val') (var := val)) then
                                    Known [var',var]
                                  else cs
@@ -446,7 +451,7 @@ lookupCache csp t = mapTree f t
   where f ([], tbl)      = (([], Unknown), tbl)
         f (s@(a:_), tbl) = ((s, cs), tbl)
              where cs = if tableEntry == Unknown then checkComplete csp s else tableEntry
-                   tableEntry = (head tbl)!!(value a-1)
+                   tableEntry = (head tbl)!!(value a Haskell.- 1)
 
 --------------------------------------------
 -- Figure 10. Conflict-directed backjumping.

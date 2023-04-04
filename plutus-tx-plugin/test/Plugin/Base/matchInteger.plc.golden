@@ -1,0 +1,62 @@
+(program
+  1.1.0
+  (let
+    (nonrec)
+    (termbind
+      (strict)
+      (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
+      (builtin addInteger)
+    )
+    (datatypebind
+      (datatype
+        (tyvardecl Bool (type))
+
+        Bool_match
+        (vardecl True Bool) (vardecl False Bool)
+      )
+    )
+    (termbind
+      (strict)
+      (vardecl equalsInteger (fun (con integer) (fun (con integer) (con bool))))
+      (builtin equalsInteger)
+    )
+    (termbind
+      (strict)
+      (vardecl ifThenElse (all a (type) (fun (con bool) (fun a (fun a a)))))
+      (builtin ifThenElse)
+    )
+    (termbind
+      (strict)
+      (vardecl equalsInteger (fun (con integer) (fun (con integer) Bool)))
+      (lam
+        x
+        (con integer)
+        (lam
+          y
+          (con integer)
+          [ [ [ { ifThenElse Bool } [ [ equalsInteger x ] y ] ] True ] False ]
+        )
+      )
+    )
+    (lam
+      ds
+      (con integer)
+      [
+        [
+          {
+            [
+              Bool_match
+              [
+                [ equalsInteger [ [ addInteger ds ] (con integer 1) ] ]
+                (con integer 3)
+              ]
+            ]
+            (con integer)
+          }
+          (con integer 42)
+        ]
+        (con integer 43)
+      ]
+    )
+  )
+)

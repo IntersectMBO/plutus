@@ -161,6 +161,7 @@ mkSimplPass flags logger =
             , GHC.sm_uf_opts = GHC.defaultUnfoldingOpts
             , GHC.sm_dflags = flags
             , GHC.sm_rules = False
+            , GHC.sm_builtin_rules = False
             , GHC.sm_cast_swizzle = True
             -- See Note [GHC.sm_pre_inline]
             , GHC.sm_pre_inline = True
@@ -368,6 +369,7 @@ runCompiler ::
     , MonadQuote m
     , MonadError (CompileError uni fun Ann) m
     , MonadIO m
+    , MonadCoreM m
     ) =>
     String ->
     PluginOptions ->
@@ -454,16 +456,14 @@ runCompiler moduleName opts expr = do
       getSrcSpans :: PIR.Provenance Ann -> SrcSpans
       getSrcSpans = SrcSpans . Set.unions . fmap (unSrcSpans . annSrcSpans) . toList
 
--- | Get the 'GHC.Name' corresponding to the given 'TH.Name', or throw an error if we can't get it.
-thNameToGhcNameOrFail :: TH.Name -> PluginM uni fun GHC.Name
-thNameToGhcNameOrFail name = do
-    maybeName <- lift . lift $ GHC.thNameToGhcName name
-    case maybeName of
-        Just n  -> pure n
-        Nothing -> throwError . NoContext $ CoreNameLookupError name
-
 -- | Create a GHC Core expression that will evaluate to the given ByteString at runtime.
-makeByteStringLiteral :: BS.ByteString -> PluginM uni fun GHC.CoreExpr
+makeByteStringLiteral ::
+    ( MonadCoreM m
+    , MonadError (CompileError uni fun ann) m
+    , GHC.HasDynFlags m
+    ) =>
+    BS.ByteString ->
+    m GHC.CoreExpr
 makeByteStringLiteral bs = do
     flags <- GHC.getDynFlags
 
@@ -475,9 +475,9 @@ makeByteStringLiteral bs = do
     -}
 
     -- Get the names of functions/types that we need for our expression
-    upio <- lift . lift . GHC.lookupId =<< thNameToGhcNameOrFail 'unsafePerformIO
-    bsTc <- lift . lift . GHC.lookupTyCon =<< thNameToGhcNameOrFail ''BS.ByteString
-    upal <- lift . lift . GHC.lookupId =<< thNameToGhcNameOrFail 'BSUnsafe.unsafePackAddressLen
+    upio <- lookupId =<< thNameToGhcNameOrFail 'unsafePerformIO
+    bsTc <- lookupTyCon =<< thNameToGhcNameOrFail ''BS.ByteString
+    upal <- lookupId =<< thNameToGhcNameOrFail 'BSUnsafe.unsafePackAddressLen
 
     -- We construct the following expression:
     -- unsafePerformIO $ unsafePackAddressLen <length as int literal> <data as string literal address>

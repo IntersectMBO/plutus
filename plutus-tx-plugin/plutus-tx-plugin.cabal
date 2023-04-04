@@ -61,6 +61,8 @@ library
   other-modules:
     PlutusTx.Compiler.Binders
     PlutusTx.Compiler.Builtins
+    PlutusTx.Compiler.Dictionary.Integer
+    PlutusTx.Compiler.Dictionary.List
     PlutusTx.Compiler.Expr
     PlutusTx.Compiler.Kind
     PlutusTx.Compiler.Laziness
@@ -79,6 +81,7 @@ library
     , either
     , extra
     , flat                                  <0.5
+    , ghc-prim
     , lens
     , mtl
     , plutus-core:{plutus-core, plutus-ir}  ^>=1.4
@@ -135,6 +138,7 @@ test-suite plutus-tx-tests
     Lib
     Lift.Spec
     Optimization.Spec
+    Plugin.Base.Spec
     Plugin.Basic.Spec
     Plugin.Coverage.Spec
     Plugin.Data.Spec

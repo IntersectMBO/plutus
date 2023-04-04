@@ -3,6 +3,8 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 -- Turning this off makes things fail, should investigate why
 {-# OPTIONS_GHC -fno-strictness #-}
+{-# OPTIONS_GHC -fexpose-all-unfoldings #-}
+{-# OPTIONS_GHC -fno-enable-builtin-rules #-}
 
 module PlutusBenchmark.NoFib.Knights.ChessSetList
     ( Tile,
@@ -25,8 +27,9 @@ import GHC.Generics
 import PlutusBenchmark.NoFib.Knights.Sort
 import PlutusBenchmark.NoFib.Knights.Utils
 
-import PlutusTx.Prelude as Tx
+import PlutusTx.Prelude as Tx hiding ((*), (+), (-), (/=), (<), (<=), (==), (>), (>=))
 
+import Prelude ((*), (+), (-), (/=), (<=), (==), (>))
 import Prelude qualified as Haskell
 
 
@@ -40,10 +43,10 @@ data ChessSet = Board
                              -- square).
                 deriving stock (Generic)
                 deriving anyclass (NFData)
-instance Tx.Eq ChessSet where
+instance Haskell.Eq ChessSet where
     _ == _ = True
 
-instance Tx.Ord ChessSet where
+instance Haskell.Ord ChessSet where
     _ <= _ = True
 
 {-# INLINABLE createBoard #-}
@@ -124,7 +127,7 @@ pieceAtTile x0 (Board _ _ _ ts)
 
 
 {-# INLINABLE notIn #-}
-notIn :: Eq a => a  -> [a] -> Bool
+notIn :: Haskell.Eq a => a  -> [a] -> Bool
 notIn _ []     = True
 notIn x (a:as) = (x /= a) && (notIn x as)
 

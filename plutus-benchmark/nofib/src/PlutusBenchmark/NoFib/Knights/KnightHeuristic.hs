@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# OPTIONS_GHC -fno-enable-builtin-rules #-}
 
 module PlutusBenchmark.NoFib.Knights.KnightHeuristic
    ( ChessSet,
@@ -10,7 +11,8 @@ module PlutusBenchmark.NoFib.Knights.KnightHeuristic
 import PlutusBenchmark.NoFib.Knights.ChessSetList
 import PlutusBenchmark.NoFib.Knights.Sort (quickSort)
 
-import PlutusTx.Prelude as Tx
+import PlutusTx.Prelude as Tx hiding ((*), (+), (-), (/=), (<), (<=), (==), (>), (>=))
+import Prelude ((*), (+), (-), (<=), (==), (>=))
 
 data Direction = UL | UR | DL |DR | LU | LD | RU | RD
 
@@ -44,8 +46,8 @@ canMove board dir
 {-# INLINABLE canMoveTo #-}
 canMoveTo :: Tile -> ChessSet -> Bool
 canMoveTo t@(x,y) board
-   = (x Tx.>= 1) && (x Tx.<= sze) &&
-     (y Tx.>= 1) && (y Tx.<= sze) &&
+   = (x >= 1) && (x <= sze) &&
+     (y >= 1) && (y <= sze) &&
      isSquareFree t board
      where
         sze = sizeBoard board

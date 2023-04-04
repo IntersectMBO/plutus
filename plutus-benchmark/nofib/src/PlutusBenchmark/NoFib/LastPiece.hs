@@ -56,7 +56,7 @@ data Sex = Male | Female
 {-# INLINABLE sumList #-}
 sumList :: [Integer] -> Integer
 sumList []    = 0
-sumList (h:t) = h + sumList t
+sumList (h:t) = h Haskell.+ sumList t
 
 {-# INLINABLE numSolutions #-}
 numSolutions :: Solution -> Integer
@@ -84,7 +84,7 @@ search :: Square -> Sex         -- Square we are up to
 search _ _ board []
   = Soln board     -- Finished
 search (row,col) sex board ps      -- Next row
-  | col == (maxCol+1) = search (row+1, 1) (flipSex sex) board ps
+  | col Haskell.== (maxCol Haskell.+ 1) = search (row Haskell.+ 1, 1) (flipSex sex) board ps
 search square sex board ps     -- Occupied square
   | isJust (check board square) = search (next square) (flipSex sex) board ps
 search square sex board ps
@@ -132,11 +132,11 @@ fit board square pid (o:os) =
 
 {-# INLINABLE add #-}
 add :: Square -> Offset -> Square
-add (row,col) (orow, ocol) = (row + orow, col + ocol)
+add (row,col) (orow, ocol) = (row Haskell.+ orow, col Haskell.+ ocol)
 
 {-# INLINABLE next #-}
 next :: Square -> Square
-next (row,col) = (row,col+1)
+next (row,col) = (row, col Haskell.+ 1)
 
 {-# INLINABLE maxRow #-}
 {-# INLINABLE maxCol #-}
@@ -157,7 +157,7 @@ check :: Board -> Square -> Maybe PieceId
 check board square = -- Map.lookup square board
     case board of
       []                   -> Nothing
-      (square',pid):board' -> if square == square' then Just pid else check board' square
+      (square',pid):board' -> if square Haskell.== square' then Just pid else check board' square
 
 {-# INLINABLE extend #-}
 extend :: Board -> Square -> PieceId -> Board
@@ -166,7 +166,7 @@ extend board square pid = (square, pid): board -- Map.insert square pid board
 {-# INLINABLE extend_maybe #-}
 extend_maybe :: Board -> Square -> PieceId -> Maybe Board
 extend_maybe board square@(row,col) pid
-  | row > maxRow || col < 1 || col > maxCol
+  | row Haskell.> maxRow || col Haskell.< 1 || col Haskell.> maxCol
   = Nothing
   | otherwise
   = case check board square of

@@ -1,11 +1,86 @@
 let
   ~a : integer = addInteger 1 2
+  data Ordering | Ordering_match where
+    EQ : Ordering
+    GT : Ordering
+    LT : Ordering
   data Bool | Bool_match where
     True : Bool
     False : Bool
+  data (Ord :: * -> *) a | Ord_match where
+    CConsOrd
+      : (\a -> a -> a -> Bool) a -> (a -> a -> Ordering) -> (a -> a -> Bool) -> (a -> a -> Bool) -> (a -> a -> Bool) -> (a -> a -> Bool) -> (a -> a -> a) -> (a -> a -> a) -> Ord a
 in
 Bool_match
-  (ifThenElse {Bool} (lessThanInteger 3 4) True False)
+  ((let
+       !v : Ord integer
+         = CConsOrd
+             {integer}
+             (\(x : integer)
+               (y : integer) ->
+                ifThenElse {Bool} (equalsInteger x y) True False)
+             (\(eta : integer)
+               (eta : integer) ->
+                Bool_match
+                  (ifThenElse {Bool} (equalsInteger eta eta) True False)
+                  {all dead. Ordering}
+                  (/\dead -> EQ)
+                  (/\dead ->
+                     Bool_match
+                       (ifThenElse
+                          {Bool}
+                          (lessThanEqualsInteger eta eta)
+                          True
+                          False)
+                       {all dead. Ordering}
+                       (/\dead -> LT)
+                       (/\dead -> GT)
+                       {all dead. dead})
+                  {all dead. dead})
+             (\(x : integer)
+               (y : integer) ->
+                ifThenElse {Bool} (lessThanInteger x y) True False)
+             (\(x : integer)
+               (y : integer) ->
+                ifThenElse {Bool} (lessThanEqualsInteger x y) True False)
+             (\(x : integer)
+               (y : integer) ->
+                ifThenElse {Bool} (lessThanEqualsInteger x y) False True)
+             (\(x : integer)
+               (y : integer) ->
+                ifThenElse {Bool} (lessThanInteger x y) False True)
+             (\(x : integer)
+               (y : integer) ->
+                Bool_match
+                  (ifThenElse {Bool} (lessThanEqualsInteger x y) True False)
+                  {all dead. integer}
+                  (/\dead -> y)
+                  (/\dead -> x)
+                  {all dead. dead})
+             (\(x : integer)
+               (y : integer) ->
+                Bool_match
+                  (ifThenElse {Bool} (lessThanEqualsInteger x y) True False)
+                  {all dead. integer}
+                  (/\dead -> x)
+                  (/\dead -> y)
+                  {all dead. dead})
+     in
+     Ord_match
+       {integer}
+       v
+       {integer -> integer -> Bool}
+       (\(v : (\a -> a -> a -> Bool) integer)
+         (v : integer -> integer -> Ordering)
+         (v : integer -> integer -> Bool)
+         (v : integer -> integer -> Bool)
+         (v : integer -> integer -> Bool)
+         (v : integer -> integer -> Bool)
+         (v : integer -> integer -> integer)
+         (v : integer -> integer -> integer) ->
+          v))
+     3
+     4)
   {integer -> integer}
   (\(x : integer) -> addInteger x 5)
   (\(x : integer) ->

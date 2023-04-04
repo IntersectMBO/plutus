@@ -17,7 +17,7 @@ import PlutusBenchmark.NoFib.Knights.Queue
 
 import PlutusCore.Pretty qualified as PLC
 import PlutusTx qualified as Tx
-import PlutusTx.Prelude as Tx
+import PlutusTx.Prelude as Tx hiding ((*), (+), (-), (/=), (<), (<=), (==), (>), (>=))
 import Prelude qualified as Haskell
 
 {-# INLINABLE zipConst #-}
@@ -27,7 +27,7 @@ zipConst a (b:bs) = (a,b) : zipConst a bs
 
 {-# INLINABLE grow #-}
 grow :: (Integer,ChessSet) -> [(Integer,ChessSet)]
-grow (x,y) = zipConst (x+1) (descendents y)
+grow (x,y) = zipConst (x Haskell.+ 1) (descendents y)
 
 {-# INLINABLE isFinished #-}
 isFinished :: (Integer,ChessSet) -> Bool
@@ -36,15 +36,15 @@ isFinished (_,y) = tourFinished y
 {-# INLINABLE interval #-}
 interval :: Integer -> Integer -> [Integer]
 interval a b =
-    if a > b then []
-    else a:(interval (a+1) b)
+    if a Haskell.> b then []
+    else a:(interval (a Haskell.+ 1) b)
 
 
 {-# INLINABLE repl #-}
 repl :: Integer -> Integer -> [Integer]
 repl n a =
-    if n == 0 then []
-    else a:(repl (n-1) a)
+    if n Haskell.== 0 then []
+    else a:(repl (n Haskell.- 1) a)
 
 -- % Original version used infinite lists.
 {-# INLINABLE mkStarts #-}
@@ -52,7 +52,7 @@ mkStarts :: Integer -> [(Integer, ChessSet)]
 mkStarts sze =
     let l = [startTour (x,y) sze | x <- interval 1 sze, y <- interval 1 sze]
         numStarts = Tx.length l  -- = sze*sze
-    in Tx.zip (repl numStarts (1-numStarts)) l
+    in Tx.zip (repl numStarts (1 Haskell.- numStarts)) l
 
 {-# INLINABLE root #-}
 root :: Integer -> Queue (Integer, ChessSet)
@@ -72,13 +72,13 @@ type Solution = (Integer, ChessSet)
 
 {-# INLINABLE depthSearch #-}
 -- % Added a depth parameter to stop things getting out of hand in the strict world.
-depthSearch :: (Eq a) => Integer -> Queue a -> (a -> [a]) -> (a -> Bool) -> Queue a
+depthSearch :: (Haskell.Eq a) => Integer -> Queue a -> (a -> [a]) -> (a -> Bool) -> Queue a
 depthSearch depth q growFn finFn
-   | depth == 0             = []
+   | depth Haskell.== 0             = []
    | emptyQueue q           = []
    | finFn (inquireFront q) = (inquireFront q):
-                              (depthSearch (depth-1) (removeFront q) growFn finFn)
-   | otherwise              = depthSearch (depth-1)
+                              (depthSearch (depth Haskell.- 1) (removeFront q) growFn finFn)
+   | otherwise              = depthSearch (depth Haskell.- 1)
                                  (addAllFront (growFn (inquireFront q))
                                               (removeFront q))
                                  growFn

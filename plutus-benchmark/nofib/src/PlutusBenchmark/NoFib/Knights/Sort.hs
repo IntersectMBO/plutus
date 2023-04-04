@@ -6,21 +6,19 @@ module PlutusBenchmark.NoFib.Knights.Sort
           quickSort
         ) where
 
-import PlutusTx.Prelude qualified as Tx
-
 {-# INLINABLE insertSort #-}
-insertSort :: (Tx.Ord a) => [a] -> [a]
+insertSort :: (Ord a) => [a] -> [a]
 insertSort xs = foldr insertion [] xs
 
 {-# INLINABLE insertion #-}
-insertion :: (Tx.Ord a) => a -> [a] -> [a]
+insertion :: (Ord a) => a -> [a] -> [a]
 insertion x [] = [x]
 insertion x (y:ys)
-        | x Tx.<= y    = x:y:ys
+        | x <= y    = x:y:ys
         | otherwise = y:insertion x ys
 
 {-# INLINABLE mergeSort #-}
-mergeSort :: (Tx.Ord a) => [a] -> [a]
+mergeSort :: (Ord a) => [a] -> [a]
 mergeSort xs
         = if (n <=1 ) then xs
           else
@@ -31,18 +29,18 @@ mergeSort xs
                 n = length xs
 
 {-# INLINABLE mergeList #-}
-mergeList :: (Tx.Ord a) => [a] -> [a] -> [a]
+mergeList :: (Ord a) => [a] -> [a] -> [a]
 mergeList []   ys = ys
 mergeList xs   [] = xs
 mergeList (x:xs) (y:ys)
-        | x Tx.<= y    = x:mergeList xs (y:ys)
+        | x <= y    = x:mergeList xs (y:ys)
         | otherwise = y:mergeList (x:xs) ys
 
 {-# INLINABLE quickSort #-}
-quickSort :: (Tx.Ord a) => [a] -> [a]
+quickSort :: (Ord a) => [a] -> [a]
 quickSort []     = []
-quickSort (x:xs) = (quickSort [y | y<-xs, y Tx.< x]) ++ [x] ++
-                   (quickSort [y | y<-xs, y Tx.>= x])
+quickSort (x:xs) = (quickSort [y | y<-xs, y < x]) ++ [x] ++
+                   (quickSort [y | y<-xs, y >= x])
 
 {-% These don't work in Plutus, and aren't used in the original program.
 {-# INLINABLE lazySortLe #-}
@@ -133,4 +131,3 @@ test4 = [500,499..1]
 test5 = take 10   (randomIntegers 123213 342234)
 test6 = take 100  (randomIntegers 123213 342234)
 test7 = take 1000 (randomIntegers 123213 342234)
-

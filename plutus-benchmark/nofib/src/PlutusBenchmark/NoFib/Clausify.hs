@@ -13,7 +13,7 @@ module PlutusBenchmark.NoFib.Clausify where
 import PlutusBenchmark.Common (Term, compiledCodeToTerm)
 
 import PlutusTx qualified as Tx
-import PlutusTx.Prelude as Plutus
+import PlutusTx.Prelude as Plutus hiding ((*), (+), (-), (/=), (<), (<=), (==), (>), (>=))
 import Prelude qualified as Haskell
 
 type Var = Integer
@@ -84,11 +84,11 @@ elim (Eqv f f') = Con (elim (Imp f f')) (elim (Imp f' f))
 -- insertion of an item into an ordered list
 -- Note: this is a corrected version from Colin (94/05/03 WDP)
 {-# INLINABLE insert #-}
-insert :: (Ord t) => t -> [t] -> [t]
+insert :: (Haskell.Ord t) => t -> [t] -> [t]
 insert x [] = [x]
 insert x p@(y:ys) =
-  if x < y then x : p
-  else if x > y then y : insert x ys
+  if x Haskell.< y then x : p
+  else if x Haskell.> y then y : insert x ys
   else p
 
 -- shift negation to innermost positions
@@ -104,7 +104,7 @@ negin p               = p
 -- does any symbol appear in both consequent and antecedent of clause
 {-# INLINABLE tautclause #-}
 tautclause :: LRVars -> Bool
-tautclause (c,a) = [x | x <- c, x `elem` a] /= []
+tautclause (c,a) = [x | x <- c, x `elem` a] Haskell./= []
 
 -- form unique clausal axioms excluding tautologies
 {-# INLINABLE unicl #-}
@@ -121,8 +121,8 @@ while p f x = if p x then while p f (f x) else x
 
 {-# INLINABLE replicate #-}
 replicate :: Integer -> a -> [a]
-replicate n a = if n <= 0 then []
-                else a:(replicate (n-1) a)
+replicate n a = if n Haskell.<= 0 then []
+                else a:(replicate (n Haskell.- 1) a)
 
 {-# INLINABLE formula1 #-}
 formula1 :: Formula  -- % (a = a) = (a = a) = (a = a)
