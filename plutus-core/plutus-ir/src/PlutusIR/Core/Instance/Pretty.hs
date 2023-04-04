@@ -1,9 +1,11 @@
 {-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MonoLocalBinds        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 {-# OPTIONS_GHC -Wno-orphans       #-}
+
 module PlutusIR.Core.Instance.Pretty () where
 
 import PlutusPrelude
@@ -12,6 +14,7 @@ import PlutusCore qualified as PLC
 import PlutusCore.Flat ()
 import PlutusCore.Pretty qualified as PLC
 
+import PlutusIR.Core.Instance.Pretty.Readable ()
 import PlutusIR.Core.Type
 
 import Prettyprinter
@@ -175,3 +178,12 @@ instance ( PLC.PrettyClassic tyname
          , Pretty ann
          ) => Pretty (Program tyname name uni fun ann) where
     pretty = PLC.prettyClassicDef
+
+
+deriving via PrettyAny (Term tyname name uni fun ann)
+    instance PLC.DefaultPrettyPlcStrategy (Term tyname name uni fun ann) =>
+        PrettyBy PLC.PrettyConfigPlc (Term tyname name uni fun ann)
+
+deriving via PrettyAny (Program tyname name uni fun ann)
+    instance PLC.DefaultPrettyPlcStrategy (Program tyname name uni fun ann) =>
+        PrettyBy PLC.PrettyConfigPlc (Program tyname name uni fun ann)

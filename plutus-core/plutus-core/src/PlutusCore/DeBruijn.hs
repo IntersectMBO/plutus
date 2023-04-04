@@ -17,6 +17,7 @@ module PlutusCore.DeBruijn
     , unNameDeBruijn
     , unNameTyDeBruijn
     , fakeNameDeBruijn
+    , fakeTyNameDeBruijn
     , deBruijnTy
     , deBruijnTerm
     , unDeBruijnTy

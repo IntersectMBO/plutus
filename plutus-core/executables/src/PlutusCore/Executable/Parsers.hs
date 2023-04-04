@@ -4,7 +4,7 @@
 
 module PlutusCore.Executable.Parsers where
 
-import PlutusCore.Executable.Common
+import PlutusCore.Executable.Types
 
 import Options.Applicative
 
@@ -41,9 +41,6 @@ stdOutput :: Parser Output
 stdOutput = flag' StdOutput
   (  long "stdout"
   <> help "Write to stdout (default)" )
-
-ioSpec :: Parser IOSpec
-ioSpec = MkIOSpec <$> input <*> output
 
 formatHelp :: String
 formatHelp =
@@ -126,10 +123,13 @@ printmode = option auto
      <> "Readable -> prettyPlcReadableDef, ReadableDebug -> prettyPlcReadableDebug" ))
 
 printOpts :: Parser PrintOptions
-printOpts = PrintOptions <$> ioSpec <*> printmode
+printOpts = PrintOptions <$> input <*> output <*> printmode
 
 convertOpts :: Parser ConvertOptions
 convertOpts = ConvertOptions <$> input <*> inputformat <*> output <*> outputformat <*> printmode
+
+optimiseOpts :: Parser OptimiseOptions
+optimiseOpts = OptimiseOptions <$> input <*> inputformat <*> output <*> outputformat <*> printmode
 
 exampleMode :: Parser ExampleMode
 exampleMode = exampleAvailable <|> exampleSingle
@@ -152,3 +152,54 @@ exampleSingle = ExampleSingle <$> exampleName
 
 exampleOpts :: Parser ExampleOptions
 exampleOpts = ExampleOptions <$> exampleMode
+
+
+-- Specialised parsers for PIR, which only supports ASTs over the Textual and
+-- Named types.
+
+pirFormatHelp :: String
+pirFormatHelp =
+  "textual or flat-named (names)"
+
+pirFormatReader :: String -> Maybe PirFormat
+pirFormatReader =
+    \case
+         "textual"    -> Just TextualPir
+         "flat-named" -> Just FlatNamed
+         _            -> Nothing
+
+pPirInputFormat :: Parser PirFormat
+pPirInputFormat = option (maybeReader pirFormatReader)
+  (  long "if"
+  <> long "input-format"
+  <> metavar "PIR-FORMAT"
+  <> value TextualPir
+  <> showDefault
+  <> help ("Input format: " ++ pirFormatHelp))
+
+pPirOutputFormat :: Parser PirFormat
+pPirOutputFormat = option (maybeReader pirFormatReader)
+  (  long "of"
+  <> long "output-format"
+  <> metavar "PIR-FORMAT"
+  <> value TextualPir
+  <> showDefault
+  <> help ("Output format: " ++ pirFormatHelp))
+
+languageReader :: String -> Maybe Language
+languageReader =
+    \case
+         "plc"  -> Just PLC
+         "uplc" -> Just UPLC
+         _      -> Nothing
+
+pLanguage :: Parser Language
+pLanguage = option (maybeReader languageReader)
+  (  long "language"
+  <> short 'l'
+  <> metavar "LANGUAGE"
+  <> value UPLC
+  <> showDefaultWith ( \case PLC -> "plc" ; UPLC -> "uplc" )
+  <> help ("Target language: plc or uplc")
+  )
+

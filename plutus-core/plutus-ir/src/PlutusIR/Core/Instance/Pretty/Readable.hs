@@ -147,6 +147,12 @@ instance (PrettyConstraints configName tyname name uni, Pretty fun)
         Let{} -> error "The impossible happened. This should be covered by the `viewLet` case above."
 
 instance (PrettyConstraints configName tyname name uni, Pretty fun)
+          => PrettyBy (PrettyConfigReadable configName) (Program tyname name uni fun a) where
+  prettyBy = inContextM $ \(Program _ _ term) ->
+    sequenceDocM ToTheRight juxtFixity $ \prettyEl ->
+        "program" <+> prettyEl term
+
+instance (PrettyConstraints configName tyname name uni, Pretty fun)
           => PrettyBy (PrettyConfigReadable configName) (Binding tyname name uni fun ann) where
   prettyBy = inContextM $ \case
     TermBind _ s vdec t ->

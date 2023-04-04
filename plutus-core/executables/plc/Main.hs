@@ -34,6 +34,7 @@ data EraseOptions     = EraseOptions Input Format Output Format PrintMode
 -- Main commands
 data Command = Apply     ApplyOptions
              | Typecheck TypecheckOptions
+             | Optimise  OptimiseOptions
              | Convert   ConvertOptions
              | Print     PrintOptions
              | Example   ExampleOptions
@@ -64,7 +65,7 @@ plutus langHelpText =
       (fullDesc <> header "Typed Plutus Core Tool" <> progDesc langHelpText)
 
 plutusOpts :: Parser Command
-plutusOpts = hsubparser (
+plutusOpts = hsubparser $
        command "apply"
            (info (Apply <$> applyOpts)
             (progDesc $
@@ -72,7 +73,7 @@ plutusOpts = hsubparser (
               ++ "(... ((f g1) g2) ... gn); "
               ++ "for example, "
               ++ "'plc apply --if flat Validator.flat Datum.flat Redeemer.flat Context.flat"
-              ++" --of flat -o Script.flat'"))
+              ++" --of flat -o Script.flat'."))
     <> command "print"
            (info (Print <$> printOpts)
             (progDesc "Parse a program then prettyprint it."))
@@ -88,6 +89,9 @@ plutusOpts = hsubparser (
     <> command "typecheck"
            (info (Typecheck <$> typecheckOpts)
             (progDesc "Typecheck a typed Plutus Core program."))
+    <> command "optimise" (optimise $ "Run the PLC optimisation pipeline on the input.  "
+                                        ++ "At present there are no PLC optimisations.")
+    <> command "optimize" (optimise "Same as 'optimise'.")
     <> command "erase"
            (info (Erase <$> eraseOpts)
             (progDesc "Convert a typed Plutus Core program to an untyped one."))
@@ -96,18 +100,19 @@ plutusOpts = hsubparser (
             (progDesc "Evaluate a typed Plutus Core program using the CK machine."))
     <> command "dump-model"
            (info (pure DumpModel)
-            (progDesc "Dump the cost model parameters"))
+            (progDesc "Dump the cost model parameters."))
     <> command "print-builtin-signatures"
            (info (pure PrintBuiltinSignatures)
-            (progDesc "Print the signatures of the built-in functions"))
-  )
+            (progDesc "Print the signatures of the built-in functions."))
+    where optimise desc = info (Optimise <$> optimiseOpts) $ progDesc desc
+
 
 ---------------- Script application ----------------
 
 -- | Apply one script to a list of others.
 runApply :: ApplyOptions -> IO ()
 runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
-  scripts <- mapM ((getProgram ifmt ::  Input -> IO (PlcProg PLC.SrcSpan)) . FileInput) inputfiles
+  scripts <- mapM ((readProgram ifmt ::  Input -> IO (PlcProg PLC.SrcSpan)) . FileInput) inputfiles
   let appliedScript =
         case map (\case p -> () <$ p) scripts of
           []          -> errorWithoutStackTrace "No input files"
@@ -118,7 +123,7 @@ runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
 
 runTypecheck :: TypecheckOptions -> IO ()
 runTypecheck (TypecheckOptions inp fmt) = do
-  prog <- getProgram fmt inp
+  prog <- readProgram fmt inp
   case PLC.runQuoteT $ do
     tcConfig <- PLC.getDefTypeCheckConfig ()
     PLC.inferTypeOfProgram tcConfig (void prog)
@@ -128,11 +133,20 @@ runTypecheck (TypecheckOptions inp fmt) = do
       Right ty                                               ->
         T.putStrLn (PP.displayPlcDef ty) >> exitSuccess
 
+---------------- Optimisation ----------------
+
+runOptimisations:: OptimiseOptions -> IO ()
+runOptimisations (OptimiseOptions inp ifmt outp ofmt mode) = do
+  prog <- readProgram ifmt inp  :: IO (PlcProg PLC.SrcSpan)
+  let optimised = prog  -- No PLC optimisations at present!
+  writeProgram outp ofmt mode optimised
+
+
 ---------------- Evaluation ----------------
 
 runEval :: EvalOptions -> IO ()
 runEval (EvalOptions inp ifmt printMode timingMode) = do
-  prog <- getProgram ifmt inp
+  prog <- readProgram ifmt inp
   let evaluate = Ck.evaluateCkNoEmit PLC.defaultBuiltinsRuntime
       term = void $ prog ^. PLC.progTerm
       !_ = rnf term
@@ -153,7 +167,7 @@ runPlcPrintExample = runPrintExample getPlcExamples
 -- | Input a program, erase the types, then output it
 runErase :: EraseOptions -> IO ()
 runErase (EraseOptions inp ifmt outp ofmt mode) = do
-  typedProg <- (getProgram ifmt inp :: IO (PlcProg PLC.SrcSpan))
+  typedProg <- (readProgram ifmt inp :: IO (PlcProg PLC.SrcSpan))
   let untypedProg = () <$ PLC.eraseProgram typedProg
   case ofmt of
     Textual       -> writePrettyToFileOrStd outp mode untypedProg
@@ -165,12 +179,13 @@ main :: IO ()
 main = do
     options <- customExecParser (prefs showHelpOnEmpty) plcInfoCommand
     case options of
-        Apply     opts         -> runApply        opts
-        Typecheck opts         -> runTypecheck    opts
-        Eval      opts         -> runEval         opts
-        Example   opts         -> runPlcPrintExample opts
-        Erase     opts         -> runErase        opts
-        Print     opts         -> runPrint        opts
+        Apply     opts         -> runApply            opts
+        Typecheck opts         -> runTypecheck        opts
+        Optimise  opts         -> runOptimisations    opts
+        Eval      opts         -> runEval             opts
+        Example   opts         -> runPlcPrintExample  opts
+        Erase     opts         -> runErase            opts
+        Print     opts         -> runPrint   @PlcProg opts
         Convert   opts         -> runConvert @PlcProg opts
         DumpModel              -> runDumpModel
         PrintBuiltinSignatures -> runPrintBuiltinSignatures

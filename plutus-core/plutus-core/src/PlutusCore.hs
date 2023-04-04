@@ -42,9 +42,12 @@ module PlutusCore
     , Term (..)
     , termSubterms
     , termSubtypes
+    , termMapNames
+    , programMapNames
     , UniOf
     , Type (..)
     , typeSubtypes
+    , typeMapNames
     , Kind (..)
     , toPatFuncKind
     , fromPatFuncKind
@@ -75,7 +78,9 @@ module PlutusCore
     , mapFun
     -- * DeBruijn representation
     , DeBruijn (..)
+    , TyDeBruijn (..)
     , NamedDeBruijn (..)
+    , NamedTyDeBruijn (..)
     , deBruijnTerm
     , unDeBruijnTerm
     -- * Processing
@@ -137,6 +142,7 @@ import PlutusCore.Parser
 import PlutusCore.Quote
 import PlutusCore.Rename
 import PlutusCore.Size
+import PlutusCore.Subst
 import PlutusCore.TypeCheck as TypeCheck
 
 -- | Applies one program to another. Fails if the versions do not match
