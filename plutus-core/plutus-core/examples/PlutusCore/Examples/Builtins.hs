@@ -29,7 +29,6 @@ import PlutusCore.Pretty
 
 import PlutusCore.StdLib.Data.ScottList qualified as Plc
 
-import Control.Concurrent (threadDelay)
 import Control.Concurrent.MVar
 import Control.Exception
 import Control.Monad
@@ -474,7 +473,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
                     -- and don't update @pendingGcVar@. I.e. this entire testing machinery can
                     -- affect how budgets are retained, but the impact of the 'MVar' business is
                     -- negligible, since @pendingGcVar@ is filled immediately after it's emptied.
-                    Nothing        -> void $ atomicModifyIORef'_ numsOfGcedVar (0 :)
+                    Nothing -> pure ()
                     -- If @pendingGcVar@ is not empty, then we cons its content to the resulting
                     -- list and put @0@ as the new content of the variable.
                     Just pendingGc -> do
@@ -491,14 +490,18 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
                 -- We need to trigger GC occasionally (otherwise it can easily take more than 100k
                 -- elements before GC is triggered and the number can go much higher depending on
                 -- the RTS options), so we picked 100 elements as a cutoff number. Doing GC less
-                -- often makes tests slower (for lower cutoff numbers -- by a lot), doing GC more
-                -- often requires us to generate longer streams in tests in order to observe
-                -- meaningful results making tests slower.
+                -- often makes tests slower, doing GC more often requires us to generate longer
+                -- streams in tests in order to observe meaningful results making tests slower.
                 when (pendingGc' >= 100) performMinorGC
 
             -- Call @regBudget@ over each element of the stream of budgets.
-            regBudgets (ExBudgetLast budget)         = do
+            regBudgets (ExBudgetLast budget) = do
                 regBudget budget
+                -- Run @finalize@ one final time before returning the last budget.
+                finalize
+                -- Make all outstanding finalizers inert, so that we don't mix up budgets GCed
+                -- during spending with budgets GCed right after spending finishes.
+                _ <- takeMVar pendingGcVar
                 pure $ ExBudgetLast budget
             regBudgets (ExBudgetCons budget budgets) = do
                 regBudget budget
@@ -508,24 +511,12 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
                 budgets' <- unsafeInterleaveIO $ regBudgets budgets
                 pure $ ExBudgetCons budget budgets'
 
-            -- Just a random model that keeps the original costs coming from the 'ExMemoryUsage'
-            -- instance.
+            -- Just a random model that keeps the costs coming from the 'ExMemoryUsage' instance.
             linear1 = ModelOneArgumentLinearCost $ ModelLinearSize 1 1
             model   = CostingFun linear1 linear1
         pure $ makeBuiltinMeaning
             @(Data -> [Integer])
-            (\_ -> unsafePerformIO $ do
-                -- Pick up remaining budgets.
-                performMinorGC
-                -- Somehow this allows the remaining finalizers to complete, while 'yeild' doesn't.
-                -- No idea what's going on. Not that we care much though, since even if we lose
-                -- several dozens of remaining elements it would be a bug for that to affect
-                -- anything.
-                threadDelay 1
-                -- Run @finalize@ one final time.
-                finalize
-                numsOfGced <- readIORef numsOfGcedVar
-                pure $ reverse numsOfGced)
+            (\_ -> unsafePerformIO $ reverse <$> readIORef numsOfGcedVar)
             (\_ -> unsafePerformIO . regBudgets . runCostingFunOneArgument model)
 
 instance Default (BuiltinVersion ExtensionFun) where

@@ -358,22 +358,23 @@ test_IdBuiltinData =
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModelExt term @?= Right (EvaluationSuccess dTerm)
 
 test_TrackCostsWith
-    :: String -> Integer -> (Term TyName Name DefaultUni ExtensionFun () -> IO ()) -> TestTree
+    :: String -> Int -> (Term TyName Name DefaultUni ExtensionFun () -> IO ()) -> TestTree
 test_TrackCostsWith cat len checkTerm =
     testCase ("TrackCosts: " ++ cat) $ do
         let term
                 = apply () (builtin () TrackCosts)
-                $ mkConstant @Data () (List . replicate (fromIntegral len) $ I 42)
+                $ mkConstant @Data () (List . replicate len $ I 42)
         checkTerm term
 
 test_TrackCostsRestricting :: TestTree
 test_TrackCostsRestricting =
-    test_TrackCostsWith "restricting" 10000 $ \term ->
+    let n = 30000
+    in test_TrackCostsWith "restricting" n $ \term ->
         case typecheckReadKnownCek def () term of
             Left err                         -> fail $ displayPlcDef err
             Right (Left err)                 -> fail $ displayPlcDef err
             Right (Right (res :: [Integer])) ->
-                (length res > 100) @?= True
+                (length res > n `div` 100) @?= True
 
 test_TrackCostsRetaining :: TestTree
 test_TrackCostsRetaining =
@@ -385,9 +386,11 @@ test_TrackCostsRetaining =
         case typecheckAndRunRetainer () term of
             Left err                                  -> fail $ displayPlcDef err
             Right (Left err, _)                       -> fail $ displayPlcDef err
-            Right (Right (res :: [Integer]), budgets) -> do
+            Right (Right (res :: [Integer]), budgets) ->
                 -- @length budgets@ is for retaining @budgets@ for as long as possible just in case.
-                (length res < min 10 (length budgets)) @?= True
+                -- @3@ is just for giving us room to handle erratic GC behavior. It really should be
+                -- @1@.
+                (length res < min 3 (length budgets)) @?= True
 
 -- | Test all integer related builtins
 test_Integer :: TestTree
