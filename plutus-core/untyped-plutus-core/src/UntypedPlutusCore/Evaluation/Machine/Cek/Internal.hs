@@ -557,6 +557,7 @@ data Context uni fun ann
     -- ^ @[_ V0...Vn]@
     | FrameForce !(Context uni fun ann)
     -- ^ @(force _)@
+    -- See Note [Accumulators for terms]
     | FrameConstr !(CekValEnv uni fun ann) {-# UNPACK #-} !Int ![NTerm uni fun ann] !(DList.DList (CekValue uni fun ann)) !(Context uni fun ann)
     -- ^ @(constr i V0 ... Vj-1 _ Nj ... Nn)@
     | FrameCases !(CekValEnv uni fun ann) ![NTerm uni fun ann] !(Context uni fun ann)
@@ -686,13 +687,13 @@ enterComputeCek = computeCek
         let meaning = lookupBuiltin bn ?cekRuntime
         -- 'Builtin' is fully discharged.
         returnCek ctx (VBuiltin bn (Builtin () bn) meaning)
-    -- s ; ρ ▻ constr I T0 .. Tn  ↦  s ; constr I _ (T1 ... Tn, ρ) ; ρ ▻ T0
+    -- s ; ρ ▻ constr I T0 .. Tn  ↦  s , constr I _ (T1 ... Tn, ρ) ; ρ ▻ T0
     computeCek !ctx !env (Constr _ i es) = do
         stepAndMaybeSpend BConstr
         case es of
           (t : rest) -> computeCek (FrameConstr env i rest mempty ctx) env t
           _          -> returnCek ctx $ VConstr i []
-    -- s ; ρ ▻ case S C0 ... Cn  ↦  s ; case _ (C0 ... Cn, ρ) ; ρ ▻ S
+    -- s ; ρ ▻ case S C0 ... Cn  ↦  s , case _ (C0 ... Cn, ρ) ; ρ ▻ S
     computeCek !ctx !env (Case _ scrut cs) = do
         stepAndMaybeSpend BCase
         computeCek (FrameCases env cs ctx) env scrut
@@ -848,3 +849,31 @@ runCekDeBruijn params mode emitMode term =
     runCekM params mode emitMode $ do
         spendBudgetCek BStartup (cekStartupCost ?cekCosts)
         enterComputeCek NoFrame Env.empty term
+
+{- Note [Accumulators for terms]
+At a couple of points in the CEK machine (notably building the arguments to a constructor value)
+we need to compute a list of terms into values.
+
+Our usual strategy is to make a frame which has an (implicit) "hole" for the value we are computing,
+and which stores the other sub-parts of the term as terms or values depending on whether we've computed
+them yet or not (see e.g. how applications work).
+
+We want to do the same sort of strategy here, but it's a bit more complicated. We need a hole
+"in the middle" of the list, with computed values on one side and yet-to-be-computed terms on the other.
+We also very much want to avoid allocating as much as possible.
+
+The basic structure that we end up with has three parts:
+1. Use the list of sub-terms from the original term as our "todo" queue, a list is a good structure for this.
+2. Use an accumulator type with fast snoc to accumulate the values as we compute them.
+3. Convert the accumulator quickly into a final type that is fast to process/lookup in later.
+
+(this process was at one point made explicit with an interface, but in the end we just inlined it all away)
+
+We tried at least three variants of this:
+1. List/MutableVector/Vector
+2. List/Seq/Seq
+3. List/DList/List
+
+Suprisingly, option 3 was just as performant as the others, so we opted to go with it for simplicity.
+But there may well be a faster version.
+-}

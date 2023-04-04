@@ -174,6 +174,8 @@ runCkM runtime emitting a = runST $ do
 -- > s ▷ lam x A M  ↦ s ◁ lam x A M
 -- > s ▷ builtin bn ↦ s ◁ builtin (Builtin () bn) (runtimeOf bn)
 -- > s ▷ con cn     ↦ s ◁ con cn
+-- > s ▻ constr I T0 .. Tn ↦ s , (constr I _ T1 Tn) ▻ T0
+-- > s ▻ case S C0 ... Cn ↦ s , (case _ C0 ... Cn) ▻ S
 -- > s ▷ error A    ↦ ◆
 (|>)
     :: Context uni fun -> Term TyName Name uni fun () -> CkM uni fun s (Term TyName Name uni fun ())
@@ -201,12 +203,15 @@ _     |> var@Var{}               =
 --
 -- > s , {_ A}           ◁ abs α K M  ↦ s         ▷ {A/α}M
 -- > s , [_ N]           ◁ V          ↦ s , [V _] ▷ N
+-- > s , [_ V1 ... Vm]   ◁ (lam x A M) ↦ s , [_ V2 ... Vm] ▷ [V1/x]M
 -- > s , [(lam x A M) _] ◁ V          ↦ s         ▷ [V/x]M
 -- > s , {_ A}           ◁ F          ↦ s ◁ {F A}  -- Partially instantiated builtin application.
 -- > s , [F _]           ◁ V          ↦ s ◁ [F V]  -- Partially saturated builtin application.
 -- > s , [F _]           ◁ V          ↦ s ◁ W      -- Fully saturated builtin application, [F V] ~> W.
 -- > s , (wrap α S _)    ◁ V          ↦ s ◁ wrap α S V
 -- > s , (unwrap _)      ◁ wrap α A V ↦ s ◁ V
+-- > s , (constr I V0 ... Vj-1 _ Tj+1 ... Tn) ◅ Vj ↦ s , (constr i V0 ... Vj _ Tj+2... Tn) ▻ Tj+1
+-- > s , (case _ C0 ... CN) ◅ (constr i V1 .. Vm) ↦ s , [_ V1 ... Vm] ▻ Ci
 (<|)
     :: Context uni fun -> CkValue uni fun -> CkM uni fun s (Term TyName Name uni fun ())
 []                         <| val     = pure $ ckValueToTerm val

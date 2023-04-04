@@ -138,13 +138,13 @@ computeCek !ctx !_ (Builtin _ bn) = do
     let meaning = lookupBuiltin bn ?cekRuntime
     -- 'Builtin' is fully discharged.
     pure $ Returning ctx (VBuiltin bn (Builtin () bn) meaning)
--- s ; ρ ▻ constr I T0 .. Tn  ↦  s ; constr I _ (T1 ... Tn, ρ) ; ρ ▻ T0
+-- s ; ρ ▻ constr I T0 .. Tn  ↦  s , constr I _ (T1 ... Tn, ρ) ; ρ ▻ T0
 computeCek !ctx !env (Constr ann i es) = do
     stepAndMaybeSpend BConstr
     case es of
         (t : rest) -> computeCek (FrameConstr ann env i rest mempty ctx) env t
         _          -> returnCek ctx $ VConstr i []
--- s ; ρ ▻ case S C0 ... Cn  ↦  s ; case _ (C0 ... Cn, ρ) ; ρ ▻ S
+-- s ; ρ ▻ case S C0 ... Cn  ↦  s , case _ (C0 ... Cn, ρ) ; ρ ▻ S
 computeCek !ctx !env (Case ann scrut cs) = do
     stepAndMaybeSpend BCase
     computeCek (FrameCases ann env cs ctx) env scrut

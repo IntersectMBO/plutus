@@ -80,6 +80,8 @@ data Term name uni fun ann
     -- This is the cutoff at which constructors won't get pointer tags
     -- See Note [Term constructor ordering and numbers]
     | Error !ann
+    -- TODO: worry about overflow, maybe use an Integer
+    -- TODO: try spine-strict list or strict list or vector
     | Constr !ann !Int ![Term name uni fun ann]
     | Case !ann !(Term name uni fun ann) ![Term name uni fun ann]
     deriving stock (Show, Functor, Generic)
