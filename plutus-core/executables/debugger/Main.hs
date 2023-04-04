@@ -27,8 +27,8 @@ import PlutusCore.Pretty qualified as PLC
 import UntypedPlutusCore as UPLC
 import UntypedPlutusCore.Core.Zip
 import UntypedPlutusCore.Evaluation.Machine.Cek
-import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Driver qualified as D
-import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Internal
+import UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver qualified as D
+import UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal
 import UntypedPlutusCore.Parser qualified as UPLC
 
 import Draw

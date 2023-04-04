@@ -179,7 +179,8 @@ evalUplcProg :: UplcEvaluator
 evalUplcProg = traverseOf UPLC.progTerm eval
   where
     eval t = do
-        -- The evaluator throws if the term has free variables
+        -- runCek-like functions (e.g. evaluateCekNoEmit) are partial on term's with free variables,
+        -- that is why we manually check first for any free vars
         case UPLC.deBruijnTerm t of
             Left (_ :: UPLC.FreeVariableError) -> Nothing
             Right _                            -> Just ()

@@ -2,7 +2,7 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE GADTs                  #-}
 {-# LANGUAGE LambdaCase             #-}
-module UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Driver
+module UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver
     ( Breakpointable (..)
     , CekState
     , Cmd (..)
@@ -20,7 +20,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Driver
     , FreeT
     ) where
 
-import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Internal
+import UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal
 
 import Control.Lens hiding (Context)
 import Control.Monad.Reader
@@ -40,12 +40,12 @@ When the driver calls `stepF state`, it yields its coroutine with the current dr
 calculates a newstate from it (e.g. **actually stepping the cek machine**). The interpreter then
 resumes the driver coroutine with the new state.
 
-The sensible interpretation to this is the CEK's state transition function (`handleStep oldState
+The sensible interpretation to this is the CEK's state transition function (`cekTrans oldState
 ===> newState`), but other exotic options may be: logging the before/after states, or even
 "mutating" the running program's variables in the environment before/after the state transition
 (similar to C debuggers). The interpreter can even supply a different state transition function
 (e.g. `id`), but we see little benefit in it at the moment. Currently all interpreters
-(brick,repl,testing) just call`handleStep`.
+(brick,repl,testing) just call`cekTrans`.
 -}
 
 
