@@ -262,7 +262,7 @@ processSingleBinding body = \case
                 -- call site inlining.
                 -- We don't remove the binding because we decide *at the call site*
                 -- whether we want to inline, and it may be called more than once.
-                void $ modify' $ extendVarInfo n (MkVarInfo processedRhs varArity bodyToCheck)
+                void $ modify' $ extendVarInfo n (MkVarInfo s processedRhs varArity bodyToCheck)
                 pure $ Just $ TermBind ann s v processedRhs
     (TypeBind ann v@(TyVarDecl _ n _) rhs) -> do
         maybeRhs' <- maybeAddTySubst n rhs
@@ -303,10 +303,11 @@ maybeAddSubst body ann s n rhs = do
         if preUnconditional
         then extendAndDrop (Done $ dupable rhs')
         else do
+            isBindingPure <- isTermBindingPure s rhs'
             -- See Note [Inlining approach and 'Secrets of the GHC Inliner'] and [Inlining and
             -- purity]. This is the case where we don't know that the number of occurrences is
             -- exactly one, so there's no point checking if the term is immediately evaluated.
-            let postUnconditional = isTermPure && acceptable rhs'
+            let postUnconditional = isBindingPure && acceptable rhs'
             if postUnconditional
             then extendAndDrop (Done $ dupable rhs')
             else pure $ Just rhs'

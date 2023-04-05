@@ -75,10 +75,11 @@ type Arity = [ParamKind]
 -- | Info attached to a let-binding needed for call site inlining.
 data VarInfo tyname name uni fun ann =
   MkVarInfo {
-    varDef    :: Term tyname name uni fun ann
+    varStrictness :: Strictness
+    ,varDef       :: Term tyname name uni fun ann
     -- ^ its definition that has been unconditionally inlined.
-    , arity   :: Arity -- ^ its arity, storing to avoid repeated calculations.
-    , varBody :: Term tyname name uni fun ann
+    , arity       :: Arity -- ^ its arity, storing to avoid repeated calculations.
+    , varBody     :: Term tyname name uni fun ann
     -- ^ the body of the function, for checking `acceptable` or not. Storing this to avoid repeated
     -- calculations.
   }
@@ -210,6 +211,17 @@ checkPurity t = do
     builtinVer <- view iiBuiltinVer
     let strictnessFun n' = Map.findWithDefault NonStrict (n' ^. theUnique) strctMap
     pure $ isPure builtinVer strictnessFun t
+
+-- | Checks if a binding is pure, i.e. will evaluating it have effects
+isTermBindingPure :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
+    => Strictness
+    -> Term tyname name uni fun ann
+    -> InlineM tyname name uni fun ann Bool
+isTermBindingPure s tm =
+    case s of
+        -- For non-strict bindings, the effects would have occurred at the call sites anyway.
+        NonStrict -> pure True
+        Strict    -> checkPurity tm
 
 {- Note [Inlining and purity]
 When can we inline something that might have effects? We must remember that we often also
