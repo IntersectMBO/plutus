@@ -254,4 +254,7 @@ appropriate (of fixed size to satisfy 3), but then we need to be able to index l
 
 Well, except there's nothing that _stops_ us indexing lists by 'Word's, we just need to
 write our own indexing functions. So that's what we have done.
+
+We use 'Word64' since it's the actual machine word, so no benefit from using a smaller
+one (smaller values will be serialized by flat in fewer bytes anyway).
 -}
