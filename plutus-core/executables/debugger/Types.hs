@@ -9,8 +9,8 @@ module Types where
 import PlutusCore.Annotation
 import PlutusCore.Evaluation.Machine.ExBudget
 import UntypedPlutusCore as UPLC
-import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Driver qualified as D
-import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Internal
+import UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver qualified as D
+import UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal
 
 import Brick.Focus qualified as B
 import Brick.Types qualified as B

@@ -161,10 +161,11 @@ library
     UntypedPlutusCore.DeBruijn
     UntypedPlutusCore.Evaluation.Machine.Cek
     UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
-    UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Driver
-    UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Internal
     UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
+    UntypedPlutusCore.Evaluation.Machine.SteppableCek
+    UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver
+    UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal
     UntypedPlutusCore.MkUPlc
     UntypedPlutusCore.Parser
     UntypedPlutusCore.Rename
@@ -225,6 +226,7 @@ library
     UntypedPlutusCore.Core.Plated
     UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode
     UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
+    UntypedPlutusCore.Evaluation.Machine.CommonAPI
     UntypedPlutusCore.Mark
     UntypedPlutusCore.Rename.Internal
     UntypedPlutusCore.Simplify

@@ -19,7 +19,7 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Internal
+module UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal
     ( CekState (..)
     , Context (..)
     , contextAnn
