@@ -134,8 +134,6 @@ instance HasConstant (CkValue uni fun) where
 
     fromConstant = VCon
 
--- CK not CEK
--- substitution not environments
 data Frame uni fun
     = FrameApplyFun (CkValue uni fun)                       -- ^ @[V _]@
     | FrameApplyArg (Term TyName Name uni fun ())           -- ^ @[_ N]@
