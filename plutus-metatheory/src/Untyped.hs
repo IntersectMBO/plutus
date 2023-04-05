@@ -8,6 +8,7 @@ import UntypedPlutusCore
 
 import Data.ByteString as BS
 import Data.Text as T
+import Data.Word (Word64)
 import Universe
 
 
@@ -21,7 +22,7 @@ data UTerm = UVar Integer
            | UBuiltin DefaultFun
            | UDelay UTerm
            | UForce UTerm
-           | UConstr Int [UTerm]
+           | UConstr Word64 [UTerm]
            | UCase UTerm [UTerm]
            deriving Show
 
