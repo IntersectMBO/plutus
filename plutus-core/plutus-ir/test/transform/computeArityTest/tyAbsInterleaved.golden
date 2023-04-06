@@ -1,1 +1,1 @@
-[MkType, MkTerm, MkType, MkTerm, MkTerm]
+([TypeParam, TermParam, TypeParam, TermParam, TermParam], y)

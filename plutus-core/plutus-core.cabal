@@ -452,7 +452,7 @@ library plutus-ir
     PlutusIR.Transform.Beta
     PlutusIR.Transform.DeadCode
     PlutusIR.Transform.Inline.CallSiteInline
-    PlutusIR.Transform.Inline.UnconditionalInline
+    PlutusIR.Transform.Inline.Inline
     PlutusIR.Transform.Inline.Utils
     PlutusIR.Transform.LetFloatIn
     PlutusIR.Transform.LetFloatOut

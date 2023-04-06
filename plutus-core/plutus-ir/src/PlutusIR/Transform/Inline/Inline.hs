@@ -4,14 +4,13 @@
 {-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE TypeFamilies     #-}
 
-{-|
-An inlining pass.
-
-Note that there is (essentially) a copy of this in the UPLC inliner, and the two
-should be KEPT IN SYNC, so if you make changes here please either make them in the other
-one too or add to the comment that summarises the differences.
+{- | An inlining pass of *non-recursive* bindings. It includes
+(1) unconditional inlining: similar to `PreInlineUnconditionally` and `PostInlineUnconditionally`
+in the paper 'Secrets of the GHC Inliner'.
+(2) call site inlining of fully applied functions. See `Inline.CallSiteInline.hs`
 -}
-module PlutusIR.Transform.Inline.UnconditionalInline (inline, InlineHints (..)) where
+
+module PlutusIR.Transform.Inline.Inline (inline, InlineHints (..)) where
 import PlutusIR
 import PlutusIR.Analysis.Dependencies qualified as Deps
 import PlutusIR.Analysis.Usages qualified as Usages
@@ -34,6 +33,7 @@ import Control.Monad.State
 
 import Algebra.Graph qualified as G
 import Data.Map qualified as Map
+import PlutusIR.Transform.Inline.CallSiteInline (computeArity, considerInlineSat)
 import Witherable (Witherable (wither))
 
 {- Note [Inlining approach and 'Secrets of the GHC Inliner']
@@ -48,21 +48,20 @@ We differ from the paper a few ways, mostly leaving things out:
 Functionality
 ------------
 
-CallSiteInline: TODO in PLT-1146
-
 Inlining recursive bindings: not worth it, complicated.
 
-Context-based inlining: TODO
+Context-based inlining: Not needed atm.
 
-Dead code elimination: done in `DeadCode.hs`.
-
-Beta-reduction: done in `Beta.hs`.
+Also, GHC implements many different optimization in a single simplifier pass.
+The paper focusses on inlining, but does so in the context of GHC's monolithic simplifier, which
+includes beta reduction and deadcode elimination.
+We have opted to have more, single-purpose passes. See e.g. `Deadcode.hs` and `Beta.hs` for other
+passes.
 
 Implementation
 --------------
 
-In-scope set: we don't bother keeping it, since we only ever substitute in things that
-don't have bound variables.
+In-scope set: we don't bother keeping it atm.
 
 Suspended substitutions ('SuspEx') for values: we don't need it, because we simplify the RHS before
 preInlineUnconditional. For GHC, they can do more simplification in context, but they only want to
@@ -129,24 +128,23 @@ inline them. But at least in UPLC we _can_ inline them.
 
 {- Note [Inlining and global uniqueness]
 Inlining relies on global uniqueness (we store things in a unique map), and *does* currently
-preserve it because we don't currently inline anything with binders.
+preserve it because we don't inline anything with binders in unconditional inlining.
 
-If we do start inlining things with binders in them, we should probably try and preserve it by
-doing something like 'The rapier' section from the paper. We could also just bite the bullet
-and rename everything when we substitute in, which GHC considers too expensive but we might accept.
+With call site inlining, we do inlining things with binders in them. We will give the binders fresh
+name when we substitute in to preserve uniqueness in that case. TODO in a follow up PR.
 -}
 
--- | Inline simple bindings. Relies on global uniqueness, and preserves it.
+-- | Inline non-recursive bindings. Relies on global uniqueness, and preserves it.
 -- See Note [Inlining and global uniqueness]
 inline
-    :: forall tyname name uni fun a m
+    :: forall tyname name uni fun ann m
     . ExternalConstraints tyname name uni fun m
-    => InlineHints name a
+    => InlineHints name ann
     -> PLC.BuiltinVersion fun
-    -> Term tyname name uni fun a
-    -> m (Term tyname name uni fun a)
+    -> Term tyname name uni fun ann
+    -> m (Term tyname name uni fun ann)
 inline hints ver t = let
-        inlineInfo :: InlineInfo name fun a
+        inlineInfo :: InlineInfo name fun ann
         inlineInfo = InlineInfo (snd deps) usgs hints ver
         -- We actually just want the variable strictness information here!
         deps :: (G.Graph Deps.Node, Map.Map PLC.Unique Strictness)
@@ -156,8 +154,9 @@ inline hints ver t = let
     in liftQuote $ flip evalStateT mempty $ flip runReaderT inlineInfo $ processTerm t
 
 {- Note [Removing inlined bindings]
-We *do* remove bindings that we inline (since we only do unconditional inlining). We *could*
+We *do* remove bindings that we inline *unconditionally*. We *could*
 leave this to the dead code pass, but it's helpful to do it here.
+We *don't* remove bindings that we inline at the call site.
 Crucially, we have to do the same reasoning wrt strict bindings and purity
 (see Note [Inlining and purity]):
 we can only inline *pure* strict bindings, which is effectively the same as what we do in the dead
@@ -170,18 +169,18 @@ This might mean reinventing GHC's OccAnal...
 
 -- | Run the inliner on a `Core.Type.Term`.
 processTerm
-    :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
-    => Term tyname name uni fun a -- ^ Term to be processed.
-    -> InlineM tyname name uni fun a (Term tyname name uni fun a)
+    :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
+    => Term tyname name uni fun ann -- ^ Term to be processed.
+    -> InlineM tyname name uni fun ann (Term tyname name uni fun ann)
 processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
     handleTerm ::
-        Term tyname name uni fun a
-        -> InlineM tyname name uni fun a (Term tyname name uni fun a)
+        Term tyname name uni fun ann
+        -> InlineM tyname name uni fun ann (Term tyname name uni fun ann)
     handleTerm = \case
         v@(Var _ n) -> fromMaybe v <$> substName n
-        Let a NonRec bs t -> do
+        Let ann NonRec bs t -> do
             -- Process bindings, eliminating those which will be inlined unconditionally,
-            -- and accumulating the new substitutions
+            -- and accumulating the new substitutions.
             -- See Note [Removing inlined bindings]
             -- Note that we don't *remove* the bindings or scope the state, so the state will carry
             -- over into "sibling" terms. This is fine because we have global uniqueness
@@ -190,27 +189,47 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
             t' <- processTerm t
             -- Use 'mkLet': we're using lists of bindings rather than NonEmpty since we might
             -- actually have got rid of all of them!
-            pure $ mkLet a NonRec bs' t'
+            pure $ mkLet ann NonRec bs' t'
         -- This includes recursive let terms, we don't even consider inlining them at the moment
-        t -> forMOf termSubterms t processTerm
-    applyTypeSubstitution :: Type tyname uni a -> InlineM tyname name uni fun a (Type tyname uni a)
-    applyTypeSubstitution t = gets isTypeSubstEmpty >>= \case
-        -- The type substitution is very often empty, and there are lots of types in the program,
-        -- so this saves a lot of work (determined from profiling)
-        True -> pure t
-        _    -> typeSubstTyNamesM substTyName t
-    -- See Note [Renaming strategy]
-    substTyName :: tyname -> InlineM tyname name uni fun a (Maybe (Type tyname uni a))
-    substTyName tyname = gets (lookupType tyname) >>= traverse liftDupable
-    -- See Note [Renaming strategy]
-    substName :: name -> InlineM tyname name uni fun a (Maybe (Term tyname name uni fun a))
-    substName name = gets (lookupTerm name) >>= traverse renameTerm
-    -- See Note [Inlining approach and 'Secrets of the GHC Inliner']
-    -- Already processed term, just rename and put it in, don't do any further optimization here.
-    renameTerm ::
-        InlineTerm tyname name uni fun a
-        -> InlineM tyname name uni fun a (Term tyname name uni fun a)
-    renameTerm (Done t) = liftDupable t
+        t -> do
+            -- process all subterms first, so that the rhs won't be processed more than once. This
+            -- is important because otherwise the number of times we process them can grow
+            -- exponentially in the case that it has nested `let`s.
+            processedT <- forMOf termSubterms t processTerm
+            -- consider call site inlining for each node that have gone through unconditional
+            -- inlining. Because `considerInlineSat` traverses *all* application nodes for each
+            -- subterm, the runtime is quadratic for terms with a long chain of applications.
+            -- If we use the context-based approach like in GHC, this won't be a problem, so we may
+            -- consider that in the future.
+            considerInlineSat processedT
+
+applyTypeSubstitution :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
+    => Type tyname uni ann
+    -> InlineM tyname name uni fun ann (Type tyname uni ann)
+applyTypeSubstitution t = gets isTypeSubstEmpty >>= \case
+    -- The type substitution is very often empty, and there are lots of types in the program,
+    -- so this saves a lot of work (determined from profiling)
+    True -> pure t
+    _    -> typeSubstTyNamesM substTyName t
+
+-- See Note [Renaming strategy]
+substTyName :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
+    => tyname
+    -> InlineM tyname name uni fun ann (Maybe (Type tyname uni ann))
+substTyName tyname = gets (lookupType tyname) >>= traverse liftDupable
+
+-- See Note [Renaming strategy]
+substName :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
+    => name
+    -> InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
+substName name = gets (lookupTerm name) >>= traverse renameTerm
+
+-- See Note [Inlining approach and 'Secrets of the GHC Inliner']
+-- Already processed term, just rename and put it in, don't do any further optimization here.
+renameTerm :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
+    => InlineTerm tyname name uni fun ann
+    -> InlineM tyname name uni fun ann (Term tyname name uni fun ann)
+renameTerm (Done t) = liftDupable t
 
 {- Note [Renaming strategy]
 Since we assume global uniqueness, we can take a slightly different approach to
@@ -223,19 +242,33 @@ We rename both terms and types as both may have binders in them.
 
 -- | Run the inliner on a single non-recursive let binding.
 processSingleBinding
-    :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
-    => Term tyname name uni fun a -- ^ The body of the let binding.
-    -> Binding tyname name uni fun a -- ^ The binding.
-    -> InlineM tyname name uni fun a (Maybe (Binding tyname name uni fun a))
+    :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
+    => Term tyname name uni fun ann -- ^ The body of the let binding.
+    -> Binding tyname name uni fun ann -- ^ The binding.
+    -> InlineM tyname name uni fun ann (Maybe (Binding tyname name uni fun ann))
 processSingleBinding body = \case
-    TermBind a s v@(VarDecl _ n _) rhs -> do
-        maybeRhs' <- maybeAddSubst body a s n rhs
-        pure $ TermBind a s v <$> maybeRhs'
-    TypeBind a v@(TyVarDecl _ n _) rhs -> do
+    (TermBind ann s v@(VarDecl _ n _) rhs) -> do
+        -- we want to do unconditional inline if possible
+        maybeRhs' <- maybeAddSubst body ann s n rhs
+        case maybeRhs' of
+            -- this binding is going to be unconditionally inlined
+            Nothing -> pure Nothing
+            Just processedRhs -> do
+                let (varArity, bodyToCheck) = computeArity rhs
+                -- when we encounter a binding, we add it to
+                -- the global map `Utils.NonRecInScopeSet`.
+                -- The `varDef` added to the map has been unconditionally inlined.
+                -- When we check the body of the let binding we look in this map for
+                -- call site inlining.
+                -- We don't remove the binding because we decide *at the call site*
+                -- whether we want to inline, and it may be called more than once.
+                void $ modify' $ extendVarInfo n (MkVarInfo s processedRhs varArity bodyToCheck)
+                pure $ Just $ TermBind ann s v processedRhs
+    (TypeBind ann v@(TyVarDecl _ n _) rhs) -> do
         maybeRhs' <- maybeAddTySubst n rhs
-        pure $ TypeBind a v <$> maybeRhs'
-    -- Just process all the subterms
-    b -> Just <$> forMOf bindingSubterms b processTerm
+        pure $ TypeBind ann v <$> maybeRhs'
+    b -> -- Just process all the subterms
+        Just <$> forMOf bindingSubterms b processTerm
 
 -- | Check against the heuristics we have for inlining and either inline the term binding or not.
 -- The arguments to this function are the fields of the `TermBinding` being processed.
@@ -243,25 +276,25 @@ processSingleBinding body = \case
 --   * we have extended the substitution, and
 --   * we are removing the binding (hence we return Nothing).
 maybeAddSubst
-    :: forall tyname name uni fun a. InliningConstraints tyname name uni fun
-    => Term tyname name uni fun a
-    -> a
+    :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
+    => Term tyname name uni fun ann
+    -> ann
     -> Strictness
     -> name
-    -> Term tyname name uni fun a
-    -> InlineM tyname name uni fun a (Maybe (Term tyname name uni fun a))
-maybeAddSubst body a s n rhs = do
+    -> Term tyname name uni fun ann
+    -> InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
+maybeAddSubst body ann s n rhs = do
     rhs' <- processTerm rhs
 
     -- Check whether we've been told specifically to inline this
     hints <- view iiHints
-    let hinted = shouldInline hints a n
+    let hinted = shouldInline hints ann n
 
     if hinted -- if we've been told specifically, then do it right away
     then extendAndDrop (Done $ dupable rhs')
     else do
-        termIsPure <- checkPurity rhs'
-        preUnconditional <- liftM2 (&&) (nameUsedAtMostOnce n) (effectSafe body s n termIsPure)
+        isTermPure <- checkPurity rhs'
+        preUnconditional <- liftM2 (&&) (nameUsedAtMostOnce n) (effectSafe body s n isTermPure)
         -- similar to the paper, preUnconditional inlining checks that the binder is 'OnceSafe'.
         -- I.e., it's used at most once AND it neither duplicate code or work.
         -- While we don't check for lambda etc like in the paper, `effectSafe` ensures that it
@@ -270,27 +303,28 @@ maybeAddSubst body a s n rhs = do
         if preUnconditional
         then extendAndDrop (Done $ dupable rhs')
         else do
+            isBindingPure <- isTermBindingPure s rhs'
             -- See Note [Inlining approach and 'Secrets of the GHC Inliner'] and [Inlining and
             -- purity]. This is the case where we don't know that the number of occurrences is
             -- exactly one, so there's no point checking if the term is immediately evaluated.
-            postUnconditional <- fmap ((&&) termIsPure) (acceptable rhs')
+            let postUnconditional = isBindingPure && acceptable rhs'
             if postUnconditional
             then extendAndDrop (Done $ dupable rhs')
             else pure $ Just rhs'
     where
         extendAndDrop ::
-            forall b . InlineTerm tyname name uni fun a
-            -> InlineM tyname name uni fun a (Maybe b)
+            forall b . InlineTerm tyname name uni fun ann
+            -> InlineM tyname name uni fun ann (Maybe b)
         extendAndDrop t = modify' (extendTerm n t) >> pure Nothing
 
 -- | Check against the inlining heuristics for types and either inline it, returning Nothing, or
 -- just return the type without inlining.
 -- We only inline if (1) the type is used at most once OR (2) it's a `trivialType`.
 maybeAddTySubst
-    :: forall tyname name uni fun a . InliningConstraints tyname name uni fun
+    :: forall tyname name uni fun ann . InliningConstraints tyname name uni fun
     => tyname -- ^ The type variable
-    -> Type tyname uni a -- ^  The value of the type variable.
-    -> InlineM tyname name uni fun a (Maybe (Type tyname uni a))
+    -> Type tyname uni ann -- ^  The value of the type variable.
+    -> InlineM tyname name uni fun ann (Maybe (Type tyname uni ann))
 maybeAddTySubst tn rhs = do
     usgs <- view iiUsages
     -- No need for multiple phases here

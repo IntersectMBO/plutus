@@ -1,1 +1,1 @@
-[MkTerm, MkTerm, MkTerm]
+([TermParam, TermParam, TermParam], [ (lam k (con integer) x) (con integer 3) ])
