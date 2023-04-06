@@ -38,10 +38,14 @@ import Prettyprinter
 data ScriptDecodeError =
       CBORDeserialiseError !CBOR.DeserialiseFailure -- ^ an error from the underlying CBOR/serialise library
     | RemainderError !BSL.ByteString -- ^ Script was successfully parsed, but more (runaway) bytes encountered after script's position
-    | LanguageNotAvailableError -- ^ the plutus version of the given script is not enabled yet
-        { sdeAffectedLang :: !PlutusLedgerLanguage -- ^ the script's plutus version
-        , sdeIntroPv      :: !ProtocolVersion -- ^ the protocol version that will first introduce/enable the plutus version
-        , sdeThisPv       :: !ProtocolVersion -- ^ the protocol version in which the error occurred
+    | LedgerLanguageNotAvailableError -- ^ the plutus version of the given script is not enabled yet
+        { sdeAffectedLang :: !PlutusLedgerLanguage -- ^ the script's ledger language
+        , sdeIntroPv      :: !ProtocolVersion -- ^ the protocol version that will first introduce/enable the ledger language
+        , sdeThisPv       :: !ProtocolVersion -- ^ the current protocol version
+        }
+    | PlutusCoreLanguageNotAvailableError
+        { sdeAffectedVersion :: !UPLC.Version -- ^ the script's Plutus Core language version
+        , sdeThisPv          :: !ProtocolVersion -- ^ the current protocol version
         }
     deriving stock (Eq, Show)
     deriving anyclass Exception
@@ -127,14 +131,20 @@ fromSerialisedScript :: forall e m. (AsScriptDecodeError e, MonadError e m)
                      -> SerialisedScript -- ^ the script to deserialise.
                      -> m ScriptForExecution
 fromSerialisedScript lv currentPv sScript = do
-    when (introPv > currentPv)  $
-        throwing _ScriptDecodeError $ LanguageNotAvailableError lv introPv currentPv
-    (remderBS, script) <- deserialiseSScript sScript
+    -- check that the ledger language version is available
+    let llIntroPv = ledgerLanguageIntroducedIn lv
+    unless (llIntroPv <= currentPv)  $
+        throwing _ScriptDecodeError $ LedgerLanguageNotAvailableError lv llIntroPv currentPv
+
+    (remderBS, script@(ScriptForExecution (UPLC.Program _ v _))) <- deserialiseSScript sScript
     when (lv /= PlutusV1 && lv /= PlutusV2 && remderBS /= mempty) $
         throwing _ScriptDecodeError $ RemainderError remderBS
+
+    -- check that the Plutus Core language version is available
+    unless (v `Set.member` plcVersionsAvailableIn lv currentPv) $ throwing _ScriptDecodeError $ PlutusCoreLanguageNotAvailableError v currentPv
+
     pure script
   where
-    introPv = ledgerLanguageIntroducedIn lv
     deserialiseSScript :: SerialisedScript -> m (BSL.ByteString, ScriptForExecution)
     deserialiseSScript = fromShort
                        >>> fromStrict

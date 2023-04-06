@@ -137,13 +137,11 @@ test-suite plutus-ledger-api-test
     Spec.Versions
 
   build-depends:
-    , barbies
     , base                                                              >=4.9 && <5
     , bytestring
     , containers
     , extra
     , hedgehog
-    , lens
     , mtl
     , nothunks
     , plutus-core                                                       ^>=1.4

@@ -1,0 +1,17 @@
+(case
+  (con integer)
+  (constr
+    (sop [(con integer)])
+    0
+    (let
+      (nonrec)
+      (termbind
+        (nonstrict)
+        (vardecl y (con integer))
+        [ [ (builtin addInteger) (con integer 1) ] (con integer 2) ]
+      )
+      y
+    )
+  )
+  (lam x (con integer) (con integer 1))
+)

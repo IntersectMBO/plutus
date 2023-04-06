@@ -42,6 +42,7 @@ import Control.Monad.Except
 import Data.Either.Extras
 import Data.String (IsString)
 import Data.Text (Text)
+import Data.Word (Word64)
 import Prettyprinter
 
 -- | When unlifting of a PLC term into a Haskell value fails, this error is thrown.
@@ -72,7 +73,9 @@ data MachineError fun
       -- ^ A builtin expected a term argument, but something else was received
     | UnexpectedBuiltinTermArgumentMachineError
       -- ^ A builtin received a term argument when something else was expected
-    | UnknownBuiltin !fun
+    | UnknownBuiltin fun
+    | NonConstrScrutinized
+    | MissingCaseBranch Word64
     deriving stock (Show, Eq, Functor, Generic)
     deriving anyclass (NFData)
 
@@ -192,6 +195,10 @@ instance (HasPrettyDefaults config ~ 'True, Pretty fun) =>
         pretty unliftingError
     prettyBy _      (UnknownBuiltin fun)                  =
         "Encountered an unknown built-in function:" <+> pretty fun
+    prettyBy _      NonConstrScrutinized =
+        "A non-constructor value was scrutinitzed in a case expression"
+    prettyBy _      (MissingCaseBranch i) =
+        "Case expression missing the branch required by the scrutinee tag:" <+> pretty i
 
 instance
         ( HasPrettyDefaults config ~ 'True

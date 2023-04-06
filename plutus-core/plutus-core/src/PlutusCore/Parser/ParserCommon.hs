@@ -8,7 +8,8 @@
 module PlutusCore.Parser.ParserCommon where
 
 import Control.Monad.Except
-import Control.Monad.State (MonadState (get, put), StateT, evalStateT)
+import Control.Monad.Reader
+import Control.Monad.State (MonadState (..), StateT, evalStateT)
 import Data.Char (isAlphaNum)
 import Data.Map qualified as M
 import Data.Text qualified as T
@@ -32,7 +33,7 @@ newtype ParserState = ParserState { identifiers :: M.Map T.Text Unique }
     deriving stock (Show)
 
 type Parser =
-    ParsecT ParserError T.Text (StateT ParserState Quote)
+    ParsecT ParserError T.Text (StateT ParserState (ReaderT (Maybe Version) Quote))
 
 instance (Stream s, MonadQuote m) => MonadQuote (ParsecT e s m)
 
@@ -54,10 +55,28 @@ intern n = do
             put $ ParserState identifiers'
             return fresh
 
+-- | Get the version of the program being parsed, if we know it.
+getVersion :: Parser (Maybe Version)
+getVersion = ask
+
+-- | Set the version of the program being parsed.
+withVersion :: Version -> Parser a -> Parser a
+withVersion v = local (const $ Just v)
+
+-- | Run an action conditionally based on a predicate on the version.
+-- If we don't know the version then the predicate is assumed to be
+-- false, i.e. we act if we _know_ the predicate is satisfied.
+whenVersion :: (Version -> Bool) -> Parser () -> Parser ()
+whenVersion p act = do
+  mv <- getVersion
+  case mv of
+    Nothing -> pure ()
+    Just v  -> when (p v) act
+
 parse :: (AsParserErrorBundle e, MonadError e m, MonadQuote m) =>
     Parser a -> String -> T.Text -> m a
 parse p file str = do
-    let res = fmap toErrorB (evalStateT (runParserT p file str) initial)
+    let res = fmap toErrorB (runReaderT (evalStateT (runParserT p file str) initial) Nothing)
     throwingEither _ParserErrorBundle =<< liftQuote res
 
 toErrorB :: Either (ParseErrorBundle T.Text ParserError) a -> Either ParserErrorBundle a

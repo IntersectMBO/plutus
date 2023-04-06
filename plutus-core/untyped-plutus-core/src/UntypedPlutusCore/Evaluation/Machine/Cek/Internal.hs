@@ -81,15 +81,17 @@ import PlutusCore.Pretty
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts (..))
 import UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
 
+import Control.Lens ((^?))
 import Control.Lens.Review
 import Control.Monad.Catch
 import Control.Monad.Except
 import Control.Monad.Primitive (PrimMonad (..))
 import Control.Monad.ST
 import Control.Monad.ST.Unsafe
-import Data.DList (DList)
+import Data.DList qualified as DList
 import Data.Hashable (Hashable)
 import Data.Kind qualified as GHC
+import Data.List.Extras (wix)
 import Data.Proxy
 import Data.Semigroup (stimes)
 import Data.Text (Text)
@@ -169,6 +171,8 @@ data StepKind
     | BDelay
     | BForce
     | BBuiltin -- Cost of evaluating a Builtin AST node, not the function itself
+    | BConstr
+    | BCase
     deriving stock (Show, Eq, Ord, Generic, Enum, Bounded)
     deriving anyclass (NFData, Hashable)
 
@@ -181,6 +185,8 @@ cekStepCost costs = \case
     BDelay   -> cekDelayCost costs
     BForce   -> cekForceCost costs
     BBuiltin -> cekBuiltinCost costs
+    BConstr  -> cekConstrCost costs
+    BCase    -> cekCaseCost costs
 
 data ExBudgetCategory fun
     = BStep StepKind
@@ -230,6 +236,8 @@ data CekValue uni fun ann =
       !(BuiltinRuntime (CekValue uni fun ann))
       -- ^ The partial application and its costing function.
       -- Check the docs of 'BuiltinRuntime' for details.
+    -- | A constructor value, including fully computed arguments and the tag.
+  | VConstr {-# UNPACK #-} !Word64 ![CekValue uni fun ann]
     deriving stock (Show)
 
 type CekValEnv uni fun ann = Env.RAList (CekValue uni fun ann)
@@ -299,7 +307,7 @@ the 'Enum' instance of 'StepKind', and the total counter in the last index.
 
 -- | The number of step counters that we need, should be the same as the number of constructors
 -- of 'StepKind'.
-type NumberOfStepCounters = 7
+type NumberOfStepCounters = 9
 -- | The total number of counters that we need, one extra for the total counter.
 -- See Note [Structure of the step counter]
 type CounterSize = NumberOfStepCounters + 1
@@ -323,7 +331,7 @@ https://github.com/input-output-hk/plutus/pull/4421#issuecomment-1059186586
 
 -- See Note [DList-based emitting].
 -- | The CEK machine is parameterized over an emitter function, similar to 'CekBudgetSpender'.
-type CekEmitter uni fun s = DList Text -> CekM uni fun s ()
+type CekEmitter uni fun s = DList.DList Text -> CekM uni fun s ()
 
 -- | Runtime emitter info, similar to 'ExBudgetInfo'.
 data CekEmitterInfo uni fun s = CekEmitterInfo {
@@ -488,8 +496,8 @@ dischargeCekValEnv valEnv = go 0
   go :: Word64 -> NTerm uni fun () -> NTerm uni fun ()
   go !lamCnt =  \case
     LamAbs ann name body -> LamAbs ann name $ go (lamCnt+1) body
-    var@(Var _ (NamedDeBruijn _ ndbnIx)) -> let ix = coerce ndbnIx :: Word64  in
-        if lamCnt >= ix
+    var@(Var _ (NamedDeBruijn _ ndbnIx)) -> let idx = coerce ndbnIx :: Word64  in
+        if lamCnt >= idx
         -- the index n is less-than-or-equal than the number of lambdas we have descended
         -- this means that n points to a bound variable, so we don't discharge it.
         then var
@@ -499,7 +507,7 @@ dischargeCekValEnv valEnv = go 0
                -- var is in the env, discharge its value
                dischargeCekValue
                -- index relative to (as seen from the point of view of) the environment
-               (Env.indexOne valEnv $ ix - lamCnt)
+               (Env.indexOne valEnv $ idx - lamCnt)
     Apply ann fun arg    -> Apply ann (go lamCnt fun) $ go lamCnt arg
     Delay ann term       -> Delay ann $ go lamCnt term
     Force ann term       -> Force ann $ go lamCnt term
@@ -521,6 +529,7 @@ dischargeCekValue = \case
     -- or (b) it's needed for an error message.
     -- @term@ is fully discharged, so we can return it directly without any further discharging.
     VBuiltin _ term _                    -> term
+    VConstr i es                         -> Constr () i (toList $ fmap dischargeCekValue es)
 
 instance (Closed uni, Pretty (SomeTypeIn uni), uni `Everywhere` PrettyConst, Pretty fun) =>
             PrettyBy PrettyConfigPlc (CekValue uni fun ann) where
@@ -541,9 +550,19 @@ Morally, this is a stack of frames, but we use the "intrusive list" representati
 we can match on context and the top frame in a single, strict pattern match.
 -}
 data Context uni fun ann
-    = FrameApplyFun !(CekValue uni fun ann) !(Context uni fun ann)                         -- ^ @[V _]@
-    | FrameApplyArg !(CekValEnv uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann) -- ^ @[_ N]@
-    | FrameForce !(Context uni fun ann)                                               -- ^ @(force _)@
+    = FrameApplyFun !(CekValue uni fun ann) !(Context uni fun ann)
+    -- ^ @[V _]@
+    | FrameApplyArg !(CekValEnv uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann)
+    -- ^ @[_ N]@
+    | FrameApplyValues ![CekValue uni fun ann] !(Context uni fun ann)
+    -- ^ @[_ V0...Vn]@
+    | FrameForce !(Context uni fun ann)
+    -- ^ @(force _)@
+    -- See Note [Accumulators for terms]
+    | FrameConstr !(CekValEnv uni fun ann) {-# UNPACK #-} !Word64 ![NTerm uni fun ann] !(DList.DList (CekValue uni fun ann)) !(Context uni fun ann)
+    -- ^ @(constr i V0 ... Vj-1 _ Nj ... Nn)@
+    | FrameCases !(CekValEnv uni fun ann) ![NTerm uni fun ann] !(Context uni fun ann)
+    -- ^ @(case _ C0 .. Cn)@
     | NoFrame
     deriving stock (Show)
 
@@ -554,6 +573,7 @@ instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (CekValue
         VDelay {}   -> 1
         VLamAbs {}  -> 1
         VBuiltin {} -> 1
+        VConstr {}  -> 1
     {-# INLINE memoryUsage #-}
 
 -- | A 'MonadError' version of 'try'.
@@ -642,16 +662,19 @@ enterComputeCek = computeCek
         stepAndMaybeSpend BVar
         val <- lookupVarName varName env
         returnCek ctx val
+    -- s ; ρ ▻ con c  ↦  s ◅ con c
     computeCek !ctx !_ (Constant _ val) = do
         stepAndMaybeSpend BConst
         returnCek ctx (VCon val)
+    -- s ; ρ ▻ lam x L  ↦  s ◅ lam x (L , ρ)
     computeCek !ctx !env (LamAbs _ name body) = do
         stepAndMaybeSpend BLamAbs
         returnCek ctx (VLamAbs name body env)
+    -- s ; ρ ▻ delay L  ↦  s ◅ delay (L , ρ)
     computeCek !ctx !env (Delay _ body) = do
         stepAndMaybeSpend BDelay
         returnCek ctx (VDelay body env)
-    -- s ; ρ ▻ lam x L  ↦  s ◅ lam x (L , ρ)
+    -- s ; ρ ▻ force T  ↦  s , force _ ; ρ ▻ L
     computeCek !ctx !env (Force _ body) = do
         stepAndMaybeSpend BForce
         computeCek (FrameForce ctx) env body
@@ -659,15 +682,23 @@ enterComputeCek = computeCek
     computeCek !ctx !env (Apply _ fun arg) = do
         stepAndMaybeSpend BApply
         computeCek (FrameApplyArg env arg ctx) env fun
-    -- s ; ρ ▻ abs α L  ↦  s ◅ abs α (L , ρ)
-    -- s ; ρ ▻ con c  ↦  s ◅ con c
     -- s ; ρ ▻ builtin bn  ↦  s ◅ builtin bn arity arity [] [] ρ
     computeCek !ctx !_ (Builtin _ bn) = do
         stepAndMaybeSpend BBuiltin
         let meaning = lookupBuiltin bn ?cekRuntime
         -- 'Builtin' is fully discharged.
         returnCek ctx (VBuiltin bn (Builtin () bn) meaning)
-    -- s ; ρ ▻ error A  ↦  <> A
+    -- s ; ρ ▻ constr I T0 .. Tn  ↦  s , constr I _ (T1 ... Tn, ρ) ; ρ ▻ T0
+    computeCek !ctx !env (Constr _ i es) = do
+        stepAndMaybeSpend BConstr
+        case es of
+          (t : rest) -> computeCek (FrameConstr env i rest mempty ctx) env t
+          _          -> returnCek ctx $ VConstr i []
+    -- s ; ρ ▻ case S C0 ... Cn  ↦  s , case _ (C0 ... Cn, ρ) ; ρ ▻ S
+    computeCek !ctx !env (Case _ scrut cs) = do
+        stepAndMaybeSpend BCase
+        computeCek (FrameCases env cs ctx) env scrut
+    -- s ; ρ ▻ error  ↦  <> A
     computeCek !_ !_ (Error _) =
         throwing_ _EvaluationFailure
 
@@ -698,6 +729,22 @@ enterComputeCek = computeCek
     -- FIXME: add rule for VBuiltin once it's in the specification.
     returnCek (FrameApplyFun fun ctx) arg =
         applyEvaluate ctx fun arg
+    -- s , [_ V1 .. Vn] ◅ lam x (M,ρ)  ↦  s , [_ V2 .. Vn]; ρ [ x  ↦  V1 ] ▻ M
+    returnCek (FrameApplyValues args ctx) fun = case args of
+        (arg:rest) -> applyEvaluate (FrameApplyValues rest ctx) fun arg
+        _          -> returnCek ctx fun
+    -- s , constr I V0 ... Vj-1 _ (Tj+1 ... Tn, ρ) ◅ Vj  ↦  s , constr i V0 ... Vj _ (Tj+2... Tn, ρ)  ; ρ ▻ Tj+1
+    returnCek (FrameConstr env i todo done ctx) e = do
+        let done' = done `DList.snoc` e
+        case todo of
+          (next : todo') -> computeCek (FrameConstr env i todo' done' ctx) env next
+          _              -> returnCek ctx $ VConstr i (toList done')
+    -- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci
+    returnCek (FrameCases env cs ctx) e = case e of
+        (VConstr i args) -> case cs ^? wix i of
+            Just t  -> computeCek (FrameApplyValues args ctx) env t
+            Nothing -> throwingDischarged _MachineError (MissingCaseBranch i) e
+        _ -> throwingDischarged _MachineError NonConstrScrutinized e
 
     -- | @force@ a term and proceed.
     -- If v is a delay then compute the body of v;
@@ -781,11 +828,11 @@ enterComputeCek = computeCek
         -- See Note [Structure of the step counter]
         -- This generates let-expressions in GHC Core, however all of them bind unboxed things and
         -- so they don't survive further compilation, see https://stackoverflow.com/a/14090277
-        let !ix = fromEnum kind
+        let !counterIndex = fromEnum kind
             ctr = ?cekStepCounter
             !totalStepIndex = fromIntegral $ natVal (Proxy @TotalCountIndex)
         !unbudgetedStepsTotal <-  modifyCounter totalStepIndex (+1) ctr
-        _ <- modifyCounter ix (+1) ctr
+        _ <- modifyCounter counterIndex (+1) ctr
         -- There's no risk of overflow here, since we only ever increment the total
         -- steps by 1 and then check this condition.
         when (unbudgetedStepsTotal >= ?cekSlippage) spendAccumulatedBudget
@@ -803,3 +850,31 @@ runCekDeBruijn params mode emitMode term =
     runCekM params mode emitMode $ do
         spendBudgetCek BStartup (cekStartupCost ?cekCosts)
         enterComputeCek NoFrame Env.empty term
+
+{- Note [Accumulators for terms]
+At a couple of points in the CEK machine (notably building the arguments to a constructor value)
+we need to compute a list of terms into values.
+
+Our usual strategy is to make a frame which has an (implicit) "hole" for the value we are computing,
+and which stores the other sub-parts of the term as terms or values depending on whether we've computed
+them yet or not (see e.g. how applications work).
+
+We want to do the same sort of strategy here, but it's a bit more complicated. We need a hole
+"in the middle" of the list, with computed values on one side and yet-to-be-computed terms on the other.
+We also very much want to avoid allocating as much as possible.
+
+The basic structure that we end up with has three parts:
+1. Use the list of sub-terms from the original term as our "todo" queue, a list is a good structure for this.
+2. Use an accumulator type with fast snoc to accumulate the values as we compute them.
+3. Convert the accumulator quickly into a final type that is fast to process/lookup in later.
+
+(this process was at one point made explicit with an interface, but in the end we just inlined it all away)
+
+We tried at least three variants of this:
+1. List/MutableVector/Vector
+2. List/Seq/Seq
+3. List/DList/List
+
+Suprisingly, option 3 was just as performant as the others, so we opted to go with it for simplicity.
+But there may well be a faster version.
+-}

@@ -19,7 +19,7 @@ module PlutusCore.Generators.Hedgehog.Builtin (
     genConstr,
 ) where
 
-import PlutusCore
+import PlutusCore hiding (Constr)
 import PlutusCore.Builtin
 import PlutusCore.Data (Data (..))
 import PlutusCore.Generators.Hedgehog.AST hiding (genConstant)

@@ -31,9 +31,7 @@
           (abs a (type) (lam x a x))
         ]
         (lam
-          head
-          (all a (type) (fun a a))
-          (lam tail [ List (all a (type) (fun a a)) ] head)
+          h (all a (type) (fun a a)) (lam t [ List (all a (type) (fun a a)) ] h)
         )
       ]
     )

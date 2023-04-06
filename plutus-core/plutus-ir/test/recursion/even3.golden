@@ -445,9 +445,9 @@
                                                         True_i12
                                                       ]
                                                       (lam
-                                                        pred_i0
+                                                        p_i0
                                                         Nat_i10
-                                                        [ odd_i3 pred_i1 ]
+                                                        [ odd_i3 p_i1 ]
                                                       )
                                                     ]
                                                   )
@@ -464,9 +464,9 @@
                                                       False_i11
                                                     ]
                                                     (lam
-                                                      pred_i0
+                                                      p_i0
                                                       Nat_i10
-                                                      [ even_i4 pred_i1 ]
+                                                      [ even_i4 p_i1 ]
                                                     )
                                                   ]
                                                 )

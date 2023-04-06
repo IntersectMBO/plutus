@@ -51,6 +51,7 @@ import Prelude hiding (error)
 
 import PlutusCore.Core
 
+import Data.Word
 import Universe
 
 -- | A final encoding for Term, to allow PLC terms to be used transparently as PIR terms.
@@ -65,6 +66,9 @@ class TermLike term tyname name uni fun | term -> tyname name uni fun where
     unwrap   :: ann -> term ann -> term ann
     iWrap    :: ann -> Type tyname uni ann -> Type tyname uni ann -> term ann -> term ann
     error    :: ann -> Type tyname uni ann -> term ann
+    constr   :: ann -> Type tyname uni ann -> Word64 -> [term ann] -> term ann
+    kase     :: ann -> Type tyname uni ann -> term ann -> [term ann] -> term ann
+
     termLet  :: ann -> TermDef term tyname name uni ann -> term ann -> term ann
     typeLet  :: ann -> TypeDef tyname uni ann -> term ann -> term ann
 
@@ -108,6 +112,8 @@ instance TermLike (Term tyname name uni fun) tyname name uni fun where
     unwrap   = Unwrap
     iWrap    = IWrap
     error    = Error
+    constr   = Constr
+    kase     = Case
 
 embed :: TermLike term tyname name uni fun => Term tyname name uni fun ann -> term ann
 embed = \case
@@ -121,6 +127,8 @@ embed = \case
     Error a ty        -> error a ty
     Unwrap a t        -> unwrap a (embed t)
     IWrap a ty1 ty2 t -> iWrap a ty1 ty2 (embed t)
+    Constr a ty i es  -> constr a ty i (fmap embed es)
+    Case a ty arg cs  -> kase a ty (embed arg) (fmap embed cs)
 
 -- | Make a 'Var' referencing the given 'VarDecl'.
 mkVar :: TermLike term tyname name uni fun => ann -> VarDecl tyname name uni ann -> term ann

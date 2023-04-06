@@ -7,6 +7,7 @@ module Spec.Versions (tests) where
 import PlutusCore as PLC
 import PlutusCore.Data as PLC
 import PlutusCore.MkPlc as PLC
+import PlutusCore.Version as PLC
 import PlutusLedgerApi.Common
 import PlutusLedgerApi.Common.Versions
 import PlutusLedgerApi.V1 qualified as V1
@@ -28,18 +29,26 @@ import Test.Tasty.QuickCheck
 serialiseDataExScript :: SerialisedScript
 serialiseDataExScript = serialiseUPLC serialiseDataEx
     where
-      serialiseDataEx = UPLC.Program () PLC.latestVersion $
+      serialiseDataEx = UPLC.Program () PLC.plcVersion100 $
                              UPLC.Apply () (UPLC.Builtin () PLC.SerialiseData) (PLC.mkConstant () $ I 1)
 
 errorScript :: SerialisedScript
-errorScript = serialiseUPLC errorEx
-    where
-      errorEx = UPLC.Program () PLC.latestVersion $ UPLC.Error ()
+errorScript = serialiseUPLC $ UPLC.Program () PLC.plcVersion100 $ UPLC.Error ()
+
+v110script :: SerialisedScript
+v110script = serialiseUPLC $ UPLC.Program () PLC.plcVersion110 $ UPLC.Constr () 0 []
+
+badConstrScript :: SerialisedScript
+badConstrScript = serialiseUPLC $ UPLC.Program () PLC.plcVersion100 $ UPLC.Constr () 0 []
+
+badCaseScript :: SerialisedScript
+badCaseScript = serialiseUPLC $ UPLC.Program () PLC.plcVersion100 $ UPLC.Case () (UPLC.Error ()) []
 
 tests :: TestTree
 tests = testGroup "versions"
     [ testLedgerLanguages
     , testBuiltinVersions
+    , testLanguageVersions
     ]
 
 testLedgerLanguages :: TestTree
@@ -60,8 +69,8 @@ testLedgerLanguages = testGroup "ledger languages"
            -- generated an old protocol version
            then
                case resPhase1 of
-                   Left LanguageNotAvailableError{} -> True
-                   _                                -> False
+                   Left LedgerLanguageNotAvailableError{} -> True
+                   _                                      -> False
            -- generated an eq or gt the expected protocol version
            else isRight resPhase1
 
@@ -91,3 +100,13 @@ testBuiltinVersions = testGroup "builtins"
     -- we cannot make the same property as above for remdr3gen because it may generate valid bytestring append extensions to the original script
     -- a more sophisticated one could work though
     ]
+
+testLanguageVersions :: TestTree
+testLanguageVersions = testGroup "Plutus Core language versions"
+  [ testCase "v1.1.0 is available in l3,future and not before" $ do
+      assertBool "in l3,Vasil" $ isLeft $ V3.assertScriptWellFormed vasilPV v110script
+      assertBool "in l2,future" $ isLeft $ V2.assertScriptWellFormed futurePV v110script
+      assertBool "not in l3,future" $ isRight $ V3.assertScriptWellFormed futurePV v110script
+  , testCase "constr is not available with v1.0.0 ever" $ assertBool "in l3,future" $ isLeft $ V3.assertScriptWellFormed futurePV badConstrScript
+  , testCase "case is not available with v1.0.0 ever" $ assertBool "in l3,future" $ isLeft $ V3.assertScriptWellFormed futurePV badCaseScript
+  ]

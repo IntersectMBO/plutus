@@ -74,6 +74,7 @@ library
     Crypto
     Data.ByteString.Hash
     Data.Either.Extras
+    Data.List.Extras
     Data.MultiSet.Lens
     PlutusCore
     PlutusCore.Annotation
@@ -232,6 +233,7 @@ library
     UntypedPlutusCore.Simplify
     UntypedPlutusCore.Size
     UntypedPlutusCore.Subst
+    UntypedPlutusCore.Transform.CaseReduce
     UntypedPlutusCore.Transform.ForceDelay
     UntypedPlutusCore.Transform.Inline
 
@@ -450,6 +452,7 @@ library plutus-ir
     PlutusIR.Purity
     PlutusIR.Subst
     PlutusIR.Transform.Beta
+    PlutusIR.Transform.CaseReduce
     PlutusIR.Transform.DeadCode
     PlutusIR.Transform.Inline.CallSiteInline
     PlutusIR.Transform.Inline.Inline
