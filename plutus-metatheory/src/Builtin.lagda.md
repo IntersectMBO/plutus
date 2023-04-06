@@ -311,7 +311,7 @@ postulate
   TRACE      : {a : Set} → String → a → a
 
   concat    : ByteString → ByteString → ByteString
-  cons  : Int → ByteString → ByteString
+  cons  : Int → ByteString → Maybe ByteString
   slice     : Int → Int → ByteString → ByteString
   B<        : ByteString -> ByteString -> Bool
   B<=        : ByteString -> ByteString -> Bool
@@ -338,6 +338,8 @@ postulate
 {-# FOREIGN GHC import Data.Text.Encoding #-}
 {-# FOREIGN GHC import qualified Data.Text as Text #-}
 {-# FOREIGN GHC import Data.Either.Extra #-}
+{-# FOREIGN GHC import Data.Word (Word8) #-}
+{-# FOREIGN GHC import GHC.Bits (toIntegralSized) #-}
 {-# COMPILE GHC length = toInteger . BS.length #-}
 
 -- no binding needed for addition
@@ -362,7 +364,10 @@ postulate
 {-# COMPILE GHC equals = (==) #-}
 {-# COMPILE GHC B< = (<) #-}
 {-# COMPILE GHC B<= = (<=) #-}
-{-# COMPILE GHC cons = \n xs -> BS.cons (fromIntegral @Integer n) xs #-}
+-- V1 of consByteString
+-- {-# COMPILE GHC cons = \n xs -> BS.cons (fromIntegral @Integer n) xs #-}
+-- Other versions of consByteString
+{-# COMPILE GHC cons = \n xs -> case toIntegralSized n of { Just w8 -> Just (BS.cons w8 xs); Nothing -> Nothing } #-}
 {-# COMPILE GHC slice = \start n xs -> BS.take (fromIntegral n) (BS.drop (fromIntegral start) xs) #-}
 {-# COMPILE GHC index = \xs n -> fromIntegral (BS.index xs (fromIntegral n)) #-}
 {-# FOREIGN GHC import Crypto #-}

@@ -257,10 +257,10 @@ BUILTIN bData = λ
   { (app base (V-con (bytestring b))) -> inj₂ (V-con (pdata (bDATA b)))
   ; _ -> inj₁ userError
   }
-BUILTIN consByteString = λ
-  { (app (app base (V-con (integer i))) (V-con (bytestring b))) -> inj₂ (V-con (bytestring (cons i b)))
-  ; _ -> inj₁ userError
-  }
+BUILTIN consByteString (app (app base (V-con (integer i))) (V-con (bytestring b)))  with cons i b 
+... | just b' = inj₂ (V-con (bytestring b'))
+... | nothing = inj₁ userError
+BUILTIN consByteString _ = inj₁ userError  
 BUILTIN sliceByteString = λ
   { (app (app (app base (V-con (integer st))) (V-con (integer n))) (V-con (bytestring b))) -> inj₂ (V-con (bytestring (slice st n b)))
   ; _ -> inj₁ userError
