@@ -14,7 +14,7 @@ module Untyped where
 ## Imports
 
 ```
-open import Utils using (Maybe;nothing;just;Either;inj₁;inj₂;Monad;TermCon;DATA)
+open import Utils as U using (Maybe;nothing;just;Either;inj₁;inj₂;Monad;TermCon;DATA;List;[];_∷_)
 open Monad {{...}}
 open TermCon
 
@@ -28,7 +28,7 @@ open import Agda.Builtin.String using (primStringFromList; primStringAppend; pri
 open import Data.Nat using (ℕ;suc;zero)
 open import Data.Bool using (Bool;true;false;_∧_)
 open import Data.Integer using (_<?_;_+_;_-_;∣_∣;_≤?_;_≟_;ℤ) renaming (_*_ to _**_)
-open import Data.List using (List;[];_∷_)
+--open import Data.List using (List;[];_∷_)
 open import Relation.Nullary using (yes;no)
 open import Data.Integer.Show using (show)
 open import Data.String using (String;_++_)

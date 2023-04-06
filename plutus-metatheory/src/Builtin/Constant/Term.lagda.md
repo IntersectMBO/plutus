@@ -18,7 +18,6 @@ module Builtin.Constant.Term
 open import Data.Integer using (ℤ)
 open import Data.String using (String)
 open import Data.Bool using (Bool)
-open import Data.List using (List)
 open import Utils using (_×_)
 ```
 
