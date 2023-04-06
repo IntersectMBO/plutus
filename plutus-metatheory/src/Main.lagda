@@ -81,6 +81,8 @@ postulate
 {-# COMPILE GHC exitSuccess = exitSuccess #-}
 {-# COMPILE GHC exitFailure = exitFailure #-}
 
+
+{-
 -- System.Environment stuff
 
 postulate
@@ -88,7 +90,7 @@ postulate
 
 {-# FOREIGN GHC import System.Environment #-}
 {-# COMPILE GHC getArgs = (fmap . fmap) T.pack $ getArgs #-}
-
+-}
 -- Misc stuff
 
 {-# FOREIGN GHC import Data.Either #-}

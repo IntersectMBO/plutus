@@ -11,7 +11,7 @@ open import Data.Nat.Properties
                using (+-suc;m+1+n≢m;+-cancelˡ-≡;m≢1+n+m;m+1+n≢0;+-cancelʳ-≡;+-assoc;+-comm;+-identityʳ)
 open import Relation.Binary using (Decidable)
 import Data.Integer as I
-open import Data.List using (List;[];_∷_;length)
+import Data.List using (List)
 open import Data.Sum using (_⊎_;inj₁;inj₂)
 open import Relation.Nullary using (Dec;yes;no;¬_)
 open import Data.Empty using (⊥;⊥-elim)
@@ -150,8 +150,17 @@ postulate ByteString : Set
 data _×_ (A B : Set) : Set where
  _,_ : A → B → A × B
 
-{-# FOREIGN GHC data Pair a b = Pair a b #-}
-{-# COMPILE GHC _×_ = data Pair (Pair)  #-}
+{-# FOREIGN GHC type Pair a b = (a , b) #-}
+{-# COMPILE GHC _×_ = data Pair ((,))  #-}
+
+data List (A : Set) : Set where
+  []  : List A
+  _∷_ : A → List A → List A
+
+infixr 5 _∷_
+
+{-# COMPILE GHC List = data [] ([] | (:)) #-}
+
 
 data DATA : Set where
   ConstrDATA :  I.ℤ → List DATA → DATA
@@ -172,8 +181,8 @@ data AtomicTyCon : Set where
   bool       : AtomicTyCon
   pdata      : AtomicTyCon 
 
-{-# FOREIGN GHC data AtomicTyCon = ATyConInt | ATyConByteString | ATyConString | ATyConUnit | ATyConBool | ATyConData #-}
-{-# COMPILE GHC AtomicTyCon = data AtomicTyCon (ATyConInt | ATyConByteString | ATyConString | ATyConUnit | ATyConBool | ATyConData) #-}
+{-# FOREIGN GHC import Raw #-}
+{-# COMPILE GHC AtomicTyCon = data AtomicTyCon (ATyConInt | ATyConBS | ATyConStr | ATyConUnit | ATyConBool | ATyConData) #-}
 
 meqAtomicTyCon : (c c' : AtomicTyCon) → Either (¬ (c ≡ c')) (c ≡ c')
 meqAtomicTyCon integer integer = inj₂ refl
@@ -249,13 +258,14 @@ data TermCon : Set where
   bytestring : ByteString → TermCon
   string     : String → TermCon
   bool       : Bool → TermCon
+  unit       : TermCon
+  pdata      : DATA → TermCon
 --  pair       : TermCon → TermCon → TermCon
   pairDATA  : DATA → DATA → TermCon
   pairID     : ℤ → List DATA → TermCon 
   listData   : List DATA → TermCon
   listPair   : List (DATA × DATA) → TermCon
-  unit       : TermCon
-  pdata      : DATA → TermCon
+
 
 {-# FOREIGN GHC type TermCon = Some (ValueOf DefaultUni)               #-}
 {-# FOREIGN GHC pattern TmInteger    i = Some (ValueOf DefaultUniInteger i) #-}
@@ -264,10 +274,10 @@ data TermCon : Set where
 {-# FOREIGN GHC pattern TmUnit         = Some (ValueOf DefaultUniUnit ()) #-}
 {-# FOREIGN GHC pattern TmBool       b = Some (ValueOf DefaultUniBool b) #-}
 {-# FOREIGN GHC pattern TmData       d = Some (ValueOf DefaultUniData d) #-}
-{-# FOREIGN GHC pattern TmPair     a b = Some (ValueOf (DefaultUniPair _ _) (a,b)) #-}  -- WHAT TO DO
+-- {-# FOREIGN GHC pattern TmPair     a b = Some (ValueOf (DefaultUniPair _ _) (a,b)) #-}  -- WHAT TO DO
 {-# FOREIGN GHC pattern TmPairData a b = Some (ValueOf (DefaultUniPair DefaultUniData DefaultUniData) (a,b)) #-}
-{-# FOREIGN GHC pattern TmPairID   a b = Some (ValueOf (DefaultUniPair DefaultUniData (DefaultUniList DefaultUniData)) (a,b)) #-}
+{-# FOREIGN GHC pattern TmPairID   a b = Some (ValueOf (DefaultUniPair DefaultUniInteger (DefaultUniList DefaultUniData)) (a,b)) #-}
 {-# FOREIGN GHC pattern TmListData  xs = Some (ValueOf (DefaultUniList DefaultUniData) xs) #-}
 {-# FOREIGN GHC pattern TmListPair  xs = Some (ValueOf (DefaultUniList (DefaultUniPair DefaultUniData DefaultUniData)) xs) #-}
-{-# COMPILE GHC TermCon = data TermCon (TmInteger | TmByteString | TmString | TmBool | TmUnit | TmData | TmPair | TmListData | TmListPair) #-}
+{-# COMPILE GHC TermCon = data TermCon (TmInteger | TmByteString | TmString | TmBool | TmUnit | TmData | TmPairData | TmPairID | TmListData | TmListPair) #-}
 \end{code}
