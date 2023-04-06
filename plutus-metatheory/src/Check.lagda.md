@@ -10,11 +10,14 @@ module Check where
 ```
 open import Data.Nat using (ℕ;zero;suc)
 open import Data.Fin using (Fin;zero;suc)
+open import Data.List using (map)
 open import Data.Product using (Σ) renaming (_,_ to _,,_)
 open import Data.Sum using (_⊎_;inj₁;inj₂)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong₂;cong;sym)
 open import Relation.Nullary using (¬_)
 
+open import Utils using (meqAtomicTyCon)
+import Utils as U
 open import Scoped using (ScopedTy;Weirdℕ;WeirdFin;ScopedTm)
 open ScopedTy
 open ScopedTm
@@ -152,11 +155,6 @@ checkKind : ∀ Φ (A : ScopedTy (len⋆ Φ)) → ∀ K → Either TypeError (Φ
 inferKind : ∀ Φ (A : ScopedTy (len⋆ Φ)) → Either TypeError (Σ Kind (Φ ⊢Nf⋆_))
 inferKindCon : ∀ Φ (c : S.TyCon (len⋆ Φ)) → Either TypeError (T.TyCon Φ)
 
-inferKindCon Φ S.integer = inj₂ T.integer
-inferKindCon Φ S.bytestring = inj₂ T.bytestring
-inferKindCon Φ S.string = inj₂ T.string
-inferKindCon Φ S.unit = inj₂ T.unit
-inferKindCon Φ S.bool = inj₂ T.bool
 inferKindCon Φ (S.list A) = do
   A ← isStar (inferKind Φ A)
   return (T.list A)
@@ -164,7 +162,7 @@ inferKindCon Φ (S.pair A B) = do
   A ← isStar (inferKind Φ A)
   B ← isStar (inferKind Φ B)  
   return (T.pair A B)
-inferKindCon Φ S.pdata = inj₂ T.pdata
+inferKindCon Φ (S.atomic A)= inj₂ (T.atomic A)
 
 checkKind Φ A K = do
   K' ,, A ← inferKind Φ A
@@ -218,79 +216,29 @@ meqTyVar (S α) (S α') = do
 meqTyVar Z     (S α') = inj₁ λ()
 meqTyVar (S α) Z      = inj₁ λ()
 
+
 meqNfTy : ∀{Φ K}(A A' : Φ ⊢Nf⋆ K) → Either (¬ (A ≡ A')) (A ≡ A')
 meqNeTy : ∀{Φ K}(A A' : Φ ⊢Ne⋆ K) → Either (¬ (A ≡ A')) (A ≡ A')
 meqTyCon : ∀{Φ}(c c' : T.TyCon Φ) → Either (¬ (c ≡ c')) (c ≡ c')
-
-meqTyCon T.integer    T.integer      = inj₂ refl
-meqTyCon T.bytestring T.bytestring   = inj₂ refl
-meqTyCon T.string     T.string       = inj₂ refl
-meqTyCon T.bool       T.bool         = inj₂ refl
-meqTyCon T.unit       T.unit         = inj₂ refl
-meqTyCon T.integer    T.bytestring   = inj₁ λ()
-meqTyCon T.integer    T.string       = inj₁ λ()
-meqTyCon T.integer    T.unit         = inj₁ λ()
-meqTyCon T.integer    T.bool         = inj₁ λ()
-meqTyCon T.bytestring T.integer      = inj₁ λ()
-meqTyCon T.bytestring T.string       = inj₁ λ()
-meqTyCon T.bytestring T.unit         = inj₁ λ()
-meqTyCon T.bytestring T.bool         = inj₁ λ()
-meqTyCon T.string     T.integer      = inj₁ λ()
-meqTyCon T.string     T.bytestring   = inj₁ λ()
-meqTyCon T.string     T.unit         = inj₁ λ()
-meqTyCon T.string     T.bool         = inj₁ λ()
-meqTyCon T.unit       T.integer      = inj₁ λ()
-meqTyCon T.unit       T.bytestring   = inj₁ λ()
-meqTyCon T.unit       T.string       = inj₁ λ()
-meqTyCon T.unit       T.bool         = inj₁ λ()
-meqTyCon T.bool       T.integer      = inj₁ λ()
-meqTyCon T.bool       T.bytestring   = inj₁ λ()
-meqTyCon T.bool       T.string       = inj₁ λ()
-meqTyCon T.bool       T.unit         = inj₁ λ()
-meqTyCon (T.pair A B) T.integer      = inj₁ λ()
-meqTyCon T.pdata       T.integer     = inj₁ λ()
-meqTyCon (T.list A)   T.bytestring   = inj₁ λ()
-meqTyCon (T.pair A B) T.bytestring   = inj₁ λ()
-meqTyCon T.pdata       T.bytestring  = inj₁ λ()
-meqTyCon (T.list A)   T.string       = inj₁ λ()
-meqTyCon (T.pair A B) T.string       = inj₁ λ()
-meqTyCon T.pdata       T.string      = inj₁ λ()
-meqTyCon (T.list A)   T.unit         = inj₁ λ()
-meqTyCon (T.pair A B) T.unit         = inj₁ λ()
-meqTyCon T.pdata       T.unit        = inj₁ λ()
-meqTyCon (T.list A)   T.bool         = inj₁ λ()
-meqTyCon (T.pair A B) T.bool         = inj₁ λ()
-meqTyCon T.pdata       T.bool        = inj₁ λ()
-meqTyCon (T.list A)   T.integer      = inj₁ λ()
-meqTyCon T.integer    (T.list A)     = inj₁ λ()
-meqTyCon T.bytestring (T.list A)     = inj₁ λ()
-meqTyCon T.string     (T.list A)     = inj₁ λ()
-meqTyCon T.unit       (T.list A)     = inj₁ λ()
-meqTyCon T.bool       (T.list A)     = inj₁ λ()
-meqTyCon (T.list A)   (T.list A')    = do
-  refl ← withE (λ ¬q → λ{refl → ¬q refl}) (meqNfTy A A')
+-- atomic
+meqTyCon (T.atomic A) (T.atomic A') = do
+  refl ← withE (λ ¬q → λ{ refl → ¬q refl}) (meqAtomicTyCon A A')
   return refl
-meqTyCon (T.pair A B) (T.list A')    = inj₁ λ()
-meqTyCon T.pdata       (T.list A)    = inj₁ λ()
-meqTyCon T.integer    (T.pair A' B') = inj₁ λ()
-meqTyCon T.bytestring (T.pair A' B') = inj₁ λ()
-meqTyCon T.string     (T.pair A' B') = inj₁ λ()
-meqTyCon T.unit       (T.pair A' B') = inj₁ λ()
-meqTyCon T.bool       (T.pair A' B') = inj₁ λ()
-meqTyCon (T.list A)   (T.pair A' B') = inj₁ λ()
+meqTyCon (T.atomic _) (T.list _)     = inj₁ λ()
+meqTyCon (T.atomic _) (T.pair _ _)   = inj₁ λ()
+-- pair
 meqTyCon (T.pair A B) (T.pair A' B') = do
   refl ← withE (λ ¬q → λ{refl → ¬q refl}) (meqNfTy A A')
   refl ← withE (λ ¬q → λ{refl → ¬q refl}) (meqNfTy B B')  
   return refl
-meqTyCon T.pdata       (T.pair A' B') = inj₁ λ()
-meqTyCon T.integer    T.pdata = inj₁ λ()
-meqTyCon T.bytestring T.pdata = inj₁ λ()
-meqTyCon T.string     T.pdata = inj₁ λ()
-meqTyCon T.unit       T.pdata = inj₁ λ()
-meqTyCon T.bool       T.pdata = inj₁ λ()
-meqTyCon (T.list A)   T.pdata = inj₁ λ()
-meqTyCon (T.pair A B) T.pdata = inj₁ λ()
-meqTyCon T.pdata       T.pdata = inj₂ refl
+meqTyCon (T.pair _ _) (T.atomic _)   = inj₁ λ()
+meqTyCon (T.pair _ _) (T.list _)    = inj₁ λ()
+-- list
+meqTyCon (T.list A)   (T.list A')    = do
+  refl ← withE (λ ¬q → λ{refl → ¬q refl}) (meqNfTy A A')
+  return refl
+meqTyCon (T.list _)   (T.atomic _)   = inj₁ λ()
+meqTyCon (T.list _)   (T.pair _ _)   = inj₁ λ()
 
 meqNfTy (A ⇒ B) (A' ⇒ B') = do
   p ← withE (λ ¬p → λ{refl → ¬p refl}) (meqNfTy A A')
@@ -356,12 +304,17 @@ inv-complete {A = A}{A' = A'} p = trans≡β
 
 
 inferTypeCon : ∀{Φ} → TermCon → Σ (T.TyCon _) λ c → A.TermCon {Φ} (con c) 
-inferTypeCon (integer i)    = T.integer ,, A.integer i
-inferTypeCon (bytestring b) = T.bytestring ,, A.bytestring b
-inferTypeCon (string s)     = T.string ,, A.string s
-inferTypeCon (bool b)       = T.bool ,, A.bool b
-inferTypeCon unit           = T.unit ,, A.unit
-inferTypeCon (pdata d)      = T.pdata ,, A.pdata d
+inferTypeCon (integer i)    = T.atomic U.integer ,, A.integer i
+inferTypeCon (bytestring b) = T.atomic U.bytestring ,, A.bytestring b
+inferTypeCon (string s)     = T.atomic U.string ,, A.string s
+inferTypeCon (bool b)       = T.atomic U.bool ,, A.bool b
+inferTypeCon unit           = T.atomic U.unit ,, A.unit
+inferTypeCon (pdata d)      = T.atomic U.pdata ,, A.pdata d
+inferTypeCon (pairDATA x y) = T.pair (con (T.atomic U.pdata)) (con (T.atomic U.pdata)) ,, A.pairDATA x y
+inferTypeCon (pairID i ds)  = T.pair (con (T.atomic U.integer)) (con (T.list (con (T.atomic U.pdata)))) ,, A.pairID i ds
+inferTypeCon (listData xs)  = T.list (con (T.atomic U.pdata)) ,, A.listData xs
+inferTypeCon (listPair xs)  = T.list (con (T.pair (con (T.atomic U.pdata)) (con (T.atomic U.pdata)))) ,, A.listPair xs
+
 
 checkType : ∀{Φ}(Γ : Ctx Φ) → ScopedTm (len Γ) → (A : Φ ⊢Nf⋆ *)
   → Either TypeError (Γ ⊢ A)

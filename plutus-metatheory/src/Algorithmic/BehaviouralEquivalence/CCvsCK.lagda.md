@@ -19,7 +19,8 @@ open import Data.Empty using (⊥)
 open import Data.Nat using (ℕ;zero;suc)
 open import Data.Sum using (_⊎_;inj₁;inj₂)
 
-open import Utils using (Kind;*;_⇒_;Either;inj₁;bubble;RuntimeError;Monad)
+open import Utils using (Kind;*;_⇒_;Either;inj₁;bubble;RuntimeError;Monad;AtomicTyCon)
+open AtomicTyCon
 open RuntimeError
 open Monad {{...}}
 
@@ -177,7 +178,7 @@ thm64b ((s , unwrap-) ◅ V-wrap V) s' (step* refl p) = CC.step*
 thm64b (□ x₁) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 thm64b (◆ A) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 
-test : State (con unit)
+test : State (con (atomic unit))
 test = ε ▻ (ƛ (con unit) · (builtin iData / refl · con (integer (+ 0))))
 
 postulate

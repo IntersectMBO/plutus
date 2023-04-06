@@ -174,19 +174,19 @@ BUILTIN subtractInteger (app (app base (V-con (integer i))) (V-con (integer i'))
 BUILTIN multiplyInteger (app (app base (V-con (integer i))) (V-con (integer i'))) = inj₂ (V-con (integer (i ** i')))
 BUILTIN divideInteger (app (app base (V-con (integer i))) (V-con (integer i'))) = decIf
   (i' ≟ ℤ.pos 0)
-  (inj₁ (con integer))
+  (inj₁ (con (atomic integer)))
   (inj₂ (V-con (integer (div i i'))))
 BUILTIN quotientInteger (app (app base (V-con (integer i))) (V-con (integer i'))) = decIf
   (i' ≟ ℤ.pos 0)
-  (inj₁ (con integer))
+  (inj₁ (con (atomic integer)))
   (inj₂ (V-con (integer (quot i i'))))
 BUILTIN remainderInteger (app (app base (V-con (integer i))) (V-con (integer i'))) = decIf
   (i' ≟ ℤ.pos 0)
-  (inj₁ (con integer))
+  (inj₁ (con (atomic integer)))
   (inj₂ (V-con (integer (rem i i'))))
 BUILTIN modInteger (app (app base (V-con (integer i))) (V-con (integer i'))) = decIf
   (i' ≟ ℤ.pos 0)
-  (inj₁ (con integer))
+  (inj₁ (con (atomic integer)))
   (inj₂ (V-con (integer (mod i i'))))
 BUILTIN lessThanInteger (app (app base (V-con (integer i))) (V-con (integer i'))) = decIf (i <? i') (inj₂ (V-con (bool true))) (inj₂ (V-con (bool false)))
 BUILTIN lessThanEqualsInteger (app (app base (V-con (integer i))) (V-con (integer i'))) = decIf (i ≤? i') (inj₂ (V-con (bool true))) (inj₂ (V-con (bool false)))
@@ -202,17 +202,17 @@ BUILTIN blake2b-256 (app base (V-con (bytestring b))) =
   inj₂ (V-con (bytestring (BLAKE2B-256 b)))
 BUILTIN verifyEd25519Signature (app (app (app base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c))) with (verifyEd25519Sig k d c)
 ... | just b = inj₂ (V-con (bool b))
-... | nothing = inj₁ (con bool)
+... | nothing = inj₁ (con (atomic bool))
 BUILTIN verifyEcdsaSecp256k1Signature (app (app (app base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c))) with (verifyEcdsaSecp256k1Sig k d c)
 ... | just b = inj₂ (V-con (bool b))
-... | nothing = inj₁ (con bool)
+... | nothing = inj₁ (con (atomic bool))
 BUILTIN verifySchnorrSecp256k1Signature (app (app (app base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c))) with (verifySchnorrSecp256k1Sig k d c)
 ... | just b = inj₂ (V-con (bool b))
-... | nothing = inj₁ (con bool)
+... | nothing = inj₁ (con (atomic bool))
 BUILTIN encodeUtf8 (app base (V-con (string s))) =
   inj₂ (V-con (bytestring (ENCODEUTF8 s)))
 BUILTIN decodeUtf8 (app base (V-con (bytestring b))) with DECODEUTF8 b
-... | nothing = inj₁ (con string)
+... | nothing = inj₁ (con (atomic string))
 ... | just s  = inj₂ (V-con (string s))
 BUILTIN equalsByteString (app (app base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₂ (V-con (bool (equals b b')))
 BUILTIN ifThenElse (app (app (app (app⋆ base refl refl) (V-con (bool false))) vt) vf) = inj₂ vf
@@ -229,9 +229,9 @@ BUILTIN sliceByteString (app (app (app base (V-con (integer st))) (V-con (intege
 BUILTIN lengthOfByteString (app base (V-con (bytestring b))) =
   inj₂ (V-con (integer (length b)))
 BUILTIN indexByteString (app (app base (V-con (bytestring b))) (V-con (integer i))) with Data.Integer.ℤ.pos 0 ≤? i
-... | no  _ = inj₁ (con integer)
+... | no  _ = inj₁ (con (atomic integer))
 ... | yes _ with i <? length b
-... | no _  = inj₁ (con integer)
+... | no _  = inj₁ (con (atomic integer))
 ... | yes _ = inj₂ (V-con (integer (index b i)))
 BUILTIN equalsString (app (app base (V-con (string s))) (V-con (string s'))) = inj₂ (V-con (bool (primStringEquality s s')))
 BUILTIN unIData (app base (V-con (pdata (iDATA i)))) = inj₂ (V-con (integer i))

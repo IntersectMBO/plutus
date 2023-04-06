@@ -17,7 +17,7 @@ module Builtin.Constant.Type
 ## Imports
 
 ```
--- no imports
+open import Utils using (AtomicTyCon)
 ```
 
 ## Type constants
@@ -26,14 +26,9 @@ We have six base types referred to as type constants:
 
 ```
 data TyCon (Φ : Con) : Set where
-  integer    : TyCon Φ
-  bytestring : TyCon Φ
-  string     : TyCon Φ
-  unit       : TyCon Φ
-  bool       : TyCon Φ
+  atomic     : AtomicTyCon → TyCon Φ
   list       : Ty Φ → TyCon Φ
   pair       : Ty Φ → Ty Φ → TyCon Φ
-  pdata      : TyCon Φ
 
 
 --{-# FOREIGN GHC {-# LANGUAGE GADTs, PatternSynonyms #-}                #-}

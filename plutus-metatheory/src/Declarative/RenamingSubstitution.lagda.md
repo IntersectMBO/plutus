@@ -12,6 +12,7 @@ module Declarative.RenamingSubstitution where
 ```
 open import Function using (_∘_)
 open import Relation.Binary.PropositionalEquality using (refl;sym;trans)
+open import Data.List using (map)
 
 open import Utils using (Kind;*;K)
 open import Type using (Ctx⋆;_⊢⋆_;Φ;Ψ;A;B)
@@ -75,12 +76,16 @@ Renaming a term constant
 renTermCon : (ρ⋆ : ⋆.Ren Φ Ψ)
              ------------------------------------------
            → (∀{A} → TermCon A → TermCon (⋆.ren ρ⋆ A ))
-renTermCon _ (integer i)    = integer i
-renTermCon _ (bytestring b) = bytestring b
-renTermCon _ (string s)     = string s
-renTermCon _ (bool b)       = bool b
-renTermCon _ unit           = unit
+renTermCon _ (integer i)     = integer i
+renTermCon _ (bytestring b)  = bytestring b
+renTermCon _ (string s)      = string s
+renTermCon _ (bool b)        = bool b
+renTermCon _ unit            = unit
 renTermCon _ (pdata d)       = pdata d
+renTermCon ρ⋆ (pairDATA x y) = pairDATA x y
+renTermCon ρ⋆ (pairID i xs)  = pairID i xs
+renTermCon ρ⋆ (listData xs)  = listData xs
+renTermCon ρ⋆ (listPair xs)  = listPair xs
 ```
 
 Renaming for terms
@@ -167,13 +172,16 @@ Substitution for term constants
 subTermCon : (σ⋆ : ⋆.Sub Φ Ψ)
              -------------------------------------------
            → ∀ {A} → TermCon A → TermCon (⋆.sub σ⋆ A )
-subTermCon _ (integer i)    = integer i
-subTermCon _ (bytestring b) = bytestring b
-subTermCon _ (string s)     = string s
-subTermCon _ (bool b)       = bool b
-subTermCon _ unit           = unit
+subTermCon _ (integer i)     = integer i
+subTermCon _ (bytestring b)  = bytestring b
+subTermCon _ (string s)      = string s
+subTermCon _ (bool b)        = bool b
+subTermCon _ unit            = unit
 subTermCon _ (pdata d)       = pdata d
-
+subTermCon σ⋆ (pairDATA x y) = pairDATA x y
+subTermCon σ⋆ (pairID x y)   = pairID x y
+subTermCon σ⋆ (listData xs)  = listData xs
+subTermCon σ⋆ (listPair xs)  = listPair xs
 ```
 
 Substitution for terms

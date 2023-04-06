@@ -86,7 +86,11 @@ embTC (NTermCon.bytestring b) = STermCon.bytestring b
 embTC (NTermCon.string s)     = STermCon.string s
 embTC (NTermCon.bool b)       = STermCon.bool b
 embTC NTermCon.unit           = STermCon.unit
-embTC (NTermCon.pdata d)       = STermCon.pdata d
+embTC (NTermCon.pdata d)      = STermCon.pdata d
+embTC (NTermCon.pairDATA x y) = STermCon.pairDATA x y
+embTC (NTermCon.pairID x y)   = STermCon.pairID x y
+embTC (NTermCon.listData xs)  = STermCon.listData xs
+embTC (NTermCon.listPair xs)  = STermCon.listPair xs
 \end{code}
 
 \begin{code}

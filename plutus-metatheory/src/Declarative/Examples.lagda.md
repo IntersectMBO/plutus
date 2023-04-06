@@ -15,6 +15,8 @@ module Declarative.Examples where
 ```
 open import Agda.Builtin.Int using (pos)
 
+open import Utils using (AtomicTyCon)
+open AtomicTyCon
 open import Type using (_⊢⋆_;_∋⋆_;Z;S)
 open _⊢⋆_
 import Type.RenamingSubstitution as ⋆
@@ -38,13 +40,13 @@ import Declarative.Examples.StdLib.ChurchNat using (inc;N;Succ;Zero;Iter)
 module Builtins where
   open Declarative.Examples.StdLib.ChurchNat
 
-  con2 : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ con integer
+  con2 : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ con (atomic integer)
   con2 = con (integer (pos 2))
 
-  builtin2plus2 : ∅ ⊢ con integer
+  builtin2plus2 : ∅ ⊢ con (atomic integer)
   builtin2plus2 = builtin addInteger · con2 · con2
 
-  builtininc2 : ∅ ⊢ con integer
+  builtininc2 : ∅ ⊢ con (atomic integer)
   builtininc2 = inc · con2
 ```
 

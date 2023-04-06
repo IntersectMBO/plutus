@@ -125,14 +125,9 @@ reifying.
 eval : ∀{Φ Ψ K} → Ψ ⊢⋆ K → Env Ψ Φ → Val Φ K
 evalTyCon : ∀{Φ Ψ} → Syn.TyCon Ψ → Env Ψ Φ → Nf.TyCon Φ
 
-evalTyCon Syn.integer    η = Nf.integer
-evalTyCon Syn.bytestring η = Nf.bytestring
-evalTyCon Syn.string     η = Nf.string
-evalTyCon Syn.unit       η = Nf.unit
-evalTyCon Syn.bool       η = Nf.bool
 evalTyCon (Syn.list A)   η = Nf.list (eval A η)
 evalTyCon (Syn.pair A B) η = Nf.pair (eval A η) (eval B η)
-evalTyCon Syn.pdata       η = Nf.pdata
+evalTyCon (Syn.atomic A) η = Nf.atomic A
 
 eval (` α)   η = η α
 eval (Π B)   η = Π (reify (eval B (exte η)))
