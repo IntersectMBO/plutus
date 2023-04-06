@@ -56,9 +56,12 @@ eraseTC (bytestring b) = bytestring b
 eraseTC (string s)     = string s
 eraseTC (bool b)       = bool b 
 eraseTC unit           = unit
-eraseTC (pdata d)       = pdata d
-
-
+eraseTC (pdata d)      = pdata d
+--eraseTC {Φ}{Γ}(pair x y) = pair (eraseTC {Φ} {Γ} x) (eraseTC {Φ}{Γ} y)
+eraseTC (pairDATA x y) = pairDATA x y
+eraseTC (pairID i xs)  = pairID i xs
+eraseTC (listData xs)  = listData xs 
+eraseTC (listPair xs)  = listPair xs
 
 erase : ∀{Φ Γ}{A : Φ ⊢⋆ *} → Γ ⊢ A → len Γ ⊢
 

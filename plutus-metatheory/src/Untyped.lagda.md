@@ -14,7 +14,7 @@ module Untyped where
 ## Imports
 
 ```
-open import Utils using (Maybe;nothing;just;Either;inj₁;inj₂;Monad;TermCon)
+open import Utils using (Maybe;nothing;just;Either;inj₁;inj₂;Monad;TermCon;DATA)
 open Monad {{...}}
 open TermCon
 
@@ -28,11 +28,12 @@ open import Agda.Builtin.String using (primStringFromList; primStringAppend; pri
 open import Data.Nat using (ℕ;suc;zero)
 open import Data.Bool using (Bool;true;false;_∧_)
 open import Data.Integer using (_<?_;_+_;_-_;∣_∣;_≤?_;_≟_;ℤ) renaming (_*_ to _**_)
-open import Data.List using ([];_∷_)
+open import Data.List using (List;[];_∷_)
 open import Relation.Nullary using (yes;no)
 open import Data.Integer.Show using (show)
 open import Data.String using (String;_++_)
 open import Data.Empty using (⊥)
+open import Utils using (_×_;_,_)
 ```
 
 ## Well-scoped Syntax
@@ -57,6 +58,17 @@ variable
 ## Debug printing
 
 ```
+uglyDATA : DATA → String
+uglyDATA d = "(DATA)"
+
+uglyList : ∀{A} → (A → String) → List A → String
+uglyList printx [] = ""
+uglyList printx (x ∷ []) = printx x
+uglyList printx (x ∷ xs) = printx x ++ "," ++ uglyList printx xs
+
+uglyPair : DATA × DATA → String
+uglyPair (x , y) = "("++ uglyDATA x ++ "," ++ uglyDATA y ++")"
+
 uglyTermCon : TermCon → String
 uglyTermCon (integer x) = "(integer " ++ show x ++ ")"
 uglyTermCon (bytestring x) = "bytestring"
@@ -64,7 +76,15 @@ uglyTermCon unit = "()"
 uglyTermCon (string s) = "(string " ++ s ++ ")"
 uglyTermCon (bool false) = "(bool " ++ "false" ++ ")"
 uglyTermCon (bool true) = "(bool " ++ "true" ++ ")"
+--uglyTermCon (pair x y) = "(pair " ++ uglyTermCon x ++ " " ++ uglyTermCon y  ++ ")"
+uglyTermCon (pairDATA x y) = "(pair " ++ uglyDATA x ++ " " ++ uglyDATA y  ++ ")"
+uglyTermCon (pairID x y) = "(pair " ++ show x ++ " " ++ uglyList uglyDATA y  ++ ")"
+uglyTermCon (listData xs) = "(listData [" ++ uglyList uglyDATA xs ++ "])"
+uglyTermCon (listPair xs) = "(listPair [" ++ uglyList uglyPair xs ++ "])" 
+  
 uglyTermCon (pdata d) = "(DATA)"
+
+
 
 {-# FOREIGN GHC import qualified Data.Text as T #-}
 
@@ -82,7 +102,7 @@ ugly (` x) = "(` var )"
 ugly (ƛ t) = "(ƛ " ++ ugly t ++ ")"
 ugly (t · u) = "( " ++ ugly t ++ " · " ++ ugly u ++ ")"
 ugly (con c) = "(con " ++ uglyTermCon c ++ ")"
-ugly (force t) = "(f0rce " ++ ugly t ++ ")"
+ugly (force t) = "(force " ++ ugly t ++ ")"
 ugly (delay t) = "(delay " ++ ugly t ++ ")"
 ugly (builtin b) = "(builtin " ++ uglyBuiltin b ++ ")"
 ugly error = "error"
@@ -183,3 +203,4 @@ decUTm (UBuiltin b) (UBuiltin b') = decBuiltin b b'
 decUTm (UDelay t) (UDelay t') = decUTm t t'
 decUTm (UForce t) (UForce t') = decUTm t t'
 decUTm _ _ = false
+ 

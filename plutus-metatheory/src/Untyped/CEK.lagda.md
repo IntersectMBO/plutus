@@ -18,6 +18,7 @@ open import Relation.Nullary using (yes;no)
 open import Relation.Binary.PropositionalEquality using (refl;sym;trans;cong)
 open import Data.Nat using (ℕ;suc)
 open import Data.List using ([];_∷_)
+open import Data.Product using (_,_)
 
 open import Untyped using (_⊢)
 open _⊢
@@ -300,59 +301,95 @@ BUILTIN chooseUnit = λ
   ; _ -> inj₁ userError
   }
 BUILTIN fstPair = λ
-  { _ -> inj₁ userError
+  { (app (app⋆ (app⋆ base)) (V-con (pairDATA x y))) -> inj₂ (V-con (pdata x))
+  ; (app (app⋆ (app⋆ base)) (V-con (pairID x y))) -> inj₂ (V-con (integer x))
+  ; _ -> inj₁ userError
   }
 BUILTIN sndPair = λ
-  { _ -> inj₁ userError
+  { (app (app⋆ (app⋆ base)) (V-con (pairDATA x y))) → inj₂ (V-con (pdata y))
+  ; (app (app⋆ (app⋆ base)) (V-con (pairID x y))) → inj₂ (V-con (listData y))
+  ; _ -> inj₁ userError
   }
 BUILTIN chooseList = λ
-  { _ -> inj₁ userError
+  { (app (app (app (app⋆ (app⋆ base)) (V-con (listData []))) (V-con n)) (V-con c)) → inj₂ (V-con n)
+  ; (app (app (app (app⋆ (app⋆ base)) (V-con (listData (_ ∷ _)))) (V-con n)) (V-con c)) → inj₂ (V-con c)
+  ; (app (app (app (app⋆ (app⋆ base)) (V-con (listPair []))) (V-con n)) (V-con c)) → inj₂ (V-con n)
+  ; (app (app (app (app⋆ (app⋆ base)) (V-con (listPair (_ ∷ _)))) (V-con n)) (V-con c)) → inj₂ (V-con c)
+  ; _ -> inj₁ userError
   }
 BUILTIN mkCons = λ
-  { _ -> inj₁ userError
+  { (app (app (app⋆ base) (V-con (pdata x))) (V-con (listData xs))) → inj₂ (V-con (listData (x ∷ xs)))
+  ; (app (app (app⋆ base) (V-con (pairDATA x y))) (V-con (listPair xs))) → inj₂ (V-con (listPair ((x , y) ∷ xs)))
+  ; _ -> inj₁ userError
   }
 BUILTIN headList = λ
-  { _ -> inj₁ userError
+  { (app (app⋆ base) (V-con (listData (x ∷ _)))) → inj₂ (V-con (pdata x))
+  ; (app (app⋆ base) (V-con (listPair ((x , y) ∷ _)))) → inj₂ (V-con (pairDATA x y))
+  ; _ -> inj₁ userError
   }
 BUILTIN tailList = λ
-  { _ -> inj₁ userError
+  { (app (app⋆ base) (V-con (listData (_ ∷ xs)))) → inj₂ (V-con (listData xs))
+  ; (app (app⋆ base) (V-con (listPair (_ ∷ xs)))) → inj₂ (V-con (listPair xs))
+  ; _ -> inj₁ userError
   }
 BUILTIN nullList = λ
-  { _ -> inj₁ userError
+  { (app (app⋆ base) (V-con (listData []))) → inj₂ (V-con (bool true))
+  ; (app (app⋆ base) (V-con (listData (x ∷ xs)))) → inj₂ (V-con (bool false))
+  ; (app (app⋆ base) (V-con (listPair []))) → inj₂ (V-con (bool true))
+  ; (app (app⋆ base) (V-con (listPair (x ∷ xs)))) → inj₂ (V-con (bool false))
+  ; _ -> inj₁ userError
   }
 BUILTIN chooseData = λ
-  { _ -> inj₁ userError
+  { (app (app (app (app (app (app (app⋆ base) (V-con (pdata (ConstrDATA x₁ x₂)))) (V-con v)) (V-con w)) (V-con x)) (V-con y)) (V-con z)) → inj₂ (V-con v)
+  ; (app (app (app (app (app (app (app⋆ base) (V-con (pdata (MapDATA x₁)))) (V-con v)) (V-con w)) (V-con x)) (V-con y)) (V-con z)) → inj₂ (V-con w)
+  ; (app (app (app (app (app (app (app⋆ base) (V-con (pdata (ListDATA x₁)))) (V-con v)) (V-con w)) (V-con x)) (V-con y)) (V-con z)) → inj₂ (V-con x)
+  ; (app (app (app (app (app (app (app⋆ base) (V-con (pdata (iDATA x₁)))) (V-con v)) (V-con w)) (V-con x)) (V-con y)) (V-con z)) → inj₂ (V-con y)
+  ; (app (app (app (app (app (app (app⋆ base) (V-con (pdata (bDATA x₁)))) (V-con v)) (V-con w)) (V-con x)) (V-con y)) (V-con z)) → inj₂ (V-con z)
+  ; _ -> inj₁ userError
   }
 BUILTIN constrData = λ
-  { _ -> inj₁ userError
+  { (app (app base (V-con (integer i))) (V-con (listData xs))) → inj₂ (V-con (pdata (ConstrDATA i xs)))
+  ; _ -> inj₁ userError
   }
 BUILTIN mapData = λ
-  { _ -> inj₁ userError
+  { (app base (V-con (listPair xs))) → inj₂ (V-con (pdata (MapDATA xs)))
+  ; _ -> inj₁ userError
   }
 BUILTIN listData = λ
-  { _ -> inj₁ userError
+  { (app base (V-con (listData xs))) → inj₂ (V-con (pdata  (ListDATA xs)))
+  ; _ -> inj₁ userError
   }
 BUILTIN unConstrData = λ
-  { _ -> inj₁ userError
+  { (app base (V-con (pdata (ConstrDATA i xs)))) → inj₂ (V-con (pairID i xs))
+  ; _ -> inj₁ userError
   }
 BUILTIN unMapData = λ
-  { _ -> inj₁ userError
+  { (app base (V-con (pdata (MapDATA xs)))) → inj₂ (V-con (listPair xs))
+  ; _ -> inj₁ userError
   }
 BUILTIN unListData = λ
-  { _ -> inj₁ userError
+  { (app base (V-con (pdata (ListDATA xs)))) → inj₂ (V-con (listData xs))
+  ; _ -> inj₁ userError
   }
 BUILTIN equalsData = λ
-  { _ -> inj₁ userError
+  {  -- TODO
+--    (app (app base (V-con (pdata x))) (V-con (pdata y))) → {!   !}
+--  ; 
+     _ -> inj₁ userError
   }
 BUILTIN mkPairData = λ
-  { _ -> inj₁ userError
+  { (app (app base (V-con (pdata x))) (V-con (pdata y))) → inj₂ (V-con (pairDATA x y))
+  ; _ -> inj₁ userError
   }
 BUILTIN mkNilData = λ
-  { _ -> inj₁ userError
+  { (app base (V-con unit)) → inj₂ (V-con (listData []))
+  ; _ -> inj₁ userError
   }
 BUILTIN mkNilPairData = λ
-  { _ -> inj₁ userError
+  { (app base (V-con unit)) -> inj₂ (V-con (listPair []))
+  ; _ -> inj₁ userError
   }
+
 
 BUILTIN' : ∀ b
   → ∀{tn} → {pt : tn ∔ 0 ≣ fv♯ (signature b)}

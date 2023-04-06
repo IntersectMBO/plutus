@@ -5,7 +5,8 @@ module Declarative.Examples.StdLib.ChurchNat where
 \begin{code}
 open import Data.Integer using (ℤ)
 
-open import Utils using (Kind;*)
+open import Utils using (Kind;*;AtomicTyCon)
+open AtomicTyCon
 open import Type using (Ctx⋆;_⊢⋆_;Z)
 open _⊢⋆_
 open import Declarative using (Ctx;_⊢_;_∋_)
@@ -35,18 +36,18 @@ Succ = ƛ (Λ (ƛ (ƛ (` Z · ((` (S (S (T Z)))) ·⋆ (` Z) · (` (S Z)) · (` 
 Iter : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ Π (` Z ⇒ (` Z ⇒ ` Z) ⇒ N ⇒ (` Z))
 Iter = Λ (ƛ (ƛ (ƛ ((` Z) ·⋆ (` Z) · (` (S (S Z))) · (` (S Z))))))
 
-con0 : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ con integer
+con0 : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ con (atomic integer)
 con0 = con (integer (ℤ.pos 0))
 
-con1 : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ con integer
+con1 : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ con (atomic integer)
 con1 = con (integer (ℤ.pos 1))
 
-inc : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ con integer ⇒ con integer
+inc : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ con (atomic integer) ⇒ con (atomic integer)
 inc = ƛ (builtin addInteger · con1  · ` Z)
 
-Nat2Int : ∅ ⊢ N ⇒ con integer
+Nat2Int : ∅ ⊢ N ⇒ con (atomic integer)
 Nat2Int = ƛ (Iter
-  ·⋆ con integer
+  ·⋆ con (atomic integer)
   ·  con0
   ·  inc
   ·  ` Z)

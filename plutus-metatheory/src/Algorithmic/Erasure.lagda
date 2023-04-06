@@ -66,7 +66,11 @@ eraseTC (AC.bytestring b) = bytestring b
 eraseTC (AC.string s)     = string s
 eraseTC (AC.bool b)       = bool b
 eraseTC AC.unit           = unit
-eraseTC (AC.pdata d)       = pdata d
+eraseTC (AC.pdata d)      = pdata d
+eraseTC (AC.listData xs)  = listData xs
+eraseTC (AC.listPair xs)  = listPair xs
+eraseTC (AC.pairDATA x y) = pairDATA x y
+eraseTC (AC.pairID i xs)  = pairID i xs
 
 erase : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ ⊢ A → len Γ ⊢
 erase (` α)                = ` (eraseVar α)
@@ -118,7 +122,12 @@ sameTC (DC.bytestring b) = refl
 sameTC (DC.string s)     = refl
 sameTC (DC.bool b)       = refl
 sameTC DC.unit           = refl
-sameTC (DC.pdata d)       = refl
+sameTC (DC.pdata d)      = refl
+--sameTC {Φ}{Γ}(DC.pairDATA x y) = cong₂ pairDATA (sameTC {Φ}{Γ} x) (sameTC {Φ}{Γ} y)
+sameTC (DC.pairDATA x y) = refl
+sameTC (DC.pairID i ds)  = refl
+sameTC (DC.listData xs)  = refl
+sameTC (DC.listPair xs)  = refl
 
 
 lem≡Ctx : ∀{Φ}{Γ Γ' : Ctx Φ} → Γ ≡ Γ' → len Γ ≡ len Γ'
@@ -247,7 +256,12 @@ same'TC (AC.bytestring b) = refl
 same'TC (AC.string s)     = refl
 same'TC (AC.bool b)       = refl
 same'TC AC.unit           = refl
-same'TC (AC.pdata d)       = refl
+same'TC (AC.pdata d)      = refl
+--same'TC {Φ}{Γ}(AC.pairDATA x y) = cong₂ pairDATA (same'TC {Φ}{Γ} x) (same'TC {Φ}{Γ} y)
+same'TC (AC.pairDATA x y) = refl
+same'TC (AC.pairID i ds)  = refl
+same'TC (AC.listData xs)  = refl
+same'TC (AC.listPair xs)  = refl
 
 same' : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(x : Γ A.⊢ A)
   →  erase x ≡ subst _⊢ (same'Len Γ) (D.erase (emb x))

@@ -112,14 +112,19 @@ conv⊢-erase : ∀{Φ}{Γ : Ctx Φ}{A A' : Φ ⊢Nf⋆ *}
 conv⊢-erase refl t = refl
 
 renTermCon-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(ρ⋆ : ⋆.Ren Φ Ψ)
-  → (ρ : A.Ren ρ⋆ Γ Δ){tc : TyCon _}(c : AB.TermCon (con tc))
+  → (ρ : A.Ren ρ⋆ Γ Δ) → ∀{A}(c : AB.TermCon A)
   → eraseTC {Γ = Δ} (A.renTermCon ρ⋆ c) ≡ eraseTC {Γ = Γ} c 
 renTermCon-erase ρ⋆ ρ (AB.integer i)    = refl
 renTermCon-erase ρ⋆ ρ (AB.bytestring b) = refl
 renTermCon-erase ρ⋆ ρ (AB.string s)     = refl
 renTermCon-erase ρ⋆ ρ (AB.bool b)       = refl
 renTermCon-erase ρ⋆ ρ AB.unit           = refl
-renTermCon-erase ρ⋆ ρ (AB.pdata d)       = refl
+renTermCon-erase ρ⋆ ρ (AB.pdata d)      = refl
+--renTermCon-erase ρ⋆ ρ (AB.pair x y)     = cong₂ Utils.pair (renTermCon-erase ρ⋆ ρ x) (renTermCon-erase ρ⋆ ρ y)
+renTermCon-erase ρ⋆ ρ (AB.pairDATA x y) = refl
+renTermCon-erase ρ⋆ ρ (AB.pairID x y)   = refl
+renTermCon-erase ρ⋆ ρ (AB.listData xs)  = refl
+renTermCon-erase ρ⋆ ρ (AB.listPair xs)  = refl
 
 ext⋆-erase : ∀{Φ Ψ K}{Γ : Ctx Φ}{Δ : Ctx Ψ}(ρ⋆ : ⋆.Ren Φ Ψ)
   → (ρ : A.Ren ρ⋆ Γ Δ)(α : len Γ)
@@ -204,15 +209,25 @@ exts⋆-erase {Γ = Γ}{Δ} σ⋆ σ {B} α = trans
       (U.ren-cong (eraseVar-backVar Δ) (erase (σ (backVar Γ α))))
       (sym (U.ren-id (erase (σ (backVar Γ α)))))))
 
+{-
 subTermCon-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(σ⋆ : SubNf Φ Ψ)
   → (σ : A.Sub σ⋆ Γ Δ){tc : TyCon _}(c : AB.TermCon (con tc))
+  → eraseTC {Γ = Δ} (A.subTermCon σ⋆ c) ≡ eraseTC {Γ = Γ} c 
+-}
+subTermCon-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(σ⋆ : SubNf Φ Ψ)
+  → (σ : A.Sub σ⋆ Γ Δ) → ∀{A}(c : AB.TermCon A)
   → eraseTC {Γ = Δ} (A.subTermCon σ⋆ c) ≡ eraseTC {Γ = Γ} c 
 subTermCon-erase σ⋆ σ (AB.integer i)    = refl
 subTermCon-erase σ⋆ σ (AB.bytestring b) = refl
 subTermCon-erase σ⋆ σ (AB.string s)     = refl
 subTermCon-erase σ⋆ σ (AB.bool b)       = refl
 subTermCon-erase σ⋆ σ AB.unit           = refl
-subTermCon-erase σ⋆ σ (AB.pdata d)       = refl
+subTermCon-erase σ⋆ σ (AB.pdata d)      = refl
+--subTermCon-erase σ⋆ σ (AB.pair x y)     = cong₂ Utils.pair (subTermCon-erase σ⋆ σ x) (subTermCon-erase σ⋆ σ y)
+subTermCon-erase σ⋆ σ (AB.pairDATA x y) = refl
+subTermCon-erase σ⋆ σ (AB.pairID x y)   = refl
+subTermCon-erase σ⋆ σ (AB.listData _)   = refl
+subTermCon-erase σ⋆ σ (AB.listPair _)   = refl
 
 sub-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(σ⋆ : SubNf Φ Ψ)
   → (σ : A.Sub σ⋆ Γ Δ){A : Φ ⊢Nf⋆ *} → (t : Γ ⊢ A)

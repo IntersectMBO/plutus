@@ -50,14 +50,9 @@ extricateTyConNf⋆ : ∀{Γ}(A : T.TyCon Γ) → S.TyCon (len⋆ Γ)
 -- intrinsically typed terms should also carry user chosen names as
 -- instructions to the pretty printer
 
-extricateTyConNf⋆ T.integer = S.integer
-extricateTyConNf⋆ T.bytestring = S.bytestring
-extricateTyConNf⋆ T.string = S.string
-extricateTyConNf⋆ T.unit = S.unit
-extricateTyConNf⋆ T.bool = S.bool
 extricateTyConNf⋆ (T.list A) = S.list (extricateNf⋆ A)
 extricateTyConNf⋆ (T.pair A B) = S.pair (extricateNf⋆ A) (extricateNf⋆ B) 
-extricateTyConNf⋆ T.pdata = S.pdata
+extricateTyConNf⋆ (T.atomic A) = S.atomic A
 
 extricateNf⋆ (Π {K = K} A) = Π K (extricateNf⋆ A)
 extricateNf⋆ (A ⇒ B) = extricateNf⋆ A ⇒ extricateNf⋆ B
@@ -91,6 +86,10 @@ extricateC (string s)     = string s
 extricateC (bool b)       = bool b
 extricateC unit           = unit
 extricateC (pdata d)      = pdata d
+extricateC (pairDATA x y) = pairDATA x y
+extricateC (pairID i ds)  = pairID i ds
+extricateC (listData xs)  = listData xs
+extricateC (listPair xs)  = listPair xs
 
 extricateSub : ∀ {Γ Δ} → (∀ {J} → Δ ∋⋆ J → Γ ⊢Nf⋆ J)
   → Scoped.Tel⋆ (len⋆ Γ) (len⋆ Δ)

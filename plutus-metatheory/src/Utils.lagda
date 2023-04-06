@@ -7,15 +7,14 @@ open import Function using (const;_∘_)
 open import Data.Nat using (ℕ;zero;suc;_≤‴_;_≤_;_+_)
 open _≤_
 open _≤‴_
-open import Data.Nat.Properties using (≤⇒≤″;≤″⇒≤;≤″⇒≤‴;≤‴⇒≤″;+-monoʳ-≤)
-                                using (+-suc;m+1+n≢m;+-cancelˡ-≡;m≢1+n+m;m+1+n≢0;+-cancelʳ-≡;+-assoc;+-comm;+-identityʳ)
+open import Data.Nat.Properties
+               using (+-suc;m+1+n≢m;+-cancelˡ-≡;m≢1+n+m;m+1+n≢0;+-cancelʳ-≡;+-assoc;+-comm;+-identityʳ)
 open import Relation.Binary using (Decidable)
 import Data.Integer as I
 open import Data.List using (List;[];_∷_;length)
 open import Data.Sum using (_⊎_;inj₁;inj₂)
 open import Relation.Nullary using (Dec;yes;no;¬_)
 open import Data.Empty using (⊥;⊥-elim)
-open import Data.Product using (Σ;_×_) renaming (_,_ to _,,_)
 open import Data.Integer using (ℤ)
 open import Data.String using (String)
 open import Data.Bool using (Bool)
@@ -67,27 +66,6 @@ cong₃ : {A B C D : Set} → (f : A → B → C → D)
   → {c c' : C} → c ≡ c'
   → f a b c ≡ f a' b' c'
 cong₃ f refl refl refl = refl
-
-_I>?_ : Decidable I._>_
-i I>? j = j I.<? i
-
-_I≥?_ : Decidable I._≥_
-i I≥? j = j I.≤? i
-
-z≤‴n : ∀ {n} → zero  ≤‴ n
-z≤‴n {n} = ≤″⇒≤‴ (≤⇒≤″ z≤n)
-
-lem¬≤ : ∀{n} → ¬ (suc n Data.Nat.≤ n)
-lem¬≤ (s≤s p) = lem¬≤ p
-
-lem≤‴ : ∀{m n}(p q : m ≤‴ n) → p ≡ q
-lem≤‴ ≤‴-refl ≤‴-refl     = refl
-lem≤‴ ≤‴-refl (≤‴-step q) = ⊥-elim (lem¬≤ (≤″⇒≤ (≤‴⇒≤″ q)))
-lem≤‴ (≤‴-step p) ≤‴-refl = ⊥-elim (lem¬≤ (≤″⇒≤ (≤‴⇒≤″ p)))
-lem≤‴ (≤‴-step p) (≤‴-step q) = cong ≤‴-step (lem≤‴ p q)
-
-+-monoʳ-≤‴ : (n₁ : ℕ) {x y : ℕ} → x ≤‴ y → n₁ + x ≤‴ n₁ + y
-+-monoʳ-≤‴ n p = ≤″⇒≤‴ (≤⇒≤″ (+-monoʳ-≤ n (≤″⇒≤ (≤‴⇒≤″ p))))
 \end{code}
 
 The type `n ∔ n' ≡ m` 
@@ -168,12 +146,72 @@ postulate ByteString : Set
 {-# FOREIGN GHC import qualified Data.ByteString as BS #-}
 {-# COMPILE GHC ByteString = type BS.ByteString #-}
 
+
+data _×_ (A B : Set) : Set where
+ _,_ : A → B → A × B
+
+{-# FOREIGN GHC data Pair a b = Pair a b #-}
+{-# COMPILE GHC _×_ = data Pair (Pair)  #-}
+
 data DATA : Set where
+  ConstrDATA :  I.ℤ → List DATA → DATA
+  MapDATA : List (DATA × DATA) → DATA
+  ListDATA : List DATA → DATA
   iDATA : I.ℤ → DATA
   bDATA : ByteString → DATA
 
 {-# FOREIGN GHC import PlutusCore.Data #-}
-{-# COMPILE GHC DATA = data Data (I | B)   #-}
+{-# COMPILE GHC DATA = data Data (Constr | Map | List | I | B)   #-}
+
+
+data AtomicTyCon : Set where
+  integer    : AtomicTyCon
+  bytestring : AtomicTyCon 
+  string     : AtomicTyCon 
+  unit       : AtomicTyCon 
+  bool       : AtomicTyCon
+  pdata      : AtomicTyCon 
+
+{-# FOREIGN GHC data AtomicTyCon = ATyConInt | ATyConByteString | ATyConString | ATyConUnit | ATyConBool | ATyConData #-}
+{-# COMPILE GHC AtomicTyCon = data AtomicTyCon (ATyConInt | ATyConByteString | ATyConString | ATyConUnit | ATyConBool | ATyConData) #-}
+
+meqAtomicTyCon : (c c' : AtomicTyCon) → Either (¬ (c ≡ c')) (c ≡ c')
+meqAtomicTyCon integer integer = inj₂ refl
+meqAtomicTyCon integer bytestring = inj₁ λ()
+meqAtomicTyCon integer string = inj₁ λ()
+meqAtomicTyCon integer unit = inj₁ λ()
+meqAtomicTyCon integer bool = inj₁ λ()
+meqAtomicTyCon integer pdata = inj₁ λ()
+meqAtomicTyCon bytestring integer = inj₁ λ()
+meqAtomicTyCon bytestring bytestring = inj₂ refl
+meqAtomicTyCon bytestring string = inj₁ λ()
+meqAtomicTyCon bytestring unit = inj₁ λ()
+meqAtomicTyCon bytestring bool = inj₁ λ()
+meqAtomicTyCon bytestring pdata = inj₁ λ()
+meqAtomicTyCon string integer = inj₁ λ()
+meqAtomicTyCon string bytestring = inj₁ λ()
+meqAtomicTyCon string string = inj₂ refl
+meqAtomicTyCon string unit = inj₁ λ()
+meqAtomicTyCon string bool = inj₁ λ()
+meqAtomicTyCon string pdata = inj₁ λ()
+meqAtomicTyCon unit integer = inj₁ λ()
+meqAtomicTyCon unit bytestring = inj₁ λ()
+meqAtomicTyCon unit string = inj₁ λ()
+meqAtomicTyCon unit unit = inj₂ refl
+meqAtomicTyCon unit bool = inj₁ λ()
+meqAtomicTyCon unit pdata = inj₁ λ()
+meqAtomicTyCon bool integer = inj₁ λ()
+meqAtomicTyCon bool bytestring = inj₁ λ()
+meqAtomicTyCon bool string = inj₁ λ()
+meqAtomicTyCon bool unit = inj₁ λ()
+meqAtomicTyCon bool bool = inj₂ refl
+meqAtomicTyCon bool pdata = inj₁ λ()
+meqAtomicTyCon pdata integer = inj₁ λ()
+meqAtomicTyCon pdata bytestring = inj₁ λ()
+meqAtomicTyCon pdata string = inj₁ λ()
+meqAtomicTyCon pdata unit = inj₁ λ()
+meqAtomicTyCon pdata bool = inj₁ λ()
+meqAtomicTyCon pdata pdata = inj₂ refl
 \end{code}
 
 Kinds
@@ -211,8 +249,13 @@ data TermCon : Set where
   bytestring : ByteString → TermCon
   string     : String → TermCon
   bool       : Bool → TermCon
+--  pair       : TermCon → TermCon → TermCon
+  pairDATA  : DATA → DATA → TermCon
+  pairID     : ℤ → List DATA → TermCon 
+  listData   : List DATA → TermCon
+  listPair   : List (DATA × DATA) → TermCon
   unit       : TermCon
-  pdata       : DATA → TermCon
+  pdata      : DATA → TermCon
 
 {-# FOREIGN GHC type TermCon = Some (ValueOf DefaultUni)               #-}
 {-# FOREIGN GHC pattern TmInteger    i = Some (ValueOf DefaultUniInteger i) #-}
@@ -221,5 +264,10 @@ data TermCon : Set where
 {-# FOREIGN GHC pattern TmUnit         = Some (ValueOf DefaultUniUnit ()) #-}
 {-# FOREIGN GHC pattern TmBool       b = Some (ValueOf DefaultUniBool b) #-}
 {-# FOREIGN GHC pattern TmData       d = Some (ValueOf DefaultUniData d) #-}
-{-# COMPILE GHC TermCon = data TermCon (TmInteger | TmByteString | TmString | TmBool | TmUnit | TmData) #-}
+{-# FOREIGN GHC pattern TmPair     a b = Some (ValueOf (DefaultUniPair _ _) (a,b)) #-}  -- WHAT TO DO
+{-# FOREIGN GHC pattern TmPairData a b = Some (ValueOf (DefaultUniPair DefaultUniData DefaultUniData) (a,b)) #-}
+{-# FOREIGN GHC pattern TmPairID   a b = Some (ValueOf (DefaultUniPair DefaultUniData (DefaultUniList DefaultUniData)) (a,b)) #-}
+{-# FOREIGN GHC pattern TmListData  xs = Some (ValueOf (DefaultUniList DefaultUniData) xs) #-}
+{-# FOREIGN GHC pattern TmListPair  xs = Some (ValueOf (DefaultUniList (DefaultUniPair DefaultUniData DefaultUniData)) xs) #-}
+{-# COMPILE GHC TermCon = data TermCon (TmInteger | TmByteString | TmString | TmBool | TmUnit | TmData | TmPair | TmListData | TmListPair) #-}
 \end{code}

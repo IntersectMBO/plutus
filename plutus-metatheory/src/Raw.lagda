@@ -15,7 +15,8 @@ open import Data.Bool using (Bool;false;true)
 open import Builtin using (Builtin;equals)
 open Builtin.Builtin
 
-open import Utils using (Kind;*;_⇒_;TermCon)
+open import Utils using (Kind;*;_⇒_;TermCon;AtomicTyCon)
+open AtomicTyCon
 open TermCon
 \end{code}
 
@@ -40,16 +41,11 @@ data RawTy where
 {-# FOREIGN GHC import Raw #-}
 
 data RawTyCon where
-  integer    : RawTyCon
-  bytestring : RawTyCon
-  string     : RawTyCon
-  unit       : RawTyCon
-  bool       : RawTyCon
+  atomic     : AtomicTyCon → RawTyCon
   list       : RawTy → RawTyCon
   pair       : RawTy → RawTy → RawTyCon
-  pdata       : RawTyCon
 
-{-# COMPILE GHC RawTyCon = data RTyCon (RTyConInt | RTyConBS | RTyConStr | RTyConUnit | RTyConBool | RTyConList | RTyConPair | RTyConData) #-}
+{-# COMPILE GHC RawTyCon = data RTyCon (RTyConAtom | RTyConList | RTyConPair) #-}
 
 data RawTm : Set where
   `             : ℕ → RawTm
@@ -67,16 +63,31 @@ data RawTm : Set where
 
 -- α equivalence
 
--- we don't have a decicable equality instance for bytestring, so I
+-- we don't have a decidable equality instance for bytestring, so I
 -- converted this to bool for now
 
+
+
+decAtomicTyCon : (A A' : AtomicTyCon) → Bool
+decAtomicTyCon integer    integer    = true
+decAtomicTyCon bytestring bytestring = true
+decAtomicTyCon string     string     = true
+decAtomicTyCon unit       unit       = true
+decAtomicTyCon bool       bool       = true
+decAtomicTyCon pdata      pdata      = true
+decAtomicTyCon _          _          = false
+
+decRTy : (A A' : RawTy) → Bool
+
 decRTyCon : (C C' : RawTyCon) → Bool
-decRTyCon integer    integer    = true
-decRTyCon bytestring bytestring = true
-decRTyCon string     string     = true
-decRTyCon unit       unit       = true
-decRTyCon bool       bool       = true
-decRTyCon _          _          = false
+decRTyCon (atomic t) (atomic t') = decAtomicTyCon t t'
+decRTyCon (pair x y) (pair x' y') with decRTy x x' | decRTy y y'
+... | true | true   = true
+... | _    | _      = false
+decRTyCon (list x) (list x') with decRTy x x' 
+... | false = false
+... | true = true
+decRTyCon _          _  = false
 
 decTermCon : (C C' : TermCon) → Bool
 decTermCon (integer i) (integer i') with i Data.Integer.≟ i'
@@ -126,7 +137,6 @@ decRKi (K ⇒ J) (K' ⇒ J') | true | true = true
 decRKi (K ⇒ J) (K' ⇒ J') | true | false = false
 decRKi (K ⇒ J) (K' ⇒ J') | false = false
 
-decRTy : (A A' : RawTy) → Bool
 decRTy (` x) (` x') with x ≟ x'
 ... | yes _ = true
 ... | no  _ = false

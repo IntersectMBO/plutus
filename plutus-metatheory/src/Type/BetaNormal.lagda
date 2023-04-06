@@ -102,14 +102,9 @@ renNe : Ren Φ Ψ
         ---------
       → RenNe Φ Ψ
 
-renNfTyCon ρ Nf.integer    = Nf.integer
-renNfTyCon ρ Nf.bytestring = Nf.bytestring
-renNfTyCon ρ Nf.string     = Nf.string
-renNfTyCon ρ Nf.unit       = Nf.unit
-renNfTyCon ρ Nf.bool       = Nf.bool
 renNfTyCon ρ (Nf.list A)   = Nf.list (renNf ρ A)
 renNfTyCon ρ (Nf.pair A B) = Nf.pair (renNf ρ A) (renNf ρ B)
-renNfTyCon ρ Nf.pdata       = Nf.pdata
+renNfTyCon ρ (Nf.atomic A) = Nf.atomic A
 
 renNf ρ (Π A)     = Π (renNf (ext ρ) A)
 renNf ρ (A ⇒ B)   = renNf ρ A ⇒ renNf ρ B
@@ -136,14 +131,9 @@ embNf : ∀{Φ K} → Φ ⊢Nf⋆ K → Φ ⊢⋆ K
 embNe : ∀{Φ K} → Φ ⊢Ne⋆ K → Φ ⊢⋆ K
 embNfTyCon : ∀{Φ} → Nf.TyCon Φ → Syn.TyCon Φ
 
-embNfTyCon Nf.integer = Syn.integer
-embNfTyCon Nf.bytestring = Syn.bytestring
-embNfTyCon Nf.string = Syn.string
-embNfTyCon Nf.unit = Syn.unit
-embNfTyCon Nf.bool = Syn.bool
 embNfTyCon (Nf.list A) = Syn.list (embNf A)
 embNfTyCon (Nf.pair A B) = Syn.pair (embNf A) (embNf B)
-embNfTyCon Nf.pdata = Syn.pdata
+embNfTyCon (Nf.atomic A) = Syn.atomic A
 
 embNf (Π B)   = Π (embNf B)
 embNf (A ⇒ B) = embNf A ⇒ embNf B
@@ -167,15 +157,9 @@ renTyCon-embNf : (ρ : Ren Φ Ψ)
                → (c : Nf.TyCon Φ)
                  -----------------------------------
                → embNfTyCon (renNfTyCon ρ c) ≡ renTyCon ρ (embNfTyCon c)
-
-renTyCon-embNf ρ Nf.integer = refl
-renTyCon-embNf ρ Nf.bytestring = refl
-renTyCon-embNf ρ Nf.string = refl
-renTyCon-embNf ρ Nf.unit = refl
-renTyCon-embNf ρ Nf.bool = refl
-renTyCon-embNf ρ (Nf.list A) = cong Syn.list (ren-embNf ρ A)
+renTyCon-embNf ρ (Nf.list A)   = cong Syn.list (ren-embNf ρ A)
 renTyCon-embNf ρ (Nf.pair A B) = cong₂ Syn.pair (ren-embNf ρ A) (ren-embNf ρ B)
-renTyCon-embNf ρ Nf.pdata = refl
+renTyCon-embNf ρ (Nf.atomic A) = refl
 
 ren-embNe : (ρ : Ren Φ Ψ)
           → ∀ {J}

@@ -79,7 +79,11 @@ nfTypeTC (STermCon.bytestring b) = NTermCon.bytestring b
 nfTypeTC (STermCon.string s)     = NTermCon.string s
 nfTypeTC (STermCon.bool b)       = NTermCon.bool b
 nfTypeTC STermCon.unit           = NTermCon.unit
-nfTypeTC (STermCon.pdata d)       = NTermCon.pdata d
+nfTypeTC (STermCon.pdata d)      = NTermCon.pdata d
+nfTypeTC (STermCon.pairDATA x y) = NTermCon.pairDATA x y
+nfTypeTC (STermCon.pairID x y)   = NTermCon.pairID x y
+nfTypeTC (STermCon.listData xs)  = NTermCon.listData xs
+nfTypeTC (STermCon.listPair xs)  = NTermCon.listPair xs
 
 lemσ : ∀{Γ Δ Δ'}
   → (σ : Sub Δ Γ)
