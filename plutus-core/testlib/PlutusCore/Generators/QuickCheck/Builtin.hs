@@ -83,21 +83,29 @@ instance ArbitraryBuiltin ()
 instance ArbitraryBuiltin Bool
 instance ArbitraryBuiltin Data
 
--- | The 'Arbitrary' instance for 'Integer' only generates small integers:
---
--- >>> :set -XTypeApplications
--- >>> fmap (any ((> 30) . abs) . concat . concat . concat) . sample' $ arbitrary @[[[Integer]]]
--- False
---
--- We want to at least occasionally generate some larger ones, which is what the 'Arbitrary'
--- instance for 'Int64' does:
---
--- >>> import Data.Int
--- >>> fmap (any ((> 10000) . abs) . concat . concat . concat) . sample' $ arbitrary @[[[Int64]]]
--- True
+{- Note [QuickCheck and integral types]
+The 'Arbitrary' instances for 'Integer' and 'Int64' only generate small integers:
+
+    >>> :set -XTypeApplications
+    >>> fmap (any ((> 30) . abs) . concat . concat . concat) . sample' $ arbitrary @[[[Integer]]]
+    False
+    >>> fmap (any ((> 30) . abs) . concat . concat . concat) . sample' $ arbitrary @[[[Int]]]
+    False
+
+We want to at least occasionally generate some larger ones, which is what the 'Arbitrary'
+instance for 'Int64' does:
+
+    >>> import Data.Int
+    >>> fmap (any ((> 10000) . abs) . concat . concat . concat) . sample' $ arbitrary @[[[Int64]]]
+    True
+
+For this reason we use 'Int64' when dealing with QuickCheck.
+-}
+
 instance ArbitraryBuiltin Integer where
     arbitraryBuiltin = frequency
         [ (4, arbitrary @Integer)
+        -- See Note [QuickCheck and integral types].
         , (1, fromIntegral <$> arbitrary @Int64)
         ]
 
