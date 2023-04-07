@@ -57,6 +57,7 @@ data CompilationOpts a = CompilationOpts {
     -- Simplifier passes
     , _coDoSimplifierUnwrapCancel :: Bool
     , _coDoSimplifierCaseReduce   :: Bool
+    , _coDoSimplifierKnownCon     :: Bool
     , _coDoSimplifierBeta         :: Bool
     , _coDoSimplifierInline       :: Bool
     , _coInlineHints              :: InlineHints PLC.Name (Provenance a)
@@ -75,6 +76,7 @@ defaultCompilationOpts = CompilationOpts
   , _coMaxSimplifierIterations = 12
   , _coDoSimplifierUnwrapCancel = True
   , _coDoSimplifierCaseReduce = True
+  , _coDoSimplifierKnownCon = True
   , _coDoSimplifierBeta = True
   , _coDoSimplifierInline = True
   , _coInlineHints = mempty

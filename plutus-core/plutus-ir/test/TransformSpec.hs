@@ -21,6 +21,7 @@ import PlutusIR.Transform.Beta qualified as Beta
 import PlutusIR.Transform.DeadCode qualified as DeadCode
 import PlutusIR.Transform.Inline.CallSiteInline (computeArity)
 import PlutusIR.Transform.Inline.Inline qualified as Inline
+import PlutusIR.Transform.KnownCon qualified as KnownCon
 import PlutusIR.Transform.LetFloatIn qualified as LetFloatIn
 import PlutusIR.Transform.LetFloatOut qualified as LetFloatOut
 import PlutusIR.Transform.LetMerge qualified as LetMerge
@@ -40,6 +41,7 @@ transform =
         , letFloatOut
         , letFloatInConservative
         , letFloatInRelaxed
+        , knownCon
         , recSplit
         , inline
         , computeArityTest
@@ -161,6 +163,24 @@ letFloatInRelaxed =
         _ <- runQuoteT . flip inferType (() <$ pirFloated) =<< TC.getDefTypeCheckConfig ()
         -- letmerge is not necessary for floating, but is a nice visual transformation
         pure $ LetMerge.letMerge pirFloated
+
+knownCon :: TestNested
+knownCon =
+    testNested "knownCon" $
+        map
+            (goldenPirM goldenKnownConTC pTerm)
+            [ "applicative"
+            , "list"
+            , "maybe"
+            , "maybe-unsaturated"
+            , "pair"
+            ]
+  where
+    goldenKnownConTC pir = rethrow . asIfThrown @(PIR.Error PLC.DefaultUni PLC.DefaultFun ()) $ do
+        let simplified = runQuote $ KnownCon.knownCon pir
+        -- make sure the result typechecks
+        _ <- runQuoteT . flip inferType (() <$ simplified) =<< TC.getDefTypeCheckConfig ()
+        pure simplified
 
 recSplit :: TestNested
 recSplit =

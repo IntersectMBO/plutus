@@ -118,47 +118,15 @@ computeArity = \case
     -- Whenever we encounter a body that is not a lambda or type abstraction, we are done counting
     tm                -> ([],tm)
 
--- | A term or type argument.
-data Arg tyname name uni fun ann =
-  MkTermArg (Term tyname name uni fun ann)
-  | MkTypeArg (Type tyname uni ann)
-
--- | A list of type or term argument(s) that are being applied.
-type Args tyname name uni fun ann = [Arg tyname name uni fun ann]
-
--- | A pair of argument and the annotation of the term being applied to,
--- so a term that was traversed can be built back with `mkApps`.
-type ArgsWithAnns tyname name uni fun ann =
-  [(Arg tyname name uni fun ann, ann)]
-
--- | Takes a term or type application and returns the function
--- being applied and the arguments to which it is applied
-collectArgs :: Term tyname name uni fun ann
-  -> (Term tyname name uni fun ann, ArgsWithAnns tyname name uni fun ann)
-collectArgs tm
-  = go tm []
-  where
-    go (Apply ann f a) as      = go f ((MkTermArg a, ann):as)
-    go (TyInst ann f tyArg) as = go f ((MkTypeArg tyArg, ann):as)
-    go t as                    = (t, as)
-
--- | Apply a list of term and type arguments to a function in potentially a nested fashion.
-mkApps :: Term tyname name uni fun ann
-  -> ArgsWithAnns tyname name uni fun ann
-  -> Term tyname name uni fun ann
-mkApps f ((MkTermArg tmArg, ann) : args) = mkApps (Apply ann f tmArg) args
-mkApps f ((MkTypeArg tyArg, ann) : args) = mkApps (TyInst ann f tyArg) args
-mkApps f []                              = f
-
 -- | Given the arity of a function, and the list of arguments applied to it, return whether it is
 -- fully applied or not.
-isFullyApplied :: Arity -> Args tyname name uni fun ann -> Bool
+isFullyApplied :: Arity -> [Expr tyname name uni fun ann] -> Bool
 isFullyApplied [] _ = True -- The function needs no more arguments
 isFullyApplied (_lam:_lams) [] = False -- under-application
 isFullyApplied (hdLams:tlLams) (hdArg:tlArg) =
   case (hdLams, hdArg) of
-    (TermParam, MkTermArg _) -> isFullyApplied tlLams tlArg
-    (TypeParam, MkTypeArg _) -> isFullyApplied tlLams tlArg
+    (TermParam, TermExpr _) -> isFullyApplied tlLams tlArg
+    (TypeParam, TypeExpr _) -> isFullyApplied tlLams tlArg
     _                        ->
       -- wrong argument type, i.e., we have an ill-typed term here. It's not what we define as fully
       -- applied. Although if the term was ill-typed before, it will be ill-typed after the
@@ -193,7 +161,7 @@ considerInlineSat tm = do
               -- We could potentially do this safely in non-conservative mode.
               isBindingPure <- isTermBindingPure (varStrictness varInfo) (varDef varInfo)
               if isBindingPure then
-                pure $ mkApps (varDef varInfo) args
+                pure $ mkTermApps (varDef varInfo) args
               else pure tm -- term is not pure, don't inline by default.
             else pure tm
       -- if the term being applied is not a `Var`, don't inline

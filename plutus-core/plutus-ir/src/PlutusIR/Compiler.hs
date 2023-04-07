@@ -48,6 +48,7 @@ import PlutusIR.Transform.Beta qualified as Beta
 import PlutusIR.Transform.CaseReduce qualified as CaseReduce
 import PlutusIR.Transform.DeadCode qualified as DeadCode
 import PlutusIR.Transform.Inline.Inline qualified as Inline
+import PlutusIR.Transform.KnownCon qualified as KnownCon
 import PlutusIR.Transform.LetFloatIn qualified as LetFloatIn
 import PlutusIR.Transform.LetFloatOut qualified as LetFloatOut
 import PlutusIR.Transform.LetMerge qualified as LetMerge
@@ -103,6 +104,7 @@ availablePasses :: [Pass uni fun]
 availablePasses =
     [ Pass "unwrap cancel"        (onOption coDoSimplifierUnwrapCancel)       (pure . Unwrap.unwrapCancel)
     , Pass "case reduce"          (onOption coDoSimplifierCaseReduce)         (pure . CaseReduce.caseReduce)
+    , Pass "known constructor"    (onOption coDoSimplifierKnownCon)           KnownCon.knownCon
     , Pass "beta"                 (onOption coDoSimplifierBeta)               (pure . Beta.beta)
     , Pass "inline"               (onOption coDoSimplifierInline)             (\t -> do
                                                                                   hints <- view (ccOpts . coInlineHints)
