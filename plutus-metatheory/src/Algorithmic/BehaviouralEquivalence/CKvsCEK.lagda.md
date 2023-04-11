@@ -39,28 +39,8 @@ import Algorithmic.ReductionEC as Red
 import Algorithmic.CK as CK
 import Algorithmic.BehaviouralEquivalence.CCvsCK as CK
 import Algorithmic.CC as CC
-
+open import Algorithmic.ReductionEC using () renaming (red2cekVal to ck2cekVal)
 -- convert CK things to CEK things
-
-
-ck2cekVal : ∀{A}{L : ∅ ⊢ A} → Red.Value L → Value A
-ck2cekBApp : ∀{b}
-   {tn tm tt}{pt : tn ∔ tm ≣ tt}
-   {an am at}{pa : an ∔ am ≣ at}
-   {A}{L : ∅ ⊢ A}
-   {σA : SigTy pt pa A}
-  → Red.BApp b σA L → BApp b A σA
-
-ck2cekBApp (Red.base) = base
-ck2cekBApp (Red.step x x₁) = app (ck2cekBApp x) (ck2cekVal x₁)
-ck2cekBApp (Red.step⋆ x refl refl) = app⋆ (ck2cekBApp x) refl refl
-
-ck2cekVal (Red.V-ƛ M) = V-ƛ M []
-ck2cekVal (Red.V-Λ M) = V-Λ M []
-ck2cekVal (Red.V-wrap V) = V-wrap (ck2cekVal V)
-ck2cekVal (Red.V-con cn) = V-con cn
-ck2cekVal (Red.V-I⇒ b x) = V-I⇒ b (ck2cekBApp x)
-ck2cekVal (Red.V-IΠ b x) = V-IΠ b (ck2cekBApp x)
 
 ck2cekFrame : ∀{A B} → Red.Frame A B → Frame A B
 ck2cekFrame (Red.-· M) = -· M []
@@ -68,8 +48,6 @@ ck2cekFrame (VM Red.·-) = ck2cekVal VM ·-
 ck2cekFrame (Red.-·⋆ A) = -·⋆ A
 ck2cekFrame Red.wrap- = wrap-
 ck2cekFrame Red.unwrap- = unwrap-
-
-
 
 ck2cekStack : ∀{A B} → CK.Stack A B → Stack A B
 ck2cekStack CK.ε = ε

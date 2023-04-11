@@ -39,8 +39,8 @@ import Text.Read (readMaybe)
 import Control.Monad.ST (RealWorld)
 import System.Console.Haskeline qualified as Repl
 import UntypedPlutusCore.Evaluation.Machine.Cek
-import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Driver qualified as D
-import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Internal qualified as D
+import UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver qualified as D
+import UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal qualified as D
 
 uplcHelpText :: String
 uplcHelpText = helpText "Untyped Plutus Core"
@@ -65,10 +65,11 @@ data DbgOptions =
 
 data Command = Apply     ApplyOptions
              | Convert   ConvertOptions
+             | Optimise  OptimiseOptions
              | Print     PrintOptions
              | Example   ExampleOptions
              | Eval      EvalOptions
-             | Dbg     DbgOptions
+             | Dbg       DbgOptions
              | DumpModel
              | PrintBuiltinSignatures
 
@@ -153,19 +154,21 @@ plutus langHelpText =
       (fullDesc <> header "Untyped Plutus Core Tool" <> progDesc langHelpText)
 
 plutusOpts :: Parser Command
-plutusOpts = hsubparser (
+plutusOpts = hsubparser $
        command "apply"
            (info (Apply <$> applyOpts)
             (progDesc $ "Given a list of input scripts f g1 g2 ... gn, " <>
             "output a script consisting of (... ((f g1) g2) ... gn); " <>
             "for example, 'uplc apply --if " <>
-            "flat Validator.flat Datum.flat Redeemer.flat Context.flat --of flat -o Script.flat'"))
+            "flat Validator.flat Datum.flat Redeemer.flat Context.flat --of flat -o Script.flat'."))
     <> command "print"
            (info (Print <$> printOpts)
             (progDesc "Parse a program then prettyprint it."))
     <> command "convert"
            (info (Convert <$> convertOpts)
-            (progDesc "Convert a program between various formats"))
+            (progDesc "Convert a program between various formats."))
+    <> command "optimise" (optimise "Run the UPLC optimisation pipeline on the input.")
+    <> command "optimize" (optimise "Same as 'optimise'.")
     <> command "example"
            (info (Example <$> exampleOpts)
             (progDesc $ "Show a program example. "
@@ -180,12 +183,23 @@ plutusOpts = hsubparser (
             (progDesc "Debug an untyped Plutus Core program using the CEK machine."))
     <> command "dump-model"
            (info (pure DumpModel)
-            (progDesc "Dump the cost model parameters"))
+            (progDesc "Dump the cost model parameters."))
     <> command "print-builtin-signatures"
            (info (pure PrintBuiltinSignatures)
-            (progDesc "Print the signatures of the built-in functions"))
-  )
+            (progDesc "Print the signatures of the built-in functions."))
+    where optimise desc = info (Optimise <$> optimiseOpts) $ progDesc desc
 
+
+---------------- Optimisation ----------------
+
+-- | Run the UPLC optimisations
+runOptimisations:: OptimiseOptions -> IO ()
+runOptimisations (OptimiseOptions inp ifmt outp ofmt mode) = do
+    prog <- readProgram ifmt inp :: IO (UplcProg SrcSpan)
+    simplified <- PLC.runQuoteT $ do
+                    renamed <- PLC.rename prog
+                    UPLC.simplifyProgram UPLC.defaultSimplifyOpts renamed
+    writeProgram outp ofmt mode simplified
 
 ---------------- Script application ----------------
 
@@ -193,7 +207,7 @@ plutusOpts = hsubparser (
 runApply :: ApplyOptions -> IO ()
 runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
   scripts <-
-    mapM ((getProgram ifmt ::  Input -> IO (UplcProg SrcSpan)) . FileInput) inputfiles
+    mapM ((readProgram ifmt ::  Input -> IO (UplcProg SrcSpan)) . FileInput) inputfiles
   let appliedScript =
         case void <$> scripts of
           []          -> errorWithoutStackTrace "No input files"
@@ -204,7 +218,7 @@ runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
 
 runEval :: EvalOptions -> IO ()
 runEval (EvalOptions inp ifmt printMode budgetMode traceMode outputMode timingMode cekModel) = do
-    prog <- getProgram ifmt inp
+    prog <- readProgram ifmt inp
     let term = void $ prog ^. UPLC.progTerm
         !_ = rnf term
         cekparams = case cekModel of
@@ -248,7 +262,7 @@ runEval (EvalOptions inp ifmt printMode budgetMode traceMode outputMode timingMo
 
 runDbg :: DbgOptions -> IO ()
 runDbg (DbgOptions inp ifmt cekModel) = do
-    prog <- getProgram ifmt inp
+    prog <- readProgram ifmt inp
     let term = prog ^. UPLC.progTerm
         !_ = rnf term
         nterm = fromRight (error "Term to debug must be closed.") $
@@ -321,11 +335,12 @@ main :: IO ()
 main = do
     options <- customExecParser (prefs showHelpOnEmpty) uplcInfoCommand
     case options of
-        Apply     opts         -> runApply        opts
-        Eval      opts         -> runEval         opts
-        Dbg     opts           -> runDbg         opts
-        Example   opts         -> runUplcPrintExample opts
-        Print     opts         -> runPrint        opts
-        Convert   opts         -> runConvert @UplcProg     opts
+        Apply     opts         -> runApply             opts
+        Eval      opts         -> runEval              opts
+        Dbg       opts         -> runDbg               opts
+        Example   opts         -> runUplcPrintExample  opts
+        Optimise  opts         -> runOptimisations     opts
+        Print     opts         -> runPrint   @UplcProg opts
+        Convert   opts         -> runConvert @UplcProg opts
         DumpModel              -> runDumpModel
         PrintBuiltinSignatures -> runPrintBuiltinSignatures

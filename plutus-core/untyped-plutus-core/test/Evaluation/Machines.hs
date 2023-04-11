@@ -11,6 +11,7 @@ module Evaluation.Machines
 
 import UntypedPlutusCore
 import UntypedPlutusCore.Evaluation.Machine.Cek as Cek
+import UntypedPlutusCore.Evaluation.Machine.SteppableCek qualified as SCek
 
 import PlutusCore qualified as Plc
 import PlutusCore.Builtin
@@ -56,7 +57,8 @@ testMachine machine eval =
 test_machines :: TestTree
 test_machines =
     testGroup "machines"
-        [ testMachine "CEK"  $ evaluateCekNoEmit Plc.defaultCekParameters
+        [ testMachine "CEK"  $ Cek.evaluateCekNoEmit Plc.defaultCekParameters
+        , testMachine "SteppableCEK"  $ SCek.evaluateCekNoEmit Plc.defaultCekParameters
         ]
 
 testBudget
@@ -96,9 +98,9 @@ bunchOfIdNats =
 bunchOfIfThenElseNats :: PlcFolderContents DefaultUni DefaultFun
 bunchOfIfThenElseNats =
     FolderContents [treeFolderContents "IfThenElse" $ map ifThenElseNatFile [0 :: Int, 1.. 5]] where
-        ifThenElseNatFile i = plcTermFile (show i) (ifThenElseNat id0 i) where
+        ifThenElseNatFile i = plcTermFile (show i) (ifThenElseNat id0 i)
         -- > id0 = foldNat {nat} succ zero
-        id0 = mkIterApp () (tyInst () Plc.foldNat $ Plc.natTy) [Plc.succ, Plc.zero]
+        id0 = mkIterApp () (tyInst () Plc.foldNat Plc.natTy) [Plc.succ, Plc.zero]
 
         ifThenElseNat idN 0 = apply () idN $ metaIntegerToNat 10
         ifThenElseNat idN n = ifThenElseNat idN' (n - 1) where

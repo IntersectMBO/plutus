@@ -73,6 +73,7 @@ library
   exposed-modules:
     Data.ByteString.Hash
     Data.Either.Extras
+    Data.List.Extras
     Data.MultiSet.Lens
     PlutusCore
     PlutusCore.Annotation
@@ -165,10 +166,11 @@ library
     UntypedPlutusCore.DeBruijn
     UntypedPlutusCore.Evaluation.Machine.Cek
     UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
-    UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Driver
-    UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Internal
     UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
+    UntypedPlutusCore.Evaluation.Machine.SteppableCek
+    UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver
+    UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal
     UntypedPlutusCore.MkUPlc
     UntypedPlutusCore.Parser
     UntypedPlutusCore.Rename
@@ -230,11 +232,13 @@ library
     UntypedPlutusCore.Core.Plated
     UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode
     UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
+    UntypedPlutusCore.Evaluation.Machine.CommonAPI
     UntypedPlutusCore.Mark
     UntypedPlutusCore.Rename.Internal
     UntypedPlutusCore.Simplify
     UntypedPlutusCore.Size
     UntypedPlutusCore.Subst
+    UntypedPlutusCore.Transform.CaseReduce
     UntypedPlutusCore.Transform.ForceDelay
     UntypedPlutusCore.Transform.Inline
 
@@ -463,9 +467,10 @@ library plutus-ir
     PlutusIR.Purity
     PlutusIR.Subst
     PlutusIR.Transform.Beta
+    PlutusIR.Transform.CaseReduce
     PlutusIR.Transform.DeadCode
     PlutusIR.Transform.Inline.CallSiteInline
-    PlutusIR.Transform.Inline.UnconditionalInline
+    PlutusIR.Transform.Inline.Inline
     PlutusIR.Transform.Inline.Utils
     PlutusIR.Transform.LetFloatIn
     PlutusIR.Transform.LetFloatOut
@@ -534,15 +539,14 @@ test-suite plutus-ir-test
     TypeSpec
 
   build-depends:
-    , base                                  >=4.9 && <5
+    , base                                                       >=4.9 && <5
     , containers
-    , flat                                  <0.5
+    , flat                                                       <0.5
     , hashable
     , hedgehog
     , lens
     , mtl
-    , plutus-core-testlib                   ^>=1.4
-    , plutus-core:{plutus-core, plutus-ir}  ^>=1.4
+    , plutus-core:{plutus-core, plutus-core-testlib, plutus-ir}  ^>=1.4
     , QuickCheck
     , serialise
     , tasty
@@ -577,8 +581,10 @@ library plutus-core-execlib
   visibility:      public
   hs-source-dirs:  executables/src
   exposed-modules:
+    PlutusCore.Executable.AstIO
     PlutusCore.Executable.Common
     PlutusCore.Executable.Parsers
+    PlutusCore.Executable.Types
 
   build-depends:
     , aeson

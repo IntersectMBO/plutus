@@ -22,7 +22,6 @@ module PlutusLedgerApi.Common.Eval
 
 import Control.Lens
 import PlutusCore
-import PlutusCore as ScriptPlutus (Version)
 import PlutusCore.Data as Plutus
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
@@ -40,7 +39,6 @@ import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
 import Control.Monad.Except
 import Control.Monad.Writer
-import Data.Set qualified as Set
 import Data.Text as Text
 import Data.Tuple
 import NoThunks.Class
@@ -51,7 +49,6 @@ data EvaluationError =
     CekError !(UPLC.CekEvaluationException NamedDeBruijn DefaultUni DefaultFun) -- ^ An error from the evaluator itself
     | DeBruijnError !FreeVariableError -- ^ An error in the pre-evaluation step of converting from de-Bruijn indices
     | CodecError !ScriptDecodeError -- ^ A deserialisation error
-    | IncompatibleVersionError !ScriptPlutus.Version -- ^ An error indicating a version tag that we don't support
     -- TODO: make this error more informative when we have more information about what went wrong
     | CostModelParameterMismatch -- ^ An error indicating that the cost model parameters didn't match what we expected
     deriving stock (Show, Eq)
@@ -61,10 +58,9 @@ instance AsScriptDecodeError EvaluationError where
     _ScriptDecodeError = _CodecError
 
 instance Pretty EvaluationError where
-    pretty (CekError e)      = prettyClassicDef e
-    pretty (DeBruijnError e) = pretty e
-    pretty (CodecError e) = viaShow e
-    pretty (IncompatibleVersionError actual) = "This version of the Plutus Core interface does not support the version indicated by the AST:" <+> pretty actual
+    pretty (CekError e)               = prettyClassicDef e
+    pretty (DeBruijnError e)          = pretty e
+    pretty (CodecError e)             = viaShow e
     pretty CostModelParameterMismatch = "Cost model parameters were not as we expected"
 
 -- | A simple toggle indicating whether or not we should accumulate logs during script execution.
@@ -97,8 +93,7 @@ mkTermToEvaluate
     -> m (UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ())
 mkTermToEvaluate lv pv bs args = do
     -- It decodes the program through the optimized ScriptForExecution. See `ScriptForExecution`.
-    ScriptForExecution (UPLC.Program _ v t) <- fromSerialisedScript lv pv bs
-    unless (v `Set.member` plcVersionsAvailableIn lv pv) $ throwError $ IncompatibleVersionError v
+    ScriptForExecution (UPLC.Program _ _ t) <- fromSerialisedScript lv pv bs
     let termArgs = fmap (UPLC.mkConstant ()) args
         appliedT = UPLC.mkIterApp () t termArgs
 

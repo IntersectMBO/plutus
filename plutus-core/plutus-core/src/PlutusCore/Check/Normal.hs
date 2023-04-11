@@ -16,6 +16,7 @@ import PlutusCore.Core
 import PlutusCore.Error
 
 import Control.Monad.Except
+import Data.Foldable (traverse_)
 
 -- | Ensure that all types in the 'Program' are normalized.
 checkProgram
@@ -37,6 +38,8 @@ check (Unwrap _ t)           = check t
 check (LamAbs _ _ ty t)      = normalType ty >> check t
 check (Apply _ t1 t2)        = check t1 >> check t2
 check (TyAbs _ _ _ t)        = check t
+check (Constr _ ty _ es)     = normalType ty >> traverse_ check es
+check (Case _ ty arg cs)     = normalType ty >> check arg >> traverse_ check cs
 check Var{}                  = pure ()
 check Constant{}             = pure ()
 check Builtin{}              = pure ()
@@ -48,6 +51,7 @@ normalType :: Type tyname uni ann -> Either (NormCheckError tyname name uni fun 
 normalType (TyFun _ i o)       = normalType i >> normalType o
 normalType (TyForall _ _ _ ty) = normalType ty
 normalType (TyIFix _ pat arg)  = normalType pat >> normalType arg
+normalType (TySOP _ tyls)      = (traverse_ . traverse_) normalType tyls
 normalType (TyLam _ _ _ ty)    = normalType ty
 -- See Note [PLC types and universes].
 normalType TyBuiltin{}         = pure ()

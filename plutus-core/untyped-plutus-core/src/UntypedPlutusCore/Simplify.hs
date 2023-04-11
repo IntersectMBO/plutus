@@ -3,6 +3,7 @@
 module UntypedPlutusCore.Simplify ( simplifyTerm, simplifyProgram, SimplifyOpts (..), soMaxSimplifierIterations, soInlineHints, defaultSimplifyOpts, InlineHints (..) ) where
 
 import UntypedPlutusCore.Core.Type
+import UntypedPlutusCore.Transform.CaseReduce
 import UntypedPlutusCore.Transform.ForceDelay
 import UntypedPlutusCore.Transform.Inline
 
@@ -46,4 +47,4 @@ simplifyTerm opts = simplifyNTimes (_soMaxSimplifierIterations opts)
         simplifyNTimes n = foldl' (>=>) pure (map simplifyStep [1 .. n])
         -- generate simplification step
         simplifyStep :: Int -> Term name uni fun a -> m (Term name uni fun a)
-        simplifyStep _ term = inline (_soInlineHints opts) (forceDelayCancel term)
+        simplifyStep _ term = inline (_soInlineHints opts) (caseReduce $ forceDelayCancel term)

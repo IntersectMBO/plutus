@@ -49,6 +49,8 @@ open Sig
 open Builtin.Signature.FromSig Ctx⋆ (_⊢Nf⋆ *) nat2Ctx⋆ (λ x → ne (` (fin2∈⋆ x))) con _⇒_ Π 
     using (sig2type;♯2*;SigTy;sig2SigTy;sigTy2type;saturatedSigTy;convSigTy)
 open SigTy
+
+import Algorithmic.CEK as CEK
 ```
 
 ## Values
@@ -119,93 +121,24 @@ data Value where
 deval : {A : ∅ ⊢Nf⋆ *}{u : ∅ ⊢ A} → Value u → ∅ ⊢ A
 deval {u = u} _ = u
 
-BUILTIN : ∀ b {A}{t : ∅ ⊢ A}  {Ab : saturatedSigTy (signature b) A} → BApp b Ab t → ∅ ⊢ A
-BUILTIN addInteger (step (step base (V-con (integer i))) (V-con (integer j))) = con (integer (i Data.Integer.+ j))
-BUILTIN subtractInteger (step (step base (V-con (integer i))) (V-con (integer j))) = con (integer (i Data.Integer.- j))
-BUILTIN multiplyInteger (step (step base (V-con (integer i))) (V-con (integer j))) = con (integer (i Data.Integer.* j))
-BUILTIN divideInteger (step (step base (V-con (integer i))) (V-con (integer j)))
-  with j ≟ Data.Integer.ℤ.pos 0
-... | no ¬p = con (integer (div i j))
-... | yes p = error _
-BUILTIN quotientInteger (step (step base (V-con (integer i))) (V-con (integer j)))
-  with j ≟ Data.Integer.ℤ.pos 0
-... | no ¬p = con (integer (quot i j))
-... | yes p = error _
-BUILTIN remainderInteger (step (step base (V-con (integer i))) (V-con (integer j)))
-  with j ≟ Data.Integer.ℤ.pos 0
-... | no ¬p = con (integer (rem i j))
-... | yes p = error _
-BUILTIN modInteger (step (step base (V-con (integer i))) (V-con (integer j)))
-  with j ≟ Data.Integer.ℤ.pos 0
-... | no ¬p = con (integer (mod i j))
-... | yes p = error _
-BUILTIN lessThanInteger (step (step base (V-con (integer i))) (V-con (integer j)))
-  with i <? j
-... | no ¬p = con (bool false)
-... | yes p = con (bool true)
-BUILTIN lessThanEqualsInteger (step (step base (V-con (integer i))) (V-con (integer j)))
-  with i ≤? j
-... | no ¬p = con (bool false)
-... | yes p = con (bool true)
-BUILTIN equalsInteger (step (step base (V-con (integer i))) (V-con (integer j)))
-  with i ≟ j
-... | no ¬p = con (bool false)
-... | yes p = con (bool true)
-BUILTIN appendByteString (step (step base (V-con (bytestring b))) (V-con (bytestring b'))) =
-  con (bytestring (concat b b'))
-BUILTIN lessThanByteString (step (step base (V-con (bytestring b))) (V-con (bytestring b'))) =
-  con (bool (B< b b'))
-BUILTIN lessThanEqualsByteString (step (step base (V-con (bytestring b))) (V-con (bytestring b'))) = 
-  con (bool (B<= b b'))
-BUILTIN sha2-256 (step base (V-con (bytestring b))) =
-  con (bytestring (SHA2-256 b))
-BUILTIN sha3-256 (step base (V-con (bytestring b))) =
-  con (bytestring (SHA3-256 b))
-BUILTIN blake2b-256 (step base (V-con (bytestring b))) =
-  con (bytestring (BLAKE2B-256 b))
-BUILTIN verifyEd25519Signature (step (step (step base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c)))
-  with verifyEd25519Sig k d c
-... | just b = con (bool b)
-... | nothing = error _
-BUILTIN verifyEcdsaSecp256k1Signature (step (step (step base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c)))
-  with verifyEcdsaSecp256k1Sig k d c
-... | just b = con (bool b)
-... | nothing = error _
-BUILTIN verifySchnorrSecp256k1Signature (step (step (step base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c)))
-  with verifySchnorrSecp256k1Sig k d c
-... | just b = con (bool b)
-... | nothing = error _
-BUILTIN equalsByteString (step (step base (V-con (bytestring b))) (V-con (bytestring b'))) =
-  con (bool (equals b b'))
-BUILTIN ifThenElse (step (step (step (step⋆ base refl refl) (V-con (bool true))) t) f) = deval t
-BUILTIN ifThenElse (step (step (step (step⋆ base refl refl) (V-con (bool false))) t) f) = deval f
-BUILTIN appendString (step (step base (V-con (string s))) (V-con (string s'))) =
-  con (string (primStringAppend s s'))
-BUILTIN trace (step (step (step⋆ base refl refl) (V-con (string s))) v) = TRACE s (deval v)
-BUILTIN iData (step base (V-con (integer i))) = con (pdata (iDATA i))
-BUILTIN bData (step base (V-con (bytestring b))) = con (pdata (bDATA b))
-BUILTIN consByteString (step (step base (V-con (integer i))) (V-con (bytestring b))) = con (bytestring (cons i b))
-BUILTIN sliceByteString (step (step (step base (V-con (integer st))) (V-con (integer n))) (V-con (bytestring b))) = con (bytestring (slice st n b))
-BUILTIN lengthOfByteString (step base (V-con (bytestring b))) = con (integer (Builtin.length b))
-BUILTIN indexByteString (step (step base (V-con (bytestring b))) (V-con (integer i)))
-  with Data.Integer.ℤ.pos 0 ≤? i
-... | no  _ = error _
-... | yes _
-  with i <? Builtin.length b
-... | no _ =  error _
-... | yes _ = con (integer (index b i))
-BUILTIN equalsString (step (step base (V-con (string s))) (V-con (string s'))) =
-  con (bool (primStringEquality s s'))
-BUILTIN encodeUtf8 (step base (V-con (string s))) =
-  con (bytestring (ENCODEUTF8 s))
-BUILTIN decodeUtf8 (step base (V-con (bytestring b)))
-  with DECODEUTF8 b
-... | nothing = error _
-... | just s  = con (string s)
-BUILTIN unIData (step base (V-con (pdata (iDATA i)))) = con (integer i)
-BUILTIN unBData (step base (V-con (pdata (bDATA b)))) = con (bytestring b)
-BUILTIN serialiseData (step base (V-con (pdata d))) = con (bytestring (serialiseDATA d))
-BUILTIN _ _ = error _
+red2cekVal : ∀{A}{L : ∅ ⊢ A} → Value L → CEK.Value A
+red2cekBApp : ∀{b}
+   {tn tm tt}{pt : tn ∔ tm ≣ tt}
+   {an am at}{pa : an ∔ am ≣ at}
+   {A}{L : ∅ ⊢ A}
+   {σA : SigTy pt pa A}
+  → BApp b σA L → CEK.BApp b A σA
+
+red2cekBApp (base) = CEK.base
+red2cekBApp (step x x₁) = CEK.app (red2cekBApp x) (red2cekVal x₁)
+red2cekBApp (step⋆ x refl refl) = CEK.app⋆ (red2cekBApp x) refl refl
+
+red2cekVal (V-ƛ M) = CEK.V-ƛ M CEK.[]
+red2cekVal (V-Λ M) = CEK.V-Λ M CEK.[]
+red2cekVal (V-wrap V) = CEK.V-wrap (red2cekVal V)
+red2cekVal (V-con cn) = CEK.V-con cn
+red2cekVal (V-I⇒ b x) = CEK.V-I⇒ b (red2cekBApp x)
+red2cekVal (V-IΠ b x) = CEK.V-IΠ b (red2cekBApp x)
 
 BUILTIN' : ∀ b {A}{t : ∅ ⊢ A}
   → ∀{tn} → {pt : tn ∔ 0 ≣ fv♯ (signature b)}
@@ -213,9 +146,7 @@ BUILTIN' : ∀ b {A}{t : ∅ ⊢ A}
   → {σA : SigTy pt pa A}
   → BApp b σA t
   → ∅ ⊢ A
-BUILTIN' b {pt = pt} {pa = pa} bt with trans (sym (+-identityʳ _)) (∔2+ pt) | trans (sym (+-identityʳ _)) (∔2+ pa)
-... | refl | refl with unique∔ pt (alldone (fv♯ (signature b))) | unique∔ pa (alldone (args♯ (signature b)))
-... | refl | refl = BUILTIN b bt
+BUILTIN' b bt = CEK.BUILTIN' b (red2cekBApp bt) 
 ```
 
 ```

@@ -254,6 +254,19 @@ floatTerm ver relaxed t0 = do
             Error a ty0 ->
                 let ty = goType ty0
                  in Error (a, typeUniqs ty) ty
+            Constr a ty0 i es0 ->
+                let
+                  ty = goType ty0
+                  es = fmap go es0
+                  us = typeUniqs ty <> foldMap termUniqs es
+                 in Constr (a, us) ty i es
+            Case a ty0 arg0 cs0 ->
+                let
+                  ty = goType ty0
+                  arg = go arg0
+                  cs = fmap go cs0
+                  us = typeUniqs ty <> termUniqs arg <> foldMap termUniqs cs
+                 in Case (a, us) ty arg cs
             Constant{} -> noUniq t
             Builtin{} -> noUniq t
 
@@ -307,6 +320,10 @@ floatTerm ver relaxed t0 = do
                     argTy = goType argTy0
                     us = typeUniqs funTy <> typeUniqs argTy
                  in TyApp (a, us) funTy argTy
+            TySOP a tyls ->
+                let tyls' = (fmap . fmap) goType tyls
+                    us = (foldMap . foldMap) typeUniqs tyls'
+                in TySOP (a, us) tyls'
 
         -- Calculate the set of `Unique`s of used variables in a `VarDecl`.
         -- The type of the declared variable may use type variables.
@@ -440,7 +457,12 @@ floatInBinding ver letAnn = \b ->
                 Let (a, usBind <> usBody) NonRec bs <$> go b letBody
             | Set.disjoint declaredUniqs (termUniqs letBody)
             , Just (before, TermBind (a', usBind') s' var' rhs', after) <-
-                splitBindings declaredUniqs (NonEmpty.toList bs) -> do
+                findNonDisjoint declaredUniqs (NonEmpty.toList bs) bindingUniqs
+            -- The LHS (declared variable) must not use any uniques in `us`. Only the RHS is
+            -- allowed to use them. Otherwise we cannot float a binding whose unique set is `us`
+            -- into the RHS of this `TermBind`.
+            , Set.disjoint declaredUniqs (varDeclUniqs var')
+              -> do
                 -- `letBody` does not mention `var`, and there is exactly one
                 -- RHS in `bs` that mentions `var`, so we can place `b`
                 -- inside one of the RHSs in `bs`.
@@ -475,6 +497,26 @@ floatInBinding ver letAnn = \b ->
         Unwrap (a, usBody) unwrapBody ->
             -- A binding can always be placed inside an `Unwrap`.
             Unwrap (a, usBind <> usBody) <$> go b unwrapBody
+        Constr (a, usBody) ty i es
+            | Set.disjoint declaredUniqs (typeUniqs ty)
+            , Just (before, t, after) <-
+                findNonDisjoint declaredUniqs es termUniqs
+                -> do
+                t' <- go b t
+                pure $ Constr (a, usBind <> usBody) ty i (before ++ [t'] ++ after)
+        Case (a, usBody) ty arg cs
+            | Set.disjoint declaredUniqs (typeUniqs ty)
+            , Set.disjoint declaredUniqs (termUniqs arg)
+            , Just (before, c, after) <-
+                findNonDisjoint declaredUniqs cs termUniqs
+                -> do
+                c' <- go b c
+                pure $ Case (a, usBind <> usBody) ty arg (before ++ [c'] ++ after)
+            | Set.disjoint declaredUniqs (typeUniqs ty)
+            , all (\c -> Set.disjoint declaredUniqs (termUniqs c)) cs
+                -> do
+                arg' <- go b arg
+                pure $ Case (a, usBind <> usBody) ty arg' cs
         _ -> giveup
       where
         giveup =
@@ -483,30 +525,13 @@ floatInBinding ver letAnn = \b ->
         declaredUniqs = Set.fromList $ b ^.. bindingIds
         usBind = bindingUniqs b
 
-{- | Split the given list of bindings, if possible.
- If the input contains exactly one `TermBind` @b@ whose RHS uses one or more of the uniques
- in the given `Uniques`, return @Just (before_b, b, after_b)@.
- Otherwise, return `Nothing`.
+{- |
+Search the given list of elements for the unique one whose 'Uniques' are non-disjoint
+with the given 'Uniques'. Then, split the list at that point.
 -}
-splitBindings ::
-    Uniques ->
-    [Binding tyname name uni fun (a, Uniques)] ->
-    Maybe
-        ( [Binding tyname name uni fun (a, Uniques)]
-        , Binding tyname name uni fun (a, Uniques)
-        , [Binding tyname name uni fun (a, Uniques)]
-        )
-splitBindings us bs = case is of
-    [(TermBind _ _ var _, i)]
-        -- The LHS (declared variable) must not use any uniques in `us`. Only the RHS is
-        -- allowed to use them. Otherwise we cannot float a binding whose unique set is `us`
-        -- into the RHS of this `TermBind`.
-        | Set.disjoint us (varDeclUniqs var) -> Just (take i bs, bs !! i, drop (i + 1) bs)
-    _ -> Nothing
+findNonDisjoint :: Uniques -> [t] -> (t -> Uniques) -> Maybe ([t] , t , [t])
+findNonDisjoint us bs getUniques = case is of
+    [(t, i)] -> Just (take i bs, t, drop (i + 1) bs)
+    _        -> Nothing
   where
-    is = List.filter usesUniqs (bs `zip` [0 ..])
-    usesUniqs = \case
-        (TermBind _ _ var rhs, _) -> not (Set.disjoint us (varDeclUniqs var <> termUniqs rhs))
-        (TypeBind _ _ rhs, _) -> not (Set.disjoint us (typeUniqs rhs))
-        (DatatypeBind _ (Datatype _ _ _ _ constrs), _) ->
-            not (Set.disjoint us (foldMap varDeclUniqs constrs))
+    is = List.filter (\(t, _) -> not $ getUniques t `Set.disjoint` us) (bs `zip` [0 ..])

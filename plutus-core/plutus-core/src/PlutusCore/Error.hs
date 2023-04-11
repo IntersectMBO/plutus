@@ -102,11 +102,14 @@ data TypeError term uni fun ann
 -- on @ParseErrorBundle@.
 data ParserErrorBundle
     = ParseErrorB !(ParseErrorBundle T.Text ParserError)
-    deriving stock (Show, Eq, Generic)
+    deriving stock (Eq, Generic)
     deriving anyclass (NFData)
 
 instance Pretty ParserErrorBundle where
     pretty (ParseErrorB err) = pretty $ errorBundlePretty err
+
+instance Show ParserErrorBundle where
+    show (ParseErrorB peb) = errorBundlePretty peb
 
 data Error uni fun ann
     = ParseErrorE !ParserErrorBundle

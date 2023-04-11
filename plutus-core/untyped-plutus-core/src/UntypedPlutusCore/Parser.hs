@@ -20,14 +20,17 @@ import PlutusCore qualified as PLC
 import PlutusCore.Annotation
 import PlutusPrelude (through)
 import Text.Megaparsec hiding (ParseError, State, parse)
+import Text.Megaparsec.Char.Lexer qualified as Lex
 import UntypedPlutusCore.Check.Uniques (checkProgram)
 import UntypedPlutusCore.Core.Type qualified as UPLC
 import UntypedPlutusCore.Rename (Rename (rename))
 
+import Control.Monad (fail)
 import Data.Text (Text)
 import PlutusCore.Error (AsParserErrorBundle)
 import PlutusCore.MkPlc (mkIterApp)
 import PlutusCore.Parser hiding (parseProgram, parseTerm, program)
+import PlutusCore.Version
 
 -- Parsers for UPLC terms
 
@@ -66,6 +69,20 @@ errorTerm :: Parser PTerm
 errorTerm = withSpan $ \sp ->
     inParens $ UPLC.Error sp <$ symbol "error"
 
+constrTerm :: Parser PTerm
+constrTerm = withSpan $ \sp ->
+    inParens $ do
+      res <- UPLC.Constr sp <$> (symbol "constr" *> lexeme Lex.decimal) <*> many term
+      whenVersion (\v -> v < plcVersion110) $ fail "'constr' is not allowed before version 1.1.0"
+      pure res
+
+caseTerm :: Parser PTerm
+caseTerm = withSpan $ \sp ->
+    inParens $ do
+      res <- UPLC.Case sp <$> (symbol "case" *> term) <*> many term
+      whenVersion (\v -> v < plcVersion110) $ fail "'case' is not allowed before version 1.1.0"
+      pure res
+
 -- | Parser for all UPLC terms.
 term :: Parser PTerm
 term = leadingWhitespace go
@@ -80,6 +97,8 @@ term = leadingWhitespace go
             , delayTerm
             , forceTerm
             , errorTerm
+            , constrTerm
+            , caseTerm
             ]
 
 -- | Parser for UPLC programs.
@@ -87,8 +106,9 @@ program :: Parser (UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun SrcSpan)
 program = leadingWhitespace go
   where
     go = do
-        prog <- withSpan $ \sp ->
-            inParens $ UPLC.Program sp <$> (symbol "program" *> version) <*> term
+        prog <- withSpan $ \sp -> inParens $ do
+            v <- symbol "program" *> version
+            withVersion v $ UPLC.Program sp v <$> term
         notFollowedBy anySingle
         pure prog
 

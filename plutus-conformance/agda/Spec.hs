@@ -1,5 +1,5 @@
+{-# LANGUAGE TypeApplications #-}
 {- | Conformance tests for the Agda implementation. -}
-
 module Main (main) where
 
 import Control.Monad.Trans.Except
@@ -130,6 +130,12 @@ failingTests = [
      , "bls12_381_millerLoop/right-additive"
      , "bls12_381_millerLoop/left-additive"
     ]
+    -- SOP tests don't work yet, filter out the cases that are supposed to fail,
+    -- and therefore succeed by accident
+    ++ fmap (\i -> "test-cases/uplc/evaluation/term/case/case-" ++ show @Integer i)
+               (filter (\i -> i /= 7) [1..7])
+    ++ fmap (\i -> "test-cases/uplc/evaluation/term/constr/constr-" ++ show @Integer i)
+               (filter (\i -> i /= 5 && i /= 6) [1..6])
 
 main :: IO ()
 main =

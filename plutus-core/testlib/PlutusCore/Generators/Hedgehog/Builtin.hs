@@ -22,7 +22,7 @@ module PlutusCore.Generators.Hedgehog.Builtin (
     genBls12_381_MlResult
 ) where
 
-import PlutusCore
+import PlutusCore hiding (Constr)
 import PlutusCore.Builtin
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2

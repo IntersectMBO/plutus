@@ -358,9 +358,7 @@ defineBuiltinTerms = do
                             , PIR.VarDecl annMayInline a (PLC.TyVar annMayInline ta)
                             ]
                             $ PIR.Var annMayInline a
-                    , -- We always want to inline `\_ a -> a` (especially because the first
-                      -- element is a string), hence `annAlwaysInline`.
-                      annAlwaysInline
+                    , annMayInline
                     )
             else pure (mkBuiltin PLC.Trace, annMayInline)
     defineBuiltinTerm ann 'Builtins.trace traceTerm

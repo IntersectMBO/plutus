@@ -11,8 +11,8 @@ module Evaluation.Debug
 
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import UntypedPlutusCore
-import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Driver
-import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Internal
+import UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver
+import UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal
 
 import Control.Monad.Reader
 import Control.Monad.ST

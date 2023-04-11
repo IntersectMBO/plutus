@@ -16,7 +16,7 @@
         (vardecl f (fun (con integer) (con integer)))
         (lam y (con integer) y)
       )
-      [ f [ f (con integer 1) ] ]
+      [ (lam y (con integer) y) [ (lam y (con integer) y) (con integer 1) ] ]
     )
   )
   (termbind

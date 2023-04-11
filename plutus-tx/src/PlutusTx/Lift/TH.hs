@@ -27,7 +27,7 @@ import PlutusTx.Lift.THUtils
 import PlutusIR
 import PlutusIR.Compiler.Definitions
 import PlutusIR.Compiler.Names
-import PlutusIR.MkPir
+import PlutusIR.MkPir hiding (constr)
 
 import PlutusCore.Default qualified as PLC
 import PlutusCore.MkPlc qualified as PLC

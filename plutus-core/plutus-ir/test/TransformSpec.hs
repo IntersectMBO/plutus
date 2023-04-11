@@ -20,7 +20,7 @@ import PlutusIR.Test
 import PlutusIR.Transform.Beta qualified as Beta
 import PlutusIR.Transform.DeadCode qualified as DeadCode
 import PlutusIR.Transform.Inline.CallSiteInline (computeArity)
-import PlutusIR.Transform.Inline.UnconditionalInline qualified as UInline
+import PlutusIR.Transform.Inline.Inline qualified as Inline
 import PlutusIR.Transform.LetFloatIn qualified as LetFloatIn
 import PlutusIR.Transform.LetFloatOut qualified as LetFloatOut
 import PlutusIR.Transform.LetMerge qualified as LetMerge
@@ -149,6 +149,9 @@ letFloatInRelaxed =
             , "float-into-RHS"
             , "float-into-tyabs1"
             , "float-into-tyabs2"
+            , "float-into-constr"
+            , "float-into-case-arg"
+            , "float-into-case-branch"
             , "type"
             ]
   where
@@ -182,7 +185,7 @@ inline :: TestNested
 inline =
     testNested "inline" $
         map
-            (goldenPir (runQuote . (UInline.inline mempty def <=< PLC.rename)) pTerm)
+            (goldenPir (runQuote . (Inline.inline mempty def <=< PLC.rename)) pTerm)
             [ "var"
             , "builtin"
             , "constant"
@@ -198,17 +201,25 @@ inline =
             , "letFunInFun" -- fully applied fn inside another let, single occurrence.
             , "letFunInFunMulti" -- fully applied fn inside another let, multiple occurrences.
             -- similar to "letFunInFunMulti" but all fns are fully applied.
-            , "letFunInFunMultiFullyApplied"
+            , "letTypeAppMulti"
             -- singe occurrence of a polymorphic id function that is fully applied
-            , "letIdFunForall"
+            , "letTypeApp"
             -- multiple occurrences of a polymorphic id function that IS fully applied
-            , "letIdFunForallMulti"
+            , "letTypeAppMultiSat"
             -- multiple occurrences of a polymorphic id function that is NOT fully applied
-            , "letIdFunForallMultiNotSat"
+            , "letTypeAppMultiNotSat"
             , "letApp" -- single occurrence of a function application in rhs
-            , "letAppMulti" -- multiple occurrences of a function application in rhs
+            -- multiple occurrences of a function application in rhs with not acceptable body
+            , "letAppMultiNotAcceptable"
             , "letOverApp" -- over-application of a function, single occurrence
             , "letOverAppMulti" -- multiple occurrences of an over-application of a function
+            -- multiple occurrences of an over-application of a function with type arguments
+            , "letOverAppType"
+            , "letOverAppType2"
+            , "letOverAppType3"
+            , "letNonPure" -- multiple occurrences of a non-pure binding
+            , "letNonPureMulti"
+            , "letNonPureMultiStrict"
             ]
 
 computeArityTest :: TestNested

@@ -333,6 +333,62 @@ mulInstError2 = Apply () (TyInst () (Apply () mul eleven) string) twentytwo
 mulInstError3 :: Term TyName Name DefaultUni DefaultFun ()
 mulInstError3 = TyInst () (Apply () (Apply () mul eleven) twentytwo) string
 
+tag1 :: Term TyName Name DefaultUni DefaultFun ()
+tag1 = Constr () (TySOP () [[integer], [string]]) 0 [mkConstant @Integer () 1]
+
+tag2 :: Term TyName Name DefaultUni DefaultFun ()
+tag2 = Constr () (TySOP () [[integer], [string]]) 1 [mkConstant @Text () "hello"]
+
+tagProd1 :: Term TyName Name DefaultUni DefaultFun ()
+tagProd1 = Constr () (TySOP () [[integer, integer, integer], [string]]) 0
+    [mkConstant @Integer () 1, mkConstant @Integer () 2, mkConstant @Integer () 4]
+
+case1 :: Term TyName Name DefaultUni DefaultFun ()
+case1 = runQuote $ do
+    a <- freshName "a"
+    let branch1 = LamAbs () a integer (Var () a)
+        branch2 = LamAbs () a string (mkConstant @Integer () 2)
+    pure $ Case () integer tag1 [branch1, branch2]
+
+case2 :: Term TyName Name DefaultUni DefaultFun ()
+case2 = runQuote $ do
+    a <- freshName "a"
+    let branch1 = LamAbs () a integer (Var () a)
+        branch2 = LamAbs () a string (mkConstant @Integer () 2)
+    pure $ Case () integer tag2 [branch1, branch2]
+
+case3 :: Term TyName Name DefaultUni DefaultFun ()
+case3 = runQuote $ do
+    a <- freshName "a"
+    let branch1 = LamAbs () a integer (mkConstant @Text () "no")
+        branch2 = LamAbs () a string (Var () a)
+    pure $ Case () string tag1 [branch1, branch2]
+
+case4 :: Term TyName Name DefaultUni DefaultFun ()
+case4 = runQuote $ do
+    a <- freshName "a"
+    let branch1 = LamAbs () a integer (mkConstant @Text () "no")
+        branch2 = LamAbs () a string (Var () a)
+    pure $ Case () string tag2 [branch1, branch2]
+
+caseProd1 :: Term TyName Name DefaultUni DefaultFun ()
+caseProd1 = runQuote $ do
+    a <- freshName "a"
+    b <- freshName "b"
+    c <- freshName "c"
+    let branch1 = LamAbs () a integer $ LamAbs () b integer $ LamAbs () c integer $
+                    mkIterApp () (Builtin () SubtractInteger) [
+                      mkIterApp () (Builtin () AddInteger) [Var () a, Var () b]
+                      , Var () c
+                      ]
+        branch2 = LamAbs () a string (mkConstant @Integer () 2)
+    pure $ Case () integer tagProd1 [branch1, branch2]
+
+caseNoBranch :: Term TyName Name DefaultUni DefaultFun ()
+caseNoBranch = Case () integer tag1 []
+
+caseNonTag :: Term TyName Name DefaultUni DefaultFun ()
+caseNonTag = Case () integer (mkConstant @Integer () 1) []
 
 -- Running the tests
 
@@ -409,6 +465,16 @@ namesAndTests =
    , ("mulInstError1", mulInstError1)
    , ("mulInstError2", mulInstError2)
    , ("mulInstError3", mulInstError3)
+   , ("tag1", tag1)
+   , ("tag2", tag2)
+   , ("tagProd1", tagProd1)
+   , ("case1", case1)
+   , ("case2", case2)
+   , ("case3", case3)
+   , ("case4", case4)
+   , ("caseProd1", caseProd1)
+   , ("caseNoBranch", caseNoBranch)
+   , ("caseNonTag", caseNonTag)
    ]
 
 test_golden :: TestTree

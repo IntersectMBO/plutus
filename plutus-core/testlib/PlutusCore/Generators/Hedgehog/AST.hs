@@ -51,9 +51,13 @@ runAstGen a = do
     names <- genNames
     Gen.fromGenT $ hoist (return . flip runReader names) a
 
+-- The parser will reject uses of new constructs if the version is not high enough
+-- In order to keep our lives simple, we just generate a version that is always high
+-- enough to support everything. That gives us less coverage of parsing versions, but
+-- that's not likely to be the place where things go wrong
 genVersion :: MonadGen m => m Version
-genVersion = Version <$> int' <*> int' <*> int' where
-    int' = Gen.integral_ $ Range.linear 0 10
+genVersion = Version <$> intFrom 1 <*> intFrom 1 <*> intFrom 0 where
+    intFrom x = Gen.integral_ $ Range.linear x 20
 
 -- | Generate a fixed set of names which we will use, of only up to a short size to make it
 -- likely that we get reuse.
@@ -107,8 +111,9 @@ genType = simpleRecursive nonRecursive recursive where
     lamGen = TyLam () <$> genTyName <*> genKind <*> genType
     forallGen = TyForall () <$> genTyName <*> genKind <*> genType
     applyGen = TyApp () <$> genType <*> genType
+    sopGen = TySOP () <$> (Gen.list (Range.linear 0 10) (Gen.list (Range.linear 0 10) genType))
     tyBuiltinGen = TyBuiltin () <$> genSomeTypeIn
-    recursive = [funGen, applyGen]
+    recursive = [funGen, applyGen, sopGen]
     nonRecursive = [varGen, lamGen, forallGen, tyBuiltinGen]
 
 genTerm :: forall fun. (Bounded fun, Enum fun) => AstGen (Term TyName Name DefaultUni fun ())
@@ -121,7 +126,9 @@ genTerm = simpleRecursive nonRecursive recursive where
     unwrapGen = Unwrap () <$> genTerm
     wrapGen = IWrap () <$> genType <*> genType <*> genTerm
     errorGen = Error () <$> genType
-    recursive = [absGen, instGen, lamGen, applyGen, unwrapGen, wrapGen]
+    constrGen = Constr () <$> genType <*> Gen.word64 (Range.linear 0 10) <*> Gen.list (Range.linear 0 10) genTerm
+    caseGen = Case () <$> genType <*> genTerm <*> Gen.list (Range.linear 0 10) genTerm
+    recursive = [absGen, instGen, lamGen, applyGen, unwrapGen, wrapGen, constrGen, caseGen]
     nonRecursive = [varGen, Constant () <$> genConstant, Builtin () <$> genBuiltin, errorGen]
 
 genProgram :: forall fun. (Bounded fun, Enum fun) => AstGen (Program TyName Name DefaultUni fun ())

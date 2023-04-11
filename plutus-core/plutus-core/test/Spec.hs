@@ -88,6 +88,8 @@ compareTerm (TyInst _ t ty) (TyInst _ t' ty')      = compareTerm t t' && compare
 compareTerm (Unwrap _ t) (Unwrap _ t')             = compareTerm t t'
 compareTerm (IWrap _ pat1 arg1 t1) (IWrap _ pat2 arg2 t2) =
     compareType pat1 pat2 && compareType arg1 arg2 && compareTerm t1 t2
+compareTerm (Constr _ ty i es) (Constr _ ty' i' es') = compareType ty ty' && i == i' && all (uncurry compareTerm) (zip es es')
+compareTerm (Case _ ty arg cs) (Case _ ty' arg' cs') = compareType ty ty' && compareTerm arg arg' && all (uncurry compareTerm) (zip cs cs')
 compareTerm (Error _ ty) (Error _ ty')             = compareType ty ty'
 compareTerm _ _                                    = False
 
@@ -101,6 +103,7 @@ compareType (TyForall _ n k t) (TyForall _ n' k' t')  = compareTyName n n' && k 
 compareType (TyBuiltin _ x) (TyBuiltin _ y)           = x == y
 compareType (TyLam _ n k t) (TyLam _ n' k' t')        = compareTyName n n' && k == k' && compareType t t'
 compareType (TyApp _ t t') (TyApp _ t'' t''')         = compareType t t'' && compareType t' t'''
+compareType (TySOP _ tyls) (TySOP _ tyls')            = all (\(tyl1, tyl2) -> all (uncurry compareType) (zip tyl1 tyl2)) (zip tyls tyls')
 compareType _ _                                       = False
 
 compareProgram

@@ -1,0 +1,10 @@
+(let
+  (nonrec)
+  (termbind
+    (nonstrict)
+    (vardecl y (con integer))
+    [ [ (builtin addInteger) (con integer 1) ] (con integer 2) ]
+  )
+  (case (con integer) (constr (sop [(con integer)]) 0 (con integer 1)) (lam x (con integer) y))
+)
+-- `y` should be floated into the case branch

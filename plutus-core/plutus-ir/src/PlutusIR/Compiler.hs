@@ -34,7 +34,8 @@ module PlutusIR.Compiler (
     ccTypeCheckConfig,
     PirTCConfig(..),
     AllowEscape(..),
-    toDefaultCompilationCtx) where
+    toDefaultCompilationCtx,
+    simplifyTerm) where
 
 import PlutusIR
 
@@ -44,8 +45,9 @@ import PlutusIR.Compiler.Provenance
 import PlutusIR.Compiler.Types
 import PlutusIR.Error
 import PlutusIR.Transform.Beta qualified as Beta
+import PlutusIR.Transform.CaseReduce qualified as CaseReduce
 import PlutusIR.Transform.DeadCode qualified as DeadCode
-import PlutusIR.Transform.Inline.UnconditionalInline qualified as UInline
+import PlutusIR.Transform.Inline.Inline qualified as Inline
 import PlutusIR.Transform.LetFloatIn qualified as LetFloatIn
 import PlutusIR.Transform.LetFloatOut qualified as LetFloatOut
 import PlutusIR.Transform.LetMerge qualified as LetMerge
@@ -100,11 +102,12 @@ applyPass pass = runIf (_shouldRun pass) $ through check <=< \term -> do
 availablePasses :: [Pass uni fun]
 availablePasses =
     [ Pass "unwrap cancel"        (onOption coDoSimplifierUnwrapCancel)       (pure . Unwrap.unwrapCancel)
+    , Pass "case reduce"          (onOption coDoSimplifierCaseReduce)         (pure . CaseReduce.caseReduce)
     , Pass "beta"                 (onOption coDoSimplifierBeta)               (pure . Beta.beta)
     , Pass "inline"               (onOption coDoSimplifierInline)             (\t -> do
                                                                                   hints <- view (ccOpts . coInlineHints)
                                                                                   ver <- view ccBuiltinVer
-                                                                                  UInline.inline hints ver t
+                                                                                  Inline.inline hints ver t
                                                                               )
     ]
 

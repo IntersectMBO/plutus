@@ -1,0 +1,6 @@
+(Left Type mismatch at () in term
+  '(constr (sop [(con integer)] [(con string)]) 0 (con integer 1))'.
+Expected type
+  '(sop )',
+found type
+  '(sop [(con integer)] [(con string)])')
