@@ -6,6 +6,7 @@ module Algorithmic.Erasure where
 \end{code}
 
 \begin{code}
+open import Agda.Primitive using (lzero)
 open import Function using (_∘_;id)
 open import Data.Nat using (_+_)
 open import Data.Nat.Properties using (+-cancelˡ-≡)
@@ -108,10 +109,10 @@ lenLemma⋆ (Φ ,⋆ K) = cong Maybe (lenLemma⋆ Φ)
 
 -- these lemmas (as stated and proved) require injectivity of type
 -- constructors
-lemzero : ∀{X X'}(p : Maybe X ≡ Maybe X') → nothing ≡ subst id p nothing
+lemzero : ∀{X X'}(p : Maybe {lzero} X ≡ Maybe X') → nothing ≡ subst id p nothing
 lemzero refl = refl
 
-lemsuc : ∀{X X'}(p : Maybe X ≡ Maybe X')(q : X ≡ X')(x : X) →
+lemsuc : ∀{X X'}(p : Maybe {lzero} X ≡ Maybe X')(q : X ≡ X')(x : X) →
   just (subst id q x) ≡ subst id p (just x)
 lemsuc refl refl x = refl
 

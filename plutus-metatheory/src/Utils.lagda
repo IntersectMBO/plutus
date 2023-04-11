@@ -18,29 +18,12 @@ open import Data.Empty using (⊥;⊥-elim)
 open import Data.Integer using (ℤ)
 open import Data.String using (String)
 open import Data.Bool using (Bool)
+open import Data.Maybe using (Maybe; just; nothing; maybe) 
+                           renaming (_>>=_ to mbind) public
 
-
--- we cannot use the standard library's Maybe as it is not set up to
--- compile the Haskell's Maybe and compile pragmas have to go in the
+-- we cannot use the standard library's Either as it is not set up to
+-- compile the Haskell's Either and compile pragmas have to go in the
 -- same module as definitions
-
-data Maybe (A : Set) : Set where
-  just : A → Maybe A
-  nothing : Maybe A
-
-{-# COMPILE GHC Maybe = data Maybe (Just | Nothing) #-}
-
-maybe : {A B : Set} → (A → B) → B → Maybe A → B 
-maybe f b (just a) = f a
-maybe f b nothing  = b
-
-mbind : {A B : Set} → Maybe A → (A → Maybe B) → Maybe B
-mbind (just a) f = f a
-mbind nothing  f = nothing
-
-{-# COMPILE GHC mbind = \_ _ a f -> a >>= f #-}
-
--- the same applies to sums...
 
 data Either (A B : Set) : Set where
   inj₁ : A → Either A B
