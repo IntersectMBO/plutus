@@ -237,11 +237,32 @@ BUILTIN indexByteString (app (app base (V-con (bytestring b))) (V-con (integer i
 ... | yes _ = inj₂ (V-con (integer (index b i)))
 BUILTIN equalsString (app (app base (V-con (string s))) (V-con (string s'))) = inj₂ (V-con (bool (primStringEquality s s')))
 BUILTIN unIData (app base (V-con (pdata (iDATA i)))) = inj₂ (V-con (integer i))
-BUILTIN unBData (app base (V-con (pdata (bDATA b)))) =
-  inj₂ (V-con (bytestring b))
-BUILTIN serialiseData (app base (V-con (pdata d))) =
-  inj₂ (V-con (bytestring (serialiseDATA d)))
-BUILTIN _ {A = A} _ = inj₁ A
+BUILTIN unIData (app base (V-con (pdata _))) = inj₁ (con (atomic pdata))
+BUILTIN unBData (app base (V-con (pdata (bDATA b)))) = inj₂ (V-con (bytestring b))
+BUILTIN unBData (app base (V-con (pdata _))) = inj₁ (con (atomic pdata))
+BUILTIN unConstrData (app base (V-con (pdata (ConstrDATA i xs)))) = inj₂ (V-con (pairID i xs))
+BUILTIN unConstrData (app base (V-con (pdata _))) = inj₁ (con (atomic pdata))
+BUILTIN unMapData (app base (V-con (pdata (MapDATA x)))) = inj₂ (V-con (listPair x))
+BUILTIN unMapData (app base (V-con (pdata _))) = inj₁ (con (atomic pdata))
+BUILTIN unListData (app base (V-con (pdata (ListDATA x)))) = inj₂ (V-con (listData x))
+BUILTIN unListData (app base (V-con (pdata _))) = inj₁ (con (atomic pdata))
+BUILTIN serialiseData (app base (V-con (pdata d))) = inj₂ (V-con (bytestring (serialiseDATA d)))
+BUILTIN mkNilData (app base (V-con unit)) = inj₂ (V-con (listData []))
+BUILTIN mkNilPairData (app base (V-con unit)) = inj₂ (V-con (listPair []))
+BUILTIN chooseUnit (app (app (app⋆ base refl refl) x) (V-con unit)) = inj₂ x
+BUILTIN equalsData  (app (app base (V-con (pdata d))) (V-con (pdata d'))) = inj₂ (V-con (bool (eqDATA d d')))
+BUILTIN mkPairData (app (app base (V-con (pdata x))) (V-con (pdata y))) = inj₂ (V-con (pairDATA x y))
+BUILTIN constrData (app (app base (V-con (integer i))) (V-con (listData xs))) = inj₂ (V-con (pdata (ConstrDATA i xs)))
+BUILTIN mapData (app base (V-con (listPair xs))) = inj₂ (V-con (pdata (MapDATA xs)))
+BUILTIN listData (app base (V-con (listData xs))) = inj₂ (V-con (pdata (ListDATA xs)))
+BUILTIN fstPair {A} bapp = inj₁ A --unimplemented
+BUILTIN sndPair {A} bapp = inj₁ A --unimplemented
+BUILTIN chooseList {A} bapp = inj₁ A --unimplemented
+BUILTIN mkCons {A} (app (app (app⋆ base refl refl) x) (V-con xs)) = inj₁ A --unimplemented
+BUILTIN headList {A} bapp = inj₁ A --unimplemented
+BUILTIN tailList {A} bapp = inj₁ A --unimplemented
+BUILTIN nullList {A} (app (app⋆ base refl refl) (V-con cn)) = inj₁ A  --unimplemented
+BUILTIN chooseData {A} bapp =  inj₁ A --unimplemented
 
 BUILTIN' : ∀ b {A}
   → ∀{tn} → {pt : tn ∔ 0 ≣ fv♯ (signature b)}
