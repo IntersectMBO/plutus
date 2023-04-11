@@ -197,32 +197,42 @@ test_zipCostStreamIsZip =
         sumExBudgetStream (zipCostStream costs1 costs2) ===
             ExBudget (ExCPU $ sumCostStream costs1) (ExMemory $ sumCostStream costs2)
 
-test_mapCostStreamReasonableSize :: TestTree
-test_mapCostStreamReasonableSize =
-    testProperty "mapCostStream: reasonable size" . withMaxSuccess 500 $ \(Fun _ f) costs ->
+-- | Test that 'mapCostStream' preserves the length of the stream.
+test_mapCostStreamReasonableLength :: TestTree
+test_mapCostStreamReasonableLength =
+    testProperty "mapCostStream: reasonable length" . withMaxSuccess 500 $ \(Fun _ f) costs ->
         length (toCostList (mapCostStream f costs)) ===
             length (toCostList costs)
 
-test_addCostStreamReasonableSize :: TestTree
-test_addCostStreamReasonableSize =
-    testProperty "addCostStream: reasonable size " . withMaxSuccess 5000 $ \costs1 costs2 ->
+-- | Test that the length of the stream returned by 'addCostStream' equals the sum of the lengths of
+-- its two arguments.
+test_addCostStreamReasonableLength :: TestTree
+test_addCostStreamReasonableLength =
+    testProperty "addCostStream: reasonable length " . withMaxSuccess 5000 $ \costs1 costs2 ->
         max 2 (length (toCostList (addCostStream costs1 costs2))) ===
             length (toCostList costs1) + length (toCostList costs2)
 
-test_minCostStreamReasonableSize :: TestTree
-test_minCostStreamReasonableSize =
-    testProperty "minCostStream: reasonable size " . withMaxSuccess 5000 $ \costs1 costs2 ->
+-- | Test that the length of the stream returned by 'addCostStream' is
+--
+-- 1. greater than or equal to the minimum of the lengths of its two arguments
+-- 2. smaller than or equal to the sum of the lengths of its two arguments.
+test_minCostStreamReasonableLength :: TestTree
+test_minCostStreamReasonableLength =
+    testProperty "minCostStream: reasonable length " . withMaxSuccess 5000 $ \costs1 costs2 ->
         let len1   = length $ toCostList costs1
             len2   = length $ toCostList costs2
             lenMin = length . toCostList $ minCostStream costs1 costs2
         in lenMin >= min len1 len2 && lenMin <= len1 + len2
 
-test_zipCostStreamReasonableSize :: TestTree
-test_zipCostStreamReasonableSize =
-    testProperty "zipCostStream: reasonable size " . withMaxSuccess 5000 $ \costs1 costs2 ->
+-- | Test that the length of the stream returned by 'zipCostStream' equals the maximum of the
+-- lengths of its two arguments.
+test_zipCostStreamReasonableLength :: TestTree
+test_zipCostStreamReasonableLength =
+    testProperty "zipCostStream: reasonable length " . withMaxSuccess 5000 $ \costs1 costs2 ->
         length (toExBudgetList (zipCostStream costs1 costs2)) ===
             max (length (toCostList costs1)) (length (toCostList costs2))
 
+-- | Test that 'mapCostStream' preserves the laziness of its argument.
 test_mapCostStreamHandlesBottom :: TestTree
 test_mapCostStreamHandlesBottom =
     testProperty "mapCostStream handles bottom suffixes" . withMaxSuccess 500 $ \(Fun _ f) xs ->
@@ -232,6 +242,7 @@ test_mapCostStreamHandlesBottom =
             costs = fromCostList . NonEmpty $ xs ++ suff
         in length (take n . getNonEmpty . toCostList $ mapCostStream f costs) === n
 
+-- | Test that 'mapCostStream' preserves the laziness of its two arguments.
 test_addCostStreamHandlesBottom :: TestTree
 test_addCostStreamHandlesBottom =
     testProperty "addCostStream handles bottom suffixes" . withMaxSuccess 5000 $ \(Positive n) ->
@@ -246,6 +257,7 @@ test_addCostStreamHandlesBottom =
             -- No element is duplicated.
             length (map head . group $ sort taken) === length taken
 
+-- | Test that 'minCostStream' preserves the laziness of its two arguments.
 test_minCostStreamHandlesBottom :: TestTree
 test_minCostStreamHandlesBottom =
     testProperty "minCostStream handles bottom suffixes" . withMaxSuccess 5000 $ \xs ys ->
@@ -259,10 +271,18 @@ test_minCostStreamHandlesBottom =
            -- gives us the sum of the minimum stream before triggering any of the bottoms.
            not . null . dropWhile (/= m) . scanl' (+) 0 . getNonEmpty $ toCostList xsYsMin
 
+-- | Pad the shortest of the given lists by appending the given element to it until the length of
+-- the result matches the length of the other list.
+--
+-- >>> postAlignWith 'a' "bcd" "e"
+-- ("bcd","eaa")
+-- >>> postAlignWith 'a' "b" "cdef"
+-- ("baaa","cdef")
 postAlignWith :: a -> [a] -> [a] -> ([a], [a])
 postAlignWith z xs ys = (align xs, align ys) where
     align zs = take (length xs `max` length ys) $ zs ++ repeat z
 
+-- | Test that 'zipCostStream' preserves the laziness of its two arguments.
 test_zipCostStreamHandlesBottom :: TestTree
 test_zipCostStreamHandlesBottom =
     testProperty "zipCostStream handles bottom suffixes" . withMaxSuccess 5000 $ \xs ys ->
@@ -278,37 +298,39 @@ test_zipCostStreamHandlesBottom =
             not . null . dropWhile (/= z) . scanl' (<>) mempty . getNonEmpty $
                 toExBudgetList xys
 
-cndSize :: Int -> Int
-cndSize n
-    | n <= 1   = 1
-    | otherwise = cndSize (n - 1) * 3 + 1
+-- | The size 'sierpinskiRose' of the given depth.
+sierpinskiSize :: Int -> Int
+sierpinskiSize n
+    | n <= 1    = 1
+    | otherwise = sierpinskiSize (n - 1) * 3 + 1
 
 -- | Return a finite balanced tree with each node (apart from the leaves) having exactly 3 children.
 -- The parameter is the depth of the tree.
-cndRose :: Int -> CostRose
-cndRose n0
+-- Named after https://en.wikipedia.org/wiki/Sierpi%C5%84ski_triangle
+sierpinskiRose :: Int -> CostRose
+sierpinskiRose n0
     | n0 <= 1   = CostRose 1 []
     | otherwise = CostRose (fromIntegral n0) . go . replicate 3 $ n0 - 1
   where
-    -- Inlining the definition of @map cndRose@ manually to make sure subtrees are definitely
+    -- Inlining the definition of @map sierpinskiRose@ manually to make sure subtrees are definitely
     -- not shared, so that we don't retain them in memory unnecessarily.
     go :: [Int] -> [CostRose]
     go []       = []
-    go (n : ns) = cndRose n : go ns
+    go (n : ns) = sierpinskiRose n : go ns
 
-test_flattenCostRoseIsLinearForCndRose :: Int -> TestTree
-test_flattenCostRoseIsLinearForCndRose depth =
-    let size = cndSize depth
-    in testProperty ("cnd rose: taking " ++ show size ++ " elements") $
+test_flattenCostRoseIsLinearForSierpinskiRose :: Int -> TestTree
+test_flattenCostRoseIsLinearForSierpinskiRose depth =
+    let size = sierpinskiSize depth
+    in testProperty ("sierpinski rose: taking " ++ show size ++ " elements") $
         withMaxSuccess 1 $
-            length (toCostList . flattenCostRose $ cndRose depth) ===
+            length (toCostList . flattenCostRose $ sierpinskiRose depth) ===
                 size
 
 test_flattenCostRoseIsLinear :: TestTree
 test_flattenCostRoseIsLinear = testGroup "flattenCostRose is linear"
-    [ test_flattenCostRoseIsLinearForCndRose 12
-    , test_flattenCostRoseIsLinearForCndRose 13
-    , test_flattenCostRoseIsLinearForCndRose 14
+    [ test_flattenCostRoseIsLinearForSierpinskiRose 12
+    , test_flattenCostRoseIsLinearForSierpinskiRose 13
+    , test_flattenCostRoseIsLinearForSierpinskiRose 14
     ]
 
 uniqueVectorOf :: Eq a => Int -> Gen a -> Gen [a]
@@ -457,10 +479,10 @@ test_costing = testGroup "costing"
     , test_addCostStreamIsAdd
     , test_minCostStreamIsMin
     , test_zipCostStreamIsZip
-    , test_mapCostStreamReasonableSize
-    , test_addCostStreamReasonableSize
-    , test_minCostStreamReasonableSize
-    , test_zipCostStreamReasonableSize
+    , test_mapCostStreamReasonableLength
+    , test_addCostStreamReasonableLength
+    , test_minCostStreamReasonableLength
+    , test_zipCostStreamReasonableLength
     , test_mapCostStreamHandlesBottom
     , test_addCostStreamHandlesBottom
     , test_minCostStreamHandlesBottom
