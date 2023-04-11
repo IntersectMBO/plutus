@@ -135,7 +135,7 @@ instance Pretty DefaultFun where
         c : s -> toLower c : s
 
 instance ExMemoryUsage DefaultFun where
-    memoryUsage _ = 1
+    memoryUsage _ = CostRose 1 []
 
 -- | Turn a function into another function that returns 'EvaluationFailure' when its second argument
 -- is 0 or calls the original function otherwise and wraps the result in 'EvaluationSuccess'.
@@ -1066,7 +1066,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         -- The costing function is the same for all versions of this builtin, but since the
         -- denotation of the builtin accepts constants of different types ('Integer' vs 'Word8'),
         -- the costing function needs to by polymorphic over the type of constant.
-        let costingFun :: ExMemoryUsage a => BuiltinCostModel -> a -> BS.ByteString -> ExBudget
+        let costingFun
+                :: ExMemoryUsage a => BuiltinCostModel -> a -> BS.ByteString -> ExBudgetStream
             costingFun = runCostingFunTwoArguments . paramConsByteString
         -- See Note [Versioned builtins]
         in case ver of

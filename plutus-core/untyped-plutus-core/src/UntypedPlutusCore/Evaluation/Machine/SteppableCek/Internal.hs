@@ -418,6 +418,16 @@ lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
             var = Var () varName
         Just val -> pure val
 
+spendBudgetStreamCek
+    :: GivenCekReqs uni fun ann s
+    => ExBudgetCategory fun
+    -> ExBudgetStream
+    -> CekM uni fun s ()
+spendBudgetStreamCek exCat = go where
+    go (ExBudgetLast budget)         = spendBudgetCek exCat budget
+    go (ExBudgetCons budget budgets) = spendBudgetCek exCat budget *> go budgets
+{-# INLINE spendBudgetStreamCek #-}
+
 -- | Take pieces of a possibly partial builtin application and either create a 'CekValue' using
 -- 'makeKnown' or a partial builtin application depending on whether the built-in function is
 -- fully saturated or not.
@@ -428,8 +438,8 @@ evalBuiltinApp
     -> BuiltinRuntime (CekValue uni fun ann)
     -> CekM uni fun s (CekValue uni fun ann)
 evalBuiltinApp fun term runtime = case runtime of
-    BuiltinResult cost getX -> do
-        spendBudgetCek (BBuiltinApp fun) cost
+    BuiltinResult budgets getX -> do
+        spendBudgetStreamCek (BBuiltinApp fun) budgets
         case getX of
             MakeKnownFailure logs err       -> do
                 ?cekEmitter logs

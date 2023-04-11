@@ -1,4 +1,5 @@
 -- editorconfig-checker-disable-file
+{-# LANGUAGE BangPatterns          #-}
 {-# LANGUAGE CPP                   #-}
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DerivingVia           #-}
@@ -11,22 +12,31 @@
 {-# LANGUAGE UndecidableInstances  #-}
 
 module PlutusCore.Evaluation.Machine.ExMemory
-( CostingInteger
-, ExMemory(..)
-, ExCPU(..)
-, ExMemoryUsage(..)
-) where
+    ( CostingInteger
+    , ExMemory(..)
+    , CostRose(..)
+    , ExCPU(..)
+    , ExMemoryUsage(..)
+    , CostStream(..)
+    , unconsCost
+    , reconsCost
+    , sumCostStream
+    , mapCostStream
+    , addCostStream
+    , minCostStream
+    , flattenCostRose
+    ) where
 
 import PlutusCore.Data
 import PlutusCore.Pretty
 import PlutusPrelude
 
 import Codec.Serialise (Serialise)
-import Control.Monad.RWS.Strict
 import Data.Aeson
 import Data.ByteString qualified as BS
 import Data.Proxy
 import Data.SatInt
+import Data.Semigroup
 import Data.Text qualified as T
 import GHC.Exts (Int (I#))
 import GHC.Integer
@@ -105,7 +115,6 @@ type CostingInteger = SatInt
 newtype ExMemory = ExMemory CostingInteger
   deriving stock (Eq, Ord, Show, Generic, Lift)
   deriving newtype (Num, NFData, Read, Bounded)
-  deriving (Semigroup, Monoid) via (Sum CostingInteger)
   deriving (FromJSON, ToJSON) via CostingInteger
   deriving Serialise via CostingInteger
   deriving anyclass NoThunks
@@ -114,12 +123,19 @@ instance Pretty ExMemory where
 instance PrettyBy config ExMemory where
     prettyBy _ m = pretty m
 
+instance Semigroup ExMemory where
+    (<>) = coerce $ (+) @CostingInteger
+    {-# INLINE (<>) #-}
+
+instance Monoid ExMemory where
+    mempty = coerce (0 :: CostingInteger)
+    {-# INLINE mempty #-}
+
 -- | Counts CPU units in picoseconds: maximum value for SatInt is 2^63 ps, or
 -- appproximately 106 days.
 newtype ExCPU = ExCPU CostingInteger
   deriving stock (Eq, Ord, Show, Generic, Lift)
   deriving newtype (Num, NFData, Read, Bounded)
-  deriving (Semigroup, Monoid) via (Sum CostingInteger)
   deriving (FromJSON, ToJSON) via CostingInteger
   deriving Serialise via CostingInteger
   deriving anyclass NoThunks
@@ -127,6 +143,14 @@ instance Pretty ExCPU where
     pretty (ExCPU i) = pretty (toInteger i)
 instance PrettyBy config ExCPU where
     prettyBy _ m = pretty m
+
+instance Semigroup ExCPU where
+    (<>) = coerce $ (+) @CostingInteger
+    {-# INLINE (<>) #-}
+
+instance Monoid ExCPU where
+    mempty = coerce (0 :: CostingInteger)
+    {-# INLINE mempty #-}
 
 {- Note [ExMemoryUsage instances for non-constants]
 In order to calculate the cost of a built-in function we need to feed the 'ExMemory' of each
@@ -175,17 +199,43 @@ have the complexity of O(length_of_the_list) (because computing the 'ExMemory' o
 traversing the list), while we of course want it to be O(1).
 -}
 
+-- | A lazy tree of costs. Convenient for calculating the costs of values of built-in types, because
+-- they may have arbitrary branching (in particular a 'Data' object can contain a list of 'Data'
+-- objects inside of it).
+--
+-- 'CostRose' gets collapsed to a lazy linear structure down the pipeline, so that we can
+-- stream the costs to the outside where, say, the CEK machine picks them up one by one and handles
+-- somehow (in particular, subtracts from the remaining budget).
+data CostRose = CostRose {-# UNPACK #-} !CostingInteger ![CostRose]
+    deriving stock (Show)
+
+instance Semigroup CostRose where
+    -- Only used in the 'Data' instance below, so we make it strict.
+    CostRose cost1 forest1 <> CostRose cost2 forest2 =
+        CostRose (cost1 + cost2) (forest1 ++ forest2)
+    {-# INLINE (<>) #-}
+
+    sconcat (rose :| forest) = CostRose 0 $ rose : forest
+    {-# INLINE sconcat #-}
+
+instance Monoid CostRose where
+    mempty = CostRose 0 []
+    {-# INLINE mempty #-}
+
+    mconcat = CostRose 0
+    {-# INLINE mconcat #-}
+
 class ExMemoryUsage a where
     -- Inlining the implementations of this method gave us a 1-2% speedup.
-    memoryUsage :: a -> ExMemory -- ^ How much memory does 'a' use?
+    memoryUsage :: a -> CostRose -- ^ How much memory does 'a' use?
 
 instance (ExMemoryUsage a, ExMemoryUsage b) => ExMemoryUsage (a, b) where
-    memoryUsage (a, b) = 1 <> memoryUsage a <> memoryUsage b
+    memoryUsage (a, b) = CostRose 1 [memoryUsage a, memoryUsage b]
     {-# INLINE memoryUsage #-}
 
 -- See https://github.com/input-output-hk/plutus/issues/1861
 instance ExMemoryUsage (SomeTypeIn uni) where
-  memoryUsage _ = 1 -- TODO things like @list (list (list integer))@ take up a non-constant amount of space.
+  memoryUsage _ = CostRose 1 [] -- TODO things like @list (list (list integer))@ take up a non-constant amount of space.
   {-# INLINE memoryUsage #-}
 
 -- See https://github.com/input-output-hk/plutus/issues/1861
@@ -195,18 +245,25 @@ instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (Some (Va
   {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage () where
-  memoryUsage () = 1
+  memoryUsage () = CostRose 1 []
   {-# INLINE memoryUsage #-}
 
+memoryUsageInteger :: Integer -> CostingInteger
+-- integerLog2# is unspecified for 0 (but in practice returns -1)
+memoryUsageInteger 0 = 1
+-- Assume 64 Int
+memoryUsageInteger i = fromIntegral $ I# (integerLog2# (abs i) `quotInt#` integerToInt 64) + 1
+-- So that the produced GHC Core doesn't explode in size, we don't win anything by inlining this
+-- function anyway.
+{-# NOINLINE memoryUsageInteger #-}
+
 instance ExMemoryUsage Integer where
-  memoryUsage 0 = ExMemory 1  -- integerLog2# is unspecified for 0 (but in practice returns -1)
-  memoryUsage i = ExMemory $ fromIntegral $ (I# n) + 1
-                               where n = (integerLog2# (abs i) `quotInt#` integerToInt 64) :: Int#
-                               -- Assume 64-bit size for Integer
+  memoryUsage i = CostRose (memoryUsageInteger i) [] where
   {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage Word8 where
-  memoryUsage _ = ExMemory 1
+  memoryUsage _ = CostRose 1 []
+  {-# INLINE memoryUsage #-}
 
 {- Bytestrings: we want things of length 0 to have size 0, 1-8 to have size 1,
    9-16 to have size 2, etc.  Note that (-1) div 8 == -1, so the code below
@@ -214,7 +271,7 @@ instance ExMemoryUsage Word8 where
    1 + (toInteger $ BS.length bs) `div` 8, which would count one extra for
    things whose sizes are multiples of 8. -}
 instance ExMemoryUsage BS.ByteString where
-  memoryUsage bs = ExMemory $ ((n-1) `quot` 8) + 1  -- Don't use `div` here!  That gives 1 instead of 0 for n=0.
+  memoryUsage bs = CostRose (((n-1) `quot` 8) + 1) []  -- Don't use `div` here!  That gives 1 instead of 0 for n=0.
       where n = fromIntegral $ BS.length bs :: SatInt
   {-# INLINE memoryUsage #-}
 
@@ -225,19 +282,19 @@ instance ExMemoryUsage T.Text where
   {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage Int where
-  memoryUsage _ = 1
+  memoryUsage _ = CostRose 1 []
   {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage Char where
-  memoryUsage _ = 1
+  memoryUsage _ = CostRose 1 []
   {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage Bool where
-  memoryUsage _ = 1
+  memoryUsage _ = CostRose 1 []
   {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage a => ExMemoryUsage [a] where
-    memoryUsage = foldl' (\a x -> memoryUsage x + a) 0
+    memoryUsage = CostRose 0 . map memoryUsage
     {-# INLINE memoryUsage #-}
 
 {- Another naive traversal for size.  This accounts for the number of nodes in
@@ -262,17 +319,134 @@ instance ExMemoryUsage a => ExMemoryUsage [a] where
    didn't improve matters and in fact some versions led to a slight slowdown.
 -}
 instance ExMemoryUsage Data where
-    memoryUsage = sizeData
-        where sizeData d =
-                  nodeMem +
-                     case d of
-                       Constr _ l -> sizeDataList l    -- TODO: include the size of the tag, but not just yet.  See SCP-3677.
-                       Map l      -> sizeDataPairs l
-                       List l     -> sizeDataList l
-                       I n        -> memoryUsage n
-                       B b        -> memoryUsage b
-              nodeMem = 4
-              sizeDataList []     = 0
-              sizeDataList (d:ds) = sizeData d + sizeDataList ds
-              sizeDataPairs []           = 0
-              sizeDataPairs ((d1,d2):ps) = sizeData d1 + sizeData d2 + sizeDataPairs ps
+    memoryUsage = sizeData where
+        nodeMem = CostRose 4 []
+        {-# INLINE nodeMem #-}
+
+        sizeData d = nodeMem <> case d of
+            -- TODO: include the size of the tag, but not just yet.  See SCP-3677.
+            Constr _ l -> CostRose 0 $ l <&> sizeData
+            Map l      -> CostRose 0 $ l <&> \(d1, d2) -> CostRose 0 $ [d1, d2] <&> sizeData
+            List l     -> CostRose 0 $ l <&> sizeData
+            I n        -> memoryUsage n
+            B b        -> memoryUsage b
+
+-- | A lazy stream of 'CostingInteger's. Basically @NonEmpty CostingInteger@, except the elements
+-- are stored strictly.
+--
+-- The semantics of a stream are those of the sum of its elements. I.e. a stream that is a reordered
+-- version of another stream is considered equal to that stream (not by the derived 'Eq' instance,
+-- though).
+data CostStream
+    = CostLast {-# UNPACK #-} !CostingInteger
+    | CostCons {-# UNPACK #-} !CostingInteger CostStream
+    deriving stock (Show, Eq)
+
+-- TODO: (# CostingInteger, (# (# #) | CostStream #) #)?
+-- | Uncons an element from a 'CostStream' and return the rest of the stream, if not empty.
+unconsCost :: CostStream -> (CostingInteger, Maybe CostStream)
+unconsCost (CostLast cost)       = (cost, Nothing)
+unconsCost (CostCons cost costs) = (cost, Just costs)
+{-# INLINE unconsCost #-}
+
+-- | Cons an element to a 'CostStream', if given any. Otherwise create a new 'CostStream' using
+-- 'CostLast'.
+reconsCost :: CostingInteger -> Maybe CostStream -> CostStream
+reconsCost cost = maybe (CostLast cost) (CostCons cost)
+{-# INLINE reconsCost #-}
+
+{- Note [Global local functions]
+Normally when defining a helper function one would put it into a @where@ or a @let@ block.
+However if the enclosing function gets inlined, then the definition of the helper one gets inlined
+too, which when happens in multiple places can create serious GHC Core bloat, making it really hard
+to analyze the generated code. Hence in some cases we optimize for lower amounts of produced GHC
+Core by turning some helper functions into global ones.
+
+This doesn't work as well when the helper function captures a variables bound by the enclosing one,
+so we leave such helper functions local. We could probably create a global helper and a local
+function within it instead, but so far it doesn't appear as those capturing helpers actually get
+duplicated in the generated Core.
+-}
+
+-- See Note [Global local functions].
+sumCostStreamGo :: CostingInteger -> CostStream -> CostingInteger
+sumCostStreamGo !acc (CostLast cost)       = acc + cost
+sumCostStreamGo !acc (CostCons cost costs) = sumCostStreamGo (acc + cost) costs
+
+-- | Add up all the costs in a 'CostStream'.
+sumCostStream :: CostStream -> CostingInteger
+sumCostStream (CostLast cost0)        = cost0
+sumCostStream (CostCons cost0 costs0) = sumCostStreamGo cost0 costs0
+{-# INLINE sumCostStream #-}
+
+-- See Note [Global local functions].
+-- | Map a function over a 'CostStream'.
+mapCostStream :: (CostingInteger -> CostingInteger) -> CostStream -> CostStream
+mapCostStream f (CostLast cost0)        = CostLast (f cost0)
+mapCostStream f (CostCons cost0 costs0) = CostCons (f cost0) $ go costs0 where
+    go :: CostStream -> CostStream
+    go (CostLast cost)       = CostLast (f cost)
+    go (CostCons cost costs) = CostCons (f cost) $ go costs
+{-# INLINE mapCostStream #-}
+
+-- See Note [Global local functions].
+addCostStreamGo :: CostStream -> CostStream -> CostStream
+addCostStreamGo (CostLast costL)        costsR = CostCons costL costsR
+addCostStreamGo (CostCons costL costsL) costsR = CostCons costL $ addCostStreamGo costsR costsL
+
+-- | Add two streams by interleaving their elements (as opposed to draining out one of the streams
+-- before starting to take elements from the other one). No particular reason to prefer
+-- interleaving over draining out one of the streams first.
+addCostStream :: CostStream -> CostStream -> CostStream
+addCostStream costsL0 costsR0 = case (costsL0, costsR0) of
+    (CostLast costL, CostLast costR) -> CostLast $ costL + costR
+    _                                -> addCostStreamGo costsL0 costsR0
+{-# INLINE addCostStream #-}
+
+-- See Note [Global local functions].
+-- Didn't attempt to optimize it.
+minCostStreamGo :: CostStream -> CostStream -> CostStream
+minCostStreamGo costsL costsR =
+    -- Peel off a cost from each of the streams, if there's any, compare the two costs, emit
+    -- the minimum cost to the outside and recurse. If the two elements aren't equal, then we put
+    -- the difference between them back to the stream that had the greatest cost (thus subtracting
+    -- the minimum cost from the stream -- since we just accounted for it by lazily emitting it to
+    -- the outside). Proceed until one of the streams is drained out.
+    let (!costL, !mayCostsL') = unconsCost costsL
+        (!costR, !mayCostsR') = unconsCost costsR
+        (!costMin, !mayCostsL'', !mayCostsR'') = case costL `compare` costR of
+            LT -> (costL, mayCostsL', pure $ reconsCost (costR - costL) mayCostsR')
+            EQ -> (costL, mayCostsL', mayCostsR')
+            GT -> (costR, pure $ reconsCost (costL - costR) mayCostsL', mayCostsR')
+    in reconsCost costMin $ minCostStreamGo <$> mayCostsL'' <*> mayCostsR''
+
+-- | Calculate the minimum of two 'CostStream's. May return a stream that is longer than either of
+-- the two (but not more than twice).
+minCostStream :: CostStream -> CostStream -> CostStream
+minCostStream costsL0 costsR0 = case (costsL0, costsR0) of
+    (CostLast costL, CostLast costR) -> CostLast $ min costL costR
+    _                                -> minCostStreamGo costsL0 costsR0
+{-# INLINE minCostStream #-}
+
+-- See Note [Global local functions].
+-- Unboxing @Int#@s manually, because no matter what I tried, GHC just wouldn't unbox an argument
+-- of a function passed as an accumulator.
+flattenCostRoseGo :: Int# -> [CostRose] -> (Int# -> CostStream) -> CostStream
+flattenCostRoseGo i0 []                                    k = k i0
+-- I cannot imagine this tilda making a difference in any even remotely realistic scenario, but
+-- better safe than sorry.
+flattenCostRoseGo i0 (~(CostRose cost1 forest1) : forest2) k =
+    CostCons (coerce $ I# i0) $
+        case coerce cost1 of
+            I# i1 ->
+                flattenCostRoseGo i1 forest1 $ \i2 ->
+                    flattenCostRoseGo i2 forest2 k
+
+-- | Flatten the tree structure of 'CostRose' into a linear 'CostStream' lazily. This function
+-- is productive regardless of the recursion pattern of the given argument.
+flattenCostRose :: CostRose -> CostStream
+flattenCostRose (CostRose cost [])     = CostLast cost
+flattenCostRose (CostRose cost forest) =
+    case coerce cost of
+        I# i0 -> flattenCostRoseGo i0 forest $ \iz -> coerce CostLast $ I# iz
+{-# INLINE flattenCostRose #-}

@@ -570,10 +570,10 @@ data Context uni fun ann
 instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (CekValue uni fun ann) where
     memoryUsage = \case
         VCon c      -> memoryUsage c
-        VDelay {}   -> 1
-        VLamAbs {}  -> 1
-        VBuiltin {} -> 1
-        VConstr {}  -> 1
+        VDelay {}   -> CostRose 1 []
+        VLamAbs {}  -> CostRose 1 []
+        VBuiltin {} -> CostRose 1 []
+        VConstr {}  -> CostRose 1 []
     {-# INLINE memoryUsage #-}
 
 -- | A 'MonadError' version of 'try'.
@@ -614,6 +614,16 @@ lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
             var = Var () varName
         Just val -> pure val
 
+spendBudgetStreamCek
+    :: GivenCekReqs uni fun ann s
+    => ExBudgetCategory fun
+    -> ExBudgetStream
+    -> CekM uni fun s ()
+spendBudgetStreamCek exCat = go where
+    go (ExBudgetLast budget)         = spendBudgetCek exCat budget
+    go (ExBudgetCons budget budgets) = spendBudgetCek exCat budget *> go budgets
+{-# INLINE spendBudgetStreamCek #-}
+
 -- | Take pieces of a possibly partial builtin application and either create a 'CekValue' using
 -- 'makeKnown' or a partial builtin application depending on whether the built-in function is
 -- fully saturated or not.
@@ -624,8 +634,8 @@ evalBuiltinApp
     -> BuiltinRuntime (CekValue uni fun ann)
     -> CekM uni fun s (CekValue uni fun ann)
 evalBuiltinApp fun term runtime = case runtime of
-    BuiltinResult cost getX -> do
-        spendBudgetCek (BBuiltinApp fun) cost
+    BuiltinResult budgets getX -> do
+        spendBudgetStreamCek (BBuiltinApp fun) budgets
         case getX of
             MakeKnownFailure logs err       -> do
                 ?cekEmitter logs

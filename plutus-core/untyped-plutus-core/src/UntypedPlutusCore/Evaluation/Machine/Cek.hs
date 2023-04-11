@@ -31,6 +31,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek
     , RestrictingSt (..)
     , CekMachineCosts
     -- ** Costing modes
+    , monoidalBudgeting
     , counting
     , tallying
     , restricting

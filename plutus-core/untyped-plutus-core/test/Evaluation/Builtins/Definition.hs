@@ -22,7 +22,9 @@ import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Generators.Hedgehog.Interesting
 import PlutusCore.MkPlc hiding (error)
+import PlutusCore.Pretty
 import PlutusPrelude
+import UntypedPlutusCore.Evaluation.Machine.Cek
 
 import PlutusCore.Examples.Builtins
 import PlutusCore.Examples.Data.Data
@@ -42,6 +44,7 @@ import Evaluation.Builtins.SignatureVerification (ecdsaSecp256k1Prop, ed25519_V1
 
 import Control.Exception
 import Data.ByteString (ByteString)
+import Data.DList qualified as DList
 import Data.Proxy
 import Data.Text (Text)
 import Hedgehog hiding (Opaque, Size, Var)
@@ -354,6 +357,38 @@ test_IdBuiltinData =
                 ]
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModelExt term @?= Right (EvaluationSuccess dTerm)
 
+test_TrackCostsWith
+    :: String -> Integer -> (Term TyName Name DefaultUni ExtensionFun () -> IO ()) -> TestTree
+test_TrackCostsWith cat len checkTerm =
+    testCase ("TrackCosts: " ++ cat) $ do
+        let term
+                = apply () (builtin () TrackCosts)
+                $ mkConstant @Data () (List . replicate (fromIntegral len) $ I 42)
+        checkTerm term
+
+test_TrackCostsRestricting :: TestTree
+test_TrackCostsRestricting =
+    test_TrackCostsWith "restricting" 10000 $ \term ->
+        case typecheckReadKnownCek def () term of
+            Left err                         -> fail $ displayPlcDef err
+            Right (Left err)                 -> fail $ displayPlcDef err
+            Right (Right (res :: [Integer])) ->
+                (length res > 100) @?= True
+
+test_TrackCostsRetaining :: TestTree
+test_TrackCostsRetaining =
+    test_TrackCostsWith "retaining" 10000 $ \term -> do
+        let retaining = monoidalBudgeting $ const DList.singleton
+            typecheckAndRunRetainer = typecheckAnd def $ \params term' ->
+                let (getRes, budgets) = runCekNoEmit params retaining term'
+                in (getRes >>= readKnownSelf, budgets)
+        case typecheckAndRunRetainer () term of
+            Left err                                  -> fail $ displayPlcDef err
+            Right (Left err, _)                       -> fail $ displayPlcDef err
+            Right (Right (res :: [Integer]), budgets) -> do
+                -- @length budgets@ is for retaining @budgets@ for as long as possible just in case.
+                (length res < min 10 (length budgets)) @?= True
+
 -- | Test all integer related builtins
 test_Integer :: TestTree
 test_Integer = testCase "Integer" $ do
@@ -660,6 +695,8 @@ test_definition =
         , test_BuiltinPair
         , test_SwapEls
         , test_IdBuiltinData
+        , test_TrackCostsRestricting
+        , test_TrackCostsRetaining
         , test_Integer
         , test_String
         , test_List

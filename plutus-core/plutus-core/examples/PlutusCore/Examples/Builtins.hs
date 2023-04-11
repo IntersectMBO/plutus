@@ -20,25 +20,33 @@ module PlutusCore.Examples.Builtins where
 
 import PlutusCore
 import PlutusCore.Builtin
+import PlutusCore.Data
+import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Pretty
 
 import PlutusCore.StdLib.Data.ScottList qualified as Plc
 
+import Control.Concurrent (threadDelay)
+import Control.Concurrent.MVar
 import Control.Exception
+import Control.Monad
 import Data.Default.Class
 import Data.Either
-import Data.Hashable (Hashable)
 import Data.Kind qualified as GHC (Type)
 import Data.Proxy
 import Data.Some.GADT qualified as GADT
 import Data.Tuple
 import Data.Void
 import GHC.Generics
+import GHC.IORef
 import GHC.Ix
 import GHC.TypeLits
 import Prettyprinter
+import System.IO.Unsafe (unsafeInterleaveIO, unsafePerformIO)
+import System.Mem (performMinorGC)
+import System.Mem.Weak (addFinalizer)
 
 instance (Bounded a, Bounded b) => Bounded (Either a b) where
     minBound = Left  minBound
@@ -128,6 +136,7 @@ data ExtensionFun
     | SwapEls  -- For checking that nesting polymorphic built-in types and instantiating them with
                -- a mix of monomorphic types and type variables works correctly.
     | ExtensionVersion -- Reflect the version of the Extension
+    | TrackCosts
     deriving stock (Show, Eq, Ord, Enum, Bounded, Ix, Generic)
     deriving anyclass (Hashable)
 
@@ -214,12 +223,12 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     toBuiltinMeaning _ver Factorial =
         makeBuiltinMeaning
             (\(n :: Integer) -> product [1..n])
-            mempty  -- Whatever.
+            (\_ _ -> ExBudgetLast mempty)  -- Whatever.
 
     toBuiltinMeaning _ver ForallFortyTwo =
         makeBuiltinMeaning
             forallFortyTwo
-            (\_ -> ExBudget 1 0)
+            (\_ -> ExBudgetLast mempty)
       where
         forallFortyTwo :: MetaForall ('TyNameRep @GHC.Type "a" 0) Integer
         forallFortyTwo = MetaForall 42
@@ -227,27 +236,27 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     toBuiltinMeaning _ver SumInteger =
         makeBuiltinMeaning
             (sum :: [Integer] -> Integer)
-            mempty  -- Whatever.
+            (\_ _ -> ExBudgetLast mempty)  -- Whatever.
 
     toBuiltinMeaning _ver Const =
         makeBuiltinMeaning
             const
-            (\_ _ _ -> ExBudget 1 0)
+            (\_ _ _ -> ExBudgetLast mempty)
 
     toBuiltinMeaning _ver Id =
         makeBuiltinMeaning
             Prelude.id
-            (\_ _ -> ExBudget 1 0)
+            (\_ _ -> ExBudgetLast mempty)
 
     toBuiltinMeaning _ver IdAssumeBool =
         makeBuiltinMeaning
             (Prelude.id :: Opaque val Bool -> Opaque val Bool)
-            (\_ _ -> ExBudget 1 0)
+            (\_ _ -> ExBudgetLast mempty)
 
     toBuiltinMeaning _ver IdAssumeCheckBool =
         makeBuiltinMeaning
             idAssumeCheckBoolPlc
-            mempty  -- Whatever.
+            (\_ _ -> ExBudgetLast mempty)  -- Whatever.
       where
         idAssumeCheckBoolPlc :: Opaque val Bool -> EvaluationResult Bool
         idAssumeCheckBoolPlc val =
@@ -258,7 +267,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     toBuiltinMeaning _ver IdSomeConstantBool =
         makeBuiltinMeaning
             idSomeConstantBoolPlc
-            mempty  -- Whatever.
+            (\_ _ -> ExBudgetLast mempty)  -- Whatever.
       where
         idSomeConstantBoolPlc :: SomeConstant uni Bool -> EvaluationResult Bool
         idSomeConstantBoolPlc = \case
@@ -268,7 +277,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     toBuiltinMeaning _ver IdIntegerAsBool =
         makeBuiltinMeaning
             idIntegerAsBool
-            mempty  -- Whatever.
+            (\_ _ -> ExBudgetLast mempty)  -- Whatever.
       where
         idIntegerAsBool :: SomeConstant uni Integer -> EvaluationResult (SomeConstant uni Integer)
         idIntegerAsBool = \case
@@ -278,19 +287,19 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     toBuiltinMeaning _ver IdFInteger =
         makeBuiltinMeaning
             (Prelude.id :: fi ~ Opaque val (f `TyAppRep` Integer) => fi -> fi)
-            (\_ _ -> ExBudget 1 0)
+            (\_ _ -> ExBudgetLast mempty)
 
     toBuiltinMeaning _ver IdList =
         makeBuiltinMeaning
             (Prelude.id :: la ~ Opaque val (PlcListRep a) => la -> la)
-            (\_ _ -> ExBudget 1 0)
+            (\_ _ -> ExBudgetLast mempty)
 
     toBuiltinMeaning _ver IdRank2 =
         makeBuiltinMeaning
             (Prelude.id
                 :: afa ~ Opaque val (TyForallRep @GHC.Type a (TyVarRep f `TyAppRep` TyVarRep a))
                 => afa -> afa)
-            (\_ _ -> ExBudget 1 0)
+            (\_ _ -> ExBudgetLast mempty)
 
     toBuiltinMeaning _ver ScottToMetaUnit =
         makeBuiltinMeaning
@@ -302,36 +311,36 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
                 -- (unlike in the case of @IdRank2@ where 'TyAppRep' preserves the Rep context).
                 :: oa ~ Opaque val (TyVarRep a)
                 => Opaque val (TyForallRep a (oa -> oa)) -> ())
-            (\_ _ -> ExBudget 1 0)
+            (\_ _ -> ExBudgetLast mempty)
 
     toBuiltinMeaning _ver FailingSucc =
         makeBuiltinMeaning
             @(Integer -> Integer)
             (\_ -> throw BuiltinErrorCall)
-            (\_ _ -> ExBudget 1 0)
+            (\_ _ -> ExBudgetLast mempty)
 
     toBuiltinMeaning _ver ExpensiveSucc =
         makeBuiltinMeaning
             @(Integer -> Integer)
             (\_ -> throw BuiltinErrorCall)
-            (\_ _ -> unExRestrictingBudget enormousBudget)
+            (\_ _ -> ExBudgetLast $ unExRestrictingBudget enormousBudget)
 
     toBuiltinMeaning _ver FailingPlus =
         makeBuiltinMeaning
             @(Integer -> Integer -> Integer)
             (\_ _ -> throw BuiltinErrorCall)
-            (\_ _ _ -> ExBudget 1 0)
+            (\_ _ _ -> ExBudgetLast mempty)
 
     toBuiltinMeaning _ver ExpensivePlus =
         makeBuiltinMeaning
             @(Integer -> Integer -> Integer)
             (\_ _ -> throw BuiltinErrorCall)
-            (\_ _ _ -> unExRestrictingBudget enormousBudget)
+            (\_ _ _ -> ExBudgetLast $ unExRestrictingBudget enormousBudget)
 
     toBuiltinMeaning _ver IsConstant =
         makeBuiltinMeaning
             isConstantPlc
-            mempty  -- Whatever.
+            (\_ _ -> ExBudgetLast mempty)  -- Whatever.
       where
         -- The type signature is just for clarity, it's not required.
         isConstantPlc :: Opaque val a -> Bool
@@ -340,7 +349,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     toBuiltinMeaning _ver UnsafeCoerce =
         makeBuiltinMeaning
             unsafeCoercePlc
-            (\_ _ -> ExBudget 1 0)
+            (\_ _ -> ExBudgetLast mempty)
       where
         -- The type signature is just for clarity, it's not required.
         unsafeCoercePlc :: Opaque val a -> Opaque val b
@@ -349,7 +358,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     toBuiltinMeaning _ver UnsafeCoerceEl =
         makeBuiltinMeaning
             unsafeCoerceElPlc
-            (\_ _ -> ExBudget 1 0)
+            (\_ _ -> ExBudgetLast mempty)
       where
         unsafeCoerceElPlc
             :: SomeConstant DefaultUni [a]
@@ -361,19 +370,23 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     toBuiltinMeaning _ver Undefined =
         makeBuiltinMeaning
             undefined
-            (\_ -> ExBudget 1 0)
+            (\_ -> ExBudgetLast mempty)
 
     toBuiltinMeaning _ver Absurd =
         makeBuiltinMeaning
             absurd
-            (\_ _ -> ExBudget 1 0)
+            (\_ _ -> ExBudgetLast mempty)
 
     toBuiltinMeaning _ver ErrorPrime =
         makeBuiltinMeaning
             EvaluationFailure
-            (\_ -> ExBudget 1 0)
+            (\_ -> ExBudgetLast mempty)
 
-    toBuiltinMeaning _ver Comma = makeBuiltinMeaning commaPlc mempty where
+    toBuiltinMeaning _ver Comma =
+        makeBuiltinMeaning
+            commaPlc
+            (\_ _ _ -> ExBudgetLast mempty)
+      where
         commaPlc
             :: SomeConstant uni a
             -> SomeConstant uni b
@@ -381,7 +394,11 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
         commaPlc (SomeConstant (Some (ValueOf uniA x))) (SomeConstant (Some (ValueOf uniB y))) =
             fromValueOf (DefaultUniPair uniA uniB) (x, y)
 
-    toBuiltinMeaning _ver BiconstPair = makeBuiltinMeaning biconstPairPlc mempty where
+    toBuiltinMeaning _ver BiconstPair =
+        makeBuiltinMeaning
+            biconstPairPlc
+            (\_ _ _ _ -> ExBudgetLast mempty)
+      where
         biconstPairPlc
             :: SomeConstant uni a
             -> SomeConstant uni b
@@ -396,7 +413,11 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
                 Just Refl <- pure $ uniB `geq` uniB'
                 pure $ fromValueOf uniPairAB (x, y)
 
-    toBuiltinMeaning _ver Swap = makeBuiltinMeaning swapPlc mempty where
+    toBuiltinMeaning _ver Swap =
+        makeBuiltinMeaning
+            swapPlc
+            (\_ _ -> ExBudgetLast mempty)
+      where
         swapPlc
             :: SomeConstant uni (a, b)
             -> EvaluationResult (SomeConstant uni (b, a))
@@ -404,7 +425,11 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
             DefaultUniPair uniA uniB <- pure uniPairAB
             pure $ fromValueOf (DefaultUniPair uniB uniA) (snd p, fst p)
 
-    toBuiltinMeaning _ver SwapEls = makeBuiltinMeaning swapElsPlc mempty where
+    toBuiltinMeaning _ver SwapEls =
+        makeBuiltinMeaning
+            swapElsPlc
+            (\_ _ -> ExBudgetLast mempty)
+      where
         -- The type reads as @[(a, Bool)] -> [(Bool, a)]@.
         swapElsPlc
             :: SomeConstant uni [SomeConstant uni (a, Bool)]
@@ -418,12 +443,48 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     -- See Note [Versioned builtins]
     toBuiltinMeaning ver ExtensionVersion =
         makeBuiltinMeaning
-        @(() -> EvaluationResult Integer)
-        (\(_ :: ()) -> EvaluationSuccess $ case ver of
-                ExtensionFunV0 -> 0
-                ExtensionFunV1 -> 1
-        )
-        mempty  -- Whatever
+            @(() -> EvaluationResult Integer)
+            (\(_ :: ()) -> EvaluationSuccess $ case ver of
+                    ExtensionFunV0 -> 0
+                    ExtensionFunV1 -> 1)
+            (\_ _ -> ExBudgetLast mempty)  -- Whatever
+
+    toBuiltinMeaning _ TrackCosts = unsafePerformIO $ do
+        counterVar <- newMVar 0
+        resultsVar <- newIORef []
+        let finalize =
+                tryTakeMVar counterVar >>= \case
+                    Nothing      -> void $ atomicModifyIORef'_ resultsVar (0 :)
+                    Just counter -> do
+                        _ <- atomicModifyIORef'_ resultsVar (counter :)
+                        putMVar counterVar 0
+
+            regBudget budget = do
+                counter <- takeMVar counterVar
+                let counter' = succ counter
+                putMVar counterVar counter'
+                addFinalizer budget finalize
+                when (counter' >= 100) performMinorGC
+
+            regBudgets (ExBudgetLast budget)         = do
+                regBudget budget
+                pure $ ExBudgetLast budget
+            regBudgets (ExBudgetCons budget budgets) = do
+                regBudget budget
+                budgets' <- unsafeInterleaveIO $ regBudgets budgets
+                pure $ ExBudgetCons budget budgets'
+
+            linear1 = ModelOneArgumentLinearCost $ ModelLinearSize 1 1
+            model   = CostingFun linear1 linear1
+        pure $ makeBuiltinMeaning
+            @(Data -> [Integer])
+            (\_ -> unsafePerformIO $ do
+                performMinorGC
+                threadDelay 50000  -- Giving GC enough time to finish up.
+                finalize
+                results <- readIORef resultsVar
+                pure $ reverse results)
+            (\_ -> unsafePerformIO . regBudgets . runCostingFunOneArgument model)
 
 instance Default (BuiltinVersion ExtensionFun) where
     def = ExtensionFunV1
