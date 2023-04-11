@@ -14,9 +14,9 @@ open import Data.List using (map)
 open import Data.Product using (Σ) renaming (_,_ to _,,_)
 open import Data.Sum using (_⊎_;inj₁;inj₂)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong₂;cong;sym)
-open import Relation.Nullary using (¬_)
+open import Relation.Nullary using (Dec;yes;no;_because_;¬_)
 
-open import Utils using (meqAtomicTyCon)
+open import Utils using (decAtomicTyCon;dec2Either)
 import Utils as U
 open import Scoped using (ScopedTy;Weirdℕ;WeirdFin;ScopedTm)
 open ScopedTy
@@ -79,14 +79,14 @@ data TypeError : Set where
   typeMismatch : ∀{Φ K}(A A' : Φ ⊢Nf⋆ K) → ¬ (A ≡ A') → TypeError
   builtinError : TypeError
 
-meqKind : (K K' : Kind) → Either (¬ (K ≡ K')) (K ≡ K')
-meqKind * * = inj₂ refl
-meqKind * (K' ⇒ J') = inj₁ λ() 
-meqKind (K ⇒ J) * = inj₁ λ()
-meqKind (K ⇒ J) (K' ⇒ J') = do
-  p ← withE (λ ¬p → λ{refl → ¬p refl}) (meqKind K K')
-  q ← withE (λ ¬q → λ{refl → ¬q refl}) (meqKind J J')
-  return (cong₂ _⇒_ p q)
+decKind : (K K' : Kind) → Dec (K ≡ K')
+decKind * * = yes refl
+decKind * (K' ⇒ J') = no λ() 
+decKind (K ⇒ J) * = no λ()
+decKind (K ⇒ J) (K' ⇒ J') with decKind K K' | decKind J J'
+... | yes refl | yes refl = yes refl
+... | yes refl | no  ¬p   = no (λ { refl → ¬p refl})
+... | no  ¬p   | _       = no (λ { refl → ¬p refl})
 
 isStar : ∀{Φ}
        → Either TypeError (Σ Kind (Φ ⊢Nf⋆_))
@@ -115,7 +115,7 @@ isPat p = do
       (K@(_ ⇒ (_ ⇒ (_ ⇒ _))) ,, _) → inj₁ (notPat K λ _ ())
       (K@(* ⇒ (_ ⇒ *)) ,, _) → inj₁ (notPat K λ _ ())
       (K@((_ ⇒ (_ ⇒ _)) ⇒ (_ ⇒ *)) ,, _) → inj₁ (notPat K λ _ ())
-  refl ← withE (kindMismatch _ _) (meqKind K K')
+  refl ← withE (kindMismatch _ _) (dec2Either (decKind K K'))
   return (K ,, A)
 
 isPi :  ∀{Φ Γ}
@@ -166,7 +166,7 @@ inferKindCon Φ (S.atomic A)= inj₂ (T.atomic A)
 
 checkKind Φ A K = do
   K' ,, A ← inferKind Φ A
-  refl ← withE (kindMismatch _ _) (meqKind K K')
+  refl ← withE (kindMismatch _ _) (dec2Either (decKind K K'))
   return A
 
 inferKind Φ (` α) = let K ,, β = inferTyVar Φ α in return (K ,, ne (` β))
@@ -208,93 +208,96 @@ inferVarType (Γ , A) (S x) = do
   A ,, α ← inferVarType Γ x
   return (A ,, S α)
 
-meqTyVar : ∀{Φ K}(α α' : Φ ∋⋆ K) → Either (¬ (α ≡ α')) (α ≡ α')
-meqTyVar Z     Z      = inj₂ refl 
-meqTyVar (S α) (S α') = do
-  p ← withE (λ ¬p → λ{refl → ¬p refl}) (meqTyVar α α')
-  return (cong S p)
-meqTyVar Z     (S α') = inj₁ λ()
-meqTyVar (S α) Z      = inj₁ λ()
+decTyVar : ∀{Φ K}(α α' : Φ ∋⋆ K) → Dec (α ≡ α')
+decTyVar Z     Z      = yes refl 
+decTyVar (S α) (S α') with (decTyVar α α')
+... | yes refl = yes refl 
+... | no  ¬p   = no (λ { refl → ¬p refl})
+decTyVar Z     (S α') = no λ()
+decTyVar (S α) Z      = no λ()
 
-
-meqNfTy : ∀{Φ K}(A A' : Φ ⊢Nf⋆ K) → Either (¬ (A ≡ A')) (A ≡ A')
-meqNeTy : ∀{Φ K}(A A' : Φ ⊢Ne⋆ K) → Either (¬ (A ≡ A')) (A ≡ A')
-meqTyCon : ∀{Φ}(c c' : T.TyCon Φ) → Either (¬ (c ≡ c')) (c ≡ c')
+decNfTy : ∀{Φ K}(A A' : Φ ⊢Nf⋆ K) → Dec (A ≡ A')
+decNeTy : ∀{Φ K}(A A' : Φ ⊢Ne⋆ K) → Dec (A ≡ A')
+decTyCon : ∀{Φ}(c c' : T.TyCon Φ) → Dec (c ≡ c')
 -- atomic
-meqTyCon (T.atomic A) (T.atomic A') = do
-  refl ← withE (λ ¬q → λ{ refl → ¬q refl}) (meqAtomicTyCon A A')
-  return refl
-meqTyCon (T.atomic _) (T.list _)     = inj₁ λ()
-meqTyCon (T.atomic _) (T.pair _ _)   = inj₁ λ()
+decTyCon (T.atomic A) (T.atomic A') with decAtomicTyCon A A'
+... | yes refl = yes refl
+... | no  ¬p   = no (λ { refl → ¬p refl})
+decTyCon (T.atomic _) (T.list _)     = no λ()
+decTyCon (T.atomic _) (T.pair _ _)   = no λ()
 -- pair
-meqTyCon (T.pair A B) (T.pair A' B') = do
-  refl ← withE (λ ¬q → λ{refl → ¬q refl}) (meqNfTy A A')
-  refl ← withE (λ ¬q → λ{refl → ¬q refl}) (meqNfTy B B')  
-  return refl
-meqTyCon (T.pair _ _) (T.atomic _)   = inj₁ λ()
-meqTyCon (T.pair _ _) (T.list _)    = inj₁ λ()
+decTyCon (T.pair A B) (T.pair A' B') with decNfTy A A' | decNfTy B B' 
+... | yes refl | yes refl = yes refl
+... | yes refl | no  ¬p   = no (λ { refl → ¬p refl})
+... | no  ¬p   | _       = no (λ { refl → ¬p refl})
+decTyCon (T.pair _ _) (T.atomic _)   = no λ()
+decTyCon (T.pair _ _) (T.list _)     = no λ()
 -- list
-meqTyCon (T.list A)   (T.list A')    = do
-  refl ← withE (λ ¬q → λ{refl → ¬q refl}) (meqNfTy A A')
-  return refl
-meqTyCon (T.list _)   (T.atomic _)   = inj₁ λ()
-meqTyCon (T.list _)   (T.pair _ _)   = inj₁ λ()
+decTyCon (T.list A)   (T.list A') with decNfTy A A'
+... | yes refl = yes refl
+... | no  ¬p   = no (λ { refl → ¬p refl})
+decTyCon (T.list _)   (T.atomic _)   = no λ()
+decTyCon (T.list _)   (T.pair _ _)   = no λ()
 
-meqNfTy (A ⇒ B) (A' ⇒ B') = do
-  p ← withE (λ ¬p → λ{refl → ¬p refl}) (meqNfTy A A')
-  q ← withE (λ ¬q → λ{refl → ¬q refl}) (meqNfTy B B')
-  return (cong₂ _⇒_ p q)
-meqNfTy (ƛ A) (ƛ A') = do
-  p ← withE (λ ¬p → λ{refl → ¬p refl}) (meqNfTy A A')
-  return (cong ƛ p)
-meqNfTy (Π {K = K} A) (Π {K = K'} A') = do
- refl ← withE (λ ¬p → λ{refl → ¬p refl}) (meqKind K K')
- q    ← withE (λ ¬q → λ{refl → ¬q refl}) (meqNfTy A A')
- return (cong Π q)
-meqNfTy (con c) (con c') = do
-  p ← withE (λ ¬p → λ{refl → ¬p refl}) (meqTyCon c c')
-  return (cong con p)
-meqNfTy (μ {K = K} A B) (μ {K = K'} A' B') = do
-  refl ← withE (λ ¬p → λ{refl → ¬p refl}) (meqKind K K')
-  q    ← withE (λ ¬q → λ{refl → ¬q refl}) (meqNfTy A A')
-  r    ← withE (λ ¬r → λ{refl → ¬r refl}) (meqNfTy B B')
-  return (cong₂ μ q r)
-meqNfTy (ne A) (ne A') = do
-  p ← withE (λ ¬p → λ{refl → ¬p refl}) (meqNeTy A A')
-  return (cong ne p)
-meqNfTy (Π _) (_ ⇒ _) = inj₁ λ()
-meqNfTy (Π _) (ne _) = inj₁ λ()
-meqNfTy (Π _) (con _) = inj₁ λ()
-meqNfTy (Π _) (μ _ _) = inj₁ λ()
-meqNfTy (_ ⇒ _) (Π _) = inj₁ λ()
-meqNfTy (_ ⇒ _) (ne _) = inj₁ λ()
-meqNfTy (_ ⇒ _) (con _) = inj₁ λ()
-meqNfTy (_ ⇒ _) (μ _ _) = inj₁ λ()
-meqNfTy (ƛ _) (ne _) = inj₁ λ()
-meqNfTy (ne _) (Π _) = inj₁ λ()
-meqNfTy (ne _) (_ ⇒ _) = inj₁ λ()
-meqNfTy (ne _) (ƛ _) = inj₁ λ()
-meqNfTy (ne _) (con _) = inj₁ λ()
-meqNfTy (ne _) (μ _ _) = inj₁ λ()
-meqNfTy (con _) (Π _) = inj₁ λ()
-meqNfTy (con _) (_ ⇒ _) = inj₁ λ()
-meqNfTy (con _) (ne _) = inj₁ λ()
-meqNfTy (con _) (μ _ _) = inj₁ λ()
-meqNfTy (μ _ _) (Π _) = inj₁ λ()
-meqNfTy (μ _ _) (_ ⇒ _) = inj₁ λ()
-meqNfTy (μ _ _) (ne _) = inj₁ λ()
-meqNfTy (μ _ _) (con _) = inj₁ λ()
+decNfTy (A ⇒ B) (A' ⇒ B') with decNfTy A A' | decNfTy B B' 
+... | yes refl | yes refl = yes refl
+... | yes refl | no  ¬p   = no (λ { refl → ¬p refl})
+... | no  ¬p   | d        = no (λ { refl → ¬p refl})
+decNfTy (ƛ A) (ƛ A') with decNfTy A A' 
+... | yes refl = yes refl
+... | no  ¬p   = no (λ { refl → ¬p refl})
+decNfTy (Π {K = K} A) (Π {K = K'} A') with decKind K K' 
+... | no  ¬p               = no (λ { refl → ¬p refl})
+... | yes refl with decNfTy A A' 
+...             | yes refl = yes refl
+...             | no  ¬p   = no (λ { refl → ¬p refl})
 
-meqNeTy (` α) (` α') = do
-  p ← withE (λ ¬p → λ{refl → ¬p refl}) (meqTyVar α α')
-  return (cong ` p)
-meqNeTy (_·_ {K = K} A B) (_·_ {K = K'} A' B') = do
-  refl ← withE (λ ¬p → λ{refl → ¬p refl}) (meqKind K K')
-  q    ← withE (λ ¬q → λ{refl → ¬q refl}) (meqNeTy A A')
-  r    ← withE (λ ¬r → λ{refl → ¬r refl}) (meqNfTy B B')
-  return (cong₂ _·_ q r)
-meqNeTy (` _) (_ · _) = inj₁ λ()
-meqNeTy (_ · _) (` _) = inj₁ λ()
+decNfTy (con c) (con c') with decTyCon c c' 
+... | yes refl = yes refl
+... | no  ¬p   = no (λ { refl → ¬p refl})
+decNfTy (μ {K = K} A B) (μ {K = K'} A' B') with decKind K K' 
+... | no  ¬p                          = no (λ { refl → ¬p refl})
+... | yes refl with decNfTy A A' | decNfTy B B' 
+...             | yes refl | yes refl = yes refl
+...             | yes refl | no  ¬p   = no (λ { refl → ¬p refl})
+...             | no  ¬p   | _        = no (λ { refl → ¬p refl})
+decNfTy (ne A) (ne A') with decNeTy A A'
+... | yes refl = yes refl
+... | no  ¬p   = no (λ { refl → ¬p refl})
+decNfTy (Π _) (_ ⇒ _) = no λ()
+decNfTy (Π _) (ne _) = no λ()
+decNfTy (Π _) (con _) = no λ()
+decNfTy (Π _) (μ _ _) = no λ()
+decNfTy (_ ⇒ _) (Π _) = no λ()
+decNfTy (_ ⇒ _) (ne _) = no λ()
+decNfTy (_ ⇒ _) (con _) = no λ()
+decNfTy (_ ⇒ _) (μ _ _) = no λ()
+decNfTy (ƛ _) (ne _) = no λ()
+decNfTy (ne _) (Π _) = no λ()
+decNfTy (ne _) (_ ⇒ _) = no λ()
+decNfTy (ne _) (ƛ _) = no λ()
+decNfTy (ne _) (con _) = no λ()
+decNfTy (ne _) (μ _ _) = no λ()
+decNfTy (con _) (Π _) = no λ()
+decNfTy (con _) (_ ⇒ _) = no λ()
+decNfTy (con _) (ne _) = no λ()
+decNfTy (con _) (μ _ _) = no λ()
+decNfTy (μ _ _) (Π _) = no λ()
+decNfTy (μ _ _) (_ ⇒ _) = no λ()
+decNfTy (μ _ _) (ne _) = no λ()
+decNfTy (μ _ _) (con _) = no λ()
+
+decNeTy (` α) (` α') with decTyVar α α'
+... | yes refl = yes refl
+... | no  ¬p   = no (λ { refl → ¬p refl})
+decNeTy (_·_ {K = K} A B) (_·_ {K = K'} A' B') with decKind K K' 
+... | no  ¬p                          = no (λ { refl → ¬p refl})
+... | yes refl with decNeTy A A' | decNfTy B B' 
+...             | yes refl | yes refl = yes refl
+...             | yes refl | no  ¬p   = no (λ { refl → ¬p refl})
+...             | no  ¬p   | _        = no (λ { refl → ¬p refl})
+decNeTy (` _) (_ · _) = no λ()
+decNeTy (_ · _) (` _) = no λ()
 
 inv-complete : ∀{Φ K}{A A' : Φ ⊢⋆ K} → nf A ≡ nf A' → A' ≡β A
 inv-complete {A = A}{A' = A'} p = trans≡β
@@ -324,7 +327,7 @@ inferType : ∀{Φ}(Γ : Ctx Φ) → ScopedTm (len Γ)
 
 checkType Γ L A = do
   A' ,, L ← inferType Γ L
-  refl ← withE (typeMismatch _ _) (meqNfTy A A')
+  refl ← withE (typeMismatch _ _) (dec2Either (decNfTy A A'))
   return L
   
 inferType Γ (` x) = do
@@ -361,4 +364,4 @@ inferType Γ (unwrap L) = do
   K ,, A ,, B ,, L ← isMu (inferType Γ L)
   return (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B) ,, unwrap L refl)
 ```
- 
+  

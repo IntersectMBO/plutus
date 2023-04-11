@@ -372,10 +372,9 @@ BUILTIN unListData = λ
   ; _ -> inj₁ userError
   }
 BUILTIN equalsData = λ
-  {  -- TODO
---    (app (app base (V-con (pdata x))) (V-con (pdata y))) → {!   !}
---  ; 
-     _ -> inj₁ userError
+  {  
+    (app (app base (V-con (pdata x))) (V-con (pdata y))) → inj₂ (V-con (bool (eqDATA x y)))
+  ;  _ -> inj₁ userError
   }
 BUILTIN mkPairData = λ
   { (app (app base (V-con (pdata x))) (V-con (pdata y))) → inj₂ (V-con (pairDATA x y))

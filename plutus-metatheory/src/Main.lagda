@@ -15,7 +15,7 @@ open import Data.List using (List)
 open import Data.Empty using (⊥)
 
 open import Type using (Ctx⋆;∅;_,⋆_)
-open import Check using (TypeError;inferType;inferKind;meqKind;checkKind;checkType)
+open import Check using (TypeError;inferType;inferKind;decKind;checkKind;checkType)
 open TypeError -- Bring all TypeError constructors in scope.
 
 open import Scoped.Extrication using (extricateNf⋆;extricate)
@@ -28,7 +28,7 @@ open U.State
 open import Raw using (RawTm;RawTy;rawPrinter;rawTyPrinter;decRTy;decRTm)
 open import Scoped using (FreeVariableError;ScopeError;freeVariableError;extricateScopeTy;ScopedTm;Weirdℕ;scopeCheckTm;shifter;unshifter;extricateScope;unshifterTy;scopeCheckTy;shifterTy)
 open Weirdℕ -- Bring Weirdℕ constructors in scope
-open import Utils using (Either;inj₁;inj₂;withE;Kind;*;Maybe;nothing;just;Monad;RuntimeError)
+open import Utils using (Either;inj₁;inj₂;withE;Kind;*;Maybe;nothing;just;Monad;RuntimeError;dec2Either)
 open RuntimeError
 open Monad {{...}}
 
@@ -445,7 +445,7 @@ checkKindX : Type → Kind → Either ERROR ⊤
 checkKindX ty k = do
   ty        ← withE scopeError (scopeCheckTy (shifterTy Z (convTy ty)))
   (k' ,, _) ← withE (λ e → typeError (uglyTypeError e)) (inferKind ∅ ty)
-  _         ← withE ((λ e → ERROR.typeError (uglyTypeError e)) ∘ kindMismatch _ _) (meqKind k k')
+  _         ← withE ((λ e → ERROR.typeError (uglyTypeError e)) ∘ kindMismatch _ _) (dec2Either (decKind k k'))
   return tt
 
 {-# COMPILE GHC checkKindX as checkKindAgda #-}
