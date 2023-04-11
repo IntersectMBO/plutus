@@ -43,7 +43,6 @@ import Control.Monad.Primitive
 import PlutusCore.Builtin
 import PlutusCore.DeBruijn
 import PlutusCore.Evaluation.Machine.ExBudget
-import PlutusCore.Evaluation.Machine.ExBudgetStream
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Evaluation.Result
@@ -418,17 +417,6 @@ lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
         Nothing  -> throwingWithCause _MachineError OpenTermEvaluatedMachineError $ Just var where
             var = Var () varName
         Just val -> pure val
-
--- | Spend each budget from the given stream of budgets.
-spendBudgetStreamCek
-    :: GivenCekReqs uni fun ann s
-    => ExBudgetCategory fun
-    -> ExBudgetStream
-    -> CekM uni fun s ()
-spendBudgetStreamCek exCat = go where
-    go (ExBudgetLast budget)         = spendBudgetCek exCat budget
-    go (ExBudgetCons budget budgets) = spendBudgetCek exCat budget *> go budgets
-{-# INLINE spendBudgetStreamCek #-}
 
 -- | Take pieces of a possibly partial builtin application and either create a 'CekValue' using
 -- 'makeKnown' or a partial builtin application depending on whether the built-in function is

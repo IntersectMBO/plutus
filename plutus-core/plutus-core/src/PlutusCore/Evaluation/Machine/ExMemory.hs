@@ -21,22 +21,6 @@ import NoThunks.Class
 import Text.Pretty
 import Text.PrettyBy
 
-{-
- ************************************************************************************
- *  WARNING: exercise caution when altering the ExMemoryUsage instances here.       *
- *                                                                                  *
- *  The instances defined in this file will be used to calculate script validation  *
- *  costs, and if an instance is changed then any scripts which were deployed when  *
- *  a previous instance was in effect MUST STILL VALIDATE using the new instance.   *
- *  It is unsafe to increase the memory usage of a type because that may increase   *
- *  the resource usage of existing scripts beyond the limits set (and paid for)     *
- *  when they were uploaded to the chain, but because our costing functions are all *
- *  monotone) it is safe to decrease memory usage, as long it decreases for *all*   *
- *  possible values of the type.                                                    *
- ************************************************************************************
--}
-
-
 {- Note [Memory Usage for Plutus]
 
 The base unit is 'ExMemory', which corresponds to machine words. For primitives,

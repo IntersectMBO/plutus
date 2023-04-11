@@ -309,7 +309,7 @@ sierpinskiSize n
 -- Named after https://en.wikipedia.org/wiki/Sierpi%C5%84ski_triangle
 sierpinskiRose :: Int -> CostRose
 sierpinskiRose n0
-    | n0 <= 1   = CostRose 1 []
+    | n0 <= 1   = singletonRose 1
     | otherwise = CostRose (fromIntegral n0) . go . replicate 3 $ n0 - 1
   where
     -- Inlining the definition of @map sierpinskiRose@ manually to make sure subtrees are definitely
@@ -460,9 +460,9 @@ test_flattenCostRoseSound :: TestTree
 test_flattenCostRoseSound =
     testProperty "flattenCostRose puts 100% of its input and nothing else into the output" $
         withMaxSuccess 1000 $ \rose ->
-            -- This assumes that 'flattenCostRose' is left-biased, which isn't really
-            -- necessarily, but it doesn't seem like we're giving up on the assumption any time soon
-            -- anyway, so why not keep it simple instead of sorting the results.
+            -- This assumes that 'flattenCostRose' is left-biased, which isn't really necessary, but
+            -- it doesn't seem like we're giving up on the assumption any time soon anyway, so why
+            -- not keep it simple instead of sorting the results.
             checkEqualsVia eqCostStream
                 (flattenCostRose rose)
                 (fromCostList $ fromCostRose rose)

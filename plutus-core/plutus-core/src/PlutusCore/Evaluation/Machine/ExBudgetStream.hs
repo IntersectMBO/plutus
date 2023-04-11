@@ -65,7 +65,9 @@ zipCostStreamGo (CostCons cpu cpus) (CostCons mem mems) =
     ExBudgetCons (toExBudget cpu mem) $ zipCostStreamGo cpus mems
 
 -- | Zip two 'CostStream' together (one with CPU costs and the other one with memory costs,
--- respectively) to get an 'ExBudgetStream'.
+-- respectively) to get an 'ExBudgetStream'. If one is longer than the other, then it's assumed to
+-- contain the required amount of zeros for two streams to have the same length (all those zeros
+-- \"appear\" in the tail of the stream).
 zipCostStream :: CostStream -> CostStream -> ExBudgetStream
 zipCostStream cpus0 mems0 = case (cpus0, mems0) of
     -- See Note [Single-element streams].

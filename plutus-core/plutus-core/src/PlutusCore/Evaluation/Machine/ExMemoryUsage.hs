@@ -7,6 +7,7 @@
 
 module PlutusCore.Evaluation.Machine.ExMemoryUsage
     ( CostRose(..)
+    , singletonRose
     , ExMemoryUsage(..)
     , flattenCostRose
     ) where
@@ -26,6 +27,21 @@ import GHC.Integer
 import GHC.Integer.Logarithms
 import GHC.Prim
 import Universe
+
+{-
+ ************************************************************************************
+ *  WARNING: exercise caution when altering the ExMemoryUsage instances here.       *
+ *                                                                                  *
+ *  The instances defined in this file will be used to calculate script validation  *
+ *  costs, and if an instance is changed then any scripts which were deployed when  *
+ *  a previous instance was in effect MUST STILL VALIDATE using the new instance.   *
+ *  It is unsafe to increase the memory usage of a type because that may increase   *
+ *  the resource usage of existing scripts beyond the limits set (and paid for)     *
+ *  when they were uploaded to the chain, but because our costing functions are all *
+ *  monotone) it is safe to decrease memory usage, as long it decreases for *all*   *
+ *  possible values of the type.                                                    *
+ ************************************************************************************
+-}
 
 {- Note [ExMemoryUsage instances for non-constants]
 In order to calculate the cost of a built-in function we need to feed the 'ExMemory' of each
@@ -84,6 +100,11 @@ traversing the list), while we of course want it to be O(1).
 data CostRose = CostRose {-# UNPACK #-} !CostingInteger ![CostRose]
     deriving stock (Show)
 
+-- | Make a 'CostRose' containing a single cost.
+singletonRose :: CostingInteger -> CostRose
+singletonRose cost = CostRose cost []
+{-# INLINE singletonRose #-}
+
 -- See Note [Global local functions].
 -- This is one way to define the worker. There are many more, see
 -- https://github.com/input-output-hk/plutus/pull/5239#discussion_r1151197471
@@ -132,7 +153,7 @@ instance (ExMemoryUsage a, ExMemoryUsage b) => ExMemoryUsage (a, b) where
     {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage (SomeTypeIn uni) where
-  memoryUsage _ = CostRose 1 []
+  memoryUsage _ = singletonRose 1
   {-# INLINE memoryUsage #-}
 
 instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (Some (ValueOf uni)) where
@@ -140,7 +161,7 @@ instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (Some (Va
   {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage () where
-  memoryUsage () = CostRose 1 []
+  memoryUsage () = singletonRose 1
   {-# INLINE memoryUsage #-}
 
 -- | Calculate a 'CostingInteger' for the given 'Integer'.
@@ -154,11 +175,11 @@ memoryUsageInteger i = fromIntegral $ I# (integerLog2# (abs i) `quotInt#` intege
 {-# NOINLINE memoryUsageInteger #-}
 
 instance ExMemoryUsage Integer where
-  memoryUsage i = CostRose (memoryUsageInteger i) [] where
+  memoryUsage i = singletonRose $ memoryUsageInteger i where
   {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage Word8 where
-  memoryUsage _ = CostRose 1 []
+  memoryUsage _ = singletonRose 1
   {-# INLINE memoryUsage #-}
 
 {- Bytestrings: we want things of length 0 to have size 0, 1-8 to have size 1,
@@ -168,7 +189,7 @@ instance ExMemoryUsage Word8 where
    things whose sizes are multiples of 8. -}
 instance ExMemoryUsage BS.ByteString where
   -- Don't use `div` here!  That gives 1 instead of 0 for n=0.
-  memoryUsage bs = CostRose (unsafeToSatInt $ ((n - 1) `quot` 8) + 1) [] where
+  memoryUsage bs = singletonRose . unsafeToSatInt $ ((n - 1) `quot` 8) + 1 where
       n = BS.length bs
   {-# INLINE memoryUsage #-}
 
@@ -179,15 +200,15 @@ instance ExMemoryUsage T.Text where
   {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage Int where
-  memoryUsage _ = CostRose 1 []
+  memoryUsage _ = singletonRose 1
   {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage Char where
-  memoryUsage _ = CostRose 1 []
+  memoryUsage _ = singletonRose 1
   {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage Bool where
-  memoryUsage _ = CostRose 1 []
+  memoryUsage _ = singletonRose 1
   {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage a => ExMemoryUsage [a] where
@@ -213,7 +234,7 @@ instance ExMemoryUsage a => ExMemoryUsage [a] where
 instance ExMemoryUsage Data where
     memoryUsage = sizeData where
         -- The cost of each node of the 'Data' object (in addition to the cost of its content).
-        nodeMem = CostRose 4 []
+        nodeMem = singletonRose 4
         {-# INLINE nodeMem #-}
 
         -- Add two 'CostRose's. We don't make this into a 'Semigroup' instance, because there exist

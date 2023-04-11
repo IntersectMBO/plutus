@@ -145,7 +145,7 @@ propertyR prop = withTests numberOfTests $ property $ unsafeHoist unsafeRunRegio
 -}
 newtype ExM = ExM CostingInteger
 instance ExMemoryUsage ExM where
-    memoryUsage (ExM n) = CostRose n []
+    memoryUsage (ExM n) = singletonRose 4
 
 -- Creates the model on the R side, loads the parameters over to Haskell, and
 -- runs both models with a bunch of ExMemory combinations and compares the

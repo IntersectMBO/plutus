@@ -58,7 +58,7 @@ too, which when happens in multiple places can create serious GHC Core bloat, ma
 to analyze the generated code. Hence in some cases we optimize for lower amounts of produced GHC
 Core by turning some helper functions into global ones.
 
-This doesn't work as well when the helper function captures a variables bound by the enclosing one,
+This doesn't work as well when the helper function captures a variable bound by the enclosing one,
 so we leave such helper functions local. We could probably create a global helper and a local
 function within it instead, but so far it doesn't appear as those capturing helpers actually get
 duplicated in the generated Core.

@@ -46,6 +46,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     , StepKind(..)
     , PrettyUni
     , extractEvaluationResult
+    , spendBudgetStreamCek
     , runCekDeBruijn
     , dischargeCekValue
     , Context (..)
@@ -571,10 +572,10 @@ data Context uni fun ann
 instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (CekValue uni fun ann) where
     memoryUsage = \case
         VCon c      -> memoryUsage c
-        VDelay {}   -> CostRose 1 []
-        VLamAbs {}  -> CostRose 1 []
-        VBuiltin {} -> CostRose 1 []
-        VConstr {}  -> CostRose 1 []
+        VDelay {}   -> singletonRose 1
+        VLamAbs {}  -> singletonRose 1
+        VBuiltin {} -> singletonRose 1
+        VConstr {}  -> singletonRose 1
     {-# INLINE memoryUsage #-}
 
 -- | A 'MonadError' version of 'try'.
