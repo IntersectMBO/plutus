@@ -13,10 +13,10 @@ See note [Inlining of fully applied functions].
 module PlutusIR.Transform.Inline.CallSiteInline where
 
 import Control.Monad.State
+import PlutusCore.Rename.Internal
 import PlutusIR.Contexts
 import PlutusIR.Core
 import PlutusIR.Transform.Inline.Utils
-
 {- Note [Inlining of fully applied functions]
 
 We inline if (1) a function is fully applied (2) its cost and size are acceptable. We discuss
@@ -145,7 +145,11 @@ considerInlineSat tm = do
         case maybeVarInfo of
           Just varInfo -> do
             let body = varBody varInfo
-                def = varDef varInfo
+                defAsInlineTerm = varDef varInfo
+                inlineTermToTerm :: InlineTerm tyname name uni fun ann
+                  -> Term tyname name uni fun ann
+                inlineTermToTerm (Done (Dupable var)) = var
+                def = inlineTermToTerm defAsInlineTerm
                 fullyApplied = isFullyApplied (arity varInfo) ctx
             -- It is the body that we will be left with in the program after we have
             -- reduced the saturated application, so the size increase we will be left
@@ -155,17 +159,20 @@ considerInlineSat tm = do
             -- of that is acceptable. Note that we do _not_ check the cost of the _body_.
             -- We would have paid that regardless.
             -- Consider e.g. `let y = \x. f x`. We pay the cost of the `f x` at every call
-            -- site regardless. The work that is being duplicated is the work for the labmda.
+            -- site regardless. The work that is being duplicated is the work for the lambda.
                 defCostOk = costIsAcceptable def
             -- check if binding is pure to avoid duplicated effects.
             -- For strict bindings we can't accidentally make any effects happen less often than
             -- it would have before, but we can make it happen more often.
             -- We could potentially do this safely in non-conservative mode.
             defPure <- isTermBindingPure (varStrictness varInfo) def
-            pure $
-              if fullyApplied && bodySizeOk && defCostOk && defPure
-              then fillAppContext def ctx
-              else tm
-          -- We should have variable info for everything, but if we don't just give up
+            if fullyApplied && bodySizeOk && defCostOk && defPure
+            then do 
+                -- rename the term before substituting in
+                renamed <- renameTerm defAsInlineTerm
+                pure $ fillAppContext renamed ctx
+            else pure tm
+          -- The variable maybe a *recursive* let binding, in which case it won't be in the map,
+          -- and we don't process it. ATM recursive bindings aren't inlined.
           Nothing -> pure tm
       _ -> pure tm

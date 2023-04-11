@@ -24,8 +24,7 @@ import PlutusCore.Annotation
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Name
 import PlutusCore.Quote
-import PlutusCore.Rename (dupable, liftDupable)
-import PlutusCore.Subst (typeSubstTyNamesM)
+import PlutusCore.Rename (dupable)
 
 import Control.Lens hiding (Strict)
 import Control.Monad.Reader
@@ -223,34 +222,6 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
             -- If we use the context-based approach like in GHC, this won't be a problem, so we may
             -- consider that in the future.
             considerInlineSat processedT
-
-applyTypeSubstitution :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
-    => Type tyname uni ann
-    -> InlineM tyname name uni fun ann (Type tyname uni ann)
-applyTypeSubstitution t = gets isTypeSubstEmpty >>= \case
-    -- The type substitution is very often empty, and there are lots of types in the program,
-    -- so this saves a lot of work (determined from profiling)
-    True -> pure t
-    _    -> typeSubstTyNamesM substTyName t
-
--- See Note [Inlining and global uniqueness]
-substTyName :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
-    => tyname
-    -> InlineM tyname name uni fun ann (Maybe (Type tyname uni ann))
-substTyName tyname = gets (lookupType tyname) >>= traverse liftDupable
-
--- See Note [Inlining and global uniqueness]
-substName :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
-    => name
-    -> InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
-substName name = gets (lookupTerm name) >>= traverse renameTerm
-
--- See Note [Inlining approach and 'Secrets of the GHC Inliner']
--- Already processed term, just rename and put it in, don't do any further optimization here.
-renameTerm :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
-    => InlineTerm tyname name uni fun ann
-    -> InlineM tyname name uni fun ann (Term tyname name uni fun ann)
-renameTerm (Done t) = liftDupable t
 
 -- | Run the inliner on a single non-recursive let binding.
 processSingleBinding
