@@ -119,6 +119,13 @@ V-I : ∀ b
 V-I b {tm = zero}   bt = V-I⇒ b bt
 V-I b {tm = suc tm} bt = V-IΠ b bt
 
+{-
+The BUILTIN function provides the semantics of builtin functions.
+
+WARNING: This untyped BUILTIN function implements all builtin functions, but not all of them have been tested.
+This WARNING will be removed once the tests are done.
+-}
+
 BUILTIN : ∀ b → BApp b (alldone (fv♯ (signature b))) (alldone (args♯ (signature b))) → Either RuntimeError Value
 BUILTIN addInteger = λ
   { (app (app base (V-con (integer i))) (V-con (integer i'))) -> inj₂ (V-con (integer (i + i')))  
