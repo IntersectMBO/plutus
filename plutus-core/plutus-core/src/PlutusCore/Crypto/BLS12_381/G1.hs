@@ -29,23 +29,16 @@ import Data.Proxy (Proxy (..))
 import Flat
 import Prettyprinter
 
-{- | Note [Wrapping the BLS12-381 types].  In the Haskell bidings to the `blst`
-library, points in G1 and G2 are represented as ForeignPtrs pointing to C
-objects, with a phantom type determining which group is involved. We have to
-wrap these in a newtype here because otherwise the builtin machinery spots that
-they're applications and can't find the relevant type parameters.  In theory I
-think we could add a couple of phantom types to the default universe, but it
-seemed simpler and safer to use monomorphic types instead, even though it
-requires a bit of code duplication between G1 and G2.
+{- | Note [Wrapping the BLS12-381 types in Plutus Core].  In the Haskell bindings
+to the `blst` library, points in G1 and G2 are represented as ForeignPtrs
+pointing to C objects, with a phantom type determining which group is
+involved. We have to wrap these in a newtype here because otherwise the builtin
+machinery spots that they're applications and can't find the relevant type
+parameters.  In theory I think we could add a couple of phantom types to the
+default universe, but it seemed simpler and safer to use monomorphic types
+instead, even though it requires a bit of code duplication between G1 and G2.
 
-The newtype wrappers suffice for Plutus Core, but there's a further complication
-in PlutusTx: if you try to use the newtypes directly then the plugin sees
-through the newtypes to the foreign pointers and fails because it doesn't know
-how to handle them.  To avoid this we further wrap the newtypes in datatypes.
-We could do this here (just write `data` instead of `newtype`), but then the
-code dealing with BLS types and builtins in PlutusTx doesn't look like the code
-for the other builtins.  Because of this it seemed safer and more uniform to add
-the datatype wrapper in PlutusTx rather than here.
+See also Note [Wrapping the BLS12-381 types in PlutusTx].
 -}
 newtype Element = Element { unElement :: BlstBindings.Point1 }
     deriving newtype (Eq)

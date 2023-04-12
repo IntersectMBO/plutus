@@ -516,9 +516,20 @@ serialiseData (BuiltinData b) = BuiltinByteString $ BSL.toStrict $ serialise b
 BLS12_381
 -}
 
-{- | We have to wrap the BLS21_381 types in datatypes to stop the plugin from
-   seeing that they're really ForeignPtrs inside newtypes, which it can't deal
-   with. See Note [Wrapping the BLS12-381 types] -}
+{- | Note [Wrapping the BLS12-381 types in PlutusTx]
+
+As explained in Note [Wrapping the BLS12-381 types in Plutus Core], the types
+exported by the Haskell bindings for the `blst` library are ForeignPtrs which
+have to be wrapped in newtypes to keep the PLC builtin machinery happy.
+However, there's a further complication in PlutusTx: if you try to use the
+newtypes directly then the plugin sees through the newtypes to the foreign
+pointers and fails because it doesn't know how to handle them.  To avoid this we
+further wrap the newtypes in datatypes here.  We could have done this in Plutus
+Core by using `data` instead of `newtype`, but then the code here dealing with
+BLS types and builtins doesn't look like the code for the other builtins.
+Because of this it seemed safer and more uniform to add the datatype wrapper
+here rather than in the Plutus Core code.
+-}
 
 ---------------- G1 ----------------
 
