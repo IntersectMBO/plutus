@@ -245,7 +245,10 @@ processSingleBinding body = \case
                 -- call site inlining.
                 -- We don't remove the binding because we decide *at the call site*
                 -- whether we want to inline, and it may be called more than once.
-                void $ modify' $ extendVarInfo n (MkVarInfo s processedRhs varArity bodyToCheck)
+                void $ modify' $
+                    extendVarInfo
+                        n
+                        (MkVarInfo s (Done (dupable processedRhs)) varArity bodyToCheck)
                 pure $ Just $ TermBind ann s v processedRhs
     (TypeBind ann v@(TyVarDecl _ n _) rhs) -> do
         maybeRhs' <- maybeAddTySubst n rhs

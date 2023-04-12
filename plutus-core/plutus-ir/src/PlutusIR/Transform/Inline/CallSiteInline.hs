@@ -175,4 +175,5 @@ considerInlineSat tm = do
           -- The variable maybe a *recursive* let binding, in which case it won't be in the map,
           -- and we don't process it. ATM recursive bindings aren't inlined.
           Nothing -> pure tm
+      -- if the term being applied is not a `Var`, don't inline
       _ -> pure tm
