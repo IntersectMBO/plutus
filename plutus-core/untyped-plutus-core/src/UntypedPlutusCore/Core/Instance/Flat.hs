@@ -86,6 +86,17 @@ encoding of bytestrings is a sequence of 255-byte chunks. This is okay, since us
 be broken up by the chunk metadata.
 -}
 
+-- TODO: This is present upstream in newer versions of flat, remove once we get there.
+-- | Compute the size needed for a list using the given size function for the elements.
+-- Goes with 'encodeListWith'.
+sizeListWith :: (a -> NumBits -> NumBits) -> [a] -> NumBits -> NumBits
+sizeListWith sizer = go
+  where
+    -- Single bit to say stop
+    go [] sz     = sz + 1
+    -- Size for the rest plus size for the element, plus one for a tag to say keep going
+    go (x:xs) sz = go xs $ sizer x $ sz + 1
+
 -- | Using 4 bits to encode term tags.
 termTagWidth :: NumBits
 termTagWidth = 4
@@ -181,8 +192,8 @@ sizeTerm tm sz =
     Force    ann t      -> size ann $ sizeTerm t sz'
     Error    ann        -> size ann sz'
     Builtin  ann bn     -> size ann $ size bn sz'
-    Constr   ann i es   -> size ann $ size i $ foldr sizeTerm sz' es
-    Case     ann arg cs -> size ann $ sizeTerm arg $ foldr sizeTerm sz' cs
+    Constr   ann i es   -> size ann $ size i $ sizeListWith sizeTerm es sz'
+    Case     ann arg cs -> size ann $ sizeTerm arg $ sizeListWith sizeTerm cs sz'
 
 -- | An encoder for programs.
 --
