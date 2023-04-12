@@ -339,7 +339,7 @@ postulate
 {-# FOREIGN GHC import qualified Data.Text as Text #-}
 {-# FOREIGN GHC import Data.Either.Extra #-}
 {-# FOREIGN GHC import Data.Word (Word8) #-}
-{-# FOREIGN GHC import GHC.Bits (toIntegralSized) #-}
+{-# FOREIGN GHC import Data.Bits (toIntegralSized) #-}
 {-# COMPILE GHC length = toInteger . BS.length #-}
 
 -- no binding needed for addition
