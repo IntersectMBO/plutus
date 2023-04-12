@@ -100,7 +100,7 @@ traversing the list), while we of course want it to be O(1).
 data CostRose = CostRose {-# UNPACK #-} !CostingInteger ![CostRose]
     deriving stock (Show)
 
--- | Make a 'CostRose' containing a single cost.
+-- | Create a 'CostRose' containing a single cost.
 singletonRose :: CostingInteger -> CostRose
 singletonRose cost = CostRose cost []
 {-# INLINE singletonRose #-}
@@ -175,7 +175,7 @@ memoryUsageInteger i = fromIntegral $ I# (integerLog2# (abs i) `quotInt#` intege
 {-# NOINLINE memoryUsageInteger #-}
 
 instance ExMemoryUsage Integer where
-  memoryUsage i = singletonRose $ memoryUsageInteger i where
+  memoryUsage i = singletonRose $ memoryUsageInteger i
   {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage Word8 where

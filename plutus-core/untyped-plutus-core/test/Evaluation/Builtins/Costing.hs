@@ -6,11 +6,13 @@
 
 module Evaluation.Builtins.Costing where
 
+import PlutusCore
 import PlutusCore.Evaluation.Machine.CostStream
 import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.ExBudgetStream
 import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
+import PlutusCore.Generators.QuickCheck.Builtin ()
 
 import Data.Bifunctor
 import Data.Coerce
@@ -467,6 +469,14 @@ test_flattenCostRoseSound =
                 (flattenCostRose rose)
                 (fromCostList $ fromCostRose rose)
 
+-- | Test that 'memoryUsage' called over a value of a built-in type never returns a stream
+-- containing a negative cost.
+test_costsAreNeverNegative :: TestTree
+test_costsAreNeverNegative =
+    testProperty "costs coming from 'memoryUsage' are never negative" $
+        withMaxSuccess 500 $ \(val :: Some (ValueOf DefaultUni)) ->
+            all (>= 0) . toCostList . flattenCostRose $ memoryUsage val
+
 test_costing :: TestTree
 test_costing = testGroup "costing"
     [ test_magnitudes
@@ -492,4 +502,5 @@ test_costing = testGroup "costing"
     , test_CostRoseListLengthsDistribution
     , test_genCostRoseSound
     , test_flattenCostRoseSound
+    , test_costsAreNeverNegative
     ]

@@ -33,6 +33,10 @@ inlineable allowing for optimized handling of single-element streams.
 --
 -- The semantics of a stream are those of the sum of its elements. I.e. a stream that is a reordered
 -- version of another stream is considered equal to that stream.
+--
+-- All costs are assumed not to be negative and functions handling 'CostStream's may rely on this
+-- assumption. Negative costs (a.k.a. allowing the user to forge execution units at runtime)
+-- wouldn't make sense.
 data CostStream
     = CostLast {-# UNPACK #-} !CostingInteger
     | CostCons {-# UNPACK #-} !CostingInteger CostStream

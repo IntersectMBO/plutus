@@ -1,4 +1,5 @@
 {-# LANGUAGE DefaultSignatures #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE PolyKinds         #-}
@@ -237,15 +238,13 @@ instance KnownKind k => Arbitrary (MaybeSomeTypeOf k) where
        size <- getSize
        oneof $ case knownKind @k of
            SingType ->
-               [genDefaultUniApply | size > 10] ++
-               [ pure $ JustSomeType DefaultUniInteger
-               , pure $ JustSomeType DefaultUniByteString
-               , pure $ JustSomeType DefaultUniString
-               , pure $ JustSomeType DefaultUniUnit
-               , pure $ JustSomeType DefaultUniBool
-               -- Commented out, because the 'Arbitrary' instance for 'Data' isn't implemented
-               -- (errors out).
-               -- , pure $ JustSomeType DefaultUniData
+               [genDefaultUniApply | size > 10] ++ map pure
+               [ JustSomeType DefaultUniInteger
+               , JustSomeType DefaultUniByteString
+               , JustSomeType DefaultUniString
+               , JustSomeType DefaultUniUnit
+               , JustSomeType DefaultUniBool
+               , JustSomeType DefaultUniData
                ]
            SingType `SingKindArrow` SingType ->
                [genDefaultUniApply | size > 10] ++
@@ -258,6 +257,19 @@ instance KnownKind k => Arbitrary (MaybeSomeTypeOf k) where
 
    shrink NothingSomeType    = []  -- No shrinks if you don't have anything to shrink.
    shrink (JustSomeType uni) = shrinkBuiltinSameKind uni
+
+instance Arbitrary (Some (ValueOf DefaultUni)) where
+    arbitrary = do
+        mayUni <- arbitrary
+        case mayUni of
+            NothingSomeType  -> error "Panic: no *-kinded built-in types exist"
+            JustSomeType uni ->
+                bring (Proxy @ArbitraryBuiltin) uni $
+                    Some . ValueOf uni <$> arbitraryBuiltin
+
+    shrink (Some (ValueOf DefaultUniUnit ())) = []
+    shrink (Some (ValueOf uni x))             = someValue () :
+        bring (Proxy @ArbitraryBuiltin) uni (map (Some . ValueOf uni) $ shrinkBuiltin x)
 
 -- | Generate a built-in type of a given kind.
 genBuiltinTypeOf :: Kind () -> Gen (Maybe (SomeTypeIn DefaultUni))
