@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# LANGUAGE TypeApplications      #-}
@@ -13,7 +14,10 @@ import PlutusCore qualified as PLC
 import PlutusCore.Pretty qualified as PLC
 import PlutusPrelude
 
+import Control.Monad.Except
 import PlutusIR.Analysis.RetainedSize qualified as RetainedSize
+import PlutusIR.Check.Uniques as Uniques
+import PlutusIR.Core.Type
 import PlutusIR.Error as PIR
 import PlutusIR.Parser
 import PlutusIR.Test
@@ -245,6 +249,11 @@ inline =
             , "letNonPureMulti"
             , "letNonPureMultiStrict"
             ]
+
+-- |
+checkUniques :: (Ord a, MonadError (UniqueError a) m) => Term TyName Name uni fun a -> m ()
+checkUniques =
+    Uniques.checkTerm (\case { FreeVariable{} -> False; IncoherentUsage {} -> False; _ -> True})
 
 computeArityTest :: TestNested
 computeArityTest = testNested "computeArityTest" $

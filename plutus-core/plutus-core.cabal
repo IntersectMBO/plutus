@@ -77,6 +77,7 @@ library
     Data.List.Extras
     Data.MultiSet.Lens
     PlutusCore
+    PlutusCore.Analysis.Definitions
     PlutusCore.Annotation
     PlutusCore.Builtin
     PlutusCore.Builtin.Debug
@@ -179,7 +180,6 @@ library
     Data.Aeson.THReader
     Data.Functor.Foldable.Monadic
     GHC.Natural.Extras
-    PlutusCore.Analysis.Definitions
     PlutusCore.Builtin.HasConstant
     PlutusCore.Builtin.KnownKind
     PlutusCore.Builtin.KnownType
@@ -440,6 +440,7 @@ library plutus-ir
   exposed-modules:
     PlutusIR
     PlutusIR.Analysis.RetainedSize
+    PlutusIR.Check.Uniques
     PlutusIR.Compiler
     PlutusIR.Compiler.Datatype
     PlutusIR.Compiler.Definitions
@@ -451,6 +452,7 @@ library plutus-ir
     PlutusIR.Core.Instance.Flat
     PlutusIR.Core.Instance.Pretty
     PlutusIR.Core.Instance.Pretty.Readable
+    PlutusIR.Core.Instance.Recursive
     PlutusIR.Core.Instance.Scoping
     PlutusIR.Core.Plated
     PlutusIR.Core.Type
@@ -482,6 +484,7 @@ library plutus-ir
 
   hs-source-dirs:  plutus-ir/src
   other-modules:
+    PlutusIR.Analysis.Definitions
     PlutusIR.Analysis.Dependencies
     PlutusIR.Analysis.Size
     PlutusIR.Analysis.Usages
@@ -508,6 +511,7 @@ library plutus-ir
     , parser-combinators   >=0.4.0
     , plutus-core          ^>=1.5
     , prettyprinter        >=1.1.0.1
+    , recursion-schemes
     , semigroupoids
     , semigroups           >=0.19.1
     , text
