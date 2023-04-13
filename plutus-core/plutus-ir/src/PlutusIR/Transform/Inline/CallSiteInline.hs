@@ -165,36 +165,40 @@ isFullyApplied (hdLams:tlLams) (hdArg:tlArg) =
       -- inlining, and it won't make it any worse, so we could consider accepting this.
       False
 
--- | Consider whether to inline a single node. We inline fully applied functions iff the body of
--- the function is `acceptable`.
+-- | Consider whether to inline a saturated application.
 considerInlineSat :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
     => Term tyname name uni fun ann -- ^ The `body` of the `Let` term.
     -> InlineM tyname name uni fun ann (Term tyname name uni fun ann)
 considerInlineSat tm = do
     -- collect all the arguments of the term being applied to
-    let (fun, args) = collectArgs tm
-    case fun of
+    case collectArgs tm of
       -- if it is a `Var` that is being applied to, check to see if it's fully applied
-      Var _ann name -> do
+      (Var _ann name, args) -> do
         maybeVarInfo <- gets (lookupVarInfo name)
         case maybeVarInfo of
-          -- the variable maybe a *recursive* let binding, in which case it won't be in the map,
-          -- and we don't process it. ATM recursive bindings aren't inlined.
-          Nothing -> pure tm
           Just varInfo -> do
-            let isAcceptable = acceptable (varBody varInfo)
-            -- if the body of `Var` is `acceptable` and
-            -- it is fully applied (over-application is allowed) then
-            if isAcceptable && isFullyApplied (arity varInfo) (map fst args)
-            then do
-              -- check if binding is pure to avoid duplicated effects.
-              -- For strict bindings we can't accidentally make any effects happen less often than
-              -- it would have before, but we can make it happen more often.
-              -- We could potentially do this safely in non-conservative mode.
-              isBindingPure <- isTermBindingPure (varStrictness varInfo) (varDef varInfo)
-              if isBindingPure then
-                pure $ mkApps (varDef varInfo) args
-              else pure tm -- term is not pure, don't inline by default.
-            else pure tm
-      -- if the term being applied is not a `Var`, don't inline
+            let body = varBody varInfo
+                def = varDef varInfo
+                fullyApplied = isFullyApplied (arity varInfo) (map fst args)
+            -- It is the body that we will be left with in the program after we have
+            -- reduced the saturated application, so the size increase we will be left
+            -- with comes from the body, and that is what we need to check is okay
+                bodySizeOk = sizeIsAcceptable body
+            -- The definition itself will be inlined, so we need to check that the cost
+            -- of that is acceptable. Note that we do _not_ check the cost of the _body_.
+            -- We would have paid that regardless.
+            -- Consider e.g. `let y = \x. f x`. We pay the cost of the `f x` at every call
+            -- site regardless. The work that is being duplicated is the work for the labmda.
+                defCostOk = costIsAcceptable def
+            -- check if binding is pure to avoid duplicated effects.
+            -- For strict bindings we can't accidentally make any effects happen less often than
+            -- it would have before, but we can make it happen more often.
+            -- We could potentially do this safely in non-conservative mode.
+            defPure <- isTermBindingPure (varStrictness varInfo) def
+            pure $
+              if fullyApplied && bodySizeOk && defCostOk && defPure
+              then mkApps def args
+              else tm
+          -- We should have variable info for everything, but if we don't just give up
+          Nothing -> pure tm
       _ -> pure tm

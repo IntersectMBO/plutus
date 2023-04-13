@@ -307,7 +307,7 @@ maybeAddSubst body ann s n rhs = do
             -- See Note [Inlining approach and 'Secrets of the GHC Inliner'] and [Inlining and
             -- purity]. This is the case where we don't know that the number of occurrences is
             -- exactly one, so there's no point checking if the term is immediately evaluated.
-            let postUnconditional = isBindingPure && acceptable rhs'
+            let postUnconditional = isBindingPure && sizeIsAcceptable rhs' && costIsAcceptable rhs'
             if postUnconditional
             then extendAndDrop (Done $ dupable rhs')
             else pure $ Just rhs'
