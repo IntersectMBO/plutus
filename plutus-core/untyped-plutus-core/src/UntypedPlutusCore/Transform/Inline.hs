@@ -313,7 +313,7 @@ costIsAcceptable = \case
   -- Inlining a case means redoing the match at each use site
   Case{} -> False
 
-  Force{}    -> True
+  Force{}    -> False
   Delay{}    -> True
 
 -- | Is the size increase (in the AST) of inlining a variable whose RHS is
