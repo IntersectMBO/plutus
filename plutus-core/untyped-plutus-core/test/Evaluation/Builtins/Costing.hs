@@ -36,7 +36,7 @@ eqCostStream (CostCons cost1 costs1) (CostCons cost2 costs2) =
 eqCostStream _ _ = False
 
 fromCostList :: NonEmptyList CostingInteger -> CostStream
-fromCostList (NonEmpty [])               = error "cannot be empty"
+fromCostList (NonEmpty [])               = error "Panic: an empty non-empty list"
 fromCostList (NonEmpty (cost0 : costs0)) = go cost0 costs0 where
     go cost []              = CostLast cost
     go cost (cost' : costs) = CostCons cost $ go cost' costs
@@ -65,7 +65,7 @@ magnitudes = zipWith (\low high -> (low + 1, high)) borders (tail borders)
 -- >>> toRange 1234
 -- (1001,10000)
 toRange :: SatInt -> (SatInt, SatInt)
-toRange cost = fromMaybe (error $ "an unexpected cost: " ++ show cost) $
+toRange cost = fromMaybe (error $ "Panic: an unexpected cost: " ++ show cost) $
     find ((>= cost) . snd) magnitudes
 
 -- | Generate a 'SatInt' in the given range.
@@ -312,14 +312,10 @@ sierpinskiSize n
 sierpinskiRose :: Int -> CostRose
 sierpinskiRose n0
     | n0 <= 1   = singletonRose 1
-    | otherwise = CostRose (fromIntegral n0) . go . replicate 3 $ n0 - 1
-  where
-    -- Inlining the definition of @map sierpinskiRose@ manually to make sure subtrees are definitely
-    -- not shared, so that we don't retain them in memory unnecessarily.
-    go :: [Int] -> [CostRose]
-    go []       = []
-    go (n : ns) = sierpinskiRose n : go ns
+    | otherwise = CostRose (fromIntegral n0) . map sierpinskiRose . replicate 3 $ n0 - 1
 
+-- | Traverse a 'sierpinskiRose' of the given depth and display the total amount of elements
+-- processed. See 'test_flattenCostRoseIsLinear' for why we do this.
 test_flattenCostRoseIsLinearForSierpinskiRose :: Int -> TestTree
 test_flattenCostRoseIsLinearForSierpinskiRose depth =
     let size = sierpinskiSize depth
@@ -328,6 +324,9 @@ test_flattenCostRoseIsLinearForSierpinskiRose depth =
             length (toCostList . flattenCostRose $ sierpinskiRose depth) ===
                 size
 
+-- | Test that traversing a larger 'CostRose' takes _linearly_ more time. The actual test can only
+-- be done with eyes unfortunately, because the tests are way too noisy for evaluation times to be
+-- reported even remotely accurately.
 test_flattenCostRoseIsLinear :: TestTree
 test_flattenCostRoseIsLinear = testGroup "flattenCostRose is linear"
     [ test_flattenCostRoseIsLinearForSierpinskiRose 12
@@ -335,6 +334,7 @@ test_flattenCostRoseIsLinear = testGroup "flattenCostRose is linear"
     , test_flattenCostRoseIsLinearForSierpinskiRose 14
     ]
 
+-- | Generate a list of the given length, all arguments of which are distinct. Takes O(n^2) time.
 uniqueVectorOf :: Eq a => Int -> Gen a -> Gen [a]
 uniqueVectorOf i0 genX = go [] i0 where
     go acc i
@@ -343,9 +343,25 @@ uniqueVectorOf i0 genX = go [] i0 where
               x <- genX `suchThat` (`notElem` acc)
               go (x : acc) (i - 1)
 
+{- Note [Generating a CostRose]
+We use an overly pedantic approach for generating 'CostRose's. The idea is simple: generate a list
+of costs, chop it into chunks and turn each of those into its own 'CostRose' recursively, then
+assemble them together to get the resulting 'CostRose'. We do it this way, because that makes it
+trivial to ensure that the generator is not exponential as each generated 'CostRose' only has those
+(and only those) elements in it that came from the generated list and the generator for lists isn't
+exponential. It also makes it easy to control the distribution of the shapes of generated
+'CostRose's. Do we want long forests? Do we want to cover all possible trees up to a certain depth?
+All of that is easy to tweak, although the actual logic can get complicated pretty quickly. But at
+least all this complicated logic is fairly local unlike with the usual approach when generation is
+size-driven and minor tweaks in size handling at any step can result in major changes in the overall
+generation strategy such as exponential growth of the generated objects.
+-}
+
+-- | Up to what length a list is considered \"short\".
 smallLength :: Int
 smallLength = 6
 
+-- | Calculate the maximum number of chunks to split a list of the given list into.
 toMaxChunkNumber :: Int -> Int
 toMaxChunkNumber len
     -- For short lists we take the maximum number of chunks to be the length of the list,
@@ -357,12 +373,6 @@ toMaxChunkNumber len
     -- For long lists it grows even slower.
     | otherwise                       = smallLength + round @Double (sqrt $ fromIntegral len)
 
-zapWith :: a -> b -> (a -> b -> c) -> [a] -> [b] -> [c]
-zapWith xz yz f = go where
-    go []     ys     = map (\y -> f xz y) ys
-    go xs     []     = map (\x -> f x yz) xs
-    go (x:xs) (y:ys) = f x y : go xs ys
-
 -- | Calculate the number of ways to divide a list of length @len@ into @chunkNum@ chunks.
 -- Equals to @C(len - 1, chunksNum - 1)@.
 toChunkNumber :: Int -> Int -> Int
@@ -370,6 +380,17 @@ toChunkNumber len chunkNum =
     product [len - 1, len - 2 .. len - chunkNum + 1] `div`
         product [chunkNum - 1, chunkNum - 2 .. 2]
 
+-- | Return a list of pairs, each of which consists of
+--
+-- 1. the frequency at which a chunk length needs to be picked by the generation machinery
+-- 2. the chunk length itself
+--
+-- >>> toChunkFrequencies 5
+-- [(1,1),(4,2),(6,3),(4,4),(1,5)]
+-- >>> toChunkFrequencies 10
+-- [(3,1),(6,2),(9,3),(12,4),(15,5),(18,6),(21,7)]
+-- >>> toChunkFrequencies 50
+-- [(3,1),(4,2),(5,3),(6,4),(7,5),(8,6),(9,7),(10,8),(11,9),(12,10),(13,11),(14,12),(15,13)]
 toChunkFrequencies :: Int -> [(Int, Int)]
 toChunkFrequencies len
     -- For short lists we calculate exact chunk numbers and use those as frequencies in order to get
@@ -379,7 +400,14 @@ toChunkFrequencies len
     -- former).
     | len <= smallLength = map (\num -> (toChunkNumber len num, num)) chunks
     | otherwise          =
-        let singleElemProb = 3
+        let -- The probability of "splitting" a list into a single sublist (i.e. simply 'pure') is
+            -- about 3%.
+            singleElemProb = 3
+            -- Computing @delta@ in order for each subsequent chunk length to get picked a bit more
+            -- likely, so that we generate longer forests more often when we can. For not-too-long
+            -- lists the frequencies add up to roughly 100. For long lists the sum of frequencies
+            -- can be significantly greater than 100 making the chance of generating a single
+            -- sublist less than 3%.
             deltaN = chunkMax * (chunkMax - 1) `div` 2
             delta  = max 1 $ (100 - chunkMax * singleElemProb) `div` deltaN
         in zip (iterate (+ delta) singleElemProb) chunks
@@ -387,26 +415,38 @@ toChunkFrequencies len
         chunkMax = toMaxChunkNumber len
         chunks = [1 .. chunkMax]
 
+-- | Split the given list in chunks. The length of each chunk, apart from the final one, is taken
+-- from the first argument.
+--
+-- >>> toChunks [3, 1] "abcdef"
+-- ["abc","d","ef"]
 toChunks :: [Int] -> [a] -> [[a]]
 toChunks []       xs = [xs]
 toChunks (n : ns) xs = chunk : toChunks ns xs' where
     (chunk, xs') = splitAt n xs
 
+-- | Split a list into chunks at random. Concatenating the resulting lists gives back the original
+-- one.
 multiSplit :: [a] -> Gen [NonEmptyList a]
 multiSplit [] = pure []
 multiSplit xs = do
     let len = length xs
+    -- Pick a number of chunks.
     chunkNum <- frequency . map (fmap pure) $ toChunkFrequencies len
-    breakpointsSet <- uniqueVectorOf (chunkNum - 1) $ choose (1, len - 1)
-    let breakpoints = sort breakpointsSet
-        chunkLens = zipWith (-) breakpoints (0 : breakpoints)
+    -- Pick a list of breakpoints.
+    breakpoints <- sort <$> uniqueVectorOf (chunkNum - 1) (choose (1, len - 1))
+    -- Turn the list of breakpoints into a list of chunk lengths.
+    let chunkLens = zipWith (-) breakpoints (0 : breakpoints)
+    -- Chop the argument into chunks according to the list of chunk lengths.
     pure . coerce $ toChunks chunkLens xs
 
+-- See Note [Generating a CostRose].
+-- | Generate a 'CostRose' from the given list by splitting the list into sublists and generating
+-- a 'CostRose' for each of them recursively.
 genCostRose :: NonEmptyList SatInt -> Gen CostRose
-genCostRose (NonEmpty [])             = error "an impossible happened"
-genCostRose (NonEmpty (cost : costs)) = CostRose cost <$> do
-    forest <- multiSplit costs
-    traverse genCostRose forest
+genCostRose (NonEmpty [])             = error "Panic: an empty non-empty list"
+genCostRose (NonEmpty (cost : costs)) =
+    CostRose cost <$> (traverse genCostRose =<< multiSplit costs)
 
 fromCostRose :: CostRose -> NonEmptyList SatInt
 fromCostRose (CostRose cost costs) =
@@ -418,9 +458,11 @@ instance Arbitrary CostRose where
     arbitrary = scale (* 10) arbitrary >>= genCostRose
 
     shrink (CostRose cost costs) = do
+        -- Shrinking the recursive part first.
         (costs', cost') <- shrink (costs, cost)
         pure $ CostRose cost' costs'
 
+-- | Show the distribution of lists generated by 'multiSplit' for a list of the given length.
 test_multiSplitDistributionAt :: Int -> TestTree
 test_multiSplitDistributionAt n =
     testProperty ("for a list of length " ++ show n) $
@@ -437,9 +479,11 @@ test_multiSplitDistribution =
         , test_multiSplitDistributionAt 5
         ]
 
+-- | Return the lengths of all the forests in a 'CostRose'.
 collectListLengths :: CostRose -> [Int]
 collectListLengths (CostRose _ costs) = length costs : concatMap collectListLengths costs
 
+-- | Show the distribution of forest lengths in generated 'CostRose' values as a diagnostic.
 test_CostRoseListLengthsDistribution :: TestTree
 test_CostRoseListLengthsDistribution =
     testProperty "distribution of list lengths in CostRose values" $
@@ -450,6 +494,7 @@ test_CostRoseListLengthsDistribution =
                     where m = head $ dropWhile (< n) [10, 20..]
             in tabulate "n" (map render . filter (/= 0) $ collectListLengths rose) True
 
+-- | Test that 'genCostRose' only takes costs from its argument when generating a 'CostRose'.
 test_genCostRoseSound :: TestTree
 test_genCostRoseSound =
     testProperty "genCostRose puts 100% of its input and nothing else into the output" $
@@ -458,6 +503,7 @@ test_genCostRoseSound =
                 fromCostRose rose ===
                     costs
 
+-- | Test that 'flattenCostRose' returns the elements of its arguments.
 test_flattenCostRoseSound :: TestTree
 test_flattenCostRoseSound =
     testProperty "flattenCostRose puts 100% of its input and nothing else into the output" $
