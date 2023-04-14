@@ -209,11 +209,23 @@ instance Semigroup PLC.SrcSpan where
 instance Monoid PLC.SrcSpan where
     mempty = initialSrcSpan ""
 
+-- | Tests of the inliner, include global uniqueness test.
 inline :: TestNested
 inline =
+    let goldenInlineUnique :: Term TyName Name PLC.DefaultUni PLC.DefaultFun PLC.SrcSpan ->
+            IO (Term TyName Name PLC.DefaultUni PLC.DefaultFun ())
+        goldenInlineUnique pir =
+            rethrow . asIfThrown @(UniqueError ()) $ do
+                let pirInlined = runQuote $ do
+                        renamed <- PLC.rename (void pir)
+                        Inline.inline mempty def renamed
+                -- make sure the inlined term is globally unique
+                _ <- checkUniques pirInlined
+                pure pirInlined
+    in
     testNested "inline" $
         map
-            (goldenPir (runQuote . (Inline.inline mempty def <=< PLC.rename)) pTerm)
+            (goldenPirM goldenInlineUnique pTerm)
             [ "var"
             , "builtin"
             , "constant"
@@ -250,7 +262,7 @@ inline =
             , "letNonPureMultiStrict"
             ]
 
--- |
+-- | Check whether a term is globally unique.
 checkUniques :: (Ord a, MonadError (UniqueError a) m) => Term TyName Name uni fun a -> m ()
 checkUniques =
     Uniques.checkTerm (\case { FreeVariable{} -> False; IncoherentUsage {} -> False; _ -> True})

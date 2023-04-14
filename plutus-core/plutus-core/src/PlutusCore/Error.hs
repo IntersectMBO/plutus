@@ -70,6 +70,8 @@ data UniqueError ann
     deriving stock (Show, Eq, Generic, Functor)
     deriving anyclass (NFData)
 
+instance Exception (UniqueError ())
+
 data NormCheckError tyname name uni fun ann
     = BadType !ann !(Type tyname uni ann) !T.Text
     | BadTerm !ann !(Term tyname name uni fun ann) !T.Text
