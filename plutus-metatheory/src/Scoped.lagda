@@ -15,6 +15,7 @@ open import Data.String using (String;_++_)
 
 open import Builtin using (Builtin)
 open Builtin.Builtin
+open import Builtin.Constant.AtomicType using (aBool)
 
 open import Raw using (RawTy;RawTm;RawTyCon)
 open RawTy
@@ -305,7 +306,7 @@ extricateScopeTy (ƛ K A) = ƛ K (extricateScopeTy A)
 extricateScopeTy (A · B) = extricateScopeTy A · extricateScopeTy B
 extricateScopeTy (con c) = con (extricateTyCon c)
 extricateScopeTy (μ A B) = μ (extricateScopeTy A) (extricateScopeTy B)
-extricateScopeTy missing = con (atomic bool) -- TODO
+extricateScopeTy missing = con (atomic aBool) -- TODO
 
 extricateScope : ∀{n}{w : Weirdℕ n} → ScopedTm w → RawTm
 extricateScope (` x) = ` (WeirdFintoℕ x)

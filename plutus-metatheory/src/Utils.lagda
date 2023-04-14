@@ -2,7 +2,7 @@
 \begin{code}
 module Utils where
 
-open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;sym;trans)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;sym;trans;cong₂)
 open import Function using (const;_∘_)
 open import Data.Nat using (ℕ;zero;suc;_≤‴_;_≤_;_+_)
 open _≤_
@@ -11,7 +11,7 @@ open import Data.Nat.Properties
                using (+-suc;m+1+n≢m;+-cancelˡ-≡;m≢1+n+m;m+1+n≢0;+-cancelʳ-≡;+-assoc;+-comm;+-identityʳ)
 open import Relation.Binary using (Decidable)
 import Data.Integer as I
-import Data.List using (List)
+import Data.List as L
 open import Data.Sum using (_⊎_;inj₁;inj₂)
 open import Relation.Nullary using (Dec;yes;no;¬_)
 open import Data.Empty using (⊥;⊥-elim)
@@ -144,6 +144,24 @@ data List (A : Set) : Set where
   []  : List A
   _∷_ : A → List A → List A
 
+map : ∀{A B} → (A → B) → List A → List B
+map f [] = []
+map f (x ∷ xs) = f x ∷ map f xs
+
+toList : ∀{A} →  List A → L.List A
+toList [] = L.[]
+toList (x ∷ xs) = x L.∷ toList xs
+
+fromList : ∀{A} →  L.List A → List A
+fromList L.[] = []
+fromList (x L.∷ xs) = x ∷ fromList xs
+
+map-cong : ∀{A B : Set}{xs : L.List A}{f g : A → B}
+     → (∀ x → f x ≡ g x) 
+     → L.map f xs ≡ L.map g xs 
+map-cong {xs = L.[]} p = refl
+map-cong {xs = x L.∷ xs} p = cong₂ L._∷_ (p x) (map-cong p)
+
 infixr 5 _∷_
 
 {-# COMPILE GHC List = data [] ([] | (:)) #-}
@@ -161,55 +179,6 @@ data DATA : Set where
 
 postulate eqDATA : DATA → DATA → Bool 
 {-# COMPILE GHC eqDATA = (==) #-}
-
-data AtomicTyCon : Set where
-  integer    : AtomicTyCon
-  bytestring : AtomicTyCon 
-  string     : AtomicTyCon 
-  unit       : AtomicTyCon 
-  bool       : AtomicTyCon
-  pdata      : AtomicTyCon 
-
-{-# FOREIGN GHC import Raw #-}
-{-# COMPILE GHC AtomicTyCon = data AtomicTyCon (ATyConInt | ATyConBS | ATyConStr | ATyConUnit | ATyConBool | ATyConData) #-}
-
-decAtomicTyCon : (c c' : AtomicTyCon) → Dec (c ≡ c')
-decAtomicTyCon integer integer = yes refl
-decAtomicTyCon integer bytestring = no λ()
-decAtomicTyCon integer string = no λ()
-decAtomicTyCon integer unit = no λ()
-decAtomicTyCon integer bool = no λ()
-decAtomicTyCon integer pdata = no λ()
-decAtomicTyCon bytestring integer = no λ()
-decAtomicTyCon bytestring bytestring = yes refl
-decAtomicTyCon bytestring string = no λ()
-decAtomicTyCon bytestring unit = no λ()
-decAtomicTyCon bytestring bool = no λ()
-decAtomicTyCon bytestring pdata = no λ()
-decAtomicTyCon string integer = no λ()
-decAtomicTyCon string bytestring = no λ()
-decAtomicTyCon string string = yes refl
-decAtomicTyCon string unit = no λ()
-decAtomicTyCon string bool = no λ()
-decAtomicTyCon string pdata = no λ()
-decAtomicTyCon unit integer = no λ()
-decAtomicTyCon unit bytestring = no λ()
-decAtomicTyCon unit string = no λ()
-decAtomicTyCon unit unit = yes refl
-decAtomicTyCon unit bool = no λ()
-decAtomicTyCon unit pdata = no λ()
-decAtomicTyCon bool integer = no λ()
-decAtomicTyCon bool bytestring = no λ()
-decAtomicTyCon bool string = no λ()
-decAtomicTyCon bool unit = no λ()
-decAtomicTyCon bool bool = yes refl
-decAtomicTyCon bool pdata = no λ()
-decAtomicTyCon pdata integer = no λ()
-decAtomicTyCon pdata bytestring = no λ()
-decAtomicTyCon pdata string = no λ()
-decAtomicTyCon pdata unit = no λ()
-decAtomicTyCon pdata bool = no λ()
-decAtomicTyCon pdata pdata = yes refl
 \end{code}
 
 Kinds
@@ -236,7 +205,12 @@ Let `I`, `J`, `K` range over kinds:
 variable
   I J K : Kind
 \end{code}
-## Term constants
+
+## 
+
+```
+
+## Raw Untyped Term constants
 
 Defined separately here rather than using generic version used in the
 typed syntax.
@@ -249,10 +223,9 @@ data TermCon : Set where
   bool       : Bool → TermCon
   unit       : TermCon
   pdata      : DATA → TermCon
-  pairDATA   : DATA → DATA → TermCon
-  pairID     : ℤ → List DATA → TermCon 
-  listData   : List DATA → TermCon
-  listPair   : List (DATA × DATA) → TermCon
+  pair       : TermCon → TermCon → TermCon
+  list       : List TermCon → TermCon
+
 
 
 {-# FOREIGN GHC type TermCon = Some (ValueOf DefaultUni) #-}
@@ -262,9 +235,7 @@ data TermCon : Set where
 {-# FOREIGN GHC pattern TmUnit         = Some (ValueOf DefaultUniUnit ()) #-}
 {-# FOREIGN GHC pattern TmBool       b = Some (ValueOf DefaultUniBool b) #-}
 {-# FOREIGN GHC pattern TmData       d = Some (ValueOf DefaultUniData d) #-}
-{-# FOREIGN GHC pattern TmPairData a b = Some (ValueOf (DefaultUniPair DefaultUniData DefaultUniData) (a,b)) #-}
-{-# FOREIGN GHC pattern TmPairID   a b = Some (ValueOf (DefaultUniPair DefaultUniInteger (DefaultUniList DefaultUniData)) (a,b)) #-}
-{-# FOREIGN GHC pattern TmListData  xs = Some (ValueOf (DefaultUniList DefaultUniData) xs) #-}
-{-# FOREIGN GHC pattern TmListPair  xs = Some (ValueOf (DefaultUniList (DefaultUniPair DefaultUniData DefaultUniData)) xs) #-}
-{-# COMPILE GHC TermCon = data TermCon (TmInteger | TmByteString | TmString | TmBool | TmUnit | TmData | TmPairData | TmPairID | TmListData | TmListPair) #-}
+{-# FOREIGN GHC pattern TmPair a b = Some (ValueOf (DefaultUniPair DefaultUniData DefaultUniData) (a,b)) #-}
+{-# FOREIGN GHC pattern TmList  xs = Some (ValueOf (DefaultUniList DefaultUniData) xs) #-}
+{-# COMPILE GHC TermCon = data TermCon (TmInteger | TmByteString | TmString | TmBool | TmUnit | TmData | TmPair | TmList) #-}
 \end{code}

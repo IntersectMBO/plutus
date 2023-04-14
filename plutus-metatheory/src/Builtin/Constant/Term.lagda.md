@@ -1,6 +1,6 @@
 ```
 open import Builtin.Constant.Type
-open import Utils hiding (TermCon)
+import Utils as U
 ```
 
 ```
@@ -18,30 +18,30 @@ module Builtin.Constant.Term
 open import Data.Integer using (ℤ)
 open import Data.String using (String)
 open import Data.Bool using (Bool)
-open import Utils using (_×_)
+open import Data.List using (List)
 ```
 
 ## Term Constants
 
 ```
 data TermCon {Φ} : Φ ⊢⋆ * → Set where
-  integer    :
+  tmInteger    :
       (i : ℤ)
-    → TermCon (con (atomic integer))
-  bytestring :
-      (b : ByteString)
-    → TermCon (con (atomic bytestring))
-  string     :
+    → TermCon (con integer)
+  tmBytestring :
+      (b : U.ByteString)
+    → TermCon (con bytestring)
+  tmString     :
       (s : String)
-    → TermCon (con (atomic string))
-  bool       :
+    → TermCon (con string)
+  tmBool       :
       (b : Bool)
-    → TermCon (con (atomic bool))
-  unit       : TermCon (con (atomic unit))
-  pdata      : DATA → TermCon (con (atomic pdata))  
-  pairDATA   : (d₁ : DATA) → (d₂ : DATA) → TermCon (con (pair (con (atomic pdata)) (con (atomic pdata)))) 
-  pairID     : (i : ℤ) → (ds : List DATA) → TermCon (con (pair (con (atomic integer)) (con (list (con (atomic pdata))))))
-  listData   : (xs : List DATA) → TermCon (con (list (con (atomic pdata))))
-  listPair   : (xs : List (DATA × DATA)) → TermCon (con (list (con (pair (con (atomic pdata)) (con (atomic pdata))))))
-
+    → TermCon (con bool)
+  tmUnit       : TermCon (con unit)
+  tmData      : U.DATA → TermCon (con pdata)
+{-  
+  tmPair       : ∀{A B} (x : TermCon A) → (y : TermCon B) → TermCon (con (pair A B)) 
+  tmList       : ∀{A} → (xs : List (TermCon A)) → TermCon (con (list A))
+-}
 ```
+ 

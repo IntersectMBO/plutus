@@ -10,13 +10,13 @@ module Check where
 ```
 open import Data.Nat using (ℕ;zero;suc)
 open import Data.Fin using (Fin;zero;suc)
-open import Data.List using (map)
+open import Data.List using (map;[];_∷_)
 open import Data.Product using (Σ) renaming (_,_ to _,,_)
 open import Data.Sum using (_⊎_;inj₁;inj₂)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong₂;cong;sym)
 open import Relation.Nullary using (Dec;yes;no;_because_;¬_)
+open import Agda.Builtin.String using (String)
 
-open import Utils using (decAtomicTyCon;dec2Either)
 import Utils as U
 open import Scoped using (ScopedTy;Weirdℕ;WeirdFin;ScopedTm)
 open ScopedTy
@@ -31,7 +31,7 @@ open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;weakenNf;renNf;embNf)
 open _⊢Nf⋆_
 open _⊢Ne⋆_
 
-open import Utils using (Kind;*;_⇒_;Either;inj₁;inj₂;withE;Monad;TermCon)
+open import Utils using (Kind;*;_⇒_;Either;inj₁;inj₂;withE;Monad;TermCon;dec2Either)
 open Monad {{...}}
 open TermCon
 
@@ -47,6 +47,8 @@ open Ctx
 open _∋_
 
 open import Type.BetaNBE.RenamingSubstitution using (_[_]Nf)
+open import Builtin.Constant.AtomicType using (AtomicTyCon;decAtomicTyCon)
+open AtomicTyCon
 import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) as T
 import Builtin.Constant.Type ℕ ScopedTy as S
 import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as A
@@ -78,6 +80,7 @@ data TypeError : Set where
   notFunType : ∀{Φ}(A : Φ ⊢Nf⋆ *) → ((A' B : Φ ⊢Nf⋆ *) → ¬ (A ≡ A' ⇒ B)) → TypeError
   typeMismatch : ∀{Φ K}(A A' : Φ ⊢Nf⋆ K) → ¬ (A ≡ A') → TypeError
   builtinError : TypeError
+  Unimplemented : String → TypeError
 
 decKind : (K K' : Kind) → Dec (K ≡ K')
 decKind * * = yes refl
@@ -306,18 +309,37 @@ inv-complete {A = A}{A' = A'} p = trans≡β
 
 
 
-inferTypeCon : ∀{Φ} → TermCon → Σ (T.TyCon _) λ c → A.TermCon {Φ} (con c) 
-inferTypeCon (integer i)    = T.atomic U.integer ,, A.integer i
-inferTypeCon (bytestring b) = T.atomic U.bytestring ,, A.bytestring b
-inferTypeCon (string s)     = T.atomic U.string ,, A.string s
-inferTypeCon (bool b)       = T.atomic U.bool ,, A.bool b
-inferTypeCon unit           = T.atomic U.unit ,, A.unit
-inferTypeCon (pdata d)      = T.atomic U.pdata ,, A.pdata d
-inferTypeCon (pairDATA x y) = T.pair (con (T.atomic U.pdata)) (con (T.atomic U.pdata)) ,, A.pairDATA x y
-inferTypeCon (pairID i ds)  = T.pair (con (T.atomic U.integer)) (con (T.list (con (T.atomic U.pdata)))) ,, A.pairID i ds
-inferTypeCon (listData xs)  = T.list (con (T.atomic U.pdata)) ,, A.listData xs
-inferTypeCon (listPair xs)  = T.list (con (T.pair (con (T.atomic U.pdata)) (con (T.atomic U.pdata)))) ,, A.listPair xs
+inferTypeCon : ∀{Φ} → TermCon → Either TypeError (Σ (T.TyCon _) λ c → A.TermCon {Φ} (con c))
+inferTypeCon (integer i)    = return (T.integer ,, A.tmInteger i)
+inferTypeCon (bytestring b) = return (T.bytestring ,, A.tmBytestring b)
+inferTypeCon (string s)     = return (T.string ,, A.tmString s)
+inferTypeCon (bool b)       = return (T.bool ,, A.tmBool b)
+inferTypeCon unit           = return (T.unit ,, A.tmUnit)
+inferTypeCon (pdata d)      = return (T.pdata ,, A.tmData d)
+inferTypeCon (pair x y)     = inj₁ (Unimplemented "Typed pairs")
+inferTypeCon (list xs)      = inj₁ (Unimplemented "Typed lists")
+{-
+inferTypeCon {Φ} (pair x y) with inferTypeCon {Φ} x | inferTypeCon {Φ} y
+... | inj₂ (xty ,, xtm) | inj₂ (yty ,, ytm) = return (T.pair (con xty) (con yty) ,, A.tmPair xtm ytm )
+... | inj₁ err | _          = inj₁ err
+... | _ | inj₁ err          = inj₁ err
+inferTypeCon {Φ} (list U.[]) = return (T.list {!   !} ,, A.tmList []) -we need tags!
+inferTypeCon {Φ} (list (x U.∷ xs)) with inferTypeCon {Φ} x | inferTypeCon {Φ} (list xs)
+inferTypeCon {Φ} (list (x U.∷ xs)) | inj₁ err | _  = inj₁ err
+inferTypeCon {Φ} (list (x U.∷ xs)) | _ | inj₁ err  = inj₁ err
+inferTypeCon {Φ} (list (x U.∷ xs)) | inj₂ (xty ,, xtm) | inj₂ (T.list (con xsty) ,, A.tmList xstm) 
+     with decTyCon xty xsty
+...  | yes refl  = return ((T.list (con xty)) ,, A.tmList (xtm ∷ xstm)) 
+...  | no ¬p     = inj₁ (typeMismatch (con xty) (con xsty) (λ {refl → ¬p refl}))
+inferTypeCon {Φ} (list (x U.∷ xs)) | inj₂ (xty ,, _) | inj₂ (ty ,, _) = inj₁ builtinError 
+   -- should really prove that the second argument is not a list of constants.
+   --(typeMismatch (con (T.list (con xty))) (con ty) _)
+-}
 
+{-
+with U.map (inferTypeCon {Φ}) xs
+... | xx   = {!   !} --T.list (con (T.pdata)) ,, A.tmList xs
+-}
 
 checkType : ∀{Φ}(Γ : Ctx Φ) → ScopedTm (len Γ) → (A : Φ ⊢Nf⋆ *)
   → Either TypeError (Γ ⊢ A)
@@ -349,7 +371,7 @@ inferType {Φ} Γ (L · M) = do
   M ← checkType Γ M A
   return (B ,, L · M)
 inferType {Φ} Γ (con c) = do
-  let tc ,, c = inferTypeCon {Φ} c
+  tc ,, c ← inferTypeCon {Φ} c
   return (con tc ,, con c)
 inferType Γ (error A) = do
   A ← isStar (inferKind _ A)

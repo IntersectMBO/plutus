@@ -11,6 +11,7 @@ module Declarative.Erasure where
 
 ```
 open import Data.Empty using (⊥)
+open import Data.List using (map)
 
 open import Declarative using (Ctx;_∋_;_⊢_)
 open Ctx
@@ -23,7 +24,7 @@ import Type.RenamingSubstitution as T
 open import Untyped using (_⊢)
 open _⊢
 import Untyped.RenamingSubstitution as U
-open import Utils using (Kind;*;Maybe;nothing;just;TermCon)
+open import Utils using (Kind;*;Maybe;nothing;just;TermCon;fromList)
 open TermCon
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con
   using () renaming (TermCon to TyTermCon)
@@ -51,17 +52,14 @@ eraseVar (S α) = just (eraseVar α)
 eraseVar (T α) = eraseVar α
 
 eraseTC : ∀{Φ}{Γ : Ctx Φ}{A : Φ ⊢⋆ *} → TyTermCon A → TermCon
-eraseTC (integer i)    = integer i
-eraseTC (bytestring b) = bytestring b
-eraseTC (string s)     = string s
-eraseTC (bool b)       = bool b 
-eraseTC unit           = unit
-eraseTC (pdata d)      = pdata d
---eraseTC {Φ}{Γ}(pair x y) = pair (eraseTC {Φ} {Γ} x) (eraseTC {Φ}{Γ} y)
-eraseTC (pairDATA x y) = pairDATA x y
-eraseTC (pairID i xs)  = pairID i xs
-eraseTC (listData xs)  = listData xs 
-eraseTC (listPair xs)  = listPair xs
+eraseTC (tmInteger i)      = integer i
+eraseTC (tmBytestring b)   = bytestring b
+eraseTC (tmString s)       = string s
+eraseTC (tmBool b)         = bool b 
+eraseTC tmUnit             = unit
+eraseTC (tmData d)         = pdata d
+--eraseTC {Φ}{Γ}(tmPair x y) = pair (eraseTC {Φ} {Γ} x) (eraseTC {Φ}{Γ} y)
+--eraseTC {Φ}{Γ}(tmList xs)  = list (fromList (map (eraseTC {Φ} {Γ}) xs))
 
 erase : ∀{Φ Γ}{A : Φ ⊢⋆ *} → Γ ⊢ A → len Γ ⊢
 
