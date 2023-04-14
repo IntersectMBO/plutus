@@ -153,16 +153,16 @@ instance (ExMemoryUsage a, ExMemoryUsage b) => ExMemoryUsage (a, b) where
     {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage (SomeTypeIn uni) where
-  memoryUsage _ = singletonRose 1
-  {-# INLINE memoryUsage #-}
+    memoryUsage _ = singletonRose 1
+    {-# INLINE memoryUsage #-}
 
 instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (Some (ValueOf uni)) where
-  memoryUsage (Some (ValueOf uni x)) = bring (Proxy @ExMemoryUsage) uni (memoryUsage x)
-  {-# INLINE memoryUsage #-}
+    memoryUsage (Some (ValueOf uni x)) = bring (Proxy @ExMemoryUsage) uni (memoryUsage x)
+    {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage () where
-  memoryUsage () = singletonRose 1
-  {-# INLINE memoryUsage #-}
+    memoryUsage () = singletonRose 1
+    {-# INLINE memoryUsage #-}
 
 -- | Calculate a 'CostingInteger' for the given 'Integer'.
 memoryUsageInteger :: Integer -> CostingInteger
@@ -175,12 +175,12 @@ memoryUsageInteger i = fromIntegral $ I# (integerLog2# (abs i) `quotInt#` intege
 {-# NOINLINE memoryUsageInteger #-}
 
 instance ExMemoryUsage Integer where
-  memoryUsage i = singletonRose $ memoryUsageInteger i
-  {-# INLINE memoryUsage #-}
+    memoryUsage i = singletonRose $ memoryUsageInteger i
+    {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage Word8 where
-  memoryUsage _ = singletonRose 1
-  {-# INLINE memoryUsage #-}
+    memoryUsage _ = singletonRose 1
+    {-# INLINE memoryUsage #-}
 
 {- Bytestrings: we want things of length 0 to have size 0, 1-8 to have size 1,
    9-16 to have size 2, etc.  Note that (-1) div 8 == -1, so the code below
@@ -188,28 +188,28 @@ instance ExMemoryUsage Word8 where
    1 + (toInteger $ BS.length bs) `div` 8, which would count one extra for
    things whose sizes are multiples of 8. -}
 instance ExMemoryUsage BS.ByteString where
-  -- Don't use `div` here!  That gives 1 instead of 0 for n=0.
-  memoryUsage bs = singletonRose . unsafeToSatInt $ ((n - 1) `quot` 8) + 1 where
-      n = BS.length bs
-  {-# INLINE memoryUsage #-}
+    -- Don't use `div` here!  That gives 1 instead of 0 for n=0.
+    memoryUsage bs = singletonRose . unsafeToSatInt $ ((n - 1) `quot` 8) + 1 where
+        n = BS.length bs
+    {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage T.Text where
-  -- This is slow and inaccurate, but matches the version that was originally deployed.
-  -- We may try and improve this in future so long as the new version matches this exactly.
-  memoryUsage text = memoryUsage $ T.unpack text
-  {-# INLINE memoryUsage #-}
+    -- This is slow and inaccurate, but matches the version that was originally deployed.
+    -- We may try and improve this in future so long as the new version matches this exactly.
+    memoryUsage text = memoryUsage $ T.unpack text
+    {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage Int where
-  memoryUsage _ = singletonRose 1
-  {-# INLINE memoryUsage #-}
+    memoryUsage _ = singletonRose 1
+    {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage Char where
-  memoryUsage _ = singletonRose 1
-  {-# INLINE memoryUsage #-}
+    memoryUsage _ = singletonRose 1
+    {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage Bool where
-  memoryUsage _ = singletonRose 1
-  {-# INLINE memoryUsage #-}
+    memoryUsage _ = singletonRose 1
+    {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage a => ExMemoryUsage [a] where
     memoryUsage = CostRose 0 . map memoryUsage

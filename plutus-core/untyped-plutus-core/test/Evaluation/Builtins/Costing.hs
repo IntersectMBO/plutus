@@ -80,7 +80,7 @@ instance Arbitrary SatInt where
         freqs = map floor $ iterate (* 1.3) (2 :: Double)
 
     -- See Note [QuickCheck and integral types].
-    shrink = map fromIntegral . shrink @Int64 . fromIntegral . unSatInt
+    shrink = map fromIntegral . shrink @Int64 . fromSatInt
 
 instance Arbitrary CostStream where
     arbitrary = frequency
