@@ -7,7 +7,7 @@ open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;sym;tra
                                                   renaming (subst to substEq) 
 open import Function using (_∘_)
 open import Data.Product using (_×_) renaming (_,_ to _,,_)
-open import Data.List using (List;[];_∷_)
+open import Data.List using (List;[];_∷_;map)
 
 open import Utils using (Kind;*)
 open import Type using (_⊢⋆_;_∋⋆_;Z;S;Ctx⋆;_,⋆_)
@@ -74,16 +74,14 @@ lem[] A B = trans
 
 
 nfTypeTC : ∀{φ}{A : φ ⊢⋆ *} → STermCon.TermCon A → NTermCon.TermCon (nf A)
-nfTypeTC (STermCon.integer i)    = NTermCon.integer i
-nfTypeTC (STermCon.bytestring b) = NTermCon.bytestring b
-nfTypeTC (STermCon.string s)     = NTermCon.string s
-nfTypeTC (STermCon.bool b)       = NTermCon.bool b
-nfTypeTC STermCon.unit           = NTermCon.unit
-nfTypeTC (STermCon.pdata d)      = NTermCon.pdata d
-nfTypeTC (STermCon.pairDATA x y) = NTermCon.pairDATA x y
-nfTypeTC (STermCon.pairID x y)   = NTermCon.pairID x y
-nfTypeTC (STermCon.listData xs)  = NTermCon.listData xs
-nfTypeTC (STermCon.listPair xs)  = NTermCon.listPair xs
+nfTypeTC (STermCon.tmInteger i)    = NTermCon.tmInteger i
+nfTypeTC (STermCon.tmBytestring b) = NTermCon.tmBytestring b
+nfTypeTC (STermCon.tmString s)     = NTermCon.tmString s
+nfTypeTC (STermCon.tmBool b)       = NTermCon.tmBool b
+nfTypeTC STermCon.tmUnit           = NTermCon.tmUnit
+nfTypeTC (STermCon.tmData d)       = NTermCon.tmData d
+--nfTypeTC (STermCon.tmPair x y)     = NTermCon.tmPair (nfTypeTC x) (nfTypeTC y)
+--nfTypeTC (STermCon.tmList xs)      = NTermCon.tmList (map nfTypeTC xs)
 
 lemσ : ∀{Γ Δ Δ'}
   → (σ : Sub Δ Γ)

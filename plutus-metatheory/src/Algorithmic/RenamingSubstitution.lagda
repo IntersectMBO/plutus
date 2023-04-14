@@ -63,16 +63,16 @@ renTermCon : ∀ {Φ Ψ}
   → (ρ⋆ : ⋆.Ren Φ Ψ)
     -----------------------------------------------------
   → ({A : Φ ⊢Nf⋆ *} → TermCon A → TermCon (renNf ρ⋆ A ))
-renTermCon ρ⋆ (integer i)    = integer i
-renTermCon ρ⋆ (bytestring b) = bytestring b
-renTermCon ρ⋆ (string s)     = string s
-renTermCon ρ⋆ (bool b)       = bool b
-renTermCon ρ⋆ unit           = unit
-renTermCon ρ⋆ (pdata d)      = pdata d
-renTermCon ρ⋆ (pairDATA x y) = pairDATA x y
-renTermCon ρ⋆ (pairID i ds)  = pairID i ds
-renTermCon ρ⋆ (listData xs)  = listData xs
-renTermCon ρ⋆ (listPair xs)  = listPair xs
+renTermCon ρ⋆ (tmInteger i)    = tmInteger i
+renTermCon ρ⋆ (tmBytestring b) = tmBytestring b
+renTermCon ρ⋆ (tmString s)     = tmString s
+renTermCon ρ⋆ (tmBool b)       = tmBool b
+renTermCon ρ⋆ tmUnit           = tmUnit
+renTermCon ρ⋆ (tmData d)       = tmData d
+--renTermCon ρ⋆ (pairDATA x y) = pairDATA x y
+--renTermCon ρ⋆ (pairID i ds)  = pairID i ds
+--renTermCon ρ⋆ (listData xs)  = listData xs
+--renTermCon ρ⋆ (listPair xs)  = listPair xs
 \end{code}
 
 \begin{code}
@@ -155,16 +155,16 @@ subTermCon : ∀ {Φ Ψ}
   → (σ⋆ : SubNf Φ Ψ)
     ------------------------------------------------------
   → ({A : Φ ⊢Nf⋆ *} → TermCon A → TermCon (subNf σ⋆ A ))
-subTermCon σ⋆ (integer i)    = integer i
-subTermCon σ⋆ (bytestring b) = bytestring b
-subTermCon σ⋆ (string s)     = string s
-subTermCon σ⋆ (bool b)       = bool b
-subTermCon σ⋆ unit           = unit
-subTermCon σ⋆ (pdata d)      = pdata d
-subTermCon σ⋆ (pairDATA x y) = pairDATA x y 
-subTermCon σ⋆ (pairID i ds)  = pairID i ds 
-subTermCon σ⋆ (listData xs)  = listData xs
-subTermCon σ⋆ (listPair xs)  = listPair xs
+subTermCon σ⋆ (tmInteger i)    = tmInteger i
+subTermCon σ⋆ (tmBytestring b) = tmBytestring b
+subTermCon σ⋆ (tmString s)     = tmString s
+subTermCon σ⋆ (tmBool b)       = tmBool b
+subTermCon σ⋆ tmUnit           = tmUnit
+subTermCon σ⋆ (tmData d)       = tmData d
+--subTermCon σ⋆ (pairDATA x y) = pairDATA x y 
+--subTermCon σ⋆ (pairID i ds)  = pairID i ds 
+--subTermCon σ⋆ (listData xs)  = listData xs
+--subTermCon σ⋆ (listPair xs)  = listPair xs
 \end{code}
 
 \begin{code}

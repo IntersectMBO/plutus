@@ -11,9 +11,10 @@ open import Function using (_∘_;id)
 open import Data.Nat using (_+_)
 open import Data.Nat.Properties using (+-cancelˡ-≡)
 open import Data.Fin using (Fin;zero;suc)
-open import Data.List using (List;length;[];_∷_)
+open import Data.List using (List;length;[];_∷_;map)
+open import Data.List.Properties using (map-compose)
 open import Data.Product using () renaming (_,_ to _,,_)
-open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;subst;trans;sym;cong₂)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;subst;trans;sym;cong₂;cong-app)
 open import Data.Empty using (⊥)
 
 open import Algorithmic as A
@@ -25,7 +26,7 @@ open _⊢Nf⋆_
 
 open import Type.BetaNBE using (nf)
 open import Type.BetaNBE.Completeness using (completeness)
-open import Utils using (Kind;*;Maybe;nothing;just;TermCon)
+open import Utils using (Kind;*;Maybe;nothing;just;TermCon;fromList;map-cong)
 open TermCon
 
 open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_;_∋⋆_;S;Z)
@@ -62,16 +63,14 @@ eraseVar (S α) = just (eraseVar α)
 eraseVar (T α) = eraseVar α
 
 eraseTC : ∀{Φ}{Γ : Ctx Φ}{A : Φ ⊢Nf⋆ *} → AC.TyTermCon A → TermCon
-eraseTC (AC.integer i)    = integer i
-eraseTC (AC.bytestring b) = bytestring b
-eraseTC (AC.string s)     = string s
-eraseTC (AC.bool b)       = bool b
-eraseTC AC.unit           = unit
-eraseTC (AC.pdata d)      = pdata d
-eraseTC (AC.listData xs)  = listData xs
-eraseTC (AC.listPair xs)  = listPair xs
-eraseTC (AC.pairDATA x y) = pairDATA x y
-eraseTC (AC.pairID i xs)  = pairID i xs
+eraseTC (AC.tmInteger i)    = integer i
+eraseTC (AC.tmBytestring b) = bytestring b
+eraseTC (AC.tmString s)     = string s
+eraseTC (AC.tmBool b)       = bool b
+eraseTC AC.tmUnit           = unit
+eraseTC (AC.tmData d)       = pdata d
+--eraseTC {Φ}{Γ}(AC.tmPair x y)     = pair (eraseTC{Φ}{Γ} x) (eraseTC {Φ}{Γ} y)
+--eraseTC {Φ}{Γ}(AC.tmList xs)      = list (fromList (map (eraseTC {Φ}{Γ}) xs))
 
 erase : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ ⊢ A → len Γ ⊢
 erase (` α)                = ` (eraseVar α)
@@ -118,18 +117,16 @@ lemsuc refl refl x = refl
 
 sameTC : ∀{Φ Γ}{A : Φ ⊢⋆ *}(tcn : DC.TyTermCon A)
   → D.eraseTC {Γ = Γ} tcn ≡ eraseTC {Γ = nfCtx Γ} (nfTypeTC tcn)
-sameTC (DC.integer i)    = refl
-sameTC (DC.bytestring b) = refl
-sameTC (DC.string s)     = refl
-sameTC (DC.bool b)       = refl
-sameTC DC.unit           = refl
-sameTC (DC.pdata d)      = refl
---sameTC {Φ}{Γ}(DC.pairDATA x y) = cong₂ pairDATA (sameTC {Φ}{Γ} x) (sameTC {Φ}{Γ} y)
-sameTC (DC.pairDATA x y) = refl
-sameTC (DC.pairID i ds)  = refl
-sameTC (DC.listData xs)  = refl
-sameTC (DC.listPair xs)  = refl
+sameTC (DC.tmInteger i)      = refl
+sameTC (DC.tmBytestring b)   = refl
+sameTC (DC.tmString s)       = refl
+sameTC (DC.tmBool b)         = refl
+sameTC DC.tmUnit             = refl
+sameTC (DC.tmData d)         = refl
+--sameTC {Φ}{Γ}(DC.tmPair x y) = cong₂ pair (sameTC {Φ}{Γ} x) (sameTC {Φ}{Γ} y)
+--sameTC {Φ}{Γ}(DC.tmList xs)  = cong list (cong fromList (trans (map-cong (sameTC {Φ}{Γ})) (map-compose xs)))
 
+-- map D.eraseTC xs ≡ map (eraseTC ∘ nfTypeTC) xs
 
 lem≡Ctx : ∀{Φ}{Γ Γ' : Ctx Φ} → Γ ≡ Γ' → len Γ ≡ len Γ'
 lem≡Ctx refl = refl
@@ -252,17 +249,15 @@ same'Var {Γ = Γ ,⋆ _} (T {A = A} x) = trans
 
 same'TC : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(tcn : AC.TyTermCon A)
   → eraseTC {Γ = Γ} tcn ≡ D.eraseTC {Φ}{Γ = embCtx Γ} (embTC tcn)
-same'TC (AC.integer i)    = refl
-same'TC (AC.bytestring b) = refl
-same'TC (AC.string s)     = refl
-same'TC (AC.bool b)       = refl
-same'TC AC.unit           = refl
-same'TC (AC.pdata d)      = refl
---same'TC {Φ}{Γ}(AC.pairDATA x y) = cong₂ pairDATA (same'TC {Φ}{Γ} x) (same'TC {Φ}{Γ} y)
-same'TC (AC.pairDATA x y) = refl
-same'TC (AC.pairID i ds)  = refl
-same'TC (AC.listData xs)  = refl
-same'TC (AC.listPair xs)  = refl
+same'TC (AC.tmInteger i)      = refl
+same'TC (AC.tmBytestring b)   = refl
+same'TC (AC.tmString s)       = refl
+same'TC (AC.tmBool b)         = refl
+same'TC AC.tmUnit             = refl
+same'TC (AC.tmData d)         = refl
+--same'TC {Φ}{Γ}(AC.tmPair x y) = cong₂ pair (same'TC {Φ}{Γ} x) (same'TC {Φ}{Γ} y)
+--same'TC {Φ}{Γ}(AC.tmList xs)        = cong list (cong fromList (trans (map-cong (same'TC {Φ}{Γ})) (map-compose xs)))
+
 
 same' : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(x : Γ A.⊢ A)
   →  erase x ≡ subst _⊢ (same'Len Γ) (D.erase (emb x))

@@ -119,12 +119,12 @@ This is defined in its own module so that these definitions are not exported.
 
     -- shortened names for type constants and type constructors
     integer bool bytestring string unit pdata : ∀{n} → n ⊢♯
-    integer = con (T.atomic U.integer)
-    bool = con (T.atomic U.bool)
-    bytestring = con (T.atomic U.bytestring)
-    string = con (T.atomic U.string)
-    unit = con (T.atomic U.unit)
-    pdata = con (T.atomic U.pdata)
+    integer = con T.integer
+    bool = con (T.bool)
+    bytestring = con (T.bytestring)
+    string = con (T.string)
+    unit = con (T.unit)
+    pdata = con (T.pdata)
 
     pair : ∀{n} → n ⊢♯ → n ⊢♯ → n ⊢♯
     pair x y = con (T.pair x y)

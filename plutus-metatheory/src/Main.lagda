@@ -232,6 +232,7 @@ uglyTypeError (typeMismatch A A' x) =
   ++
   prettyPrintTy (extricateScopeTy (extricateNf⋆ A'))
 uglyTypeError builtinError = "builtinError"
+uglyTypeError (Unimplemented x) = "Feature " ++ x ++ " not implemented"
 
 -- the haskell version of Error is defined in Raw
 

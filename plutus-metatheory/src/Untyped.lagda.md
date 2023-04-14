@@ -61,10 +61,10 @@ variable
 uglyDATA : DATA → String
 uglyDATA d = "(DATA)"
 
-uglyList : ∀{A} → (A → String) → List A → String
-uglyList printx [] = ""
-uglyList printx (x ∷ []) = printx x
-uglyList printx (x ∷ xs) = printx x ++ "," ++ uglyList printx xs
+uglyList : List String → String
+uglyList [] = ""
+uglyList (x ∷ []) = x
+uglyList (x ∷ xs) = x ++ "," ++ uglyList xs
 
 uglyPair : DATA × DATA → String
 uglyPair (x , y) = "("++ uglyDATA x ++ "," ++ uglyDATA y ++")"
@@ -76,12 +76,9 @@ uglyTermCon unit = "()"
 uglyTermCon (string s) = "(string " ++ s ++ ")"
 uglyTermCon (bool false) = "(bool " ++ "false" ++ ")"
 uglyTermCon (bool true) = "(bool " ++ "true" ++ ")"
---uglyTermCon (pair x y) = "(pair " ++ uglyTermCon x ++ " " ++ uglyTermCon y  ++ ")"
-uglyTermCon (pairDATA x y) = "(pair " ++ uglyDATA x ++ " " ++ uglyDATA y  ++ ")"
-uglyTermCon (pairID x y) = "(pair " ++ show x ++ " " ++ uglyList uglyDATA y  ++ ")"
-uglyTermCon (listData xs) = "(listData [" ++ uglyList uglyDATA xs ++ "])"
-uglyTermCon (listPair xs) = "(listPair [" ++ uglyList uglyPair xs ++ "])" 
-  
+uglyTermCon (pair x y) = "(pair " ++ uglyTermCon x ++ " " ++ uglyTermCon y ++ ")"
+--uglyTermCon (list xs) = "(list [" ++ uglyList (map uglyTermCon xs) ++ "])"
+uglyTermCon (list xs)  = "(list)"
 uglyTermCon (pdata d) = "(DATA)"
 
 

@@ -19,8 +19,7 @@ open import Data.Empty using (⊥)
 open import Data.Nat using (ℕ;zero;suc)
 open import Data.Sum using (_⊎_;inj₁;inj₂)
 
-open import Utils using (Kind;*;_⇒_;Either;inj₁;bubble;RuntimeError;Monad;AtomicTyCon)
-open AtomicTyCon
+open import Utils using (Kind;*;_⇒_;Either;inj₁;bubble;RuntimeError;Monad)
 open RuntimeError
 open Monad {{...}}
 
@@ -37,7 +36,7 @@ open _⊢_
 open import Builtin using (Builtin)
 open Builtin.Builtin
 
-open import Builtin.Constant.Type using (TyCon)
+open import Builtin.Constant.Type using (TyCon;unit;integer)
 open TyCon
 
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con using (TermCon)
@@ -178,8 +177,8 @@ thm64b ((s , unwrap-) ◅ V-wrap V) s' (step* refl p) = CC.step*
 thm64b (□ x₁) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 thm64b (◆ A) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 
-test : State (con (atomic unit))
-test = ε ▻ (ƛ (con unit) · (builtin iData / refl · con (integer (+ 0))))
+test : State (con unit)
+test = ε ▻ (ƛ (con tmUnit) · (builtin iData / refl · con (tmInteger (+ 0))))
 
 postulate
   lemV : ∀{A B}(M : ∅ ⊢ B)(V : Value M)(E : Stack A B) → (E ▻ M) -→s (E ◅ V)

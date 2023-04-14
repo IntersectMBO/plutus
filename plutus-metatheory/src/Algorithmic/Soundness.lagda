@@ -3,7 +3,7 @@ module Algorithmic.Soundness where
 
 open import Function using (_∘_)
 open import Data.Empty using (⊥)
-open import Data.List using (List;[];_∷_)
+open import Data.List using (List;[];_∷_;map)
 open import Data.Product using (_×_) renaming (_,_ to _,,_)
 open import Data.Unit using (⊤;tt)
 open import Relation.Binary.PropositionalEquality 
@@ -81,16 +81,15 @@ soundness-μ p A B = trans≡β
 embTC : ∀{φ}{A : φ ⊢Nf⋆ *}
   → NTermCon.TermCon A
   → STermCon.TermCon (embNf A)
-embTC (NTermCon.integer i)    = STermCon.integer i
-embTC (NTermCon.bytestring b) = STermCon.bytestring b
-embTC (NTermCon.string s)     = STermCon.string s
-embTC (NTermCon.bool b)       = STermCon.bool b
-embTC NTermCon.unit           = STermCon.unit
-embTC (NTermCon.pdata d)      = STermCon.pdata d
-embTC (NTermCon.pairDATA x y) = STermCon.pairDATA x y
-embTC (NTermCon.pairID x y)   = STermCon.pairID x y
-embTC (NTermCon.listData xs)  = STermCon.listData xs
-embTC (NTermCon.listPair xs)  = STermCon.listPair xs
+embTC (NTermCon.tmInteger i)    = STermCon.tmInteger i
+embTC (NTermCon.tmBytestring b) = STermCon.tmBytestring b
+embTC (NTermCon.tmString s)     = STermCon.tmString s
+embTC (NTermCon.tmBool b)       = STermCon.tmBool b
+embTC NTermCon.tmUnit           = STermCon.tmUnit
+embTC (NTermCon.tmData d)       = STermCon.tmData d
+--embTC (NTermCon.tmPair x y)     = STermCon.tmPair (embTC x) (embTC y)
+--embTC (NTermCon.tmList xs)      = STermCon.tmList (map embTC xs)
+
 \end{code}
 
 \begin{code}
