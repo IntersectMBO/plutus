@@ -27,6 +27,8 @@ open import Utils
 open import Builtin
 open import Builtin.Signature using (Sig;sig;Args;_⊢♯;nat2Ctx⋆;fin2∈⋆;args♯)
 open Sig
+open import RawU using (TermCon)
+open TermCon
 ```
 
 ```

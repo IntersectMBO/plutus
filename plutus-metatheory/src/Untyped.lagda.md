@@ -14,26 +14,25 @@ module Untyped where
 ## Imports
 
 ```
-open import Utils as U using (Maybe;nothing;just;Either;inj₁;inj₂;Monad;TermCon;DATA;List;[];_∷_)
+open import Utils as U using (Maybe;nothing;just;Either;inj₁;inj₂;Monad;DATA;List;[];_∷_)
 open Monad {{...}}
-open TermCon
 
 open import Scoped using (ScopeError;deBError)
-open import Builtin using (Builtin;equals)
+open import Builtin using (Builtin;equals;decBuiltin)
 open Builtin.Builtin
-
-open import Raw using (decBuiltin)
 
 open import Agda.Builtin.String using (primStringFromList; primStringAppend; primStringEquality)
 open import Data.Nat using (ℕ;suc;zero)
 open import Data.Bool using (Bool;true;false;_∧_)
 open import Data.Integer using (_<?_;_+_;_-_;∣_∣;_≤?_;_≟_;ℤ) renaming (_*_ to _**_)
---open import Data.List using (List;[];_∷_)
 open import Relation.Nullary using (yes;no)
 open import Data.Integer.Show using (show)
 open import Data.String using (String;_++_)
 open import Data.Empty using (⊥)
 open import Utils using (_×_;_,_)
+open import RawU using (TermCon;Untyped)
+open TermCon
+open Untyped
 ```
 
 ## Well-scoped Syntax
@@ -103,26 +102,6 @@ ugly (force t) = "(force " ++ ugly t ++ ")"
 ugly (delay t) = "(delay " ++ ugly t ++ ")"
 ugly (builtin b) = "(builtin " ++ uglyBuiltin b ++ ")"
 ugly error = "error"
-```
-
-## Raw syntax
-
-This version is not intrinsically well-scoped. It's an easy to work
-with rendering of the untyped plutus-core syntax.
-
-```
-data Untyped : Set where
-  UVar : ℕ → Untyped
-  ULambda : Untyped → Untyped
-  UApp : Untyped → Untyped → Untyped
-  UCon : TermCon → Untyped
-  UError : Untyped
-  UBuiltin : Builtin → Untyped
-  UDelay : Untyped → Untyped
-  UForce : Untyped → Untyped
-
-{-# FOREIGN GHC import Untyped #-}
-{-# COMPILE GHC Untyped = data UTerm (UVar | ULambda  | UApp | UCon | UError | UBuiltin | UDelay | UForce) #-}
 ```
 
 ## Scope checking and scope extrication
@@ -200,4 +179,4 @@ decUTm (UBuiltin b) (UBuiltin b') = decBuiltin b b'
 decUTm (UDelay t) (UDelay t') = decUTm t t'
 decUTm (UForce t) (UForce t') = decUTm t t'
 decUTm _ _ = false
- 
+```

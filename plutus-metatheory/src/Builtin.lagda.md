@@ -12,6 +12,7 @@ module Builtin where
 ## Imports
 
 ```
+open import Data.Bool using (Bool;true;false)
 open import Data.Nat using (ℕ;suc)
 open import Data.Fin using (Fin) renaming (zero to Z; suc to S)
 open import Data.List.NonEmpty using (List⁺;_∷⁺_;[_];reverse)
@@ -391,5 +392,28 @@ postulate
 
 -- no binding needed for appendStr
 -- no binding needed for traceStr
+
+decBuiltin : (b b' : Builtin) → Bool
+decBuiltin addInteger addInteger = true
+decBuiltin subtractInteger subtractInteger = true
+decBuiltin multiplyInteger multiplyInteger = true
+decBuiltin divideInteger divideInteger = true
+decBuiltin quotientInteger quotientInteger = true
+decBuiltin remainderInteger remainderInteger = true
+decBuiltin modInteger modInteger = true
+decBuiltin lessThanInteger lessThanInteger = true
+decBuiltin lessThanEqualsInteger lessThanEqualsInteger = true
+decBuiltin equalsInteger equalsInteger = true
+decBuiltin appendByteString appendByteString = true
+decBuiltin sha2-256 sha2-256 = true
+decBuiltin sha3-256 sha3-256 = true
+decBuiltin verifyEd25519Signature verifyEd25519Signature = true
+decBuiltin verifyEcdsaSecp256k1Signature verifyEcdsaSecp256k1Signature = true
+decBuiltin verifySchnorrSecp256k1Signature verifySchnorrSecp256k1Signature = true
+decBuiltin equalsByteString equalsByteString = true
+decBuiltin appendString appendString = true
+decBuiltin trace trace = true
+decBuiltin _ _ = false
+
 ```
  

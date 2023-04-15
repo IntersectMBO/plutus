@@ -22,11 +22,11 @@ open RawTy
 open RawTm
 open RawTyCon
 
-open import Utils using (Kind;Maybe;nothing;just;maybe;Monad;TermCon;Either;inj₁;inj₂;bool)
+open import Utils using (Kind;Maybe;nothing;just;maybe;Monad;Either;inj₁;inj₂)
 open Monad{{...}}
+
+open import RawU using (TermCon)
 open TermCon
-
-
 \end{code}
 
 \begin{code}

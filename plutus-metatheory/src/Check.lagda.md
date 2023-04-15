@@ -31,8 +31,10 @@ open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;weakenNf;renNf;embNf)
 open _⊢Nf⋆_
 open _⊢Ne⋆_
 
-open import Utils using (Kind;*;_⇒_;Either;inj₁;inj₂;withE;Monad;TermCon;dec2Either)
+open import Utils using (Kind;*;_⇒_;Either;inj₁;inj₂;withE;Monad;dec2Either)
 open Monad {{...}}
+
+open import RawU using (TermCon)
 open TermCon
 
 open import Type.Equality using (_≡β_;≡2β)

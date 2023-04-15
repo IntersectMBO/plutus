@@ -26,7 +26,7 @@ open import Builtin using (signature)
 open import Builtin.Signature using (Sig;args♯)
 open Sig
 open import Algorithmic.RenamingSubstitution using (Sub;sub;exts;exts⋆;_[_];_[_]⋆)
-open import Utils hiding (_×_;TermCon)
+open import Utils hiding (_×_)
 
 open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) using (TyCon)
 open TyCon

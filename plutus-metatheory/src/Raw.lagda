@@ -12,13 +12,14 @@ open import Relation.Nullary using (Reflects;Dec;ofʸ;ofⁿ;_because_;yes;no)
 open import Relation.Binary.PropositionalEquality using (_≡_;cong;cong₂;refl)
 open import Data.Bool using (Bool;false;true)
 
-open import Builtin using (Builtin;equals)
+open import Builtin using (Builtin;equals;decBuiltin)
 open Builtin.Builtin
 
 open import Builtin.Constant.AtomicType using (AtomicTyCon;decAtomicTyCon)
 open AtomicTyCon
 
-open import Utils using (Kind;*;_⇒_;TermCon)
+open import Utils using (Kind;*;_⇒_)
+open import RawU using (TermCon)
 open TermCon
 \end{code}
 
@@ -97,28 +98,6 @@ decTermCon (bool b) (bool b') with b Data.Bool.≟ b'
 ... | no ¬p = false
 decTermCon unit unit = true
 decTermCon _ _ = false
-
-decBuiltin : (b b' : Builtin) → Bool
-decBuiltin addInteger addInteger = true
-decBuiltin subtractInteger subtractInteger = true
-decBuiltin multiplyInteger multiplyInteger = true
-decBuiltin divideInteger divideInteger = true
-decBuiltin quotientInteger quotientInteger = true
-decBuiltin remainderInteger remainderInteger = true
-decBuiltin modInteger modInteger = true
-decBuiltin lessThanInteger lessThanInteger = true
-decBuiltin lessThanEqualsInteger lessThanEqualsInteger = true
-decBuiltin equalsInteger equalsInteger = true
-decBuiltin appendByteString appendByteString = true
-decBuiltin sha2-256 sha2-256 = true
-decBuiltin sha3-256 sha3-256 = true
-decBuiltin verifyEd25519Signature verifyEd25519Signature = true
-decBuiltin verifyEcdsaSecp256k1Signature verifyEcdsaSecp256k1Signature = true
-decBuiltin verifySchnorrSecp256k1Signature verifySchnorrSecp256k1Signature = true
-decBuiltin equalsByteString equalsByteString = true
-decBuiltin appendString appendString = true
-decBuiltin trace trace = true
-decBuiltin _ _ = false
 
 decRKi : (K K' : Kind) → Bool
 decRKi * * = true
@@ -269,3 +248,4 @@ rawPrinter (builtin b) = "(builtin)"
 rawPrinter (wrap pat arg t) = "(wrap" ++ ")"
 rawPrinter (unwrap t) = "(unwrap" ++ rawPrinter t ++ ")"
 \end{code}
+ 

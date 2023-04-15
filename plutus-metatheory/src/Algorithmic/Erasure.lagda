@@ -26,7 +26,8 @@ open _⊢Nf⋆_
 
 open import Type.BetaNBE using (nf)
 open import Type.BetaNBE.Completeness using (completeness)
-open import Utils using (Kind;*;Maybe;nothing;just;TermCon;fromList;map-cong)
+open import Utils using (Kind;*;Maybe;nothing;just;fromList;map-cong)
+open import RawU using (TermCon)
 open TermCon
 
 open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_;_∋⋆_;S;Z)
