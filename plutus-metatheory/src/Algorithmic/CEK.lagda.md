@@ -31,15 +31,7 @@ open _⊢_
 open _∋_
 open import Algorithmic.RenamingSubstitution using (Sub;sub;exts;exts⋆;_[_];_[_]⋆)
 open import Builtin
-open import Utils hiding (TermCon;integer;bool;pdata;unit;string;bytestring)
-{-
- using (*;Kind;_⇒_;_∔_≣_;bubble;∔2+;unique∔;alldone;RuntimeError;Either;decIf;just;iDATA;bDATA;DATA;eqDATA;Monad;Bool)
-open DATA
-open Either
-open RuntimeError
-open Monad
-open Bool
--}
+open import Utils
 
 open import Builtin.Constant.AtomicType
 open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) --using (TyCon)

@@ -20,7 +20,8 @@ open TypeError -- Bring all TypeError constructors in scope.
 
 open import Scoped.Extrication using (extricateNf⋆;extricate)
 open import Type.BetaNormal using (_⊢Nf⋆_)
-import Untyped as U using (Untyped;_⊢;scopeCheckU0;extricateU0;decUTm)
+import Untyped as U using (_⊢;scopeCheckU0;extricateU0;decUTm)
+import RawU as U using (Untyped)
 
 open import Untyped.CEK as U using (stepper;Stack;ε;Env;[];State)
 open U.State

@@ -24,7 +24,8 @@ import Type.RenamingSubstitution as T
 open import Untyped using (_⊢)
 open _⊢
 import Untyped.RenamingSubstitution as U
-open import Utils using (Kind;*;Maybe;nothing;just;TermCon;fromList)
+open import Utils using (Kind;*;Maybe;nothing;just;fromList)
+open import RawU using (TermCon)
 open TermCon
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con
   using () renaming (TermCon to TyTermCon)
