@@ -375,7 +375,6 @@ test-suite untyped-plutus-core-test
     Evaluation.Builtins
     Evaluation.Builtins.BLS12_381
     Evaluation.Builtins.BLS12_381.Common
-    Evaluation.Builtins.BLS12_381.HaskellTests
     Evaluation.Builtins.BLS12_381.PlutusTests
     Evaluation.Builtins.Common
     Evaluation.Builtins.Definition

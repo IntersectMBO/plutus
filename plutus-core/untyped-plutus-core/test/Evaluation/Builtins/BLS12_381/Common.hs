@@ -10,7 +10,6 @@ import Evaluation.Builtins.Common
 import PlutusCore.Crypto.BLS12_381.G1 qualified as G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as G2
 
-import Cardano.Crypto.EllipticCurve.BLS12_381 (BLSTError)
 import PlutusCore as PLC
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
@@ -69,14 +68,14 @@ mkApp2 b x y = mkIterApp () (builtin () b) [x,y]
 
 -- Constructing pairing terms
 
-millerLoopPlc :: PlcTerm -> PlcTerm -> PlcTerm
-millerLoopPlc = mkApp2 Bls12_381_millerLoop
+millerLoopTerm :: PlcTerm -> PlcTerm -> PlcTerm
+millerLoopTerm = mkApp2 Bls12_381_millerLoop
 
-mulMlResultPlc :: PlcTerm -> PlcTerm -> PlcTerm
-mulMlResultPlc = mkApp2 Bls12_381_mulMlResult
+mulMlResultTerm :: PlcTerm -> PlcTerm -> PlcTerm
+mulMlResultTerm = mkApp2 Bls12_381_mulMlResult
 
-finalVerifyPlc :: PlcTerm -> PlcTerm -> PlcTerm
-finalVerifyPlc = mkApp2 Bls12_381_finalVerify
+finalVerifyTerm :: PlcTerm -> PlcTerm -> PlcTerm
+finalVerifyTerm = mkApp2 Bls12_381_finalVerify
 
 -- ByteString utilities
 
@@ -140,27 +139,21 @@ fix s =
 -- and that's confusing.
 class (Eq a, Show a, Arbitrary a, ArbitraryBuiltin a) => TestableAbelianGroup a
     where
-      gname      :: String
-      zero       :: a
-      add        :: a -> a -> a
-      neg        :: a -> a
-      scalarMul  :: Integer -> a -> a
-      zeroP      :: PlcTerm
-      addP       :: PlcTerm -> PlcTerm -> PlcTerm
-      negP       :: PlcTerm -> PlcTerm
-      scalarMulP :: PlcTerm -> PlcTerm -> PlcTerm
-      eqP        :: PlcTerm -> PlcTerm -> PlcTerm
-      toPlc      :: a -> PlcTerm
+      groupName     :: String
+      zeroTerm      :: PlcTerm
+      addTerm       :: PlcTerm -> PlcTerm -> PlcTerm
+      negTerm       :: PlcTerm -> PlcTerm
+      scalarMulTerm :: PlcTerm -> PlcTerm -> PlcTerm
+      eqTerm        :: PlcTerm -> PlcTerm -> PlcTerm
+      toTerm        :: a -> PlcTerm
 
 class TestableAbelianGroup a => HashAndCompress a
     where
-      hashTo         :: ByteString -> a
-      compress       :: a -> ByteString
-      uncompress     :: ByteString -> Either BLSTError a
-      compressedSize :: Int
-      compressP      :: PlcTerm -> PlcTerm
-      uncompressP    :: PlcTerm -> PlcTerm
-      hashToGroupP   :: PlcTerm -> PlcTerm
+      compressedSize  :: Int
+      compress        :: a -> ByteString
+      compressTerm    :: PlcTerm -> PlcTerm
+      uncompressTerm  :: PlcTerm -> PlcTerm
+      hashToGroupTerm :: PlcTerm -> PlcTerm
 
 
 {- | Generate an arbitrary element of G1.  It's tricky to construct such an
@@ -174,27 +167,21 @@ instance Arbitrary G1.Element
 
 instance TestableAbelianGroup G1.Element
     where
-      gname      = "G1"
-      zero       = G1.zero
-      add        = G1.add
-      neg        = G1.neg
-      scalarMul  = G1.scalarMul
-      zeroP      = mkApp1 Bls12_381_G1_uncompress $ bytestring $ pack (0xc0 : replicate 47 0x00)
-      addP       = mkApp2 Bls12_381_G1_add
-      negP       = mkApp1 Bls12_381_G1_neg
-      scalarMulP = mkApp2 Bls12_381_G1_scalarMul
-      eqP        = mkApp2 Bls12_381_G1_equal
-      toPlc      = mkConstant ()
+      groupName     = "G1"
+      zeroTerm      = mkApp1 Bls12_381_G1_uncompress $ bytestring $ pack (0xc0 : replicate 47 0x00)
+      addTerm       = mkApp2 Bls12_381_G1_add
+      negTerm       = mkApp1 Bls12_381_G1_neg
+      scalarMulTerm = mkApp2 Bls12_381_G1_scalarMul
+      eqTerm        = mkApp2 Bls12_381_G1_equal
+      toTerm        = mkConstant ()
 
 instance HashAndCompress G1.Element
     where
-      hashTo         = G1.hashToGroup
-      compress       = G1.compress
-      uncompress     = G1.uncompress
-      compressedSize = 48
-      compressP      = mkApp1 Bls12_381_G1_compress
-      uncompressP    = mkApp1 Bls12_381_G1_uncompress
-      hashToGroupP   = mkApp1 Bls12_381_G1_hashToGroup
+      compressedSize  = 48
+      compress        = G1.compress
+      compressTerm    = mkApp1 Bls12_381_G1_compress
+      uncompressTerm  = mkApp1 Bls12_381_G1_uncompress
+      hashToGroupTerm = mkApp1 Bls12_381_G1_hashToGroup
 
 -- | See the comment for the Arbitrary instance for G1.
 instance Arbitrary G2.Element
@@ -203,32 +190,26 @@ instance Arbitrary G2.Element
 
 instance TestableAbelianGroup G2.Element
     where
-      gname      = "G2"
-      zero       = G2.zero
-      add        = G2.add
-      neg        = G2.neg
-      scalarMul  = G2.scalarMul
-      zeroP      = mkApp1 Bls12_381_G2_uncompress $ bytestring $ pack (0xc0 : replicate 95 0x00)
-      addP       = mkApp2 Bls12_381_G2_add
-      negP       = mkApp1 Bls12_381_G2_neg
-      scalarMulP = mkApp2 Bls12_381_G2_scalarMul
-      eqP        = mkApp2 Bls12_381_G2_equal
-      toPlc      = mkConstant ()
+      groupName     = "G2"
+      zeroTerm      = mkApp1 Bls12_381_G2_uncompress $ bytestring $ pack (0xc0 : replicate 95 0x00)
+      addTerm       = mkApp2 Bls12_381_G2_add
+      negTerm       = mkApp1 Bls12_381_G2_neg
+      scalarMulTerm = mkApp2 Bls12_381_G2_scalarMul
+      eqTerm        = mkApp2 Bls12_381_G2_equal
+      toTerm        = mkConstant ()
 
 instance HashAndCompress G2.Element
     where
-      hashTo         = G2.hashToGroup
-      compress       = G2.compress
-      uncompress     = G2.uncompress
-      compressedSize = 96
-      compressP      = mkApp1 Bls12_381_G2_compress
-      uncompressP    = mkApp1 Bls12_381_G2_uncompress
-      hashToGroupP   = mkApp1 Bls12_381_G2_hashToGroup
+      compressedSize  = 96
+      compress        = G2.compress
+      compressTerm    = mkApp1 Bls12_381_G2_compress
+      uncompressTerm  = mkApp1 Bls12_381_G2_uncompress
+      hashToGroupTerm = mkApp1 Bls12_381_G2_hashToGroup
 
 -- QuickCheck utilities
 
 mkTestName :: forall a. TestableAbelianGroup a => String -> String
-mkTestName s = printf "%s_%s" (gname @a) s
+mkTestName s = printf "%s_%s" (groupName @a) s
 
 withNTests :: Testable prop => prop -> Property
 withNTests = withMaxSuccess 200

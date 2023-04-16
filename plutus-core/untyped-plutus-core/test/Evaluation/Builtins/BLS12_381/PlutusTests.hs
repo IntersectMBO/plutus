@@ -22,7 +22,7 @@ import Test.Tasty.QuickCheck
 -- QuickCheck generators for scalars and group elements as PLC terms
 
 arbitraryConstant :: forall a . TestableAbelianGroup a => Gen PlcTerm
-arbitraryConstant = toPlc <$> (arbitrary @a)
+arbitraryConstant = toTerm <$> (arbitrary @a)
 
 arbitraryScalar :: Gen PlcTerm
 arbitraryScalar = integer <$> (arbitrary @Integer)
@@ -38,7 +38,7 @@ test_add_assoc =
       p1 <- arbitraryConstant @a
       p2 <- arbitraryConstant @a
       p3 <- arbitraryConstant @a
-      let e = eqP @a (addP @a p1 (addP @a p2 p3)) (addP @a (addP @a p1 p2) p3)
+      let e = eqTerm @a (addTerm @a p1 (addTerm @a p2 p3)) (addTerm @a (addTerm @a p1 p2) p3)
       pure $ evalTerm e === uplcTrue
 
 -- | Zero is an identity for addition.
@@ -48,7 +48,7 @@ test_add_zero =
     (mkTestName @a "add_zero") .
     withNTests $ do
       p <- arbitraryConstant @a
-      let e = eqP @a (addP @a  p $ zeroP @a) p
+      let e = eqTerm @a (addTerm @a  p $ zeroTerm @a) p
       pure $ evalTerm e === uplcTrue
 
 -- | Every element has an inverse
@@ -59,7 +59,7 @@ test_neg =
     (mkTestName @a "additive_inverse") .
     withNTests $ do
       p <- arbitraryConstant @a
-      let e = eqP @a (addP @a p (negP @a p)) $ zeroP @a
+      let e = eqTerm @a (addTerm @a p (negTerm @a p)) $ zeroTerm @a
       pure $ evalTerm e === uplcTrue
 
 -- | Group addition is commutative.
@@ -70,7 +70,7 @@ test_add_commutative=
     withNTests $ do
       p1 <- arbitraryConstant @a
       p2 <- arbitraryConstant @a
-      let e = eqP @a (addP @a p1 p2) (addP @a p2 p1)
+      let e = eqTerm @a (addTerm @a p1 p2) (addTerm @a p2 p1)
       pure $ evalTerm e === uplcTrue
 
 test_is_an_abelian_group :: forall a. TestableAbelianGroup a => TestTree
@@ -94,9 +94,9 @@ test_scalarMul_assoc =
       m <- arbitraryScalar
       n <- arbitraryScalar
       p <- arbitraryConstant @a
-      let e1 = scalarMulP @a (mkApp2 MultiplyInteger m n) p
-          e2 = scalarMulP @a m (scalarMulP @a n p)
-          e3 = eqP @a e1 e2
+      let e1 = scalarMulTerm @a (mkApp2 MultiplyInteger m n) p
+          e2 = scalarMulTerm @a m (scalarMulTerm @a n p)
+          e3 = eqTerm @a e1 e2
       pure $ evalTerm e3 === uplcTrue
 
 -- | (a+b)p = ap +bp for all scalars a and b and all group elements p.
@@ -108,9 +108,9 @@ test_scalarMul_distributive_left =
       m <- arbitraryScalar
       n <- arbitraryScalar
       p <- arbitraryConstant @a
-      let e1 = scalarMulP @a (mkApp2 AddInteger m n) p
-          e2 = addP @a (scalarMulP @a m p) (scalarMulP @a n p)
-          e3 = eqP @a e1 e2
+      let e1 = scalarMulTerm @a (mkApp2 AddInteger m n) p
+          e2 = addTerm @a (scalarMulTerm @a m p) (scalarMulTerm @a n p)
+          e3 = eqTerm @a e1 e2
       pure $ evalTerm e3 === uplcTrue
 
 -- | a(p+q) = ap + aq for all scalars a and all group elements p and q.
@@ -122,9 +122,9 @@ test_scalarMul_distributive_right =
       n <- arbitraryScalar
       p <- arbitraryConstant @a
       q <- arbitraryConstant @a
-      let e1 = scalarMulP @a n (addP @a p q)
-          e2 = addP @a (scalarMulP @a n p) (scalarMulP @a n q)
-          e3 = eqP @a e1 e2
+      let e1 = scalarMulTerm @a n (addTerm @a p q)
+          e2 = addTerm @a (scalarMulTerm @a n p) (scalarMulTerm @a n q)
+          e3 = eqTerm @a e1 e2
       pure $ evalTerm e3 === uplcTrue
 
 -- | 0p = 0 for all group elements p.
@@ -134,7 +134,7 @@ test_scalarMul_zero =
     (mkTestName @a "scalarMul_zero") .
     withNTests $ do
       p <- arbitraryConstant @a
-      let e = eqP @a (scalarMulP @a (integer 0) p) $ zeroP @a
+      let e = eqTerm @a (scalarMulTerm @a (integer 0) p) $ zeroTerm @a
       pure $ evalTerm e === uplcTrue
 
 -- | 1p = p for all group elements p.
@@ -144,7 +144,7 @@ test_scalarMul_one =
     (mkTestName @a "scalarMul_one") .
     withNTests $ do
       p <- arbitraryConstant @a
-      let e = eqP @a (scalarMulP @a (integer 1) p) p
+      let e = eqTerm @a (scalarMulTerm @a (integer 1) p) p
       pure $ evalTerm e === uplcTrue
 
 -- | (-1)p = -p for all group elements p.
@@ -154,7 +154,7 @@ test_scalarMul_inverse =
     (mkTestName @a "scalarMul_inverse") .
     withNTests $ do
       p <- arbitraryConstant @a
-      let e = eqP @a (scalarMulP @a (integer (-1)) p) (negP @a p)
+      let e = eqTerm @a (scalarMulTerm @a (integer (-1)) p) (negTerm @a p)
       pure $ evalTerm e == uplcTrue
 
 -- Check that scalar multiplication is repeated addition (including negative
@@ -169,14 +169,14 @@ test_scalarMul_repeated_addition =
       n <- resize 100 arbitrary
       p <- arbitraryConstant @a
       let e1 = repeatedAdd n p
-          e2 = eqP @a (scalarMulP @a (integer n) p) e1
+          e2 = eqTerm @a (scalarMulTerm @a (integer n) p) e1
       pure $ evalTerm e2 === uplcTrue
           where
             repeatedAdd :: Integer -> PlcTerm -> PlcTerm
             repeatedAdd n t =
                 if n>=0
-                then foldl' (addP @a) (zeroP @a) $ genericReplicate n t
-                else repeatedAdd (-n) (negP @a t)
+                then foldl' (addTerm @a) (zeroTerm @a) $ genericReplicate n t
+                else repeatedAdd (-n) (negTerm @a t)
 
 -- (m + n|G|)p = mp for all group elements p and integers m and n.
 -- We have |G1| = |G2| = scalarPeriod
@@ -188,15 +188,15 @@ test_scalarMul_periodic =
       m <- arbitraryScalar
       n <- arbitraryScalar
       p <- arbitraryConstant @a
-      let e1 = scalarMulP @a m p
+      let e1 = scalarMulTerm @a m p
           k = mkApp2 AddInteger m (mkApp2 MultiplyInteger n (integer scalarPeriod))
-          e2 = scalarMulP @a k p -- k = m+n|G|
-          e = eqP @a e1 e2
+          e2 = scalarMulTerm @a k p -- k = m+n|G|
+          e = eqTerm @a e1 e2
       pure $ evalTerm e === uplcTrue
 
 test_Z_action_good :: forall a. TestableAbelianGroup a => TestTree
 test_Z_action_good =
-    testGroup (printf "Z acts correctly on %s" $ gname @a)
+    testGroup (printf "Z acts correctly on %s" $ groupName @a)
          [ test_scalarMul_assoc              @a
          , test_scalarMul_distributive_left  @a
          , test_scalarMul_distributive_right @a
@@ -216,7 +216,7 @@ test_roundtrip_compression =
     (mkTestName @a "roundtrip_compression") .
     withNTests $ do
       p <- arbitraryConstant @a
-      let e = eqP @a (uncompressP @a (compressP @a p)) p
+      let e = eqTerm @a (uncompressTerm @a (compressTerm @a p)) p
       pure $ evalTerm e === uplcTrue
 
 -- | Uncompression should only accept inputs of the expected length, so we check
@@ -231,7 +231,7 @@ test_uncompression_wrong_size =
     (mkTestName @a "uncompression_wron_size") .
     withNTests $ do
       b <- suchThat (resize 128 arbitrary) incorrectSize
-      let e = uncompressP @a (bytestring b)
+      let e = uncompressTerm @a (bytestring b)
       pure $ evalTerm e === CekError
     where incorrectSize s = BS.length s /= compressedSize @a
 
@@ -250,7 +250,7 @@ test_uncompress_out_of_group =
     withMaxSuccess 400 $ do
       b <- suchThat (resize  128 arbitrary) correctSize
       let b' = setBits compressionBit $ clearBits infinityBit b
-      let e = uncompressP @a (bytestring b')
+      let e = uncompressTerm @a (bytestring b')
       pure $ evalTerm e === CekError
     where correctSize s = BS.length s == compressedSize @a
 
@@ -269,7 +269,7 @@ test_clear_compression_bit =
     withNTests $ do
       p <- arbitrary @a
       let b = clearBits compressionBit $ compress @a p
-          e = uncompressP @a (bytestring b)
+          e = uncompressTerm @a (bytestring b)
       pure $ evalTerm e === CekError
 
 -- | Check that flipping the sign bit in a compressed point gives the inverse of
@@ -282,9 +282,9 @@ test_flip_sign_bit =
       p <- arbitrary @a
       let b1 = compress @a p
           b2 = flipBits signBit b1
-          e1 = uncompressP @a (bytestring b1)
-          e2 = uncompressP @a (bytestring b2)
-          e  = eqP @a e2 (negP @a e1)
+          e1 = uncompressTerm @a (bytestring b1)
+          e2 = uncompressTerm @a (bytestring b2)
+          e  = eqTerm @a e2 (negTerm @a e1)
       pure $ evalTerm e === uplcTrue
 
 -- | Check that bytestrings with the infinity bit set fail to uncompress.
@@ -295,7 +295,7 @@ test_set_infinity_bit =
     withNTests $ do
       p <- arbitrary @a
       let b = setBits infinityBit $ compress @a p
-          e = uncompressP @a (bytestring b)
+          e = uncompressTerm @a (bytestring b)
       pure $ evalTerm e === CekError
 
 -- | Hashing into G1 or G2 should be collision-free. A failure here would be
@@ -307,12 +307,12 @@ test_no_hash_collisions =
     withNTests $ do
       b1 <- arbitrary
       b2 <- arbitrary
-      let e = eqP @a (hashToGroupP @a $ bytestring b1) (hashToGroupP @a $ bytestring b2)
+      let e = eqTerm @a (hashToGroupTerm @a $ bytestring b1) (hashToGroupTerm @a $ bytestring b2)
       pure $ b1 /= b2 ==> evalTerm e === uplcFalse
 
 test_compress_hash :: forall a. HashAndCompress a => TestTree
 test_compress_hash =
-    testGroup (printf "Uncompression and hashing behave properly for %s" $ gname @a)
+    testGroup (printf "Uncompression and hashing behave properly for %s" $ groupName @a)
          [ test_roundtrip_compression    @a
          , test_uncompression_wrong_size @a
          , test_compression_bit_set      @a
@@ -335,9 +335,9 @@ test_pairing_left_additive =
       p1 <- arbitraryConstant @G1.Element
       p2 <- arbitraryConstant @G1.Element
       q  <- arbitraryConstant @G2.Element
-      let e1 = millerLoopPlc (addP @G1.Element p1 p2) q
-          e2 = mulMlResultPlc (millerLoopPlc p1 q) (millerLoopPlc p2 q)
-          e3 = finalVerifyPlc e1 e2
+      let e1 = millerLoopTerm  (addTerm @G1.Element p1 p2) q
+          e2 = mulMlResultTerm  (millerLoopTerm  p1 q) (millerLoopTerm  p2 q)
+          e3 = finalVerifyTerm  e1 e2
       pure $ evalTerm e3 === uplcTrue
 
 -- <p,q1+q2> = <p,q1>.<p,q2>
@@ -349,9 +349,9 @@ test_pairing_right_additive =
       p  <- arbitraryConstant @G1.Element
       q1 <- arbitraryConstant @G2.Element
       q2 <- arbitraryConstant @G2.Element
-      let e1 = millerLoopPlc p (addP @G2.Element q1 q2)
-          e2 = mulMlResultPlc (millerLoopPlc p q1) (millerLoopPlc p q2)
-          e3 = finalVerifyPlc e1 e2
+      let e1 = millerLoopTerm  p (addTerm @G2.Element q1 q2)
+          e2 = mulMlResultTerm  (millerLoopTerm  p q1) (millerLoopTerm  p q2)
+          e3 = finalVerifyTerm  e1 e2
       pure $ evalTerm e3 === uplcTrue
 
 -- <[n]p,q> = <p,[n]q>
@@ -363,9 +363,9 @@ test_pairing_balanced =
       n <- arbitraryScalar
       p <- arbitraryConstant @G1.Element
       q <- arbitraryConstant @G2.Element
-      let e1 = millerLoopPlc (scalarMulP @G1.Element n p) q
-          e2 = millerLoopPlc p (scalarMulP @G2.Element n q)
-          e3 = finalVerifyPlc e1 e2
+      let e1 = millerLoopTerm  (scalarMulTerm @G1.Element n p) q
+          e2 = millerLoopTerm  p (scalarMulTerm @G2.Element n q)
+          e3 = finalVerifyTerm  e1 e2
       pure $ evalTerm e3 === uplcTrue
 
 -- finalVerify returns False for random inputs
@@ -379,7 +379,7 @@ test_random_pairing =
        q1 <- arbitraryConstant @G2.Element
        q2 <- arbitraryConstant @G2.Element
        pure $ p1 /= p2 && q1 /= q2 ==>
-            let e = finalVerifyPlc (millerLoopPlc p1 q1) (millerLoopPlc p2 q2)
+            let e = finalVerifyTerm  (millerLoopTerm  p1 q1) (millerLoopTerm  p2 q2)
             in evalTerm e === uplcFalse
 
 
