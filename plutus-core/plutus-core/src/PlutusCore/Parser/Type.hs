@@ -140,7 +140,7 @@ defaultUni = choice $ map try
     , someType @_ @Data                 <$ symbol "data"
     , someType @_ @BLS12_381.G1.Element <$ symbol "bls12_381_G1_element"
     , someType @_ @BLS12_381.G2.Element <$ symbol "bls12_381_G2_element"
-    -- BLS12_381.G2.MlResult is deliberately not supported.
+    -- BLS12_381.Pairing.MlResult is deliberately not supported.
     ]
 
 tyName :: Parser TyName
