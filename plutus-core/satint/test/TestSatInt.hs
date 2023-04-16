@@ -23,23 +23,23 @@ isArithException :: a -> IO Bool
 isArithException n = E.catch (n `seq` return False)
                              (\ (_ :: ArithException) -> return True)
 
-saturatesPos :: forall a . (Integral a, Bounded a) => a -> Bool
+saturatesPos :: forall a . (Eq a, Bounded a) => a -> Bool
 saturatesPos n = n == maxBound
 
-saturatesNeg :: forall a . (Integral a, Bounded a) => a -> Bool
+saturatesNeg :: forall a . (Eq a, Bounded a) => a -> Bool
 saturatesNeg n = n == minBound
 
-behavesOk :: (forall a. Integral a => a) -> IO Bool
+behavesOk :: (forall a. Num a => a) -> IO Bool
 behavesOk n = do
     let
         sat = (n :: SatInt)
         int = (n :: Integer)
-        lb = toInteger (minBound :: SatInt)
-        ub = toInteger (maxBound :: SatInt)
+        lb = toInteger $ unSatInt (minBound :: SatInt)
+        ub = toInteger $ unSatInt (maxBound :: SatInt)
     satThrows <- isArithException sat
     intThrows <- isArithException int
     pure $ if satThrows && intThrows then True
-    else if lb <= int && int <= ub then toInteger sat == int
+    else if lb <= int && int <= ub then toInteger (unSatInt sat) == int
     else if int < lb then saturatesNeg sat
     else if int > ub then saturatesPos sat
     else False
@@ -55,22 +55,14 @@ tests =
   [ unitTest "0"       ((0 :: SatInt) + 0 == 0),
     unitTest "max+"    (saturatesPos ((maxBound :: SatInt) + 1)),
     unitTest "min-"    (saturatesNeg ((minBound :: SatInt) - 1)),
-    unitTest "1/0"     (isArithException ((1 :: SatInt) `div` 0)),
     unitTest "min*-1"  (saturatesPos ((minBound :: SatInt) * (-1))),
     unitTest "0-min"   (saturatesPos (0 - (minBound :: SatInt))),
-    unitTest "min/-1"  (saturatesPos ((minBound :: SatInt) `div` (-1))),
-    unitTest "min `quot` -1"  (saturatesPos ((minBound :: SatInt) `quot` (-1))),
-    unitTest "max/2*2" (((maxBound :: SatInt) `div` 2) * 2 == (maxBound :: SatInt) - 1),
     unitTest "max+min" ((maxBound :: SatInt) + (minBound :: SatInt) == -1),
     unitTest "max+*"   (saturatesPos ((2 :: SatInt) ^ (wordSize `div` 2) * 2 ^ (wordSize `div` 2 - 1))),
     unitTest "min-*"   (saturatesNeg (negate ((2 :: SatInt) ^ (wordSize `div` 2)) * 2 ^ (wordSize `div` 2 - 1))),
     testProperty "*"   (propBinOp (*)),
     testProperty "+"   (propBinOp (+)),
-    testProperty "-"   (propBinOp (-)),
-    testProperty "div" (propBinOp div),
-    testProperty "mod" (propBinOp mod),
-    testProperty "quot"(propBinOp quot),
-    testProperty "rem" (propBinOp rem)
+    testProperty "-"   (propBinOp (-))
     -- lcm and gcd do *not* pass `behavesOk` since they *internally* use `abs` (which will give the wrong/saturated
     -- answer for minBound), and hence go astray after that. But we can't easily detect that this is the "correct"
     -- saturated thing to do as we do for other operations (where we can just see if the saturating version is
@@ -82,7 +74,7 @@ tests =
 intWithSpecialCases :: Gen Int
 intWithSpecialCases = frequency [ (1, pure (-1)), (1, pure minBound), (1, pure maxBound), (80, arbitrary) ]
 
-propBinOp :: (forall a. Integral a => a -> a -> a) -> Property
+propBinOp :: (forall a. Num a => a -> a -> a) -> Property
 propBinOp (!) = withMaxSuccess 10000 $
                 forAll intWithSpecialCases $ \ x ->
                 forAll intWithSpecialCases $ \ y ->

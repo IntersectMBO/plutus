@@ -22,7 +22,7 @@ import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Data
 import PlutusCore.Default
-import PlutusCore.MkPlc (mkConstant, mkConstantOf, mkTyBuiltin)
+import PlutusCore.MkPlc (mkConstantOf, mkTyBuiltin, mkTyBuiltinOf)
 import PlutusCore.Name
 import PlutusCore.Pretty
 import PlutusCore.Subst (typeSubstClosedType)
@@ -38,7 +38,7 @@ import Data.Proxy
 import Data.Set qualified as Set
 import Data.Set.Lens (setOf)
 import GHC.Stack
-import Test.QuickCheck (shrinkList)
+import Test.QuickCheck (shrink, shrinkList)
 
 addTmBind :: Binding TyName Name DefaultUni DefaultFun ()
           -> Map Name (Type TyName DefaultUni ())
@@ -286,9 +286,9 @@ shrinkTypedTerm tyctx0 ctx0 (ty0, tm0) = concat
           ]
 
         -- Builtins can shrink to unit. More fine-grained shrinking is in `structural` below.
-        Constant _ (Some (ValueOf uni _)) -> case uni of
-            DefaultUniUnit -> []
-            _              -> [(mkTyBuiltin @_ @() (), mkConstant () ())]
+        Constant _ val -> do
+            val'@(Some (ValueOf uni _)) <- shrink val
+            pure (mkTyBuiltinOf () uni, Constant () val')
 
         _ -> []
 

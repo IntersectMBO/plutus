@@ -22,7 +22,9 @@ import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Generators.Hedgehog.Interesting
 import PlutusCore.MkPlc hiding (error)
+import PlutusCore.Pretty
 import PlutusPrelude
+import UntypedPlutusCore.Evaluation.Machine.Cek
 
 import PlutusCore.Examples.Builtins
 import PlutusCore.Examples.Data.Data
@@ -44,6 +46,7 @@ import Evaluation.Builtins.SignatureVerification (ecdsaSecp256k1Prop, ed25519_V1
 
 import Control.Exception
 import Data.ByteString (ByteString)
+import Data.DList qualified as DList
 import Data.Proxy
 import Data.Text (Text)
 import Hedgehog hiding (Opaque, Size, Var)
@@ -355,6 +358,60 @@ test_IdBuiltinData =
                 , dTerm
                 ]
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModelExt term @?= Right (EvaluationSuccess dTerm)
+
+-- | For testing how an evaluator instantiated at a particular 'ExBudgetMode' handles the
+-- 'TrackCosts' builtin.
+test_TrackCostsWith
+    :: String -> Int -> (Term TyName Name DefaultUni ExtensionFun () -> IO ()) -> TestTree
+test_TrackCostsWith cat len checkTerm =
+    testCase ("TrackCosts: " ++ cat) $ do
+        let term
+                = apply () (builtin () TrackCosts)
+                $ mkConstant @Data () (List . replicate len $ I 42)
+        checkTerm term
+
+-- | Test that individual budgets are picked up by GC while spending is still ongoing.
+test_TrackCostsRestricting :: TestTree
+test_TrackCostsRestricting =
+    let n = 30000
+    in test_TrackCostsWith "restricting" n $ \term ->
+        case typecheckReadKnownCek def () term of
+            Left err                         -> fail $ displayPlcDef err
+            Right (Left err)                 -> fail $ displayPlcDef err
+            Right (Right (res :: [Integer])) -> do
+                let expected = n `div` 10
+                    actual = length res
+                    err = concat
+                        [ "Too few elements picked up by GC\n"
+                        , "Expected at least: " ++ show expected ++ "\n"
+                        , "But got: " ++ show actual
+                        ]
+                assertBool err $ expected < actual
+
+test_TrackCostsRetaining :: TestTree
+test_TrackCostsRetaining =
+    test_TrackCostsWith "retaining" 10000 $ \term -> do
+        let -- An 'ExBudgetMode' that retains all the individual budgets by sticking them into a
+            -- 'DList'.
+            retaining = monoidalBudgeting $ const DList.singleton
+            typecheckAndRunRetainer = typecheckAnd def $ \params term' ->
+                let (getRes, budgets) = runCekNoEmit params retaining term'
+                in (getRes >>= readKnownSelf, budgets)
+        case typecheckAndRunRetainer () term of
+            Left err                                  -> fail $ displayPlcDef err
+            Right (Left err, _)                       -> fail $ displayPlcDef err
+            Right (Right (res :: [Integer]), budgets) -> do
+                -- @length budgets@ is for retaining @budgets@ for as long as possible just in case.
+                -- @3@ is just for giving us room to handle erratic GC behavior. It really should be
+                -- @1@.
+                let expected = min 3 (length budgets)
+                    actual = length res
+                    err = concat
+                        [ "Too many elements picked up by GC\n"
+                        , "Expected at most: " ++ show expected ++ "\n"
+                        , "But got: " ++ show actual
+                        ]
+                assertBool err $ expected > actual
 
 -- | Test all integer related builtins
 test_Integer :: TestTree
@@ -674,6 +731,8 @@ test_definition =
         , test_BuiltinPair
         , test_SwapEls
         , test_IdBuiltinData
+        , test_TrackCostsRestricting
+        , test_TrackCostsRetaining
         , test_Integer
         , test_String
         , test_List
