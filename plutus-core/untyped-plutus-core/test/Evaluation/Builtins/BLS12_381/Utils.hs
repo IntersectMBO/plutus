@@ -103,8 +103,3 @@ isSet :: Word8 -> ByteString -> Bool
 isSet mask s =
     let (w,_) = unsafeUnconsBS s
     in w .&. mask /= 0
-
-
-
-
-
