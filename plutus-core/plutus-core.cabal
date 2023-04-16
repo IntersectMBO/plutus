@@ -374,8 +374,8 @@ test-suite untyped-plutus-core-test
     DeBruijn.UnDeBruijnify
     Evaluation.Builtins
     Evaluation.Builtins.BLS12_381
-    Evaluation.Builtins.BLS12_381.Common
-    Evaluation.Builtins.BLS12_381.PlutusTests
+    Evaluation.Builtins.BLS12_381.TestClasses
+    Evaluation.Builtins.BLS12_381.Utils
     Evaluation.Builtins.Common
     Evaluation.Builtins.Definition
     Evaluation.Builtins.MakeRead
