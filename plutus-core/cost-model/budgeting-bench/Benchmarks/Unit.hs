@@ -3,7 +3,7 @@
 module Benchmarks.Unit (makeBenchmarks) where
 
 import PlutusCore
-import PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore.Evaluation.Machine.ExMemoryUsage
 
 import Common
 import Generators

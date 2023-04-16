@@ -99,10 +99,13 @@ library
     PlutusCore.Evaluation.Machine.CostingFun.Core
     PlutusCore.Evaluation.Machine.CostingFun.JSON
     PlutusCore.Evaluation.Machine.CostModelInterface
+    PlutusCore.Evaluation.Machine.CostStream
     PlutusCore.Evaluation.Machine.ExBudget
     PlutusCore.Evaluation.Machine.ExBudgetingDefaults
+    PlutusCore.Evaluation.Machine.ExBudgetStream
     PlutusCore.Evaluation.Machine.Exception
     PlutusCore.Evaluation.Machine.ExMemory
+    PlutusCore.Evaluation.Machine.ExMemoryUsage
     PlutusCore.Evaluation.Machine.MachineParameters
     PlutusCore.Evaluation.Machine.MachineParameters.Default
     PlutusCore.Evaluation.Result
@@ -365,6 +368,7 @@ test-suite untyped-plutus-core-test
     DeBruijn.UnDeBruijnify
     Evaluation.Builtins
     Evaluation.Builtins.Common
+    Evaluation.Builtins.Costing
     Evaluation.Builtins.Definition
     Evaluation.Builtins.MakeRead
     Evaluation.Builtins.SignatureVerification
@@ -380,6 +384,7 @@ test-suite untyped-plutus-core-test
     , base                                            >=4.9 && <5
     , bytestring
     , cardano-crypto-class
+    , dlist
     , flat                                            <0.5
     , hedgehog
     , index-envs
@@ -388,11 +393,13 @@ test-suite untyped-plutus-core-test
     , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.4
     , pretty-show
     , prettyprinter
+    , QuickCheck
     , split
     , tasty
     , tasty-golden
     , tasty-hedgehog
     , tasty-hunit
+    , tasty-quickcheck
     , text
 
 executable plc
