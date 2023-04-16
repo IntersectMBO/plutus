@@ -36,9 +36,8 @@ import Data.Word (Word8)
 import Hedgehog.Internal.Gen qualified as G
 import Hedgehog.Internal.Range qualified as R
 import System.IO.Unsafe (unsafePerformIO)
-import Text.Printf (printf)
 
-import Prelude (IO, fromIntegral, show)
+import Prelude (fromIntegral)
 
 -------------------------------- PLC stuff--------------------------------
 
@@ -107,18 +106,6 @@ mkUncompressAndAddG1Script l =
     let points = map (Tx.bls12_381_G1_compress . Tx.bls12_381_G1_hashToGroup . toBuiltin) l
     in Tx.getPlcNoAnn $ $$(Tx.compile [|| uncompressAndAddG1 ||]) `Tx.unsafeApplyCode` Tx.liftCode points
 
-
--- Check that point addition is commutative in G1
-checkUncompressAndAddG1_Haskell :: Integer -> IO ()
-checkUncompressAndAddG1_Haskell n =
-    let l = listOfSizedByteStrings 100 n
-        points = map (Tx.bls12_381_G1_compress . Tx.bls12_381_G1_hashToGroup . toBuiltin) l
-        result1 = uncompressAndAddG1 points
-        result2 = uncompressAndAddG1 (reverse points)
-    in do
-      printf "%s\n" (show result1)
-      printf "%s\n" (show result2)
-
 -- Uncompress a list of compressed G1 points and add them all together
 {-# INLINABLE uncompressAndAddG2 #-}
 uncompressAndAddG2 :: [BuiltinByteString] -> BuiltinBLS12_381_G2_Element
@@ -132,17 +119,6 @@ mkUncompressAndAddG2Script :: [ByteString] -> UProg
 mkUncompressAndAddG2Script l =
     let points = map (Tx.bls12_381_G2_compress . Tx.bls12_381_G2_hashToGroup . toBuiltin) l
     in Tx.getPlcNoAnn $ $$(Tx.compile [|| uncompressAndAddG2 ||]) `Tx.unsafeApplyCode` Tx.liftCode points
-
--- Check that point addition is commutative in G2
-checkUncompressAndAddG2_Haskell :: Integer -> IO ()
-checkUncompressAndAddG2_Haskell n =
-    let l = listOfSizedByteStrings 100 n
-        points = map (Tx.bls12_381_G2_compress . Tx.bls12_381_G2_hashToGroup . toBuiltin) l
-        result1 = uncompressAndAddG2 points
-        result2 = uncompressAndAddG2 (reverse points)
-    in do
-      printf "%s\n" (show result1)
-      printf "%s\n" (show result2)
 
 -- Pairing operations
 
