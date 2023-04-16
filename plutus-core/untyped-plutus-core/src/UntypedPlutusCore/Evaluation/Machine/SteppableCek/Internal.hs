@@ -428,8 +428,8 @@ evalBuiltinApp
     -> BuiltinRuntime (CekValue uni fun ann)
     -> CekM uni fun s (CekValue uni fun ann)
 evalBuiltinApp fun term runtime = case runtime of
-    BuiltinResult cost getX -> do
-        spendBudgetCek (BBuiltinApp fun) cost
+    BuiltinResult budgets getX -> do
+        spendBudgetStreamCek (BBuiltinApp fun) budgets
         case getX of
             MakeKnownFailure logs err       -> do
                 ?cekEmitter logs

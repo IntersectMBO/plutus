@@ -33,8 +33,10 @@ module PlutusCore.Evaluation.Machine.CostingFun.Core
     )
 where
 
-import PlutusCore.Evaluation.Machine.ExBudget
+import PlutusCore.Evaluation.Machine.CostStream
+import PlutusCore.Evaluation.Machine.ExBudgetStream
 import PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore.Evaluation.Machine.ExMemoryUsage
 
 import Control.DeepSeq
 import Data.Default.Class
@@ -58,12 +60,12 @@ class OnMemoryUsages c a where
     onMemoryUsages :: c -> a
 
 instance (ab ~ (a -> b), ExMemoryUsage a, OnMemoryUsages c b) =>
-        OnMemoryUsages (ExMemory -> c) ab where
-    -- | 'inline' is for making sure that 'memoryUsage' does get inlined.
-    onMemoryUsages f = onMemoryUsages . f . inline memoryUsage
+        OnMemoryUsages (CostStream -> c) ab where
+    -- 'inline' is for making sure that 'memoryUsage' does get inlined.
+    onMemoryUsages f = onMemoryUsages . f . flattenCostRose . inline memoryUsage
     {-# INLINE onMemoryUsages #-}
 
-instance ab ~ ExBudget => OnMemoryUsages ExBudget ab where
+instance ab ~ ExBudgetStream => OnMemoryUsages ExBudgetStream ab where
     onMemoryUsages = id
     {-# INLINE onMemoryUsages #-}
 
@@ -116,9 +118,9 @@ In order for @run*Model@ functions to be able to partially compute we need to de
 accordingly, i.e. by matching on the first argument and returning a lambda. We wrap one of the
 clauses with a call to 'lazy', so that GHC does not "optimize" the function by moving matching to
 the inside of the resulting lambda (which would defeat the whole purpose of caching the function).
-It's enough to put 'lazy' in only one of the clauses for all of them to be compiled the right way.
-We consistently choose the @*ConstantCost@ clause, because it doesn't need to be optimized anyway
-and so a call to 'lazy' doesn't hurt there.
+It's enough to put 'lazy' in only one of the clauses for all of them to be compiled the right way,
+however adding 'lazy' to all the other clauses too turned out to improve performance by a couple of
+percent, reasons are unclear.
 
 Alternatively, we could use @-fpedantic-bottoms@, which prevents GHC from moving matching above
 a lambda (see https://github.com/input-output-hk/plutus/pull/4621), however it doesn't make anything
@@ -146,21 +148,29 @@ runCostingFunOneArgument
     :: ExMemoryUsage a1
     => CostingFun ModelOneArgument
     -> a1
-    -> ExBudget
+    -> ExBudgetStream
 runCostingFunOneArgument (CostingFun cpu mem) =
     case (runOneArgumentModel cpu, runOneArgumentModel mem) of
         (!runCpu, !runMem) -> onMemoryUsages $ \mem1 ->
-            ExBudget (ExCPU    $ runCpu mem1)
-                     (ExMemory $ runMem mem1)
+            zipCostStream
+                (runCpu mem1)
+                (runMem mem1)
 {-# INLINE runCostingFunOneArgument #-}
+
+-- | Take an intercept, a slope and a stream and scale each element of the stream by the slope and
+-- cons the intercept to the stream afterwards.
+scaleLinearly :: CostingInteger -> CostingInteger -> CostStream -> CostStream
+scaleLinearly intercept slope = addCostStream (CostLast intercept) . mapCostStream (slope *)
+{-# INLINE scaleLinearly #-}
 
 runOneArgumentModel
     :: ModelOneArgument
-    -> ExMemory
-    -> CostingInteger
-runOneArgumentModel (ModelOneArgumentConstantCost c) = lazy $ \_ -> c
-runOneArgumentModel (ModelOneArgumentLinearCost (ModelLinearSize intercept slope)) = \(ExMemory s) ->
-    s * slope + intercept
+    -> CostStream
+    -> CostStream
+runOneArgumentModel (ModelOneArgumentConstantCost c) =
+    lazy $ \_ -> CostLast c
+runOneArgumentModel (ModelOneArgumentLinearCost (ModelLinearSize intercept slope)) =
+    lazy $ \costs1 -> scaleLinearly intercept slope costs1
 {-# NOINLINE runOneArgumentModel #-}
 
 ---------------- Two-argument costing functions ----------------
@@ -249,61 +259,85 @@ runCostingFunTwoArguments
     => CostingFun ModelTwoArguments
     -> a1
     -> a2
-    -> ExBudget
+    -> ExBudgetStream
 runCostingFunTwoArguments (CostingFun cpu mem) =
     case (runTwoArgumentModel cpu, runTwoArgumentModel mem) of
         (!runCpu, !runMem) -> onMemoryUsages $ \mem1 mem2 ->
-            ExBudget (ExCPU    $ runCpu mem1 mem2)
-                     (ExMemory $ runMem mem1 mem2)
+            zipCostStream
+                (runCpu mem1 mem2)
+                (runMem mem1 mem2)
 {-# INLINE runCostingFunTwoArguments #-}
 
 runTwoArgumentModel
     :: ModelTwoArguments
-    -> ExMemory
-    -> ExMemory
-    -> CostingInteger
+    -> CostStream
+    -> CostStream
+    -> CostStream
 runTwoArgumentModel
-    (ModelTwoArgumentsConstantCost c) = lazy $ \_ _ -> c
+    (ModelTwoArgumentsConstantCost c) = lazy $ \_ _ -> CostLast c
 runTwoArgumentModel
-    (ModelTwoArgumentsAddedSizes (ModelAddedSizes intercept slope)) = \(ExMemory size1) (ExMemory size2) ->
-        (size1 + size2) * slope + intercept -- TODO is this even correct? If not, adjust the other implementations too.
+    (ModelTwoArgumentsAddedSizes (ModelAddedSizes intercept slope)) =
+        lazy $ \costs1 costs2 ->
+            scaleLinearly intercept slope $ addCostStream costs1 costs2
 runTwoArgumentModel
-    (ModelTwoArgumentsSubtractedSizes (ModelSubtractedSizes intercept slope minSize)) = \(ExMemory size1) (ExMemory size2) ->
-        (max minSize (size1 - size2)) * slope + intercept
+    (ModelTwoArgumentsSubtractedSizes (ModelSubtractedSizes intercept slope minSize)) =
+        lazy $ \costs1 costs2 -> do
+            let !size1 = sumCostStream costs1
+                !size2 = sumCostStream costs2
+            scaleLinearly intercept slope $ CostLast (max minSize $ size1 - size2)
 runTwoArgumentModel
-    (ModelTwoArgumentsMultipliedSizes (ModelMultipliedSizes intercept slope)) = \(ExMemory size1) (ExMemory size2) ->
-        (size1 * size2) * slope + intercept
+    (ModelTwoArgumentsMultipliedSizes (ModelMultipliedSizes intercept slope)) =
+        lazy $ \costs1 costs2 -> do
+            let !size1 = sumCostStream costs1
+                !size2 = sumCostStream costs2
+            scaleLinearly intercept slope $ CostLast (size1 * size2)
 runTwoArgumentModel
-    (ModelTwoArgumentsMinSize (ModelMinSize intercept slope)) = \(ExMemory size1) (ExMemory size2) ->
-        (min size1 size2) * slope + intercept
+    (ModelTwoArgumentsMinSize (ModelMinSize intercept slope)) =
+        lazy $ \costs1 costs2 -> do
+            scaleLinearly intercept slope $ minCostStream costs1 costs2
 runTwoArgumentModel
-    (ModelTwoArgumentsMaxSize (ModelMaxSize intercept slope)) = \(ExMemory size1) (ExMemory size2) ->
-        (max size1 size2) * slope + intercept
+    (ModelTwoArgumentsMaxSize (ModelMaxSize intercept slope)) =
+        lazy $ \costs1 costs2 -> do
+            let !size1 = sumCostStream costs1
+                !size2 = sumCostStream costs2
+            scaleLinearly intercept slope $ CostLast (max size1 size2)
 runTwoArgumentModel
-    (ModelTwoArgumentsLinearInX (ModelLinearSize intercept slope)) = \(ExMemory size1) (ExMemory _) ->
-        size1 * slope + intercept
+    (ModelTwoArgumentsLinearInX (ModelLinearSize intercept slope)) =
+        lazy $ \costs1 _ ->
+            scaleLinearly intercept slope costs1
 runTwoArgumentModel
-    (ModelTwoArgumentsLinearInY (ModelLinearSize intercept slope)) = \(ExMemory _) (ExMemory size2) ->
-        size2 * slope + intercept
-runTwoArgumentModel  -- Off the diagonal, return the constant.  On the diagonal, run the one-variable linear model.
-    (ModelTwoArgumentsLinearOnDiagonal (ModelConstantOrLinear c intercept slope)) = \(ExMemory xSize) (ExMemory ySize) ->
-        if xSize == ySize
-        then xSize * slope + intercept
-        else c
-runTwoArgumentModel -- Below the diagonal, return the constant. Above the diagonal, run the other model.
+    (ModelTwoArgumentsLinearInY (ModelLinearSize intercept slope)) =
+        lazy $ \_ costs2 ->
+            scaleLinearly intercept slope costs2
+runTwoArgumentModel
+    -- Off the diagonal, return the constant.  On the diagonal, run the one-variable linear model.
+    (ModelTwoArgumentsLinearOnDiagonal (ModelConstantOrLinear c intercept slope)) =
+        lazy $ \costs1 costs2 -> do
+            let !size1 = sumCostStream costs1
+                !size2 = sumCostStream costs2
+            if size1 == size2
+                then scaleLinearly intercept slope $ CostLast size1
+                else CostLast c
+runTwoArgumentModel
+    -- Below the diagonal, return the constant. Above the diagonal, run the other model.
     (ModelTwoArgumentsConstBelowDiagonal (ModelConstantOrTwoArguments c m)) =
         case runTwoArgumentModel m of
-            !run -> \xMem yMem ->
-                if xMem > yMem
-                then c
-                else run xMem yMem
-runTwoArgumentModel -- Above the diagonal, return the constant. Below the diagonal, run the other model.
+            !run -> lazy $ \costs1 costs2 -> do
+                let !size1 = sumCostStream costs1
+                    !size2 = sumCostStream costs2
+                if size1 > size2
+                    then CostLast c
+                    else run (CostLast size1) (CostLast size2)
+runTwoArgumentModel
+    -- Above the diagonal, return the constant. Below the diagonal, run the other model.
     (ModelTwoArgumentsConstAboveDiagonal (ModelConstantOrTwoArguments c m)) =
         case runTwoArgumentModel m of
-            !run -> \xMem yMem ->
-                if xMem < yMem
-                then c
-                else run xMem yMem
+            !run -> lazy $ \costs1 costs2 -> do
+                let !size1 = sumCostStream costs1
+                    !size2 = sumCostStream costs2
+                if size1 < size2
+                    then CostLast c
+                    else run (CostLast size1) (CostLast size2)
 {-# NOINLINE runTwoArgumentModel #-}
 
 
@@ -323,19 +357,27 @@ instance Default ModelThreeArguments where
 
 runThreeArgumentModel
     :: ModelThreeArguments
-    -> ExMemory
-    -> ExMemory
-    -> ExMemory
-    -> CostingInteger
-runThreeArgumentModel (ModelThreeArgumentsConstantCost c) = lazy $ \_ _ _ -> c
-runThreeArgumentModel (ModelThreeArgumentsAddedSizes (ModelAddedSizes intercept slope)) = \(ExMemory size1) (ExMemory size2) (ExMemory size3) ->
-    (size1 + size2 + size3) * slope + intercept
-runThreeArgumentModel (ModelThreeArgumentsLinearInX (ModelLinearSize intercept slope)) = \(ExMemory size1) _ _ ->
-    size1 * slope + intercept
-runThreeArgumentModel (ModelThreeArgumentsLinearInY (ModelLinearSize intercept slope)) = \_ (ExMemory size2) _ ->
-    size2 * slope + intercept
-runThreeArgumentModel (ModelThreeArgumentsLinearInZ (ModelLinearSize intercept slope)) = \_ _ (ExMemory size3) ->
-    size3 * slope + intercept
+    -> CostStream
+    -> CostStream
+    -> CostStream
+    -> CostStream
+runThreeArgumentModel (ModelThreeArgumentsConstantCost c) = lazy $ \_ _ _ -> CostLast c
+runThreeArgumentModel
+    (ModelThreeArgumentsAddedSizes (ModelAddedSizes intercept slope)) =
+        lazy $ \costs1 costs2 costs3 ->
+            scaleLinearly intercept slope . addCostStream costs1 $ addCostStream costs2 costs3
+runThreeArgumentModel
+    (ModelThreeArgumentsLinearInX (ModelLinearSize intercept slope)) =
+        lazy $ \costs1 _ _ ->
+            scaleLinearly intercept slope costs1
+runThreeArgumentModel
+    (ModelThreeArgumentsLinearInY (ModelLinearSize intercept slope)) =
+        lazy $ \_ costs2 _ ->
+            scaleLinearly intercept slope costs2
+runThreeArgumentModel
+    (ModelThreeArgumentsLinearInZ (ModelLinearSize intercept slope)) =
+        lazy $ \_ _ costs3 ->
+            scaleLinearly intercept slope costs3
 {-# NOINLINE runThreeArgumentModel #-}
 
 -- See Note [runCostingFun* API].
@@ -348,12 +390,13 @@ runCostingFunThreeArguments
     -> a1
     -> a2
     -> a3
-    -> ExBudget
+    -> ExBudgetStream
 runCostingFunThreeArguments (CostingFun cpu mem) =
     case (runThreeArgumentModel cpu, runThreeArgumentModel mem) of
         (!runCpu, !runMem) -> onMemoryUsages $ \mem1 mem2 mem3 ->
-            ExBudget (ExCPU    $ runCpu mem1 mem2 mem3)
-                     (ExMemory $ runMem mem1 mem2 mem3)
+            zipCostStream
+                (runCpu mem1 mem2 mem3)
+                (runMem mem1 mem2 mem3)
 {-# INLINE runCostingFunThreeArguments #-}
 
 
@@ -369,12 +412,12 @@ instance Default ModelFourArguments where
 
 runFourArgumentModel
     :: ModelFourArguments
-    -> ExMemory
-    -> ExMemory
-    -> ExMemory
-    -> ExMemory
-    -> CostingInteger
-runFourArgumentModel (ModelFourArgumentsConstantCost c) = lazy $ \_ _ _ _ -> c
+    -> CostStream
+    -> CostStream
+    -> CostStream
+    -> CostStream
+    -> CostStream
+runFourArgumentModel (ModelFourArgumentsConstantCost c) = lazy $ \_ _ _ _ -> CostLast c
 {-# NOINLINE runFourArgumentModel #-}
 
 -- See Note [runCostingFun* API].
@@ -389,12 +432,13 @@ runCostingFunFourArguments
     -> a2
     -> a3
     -> a4
-    -> ExBudget
+    -> ExBudgetStream
 runCostingFunFourArguments (CostingFun cpu mem) =
     case (runFourArgumentModel cpu, runFourArgumentModel mem) of
         (!runCpu, !runMem) -> onMemoryUsages $ \mem1 mem2 mem3 mem4 ->
-            ExBudget (ExCPU    $ runCpu mem1 mem2 mem3 mem4)
-                     (ExMemory $ runMem mem1 mem2 mem3 mem4)
+            zipCostStream
+                (runCpu mem1 mem2 mem3 mem4)
+                (runMem mem1 mem2 mem3 mem4)
 {-# INLINE runCostingFunFourArguments #-}
 
 
@@ -410,13 +454,13 @@ instance Default ModelFiveArguments where
 
 runFiveArgumentModel
     :: ModelFiveArguments
-    -> ExMemory
-    -> ExMemory
-    -> ExMemory
-    -> ExMemory
-    -> ExMemory
-    -> CostingInteger
-runFiveArgumentModel (ModelFiveArgumentsConstantCost c) = lazy $ \_ _ _ _ _ -> c
+    -> CostStream
+    -> CostStream
+    -> CostStream
+    -> CostStream
+    -> CostStream
+    -> CostStream
+runFiveArgumentModel (ModelFiveArgumentsConstantCost c) = lazy $ \_ _ _ _ _ -> CostLast c
 {-# NOINLINE runFiveArgumentModel #-}
 
 -- See Note [runCostingFun* API].
@@ -433,12 +477,13 @@ runCostingFunFiveArguments
     -> a3
     -> a4
     -> a5
-    -> ExBudget
+    -> ExBudgetStream
 runCostingFunFiveArguments (CostingFun cpu mem) =
     case (runFiveArgumentModel cpu, runFiveArgumentModel mem) of
         (!runCpu, !runMem) -> onMemoryUsages $ \mem1 mem2 mem3 mem4 mem5 ->
-            ExBudget (ExCPU    $ runCpu mem1 mem2 mem3 mem4 mem5)
-                     (ExMemory $ runMem mem1 mem2 mem3 mem4 mem5)
+            zipCostStream
+                (runCpu mem1 mem2 mem3 mem4 mem5)
+                (runMem mem1 mem2 mem3 mem4 mem5)
 {-# INLINE runCostingFunFiveArguments #-}
 
 ---------------- Six-argument costing functions ----------------
@@ -453,14 +498,14 @@ instance Default ModelSixArguments where
 
 runSixArgumentModel
     :: ModelSixArguments
-    -> ExMemory
-    -> ExMemory
-    -> ExMemory
-    -> ExMemory
-    -> ExMemory
-    -> ExMemory
-    -> CostingInteger
-runSixArgumentModel (ModelSixArgumentsConstantCost c) = lazy $ \_ _ _ _ _ _ -> c
+    -> CostStream
+    -> CostStream
+    -> CostStream
+    -> CostStream
+    -> CostStream
+    -> CostStream
+    -> CostStream
+runSixArgumentModel (ModelSixArgumentsConstantCost c) = lazy $ \_ _ _ _ _ _ -> CostLast c
 {-# NOINLINE runSixArgumentModel #-}
 
 -- See Note [runCostingFun* API].
@@ -479,10 +524,11 @@ runCostingFunSixArguments
     -> a4
     -> a5
     -> a6
-    -> ExBudget
+    -> ExBudgetStream
 runCostingFunSixArguments (CostingFun cpu mem) =
     case (runSixArgumentModel cpu, runSixArgumentModel mem) of
         (!runCpu, !runMem) -> onMemoryUsages $ \mem1 mem2 mem3 mem4 mem5 mem6 ->
-            ExBudget (ExCPU    $ runCpu mem1 mem2 mem3 mem4 mem5 mem6)
-                     (ExMemory $ runMem mem1 mem2 mem3 mem4 mem5 mem6)
+            zipCostStream
+                (runCpu mem1 mem2 mem3 mem4 mem5 mem6)
+                (runMem mem1 mem2 mem3 mem4 mem5 mem6)
 {-# INLINE runCostingFunSixArguments #-}

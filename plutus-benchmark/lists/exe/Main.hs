@@ -11,6 +11,7 @@ import Text.Printf (printf)
 import PlutusBenchmark.Common (Term)
 import PlutusBenchmark.Lists.Sort
 
+import Data.SatInt
 import PlutusCore qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
@@ -23,7 +24,8 @@ getBudgetUsage term =
       Cek.runCekDeBruijn PLC.defaultCekParameters Cek.counting Cek.noEmitter term
     of
       (Left _, _)                 -> Nothing
-      (Right _, Cek.CountingSt c) -> let ExCPU cpu = exBudgetCPU c in Just $ fromIntegral cpu
+      (Right _, Cek.CountingSt c) ->
+          let ExCPU cpu = exBudgetCPU c in Just $ fromSatInt cpu
 
 getCekSteps :: Term -> Maybe Integer
 getCekSteps term =
@@ -34,7 +36,7 @@ getCekSteps term =
       (Right _, Cek.TallyingSt (Cek.CekExTally counts) _) ->
           let getCount k =
                   case H.lookup k counts of
-                    Just v  -> let ExCPU n = exBudgetCPU v in fromIntegral n
+                    Just v  -> let ExCPU n = exBudgetCPU v in fromSatInt n
                     Nothing -> 0
               allNodeTags =
                 fmap

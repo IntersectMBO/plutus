@@ -26,8 +26,8 @@ import PlutusCore.Builtin.KnownTypeAst
 import PlutusCore.Builtin.Runtime
 import PlutusCore.Builtin.TypeScheme
 import PlutusCore.Core
-import PlutusCore.Evaluation.Machine.ExBudget
-import PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore.Evaluation.Machine.ExBudgetStream
+import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.Name
 
 import Control.DeepSeq
@@ -204,7 +204,7 @@ class KnownMonotype val args res where
     -- passing the action returning the builtin application around until full saturation, which is
     -- when the action actually gets run.
     toMonoF
-        :: ReadKnownM (FoldArgs args res, FoldArgs args ExBudget)
+        :: ReadKnownM (FoldArgs args res, FoldArgs args ExBudgetStream)
         -> BuiltinRuntime val
 
 -- | Once we've run out of term-level arguments, we return a
@@ -229,7 +229,7 @@ instance (Typeable res, KnownTypeAst (UniOf val) res, MakeKnown val res) =>
             -- a budgeting failure or a budgeting success with a cost and a 'MakeKnownM' computation
             -- inside, but that would slow things down a bit and the current strategy is
             -- reasonable enough.
-            (BuiltinResult mempty . MakeKnownFailure mempty)
+            (BuiltinResult (ExBudgetLast mempty) . MakeKnownFailure mempty)
             (\(x, cost) -> BuiltinResult cost $ makeKnown x)
     {-# INLINE toMonoF #-}
 
@@ -291,7 +291,7 @@ class KnownMonotype val args res => KnownPolytype (binds :: [Some TyNameRep]) va
     -- passing the action returning the builtin application around until full saturation, which is
     -- when the action actually gets run.
     toPolyF
-        :: ReadKnownM (FoldArgs args res, FoldArgs args ExBudget)
+        :: ReadKnownM (FoldArgs args res, FoldArgs args ExBudgetStream)
         -> BuiltinRuntime val
 
 -- | Once we've run out of type-level arguments, we start handling term-level ones.
@@ -346,7 +346,10 @@ class MakeBuiltinMeaning a val where
     --
     -- 1. the denotation of the builtin
     -- 2. an uninstantiated costing function
-    makeBuiltinMeaning :: a -> (cost -> FoldArgs (GetArgs a) ExBudget) -> BuiltinMeaning val cost
+    makeBuiltinMeaning
+        :: a
+        -> (cost -> FoldArgs (GetArgs a) ExBudgetStream)
+        -> BuiltinMeaning val cost
 instance
         ( binds ~ ToBinds a, args ~ GetArgs a, a ~ FoldArgs args res
         , ThrowOnBothEmpty binds args (IsBuiltin a) a

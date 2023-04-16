@@ -1,4 +1,5 @@
 {-# LANGUAGE DefaultSignatures #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE PolyKinds         #-}
@@ -83,21 +84,29 @@ instance ArbitraryBuiltin ()
 instance ArbitraryBuiltin Bool
 instance ArbitraryBuiltin Data
 
--- | The 'Arbitrary' instance for 'Integer' only generates small integers:
---
--- >>> :set -XTypeApplications
--- >>> fmap (any ((> 30) . abs) . concat . concat . concat) . sample' $ arbitrary @[[[Integer]]]
--- False
---
--- We want to at least occasionally generate some larger ones, which is what the 'Arbitrary'
--- instance for 'Int64' does:
---
--- >>> import Data.Int
--- >>> fmap (any ((> 10000) . abs) . concat . concat . concat) . sample' $ arbitrary @[[[Int64]]]
--- True
+{- Note [QuickCheck and integral types]
+The 'Arbitrary' instances for 'Integer' and 'Int64' only generate small integers:
+
+    >>> :set -XTypeApplications
+    >>> fmap (any ((> 30) . abs) . concat . concat . concat) . sample' $ arbitrary @[[[Integer]]]
+    False
+    >>> fmap (any ((> 30) . abs) . concat . concat . concat) . sample' $ arbitrary @[[[Int]]]
+    False
+
+We want to at least occasionally generate some larger ones, which is what the 'Arbitrary'
+instance for 'Int64' does:
+
+    >>> import Data.Int
+    >>> fmap (any ((> 10000) . abs) . concat . concat . concat) . sample' $ arbitrary @[[[Int64]]]
+    True
+
+For this reason we use 'Int64' when dealing with QuickCheck.
+-}
+
 instance ArbitraryBuiltin Integer where
     arbitraryBuiltin = frequency
         [ (4, arbitrary @Integer)
+        -- See Note [QuickCheck and integral types].
         , (1, fromIntegral <$> arbitrary @Int64)
         ]
 
@@ -229,15 +238,13 @@ instance KnownKind k => Arbitrary (MaybeSomeTypeOf k) where
        size <- getSize
        oneof $ case knownKind @k of
            SingType ->
-               [genDefaultUniApply | size > 10] ++
-               [ pure $ JustSomeType DefaultUniInteger
-               , pure $ JustSomeType DefaultUniByteString
-               , pure $ JustSomeType DefaultUniString
-               , pure $ JustSomeType DefaultUniUnit
-               , pure $ JustSomeType DefaultUniBool
-               -- Commented out, because the 'Arbitrary' instance for 'Data' isn't implemented
-               -- (errors out).
-               -- , pure $ JustSomeType DefaultUniData
+               [genDefaultUniApply | size > 10] ++ map pure
+               [ JustSomeType DefaultUniInteger
+               , JustSomeType DefaultUniByteString
+               , JustSomeType DefaultUniString
+               , JustSomeType DefaultUniUnit
+               , JustSomeType DefaultUniBool
+               , JustSomeType DefaultUniData
                ]
            SingType `SingKindArrow` SingType ->
                [genDefaultUniApply | size > 10] ++
@@ -250,6 +257,19 @@ instance KnownKind k => Arbitrary (MaybeSomeTypeOf k) where
 
    shrink NothingSomeType    = []  -- No shrinks if you don't have anything to shrink.
    shrink (JustSomeType uni) = shrinkBuiltinSameKind uni
+
+instance Arbitrary (Some (ValueOf DefaultUni)) where
+    arbitrary = do
+        mayUni <- arbitrary
+        case mayUni of
+            NothingSomeType  -> error "Panic: no *-kinded built-in types exist"
+            JustSomeType uni ->
+                bring (Proxy @ArbitraryBuiltin) uni $
+                    Some . ValueOf uni <$> arbitraryBuiltin
+
+    shrink (Some (ValueOf DefaultUniUnit ())) = []
+    shrink (Some (ValueOf uni x))             = someValue () :
+        bring (Proxy @ArbitraryBuiltin) uni (map (Some . ValueOf uni) $ shrinkBuiltin x)
 
 -- | Generate a built-in type of a given kind.
 genBuiltinTypeOf :: Kind () -> Gen (Maybe (SomeTypeIn DefaultUni))

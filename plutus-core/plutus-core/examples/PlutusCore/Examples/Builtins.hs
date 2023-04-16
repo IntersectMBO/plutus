@@ -20,16 +20,20 @@ module PlutusCore.Examples.Builtins where
 
 import PlutusCore
 import PlutusCore.Builtin
+import PlutusCore.Data
+import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.ExBudget
+import PlutusCore.Evaluation.Machine.ExBudgetStream
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Pretty
 
 import PlutusCore.StdLib.Data.ScottList qualified as Plc
 
+import Control.Concurrent.MVar
 import Control.Exception
+import Control.Monad
 import Data.Default.Class
 import Data.Either
-import Data.Hashable (Hashable)
 import Data.Kind qualified as GHC (Type)
 import Data.Proxy
 import Data.Some.GADT qualified as GADT
@@ -39,6 +43,9 @@ import GHC.Generics
 import GHC.Ix
 import GHC.TypeLits
 import Prettyprinter
+import System.IO.Unsafe (unsafeInterleaveIO, unsafePerformIO)
+import System.Mem (performMinorGC)
+import System.Mem.Weak (addFinalizer)
 
 instance (Bounded a, Bounded b) => Bounded (Either a b) where
     minBound = Left  minBound
@@ -128,6 +135,8 @@ data ExtensionFun
     | SwapEls  -- For checking that nesting polymorphic built-in types and instantiating them with
                -- a mix of monomorphic types and type variables works correctly.
     | ExtensionVersion -- Reflect the version of the Extension
+    | TrackCosts  -- For checking that each cost is released and can be picked up by GC once it's
+                  -- accounted for in the evaluator.
     deriving stock (Show, Eq, Ord, Enum, Bounded, Ix, Generic)
     deriving anyclass (Hashable)
 
@@ -190,6 +199,18 @@ data BuiltinErrorCall = BuiltinErrorCall
     deriving stock (Show, Eq)
     deriving anyclass (Exception)
 
+-- | For the most part we don't care about costing functions of example builtins, hence this class
+-- for being explicit about not caring.
+class Whatever a where
+    -- | The costing function of a builtin whose costing function doesn't matter.
+    whatever :: a
+
+instance Whatever b => Whatever (a -> b) where
+    whatever _ = whatever
+
+instance Whatever ExBudgetStream where
+    whatever = ExBudgetLast mempty
+
 -- See Note [Representable built-in functions over polymorphic built-in types].
 -- We have lists in the universe and so we can define a function like @\x -> [x, x]@ that duplicates
 -- the constant that it receives. Should memory consumption of that function be linear in the number
@@ -214,12 +235,12 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     toBuiltinMeaning _ver Factorial =
         makeBuiltinMeaning
             (\(n :: Integer) -> product [1..n])
-            mempty  -- Whatever.
+            whatever
 
     toBuiltinMeaning _ver ForallFortyTwo =
         makeBuiltinMeaning
             forallFortyTwo
-            (\_ -> ExBudget 1 0)
+            whatever
       where
         forallFortyTwo :: MetaForall ('TyNameRep @GHC.Type "a" 0) Integer
         forallFortyTwo = MetaForall 42
@@ -227,27 +248,27 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     toBuiltinMeaning _ver SumInteger =
         makeBuiltinMeaning
             (sum :: [Integer] -> Integer)
-            mempty  -- Whatever.
+            whatever
 
     toBuiltinMeaning _ver Const =
         makeBuiltinMeaning
             const
-            (\_ _ _ -> ExBudget 1 0)
+            whatever
 
     toBuiltinMeaning _ver Id =
         makeBuiltinMeaning
             Prelude.id
-            (\_ _ -> ExBudget 1 0)
+            whatever
 
     toBuiltinMeaning _ver IdAssumeBool =
         makeBuiltinMeaning
             (Prelude.id :: Opaque val Bool -> Opaque val Bool)
-            (\_ _ -> ExBudget 1 0)
+            whatever
 
     toBuiltinMeaning _ver IdAssumeCheckBool =
         makeBuiltinMeaning
             idAssumeCheckBoolPlc
-            mempty  -- Whatever.
+            whatever
       where
         idAssumeCheckBoolPlc :: Opaque val Bool -> EvaluationResult Bool
         idAssumeCheckBoolPlc val =
@@ -258,7 +279,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     toBuiltinMeaning _ver IdSomeConstantBool =
         makeBuiltinMeaning
             idSomeConstantBoolPlc
-            mempty  -- Whatever.
+            whatever
       where
         idSomeConstantBoolPlc :: SomeConstant uni Bool -> EvaluationResult Bool
         idSomeConstantBoolPlc = \case
@@ -268,7 +289,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     toBuiltinMeaning _ver IdIntegerAsBool =
         makeBuiltinMeaning
             idIntegerAsBool
-            mempty  -- Whatever.
+            whatever
       where
         idIntegerAsBool :: SomeConstant uni Integer -> EvaluationResult (SomeConstant uni Integer)
         idIntegerAsBool = \case
@@ -278,19 +299,19 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     toBuiltinMeaning _ver IdFInteger =
         makeBuiltinMeaning
             (Prelude.id :: fi ~ Opaque val (f `TyAppRep` Integer) => fi -> fi)
-            (\_ _ -> ExBudget 1 0)
+            whatever
 
     toBuiltinMeaning _ver IdList =
         makeBuiltinMeaning
             (Prelude.id :: la ~ Opaque val (PlcListRep a) => la -> la)
-            (\_ _ -> ExBudget 1 0)
+            whatever
 
     toBuiltinMeaning _ver IdRank2 =
         makeBuiltinMeaning
             (Prelude.id
                 :: afa ~ Opaque val (TyForallRep @GHC.Type a (TyVarRep f `TyAppRep` TyVarRep a))
                 => afa -> afa)
-            (\_ _ -> ExBudget 1 0)
+            whatever
 
     toBuiltinMeaning _ver ScottToMetaUnit =
         makeBuiltinMeaning
@@ -302,36 +323,36 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
                 -- (unlike in the case of @IdRank2@ where 'TyAppRep' preserves the Rep context).
                 :: oa ~ Opaque val (TyVarRep a)
                 => Opaque val (TyForallRep a (oa -> oa)) -> ())
-            (\_ _ -> ExBudget 1 0)
+            whatever
 
     toBuiltinMeaning _ver FailingSucc =
         makeBuiltinMeaning
             @(Integer -> Integer)
             (\_ -> throw BuiltinErrorCall)
-            (\_ _ -> ExBudget 1 0)
+            whatever
 
     toBuiltinMeaning _ver ExpensiveSucc =
         makeBuiltinMeaning
             @(Integer -> Integer)
             (\_ -> throw BuiltinErrorCall)
-            (\_ _ -> unExRestrictingBudget enormousBudget)
+            (\_ _ -> ExBudgetLast $ unExRestrictingBudget enormousBudget)
 
     toBuiltinMeaning _ver FailingPlus =
         makeBuiltinMeaning
             @(Integer -> Integer -> Integer)
             (\_ _ -> throw BuiltinErrorCall)
-            (\_ _ _ -> ExBudget 1 0)
+            whatever
 
     toBuiltinMeaning _ver ExpensivePlus =
         makeBuiltinMeaning
             @(Integer -> Integer -> Integer)
             (\_ _ -> throw BuiltinErrorCall)
-            (\_ _ _ -> unExRestrictingBudget enormousBudget)
+            (\_ _ _ -> ExBudgetLast $ unExRestrictingBudget enormousBudget)
 
     toBuiltinMeaning _ver IsConstant =
         makeBuiltinMeaning
             isConstantPlc
-            mempty  -- Whatever.
+            whatever
       where
         -- The type signature is just for clarity, it's not required.
         isConstantPlc :: Opaque val a -> Bool
@@ -340,7 +361,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     toBuiltinMeaning _ver UnsafeCoerce =
         makeBuiltinMeaning
             unsafeCoercePlc
-            (\_ _ -> ExBudget 1 0)
+            whatever
       where
         -- The type signature is just for clarity, it's not required.
         unsafeCoercePlc :: Opaque val a -> Opaque val b
@@ -349,7 +370,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     toBuiltinMeaning _ver UnsafeCoerceEl =
         makeBuiltinMeaning
             unsafeCoerceElPlc
-            (\_ _ -> ExBudget 1 0)
+            whatever
       where
         unsafeCoerceElPlc
             :: SomeConstant DefaultUni [a]
@@ -361,19 +382,23 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     toBuiltinMeaning _ver Undefined =
         makeBuiltinMeaning
             undefined
-            (\_ -> ExBudget 1 0)
+            whatever
 
     toBuiltinMeaning _ver Absurd =
         makeBuiltinMeaning
             absurd
-            (\_ _ -> ExBudget 1 0)
+            whatever
 
     toBuiltinMeaning _ver ErrorPrime =
         makeBuiltinMeaning
             EvaluationFailure
-            (\_ -> ExBudget 1 0)
+            whatever
 
-    toBuiltinMeaning _ver Comma = makeBuiltinMeaning commaPlc mempty where
+    toBuiltinMeaning _ver Comma =
+        makeBuiltinMeaning
+            commaPlc
+            whatever
+      where
         commaPlc
             :: SomeConstant uni a
             -> SomeConstant uni b
@@ -381,7 +406,11 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
         commaPlc (SomeConstant (Some (ValueOf uniA x))) (SomeConstant (Some (ValueOf uniB y))) =
             fromValueOf (DefaultUniPair uniA uniB) (x, y)
 
-    toBuiltinMeaning _ver BiconstPair = makeBuiltinMeaning biconstPairPlc mempty where
+    toBuiltinMeaning _ver BiconstPair =
+        makeBuiltinMeaning
+            biconstPairPlc
+            whatever
+      where
         biconstPairPlc
             :: SomeConstant uni a
             -> SomeConstant uni b
@@ -396,7 +425,11 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
                 Just Refl <- pure $ uniB `geq` uniB'
                 pure $ fromValueOf uniPairAB (x, y)
 
-    toBuiltinMeaning _ver Swap = makeBuiltinMeaning swapPlc mempty where
+    toBuiltinMeaning _ver Swap =
+        makeBuiltinMeaning
+            swapPlc
+            whatever
+      where
         swapPlc
             :: SomeConstant uni (a, b)
             -> EvaluationResult (SomeConstant uni (b, a))
@@ -404,7 +437,11 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
             DefaultUniPair uniA uniB <- pure uniPairAB
             pure $ fromValueOf (DefaultUniPair uniB uniA) (snd p, fst p)
 
-    toBuiltinMeaning _ver SwapEls = makeBuiltinMeaning swapElsPlc mempty where
+    toBuiltinMeaning _ver SwapEls =
+        makeBuiltinMeaning
+            swapElsPlc
+            whatever
+      where
         -- The type reads as @[(a, Bool)] -> [(Bool, a)]@.
         swapElsPlc
             :: SomeConstant uni [SomeConstant uni (a, Bool)]
@@ -418,12 +455,80 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     -- See Note [Versioned builtins]
     toBuiltinMeaning ver ExtensionVersion =
         makeBuiltinMeaning
-        @(() -> EvaluationResult Integer)
-        (\(_ :: ()) -> EvaluationSuccess $ case ver of
-                ExtensionFunV0 -> 0
-                ExtensionFunV1 -> 1
-        )
-        mempty  -- Whatever
+            @(() -> EvaluationResult Integer)
+            (\(_ :: ()) -> EvaluationSuccess $ case ver of
+                    ExtensionFunV0 -> 0
+                    ExtensionFunV1 -> 1)
+            whatever
+
+    -- We want to know if the CEK machine releases individual budgets after accounting for them and
+    -- one way to ensure that is to check that individual budgets are GCed in chunks rather than all
+    -- at once when evaluation of the builtin finishes. This builtin returns a list of the maximum
+    -- numbers of individual budgets retained between GC calls. If the returned list is long (for
+    -- some definition of "long", see the tests), then chances are individual budgets are not
+    -- retained unnecessarily, and if it's too short (again, see the tests), then they are.
+    --
+    -- We track how many budgets get GCed by attaching a finalizer (see "System.Mem.Weak") to each
+    -- of them.
+    toBuiltinMeaning _ TrackCosts = unsafePerformIO $ do
+        -- A variable for storing the number of elements from the stream of budgets pending GC.
+        pendingGcVar <- newMVar 0
+        -- A variable for storing all the final numbers from @pendingGcVar@ appearing there right
+        -- before another GC is triggered. We store the results in reverse order for fast consing
+        -- and then 'reverse' them in the denotation of the builtin.
+        numsOfGcedVar <- newMVar []
+        let -- A function to run when GC picks up an individual budget.
+            finalize =
+                tryTakeMVar pendingGcVar >>= \case
+                    -- If @pendingGcVar@ happens to be empty, we say that no budgets were released
+                    -- and don't update @pendingGcVar@. I.e. this entire testing machinery can
+                    -- affect how budgets are retained, but the impact of the 'MVar' business is
+                    -- negligible, since @pendingGcVar@ is filled immediately after it's emptied.
+                    Nothing -> pure ()
+                    -- If @pendingGcVar@ is not empty, then we cons its content to the resulting
+                    -- list and put @0@ as the new content of the variable.
+                    Just pendingGc -> do
+                        _ <- modifyMVar_ numsOfGcedVar $ pure . (pendingGc :)
+                        putMVar pendingGcVar 0
+
+            -- Register an element of the stream of budgets by incrementing the counter storing the
+            -- number of elements pending GC and attaching the @finalize@ finalizer to the element.
+            regBudget budget = do
+                pendingGc <- takeMVar pendingGcVar
+                let pendingGc' = succ pendingGc
+                putMVar pendingGcVar pendingGc'
+                addFinalizer budget finalize
+                -- We need to trigger GC occasionally (otherwise it can easily take more than 100k
+                -- elements before GC is triggered and the number can go much higher depending on
+                -- the RTS options), so we picked 100 elements as a cutoff number. Doing GC less
+                -- often makes tests slower, doing GC more often requires us to generate longer
+                -- streams in tests in order to observe meaningful results making tests slower.
+                when (pendingGc' >= 100) performMinorGC
+
+            -- Call @regBudget@ over each element of the stream of budgets.
+            regBudgets (ExBudgetLast budget) = do
+                regBudget budget
+                -- Run @finalize@ one final time before returning the last budget.
+                finalize
+                -- Make all outstanding finalizers inert, so that we don't mix up budgets GCed
+                -- during spending with budgets GCed right after spending finishes.
+                _ <- takeMVar pendingGcVar
+                pure $ ExBudgetLast budget
+            regBudgets (ExBudgetCons budget budgets) = do
+                regBudget budget
+                -- Without 'unsafeInterleaveIO' this function would traverse the entire stream
+                -- before returning anything, which isn't what costing functions normally do and so
+                -- we don't want to have such behavior in a test.
+                budgets' <- unsafeInterleaveIO $ regBudgets budgets
+                pure $ ExBudgetCons budget budgets'
+
+            -- Just a random model that keeps the costs coming from the 'ExMemoryUsage' instance.
+            linear1 = ModelOneArgumentLinearCost $ ModelLinearSize 1 1
+            model   = CostingFun linear1 linear1
+        pure $ makeBuiltinMeaning
+            @(Data -> [Integer])
+            (\_ -> unsafePerformIO $ reverse <$> readMVar numsOfGcedVar)
+            (\_ -> unsafePerformIO . regBudgets . runCostingFunOneArgument model)
 
 instance Default (BuiltinVersion ExtensionFun) where
     def = ExtensionFunV1
