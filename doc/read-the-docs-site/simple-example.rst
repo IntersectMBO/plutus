@@ -291,8 +291,9 @@ There are languages other than Plutus Tx that can be compiled into Plutus Core.
 We list some of them here for reference. However, we are not endorsing them; we are not representing their qualities nor their state of development regarding their production-readiness. 
 
 * `Aiken <https://github.com/txpipe/aiken/>`_
+* `Hebi <https://github.com/OpShin/hebi>`_
 * `Helios <https://github.com/hyperion-bt/helios>`_
-* `Imperator <https://github.com/ImperatorLang/imperator>`_
+* `OpShin <https://github.com/OpShin/opshin>`_
 * `plu-ts <https://github.com/HarmonicLabs/plu-ts>`_
 * `Plutarch <https://github.com/Plutonomicon/plutarch-core>`_
 * `Pluto <https://github.com/Plutonomicon/pluto>`_
