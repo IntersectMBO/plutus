@@ -292,12 +292,12 @@ groth16Verify (Tx.bls12_381_G1_uncompress -> alpha)
               (Tx.bls12_381_G2_uncompress -> b)
               (Tx.bls12_381_G1_uncompress -> c)
               s =
-                  let l1    = Tx.bls12_381_millerLoop a b
-                      l2    = Tx.bls12_381_millerLoop alpha beta
-                      l3    = Tx.bls12_381_millerLoop c delta
-                      p     = Tx.bls12_381_G1_add  abc1 (Tx.bls12_381_G1_scalarMul s abc2)
-                      l4    = Tx.bls12_381_millerLoop p gamma
-                      y     = Tx.bls12_381_mulMlResult l2 (Tx.bls12_381_mulMlResult l3 l4)
+                  let l1 = Tx.bls12_381_millerLoop a b
+                      l2 = Tx.bls12_381_millerLoop alpha beta
+                      l3 = Tx.bls12_381_millerLoop c delta
+                      p  = Tx.bls12_381_G1_add  abc1 (Tx.bls12_381_G1_scalarMul s abc2)
+                      l4 = Tx.bls12_381_millerLoop p gamma
+                      y  = Tx.bls12_381_mulMlResult l2 (Tx.bls12_381_mulMlResult l3 l4)
                   in Tx.bls12_381_finalVerify l1 y
 
 {- | Make a UPLC script applying groth16Verify to the inputs.  Passing the
