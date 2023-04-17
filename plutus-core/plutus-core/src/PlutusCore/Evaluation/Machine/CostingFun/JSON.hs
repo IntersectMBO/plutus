@@ -33,6 +33,11 @@ deriving via ModelJSON "costingFun" (CostingFun model)
 deriving via ModelJSON "costingFun" (CostingFun model)
     instance ToJSON model => ToJSON (CostingFun model)
 
+deriving newtype instance FromJSON Intercept
+deriving newtype instance ToJSON   Intercept
+deriving newtype instance FromJSON Slope
+deriving newtype instance ToJSON   Slope
+
 deriving via ModelArgumentJSON "ModelOneArgument" ModelOneArgument
     instance FromJSON ModelOneArgument
 deriving via ModelArgumentJSON "ModelOneArgument" ModelOneArgument
