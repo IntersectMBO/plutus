@@ -21,6 +21,8 @@ open import Data.Bool using (Bool)
 open import Data.Maybe using (Maybe; just; nothing; maybe) 
                            renaming (_>>=_ to mbind) public
 
+{-# FOREIGN GHC import Raw #-}
+
 -- we cannot use the standard library's Either as it is not set up to
 -- compile the Haskell's Either and compile pragmas have to go in the
 -- same module as definitions

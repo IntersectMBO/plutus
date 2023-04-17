@@ -75,9 +75,9 @@ uglyTermCon unit = "()"
 uglyTermCon (string s) = "(string " ++ s ++ ")"
 uglyTermCon (bool false) = "(bool " ++ "false" ++ ")"
 uglyTermCon (bool true) = "(bool " ++ "true" ++ ")"
-uglyTermCon (pair x y) = "(pair " ++ uglyTermCon x ++ " " ++ uglyTermCon y ++ ")"
+uglyTermCon (pair _ _ x y) = "(pair " ++ uglyTermCon x ++ " " ++ uglyTermCon y ++ ")"
 --uglyTermCon (list xs) = "(list [" ++ uglyList (map uglyTermCon xs) ++ "])"
-uglyTermCon (list xs)  = "(list)"
+uglyTermCon (list _ xs)  = "(list)"
 uglyTermCon (pdata d) = "(DATA)"
 
 
