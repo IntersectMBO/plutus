@@ -1,4 +1,37 @@
 
+<a id='changelog-1.5.0.0'></a>
+# 1.5.0.0 — 2023-04-16
+
+## Removed
+
+- `Flat` instances for UPLC terms and programs. These were potentially unsafe as they don't perform the builtin checks that are required on chain, so it is important not to use them by accident.
+
+## Added
+
+- `optimise` options for the `pir`, `plc`, and `uplc` commands.
+- A `compile` option for the `pir` command which allows a PIR file to be
+  compiled to PLC or UPLC.
+- Functions for mapping over names and typenames in the PLC AST.
+
+- Inlining of fully applied functions in the PIR inliner. This only affects non-recursive bindings.
+
+- Plutus Core 1.1.0 now supports sums-of-products via the new `constr` and `case` terms. See CIP-85 for details.
+
+- `UnrestrictedProgram` newtype that performs unchecked serialization/deserialization of programs for when that's appropriate.
+
+- Tests for Steppable CEK against original CEK
+
+## Changed
+
+- Some of the `pir` commands have been extended to allow both `flat` and textual
+  input.
+
+- Made costing lazier to speed things up and increase expressiveness. #5239
+
+## Fixed
+
+- Fixed the `safeEncodeBits` assertion to also guard against 1 unsafe case. Does not affect current encoding/decoding.
+
 <a id='changelog-1.4.0.0'></a>
 # 1.4.0.0 — 2023-03-23
 
