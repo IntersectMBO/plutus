@@ -271,7 +271,7 @@ test_minCostStreamHandlesBottom =
                 (fromCostList . NonEmpty $ ys ++ suff)
         in -- Rolling '(+)' over a list representing the minimum of two streams eventually
            -- gives us the sum of the minimum stream before triggering any of the bottoms.
-           not . null . dropWhile (/= m) . scanl' (+) 0 . getNonEmpty $ toCostList xsYsMin
+           elem m . scanl' (+) 0 . getNonEmpty $ toCostList xsYsMin
 
 -- | Pad the shortest of the given lists by appending the given element to it until the length of
 -- the result matches the length of the other list.
@@ -297,8 +297,7 @@ test_zipCostStreamHandlesBottom =
                 (fromCostList . NonEmpty $ ysA ++ suff)
         in  -- Rolling '(<>)' over a list representing the zipped cost streams eventually
             -- gives us an 'ExBudget' containing the sums of the streams computed separately.
-            not . null . dropWhile (/= z) . scanl' (<>) mempty . getNonEmpty $
-                toExBudgetList xys
+            elem z . scanl' (<>) mempty . getNonEmpty $ toExBudgetList xys
 
 -- | The size 'sierpinskiRose' of the given depth.
 sierpinskiSize :: Int -> Int
@@ -503,7 +502,7 @@ test_genCostRoseSound =
                 fromCostRose rose ===
                     costs
 
--- | Test that 'flattenCostRose' returns the elements of its arguments.
+-- | Test that 'flattenCostRose' returns the elements of its argument.
 test_flattenCostRoseSound :: TestTree
 test_flattenCostRoseSound =
     testProperty "flattenCostRose puts 100% of its input and nothing else into the output" $
@@ -514,6 +513,24 @@ test_flattenCostRoseSound =
             checkEqualsVia eqCostStream
                 (flattenCostRose rose)
                 (fromCostList $ fromCostRose rose)
+
+-- | Test that 'flattenCostRose' is lazy.
+test_flattenCostRoseHandlesBottom :: TestTree
+test_flattenCostRoseHandlesBottom =
+    testProperty "flattenCostRose handles bottom subtrees" . withMaxSuccess 5000 $ \xs ys ->
+        -- Create a 'CostRose' with a negative cost somewhere in it, then replace the subtree after
+        -- that cost with 'bottom' and check that we can get to the negative cost without forcing
+        -- the bottom. We could've implemented generation of 'CostRose's with bottoms in them, but
+        -- 'genCostRose' is already complicated enough, so it's easier to put a magical number into
+        -- its input and postprocess the generated rose.
+        forAll (genCostRose . NonEmpty $ xs ++ (-1) : ys) $ \rose ->
+            let spoilCostRose (CostRose cost forest) =
+                    CostRose cost $ if cost == -1
+                        -- 'flattenCostRose' forces an additional constructor, which is why 'bottom'
+                        -- is put into a list.
+                        then [bottom]
+                        else map spoilCostRose forest
+            in elem (-1) . toCostList . flattenCostRose $ spoilCostRose rose
 
 -- | Test that 'memoryUsage' called over a value of a built-in type never returns a stream
 -- containing a negative cost.
@@ -548,5 +565,6 @@ test_costing = testGroup "costing"
     , test_CostRoseListLengthsDistribution
     , test_genCostRoseSound
     , test_flattenCostRoseSound
+    , test_flattenCostRoseHandlesBottom
     , test_costsAreNeverNegative
     ]
