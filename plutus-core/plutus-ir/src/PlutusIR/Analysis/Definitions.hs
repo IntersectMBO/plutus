@@ -5,13 +5,10 @@
 module PlutusIR.Analysis.Definitions
     ( UniqueInfos
     , termDefs
-    , typeDefs
     , runTermDefs
-    , runTypeDefs
     ) where
 
 import Data.Functor.Foldable
-import PlutusCore.Core (TypeF (TyForallF, TyLamF, TyVarF))
 import PlutusCore.Error
 import PlutusCore.Name
 import PlutusIR.Core
@@ -20,8 +17,7 @@ import PlutusIR.Core.Instance.Recursive (TermF (IWrapF, LamAbsF, TyAbsF, TyInstF
 import Control.Monad.State
 import Control.Monad.Writer
 
-import PlutusCore.Analysis.Definitions (ScopeType (TermScope, TypeScope), UniqueInfos, addDef,
-                                        addUsage)
+import PlutusCore.Analysis.Definitions hiding (runTermDefs, termDefs)
 
 termDefs
     :: (Ord ann,
@@ -38,20 +34,6 @@ termDefs = cata $ \case
     TyAbsF ann tn _ t  -> addDef tn ann TypeScope >> t
     TyInstF _ t ty     -> t >> typeDefs ty
     x                  -> sequence_ x
-
-typeDefs
-    :: (Ord ann,
-        HasUnique tyname TypeUnique,
-        MonadState (UniqueInfos ann) m,
-        MonadWriter [UniqueError ann] m)
-    => Type tyname uni ann
-    -> m ()
-typeDefs = cata $ \case
-    TyVarF ann n         -> addUsage n ann TypeScope
-    TyForallF ann tn _ t -> addDef tn ann TypeScope >> t
-    TyLamF ann tn _ t    -> addDef tn ann TypeScope >> t
-    x                    -> sequence_ x
-
 runTermDefs
     :: (Ord ann,
         HasUnique name TermUnique,
@@ -60,11 +42,3 @@ runTermDefs
     => Term tyname name uni fun ann
     -> m (UniqueInfos ann, [UniqueError ann])
 runTermDefs = runWriterT . flip execStateT mempty . termDefs
-
-runTypeDefs
-    :: (Ord ann,
-        HasUnique tyname TypeUnique,
-        Monad m)
-    => Type tyname uni ann
-    -> m (UniqueInfos ann, [UniqueError ann])
-runTypeDefs = runWriterT . flip execStateT mempty . typeDefs
