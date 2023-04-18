@@ -25,8 +25,8 @@ open RawTyCon
 open import Utils using (Kind;Maybe;nothing;just;maybe;Monad;Either;inj₁;inj₂)
 open Monad{{...}}
 
-open import RawU using (TermCon)
-open TermCon
+open import RawU using (TmCon;tmcon;TyTag)
+open TyTag
 \end{code}
 
 \begin{code}
@@ -186,7 +186,7 @@ data ScopedTm {n}(w : Weirdℕ n) : Set where
   _·⋆_ :    ScopedTm w → ScopedTy n → ScopedTm w
   ƛ    :    ScopedTy n → ScopedTm (S w) → ScopedTm w
   _·_  :    ScopedTm w → ScopedTm w → ScopedTm w
-  con  :    TermCon → ScopedTm w
+  con  :    TmCon → ScopedTm w
   error :   ScopedTy n → ScopedTm w
   builtin : (b : Builtin) → ScopedTm w
   wrap :    ScopedTy n → ScopedTy n → ScopedTm w → ScopedTm w
@@ -330,9 +330,9 @@ uglyWeirdFin Z = "0"
 uglyWeirdFin (T x) = "(T " ++ uglyWeirdFin x ++ ")"
 uglyWeirdFin (S x) = "(S " ++ uglyWeirdFin x ++ ")"
 
-uglyTermCon : TermCon → String
-uglyTermCon (integer x) = "(integer " ++ ishow x ++ ")"
-uglyTermCon (bytestring x) = "bytestring"
+uglyTermCon : TmCon → String
+uglyTermCon (tmcon integer x) = "(integer " ++ ishow x ++ ")"
+uglyTermCon (tmcon bytestring x) = "bytestring"
 uglyTermCon size = "size"
 
 postulate showNat : ℕ → String

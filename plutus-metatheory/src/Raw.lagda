@@ -19,8 +19,8 @@ open import Builtin.Constant.AtomicType using (AtomicTyCon;decAtomicTyCon)
 open AtomicTyCon
 
 open import Utils using (Kind;*;_⇒_)
-open import RawU using (TermCon)
-open TermCon
+open import RawU using (TmCon;tmcon;TyTag)
+open TyTag
 \end{code}
 
 The raw un-scope-checked and un-type-checked syntax
@@ -56,7 +56,7 @@ data RawTm : Set where
   _·⋆_          : RawTm → RawTy → RawTm
   ƛ             : RawTy → RawTm → RawTm
   _·_           : RawTm → RawTm → RawTm
-  con           : TermCon → RawTm
+  con           : TmCon → RawTm
   error         : RawTy → RawTm
   builtin       : Builtin → RawTm
   wrap          : RawTy → RawTy → RawTm → RawTm
@@ -83,21 +83,21 @@ decRTyCon (list x) (list x') with decRTy x x'
 ... | true = true
 decRTyCon _          _  = false
 
-decTermCon : (C C' : TermCon) → Bool
-decTermCon (integer i) (integer i') with i Data.Integer.≟ i'
+decTmCon : (C C' : TmCon) → Bool
+decTmCon (tmcon integer i) (tmcon integer i') with i Data.Integer.≟ i'
 ... | yes p = true
 ... | no ¬p = false
-decTermCon (bytestring b) (bytestring b') with equals b b'
-decTermCon (bytestring b) (bytestring b') | false = false
-decTermCon (bytestring b) (bytestring b') | true = true
-decTermCon (string s) (string s') with s Data.String.≟ s'
+decTmCon (tmcon bytestring b) (tmcon bytestring b') with equals b b'
+decTmCon (tmcon bytestring b) (tmcon bytestring b') | false = false
+decTmCon (tmcon bytestring b) (tmcon bytestring b') | true = true
+decTmCon (tmcon string s) (tmcon string s') with s Data.String.≟ s'
 ... | yes p = true
 ... | no ¬p = false
-decTermCon (bool b) (bool b') with b Data.Bool.≟ b'
+decTmCon (tmcon bool b) (tmcon bool b') with b Data.Bool.≟ b'
 ... | yes p = true
 ... | no ¬p = false
-decTermCon unit unit = true
-decTermCon _ _ = false
+decTmCon (tmcon unit ⊤) (tmcon unit ⊤) = true
+decTmCon _ _ = false
 
 decRKi : (K K' : Kind) → Bool
 decRKi * * = true
@@ -207,7 +207,7 @@ decRTm (t · u) (t' · u') with decRTm t t'
 ... | true with decRTm u u'
 ... | false = false
 ... | true = true
-decRTm (con c) (con c') = decTermCon c c'
+decRTm (con c) (con c') = decTmCon c c'
 decRTm (error A) (error A') with decRTy A A'
 ... | true = true
 ... | false = false
@@ -248,4 +248,4 @@ rawPrinter (builtin b) = "(builtin)"
 rawPrinter (wrap pat arg t) = "(wrap" ++ ")"
 rawPrinter (unwrap t) = "(unwrap" ++ rawPrinter t ++ ")"
 \end{code}
- 
+  
