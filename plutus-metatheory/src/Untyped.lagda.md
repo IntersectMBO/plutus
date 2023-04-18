@@ -14,26 +14,24 @@ module Untyped where
 ## Imports
 
 ```
-open import Agda.Builtin.String using (primStringFromList; primStringAppend; primStringEquality)
-open import Data.Nat using (ℕ;suc;zero)
-open import Data.Bool using (Bool;true;false;_∧_)
-open import Data.Integer using (_<?_;_+_;_-_;∣_∣;_≤?_;_≟_;ℤ) renaming (_*_ to _**_)
-open import Data.Integer.Show using (show)
-open import Data.String using (String;_++_)
-open import Data.Empty using (⊥)
-open import Relation.Binary.PropositionalEquality using (refl)
-open import Relation.Nullary using (yes;no;¬_;does)
-
-open import Utils as U using (Maybe;nothing;just;Either;inj₁;inj₂;Monad;DATA;List;[];_∷_;eqDATA)
-open import Utils using (_×_;_,_)
+open import Utils as U using (Maybe;nothing;just;Either;inj₁;inj₂;Monad;DATA;List;[];_∷_)
 open Monad {{...}}
 
 open import Scoped using (ScopeError;deBError)
 open import Builtin using (Builtin;equals;decBuiltin)
 open Builtin.Builtin
 
-open import RawU using (TmCon;tmcon;Untyped;TyTag;decTag)
-open TyTag
+open import Agda.Builtin.String using (primStringFromList; primStringAppend; primStringEquality)
+open import Data.Nat using (ℕ;suc;zero)
+open import Data.Bool using (Bool;true;false;_∧_)
+open import Data.Integer using (_<?_;_+_;_-_;∣_∣;_≤?_;_≟_;ℤ) renaming (_*_ to _**_)
+open import Relation.Nullary using (yes;no)
+open import Data.Integer.Show using (show)
+open import Data.String using (String;_++_)
+open import Data.Empty using (⊥)
+open import Utils using (_×_;_,_)
+open import RawU using (TermCon;Untyped)
+open TermCon
 open Untyped
 ```
 
@@ -46,7 +44,7 @@ data _⊢ (X : Set) : Set where
   _·_ : X ⊢ → X ⊢ → X ⊢
   force : X ⊢ → X ⊢
   delay : X ⊢ → X ⊢
-  con : TmCon → X ⊢
+  con : TermCon → X ⊢
   builtin : (b : Builtin) → X ⊢
   error : X ⊢
 ```
@@ -70,17 +68,17 @@ uglyList (x ∷ xs) = x ++ "," ++ uglyList xs
 uglyPair : DATA × DATA → String
 uglyPair (x , y) = "("++ uglyDATA x ++ "," ++ uglyDATA y ++")"
 
-uglyTermCon : TmCon → String
-uglyTermCon (tmcon integer x) = "(integer " ++ show x ++ ")"
-uglyTermCon (tmcon bytestring x) = "bytestring"
-uglyTermCon (tmcon unit tt) = "()"
-uglyTermCon (tmcon string s) = "(string " ++ s ++ ")"
-uglyTermCon (tmcon bool false) = "(bool " ++ "false" ++ ")"
-uglyTermCon (tmcon bool true) = "(bool " ++ "true" ++ ")"
-uglyTermCon (tmcon (pair tx ty) (x , y)) = "(pair " ++ uglyTermCon (tmcon tx x) ++ " " ++ uglyTermCon (tmcon ty y) ++ ")"
---uglyTermCon (tmcon (list _) xs) = "(list [" ++ uglyList (map uglyTermCon xs) ++ "])"
-uglyTermCon (tmcon (list _) xs)  = "(list)"
-uglyTermCon (tmcon pdata d) = "(DATA)"
+uglyTermCon : TermCon → String
+uglyTermCon (integer x) = "(integer " ++ show x ++ ")"
+uglyTermCon (bytestring x) = "bytestring"
+uglyTermCon unit = "()"
+uglyTermCon (string s) = "(string " ++ s ++ ")"
+uglyTermCon (bool false) = "(bool " ++ "false" ++ ")"
+uglyTermCon (bool true) = "(bool " ++ "true" ++ ")"
+uglyTermCon (pair _ _ x y) = "(pair " ++ uglyTermCon x ++ " " ++ uglyTermCon y ++ ")"
+--uglyTermCon (list xs) = "(list [" ++ uglyList (map uglyTermCon xs) ++ "])"
+uglyTermCon (list _ xs)  = "(list)"
+uglyTermCon (pdata d) = "(DATA)"
 
 
 
@@ -153,33 +151,21 @@ scopeCheckU0 t = scopeCheckU (λ _ → inj₁ deBError) t
 Used to compare outputs in testing
 
 ```
-decUTermCon : (C C' : TmCon) → Bool
-decUTermCon (tmcon tx x) (tmcon ty y) with decTag tx ty
-decUTermCon (tmcon tx x) (tmcon ty y) | no ¬p = false
-decUTermCon (tmcon integer x) (tmcon .integer y) | yes refl = does (x  Data.Integer.≟ y)
-decUTermCon (tmcon bytestring x) (tmcon .bytestring y) | yes refl = equals x y
-decUTermCon (tmcon string x) (tmcon .string y) | yes refl = does (x Data.String.≟  y)
-decUTermCon (tmcon bool x) (tmcon .bool y) | yes refl = does (x Data.Bool.≟ y)
-decUTermCon (tmcon unit x) (tmcon .unit y) | yes refl = true
-decUTermCon (tmcon pdata x) (tmcon .pdata y) | yes refl = eqDATA x y
-decUTermCon (tmcon (pair tx ty) (x , y)) (tmcon .(pair tx ty) (x' , y')) | yes refl = false
-   -- TODO  (decUTermCon (tmcon tx x) (tmcon tx x')) ∧ (decUTermCon (tmcon ty y) (tmcon ty y'))
-decUTermCon (tmcon (list tx) x) (tmcon .(list tx) y) | yes refl = false --TODO
-
-{-
-... | integer = does (x  Data.Integer.≟ y)
-... | bytestring =  equals x y  
-... | string = does (x Data.String.≟  y)
-... | bool = does (x Data.Bool.≟ y)
-... | unit = true
-... | pdata = eqDATA x y
-... | list t = false --TODO
-decUTermCon (tmcon .(pair t u) (x , x')) (tmcon .(pair t u) (y , y')) | yes refl | pair t u =
-  (decUTermCon (tmcon t x) (tmcon t y)) ∧ (decUTermCon (tmcon u x') (tmcon u y'))
--}
-{- with x | y
-... | x₁ , x₂ | y₁ , y₂ = (decUTermCon (tmcon t x₁) (tmcon t y₁)) ∧ (decUTermCon (tmcon u x₂) (tmcon u y₂))
--}
+decUTermCon : (C C' : TermCon) → Bool
+decUTermCon (integer i) (integer i') with i Data.Integer.≟ i'
+... | yes p = true
+... | no ¬p = false
+decUTermCon (bytestring b) (bytestring b') with equals b b'
+decUTermCon (bytestring b) (bytestring b') | false = false
+decUTermCon (bytestring b) (bytestring b') | true = true
+decUTermCon (string s) (string s') with s Data.String.≟ s'
+... | yes p = true
+... | no ¬p = false
+decUTermCon (bool b) (bool b') with b Data.Bool.≟ b'
+... | yes p = true
+... | no ¬p = false
+decUTermCon unit unit = true
+decUTermCon _ _ = false
 
 decUTm : (t t' : Untyped) → Bool
 decUTm (UVar x) (UVar x') with x Data.Nat.≟ x
