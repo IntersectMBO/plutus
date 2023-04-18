@@ -196,7 +196,6 @@ library
     PlutusCore.Core.Instance.Pretty.Default
     PlutusCore.Core.Instance.Pretty.Plc
     PlutusCore.Core.Instance.Pretty.Readable
-    PlutusCore.Core.Instance.Recursive
     PlutusCore.Core.Instance.Scoping
     PlutusCore.Core.Plated
     PlutusCore.Core.Type

@@ -1,4 +1,3 @@
-{-# LANGUAGE LambdaCase #-}
 -- | Definition analysis for Plutus Core.
 module PlutusCore.Analysis.Definitions
     ( UniqueInfos
@@ -15,7 +14,6 @@ import PlutusCore.Core
 import PlutusCore.Error
 import PlutusCore.Name
 
-import Data.Functor.Foldable
 
 import Control.Lens hiding (use, uses)
 import Control.Monad.Except
@@ -135,14 +133,26 @@ termDefs
         MonadState (UniqueInfos ann) m,
         MonadWriter [UniqueError ann] m)
     => Term tyname name uni fun ann
-    -> m ()
-termDefs = cata $ \case
-    VarF ann n         -> addUsage n ann TermScope
-    LamAbsF ann n ty t -> addDef n ann TermScope >> typeDefs ty >> t
-    IWrapF _ pat arg t -> typeDefs pat >> typeDefs arg >> t
-    TyAbsF ann tn _ t  -> addDef tn ann TypeScope >> t
-    TyInstF _ t ty     -> t >> typeDefs ty
-    x                  -> sequence_ x
+    -> m (Term tyname name uni fun ann)
+termDefs tm = case tm of
+    Var ann n         -> do
+        addUsage n ann TermScope
+        pure tm
+    LamAbs ann n ty _t -> do
+        addDef n ann TermScope
+        void $ typeDefs ty
+        forMOf termSubterms tm termDefs
+    IWrap _ pat arg _t -> do
+        void $ typeDefs pat
+        void $ typeDefs arg
+        forMOf termSubterms tm termDefs
+    TyAbs ann tn _ _  -> do
+        addDef tn ann TypeScope
+        forMOf termSubterms tm termDefs
+    TyInst _ _ ty     -> do
+        void $ typeDefs ty
+        forMOf termSubterms tm termDefs
+    _                  -> forMOf termSubterms tm termDefs
 
 typeDefs
     :: (Ord ann,
@@ -150,12 +160,18 @@ typeDefs
         MonadState (UniqueInfos ann) m,
         MonadWriter [UniqueError ann] m)
     => Type tyname uni ann
-    -> m ()
-typeDefs = cata $ \case
-    TyVarF ann n         -> addUsage n ann TypeScope
-    TyForallF ann tn _ t -> addDef tn ann TypeScope >> t
-    TyLamF ann tn _ t    -> addDef tn ann TypeScope >> t
-    x                    -> sequence_ x
+    -> m (Type tyname uni ann)
+typeDefs ty = case ty of
+    TyVar ann n         -> do
+        addUsage n ann TypeScope
+        forMOf typeSubtypes ty typeDefs
+    TyForall ann tn _ _t -> do
+        addDef tn ann TypeScope
+        forMOf typeSubtypes ty typeDefs
+    TyLam ann tn _ _t    -> do
+        addDef tn ann TypeScope
+        forMOf typeSubtypes ty typeDefs
+    _                    ->  forMOf typeSubtypes ty typeDefs
 
 runTermDefs
     :: (Ord ann,
