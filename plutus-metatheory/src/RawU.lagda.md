@@ -13,9 +13,11 @@ open import Utils using (ByteString;DATA;List)
 open import Relation.Binary using (DecidableEquality)
 open import Relation.Binary.PropositionalEquality using (refl)
 open import Relation.Nullary using (yes;no;¬_)
+open import Data.Unit using (⊤;tt)
 
 open import Builtin using (Builtin)
 open Builtin.Builtin
+open import Utils using (_×_)
 
 ```
 ## TyTags
@@ -30,17 +32,29 @@ we define them directly here.
 
 ```
 
-data TyTag : Set where
-  integer    : TyTag
-  bytestring : TyTag
-  string     : TyTag
-  bool       : TyTag
-  unit       : TyTag
-  pdata      : TyTag
-  pair       : TyTag → TyTag → TyTag
-  list       : TyTag → TyTag
+data TyTag : ⊤ → Set where
+  integer    : TyTag tt
+  bytestring : TyTag tt
+  string     : TyTag tt
+  bool       : TyTag tt
+  unit       : TyTag tt
+  pdata      : TyTag tt
+  pair       : TyTag tt → TyTag tt → TyTag tt 
+  list       : TyTag tt → TyTag tt
 
-decTag : DecidableEquality TyTag
+
+⟦_⟧tag : TyTag tt → Set
+⟦ integer ⟧tag = ℤ
+⟦ bytestring ⟧tag = ByteString
+⟦ string ⟧tag = String
+⟦ bool ⟧tag = Bool
+⟦ unit ⟧tag = ⊤
+⟦ pdata ⟧tag = DATA
+⟦ pair p p' ⟧tag = ⟦ p ⟧tag × ⟦ p' ⟧tag
+⟦ list p ⟧tag = List ⟦ p ⟧tag
+
+
+decTag : DecidableEquality (TyTag tt)
 decTag integer integer = yes refl
 decTag integer bytestring = no λ()
 decTag integer string =  no λ()
@@ -111,7 +125,8 @@ decTag (list x) (list y) with decTag x y
 ... | yes refl = yes refl
 ... | no ¬p    = no λ {refl  → ¬p refl}
 
-{-# FOREIGN GHC type TyTag = DefaultUni ????? #-}
+
+{-# FOREIGN GHC type TyTag a = DefaultUni a #-}
 {-# FOREIGN GHC pattern TagInt        = DefaultUniInteger  #-}
 {-# FOREIGN GHC pattern TagBS         = DefaultUniByteString #-}
 {-# FOREIGN GHC pattern TagStr        = DefaultUniString #-}
@@ -121,6 +136,15 @@ decTag (list x) (list y) with decTag x y
 {-# FOREIGN GHC pattern TagPair ta tb = DefaultUniPair ta tb #-}
 {-# FOREIGN GHC pattern TagList ta    = DefaultUniList ta #-}
 {-# COMPILE GHC TyTag = data TyTag (TagInt | TagBS | TagStr | TagBool | TagUnit | TagData | TagPair | TagList) #-}
+
+data TmCon : Set where 
+  tmcon : (t : TyTag tt) → ⟦ t ⟧tag → TmCon
+
+{-# FOREIGN GHC import PlutusCore                       #-}
+{-# FOREIGN GHC import Raw #-}
+{-# FOREIGN GHC type TmCon = Some (ValueOf DefaultUni) #-}
+{-# FOREIGN GHC pattern TmCon t x = Some (Valueof t x) #-} 
+{-# COMPILE GHC TmCon = data TmCon (TmCon) #-}
 ```
 ## Raw syntax
 
@@ -128,7 +152,7 @@ This version is not intrinsically well-scoped. It's an easy to work
 with rendering of the untyped plutus-core syntax.
 
 ```
-
+{-
 data TermCon : Set where
   integer    : ℤ → TermCon
   bytestring : ByteString → TermCon
@@ -161,12 +185,13 @@ getTag unit = unit
 getTag (pdata x) = pdata
 getTag (pair t t' _ _) = pair t t'
 getTag (list t _) = list t
+-}
 
 data Untyped : Set where
   UVar : ℕ → Untyped
   ULambda : Untyped → Untyped
   UApp : Untyped → Untyped → Untyped
-  UCon : TermCon → Untyped
+  UCon : TmCon → Untyped -- TermCon → Untyped
   UError : Untyped
   UBuiltin : Builtin → Untyped
   UDelay : Untyped → Untyped
@@ -174,3 +199,5 @@ data Untyped : Set where
 
 {-# FOREIGN GHC import Untyped #-}
 {-# COMPILE GHC Untyped = data UTerm (UVar | ULambda  | UApp | UCon | UError | UBuiltin | UDelay | UForce) #-}
+
+-- -} 
