@@ -1,6 +1,5 @@
-{-# LANGUAGE LambdaCase #-}
 -- | Definition analysis for Plutus IR.
--- This just adapts term-related code from PlutusCore.Analysis.Definitions;
+-- This mostly adapts term-related code from PlutusCore.Analysis.Definitions;
 -- we just re-use the typed machinery to do the hard work here.
 module PlutusIR.Analysis.Definitions
     ( UniqueInfos
@@ -8,12 +7,11 @@ module PlutusIR.Analysis.Definitions
     , runTermDefs
     ) where
 
-import Data.Functor.Foldable
-import PlutusCore.Error
+import PlutusCore.Error (UniqueError)
 import PlutusCore.Name
 import PlutusIR.Core
-import PlutusIR.Core.Instance.Recursive (TermF (IWrapF, LamAbsF, TyAbsF, VarF))
 
+import Control.Lens (forMOf)
 import Control.Monad.State
 import Control.Monad.Writer
 
@@ -24,37 +22,54 @@ termDefs
         HasUnique name TermUnique,
         HasUnique tyname TypeUnique,
         MonadState (UniqueInfos ann) m,
-        MonadWriter [UniqueError ann] m)
+        MonadWriter [UniqueError ann] m, Ord tyname)
     => Term tyname name uni fun ann
-    -> m ()
-termDefs =
-    -- let -- Add bindings to definition maps.
-        -- addBindingDef :: Binding tyname name uni fun ann -
-    --     addBindingDef (TermBind _tmAnn _tmStrict (VarDecl varAnn n varTy) tm) =
-    --         addDef n varAnn TermScope >> typeDefs varTy >> tm
-    --     addBindingDef (TypeBind _tyBindingAnn (TyVarDecl tyN tyAnn _) ty) =
-    --         addDef tyN tyAnn TypeScope >> typeDefs ty
-    --     addBindingDef
-    --         (DatatypeBind
-    --             _a
-    --             (Datatype dataAnn _ _ dataName _)) =
-    --         addDef dataName dataAnn TermScope
-    -- in
-    cata $ \case
-        -- LetF ann r bindings term -> do
-        --     mapM_ addBindingDef bindings >> term
-        VarF ann n         -> addUsage n ann TermScope
-        LamAbsF ann n ty t -> addDef n ann TermScope >> typeDefs ty >> t
-        IWrapF _ pat arg t -> typeDefs pat >> typeDefs arg >> t
-        TyAbsF ann tn _ t  -> addDef tn ann TypeScope >> t
-        -- TyInstF _ t ty     -> t >> typeDefs ty
-        x                  -> sequence_ x
+    -> m (Term tyname name uni fun ann)
+termDefs tm =
+    let -- Add bindings to definition maps.
+        addBindingDef :: Binding tyname name uni fun ann -> m ()
+        addBindingDef (TermBind _tmAnn _tmStrict (VarDecl varAnn n varTy) rhs) = do
+            addDef n varAnn TermScope -- FIXME add to a *local* map instead
+            void $ typeDefs varTy
+            void $ forMOf termSubterms rhs termDefs
+        addBindingDef (TypeBind _tyBindingAnn (TyVarDecl tyN tyAnn _) ty) = do
+            addDef tyN tyAnn TypeScope
+            void $ typeDefs ty
+        addBindingDef
+            (DatatypeBind
+                _a
+                (Datatype dataAnn _ _ dataName _)) = do
+            addDef dataName dataAnn TermScope
+            void $ forMOf termSubterms tm termDefs
+    in
+    case tm of
+        Let ann r bindings rhs -> do
+            mapM_ addBindingDef bindings
+            forMOf termSubterms rhs termDefs
+        Var ann n         -> do
+            addUsage n ann TermScope
+            pure tm
+        LamAbs ann n ty _t -> do
+            addDef n ann TermScope
+            void $ typeDefs ty
+            forMOf termSubterms tm termDefs
+        IWrap _ pat arg _t -> do
+            void $ typeDefs pat
+            void $ typeDefs arg
+            forMOf termSubterms tm termDefs
+        TyAbs ann tn _ _  -> do
+            addDef tn ann TypeScope
+            forMOf termSubterms tm termDefs
+        TyInst _ _ ty     -> do
+            void $ typeDefs ty
+            forMOf termSubterms tm termDefs
+        _                  -> forMOf termSubterms tm termDefs
 
 runTermDefs
     :: (Ord ann,
         HasUnique name TermUnique,
         HasUnique tyname TypeUnique,
-        Monad m)
+        Monad m, Ord tyname)
     => Term tyname name uni fun ann
     -> m (UniqueInfos ann, [UniqueError ann])
 runTermDefs = runWriterT . flip execStateT mempty . termDefs

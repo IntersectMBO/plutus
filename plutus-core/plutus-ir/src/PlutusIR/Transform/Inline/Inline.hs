@@ -26,7 +26,7 @@ import PlutusCore.Name
 import PlutusCore.Quote
 import PlutusCore.Rename (dupable)
 
-import Control.Lens hiding (Strict)
+import Control.Lens (forMOf, traverseOf)
 import Control.Monad.Reader
 import Control.Monad.State
 
