@@ -10,6 +10,7 @@ module PlutusLedgerApi.Common.ProtocolVersions
     , alonzoPV
     , vasilPV
     , valentinePV
+    , conwayPV
     , knownPVs
     , futurePV
     ) where
@@ -60,10 +61,14 @@ vasilPV = ProtocolVersion 7 0
 valentinePV :: ProtocolVersion
 valentinePV = ProtocolVersion 8 0
 
+-- | Conway era was introduced in protocol version 9.0
+conwayPV :: ProtocolVersion
+conwayPV = ProtocolVersion 9 0
+
 -- | The set of protocol versions that are "known", i.e. that have been released
 -- and have actual differences associated with them.
 knownPVs :: Set.Set ProtocolVersion
-knownPVs = Set.fromList [ shelleyPV, allegraPV, maryPV, alonzoPV, vasilPV, valentinePV ]
+knownPVs = Set.fromList [ shelleyPV, allegraPV, maryPV, alonzoPV, vasilPV, valentinePV, conwayPV ]
 
 -- | This is a placeholder for when we don't yet know what protocol
 -- version will be used for something. It's a very high protocol

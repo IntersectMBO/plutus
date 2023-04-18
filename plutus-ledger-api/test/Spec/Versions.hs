@@ -55,7 +55,7 @@ testLedgerLanguages :: TestTree
 testLedgerLanguages = testGroup "ledger languages"
     [ testProperty "v1 not before but after" $ prop_notBeforeButAfter V1.assertScriptWellFormed alonzoPV
     , testProperty "v2 not before but after" $ prop_notBeforeButAfter V2.assertScriptWellFormed vasilPV
-    , testProperty "v3 not before but after" $ prop_notBeforeButAfter V3.assertScriptWellFormed futurePV
+    , testProperty "v3 not before but after" $ prop_notBeforeButAfter V3.assertScriptWellFormed conwayPV
     , testProperty "protocol-versions can add but not remove ledger languages" $
         \pvA pvB -> pvA < pvB ==> ledgerLanguagesAvailableIn pvA `Set.isSubsetOf` ledgerLanguagesAvailableIn pvB
     ]
@@ -91,10 +91,10 @@ testBuiltinVersions = testGroup "builtins"
          assertBool "in l2,Alonzo" $ isLeft $ V2.assertScriptWellFormed alonzoPV serialiseDataExScript
          assertBool "in l3,Alonzo" $ isLeft $ V3.assertScriptWellFormed alonzoPV serialiseDataExScript
          assertBool "not in l2,Vasil" $ isRight $ V2.assertScriptWellFormed vasilPV serialiseDataExScript
-         assertBool "not in l3,future" $ isRight $ V3.assertScriptWellFormed futurePV serialiseDataExScript
+         assertBool "not in l3,future" $ isRight $ V3.assertScriptWellFormed conwayPV serialiseDataExScript
          assertBool "remdr1" $ isRight $ V1.assertScriptWellFormed valentinePV $ errorScript <> "remdr1"
          assertBool "remdr2" $ isRight $ V2.assertScriptWellFormed valentinePV $ errorScript <> "remdr2"
-         assertEqual "remdr3" (Left $ RemainderError "remdr3") $ V3.assertScriptWellFormed futurePV $ errorScript <> "remdr3"
+         assertEqual "remdr3" (Left $ RemainderError "remdr3") $ V3.assertScriptWellFormed conwayPV $ errorScript <> "remdr3"
     , testProperty "remdr1gen"$ \remdr -> isRight $ V1.assertScriptWellFormed valentinePV $ errorScript <> BSS.pack remdr
     , testProperty "remdr2gen"$ \remdr -> isRight $ V2.assertScriptWellFormed valentinePV $ errorScript <> BSS.pack remdr
     -- we cannot make the same property as above for remdr3gen because it may generate valid bytestring append extensions to the original script
@@ -105,8 +105,8 @@ testLanguageVersions :: TestTree
 testLanguageVersions = testGroup "Plutus Core language versions"
   [ testCase "v1.1.0 is available in l3,future and not before" $ do
       assertBool "in l3,Vasil" $ isLeft $ V3.assertScriptWellFormed vasilPV v110script
-      assertBool "in l2,future" $ isLeft $ V2.assertScriptWellFormed futurePV v110script
-      assertBool "not in l3,future" $ isRight $ V3.assertScriptWellFormed futurePV v110script
-  , testCase "constr is not available with v1.0.0 ever" $ assertBool "in l3,future" $ isLeft $ V3.assertScriptWellFormed futurePV badConstrScript
-  , testCase "case is not available with v1.0.0 ever" $ assertBool "in l3,future" $ isLeft $ V3.assertScriptWellFormed futurePV badCaseScript
+      assertBool "in l2,future" $ isLeft $ V2.assertScriptWellFormed conwayPV v110script
+      assertBool "not in l3,future" $ isRight $ V3.assertScriptWellFormed conwayPV v110script
+  , testCase "constr is not available with v1.0.0 ever" $ assertBool "in l3,future" $ isLeft $ V3.assertScriptWellFormed conwayPV badConstrScript
+  , testCase "case is not available with v1.0.0 ever" $ assertBool "in l3,future" $ isLeft $ V3.assertScriptWellFormed conwayPV badCaseScript
   ]
