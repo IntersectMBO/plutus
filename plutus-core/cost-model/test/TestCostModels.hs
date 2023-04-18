@@ -107,8 +107,8 @@ data TestDomain
 x ~= y
   | x==0 && y==0 = True
   | otherwise = err < epsilon
-    where x' = fromIntegral x :: Double
-          y' = fromIntegral y :: Double
+    where x' = fromSatInt x :: Double
+          y' = fromSatInt y :: Double
           err = abs ((x'-y')/y')
 
 -- Runs property tests in the `R` Monad.
