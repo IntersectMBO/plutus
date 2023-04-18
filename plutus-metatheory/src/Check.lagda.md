@@ -31,11 +31,11 @@ open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;weakenNf;renNf;embNf)
 open _⊢Nf⋆_
 open _⊢Ne⋆_
 
-open import Utils using (Kind;*;_⇒_;Either;inj₁;inj₂;withE;Monad;dec2Either;_,_)
+open import Utils using (Kind;*;_⇒_;Either;inj₁;inj₂;withE;Monad;dec2Either)
 open Monad {{...}}
 
-open import RawU using (TmCon;tmcon;TyTag)
-open TyTag
+open import RawU using (TermCon)
+open TermCon
 
 open import Type.Equality using (_≡β_;≡2β)
 open _≡β_
@@ -311,15 +311,15 @@ inv-complete {A = A}{A' = A'} p = trans≡β
 
 
 
-inferTypeCon : ∀{Φ} → TmCon → Either TypeError (Σ (T.TyCon _) λ c → A.TermCon {Φ} (con c))
-inferTypeCon (tmcon integer i)          = return (T.integer ,, A.tmInteger i)
-inferTypeCon (tmcon bytestring b)       = return (T.bytestring ,, A.tmBytestring b)
-inferTypeCon (tmcon string s)           = return (T.string ,, A.tmString s)
-inferTypeCon (tmcon bool b)             = return (T.bool ,, A.tmBool b)
-inferTypeCon (tmcon unit _)             = return (T.unit ,, A.tmUnit)
-inferTypeCon (tmcon pdata d)            = return (T.pdata ,, A.tmData d)
-inferTypeCon (tmcon (pair _ _) (x , y)) = inj₁ (Unimplemented "Typed pairs")
-inferTypeCon (tmcon (list _) xs)        = inj₁ (Unimplemented "Typed lists")
+inferTypeCon : ∀{Φ} → TermCon → Either TypeError (Σ (T.TyCon _) λ c → A.TermCon {Φ} (con c))
+inferTypeCon (integer i)    = return (T.integer ,, A.tmInteger i)
+inferTypeCon (bytestring b) = return (T.bytestring ,, A.tmBytestring b)
+inferTypeCon (string s)     = return (T.string ,, A.tmString s)
+inferTypeCon (bool b)       = return (T.bool ,, A.tmBool b)
+inferTypeCon unit           = return (T.unit ,, A.tmUnit)
+inferTypeCon (pdata d)      = return (T.pdata ,, A.tmData d)
+inferTypeCon (pair _ _ x y) = inj₁ (Unimplemented "Typed pairs")
+inferTypeCon (list _ xs)    = inj₁ (Unimplemented "Typed lists")
 {-
 inferTypeCon {Φ} (pair x y) with inferTypeCon {Φ} x | inferTypeCon {Φ} y
 ... | inj₂ (xty ,, xtm) | inj₂ (yty ,, ytm) = return (T.pair (con xty) (con yty) ,, A.tmPair xtm ytm )

@@ -16,7 +16,6 @@ open import Data.List.Properties using (map-compose)
 open import Data.Product using () renaming (_,_ to _,,_)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;subst;trans;sym;cong₂;cong-app)
 open import Data.Empty using (⊥)
-open import Data.Unit using (tt)
 
 open import Algorithmic as A
 open import Untyped using (_⊢)
@@ -28,8 +27,8 @@ open _⊢Nf⋆_
 open import Type.BetaNBE using (nf)
 open import Type.BetaNBE.Completeness using (completeness)
 open import Utils using (Kind;*;Maybe;nothing;just;fromList;map-cong)
-open import RawU using (TmCon;tmcon;TyTag)
-open TyTag
+open import RawU using (TermCon)
+open TermCon
 
 open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_;_∋⋆_;S;Z)
 open _⊢⋆_
@@ -64,13 +63,13 @@ eraseVar Z     = nothing
 eraseVar (S α) = just (eraseVar α)
 eraseVar (T α) = eraseVar α
 
-eraseTC : ∀{Φ}{Γ : Ctx Φ}{A : Φ ⊢Nf⋆ *} → AC.TyTermCon A → TmCon
-eraseTC (AC.tmInteger i)    = tmcon integer i
-eraseTC (AC.tmBytestring b) = tmcon bytestring b
-eraseTC (AC.tmString s)     = tmcon string s
-eraseTC (AC.tmBool b)       = tmcon bool b
-eraseTC AC.tmUnit           = tmcon unit tt
-eraseTC (AC.tmData d)       = tmcon pdata d
+eraseTC : ∀{Φ}{Γ : Ctx Φ}{A : Φ ⊢Nf⋆ *} → AC.TyTermCon A → TermCon
+eraseTC (AC.tmInteger i)    = integer i
+eraseTC (AC.tmBytestring b) = bytestring b
+eraseTC (AC.tmString s)     = string s
+eraseTC (AC.tmBool b)       = bool b
+eraseTC AC.tmUnit           = unit
+eraseTC (AC.tmData d)       = pdata d
 --eraseTC {Φ}{Γ}(AC.tmPair x y)     = pair (eraseTC{Φ}{Γ} x) (eraseTC {Φ}{Γ} y)
 --eraseTC {Φ}{Γ}(AC.tmList xs)      = list (fromList (map (eraseTC {Φ}{Γ}) xs))
 
@@ -163,7 +162,7 @@ lem-delay refl t = refl
 lem-force : ∀{X X'}(p : X ≡ X')(t : X ⊢) → force (subst _⊢ p t) ≡ subst _⊢ p (force t)
 lem-force refl t = refl
 
-lemcon' : ∀{X X'}(p : X ≡ X')(tcn : TmCon) → con tcn ≡ subst _⊢ p (con tcn)
+lemcon' : ∀{X X'}(p : X ≡ X')(tcn : TermCon) → con tcn ≡ subst _⊢ p (con tcn)
 lemcon' refl tcn = refl
 
 lemerror : ∀{X X'}(p : X ≡ X') →  error ≡ subst _⊢ p error
