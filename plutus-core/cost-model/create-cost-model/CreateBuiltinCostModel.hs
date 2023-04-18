@@ -787,7 +787,7 @@ toMemSize n = fromIntegral $ n `div` 8
 g1MemSize :: CostingInteger
 g1MemSize = toMemSize G1.memSizeBytes
 
--- Compressed serialised G1 points take up 48 bytes (6 words)
+-- Compressed G1 points take up 48 bytes (6 words)
 g1CompressedSize :: CostingInteger
 g1CompressedSize = toMemSize G1.compressedSizeBytes
 
@@ -795,7 +795,7 @@ g1CompressedSize = toMemSize G1.compressedSizeBytes
 g2MemSize :: CostingInteger
 g2MemSize = toMemSize G2.memSizeBytes
 
--- Compressed serialised G2 points take up 96 bytes (12 words)
+-- Compressed G2 points take up 96 bytes (12 words)
 g2CompressedSize :: CostingInteger
 g2CompressedSize = toMemSize G2.compressedSizeBytes
 

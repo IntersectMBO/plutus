@@ -40,7 +40,7 @@ source-repository head
 flag with-inline-r
   description: Enable build of packages that use `inline-r`.
   manual:      True
-  default:     True
+  default:     False
 
 common lang
   default-language:   Haskell2010
@@ -312,10 +312,6 @@ library
     , transformers
     , unordered-containers
     , witherable
-
-  -- FIXME: remove these when nix/cabal can deal with libblst.a properly
-  --  extra-libraries: blst
-  extra-lib-dirs:     /usr/local/lib
 
   if impl(ghc <9.0)
     build-depends: integer-gmp

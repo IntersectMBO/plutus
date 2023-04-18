@@ -11,11 +11,15 @@ repository cardano-haskell-packages
     d4a35cd3121aa00d18544bb0ac01c3e1691d618f462c46129271bccf39f7e8ee
 
 -- A temporary source-repository-package so that we get the BLS bindings in cardano-base.
+-- When you change the hash, you also have to fix
+-- nix/cells/plutus/library/make-plutus-project.nix (about line 36)
+-- you get "error: ... attribute missing" if you forget to do this.
+
 -- FIXME: delete this when the version in CHaP is updated.
 source-repository-package
     type: git
     location: https://github.com/input-output-hk/cardano-base
-    tag: 56a71b150b7ff7fb6d6bf588f3e9d88822c9048c
+    tag: 611f70d3058a641410f7e17436ac46ee4abaaf3b
     subdir: cardano-crypto-class
     
 -- See CONTRIBUTING for some Nix commands you will need to run if you

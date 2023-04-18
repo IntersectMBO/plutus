@@ -38,13 +38,15 @@ instance PrettyBy ConstConfig MlResult where
 -- never want MlResult values in serialised scripts, so the decoding and
 -- encoding functions just raise errors.
 instance Flat MlResult where
+    -- This might happen on the chain, so `fail` rather than `error`.
     decode = fail "BLS12_381.Pairing.MlResult: flat decoding disallowed"
+    -- This will be a Haskell runtime error, but encoding doesn't happen on chain,
+    -- so it's not too bad.
     encode = error "BLS12_381.Pairing.MlResult: flat encoding disallowed"
     size _ = id
 instance NFData MlResult where
     rnf _ = ()
 
--- TODO: perhaps make this emit the error in the Left case.
 millerLoop :: G1.Element -> G2.Element -> MlResult
 millerLoop (G1.Element e1) (G2.Element e2) = MlResult $ BlstBindings.millerLoop e1 e2
 

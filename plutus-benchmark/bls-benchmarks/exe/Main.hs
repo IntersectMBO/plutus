@@ -1,7 +1,5 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE NumericUnderscores #-}
-{-# OPTIONS_GHC -Wno-unused-top-binds #-}
-{-# OPTIONS_GHC -Wno-name-shadowing #-}
 
 {- | Print out the costs of various test scripts involving the BLS12_381
    primitives.  Most of these work on varying numbers of inputs so that we can
@@ -21,6 +19,7 @@ import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
 
 import Data.ByteString qualified as BS
+import Data.SatInt (fromSatInt)
 import Flat qualified
 import Text.Printf (printf)
 
@@ -60,7 +59,7 @@ evaluate (UPLC.Program _ _ prog) =
       (_res, Cek.TallyingSt _ budget, _logs) ->
           let ExCPU cpu = exBudgetCPU budget
               ExMemory mem = exBudgetMemory budget
-          in (fromIntegral cpu, fromIntegral mem)
+          in (fromSatInt cpu, fromSatInt mem)
 
 -- | Evaluate a script and print out the serialised size and the CPU and memory
 -- usage, both as absolute values and percentages of the maxima specified in the
