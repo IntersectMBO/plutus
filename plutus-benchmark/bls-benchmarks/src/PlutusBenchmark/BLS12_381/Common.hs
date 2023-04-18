@@ -45,7 +45,6 @@ type UTerm   = UPLC.Term    UPLC.NamedDeBruijn DefaultUni DefaultFun ()
 type UProg   = UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
 type UDBProg = UPLC.Program UPLC.DeBruijn      DefaultUni DefaultFun ()
 
-
 compiledCodeToTerm
     :: Tx.CompiledCodeIn DefaultUni DefaultFun a -> UTerm
 compiledCodeToTerm (Tx.getPlcNoAnn -> UPLC.Program _ _ body) = body
