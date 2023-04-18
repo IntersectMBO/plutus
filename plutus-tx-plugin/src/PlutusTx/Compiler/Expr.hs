@@ -881,7 +881,7 @@ getSourceSpan _ GHC.ProfNote{GHC.profNoteCC=cc} =
     GHC.NormalCC _ _ _ (GHC.RealSrcSpan sp _) -> Just sp
     GHC.AllCafsCC _ (GHC.RealSrcSpan sp _)    -> Just sp
     _                                         -> Nothing
-getSourceSpan mmb GHC.Tick{GHC.tickId=tid} = do
+getSourceSpan mmb GHC.HpcTick{GHC.tickId=tid} = do
   mb <- mmb
   let arr = GHC.modBreaks_locs mb
       range = Array.bounds arr
