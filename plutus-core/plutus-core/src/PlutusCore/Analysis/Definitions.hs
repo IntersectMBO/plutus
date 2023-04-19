@@ -15,7 +15,7 @@ import PlutusCore.Error
 import PlutusCore.Name
 
 
-import Control.Lens hiding (use, uses)
+import Control.Lens (forMOf, (^.))
 import Control.Monad.Except
 import Control.Monad.State
 import Control.Monad.Writer
@@ -141,16 +141,20 @@ termDefs tm = case tm of
     LamAbs ann n ty _t -> do
         addDef n ann TermScope
         void $ typeDefs ty
+        void $ forMOf typeSubtypes ty typeDefs
         forMOf termSubterms tm termDefs
     IWrap _ pat arg _t -> do
         void $ typeDefs pat
+        void $ forMOf typeSubtypes pat typeDefs
         void $ typeDefs arg
+        void $ forMOf typeSubtypes arg typeDefs
         forMOf termSubterms tm termDefs
     TyAbs ann tn _ _  -> do
         addDef tn ann TypeScope
         forMOf termSubterms tm termDefs
     TyInst _ _ ty     -> do
         void $ typeDefs ty
+        void $ forMOf typeSubtypes ty typeDefs
         forMOf termSubterms tm termDefs
     _                  -> forMOf termSubterms tm termDefs
 
