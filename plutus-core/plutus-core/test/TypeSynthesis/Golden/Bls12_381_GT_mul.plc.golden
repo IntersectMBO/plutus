@@ -1,4 +1,0 @@
-(fun
-  (con Bls12_381GTElement)
-  (fun (con Bls12_381GTElement) (con Bls12_381GTElement))
-)

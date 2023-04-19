@@ -1,1 +1,0 @@
-(fun (con integer) (fun (con BLS12_381G2Element) (con BLS12_381G2Element)))
