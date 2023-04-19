@@ -182,6 +182,11 @@ type InliningConstraints tyname name uni fun =
     , PLC.ToBuiltinMeaning uni fun
     )
 
+-- | Information used by the inliner that is constant across its operation.
+-- This includes some contextual and configuration information, and also some
+-- pre-computed information about the program.
+--
+-- See [Inlining and global uniqueness] for caveats about this information.
 data InlineInfo name fun ann = InlineInfo
     { _iiStrictnessMap :: Deps.StrictnessMap
     -- ^ Is it strict? Only needed for PIR, not UPLC
