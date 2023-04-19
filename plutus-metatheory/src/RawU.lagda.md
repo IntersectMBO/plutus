@@ -111,15 +111,6 @@ decTag (list x) (list y) with decTag x y
 ... | yes refl = yes refl
 ... | no ¬p    = no λ {refl  → ¬p refl}
 
-{-# FOREIGN GHC type TyTag = DefaultUni ????? #-}
-{-# FOREIGN GHC pattern TagInt        = DefaultUniInteger  #-}
-{-# FOREIGN GHC pattern TagBS         = DefaultUniByteString #-}
-{-# FOREIGN GHC pattern TagStr        = DefaultUniString #-}
-{-# FOREIGN GHC pattern TagBool       = DefaultUniBool #-}
-{-# FOREIGN GHC pattern TagUnit       = DefaultUniUnit #-}
-{-# FOREIGN GHC pattern TagData       = DefaultUniData #-}
-{-# FOREIGN GHC pattern TagPair ta tb = DefaultUniPair ta tb #-}
-{-# FOREIGN GHC pattern TagList ta    = DefaultUniList ta #-}
 {-# COMPILE GHC TyTag = data TyTag (TagInt | TagBS | TagStr | TagBool | TagUnit | TagData | TagPair | TagList) #-}
 ```
 ## Raw syntax
@@ -141,15 +132,6 @@ data TermCon : Set where
 
 {-# FOREIGN GHC import PlutusCore                       #-}
 {-# FOREIGN GHC import Raw #-}
-{-# FOREIGN GHC type TermCon = Some (ValueOf DefaultUni) #-}
-{-# FOREIGN GHC pattern TmInteger      i = Some (ValueOf DefaultUniInteger i) #-}
-{-# FOREIGN GHC pattern TmByteString   b = Some (ValueOf DefaultUniByteString b) #-}
-{-# FOREIGN GHC pattern TmString       s = Some (ValueOf DefaultUniString s) #-}
-{-# FOREIGN GHC pattern TmUnit           = Some (ValueOf DefaultUniUnit ()) #-}
-{-# FOREIGN GHC pattern TmBool         b = Some (ValueOf DefaultUniBool b) #-}
-{-# FOREIGN GHC pattern TmData         d = Some (ValueOf DefaultUniData d) #-}
-{-# FOREIGN GHC pattern TmPair ta tb a b = Some (ValueOf (DefaultUniPair ta tb) (a,b)) #-}
-{-# FOREIGN GHC pattern TmList ta  xs  = Some (ValueOf (DefaultUniList ta) xs) #-}
 {-# COMPILE GHC TermCon = data TermCon (TmInteger | TmByteString | TmString | TmBool | TmUnit | TmData | TmPair | TmList) #-}
 
 getTag : TermCon → TyTag
