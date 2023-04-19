@@ -14,7 +14,7 @@ open import Data.Fin using (Fin;zero;suc)
 open import Data.List using (List;length;[];_∷_;map)
 open import Data.List.Properties using (map-compose)
 open import Data.Product using () renaming (_,_ to _,,_)
-open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;subst;trans;sym;cong₂;cong-app)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;subst;trans;sym;cong₂)
 open import Data.Empty using (⊥)
 
 open import Algorithmic as A
@@ -126,8 +126,6 @@ sameTC DC.tmUnit             = refl
 sameTC (DC.tmData d)         = refl
 --sameTC {Φ}{Γ}(DC.tmPair x y) = cong₂ pair (sameTC {Φ}{Γ} x) (sameTC {Φ}{Γ} y)
 --sameTC {Φ}{Γ}(DC.tmList xs)  = cong list (cong fromList (trans (map-cong (sameTC {Φ}{Γ})) (map-compose xs)))
-
--- map D.eraseTC xs ≡ map (eraseTC ∘ nfTypeTC) xs
 
 lem≡Ctx : ∀{Φ}{Γ Γ' : Ctx Φ} → Γ ≡ Γ' → len Γ ≡ len Γ'
 lem≡Ctx refl = refl
@@ -257,7 +255,7 @@ same'TC (AC.tmBool b)         = refl
 same'TC AC.tmUnit             = refl
 same'TC (AC.tmData d)         = refl
 --same'TC {Φ}{Γ}(AC.tmPair x y) = cong₂ pair (same'TC {Φ}{Γ} x) (same'TC {Φ}{Γ} y)
---same'TC {Φ}{Γ}(AC.tmList xs)        = cong list (cong fromList (trans (map-cong (same'TC {Φ}{Γ})) (map-compose xs)))
+--same'TC {Φ}{Γ}(AC.tmList xs) = cong list (cong fromList (trans (map-cong (same'TC {Φ}{Γ})) (map-compose xs)))
 
 
 same' : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(x : Γ A.⊢ A)

@@ -121,11 +121,11 @@ This is defined in its own module so that these definitions are not exported.
     -- shortened names for type constants and type constructors
     integer bool bytestring string unit pdata : ∀{n} → n ⊢♯
     integer = con T.integer
-    bool = con (T.bool)
-    bytestring = con (T.bytestring)
-    string = con (T.string)
-    unit = con (T.unit)
-    pdata = con (T.pdata)
+    bool = con T.bool
+    bytestring = con T.bytestring
+    string = con T.string
+    unit = con T.unit
+    pdata = con T.pdata
 
     pair : ∀{n} → n ⊢♯ → n ⊢♯ → n ⊢♯
     pair x y = con (T.pair x y)
@@ -392,7 +392,13 @@ postulate
 
 -- no binding needed for appendStr
 -- no binding needed for traceStr
+```
 
+The following function is used for testing.
+For now it only works for some of the builtins, but it will be
+completed when it is replaced by one defined using reflection.
+
+```
 decBuiltin : (b b' : Builtin) → Bool
 decBuiltin addInteger addInteger = true
 decBuiltin subtractInteger subtractInteger = true

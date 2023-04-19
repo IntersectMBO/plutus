@@ -60,26 +60,22 @@ variable
 uglyDATA : DATA → String
 uglyDATA d = "(DATA)"
 
-uglyList : List String → String
-uglyList [] = ""
-uglyList (x ∷ []) = x
-uglyList (x ∷ xs) = x ++ "," ++ uglyList xs
-
-uglyPair : DATA × DATA → String
-uglyPair (x , y) = "("++ uglyDATA x ++ "," ++ uglyDATA y ++")"
-
+uglyList : List TermCon → String
 uglyTermCon : TermCon → String
+
 uglyTermCon (integer x) = "(integer " ++ show x ++ ")"
 uglyTermCon (bytestring x) = "bytestring"
 uglyTermCon unit = "()"
 uglyTermCon (string s) = "(string " ++ s ++ ")"
 uglyTermCon (bool false) = "(bool " ++ "false" ++ ")"
 uglyTermCon (bool true) = "(bool " ++ "true" ++ ")"
+uglyTermCon (pdata d) = uglyDATA d
 uglyTermCon (pair _ _ x y) = "(pair " ++ uglyTermCon x ++ " " ++ uglyTermCon y ++ ")"
---uglyTermCon (list xs) = "(list [" ++ uglyList (map uglyTermCon xs) ++ "])"
-uglyTermCon (list _ xs)  = "(list)"
-uglyTermCon (pdata d) = "(DATA)"
+uglyTermCon (list t xs) = "(list [" ++ uglyList xs ++ "])"
 
+uglyList [] = ""
+uglyList (x ∷ []) = uglyTermCon x
+uglyList (x ∷ xs) = uglyTermCon x ++ "," ++ uglyList xs
 
 
 {-# FOREIGN GHC import qualified Data.Text as T #-}

@@ -119,8 +119,8 @@ renTermCon-erase ρ⋆ ρ (AB.tmBytestring b) = refl
 renTermCon-erase ρ⋆ ρ (AB.tmString s)     = refl
 renTermCon-erase ρ⋆ ρ (AB.tmBool b)       = refl
 renTermCon-erase ρ⋆ ρ AB.tmUnit           = refl
-renTermCon-erase ρ⋆ ρ (AB.tmData d)      = refl
---renTermCon-erase ρ⋆ ρ (AB.tmPair x y)     = cong₂ Utils.pair (renTermCon-erase ρ⋆ ρ x) (renTermCon-erase ρ⋆ ρ y)
+renTermCon-erase ρ⋆ ρ (AB.tmData d)       = refl
+--renTermCon-erase ρ⋆ ρ (AB.tmPair x y)   = cong₂ Utils.pair (renTermCon-erase ρ⋆ ρ x) (renTermCon-erase ρ⋆ ρ y)
 
 ext⋆-erase : ∀{Φ Ψ K}{Γ : Ctx Φ}{Δ : Ctx Ψ}(ρ⋆ : ⋆.Ren Φ Ψ)
   → (ρ : A.Ren ρ⋆ Γ Δ)(α : len Γ)
@@ -205,11 +205,6 @@ exts⋆-erase {Γ = Γ}{Δ} σ⋆ σ {B} α = trans
       (U.ren-cong (eraseVar-backVar Δ) (erase (σ (backVar Γ α))))
       (sym (U.ren-id (erase (σ (backVar Γ α)))))))
 
-{-
-subTermCon-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(σ⋆ : SubNf Φ Ψ)
-  → (σ : A.Sub σ⋆ Γ Δ){tc : TyCon _}(c : AB.TermCon (con tc))
-  → eraseTC {Γ = Δ} (A.subTermCon σ⋆ c) ≡ eraseTC {Γ = Γ} c 
--}
 subTermCon-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(σ⋆ : SubNf Φ Ψ)
   → (σ : A.Sub σ⋆ Γ Δ) → ∀{A}(c : AB.TermCon A)
   → eraseTC {Γ = Δ} (A.subTermCon σ⋆ c) ≡ eraseTC {Γ = Γ} c 

@@ -34,7 +34,7 @@ open import Builtin
 open import Utils
 
 open import Builtin.Constant.AtomicType
-open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) --using (TyCon)
+open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) using (TyCon;integer;bool;bytestring;string;pdata)
 open TyCon
 
 

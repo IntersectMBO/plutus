@@ -36,7 +36,7 @@ open _⊢_
 open import Builtin using (Builtin)
 open Builtin.Builtin
 
-open import Builtin.Constant.Type using (TyCon;unit;integer)
+open import Builtin.Constant.Type using (TyCon;unit)
 open TyCon
 
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con using (TermCon)

@@ -125,7 +125,7 @@ V-I b {tm = suc tm} bt = V-IΠ b bt
 {-
 The BUILTIN function provides the semantics of builtin functions.
 
-WARNING: This untyped BUILTIN function implements all builtin functions, but not all of them have been tested.
+WARNING: This untyped BUILTIN function implements all builtin functions, but builtins realted to DATA have not been tested.
 This WARNING will be removed once the tests are done.
 -}
 
