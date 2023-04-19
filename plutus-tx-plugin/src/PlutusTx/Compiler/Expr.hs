@@ -887,7 +887,6 @@ getSourceSpan mmb GHC.HpcTick{GHC.tickId=tid} = do
       range = Array.bounds arr
   GHC.RealSrcSpan sp _ <- if Array.inRange range tid  then Just $ arr Array.! tid else Nothing
   return sp
--- The `HpcTick` case requires reading mix files via `Trace.Hpc.Mix.readMix`.
 getSourceSpan _ _ = Nothing
 
 getVarSourceSpan :: GHC.Var -> Maybe GHC.RealSrcSpan
