@@ -1,16 +1,23 @@
-{-# LANGUAGE BangPatterns     #-}
-{-# LANGUAGE DataKinds        #-}
-{-# LANGUAGE KindSignatures   #-}
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE AllowAmbiguousTypes      #-}
+{-# LANGUAGE BangPatterns             #-}
+{-# LANGUAGE DataKinds                #-}
+{-# LANGUAGE FlexibleInstances        #-}
+{-# LANGUAGE KindSignatures           #-}
+{-# LANGUAGE MultiParamTypeClasses    #-}
+{-# LANGUAGE StandaloneKindSignatures #-}
+{-# LANGUAGE TypeApplications         #-}
+{-# LANGUAGE TypeFamilies             #-}
+{-# LANGUAGE TypeOperators            #-}
+{-# LANGUAGE UndecidableInstances     #-}
 module UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter where
 
 import Control.Monad.Primitive
 import Data.Coerce (coerce)
+import Data.Kind
 import Data.Primitive qualified as P
 import Data.Proxy
 import Data.Word
-import GHC.TypeLits (Nat)
-import GHC.TypeNats (KnownNat, natVal)
+import GHC.TypeNats (KnownNat, Nat, natVal, type (-))
 
 -- See Note [Step counter data structure]
 -- You might think that since we can store whatever we like in here we might as well
@@ -73,13 +80,32 @@ modifyCounter i f c = do
   writeCounter c i modified
   pure modified
 
+data Peano
+  = Z
+  | S Peano
+
+type NatToPeano :: Nat -> Peano
+type family NatToPeano n where
+    NatToPeano 0 = 'Z
+    NatToPeano n = 'S (NatToPeano (n - 1))
+
+type UpwardsM :: (Type -> Type) -> Peano -> Constraint
+class Monad m => UpwardsM m n where
+  upwardsM :: Int -> (Int -> m ()) -> m ()
+
+instance Monad m => UpwardsM m 'Z where
+  upwardsM _ _ = pure ()
+
+instance UpwardsM m n => UpwardsM m ('S n) where
+  upwardsM !i f = f i *> upwardsM @m @n (i + 1) f
+
 -- I also tried INLINABLE + SPECIALIZE, which just resulted in it getting inlined, so might
 -- as well just go straight for that
 {-# INLINE itraverseCounter_ #-}
 -- | Traverse the counters with an effectful function.
 itraverseCounter_
   :: forall n m
-  . (KnownNat n, PrimMonad m)
+  . (UpwardsM m (NatToPeano n), PrimMonad m)
   => (Int -> Word8 -> m ())
   -> StepCounter n (PrimState m)
   -> m ()
@@ -95,19 +121,12 @@ itraverseCounter_ f (StepCounter arr) = do
   -- the whole thing runs in 'm': future accesses to the mutable array can't
   -- happen until this whole function is finished.
   arr' <- P.unsafeFreezePrimArray arr
-  let
-    sz = fromIntegral $ natVal (Proxy @n)
-    go !i
-      | i < sz = do
-          f i (P.indexPrimArray arr' i)
-          go (i+1)
-      | otherwise = pure ()
-  go 0
+  upwardsM @_ @(NatToPeano n) 0 $ \i -> f i $ P.indexPrimArray arr' i
 
 {-# INLINE iforCounter_ #-}
 -- | Traverse the counters with an effectful function.
 iforCounter_
-  :: (KnownNat n, PrimMonad m)
+  :: (UpwardsM m (NatToPeano n), PrimMonad m)
   => StepCounter n (PrimState m)
   -> (Int -> Word8 -> m ())
   -> m ()
