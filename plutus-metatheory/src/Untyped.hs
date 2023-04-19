@@ -7,8 +7,8 @@ import PlutusCore.Data
 import PlutusCore.Default
 import UntypedPlutusCore
 
-import Data.ByteString as BS
-import Data.Text as T
+import Data.ByteString as BS hiding (map)
+import Data.Text as T hiding (map)
 import Universe
 
 data SomeStarIn uni = forall (a :: *). SomeStarIn !(uni (Esc a))
@@ -42,15 +42,16 @@ uconvTyTag (TagPair x y) = case (uconvTyTag x, uconvTyTag y) of
 uconvTyTag (TagList x) = case uconvTyTag x of
                            (SomeStarIn x') ->  SomeStarIn (DefaultUniList x')
 
-data TermCon = TmInteger Integer
-             | TmByteString ByteString
-             | TmString Text
-             | TmBool Bool
-             | TmUnit
-             | TmData Data
-             | TmPair TyTag TyTag TermCon TermCon
-             | TmList TyTag [TermCon]
-            deriving Show
+data TermCon where
+  TmInteger :: Integer -> TermCon
+  TmByteString :: ByteString -> TermCon
+  TmString :: Text -> TermCon
+  TmBool :: Bool -> TermCon
+  TmUnit :: TermCon
+  TmData :: Data -> TermCon
+  TmPair :: TyTag -> TyTag -> TermCon -> TermCon -> TermCon
+  TmList :: TyTag -> [TermCon] -> TermCon
+    deriving Show
 
 convTermCon :: Some (ValueOf DefaultUni) -> TermCon
 convTermCon (Some (ValueOf DefaultUniInteger i)) = TmInteger i
@@ -69,6 +70,11 @@ convTermCon (Some (ValueOf (DefaultUniList ta) xs)) =
             (Prelude.map (\a -> convTermCon (Some (ValueOf ta a))) xs)
 convTermCon _ = error "Cannot handle applications other than pair and lists"
 
+checkSomeValueOf :: DefaultUni (Esc a) -> [Some (ValueOf DefaultUni)] -> [a]
+checkSomeValueOf uni = map $ \(Some (ValueOf uni' x)) -> case uni `geq` uni' of
+    Just Refl -> x
+    Nothing   -> error "oops, heterogeneous indeed"
+
 uconvTermCon :: TermCon -> Some (ValueOf DefaultUni)
 uconvTermCon (TmInteger i)    = someValueOf DefaultUniInteger i
 uconvTermCon (TmByteString b) = someValueOf DefaultUniByteString b
@@ -76,14 +82,11 @@ uconvTermCon (TmString s)     = someValueOf DefaultUniString s
 uconvTermCon (TmBool b)       = someValueOf DefaultUniBool b
 uconvTermCon TmUnit           = someValueOf DefaultUniUnit ()
 uconvTermCon (TmData d)       = someValueOf DefaultUniData d
-uconvTermCon (TmPair _ _ a b) = case (uconvTermCon a , uconvTermCon b) of
+uconvTermCon (TmPair t u a b) =  case (uconvTermCon a , uconvTermCon b) of
           (Some (ValueOf t a) , Some (ValueOf u b )) -> someValueOf (DefaultUniPair t u) (a , b)
-uconvTermCon (TmList t [])     = case uconvTyTag t of
-      (SomeStarIn t') -> someValueOf (DefaultUniList t') []
-uconvTermCon (TmList t (x:xs)) =
-   case (uconvTermCon x , uconvTermCon (TmList t xs)) of
-     (Some (ValueOf tx x') , Some (ValueOf (DefaultUniList ts) xs')) -> undefined
-     _                                                               -> error "gg"
+uconvTermCon (TmList t xs)    = case uconvTyTag t of
+    SomeStarIn t' -> Some . ValueOf (DefaultUniList t') . checkSomeValueOf t' $ map uconvTermCon xs
+
 -- Untyped (Raw) syntax
 
 data UTerm = UVar Integer
