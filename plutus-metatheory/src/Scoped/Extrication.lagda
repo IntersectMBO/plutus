@@ -88,10 +88,6 @@ extricateC (tmString s)     = string s
 extricateC (tmBool b)       = bool b
 extricateC tmUnit           = unit
 extricateC (tmData d)       = pdata d
---extricateC (pairDATA x y) = pairDATA x y
---extricateC (pairID i ds)  = pairID i ds
---extricateC (listData xs)  = listData xs
---extricateC (listPair xs)  = listPair xs
 
 extricateSub : ∀ {Γ Δ} → (∀ {J} → Δ ∋⋆ J → Γ ⊢Nf⋆ J)
   → Scoped.Tel⋆ (len⋆ Γ) (len⋆ Δ)

@@ -69,10 +69,6 @@ renTermCon ρ⋆ (tmString s)     = tmString s
 renTermCon ρ⋆ (tmBool b)       = tmBool b
 renTermCon ρ⋆ tmUnit           = tmUnit
 renTermCon ρ⋆ (tmData d)       = tmData d
---renTermCon ρ⋆ (pairDATA x y) = pairDATA x y
---renTermCon ρ⋆ (pairID i ds)  = pairID i ds
---renTermCon ρ⋆ (listData xs)  = listData xs
---renTermCon ρ⋆ (listPair xs)  = listPair xs
 \end{code}
 
 \begin{code}
@@ -161,10 +157,6 @@ subTermCon σ⋆ (tmString s)     = tmString s
 subTermCon σ⋆ (tmBool b)       = tmBool b
 subTermCon σ⋆ tmUnit           = tmUnit
 subTermCon σ⋆ (tmData d)       = tmData d
---subTermCon σ⋆ (pairDATA x y) = pairDATA x y 
---subTermCon σ⋆ (pairID i ds)  = pairID i ds 
---subTermCon σ⋆ (listData xs)  = listData xs
---subTermCon σ⋆ (listPair xs)  = listPair xs
 \end{code}
 
 \begin{code}
