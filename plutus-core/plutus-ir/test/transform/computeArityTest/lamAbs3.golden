@@ -1,1 +1,1 @@
-([TermParam, TermParam, TermParam], x)
+([TermParam, TermParam, TermParam], [x, y, z], x)

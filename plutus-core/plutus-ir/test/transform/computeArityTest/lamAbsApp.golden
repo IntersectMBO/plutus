@@ -1,1 +1,3 @@
-([TermParam, TermParam, TermParam], [ (lam k (con integer) x) (con integer 3) ])
+( [TermParam, TermParam, TermParam]
+, [x, y, z]
+, [ (lam k (con integer) x) (con integer 3) ] )

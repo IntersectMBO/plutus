@@ -33,6 +33,7 @@ import Control.Monad.State
 
 import Algebra.Graph qualified as G
 import Data.Map qualified as Map
+import Data.Set qualified as Set
 import PlutusIR.Transform.Inline.CallSiteInline (computeArity, considerInlineSat)
 import Witherable (Witherable (wither))
 
@@ -254,7 +255,7 @@ processSingleBinding body = \case
             -- this binding is going to be unconditionally inlined
             Nothing -> pure Nothing
             Just processedRhs -> do
-                let (varArity, bodyToCheck) = computeArity rhs
+                let (arity, params, rhsBody) = computeArity rhs
                 -- when we encounter a binding, we add it to
                 -- the global map `Utils.NonRecInScopeSet`.
                 -- The `varDef` added to the map has been unconditionally inlined.
@@ -262,7 +263,8 @@ processSingleBinding body = \case
                 -- call site inlining.
                 -- We don't remove the binding because we decide *at the call site*
                 -- whether we want to inline, and it may be called more than once.
-                void $ modify' $ extendVarInfo n (MkVarInfo s processedRhs varArity bodyToCheck)
+                void $ modify' $
+                    extendVarInfo n (MkVarInfo s processedRhs arity params rhsBody)
                 pure $ Just $ TermBind ann s v processedRhs
     (TypeBind ann v@(TyVarDecl _ n _) rhs) -> do
         maybeRhs' <- maybeAddTySubst n rhs
@@ -307,7 +309,8 @@ maybeAddSubst body ann s n rhs = do
             -- See Note [Inlining approach and 'Secrets of the GHC Inliner'] and [Inlining and
             -- purity]. This is the case where we don't know that the number of occurrences is
             -- exactly one, so there's no point checking if the term is immediately evaluated.
-            let postUnconditional = isBindingPure && sizeIsAcceptable rhs' && costIsAcceptable rhs'
+            let postUnconditional =
+                    isBindingPure && sizeIsAcceptable Set.empty rhs' && costIsAcceptable rhs'
             if postUnconditional
             then extendAndDrop (Done $ dupable rhs')
             else pure $ Just rhs'

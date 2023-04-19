@@ -1,1 +1,1 @@
-([TypeParam, TermParam, TypeParam, TermParam, TermParam], y)
+([TypeParam, TermParam, TypeParam, TermParam, TermParam], [z, x, y], y)

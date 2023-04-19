@@ -12,9 +12,11 @@ See note [Inlining of fully applied functions].
 
 module PlutusIR.Transform.Inline.CallSiteInline where
 
-import Control.Monad.State
 import PlutusIR.Core
 import PlutusIR.Transform.Inline.Utils
+
+import Control.Monad.State
+import Data.Set qualified as Set
 
 {- Note [Inlining of fully applied functions]
 
@@ -105,18 +107,20 @@ We will work on more refined checks (e.g., checking their sizes instead of just 
 improve the optimization.
 -}
 
--- | Computes the 'Utils.Arity' of a term. Also returns the function body, for checking whether
--- it's `Utils.acceptable`.
+-- | Computes the 'Utils.Arity' of a term. Also returns the term argument names and the
+-- function body, for checking against inlining criteria.
 computeArity ::
     Term tyname name uni fun ann
-    -> (Arity, Term tyname name uni fun ann)
+    -> (Arity, [name], Term tyname name uni fun ann)
 computeArity = \case
-    LamAbs _ _ _ body ->
-      let (nextArgs, nextBody) = computeArity body in (TermParam:nextArgs, nextBody)
+    LamAbs _ name _ body ->
+      let (nextArgs, names, nextBody) = computeArity body
+       in (TermParam:nextArgs, name : names, nextBody)
     TyAbs _ _ _ body  ->
-      let (nextArgs, nextBody) = computeArity body in (TypeParam:nextArgs, nextBody)
+      let (nextArgs, names, nextBody) = computeArity body
+       in (TypeParam:nextArgs, names, nextBody)
     -- Whenever we encounter a body that is not a lambda or type abstraction, we are done counting
-    tm                -> ([],tm)
+    tm -> ([], [], tm)
 
 -- | A term or type argument.
 data Arg tyname name uni fun ann =
@@ -166,9 +170,12 @@ isFullyApplied (hdLams:tlLams) (hdArg:tlArg) =
       False
 
 -- | Consider whether to inline a saturated application.
-considerInlineSat :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
-    => Term tyname name uni fun ann -- ^ The `body` of the `Let` term.
-    -> InlineM tyname name uni fun ann (Term tyname name uni fun ann)
+considerInlineSat ::
+    forall tyname name uni fun ann.
+    InliningConstraints tyname name uni fun =>
+    -- | The `body` of the `Let` term.
+    Term tyname name uni fun ann ->
+    InlineM tyname name uni fun ann (Term tyname name uni fun ann)
 considerInlineSat tm = do
     -- collect all the arguments of the term being applied to
     case collectArgs tm of
@@ -179,11 +186,11 @@ considerInlineSat tm = do
           Just varInfo -> do
             let body = varBody varInfo
                 def = varDef varInfo
-                fullyApplied = isFullyApplied (arity varInfo) (map fst args)
+                fullyApplied = isFullyApplied (varArity varInfo) (map fst args)
             -- It is the body that we will be left with in the program after we have
             -- reduced the saturated application, so the size increase we will be left
             -- with comes from the body, and that is what we need to check is okay
-                bodySizeOk = sizeIsAcceptable body
+                bodySizeOk = sizeIsAcceptable (Set.fromList $ varParams varInfo) body
             -- The definition itself will be inlined, so we need to check that the cost
             -- of that is acceptable. Note that we do _not_ check the cost of the _body_.
             -- We would have paid that regardless.

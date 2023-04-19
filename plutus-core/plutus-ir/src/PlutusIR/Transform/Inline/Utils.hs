@@ -24,11 +24,14 @@ import PlutusCore.Rename
 import PlutusCore.Annotation
 
 import Control.Lens hiding (Strict)
+import Control.Monad.Extra
 import Control.Monad.Reader
 import Control.Monad.State
 
 import Data.Map qualified as Map
 import Data.Semigroup.Generic (GenericSemigroupMonoid (..))
+import Data.Set (Set)
+import Data.Set qualified as Set
 import Prettyprinter (viaShow)
 
 -- For unconditional inlining:
@@ -76,9 +79,10 @@ type Arity = [ParamKind]
 data VarInfo tyname name uni fun ann =
   MkVarInfo {
     varStrictness :: Strictness
-    ,varDef       :: Term tyname name uni fun ann
+    , varDef      :: Term tyname name uni fun ann
     -- ^ its definition that has been unconditionally inlined.
-    , arity       :: Arity -- ^ its arity, storing to avoid repeated calculations.
+    , varArity    :: Arity -- ^ its arity, storing to avoid repeated calculations.
+    , varParams   :: [name]
     , varBody     :: Term tyname name uni fun ann
     -- ^ the body of the function, for checking `acceptable` or not. Storing this to avoid repeated
     -- calculations.
@@ -170,7 +174,7 @@ extendVarInfo n info subst = subst & nonRecInScopeSet . unNonRecInScopeSet %~ in
 type ExternalConstraints tyname name uni fun m =
     ( HasUnique name TermUnique
     , HasUnique tyname TypeUnique
-    , Eq name
+    , Ord name
     , PLC.ToBuiltinMeaning uni fun
     , MonadQuote m
     )
@@ -178,7 +182,7 @@ type ExternalConstraints tyname name uni fun m =
 type InliningConstraints tyname name uni fun =
     ( HasUnique name TermUnique
     , HasUnique tyname TypeUnique
-    , Eq name
+    , Ord name
     , PLC.ToBuiltinMeaning uni fun
     )
 
@@ -311,34 +315,84 @@ costIsAcceptable = \case
   TyInst{}   -> False
   Let{}      -> False
 
--- See Note [Inlining criteria]
--- | Is the size increase (in the AST) of inlining a variable whose RHS is
--- the given term acceptable?
-sizeIsAcceptable :: Term tyname name uni fun ann -> Bool
-sizeIsAcceptable = \case
-  Builtin{}  -> True
-  Var{}      -> True
-  Error{}    -> True
-  LamAbs {}  -> False
-  TyAbs {}   -> False
+-- State type used by `sizeIsAcceptable`.
+-- See Note [Size criteria for inlining].
+data St a = St
+    { _stRemainingSize :: Int
+    , _stUnseenParams  :: Set a
+    -- ^ Parameter names in the LHS that haven't appeared in the RHS.
+    , _stSeenParams    :: Set a
+    -- ^ Parameter names in the LHS that have appeared in the RHS.
+    }
 
-  -- Inlining constructors of size 1 or 0 seems okay
-  Constr _ _ _ es  -> case es of
-      []  -> True
-      [e] -> sizeIsAcceptable e
-      _   -> False
-  -- Cases are pretty big, due to the case branches
-  Case{} -> False
+makeLenses ''St
 
-  -- Arguably we could allow these two, but they're uncommon anyway
-  IWrap{}    -> False
-  Unwrap{}   -> False
-  -- Constants can be big! We could check the size here and inline if they're
-  -- small, but probably not worth it
-  Constant{} -> False
-  Apply{}    -> False
-  TyInst{}   -> False
-  Let{}      -> False
+-- See Note [Inlining criteria] and Note [Size criteria for inlining].
+-- | Is the size increase (in the AST) of the given inlining acceptable?
+sizeIsAcceptable ::
+    forall name tyname uni fun ann.
+    Ord name =>
+    -- | The set of term parameter names in the definition of the variable.
+    -- e.g., for @let x = f y@, the set is empty;
+    -- for @let x = \a. /\b. c. f y@, the set is @[a, c]@.
+    Set name ->
+    -- | The RHS whose size we are evaluating
+    Term tyname name uni fun ann ->
+    Bool
+sizeIsAcceptable params =
+    flip
+        evalState
+        ( -- See Note [Size criteria for inlining].
+          St
+            { _stRemainingSize = 1 + 2 * length params
+            , _stUnseenParams = params
+            , _stSeenParams = mempty
+            }
+        )
+        . go
+  where
+    go :: Term tyname name uni fun ann -> State (St name) Bool
+    go term = ifM (use stRemainingSize <&> (< 0)) (pure False) $ do
+        unseen <- use stUnseenParams
+        seen <- use stSeenParams
+        case term of
+            Builtin{} -> decSize $> True
+            Var _ n
+                | n `Set.member` seen -> pure False
+                | n `Set.member` unseen -> do
+                    modify' $ \st ->
+                        st
+                            & stUnseenParams %~ Set.delete n
+                            & stSeenParams %~ Set.insert n
+                    decSize $> True
+                | otherwise -> decSize $> True
+            Error{} -> decSize $> True
+            LamAbs _ _ _ body -> decSize >> go body
+            TyAbs _ _ _ body ->
+                -- `decSize` to account for the `TyAbs` node (which becomes `Delay` in UPLC).
+                decSize >> go body
+            Constr _ _ _ es ->
+                -- `decSize` twice to account for the `Constr` node and the index.
+                decSize >> decSize >> allM go es
+            Case _ _ arg cs -> decSize >> allM go (arg : cs)
+            IWrap _ _ _ body ->
+                -- No `decSize` here, because `IWrap` nodes disappear in UPLC.
+                go body
+            Unwrap _ body ->
+                -- No `decSize` here, because `Unwrap` nodes disappear in UPLC.
+                go body
+            -- Constants can be big! We could check the size here and inline if they're
+            -- small, but probably not worth it
+            Constant{} -> pure False
+            Apply _ fun arg ->
+                -- `decSize` to account for the `Apply` node.
+                decSize >> (go fun &&^ go arg)
+            TyInst _ body _ty ->
+                -- `decSize` to account for the `TyInst` node (which becomes `Force` in UPLC).
+                decSize >> go body
+            Let{} -> pure False
+
+    decSize = modify' (over stRemainingSize (\x -> x - 1))
 
 -- | Is this an utterly trivial type which might as well be inlined?
 trivialType :: Type tyname uni ann -> Bool
@@ -346,3 +400,33 @@ trivialType = \case
     TyBuiltin{} -> True
     TyVar{}     -> True
     _           -> False
+
+{- Note [Size criteria for inlining]
+Inlining replaces LHS with RHS, for some `LHS = RHS`. The LHS is usually a variable and the
+RHS is usually the definition of the variable. But when we are considering inlining
+fully-saturated applications, LHS can have parameters.
+
+For example, given `x = \a b c d -> f y`, normally LHS is `x`. But when we are considering
+inlining a call site of `x` where `x` is fully applied, LHS becomes `x a b c d`, and
+RHS becomes `f y`.
+
+In order to avoid increasing program sizes (which is much more important for Plutus Core than
+it is for general-purpose programming languages), we should inline only if size(RHS) is
+no bigger than size(LHS).
+
+size(LHS) depends on the number of term parameters on the LHS. For `x = f y`, size(LHS) = 1.
+Each additional parameter increases size(LHS) by 2 (one for the `Apply` node, and one for
+the parameter itself). For `x a b c d = f y`, size(LHS) = 9.
+
+We ignore type parameters since types eventually get erased.
+
+To measure size(RHS), we have to be mindful of multiple occurrences of parameters.
+For example, in `x a b c = b a a`, we cannot consider size(RHS) to be no bigger than size(LHS)
+just because it is not bigger in the binding. Otherwise we will turn `x <large> b c` into
+`let a = <large> in b a a`, which can be worse than not inlining.
+
+We therefore only consider size(RHS) to be acceptable for inlining, if no parameter in the LHS
+occurs more than once in the RHS, or, to put it another way, if every parameter on the LHS can
+be unconditionally inlined after beta-reduction. This is not the optimal strategy but
+it balances simplicity and usefulness.
+-}

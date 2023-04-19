@@ -282,10 +282,6 @@ letrec
              Cons {integer} x (fEnumBool_cenumFromTo (addInteger x 1) y))
           {all dead. dead}
 in
-let
-  !fShowInteger_cshowsPrec : integer -> integer -> List string -> List string
-    = \(w : integer) (w : integer) -> wcshowsPrec w
-in
 letrec
   !go : List string -> integer -> integer
     = \(ds : List string)
@@ -371,13 +367,15 @@ letrec
 in
 let
   !fShowInteger_cshow : integer -> string
-    = \(x : integer) ->
-        concatBuiltinStrings (fShowInteger_cshowsPrec 0 x (Nil {string}))
+    = \(x : integer) -> concatBuiltinStrings (wcshowsPrec x (Nil {string}))
   data (Show :: * -> *) a | Show_match where
     CConsShow
       : (integer -> a -> List string -> List string) -> (a -> string) -> Show a
   ~fShowInteger : Show integer
-    = CConsShow {integer} fShowInteger_cshowsPrec fShowInteger_cshow
+    = CConsShow
+        {integer}
+        (\(w : integer) (w : integer) -> wcshowsPrec w)
+        fShowInteger_cshow
   data (Tuple5 :: * -> * -> * -> * -> * -> *) a b c d e | Tuple5_match where
     Tuple5 : a -> b -> c -> d -> e -> Tuple5 a b c d e
   !showsPrec : all a. Show a -> integer -> a -> List string -> List string

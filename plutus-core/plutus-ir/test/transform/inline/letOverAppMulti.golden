@@ -2,27 +2,20 @@
   (nonrec)
   (termbind
     (strict)
-    (vardecl idFun (fun (con integer) (con integer)))
-    (lam y (con integer) y)
-  )
-  (let
-    (nonrec)
-    (termbind
-      (strict)
-      (vardecl
-        k
-        (fun
-          (fun (con integer) (con integer)) (fun (con integer) (con integer))
-        )
-      )
-      (lam x (fun (con integer) (con integer)) idFun)
+    (vardecl
+      k
+      (fun (fun (con integer) (con integer)) (fun (con integer) (con integer)))
     )
-    [
-      [
-        (lam x (fun (con integer) (con integer)) idFun)
-        [ (lam x (fun (con integer) (con integer)) idFun) idFun ]
-      ]
-      (con integer 6)
-    ]
+    (lam x (fun (con integer) (con integer)) (lam y (con integer) y))
   )
+  [
+    [
+      (lam x (fun (con integer) (con integer)) (lam y (con integer) y))
+      [
+        (lam x (fun (con integer) (con integer)) (lam y (con integer) y))
+        (lam y (con integer) y)
+      ]
+    ]
+    (con integer 6)
+  ]
 )
