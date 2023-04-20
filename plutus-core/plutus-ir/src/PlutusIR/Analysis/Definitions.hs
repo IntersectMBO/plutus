@@ -17,7 +17,8 @@ import Control.Monad.Writer
 
 import PlutusCore.Analysis.Definitions hiding (runTermDefs, termDefs)
 
--- | Add bindings to definition maps.
+-- | Add bindings to definition maps. The binding's subterms and subtypes are handled in another
+-- traversal.
 addBindingDef :: (Ord ann,
     HasUnique name TermUnique,
     HasUnique tyname TypeUnique,
@@ -28,13 +29,9 @@ addBindingDef bd = case bd of
     TermBind _a _s (VarDecl varAnn n varTy) _ -> do
         addDef n varAnn TermScope
         void $ typeDefs varTy
-        void $ forMOf bindingSubtypes bd typeDefs
-        void $ forMOf bindingSubterms bd termDefs
     TypeBind _a (TyVarDecl tyAnn tyN  _) ty -> do
         addDef tyN tyAnn TypeScope
         void $ typeDefs ty
-        void $ forMOf bindingSubtypes bd typeDefs
-        void $ forMOf bindingSubterms bd termDefs
     DatatypeBind
         _a
         (Datatype
@@ -60,14 +57,14 @@ addBindingDef bd = case bd of
             addVarDecl (VarDecl varAnn n varTy) = do
                 addDef n varAnn TermScope
                 void $ typeDefs varTy
-                void $ forMOf typeSubtypes varTy typeDefs
         addDef dataName dataAnn TermScope
         addDef tyN tyAnn TypeScope
         forM_ tyVarDecls addTyVarDecl
         forM_ varDecls addVarDecl
         forM_ varDecls (typeDefs . _varDeclType)
-        forM_ (map _varDeclType varDecls) (mapMOf typeSubtypes typeDefs)
 
+-- | Given a PIR term, add all of its term and type definitions and usages, including its subterms
+-- and subtypes, to a global map.
 termDefs
     :: (Ord ann,
         HasUnique name TermUnique,
@@ -78,31 +75,31 @@ termDefs
     -> m (Term tyname name uni fun ann)
 termDefs tm =
     case tm of
-        Let _ann _r bindings _ -> do
+        Let _ann _r bindings _rhs -> do
             forM_ bindings addBindingDef
-            forMOf termSubterms tm termDefs
+            void $ forMOf termSubterms tm termDefs
+            forMOf termSubtypes tm typeDefs
         Var ann n         -> do
             addUsage n ann TermScope
             pure tm
         LamAbs ann n ty _t -> do
             addDef n ann TermScope
             void $ typeDefs ty
-            void $ forMOf typeSubtypes ty typeDefs
             forMOf termSubterms tm termDefs
         IWrap _ pat arg _t -> do
             void $ typeDefs pat
-            void $ forMOf typeSubtypes pat typeDefs
             void $ typeDefs arg
-            void $ forMOf typeSubtypes arg typeDefs
             forMOf termSubterms tm termDefs
         TyAbs ann tn _ _  -> do
             addDef tn ann TypeScope
-            forMOf termSubterms tm termDefs
+            void $ forMOf termSubterms tm termDefs
+            forMOf termSubtypes tm typeDefs
         TyInst _ _ ty     -> do
             void $ typeDefs ty
-            void $ forMOf typeSubtypes ty typeDefs
             forMOf termSubterms tm termDefs
-        _                  -> forMOf termSubterms tm termDefs
+        _                  -> do
+            void $ forMOf termSubterms tm termDefs
+            forMOf termSubtypes tm typeDefs
 
 runTermDefs
     :: (Ord ann,
