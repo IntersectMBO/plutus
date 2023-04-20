@@ -60,6 +60,8 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     , defaultSlippage
     , NTerm
     , runCekM
+    , ArgsR(..)
+    , toListArgsR
     )
 where
 
@@ -239,7 +241,7 @@ data CekValue uni fun ann =
       -- ^ The partial application and its costing function.
       -- Check the docs of 'BuiltinRuntime' for details.
     -- | A constructor value, including fully computed arguments and the tag.
-  | VConstr {-# UNPACK #-} !Word64 ![CekValue uni fun ann]
+  | VConstr {-# UNPACK #-} !Word64 !(ArgsR uni fun ann)
     deriving stock (Show)
 
 type CekValEnv uni fun ann = Env.RAList (CekValue uni fun ann)
@@ -531,7 +533,7 @@ dischargeCekValue = \case
     -- or (b) it's needed for an error message.
     -- @term@ is fully discharged, so we can return it directly without any further discharging.
     VBuiltin _ term _                    -> term
-    VConstr i es                         -> Constr () i (toList $ fmap dischargeCekValue es)
+    VConstr i es                         -> Constr () i (map dischargeCekValue $ toListArgsR es)
 
 instance (Closed uni, Pretty (SomeTypeIn uni), uni `Everywhere` PrettyConst, Pretty fun) =>
             PrettyBy PrettyConfigPlc (CekValue uni fun ann) where
@@ -556,12 +558,12 @@ data Context uni fun ann
     -- ^ @[V _]@
     | FrameApplyArg !(CekValEnv uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann)
     -- ^ @[_ N]@
-    | FrameApplyValues ![CekValue uni fun ann] !(Context uni fun ann)
-    -- ^ @[_ V0...Vn]@
+    | FrameApplyArgVal !(CekValue uni fun ann) !(Context uni fun ann)
+    -- ^ @[_ V]@
     | FrameForce !(Context uni fun ann)
     -- ^ @(force _)@
     -- See Note [Accumulators for terms]
-    | FrameConstr !(CekValEnv uni fun ann) {-# UNPACK #-} !Word64 ![NTerm uni fun ann] !(DList.DList (CekValue uni fun ann)) !(Context uni fun ann)
+    | FrameConstr !(CekValEnv uni fun ann) {-# UNPACK #-} !Word64 ![NTerm uni fun ann] !(ArgsR uni fun ann) !(Context uni fun ann)
     -- ^ @(constr i V0 ... Vj-1 _ Nj ... Nn)@
     | FrameCases !(CekValEnv uni fun ann) ![NTerm uni fun ann] !(Context uni fun ann)
     -- ^ @(case _ C0 .. Cn)@
@@ -648,6 +650,20 @@ evalBuiltinApp fun term runtime = case runtime of
     _ -> pure $ VBuiltin fun term runtime
 {-# INLINE evalBuiltinApp #-}
 
+data ArgsR uni fun ann
+    = NilArgsR
+    | ConsArgsR !(CekValue uni fun ann) !(ArgsR uni fun ann)
+    deriving stock (Show)
+
+toListArgsR :: ArgsR uni fun ann -> [CekValue uni fun ann]
+toListArgsR = go [] where
+    go acc NilArgsR             = acc
+    go acc (ConsArgsR arg args) = go (arg : acc) args
+
+appendArgsR :: ArgsR uni fun ann -> Context uni fun ann -> Context uni fun ann
+appendArgsR NilArgsR             ctx = ctx
+appendArgsR (ConsArgsR arg args) ctx = appendArgsR args $ FrameApplyArgVal arg ctx
+
 -- See Note [Compilation peculiarities].
 -- | The entering point to the CEK machine's engine.
 enterComputeCek
@@ -705,8 +721,8 @@ enterComputeCek = computeCek
     computeCek !ctx !env (Constr _ i es) = do
         stepAndMaybeSpend BConstr
         case es of
-          (t : rest) -> computeCek (FrameConstr env i rest mempty ctx) env t
-          _          -> returnCek ctx $ VConstr i []
+          (t : rest) -> computeCek (FrameConstr env i rest NilArgsR ctx) env t
+          _          -> returnCek ctx $ VConstr i NilArgsR
     -- s ; ρ ▻ case S C0 ... Cn  ↦  s , case _ (C0 ... Cn, ρ) ; ρ ▻ S
     computeCek !ctx !env (Case _ scrut cs) = do
         stepAndMaybeSpend BCase
@@ -743,19 +759,17 @@ enterComputeCek = computeCek
     returnCek (FrameApplyFun fun ctx) arg =
         applyEvaluate ctx fun arg
     -- s , [_ V1 .. Vn] ◅ lam x (M,ρ)  ↦  s , [_ V2 .. Vn]; ρ [ x  ↦  V1 ] ▻ M
-    returnCek (FrameApplyValues args ctx) fun = case args of
-        (arg:rest) -> applyEvaluate (FrameApplyValues rest ctx) fun arg
-        _          -> returnCek ctx fun
+    returnCek (FrameApplyArgVal arg ctx) fun = applyEvaluate ctx fun arg
     -- s , constr I V0 ... Vj-1 _ (Tj+1 ... Tn, ρ) ◅ Vj  ↦  s , constr i V0 ... Vj _ (Tj+2... Tn, ρ)  ; ρ ▻ Tj+1
     returnCek (FrameConstr env i todo done ctx) e = do
-        let done' = done `DList.snoc` e
+        let done' = ConsArgsR e done
         case todo of
           (next : todo') -> computeCek (FrameConstr env i todo' done' ctx) env next
-          _              -> returnCek ctx $ VConstr i (toList done')
+          _              -> returnCek ctx $ VConstr i done'
     -- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci
     returnCek (FrameCases env cs ctx) e = case e of
         (VConstr i args) -> case cs ^? wix i of
-            Just t  -> computeCek (FrameApplyValues args ctx) env t
+            Just t  -> computeCek (appendArgsR args ctx) env t
             Nothing -> throwingDischarged _MachineError (MissingCaseBranch i) e
         _ -> throwingDischarged _MachineError NonConstrScrutinized e
 

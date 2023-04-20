@@ -55,7 +55,6 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
 import Control.Lens hiding (Context)
 import Control.Monad
 import Control.Monad.Except
-import Data.DList qualified as DList
 import Data.List.Extras (wix)
 import Data.Proxy
 import Data.RandomAccessList.Class qualified as Env
@@ -95,9 +94,9 @@ instance Pretty (CekState uni fun ann) where
 data Context uni fun ann
     = FrameApplyFun ann !(CekValue uni fun ann) !(Context uni fun ann)                         -- ^ @[V _]@
     | FrameApplyArg ann !(CekValEnv uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann) -- ^ @[_ N]@
-    | FrameApplyValues ann ![CekValue uni fun ann] !(Context uni fun ann)
+    | FrameApplyArgVal ann !(CekValue uni fun ann) !(Context uni fun ann)
     | FrameForce ann !(Context uni fun ann)                                               -- ^ @(force _)@
-    | FrameConstr ann !(CekValEnv uni fun ann) {-# UNPACK #-} !Word64 ![NTerm uni fun ann] !(DList.DList (CekValue uni fun ann)) !(Context uni fun ann)
+    | FrameConstr ann !(CekValEnv uni fun ann) {-# UNPACK #-} !Word64 ![NTerm uni fun ann] !(ArgsR uni fun ann) !(Context uni fun ann)
     | FrameCases ann !(CekValEnv uni fun ann) ![NTerm uni fun ann] !(Context uni fun ann)
     | NoFrame
     deriving stock (Show)
@@ -143,8 +142,8 @@ computeCek !ctx !_ (Builtin _ bn) = do
 computeCek !ctx !env (Constr ann i es) = do
     stepAndMaybeSpend BConstr
     case es of
-        (t : rest) -> computeCek (FrameConstr ann env i rest mempty ctx) env t
-        _          -> returnCek ctx $ VConstr i []
+        (t : rest) -> computeCek (FrameConstr ann env i rest NilArgsR ctx) env t
+        _          -> returnCek ctx $ VConstr i NilArgsR
 -- s ; ρ ▻ case S C0 ... Cn  ↦  s , case _ (C0 ... Cn, ρ) ; ρ ▻ S
 computeCek !ctx !env (Case ann scrut cs) = do
     stepAndMaybeSpend BCase
@@ -175,19 +174,17 @@ returnCek (FrameApplyArg _funAnn argVarEnv arg ctx) fun =
 returnCek (FrameApplyFun _ fun ctx) arg =
     applyEvaluate ctx fun arg
 -- s , [_ V1 .. Vn] ◅ lam x (M,ρ)  ↦  s , [_ V2 .. Vn]; ρ [ x  ↦  V1 ] ▻ M
-returnCek (FrameApplyValues ann args ctx) fun = case args of
-    (arg:rest) -> applyEvaluate (FrameApplyValues ann rest ctx) fun arg
-    _          -> returnCek ctx fun
+returnCek (FrameApplyArgVal _ arg ctx) fun = applyEvaluate ctx fun arg
 -- s , constr I V0 ... Vj-1 _ (Tj+1 ... Tn, ρ) ◅ Vj  ↦  s , constr i V0 ... Vj _ (Tj+2... Tn, ρ)  ; ρ ▻ Tj+1
 returnCek (FrameConstr ann env i todo done ctx) e = do
-    let done' = done `DList.snoc` e
+    let done' = ConsArgsR e done
     case todo of
         (next : todo') -> computeCek (FrameConstr ann env i todo' done' ctx) env next
-        _              -> returnCek ctx $ VConstr i (toList done')
+        _              -> returnCek ctx $ VConstr i done'
 -- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci
 returnCek (FrameCases ann env cs ctx) e = case e of
     (VConstr i args) -> case cs ^? wix i of
-        Just t  -> computeCek (FrameApplyValues ann args ctx) env t
+        Just t  -> computeCek (appendArgsR ann args ctx) env t
         Nothing -> throwingDischarged _MachineError (MissingCaseBranch i) e
     _ -> throwingDischarged _MachineError NonConstrScrutinized e
 
@@ -358,7 +355,7 @@ contextAnn :: Context uni fun ann -> Maybe ann
 contextAnn = \case
     FrameApplyFun ann _ _     -> pure ann
     FrameApplyArg ann _ _ _   -> pure ann
-    FrameApplyValues ann _ _  -> pure ann
+    FrameApplyArgVal ann _ _  -> pure ann
     FrameForce ann _          -> pure ann
     FrameConstr ann _ _ _ _ _ -> pure ann
     FrameCases ann _ _ _      -> pure ann
@@ -371,7 +368,7 @@ lenContext = go 0
       go !n = \case
               FrameApplyFun _ _ k     -> go (n+1) k
               FrameApplyArg _ _ _ k   -> go (n+1) k
-              FrameApplyValues _ _ k  -> go (n+1) k
+              FrameApplyArgVal _ _ k  -> go (n+1) k
               FrameForce _ k          -> go (n+1) k
               FrameConstr _ _ _ _ _ k -> go (n+1) k
               FrameCases _ _ _ k      -> go (n+1) k
@@ -438,6 +435,10 @@ evalBuiltinApp fun term runtime = case runtime of
             MakeKnownSuccessWithLogs logs x -> ?cekEmitter logs $> x
     _ -> pure $ VBuiltin fun term runtime
 {-# INLINE evalBuiltinApp #-}
+
+appendArgsR :: ann -> ArgsR uni fun ann -> Context uni fun ann -> Context uni fun ann
+appendArgsR _   NilArgsR             ctx = ctx
+appendArgsR ann (ConsArgsR arg args) ctx = appendArgsR ann args $ FrameApplyArgVal ann arg ctx
 
 spendBudgetCek :: GivenCekSpender uni fun s => ExBudgetCategory fun -> ExBudget -> CekM uni fun s ()
 spendBudgetCek = let (CekBudgetSpender spend) = ?cekBudgetSpender in spend
