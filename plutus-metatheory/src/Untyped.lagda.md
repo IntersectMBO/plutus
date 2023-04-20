@@ -26,8 +26,8 @@ open import Data.Integer.Show using (show)
 open import Data.String using (String;_++_)
 open import Data.Empty using (⊥)
 open import Utils using (_×_;_,_)
-open import RawU using (TermCon;Untyped)
-open TermCon
+open import RawU using (TagCon;Tag;decTagCon;TmCon;TyTag;Untyped;tmCon;tmCon2TagCon;tagCon2TmCon)
+open TyTag
 open Untyped
 ```
 
@@ -40,7 +40,7 @@ data _⊢ (X : Set) : Set where
   _·_ : X ⊢ → X ⊢ → X ⊢
   force : X ⊢ → X ⊢
   delay : X ⊢ → X ⊢
-  con : TermCon → X ⊢
+  con : TmCon → X ⊢
   builtin : (b : Builtin) → X ⊢
   error : X ⊢
 ```
@@ -56,22 +56,17 @@ variable
 uglyDATA : DATA → String
 uglyDATA d = "(DATA)"
 
-uglyList : List TermCon → String
-uglyTermCon : TermCon → String
+uglyTmCon : TmCon → String
+uglyTmCon (tmCon integer x) = "(integer " ++ show x ++ ")"
+uglyTmCon (tmCon bytestring x) = "bytestring"
+uglyTmCon (tmCon unit _)  = "()"
+uglyTmCon (tmCon string s) = "(string " ++ s ++ ")"
+uglyTmCon (tmCon bool false) = "(bool " ++ "false" ++ ")"
+uglyTmCon (tmCon bool true) = "(bool " ++ "true" ++ ")"
+uglyTmCon (tmCon pdata d) = uglyDATA d
+uglyTmCon (tmCon (pair t u) (x , y)) = "(pair " ++ uglyTmCon (tmCon t x) ++ " " ++ uglyTmCon (tmCon u y) ++ ")"
+uglyTmCon (tmCon (list t) xs) = "(list [ something ])"
 
-uglyTermCon (integer x) = "(integer " ++ show x ++ ")"
-uglyTermCon (bytestring x) = "bytestring"
-uglyTermCon unit = "()"
-uglyTermCon (string s) = "(string " ++ s ++ ")"
-uglyTermCon (bool false) = "(bool " ++ "false" ++ ")"
-uglyTermCon (bool true) = "(bool " ++ "true" ++ ")"
-uglyTermCon (pdata d) = uglyDATA d
-uglyTermCon (pair x y) = "(pair " ++ uglyTermCon x ++ " " ++ uglyTermCon y ++ ")"
-uglyTermCon (list t xs) = "(list [" ++ uglyList xs ++ "])"
-
-uglyList [] = ""
-uglyList (x ∷ []) = uglyTermCon x
-uglyList (x ∷ xs) = uglyTermCon x ++ "," ++ uglyList xs
 
 
 {-# FOREIGN GHC import qualified Data.Text as T #-}
@@ -89,7 +84,7 @@ ugly : ∀{X} → X ⊢ → String
 ugly (` x) = "(` var )"
 ugly (ƛ t) = "(ƛ " ++ ugly t ++ ")"
 ugly (t · u) = "( " ++ ugly t ++ " · " ++ ugly u ++ ")"
-ugly (con c) = "(con " ++ uglyTermCon c ++ ")"
+ugly (con c) = "(con " ++ uglyTmCon c ++ ")"
 ugly (force t) = "(force " ++ ugly t ++ ")"
 ugly (delay t) = "(delay " ++ ugly t ++ ")"
 ugly (builtin b) = "(builtin " ++ uglyBuiltin b ++ ")"
@@ -109,7 +104,7 @@ extricateU g (ƛ t)       = ULambda (extricateU (extG g) t)
 extricateU g (t · u)     = UApp (extricateU g t) (extricateU g u)
 extricateU g (force t)   = UForce (extricateU g t)
 extricateU g (delay t)   = UDelay (extricateU g t)
-extricateU g (con c)     = UCon c
+extricateU g (con c)     = UCon (tmCon2TagCon c)
 extricateU g (builtin b) = UBuiltin b
 extricateU g error       = UError
 
@@ -128,7 +123,7 @@ scopeCheckU g (UApp t u)   = do
   t ← scopeCheckU g t
   u ← scopeCheckU g u
   return (t · u)
-scopeCheckU g (UCon c)     = return (con c)
+scopeCheckU g (UCon c)     = return (con (tagCon2TmCon c))
 scopeCheckU g UError       = return error
 scopeCheckU g (UBuiltin b) = return (builtin b)
 scopeCheckU g (UDelay t)   = fmap delay (scopeCheckU g t)
@@ -143,29 +138,13 @@ scopeCheckU0 t = scopeCheckU (λ _ → inj₁ deBError) t
 Used to compare outputs in testing
 
 ```
-decUTermCon : (C C' : TermCon) → Bool
-decUTermCon (integer i) (integer i') with i Data.Integer.≟ i'
-... | yes p = true
-... | no ¬p = false
-decUTermCon (bytestring b) (bytestring b') with equals b b'
-decUTermCon (bytestring b) (bytestring b') | false = false
-decUTermCon (bytestring b) (bytestring b') | true = true
-decUTermCon (string s) (string s') with s Data.String.≟ s'
-... | yes p = true
-... | no ¬p = false
-decUTermCon (bool b) (bool b') with b Data.Bool.≟ b'
-... | yes p = true
-... | no ¬p = false
-decUTermCon unit unit = true
-decUTermCon _ _ = false
-
 decUTm : (t t' : Untyped) → Bool
 decUTm (UVar x) (UVar x') with x Data.Nat.≟ x
 ... | yes p = true
 ... | no ¬p = false
 decUTm (ULambda t) (ULambda t') = decUTm t t'
 decUTm (UApp t u) (UApp t' u') = decUTm t t' ∧ decUTm u u'
-decUTm (UCon c) (UCon c') = decUTermCon c c'
+decUTm (UCon c) (UCon c') = decTagCon c c'
 decUTm UError UError = true
 decUTm (UBuiltin b) (UBuiltin b') = decBuiltin b b'
 decUTm (UDelay t) (UDelay t') = decUTm t t'

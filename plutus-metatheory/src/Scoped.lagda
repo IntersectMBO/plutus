@@ -25,8 +25,8 @@ open RawTyCon
 open import Utils using (Kind;Maybe;nothing;just;maybe;Monad;Either;inj₁;inj₂)
 open Monad{{...}}
 
-open import RawU using (TermCon)
-open TermCon
+open import RawU using (TyTag;TmCon;tmCon;tagCon2TmCon;tmCon2TagCon)
+open TyTag
 \end{code}
 
 \begin{code}
@@ -186,7 +186,7 @@ data ScopedTm {n}(w : Weirdℕ n) : Set where
   _·⋆_ :    ScopedTm w → ScopedTy n → ScopedTm w
   ƛ    :    ScopedTy n → ScopedTm (S w) → ScopedTm w
   _·_  :    ScopedTm w → ScopedTm w → ScopedTm w
-  con  :    TermCon → ScopedTm w
+  con  :    TmCon → ScopedTm w
   error :   ScopedTy n → ScopedTm w
   builtin : (b : Builtin) → ScopedTm w
   wrap :    ScopedTy n → ScopedTy n → ScopedTm w → ScopedTm w
@@ -270,7 +270,7 @@ scopeCheckTm (t · u) = do
   t ← scopeCheckTm t
   u ← scopeCheckTm u
   return (t · u)
-scopeCheckTm (con c) = return (con c)
+scopeCheckTm (con c) = return (con (tagCon2TmCon c))
 scopeCheckTm (builtin b) = return (builtin b)
 scopeCheckTm (error A) = fmap error (scopeCheckTy A)
 scopeCheckTm (wrap A B t) = do
@@ -314,7 +314,7 @@ extricateScope (Λ K t) = Λ K (extricateScope t)
 extricateScope (t ·⋆ A) = extricateScope t ·⋆ extricateScopeTy A
 extricateScope (ƛ A t) = ƛ (extricateScopeTy A) (extricateScope t)
 extricateScope (t · u) = extricateScope t · extricateScope u
-extricateScope (con c) = con c
+extricateScope (con c) = con (tmCon2TagCon c)
 extricateScope (error A) = error (extricateScopeTy A)
 extricateScope (builtin bn) = builtin bn
 extricateScope (wrap pat arg t) =
@@ -330,10 +330,10 @@ uglyWeirdFin Z = "0"
 uglyWeirdFin (T x) = "(T " ++ uglyWeirdFin x ++ ")"
 uglyWeirdFin (S x) = "(S " ++ uglyWeirdFin x ++ ")"
 
-uglyTermCon : TermCon → String
-uglyTermCon (integer x) = "(integer " ++ ishow x ++ ")"
-uglyTermCon (bytestring x) = "bytestring"
-uglyTermCon size = "size"
+uglyTmCon : TmCon → String
+uglyTmCon (tmCon integer x) = "(integer " ++ ishow x ++ ")"
+uglyTmCon (tmCon bytestring x) = "bytestring"
+uglyTmCon size = "size"
 
 postulate showNat : ℕ → String
 

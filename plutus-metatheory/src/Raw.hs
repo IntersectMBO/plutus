@@ -18,7 +18,6 @@ import PlutusCore.Pretty
 
 import Data.Either
 import PlutusCore.Error (ParserErrorBundle)
-import Untyped (TermCon, convTermCon, uconvTermCon)
 
 data RType = RTyVar Integer
            | RTyFun RType RType
@@ -48,7 +47,7 @@ data RTerm = RVar Integer
            | RTApp RTerm RType
            | RLambda RType RTerm
            | RApp RTerm RTerm
-           | RCon TermCon --(Some (ValueOf DefaultUni))
+           | RCon (Some (ValueOf DefaultUni))
            | RError RType
            | RBuiltin DefaultFun
            | RWrap RType RType RTerm
@@ -90,7 +89,7 @@ conv (TyInst _ t _A)     = RTApp (conv t) (convT _A)
 conv (LamAbs _ _ _A t)   = RLambda (convT _A) (conv t)
 conv (Apply _ t u)       = RApp (conv t) (conv u)
 conv (Builtin _ b)       = RBuiltin b
-conv (Constant _ c)      = RCon (convTermCon c)
+conv (Constant _ c)      = RCon c
 conv (Unwrap _ t)        = RUnWrap (conv t)
 conv (IWrap _ ty1 ty2 t) = RWrap (convT ty1) (convT ty2) (conv t)
 conv (Error _ _A)        = RError (convT _A)
@@ -154,7 +153,7 @@ unconv i (RTLambda k tm)   = TyAbs () (NamedTyDeBruijn (varTy i)) k (unconv (i+1
 unconv i (RTApp t ty)      = TyInst () (unconv i t) (unconvT i ty)
 unconv i (RLambda ty tm)   = LamAbs () (varTm i) (unconvT (i+1) ty) (unconv (i+1) tm)
 unconv i (RApp t u)        = Apply () (unconv i t) (unconv i u)
-unconv i (RCon c)          = Constant () (uconvTermCon c)
+unconv i (RCon c)          = Constant () c
 unconv i (RError ty)       = Error () (unconvT i ty)
 unconv i (RBuiltin b)      = Builtin () b
 unconv i (RWrap tyA tyB t) = IWrap () (unconvT i tyA) (unconvT i tyB) (unconv i t)

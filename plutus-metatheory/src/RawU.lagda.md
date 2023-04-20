@@ -4,45 +4,51 @@
 
 module RawU where
 ```
+
 ## Imports
-
-
 
 ```
 open import Function using (_∘_)
 open import Data.Nat using (ℕ)
+open import Data.Bool using (true;false)
 open import Data.Integer using (ℤ)
 open import Data.String using (String)
 open import Data.Bool using (Bool)
 open import Relation.Binary using (DecidableEquality)
-open import Relation.Binary.PropositionalEquality using (refl)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;cong;cong₂)
 open import Relation.Nullary using (yes;no;¬_)
 open import Data.Unit using (⊤;tt)
 
-open import Utils --using (ByteString;DATA;List;_×_;_,_;Maybe;just;nothing)
-
-open import Builtin using (Builtin)
+open import Utils using (ByteString;DATA;List;_×_;_,_)
+open import Builtin using (Builtin;equals)
 open Builtin.Builtin
 
+{-# FOREIGN GHC {-# LANGUAGE GADTs #-} #-}
+{-# FOREIGN GHC import PlutusCore #-}
+{-# FOREIGN GHC import Raw #-}
+
+data Esc (a : Set) : Set where
+{-# INJECTIVE Esc #-}
+{-# COMPILE GHC Esc = data Esc () #-}
 ```
 
 Tags that use type in type but map more directly to the Haskell Representation
 
 ```
 data Tag : Set → Set where
-  integer    : Tag ℤ
-  bytestring : Tag ByteString
-  string     : Tag String
-  bool       : Tag Bool
-  unit       : Tag ⊤
-  pdata      : Tag DATA
-  pair       : ∀{A B} → Tag A → Tag B → Tag (A × B)
-  list       : ∀{A} → Tag A → Tag (List A)
+  integer    : Tag (Esc ℤ)
+  bytestring : Tag (Esc ByteString)
+  string     : Tag (Esc String)
+  bool       : Tag (Esc Bool)
+  unit       : Tag (Esc ⊤)
+  pdata      : Tag (Esc DATA)
+  pair       : ∀{A B} → Tag (Esc A) → Tag (Esc B) → Tag (Esc (A × B))
+  list       : ∀{A} → Tag (Esc A) → Tag (Esc (List A))
 
-data TagTm : Set where
-  tagTm : ∀{A} → Tag A → A → TagTm
+data TagCon : Set where
+  tagCon : ∀{A} → Tag (Esc A) → A → TagCon
 
-{-# FOREIGN GHC type Tag a = DefaultUni a #-}
+{-# FOREIGN GHC type Tag = DefaultUni #-}
 {-# FOREIGN GHC pattern TagInt        = DefaultUniInteger  #-}
 {-# FOREIGN GHC pattern TagBS         = DefaultUniByteString #-}
 {-# FOREIGN GHC pattern TagStr        = DefaultUniString #-}
@@ -53,17 +59,52 @@ data TagTm : Set where
 {-# FOREIGN GHC pattern TagList ta    = DefaultUniList ta #-}
 {-# COMPILE GHC Tag = data Tag (TagInt | TagBS | TagStr | TagBool | TagUnit | TagData | TagPair | TagList) #-}
 
+{-# FOREIGN GHC type TagCon = Some (ValueOf DefaultUni) #-}
+{-# FOREIGN GHC pattern TagCon t x = Some (ValueOf t x) #-} 
+{-# COMPILE GHC TagCon = data TagCon (TagCon) #-}
+
+decTagCon : (C C' : TagCon) → Bool
+decTagCon (tagCon integer i) (tagCon integer i') with i Data.Integer.≟ i'
+... | yes p = true
+... | no ¬p = false
+decTagCon (tagCon bytestring b) (tagCon bytestring b') with equals b b'
+decTagCon (tagCon bytestring b) (tagCon bytestring b') | false = false
+decTagCon (tagCon bytestring b) (tagCon bytestring b') | true = true
+decTagCon (tagCon string s) (tagCon string s') with s Data.String.≟ s'
+... | yes p = true
+... | no ¬p = false
+decTagCon (tagCon bool b) (tagCon bool b') with b Data.Bool.≟ b'
+... | yes p = true
+... | no ¬p = false
+decTagCon (tagCon unit ⊤) (tagCon unit ⊤) = true
+decTagCon _ _ = false
+
 
 ```
-## TyTags
+## Raw syntax
 
-Type Tags could be defined as
+This version is not intrinsically well-scoped. It's an easy to work
+with rendering of the untyped plutus-core syntax.
 
-data TyTag : Set
-TyTag = 0 ⊢♯
+The term constants `TermCon` are easy to interface with Haskell, but the list 
+representation is not very good as it allows heterogenous lists (which we don't want)
+and requires to tag and untag the data in the list.
 
-But since we want to use them to interface with Haskell code,
-we define them directly here.
+That's why we change it into an alternative representation
+```
+data Untyped : Set where
+  UVar : ℕ → Untyped
+  ULambda : Untyped → Untyped
+  UApp : Untyped → Untyped → Untyped
+  UCon : TagCon → Untyped
+  UError : Untyped
+  UBuiltin : Builtin → Untyped
+  UDelay : Untyped → Untyped
+  UForce : Untyped → Untyped
+
+{-# FOREIGN GHC import Untyped #-}
+{-# COMPILE GHC Untyped = data UTerm (UVar | ULambda  | UApp | UCon | UError | UBuiltin | UDelay | UForce) #-}
+```
 
 ```
 data TyTag : Set where
@@ -85,6 +126,66 @@ data TyTag : Set where
 ⟦ pdata ⟧tag = DATA
 ⟦ pair p p' ⟧tag = ⟦ p ⟧tag × ⟦ p' ⟧tag
 ⟦ list p ⟧tag = List ⟦ p ⟧tag
+
+data TmCon : Set where 
+  tmCon : (t : TyTag) → ⟦ t ⟧tag → TmCon
+
+tag2TyTag : ∀{A} → Tag A → TyTag
+tag2TyTag integer = integer
+tag2TyTag bytestring = bytestring
+tag2TyTag string = string
+tag2TyTag bool = bool
+tag2TyTag unit = unit
+tag2TyTag pdata = pdata
+tag2TyTag (pair t u) = pair (tag2TyTag t) (tag2TyTag u)
+tag2TyTag (list t) = list (tag2TyTag t)
+
+tagLemma : ∀{A}(t : Tag (Esc A)) →  A ≡ ⟦ tag2TyTag t ⟧tag
+tagLemma integer = refl
+tagLemma bytestring = refl
+tagLemma string = refl
+tagLemma bool = refl
+tagLemma unit = refl
+tagLemma pdata = refl
+tagLemma (pair t u) = cong₂ _×_ (tagLemma t) (tagLemma u)
+tagLemma (list t) = cong List (tagLemma t)
+
+tagCon2TmCon : TagCon → TmCon
+tagCon2TmCon (tagCon integer x) = tmCon integer x
+tagCon2TmCon (tagCon bytestring x) = tmCon bytestring x
+tagCon2TmCon (tagCon string x) = tmCon string x
+tagCon2TmCon (tagCon bool x) = tmCon bool x
+tagCon2TmCon (tagCon unit x) = tmCon unit tt
+tagCon2TmCon (tagCon pdata x) = tmCon pdata x
+tagCon2TmCon (tagCon (pair x y) (a , b)) rewrite tagLemma x | tagLemma y = tmCon (pair (tag2TyTag x) (tag2TyTag y)) (a , b)
+tagCon2TmCon (tagCon (list x) xs) rewrite tagLemma x = tmCon (list (tag2TyTag x)) xs
+
+open import Data.Product using (Σ;proj₁;proj₂) renaming (_,_ to _,,_)
+
+tyTag2Tag : TyTag → Σ Set (λ A → Tag (Esc A)) 
+tyTag2Tag integer = ℤ ,, integer
+tyTag2Tag bytestring = ByteString ,, bytestring
+tyTag2Tag string = String ,, string
+tyTag2Tag bool = Bool ,, bool
+tyTag2Tag unit = ⊤ ,, unit
+tyTag2Tag pdata = DATA ,, pdata
+tyTag2Tag (pair t u) with tyTag2Tag t | tyTag2Tag u 
+... | A ,, a | B ,, b = A × B ,, pair a b
+tyTag2Tag (list t) with tyTag2Tag t 
+... | A ,, a = (List A) ,, (list a)
+
+postulate tyTagLemma : (t : TyTag) → ⟦ t ⟧tag ≡ proj₁ (tyTag2Tag t)
+
+tmCon2TagCon : TmCon → TagCon
+tmCon2TagCon (tmCon integer x) = tagCon integer x
+tmCon2TagCon (tmCon bytestring x) = tagCon bytestring x
+tmCon2TagCon (tmCon string x) = tagCon string x
+tmCon2TagCon (tmCon bool x) = tagCon bool x
+tmCon2TagCon (tmCon unit x) = tagCon unit tt
+tmCon2TagCon (tmCon pdata x) = tagCon pdata x
+tmCon2TagCon (tmCon (pair t u) (x , y)) rewrite tyTagLemma t | tyTagLemma u = 
+    tagCon (pair (proj₂ (tyTag2Tag t)) (proj₂ (tyTag2Tag u))) (x , y)
+tmCon2TagCon (tmCon (list t) x) rewrite tyTagLemma t = tagCon (list (proj₂ (tyTag2Tag t))) x
 
 decTag : DecidableEquality TyTag
 decTag integer integer = yes refl
@@ -157,101 +258,4 @@ decTag (list x) (list y) with decTag x y
 ... | yes refl = yes refl
 ... | no ¬p    = no λ {refl  → ¬p refl}
 
-{-# COMPILE GHC TyTag = data TyTag (TagInt | TagBS | TagStr | TagBool | TagUnit | TagData | TagPair | TagList) #-}
-```
-## Raw syntax
-
-This version is not intrinsically well-scoped. It's an easy to work
-with rendering of the untyped plutus-core syntax.
-
-The term constants `TermCon` are easy to interface with Haskell, but the list 
-representation is not very good as it allows heterogenous lists (which we don't want)
-and requires to tag and untag the data in the list.
-
-That's why we change it into an alternative representation
-```
-
-data TermCon : Set where
-  integer    : ℤ → TermCon
-  bytestring : ByteString → TermCon
-  string     : String → TermCon
-  bool       : Bool → TermCon
-  unit       : TermCon
-  pdata      : DATA → TermCon
-  pair       : TermCon → TermCon → TermCon
-  list       : TyTag → List TermCon → TermCon
-
-{-# FOREIGN GHC import PlutusCore                       #-}
-{-# FOREIGN GHC import Raw #-}
-{-# COMPILE GHC TermCon = data TermCon (TmInteger | TmByteString | TmString | TmBool | TmUnit | TmData | TmPair | TmList) #-}
-
-getTag : TermCon → TyTag
-getTag (integer x) = integer
-getTag (bytestring x) = bytestring
-getTag (string x) = string
-getTag (bool x) = bool
-getTag unit = unit
-getTag (pdata x) = pdata
-getTag (pair x y) = pair (getTag x) (getTag y)
-getTag (list t _) = list t
-
-data Untyped : Set where
-  UVar : ℕ → Untyped
-  ULambda : Untyped → Untyped
-  UApp : Untyped → Untyped → Untyped
-  UCon : TermCon → Untyped
-  UError : Untyped
-  UBuiltin : Builtin → Untyped
-  UDelay : Untyped → Untyped
-  UForce : Untyped → Untyped
-
-{-# FOREIGN GHC import Untyped #-}
-{-# COMPILE GHC Untyped = data UTerm (UVar | ULambda  | UApp | UCon | UError | UBuiltin | UDelay | UForce) #-}
-```
-
-```
-data TmCon : Set where 
-  tmcon : (t : TyTag) → ⟦ t ⟧tag → TmCon
-
-termCon2TmCon : TermCon → Maybe TmCon
-listTermCon2TmCon : TyTag → List TermCon → Maybe TmCon
-
-termCon2TmCon (integer x) = return (tmcon integer x)
-termCon2TmCon (bytestring x) = return (tmcon bytestring x)
-termCon2TmCon (string x) = return (tmcon string x)
-termCon2TmCon (bool x) = return (tmcon bool x)
-termCon2TmCon unit = return (tmcon unit tt)
-termCon2TmCon (pdata x) = return (tmcon pdata x)
-termCon2TmCon (pair x y) = do 
-        (tmcon tx x) ← termCon2TmCon x 
-        (tmcon ty y) ← termCon2TmCon y 
-        return ( tmcon (pair tx ty) (x , y))
-termCon2TmCon (list t xs) = listTermCon2TmCon t xs
-
-listTermCon2TmCon t [] = return (tmcon (list t) [])
-listTermCon2TmCon t (x ∷ xs) with termCon2TmCon x  
-... | nothing  = nothing
-... | just (tmcon tx x') with listTermCon2TmCon t xs 
-...      | nothing = nothing
-...      | just (tmcon (list ts) xs') with decTag tx ts 
-...         | yes refl = just (tmcon (list ts) (x' ∷ xs'))
-...         | no _     = nothing 
-listTermCon2TmCon t (x ∷ xs) | just (tmcon tx x') | just _ = nothing
-
-{-
-tmCon2TermCon : TmCon → TermCon
-listTmCon2TermCon : (t : TyTag) → List (⟦ t ⟧tag) → List TermCon
-
-tmCon2TermCon (tmcon integer x) = integer x
-tmCon2TermCon (tmcon bytestring x) = bytestring x
-tmCon2TermCon (tmcon string x) = string x
-tmCon2TermCon (tmcon bool x) = bool x
-tmCon2TermCon (tmcon unit x) = unit
-tmCon2TermCon (tmcon pdata x) = pdata x
-tmCon2TermCon (tmcon (pair t t₁) (x , y)) = pair (tmCon2TermCon (tmcon t x)) (tmCon2TermCon (tmcon t₁ y))
-tmCon2TermCon (tmcon (list t) xs) = list (list t) (listTmCon2TermCon t xs)
-
-listTmCon2TermCon t [] = []
-listTmCon2TermCon t (x ∷ xs) = tmCon2TermCon (tmcon t x) ∷ listTmCon2TermCon t xs 
--}
 ```

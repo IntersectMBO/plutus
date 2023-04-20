@@ -19,8 +19,8 @@ open import Builtin.Constant.AtomicType using (AtomicTyCon;decAtomicTyCon)
 open AtomicTyCon
 
 open import Utils using (Kind;*;_⇒_)
-open import RawU using (TermCon)
-open TermCon
+open import RawU using (TagCon;tagCon;Tag;decTagCon)
+open Tag
 \end{code}
 
 The raw un-scope-checked and un-type-checked syntax
@@ -56,7 +56,7 @@ data RawTm : Set where
   _·⋆_          : RawTm → RawTy → RawTm
   ƛ             : RawTy → RawTm → RawTm
   _·_           : RawTm → RawTm → RawTm
-  con           : TermCon → RawTm
+  con           : TagCon → RawTm
   error         : RawTy → RawTm
   builtin       : Builtin → RawTm
   wrap          : RawTy → RawTy → RawTm → RawTm
@@ -82,22 +82,6 @@ decRTyCon (list x) (list x') with decRTy x x'
 ... | false = false
 ... | true = true
 decRTyCon _          _  = false
-
-decTermCon : (C C' : TermCon) → Bool
-decTermCon (integer i) (integer i') with i Data.Integer.≟ i'
-... | yes p = true
-... | no ¬p = false
-decTermCon (bytestring b) (bytestring b') with equals b b'
-decTermCon (bytestring b) (bytestring b') | false = false
-decTermCon (bytestring b) (bytestring b') | true = true
-decTermCon (string s) (string s') with s Data.String.≟ s'
-... | yes p = true
-... | no ¬p = false
-decTermCon (bool b) (bool b') with b Data.Bool.≟ b'
-... | yes p = true
-... | no ¬p = false
-decTermCon unit unit = true
-decTermCon _ _ = false
 
 decRKi : (K K' : Kind) → Bool
 decRKi * * = true
@@ -207,7 +191,7 @@ decRTm (t · u) (t' · u') with decRTm t t'
 ... | true with decRTm u u'
 ... | false = false
 ... | true = true
-decRTm (con c) (con c') = decTermCon c c'
+decRTm (con c) (con c') = decTagCon c c'
 decRTm (error A) (error A') with decRTy A A'
 ... | true = true
 ... | false = false

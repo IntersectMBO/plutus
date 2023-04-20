@@ -3,6 +3,7 @@ module Scoped.Extrication where
 \end{code}
 
 \begin{code}
+open import Data.Unit using (tt)
 open import Data.Fin using (Fin;zero;suc)
 open import Data.Nat using (ℕ;zero;suc)
 open import Data.Nat.Properties using (+-comm)
@@ -12,8 +13,8 @@ open import Relation.Binary.PropositionalEquality as Eq using (refl)
 
 open import Utils using (Kind;*)
 
-open import RawU using (TermCon)
-open TermCon
+open import RawU using (TmCon;tmCon;TyTag)
+open TyTag
 open import Type using (Ctx⋆;∅;_,⋆_;_∋⋆_;Z;S)
 open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_)
 open _⊢Nf⋆_
@@ -81,13 +82,17 @@ extricateVar Z = Z
 extricateVar (S x) = S (extricateVar x)
 extricateVar (T x) = T (extricateVar x)
 
-extricateC : ∀{Γ}{A : Γ ⊢Nf⋆ *} → B.TermCon A → RawU.TermCon
-extricateC (tmInteger i)    = integer i
-extricateC (tmBytestring b) = bytestring b
-extricateC (tmString s)     = string s
-extricateC (tmBool b)       = bool b
-extricateC tmUnit           = unit
-extricateC (tmData d)       = pdata d
+extricateC : ∀{Γ}{A : Γ ⊢Nf⋆ *} → B.TermCon A → RawU.TmCon
+extricateC (tmInteger i)    = tmCon integer i
+extricateC (tmBytestring b) = tmCon bytestring b
+extricateC (tmString s)     = tmCon string s
+extricateC (tmBool b)       = tmCon bool b
+extricateC tmUnit           = tmCon unit tt
+extricateC (tmData d)       = tmCon pdata d
+--extricateC (pairDATA x y) = pairDATA x y
+--extricateC (pairID i ds)  = pairID i ds
+--extricateC (listData xs)  = listData xs
+--extricateC (listPair xs)  = listPair xs
 
 extricateSub : ∀ {Γ Δ} → (∀ {J} → Δ ∋⋆ J → Γ ⊢Nf⋆ J)
   → Scoped.Tel⋆ (len⋆ Γ) (len⋆ Δ)
