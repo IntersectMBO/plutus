@@ -1,4 +1,9 @@
 
+This module provides the interface between the Haskell code and the Agda code.
+It replicates the Haskell representation of Raw. In particular, for term constants,
+we need the following extension to be able to replicate the Haskell representation
+of Universes.
+
 ```
 {-# OPTIONS --type-in-type #-}
 
@@ -18,6 +23,7 @@ open import Relation.Binary using (DecidableEquality)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;cong;cong₂)
 open import Relation.Nullary using (yes;no;¬_)
 open import Data.Unit using (⊤;tt)
+open import Data.Product using (Σ;proj₁;proj₂) renaming (_,_ to _,,_)
 
 open import Utils using (ByteString;DATA;List;_×_;_,_)
 open import Builtin using (Builtin;equals)
@@ -26,15 +32,21 @@ open Builtin.Builtin
 {-# FOREIGN GHC {-# LANGUAGE GADTs #-} #-}
 {-# FOREIGN GHC import PlutusCore #-}
 {-# FOREIGN GHC import Raw #-}
+```
 
+## A (Haskell) Universe for types
+
+The following tags use type-in-type, and map more directly to the Haskell representation
+of the default universe.
+
+Tags are indexed by the real type they represent.
+The `Esc` datatype is used in the Haskell implementation to "escape" any kind into Type.
+For constants, we only care about kind *, but we need it to match the Haskell implementation.
+```
 data Esc (a : Set) : Set where
 {-# INJECTIVE Esc #-}
 {-# COMPILE GHC Esc = data Esc () #-}
-```
 
-Tags that use type in type but map more directly to the Haskell Representation
-
-```
 data Tag : Set → Set where
   integer    : Tag (Esc ℤ)
   bytestring : Tag (Esc ByteString)
@@ -44,9 +56,6 @@ data Tag : Set → Set where
   pdata      : Tag (Esc DATA)
   pair       : ∀{A B} → Tag (Esc A) → Tag (Esc B) → Tag (Esc (A × B))
   list       : ∀{A} → Tag (Esc A) → Tag (Esc (List A))
-
-data TagCon : Set where
-  tagCon : ∀{A} → Tag (Esc A) → A → TagCon
 
 {-# FOREIGN GHC type Tag = DefaultUni #-}
 {-# FOREIGN GHC pattern TagInt        = DefaultUniInteger  #-}
@@ -58,6 +67,15 @@ data TagCon : Set where
 {-# FOREIGN GHC pattern TagPair ta tb = DefaultUniPair ta tb #-}
 {-# FOREIGN GHC pattern TagList ta    = DefaultUniList ta #-}
 {-# COMPILE GHC Tag = data Tag (TagInt | TagBS | TagStr | TagBool | TagUnit | TagData | TagPair | TagList) #-}
+```
+
+## Term constants
+
+Term constants are pairs of a tag and the corresponding type. 
+
+```
+data TagCon : Set where
+  tagCon : ∀{A} → Tag (Esc A) → A → TagCon
 
 {-# FOREIGN GHC type TagCon = Some (ValueOf DefaultUni) #-}
 {-# FOREIGN GHC pattern TagCon t x = Some (ValueOf t x) #-} 
@@ -78,19 +96,12 @@ decTagCon (tagCon bool b) (tagCon bool b') with b Data.Bool.≟ b'
 ... | no ¬p = false
 decTagCon (tagCon unit ⊤) (tagCon unit ⊤) = true
 decTagCon _ _ = false
-
-
 ```
 ## Raw syntax
 
 This version is not intrinsically well-scoped. It's an easy to work
 with rendering of the untyped plutus-core syntax.
 
-The term constants `TermCon` are easy to interface with Haskell, but the list 
-representation is not very good as it allows heterogenous lists (which we don't want)
-and requires to tag and untag the data in the list.
-
-That's why we change it into an alternative representation
 ```
 data Untyped : Set where
   UVar : ℕ → Untyped
@@ -106,6 +117,10 @@ data Untyped : Set where
 {-# COMPILE GHC Untyped = data UTerm (UVar | ULambda  | UApp | UCon | UError | UBuiltin | UDelay | UForce) #-}
 ```
 
+##  Agda-Style universes
+
+In the rest of the formalisation we use the following representation of type tags.
+
 ```
 data TyTag : Set where
   integer    : TyTag
@@ -116,7 +131,11 @@ data TyTag : Set where
   pdata      : TyTag
   pair       : TyTag → TyTag → TyTag
   list       : TyTag → TyTag
+```
 
+The meaning of type tags is provided by the following function.
+
+```
 ⟦_⟧tag : TyTag → Set
 ⟦ integer ⟧tag = ℤ
 ⟦ bytestring ⟧tag = ByteString
@@ -126,67 +145,11 @@ data TyTag : Set where
 ⟦ pdata ⟧tag = DATA
 ⟦ pair p p' ⟧tag = ⟦ p ⟧tag × ⟦ p' ⟧tag
 ⟦ list p ⟧tag = List ⟦ p ⟧tag
+```
 
-data TmCon : Set where 
-  tmCon : (t : TyTag) → ⟦ t ⟧tag → TmCon
+Equality of `TyTag`s is decidable
 
-tag2TyTag : ∀{A} → Tag A → TyTag
-tag2TyTag integer = integer
-tag2TyTag bytestring = bytestring
-tag2TyTag string = string
-tag2TyTag bool = bool
-tag2TyTag unit = unit
-tag2TyTag pdata = pdata
-tag2TyTag (pair t u) = pair (tag2TyTag t) (tag2TyTag u)
-tag2TyTag (list t) = list (tag2TyTag t)
-
-tagLemma : ∀{A}(t : Tag (Esc A)) →  A ≡ ⟦ tag2TyTag t ⟧tag
-tagLemma integer = refl
-tagLemma bytestring = refl
-tagLemma string = refl
-tagLemma bool = refl
-tagLemma unit = refl
-tagLemma pdata = refl
-tagLemma (pair t u) = cong₂ _×_ (tagLemma t) (tagLemma u)
-tagLemma (list t) = cong List (tagLemma t)
-
-tagCon2TmCon : TagCon → TmCon
-tagCon2TmCon (tagCon integer x) = tmCon integer x
-tagCon2TmCon (tagCon bytestring x) = tmCon bytestring x
-tagCon2TmCon (tagCon string x) = tmCon string x
-tagCon2TmCon (tagCon bool x) = tmCon bool x
-tagCon2TmCon (tagCon unit x) = tmCon unit tt
-tagCon2TmCon (tagCon pdata x) = tmCon pdata x
-tagCon2TmCon (tagCon (pair x y) (a , b)) rewrite tagLemma x | tagLemma y = tmCon (pair (tag2TyTag x) (tag2TyTag y)) (a , b)
-tagCon2TmCon (tagCon (list x) xs) rewrite tagLemma x = tmCon (list (tag2TyTag x)) xs
-
-open import Data.Product using (Σ;proj₁;proj₂) renaming (_,_ to _,,_)
-
-tyTag2Tag : TyTag → Σ Set (λ A → Tag (Esc A)) 
-tyTag2Tag integer = ℤ ,, integer
-tyTag2Tag bytestring = ByteString ,, bytestring
-tyTag2Tag string = String ,, string
-tyTag2Tag bool = Bool ,, bool
-tyTag2Tag unit = ⊤ ,, unit
-tyTag2Tag pdata = DATA ,, pdata
-tyTag2Tag (pair t u) with tyTag2Tag t | tyTag2Tag u 
-... | A ,, a | B ,, b = A × B ,, pair a b
-tyTag2Tag (list t) with tyTag2Tag t 
-... | A ,, a = (List A) ,, (list a)
-
-postulate tyTagLemma : (t : TyTag) → ⟦ t ⟧tag ≡ proj₁ (tyTag2Tag t)
-
-tmCon2TagCon : TmCon → TagCon
-tmCon2TagCon (tmCon integer x) = tagCon integer x
-tmCon2TagCon (tmCon bytestring x) = tagCon bytestring x
-tmCon2TagCon (tmCon string x) = tagCon string x
-tmCon2TagCon (tmCon bool x) = tagCon bool x
-tmCon2TagCon (tmCon unit x) = tagCon unit tt
-tmCon2TagCon (tmCon pdata x) = tagCon pdata x
-tmCon2TagCon (tmCon (pair t u) (x , y)) rewrite tyTagLemma t | tyTagLemma u = 
-    tagCon (pair (proj₂ (tyTag2Tag t)) (proj₂ (tyTag2Tag u))) (x , y)
-tmCon2TagCon (tmCon (list t) x) rewrite tyTagLemma t = tagCon (list (proj₂ (tyTag2Tag t))) x
-
+```
 decTag : DecidableEquality TyTag
 decTag integer integer = yes refl
 decTag integer bytestring = no λ()
@@ -257,5 +220,89 @@ decTag (list x) (pair y y₁) =  no λ()
 decTag (list x) (list y) with decTag x y 
 ... | yes refl = yes refl
 ... | no ¬p    = no λ {refl  → ¬p refl}
+```
+
+Again term constants are a pair of a tag, and its meaning, except
+this time the meaning is given by the semantic function ⟦_⟧tag.
 
 ```
+data TmCon : Set where 
+  tmCon : (t : TyTag) → ⟦ t ⟧tag → TmCon
+```
+
+## Conversion between universe representations
+
+We can convert between the two universe representations.
+ * The universe à la Haskell, given by `Tag` and `TagCon`
+ * The universe in Agda-style, given by `TyTag` abd `TmCon`.
+
+### From Haskell-style to Agda-style
+
+```
+tag2TyTag : ∀{A} → Tag A → TyTag
+tag2TyTag integer = integer
+tag2TyTag bytestring = bytestring
+tag2TyTag string = string
+tag2TyTag bool = bool
+tag2TyTag unit = unit
+tag2TyTag pdata = pdata
+tag2TyTag (pair t u) = pair (tag2TyTag t) (tag2TyTag u)
+tag2TyTag (list t) = list (tag2TyTag t)
+
+tagLemma : ∀{A}(t : Tag (Esc A)) →  A ≡ ⟦ tag2TyTag t ⟧tag
+tagLemma integer = refl
+tagLemma bytestring = refl
+tagLemma string = refl
+tagLemma bool = refl
+tagLemma unit = refl
+tagLemma pdata = refl
+tagLemma (pair t u) = cong₂ _×_ (tagLemma t) (tagLemma u)
+tagLemma (list t) = cong List (tagLemma t)
+
+tagCon2TmCon : TagCon → TmCon
+tagCon2TmCon (tagCon integer x) = tmCon integer x
+tagCon2TmCon (tagCon bytestring x) = tmCon bytestring x
+tagCon2TmCon (tagCon string x) = tmCon string x
+tagCon2TmCon (tagCon bool x) = tmCon bool x
+tagCon2TmCon (tagCon unit x) = tmCon unit tt
+tagCon2TmCon (tagCon pdata x) = tmCon pdata x
+tagCon2TmCon (tagCon (pair x y) (a , b)) rewrite tagLemma x | tagLemma y = tmCon (pair (tag2TyTag x) (tag2TyTag y)) (a , b)
+tagCon2TmCon (tagCon (list x) xs) rewrite tagLemma x = tmCon (list (tag2TyTag x)) xs
+```
+
+### From Agda-style to Haskell-style
+
+```
+tyTag2Tag : TyTag → Σ Set (λ A → Tag (Esc A)) 
+tyTag2Tag integer = ℤ ,, integer
+tyTag2Tag bytestring = ByteString ,, bytestring
+tyTag2Tag string = String ,, string
+tyTag2Tag bool = Bool ,, bool
+tyTag2Tag unit = ⊤ ,, unit
+tyTag2Tag pdata = DATA ,, pdata
+tyTag2Tag (pair t u) with tyTag2Tag t | tyTag2Tag u 
+... | A ,, a | B ,, b = A × B ,, pair a b
+tyTag2Tag (list t) with tyTag2Tag t 
+... | A ,, a = (List A) ,, (list a)
+
+tyTagLemma : (t : TyTag) → ⟦ t ⟧tag ≡ proj₁ (tyTag2Tag t)
+tyTagLemma integer = refl
+tyTagLemma bytestring = refl
+tyTagLemma string = refl
+tyTagLemma bool = refl
+tyTagLemma unit = refl
+tyTagLemma pdata = refl
+tyTagLemma (pair t u) = cong₂ _×_ (tyTagLemma t) (tyTagLemma u)
+tyTagLemma (list t) = cong List (tyTagLemma t)
+
+tmCon2TagCon : TmCon → TagCon
+tmCon2TagCon (tmCon integer x) = tagCon integer x
+tmCon2TagCon (tmCon bytestring x) = tagCon bytestring x
+tmCon2TagCon (tmCon string x) = tagCon string x
+tmCon2TagCon (tmCon bool x) = tagCon bool x
+tmCon2TagCon (tmCon unit x) = tagCon unit tt
+tmCon2TagCon (tmCon pdata x) = tagCon pdata x
+tmCon2TagCon (tmCon (pair t u) (x , y)) rewrite tyTagLemma t | tyTagLemma u = 
+    tagCon (pair (proj₂ (tyTag2Tag t)) (proj₂ (tyTag2Tag u))) (x , y)
+tmCon2TagCon (tmCon (list t) x) rewrite tyTagLemma t = tagCon (list (proj₂ (tyTag2Tag t))) x
+``` 
