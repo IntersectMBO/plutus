@@ -129,21 +129,6 @@ WARNING: This untyped BUILTIN function implements all builtin functions, but not
 This WARNING will be removed once the tests are done.
 -}
 
-{-
-getDATA :  List TermCon → Either RuntimeError (List DATA)
-getDATA [] = return []
-getDATA (pdata x ∷ xs) = do
-     ds ← getDATA xs
-     return (x ∷ ds) 
-getDATA (_ ∷ xs) = inj₁ userError
-
-getDATA² :  List TermCon → Either RuntimeError (List (DATA × DATA))
-getDATA² [] = return []
-getDATA² (pair pdata pdata (pdata x) (pdata y) ∷ xs) = do
-     ds ← getDATA² xs
-     return ((x , y) ∷ ds) 
-getDATA² (_ ∷ xs) = inj₁ userError
--}
 BUILTIN : ∀ b → BApp b (alldone (fv♯ (signature b))) (alldone (args♯ (signature b))) → Either RuntimeError Value
 BUILTIN addInteger = λ
   { (app (app base (V-con integer i)) (V-con integer i')) -> inj₂ (V-con integer (i + i'))
