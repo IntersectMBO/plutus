@@ -21,6 +21,8 @@ open AtomicTyCon
 open import Utils using (Kind;*;_⇒_)
 open import RawU using (TagCon;tagCon;Tag;decTagCon)
 open Tag
+
+open import Utils.Reflection using (defEq)
 \end{code}
 
 The raw un-scope-checked and un-type-checked syntax
@@ -196,9 +198,9 @@ decRTm (error A) (error A') with decRTy A A'
 ... | true = true
 ... | false = false
 decRTm (builtin b) (builtin b') = decBuiltin b b'
-decRTm (wrap pat arg t) (wrap pat' arg' t') with decRTy pat pat'
+decRTm (wrap pat ar t) (wrap pat' ar' t') with decRTy pat pat'
 ... | false = false
-... | true with decRTy arg arg'
+... | true with decRTy ar ar'
 ... | false = false
 ... | true with decRTm t t'
 ... | false = false
@@ -229,7 +231,7 @@ rawPrinter (t · u) = "(" ++ rawPrinter t ++ "·" ++ rawPrinter u ++ ")"
 rawPrinter (con c) = "(con)"
 rawPrinter (error A) = "(error" ++ rawTyPrinter A ++ ")"
 rawPrinter (builtin b) = "(builtin)"
-rawPrinter (wrap pat arg t) = "(wrap" ++ ")"
+rawPrinter (wrap pat ar t) = "(wrap" ++ ")"
 rawPrinter (unwrap t) = "(unwrap" ++ rawPrinter t ++ ")"
 \end{code}
  
