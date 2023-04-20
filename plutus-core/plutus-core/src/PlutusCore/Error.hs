@@ -39,6 +39,7 @@ import Control.Lens hiding (use)
 import Control.Monad.Error.Lens
 import Control.Monad.Except
 import Data.Text qualified as T
+import PlutusCore.Annotation (SrcSpan)
 import Prettyprinter (hardline, hsep, indent, squotes, (<+>))
 import Text.Megaparsec as M
 import Universe
@@ -70,7 +71,7 @@ data UniqueError ann
     deriving stock (Show, Eq, Generic, Functor)
     deriving anyclass (NFData)
 
-instance Exception (UniqueError ())
+instance Exception (UniqueError SrcSpan)
 
 data NormCheckError tyname name uni fun ann
     = BadType !ann !(Type tyname uni ann) !T.Text
