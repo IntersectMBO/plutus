@@ -4,10 +4,6 @@ layout: page
 ---
 
 ```
-{-# OPTIONS --type-in-type #-}
-```
-
-```
 module Untyped where
 ```
 
@@ -70,7 +66,7 @@ uglyTermCon (string s) = "(string " ++ s ++ ")"
 uglyTermCon (bool false) = "(bool " ++ "false" ++ ")"
 uglyTermCon (bool true) = "(bool " ++ "true" ++ ")"
 uglyTermCon (pdata d) = uglyDATA d
-uglyTermCon (pair _ _ x y) = "(pair " ++ uglyTermCon x ++ " " ++ uglyTermCon y ++ ")"
+uglyTermCon (pair x y) = "(pair " ++ uglyTermCon x ++ " " ++ uglyTermCon y ++ ")"
 uglyTermCon (list t xs) = "(list [" ++ uglyList xs ++ "])"
 
 uglyList [] = ""

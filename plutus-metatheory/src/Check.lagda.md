@@ -318,7 +318,7 @@ inferTypeCon (string s)     = return (T.string ,, A.tmString s)
 inferTypeCon (bool b)       = return (T.bool ,, A.tmBool b)
 inferTypeCon unit           = return (T.unit ,, A.tmUnit)
 inferTypeCon (pdata d)      = return (T.pdata ,, A.tmData d)
-inferTypeCon (pair _ _ x y) = inj₁ (Unimplemented "Typed pairs")
+inferTypeCon (pair x y)     = inj₁ (Unimplemented "Typed pairs")
 inferTypeCon (list _ xs)    = inj₁ (Unimplemented "Typed lists")
 {-
 inferTypeCon {Φ} (pair x y) with inferTypeCon {Φ} x | inferTypeCon {Φ} y

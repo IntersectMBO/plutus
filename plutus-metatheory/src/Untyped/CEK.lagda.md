@@ -138,7 +138,7 @@ getDATA (_ ∷ xs) = inj₁ userError
 
 getDATA² :  List TermCon → Either RuntimeError (List (DATA × DATA))
 getDATA² [] = return []
-getDATA² (pair pdata pdata (pdata x) (pdata y) ∷ xs) = do
+getDATA² (pair (pdata x) (pdata y) ∷ xs) = do
      ds ← getDATA² xs
      return ((x , y) ∷ ds) 
 getDATA² (_ ∷ xs) = inj₁ userError
@@ -325,11 +325,11 @@ BUILTIN chooseUnit = λ
   ; _ -> inj₁ userError
   }
 BUILTIN fstPair = λ
-  { (app (app⋆ (app⋆ base)) (V-con (pair _ _ x y))) -> inj₂ (V-con x)
+  { (app (app⋆ (app⋆ base)) (V-con (pair x y))) -> inj₂ (V-con x)
   ; _ -> inj₁ userError
   }
 BUILTIN sndPair = λ
-  { (app (app⋆ (app⋆ base)) (V-con (pair _ _ x y))) → inj₂ (V-con y)
+  { (app (app⋆ (app⋆ base)) (V-con (pair x y))) → inj₂ (V-con y)
   ; _ -> inj₁ userError
   }
 BUILTIN chooseList = λ
@@ -382,11 +382,11 @@ BUILTIN listData = λ
   ; _ -> inj₁ userError
   }
 BUILTIN unConstrData = λ
-  { (app base (V-con (pdata (ConstrDATA i xs)))) → inj₂ (V-con (pair integer (list pdata) (integer i) (list pdata (map pdata xs))))
+  { (app base (V-con (pdata (ConstrDATA i xs)))) → inj₂ (V-con (pair (integer i) (list pdata (map pdata xs))))
   ; _ -> inj₁ userError
   }
 BUILTIN unMapData = λ
-  { (app base (V-con (pdata (MapDATA xs)))) → inj₂ (V-con (list (pair pdata pdata) (map (λ {(x , y) → pair pdata pdata (pdata x) (pdata y)}) xs)))
+  { (app base (V-con (pdata (MapDATA xs)))) → inj₂ (V-con (list (pair pdata pdata) (map (λ {(x , y) → pair (pdata x) (pdata y)}) xs)))
   ; _ -> inj₁ userError
   }
 BUILTIN unListData = λ
@@ -399,7 +399,7 @@ BUILTIN equalsData = λ
   ;  _ -> inj₁ userError
   }
 BUILTIN mkPairData = λ
-  { (app (app base (V-con (pdata x))) (V-con (pdata y))) → inj₂ (V-con (pair pdata pdata (pdata x) (pdata y)))
+  { (app (app base (V-con (pdata x))) (V-con (pdata y))) → inj₂ (V-con (pair (pdata x) (pdata y)))
   ; _ -> inj₁ userError
   }
 BUILTIN mkNilData = λ

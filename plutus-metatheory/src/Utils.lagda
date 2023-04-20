@@ -174,8 +174,8 @@ data DATA : Set where
   iDATA : I.ℤ → DATA
   bDATA : ByteString → DATA
 
-{-# FOREIGN GHC import PlutusCore.Data #-}
-{-# COMPILE GHC DATA = data Data (Constr | Map | List | I | B)   #-}
+{-# FOREIGN GHC import PlutusCore.Data as D #-}
+{-# COMPILE GHC DATA = data Data (D.Constr | D.Map | D.List | D.I | D.B)   #-}
 
 postulate eqDATA : DATA → DATA → Bool 
 {-# COMPILE GHC eqDATA = (==) #-}

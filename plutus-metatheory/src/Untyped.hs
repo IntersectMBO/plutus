@@ -50,7 +50,7 @@ data TermCon where
   TmBool :: Bool -> TermCon
   TmUnit :: TermCon
   TmData :: Data -> TermCon
-  TmPair :: TyTag -> TyTag -> TermCon -> TermCon -> TermCon
+  TmPair :: TermCon -> TermCon -> TermCon
   TmList :: TyTag -> [TermCon] -> TermCon
     deriving Show
 
@@ -62,9 +62,7 @@ convTermCon (Some (ValueOf DefaultUniBool b)) = TmBool b
 convTermCon (Some (ValueOf DefaultUniUnit _)) = TmUnit
 convTermCon (Some (ValueOf DefaultUniData d)) = TmData d
 convTermCon (Some (ValueOf (DefaultUniPair ta tb) (a,b))) =
-     TmPair (convTyTag (SomeStarIn ta))
-            (convTyTag (SomeStarIn tb))
-            (convTermCon (Some (ValueOf ta a)))
+     TmPair (convTermCon (Some (ValueOf ta a)))
             (convTermCon (Some (ValueOf tb b)))
 convTermCon (Some (ValueOf (DefaultUniList ta) xs)) =
      TmList (convTyTag (SomeStarIn ta))
@@ -83,7 +81,7 @@ uconvTermCon (TmString s)     = someValueOf DefaultUniString s
 uconvTermCon (TmBool b)       = someValueOf DefaultUniBool b
 uconvTermCon TmUnit           = someValueOf DefaultUniUnit ()
 uconvTermCon (TmData d)       = someValueOf DefaultUniData d
-uconvTermCon (TmPair t u a b) =  case (uconvTermCon a , uconvTermCon b) of
+uconvTermCon (TmPair a b) =  case (uconvTermCon a , uconvTermCon b) of
           (Some (ValueOf t a) , Some (ValueOf u b )) -> someValueOf (DefaultUniPair t u) (a , b)
 uconvTermCon (TmList t xs)    = case uconvTyTag t of
     SomeStarIn t' -> Some . ValueOf (DefaultUniList t') . checkSomeValueOf t' $ map uconvTermCon xs
@@ -132,10 +130,12 @@ uconv i (ULambda t)  = LamAbs
   ()
   (NamedDeBruijn (T.pack [tmnames !! i]) deBruijnInitIndex)
   (uconv (i+1) t)
-uconv i (UApp t u)   = Apply () (uconv i t) (uconv i u)
-uconv i (UCon c)     = Constant () (uconvTermCon c)
-uconv i UError       = Error ()
-uconv i (UBuiltin b) = Builtin () b
-uconv i (UDelay t)   = Delay () (uconv i t)
-uconv i (UForce t)   = Force () (uconv i t)
+uconv i (UApp t u)     = Apply () (uconv i t) (uconv i u)
+uconv i (UCon c)       = Constant () (uconvTermCon c)
+uconv i UError         = Error ()
+uconv i (UBuiltin b)   = Builtin () b
+uconv i (UDelay t)     = Delay () (uconv i t)
+uconv i (UForce t)     = Force () (uconv i t)
+uconv i (UConstr j xs) = Constr () j (fmap (uconv i) xs)
+uconv i (UCase t xs)   = Case () (uconv i t) (fmap (uconv i) xs)
 
