@@ -333,7 +333,8 @@ compileMarkedExpr locStr codeTy origE = do
             ccBlackholed = mempty,
             ccCurDef = Nothing,
             ccModBreaks = modBreaks,
-            ccBuiltinVer = def
+            ccBuiltinVer = def,
+            ccBuiltinCostModel = def
             }
     -- See Note [Occurrence analysis]
     let origE' = GHC.occurAnalyseExpr origE
@@ -404,8 +405,13 @@ runCompiler moduleName opts expr = do
                  & set (PIR.ccOpts . PIR.coDoSimplifierUnwrapCancel)       (_posDoSimplifierUnwrapCancel opts)
                  & set (PIR.ccOpts . PIR.coDoSimplifierBeta)               (_posDoSimplifierBeta opts)
                  & set (PIR.ccOpts . PIR.coDoSimplifierInline)             (_posDoSimplifierInline opts)
+                 & set (PIR.ccOpts . PIR.coDoSimplifierEvaluateBuiltins)   (_posDoSimplifierEvaluateBuiltins opts)
                  & set (PIR.ccOpts . PIR.coInlineHints)                    hints
                  & set (PIR.ccOpts . PIR.coRelaxedFloatin) (_posRelaxedFloatin opts)
+                 & set (PIR.ccOpts . PIR.coPreserveLogging) (_posPreserveLogging opts)
+                 -- TODO: ensure the same as the one used in the plugin
+                 & set PIR.ccBuiltinVer def
+                 & set PIR.ccBuiltinCostModel def
         plcOpts = PLC.defaultCompilationOpts
             & set (PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations) (_posMaxSimplifierIterationsUPlc opts)
             & set (PLC.coSimplifyOpts . UPLC.soInlineHints) hints

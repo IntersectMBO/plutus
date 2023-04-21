@@ -19,6 +19,7 @@ import PlutusIR.Parser
 import PlutusIR.Test
 import PlutusIR.Transform.Beta qualified as Beta
 import PlutusIR.Transform.DeadCode qualified as DeadCode
+import PlutusIR.Transform.EvaluateBuiltins qualified as EvaluateBuiltins
 import PlutusIR.Transform.Inline.CallSiteInline (computeArity)
 import PlutusIR.Transform.Inline.Inline qualified as Inline
 import PlutusIR.Transform.KnownCon qualified as KnownCon
@@ -50,6 +51,7 @@ transform =
         , deadCode
         , retainedSize
         , rename
+        , evaluateBuiltins
         ]
 
 thunkRecursions :: TestNested
@@ -355,3 +357,17 @@ rename =
             ]
   where
     debugConfig = PLC.PrettyConfigClassic PLC.debugPrettyConfigName False
+
+evaluateBuiltins :: TestNested
+evaluateBuiltins =
+    testNested "evaluateBuiltins" $
+        map
+            (goldenPir (EvaluateBuiltins.evaluateBuiltins True def def) pTerm)
+            [ "addInteger"
+            , "ifThenElse"
+            , "trace"
+            , "failingBuiltin"
+            , "nonConstantArg"
+            , "overApplication"
+            , "underApplication"
+            ]

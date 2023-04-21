@@ -1,0 +1,2 @@
+-- builtin application returns a function, so we can have an extra argument, should still be evaluated
+[ { (builtin ifThenElse) (fun (con integer) (con integer)) } (con bool True) (lam x (con integer) (con integer 1)) (lam x (con integer) (con integer 2)) (con integer 3) ]
