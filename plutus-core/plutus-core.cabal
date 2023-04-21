@@ -523,6 +523,7 @@ test-suite plutus-ir-test
   main-is:        Spec.hs
   hs-source-dirs: plutus-ir/test
   other-modules:
+    Check.Spec
     GeneratorSpec
     GeneratorSpec.Builtin
     GeneratorSpec.Substitution
@@ -546,6 +547,7 @@ test-suite plutus-ir-test
     , serialise
     , tasty
     , tasty-hedgehog
+    , tasty-hunit
     , tasty-quickcheck
     , text
     , unordered-containers
