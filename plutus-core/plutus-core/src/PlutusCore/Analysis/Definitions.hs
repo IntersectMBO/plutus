@@ -140,17 +140,17 @@ termDefs tm = case tm of
     Var ann n         -> do
         addUsage n ann TermScope
         pure tm
-    LamAbs ann n ty _t -> do
+    LamAbs ann n ty t -> do
         addDef n ann TermScope
         void $ typeDefs ty
-        forMOf termSubterms tm termDefs
-    IWrap _ pat arg _t -> do
+        forMOf termSubterms t termDefs
+    IWrap _ pat arg t -> do
         void $ typeDefs pat
         void $ typeDefs arg
-        forMOf termSubterms tm termDefs
-    TyAbs ann tn _ _  -> do
+        forMOf termSubterms t termDefs
+    TyAbs ann tn _ t  -> do
         addDef tn ann TypeScope
-        void $ forMOf termSubterms tm termDefs
+        void $ forMOf termSubterms t termDefs
         forMOf termSubtypes tm typeDefs
     TyInst _ _ ty     -> do
         void $ typeDefs ty
@@ -170,7 +170,7 @@ typeDefs
 typeDefs ty = case ty of
     TyVar ann n         -> do
         addUsage n ann TypeScope
-        forMOf typeSubtypes ty typeDefs
+        pure ty
     TyForall ann tn _ _t -> do
         addDef tn ann TypeScope
         forMOf typeSubtypes ty typeDefs

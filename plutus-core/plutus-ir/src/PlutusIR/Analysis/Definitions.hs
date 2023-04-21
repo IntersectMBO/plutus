@@ -11,14 +11,13 @@ import PlutusCore.Error (UniqueError)
 import PlutusCore.Name
 import PlutusIR.Core
 
-import Control.Lens (forMOf, mapMOf)
+import Control.Lens (forMOf)
 import Control.Monad.State
 import Control.Monad.Writer
 
 import PlutusCore.Analysis.Definitions hiding (runTermDefs, termDefs)
 
--- | Add bindings to definition maps. The binding's subterms and subtypes are handled in another
--- traversal.
+-- | Add bindings and their subterms and subtypes to definition maps.
 addBindingDef :: (Ord ann,
     HasUnique name TermUnique,
     HasUnique tyname TypeUnique,
@@ -26,12 +25,13 @@ addBindingDef :: (Ord ann,
     MonadWriter [UniqueError ann] m)
     => Binding tyname name uni fun ann -> m ()
 addBindingDef bd = case bd of
-    TermBind _a _s (VarDecl varAnn n varTy) _ -> do
+    TermBind _a _s (VarDecl varAnn n _) rhs -> do
         addDef n varAnn TermScope
-        void $ typeDefs varTy
-    TypeBind _a (TyVarDecl tyAnn tyN  _) ty -> do
+        void $ termDefs rhs
+        void $ forMOf termSubtypes rhs typeDefs
+    TypeBind _a (TyVarDecl tyAnn tyN  _) rhs -> do
         addDef tyN tyAnn TypeScope
-        void $ typeDefs ty
+        void $ typeDefs rhs
     DatatypeBind
         _a
         (Datatype
@@ -50,18 +50,15 @@ addBindingDef bd = case bd of
                 addDef tyVarN tyVarAnn TypeScope
             addVarDecl :: (Ord ann,
                 HasUnique name TermUnique,
-                HasUnique tyname TypeUnique,
                 MonadState (UniqueInfos ann) m,
                 MonadWriter [UniqueError ann] m)
                 => VarDecl tyname name uni ann -> m ()
-            addVarDecl (VarDecl varAnn n varTy) = do
+            addVarDecl (VarDecl varAnn n _) = do
                 addDef n varAnn TermScope
-                void $ typeDefs varTy
         addDef dataName dataAnn TermScope
         addDef tyN tyAnn TypeScope
         forM_ tyVarDecls addTyVarDecl
         forM_ varDecls addVarDecl
-        forM_ varDecls (typeDefs . _varDeclType)
 
 -- | Given a PIR term, add all of its term and type definitions and usages, including its subterms
 -- and subtypes, to a global map.
@@ -75,28 +72,28 @@ termDefs
     -> m (Term tyname name uni fun ann)
 termDefs tm =
     case tm of
-        Let _ann _r bindings _rhs -> do
+        Let _ann _r bindings rhs -> do
             forM_ bindings addBindingDef
-            void $ forMOf termSubterms tm termDefs
-            forMOf termSubtypes tm typeDefs
+            void $ termDefs rhs
+            forMOf termSubtypes rhs typeDefs
         Var ann n         -> do
             addUsage n ann TermScope
             pure tm
-        LamAbs ann n ty _t -> do
+        LamAbs ann n ty t -> do
             addDef n ann TermScope
             void $ typeDefs ty
-            forMOf termSubterms tm termDefs
-        IWrap _ pat arg _t -> do
+            termDefs t
+        IWrap _ pat arg t -> do
             void $ typeDefs pat
             void $ typeDefs arg
-            forMOf termSubterms tm termDefs
-        TyAbs ann tn _ _  -> do
+            termDefs t
+        TyAbs ann tn _ t  -> do
             addDef tn ann TypeScope
-            void $ forMOf termSubterms tm termDefs
+            void $ termDefs t
             forMOf termSubtypes tm typeDefs
-        TyInst _ _ ty     -> do
+        TyInst _ t ty     -> do
             void $ typeDefs ty
-            forMOf termSubterms tm termDefs
+            termDefs t
         _                  -> do
             void $ forMOf termSubterms tm termDefs
             forMOf termSubtypes tm typeDefs
