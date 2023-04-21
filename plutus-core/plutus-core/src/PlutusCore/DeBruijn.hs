@@ -145,7 +145,6 @@ deBruijnTermWithM
     => (Unique -> m Index)
     -> Term TyName Name uni fun ann
     -> m (Term NamedTyDeBruijn NamedDeBruijn uni fun ann)
-
 deBruijnTermWithM h = go
   where
     goT :: Type TyName uni ann -> m (Type NamedTyDeBruijn uni ann)
