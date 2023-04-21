@@ -225,7 +225,6 @@ library
     UntypedPlutusCore.Core.Instance.Pretty.Default
     UntypedPlutusCore.Core.Instance.Pretty.Plc
     UntypedPlutusCore.Core.Instance.Pretty.Readable
-    UntypedPlutusCore.Core.Instance.Recursive
     UntypedPlutusCore.Core.Plated
     UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode
     UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
