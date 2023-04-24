@@ -368,7 +368,7 @@ postulate
 -- V1 of consByteString
 -- {-# COMPILE GHC cons = \n xs -> BS.cons (fromIntegral @Integer n) xs #-}
 -- Other versions of consByteString
-{-# COMPILE GHC cons = \n xs -> case toIntegralSized n of { Just w8 -> Just (BS.cons w8 xs); Nothing -> Nothing } #-}
+{-# COMPILE GHC cons = \n xs -> fmap (\w8 -> BS.cons w8 xs) (toIntegralSized n) #-}
 {-# COMPILE GHC slice = \start n xs -> BS.take (fromIntegral n) (BS.drop (fromIntegral start) xs) #-}
 {-# COMPILE GHC index = \xs n -> fromIntegral (BS.index xs (fromIntegral n)) #-}
 {-# FOREIGN GHC import Crypto #-}
