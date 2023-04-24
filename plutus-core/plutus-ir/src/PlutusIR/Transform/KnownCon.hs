@@ -56,8 +56,8 @@ knownCon t0 = do
             foldMapOf
                 (termSubtermsDeep . termBindings)
                 ( \case
-                    DatatypeBind _ (Datatype _ _ _ destr cons) ->
-                        Map.singleton destr (_varDeclName <$> cons)
+                    DatatypeBind _ (Datatype _ _ tvs destr cons) ->
+                        Map.singleton destr (_varDeclName <$> cons, length tvs)
                     _ -> mempty
                 )
                 t
@@ -66,20 +66,17 @@ knownCon t0 = do
 go ::
     forall tyname name uni fun a.
     (Ord name) =>
-    -- | A map from destructor to constructors
-    Map name [name] ->
+    -- | A map from destructor to (constructors, number of type variables)
+    Map name ([name], Int) ->
     Term tyname name uni fun a ->
     Term tyname name uni fun a
 go ctxt t
     | (Var _ n, args) <- collectArgs t
-    , Just cons <- Map.lookup n ctxt
+    , Just (cons, numTvs) <- Map.lookup n ctxt
     , ((TermExpr scrut, _) : (TypeExpr _resTy, _) : rest) <-
         -- The datatype may have some type arguments, we
-        -- aren't interested in them, so we drop them. We can
-        -- do this easily because we know that they are all type
-        -- arguments, and then we have a term argument for the
-        -- scrutinee
-        dropWhile (isTyArg . fst) args
+        -- aren't interested in them, so we drop them.
+        drop numTvs args
     , -- The scrutinee is itself an application
       (Var _ con, conArgs) <- collectArgs scrut
     , -- ... of one of the constructors from the same datatype as the destructor
@@ -95,7 +92,5 @@ go ctxt t
             -- The arguments to the selected branch consists of the arguments
             -- to the constructor, without the leading type arguments - e.g.,
             -- if the scrutinee is `Just {integer} 1`, we only need the `1`).
-            (dropWhile (isTyArg . fst) conArgs)
+            (drop numTvs conArgs)
     | otherwise = t
-  where
-    isTyArg = \case TypeExpr{} -> True; _ -> False
