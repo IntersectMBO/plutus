@@ -81,6 +81,11 @@ go ctxt = go'
                     -- it appears in our map, so it's a destructor
                     | Just cons <- Map.lookup n ctxt
                     , ((TermExpr scrut, _) : (TypeExpr _resTy, _) : rest) <-
+                        -- The datatype may have some type arguments, we
+                        -- aren't interested in them, so we drop them. We can
+                        -- do this easily because we know that they are all type
+                        -- arguments, and then we have a term argument for the
+                        -- scrutinee
                         dropWhile (isTyArg . fst) args
                     -- The scrutinee is itself an application
                     , (Var _ con, conArgs) <- collectArgs scrut
