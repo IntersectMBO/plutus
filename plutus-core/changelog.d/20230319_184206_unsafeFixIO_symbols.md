@@ -1,3 +1,3 @@
 ### Changed
 
-- Allow symbols in PLC names
+- Allow PLC names quoted in backticks. Quoted names may have symbolic characters.
