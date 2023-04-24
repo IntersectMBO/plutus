@@ -61,50 +61,45 @@ knownCon t0 = do
                     _ -> mempty
                 )
                 t
-    go ctxt t
+    pure $ transformOf termSubterms (go ctxt) t
 
 go ::
-    forall m tyname name uni fun a.
-    ( Ord name
-    , PLC.MonadQuote m
-    ) =>
+    forall tyname name uni fun a.
+    (Ord name) =>
     -- | A map from destructor to constructors
     Map name [name] ->
     Term tyname name uni fun a ->
-    m (Term tyname name uni fun a)
-go ctxt = go'
+    Term tyname name uni fun a
+go ctxt t
+    | (Var _ n, args) <- collectArgs t
+    , Just cons <- Map.lookup n ctxt
+    , ((TermExpr scrut, _) : (TypeExpr _resTy, _) : rest) <-
+        -- The datatype may have some type arguments, we
+        -- aren't interested in them, so we drop them. We can
+        -- do this easily because we know that they are all type
+        -- arguments, and then we have a term argument for the
+        -- scrutinee
+        dropWhile (isTyArg . fst) args
+    , -- The scrutinee is itself an application
+      (Var _ con, conArgs) <- collectArgs scrut
+    , -- ... of one of the constructors from the same datatype as the destructor
+      Just i <- List.findIndex (== con) cons
+    , -- ... and there is a  branch for that constructor in the destructor application
+      Just (TermExpr branch, _) <- rest List.!? i
+    , -- This condition ensures the destructor is fully-applied
+      -- (which should always be the case in programs that come from Plutus Tx,
+      -- but not necessarily in arbitrary PIR programs).
+      -- it's okay to have more arguments: the result of the destructor might itself be
+      -- a function which is being applied!
+      length rest >= length cons =
+        mkTermApps
+            branch
+            -- The arguments to the selected branch consists of the arguments
+            -- to the constructor (without the leading type arguments - e.g.,
+            -- if the scrutinee is `Just {integer} 1`, we only need the `1`),
+            -- and the remaining arguments in `rest` (because the destructor
+            -- may be over-applied).
+            ((dropWhile (isTyArg . fst) conArgs) <> drop (length cons) rest)
+    | otherwise = t
   where
-    go' t
-        |   (Var _ n, args) <- collectArgs t
-            , Just cons <- Map.lookup n ctxt
-            , ((TermExpr scrut, _) : (TypeExpr _resTy, _) : rest) <-
-                -- The datatype may have some type arguments, we
-                -- aren't interested in them, so we drop them. We can
-                -- do this easily because we know that they are all type
-                -- arguments, and then we have a term argument for the
-                -- scrutinee
-                dropWhile (isTyArg . fst) args
-            -- The scrutinee is itself an application
-            , (Var _ con, conArgs) <- collectArgs scrut
-            -- ... of one of the constructors from the same datatype as the destructor
-            , Just i <- List.findIndex (== con) cons
-            -- ... and there is a  branch for that constructor in the destructor application
-            , Just (TermExpr branch, _) <- rest List.!? i
-            , -- This condition ensures the destructor is fully-applied
-                -- (which should always be the case in programs that come from Plutus Tx,
-                -- but not necessarily in arbitrary PIR programs).
-                -- it's okay to have more arguments: the result of the destructor might itself be
-                -- a function which is being applied!
-                length rest >= length cons = do
-                pure $
-                    mkTermApps
-                        branch
-                        -- The arguments to the selected branch consists of the arguments
-                        -- to the constructor (without the leading type arguments - e.g.,
-                        -- if the scrutinee is `Just {integer} 1`, we only need the `1`),
-                        -- and the remaining arguments in `rest` (because the destructor
-                        -- may be over-applied).
-                        ((dropWhile (isTyArg . fst) conArgs) <> drop (length cons) rest)
-        | otherwise = forOf termSubterms t go'
-
     isTyArg = \case TypeExpr{} -> True; _ -> False
