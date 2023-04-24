@@ -91,6 +91,7 @@ go ctxt = go'
                     , (Var _ con, conArgs) <- collectArgs scrut
                     -- ... of one of the constructors from the same datatype as the destructor
                     , Just i <- List.findIndex (== con) cons
+                    -- ... and there is a  branch for that constructor in the destructor application
                     , Just (TermExpr branch, _) <- rest List.!? i
                     , -- This condition ensures the destructor is fully-applied
                       -- (which should always be the case).
