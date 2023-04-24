@@ -95,6 +95,8 @@ go ctxt = go'
                     , Just (TermExpr branch, _) <- rest List.!? i
                     , -- This condition ensures the destructor is fully-applied
                       -- (which should always be the case in programs that come from Plutus Tx, but not necessarily in arbitrary PIR programs).
+                      -- it's okay to have more arguments: the result of the destructor might itself be
+                      -- a function which is being applied!
                       length rest >= length cons -> do
                         pure $
                             mkTermApps
