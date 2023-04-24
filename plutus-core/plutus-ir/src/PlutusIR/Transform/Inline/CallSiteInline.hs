@@ -120,13 +120,13 @@ computeArity = \case
 
 -- | Given the arity of a function, and the list of arguments applied to it, return whether it is
 -- fully applied or not.
-isFullyApplied :: Arity -> [Expr tyname name uni fun ann] -> Bool
+isFullyApplied :: Arity -> [Arg tyname name uni fun ann] -> Bool
 isFullyApplied [] _ = True -- The function needs no more arguments
 isFullyApplied (_lam:_lams) [] = False -- under-application
 isFullyApplied (hdLams:tlLams) (hdArg:tlArg) =
   case (hdLams, hdArg) of
-    (TermParam, TermExpr _) -> isFullyApplied tlLams tlArg
-    (TypeParam, TypeExpr _) -> isFullyApplied tlLams tlArg
+    (TermParam, TermArg _) -> isFullyApplied tlLams tlArg
+    (TypeParam, TypeArg _) -> isFullyApplied tlLams tlArg
     _ ->
       -- wrong argument type, i.e., we have an ill-typed term here. It's not what we define as fully
       -- applied. Although if the term was ill-typed before, it will be ill-typed after the

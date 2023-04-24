@@ -73,7 +73,7 @@ go ::
 go ctxt t
     | (Var _ n, args) <- collectArgs t
     , Just (cons, numTvs) <- Map.lookup n ctxt
-    , ((TermExpr scrut, _) : (TypeExpr _resTy, _) : rest) <-
+    , ((TermArg scrut, _) : (TypeArg _resTy, _) : rest) <-
         -- The datatype may have some type arguments, we
         -- aren't interested in them, so we drop them.
         drop numTvs args
@@ -82,7 +82,7 @@ go ctxt t
     , -- ... of one of the constructors from the same datatype as the destructor
       Just i <- List.findIndex (== con) cons
     , -- ... and there is a  branch for that constructor in the destructor application
-      Just (TermExpr branch, _) <- rest List.!? i
+      Just (TermArg branch, _) <- rest List.!? i
     , -- This condition ensures the destructor is fully-applied
       -- (which should always be the case in programs that come from Plutus Tx,
       -- but not necessarily in arbitrary PIR programs).
