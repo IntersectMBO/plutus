@@ -8,8 +8,8 @@
 | BStep BBuiltin causes ({cpu: 69000 | mem: 300})
 | BStep BConstr causes ({cpu: 0 | mem: 0})
 | BStep BCase causes ({cpu: 0 | mem: 0})
-| BBuiltinApp Id causes ({cpu: 3 | mem: 0})
+| BBuiltinApp Id causes ({cpu: 0 | mem: 0})
 | BStartup causes ({cpu: 100 | mem: 100})})
-| budget: ({cpu: 9844103
+| budget: ({cpu: 9844100
 | mem: 42900})
 }) )

@@ -127,11 +127,32 @@ inline them. But at least in UPLC we _can_ inline them.
 -}
 
 {- Note [Inlining and global uniqueness]
-Inlining relies on global uniqueness (we store things in a unique map), and *does* currently
-preserve it because we don't inline anything with binders in unconditional inlining.
+Inlining relies on global uniqueness for two reasons:
+1. We track various things in big maps keyed by unique. This is tricky without global
+uniqueness, but very straightforward with it: since names are globally unique, we can
+just use them as map keys and not worry about things.
+2. You need global uniqueness to be able to do substitution without worrying about
+avoiding variable capture.
 
-With call site inlining, we do inlining things with binders in them. We will give the binders fresh
-name when we substitute in to preserve uniqueness in that case. TODO in a follow up PR.
+Inlining things can break global uniqueness, because it can duplicate terms, and those
+terms can have binders in them.
+
+There are two ways to approach this:
+1. Try to maintain global uniqueness
+2. Carefully track which terms have been potentially duplicated, and make sure you never
+do anything unsafe with them.
+
+We could probably do 2, but it is tricky and requires subtle argumentation to establish
+its safety.  On the other hand, it is actually very easy to do 1: just rename terms
+when we substitute them in! This is much more obviously correct since it maintains the
+global uniqueness invariant. The only cost is that we won't have any pre-computed
+information about the fresh variables (e.g. usage counts), since we compute all that
+up-front. But this can only bit us if we process the renamed terms (which we currently
+don't), and the effect would only be slightly worse optimization.
+
+Renaming everything is a bit overkill, it corresponds to 'The sledgehammer' in 'Secrets'.
+But we don't really care about the costs listed there: it's easy for us to get a name
+supply, and the performance cost does not currently seem relevant. So it's fine.
 -}
 
 -- | Inline non-recursive bindings. Relies on global uniqueness, and preserves it.
@@ -212,13 +233,13 @@ applyTypeSubstitution t = gets isTypeSubstEmpty >>= \case
     True -> pure t
     _    -> typeSubstTyNamesM substTyName t
 
--- See Note [Renaming strategy]
+-- See Note [Inlining and global uniqueness]
 substTyName :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
     => tyname
     -> InlineM tyname name uni fun ann (Maybe (Type tyname uni ann))
 substTyName tyname = gets (lookupType tyname) >>= traverse liftDupable
 
--- See Note [Renaming strategy]
+-- See Note [Inlining and global uniqueness]
 substName :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
     => name
     -> InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
@@ -230,15 +251,6 @@ renameTerm :: forall tyname name uni fun ann. InliningConstraints tyname name un
     => InlineTerm tyname name uni fun ann
     -> InlineM tyname name uni fun ann (Term tyname name uni fun ann)
 renameTerm (Done t) = liftDupable t
-
-{- Note [Renaming strategy]
-Since we assume global uniqueness, we can take a slightly different approach to
-renaming:  we rename the term we are substituting in, instead of renaming
-every binder that our substitution encounters, which should guarantee that we
-avoid any variable capture.
-
-We rename both terms and types as both may have binders in them.
--}
 
 -- | Run the inliner on a single non-recursive let binding.
 processSingleBinding
@@ -307,7 +319,7 @@ maybeAddSubst body ann s n rhs = do
             -- See Note [Inlining approach and 'Secrets of the GHC Inliner'] and [Inlining and
             -- purity]. This is the case where we don't know that the number of occurrences is
             -- exactly one, so there's no point checking if the term is immediately evaluated.
-            let postUnconditional = isBindingPure && acceptable rhs'
+            let postUnconditional = isBindingPure && sizeIsAcceptable rhs' && costIsAcceptable rhs'
             if postUnconditional
             then extendAndDrop (Done $ dupable rhs')
             else pure $ Just rhs'

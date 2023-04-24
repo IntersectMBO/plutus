@@ -1,4 +1,11 @@
 
+<a id='changelog-1.5.0.0'></a>
+# 1.5.0.0 — 2023-04-16
+
+## Changed
+
+- `deserialiseUPLC` renamed to `uncheckedDeserialiseUPLC` since it doesn't do the checks for allowable builtins. This is dangerous in the ledger setting where this check is mandatory, so it needs a scarier name.
+
 <a id='changelog-1.4.0.0'></a>
 # 1.4.0.0 — 2023-03-23
 

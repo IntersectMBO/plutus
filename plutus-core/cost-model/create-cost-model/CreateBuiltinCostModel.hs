@@ -9,7 +9,9 @@
 module CreateBuiltinCostModel where
 
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
+import PlutusCore.Evaluation.Machine.CostStream
 import PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore.Evaluation.Machine.ExMemoryUsage
 
 import Barbies (bmap, bsequence)
 import Control.Applicative (Const (Const, getConst))
@@ -21,6 +23,7 @@ import Data.Coerce (coerce)
 import Data.Csv (FromNamedRecord, FromRecord, HasHeader (HasHeader), decode, parseNamedRecord, (.:))
 import Data.Either.Extra (maybeToEither)
 import Data.Functor.Compose (Compose (Compose))
+import Data.SatInt
 import Data.Text (Text)
 import Data.Text.Encoding qualified as T (encodeUtf8)
 import Data.Vector (Vector, find)
@@ -33,7 +36,7 @@ import Language.R.QQ (r)
 -- | Convert microseconds represented as a float to picoseconds represented as a
 -- CostingInteger.  We round up to be sure we don't underestimate anything.
 microToPico :: Double -> CostingInteger
-microToPico = ceiling . (1e6 *)
+microToPico = unsafeToSatInt . ceiling . (1e6 *)
 
 {- See CostModelGeneration.md for a description of what this does. -}
 
@@ -223,7 +226,7 @@ findInRaw s v = maybeToEither ("Couldn't find the term " <> s <> " in " <> show 
   Data.Vector.find (\e -> linearModelRawTerm e == s) v
 
 -- t = ax+c
-unsafeReadModelFromR :: MonadR m => String -> (SomeSEXP (Region m)) -> m (CostingInteger, CostingInteger)
+unsafeReadModelFromR :: MonadR m => String -> (SomeSEXP (Region m)) -> m (Intercept, Slope)
 unsafeReadModelFromR formula rmodel = do
   j <- [r| write.csv(tidy(rmodel_hs), file=textConnection("out", "w", local=TRUE))
           paste(out, collapse="\n") |]
@@ -231,7 +234,7 @@ unsafeReadModelFromR formula rmodel = do
         model     <- Data.Csv.decode HasHeader $ BSL.fromStrict $ T.encodeUtf8 $ (fromSomeSEXP j :: Text)
         intercept <- linearModelRawEstimate <$> findInRaw "(Intercept)" model
         slope     <- linearModelRawEstimate <$> findInRaw formula model
-        pure $ (microToPico intercept, microToPico slope)
+        pure (Intercept $ microToPico intercept, Slope $ microToPico slope)
   case m of
     Left err -> throwM (TypeError err)
     Right x  -> pure x
@@ -267,8 +270,11 @@ uncurry3 f ~(a,b,c) = f a b c
 readModelMultipliedSizes :: MonadR m => (SomeSEXP (Region m)) -> m ModelMultipliedSizes
 readModelMultipliedSizes model = (pure . uncurry ModelMultipliedSizes) =<< unsafeReadModelFromR "I(x_mem * y_mem)" model
 
+readModelIntercept :: MonadR m => (SomeSEXP (Region m)) -> m Intercept
+readModelIntercept model = (\(i, _i) -> pure i) =<< unsafeReadModelFromR "(Intercept)" model
+
 readModelConstantCost :: MonadR m => (SomeSEXP (Region m)) -> m CostingInteger
-readModelConstantCost model = (\(i, _i) -> pure  i) =<< unsafeReadModelFromR "(Intercept)" model
+readModelConstantCost = fmap unIntercept . readModelIntercept
 
 readModelLinearInX :: MonadR m => (SomeSEXP (Region m)) -> m ModelLinearSize
 readModelLinearInX model = (\(intercept, slope) -> pure $ ModelLinearSize intercept slope) =<< unsafeReadModelFromR "x_mem" model
@@ -289,7 +295,7 @@ boolMemModel = ModelTwoArgumentsConstantCost 1
 
 
 memoryUsageAsCostingInteger :: ExMemoryUsage a => a -> CostingInteger
-memoryUsageAsCostingInteger x = coerce $ memoryUsage x
+memoryUsageAsCostingInteger = coerce . sumCostStream . flattenCostRose . memoryUsage
 
 
 ---------------- Integers ----------------
@@ -396,7 +402,7 @@ consByteString cpuModelR = do
 -}
 sliceByteString ::  MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
 sliceByteString cpuModelR = do
-  c <- readModelConstantCost cpuModelR
+  c <- readModelIntercept cpuModelR
   let cpuModel = ModelThreeArgumentsLinearInZ $ ModelLinearSize c 0
   let memModel = ModelThreeArgumentsLinearInZ $ ModelLinearSize 4 0
   pure $ CostingFun cpuModel memModel

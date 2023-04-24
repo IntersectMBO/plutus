@@ -13,6 +13,7 @@ import Control.Monad.Trans.Except (runExceptT)
 import Data.ByteString qualified as BS
 import Data.Char (isSpace)
 import Data.Foldable (traverse_)
+import Data.SatInt
 import Flat qualified
 import Options.Applicative as Opt hiding (action)
 import System.Exit (exitFailure)
@@ -250,7 +251,7 @@ measureBudget compiledCode =
           let (_, UPLC.TallyingSt _ budget) = UPLC.runCekNoEmit PLC.defaultCekParameters UPLC.tallying $ program ^. UPLC.progTerm
               ExCPU cpu = exBudgetCPU budget
               ExMemory mem = exBudgetMemory budget
-          in (Hs.fromIntegral cpu, Hs.fromIntegral mem)
+          in (fromSatInt cpu, fromSatInt mem)
 
 getInfo :: (Hs.String, CompiledCode a) -> (Hs.String, Integer, Integer, Integer)
 getInfo (name, code) =

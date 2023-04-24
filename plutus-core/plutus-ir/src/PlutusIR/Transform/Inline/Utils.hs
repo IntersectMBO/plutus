@@ -182,6 +182,11 @@ type InliningConstraints tyname name uni fun =
     , PLC.ToBuiltinMeaning uni fun
     )
 
+-- | Information used by the inliner that is constant across its operation.
+-- This includes some contextual and configuration information, and also some
+-- pre-computed information about the program.
+--
+-- See [Inlining and global uniqueness] for caveats about this information.
 data InlineInfo name fun ann = InlineInfo
     { _iiStrictnessMap :: Deps.StrictnessMap
     -- ^ Is it strict? Only needed for PIR, not UPLC
@@ -263,13 +268,6 @@ effectSafe body s n purity = do
         Strict    -> purity || immediatelyEvaluated
         NonStrict -> True
 
--- | Should we inline? Should only inline things that won't duplicate work or code.
--- See Note [Inlining approach and 'Secrets of the GHC Inliner']
-acceptable ::  Term tyname name uni fun ann -> Bool
-acceptable t =
-    -- See Note [Inlining criteria]
-    costIsAcceptable t && sizeIsAcceptable t
-
 {- Note [Inlining criteria]
 What gets inlined? Our goals are simple:
 - Make the resulting program faster (or at least no slower)
@@ -287,6 +285,7 @@ There are a few things we could do to do this in a more principled way, such as 
 based on whether a function is fully applied.
 -}
 
+-- See Note [Inlining criteria]
 -- | Is the cost increase (in terms of evaluation work) of inlining a variable whose RHS is
 -- the given term acceptable?
 costIsAcceptable :: Term tyname name uni fun ann -> Bool
@@ -317,6 +316,7 @@ costIsAcceptable = \case
   TyInst{}   -> False
   Let{}      -> False
 
+-- See Note [Inlining criteria]
 -- | Is the size increase (in the AST) of inlining a variable whose RHS is
 -- the given term acceptable?
 sizeIsAcceptable :: Term tyname name uni fun ann -> Bool

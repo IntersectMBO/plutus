@@ -16,6 +16,7 @@ import PlutusCore hiding (Term)
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin as PLC
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
+import PlutusCore.Evaluation.Machine.ExBudgetStream (ExBudgetStream (..))
 import PlutusCore.Generators.Hedgehog (GenArbitraryTerm (..), GenTypedTerm (..), forAllNoShow)
 import PlutusCore.Pretty
 import PlutusPrelude
@@ -79,7 +80,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni AlwaysThrows where
     type CostingPart uni AlwaysThrows = ()
     data BuiltinVersion AlwaysThrows = AlwaysThrowsV1
 
-    toBuiltinMeaning _ver AlwaysThrows = makeBuiltinMeaning f mempty
+    toBuiltinMeaning _ver AlwaysThrows = makeBuiltinMeaning f $ \_ _ -> ExBudgetLast mempty
       where
         f :: Integer -> Integer
         f _ = error "This builtin function always throws an exception."

@@ -46,6 +46,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     , StepKind(..)
     , PrettyUni
     , extractEvaluationResult
+    , spendBudgetStreamCek
     , runCekDeBruijn
     , dischargeCekValue
     , Context (..)
@@ -72,8 +73,9 @@ import Data.RandomAccessList.SkewBinary qualified as Env
 import PlutusCore.Builtin
 import PlutusCore.DeBruijn
 import PlutusCore.Evaluation.Machine.ExBudget
+import PlutusCore.Evaluation.Machine.ExBudgetStream
 import PlutusCore.Evaluation.Machine.Exception
-import PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
@@ -550,11 +552,11 @@ Morally, this is a stack of frames, but we use the "intrusive list" representati
 we can match on context and the top frame in a single, strict pattern match.
 -}
 data Context uni fun ann
-    = FrameApplyFun !(CekValue uni fun ann) !(Context uni fun ann)
+    = FrameAwaitArg !(CekValue uni fun ann) !(Context uni fun ann)
     -- ^ @[V _]@
-    | FrameApplyArg !(CekValEnv uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann)
+    | FrameAwaitFun !(CekValEnv uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann)
     -- ^ @[_ N]@
-    | FrameApplyValues ![CekValue uni fun ann] !(Context uni fun ann)
+    | FrameAwaitFunValues ![CekValue uni fun ann] !(Context uni fun ann)
     -- ^ @[_ V0...Vn]@
     | FrameForce !(Context uni fun ann)
     -- ^ @(force _)@
@@ -570,10 +572,10 @@ data Context uni fun ann
 instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (CekValue uni fun ann) where
     memoryUsage = \case
         VCon c      -> memoryUsage c
-        VDelay {}   -> 1
-        VLamAbs {}  -> 1
-        VBuiltin {} -> 1
-        VConstr {}  -> 1
+        VDelay {}   -> singletonRose 1
+        VLamAbs {}  -> singletonRose 1
+        VBuiltin {} -> singletonRose 1
+        VConstr {}  -> singletonRose 1
     {-# INLINE memoryUsage #-}
 
 -- | A 'MonadError' version of 'try'.
@@ -614,6 +616,17 @@ lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
             var = Var () varName
         Just val -> pure val
 
+-- | Spend each budget from the given stream of budgets.
+spendBudgetStreamCek
+    :: GivenCekReqs uni fun ann s
+    => ExBudgetCategory fun
+    -> ExBudgetStream
+    -> CekM uni fun s ()
+spendBudgetStreamCek exCat = go where
+    go (ExBudgetLast budget)         = spendBudgetCek exCat budget
+    go (ExBudgetCons budget budgets) = spendBudgetCek exCat budget *> go budgets
+{-# INLINE spendBudgetStreamCek #-}
+
 -- | Take pieces of a possibly partial builtin application and either create a 'CekValue' using
 -- 'makeKnown' or a partial builtin application depending on whether the built-in function is
 -- fully saturated or not.
@@ -624,8 +637,8 @@ evalBuiltinApp
     -> BuiltinRuntime (CekValue uni fun ann)
     -> CekM uni fun s (CekValue uni fun ann)
 evalBuiltinApp fun term runtime = case runtime of
-    BuiltinResult cost getX -> do
-        spendBudgetCek (BBuiltinApp fun) cost
+    BuiltinResult budgets getX -> do
+        spendBudgetStreamCek (BBuiltinApp fun) budgets
         case getX of
             MakeKnownFailure logs err       -> do
                 ?cekEmitter logs
@@ -681,7 +694,7 @@ enterComputeCek = computeCek
     -- s ; ρ ▻ [L M]  ↦  s , [_ (M,ρ)]  ; ρ ▻ L
     computeCek !ctx !env (Apply _ fun arg) = do
         stepAndMaybeSpend BApply
-        computeCek (FrameApplyArg env arg ctx) env fun
+        computeCek (FrameAwaitFun env arg ctx) env fun
     -- s ; ρ ▻ builtin bn  ↦  s ◅ builtin bn arity arity [] [] ρ
     computeCek !ctx !_ (Builtin _ bn) = do
         stepAndMaybeSpend BBuiltin
@@ -723,15 +736,15 @@ enterComputeCek = computeCek
     -- s , {_ A} ◅ abs α M  ↦  s ; ρ ▻ M [ α / A ]*
     returnCek (FrameForce ctx) fun = forceEvaluate ctx fun
     -- s , [_ (M,ρ)] ◅ V  ↦  s , [V _] ; ρ ▻ M
-    returnCek (FrameApplyArg argVarEnv arg ctx) fun =
-        computeCek (FrameApplyFun fun ctx) argVarEnv arg
+    returnCek (FrameAwaitFun argVarEnv arg ctx) fun =
+        computeCek (FrameAwaitArg fun ctx) argVarEnv arg
     -- s , [(lam x (M,ρ)) _] ◅ V  ↦  s ; ρ [ x  ↦  V ] ▻ M
     -- FIXME: add rule for VBuiltin once it's in the specification.
-    returnCek (FrameApplyFun fun ctx) arg =
+    returnCek (FrameAwaitArg fun ctx) arg =
         applyEvaluate ctx fun arg
     -- s , [_ V1 .. Vn] ◅ lam x (M,ρ)  ↦  s , [_ V2 .. Vn]; ρ [ x  ↦  V1 ] ▻ M
-    returnCek (FrameApplyValues args ctx) fun = case args of
-        (arg:rest) -> applyEvaluate (FrameApplyValues rest ctx) fun arg
+    returnCek (FrameAwaitFunValues args ctx) fun = case args of
+        (arg:rest) -> applyEvaluate (FrameAwaitFunValues rest ctx) fun arg
         _          -> returnCek ctx fun
     -- s , constr I V0 ... Vj-1 _ (Tj+1 ... Tn, ρ) ◅ Vj  ↦  s , constr i V0 ... Vj _ (Tj+2... Tn, ρ)  ; ρ ▻ Tj+1
     returnCek (FrameConstr env i todo done ctx) e = do
@@ -742,7 +755,7 @@ enterComputeCek = computeCek
     -- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci
     returnCek (FrameCases env cs ctx) e = case e of
         (VConstr i args) -> case cs ^? wix i of
-            Just t  -> computeCek (FrameApplyValues args ctx) env t
+            Just t  -> computeCek (FrameAwaitFunValues args ctx) env t
             Nothing -> throwingDischarged _MachineError (MissingCaseBranch i) e
         _ -> throwingDischarged _MachineError NonConstrScrutinized e
 
