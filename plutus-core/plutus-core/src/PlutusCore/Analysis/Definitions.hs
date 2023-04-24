@@ -143,18 +143,18 @@ termDefs tm = case tm of
     LamAbs ann n ty t -> do
         addDef n ann TermScope
         void $ typeDefs ty
-        forMOf termSubterms t termDefs
+        termDefs t
     IWrap _ pat arg t -> do
         void $ typeDefs pat
         void $ typeDefs arg
-        forMOf termSubterms t termDefs
+        termDefs t
     TyAbs ann tn _ t  -> do
         addDef tn ann TypeScope
-        void $ forMOf termSubterms t termDefs
+        void $ termDefs t
         forMOf termSubtypes tm typeDefs
-    TyInst _ _ ty     -> do
+    TyInst _ t ty     -> do
         void $ typeDefs ty
-        forMOf termSubterms tm termDefs
+        termDefs t
     _                  -> do
         void $ forMOf termSubterms tm termDefs
         forMOf termSubtypes tm typeDefs
