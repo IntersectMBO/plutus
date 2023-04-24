@@ -309,8 +309,6 @@ inv-complete {A = A}{A' = A'} p = trans≡β
   (soundness A')
   (trans≡β (≡2β (sym (cong embNf p))) (sym≡β (soundness A)))
 
-
-
 inferTypeCon : ∀{Φ} → TmCon → Either TypeError (Σ (T.TyCon _) λ c → A.TermCon {Φ} (con c))
 inferTypeCon (tmCon integer i)          = return (T.integer ,, A.tmInteger i)
 inferTypeCon (tmCon bytestring b)       = return (T.bytestring ,, A.tmBytestring b)
@@ -320,28 +318,6 @@ inferTypeCon (tmCon unit _)             = return (T.unit ,, A.tmUnit)
 inferTypeCon (tmCon pdata d)            = return (T.pdata ,, A.tmData d)
 inferTypeCon (tmCon (pair _ _) (x , y)) = inj₁ (Unimplemented "Typed pairs")
 inferTypeCon (tmCon (list _) xs)        = inj₁ (Unimplemented "Typed lists")
-{-
-inferTypeCon {Φ} (pair x y) with inferTypeCon {Φ} x | inferTypeCon {Φ} y
-... | inj₂ (xty ,, xtm) | inj₂ (yty ,, ytm) = return (T.pair (con xty) (con yty) ,, A.tmPair xtm ytm )
-... | inj₁ err | _          = inj₁ err
-... | _ | inj₁ err          = inj₁ err
-inferTypeCon {Φ} (list U.[]) = return (T.list {!   !} ,, A.tmList []) -we need tags!
-inferTypeCon {Φ} (list (x U.∷ xs)) with inferTypeCon {Φ} x | inferTypeCon {Φ} (list xs)
-inferTypeCon {Φ} (list (x U.∷ xs)) | inj₁ err | _  = inj₁ err
-inferTypeCon {Φ} (list (x U.∷ xs)) | _ | inj₁ err  = inj₁ err
-inferTypeCon {Φ} (list (x U.∷ xs)) | inj₂ (xty ,, xtm) | inj₂ (T.list (con xsty) ,, A.tmList xstm) 
-     with decTyCon xty xsty
-...  | yes refl  = return ((T.list (con xty)) ,, A.tmList (xtm ∷ xstm)) 
-...  | no ¬p     = inj₁ (typeMismatch (con xty) (con xsty) (λ {refl → ¬p refl}))
-inferTypeCon {Φ} (list (x U.∷ xs)) | inj₂ (xty ,, _) | inj₂ (ty ,, _) = inj₁ builtinError 
-   -- should really prove that the second argument is not a list of constants.
-   --(typeMismatch (con (T.list (con xty))) (con ty) _)
--}
-
-{-
-with U.map (inferTypeCon {Φ}) xs
-... | xx   = {!   !} --T.list (con (T.pdata)) ,, A.tmList xs
--}
 
 checkType : ∀{Φ}(Γ : Ctx Φ) → ScopedTm (len Γ) → (A : Φ ⊢Nf⋆ *)
   → Either TypeError (Γ ⊢ A)

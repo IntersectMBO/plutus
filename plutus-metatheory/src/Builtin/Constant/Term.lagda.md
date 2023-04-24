@@ -39,9 +39,5 @@ data TermCon {Φ} : Φ ⊢⋆ * → Set where
     → TermCon (con bool)
   tmUnit       : TermCon (con unit)
   tmData      : U.DATA → TermCon (con pdata)
-{-  
-  tmPair       : ∀{A B} (x : TermCon A) → (y : TermCon B) → TermCon (con (pair A B)) 
-  tmList       : ∀{A} → (xs : List (TermCon A)) → TermCon (con (list A))
--}
 ```
  

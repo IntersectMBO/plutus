@@ -80,8 +80,6 @@ nfTypeTC (STermCon.tmString s)     = NTermCon.tmString s
 nfTypeTC (STermCon.tmBool b)       = NTermCon.tmBool b
 nfTypeTC STermCon.tmUnit           = NTermCon.tmUnit
 nfTypeTC (STermCon.tmData d)       = NTermCon.tmData d
---nfTypeTC (STermCon.tmPair x y)     = NTermCon.tmPair (nfTypeTC x) (nfTypeTC y)
---nfTypeTC (STermCon.tmList xs)      = NTermCon.tmList (map nfTypeTC xs)
 
 lemσ : ∀{Γ Δ Δ'}
   → (σ : Sub Δ Γ)

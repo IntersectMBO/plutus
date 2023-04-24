@@ -87,8 +87,6 @@ embTC (NTermCon.tmString s)     = STermCon.tmString s
 embTC (NTermCon.tmBool b)       = STermCon.tmBool b
 embTC NTermCon.tmUnit           = STermCon.tmUnit
 embTC (NTermCon.tmData d)       = STermCon.tmData d
---embTC (NTermCon.tmPair x y)     = STermCon.tmPair (embTC x) (embTC y)
---embTC (NTermCon.tmList xs)      = STermCon.tmList (map embTC xs)
 
 \end{code}
 

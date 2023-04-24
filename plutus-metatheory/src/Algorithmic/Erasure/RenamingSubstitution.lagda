@@ -120,7 +120,6 @@ renTermCon-erase ρ⋆ ρ (AB.tmString s)     = refl
 renTermCon-erase ρ⋆ ρ (AB.tmBool b)       = refl
 renTermCon-erase ρ⋆ ρ AB.tmUnit           = refl
 renTermCon-erase ρ⋆ ρ (AB.tmData d)       = refl
---renTermCon-erase ρ⋆ ρ (AB.tmPair x y)   = cong₂ Utils.pair (renTermCon-erase ρ⋆ ρ x) (renTermCon-erase ρ⋆ ρ y)
 
 ext⋆-erase : ∀{Φ Ψ K}{Γ : Ctx Φ}{Δ : Ctx Ψ}(ρ⋆ : ⋆.Ren Φ Ψ)
   → (ρ : A.Ren ρ⋆ Γ Δ)(α : len Γ)
@@ -214,7 +213,6 @@ subTermCon-erase σ⋆ σ (AB.tmString s)     = refl
 subTermCon-erase σ⋆ σ (AB.tmBool b)       = refl
 subTermCon-erase σ⋆ σ AB.tmUnit           = refl
 subTermCon-erase σ⋆ σ (AB.tmData d)       = refl
---subTermCon-erase σ⋆ σ (AB.pair x y)     = cong₂ Utils.pair (subTermCon-erase σ⋆ σ x) (subTermCon-erase σ⋆ σ y)
 
 sub-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(σ⋆ : SubNf Φ Ψ)
   → (σ : A.Sub σ⋆ Γ Δ){A : Φ ⊢Nf⋆ *} → (t : Γ ⊢ A)

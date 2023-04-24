@@ -71,8 +71,6 @@ eraseTC (AC.tmString s)     = tmCon string s
 eraseTC (AC.tmBool b)       = tmCon bool b
 eraseTC AC.tmUnit           = tmCon unit tt
 eraseTC (AC.tmData d)       = tmCon pdata d
---eraseTC {Φ}{Γ}(AC.tmPair x y)     = pair (eraseTC{Φ}{Γ} x) (eraseTC {Φ}{Γ} y)
---eraseTC {Φ}{Γ}(AC.tmList xs)      = list (fromList (map (eraseTC {Φ}{Γ}) xs))
 
 erase : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ ⊢ A → len Γ ⊢
 erase (` α)                = ` (eraseVar α)
@@ -125,8 +123,6 @@ sameTC (DC.tmString s)       = refl
 sameTC (DC.tmBool b)         = refl
 sameTC DC.tmUnit             = refl
 sameTC (DC.tmData d)         = refl
---sameTC {Φ}{Γ}(DC.tmPair x y) = cong₂ pair (sameTC {Φ}{Γ} x) (sameTC {Φ}{Γ} y)
---sameTC {Φ}{Γ}(DC.tmList xs)  = cong list (cong fromList (trans (map-cong (sameTC {Φ}{Γ})) (map-compose xs)))
 
 -- map D.eraseTC xs ≡ map (eraseTC ∘ nfTypeTC) xs
 
@@ -257,9 +253,6 @@ same'TC (AC.tmString s)       = refl
 same'TC (AC.tmBool b)         = refl
 same'TC AC.tmUnit             = refl
 same'TC (AC.tmData d)         = refl
---same'TC {Φ}{Γ}(AC.tmPair x y) = cong₂ pair (same'TC {Φ}{Γ} x) (same'TC {Φ}{Γ} y)
---same'TC {Φ}{Γ}(AC.tmList xs)        = cong list (cong fromList (trans (map-cong (same'TC {Φ}{Γ})) (map-compose xs)))
-
 
 same' : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(x : Γ A.⊢ A)
   →  erase x ≡ subst _⊢ (same'Len Γ) (D.erase (emb x))

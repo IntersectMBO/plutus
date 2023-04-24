@@ -60,8 +60,6 @@ eraseTC (tmString s)       = tmCon string s
 eraseTC (tmBool b)         = tmCon bool b 
 eraseTC tmUnit             = tmCon unit tt
 eraseTC (tmData d)         = tmCon pdata d
---eraseTC {Φ}{Γ}(tmPair x y) = pair (eraseTC {Φ} {Γ} x) (eraseTC {Φ}{Γ} y)
---eraseTC {Φ}{Γ}(tmList xs)  = list (fromList (map (eraseTC {Φ} {Γ}) xs))
 
 erase : ∀{Φ Γ}{A : Φ ⊢⋆ *} → Γ ⊢ A → len Γ ⊢
 

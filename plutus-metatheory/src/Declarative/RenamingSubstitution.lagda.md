@@ -82,9 +82,6 @@ renTermCon _ (tmString s)     = tmString s
 renTermCon _ (tmBool b)       = tmBool b
 renTermCon _ tmUnit           = tmUnit
 renTermCon _ (tmData d)       = tmData d
---renTermCon ρ⋆ (tmPair x y)    = tmPair (renTermCon ρ⋆ x) (renTermCon ρ⋆ y)
---renTermCon ρ⋆ (tmList xs)     = tmList (map (renTermCon ρ⋆) xs)
-
 ```
 
 Renaming for terms
@@ -177,8 +174,6 @@ subTermCon _ (tmString s)     = tmString s
 subTermCon _ (tmBool b)       = tmBool b
 subTermCon _ tmUnit           = tmUnit
 subTermCon _ (tmData d)       = tmData d
---subTermCon σ⋆ (tmPair x y)    = tmPair (subTermCon σ⋆ x) (subTermCon σ⋆ y)
---subTermCon σ⋆ (tmList xs)     = tmList (map (subTermCon σ⋆) xs)
 ```
 
 Substitution for terms
