@@ -4,7 +4,7 @@
     (nonrec)
     (termbind
       (strict)
-      (vardecl $fAdditiveMonoidInteger_$czero (con integer))
+      (vardecl `$fAdditiveMonoidInteger_$czero` (con integer))
       (con integer 0)
     )
     (termbind
@@ -32,10 +32,10 @@
     )
     (termbind
       (nonstrict)
-      (vardecl $fAdditiveMonoidInteger [ AdditiveMonoid (con integer) ])
+      (vardecl `$fAdditiveMonoidInteger` [ AdditiveMonoid (con integer) ])
       [
         [ { CConsAdditiveMonoid (con integer) } addInteger ]
-        $fAdditiveMonoidInteger_$czero
+        `$fAdditiveMonoidInteger_$czero`
       ]
     )
     (let
@@ -54,7 +54,7 @@
         (termbind
           (strict)
           (vardecl
-            $fFoldableNil_$cfoldr
+            `$fFoldableNil_$cfoldr`
             (all
               a
               (type)
@@ -111,7 +111,7 @@
         (termbind
           (nonstrict)
           (vardecl
-            $fFoldableNil
+            `$fFoldableNil`
             [
               (lam
                 t
@@ -125,7 +125,7 @@
               List
             ]
           )
-          $fFoldableNil_$cfoldr
+          `$fFoldableNil_$cfoldr`
         )
         (termbind
           (strict)
@@ -156,7 +156,7 @@
         (termbind
           (strict)
           (vardecl
-            $p1AdditiveMonoid
+            `$p1AdditiveMonoid`
             (all
               a
               (type)
@@ -234,7 +234,7 @@
               a
               (type)
               (lam
-                $dFoldable
+                `$dFoldable`
                 [
                   (lam
                     t
@@ -250,14 +250,14 @@
                   t
                 ]
                 (lam
-                  $dAdditiveMonoid
+                  `$dAdditiveMonoid`
                   [ AdditiveMonoid a ]
                   [
                     [
-                      { { $dFoldable a } a }
-                      [ { $p1AdditiveMonoid a } $dAdditiveMonoid ]
+                      { { `$dFoldable` a } a }
+                      [ { `$p1AdditiveMonoid` a } `$dAdditiveMonoid` ]
                     ]
-                    [ { zero a } $dAdditiveMonoid ]
+                    [ { zero a } `$dAdditiveMonoid` ]
                   ]
                 )
               )
@@ -266,8 +266,8 @@
         )
         [
           [
-            [ { { sum List } (con integer) } $fFoldableNil ]
-            $fAdditiveMonoidInteger
+            [ { { sum List } (con integer) } `$fFoldableNil` ]
+            `$fAdditiveMonoidInteger`
           ]
           [
             { build (con integer) }

@@ -42,7 +42,7 @@ let
   !id : all a. a -> a = /\a -> \(x : a) -> x
 in
 letrec
-  !$w$cshowsPrec
+  !`$w$cshowsPrec`
      : integer -> List string -> List string
     = \(w : integer) ->
         Bool_match
@@ -50,7 +50,7 @@ letrec
           {all dead. List string -> List string}
           (/\dead ->
              \(x : List string) ->
-               Cons {string} "-" ($w$cshowsPrec (subtractInteger 0 w) x))
+               Cons {string} "-" (`$w$cshowsPrec` (subtractInteger 0 w) x))
           (/\dead ->
              foldr
                {integer}
@@ -172,7 +172,7 @@ let
         Bool_match
           (ifThenElse {Bool} (lessThanEqualsInteger x 9) True False)
           {all dead. List string -> List string}
-          (/\dead -> $w$cshowsPrec x)
+          (/\dead -> `$w$cshowsPrec` x)
           (/\dead ->
              Bool_match
                (ifThenElse {Bool} (equalsInteger x 10) True False)
@@ -271,7 +271,7 @@ letrec
             {all dead. dead}
 in
 letrec
-  !$fEnumBool_$cenumFromTo : integer -> integer -> List integer
+  !`$fEnumBool_$cenumFromTo` : integer -> integer -> List integer
     = \(x : integer)
        (y : integer) ->
         Bool_match
@@ -279,12 +279,13 @@ letrec
           {all dead. List integer}
           (/\dead -> Nil {integer})
           (/\dead ->
-             Cons {integer} x ($fEnumBool_$cenumFromTo (addInteger x 1) y))
+             Cons {integer} x (`$fEnumBool_$cenumFromTo` (addInteger x 1) y))
           {all dead. dead}
 in
 let
-  !$fShowInteger_$cshowsPrec : integer -> integer -> List string -> List string
-    = \(w : integer) (w : integer) -> $w$cshowsPrec w
+  !`$fShowInteger_$cshowsPrec`
+     : integer -> integer -> List string -> List string
+    = \(w : integer) (w : integer) -> `$w$cshowsPrec` w
 in
 letrec
   !go : List string -> integer -> integer
@@ -370,14 +371,14 @@ letrec
                {all dead. dead})
 in
 let
-  !$fShowInteger_$cshow : integer -> string
+  !`$fShowInteger_$cshow` : integer -> string
     = \(x : integer) ->
-        concatBuiltinStrings ($fShowInteger_$cshowsPrec 0 x (Nil {string}))
+        concatBuiltinStrings (`$fShowInteger_$cshowsPrec` 0 x (Nil {string}))
   data (Show :: * -> *) a | Show_match where
     CConsShow
       : (integer -> a -> List string -> List string) -> (a -> string) -> Show a
-  ~$fShowInteger : Show integer
-    = CConsShow {integer} $fShowInteger_$cshowsPrec $fShowInteger_$cshow
+  ~`$fShowInteger` : Show integer
+    = CConsShow {integer} `$fShowInteger_$cshowsPrec` `$fShowInteger_$cshow`
   data (Tuple5 :: * -> * -> * -> * -> * -> *) a b c d e | Tuple5_match where
     Tuple5 : a -> b -> c -> d -> e -> Tuple5 a b c d e
   !showsPrec : all a. Show a -> integer -> a -> List string -> List string
@@ -390,7 +391,7 @@ let
             (\(v : integer -> a -> List string -> List string)
               (v : a -> string) ->
                v)
-  !a : integer = trace {integer} ($fShowInteger_$cshow x) x
+  !a : integer = trace {integer} (`$fShowInteger_$cshow` x) x
   !b : integer = trace {integer} "This is an example" a
   !c : integer
     = trace
@@ -410,7 +411,7 @@ let
                  (x : List string) ->
                   toHex (divideInteger x 16) (toHex (modInteger x 16) (acc x)))
              (id {List string})
-             ($fEnumBool_$cenumFromTo
+             (`$fEnumBool_$cenumFromTo`
                 0
                 (subtractInteger (lengthOfByteString x) 1))
              (Nil {string})))
@@ -427,7 +428,7 @@ let
     = trace
         {integer}
         (let
-          !$dShow : Show integer = $fShowInteger
+          !`$dShow` : Show integer = `$fShowInteger`
           !x : List integer
             = (let
                   a = List integer
@@ -439,7 +440,7 @@ let
         concatBuiltinStrings
           (let
             !w : integer -> List string -> List string
-              = showsPrec {integer} $dShow 0
+              = showsPrec {integer} `$dShow` 0
             !w : List string = Nil {string}
           in
           UTuple2_match
@@ -477,11 +478,11 @@ let
     = trace
         {integer}
         (let
-          !w : Show integer = $fShowInteger
-          !w : Show integer = $fShowInteger
-          !w : Show integer = $fShowInteger
-          !w : Show integer = $fShowInteger
-          !w : Show integer = $fShowInteger
+          !w : Show integer = `$fShowInteger`
+          !w : Show integer = `$fShowInteger`
+          !w : Show integer = `$fShowInteger`
+          !w : Show integer = `$fShowInteger`
+          !w : Show integer = `$fShowInteger`
           !w : Tuple5 integer integer integer integer integer
             = Tuple5 {integer} {integer} {integer} {integer} {integer} a b c d e
         in

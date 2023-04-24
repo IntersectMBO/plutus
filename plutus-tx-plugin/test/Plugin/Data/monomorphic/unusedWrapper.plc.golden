@@ -20,7 +20,7 @@
     )
     (termbind
       (strict)
-      (vardecl $WMkT (fun [ [ Tuple2 (con integer) ] (con integer) ] T))
+      (vardecl `$WMkT` (fun [ [ Tuple2 (con integer) ] (con integer) ] T))
       (lam
         dt
         [ [ Tuple2 (con integer) ] (con integer) ]
@@ -36,7 +36,7 @@
     (termbind
       (strict)
       (vardecl mkT (fun [ [ Tuple2 (con integer) ] (con integer) ] T))
-      (lam ds [ [ Tuple2 (con integer) ] (con integer) ] [ $WMkT ds ])
+      (lam ds [ [ Tuple2 (con integer) ] (con integer) ] [ `$WMkT` ds ])
     )
     [
       mkT

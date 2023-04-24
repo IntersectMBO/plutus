@@ -1,5 +1,6 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 
 module PlutusCore.Generators.Hedgehog.AST
     ( simpleRecursive
@@ -21,7 +22,7 @@ module PlutusCore.Generators.Hedgehog.AST
 import PlutusPrelude
 
 import PlutusCore
-import PlutusCore.Parser (identifierSymbols)
+import PlutusCore.Parser (isQuotedIdentifierChar)
 import PlutusCore.Subst
 
 import Control.Lens (coerced)
@@ -63,10 +64,15 @@ genVersion = Version <$> intFrom 1 <*> intFrom 1 <*> intFrom 0 where
     intFrom x = Gen.integral_ $ Range.linear x 20
 
 genNameText :: MonadGen m => m Text
-genNameText =
-    Text.cons
-        <$> Gen.choice [Gen.alpha, Gen.element identifierSymbols]
-        <*> Gen.text (Range.linear 0 4) (Gen.choice [Gen.alphaNum, Gen.element identifierSymbols])
+genNameText = Gen.choice [genUnquoted, genQuoted]
+  where
+    genUnquoted =
+        Text.cons
+            <$> Gen.alpha
+            <*> Gen.text (Range.linear 0 4) (Gen.choice [Gen.alphaNum, Gen.element ['_', '\'']])
+    genQuoted = do
+        str <- Gen.text (Range.linear 1 5) (Gen.filterT isQuotedIdentifierChar Gen.ascii)
+        pure $ "`" <> str <> "`"
 
 -- | Generate a fixed set of names which we will use, of only up to a short size to make it
 -- likely that we get reuse.

@@ -2,7 +2,7 @@
 module PlutusIR.Compiler.Names (safeFreshName, safeFreshTyName) where
 
 import PlutusCore qualified as PLC
-import PlutusCore.Parser (isIdentifierChar, isIdentifierStartingChar)
+import PlutusCore.Parser (isIdentifierChar, isIdentifierStartingChar, isQuotedIdentifierChar)
 import PlutusCore.Quote
 
 import Data.List
@@ -15,16 +15,9 @@ in the long run it would be nice to have a more principled encoding so we can
 support unicode identifiers as well.
 -}
 
-replacements :: [(T.Text, T.Text)]
-replacements = [
-    ("-", "minus")
-    , ("!", "bang")
-    , ("~", "tilde")
-    ]
-
 typeReplacements :: [(T.Text, T.Text)]
-typeReplacements = replacements ++ [
-    ("[]", "List")
+typeReplacements =
+    [ ("[]", "List")
     , ("()", "Unit")
     , ("(,)", "Tuple2")
     , ("(,,)", "Tuple3")
@@ -37,8 +30,8 @@ typeReplacements = replacements ++ [
     ]
 
 termReplacements :: [(T.Text, T.Text)]
-termReplacements = replacements ++ [
-    (":", "Cons")
+termReplacements =
+    [ (":", "Cons")
     , ("[]", "Nil")
     , ("()", "Unit")
     , ("(,)", "Tuple2")
@@ -61,13 +54,17 @@ safeName kind t =
             TypeName -> typeReplacements
             TermName -> termReplacements
         replaced = foldl' (\acc (old, new) -> T.replace old new acc) t toReplace
-        -- strip out disallowed characters
-        stripped = T.filter isIdentifierChar replaced
-        -- can't start with these
-        dropped = T.dropWhile (not . isIdentifierStartingChar) stripped
-        -- empty name, just put something to mark that
-        nonEmpty = if T.null dropped then "bad_name" else dropped
-    in nonEmpty
+        isValidUnquotedName n = case T.uncons n of
+            Just (hd, tl) -> isIdentifierStartingChar hd && T.all isIdentifierChar tl
+            Nothing       -> False
+     in if isValidUnquotedName replaced
+            then replaced
+            else
+                let
+                    -- strip out disallowed characters
+                    stripped = T.filter isQuotedIdentifierChar replaced
+                    -- empty name, just put something to mark that
+                 in if T.null stripped then "bad_name" else "`" <> stripped <> "`"
 
 safeFreshName :: MonadQuote m => T.Text -> m PLC.Name
 safeFreshName s = liftQuote $ freshName $ safeName TermName s

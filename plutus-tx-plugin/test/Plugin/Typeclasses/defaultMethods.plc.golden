@@ -43,16 +43,16 @@
         a
         (type)
         (lam
-          $dDefaultMethods
+          `$dDefaultMethods`
           [ DefaultMethods a ]
-          (lam a a [ [ { method a } $dDefaultMethods ] a ])
+          (lam a a [ [ { method a } `$dDefaultMethods` ] a ])
         )
       )
     )
     (termbind
       (strict)
       (vardecl
-        $fDefaultMethodsInteger_$cmethod (fun (con integer) (con integer))
+        `$fDefaultMethodsInteger_$cmethod` (fun (con integer) (con integer))
       )
       (lam a (con integer) a)
     )
@@ -64,22 +64,23 @@
     (termbind
       (strict)
       (vardecl
-        $fDefaultMethodsInteger_$cmethod (fun (con integer) (con integer))
+        `$fDefaultMethodsInteger_$cmethod` (fun (con integer) (con integer))
       )
       (lam a (con integer) [ [ addInteger a ] (con integer 1) ])
     )
     (termbind
       (nonstrict)
-      (vardecl $fDefaultMethodsInteger [ DefaultMethods (con integer) ])
+      (vardecl `$fDefaultMethodsInteger` [ DefaultMethods (con integer) ])
       [
         [
-          { CConsDefaultMethods (con integer) } $fDefaultMethodsInteger_$cmethod
+          { CConsDefaultMethods (con integer) }
+          `$fDefaultMethodsInteger_$cmethod`
         ]
-        $fDefaultMethodsInteger_$cmethod
+        `$fDefaultMethodsInteger_$cmethod`
       ]
     )
     (lam
-      ds (con integer) [ [ { f (con integer) } $fDefaultMethodsInteger ] ds ]
+      ds (con integer) [ [ { f (con integer) } `$fDefaultMethodsInteger` ] ds ]
     )
   )
 )

@@ -38,7 +38,8 @@
     (termbind
       (strict)
       (vardecl
-        $fOrdInteger_$ccompare (fun (con integer) (fun (con integer) Ordering))
+        `$fOrdInteger_$ccompare`
+        (fun (con integer) (fun (con integer) Ordering))
       )
       (lam
         eta
@@ -99,6 +100,6 @@
         )
       )
     )
-    $fOrdInteger_$ccompare
+    `$fOrdInteger_$ccompare`
   )
 )

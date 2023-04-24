@@ -18,8 +18,8 @@ in
 (let
     b = Maybe (Tuple3 Bool integer Bool)
   in
-  \($dUnsafeFromData : (\a -> data -> a) integer)
-   ($dUnsafeFromData : (\a -> data -> a) b)
+  \(`$dUnsafeFromData` : (\a -> data -> a) integer)
+   (`$dUnsafeFromData` : (\a -> data -> a) b)
    (d : data) ->
     let
       !tup : pair integer (list data) = unConstrData d
@@ -32,7 +32,7 @@ in
          let
            !arg : data = headList {data} (sndPair {integer} {list data} tup)
          in
-         Right {integer} {b} ($dUnsafeFromData arg))
+         Right {integer} {b} (`$dUnsafeFromData` arg))
       (\(ds : unit) ->
          ifThenElse
            {unit -> Either integer b}
@@ -42,7 +42,7 @@ in
                 !arg : data
                   = headList {data} (sndPair {integer} {list data} tup)
               in
-              Left {integer} {b} ($dUnsafeFromData arg))
+              Left {integer} {b} (`$dUnsafeFromData` arg))
            (\(ds : unit) ->
               let
                 !thunk : unit
@@ -58,7 +58,7 @@ in
   ((let
        a = Tuple3 Bool integer Bool
      in
-     \($dUnsafeFromData : (\a -> data -> a) a)
+     \(`$dUnsafeFromData` : (\a -> data -> a) a)
       (d : data) ->
        let
          !tup : pair integer (list data) = unConstrData d
@@ -71,7 +71,7 @@ in
             let
               !arg : data = headList {data} (sndPair {integer} {list data} tup)
             in
-            Just {a} ($dUnsafeFromData arg))
+            Just {a} (`$dUnsafeFromData` arg))
          (\(ds : unit) ->
             ifThenElse
               {unit -> Maybe a}
@@ -172,8 +172,8 @@ in
   ((let
        b = Maybe (Tuple3 Bool integer Bool)
      in
-     \($dToData : (\a -> a -> data) integer)
-      ($dToData : (\a -> a -> data) b)
+     \(`$dToData` : (\a -> a -> data) integer)
+      (`$dToData` : (\a -> a -> data) b)
       (ds : Either integer b) ->
        Either_match
          {integer}
@@ -181,14 +181,14 @@ in
          ds
          {data}
          (\(arg : integer) ->
-            constrData 0 (mkCons {data} ($dToData arg) (mkNilData unitval)))
+            constrData 0 (mkCons {data} (`$dToData` arg) (mkNilData unitval)))
          (\(arg : b) ->
-            constrData 1 (mkCons {data} ($dToData arg) (mkNilData unitval))))
+            constrData 1 (mkCons {data} (`$dToData` arg) (mkNilData unitval))))
      (\(i : integer) -> iData i)
      ((let
           a = Tuple3 Bool integer Bool
         in
-        \($dToData : (\a -> a -> data) a)
+        \(`$dToData` : (\a -> a -> data) a)
          (ds : Maybe a) ->
           Maybe_match
             {a}
@@ -198,7 +198,7 @@ in
                /\dead ->
                  constrData
                    0
-                   (mkCons {data} ($dToData arg) (mkNilData unitval)))
+                   (mkCons {data} (`$dToData` arg) (mkNilData unitval)))
             (/\dead -> constrData 1 (mkNilData unitval))
             {all dead. dead})
         (\(w : Tuple3 Bool integer Bool) ->

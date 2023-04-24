@@ -70,7 +70,7 @@
     (termbind
       (strict)
       (vardecl
-        $fUnsafeFromDataTuple2_$cunsafeFromBuiltinData
+        `$fUnsafeFromDataTuple2_$cunsafeFromBuiltinData`
         (all
           a
           (type)
@@ -112,10 +112,10 @@
               ]
             )
             (lam
-              $dUnsafeFromData
+              `$dUnsafeFromData`
               [ (lam a (type) (fun (con data) a)) a ]
               (lam
-                $dUnsafeFromData
+                `$dUnsafeFromData`
                 [ (lam a (type) (fun (con data) a)) b ]
                 (lam
                   d
@@ -155,8 +155,8 @@
                           [ { head (con data) } [ { tail (con data) } t ] ]
                         )
                         [
-                          [ { { Tuple2 a } b } [ $dUnsafeFromData arg ] ]
-                          [ $dUnsafeFromData arg ]
+                          [ { { Tuple2 a } b } [ `$dUnsafeFromData` arg ] ]
+                          [ `$dUnsafeFromData` arg ]
                         ]
                       )
                     )
@@ -191,7 +191,7 @@
     (termbind
       (nonstrict)
       (vardecl
-        $fUnsafeFromDataTuple2
+        `$fUnsafeFromDataTuple2`
         (all
           a
           (type)
@@ -208,7 +208,7 @@
           )
         )
       )
-      $fUnsafeFromDataTuple2_$cunsafeFromBuiltinData
+      `$fUnsafeFromDataTuple2_$cunsafeFromBuiltinData`
     )
     (termbind
       (strict)
@@ -218,7 +218,7 @@
     (termbind
       (nonstrict)
       (vardecl
-        $fUnsafeFromDataInteger
+        `$fUnsafeFromDataInteger`
         [ (lam a (type) (fun (con data) a)) (con integer) ]
       )
       unsafeDataAsI
@@ -226,7 +226,7 @@
     (termbind
       (nonstrict)
       (vardecl
-        $dUnsafeFromData
+        `$dUnsafeFromData`
         [
           (lam a (type) (fun (con data) a))
           [ [ Tuple2 (con integer) ] (con integer) ]
@@ -234,10 +234,10 @@
       )
       [
         [
-          { { $fUnsafeFromDataTuple2 (con integer) } (con integer) }
-          $fUnsafeFromDataInteger
+          { { `$fUnsafeFromDataTuple2` (con integer) } (con integer) }
+          `$fUnsafeFromDataInteger`
         ]
-        $fUnsafeFromDataInteger
+        `$fUnsafeFromDataInteger`
       ]
     )
     (datatypebind
@@ -251,7 +251,7 @@
     (termbind
       (strict)
       (vardecl
-        $fUnsafeFromDataMaybe_$cunsafeFromBuiltinData
+        `$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
         (all
           a
           (type)
@@ -282,7 +282,7 @@
             ]
           )
           (lam
-            $dUnsafeFromData
+            `$dUnsafeFromData`
             [ (lam a (type) (fun (con data) a)) a ]
             (lam
               d
@@ -313,7 +313,7 @@
                         ]
                       ]
                     )
-                    [ { Just a } [ $dUnsafeFromData arg ] ]
+                    [ { Just a } [ `$dUnsafeFromData` arg ] ]
                   )
                 )
                 (termbind
@@ -360,7 +360,7 @@
     (termbind
       (nonstrict)
       (vardecl
-        $fUnsafeFromDataMaybe
+        `$fUnsafeFromDataMaybe`
         (all
           a
           (type)
@@ -370,20 +370,20 @@
           )
         )
       )
-      $fUnsafeFromDataMaybe_$cunsafeFromBuiltinData
+      `$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
     )
     (termbind
       (nonstrict)
       (vardecl
-        $dUnsafeFromData
+        `$dUnsafeFromData`
         [
           (lam a (type) (fun (con data) a))
           [ Maybe [ [ Tuple2 (con integer) ] (con integer) ] ]
         ]
       )
       [
-        { $fUnsafeFromDataMaybe [ [ Tuple2 (con integer) ] (con integer) ] }
-        $dUnsafeFromData
+        { `$fUnsafeFromDataMaybe` [ [ Tuple2 (con integer) ] (con integer) ] }
+        `$dUnsafeFromData`
       ]
     )
     (termbind
@@ -407,7 +407,7 @@
             unsafeFromBuiltinData
             [ Maybe [ [ Tuple2 (con integer) ] (con integer) ] ]
           }
-          $dUnsafeFromData
+          `$dUnsafeFromData`
         ]
         ds
       ]

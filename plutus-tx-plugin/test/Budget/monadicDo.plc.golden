@@ -2,7 +2,7 @@ let
   data (Maybe :: * -> *) a | Maybe_match where
     Just : a -> Maybe a
     Nothing : Maybe a
-  !$fMonadMaybe_$c>>= : all a. all b. Maybe a -> (a -> Maybe b) -> Maybe b
+  !`$fMonadMaybe_$c>>=` : all a. all b. Maybe a -> (a -> Maybe b) -> Maybe b
     = /\a
         b ->
         \(ds : Maybe a)
@@ -17,12 +17,12 @@ let
   !x : Maybe integer = Just {integer} 1
   !y : Maybe integer = Just {integer} 2
 in
-$fMonadMaybe_$c>>=
+`$fMonadMaybe_$c>>=`
   {integer}
   {integer}
   x
   (\(x' : integer) ->
-     $fMonadMaybe_$c>>=
+     `$fMonadMaybe_$c>>=`
        {integer}
        {integer}
        y

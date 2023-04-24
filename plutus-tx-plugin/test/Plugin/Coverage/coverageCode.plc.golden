@@ -68,13 +68,13 @@
     (termbind
       (nonstrict)
       (vardecl
-        $fEqInteger [ (lam a (type) (fun a (fun a Bool))) (con integer) ]
+        `$fEqInteger` [ (lam a (type) (fun a (fun a Bool))) (con integer) ]
       )
       equalsInteger
     )
     (termbind
       (strict)
-      (vardecl && (fun Bool (fun Bool Bool)))
+      (vardecl `&&` (fun Bool (fun Bool Bool)))
       (lam
         ds
         Bool
@@ -96,7 +96,7 @@
     (termbind
       (strict)
       (vardecl
-        ==
+        `==`
         (all
           a
           (type)
@@ -170,7 +170,7 @@
                 (type)
                 [
                   [
-                    &&
+                    `&&`
                     [
                       [
                         [
@@ -199,7 +199,7 @@
                             (type)
                             [
                               [
-                                [ { == (con integer) } $fEqInteger ]
+                                [ { `==` (con integer) } `$fEqInteger` ]
                                 {
                                   [
                                     [

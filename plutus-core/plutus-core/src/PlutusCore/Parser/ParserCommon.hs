@@ -10,7 +10,7 @@ module PlutusCore.Parser.ParserCommon where
 import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State (MonadState (..), StateT, evalStateT)
-import Data.Char (isAlpha, isAlphaNum)
+import Data.Char
 import Data.Map qualified as M
 import Data.Text qualified as T
 import Text.Megaparsec hiding (ParseError, State, parse, some)
@@ -132,20 +132,20 @@ inBrackets = between (symbol "[") (char ']')
 inBraces :: Parser a -> Parser a
 inBraces = between (symbol "{") (char '}')
 
-isIdentifierChar :: Char -> Bool
-isIdentifierChar c = isAlphaNum c || elem c identifierSymbols
-
--- | Cannot start with a number.
+-- | Allowed characters in the starting position of a non-quoted identifier.
 isIdentifierStartingChar :: Char -> Bool
-isIdentifierStartingChar c = isAlpha c || elem c identifierSymbols
+isIdentifierStartingChar c = isAscii c && isAlpha c
 
--- | Similar to allowed ascii characters in Haskell names, but excluding:
---
---     * @:@ because it is used in type signatures in readable PIRs
---     * @-@ because it is used to start and end comments
---     * @!@ and @~@ because they are used to denote strict and nonstrict bindings in readable PIRs
-identifierSymbols :: [Char]
-identifierSymbols = "#$%&*+./<=>?@\\^|_'"
+-- | Allowed characters in a non-starting position of a non-quoted identifier.
+isIdentifierChar :: Char -> Bool
+isIdentifierChar c = isIdentifierStartingChar c || isDigit c || c == '\'' || c == '_'
+
+-- | Allowed characters in a quoted identifier.
+isQuotedIdentifierChar :: Char -> Bool
+isQuotedIdentifierChar c =
+    (isAlpha c || isDigit c || isPunctuation c || isSymbol c)
+        && isAscii c
+        && c /= '`'
 
 toSrcSpan :: SourcePos -> SourcePos -> SrcSpan
 toSrcSpan start end =
@@ -167,7 +167,17 @@ version = trailingWhitespace $ do
 
 -- | Parses a `Name`. Does not consume leading or trailing whitespaces.
 name :: Parser Name
-name = try $ do
-    void $ lookAhead (satisfy isIdentifierStartingChar)
-    str <- takeWhileP (Just "identifier") isIdentifierChar
-    Name str <$> intern str
+name = try $ parseUnquoted <|> parseQuoted
+  where
+    parseUnquoted = do
+        void $ lookAhead (satisfy isIdentifierStartingChar)
+        str <- takeWhileP (Just "identifier-unquoted") isIdentifierChar
+        Name str <$> intern str
+    parseQuoted = do
+        void $ char backTick
+        void $ lookAhead (satisfy isQuotedIdentifierChar)
+        strUnquoted <- takeWhileP (Just "identifier-quoted") isQuotedIdentifierChar
+        void $ char backTick
+        let str = T.cons backTick (T.snoc strUnquoted backTick)
+        Name str <$> intern str
+    backTick = '`'

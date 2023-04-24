@@ -13,7 +13,7 @@
     (termbind
       (strict)
       (vardecl
-        $fFunctorTuple2_$cfmap
+        `$fFunctorTuple2_$cfmap`
         (all
           c
           (type)
@@ -56,7 +56,7 @@
     (termbind
       (nonstrict)
       (vardecl
-        $fFunctorTuple2
+        `$fFunctorTuple2`
         (all
           c
           (type)
@@ -72,7 +72,7 @@
           ]
         )
       )
-      $fFunctorTuple2_$cfmap
+      `$fFunctorTuple2_$cfmap`
     )
     (let
       (rec)
@@ -90,7 +90,7 @@
         (termbind
           (strict)
           (vardecl
-            $fFunctorNil_$cfmap
+            `$fFunctorNil_$cfmap`
             (all
               a
               (type)
@@ -126,7 +126,7 @@
                             (type)
                             [
                               [ { Cons b } [ f x ] ]
-                              [ [ { { $fFunctorNil_$cfmap a } b } f ] xs ]
+                              [ [ { { `$fFunctorNil_$cfmap` a } b } f ] xs ]
                             ]
                           )
                         )
@@ -144,7 +144,7 @@
           (termbind
             (nonstrict)
             (vardecl
-              $fFunctorNil
+              `$fFunctorNil`
               [
                 (lam
                   f
@@ -158,12 +158,12 @@
                 List
               ]
             )
-            $fFunctorNil_$cfmap
+            `$fFunctorNil_$cfmap`
           )
           (termbind
             (strict)
             (vardecl
-              .
+              `.`
               (all
                 b
                 (type)
@@ -265,7 +265,7 @@
             (termbind
               (strict)
               (vardecl
-                $s$fFromBuiltinBuiltinListNil_$cfromBuiltin_go
+                `$s$fFromBuiltinBuiltinListNil_$cfromBuiltin_go`
                 (fun [ (con list) (con data) ] [ List (con data) ])
               )
               (lam
@@ -289,7 +289,7 @@
                       [
                         [ { Cons (con data) } [ { head (con data) } l ] ]
                         [
-                          $s$fFromBuiltinBuiltinListNil_$cfromBuiltin_go
+                          `$s$fFromBuiltinBuiltinListNil_$cfromBuiltin_go`
                           [ { tail (con data) } l ]
                         ]
                       ]
@@ -359,7 +359,7 @@
                         ]
                       ]
                       [
-                        $s$fFromBuiltinBuiltinListNil_$cfromBuiltin_go
+                        `$s$fFromBuiltinBuiltinListNil_$cfromBuiltin_go`
                         [
                           { { snd (con integer) } [ (con list) (con data) ] } p
                         ]
@@ -388,7 +388,8 @@
                         {
                           {
                             {
-                              . (fun [ List (con data) ] [ List (con integer) ])
+                              `.`
+                              (fun [ List (con data) ] [ List (con integer) ])
                             }
                             (fun
                               [ [ Tuple2 (con integer) ] [ List (con data) ] ]
@@ -403,7 +404,7 @@
                           {
                             [
                               { fmap [ Tuple2 (con integer) ] }
-                              { $fFunctorTuple2 (con integer) }
+                              { `$fFunctorTuple2` (con integer) }
                             ]
                             [ List (con data) ]
                           }
@@ -411,7 +412,7 @@
                         }
                       ]
                       {
-                        { [ { fmap List } $fFunctorNil ] (con data) }
+                        { [ { fmap List } `$fFunctorNil` ] (con data) }
                         (con integer)
                       }
                     ]
