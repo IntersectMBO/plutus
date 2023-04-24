@@ -81,6 +81,7 @@ go ctxt = go'
                     | Just cons <- Map.lookup n ctxt
                     , ((TermExpr scrut, _) : (TypeExpr _resTy, _) : rest) <-
                         dropWhile (isTyArg . fst) args
+                    -- The scrutinee is itself an application
                     , (Var _ con, conArgs) <- collectArgs scrut
                     , Just i <- List.findIndex (== con) cons
                     , Just (TermExpr branch, _) <- rest List.!? i
