@@ -171,8 +171,9 @@ knownCon =
             (goldenPirM goldenKnownConTC pTerm)
             [ "applicative"
             , "list"
-            , "maybe"
-            , "maybe-unsaturated"
+            , "maybe-just"
+            , "maybe-just-unsaturated"
+            , "maybe-nothing"
             , "pair"
             ]
   where
