@@ -1,0 +1,6 @@
+(let
+  (nonrec)
+  (termbind (strict) (vardecl a (con integer)) (con integer 10))
+  (termbind (strict) (vardecl c (con integer)) [ [ (builtin addInteger) a ] a ])
+  [ [ (builtin addInteger) a ] (con integer 7) ]
+)

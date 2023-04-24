@@ -260,6 +260,7 @@ inline =
             , "letNonPure" -- multiple occurrences of a non-pure binding
             , "letNonPureMulti"
             , "letNonPureMultiStrict"
+            , "nameCapture"
             ]
 
 -- | Check whether a term is globally unique.
