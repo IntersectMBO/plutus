@@ -77,6 +77,7 @@ go ctxt = go'
             let (fun, args) = collectArgs t
             case fun of
                 Var _ n
+                    -- it appears in our map, so it's a destructor
                     | Just cons <- Map.lookup n ctxt
                     , ((TermExpr scrut, _) : (TypeExpr _resTy, _) : rest) <-
                         dropWhile (isTyArg . fst) args
