@@ -52,13 +52,14 @@ knownCon ::
 knownCon t0 = do
     t <- PLC.rename t0
     let ctxt =
-            foldMap
+            foldMapOf
+                (termSubtermsDeep . termBindings)
                 ( \case
                     DatatypeBind _ (Datatype _ _ _ destr cons) ->
                         Map.singleton destr (_varDeclName <$> cons)
                     _ -> mempty
                 )
-                (t ^.. termSubtermsDeep . termBindings)
+                t
     go ctxt t
 
 go ::
