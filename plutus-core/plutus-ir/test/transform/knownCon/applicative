@@ -1,3 +1,5 @@
+-- Adapted from `Budget.Spec.applicative`. The last `Maybe_match` scrutinizes
+-- a constructor application.
 (let
   (nonrec)
   (datatypebind
@@ -124,5 +126,3 @@
     (all dead (type) dead)
   }
 )
--- Adapted from `Budget.Spec.applicative`. The last `Maybe_match` scrutinizes
--- a constructor application.
