@@ -84,6 +84,7 @@ go ctxt = go'
                         dropWhile (isTyArg . fst) args
                     -- The scrutinee is itself an application
                     , (Var _ con, conArgs) <- collectArgs scrut
+                    -- ... of one of the constructors from the same datatype as the destructor
                     , Just i <- List.findIndex (== con) cons
                     , Just (TermExpr branch, _) <- rest List.!? i
                     , -- This condition ensures the destructor is fully-applied
