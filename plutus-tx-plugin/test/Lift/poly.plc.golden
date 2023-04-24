@@ -10,12 +10,12 @@
                 (force
                   (delay
                     (lam
-                      `Plugin.Data.Spec.Poly1_i0`
+                      `Plugin.Data.Spec.Poly1`_i0
                       (lam
-                        `Plugin.Data.Spec.Poly2_i0`
+                        `Plugin.Data.Spec.Poly2`_i0
                         (lam
-                          `match_Plugin.Data.Spec.MyPolyData_i0`
-                          `Plugin.Data.Spec.Poly1_i3`
+                          `match_Plugin.Data.Spec.MyPolyData`_i0
+                          `Plugin.Data.Spec.Poly1`_i3
                         )
                       )
                     )
@@ -29,11 +29,11 @@
                         arg_1_i0
                         (delay
                           (lam
-                            `case_Plugin.Data.Spec.Poly1_i0`
+                            `case_Plugin.Data.Spec.Poly1`_i0
                             (lam
-                              `case_Plugin.Data.Spec.Poly2_i0`
+                              `case_Plugin.Data.Spec.Poly2`_i0
                               [
-                                [ `case_Plugin.Data.Spec.Poly1_i2` arg_0_i4 ]
+                                [ `case_Plugin.Data.Spec.Poly1`_i2 arg_0_i4 ]
                                 arg_1_i3
                               ]
                             )
@@ -50,10 +50,10 @@
                     arg_0_i0
                     (delay
                       (lam
-                        `case_Plugin.Data.Spec.Poly1_i0`
+                        `case_Plugin.Data.Spec.Poly1`_i0
                         (lam
-                          `case_Plugin.Data.Spec.Poly2_i0`
-                          [ `case_Plugin.Data.Spec.Poly2_i1` arg_0_i3 ]
+                          `case_Plugin.Data.Spec.Poly2`_i0
+                          [ `case_Plugin.Data.Spec.Poly2`_i1 arg_0_i3 ]
                         )
                       )
                     )

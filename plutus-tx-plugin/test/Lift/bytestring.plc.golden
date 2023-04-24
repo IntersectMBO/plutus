@@ -6,8 +6,8 @@
         (force
           (delay
             (lam
-              `Lift.Spec.WrappedBS_i0`
-              (lam `match_Lift.Spec.WrappedBS_i0` `Lift.Spec.WrappedBS_i2`)
+              `Lift.Spec.WrappedBS`_i0
+              (lam `match_Lift.Spec.WrappedBS`_i0 `Lift.Spec.WrappedBS`_i2)
             )
           )
         )
@@ -15,8 +15,8 @@
           arg_0_i0
           (delay
             (lam
-              `case_Lift.Spec.WrappedBS_i0`
-              [ `case_Lift.Spec.WrappedBS_i1` arg_0_i2 ]
+              `case_Lift.Spec.WrappedBS`_i0
+              [ `case_Lift.Spec.WrappedBS`_i1 arg_0_i2 ]
             )
           )
         )

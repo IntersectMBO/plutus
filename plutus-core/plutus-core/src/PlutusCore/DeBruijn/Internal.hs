@@ -120,11 +120,7 @@ instance Wrapped TyDeBruijn
 
 instance HasPrettyConfigName config => PrettyBy config NamedDeBruijn where
     prettyBy config (NamedDeBruijn txt (Index ix))
-        | showsUnique = case T.unsnoc txt of
-            -- Quoted name
-            Just (rest, '`') -> pretty rest <> "_i" <> pretty ix <> "`"
-            -- Unquoted name
-            _                -> pretty txt <> "_i" <> pretty ix
+        | showsUnique = pretty txt <> "_i" <> pretty ix
         | otherwise   = pretty txt
         where PrettyConfigName showsUnique = toPrettyConfigName config
 
