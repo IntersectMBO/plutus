@@ -89,17 +89,13 @@ go ctxt t
     , -- This condition ensures the destructor is fully-applied
       -- (which should always be the case in programs that come from Plutus Tx,
       -- but not necessarily in arbitrary PIR programs).
-      -- it's okay to have more arguments: the result of the destructor might itself be
-      -- a function which is being applied!
-      length rest >= length cons =
+      length rest == length cons =
         mkTermApps
             branch
             -- The arguments to the selected branch consists of the arguments
-            -- to the constructor (without the leading type arguments - e.g.,
-            -- if the scrutinee is `Just {integer} 1`, we only need the `1`),
-            -- and the remaining arguments in `rest` (because the destructor
-            -- may be over-applied).
-            ((dropWhile (isTyArg . fst) conArgs) <> drop (length cons) rest)
+            -- to the constructor, without the leading type arguments - e.g.,
+            -- if the scrutinee is `Just {integer} 1`, we only need the `1`).
+            (dropWhile (isTyArg . fst) conArgs)
     | otherwise = t
   where
     isTyArg = \case TypeExpr{} -> True; _ -> False
