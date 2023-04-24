@@ -8,8 +8,8 @@ module Event where
 import PlutusCore.Annotation
 import PlutusCore.Pretty qualified as PLC
 import Types
-import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Driver qualified as D
-import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Internal
+import UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver qualified as D
+import UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal
 
 import Brick.Focus qualified as B
 import Brick.Main qualified as B
@@ -109,7 +109,7 @@ handleDebuggerEvent _ (B.AppEvent (UpdateClientEvent budgetData cekState)) = do
                     EditorReturnValue
                     Nothing
                     mempty
-            Returning _ _ v ->
+            Returning _ v ->
                dsReturnValueEditor .~
                 BE.editorText
                     EditorReturnValue

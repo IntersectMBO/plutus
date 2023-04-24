@@ -8,15 +8,15 @@
 module Common
 where
 
-import PlutusCore
+import PlutusCore hiding (Constr)
 import PlutusCore.Compiler.Erase
 import PlutusCore.Data
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
-import PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.MkPlc
 import PlutusCore.Pretty (Pretty)
-import UntypedPlutusCore as UPLC
+import UntypedPlutusCore as UPLC hiding (Constr)
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
 import Control.DeepSeq (NFData, force)

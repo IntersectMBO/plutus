@@ -3,7 +3,8 @@
 module Generators where
 
 import PlutusCore.Data
-import PlutusCore.Evaluation.Machine.ExMemory (ExMemoryUsage (..))
+import PlutusCore.Evaluation.Machine.CostStream (sumCostStream)
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage (..), flattenCostRose)
 
 import Control.Monad
 import Data.Bits
@@ -222,5 +223,7 @@ dataSample = genDataSample (take 500 $ cycle dataParams)
 -- objects.
 dataSampleForEq :: [Data]
 dataSampleForEq =
-    take 400 . filter (\d -> memoryUsage d < 1000000) . genDataSample . take 1000 $
+    take 400 . filter (\d -> budgetUsage d < 1000000) . genDataSample . take 1000 $
         cycle ((20, (1,1,1)):dataParams)
+  where
+    budgetUsage = sumCostStream . flattenCostRose . memoryUsage

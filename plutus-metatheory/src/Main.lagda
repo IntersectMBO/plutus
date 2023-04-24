@@ -160,8 +160,8 @@ postulate
 {-# FOREIGN GHC import Data.Functor #-}
 {-# COMPILE GHC ParseError = type PlutusCore.Error.ParserErrorBundle #-}
 
-{-# COMPILE GHC parse = getProgram #-}
-{-# COMPILE GHC parseU = getProgram #-}
+{-# COMPILE GHC parse = readProgram #-}
+{-# COMPILE GHC parseU = readProgram #-}
 {-# COMPILE GHC parseTm = runQuoteT . parseTerm #-}
 {-# COMPILE GHC parseTy = runQuoteT . parseType #-}
 {-# COMPILE GHC parseTmU = runQuoteT . U.parseTerm #-}

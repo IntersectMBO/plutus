@@ -7,7 +7,7 @@ module PlutusCore.Builtin.Runtime where
 import PlutusPrelude
 
 import PlutusCore.Builtin.KnownType
-import PlutusCore.Evaluation.Machine.ExBudget
+import PlutusCore.Evaluation.Machine.ExBudgetStream
 
 import Control.DeepSeq
 import NoThunks.Class
@@ -30,7 +30,7 @@ import NoThunks.Class
 -- Evaluators that ignore the entire concept of costing (e.g. the CK machine) may of course force
 -- the result of the builtin application unconditionally.
 data BuiltinRuntime val
-    = BuiltinResult ExBudget ~(MakeKnownM val)
+    = BuiltinResult ExBudgetStream ~(MakeKnownM val)
     | BuiltinExpectArgument (val -> BuiltinRuntime val)
     | BuiltinExpectForce (BuiltinRuntime val)
 

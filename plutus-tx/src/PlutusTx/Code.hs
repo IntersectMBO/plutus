@@ -88,7 +88,7 @@ unsafeApplyCode fun arg = case applyCode fun arg of
 
 -- | The size of a 'CompiledCodeIn', in AST nodes.
 sizePlc :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun) => CompiledCodeIn uni fun a -> Integer
-sizePlc = UPLC.programSize . getPlc
+sizePlc = UPLC.unSize . UPLC.programSize . getPlc
 
 {- Note [Deserializing the AST]
 The types suggest that we can fail to deserialize the AST that we embedded in the program.
@@ -106,8 +106,8 @@ getPlc
     => CompiledCodeIn uni fun a -> UPLC.Program UPLC.NamedDeBruijn uni fun SrcSpans
 getPlc wrapper = case wrapper of
     SerializedCode plc _ _ -> case unflat (BSL.fromStrict plc) of
-        Left e  -> throw $ ImpossibleDeserialisationFailure e
-        Right p -> p
+        Left e                             -> throw $ ImpossibleDeserialisationFailure e
+        Right (UPLC.UnrestrictedProgram p) -> p
     DeserializedCode plc _ _ -> plc
 
 getPlcNoAnn

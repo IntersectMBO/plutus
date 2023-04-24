@@ -20,8 +20,8 @@ module PlutusCore.Builtin.KnownTypeAst
     , TypeHole
     , KnownBuiltinTypeAst
     , KnownTypeAst (..)
+    , Insert
     , Delete
-    , Merge
     ) where
 
 import PlutusCore.Builtin.Emitter
@@ -179,9 +179,9 @@ class KnownTypeAst uni x where
     type ToHoles x = ToHoles (ElaborateBuiltin x)
 
     -- | Collect all unique variables (a variable consists of a textual name, a unique and a kind)
-    -- in an @a@.
-    type ToBinds x :: [GADT.Some TyNameRep]
-    type ToBinds x = ToBinds (ElaborateBuiltin x)
+    -- in an accumulator and return the accumulator once a leaf is reached.
+    type ToBinds (acc :: [GADT.Some TyNameRep]) x :: [GADT.Some TyNameRep]
+    type ToBinds acc x = ToBinds acc (ElaborateBuiltin x)
 
     -- | The type representing @a@ used on the PLC side.
     toTypeAst :: proxy x -> Type TyName uni ()
@@ -192,28 +192,28 @@ class KnownTypeAst uni x where
 instance KnownTypeAst uni a => KnownTypeAst uni (EvaluationResult a) where
     type IsBuiltin (EvaluationResult a) = 'False
     type ToHoles (EvaluationResult a) = '[TypeHole a]
-    type ToBinds (EvaluationResult a) = ToBinds a
+    type ToBinds acc (EvaluationResult a) = ToBinds acc a
     toTypeAst _ = toTypeAst $ Proxy @a
     {-# INLINE toTypeAst #-}
 
 instance KnownTypeAst uni a => KnownTypeAst uni (Emitter a) where
     type IsBuiltin (Emitter a) = 'False
     type ToHoles (Emitter a) = '[TypeHole a]
-    type ToBinds (Emitter a) = ToBinds a
+    type ToBinds acc (Emitter a) = ToBinds acc a
     toTypeAst _ = toTypeAst $ Proxy @a
     {-# INLINE toTypeAst #-}
 
 instance KnownTypeAst uni rep => KnownTypeAst uni (SomeConstant uni rep) where
     type IsBuiltin (SomeConstant uni rep) = 'False
     type ToHoles (SomeConstant _ rep) = '[RepHole rep]
-    type ToBinds (SomeConstant _ rep) = ToBinds rep
+    type ToBinds acc (SomeConstant _ rep) = ToBinds acc rep
     toTypeAst _ = toTypeAst $ Proxy @rep
     {-# INLINE toTypeAst #-}
 
 instance KnownTypeAst uni rep => KnownTypeAst uni (Opaque val rep) where
     type IsBuiltin (Opaque val rep) = 'False
     type ToHoles (Opaque _ rep) = '[RepHole rep]
-    type ToBinds (Opaque _ rep) = ToBinds rep
+    type ToBinds acc (Opaque _ rep) = ToBinds acc rep
     toTypeAst _ = toTypeAst $ Proxy @rep
     {-# INLINE toTypeAst #-}
 
@@ -229,14 +229,14 @@ toTyNameAst _ =
 instance uni `Contains` f => KnownTypeAst uni (BuiltinHead f) where
     type IsBuiltin (BuiltinHead f) = 'True
     type ToHoles (BuiltinHead f) = '[]
-    type ToBinds (BuiltinHead f) = '[]
+    type ToBinds acc (BuiltinHead f) = acc
     toTypeAst _ = mkTyBuiltin @_ @f ()
     {-# INLINE toTypeAst #-}
 
 instance (KnownTypeAst uni a, KnownTypeAst uni b) => KnownTypeAst uni (a -> b) where
     type IsBuiltin (a -> b) = 'False
     type ToHoles (a -> b) = '[TypeHole a, TypeHole b]
-    type ToBinds (a -> b) = Merge (ToBinds a) (ToBinds b)
+    type ToBinds acc (a -> b) = ToBinds (ToBinds acc a) b
     toTypeAst _ = TyFun () (toTypeAst $ Proxy @a) (toTypeAst $ Proxy @b)
     {-# INLINE toTypeAst #-}
 
@@ -244,14 +244,14 @@ instance (name ~ 'TyNameRep text uniq, KnownSymbol text, KnownNat uniq) =>
             KnownTypeAst uni (TyVarRep name) where
     type IsBuiltin (TyVarRep name) = 'False
     type ToHoles (TyVarRep name) = '[]
-    type ToBinds (TyVarRep name) = '[ 'GADT.Some name ]
+    type ToBinds acc (TyVarRep name) = Insert ('GADT.Some name) acc
     toTypeAst _ = TyVar () . toTyNameAst $ Proxy @('TyNameRep text uniq)
     {-# INLINE toTypeAst #-}
 
 instance (KnownTypeAst uni fun, KnownTypeAst uni arg) => KnownTypeAst uni (TyAppRep fun arg) where
     type IsBuiltin (TyAppRep fun arg) = IsBuiltin fun && IsBuiltin arg
     type ToHoles (TyAppRep fun arg) = '[RepHole fun, RepHole arg]
-    type ToBinds (TyAppRep fun arg) = Merge (ToBinds fun) (ToBinds arg)
+    type ToBinds acc (TyAppRep fun arg) = ToBinds (ToBinds acc fun) arg
     toTypeAst _ = TyApp () (toTypeAst $ Proxy @fun) (toTypeAst $ Proxy @arg)
     {-# INLINE toTypeAst #-}
 
@@ -261,7 +261,7 @@ instance
         ) => KnownTypeAst uni (TyForallRep name a) where
     type IsBuiltin (TyForallRep name a) = 'False
     type ToHoles (TyForallRep name a) = '[RepHole a]
-    type ToBinds (TyForallRep name a) = Delete ('GADT.Some name) (ToBinds a)
+    type ToBinds acc (TyForallRep name a) = Delete ('GADT.Some name) (ToBinds acc a)
     toTypeAst _ =
         TyForall ()
             (toTyNameAst $ Proxy @('TyNameRep text uniq))
@@ -271,13 +271,16 @@ instance
 
 -- Utils
 
--- | Delete all @x@s from a list.
-type family Delete x xs :: [a] where
-    Delete _ '[]       = '[]
-    Delete x (x ': xs) = Delete x xs
-    Delete x (y ': xs) = y ': Delete x xs
+-- | Insert @x@ into @xs@ unless it's already there.
+type Insert :: forall a. a -> [a] -> [a]
+type family Insert x xs where
+    Insert x '[]      = '[x]
+    Insert x (x : xs) = x ': xs
+    Insert x (y : xs) = y ': Insert x xs
 
--- | Delete all elements appearing in the first list from the second one and concatenate the lists.
-type family Merge xs ys :: [a] where
-    Merge '[]       ys = ys
-    Merge (x ': xs) ys = x ': Delete x (Merge xs ys)
+-- | Delete the first @x@ from a list. Which is okay since we only ever put things in once.
+type Delete :: forall a. a -> [a] -> [a]
+type family Delete x xs where
+    Delete _ '[]       = '[]
+    Delete x (x ': xs) = xs
+    Delete x (y ': xs) = y ': Delete x xs

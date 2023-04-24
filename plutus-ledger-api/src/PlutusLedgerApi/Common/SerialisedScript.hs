@@ -5,7 +5,7 @@ module PlutusLedgerApi.Common.SerialisedScript
     ( SerialisedScript
     , serialiseCompiledCode
     , serialiseUPLC
-    , deserialiseUPLC
+    , uncheckedDeserialiseUPLC
     , scriptCBORDecoder
     , ScriptForExecution (..)
     , ScriptDecodeError (..)
@@ -38,10 +38,14 @@ import Prettyprinter
 data ScriptDecodeError =
       CBORDeserialiseError !CBOR.DeserialiseFailure -- ^ an error from the underlying CBOR/serialise library
     | RemainderError !BSL.ByteString -- ^ Script was successfully parsed, but more (runaway) bytes encountered after script's position
-    | LanguageNotAvailableError -- ^ the plutus version of the given script is not enabled yet
-        { sdeAffectedLang :: !PlutusLedgerLanguage -- ^ the script's plutus version
-        , sdeIntroPv      :: !ProtocolVersion -- ^ the protocol version that will first introduce/enable the plutus version
-        , sdeThisPv       :: !ProtocolVersion -- ^ the protocol version in which the error occurred
+    | LedgerLanguageNotAvailableError -- ^ the plutus version of the given script is not enabled yet
+        { sdeAffectedLang :: !PlutusLedgerLanguage -- ^ the script's ledger language
+        , sdeIntroPv      :: !ProtocolVersion -- ^ the protocol version that will first introduce/enable the ledger language
+        , sdeThisPv       :: !ProtocolVersion -- ^ the current protocol version
+        }
+    | PlutusCoreLanguageNotAvailableError
+        { sdeAffectedVersion :: !UPLC.Version -- ^ the script's Plutus Core language version
+        , sdeThisPv          :: !ProtocolVersion -- ^ the current protocol version
         }
     deriving stock (Eq, Show)
     deriving anyclass Exception
@@ -67,7 +71,7 @@ choice to use Flat was made to have a more efficient (most wins are in uncompres
 size) data serialisation format and use less space on-chain.
 
 To make `plutus-ledger` work with scripts serialised with Flat, and keep the CBOR
-format otherwise, we have defined the `serialiseUPLC` and `deserialiseUPLC` functions.
+format otherwise, we have defined the `serialiseUPLC` and `uncheckedDeserialiseUPLC` functions.
 
 Because Flat is not self-describing and it gets used in the encoding of Programs,
 data structures that include scripts (for example, transactions) no-longer benefit
@@ -90,13 +94,14 @@ serialiseUPLC =
     -- See Note [Using Flat for serialising/deserialising Script]
     -- Currently, this is off because the old implementation didn't actually work, so we need to be careful
     -- about introducing a working version
-    toShort . BSL.toStrict . serialise . SerialiseViaFlat
+    toShort . BSL.toStrict . serialise . SerialiseViaFlat . UPLC.UnrestrictedProgram
 
--- | Deserialises a 'SerialisedScript' back into an AST.
-deserialiseUPLC :: SerialisedScript -> UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun ()
-deserialiseUPLC = unSerialiseViaFlat . deserialise . BSL.fromStrict . fromShort
+-- | Deserialises a 'SerialisedScript' back into an AST. Does *not* do ledger-language-version-specific
+-- checks like for allowable builtins.
+uncheckedDeserialiseUPLC :: SerialisedScript -> UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun ()
+uncheckedDeserialiseUPLC = unSerialiseViaFlat . deserialise . BSL.fromStrict . fromShort
   where
-    unSerialiseViaFlat (SerialiseViaFlat a) = a
+    unSerialiseViaFlat (SerialiseViaFlat (UPLC.UnrestrictedProgram a)) = a
 
 -- | A variant of `Script` with a specialized decoder.
 newtype ScriptForExecution = ScriptForExecution (UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ())
@@ -126,14 +131,20 @@ fromSerialisedScript :: forall e m. (AsScriptDecodeError e, MonadError e m)
                      -> SerialisedScript -- ^ the script to deserialise.
                      -> m ScriptForExecution
 fromSerialisedScript lv currentPv sScript = do
-    when (introPv > currentPv)  $
-        throwing _ScriptDecodeError $ LanguageNotAvailableError lv introPv currentPv
-    (remderBS, script) <- deserialiseSScript sScript
+    -- check that the ledger language version is available
+    let llIntroPv = ledgerLanguageIntroducedIn lv
+    unless (llIntroPv <= currentPv)  $
+        throwing _ScriptDecodeError $ LedgerLanguageNotAvailableError lv llIntroPv currentPv
+
+    (remderBS, script@(ScriptForExecution (UPLC.Program _ v _))) <- deserialiseSScript sScript
     when (lv /= PlutusV1 && lv /= PlutusV2 && remderBS /= mempty) $
         throwing _ScriptDecodeError $ RemainderError remderBS
+
+    -- check that the Plutus Core language version is available
+    unless (v `Set.member` plcVersionsAvailableIn lv currentPv) $ throwing _ScriptDecodeError $ PlutusCoreLanguageNotAvailableError v currentPv
+
     pure script
   where
-    introPv = ledgerLanguageIntroducedIn lv
     deserialiseSScript :: SerialisedScript -> m (BSL.ByteString, ScriptForExecution)
     deserialiseSScript = fromShort
                        >>> fromStrict

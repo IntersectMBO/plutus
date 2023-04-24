@@ -6,7 +6,7 @@
 -- | UPLC property tests (pretty-printing\/parsing and binary encoding\/decoding).
 module Generators where
 
-import PlutusPrelude (display, fold, on, void, (&&&))
+import PlutusPrelude (display, fold, on, void, zipExact, (&&&))
 
 import PlutusCore (Name, _nameText)
 import PlutusCore.Annotation
@@ -19,9 +19,8 @@ import PlutusCore.Generators.Hedgehog.AST qualified as AST
 import PlutusCore.Parser (defaultUni, parseGen)
 import PlutusCore.Pretty (displayPlcDef)
 import PlutusCore.Quote (QuoteT, runQuoteT)
-import UntypedPlutusCore.Core.Type (Program (Program),
-                                    Term (Apply, Builtin, Constant, Delay, Error, Force, LamAbs, Var),
-                                    progTerm, termAnn)
+import UntypedPlutusCore qualified as UPLC
+import UntypedPlutusCore.Core.Type (Program (Program), Term (..), progTerm, termAnn)
 import UntypedPlutusCore.Parser (parseProgram, parseTerm)
 
 import Control.Lens (view)
@@ -58,6 +57,8 @@ compareTerm (Force _ t ) (Force _ t')         = compareTerm t t'
 compareTerm (Delay _ t ) (Delay _ t')         = compareTerm t t'
 compareTerm (Constant _ x) (Constant _ y)     = x == y
 compareTerm (Builtin _ bi) (Builtin _ bi')    = bi == bi'
+compareTerm (Constr _ i es) (Constr _ i' es') = i == i' && maybe False (all (uncurry compareTerm)) (zipExact es es')
+compareTerm (Case _ arg cs) (Case _ arg' cs') = compareTerm arg arg' && maybe False (all (uncurry compareTerm)) (zipExact cs cs')
 compareTerm (Error _ ) (Error _ )             = True
 compareTerm _ _                               = False
 
@@ -72,7 +73,7 @@ genProgram = fmap eraseProgram AST.genProgram
 propFlat :: TestTree
 propFlat = testPropertyNamed "Flat" "Flat" $ property $ do
     prog <- forAllPretty $ runAstGen (Generators.genProgram @DefaultFun)
-    tripping prog Flat.flat Flat.unflat
+    tripping prog (Flat.flat . UPLC.UnrestrictedProgram) (fmap UPLC.unUnrestrictedProgram . Flat.unflat)
 
 propParser :: TestTree
 propParser = testPropertyNamed "Parser" "parser" $ property $ do

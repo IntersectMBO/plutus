@@ -67,7 +67,8 @@ genType = simpleRecursive nonRecursive recursive where
     lamGen = TyLam () <$> genTyName <*> genKind <*> genType
     forallGen = TyForall () <$> genTyName <*> genKind <*> genType
     applyGen = TyApp () <$> genType <*> genType
-    recursive = [funGen, applyGen]
+    sopGen = TySOP () <$> (Gen.list (Range.linear 0 10) (Gen.list (Range.linear 0 10) genType))
+    recursive = [funGen, applyGen, sopGen]
     nonRecursive = [varGen, lamGen, forallGen]
 
 genTerm :: PLC.AstGen (Term TyName Name PLC.DefaultUni PLC.DefaultFun ())
@@ -79,9 +80,11 @@ genTerm = simpleRecursive nonRecursive recursive where
     applyGen = Apply () <$> genTerm <*> genTerm
     unwrapGen = Unwrap () <$> genTerm
     wrapGen = IWrap () <$> genType <*> genType <*> genTerm
+    constrGen = Constr () <$> genType <*> Gen.word64 (Range.linear 0 10) <*> Gen.list (Range.linear 0 10) genTerm
+    caseGen = Case () <$> genType <*> genTerm <*> Gen.list (Range.linear 0 10) genTerm
     errorGen = Error () <$> genType
     letGen = Let () <$> genRecursivity <*> Gen.nonEmpty (Range.linear 1 10) genBinding <*> genTerm
-    recursive = [absGen, instGen, lamGen, applyGen, unwrapGen, wrapGen, letGen]
+    recursive = [absGen, instGen, lamGen, applyGen, unwrapGen, wrapGen, letGen, constrGen, caseGen]
     nonRecursive = [varGen, Constant () <$> genConstant, Builtin () <$> genBuiltin, errorGen]
 
 genProgram :: PLC.AstGen (Program TyName Name PLC.DefaultUni PLC.DefaultFun ())

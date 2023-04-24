@@ -14,6 +14,7 @@ import Data.Csv.Builder qualified as CSV
 import Data.DList qualified as DList
 import Data.Fixed
 import Data.Functor
+import Data.SatInt
 import Data.STRef (modifySTRef, newSTRef, readSTRef)
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as T
@@ -50,10 +51,10 @@ logWithTimeEmitter = EmitterMode $ \_ -> do
     pure $ CekEmitterInfo emitter (DList.toList <$> readSTRef logsRef)
 
 instance CSV.ToField ExCPU where
-    toField (ExCPU t) = CSV.toField $ toInteger t
+    toField (ExCPU t) = CSV.toField $ unSatInt t
 
 instance CSV.ToField ExMemory where
-    toField (ExMemory t) = CSV.toField $ toInteger t
+    toField (ExMemory t) = CSV.toField $ unSatInt t
 
 -- | Emits log with the budget.
 logWithBudgetEmitter :: EmitterMode uni fun

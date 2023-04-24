@@ -19,7 +19,7 @@ module PlutusCore.Flat
     ) where
 
 import PlutusCore.Core
-import PlutusCore.Data
+import PlutusCore.Data (Data)
 import PlutusCore.DeBruijn
 import PlutusCore.Name
 
@@ -63,12 +63,14 @@ This requires specialised encode/decode functions for each constructor
 that encodes a different number of possibilities. Here is a list of the
 tags and their used/available encoding possibilities.
 
-| Data type        | Function          | Used | Available |
-|------------------|-------------------|------|-----------|
-| default builtins | encodeBuiltin     | 47   | 128       |
-| Kinds            | encodeKind        | 2    | 2         |
-| Types            | encodeType        | 7    | 8         |
-| Terms            | encodeTerm        | 10   | 16        |
+** The BELOW table is about Typed-PLC and not UPLC. See `UntypedPlutusCore.Core.Instance.Flat`**
+
+| Data type        | Function          | Bit Width | Total | Used | Remaining |
+|------------------|-------------------|-----------|-------|------|-----------|
+| default builtins | encodeBuiltin     | 7         | 128   | 54   | 74        |
+| Kinds            | encodeKind        | 1         | 2     | 2    | 0         |
+| Types            | encodeType        | 3         | 8     | 7    | 1         |
+| Terms            | encodeTerm        | 4         | 16    | 12   | 4         |
 
 For format stability we are manually assigning the tag values to the
 constructors (and we do not use a generic algorithm that may change this order).
@@ -124,11 +126,11 @@ instance Serialise a => Flat (AsSerialize a) where
     size = size . serialise
 
 safeEncodeBits :: NumBits -> Word8 -> Encoding
-safeEncodeBits n v =
-  if 2 ^ n < v
+safeEncodeBits maxBits v =
+  if 2 ^ maxBits <= v
   then error $ "Overflow detected, cannot fit "
-               <> show v <> " in " <> show n <> " bits."
-  else eBits n v
+               <> show v <> " in " <> show maxBits <> " bits."
+  else eBits maxBits v
 
 constantWidth :: NumBits
 constantWidth = 4
@@ -210,9 +212,12 @@ instance Flat ann => Flat (Kind ann) where
               go 1 = KindArrow <$> decode <*> decode <*> decode
               go _ = fail "Failed to decode Kind ()"
 
-    size tm sz = kindTagWidth + sz + case tm of
-        Type ann           -> getSize ann
-        KindArrow ann k k' -> getSize ann + getSize k + getSize k'
+    size tm sz =
+      let
+        sz' = sz + kindTagWidth
+      in case tm of
+        Type ann           -> size ann sz'
+        KindArrow ann k k' -> size ann $ size k $ size k' sz'
 
 -- | Use 3 bits to encode type tags.
 typeTagWidth :: NumBits
@@ -233,6 +238,9 @@ instance (Closed uni, Flat ann, Flat tyname) => Flat (Type tyname uni ann) where
         TyBuiltin ann con     -> encodeType 4 <> encode ann <> encode con
         TyLam     ann n k t   -> encodeType 5 <> encode ann <> encode n   <> encode k <> encode t
         TyApp     ann t t'    -> encodeType 6 <> encode ann <> encode t   <> encode t'
+        -- Note that this relies on the instance for lists. We shouldn't use this in the
+        -- serious on-chain version but it's okay here.
+        TySOP    ann tyls     -> encodeType 7 <> encode ann <> encode tyls
 
     decode = go =<< decodeType
         where go 0 = TyVar     <$> decode <*> decode
@@ -242,16 +250,21 @@ instance (Closed uni, Flat ann, Flat tyname) => Flat (Type tyname uni ann) where
               go 4 = TyBuiltin <$> decode <*> decode
               go 5 = TyLam     <$> decode <*> decode <*> decode <*> decode
               go 6 = TyApp     <$> decode <*> decode <*> decode
+              go 7 = TySOP     <$> decode <*> decode
               go _ = fail "Failed to decode Type TyName ()"
 
-    size tm sz = typeTagWidth + sz + case tm of
-        TyVar     ann tn      -> getSize ann + getSize tn
-        TyFun     ann t t'    -> getSize ann + getSize t   + getSize t'
-        TyIFix    ann pat arg -> getSize ann + getSize pat + getSize arg
-        TyForall  ann tn k t  -> getSize ann + getSize tn  + getSize k + getSize t
-        TyBuiltin ann con     -> getSize ann + getSize con
-        TyLam     ann n k t   -> getSize ann + getSize n   + getSize k + getSize t
-        TyApp     ann t t'    -> getSize ann + getSize t   + getSize t'
+    size tm sz =
+      let
+        sz' = sz + typeTagWidth
+      in case tm of
+        TyVar     ann tn      -> size ann $ size tn sz'
+        TyFun     ann t t'    -> size ann $ size t $ size t' sz'
+        TyIFix    ann pat arg -> size ann $ size pat $ size arg sz'
+        TyForall  ann tn k t  -> size ann $ size tn $ size k $ size t sz'
+        TyBuiltin ann con     -> size ann $ size con sz'
+        TyLam     ann n k t   -> size ann $ size n $ size k $ size t sz'
+        TyApp     ann t t'    -> size ann $ size t $ size t' sz'
+        TySOP     ann tyls    -> size ann $ size tyls sz'
 
 termTagWidth :: NumBits
 termTagWidth = 4
@@ -280,31 +293,50 @@ instance ( Closed uni
         IWrap    ann pat arg t -> encodeTerm 7 <> encode ann <> encode pat <> encode arg <> encode t
         Error    ann ty        -> encodeTerm 8 <> encode ann <> encode ty
         Builtin  ann bn        -> encodeTerm 9 <> encode ann <> encode bn
+        Constr   ann ty i es   ->
+          encodeTerm 10
+          <> encode ann
+          <> encode ty
+          <> encode i
+          <> encode es
+        Case     ann ty arg cs ->
+          encodeTerm 11
+          <> encode ann
+          <> encode ty
+          <> encode arg
+          <> encode cs
 
     decode = go =<< decodeTerm
-        where go 0 = Var      <$> decode <*> decode
-              go 1 = TyAbs    <$> decode <*> decode <*> decode <*> decode
-              go 2 = LamAbs   <$> decode <*> decode <*> decode <*> decode
-              go 3 = Apply    <$> decode <*> decode <*> decode
-              go 4 = Constant <$> decode <*> decode
-              go 5 = TyInst   <$> decode <*> decode <*> decode
-              go 6 = Unwrap   <$> decode <*> decode
-              go 7 = IWrap    <$> decode <*> decode <*> decode <*> decode
-              go 8 = Error    <$> decode <*> decode
-              go 9 = Builtin  <$> decode <*> decode
-              go _ = fail "Failed to decode Term TyName Name ()"
+        where go 0  = Var      <$> decode <*> decode
+              go 1  = TyAbs    <$> decode <*> decode <*> decode <*> decode
+              go 2  = LamAbs   <$> decode <*> decode <*> decode <*> decode
+              go 3  = Apply    <$> decode <*> decode <*> decode
+              go 4  = Constant <$> decode <*> decode
+              go 5  = TyInst   <$> decode <*> decode <*> decode
+              go 6  = Unwrap   <$> decode <*> decode
+              go 7  = IWrap    <$> decode <*> decode <*> decode <*> decode
+              go 8  = Error    <$> decode <*> decode
+              go 9  = Builtin  <$> decode <*> decode
+              go 10 = Constr   <$> decode <*> decode <*> decode <*> decode
+              go 11 = Case     <$> decode <*> decode <*> decode <*> decode
+              go _  = fail "Failed to decode Term TyName Name ()"
 
-    size tm sz = termTagWidth + sz + case tm of
-        Var      ann n         -> getSize ann + getSize n
-        TyAbs    ann tn k t    -> getSize ann + getSize tn  + getSize k   + getSize t
-        LamAbs   ann n ty t    -> getSize ann + getSize n   + getSize ty  + getSize t
-        Apply    ann t t'      -> getSize ann + getSize t   + getSize t'
-        Constant ann c         -> getSize ann + getSize c
-        TyInst   ann t ty      -> getSize ann + getSize t   + getSize ty
-        Unwrap   ann t         -> getSize ann + getSize t
-        IWrap    ann pat arg t -> getSize ann + getSize pat + getSize arg + getSize t
-        Error    ann ty        -> getSize ann + getSize ty
-        Builtin  ann bn        -> getSize ann + getSize bn
+    size tm sz =
+      let
+        sz' = termTagWidth + sz
+      in case tm of
+        Var      ann n         -> size ann $ size n sz'
+        TyAbs    ann tn k t    -> size ann $ size tn $ size k  $ size t sz'
+        LamAbs   ann n ty t    -> size ann $ size n $ size ty $ size t sz'
+        Apply    ann t t'      -> size ann $ size t $ size t' sz'
+        Constant ann c         -> size ann $ size c sz'
+        TyInst   ann t ty      -> size ann $ size t $ size ty sz'
+        Unwrap   ann t         -> size ann $ size t sz'
+        IWrap    ann pat arg t -> size ann $ size pat $ size arg $ size t sz'
+        Error    ann ty        -> size ann $ size ty sz'
+        Builtin  ann bn        -> size ann $ size bn sz'
+        Constr   ann ty i es   -> size ann $ size ty $ size i $ size es sz'
+        Case     ann ty arg cs -> size ann $ size ty $ size arg $ size cs sz'
 
 instance ( Closed uni
          , Flat ann

@@ -1,5 +1,3 @@
-# haskell.nix materialized files
-nix/pkgs/haskell/materialized*/**/*.nix linguist-generated=true
 # linguist gets confused by PIR files, and thinks they make up a lot of our source!
 *.pir linguist-detectable=false
 stubs/plutus-ghc-stub/** linguist-vendored=true

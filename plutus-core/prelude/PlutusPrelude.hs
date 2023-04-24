@@ -86,6 +86,8 @@ module PlutusPrelude
     -- * Text
     , showText
     , Default (def)
+    -- * Lists
+    , zipExact
     ) where
 
 import Control.Applicative (Alternative (..), liftA2)
@@ -221,3 +223,11 @@ showText = T.pack . show
 -- | Compose two folds to make them run in parallel. The results are concatenated.
 (<^>) :: Fold s a -> Fold s a -> Fold s a
 (f1 <^> f2) g s = f1 g s *> f2 g s
+
+-- | Zips two lists of the same length together, returning 'Nothing' if they are not
+-- the same length.
+zipExact :: [a] -> [b] -> Maybe [(a,b)]
+zipExact [] []         = Just []
+zipExact [a] [b]       = Just [(a,b)]
+zipExact (a:as) (b:bs) = (:) (a, b) <$> zipExact as bs
+zipExact _ _           = Nothing

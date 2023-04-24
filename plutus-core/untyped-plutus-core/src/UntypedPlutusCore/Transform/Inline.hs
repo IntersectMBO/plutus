@@ -18,7 +18,7 @@ things in sync, these are explicitly listed in Note [Differences from PIR inline
 If you add another difference, please note it there! Obviously fewer differences is
 better.
 
-See Note [The problem of inlining destructors].
+See Note [The problem of inlining destructors] for why this pass exists.
 -}
 module UntypedPlutusCore.Transform.Inline (inline, InlineHints (..)) where
 
@@ -44,6 +44,7 @@ import Data.Semigroup.Generic (GenericSemigroupMonoid (..))
 import Witherable (wither)
 
 {- Note [Differences from PIR inliner]
+See the module comment for explanation for why this exists and is similar to the PIR inliner.
 
 1. No types (obviously).
 2. No strictness information (we only have lambda arguments, which are always strict).
@@ -276,16 +277,19 @@ firstEffectfulTerm = goTerm
     where
       goTerm = \case
 
-        Apply _ l _ -> goTerm l
-        Force _ t   -> goTerm t
+        Apply _ l _      -> goTerm l
+        Force _ t        -> goTerm t
+        Constr _ _ []    -> Nothing
+        Constr _ _ (t:_) -> goTerm t
+        Case _ t _       -> goTerm t
 
-        t@Var{}     -> Just t
-        t@Error{}   -> Just t
-        t@Builtin{} -> Just t
+        t@Var{}          -> Just t
+        t@Error{}        -> Just t
+        t@Builtin{}      -> Just t
 
-        LamAbs{}    -> Nothing
-        Constant{}  -> Nothing
-        Delay{}     -> Nothing
+        LamAbs{}         -> Nothing
+        Constant{}       -> Nothing
+        Delay{}          -> Nothing
 
 -- | Is the cost increase (in terms of evaluation work) of inlining a variable whose RHS is
 -- the given term acceptable?
@@ -300,8 +304,16 @@ costIsAcceptable = \case
   LamAbs{}   -> True
 
   Apply{}    -> False
+  -- Inlining constructors of size 1 or 0 seems okay, but does result in doing
+  -- the work for the elements at each use site.
+  Constr _ _ es  -> case es of
+      []  -> True
+      [e] -> costIsAcceptable e
+      _   -> False
+  -- Inlining a case means redoing the match at each use site
+  Case{} -> False
 
-  Force{}    -> True
+  Force{}    -> False
   Delay{}    -> True
 
 -- | Is the size increase (in the AST) of inlining a variable whose RHS is
@@ -314,6 +326,14 @@ sizeIsAcceptable = \case
 
   -- See Note [Differences from PIR inliner] 4
   LamAbs{}   -> False
+
+  -- Inlining constructors of size 1 or 0 seems okay
+  Constr _ _ es  -> case es of
+      []  -> True
+      [e] -> sizeIsAcceptable e
+      _   -> False
+  -- Cases are pretty big, due to the case branches
+  Case{} -> False
 
   -- Constants can be big! We could check the size here and inline if they're
   -- small, but probably not worth it

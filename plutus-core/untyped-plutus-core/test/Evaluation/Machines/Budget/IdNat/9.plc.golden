@@ -6,8 +6,10 @@
 | BStep BDelay causes ({cpu: 851000 | mem: 3700})
 | BStep BForce causes ({cpu: 805000 | mem: 3500})
 | BStep BBuiltin causes ({cpu: 207000 | mem: 900})
-| BBuiltinApp Id causes ({cpu: 9 | mem: 0})
+| BStep BConstr causes ({cpu: 0 | mem: 0})
+| BStep BCase causes ({cpu: 0 | mem: 0})
+| BBuiltinApp Id causes ({cpu: 0 | mem: 0})
 | BStartup causes ({cpu: 100 | mem: 100})})
-| budget: ({cpu: 10258109
+| budget: ({cpu: 10258100
 | mem: 44700})
 }) )

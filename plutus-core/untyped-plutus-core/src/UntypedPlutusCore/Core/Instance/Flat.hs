@@ -3,21 +3,21 @@
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE KindSignatures       #-}
 {-# LANGUAGE LambdaCase           #-}
-{-# LANGUAGE NamedFieldPuns       #-}
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module UntypedPlutusCore.Core.Instance.Flat where
 
+import PlutusCore.Flat
+import PlutusCore.Version qualified as PLC
 import UntypedPlutusCore.Core.Type
 
-import PlutusCore.Flat
-
+import Control.Monad
 import Data.Word (Word8)
 import Flat
 import Flat.Decoder
 import Flat.Encoder
+import Prettyprinter
 import Universe
 
 {-
@@ -54,9 +54,12 @@ This requires specialised encode/decode functions for each constructor
 that encodes a different number of possibilities. Here is a list of the
 tags and their used/available encoding possibilities.
 
-| Data type       | Function          | Used | Available |
-|-----------------|-------------------|------|-----------|
-| Terms           | encodeTerm        | 8    | 16        |
+** The BELOW table is for UPLC. **
+
+| Data type        | Function          | Bit Width | Total | Used | Remaining |
+|------------------|-------------------|-----------|-------|------|-----------|
+| default builtins | encodeBuiltin     | 7         | 128   | 54   | 74        |
+| Terms            | encodeTerm        | 4         | 16    | 10   | 6         |
 
 For format stability we are manually assigning the tag values to the
 constructors (and we do not use a generic algorithm that may change this order).
@@ -83,6 +86,17 @@ encoding of bytestrings is a sequence of 255-byte chunks. This is okay, since us
 be broken up by the chunk metadata.
 -}
 
+-- TODO: This is present upstream in newer versions of flat, remove once we get there.
+-- | Compute the size needed for a list using the given size function for the elements.
+-- Goes with 'encodeListWith'.
+sizeListWith :: (a -> NumBits -> NumBits) -> [a] -> NumBits -> NumBits
+sizeListWith sizer = go
+  where
+    -- Single bit to say stop
+    go [] sz     = sz + 1
+    -- Size for the rest plus size for the element, plus one for a tag to say keep going
+    go (x:xs) sz = go xs $ sizer x $ sz + 1
+
 -- | Using 4 bits to encode term tags.
 termTagWidth :: NumBits
 termTagWidth = 4
@@ -105,14 +119,16 @@ encodeTerm
     => Term name uni fun ann
     -> Encoding
 encodeTerm = \case
-    Var      ann n    -> encodeTermTag 0 <> encode ann <> encode n
-    Delay    ann t    -> encodeTermTag 1 <> encode ann <> encodeTerm t
-    LamAbs   ann n t  -> encodeTermTag 2 <> encode ann <> encode (Binder n) <> encodeTerm t
-    Apply    ann t t' -> encodeTermTag 3 <> encode ann <> encodeTerm t <> encodeTerm t'
-    Constant ann c    -> encodeTermTag 4 <> encode ann <> encode c
-    Force    ann t    -> encodeTermTag 5 <> encode ann <> encodeTerm t
-    Error    ann      -> encodeTermTag 6 <> encode ann
-    Builtin  ann bn   -> encodeTermTag 7 <> encode ann <> encode bn
+    Var      ann n      -> encodeTermTag 0 <> encode ann <> encode n
+    Delay    ann t      -> encodeTermTag 1 <> encode ann <> encodeTerm t
+    LamAbs   ann n t    -> encodeTermTag 2 <> encode ann <> encode (Binder n) <> encodeTerm t
+    Apply    ann t t'   -> encodeTermTag 3 <> encode ann <> encodeTerm t <> encodeTerm t'
+    Constant ann c      -> encodeTermTag 4 <> encode ann <> encode c
+    Force    ann t      -> encodeTermTag 5 <> encode ann <> encodeTerm t
+    Error    ann        -> encodeTermTag 6 <> encode ann
+    Builtin  ann bn     -> encodeTermTag 7 <> encode ann <> encode bn
+    Constr   ann i es   -> encodeTermTag 8 <> encode ann <> encode i <> encodeListWith encodeTerm es
+    Case     ann arg cs -> encodeTermTag 9 <> encode ann <> encodeTerm arg <> encodeListWith encodeTerm cs
 
 decodeTerm
     :: forall name uni fun ann
@@ -123,9 +139,10 @@ decodeTerm
     , Flat name
     , Flat (Binder name)
     )
-    => (fun -> Maybe String)
+    => Version
+    -> (fun -> Maybe String)
     -> Get (Term name uni fun ann)
-decodeTerm builtinPred = go
+decodeTerm version builtinPred = go
     where
         go = handleTerm =<< decodeTermTag
         handleTerm 0 = Var      <$> decode <*> decode
@@ -143,6 +160,12 @@ decodeTerm builtinPred = go
             case builtinPred fun of
                 Nothing -> pure t
                 Just e  -> fail e
+        handleTerm 8 = do
+            unless (version >= PLC.plcVersion110) $ fail $ "'constr' is not allowed before version 1.1.0, this program has version: " ++ (show $ pretty version)
+            Constr   <$> decode <*> decode <*> decodeListWith go
+        handleTerm 9 = do
+            unless (version >= PLC.plcVersion110) $ fail $ "'case' is not allowed before version 1.1.0, this program has version: " ++ (show $ pretty version)
+            Case     <$> decode <*> go <*> decodeListWith go
         handleTerm t = fail $ "Unknown term constructor tag: " ++ show t
 
 sizeTerm
@@ -157,15 +180,37 @@ sizeTerm
     => Term name uni fun ann
     -> NumBits
     -> NumBits
-sizeTerm tm sz = termTagWidth + sz + case tm of
-    Var      ann n    -> getSize ann + getSize n
-    Delay    ann t    -> getSize ann + getSize t
-    LamAbs   ann n t  -> getSize ann + getSize n + getSize t
-    Apply    ann t t' -> getSize ann + getSize t + getSize t'
-    Constant ann c    -> getSize ann + getSize c
-    Force    ann t    -> getSize ann + getSize t
-    Error    ann      -> getSize ann
-    Builtin  ann bn   -> getSize ann + getSize bn
+sizeTerm tm sz =
+  let
+    sz' = termTagWidth + sz
+  in case tm of
+    Var      ann n      -> size ann $ size n sz'
+    Delay    ann t      -> size ann $ sizeTerm t sz'
+    LamAbs   ann n t    -> size ann $ size n $ sizeTerm t sz'
+    Apply    ann t t'   -> size ann $ sizeTerm t $ sizeTerm t' sz'
+    Constant ann c      -> size ann $ size c sz'
+    Force    ann t      -> size ann $ sizeTerm t sz'
+    Error    ann        -> size ann sz'
+    Builtin  ann bn     -> size ann $ size bn sz'
+    Constr   ann i es   -> size ann $ size i $ sizeListWith sizeTerm es sz'
+    Case     ann arg cs -> size ann $ sizeTerm arg $ sizeListWith sizeTerm cs sz'
+
+-- | An encoder for programs.
+--
+-- It is not easy to use this correctly with @flat@. The simplest thing
+-- is to go via the instance for 'UnrestrictedProgram', which uses this
+encodeProgram
+    :: forall name uni fun ann
+    . ( Closed uni
+    , uni `Everywhere` Flat
+    , Flat fun
+    , Flat ann
+    , Flat name
+    , Flat (Binder name)
+    )
+    => Program name uni fun ann
+    -> Encoding
+encodeProgram (Program ann v t) = encode ann <> encode v <> encodeTerm t
 
 decodeProgram
     :: forall name uni fun ann
@@ -178,36 +223,40 @@ decodeProgram
     )
     => (fun -> Maybe String)
     -> Get (Program name uni fun ann)
-decodeProgram builtinPred = Program <$> decode <*> decode <*> decodeTerm builtinPred
+decodeProgram builtinPred = do
+  ann <- decode
+  v <- decode
+  Program ann v <$> decodeTerm v builtinPred
 
-{- Note [Deserialization on the chain]
-As discussed in Note [Deserialization size limits], we want to limit how big constants are when deserializing.
-But the 'Flat' instances for plain terms and programs provided here don't do that: they implement unrestricted deserialization.
+sizeProgram
+    :: forall name uni fun ann
+    . ( Closed uni
+    , uni `Everywhere` Flat
+    , Flat fun
+    , Flat ann
+    , Flat name
+    , Flat (Binder name)
+    )
+    => Program name uni fun ann
+    -> NumBits
+    -> NumBits
+sizeProgram (Program ann v t) sz = size ann $ size v $ sizeTerm t sz
 
-In practice we use a specialized decoder for the on-chain decoding which calls 'decodeProgram' directly.
-Possibly we should remove these instances in future and only have instances for newtypes that clearly communicate
-the expected behaviour.
--}
+-- | A program that can be serialized without any restrictions, e.g.
+-- on the set of allowable builtins or term constructs. It is generally
+-- safe to use this newtype for serializing, but it should only be used
+-- for deserializing in tests.
+newtype UnrestrictedProgram name uni fun ann = UnrestrictedProgram { unUnrestrictedProgram :: Program name uni fun ann }
 
+-- This instance does _not_ check for allowable builtins
 instance ( Closed uni
          , uni `Everywhere` Flat
          , Flat fun
          , Flat ann
          , Flat name
          , Flat (Binder name)
-         ) => Flat (Term name uni fun ann) where
-    encode = encodeTerm
-    decode = decodeTerm (const Nothing)
-    size = sizeTerm
+         ) => Flat (UnrestrictedProgram name uni fun ann) where
+    encode (UnrestrictedProgram p) = encodeProgram p
+    decode = UnrestrictedProgram <$> decodeProgram (const Nothing)
 
--- This instance could probably be derived, but better to write it explicitly ourselves so we have control!
-instance ( Closed uni
-         , uni `Everywhere` Flat
-         , Flat fun
-         , Flat ann
-         , Flat name
-         , Flat (Binder name)
-         ) => Flat (Program name uni fun ann) where
-    encode (Program ann v t) = encode ann <> encode v <> encode t
-
-    size (Program a v t) n = n + getSize a + getSize v + getSize t
+    size (UnrestrictedProgram p) = sizeProgram p

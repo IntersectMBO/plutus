@@ -1,0 +1,56 @@
+# Longitudinal Benchmarks 
+# 
+# This workflow will run the benchmarks defined in the environment variable BENCHMARKS.
+# It will collect and aggreate the benchmark output, format it and feed it to github-action-benchmark.
+#
+# The benchmark charts are live at https://input-output-hk.github.io/plutus/dev/bench
+# The benchmark data is available at https://input-output-hk.github.io/plutus/dev/bench/data.js
+
+name: Longitudinal Benchmarks
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  # Deployments permission to deploy GitHub pages website
+  deployments: write
+  # Contents permission to update benchmark contents in gh-pages branch
+  contents: write
+
+jobs:
+  longitudinal-benchmarks:
+    name: Performance regression check
+    runs-on: [self-hosted, plutus-benchmark]
+    steps:
+      - uses: actions/checkout@v3.3.0
+
+      - name: Run benchmarks
+        env: 
+          BENCHMARKS: "validation validation-decode"
+        run: nix develop --no-warn-dirty --accept-flake-config --command bash ./scripts/run-longitudinal-benchmarks.sh
+
+      # We need this otherwise the next step (Store benchmark result) will fail with:
+      # `pre-commit` not found.  Did you forget to activate your virtualenv?
+      # This is because github-action-benchmark will call git commit outside nix develop.
+      - name: Disable Git Hooks
+        run: git config core.hooksPath no-hooks
+
+      - name: Store benchmark result
+        uses: benchmark-action/github-action-benchmark@v1.16.2
+        with:
+          name: Plutus Benchmarks
+          tool: 'customSmallerIsBetter'
+          output-file-path: output.json
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # Push and deploy GitHub pages branch automatically
+          auto-push: true
+          # Enable alert commit comment
+          comment-on-alert: true
+          # Mention @input-output-hk/plutus-core in the commit comment
+          alert-comment-cc-users: '@input-output-hk/plutus-core'
+          # Percentage value like "110%". 
+          # It is a ratio indicating how worse the current benchmark result is. 
+          # For example, if we now get 110 ns/iter and previously got 100 ns/iter, it gets 110% worse.
+          alert-threshold: '105%'

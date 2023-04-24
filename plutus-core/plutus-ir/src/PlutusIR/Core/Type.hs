@@ -37,12 +37,13 @@ import PlutusCore (Kind, Name, TyName, Type (..), Version (..))
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin (HasConstant (..), throwNotAConstant)
 import PlutusCore.Core (UniOf)
-import PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.Flat ()
 import PlutusCore.MkPlc (Def (..), TermLike (..), TyVarDecl (..), VarDecl (..))
 import PlutusCore.Name qualified as PLC
 
 import Data.Text qualified as T
+import Data.Word
 
 -- Datatypes
 
@@ -131,6 +132,9 @@ data Term tyname name uni fun a =
                         | Error a (Type tyname uni a)
                         | IWrap a (Type tyname uni a) (Type tyname uni a) (Term tyname name uni fun a)
                         | Unwrap a (Term tyname name uni fun a)
+                        -- See Note [Constr tag type]
+                        | Constr a (Type tyname uni a) Word64 [Term tyname name uni fun a]
+                        | Case a (Type tyname uni a) (Term tyname name uni fun a) [Term tyname name uni fun a]
                         deriving stock (Functor, Show, Generic)
 
 -- See Note [ExMemoryUsage instances for non-constants].
@@ -157,6 +161,9 @@ instance TermLike (Term tyname name uni fun) tyname name uni fun where
     unwrap   = Unwrap
     iWrap    = IWrap
     error    = Error
+    constr   = Constr
+    kase     = Case
+
     termLet x (Def vd bind) = Let x NonRec (pure $ TermBind x Strict vd bind)
     typeLet x (Def vd bind) = Let x NonRec (pure $ TypeBind x vd bind)
 
@@ -197,6 +204,8 @@ termAnn = \case
     Error a _      -> a
     IWrap a _ _ _  -> a
     Unwrap a _     -> a
+    Constr a _ _ _ -> a
+    Case a _ _ _   -> a
 
 bindingAnn :: Binding tyname name uni fun a -> a
 bindingAnn = \case

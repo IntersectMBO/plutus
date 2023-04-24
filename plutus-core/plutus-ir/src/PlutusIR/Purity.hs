@@ -98,6 +98,8 @@ isPure ver varStrictness = go
             -- A non-recursive `Let` is pure if all bindings are pure and the body is pure.
             -- A recursive `Let` may loop, so we consider it non-pure.
             Let _ NonRec bs t -> all isPureBinding bs && go t
+            -- A constructor is pure if all of its elements are pure
+            Constr _ _ _ es -> all go es
 
             x | Just bapp@(BuiltinApp _ args) <- asBuiltinApp x ->
                 -- Pure only if we can tell that the builtin application is not saturated
@@ -130,6 +132,9 @@ firstEffectfulTerm = goTerm
         TyInst _ t _ -> goTerm t
         IWrap _ _ _ t -> goTerm t
         Unwrap _ t -> goTerm t
+        Constr _ _ _ [] -> Nothing
+        Constr _ _ _ (t:_) -> goTerm t
+        Case _ _ t _ -> goTerm t
 
         t@Var{} -> Just t
         t@Error{} -> Just t

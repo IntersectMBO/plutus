@@ -145,6 +145,16 @@ instance (PrettyConstraints configName tyname name uni, Pretty fun)
                 -- foo x y
                 in vsep $ [ prettyLet r binds | (r, binds) <- lets ] ++ [ prettyBot body ]
         Let{} -> error "The impossible happened. This should be covered by the `viewLet` case above."
+        Constr _ ty i es -> sequenceDocM ToTheRight juxtFixity $ \prettyEl ->
+          "constr" <+> prettyEl ty <+> prettyEl i <+> prettyEl es
+        Case _ ty arg cs -> sequenceDocM ToTheRight juxtFixity $ \prettyEl ->
+          "case" <+> prettyEl ty <+> prettyEl arg <+> prettyEl cs
+
+instance (PrettyConstraints configName tyname name uni, Pretty fun)
+          => PrettyBy (PrettyConfigReadable configName) (Program tyname name uni fun a) where
+  prettyBy = inContextM $ \(Program _ _ term) ->
+    sequenceDocM ToTheRight juxtFixity $ \prettyEl ->
+        "program" <+> prettyEl term
 
 instance (PrettyConstraints configName tyname name uni, Pretty fun)
           => PrettyBy (PrettyConfigReadable configName) (Binding tyname name uni fun ann) where

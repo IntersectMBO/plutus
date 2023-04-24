@@ -1,9 +1,11 @@
 {-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MonoLocalBinds        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 {-# OPTIONS_GHC -Wno-orphans       #-}
+
 module PlutusIR.Core.Instance.Pretty () where
 
 import PlutusPrelude
@@ -12,6 +14,7 @@ import PlutusCore qualified as PLC
 import PlutusCore.Flat ()
 import PlutusCore.Pretty qualified as PLC
 
+import PlutusIR.Core.Instance.Pretty.Readable ()
 import PlutusIR.Core.Type
 
 import Prettyprinter
@@ -114,6 +117,12 @@ instance ( PLC.PrettyClassicBy configName tyname
         Unwrap ann t ->
             sexp "unwrap" (PLC.consAnnIf config ann
                 [prettyBy config t])
+        Constr ann ty i es ->
+            sexp "constr" (PLC.consAnnIf config ann
+                           (prettyBy config ty : pretty i : fmap (prettyBy config) es))
+        Case ann ty arg cs ->
+            sexp "case" (PLC.consAnnIf config ann
+                         (prettyBy config ty : prettyBy config arg : fmap (prettyBy config) cs))
       where
         prettyTypeOf :: PLC.Pretty (PLC.SomeTypeIn t)  => PLC.Some (PLC.ValueOf t) -> Doc dann
         prettyTypeOf (PLC.Some (PLC.ValueOf uni _ )) = pretty $ PLC.SomeTypeIn uni
@@ -175,3 +184,12 @@ instance ( PLC.PrettyClassic tyname
          , Pretty ann
          ) => Pretty (Program tyname name uni fun ann) where
     pretty = PLC.prettyClassicDef
+
+
+deriving via PrettyAny (Term tyname name uni fun ann)
+    instance PLC.DefaultPrettyPlcStrategy (Term tyname name uni fun ann) =>
+        PrettyBy PLC.PrettyConfigPlc (Term tyname name uni fun ann)
+
+deriving via PrettyAny (Program tyname name uni fun ann)
+    instance PLC.DefaultPrettyPlcStrategy (Program tyname name uni fun ann) =>
+        PrettyBy PLC.PrettyConfigPlc (Program tyname name uni fun ann)

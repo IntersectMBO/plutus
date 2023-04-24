@@ -2,12 +2,13 @@
 
 module Untyped where
 
-import PlutusCore.Data
+import PlutusCore.Data hiding (Constr)
 import PlutusCore.Default
 import UntypedPlutusCore
 
 import Data.ByteString as BS
 import Data.Text as T
+import Data.Word (Word64)
 import Universe
 
 
@@ -21,6 +22,8 @@ data UTerm = UVar Integer
            | UBuiltin DefaultFun
            | UDelay UTerm
            | UForce UTerm
+           | UConstr Word64 [UTerm]
+           | UCase UTerm [UTerm]
            deriving Show
 
 unIndex :: Index -> Integer
@@ -30,14 +33,16 @@ convP :: Program NamedDeBruijn DefaultUni DefaultFun a -> UTerm
 convP (Program _ _ t) = conv t
 
 conv :: Term NamedDeBruijn DefaultUni DefaultFun a -> UTerm
-conv (Var _ x)      = UVar (unIndex (ndbnIndex x) - 1)
-conv (LamAbs _ _ t) = ULambda (conv t)
-conv (Apply _ t u)  = UApp (conv t) (conv u)
-conv (Builtin _ b)  = UBuiltin b
-conv (Constant _ c) = UCon c
-conv (Error _)      = UError
-conv (Delay _ t)    = UDelay (conv t)
-conv (Force _ t)    = UForce (conv t)
+conv (Var _ x)       = UVar (unIndex (ndbnIndex x) - 1)
+conv (LamAbs _ _ t)  = ULambda (conv t)
+conv (Apply _ t u)   = UApp (conv t) (conv u)
+conv (Builtin _ b)   = UBuiltin b
+conv (Constant _ c)  = UCon c
+conv (Error _)       = UError
+conv (Delay _ t)     = UDelay (conv t)
+conv (Force _ t)     = UForce (conv t)
+conv (Constr _ i es) = UConstr i (fmap conv es)
+conv (Case _ arg cs) = UCase (conv arg) (fmap conv cs)
 
 tmnames = ['a' .. 'z']
 

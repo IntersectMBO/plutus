@@ -1,1 +1,4 @@
-[]
+( []
+, (let
+  (nonrec) (termbind (strict) (vardecl x (con integer)) (error (con integer))) x
+) )

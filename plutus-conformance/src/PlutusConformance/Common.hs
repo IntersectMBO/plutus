@@ -6,16 +6,14 @@
 module PlutusConformance.Common where
 
 import Control.Lens (traverseOf)
-import Control.Monad.Trans.Except
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
-import MAlonzo.Code.Main (runUAgda)
 import PlutusCore.Annotation
 import PlutusCore.Default (DefaultFun, DefaultUni)
-import PlutusCore.Error (Error (..), ParserErrorBundle)
+import PlutusCore.Error (ParserErrorBundle)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParameters)
 import PlutusCore.Name (Name)
-import PlutusCore.Quote (Quote, runQuote, runQuoteT)
+import PlutusCore.Quote (runQuoteT)
 import PlutusPrelude (display, void)
 import System.Directory
 import System.FilePath (takeBaseName, (</>))
@@ -25,7 +23,6 @@ import Test.Tasty.Golden (findByExtension)
 import Test.Tasty.Golden.Advanced (goldenTest)
 import Test.Tasty.Providers (TestTree)
 import UntypedPlutusCore qualified as UPLC
-import UntypedPlutusCore.DeBruijn
 import UntypedPlutusCore.Evaluation.Machine.Cek (evaluateCekNoEmit)
 import UntypedPlutusCore.Parser qualified as UPLC
 import Witherable (Witherable (wither))
@@ -182,7 +179,8 @@ evalUplcProg :: UplcEvaluator
 evalUplcProg = traverseOf UPLC.progTerm eval
   where
     eval t = do
-        -- The evaluator throws if the term has free variables
+        -- runCek-like functions (e.g. evaluateCekNoEmit) are partial on term's with free variables,
+        -- that is why we manually check first for any free vars
         case UPLC.deBruijnTerm t of
             Left (_ :: UPLC.FreeVariableError) -> Nothing
             Right _                            -> Just ()
@@ -206,38 +204,3 @@ runUplcEvalTests eval expectedFailTests = do
             "test-cases/uplc/evaluation"
     defaultMain $ testGroup "UPLC evaluation tests" [tests]
 
-
--- | For debugging failed UPLC evaluation tests (Agda implementation). Called by `test-utils`.
-agdaEvalUplcProgDebug :: UplcProg -> Either String UplcProg
-agdaEvalUplcProgDebug (UPLC.Program () version tmU) =
-    let
-        -- turn it into an untyped de Bruijn term
-        tmUDB :: ExceptT FreeVariableError Quote (UPLC.Term NamedDeBruijn DefaultUni DefaultFun ())
-        tmUDB = deBruijnTerm tmU
-    in
-    case runQuote $ runExceptT $ withExceptT FreeVariableErrorE tmUDB of
-        -- if there's an exception, evaluation failed, should return `Nothing`.
-        Left fvError ->
-            Left $ "deBruijnTerm returned an error: "
-                <> show (fvError :: Error DefaultUni DefaultFun ())
-        -- evaluate the untyped term with CEK
-        Right tmUDBSuccess ->
-            case runUAgda tmUDBSuccess of
-                Left evalError ->
-                    Left $ "runUAgda returned an error: " <> show evalError <>
-                        "The input to runUAgda was " <> show tmUDBSuccess <>
-                        ", returned by deBruijnTerm."
-                Right tmEvaluated ->
-                    let tmNamed = runQuote $ runExceptT $
-                            withExceptT FreeVariableErrorE $ unDeBruijnTerm tmEvaluated
-                    in
-                    -- turn it back into a named term
-                    case tmNamed of
-                        Left (err :: Error DefaultUni DefaultFun ())          ->
-                            Left $
-                                "unDeBruijnTerm returned an error: " <> show err <>
-                                "The input to unDebruijnTerm was " <> show tmEvaluated <>
-                                ", returned by runUAgda." <>
-                                "The input to runUAgda was " <> show tmUDBSuccess <>
-                                ", returned by deBruijnTerm."
-                        Right namedTerm -> Right $ UPLC.Program () version namedTerm

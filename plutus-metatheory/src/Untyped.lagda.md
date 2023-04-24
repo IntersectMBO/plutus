@@ -23,7 +23,6 @@ open import Builtin using (Builtin;equals)
 open Builtin.Builtin
 
 open import Raw using (decBuiltin)
-open import Algorithmic using (arity;Term;Type)
 
 open import Agda.Builtin.String using (primStringFromList; primStringAppend; primStringEquality)
 open import Data.Nat using (ℕ;suc;zero)

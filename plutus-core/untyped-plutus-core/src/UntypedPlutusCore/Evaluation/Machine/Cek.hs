@@ -1,9 +1,5 @@
--- editorconfig-checker-disable-file
 -- | The API to the CEK machine.
-
-{-# LANGUAGE DataKinds        #-}
-{-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE TypeOperators    #-}
+{-# LANGUAGE TypeOperators #-}
 
 module UntypedPlutusCore.Evaluation.Machine.Cek
     (
@@ -35,6 +31,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek
     , RestrictingSt (..)
     , CekMachineCosts
     -- ** Costing modes
+    , monoidalBudgeting
     , counting
     , tallying
     , restricting
@@ -56,35 +53,20 @@ where
 import PlutusPrelude
 
 import UntypedPlutusCore.Core
-import UntypedPlutusCore.DeBruijn
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
 import UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode
 import UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
 import UntypedPlutusCore.Evaluation.Machine.Cek.Internal
+import UntypedPlutusCore.Evaluation.Machine.CommonAPI qualified as Common
 
 import PlutusCore.Builtin
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Name
 import PlutusCore.Pretty
-import PlutusCore.Quote
 
-import Control.Monad.Except
-import Control.Monad.State
-import Data.Bifunctor
 import Data.Text (Text)
 import Universe
-
-{- Note [CEK runners naming convention]
-A function whose name ends in @NoEmit@ does not perform logging and so does not return any logs.
-A function whose name starts with @unsafe@ throws exceptions instead of returning them purely.
-A function from the @runCek@ family takes an 'ExBudgetMode' parameter and returns the final
-'CekExBudgetState' (and possibly logs). Note that 'runCek' is defined in @...Cek.Internal@ for
-reasons explained in Note [Compilation peculiarities].
-A function from the @evaluateCek@ family does not return the final 'ExBudgetMode', nor does it
-allow one to specify an 'ExBudgetMode'. I.e. such functions are only for fully evaluating programs
-(and possibly returning logs). See also haddocks of 'enormousBudget'.
--}
 
 {-| Evaluate a term using the CEK machine with logging enabled and keep track of costing.
 A wrapper around the internal runCek to debruijn input and undebruijn output.
@@ -97,27 +79,7 @@ runCek
     -> EmitterMode uni fun
     -> Term Name uni fun ann
     -> (Either (CekEvaluationException Name uni fun) (Term Name uni fun ()), cost, [Text])
-runCek params mode emitMode term =
-    -- translating input
-    case runExcept @FreeVariableError $ deBruijnTerm term of
-        Left fvError -> throw fvError
-        Right dbt -> do
-            -- Don't use 'let': https://github.com/input-output-hk/plutus/issues/3876
-            case runCekDeBruijn params mode emitMode dbt of
-                -- translating back the output
-                (res, cost', logs) -> (unDeBruijnResult res, cost', logs)
-  where
-    -- *GRACEFULLY* undebruijnifies: a) the error-cause-term (if it exists) or b) the success value-term.
-    -- 'Graceful' means that the (a) && (b) undebruijnifications do not throw an error upon a free variable encounter.
-    unDeBruijnResult :: Either (CekEvaluationException NamedDeBruijn uni fun) (Term NamedDeBruijn uni fun ())
-                     -> Either (CekEvaluationException Name uni fun) (Term Name uni fun ())
-    unDeBruijnResult = bimap (fmap gracefulUnDeBruijn) gracefulUnDeBruijn
-
-    -- free debruijn indices will be turned to free, consistent uniques
-    gracefulUnDeBruijn :: Term NamedDeBruijn uni fun () -> Term Name uni fun ()
-    gracefulUnDeBruijn t = runQuote
-                           . flip evalStateT mempty
-                           $ unDeBruijnTermWith freeIndexAsConsistentLevel t
+runCek = Common.runCek runCekDeBruijn
 
 -- | Evaluate a term using the CEK machine with logging disabled and keep track of costing.
 -- *THIS FUNCTION IS PARTIAL if the input term contains free variables*
@@ -127,9 +89,7 @@ runCekNoEmit
     -> ExBudgetMode cost uni fun
     -> Term Name uni fun ann
     -> (Either (CekEvaluationException Name uni fun) (Term Name uni fun ()), cost)
-runCekNoEmit params mode =
-    -- throw away the logs
-    (\(res, cost, _logs) -> (res, cost)) . runCek params mode noEmitter
+runCekNoEmit = Common.runCekNoEmit runCekDeBruijn
 
 {-| Unsafely evaluate a term using the CEK machine with logging disabled and keep track of costing.
 May throw a 'CekMachineException'.
@@ -144,9 +104,7 @@ unsafeRunCekNoEmit
     -> ExBudgetMode cost uni fun
     -> Term Name uni fun ann
     -> (EvaluationResult (Term Name uni fun ()), cost)
-unsafeRunCekNoEmit params mode =
-    -- Don't use 'first': https://github.com/input-output-hk/plutus/issues/3876
-    (\(e, l) -> (unsafeExtractEvaluationResult e, l)) . runCekNoEmit params mode
+unsafeRunCekNoEmit = Common.unsafeRunCekNoEmit runCekDeBruijn
 
 -- | Evaluate a term using the CEK machine with logging enabled.
 -- *THIS FUNCTION IS PARTIAL if the input term contains free variables*
@@ -156,9 +114,7 @@ evaluateCek
     -> MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> Term Name uni fun ann
     -> (Either (CekEvaluationException Name uni fun) (Term Name uni fun ()), [Text])
-evaluateCek emitMode params =
-    -- throw away the cost
-    (\(res, _cost, logs) -> (res, logs)) . runCek params restrictingEnormous emitMode
+evaluateCek = Common.evaluateCek runCekDeBruijn
 
 -- | Evaluate a term using the CEK machine with logging disabled.
 -- *THIS FUNCTION IS PARTIAL if the input term contains free variables*
@@ -167,7 +123,7 @@ evaluateCekNoEmit
     => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> Term Name uni fun ann
     -> Either (CekEvaluationException Name uni fun) (Term Name uni fun ())
-evaluateCekNoEmit params = fst . runCekNoEmit params restrictingEnormous
+evaluateCekNoEmit = Common.evaluateCekNoEmit runCekDeBruijn
 
 -- | Evaluate a term using the CEK machine with logging enabled. May throw a 'CekMachineException'.
 -- *THIS FUNCTION IS PARTIAL if the input term contains free variables*
@@ -180,9 +136,7 @@ unsafeEvaluateCek
     -> MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> Term Name uni fun ann
     -> (EvaluationResult (Term Name uni fun ()), [Text])
-unsafeEvaluateCek emitTime params =
-    -- Don't use 'first': https://github.com/input-output-hk/plutus/issues/3876
-    (\(e, l) -> (unsafeExtractEvaluationResult e, l)) . evaluateCek emitTime params
+unsafeEvaluateCek = Common.unsafeEvaluateCek runCekDeBruijn
 
 -- | Evaluate a term using the CEK machine with logging disabled. May throw a 'CekMachineException'.
 -- *THIS FUNCTION IS PARTIAL if the input term contains free variables*
@@ -194,7 +148,7 @@ unsafeEvaluateCekNoEmit
     => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> Term Name uni fun ann
     -> EvaluationResult (Term Name uni fun ())
-unsafeEvaluateCekNoEmit params = unsafeExtractEvaluationResult . evaluateCekNoEmit params
+unsafeEvaluateCekNoEmit = Common.unsafeEvaluateCekNoEmit runCekDeBruijn
 
 -- | Unlift a value using the CEK machine.
 -- *THIS FUNCTION IS PARTIAL if the input term contains free variables*
@@ -205,4 +159,4 @@ readKnownCek
     => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> Term Name uni fun ann
     -> Either (CekEvaluationException Name uni fun) a
-readKnownCek params = evaluateCekNoEmit params >=> readKnownSelf
+readKnownCek = Common.readKnownCek runCekDeBruijn

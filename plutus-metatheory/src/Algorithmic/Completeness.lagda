@@ -18,6 +18,7 @@ open _≡β_
 open import Type.RenamingSubstitution using (weaken;ren;_[_];sub-cons;Sub;sub)
 import Declarative as Syn
 import Algorithmic as Norm
+import Algorithmic.Signature as Norm
 open import Type.BetaNormal using (embNf;weakenNf;ne;_⊢Nf⋆_;_⊢Ne⋆_)
 open _⊢Nf⋆_
 open _⊢Ne⋆_

@@ -57,6 +57,8 @@ randomCekCosts =
                     , cekForceCost   = ExBudget 1028234 0
                     , cekApplyCost   = ExBudget 324628348 8273
                     , cekBuiltinCost = ExBudget 4 4
+                    , cekConstrCost  = ExBudget 8 100000
+                    , cekCaseCost    = ExBudget 3324234 555
                     }
 
 cekVarCostCpuKey :: Text.Text

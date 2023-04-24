@@ -6,6 +6,8 @@
 | BStep BDelay causes ({cpu: 989000 | mem: 4300})
 | BStep BForce causes ({cpu: 759000 | mem: 3300})
 | BStep BBuiltin causes ({cpu: 46000 | mem: 200})
+| BStep BConstr causes ({cpu: 0 | mem: 0})
+| BStep BCase causes ({cpu: 0 | mem: 0})
 | BBuiltinApp IfThenElse causes ({cpu: 161112 | mem: 2})
 | BStartup causes ({cpu: 100 | mem: 100})})
 | budget: ({cpu: 11109212

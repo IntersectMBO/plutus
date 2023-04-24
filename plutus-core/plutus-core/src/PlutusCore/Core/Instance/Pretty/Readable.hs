@@ -63,6 +63,9 @@ instance
         TyLam _ name kind body    ->
             typeBinderDocM $ \prettyBinding prettyBody ->
                 "\\" <> prettyBinding name kind <+> "->" <+> prettyBody body
+        TySOP _ tls ->
+            sequenceDocM ToTheRight juxtFixity $ \prettyEl ->
+                hsep ("sop":fmap prettyEl tls)
 
 instance
         ( PrettyReadableBy configName tyname
@@ -95,6 +98,10 @@ instance
         Error _ ty             ->
             compoundDocM juxtFixity $ \prettyIn ->
                 "error" <+> braces (prettyIn ToTheRight botFixity ty)
+        Constr _ ty i es -> sequenceDocM ToTheRight juxtFixity $ \prettyEl ->
+          "constr" <+> prettyEl ty <+> prettyEl i <+> prettyEl es
+        Case _ ty arg cs -> sequenceDocM ToTheRight juxtFixity $ \prettyEl ->
+          "case" <+> prettyEl ty <+> prettyEl arg <+> prettyEl cs
 
 instance PrettyReadableBy configName (Term tyname name uni fun a) =>
         PrettyBy (PrettyConfigReadable configName) (Program tyname name uni fun a) where
