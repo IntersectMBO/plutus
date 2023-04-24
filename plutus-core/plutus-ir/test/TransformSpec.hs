@@ -170,6 +170,7 @@ knownCon =
         map
             (goldenPirM goldenKnownConTC pTerm)
             [ "applicative"
+            , "bool"
             , "list"
             , "maybe-just"
             , "maybe-just-unsaturated"
