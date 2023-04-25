@@ -10,7 +10,6 @@ module PlutusCore.Parser.ParserCommon where
 import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State (MonadState (..), StateT, evalStateT)
-import Data.Char
 import Data.Map qualified as M
 import Data.Text qualified as T
 import Text.Megaparsec hiding (ParseError, State, parse, some)
@@ -132,21 +131,6 @@ inBrackets = between (symbol "[") (char ']')
 inBraces :: Parser a -> Parser a
 inBraces = between (symbol "{") (char '}')
 
--- | Allowed characters in the starting position of a non-quoted identifier.
-isIdentifierStartingChar :: Char -> Bool
-isIdentifierStartingChar c = isAscii c && isAlpha c
-
--- | Allowed characters in a non-starting position of a non-quoted identifier.
-isIdentifierChar :: Char -> Bool
-isIdentifierChar c = isIdentifierStartingChar c || isDigit c || c == '\'' || c == '_'
-
--- | Allowed characters in a quoted identifier.
-isQuotedIdentifierChar :: Char -> Bool
-isQuotedIdentifierChar c =
-    (isAlpha c || isDigit c || isPunctuation c || isSymbol c)
-        && isAscii c
-        && c /= '`'
-
 toSrcSpan :: SourcePos -> SourcePos -> SrcSpan
 toSrcSpan start end =
     SrcSpan
@@ -174,10 +158,8 @@ name = try $ parseUnquoted <|> parseQuoted
         str <- takeWhileP (Just "identifier-unquoted") isIdentifierChar
         Name str <$> intern str
     parseQuoted = do
-        void $ char backTick
+        void $ char '`'
         void $ lookAhead (satisfy isQuotedIdentifierChar)
-        strUnquoted <- takeWhileP (Just "identifier-quoted") isQuotedIdentifierChar
-        void $ char backTick
-        let str = T.cons backTick (T.snoc strUnquoted backTick)
+        str <- takeWhileP (Just "identifier-quoted") isQuotedIdentifierChar
+        void $ char '`'
         Name str <$> intern str
-    backTick = '`'

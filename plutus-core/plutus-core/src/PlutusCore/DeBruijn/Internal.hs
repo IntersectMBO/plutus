@@ -119,10 +119,12 @@ newtype TyDeBruijn = TyDeBruijn DeBruijn
 instance Wrapped TyDeBruijn
 
 instance HasPrettyConfigName config => PrettyBy config NamedDeBruijn where
-    prettyBy config (NamedDeBruijn txt (Index ix))
+    prettyBy config (NamedDeBruijn txt0 (Index ix))
         | showsUnique = pretty txt <> "_i" <> pretty ix
         | otherwise   = pretty txt
-        where PrettyConfigName showsUnique = toPrettyConfigName config
+      where
+        txt = toPrintedName txt0
+        PrettyConfigName showsUnique = toPrettyConfigName config
 
 instance HasPrettyConfigName config => PrettyBy config DeBruijn where
     prettyBy config (DeBruijn (Index ix))

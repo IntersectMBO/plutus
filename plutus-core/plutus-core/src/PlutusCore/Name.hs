@@ -9,6 +9,11 @@
 module PlutusCore.Name
     ( -- * Types
       Name (..)
+    , isIdentifierStartingChar
+    , isIdentifierChar
+    , isQuotedIdentifierChar
+    , isValidUnquotedName
+    , toPrintedName
     , TyName (..)
     , Named (..)
     , Unique (..)
@@ -39,6 +44,7 @@ import PlutusPrelude
 import PlutusCore.Pretty.ConfigName
 
 import Control.Lens
+import Data.Char
 import Data.Hashable
 import Data.IntMap.Strict qualified as IM
 import Data.Text (Text)
@@ -55,6 +61,29 @@ data Name = Name
     deriving stock (Show, Generic, Lift)
     deriving anyclass (NFData, Hashable)
 
+-- | Allowed characters in the starting position of a non-quoted identifier.
+isIdentifierStartingChar :: Char -> Bool
+isIdentifierStartingChar c = isAscii c && isAlpha c
+
+-- | Allowed characters in a non-starting position of a non-quoted identifier.
+isIdentifierChar :: Char -> Bool
+isIdentifierChar c = isIdentifierStartingChar c || isDigit c || c == '\'' || c == '_'
+
+-- | Allowed characters in a quoted identifier.
+isQuotedIdentifierChar :: Char -> Bool
+isQuotedIdentifierChar c =
+    (isAlpha c || isDigit c || isPunctuation c || isSymbol c)
+        && isAscii c
+        && c /= '`'
+
+isValidUnquotedName :: Text -> Bool
+isValidUnquotedName n = case T.uncons n of
+    Just (hd, tl) -> isIdentifierStartingChar hd && T.all isIdentifierChar tl
+    Nothing       -> False
+
+toPrintedName :: Text -> Text
+toPrintedName txt = if isValidUnquotedName txt then txt else "`" <> txt <> "`"
+
 -- | We use a @newtype@ to enforce separation between names used for types and
 -- those used for terms.
 newtype TyName = TyName { unTyName :: Name }
@@ -68,10 +97,12 @@ data Named a = Named
     } deriving stock (Functor, Foldable, Traversable)
 
 instance HasPrettyConfigName config => PrettyBy config Name where
-    prettyBy config (Name txt (Unique uniq))
+    prettyBy config (Name txt0 (Unique uniq))
         | showsUnique = pretty txt <> "_" <> pretty uniq
         | otherwise   = pretty txt
-        where PrettyConfigName showsUnique = toPrettyConfigName config
+      where
+        txt = toPrintedName txt0
+        PrettyConfigName showsUnique = toPrettyConfigName config
 
 instance Eq Name where
     (==) = (==) `on` _nameUnique

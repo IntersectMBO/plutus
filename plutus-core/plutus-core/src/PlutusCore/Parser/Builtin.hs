@@ -9,6 +9,7 @@ import PlutusPrelude (Word8, reoption)
 import PlutusCore.Data
 import PlutusCore.Default
 import PlutusCore.Error (ParserError (InvalidData, UnknownBuiltinFunction))
+import PlutusCore.Name
 import PlutusCore.Parser.ParserCommon
 import PlutusCore.Parser.Type (defaultUni)
 import PlutusCore.Pretty (display)

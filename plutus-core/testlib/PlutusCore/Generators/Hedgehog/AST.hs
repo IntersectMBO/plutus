@@ -22,7 +22,7 @@ module PlutusCore.Generators.Hedgehog.AST
 import PlutusPrelude
 
 import PlutusCore
-import PlutusCore.Parser (isQuotedIdentifierChar)
+import PlutusCore.Name (isQuotedIdentifierChar)
 import PlutusCore.Subst
 
 import Control.Lens (coerced)
@@ -70,9 +70,8 @@ genNameText = Gen.choice [genUnquoted, genQuoted]
         Text.cons
             <$> Gen.alpha
             <*> Gen.text (Range.linear 0 4) (Gen.choice [Gen.alphaNum, Gen.element ['_', '\'']])
-    genQuoted = do
-        str <- Gen.text (Range.linear 1 5) (Gen.filterT isQuotedIdentifierChar Gen.ascii)
-        pure $ "`" <> str <> "`"
+    genQuoted =
+        Gen.text (Range.linear 1 5) (Gen.filterT isQuotedIdentifierChar Gen.ascii)
 
 -- | Generate a fixed set of names which we will use, of only up to a short size to make it
 -- likely that we get reuse.

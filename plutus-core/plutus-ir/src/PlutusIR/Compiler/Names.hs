@@ -2,7 +2,7 @@
 module PlutusIR.Compiler.Names (safeFreshName, safeFreshTyName) where
 
 import PlutusCore qualified as PLC
-import PlutusCore.Parser (isIdentifierChar, isIdentifierStartingChar, isQuotedIdentifierChar)
+import PlutusCore.Name (isQuotedIdentifierChar)
 import PlutusCore.Quote
 
 import Data.List
@@ -54,17 +54,9 @@ safeName kind t =
             TypeName -> typeReplacements
             TermName -> termReplacements
         replaced = foldl' (\acc (old, new) -> T.replace old new acc) t toReplace
-        isValidUnquotedName n = case T.uncons n of
-            Just (hd, tl) -> isIdentifierStartingChar hd && T.all isIdentifierChar tl
-            Nothing       -> False
-     in if isValidUnquotedName replaced
-            then replaced
-            else
-                let
-                    -- strip out disallowed characters
-                    stripped = T.filter isQuotedIdentifierChar replaced
-                    -- empty name, just put something to mark that
-                 in if T.null stripped then "bad_name" else "`" <> stripped <> "`"
+        -- strip out disallowed characters
+        stripped = T.filter isQuotedIdentifierChar replaced
+     in if T.null stripped then "bad_name" else stripped
 
 safeFreshName :: MonadQuote m => T.Text -> m PLC.Name
 safeFreshName s = liftQuote $ freshName $ safeName TermName s
