@@ -81,6 +81,8 @@ isValidUnquotedName n = case T.uncons n of
     Just (hd, tl) -> isIdentifierStartingChar hd && T.all isIdentifierChar tl
     Nothing       -> False
 
+-- | Quote the name with backticks if it is not a valid unquoted name.
+-- It does not check whether the given name is a valid quoted name.
 toPrintedName :: Text -> Text
 toPrintedName txt = if isValidUnquotedName txt then txt else "`" <> txt <> "`"
 
