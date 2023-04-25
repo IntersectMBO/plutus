@@ -1,3 +1,3 @@
 ### Changed
 
-- Allow PLC names quoted in backticks. Quoted names may have symbolic characters.
+- The PLC, UPLC, and PIR parsers accept names quoted in backticks. Quoted names may have symbolic characters.
