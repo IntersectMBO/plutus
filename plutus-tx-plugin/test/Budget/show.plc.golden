@@ -228,6 +228,22 @@ let
                {all dead. dead})
           {all dead. dead}
   !x : integer = -1234567890
+in
+letrec
+  !fEnumBool_cenumFromTo : integer -> integer -> List integer
+    = \(x : integer)
+       (y : integer) ->
+        Bool_match
+          (ifThenElse {Bool} (lessThanEqualsInteger x y) False True)
+          {all dead. List integer}
+          (/\dead -> Nil {integer})
+          (/\dead ->
+             Cons {integer} x (fEnumBool_cenumFromTo (addInteger x 1) y))
+          {all dead. dead}
+in
+let
+  !fShowInteger_cshowsPrec : integer -> integer -> List string -> List string
+    = \(w : integer) (w : integer) -> wcshowsPrec w
   data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
     Tuple2 : a -> b -> Tuple2 a b
 in
@@ -271,6 +287,7 @@ letrec
             {all dead. dead}
 in
 letrec
+<<<<<<< HEAD
   !`$fEnumBool_$cenumFromTo` : integer -> integer -> List integer
     = \(x : integer)
        (y : integer) ->
@@ -288,6 +305,8 @@ let
     = \(w : integer) (w : integer) -> `$w$cshowsPrec` w
 in
 letrec
+=======
+>>>>>>> 2729e3946e4ec5c78f48c9822f85b59418980f5c
   !go : List string -> integer -> integer
     = \(ds : List string)
        (eta : integer) ->
