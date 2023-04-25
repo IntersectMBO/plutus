@@ -30,14 +30,9 @@ renNfTyCon-cong : {f g : Ren Φ Ψ}
                 → (c : TyCon Φ)
                   -------------------------------
                 → renNfTyCon f c ≡ renNfTyCon g c
-renNfTyCon-cong p integer    = refl
-renNfTyCon-cong p bytestring = refl
-renNfTyCon-cong p string     = refl
-renNfTyCon-cong p unit       = refl
-renNfTyCon-cong p bool       = refl
 renNfTyCon-cong p (list A)   = cong list (renNf-cong p A) 
 renNfTyCon-cong p (pair A B) = cong₂ pair (renNf-cong p A) (renNf-cong p B)
-renNfTyCon-cong p pdata       = refl
+renNfTyCon-cong p (atomic _) = refl
 
 
 renNe-cong : {f g : Ren Φ Ψ}
@@ -65,14 +60,9 @@ renNf-id : (n : Φ ⊢Nf⋆ J)
 renNfTyCon-id : (c : TyCon Φ)
            --------------
          → renNfTyCon id c ≡ c
-renNfTyCon-id integer    = refl
-renNfTyCon-id bytestring = refl
-renNfTyCon-id string     = refl
-renNfTyCon-id unit       = refl
-renNfTyCon-id bool       = refl
 renNfTyCon-id (list A)   = cong list (renNf-id A) 
 renNfTyCon-id (pair A B) = cong₂ pair (renNf-id A) (renNf-id B)
-renNfTyCon-id pdata       = refl
+renNfTyCon-id (atomic _) = refl
 
 renNe-id : (n : Φ ⊢Ne⋆ J)
            --------------
@@ -101,14 +91,9 @@ renNfTyCon-comp : {g : Ren Φ Ψ}
                 → (c : TyCon Φ)
                   -------------------------------------
                 → renNfTyCon (f ∘ g) c ≡ renNfTyCon f (renNfTyCon g c)
-renNfTyCon-comp integer    = refl
-renNfTyCon-comp bytestring = refl
-renNfTyCon-comp string     = refl
-renNfTyCon-comp unit       = refl
-renNfTyCon-comp bool       = refl
 renNfTyCon-comp (list A)   = cong list (renNf-comp A) 
 renNfTyCon-comp (pair A B) = cong₂ pair (renNf-comp A) (renNf-comp B)
-renNfTyCon-comp pdata       = refl
+renNfTyCon-comp (atomic _) = refl
 
 renNe-comp : {g : Ren Φ Ψ}
            → {f : Ren Ψ Θ}
@@ -126,3 +111,4 @@ renNf-comp (μ A B) = cong₂ μ (renNf-comp A) (renNf-comp B)
 renNe-comp (` x)   = refl
 renNe-comp (A · B) = cong₂ _·_ (renNe-comp A) (renNf-comp B)
 ```
+ 

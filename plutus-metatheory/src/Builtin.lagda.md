@@ -12,6 +12,7 @@ module Builtin where
 ## Imports
 
 ```
+open import Data.Bool using (Bool;true;false)
 open import Data.Nat using (ℕ;suc)
 open import Data.Fin using (Fin) renaming (zero to Z; suc to S)
 open import Data.List.NonEmpty using (List⁺;_∷⁺_;[_];reverse)
@@ -21,6 +22,7 @@ open import Data.Bool using (Bool)
 open import Agda.Builtin.Int using (Int)
 open import Agda.Builtin.String using (String)
 open import Utils using (ByteString;Maybe;DATA)
+import Utils as U
 open import Builtin.Signature using (Sig;sig;_⊢♯;con;`;Args) 
 import Builtin.Constant.Type ℕ (_⊢♯) as T
 ```
@@ -310,7 +312,7 @@ postulate
   TRACE      : {a : Set} → String → a → a
 
   concat    : ByteString → ByteString → ByteString
-  cons  : Int → ByteString → ByteString
+  cons  : Int → ByteString → Maybe ByteString
   slice     : Int → Int → ByteString → ByteString
   B<        : ByteString -> ByteString -> Bool
   B<=        : ByteString -> ByteString -> Bool
@@ -337,6 +339,8 @@ postulate
 {-# FOREIGN GHC import Data.Text.Encoding #-}
 {-# FOREIGN GHC import qualified Data.Text as Text #-}
 {-# FOREIGN GHC import Data.Either.Extra #-}
+{-# FOREIGN GHC import Data.Word (Word8) #-}
+{-# FOREIGN GHC import Data.Bits (toIntegralSized) #-}
 {-# COMPILE GHC length = toInteger . BS.length #-}
 
 -- no binding needed for addition
@@ -361,7 +365,10 @@ postulate
 {-# COMPILE GHC equals = (==) #-}
 {-# COMPILE GHC B< = (<) #-}
 {-# COMPILE GHC B<= = (<=) #-}
-{-# COMPILE GHC cons = \n xs -> BS.cons (fromIntegral @Integer n) xs #-}
+-- V1 of consByteString
+-- {-# COMPILE GHC cons = \n xs -> BS.cons (fromIntegral @Integer n) xs #-}
+-- Other versions of consByteString
+{-# COMPILE GHC cons = \n xs -> fmap (\w8 -> BS.cons w8 xs) (toIntegralSized n) #-}
 {-# COMPILE GHC slice = \start n xs -> BS.take (fromIntegral n) (BS.drop (fromIntegral start) xs) #-}
 {-# COMPILE GHC index = \xs n -> fromIntegral (BS.index xs (fromIntegral n)) #-}
 {-# FOREIGN GHC import Crypto #-}
@@ -376,7 +383,7 @@ postulate
 {-# FOREIGN GHC import PlutusCore.Evaluation.Result (EvaluationResult (EvaluationSuccess, EvaluationFailure)) #-}
 {-# FOREIGN GHC emitterResultToMaybe = \e -> case fst e of {EvaluationSuccess r -> Just r; EvaluationFailure -> Nothing} #-}
 
-{-# COMPILE GHC verifyEd25519Sig = \k m s -> emitterResultToMaybe . runEmitter $ verifyEd25519Signature_V1 k m s #-}
+{-# COMPILE GHC verifyEd25519Sig = \k m s -> emitterResultToMaybe . runEmitter $ verifyEd25519Signature_V2 k m s #-}
 {-# COMPILE GHC verifyEcdsaSecp256k1Sig = \k m s -> emitterResultToMaybe . runEmitter $ verifyEcdsaSecp256k1Signature k m s #-}
 {-# COMPILE GHC verifySchnorrSecp256k1Sig = \k m s -> emitterResultToMaybe . runEmitter $ verifySchnorrSecp256k1Signature k m s #-}
 
@@ -385,5 +392,34 @@ postulate
 
 -- no binding needed for appendStr
 -- no binding needed for traceStr
+```
+
+The following function is used for testing.
+For now it only works for some of the builtins, but it will be
+completed when it is replaced by one defined using reflection.
+
+```
+decBuiltin : (b b' : Builtin) → Bool
+decBuiltin addInteger addInteger = true
+decBuiltin subtractInteger subtractInteger = true
+decBuiltin multiplyInteger multiplyInteger = true
+decBuiltin divideInteger divideInteger = true
+decBuiltin quotientInteger quotientInteger = true
+decBuiltin remainderInteger remainderInteger = true
+decBuiltin modInteger modInteger = true
+decBuiltin lessThanInteger lessThanInteger = true
+decBuiltin lessThanEqualsInteger lessThanEqualsInteger = true
+decBuiltin equalsInteger equalsInteger = true
+decBuiltin appendByteString appendByteString = true
+decBuiltin sha2-256 sha2-256 = true
+decBuiltin sha3-256 sha3-256 = true
+decBuiltin verifyEd25519Signature verifyEd25519Signature = true
+decBuiltin verifyEcdsaSecp256k1Signature verifyEcdsaSecp256k1Signature = true
+decBuiltin verifySchnorrSecp256k1Signature verifySchnorrSecp256k1Signature = true
+decBuiltin equalsByteString equalsByteString = true
+decBuiltin appendString appendString = true
+decBuiltin trace trace = true
+decBuiltin _ _ = false
+
 ```
  

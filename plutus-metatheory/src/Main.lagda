@@ -15,12 +15,13 @@ open import Data.List using (List)
 open import Data.Empty using (⊥)
 
 open import Type using (Ctx⋆;∅;_,⋆_)
-open import Check using (TypeError;inferType;inferKind;meqKind;checkKind;checkType)
+open import Check using (TypeError;inferType;inferKind;decKind;checkKind;checkType)
 open TypeError -- Bring all TypeError constructors in scope.
 
 open import Scoped.Extrication using (extricateNf⋆;extricate)
 open import Type.BetaNormal using (_⊢Nf⋆_)
-import Untyped as U using (Untyped;_⊢;scopeCheckU0;extricateU0;decUTm)
+import Untyped as U using (_⊢;scopeCheckU0;extricateU0;decUTm)
+import RawU as U using (Untyped)
 
 open import Untyped.CEK as U using (stepper;Stack;ε;Env;[];State)
 open U.State
@@ -28,7 +29,7 @@ open U.State
 open import Raw using (RawTm;RawTy;rawPrinter;rawTyPrinter;decRTy;decRTm)
 open import Scoped using (FreeVariableError;ScopeError;freeVariableError;extricateScopeTy;ScopedTm;Weirdℕ;scopeCheckTm;shifter;unshifter;extricateScope;unshifterTy;scopeCheckTy;shifterTy)
 open Weirdℕ -- Bring Weirdℕ constructors in scope
-open import Utils using (Either;inj₁;inj₂;withE;Kind;*;Maybe;nothing;just;Monad;RuntimeError)
+open import Utils using (Either;inj₁;inj₂;withE;Kind;*;Maybe;nothing;just;Monad;RuntimeError;dec2Either)
 open RuntimeError
 open Monad {{...}}
 
@@ -80,14 +81,6 @@ postulate
 {-# FOREIGN GHC import System.Exit #-}
 {-# COMPILE GHC exitSuccess = exitSuccess #-}
 {-# COMPILE GHC exitFailure = exitFailure #-}
-
--- System.Environment stuff
-
-postulate
-  getArgs : IO (List String)
-
-{-# FOREIGN GHC import System.Environment #-}
-{-# COMPILE GHC getArgs = (fmap . fmap) T.pack $ getArgs #-}
 
 -- Misc stuff
 
@@ -230,6 +223,7 @@ uglyTypeError (typeMismatch A A' x) =
   ++
   prettyPrintTy (extricateScopeTy (extricateNf⋆ A'))
 uglyTypeError builtinError = "builtinError"
+uglyTypeError (Unimplemented x) = "Feature " ++ x ++ " not implemented"
 
 -- the haskell version of Error is defined in Raw
 
@@ -443,7 +437,7 @@ checkKindX : Type → Kind → Either ERROR ⊤
 checkKindX ty k = do
   ty        ← withE scopeError (scopeCheckTy (shifterTy Z (convTy ty)))
   (k' ,, _) ← withE (λ e → typeError (uglyTypeError e)) (inferKind ∅ ty)
-  _         ← withE ((λ e → ERROR.typeError (uglyTypeError e)) ∘ kindMismatch _ _) (meqKind k k')
+  _         ← withE ((λ e → ERROR.typeError (uglyTypeError e)) ∘ kindMismatch _ _) (dec2Either (decKind k k'))
   return tt
 
 {-# COMPILE GHC checkKindX as checkKindAgda #-}

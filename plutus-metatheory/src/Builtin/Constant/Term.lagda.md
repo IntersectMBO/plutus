@@ -1,6 +1,6 @@
 ```
 open import Builtin.Constant.Type
-open import Utils hiding (TermCon)
+import Utils as U
 ```
 
 ```
@@ -18,24 +18,26 @@ module Builtin.Constant.Term
 open import Data.Integer using (ℤ)
 open import Data.String using (String)
 open import Data.Bool using (Bool)
+open import Data.List using (List)
 ```
 
 ## Term Constants
 
 ```
 data TermCon {Φ} : Φ ⊢⋆ * → Set where
-  integer    :
+  tmInteger    :
       (i : ℤ)
     → TermCon (con integer)
-  bytestring :
-      (b : ByteString)
+  tmBytestring :
+      (b : U.ByteString)
     → TermCon (con bytestring)
-  string     :
+  tmString     :
       (s : String)
     → TermCon (con string)
-  bool       :
+  tmBool       :
       (b : Bool)
     → TermCon (con bool)
-  unit       : TermCon (con unit)
-  pdata       : DATA → TermCon (con pdata)  
+  tmUnit       : TermCon (con unit)
+  tmData      : U.DATA → TermCon (con pdata)
 ```
+ 

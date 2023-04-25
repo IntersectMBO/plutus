@@ -25,7 +25,7 @@ open import Data.Product using (Σ;proj₁;proj₂) renaming (_,_ to _,,_)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;cong;trans;subst)
 
 open import Utils using (*;_∔_≣_;start;bubble;alldone;unique∔)
-open import Type using (Ctx⋆;_,⋆_;_⊢⋆_;_∋⋆_;Z;S;Φ)
+
 ```
 
 ## Built-in compatible types 
@@ -124,14 +124,9 @@ module FromSig (Ctx : Set)
     -- convert a built-in-compatible type into a Ty type
     ♯2* : ∀{n} → n ⊢♯ → Ty (nat2Ctx n)
     ♯2* (` x) = fin2Ty x
-    ♯2* (con integer) = mkTyCon T2.integer
-    ♯2* (con bytestring) = mkTyCon  T2.bytestring
-    ♯2* (con string) = mkTyCon  T2.string
-    ♯2* (con unit) = mkTyCon  T2.unit
-    ♯2* (con bool) = mkTyCon  T2.bool
+    ♯2* (con (atomic ty)) = mkTyCon (T2.atomic ty)
     ♯2* (con (list x)) = mkTyCon  (T2.list (♯2* x))
     ♯2* (con (pair x y)) = mkTyCon  (T2.pair (♯2* x) (♯2* y))
-    ♯2* (con pdata) = mkTyCon  T2.pdata
 
     -- The empty context
     ∅ : Ctx 
@@ -260,6 +255,8 @@ The parameter `Ctx` above is usually `Ctx⋆`.  In this case, the parameters
  auxiliary functions.
 
 ```
+open import Type using (Ctx⋆;_,⋆_;_⊢⋆_;_∋⋆_;Z;S;Φ)
+
 nat2Ctx⋆ : ℕ → Ctx⋆
 nat2Ctx⋆ zero = Ctx⋆.∅
 nat2Ctx⋆ (suc n) = nat2Ctx⋆ n ,⋆ *

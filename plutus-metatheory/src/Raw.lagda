@@ -12,11 +12,15 @@ open import Relation.Nullary using (Reflects;Dec;ofʸ;ofⁿ;_because_;yes;no)
 open import Relation.Binary.PropositionalEquality using (_≡_;cong;cong₂;refl)
 open import Data.Bool using (Bool;false;true)
 
-open import Builtin using (Builtin;equals)
+open import Builtin using (Builtin;equals;decBuiltin)
 open Builtin.Builtin
 
-open import Utils using (Kind;*;_⇒_;TermCon)
-open TermCon
+open import Builtin.Constant.AtomicType using (AtomicTyCon;decAtomicTyCon)
+open AtomicTyCon
+
+open import Utils using (Kind;*;_⇒_)
+open import RawU using (TagCon;tagCon;Tag;decTagCon)
+open Tag
 \end{code}
 
 The raw un-scope-checked and un-type-checked syntax
@@ -40,16 +44,11 @@ data RawTy where
 {-# FOREIGN GHC import Raw #-}
 
 data RawTyCon where
-  integer    : RawTyCon
-  bytestring : RawTyCon
-  string     : RawTyCon
-  unit       : RawTyCon
-  bool       : RawTyCon
+  atomic     : AtomicTyCon → RawTyCon
   list       : RawTy → RawTyCon
   pair       : RawTy → RawTy → RawTyCon
-  pdata       : RawTyCon
 
-{-# COMPILE GHC RawTyCon = data RTyCon (RTyConInt | RTyConBS | RTyConStr | RTyConUnit | RTyConBool | RTyConList | RTyConPair | RTyConData) #-}
+{-# COMPILE GHC RawTyCon = data RTyCon (RTyConAtom | RTyConList | RTyConPair) #-}
 
 data RawTm : Set where
   `             : ℕ → RawTm
@@ -57,7 +56,7 @@ data RawTm : Set where
   _·⋆_          : RawTm → RawTy → RawTm
   ƛ             : RawTy → RawTm → RawTm
   _·_           : RawTm → RawTm → RawTm
-  con           : TermCon → RawTm
+  con           : TagCon → RawTm
   error         : RawTy → RawTm
   builtin       : Builtin → RawTm
   wrap          : RawTy → RawTy → RawTm → RawTm
@@ -67,54 +66,22 @@ data RawTm : Set where
 
 -- α equivalence
 
--- we don't have a decicable equality instance for bytestring, so I
+-- we don't have a decidable equality instance for bytestring, so I
 -- converted this to bool for now
 
+decRTy : (A A' : RawTy) → Bool
+
 decRTyCon : (C C' : RawTyCon) → Bool
-decRTyCon integer    integer    = true
-decRTyCon bytestring bytestring = true
-decRTyCon string     string     = true
-decRTyCon unit       unit       = true
-decRTyCon bool       bool       = true
-decRTyCon _          _          = false
-
-decTermCon : (C C' : TermCon) → Bool
-decTermCon (integer i) (integer i') with i Data.Integer.≟ i'
-... | yes p = true
-... | no ¬p = false
-decTermCon (bytestring b) (bytestring b') with equals b b'
-decTermCon (bytestring b) (bytestring b') | false = false
-decTermCon (bytestring b) (bytestring b') | true = true
-decTermCon (string s) (string s') with s Data.String.≟ s'
-... | yes p = true
-... | no ¬p = false
-decTermCon (bool b) (bool b') with b Data.Bool.≟ b'
-... | yes p = true
-... | no ¬p = false
-decTermCon unit unit = true
-decTermCon _ _ = false
-
-decBuiltin : (b b' : Builtin) → Bool
-decBuiltin addInteger addInteger = true
-decBuiltin subtractInteger subtractInteger = true
-decBuiltin multiplyInteger multiplyInteger = true
-decBuiltin divideInteger divideInteger = true
-decBuiltin quotientInteger quotientInteger = true
-decBuiltin remainderInteger remainderInteger = true
-decBuiltin modInteger modInteger = true
-decBuiltin lessThanInteger lessThanInteger = true
-decBuiltin lessThanEqualsInteger lessThanEqualsInteger = true
-decBuiltin equalsInteger equalsInteger = true
-decBuiltin appendByteString appendByteString = true
-decBuiltin sha2-256 sha2-256 = true
-decBuiltin sha3-256 sha3-256 = true
-decBuiltin verifyEd25519Signature verifyEd25519Signature = true
-decBuiltin verifyEcdsaSecp256k1Signature verifyEcdsaSecp256k1Signature = true
-decBuiltin verifySchnorrSecp256k1Signature verifySchnorrSecp256k1Signature = true
-decBuiltin equalsByteString equalsByteString = true
-decBuiltin appendString appendString = true
-decBuiltin trace trace = true
-decBuiltin _ _ = false
+decRTyCon (atomic t) (atomic t') with decAtomicTyCon t t'
+... | yes _ = true
+... | no  _ = false
+decRTyCon (pair x y) (pair x' y') with decRTy x x' | decRTy y y'
+... | true | true   = true
+... | _    | _      = false
+decRTyCon (list x) (list x') with decRTy x x' 
+... | false = false
+... | true = true
+decRTyCon _          _  = false
 
 decRKi : (K K' : Kind) → Bool
 decRKi * * = true
@@ -126,7 +93,6 @@ decRKi (K ⇒ J) (K' ⇒ J') | true | true = true
 decRKi (K ⇒ J) (K' ⇒ J') | true | false = false
 decRKi (K ⇒ J) (K' ⇒ J') | false = false
 
-decRTy : (A A' : RawTy) → Bool
 decRTy (` x) (` x') with x ≟ x'
 ... | yes _ = true
 ... | no  _ = false
@@ -225,7 +191,7 @@ decRTm (t · u) (t' · u') with decRTm t t'
 ... | true with decRTm u u'
 ... | false = false
 ... | true = true
-decRTm (con c) (con c') = decTermCon c c'
+decRTm (con c) (con c') = decTagCon c c'
 decRTm (error A) (error A') with decRTy A A'
 ... | true = true
 ... | false = false
@@ -266,3 +232,4 @@ rawPrinter (builtin b) = "(builtin)"
 rawPrinter (wrap pat arg t) = "(wrap" ++ ")"
 rawPrinter (unwrap t) = "(unwrap" ++ rawPrinter t ++ ")"
 \end{code}
+ 

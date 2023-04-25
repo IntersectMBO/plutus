@@ -2,46 +2,30 @@
 \begin{code}
 module Utils where
 
-open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;sym;trans)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;sym;trans;cong₂)
 open import Function using (const;_∘_)
 open import Data.Nat using (ℕ;zero;suc;_≤‴_;_≤_;_+_)
 open _≤_
 open _≤‴_
-open import Data.Nat.Properties using (≤⇒≤″;≤″⇒≤;≤″⇒≤‴;≤‴⇒≤″;+-monoʳ-≤)
-                                using (+-suc;m+1+n≢m;+-cancelˡ-≡;m≢1+n+m;m+1+n≢0;+-cancelʳ-≡;+-assoc;+-comm;+-identityʳ)
+open import Data.Nat.Properties
+               using (+-suc;m+1+n≢m;+-cancelˡ-≡;m≢1+n+m;m+1+n≢0;+-cancelʳ-≡;+-assoc;+-comm;+-identityʳ)
 open import Relation.Binary using (Decidable)
 import Data.Integer as I
-open import Data.List using (List;[];_∷_;length)
+import Data.List as L
 open import Data.Sum using (_⊎_;inj₁;inj₂)
 open import Relation.Nullary using (Dec;yes;no;¬_)
 open import Data.Empty using (⊥;⊥-elim)
-open import Data.Product using (Σ;_×_) renaming (_,_ to _,,_)
 open import Data.Integer using (ℤ)
 open import Data.String using (String)
 open import Data.Bool using (Bool)
+open import Data.Maybe using (Maybe; just; nothing; maybe) 
+                           renaming (_>>=_ to mbind) public
 
+{-# FOREIGN GHC import Raw #-}
 
--- we cannot use the standard library's Maybe as it is not set up to
--- compile the Haskell's Maybe and compile pragmas have to go in the
+-- we cannot use the standard library's Either as it is not set up to
+-- compile the Haskell's Either and compile pragmas have to go in the
 -- same module as definitions
-
-data Maybe (A : Set) : Set where
-  just : A → Maybe A
-  nothing : Maybe A
-
-{-# COMPILE GHC Maybe = data Maybe (Just | Nothing) #-}
-
-maybe : {A B : Set} → (A → B) → B → Maybe A → B 
-maybe f b (just a) = f a
-maybe f b nothing  = b
-
-mbind : {A B : Set} → Maybe A → (A → Maybe B) → Maybe B
-mbind (just a) f = f a
-mbind nothing  f = nothing
-
-{-# COMPILE GHC mbind = \_ _ a f -> a >>= f #-}
-
--- the same applies to sums...
 
 data Either (A B : Set) : Set where
   inj₁ : A → Either A B
@@ -67,27 +51,6 @@ cong₃ : {A B C D : Set} → (f : A → B → C → D)
   → {c c' : C} → c ≡ c'
   → f a b c ≡ f a' b' c'
 cong₃ f refl refl refl = refl
-
-_I>?_ : Decidable I._>_
-i I>? j = j I.<? i
-
-_I≥?_ : Decidable I._≥_
-i I≥? j = j I.≤? i
-
-z≤‴n : ∀ {n} → zero  ≤‴ n
-z≤‴n {n} = ≤″⇒≤‴ (≤⇒≤″ z≤n)
-
-lem¬≤ : ∀{n} → ¬ (suc n Data.Nat.≤ n)
-lem¬≤ (s≤s p) = lem¬≤ p
-
-lem≤‴ : ∀{m n}(p q : m ≤‴ n) → p ≡ q
-lem≤‴ ≤‴-refl ≤‴-refl     = refl
-lem≤‴ ≤‴-refl (≤‴-step q) = ⊥-elim (lem¬≤ (≤″⇒≤ (≤‴⇒≤″ q)))
-lem≤‴ (≤‴-step p) ≤‴-refl = ⊥-elim (lem¬≤ (≤″⇒≤ (≤‴⇒≤″ p)))
-lem≤‴ (≤‴-step p) (≤‴-step q) = cong ≤‴-step (lem≤‴ p q)
-
-+-monoʳ-≤‴ : (n₁ : ℕ) {x y : ℕ} → x ≤‴ y → n₁ + x ≤‴ n₁ + y
-+-monoʳ-≤‴ n p = ≤″⇒≤‴ (≤⇒≤″ (+-monoʳ-≤ n (≤″⇒≤ (≤‴⇒≤″ p))))
 \end{code}
 
 The type `n ∔ n' ≡ m` 
@@ -155,7 +118,9 @@ withE : {A B C : Set} → (A → B) → Either A C → Either B C
 withE f (inj₁ a) = inj₁ (f a)
 withE f (inj₂ c) = inj₂ c
 
-{-# FOREIGN GHC import Raw #-}
+dec2Either : {A : Set} → Dec A → Either (¬ A) A
+dec2Either (yes p) = inj₂ p
+dec2Either (no ¬p) = inj₁ ¬p
 
 data RuntimeError : Set where
   gasError : RuntimeError
@@ -168,12 +133,52 @@ postulate ByteString : Set
 {-# FOREIGN GHC import qualified Data.ByteString as BS #-}
 {-# COMPILE GHC ByteString = type BS.ByteString #-}
 
+
+data _×_ (A B : Set) : Set where
+ _,_ : A → B → A × B
+
+{-# FOREIGN GHC type Pair a b = (a , b) #-}
+{-# COMPILE GHC _×_ = data Pair ((,))  #-}
+
+data List (A : Set) : Set where
+  []  : List A
+  _∷_ : A → List A → List A
+
+map : ∀{A B} → (A → B) → List A → List B
+map f [] = []
+map f (x ∷ xs) = f x ∷ map f xs
+
+toList : ∀{A} →  List A → L.List A
+toList [] = L.[]
+toList (x ∷ xs) = x L.∷ toList xs
+
+fromList : ∀{A} →  L.List A → List A
+fromList L.[] = []
+fromList (x L.∷ xs) = x ∷ fromList xs
+
+map-cong : ∀{A B : Set}{xs : L.List A}{f g : A → B}
+     → (∀ x → f x ≡ g x) 
+     → L.map f xs ≡ L.map g xs 
+map-cong {xs = L.[]} p = refl
+map-cong {xs = x L.∷ xs} p = cong₂ L._∷_ (p x) (map-cong p)
+
+infixr 5 _∷_
+
+{-# COMPILE GHC List = data [] ([] | (:)) #-}
+
+
 data DATA : Set where
+  ConstrDATA :  I.ℤ → List DATA → DATA
+  MapDATA : List (DATA × DATA) → DATA
+  ListDATA : List DATA → DATA
   iDATA : I.ℤ → DATA
   bDATA : ByteString → DATA
 
-{-# FOREIGN GHC import PlutusCore.Data #-}
-{-# COMPILE GHC DATA = data Data (I | B)   #-}
+{-# FOREIGN GHC import PlutusCore.Data as D #-}
+{-# COMPILE GHC DATA = data Data (D.Constr | D.Map | D.List | D.I | D.B)   #-}
+
+postulate eqDATA : DATA → DATA → Bool 
+{-# COMPILE GHC eqDATA = (==) #-}
 \end{code}
 
 Kinds
@@ -199,27 +204,4 @@ Let `I`, `J`, `K` range over kinds:
 \begin{code}
 variable
   I J K : Kind
-\end{code}
-## Term constants
-
-Defined separately here rather than using generic version used in the
-typed syntax.
-
-\begin{code}
-data TermCon : Set where
-  integer    : ℤ → TermCon
-  bytestring : ByteString → TermCon
-  string     : String → TermCon
-  bool       : Bool → TermCon
-  unit       : TermCon
-  pdata       : DATA → TermCon
-
-{-# FOREIGN GHC type TermCon = Some (ValueOf DefaultUni)               #-}
-{-# FOREIGN GHC pattern TmInteger    i = Some (ValueOf DefaultUniInteger i) #-}
-{-# FOREIGN GHC pattern TmByteString b = Some (ValueOf DefaultUniByteString b) #-}
-{-# FOREIGN GHC pattern TmString     s = Some (ValueOf DefaultUniString s) #-}
-{-# FOREIGN GHC pattern TmUnit         = Some (ValueOf DefaultUniUnit ()) #-}
-{-# FOREIGN GHC pattern TmBool       b = Some (ValueOf DefaultUniBool b) #-}
-{-# FOREIGN GHC pattern TmData       d = Some (ValueOf DefaultUniData d) #-}
-{-# COMPILE GHC TermCon = data TermCon (TmInteger | TmByteString | TmString | TmBool | TmUnit | TmData) #-}
 \end{code}

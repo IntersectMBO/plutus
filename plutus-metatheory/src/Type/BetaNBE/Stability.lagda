@@ -25,14 +25,9 @@ perturb the expression.
 \begin{code}
 stability : ∀{K}(n : Φ ⊢Nf⋆ K) → nf (embNf n) ≡ n
 stabilityTyCon : (c : TyCon Φ) → evalTyCon (embNfTyCon c) (idEnv _) ≡ c
-stabilityTyCon integer    = refl
-stabilityTyCon bytestring = refl
-stabilityTyCon string     = refl
-stabilityTyCon unit       = refl
-stabilityTyCon bool       = refl
 stabilityTyCon (list A)   = cong list (stability A)
 stabilityTyCon (pair A B) = cong₂ pair (stability A) (stability B)
-stabilityTyCon pdata       = refl
+stabilityTyCon (atomic _) = refl
 
 stabilityNe : (n : Φ ⊢Ne⋆ K) → CR K (eval (embNe n) (idEnv _)) (reflect n)
 

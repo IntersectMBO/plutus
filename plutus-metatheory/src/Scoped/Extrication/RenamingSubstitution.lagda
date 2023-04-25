@@ -82,14 +82,9 @@ ren-extricateTyConNf⋆ :  ∀{Γ Δ}
   → (A : AC.TyCon Γ)
   → renTyCon⋆ (extricateRenNf⋆ ρ⋆) (extricateTyConNf⋆ A) ≡ extricateTyConNf⋆ (renNfTyCon ρ⋆ A)
 
-ren-extricateTyConNf⋆ ρ⋆ AC.integer = refl
-ren-extricateTyConNf⋆ ρ⋆ AC.bytestring = refl
-ren-extricateTyConNf⋆ ρ⋆ AC.string = refl
-ren-extricateTyConNf⋆ ρ⋆ AC.unit = refl
-ren-extricateTyConNf⋆ ρ⋆ AC.bool = refl
-ren-extricateTyConNf⋆ ρ⋆ (AC.list A) = cong SC.list (ren-extricateNf⋆ ρ⋆ A)
+ren-extricateTyConNf⋆ ρ⋆ (AC.list A)   = cong SC.list (ren-extricateNf⋆ ρ⋆ A)
 ren-extricateTyConNf⋆ ρ⋆ (AC.pair A B) = cong₂ SC.pair (ren-extricateNf⋆ ρ⋆ A) (ren-extricateNf⋆ ρ⋆ B)
-ren-extricateTyConNf⋆ ρ⋆ AC.pdata = refl
+ren-extricateTyConNf⋆ ρ⋆ (AC.atomic A) = refl
 
 ren-extricateNe⋆ ρ⋆ (` x)   = cong
   `

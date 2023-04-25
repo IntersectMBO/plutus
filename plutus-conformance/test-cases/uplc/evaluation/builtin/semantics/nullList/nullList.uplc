@@ -1,1 +1,1 @@
-(program 0.0.0 [(force (builtin nullList)) (con list(integer) [ 1, 2, 3 ])])
+(program 0.0.0 [(force (builtin nullList)) (con (list integer) [ 1, 2, 3 ])])

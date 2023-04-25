@@ -36,7 +36,7 @@ open _⊢_
 open import Builtin using (Builtin)
 open Builtin.Builtin
 
-open import Builtin.Constant.Type using (TyCon)
+open import Builtin.Constant.Type using (TyCon;unit)
 open TyCon
 
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con using (TermCon)
@@ -178,7 +178,7 @@ thm64b (□ x₁) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 thm64b (◆ A) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 
 test : State (con unit)
-test = ε ▻ (ƛ (con unit) · (builtin iData / refl · con (integer (+ 0))))
+test = ε ▻ (ƛ (con tmUnit) · (builtin iData / refl · con (tmInteger (+ 0))))
 
 postulate
   lemV : ∀{A B}(M : ∅ ⊢ B)(V : Value M)(E : Stack A B) → (E ▻ M) -→s (E ◅ V)
