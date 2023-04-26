@@ -153,6 +153,17 @@ No matter which of them we move out of `Foldable`, it won't work optimally for c
 Keeping both in `Foldable` will cause `Foldable` to be a multiple method typeclass, which is expensive in and of itself, as explained above.
 We may as well do away with `PlutusTx.Foldable`, and instead simply provide monomorphic versions of `Foldable`-related functions for each common type.
 
+### Turning off GHC's pre-inliner
+
+As said before, one reason why the semantics of Plutus Tx is difficult to predict is because we run GHC's pre-inliner, which may perform unconditionally inlining.
+Since GHC 9.0, GHC provides [an option](https://hackage.haskell.org/package/ghc-9.6.1/docs/GHC-Core-Opt-Simplify-Env.html#v:sm_pre_inline) to turn it off when running the simplifier.
+By turning it off, GHC (hopefully) won't inline anything at all, which means it won't change the strictness of Plutus Tx programs.
+
+At this time we can't simply turn the pre-inliner off, because doing so breaks the Plutus Tx compiler.
+For details, see [this note](https://github.com/input-output-hk/plutus/blob/dc57fe1b8497835ef2a7794c017c5a50c0b7e647/plutus-tx-plugin/src/PlutusTx/Plugin.hs#L123).
+The problem described in the note should, however, be resolved in a different way, as explained in the note.
+Once done, we can go ahead and turn it off.
+
 ### Performing GHC-like Inlining for Functions with the INLINE Pragma
 
 In Plutus Tx, like most other strict languages, only a few built-in constructs are non-strict (such as if-then-else).
