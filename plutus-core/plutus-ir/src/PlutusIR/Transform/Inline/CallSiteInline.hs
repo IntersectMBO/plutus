@@ -151,15 +151,15 @@ considerInlineSat tm = do
                 inlineTermToTerm (Done (Dupable var)) = var
                 def = inlineTermToTerm defAsInlineTerm
                 fullyApplied = isFullyApplied (arity varInfo) ctx
-            -- It is the body that we will be left with in the program after we have
-            -- reduced the saturated application, so the size increase we will be left
-            -- with comes from the body, and that is what we need to check is okay
+                -- It is the body that we will be left with in the program after we have
+                -- reduced the saturated application, so the size increase we will be left
+                -- with comes from the body, and that is what we need to check is okay
                 bodySizeOk = sizeIsAcceptable body
-            -- The definition itself will be inlined, so we need to check that the cost
-            -- of that is acceptable. Note that we do _not_ check the cost of the _body_.
-            -- We would have paid that regardless.
-            -- Consider e.g. `let y = \x. f x`. We pay the cost of the `f x` at every call
-            -- site regardless. The work that is being duplicated is the work for the lambda.
+                -- The definition itself will be inlined, so we need to check that the cost
+                -- of that is acceptable. Note that we do _not_ check the cost of the _body_.
+                -- We would have paid that regardless.
+                -- Consider e.g. `let y = \x. f x`. We pay the cost of the `f x` at every call
+                -- site regardless. The work that is being duplicated is the work for the lambda.
                 defCostOk = costIsAcceptable def
             -- check if binding is pure to avoid duplicated effects.
             -- For strict bindings we can't accidentally make any effects happen less often than
@@ -167,7 +167,7 @@ considerInlineSat tm = do
             -- We could potentially do this safely in non-conservative mode.
             defPure <- isTermBindingPure (varStrictness varInfo) def
             if fullyApplied && bodySizeOk && defCostOk && defPure
-            then do 
+            then do
                 -- rename the term before substituting in
                 renamed <- renameTerm defAsInlineTerm
                 pure $ fillAppContext renamed ctx
