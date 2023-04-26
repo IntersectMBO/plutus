@@ -7,6 +7,7 @@ module Algorithmic.Erasure where
 
 \begin{code}
 open import Agda.Primitive using (lzero)
+open import Data.Nat using (ℕ)
 open import Function using (_∘_;id)
 open import Data.Nat using (_+_)
 open import Data.Nat.Properties using (+-cancelˡ-≡)
@@ -29,7 +30,8 @@ open import Type.BetaNBE using (nf)
 open import Type.BetaNBE.Completeness using (completeness)
 open import Utils using (Kind;*;Maybe;nothing;just;fromList;map-cong)
 open import RawU using (TmCon;tmCon;TyTag)
-open TyTag
+open import Builtin.Signature using (_⊢♯;con) 
+open import Builtin.Constant.Type ℕ (_⊢♯)
 
 open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_;_∋⋆_;S;Z)
 open _⊢⋆_
@@ -65,12 +67,12 @@ eraseVar (S α) = just (eraseVar α)
 eraseVar (T α) = eraseVar α
 
 eraseTC : ∀{Φ}{Γ : Ctx Φ}{A : Φ ⊢Nf⋆ *} → AC.TyTermCon A → TmCon
-eraseTC (AC.tmInteger i)    = tmCon integer i
-eraseTC (AC.tmBytestring b) = tmCon bytestring b
-eraseTC (AC.tmString s)     = tmCon string s
-eraseTC (AC.tmBool b)       = tmCon bool b
-eraseTC AC.tmUnit           = tmCon unit tt
-eraseTC (AC.tmData d)       = tmCon pdata d
+eraseTC (AC.tmInteger i)    = tmCon (con integer)  i
+eraseTC (AC.tmBytestring b) = tmCon (con bytestring) b
+eraseTC (AC.tmString s)     = tmCon (con string) s
+eraseTC (AC.tmBool b)       = tmCon (con bool) b
+eraseTC AC.tmUnit           = tmCon (con unit) tt
+eraseTC (AC.tmData d)       = tmCon (con pdata) d
 
 erase : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ ⊢ A → len Γ ⊢
 erase (` α)                = ` (eraseVar α)

@@ -14,7 +14,9 @@ open import Relation.Binary.PropositionalEquality as Eq using (refl)
 open import Utils using (Kind;*)
 
 open import RawU using (TmCon;tmCon;TyTag)
-open TyTag
+open import Builtin.Signature using (_⊢♯;con) 
+open import Builtin.Constant.Type ℕ (_⊢♯)
+
 open import Type using (Ctx⋆;∅;_,⋆_;_∋⋆_;Z;S)
 open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_)
 open _⊢Nf⋆_
@@ -83,16 +85,12 @@ extricateVar (S x) = S (extricateVar x)
 extricateVar (T x) = T (extricateVar x)
 
 extricateC : ∀{Γ}{A : Γ ⊢Nf⋆ *} → B.TermCon A → RawU.TmCon
-extricateC (tmInteger i)    = tmCon integer i
-extricateC (tmBytestring b) = tmCon bytestring b
-extricateC (tmString s)     = tmCon string s
-extricateC (tmBool b)       = tmCon bool b
-extricateC tmUnit           = tmCon unit tt
-extricateC (tmData d)       = tmCon pdata d
---extricateC (pairDATA x y) = pairDATA x y
---extricateC (pairID i ds)  = pairID i ds
---extricateC (listData xs)  = listData xs
---extricateC (listPair xs)  = listPair xs
+extricateC (tmInteger i)    = tmCon (con integer) i
+extricateC (tmBytestring b) = tmCon (con bytestring) b
+extricateC (tmString s)     = tmCon (con string) s
+extricateC (tmBool b)       = tmCon (con bool) b
+extricateC tmUnit           = tmCon (con unit) tt
+extricateC (tmData d)       = tmCon (con pdata) d
 
 extricateSub : ∀ {Γ Δ} → (∀ {J} → Δ ∋⋆ J → Γ ⊢Nf⋆ J)
   → Scoped.Tel⋆ (len⋆ Γ) (len⋆ Δ)

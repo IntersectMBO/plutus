@@ -18,16 +18,21 @@ open import Data.Nat using (ℕ)
 open import Data.Bool using (true;false)
 open import Data.Integer using (ℤ)
 open import Data.String using (String)
-open import Data.Bool using (Bool)
+open import Data.Bool using (Bool;_∧_)
 open import Relation.Binary using (DecidableEquality)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;cong;cong₂)
-open import Relation.Nullary using (yes;no;¬_)
+open import Relation.Nullary using (does;yes;no;¬_)
 open import Data.Unit using (⊤;tt)
 open import Data.Product using (Σ;proj₁;proj₂) renaming (_,_ to _,,_)
 
-open import Utils using (ByteString;DATA;List;_×_;_,_)
+open import Utils using (ByteString;DATA;List;[];_∷_;_×_;_,_;eqDATA)
+open import Utils.Decidable using (dcong;dcong₂)
 open import Builtin using (Builtin;equals)
 open Builtin.Builtin
+
+open import Builtin.Signature using (_⊢♯;con) 
+import Builtin.Constant.Type ℕ (_⊢♯) as T
+open import Builtin.Constant.AtomicType using (decAtomicTyCon)
 
 {-# FOREIGN GHC {-# LANGUAGE GADTs #-} #-}
 {-# FOREIGN GHC import PlutusCore #-}
@@ -81,20 +86,19 @@ data TagCon : Set where
 {-# FOREIGN GHC pattern TagCon t x = Some (ValueOf t x) #-} 
 {-# COMPILE GHC TagCon = data TagCon (TagCon) #-}
 
+{-# TERMINATING #-}
 decTagCon : (C C' : TagCon) → Bool
-decTagCon (tagCon integer i) (tagCon integer i') with i Data.Integer.≟ i'
-... | yes p = true
-... | no ¬p = false
-decTagCon (tagCon bytestring b) (tagCon bytestring b') with equals b b'
-decTagCon (tagCon bytestring b) (tagCon bytestring b') | false = false
-decTagCon (tagCon bytestring b) (tagCon bytestring b') | true = true
-decTagCon (tagCon string s) (tagCon string s') with s Data.String.≟ s'
-... | yes p = true
-... | no ¬p = false
-decTagCon (tagCon bool b) (tagCon bool b') with b Data.Bool.≟ b'
-... | yes p = true
-... | no ¬p = false
+decTagCon (tagCon integer i) (tagCon integer i') = does (i Data.Integer.≟ i') 
+decTagCon (tagCon bytestring b) (tagCon bytestring b') = equals b b'
+decTagCon (tagCon string s) (tagCon string s') = does (s Data.String.≟ s')
+decTagCon (tagCon bool b) (tagCon bool b') = does (b Data.Bool.≟ b')
 decTagCon (tagCon unit ⊤) (tagCon unit ⊤) = true
+decTagCon (tagCon pdata d) (tagCon pdata d') = eqDATA d d'
+decTagCon (tagCon (pair t₁ t₂) (x₁ , x₂)) (tagCon (pair u₁ u₂) (y₁ , y₂)) = 
+       decTagCon (tagCon t₁ x₁) (tagCon u₁ y₁) ∧ decTagCon (tagCon t₂ x₂) (tagCon u₂ y₂)
+decTagCon (tagCon (list t) []) (tagCon (list t') []) = true -- TODO: check that the tags t and t' are equal
+decTagCon (tagCon (list t) (x ∷ xs)) (tagCon (list t') (y ∷ ys)) = 
+       decTagCon (tagCon t x) (tagCon t' y) ∧ decTagCon (tagCon (list t) xs) (tagCon (list t') ys)
 decTagCon _ _ = false
 ```
 ## Raw syntax
@@ -122,104 +126,43 @@ data Untyped : Set where
 In the rest of the formalisation we use the following representation of type tags.
 
 ```
-data TyTag : Set where
-  integer    : TyTag
-  bytestring : TyTag
-  string     : TyTag
-  bool       : TyTag
-  unit       : TyTag
-  pdata      : TyTag
-  pair       : TyTag → TyTag → TyTag
-  list       : TyTag → TyTag
+TyTag : Set
+TyTag = 0 ⊢♯
 ```
 
 The meaning of type tags is provided by the following function.
 
 ```
 ⟦_⟧tag : TyTag → Set
-⟦ integer ⟧tag = ℤ
-⟦ bytestring ⟧tag = ByteString
-⟦ string ⟧tag = String
-⟦ bool ⟧tag = Bool
-⟦ unit ⟧tag = ⊤
-⟦ pdata ⟧tag = DATA
-⟦ pair p p' ⟧tag = ⟦ p ⟧tag × ⟦ p' ⟧tag
-⟦ list p ⟧tag = List ⟦ p ⟧tag
+⟦ con T.integer ⟧tag = ℤ
+⟦ con T.bytestring ⟧tag = ByteString
+⟦ con T.string ⟧tag = String
+⟦ con T.bool ⟧tag = Bool
+⟦ con T.unit ⟧tag = ⊤
+⟦ con T.pdata ⟧tag = DATA
+⟦ con (T.pair p p') ⟧tag = ⟦ p ⟧tag × ⟦ p' ⟧tag
+⟦ con (T.list p) ⟧tag = List ⟦ p ⟧tag
 ```
 
 Equality of `TyTag`s is decidable
 
 ```
 decTag : DecidableEquality TyTag
-decTag integer integer = yes refl
-decTag integer bytestring = no λ()
-decTag integer string =  no λ()
-decTag integer bool = no λ()
-decTag integer unit = no λ()
-decTag integer pdata = no λ()
-decTag integer (pair y y₁) = no λ()
-decTag integer (list y) = no λ()
-decTag bytestring integer = no λ()
-decTag bytestring bytestring = yes refl
-decTag bytestring string = no λ()
-decTag bytestring bool = no λ()
-decTag bytestring unit = no λ()
-decTag bytestring pdata = no λ()
-decTag bytestring (pair y y₁) = no λ()
-decTag bytestring (list y) = no λ()
-decTag string integer = no λ()
-decTag string bytestring = no λ()
-decTag string string = yes refl
-decTag string bool = no λ()
-decTag string unit = no λ()
-decTag string pdata = no λ()
-decTag string (pair y y₁) = no λ()
-decTag string (list y) = no λ()
-decTag bool integer = no λ()
-decTag bool bytestring = no λ()
-decTag bool string = no λ()
-decTag bool bool = yes refl
-decTag bool unit = no λ()
-decTag bool pdata = no λ()
-decTag bool (pair y y₁) = no λ()
-decTag bool (list y) = no λ()
-decTag unit integer = no λ()
-decTag unit bytestring = no λ()
-decTag unit string = no λ()
-decTag unit bool = no λ()
-decTag unit unit = yes refl
-decTag unit pdata = no λ()
-decTag unit (pair y y₁) = no λ()
-decTag unit (list y) = no λ()
-decTag pdata integer = no λ()
-decTag pdata bytestring = no λ()
-decTag pdata string = no λ()
-decTag pdata bool = no λ()
-decTag pdata unit = no λ()
-decTag pdata pdata = yes refl
-decTag pdata (pair y y₁) = no λ()
-decTag pdata (list y) = no λ()
-decTag (pair x x₁) integer = no λ()
-decTag (pair x x₁) bytestring = no λ()
-decTag (pair x x₁) string = no λ()
-decTag (pair x x₁) bool = no λ()
-decTag (pair x x₁) unit = no λ()
-decTag (pair x x₁) pdata = no λ()
-decTag (pair x x₁) (pair y y₁) with decTag x y | decTag x₁ y₁ 
-... | yes refl | yes refl = yes refl 
-... | yes _    | no ¬p    = no λ {refl  → ¬p refl}
-... | no ¬p    | _        = no λ {refl  → ¬p refl}
-decTag (pair x x₁) (list y) = no λ()
-decTag (list x) integer =  no λ()
-decTag (list x) bytestring =  no λ()
-decTag (list x) string =  no λ()
-decTag (list x) bool =  no λ()
-decTag (list x) unit =  no λ()
-decTag (list x) pdata =  no λ()
-decTag (list x) (pair y y₁) =  no λ()
-decTag (list x) (list y) with decTag x y 
-... | yes refl = yes refl
-... | no ¬p    = no λ {refl  → ¬p refl}
+decTyCon : DecidableEquality (T.TyCon 0)
+-- atomic
+decTyCon (T.atomic A) (T.atomic A') = dcong T.atomic (λ {refl → refl}) (decAtomicTyCon A A')
+decTyCon (T.atomic _) (T.list _)     = no λ()
+decTyCon (T.atomic _) (T.pair _ _)   = no λ()
+-- pair
+decTyCon (T.pair A B) (T.pair A' B') = dcong₂ T.pair (λ {refl → refl ,, refl }) (decTag A A') (decTag B B')
+decTyCon (T.pair _ _) (T.atomic _)   = no λ()
+decTyCon (T.pair _ _) (T.list _)     = no λ()
+-- list
+decTyCon (T.list A) (T.list A') = dcong T.list (λ {refl → refl}) (decTag A A')
+decTyCon (T.list _)   (T.atomic _)   = no λ()
+decTyCon (T.list _)   (T.pair _ _)   = no λ()
+
+decTag (con x) (con y) = dcong con (λ {refl → refl}) (decTyCon x y)
 ```
 
 Again term constants are a pair of a tag, and its meaning, except
@@ -240,14 +183,14 @@ We can convert between the two universe representations.
 
 ```
 tag2TyTag : ∀{A} → Tag A → TyTag
-tag2TyTag integer = integer
-tag2TyTag bytestring = bytestring
-tag2TyTag string = string
-tag2TyTag bool = bool
-tag2TyTag unit = unit
-tag2TyTag pdata = pdata
-tag2TyTag (pair t u) = pair (tag2TyTag t) (tag2TyTag u)
-tag2TyTag (list t) = list (tag2TyTag t)
+tag2TyTag integer = con T.integer
+tag2TyTag bytestring = con T.bytestring
+tag2TyTag string = con T.string
+tag2TyTag bool = con T.bool
+tag2TyTag unit = con T.unit
+tag2TyTag pdata = con T.pdata
+tag2TyTag (pair t u) = con (T.pair (tag2TyTag t) (tag2TyTag u))
+tag2TyTag (list t) = con (T.list (tag2TyTag t))
 
 tagLemma : ∀{A}(t : Tag (Esc A)) →  A ≡ ⟦ tag2TyTag t ⟧tag
 tagLemma integer = refl
@@ -260,49 +203,49 @@ tagLemma (pair t u) = cong₂ _×_ (tagLemma t) (tagLemma u)
 tagLemma (list t) = cong List (tagLemma t)
 
 tagCon2TmCon : TagCon → TmCon
-tagCon2TmCon (tagCon integer x) = tmCon integer x
-tagCon2TmCon (tagCon bytestring x) = tmCon bytestring x
-tagCon2TmCon (tagCon string x) = tmCon string x
-tagCon2TmCon (tagCon bool x) = tmCon bool x
-tagCon2TmCon (tagCon unit x) = tmCon unit tt
-tagCon2TmCon (tagCon pdata x) = tmCon pdata x
-tagCon2TmCon (tagCon (pair x y) (a , b)) rewrite tagLemma x | tagLemma y = tmCon (pair (tag2TyTag x) (tag2TyTag y)) (a , b)
-tagCon2TmCon (tagCon (list x) xs) rewrite tagLemma x = tmCon (list (tag2TyTag x)) xs
+tagCon2TmCon (tagCon integer x) = tmCon (con T.integer) x
+tagCon2TmCon (tagCon bytestring x) = tmCon (con T.bytestring) x
+tagCon2TmCon (tagCon string x) = tmCon (con T.string) x
+tagCon2TmCon (tagCon bool x) = tmCon (con T.bool) x
+tagCon2TmCon (tagCon unit x) = tmCon (con T.unit) tt
+tagCon2TmCon (tagCon pdata x) = tmCon (con T.pdata) x
+tagCon2TmCon (tagCon (pair x y) (a , b)) rewrite tagLemma x | tagLemma y = tmCon (con (T.pair (tag2TyTag x) (tag2TyTag y))) (a , b)
+tagCon2TmCon (tagCon (list x) xs) rewrite tagLemma x = tmCon (con (T.list (tag2TyTag x))) xs
 ```
 
 ### From Agda-style to Haskell-style
 
 ```
 tyTag2Tag : TyTag → Σ Set (λ A → Tag (Esc A)) 
-tyTag2Tag integer = ℤ ,, integer
-tyTag2Tag bytestring = ByteString ,, bytestring
-tyTag2Tag string = String ,, string
-tyTag2Tag bool = Bool ,, bool
-tyTag2Tag unit = ⊤ ,, unit
-tyTag2Tag pdata = DATA ,, pdata
-tyTag2Tag (pair t u) with tyTag2Tag t | tyTag2Tag u 
+tyTag2Tag (con T.integer) = ℤ ,, integer
+tyTag2Tag (con T.bytestring) = ByteString ,, bytestring
+tyTag2Tag (con T.string) = String ,, string
+tyTag2Tag (con T.bool) = Bool ,, bool
+tyTag2Tag (con T.unit) = ⊤ ,, unit
+tyTag2Tag (con T.pdata) = DATA ,, pdata
+tyTag2Tag (con (T.pair t u)) with tyTag2Tag t | tyTag2Tag u 
 ... | A ,, a | B ,, b = A × B ,, pair a b
-tyTag2Tag (list t) with tyTag2Tag t 
+tyTag2Tag (con (T.list t)) with tyTag2Tag t 
 ... | A ,, a = (List A) ,, (list a)
 
 tyTagLemma : (t : TyTag) → ⟦ t ⟧tag ≡ proj₁ (tyTag2Tag t)
-tyTagLemma integer = refl
-tyTagLemma bytestring = refl
-tyTagLemma string = refl
-tyTagLemma bool = refl
-tyTagLemma unit = refl
-tyTagLemma pdata = refl
-tyTagLemma (pair t u) = cong₂ _×_ (tyTagLemma t) (tyTagLemma u)
-tyTagLemma (list t) = cong List (tyTagLemma t)
+tyTagLemma (con T.integer) = refl
+tyTagLemma (con T.bytestring) = refl
+tyTagLemma (con T.string) = refl
+tyTagLemma (con T.bool) = refl
+tyTagLemma (con T.unit) = refl
+tyTagLemma (con T.pdata) = refl
+tyTagLemma (con (T.pair t u)) = cong₂ _×_ (tyTagLemma t) (tyTagLemma u)
+tyTagLemma (con (T.list t)) = cong List (tyTagLemma t)
 
 tmCon2TagCon : TmCon → TagCon
-tmCon2TagCon (tmCon integer x) = tagCon integer x
-tmCon2TagCon (tmCon bytestring x) = tagCon bytestring x
-tmCon2TagCon (tmCon string x) = tagCon string x
-tmCon2TagCon (tmCon bool x) = tagCon bool x
-tmCon2TagCon (tmCon unit x) = tagCon unit tt
-tmCon2TagCon (tmCon pdata x) = tagCon pdata x
-tmCon2TagCon (tmCon (pair t u) (x , y)) rewrite tyTagLemma t | tyTagLemma u = 
+tmCon2TagCon (tmCon (con T.integer) x) = tagCon integer x
+tmCon2TagCon (tmCon (con T.bytestring) x) = tagCon bytestring x
+tmCon2TagCon (tmCon (con T.string) x) = tagCon string x
+tmCon2TagCon (tmCon (con T.bool) x) = tagCon bool x
+tmCon2TagCon (tmCon (con T.unit) x) = tagCon unit tt
+tmCon2TagCon (tmCon (con T.pdata) x) = tagCon pdata x
+tmCon2TagCon (tmCon (con (T.pair t u)) (x , y)) rewrite tyTagLemma t | tyTagLemma u = 
     tagCon (pair (proj₂ (tyTag2Tag t)) (proj₂ (tyTag2Tag u))) (x , y)
-tmCon2TagCon (tmCon (list t) x) rewrite tyTagLemma t = tagCon (list (proj₂ (tyTag2Tag t))) x
+tmCon2TagCon (tmCon (con (T.list t)) x) rewrite tyTagLemma t = tagCon (list (proj₂ (tyTag2Tag t))) x
 ``` 

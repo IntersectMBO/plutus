@@ -261,6 +261,8 @@ library
     MAlonzo.Code.Untyped.CEK
     MAlonzo.Code.Untyped.RenamingSubstitution
     MAlonzo.Code.Utils
+    MAlonzo.Code.Utils.Decidable
+    MAlonzo.Code.Utils.Reflection
     MAlonzo.RTE
 
   autogen-modules:
@@ -449,6 +451,8 @@ library
     MAlonzo.Code.Untyped.CEK
     MAlonzo.Code.Untyped.RenamingSubstitution
     MAlonzo.Code.Utils
+    MAlonzo.Code.Utils.Decidable
+    MAlonzo.Code.Utils.Reflection
     MAlonzo.RTE
 
 executable plc-agda

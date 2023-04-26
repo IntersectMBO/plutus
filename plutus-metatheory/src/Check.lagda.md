@@ -18,6 +18,7 @@ open import Relation.Nullary using (Dec;yes;no;_because_;¬_)
 open import Agda.Builtin.String using (String)
 
 import Utils as U
+open import Utils.Decidable using (dcong;dcong₂;dhcong;dhcong₂)
 open import Scoped using (ScopedTy;Weirdℕ;WeirdFin;ScopedTm)
 open ScopedTy
 open ScopedTm
@@ -35,7 +36,8 @@ open import Utils using (Kind;*;_⇒_;Either;inj₁;inj₂;withE;Monad;dec2Eithe
 open Monad {{...}}
 
 open import RawU using (TmCon;tmCon;TyTag)
-open TyTag
+open import Builtin.Signature using (_⊢♯;con) 
+open import Builtin.Constant.Type ℕ (_⊢♯)
 
 open import Type.Equality using (_≡β_;≡2β)
 open _≡β_
@@ -88,10 +90,7 @@ decKind : (K K' : Kind) → Dec (K ≡ K')
 decKind * * = yes refl
 decKind * (K' ⇒ J') = no λ() 
 decKind (K ⇒ J) * = no λ()
-decKind (K ⇒ J) (K' ⇒ J') with decKind K K' | decKind J J'
-... | yes refl | yes refl = yes refl
-... | yes refl | no  ¬p   = no (λ { refl → ¬p refl})
-... | no  ¬p   | _       = no (λ { refl → ¬p refl})
+decKind (K ⇒ J) (K' ⇒ J') = dcong₂ _⇒_ (λ { refl → refl ,, refl}) (decKind K K') (decKind J J')
 
 isStar : ∀{Φ}
        → Either TypeError (Σ Kind (Φ ⊢Nf⋆_))
@@ -225,50 +224,31 @@ decNfTy : ∀{Φ K}(A A' : Φ ⊢Nf⋆ K) → Dec (A ≡ A')
 decNeTy : ∀{Φ K}(A A' : Φ ⊢Ne⋆ K) → Dec (A ≡ A')
 decTyCon : ∀{Φ}(c c' : T.TyCon Φ) → Dec (c ≡ c')
 -- atomic
-decTyCon (T.atomic A) (T.atomic A') with decAtomicTyCon A A'
-... | yes refl = yes refl
-... | no  ¬p   = no (λ { refl → ¬p refl})
+decTyCon (T.atomic A) (T.atomic A') = dcong T.atomic (λ {refl → refl}) (decAtomicTyCon A A')
 decTyCon (T.atomic _) (T.list _)     = no λ()
 decTyCon (T.atomic _) (T.pair _ _)   = no λ()
 -- pair
-decTyCon (T.pair A B) (T.pair A' B') with decNfTy A A' | decNfTy B B' 
-... | yes refl | yes refl = yes refl
-... | yes refl | no  ¬p   = no (λ { refl → ¬p refl})
-... | no  ¬p   | _       = no (λ { refl → ¬p refl})
+decTyCon (T.pair A B) (T.pair A' B')  = dcong₂ T.pair (λ {refl → refl ,, refl }) (decNfTy A A') (decNfTy B B') 
 decTyCon (T.pair _ _) (T.atomic _)   = no λ()
 decTyCon (T.pair _ _) (T.list _)     = no λ()
 -- list
-decTyCon (T.list A)   (T.list A') with decNfTy A A'
-... | yes refl = yes refl
-... | no  ¬p   = no (λ { refl → ¬p refl})
+decTyCon (T.list A)   (T.list A') = dcong T.list (λ {refl → refl}) (decNfTy A A')
 decTyCon (T.list _)   (T.atomic _)   = no λ()
 decTyCon (T.list _)   (T.pair _ _)   = no λ()
 
-decNfTy (A ⇒ B) (A' ⇒ B') with decNfTy A A' | decNfTy B B' 
-... | yes refl | yes refl = yes refl
-... | yes refl | no  ¬p   = no (λ { refl → ¬p refl})
-... | no  ¬p   | d        = no (λ { refl → ¬p refl})
-decNfTy (ƛ A) (ƛ A') with decNfTy A A' 
-... | yes refl = yes refl
-... | no  ¬p   = no (λ { refl → ¬p refl})
-decNfTy (Π {K = K} A) (Π {K = K'} A') with decKind K K' 
-... | no  ¬p               = no (λ { refl → ¬p refl})
-... | yes refl with decNfTy A A' 
-...             | yes refl = yes refl
-...             | no  ¬p   = no (λ { refl → ¬p refl})
-
-decNfTy (con c) (con c') with decTyCon c c' 
-... | yes refl = yes refl
-... | no  ¬p   = no (λ { refl → ¬p refl})
-decNfTy (μ {K = K} A B) (μ {K = K'} A' B') with decKind K K' 
-... | no  ¬p                          = no (λ { refl → ¬p refl})
-... | yes refl with decNfTy A A' | decNfTy B B' 
-...             | yes refl | yes refl = yes refl
-...             | yes refl | no  ¬p   = no (λ { refl → ¬p refl})
-...             | no  ¬p   | _        = no (λ { refl → ¬p refl})
-decNfTy (ne A) (ne A') with decNeTy A A'
-... | yes refl = yes refl
-... | no  ¬p   = no (λ { refl → ¬p refl})
+decNfTy (A ⇒ B) (A' ⇒ B') = dcong₂ _⇒_ (λ {refl → refl ,, refl }) (decNfTy A A') (decNfTy B B') 
+decNfTy (ƛ A) (ƛ A') = dcong ƛ (λ {refl → refl}) (decNfTy A A')
+decNfTy (Π {K = K} A) (Π {K = K'} A') = dhcong (λ k t → Π {K = k} t) 
+                                                (λ {refl → refl ,, refl}) 
+                                                (decKind K K')
+                                                (decNfTy A) 
+decNfTy (con c) (con c') = dcong con (λ {refl → refl}) (decTyCon c c')
+decNfTy (μ {K = K} A B) (μ {K = K'} A' B') = dhcong₂ (λ k x y → μ {K = k} x y)
+                                                     (λ { refl → refl ,, refl ,, refl }) 
+                                                     (decKind K K') 
+                                                     (decNfTy A)
+                                                     (decNfTy B)
+decNfTy (ne A) (ne A') = dcong ne (λ {refl → refl}) (decNeTy A A')
 decNfTy (Π _) (_ ⇒ _) = no λ()
 decNfTy (Π _) (ne _) = no λ()
 decNfTy (Π _) (con _) = no λ()
@@ -292,15 +272,12 @@ decNfTy (μ _ _) (_ ⇒ _) = no λ()
 decNfTy (μ _ _) (ne _) = no λ()
 decNfTy (μ _ _) (con _) = no λ()
 
-decNeTy (` α) (` α') with decTyVar α α'
-... | yes refl = yes refl
-... | no  ¬p   = no (λ { refl → ¬p refl})
-decNeTy (_·_ {K = K} A B) (_·_ {K = K'} A' B') with decKind K K' 
-... | no  ¬p                          = no (λ { refl → ¬p refl})
-... | yes refl with decNeTy A A' | decNfTy B B' 
-...             | yes refl | yes refl = yes refl
-...             | yes refl | no  ¬p   = no (λ { refl → ¬p refl})
-...             | no  ¬p   | _        = no (λ { refl → ¬p refl})
+decNeTy (` α) (` α') = dcong ` (λ {refl → refl}) (decTyVar α α')
+decNeTy (_·_ {K = K} A B) (_·_ {K = K'} A' B') = dhcong₂ (λ k t u → _·_ {K = k} t u)
+                                                         (λ { refl → refl ,, refl ,, refl }) 
+                                                         (decKind K K') 
+                                                         (decNeTy A) 
+                                                         (decNfTy B)
 decNeTy (` _) (_ · _) = no λ()
 decNeTy (_ · _) (` _) = no λ()
 
@@ -310,14 +287,14 @@ inv-complete {A = A}{A' = A'} p = trans≡β
   (trans≡β (≡2β (sym (cong embNf p))) (sym≡β (soundness A)))
 
 inferTypeCon : ∀{Φ} → TmCon → Either TypeError (Σ (T.TyCon _) λ c → A.TermCon {Φ} (con c))
-inferTypeCon (tmCon integer i)          = return (T.integer ,, A.tmInteger i)
-inferTypeCon (tmCon bytestring b)       = return (T.bytestring ,, A.tmBytestring b)
-inferTypeCon (tmCon string s)           = return (T.string ,, A.tmString s)
-inferTypeCon (tmCon bool b)             = return (T.bool ,, A.tmBool b)
-inferTypeCon (tmCon unit _)             = return (T.unit ,, A.tmUnit)
-inferTypeCon (tmCon pdata d)            = return (T.pdata ,, A.tmData d)
-inferTypeCon (tmCon (pair _ _) (x , y)) = inj₁ (Unimplemented "Typed pairs")
-inferTypeCon (tmCon (list _) xs)        = inj₁ (Unimplemented "Typed lists")
+inferTypeCon (tmCon (con integer) i)          = return (T.integer ,, A.tmInteger i)
+inferTypeCon (tmCon (con bytestring) b)       = return (T.bytestring ,, A.tmBytestring b)
+inferTypeCon (tmCon (con string) s)           = return (T.string ,, A.tmString s)
+inferTypeCon (tmCon (con bool) b)             = return (T.bool ,, A.tmBool b)
+inferTypeCon (tmCon (con unit) _)             = return (T.unit ,, A.tmUnit)
+inferTypeCon (tmCon (con pdata) d)            = return (T.pdata ,, A.tmData d)
+inferTypeCon (tmCon (con (pair _ _)) (x , y)) = inj₁ (Unimplemented "Typed pairs")
+inferTypeCon (tmCon (con (list _)) xs)        = inj₁ (Unimplemented "Typed lists")
 
 checkType : ∀{Φ}(Γ : Ctx Φ) → ScopedTm (len Γ) → (A : Φ ⊢Nf⋆ *)
   → Either TypeError (Γ ⊢ A)
