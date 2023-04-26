@@ -1,6 +1,6 @@
 Type mismatch at test:2:3-2:35 in term
   '(con integer 0)'.
 Expected type
-  '(all `*` (type) `*`)',
+  '(all any (type) any)',
 found type
   '(con integer)'

@@ -284,7 +284,7 @@ dummyUnique :: Unique
 dummyUnique = Unique 0
 
 dummyTyName :: TyName
-dummyTyName = TyName (Name "*" dummyUnique)
+dummyTyName = TyName (Name "any" dummyUnique)
 
 dummyKind :: Kind ()
 dummyKind = Type ()

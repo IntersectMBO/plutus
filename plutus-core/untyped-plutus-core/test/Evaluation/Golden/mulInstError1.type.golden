@@ -1,6 +1,6 @@
 (Left Type mismatch at () in term
   '(builtin multiplyInteger)'.
 Expected type
-  '(all `*`_0 (type) `*`_0)',
+  '(all any_0 (type) any_0)',
 found type
   '(fun (con integer) (fun (con integer) (con integer)))')

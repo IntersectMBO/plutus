@@ -99,11 +99,10 @@ data Named a = Named
     } deriving stock (Functor, Foldable, Traversable)
 
 instance HasPrettyConfigName config => PrettyBy config Name where
-    prettyBy config (Name txt0 (Unique uniq))
-        | showsUnique = pretty txt <> "_" <> pretty uniq
-        | otherwise   = pretty txt
+    prettyBy config (Name txt (Unique uniq))
+        | showsUnique = pretty . toPrintedName $ txt <> "_" <> render (pretty uniq)
+        | otherwise   = pretty $ toPrintedName txt
       where
-        txt = toPrintedName txt0
         PrettyConfigName showsUnique = toPrettyConfigName config
 
 instance Eq Name where

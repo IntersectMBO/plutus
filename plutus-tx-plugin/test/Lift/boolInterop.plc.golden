@@ -1,6 +1,6 @@
 (delay
   (lam
-    `case_GHC.Types.True`_0
-    (lam `case_GHC.Types.False`_1 `case_GHC.Types.True`_0)
+    `case_GHC.Types.True_0`
+    (lam `case_GHC.Types.False_1` `case_GHC.Types.True_0`)
   )
 )

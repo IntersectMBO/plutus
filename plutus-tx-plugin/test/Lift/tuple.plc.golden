@@ -9,8 +9,8 @@
               (force
                 (delay
                   (lam
-                    `GHC.Tuple.Tuple2`_i0
-                    (lam `match_GHC.Tuple.Tuple2`_i0 `GHC.Tuple.Tuple2`_i2)
+                    `GHC.Tuple.Tuple2_i0`
+                    (lam `match_GHC.Tuple.Tuple2_i0` `GHC.Tuple.Tuple2_i2`)
                   )
                 )
               )
@@ -22,8 +22,8 @@
                       arg_1_i0
                       (delay
                         (lam
-                          `case_GHC.Tuple.Tuple2`_i0
-                          [ [ `case_GHC.Tuple.Tuple2`_i1 arg_0_i3 ] arg_1_i2 ]
+                          `case_GHC.Tuple.Tuple2_i0`
+                          [ [ `case_GHC.Tuple.Tuple2_i1` arg_0_i3 ] arg_1_i2 ]
                         )
                       )
                     )
