@@ -24,6 +24,7 @@ import Control.Monad.Morph
 import Control.Monad.Reader as Reader
 
 import PlutusCore qualified as PLC
+import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Compiler qualified as PLC
 import PlutusCore.Name
 import PlutusCore.Pretty
@@ -46,13 +47,13 @@ import Prettyprinter.Render.Text
 
 instance ( PLC.Pretty (PLC.SomeTypeIn uni), PLC.GEq uni, PLC.Typecheckable uni fun
          , PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, Pretty fun, Pretty a
-         , Typeable a, Ord a
+         , Typeable a, Ord a, Default (PLC.CostingPart uni fun)
          ) => ToTPlc (PIR.Term TyName Name uni fun a) uni fun where
     toTPlc = asIfThrown . fmap (PLC.Program () PLC.latestVersion . void) . compileAndMaybeTypecheck True
 
 instance ( PLC.Pretty (PLC.SomeTypeIn uni), PLC.GEq uni, PLC.Typecheckable uni fun
          , PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, Pretty fun, Pretty a
-         , Typeable a, Ord a
+         , Typeable a, Ord a, Default (PLC.CostingPart uni fun)
          ) => ToUPlc (PIR.Term TyName Name uni fun a) uni fun where
     toUPlc t = do
         p' <- toTPlc t
@@ -65,8 +66,16 @@ asIfThrown
     -> ExceptT SomeException IO a
 asIfThrown = withExceptT SomeException . hoist (pure . runIdentity)
 
-compileAndMaybeTypecheck
-    :: (PLC.GEq uni, PLC.Typecheckable uni fun, Ord a, PLC.Pretty fun, PLC.Closed uni, PLC.Pretty (PLC.SomeTypeIn uni), uni `PLC.Everywhere` PLC.PrettyConst, PLC.Pretty a)
+compileAndMaybeTypecheck ::
+    (PLC.GEq uni
+    , PLC.Typecheckable uni fun
+    , Ord a
+    , PLC.Pretty fun
+    , PLC.Closed uni
+    , PLC.Pretty (PLC.SomeTypeIn uni)
+    , uni `PLC.Everywhere` PLC.PrettyConst
+    , PLC.Pretty a
+    , Default (PLC.CostingPart uni fun))
     => Bool
     -> Term TyName Name uni fun a
     -> Except (PIR.Error uni fun (PIR.Provenance a)) (PLC.Term TyName Name uni fun (PIR.Provenance a))

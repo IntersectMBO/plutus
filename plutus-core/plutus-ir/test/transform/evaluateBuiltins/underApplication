@@ -1,0 +1,2 @@
+-- missing an argument, should do nothing
+[ (builtin addInteger) (con integer 1) ]

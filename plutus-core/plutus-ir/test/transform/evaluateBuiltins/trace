@@ -1,0 +1,2 @@
+-- Tests run in conservative mode, should be left
+[{(builtin trace) (con integer) } (con string "hello") (con integer 1)]

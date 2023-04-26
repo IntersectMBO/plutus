@@ -1,0 +1,1 @@
+[ [ { (builtin trace) (con integer) } (con string "hello") ] (con integer 1) ]

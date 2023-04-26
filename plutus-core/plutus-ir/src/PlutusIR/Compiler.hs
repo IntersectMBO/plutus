@@ -24,14 +24,18 @@ module PlutusIR.Compiler (
     coDoSimplifierUnwrapCancel,
     coDoSimplifierBeta,
     coDoSimplifierInline,
+    coDoSimplifierEvaluateBuiltins,
     coInlineHints,
     coProfile,
     coRelaxedFloatin,
+    coPreserveLogging,
     defaultCompilationOpts,
     CompilationCtx,
     ccOpts,
     ccEnclosing,
     ccTypeCheckConfig,
+    ccBuiltinVer,
+    ccBuiltinCostModel,
     PirTCConfig(..),
     AllowEscape(..),
     toDefaultCompilationCtx,
@@ -47,6 +51,7 @@ import PlutusIR.Error
 import PlutusIR.Transform.Beta qualified as Beta
 import PlutusIR.Transform.CaseReduce qualified as CaseReduce
 import PlutusIR.Transform.DeadCode qualified as DeadCode
+import PlutusIR.Transform.EvaluateBuiltins qualified as EvaluateBuiltins
 import PlutusIR.Transform.Inline.Inline qualified as Inline
 import PlutusIR.Transform.KnownCon qualified as KnownCon
 import PlutusIR.Transform.LetFloatIn qualified as LetFloatIn
@@ -106,6 +111,12 @@ availablePasses =
     , Pass "case reduce"          (onOption coDoSimplifierCaseReduce)         (pure . CaseReduce.caseReduce)
     , Pass "known constructor"    (onOption coDoSimplifierKnownCon)           KnownCon.knownCon
     , Pass "beta"                 (onOption coDoSimplifierBeta)               (pure . Beta.beta)
+    , Pass "evaluate builtins"    (onOption coDoSimplifierEvaluateBuiltins)   (\t -> do
+                                                                                  ver <- view ccBuiltinVer
+                                                                                  costModel <- view ccBuiltinCostModel
+                                                                                  preserveLogging <- view (ccOpts . coPreserveLogging)
+                                                                                  pure $ EvaluateBuiltins.evaluateBuiltins preserveLogging ver costModel t
+                                                                              )
     , Pass "inline"               (onOption coDoSimplifierInline)             (\t -> do
                                                                                   hints <- view (ccOpts . coInlineHints)
                                                                                   ver <- view ccBuiltinVer
