@@ -7,7 +7,7 @@ module Algorithmic where
 \begin{code}
 open import Relation.Binary.PropositionalEquality using (_≡_;refl)
 
-open import Utils hiding (TermCon)
+open import Utils
 open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_;_∋⋆_;Z;S;Φ)
 open _⊢⋆_
 

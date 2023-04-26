@@ -29,14 +29,9 @@ lift⋆ ρ (suc α) = suc (ρ α)
 ren⋆ : ∀{m n} → Ren⋆ m n → ScopedTy m → ScopedTy n
 renTyCon⋆ : ∀{m n} → Ren⋆ m n → TyCon m → TyCon n
 
-renTyCon⋆ ρ integer = integer
-renTyCon⋆ ρ bytestring = bytestring
-renTyCon⋆ ρ string = string
-renTyCon⋆ ρ unit = unit
-renTyCon⋆ ρ bool = bool
-renTyCon⋆ ρ (list A) = list (ren⋆ ρ A)
+renTyCon⋆ ρ (list A)   = list (ren⋆ ρ A)
 renTyCon⋆ ρ (pair A B) = pair (ren⋆ ρ A) (ren⋆ ρ B)
-renTyCon⋆ ρ pdata = pdata
+renTyCon⋆ ρ (atomic A) = atomic A
 
 
 ren⋆ ρ (` α) = ` (ρ α)
@@ -92,14 +87,9 @@ slift⋆ ρ (suc α) = ren⋆ suc (ρ α)
 sub⋆ : ∀{m n} → Sub⋆ m n → ScopedTy m → ScopedTy n
 subTyCon⋆ : ∀{m n} → Sub⋆ m n → TyCon m → TyCon n
 
-subTyCon⋆ σ integer = integer
-subTyCon⋆ σ bytestring = bytestring
-subTyCon⋆ σ string = string
-subTyCon⋆ σ unit = unit
-subTyCon⋆ σ bool = bool
-subTyCon⋆ σ (list A) = list (sub⋆ σ A)
+subTyCon⋆ σ (list A)   = list (sub⋆ σ A)
 subTyCon⋆ σ (pair A B) = pair (sub⋆ σ A) (sub⋆ σ B)
-subTyCon⋆ σ pdata = pdata
+subTyCon⋆ σ (atomic A) = atomic A
 
 sub⋆ σ (` α)   = σ α
 sub⋆ σ (A ⇒ B) = sub⋆ σ A ⇒ sub⋆ σ B
@@ -177,14 +167,9 @@ renTyCon⋆-cong : ∀{m n}{ρ ρ' : Ren⋆ m n}
   → (∀ x → ρ x ≡ ρ' x)
   → ∀ x → renTyCon⋆ ρ x ≡ renTyCon⋆ ρ' x
 
-renTyCon⋆-cong p integer = refl
-renTyCon⋆-cong p bytestring = refl
-renTyCon⋆-cong p string = refl
-renTyCon⋆-cong p unit = refl
-renTyCon⋆-cong p bool = refl
-renTyCon⋆-cong p (list A) = cong list (ren⋆-cong p A)
+renTyCon⋆-cong p (list A)   = cong list (ren⋆-cong p A)
 renTyCon⋆-cong p (pair A B) = cong₂ pair (ren⋆-cong p A) (ren⋆-cong p B)
-renTyCon⋆-cong p pdata = refl
+renTyCon⋆-cong p (atomic _) = refl
 
 ren⋆-cong p (` x)       = cong ` (p x)
 ren⋆-cong p (A ⇒ B)     = cong₂ _⇒_ (ren⋆-cong p A) (ren⋆-cong p B)
@@ -208,14 +193,9 @@ subTyCon⋆-cong : ∀{m n}{σ σ' : Sub⋆ m n}
   → (∀ x → σ x ≡ σ' x)
   → ∀ x → subTyCon⋆ σ x ≡ subTyCon⋆ σ' x
 
-subTyCon⋆-cong p integer = refl
-subTyCon⋆-cong p bytestring = refl
-subTyCon⋆-cong p string = refl
-subTyCon⋆-cong p unit = refl
-subTyCon⋆-cong p bool = refl
-subTyCon⋆-cong p (list A) = cong list (sub⋆-cong p A)
+subTyCon⋆-cong p (list A)   = cong list (sub⋆-cong p A)
 subTyCon⋆-cong p (pair A B) = cong₂ pair (sub⋆-cong p A) (sub⋆-cong p B)
-subTyCon⋆-cong p pdata = refl
+subTyCon⋆-cong p (atomic A) = refl
 
 sub⋆-cong p (` x)       = p x
 sub⋆-cong p (A ⇒ B)     = cong₂ _⇒_ (sub⋆-cong p A) (sub⋆-cong p B)

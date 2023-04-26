@@ -1,4 +1,5 @@
-{-# LANGUAGE GADTs #-}
+{-# LANGUAGE GADTs          #-}
+{-# LANGUAGE KindSignatures #-}
 
 module Untyped where
 
@@ -6,11 +7,10 @@ import PlutusCore.Data hiding (Constr)
 import PlutusCore.Default
 import UntypedPlutusCore
 
-import Data.ByteString as BS
-import Data.Text as T
+import Data.ByteString as BS hiding (map)
+import Data.Text as T hiding (map)
 import Data.Word (Word64)
 import Universe
-
 
 -- Untyped (Raw) syntax
 
@@ -56,9 +56,12 @@ uconv i (ULambda t)  = LamAbs
   ()
   (NamedDeBruijn (T.pack [tmnames !! i]) deBruijnInitIndex)
   (uconv (i+1) t)
-uconv i (UApp t u)   = Apply () (uconv i t) (uconv i u)
-uconv i (UCon c)     = Constant () c
-uconv i UError       = Error ()
-uconv i (UBuiltin b) = Builtin () b
-uconv i (UDelay t)   = Delay () (uconv i t)
-uconv i (UForce t)   = Force () (uconv i t)
+uconv i (UApp t u)     = Apply () (uconv i t) (uconv i u)
+uconv i (UCon c)       = Constant () c
+uconv i UError         = Error ()
+uconv i (UBuiltin b)   = Builtin () b
+uconv i (UDelay t)     = Delay () (uconv i t)
+uconv i (UForce t)     = Force () (uconv i t)
+uconv i (UConstr j xs) = Constr () j (fmap (uconv i) xs)
+uconv i (UCase t xs)   = Case () (uconv i t) (fmap (uconv i) xs)
+

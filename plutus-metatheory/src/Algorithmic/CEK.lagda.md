@@ -31,10 +31,12 @@ open _⊢_
 open _∋_
 open import Algorithmic.RenamingSubstitution using (Sub;sub;exts;exts⋆;_[_];_[_]⋆)
 open import Builtin
-open import Utils hiding (TermCon)
+open import Utils
 
-open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) using (TyCon)
+open import Builtin.Constant.AtomicType
+open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) using (TyCon;integer;bool;bytestring;string;pdata)
 open TyCon
+
 
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con using (TermCon)
 open TermCon
@@ -169,77 +171,100 @@ discharge (V-IΠ b bt) = dischargeB bt
 
 ```
 BUILTIN : ∀ b {A} → {Ab : saturatedSigTy (signature b) A} → BApp b A Ab → Either (∅ ⊢Nf⋆ *) (Value A)
-BUILTIN addInteger (app (app base (V-con (integer i))) (V-con (integer i'))) = inj₂ (V-con (integer (i + i')))
-BUILTIN subtractInteger (app (app base (V-con (integer i))) (V-con (integer i'))) = inj₂ (V-con (integer (i - i')))
-BUILTIN multiplyInteger (app (app base (V-con (integer i))) (V-con (integer i'))) = inj₂ (V-con (integer (i ** i')))
-BUILTIN divideInteger (app (app base (V-con (integer i))) (V-con (integer i'))) = decIf
+BUILTIN addInteger (app (app base (V-con (tmInteger i))) (V-con (tmInteger i'))) = inj₂ (V-con (tmInteger (i + i')))
+BUILTIN subtractInteger (app (app base (V-con (tmInteger i))) (V-con (tmInteger i'))) = inj₂ (V-con (tmInteger (i - i')))
+BUILTIN multiplyInteger (app (app base (V-con (tmInteger i))) (V-con (tmInteger i'))) = inj₂ (V-con (tmInteger (i ** i')))
+BUILTIN divideInteger (app (app base (V-con (tmInteger i))) (V-con (tmInteger i'))) = decIf
   (i' ≟ ℤ.pos 0)
   (inj₁ (con integer))
-  (inj₂ (V-con (integer (div i i'))))
-BUILTIN quotientInteger (app (app base (V-con (integer i))) (V-con (integer i'))) = decIf
+  (inj₂ (V-con (tmInteger (div i i'))))
+BUILTIN quotientInteger (app (app base (V-con (tmInteger i))) (V-con (tmInteger i'))) = decIf
   (i' ≟ ℤ.pos 0)
   (inj₁ (con integer))
-  (inj₂ (V-con (integer (quot i i'))))
-BUILTIN remainderInteger (app (app base (V-con (integer i))) (V-con (integer i'))) = decIf
+  (inj₂ (V-con (tmInteger (quot i i'))))
+BUILTIN remainderInteger (app (app base (V-con (tmInteger i))) (V-con (tmInteger i'))) = decIf
   (i' ≟ ℤ.pos 0)
   (inj₁ (con integer))
-  (inj₂ (V-con (integer (rem i i'))))
-BUILTIN modInteger (app (app base (V-con (integer i))) (V-con (integer i'))) = decIf
+  (inj₂ (V-con (tmInteger (rem i i'))))
+BUILTIN modInteger (app (app base (V-con (tmInteger i))) (V-con (tmInteger i'))) = decIf
   (i' ≟ ℤ.pos 0)
   (inj₁ (con integer))
-  (inj₂ (V-con (integer (mod i i'))))
-BUILTIN lessThanInteger (app (app base (V-con (integer i))) (V-con (integer i'))) = decIf (i <? i') (inj₂ (V-con (bool true))) (inj₂ (V-con (bool false)))
-BUILTIN lessThanEqualsInteger (app (app base (V-con (integer i))) (V-con (integer i'))) = decIf (i ≤? i') (inj₂ (V-con (bool true))) (inj₂ (V-con (bool false)))
-BUILTIN equalsInteger (app (app base (V-con (integer i))) (V-con (integer i'))) = decIf (i ≟ i') (inj₂ (V-con (bool true))) (inj₂ (V-con (bool false)))
-BUILTIN appendByteString (app (app base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₂ (V-con (bytestring (concat b b')))
-BUILTIN lessThanByteString (app (app base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₂ (V-con (bool (B< b b')))
-BUILTIN lessThanEqualsByteString (app (app base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₂ (V-con (bool (B<= b b')))
-BUILTIN sha2-256 (app base (V-con (bytestring b))) = inj₂ (V-con
-  (bytestring (SHA2-256 b)))
-BUILTIN sha3-256 (app base (V-con (bytestring b))) =
-  inj₂ (V-con (bytestring (SHA3-256 b)))
-BUILTIN blake2b-256 (app base (V-con (bytestring b))) =
-  inj₂ (V-con (bytestring (BLAKE2B-256 b)))
-BUILTIN verifyEd25519Signature (app (app (app base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c))) with (verifyEd25519Sig k d c)
-... | just b = inj₂ (V-con (bool b))
+  (inj₂ (V-con (tmInteger (mod i i'))))
+BUILTIN lessThanInteger (app (app base (V-con (tmInteger i))) (V-con (tmInteger i'))) = decIf (i <? i') (inj₂ (V-con (tmBool true))) (inj₂ (V-con (tmBool false)))
+BUILTIN lessThanEqualsInteger (app (app base (V-con (tmInteger i))) (V-con (tmInteger i'))) = decIf (i ≤? i') (inj₂ (V-con (tmBool true))) (inj₂ (V-con (tmBool false)))
+BUILTIN equalsInteger (app (app base (V-con (tmInteger i))) (V-con (tmInteger i'))) = decIf (i ≟ i') (inj₂ (V-con (tmBool true))) (inj₂ (V-con (tmBool false)))
+BUILTIN appendByteString (app (app base (V-con (tmBytestring b))) (V-con (tmBytestring b'))) = inj₂ (V-con (tmBytestring (concat b b')))
+BUILTIN lessThanByteString (app (app base (V-con (tmBytestring b))) (V-con (tmBytestring b'))) = inj₂ (V-con (tmBool (B< b b')))
+BUILTIN lessThanEqualsByteString (app (app base (V-con (tmBytestring b))) (V-con (tmBytestring b'))) = inj₂ (V-con (tmBool (B<= b b')))
+BUILTIN sha2-256 (app base (V-con (tmBytestring b))) = inj₂ (V-con
+  (tmBytestring (SHA2-256 b)))
+BUILTIN sha3-256 (app base (V-con (tmBytestring b))) =
+  inj₂ (V-con (tmBytestring (SHA3-256 b)))
+BUILTIN blake2b-256 (app base (V-con (tmBytestring b))) =
+  inj₂ (V-con (tmBytestring (BLAKE2B-256 b)))
+BUILTIN verifyEd25519Signature (app (app (app base (V-con (tmBytestring k))) (V-con (tmBytestring d))) (V-con (tmBytestring c))) with (verifyEd25519Sig k d c)
+... | just b = inj₂ (V-con (tmBool b))
 ... | nothing = inj₁ (con bool)
-BUILTIN verifyEcdsaSecp256k1Signature (app (app (app base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c))) with (verifyEcdsaSecp256k1Sig k d c)
-... | just b = inj₂ (V-con (bool b))
+BUILTIN verifyEcdsaSecp256k1Signature (app (app (app base (V-con (tmBytestring k))) (V-con (tmBytestring d))) (V-con (tmBytestring c))) with (verifyEcdsaSecp256k1Sig k d c)
+... | just b = inj₂ (V-con (tmBool b))
 ... | nothing = inj₁ (con bool)
-BUILTIN verifySchnorrSecp256k1Signature (app (app (app base (V-con (bytestring k))) (V-con (bytestring d))) (V-con (bytestring c))) with (verifySchnorrSecp256k1Sig k d c)
-... | just b = inj₂ (V-con (bool b))
+BUILTIN verifySchnorrSecp256k1Signature (app (app (app base (V-con (tmBytestring k))) (V-con (tmBytestring d))) (V-con (tmBytestring c))) with (verifySchnorrSecp256k1Sig k d c)
+... | just b = inj₂ (V-con (tmBool b))
 ... | nothing = inj₁ (con bool)
-BUILTIN encodeUtf8 (app base (V-con (string s))) =
-  inj₂ (V-con (bytestring (ENCODEUTF8 s)))
-BUILTIN decodeUtf8 (app base (V-con (bytestring b))) with DECODEUTF8 b
+BUILTIN encodeUtf8 (app base (V-con (tmString s))) =
+  inj₂ (V-con (tmBytestring (ENCODEUTF8 s)))
+BUILTIN decodeUtf8 (app base (V-con (tmBytestring b))) with DECODEUTF8 b
 ... | nothing = inj₁ (con string)
-... | just s  = inj₂ (V-con (string s))
-BUILTIN equalsByteString (app (app base (V-con (bytestring b))) (V-con (bytestring b'))) = inj₂ (V-con (bool (equals b b')))
-BUILTIN ifThenElse (app (app (app (app⋆ base refl refl) (V-con (bool false))) vt) vf) = inj₂ vf
-BUILTIN ifThenElse (app (app (app (app⋆ base refl refl) (V-con (bool true))) vt) vf) = inj₂ vt
-BUILTIN appendString (app (app base (V-con (string s))) (V-con (string s'))) = inj₂ (V-con (string (primStringAppend s s')))
-BUILTIN trace (app (app (app⋆ base refl refl) (V-con (string s))) v) =
+... | just s  = inj₂ (V-con (tmString s))
+BUILTIN equalsByteString (app (app base (V-con (tmBytestring b))) (V-con (tmBytestring b'))) = inj₂ (V-con (tmBool (equals b b')))
+BUILTIN ifThenElse (app (app (app (app⋆ base refl refl) (V-con (tmBool false))) vt) vf) = inj₂ vf
+BUILTIN ifThenElse (app (app (app (app⋆ base refl refl) (V-con (tmBool true))) vt) vf) = inj₂ vt
+BUILTIN appendString (app (app base (V-con (tmString s))) (V-con (tmString s'))) = inj₂ (V-con (tmString (primStringAppend s s')))
+BUILTIN trace (app (app (app⋆ base refl refl) (V-con (tmString s))) v) =
   inj₂ (TRACE s v)
-BUILTIN iData (app base (V-con (integer i))) =
-  inj₂ (V-con (pdata (iDATA i)))
-BUILTIN bData (app base (V-con (bytestring b))) =
-  inj₂ (V-con (pdata (bDATA b)))
-BUILTIN consByteString (app (app base (V-con (integer i))) (V-con (bytestring b))) = inj₂ (V-con (bytestring (cons i b)))
-BUILTIN sliceByteString (app (app (app base (V-con (integer st))) (V-con (integer n))) (V-con (bytestring b))) = inj₂ (V-con (bytestring (slice st n b)))
-BUILTIN lengthOfByteString (app base (V-con (bytestring b))) =
-  inj₂ (V-con (integer (length b)))
-BUILTIN indexByteString (app (app base (V-con (bytestring b))) (V-con (integer i))) with Data.Integer.ℤ.pos 0 ≤? i
+BUILTIN iData (app base (V-con (tmInteger i))) =
+  inj₂ (V-con (tmData (iDATA i)))
+BUILTIN bData (app base (V-con (tmBytestring b))) =
+  inj₂ (V-con (tmData (bDATA b)))
+BUILTIN consByteString (app (app base (V-con (tmInteger i))) (V-con (tmBytestring b))) with cons i b 
+... | just b' = inj₂ (V-con (tmBytestring b'))
+... | nothing = inj₁ (con bytestring)
+BUILTIN sliceByteString (app (app (app base (V-con (tmInteger st))) (V-con (tmInteger n))) (V-con (tmBytestring b))) = inj₂ (V-con (tmBytestring (slice st n b)))
+BUILTIN lengthOfByteString (app base (V-con (tmBytestring b))) =
+  inj₂ (V-con (tmInteger (length b)))
+BUILTIN indexByteString (app (app base (V-con (tmBytestring b))) (V-con (tmInteger i))) with Data.Integer.ℤ.pos 0 ≤? i
 ... | no  _ = inj₁ (con integer)
 ... | yes _ with i <? length b
 ... | no _  = inj₁ (con integer)
-... | yes _ = inj₂ (V-con (integer (index b i)))
-BUILTIN equalsString (app (app base (V-con (string s))) (V-con (string s'))) = inj₂ (V-con (bool (primStringEquality s s')))
-BUILTIN unIData (app base (V-con (pdata (iDATA i)))) = inj₂ (V-con (integer i))
-BUILTIN unBData (app base (V-con (pdata (bDATA b)))) =
-  inj₂ (V-con (bytestring b))
-BUILTIN serialiseData (app base (V-con (pdata d))) =
-  inj₂ (V-con (bytestring (serialiseDATA d)))
-BUILTIN _ {A = A} _ = inj₁ A
+... | yes _ = inj₂ (V-con (tmInteger (index b i)))
+BUILTIN equalsString (app (app base (V-con (tmString s))) (V-con (tmString s'))) = inj₂ (V-con (tmBool (primStringEquality s s')))
+BUILTIN unIData (app base (V-con (tmData (iDATA i)))) = inj₂ (V-con (tmInteger i))
+BUILTIN unIData (app base (V-con (tmData _))) = inj₁ (con pdata)
+BUILTIN unBData (app base (V-con (tmData (bDATA b)))) = inj₂ (V-con (tmBytestring b))
+BUILTIN unBData (app base (V-con (tmData _))) = inj₁ (con pdata)
+BUILTIN unConstrData {A} (app base (V-con (tmData (ConstrDATA i xs)))) = inj₁ A --unimplemented  inj₂ (V-con (pair i xs))
+BUILTIN unConstrData {A} (app base (V-con (tmData _))) = inj₁ (con pdata)
+BUILTIN unMapData {A} (app base (V-con (tmData (MapDATA x)))) = inj₁ A --unimplemented inj₂ (V-con (listPair x))
+BUILTIN unMapData {A} (app base (V-con (tmData _))) = inj₁ (con pdata)
+BUILTIN unListData {A} (app base (V-con (tmData (ListDATA x)))) = inj₁ A --unimplemented inj₂ (V-con (listData x))
+BUILTIN unListData {A} (app base (V-con (tmData _))) = inj₁ (con pdata)
+BUILTIN serialiseData {A} (app base (V-con (tmData d))) = inj₂ (V-con (tmBytestring (serialiseDATA d)))
+BUILTIN mkNilData {A} (app base (V-con tmUnit)) = inj₁ A --unimplemented inj₂ (V-con (listData []))
+BUILTIN mkNilPairData {A} (app base (V-con tmUnit)) = inj₁ A --unimplemented inj₂ (V-con (listPair []))
+BUILTIN chooseUnit {A} (app (app (app⋆ base refl refl) x) (V-con tmUnit)) = inj₂ x
+BUILTIN equalsData {A}  (app (app base (V-con (tmData d))) (V-con (tmData d'))) = inj₂ (V-con (tmBool (eqDATA d d')))
+BUILTIN mkPairData {A} (app (app base (V-con (tmData x))) (V-con (tmData y))) = inj₁ A --unimplemented 
+BUILTIN constrData {A} (app (app base (V-con (tmInteger i))) (V-con xs)) = inj₁ A --unimplemented
+BUILTIN mapData {A} (app base (V-con xs)) = inj₁ A --unimplemented 
+BUILTIN listData {A} (app base (V-con xs)) = inj₁ A --unimplemented 
+BUILTIN fstPair {A} bapp = inj₁ A --unimplemented
+BUILTIN sndPair {A} bapp = inj₁ A --unimplemented
+BUILTIN chooseList {A} bapp = inj₁ A --unimplemented
+BUILTIN mkCons {A} (app (app (app⋆ base refl refl) x) (V-con xs)) = inj₁ A --unimplemented
+BUILTIN headList {A} bapp = inj₁ A --unimplemented
+BUILTIN tailList {A} bapp = inj₁ A --unimplemented
+BUILTIN nullList {A} (app (app⋆ base refl refl) (V-con cn)) = inj₁ A  --unimplemented
+BUILTIN chooseData {A} bapp =  inj₁ A --unimplemented
 
 BUILTIN' : ∀ b {A}
   → ∀{tn} → {pt : tn ∔ 0 ≣ fv♯ (signature b)}

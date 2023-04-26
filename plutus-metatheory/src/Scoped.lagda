@@ -15,17 +15,18 @@ open import Data.String using (String;_++_)
 
 open import Builtin using (Builtin)
 open Builtin.Builtin
+open import Builtin.Constant.AtomicType using (aBool)
 
 open import Raw using (RawTy;RawTm;RawTyCon)
 open RawTy
 open RawTm
 open RawTyCon
 
-open import Utils using (Kind;Maybe;nothing;just;maybe;Monad;TermCon;Either;inj₁;inj₂)
+open import Utils using (Kind;Maybe;nothing;just;maybe;Monad;Either;inj₁;inj₂)
 open Monad{{...}}
-open TermCon
 
-
+open import RawU using (TyTag;TmCon;tmCon;tagCon2TmCon;tmCon2TagCon)
+open TyTag
 \end{code}
 
 \begin{code}
@@ -185,7 +186,7 @@ data ScopedTm {n}(w : Weirdℕ n) : Set where
   _·⋆_ :    ScopedTm w → ScopedTy n → ScopedTm w
   ƛ    :    ScopedTy n → ScopedTm (S w) → ScopedTm w
   _·_  :    ScopedTm w → ScopedTm w → ScopedTm w
-  con  :    TermCon → ScopedTm w
+  con  :    TmCon → ScopedTm w
   error :   ScopedTy n → ScopedTm w
   builtin : (b : Builtin) → ScopedTm w
   wrap :    ScopedTy n → ScopedTy n → ScopedTm w → ScopedTm w
@@ -230,17 +231,12 @@ data ScopeError : Set where
 scopeCheckTy : ∀{n} → RawTy → Either ScopeError (ScopedTy n)
 scopeCheckTyCon : ∀{n} → RawTyCon → Either ScopeError (S.TyCon n)
 
-scopeCheckTyCon integer    = inj₂ S.integer
-scopeCheckTyCon bytestring = inj₂ S.bytestring
-scopeCheckTyCon string     = inj₂ S.string
-scopeCheckTyCon unit       = inj₂ S.unit
-scopeCheckTyCon bool       = inj₂ S.bool
-scopeCheckTyCon (list A)   = fmap S.list (scopeCheckTy A)
-scopeCheckTyCon (pair A B) = do
+scopeCheckTyCon (atomic ty) = inj₂ (S.atomic ty)
+scopeCheckTyCon (list A)    = fmap S.list (scopeCheckTy A)
+scopeCheckTyCon (pair A B)  = do
   A ← scopeCheckTy A
   B ← scopeCheckTy B
   return (S.pair A B)
-scopeCheckTyCon pdata       = inj₂ S.pdata
 
 scopeCheckTy (` x) = fmap ` (ℕtoFin x)
 scopeCheckTy (A ⇒ B) = do
@@ -274,7 +270,7 @@ scopeCheckTm (t · u) = do
   t ← scopeCheckTm t
   u ← scopeCheckTm u
   return (t · u)
-scopeCheckTm (con c) = return (con c)
+scopeCheckTm (con c) = return (con (tagCon2TmCon c))
 scopeCheckTm (builtin b) = return (builtin b)
 scopeCheckTm (error A) = fmap error (scopeCheckTy A)
 scopeCheckTm (wrap A B t) = do
@@ -298,14 +294,10 @@ wftoℕ (T i) = ℕ.suc (wftoℕ i)
 extricateScopeTy : ∀{n} → ScopedTy n → RawTy
 extricateTyCon : ∀{n} → S.TyCon n → RawTyCon
 
-extricateTyCon S.integer    = integer
-extricateTyCon S.bytestring = bytestring
-extricateTyCon S.string     = string
-extricateTyCon S.unit       = unit
-extricateTyCon S.bool       = bool
-extricateTyCon (S.list A)   = list (extricateScopeTy A)
-extricateTyCon (S.pair A B) = pair (extricateScopeTy A) (extricateScopeTy B)
-extricateTyCon S.pdata      = pdata
+
+extricateTyCon (S.atomic ty) = atomic ty
+extricateTyCon (S.list A)    = list (extricateScopeTy A)
+extricateTyCon (S.pair A B)  = pair (extricateScopeTy A) (extricateScopeTy B)
 
 extricateScopeTy (` x) = ` (toℕ x)
 extricateScopeTy (A ⇒ B) = extricateScopeTy A ⇒ extricateScopeTy B
@@ -314,7 +306,7 @@ extricateScopeTy (ƛ K A) = ƛ K (extricateScopeTy A)
 extricateScopeTy (A · B) = extricateScopeTy A · extricateScopeTy B
 extricateScopeTy (con c) = con (extricateTyCon c)
 extricateScopeTy (μ A B) = μ (extricateScopeTy A) (extricateScopeTy B)
-extricateScopeTy missing = con bool -- TODO
+extricateScopeTy missing = con (atomic aBool) -- TODO
 
 extricateScope : ∀{n}{w : Weirdℕ n} → ScopedTm w → RawTm
 extricateScope (` x) = ` (WeirdFintoℕ x)
@@ -322,7 +314,7 @@ extricateScope (Λ K t) = Λ K (extricateScope t)
 extricateScope (t ·⋆ A) = extricateScope t ·⋆ extricateScopeTy A
 extricateScope (ƛ A t) = ƛ (extricateScopeTy A) (extricateScope t)
 extricateScope (t · u) = extricateScope t · extricateScope u
-extricateScope (con c) = con c
+extricateScope (con c) = con (tmCon2TagCon c)
 extricateScope (error A) = error (extricateScopeTy A)
 extricateScope (builtin bn) = builtin bn
 extricateScope (wrap pat arg t) =
@@ -338,10 +330,10 @@ uglyWeirdFin Z = "0"
 uglyWeirdFin (T x) = "(T " ++ uglyWeirdFin x ++ ")"
 uglyWeirdFin (S x) = "(S " ++ uglyWeirdFin x ++ ")"
 
-uglyTermCon : TermCon → String
-uglyTermCon (integer x) = "(integer " ++ ishow x ++ ")"
-uglyTermCon (bytestring x) = "bytestring"
-uglyTermCon size = "size"
+uglyTmCon : TmCon → String
+uglyTmCon (tmCon integer x) = "(integer " ++ ishow x ++ ")"
+uglyTmCon (tmCon bytestring x) = "bytestring"
+uglyTmCon size = "size"
 
 postulate showNat : ℕ → String
 

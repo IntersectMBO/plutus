@@ -115,6 +115,7 @@ library
     MAlonzo.Code.Algorithmic.RenamingSubstitution
     MAlonzo.Code.Algorithmic.Signature
     MAlonzo.Code.Builtin
+    MAlonzo.Code.Builtin.Constant.AtomicType
     MAlonzo.Code.Builtin.Constant.Term
     MAlonzo.Code.Builtin.Constant.Type
     MAlonzo.Code.Builtin.Signature
@@ -211,6 +212,7 @@ library
     MAlonzo.Code.Level
     MAlonzo.Code.Main
     MAlonzo.Code.Raw
+    MAlonzo.Code.RawU
     MAlonzo.Code.Relation.Binary.Bundles
     MAlonzo.Code.Relation.Binary.Consequences
     MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive
@@ -302,6 +304,7 @@ library
     MAlonzo.Code.Algorithmic.RenamingSubstitution
     MAlonzo.Code.Algorithmic.Signature
     MAlonzo.Code.Builtin
+    MAlonzo.Code.Builtin.Constant.AtomicType
     MAlonzo.Code.Builtin.Constant.Term
     MAlonzo.Code.Builtin.Constant.Type
     MAlonzo.Code.Builtin.Signature
@@ -397,6 +400,7 @@ library
     MAlonzo.Code.Level
     MAlonzo.Code.Main
     MAlonzo.Code.Raw
+    MAlonzo.Code.RawU
     MAlonzo.Code.Relation.Binary.Bundles
     MAlonzo.Code.Relation.Binary.Consequences
     MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive

@@ -186,14 +186,9 @@ evalSR : ∀{Φ Ψ K}(A : Φ ⊢⋆ K){σ : Sub Φ Ψ}{η : Env Φ Ψ}
 evalSRTyCon : ∀{Φ Ψ}(c : Syn.TyCon Φ){σ : Sub Φ Ψ}{η : Env Φ Ψ}
   → SREnv σ η
   → subTyCon σ c ≡βTyCon embNfTyCon (evalTyCon c η)
-evalSRTyCon Syn.integer p = refl≡β _
-evalSRTyCon Syn.bytestring p = refl≡β _
-evalSRTyCon Syn.string p = refl≡β _
-evalSRTyCon Syn.unit p = refl≡β _
-evalSRTyCon Syn.bool p = refl≡β _
-evalSRTyCon (Syn.list A) p = list≡β (evalSR A p)
+evalSRTyCon (Syn.list A) p   = list≡β (evalSR A p)
 evalSRTyCon (Syn.pair A B) p = pair≡β (evalSR A p) (evalSR B p)
-evalSRTyCon Syn.pdata p = refl≡β _
+evalSRTyCon (Syn.atomic _) p = refl≡β _
 
 
 evalSR (` α)                   p = p α
