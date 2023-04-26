@@ -397,7 +397,7 @@ postulate
 -- no binding needed for traceStr
 ```
 
-Equaility of Builtins is decidable.
+Equality of Builtins is decidable.
 The following function is used for testing, when
 comparing expected with actual results.
 
