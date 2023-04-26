@@ -43,9 +43,9 @@ failingTests = [
     -- SOP tests don't work yet, filter out the cases that are supposed to fail,
     -- and therefore succeed by accident
     ++ fmap (\i -> "test-cases/uplc/evaluation/term/case/case-" ++ show @Integer i)
-               (filter (\i -> i /= 7) [1..8])
+               [1,2,3,4,5,6,8,9]
     ++ fmap (\i -> "test-cases/uplc/evaluation/term/constr/constr-" ++ show @Integer i)
-               (filter (\i -> i /= 6) [1..6])
+               [1,2,3,4,5]
 
 main :: IO ()
 main =
