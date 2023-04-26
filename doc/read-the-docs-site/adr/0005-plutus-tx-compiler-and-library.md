@@ -77,13 +77,12 @@ Because of the NOINLINE pragma, `nonstrict` is guaranteed to be visible to the P
 Whenever the Plutus Tx compiler sees `let x = nonstrict rhs`, it first compiles `rhs` normally; then it creates a nonstrict binding in PIR: `let ~x = rhs_compiled`.
 
 What if `x` gets inlined by GHC, i.e., GHC turns `let x = nonstrict rhs in ...x...` into `...(nonstrict rhs)...`?
-That's not a problem, because if we see a `nonstrict rhs` that isn't the RHS of a binding, we create a new, non-strict binding from it, i.e., it becomes, in PIR,
+That's not a problem, although it needs to be dealt with in a different way.
+If we see a `nonstrict rhs` that isn't the RHS of a binding, we first compile `rhs` normally.
+Then, we annotate `compiled_rhs` with `NONSTRICT`.
+The effect of `NONSTRICT` is: when the beta-reduction pass creates let-bindings from arguments, it normally creates strict bindings; but if an argument is annotated with `NONSTRICT`, then it creates a non-strict binding instead.
 
-```haskell
-let ~fresh_name = rhs_compiled in ...fresh_name...
-```
-
-Besides being used to create non-strict let-bindings, the `nonstrict` function can also be used to make it so that an argument to a function is evaluated non-strictly, making it an handy tool for writing Plutus Tx code, especially library code.
+By doing so, the `nonstrict` function can be used not only to create non-strict bindings, but also make a function evaluate an argument non-strictly, making it an handy tool for writing Plutus Tx code, especially library code.
 See the next section.
 
 ### Using `nonstrict` to Make Arguments Non-strict
@@ -133,38 +132,7 @@ The advantage of `Eval` is that it can be provided entirely in a library, withou
 The takeaway is this: the standard libraries usually do the simple things, e.g., providing a monomorphic, non-short-circuiting version of `foldr` for lists, as well as functions like `all`, `any`, also monomorphically for lists.
 The polymorphic versions of those functions, if exist, are usually provided by third-party libraries like cats.
 
-For Plutus Tx, even with `nonstrict`, it is still useful to provide monomorphic versions of certain functions in the standard library, especially since they can be noticeably cheaper than the polymorphic versions.
-This will be discussed in the next section.
-
-### Monomorphizing Plutus Tx Standard Library
-
-Strict languages do not lend themselves to code reuse, as there is a high cost to use abstractions such as higher-order functions and parametric polymorphism.
-Polymorhpic functions taking `Foldable` or similar constraints, implemented in terms of higher-order functions like `foldr`, are rare in strict languages.
-
-For Plutus Tx, there's another reason why monomorphization of the standard library is beneficial: multiple method typeclasses are expensive.
-
-Single method typeclasses are cheap because they have simpler representations in GHC Core - a newtype that can be compiled away.
-On the other hand, multiple method typeclasses exist in GHC Core as actual dictionaries and need to be compiled into product types in PIR.
-
-This makes monomorphization the only choice in many cases. Consider `foldr` and `foldMap`.
-They can be implemented in terms of each other, so technically, only one of them needs to be in the `Foldable` class.
-But certain types have more efficient direct implementations of `foldr`; the same for `foldMap`.
-No matter which of them we move out of `Foldable`, it won't work optimally for certain types.
-Keeping both in `Foldable` will cause `Foldable` to be a multiple method typeclass, which is expensive in and of itself, as explained above.
-We may as well do away with `PlutusTx.Foldable`, and instead simply provide monomorphic versions of `Foldable`-related functions for each common type.
-
-### Turning off GHC's pre-inliner
-
-As said before, one reason why the semantics of Plutus Tx is difficult to predict is because we run GHC's pre-inliner, which may perform unconditionally inlining.
-Since GHC 9.0, GHC provides [an option](https://hackage.haskell.org/package/ghc-9.6.1/docs/GHC-Core-Opt-Simplify-Env.html#v:sm_pre_inline) to turn it off when running the simplifier.
-By turning it off, GHC (hopefully) won't inline anything at all, which means it won't change the strictness of Plutus Tx programs.
-
-At this time we can't simply turn the pre-inliner off, because doing so breaks the Plutus Tx compiler.
-For details, see [this note](https://github.com/input-output-hk/plutus/blob/dc57fe1b8497835ef2a7794c017c5a50c0b7e647/plutus-tx-plugin/src/PlutusTx/Plugin.hs#L123).
-The problem described in the note should, however, be resolved in a different way, as explained in the note.
-Once done, we can go ahead and turn it off.
-
-### Performing GHC-like Inlining for Functions with the INLINE Pragma
+### Define non-strict functions
 
 In Plutus Tx, like most other strict languages, only a few built-in constructs are non-strict (such as if-then-else).
 It is cumbersome, if not impossible, to create user-defined non-strict functions.
@@ -203,3 +171,33 @@ And this is desirable because we want `(&&)` to be non-strict.
 Functions that should not be inlined in the GHC way should use the `INLINABLE` pragma.
 
 This has recently been partially done by @michaelpj [#5183](https://github.com/input-output-hk/plutus/pull/5183), which propagates `INLINE` pragmas but doesn't yet perform GHC-like inlining.
+
+### Monomorphizing Plutus Tx Standard Library
+
+For Plutus Tx, even with the ability to define non-strict bindings and functions, it is still useful to provide monomorphic versions of certain functions in the standard library, especially since they can be noticeably cheaper than the polymorphic versions.
+
+Strict languages do not lend themselves to code reuse, as there is a high cost to use abstractions such as higher-order functions and ad-hoc polymorphism.
+Polymorphic functions taking `Foldable` or similar constraints, implemented in terms of higher-order functions like `foldr`, are rare in strict languages.
+
+For Plutus Tx, there's another reason why monomorphization of the standard library is beneficial: multiple method typeclasses are expensive.
+
+Single method typeclasses are cheap because they have simpler representations in GHC Core - a newtype that can be compiled away.
+On the other hand, multiple method typeclasses exist in GHC Core as actual dictionaries and need to be compiled into product types in PIR.
+
+This makes monomorphization the only choice in many cases. Consider `foldr` and `foldMap`.
+They can be implemented in terms of each other, so technically, only one of them needs to be in the `Foldable` class.
+But certain types have more efficient direct implementations of `foldr`; the same for `foldMap`.
+No matter which of them we move out of `Foldable`, it won't work optimally for certain types.
+Keeping both in `Foldable` will cause `Foldable` to be a multiple method typeclass, which is expensive in and of itself, as explained above.
+We may as well do away with `PlutusTx.Foldable`, and instead simply provide monomorphic versions of `Foldable`-related functions for each common type.
+
+### Turning off GHC's pre-inliner
+
+As said before, one reason why the semantics of Plutus Tx is difficult to predict is because we run GHC's pre-inliner, which may perform unconditionally inlining.
+Since GHC 9.0, GHC provides [an option](https://hackage.haskell.org/package/ghc-9.6.1/docs/GHC-Core-Opt-Simplify-Env.html#v:sm_pre_inline) to turn it off when running the simplifier.
+By turning it off, GHC (hopefully) won't inline anything at all, which means it won't change the strictness of Plutus Tx programs.
+
+At this time we can't simply turn the pre-inliner off, because doing so breaks the Plutus Tx compiler.
+For details, see [this note](https://github.com/input-output-hk/plutus/blob/dc57fe1b8497835ef2a7794c017c5a50c0b7e647/plutus-tx-plugin/src/PlutusTx/Plugin.hs#L123).
+The problem described in the note should, however, be resolved in a different way, as explained in the note.
+Once done, we can go ahead and turn it off.
