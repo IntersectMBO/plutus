@@ -15,9 +15,11 @@ open import Agda.Builtin.Reflection
 open import Reflection
 open import Relation.Binary.PropositionalEquality using (refl)
 open import Relation.Nullary using (_because_;Reflects;ofʸ;ofⁿ)
+```
 
--- Reflection machinery
+ Some definitions to help define functions by reflection
 
+```
 constructors : Definition → List Name
 constructors (data-type pars cs) = cs
 constructors _ = []
@@ -52,17 +54,25 @@ mk-DecCls q1 q2 with primQNameEquality q1 q2
 ... | false = clause [] (vra (con q1 []) ∷ vra (con q2 []) ∷ []) 
                         (con (quote _because_)  
                         (vra (con (quote false) []) ∷ vra (con (quote ofⁿ) [ vra absurd-lam ]) ∷ []))
+```
 
+The function `defEq` helps to define an equality function for datatypes which are simple enumerations.
+
+```
 defEq : Name → Name → TC ⊤
 defEq T defName = do
        d ← getDefinition T
        let trueClauses = map mk-cls (constructors d)
        defineFun defName (trueClauses ++ (default-cls ∷ []))
+```
 
+The function `defDec` helps to define a `DecidableEquality` for datatypes which are simple enumerations.
+
+```
 defDec : Name → Name → TC ⊤
 defDec T defName = do
        d ← getDefinition T
        let cls = map2 mk-DecCls (constructors d)
        defineFun defName cls
-
+```
  

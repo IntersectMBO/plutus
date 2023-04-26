@@ -1,14 +1,23 @@
 
 ```
 module Utils.Decidable where
+```
 
+## Imports
+
+```
 open import Data.Bool using (false;true)
 open import Function using (const;_∘_)
 open import Relation.Binary using (DecidableEquality)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;cong;cong₂;subst)
 open import Relation.Nullary using (Dec;yes;no;¬_)
 open import Data.Product using (Σ;_×_;proj₁;proj₂) renaming (_,_ to _,,_)
+```
 
+Some functions to help define `DecidableEquality` predicates, inspired by effectfully's Generic Library.
+
+
+```
 dmap : ∀ {α β} {A : Set α} {B : Set β} → (A → B) → (¬ A → ¬ B) → Dec A → Dec B
 dmap f g (no ¬p) = no (g ¬p)
 dmap f g (yes p) = yes (f p)
@@ -45,5 +54,4 @@ dhcong₂ : ∀ {α β γ} {A : Set α} {B B' : A → Set β} {C : Set γ} {x₁
         → Dec (f x₁ y₁ z₁ ≡ f x₂ y₂ z₂)
 dhcong₂ f inj (yes refl) qy qz = dcong₂ (f _) ((λ { (refl ,, yy) → yy }) ∘ inj) (qy _) (qz _)
 dhcong₂ f inj (no  c)    _  _  = no λ {p → c (proj₁ (inj p))}
-
 ```
