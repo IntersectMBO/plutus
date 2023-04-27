@@ -8,13 +8,13 @@ in
     in
         let a = 7 
         in 
-            x+a
+            a + x + a
 
 should NOT be inlined to
 
 let a = 7 
 in 
-    a+a
+    a + a + a
 -}
 
 (let
@@ -48,7 +48,7 @@ in
                 (vardecl a (con integer))
                 (con integer 7)
             )
-            [(builtin addInteger) x a]
+            [(builtin addInteger) [(builtin addInteger) x a] a]
             )
     )
 )
