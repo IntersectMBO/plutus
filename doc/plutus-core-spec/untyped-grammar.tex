@@ -30,6 +30,7 @@ binary format described in Appendix~\ref{appendix:flat-serialisation}.
 \end{minipage}%
 \nomenclature[C]{$L,M,N$}{A term}%
 \nomenclature[C]{$n$}{A name}%
+\nomenclature[C]{$i$}{An integer}%
 \nomenclature[C]{$x$}{A variable name}%
 \nomenclature[C]{$bn, b$}{The name of a built-in function}%
 \nomenclature[C]{$c$}{A literal constant}%
@@ -71,6 +72,8 @@ binary format described in Appendix~\ref{appendix:flat-serialisation}.
                         &        &     & \appU{M}{N}            & \textrm{function application}\\
                         &        &     & \delay{M}              & \textrm{delay execution of a term}\\
                         &        &     & \force{M}              & \textrm{force execution of a term}\\
+                        &        &     & \constr{i}{M \ldots}   & \textrm{a constructor term with tag $i$}\\
+                        &        &     & \kase{M}{N \ldots}     & \textrm{case anaylsis of a constructor term}\\
                         &        &     & \errorU                & \textrm{error}\\
         \textrm{Program}& P      & ::= & \version{v}{M}         & \textrm{versioned program}
 

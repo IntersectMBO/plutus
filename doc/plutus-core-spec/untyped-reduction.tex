@@ -58,9 +58,11 @@ $\lamU{x}{N}$.%
 \begin{subfigure}[c]{\linewidth}
     \centering
     \[\begin{array}{lrclr}
-        \textrm{Frame} & f  & ::=   & \inAppLeftFrame{M}          & \textrm{left application}\\
-                       &   &     & \inAppRightFrame{V}            & \textrm{right application}\\
-                       &   &     & \inForceFrame                  & \textrm{force}
+        \textrm{Frame} & f  & ::=   & \inAppLeftFrame{M}                                       & \textrm{left application}\\
+                       &   &     & \inAppRightFrame{V}                                         & \textrm{right application}\\
+                       &   &     & \inForceFrame                                               & \textrm{force}\\
+                       &   &     & \inConstrFrame{i}{\repetition{V}}{\repetition{M}}           & \textrm{constructor argument}\\
+                       &   &     & \inCaseFrame{\repetition{M}}                                & \textrm{case scrutinee}
     \end{array}\]
     \caption{Grammar of reduction frames for Plutus Core}
     \label{fig:untyped-reduction-frames}
@@ -107,6 +109,13 @@ $\lamU{x}{N}$.%
         \AxiomC{}
         % \RightLabel{\textsf{force-delay}}
         \UnaryInfC{$\step{\force{\delay{M}}}{M}$}
+    \end{prooftree}
+
+    % case (constr i vs) cs -> [c_i vs]
+    \begin{prooftree}
+        \AxiomC{$i \in [0, m]$}
+        % \RightLabel{\textsf{case-of-constr}}
+        \UnaryInfC{$\step{\kase{\constr{i}{\repetition{V}}}{U_0 \ldots U_m}}{\app{U_i}{\repetition{V}}}$}
     \end{prooftree}
 
     % Saturated force

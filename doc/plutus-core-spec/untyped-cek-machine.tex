@@ -35,7 +35,8 @@ to apply a variable to some other term).
        \enspace \cekerror{} \enspace | \enspace \cekhalt{V}\\
     \textrm{Stack} & s      & ::= & f^*\\
     \textrm{CEK value} & V &  ::= & \VCon{\tn}{c} \enspace | \enspace \VDelay{M}{\rho}
-       \enspace| \enspace \VLamAbs{x}{M}{\rho} \enspace | \enspace \VBuiltin{b}{\repetition{V}}{\eta}\\
+       \enspace| \enspace \VLamAbs{x}{M}{\rho} \enspace \\
+       &&& | \enspace \VConstr{i}{V_0 \ldots V_n} \enspace | \enspace \VBuiltin{b}{\repetition{V}}{\eta}\\
     \textrm{Environment} & \rho & ::= & [] \enspace | \enspace \rho[x \mapsto V] \\
     \textrm{Expected builtin arguments} & \eta & ::= & [\iota] \enspace | \enspace \iota \cons \eta\\
     \end{array}\] 
@@ -44,7 +45,7 @@ to apply a variable to some other term).
 \end{figure}%
 \nomenclature[Gb1]{$\Sigma$}{CEK machine state}%
 \nomenclature[Gb2]{$s$}{CEK machine stack}%
-\nomenclature[Gb2a]{$f$}{CEK stack frame: $\inForceFrame, \inAppLeftFrame{(M,\rho)}, \inAppRightFrame{V}$}
+\nomenclature[Gb2a]{$f$}{CEK stack frame: $\inForceFrame, \inAppLeftFrame{(M,\rho)}, \inAppRightFrame{V}, \inConstrFrame{i}{M_0 \ldots M_{i-1}}{V_{i+1} \ldots V_n}, \inCaseFrame{M_0 \ldots M_n}$}
 \nomenclature[Gb3]{$V$}{CEK value: $\VCon{\tn}{c}, \VDelay{M}{\rho},\VLamAbs{x}{M}{\rho},\VBuiltin{b}{\repetition{V}}{\eta}$}%
 \nomenclature[Gb4]{$\rho$}{CEK environment}%
 \nomenclature[Gb5]{$\rho[x]$}{Value bound to variable $x$ in environment $\rho$}%
@@ -53,9 +54,12 @@ to apply a variable to some other term).
 \begin{figure}[H]
     \centering
     \[\begin{array}{lrclr}
-        \textrm{Frame} & f  & ::=   & \inForceFrame              & \textrm{force}\\
-                       &    &       & \inAppLeftFrame{(M,\rho)}  & \textrm{left application}\\
-                       &    &       & \inAppRightFrame{V}        & \textrm{right application}
+        \textrm{Frame} & f  & ::=   & \inForceFrame                                                       & \textrm{force}\\
+                       &    &       & \inAppLeftFrame{(M,\rho)}                                           & \textrm{left application to term}\\
+                       &    &       & \inAppLeftFrame{V}                                                  & \textrm{left application to value}\\
+                       &    &       & \inAppRightFrame{V}                                                 & \textrm{right application of value}\\
+                       &    &       & \inConstrFrame{i}{(\repetition{M}, \rho)}{\repetition{V}}           & \textrm{constructor argument}\\
+                       &    &       & \inCaseFrame{(\repetition{M}, \rho)}                                & \textrm{case scrutinee}
 
     \end{array}\]
     \caption{Grammar of CEK stack frames}
@@ -122,6 +126,9 @@ state.
  s;\rho & \compute \delay{M}                         &~\mapsto~& s\return \VDelay{M}{\rho}\\
  s;\rho & \compute \force{M}                         &~\mapsto~& \inForceFrame{} \cons s;\rho \compute M \\
  s;\rho & \compute \appU{M}{N}                       &~\mapsto~& \inAppLeftFrame{(N,\rho)} \cons s ;\rho \compute M\\
+ s;\rho & \compute \constr{i}{M \cons \repetition{M}} &~\mapsto~& \inConstrFrame{i}{}{(\repetition{M},\rho)} \cons s ;\rho \compute M\\
+ s;\rho & \compute \constr{i}{} &~\mapsto~&  s \return \VConstr{i}{}\\
+ s;\rho & \compute \kase{N}{\repetition{M}} &~\mapsto~&  \inCaseFrame{(\repetition{M},\rho)} \cons s ;\rho \compute N\\
 % No nullary builtins (yet)
  s;\rho & \compute \builtin{b}                      &~\mapsto~& s \return \VBuiltin{b}{[]}{\arity{b}}\\
  s;\rho & \compute \errorU                           &~\mapsto~& \cekerror{}\\
@@ -134,6 +141,12 @@ state.
                          s \return \VBuiltin{b}{\repetition{V}}{\eta} \enskip \text{if $\iota \in \QVar$}\\
 \inForceFrame{} \cons s & \return \VBuiltin{b}{\repetition{V}}{[\iota]}   &~\mapsto~&
                          \EvalCEK\,(s, b, \repetition{V}) \enskip \text{if $\iota \in \QVar$}\\
+\inConstrFrame{i}{\repetition{V}}{(M \cons \repetition{M}, \rho)} \cons s & \return V   &~\mapsto~&
+                         \inConstrFrame{i}{\repetition{V} \cons V}{(\repetition{M}, \rho)} \cons s;\rho \compute M \\
+\inConstrFrame{i}{\repetition{V}}{} \cons s & \return V   &~\mapsto~&
+                         s \return \VConstr{i}{\repetition{V} \cons V} \\
+\inCaseFrame{(M_0 \ldots M_n, \rho)} \cons s & \return \VConstr{i}{V_0 \ldots V_m}   &~\mapsto~&
+                         \inAppLeftFrame{V_m} \cons \ldots \cons \inAppLeftFrame{V_0} \cons s ;\rho \compute M_i\\
 \inAppRightFrame{\VBuiltin{b}{\repetition{V}}{(\iota \cons \eta)}} \cons s & \return V &~\mapsto~&
                          s \return \VBuiltin{b}{(\repetition{V} \snoc V)}{\eta} \enskip \text{if $\iota \in \Unihash \cup \Var_*$}\\
 \inAppRightFrame{\VBuiltin{b}{\repetition{V}}{[\iota]}} \cons s  & \return V &~\mapsto~&
@@ -194,6 +207,7 @@ rightmost (ie, the most recent) bindings in the environment first.
       \unload{\VDelay{M}{\rho}}
         &= \Unload{\rho}{\delay{M}}\\
       \unload{\VLamAbs{x}{M}{\rho}} &= \Unload{\rho}{\lamU{x}{M}}\\
+      \unload{\VConstr{i}{\repetition{V}}} &= \constr{i}{\repetition{\unload{V}}}\\
       \unload{\VBuiltin{b}{V_1 V_2\ldots V_k}{\eta}} &=
       \appU{\ldots}  % [...[[(builtin b) V1!] V2!] ... Vk!]
            {\appU

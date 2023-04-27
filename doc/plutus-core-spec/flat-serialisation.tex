@@ -362,6 +362,8 @@ future expansion.
   \texttt{force}   & $\bits{0101}$   & 5 \\
   \texttt{error}   & $\bits{0110}$  & 6 \\
   \texttt{builtin} & $\bits{0111}$  & 7 \\
+  \texttt{constr}  & $\bits{1000}$  & 8 \\
+  \texttt{case}    & $\bits{1001}$  & 9 \\
   \hline
 \end{tabular}
 \caption{Term tags}
@@ -380,7 +382,9 @@ names, types, and constants) which will be defined later.
 &  \Eterm(s, \Const{tn}{c})    &&= \Econstant{tn}(\Etype(s \cdot \bits{0100}, \tn), c) \\
 &  \Eterm(s, \Force{t})        &&= \Eterm(s \cdot \bits{0101}, t) \\
 &  \Eterm(s, \Error)           &&= s \cdot \bits{0110} \\
-&  \Eterm(s, \Builtin{b})      &&= \Ebuiltin(s \cdot \bits{0111}, b).
+&  \Eterm(s, \Builtin{b})      &&= \Ebuiltin(s \cdot \bits{0111}, b) \\
+&  \Eterm(s, \Constr{i}{\repetition{t}})      &&= \Elist_{\mathsf{term}}(\E_{\N}(s \cdot \bits{1000}, i), \repetition{t}) \\
+&  \Eterm(s, \Kase{u}{\repetition{t}})      &&= \Elist_{\mathsf{term}}(\ETerm(s \cdot \bits{1001}, u), \repetition{t})
 \end{alignat*}
 
 \noindent The decoder for terms is given below.  To simplify the definition we
@@ -403,7 +407,9 @@ does not happen here, but does in some later decoders.
                                                            &&\ \text{and}\ \dConstant{\tn}(s') =(s'', c) \\
   \Dterm(\bits{0101} \cdot s)  &= (s', \Force{t})  &&\quad \text{if}\ \Dterm(s) = (s', t) \\
   \Dterm(\bits{0110} \cdot s)  &= (s, \Error)  && \\
-  \Dterm(\bits{0111} \cdot s)  &= (s', b) &&\quad \text{if } \Dbuiltin(s) = (s', b).
+  \Dterm(\bits{0111} \cdot s)  &= (s', b) &&\quad \text{if } \Dbuiltin(s) = (s', b) \\
+  \Dterm(\bits{1000} \cdot s)  &= (s', \Constr{i}{\repetition{t}}) &&\quad \text{if } \D_{\N}(s) = (s', i) &&\ \text{and}\ \Dlist_{\mathsf{term}}(s') = (s'', \repetition{t})\\
+  \Dterm(\bits{1001} \cdot s)  &= (s', \Kase{u}{\repetition{t}}) &&\quad \text{if } \Dterm(s) = (s', u) &&\ \text{and}\ \Dlist_{\mathsf{term}}(s') = (s'', \repetition{t})
 \end{alignat*}
 
 \subsubsection{Built-in types}
