@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 -- | Definition analysis for Plutus IR.
 -- This mostly adapts term-related code from PlutusCore.Analysis.Definitions;
 -- we just re-use the typed machinery to do the hard work here.
@@ -7,17 +8,17 @@ module PlutusIR.Analysis.Definitions
     , runTermDefs
     ) where
 
-import PlutusCore.Error (UniqueError)
-import PlutusCore.Name
-import PlutusIR.Core
-
-import Control.Lens (forMOf)
+import Control.Lens (forMOf_)
 import Control.Monad.State
 import Control.Monad.Writer
+import PlutusCore.Error (UniqueError)
+import PlutusCore.Name
+import PlutusIR.Core.Plated
+import PlutusIR.Core.Type
 
 import PlutusCore.Analysis.Definitions hiding (runTermDefs, termDefs)
 
--- | Add bindings and their subterms and subtypes to definition maps.
+-- | Add declarations to definition maps.
 addBindingDef :: (Ord ann,
     HasUnique name TermUnique,
     HasUnique tyname TypeUnique,
@@ -25,13 +26,10 @@ addBindingDef :: (Ord ann,
     MonadWriter [UniqueError ann] m)
     => Binding tyname name uni fun ann -> m ()
 addBindingDef bd = case bd of
-    TermBind _a _s (VarDecl varAnn n _) rhs -> do
+    TermBind _a _s (VarDecl varAnn n _) _ -> do
         addDef n varAnn TermScope
-        void $ termDefs rhs
-        void $ forMOf termSubtypes rhs typeDefs
-    TypeBind _a (TyVarDecl tyAnn tyN  _) rhs -> do
+    TypeBind _a (TyVarDecl tyAnn tyN  _) _ -> do
         addDef tyN tyAnn TypeScope
-        void $ typeDefs rhs
     DatatypeBind
         _a
         (Datatype
@@ -69,34 +67,28 @@ termDefs
         MonadState (UniqueInfos ann) m,
         MonadWriter [UniqueError ann] m)
     => Term tyname name uni fun ann
-    -> m (Term tyname name uni fun ann)
-termDefs tm =
-    case tm of
-        Let _ann _r bindings rhs -> do
+    -> m ()
+termDefs tm = do
+   forMOf_ termSubtermsDeep tm handleTerm
+   forMOf_ termSubtypesDeep tm handleType
+
+handleTerm :: (Ord ann,
+        HasUnique name TermUnique,
+        HasUnique tyname TypeUnique,
+        MonadState (UniqueInfos ann) m,
+        MonadWriter [UniqueError ann] m)
+    => Term tyname name uni fun ann
+    -> m ()
+handleTerm = \case
+    Let _ann _r bindings _ ->
             forM_ bindings addBindingDef
-            void $ termDefs rhs
-            forMOf termSubtypes rhs typeDefs
-        Var ann n         -> do
-            addUsage n ann TermScope
-            pure tm
-        LamAbs ann n ty t -> do
-            addDef n ann TermScope
-            void $ typeDefs ty
-            termDefs t
-        IWrap _ pat arg t -> do
-            void $ typeDefs pat
-            void $ typeDefs arg
-            termDefs t
-        TyAbs ann tn _ t  -> do
-            addDef tn ann TypeScope
-            void $ termDefs t
-            forMOf termSubtypes tm typeDefs
-        TyInst _ t ty     -> do
-            void $ typeDefs ty
-            termDefs t
-        _                  -> do
-            void $ forMOf termSubterms tm termDefs
-            forMOf termSubtypes tm typeDefs
+    Var ann n         ->
+        addUsage n ann TermScope
+    LamAbs ann n _ _ ->
+        addDef n ann TermScope
+    TyAbs ann tn _ _  ->
+        addDef tn ann TypeScope
+    _                  -> pure ()
 
 runTermDefs
     :: (Ord ann,

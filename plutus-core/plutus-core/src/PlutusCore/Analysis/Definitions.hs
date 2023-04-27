@@ -1,11 +1,11 @@
+{-# LANGUAGE LambdaCase #-}
 -- | Definition analysis for Plutus Core.
 module PlutusCore.Analysis.Definitions
     ( UniqueInfos
     , ScopeType(..)
     , termDefs
-    , typeDefs
+    , handleType
     , runTermDefs
-    , runTypeDefs
     , addDef
     , addUsage
     ) where
@@ -15,7 +15,7 @@ import PlutusCore.Error
 import PlutusCore.Name
 
 
-import Control.Lens (forMOf, (^.))
+import Control.Lens (forMOf_, (^.))
 import Control.Monad.Except
 import Control.Monad.State
 import Control.Monad.Writer
@@ -135,49 +135,43 @@ termDefs
         MonadState (UniqueInfos ann) m,
         MonadWriter [UniqueError ann] m)
     => Term tyname name uni fun ann
-    -> m (Term tyname name uni fun ann)
-termDefs tm = case tm of
-    Var ann n         -> do
+    -> m ()
+termDefs tm = do
+   forMOf_ termSubtermsDeep tm handleTerm
+   forMOf_ termSubtypesDeep tm handleType
+
+handleTerm :: (Ord ann,
+        HasUnique name TermUnique,
+        HasUnique tyname TypeUnique,
+        MonadState (UniqueInfos ann) m,
+        MonadWriter [UniqueError ann] m)
+    => Term tyname name uni fun ann
+    -> m ()
+handleTerm = \case
+    Var ann n         ->
         addUsage n ann TermScope
-        pure tm
-    LamAbs ann n ty t -> do
+    LamAbs ann n _ _ -> do
         addDef n ann TermScope
-        void $ typeDefs ty
-        termDefs t
-    IWrap _ pat arg t -> do
-        void $ typeDefs pat
-        void $ typeDefs arg
-        termDefs t
-    TyAbs ann tn _ t  -> do
+    TyAbs ann tn _ _  -> do
         addDef tn ann TypeScope
-        void $ termDefs t
-        forMOf termSubtypes tm typeDefs
-    TyInst _ t ty     -> do
-        void $ typeDefs ty
-        termDefs t
-    _                  -> do
-        void $ forMOf termSubterms tm termDefs
-        forMOf termSubtypes tm typeDefs
+    _                  -> pure ()
 
 -- | Given a type, add its type definition/usage, including its subtypes, to a global map.
-typeDefs
+handleType
     :: (Ord ann,
         HasUnique tyname TypeUnique,
         MonadState (UniqueInfos ann) m,
         MonadWriter [UniqueError ann] m)
     => Type tyname uni ann
-    -> m (Type tyname uni ann)
-typeDefs ty = case ty of
-    TyVar ann n         -> do
+    -> m ()
+handleType = \case
+    TyVar ann n         ->
         addUsage n ann TypeScope
-        pure ty
-    TyForall ann tn _ _t -> do
+    TyForall ann tn _ _ ->
         addDef tn ann TypeScope
-        forMOf typeSubtypes ty typeDefs
-    TyLam ann tn _ _t    -> do
+    TyLam ann tn _ _    ->
         addDef tn ann TypeScope
-        forMOf typeSubtypes ty typeDefs
-    _                    ->  forMOf typeSubtypes ty typeDefs
+    _                    -> pure ()
 
 runTermDefs
     :: (Ord ann,
@@ -187,11 +181,3 @@ runTermDefs
     => Term tyname name uni fun ann
     -> m (UniqueInfos ann, [UniqueError ann])
 runTermDefs = runWriterT . flip execStateT mempty . termDefs
-
-runTypeDefs
-    :: (Ord ann,
-        HasUnique tyname TypeUnique,
-        Monad m)
-    => Type tyname uni ann
-    -> m (UniqueInfos ann, [UniqueError ann])
-runTypeDefs = runWriterT . flip execStateT mempty . typeDefs
