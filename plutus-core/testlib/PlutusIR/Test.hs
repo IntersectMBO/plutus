@@ -108,6 +108,17 @@ goldenPirM op parser name = withGoldenFileM name parseOrError
             either (return . display) (fmap display . op)
                          . parseTxt
 
+goldenPirMUnique :: forall a . (a -> IO String) -> Parser a -> String -> TestNested
+goldenPirMUnique op parser name = withGoldenFileM name parseOrError
+    where
+        parseOrError :: T.Text -> IO T.Text
+        parseOrError =
+            let parseTxt :: T.Text -> Either ParserErrorBundle a
+                parseTxt txt = runQuoteT $ parse parser name txt
+            in
+            either (return . display) (fmap (T.pack . show) . op)
+                         . parseTxt
+
 goldenPirDocM :: forall a ann. (a -> IO (Doc ann)) -> Parser a -> String -> TestNested
 goldenPirDocM op parser name = withGoldenFileM name parseOrError
     where

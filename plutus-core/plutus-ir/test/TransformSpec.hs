@@ -213,7 +213,7 @@ instance Monoid PLC.SrcSpan where
 inline :: TestNested
 inline =
     let goldenInlineUnique :: Term TyName Name PLC.DefaultUni PLC.DefaultFun PLC.SrcSpan ->
-            IO (Term TyName Name PLC.DefaultUni PLC.DefaultFun PLC.SrcSpan)
+            IO String
         goldenInlineUnique pir =
             rethrow . asIfThrown @(UniqueError PLC.SrcSpan) $ do
                 let pirInlined = runQuote $ do
@@ -221,11 +221,11 @@ inline =
                         Inline.inline mempty def renamed
                 -- Make sure the inlined term is globally unique.
                 _ <- checkUniques pirInlined
-                pure pirInlined
+                pure $ show pirInlined
     in
     testNested "inline" $
         map
-            (goldenPirM goldenInlineUnique pTerm)
+            (goldenPirMUnique goldenInlineUnique pTerm)
             [ "var"
             , "builtin"
             , "constant"
