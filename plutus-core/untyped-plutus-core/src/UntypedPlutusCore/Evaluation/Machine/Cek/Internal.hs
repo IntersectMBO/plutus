@@ -531,7 +531,7 @@ dischargeCekValue = \case
     -- or (b) it's needed for an error message.
     -- @term@ is fully discharged, so we can return it directly without any further discharging.
     VBuiltin _ term _                    -> term
-    VConstr i es                         -> Constr () i (toList $ fmap dischargeCekValue es)
+    VConstr i es                         -> Constr () i (fmap dischargeCekValue es)
 
 instance (Closed uni, Pretty (SomeTypeIn uni), uni `Everywhere` PrettyConst, Pretty fun) =>
             PrettyBy PrettyConfigPlc (CekValue uni fun ann) where
@@ -706,7 +706,7 @@ enterComputeCek = computeCek
         stepAndMaybeSpend BConstr
         case es of
           (t : rest) -> computeCek (FrameConstr env i rest mempty ctx) env t
-          _          -> returnCek ctx $ VConstr i []
+          []         -> returnCek ctx $ VConstr i []
     -- s ; ρ ▻ case S C0 ... Cn  ↦  s , case _ (C0 ... Cn, ρ) ; ρ ▻ S
     computeCek !ctx !env (Case _ scrut cs) = do
         stepAndMaybeSpend BCase
