@@ -201,3 +201,9 @@ At this time we can't simply turn the pre-inliner off, because doing so breaks t
 For details, see [this note](https://github.com/input-output-hk/plutus/blob/dc57fe1b8497835ef2a7794c017c5a50c0b7e647/plutus-tx-plugin/src/PlutusTx/Plugin.hs#L123).
 The problem described in the note should, however, be resolved in a different way, as explained in the note.
 Once done, we can go ahead and turn it off.
+
+## Backwards Compatibility
+
+Two of the proposed changes are non-backwards compatible in that they change the semantics of Plutus Tx: making let-bindings non-strict by default, and turning off GHC's pre-inliner.
+We will add a plugin option to switch between the old and the new behaviors.
+Initially the default will be the old behavior, and later the default will switch to be the new behavior.
