@@ -18,13 +18,13 @@ open import Agda.Builtin.String using (primStringAppend; primStringEquality)
 open import Relation.Nullary using (yes;no)
 open import Relation.Binary.PropositionalEquality using (refl;sym;trans;cong)
 open import Data.Nat using (ℕ;suc)
-open import Data.List using ([];_∷_)
+open import Data.List using (List;[];_∷_)
 open import Data.Product using (_,_)
 
 open import Untyped using (_⊢)
 open _⊢
 open import Untyped.RenamingSubstitution using (Sub;sub;lifts)
-open import Utils 
+open import Utils hiding (List)
 open import Builtin
 open import Builtin.Signature using (Sig;sig;Args;_⊢♯;nat2Ctx⋆;fin2∈⋆;args♯)
 open Sig
@@ -47,6 +47,7 @@ data Value where
   V-ƛ : ∀{X} → Env X → Maybe X ⊢ → Value
   V-con : (ty : TyTag) → ⟦ ty ⟧tag → Value
   V-delay : ∀{X} → Env X → X ⊢ → Value
+  V-constr : (i : ℕ) → (vs : List Value) → Value
   V-I⇒ : ∀ b {tn} 
        → {pt : tn ∔ 0 ≣ fv♯ (signature b)} 
        → ∀{an am}{pa : an ∔ (suc am) ≣ args♯ (signature b)}
@@ -80,12 +81,17 @@ dischargeB : ∀{b}
           → ∀{tn tm} → {pt : tn ∔ tm ≣ fv♯ (signature b)}
           → ∀{an am} → {pa : an ∔ am ≣ args♯ (signature b)}
           → BApp b pt pa → ⊥ ⊢
+dischargeList : List Value → List (⊥ ⊢) → List (⊥ ⊢)
 
-discharge (V-ƛ ρ t)     = ƛ (sub (lifts (env2sub ρ)) t)
-discharge (V-con t c)   = con (tmCon t c)
-discharge (V-delay ρ t) = delay (sub (env2sub ρ) t)
-discharge (V-I⇒ b vs) = dischargeB vs
-discharge (V-IΠ b vs) = dischargeB vs
+discharge (V-ƛ ρ t)       = ƛ (sub (lifts (env2sub ρ)) t)
+discharge (V-con t c)     = con (tmCon t c)
+discharge (V-delay ρ t)   = delay (sub (env2sub ρ) t)
+discharge (V-I⇒ b vs)     = dischargeB vs
+discharge (V-IΠ b vs)     = dischargeB vs
+discharge (V-constr i vs) = constr i (dischargeList vs [])
+
+dischargeList [] ts = ts
+dischargeList (x ∷ xs) ts = dischargeList xs (discharge x ∷ ts)
 
 dischargeB {b = b} base = builtin b
 dischargeB (app vs v) = dischargeB vs · discharge v
@@ -96,8 +102,11 @@ env2sub (ρ ∷ v) (just x) = env2sub ρ x
 
 data Frame : Set where
   -·  : ∀{Γ} → Env Γ → Γ ⊢ → Frame
+  -·v : Value → Frame
   _·- : Value → Frame
   force- : Frame
+  constr- : ∀{Γ} → ℕ → (List Value) → Env Γ → List (Γ ⊢) → Frame
+  case- : ∀{Γ} → (ρ : Env Γ) → List (Γ ⊢) → Frame
 
 data Stack : Set where
   ε : Stack
@@ -405,32 +414,52 @@ BUILTIN' b {pt = pt} {pa = pa} bt with trans (sym (+-identityʳ _)) (∔2+ pt) |
 ival : Builtin → Value
 ival b = V-I b base
 
+extendStack : Stack → List Value → Stack
+extendStack s [] = s
+extendStack s (v ∷ vs) = extendStack (s , -·v v) vs
+
+lookup? : ∀{A} → ℕ → List A → Maybe A
+lookup? n [] = nothing
+lookup? zero (x ∷ xs) = just x
+lookup? (suc n) (x ∷ xs) = lookup? n xs
+
 step : State → State
-step (s ; ρ ▻ ` x)             = s ◅ lookup ρ x
-step (s ; ρ ▻ ƛ t)             = s ◅ V-ƛ ρ t
-step (s ; ρ ▻ (t · u))         = (s , -· ρ u) ; ρ ▻ t
-step (s ; ρ ▻ force t)         = (s , force-) ; ρ ▻ t
-step (s ; ρ ▻ delay t)         = s ◅ V-delay ρ t
-step (s ; ρ ▻ con (tmCon t c)) = s ◅ V-con t c
-step (s ; ρ ▻ constr i xs)     = {!   !}
-step (s ; ρ ▻ case t ts)       = {!   !}
-step (s ; ρ ▻ builtin b)       = s ◅ ival b
-step (s ; ρ ▻ error)           = ◆
-step (ε ◅ v)                   = □ v
-step ((s , -· ρ u) ◅ v)        = (s , (v ·-)) ; ρ ▻ u
-step ((s , (V-ƛ ρ t ·-)) ◅ v)  = s ; ρ ∷ v ▻ t
+step (s ; ρ ▻ ` x)               = s ◅ lookup ρ x
+step (s ; ρ ▻ ƛ t)               = s ◅ V-ƛ ρ t
+step (s ; ρ ▻ (t · u))           = (s , -· ρ u) ; ρ ▻ t
+step (s ; ρ ▻ force t)           = (s , force-) ; ρ ▻ t
+step (s ; ρ ▻ delay t)           = s ◅ V-delay ρ t
+step (s ; ρ ▻ con (tmCon t c))   = s ◅ V-con t c
+step (s ; ρ ▻ constr i [])       = s ◅ V-constr i []
+step (s ; ρ ▻ constr i (x ∷ xs)) = (s , constr- i [] ρ xs); ρ ▻ x
+step (s ; ρ ▻ case t ts)         = (s , case- ρ ts) ; ρ ▻ t
+step (s ; ρ ▻ builtin b)         = s ◅ ival b
+step (s ; ρ ▻ error)             = ◆
+
+step (ε ◅ v)                               = □ v
+step ((s , -· ρ u) ◅ v)                    = (s , (v ·-)) ; ρ ▻ u
+step ((s , -·v v) ◅ vf)                    = (s , vf ·-) ◅ v
+step ((s , (V-ƛ ρ t ·-)) ◅ v)              = s ; ρ ∷ v ▻ t
+step ((s , (V-con _ _   ·-)) ◅ v)          = ◆ -- constant in function position
+step ((s , (V-delay _ _ ·-)) ◅ v)          = ◆ -- delay in function position
+step ((s , (V-IΠ b bapp ·-)) ◅ v)          = ◆ -- delayed builtin in function position
+step ((s , (V-constr i vs ·-)) ◅ v)        = ◆ -- SOP in function position
+step ((s , force-) ◅ V-IΠ b bapp)          = s ◅ V-I b (app⋆ bapp)
+step ((s , force-) ◅ V-delay ρ t)          = step (s ; ρ ▻ t)
+step ((s , force-) ◅ V-ƛ _ _)              = ◆ -- lambda in delay position
+step ((s , force-) ◅ V-con _ _)            = ◆ -- constant in delay position
+step ((s , force-) ◅ V-I⇒ b bapp)          = ◆ -- function in delay position
+step ((s , force-) ◅ V-constr i vs)        = ◆ -- SOP in delay position
+step ((s , constr- i vs ρ []) ◅ v)         = s ◅ V-constr i (v ∷ vs)
+step ((s , constr- i vs ρ (x ∷ ts)) ◅ v)   = (s , constr- i (v ∷ vs) ρ ts); ρ ▻ x
+step ((s , case- ρ ts) ◅ V-constr i vs) with lookup? i ts
+... | nothing = ◆
+... | just t  = extendStack s vs ; ρ ▻ t
+step ((s , case- _ _ ) ◅ v)                = ◆ -- case of not a SOP
 step ((s , (V-I⇒ b {am = 0} bapp ·-)) ◅ v) =
-  s ; [] ▻ BUILTIN' b (app bapp v)
+       s ; [] ▻ BUILTIN' b (app bapp v)
 step ((s , (V-I⇒ b {am = suc _} bapp ·-)) ◅ v) =
-  s ◅ V-I b (app bapp v)
-step ((s , (V-con _ _   ·-)) ◅ v) = ◆ -- constant in function position
-step ((s , (V-delay _ _ ·-)) ◅ v) = ◆ -- delay in function position
-step ((s , (V-IΠ b bapp ·-)) ◅ v) = ◆ -- delayed builtin in function position
-step ((s , force-) ◅ V-IΠ b bapp) = s ◅ V-I b (app⋆ bapp)
-step ((s , force-) ◅ V-delay ρ t) = step (s ; ρ ▻ t)
-step ((s , force-) ◅ V-ƛ _ _)     = ◆ -- lambda in delay position
-step ((s , force-) ◅ V-con _ _)   = ◆ -- constant in delay position
-step ((s , force-) ◅ V-I⇒ b bapp) = ◆ -- function in delay position
+       s ◅ V-I b (app bapp v)
 
 step (□ v)               = □ v
 step ◆                   = ◆
