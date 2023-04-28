@@ -22,7 +22,7 @@ data UTerm = UVar Integer
            | UBuiltin DefaultFun
            | UDelay UTerm
            | UForce UTerm
-           | UConstr Word64 [UTerm]
+           | UConstr Integer [UTerm]
            | UCase UTerm [UTerm]
            deriving Show
 
@@ -41,7 +41,7 @@ conv (Constant _ c)  = UCon c
 conv (Error _)       = UError
 conv (Delay _ t)     = UDelay (conv t)
 conv (Force _ t)     = UForce (conv t)
-conv (Constr _ i es) = UConstr i (fmap conv es)
+conv (Constr _ i es) = UConstr (toInteger i) (fmap conv es)
 conv (Case _ arg cs) = UCase (conv arg) (fmap conv cs)
 
 tmnames = ['a' .. 'z']
@@ -62,6 +62,6 @@ uconv i UError         = Error ()
 uconv i (UBuiltin b)   = Builtin () b
 uconv i (UDelay t)     = Delay () (uconv i t)
 uconv i (UForce t)     = Force () (uconv i t)
-uconv i (UConstr j xs) = Constr () j (fmap (uconv i) xs)
+uconv i (UConstr j xs) = Constr () (fromInteger j) (fmap (uconv i) xs)
 uconv i (UCase t xs)   = Case () (uconv i t) (fmap (uconv i) xs)
 
