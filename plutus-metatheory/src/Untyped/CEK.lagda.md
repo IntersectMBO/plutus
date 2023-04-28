@@ -406,17 +406,19 @@ ival : Builtin → Value
 ival b = V-I b base
 
 step : State → State
-step (s ; ρ ▻ ` x)       = s ◅ lookup ρ x
-step (s ; ρ ▻ ƛ t)       = s ◅ V-ƛ ρ t
-step (s ; ρ ▻ (t · u))   = (s , -· ρ u) ; ρ ▻ t
-step (s ; ρ ▻ force t)   = (s , force-) ; ρ ▻ t
-step (s ; ρ ▻ delay t)   = s ◅ V-delay ρ t
+step (s ; ρ ▻ ` x)             = s ◅ lookup ρ x
+step (s ; ρ ▻ ƛ t)             = s ◅ V-ƛ ρ t
+step (s ; ρ ▻ (t · u))         = (s , -· ρ u) ; ρ ▻ t
+step (s ; ρ ▻ force t)         = (s , force-) ; ρ ▻ t
+step (s ; ρ ▻ delay t)         = s ◅ V-delay ρ t
 step (s ; ρ ▻ con (tmCon t c)) = s ◅ V-con t c
-step (s ; ρ ▻ builtin b) = s ◅ ival b
-step (s ; ρ ▻ error)     = ◆
-step (ε ◅ v)             = □ v
-step ((s , -· ρ u) ◅ v)  = (s , (v ·-)) ; ρ ▻ u
-step ((s , (V-ƛ ρ t ·-)) ◅ v) = s ; ρ ∷ v ▻ t
+step (s ; ρ ▻ constr i xs)     = {!   !}
+step (s ; ρ ▻ case t ts)       = {!   !}
+step (s ; ρ ▻ builtin b)       = s ◅ ival b
+step (s ; ρ ▻ error)           = ◆
+step (ε ◅ v)                   = □ v
+step ((s , -· ρ u) ◅ v)        = (s , (v ·-)) ; ρ ▻ u
+step ((s , (V-ƛ ρ t ·-)) ◅ v)  = s ; ρ ∷ v ▻ t
 step ((s , (V-I⇒ b {am = 0} bapp ·-)) ◅ v) =
   s ; [] ▻ BUILTIN' b (app bapp v)
 step ((s , (V-I⇒ b {am = suc _} bapp ·-)) ◅ v) =
