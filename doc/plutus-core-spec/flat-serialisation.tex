@@ -384,7 +384,7 @@ names, types, and constants) which will be defined later.
 &  \Eterm(s, \Error)           &&= s \cdot \bits{0110} \\
 &  \Eterm(s, \Builtin{b})      &&= \Ebuiltin(s \cdot \bits{0111}, b) \\
 &  \Eterm(s, \Constr{i}{\repetition{t}})      &&= \Elist_{\mathsf{term}}(\E_{\N}(s \cdot \bits{1000}, i), \repetition{t}) \\
-&  \Eterm(s, \Kase{u}{\repetition{t}})      &&= \Elist_{\mathsf{term}}(\ETerm(s \cdot \bits{1001}, u), \repetition{t})
+&  \Eterm(s, \Kase{u}{\repetition{t}})      &&= \Elist_{\mathsf{term}}(\Eterm(s \cdot \bits{1001}, u), \repetition{t})
 \end{alignat*}
 
 \noindent The decoder for terms is given below.  To simplify the definition we
