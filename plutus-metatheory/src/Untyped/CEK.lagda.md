@@ -81,6 +81,7 @@ dischargeB : ∀{b}
           → ∀{tn tm} → {pt : tn ∔ tm ≣ fv♯ (signature b)}
           → ∀{an am} → {pa : an ∔ am ≣ args♯ (signature b)}
           → BApp b pt pa → ⊥ ⊢
+
 dischargeList : List Value → List (⊥ ⊢) → List (⊥ ⊢)
 
 discharge (V-ƛ ρ t)       = ƛ (sub (lifts (env2sub ρ)) t)
@@ -90,6 +91,8 @@ discharge (V-I⇒ b vs)     = dischargeB vs
 discharge (V-IΠ b vs)     = dischargeB vs
 discharge (V-constr i vs) = constr i (dischargeList vs [])
 
+-- dischargeList reverses the list because the term constructor 
+-- and the value have the arguments in inverse order.
 dischargeList [] ts = ts
 dischargeList (x ∷ xs) ts = dischargeList xs (discharge x ∷ ts)
 
@@ -452,14 +455,10 @@ step ((s , force-) ◅ V-I⇒ b bapp)          = ◆ -- function in delay positi
 step ((s , force-) ◅ V-constr i vs)        = ◆ -- SOP in delay position
 step ((s , constr- i vs ρ []) ◅ v)         = s ◅ V-constr i (v ∷ vs)
 step ((s , constr- i vs ρ (x ∷ ts)) ◅ v)   = (s , constr- i (v ∷ vs) ρ ts); ρ ▻ x
-step ((s , case- ρ ts) ◅ V-constr i vs) with lookup? i ts
-... | nothing = ◆
-... | just t  = extendStack s vs ; ρ ▻ t
+step ((s , case- ρ ts) ◅ V-constr i vs)    = maybe (extendStack s vs ; ρ ▻_) ◆ (lookup? i ts)
 step ((s , case- _ _ ) ◅ v)                = ◆ -- case of not a SOP
-step ((s , (V-I⇒ b {am = 0} bapp ·-)) ◅ v) =
-       s ; [] ▻ BUILTIN' b (app bapp v)
-step ((s , (V-I⇒ b {am = suc _} bapp ·-)) ◅ v) =
-       s ◅ V-I b (app bapp v)
+step ((s , (V-I⇒ b {am = 0} bapp ·-)) ◅ v) = s ; [] ▻ BUILTIN' b (app bapp v)
+step ((s , (V-I⇒ b {am = suc _} bapp ·-)) ◅ v) = s ◅ V-I b (app bapp v)
 
 step (□ v)               = □ v
 step ◆                   = ◆
