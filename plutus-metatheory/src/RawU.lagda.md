@@ -112,9 +112,11 @@ data Untyped : Set where
   UBuiltin : Builtin → Untyped
   UDelay : Untyped → Untyped
   UForce : Untyped → Untyped
+  UConstr : ℕ → List Untyped → Untyped
+  UCase : Untyped → List Untyped → Untyped
 
 {-# FOREIGN GHC import Untyped #-}
-{-# COMPILE GHC Untyped = data UTerm (UVar | ULambda  | UApp | UCon | UError | UBuiltin | UDelay | UForce) #-}
+{-# COMPILE GHC Untyped = data UTerm (UVar | ULambda  | UApp | UCon | UError | UBuiltin | UDelay | UForce | UConstr | UCase) #-}
 ```
 
 ##  Agda-Style universes

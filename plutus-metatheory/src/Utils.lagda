@@ -144,6 +144,10 @@ data List (A : Set) : Set where
   []  : List A
   _∷_ : A → List A → List A
 
+foldr : ∀{ℓ}{A}{B : Set ℓ} → (A → B → B) → B → List A → B
+foldr c n [] = n
+foldr c n (x ∷ xs) = c x (foldr c n xs)
+
 map : ∀{A B} → (A → B) → List A → List B
 map f [] = []
 map f (x ∷ xs) = f x ∷ map f xs
