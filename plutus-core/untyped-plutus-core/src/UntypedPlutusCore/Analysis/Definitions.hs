@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 -- | Definition analysis for untyped Plutus Core.
 -- This just adapts term-related code from PlutusCore.Analysis.Definitions;
 -- we just re-use the typed machinery to do the hard work here.
@@ -12,25 +13,34 @@ import PlutusCore.Analysis.Definitions (ScopeType (TermScope), UniqueInfos, addD
 import PlutusCore.Error (UniqueError)
 import PlutusCore.Name (HasUnique, TermUnique (TermUnique), Unique (Unique))
 
-import Control.Lens (forMOf)
+import Control.Lens (forMOf_)
 import Control.Monad.State (MonadState, execStateT)
 import Control.Monad.Writer (MonadWriter, WriterT (runWriterT))
 
+-- | Given a UPLC term, add all of its term definitions and usages, including its subterms,
+-- to a global map.
 termDefs
     :: (Ord ann,
         HasUnique name TermUnique,
         MonadState (UniqueInfos ann) m,
         MonadWriter [UniqueError ann] m)
     => Term name uni fun ann
-    -> m (Term name uni fun ann)
-termDefs tm = case tm of
-    Var ann n      -> do
+    -> m ()
+termDefs tm = do
+   forMOf_ termSubtermsDeep tm handleTerm
+
+handleTerm :: (Ord ann,
+        HasUnique name TermUnique,
+        MonadState (UniqueInfos ann) m,
+        MonadWriter [UniqueError ann] m)
+    => Term name uni fun ann
+    -> m ()
+handleTerm = \case
+    Var ann n      ->
         addUsage n ann TermScope
-        pure tm
-    LamAbs ann n t -> do
+    LamAbs ann n _ ->
         addDef n ann TermScope
-        termDefs t
-    x               -> forMOf termSubterms x termDefs
+    _               -> pure ()
 
 runTermDefs
     :: (Ord ann,
