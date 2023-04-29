@@ -15,7 +15,7 @@ open _∋_
 open import Builtin using (addInteger)
 open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con using (TermCon)
 open TermCon
-open import Builtin.Constant.Type using (TyCon)
+open import Builtin.Constant.Type using (TyCon;integer)
 open TyCon
 \end{code}
 
@@ -36,10 +36,10 @@ Iter : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ Π (` Z ⇒ (` Z ⇒ ` Z) ⇒ N ⇒ (` Z)
 Iter = Λ (ƛ (ƛ (ƛ ((` Z) ·⋆ (` Z) · (` (S (S Z))) · (` (S Z))))))
 
 con0 : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ con integer
-con0 = con (integer (ℤ.pos 0))
+con0 = con (tmInteger (ℤ.pos 0))
 
 con1 : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ con integer
-con1 = con (integer (ℤ.pos 1))
+con1 = con (tmInteger (ℤ.pos 1))
 
 inc : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ con integer ⇒ con integer
 inc = ƛ (builtin addInteger · con1  · ` Z)

@@ -351,7 +351,7 @@ class MakeBuiltinMeaning a val where
         -> (cost -> FoldArgs (GetArgs a) ExBudgetStream)
         -> BuiltinMeaning val cost
 instance
-        ( binds ~ ToBinds a, args ~ GetArgs a, a ~ FoldArgs args res
+        ( binds ~ ToBinds '[] a, args ~ GetArgs a, a ~ FoldArgs args res
         , ThrowOnBothEmpty binds args (IsBuiltin a) a
         , ElaborateFromTo 0 j val a, KnownPolytype binds val args res
         ) => MakeBuiltinMeaning a val where

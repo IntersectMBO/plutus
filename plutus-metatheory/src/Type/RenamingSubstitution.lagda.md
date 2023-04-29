@@ -57,17 +57,9 @@ renTyCon : Ren Φ Ψ
             -----------------------
           → TyCon Φ → TyCon Ψ
           
-renTyCon ρ integer    = integer
-renTyCon ρ bytestring = bytestring
-renTyCon ρ string     = string
-renTyCon ρ unit       = unit
-renTyCon ρ bool       = bool
-renTyCon ρ (list A)   = list (ren ρ A)
-renTyCon ρ (pair A B) = pair (ren ρ A) (ren ρ B)
-renTyCon ρ pdata      = pdata
-renTyCon ρ bls12-381-g1-element = bls12-381-g1-element
-renTyCon ρ bls12-381-g2-element = bls12-381-g2-element
-renTyCon ρ bls12-381-mlresult   = bls12-381-mlresult
+renTyCon ρ (list A)    = list (ren ρ A)
+renTyCon ρ (pair A B)  = pair (ren ρ A) (ren ρ B)
+renTyCon ρ (atomic ty) = atomic ty
 
 ren ρ (` α)       = ` (ρ α)
 ren ρ (Π B)       = Π (ren (ext ρ) B)
@@ -128,17 +120,9 @@ renTyCon-cong : (∀ {J}(α : Φ ∋⋆ J) → ρ α ≡ ρ' α)
                 --------------------------------
               → renTyCon ρ c ≡ renTyCon ρ' c
 
-renTyCon-cong p integer    = refl
-renTyCon-cong p bytestring = refl
-renTyCon-cong p string     = refl
-renTyCon-cong p unit       = refl
-renTyCon-cong p bool       = refl
 renTyCon-cong p (list A)   = cong list (ren-cong p A)
 renTyCon-cong p (pair A B) = cong₂ pair (ren-cong p A) (ren-cong p B)
-renTyCon-cong p pdata       = refl
-renTyCon-cong p bls12-381-g1-element       = refl
-renTyCon-cong p bls12-381-g2-element       = refl
-renTyCon-cong p bls12-381-mlresult    = refl
+renTyCon-cong p (atomic _) = refl
 
 ren-cong p (` α)   = cong ` (p α)
 ren-cong p (Π A)   = cong Π (ren-cong (ext-cong p) A)
@@ -159,17 +143,9 @@ ren-id : (A : Φ ⊢⋆ J)
 renTyCon-id : (c : TyCon Φ)
               -----------------
             → renTyCon id c ≡ c
-renTyCon-id integer    = refl
-renTyCon-id bytestring = refl
-renTyCon-id string     = refl
-renTyCon-id unit       = refl
-renTyCon-id bool       = refl
 renTyCon-id (list A)   = cong list (ren-id A)
 renTyCon-id (pair A B) = cong₂ pair (ren-id A) (ren-id B)
-renTyCon-id pdata      = refl
-renTyCon-id bls12-381-g1-element = refl
-renTyCon-id bls12-381-g2-element = refl
-renTyCon-id bls12-381-mlresult   = refl
+renTyCon-id (atomic _) = refl
 
 ren-id (` α)   = refl
 ren-id (Π A)   = cong Π (trans (ren-cong ext-id A) (ren-id A))
@@ -200,18 +176,9 @@ ren-comp : ∀{J}(A : Φ ⊢⋆ J)
 renTyCon-comp : (c : TyCon Φ)
                 -------------------------------------------
               → renTyCon (ρ ∘ ρ') c ≡ renTyCon ρ (renTyCon ρ' c)
-
-renTyCon-comp integer    = refl
-renTyCon-comp bytestring = refl
-renTyCon-comp string     = refl
-renTyCon-comp unit       = refl
-renTyCon-comp bool       = refl
 renTyCon-comp (list A)   = cong list (ren-comp A)
 renTyCon-comp (pair A B) = cong₂ pair (ren-comp A) (ren-comp B)
-renTyCon-comp pdata       = refl
-renTyCon-comp bls12-381-g1-element = refl
-renTyCon-comp bls12-381-g2-element = refl
-renTyCon-comp bls12-381-mlresult   = refl
+renTyCon-comp (atomic _) = refl
 
 ren-comp (` x)   = refl
 ren-comp (Π A)   = cong Π (trans (ren-cong ext-comp A) (ren-comp A))
@@ -257,18 +224,10 @@ sub : Sub Φ Ψ
 subTyCon : Sub Φ Ψ
            -----------------------
          → TyCon Φ → TyCon Ψ
+subTyCon σ (list A)    = list (sub σ A)
+subTyCon σ (pair A B)  = pair (sub σ A) (sub σ B)
+subTyCon σ (atomic ty) = atomic ty
 
-subTyCon σ integer    = integer
-subTyCon σ bytestring = bytestring
-subTyCon σ string     = string
-subTyCon σ unit       = unit
-subTyCon σ bool       = bool
-subTyCon σ (list A)   = list (sub σ A)
-subTyCon σ (pair A B) = pair (sub σ A) (sub σ B)
-subTyCon σ pdata      = pdata
-subTyCon σ bls12-381-g1-element = bls12-381-g1-element
-subTyCon σ bls12-381-g2-element = bls12-381-g2-element
-subTyCon σ bls12-381-mlresult   = bls12-381-mlresult
 
 sub σ (` α)   = σ α
 sub σ (Π B)   = Π (sub (exts σ) B)
@@ -335,17 +294,9 @@ subTyCon-cong : (∀ {J}(α : Φ ∋⋆ J) → σ α ≡ σ' α)
          → (c : TyCon Φ)
            --------------------------------
          → subTyCon σ c ≡ subTyCon σ' c
-subTyCon-cong p integer    = refl
-subTyCon-cong p bytestring = refl
-subTyCon-cong p string     = refl
-subTyCon-cong p unit       = refl
-subTyCon-cong p bool       = refl
 subTyCon-cong p (list A)   = cong list (sub-cong p A)
 subTyCon-cong p (pair A B) = cong₂ pair (sub-cong p A) (sub-cong p B)
-subTyCon-cong p pdata      = refl
-subTyCon-cong p bls12-381-g1-element = refl
-subTyCon-cong p bls12-381-g2-element = refl
-subTyCon-cong p bls12-381-mlresult   = refl
+subTyCon-cong p (atomic _) = refl
 
 sub-cong p (` α)   = p α
 sub-cong p (Π A)   = cong Π (sub-cong (exts-cong p) A)
@@ -368,18 +319,9 @@ sub-id : (A : Φ ⊢⋆ J)
 subTyCon-id : (c : TyCon Φ)
               ------------
             → subTyCon ` c ≡ c
-
-subTyCon-id integer    = refl
-subTyCon-id bytestring = refl
-subTyCon-id string     = refl
-subTyCon-id unit       = refl
-subTyCon-id bool       = refl
 subTyCon-id (list A)   = cong  list (sub-id A)
 subTyCon-id (pair A B) = cong₂ pair (sub-id A) (sub-id B)
-subTyCon-id pdata       = refl
-subTyCon-id bls12-381-g1-element = refl
-subTyCon-id bls12-381-g2-element = refl
-subTyCon-id bls12-381-mlresult   = refl
+subTyCon-id (atomic _) = refl
 
 sub-id (` α)      = refl
 sub-id (Π A)      = cong Π (trans (sub-cong exts-id A) (sub-id A))
@@ -410,18 +352,10 @@ sub-ren : ∀{J}(A : Φ ⊢⋆ J)
 subTyCon-renTyCon : (c : TyCon Φ)
                     ----------------------------------------------
                   → subTyCon (σ ∘ ρ) c ≡ subTyCon σ (renTyCon ρ c)
-
-subTyCon-renTyCon integer    = refl
-subTyCon-renTyCon bytestring = refl
-subTyCon-renTyCon string     = refl
-subTyCon-renTyCon unit       = refl
-subTyCon-renTyCon bool       = refl
 subTyCon-renTyCon (list A)   = cong list (sub-ren A)
 subTyCon-renTyCon (pair A B) = cong₂ pair (sub-ren A) (sub-ren B)
-subTyCon-renTyCon pdata       = refl
-subTyCon-renTyCon bls12-381-g1-element = refl
-subTyCon-renTyCon bls12-381-g2-element = refl
-subTyCon-renTyCon bls12-381-mlresult   = refl
+subTyCon-renTyCon (atomic _) = refl
+
 
 sub-ren (` α)   = refl
 sub-ren (Π A)   = cong Π (trans (sub-cong exts-ext A) (sub-ren A))
@@ -452,18 +386,9 @@ ren-sub : ∀{J}(A : Φ ⊢⋆ J)
 renTyCon-subTyCon : (c : TyCon Φ)
                     -----------------------------------
                   → subTyCon (ren ρ ∘ σ) c ≡ renTyCon ρ (subTyCon σ c)
-
-renTyCon-subTyCon integer    = refl
-renTyCon-subTyCon bytestring = refl
-renTyCon-subTyCon string     = refl
-renTyCon-subTyCon unit       = refl
-renTyCon-subTyCon bool       = refl
 renTyCon-subTyCon (list A)   = cong list (ren-sub A)
 renTyCon-subTyCon (pair A B) = cong₂ pair (ren-sub A) (ren-sub B) 
-renTyCon-subTyCon pdata       = refl
-renTyCon-subTyCon bls12-381-g1-element = refl
-renTyCon-subTyCon bls12-381-g2-element = refl
-renTyCon-subTyCon bls12-381-mlresult   = refl
+renTyCon-subTyCon (atomic _) = refl
 
 ren-sub (` α)   = refl
 ren-sub (Π A)   = cong Π (trans (sub-cong ren-ext-exts  A) (ren-sub A))
@@ -494,18 +419,9 @@ sub-comp : ∀{J}(A : Φ ⊢⋆ J)
 subTyCon-comp : (c : TyCon Φ)
                 ----------------------------------------------------
               → subTyCon (sub σ ∘ σ') c ≡ subTyCon σ (subTyCon σ' c)
-
-subTyCon-comp integer    = refl
-subTyCon-comp bytestring = refl
-subTyCon-comp string     = refl
-subTyCon-comp unit       = refl
-subTyCon-comp bool       = refl
 subTyCon-comp (list A)   = cong list (sub-comp A)
 subTyCon-comp (pair A B) = cong₂ pair (sub-comp A) (sub-comp B)
-subTyCon-comp pdata       = refl
-subTyCon-comp bls12-381-g1-element = refl
-subTyCon-comp bls12-381-g2-element = refl
-subTyCon-comp bls12-381-mlresult   = refl
+subTyCon-comp (atomic _) = refl
 
 sub-comp (` x)   = refl
 sub-comp (Π A)   = cong Π (trans (sub-cong extscomp A) (sub-comp A))

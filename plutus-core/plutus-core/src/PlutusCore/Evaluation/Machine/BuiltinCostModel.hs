@@ -14,6 +14,8 @@ module PlutusCore.Evaluation.Machine.BuiltinCostModel
     ( BuiltinCostModel
     , BuiltinCostModelBase(..)
     , CostingFun(..)
+    , Intercept(..)
+    , Slope(..)
     , ModelAddedSizes(..)
     , ModelSubtractedSizes(..)
     , ModelConstantOrLinear(..)

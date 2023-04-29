@@ -9,6 +9,8 @@
 {-# LANGUAGE StrictData            #-}
 module PlutusCore.Evaluation.Machine.CostingFun.Core
     ( CostingFun(..)
+    , Intercept(..)
+    , Slope(..)
     , ModelAddedSizes(..)
     , ModelSubtractedSizes(..)
     , ModelConstantOrLinear(..)
@@ -75,6 +77,18 @@ data CostingFun model = CostingFun
     }
     deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (Default, NFData)
+
+-- | A wrapped 'CostingInteger' that is supposed to be used as an intercept.
+newtype Intercept = Intercept
+    { unIntercept :: CostingInteger
+    } deriving stock (Generic, Lift)
+      deriving newtype (Show, Eq, Num, NFData)
+
+-- | A wrapped 'CostingInteger' that is supposed to be used as a slope.
+newtype Slope = Slope
+    { unSlope :: CostingInteger
+    } deriving stock (Generic, Lift)
+      deriving newtype (Show, Eq, Num, NFData)
 
 ---------------- One-argument costing functions ----------------
 
@@ -159,8 +173,9 @@ runCostingFunOneArgument (CostingFun cpu mem) =
 
 -- | Take an intercept, a slope and a stream and scale each element of the stream by the slope and
 -- cons the intercept to the stream afterwards.
-scaleLinearly :: CostingInteger -> CostingInteger -> CostStream -> CostStream
-scaleLinearly intercept slope = addCostStream (CostLast intercept) . mapCostStream (slope *)
+scaleLinearly :: Intercept -> Slope -> CostStream -> CostStream
+scaleLinearly (Intercept intercept) (Slope slope) =
+    addCostStream (CostLast intercept) . mapCostStream (slope *)
 {-# INLINE scaleLinearly #-}
 
 runOneArgumentModel
@@ -177,51 +192,51 @@ runOneArgumentModel (ModelOneArgumentLinearCost (ModelLinearSize intercept slope
 
 -- | s * (x + y) + I
 data ModelAddedSizes = ModelAddedSizes
-    { modelAddedSizesIntercept :: CostingInteger
-    , modelAddedSizesSlope     :: CostingInteger
+    { modelAddedSizesIntercept :: Intercept
+    , modelAddedSizesSlope     :: Slope
     } deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 
 -- | s * (x - y) + I
 data ModelSubtractedSizes = ModelSubtractedSizes
-    { modelSubtractedSizesIntercept :: CostingInteger
-    , modelSubtractedSizesSlope     :: CostingInteger
+    { modelSubtractedSizesIntercept :: Intercept
+    , modelSubtractedSizesSlope     :: Slope
     , modelSubtractedSizesMinimum   :: CostingInteger
     } deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 
 data ModelLinearSize = ModelLinearSize
-    { modelLinearSizeIntercept :: CostingInteger
-    , modelLinearSizeSlope     :: CostingInteger
+    { modelLinearSizeIntercept :: Intercept
+    , modelLinearSizeSlope     :: Slope
     } deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 
 -- | s * (x * y) + I
 data ModelMultipliedSizes = ModelMultipliedSizes
-    { modelMultipliedSizesIntercept :: CostingInteger
-    , modelMultipliedSizesSlope     :: CostingInteger
+    { modelMultipliedSizesIntercept :: Intercept
+    , modelMultipliedSizesSlope     :: Slope
     } deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 
 -- | s * min(x, y) + I
 data ModelMinSize = ModelMinSize
-    { modelMinSizeIntercept :: CostingInteger
-    , modelMinSizeSlope     :: CostingInteger
+    { modelMinSizeIntercept :: Intercept
+    , modelMinSizeSlope     :: Slope
     } deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 
 -- | s * max(x, y) + I
 data ModelMaxSize = ModelMaxSize
-    { modelMaxSizeIntercept :: CostingInteger
-    , modelMaxSizeSlope     :: CostingInteger
+    { modelMaxSizeIntercept :: Intercept
+    , modelMaxSizeSlope     :: Slope
     } deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 
 -- | if p then s*x else c; p depends on usage
 data ModelConstantOrLinear = ModelConstantOrLinear
     { modelConstantOrLinearConstant  :: CostingInteger
-    , modelConstantOrLinearIntercept :: CostingInteger
-    , modelConstantOrLinearSlope     :: CostingInteger
+    , modelConstantOrLinearIntercept :: Intercept
+    , modelConstantOrLinearSlope     :: Slope
     } deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 

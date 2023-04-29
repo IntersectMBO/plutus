@@ -6,14 +6,17 @@ module Algorithmic.Erasure where
 \end{code}
 
 \begin{code}
+open import Agda.Primitive using (lzero)
 open import Function using (_∘_;id)
 open import Data.Nat using (_+_)
 open import Data.Nat.Properties using (+-cancelˡ-≡)
 open import Data.Fin using (Fin;zero;suc)
-open import Data.List using (List;length;[];_∷_)
+open import Data.List using (List;length;[];_∷_;map)
+open import Data.List.Properties using (map-compose)
 open import Data.Product using () renaming (_,_ to _,,_)
-open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;subst;trans;sym;cong₂)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;subst;trans;sym;cong₂;cong-app)
 open import Data.Empty using (⊥)
+open import Data.Unit using (tt)
 
 open import Algorithmic as A
 open import Untyped using (_⊢)
@@ -24,8 +27,9 @@ open _⊢Nf⋆_
 
 open import Type.BetaNBE using (nf)
 open import Type.BetaNBE.Completeness using (completeness)
-open import Utils using (Kind;*;Maybe;nothing;just;TermCon)
-open TermCon
+open import Utils using (Kind;*;Maybe;nothing;just;fromList;map-cong)
+open import RawU using (TmCon;tmCon;TyTag)
+open TyTag
 
 open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_;_∋⋆_;S;Z)
 open _⊢⋆_
@@ -60,16 +64,16 @@ eraseVar Z     = nothing
 eraseVar (S α) = just (eraseVar α)
 eraseVar (T α) = eraseVar α
 
-eraseTC : ∀{Φ}{Γ : Ctx Φ}{A : Φ ⊢Nf⋆ *} → AC.TyTermCon A → TermCon
-eraseTC (AC.integer i)    = integer i
-eraseTC (AC.bytestring b) = bytestring b
-eraseTC (AC.string s)     = string s
-eraseTC (AC.bool b)       = bool b
-eraseTC AC.unit           = unit
-eraseTC (AC.pdata d)       = pdata d
-eraseTC (AC.bls12-381-g1-element e) = bls12-381-g1-element e
-eraseTC (AC.bls12-381-g2-element e) = bls12-381-g2-element e
-eraseTC (AC.bls12-381-mlresult r)   = bls12-381-mlresult r
+eraseTC : ∀{Φ}{Γ : Ctx Φ}{A : Φ ⊢Nf⋆ *} → AC.TyTermCon A → TmCon
+eraseTC (AC.tmInteger i)              = tmCon integer i
+eraseTC (AC.tmBytestring b)           = tmCon bytestring b
+eraseTC (AC.tmString s)               = tmCon string s
+eraseTC (AC.tmBool b)                 = tmCon bool b
+eraseTC AC.tmUnit                     = tmCon unit tt
+eraseTC (AC.tmData d)                 = tmCon pdata d
+eraseTC (AC.tmBls12-381-g1-element e) = tmBls12-381-g1-element e
+eraseTC (AC.tmBls12-381-g2-element e) = tmBls12-381-g2-element e
+eraseTC (AC.tmBls12-381-mlresult r)   = tmBls12-381-mlresult r
 
 erase : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ ⊢ A → len Γ ⊢
 erase (` α)                = ` (eraseVar α)
@@ -107,25 +111,26 @@ lenLemma⋆ (Φ ,⋆ K) = cong Maybe (lenLemma⋆ Φ)
 
 -- these lemmas (as stated and proved) require injectivity of type
 -- constructors
-lemzero : ∀{X X'}(p : Maybe X ≡ Maybe X') → nothing ≡ subst id p nothing
+lemzero : ∀{X X'}(p : Maybe {lzero} X ≡ Maybe X') → nothing ≡ subst id p nothing
 lemzero refl = refl
 
-lemsuc : ∀{X X'}(p : Maybe X ≡ Maybe X')(q : X ≡ X')(x : X) →
+lemsuc : ∀{X X'}(p : Maybe {lzero} X ≡ Maybe X')(q : X ≡ X')(x : X) →
   just (subst id q x) ≡ subst id p (just x)
 lemsuc refl refl x = refl
 
 sameTC : ∀{Φ Γ}{A : Φ ⊢⋆ *}(tcn : DC.TyTermCon A)
   → D.eraseTC {Γ = Γ} tcn ≡ eraseTC {Γ = nfCtx Γ} (nfTypeTC tcn)
-sameTC (DC.integer i)    = refl
-sameTC (DC.bytestring b) = refl
-sameTC (DC.string s)     = refl
-sameTC (DC.bool b)       = refl
-sameTC DC.unit           = refl
-sameTC (DC.pdata d)      = refl
-sameTC (DC.bls12-381-g1-element e) = refl
-sameTC (DC.bls12-381-g2-element e) = refl
-sameTC (DC.bls12-381-mlresult r)   = refl
+sameTC (DC.tmInteger i)      = refl
+sameTC (DC.tmBytestring b)   = refl
+sameTC (DC.tmString s)       = refl
+sameTC (DC.tmBool b)         = refl
+sameTC DC.tmUnit             = refl
+sameTC (DC.tmData d)         = refl
+sameTC (DC.tmBls12-381-g1-element e) = refl
+sameTC (DC.tmBls12-381-g2-element e) = refl
+sameTC (DC.tmBls12-381-mlresult r)   = refl
 
+-- map D.eraseTC xs ≡ map (eraseTC ∘ nfTypeTC) xs
 
 lem≡Ctx : ∀{Φ}{Γ Γ' : Ctx Φ} → Γ ≡ Γ' → len Γ ≡ len Γ'
 lem≡Ctx refl = refl
@@ -160,7 +165,7 @@ lem-delay refl t = refl
 lem-force : ∀{X X'}(p : X ≡ X')(t : X ⊢) → force (subst _⊢ p t) ≡ subst _⊢ p (force t)
 lem-force refl t = refl
 
-lemcon' : ∀{X X'}(p : X ≡ X')(tcn : TermCon) → con tcn ≡ subst _⊢ p (con tcn)
+lemcon' : ∀{X X'}(p : X ≡ X')(tcn : TmCon) → con tcn ≡ subst _⊢ p (con tcn)
 lemcon' refl tcn = refl
 
 lemerror : ∀{X X'}(p : X ≡ X') →  error ≡ subst _⊢ p error
@@ -248,15 +253,15 @@ same'Var {Γ = Γ ,⋆ _} (T {A = A} x) = trans
 
 same'TC : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(tcn : AC.TyTermCon A)
   → eraseTC {Γ = Γ} tcn ≡ D.eraseTC {Φ}{Γ = embCtx Γ} (embTC tcn)
-same'TC (AC.integer i)    = refl
-same'TC (AC.bytestring b) = refl
-same'TC (AC.string s)     = refl
-same'TC (AC.bool b)       = refl
-same'TC AC.unit           = refl
-same'TC (AC.pdata d)      = refl
-same'TC (AC.bls12-381-g1-element e) = refl
-same'TC (AC.bls12-381-g2-element e) = refl
-same'TC (AC.bls12-381-mlresult r)   = refl
+same'TC (AC.tmInteger i)              = refl
+same'TC (AC.tmBytestring b)           = refl
+same'TC (AC.tmString s)               = refl
+same'TC (AC.tmBool b)                 = refl
+same'TC AC.tmUnit                     = refl
+same'TC (AC.tmData d)                 = refl
+same'TC (AC.tmBls12-381-g1-element e) = refl
+same'TC (AC.tmBls12-381-g2-element e) = refl
+same'TC (AC.tmBls12-381-mlresult r)   = refl
 
 same' : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(x : Γ A.⊢ A)
   →  erase x ≡ subst _⊢ (same'Len Γ) (D.erase (emb x))

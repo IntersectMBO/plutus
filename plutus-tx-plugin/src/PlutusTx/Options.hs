@@ -50,12 +50,15 @@ data PluginOptions = PluginOptions
     , _posDoSimplifierUnwrapCancel       :: Bool
     , _posDoSimplifierBeta               :: Bool
     , _posDoSimplifierInline             :: Bool
+    , _posDoSimplifierEvaluateBuiltins   :: Bool
     , _posDoSimplifierRemoveDeadBindings :: Bool
     , _posProfile                        :: ProfileOpts
     , _posCoverageAll                    :: Bool
     , _posCoverageLocation               :: Bool
     , _posCoverageBoolean                :: Bool
     , _posRelaxedFloatin                 :: Bool
+    -- | Whether to try and retain the logging behaviour of the program.
+    , _posPreserveLogging                :: Bool
     , -- Setting to `True` defines `trace` as `\_ a -> a` instead of the builtin version.
       -- Which effectively ignores the trace text.
       _posRemoveTrace                    :: Bool
@@ -147,8 +150,11 @@ pluginOptions =
                     posConservativeOpts
                     desc
                     -- conservative-optimisation implies no-relaxed-floatin, and vice versa
+                    -- similarly, it implies preserving logging
                     [ Implication (== True) posRelaxedFloatin False
+                    , Implication (== True) posPreserveLogging True
                     , Implication (== False) posRelaxedFloatin True
+                    , Implication (== False) posPreserveLogging False
                     ]
               )
         , let k = "context-level"
@@ -266,12 +272,14 @@ defaultPluginOptions =
         , _posDoSimplifierUnwrapCancel = True
         , _posDoSimplifierBeta = True
         , _posDoSimplifierInline = True
+        , _posDoSimplifierEvaluateBuiltins = True
         , _posDoSimplifierRemoveDeadBindings = True
         , _posProfile = None
         , _posCoverageAll = False
         , _posCoverageLocation = False
         , _posCoverageBoolean = False
         , _posRelaxedFloatin = True
+        , _posPreserveLogging = False
         , _posRemoveTrace = False
         }
 

@@ -227,7 +227,24 @@ let
                     {all dead. dead})
                {all dead. dead})
           {all dead. dead}
+  !w : bytestring = #5468697320697320616e206578616d706c65
   !x : integer = -1234567890
+in
+letrec
+  !fEnumBool_cenumFromTo : integer -> integer -> List integer
+    = \(x : integer)
+       (y : integer) ->
+        Bool_match
+          (ifThenElse {Bool} (lessThanEqualsInteger x y) False True)
+          {all dead. List integer}
+          (/\dead -> Nil {integer})
+          (/\dead ->
+             Cons {integer} x (fEnumBool_cenumFromTo (addInteger x 1) y))
+          {all dead. dead}
+in
+let
+  !fShowInteger_cshowsPrec : integer -> integer -> List string -> List string
+    = \(w : integer) (w : integer) -> wcshowsPrec w
   data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
     Tuple2 : a -> b -> Tuple2 a b
 in
@@ -269,22 +286,6 @@ letrec
                            Tuple2 {List a} {List a} (Cons {a} y zs) ws))
                    {all dead. dead})
             {all dead. dead}
-in
-letrec
-  !fEnumBool_cenumFromTo : integer -> integer -> List integer
-    = \(x : integer)
-       (y : integer) ->
-        Bool_match
-          (ifThenElse {Bool} (lessThanEqualsInteger x y) False True)
-          {all dead. List integer}
-          (/\dead -> Nil {integer})
-          (/\dead ->
-             Cons {integer} x (fEnumBool_cenumFromTo (addInteger x 1) y))
-          {all dead. dead}
-in
-let
-  !fShowInteger_cshowsPrec : integer -> integer -> List string -> List string
-    = \(w : integer) (w : integer) -> wcshowsPrec w
 in
 letrec
   !go : List string -> integer -> integer
@@ -391,30 +392,26 @@ let
               (v : a -> string) ->
                v)
   !a : integer = trace {integer} (fShowInteger_cshow x) x
-  !b : integer = trace {integer} "This is an example" a
   !c : integer
     = trace
         {integer}
-        (let
-          !x : bytestring = encodeUtf8 "This is an example"
-        in
-        concatBuiltinStrings
-          (foldr
-             {integer}
-             {List string -> List string}
-             (\(i : integer) ->
-                let
-                  ~x : integer = indexByteString x i
-                in
-                \(acc : List string -> List string)
-                 (x : List string) ->
-                  toHex (divideInteger x 16) (toHex (modInteger x 16) (acc x)))
-             (id {List string})
-             (fEnumBool_cenumFromTo
-                0
-                (subtractInteger (lengthOfByteString x) 1))
-             (Nil {string})))
-        b
+        (concatBuiltinStrings
+           (foldr
+              {integer}
+              {List string -> List string}
+              (\(i : integer) ->
+                 let
+                   ~x : integer = indexByteString w i
+                 in
+                 \(acc : List string -> List string)
+                  (x : List string) ->
+                   toHex (divideInteger x 16) (toHex (modInteger x 16) (acc x)))
+              (id {List string})
+              (fEnumBool_cenumFromTo
+                 0
+                 (subtractInteger (lengthOfByteString w) 1))
+              (Nil {string})))
+        a
   !d : integer
     = trace
         {integer}
@@ -432,7 +429,7 @@ let
             = (let
                   a = List integer
                 in
-                \(c : integer -> a -> a) (n : a) -> c a (c b (c c (c d n))))
+                \(c : integer -> a -> a) (n : a) -> c a (c a (c c (c d n))))
                 (\(ds : integer) (ds : List integer) -> Cons {integer} ds ds)
                 (Nil {integer})
         in
@@ -483,7 +480,7 @@ let
           !w : Show integer = fShowInteger
           !w : Show integer = fShowInteger
           !w : Tuple5 integer integer integer integer integer
-            = Tuple5 {integer} {integer} {integer} {integer} {integer} a b c d e
+            = Tuple5 {integer} {integer} {integer} {integer} {integer} a a c d e
         in
         Tuple5_match
           {integer}

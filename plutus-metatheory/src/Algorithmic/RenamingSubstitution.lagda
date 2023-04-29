@@ -63,15 +63,15 @@ renTermCon : ∀ {Φ Ψ}
   → (ρ⋆ : ⋆.Ren Φ Ψ)
     -----------------------------------------------------
   → ({A : Φ ⊢Nf⋆ *} → TermCon A → TermCon (renNf ρ⋆ A ))
-renTermCon ρ⋆ (integer i)    = integer i
-renTermCon ρ⋆ (bytestring b) = bytestring b
-renTermCon ρ⋆ (string s)     = string s
-renTermCon ρ⋆ (bool b)       = bool b
-renTermCon ρ⋆ unit           = unit
-renTermCon ρ⋆ (pdata d)      = pdata d
-renTermCon ρ⋆ (bls12-381-g1-element e) = bls12-381-g1-element e
-renTermCon ρ⋆ (bls12-381-g2-element e) = bls12-381-g2-element e
-renTermCon ρ⋆ (bls12-381-mlresult r)   = bls12-381-mlresult r
+renTermCon ρ⋆ (tmInteger i)              = tmInteger i
+renTermCon ρ⋆ (tmBytestring b)           = tmBytestring b
+renTermCon ρ⋆ (tmString s)               = tmString s
+renTermCon ρ⋆ (tmBool b)                 = tmBool b
+renTermCon ρ⋆ tmUnit                     = tmUnit
+renTermCon ρ⋆ (tmData d)                 = tmData d
+renTermCon ρ⋆ (tmBls12-381-g1-element e) = tmBls12-381-g1-element e
+renTermCon ρ⋆ (tmBls12-381-g2-element e) = tmBls12-381-g2-element e
+renTermCon ρ⋆ (tmBls12-381-mlresult r)   = tmBls12-381-mlresult r
 \end{code}
 
 \begin{code}
@@ -154,15 +154,15 @@ subTermCon : ∀ {Φ Ψ}
   → (σ⋆ : SubNf Φ Ψ)
     ------------------------------------------------------
   → ({A : Φ ⊢Nf⋆ *} → TermCon A → TermCon (subNf σ⋆ A ))
-subTermCon σ⋆ (integer i)    = integer i
-subTermCon σ⋆ (bytestring b) = bytestring b
-subTermCon σ⋆ (string s)     = string s
-subTermCon σ⋆ (bool b)       = bool b
-subTermCon σ⋆ unit           = unit
-subTermCon σ⋆ (pdata d)      = pdata d
-subTermCon σ⋆ (bls12-381-g1-element e) = bls12-381-g1-element e
-subTermCon σ⋆ (bls12-381-g2-element e) = bls12-381-g2-element e
-subTermCon σ⋆ (bls12-381-mlresult r)   = bls12-381-mlresult r
+subTermCon σ⋆ (tmInteger i)              = tmInteger i
+subTermCon σ⋆ (tmBytestring b)           = tmBytestring b
+subTermCon σ⋆ (tmString s)               = tmString s
+subTermCon σ⋆ (tmBool b)                 = tmBool b
+subTermCon σ⋆ tmUnit                     = tmUnit
+subTermCon σ⋆ (tmData d)                 = tmData d
+subTermCon σ⋆ (tmBls12-381-g1-element e) = tmBls12-381-g1-element e
+subTermCon σ⋆ (tmBls12-381-g2-element e) = tmBls12-381-g2-element e
+subTermCon σ⋆ (tmBls12-381-mlresult r)   = tmBls12-381-mlresult r
 \end{code}
 
 \begin{code}

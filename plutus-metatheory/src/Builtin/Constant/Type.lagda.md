@@ -17,24 +17,27 @@ module Builtin.Constant.Type
 ## Imports
 
 ```
--- no imports
+open import Builtin.Constant.AtomicType
 ```
 
-## Type constants
-
-We have twelve base types referred to as type constants:
+Type constants are either atomic, or pair, or lists.
 
 ```
 data TyCon (Φ : Con) : Set where
-  integer              : TyCon Φ
-  bytestring           : TyCon Φ
-  string               : TyCon Φ
-  unit                 : TyCon Φ
-  bool                 : TyCon Φ
-  list                 : Ty Φ → TyCon Φ
-  pair                 : Ty Φ → Ty Φ → TyCon Φ
-  pdata                : TyCon Φ
-  bls12-381-g1-element : TyCon Φ
-  bls12-381-g2-element : TyCon Φ
-  bls12-381-mlresult   : TyCon Φ
+  atomic     : AtomicTyCon → TyCon Φ
+  list       : Ty Φ → TyCon Φ
+  pair       : Ty Φ → Ty Φ → TyCon Φ
+
+pattern integer = atomic aInteger
+pattern bytestring = atomic aBytestring
+pattern string = atomic aString
+pattern unit = atomic aUnit
+pattern bool = atomic aBool
+pattern pdata = atomic aData
+pattern bls12-381-g1-element = atomic aBls12-381-g1-element
+pattern bls12-381-g2-element = atomic aBls12-381-g2-element 
+pattern bls12-381-mlresult   = atomic aBls12-381-mlresult
+
 ```
+
+

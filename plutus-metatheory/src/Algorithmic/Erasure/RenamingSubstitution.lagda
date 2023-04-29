@@ -112,17 +112,17 @@ conv⊢-erase : ∀{Φ}{Γ : Ctx Φ}{A A' : Φ ⊢Nf⋆ *}
 conv⊢-erase refl t = refl
 
 renTermCon-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(ρ⋆ : ⋆.Ren Φ Ψ)
-  → (ρ : A.Ren ρ⋆ Γ Δ){tc : TyCon _}(c : AB.TermCon (con tc))
+  → (ρ : A.Ren ρ⋆ Γ Δ) → ∀{A}(c : AB.TermCon A)
   → eraseTC {Γ = Δ} (A.renTermCon ρ⋆ c) ≡ eraseTC {Γ = Γ} c 
-renTermCon-erase ρ⋆ ρ (AB.integer i)              = refl
-renTermCon-erase ρ⋆ ρ (AB.bytestring b)           = refl
-renTermCon-erase ρ⋆ ρ (AB.string s)               = refl
-renTermCon-erase ρ⋆ ρ (AB.bool b)                 = refl
-renTermCon-erase ρ⋆ ρ AB.unit                     = refl
-renTermCon-erase ρ⋆ ρ (AB.pdata d)                = refl
-renTermCon-erase ρ⋆ ρ (AB.bls12-381-g1-element e) = refl
-renTermCon-erase ρ⋆ ρ (AB.bls12-381-g2-element e) = refl
-renTermCon-erase ρ⋆ ρ (AB.bls12-381-mlresult e)   = refl
+renTermCon-erase ρ⋆ ρ (AB.tmInteger i)              = refl
+renTermCon-erase ρ⋆ ρ (AB.tmBytestring b)           = refl
+renTermCon-erase ρ⋆ ρ (AB.tmString s)               = refl
+renTermCon-erase ρ⋆ ρ (AB.tmBool b)                 = refl
+renTermCon-erase ρ⋆ ρ AB.tmUnit                     = refl
+renTermCon-erase ρ⋆ ρ (AB.tmData d)                 = refl
+renTermCon-erase ρ⋆ ρ (AB.tmBls12-381-g1-element e) = refl
+renTermCon-erase ρ⋆ ρ (AB.tmBls12-381-g2-element e) = refl
+renTermCon-erase ρ⋆ ρ (AB.tmBls12-381-mlresult e)   = refl
 
 ext⋆-erase : ∀{Φ Ψ K}{Γ : Ctx Φ}{Δ : Ctx Ψ}(ρ⋆ : ⋆.Ren Φ Ψ)
   → (ρ : A.Ren ρ⋆ Γ Δ)(α : len Γ)
@@ -208,17 +208,17 @@ exts⋆-erase {Γ = Γ}{Δ} σ⋆ σ {B} α = trans
       (sym (U.ren-id (erase (σ (backVar Γ α)))))))
 
 subTermCon-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(σ⋆ : SubNf Φ Ψ)
-  → (σ : A.Sub σ⋆ Γ Δ){tc : TyCon _}(c : AB.TermCon (con tc))
+  → (σ : A.Sub σ⋆ Γ Δ) → ∀{A}(c : AB.TermCon A)
   → eraseTC {Γ = Δ} (A.subTermCon σ⋆ c) ≡ eraseTC {Γ = Γ} c 
-subTermCon-erase σ⋆ σ (AB.integer i)              = refl
-subTermCon-erase σ⋆ σ (AB.bytestring b)           = refl
-subTermCon-erase σ⋆ σ (AB.string s)               = refl
-subTermCon-erase σ⋆ σ (AB.bool b)                 = refl
-subTermCon-erase σ⋆ σ AB.unit                     = refl
-subTermCon-erase σ⋆ σ (AB.pdata d)                = refl
-subTermCon-erase σ⋆ σ (AB.bls12-381-g1-element e) = refl
-subTermCon-erase σ⋆ σ (AB.bls12-381-g2-element e) = refl
-subTermCon-erase σ⋆ σ (AB.bls12-381-mlresult e)   = refl
+subTermCon-erase σ⋆ σ (AB.tmInteger i)    = refl
+subTermCon-erase σ⋆ σ (AB.tmBytestring b) = refl
+subTermCon-erase σ⋆ σ (AB.tmString s)     = refl
+subTermCon-erase σ⋆ σ (AB.tmBool b)       = refl
+subTermCon-erase σ⋆ σ AB.tmUnit           = refl
+subTermCon-erase σ⋆ σ (AB.tmData d)       = refl
+subTermCon-erase σ⋆ σ (AB.tmBls12-381-g1-element e) = refl
+subTermCon-erase σ⋆ σ (AB.tmBls12-381-g2-element e) = refl
+subTermCon-erase σ⋆ σ (AB.tmBls12-381-mlresult e)   = refl
 
 sub-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(σ⋆ : SubNf Φ Ψ)
   → (σ : A.Sub σ⋆ Γ Δ){A : Φ ⊢Nf⋆ *} → (t : Γ ⊢ A)

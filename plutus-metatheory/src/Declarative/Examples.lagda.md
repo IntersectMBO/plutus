@@ -24,7 +24,7 @@ open Ctx
 open _⊢_
 open _∋_
 open import Builtin using (addInteger)
-open import Builtin.Constant.Type using (TyCon)
+open import Builtin.Constant.Type using (TyCon;integer)
 open TyCon
 open import Builtin.Constant.Term using (TermCon)
 open TermCon
@@ -39,7 +39,7 @@ module Builtins where
   open Declarative.Examples.StdLib.ChurchNat
 
   con2 : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ con integer
-  con2 = con (integer (pos 2))
+  con2 = con (tmInteger (pos 2))
 
   builtin2plus2 : ∅ ⊢ con integer
   builtin2plus2 = builtin addInteger · con2 · con2

@@ -51,7 +51,7 @@ normalType :: Type tyname uni ann -> Either (NormCheckError tyname name uni fun 
 normalType (TyFun _ i o)       = normalType i >> normalType o
 normalType (TyForall _ _ _ ty) = normalType ty
 normalType (TyIFix _ pat arg)  = normalType pat >> normalType arg
-normalType (TySOP _ tyls)      = (traverse_ . traverse_) normalType tyls
+normalType (TySOP _ tyls)      = traverse_ (traverse_ normalType) tyls
 normalType (TyLam _ _ _ ty)    = normalType ty
 -- See Note [PLC types and universes].
 normalType TyBuiltin{}         = pure ()

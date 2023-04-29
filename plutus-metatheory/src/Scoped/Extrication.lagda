@@ -3,6 +3,7 @@ module Scoped.Extrication where
 \end{code}
 
 \begin{code}
+open import Data.Unit using (tt)
 open import Data.Fin using (Fin;zero;suc)
 open import Data.Nat using (ℕ;zero;suc)
 open import Data.Nat.Properties using (+-comm)
@@ -10,8 +11,10 @@ open import Data.Vec using ([];_++_)
 open import Function using (_∘_)
 open import Relation.Binary.PropositionalEquality as Eq using (refl)
 
-open import Utils using (Kind;*;TermCon)
-open TermCon
+open import Utils using (Kind;*)
+
+open import RawU using (TmCon;tmCon;TyTag)
+open TyTag
 open import Type using (Ctx⋆;∅;_,⋆_;_∋⋆_;Z;S)
 open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_)
 open _⊢Nf⋆_
@@ -50,17 +53,9 @@ extricateTyConNf⋆ : ∀{Γ}(A : T.TyCon Γ) → S.TyCon (len⋆ Γ)
 -- intrinsically typed terms should also carry user chosen names as
 -- instructions to the pretty printer
 
-extricateTyConNf⋆ T.integer = S.integer
-extricateTyConNf⋆ T.bytestring = S.bytestring
-extricateTyConNf⋆ T.string = S.string
-extricateTyConNf⋆ T.unit = S.unit
-extricateTyConNf⋆ T.bool = S.bool
 extricateTyConNf⋆ (T.list A) = S.list (extricateNf⋆ A)
 extricateTyConNf⋆ (T.pair A B) = S.pair (extricateNf⋆ A) (extricateNf⋆ B) 
-extricateTyConNf⋆ T.pdata = S.pdata
-extricateTyConNf⋆ T.bls12-381-g1-element = S.bls12-381-g1-element
-extricateTyConNf⋆ T.bls12-381-g2-element = S.bls12-381-g2-element
-extricateTyConNf⋆ T.bls12-381-mlresult = S.bls12-381-mlresult
+extricateTyConNf⋆ (T.atomic A) = S.atomic A
 
 extricateNf⋆ (Π {K = K} A) = Π K (extricateNf⋆ A)
 extricateNf⋆ (A ⇒ B) = extricateNf⋆ A ⇒ extricateNf⋆ B
@@ -87,16 +82,20 @@ extricateVar Z = Z
 extricateVar (S x) = S (extricateVar x)
 extricateVar (T x) = T (extricateVar x)
 
-extricateC : ∀{Γ}{A : Γ ⊢Nf⋆ *} → B.TermCon A → Utils.TermCon
-extricateC (integer i)    = integer i
-extricateC (bytestring b) = bytestring b
-extricateC (string s)     = string s
-extricateC (bool b)       = bool b
-extricateC unit           = unit
-extricateC (pdata d)      = pdata d
-extricateC (bls12-381-g1-element e)      = bls12-381-g1-element e
-extricateC (bls12-381-g2-element e)      = bls12-381-g2-element e
-extricateC (bls12-381-mlresult r)   = bls12-381-mlresult r
+extricateC : ∀{Γ}{A : Γ ⊢Nf⋆ *} → B.TermCon A → RawU.TmCon
+extricateC (tmInteger i)              = tmCon integer i
+extricateC (tmBytestring b)           = tmCon bytestring b
+extricateC (tmString s)               = tmCon string s
+extricateC (tmBool b)                 = tmCon bool b
+extricateC tmUnit                     = tmCon unit tt
+extricateC (tmData d)                 = tmCon pdata d
+--extricateC (pairDATA x y)           = pairDATA x y
+--extricateC (pairID i ds)            = pairID i ds
+--extricateC (listData xs)            = listData xs
+--extricateC (listPair xs)            = listPair xs
+extricateC (tmBls12-381-g1-element e) = tmCon bls12-381-g1-element e
+extricateC (tmBls12-381-g2-element e) = tmCon bls12-381-g2-element e
+extricateC (tmBls12-381-mlresult r)   = tmCon bls12-381-mlresult r
 
 extricateSub : ∀ {Γ Δ} → (∀ {J} → Δ ∋⋆ J → Γ ⊢Nf⋆ J)
   → Scoped.Tel⋆ (len⋆ Γ) (len⋆ Δ)

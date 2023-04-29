@@ -49,19 +49,23 @@ instance PLC.HasTypeCheckConfig (PirTCConfig uni fun) uni fun where
     typeCheckConfig = pirConfigTCConfig
 
 data CompilationOpts a = CompilationOpts {
-    _coOptimize                   :: Bool
-    , _coPedantic                 :: Bool
-    , _coVerbose                  :: Bool
-    , _coDebug                    :: Bool
-    , _coMaxSimplifierIterations  :: Int
+    _coOptimize                       :: Bool
+    , _coPedantic                     :: Bool
+    , _coVerbose                      :: Bool
+    , _coDebug                        :: Bool
+    , _coMaxSimplifierIterations      :: Int
     -- Simplifier passes
-    , _coDoSimplifierUnwrapCancel :: Bool
-    , _coDoSimplifierCaseReduce   :: Bool
-    , _coDoSimplifierBeta         :: Bool
-    , _coDoSimplifierInline       :: Bool
-    , _coInlineHints              :: InlineHints PLC.Name (Provenance a)
-    , _coProfile                  :: Bool
-    , _coRelaxedFloatin           :: Bool
+    , _coDoSimplifierUnwrapCancel     :: Bool
+    , _coDoSimplifierCaseReduce       :: Bool
+    , _coDoSimplifierKnownCon         :: Bool
+    , _coDoSimplifierBeta             :: Bool
+    , _coDoSimplifierInline           :: Bool
+    , _coDoSimplifierEvaluateBuiltins :: Bool
+    , _coInlineHints                  :: InlineHints PLC.Name (Provenance a)
+    , _coProfile                      :: Bool
+    , _coRelaxedFloatin               :: Bool
+    -- | Whether to try and preserve the logging beahviour of the program.
+    , _coPreserveLogging              :: Bool
     } deriving stock (Show)
 
 makeLenses ''CompilationOpts
@@ -75,27 +79,32 @@ defaultCompilationOpts = CompilationOpts
   , _coMaxSimplifierIterations = 12
   , _coDoSimplifierUnwrapCancel = True
   , _coDoSimplifierCaseReduce = True
+  , _coDoSimplifierKnownCon = True
   , _coDoSimplifierBeta = True
   , _coDoSimplifierInline = True
+  , _coDoSimplifierEvaluateBuiltins = True
   , _coInlineHints = mempty
   , _coProfile = False
   , _coRelaxedFloatin = True
+  , _coPreserveLogging = False
   }
 
 data CompilationCtx uni fun a = CompilationCtx {
-    _ccOpts              :: CompilationOpts a
-    , _ccEnclosing       :: Provenance a
+    _ccOpts               :: CompilationOpts a
+    , _ccEnclosing        :: Provenance a
     -- | Decide to either typecheck (passing a specific tcconfig) or not by passing 'Nothing'.
-    , _ccTypeCheckConfig :: Maybe (PirTCConfig uni fun)
-    , _ccBuiltinVer      :: PLC.BuiltinVersion fun
+    , _ccTypeCheckConfig  :: Maybe (PirTCConfig uni fun)
+    , _ccBuiltinVer       :: PLC.BuiltinVersion fun
+    , _ccBuiltinCostModel :: PLC.CostingPart uni fun
     }
 
 makeLenses ''CompilationCtx
 
-toDefaultCompilationCtx :: Default (PLC.BuiltinVersion fun) => PLC.TypeCheckConfig uni fun -> CompilationCtx uni fun a
+toDefaultCompilationCtx :: (Default (PLC.BuiltinVersion fun), Default (PLC.CostingPart uni fun)) => PLC.TypeCheckConfig uni fun -> CompilationCtx uni fun a
 toDefaultCompilationCtx configPlc =
     CompilationCtx defaultCompilationOpts noProvenance
         (Just $ PirTCConfig configPlc YesEscape)
+        def
         def
 
 getEnclosing :: MonadReader (CompilationCtx uni fun a) m => m (Provenance a)

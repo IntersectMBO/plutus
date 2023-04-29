@@ -121,7 +121,7 @@ See Note [New builtins/language versions and protocol versions]
 plcVersionsIntroducedIn :: Map.Map (PlutusLedgerLanguage, ProtocolVersion) (Set.Set Version)
 plcVersionsIntroducedIn = Map.fromList [
   ((PlutusV1, alonzoPV), Set.fromList [ plcVersion100 ]),
-  ((PlutusV3, futurePV), Set.fromList [ plcVersion110 ])
+  ((PlutusV3, conwayPV), Set.fromList [ plcVersion110 ])
   ]
 
 {-| Query the protocol version that a specific Plutus ledger language was first introduced in.
@@ -130,7 +130,7 @@ ledgerLanguageIntroducedIn :: PlutusLedgerLanguage -> ProtocolVersion
 ledgerLanguageIntroducedIn = \case
     PlutusV1 -> alonzoPV
     PlutusV2 -> vasilPV
-    PlutusV3 -> futurePV
+    PlutusV3 -> conwayPV
 
 {-| Which Plutus language versions are available in the given 'ProtocolVersion'?
 

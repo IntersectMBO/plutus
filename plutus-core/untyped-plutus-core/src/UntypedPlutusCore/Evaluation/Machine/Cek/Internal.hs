@@ -530,7 +530,7 @@ dischargeCekValue = \case
     -- or (b) it's needed for an error message.
     -- @term@ is fully discharged, so we can return it directly without any further discharging.
     VBuiltin _ term _                    -> term
-    VConstr i es                         -> Constr () i (toList $ fmap dischargeCekValue es)
+    VConstr i es                         -> Constr () i (fmap dischargeCekValue es)
 
 instance (Closed uni, Pretty (SomeTypeIn uni), uni `Everywhere` PrettyConst, Pretty fun) =>
             PrettyBy PrettyConfigPlc (CekValue uni fun ann) where
@@ -551,11 +551,11 @@ Morally, this is a stack of frames, but we use the "intrusive list" representati
 we can match on context and the top frame in a single, strict pattern match.
 -}
 data Context uni fun ann
-    = FrameApplyFun !(CekValue uni fun ann) !(Context uni fun ann)
+    = FrameAwaitArg !(CekValue uni fun ann) !(Context uni fun ann)
     -- ^ @[V _]@
-    | FrameApplyArg !(CekValEnv uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann)
+    | FrameAwaitFun !(CekValEnv uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann)
     -- ^ @[_ N]@
-    | FrameApplyValues ![CekValue uni fun ann] !(Context uni fun ann)
+    | FrameAwaitFunValues ![CekValue uni fun ann] !(Context uni fun ann)
     -- ^ @[_ V0...Vn]@
     | FrameForce !(Context uni fun ann)
     -- ^ @(force _)@
@@ -693,7 +693,7 @@ enterComputeCek = computeCek
     -- s ; ρ ▻ [L M]  ↦  s , [_ (M,ρ)]  ; ρ ▻ L
     computeCek !ctx !env (Apply _ fun arg) = do
         stepAndMaybeSpend BApply
-        computeCek (FrameApplyArg env arg ctx) env fun
+        computeCek (FrameAwaitFun env arg ctx) env fun
     -- s ; ρ ▻ builtin bn  ↦  s ◅ builtin bn arity arity [] [] ρ
     computeCek !ctx !_ (Builtin _ bn) = do
         stepAndMaybeSpend BBuiltin
@@ -705,7 +705,7 @@ enterComputeCek = computeCek
         stepAndMaybeSpend BConstr
         case es of
           (t : rest) -> computeCek (FrameConstr env i rest mempty ctx) env t
-          _          -> returnCek ctx $ VConstr i []
+          []         -> returnCek ctx $ VConstr i []
     -- s ; ρ ▻ case S C0 ... Cn  ↦  s , case _ (C0 ... Cn, ρ) ; ρ ▻ S
     computeCek !ctx !env (Case _ scrut cs) = do
         stepAndMaybeSpend BCase
@@ -735,15 +735,15 @@ enterComputeCek = computeCek
     -- s , {_ A} ◅ abs α M  ↦  s ; ρ ▻ M [ α / A ]*
     returnCek (FrameForce ctx) fun = forceEvaluate ctx fun
     -- s , [_ (M,ρ)] ◅ V  ↦  s , [V _] ; ρ ▻ M
-    returnCek (FrameApplyArg argVarEnv arg ctx) fun =
-        computeCek (FrameApplyFun fun ctx) argVarEnv arg
+    returnCek (FrameAwaitFun argVarEnv arg ctx) fun =
+        computeCek (FrameAwaitArg fun ctx) argVarEnv arg
     -- s , [(lam x (M,ρ)) _] ◅ V  ↦  s ; ρ [ x  ↦  V ] ▻ M
     -- FIXME: add rule for VBuiltin once it's in the specification.
-    returnCek (FrameApplyFun fun ctx) arg =
+    returnCek (FrameAwaitArg fun ctx) arg =
         applyEvaluate ctx fun arg
     -- s , [_ V1 .. Vn] ◅ lam x (M,ρ)  ↦  s , [_ V2 .. Vn]; ρ [ x  ↦  V1 ] ▻ M
-    returnCek (FrameApplyValues args ctx) fun = case args of
-        (arg:rest) -> applyEvaluate (FrameApplyValues rest ctx) fun arg
+    returnCek (FrameAwaitFunValues args ctx) fun = case args of
+        (arg:rest) -> applyEvaluate (FrameAwaitFunValues rest ctx) fun arg
         _          -> returnCek ctx fun
     -- s , constr I V0 ... Vj-1 _ (Tj+1 ... Tn, ρ) ◅ Vj  ↦  s , constr i V0 ... Vj _ (Tj+2... Tn, ρ)  ; ρ ▻ Tj+1
     returnCek (FrameConstr env i todo done ctx) e = do
@@ -754,7 +754,7 @@ enterComputeCek = computeCek
     -- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci
     returnCek (FrameCases env cs ctx) e = case e of
         (VConstr i args) -> case cs ^? wix i of
-            Just t  -> computeCek (FrameApplyValues args ctx) env t
+            Just t  -> computeCek (FrameAwaitFunValues args ctx) env t
             Nothing -> throwingDischarged _MachineError (MissingCaseBranch i) e
         _ -> throwingDischarged _MachineError NonConstrScrutinized e
 

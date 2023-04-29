@@ -10,11 +10,14 @@ module Check where
 ```
 open import Data.Nat using (ℕ;zero;suc)
 open import Data.Fin using (Fin;zero;suc)
+open import Data.List using (map;[];_∷_)
 open import Data.Product using (Σ) renaming (_,_ to _,,_)
 open import Data.Sum using (_⊎_;inj₁;inj₂)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong₂;cong;sym)
-open import Relation.Nullary using (¬_)
+open import Relation.Nullary using (Dec;yes;no;_because_;¬_)
+open import Agda.Builtin.String using (String)
 
+import Utils as U
 open import Scoped using (ScopedTy;Weirdℕ;WeirdFin;ScopedTm)
 open ScopedTy
 open ScopedTm
@@ -28,9 +31,11 @@ open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;weakenNf;renNf;embNf)
 open _⊢Nf⋆_
 open _⊢Ne⋆_
 
-open import Utils using (Kind;*;_⇒_;Either;inj₁;inj₂;withE;Monad;TermCon)
+open import Utils using (Kind;*;_⇒_;Either;inj₁;inj₂;withE;Monad;dec2Either;_,_)
 open Monad {{...}}
-open TermCon
+
+open import RawU using (TmCon;tmCon;TyTag)
+open TyTag
 
 open import Type.Equality using (_≡β_;≡2β)
 open _≡β_
@@ -44,6 +49,8 @@ open Ctx
 open _∋_
 
 open import Type.BetaNBE.RenamingSubstitution using (_[_]Nf)
+open import Builtin.Constant.AtomicType using (AtomicTyCon;decAtomicTyCon)
+open AtomicTyCon
 import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) as T
 import Builtin.Constant.Type ℕ ScopedTy as S
 import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as A
@@ -75,15 +82,16 @@ data TypeError : Set where
   notFunType : ∀{Φ}(A : Φ ⊢Nf⋆ *) → ((A' B : Φ ⊢Nf⋆ *) → ¬ (A ≡ A' ⇒ B)) → TypeError
   typeMismatch : ∀{Φ K}(A A' : Φ ⊢Nf⋆ K) → ¬ (A ≡ A') → TypeError
   builtinError : TypeError
+  Unimplemented : String → TypeError
 
-meqKind : (K K' : Kind) → Either (¬ (K ≡ K')) (K ≡ K')
-meqKind * * = inj₂ refl
-meqKind * (K' ⇒ J') = inj₁ λ() 
-meqKind (K ⇒ J) * = inj₁ λ()
-meqKind (K ⇒ J) (K' ⇒ J') = do
-  p ← withE (λ ¬p → λ{refl → ¬p refl}) (meqKind K K')
-  q ← withE (λ ¬q → λ{refl → ¬q refl}) (meqKind J J')
-  return (cong₂ _⇒_ p q)
+decKind : (K K' : Kind) → Dec (K ≡ K')
+decKind * * = yes refl
+decKind * (K' ⇒ J') = no λ() 
+decKind (K ⇒ J) * = no λ()
+decKind (K ⇒ J) (K' ⇒ J') with decKind K K' | decKind J J'
+... | yes refl | yes refl = yes refl
+... | yes refl | no  ¬p   = no (λ { refl → ¬p refl})
+... | no  ¬p   | _       = no (λ { refl → ¬p refl})
 
 isStar : ∀{Φ}
        → Either TypeError (Σ Kind (Φ ⊢Nf⋆_))
@@ -112,7 +120,7 @@ isPat p = do
       (K@(_ ⇒ (_ ⇒ (_ ⇒ _))) ,, _) → inj₁ (notPat K λ _ ())
       (K@(* ⇒ (_ ⇒ *)) ,, _) → inj₁ (notPat K λ _ ())
       (K@((_ ⇒ (_ ⇒ _)) ⇒ (_ ⇒ *)) ,, _) → inj₁ (notPat K λ _ ())
-  refl ← withE (kindMismatch _ _) (meqKind K K')
+  refl ← withE (kindMismatch _ _) (dec2Either (decKind K K'))
   return (K ,, A)
 
 isPi :  ∀{Φ Γ}
@@ -152,11 +160,6 @@ checkKind : ∀ Φ (A : ScopedTy (len⋆ Φ)) → ∀ K → Either TypeError (Φ
 inferKind : ∀ Φ (A : ScopedTy (len⋆ Φ)) → Either TypeError (Σ Kind (Φ ⊢Nf⋆_))
 inferKindCon : ∀ Φ (c : S.TyCon (len⋆ Φ)) → Either TypeError (T.TyCon Φ)
 
-inferKindCon Φ S.integer = inj₂ T.integer
-inferKindCon Φ S.bytestring = inj₂ T.bytestring
-inferKindCon Φ S.string = inj₂ T.string
-inferKindCon Φ S.unit = inj₂ T.unit
-inferKindCon Φ S.bool = inj₂ T.bool
 inferKindCon Φ (S.list A) = do
   A ← isStar (inferKind Φ A)
   return (T.list A)
@@ -164,14 +167,11 @@ inferKindCon Φ (S.pair A B) = do
   A ← isStar (inferKind Φ A)
   B ← isStar (inferKind Φ B)  
   return (T.pair A B)
-inferKindCon Φ S.pdata = inj₂ T.pdata
-inferKindCon Φ S.bls12-381-g1-element = inj₂ T.bls12-381-g1-element
-inferKindCon Φ S.bls12-381-g2-element = inj₂ T.bls12-381-g2-element
-inferKindCon Φ S.bls12-381-mlresult = inj₂ T.bls12-381-mlresult
+inferKindCon Φ (S.atomic A)= inj₂ (T.atomic A)
 
 checkKind Φ A K = do
   K' ,, A ← inferKind Φ A
-  refl ← withE (kindMismatch _ _) (meqKind K K')
+  refl ← withE (kindMismatch _ _) (dec2Either (decKind K K'))
   return A
 
 inferKind Φ (` α) = let K ,, β = inferTyVar Φ α in return (K ,, ne (` β))
@@ -213,229 +213,112 @@ inferVarType (Γ , A) (S x) = do
   A ,, α ← inferVarType Γ x
   return (A ,, S α)
 
-meqTyVar : ∀{Φ K}(α α' : Φ ∋⋆ K) → Either (¬ (α ≡ α')) (α ≡ α')
-meqTyVar Z     Z      = inj₂ refl 
-meqTyVar (S α) (S α') = do
-  p ← withE (λ ¬p → λ{refl → ¬p refl}) (meqTyVar α α')
-  return (cong S p)
-meqTyVar Z     (S α') = inj₁ λ()
-meqTyVar (S α) Z      = inj₁ λ()
+decTyVar : ∀{Φ K}(α α' : Φ ∋⋆ K) → Dec (α ≡ α')
+decTyVar Z     Z      = yes refl 
+decTyVar (S α) (S α') with (decTyVar α α')
+... | yes refl = yes refl 
+... | no  ¬p   = no (λ { refl → ¬p refl})
+decTyVar Z     (S α') = no λ()
+decTyVar (S α) Z      = no λ()
 
-meqNfTy : ∀{Φ K}(A A' : Φ ⊢Nf⋆ K) → Either (¬ (A ≡ A')) (A ≡ A')
-meqNeTy : ∀{Φ K}(A A' : Φ ⊢Ne⋆ K) → Either (¬ (A ≡ A')) (A ≡ A')
-meqTyCon : ∀{Φ}(c c' : T.TyCon Φ) → Either (¬ (c ≡ c')) (c ≡ c')
+decNfTy : ∀{Φ K}(A A' : Φ ⊢Nf⋆ K) → Dec (A ≡ A')
+decNeTy : ∀{Φ K}(A A' : Φ ⊢Ne⋆ K) → Dec (A ≡ A')
+decTyCon : ∀{Φ}(c c' : T.TyCon Φ) → Dec (c ≡ c')
+-- atomic
+decTyCon (T.atomic A) (T.atomic A') with decAtomicTyCon A A'
+... | yes refl = yes refl
+... | no  ¬p   = no (λ { refl → ¬p refl})
+decTyCon (T.atomic _) (T.list _)     = no λ()
+decTyCon (T.atomic _) (T.pair _ _)   = no λ()
+-- pair
+decTyCon (T.pair A B) (T.pair A' B') with decNfTy A A' | decNfTy B B' 
+... | yes refl | yes refl = yes refl
+... | yes refl | no  ¬p   = no (λ { refl → ¬p refl})
+... | no  ¬p   | _       = no (λ { refl → ¬p refl})
+decTyCon (T.pair _ _) (T.atomic _)   = no λ()
+decTyCon (T.pair _ _) (T.list _)     = no λ()
+-- list
+decTyCon (T.list A)   (T.list A') with decNfTy A A'
+... | yes refl = yes refl
+... | no  ¬p   = no (λ { refl → ¬p refl})
+decTyCon (T.list _)   (T.atomic _)   = no λ()
+decTyCon (T.list _)   (T.pair _ _)   = no λ()
+decNfTy (A ⇒ B) (A' ⇒ B') with decNfTy A A' | decNfTy B B' 
+... | yes refl | yes refl = yes refl
+... | yes refl | no  ¬p   = no (λ { refl → ¬p refl})
+... | no  ¬p   | d        = no (λ { refl → ¬p refl})
+decNfTy (ƛ A) (ƛ A') with decNfTy A A' 
+... | yes refl = yes refl
+... | no  ¬p   = no (λ { refl → ¬p refl})
+decNfTy (Π {K = K} A) (Π {K = K'} A') with decKind K K' 
+... | no  ¬p               = no (λ { refl → ¬p refl})
+... | yes refl with decNfTy A A' 
+...             | yes refl = yes refl
+...             | no  ¬p   = no (λ { refl → ¬p refl})
+decNfTy (con c) (con c') with decTyCon c c' 
+... | yes refl = yes refl
+... | no  ¬p   = no (λ { refl → ¬p refl})
+decNfTy (μ {K = K} A B) (μ {K = K'} A' B') with decKind K K' 
+... | no  ¬p                          = no (λ { refl → ¬p refl})
+... | yes refl with decNfTy A A' | decNfTy B B' 
+...             | yes refl | yes refl = yes refl
+...             | yes refl | no  ¬p   = no (λ { refl → ¬p refl})
+...             | no  ¬p   | _        = no (λ { refl → ¬p refl})
+decNfTy (ne A) (ne A') with decNeTy A A'
+... | yes refl = yes refl
+... | no  ¬p   = no (λ { refl → ¬p refl})
+decNfTy (Π _) (_ ⇒ _) = no λ()
+decNfTy (Π _) (ne _) = no λ()
+decNfTy (Π _) (con _) = no λ()
+decNfTy (Π _) (μ _ _) = no λ()
+decNfTy (_ ⇒ _) (Π _) = no λ()
+decNfTy (_ ⇒ _) (ne _) = no λ()
+decNfTy (_ ⇒ _) (con _) = no λ()
+decNfTy (_ ⇒ _) (μ _ _) = no λ()
+decNfTy (ƛ _) (ne _) = no λ()
+decNfTy (ne _) (Π _) = no λ()
+decNfTy (ne _) (_ ⇒ _) = no λ()
+decNfTy (ne _) (ƛ _) = no λ()
+decNfTy (ne _) (con _) = no λ()
+decNfTy (ne _) (μ _ _) = no λ()
+decNfTy (con _) (Π _) = no λ()
+decNfTy (con _) (_ ⇒ _) = no λ()
+decNfTy (con _) (ne _) = no λ()
+decNfTy (con _) (μ _ _) = no λ()
+decNfTy (μ _ _) (Π _) = no λ()
+decNfTy (μ _ _) (_ ⇒ _) = no λ()
+decNfTy (μ _ _) (ne _) = no λ()
+decNfTy (μ _ _) (con _) = no λ()
 
-meqTyCon T.integer    T.integer    = inj₂ refl
-meqTyCon T.bytestring T.bytestring = inj₂ refl
-meqTyCon T.string     T.string     = inj₂ refl
-meqTyCon T.bool       T.bool       = inj₂ refl
-meqTyCon T.unit       T.unit       = inj₂ refl
-meqTyCon T.pdata      T.pdata      = inj₂ refl
-meqTyCon T.bls12-381-g1-element T.bls12-381-g1-element = inj₂ refl
-meqTyCon T.bls12-381-g2-element T.bls12-381-g2-element = inj₂ refl
-meqTyCon T.bls12-381-mlresult   T.bls12-381-mlresult   = inj₂ refl
-meqTyCon (T.list A)   (T.list A')    = do
-  refl ← withE (λ ¬q → λ{refl → ¬q refl}) (meqNfTy A A')
-  return refl
-meqTyCon (T.pair A B) (T.pair A' B') = do
-  refl ← withE (λ ¬q → λ{refl → ¬q refl}) (meqNfTy A A')
-  refl ← withE (λ ¬q → λ{refl → ¬q refl}) (meqNfTy B B')  
-  return refl
---
-meqTyCon T.integer    T.bytestring           = inj₁ λ()
-meqTyCon T.integer    T.string               = inj₁ λ()
-meqTyCon T.integer    T.bool                 = inj₁ λ()
-meqTyCon T.integer    T.unit                 = inj₁ λ()
-meqTyCon T.integer    T.pdata                = inj₁ λ()
-meqTyCon T.integer    T.bls12-381-g1-element = inj₁ λ()
-meqTyCon T.integer    T.bls12-381-g2-element = inj₁ λ()
-meqTyCon T.integer    T.bls12-381-mlresult   = inj₁ λ()
-meqTyCon T.integer    (T.list A)             = inj₁ λ()
-meqTyCon T.integer    (T.pair A' B')         = inj₁ λ()
---
-meqTyCon T.bytestring T.integer              = inj₁ λ()
-meqTyCon T.bytestring T.string               = inj₁ λ()
-meqTyCon T.bytestring T.bool                 = inj₁ λ()
-meqTyCon T.bytestring T.unit                 = inj₁ λ()
-meqTyCon T.bytestring T.pdata                = inj₁ λ()
-meqTyCon T.bytestring T.bls12-381-g1-element = inj₁ λ()
-meqTyCon T.bytestring T.bls12-381-g2-element = inj₁ λ()
-meqTyCon T.bytestring T.bls12-381-mlresult   = inj₁ λ()
-meqTyCon T.bytestring (T.list A)             = inj₁ λ()
-meqTyCon T.bytestring (T.pair A' B')         = inj₁ λ()
---
-meqTyCon T.string     T.integer              = inj₁ λ()
-meqTyCon T.string     T.bytestring           = inj₁ λ()
-meqTyCon T.string     T.bool                 = inj₁ λ()
-meqTyCon T.string     T.unit                 = inj₁ λ()
-meqTyCon T.string     T.pdata                = inj₁ λ()
-meqTyCon T.string     T.bls12-381-g1-element = inj₁ λ()
-meqTyCon T.string     T.bls12-381-g2-element = inj₁ λ()
-meqTyCon T.string     T.bls12-381-mlresult   = inj₁ λ()
-meqTyCon T.string     (T.list A)             = inj₁ λ()
-meqTyCon T.string     (T.pair A' B')         = inj₁ λ()
---
-meqTyCon T.bool       T.integer              = inj₁ λ()
-meqTyCon T.bool       T.bytestring           = inj₁ λ()
-meqTyCon T.bool       T.string               = inj₁ λ()
-meqTyCon T.bool       T.unit                 = inj₁ λ()
-meqTyCon T.bool       T.pdata                = inj₁ λ()
-meqTyCon T.bool       T.bls12-381-g1-element = inj₁ λ()
-meqTyCon T.bool       T.bls12-381-g2-element = inj₁ λ()
-meqTyCon T.bool       T.bls12-381-mlresult   = inj₁ λ()
-meqTyCon T.bool       (T.list A)             = inj₁ λ()
-meqTyCon T.bool       (T.pair A' B')         = inj₁ λ()
---
-meqTyCon T.unit      T.integer               = inj₁ λ()
-meqTyCon T.unit      T.bytestring            = inj₁ λ()
-meqTyCon T.unit      T.string                = inj₁ λ()
-meqTyCon T.unit      T.bool                  = inj₁ λ()
-meqTyCon T.unit      T.pdata                 = inj₁ λ()
-meqTyCon T.unit      T.bls12-381-g1-element  = inj₁ λ()
-meqTyCon T.unit      T.bls12-381-g2-element  = inj₁ λ()
-meqTyCon T.unit      T.bls12-381-mlresult    = inj₁ λ()
-meqTyCon T.unit      (T.list A)              = inj₁ λ()
-meqTyCon T.unit      (T.pair A' B')          = inj₁ λ()
---
-meqTyCon T.pdata     T.integer               = inj₁ λ()
-meqTyCon T.pdata     T.bytestring            = inj₁ λ()
-meqTyCon T.pdata     T.string                = inj₁ λ()
-meqTyCon T.pdata     T.bool                  = inj₁ λ()
-meqTyCon T.pdata     T.unit                  = inj₁ λ()
-meqTyCon T.pdata     T.bls12-381-g1-element  = inj₁ λ()
-meqTyCon T.pdata     T.bls12-381-g2-element  = inj₁ λ()
-meqTyCon T.pdata     T.bls12-381-mlresult    = inj₁ λ()
-meqTyCon T.pdata     (T.list A)              = inj₁ λ()
-meqTyCon T.pdata     (T.pair A' B')          = inj₁ λ()
---
-meqTyCon T.bls12-381-g1-element     T.integer              = inj₁ λ()
-meqTyCon T.bls12-381-g1-element     T.string               = inj₁ λ()
-meqTyCon T.bls12-381-g1-element     T.bytestring           = inj₁ λ()
-meqTyCon T.bls12-381-g1-element     T.bool                 = inj₁ λ()
-meqTyCon T.bls12-381-g1-element     T.unit                 = inj₁ λ()
-meqTyCon T.bls12-381-g1-element     T.pdata                = inj₁ λ()
-meqTyCon T.bls12-381-g1-element     T.bls12-381-g2-element = inj₁ λ()
-meqTyCon T.bls12-381-g1-element     T.bls12-381-mlresult   = inj₁ λ()
-meqTyCon T.bls12-381-g1-element     (T.list A)             = inj₁ λ()
-meqTyCon T.bls12-381-g1-element     (T.pair A' B')         = inj₁ λ()
---
-meqTyCon T.bls12-381-g2-element     T.integer              = inj₁ λ()
-meqTyCon T.bls12-381-g2-element     T.string               = inj₁ λ()
-meqTyCon T.bls12-381-g2-element     T.bytestring           = inj₁ λ()
-meqTyCon T.bls12-381-g2-element     T.bool                 = inj₁ λ()
-meqTyCon T.bls12-381-g2-element     T.unit                 = inj₁ λ()
-meqTyCon T.bls12-381-g2-element     T.pdata                = inj₁ λ()
-meqTyCon T.bls12-381-g2-element     T.bls12-381-g1-element = inj₁ λ()
-meqTyCon T.bls12-381-g2-element     T.bls12-381-mlresult   = inj₁ λ()
-meqTyCon T.bls12-381-g2-element     (T.list A)             = inj₁ λ()
-meqTyCon T.bls12-381-g2-element     (T.pair A' B')         = inj₁ λ()
---
-meqTyCon T.bls12-381-mlresult   T.integer                  = inj₁ λ()
-meqTyCon T.bls12-381-mlresult   T.string                   = inj₁ λ()
-meqTyCon T.bls12-381-mlresult   T.bytestring               = inj₁ λ()
-meqTyCon T.bls12-381-mlresult   T.bool                     = inj₁ λ()
-meqTyCon T.bls12-381-mlresult   T.unit                     = inj₁ λ()
-meqTyCon T.bls12-381-mlresult   T.pdata                    = inj₁ λ()
-meqTyCon T.bls12-381-mlresult   T.bls12-381-g1-element     = inj₁ λ()
-meqTyCon T.bls12-381-mlresult   T.bls12-381-g2-element     = inj₁ λ()
-meqTyCon T.bls12-381-mlresult   (T.list A)                 = inj₁ λ()
-meqTyCon T.bls12-381-mlresult   (T.pair A' B')             = inj₁ λ()
---
-meqTyCon (T.list A)   T.integer              = inj₁ λ()
-meqTyCon (T.list A)   T.string               = inj₁ λ()
-meqTyCon (T.list A)   T.bytestring           = inj₁ λ()
-meqTyCon (T.list A)   T.bool                 = inj₁ λ()
-meqTyCon (T.list A)   T.unit                 = inj₁ λ()
-meqTyCon (T.list A)   T.pdata                = inj₁ λ()
-meqTyCon (T.list A)   T.bls12-381-g1-element = inj₁ λ()
-meqTyCon (T.list A)   T.bls12-381-g2-element = inj₁ λ()
-meqTyCon (T.list A)   T.bls12-381-mlresult   = inj₁ λ()
-meqTyCon (T.list A)   (T.pair A' B')         = inj₁ λ()
---
-meqTyCon (T.pair A B) T.integer              = inj₁ λ()
-meqTyCon (T.pair A B) T.string               = inj₁ λ()
-meqTyCon (T.pair A B) T.bytestring           = inj₁ λ()
-meqTyCon (T.pair A B) T.bool                 = inj₁ λ()
-meqTyCon (T.pair A B) T.unit                 = inj₁ λ()
-meqTyCon (T.pair A B) T.pdata                = inj₁ λ()
-meqTyCon (T.pair A B) T.bls12-381-g1-element = inj₁ λ()
-meqTyCon (T.pair A B) T.bls12-381-g2-element = inj₁ λ()
-meqTyCon (T.pair A B) T.bls12-381-mlresult   = inj₁ λ()
-meqTyCon (T.pair A B) (T.list A')            = inj₁ λ()
-
-meqNfTy (A ⇒ B) (A' ⇒ B') = do
-  p ← withE (λ ¬p → λ{refl → ¬p refl}) (meqNfTy A A')
-  q ← withE (λ ¬q → λ{refl → ¬q refl}) (meqNfTy B B')
-  return (cong₂ _⇒_ p q)
-meqNfTy (ƛ A) (ƛ A') = do
-  p ← withE (λ ¬p → λ{refl → ¬p refl}) (meqNfTy A A')
-  return (cong ƛ p)
-meqNfTy (Π {K = K} A) (Π {K = K'} A') = do
- refl ← withE (λ ¬p → λ{refl → ¬p refl}) (meqKind K K')
- q    ← withE (λ ¬q → λ{refl → ¬q refl}) (meqNfTy A A')
- return (cong Π q)
-meqNfTy (con c) (con c') = do
-  p ← withE (λ ¬p → λ{refl → ¬p refl}) (meqTyCon c c')
-  return (cong con p)
-meqNfTy (μ {K = K} A B) (μ {K = K'} A' B') = do
-  refl ← withE (λ ¬p → λ{refl → ¬p refl}) (meqKind K K')
-  q    ← withE (λ ¬q → λ{refl → ¬q refl}) (meqNfTy A A')
-  r    ← withE (λ ¬r → λ{refl → ¬r refl}) (meqNfTy B B')
-  return (cong₂ μ q r)
-meqNfTy (ne A) (ne A') = do
-  p ← withE (λ ¬p → λ{refl → ¬p refl}) (meqNeTy A A')
-  return (cong ne p)
-meqNfTy (Π _) (_ ⇒ _) = inj₁ λ()
-meqNfTy (Π _) (ne _) = inj₁ λ()
-meqNfTy (Π _) (con _) = inj₁ λ()
-meqNfTy (Π _) (μ _ _) = inj₁ λ()
-meqNfTy (_ ⇒ _) (Π _) = inj₁ λ()
-meqNfTy (_ ⇒ _) (ne _) = inj₁ λ()
-meqNfTy (_ ⇒ _) (con _) = inj₁ λ()
-meqNfTy (_ ⇒ _) (μ _ _) = inj₁ λ()
-meqNfTy (ƛ _) (ne _) = inj₁ λ()
-meqNfTy (ne _) (Π _) = inj₁ λ()
-meqNfTy (ne _) (_ ⇒ _) = inj₁ λ()
-meqNfTy (ne _) (ƛ _) = inj₁ λ()
-meqNfTy (ne _) (con _) = inj₁ λ()
-meqNfTy (ne _) (μ _ _) = inj₁ λ()
-meqNfTy (con _) (Π _) = inj₁ λ()
-meqNfTy (con _) (_ ⇒ _) = inj₁ λ()
-meqNfTy (con _) (ne _) = inj₁ λ()
-meqNfTy (con _) (μ _ _) = inj₁ λ()
-meqNfTy (μ _ _) (Π _) = inj₁ λ()
-meqNfTy (μ _ _) (_ ⇒ _) = inj₁ λ()
-meqNfTy (μ _ _) (ne _) = inj₁ λ()
-meqNfTy (μ _ _) (con _) = inj₁ λ()
-
-meqNeTy (` α) (` α') = do
-  p ← withE (λ ¬p → λ{refl → ¬p refl}) (meqTyVar α α')
-  return (cong ` p)
-meqNeTy (_·_ {K = K} A B) (_·_ {K = K'} A' B') = do
-  refl ← withE (λ ¬p → λ{refl → ¬p refl}) (meqKind K K')
-  q    ← withE (λ ¬q → λ{refl → ¬q refl}) (meqNeTy A A')
-  r    ← withE (λ ¬r → λ{refl → ¬r refl}) (meqNfTy B B')
-  return (cong₂ _·_ q r)
-meqNeTy (` _) (_ · _) = inj₁ λ()
-meqNeTy (_ · _) (` _) = inj₁ λ()
+decNeTy (` α) (` α') with decTyVar α α'
+... | yes refl = yes refl
+... | no  ¬p   = no (λ { refl → ¬p refl})
+decNeTy (_·_ {K = K} A B) (_·_ {K = K'} A' B') with decKind K K' 
+... | no  ¬p                          = no (λ { refl → ¬p refl})
+... | yes refl with decNeTy A A' | decNfTy B B' 
+...             | yes refl | yes refl = yes refl
+...             | yes refl | no  ¬p   = no (λ { refl → ¬p refl})
+...             | no  ¬p   | _        = no (λ { refl → ¬p refl})
+decNeTy (` _) (_ · _) = no λ()
+decNeTy (_ · _) (` _) = no λ()
 
 inv-complete : ∀{Φ K}{A A' : Φ ⊢⋆ K} → nf A ≡ nf A' → A' ≡β A
 inv-complete {A = A}{A' = A'} p = trans≡β
   (soundness A')
   (trans≡β (≡2β (sym (cong embNf p))) (sym≡β (soundness A)))
 
-
-
-inferTypeCon : ∀{Φ} → TermCon → Σ (T.TyCon _) λ c → A.TermCon {Φ} (con c) 
-inferTypeCon (integer i)    = T.integer ,, A.integer i
-inferTypeCon (bytestring b) = T.bytestring ,, A.bytestring b
-inferTypeCon (string s)     = T.string ,, A.string s
-inferTypeCon (bool b)       = T.bool ,, A.bool b
-inferTypeCon unit           = T.unit ,, A.unit
-inferTypeCon (pdata d)      = T.pdata ,, A.pdata d
-inferTypeCon (bls12-381-g1-element e)      = T.bls12-381-g1-element ,, A.bls12-381-g1-element e
-inferTypeCon (bls12-381-g2-element e)      = T.bls12-381-g2-element ,, A.bls12-381-g2-element e
-inferTypeCon (bls12-381-mlresult r)   = T.bls12-381-mlresult ,, A.bls12-381-mlresult r
+inferTypeCon : ∀{Φ} → TmCon → Either TypeError (Σ (T.TyCon _) λ c → A.TermCon {Φ} (con c))
+inferTypeCon (tmCon integer i)              = return (T.integer ,, A.tmInteger i)
+inferTypeCon (tmCon bytestring b)           = return (T.bytestring ,, A.tmBytestring b)
+inferTypeCon (tmCon string s)               = return (T.string ,, A.tmString s)
+inferTypeCon (tmCon bool b)                 = return (T.bool ,, A.tmBool b)
+inferTypeCon (tmCon unit _)                 = return (T.unit ,, A.tmUnit)
+inferTypeCon (tmCon pdata d)                = return (T.pdata ,, A.tmData d)
+inferTypeCon (tmCon (pair _ _) (x , y))     = inj₁ (Unimplemented "Typed pairs")
+inferTypeCon (tmCon (list _) xs)            = inj₁ (Unimplemented "Typed lists")
+inferTypeCon (tmCon bls12-381-g1-element e) = return (T.bls12-381-g1-element ,, A.tmBls12-381-g1-element e)
+inferTypeCon (tmCon bls12-381-g2-element e) = return (T.bls12-381-g2-element ,, A.tmBls12-381-g2-element e)
+inferTypeCon (tmCon bls12-381-mlresult r)   = return (T.bls12-381-mlresult ,, A.tmBls12-381-mlresult r)
 
 checkType : ∀{Φ}(Γ : Ctx Φ) → ScopedTm (len Γ) → (A : Φ ⊢Nf⋆ *)
   → Either TypeError (Γ ⊢ A)
@@ -445,7 +328,7 @@ inferType : ∀{Φ}(Γ : Ctx Φ) → ScopedTm (len Γ)
 
 checkType Γ L A = do
   A' ,, L ← inferType Γ L
-  refl ← withE (typeMismatch _ _) (meqNfTy A A')
+  refl ← withE (typeMismatch _ _) (dec2Either (decNfTy A A'))
   return L
   
 inferType Γ (` x) = do
@@ -467,7 +350,7 @@ inferType {Φ} Γ (L · M) = do
   M ← checkType Γ M A
   return (B ,, L · M)
 inferType {Φ} Γ (con c) = do
-  let tc ,, c = inferTypeCon {Φ} c
+  tc ,, c ← inferTypeCon {Φ} c
   return (con tc ,, con c)
 inferType Γ (error A) = do
   A ← isStar (inferKind _ A)
@@ -482,4 +365,3 @@ inferType Γ (unwrap L) = do
   K ,, A ,, B ,, L ← isMu (inferType Γ L)
   return (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B) ,, unwrap L refl)
 ```
- 

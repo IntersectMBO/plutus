@@ -12,6 +12,7 @@ module Declarative.RenamingSubstitution where
 ```
 open import Function using (_∘_)
 open import Relation.Binary.PropositionalEquality using (refl;sym;trans)
+open import Data.List using (map)
 
 open import Utils using (Kind;*;K)
 open import Type using (Ctx⋆;_⊢⋆_;Φ;Ψ;A;B)
@@ -75,16 +76,15 @@ Renaming a term constant
 renTermCon : (ρ⋆ : ⋆.Ren Φ Ψ)
              ------------------------------------------
            → (∀{A} → TermCon A → TermCon (⋆.ren ρ⋆ A ))
-renTermCon _ (integer i)    = integer i
-renTermCon _ (bytestring b) = bytestring b
-renTermCon _ (string s)     = string s
-renTermCon _ (bool b)       = bool b
-renTermCon _ unit           = unit
-renTermCon _ (pdata d)      = pdata d
-renTermCon _ (bls12-381-g1-element e) = bls12-381-g1-element e
-renTermCon _ (bls12-381-g2-element e) = bls12-381-g2-element e
-renTermCon _ (bls12-381-mlresult r)   = bls12-381-mlresult r
-```
+renTermCon _ (tmInteger i)              = tmInteger i
+renTermCon _ (tmBytestring b)           = tmBytestring b
+renTermCon _ (tmString s)               = tmString s
+renTermCon _ (tmBool b)                 = tmBool b
+renTermCon _ tmUnit                     = tmUnit
+renTermCon _ (tmData d)                 = tmData d
+renTermCon _ (tmBls12-381-g1-element e) = tmBls12-381-g1-element e
+renTermCon _ (tmBls12-381-g2-element e) = tmBls12-381-g2-element e
+renTermCon _ (tmBls12-381-mlresult r)   = tmBls12-381-mlresult r
 
 Renaming for terms
 
@@ -170,16 +170,15 @@ Substitution for term constants
 subTermCon : (σ⋆ : ⋆.Sub Φ Ψ)
              -------------------------------------------
            → ∀ {A} → TermCon A → TermCon (⋆.sub σ⋆ A )
-subTermCon _ (integer i)    = integer i
-subTermCon _ (bytestring b) = bytestring b
-subTermCon _ (string s)     = string s
-subTermCon _ (bool b)       = bool b
-subTermCon _ unit           = unit
-subTermCon _ (pdata d)       = pdata d
-subTermCon _ (bls12-381-g1-element e) = bls12-381-g1-element e
-subTermCon _ (bls12-381-g2-element e) = bls12-381-g2-element e
-subTermCon _ (bls12-381-mlresult r)   = bls12-381-mlresult r
-
+subTermCon _ (tmInteger i)    = tmInteger i
+subTermCon _ (tmBytestring b) = tmBytestring b
+subTermCon _ (tmString s)     = tmString s
+subTermCon _ (tmBool b)       = tmBool b
+subTermCon _ tmUnit           = tmUnit
+subTermCon _ (tmData d)       = tmData d
+subTermCon _ (tmBls12-381-g1-element e) = tmBls12-381-g1-element e
+subTermCon _ (tmBls12-381-g2-element e) = tmBls12-381-g2-element e
+subTermCon _ (tmBls12-381-mlresult r)   = tmBls12-381-mlresult r
 ```
 
 Substitution for terms

@@ -49,15 +49,16 @@ data CompileOptions = CompileOptions {
     }
 
 data CompileContext uni fun = CompileContext {
-    ccOpts        :: CompileOptions,
-    ccFlags       :: GHC.DynFlags,
-    ccFamInstEnvs :: GHC.FamInstEnvs,
-    ccNameInfo    :: NameInfo,
-    ccScopes      :: ScopeStack uni,
-    ccBlackholed  :: Set.Set GHC.Name,
-    ccCurDef      :: Maybe LexName,
-    ccModBreaks   :: Maybe GHC.ModBreaks,
-    ccBuiltinVer  :: PLC.BuiltinVersion fun
+    ccOpts             :: CompileOptions,
+    ccFlags            :: GHC.DynFlags,
+    ccFamInstEnvs      :: GHC.FamInstEnvs,
+    ccNameInfo         :: NameInfo,
+    ccScopes           :: ScopeStack uni,
+    ccBlackholed       :: Set.Set GHC.Name,
+    ccCurDef           :: Maybe LexName,
+    ccModBreaks        :: Maybe GHC.ModBreaks,
+    ccBuiltinVer       :: PLC.BuiltinVersion fun,
+    ccBuiltinCostModel :: PLC.CostingPart uni fun
     }
 
 -- | Verbosity level of the Plutus Tx compiler.

@@ -452,6 +452,7 @@ library plutus-ir
     PlutusIR.Compiler.Datatype
     PlutusIR.Compiler.Definitions
     PlutusIR.Compiler.Names
+    PlutusIR.Contexts
     PlutusIR.Core
     PlutusIR.Core.Instance
     PlutusIR.Core.Instance.Flat
@@ -469,9 +470,11 @@ library plutus-ir
     PlutusIR.Transform.Beta
     PlutusIR.Transform.CaseReduce
     PlutusIR.Transform.DeadCode
+    PlutusIR.Transform.EvaluateBuiltins
     PlutusIR.Transform.Inline.CallSiteInline
     PlutusIR.Transform.Inline.Inline
     PlutusIR.Transform.Inline.Utils
+    PlutusIR.Transform.KnownCon
     PlutusIR.Transform.LetFloatIn
     PlutusIR.Transform.LetFloatOut
     PlutusIR.Transform.LetMerge

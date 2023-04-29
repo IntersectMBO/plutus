@@ -13,6 +13,7 @@ See note [Inlining of fully applied functions].
 module PlutusIR.Transform.Inline.CallSiteInline where
 
 import Control.Monad.State
+import PlutusIR.Contexts
 import PlutusIR.Core
 import PlutusIR.Transform.Inline.Utils
 
@@ -118,52 +119,18 @@ computeArity = \case
     -- Whenever we encounter a body that is not a lambda or type abstraction, we are done counting
     tm                -> ([],tm)
 
--- | A term or type argument.
-data Arg tyname name uni fun ann =
-  MkTermArg (Term tyname name uni fun ann)
-  | MkTypeArg (Type tyname uni ann)
-
--- | A list of type or term argument(s) that are being applied.
-type Args tyname name uni fun ann = [Arg tyname name uni fun ann]
-
--- | A pair of argument and the annotation of the term being applied to,
--- so a term that was traversed can be built back with `mkApps`.
-type ArgsWithAnns tyname name uni fun ann =
-  [(Arg tyname name uni fun ann, ann)]
-
--- | Takes a term or type application and returns the function
--- being applied and the arguments to which it is applied
-collectArgs :: Term tyname name uni fun ann
-  -> (Term tyname name uni fun ann, ArgsWithAnns tyname name uni fun ann)
-collectArgs tm
-  = go tm []
-  where
-    go (Apply ann f a) as      = go f ((MkTermArg a, ann):as)
-    go (TyInst ann f tyArg) as = go f ((MkTypeArg tyArg, ann):as)
-    go t as                    = (t, as)
-
--- | Apply a list of term and type arguments to a function in potentially a nested fashion.
-mkApps :: Term tyname name uni fun ann
-  -> ArgsWithAnns tyname name uni fun ann
-  -> Term tyname name uni fun ann
-mkApps f ((MkTermArg tmArg, ann) : args) = mkApps (Apply ann f tmArg) args
-mkApps f ((MkTypeArg tyArg, ann) : args) = mkApps (TyInst ann f tyArg) args
-mkApps f []                              = f
-
 -- | Given the arity of a function, and the list of arguments applied to it, return whether it is
 -- fully applied or not.
-isFullyApplied :: Arity -> Args tyname name uni fun ann -> Bool
+isFullyApplied :: Arity -> AppContext tyname name uni fun ann -> Bool
 isFullyApplied [] _ = True -- The function needs no more arguments
-isFullyApplied (_lam:_lams) [] = False -- under-application
-isFullyApplied (hdLams:tlLams) (hdArg:tlArg) =
-  case (hdLams, hdArg) of
-    (TermParam, MkTermArg _) -> isFullyApplied tlLams tlArg
-    (TypeParam, MkTypeArg _) -> isFullyApplied tlLams tlArg
-    _                        ->
-      -- wrong argument type, i.e., we have an ill-typed term here. It's not what we define as fully
-      -- applied. Although if the term was ill-typed before, it will be ill-typed after the
-      -- inlining, and it won't make it any worse, so we could consider accepting this.
-      False
+isFullyApplied (_lam:_lams) AppContextEnd = False -- under-application
+isFullyApplied (TermParam:tlLams) (TermAppContext _ _ ctx) = isFullyApplied tlLams ctx
+isFullyApplied (TypeParam:tlLams) (TypeAppContext _ _ ctx) = isFullyApplied tlLams ctx
+isFullyApplied _ _ =
+    -- wrong argument type, i.e., we have an ill-typed term here. It's not what we define as fully
+    -- applied. Although if the term was ill-typed before, it will be ill-typed after the
+    -- inlining, and it won't make it any worse, so we could consider accepting this.
+    False
 
 -- | Consider whether to inline a saturated application.
 considerInlineSat :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
@@ -171,15 +138,15 @@ considerInlineSat :: forall tyname name uni fun ann. InliningConstraints tyname 
     -> InlineM tyname name uni fun ann (Term tyname name uni fun ann)
 considerInlineSat tm = do
     -- collect all the arguments of the term being applied to
-    case collectArgs tm of
+    case splitApplication tm of
       -- if it is a `Var` that is being applied to, check to see if it's fully applied
-      (Var _ann name, args) -> do
+      (Var _ann name, ctx) -> do
         maybeVarInfo <- gets (lookupVarInfo name)
         case maybeVarInfo of
           Just varInfo -> do
             let body = varBody varInfo
                 def = varDef varInfo
-                fullyApplied = isFullyApplied (arity varInfo) (map fst args)
+                fullyApplied = isFullyApplied (arity varInfo) ctx
             -- It is the body that we will be left with in the program after we have
             -- reduced the saturated application, so the size increase we will be left
             -- with comes from the body, and that is what we need to check is okay
@@ -197,7 +164,7 @@ considerInlineSat tm = do
             defPure <- isTermBindingPure (varStrictness varInfo) def
             pure $
               if fullyApplied && bodySizeOk && defCostOk && defPure
-              then mkApps def args
+              then fillAppContext def ctx
               else tm
           -- We should have variable info for everything, but if we don't just give up
           Nothing -> pure tm
