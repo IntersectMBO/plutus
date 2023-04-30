@@ -371,21 +371,38 @@ postulate
 
   TRACE      : {a : Set} → String → a → a
 
-  concat    : ByteString → ByteString → ByteString
-  cons  : Int → ByteString → Maybe ByteString
-  slice     : Int → Int → ByteString → ByteString
-  B<        : ByteString -> ByteString -> Bool
-  B<=        : ByteString -> ByteString -> Bool
-  SHA2-256  : ByteString → ByteString
-  SHA3-256  : ByteString → ByteString
+  concat     : ByteString → ByteString → ByteString
+  cons       : Int → ByteString → Maybe ByteString
+  slice      : Int → Int → ByteString → ByteString
+  B<         : ByteString → ByteString → Bool
+  B<=        : ByteString → ByteString → Bool
+  SHA2-256   : ByteString → ByteString
+  SHA3-256   : ByteString → ByteString
   BLAKE2B-256  : ByteString → ByteString
   verifyEd25519Sig : ByteString → ByteString → ByteString → Maybe Bool
   verifyEcdsaSecp256k1Sig : ByteString → ByteString → ByteString → Maybe Bool
   verifySchnorrSecp256k1Sig : ByteString → ByteString → ByteString → Maybe Bool
-  equals    : ByteString → ByteString → Bool
-  ENCODEUTF8 : String → ByteString
-  DECODEUTF8 : ByteString → Maybe String
+  equals        : ByteString → ByteString → Bool
+  ENCODEUTF8    : String → ByteString
+  DECODEUTF8    : ByteString → Maybe String
   serialiseDATA : DATA → ByteString
+  BLS12-381-G1-add                : Bls12-381-G1-Element → Bls12-381-G1-Element → Bls12-381-G1-Element
+  BLS12-381-G1-neg                : Bls12-381-G1-Element → Bls12-381-G1-Element
+  BLS12-381-G1-scalarMul          : Int → Bls12-381-G1-Element → Bls12-381-G1-Element
+  BLS12-381-G1-equal              : Bls12-381-G1-Element → Bls12-381-G1-Element → Bool
+  BLS12-381-G1-hashToGroup        : ByteString → Bls12-381-G1-Element
+  BLS12-381-G1-compress           : Bls12-381-G1-Element → ByteString
+  BLS12-381-G1-uncompress         : ByteString → Maybe Bls12-381-G1-Element -- FIXME: this really returns Either BLSTError Element
+  BLS12-381-G2-add                : Bls12-381-G2-Element → Bls12-381-G2-Element → Bls12-381-G2-Element
+  BLS12-381-G2-neg                : Bls12-381-G2-Element → Bls12-381-G2-Element
+  BLS12-381-G2-scalarMul          : Int → Bls12-381-G2-Element → Bls12-381-G2-Element
+  BLS12-381-G2-equal              : Bls12-381-G2-Element → Bls12-381-G2-Element → Bool
+  BLS12-381-G2-hashToGroup        : ByteString → Bls12-381-G2-Element
+  BLS12-381-G2-compress           : Bls12-381-G2-Element → ByteString
+  BLS12-381-G2-uncompress         : ByteString → Maybe Bls12-381-G2-Element -- FIXME: this really returns Either BLSTError Element
+  BLS12-381-millerLoop            : Bls12-381-G1-Element → Bls12-381-G2-Element → Bls12-381-MlResult
+  BLS12-381-mulMlResult           : Bls12-381-MlResult → Bls12-381-MlResult → Bls12-381-MlResult
+  BLS12-381-finalVerify           : Bls12-381-MlResult → Bls12-381-MlResult → Bool
 ```
 
 ### What builtin operations should be compiled to if we compile to Haskell
@@ -451,10 +468,30 @@ postulate
 {-# COMPILE GHC ENCODEUTF8 = encodeUtf8 #-}
 {-# COMPILE GHC DECODEUTF8 = eitherToMaybe . decodeUtf8' #-}
 
+{-# FOREIGN GHC import PlutusCore.Crypto.BLS12_381.G1 qualified as G1 #-}
+{-# COMPILE GHC BLS12-381-G1-add = G1.add #-}
+{-# COMPILE GHC BLS12-381-G1-neg = G1.neg #-}
+{-# COMPILE GHC BLS12-381-G1-scalarMul = G1.scalarMul #-}
+{-# COMPILE GHC BLS12-381-G1-equal = (==) #-}
+{-# COMPILE GHC BLS12-381-G1-hashToGroup = G1.hashToGroup #-}
+{-# COMPILE GHC BLS12-381-G1-compress = G1.compress #-}
+{-# COMPILE GHC BLS12-381-G1-uncompress = eitherToMaybe . G1.uncompress #-}
+{-# FOREIGN GHC import PlutusCore.Crypto.BLS12_381.G2 qualified as G2 #-}
+{-# COMPILE GHC BLS12-381-G2-add = G2.add #-}
+{-# COMPILE GHC BLS12-381-G2-neg = G2.neg #-}
+{-# COMPILE GHC BLS12-381-G2-scalarMul = G2.scalarMul #-}
+{-# COMPILE GHC BLS12-381-G2-equal = (==) #-}
+{-# COMPILE GHC BLS12-381-G2-hashToGroup = G2.hashToGroup #-}
+{-# COMPILE GHC BLS12-381-G2-compress = G2.compress #-}
+{-# COMPILE GHC BLS12-381-G2-uncompress = eitherToMaybe . G2.uncompress #-}
+{-# FOREIGN GHC import PlutusCore.Crypto.BLS12_381.Pairing qualified as Pairing #-}
+{-# COMPILE GHC BLS12-381-millerLoop = Pairing.millerLoop #-}
+{-# COMPILE GHC BLS12-381-mulMlResult = Pairing.mulMlResult #-}
+{-# COMPILE GHC BLS12-381-finalVerify = Pairing.finalVerify #-}
+
+
 -- no binding needed for appendStr
 -- no binding needed for traceStr
-
--- FIXME: no bindings needed for bls12-381 functions?
 
 ```
 The following function is used for testing.

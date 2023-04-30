@@ -389,55 +389,55 @@ BUILTIN mkNilPairData = λ
   { (app base (V-con unit tt)) -> inj₂ (V-con (list (pair pdata pdata)) [])
   ; _ -> inj₁ userError
   }
-BUILTIN tmBls12-381-G1-add = λ
+BUILTIN bls12-381-G1-add = λ
   { _ -> inj₁ userError
   }
-BUILTIN tmBls12-381-G1-neg = λ
+BUILTIN bls12-381-G1-neg = λ
   { _ -> inj₁ userError
   }
-BUILTIN tmBls12-381-G1-scalarMul = λ
+BUILTIN bls12-381-G1-scalarMul = λ
   { _ -> inj₁ userError
   }
-BUILTIN tmBls12-381-G1-equal = λ
+BUILTIN bls12-381-G1-equal = λ
   { _ -> inj₁ userError
   }
-BUILTIN tmBls12-381-G1-hashToGroup = λ
+BUILTIN bls12-381-G1-hashToGroup = λ
   { _ -> inj₁ userError
   }
-BUILTIN tmBls12-381-G1-compress = λ
+BUILTIN bls12-381-G1-compress = λ
   { _ -> inj₁ userError
   }
-BUILTIN tmBls12-381-G1-uncompress = λ
+BUILTIN bls12-381-G1-uncompress = λ
   { _ -> inj₁ userError
   }
-BUILTIN tmBls12-381-G2-add = λ
+BUILTIN bls12-381-G2-add = λ
   { _ -> inj₁ userError
   }
-BUILTIN tmBls12-381-G2-neg = λ
+BUILTIN bls12-381-G2-neg = λ
   { _ -> inj₁ userError
   }
-BUILTIN tmBls12-381-G2-scalarMul = λ
+BUILTIN bls12-381-G2-scalarMul = λ
   { _ -> inj₁ userError
   }
-BUILTIN tmBls12-381-G2-equal = λ
+BUILTIN bls12-381-G2-equal = λ
   { _ -> inj₁ userError
   }
-BUILTIN tmBls12-381-G2-hashToGroup = λ
+BUILTIN bls12-381-G2-hashToGroup = λ
   { _ -> inj₁ userError
   }
-BUILTIN tmBls12-381-G2-compress = λ
+BUILTIN bls12-381-G2-compress = λ
   { _ -> inj₁ userError
   }
-BUILTIN tmBls12-381-G2-uncompress = λ
+BUILTIN bls12-381-G2-uncompress = λ
   { _ -> inj₁ userError
   }
-BUILTIN tmBls12-381-millerLoop = λ
+BUILTIN bls12-381-millerLoop = λ
   { _ -> inj₁ userError
   }
-BUILTIN tmBls12-381-mulMlResult = λ
+BUILTIN bls12-381-mulMlResult = λ
   { _ -> inj₁ userError
   }
-BUILTIN tmBls12-381-finalVerify = λ
+BUILTIN bls12-381-finalVerify = λ
   { _ -> inj₁ userError
   }
 

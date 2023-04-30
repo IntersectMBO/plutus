@@ -63,12 +63,12 @@ uglyTmCon (tmCon unit _)  = "()"
 uglyTmCon (tmCon string s) = "(string " ++ s ++ ")"
 uglyTmCon (tmCon bool false) = "(bool " ++ "false" ++ ")"
 uglyTmCon (tmCon bool true) = "(bool " ++ "true" ++ ")"
-uglyTmCon (tmBls12-381-g1-element e) = "(bls12-381-g1-element " ++ show e ++ ")"
-uglyTmCon (tmBls12-381-g2-element e) = "(bls12-381-g2-element " ++ show e ++ ")"
-uglyTmCon (tmBls12-381-mlresult r) = "(bls12-381-mlresult " ++ show r ++ ")"
 uglyTmCon (tmCon pdata d) = uglyDATA d
 uglyTmCon (tmCon (pair t u) (x , y)) = "(pair " ++ uglyTmCon (tmCon t x) ++ " " ++ uglyTmCon (tmCon u y) ++ ")"
 uglyTmCon (tmCon (list t) xs) = "(list [ something ])"
+uglyTmCon (tmCon bls12-381-g1-element e) = "(bls12-381-g1-element ???)"  -- FIXME
+uglyTmCon (tmCon bls12-381-g2-element e) = "(bls12-381-g2-element ???)"  -- FIXME
+uglyTmCon (tmCon bls12-381-mlresult r) = "(bls12-381-mlresult ???)"      -- FIXME
 
 {-# FOREIGN GHC import qualified Data.Text as T #-}
 

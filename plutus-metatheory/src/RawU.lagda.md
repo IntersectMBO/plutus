@@ -69,7 +69,6 @@ data Tag : Set → Set where
 {-# FOREIGN GHC pattern TagData                 = DefaultUniData #-}
 {-# FOREIGN GHC pattern TagPair ta tb           = DefaultUniPair ta tb #-}
 {-# FOREIGN GHC pattern TagList ta              = DefaultUniList ta #-}
-{-# FOREIGN GHC pattern TagBool                 = DefaultUniBool #-}
 {-# FOREIGN GHC pattern TagBls12_381_G1_Element = DefaultUniBLS12_381_G1_Element #-}
 {-# FOREIGN GHC pattern TagBls12_381_G2_Element = DefaultUniBLS12_381_G2_Element #-}
 {-# FOREIGN GHC pattern TagBls12_381_MlResult   = DefaultUniBLS12_381_MlResult #-}

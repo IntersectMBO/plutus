@@ -28,7 +28,7 @@ data AtomicTyCon : Set where
   aBls12-381-mlresult   : AtomicTyCon
 
 {-# FOREIGN GHC import Raw #-}
-{-# COMPILE GHC AtomicTyCon = data AtomicTyCon (ATyConInt | ATyConBS | ATyConStr | ATyConUnit | ATyConBool | ATyConData | ATyConG1elt| ATyConG2elt | ATyConMlResult #-}
+{-# COMPILE GHC AtomicTyCon = data AtomicTyCon (ATyConInt | ATyConBS | ATyConStr | ATyConUnit | ATyConBool | ATyConData | ATyConG1elt| ATyConG2elt | ATyConMlResult) #-}
 
 ```
 

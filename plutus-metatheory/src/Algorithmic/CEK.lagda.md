@@ -34,7 +34,7 @@ open import Builtin
 open import Utils
 
 open import Builtin.Constant.AtomicType
-open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) using (TyCon;integer;bool;bytestring;string;pdata)
+open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) using (TyCon;integer;bool;bytestring;string;pdata;bls12-381-g1-element;bls12-381-g2-element)
 open TyCon
 
 
@@ -265,6 +265,27 @@ BUILTIN headList {A} bapp = inj₁ A --unimplemented
 BUILTIN tailList {A} bapp = inj₁ A --unimplemented
 BUILTIN nullList {A} (app (app⋆ base refl refl) (V-con cn)) = inj₁ A  --unimplemented
 BUILTIN chooseData {A} bapp =  inj₁ A --unimplemented
+BUILTIN bls12-381-G1-add (app (app base (V-con (tmBls12-381-g1-element e))) (V-con (tmBls12-381-g1-element e'))) = inj₂ (V-con (tmBls12-381-g1-element (BLS12-381-G1-add e e')))
+BUILTIN bls12-381-G1-neg (app base (V-con (tmBls12-381-g1-element e))) = inj₂ (V-con (tmBls12-381-g1-element (BLS12-381-G1-neg e)))
+BUILTIN bls12-381-G1-scalarMul (app (app base (V-con (tmInteger i))) (V-con (tmBls12-381-g1-element e))) = inj₂ (V-con (tmBls12-381-g1-element (BLS12-381-G1-scalarMul i e)))
+BUILTIN bls12-381-G1-equal (app (app base (V-con (tmBls12-381-g1-element e))) (V-con (tmBls12-381-g1-element e'))) = inj₂ (V-con (tmBool (BLS12-381-G1-equal e e')))
+BUILTIN bls12-381-G1-hashToGroup (app base (V-con (tmBytestring b))) = inj₂ (V-con (tmBls12-381-g1-element (BLS12-381-G1-hashToGroup b)))
+BUILTIN bls12-381-G1-compress (app base (V-con (tmBls12-381-g1-element e))) = inj₂ (V-con (tmBytestring (BLS12-381-G1-compress e)))
+BUILTIN bls12-381-G1-uncompress (app base (V-con (tmBytestring b))) with BLS12-381-G1-uncompress b
+... | nothing = inj₁ (con bls12-381-g1-element)
+... | just e  = inj₂ (V-con (tmBls12-381-g1-element e))
+BUILTIN bls12-381-G2-add (app (app base (V-con (tmBls12-381-g2-element e))) (V-con (tmBls12-381-g2-element e'))) = inj₂ (V-con (tmBls12-381-g2-element (BLS12-381-G2-add e e')))
+BUILTIN bls12-381-G2-neg (app base (V-con (tmBls12-381-g2-element e))) = inj₂ (V-con (tmBls12-381-g2-element (BLS12-381-G2-neg e)))
+BUILTIN bls12-381-G2-scalarMul (app (app base (V-con (tmInteger i))) (V-con (tmBls12-381-g2-element e))) = inj₂ (V-con (tmBls12-381-g2-element (BLS12-381-G2-scalarMul i e)))
+BUILTIN bls12-381-G2-equal (app (app base (V-con (tmBls12-381-g2-element e))) (V-con (tmBls12-381-g2-element e'))) = inj₂ (V-con (tmBool (BLS12-381-G2-equal e e')))
+BUILTIN bls12-381-G2-hashToGroup (app base (V-con (tmBytestring b))) = inj₂ (V-con (tmBls12-381-g2-element (BLS12-381-G2-hashToGroup b)))
+BUILTIN bls12-381-G2-compress (app base (V-con (tmBls12-381-g2-element e))) = inj₂ (V-con (tmBytestring (BLS12-381-G2-compress e)))
+BUILTIN bls12-381-G2-uncompress (app base (V-con (tmBytestring b))) with BLS12-381-G2-uncompress b
+... | nothing = inj₁ (con bls12-381-g2-element)
+... | just e  = inj₂ (V-con (tmBls12-381-g2-element e))
+BUILTIN bls12-381-millerLoop (app (app base (V-con (tmBls12-381-g1-element e1))) (V-con (tmBls12-381-g2-element e2))) = inj₂ (V-con (tmBls12-381-mlresult (BLS12-381-millerLoop e1 e2)))
+BUILTIN bls12-381-mulMlResult (app (app base (V-con (tmBls12-381-mlresult r))) (V-con (tmBls12-381-mlresult r'))) = inj₂ (V-con (tmBls12-381-mlresult (BLS12-381-mulMlResult r r')))
+BUILTIN bls12-381-finalVerify (app (app base (V-con (tmBls12-381-mlresult r))) (V-con (tmBls12-381-mlresult r'))) = inj₂ (V-con (tmBool (BLS12-381-finalVerify r r')))
 
 BUILTIN' : ∀ b {A}
   → ∀{tn} → {pt : tn ∔ 0 ≣ fv♯ (signature b)}
