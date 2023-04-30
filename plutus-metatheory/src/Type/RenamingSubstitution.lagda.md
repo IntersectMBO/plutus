@@ -228,7 +228,6 @@ subTyCon σ (list A)    = list (sub σ A)
 subTyCon σ (pair A B)  = pair (sub σ A) (sub σ B)
 subTyCon σ (atomic ty) = atomic ty
 
-
 sub σ (` α)   = σ α
 sub σ (Π B)   = Π (sub (exts σ) B)
 sub σ (A ⇒ B) = sub σ A ⇒ sub σ B
@@ -355,7 +354,6 @@ subTyCon-renTyCon : (c : TyCon Φ)
 subTyCon-renTyCon (list A)   = cong list (sub-ren A)
 subTyCon-renTyCon (pair A B) = cong₂ pair (sub-ren A) (sub-ren B)
 subTyCon-renTyCon (atomic _) = refl
-
 
 sub-ren (` α)   = refl
 sub-ren (Π A)   = cong Π (trans (sub-cong exts-ext A) (sub-ren A))
