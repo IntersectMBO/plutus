@@ -37,7 +37,4 @@ pattern pdata = atomic aData
 pattern bls12-381-g1-element = atomic aBls12-381-g1-element
 pattern bls12-381-g2-element = atomic aBls12-381-g2-element 
 pattern bls12-381-mlresult   = atomic aBls12-381-mlresult
-
 ```
-
-
