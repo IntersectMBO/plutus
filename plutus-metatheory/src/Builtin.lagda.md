@@ -351,8 +351,7 @@ Each Agda built-in name must be mapped to a Haskell name.
                                           | Bls12_381_millerLoop
                                           | Bls12_381_mulMlResult
                                           | Bls12_381_finalVerify
-
-) #-}
+                                          ) #-}
 ```
 
 ### Abstract semantics of builtins
