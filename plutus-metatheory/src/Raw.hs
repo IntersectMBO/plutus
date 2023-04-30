@@ -34,9 +34,9 @@ data AtomicTyCon = ATyConInt
                  | ATyConUnit
                  | ATyConBool
                  | ATyConData
-                 | ATyConG1elt
-                 | ATyConG2elt
-                 | ATyConMlResult
+                 | ATyConBLS12_381_G1_Element
+                 | ATyConBLS12_381_G2_Element
+                 | ATyConBLS12_381_MlResult
               deriving Show
 
 data RTyCon = RTyConAtom AtomicTyCon
@@ -84,9 +84,9 @@ convTyCon (SomeTypeIn (DefaultUniApply (DefaultUniApply DefaultUniProtoPair a) b
 convTyCon (SomeTypeIn (DefaultUniApply _ _))                                       = error "unsupported builtin type application"
 convTyCon (SomeTypeIn DefaultUniProtoList)                                         = error "unsupported usage of builtin list type"
 convTyCon (SomeTypeIn DefaultUniProtoPair)                                         = error "unsupported usage of builtin pair type"
-convTyCon (SomeTypeIn DefaultUniBLS12_381_G1_Element)                              = RTyConAtom ATyConG1elt
-convTyCon (SomeTypeIn DefaultUniBLS12_381_G2_Element)                              = RTyConAtom ATyConG2elt
-convTyCon (SomeTypeIn DefaultUniBLS12_381_MlResult)                                = RTyConAtom ATyConMlResult
+convTyCon (SomeTypeIn DefaultUniBLS12_381_G1_Element)                              = RTyConAtom ATyConBLS12_381_G1_Element
+convTyCon (SomeTypeIn DefaultUniBLS12_381_G2_Element)                              = RTyConAtom ATyConBLS12_381_G2_Element
+convTyCon (SomeTypeIn DefaultUniBLS12_381_MlResult)                                = RTyConAtom ATyConBLS12_381_MlResult
 
 conv :: Term NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun a -> RTerm
 conv (Var _ x)           = RVar (unIndex (ndbnIndex x))

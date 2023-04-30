@@ -69,10 +69,10 @@ data Tag : Set → Set where
 {-# FOREIGN GHC pattern TagData                 = DefaultUniData #-}
 {-# FOREIGN GHC pattern TagPair ta tb           = DefaultUniPair ta tb #-}
 {-# FOREIGN GHC pattern TagList ta              = DefaultUniList ta #-}
-{-# FOREIGN GHC pattern TagBls12_381_G1_Element = DefaultUniBLS12_381_G1_Element #-}
-{-# FOREIGN GHC pattern TagBls12_381_G2_Element = DefaultUniBLS12_381_G2_Element #-}
-{-# FOREIGN GHC pattern TagBls12_381_MlResult   = DefaultUniBLS12_381_MlResult #-}
-{-# COMPILE GHC Tag                             = data Tag (TagInt | TagBS | TagStr | TagBool | TagUnit | TagData | TagPair | TagList | TagBls12_381_G1_Element | TagBls12_381_G2_Element | TagBls12_381_MlResult) #-}
+{-# FOREIGN GHC pattern TagBLS12_381_G1_Element = DefaultUniBLS12_381_G1_Element #-}
+{-# FOREIGN GHC pattern TagBLS12_381_G2_Element = DefaultUniBLS12_381_G2_Element #-}
+{-# FOREIGN GHC pattern TagBLS12_381_MlResult   = DefaultUniBLS12_381_MlResult #-}
+{-# COMPILE GHC Tag                             = data Tag (TagInt | TagBS | TagStr | TagBool | TagUnit | TagData | TagPair | TagList | TagBLS12_381_G1_Element | TagBLS12_381_G2_Element | TagBLS12_381_MlResult) #-}
 ```
 
 ## Term constants
