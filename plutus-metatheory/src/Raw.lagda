@@ -50,7 +50,6 @@ data RawTyCon where
 
 {-# COMPILE GHC RawTyCon = data RTyCon (RTyConAtom | RTyConList | RTyConPair) #-}
 
-
 data RawTm : Set where
   `             : ℕ → RawTm
   Λ             : Kind → RawTm → RawTm
