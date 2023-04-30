@@ -289,8 +289,6 @@ decTag bls12-381-mlresult (list y) = no λ()
 decTag bls12-381-mlresult bls12-381-g1-element = no λ()
 decTag bls12-381-mlresult bls12-381-g2-element = no λ()
 decTag bls12-381-mlresult bls12-381-mlresult = yes refl
-
-
 ```
 
 Again term constants are a pair of a tag, and its meaning, except

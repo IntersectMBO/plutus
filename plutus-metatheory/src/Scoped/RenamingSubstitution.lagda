@@ -31,14 +31,7 @@ renTyCon⋆ : ∀{m n} → Ren⋆ m n → TyCon m → TyCon n
 
 renTyCon⋆ ρ (list A)   = list (ren⋆ ρ A)
 renTyCon⋆ ρ (pair A B) = pair (ren⋆ ρ A) (ren⋆ ρ B)
-<<<<<<< HEAD
-renTyCon⋆ ρ pdata = pdata
-renTyCon⋆ ρ tmBls12-381-g1-element = tmBls12-381-g1-element
-renTyCon⋆ ρ tmBls12-381-g2-element = tmBls12-381-g2-element
-renTyCon⋆ ρ tmBls12-381-mlresult = tmBls12-381-mlresult
-=======
 renTyCon⋆ ρ (atomic A) = atomic A
->>>>>>> master
 
 
 ren⋆ ρ (` α) = ` (ρ α)
@@ -96,14 +89,7 @@ subTyCon⋆ : ∀{m n} → Sub⋆ m n → TyCon m → TyCon n
 
 subTyCon⋆ σ (list A)   = list (sub⋆ σ A)
 subTyCon⋆ σ (pair A B) = pair (sub⋆ σ A) (sub⋆ σ B)
-<<<<<<< HEAD
-subTyCon⋆ σ pdata = pdata
-subTyCon⋆ σ tmBls12-381-g1-element = tmBls12-381-g1-element
-subTyCon⋆ σ tmBls12-381-g2-element = tmBls12-381-g2-element
-subTyCon⋆ σ tmBls12-381-mlresult = tmBls12-381-mlresult
-=======
 subTyCon⋆ σ (atomic A) = atomic A
->>>>>>> master
 
 sub⋆ σ (` α)   = σ α
 sub⋆ σ (A ⇒ B) = sub⋆ σ A ⇒ sub⋆ σ B
@@ -183,14 +169,7 @@ renTyCon⋆-cong : ∀{m n}{ρ ρ' : Ren⋆ m n}
 
 renTyCon⋆-cong p (list A)   = cong list (ren⋆-cong p A)
 renTyCon⋆-cong p (pair A B) = cong₂ pair (ren⋆-cong p A) (ren⋆-cong p B)
-<<<<<<< HEAD
-renTyCon⋆-cong p pdata = refl
-renTyCon⋆-cong p tmBls12-381-g1-element = refl
-renTyCon⋆-cong p tmBls12-381-g2-element = refl
-renTyCon⋆-cong p tmBls12-381-mlresult = refl
-=======
 renTyCon⋆-cong p (atomic _) = refl
->>>>>>> master
 
 ren⋆-cong p (` x)       = cong ` (p x)
 ren⋆-cong p (A ⇒ B)     = cong₂ _⇒_ (ren⋆-cong p A) (ren⋆-cong p B)
@@ -216,14 +195,7 @@ subTyCon⋆-cong : ∀{m n}{σ σ' : Sub⋆ m n}
 
 subTyCon⋆-cong p (list A)   = cong list (sub⋆-cong p A)
 subTyCon⋆-cong p (pair A B) = cong₂ pair (sub⋆-cong p A) (sub⋆-cong p B)
-<<<<<<< HEAD
-subTyCon⋆-cong p pdata = refl
-subTyCon⋆-cong p tmBls12-381-g1-element = refl
-subTyCon⋆-cong p tmBls12-381-g2-element = refl
-subTyCon⋆-cong p tmBls12-381-mlresult = refl
-=======
 subTyCon⋆-cong p (atomic A) = refl
->>>>>>> master
 
 sub⋆-cong p (` x)       = p x
 sub⋆-cong p (A ⇒ B)     = cong₂ _⇒_ (sub⋆-cong p A) (sub⋆-cong p B)
