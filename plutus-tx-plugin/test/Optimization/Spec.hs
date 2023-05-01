@@ -17,7 +17,7 @@ import PlutusCore.Test
 import PlutusTx.Builtins qualified as PlutusTx
 import PlutusTx.Code
 import PlutusTx.Prelude qualified as P
-import PlutusTx.Test ()
+import PlutusTx.Test (goldenPir)
 import PlutusTx.TH (compile)
 
 -- These are tests that run with the simplifier on, and run all the way to UPLC.
@@ -27,8 +27,10 @@ tests :: TestNested
 tests = testNested "Optimization" [
     goldenUPlc "maybeFun" maybeFun
   , goldenUPlc "trueOrError" trueOrError
+  , goldenPir "trueOrErrorPir" trueOrError
   , goldenUEval "trueOrErrorEval" [ toUPlc trueOrError ]
   , goldenUPlc "trueOrErrorOpaque" trueOrErrorOpaque
+  , goldenPir "trueOrErrorOpaquePir" trueOrErrorOpaque
   , goldenUEval "trueOrErrorOpaqueEval" [ toUPlc trueOrErrorOpaque ]
   ]
 
