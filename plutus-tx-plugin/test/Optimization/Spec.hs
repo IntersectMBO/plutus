@@ -9,6 +9,8 @@
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
 
+{-# OPTIONS_GHC -fmax-simplifier-iterations=0 #-}
+
 module Optimization.Spec where
 
 import Test.Tasty.Extras
@@ -49,7 +51,6 @@ maybeFun = $$(compile
 trueOrError :: CompiledCode Bool
 trueOrError = $$(compile [|| c True (P.error () :: Bool) ||])
   where
-    {-# NOINLINE c #-}
     c x _ = x
 
 trueOrErrorOpaque :: CompiledCode Bool
