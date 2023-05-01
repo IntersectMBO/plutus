@@ -49,6 +49,7 @@ maybeFun = $$(compile
 trueOrError :: CompiledCode Bool
 trueOrError = $$(compile [|| c True (P.error () :: Bool) ||])
   where
+    {-# NOINLINE c #-}
     c x _ = x
 
 trueOrErrorOpaque :: CompiledCode Bool
