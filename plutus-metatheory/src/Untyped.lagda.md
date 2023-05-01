@@ -21,13 +21,14 @@ open import Agda.Builtin.String using (primStringFromList; primStringAppend; pri
 open import Data.Nat using (ℕ;suc;zero)
 open import Data.Bool using (Bool;true;false;_∧_)
 open import Data.Integer using (_<?_;_+_;_-_;∣_∣;_≤?_;_≟_;ℤ) renaming (_*_ to _**_)
-open import Relation.Nullary using (yes;no)
+open import Relation.Nullary using (does;yes;no)
 open import Data.Integer.Show using (show)
 open import Data.String using (String;_++_)
 open import Data.Empty using (⊥)
 open import Utils using (_×_;_,_)
 open import RawU using (TagCon;Tag;decTagCon;TmCon;TyTag;Untyped;tmCon;tmCon2TagCon;tagCon2TmCon)
-open TyTag
+open import Builtin.Signature using (_⊢♯;con) 
+open import Builtin.Constant.Type ℕ (_⊢♯)
 open Untyped
 ```
 
@@ -57,15 +58,15 @@ uglyDATA : DATA → String
 uglyDATA d = "(DATA)"
 
 uglyTmCon : TmCon → String
-uglyTmCon (tmCon integer x) = "(integer " ++ show x ++ ")"
-uglyTmCon (tmCon bytestring x) = "bytestring"
-uglyTmCon (tmCon unit _)  = "()"
-uglyTmCon (tmCon string s) = "(string " ++ s ++ ")"
-uglyTmCon (tmCon bool false) = "(bool " ++ "false" ++ ")"
-uglyTmCon (tmCon bool true) = "(bool " ++ "true" ++ ")"
-uglyTmCon (tmCon pdata d) = uglyDATA d
-uglyTmCon (tmCon (pair t u) (x , y)) = "(pair " ++ uglyTmCon (tmCon t x) ++ " " ++ uglyTmCon (tmCon u y) ++ ")"
-uglyTmCon (tmCon (list t) xs) = "(list [ something ])"
+uglyTmCon (tmCon (con integer) x) = "(integer " ++ show x ++ ")"
+uglyTmCon (tmCon (con bytestring) x) = "bytestring"
+uglyTmCon (tmCon (con unit) _)  = "()"
+uglyTmCon (tmCon (con string) s) = "(string " ++ s ++ ")"
+uglyTmCon (tmCon (con bool) false) = "(bool " ++ "false" ++ ")"
+uglyTmCon (tmCon (con bool) true) = "(bool " ++ "true" ++ ")"
+uglyTmCon (tmCon (con pdata) d) = uglyDATA d
+uglyTmCon (tmCon (con (pair t u)) (x , y)) = "(pair " ++ uglyTmCon (tmCon t x) ++ " " ++ uglyTmCon (tmCon u y) ++ ")"
+uglyTmCon (tmCon (con (list t)) xs) = "(list [ something ])"
 
 
 
@@ -139,14 +140,12 @@ Used to compare outputs in testing
 
 ```
 decUTm : (t t' : Untyped) → Bool
-decUTm (UVar x) (UVar x') with x Data.Nat.≟ x
-... | yes p = true
-... | no ¬p = false
+decUTm (UVar x) (UVar x') = does (x Data.Nat.≟ x)
 decUTm (ULambda t) (ULambda t') = decUTm t t'
 decUTm (UApp t u) (UApp t' u') = decUTm t t' ∧ decUTm u u'
 decUTm (UCon c) (UCon c') = decTagCon c c'
 decUTm UError UError = true
-decUTm (UBuiltin b) (UBuiltin b') = decBuiltin b b'
+decUTm (UBuiltin b) (UBuiltin b') = does (decBuiltin b b')
 decUTm (UDelay t) (UDelay t') = decUTm t t'
 decUTm (UForce t) (UForce t') = decUTm t t'
 decUTm _ _ = false
