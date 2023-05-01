@@ -57,8 +57,32 @@ tests = testNested "Budget" [
   , goldenBudget "filter" compiledFilter
   , goldenPirReadable "filter" compiledFilter
 
-  , goldenBudget "elem" compiledElem
-  , goldenPirReadable "elem" compiledElem
+  , goldenBudget "andCheap" compiledAndCheap
+  , goldenPirReadable "andCheap" compiledAndCheap
+
+  , goldenBudget "andExpensive" compiledAndExpensive
+  , goldenPirReadable "andExpensive" compiledAndExpensive
+
+  , goldenBudget "orCheap" compiledOrCheap
+  , goldenPirReadable "orCheap" compiledOrCheap
+
+  , goldenBudget "orExpensive" compiledOrExpensive
+  , goldenPirReadable "orExpensive" compiledOrExpensive
+
+  , goldenBudget "elemCheap" compiledElemCheap
+  , goldenPirReadable "elemCheap" compiledElemCheap
+
+  , goldenBudget "elemExpensive" compiledElemExpensive
+  , goldenPirReadable "elemExpensive" compiledElemExpensive
+
+  , goldenBudget "notElemCheap" compiledNotElemCheap
+  , goldenPirReadable "notElemCheap" compiledNotElemCheap
+
+  , goldenBudget "notElemExpensive" compiledNotElemExpensive
+  , goldenPirReadable "notElemExpensive" compiledNotElemExpensive
+
+  , goldenBudget "null" compiledNull
+  , goldenPirReadable "null" compiledNull
 
   , goldenBudget "toFromData" compiledToFromData
   , goldenPirReadable "toFromData" compiledToFromData
@@ -141,10 +165,50 @@ compiledFilter = $$(compile [||
       let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
        in PlutusTx.filter PlutusTx.even ls ||])
 
-compiledElem :: CompiledCode Bool
-compiledElem = $$(compile [||
+compiledAndCheap :: CompiledCode Bool
+compiledAndCheap = $$(compile [||
+      let ls = [False, True, True, True, True, True, True, True, True, True]
+       in PlutusTx.and ls ||])
+
+compiledAndExpensive :: CompiledCode Bool
+compiledAndExpensive = $$(compile [||
+      let ls = [True, True, True, True, True, True, True, True, True, True]
+       in PlutusTx.and ls ||])
+
+compiledOrCheap :: CompiledCode Bool
+compiledOrCheap = $$(compile [||
+      let ls = [True, False, False, False, False, False, False, False, False, False]
+       in PlutusTx.or ls ||])
+
+compiledOrExpensive :: CompiledCode Bool
+compiledOrExpensive = $$(compile [||
+      let ls = [False, False, False, False, False, False, False, False, False, False]
+       in PlutusTx.or ls ||])
+
+compiledElemExpensive :: CompiledCode Bool
+compiledElemExpensive = $$(compile [||
       let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
        in PlutusTx.elem 0 ls ||])
+
+compiledElemCheap :: CompiledCode Bool
+compiledElemCheap = $$(compile [||
+      let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
+       in PlutusTx.elem 1 ls ||])
+
+compiledNotElemExpensive :: CompiledCode Bool
+compiledNotElemExpensive = $$(compile [||
+      let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
+       in PlutusTx.notElem 0 ls ||])
+
+compiledNotElemCheap :: CompiledCode Bool
+compiledNotElemCheap = $$(compile [||
+      let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
+       in PlutusTx.notElem 1 ls ||])
+
+compiledNull :: CompiledCode Bool
+compiledNull = $$(compile [||
+      let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
+       in PlutusTx.null ls ||])
 
 compiledToFromData :: CompiledCode (Either Integer (Maybe (Bool, Integer, Bool)))
 compiledToFromData = $$(compile [||
