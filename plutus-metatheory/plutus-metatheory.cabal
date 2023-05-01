@@ -73,16 +73,18 @@ library
 
   -- WARNING: Order is important! MAlonzo modules must be listed last.
   -- But cabal-fmt reorders modules alphabetically, so we use two 
-  -- exposed-modules subsets to work arount that. See Setup.hs
+  -- exposed-modules subsets to work around that. See Setup.hs
   exposed-modules:
     MAlonzo.Code.Agda.Builtin.Bool
     MAlonzo.Code.Agda.Builtin.Char
     MAlonzo.Code.Agda.Builtin.Equality
+    MAlonzo.Code.Agda.Builtin.Float
     MAlonzo.Code.Agda.Builtin.Int
     MAlonzo.Code.Agda.Builtin.IO
     MAlonzo.Code.Agda.Builtin.List
     MAlonzo.Code.Agda.Builtin.Maybe
     MAlonzo.Code.Agda.Builtin.Nat
+    MAlonzo.Code.Agda.Builtin.Reflection
     MAlonzo.Code.Agda.Builtin.Sigma
     MAlonzo.Code.Agda.Builtin.String
     MAlonzo.Code.Agda.Builtin.Unit
@@ -264,16 +266,19 @@ library
     MAlonzo.Code.Utils.Decidable
     MAlonzo.Code.Utils.Reflection
     MAlonzo.RTE
+    MAlonzo.RTE.Float
 
   autogen-modules:
     MAlonzo.Code.Agda.Builtin.Bool
     MAlonzo.Code.Agda.Builtin.Char
     MAlonzo.Code.Agda.Builtin.Equality
+    MAlonzo.Code.Agda.Builtin.Float
     MAlonzo.Code.Agda.Builtin.Int
     MAlonzo.Code.Agda.Builtin.IO
     MAlonzo.Code.Agda.Builtin.List
     MAlonzo.Code.Agda.Builtin.Maybe
     MAlonzo.Code.Agda.Builtin.Nat
+    MAlonzo.Code.Agda.Builtin.Reflection
     MAlonzo.Code.Agda.Builtin.Sigma
     MAlonzo.Code.Agda.Builtin.String
     MAlonzo.Code.Agda.Builtin.Unit
@@ -454,6 +459,7 @@ library
     MAlonzo.Code.Utils.Decidable
     MAlonzo.Code.Utils.Reflection
     MAlonzo.RTE
+    MAlonzo.RTE.Float
 
 executable plc-agda
   import:         lang
