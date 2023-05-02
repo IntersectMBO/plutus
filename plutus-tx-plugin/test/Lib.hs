@@ -62,7 +62,7 @@ runPlcCekTrace values = do
      pure (logOut, tally, res)
 
 goldenEvalCek :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => String -> [a] -> TestNested
-goldenEvalCek name values = nestedGoldenVsDocM name "eval-cek" $ prettyPlcClassicDebug <$> (rethrow $ runPlcCek values)
+goldenEvalCek name values = nestedGoldenVsDocM name ".eval-cek" $ prettyPlcClassicDebug <$> (rethrow $ runPlcCek values)
 
 goldenEvalCekLog :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => String -> [a] -> TestNested
-goldenEvalCekLog name values = nestedGoldenVsDocM name "eval-cek-log" $ pretty . view _1 <$> (rethrow $ runPlcCekTrace values)
+goldenEvalCekLog name values = nestedGoldenVsDocM name ".eval-cek-log" $ pretty . view _1 <$> (rethrow $ runPlcCekTrace values)
