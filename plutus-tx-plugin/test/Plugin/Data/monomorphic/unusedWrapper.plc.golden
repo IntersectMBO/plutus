@@ -2,6 +2,8 @@
   1.1.0
   (let
     (nonrec)
+    (termbind (strict) (vardecl z (con integer)) (con integer 2))
+    (termbind (strict) (vardecl y (con integer)) (con integer 1))
     (datatypebind
       (datatype
         (tyvardecl Tuple2 (fun (type) (fun (type) (type))))
@@ -38,12 +40,6 @@
       (vardecl mkT (fun [ [ Tuple2 (con integer) ] (con integer) ] T))
       (lam ds [ [ Tuple2 (con integer) ] (con integer) ] [ WMkT ds ])
     )
-    [
-      mkT
-      [
-        [ { { Tuple2 (con integer) } (con integer) } (con integer 2) ]
-        (con integer 1)
-      ]
-    ]
+    [ mkT [ [ { { Tuple2 (con integer) } (con integer) } z ] y ] ]
   )
 )
