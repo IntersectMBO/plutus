@@ -33,6 +33,12 @@ open import Builtin.Constant.Type ℕ (_⊢♯)
 ```
 
 ```
+data Stack (A : Set) : Set where
+  ε : Stack A
+  _,_ : Stack A → A → Stack A
+```
+
+```
 data Value : Set
 data Env : Set → Set where
   [] : Env ⊥
@@ -47,7 +53,7 @@ data Value where
   V-ƛ : ∀{X} → Env X → Maybe X ⊢ → Value
   V-con : (ty : TyTag) → ⟦ ty ⟧tag → Value
   V-delay : ∀{X} → Env X → X ⊢ → Value
-  V-constr : (i : ℕ) → (vs : List Value) → Value
+  V-constr : (i : ℕ) → (vs : Stack Value) → Value
   V-I⇒ : ∀ b {tn} 
        → {pt : tn ∔ 0 ≣ fv♯ (signature b)} 
        → ∀{an am}{pa : an ∔ (suc am) ≣ args♯ (signature b)}
@@ -82,7 +88,7 @@ dischargeB : ∀{b}
           → ∀{an am} → {pa : an ∔ am ≣ args♯ (signature b)}
           → BApp b pt pa → ⊥ ⊢
 
-dischargeList : List Value → List (⊥ ⊢) → List (⊥ ⊢)
+dischargeList : Stack Value → List (⊥ ⊢) → List (⊥ ⊢)
 
 discharge (V-ƛ ρ t)       = ƛ (sub (lifts (env2sub ρ)) t)
 discharge (V-con t c)     = con (tmCon t c)
@@ -91,10 +97,8 @@ discharge (V-I⇒ b vs)     = dischargeB vs
 discharge (V-IΠ b vs)     = dischargeB vs
 discharge (V-constr i vs) = constr i (dischargeList vs [])
 
--- dischargeList reverses the list because the term constructor 
--- and the value have the arguments in inverse order.
-dischargeList [] ts = ts
-dischargeList (x ∷ xs) ts = dischargeList xs (discharge x ∷ ts)
+dischargeList ε ts = ts
+dischargeList (xs , x) ts = dischargeList xs (discharge x ∷ ts)
 
 dischargeB {b = b} base = builtin b
 dischargeB (app vs v) = dischargeB vs · discharge v
@@ -108,16 +112,13 @@ data Frame : Set where
   -·v : Value → Frame
   _·- : Value → Frame
   force- : Frame
-  constr- : ∀{Γ} → ℕ → (List Value) → Env Γ → List (Γ ⊢) → Frame
+  constr- : ∀{Γ} → ℕ → (Stack Value) → Env Γ → List (Γ ⊢) → Frame
   case- : ∀{Γ} → (ρ : Env Γ) → List (Γ ⊢) → Frame
 
-data Stack : Set where
-  ε : Stack
-  _,_ : Stack → Frame → Stack
 
 data State : Set where
-  _;_▻_ : {X : Set} → Stack → Env X → X ⊢ → State
-  _◅_   : Stack → Value → State
+  _;_▻_ : {X : Set} → Stack Frame → Env X → X ⊢ → State
+  _◅_   : Stack Frame → Value → State
   □ : Value → State
   ◆ : State
 
@@ -417,9 +418,9 @@ BUILTIN' b {pt = pt} {pa = pa} bt with trans (sym (+-identityʳ _)) (∔2+ pt) |
 ival : Builtin → Value
 ival b = V-I b base
 
-pushValueFrames : Stack → List Value → Stack
-pushValueFrames s [] = s
-pushValueFrames s (v ∷ vs) = pushValueFrames (s , -·v v) vs
+pushValueFrames : Stack Frame → Stack Value → Stack Frame
+pushValueFrames s ε = s
+pushValueFrames s (vs , v) = pushValueFrames (s , -·v v) vs
 
 lookup? : ∀{A} → ℕ → List A → Maybe A
 lookup? n [] = nothing
@@ -433,8 +434,8 @@ step (s ; ρ ▻ (t · u))           = (s , -· ρ u) ; ρ ▻ t
 step (s ; ρ ▻ force t)           = (s , force-) ; ρ ▻ t
 step (s ; ρ ▻ delay t)           = s ◅ V-delay ρ t
 step (s ; ρ ▻ con (tmCon t c))   = s ◅ V-con t c
-step (s ; ρ ▻ constr i [])       = s ◅ V-constr i []
-step (s ; ρ ▻ constr i (x ∷ xs)) = (s , constr- i [] ρ xs); ρ ▻ x
+step (s ; ρ ▻ constr i [])       = s ◅ V-constr i ε
+step (s ; ρ ▻ constr i (x ∷ xs)) = (s , constr- i ε ρ xs); ρ ▻ x
 step (s ; ρ ▻ case t ts)         = (s , case- ρ ts) ; ρ ▻ t
 step (s ; ρ ▻ builtin b)         = s ◅ ival b
 step (s ; ρ ▻ error)             = ◆
@@ -453,8 +454,8 @@ step ((s , force-) ◅ V-ƛ _ _)              = ◆ -- lambda in delay position
 step ((s , force-) ◅ V-con _ _)            = ◆ -- constant in delay position
 step ((s , force-) ◅ V-I⇒ b bapp)          = ◆ -- function in delay position
 step ((s , force-) ◅ V-constr i vs)        = ◆ -- SOP in delay position
-step ((s , constr- i vs ρ []) ◅ v)         = s ◅ V-constr i (v ∷ vs)
-step ((s , constr- i vs ρ (x ∷ ts)) ◅ v)   = (s , constr- i (v ∷ vs) ρ ts); ρ ▻ x
+step ((s , constr- i vs ρ []) ◅ v)         = s ◅ V-constr i (vs , v)
+step ((s , constr- i vs ρ (x ∷ ts)) ◅ v)   = (s , constr- i (vs , v) ρ ts); ρ ▻ x
 step ((s , case- ρ ts) ◅ V-constr i vs)    = maybe (pushValueFrames s vs ; ρ ▻_) ◆ (lookup? i ts)
 step ((s , case- ρ ts) ◅ V-ƛ _ _)          = ◆ -- case of lambda
 step ((s , case- ρ ts) ◅ V-con _ _)        = ◆ -- case of constant
