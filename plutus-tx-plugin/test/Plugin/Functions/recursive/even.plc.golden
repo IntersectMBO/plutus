@@ -51,48 +51,51 @@
       (rec)
       (termbind
         (strict)
-        (vardecl odd (fun (con integer) Bool))
-        (lam
-          n
-          (con integer)
-          {
-            [
-              [
-                {
-                  [ Bool_match [ [ equalsInteger n ] (con integer 0) ] ]
-                  (all dead (type) Bool)
-                }
-                (abs dead (type) False)
-              ]
-              (abs
-                dead (type) [ even [ [ subtractInteger n ] (con integer 1) ] ]
-              )
-            ]
-            (all dead (type) dead)
-          }
-        )
-      )
-      (termbind
-        (strict)
         (vardecl even (fun (con integer) Bool))
         (lam
           n
           (con integer)
-          {
-            [
+          (let
+            (nonrec)
+            (termbind
+              (nonstrict)
+              (vardecl n (con integer))
+              [ [ subtractInteger n ] (con integer 1) ]
+            )
+            {
               [
-                {
-                  [ Bool_match [ [ equalsInteger n ] (con integer 0) ] ]
-                  (all dead (type) Bool)
-                }
-                (abs dead (type) True)
+                [
+                  {
+                    [ Bool_match [ [ equalsInteger n ] (con integer 0) ] ]
+                    (all dead (type) Bool)
+                  }
+                  (abs dead (type) True)
+                ]
+                (abs
+                  dead
+                  (type)
+                  {
+                    [
+                      [
+                        {
+                          [ Bool_match [ [ equalsInteger n ] (con integer 0) ] ]
+                          (all dead (type) Bool)
+                        }
+                        (abs dead (type) False)
+                      ]
+                      (abs
+                        dead
+                        (type)
+                        [ even [ [ subtractInteger n ] (con integer 1) ] ]
+                      )
+                    ]
+                    (all dead (type) dead)
+                  }
+                )
               ]
-              (abs
-                dead (type) [ odd [ [ subtractInteger n ] (con integer 1) ] ]
-              )
-            ]
-            (all dead (type) dead)
-          }
+              (all dead (type) dead)
+            }
+          )
         )
       )
       even

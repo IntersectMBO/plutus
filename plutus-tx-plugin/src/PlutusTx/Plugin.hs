@@ -10,7 +10,7 @@
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE ViewPatterns               #-}
 -- For some reason this module is very slow to compile otherwise
-{-# OPTIONS_GHC -O0 #-}
+{-# OPTIONS_GHC -fforce-recomp -O0 #-}
 module PlutusTx.Plugin (plugin, plc) where
 
 import Data.Bifunctor
@@ -165,7 +165,7 @@ mkSimplPass flags logger =
             , GHC.sm_rules = False
             , GHC.sm_cast_swizzle = True
             -- See Note [GHC.sm_pre_inline]
-            , GHC.sm_pre_inline = False
+            , GHC.sm_pre_inline = True
             , GHC.sm_logger = logger
             -- You might think you would need this, but apparently not
             , GHC.sm_inline = False
