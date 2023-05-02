@@ -10,7 +10,7 @@
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE ViewPatterns               #-}
 -- For some reason this module is very slow to compile otherwise
-{-# OPTIONS_GHC -O0 #-}
+{-# OPTIONS_GHC -fforce-recomp -O0 #-}
 module PlutusTx.Plugin (plugin, plc) where
 
 import Data.Bifunctor
