@@ -417,9 +417,9 @@ BUILTIN' b {pt = pt} {pa = pa} bt with trans (sym (+-identityʳ _)) (∔2+ pt) |
 ival : Builtin → Value
 ival b = V-I b base
 
-extendStack : Stack → List Value → Stack
-extendStack s [] = s
-extendStack s (v ∷ vs) = extendStack (s , -·v v) vs
+pushValueFrames : Stack → List Value → Stack
+pushValueFrames s [] = s
+pushValueFrames s (v ∷ vs) = pushValueFrames (s , -·v v) vs
 
 lookup? : ∀{A} → ℕ → List A → Maybe A
 lookup? n [] = nothing
@@ -455,8 +455,12 @@ step ((s , force-) ◅ V-I⇒ b bapp)          = ◆ -- function in delay positi
 step ((s , force-) ◅ V-constr i vs)        = ◆ -- SOP in delay position
 step ((s , constr- i vs ρ []) ◅ v)         = s ◅ V-constr i (v ∷ vs)
 step ((s , constr- i vs ρ (x ∷ ts)) ◅ v)   = (s , constr- i (v ∷ vs) ρ ts); ρ ▻ x
-step ((s , case- ρ ts) ◅ V-constr i vs)    = maybe (extendStack s vs ; ρ ▻_) ◆ (lookup? i ts)
-step ((s , case- _ _ ) ◅ v)                = ◆ -- case of not a SOP
+step ((s , case- ρ ts) ◅ V-constr i vs)    = maybe (pushValueFrames s vs ; ρ ▻_) ◆ (lookup? i ts)
+step ((s , case- ρ ts) ◅ V-ƛ _ _)          = ◆ -- case of lambda
+step ((s , case- ρ ts) ◅ V-con _ _)        = ◆ -- case of constant
+step ((s , case- ρ ts) ◅ V-delay _ _)      = ◆ -- case of delay
+step ((s , case- ρ ts) ◅ V-I⇒ _ _)         = ◆ -- case of builtin value
+step ((s , case- ρ ts) ◅ V-IΠ _ _)         = ◆ -- case of delqyed builtin
 step ((s , (V-I⇒ b {am = 0} bapp ·-)) ◅ v) = s ; [] ▻ BUILTIN' b (app bapp v)
 step ((s , (V-I⇒ b {am = suc _} bapp ·-)) ◅ v) = s ◅ V-I b (app bapp v)
 
