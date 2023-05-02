@@ -165,45 +165,53 @@ compiledFilter = $$(compile [||
       let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
        in PlutusTx.filter PlutusTx.even ls ||])
 
+-- | The first element is False so @and@ should short-circuit immediately.
 compiledAndCheap :: CompiledCode Bool
 compiledAndCheap = $$(compile [||
       let ls = [False, True, True, True, True, True, True, True, True, True]
        in PlutusTx.and ls ||])
 
+-- | All elements are True so @and@ cannot short-circuit.
 compiledAndExpensive :: CompiledCode Bool
 compiledAndExpensive = $$(compile [||
       let ls = [True, True, True, True, True, True, True, True, True, True]
        in PlutusTx.and ls ||])
 
+-- | The first element is True so @or@ should short-circuit immediately.
 compiledOrCheap :: CompiledCode Bool
 compiledOrCheap = $$(compile [||
       let ls = [True, False, False, False, False, False, False, False, False, False]
        in PlutusTx.or ls ||])
 
+-- | All elements are False so @or@ cannot short-circuit.
 compiledOrExpensive :: CompiledCode Bool
 compiledOrExpensive = $$(compile [||
       let ls = [False, False, False, False, False, False, False, False, False, False]
        in PlutusTx.or ls ||])
 
-compiledElemExpensive :: CompiledCode Bool
-compiledElemExpensive = $$(compile [||
-      let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
-       in PlutusTx.elem 0 ls ||])
-
+-- | @elem@ can short-circuit
 compiledElemCheap :: CompiledCode Bool
 compiledElemCheap = $$(compile [||
       let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
        in PlutusTx.elem 1 ls ||])
 
-compiledNotElemExpensive :: CompiledCode Bool
-compiledNotElemExpensive = $$(compile [||
+-- | @elem@ cannot short-circuit
+compiledElemExpensive :: CompiledCode Bool
+compiledElemExpensive = $$(compile [||
       let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
-       in PlutusTx.notElem 0 ls ||])
+       in PlutusTx.elem 0 ls ||])
 
+-- | @notElem@ can short-circuit
 compiledNotElemCheap :: CompiledCode Bool
 compiledNotElemCheap = $$(compile [||
       let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
        in PlutusTx.notElem 1 ls ||])
+
+-- | @notElem@ cannot short-circuit
+compiledNotElemExpensive :: CompiledCode Bool
+compiledNotElemExpensive = $$(compile [||
+      let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
+       in PlutusTx.notElem 0 ls ||])
 
 compiledNull :: CompiledCode Bool
 compiledNull = $$(compile [||
