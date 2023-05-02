@@ -207,7 +207,7 @@ Var into a variable, then we always convert it into the same variable, while als
 sure that if we encounter multiple things with the same name we produce fresh variables
 appropriately.
 
-Scoping in and out is realized by a Reader monad.
+We keep the scope in a `Reader` monad, so any modifications are only local.
 -}
 
 data Scope uni = Scope (Map.Map GHC.Name (PLCVar uni)) (Map.Map GHC.Name PLCTyVar)
