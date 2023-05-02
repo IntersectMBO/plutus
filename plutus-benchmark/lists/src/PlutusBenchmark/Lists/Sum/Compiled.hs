@@ -37,13 +37,13 @@ sumRightScott l = foldRightScott (+) 0 l
 -- Compiling to PLC terms
 
 mkSumLeftScottCode :: [Integer] -> Tx.CompiledCode Integer
-mkSumLeftScottCode l = $$(Tx.compile [|| sumLeftScott ||]) `Tx.unsafeApplyCode` Tx.liftCode l
+mkSumLeftScottCode l = $$(Tx.compile [|| sumLeftScott ||]) `Tx.unsafeApplyCode` Tx.liftCodeDef l
 
 mkSumLeftScottTerm  :: [Integer] -> Term
 mkSumLeftScottTerm l = compiledCodeToTerm $ mkSumLeftScottCode l
 
 mkSumRightScottCode :: [Integer] -> Tx.CompiledCode Integer
-mkSumRightScottCode l = $$(Tx.compile [|| sumRightScott ||]) `Tx.unsafeApplyCode` Tx.liftCode l
+mkSumRightScottCode l = $$(Tx.compile [|| sumRightScott ||]) `Tx.unsafeApplyCode` Tx.liftCodeDef l
 
 mkSumRightScottTerm :: [Integer] -> Term
 mkSumRightScottTerm l = compiledCodeToTerm $ mkSumRightScottCode l
@@ -69,13 +69,13 @@ sumRightBuiltin l = foldRightBuiltin B.addInteger 0 l
 -- Compiling to PLC terms
 
 mkSumRightBuiltinCode :: [Integer] -> Tx.CompiledCode Integer
-mkSumRightBuiltinCode l = $$(Tx.compile [|| sumRightBuiltin ||]) `Tx.unsafeApplyCode` Tx.liftCode (BI.BuiltinList l)
+mkSumRightBuiltinCode l = $$(Tx.compile [|| sumRightBuiltin ||]) `Tx.unsafeApplyCode` Tx.liftCodeDef (BI.BuiltinList l)
 
 mkSumRightBuiltinTerm :: [Integer] -> Term
 mkSumRightBuiltinTerm l = compiledCodeToTerm $ mkSumRightBuiltinCode l
 
 mkSumLeftBuiltinCode :: [Integer] -> Tx.CompiledCode Integer
-mkSumLeftBuiltinCode l = $$(Tx.compile [|| sumLeftBuiltin ||]) `Tx.unsafeApplyCode` Tx.liftCode (BI.BuiltinList l)
+mkSumLeftBuiltinCode l = $$(Tx.compile [|| sumLeftBuiltin ||]) `Tx.unsafeApplyCode` Tx.liftCodeDef (BI.BuiltinList l)
 
 mkSumLeftBuiltinTerm :: [Integer] -> Term
 mkSumLeftBuiltinTerm l = compiledCodeToTerm $ mkSumLeftBuiltinCode l
@@ -137,13 +137,13 @@ listToDataList l = Tx.dataToBuiltinData (go l)
     go (x:xs) = Tx.Constr 1 [Tx.I x, go xs]
 
 mkSumRightDataCode :: [Integer] -> Tx.CompiledCode Integer
-mkSumRightDataCode l = $$(Tx.compile [|| sumRightData ||]) `Tx.unsafeApplyCode` Tx.liftCode (listToDataList l)
+mkSumRightDataCode l = $$(Tx.compile [|| sumRightData ||]) `Tx.unsafeApplyCode` Tx.liftCodeDef (listToDataList l)
 
 mkSumRightDataTerm :: [Integer] -> Term
 mkSumRightDataTerm l = compiledCodeToTerm $ mkSumRightDataCode l
 
 mkSumLeftDataCode :: [Integer] -> Tx.CompiledCode Integer
-mkSumLeftDataCode l = $$(Tx.compile [|| sumLeftData ||]) `Tx.unsafeApplyCode` Tx.liftCode (listToDataList l)
+mkSumLeftDataCode l = $$(Tx.compile [|| sumLeftData ||]) `Tx.unsafeApplyCode` Tx.liftCodeDef (listToDataList l)
 
 mkSumLeftDataTerm :: [Integer] -> Term
 mkSumLeftDataTerm l = compiledCodeToTerm $ mkSumLeftDataCode l

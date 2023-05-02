@@ -34,7 +34,7 @@ quickSortWorstCase n = reverse [1..n]
 
 mkQuickSortTerm :: [Integer] -> Term
 mkQuickSortTerm l =
-    compiledCodeToTerm $ $$(Tx.compile [|| quickSort ||]) `Tx.unsafeApplyCode` Tx.liftCode l
+    compiledCodeToTerm $ $$(Tx.compile [|| quickSort ||]) `Tx.unsafeApplyCode` Tx.liftCodeDef l
 
 mkWorstCaseQuickSortTerm :: Integer -> Term
 mkWorstCaseQuickSortTerm = mkQuickSortTerm . quickSortWorstCase

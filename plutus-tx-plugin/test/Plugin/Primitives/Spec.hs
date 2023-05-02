@@ -45,21 +45,21 @@ primitives = testNested "Primitives" [
   , goldenPir "ifThenElse" ifThenElse
   , goldenUEval "ifThenElseApply" [ toUPlc ifThenElse, toUPlc int, toUPlc int2 ]
   , goldenPir "emptyByteString" emptyByteString
-  , goldenUEval "emptyByteStringApply" [ getPlcNoAnn emptyByteString, liftProgram Builtins.emptyByteString ]
+  , goldenUEval "emptyByteStringApply" [ getPlcNoAnn emptyByteString, liftProgramDef Builtins.emptyByteString ]
   , goldenPir "bytestring" bytestring
-  , goldenUEval "bytestringApply" [ getPlcNoAnn bytestring, liftProgram ("hello" ::Builtins.BuiltinByteString) ]
-  , goldenUEval "sha2_256" [ getPlcNoAnn sha2, liftProgram ("hello" :: Builtins.BuiltinByteString)]
-  , goldenUEval "equalsByteString" [ getPlcNoAnn bsEquals, liftProgram ("hello" :: Builtins.BuiltinByteString), liftProgram ("hello" :: Builtins.BuiltinByteString)]
-  , goldenUEval "ltByteString" [ getPlcNoAnn bsLt, liftProgram ("hello" :: Builtins.BuiltinByteString), liftProgram ("world" :: Builtins.BuiltinByteString)]
-  , goldenUEval "decodeUtf8" [ getPlcNoAnn bsDecode, liftProgram ("hello" :: Builtins.BuiltinByteString)]
-  , goldenUEval "lengthOfByteString" [ getPlcNoAnn bsLength, liftProgram ("hello" :: Builtins.BuiltinByteString)]
-  , goldenUEval "indexByteString" [ getPlcNoAnn bsIndex, liftProgram ("hello" :: Builtins.BuiltinByteString), liftProgram (0 :: Integer)]
-  , goldenUEval "consByteString" [ getPlcNoAnn bsCons, liftProgram (104 :: Integer), liftProgram ("ello" :: Builtins.BuiltinByteString)]
+  , goldenUEval "bytestringApply" [ getPlcNoAnn bytestring, liftProgramDef ("hello" ::Builtins.BuiltinByteString) ]
+  , goldenUEval "sha2_256" [ getPlcNoAnn sha2, liftProgramDef ("hello" :: Builtins.BuiltinByteString)]
+  , goldenUEval "equalsByteString" [ getPlcNoAnn bsEquals, liftProgramDef ("hello" :: Builtins.BuiltinByteString), liftProgramDef ("hello" :: Builtins.BuiltinByteString)]
+  , goldenUEval "ltByteString" [ getPlcNoAnn bsLt, liftProgramDef ("hello" :: Builtins.BuiltinByteString), liftProgramDef ("world" :: Builtins.BuiltinByteString)]
+  , goldenUEval "decodeUtf8" [ getPlcNoAnn bsDecode, liftProgramDef ("hello" :: Builtins.BuiltinByteString)]
+  , goldenUEval "lengthOfByteString" [ getPlcNoAnn bsLength, liftProgramDef ("hello" :: Builtins.BuiltinByteString)]
+  , goldenUEval "indexByteString" [ getPlcNoAnn bsIndex, liftProgramDef ("hello" :: Builtins.BuiltinByteString), liftProgramDef (0 :: Integer)]
+  , goldenUEval "consByteString" [ getPlcNoAnn bsCons, liftProgramDef (104 :: Integer), liftProgramDef ("ello" :: Builtins.BuiltinByteString)]
   , goldenPir "verify" verify
   , goldenPir "trace" trace
   , goldenPir "traceComplex" traceComplex
   , goldenPir "stringLiteral" stringLiteral
-  , goldenUEval "equalsString" [ getPlcNoAnn stringEquals, liftProgram ("hello" :: Builtins.BuiltinString), liftProgram ("hello" :: Builtins.BuiltinString)]
+  , goldenUEval "equalsString" [ getPlcNoAnn stringEquals, liftProgramDef ("hello" :: Builtins.BuiltinString), liftProgramDef ("hello" :: Builtins.BuiltinString)]
   , goldenPir "encodeUtf8" stringEncode
   , goldenPir "serialiseData" dataEncode
   , goldenUEval "serialiseDataApply" [ toUPlc dataEncode, toUPlc constructData1 ]

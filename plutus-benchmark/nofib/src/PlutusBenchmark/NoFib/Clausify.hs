@@ -186,7 +186,10 @@ runClausify :: StaticFormula -> [LRVars]
 runClausify = clauses . getFormula
 
 mkClausifyCode :: StaticFormula -> Tx.CompiledCode [LRVars]
-mkClausifyCode formula = $$(Tx.compile [|| runClausify ||]) `Tx.unsafeApplyCode` Tx.liftCode formula
+mkClausifyCode formula =
+  $$(Tx.compile [|| runClausify ||])
+  `Tx.unsafeApplyCode`
+  Tx.liftCodeDef formula
 
 mkClausifyTerm :: StaticFormula -> Term
 mkClausifyTerm formula = compiledCodeToTerm $ mkClausifyCode formula

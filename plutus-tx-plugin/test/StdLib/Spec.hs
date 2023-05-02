@@ -47,7 +47,7 @@ roundPlc = plc (Proxy @"roundPlc") Ratio.round
 tests :: TestNested
 tests =
   testNested "StdLib"
-    [ goldenUEval "ratioInterop" [ getPlcNoAnn roundPlc, Lift.liftProgram (Ratio.fromGHC 3.75) ]
+    [ goldenUEval "ratioInterop" [ getPlcNoAnn roundPlc, Lift.liftProgramDef (Ratio.fromGHC 3.75) ]
     , testRatioProperty "round" Ratio.round round
     , testRatioProperty "truncate" Ratio.truncate truncate
     , testRatioProperty "abs" (fmap Ratio.toGHC Ratio.abs) abs

@@ -133,6 +133,12 @@
      - Run a simplification pass that cancels unwrap/wrap pairs
 
 
+   * - ``target-version``
+     - Version
+     - 1.1.0
+     - The target Plutus Core language version
+
+
    * - ``typecheck``
      - Bool
      - True

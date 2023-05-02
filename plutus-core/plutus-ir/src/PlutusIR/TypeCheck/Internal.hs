@@ -445,7 +445,8 @@ withVarsOfBinding _ (TermBind _ _ vdecl _) k = do
     withVar (_varDeclName vdecl) (void <$> vTy) k
 withVarsOfBinding r (DatatypeBind _ dt) k = do
     -- generate all the definitions
-    (_tyconstrDef, constrDefs, destrDef) <- compileDatatypeDefs r (original dt)
+    -- options don't matter, we're just doing it for the types
+    (_tyconstrDef, constrDefs, destrDef) <- compileDatatypeDefs defaultDatatypeCompilationOpts r (original dt)
     -- ignore the generated rhs terms of constructors/destructor
     let structorDecls = PIR.defVar <$> destrDef:constrDefs
     foldr normRenameScope k structorDecls
