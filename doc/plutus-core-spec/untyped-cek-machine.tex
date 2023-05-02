@@ -136,6 +136,15 @@ state.
 [] & \return V                                    &~\mapsto~& \cekhalt{V}\\
 \inAppLeftFrame{(M,\rho)}  \cons s            & \return V  &~\mapsto~& \inAppRightFrame{V} \cons s;\rho \compute M\\
 \inAppRightFrame{\VLamAbs{x}{M}{\rho}} \cons s   & \return V  &~\mapsto~& s;\rho[x \mapsto V] \compute M\\
+\inAppLeftFrame{V} \cons s   & \return \VLamAbs{x}{M}{\rho}  &~\mapsto~& s;\rho[x \mapsto V] \compute M\\
+\inAppRightFrame{\VBuiltin{b}{\repetition{V}}{(\iota \cons \eta)}} \cons s & \return V &~\mapsto~&
+                         s \return \VBuiltin{b}{(\repetition{V} \snoc V)}{\eta} \enskip \text{if $\iota \in \Unihash \cup \Var_*$}\\
+\inAppLeftFrame{V} \cons s & \return \VBuiltin{b}{\repetition{V}}{(\iota \cons \eta)} &~\mapsto~&
+                         s \return \VBuiltin{b}{(\repetition{V} \snoc V)}{\eta} \enskip \text{if $\iota \in \Unihash \cup \Var_*$}\\
+\inAppRightFrame{\VBuiltin{b}{\repetition{V}}{[\iota]}} \cons s  & \return V &~\mapsto~&
+                         \EvalCEK\,(s, b, \repetition{V}\snoc V) \enskip \text{if $\iota \in \Unihash \cup \Var_*$}\\
+\inAppLeftFrame{V} \cons s & \return \VBuiltin{b}{\repetition{V}}{[\iota]} &~\mapsto~&
+                         \EvalCEK\,(s, b, \repetition{V}\snoc V) \enskip \text{if $\iota \in \Unihash \cup \Var_*$}\\
 \inForceFrame{} \cons s & \return \VDelay{M}{\rho}         &~\mapsto~& s;\rho \compute M\\
 \inForceFrame{} \cons s & \return \VBuiltin{b}{\repetition{V}}{(\iota \cons \eta)} &~\mapsto~&
                          s \return \VBuiltin{b}{\repetition{V}}{\eta} \enskip \text{if $\iota \in \QVar$}\\
@@ -146,11 +155,7 @@ state.
 \inConstrFrame{i}{\repetition{V}}{([], \rho)} \cons s & \return V   &~\mapsto~&
                          s \return \VConstr{i}{\repetition{V} \cons V} \\
 \inCaseFrame{(M_0 \ldots M_n, \rho)} \cons s & \return \VConstr{i}{V_0 \ldots V_m}   &~\mapsto~&
-                         \inAppLeftFrame{V_m} \cons \ldots \cons \inAppLeftFrame{V_0} \cons s ;\rho \compute M_i \enskip \text{if $i \in [0,n]$}\\
-\inAppRightFrame{\VBuiltin{b}{\repetition{V}}{(\iota \cons \eta)}} \cons s & \return V &~\mapsto~&
-                         s \return \VBuiltin{b}{(\repetition{V} \snoc V)}{\eta} \enskip \text{if $\iota \in \Unihash \cup \Var_*$}\\
-\inAppRightFrame{\VBuiltin{b}{\repetition{V}}{[\iota]}} \cons s  & \return V &~\mapsto~&
-                         \EvalCEK\,(s, b, \repetition{V}\snoc V) \enskip \text{if $\iota \in \Unihash \cup \Var_*$}
+                         \inAppLeftFrame{V_m} \cons \ldots \cons \inAppLeftFrame{V_0} \cons s ;\rho \compute M_i \enskip \text{if $i \in [0,n]$}
 \end{alignat*}
 \end{minipage}
     \caption{CEK machine transitions for Plutus Core}
