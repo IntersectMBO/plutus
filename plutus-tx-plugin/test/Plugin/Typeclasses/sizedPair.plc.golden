@@ -63,7 +63,7 @@
       )
     )
     (termbind
-      (nonstrict)
+      (strict)
       (vardecl
         fSizedTuple2
         (all
@@ -82,7 +82,23 @@
           )
         )
       )
-      csize
+      (abs
+        a
+        (type)
+        (abs
+          b
+          (type)
+          (lam
+            dSized
+            [ (lam a (type) (fun a (con integer))) a ]
+            (lam
+              dSized
+              [ (lam a (type) (fun a (con integer))) b ]
+              [ [ { { csize a } b } dSized ] dSized ]
+            )
+          )
+        )
+      )
     )
     (termbind
       (strict)

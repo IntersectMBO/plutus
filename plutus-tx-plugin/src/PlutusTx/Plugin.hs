@@ -163,7 +163,7 @@ mkSimplPass flags logger =
             , GHC.sm_uf_opts = GHC.defaultUnfoldingOpts
             , GHC.sm_dflags = flags
             , GHC.sm_rules = False
-            , GHC.sm_cast_swizzle = True
+            , GHC.sm_cast_swizzle = False
             -- See Note [GHC.sm_pre_inline]
             , GHC.sm_pre_inline = True
             , GHC.sm_logger = logger
