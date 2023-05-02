@@ -17,6 +17,7 @@ open import Data.Nat using (ℕ;suc)
 open import Data.Fin using (Fin) renaming (zero to Z; suc to S)
 open import Data.List.NonEmpty using (List⁺;_∷⁺_;[_];reverse)
 open import Data.Product using (Σ;proj₁)
+open import Relation.Binary using (DecidableEquality)
 
 open import Data.Bool using (Bool)
 open import Agda.Builtin.Int using (Int)
@@ -25,6 +26,8 @@ open import Utils using (ByteString;Maybe;DATA;Bls12-381-G1-Element;Bls12-381-G2
 import Utils as U
 open import Builtin.Signature using (Sig;sig;_⊢♯;con;`;Args) 
 import Builtin.Constant.Type ℕ (_⊢♯) as T
+
+open import Utils.Reflection using (defDec)
 ```
 
 ## Built-in functions
@@ -492,47 +495,11 @@ postulate
 -- no binding needed for appendStr
 -- no binding needed for traceStr
 
-```
-The following function is used for testing.
-For now it only works for some of the builtins, but it will be
-completed when it is replaced by one defined using reflection.
+Equality of Builtins is decidable.
+The following function is used for testing, when
+comparing expected with actual results.
 
 ```
-decBuiltin : (b b' : Builtin) → Bool
-decBuiltin addInteger addInteger = true
-decBuiltin subtractInteger subtractInteger = true
-decBuiltin multiplyInteger multiplyInteger = true
-decBuiltin divideInteger divideInteger = true
-decBuiltin quotientInteger quotientInteger = true
-decBuiltin remainderInteger remainderInteger = true
-decBuiltin modInteger modInteger = true
-decBuiltin lessThanInteger lessThanInteger = true
-decBuiltin lessThanEqualsInteger lessThanEqualsInteger = true
-decBuiltin equalsInteger equalsInteger = true
-decBuiltin appendByteString appendByteString = true
-decBuiltin sha2-256 sha2-256 = true
-decBuiltin sha3-256 sha3-256 = true
-decBuiltin verifyEd25519Signature verifyEd25519Signature = true
-decBuiltin verifyEcdsaSecp256k1Signature verifyEcdsaSecp256k1Signature = true
-decBuiltin verifySchnorrSecp256k1Signature verifySchnorrSecp256k1Signature = true
-decBuiltin equalsByteString equalsByteString = true
-decBuiltin appendString appendString = true
-decBuiltin trace trace = true
-decBuiltin bls12-381-G1-add bls12-381-G1-add = true
-decBuiltin bls12-381-G1-neg bls12-381-G1-neg = true
-decBuiltin bls12-381-G1-scalarMul bls12-381-G1-scalarMul = true
-decBuiltin bls12-381-G1-equal bls12-381-G1-equal = true
-decBuiltin bls12-381-G1-hashToGroup bls12-381-G1-hashToGroup = true
-decBuiltin bls12-381-G1-compress bls12-381-G1-compress = true
-decBuiltin bls12-381-G1-uncompress bls12-381-G1-uncompress = true
-decBuiltin bls12-381-G2-add bls12-381-G2-add = true
-decBuiltin bls12-381-G2-neg bls12-381-G2-neg = true
-decBuiltin bls12-381-G2-scalarMul bls12-381-G2-scalarMul = true
-decBuiltin bls12-381-G2-equal bls12-381-G2-equal = true
-decBuiltin bls12-381-G2-hashToGroup bls12-381-G2-hashToGroup = true
-decBuiltin bls12-381-G2-compress bls12-381-G2-compress = true
-decBuiltin bls12-381-G2-uncompress bls12-381-G2-uncompress = true
-decBuiltin bls12-381-millerLoop bls12-381-millerLoop = true
-decBuiltin bls12-381-mulMlResult bls12-381-mulMlResult = true
-decBuiltin bls12-381-finalVerify bls12-381-finalVerify = true
-decBuiltin _ _ = false
+decBuiltin : DecidableEquality Builtin
+unquoteDef decBuiltin = defDec (quote Builtin) decBuiltin
+```
