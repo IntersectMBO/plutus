@@ -26,8 +26,8 @@ main = defaultMain . testGroup "Size regression tests" $ [
       fitsInto ">=" ratGe 38,
       fitsInto "<" ratLt 38,
       fitsInto ">" ratGt 38,
-      fitsInto "max" ratMax 46,
-      fitsInto "min" ratMin 46
+      fitsInto "max" ratMax 50,
+      fitsInto "min" ratMin 50
       ],
     testGroup "Additive" [
       fitsInto "+" ratPlus 134,
@@ -57,7 +57,7 @@ main = defaultMain . testGroup "Size regression tests" $ [
       fitsInto "truncate" ratTruncate 11,
       fitsInto "properFraction" ratProperFraction 36,
       fitsInto "recip" ratRecip 87,
-      fitsInto "abs (specialized)" ratAbs 58
+      fitsInto "abs (specialized)" ratAbs 59
       ],
     testGroup "Comparison" [
       fitsUnder "negate" ("specialized", ratNegate) ("general", genNegate),

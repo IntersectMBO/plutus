@@ -95,11 +95,21 @@ isPure ver varStrictness = go
             TyAbs {} -> True
             Constant {} -> True
             IWrap _ _ _ t -> go t
+            Unwrap _ t -> go t
             -- A non-recursive `Let` is pure if all bindings are pure and the body is pure.
             -- A recursive `Let` may loop, so we consider it non-pure.
             Let _ NonRec bs t -> all isPureBinding bs && go t
+            Let _ Rec _ _ -> False
             -- A constructor is pure if all of its elements are pure
             Constr _ _ _ es -> all go es
+            -- A case will compute the case branch, which could do anything
+            Case {} -> False
+
+            -- Applications or instantiations can do work
+            Apply {} -> False
+            TyInst {} -> False
+            -- Error is obviously not pure
+            Error {} -> False
 
             x | Just bapp@(BuiltinApp _ args) <- asBuiltinApp x ->
                 -- Pure only if we can tell that the builtin application is not saturated
@@ -109,7 +119,9 @@ isPure ver varStrictness = go
                 -- when we evaluate the application.
                 all (\case { TermArg arg -> go arg; TypeArg _ -> True }) args
 
-            _ -> False
+            -- Pure builtin applications are handled above, this is just a fall through
+            -- for completeness
+            Builtin {} -> False
 
         isPureBinding = \case
             TermBind _ Strict _ rhs -> go rhs

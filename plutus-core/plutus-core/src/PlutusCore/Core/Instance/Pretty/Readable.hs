@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 -- | A "readable" Agda-like way to pretty-print PLC entities.
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
@@ -88,7 +87,9 @@ instance
         LamAbs _ name ty body  ->
             compoundDocM binderFixity $ \prettyIn ->
                 let prettyBot x = prettyIn ToTheRight botFixity x
-                in "\\" <> parens (prettyBot name <+> ":" <+> prettyBot ty) <+> "->" <+> prettyBot body
+                in
+                    "\\" <>
+                        parens (prettyBot name <+> ":" <+> prettyBot ty) <+> "->" <+> prettyBot body
         Unwrap _ term          ->
             sequenceDocM ToTheRight juxtFixity $ \prettyEl ->
                 "unwrap" <+> prettyEl term
