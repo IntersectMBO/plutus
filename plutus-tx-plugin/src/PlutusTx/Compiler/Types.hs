@@ -31,7 +31,6 @@ import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.Writer
 
-import Data.List.NonEmpty qualified as NE
 import Data.Map qualified as Map
 import Data.Set (Set)
 import Data.Set qualified as Set
@@ -53,7 +52,7 @@ data CompileContext uni fun = CompileContext {
     ccFlags            :: GHC.DynFlags,
     ccFamInstEnvs      :: GHC.FamInstEnvs,
     ccNameInfo         :: NameInfo,
-    ccScopes           :: ScopeStack uni,
+    ccScope            :: Scope uni,
     ccBlackholed       :: Set.Set GHC.Name,
     ccCurDef           :: Maybe LexName,
     ccModBreaks        :: Maybe GHC.ModBreaks,
@@ -208,14 +207,13 @@ Var into a variable, then we always convert it into the same variable, while als
 sure that if we encounter multiple things with the same name we produce fresh variables
 appropriately.
 
-So we have the usual mechanism of carrying around a stack of scopes.
+Scoping in and out is realized by a Reader monad.
 -}
 
 data Scope uni = Scope (Map.Map GHC.Name (PLCVar uni)) (Map.Map GHC.Name PLCTyVar)
-type ScopeStack uni = NE.NonEmpty (Scope uni)
 
-initialScopeStack :: ScopeStack uni
-initialScopeStack = pure $ Scope Map.empty Map.empty
+initialScope :: Scope uni
+initialScope = Scope Map.empty Map.empty
 
 withCurDef :: Compiling uni fun m ann => LexName -> m a -> m a
 withCurDef name = local (\cc -> cc {ccCurDef=Just name})
