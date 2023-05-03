@@ -59,7 +59,6 @@ import Control.Monad.Reader (ask, asks)
 import Data.Array qualified as Array
 import Data.ByteString qualified as BS
 import Data.List (elemIndex)
-import Data.List.NonEmpty qualified as NE
 import Data.Map qualified as Map
 import Data.Set qualified as Set
 import Data.Text qualified as T
@@ -640,7 +639,7 @@ compileExpr
     => GHC.CoreExpr -> m (PIRTerm uni fun)
 compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $ do
     -- See Note [Scopes]
-    CompileContext {ccScopes=stack,ccNameInfo=nameInfo,ccModBreaks=maybeModBreaks, ccBuiltinVer=ver} <- ask
+    CompileContext {ccScope=scope,ccNameInfo=nameInfo,ccModBreaks=maybeModBreaks, ccBuiltinVer=ver} <- ask
 
     -- TODO: Maybe share this to avoid repeated lookups. Probably cheap, though.
     (stringTyName, sbsName) <- case (Map.lookup ''Builtins.BuiltinString nameInfo, Map.lookup 'Builtins.stringToBuiltinString nameInfo) of
@@ -651,7 +650,6 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
         (Just t1, Just t2) -> pure (GHC.getName t1, GHC.getName t2)
         _                  -> throwPlain $ CompilationError "No info for ByteString builtin"
 
-    let top = NE.head stack
     case e of
         -- See Note [String literals]
         -- IsString has only one method, so it's enough to know that it's an IsString method to know we're looking at fromString
@@ -712,7 +710,7 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
         GHC.Var n | isProbablyBytestringEq n -> throwPlain $ UnsupportedError "Use of Haskell ByteString equality, possibly via the Haskell Eq typeclass"
 
         -- locally bound vars
-        GHC.Var (lookupName top . GHC.getName -> Just var) -> pure $ PIR.mkVar annMayInline var
+        GHC.Var (lookupName scope . GHC.getName -> Just var) -> pure $ PIR.mkVar annMayInline var
 
         -- Special kinds of id
         GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) -> compileDataConRef dc
