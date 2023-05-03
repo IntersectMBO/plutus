@@ -171,7 +171,7 @@ instance ( Pretty ann
 
 instance
         ( Pretty term
-        , Pretty (SomeTypeIn uni)
+        , PrettyParens (SomeTypeIn uni)
         , Closed uni, uni `Everywhere` PrettyConst
         , Pretty fun
         , Pretty ann
@@ -220,7 +220,7 @@ instance
         ]
 
 instance
-        ( Pretty (SomeTypeIn uni)
+        ( PrettyParens (SomeTypeIn uni)
         , Closed uni, uni `Everywhere` PrettyConst
         , Pretty fun
         , Pretty ann

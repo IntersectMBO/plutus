@@ -40,7 +40,7 @@ instance (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun) =>
         toUPlc v'
 
 goldenPir
-    :: (PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, uni `PLC.Everywhere` Flat, Pretty (PLC.SomeTypeIn uni), Pretty fun, Flat fun)
+    :: (PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, uni `PLC.Everywhere` Flat, PrettyParens (PLC.SomeTypeIn uni), Pretty fun, Flat fun)
     => String -> CompiledCodeIn uni fun a -> TestNested
 goldenPir name value = nestedGoldenVsDoc name ".pir" $ pretty $ getPirNoAnn value
 

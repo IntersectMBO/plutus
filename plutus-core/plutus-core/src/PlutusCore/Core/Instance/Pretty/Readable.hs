@@ -46,7 +46,7 @@ instance PrettyBy (PrettyConfigReadable configName) (Kind a) where
 
 instance
         ( PrettyReadableBy configName tyname
-        , Pretty (SomeTypeIn uni)
+        , PrettyParens (SomeTypeIn uni)
         ) => PrettyBy (PrettyConfigReadable configName) (Type tyname uni a) where
     prettyBy = inContextM $ \case
         TyApp _ fun arg           -> fun `juxtPrettyM` arg
@@ -58,7 +58,7 @@ instance
         TyForall _ name kind body ->
             typeBinderDocM $ \prettyBinding prettyBody ->
                 "all" <+> prettyBinding name kind <> "." <+> prettyBody body
-        TyBuiltin _ builtin       -> unitDocM $ pretty builtin
+        TyBuiltin _ builtin       -> lmap _pcrRenderContext $ prettyM builtin
         TyLam _ name kind body    ->
             typeBinderDocM $ \prettyBinding prettyBody ->
                 "\\" <> prettyBinding name kind <+> "->" <+> prettyBody body
@@ -69,7 +69,7 @@ instance
 instance
         ( PrettyReadableBy configName tyname
         , PrettyReadableBy configName name
-        , Pretty (SomeTypeIn uni)
+        , PrettyParens (SomeTypeIn uni)
         , Closed uni, uni `Everywhere` PrettyConst
         , Pretty fun
         ) => PrettyBy (PrettyConfigReadable configName) (Term tyname name uni fun a) where
