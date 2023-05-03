@@ -52,7 +52,6 @@ trueOrError :: CompiledCode Bool
 trueOrError = $$(compile [|| c True (P.error () :: Bool) ||])
   where
     c x _ = x
-    dead = c
 
 trueOrErrorOpaque :: CompiledCode Bool
 trueOrErrorOpaque = $$(compile [|| P.const True (P.error () :: Bool) ||])
