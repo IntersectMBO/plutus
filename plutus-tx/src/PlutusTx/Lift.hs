@@ -34,7 +34,7 @@ import PlutusIR.MkPir qualified as PIR
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Compiler qualified as PLC
-import PlutusCore.Pretty (PrettyConst, PrettyParens)
+import PlutusCore.Pretty
 import PlutusCore.Quote
 import PlutusCore.StdLib.Data.Function qualified as PLC
 import PlutusCore.Version qualified as PLC
@@ -48,19 +48,9 @@ import Control.Monad.Reader hiding (lift)
 import Data.Bifunctor
 import Data.Default.Class
 import Data.Proxy
-import Data.Typeable qualified as GHC
-import Prettyprinter
 
 -- We do not use qualified import because the whole module contains off-chain code
 import Prelude as Haskell
-
-type PrettyPrintable uni fun = (PrettyParens (PLC.SomeTypeIn uni), PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, Pretty fun)
-
-type Throwable uni fun =
-    ( PrettyParens (PLC.SomeTypeIn uni)
-    , PLC.GEq uni, PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, GHC.Typeable uni
-    , Pretty fun, GHC.Typeable fun
-    )
 
 -- | Get a Plutus Core term corresponding to the given value.
 safeLift
@@ -70,7 +60,7 @@ safeLift
        , PLC.AsFreeVariableError e
        , AsError e uni fun (Provenance ()), MonadError e m, MonadQuote m
        , PLC.Typecheckable uni fun
-       , PrettyPrintable uni fun
+       , PrettyUni uni, Pretty fun
        , Default (PLC.CostingPart uni fun)
        )
     => PLC.Version -> a -> m (PIR.Term PLC.TyName PLC.Name uni fun (), UPLC.Term UPLC.NamedDeBruijn uni fun ())
@@ -98,7 +88,7 @@ safeLiftProgram
        , PLC.AsFreeVariableError e
        , AsError e uni fun (Provenance ()), MonadError e m, MonadQuote m
        , PLC.Typecheckable uni fun
-       , PrettyPrintable uni fun
+       , PrettyUni uni, Pretty fun
        , Default (PLC.CostingPart uni fun)
        )
     => PLC.Version -> a -> m (PIR.Program PLC.TyName PLC.Name uni fun (), UPLC.Program UPLC.NamedDeBruijn uni fun ())
@@ -111,7 +101,7 @@ safeLiftCode
        , PLC.AsFreeVariableError e
        , AsError e uni fun (Provenance ()), MonadError e m, MonadQuote m
        , PLC.Typecheckable uni fun
-       , PrettyPrintable uni fun
+       , PrettyUni uni, Pretty fun
        , Default (PLC.CostingPart uni fun)
        )
     => PLC.Version -> a -> m (CompiledCodeIn uni fun a)
@@ -123,7 +113,7 @@ safeLiftCode v =
         . safeLiftProgram v
 
 unsafely
-    :: Throwable uni fun
+    :: ThrowableBuiltins uni fun
     => ExceptT (Error uni fun (Provenance ())) Quote a -> a
 unsafely ma = runQuote $ do
     run <- runExceptT ma
@@ -133,13 +123,17 @@ unsafely ma = runQuote $ do
 
 -- | Get a Plutus Core term corresponding to the given value, throwing any errors that occur as exceptions and ignoring fresh names.
 lift
-    :: (Lift.Lift uni a, Throwable uni fun, PLC.Typecheckable uni fun, Default (PLC.CostingPart uni fun))
+    :: ( Lift.Lift uni a, ThrowableBuiltins uni fun, PLC.Typecheckable uni fun, PLC.GEq uni
+       , Default (PLC.CostingPart uni fun)
+       )
     => PLC.Version -> a -> (PIR.Term PLC.TyName PLC.Name uni fun (), UPLC.Term UPLC.NamedDeBruijn uni fun ())
 lift v a = unsafely $ safeLift v a
 
 -- | Get a Plutus Core program corresponding to the given value, throwing any errors that occur as exceptions and ignoring fresh names.
 liftProgram
-    :: (Lift.Lift uni a, Throwable uni fun, PLC.Typecheckable uni fun, Default (PLC.CostingPart uni fun))
+    :: ( Lift.Lift uni a, ThrowableBuiltins uni fun, PLC.Typecheckable uni fun, PLC.GEq uni
+       , Default (PLC.CostingPart uni fun)
+       )
     => PLC.Version -> a -> (PIR.Program PLC.TyName PLC.Name uni fun (), UPLC.Program UPLC.NamedDeBruijn uni fun ())
 liftProgram v x = unsafely $ safeLiftProgram v x
 
@@ -151,13 +145,17 @@ liftProgramDef = liftProgram PLC.latestVersion
 
 -- | Get a Plutus Core program corresponding to the given value as a 'CompiledCodeIn', throwing any errors that occur as exceptions and ignoring fresh names.
 liftCode
-    :: (Lift.Lift uni a, Throwable uni fun, PLC.Typecheckable uni fun, Default (PLC.CostingPart uni fun))
+    :: ( Lift.Lift uni a, PLC.GEq uni, ThrowableBuiltins uni fun, PLC.Typecheckable uni fun
+       , Default (PLC.CostingPart uni fun)
+       )
     => PLC.Version -> a -> CompiledCodeIn uni fun a
 liftCode v x = unsafely $ safeLiftCode v x
 
 -- | Get a Plutus Core program with the default version, corresponding to the given value as a 'CompiledCodeIn', throwing any errors that occur as exceptions and ignoring fresh names.
 liftCodeDef
-    :: (Lift.Lift uni a, Throwable uni fun, PLC.Typecheckable uni fun, Default (PLC.CostingPart uni fun))
+    :: ( Lift.Lift uni a, PLC.GEq uni, ThrowableBuiltins uni fun, PLC.Typecheckable uni fun
+       , Default (PLC.CostingPart uni fun)
+       )
     => a -> CompiledCodeIn uni fun a
 liftCodeDef = liftCode PLC.latestVersion
 
@@ -183,7 +181,7 @@ typeCheckAgainst
        , MonadError e m, MonadQuote m
        , PLC.GEq uni
        , PLC.Typecheckable uni fun
-       , PrettyPrintable uni fun
+       , PrettyUni uni, Pretty fun
        , Default (PLC.CostingPart uni fun)
        )
     => Proxy a
@@ -225,7 +223,7 @@ typeCode
        , MonadError e m, MonadQuote m
        , PLC.GEq uni
        , PLC.Typecheckable uni fun
-       , PrettyPrintable uni fun
+       , PrettyUni uni, Pretty fun
        , Default (PLC.CostingPart uni fun)
        )
     => Proxy a

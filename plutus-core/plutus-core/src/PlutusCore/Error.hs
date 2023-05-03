@@ -169,13 +169,8 @@ instance ( Pretty ann
         ". Term" <+> squotes (prettyBy config t) <+>
         "is not a" <+> pretty expct <> "."
 
-instance
-        ( Pretty term
-        , PrettyParens (SomeTypeIn uni)
-        , Closed uni, uni `Everywhere` PrettyConst
-        , Pretty fun
-        , Pretty ann
-        ) => PrettyBy PrettyConfigPlc (TypeError term uni fun ann) where
+instance (Pretty term, PrettyUni uni, Pretty fun, Pretty ann) =>
+        PrettyBy PrettyConfigPlc (TypeError term uni fun ann) where
     prettyBy config (KindMismatch ann ty k k')          =
         "Kind mismatch at" <+> pretty ann <+>
         "in type" <+> squotes (prettyBy config ty) <>
@@ -219,12 +214,8 @@ instance
         , "is attempted to be referenced"
         ]
 
-instance
-        ( PrettyParens (SomeTypeIn uni)
-        , Closed uni, uni `Everywhere` PrettyConst
-        , Pretty fun
-        , Pretty ann
-        ) => PrettyBy PrettyConfigPlc (Error uni fun ann) where
+instance (PrettyUni uni, Pretty fun, Pretty ann) =>
+        PrettyBy PrettyConfigPlc (Error uni fun ann) where
     prettyBy _      (ParseErrorE e)           = pretty e
     prettyBy _      (UniqueCoherencyErrorE e) = pretty e
     prettyBy config (TypeErrorE e)            = prettyBy config e
