@@ -1,5 +1,6 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections     #-}
 {-# LANGUAGE TypeApplications  #-}
 
 -- | This module defines the type shrinker. The shrinking order isn't specified, so the shrinker
@@ -23,6 +24,7 @@ import PlutusCore.Subst
 import Data.Map.Strict qualified as Map
 import Data.Set.Lens (setOf)
 import GHC.Stack
+import Test.QuickCheck.Arbitrary
 
 {- Note [Avoiding Shrinking Loops]
 
@@ -148,14 +150,15 @@ shrinkKindAndType ctx (k0, ty) =
         ]
     -- Functions shrink to either side of the arrow and both sides
     -- of the arrow shrink independently.
-    TyFun _ a b -> concat
-        [ [ (k0, a), (k0, b)
+    TyFun _ a b -> map (Type (), ) $ concat
+        [ [ a
+          , b
           ]
-        , [ (k0, TyFun () a' b)
-          | (_, a') <- shrinkKindAndType ctx (k0, a)
+        , [ TyFun () a' b
+          | a' <- shrinkType ctx a
           ]
-        , [ (k0, TyFun () a b')
-          | (_, b') <- shrinkKindAndType ctx (k0, b)
+        , [ TyFun () a b'
+          | b' <- shrinkType ctx b
           ]
         ]
     -- This case needs to be handled with a bit of care. First we shrink applications by
@@ -218,40 +221,45 @@ shrinkKindAndType ctx (k0, ty) =
               KindArrow _ _ k' -> k'
               _                ->
                   error $ "Internal error: " ++ display k0 ++ " is not a 'KindArrow'"
-    TyForall _ x ka b -> concat
+    TyForall _ x ka b -> map (Type (), ) $ concat
         [ -- We can simply get rid of the binding by instantiating the variable.
-          [ (k0, typeSubstClosedType x (minimalType ka) b)
+          [ typeSubstClosedType x (minimalType ka) b
           ]
         , -- We can always just shrink the bound variable to a smaller kind and ignore it
           -- Similarly to 'TyLam', we could've used 'fixKind' here, but we don't do it for the same
           -- reason.
-          [ (k0, TyForall () x ka' $ typeSubstClosedType x (minimalType ka) b)
+          [ TyForall () x ka' $ typeSubstClosedType x (minimalType ka) b
           | ka' <- shrink ka
           ]
-        , [ (k0, TyForall () x ka b')
+        , [ TyForall () x ka b'
             -- or we shrink the body.
-          | (_, b') <- shrinkKindAndType (Map.insert x ka ctx) (Type (), b)
+          | b' <- shrinkType (Map.insert x ka ctx) b
           ]
         ]
     TyBuiltin _ builtin ->
         [ (kindOfBuiltinType uni', TyBuiltin () $ SomeTypeIn uni')
         | SomeTypeIn uni' <- shrinkBuiltinType builtin
         ]
-    TyIFix _ pat arg  -> concat
-        [ [ (Type (), fixKind ctx pat $ Type ()), (Type (), fixKind ctx arg $ Type ())
+    TyIFix _ pat arg  -> map (Type (), ) $ concat
+        [ [ fixKind ctx pat $ Type ()
+          , fixKind ctx arg $ Type ()
           ]
-        , [ (Type (), TyIFix () pat' (fixKind ctx arg kArg'))
+        , [ TyIFix () pat' (fixKind ctx arg kArg')
           | (kPat', pat') <- shrinkKindAndType ctx (toPatFuncKind kArg, pat),
             Just kArg' <- [fromPatFuncKind kPat']
           ]
-        , [ (Type (), TyIFix () (fixKind ctx pat $ toPatFuncKind kArg') arg')
+        , [ TyIFix () (fixKind ctx pat $ toPatFuncKind kArg') arg'
           | (kArg', arg') <- shrinkKindAndType ctx (kArg, arg)
           ]
         ]
       where
         kArg = unsafeInferKind ctx arg
-    -- TODO: shrink the list rather than going to empty list?
-    TySOP  _ _tyls       -> [ (Type (), TySOP () []) ]
+    TySOP  _ tyls -> map (Type (), ) $ concat
+        [ -- Shrink to any type within the SOP.
+          concat tyls
+        , -- Shrink either the entire sum or a product within it or a type within a product.
+          TySOP () <$> shrinkList (shrinkList $ shrinkType ctx) tyls
+        ]
 
 -- | Shrink a type in a context assuming that it is of kind *.
 shrinkType :: HasCallStack
