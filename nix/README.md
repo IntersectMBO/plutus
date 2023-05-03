@@ -75,7 +75,7 @@ While these blocks are not exposed directly to the flake (they are not "harveste
 `nix (develop|build|run) .#<system>.<cell>.<cell-block>.<valid.attr.path>` 
 
 For example:
-`nix build .#x86_64-linux.plutus.library.plutus-project-925.hsPkgs.plutus-core.components.exes.uplc`
+`nix build .#x86_64-linux.plutus.library.plutus-project.hsPkgs.plutus-core.components.exes.uplc`
 
 ## Reference example
 
