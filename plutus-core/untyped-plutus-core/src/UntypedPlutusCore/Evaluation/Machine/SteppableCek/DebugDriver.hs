@@ -82,8 +82,8 @@ data DebugF uni fun ann bps a
 
 -- | The monad that the driver operates in
 type Driving m uni fun ann bps =
-    ( MonadReader (CekState uni fun ann) m -- ^ the state of the debugger
-    , MonadFree (DebugF uni fun ann bps) m -- ^ the effects of the driver
+    ( MonadReader (CekState uni fun ann) m -- the state of the debugger
+    , MonadFree (DebugF uni fun ann bps) m -- the effects of the driver
     , Breakpointable ann bps
     )
 
