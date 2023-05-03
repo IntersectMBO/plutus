@@ -150,6 +150,16 @@ But so far we haven't had an issue like this.
 We should also make the error message better in cases like this. The current error message is
 "Unsupported feature: Type constructor: GHC.Prim.Char#", resulting from attempting to inline
 and compile `stringToBuiltinString`.
+
+Note also, this `sm_pre_inline` pass doesn't include some of the inlining GHC does before the
+plugin.
+The GHC desugarer generates a large number of intermediate definitions and general clutter that
+should be removed quickly. So GHC's "simple optimiser" (GHC.Core.SimpleOpt) also inlines things with
+single occurrences. This is why the NOINLINE pragma is needed to avoid inlining of bindings that
+have single occurrence.
+None of -fmax-simplifier-iterations=0  -fforce-recomp -O0 would prevent it,
+nor will turning off `sm_pre_inline`.
+See https://gitlab.haskell.org/ghc/ghc/-/issues/23337.
 -}
 
 -- | A simplifier pass, implemented by GHC
