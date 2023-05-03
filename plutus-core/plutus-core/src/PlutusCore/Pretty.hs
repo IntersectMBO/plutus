@@ -63,6 +63,9 @@ module PlutusCore.Pretty
     , prettyBytes
     , ConstConfig (..)
     , PrettyConst
+    , PrettyUni
+    , ThrowableBuiltins
+    , ThrowableParameters
     , prettyConst
     , displayConst
     , module Export
@@ -79,5 +82,4 @@ import PlutusCore.Pretty.Utils
 
 import Text.Pretty
 import Text.PrettyBy
-
 import Text.PrettyBy.Fixity as Export

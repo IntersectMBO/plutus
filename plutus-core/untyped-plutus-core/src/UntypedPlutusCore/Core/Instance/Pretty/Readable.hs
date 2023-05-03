@@ -20,12 +20,9 @@ import PlutusCore.Pretty.Readable (Direction (ToTheRight), PrettyConfigReadable,
                                    juxtPrettyM, prettyM, sequenceDocM, unitDocM)
 
 import Prettyprinter
-import Universe
 
-instance
-        ( PrettyReadableBy configName name
-        , Closed uni, uni `Everywhere` PrettyConst, Pretty fun
-        ) => PrettyBy (PrettyConfigReadable configName) (Term name uni fun a) where
+instance (PrettyReadableBy configName name, PrettyUni uni, Pretty fun) =>
+        PrettyBy (PrettyConfigReadable configName) (Term name uni fun a) where
     prettyBy = inContextM $ \case
         Constant _ val -> unitDocM $ pretty val
         Builtin _ bi -> unitDocM $ pretty bi

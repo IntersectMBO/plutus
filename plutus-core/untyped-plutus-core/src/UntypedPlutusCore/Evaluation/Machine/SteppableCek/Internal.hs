@@ -104,7 +104,7 @@ data Context uni fun ann
 
 computeCek
     :: forall uni fun ann s
-    . (PrettyUni uni fun, GivenCekReqs uni fun ann s)
+    . (ThrowableBuiltins uni fun, GivenCekReqs uni fun ann s)
     => Context uni fun ann
     -> CekValEnv uni fun ann
     -> NTerm uni fun ann
@@ -155,7 +155,7 @@ computeCek !_ !_ (Error _) =
 
 returnCek
     :: forall uni fun ann s
-    . (PrettyUni uni fun, GivenCekReqs uni fun ann s)
+    . (ThrowableBuiltins uni fun, GivenCekReqs uni fun ann s)
     => Context uni fun ann
     -> CekValue uni fun ann
     -> CekM uni fun s (CekState uni fun ann)
@@ -199,7 +199,7 @@ returnCek (FrameCases ann env cs ctx) e = case e of
 -- if v is anything else, fail.
 forceEvaluate
     :: forall uni fun ann s
-    . (PrettyUni uni fun, GivenCekReqs uni fun ann s)
+    . (ThrowableBuiltins uni fun, GivenCekReqs uni fun ann s)
     => Context uni fun ann
     -> CekValue uni fun ann
     -> CekM uni fun s (CekState uni fun ann)
@@ -231,7 +231,7 @@ forceEvaluate !_ val =
 -- If v is anything else, fail.
 applyEvaluate
     :: forall uni fun ann s
-    . (PrettyUni uni fun, GivenCekReqs uni fun ann s)
+    . (ThrowableBuiltins uni fun, GivenCekReqs uni fun ann s)
     => Context uni fun ann
     -> CekValue uni fun ann   -- lhs of application
     -> CekValue uni fun ann   -- rhs of application
@@ -258,7 +258,7 @@ applyEvaluate !_ val _ =
 
 -- MAYBE: runCekDeBruijn can be shared between original&debug ceks by passing a `enterComputeCek` func.
 runCekDeBruijn
-    :: (PrettyUni uni fun)
+    :: ThrowableBuiltins uni fun
     => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun
@@ -273,7 +273,7 @@ runCekDeBruijn params mode emitMode term =
 -- | The entering point to the CEK machine's engine.
 enterComputeCek
     :: forall uni fun ann s
-    . (PrettyUni uni fun, GivenCekReqs uni fun ann s)
+    . (ThrowableBuiltins uni fun, GivenCekReqs uni fun ann s)
     => Context uni fun ann
     -> CekValEnv uni fun ann
     -> NTerm uni fun ann
@@ -301,7 +301,7 @@ type CekTrans uni fun ann s = Trans (CekM uni fun s) (CekState uni fun ann)
 
 -- | The state transition function of the machine.
 cekTrans :: forall uni fun ann s
-           . (PrettyUni uni fun, GivenCekReqs uni fun ann s)
+           . (ThrowableBuiltins uni fun, GivenCekReqs uni fun ann s)
            => CekTrans uni fun ann s
 cekTrans = \case
     Starting term          -> pure $ Computing NoFrame Env.empty term
@@ -314,7 +314,7 @@ cekTrans = \case
 -- Returns the constructed transition function paired with the methods to live access the running budget.
 mkCekTrans
     :: forall cost uni fun ann m s
-    . ( PrettyUni uni fun
+    . ( ThrowableBuiltins uni fun
       , PrimMonad m, s ~ PrimState m) -- the outer monad that initializes the transition function
     => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> ExBudgetMode cost uni fun
@@ -403,7 +403,7 @@ cekStepCost costs = \case
 -- | Call 'dischargeCekValue' over the received 'CekVal' and feed the resulting 'Term' to
 -- 'throwingWithCause' as the cause of the failure.
 throwingDischarged
-    :: PrettyUni uni fun
+    :: ThrowableBuiltins uni fun
     => AReview (EvaluationError CekUserError (MachineError fun)) t
     -> t
     -> CekValue uni fun ann
@@ -411,7 +411,10 @@ throwingDischarged
 throwingDischarged l t = throwingWithCause l t . Just . dischargeCekValue
 
 -- | Look up a variable name in the environment.
-lookupVarName :: forall uni fun ann s . (PrettyUni uni fun) => NamedDeBruijn -> CekValEnv uni fun ann -> CekM uni fun s (CekValue uni fun ann)
+lookupVarName
+    :: forall uni fun ann s .
+       ThrowableBuiltins uni fun
+    => NamedDeBruijn -> CekValEnv uni fun ann -> CekM uni fun s (CekValue uni fun ann)
 lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
     case varEnv `Env.indexOne` coerce varIx of
         Nothing  -> throwingWithCause _MachineError OpenTermEvaluatedMachineError $ Just var where
@@ -422,7 +425,7 @@ lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
 -- 'makeKnown' or a partial builtin application depending on whether the built-in function is
 -- fully saturated or not.
 evalBuiltinApp
-    :: (GivenCekReqs uni fun ann s, PrettyUni uni fun)
+    :: (GivenCekReqs uni fun ann s, ThrowableBuiltins uni fun)
     => fun
     -> NTerm uni fun ()
     -> BuiltinRuntime (CekValue uni fun ann)
