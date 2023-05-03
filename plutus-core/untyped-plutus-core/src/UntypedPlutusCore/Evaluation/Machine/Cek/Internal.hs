@@ -549,8 +549,8 @@ data Context uni fun ann
     -- ^ @[V _]@
     | FrameAwaitFun !(CekValEnv uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann)
     -- ^ @[_ N]@
-    | FrameAwaitFunValues ![CekValue uni fun ann] !(Context uni fun ann)
-    -- ^ @[_ V0...Vn]@
+    | FrameAwaitFunValue !(CekValue uni fun ann) !(Context uni fun ann)
+    -- ^ @[_ V]@
     | FrameForce !(Context uni fun ann)
     -- ^ @(force _)@
     -- See Note [Accumulators for terms]
@@ -740,10 +740,9 @@ enterComputeCek = computeCek
     -- FIXME: add rule for VBuiltin once it's in the specification.
     returnCek (FrameAwaitArg fun ctx) arg =
         applyEvaluate ctx fun arg
-    -- s , [_ V1 .. Vn] ◅ lam x (M,ρ)  ↦  s , [_ V2 .. Vn]; ρ [ x  ↦  V1 ] ▻ M
-    returnCek (FrameAwaitFunValues args ctx) fun = case args of
-        (arg:rest) -> applyEvaluate (FrameAwaitFunValues rest ctx) fun arg
-        _          -> returnCek ctx fun
+    -- s , [_ V] ◅ lam x (M,ρ)  ↦  s ; ρ [ x  ↦  V ] ▻ M
+    returnCek (FrameAwaitFunValue arg ctx) fun =
+        applyEvaluate ctx fun arg
     -- s , constr I V0 ... Vj-1 _ (Tj+1 ... Tn, ρ) ◅ Vj  ↦  s , constr i V0 ... Vj _ (Tj+2... Tn, ρ)  ; ρ ▻ Tj+1
     returnCek (FrameConstr env i todo done ctx) e = do
         let done' = done `DList.snoc` e
@@ -753,7 +752,9 @@ enterComputeCek = computeCek
     -- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci
     returnCek (FrameCases env cs ctx) e = case e of
         (VConstr i args) -> case cs ^? wix i of
-            Just t  -> computeCek (FrameAwaitFunValues args ctx) env t
+            Just t  ->
+              let ctx' = foldr (\arg c -> FrameAwaitFunValue arg c) ctx args
+              in computeCek ctx' env t
             Nothing -> throwingDischarged _MachineError (MissingCaseBranch i) e
         _ -> throwingDischarged _MachineError NonConstrScrutinized e
 
