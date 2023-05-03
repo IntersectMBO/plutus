@@ -58,20 +58,20 @@ goldenVsDocM :: TestName -> FilePath -> IO (Doc ann) -> TestTree
 goldenVsDocM name ref val = goldenVsTextM name ref $ render <$> val
 
 -- | Check the contents of a file under a name prefix against a 'Text'.
-nestedGoldenVsText :: TestName -> Text -> TestNested
-nestedGoldenVsText name = nestedGoldenVsTextM name . pure
+nestedGoldenVsText :: TestName -> FilePath -> Text -> TestNested
+nestedGoldenVsText name ext = nestedGoldenVsTextM name ext . pure
 
 -- | Check the contents of a file under a name prefix against a 'Text'.
-nestedGoldenVsTextM :: TestName -> IO Text -> TestNested
-nestedGoldenVsTextM name text = do
+nestedGoldenVsTextM :: TestName -> FilePath -> IO Text -> TestNested
+nestedGoldenVsTextM name ext text = do
     path <- ask
     -- TODO: make more generic
-    return $ goldenVsTextM name (foldr (</>) (name ++ ".plc.golden") path) text
+    return $ goldenVsTextM name (foldr (</>) (name ++ ext ++ ".golden") path) text
 
 -- | Check the contents of a file under a name prefix against a 'Text'.
-nestedGoldenVsDoc :: TestName -> Doc ann -> TestNested
-nestedGoldenVsDoc name = nestedGoldenVsDocM name . pure
+nestedGoldenVsDoc :: TestName -> FilePath -> Doc ann -> TestNested
+nestedGoldenVsDoc name ext = nestedGoldenVsDocM name ext . pure
 
 -- | Check the contents of a file under a name prefix against a 'Text'.
-nestedGoldenVsDocM :: TestName -> IO (Doc ann) -> TestNested
-nestedGoldenVsDocM name val = nestedGoldenVsTextM name $ render <$> val
+nestedGoldenVsDocM :: TestName -> FilePath -> IO (Doc ann) -> TestNested
+nestedGoldenVsDocM name ext val = nestedGoldenVsTextM name ext $ render <$> val

@@ -204,56 +204,56 @@ ppThrow value = rethrow $ prettyPlcClassicDebug <$> value
 goldenTPlc
     :: ToTPlc a TPLC.DefaultUni TPLC.DefaultFun
     => String -> a -> TestNested
-goldenTPlc name value = nestedGoldenVsDocM name $ ppThrow $ do
+goldenTPlc name value = nestedGoldenVsDocM name ".tplc" $ ppThrow $ do
     p <- toTPlc value
     withExceptT @_ @FreeVariableError toException $ traverseOf TPLC.progTerm deBruijnTerm p
 
 goldenTPlcCatch
     :: ToTPlc a TPLC.DefaultUni TPLC.DefaultFun
     => String -> a -> TestNested
-goldenTPlcCatch name value = nestedGoldenVsDocM name $ ppCatch $ do
+goldenTPlcCatch name value = nestedGoldenVsDocM name ".tplc-catch" $ ppCatch $ do
     p <- toTPlc value
     withExceptT @_ @FreeVariableError toException $ traverseOf TPLC.progTerm deBruijnTerm p
 
 goldenUPlc
     :: ToUPlc a TPLC.DefaultUni TPLC.DefaultFun
      => String -> a -> TestNested
-goldenUPlc name value = nestedGoldenVsDocM name $ ppThrow $ do
+goldenUPlc name value = nestedGoldenVsDocM name ".uplc" $ ppThrow $ do
     p <- toUPlc value
     withExceptT @_ @FreeVariableError toException $ traverseOf UPLC.progTerm UPLC.deBruijnTerm p
 
 goldenUPlcCatch
     :: ToUPlc a TPLC.DefaultUni TPLC.DefaultFun
     => String -> a -> TestNested
-goldenUPlcCatch name value = nestedGoldenVsDocM name $ ppCatch $ do
+goldenUPlcCatch name value = nestedGoldenVsDocM name ".uplc-catch" $ ppCatch $ do
     p <- toUPlc value
     withExceptT @_ @FreeVariableError toException $ traverseOf UPLC.progTerm UPLC.deBruijnTerm p
 
 goldenTEval
     :: ToTPlc a TPLC.DefaultUni TPLC.DefaultFun
     => String -> [a] -> TestNested
-goldenTEval name values = nestedGoldenVsDocM name $ prettyPlcClassicDebug <$> (rethrow $ runTPlc values)
+goldenTEval name values = nestedGoldenVsDocM name ".teval" $ prettyPlcClassicDebug <$> (rethrow $ runTPlc values)
 
 goldenUEval
     :: ToUPlc a TPLC.DefaultUni TPLC.DefaultFun
     => String -> [a] -> TestNested
-goldenUEval name values = nestedGoldenVsDocM name $ prettyPlcClassicDebug <$> (rethrow $ runUPlc values)
+goldenUEval name values = nestedGoldenVsDocM name ".ueval" $ prettyPlcClassicDebug <$> (rethrow $ runUPlc values)
 
 goldenTEvalCatch
     :: ToTPlc a TPLC.DefaultUni TPLC.DefaultFun
     => String -> [a] -> TestNested
-goldenTEvalCatch name values = nestedGoldenVsDocM name $ ppCatch $ runTPlc values
+goldenTEvalCatch name values = nestedGoldenVsDocM name ".teval-catch" $ ppCatch $ runTPlc values
 
 goldenUEvalCatch
     :: ToUPlc a TPLC.DefaultUni TPLC.DefaultFun
     => String -> [a] -> TestNested
-goldenUEvalCatch name values = nestedGoldenVsDocM name $ ppCatch $ runUPlc values
+goldenUEvalCatch name values = nestedGoldenVsDocM name ".ueval-catch" $ ppCatch $ runUPlc values
 
 -- | Similar to @goldenUEval@ but with profiling turned on.
 goldenUEvalProfile
     :: ToUPlc a TPLC.DefaultUni TPLC.DefaultFun
     => String -> [a] -> TestNested
-goldenUEvalProfile name values = nestedGoldenVsDocM name $ pretty . view _2 <$> (rethrow $ runUPlcProfile values)
+goldenUEvalProfile name values = nestedGoldenVsDocM name ".ueval-profile" $ pretty . view _2 <$> (rethrow $ runUPlcProfile values)
 
 -- | A made-up `SrcSpan` for testing.
 initialSrcSpan :: FilePath -> SrcSpan
