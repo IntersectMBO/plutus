@@ -14,12 +14,30 @@ let
     let
       packages = library.haskell-nix.haskellLib.selectProjectPackages project.hsPkgs;
     in
-    {
-      exes = library.haskell-nix.haskellLib.collectComponents' "exes" packages;
-      tests = library.haskell-nix.haskellLib.collectComponents' "tests" packages;
-      benchmarks = library.haskell-nix.haskellLib.collectComponents' "benchmarks" packages;
-      libraries = library.haskell-nix.haskellLib.collectComponents' "library" packages;
+    rec {
+      components = {
+        exes = library.haskell-nix.haskellLib.collectComponents' "exes" packages;
+        tests = library.haskell-nix.haskellLib.collectComponents' "tests" packages;
+        benchmarks = library.haskell-nix.haskellLib.collectComponents' "benchmarks" packages;
+        libraries = library.haskell-nix.haskellLib.collectComponents' "library" packages;
+        sublibs = library.haskell-nix.haskellLib.collectComponents' "sublibs" packages;
+      };
+
       checks = library.haskell-nix.haskellLib.collectChecks' packages;
+
+      # Build all the haddock for all the components that have it. This ensures that it all
+      # builds properly on all the GHC versions we're testing.
+      haddock =
+        let
+          allComponents = lib.collect (x: lib.isDerivation x) components;
+          allHaddocks = pkgs.lib.concatMap (x: lib.optional (x ? doc) x.doc) allComponents;
+        in
+        pkgs.releaseTools.aggregate {
+          name = "all-haddock";
+          meta.description = "All haddock for all components";
+          constituents = allHaddocks;
+        };
+
       roots = project.roots;
       plan-nix = project.plan-nix;
     };
