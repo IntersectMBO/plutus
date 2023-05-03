@@ -31,8 +31,6 @@
 
   ghc-compiler-nix-name = import ./ghc-compiler-nix-name.nix block;
 
-  cabal-project-index-state = import ./cabal-project-index-state.nix block;
-
   haskell-language-server-project = import ./haskell-language-server-project.nix block;
 
   r-with-packages = import ./r-with-packages.nix block;
