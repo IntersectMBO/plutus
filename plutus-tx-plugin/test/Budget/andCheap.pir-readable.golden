@@ -9,7 +9,7 @@ letrec
     Cons : a -> List a -> List a
 in
 letrec
-  !go : List Bool -> Bool
+  !and : List Bool -> Bool
     = \(ds : List Bool) ->
         Nil_match
           {Bool}
@@ -19,34 +19,28 @@ letrec
           (\(x : Bool)
             (xs : List Bool) ->
              /\dead ->
-               let
-                 !r : Bool = go xs
-               in
                Bool_match
                  x
                  {all dead. Bool}
-                 (/\dead -> r)
+                 (/\dead -> and xs)
                  (/\dead -> False)
                  {all dead. dead})
           {all dead. dead}
 in
-let
-  !eta : List Bool
-    = (let
-          a = List Bool
-        in
-        \(c : Bool -> a -> a)
-         (n : a) ->
-          c
-            False
+and
+  ((let
+       a = List Bool
+     in
+     \(c : Bool -> a -> a)
+      (n : a) ->
+       c
+         False
+         (c
+            True
             (c
                True
                (c
                   True
-                  (c
-                     True
-                     (c True (c True (c True (c True (c True (c True n))))))))))
-        (\(ds : Bool) (ds : List Bool) -> Cons {Bool} ds ds)
-        (Nil {Bool})
-in
-go eta
+                  (c True (c True (c True (c True (c True (c True n))))))))))
+     (\(ds : Bool) (ds : List Bool) -> Cons {Bool} ds ds)
+     (Nil {Bool}))

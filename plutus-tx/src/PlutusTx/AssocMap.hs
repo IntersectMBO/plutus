@@ -46,7 +46,7 @@ import PlutusTx.Builtins qualified as P
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.IsData
 import PlutusTx.Lift (makeLift)
-import PlutusTx.Prelude hiding (filter, mapMaybe, null, toList)
+import PlutusTx.Prelude hiding (all, filter, mapMaybe, null, toList)
 import PlutusTx.Prelude qualified as P
 import PlutusTx.These
 import Prelude qualified as Haskell
@@ -236,5 +236,14 @@ mapMaybe f (Map xs) = Map $ P.mapMaybe (\(k, v) -> (k, ) <$> f v) xs
 -- | Map keys\/values and collect the 'Just' results.
 mapMaybeWithKey :: (k -> a -> Maybe b) -> Map k a -> Map k b
 mapMaybeWithKey f (Map xs) = Map $ P.mapMaybe (\(k, v) -> (k, ) <$> f k v) xs
+
+{-# INLINABLE all #-}
+-- | Determines whether all elements in the map satisfy the predicate.
+all :: (a -> Bool) -> Map k a -> Bool
+all f (Map m) = go m
+  where
+    go = \case
+        []          -> True
+        (_, x) : xs -> if f x then go xs else False
 
 makeLift ''Map
