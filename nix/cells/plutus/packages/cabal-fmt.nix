@@ -18,8 +18,6 @@ let
 
     # Doesn't build with 9.2.4
     compiler-nix-name = "ghc8107";
-
-    index-state = cell.library.cabal-project-index-state;
   };
 in
 project.hsPkgs.cabal-fmt.components.exes.cabal-fmt
