@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-ledger-api
-version:         1.5.0.0
+version:         1.6.0.0
 license:         Apache-2.0
 license-files:
   LICENSE
@@ -95,8 +95,8 @@ library
     , lens
     , mtl
     , nothunks
-    , plutus-core        ^>=1.5
-    , plutus-tx          ^>=1.5
+    , plutus-core         ^>=1.6
+    , plutus-tx           ^>=1.6
     , prettyprinter
     , serialise
     , tagged
@@ -116,9 +116,9 @@ library plutus-ledger-api-testlib
     , base               >=4.9      && <5
     , base64-bytestring
     , bytestring
-    , plutus-core        ^>=1.5
-    , plutus-ledger-api  ^>=1.5
-    , plutus-tx          ^>=1.5
+    , plutus-core         ^>=1.6
+    , plutus-ledger-api   ^>=1.6
+    , plutus-tx           ^>=1.6
     , prettyprinter
     , PyF                >=0.11.1.0
     , serialise
@@ -144,9 +144,9 @@ test-suite plutus-ledger-api-test
     , hedgehog
     , mtl
     , nothunks
-    , plutus-core                                                       ^>=1.5
-    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.5
-    , plutus-tx:plutus-tx-testlib                                       ^>=1.5
+    , plutus-core                                                        ^>=1.6
+    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}   ^>=1.6
+    , plutus-tx:plutus-tx-testlib                                        ^>=1.6
     , tasty
     , tasty-hedgehog
     , tasty-hunit
@@ -166,8 +166,8 @@ executable evaluation-test
     , extra
     , filepath
     , mtl
-    , plutus-core                                                       ^>=1.5
-    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.5
+    , plutus-core                                                        ^>=1.6
+    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}   ^>=1.6
     , serialise
     , tasty
     , tasty-hunit
