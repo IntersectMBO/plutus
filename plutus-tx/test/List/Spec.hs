@@ -7,7 +7,7 @@ import Data.List qualified as Haskell
 import Hedgehog
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import Prelude (Eq (..), Int, Integer, String, even, fmap, mod, odd, ($))
+import Prelude (Eq (..), Int, Integer, String, even, fmap, mod, odd, toInteger, ($))
 import Prelude qualified as Haskell
 import Test.Tasty
 import Test.Tasty.Hedgehog
@@ -25,6 +25,7 @@ listTests =
         , testProperty "elem" prop_elem
         , testProperty "notElem" prop_notElem
         , testProperty "find" prop_find
+        , testProperty "findIndex" prop_findIndex
         , nubByTests
         , nubTests
         , partitionTests
@@ -78,7 +79,7 @@ prop_find = property $ do
 prop_findIndex :: Property
 prop_findIndex = property $ do
     xs <- forAll genList
-    PlutusTx.findIndex (PlutusTx.> 42) xs === Haskell.findIndex (Haskell.> 42) xs
+    PlutusTx.findIndex (PlutusTx.> 42) xs === fmap toInteger (Haskell.findIndex (Haskell.> 42) xs)
 
 nubByTests :: TestTree
 nubByTests =
