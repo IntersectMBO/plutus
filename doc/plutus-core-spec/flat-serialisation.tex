@@ -344,7 +344,7 @@ $$
 Plutus Core terms are encoded by emitting a 4-bit tag identifying the type of
 the term (see Table~\ref{table:term-tags}; recall that \texttt{[]} denotes
 application) then emitting the encodings for any subterms.  We currently only
-use eight of the sixteen available tags: the remainder are reserved for potential
+use ten of the sixteen available tags: the remainder are reserved for potential
 future expansion.
 \begin{table}[H]
 \centering
@@ -383,8 +383,8 @@ names, types, and constants) which will be defined later.
 &  \Eterm(s, \Force{t})        &&= \Eterm(s \cdot \bits{0101}, t) \\
 &  \Eterm(s, \Error)           &&= s \cdot \bits{0110} \\
 &  \Eterm(s, \Builtin{b})      &&= \Ebuiltin(s \cdot \bits{0111}, b) \\
-&  \Eterm(s, \Constr{i}{\repetition{t}})      &&= \Elist_{\mathsf{term}}(\E_{\N}(s \cdot \bits{1000}, i), \repetition{t}) \\
-&  \Eterm(s, \Kase{u}{\repetition{t}})      &&= \Elist_{\mathsf{term}}(\Eterm(s \cdot \bits{1001}, u), \repetition{t})
+&  \Eterm(s, \Constr{i}{l})      &&= \Elist_{\mathsf{term}}(\E_{64}(s \cdot \bits{1000}, i), l) \\
+&  \Eterm(s, \Kase{u}{l})      &&= \Elist_{\mathsf{term}}(\Eterm(s \cdot \bits{1001}, u), l)
 \end{alignat*}
 
 \noindent The decoder for terms is given below.  To simplify the definition we
@@ -408,8 +408,8 @@ does not happen here, but does in some later decoders.
   \Dterm(\bits{0101} \cdot s)  &= (s', \Force{t})  &&\quad \text{if}\ \Dterm(s) = (s', t) \\
   \Dterm(\bits{0110} \cdot s)  &= (s, \Error)  && \\
   \Dterm(\bits{0111} \cdot s)  &= (s', b) &&\quad \text{if } \Dbuiltin(s) = (s', b) \\
-  \Dterm(\bits{1000} \cdot s)  &= (s', \Constr{i}{\repetition{t}}) &&\quad \text{if } \D_{\N}(s) = (s', i) &&\ \text{and}\ \Dlist_{\mathsf{term}}(s') = (s'', \repetition{t})\\
-  \Dterm(\bits{1001} \cdot s)  &= (s', \Kase{u}{\repetition{t}}) &&\quad \text{if } \Dterm(s) = (s', u) &&\ \text{and}\ \Dlist_{\mathsf{term}}(s') = (s'', \repetition{t})
+  \Dterm(\bits{1000} \cdot s)  &= (s', \Constr{i}{l}) &&\quad \text{if } \D_{64}(s) = (s', i) &&\ \text{and}\ \Dlist_{\mathsf{term}}(s') = (s'', l)\\
+  \Dterm(\bits{1001} \cdot s)  &= (s', \Kase{u}{l}) &&\quad \text{if } \Dterm(s) = (s', u) &&\ \text{and}\ \Dlist_{\mathsf{term}}(s') = (s'', l)
 \end{alignat*}
 
 \subsubsection{Built-in types}

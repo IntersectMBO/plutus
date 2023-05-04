@@ -113,7 +113,7 @@ $\lamU{x}{N}$.%
 
     % case (constr i vs) cs -> [c_i vs]
     \begin{prooftree}
-        \AxiomC{$i \in [0, m]$}
+        \AxiomC{$0 \leq i \leq m$}
         % \RightLabel{\textsf{case-of-constr}}
         \UnaryInfC{$\step{\kase{\constr{i}{\repetition{V}}}{U_0 \ldots U_m}}{\app{U_i}{\repetition{V}}}$}
     \end{prooftree}

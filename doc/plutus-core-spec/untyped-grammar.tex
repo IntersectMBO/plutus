@@ -73,7 +73,7 @@ binary format described in Appendix~\ref{appendix:flat-serialisation}.
                         &        &     & \delay{M}                       & \textrm{delay execution of a term}\\
                         &        &     & \force{M}                       & \textrm{force execution of a term}\\
                         &        &     & \constr{i}{M_0 \ldots M_{m-1}}  & \textrm{constructor with tag $i$ and $m$ arguments}\\
-                        &        &     & \kase{M}{N_0 \ldots N_{m-1}}    & \textrm{case anaylsis with $m$ alternatives}\\
+                        &        &     & \kase{M}{N_0 \ldots N_{m-1}}    & \textrm{case analysis with $m$ alternatives}\\
                         &        &     & \errorU                         & \textrm{error}\\
         \textrm{Program}& P      & ::= & \version{v}{M}                  & \textrm{versioned program}
 
@@ -103,6 +103,17 @@ $\appU{M}{N_1 \ldots N_k}$ or
 $\appU{M}{\repetition{N}}$ as an abbreviation for an iterated application
 $\mathtt{[}\ldots\mathtt{[[}M\;N_1\mathtt{]}\;N_2\mathtt{]}\ldots N_k\mathtt{]}$,
 and tools may also use this as concrete syntax.
+
+\paragraph{Constructors and case analysis}
+Plutus Core suports creating structured data using $\keyword{constr}$ and deconstructing
+it using $\keyword{case}$. Both of these terms are unusual in that they have (possibly
+empty) lists of children: $\keyword{constr}$ has the (0-based) \emph{tag} and then a list of arguments;
+$\keyword{case}$ has a scrutinee and then a list of case branches. Their behaviour is mostly
+straightforward: $\keyword{constr}$ evaluates its arguments and forms a value; $\keyword{case}$
+evaluates the scrutinee into a $\keyword{constr}$ value, selects the branch corresponding to
+the tag on the value, and then applies that to the arguments in the value. The only thing
+to note is that $\keyword{case}$ does \emph{not} strictly evaluate the case branches, only
+applying (and hence evaluating) the one that is eventually selected.
 
 \paragraph{Built-in types and functions.} The language is parameterised by a set $\Uni$ of
 \textit{built-in types} (we sometimes refer to $\Uni$ as the
