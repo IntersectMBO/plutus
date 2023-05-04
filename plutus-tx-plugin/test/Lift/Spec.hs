@@ -48,20 +48,20 @@ Lift.makeLift ''SynExample
 
 tests :: TestNested
 tests = testNested "Lift" [
-    goldenUPlc "int" (Lift.liftProgramDef (1::Integer))
-    , goldenUPlc "tuple" (Lift.liftProgramDef (1::Integer, 2::Integer))
-    , goldenUPlc "mono" (Lift.liftProgramDef (Mono2 2))
-    , goldenUEval "monoInterop" [ getPlcNoAnn monoCase, Lift.liftProgramDef (Mono1 1 2) ]
-    , goldenUPlc "poly" (Lift.liftProgramDef (Poly1 (1::Integer) (2::Integer)))
-    , goldenUEval "polyInterop" [ getPlcNoAnn defaultCasePoly, Lift.liftProgramDef (Poly1 (1::Integer) (2::Integer)) ]
-    , goldenUPlc "record" (Lift.liftProgramDef (MyMonoRecord 1 2))
-    , goldenUEval "boolInterop" [ getPlcNoAnn andPlc, Lift.liftProgramDef True, Lift.liftProgramDef True ]
-    , goldenUPlc "list" (Lift.liftProgramDef ([1]::[Integer]))
-    , goldenUEval "listInterop" [ getPlcNoAnn listMatch, Lift.liftProgramDef ([1]::[Integer]) ]
-    , goldenUPlc "nested" (Lift.liftProgramDef (NestedRecord (Just (1, 2))))
-    , goldenUPlc "bytestring" (Lift.liftProgramDef (WrappedBS "hello"))
-    , goldenUPlc "newtypeInt" (Lift.liftProgramDef (NewtypeInt 1))
-    , goldenUPlc "newtypeInt2" (Lift.liftProgramDef (Newtype2 $ NewtypeInt 1))
-    , goldenUPlc "newtypeInt3" (Lift.liftProgramDef (Newtype3 $ Newtype2 $ NewtypeInt 1))
-    , goldenUPlc "syn" (Lift.liftProgramDef (SynExample $ Z $ 1))
+    goldenUPlc "int" (snd (Lift.liftProgramDef (1::Integer)))
+    , goldenUPlc "tuple" (snd (Lift.liftProgramDef (1::Integer, 2::Integer)))
+    , goldenUPlc "mono" (snd (Lift.liftProgramDef (Mono2 2)))
+    , goldenUEval "monoInterop" [ getPlcNoAnn monoCase, snd (Lift.liftProgramDef (Mono1 1 2)) ]
+    , goldenUPlc "poly" (snd (Lift.liftProgramDef (Poly1 (1::Integer) (2::Integer))))
+    , goldenUEval "polyInterop" [ getPlcNoAnn defaultCasePoly, snd (Lift.liftProgramDef (Poly1 (1::Integer) (2::Integer))) ]
+    , goldenUPlc "record" (snd (Lift.liftProgramDef (MyMonoRecord 1 2)))
+    , goldenUEval "boolInterop" [ getPlcNoAnn andPlc, snd (Lift.liftProgramDef True), snd (Lift.liftProgramDef True) ]
+    , goldenUPlc "list" (snd (Lift.liftProgramDef ([1]::[Integer])))
+    , goldenUEval "listInterop" [ getPlcNoAnn listMatch, snd (Lift.liftProgramDef ([1]::[Integer])) ]
+    , goldenUPlc "nested" (snd (Lift.liftProgramDef (NestedRecord (Just (1, 2)))))
+    , goldenUPlc "bytestring" (snd (Lift.liftProgramDef (WrappedBS "hello")))
+    , goldenUPlc "newtypeInt" (snd (Lift.liftProgramDef (NewtypeInt 1)))
+    , goldenUPlc "newtypeInt2" (snd (Lift.liftProgramDef (Newtype2 $ NewtypeInt 1)))
+    , goldenUPlc "newtypeInt3" (snd (Lift.liftProgramDef (Newtype3 $ Newtype2 $ NewtypeInt 1)))
+    , goldenUPlc "syn" (snd (Lift.liftProgramDef (SynExample $ Z $ 1)))
  ]
