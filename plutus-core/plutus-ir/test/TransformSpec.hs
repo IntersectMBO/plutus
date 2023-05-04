@@ -223,7 +223,7 @@ inline =
                         Inline.inline mempty def renamed
                 -- Make sure the inlined term is globally unique.
                 _ <- checkUniques pirInlined
-                pure $ pirInlined
+                pure pirInlined
     in
     testNested "inline" $
         map
