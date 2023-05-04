@@ -1,8 +1,0 @@
-(let
-  !a : integer = 10
-  !c : integer = addInteger a a
-in
-let
-  !a : integer = 7
-in
-addInteger (addInteger a a) a)
