@@ -67,6 +67,7 @@ import UntypedPlutusCore.Check.Uniques qualified as UPLC (checkProgram)
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
 import UntypedPlutusCore.Parser qualified as UPLC (parse, program)
 
+import PlutusIR.Check.Uniques as PIR (checkProgram)
 import PlutusIR.Core.Instance.Pretty ()
 import PlutusIR.Parser qualified as PIR (parse, program)
 
@@ -121,9 +122,7 @@ class ProgramLike p where
 -- | Instance for PIR program.
 instance ProgramLike PirProg where
     parseNamedProgram inputName = PLC.runQuoteT . PIR.parse PIR.program inputName
-    checkUniques _ = pure ()
-    -- ^ decided that it's not worth implementing since it's checked in PLC (and
-    -- PIR has no Unique check at the moment anyway)
+    checkUniques = PIR.checkProgram (const True)
     serialiseProgramFlat = serialisePirProgramFlat
     loadASTfromFlat = loadPirASTfromFlat
 
