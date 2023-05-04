@@ -1,4 +1,23 @@
 
+<a id='changelog-1.6.0.0'></a>
+# 1.6.0.0 — 2023-05-04
+
+## Added
+
+- Case-of-known-constructor for Plutus IR.
+
+- The Plutus IR compiler can now compile datatypes using SOPs.
+
+- Generic builtin evaluation pass for PIR (subsumes constant-folding).
+
+## Changed
+
+- Various `intercept` and `slope` constants are now wrapped in `Intercept` and `Slope` `newtype`s
+
+## Fixed
+
+- The inliner now rename before call site inlining to ensure global uniqueness.
+
 <a id='changelog-1.5.0.0'></a>
 # 1.5.0.0 — 2023-04-16
 
