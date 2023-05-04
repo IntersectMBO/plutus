@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# LANGUAGE TypeApplications      #-}
@@ -13,7 +14,11 @@ import PlutusCore qualified as PLC
 import PlutusCore.Pretty qualified as PLC
 import PlutusPrelude
 
+import Control.Monad.Except
 import PlutusIR.Analysis.RetainedSize qualified as RetainedSize
+import PlutusIR.Check.Uniques as Uniques
+import PlutusIR.Core.Instance.Pretty.Readable
+import PlutusIR.Core.Type
 import PlutusIR.Error as PIR
 import PlutusIR.Parser
 import PlutusIR.Test
@@ -45,6 +50,7 @@ transform =
         , knownCon
         , recSplit
         , inline
+        , nameCapture
         , computeArityTest
         , beta
         , unwrapCancel
@@ -205,11 +211,23 @@ instance Semigroup PLC.SrcSpan where
 instance Monoid PLC.SrcSpan where
     mempty = initialSrcSpan ""
 
+-- | Tests of the inliner, include global uniqueness test.
 inline :: TestNested
 inline =
+    let goldenInlineUnique :: Term TyName Name PLC.DefaultUni PLC.DefaultFun PLC.SrcSpan ->
+            IO (Term TyName Name PLC.DefaultUni PLC.DefaultFun PLC.SrcSpan)
+        goldenInlineUnique pir =
+            rethrow . asIfThrown @(UniqueError PLC.SrcSpan) $ do
+                let pirInlined = runQuote $ do
+                        renamed <- PLC.rename pir
+                        Inline.inline mempty def renamed
+                -- Make sure the inlined term is globally unique.
+                _ <- checkUniques pirInlined
+                pure $ pirInlined
+    in
     testNested "inline" $
         map
-            (goldenPir (runQuote . (Inline.inline mempty def <=< PLC.rename)) pTerm)
+            (goldenPirM goldenInlineUnique pTerm)
             [ "var"
             , "builtin"
             , "constant"
@@ -245,6 +263,30 @@ inline =
             , "letNonPureMulti"
             , "letNonPureMultiStrict"
             ]
+
+-- | Check whether a term is globally unique.
+checkUniques :: (Ord a, MonadError (UniqueError a) m) => Term TyName Name uni fun a -> m ()
+checkUniques =
+    Uniques.checkTerm (\case { MultiplyDefined{} -> True; _ -> False})
+
+-- | Tests that the inliner doesn't incorrectly capture variable names.
+nameCapture :: TestNested
+nameCapture =
+    let goldenInlineUnique :: Term TyName Name PLC.DefaultUni PLC.DefaultFun PLC.SrcSpan ->
+            IO String
+        goldenInlineUnique pir =
+            rethrow . asIfThrown @(UniqueError PLC.SrcSpan) $ do
+                let pirInlined = runQuote $ do
+                        renamed <- PLC.rename pir
+                        Inline.inline mempty def renamed
+                -- Make sure the inlined term is globally unique.
+                _ <- checkUniques pirInlined
+                pure . render $ prettyPirReadable pirInlined
+    in
+    testNested "nameCapture" $
+        map
+            (goldenPirMUnique goldenInlineUnique pTerm)
+            [ "nameCapture"]
 
 computeArityTest :: TestNested
 computeArityTest = testNested "computeArityTest" $

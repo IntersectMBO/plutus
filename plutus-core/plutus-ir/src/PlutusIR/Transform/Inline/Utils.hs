@@ -9,17 +9,17 @@
 
 module PlutusIR.Transform.Inline.Utils where
 
+import PlutusCore.Builtin qualified as PLC
+import PlutusCore.Name
+import PlutusCore.Quote
+import PlutusCore.Rename
+import PlutusCore.Subst (typeSubstTyNamesM)
 import PlutusIR
 import PlutusIR.Analysis.Dependencies qualified as Deps
 import PlutusIR.Analysis.Usages qualified as Usages
 import PlutusIR.Purity (firstEffectfulTerm, isPure)
 import PlutusIR.Transform.Rename ()
 import PlutusPrelude
-
-import PlutusCore.Builtin qualified as PLC
-import PlutusCore.Name
-import PlutusCore.Quote
-import PlutusCore.Rename
 
 import PlutusCore.Annotation
 
@@ -31,6 +31,45 @@ import Data.Map qualified as Map
 import Data.Semigroup.Generic (GenericSemigroupMonoid (..))
 import Prettyprinter (viaShow)
 
+-- General infra:
+
+type ExternalConstraints tyname name uni fun m =
+    ( HasUnique name TermUnique
+    , HasUnique tyname TypeUnique
+    , Eq name
+    , PLC.ToBuiltinMeaning uni fun
+    , MonadQuote m
+    )
+
+type InliningConstraints tyname name uni fun =
+    ( HasUnique name TermUnique
+    , HasUnique tyname TypeUnique
+    , Eq name
+    , PLC.ToBuiltinMeaning uni fun
+    )
+
+-- | Information used by the inliner that is constant across its operation.
+-- This includes some contextual and configuration information, and also some
+-- pre-computed information about the program.
+--
+-- See [Inlining and global uniqueness] for caveats about this information.
+data InlineInfo name fun ann = InlineInfo
+    { _iiStrictnessMap :: Deps.StrictnessMap
+    -- ^ Is it strict? Only needed for PIR, not UPLC
+    , _iiUsages        :: Usages.Usages
+    -- ^ how many times is it used?
+    , _iiHints         :: InlineHints name ann
+    -- ^ have we explicitly been told to inline?
+    , _iiBuiltinVer    :: PLC.BuiltinVersion fun
+    -- ^ the builtin version.
+    }
+makeLenses ''InlineInfo
+
+-- Using a concrete monad makes a very large difference to the performance of this module
+-- (determined from profiling)
+-- | The monad the inliner runs in.
+type InlineM tyname name uni fun ann =
+    ReaderT (InlineInfo name fun ann) (StateT (InlinerContext tyname name uni fun ann) Quote)
 -- For unconditional inlining:
 
 -- | Substitution range, 'SubstRng' in the paper but no 'Susp' case.
@@ -76,7 +115,7 @@ type Arity = [ParamKind]
 data VarInfo tyname name uni fun ann =
   MkVarInfo {
     varStrictness :: Strictness
-    ,varDef       :: Term tyname name uni fun ann
+    ,varDef       :: InlineTerm tyname name uni fun ann
     -- ^ its definition that has been unconditionally inlined.
     , arity       :: Arity -- ^ its arity, storing to avoid repeated calculations.
     , varBody     :: Term tyname name uni fun ann
@@ -165,45 +204,43 @@ extendVarInfo
     -> InlinerContext tyname name uni fun ann
 extendVarInfo n info subst = subst & nonRecInScopeSet . unNonRecInScopeSet %~ insertByName n info
 
--- General infra:
 
-type ExternalConstraints tyname name uni fun m =
-    ( HasUnique name TermUnique
-    , HasUnique tyname TypeUnique
-    , Eq name
-    , PLC.ToBuiltinMeaning uni fun
-    , MonadQuote m
-    )
+applyTypeSubstitution :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
+    => Type tyname uni ann
+    -> InlineM tyname name uni fun ann (Type tyname uni ann)
+applyTypeSubstitution t = gets isTypeSubstEmpty >>= \case
+    -- The type substitution is very often empty, and there are lots of types in the program,
+    -- so this saves a lot of work (determined from profiling)
+    True -> pure t
+    _    -> typeSubstTyNamesM substTyName t
 
-type InliningConstraints tyname name uni fun =
-    ( HasUnique name TermUnique
-    , HasUnique tyname TypeUnique
-    , Eq name
-    , PLC.ToBuiltinMeaning uni fun
-    )
+-- See Note [Inlining and global uniqueness]
+substTyName :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
+    => tyname
+    -> InlineM tyname name uni fun ann (Maybe (Type tyname uni ann))
+substTyName tyname = gets (lookupType tyname) >>= traverse liftDupable
 
--- | Information used by the inliner that is constant across its operation.
--- This includes some contextual and configuration information, and also some
--- pre-computed information about the program.
---
--- See [Inlining and global uniqueness] for caveats about this information.
-data InlineInfo name fun ann = InlineInfo
-    { _iiStrictnessMap :: Deps.StrictnessMap
-    -- ^ Is it strict? Only needed for PIR, not UPLC
-    , _iiUsages        :: Usages.Usages
-    -- ^ how many times is it used?
-    , _iiHints         :: InlineHints name ann
-    -- ^ have we explicitly been told to inline?
-    , _iiBuiltinVer    :: PLC.BuiltinVersion fun
-    -- ^ the builtin version.
-    }
-makeLenses ''InlineInfo
+-- See Note [Inlining and global uniqueness]
+substName :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
+    => name
+    -> InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
+substName name = gets (lookupTerm name) >>= traverse renameTerm
 
--- Using a concrete monad makes a very large difference to the performance of this module
--- (determined from profiling)
--- | The monad the inliner runs in.
-type InlineM tyname name uni fun ann =
-    ReaderT (InlineInfo name fun ann) (StateT (InlinerContext tyname name uni fun ann) Quote)
+-- See Note [Inlining approach and 'Secrets of the GHC Inliner']
+-- Already processed term, just rename and put it in, don't do any further optimization here.
+renameTerm :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
+    => InlineTerm tyname name uni fun ann
+    -> InlineM tyname name uni fun ann (Term tyname name uni fun ann)
+renameTerm (Done t) = liftDupable t
+
+{- Note [Renaming strategy]
+Since we assume global uniqueness, we can take a slightly different approach to
+renaming:  we rename the term we are substituting in, instead of renaming
+every binder that our substitution encounters, which should guarantee that we
+avoid any variable capture.
+
+We rename both terms and types as both may have binders in them.
+-}
 
 -- Heuristics:
 
