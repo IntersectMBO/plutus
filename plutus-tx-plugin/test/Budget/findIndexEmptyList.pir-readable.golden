@@ -14,8 +14,9 @@ let
     False : Bool
 in
 letrec
-  !go : List integer -> Maybe integer
-    = \(ds : List integer) ->
+  !go : integer -> List integer -> Maybe integer
+    = \(i : integer)
+       (ds : List integer) ->
         Nil_match
           {integer}
           ds
@@ -27,12 +28,12 @@ letrec
                Bool_match
                  (ifThenElse {Bool} (lessThanEqualsInteger 1 x) False True)
                  {all dead. Maybe integer}
-                 (/\dead -> Just {integer} x)
-                 (/\dead -> go xs)
+                 (/\dead -> Just {integer} i)
+                 (/\dead -> go (addInteger i 1) xs)
                  {all dead. dead})
           {all dead. dead}
 in
 let
   !eta : List integer = Nil {integer}
 in
-go eta
+go 0 eta

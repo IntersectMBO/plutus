@@ -1,15 +1,15 @@
-letrec
-  data (List :: * -> *) a | Nil_match where
-    Nil : List a
-    Cons : a -> List a -> List a
-in
 let
   data Bool | Bool_match where
     True : Bool
     False : Bool
 in
 letrec
-  !go : List Bool -> Bool
+  data (List :: * -> *) a | Nil_match where
+    Nil : List a
+    Cons : a -> List a -> List a
+in
+letrec
+  !or : List Bool -> Bool
     = \(ds : List Bool) ->
         Nil_match
           {Bool}
@@ -19,25 +19,23 @@ letrec
           (\(x : Bool)
             (xs : List Bool) ->
              /\dead ->
-               let
-                 !r : Bool = go xs
-               in
                Bool_match
                  x
                  {all dead. Bool}
                  (/\dead -> True)
-                 (/\dead -> r)
+                 (/\dead -> or xs)
                  {all dead. dead})
           {all dead. dead}
 in
-let
-  !eta : List Bool
-    = (let
-          a = List Bool
-        in
-        \(c : Bool -> a -> a)
-         (n : a) ->
-          c
+or
+  ((let
+       a = List Bool
+     in
+     \(c : Bool -> a -> a)
+      (n : a) ->
+       c
+         False
+         (c
             False
             (c
                False
@@ -45,10 +43,6 @@ let
                   False
                   (c
                      False
-                     (c
-                        False
-                        (c False (c False (c False (c False (c False n))))))))))
-        (\(ds : Bool) (ds : List Bool) -> Cons {Bool} ds ds)
-        (Nil {Bool})
-in
-go eta
+                     (c False (c False (c False (c False (c False n))))))))))
+     (\(ds : Bool) (ds : List Bool) -> Cons {Bool} ds ds)
+     (Nil {Bool}))

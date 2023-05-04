@@ -54,6 +54,15 @@ tests = testNested "Budget" [
   , goldenBudget "findEmptyList" compiledFindEmptyList
   , goldenPirReadable "findEmptyList" compiledFindEmptyList
 
+  , goldenBudget "findIndexCheap" compiledFindIndexCheap
+  , goldenPirReadable "findIndexCheap" compiledFindIndexCheap
+
+  , goldenBudget "findIndexExpensive" compiledFindIndexExpensive
+  , goldenPirReadable "findIndexExpensive" compiledFindIndexExpensive
+
+  , goldenBudget "findIndexEmptyList" compiledFindIndexEmptyList
+  , goldenPirReadable "findIndexEmptyList" compiledFindIndexEmptyList
+
   , goldenBudget "filter" compiledFilter
   , goldenPirReadable "filter" compiledFilter
 
@@ -159,6 +168,23 @@ compiledFindEmptyList :: CompiledCode (Maybe Integer)
 compiledFindEmptyList = $$(compile [||
       let ls = [] :: [Integer]
        in PlutusTx.find (1 PlutusTx.>) ls ||])
+
+-- | The first element in the list satisfies the predicate.
+compiledFindIndexCheap :: CompiledCode (Maybe Integer)
+compiledFindIndexCheap = $$(compile [||
+      let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
+       in PlutusTx.findIndex (10 PlutusTx.>) ls ||])
+
+-- | No element in the list satisfies the predicate.
+compiledFindIndexExpensive :: CompiledCode (Maybe Integer)
+compiledFindIndexExpensive = $$(compile [||
+      let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
+       in PlutusTx.findIndex (1 PlutusTx.>) ls ||])
+
+compiledFindIndexEmptyList :: CompiledCode (Maybe Integer)
+compiledFindIndexEmptyList = $$(compile [||
+      let ls = [] :: [Integer]
+       in PlutusTx.findIndex (1 PlutusTx.>) ls ||])
 
 compiledFilter :: CompiledCode [Integer]
 compiledFilter = $$(compile [||

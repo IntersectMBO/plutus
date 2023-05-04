@@ -19,14 +19,11 @@ letrec
           (\(x : integer)
             (xs : List integer) ->
              /\dead ->
-               let
-                 !acc : Bool = go xs
-               in
                Bool_match
                  (ifThenElse {Bool} (lessThanEqualsInteger 10 x) False True)
                  {all dead. Bool}
                  (/\dead -> True)
-                 (/\dead -> acc)
+                 (/\dead -> go xs)
                  {all dead. dead})
           {all dead. dead}
 in

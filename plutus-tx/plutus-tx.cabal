@@ -151,6 +151,7 @@ test-suite plutus-tx-test
   type:               exitcode-stdio-1.0
   main-is:            Spec.hs
   other-modules:
+    List.Spec
     Rational.Laws
     Rational.Laws.Additive
     Rational.Laws.Construction
