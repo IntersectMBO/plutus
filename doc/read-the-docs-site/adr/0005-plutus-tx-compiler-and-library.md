@@ -67,6 +67,10 @@ We have a few options:
 
    One argument against this is that a module may contain both on-chain and off-chain code, some modules contain off-chain code only, and the same piece of code may be both on-chain and off-chain.
    For off-chain code one typically doesn't want to enable `Strict`.
+
+   Another disadvantage of using `Strict` is that it may cause GHC to do additional optimizations in ways that can break the Plutus Tx compiler.
+   As a result, in addition to `Strict`, one may need to also use one or more of the following GHC flags: `-fno-strictness`, `-fno-specialise`, `-fno-spec-constr`, `-fno-unbox-strict-fields`, `-fno-unbox-small-strict-fields`.
+   Not only is it inconvenient, but failing to do so may lead to obscure compilation errors.
 2. Enable `Strict` automatically.
    This can be done in a GHC driver plugin.
    But like said in Option 1, one doesn't usually want to enable `Strict` on off-chain code.
