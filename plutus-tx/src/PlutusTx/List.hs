@@ -170,7 +170,11 @@ findIndices p = go 0
 {-# INLINABLE findIndex #-}
 -- | Plutus Tx version of 'Data.List.findIndex'.
 findIndex :: (a -> Bool) -> [a] -> Maybe Integer
-findIndex p l = listToMaybe (findIndices p l)
+findIndex f = go 0
+  where
+    go i = \case
+        []     -> Nothing
+        x : xs -> if f x then Just i else go (Builtins.addInteger i 1) xs
 
 {-# INLINABLE (!!) #-}
 -- | Plutus Tx version of '(GHC.List.!!)'.

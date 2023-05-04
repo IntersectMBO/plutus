@@ -75,6 +75,11 @@ prop_find = property $ do
     xs <- forAll genList
     PlutusTx.find (PlutusTx.> 42) xs === Haskell.find (Haskell.> 42) xs
 
+prop_findIndex :: Property
+prop_findIndex = property $ do
+    xs <- forAll genList
+    PlutusTx.findIndex (PlutusTx.> 42) xs === Haskell.findIndex (Haskell.> 42) xs
+
 nubByTests :: TestTree
 nubByTests =
     testGroup
