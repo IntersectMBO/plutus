@@ -24,7 +24,7 @@ letrec
             {all dead. dead}
 in
 let
-  !eta : List integer
+  !ls : List integer
     = (let
           a = List integer
         in
@@ -40,10 +40,14 @@ foldr
   (\(e : integer)
     (xs : List integer) ->
      Bool_match
-       (ifThenElse {Bool} (equalsInteger (modInteger e 2) 0) True False)
+       (let
+         !x : integer = modInteger e 2
+         !b : bool = equalsInteger x 0
+       in
+       ifThenElse {Bool} b True False)
        {all dead. List integer}
        (/\dead -> Cons {integer} e xs)
        (/\dead -> xs)
        {all dead. dead})
   (Nil {integer})
-  eta
+  ls

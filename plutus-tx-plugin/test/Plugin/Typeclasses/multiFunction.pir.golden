@@ -19,15 +19,21 @@
         (lam
           r
           Bool
-          {
-            [
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl l Bool) l)
+            (termbind (strict) (vardecl r Bool) r)
+            {
               [
-                { [ Bool_match l ] (all dead (type) Bool) } (abs dead (type) r)
+                [
+                  { [ Bool_match l ] (all dead (type) Bool) }
+                  (abs dead (type) r)
+                ]
+                (abs dead (type) False)
               ]
-              (abs dead (type) False)
-            ]
-            (all dead (type) dead)
-          }
+              (all dead (type) dead)
+            }
+          )
         )
       )
     )
@@ -90,7 +96,15 @@
         (lam
           y
           (con integer)
-          [ [ [ { ifThenElse Bool } [ [ lessThanInteger x ] y ] ] True ] False ]
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl x (con integer)) x)
+            (termbind (strict) (vardecl y (con integer)) y)
+            (termbind
+              (strict) (vardecl b (con bool)) [ [ lessThanInteger x ] y ]
+            )
+            [ [ [ { ifThenElse Bool } b ] True ] False ]
+          )
         )
       )
     )
@@ -125,13 +139,17 @@
           (lam
             p
             p
-            [
-              [ bad_name [ [ [ { likesAnimal p } dPersonLike ] p ] Cat ] ]
+            (let
+              (nonrec)
+              (termbind (strict) (vardecl p p) p)
               [
-                [ lessThanInteger [ [ { age p } dPersonLike ] p ] ]
-                (con integer 30)
+                [ bad_name [ [ [ { likesAnimal p } dPersonLike ] p ] Cat ] ]
+                [
+                  [ lessThanInteger [ [ { age p } dPersonLike ] p ] ]
+                  (con integer 30)
+                ]
               ]
-            ]
+            )
           )
         )
       )
@@ -196,6 +214,14 @@
       (vardecl fPersonLikePerson [ PersonLike Person ])
       [ [ { CConsPersonLike Person } cage ] clikesAnimal ]
     )
-    (lam ds Person [ [ { predicate Person } fPersonLikePerson ] ds ])
+    (lam
+      ds
+      Person
+      (let
+        (nonrec)
+        (termbind (strict) (vardecl ds Person) ds)
+        [ [ { predicate Person } fPersonLikePerson ] ds ]
+      )
+    )
   )
 )

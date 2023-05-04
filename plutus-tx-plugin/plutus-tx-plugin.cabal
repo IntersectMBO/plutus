@@ -40,6 +40,7 @@ common lang
     -Wincomplete-record-updates -Wredundant-constraints -Widentities
     -Wunused-packages -Wmissing-deriving-strategies -fobject-code
     -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
+    -fforce-recomp
 
 flag use-ghc-stub
   description: Use the `plutus-ghc-stub` package instead of `ghc`.
@@ -118,7 +119,7 @@ executable gen-plugin-opts-doc
   default-language: Haskell2010
 
 test-suite plutus-tx-tests
-  import:         lang
+  import:             lang
 
   if impl(ghc <9.0)
     buildable: False
@@ -126,9 +127,9 @@ test-suite plutus-tx-tests
   if flag(use-ghc-stub)
     buildable: False
 
-  type:           exitcode-stdio-1.0
-  hs-source-dirs: test
-  main-is:        Spec.hs
+  type:               exitcode-stdio-1.0
+  hs-source-dirs:     test
+  main-is:            Spec.hs
   other-modules:
     Budget.Spec
     IsData.Spec
@@ -171,23 +172,32 @@ test-suite plutus-tx-tests
     , template-haskell
     , text
 
+  default-extensions: Strict
+
   -- NOTE: -g makes the plugin give better errors
-  ghc-options:    -g
+  ghc-options:
+    -g -fno-strictness -fno-unbox-strict-fields
+    -fno-unbox-small-strict-fields
 
 test-suite size
-  import:         lang
+  import:             lang
 
   if impl(ghc <9.0)
     buildable: False
 
   -- needs plutus-tx-plugin but it looks unused
-  ghc-options:    -Wno-unused-packages
-  type:           exitcode-stdio-1.0
-  main-is:        Main.hs
-  hs-source-dirs: test/size
+  ghc-options:        -Wno-unused-packages
+  type:               exitcode-stdio-1.0
+  main-is:            Main.hs
+  hs-source-dirs:     test/size
   build-depends:
     , base                                      >=4.9 && <5.0
     , plutus-tx-plugin                          ^>=1.5
     , plutus-tx:{plutus-tx, plutus-tx-testlib}  ^>=1.5
     , tagged
     , tasty
+
+  default-extensions: Strict
+  ghc-options:
+    -fno-strictness -fno-unbox-strict-fields
+    -fno-unbox-small-strict-fields

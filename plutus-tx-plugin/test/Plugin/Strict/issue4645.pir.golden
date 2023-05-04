@@ -43,40 +43,50 @@
         y
       ]
     )
-    (termbind
-      (strict)
-      (vardecl t (con integer))
-      [
-        [ { (builtin trace) (con integer) } (con string "t") ]
-        [
-          {
-            [
-              { { Tuple2_match (con integer) } (con integer) }
-              [
-                [
-                  { (builtin trace) [ [ Tuple2 (con integer) ] (con integer) ] }
-                  (con string "zz")
-                ]
-                z
-              ]
-            ]
-            (con integer)
-          }
-          (lam zz (con integer) (lam ds (con integer) zz))
-        ]
-      ]
-    )
-    (termbind
-      (strict)
-      (vardecl x (con integer))
-      [ [ { (builtin trace) (con integer) } (con string "x") ] (con integer 0) ]
-    )
     [
-      [
-        [ { (builtin ifThenElse) Bool } [ [ (builtin equalsInteger) x ] t ] ]
-        True
-      ]
-      False
+      {
+        [
+          { { Tuple2_match (con integer) } (con integer) }
+          [
+            [
+              { (builtin trace) [ [ Tuple2 (con integer) ] (con integer) ] }
+              (con string "zz")
+            ]
+            z
+          ]
+        ]
+        Bool
+      }
+      (lam
+        zz
+        (con integer)
+        (lam
+          ds
+          (con integer)
+          (let
+            (nonrec)
+            (termbind
+              (strict)
+              (vardecl t (con integer))
+              [ [ { (builtin trace) (con integer) } (con string "t") ] zz ]
+            )
+            (termbind
+              (strict)
+              (vardecl x (con integer))
+              [
+                [ { (builtin trace) (con integer) } (con string "x") ]
+                (con integer 0)
+              ]
+            )
+            (termbind
+              (strict)
+              (vardecl b (con bool))
+              [ [ (builtin equalsInteger) x ] t ]
+            )
+            [ [ [ { (builtin ifThenElse) Bool } b ] True ] False ]
+          )
+        )
+      )
     ]
   )
 )

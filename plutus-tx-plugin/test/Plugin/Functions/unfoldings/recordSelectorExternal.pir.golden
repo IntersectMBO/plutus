@@ -22,6 +22,14 @@
         ]
       )
     )
-    myExternal
+    (lam
+      ds
+      MyExternalRecord
+      (let
+        (nonrec)
+        (termbind (strict) (vardecl ds MyExternalRecord) ds)
+        [ myExternal ds ]
+      )
+    )
   )
 )

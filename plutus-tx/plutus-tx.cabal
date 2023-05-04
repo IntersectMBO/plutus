@@ -42,8 +42,8 @@ common lang
     -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
 
 library
-  import:          lang
-  hs-source-dirs:  src
+  import:             lang
+  hs-source-dirs:     src
   exposed-modules:
     PlutusTx
     PlutusTx.Applicative
@@ -115,6 +115,11 @@ library
     , th-abstraction
     , th-compat
     , transformers
+
+  default-extensions: Strict
+  ghc-options:
+    -fno-strictness -fno-unbox-strict-fields
+    -fno-unbox-small-strict-fields
 
 library plutus-tx-testlib
   import:          lang

@@ -43,20 +43,40 @@
           (lam
             signature
             (con bytestring)
-            [
-              [
-                [
-                  { ifThenElse Bool }
-                  [ [ [ verifyEd25519Signature pubKey ] message ] signature ]
-                ]
-                True
-              ]
-              False
-            ]
+            (let
+              (nonrec)
+              (termbind (strict) (vardecl pubKey (con bytestring)) pubKey)
+              (termbind (strict) (vardecl message (con bytestring)) message)
+              (termbind (strict) (vardecl signature (con bytestring)) signature)
+              (termbind
+                (strict)
+                (vardecl b (con bool))
+                [ [ [ verifyEd25519Signature pubKey ] message ] signature ]
+              )
+              [ [ [ { ifThenElse Bool } b ] True ] False ]
+            )
           )
         )
       )
     )
-    verifyEd25519Signature
+    (lam
+      ds
+      (con bytestring)
+      (lam
+        ds
+        (con bytestring)
+        (lam
+          ds
+          (con bytestring)
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl ds (con bytestring)) ds)
+            (termbind (strict) (vardecl ds (con bytestring)) ds)
+            (termbind (strict) (vardecl ds (con bytestring)) ds)
+            [ [ [ verifyEd25519Signature ds ] ds ] ds ]
+          )
+        )
+      )
+    )
   )
 )

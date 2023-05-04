@@ -22,9 +22,9 @@ main = defaultMain . testGroup "Size regression tests" $ [
       ],
     testGroup "Ord" [
       fitsInto "compare" ratCompare 89,
-      fitsInto "<=" ratLe 38,
+      fitsInto "<=" ratLe 39,
       fitsInto ">=" ratGe 38,
-      fitsInto "<" ratLt 38,
+      fitsInto "<" ratLt 39,
       fitsInto ">" ratGt 38,
       fitsInto "max" ratMax 50,
       fitsInto "min" ratMin 50
@@ -53,7 +53,7 @@ main = defaultMain . testGroup "Size regression tests" $ [
     testGroup "Other" [
       fitsInto "numerator" ratNumerator 7,
       fitsInto "denominator" ratDenominator 7,
-      fitsInto "round" ratRound 332,
+      fitsInto "round" ratRound 391,
       fitsInto "truncate" ratTruncate 11,
       fitsInto "properFraction" ratProperFraction 36,
       fitsInto "recip" ratRecip 87,

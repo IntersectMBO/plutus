@@ -13,10 +13,14 @@
     (lam
       ds
       RBasicDataBool
-      [
-        { [ RConsBasicDataBool_match ds ] (con integer) }
-        (lam i (con integer) i)
-      ]
+      (let
+        (nonrec)
+        (termbind (strict) (vardecl nt RBasicDataBool) ds)
+        [
+          { [ RConsBasicDataBool_match nt ] (con integer) }
+          (lam i (con integer) i)
+        ]
+      )
     )
   )
 )

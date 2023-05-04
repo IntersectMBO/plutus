@@ -16,32 +16,40 @@
       (lam
         ds
         Bool
-        (lam
-          ds
-          Bool
-          {
-            [
-              [
-                { [ Bool_match ds ] (all dead (type) Bool) }
-                (abs dead (type) False)
-              ]
-              (abs
-                dead
-                (type)
-                {
+        (let
+          (nonrec)
+          (termbind (strict) (vardecl ds Bool) ds)
+          (lam
+            ds
+            Bool
+            (let
+              (nonrec)
+              (termbind (strict) (vardecl ds Bool) ds)
+              {
+                [
                   [
-                    [
-                      { [ Bool_match ds ] (all dead (type) Bool) }
-                      (abs dead (type) False)
-                    ]
-                    (abs dead (type) True)
+                    { [ Bool_match ds ] (all dead (type) Bool) }
+                    (abs dead (type) False)
                   ]
-                  (all dead (type) dead)
-                }
-              )
-            ]
-            (all dead (type) dead)
-          }
+                  (abs
+                    dead
+                    (type)
+                    {
+                      [
+                        [
+                          { [ Bool_match ds ] (all dead (type) Bool) }
+                          (abs dead (type) False)
+                        ]
+                        (abs dead (type) True)
+                      ]
+                      (all dead (type) dead)
+                    }
+                  )
+                ]
+                (all dead (type) dead)
+              }
+            )
+          )
         )
       )
     )
@@ -51,10 +59,20 @@
       (lam
         ds
         Bool
-        (lam
-          ds
-          Bool
-          [ [ nandDirect [ [ nandDirect ds ] ds ] ] [ [ nandDirect ds ] ds ] ]
+        (let
+          (nonrec)
+          (termbind (strict) (vardecl ds Bool) ds)
+          (lam
+            ds
+            Bool
+            (let
+              (nonrec)
+              (termbind (strict) (vardecl ds Bool) ds)
+              [
+                [ nandDirect [ [ nandDirect ds ] ds ] ] [ [ nandDirect ds ] ds ]
+              ]
+            )
+          )
         )
       )
     )
@@ -85,28 +103,34 @@
               (lam
                 l
                 [ List a ]
-                {
-                  [
+                (let
+                  (nonrec)
+                  (termbind (strict) (vardecl p (fun a Bool)) p)
+                  {
                     [
-                      { [ { Nil_match a } l ] (all dead (type) Bool) }
-                      (abs dead (type) True)
-                    ]
-                    (lam
-                      h
-                      a
+                      [
+                        { [ { Nil_match a } l ] (all dead (type) Bool) }
+                        (abs dead (type) True)
+                      ]
                       (lam
-                        t
-                        [ List a ]
-                        (abs
-                          dead
-                          (type)
-                          [ [ andDirect [ p h ] ] [ [ { allDirect a } p ] t ] ]
+                        h
+                        a
+                        (lam
+                          t
+                          [ List a ]
+                          (abs
+                            dead
+                            (type)
+                            [
+                              [ andDirect [ p h ] ] [ [ { allDirect a } p ] t ]
+                            ]
+                          )
                         )
                       )
-                    )
-                  ]
-                  (all dead (type) dead)
-                }
+                    ]
+                    (all dead (type) dead)
+                  }
+                )
               )
             )
           )
@@ -166,17 +190,30 @@
               (lam
                 y
                 (con integer)
-                [
-                  [ [ { ifThenElse Bool } [ [ lessThanInteger x ] y ] ] True ]
-                  False
-                ]
+                (let
+                  (nonrec)
+                  (termbind (strict) (vardecl x (con integer)) x)
+                  (termbind (strict) (vardecl y (con integer)) y)
+                  (termbind
+                    (strict) (vardecl b (con bool)) [ [ lessThanInteger x ] y ]
+                  )
+                  [ [ [ { ifThenElse Bool } b ] True ] False ]
+                )
               )
             )
           )
           [
             [
               { allDirect (con integer) }
-              (lam ds (con integer) [ [ lessThanInteger ds ] (con integer 5) ])
+              (lam
+                ds
+                (con integer)
+                (let
+                  (nonrec)
+                  (termbind (strict) (vardecl ds (con integer)) ds)
+                  [ [ lessThanInteger ds ] (con integer 5) ]
+                )
+              )
             ]
             [
               { build (con integer) }

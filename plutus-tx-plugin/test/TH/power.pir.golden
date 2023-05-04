@@ -14,20 +14,39 @@
       (vardecl
         multiplyInteger (fun (con integer) (fun (con integer) (con integer)))
       )
-      (lam x (con integer) (lam y (con integer) [ [ multiplyInteger x ] y ]))
+      (lam
+        x
+        (con integer)
+        (lam
+          y
+          (con integer)
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl x (con integer)) x)
+            (termbind (strict) (vardecl y (con integer)) y)
+            [ [ multiplyInteger x ] y ]
+          )
+        )
+      )
     )
     (lam
       ds
       (con integer)
       (let
         (nonrec)
+        (termbind (strict) (vardecl ds (con integer)) ds)
         (termbind
-          (nonstrict)
+          (strict)
           (vardecl y (con integer))
-          [ [ multiplyInteger ds ] (con integer 1) ]
-        )
-        (termbind
-          (nonstrict) (vardecl y (con integer)) [ [ multiplyInteger y ] y ]
+          (let
+            (nonrec)
+            (termbind
+              (strict)
+              (vardecl y (con integer))
+              [ [ multiplyInteger ds ] (con integer 1) ]
+            )
+            [ [ multiplyInteger y ] y ]
+          )
         )
         [ [ multiplyInteger y ] y ]
       )

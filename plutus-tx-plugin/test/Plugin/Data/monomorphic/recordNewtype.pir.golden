@@ -13,7 +13,13 @@
     (lam
       ds
       RecordNewtype
-      [ { [ RecordNewtype_match ds ] (con integer) } (lam ds (con integer) ds) ]
+      (let
+        (nonrec)
+        (termbind (strict) (vardecl ds RecordNewtype) ds)
+        [
+          { [ RecordNewtype_match ds ] (con integer) } (lam ds (con integer) ds)
+        ]
+      )
     )
   )
 )

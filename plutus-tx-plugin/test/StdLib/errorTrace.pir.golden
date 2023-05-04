@@ -25,16 +25,12 @@
         (lam
           str
           (con string)
-          [
-            { error a }
-            (let
-              (nonrec)
-              (termbind
-                (strict) (vardecl wild Unit) [ [ { trace Unit } str ] Unit ]
-              )
-              unitval
-            )
-          ]
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl str (con string)) str)
+            (termbind (strict) (vardecl x Unit) [ [ { trace Unit } str ] Unit ])
+            [ { error a } unitval ]
+          )
         )
       )
     )

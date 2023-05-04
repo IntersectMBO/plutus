@@ -3,18 +3,24 @@
   (lam
     x_i0
     [
-      [
+      (lam
+        x_i0
         [
-          (lam appendByteString_i0 (force appendByteString_i1))
-          (delay
+          [
             [
-              (lam appendByteString_i0 appendByteString_i1)
-              (builtin appendByteString)
+              (lam appendByteString_i0 (force appendByteString_i1))
+              (delay
+                [
+                  (lam appendByteString_i0 appendByteString_i1)
+                  (builtin appendByteString)
+                ]
+              )
             ]
-          )
+            (con bytestring #68656c6c6f)
+          ]
+          x_i1
         ]
-        (con bytestring #68656c6c6f)
-      ]
+      )
       x_i1
     ]
   )
