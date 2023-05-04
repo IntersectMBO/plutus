@@ -1,4 +1,11 @@
 
+<a id='changelog-1.6.0.0'></a>
+# 1.6.0.0 — 2023-05-04
+
+## Changed
+
+- Various `Lift` functions gained `Version` arguments, so that you can control the version of PLC used in the resulting program. This also affects how the PIR compiler will compile datatypes.
+
 <a id='changelog-1.4.0.0'></a>
 # 1.4.0.0 — 2023-03-23
 
