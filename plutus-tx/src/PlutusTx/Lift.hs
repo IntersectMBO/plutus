@@ -24,7 +24,6 @@ import PlutusTx.Lift.Class qualified as Lift
 import PlutusTx.Lift.Instances ()
 import PlutusTx.Lift.TH (LiftError (..), makeLift, makeTypeable)
 
-import Data.Bifunctor
 import PlutusIR
 import PlutusIR qualified as PIR
 import PlutusIR.Compiler
@@ -46,7 +45,7 @@ import Control.Exception
 import Control.Lens hiding (lifted)
 import Control.Monad.Except hiding (lift)
 import Control.Monad.Reader hiding (lift)
-
+import Data.Bifunctor
 import Data.Default.Class
 import Data.Proxy
 import Data.Typeable qualified as GHC
@@ -73,9 +72,9 @@ safeLift
        , PrettyPrintable uni fun
        , Default (PLC.CostingPart uni fun)
        )
-    => PLC.Version -> a -> m (UPLC.Term UPLC.NamedDeBruijn uni fun ())
+    => PLC.Version -> a -> m (PIR.Term PLC.TyName PLC.Name uni fun (), UPLC.Term UPLC.NamedDeBruijn uni fun ())
 safeLift v x = do
-    lifted <- liftQuote $ runDefT () $ Lift.lift x
+    pir <- liftQuote $ runDefT () $ Lift.lift x
     tcConfig <- PLC.getDefTypeCheckConfig $ Original ()
     -- NOTE:  Disabling simplifier, as it takes a lot of time during runtime
     let ccConfig = toDefaultCompilationCtx tcConfig
@@ -85,10 +84,10 @@ safeLift v x = do
           -- that takes all the compilation options and everything.
           & set (ccOpts . coDatatypes . dcoStyle) (if v >= PLC.plcVersion110 then SumsOfProducts else ScottEncoding)
         ucOpts = PLC.defaultCompilationOpts & PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations .~ 0
-    plc <- flip runReaderT ccConfig $ compileProgram (Program () v lifted)
+    plc <- flip runReaderT ccConfig $ compileProgram (Program () v pir)
     uplc <- flip runReaderT ucOpts $ PLC.compileProgram plc
     (UPLC.Program _ _ db) <- traverseOf UPLC.progTerm UPLC.deBruijnTerm uplc
-    pure $ void db
+    pure $ (void pir, void db)
 
 -- | Get a Plutus Core program corresponding to the given value.
 safeLiftProgram
@@ -101,8 +100,8 @@ safeLiftProgram
        , PrettyPrintable uni fun
        , Default (PLC.CostingPart uni fun)
        )
-    => PLC.Version -> a -> m (UPLC.Program UPLC.NamedDeBruijn uni fun ())
-safeLiftProgram v x = UPLC.Program () v <$> safeLift v x
+    => PLC.Version -> a -> m (PIR.Program PLC.TyName PLC.Name uni fun (), UPLC.Program UPLC.NamedDeBruijn uni fun ())
+safeLiftProgram v x = bimap (PIR.Program () v) (UPLC.Program () v) <$> safeLift v x
 
 safeLiftCode
     :: (Lift.Lift uni a
@@ -115,11 +114,12 @@ safeLiftCode
        , Default (PLC.CostingPart uni fun)
        )
     => PLC.Version -> a -> m (CompiledCodeIn uni fun a)
-safeLiftCode v x =
-    DeserializedCode
-        <$> ((const mempty <$>) <$> safeLiftProgram v x)
-        <*> pure Nothing
-        <*> pure mempty
+safeLiftCode v =
+    fmap
+        ( \(pir, uplc) ->
+            DeserializedCode (mempty <$ uplc) (Just (mempty <$ pir)) mempty
+        )
+        . safeLiftProgram v
 
 unsafely
     :: Throwable uni fun
@@ -133,19 +133,19 @@ unsafely ma = runQuote $ do
 -- | Get a Plutus Core term corresponding to the given value, throwing any errors that occur as exceptions and ignoring fresh names.
 lift
     :: (Lift.Lift uni a, Throwable uni fun, PLC.Typecheckable uni fun, Default (PLC.CostingPart uni fun))
-    => PLC.Version -> a -> UPLC.Term UPLC.NamedDeBruijn uni fun ()
+    => PLC.Version -> a -> (PIR.Term PLC.TyName PLC.Name uni fun (), UPLC.Term UPLC.NamedDeBruijn uni fun ())
 lift v a = unsafely $ safeLift v a
 
 -- | Get a Plutus Core program corresponding to the given value, throwing any errors that occur as exceptions and ignoring fresh names.
 liftProgram
     :: (Lift.Lift uni a, Throwable uni fun, PLC.Typecheckable uni fun, Default (PLC.CostingPart uni fun))
-    => PLC.Version -> a -> UPLC.Program UPLC.NamedDeBruijn uni fun ()
-liftProgram v x = UPLC.Program () v $ lift v x
+    => PLC.Version -> a -> (PIR.Program PLC.TyName PLC.Name uni fun (), UPLC.Program UPLC.NamedDeBruijn uni fun ())
+liftProgram v x = unsafely $ safeLiftProgram v x
 
 -- | Get a Plutus Core program in the default universe with the default version, corresponding to the given value, throwing any errors that occur as exceptions and ignoring fresh names.
 liftProgramDef
     :: Lift.Lift PLC.DefaultUni a
-    => a -> UPLC.Program UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
+    => a -> (PIR.Program PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun (), UPLC.Program UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ())
 liftProgramDef = liftProgram PLC.latestVersion
 
 -- | Get a Plutus Core program corresponding to the given value as a 'CompiledCodeIn', throwing any errors that occur as exceptions and ignoring fresh names.
