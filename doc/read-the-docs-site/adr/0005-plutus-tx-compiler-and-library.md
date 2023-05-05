@@ -222,7 +222,7 @@ If this version is indeed preferred for some reason, it can be provided in a thi
 
 ### Turning off GHC's pre-inliner
 
-As said before, one reason why the semantics of Plutus Tx is difficult to predict is because we run GHC's pre-inliner, which may perform unconditionally inlining.
+As said before, one reason why the semantics of Plutus Tx is difficult to predict is because we run GHC's pre-inliner, which may perform unconditional inlining.
 Since GHC 9.0, GHC provides [an option](https://hackage.haskell.org/package/ghc-9.6.1/docs/GHC-Core-Opt-Simplify-Env.html#v:sm_pre_inline) to turn it off when running the simplifier.
 By turning it off, GHC (hopefully) won't inline anything at all, which means it won't change the strictness of Plutus Tx programs.
 
