@@ -224,12 +224,17 @@ If this version is indeed preferred for some reason, it can be provided in a thi
 
 As said before, one reason why the semantics of Plutus Tx is difficult to predict is because we run GHC's pre-inliner, which may perform unconditional inlining.
 Since GHC 9.0, GHC provides [an option](https://hackage.haskell.org/package/ghc-9.6.1/docs/GHC-Core-Opt-Simplify-Env.html#v:sm_pre_inline) to turn it off when running the simplifier.
-By turning it off, GHC (hopefully) won't inline anything at all, which means it won't change the strictness of Plutus Tx programs.
+Unfortunately, setting `sm_pre_inline` to `False` is not sufficient to stop GHC from inlining unconditionally.
+This is because GHC has a [simple optimizer](https://gitlab.haskell.org/ghc/ghc/-/blob/74ca6191fa0dbbe8cee3dc53741b8d59fbf16b09/compiler/GHC/Core/SimpleOpt.hs#L154), which is called by the desugarer (thus runs before the Plutus Tx compiler), and which also performs unconditional inlining.
+It is currently not possible to turn off either the simple optimizer, or the unconditional inlining performed by the simple optimizer.
 
-At this time we can't simply turn the pre-inliner off, because doing so breaks the Plutus Tx compiler.
+Another reason why we can't turn off unconditional inlining in GHC is because doing so breaks the Plutus Tx compiler.
 For details, see [this note](https://github.com/input-output-hk/plutus/blob/dc57fe1b8497835ef2a7794c017c5a50c0b7e647/plutus-tx-plugin/src/PlutusTx/Plugin.hs#L123).
 The problem described in the note should, however, be resolved in a different way, as explained in the note.
-Once done, we can go ahead and turn it off.
+
+Thus to completely turn off inlining in GHC, we need to
+- Solve the problem described in the above note
+- Modify GHC such that it is possible to either turn off the simple optimizer, or prevent the simple optimizer from unconditional inlining, or move the simple optimizer to the Core-to-Core pipeline so that it runs _after_ the Plutus Tx compiler.
 
 ## Backwards Compatibility
 
@@ -240,6 +245,6 @@ Initially the default will be the old behavior, and later the default will switc
 ## Decision
 
 - We will update Plutus Tx documentation to encourage using `Strict` whenever appropriate.
-- We will work on a solution that enables the Plutus Tx compiler to stop depending on GHC's pre-inliner.
-- Once the above is done, we will introduce the `nonstrict` function which can be used to create non-strict let bindings in Plutus Tx.
+- Investigate whether stopping GHC from inlining unconditionally is feasible.
+  If so, once this is achieved, we will introduce the `nonstrict` function which can be used to create non-strict let bindings in Plutus Tx.
 - We will update the Plutus Tx standard library, by removing polymorphic functions that have more efficient monomorphic implementations (such as `PlutusTx.Foldable.any`), and providing monomorphic implementations instead.
