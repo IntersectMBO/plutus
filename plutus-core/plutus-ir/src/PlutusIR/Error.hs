@@ -57,7 +57,7 @@ instance PLC.AsFreeVariableError (Error uni fun a) where
 ------------------
 
 type PrettyUni uni ann =
-    ( PP.Pretty (PLC.SomeTypeIn uni)
+    ( PLC.PrettyParens (PLC.SomeTypeIn uni)
     , PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst
     , PP.Pretty ann
     )
@@ -76,14 +76,17 @@ deriving anyclass instance
     (PrettyUni uni ann, Typeable uni, Typeable fun, Typeable ann, Pretty fun) => Exception (Error uni fun ann)
 
 instance
-        (Pretty ann, Pretty fun,
-        PP.Pretty (PLC.SomeTypeIn uni), PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst
+        ( Pretty ann, Pretty fun
+        , PLC.PrettyParens (PLC.SomeTypeIn uni)
+        , PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst
         ) => Pretty (Error uni fun ann) where
     pretty = PLC.prettyPlcClassicDef
 
 
-instance (PP.Pretty (PLC.SomeTypeIn uni), PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst, Pretty fun, Pretty ann) =>
-            PrettyBy PLC.PrettyConfigPlc (Error uni fun ann) where
+instance
+         ( PLC.PrettyParens (PLC.SomeTypeIn uni)
+         , PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst, Pretty fun, Pretty ann
+         ) => PrettyBy PLC.PrettyConfigPlc (Error uni fun ann) where
      prettyBy config = \case
         CompilationError x e -> "Error during compilation:" <+> PP.pretty e <> "(" <> PP.pretty x <> ")"
         UnsupportedError x e -> "Unsupported construct:" <+> PP.pretty e <+> "(" <> PP.pretty x <> ")"

@@ -402,7 +402,7 @@ type CekEvaluationException name uni fun =
 
 -- | The set of constraints we need to be able to print things in universes, which we need in order to throw exceptions.
 type PrettyUni uni fun =
-    ( Pretty (SomeTypeIn uni)
+    ( PrettyParens (SomeTypeIn uni)
     , Closed uni, uni `Everywhere` PrettyConst
     , Pretty fun
     , Typeable uni
@@ -533,7 +533,7 @@ dischargeCekValue = \case
     VBuiltin _ term _                    -> term
     VConstr i es                         -> Constr () i (fmap dischargeCekValue es)
 
-instance (Closed uni, Pretty (SomeTypeIn uni), uni `Everywhere` PrettyConst, Pretty fun) =>
+instance (Closed uni, PrettyParens (SomeTypeIn uni), uni `Everywhere` PrettyConst, Pretty fun) =>
             PrettyBy PrettyConfigPlc (CekValue uni fun ann) where
     prettyBy cfg = prettyBy cfg . dischargeCekValue
 

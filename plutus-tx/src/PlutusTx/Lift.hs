@@ -34,7 +34,7 @@ import PlutusIR.MkPir qualified as PIR
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Compiler qualified as PLC
-import PlutusCore.Pretty (PrettyConst)
+import PlutusCore.Pretty (PrettyConst, PrettyParens)
 import PlutusCore.Quote
 import PlutusCore.StdLib.Data.Function qualified as PLC
 import PlutusCore.Version qualified as PLC
@@ -54,10 +54,11 @@ import Prettyprinter
 -- We do not use qualified import because the whole module contains off-chain code
 import Prelude as Haskell
 
-type PrettyPrintable uni fun = (Pretty (PLC.SomeTypeIn uni), PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, Pretty fun)
+type PrettyPrintable uni fun = (PrettyParens (PLC.SomeTypeIn uni), PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, Pretty fun)
 
 type Throwable uni fun =
-    ( Pretty (PLC.SomeTypeIn uni), PLC.GEq uni, PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, GHC.Typeable uni
+    ( PrettyParens (PLC.SomeTypeIn uni)
+    , PLC.GEq uni, PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, GHC.Typeable uni
     , Pretty fun, GHC.Typeable fun
     )
 

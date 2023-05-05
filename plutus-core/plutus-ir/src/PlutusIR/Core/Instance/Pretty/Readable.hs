@@ -72,7 +72,7 @@ viewLet _       = Nothing
 type PrettyConstraints configName tyname name uni =
   ( PrettyReadableBy configName tyname
   , PrettyReadableBy configName name
-  , Pretty (PLC.SomeTypeIn uni)
+  , PrettyParens (PLC.SomeTypeIn uni)
   , PLC.Closed uni, uni `PLC.Everywhere` PrettyConst
   )
 

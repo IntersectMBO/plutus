@@ -136,7 +136,7 @@ goldenPir ::
     ( PLC.Closed uni
     , uni `PLC.Everywhere` PrettyConst
     , uni `PLC.Everywhere` Flat
-    , Pretty (PLC.SomeTypeIn uni)
+    , PrettyParens (PLC.SomeTypeIn uni)
     , Pretty fun
     , Flat fun
     ) =>
@@ -150,7 +150,7 @@ goldenPirReadable ::
     ( PLC.Closed uni
     , uni `PLC.Everywhere` PrettyConst
     , PLC.Everywhere uni Flat
-    , Pretty (PLC.SomeTypeIn uni)
+    , PrettyParens (PLC.SomeTypeIn uni)
     , Pretty fun
     , Flat fun
     ) =>
@@ -167,7 +167,7 @@ goldenPirBy ::
     ( PLC.Closed uni
     , uni `PLC.Everywhere` PrettyConst
     , uni `PLC.Everywhere` Flat
-    , Pretty (PLC.SomeTypeIn uni)
+    , PrettyParens (PLC.SomeTypeIn uni)
     , Pretty fun
     , Flat fun
     ) =>

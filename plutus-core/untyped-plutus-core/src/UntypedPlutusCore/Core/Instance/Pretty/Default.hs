@@ -21,7 +21,7 @@ import Universe
 
 instance
         ( PrettyClassic name
-        , Pretty (SomeTypeIn uni)
+        , PrettyParens (SomeTypeIn uni)
         , Closed uni, uni `Everywhere` PrettyConst, Pretty fun
         , Pretty ann
         ) => Pretty (Term name uni fun ann) where
@@ -29,7 +29,7 @@ instance
 
 instance
         ( PrettyClassic name
-        , Pretty (SomeTypeIn uni)
+        , PrettyParens (SomeTypeIn uni)
         , Closed uni, uni `Everywhere` PrettyConst, Pretty fun
         , Pretty ann
         ) => Pretty (Program name uni fun ann) where

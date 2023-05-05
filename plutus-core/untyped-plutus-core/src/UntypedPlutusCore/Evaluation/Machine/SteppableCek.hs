@@ -97,7 +97,7 @@ May throw a 'CekMachineException'.
 *THIS FUNCTION IS PARTIAL if the input term contains free variables*
 -}
 unsafeRunCekNoEmit
-    :: ( Pretty (SomeTypeIn uni), Typeable uni
+    :: ( PrettyParens (SomeTypeIn uni), Typeable uni
        , Closed uni, uni `Everywhere` PrettyConst
        , Pretty fun, Typeable fun
        )
@@ -130,7 +130,7 @@ evaluateCekNoEmit = Common.evaluateCekNoEmit S.runCekDeBruijn
 -- May throw a 'CekMachineException'.
 -- *THIS FUNCTION IS PARTIAL if the input term contains free variables*
 unsafeEvaluateCek
-    :: ( Pretty (SomeTypeIn uni), Typeable uni
+    :: ( PrettyParens (SomeTypeIn uni), Typeable uni
        , Closed uni, uni `Everywhere` PrettyConst
        , Pretty fun, Typeable fun
        )
@@ -144,7 +144,7 @@ unsafeEvaluateCek = Common.unsafeEvaluateCek S.runCekDeBruijn
 -- May throw a 'CekMachineException'.
 -- *THIS FUNCTION IS PARTIAL if the input term contains free variables*
 unsafeEvaluateCekNoEmit
-    :: ( Pretty (SomeTypeIn uni), Typeable uni
+    :: ( PrettyParens (SomeTypeIn uni), Typeable uni
        , Closed uni, uni `Everywhere` PrettyConst
        , Pretty fun, Typeable fun
        )
