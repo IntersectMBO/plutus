@@ -273,12 +273,12 @@ getInput :: Input -> IO T.Text
 getInput (FileInput file) = T.readFile file
 getInput StdInput         = T.getContents
 
--- | For PLC and UPLC source programs. Read and parse and check the program for @UniqueError@'s.
+-- | Read and parse and check the program for @UniqueError@'s.
 parseInput ::
     (ProgramLike p, PLC.Rename (p PLC.SrcSpan)) =>
     -- | The source program
     Input ->
-    -- | The output is either a UPLC or PLC program with annotation
+    -- | The output is a program with annotation
     IO (T.Text, p PLC.SrcSpan)
 parseInput inp = do
     contents <- getInput inp
