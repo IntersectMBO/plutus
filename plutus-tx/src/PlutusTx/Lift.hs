@@ -41,7 +41,6 @@ import PlutusCore.Version qualified as PLC
 
 import UntypedPlutusCore qualified as UPLC
 
-import Control.Arrow ((***))
 import Control.Exception
 import Control.Lens hiding (lifted)
 import Control.Monad.Except hiding (lift)
@@ -102,7 +101,7 @@ safeLiftProgram
        , Default (PLC.CostingPart uni fun)
        )
     => PLC.Version -> a -> m (PIR.Program PLC.TyName PLC.Name uni fun (), UPLC.Program UPLC.NamedDeBruijn uni fun ())
-safeLiftProgram v x = (PIR.Program () v *** UPLC.Program () v) <$> safeLift v x
+safeLiftProgram v x = bimap (PIR.Program () v) (UPLC.Program () v) <$> safeLift v x
 
 safeLiftCode
     :: (Lift.Lift uni a
