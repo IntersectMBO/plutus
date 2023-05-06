@@ -6,6 +6,7 @@
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
+{-# OPTIONS_GHC -fforce-recomp #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
@@ -19,97 +20,127 @@ import PlutusTx.Code
 import PlutusTx.IsData qualified as PlutusTx
 import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Show qualified as PlutusTx
-import PlutusTx.Test (goldenBudget, goldenPirReadable)
+import PlutusTx.Test
 import PlutusTx.TH (compile)
 
 tests :: TestNested
 tests = testNested "Budget" [
     goldenBudget "sum" compiledSum
+  , goldenUPlc "sum" compiledSum
   , goldenPirReadable "sum" compiledSum
 
   , goldenBudget "anyCheap" compiledAnyCheap
+  , goldenUPlc "anyCheap" compiledAnyCheap
   , goldenPirReadable "anyCheap" compiledAnyCheap
 
   , goldenBudget "anyExpensive" compiledAnyExpensive
+  , goldenUPlc "anyExpensive" compiledAnyExpensive
   , goldenPirReadable "anyExpensive" compiledAnyExpensive
 
   , goldenBudget "anyEmptyList" compiledAnyEmptyList
+  , goldenUPlc "anyEmptyList" compiledAnyEmptyList
   , goldenPirReadable "anyEmptyList" compiledAnyEmptyList
 
   , goldenBudget "allCheap" compiledAllCheap
+  , goldenUPlc "allCheap" compiledAllCheap
   , goldenPirReadable "allCheap" compiledAllCheap
 
   , goldenBudget "allExpensive" compiledAllExpensive
+  , goldenUPlc "allExpensive" compiledAllExpensive
   , goldenPirReadable "allExpensive" compiledAllExpensive
 
   , goldenBudget "allEmptyList" compiledAllEmptyList
+  , goldenUPlc "allEmptyList" compiledAllEmptyList
   , goldenPirReadable "allEmptyList" compiledAllEmptyList
 
   , goldenBudget "findCheap" compiledFindCheap
+  , goldenUPlc "findCheap" compiledFindCheap
   , goldenPirReadable "findCheap" compiledFindCheap
 
   , goldenBudget "findExpensive" compiledFindExpensive
+  , goldenUPlc "findExpensive" compiledFindExpensive
   , goldenPirReadable "findExpensive" compiledFindExpensive
 
   , goldenBudget "findEmptyList" compiledFindEmptyList
+  , goldenUPlc "findEmptyList" compiledFindEmptyList
   , goldenPirReadable "findEmptyList" compiledFindEmptyList
 
   , goldenBudget "findIndexCheap" compiledFindIndexCheap
+  , goldenUPlc "findIndexCheap" compiledFindIndexCheap
   , goldenPirReadable "findIndexCheap" compiledFindIndexCheap
 
   , goldenBudget "findIndexExpensive" compiledFindIndexExpensive
+  , goldenUPlc "findIndexExpensive" compiledFindIndexExpensive
   , goldenPirReadable "findIndexExpensive" compiledFindIndexExpensive
 
   , goldenBudget "findIndexEmptyList" compiledFindIndexEmptyList
+  , goldenUPlc "findIndexEmptyList" compiledFindIndexEmptyList
   , goldenPirReadable "findIndexEmptyList" compiledFindIndexEmptyList
 
   , goldenBudget "filter" compiledFilter
+  , goldenUPlc "filter" compiledFilter
   , goldenPirReadable "filter" compiledFilter
 
   , goldenBudget "andCheap" compiledAndCheap
+  , goldenUPlc "andCheap" compiledAndCheap
   , goldenPirReadable "andCheap" compiledAndCheap
 
   , goldenBudget "andExpensive" compiledAndExpensive
+  , goldenUPlc "andExpensive" compiledAndExpensive
   , goldenPirReadable "andExpensive" compiledAndExpensive
 
   , goldenBudget "orCheap" compiledOrCheap
+  , goldenUPlc "orCheap" compiledOrCheap
   , goldenPirReadable "orCheap" compiledOrCheap
 
   , goldenBudget "orExpensive" compiledOrExpensive
+  , goldenUPlc "orExpensive" compiledOrExpensive
   , goldenPirReadable "orExpensive" compiledOrExpensive
 
   , goldenBudget "elemCheap" compiledElemCheap
+  , goldenUPlc "elemCheap" compiledElemCheap
   , goldenPirReadable "elemCheap" compiledElemCheap
 
   , goldenBudget "elemExpensive" compiledElemExpensive
+  , goldenUPlc "elemExpensive" compiledElemExpensive
   , goldenPirReadable "elemExpensive" compiledElemExpensive
 
   , goldenBudget "notElemCheap" compiledNotElemCheap
+  , goldenUPlc "notElemCheap" compiledNotElemCheap
   , goldenPirReadable "notElemCheap" compiledNotElemCheap
 
   , goldenBudget "notElemExpensive" compiledNotElemExpensive
+  , goldenUPlc "notElemExpensive" compiledNotElemExpensive
   , goldenPirReadable "notElemExpensive" compiledNotElemExpensive
 
   , goldenBudget "null" compiledNull
+  , goldenUPlc "null" compiledNull
   , goldenPirReadable "null" compiledNull
 
   , goldenBudget "toFromData" compiledToFromData
+  , goldenUPlc "toFromData" compiledToFromData
   , goldenPirReadable "toFromData" compiledToFromData
 
   , goldenBudget "monadicDo" monadicDo
+  , goldenUPlc "monadicDo" monadicDo
   , goldenPirReadable "monadicDo" monadicDo
   -- These should be a little cheaper than the previous one,
   -- less overhead from going via monadic functions
   , goldenBudget "applicative" applicative
+  , goldenUPlc "applicative" applicative
   , goldenPirReadable "applicative" applicative
   , goldenBudget "patternMatch" patternMatch
+  , goldenUPlc "patternMatch" patternMatch
   , goldenPirReadable "patternMatch" patternMatch
   , goldenBudget "show" compiledShow
+  , goldenUPlc "show" compiledShow
   , goldenPirReadable "show" compiledShow
   -- These test cases are for testing the float-in pass.
   , goldenBudget "ifThenElse1" compiledIfThenElse1
+  , goldenUPlc "ifThenElse1" compiledIfThenElse1
   , goldenPirReadable "ifThenElse1" compiledIfThenElse1
   , goldenBudget "ifThenElse2" compiledIfThenElse2
+  , goldenUPlc "ifThenElse2" compiledIfThenElse2
   , goldenPirReadable "ifThenElse2" compiledIfThenElse2
   ]
 
