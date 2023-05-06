@@ -14,7 +14,7 @@ import Data.Set (Set)
 import Data.Set qualified as Set
 
 {- | The Float Delay optimization floats `Delay` from arguments into function bodies,
-if possible. It turns @(\n -> ...Force n...Force n...) (\Delay arg)@ into
+if possible. It turns @(\n -> ...Force n...Force n...) (Delay arg)@ into
 @(\n -> ...Force (Delay n)...Force (Delay n)...) arg@.
 
 The above transformation is performed if:
