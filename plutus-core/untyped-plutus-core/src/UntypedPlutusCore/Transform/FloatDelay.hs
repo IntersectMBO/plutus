@@ -99,7 +99,13 @@ isEssentiallyWorkFree = \case
     LamAbs{}   -> True
     Constant{} -> True
     Delay{}    -> True
+    Constr{}   -> True
+    Builtin{}  -> True
+    Var{}      -> False
+    Force{}    -> False
     -- Unsaturated builtin applications should also be essentially work-free,
     -- but this is currently not implemented for UPLC.
     -- `UntypedPlutusCore.Transform.Inline.isPure` has the same problem.
-    _          -> False
+    Apply{}    -> False
+    Case{}     -> False
+    Error{}    -> False
