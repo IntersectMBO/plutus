@@ -1,0 +1,85 @@
+cabal-version:   2.2
+name:            marlowe-cardano-minimal
+version:         0.1.0.3
+license:         Apache-2.0
+license-files:
+  LICENSE
+  NOTICE
+
+build-type:      Simple
+maintainer:      alexander.nemish@iohk.io
+stability:       experimental
+author:          Alexander Nemish
+synopsis:        Marlowe: financial contracts on Cardano Computation Layer
+description:
+  A reference implementation of Marlowe, domain-specific language targeted at
+  the execution of financial contracts in the style of Peyton Jones et al
+  on Cardano Computation Layer.
+
+category:        Language
+extra-doc-files:
+  CHANGELOG.md
+  README.md
+
+source-repository head
+  type:     git
+  location: https://github.com/input-output-hk/marlowe-cardano
+
+flag defer-plugin-errors
+  description:
+    Defer errors from the plugin, useful for things like Haddock that can't handle it.
+
+  default:     False
+  manual:      True
+
+common lang
+  default-language:   Haskell2010
+  default-extensions:
+    DeriveFoldable
+    DeriveFunctor
+    DeriveGeneric
+    DeriveLift
+    DeriveTraversable
+    ExplicitForAll
+    ScopedTypeVariables
+    StandaloneDeriving
+
+  ghc-options:
+    -Wall -Wnoncanonical-monad-instances -Wincomplete-uni-patterns
+    -Wincomplete-record-updates -Wredundant-constraints -Widentities
+    -Wunused-packages
+
+library
+  import:          lang
+  hs-source-dirs:  src
+
+  if !(impl(ghcjs) || os(ghcjs))
+    build-depends: plutus-tx-plugin
+
+  build-depends:
+    , base
+    , bytestring
+    , cardano-crypto-class  >=2.0.0.1 && <2.2
+    , newtype-generics
+    , plutus-ledger-api
+    , plutus-tx
+
+  exposed-modules:
+    Language.Marlowe.Core.V1.Semantics
+    Language.Marlowe.Core.V1.Semantics.Types
+    Language.Marlowe.Core.V1.Semantics.Types.Address
+    Language.Marlowe.Scripts
+
+executable marlowe-validators
+  import:         lang
+  hs-source-dirs: app
+  main-is:        Main.hs
+  build-depends:
+    , base
+    , base16-bytestring
+    , bytestring
+    , containers
+    , marlowe-cardano-minimal
+    , mtl
+    , plutus-core
+    , plutus-ledger-api
