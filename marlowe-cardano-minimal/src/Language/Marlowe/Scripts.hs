@@ -79,7 +79,7 @@ import PlutusTx.Prelude as PlutusTxPrelude hiding (traceError, traceIfFalse)
 import Cardano.Crypto.Hash qualified as Hash
 import Data.ByteString qualified as BS
 import Data.ByteString.Short qualified as SBS
-import PlutusCore.Version (latestVersion)
+import PlutusCore.Version (plcVersion100)
 import PlutusLedgerApi.V1.Address qualified as Address (scriptHashAddress)
 import PlutusLedgerApi.V1.Value qualified as Val
 import PlutusLedgerApi.V2 qualified as Ledger (Address (Address))
@@ -483,7 +483,7 @@ marloweValidator =
   in
     fromMaybe (Haskell.error "Application of role-payout validator hash to marlowe validator failed.")
       $ $$(PlutusTx.compile [|| marloweValidator' ||])
-      `PlutusTx.applyCode` PlutusTx.liftCode latestVersion rolePayoutValidatorHash
+      `PlutusTx.applyCode` PlutusTx.liftCode plcVersion100 rolePayoutValidatorHash
 
 
 -- | The serialisation of the Marlowe semantics validator.
