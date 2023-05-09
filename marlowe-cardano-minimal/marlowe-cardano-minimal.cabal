@@ -61,6 +61,7 @@ library
     , bytestring
     , cardano-crypto-class  >=2.0.0.1 && <2.2
     , newtype-generics
+    , plutus-core
     , plutus-ledger-api
     , plutus-tx
 
