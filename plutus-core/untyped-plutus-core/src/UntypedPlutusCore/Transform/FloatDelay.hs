@@ -113,6 +113,7 @@ simplifyBodies whitelist = transformOf termSubterms $ \case
 
 -- | Whether evaluating the given `Term` is pure and essentially work-free
 -- (barring the CEK machine overhead).
+--- This should be the erased version of 'PlutusIR.Transform.LetFloat.isEssentiallyWorkFree'.
 isEssentiallyWorkFree :: Term name uni fun a -> Bool
 isEssentiallyWorkFree = \case
     LamAbs{}   -> True
