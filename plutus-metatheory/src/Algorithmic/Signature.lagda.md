@@ -13,7 +13,7 @@ open Relation.Binary.PropositionalEquality.≡-Reasoning
 
 open import Function using (_∘_)
 
-open import Utils using (*;_∔_≣_)
+open import Utils using (*;♯;_∔_≣_)
 open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_;Φ)
 open _⊢⋆_
 
@@ -24,73 +24,27 @@ open _⊢Ne⋆_
 import Type.RenamingSubstitution as ⋆
 open import Type.BetaNBE.Completeness using (reifyCR;idext;exte-lem)
 open import Type.BetaNBE.RenamingSubstitution 
-                         using (subNf;SubNf;renNf-subNf;subNf-cong;subNf-comp;subNf-cons;extsNf;subNf-lemma) 
+                         using (subNf;SubNf;renNf-subNf;subNf-cong;subNf-comp;subNf-cons;extsNf;subNf-lemma;subNf∅;subNf∅≡subNf;subNf∅-subNf;subNf∅-renNf) 
                          renaming (_[_]Nf to _[_])
-open import Type.BetaNBE.Stability using (stability)
 open import Builtin using (Builtin;signature)
-open import Builtin.Signature using (Sig;sig;nat2Ctx⋆;fin2∈⋆)
 open import Type.BetaNBE using (nf;reify;eval;idEnv;exte)
-open Builtin.Signature.FromSig Ctx⋆ (_⊢Nf⋆ *) nat2Ctx⋆ (λ x → ne (` (fin2∈⋆ x))) con _⇒_ Π 
-     using (sig2type;SigTy;sigTy2type;convSigTy) public
+open import Builtin.Signature using (Sig;sig;nat2Ctx⋆;fin2∈⋆;_⊢♯)
+open Builtin.Signature.FromSig Ctx⋆ _⊢Nf⋆_ _⊢Ne⋆_ ne nat2Ctx⋆ (λ x → ` (fin2∈⋆ x)) _·_ ^ con _⇒_   Π 
+     using (♯2*;sig2type;SigTy;sigTy2type;convSigTy) public
 open SigTy
 
 
 ```
 
 ```
-btype' : Builtin → Φ ⊢Nf⋆ *
-btype' b = subNf (λ()) (sig2type (signature b))
-
-btype-∅ : ∀ {A : ∅ ⊢Nf⋆ *} → A ≡ subNf {∅} {∅} (λ()) {*} A
-btype-∅ {A} = begin
-             A
-            ≡⟨ sym (stability A) ⟩
-             nf (embNf A)
-           ≡⟨ cong nf (sym (⋆.sub-∅ (embNf A)  (embNf ∘  λ()))) ⟩
-             nf (⋆.sub (embNf ∘ λ()) (embNf A))
-           ≡⟨ refl ⟩
-             subNf (λ ()) A
-           ∎
-
--- A version of btype' where btype {∅} b = sig2type (signature b) holds definitionally
 btype : Builtin → Φ ⊢Nf⋆ *
-btype {∅} b = sig2type (signature b)
-btype {Φ ,⋆ x} b = btype' b
-
--- Both versions are the same
-btype-btype' : ∀ {Φ} b → btype {Φ} b ≡ btype' {Φ} b
-btype-btype' {∅} b = btype-∅
-btype-btype' {Φ ,⋆ x} b = refl
-
-btype'-ren : ∀{Φ Ψ} b (ρ : ⋆.Ren Φ Ψ) → btype' b ≡ renNf ρ (btype' b)
-btype'-ren b ρ = begin
-             btype' b
-             ≡⟨ refl ⟩
-             subNf (λ()) (sig2type (signature b))
-             ≡⟨ subNf-cong {f = λ()} {renNf ρ ∘ λ ()} (λ ()) (sig2type (signature b)) ⟩
-             subNf (renNf ρ ∘ λ ()) (sig2type (signature b))
-             ≡⟨ renNf-subNf (λ()) ρ (sig2type (signature b)) ⟩
-             renNf ρ (btype' b)
-           ∎
+btype b = subNf∅ (sig2type (signature b))
 
 btype-ren : ∀{Φ Ψ} b (ρ : ⋆.Ren Φ Ψ) → btype b ≡ renNf ρ (btype b)
-btype-ren b ρ = trans (btype-btype' b) (trans (btype'-ren b ρ) (cong (renNf ρ) (sym (btype-btype' b))))
-
-btype'-sub : ∀{Φ Ψ} b (ρ : SubNf Φ Ψ) → btype' b ≡ subNf ρ (btype' b)
-btype'-sub b ρ = begin 
-           btype' b
-          ≡⟨ refl ⟩
-           subNf (λ()) (sig2type (signature b))
-          ≡⟨ subNf-cong {f = λ()} {subNf ρ ∘ λ ()} (λ ()) (sig2type (signature b)) ⟩
-            subNf (subNf ρ ∘ (λ ())) (sig2type (signature b))
-          ≡⟨ subNf-comp (λ()) ρ (sig2type (signature b)) ⟩
-           subNf ρ (subNf (λ()) (sig2type (signature b)))
-          ≡⟨ refl ⟩
-           subNf ρ (btype' b)
-          ∎
+btype-ren b ρ = sym (subNf∅-renNf ρ (sig2type (signature b)))
 
 btype-sub : ∀{Φ Ψ} b (ρ : SubNf Φ Ψ) → btype b ≡ subNf ρ (btype b)
-btype-sub b ρ = trans ((btype-btype' b)) (trans (btype'-sub b ρ) (cong (subNf ρ) (sym (btype-btype' b))))
+btype-sub b ρ = sym (subNf∅-subNf ρ (sig2type (signature b)))
 ```
 
 ## Substitution in Signature types
@@ -128,7 +82,7 @@ _[_]SigTy : ∀{n}
           → ∀{am an at} {pa : an ∔ am ≣ at} 
           → {B : (nat2Ctx⋆ (suc n)) ⊢Nf⋆ *} 
           → SigTy pt pa B 
-          → (A : (nat2Ctx⋆ n) ⊢Nf⋆ *) 
+          → (A : (nat2Ctx⋆ n) ⊢Nf⋆ ♯) 
           → SigTy pt pa (B [ A ])
 _[_]SigTy bt A  = subSigTy (subNf-cons (ne ∘ `) A) bt
 
@@ -142,3 +96,4 @@ uniqueSigTy (bresult _) (bresult _) = refl
 uniqueSigTy (A B⇒ s) (.A B⇒ s') = cong (A B⇒_) (uniqueSigTy s s')
 uniqueSigTy (sucΠ s) (sucΠ s') = cong sucΠ (uniqueSigTy s s') 
 ```
+ 

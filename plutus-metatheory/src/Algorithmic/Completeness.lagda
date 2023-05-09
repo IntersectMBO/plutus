@@ -9,13 +9,13 @@ open import Function using (_∘_)
 open import Data.Product using (_×_) renaming (_,_ to _,,_)
 open import Data.List using (List;[];_∷_;map)
 
-open import Utils using (Kind;*)
-open import Type using (_⊢⋆_;_∋⋆_;Z;S;Ctx⋆;_,⋆_)
+open import Utils using (Kind;*;♯)
+open import Type using (_⊢⋆_;_∋⋆_;Z;S;Ctx⋆;∅;_,⋆_)
 open _⊢⋆_
 
 open import Type.Equality using (_≡β_;≡2β)
 open _≡β_
-open import Type.RenamingSubstitution using (weaken;ren;_[_];sub-cons;Sub;sub)
+open import Type.RenamingSubstitution using (weaken;ren;_[_];sub-cons;Sub;sub;sub∅)
 import Declarative as Syn
 import Algorithmic as Norm
 import Algorithmic.Signature as Norm
@@ -24,10 +24,10 @@ open _⊢Nf⋆_
 open _⊢Ne⋆_
 open import Type.BetaNBE using (nf)
 open import Type.BetaNBE.Completeness using (completeness;sub-eval;idCR;fund;symCR)
-open import Type.BetaNBE.RenamingSubstitution using (ren-nf;subNf;subNf-cong';subNf-lemma';_[_]Nf;subNf-cons)
+open import Type.BetaNBE.RenamingSubstitution using (ren-nf;subNf;subNf-cong;subNf-cong';subNf-lemma';_[_]Nf;subNf-cons;subNf∅;subNf∅≡subNf)
 open import Type.BetaNBE.Soundness using (soundness)
-import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con as STermCon
-import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as NTermCon
+--import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con as STermCon
+--import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as NTermCon
 
 nfCtx : ∀ {Φ} → Syn.Ctx Φ → Norm.Ctx Φ
 nfCtx Syn.∅ = Norm.∅
@@ -72,18 +72,6 @@ lem[] A B = trans
       (sym≡β (soundness B)))
     (sym (sub-eval B idCR (sub-cons ` A))))
 
-
-nfTypeTC : ∀{φ}{A : φ ⊢⋆ *} → STermCon.TermCon A → NTermCon.TermCon (nf A)
-nfTypeTC (STermCon.tmInteger i)              = NTermCon.tmInteger i
-nfTypeTC (STermCon.tmBytestring b)           = NTermCon.tmBytestring b
-nfTypeTC (STermCon.tmString s)               = NTermCon.tmString s
-nfTypeTC (STermCon.tmBool b)                 = NTermCon.tmBool b
-nfTypeTC STermCon.tmUnit                     = NTermCon.tmUnit
-nfTypeTC (STermCon.tmData d)                 = NTermCon.tmData d
-nfTypeTC (STermCon.tmBls12-381-g1-element e) = NTermCon.tmBls12-381-g1-element e
-nfTypeTC (STermCon.tmBls12-381-g2-element e) = NTermCon.tmBls12-381-g2-element e
-nfTypeTC (STermCon.tmBls12-381-mlresult r)   = NTermCon.tmBls12-381-mlresult r
-
 lemσ : ∀{Γ Δ Δ'}
   → (σ : Sub Δ Γ)
   → (C : Δ ⊢⋆ *)
@@ -115,6 +103,8 @@ nfList (A ∷ As) = nf A ∷ nfList As
 
 postulate btype-lem : ∀ {Φ} b → Norm.btype {Φ} b ≡ nf (Syn.btype b)
 
+postulate subNf∅-sub∅ : ∀{Φ}{K} (A : ∅ ⊢⋆ K) → nf {Φ} (sub∅ A) ≡ subNf∅ (nf A) 
+
 nfType : ∀{Φ Γ}
   → {A : Φ ⊢⋆ *}
   → Γ Syn.⊢ A
@@ -137,7 +127,7 @@ nfType (Syn.unwrap {A = A}{B = B} t) = Norm.conv⊢
   (sym (stability-μ A B))
   (Norm.unwrap (nfType t) refl)
 nfType (Syn.conv p t) = Norm.conv⊢ refl (completeness p) (nfType t)
-nfType (Syn.con t) = Norm.con (nfTypeTC t)
+nfType (Syn.con {A} t refl) = Norm.con {A = nf A} t (subNf∅-sub∅ A)
 nfType (Syn.builtin b) = Norm.conv⊢ refl (btype-lem b) (Norm.builtin b / refl)
 nfType (Syn.error A) = Norm.error (nf A)
 
@@ -145,3 +135,4 @@ completenessT : ∀{Φ Γ}{A : Φ ⊢⋆ *} → Γ Syn.⊢ A
   → nfCtx Γ Norm.⊢ nf A × (A ≡β embNf (nf A))
 completenessT {A = A} t = nfType t ,, soundness A
 \end{code}
+  

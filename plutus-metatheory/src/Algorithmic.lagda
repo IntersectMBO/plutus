@@ -5,9 +5,13 @@ module Algorithmic where
 ## Imports
 
 \begin{code}
-open import Relation.Binary.PropositionalEquality using (_≡_;refl)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;cong₂)
 
-open import Utils
+open import Data.Empty using (⊥)
+open import Data.List using (List)
+open import Data.Product using (_×_)
+
+open import Utils renaming (_×_ to _U×_; List to UList)
 open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_;_∋⋆_;Z;S;Φ)
 open _⊢⋆_
 
@@ -17,16 +21,18 @@ open _⊢Ne⋆_
 
 import Type.RenamingSubstitution as ⋆
 open import Type.BetaNBE using (nf)
-open import Type.BetaNBE.RenamingSubstitution renaming (_[_]Nf to _[_])
+open import Type.BetaNBE.RenamingSubstitution using (subNf∅) renaming (_[_]Nf to _[_])
 
 open import Builtin using (Builtin)
 
-open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con using (TermCon)
-open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) using (TyCon)
+open import Builtin.Constant.Type using (TyCon;integer;bool;string;pdata;bytestring;unit)
 open TyCon
+open import Builtin.Constant.AtomicType using (⟦_⟧at)
 
-open import Algorithmic.Signature using (btype)
+open import Builtin.Signature using (_⊢♯)
+open _⊢♯
 
+open import Algorithmic.Signature using (btype;♯2*)
 \end{code}
 
 ## Fixity declarations
@@ -91,6 +97,55 @@ data _∋_ : (Γ : Ctx Φ) → Φ ⊢Nf⋆ * → Set where
           
 Let `x`, `y` range over variables.
 
+## Semantic of constant terms
+
+\begin{code}
+data ♯Kinded : Kind → Set where
+   ♯ : ♯Kinded ♯
+   K♯ : ∀{K J} → ♯Kinded J → ♯Kinded (K ⇒ J)
+
+lemma♯Kinded : ∀ {K K₁ K₂ J} → ♯Kinded J → ∅ ⊢Ne⋆ (K₂ ⇒ (K₁ ⇒ (K ⇒ J))) → ⊥
+lemma♯Kinded k (f · _) = lemma♯Kinded (K♯ k) f
+
+-- Closed types can be mapped into the signature universe and viceversa
+ty2sty : ∅ ⊢Nf⋆ ♯ → 0 ⊢♯
+ty2sty (ne (((f · _) · _) · _)) with lemma♯Kinded ♯ f 
+... | ()
+ty2sty (ne ((^ pair · x) · y)) = pair (ty2sty x) (ty2sty y)
+ty2sty (ne (^ list · x)) = list (ty2sty x)
+ty2sty (ne (^ (atomic x))) = atomic x
+
+sty2ty : 0 ⊢♯ → ∅ ⊢Nf⋆ ♯
+sty2ty t = ne (♯2* t)
+\end{code}
+
+Now we have functions `ty2sty` and `sty2ty`. We prove that they are inverses.
+
+\begin{code}
+ty≅sty₁ : ∀ (A : ∅ ⊢Nf⋆ ♯) → A ≡ sty2ty (ty2sty A)
+ty≅sty₁ (ne (((f · _) · _) · _)) with  lemma♯Kinded ♯ f
+... | ()
+ty≅sty₁ (ne ((^ pair · x) · y))  = cong ne (cong₂ _·_ (cong (^ pair ·_) (ty≅sty₁ x)) (ty≅sty₁ y))
+ty≅sty₁ (ne (^ list · x))        = cong ne (cong (^ list ·_) (ty≅sty₁ x)) 
+ty≅sty₁ (ne (^ (atomic x)))      = refl
+
+ty≅sty₂ : ∀ (A : 0 ⊢♯) →  A ≡ ty2sty (sty2ty A)
+ty≅sty₂ (atomic x) = refl
+ty≅sty₂ (list A) = cong list (ty≅sty₂ A)
+ty≅sty₂ (pair A B) = cong₂ pair (ty≅sty₂ A) (ty≅sty₂ B)
+\end{code}
+
+
+
+\begin{code}
+⟦_⟧ : (ty : ∅ ⊢Nf⋆ ♯) → Set
+⟦ ne (((f · _) · _) · _) ⟧ with lemma♯Kinded ♯ f 
+... | ()
+⟦ ne ((^ pair · x) · y) ⟧ = ⟦ x ⟧ U× ⟦ y ⟧
+⟦ ne (^ list · x) ⟧ = UList ⟦ x ⟧
+⟦ ne (^ (atomic x)) ⟧ = ⟦ x ⟧at
+\end{code}
+
 ## Terms
 
 A term is indexed over by its context and type.  A term is a variable,
@@ -147,10 +202,11 @@ data _⊢_ (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
       -------------------------------------------------------------
     → Γ ⊢ C
 
-  con : ∀{tcn}
-    → TermCon {Φ} (con tcn)
+  con : ∀{A : ∅ ⊢Nf⋆ ♯}{B}
+    → ⟦ A ⟧ 
+    → B ≡ subNf∅ A
       ---------------------
-    → Γ ⊢ con tcn
+    → Γ ⊢ con B
 
   builtin_/_ : ∀{C}
     → (b :  Builtin)
@@ -180,4 +236,4 @@ conv⊢ : ∀ {Γ Γ'}{A A' : Φ ⊢Nf⋆ *}
  → Γ ⊢ A
  → Γ' ⊢ A'
 conv⊢ refl refl t = t
-\end{code}
+\end{code} 

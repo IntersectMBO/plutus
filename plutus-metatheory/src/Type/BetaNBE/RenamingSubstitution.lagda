@@ -3,15 +3,16 @@ module Type.BetaNBE.RenamingSubstitution where
 
 
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;trans;cong;cong₂)
+open Relation.Binary.PropositionalEquality.≡-Reasoning
 open import Function using (_∘_)
 
-open import Utils using (*;_⇒_)
-open import Type using (Ctx⋆;_,⋆_;_⊢⋆_;_∋⋆_;Z;S)
+open import Utils using (*;♯;_⇒_)
+open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_;_∋⋆_;Z;S)
 open _⊢⋆_
 open import Type.Equality using (_≡β_;≡2β)
 open _≡β_
 open import Type.RenamingSubstitution 
-      using (Ren;ren;ext;ren-comp;sub;sub-id;sub-comp;sub-cong;exts;sub-ren;weaken)
+      using (Ren;ren;ext;ren-comp;sub;sub-id;sub-comp;sub-cong;exts;sub-ren;weaken;sub-∅)
 open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;renNf;embNf;weakenNf;ren-embNf)
 open _⊢Nf⋆_
 open _⊢Ne⋆_
@@ -32,6 +33,7 @@ reify ∘ reflect preserves the neutral term
 \begin{code}
 reify-reflect : ∀{K Φ}(n : Φ ⊢Ne⋆ K) → reify (reflect n) ≡ ne n
 reify-reflect {*}     n = refl
+reify-reflect {♯}     n = refl
 reify-reflect {K ⇒ J} n = refl
 \end{code}
 
@@ -481,4 +483,51 @@ subNf-cons-[]Nf {σ = σ}{A} X = trans
                        X))
   (cong (_[ A ]Nf)
         (sub-nf-Π σ X))
+\end{code}
+
+\begin{code}
+-- A version of subNf that is definitionally the identity on the empty context 
+subNf∅ : ∀{Φ K} → ∅ ⊢Nf⋆ K → Φ ⊢Nf⋆ K
+subNf∅ {∅} t = t
+subNf∅ {Φ ,⋆ x} t = subNf (λ()) t
+
+-- But this is equivalent to the normal subNf
+subNf∅≡subNf : ∀{Φ K} → {A : ∅ ⊢Nf⋆ K} → subNf∅ {Φ} A ≡ subNf (λ()) A
+subNf∅≡subNf {∅} {_} {A} = begin
+             A
+            ≡⟨ sym (stability A) ⟩
+             nf (embNf A)
+           ≡⟨ cong nf (sym (sub-∅ (embNf A)  (embNf ∘  λ()))) ⟩
+             nf (sub (embNf ∘ λ()) (embNf A))
+           ≡⟨ refl ⟩
+             subNf (λ ()) A
+           ∎
+subNf∅≡subNf {Φ ,⋆ x} = refl
+
+subNf∅-renNf : ∀{Φ Ψ K} (ρ : Ren Φ Ψ) (A : ∅ ⊢Nf⋆ K) → renNf ρ (subNf∅ A) ≡ subNf∅ A
+subNf∅-renNf ρ A = begin
+            renNf ρ (subNf∅ A)
+          ≡⟨ cong (renNf ρ) subNf∅≡subNf ⟩
+             renNf ρ (subNf (λ ()) A)
+         ≡⟨ sym (renNf-subNf (λ()) ρ A)  ⟩
+            subNf (renNf ρ ∘ (λ ())) A
+          ≡⟨ sym (subNf-cong {f = λ()} {renNf ρ ∘ λ ()} (λ ()) A) ⟩
+            subNf (λ ()) A
+          ≡⟨ sym subNf∅≡subNf ⟩
+           subNf∅ A
+          ∎
+
+subNf∅-subNf : ∀{Φ Ψ K} → (σ : SubNf Φ Ψ) → (A : ∅ ⊢Nf⋆ K) → subNf σ (subNf∅ A) ≡ subNf∅ A
+subNf∅-subNf σ A = begin
+             subNf σ (subNf∅ A)
+          ≡⟨ cong (subNf σ) subNf∅≡subNf ⟩
+             subNf σ (subNf (λ ()) A)
+          ≡⟨ sym (subNf-comp (λ()) σ A) ⟩
+            subNf (subNf σ ∘ (λ ())) A
+          ≡⟨ subNf-cong {f = subNf σ ∘ (λ ())} {λ ()} (λ ()) A ⟩
+            subNf (λ ()) A
+          ≡⟨ sym subNf∅≡subNf ⟩
+           subNf∅ A
+          ∎
+  
 \end{code}

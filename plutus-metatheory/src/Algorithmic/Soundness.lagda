@@ -10,11 +10,11 @@ open import Relation.Binary.PropositionalEquality
               using (_≡_;refl;sym;trans;cong)
               renaming (subst to substEq)
 
-open import Utils using (Kind;*;_⇒_)
-open import Type using (Ctx⋆;_,⋆_;_⊢⋆_;_∋⋆_;S;Z)
+open import Utils using (Kind;*;♯;_⇒_)
+open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_;_∋⋆_;S;Z)
 open _⊢⋆_
 
-open import Type.RenamingSubstitution using (_[_];sub-cons;weaken;sub)
+open import Type.RenamingSubstitution using (_[_];sub-cons;weaken;sub;sub∅)
 open import Type.Equality using (_≡β_;≡2β)
 open _≡β_
 
@@ -28,10 +28,12 @@ open _⊢Ne⋆_
 open import Type.BetaNBE using (nf;eval;idEnv)
 open import Type.BetaNBE.Completeness using (sub-eval;idCR;idext;reflectCR;fund)
 open import Type.BetaNBE.Soundness using (soundness)
-open import Type.BetaNBE.RenamingSubstitution using (_[_]Nf;subNf;subNf-cons)
+open import Type.BetaNBE.RenamingSubstitution using (_[_]Nf;subNf;subNf-cons;subNf∅)
 open import Builtin using (Builtin)
-import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con as STermCon
-import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as NTermCon
+--import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con as STermCon
+--import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as NTermCon
+open import Algorithmic.Completeness using ()
+open import Type.BetaNBE.Stability
 \end{code}
 
 \begin{code}
@@ -77,23 +79,6 @@ soundness-μ p A B = trans≡β
 \end{code}
 
 \begin{code}
-
-embTC : ∀{φ}{A : φ ⊢Nf⋆ *}
-  → NTermCon.TermCon A
-  → STermCon.TermCon (embNf A)
-embTC (NTermCon.tmInteger i)              = STermCon.tmInteger i
-embTC (NTermCon.tmBytestring b)           = STermCon.tmBytestring b
-embTC (NTermCon.tmString s)               = STermCon.tmString s
-embTC (NTermCon.tmBool b)                 = STermCon.tmBool b
-embTC NTermCon.tmUnit                     = STermCon.tmUnit
-embTC (NTermCon.tmData d)                 = STermCon.tmData d
-embTC (NTermCon.tmBls12-381-g1-element e) = STermCon.tmBls12-381-g1-element e
-embTC (NTermCon.tmBls12-381-g2-element e) = STermCon.tmBls12-381-g2-element e
-embTC (NTermCon.tmBls12-381-mlresult r)   = STermCon.tmBls12-381-mlresult r
-\end{code}
-
-\begin{code}
-
 lemσ' : ∀{Γ Γ' Δ Δ'}(bn : Builtin)(p : Γ ≡ Γ')
   → (C : Δ ⊢⋆ *)(C' : Δ' ⊢Nf⋆ *) → (q : Δ ≡ Δ')
   → (σ : {J : Kind} → Δ' ∋⋆ J → Γ ⊢Nf⋆ J)
@@ -147,6 +132,8 @@ lemsub A A' σ p = trans≡β
 
 postulate btype-lem≡β : ∀{Φ} b → Dec.btype {Φ} b ≡β embNf (Alg.btype b)
 
+postulate subNf∅-sub∅-lem : ∀{Φ} {A : ∅ ⊢Nf⋆ ♯}  → embNf {Φ} (subNf∅ A) ≡ sub∅ (embNf A)
+
 emb : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ Alg.⊢ A → embCtx Γ Dec.⊢ embNf A
 emb (Alg.` α) = Dec.` (embVar α)
 emb (Alg.ƛ {A = A}{B} t) = Dec.ƛ (emb t)
@@ -160,7 +147,7 @@ emb (Alg.wrap A B t) = Dec.wrap
   (Dec.conv (sym≡β (soundness-μ refl A B)) (emb t))
 emb (Alg.unwrap {A = A}{B} t refl) =
   Dec.conv (soundness-μ refl A B) (Dec.unwrap (emb t))
-emb (Alg.con  {tcn = tcn} t ) = Dec.con (embTC t)
+emb (Alg.con {A = A} t refl ) = Dec.con {A = embNf A} (substEq Alg.⟦_⟧ (sym (stability A)) t) subNf∅-sub∅-lem
 emb (Alg.builtin b / refl) = Dec.conv (btype-lem≡β b) (Dec.builtin b)
 emb (Alg.error A) = Dec.error (embNf A)
 

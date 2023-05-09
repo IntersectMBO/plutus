@@ -24,8 +24,10 @@ open import Data.List.NonEmpty using (List⁺;foldr;_∷_;toList;reverse) renami
 open import Data.Product using (Σ;proj₁;proj₂) renaming (_,_ to _,,_)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;cong;trans;subst)
 
-open import Utils using (*;_∔_≣_;start;bubble;alldone;unique∔)
-
+open import Utils using (Kind;♯;*;_⇒_;_∔_≣_;start;bubble;alldone;unique∔;_×_) 
+        renaming (List to UList)
+open import Builtin.Constant.AtomicType using (AtomicTyCon;⟦_⟧at)
+open AtomicTyCon
 ```
 
 ## Built-in compatible types 
@@ -39,22 +41,41 @@ or type operators applied to built-in-compatible type.
 The type of built-in-compatible types (_⊢♯) is indexed by the number of 
 distinct type variables.
 ```
-data _⊢♯ : ℕ → Set
 
-open import Builtin.Constant.Type ℕ (_⊢♯) using (TyCon)
 
-data _⊢♯ where
+open import Builtin.Constant.Type using (TyCon;integer;bytestring;bool;unit;string;pdata)
+open TyCon
+
+data _⊢♯ : ℕ → Set where
   -- a type variable
   ` : ∀ {n} → 
-      Fin n
+      Fin n 
       --------
-    → n ⊢♯
+    → n ⊢♯ 
 
-  -- a type constant or type operator applied to a built-in-compatible type
-  con : ∀ {n} → 
-      TyCon n
-      ------
+  -- a type constant 
+  atomic : ∀ {n} 
+      → AtomicTyCon 
+        -----------
       → n ⊢♯
+  -- type operator applied to a built-in-compatible type
+  list : ∀ {n}
+      → n ⊢♯ 
+        -------
+      → n ⊢♯
+  pair : ∀ {n}
+      → n ⊢♯ 
+      → n ⊢♯ 
+        -------
+      → n ⊢♯
+
+pattern integer = atomic aInteger
+pattern bytestring = atomic aBytestring
+pattern string = atomic aString
+pattern unit = atomic aUnit
+pattern bool = atomic aBool
+pattern pdata = atomic aData
+
 ```
 
 The list of arguments is a non-empty list of built-in compatible types.
@@ -107,28 +128,28 @@ The following parameters should be instantiated:
    6. the constructor for function types, and
    7. the constructor for Π types.
 ```
-import Builtin.Constant.Type as T2
-open T2.TyCon
-
-
 
 module FromSig (Ctx : Set)
-               (Ty : Ctx → Set) 
+               (Ty : Ctx → Kind → Set) 
+               (TyNe : Ctx → Kind → Set) 
+               (ne : ∀{ctx K} → TyNe ctx K → Ty ctx K)
                (nat2Ctx : ℕ → Ctx) 
-               (fin2Ty : ∀{n} → Fin n → Ty (nat2Ctx n))
-               (mkTyCon : ∀{n} → T2.TyCon Ctx Ty (nat2Ctx n) → Ty (nat2Ctx n)) 
-               (_⇒_ : ∀{n} → Ty (nat2Ctx n) → Ty (nat2Ctx n) → Ty (nat2Ctx n))
-               (Π : ∀{n} → Ty (nat2Ctx (suc n)) → Ty (nat2Ctx n))
+               (fin2Ty : ∀{n} → Fin n → TyNe (nat2Ctx n) ♯)
+               (_·_ : ∀{n K J} → TyNe n (K ⇒ J) → Ty n K → TyNe n J)
+               (^ : ∀{n K} → TyCon K → TyNe (nat2Ctx n) K) 
+               (mkCon : ∀{ctx} → Ty ctx ♯ → Ty ctx *)
+               (_⇒_ : ∀{n} → Ty (nat2Ctx n) * → Ty (nat2Ctx n) *  → Ty (nat2Ctx n) *)
+               (Π : ∀{n} → Ty (nat2Ctx (suc n)) * → Ty (nat2Ctx n) *)
           where
     
     -- convert a built-in-compatible type into a Ty type
-    ♯2* : ∀{n} → n ⊢♯ → Ty (nat2Ctx n)
-    ♯2* (` x) = fin2Ty x
-    ♯2* (con (atomic ty)) = mkTyCon (T2.atomic ty)
-    ♯2* (con (list x)) = mkTyCon  (T2.list (♯2* x))
-    ♯2* (con (pair x y)) = mkTyCon  (T2.pair (♯2* x) (♯2* y))
+    ♯2* : ∀{n} → n ⊢♯ → TyNe (nat2Ctx n) ♯
+    ♯2* (` x) =  fin2Ty x
+    ♯2* (atomic x) = ^ (atomic x)
+    ♯2* (list x) = ^ list · ne (♯2* x)
+    ♯2* (pair x y) = ((^ pair) · ne (♯2* x)) · ne (♯2* y)
 
-    -- The empty context
+-- The empty context
     ∅ : Ctx 
     ∅ = nat2Ctx 0
 ```
@@ -142,16 +163,16 @@ module FromSig (Ctx : Set)
 ```
     sig2type⇒ : ∀{n} 
               → List (n ⊢♯) 
-              → Ty (nat2Ctx n) → Ty (nat2Ctx n)
+              → Ty (nat2Ctx n) * → Ty (nat2Ctx n) *
     sig2type⇒ [] r = r
-    sig2type⇒ (a ∷ as) r = sig2type⇒ as (♯2* a ⇒ r)
+    sig2type⇒ (a ∷ as) r = sig2type⇒ as (mkCon (ne (♯2* a)) ⇒ r)
       --foldr (λ A xs res → (♯2* A) ⇒ (xs res)) (λ A res → ♯2* A ⇒ res) xs
 ```
 
   `sig2typeΠ` adds as many Π as needed to close the type.
 
 ```
-    sig2typeΠ : ∀{n} → Ty (nat2Ctx n) → Ty (nat2Ctx 0)
+    sig2typeΠ : ∀{n} → Ty (nat2Ctx n) * → Ty (nat2Ctx 0) *
     sig2typeΠ {zero} t = t
     sig2typeΠ {suc n} t = sig2typeΠ {n} (Π t)
 ```
@@ -159,8 +180,8 @@ module FromSig (Ctx : Set)
    The main conversion function from a signature into a concrete type
 
 ```
-    sig2type : Sig → Ty ∅
-    sig2type (sig _ as res) = sig2typeΠ (sig2type⇒ (toList as) (♯2* res)) 
+    sig2type : Sig → Ty ∅ *
+    sig2type (sig _ as res) = sig2typeΠ (sig2type⇒ (toList as) (mkCon (ne (♯2* res))))
 ```
 
 ### Types originating from a Signature
@@ -180,20 +201,20 @@ indexed by the concrete types
     -- tt: number of Π in the signature (fv♯)
     data SigTy : ∀{tn tm tt} → tn ∔ tm ≣ tt 
                → ∀{an am at} → an ∔ am ≣ at 
-               → ∀{n} → Ty (nat2Ctx n) → Set where
+               → ∀{n} → Ty (nat2Ctx n) * → Set where
        bresult  : ∀{tt} → {pt : tt ∔ 0 ≣ tt}
                 → ∀{at} → {pa : at ∔ 0 ≣ at}
-                → ∀{n} (A : Ty (nat2Ctx n)) 
+                → ∀{n} (A : Ty (nat2Ctx n) *) 
                 → SigTy pt pa A
        _B⇒_ : ∀{tn tt} → {pt : tn ∔ 0 ≣ tt }        -- all Π yet to be applied
             → ∀{an am at} → {pa : an ∔ suc am ≣ at} -- there is one more argument to add
-            → ∀{n} → (A : Ty (nat2Ctx n)) 
-                   → {B : Ty (nat2Ctx n)} 
+            → ∀{n} → (A : Ty (nat2Ctx n) *) 
+                   → {B : Ty (nat2Ctx n) *} 
             → SigTy pt (bubble pa) B 
             → SigTy pt pa (A ⇒ B)
        sucΠ : ∀{tn tm tt} → {pt : tn ∔ suc tm ≣ tt}
             → ∀{am an at} → {pa : an ∔ am ≣ at}
-            → ∀{n}{A : Ty (nat2Ctx (suc n))} 
+            → ∀{n}{A : Ty (nat2Ctx (suc n)) *} 
             → SigTy (bubble pt) pa A 
             → SigTy pt pa (Π A)
 
@@ -208,15 +229,15 @@ indexed by the concrete types
     sig2SigTy⇒ : ∀{tt : ℕ} → {pt : tt ∔ 0 ≣ tt}
                → (as : List (tt ⊢♯))
                → ∀ {am at}(pa : length as ∔ am ≣ at)
-               → {A : Ty (nat2Ctx tt)} → (σA : SigTy pt pa A)
+               → {A : Ty (nat2Ctx tt) *} → (σA : SigTy pt pa A)
                → SigTy pt (start at) (sig2type⇒ as A)
     sig2SigTy⇒ [] (start _) bty = bty
-    sig2SigTy⇒ (a ∷ as) (bubble pa) bty = sig2SigTy⇒ as pa (♯2* a B⇒ bty)
+    sig2SigTy⇒ (a ∷ as) (bubble pa) bty = sig2SigTy⇒ as pa (mkCon (ne (♯2* a)) B⇒ bty)
 
 
     sig2SigTyΠ : ∀{tn tm tt : ℕ} → (pt : tn ∔ tm ≣ tt) 
                     → ∀ {at}{pa : 0 ∔ at ≣ at}
-                    → ∀{A : Ty (nat2Ctx tn)} → SigTy pt pa A
+                    → ∀{A : Ty (nat2Ctx tn) *} → SigTy pt pa A
                     → SigTy (start tt) pa (sig2typeΠ A)
     sig2SigTyΠ (start _) bty = bty
     sig2SigTyΠ (bubble pt) bty = sig2SigTyΠ pt (sucΠ bty)
@@ -224,13 +245,13 @@ indexed by the concrete types
     -- From a signature obtain a signature type
     sig2SigTy : (σ : Sig) → SigTy (start (fv♯ σ)) (start (args♯ σ)) (sig2type σ)
     sig2SigTy (sig n as r) =
-                sig2SigTyΠ (alldone n) (sig2SigTy⇒ (toList as) (alldone (length⁺ as)) (bresult (♯2* r)))
+                sig2SigTyΠ (alldone n) (sig2SigTy⇒ (toList as) (alldone (length⁺ as)) (bresult (mkCon (ne (♯2* r)))))
  
     -- extract the concrete type from a signature type.
-    sigTy2type : ∀{n tm tn tt an am at}{A : Ty (nat2Ctx n)} → {pt : tn ∔ tm ≣ tt} → {pa : an ∔ am ≣ at} → SigTy pt pa A → Ty (nat2Ctx n)
+    sigTy2type : ∀{n tm tn tt an am at}{A : Ty (nat2Ctx n) *} → {pt : tn ∔ tm ≣ tt} → {pa : an ∔ am ≣ at} → SigTy pt pa A → Ty (nat2Ctx n) *
     sigTy2type {A = A} _ = A
 
-    saturatedSigTy : ∀ (σ : Sig) → (A : Ty ∅) → Set
+    saturatedSigTy : ∀ (σ : Sig) → (A : Ty ∅ *) → Set
     saturatedSigTy σ A = SigTy (alldone (fv♯ σ)) (alldone (args♯ σ)) A
 ```
 
@@ -240,7 +261,7 @@ indexed by the concrete types
     convSigTy :
           ∀{tn tm tt} → {pt pt' : tn ∔ tm ≣ tt}
         → ∀{an am at} → {pa pa' : an ∔ am ≣ at}
-        → ∀{n}{A A' : Ty (nat2Ctx n)}
+        → ∀{n}{A A' : Ty (nat2Ctx n) *}
         → A ≡ A'
         → SigTy pt pa A
         → SigTy pt' pa' A'
@@ -259,9 +280,9 @@ open import Type using (Ctx⋆;_,⋆_;_⊢⋆_;_∋⋆_;Z;S;Φ)
 
 nat2Ctx⋆ : ℕ → Ctx⋆
 nat2Ctx⋆ zero = Ctx⋆.∅
-nat2Ctx⋆ (suc n) = nat2Ctx⋆ n ,⋆ *
+nat2Ctx⋆ (suc n) = nat2Ctx⋆ n ,⋆ ♯
 
-fin2∈⋆ : ∀{n} → Fin n → (nat2Ctx⋆ n) ∋⋆ *
+fin2∈⋆ : ∀{n} → Fin n → (nat2Ctx⋆ n) ∋⋆ ♯
 fin2∈⋆ Z = Z
 fin2∈⋆ (S x) = S (fin2∈⋆ x)
 ```  

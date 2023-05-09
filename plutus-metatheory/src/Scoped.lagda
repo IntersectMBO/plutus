@@ -16,8 +16,8 @@ open import Data.String using (String;_++_)
 open import Builtin using (Builtin)
 open Builtin.Builtin
 
-open import Builtin.Signature using (_⊢♯;con) 
-open import Builtin.Constant.Type ℕ (_⊢♯)
+open import Builtin.Signature using (_⊢♯) 
+open import Builtin.Constant.Type
 open import Builtin.Constant.AtomicType using (aBool)
 
 open import Raw using (RawTy;RawTm;RawTyCon)
@@ -32,17 +32,13 @@ open import RawU using (TyTag;TmCon;tmCon;tagCon2TmCon;tmCon2TagCon)
 \end{code}
 
 \begin{code}
-data ScopedTy (n : ℕ) : Set
-
-import Builtin.Constant.Type ℕ ScopedTy as S
-
-data ScopedTy n where
+data ScopedTy (n : ℕ) : Set where
   `    : Fin n → ScopedTy n
   _⇒_  : ScopedTy n → ScopedTy n → ScopedTy n
   Π    : Kind → ScopedTy (suc n) → ScopedTy n
   ƛ    : Kind → ScopedTy (suc n) → ScopedTy n
   _·_  : ScopedTy n → ScopedTy n → ScopedTy n
-  con  : S.TyCon n → ScopedTy n
+  con  : ∀{K} → TyCon K → ScopedTy n
   μ    : ScopedTy n → ScopedTy n → ScopedTy n
   missing : ScopedTy n -- for when things compute to error
 
@@ -231,15 +227,6 @@ data ScopeError : Set where
   return (T i)
 
 scopeCheckTy : ∀{n} → RawTy → Either ScopeError (ScopedTy n)
-scopeCheckTyCon : ∀{n} → RawTyCon → Either ScopeError (S.TyCon n)
-
-scopeCheckTyCon (atomic ty) = inj₂ (S.atomic ty)
-scopeCheckTyCon (list A)    = fmap S.list (scopeCheckTy A)
-scopeCheckTyCon (pair A B)  = do
-  A ← scopeCheckTy A
-  B ← scopeCheckTy B
-  return (S.pair A B)
-
 scopeCheckTy (` x) = fmap ` (ℕtoFin x)
 scopeCheckTy (A ⇒ B) = do
   A ← scopeCheckTy A
@@ -251,7 +238,9 @@ scopeCheckTy (A · B) = do
   A ← scopeCheckTy A
   B ← scopeCheckTy B
   return (A · B)
-scopeCheckTy (con c) = fmap con (scopeCheckTyCon c)
+scopeCheckTy (con (atomic x)) = return (con (atomic x))
+scopeCheckTy (con list) = return (con list)
+scopeCheckTy (con pair) = return (con pair)
 scopeCheckTy (μ A B) = do
   A ← scopeCheckTy A
   B ← scopeCheckTy B
@@ -294,19 +283,22 @@ wftoℕ (T i) = ℕ.suc (wftoℕ i)
 
 \begin{code}
 extricateScopeTy : ∀{n} → ScopedTy n → RawTy
-extricateTyCon : ∀{n} → S.TyCon n → RawTyCon
 
-
-extricateTyCon (S.atomic ty) = atomic ty
-extricateTyCon (S.list A)    = list (extricateScopeTy A)
-extricateTyCon (S.pair A B)  = pair (extricateScopeTy A) (extricateScopeTy B)
+{-
+extricateTyCon : ∀{n} → TyCon n → RawTyCon
+extricateTyCon (atomic ty) = atomic ty
+extricateTyCon list        = list (extricateScopeTy A)
+extricateTyCon pair        = pair (extricateScopeTy A) (extricateScopeTy B)
+-}
 
 extricateScopeTy (` x) = ` (toℕ x)
 extricateScopeTy (A ⇒ B) = extricateScopeTy A ⇒ extricateScopeTy B
 extricateScopeTy (Π K A) = Π K (extricateScopeTy A)
 extricateScopeTy (ƛ K A) = ƛ K (extricateScopeTy A)
 extricateScopeTy (A · B) = extricateScopeTy A · extricateScopeTy B
-extricateScopeTy (con c) = con (extricateTyCon c)
+extricateScopeTy (con (atomic x)) = con (atomic x)
+extricateScopeTy (con list) = con list
+extricateScopeTy (con pair) = con pair
 extricateScopeTy (μ A B) = μ (extricateScopeTy A) (extricateScopeTy B)
 extricateScopeTy missing = con (atomic aBool) -- TODO
 
@@ -332,10 +324,23 @@ uglyWeirdFin Z = "0"
 uglyWeirdFin (T x) = "(T " ++ uglyWeirdFin x ++ ")"
 uglyWeirdFin (S x) = "(S " ++ uglyWeirdFin x ++ ")"
 
+{-
 uglyTmCon : TmCon → String
+uglyTmCon (tmCon (_⊢♯.atomic Builtin.Constant.AtomicType.aInteger) x) = {!   !}
+uglyTmCon (tmCon (_⊢♯.atomic Builtin.Constant.AtomicType.aBytestring) x) = {!   !}
+uglyTmCon (tmCon (_⊢♯.atomic Builtin.Constant.AtomicType.aString) x) = {!   !}
+uglyTmCon (tmCon (_⊢♯.atomic Builtin.Constant.AtomicType.aUnit) x) = {!   !}
+uglyTmCon (tmCon (_⊢♯.atomic aBool) x) = {!   !}
+uglyTmCon (tmCon (_⊢♯.atomic Builtin.Constant.AtomicType.aData) x) = {!   !}
+uglyTmCon (tmCon (_⊢♯.list t) x) = {!   !}
+uglyTmCon (tmCon (_⊢♯.pair t t₁) x) = {!   !} 
+
+{-
 uglyTmCon (tmCon (con integer) x) = "(integer " ++ ishow x ++ ")"
 uglyTmCon (tmCon (con bytestring) x) = "bytestring"
 uglyTmCon size = "size"
+-}
+-}
 
 postulate showNat : ℕ → String
 

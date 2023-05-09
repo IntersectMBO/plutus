@@ -18,7 +18,7 @@ open Builtin.Builtin
 open import Builtin.Constant.AtomicType using (AtomicTyCon;decAtomicTyCon)
 open AtomicTyCon
 
-open import Utils using (Kind;*;_⇒_)
+open import Utils using (Kind;*;♯;_⇒_)
 open import RawU using (TagCon;tagCon;Tag;decTagCon)
 open Tag
 \end{code}
@@ -37,7 +37,7 @@ data RawTy where
   ƛ   : Kind → RawTy → RawTy
   _·_ : RawTy → RawTy → RawTy
   con : RawTyCon → RawTy
-  μ    : RawTy → RawTy → RawTy
+  μ   : RawTy → RawTy → RawTy
 
 {-# COMPILE GHC RawTy = data RType (RTyVar | RTyFun | RTyPi | RTyLambda | RTyApp | RTyCon | RTyMu) #-}
 
@@ -45,8 +45,8 @@ data RawTy where
 
 data RawTyCon where
   atomic     : AtomicTyCon → RawTyCon
-  list       : RawTy → RawTyCon
-  pair       : RawTy → RawTy → RawTyCon
+  list       : RawTyCon
+  pair       : RawTyCon
 
 {-# COMPILE GHC RawTyCon = data RTyCon (RTyConAtom | RTyConList | RTyConPair) #-}
 
@@ -73,15 +73,18 @@ decRTy : (A A' : RawTy) → Bool
 
 decRTyCon : (C C' : RawTyCon) → Bool
 decRTyCon (atomic t) (atomic t')  = does (decAtomicTyCon t t')
-decRTyCon (pair x y) (pair x' y') = decRTy x x' ∧ decRTy y y'
-decRTyCon (list x)   (list x')    = decRTy x x' 
+decRTyCon pair       pair         = true
+decRTyCon list       list         = true
 decRTyCon _          _            = false
 
 decRKi : (K K' : Kind) → Bool
 decRKi * * = true
-decRKi * (K' ⇒ J') = false
-decRKi (K ⇒ J) * = false
+decRKi * _ = false
+decRKi ♯ ♯ = true
+decRKi ♯ _ = false
+
 decRKi (K ⇒ J) (K' ⇒ J') = decRKi K K' ∧ decRKi J J' 
+decRKi (K ⇒ J) _ = false
 
 decRTy (` x) (` x') = does (x ≟ x')
 decRTy (A ⇒ B) (A' ⇒ B') = decRTy A A' ∧ decRTy B B'

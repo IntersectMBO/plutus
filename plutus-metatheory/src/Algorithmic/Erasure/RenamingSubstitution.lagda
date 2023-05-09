@@ -28,8 +28,7 @@ open import Algorithmic.Erasure using (len;erase;eraseTC;eraseVar;lem-erase)
 open import Untyped using (_⊢)
 open _⊢
 import Untyped.RenamingSubstitution as U
-open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) using (TyCon)
-import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as AB
+open import Builtin.Constant.Type using (TyCon)
 \end{code}
 
 \begin{code}
@@ -111,19 +110,6 @@ conv⊢-erase : ∀{Φ}{Γ : Ctx Φ}{A A' : Φ ⊢Nf⋆ *}
   → erase (conv⊢ refl p t) ≡ erase t
 conv⊢-erase refl t = refl
 
-renTermCon-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(ρ⋆ : ⋆.Ren Φ Ψ)
-  → (ρ : A.Ren ρ⋆ Γ Δ) → ∀{A}(c : AB.TermCon A)
-  → eraseTC {Γ = Δ} (A.renTermCon ρ⋆ c) ≡ eraseTC {Γ = Γ} c 
-renTermCon-erase ρ⋆ ρ (AB.tmInteger i)              = refl
-renTermCon-erase ρ⋆ ρ (AB.tmBytestring b)           = refl
-renTermCon-erase ρ⋆ ρ (AB.tmString s)               = refl
-renTermCon-erase ρ⋆ ρ (AB.tmBool b)                 = refl
-renTermCon-erase ρ⋆ ρ AB.tmUnit                     = refl
-renTermCon-erase ρ⋆ ρ (AB.tmData d)                 = refl
-renTermCon-erase ρ⋆ ρ (AB.tmBls12-381-g1-element e) = refl
-renTermCon-erase ρ⋆ ρ (AB.tmBls12-381-g2-element e) = refl
-renTermCon-erase ρ⋆ ρ (AB.tmBls12-381-mlresult e)   = refl
-
 ext⋆-erase : ∀{Φ Ψ K}{Γ : Ctx Φ}{Δ : Ctx Ψ}(ρ⋆ : ⋆.Ren Φ Ψ)
   → (ρ : A.Ren ρ⋆ Γ Δ)(α : len Γ)
   → erase-Ren (⋆.ext ρ⋆ {K = K}) (A.ext⋆ ρ⋆ ρ) α ≡ erase-Ren ρ⋆ ρ α
@@ -162,7 +148,7 @@ ren-erase ρ⋆ ρ (wrap A B t)  = trans
 ren-erase ρ⋆ ρ (unwrap {A = A}{B = B} t refl) = trans
   (conv⊢-erase (sym (ren-nf-μ ρ⋆ A B)) (unwrap (A.ren ρ⋆ ρ t) refl))
   (ren-erase ρ⋆ ρ t)
-ren-erase ρ⋆ ρ (con c)            = cong con (renTermCon-erase ρ⋆ ρ c)
+ren-erase ρ⋆ ρ (con c refl)            = refl
 ren-erase ρ⋆ ρ (builtin b / refl)        =
  sym (lem-erase refl (btype-ren b ρ⋆) (builtin b / refl))
 ren-erase ρ⋆ ρ (error A)          = refl
@@ -207,19 +193,6 @@ exts⋆-erase {Γ = Γ}{Δ} σ⋆ σ {B} α = trans
       (U.ren-cong (eraseVar-backVar Δ) (erase (σ (backVar Γ α))))
       (sym (U.ren-id (erase (σ (backVar Γ α)))))))
 
-subTermCon-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(σ⋆ : SubNf Φ Ψ)
-  → (σ : A.Sub σ⋆ Γ Δ) → ∀{A}(c : AB.TermCon A)
-  → eraseTC {Γ = Δ} (A.subTermCon σ⋆ c) ≡ eraseTC {Γ = Γ} c 
-subTermCon-erase σ⋆ σ (AB.tmInteger i)    = refl
-subTermCon-erase σ⋆ σ (AB.tmBytestring b) = refl
-subTermCon-erase σ⋆ σ (AB.tmString s)     = refl
-subTermCon-erase σ⋆ σ (AB.tmBool b)       = refl
-subTermCon-erase σ⋆ σ AB.tmUnit           = refl
-subTermCon-erase σ⋆ σ (AB.tmData d)       = refl
-subTermCon-erase σ⋆ σ (AB.tmBls12-381-g1-element e) = refl
-subTermCon-erase σ⋆ σ (AB.tmBls12-381-g2-element e) = refl
-subTermCon-erase σ⋆ σ (AB.tmBls12-381-mlresult e)   = refl
-
 sub-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(σ⋆ : SubNf Φ Ψ)
   → (σ : A.Sub σ⋆ Γ Δ){A : Φ ⊢Nf⋆ *} → (t : Γ ⊢ A)
   →  erase (A.sub σ⋆ σ t) ≡ U.sub (erase-Sub σ⋆ σ) (erase t) 
@@ -246,7 +219,7 @@ sub-erase σ⋆ σ (wrap A B t) = trans
 sub-erase σ⋆ σ (unwrap {A = A}{B} t refl) = trans
   (conv⊢-erase (sym (sub-nf-μ σ⋆ A B)) (unwrap (A.sub σ⋆ σ t) refl))
   (sub-erase σ⋆ σ t)
-sub-erase σ⋆ σ (con c) = cong con (subTermCon-erase σ⋆ σ c)
+sub-erase σ⋆ σ (con c refl) = refl
 sub-erase σ⋆ σ (builtin b / refl) =
  sym (lem-erase refl (btype-sub b σ⋆) (builtin b / refl))
 sub-erase σ⋆ σ (error A) = refl

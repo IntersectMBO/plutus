@@ -1,5 +1,4 @@
 \begin{code}
---{-# OPTIONS --rewriting #-}
 {-# OPTIONS --injective-type-constructors #-}
 
 module Algorithmic.Erasure where
@@ -23,30 +22,33 @@ open import Algorithmic as A
 open import Untyped using (_⊢)
 open _⊢
 
-open import Type.BetaNormal using (_⊢Nf⋆_;ren-embNf)
+open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;ren-embNf;embNf)
 open _⊢Nf⋆_
+open _⊢Ne⋆_
 
 open import Type.BetaNBE using (nf)
 open import Type.BetaNBE.Completeness using (completeness)
 open import Utils using (Kind;*;Maybe;nothing;just;fromList;map-cong)
 open import RawU using (TmCon;tmCon;TyTag)
-open import Builtin.Signature using (_⊢♯;con) 
-open import Builtin.Constant.Type ℕ (_⊢♯)
+open import Builtin.Signature using (_⊢♯)
+open _⊢♯ 
+open import Builtin.Constant.Type
 
 open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_;_∋⋆_;S;Z)
 open _⊢⋆_
 
 open import Type.BetaNBE.RenamingSubstitution using (ren-nf;subNf-lemma')
+open import Type.BetaNBE.Stability using (stability)
 
 open import Builtin using (Builtin)
-import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con as DC renaming (TermCon to TyTermCon)
-import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as AC renaming (TermCon to TyTermCon)
+--import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con as DC renaming (TermCon to TyTermCon)
+--import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as AC renaming (TermCon to TyTermCon)
 open import Type.RenamingSubstitution as T
 
 import Declarative as D
 import Declarative.Erasure as D
-open import Algorithmic.Completeness using (nfCtx;nfTypeTC;nfTyVar;nfType;lemΠ;lem[];stability-μ;btype-lem)
-open import Algorithmic.Soundness using (embCtx;embVar;embTC;emb)
+open import Algorithmic.Completeness using (nfCtx;nfTyVar;nfType;lemΠ;lem[];stability-μ;btype-lem)
+open import Algorithmic.Soundness using (embCtx;embVar;emb)
 \end{code}
 
 \begin{code}
@@ -66,16 +68,8 @@ eraseVar Z     = nothing
 eraseVar (S α) = just (eraseVar α)
 eraseVar (T α) = eraseVar α
 
-eraseTC : ∀{Φ}{Γ : Ctx Φ}{A : Φ ⊢Nf⋆ *} → AC.TyTermCon A → TmCon
-eraseTC (AC.tmInteger i)              = tmCon (con integer) i
-eraseTC (AC.tmBytestring b)           = tmCon (con bytestring) b
-eraseTC (AC.tmString s)               = tmCon (con string) s
-eraseTC (AC.tmBool b)                 = tmCon (con bool) b
-eraseTC AC.tmUnit                     = tmCon (con unit) tt
-eraseTC (AC.tmData d)                 = tmCon (con pdata) d
-eraseTC (AC.tmBls12-381-g1-element e) = tmCon (con bls12-381-g1-element) e
-eraseTC (AC.tmBls12-381-g2-element e) = tmCon (con bls12-381-g2-element) e
-eraseTC (AC.tmBls12-381-mlresult r)   = tmCon (con bls12-381-mlresult) r
+eraseTC : (A : ∅ ⊢Nf⋆ Kind.♯) → ⟦ A ⟧ → TmCon
+eraseTC A t = tmCon (A.ty2sty A) (subst ⟦_⟧ (ty≅sty₁ A) t)
 
 erase : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ ⊢ A → len Γ ⊢
 erase (` α)                = ` (eraseVar α)
@@ -85,7 +79,7 @@ erase (Λ t)                = delay (erase t)
 erase (t ·⋆ A / refl)      = force (erase t)
 erase (wrap A B t)         = erase t
 erase (unwrap t refl)      = erase t
-erase {Γ = Γ} (con t)      = con (eraseTC {Γ = Γ} t)
+erase (con {A = A} t p)    = con (eraseTC A t)
 erase (builtin b / refl)   = builtin b
 erase (error A)            = error
 \end{code}
@@ -119,20 +113,6 @@ lemzero refl = refl
 lemsuc : ∀{X X'}(p : Maybe {lzero} X ≡ Maybe X')(q : X ≡ X')(x : X) →
   just (subst id q x) ≡ subst id p (just x)
 lemsuc refl refl x = refl
-
-sameTC : ∀{Φ Γ}{A : Φ ⊢⋆ *}(tcn : DC.TyTermCon A)
-  → D.eraseTC {Γ = Γ} tcn ≡ eraseTC {Γ = nfCtx Γ} (nfTypeTC tcn)
-sameTC (DC.tmInteger i)      = refl
-sameTC (DC.tmBytestring b)   = refl
-sameTC (DC.tmString s)       = refl
-sameTC (DC.tmBool b)         = refl
-sameTC DC.tmUnit             = refl
-sameTC (DC.tmData d)         = refl
-sameTC (DC.tmBls12-381-g1-element e) = refl
-sameTC (DC.tmBls12-381-g2-element e) = refl
-sameTC (DC.tmBls12-381-mlresult r)   = refl
-
--- map D.eraseTC xs ≡ map (eraseTC ∘ nfTypeTC) xs
 
 lem≡Ctx : ∀{Φ}{Γ Γ' : Ctx Φ} → Γ ≡ Γ' → len Γ ≡ len Γ'
 lem≡Ctx refl = refl
@@ -225,9 +205,7 @@ same {Γ = Γ} (D.unwrap {A = A}{B = B} t) = trans
 same {Γ = Γ} (D.conv p t) = trans
   (same t)
   (cong (subst _⊢ (lenLemma Γ)) (lem-erase' (completeness p) (nfType t)))
-same {Γ = Γ} (D.con tcn) = trans
-  (cong con (sameTC {Γ = Γ} tcn))
-  (lemcon' (lenLemma Γ) (eraseTC {Γ = nfCtx Γ} (nfTypeTC tcn)))
+same {Γ = Γ} (D.con {A = A} tcn refl) = (lemcon' (lenLemma Γ) (eraseTC (nf A) tcn))
 same {Γ = Γ} (D.builtin b) = trans
   (lembuiltin b (lenLemma Γ)) (cong (subst _⊢ (lenLemma Γ))
   (lem-erase refl (btype-lem b) (builtin b / refl)))
@@ -253,18 +231,10 @@ same'Var {Γ = Γ ,⋆ _} (T {A = A} x) = trans
   (cong (subst id (same'Len Γ)) (lem-Dconv∋ refl (sym (ren-embNf S A))
         (D.T (embVar x))))
 
-same'TC : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(tcn : AC.TyTermCon A)
-  → eraseTC {Γ = Γ} tcn ≡ D.eraseTC {Φ}{Γ = embCtx Γ} (embTC tcn)
-same'TC (AC.tmInteger i)              = refl
-same'TC (AC.tmBytestring b)           = refl
-same'TC (AC.tmString s)               = refl
-same'TC (AC.tmBool b)                 = refl
-same'TC AC.tmUnit                     = refl
-same'TC (AC.tmData d)                 = refl
-same'TC (AC.tmBls12-381-g1-element e) = refl
-same'TC (AC.tmBls12-381-g2-element e) = refl
-same'TC (AC.tmBls12-381-mlresult r)   = refl
-
+same'TC : ∀ {Φ} {Γ : Ctx Φ} A (tcn : ⟦ A ⟧) →
+         eraseTC A tcn ≡ D.eraseTC (embNf A) (subst ⟦_⟧ (sym (stability A)) tcn)
+same'TC A tcn rewrite stability A = refl
+  
 same' : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(x : Γ A.⊢ A)
   →  erase x ≡ subst _⊢ (same'Len Γ) (D.erase (emb x))
 same' {Γ = Γ} (` x) =
@@ -281,11 +251,10 @@ same' {Γ = Γ} (Λ t) =  trans
 same' {Γ = Γ} (t ·⋆ A / refl)   = trans
   (cong force (same' t))
   (lem-force (same'Len Γ) (D.erase (emb t)))
-same' {Γ = Γ} (wrap A B t)   = same' t
-same' {Γ = Γ} (unwrap t refl) = same' t
-same' {Γ = Γ} (con x) = trans
-  (cong con (same'TC {Γ = Γ} x))
-  (lemcon' (same'Len Γ) (D.eraseTC {Γ = embCtx Γ}(embTC x)))
+same' (wrap A B t)   = same' t
+same' (unwrap t refl) = same' t
+same' {Γ = Γ} (con {A = A} tcn refl) = trans (cong con (same'TC {Γ = Γ} A tcn)) 
+  (lemcon' (same'Len Γ) (D.eraseTC (embNf A) (subst ⟦_⟧ (sym (stability A)) tcn)))
 same' {Γ = Γ} (builtin b / refl) = lembuiltin b (same'Len Γ)
 same' {Γ = Γ} (error A) = lemerror (same'Len Γ)
 \end{code}

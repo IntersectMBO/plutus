@@ -14,7 +14,7 @@ open ScopedTy
 open ScopedTm
 open Weirdℕ
 open WeirdFin
-open import Builtin.Constant.Type ℕ ScopedTy using (TyCon)
+open import Builtin.Constant.Type using (TyCon)
 open TyCon
 \end{code}
 
@@ -27,19 +27,12 @@ lift⋆ ρ zero    = zero
 lift⋆ ρ (suc α) = suc (ρ α)
 
 ren⋆ : ∀{m n} → Ren⋆ m n → ScopedTy m → ScopedTy n
-renTyCon⋆ : ∀{m n} → Ren⋆ m n → TyCon m → TyCon n
-
-renTyCon⋆ ρ (list A)   = list (ren⋆ ρ A)
-renTyCon⋆ ρ (pair A B) = pair (ren⋆ ρ A) (ren⋆ ρ B)
-renTyCon⋆ ρ (atomic A) = atomic A
-
-
 ren⋆ ρ (` α) = ` (ρ α)
 ren⋆ ρ (A ⇒ B) = ren⋆ ρ A ⇒ ren⋆ ρ B
 ren⋆ ρ (Π K A) = Π K (ren⋆ (lift⋆ ρ) A)
 ren⋆ ρ (ƛ K A) = ƛ K (ren⋆ (lift⋆ ρ) A)
 ren⋆ ρ (A · B) = ren⋆ ρ A · ren⋆ ρ B
-ren⋆ ρ (con c) = con (renTyCon⋆ ρ c)
+ren⋆ ρ (con c) = con c
 ren⋆ ρ (μ A B) = μ (ren⋆ ρ A) (ren⋆ ρ B)
 ren⋆ ρ missing = missing
 
@@ -85,18 +78,12 @@ slift⋆ ρ zero    = ` zero
 slift⋆ ρ (suc α) = ren⋆ suc (ρ α)
 
 sub⋆ : ∀{m n} → Sub⋆ m n → ScopedTy m → ScopedTy n
-subTyCon⋆ : ∀{m n} → Sub⋆ m n → TyCon m → TyCon n
-
-subTyCon⋆ σ (list A)   = list (sub⋆ σ A)
-subTyCon⋆ σ (pair A B) = pair (sub⋆ σ A) (sub⋆ σ B)
-subTyCon⋆ σ (atomic A) = atomic A
-
 sub⋆ σ (` α)   = σ α
 sub⋆ σ (A ⇒ B) = sub⋆ σ A ⇒ sub⋆ σ B
 sub⋆ σ (Π K A) = Π K (sub⋆ (slift⋆ σ) A)
 sub⋆ σ (ƛ K A) = ƛ K (sub⋆ (slift⋆ σ) A)
 sub⋆ σ (A · B) = sub⋆ σ A · sub⋆ σ B
-sub⋆ σ (con c) = con (subTyCon⋆ σ c)
+sub⋆ σ (con c) = con c
 sub⋆ σ (μ A B) = μ (sub⋆ σ A) (sub⋆ σ B)
 sub⋆ ρ missing = missing
 
@@ -163,20 +150,12 @@ lift⋆-cong p (suc x) = cong suc (p x)
 ren⋆-cong : ∀{m n}{ρ ρ' : Ren⋆ m n}
   → (∀ x → ρ x ≡ ρ' x)
   → ∀ x → ren⋆ ρ x ≡ ren⋆ ρ' x
-renTyCon⋆-cong : ∀{m n}{ρ ρ' : Ren⋆ m n}
-  → (∀ x → ρ x ≡ ρ' x)
-  → ∀ x → renTyCon⋆ ρ x ≡ renTyCon⋆ ρ' x
-
-renTyCon⋆-cong p (list A)   = cong list (ren⋆-cong p A)
-renTyCon⋆-cong p (pair A B) = cong₂ pair (ren⋆-cong p A) (ren⋆-cong p B)
-renTyCon⋆-cong p (atomic _) = refl
-
 ren⋆-cong p (` x)       = cong ` (p x)
 ren⋆-cong p (A ⇒ B)     = cong₂ _⇒_ (ren⋆-cong p A) (ren⋆-cong p B)
 ren⋆-cong p (Π K A)     = cong (Π K) (ren⋆-cong (lift⋆-cong p) A)
 ren⋆-cong p (ƛ K A)     = cong (ƛ K) (ren⋆-cong (lift⋆-cong p) A)
 ren⋆-cong p (A · B)     = cong₂ _·_ (ren⋆-cong p A) (ren⋆-cong p B)
-ren⋆-cong p (con c)     = cong con (renTyCon⋆-cong p c)
+ren⋆-cong p (con c)     = refl
 ren⋆-cong p (μ pat arg) = cong₂ μ (ren⋆-cong p pat) (ren⋆-cong p arg)
 ren⋆-cong p missing     = refl
 
@@ -189,20 +168,12 @@ slift⋆-cong p (suc x) = cong (ren⋆ suc) (p x)
 sub⋆-cong : ∀{m n}{σ σ' : Sub⋆ m n}
   → (∀ x → σ x ≡ σ' x)
   → ∀ x → sub⋆ σ x ≡ sub⋆ σ' x
-subTyCon⋆-cong : ∀{m n}{σ σ' : Sub⋆ m n}
-  → (∀ x → σ x ≡ σ' x)
-  → ∀ x → subTyCon⋆ σ x ≡ subTyCon⋆ σ' x
-
-subTyCon⋆-cong p (list A)   = cong list (sub⋆-cong p A)
-subTyCon⋆-cong p (pair A B) = cong₂ pair (sub⋆-cong p A) (sub⋆-cong p B)
-subTyCon⋆-cong p (atomic A) = refl
-
 sub⋆-cong p (` x)       = p x
 sub⋆-cong p (A ⇒ B)     = cong₂ _⇒_ (sub⋆-cong p A) (sub⋆-cong p B)
 sub⋆-cong p (Π K A)     = cong (Π K) (sub⋆-cong (slift⋆-cong p) A)
 sub⋆-cong p (ƛ K A)     = cong (ƛ K) (sub⋆-cong (slift⋆-cong p) A)
 sub⋆-cong p (A · B)     = cong₂ _·_ (sub⋆-cong p A) (sub⋆-cong p B)
-sub⋆-cong p (con c)     = cong con (subTyCon⋆-cong p c)
+sub⋆-cong p (con c)     = refl 
 sub⋆-cong p (μ pat arg) = cong₂ μ (sub⋆-cong p pat) (sub⋆-cong p arg)
 sub⋆-cong p missing     = refl
 

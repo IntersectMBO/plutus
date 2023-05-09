@@ -10,23 +10,25 @@ The postulated operations are in this module because it is not
 parameterised. They could also be placed elsewhere.
 
 ```
-module Builtin.Constant.Type
-  (Con : Set)(Ty : Con → Set) where
+{-# OPTIONS --type-in-type #-}
+
+module Builtin.Constant.Type where
 ```
 
 ## Imports
 
 ```
+open import Utils using (Kind;♯;_⇒_)
 open import Builtin.Constant.AtomicType
 ```
 
 Type constants are either atomic, or pair, or lists.
 
 ```
-data TyCon (Φ : Con) : Set where
-  atomic     : AtomicTyCon → TyCon Φ
-  list       : Ty Φ → TyCon Φ
-  pair       : Ty Φ → Ty Φ → TyCon Φ
+data TyCon : Kind → Set where
+  atomic     : AtomicTyCon → TyCon ♯
+  list       : TyCon (♯ ⇒ ♯)
+  pair       : TyCon (♯ ⇒ (♯ ⇒ ♯))
 
 pattern integer = atomic aInteger
 pattern bytestring = atomic aBytestring

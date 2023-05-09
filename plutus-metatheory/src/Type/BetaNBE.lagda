@@ -8,15 +8,15 @@ module Type.BetaNBE where
 open import Function using (_∘_;id)
 open import Data.Sum using (_⊎_;inj₁;inj₂)
 
-open import Utils using (Kind;*;_⇒_)
+open import Utils using (Kind;*;_⇒_;♯)
 open import Type using (Ctx⋆;_,⋆_;_⊢⋆_;_∋⋆_;Z;S)
 open _⊢⋆_
 open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;renNf;renNe)
 open _⊢Nf⋆_
 open _⊢Ne⋆_
 open import Type.RenamingSubstitution using (Ren)
-import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *) as Syn
-import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) as Nf
+import Builtin.Constant.Type as Syn
+import Builtin.Constant.Type as Nf
 \end{code}
 
 Values are defined by induction on kind. At kind # and * they are
@@ -26,6 +26,7 @@ either neutral or Kripke functions
 \begin{code}
 Val : Ctx⋆ → Kind → Set
 Val Φ *       = Φ ⊢Nf⋆ *
+Val Φ ♯       = Φ ⊢Nf⋆ ♯
 Val Φ (σ ⇒ τ) = Φ ⊢Ne⋆ (σ ⇒ τ) ⊎ ∀ {Ψ} → Ren Φ Ψ → Val Ψ σ → Val Ψ τ
 \end{code}
 
@@ -35,6 +36,7 @@ defined with reify.
 
 \begin{code}
 reflect : ∀{Φ σ} → Φ ⊢Ne⋆ σ → Val Φ σ
+reflect {σ = ♯}     n = ne n
 reflect {σ = *}     n = ne n
 reflect {σ = σ ⇒ τ} n = inj₁ n
 \end{code}
@@ -52,6 +54,7 @@ Renaming for values
 \begin{code}
 renVal : ∀ {σ Φ Ψ} → Ren Φ Ψ → Val Φ σ → Val Ψ σ
 renVal {*}     ψ n        = renNf ψ n
+renVal {♯}     ψ n        = renNf ψ n
 renVal {σ ⇒ τ} ψ (inj₁ n) = inj₁ (renNe ψ n)
 renVal {σ ⇒ τ} ψ (inj₂ f) = inj₂ λ ρ' →  f (ρ' ∘ ψ)
 \end{code}
@@ -68,6 +71,7 @@ Reify takes a value and yields a normal form.
 \begin{code}
 reify : ∀ {σ Φ} → Val Φ σ → Φ ⊢Nf⋆ σ
 reify {*}     n         = n
+reify {♯}     n         = n
 reify {σ ⇒ τ} (inj₁ n)  = ne n
 reify {σ ⇒ τ} (inj₂ f)  = ƛ (reify (f S fresh)) -- has a name been lost here?
 \end{code}
@@ -123,19 +127,22 @@ reifying.
 
 \begin{code}
 eval : ∀{Φ Ψ K} → Ψ ⊢⋆ K → Env Ψ Φ → Val Φ K
+
+{-
 evalTyCon : ∀{Φ Ψ} → Syn.TyCon Ψ → Env Ψ Φ → Nf.TyCon Φ
 
 evalTyCon (Syn.list A)   η = Nf.list (eval A η)
 evalTyCon (Syn.pair A B) η = Nf.pair (eval A η) (eval B η)
 evalTyCon (Syn.atomic A) η = Nf.atomic A
-
+-}
 eval (` α)   η = η α
 eval (Π B)   η = Π (reify (eval B (exte η)))
 eval (A ⇒ B) η = reify (eval A η) ⇒ reify (eval B η)
 eval (ƛ B)   η = inj₂ λ ρ v → eval B ((renVal ρ ∘ η) ,,⋆ v)
 eval (A · B) η = eval A η ·V eval B η
 eval (μ A B) η = μ (reify (eval A η)) (reify (eval B η))
-eval (con c) η = con (evalTyCon c η)
+eval (^ x)   η = reflect (^ x)
+eval (con c) η = con (eval c η)
 \end{code}
 
 Identity environment

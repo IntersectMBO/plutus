@@ -26,8 +26,9 @@ open Monad {{...}}
 open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_)
 open _⊢⋆_
 
-open import Type.BetaNormal using (_⊢Nf⋆_)
+open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_)
 open _⊢Nf⋆_
+open _⊢Ne⋆_
 
 open import Algorithmic using (Ctx;_⊢_)
 open Ctx
@@ -38,9 +39,6 @@ open Builtin.Builtin
 
 open import Builtin.Constant.Type using (TyCon;unit)
 open TyCon
-
-open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con using (TermCon)
-open TermCon
 
 open import Algorithmic.RenamingSubstitution using (_[_];_[_]⋆)
 open import Algorithmic.ReductionEC using (Frame;Value;deval;ival;BUILTIN';V-I;EC) 
@@ -114,7 +112,7 @@ thm64 (E CC.▻ wrap A B M) E' (CC.step* refl p) =
   step* (cong (λ E → E ▻ M) (lemmaH E wrap-)) (thm64 _ E' p)
 thm64 (E CC.▻ unwrap M refl) E' (CC.step* refl p) =
   step* (cong (λ E → E ▻ M) (lemmaH E unwrap-)) (thm64 _ E' p)
-thm64 (E CC.▻ con M) E' (CC.step* refl p) =
+thm64 (E CC.▻ con M refl) E' (CC.step* refl p) =
   step* refl (thm64 _ E' p)
 thm64 (E CC.▻ (builtin b / refl)) E' (CC.step* refl p) =
   step* refl (thm64 _ E' p)
@@ -143,7 +141,7 @@ thm64b (s ▻ Λ M) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 thm64b (s ▻ (M ·⋆ A / refl)) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 thm64b (s ▻ wrap A B M) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 thm64b (s ▻ unwrap M refl) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
-thm64b (s ▻ con c) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
+thm64b (s ▻ con c refl) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 thm64b (s ▻ (builtin b / refl)) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 thm64b (s ▻ error _) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 thm64b (ε ◅ V) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
@@ -177,8 +175,8 @@ thm64b ((s , unwrap-) ◅ V-wrap V) s' (step* refl p) = CC.step*
 thm64b (□ x₁) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 thm64b (◆ A) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 
-test : State (con unit)
-test = ε ▻ (ƛ (con tmUnit) · (builtin iData / refl · con (tmInteger (+ 0))))
+test : State (con (ne (^ unit)))
+test = ε ▻ (ƛ (con tt refl) · (builtin iData / refl · con (+ 0) refl))
 
 postulate
   lemV : ∀{A B}(M : ∅ ⊢ B)(V : Value M)(E : Stack A B) → (E ▻ M) -→s (E ◅ V)

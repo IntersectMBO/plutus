@@ -25,6 +25,7 @@ open import Algorithmic using (Ctx;_⊢_)
 open Ctx
 open _⊢_
 
+open import Algorithmic.Signature using (_[_]SigTy)
 open import Algorithmic.RenamingSubstitution using (_[_];_[_]⋆)
 open import Algorithmic.ReductionEC using (Frame;Value;deval;ival;BUILTIN';V-I) 
                                     renaming (step to app;step⋆ to app⋆)
@@ -33,7 +34,7 @@ open Value
 
 ```
 
-```
+``` 
 data Stack : (T : ∅ ⊢Nf⋆ *)(H : ∅ ⊢Nf⋆ *) → Set where
   ε   : {T : ∅ ⊢Nf⋆ *} → Stack T T
   _,_ : {T : ∅ ⊢Nf⋆ *}{H1 : ∅ ⊢Nf⋆ *}{H2 : ∅ ⊢Nf⋆ *}
@@ -76,7 +77,7 @@ step (s ▻ Λ L)                    = s ◅ V-Λ L
 step (s ▻ (L ·⋆ A / refl))        = (s , -·⋆ A) ▻ L
 step (s ▻ wrap A B L)             = (s , wrap-) ▻ L
 step (s ▻ unwrap L refl)          = (s , unwrap-) ▻ L
-step (s ▻ con cn)                 = s ◅ V-con cn
+step (s ▻ con cn refl)                 = s ◅ V-con cn
 step (s ▻ error A)                = ◆ A
 step (ε ◅ V)                      = □ V
 step ((s , (-· M)) ◅ V)           = ((s , V ·-) ▻ M)
@@ -87,7 +88,7 @@ step ((s , unwrap-) ◅ V-wrap V)   = s ▻ deval V
 step (s ▻ (builtin b / refl))     = s ◅ ival b
 step ((s , (V-I⇒ b {am = 0} bt ·-)) ◅ vu) = s ▻ BUILTIN' b (app bt vu)
 step ((s , (V-I⇒ b {am = suc _} bt ·-)) ◅ vu) = s ◅ V-I b (app bt vu)
-step ((s , -·⋆ A) ◅ V-IΠ b  bt)   =  s ◅ V-I b (app⋆ bt refl refl) 
+step ((s , -·⋆ A) ◅ V-IΠ b {σA = σ} bt)  =  s ◅ V-I b (app⋆ bt refl {σ [ A ]SigTy})
 step (□ V)                        = □ V
 step (◆ A)                        = ◆ A
 

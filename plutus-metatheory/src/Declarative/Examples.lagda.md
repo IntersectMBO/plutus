@@ -14,6 +14,7 @@ module Declarative.Examples where
 
 ```
 open import Agda.Builtin.Int using (pos)
+open import Relation.Binary.PropositionalEquality using (refl)
 
 open import Type using (_⊢⋆_;_∋⋆_;Z;S)
 open _⊢⋆_
@@ -26,8 +27,6 @@ open _∋_
 open import Builtin using (addInteger)
 open import Builtin.Constant.Type using (TyCon;integer)
 open TyCon
-open import Builtin.Constant.Term using (TermCon)
-open TermCon
 open import Declarative.Examples.StdLib.Function using (unwrap0;Z-comb)
 import Declarative.Examples.StdLib.ChurchNat using (inc;N;Succ;Zero;Iter)
 ```
@@ -38,13 +37,13 @@ import Declarative.Examples.StdLib.ChurchNat using (inc;N;Succ;Zero;Iter)
 module Builtins where
   open Declarative.Examples.StdLib.ChurchNat
 
-  con2 : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ con integer
-  con2 = con (tmInteger (pos 2))
+  con2 : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ con (^ integer)
+  con2 = con {A = ^ integer} (pos 2) refl
 
-  builtin2plus2 : ∅ ⊢ con integer
+  builtin2plus2 : ∅ ⊢ con (^ integer)
   builtin2plus2 = builtin addInteger · con2 · con2
 
-  builtininc2 : ∅ ⊢ con integer
+  builtininc2 : ∅ ⊢ con (^ integer)
   builtininc2 = inc · con2
 ```
 

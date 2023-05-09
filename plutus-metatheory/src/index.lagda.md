@@ -82,7 +82,6 @@ types such as integers and bytestrings and operations on them.
 ```
 import Builtin
 import Builtin.Constant.Type
-import Builtin.Constant.Term
 ```
 
 The types of the built-in operations are defined by a signature.

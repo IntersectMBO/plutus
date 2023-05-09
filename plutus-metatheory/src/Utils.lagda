@@ -202,6 +202,7 @@ a kind called `#` which is used for sized integers and bytestrings.
 \begin{code}
 data Kind : Set where
   *   : Kind               -- type
+  ♯   : Kind               -- builtin
   _⇒_ : Kind → Kind → Kind -- function kind
 
 {-# FOREIGN GHC import PlutusCore                       #-}
