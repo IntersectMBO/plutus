@@ -1,0 +1,23 @@
+{-
+let a = <big>
+    f = \x. a
+ in f 3 + f 4
+
+In this example, `f` should not be inlined. `f x` does have a small body, i.e., `a`,
+but that is no longer the case once `a` is unconditionally inlined.
+-}
+
+(let
+  (nonrec)
+  (termbind
+    (nonstrict)
+    (vardecl a (con integer))
+    [ [ (builtin addInteger) (con integer 1) ] (con integer 2) ]
+  )
+  (termbind
+    (strict)
+    (vardecl f (fun (con integer) (con integer)))
+    (lam x (con integer) a)
+  )
+  [ [ (builtin addInteger) [ f (con integer 3) ] ] [ f (con integer 4) ] ]
+)

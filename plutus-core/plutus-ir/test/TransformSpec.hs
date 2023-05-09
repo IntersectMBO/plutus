@@ -262,6 +262,7 @@ inline =
             , "letNonPure" -- multiple occurrences of a non-pure binding
             , "letNonPureMulti"
             , "letNonPureMultiStrict"
+            , "rhs-modified"
             ]
 
 -- | Check whether a term is globally unique.
