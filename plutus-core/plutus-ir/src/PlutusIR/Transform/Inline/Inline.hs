@@ -32,7 +32,7 @@ import Control.Monad.State
 
 import Algebra.Graph qualified as G
 import Data.Map qualified as Map
-import PlutusIR.Transform.Inline.CallSiteInline (computeArity, considerInlineSat)
+import PlutusIR.Transform.Inline.CallSiteInline (computeArity, inlineSaturatedApp)
 import Witherable (Witherable (wither))
 
 {- Note [Inlining approach and 'Secrets of the GHC Inliner']
@@ -217,11 +217,11 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
             -- exponentially in the case that it has nested `let`s.
             processedT <- forMOf termSubterms t processTerm
             -- consider call site inlining for each node that have gone through unconditional
-            -- inlining. Because `considerInlineSat` traverses *all* application nodes for each
+            -- inlining. Because `inlineSaturatedApp` traverses *all* application nodes for each
             -- subterm, the runtime is quadratic for terms with a long chain of applications.
             -- If we use the context-based approach like in GHC, this won't be a problem, so we may
             -- consider that in the future.
-            considerInlineSat processedT
+            inlineSaturatedApp processedT
 
 -- | Run the inliner on a single non-recursive let binding.
 processSingleBinding
@@ -237,7 +237,7 @@ processSingleBinding body = \case
             -- this binding is going to be unconditionally inlined
             Nothing -> pure Nothing
             Just processedRhs -> do
-                let (varArity, bodyToCheck) = computeArity rhs
+                let (arity, bodyToCheck) = computeArity processedRhs
                 -- when we encounter a binding, we add it to
                 -- the global map `Utils.NonRecInScopeSet`.
                 -- The `varDef` added to the map has been unconditionally inlined.
@@ -248,7 +248,7 @@ processSingleBinding body = \case
                 void $ modify' $
                     extendVarInfo
                         n
-                        (MkVarInfo s (Done (dupable processedRhs)) varArity bodyToCheck)
+                        (MkVarInfo s processedRhs arity bodyToCheck)
                 pure $ Just $ TermBind ann s v processedRhs
     (TypeBind ann v@(TyVarDecl _ n _) rhs) -> do
         maybeRhs' <- maybeAddTySubst n rhs

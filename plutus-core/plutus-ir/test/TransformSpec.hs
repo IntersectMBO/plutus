@@ -230,6 +230,7 @@ inline =
             (goldenPirM goldenInlineUnique pTerm)
             [ "var"
             , "builtin"
+            , "callsite-non-trivial-body"
             , "constant"
             , "transitive"
             , "tyvar"
