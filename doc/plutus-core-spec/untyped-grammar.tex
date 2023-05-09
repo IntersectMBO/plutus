@@ -23,6 +23,7 @@ binary format described in Appendix~\ref{appendix:flat-serialisation}.
         \textrm{Version} & v & ::= & \texttt{[0-9]\textsuperscript{+}.[0-9]\textsuperscript{+}.[0-9]\textsuperscript{+}}& \textrm{version}\\
 
         \textrm{Constant} & c & ::= & \langle{\textrm{literal constant}}\rangle& \\
+        \textrm{Natural}  & n      & ::= & [0-9]+ & \textrm{A natural}\\
 
     \end{array}\]
     \captionof{figure}{Lexical grammar of Plutus Core}
@@ -30,7 +31,7 @@ binary format described in Appendix~\ref{appendix:flat-serialisation}.
 \end{minipage}%
 \nomenclature[C]{$L,M,N$}{A term}%
 \nomenclature[C]{$n$}{A name}%
-\nomenclature[C]{$i$}{An integer}%
+\nomenclature[C]{$n$}{An natural}%
 \nomenclature[C]{$x$}{A variable name}%
 \nomenclature[C]{$bn, b$}{The name of a built-in function}%
 \nomenclature[C]{$c$}{A literal constant}%
@@ -72,7 +73,7 @@ binary format described in Appendix~\ref{appendix:flat-serialisation}.
                         &        &     & \appU{M}{N}                     & \textrm{function application}\\
                         &        &     & \delay{M}                       & \textrm{delay execution of a term}\\
                         &        &     & \force{M}                       & \textrm{force execution of a term}\\
-                        &        &     & \constr{i}{M_0 \ldots M_{m-1}}  & \textrm{constructor with tag $i$ and $m$ arguments}\\
+                        &        &     & \constr{n}{M_0 \ldots M_{m-1}}  & \textrm{constructor with tag $n$ and $m$ arguments}\\
                         &        &     & \kase{M}{N_0 \ldots N_{m-1}}    & \textrm{case analysis with $m$ alternatives}\\
                         &        &     & \errorU                         & \textrm{error}\\
         \textrm{Program}& P      & ::= & \version{v}{M}                  & \textrm{versioned program}
@@ -114,6 +115,12 @@ evaluates the scrutinee into a $\keyword{constr}$ value, selects the branch corr
 the tag on the value, and then applies that to the arguments in the value. The only thing
 to note is that $\keyword{case}$ does \emph{not} strictly evaluate the case branches, only
 applying (and hence evaluating) the one that is eventually selected.
+
+\paragraph{Constructor tags}
+Constructor tags can in principle be any natural number. In practice, since they cannot
+be dynamically constructed, we can limit them to a fixed size without having to worry
+about overflow. So we limit them to 64 bits, although this is currently only enforced in
+the binary format (Appendix~\ref{appendix:flat-serialisation}).
 
 \paragraph{Built-in types and functions.} The language is parameterised by a set $\Uni$ of
 \textit{built-in types} (we sometimes refer to $\Uni$ as the
