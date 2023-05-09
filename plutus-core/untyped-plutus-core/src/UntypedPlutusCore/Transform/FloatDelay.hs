@@ -1,18 +1,5 @@
 {-# LANGUAGE LambdaCase #-}
 
-module UntypedPlutusCore.Transform.FloatDelay (floatDelay) where
-
-import PlutusCore qualified as PLC
-import UntypedPlutusCore.Core
-
-import Control.Lens
-import Control.Monad
-import Control.Monad.Trans.Writer.CPS
-import Data.Map (Map)
-import Data.Map qualified as Map
-import Data.Set (Set)
-import Data.Set qualified as Set
-
 {- | The Float Delay optimization floats `Delay` from arguments into function bodies,
 if possible. It turns @(\n -> ...Force n...Force n...) (Delay arg)@ into
 @(\n -> ...Force (Delay n)...Force (Delay n)...) arg@.
@@ -31,11 +18,18 @@ on other optimizations to simplify it further. Specifically, once the inliner in
 
 The advantages of Float Delay are:
 
-    * It is very simple to implement.
-
     * It doesn't rely on the inliner. In this example, Split Delay relies on the inliner to
       inline @Delay m@, but there's no guarantee that the inliner will do so, because inlining
       it may increase the program size.
+
+      We can potentially modify the inliner such that it is aware of Float Delay and
+      Force-Delay Cancel, and makes inlining decisions with these other optimizations in mind.
+      The problem is that, not only does this makes the inlining heuristics much more
+      complex, but it could easily lead to code duplication. Other optimizations often
+      need to do some calculation in order to make certain optimization decisions (e.g., in
+      this case, we want to check whether all occurrences of @arg@ are under @Force@), and
+      if we rely on the inliner to inline the @Delay@, then the same check would need to be
+      performed by the inliner.
 
     * Because Force Delay requires that all occurrences of @arg@ are under @Force@, it
       guarantees to not increase the size or the cost of the program. This is not the case
@@ -44,10 +38,34 @@ The advantages of Float Delay are:
       @Delay m@ is inlined. If @Delay m@ is not inlined, then it will also increase the
       cost of the program, due to the additional application.
 
-The Split Delay optimization was implemented and tested, and it is strictly worse than
+The alternative approach that always floats the @Delay@ regardless of whether or not all
+occurences of @arg@ are under @Force@ was implemented and tested, and it is strictly worse than
 Float Delay on our current test suite (specifically, Split Delay causes one test case
 to have a slightly bigger program, and everything else is equal).
+
+Why is this optimization performed on UPLC, not PIR?
+
+    1. Not only are the types and let-bindings in PIR not useful for this optimization,
+       they can also get in the way. For example, we cannot transform
+       @let f = /\a. ...a... in ...{f t1}...{f t2}...@ into
+       @ket f = ...a... in ...f...f...@.
+
+    2. This optimization mainly interacts with ForceDelayCancel and the inliner, and
+       both are part of the UPLC simplifier.
 -}
+module UntypedPlutusCore.Transform.FloatDelay (floatDelay) where
+
+import PlutusCore qualified as PLC
+import UntypedPlutusCore.Core
+
+import Control.Lens
+import Control.Monad
+import Control.Monad.Trans.Writer.CPS
+import Data.Map (Map)
+import Data.Map qualified as Map
+import Data.Set (Set)
+import Data.Set qualified as Set
+
 floatDelay ::
     (PLC.MonadQuote m, PLC.Rename (Term name uni fun a), Ord name) =>
     Term name uni fun a ->
@@ -64,7 +82,7 @@ unforcedVars = execWriter . go
     go = \case
         Var _ n       -> tell (Set.singleton n)
         Force _ Var{} -> pure ()
-        t             -> foldlMOf termSubterms (const go) () t
+        t             -> forOf_ termSubterms t go
 
 -- | Second pass. Removes `Delay` from eligible arguments, and returns
 -- the names of variables whose corresponding arguments are modified.
@@ -77,6 +95,7 @@ simplifyArgs ::
     (Term name uni fun a, Map name a)
 simplifyArgs blacklist = runWriter . go
   where
+    go :: Term name uni fun ann -> Writer (Map name ann) (Term name uni fun ann)
     go = \case
         Apply appAnn (LamAbs lamAnn n lamBody) (Delay delayAnn arg)
             | isEssentiallyWorkFree arg
@@ -92,7 +111,7 @@ simplifyBodies whitelist = transformOf termSubterms $ \case
         | Just ann <- Map.lookup n whitelist -> Delay ann var
     t -> t
 
--- | Whether evaluating the given `Term` is essentially work-free
+-- | Whether evaluating the given `Term` is pure and essentially work-free
 -- (barring the CEK machine overhead).
 isEssentiallyWorkFree :: Term name uni fun a -> Bool
 isEssentiallyWorkFree = \case
