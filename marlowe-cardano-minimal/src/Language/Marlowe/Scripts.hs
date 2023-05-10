@@ -35,7 +35,7 @@
 
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
-
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:target-version=1.0.0 #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 
 
@@ -60,7 +60,27 @@ module Language.Marlowe.Scripts
 
 import GHC.Generics (Generic)
 import Language.Marlowe.Core.V1.Semantics as Semantics
+    ( MarloweParams(MarloweParams, rolesCurrency),
+      MarloweData(..),
+      TransactionOutput(Error, TransactionOutput, txOutPayments,
+                        txOutState, txOutContract),
+      TransactionInput(TransactionInput, txInputs, txInterval),
+      TransactionError(TEHashMismatch, TEAmbiguousTimeIntervalError,
+                       TEApplyNoMatchError, TEIntervalError, TEUselessTransaction),
+      Payment(..),
+      computeTransaction,
+      totalBalance )
 import Language.Marlowe.Core.V1.Semantics.Types as Semantics
+    ( getInputContent,
+      ChoiceId(ChoiceId),
+      Contract(Close),
+      Input(..),
+      InputContent(..),
+      IntervalError(IntervalInPastError, InvalidInterval),
+      Party(..),
+      Payee(Account, Party),
+      State(..),
+      Token(Token) )
 import PlutusLedgerApi.V2 (Credential (..), CurrencySymbol, Datum (Datum), DatumHash (DatumHash),
                            Extended (..), Interval (..), LowerBound (..), POSIXTime (..),
                            POSIXTimeRange,
@@ -74,7 +94,40 @@ import PlutusLedgerApi.V2.Tx (OutputDatum (OutputDatumHash),
                               TxOut (TxOut, txOutAddress, txOutDatum, txOutValue))
 import PlutusTx (CompiledCode, makeIsDataIndexed, makeLift, unsafeFromBuiltinData)
 import PlutusTx.Plugin ()
-import PlutusTx.Prelude as PlutusTxPrelude hiding (traceError, traceIfFalse)
+import PlutusTx.Prelude as PlutusTxPrelude
+    ( otherwise,
+      Bool(..),
+      Integer,
+      Maybe(..),
+      BuiltinData,
+      Eq(..),
+      BuiltinByteString,
+      Ord((>)),
+      id,
+      BuiltinString,
+      toBuiltin,
+      AdditiveGroup((-)),
+      AdditiveMonoid(zero),
+      AdditiveSemigroup((+)),
+      Semigroup((<>)),
+      Functor(fmap),
+      (||),
+      (&&),
+      Enum(fromEnum),
+      error,
+      (/=),
+      foldMap,
+      all,
+      any,
+      elem,
+      filter,
+      find,
+      null,
+      ($),
+      (.),
+      snd,
+      fromMaybe,
+      check )
 
 import Cardano.Crypto.Hash qualified as Hash
 import Data.ByteString qualified as BS
@@ -391,7 +444,7 @@ mkMarloweValidator
 
     -- Check outgoing payments.
     payoutConstraints :: [(Party, Val.Value)] -> Bool
-    payoutConstraints payoutsByParty = all payoutToTxOut payoutsByParty
+    payoutConstraints = all payoutToTxOut
       where
         payoutToTxOut :: (Party, Val.Value) -> Bool
         payoutToTxOut (party, value) = case party of
