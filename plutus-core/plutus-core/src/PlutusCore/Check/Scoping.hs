@@ -8,7 +8,7 @@ module PlutusCore.Check.Scoping where
 import PlutusCore.Name
 import PlutusCore.Quote
 
-import Control.Monad.Except
+import Control.Monad (join, unless, (<=<))
 import Data.Coerce
 import Data.List.NonEmpty (NonEmpty)
 import Data.List.NonEmpty qualified as NonEmpty

@@ -16,9 +16,9 @@ import PlutusCore.Name
 
 
 import Control.Lens (forMOf_, (^.))
-import Control.Monad.Except
-import Control.Monad.State
-import Control.Monad.Writer
+import Control.Monad (when)
+import Control.Monad.State (MonadState, execStateT, gets, modify)
+import Control.Monad.Writer (MonadWriter, runWriterT, tell)
 
 import Data.Foldable
 import Data.Set qualified as Set

@@ -101,7 +101,7 @@ library
     , deepseq
     , deriving-compat
     , extra
-    , flat                                  <0.5
+    , flat                                  ^>=0.6
     , ghc-prim
     , hashable
     , lens
@@ -130,7 +130,7 @@ library plutus-tx-testlib
   build-depends:
     , base                                                       >=4.9 && <5
     , filepath
-    , flat                                                       <0.5
+    , flat                                                       ^>=0.6
     , hedgehog
     , lens
     , mtl

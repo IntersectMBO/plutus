@@ -17,9 +17,9 @@ repository cardano-haskell-packages
 index-state: 2023-03-24T00:00:00Z
 index-state:
   -- Bump this if you need newer packages from Hackage
-  , hackage.haskell.org 2023-03-24T00:00:00Z
+  , hackage.haskell.org 2023-04-27T00:56:05Z
   -- Bump this if you need newer packages from CHaP
-  , cardano-haskell-packages 2023-03-24T00:00:00Z
+  , cardano-haskell-packages 2023-04-26T21:43:05Z
 
 packages: doc/read-the-docs-site
           plutus-benchmark
@@ -53,3 +53,33 @@ package nothunks
 -- See the note on nix/pkgs/default.nix:agdaPackages for why this is here.
 -- (NOTE this will change to ieee754 in newer versions of nixpkgs).
 extra-packages: ieee, filemanip
+
+if impl(ghc >= 9.6)
+  allow-newer:
+    , *:base
+    , *:ghc-prim
+    , *:mtl
+    , *:template-haskell
+    , *:transformers
+    , constraints-extras:*
+    , dependent-map:*
+    , hedgehog:*
+    , protolude:*
+    , th-compat:*
+
+  constraints:
+    , microlens >= 0.2.0.0
+    , microlens-mtl >= 0.2.0.0
+
+
+  -- Version on Hackages does not compile with `ghc-9.6`
+  -- https://github.com/haskell-foundation/foundation/issues/576
+  source-repository-package
+    type: git
+    location: https://github.com/Topsii/foundation
+    tag: d3136f4bb8b69e273535352620e53f2196941b35
+    --sha256: 1l1idylvv25xp40zxxb5iim4xarpxfycwh85rmgabb0mbz4gw5rb
+    subdir:
+      basement
+      edge
+      foundation

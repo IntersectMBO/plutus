@@ -52,7 +52,7 @@ common lang
 executable doc-doctests
   import:             lang
 
-  if ((impl(ghcjs) || os(windows)) || impl(ghc <9.0))
+  if (((impl(ghcjs) || os(windows)) || impl(ghc <9.2)) || impl(ghc >=9.3))
     buildable: False
 
   hs-source-dirs:     tutorials howtos
@@ -70,7 +70,7 @@ executable doc-doctests
     , base               >=4.9      && <5
     , bytestring
     , containers
-    , flat               <0.5
+    , flat               ^>=0.6
     , lens
     , plutus-core        ^>=1.6
     , plutus-ledger-api  ^>=1.6

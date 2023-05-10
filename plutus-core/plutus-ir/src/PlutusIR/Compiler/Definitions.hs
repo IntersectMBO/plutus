@@ -10,6 +10,7 @@
 {-# LANGUAGE RankNTypes             #-}
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE TypeApplications       #-}
+{-# LANGUAGE TypeOperators          #-}
 {-# LANGUAGE UndecidableInstances   #-}
 -- | Support for generating PIR with global definitions with dependencies between them.
 module PlutusIR.Compiler.Definitions (DefT

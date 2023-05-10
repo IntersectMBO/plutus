@@ -7,6 +7,7 @@
 {-# LANGUAGE StrictData          #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
+{-# LANGUAGE TypeOperators       #-}
 
 {- | A Plutus Core debugger TUI application.
 
@@ -42,7 +43,8 @@ import Brick.Main qualified as B
 import Brick.Util qualified as B
 import Brick.Widgets.Edit qualified as BE
 import Control.Concurrent
-import Control.Monad.Except
+import Control.Monad (void)
+import Control.Monad.Except (runExcept)
 import Control.Monad.ST (RealWorld)
 import Data.Coerce
 import Data.Maybe

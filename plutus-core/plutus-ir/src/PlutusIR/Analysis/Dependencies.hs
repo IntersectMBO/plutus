@@ -4,6 +4,7 @@
 {-# LANGUAGE GADTs            #-}
 {-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE TemplateHaskell  #-}
+{-# LANGUAGE TypeOperators    #-}
 -- | Functions for computing the dependency graph of variables within a term or type. A "dependency" between
 -- two nodes "A depends on B" means that B cannot be removed from the program without also removing A.
 module PlutusIR.Analysis.Dependencies (Node (..), DepGraph, StrictnessMap, runTermDeps) where

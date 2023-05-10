@@ -272,7 +272,7 @@ library
     , exceptions
     , extra
     , filepath
-    , flat                        <0.5
+    , flat                        ^>=0.6
     , free
     , ghc-prim
     , hashable                    >=1.4
@@ -338,7 +338,7 @@ test-suite plutus-core-test
     , containers
     , data-default-class
     , filepath
-    , flat                                            <0.5
+    , flat                                            ^>=0.6
     , hedgehog
     , hex-text
     , mmorph
@@ -385,7 +385,7 @@ test-suite untyped-plutus-core-test
     , bytestring
     , cardano-crypto-class
     , dlist
-    , flat                                            <0.5
+    , flat                                            ^>=0.6
     , hedgehog
     , index-envs
     , lens
@@ -500,7 +500,7 @@ library plutus-ir
     , containers
     , dom-lt
     , extra
-    , flat                 <0.5
+    , flat                 ^>=0.6
     , lens
     , megaparsec
     , mmorph
@@ -539,7 +539,7 @@ test-suite plutus-ir-test
   build-depends:
     , base                                                       >=4.9 && <5
     , containers
-    , flat                                                       <0.5
+    , flat                                                       ^>=0.6
     , hashable
     , hedgehog
     , lens
@@ -590,7 +590,7 @@ library plutus-core-execlib
     , base                                                       >=4.9 && <5
     , bytestring
     , deepseq
-    , flat                                                       <0.5
+    , flat                                                       ^>=0.6
     , lens
     , megaparsec
     , monoidal-containers

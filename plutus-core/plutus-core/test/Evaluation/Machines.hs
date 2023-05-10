@@ -1,5 +1,6 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeFamilies  #-}
+{-# LANGUAGE TypeOperators #-}
 
 module Evaluation.Machines
     ( test_machines

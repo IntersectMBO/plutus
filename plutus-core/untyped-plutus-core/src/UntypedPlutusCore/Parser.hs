@@ -14,7 +14,8 @@ module UntypedPlutusCore.Parser
 
 import Prelude hiding (fail)
 
-import Control.Monad.Except (MonadError, (<=<))
+import Control.Monad ((<=<))
+import Control.Monad.Except (MonadError)
 
 import PlutusCore qualified as PLC
 import PlutusCore.Annotation

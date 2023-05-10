@@ -1,6 +1,7 @@
 {-# LANGUAGE DefaultSignatures     #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 -- just for the type equality constraint
 {-# LANGUAGE GADTs                 #-}
@@ -27,12 +28,14 @@ import PlutusPrelude (fromMaybe)
 
 import PlutusCore.Name (Name (Name), TyName (TyName), Unique (..))
 
-import Control.Monad.Except
+import Control.Monad.Except (ExceptT, MonadError)
+import Control.Monad.Fix (MonadFix)
+import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Morph as MM
-import Control.Monad.Reader
-import Control.Monad.State
+import Control.Monad.Reader (MonadReader, ReaderT)
+import Control.Monad.State (MonadState (..), StateT, evalStateT, modify)
 import Control.Monad.Trans.Maybe
-import Control.Monad.Writer
+import Control.Monad.Writer (MonadWriter)
 import Data.Functor.Identity
 import Data.Set (Set)
 import Data.Set qualified as Set
