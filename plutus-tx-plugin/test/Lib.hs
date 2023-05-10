@@ -4,7 +4,6 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
@@ -15,7 +14,6 @@ import Control.Exception
 import Control.Lens
 import Control.Monad.Except
 import Data.Either.Extras
-import Data.Maybe (fromJust)
 import Data.Text (Text)
 import Flat (Flat)
 import Test.Tasty.Extras
@@ -42,7 +40,10 @@ goldenPir name value = nestedGoldenVsDoc name ".pir" $ pretty $ getPirNoAnn valu
 runPlcCek :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => [a] -> ExceptT SomeException IO (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ())
 runPlcCek values = do
      ps <- traverse toUPlc values
-     let p = foldl1 (fromJust .* UPLC.applyProgram) ps
+     let p =
+          foldl1
+               (fromRight (error "applyProgram: cannot apply programs with different versions.")
+               .* UPLC.applyProgram) ps
      fromRightM (throwError . SomeException) $ evaluateCekNoEmit PLC.defaultCekParameters (p ^. UPLC.progTerm)
 
 runPlcCekTrace ::
@@ -51,7 +52,10 @@ runPlcCekTrace ::
      ExceptT SomeException IO ([Text], CekExTally PLC.DefaultFun, UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ())
 runPlcCekTrace values = do
      ps <- traverse toUPlc values
-     let p = foldl1 (fromJust .* UPLC.applyProgram) ps
+     let p =
+          foldl1
+               (fromRight (error "applyProgram: cannot apply programs with different versions.")
+               .* UPLC.applyProgram) ps
      let (result, TallyingSt tally _, logOut) = runCek PLC.defaultCekParameters tallying logEmitter (p ^. UPLC.progTerm)
      res <- fromRightM (throwError . SomeException) result
      pure (logOut, tally, res)
