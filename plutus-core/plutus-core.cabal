@@ -235,6 +235,7 @@ library
     UntypedPlutusCore.Size
     UntypedPlutusCore.Subst
     UntypedPlutusCore.Transform.CaseReduce
+    UntypedPlutusCore.Transform.FloatDelay
     UntypedPlutusCore.Transform.ForceDelay
     UntypedPlutusCore.Transform.Inline
 
