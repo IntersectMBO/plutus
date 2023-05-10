@@ -1,7 +1,7 @@
 {-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RecordWildCards     #-}
-
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:target-version=1.0.0 #-}
 
 module Main (
   main
@@ -41,9 +41,6 @@ test :: Either String (LogOutput, Either EvaluationError ExBudget)
 test =
   let
     roleToken = Token "" ""
-    -- FIXME: Work in progress. Running this results in
-    -- `Right ([],Left (IncompatibleVersionError (Version {_versionMajor = 1, _versionMinor = 1,
-    -- _versionPatch = 0})))`
   in
     case evaluationContext of
      Left message -> Left message
