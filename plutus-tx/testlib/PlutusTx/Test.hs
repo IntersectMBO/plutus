@@ -198,7 +198,9 @@ instance
 runPlcCek :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => [a] -> ExceptT SomeException IO (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ())
 runPlcCek values = do
      ps <- traverse toUPlc values
-     let p = foldl1 (fromJust .* UPLC.applyProgram) ps
+     let p =
+          foldl1 (fromRight (error "applyProgram: cannot apply programs with different versions.")
+            .* UPLC.applyProgram) ps
      fromRightM (throwError . SomeException) $
          UPLC.evaluateCekNoEmit PLC.defaultCekParameters (p^.UPLC.progTerm)
 
@@ -208,7 +210,10 @@ runPlcCekTrace ::
      ExceptT SomeException IO ([Text], UPLC.CekExTally PLC.DefaultFun, UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ())
 runPlcCekTrace values = do
      ps <- traverse toUPlc values
-     let p = foldl1 (fromJust .* UPLC.applyProgram) ps
+     let p =
+          foldl1
+            (fromRight (error "applyProgram: cannot apply programs with different versions.")
+              .* UPLC.applyProgram) ps
      let (result,  UPLC.TallyingSt tally _, logOut) = UPLC.runCek PLC.defaultCekParameters UPLC.tallying UPLC.logEmitter (p^.UPLC.progTerm)
      res <- fromRightM (throwError . SomeException) result
      pure (logOut, tally, res)

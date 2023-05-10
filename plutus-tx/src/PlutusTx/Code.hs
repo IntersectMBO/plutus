@@ -12,19 +12,19 @@
 {-# LANGUAGE UndecidableInstances  #-}
 module PlutusTx.Code where
 
-import PlutusCore qualified as PLC
-import PlutusIR qualified as PIR
-import PlutusTx.Coverage
-import PlutusTx.Lift.Instances ()
-import UntypedPlutusCore qualified as UPLC
-
 import Control.Exception
 import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
 import Data.Functor (void)
 import Flat (Flat (..), unflat)
 import Flat.Decoder (DecodeException)
+import PlutusCore qualified as PLC
 import PlutusCore.Annotation
+import PlutusCore.Pretty
+import PlutusIR qualified as PIR
+import PlutusTx.Coverage
+import PlutusTx.Lift.Instances ()
+import UntypedPlutusCore qualified as UPLC
 -- We do not use qualified import because the whole module contains off-chain code
 import Prelude as Haskell
 
@@ -57,8 +57,15 @@ type CompiledCode = CompiledCodeIn PLC.DefaultUni PLC.DefaultFun
 
 -- | Apply a compiled function to a compiled argument. Will fail if the versions don't match.
 applyCode
-    :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun)
-    => CompiledCodeIn uni fun (a -> b) -> CompiledCodeIn uni fun a -> Maybe (CompiledCodeIn uni fun b)
+    :: (PLC.Closed uni
+        , uni `PLC.Everywhere` Flat
+        , Flat fun
+        , Pretty fun
+        , PLC.Everywhere uni PrettyConst
+        , PrettyBy RenderContext (PLC.SomeTypeIn uni))
+    => CompiledCodeIn uni fun (a -> b)
+    -> CompiledCodeIn uni fun a
+    -> Either String (CompiledCodeIn uni fun b)
 applyCode fun arg = do
   uplc <- UPLC.applyProgram (getPlc fun) (getPlc arg)
   -- Probably this could be done with more appropriate combinators, but the
@@ -66,25 +73,35 @@ applyCode fun arg = do
   -- wrong first!), so I wrote it painfully explicitly.
   pir <- case (getPir fun, getPir arg) of
     (Just funPir, Just argPir) -> case PIR.applyProgram funPir argPir of
-        Just appliedPir -> pure (Just appliedPir)
+        Right appliedPir -> pure (Just appliedPir)
         -- Had PIR for both, but failed to apply them, this should fail
-        Nothing         -> Nothing
+        Left err         -> Left err
     -- Missing PIR for one or both, this succeeds but has no PIR
-    _ -> pure Nothing
+    (Just funPir, Nothing) ->
+        Left $ "Missing PIR for the argument."
+            <> "Got PIR for the function program \n"
+            <> display funPir
+    (Nothing, Just argPir) ->
+        Left $ "Missing PIR for the function program."
+            <> "Got PIR for the argument \n"
+            <> display argPir
+    (Nothing, Nothing) -> Left "Missing PIR for both the function program and the argument."
 
   pure $ DeserializedCode uplc pir (getCovIdx fun <> getCovIdx arg)
 
 -- | Apply a compiled function to a compiled argument. Will throw if the versions don't match,
 -- should only be used in non-production code.
 unsafeApplyCode
-    :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun)
+    :: (PLC.Closed uni
+    , uni `PLC.Everywhere` Flat
+    , Flat fun
+    , Pretty fun
+    , PLC.Everywhere uni PrettyConst
+    , PrettyBy RenderContext (PLC.SomeTypeIn uni))
     => CompiledCodeIn uni fun (a -> b) -> CompiledCodeIn uni fun a -> CompiledCodeIn uni fun b
 unsafeApplyCode fun arg = case applyCode fun arg of
-  Just c  -> c
-  Nothing ->
-    let (UPLC.Program _ ver1 _) = getPlc fun
-        (UPLC.Program _ ver2 _) = getPlc arg
-    in error $ "Could not apply CompiledCodeIn, likely a version mismatch between " ++ show ver1 ++ " and " ++ show ver2
+  Right c  -> c
+  Left err -> error err
 
 -- | The size of a 'CompiledCodeIn', in AST nodes.
 sizePlc :: (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun) => CompiledCodeIn uni fun a -> Integer
