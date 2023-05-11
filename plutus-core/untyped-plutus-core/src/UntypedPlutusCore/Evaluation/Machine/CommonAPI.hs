@@ -49,7 +49,7 @@ module UntypedPlutusCore.Evaluation.Machine.CommonAPI
     , CekValue(..)
     , readKnownCek
     , Hashable
-    , PrettyUni
+    , ThrowableBuiltins
     )
 where
 
@@ -66,14 +66,12 @@ import PlutusCore.Builtin
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Name
-import PlutusCore.Pretty
 import PlutusCore.Quote
 
 import Control.Monad.Except
 import Control.Monad.State
 import Data.Bifunctor
 import Data.Text (Text)
-import Universe
 
 -- The type of the machine (runner function).
 type MachineRunner cost uni fun ann =
@@ -144,10 +142,7 @@ May throw a 'CekMachineException'.
 *THIS FUNCTION IS PARTIAL if the input term contains free variables*
 -}
 unsafeRunCekNoEmit
-    :: ( PrettyParens (SomeTypeIn uni), Typeable uni
-       , Closed uni, uni `Everywhere` PrettyConst
-       , Pretty fun, Typeable fun
-       )
+    :: ThrowableBuiltins uni fun
     => MachineRunner cost uni fun ann
     -> MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> ExBudgetMode cost uni fun
@@ -160,7 +155,7 @@ unsafeRunCekNoEmit runner params mode =
 -- | Evaluate a term using a machine with logging enabled.
 -- *THIS FUNCTION IS PARTIAL if the input term contains free variables*
 evaluateCek
-    :: PrettyUni uni fun
+    :: ThrowableBuiltins uni fun
     => MachineRunner RestrictingSt uni fun ann
     -> EmitterMode uni fun
     -> MachineParameters CekMachineCosts fun (CekValue uni fun ann)
@@ -173,7 +168,7 @@ evaluateCek runner emitMode params =
 -- | Evaluate a term using a machine with logging disabled.
 -- *THIS FUNCTION IS PARTIAL if the input term contains free variables*
 evaluateCekNoEmit
-    :: PrettyUni uni fun
+    :: ThrowableBuiltins uni fun
     => MachineRunner RestrictingSt uni fun ann
     -> MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> Term Name uni fun ann
@@ -183,10 +178,7 @@ evaluateCekNoEmit runner params = fst . runCekNoEmit runner params restrictingEn
 -- | Evaluate a term using a machine with logging enabled. May throw a 'CekMachineException'.
 -- *THIS FUNCTION IS PARTIAL if the input term contains free variables*
 unsafeEvaluateCek
-    :: ( PrettyParens (SomeTypeIn uni), Typeable uni
-       , Closed uni, uni `Everywhere` PrettyConst
-       , Pretty fun, Typeable fun
-       )
+    :: ThrowableBuiltins uni fun
     => MachineRunner RestrictingSt uni fun ann
     -> EmitterMode uni fun
     -> MachineParameters CekMachineCosts fun (CekValue uni fun ann)
@@ -199,10 +191,7 @@ unsafeEvaluateCek runner emitTime params =
 -- | Evaluate a term using a machine with logging disabled. May throw a 'CekMachineException'.
 -- *THIS FUNCTION IS PARTIAL if the input term contains free variables*
 unsafeEvaluateCekNoEmit
-    :: ( PrettyParens (SomeTypeIn uni), Typeable uni
-       , Closed uni, uni `Everywhere` PrettyConst
-       , Pretty fun, Typeable fun
-       )
+    :: ThrowableBuiltins uni fun
     => MachineRunner RestrictingSt uni fun ann
     -> MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> Term Name uni fun ann
@@ -212,9 +201,7 @@ unsafeEvaluateCekNoEmit runner params = unsafeExtractEvaluationResult . evaluate
 -- | Unlift a value using a machine.
 -- *THIS FUNCTION IS PARTIAL if the input term contains free variables*
 readKnownCek
-    :: ( ReadKnown (Term Name uni fun ()) a
-       , PrettyUni uni fun
-       )
+    :: (ThrowableBuiltins uni fun, ReadKnown (Term Name uni fun ()) a)
     => MachineRunner RestrictingSt uni fun ann
     -> MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> Term Name uni fun ann

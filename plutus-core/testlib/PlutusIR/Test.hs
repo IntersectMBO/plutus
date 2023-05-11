@@ -46,16 +46,14 @@ import PlutusCore.Error (ParserErrorBundle)
 import Prettyprinter
 import Prettyprinter.Render.Text
 
-instance ( PLC.PrettyParens (PLC.SomeTypeIn uni)
-         , PLC.GEq uni, PLC.Typecheckable uni fun
-         , PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, Pretty fun, Pretty a
+instance ( PLC.GEq uni, PLC.Typecheckable uni fun
+         , PLC.PrettyUni uni, Pretty fun, Pretty a
          , Typeable a, Ord a, Default (PLC.CostingPart uni fun)
          ) => ToTPlc (PIR.Program TyName Name uni fun a) uni fun where
     toTPlc = asIfThrown . fmap void . compileWithOpts id
 
-instance ( PLC.PrettyParens (PLC.SomeTypeIn uni)
-         , PLC.GEq uni, PLC.Typecheckable uni fun
-         , PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, Pretty fun, Pretty a
+instance ( PLC.GEq uni, PLC.Typecheckable uni fun
+         , PLC.PrettyUni uni, Pretty fun, Pretty a
          , Typeable a, Ord a, Default (PLC.CostingPart uni fun)
          ) => ToUPlc (PIR.Program TyName Name uni fun a) uni fun where
     toUPlc t = do
@@ -70,7 +68,10 @@ asIfThrown
 asIfThrown = withExceptT SomeException . hoist (pure . runIdentity)
 
 compileWithOpts
-    :: (PLC.GEq uni, PLC.Typecheckable uni fun, Ord a, PLC.Pretty fun, PLC.Closed uni, PLC.PrettyParens (PLC.SomeTypeIn uni), uni `PLC.Everywhere` PLC.PrettyConst, PLC.Pretty a, Default (PLC.CostingPart uni fun))
+    :: ( PLC.GEq uni, PLC.Typecheckable uni fun, Ord a
+       , PLC.PrettyUni uni, PLC.Pretty fun, PLC.Pretty a
+       , Default (PLC.CostingPart uni fun)
+       )
     => (CompilationCtx uni fun a -> CompilationCtx uni fun a)
     -> Program TyName Name uni fun a
     -> Except (PIR.Error uni fun (PIR.Provenance a)) (PLC.Program TyName Name uni fun (PIR.Provenance a))

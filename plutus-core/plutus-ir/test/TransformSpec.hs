@@ -223,7 +223,7 @@ inline =
                         Inline.inline mempty def renamed
                 -- Make sure the inlined term is globally unique.
                 _ <- checkUniques pirInlined
-                pure $ pirInlined
+                pure pirInlined
     in
     testNested "inline" $
         map
@@ -263,6 +263,7 @@ inline =
             , "letNonPure" -- multiple occurrences of a non-pure binding
             , "letNonPureMulti"
             , "letNonPureMultiStrict"
+            , "rhs-modified"
             ]
 
 -- | Check whether a term is globally unique.
@@ -273,9 +274,9 @@ checkUniques =
 -- | Tests that the inliner doesn't incorrectly capture variable names.
 nameCapture :: TestNested
 nameCapture =
-    let goldenInlineUnique :: Term TyName Name PLC.DefaultUni PLC.DefaultFun PLC.SrcSpan ->
+    let goldenNameCapture :: Term TyName Name PLC.DefaultUni PLC.DefaultFun PLC.SrcSpan ->
             IO String
-        goldenInlineUnique pir =
+        goldenNameCapture pir =
             rethrow . asIfThrown @(UniqueError PLC.SrcSpan) $ do
                 let pirInlined = runQuote $ do
                         renamed <- PLC.rename pir
@@ -286,7 +287,7 @@ nameCapture =
     in
     testNested "nameCapture" $
         map
-            (goldenPirMUnique goldenInlineUnique pTerm)
+            (goldenPirMUnique goldenNameCapture pTerm)
             [ "nameCapture"]
 
 computeArityTest :: TestNested

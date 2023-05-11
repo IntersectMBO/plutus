@@ -25,6 +25,7 @@ import PlutusPrelude
 import PlutusCore.Test
 
 import PlutusTx.Code
+import PlutusTx.Test ()
 
 import PlutusCore qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
@@ -33,14 +34,8 @@ import PlutusCore.Pretty
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
-instance (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun) =>
-            ToUPlc (CompiledCodeIn uni fun a) uni fun where
-    toUPlc v = do
-        v' <- catchAll $ getPlcNoAnn v
-        toUPlc v'
-
 goldenPir
-    :: (PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, uni `PLC.Everywhere` Flat, PrettyParens (PLC.SomeTypeIn uni), Pretty fun, Flat fun)
+    :: (PrettyUni uni, Pretty fun, uni `PLC.Everywhere` Flat, Flat fun)
     => String -> CompiledCodeIn uni fun a -> TestNested
 goldenPir name value = nestedGoldenVsDoc name ".pir" $ pretty $ getPirNoAnn value
 

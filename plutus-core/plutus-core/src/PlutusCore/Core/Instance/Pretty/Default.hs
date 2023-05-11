@@ -35,8 +35,7 @@ instance (PrettyClassic tyname, PrettyParens (SomeTypeIn uni), Pretty ann) =>
 instance
         ( PrettyClassic tyname
         , PrettyClassic name
-        , PrettyParens (SomeTypeIn uni)
-        , Closed uni, uni `Everywhere` PrettyConst
+        , PrettyUni uni
         , Pretty fun
         , Pretty ann
         ) => Pretty (Term tyname name uni fun ann) where
@@ -45,8 +44,7 @@ instance
 instance
         ( PrettyClassic tyname
         , PrettyClassic name
-        , PrettyParens (SomeTypeIn uni)
-        , Closed uni, uni `Everywhere` PrettyConst
+        , PrettyUni uni
         , Pretty fun
         , Pretty ann
         ) => Pretty (Program tyname name uni fun ann) where

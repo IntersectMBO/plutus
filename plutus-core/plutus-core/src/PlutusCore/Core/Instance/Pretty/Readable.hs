@@ -44,10 +44,8 @@ instance PrettyBy (PrettyConfigReadable configName) (Kind a) where
         Type{}          -> "*"
         KindArrow _ k l -> k `arrowPrettyM` l
 
-instance
-        ( PrettyReadableBy configName tyname
-        , PrettyParens (SomeTypeIn uni)
-        ) => PrettyBy (PrettyConfigReadable configName) (Type tyname uni a) where
+instance (PrettyReadableBy configName tyname, PrettyParens (SomeTypeIn uni)) =>
+            PrettyBy (PrettyConfigReadable configName) (Type tyname uni a) where
     prettyBy = inContextM $ \case
         TyApp _ fun arg           -> fun `juxtPrettyM` arg
         TyVar _ name              -> prettyM name
@@ -69,8 +67,7 @@ instance
 instance
         ( PrettyReadableBy configName tyname
         , PrettyReadableBy configName name
-        , PrettyParens (SomeTypeIn uni)
-        , Closed uni, uni `Everywhere` PrettyConst
+        , PrettyUni uni
         , Pretty fun
         ) => PrettyBy (PrettyConfigReadable configName) (Term tyname name uni fun a) where
     prettyBy = inContextM $ \case
