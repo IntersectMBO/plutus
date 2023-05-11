@@ -7,27 +7,12 @@ where
 
 
 import Codec.Serialise (deserialise)
-import PlutusLedgerApi.V2
-    ( Value,
-      LedgerBytes(getLedgerBytes),
-      BuiltinData,
-      DatumHash,
-      Datum(Datum),
-      TxId,
-      Credential,
-      ScriptHash,
-      TxInInfo(TxInInfo),
-      TxOut(TxOut),
-      ScriptPurpose,
-      Redeemer(Redeemer),
-      Address(Address),
-      TxOutRef(TxOutRef),
-      adaSymbol,
-      adaToken,
-      singleton,
-      dataToBuiltinData,
-      OutputDatum(OutputDatumHash, NoOutputDatum),
-      fromBuiltin )
+import PlutusLedgerApi.V2 (Address (Address), BuiltinData, Credential, Datum (Datum), DatumHash,
+                           LedgerBytes (getLedgerBytes),
+                           OutputDatum (NoOutputDatum, OutputDatumHash), Redeemer (Redeemer),
+                           ScriptHash, ScriptPurpose, TxId, TxInInfo (TxInInfo), TxOut (TxOut),
+                           TxOutRef (TxOutRef), Value, adaSymbol, adaToken, dataToBuiltinData,
+                           fromBuiltin, singleton)
 
 import Data.ByteString.Lazy qualified as LBS
 import PlutusTx.AssocMap qualified as AM
