@@ -23,7 +23,7 @@ import Universe (Closed (Everywhere), Some (..), SomeTypeIn (SomeTypeIn), ValueO
 
 instance
         ( PrettyClassicBy configName name
-        , Pretty (SomeTypeIn uni)
+        , PrettyParens (SomeTypeIn uni)
         , Closed uni, uni `Everywhere` PrettyConst, Pretty fun
         , Pretty ann
         ) => PrettyBy (PrettyConfigClassic configName) (Term name uni fun ann) where
@@ -54,8 +54,8 @@ instance
         Case ann arg cs ->
             sexp "case" (consAnnIf config ann (prettyBy config arg : fmap (prettyBy config) cs))
       where
-        prettyTypeOf :: Pretty (SomeTypeIn t) => Some (ValueOf t) -> Doc dann
-        prettyTypeOf (Some (ValueOf uni _ )) = pretty $ SomeTypeIn uni
+        prettyTypeOf :: Some (ValueOf uni) -> Doc dann
+        prettyTypeOf (Some (ValueOf uni _ )) = prettyParens $ SomeTypeIn uni
 
 instance (PrettyClassicBy configName (Term name uni fun ann), Pretty ann) =>
         PrettyBy (PrettyConfigClassic configName) (Program name uni fun ann) where

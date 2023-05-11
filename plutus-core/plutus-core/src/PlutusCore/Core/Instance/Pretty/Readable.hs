@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 -- | A "readable" Agda-like way to pretty-print PLC entities.
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
@@ -47,7 +46,7 @@ instance PrettyBy (PrettyConfigReadable configName) (Kind a) where
 
 instance
         ( PrettyReadableBy configName tyname
-        , Pretty (SomeTypeIn uni)
+        , PrettyParens (SomeTypeIn uni)
         ) => PrettyBy (PrettyConfigReadable configName) (Type tyname uni a) where
     prettyBy = inContextM $ \case
         TyApp _ fun arg           -> fun `juxtPrettyM` arg
@@ -59,7 +58,7 @@ instance
         TyForall _ name kind body ->
             typeBinderDocM $ \prettyBinding prettyBody ->
                 "all" <+> prettyBinding name kind <> "." <+> prettyBody body
-        TyBuiltin _ builtin       -> unitDocM $ pretty builtin
+        TyBuiltin _ builtin       -> lmap _pcrRenderContext $ prettyM builtin
         TyLam _ name kind body    ->
             typeBinderDocM $ \prettyBinding prettyBody ->
                 "\\" <> prettyBinding name kind <+> "->" <+> prettyBody body
@@ -70,7 +69,7 @@ instance
 instance
         ( PrettyReadableBy configName tyname
         , PrettyReadableBy configName name
-        , Pretty (SomeTypeIn uni)
+        , PrettyParens (SomeTypeIn uni)
         , Closed uni, uni `Everywhere` PrettyConst
         , Pretty fun
         ) => PrettyBy (PrettyConfigReadable configName) (Term tyname name uni fun a) where
@@ -88,7 +87,9 @@ instance
         LamAbs _ name ty body  ->
             compoundDocM binderFixity $ \prettyIn ->
                 let prettyBot x = prettyIn ToTheRight botFixity x
-                in "\\" <> parens (prettyBot name <+> ":" <+> prettyBot ty) <+> "->" <+> prettyBot body
+                in
+                    "\\" <>
+                        parens (prettyBot name <+> ":" <+> prettyBot ty) <+> "->" <+> prettyBot body
         Unwrap _ term          ->
             sequenceDocM ToTheRight juxtFixity $ \prettyEl ->
                 "unwrap" <+> prettyEl term

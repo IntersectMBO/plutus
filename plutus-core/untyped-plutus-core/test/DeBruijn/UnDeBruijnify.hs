@@ -142,9 +142,9 @@ testsGrace =
 test_undebruijnify :: TestNested
 test_undebruijnify = testNested "Golden"
                     [testNested "Strict" $
-                      (\ (n,t) -> nestedGoldenVsDoc n $ actThrow t) <$> (testsFail <> testsOk)
+                      (\ (n,t) -> nestedGoldenVsDoc n ".uplc" $ actThrow t) <$> (testsFail <> testsOk)
                     ,testNested "Graceful" $
-                      (\ (n,t) -> nestedGoldenVsDoc n $ actGrace t) <$> testsGrace
+                      (\ (n,t) -> nestedGoldenVsDoc n ".uplc" $ actGrace t) <$> testsGrace
                     ]
   where
     actThrow =

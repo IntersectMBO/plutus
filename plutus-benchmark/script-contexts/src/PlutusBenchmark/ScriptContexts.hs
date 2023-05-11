@@ -60,7 +60,10 @@ checkScriptContext1 d =
 mkCheckScriptContext1Code :: ScriptContext -> PlutusTx.CompiledCode ()
 mkCheckScriptContext1Code sc =
   let d = PlutusTx.toBuiltinData sc
-  in $$(PlutusTx.compile [|| checkScriptContext1 ||]) `PlutusTx.unsafeApplyCode` PlutusTx.liftCode d
+  in
+    $$(PlutusTx.compile [|| checkScriptContext1 ||])
+    `PlutusTx.unsafeApplyCode`
+    PlutusTx.liftCodeDef d
 
 -- This example aims to *force* the decoding of the script context and then ignore it entirely.
 -- This corresponds to the unfortunate case where the decoding "wrapper" around a script forces
@@ -81,10 +84,13 @@ checkScriptContext2 d =
 mkCheckScriptContext2Code :: ScriptContext -> PlutusTx.CompiledCode ()
 mkCheckScriptContext2Code sc =
   let d = PlutusTx.toBuiltinData sc
-  in $$(PlutusTx.compile [|| checkScriptContext2 ||]) `PlutusTx.unsafeApplyCode` PlutusTx.liftCode d
+  in
+    $$(PlutusTx.compile [|| checkScriptContext2 ||])
+    `PlutusTx.unsafeApplyCode`
+    PlutusTx.liftCodeDef d
 
 {- Note [Redundant arguments to equality benchmarks]
-The arguments for the benchmarks are passed as terms created with `liftCode`.
+The arguments for the benchmarks are passed as terms created with `liftCodeDef`.
 But the benchmark still needs to _evaluate_ these terms, which adds overhead that
 distracts from the main point.
 
@@ -109,8 +115,8 @@ mkScriptContextEqualityDataCode :: ScriptContext -> PlutusTx.CompiledCode ()
 mkScriptContextEqualityDataCode sc =
   let d = PlutusTx.toBuiltinData sc
   in $$(PlutusTx.compile [|| scriptContextEqualityData ||])
-    `PlutusTx.unsafeApplyCode` PlutusTx.liftCode sc
-    `PlutusTx.unsafeApplyCode` PlutusTx.liftCode d
+    `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef sc
+    `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef d
 
 -- This example checks the script context for equality (with itself) when encoded
 -- as a normal (i.e. Scott-encoded) term, using the normal (i.e. typeclass-based) equality
@@ -127,8 +133,8 @@ mkScriptContextEqualityTermCode :: ScriptContext -> PlutusTx.CompiledCode ()
 mkScriptContextEqualityTermCode sc =
   let d = PlutusTx.toBuiltinData sc
   in $$(PlutusTx.compile [|| scriptContextEqualityTerm ||])
-    `PlutusTx.unsafeApplyCode` PlutusTx.liftCode sc
-    `PlutusTx.unsafeApplyCode` PlutusTx.liftCode d
+    `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef sc
+    `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef d
 
 -- This example is just the overhead from the previous two
 -- See note [Redundant arguments to equality benchmarks]
@@ -140,5 +146,5 @@ mkScriptContextEqualityOverheadCode :: ScriptContext -> PlutusTx.CompiledCode ()
 mkScriptContextEqualityOverheadCode sc =
   let d = PlutusTx.toBuiltinData sc
   in $$(PlutusTx.compile [|| scriptContextEqualityOverhead ||])
-    `PlutusTx.unsafeApplyCode` PlutusTx.liftCode sc
-    `PlutusTx.unsafeApplyCode` PlutusTx.liftCode d
+    `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef sc
+    `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef d

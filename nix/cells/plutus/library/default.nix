@@ -4,9 +4,12 @@
 
   make-plutus-shell = import ./make-plutus-shell.nix block;
 
-  plutus-project-8107 = import ./plutus-project-8107.nix block;
+  plutus-project-810 = import ./plutus-project-810.nix block;
 
-  plutus-project-925 = import ./plutus-project-925.nix block;
+  plutus-project-92 = import ./plutus-project-92.nix block;
+
+  # default
+  plutus-project = import ./plutus-project-92.nix block;
 
   agda-project = import ./agda-project.nix block;
 
@@ -27,8 +30,6 @@
   r-overlay = import ./r-overlay.nix block;
 
   ghc-compiler-nix-name = import ./ghc-compiler-nix-name.nix block;
-
-  cabal-project-index-state = import ./cabal-project-index-state.nix block;
 
   haskell-language-server-project = import ./haskell-language-server-project.nix block;
 

@@ -43,6 +43,7 @@ import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Result
+import PlutusCore.Pretty.Extra
 
 import Control.Applicative
 import Data.Bits (toIntegralSized)
@@ -216,13 +217,13 @@ instance HasRenderContext config => PrettyBy config (DefaultUni a) where
         DefaultUniBLS12_381_G2_Element -> "bls12_381_G2_element"
         DefaultUniBLS12_381_MlResult   -> "bls12_381_mlresult"
 
+instance HasRenderContext config => PrettyBy config (SomeTypeIn DefaultUni) where
+    prettyBy config (SomeTypeIn uni) = prettyBy config uni
+
 -- | This always pretty-prints parens around type applications (e.g. @(list bool)@) and
 -- doesn't pretty-print them otherwise (e.g. @integer@).
--- This is so we can have a single instance that is safe to use with both the classic and the
--- readable pretty-printers, even though for the latter it may result in redundant parens being
--- shown. We are planning to change the classic syntax to remove this silliness.
 instance Pretty (DefaultUni a) where
-    pretty = prettyBy $ RenderContext ToTheRight juxtFixity
+    pretty = prettyParens
 instance Pretty (SomeTypeIn DefaultUni) where
     pretty (SomeTypeIn uni) = pretty uni
 

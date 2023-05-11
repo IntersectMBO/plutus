@@ -14,29 +14,47 @@ let
     let
       packages = library.haskell-nix.haskellLib.selectProjectPackages project.hsPkgs;
     in
-    {
-      exes = library.haskell-nix.haskellLib.collectComponents' "exes" packages;
-      tests = library.haskell-nix.haskellLib.collectComponents' "tests" packages;
-      benchmarks = library.haskell-nix.haskellLib.collectComponents' "benchmarks" packages;
-      libraries = library.haskell-nix.haskellLib.collectComponents' "library" packages;
+    rec {
+      components = {
+        exes = library.haskell-nix.haskellLib.collectComponents' "exes" packages;
+        tests = library.haskell-nix.haskellLib.collectComponents' "tests" packages;
+        benchmarks = library.haskell-nix.haskellLib.collectComponents' "benchmarks" packages;
+        libraries = library.haskell-nix.haskellLib.collectComponents' "library" packages;
+        sublibs = library.haskell-nix.haskellLib.collectComponents' "sublibs" packages;
+      };
+
       checks = library.haskell-nix.haskellLib.collectChecks' packages;
+
+      # Build all the haddock for all the components that have it. This ensures that it all
+      # builds properly on all the GHC versions we're testing.
+      haddock =
+        let
+          allComponents = lib.collect (x: lib.isDerivation x) components;
+          allHaddocks = pkgs.lib.concatMap (x: lib.optional (x ? doc) x.doc) allComponents;
+        in
+        pkgs.releaseTools.aggregate {
+          name = "all-haddock";
+          meta.description = "All haddock for all components";
+          constituents = allHaddocks;
+        };
+
       roots = project.roots;
       plan-nix = project.plan-nix;
     };
 
-  native-plutus-8107-jobs = make-haskell-jobs library.plutus-project-8107;
-  native-plutus-925-jobs = make-haskell-jobs library.plutus-project-925;
+  native-plutus-810-jobs = make-haskell-jobs library.plutus-project-810;
+  native-plutus-92-jobs = make-haskell-jobs library.plutus-project-92;
 
-  windows-plutus-925-jobs = make-haskell-jobs library.plutus-project-925.projectCross.mingwW64;
+  windows-plutus-92-jobs = make-haskell-jobs library.plutus-project-92.projectCross.mingwW64;
 
   other-jobs = inputs.cells.plutus.devshells // inputs.cells.plutus.packages;
 
   jobs =
-    # Drop these once we switch to 9.2.4 by default
-    { ghc8107 = native-plutus-8107-jobs; } //
-    { ghc925 = native-plutus-925-jobs; } //
+    # Drop these once we switch to 9.2 by default
+    { ghc810 = native-plutus-810-jobs; } //
+    { ghc92 = native-plutus-92-jobs; } //
     # Only cross-compile to windows from linux
-    lib.optionalAttrs (system == "x86_64-linux") { mingwW64 = windows-plutus-925-jobs; } //
+    lib.optionalAttrs (system == "x86_64-linux") { mingwW64 = windows-plutus-92-jobs; } //
     other-jobs;
 
   # Hydra doesn't like these attributes hanging around in "jobsets": it thinks they're jobs!

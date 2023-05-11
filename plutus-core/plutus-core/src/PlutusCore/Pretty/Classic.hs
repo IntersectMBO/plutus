@@ -8,6 +8,8 @@ module PlutusCore.Pretty.Classic
     ( PrettyConfigClassic (..)
     , PrettyClassicBy
     , PrettyClassic
+    , PrettyParens
+    , prettyParens
     , consAnnIf
     , defPrettyConfigClassic
     , debugPrettyConfigClassic
@@ -18,6 +20,7 @@ module PlutusCore.Pretty.Classic
 import PlutusPrelude
 
 import PlutusCore.Pretty.ConfigName
+import PlutusCore.Pretty.Extra
 
 import Prettyprinter.Internal (Doc (Empty))
 

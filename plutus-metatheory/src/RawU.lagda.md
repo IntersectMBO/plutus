@@ -92,20 +92,24 @@ data TagCon : Set where
 {-# FOREIGN GHC pattern TagCon t x = Some (ValueOf t x) #-} 
 {-# COMPILE GHC TagCon = data TagCon (TagCon) #-}
 
-{-# TERMINATING #-}
+decTagCon' : ∀{A B} → (t : Tag (Esc A)) → (x : A) → (t' : Tag (Esc B)) → (y : B) → Bool
+decTagCon' integer i integer i'                          = does (i Data.Integer.≟ i') 
+decTagCon' bytestring b bytestring b'                    = equals b b'
+decTagCon' string s string s'                            = does (s Data.String.≟ s')
+decTagCon' bool b bool b'                                = does (b Data.Bool.≟ b')
+decTagCon' unit ⊤ unit ⊤                                = true
+decTagCon' pdata d pdata d'                              = eqDATA d d'
+decTagCon' (pair t₁ t₂) (x₁ , x₂) (pair u₁ u₂) (y₁ , y₂) = decTagCon' t₁ x₁ u₁ y₁ 
+                                                         ∧ decTagCon' t₂ x₂ u₂ y₂
+decTagCon' (list t) [] (list t') []                      = true -- TODO: check that the tags t and t' are equal
+decTagCon' (list t) (x ∷ xs) (list t') (y ∷ ys)          = decTagCon' t x t' y 
+                                                         ∧ decTagCon' (list t) xs (list t') ys
+decTagCon' _ _ _ _                                       = false
+
+-- Comparison of TagCon. Written with an auxiliary function to pass the termination checker. 
 decTagCon : (C C' : TagCon) → Bool
-decTagCon (tagCon integer i) (tagCon integer i') = does (i Data.Integer.≟ i') 
-decTagCon (tagCon bytestring b) (tagCon bytestring b') = equals b b'
-decTagCon (tagCon string s) (tagCon string s') = does (s Data.String.≟ s')
-decTagCon (tagCon bool b) (tagCon bool b') = does (b Data.Bool.≟ b')
-decTagCon (tagCon unit ⊤) (tagCon unit ⊤) = true
-decTagCon (tagCon pdata d) (tagCon pdata d') = eqDATA d d'
-decTagCon (tagCon (pair t₁ t₂) (x₁ , x₂)) (tagCon (pair u₁ u₂) (y₁ , y₂)) = 
-       decTagCon (tagCon t₁ x₁) (tagCon u₁ y₁) ∧ decTagCon (tagCon t₂ x₂) (tagCon u₂ y₂)
-decTagCon (tagCon (list t) []) (tagCon (list t') []) = true -- TODO: check that the tags t and t' are equal
-decTagCon (tagCon (list t) (x ∷ xs)) (tagCon (list t') (y ∷ ys)) = 
-       decTagCon (tagCon t x) (tagCon t' y) ∧ decTagCon (tagCon (list t) xs) (tagCon (list t') ys)
-decTagCon _ _ = false
+decTagCon (tagCon t x) (tagCon t' y) = decTagCon' t x t' y
+
 ```
 ## Raw syntax
 
@@ -122,9 +126,11 @@ data Untyped : Set where
   UBuiltin : Builtin → Untyped
   UDelay : Untyped → Untyped
   UForce : Untyped → Untyped
+  UConstr : ℕ → List Untyped → Untyped
+  UCase : Untyped → List Untyped → Untyped
 
 {-# FOREIGN GHC import Untyped #-}
-{-# COMPILE GHC Untyped = data UTerm (UVar | ULambda  | UApp | UCon | UError | UBuiltin | UDelay | UForce) #-}
+{-# COMPILE GHC Untyped = data UTerm (UVar | ULambda  | UApp | UCon | UError | UBuiltin | UDelay | UForce | UConstr | UCase) #-}
 ```
 
 ##  Agda-Style universes

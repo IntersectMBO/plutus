@@ -2,9 +2,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:target-version=1.0.0 #-}
+
 module AuctionValidator where
 
 import PlutusCore.Default qualified as PLC
+import PlutusCore.Version (plcVersion100)
 import PlutusLedgerApi.V1 (POSIXTime, PubKeyHash, Value, adaSymbol, adaToken, singleton)
 import PlutusLedgerApi.V1.Address (pubKeyHashAddress)
 import PlutusLedgerApi.V1.Interval (contains)
@@ -193,5 +196,5 @@ auctionValidatorScript ::
   CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> ())
 auctionValidatorScript params =
   $$(PlutusTx.compile [||auctionUntypedValidator||])
-    `PlutusTx.unsafeApplyCode` PlutusTx.liftCode params
+    `PlutusTx.unsafeApplyCode` PlutusTx.liftCode plcVersion100 params
 -- BLOCK9

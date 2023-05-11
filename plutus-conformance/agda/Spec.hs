@@ -38,7 +38,8 @@ agdaEvalUplcProg (UPLC.Program () version tmU) =
 -- | These tests are currently failing so they are marked as expected to fail.
 -- Once a fix for a test is pushed, the test will fail. Remove it from this list.
 failingTests :: [FilePath]
-failingTests = []
+failingTests = [
+    ]
     -- SOP tests don't work yet, filter out the cases that are supposed to fail,
     -- and therefore succeed by accident
     ++ fmap (\i -> "test-cases/uplc/evaluation/term/case/case-" ++ show @Integer i)

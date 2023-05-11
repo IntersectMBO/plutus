@@ -7,8 +7,10 @@ module PlutusCore.Pretty
     , IgnorePrettyConfig (..)
     , AttachPrettyConfig (..)
     , Render (..)
+    , PrettyParens
     , display
     , displayBy
+    , prettyParens
     -- * Defaults
     , prettyPlcDef
     , displayPlcDef

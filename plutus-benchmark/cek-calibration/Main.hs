@@ -67,7 +67,7 @@ go n = zipl (mkList n) (rev $ mkList n)
 
 
 mkListProg :: Integer -> UPLC.Program NamedDeBruijn DefaultUni DefaultFun ()
-mkListProg n = Tx.getPlcNoAnn $ $$(Tx.compile [|| go ||]) `Tx.unsafeApplyCode` Tx.liftCode n
+mkListProg n = Tx.getPlcNoAnn $ $$(Tx.compile [|| go ||]) `Tx.unsafeApplyCode` Tx.liftCodeDef n
 
 mkListTerm :: Integer -> UPLC.Term NamedDeBruijn DefaultUni DefaultFun ()
 mkListTerm n =

@@ -19,64 +19,127 @@ import PlutusTx.Code
 import PlutusTx.IsData qualified as PlutusTx
 import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Show qualified as PlutusTx
-import PlutusTx.Test (goldenBudget, goldenPirReadable)
+import PlutusTx.Test (goldenBudget, goldenPirReadable, goldenUPlc)
 import PlutusTx.TH (compile)
 
 tests :: TestNested
 tests = testNested "Budget" [
     goldenBudget "sum" compiledSum
+  , goldenUPlc "sum" compiledSum
   , goldenPirReadable "sum" compiledSum
 
   , goldenBudget "anyCheap" compiledAnyCheap
+  , goldenUPlc "anyCheap" compiledAnyCheap
   , goldenPirReadable "anyCheap" compiledAnyCheap
 
   , goldenBudget "anyExpensive" compiledAnyExpensive
+  , goldenUPlc "anyExpensive" compiledAnyExpensive
   , goldenPirReadable "anyExpensive" compiledAnyExpensive
 
   , goldenBudget "anyEmptyList" compiledAnyEmptyList
+  , goldenUPlc "anyEmptyList" compiledAnyEmptyList
   , goldenPirReadable "anyEmptyList" compiledAnyEmptyList
 
   , goldenBudget "allCheap" compiledAllCheap
+  , goldenUPlc "allCheap" compiledAllCheap
   , goldenPirReadable "allCheap" compiledAllCheap
 
   , goldenBudget "allExpensive" compiledAllExpensive
+  , goldenUPlc "allExpensive" compiledAllExpensive
   , goldenPirReadable "allExpensive" compiledAllExpensive
 
   , goldenBudget "allEmptyList" compiledAllEmptyList
+  , goldenUPlc "allEmptyList" compiledAllEmptyList
   , goldenPirReadable "allEmptyList" compiledAllEmptyList
 
   , goldenBudget "findCheap" compiledFindCheap
+  , goldenUPlc "findCheap" compiledFindCheap
   , goldenPirReadable "findCheap" compiledFindCheap
 
   , goldenBudget "findExpensive" compiledFindExpensive
+  , goldenUPlc "findExpensive" compiledFindExpensive
   , goldenPirReadable "findExpensive" compiledFindExpensive
 
   , goldenBudget "findEmptyList" compiledFindEmptyList
+  , goldenUPlc "findEmptyList" compiledFindEmptyList
   , goldenPirReadable "findEmptyList" compiledFindEmptyList
 
+  , goldenBudget "findIndexCheap" compiledFindIndexCheap
+  , goldenUPlc "findIndexCheap" compiledFindIndexCheap
+  , goldenPirReadable "findIndexCheap" compiledFindIndexCheap
+
+  , goldenBudget "findIndexExpensive" compiledFindIndexExpensive
+  , goldenUPlc "findIndexExpensive" compiledFindIndexExpensive
+  , goldenPirReadable "findIndexExpensive" compiledFindIndexExpensive
+
+  , goldenBudget "findIndexEmptyList" compiledFindIndexEmptyList
+  , goldenUPlc "findIndexEmptyList" compiledFindIndexEmptyList
+  , goldenPirReadable "findIndexEmptyList" compiledFindIndexEmptyList
+
   , goldenBudget "filter" compiledFilter
+  , goldenUPlc "filter" compiledFilter
   , goldenPirReadable "filter" compiledFilter
 
-  , goldenBudget "elem" compiledElem
-  , goldenPirReadable "elem" compiledElem
+  , goldenBudget "andCheap" compiledAndCheap
+  , goldenUPlc "andCheap" compiledAndCheap
+  , goldenPirReadable "andCheap" compiledAndCheap
+
+  , goldenBudget "andExpensive" compiledAndExpensive
+  , goldenUPlc "andExpensive" compiledAndExpensive
+  , goldenPirReadable "andExpensive" compiledAndExpensive
+
+  , goldenBudget "orCheap" compiledOrCheap
+  , goldenUPlc "orCheap" compiledOrCheap
+  , goldenPirReadable "orCheap" compiledOrCheap
+
+  , goldenBudget "orExpensive" compiledOrExpensive
+  , goldenUPlc "orExpensive" compiledOrExpensive
+  , goldenPirReadable "orExpensive" compiledOrExpensive
+
+  , goldenBudget "elemCheap" compiledElemCheap
+  , goldenUPlc "elemCheap" compiledElemCheap
+  , goldenPirReadable "elemCheap" compiledElemCheap
+
+  , goldenBudget "elemExpensive" compiledElemExpensive
+  , goldenUPlc "elemExpensive" compiledElemExpensive
+  , goldenPirReadable "elemExpensive" compiledElemExpensive
+
+  , goldenBudget "notElemCheap" compiledNotElemCheap
+  , goldenUPlc "notElemCheap" compiledNotElemCheap
+  , goldenPirReadable "notElemCheap" compiledNotElemCheap
+
+  , goldenBudget "notElemExpensive" compiledNotElemExpensive
+  , goldenUPlc "notElemExpensive" compiledNotElemExpensive
+  , goldenPirReadable "notElemExpensive" compiledNotElemExpensive
+
+  , goldenBudget "null" compiledNull
+  , goldenUPlc "null" compiledNull
+  , goldenPirReadable "null" compiledNull
 
   , goldenBudget "toFromData" compiledToFromData
+  , goldenUPlc "toFromData" compiledToFromData
   , goldenPirReadable "toFromData" compiledToFromData
 
   , goldenBudget "monadicDo" monadicDo
+  , goldenUPlc "monadicDo" monadicDo
   , goldenPirReadable "monadicDo" monadicDo
   -- These should be a little cheaper than the previous one,
   -- less overhead from going via monadic functions
   , goldenBudget "applicative" applicative
+  , goldenUPlc "applicative" applicative
   , goldenPirReadable "applicative" applicative
   , goldenBudget "patternMatch" patternMatch
+  , goldenUPlc "patternMatch" patternMatch
   , goldenPirReadable "patternMatch" patternMatch
   , goldenBudget "show" compiledShow
+  , goldenUPlc "show" compiledShow
   , goldenPirReadable "show" compiledShow
   -- These test cases are for testing the float-in pass.
   , goldenBudget "ifThenElse1" compiledIfThenElse1
+  , goldenUPlc "ifThenElse1" compiledIfThenElse1
   , goldenPirReadable "ifThenElse1" compiledIfThenElse1
   , goldenBudget "ifThenElse2" compiledIfThenElse2
+  , goldenUPlc "ifThenElse2" compiledIfThenElse2
   , goldenPirReadable "ifThenElse2" compiledIfThenElse2
   ]
 
@@ -136,15 +199,80 @@ compiledFindEmptyList = $$(compile [||
       let ls = [] :: [Integer]
        in PlutusTx.find (1 PlutusTx.>) ls ||])
 
+-- | The first element in the list satisfies the predicate.
+compiledFindIndexCheap :: CompiledCode (Maybe Integer)
+compiledFindIndexCheap = $$(compile [||
+      let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
+       in PlutusTx.findIndex (10 PlutusTx.>) ls ||])
+
+-- | No element in the list satisfies the predicate.
+compiledFindIndexExpensive :: CompiledCode (Maybe Integer)
+compiledFindIndexExpensive = $$(compile [||
+      let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
+       in PlutusTx.findIndex (1 PlutusTx.>) ls ||])
+
+compiledFindIndexEmptyList :: CompiledCode (Maybe Integer)
+compiledFindIndexEmptyList = $$(compile [||
+      let ls = [] :: [Integer]
+       in PlutusTx.findIndex (1 PlutusTx.>) ls ||])
+
 compiledFilter :: CompiledCode [Integer]
 compiledFilter = $$(compile [||
       let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
        in PlutusTx.filter PlutusTx.even ls ||])
 
-compiledElem :: CompiledCode Bool
-compiledElem = $$(compile [||
+-- | The first element is False so @and@ should short-circuit immediately.
+compiledAndCheap :: CompiledCode Bool
+compiledAndCheap = $$(compile [||
+      let ls = [False, True, True, True, True, True, True, True, True, True]
+       in PlutusTx.and ls ||])
+
+-- | All elements are True so @and@ cannot short-circuit.
+compiledAndExpensive :: CompiledCode Bool
+compiledAndExpensive = $$(compile [||
+      let ls = [True, True, True, True, True, True, True, True, True, True]
+       in PlutusTx.and ls ||])
+
+-- | The first element is True so @or@ should short-circuit immediately.
+compiledOrCheap :: CompiledCode Bool
+compiledOrCheap = $$(compile [||
+      let ls = [True, False, False, False, False, False, False, False, False, False]
+       in PlutusTx.or ls ||])
+
+-- | All elements are False so @or@ cannot short-circuit.
+compiledOrExpensive :: CompiledCode Bool
+compiledOrExpensive = $$(compile [||
+      let ls = [False, False, False, False, False, False, False, False, False, False]
+       in PlutusTx.or ls ||])
+
+-- | @elem@ can short-circuit
+compiledElemCheap :: CompiledCode Bool
+compiledElemCheap = $$(compile [||
+      let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
+       in PlutusTx.elem 1 ls ||])
+
+-- | @elem@ cannot short-circuit
+compiledElemExpensive :: CompiledCode Bool
+compiledElemExpensive = $$(compile [||
       let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
        in PlutusTx.elem 0 ls ||])
+
+-- | @notElem@ can short-circuit
+compiledNotElemCheap :: CompiledCode Bool
+compiledNotElemCheap = $$(compile [||
+      let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
+       in PlutusTx.notElem 1 ls ||])
+
+-- | @notElem@ cannot short-circuit
+compiledNotElemExpensive :: CompiledCode Bool
+compiledNotElemExpensive = $$(compile [||
+      let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
+       in PlutusTx.notElem 0 ls ||])
+
+compiledNull :: CompiledCode Bool
+compiledNull = $$(compile [||
+      let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
+       in PlutusTx.null ls ||])
 
 compiledToFromData :: CompiledCode (Either Integer (Maybe (Bool, Integer, Bool)))
 compiledToFromData = $$(compile [||

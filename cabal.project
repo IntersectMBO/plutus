@@ -65,4 +65,3 @@ package nothunks
 -- See the note on nix/pkgs/default.nix:agdaPackages for why this is here.
 -- (NOTE this will change to ieee754 in newer versions of nixpkgs).
 extra-packages: ieee, filemanip
-

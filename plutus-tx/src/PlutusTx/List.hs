@@ -1,8 +1,17 @@
 -- editorconfig-checker-disable-file
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module PlutusTx.List (
+    null,
     map,
+    and,
+    or,
+    any,
+    all,
+    elem,
+    notElem,
+    find,
     filter,
     listToMaybe,
     uniqueElement,
@@ -27,16 +36,23 @@ module PlutusTx.List (
     sortBy,
     ) where
 
-import PlutusTx.Bool (Bool (..), otherwise, (||))
+import PlutusTx.Bool (Bool (..), not, otherwise, (||))
 import PlutusTx.Builtins (Integer)
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Eq (Eq, (/=), (==))
 import PlutusTx.ErrorCodes
 import PlutusTx.Ord (Ord, Ordering (..), compare, (<), (<=))
 import PlutusTx.Trace (traceError)
-import Prelude (Maybe (..))
+import Prelude (Maybe (..), (.))
 
 {- HLINT ignore -}
+
+{-# INLINABLE null #-}
+-- | Test whether a list is empty.
+null :: [a] -> Bool
+null = \case
+    [] -> True
+    _  -> False
 
 {-# INLINABLE map #-}
 -- | Plutus Tx version of 'Data.List.map'.
@@ -48,6 +64,57 @@ map :: (a -> b) -> [a] -> [b]
 map f l = case l of
     []   -> []
     x:xs -> f x : map f xs
+
+{-# INLINABLE and #-}
+-- | Returns the conjunction of a list of Bools.
+and :: [Bool] -> Bool
+and = \case
+    []     -> True
+    x : xs -> if x then and xs else False
+
+{-# INLINABLE or #-}
+-- | Returns the disjunction of a list of Bools.
+or :: [Bool] -> Bool
+or = \case
+    []     -> False
+    x : xs -> if x then True else or xs
+
+{-# INLINABLE any #-}
+-- | Determines whether any element of the structure satisfies the predicate.
+any :: (a -> Bool) -> [a] -> Bool
+any f = go
+  where
+    go = \case
+        []     -> False
+        x : xs -> if f x then True else go xs
+
+{-# INLINABLE all #-}
+-- | Determines whether all elements of the list satisfy the predicate.
+all :: (a -> Bool) -> [a] -> Bool
+all f = go
+  where
+    go = \case
+        []     -> True
+        x : xs -> if f x then go xs else False
+
+{-# INLINABLE elem #-}
+-- | Does the element occur in the list?
+elem :: Eq a => a -> [a] -> Bool
+elem = any . (==)
+
+{-# INLINABLE notElem #-}
+-- | The negation of `elem`.
+notElem :: Eq a => a -> [a] -> Bool
+notElem a = not . elem a
+
+{-# INLINABLE find #-}
+-- | Returns the leftmost element matching the predicate, or `Nothing` if there's no such element.
+find :: (a -> Bool) -> [a] -> Maybe a
+find f = go
+  where
+    go = \case
+        []     -> Nothing
+        x : xs -> if f x then Just x else go xs
 
 {-# INLINABLE foldr #-}
 -- | Plutus Tx version of 'Data.List.foldr'.
@@ -103,7 +170,11 @@ findIndices p = go 0
 {-# INLINABLE findIndex #-}
 -- | Plutus Tx version of 'Data.List.findIndex'.
 findIndex :: (a -> Bool) -> [a] -> Maybe Integer
-findIndex p l = listToMaybe (findIndices p l)
+findIndex f = go 0
+  where
+    go i = \case
+        []     -> Nothing
+        x : xs -> if f x then Just i else go (Builtins.addInteger i 1) xs
 
 {-# INLINABLE (!!) #-}
 -- | Plutus Tx version of '(GHC.List.!!)'.

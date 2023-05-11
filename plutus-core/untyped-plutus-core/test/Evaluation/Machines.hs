@@ -70,6 +70,7 @@ testBudget
 testBudget runtime name term =
                        nestedGoldenVsText
     name
+    ".uplc"
     (render $
         prettyPlcReadableDef $ runCekNoEmit (MachineParameters Plc.defaultCekMachineCosts runtime) Cek.tallying term)
 
@@ -135,6 +136,7 @@ testTallying :: TestName -> Term Name DefaultUni DefaultFun () -> TestNested
 testTallying name term =
                        nestedGoldenVsText
     name
+    ".uplc"
     (render $
         prettyPlcReadableDef $ runCekNoEmit Plc.defaultCekParameters Cek.tallying term)
 

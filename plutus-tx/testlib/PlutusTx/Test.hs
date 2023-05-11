@@ -136,21 +136,21 @@ goldenPir ::
     ( PLC.Closed uni
     , uni `PLC.Everywhere` PrettyConst
     , uni `PLC.Everywhere` Flat
-    , Pretty (PLC.SomeTypeIn uni)
+    , PrettyParens (PLC.SomeTypeIn uni)
     , Pretty fun
     , Flat fun
     ) =>
     String ->
     CompiledCodeIn uni fun a ->
     TestNested
-goldenPir name value = nestedGoldenVsDoc name $ pretty $ getPirNoAnn value
+goldenPir name value = nestedGoldenVsDoc name ".pir" $ pretty $ getPirNoAnn value
 
 -- | Use `prettyPirReadableNoUnique` for the golden files.
 goldenPirReadable ::
     ( PLC.Closed uni
     , uni `PLC.Everywhere` PrettyConst
     , PLC.Everywhere uni Flat
-    , Pretty (PLC.SomeTypeIn uni)
+    , PrettyParens (PLC.SomeTypeIn uni)
     , Pretty fun
     , Flat fun
     ) =>
@@ -158,7 +158,7 @@ goldenPirReadable ::
     CompiledCodeIn uni fun a ->
     TestNested
 goldenPirReadable name value =
-    nestedGoldenVsDoc name
+    nestedGoldenVsDoc name ".pir-readable"
         . fromMaybe "PIR not found in CompiledCode"
         . fmap (prettyPirReadableNoUnique . view progTerm)
         $ getPirNoAnn value
@@ -167,7 +167,7 @@ goldenPirBy ::
     ( PLC.Closed uni
     , uni `PLC.Everywhere` PrettyConst
     , uni `PLC.Everywhere` Flat
-    , Pretty (PLC.SomeTypeIn uni)
+    , PrettyParens (PLC.SomeTypeIn uni)
     , Pretty fun
     , Flat fun
     ) =>
@@ -176,7 +176,7 @@ goldenPirBy ::
     CompiledCodeIn uni fun a ->
     TestNested
 goldenPirBy config name value =
-    nestedGoldenVsDoc name $
+    nestedGoldenVsDoc name ".pir" $
         pretty $
             AttachPrettyConfig config $
                 getPir value
@@ -185,10 +185,10 @@ goldenPirBy config name value =
 
 -- TODO: rationalize with the fucntions exported from PlcTestUtils
 goldenEvalCek :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => String -> [a] -> TestNested
-goldenEvalCek name values = nestedGoldenVsDocM name $ prettyPlcClassicDebug <$> (rethrow $ runPlcCek values)
+goldenEvalCek name values = nestedGoldenVsDocM name ".eval-cek" $ prettyPlcClassicDebug <$> (rethrow $ runPlcCek values)
 
 goldenEvalCekLog :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => String -> [a] -> TestNested
-goldenEvalCekLog name values = nestedGoldenVsDocM name $ pretty . view _1 <$> (rethrow $ runPlcCekTrace values)
+goldenEvalCekLog name values = nestedGoldenVsDocM name ".eval-cek-log" $ pretty . view _1 <$> (rethrow $ runPlcCekTrace values)
 
 -- Helpers
 

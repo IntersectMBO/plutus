@@ -9,6 +9,7 @@ module Main (main) where
 
 import PlutusPrelude
 
+import Check.Spec
 import GeneratorSpec
 import NamesSpec
 import ParserSpec
@@ -18,7 +19,7 @@ import TypeSpec
 import PlutusCore qualified as PLC
 import PlutusIR
 import PlutusIR.Core.Instance.Pretty.Readable
-import PlutusIR.Parser (pTerm)
+import PlutusIR.Parser (Parser, pTerm)
 import PlutusIR.Test
 
 import Test.Tasty
@@ -28,6 +29,9 @@ import Flat (flat, unflat)
 
 main :: IO ()
 main = defaultMain $ runTestNestedIn ["plutus-ir/test"] tests
+
+pTermAsProg :: Parser (Program TyName Name PLC.DefaultUni PLC.DefaultFun PLC.SrcSpan)
+pTermAsProg = fmap (Program mempty PLC.latestVersion) pTerm
 
 tests :: TestNested
 tests = testGroup "plutus-ir" <$> sequence
@@ -44,6 +48,7 @@ tests = testGroup "plutus-ir" <$> sequence
     , types
     , typeErrors
     , generators 1
+    , pure uniqueness
     ]
 
 prettyprinting :: TestNested
@@ -74,28 +79,32 @@ prettyprintingReadable = testNested "prettyprintingReadable"
 
 lets :: TestNested
 lets = testNested "lets"
-    [ goldenPlcFromPir pTerm "letInLet"
-    , goldenPlcFromPir pTerm "letDep"
+    [ goldenPlcFromPir pTermAsProg "letInLet"
+    , goldenPlcFromPir pTermAsProg "letDep"
     ]
 
 datatypes :: TestNested
 datatypes = testNested "datatypes"
-    [ goldenPlcFromPir pTerm "maybe"
-    , goldenPlcFromPir pTerm "listMatch"
-    , goldenPlcFromPirCatch pTerm "idleAll"
-    , goldenPlcFromPirCatch pTerm "some"
-    , goldenEvalPir pTerm "listMatchEval"
+    [ goldenPlcFromPir pTermAsProg "maybe"
+    , goldenPlcFromPir pTermAsProg "listMatch"
+    , goldenPlcFromPirCatch pTermAsProg "idleAll"
+    , goldenPlcFromPirCatch pTermAsProg "some"
+    , goldenEvalPir pTermAsProg "listMatchEval"
     , goldenTypeFromPir topSrcSpan pTerm "dataEscape"
+    , testNested "scott"
+        [ goldenPlcFromPirScott pTermAsProg "maybe"
+        , goldenPlcFromPirScott pTermAsProg "listMatch"
+        ]
     ]
 
 recursion :: TestNested
 recursion = testNested "recursion"
-    [ goldenNamedUPlcFromPir pTerm "factorial"
-    , goldenPlcFromPir pTerm "even3"
-    , goldenEvalPir pTerm "even3Eval"
-    , goldenPlcFromPir pTerm "stupidZero"
-    , goldenPlcFromPir pTerm "mutuallyRecursiveValues"
-    , goldenEvalPir pTerm "errorBinding"
+    [ goldenNamedUPlcFromPir pTermAsProg "factorial"
+    , goldenPlcFromPir pTermAsProg "even3"
+    , goldenEvalPir pTermAsProg "even3Eval"
+    , goldenPlcFromPir pTermAsProg "stupidZero"
+    , goldenPlcFromPir pTermAsProg "mutuallyRecursiveValues"
+    , goldenEvalPir pTermAsProg "errorBinding"
     ]
 
 serialization :: TestNested
@@ -115,6 +124,6 @@ roundTripPirTerm = decodeOrError . unflat . flat . void
 
 errors :: TestNested
 errors = testNested "errors"
-    [ goldenPlcFromPirCatch pTerm "mutuallyRecursiveTypes"
-    , goldenPlcFromPirCatch pTerm "recursiveTypeBind"
+    [ goldenPlcFromPirCatch pTermAsProg "mutuallyRecursiveTypes"
+    , goldenPlcFromPirCatch pTermAsProg "recursiveTypeBind"
     ]

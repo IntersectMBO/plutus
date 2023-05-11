@@ -144,7 +144,7 @@ May throw a 'CekMachineException'.
 *THIS FUNCTION IS PARTIAL if the input term contains free variables*
 -}
 unsafeRunCekNoEmit
-    :: ( Pretty (SomeTypeIn uni), Typeable uni
+    :: ( PrettyParens (SomeTypeIn uni), Typeable uni
        , Closed uni, uni `Everywhere` PrettyConst
        , Pretty fun, Typeable fun
        )
@@ -183,7 +183,7 @@ evaluateCekNoEmit runner params = fst . runCekNoEmit runner params restrictingEn
 -- | Evaluate a term using a machine with logging enabled. May throw a 'CekMachineException'.
 -- *THIS FUNCTION IS PARTIAL if the input term contains free variables*
 unsafeEvaluateCek
-    :: ( Pretty (SomeTypeIn uni), Typeable uni
+    :: ( PrettyParens (SomeTypeIn uni), Typeable uni
        , Closed uni, uni `Everywhere` PrettyConst
        , Pretty fun, Typeable fun
        )
@@ -199,7 +199,7 @@ unsafeEvaluateCek runner emitTime params =
 -- | Evaluate a term using a machine with logging disabled. May throw a 'CekMachineException'.
 -- *THIS FUNCTION IS PARTIAL if the input term contains free variables*
 unsafeEvaluateCekNoEmit
-    :: ( Pretty (SomeTypeIn uni), Typeable uni
+    :: ( PrettyParens (SomeTypeIn uni), Typeable uni
        , Closed uni, uni `Everywhere` PrettyConst
        , Pretty fun, Typeable fun
        )

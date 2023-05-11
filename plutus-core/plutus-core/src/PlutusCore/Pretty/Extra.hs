@@ -1,18 +1,51 @@
+{-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE InstanceSigs          #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module PlutusCore.Pretty.Extra () where
+module PlutusCore.Pretty.Extra
+    ( PrettyParens
+    , prettyParens
+    ) where
 
 import PlutusPrelude
 
+import Control.Monad.Trans.Reader
 import Data.Map (Map)
 import Data.Map qualified as Map
+import Data.Profunctor
 import Data.Set (Set)
 import Data.Set qualified as Set
+import Text.PrettyBy.Fixity
 import Text.PrettyBy.Internal
+
+instance Profunctor InContextM where
+    lmap
+        :: forall config' config a.
+           (config' -> config)
+        -> InContextM config a
+        -> InContextM config' a
+    lmap = coerce (withReader :: (config' -> config) -> Reader config a -> Reader config' a)
+    {-# INLINE lmap #-}
+
+    rmap
+        :: forall config a b.
+           (a -> b)
+        -> InContextM config a
+        -> InContextM config b
+    rmap = coerce (mapReader :: (a -> b) -> Reader config a -> Reader config b)
+    {-# INLINE rmap #-}
+
+-- | For pretty-printing a value with a minimum amount of parens.
+type PrettyParens = PrettyBy RenderContext
+
+-- | Pretty-print an expression with a minimum amount of parens.
+prettyParens :: PrettyParens a => a -> Doc ann
+prettyParens = prettyBy $ RenderContext ToTheRight juxtFixity
 
 instance PrettyDefaultBy config [(k, v)] => DefaultPrettyBy config (Map k v) where
     defaultPrettyBy config = prettyBy config . Map.toList

@@ -1,0 +1,3 @@
+(constr
+  0 (constr 1 (constr 0 (constr 0)) (constr 1 (constr 0 (constr 0)) (constr 0)))
+)

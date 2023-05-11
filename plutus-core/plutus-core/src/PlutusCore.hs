@@ -101,9 +101,6 @@ module PlutusCore
     , AsUniqueError (..)
     , FreeVariableError (..)
     , AsFreeVariableError (..)
-    -- * Base functors
-    , TermF (..)
-    , TypeF (..)
     -- * Quotation and term construction
     , Quote
     , runQuote

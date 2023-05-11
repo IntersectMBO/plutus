@@ -2,6 +2,8 @@
 
 module PlutusCore.Generators.QuickCheck.Unification where
 
+import PlutusPrelude
+
 import PlutusCore.Generators.QuickCheck.Common
 import PlutusCore.Generators.QuickCheck.GenerateTypes
 import PlutusCore.Generators.QuickCheck.Substitutions
@@ -9,12 +11,12 @@ import PlutusCore.Generators.QuickCheck.Utils
 
 import PlutusCore.Default
 import PlutusCore.Name
-import PlutusCore.Pretty
 import PlutusIR
 
 import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State.Strict
+import Data.Foldable
 import Data.Map.Strict.Internal qualified as Map
 import Data.Set (Set)
 import Data.Set qualified as Set
@@ -171,4 +173,13 @@ unifyType ctx flex a0 b0 =
       -- See Note [Renaming during unification].
       let z = freshenTyNameWith (locals <> Map.keysSet ctx) x
       local (Set.insert z) $ goType (renameVar x z a') (renameVar y z b')
+    goType (TySOP _ sum1) (TySOP _ sum2)
+        -- Sums must be of the same arity.
+        | Just sum12 <- zipExact sum1 sum2
+        = for_ sum12 $ \(prod1, prod2) -> do
+            -- Products within sums must be of the same arity.
+            case zipExact prod1 prod2 of
+                Nothing     -> unificationFailure prod1 prod2
+                -- SOPs unify componentwise.
+                Just prod12 -> traverse_ (uncurry goType) prod12
     goType a b = unificationFailure a b

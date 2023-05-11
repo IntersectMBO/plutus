@@ -40,7 +40,6 @@ import Control.Monad.Extra
 import Control.Monad.Reader
 
 import Data.List (sortBy)
-import Data.List.NonEmpty qualified as NE
 import Data.Set qualified as Set
 import Data.Traversable
 
@@ -78,11 +77,10 @@ compileTypeNorm ty = do
 compileType :: CompilingDefault uni fun m ann => GHC.Type -> m (PIRType uni)
 compileType t = withContextM 2 (sdToTxt $ "Compiling type:" GHC.<+> GHC.ppr t) $ do
     -- See Note [Scopes]
-    CompileContext {ccScopes=stack} <- ask
-    let top = NE.head stack
+    CompileContext {ccScope=scope} <- ask
     case t of
         -- in scope type name
-        (GHC.getTyVar_maybe -> Just v) -> case lookupTyName top (GHC.getName v) of
+        (GHC.getTyVar_maybe -> Just v) -> case lookupTyName scope (GHC.getName v) of
             Just (PIR.TyVarDecl _ name _) -> pure $ PIR.TyVar annMayInline name
             Nothing                       ->
                 throwSd FreeVariableError $ "Type variable:" GHC.<+> GHC.ppr v
