@@ -1,7 +1,7 @@
 
 {-# LANGUAGE ImportQualifiedPost #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE RecordWildCards     #-}
 
 
 module Benchmark.Marlowe.RolePayout (
@@ -11,30 +11,14 @@ module Benchmark.Marlowe.RolePayout (
 
 
 import Benchmark.Marlowe.Types (Benchmark, makeBenchmark)
-import Benchmark.Marlowe.Util
-    ( lovelace,
-      makeBuiltinData,
-      makeDatumMap,
-      makeInput,
-      makeOutput,
-      makeRedeemerMap )
+import Benchmark.Marlowe.Util (lovelace, makeBuiltinData, makeDatumMap, makeInput, makeOutput,
+                               makeRedeemerMap)
 import Language.Marlowe.Scripts (rolePayoutValidatorBytes)
-import PlutusLedgerApi.V2
-    ( ScriptContext(ScriptContext, scriptContextTxInfo,
-                    scriptContextPurpose),
-      ExBudget(ExBudget),
-      Credential(PubKeyCredential, ScriptCredential),
-      ScriptPurpose(Spending),
-      TxOutRef(TxOutRef),
-      singleton,
-      SerialisedScript,
-      Extended(PosInf, NegInf),
-      Interval(Interval),
-      LowerBound(LowerBound),
-      UpperBound(UpperBound),
-      TxInfo(TxInfo, txInfoInputs, txInfoId, txInfoData, txInfoRedeemers,
-             txInfoSignatories, txInfoValidRange, txInfoWdrl, txInfoDCert,
-             txInfoMint, txInfoFee, txInfoOutputs, txInfoReferenceInputs) )
+import PlutusLedgerApi.V2 (Credential (PubKeyCredential, ScriptCredential), ExBudget (ExBudget),
+                           Extended (NegInf, PosInf), Interval (Interval), LowerBound (LowerBound),
+                           ScriptContext (ScriptContext, scriptContextPurpose, scriptContextTxInfo),
+                           ScriptPurpose (Spending), SerialisedScript, TxInfo (..),
+                           TxOutRef (TxOutRef), UpperBound (UpperBound), singleton)
 
 import PlutusTx.AssocMap qualified as AM
 

@@ -1,6 +1,6 @@
 
 {-# LANGUAGE ImportQualifiedPost #-}
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE RecordWildCards     #-}
 
 
 module Benchmark.Marlowe (

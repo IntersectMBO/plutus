@@ -7,11 +7,10 @@ module Main (
 ) where
 
 
-import Benchmark.Marlowe ( executeBenchmark )
-import Benchmark.Marlowe.Types ( Benchmark(bReferenceCost) )
-import Language.Marlowe.Scripts
-    ( rolePayoutValidatorBytes, rolePayoutValidatorHash )
-import PlutusLedgerApi.V2 ( SerialisedScript )
+import Benchmark.Marlowe (executeBenchmark)
+import Benchmark.Marlowe.Types (Benchmark (bReferenceCost))
+import Language.Marlowe.Scripts (rolePayoutValidatorBytes, rolePayoutValidatorHash)
+import PlutusLedgerApi.V2 (SerialisedScript)
 
 import Benchmark.Marlowe.RolePayout qualified as RP
 import Data.ByteString qualified as BS
