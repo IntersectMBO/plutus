@@ -248,139 +248,125 @@
                                                                                                         [
                                                                                                           concatBuiltinStrings_i8
                                                                                                           [
-                                                                                                            (lam
-                                                                                                              w_i0
-                                                                                                              (case
-                                                                                                                (force
-                                                                                                                  (case
-                                                                                                                    x_i2
-                                                                                                                    (delay
+                                                                                                            [
+                                                                                                              (lam
+                                                                                                                showElem_i0
+                                                                                                                (case
+                                                                                                                  x_i2
+                                                                                                                  (lam
+                                                                                                                    ds_i0
+                                                                                                                    [
                                                                                                                       [
-                                                                                                                        [
-                                                                                                                          UTuple2_i10
-                                                                                                                          (con
-                                                                                                                            string
-                                                                                                                            "[]"
-                                                                                                                          )
-                                                                                                                        ]
-                                                                                                                        (constr
-                                                                                                                          0
+                                                                                                                        Cons_i24
+                                                                                                                        (con
+                                                                                                                          string
+                                                                                                                          "[]"
                                                                                                                         )
                                                                                                                       ]
-                                                                                                                    )
+                                                                                                                      ds_i1
+                                                                                                                    ]
+                                                                                                                  )
+                                                                                                                  (lam
+                                                                                                                    x_i0
                                                                                                                     (lam
-                                                                                                                      x_i0
+                                                                                                                      xs_i0
                                                                                                                       (lam
-                                                                                                                        xs_i0
-                                                                                                                        (delay
+                                                                                                                        x_i0
+                                                                                                                        [
+                                                                                                                          [
+                                                                                                                            Cons_i26
+                                                                                                                            (con
+                                                                                                                              string
+                                                                                                                              "["
+                                                                                                                            )
+                                                                                                                          ]
                                                                                                                           [
                                                                                                                             [
-                                                                                                                              UTuple2_i12
-                                                                                                                              (con
-                                                                                                                                string
-                                                                                                                                "["
-                                                                                                                              )
+                                                                                                                              showElem_i4
+                                                                                                                              x_i3
                                                                                                                             ]
                                                                                                                             [
                                                                                                                               [
-                                                                                                                                w_i3
-                                                                                                                                x_i2
-                                                                                                                              ]
-                                                                                                                              [
                                                                                                                                 [
                                                                                                                                   [
-                                                                                                                                    [
+                                                                                                                                    (force
                                                                                                                                       (force
-                                                                                                                                        (force
-                                                                                                                                          [
-                                                                                                                                            foldr_i23
-                                                                                                                                            (delay
-                                                                                                                                              (lam
-                                                                                                                                                x_i0
-                                                                                                                                                x_i1
-                                                                                                                                              )
+                                                                                                                                        [
+                                                                                                                                          foldr_i24
+                                                                                                                                          (delay
+                                                                                                                                            (lam
+                                                                                                                                              x_i0
+                                                                                                                                              x_i1
                                                                                                                                             )
+                                                                                                                                          )
+                                                                                                                                        ]
+                                                                                                                                      )
+                                                                                                                                    )
+                                                                                                                                    (lam
+                                                                                                                                      a_i0
+                                                                                                                                      (lam
+                                                                                                                                        acc_i0
+                                                                                                                                        (lam
+                                                                                                                                          x_i0
+                                                                                                                                          [
+                                                                                                                                            [
+                                                                                                                                              Cons_i29
+                                                                                                                                              (con
+                                                                                                                                                string
+                                                                                                                                                ","
+                                                                                                                                              )
+                                                                                                                                            ]
+                                                                                                                                            [
+                                                                                                                                              [
+                                                                                                                                                showElem_i7
+                                                                                                                                                a_i3
+                                                                                                                                              ]
+                                                                                                                                              [
+                                                                                                                                                acc_i2
+                                                                                                                                                x_i1
+                                                                                                                                              ]
+                                                                                                                                            ]
                                                                                                                                           ]
                                                                                                                                         )
                                                                                                                                       )
-                                                                                                                                      (lam
-                                                                                                                                        a_i0
-                                                                                                                                        (lam
-                                                                                                                                          acc_i0
-                                                                                                                                          (lam
-                                                                                                                                            x_i0
-                                                                                                                                            [
-                                                                                                                                              [
-                                                                                                                                                Cons_i28
-                                                                                                                                                (con
-                                                                                                                                                  string
-                                                                                                                                                  ","
-                                                                                                                                                )
-                                                                                                                                              ]
-                                                                                                                                              [
-                                                                                                                                                [
-                                                                                                                                                  w_i6
-                                                                                                                                                  a_i3
-                                                                                                                                                ]
-                                                                                                                                                [
-                                                                                                                                                  acc_i2
-                                                                                                                                                  x_i1
-                                                                                                                                                ]
-                                                                                                                                              ]
-                                                                                                                                            ]
-                                                                                                                                          )
-                                                                                                                                        )
-                                                                                                                                      )
-                                                                                                                                    ]
-                                                                                                                                    id_i22
-                                                                                                                                  ]
-                                                                                                                                  xs_i1
-                                                                                                                                ]
-                                                                                                                                [
-                                                                                                                                  [
-                                                                                                                                    Cons_i25
-                                                                                                                                    (con
-                                                                                                                                      string
-                                                                                                                                      "]"
                                                                                                                                     )
                                                                                                                                   ]
-                                                                                                                                  (constr
-                                                                                                                                    0
+                                                                                                                                  id_i23
+                                                                                                                                ]
+                                                                                                                                xs_i2
+                                                                                                                              ]
+                                                                                                                              [
+                                                                                                                                [
+                                                                                                                                  Cons_i26
+                                                                                                                                  (con
+                                                                                                                                    string
+                                                                                                                                    "]"
                                                                                                                                   )
                                                                                                                                 ]
+                                                                                                                                x_i1
                                                                                                                               ]
                                                                                                                             ]
                                                                                                                           ]
-                                                                                                                        )
+                                                                                                                        ]
                                                                                                                       )
                                                                                                                     )
                                                                                                                   )
                                                                                                                 )
-                                                                                                                (lam
-                                                                                                                  ww_i0
-                                                                                                                  (lam
-                                                                                                                    ww_i0
-                                                                                                                    [
-                                                                                                                      [
-                                                                                                                        Cons_i25
-                                                                                                                        ww_i2
-                                                                                                                      ]
-                                                                                                                      ww_i1
-                                                                                                                    ]
-                                                                                                                  )
-                                                                                                                )
                                                                                                               )
-                                                                                                            )
-                                                                                                            [
                                                                                                               [
-                                                                                                                showsPrec_i3
-                                                                                                                fShowInteger_i2
+                                                                                                                [
+                                                                                                                  showsPrec_i3
+                                                                                                                  fShowInteger_i2
+                                                                                                                ]
+                                                                                                                (con
+                                                                                                                  integer
+                                                                                                                  0
+                                                                                                                )
                                                                                                               ]
-                                                                                                              (con
-                                                                                                                integer
-                                                                                                                0
-                                                                                                              )
                                                                                                             ]
+                                                                                                            (constr
+                                                                                                              0
+                                                                                                            )
                                                                                                           ]
                                                                                                         ]
                                                                                                       )

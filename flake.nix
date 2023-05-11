@@ -14,7 +14,7 @@
 
   inputs = {
     nixpkgs = {
-      url = "github:NixOS/nixpkgs";
+      follows = "haskell-nix/nixpkgs";
     };
     std = {
       url = "github:divnix/std";
@@ -24,7 +24,6 @@
       url = "github:input-output-hk/haskell.nix";
       inputs = {
         hackage.follows = "hackage-nix";
-        nixpkgs.follows = "nixpkgs";
       };
     };
     hackage-nix = {

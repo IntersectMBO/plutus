@@ -434,41 +434,34 @@ let
                 (Nil {integer})
         in
         concatBuiltinStrings
-          (let
-            !w : integer -> List string -> List string
-              = showsPrec {integer} dShow 0
-            !w : List string = Nil {string}
-          in
-          UTuple2_match
-            {string}
-            {List string}
-            (Nil_match
+          ((let
+               !showElem : integer -> List string -> List string
+                 = showsPrec {integer} dShow 0
+             in
+             Nil_match
                {integer}
                x
-               {all dead. UTuple2 string (List string)}
-               (/\dead -> UTuple2 {string} {List string} "[]" w)
+               {List string -> List string}
+               (\(ds : List string) -> Cons {string} "[]" ds)
                (\(x : integer)
-                 (xs : List integer) ->
-                  /\dead ->
-                    UTuple2
-                      {string}
-                      {List string}
-                      "["
-                      (w
-                         x
-                         (foldr
-                            {integer}
-                            {List string -> List string}
-                            (\(a : integer)
-                              (acc : List string -> List string)
-                              (x : List string) ->
-                               Cons {string} "," (w a (acc x)))
-                            (id {List string})
-                            xs
-                            (Cons {string} "]" w))))
-               {all dead. dead})
-            {List string}
-            (\(ww : string) (ww : List string) -> Cons {string} ww ww)))
+                 (xs : List integer)
+                 (x : List string) ->
+                  Cons
+                    {string}
+                    "["
+                    (showElem
+                       x
+                       (foldr
+                          {integer}
+                          {List string -> List string}
+                          (\(a : integer)
+                            (acc : List string -> List string)
+                            (x : List string) ->
+                             Cons {string} "," (showElem a (acc x)))
+                          (id {List string})
+                          xs
+                          (Cons {string} "]" x)))))
+             (Nil {string})))
         d
   !x : integer
     = trace
