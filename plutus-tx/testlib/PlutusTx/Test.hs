@@ -45,12 +45,15 @@ import Test.Tasty.Extras
 import Test.Tasty.Providers (IsTest (run, testOptions), singleTest, testFailed, testPassed)
 
 import PlutusCore qualified as PLC
+import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudget qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Pretty
+import PlutusCore.Pretty qualified as PLC
 import PlutusCore.Test
 import PlutusIR.Core.Instance.Pretty.Readable
 import PlutusIR.Core.Type (progTerm)
+import PlutusIR.Test ()
 import PlutusPrelude
 import PlutusTx.Code (CompiledCode, CompiledCodeIn, getPir, getPirNoAnn, getPlcNoAnn, sizePlc)
 import UntypedPlutusCore qualified as UPLC
@@ -197,6 +200,18 @@ instance (PLC.Closed uni, uni `PLC.Everywhere` Flat, Flat fun) =>
     toUPlc v = do
         v' <- catchAll $ getPlcNoAnn v
         toUPlc v'
+
+instance
+         ( PLC.PrettyParens (PLC.SomeTypeIn uni)
+         , PLC.GEq uni, PLC.Typecheckable uni fun
+         , PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, Pretty fun
+         , uni `PLC.Everywhere` Flat, Flat fun, Default (PLC.CostingPart uni fun)
+         ) => ToTPlc (CompiledCodeIn uni fun a) uni fun where
+    toTPlc v = do
+        mayV' <- catchAll $ getPir v
+        case mayV' of
+            Nothing -> fail "No PIR available"
+            Just v' -> toTPlc v'
 
 runPlcCek :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => [a] -> ExceptT SomeException IO (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ())
 runPlcCek values = do
