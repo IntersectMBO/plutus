@@ -22,7 +22,7 @@ import PlutusCore.Name as Export
 -- | Applies one program to another. Fails if the versions do not match
 -- and tries to merge annotations.
 applyProgram
-    :: (Semigroup a)
+    :: Semigroup a
     => Program name uni fun a
     -> Program name uni fun a
     -> Either String (Program name uni fun a)

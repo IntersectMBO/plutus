@@ -184,7 +184,7 @@ type instance PLC.HasUniques (Program tyname name uni fun ann) = PLC.HasUniques 
 -- | Applies one program to another. Fails if the versions do not match
 -- and tries to merge annotations.
 applyProgram
-    :: (Semigroup a)
+    :: Semigroup a
     => Program tyname name uni fun a
     -> Program tyname name uni fun a
     -> Either String (Program tyname name uni fun a)
