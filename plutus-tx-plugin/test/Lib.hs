@@ -35,7 +35,7 @@ import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
 goldenPir
-    :: (PLC.Closed uni, uni `PLC.Everywhere` PrettyConst, uni `PLC.Everywhere` Flat, PrettyParens (PLC.SomeTypeIn uni), Pretty fun, Flat fun)
+    :: (PrettyUni uni, Pretty fun, uni `PLC.Everywhere` Flat, Flat fun)
     => String -> CompiledCodeIn uni fun a -> TestNested
 goldenPir name value = nestedGoldenVsDoc name ".pir" $ pretty $ getPirNoAnn value
 

@@ -73,10 +73,7 @@ data Error uni fun a
     | CoreNameLookupError !TH.Name
 makeClassyPrisms ''Error
 
-instance
-        ( PLC.PrettyParens (PLC.SomeTypeIn uni)
-        , PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst, PP.Pretty fun, PP.Pretty a
-        ) => PP.Pretty (Error uni fun a) where
+instance (PLC.PrettyUni uni, PP.Pretty fun, PP.Pretty a) => PP.Pretty (Error uni fun a) where
     pretty = PLC.prettyPlcClassicDebug
 
 instance
@@ -103,10 +100,8 @@ instance
     where
     _Error = _NoContext . _PIRError
 
-instance
-        ( PLC.PrettyParens (PLC.SomeTypeIn uni)
-        , PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst, PP.Pretty fun, PP.Pretty a
-        ) => PLC.PrettyBy PLC.PrettyConfigPlc (Error uni fun a) where
+instance (PLC.PrettyUni uni, PP.Pretty fun, PP.Pretty a) =>
+        PLC.PrettyBy PLC.PrettyConfigPlc (Error uni fun a) where
     prettyBy config = \case
         PLCError e -> PP.vsep [ "Error from the PLC compiler:", PLC.prettyBy config e ]
         PIRError e -> PP.vsep [ "Error from the PIR compiler:", PLC.prettyBy config e ]

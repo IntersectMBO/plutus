@@ -136,13 +136,7 @@ measureBudget compiledCode =
 -- Compilation testing
 
 goldenPir ::
-    ( PLC.Closed uni
-    , uni `PLC.Everywhere` PrettyConst
-    , uni `PLC.Everywhere` Flat
-    , PrettyParens (PLC.SomeTypeIn uni)
-    , Pretty fun
-    , Flat fun
-    ) =>
+    (PrettyUni uni, Pretty fun, uni `PLC.Everywhere` Flat, Flat fun) =>
     String ->
     CompiledCodeIn uni fun a ->
     TestNested
@@ -150,13 +144,7 @@ goldenPir name value = nestedGoldenVsDoc name ".pir" $ pretty $ getPirNoAnn valu
 
 -- | Use `prettyPirReadableNoUnique` for the golden files.
 goldenPirReadable ::
-    ( PLC.Closed uni
-    , uni `PLC.Everywhere` PrettyConst
-    , PLC.Everywhere uni Flat
-    , PrettyParens (PLC.SomeTypeIn uni)
-    , Pretty fun
-    , Flat fun
-    ) =>
+    (PrettyUni uni, Pretty fun, uni `PLC.Everywhere` Flat, Flat fun) =>
     String ->
     CompiledCodeIn uni fun a ->
     TestNested
@@ -167,13 +155,7 @@ goldenPirReadable name value =
         $ getPirNoAnn value
 
 goldenPirBy ::
-    ( PLC.Closed uni
-    , uni `PLC.Everywhere` PrettyConst
-    , uni `PLC.Everywhere` Flat
-    , PrettyParens (PLC.SomeTypeIn uni)
-    , Pretty fun
-    , Flat fun
-    ) =>
+    (PrettyUni uni, Pretty fun, uni `PLC.Everywhere` Flat, Flat fun) =>
     PrettyConfigClassic PrettyConfigName ->
     String ->
     CompiledCodeIn uni fun a ->
