@@ -51,11 +51,7 @@ common lang
 
 library
   import:          lang
-  hs-source-dirs:  src
-
-  if !(impl(ghcjs) || os(ghcjs))
-    build-depends: plutus-tx-plugin
-
+  hs-source-dirs:  src "build-depends:"
   build-depends:
     , base
     , bytestring
@@ -64,6 +60,7 @@ library
     , plutus-core
     , plutus-ledger-api
     , plutus-tx
+    , plutus-tx-plugin
 
   exposed-modules:
     Language.Marlowe.Core.V1.Semantics
