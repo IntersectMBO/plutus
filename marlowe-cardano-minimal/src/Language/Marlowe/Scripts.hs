@@ -59,28 +59,19 @@ module Language.Marlowe.Scripts
 
 
 import GHC.Generics (Generic)
-import Language.Marlowe.Core.V1.Semantics as Semantics
-    ( MarloweParams(MarloweParams, rolesCurrency),
-      MarloweData(..),
-      TransactionOutput(Error, TransactionOutput, txOutPayments,
-                        txOutState, txOutContract),
-      TransactionInput(TransactionInput, txInputs, txInterval),
-      TransactionError(TEHashMismatch, TEAmbiguousTimeIntervalError,
-                       TEApplyNoMatchError, TEIntervalError, TEUselessTransaction),
-      Payment(..),
-      computeTransaction,
-      totalBalance )
-import Language.Marlowe.Core.V1.Semantics.Types as Semantics
-    ( getInputContent,
-      ChoiceId(ChoiceId),
-      Contract(Close),
-      Input(..),
-      InputContent(..),
-      IntervalError(IntervalInPastError, InvalidInterval),
-      Party(..),
-      Payee(Account, Party),
-      State(..),
-      Token(Token) )
+import Language.Marlowe.Core.V1.Semantics as Semantics (MarloweData (..),
+                                                        MarloweParams (MarloweParams, rolesCurrency),
+                                                        Payment (..),
+                                                        TransactionError (TEAmbiguousTimeIntervalError, TEApplyNoMatchError, TEHashMismatch, TEIntervalError, TEUselessTransaction),
+                                                        TransactionInput (TransactionInput, txInputs, txInterval),
+                                                        TransactionOutput (Error, TransactionOutput, txOutContract, txOutPayments, txOutState),
+                                                        computeTransaction, totalBalance)
+import Language.Marlowe.Core.V1.Semantics.Types as Semantics (ChoiceId (ChoiceId), Contract (Close),
+                                                              Input (..), InputContent (..),
+                                                              IntervalError (IntervalInPastError, InvalidInterval),
+                                                              Party (..), Payee (Account, Party),
+                                                              State (..), Token (Token),
+                                                              getInputContent)
 import PlutusLedgerApi.V2 (Credential (..), CurrencySymbol, Datum (Datum), DatumHash (DatumHash),
                            Extended (..), Interval (..), LowerBound (..), POSIXTime (..),
                            POSIXTimeRange,
@@ -94,40 +85,13 @@ import PlutusLedgerApi.V2.Tx (OutputDatum (OutputDatumHash),
                               TxOut (TxOut, txOutAddress, txOutDatum, txOutValue))
 import PlutusTx (CompiledCode, makeIsDataIndexed, makeLift, unsafeFromBuiltinData)
 import PlutusTx.Plugin ()
-import PlutusTx.Prelude as PlutusTxPrelude
-    ( otherwise,
-      Bool(..),
-      Integer,
-      Maybe(..),
-      BuiltinData,
-      Eq(..),
-      BuiltinByteString,
-      Ord((>)),
-      id,
-      BuiltinString,
-      toBuiltin,
-      AdditiveGroup((-)),
-      AdditiveMonoid(zero),
-      AdditiveSemigroup((+)),
-      Semigroup((<>)),
-      Functor(fmap),
-      (||),
-      (&&),
-      Enum(fromEnum),
-      error,
-      (/=),
-      foldMap,
-      all,
-      any,
-      elem,
-      filter,
-      find,
-      null,
-      ($),
-      (.),
-      snd,
-      fromMaybe,
-      check )
+import PlutusTx.Prelude as PlutusTxPrelude (AdditiveGroup ((-)), AdditiveMonoid (zero),
+                                            AdditiveSemigroup ((+)), Bool (..), BuiltinByteString,
+                                            BuiltinData, BuiltinString, Enum (fromEnum), Eq (..),
+                                            Functor (fmap), Integer, Maybe (..), Ord ((>)),
+                                            Semigroup ((<>)), all, any, check, elem, error, filter,
+                                            find, foldMap, fromMaybe, id, null, otherwise, snd,
+                                            toBuiltin, ($), (&&), (.), (/=), (||))
 
 import Cardano.Crypto.Hash qualified as Hash
 import Data.ByteString qualified as BS
