@@ -1,59 +1,51 @@
 {-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE RecordWildCards     #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:target-version=1.0.0 #-}
+
 
 module Main (
   main
 ) where
 
 
-import Control.Monad.Except (runExcept)
-import Control.Monad.Writer (runWriterT)
-import Data.Bifunctor (bimap)
-import Data.Maybe (fromJust)
-import Language.Marlowe.Core.V1.Semantics.Types (Token (..))
+import Benchmark.Marlowe ( executeBenchmark )
+import Benchmark.Marlowe.Types ( Benchmark(bReferenceCost) )
 import Language.Marlowe.Scripts
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCostModelParams)
-import PlutusLedgerApi.V2
+    ( rolePayoutValidatorBytes, rolePayoutValidatorHash )
+import PlutusLedgerApi.V2 ( SerialisedScript )
 
+import Benchmark.Marlowe.RolePayout qualified as RP
 import Data.ByteString qualified as BS
 import Data.ByteString.Base16 qualified as B16
 import Data.ByteString.Short qualified as SBS
-import Data.Map.Strict qualified as M
 
 
 main :: IO ()
 main =
   do
-    putStrLn $ "Semantics validator hash:   " <> show marloweValidatorHash
+
+    -- FIXME: Work in progress on benchmarks for semantics validator.
+--  putStrLn $ "Semantics validator hash:   " <> show marloweValidatorHash
+--  BS.writeFile "marlowe-semantics.plutus"
+--    $ "{\"type\": \"PlutusScriptV2\", \"description\": \"\", \"cborHex\": \""
+--    <> B16.encode (SBS.fromShort marloweValidatorBytes) <> "\"}"
+
     putStrLn $ "Role-payout validator hash: " <> show rolePayoutValidatorHash
-    BS.writeFile "marlowe-semantics.plutus"
-      $ "{\"type\": \"PlutusScriptV2\", \"description\": \"\", \"cborHex\": \""
-      <> B16.encode (SBS.fromShort marloweValidatorBytes) <> "\"}"
+    -- FIXME: I suspect that this serialization is incorrect because hashing it
+    --        with `cardano-cli` does not agree with the hash computed above.
     BS.writeFile "marlowe-rolepayout.plutus"
       $ "{\"type\": \"PlutusScriptV2\", \"description\": \"\", \"cborHex\": \""
       <> B16.encode (SBS.fromShort rolePayoutValidatorBytes) <> "\"}"
-    print test
 
+    mapM_ (printResult RP.serialisedValidator) RP.benchmarks
 
-test :: Either String (LogOutput, Either EvaluationError ExBudget)
-test =
-  let
-    roleToken = Token "" ""
-  in
-    case evaluationContext of
-     Left message -> Left message
-     Right ec     ->
-      Right
-        $ evaluateScriptCounting (ProtocolVersion 8 0) Verbose ec rolePayoutValidatorBytes
-        [toData roleToken, toData (), toData ScriptContext{..}]
-
-
-evaluationContext :: Either String EvaluationContext
-evaluationContext =
-  let
-    costParams = M.elems $ fromJust defaultCostModelParams
-    costModel = take (length ([minBound..maxBound] :: [ParamName])) costParams
-  in
-    bimap show fst . runExcept . runWriterT $ mkEvaluationContext costModel
+printResult
+  :: SerialisedScript
+  -> Benchmark
+  -> IO ()
+printResult validator benchmark =
+  case executeBenchmark validator benchmark of
+    Right (_, Right budget) -> putStrLn
+                                 $ "actual = " <> show budget
+                                 <> " vs expected = " <> show (bReferenceCost benchmark)
+    Right (logs, Left msg) -> print (msg, logs)
+    Left msg -> print msg
