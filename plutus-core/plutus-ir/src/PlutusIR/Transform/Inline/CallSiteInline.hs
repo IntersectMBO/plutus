@@ -72,7 +72,7 @@ usage is not inlined because it is not fully applied.
 
 (2) How do we decide whether a fully saturated application can be inlined?
 
-For size, we compare the sizes (in terms of AST nodes before and after the inlining), and
+For size, we compare the sizes (in terms of AST nodes before and after the inlining and beta reduction), and
 inline only if it does not increase the size. In the above example, we count the number of AST
 nodes in `f a b` and in `a`. The latter is smaller, which means inlining reduces the size.
 
