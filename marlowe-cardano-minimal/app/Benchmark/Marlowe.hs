@@ -10,7 +10,6 @@ module Benchmark.Marlowe (
 
 
 import Benchmark.Marlowe.Types (Benchmark (..))
-
 import Control.Monad.Except (runExcept)
 import Control.Monad.Writer (runWriterT)
 import Data.Bifunctor (bimap)
@@ -37,8 +36,10 @@ executeBenchmark serialisedValidator Benchmark{..} =
 evaluationContext :: Either String V2.EvaluationContext
 evaluationContext =
   let
+    -- Note: These default cost model parameters are identical to those from commit
+    --       6ed578b592f46afc0e77f4d19e5955a6eb439ba4, which is where the reference costs used
+    --       for comparison were measured.
     costParams = M.elems $ fromJust defaultCostModelParams
     costModel = take (length ([minBound..maxBound] :: [V2.ParamName])) costParams
   in
     bimap show fst . runExcept . runWriterT $ V2.mkEvaluationContext costModel
-
