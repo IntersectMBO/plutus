@@ -51,7 +51,7 @@ arity @[]@, but does in fact need an argument before it does any work.
 
 In `body`, where `v` is called,
 if it was given the `n` term or type arguments in the correct order, then it is *fully applied*.
-If the changes in size and cost caused by the inlining is acceptable, and the inlining is
+If the changes in size and cost caused by the inlining is acceptable, and the inlining and the beta reduction is
 effect-safe, we inline the call site of the fully applied `v`, and perform beta reduction. E.g.
 
 let f = \x.\y -> x
