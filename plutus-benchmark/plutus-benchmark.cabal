@@ -400,27 +400,3 @@ test-suite plutus-benchmark-script-contexts-tests
     , script-contexts-internal
     , tasty
     , tasty-hunit
-
------------------ marlowe ------------------
-
-executable marlowe-validators
-  import:         lang
-  hs-source-dirs: marlowe
-  main-is:        Main.hs
-  other-modules:
-    Benchmark.Marlowe
-    Benchmark.Marlowe.RolePayout
-    Benchmark.Marlowe.Types
-    Benchmark.Marlowe.Util
-
-  build-depends:
-    , base
-    , base16-bytestring
-    , bytestring
-    , containers
-    , marlowe-cardano-minimal
-    , mtl
-    , plutus-core
-    , plutus-ledger-api
-    , plutus-tx
-    , serialise
