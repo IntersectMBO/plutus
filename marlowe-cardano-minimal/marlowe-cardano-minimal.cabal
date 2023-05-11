@@ -82,6 +82,7 @@ executable marlowe-validators
     , base
     , base16-bytestring
     , bytestring
+    , cardano-binary
     , containers
     , marlowe-cardano-minimal
     , mtl
