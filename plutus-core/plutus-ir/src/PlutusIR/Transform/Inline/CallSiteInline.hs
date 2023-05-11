@@ -12,6 +12,7 @@ See note [Inlining of fully applied functions].
 
 module PlutusIR.Transform.Inline.CallSiteInline where
 
+import PlutusCore qualified as PLC
 import PlutusIR.Analysis.Size
 import PlutusIR.Contexts
 import PlutusIR.Core
@@ -51,8 +52,9 @@ arity @[]@, but does in fact need an argument before it does any work.
 
 In `body`, where `v` is called,
 if it was given the `n` term or type arguments in the correct order, then it is *fully applied*.
-If the changes in size and cost caused by the inlining is acceptable, and the inlining and the beta reduction is
-effect-safe, we inline the call site of the fully applied `v`, and perform beta reduction. E.g.
+If the changes in size and cost caused by the inlining is acceptable, and the inlining and
+the beta reduction is effect-safe, we inline the call site of the fully applied `v`, and perform
+beta reduction. E.g.
 
 let f = \x.\y -> x
 in
@@ -72,9 +74,10 @@ usage is not inlined because it is not fully applied.
 
 (2) How do we decide whether a fully saturated application can be inlined?
 
-For size, we compare the sizes (in terms of AST nodes before and after the inlining and beta reduction), and
-inline only if it does not increase the size. In the above example, we count the number of AST
-nodes in `f a b` and in `a`. The latter is smaller, which means inlining reduces the size.
+For size, we compare the sizes (in terms of AST nodes before and after the inlining and beta
+reduction), and inline only if it does not increase the size. In the above example, we count
+the number of AST nodes in `f a b` and in `a`. The latter is smaller, which means inlining
+reduces the size.
 
 For cost, we check whether the RHS (in this example, `\x. \y -> x`) has a small cost.
 If the RHS has a non-zero arity, then the cost is always small (since a lambda or a type
@@ -120,24 +123,32 @@ fullyApplyAndBetaReduce info = go (varBody info) (varArity info)
       ([], _) -> pure . Just $ fillAppContext acc args
       (TermParam param : arity', TermAppContext arg _ args') ->
         ifM
-          (safeToSubst param arg)
-          ( go
-              (termSubstNames (\n -> if n == param then Just arg else Nothing) acc)
-              arity'
-              args'
+          (safeToBetaReduce param arg)
+          ( do
+              acc' <-
+                termSubstNamesM
+                  (\n -> if n == param then Just <$> PLC.rename arg else pure Nothing)
+                  acc
+              go acc' arity' args'
           )
           (pure Nothing)
-      (TypeParam param : arity', TypeAppContext arg _ args') ->
+      (TypeParam param : arity', TypeAppContext arg _ args') -> do
+        acc' <-
+          termSubstTyNamesM
+            (\n -> if n == param then Just <$> PLC.rename arg else pure Nothing)
+            acc
         go
-          (termSubstTyNames (\n -> if n == param then Just arg else Nothing) acc)
+          acc'
           arity'
           args'
       _ -> pure Nothing
 
-    -- Checks whether it is safe (i.e., preserves semantics) to perform beta reduction,
     -- namely, turning `(\a -> body) arg` into `body [a := arg]`.
-    safeToSubst :: name -> Term tyname name uni fun ann -> InlineM tyname name uni fun ann Bool
-    safeToSubst n = effectSafe (varBody info) Strict n <=< checkPurity
+    safeToBetaReduce ::
+      name ->
+      Term tyname name uni fun ann ->
+      InlineM tyname name uni fun ann Bool
+    safeToBetaReduce n = effectSafe (varBody info) Strict n <=< checkPurity
 
 -- | Consider whether to inline an application.
 inlineSaturatedApp ::
