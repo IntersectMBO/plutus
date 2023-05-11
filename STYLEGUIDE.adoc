@@ -67,7 +67,8 @@ Good:
 ----
 foo ::
   A ->
-  B -> C
+  B ->
+  C
 ----
 
 ==== Reasoning
@@ -84,6 +85,22 @@ In the past we tried `ormolu`, but its https://github.com/tweag/ormolu/issues/64
 === Write type signatures
 
 Every top-level binding should have a type signature. _Most_ other named bindings (e.g. `let` and `where` bindings) should also have type signatures.
+
+Constraints should be uncurried.
+
+Bad:
+
+[source,Haskell]
+----
+foo :: Eq a => Ord a => a -> a -> a
+----
+
+Good:
+
+[source,Haskell]
+----
+foo :: (Eq a, Ord a) => a -> a -> a
+----
 
 ==== Reasoning
 
