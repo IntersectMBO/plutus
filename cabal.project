@@ -73,15 +73,14 @@ if impl(ghc >= 9.6)
     , microlens >= 0.2.0.0
     , microlens-mtl >= 0.2.0.0
 
-
-  -- Version on Hackages does not compile with `ghc-9.6`
-  -- https://github.com/haskell-foundation/foundation/issues/576
-  source-repository-package
-    type: git
-    location: https://github.com/Topsii/foundation
-    tag: d3136f4bb8b69e273535352620e53f2196941b35
-    --sha256: 1l1idylvv25xp40zxxb5iim4xarpxfycwh85rmgabb0mbz4gw5rb
-    subdir:
-      basement
-      edge
-      foundation
+-- Can't put in the conditional block because of https://github.com/input-output-hk/haskell.nix/issues/1943
+-- Version on Hackages does not compile with `ghc-9.6`
+-- https://github.com/haskell-foundation/foundation/issues/576
+source-repository-package
+  type: git
+  location: https://github.com/Topsii/foundation
+  tag: d3136f4bb8b69e273535352620e53f2196941b35
+  subdir:
+    basement
+    edge
+    foundation
