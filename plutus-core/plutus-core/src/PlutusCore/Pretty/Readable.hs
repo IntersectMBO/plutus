@@ -1,16 +1,14 @@
--- editorconfig-checker-disable-file
--- | A "readable" Agda-like way to pretty-print PLC entities.
-
 {-# LANGUAGE ConstraintKinds   #-}
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeFamilies      #-}
 
-module PlutusCore.Pretty.Readable
-    ( module Export
-    , module PlutusCore.Pretty.Readable
-    ) where
+-- | A "readable" Agda-like way to pretty-print PLC entities.
+module PlutusCore.Pretty.Readable (
+  module Export,
+  module PlutusCore.Pretty.Readable,
+) where
 
 import PlutusPrelude
 
@@ -23,20 +21,20 @@ import Text.Pretty
 import Text.PrettyBy.Fixity as Export
 
 data ShowKinds
-    = ShowKindsYes
-    | ShowKindsNonType
-    | ShowKindsNo
-    deriving stock (Show, Eq)
+  = ShowKindsYes
+  | ShowKindsNonType
+  | ShowKindsNo
+  deriving stock (Show, Eq)
 
 instance Default ShowKinds where
   def = ShowKindsNonType
 
 -- | Configuration for the readable pretty-printing.
 data PrettyConfigReadable configName = PrettyConfigReadable
-    { _pcrConfigName    :: configName
-    , _pcrRenderContext :: RenderContext
-    , _pcrShowKinds     :: ShowKinds
-    }
+  { _pcrConfigName    :: configName
+  , _pcrRenderContext :: RenderContext
+  , _pcrShowKinds     :: ShowKinds
+  }
 
 type instance HasPrettyDefaults (PrettyConfigReadable _) = 'True
 
@@ -46,15 +44,18 @@ type PrettyReadableBy configName = PrettyBy (PrettyConfigReadable configName)
 type PrettyReadable = PrettyReadableBy PrettyConfigName
 
 type HasPrettyConfigReadable env configName =
-    HasPrettyConfig env (PrettyConfigReadable configName)
+  HasPrettyConfig env (PrettyConfigReadable configName)
 
 makeLenses ''PrettyConfigReadable
 
-instance configName ~ PrettyConfigName => HasPrettyConfigName (PrettyConfigReadable configName) where
-    toPrettyConfigName = _pcrConfigName
+instance
+  (configName ~ PrettyConfigName) =>
+  HasPrettyConfigName (PrettyConfigReadable configName)
+  where
+  toPrettyConfigName = _pcrConfigName
 
 instance HasRenderContext (PrettyConfigReadable configName) where
-    renderContext = pcrRenderContext
+  renderContext = pcrRenderContext
 
 -- | The fixity of a binder.
 binderFixity :: Fixity
@@ -73,8 +74,10 @@ topPrettyConfigReadable :: configName -> ShowKinds -> PrettyConfigReadable confi
 topPrettyConfigReadable configName = PrettyConfigReadable configName topRenderContext
 
 -- | Pretty-print two things with a @->@ between them.
-arrowPrettyM
-    :: (MonadPrettyContext config env m, PrettyBy config a, PrettyBy config b)
-    => a -> b -> m (Doc ann)
+arrowPrettyM ::
+  (MonadPrettyContext config env m, PrettyBy config a, PrettyBy config b) =>
+  a ->
+  b ->
+  m (Doc ann)
 arrowPrettyM a b =
-    infixDocM arrowFixity $ \prettyL prettyR -> prettyL a <+> "->" <+> prettyR b
+  infixDocM arrowFixity $ \prettyL prettyR -> prettyL a <+> "->" <+> prettyR b
