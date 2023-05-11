@@ -132,13 +132,9 @@
                           )
                           (sop [] [])
                         }
-                        (constr
-                          [ (lam Bool_i0 (type) (sop [] [])) (sop [] []) ] 0
-                        )
+                        (constr (sop [] []) 0)
                       ]
-                      (constr
-                        [ (lam Bool_i0 (type) (sop [] [])) (sop [] []) ] 1
-                      )
+                      (constr (sop [] []) 1)
                     ]
                     (lam
                       x_i0
@@ -359,78 +355,90 @@
                       [ [ dat_i1 a_i6 ] b_i5 ]
                     )
                     (constr
-                      [
-                        (lam
-                          InterList_i0
-                          (fun (type) (fun (type) (type)))
-                          (sop [a_i6 b_i5 [ [ InterList_i1 b_i5 ] a_i6 ]] [])
-                        )
-                        (lam
-                          a_i0
-                          (type)
-                          (lam
-                            b_i0
-                            (type)
-                            (ifix
+                      (sop
+                        [a_i5
+                        b_i4
+                        [
+                          [
+                            (lam
+                              a_i0
+                              (type)
                               (lam
-                                rec_i0
-                                (fun
-                                  (fun (fun (type) (fun (type) (type))) (type))
-                                  (type)
-                                )
-                                (lam
-                                  spine_i0
-                                  (fun (fun (type) (fun (type) (type))) (type))
-                                  [
-                                    spine_i1
-                                    [
-                                      (lam
-                                        InterList_i0
-                                        (fun (type) (fun (type) (type)))
-                                        (lam
-                                          a_i0
-                                          (type)
+                                b_i0
+                                (type)
+                                (ifix
+                                  (lam
+                                    rec_i0
+                                    (fun
+                                      (fun
+                                        (fun (type) (fun (type) (type))) (type)
+                                      )
+                                      (type)
+                                    )
+                                    (lam
+                                      spine_i0
+                                      (fun
+                                        (fun (type) (fun (type) (type))) (type)
+                                      )
+                                      [
+                                        spine_i1
+                                        [
                                           (lam
-                                            b_i0
-                                            (type)
-                                            (sop
-                                              [a_i2
-                                              b_i1
-                                              [ [ InterList_i3 b_i1 ] a_i2 ]]
-                                              []
+                                            InterList_i0
+                                            (fun (type) (fun (type) (type)))
+                                            (lam
+                                              a_i0
+                                              (type)
+                                              (lam
+                                                b_i0
+                                                (type)
+                                                (sop
+                                                  [a_i2
+                                                  b_i1
+                                                  [
+                                                    [ InterList_i3 b_i1 ] a_i2
+                                                  ]]
+                                                  []
+                                                )
+                                              )
                                             )
                                           )
-                                        )
-                                      )
-                                      (lam
-                                        a_i0
-                                        (type)
-                                        (lam
-                                          b_i0
-                                          (type)
-                                          [
-                                            rec_i4
+                                          (lam
+                                            a_i0
+                                            (type)
                                             (lam
-                                              dat_i0
-                                              (fun (type) (fun (type) (type)))
-                                              [ [ dat_i1 a_i3 ] b_i2 ]
+                                              b_i0
+                                              (type)
+                                              [
+                                                rec_i4
+                                                (lam
+                                                  dat_i0
+                                                  (fun
+                                                    (type) (fun (type) (type))
+                                                  )
+                                                  [ [ dat_i1 a_i3 ] b_i2 ]
+                                                )
+                                              ]
                                             )
-                                          ]
-                                        )
-                                      )
-                                    ]
-                                  ]
+                                          )
+                                        ]
+                                      ]
+                                    )
+                                  )
+                                  (lam
+                                    dat_i0
+                                    (fun (type) (fun (type) (type)))
+                                    [ [ dat_i1 a_i3 ] b_i2 ]
+                                  )
                                 )
                               )
-                              (lam
-                                dat_i0
-                                (fun (type) (fun (type) (type)))
-                                [ [ dat_i1 a_i3 ] b_i2 ]
-                              )
                             )
-                          )
-                        )
-                      ]
+                            b_i4
+                          ]
+                          a_i5
+                        ]]
+                        []
+                      )
                       0
                       arg_0_i3
                       arg_1_i2
@@ -496,75 +504,82 @@
               dat_i0 (fun (type) (fun (type) (type))) [ [ dat_i1 a_i3 ] b_i2 ]
             )
             (constr
-              [
-                (lam
-                  InterList_i0
-                  (fun (type) (fun (type) (type)))
-                  (sop [a_i3 b_i2 [ [ InterList_i1 b_i2 ] a_i3 ]] [])
-                )
-                (lam
-                  a_i0
-                  (type)
-                  (lam
-                    b_i0
-                    (type)
-                    (ifix
+              (sop
+                [a_i2
+                b_i1
+                [
+                  [
+                    (lam
+                      a_i0
+                      (type)
                       (lam
-                        rec_i0
-                        (fun
-                          (fun (fun (type) (fun (type) (type))) (type)) (type)
-                        )
-                        (lam
-                          spine_i0
-                          (fun (fun (type) (fun (type) (type))) (type))
-                          [
-                            spine_i1
-                            [
-                              (lam
-                                InterList_i0
-                                (fun (type) (fun (type) (type)))
-                                (lam
-                                  a_i0
-                                  (type)
+                        b_i0
+                        (type)
+                        (ifix
+                          (lam
+                            rec_i0
+                            (fun
+                              (fun (fun (type) (fun (type) (type))) (type))
+                              (type)
+                            )
+                            (lam
+                              spine_i0
+                              (fun (fun (type) (fun (type) (type))) (type))
+                              [
+                                spine_i1
+                                [
                                   (lam
-                                    b_i0
-                                    (type)
-                                    (sop
-                                      [a_i2 b_i1 [ [ InterList_i3 b_i1 ] a_i2 ]]
-                                      []
+                                    InterList_i0
+                                    (fun (type) (fun (type) (type)))
+                                    (lam
+                                      a_i0
+                                      (type)
+                                      (lam
+                                        b_i0
+                                        (type)
+                                        (sop
+                                          [a_i2
+                                          b_i1
+                                          [ [ InterList_i3 b_i1 ] a_i2 ]]
+                                          []
+                                        )
+                                      )
                                     )
                                   )
-                                )
-                              )
-                              (lam
-                                a_i0
-                                (type)
-                                (lam
-                                  b_i0
-                                  (type)
-                                  [
-                                    rec_i4
+                                  (lam
+                                    a_i0
+                                    (type)
                                     (lam
-                                      dat_i0
-                                      (fun (type) (fun (type) (type)))
-                                      [ [ dat_i1 a_i3 ] b_i2 ]
+                                      b_i0
+                                      (type)
+                                      [
+                                        rec_i4
+                                        (lam
+                                          dat_i0
+                                          (fun (type) (fun (type) (type)))
+                                          [ [ dat_i1 a_i3 ] b_i2 ]
+                                        )
+                                      ]
                                     )
-                                  ]
-                                )
-                              )
-                            ]
-                          ]
+                                  )
+                                ]
+                              ]
+                            )
+                          )
+                          (lam
+                            dat_i0
+                            (fun (type) (fun (type) (type)))
+                            [ [ dat_i1 a_i3 ] b_i2 ]
+                          )
                         )
                       )
-                      (lam
-                        dat_i0
-                        (fun (type) (fun (type) (type)))
-                        [ [ dat_i1 a_i3 ] b_i2 ]
-                      )
                     )
-                  )
-                )
-              ]
+                    b_i1
+                  ]
+                  a_i2
+                ]]
+                []
+              )
               1
             )
           )

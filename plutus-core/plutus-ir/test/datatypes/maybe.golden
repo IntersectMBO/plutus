@@ -39,33 +39,10 @@
               )
               (lam a_i0 (type) (sop [] [a_i1]))
             }
-            (abs
-              a_i0
-              (type)
-              (constr
-                [
-                  (lam Maybe_i0 (fun (type) (type)) (sop [] [a_i2]))
-                  (lam a_i0 (type) (sop [] [a_i1]))
-                ]
-                0
-              )
-            )
+            (abs a_i0 (type) (constr (sop [] [a_i1]) 0))
           ]
           (abs
-            a_i0
-            (type)
-            (lam
-              arg_0_i0
-              a_i2
-              (constr
-                [
-                  (lam Maybe_i0 (fun (type) (type)) (sop [] [a_i3]))
-                  (lam a_i0 (type) (sop [] [a_i1]))
-                ]
-                1
-                arg_0_i1
-              )
-            )
+            a_i0 (type) (lam arg_0_i0 a_i2 (constr (sop [] [a_i2]) 1 arg_0_i1))
           )
         ]
         (abs
