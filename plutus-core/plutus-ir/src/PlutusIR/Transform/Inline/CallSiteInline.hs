@@ -21,7 +21,7 @@ import PlutusIR.Transform.Substitute
 import Control.Monad.Extra
 import Control.Monad.State
 
-{- Note [Inlining of fully applied functions]
+{- Note [Inlining and beta reduction of fully applied functions]
 
 We inline if (1) a function is fully applied (2) its cost and size are acceptable. We discuss
 each in detail below.
