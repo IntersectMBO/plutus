@@ -79,28 +79,17 @@ module Language.Marlowe.Core.V1.Semantics.Types
 
 import Control.Applicative ((<*>), (<|>))
 import Control.Newtype.Generics (Newtype)
-import Data.Data ( Data )
+import Data.Data (Data)
 import Data.String (IsString (..))
 import GHC.Generics (Generic)
-import Language.Marlowe.Core.V1.Semantics.Types.Address ( Network )
+import Language.Marlowe.Core.V1.Semantics.Types.Address (Network)
 import PlutusLedgerApi.V2 (CurrencySymbol (unCurrencySymbol), POSIXTime (..),
                            TokenName (unTokenName))
 import PlutusTx (makeIsDataIndexed)
 import PlutusTx.AssocMap (Map)
 import PlutusTx.Lift (makeLift)
-import PlutusTx.Prelude
-    ( Bool(..),
-      Integer,
-      Eq(..),
-      BuiltinByteString,
-      Ord((<=), (>=)),
-      length,
-      zip,
-      and,
-      (&&),
-      all,
-      any,
-      zipWith )
+import PlutusTx.Prelude (Bool (..), BuiltinByteString, Eq (..), Integer, Ord ((<=), (>=)), all, and,
+                         any, length, zip, zipWith, (&&))
 import Prelude (mapM, (<$>))
 
 import Data.Foldable qualified as F

@@ -106,7 +106,7 @@ module Language.Marlowe.Core.V1.Semantics
   ) where
 
 
-import Data.Data ( Data )
+import Data.Data (Data)
 import GHC.Generics (Generic)
 import Language.Marlowe.Core.V1.Semantics.Types (AccountId, Accounts, Action (..), Case (..),
                                                  Contract (..), Environment (..), Input (..),
