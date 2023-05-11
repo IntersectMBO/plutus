@@ -66,6 +66,8 @@ if impl(ghc >= 9.6)
     , hedgehog:*
     , protolude:*
     , th-compat:*
+    -- needs https://github.com/tweag/HaskellR/commit/3cb01da0902ef705d2bd40874fe53333f4949b2f
+    , inline-r:unix
 
   constraints:
     , microlens >= 0.2.0.0
