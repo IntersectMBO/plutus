@@ -42,7 +42,7 @@ Avoid lines over 100 characters. This is codified in `.editorconfig`.
 
 Format Haskell source with `stylish-haskell` (config in `.stylish-haskell.yaml`).
 This is enforced in the pre-commit hook and in CI.
-Formatting with `stylish-haskell` must be idempotent.
+Formatting with `stylish-haskell` must be a no-op.
 
 Type signatures should have the double-colon on the same line as the name, separated by one space.
 
