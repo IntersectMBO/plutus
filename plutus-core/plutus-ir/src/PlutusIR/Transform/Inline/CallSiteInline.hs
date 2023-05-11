@@ -79,6 +79,17 @@ reduction), and inline only if it does not increase the size. In the above examp
 the number of AST nodes in `f a b` and in `a`. The latter is smaller, which means inlining
 reduces the size.
 
+The number of AST nodes is an approximate rather than a precise measure. It correlates,
+but doesn't directly map to the size of the serialised script. Different kinds of AST nodes
+may take different number of bits to encode; in particular, a `Constant` node always
+counts as one AST node, but the constant in it can be of arbitrary size. Then, would it be
+better to use the size of the serialised term, instead of the number of AST nodes? Not
+necessarily, because other transformations, such as CSE, may change the size further;
+specifically, if a large constant occurs multiple times in a program, it may get CSE'd.
+
+In general there's no reliable way to precisely predict the size impact of an inlining
+decision, and we believe the number of AST nodes is in fact a good approximation.
+
 For cost, we check whether the RHS (in this example, `\x. \y -> x`) has a small cost.
 If the RHS has a non-zero arity, then the cost is always small (since a lambda or a type
 abstraction is already a value). This may not be the case if the arity is zero.

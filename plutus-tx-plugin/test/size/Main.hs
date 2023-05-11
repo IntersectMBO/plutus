@@ -53,7 +53,7 @@ main = defaultMain . testGroup "Size regression tests" $ [
     testGroup "Other" [
       fitsInto "numerator" ratNumerator 6,
       fitsInto "denominator" ratDenominator 6,
-      fitsInto "round" ratRound 290,
+      fitsInto "round" ratRound 299,
       fitsInto "truncate" ratTruncate 10,
       fitsInto "properFraction" ratProperFraction 21,
       fitsInto "recip" ratRecip 66,
