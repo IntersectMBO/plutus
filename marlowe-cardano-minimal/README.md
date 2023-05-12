@@ -66,3 +66,6 @@ The following files are output:
 - For Marlowe's role-payout valdator
     - Plutus script: `marlowe-rolepayout.plutus`
     - Benchmarking results: `marlowe-rolepayout.tsv`   
+
+
+See [analysis.ipynb](analysis.ipynb) for example plots of the results.

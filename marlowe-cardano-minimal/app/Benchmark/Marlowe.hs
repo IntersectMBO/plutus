@@ -152,8 +152,8 @@ tabulateResults name hash validator benchmarks =
     unExCPU (ExCPU n) = n
     unExMemory (ExMemory n) = n
   in
-    ["Validator", "Script", "TxId"]
-       : ["Measured CPU", "Measured Memory", "Reference CPU", "Reference Memory", "Message"]
+    (["Validator", "Script", "TxId"]
+       <> ["Measured CPU", "Measured Memory", "Reference CPU", "Reference Memory", "Message"])
       : [
           [name, show hash, show txId] <>
             case executeBenchmark validator benchmark of
