@@ -71,6 +71,19 @@ foo ::
   C
 ----
 
+Good:
+[source,Haskell]
+----
+foo ::
+  forall a b c.
+  ( C1 a
+  , C2 b
+  ) =>
+  A ->
+  B ->
+  C
+----
+
 ==== Reasoning
 
 The indentation is arbitrary. The line length is longer than the “traditional” 80 characters, but anecdotally Haskell code tends toward longer lines, and breaking them up doesn’t help readability much.
