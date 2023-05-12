@@ -26,6 +26,7 @@ module PlutusCore.Error
     , AsError (..)
     , throwingEither
     , ShowErrorComponent (..)
+    , ApplyProgramError (..)
     ) where
 
 import PlutusPrelude
@@ -244,3 +245,12 @@ instance (tyname ~ TyName, name ~ Name) =>
 
 instance AsFreeVariableError (Error uni fun ann) where
     _FreeVariableError = _FreeVariableErrorE
+
+-- | Errors from `applyProgram` for PIR, PLC, UPLC.
+data ApplyProgramError =
+    MkApplyProgramError Version Version
+
+instance Show ApplyProgramError where
+    show (MkApplyProgramError v1 v2) =
+        "The first program has version " <> show v1
+            <> " but the second program has version " <> show v2

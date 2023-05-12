@@ -67,7 +67,7 @@ applyCode
     -> CompiledCodeIn uni fun a
     -> Either String (CompiledCodeIn uni fun b)
 applyCode fun arg = do
-  uplc <- UPLC.applyProgram (getPlc fun) (getPlc arg)
+  let uplc = PLC.getAppliedProgram $ UPLC.applyProgram (getPlc fun) (getPlc arg)
   -- Probably this could be done with more appropriate combinators, but the
   -- nested Maybes make it very easy to do the wrong thing here (I did it
   -- wrong first!), so I wrote it painfully explicitly.
@@ -75,7 +75,7 @@ applyCode fun arg = do
     (Just funPir, Just argPir) -> case PIR.applyProgram funPir argPir of
         Right appliedPir -> pure (Just appliedPir)
         -- Had PIR for both, but failed to apply them, this should fail
-        Left err         -> Left err
+        Left err         -> Left $ show err
     -- Missing PIR for one or both, this succeeds but has no PIR
     (Just funPir, Nothing) ->
         Left $ "Missing PIR for the argument."

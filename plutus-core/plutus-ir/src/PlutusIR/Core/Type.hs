@@ -45,6 +45,7 @@ import PlutusCore.Name qualified as PLC
 
 import Data.Text qualified as T
 import Data.Word
+import PlutusCore.Error (ApplyProgramError (MkApplyProgramError))
 
 -- Datatypes
 
@@ -187,12 +188,11 @@ applyProgram
     :: Semigroup a
     => Program tyname name uni fun a
     -> Program tyname name uni fun a
-    -> Either String (Program tyname name uni fun a)
+    -> Either ApplyProgramError (Program tyname name uni fun a)
 applyProgram (Program a1 v1 t1) (Program a2 v2 t2) | v1 == v2
   =  Right $ Program (a1 <> a2) v1 (Apply (termAnn t1 <> termAnn t2) t1 t2)
 applyProgram (Program _a1 v1 _t1) (Program _a2 v2 _t2) =
-    Left $ "The first program has version " <> show v1
-      <> " but the second program has version " <> show v2
+    Left $ MkApplyProgramError v1 v2
 
 termAnn :: Term tyname name uni fun a -> a
 termAnn = \case

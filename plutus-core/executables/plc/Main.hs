@@ -116,8 +116,7 @@ runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
         case map (\case p -> () <$ p) scripts of
           []          -> errorWithoutStackTrace "No input files"
           progAndargs ->
-            foldl1 (fromRight (error "applyProgram: cannot apply programs with different versions.")
-              .* PLC.applyProgram) progAndargs
+            foldl1 (PLC.getAppliedProgram .* PLC.applyProgram) progAndargs
   writeProgram outp ofmt mode appliedScript
 
 ---------------- Typechecking ----------------
