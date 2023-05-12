@@ -1,15 +1,30 @@
 
+-----------------------------------------------------------------------------
+--
+-- Module      :  $Headers
+-- License     :  Apache 2.0
+--
+-- Stability   :  Experimental
+-- Portability :  Portable
+--
+-- | Utility functions for creating script contexts.
+--
+-----------------------------------------------------------------------------
+
+
 {-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE RecordWildCards     #-}
 
 
 module Benchmark.Marlowe.Util (
+  -- * Conversion
   lovelace
 , makeInput
 , makeOutput
 , makeRedeemerMap
 , makeDatumMap
 , makeBuiltinData
+  -- * Rewriting
 , updateScriptHash
 ) where
 
@@ -26,12 +41,14 @@ import Data.ByteString.Lazy qualified as LBS (fromStrict)
 import PlutusTx.AssocMap qualified as AM (Map, singleton)
 
 
+-- | Integer to lovelace.
 lovelace
   :: Integer
   -> Value
 lovelace = singleton adaSymbol adaToken
 
 
+-- Construct a `TxInInfo`.
 makeInput
   :: TxId
   -> Integer
@@ -46,6 +63,7 @@ makeInput txId txIx credential value datum script =
     (makeOutput credential value datum script)
 
 
+-- Construct a `TxOut`.
 makeOutput
   :: Credential
   -> Value
@@ -57,6 +75,7 @@ makeOutput credential value =
     . maybe NoOutputDatum OutputDatumHash
 
 
+-- Construct a map of redemers.
 makeRedeemerMap
   :: ScriptPurpose
   -> LedgerBytes
@@ -64,6 +83,7 @@ makeRedeemerMap
 makeRedeemerMap = (. (Redeemer . makeBuiltinData)) . AM.singleton
 
 
+-- Construct a map of datum hashes to datums.
 makeDatumMap
   :: DatumHash
   -> LedgerBytes
@@ -71,6 +91,7 @@ makeDatumMap
 makeDatumMap = (. (Datum . makeBuiltinData)) . AM.singleton
 
 
+-- Convert ledger bytes to builtin data.
 makeBuiltinData
   :: LedgerBytes
   -> BuiltinData
@@ -82,6 +103,7 @@ makeBuiltinData =
     . getLedgerBytes
 
 
+-- Rewrite all of a particular script hash in the script context.
 updateScriptHash
   :: ScriptHash
   -> ScriptHash

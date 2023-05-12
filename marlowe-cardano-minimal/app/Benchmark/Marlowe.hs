@@ -1,10 +1,24 @@
 
+-----------------------------------------------------------------------------
+--
+-- Module      :  $Headers
+-- License     :  Apache 2.0
+--
+-- Stability   :  Experimental
+-- Portability :  Portable
+--
+-- | Benchmarking support for Marlowe's validators.
+--
+-----------------------------------------------------------------------------
+
+
 {-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RecordWildCards     #-}
 
 
 module Benchmark.Marlowe (
+  -- * Benchmarking
   executeBenchmark
 , evaluationContext
 , readBenchmark
@@ -38,10 +52,11 @@ import Data.ByteString.Lazy qualified as LBS (readFile)
 import Data.Map qualified as M (elems)
 
 
+-- | Run a benchmark case.
 executeBenchmark
-  :: SerialisedScript
-  -> Benchmark
-  -> Either String (LogOutput, Either EvaluationError ExBudget)
+  :: SerialisedScript  -- ^ The serialised validator.
+  -> Benchmark  -- ^ The benchmarking case.
+  -> Either String (LogOutput, Either EvaluationError ExBudget)  -- ^ An error or the cost.
 executeBenchmark serialisedValidator Benchmark{..} =
   case evaluationContext of
    Left message -> Left message
@@ -51,6 +66,7 @@ executeBenchmark serialisedValidator Benchmark{..} =
         [bDatum, bRedeemer, toData bScriptContext]
 
 
+-- | The execution context for benchmarking.
 evaluationContext :: Either String EvaluationContext
 evaluationContext =
   let
@@ -63,6 +79,7 @@ evaluationContext =
     bimap show fst . runExcept . runWriterT $ mkEvaluationContext costModel
 
 
+-- | Read all of the benchmarking cases for a particular validator.
 readBenchmarks
   :: FilePath
   -> IO (Either String [Benchmark])
@@ -73,6 +90,7 @@ readBenchmarks subfolder =
     sequence <$> mapM readBenchmark files
 
 
+-- | Read a benchmarking file.
 readBenchmark
   :: FilePath
   -> IO (Either String Benchmark)
@@ -92,6 +110,7 @@ readBenchmark filename =
         _ -> Left "Failed deserializing benchmark file."
 
 
+-- | Print a benchmarking case.
 printBenchmark
   :: Benchmark
   -> IO ()
@@ -107,10 +126,11 @@ printBenchmark Benchmark{..} =
     print bReferenceCost
 
 
+-- | Run and print the results of benchmarking.
 printResult
-  :: SerialisedScript
-  -> Benchmark
-  -> IO ()
+  :: SerialisedScript  -- ^ The serialised validator.
+  -> Benchmark  -- ^ The benchmarking case.
+  -> IO ()  -- ^ The action to run and print the results.
 printResult validator benchmark =
   case executeBenchmark validator benchmark of
     Right (_, Right budget) ->
@@ -119,12 +139,13 @@ printResult validator benchmark =
     Left msg -> print msg
 
 
+-- | Run multiple benchmarks and organize their results in a table.
 tabulateResults
-  :: String
-  -> ScriptHash
-  -> SerialisedScript
-  -> [Benchmark]
-  -> [[String]]
+  :: String  -- ^ The name of the validator.
+  -> ScriptHash  -- ^ The hash of the validator script.
+  -> SerialisedScript  -- ^ The serialisation of the validator script.
+  -> [Benchmark]  -- ^ The benchmarking results.
+  -> [[String]]  -- ^ A table of results, with a header in the first line.
 tabulateResults name hash validator benchmarks =
   let
     na = "NA"

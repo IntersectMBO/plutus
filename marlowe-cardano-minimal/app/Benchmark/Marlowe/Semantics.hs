@@ -1,12 +1,27 @@
 
 -- editorconfig-checker-disable-file
 
+
+-----------------------------------------------------------------------------
+--
+-- Module      :  $Headers
+-- License     :  Apache 2.0
+--
+-- Stability   :  Experimental
+-- Portability :  Portable
+--
+-- | Benchmarking support for Marlowe's semantics validator.
+--
+-----------------------------------------------------------------------------
+
+
 {-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RecordWildCards     #-}
 
 
 module Benchmark.Marlowe.Semantics (
+  -- * Benchmarking
   benchmarks
 , validatorBytes
 , validatorHash
@@ -31,14 +46,17 @@ import PlutusLedgerApi.V2 (Credential (PubKeyCredential, ScriptCredential), ExBu
 import PlutusTx.AssocMap qualified as AM (empty)
 
 
+-- | The serialised Marlowe semantics validator.
 validatorBytes :: SerialisedScript
 validatorBytes = marloweValidatorBytes
 
 
+-- | The script hash for the Marlowe semantics validator.
 validatorHash :: ScriptHash
 validatorHash = marloweValidatorHash
 
 
+-- | The benchmark cases for the Marlowe semantics validator.
 benchmarks :: IO (Either String [Benchmark])
 benchmarks =
   let
@@ -57,6 +75,7 @@ benchmarks =
     second (update <$>) <$> readBenchmarks "semantics"
 
 
+-- | An example benchmark for the Marlowe semantics validator.
 exampleBenchmark :: Benchmark
 exampleBenchmark =
   let

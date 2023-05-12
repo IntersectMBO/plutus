@@ -23,13 +23,46 @@ See [CONTRIBUTING.md](https://github.com/input-output-hk/plutus/blob/master/CONT
 
 Of the most common Marlowe transactions, input application transactions are the most relevant, as they are complex and can go over the execution limits at times. So there is a priority on examining those contracts.
 
+
 ## Managing versions
+
+
 ### Versioning of this package 
 
 Note that the off-chain code is evolving. However the on-chain code is very stable and is compatible with GHC 8.10.7. For best benchmarking results, eventually we may have to update some of these files by hand if the on chain code is updated. (We don't want to depend on the Marlowe repository because this will have the problem of circular dependency.)
+
 
 ### Script versions
 
 The production version of Marlowe currently uses (PlutusV2, vasilPV, plcVersion100 or 1.0.0). We should use the same combination in the benchmarking.
 
 For documentation on Plutus vs PLC vs protocol version, see [here](https://github.com/input-output-hk/plutus/blob/master/plutus-ledger-api/src/PlutusLedgerApi/Common/Versions.hs)
+
+
+## Running the benchmarks
+
+The application serialises the two Marlowe validator scripts, computes their hashes, and runs all of the benchmarks, storing the results in a pair of tab-separated-value files.
+
+```bash
+cabal run exe:marlowe-validators
+```
+
+```console
+Semantics:
+  Validator hash: 626424dba5741cb1f0a3cab8643da59ffccba351495c4257f9ec3689
+  Validator file: marlowe-semantics.plutus
+  Measurements file: marlowe-semantics.tsv
+
+Role payout:
+  Validator hash: fb5a52cc79da601eff8901272d3115444c1cd1ae82dd42caeee7346b
+  Validator file: marlowe-rolepayout.plutus
+  Measurements file: marlowe-rolepayout.tsv
+```
+
+The following files are output:
+- For Marlowe's semantics valdator
+    - Plutus script: `marlowe-semantics.plutus`
+    - Benchmarking results: `marlowe-semantics.tsv`   
+- For Marlowe's role-payout valdator
+    - Plutus script: `marlowe-rolepayout.plutus`
+    - Benchmarking results: `marlowe-rolepayout.tsv`   

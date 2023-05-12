@@ -1,9 +1,23 @@
 
+-----------------------------------------------------------------------------
+--
+-- Module      :  $Headers
+-- License     :  Apache 2.0
+--
+-- Stability   :  Experimental
+-- Portability :  Portable
+--
+-- | Run benchmarks for Marlowe validators.
+--
+-----------------------------------------------------------------------------
+
+
 {-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE OverloadedStrings   #-}
 
 
 module Main (
+  -- * Entry point
   main
 ) where
 
@@ -21,6 +35,7 @@ import Data.ByteString qualified as BS (writeFile)
 import Data.ByteString.Base16 qualified as B16 (encode)
 
 
+-- | Run the benchmarks and export information about the validators and the benchmarking results.
 main :: IO ()
 main =
   do
@@ -48,12 +63,13 @@ main =
       RolePayout.validatorBytes
 
 
+-- | Print information about a validator.
 printValidator
-  :: String
-  -> FilePath
-  -> ScriptHash
-  -> SerialisedScript
-  -> IO ()
+  :: String  -- ^ The name of the validator.
+  -> FilePath  -- ^ The base file path for exported files.
+  -> ScriptHash  -- ^ The hash of the validator script.
+  -> SerialisedScript  -- ^ The serialised validator.
+  -> IO ()  -- ^ Action to print the information about the benchmarking, and write the files.
 printValidator name file hash validator =
   do
     putStrLn $ name <> ":"

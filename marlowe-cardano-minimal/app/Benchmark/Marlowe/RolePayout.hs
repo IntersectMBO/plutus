@@ -1,10 +1,24 @@
 
+-----------------------------------------------------------------------------
+--
+-- Module      :  $Headers
+-- License     :  Apache 2.0
+--
+-- Stability   :  Experimental
+-- Portability :  Portable
+--
+-- | Benchmarking support for Marlowe's role-payout validator.
+--
+-----------------------------------------------------------------------------
+
+
 {-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RecordWildCards     #-}
 
 
 module Benchmark.Marlowe.RolePayout (
+  -- * Benchmarking
   benchmarks
 , validatorBytes
 , validatorHash
@@ -24,17 +38,20 @@ import PlutusLedgerApi.V2 (Credential (PubKeyCredential, ScriptCredential), ExBu
                            ScriptHash, ScriptPurpose (Spending), SerialisedScript, TxInfo (..),
                            TxOutRef (TxOutRef), UpperBound (UpperBound), singleton)
 
-import PlutusTx.AssocMap qualified as AM
+import PlutusTx.AssocMap qualified as AM (empty)
 
 
+-- | The serialised Marlowe role-payout validator.
 validatorBytes :: SerialisedScript
 validatorBytes = rolePayoutValidatorBytes
 
 
+-- | The hash for the Marlowe role-payout validator.
 validatorHash :: ScriptHash
 validatorHash = rolePayoutValidatorHash
 
 
+-- | The benchmark cases for the Marlowe role-payout validator.
 benchmarks :: IO (Either String [Benchmark])
 benchmarks =
   let
@@ -50,6 +67,7 @@ benchmarks =
     second (update <$>) <$> readBenchmarks "rolepayout"
 
 
+-- | An example benchmark for the Marlowe role-payout validator.
 exampleBenchmark :: Benchmark
 exampleBenchmark =
   let
