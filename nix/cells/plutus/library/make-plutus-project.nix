@@ -33,8 +33,8 @@ let
     inputMap = { "https://input-output-hk.github.io/cardano-haskell-packages" = inputs.CHaP; };
     # No source-repository-packages right now
     sha256map = {
-      "https://github.com/input-output-hk/cardano-base"."611f70d3058a641410f7e17436ac46ee4abaaf3b" =
-        "sha256-rhcHYnYo2hVEf/A+QAfVgoXlZLcZMwX5pmmQPeu4m78=";
+      "https://github.com/input-output-hk/cardano-base"."a2e094985e1a3d6d9fedff5c2e01047c7dc762ed" =
+        "sha256-zILzvvBQZlPRyFrwQDlbZjdBCEpJqhfnVpTTJOJd9hg=";
     };
 
     # TODO: move this into the cabal.project using the new conditional support?

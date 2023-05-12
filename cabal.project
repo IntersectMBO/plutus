@@ -16,12 +16,13 @@ repository cardano-haskell-packages
 -- you get "error: ... attribute missing" if you forget to do this.
 
 -- FIXME: delete this when the version in CHaP is updated.
+--        We need 2.2.0.0, which hasn't been released yet (2023-05-12)
 source-repository-package
     type: git
     location: https://github.com/input-output-hk/cardano-base
-    tag: 611f70d3058a641410f7e17436ac46ee4abaaf3b
-    subdir: cardano-crypto-class
-    
+    tag: a2e094985e1a3d6d9fedff5c2e01047c7dc762ed
+    subdir: cardano-crypto-class cardano-mempool
+
 -- See CONTRIBUTING for some Nix commands you will need to run if you
 -- update either of these.
 
