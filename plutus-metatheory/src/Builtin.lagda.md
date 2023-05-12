@@ -494,6 +494,7 @@ postulate
 
 -- no binding needed for appendStr
 -- no binding needed for traceStr
+```
 
 Equality of Builtins is decidable.
 The following function is used for testing, when

@@ -67,12 +67,12 @@ eraseVar (S α) = just (eraseVar α)
 eraseVar (T α) = eraseVar α
 
 eraseTC : ∀{Φ}{Γ : Ctx Φ}{A : Φ ⊢Nf⋆ *} → AC.TyTermCon A → TmCon
-eraseTC (AC.tmInteger i)              = tmCon integer i
-eraseTC (AC.tmBytestring b)           = tmCon bytestring b
-eraseTC (AC.tmString s)               = tmCon string s
-eraseTC (AC.tmBool b)                 = tmCon bool b
-eraseTC AC.tmUnit                     = tmCon unit tt
-eraseTC (AC.tmData d)                 = tmCon pdata d
+eraseTC (AC.tmInteger i)              = tmCon (con integer) i
+eraseTC (AC.tmBytestring b)           = tmCon (con bytestring) b
+eraseTC (AC.tmString s)               = tmCon (con string) s
+eraseTC (AC.tmBool b)                 = tmCon (con bool) b
+eraseTC AC.tmUnit                     = tmCon (con unit) tt
+eraseTC (AC.tmData d)                 = tmCon (con pdata) d
 eraseTC (AC.tmInteger i)              = tmCon (con integer)  i
 eraseTC (AC.tmBytestring b)           = tmCon (con bytestring) b
 eraseTC (AC.tmString s)               = tmCon (con string) s

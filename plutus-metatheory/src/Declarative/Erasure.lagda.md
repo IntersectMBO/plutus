@@ -63,9 +63,9 @@ eraseTC (tmString s)               = tmCon (con string) s
 eraseTC (tmBool b)                 = tmCon (con bool) b 
 eraseTC tmUnit                     = tmCon (con unit) tt
 eraseTC (tmData d)                 = tmCon (con pdata) d
-eraseTC (tmBls12-381-g1-element e) = tmCon (con bls12-381-g1-element e)
-eraseTC (tmBls12-381-g2-element e) = tmCon (con bls12-381-g2-element e)
-eraseTC (tmBls12-381-mlresult r)   = tmCon (con bls12-381-mlresult r)
+eraseTC (tmBls12-381-g1-element e) = tmCon (con bls12-381-g1-element) e
+eraseTC (tmBls12-381-g2-element e) = tmCon (con bls12-381-g2-element) e 
+eraseTC (tmBls12-381-mlresult r)   = tmCon (con bls12-381-mlresult) r
 
 erase : ∀{Φ Γ}{A : Φ ⊢⋆ *} → Γ ⊢ A → len Γ ⊢
 

@@ -251,9 +251,9 @@ tyTag2Tag (con (T.pair t u)) with tyTag2Tag t | tyTag2Tag u
 ... | A ,, a | B ,, b = A × B ,, pair a b
 tyTag2Tag (con (T.list t)) with tyTag2Tag t 
 ... | A ,, a = (List A) ,, (list a)
-tyTag2Tag bls12-381-g1-element = Bls12-381-G1-Element ,, bls12-381-g1-element
-tyTag2Tag bls12-381-g2-element = Bls12-381-G2-Element ,, bls12-381-g2-element
-tyTag2Tag bls12-381-mlresult = Bls12-381-MlResult ,, bls12-381-mlresult
+tyTag2Tag (con T.bls12-381-g1-element) = Bls12-381-G1-Element ,, bls12-381-g1-element
+tyTag2Tag (con T.bls12-381-g2-element) = Bls12-381-G2-Element ,, bls12-381-g2-element
+tyTag2Tag (con T.bls12-381-mlresult) = Bls12-381-MlResult ,, bls12-381-mlresult
 
 tyTagLemma : (t : TyTag) → ⟦ t ⟧tag ≡ proj₁ (tyTag2Tag t)
 tyTagLemma (con T.integer) = refl
