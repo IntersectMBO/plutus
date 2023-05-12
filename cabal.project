@@ -17,10 +17,11 @@ repository cardano-haskell-packages
 
 -- FIXME: delete this when the version in CHaP is updated.
 --        We need 2.2.0.0, which hasn't been released yet (2023-05-12)
+--        Temporarily use commit from: https://github.com/input-output-hk/cardano-base/pull/412
 source-repository-package
     type: git
     location: https://github.com/input-output-hk/cardano-base
-    tag: a2e094985e1a3d6d9fedff5c2e01047c7dc762ed
+    tag: dfe9145d6d53a39cf43e37285b320e91dc3d5860
     subdir: cardano-crypto-class cardano-mempool
 
 -- See CONTRIBUTING for some Nix commands you will need to run if you
