@@ -1,21 +1,29 @@
 
 {-# LANGUAGE ImportQualifiedPost #-}
+{-# LANGUAGE RecordWildCards     #-}
 
 
-module Benchmark.Marlowe.Util
-where
+module Benchmark.Marlowe.Util (
+  lovelace
+, makeInput
+, makeOutput
+, makeRedeemerMap
+, makeDatumMap
+, makeBuiltinData
+, updateScriptHash
+) where
 
 
 import Codec.Serialise (deserialise)
-import PlutusLedgerApi.V2 (Address (Address), BuiltinData, Credential, Datum (Datum), DatumHash,
-                           LedgerBytes (getLedgerBytes),
+import PlutusLedgerApi.V2 (Address (Address), BuiltinData, Credential (..), Datum (Datum),
+                           DatumHash, LedgerBytes (getLedgerBytes),
                            OutputDatum (NoOutputDatum, OutputDatumHash), Redeemer (Redeemer),
-                           ScriptHash, ScriptPurpose, TxId, TxInInfo (TxInInfo), TxOut (TxOut),
-                           TxOutRef (TxOutRef), Value, adaSymbol, adaToken, dataToBuiltinData,
-                           fromBuiltin, singleton)
+                           ScriptContext (..), ScriptHash, ScriptPurpose, TxId, TxInInfo (..),
+                           TxInfo (..), TxOut (..), TxOutRef (TxOutRef), Value, adaSymbol, adaToken,
+                           dataToBuiltinData, fromBuiltin, singleton)
 
-import Data.ByteString.Lazy qualified as LBS
-import PlutusTx.AssocMap qualified as AM
+import Data.ByteString.Lazy qualified as LBS (fromStrict)
+import PlutusTx.AssocMap qualified as AM (Map, singleton)
 
 
 lovelace
@@ -72,3 +80,31 @@ makeBuiltinData =
     . LBS.fromStrict
     . fromBuiltin
     . getLedgerBytes
+
+
+updateScriptHash
+  :: ScriptHash
+  -> ScriptHash
+  -> ScriptContext
+  -> ScriptContext
+updateScriptHash oldHash newHash scriptContext =
+  let
+    updateAddress address@(Address (ScriptCredential hash) stakeCredential)
+      | hash == oldHash = Address (ScriptCredential newHash) stakeCredential
+      | otherwise = address
+    updateAddress address = address
+    updateTxOut txOut@TxOut{..} = txOut {txOutAddress = updateAddress txOutAddress}
+    updateTxInInfo txInInfo@TxInInfo{..} =
+      txInInfo {txInInfoResolved = updateTxOut txInInfoResolved}
+    txInfo@TxInfo{..} = scriptContextTxInfo scriptContext
+    txInfo' =
+      txInfo
+      {
+        txInfoInputs = updateTxInInfo <$> txInfoInputs
+      , txInfoOutputs = updateTxOut <$> txInfoOutputs
+      }
+  in
+    scriptContext
+    {
+      scriptContextTxInfo = txInfo'
+    }
