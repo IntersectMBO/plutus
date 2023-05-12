@@ -398,15 +398,12 @@ executable bls-costs
   main-is:          Main.hs
   hs-source-dirs:   bls-benchmarks/exe
   build-depends:
-    , base                  >=4.9 && <5
+    , base          >=4.9 && <5
     , bls-internal
     , bytestring
-    , cardano-crypto-class
     , flat
-    , hedgehog
-    , plutus-core           ^>=1.6
-    , plutus-tx             ^>=1.6
-    , plutus-tx-plugin      ^>=1.6
+    , plutus-core   ^>=1.6
+    , plutus-tx     ^>=1.6
 
 -- Run benchmarks for various scripts involving BLS12_381 operations
 benchmark bls-benchmarks
