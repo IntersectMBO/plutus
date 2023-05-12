@@ -68,9 +68,9 @@ listOfSizedByteStrings n l = unsafePerformIO . G.sample $
 hashAndAddG1 :: [BuiltinByteString] -> BuiltinBLS12_381_G1_Element
 hashAndAddG1 [] = error ()
 hashAndAddG1 (p:ps) =
-    go ps (Tx.bls12_381_G1_hashToGroup p)
+    go ps (Tx.bls12_381_G1_hashToGroup p emptyByteString)
     where go [] acc     = acc
-          go (q:qs) acc = go qs $ Tx.bls12_381_G1_add (Tx.bls12_381_G1_hashToGroup q) acc
+          go (q:qs) acc = go qs $ Tx.bls12_381_G1_add (Tx.bls12_381_G1_hashToGroup q emptyByteString) acc
 
 mkHashAndAddG1Script :: [ByteString] -> UProg
 mkHashAndAddG1Script l =
@@ -82,9 +82,9 @@ mkHashAndAddG1Script l =
 hashAndAddG2 :: [BuiltinByteString] -> BuiltinBLS12_381_G2_Element
 hashAndAddG2 [] = error ()
 hashAndAddG2 (p:ps) =
-    go ps (Tx.bls12_381_G2_hashToGroup p)
+    go ps (Tx.bls12_381_G2_hashToGroup p emptyByteString)
     where go [] acc     = acc
-          go (q:qs) acc = go qs $ Tx.bls12_381_G2_add (Tx.bls12_381_G2_hashToGroup q) acc
+          go (q:qs) acc = go qs $ Tx.bls12_381_G2_add (Tx.bls12_381_G2_hashToGroup q emptyByteString) acc
 
 mkHashAndAddG2Script :: [ByteString] -> UProg
 mkHashAndAddG2Script l =
@@ -102,7 +102,8 @@ uncompressAndAddG1 (p:ps) =
 
 mkUncompressAndAddG1Script :: [ByteString] -> UProg
 mkUncompressAndAddG1Script l =
-    let points = map (Tx.bls12_381_G1_compress . Tx.bls12_381_G1_hashToGroup . toBuiltin) l
+    let ramdomPoint bs = Tx.bls12_381_G1_hashToGroup bs emptyByteString
+        points = map (Tx.bls12_381_G1_compress . ramdomPoint . toBuiltin) l
     in Tx.getPlcNoAnn $ $$(Tx.compile [|| uncompressAndAddG1 ||]) `Tx.unsafeApplyCode` Tx.liftCodeDef points
 
 -- Uncompress a list of compressed G1 points and add them all together
@@ -116,7 +117,8 @@ uncompressAndAddG2 (p:ps) =
 
 mkUncompressAndAddG2Script :: [ByteString] -> UProg
 mkUncompressAndAddG2Script l =
-    let points = map (Tx.bls12_381_G2_compress . Tx.bls12_381_G2_hashToGroup . toBuiltin) l
+    let ramdomPoint bs = Tx.bls12_381_G2_hashToGroup bs emptyByteString
+        points = map (Tx.bls12_381_G2_compress . ramdomPoint . toBuiltin) l
     in Tx.getPlcNoAnn $ $$(Tx.compile [|| uncompressAndAddG2 ||]) `Tx.unsafeApplyCode` Tx.liftCodeDef points
 
 -- Pairing operations

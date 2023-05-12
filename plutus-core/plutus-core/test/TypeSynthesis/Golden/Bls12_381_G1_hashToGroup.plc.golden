@@ -1,1 +1,1 @@
-(fun (con bytestring) (con bls12_381_G1_element))
+(fun (con bytestring) (fun (con bytestring) (con bls12_381_G1_element)))

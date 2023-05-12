@@ -1,5 +1,6 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE GADTs               #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE PolyKinds           #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeOperators       #-}
@@ -159,10 +160,18 @@ genConstr depth =
             (genData (depth - 1))
 
 genBls12_381_G1_Element :: Gen BLS12_381.G1.Element
-genBls12_381_G1_Element = BLS12_381.G1.hashToGroup <$> genByteString
+genBls12_381_G1_Element =
+  BLS12_381.G1.hashToGroup <$> genByteString <*> pure BS.empty >>= \case
+  -- We should only get a failure if the second argument is greater than 255 bytes, which it isn't.
+       Left err -> fail $ show err  -- This should never happen
+       Right p  -> pure p
 
 genBls12_381_G2_Element :: Gen BLS12_381.G2.Element
-genBls12_381_G2_Element = BLS12_381.G2.hashToGroup <$> genByteString
+genBls12_381_G2_Element =
+  BLS12_381.G2.hashToGroup <$> genByteString <*> pure BS.empty >>= \case
+  -- We should only get a failure if the second argument is greater than 255 bytes, which it isn't.
+       Left err -> fail $ show err
+       Right p  -> pure p
 
 genBls12_381_MlResult :: Gen BLS12_381.Pairing.MlResult
 genBls12_381_MlResult = do

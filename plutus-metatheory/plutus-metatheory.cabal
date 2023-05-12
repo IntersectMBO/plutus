@@ -54,6 +54,7 @@ library
   build-depends:
     , base
     , bytestring
+    , composition-prelude
     , cryptonite
     , extra
     , ieee754

@@ -169,12 +169,12 @@ createBuiltinCostModel bmfile rfile = do
     paramLessThanByteString              <- getParams lessThanByteString        paramLessThanByteString
     paramLessThanEqualsByteString        <- getParams lessThanEqualsByteString  paramLessThanEqualsByteString
     -- Cryptography and hashes
-    paramSha2_256                        <- getParams sha2_256                        paramSha2_256
-    paramSha3_256                        <- getParams sha3_256                        paramSha3_256
-    paramBlake2b_256                     <- getParams blake2b_256                     paramBlake2b_256
-    paramVerifyEd25519Signature          <- getParams verifyEd25519Signature          paramVerifyEd25519Signature
-    paramVerifyEcdsaSecp256k1Signature   <- getParams verifyEcdsaSecp256k1Signature   paramVerifyEcdsaSecp256k1Signature
-    paramVerifySchnorrSecp256k1Signature <- getParams verifySchnorrSecp256k1Signature paramVerifySchnorrSecp256k1Signature
+    paramSha2_256                        <- getParams sha2_256                         paramSha2_256
+    paramSha3_256                        <- getParams sha3_256                         paramSha3_256
+    paramBlake2b_256                     <- getParams blake2b_256                      paramBlake2b_256
+    paramVerifyEd25519Signature          <- getParams verifyEd25519Signature           paramVerifyEd25519Signature
+    paramVerifyEcdsaSecp256k1Signature   <- getParams verifyEcdsaSecp256k1Signature    paramVerifyEcdsaSecp256k1Signature
+    paramVerifySchnorrSecp256k1Signature <- getParams verifySchnorrSecp256k1Signature  paramVerifySchnorrSecp256k1Signature
     -- Strings
     paramAppendString                    <- getParams appendString  paramAppendString
     paramEqualsString                    <- getParams equalsString  paramEqualsString
@@ -213,24 +213,24 @@ createBuiltinCostModel bmfile rfile = do
     paramMkPairData                      <- getParams mkPairData     paramMkPairData
     paramMkNilData                       <- getParams mkNilData      paramMkNilData
     paramMkNilPairData                   <- getParams mkNilPairData  paramMkNilPairData
-
-    paramBls12_381_G1_add            <- getParams bls12_381_G1_add         paramBls12_381_G1_add
-    paramBls12_381_G1_neg            <- getParams bls12_381_G1_neg         paramBls12_381_G1_neg
-    paramBls12_381_G1_scalarMul      <- getParams bls12_381_G1_scalarMul   paramBls12_381_G1_scalarMul
-    paramBls12_381_G1_equal          <- getParams bls12_381_G1_equal       paramBls12_381_G1_equal
-    paramBls12_381_G1_compress       <- getParams bls12_381_G1_compress    paramBls12_381_G1_compress
-    paramBls12_381_G1_uncompress     <- getParams bls12_381_G1_uncompress  paramBls12_381_G1_uncompress
-    paramBls12_381_G1_hashToGroup    <- getParams bls12_381_G1_hashToGroup paramBls12_381_G1_hashToGroup
-    paramBls12_381_G2_add            <- getParams bls12_381_G2_add         paramBls12_381_G2_add
-    paramBls12_381_G2_neg            <- getParams bls12_381_G2_neg         paramBls12_381_G2_neg
-    paramBls12_381_G2_scalarMul      <- getParams bls12_381_G2_scalarMul   paramBls12_381_G2_scalarMul
-    paramBls12_381_G2_equal          <- getParams bls12_381_G2_equal       paramBls12_381_G2_equal
-    paramBls12_381_G2_compress       <- getParams bls12_381_G2_compress    paramBls12_381_G2_compress
-    paramBls12_381_G2_uncompress     <- getParams bls12_381_G2_uncompress  paramBls12_381_G2_uncompress
-    paramBls12_381_G2_hashToGroup    <- getParams bls12_381_G2_hashToGroup paramBls12_381_G2_hashToGroup
-    paramBls12_381_millerLoop        <- getParams bls12_381_millerLoop     paramBls12_381_millerLoop
-    paramBls12_381_mulMlResult       <- getParams bls12_381_mulMlResult    paramBls12_381_mulMlResult
-    paramBls12_381_finalVerify       <- getParams bls12_381_finalVerify    paramBls12_381_finalVerify
+    -- BLS12-381
+    paramBls12_381_G1_add                <- getParams bls12_381_G1_add          paramBls12_381_G1_add
+    paramBls12_381_G1_neg                <- getParams bls12_381_G1_neg          paramBls12_381_G1_neg
+    paramBls12_381_G1_scalarMul          <- getParams bls12_381_G1_scalarMul    paramBls12_381_G1_scalarMul
+    paramBls12_381_G1_equal              <- getParams bls12_381_G1_equal        paramBls12_381_G1_equal
+    paramBls12_381_G1_compress           <- getParams bls12_381_G1_compress     paramBls12_381_G1_compress
+    paramBls12_381_G1_uncompress         <- getParams bls12_381_G1_uncompress   paramBls12_381_G1_uncompress
+    paramBls12_381_G1_hashToGroup        <- getParams bls12_381_G1_hashToGroup  paramBls12_381_G1_hashToGroup
+    paramBls12_381_G2_add                <- getParams bls12_381_G2_add          paramBls12_381_G2_add
+    paramBls12_381_G2_neg                <- getParams bls12_381_G2_neg          paramBls12_381_G2_neg
+    paramBls12_381_G2_scalarMul          <- getParams bls12_381_G2_scalarMul    paramBls12_381_G2_scalarMul
+    paramBls12_381_G2_equal              <- getParams bls12_381_G2_equal        paramBls12_381_G2_equal
+    paramBls12_381_G2_compress           <- getParams bls12_381_G2_compress     paramBls12_381_G2_compress
+    paramBls12_381_G2_uncompress         <- getParams bls12_381_G2_uncompress   paramBls12_381_G2_uncompress
+    paramBls12_381_G2_hashToGroup        <- getParams bls12_381_G2_hashToGroup  paramBls12_381_G2_hashToGroup
+    paramBls12_381_millerLoop            <- getParams bls12_381_millerLoop      paramBls12_381_millerLoop
+    paramBls12_381_mulMlResult           <- getParams bls12_381_mulMlResult     paramBls12_381_mulMlResult
+    paramBls12_381_finalVerify           <- getParams bls12_381_finalVerify     paramBls12_381_finalVerify
 
     pure $ BuiltinCostModelBase {..}
 
@@ -830,10 +830,10 @@ bls12_381_G1_equal cpuModelR = do
     let memModel = boolMemModel
     pure $ CostingFun cpuModel memModel
 
-bls12_381_G1_hashToGroup :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+bls12_381_G1_hashToGroup :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 bls12_381_G1_hashToGroup cpuModelR = do
-    cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
-    let memModel = ModelOneArgumentConstantCost g1MemSize
+    cpuModel <- ModelTwoArgumentsLinearInX <$> readModelLinearInX cpuModelR
+    let memModel = ModelTwoArgumentsConstantCost g1MemSize
     pure $ CostingFun cpuModel memModel
 
 bls12_381_G1_compress :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
@@ -872,10 +872,10 @@ bls12_381_G2_equal cpuModelR = do
     let memModel = boolMemModel
     pure $ CostingFun cpuModel memModel
 
-bls12_381_G2_hashToGroup :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+bls12_381_G2_hashToGroup :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 bls12_381_G2_hashToGroup cpuModelR = do
-    cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
-    let memModel = ModelOneArgumentConstantCost g2MemSize
+    cpuModel <- ModelTwoArgumentsLinearInX <$> readModelLinearInX cpuModelR
+    let memModel = ModelTwoArgumentsConstantCost g2MemSize
     pure $ CostingFun cpuModel memModel
 
 bls12_381_G2_compress :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)

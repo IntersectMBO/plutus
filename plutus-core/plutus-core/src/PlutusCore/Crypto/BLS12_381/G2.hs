@@ -1,5 +1,6 @@
 -- editorconfig-checker-disable
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TypeApplications      #-}
 
 module PlutusCore.Crypto.BLS12_381.G2
@@ -24,8 +25,9 @@ import Text.PrettyBy (PrettyBy, prettyBy)
 
 import Control.DeepSeq (NFData, rnf)
 import Data.Bifunctor (second)
-import Data.ByteString (ByteString, pack)
+import Data.ByteString (ByteString, length, pack)
 import Data.Proxy (Proxy (..))
+import Data.Text (Text)
 import Flat
 import Prettyprinter
 
@@ -81,9 +83,13 @@ compress (Element a) = BlstBindings.blsCompress @BlstBindings.Curve2 a
 uncompress :: ByteString -> Either BlstBindings.BLSTError Element
 uncompress = second Element . BlstBindings.blsUncompress @BlstBindings.Curve2
 
--- Take an arbitrary bytestring and hash it to a get point on the curve;
-hashToGroup :: ByteString -> Element
-hashToGroup s = Element $ BlstBindings.blsHash @BlstBindings.Curve2 s Nothing Nothing
+-- Take an arbitrary bytestring and a Domain Separation Tag and hash them to a
+-- get point in G2.  See Note [Hashing and Domain Separation Tags].
+hashToGroup :: ByteString -> ByteString -> Either Text Element
+hashToGroup msg dst =
+    if Data.ByteString.length dst > 255
+    then Left "G2.hashToGroup: DST more than 255 bytes long"
+    else Right . Element $ BlstBindings.blsHash @BlstBindings.Curve2 msg (Just dst) Nothing
 
 
 -- Utilities (not exposed as builtins)

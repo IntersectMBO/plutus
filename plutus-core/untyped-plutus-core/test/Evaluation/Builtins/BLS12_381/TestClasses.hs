@@ -1,4 +1,5 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE LambdaCase          #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 module Evaluation.Builtins.BLS12_381.TestClasses
@@ -12,7 +13,7 @@ import PlutusCore.Default
 import PlutusCore.Generators.QuickCheck.Builtin (ArbitraryBuiltin)
 import PlutusCore.MkPlc (mkConstant)
 
-import Data.ByteString as BS (ByteString, pack)
+import Data.ByteString as BS (ByteString, empty, pack)
 import Test.QuickCheck (Arbitrary (..))
 
 ---------------- Typeclasses for groups ----------------
@@ -40,7 +41,7 @@ class TestableAbelianGroup a => HashAndCompress a
       compress        :: a -> ByteString
       compressTerm    :: PlcTerm -> PlcTerm
       uncompressTerm  :: PlcTerm -> PlcTerm
-      hashToGroupTerm :: PlcTerm -> PlcTerm
+      hashToGroupTerm :: PlcTerm -> PlcTerm -> PlcTerm
 
 
 {- | Generate an arbitrary element of G1.  It's tricky to construct such an
@@ -50,7 +51,10 @@ class TestableAbelianGroup a => HashAndCompress a
  so we can produce random elements of G1 by hasing random bytestrings. -}
 instance Arbitrary G1.Element
     where
-      arbitrary = G1.hashToGroup <$> arbitrary
+      arbitrary =
+          G1.hashToGroup <$> arbitrary <*> pure BS.empty >>= \case
+            Left err -> error $ "Arbitrary instance for G1.Element:" ++ show err
+            Right p  -> pure p
 
 instance TestableAbelianGroup G1.Element
     where
@@ -68,12 +72,15 @@ instance HashAndCompress G1.Element
       compress        = G1.compress
       compressTerm    = mkApp1 Bls12_381_G1_compress
       uncompressTerm  = mkApp1 Bls12_381_G1_uncompress
-      hashToGroupTerm = mkApp1 Bls12_381_G1_hashToGroup
+      hashToGroupTerm = mkApp2 Bls12_381_G1_hashToGroup
 
 -- | See the comment for the Arbitrary instance for G1.
 instance Arbitrary G2.Element
     where
-      arbitrary = G2.hashToGroup <$> arbitrary
+      arbitrary =
+        G2.hashToGroup <$> arbitrary <*> pure BS.empty >>= \case
+            Left err -> error $ "Arbitrary instance for G2.Element:" ++ show err
+            Right p  -> pure p
 
 instance TestableAbelianGroup G2.Element
     where
@@ -91,5 +98,4 @@ instance HashAndCompress G2.Element
       compress        = G2.compress
       compressTerm    = mkApp1 Bls12_381_G2_compress
       uncompressTerm  = mkApp1 Bls12_381_G2_uncompress
-      hashToGroupTerm = mkApp1 Bls12_381_G2_hashToGroup
-
+      hashToGroupTerm = mkApp2 Bls12_381_G2_hashToGroup

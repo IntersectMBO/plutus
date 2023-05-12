@@ -269,7 +269,9 @@ BUILTIN bls12-381-G1-add (app (app base (V-con (tmBls12-381-g1-element e))) (V-c
 BUILTIN bls12-381-G1-neg (app base (V-con (tmBls12-381-g1-element e))) = inj₂ (V-con (tmBls12-381-g1-element (BLS12-381-G1-neg e)))
 BUILTIN bls12-381-G1-scalarMul (app (app base (V-con (tmInteger i))) (V-con (tmBls12-381-g1-element e))) = inj₂ (V-con (tmBls12-381-g1-element (BLS12-381-G1-scalarMul i e)))
 BUILTIN bls12-381-G1-equal (app (app base (V-con (tmBls12-381-g1-element e))) (V-con (tmBls12-381-g1-element e'))) = inj₂ (V-con (tmBool (BLS12-381-G1-equal e e')))
-BUILTIN bls12-381-G1-hashToGroup (app base (V-con (tmBytestring b))) = inj₂ (V-con (tmBls12-381-g1-element (BLS12-381-G1-hashToGroup b)))
+BUILTIN bls12-381-G1-hashToGroup (app (app base (V-con (tmBytestring msg))) (V-con (tmBytestring dst))) with BLS12-381-G1-hashToGroup msg dst
+... | nothing = inj₁ (con bls12-381-g1-element)
+... | just p  = inj₂ (V-con (tmBls12-381-g1-element p))
 BUILTIN bls12-381-G1-compress (app base (V-con (tmBls12-381-g1-element e))) = inj₂ (V-con (tmBytestring (BLS12-381-G1-compress e)))
 BUILTIN bls12-381-G1-uncompress (app base (V-con (tmBytestring b))) with BLS12-381-G1-uncompress b
 ... | nothing = inj₁ (con bls12-381-g1-element)
@@ -278,7 +280,9 @@ BUILTIN bls12-381-G2-add (app (app base (V-con (tmBls12-381-g2-element e))) (V-c
 BUILTIN bls12-381-G2-neg (app base (V-con (tmBls12-381-g2-element e))) = inj₂ (V-con (tmBls12-381-g2-element (BLS12-381-G2-neg e)))
 BUILTIN bls12-381-G2-scalarMul (app (app base (V-con (tmInteger i))) (V-con (tmBls12-381-g2-element e))) = inj₂ (V-con (tmBls12-381-g2-element (BLS12-381-G2-scalarMul i e)))
 BUILTIN bls12-381-G2-equal (app (app base (V-con (tmBls12-381-g2-element e))) (V-con (tmBls12-381-g2-element e'))) = inj₂ (V-con (tmBool (BLS12-381-G2-equal e e')))
-BUILTIN bls12-381-G2-hashToGroup (app base (V-con (tmBytestring b))) = inj₂ (V-con (tmBls12-381-g2-element (BLS12-381-G2-hashToGroup b)))
+BUILTIN bls12-381-G2-hashToGroup (app (app base (V-con (tmBytestring msg))) (V-con (tmBytestring dst))) with BLS12-381-G2-hashToGroup msg dst
+... | nothing = inj₁ (con bls12-381-g2-element)
+... | just p  = inj₂ (V-con (tmBls12-381-g2-element p))
 BUILTIN bls12-381-G2-compress (app base (V-con (tmBls12-381-g2-element e))) = inj₂ (V-con (tmBytestring (BLS12-381-G2-compress e)))
 BUILTIN bls12-381-G2-uncompress (app base (V-con (tmBytestring b))) with BLS12-381-G2-uncompress b
 ... | nothing = inj₁ (con bls12-381-g2-element)

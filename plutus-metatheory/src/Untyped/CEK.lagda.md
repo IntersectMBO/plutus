@@ -419,7 +419,10 @@ BUILTIN bls12-381-G1-equal = λ
   ; _ -> inj₁ userError
   }
 BUILTIN bls12-381-G1-hashToGroup = λ
-  { (app base (V-con (con bytestring) b)) -> inj₂ (V-con (con bls12-381-g1-element) (BLS12-381-G1-hashToGroup b))
+  { (app (app base (V-con (con bytestring) msg)) (V-con (con bytestring) dst)) -> case BLS12-381-G1-hashToGroup msg dst of λ 
+     { (just p) -> inj₂ (V-con (con bls12-381-g1-element) p)
+     ; nothing  -> inj₁ userError
+     }
   ; _ -> inj₁ userError
   }
 BUILTIN bls12-381-G1-compress = λ
@@ -450,7 +453,10 @@ BUILTIN bls12-381-G2-equal = λ
   ; _ -> inj₁ userError
   }
 BUILTIN bls12-381-G2-hashToGroup = λ
-  { (app base (V-con (con bytestring) b)) -> inj₂ (V-con (con bls12-381-g2-element) (BLS12-381-G2-hashToGroup b))
+  { (app (app base (V-con (con bytestring) msg)) (V-con (con bytestring) dst)) -> case BLS12-381-G2-hashToGroup msg dst of λ 
+     { (just p) -> inj₂ (V-con (con bls12-381-g2-element) p)
+     ; nothing  -> inj₁ userError
+     }
   ; _ -> inj₁ userError
   }
 BUILTIN bls12-381-G2-compress = λ

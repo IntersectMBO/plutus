@@ -260,14 +260,14 @@ This is defined in its own module so that these definitions are not exported.
     signature bls12-381-G1-neg                = ∙ [ bls12-381-g1-element ]⟶ bls12-381-g1-element
     signature bls12-381-G1-scalarMul          = ∙ [ integer , bls12-381-g1-element ]⟶ bls12-381-g1-element
     signature bls12-381-G1-equal              = ∙ [ bls12-381-g1-element , bls12-381-g1-element ]⟶ bool
-    signature bls12-381-G1-hashToGroup        = ∙ [ bytestring ]⟶ bls12-381-g1-element
+    signature bls12-381-G1-hashToGroup        = ∙ [ bytestring , bytestring ]⟶ bls12-381-g1-element
     signature bls12-381-G1-compress           = ∙ [ bls12-381-g1-element ]⟶ bytestring
     signature bls12-381-G1-uncompress         = ∙ [ bytestring ]⟶ bls12-381-g1-element
     signature bls12-381-G2-add                = ∙ [ bls12-381-g2-element , bls12-381-g2-element ]⟶ bls12-381-g2-element
     signature bls12-381-G2-neg                = ∙ [ bls12-381-g2-element ]⟶ bls12-381-g2-element
     signature bls12-381-G2-scalarMul          = ∙ [ integer , bls12-381-g2-element ]⟶ bls12-381-g2-element
     signature bls12-381-G2-equal              = ∙ [ bls12-381-g2-element , bls12-381-g2-element ]⟶ bool
-    signature bls12-381-G2-hashToGroup        = ∙ [ bytestring ]⟶ bls12-381-g2-element
+    signature bls12-381-G2-hashToGroup        = ∙ [ bytestring , bytestring ]⟶ bls12-381-g2-element
     signature bls12-381-G2-compress           = ∙ [ bls12-381-g2-element ]⟶ bytestring
     signature bls12-381-G2-uncompress         = ∙ [ bytestring ]⟶ bls12-381-g2-element
     signature bls12-381-millerLoop            = ∙ [ bls12-381-g1-element , bls12-381-g2-element ]⟶ bls12-381-mlresult
@@ -392,14 +392,14 @@ postulate
   BLS12-381-G1-neg                : Bls12-381-G1-Element → Bls12-381-G1-Element
   BLS12-381-G1-scalarMul          : Int → Bls12-381-G1-Element → Bls12-381-G1-Element
   BLS12-381-G1-equal              : Bls12-381-G1-Element → Bls12-381-G1-Element → Bool
-  BLS12-381-G1-hashToGroup        : ByteString → Bls12-381-G1-Element
+  BLS12-381-G1-hashToGroup        : ByteString → ByteString → Maybe Bls12-381-G1-Element
   BLS12-381-G1-compress           : Bls12-381-G1-Element → ByteString
   BLS12-381-G1-uncompress         : ByteString → Maybe Bls12-381-G1-Element -- FIXME: this really returns Either BLSTError Element
   BLS12-381-G2-add                : Bls12-381-G2-Element → Bls12-381-G2-Element → Bls12-381-G2-Element
   BLS12-381-G2-neg                : Bls12-381-G2-Element → Bls12-381-G2-Element
   BLS12-381-G2-scalarMul          : Int → Bls12-381-G2-Element → Bls12-381-G2-Element
   BLS12-381-G2-equal              : Bls12-381-G2-Element → Bls12-381-G2-Element → Bool
-  BLS12-381-G2-hashToGroup        : ByteString → Bls12-381-G2-Element
+  BLS12-381-G2-hashToGroup        : ByteString → ByteString → Maybe Bls12-381-G2-Element
   BLS12-381-G2-compress           : Bls12-381-G2-Element → ByteString
   BLS12-381-G2-uncompress         : ByteString → Maybe Bls12-381-G2-Element -- FIXME: this really returns Either BLSTError Element
   BLS12-381-millerLoop            : Bls12-381-G1-Element → Bls12-381-G2-Element → Bls12-381-MlResult
@@ -411,13 +411,14 @@ postulate
 
 ```
 {-# FOREIGN GHC {-# LANGUAGE TypeApplications #-} #-}
+{-# FOREIGN GHC import Control.Composition ((.*)) #-}
 {-# FOREIGN GHC import qualified Data.ByteString as BS #-}
 {-# FOREIGN GHC import qualified Data.ByteArray as B #-}
 {-# FOREIGN GHC import Debug.Trace (trace) #-}
 {-# FOREIGN GHC import Data.ByteString.Hash as Hash #-}
 {-# FOREIGN GHC import Data.Text.Encoding #-}
 {-# FOREIGN GHC import qualified Data.Text as Text #-}
-{-# FOREIGN GHC import Data.Either.Extra #-}
+{-# FOREIGN GHC import Data.Either.Extra (eitherToMaybe) #-}
 {-# FOREIGN GHC import Data.Word (Word8) #-}
 {-# FOREIGN GHC import Data.Bits (toIntegralSized) #-}
 {-# COMPILE GHC length = toInteger . BS.length #-}
@@ -475,7 +476,7 @@ postulate
 {-# COMPILE GHC BLS12-381-G1-neg = G1.neg #-}
 {-# COMPILE GHC BLS12-381-G1-scalarMul = G1.scalarMul #-}
 {-# COMPILE GHC BLS12-381-G1-equal = (==) #-}
-{-# COMPILE GHC BLS12-381-G1-hashToGroup = G1.hashToGroup #-}
+{-# COMPILE GHC BLS12-381-G1-hashToGroup = eitherToMaybe .* G1.hashToGroup #-}
 {-# COMPILE GHC BLS12-381-G1-compress = G1.compress #-}
 {-# COMPILE GHC BLS12-381-G1-uncompress = eitherToMaybe . G1.uncompress #-}
 {-# FOREIGN GHC import PlutusCore.Crypto.BLS12_381.G2 qualified as G2 #-}
@@ -483,7 +484,7 @@ postulate
 {-# COMPILE GHC BLS12-381-G2-neg = G2.neg #-}
 {-# COMPILE GHC BLS12-381-G2-scalarMul = G2.scalarMul #-}
 {-# COMPILE GHC BLS12-381-G2-equal = (==) #-}
-{-# COMPILE GHC BLS12-381-G2-hashToGroup = G2.hashToGroup #-}
+{-# COMPILE GHC BLS12-381-G2-hashToGroup = eitherToMaybe .* G2.hashToGroup #-}
 {-# COMPILE GHC BLS12-381-G2-compress = G2.compress #-}
 {-# COMPILE GHC BLS12-381-G2-uncompress = eitherToMaybe . G2.uncompress #-}
 {-# FOREIGN GHC import PlutusCore.Crypto.BLS12_381.Pairing qualified as Pairing #-}

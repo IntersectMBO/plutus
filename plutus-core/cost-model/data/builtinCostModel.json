@@ -106,7 +106,7 @@
                 "intercept": 66311195,
                 "slope": 23097
             },
-            "type": "linear_cost"
+            "type": "linear_in_x"
         },
         "memory": {
             "arguments": 18,
@@ -182,7 +182,7 @@
                 "intercept": 204557793,
                 "slope": 23271
             },
-            "type": "linear_cost"
+            "type": "linear_in_x"
         },
         "memory": {
             "arguments": 36,

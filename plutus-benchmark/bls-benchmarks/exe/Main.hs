@@ -103,10 +103,11 @@ printCosts_UncompressAndAddG2 n =
 
 printCosts_Pairing :: IO ()
 printCosts_Pairing = do
-    let p1 = Tx.bls12_381_G1_hashToGroup $ toBuiltin $ BS.pack [0x23, 0x43, 0x56, 0xf2]
-        p2 = Tx.bls12_381_G2_hashToGroup $ toBuiltin $ BS.pack [0x10, 0x00, 0xff, 0x88]
-        q1 = Tx.bls12_381_G1_hashToGroup $ toBuiltin $ BS.pack [0x11, 0x22, 0x33, 0x44]
-        q2 = Tx.bls12_381_G2_hashToGroup $ toBuiltin $ BS.pack [0xa0, 0xb1, 0xc2, 0xd3]
+    let emptyDST = toBuiltin BS.empty
+        p1 = Tx.bls12_381_G1_hashToGroup (toBuiltin . BS.pack $ [0x23, 0x43, 0x56, 0xf2]) emptyDST
+        p2 = Tx.bls12_381_G2_hashToGroup (toBuiltin . BS.pack $ [0x10, 0x00, 0xff, 0x88]) emptyDST
+        q1 = Tx.bls12_381_G1_hashToGroup (toBuiltin . BS.pack $ [0x11, 0x22, 0x33, 0x44]) emptyDST
+        q2 = Tx.bls12_381_G2_hashToGroup (toBuiltin . BS.pack $ [0xa0, 0xb1, 0xc2, 0xd3]) emptyDST
         script = mkPairingScript p1 p2 q1 q2
     printStatistics (-1) script
 

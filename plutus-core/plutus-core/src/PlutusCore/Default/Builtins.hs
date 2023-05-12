@@ -1416,8 +1416,12 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                     Right p -> EvaluationSuccess p
     toBuiltinMeaning _var Bls12_381_G1_hashToGroup =
         makeBuiltinMeaning
-            BLS12_381.G1.hashToGroup
-            (runCostingFunOneArgument . paramBls12_381_G1_hashToGroup)
+            hashToGroup
+            (runCostingFunTwoArguments . paramBls12_381_G1_hashToGroup)
+        where hashToGroup msg dst =
+                  case BLS12_381.G1.hashToGroup msg dst of
+                    Left _  -> EvaluationFailure
+                    Right p -> EvaluationSuccess p
     toBuiltinMeaning _var Bls12_381_G1_equal =
         makeBuiltinMeaning
             ((==) @BLS12_381.G1.Element)
@@ -1449,8 +1453,12 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                     Right p -> EvaluationSuccess p
     toBuiltinMeaning _var Bls12_381_G2_hashToGroup =
         makeBuiltinMeaning
-            BLS12_381.G2.hashToGroup
-            (runCostingFunOneArgument . paramBls12_381_G2_hashToGroup)
+            hashToGroup
+            (runCostingFunTwoArguments . paramBls12_381_G2_hashToGroup)
+        where hashToGroup msg dst =
+                  case BLS12_381.G2.hashToGroup msg dst of
+                    Left _  -> EvaluationFailure
+                    Right p -> EvaluationSuccess p
     toBuiltinMeaning _var Bls12_381_G2_equal =
         makeBuiltinMeaning
             ((==) @BLS12_381.G2.Element)

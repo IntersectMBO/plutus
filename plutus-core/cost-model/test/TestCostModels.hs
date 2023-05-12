@@ -408,14 +408,14 @@ main =
                     , $(genTest 2 "bls12_381_G1_equal")       Everywhere
                     , $(genTest 1 "bls12_381_G1_compress")
                     , $(genTest 1 "bls12_381_G1_uncompress")
-                    , $(genTest 1 "bls12_381_G1_hashToGroup")
+                    , $(genTest 2 "bls12_381_G1_hashToGroup") Everywhere
                     , $(genTest 2 "bls12_381_G2_add")         Everywhere
                     , $(genTest 1 "bls12_381_G2_neg")
                     , $(genTest 2 "bls12_381_G2_scalarMul")   Everywhere
                     , $(genTest 2 "bls12_381_G2_equal")       Everywhere
                     , $(genTest 1 "bls12_381_G2_compress")
                     , $(genTest 1 "bls12_381_G2_uncompress")
-                    , $(genTest 1 "bls12_381_G2_hashToGroup")
+                    , $(genTest 2 "bls12_381_G2_hashToGroup") Everywhere
                     , $(genTest 2 "bls12_381_millerLoop")     Everywhere
                     , $(genTest 2 "bls12_381_mulMlResult")    Everywhere
                     , $(genTest 2 "bls12_381_finalVerify")    Everywhere

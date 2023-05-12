@@ -1,6 +1,8 @@
+-- editorconfig-checker-disable
 {-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs             #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE PolyKinds         #-}
 {-# LANGUAGE TypeApplications  #-}
 
@@ -16,7 +18,7 @@ import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data
 import PlutusCore.Generators.QuickCheck.Common (genList)
 
-import Data.ByteString (ByteString)
+import Data.ByteString (ByteString, empty)
 import Data.Coerce
 import Data.Int
 import Data.Kind qualified as GHC
@@ -125,11 +127,19 @@ instance ArbitraryBuiltin ByteString where
     shrinkBuiltin = map Text.encodeUtf8 . shrinkBuiltin . Text.decodeUtf8
 
 instance ArbitraryBuiltin BLS12_381.G1.Element where
-    arbitraryBuiltin = BLS12_381.G1.hashToGroup <$> arbitrary
+    arbitraryBuiltin =
+      BLS12_381.G1.hashToGroup <$> arbitrary <*> pure Data.ByteString.empty >>= \case
+      -- We should only get a failure if the second argument is greater than 255 bytes, which it isn't.
+           Left err -> error $ show err
+           Right p  -> pure p
     shrinkBuiltin _ = []
 
 instance ArbitraryBuiltin BLS12_381.G2.Element where
-    arbitraryBuiltin = BLS12_381.G2.hashToGroup <$> arbitrary
+    arbitraryBuiltin =
+      BLS12_381.G2.hashToGroup <$> arbitrary <*> pure Data.ByteString.empty >>= \case
+      -- We should only get a failure if the second argument is greater than 255 bytes, which it isn't.
+           Left err -> error $ show err
+           Right p  -> pure p
     shrinkBuiltin _ = []
 
 instance ArbitraryBuiltin BLS12_381.Pairing.MlResult where

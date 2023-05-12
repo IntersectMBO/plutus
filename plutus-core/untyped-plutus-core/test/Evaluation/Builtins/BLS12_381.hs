@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE TypeApplications    #-}
@@ -13,7 +14,7 @@ import PlutusCore.Crypto.BLS12_381.G2 qualified as G2
 import PlutusCore.Default
 
 import Cardano.Crypto.EllipticCurve.BLS12_381 (scalarPeriod)
-import Data.ByteString as BS (length)
+import Data.ByteString as BS (empty, length, pack)
 import Data.List (foldl', genericReplicate)
 import Text.Printf (printf)
 
@@ -324,16 +325,32 @@ test_set_infinity_bit =
       pure $ evalTerm e === CekError
 
 -- | Hashing into G1 or G2 should be collision-free. A failure here would be
--- interesting.
+-- interesting.  Here we test multiple messages but always use an empty Domain
+-- Separation Tag.
 test_no_hash_collisions :: forall a . HashAndCompress a => TestTree
 test_no_hash_collisions =
-    testProperty
-    (mkTestName @a "no_hash_collisions") .
-    withNTests $ do
-      b1 <- arbitrary
-      b2 <- arbitrary
-      let e = eqTerm @a (hashToGroupTerm @a $ bytestring b1) (hashToGroupTerm @a $ bytestring b2)
-      pure $ b1 /= b2 ==> evalTerm e === uplcFalse
+    let emptyBS = bytestring BS.empty
+    in testProperty
+           (mkTestName @a "no_hash_collisions") .
+           withNTests $ do
+             b1 <- arbitrary
+             b2 <- arbitrary
+             let e = eqTerm @a (hashToGroupTerm @a (bytestring b1) emptyBS) (hashToGroupTerm @a (bytestring b2) emptyBS)
+             pure $ b1 /= b2 ==> evalTerm e === uplcFalse
+
+-- | Test that we get no collisions if we keep the message constant but vary the
+-- DST.  DSTs can be at most 255 bytes long in Plutus Core; there's a test
+-- elsewhere that we get a failure for longer DSTs.
+test_no_hash_collisions_dst :: forall a . HashAndCompress a => TestTree
+test_no_hash_collisions_dst =
+    let msg = bytestring $ pack [0x01, 0x02]
+    in testProperty
+           (mkTestName @a "no_hash_collisions_dst") .
+           withNTests $ do
+             dst1 <- resize 255 arbitrary
+             dst2 <- resize 255 arbitrary
+             let e = eqTerm @a (hashToGroupTerm @a msg (bytestring dst1)) (hashToGroupTerm @a msg (bytestring dst2))
+             pure $ dst1 /= dst2 ==> evalTerm e === uplcFalse
 
 test_compress_hash :: forall a. HashAndCompress a => TestTree
 test_compress_hash =
@@ -346,6 +363,7 @@ test_compress_hash =
          , test_set_infinity_bit         @a
          , test_uncompress_out_of_group  @a
          , test_no_hash_collisions       @a
+         , test_no_hash_collisions_dst   @a
          ]
 
 

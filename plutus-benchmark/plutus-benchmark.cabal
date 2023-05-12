@@ -418,6 +418,7 @@ benchmark bls-benchmarks
   build-depends:
     , base                     >=4.9     && <5
     , bls-internal
+    , bytestring
     , criterion                >=1.5.9.0
     , plutus-benchmark-common
     , plutus-core              ^>=1.6

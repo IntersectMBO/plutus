@@ -22,7 +22,7 @@ import PlutusCore.Crypto.BLS12_381.G2 qualified as G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as Pairing
 
 import Criterion.Main (Benchmark, bgroup)
-import Data.ByteString (ByteString)
+import Data.ByteString (ByteString, empty)
 import Hedgehog qualified as H (Seed)
 import System.Random (StdGen)
 
@@ -38,7 +38,6 @@ mediumByteStrings seed = makeSizedByteStrings seed byteStringSizes
 bigByteStrings :: H.Seed -> [ByteString]
 bigByteStrings seed = makeSizedByteStrings seed (fmap (10*) byteStringSizes)
 -- Up to  784,000 bytes.
-
 
 ---------------- Signature verification ----------------
 
@@ -136,18 +135,34 @@ byteStringsB = take 100 (drop 100 byteStrings)
 
 
 -- Random elements in G1
+
+-- Create random group elements by hashing a random bytestring (with an empty
+-- DST). This will always give us a valid group element, unlike uncompressing
+-- random bytestrings, which will almost always fail.
+randomG1Element :: ByteString -> G1.Element
+randomG1Element s =
+    case G1.hashToGroup s Data.ByteString.empty of
+      Left err -> error $ "Error in randomG1Element: " ++ show err
+      Right p  -> p
+
 g1inputsA :: [G1.Element]
-g1inputsA = fmap G1.hashToGroup byteStringsA
+g1inputsA = fmap randomG1Element byteStringsA
 
 g1inputsB :: [G1.Element]
-g1inputsB = fmap G1.hashToGroup byteStringsB
+g1inputsB = fmap randomG1Element byteStringsB
 
 -- Random elements in G2
+randomG2Element :: ByteString -> G2.Element
+randomG2Element s =
+    case G2.hashToGroup s Data.ByteString.empty of
+      Left err -> error $ "Error in randomG2Element: " ++ show err
+      Right p  -> p
+
 g2inputsA :: [G2.Element]
-g2inputsA = fmap G2.hashToGroup byteStringsA
+g2inputsA = fmap randomG2Element byteStringsA
 
 g2inputsB :: [G2.Element]
-g2inputsB = fmap G2.hashToGroup byteStringsB
+g2inputsB = fmap randomG2Element byteStringsB
 
 -- Random values of type MlResult.  The only way we can manufacture values of
 -- this type is by using millerLoop, which should always succeed on the inputs
@@ -188,7 +203,10 @@ benchBls12_381_G1_hashToGroup :: Benchmark
 benchBls12_381_G1_hashToGroup =
     let name = Bls12_381_G1_hashToGroup
         inputs = listOfByteStrings 100
-    in createOneTermBuiltinBench name [] inputs
+        -- The maximum length of a DST is 255 bytes, so let's use that for all
+        -- cases (DST size shouldn't make much difference anyway).
+        dsts = listOfSizedByteStrings 100 255
+    in createTwoTermBuiltinBenchElementwise name [] inputs dsts
 -- linear in input size
 
 benchBls12_381_G1_compress :: Benchmark
@@ -233,7 +251,8 @@ benchBls12_381_G2_hashToGroup :: Benchmark
 benchBls12_381_G2_hashToGroup =
     let name = Bls12_381_G2_hashToGroup
         inputs = listOfByteStrings 100
-    in createOneTermBuiltinBench name [] inputs
+        dsts = listOfSizedByteStrings 100 255
+    in createTwoTermBuiltinBenchElementwise name [] inputs dsts
 -- linear in size of input
 
 benchBls12_381_G2_compress :: Benchmark

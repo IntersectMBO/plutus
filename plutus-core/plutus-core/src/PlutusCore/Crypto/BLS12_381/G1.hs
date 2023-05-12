@@ -1,5 +1,6 @@
 -- editorconfig-checker-disable
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TypeApplications      #-}
 
 module PlutusCore.Crypto.BLS12_381.G1
@@ -24,8 +25,9 @@ import Text.PrettyBy (PrettyBy, prettyBy)
 
 import Control.DeepSeq (NFData, rnf)
 import Data.Bifunctor (second)
-import Data.ByteString (ByteString, pack)
+import Data.ByteString (ByteString, length, pack)
 import Data.Proxy (Proxy (..))
+import Data.Text (Text)
 import Flat
 import Prettyprinter
 
@@ -96,9 +98,36 @@ compress (Element a) = BlstBindings.blsCompress @BlstBindings.Curve1 a
 uncompress :: ByteString -> Either BlstBindings.BLSTError Element
 uncompress = second Element . BlstBindings.blsUncompress @BlstBindings.Curve1
 
--- | Take an arbitrary bytestring and hash it to a get point in G1
-hashToGroup :: ByteString -> Element
-hashToGroup s = Element $ BlstBindings.blsHash @BlstBindings.Curve1 s Nothing Nothing
+{- | Note [Hashing and Domain Separation Tags].  The hashToGroup functions take a
+   btyestring and hash it to obtain ann element in the relevant group, as
+   described in
+
+   https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-hash-to-curve.
+
+   In addition to the input bytestring (the "message"), the hashing function
+   also takes another (possibly empty) bytestring argument, a "Domain Separation
+   Tag" (DST), which is incorporated in the hashing process; the intention is
+   that for security purposes different protocols should use different DSTs to
+   ensure that hashes are unique to the protocol in use: see Section 2.2.5 of
+   the above specification.  In principle, arbitrary-length DSTs can be used,
+   but we only allow DSTs of up to 255 bytes, failing if a larger DST is
+   supplied.  If a larger DST is required, it should be hashed beforehand to
+   obtain a hash of accpetable size, as described in Section 5.3.3 of the
+   specification.
+
+   The hashing functions in the blst library allow a third argument as well (an
+   "augmentation string").  We don't support this functionality directly because
+   precisely the same effect can be achieved by prepending the augmentation
+   string to the message.
+-}
+
+-- | Take an arbitrary bytestring and a Domain Separation Tag (DST) and hash
+-- them to a get point in G1.
+hashToGroup :: ByteString -> ByteString -> Either Text Element
+hashToGroup msg dst =
+    if Data.ByteString.length dst > 255
+    then Left "G1.hashToGroup: DST more than 255 bytes long"
+    else Right . Element $ BlstBindings.blsHash @BlstBindings.Curve1 msg (Just dst) Nothing
 
 -- Utilities (not exposed as builtins)
 

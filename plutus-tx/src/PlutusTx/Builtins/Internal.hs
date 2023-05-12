@@ -572,8 +572,11 @@ bls12_381_G1_uncompress (BuiltinByteString b) =
       Right a  -> BuiltinBLS12_381_G1_Element a
 
 {-# NOINLINE bls12_381_G1_hashToGroup #-}
-bls12_381_G1_hashToGroup ::  BuiltinByteString -> BuiltinBLS12_381_G1_Element
-bls12_381_G1_hashToGroup (BuiltinByteString b) = BuiltinBLS12_381_G1_Element $ BLS12_381.G1.hashToGroup b
+bls12_381_G1_hashToGroup ::  BuiltinByteString -> BuiltinByteString -> BuiltinBLS12_381_G1_Element
+bls12_381_G1_hashToGroup (BuiltinByteString msg) (BuiltinByteString dst) =
+    case BLS12_381.G1.hashToGroup msg dst of
+      Left err -> mustBeReplaced $ show err
+      Right p  -> BuiltinBLS12_381_G1_Element p
 
 ---------------- G2 ----------------
 
@@ -616,8 +619,11 @@ bls12_381_G2_uncompress (BuiltinByteString b) =
       Right a  -> BuiltinBLS12_381_G2_Element a
 
 {-# NOINLINE bls12_381_G2_hashToGroup #-}
-bls12_381_G2_hashToGroup ::  BuiltinByteString -> BuiltinBLS12_381_G2_Element
-bls12_381_G2_hashToGroup (BuiltinByteString b) = BuiltinBLS12_381_G2_Element $ BLS12_381.G2.hashToGroup b
+bls12_381_G2_hashToGroup ::  BuiltinByteString -> BuiltinByteString -> BuiltinBLS12_381_G2_Element
+bls12_381_G2_hashToGroup (BuiltinByteString msg) (BuiltinByteString dst) =
+    case BLS12_381.G2.hashToGroup msg dst of
+      Left err -> mustBeReplaced $ show err
+      Right p  -> BuiltinBLS12_381_G2_Element p
 
 ---------------- Pairing ----------------
 

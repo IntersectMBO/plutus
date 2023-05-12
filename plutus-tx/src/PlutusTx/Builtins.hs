@@ -494,7 +494,7 @@ bls12_381_G1_uncompress :: BuiltinByteString -> BuiltinBLS12_381_G1_Element
 bls12_381_G1_uncompress = BI.bls12_381_G1_uncompress
 
 {-# INLINABLE bls12_381_G1_hashToGroup #-}
-bls12_381_G1_hashToGroup :: BuiltinByteString -> BuiltinBLS12_381_G1_Element
+bls12_381_G1_hashToGroup :: BuiltinByteString -> BuiltinByteString -> BuiltinBLS12_381_G1_Element
 bls12_381_G1_hashToGroup = BI.bls12_381_G1_hashToGroup
 
 -- G2 --
@@ -523,7 +523,7 @@ bls12_381_G2_uncompress :: BuiltinByteString -> BuiltinBLS12_381_G2_Element
 bls12_381_G2_uncompress = BI.bls12_381_G2_uncompress
 
 {-# INLINABLE bls12_381_G2_hashToGroup #-}
-bls12_381_G2_hashToGroup :: BuiltinByteString -> BuiltinBLS12_381_G2_Element
+bls12_381_G2_hashToGroup :: BuiltinByteString -> BuiltinByteString -> BuiltinBLS12_381_G2_Element
 bls12_381_G2_hashToGroup = BI.bls12_381_G2_hashToGroup
 
 -- Pairing --

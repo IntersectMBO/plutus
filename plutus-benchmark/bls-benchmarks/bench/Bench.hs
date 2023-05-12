@@ -11,6 +11,8 @@ import PlutusBenchmark.Common (benchTermCek)
 import PlutusTx.Prelude qualified as Tx
 import UntypedPlutusCore qualified as UPLC
 
+import Data.ByteString qualified as BS (empty)
+
 benchProgCek :: UProg -> Benchmarkable
 benchProgCek (UPLC.Program _ _ t) = benchTermCek t
 
@@ -38,10 +40,11 @@ benchPairing :: Benchmark
 benchPairing =
     case listOfSizedByteStrings 4 4 of
       [b1, b2, b3, b4] ->
-          let p1 = Tx.bls12_381_G1_hashToGroup $ Tx.toBuiltin b1
-              p2 = Tx.bls12_381_G2_hashToGroup $ Tx.toBuiltin b2
-              q1 = Tx.bls12_381_G1_hashToGroup $ Tx.toBuiltin b3
-              q2 = Tx.bls12_381_G2_hashToGroup $ Tx.toBuiltin b4
+          let emptyDst = Tx.toBuiltin BS.empty
+              p1 = Tx.bls12_381_G1_hashToGroup (Tx.toBuiltin b1) emptyDst
+              p2 = Tx.bls12_381_G2_hashToGroup (Tx.toBuiltin b2) emptyDst
+              q1 = Tx.bls12_381_G1_hashToGroup (Tx.toBuiltin b3) emptyDst
+              q2 = Tx.bls12_381_G2_hashToGroup (Tx.toBuiltin b4) emptyDst
               prog = mkPairingScript p1 p2 q1 q2
           in bench "pairing" $ benchProgCek prog
       _ -> error "Unexpected list returned by listOfSizedByteStrings"
