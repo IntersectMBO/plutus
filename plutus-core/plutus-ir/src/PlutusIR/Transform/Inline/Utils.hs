@@ -70,7 +70,7 @@ makeLenses ''InlineInfo
 -- (determined from profiling)
 -- | The monad the inliner runs in.
 type InlineM tyname name uni fun ann =
-    ReaderT (InlineInfo name fun ann) (StateT (InlinerContext tyname name uni fun ann) Quote)
+    ReaderT (InlineInfo name fun ann) (StateT (InlinerState tyname name uni fun ann) Quote)
 -- For unconditional inlining:
 
 -- | Substitution range, 'SubstRng' in the paper but no 'Susp' case.
@@ -134,19 +134,19 @@ instance (Show tyname, Show name) => Pretty (Param tyname name) where
 -- | Inliner context for both unconditional inlining and call site inlining.
 -- It includes substitution for both terms and types, which is similar to 'Subst' in the paper.
 -- It also includes the non recursive in-scope set for call site inlining.
-data InlinerContext tyname name uni fun ann =
-    InlinerContext { _termSubst :: TermSubst tyname name uni fun ann
-           , _typeSubst         :: TypeSubst tyname uni ann
-           , _nonRecInScopeSet  :: NonRecInScopeSet tyname name uni fun ann
+data InlinerState tyname name uni fun ann =
+    InlinerState { _termSubst  :: TermSubst tyname name uni fun ann
+           , _typeSubst        :: TypeSubst tyname uni ann
+           , _nonRecInScopeSet :: NonRecInScopeSet tyname name uni fun ann
           }
     deriving stock (Generic)
     deriving (Semigroup, Monoid) via
-        (GenericSemigroupMonoid (InlinerContext tyname name uni fun ann))
+        (GenericSemigroupMonoid (InlinerState tyname name uni fun ann))
 
 makeLenses ''TermSubst
 makeLenses ''TypeSubst
 makeLenses ''NonRecInScopeSet
-makeLenses ''InlinerContext
+makeLenses ''InlinerState
 
 -- Helper functions:
 
@@ -154,56 +154,56 @@ makeLenses ''InlinerContext
 lookupTerm
     :: (HasUnique name TermUnique)
     => name -- ^ The name of the variable.
-    -> InlinerContext tyname name uni fun ann
+    -> InlinerState tyname name uni fun ann
     -> Maybe (InlineTerm tyname name uni fun ann)
-lookupTerm n subst = lookupName n $ subst ^. termSubst . unTermSubst
+lookupTerm n s = lookupName n $ s ^. termSubst . unTermSubst
 
 -- | Insert the unprocessed variable into the term substitution.
 extendTerm
     :: (HasUnique name TermUnique)
     => name -- ^ The name of the variable.
     -> InlineTerm tyname name uni fun ann -- ^ The substitution range.
-    -> InlinerContext tyname name uni fun ann
-    -> InlinerContext tyname name uni fun ann
-extendTerm n clos subst = subst & termSubst . unTermSubst %~ insertByName n clos
+    -> InlinerState tyname name uni fun ann
+    -> InlinerState tyname name uni fun ann
+extendTerm n clos s = s & termSubst . unTermSubst %~ insertByName n clos
 
 -- | Look up the unprocessed type variable in the type substitution.
 lookupType
     :: (HasUnique tyname TypeUnique)
     => tyname
-    -> InlinerContext tyname name uni fun ann
+    -> InlinerState tyname name uni fun ann
     -> Maybe (Dupable (Type tyname uni ann))
-lookupType tn subst = lookupName tn $ subst ^. typeSubst . unTypeSubst
+lookupType tn s = lookupName tn $ s ^. typeSubst . unTypeSubst
 
 -- | Check if the type substitution is empty.
-isTypeSubstEmpty :: InlinerContext tyname name uni fun ann -> Bool
-isTypeSubstEmpty (InlinerContext _ (TypeSubst tyEnv) _) = isEmpty tyEnv
+isTypeSubstEmpty :: InlinerState tyname name uni fun ann -> Bool
+isTypeSubstEmpty (InlinerState _ (TypeSubst tyEnv) _) = isEmpty tyEnv
 
 -- | Insert the unprocessed type variable into the type substitution.
 extendType
     :: (HasUnique tyname TypeUnique)
     => tyname -- ^ The name of the type variable.
     -> Type tyname uni ann -- ^ Its type.
-    -> InlinerContext tyname name uni fun ann
-    -> InlinerContext tyname name uni fun ann
-extendType tn ty subst = subst &  typeSubst . unTypeSubst %~ insertByName tn (dupable ty)
+    -> InlinerState tyname name uni fun ann
+    -> InlinerState tyname name uni fun ann
+extendType tn ty s = s &  typeSubst . unTypeSubst %~ insertByName tn (dupable ty)
 
 -- | Look up a variable in the in scope set.
 lookupVarInfo
     :: (HasUnique name TermUnique)
     => name -- ^ The name of the variable.
-    -> InlinerContext tyname name uni fun ann
+    -> InlinerState tyname name uni fun ann
     -> Maybe (VarInfo tyname name uni fun ann)
-lookupVarInfo n subst = lookupName n $ subst ^. nonRecInScopeSet . unNonRecInScopeSet
+lookupVarInfo n s = lookupName n $ s ^. nonRecInScopeSet . unNonRecInScopeSet
 
 -- | Insert a variable into the substitution.
 extendVarInfo
     :: (HasUnique name TermUnique)
     => name -- ^ The name of the variable.
     -> VarInfo tyname name uni fun ann -- ^ The variable's info.
-    -> InlinerContext tyname name uni fun ann
-    -> InlinerContext tyname name uni fun ann
-extendVarInfo n info subst = subst & nonRecInScopeSet . unNonRecInScopeSet %~ insertByName n info
+    -> InlinerState tyname name uni fun ann
+    -> InlinerState tyname name uni fun ann
+extendVarInfo n info s = s & nonRecInScopeSet . unNonRecInScopeSet %~ insertByName n info
 
 
 applyTypeSubstitution :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
