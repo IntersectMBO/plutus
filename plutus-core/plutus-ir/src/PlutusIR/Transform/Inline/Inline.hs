@@ -245,7 +245,7 @@ processSingleBinding body = \case
                 -- call site inlining.
                 -- We don't remove the binding because we decide *at the call site*
                 -- whether we want to inline, and it may be called more than once.
-                void $ modify' $
+                modify' $
                     extendVarInfo
                         n
                         (MkVarInfo s processedRhs arity bodyToCheck)
