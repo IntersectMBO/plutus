@@ -99,7 +99,7 @@ uncompress :: ByteString -> Either BlstBindings.BLSTError Element
 uncompress = second Element . BlstBindings.blsUncompress @BlstBindings.Curve1
 
 {- | Note [Hashing and Domain Separation Tags].  The hashToGroup functions take a
-   btyestring and hash it to obtain ann element in the relevant group, as
+   btyestring and hash it to obtain an element in the relevant group, as
    described in
 
    https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-hash-to-curve.

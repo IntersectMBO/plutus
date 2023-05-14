@@ -1,4 +1,5 @@
 -- editorconfig-checker-disable-file
+{-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE NumericUnderscores #-}
 
 {- | Print out the costs of various test scripts involving the BLS12_381
@@ -42,12 +43,22 @@ max_tx_ex_mem = 14_000_000
 
 -------------------------------- Printing --------------------------------
 
+data TestSize =
+    NoSize
+  | TestSize Integer
+
+stringOfTestSize :: TestSize -> String
+stringOfTestSize =
+    \case
+     NoSize     -> "-"
+     TestSize n -> show n
+
 -- Printing utilities
 percentage :: (Integral a, Integral b) => a -> b -> Double
 percentage a b =
     let a' = fromIntegral a :: Double
         b' = fromIntegral b :: Double
-    in (a'/b' * 100)
+    in (a'* 100) / b'
 
 percentTxt :: (Integral a, Integral b) => a -> b -> String
 percentTxt a b = printf "(%.1f%%)" (percentage a b)
@@ -64,15 +75,13 @@ evaluate (UPLC.Program _ _ prog) =
 -- | Evaluate a script and print out the serialised size and the CPU and memory
 -- usage, both as absolute values and percentages of the maxima specified in the
 -- protocol parameters.
-printStatistics :: Integer -> UProg -> IO ()
+printStatistics :: TestSize -> UProg -> IO ()
 printStatistics n script = do
     let serialised = Flat.flat (UPLC.UnrestrictedProgram $ toAnonDeBruijnProg script)
         size = BS.length serialised
         (cpu, mem) = evaluate script
-    -- BS.writeFile "output" serialised
-    -- printf "%s\n" $ show $ PP.prettyClassicDebug script
     printf "  %3s %7d %8s %15d %8s %15d %8s \n"
-           (if n > 0 then show n else "-")
+           (stringOfTestSize n)
            size (percentTxt size max_tx_size)
            cpu  (percentTxt cpu  max_tx_ex_steps)
            mem  (percentTxt mem  max_tx_ex_mem)
@@ -82,24 +91,24 @@ printStatistics n script = do
 printCosts_HashAndAddG1 :: Integer -> IO ()
 printCosts_HashAndAddG1 n =
     let script = mkHashAndAddG1Script (listOfSizedByteStrings n 4)
-    in printStatistics n script
+    in printStatistics (TestSize n) script
 
 
 printCosts_HashAndAddG2 :: Integer -> IO ()
 printCosts_HashAndAddG2 n =
     let script = mkHashAndAddG2Script (listOfSizedByteStrings n 4)
-    in printStatistics n script
+    in printStatistics (TestSize n) script
 
 
 printCosts_UncompressAndAddG1 :: Integer -> IO ()
 printCosts_UncompressAndAddG1 n =
     let script = mkUncompressAndAddG1Script (listOfSizedByteStrings n 4)
-    in printStatistics n script
+    in printStatistics (TestSize n) script
 
 printCosts_UncompressAndAddG2 :: Integer -> IO ()
 printCosts_UncompressAndAddG2 n =
     let script = mkUncompressAndAddG2Script (listOfSizedByteStrings n 4)
-    in printStatistics n script
+    in printStatistics (TestSize n) script
 
 printCosts_Pairing :: IO ()
 printCosts_Pairing = do
@@ -109,12 +118,12 @@ printCosts_Pairing = do
         q1 = Tx.bls12_381_G1_hashToGroup (toBuiltin . BS.pack $ [0x11, 0x22, 0x33, 0x44]) emptyDST
         q2 = Tx.bls12_381_G2_hashToGroup (toBuiltin . BS.pack $ [0xa0, 0xb1, 0xc2, 0xd3]) emptyDST
         script = mkPairingScript p1 p2 q1 q2
-    printStatistics (-1) script
+    printStatistics NoSize script
 
 printCosts_Groth16Verify :: IO ()
 printCosts_Groth16Verify = do
   let script = mkGroth16VerifyScript
-  printStatistics (-1) script
+  printStatistics NoSize script
 
 printHeader :: IO ()
 printHeader = do
