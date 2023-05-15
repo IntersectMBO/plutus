@@ -365,8 +365,7 @@ floatable ver = \case
     -- See Note [Float-in] #2
     DatatypeBind{}                  -> True
 
-{- | Whether evaluating a given `Term` is pure and essentially work-free
- (barring the CEK machine overhead).
+{- | Whether evaluating a given `Term` is essentially work-free (barring the CEK machine overhead).
 
  See Note [Float-in] #1
 -}

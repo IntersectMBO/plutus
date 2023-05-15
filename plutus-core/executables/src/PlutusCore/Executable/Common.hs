@@ -67,7 +67,6 @@ import UntypedPlutusCore.Check.Uniques qualified as UPLC (checkProgram)
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
 import UntypedPlutusCore.Parser qualified as UPLC (parse, program)
 
-import PlutusIR.Check.Uniques as PIR (checkProgram)
 import PlutusIR.Core.Instance.Pretty ()
 import PlutusIR.Parser qualified as PIR (parse, program)
 
@@ -122,7 +121,9 @@ class ProgramLike p where
 -- | Instance for PIR program.
 instance ProgramLike PirProg where
     parseNamedProgram inputName = PLC.runQuoteT . PIR.parse PIR.program inputName
-    checkUniques = PIR.checkProgram (const True)
+    checkUniques _ = pure ()
+    -- ^ decided that it's not worth implementing since it's checked in PLC (and
+    -- PIR has no Unique check at the moment anyway)
     serialiseProgramFlat = serialisePirProgramFlat
     loadASTfromFlat = loadPirASTfromFlat
 
@@ -272,12 +273,12 @@ getInput :: Input -> IO T.Text
 getInput (FileInput file) = T.readFile file
 getInput StdInput         = T.getContents
 
--- | Read and parse and check the program for @UniqueError@'s.
+-- | For PLC and UPLC source programs. Read and parse and check the program for @UniqueError@'s.
 parseInput ::
     (ProgramLike p, PLC.Rename (p PLC.SrcSpan)) =>
     -- | The source program
     Input ->
-    -- | The output is a program with annotation
+    -- | The output is either a UPLC or PLC program with annotation
     IO (T.Text, p PLC.SrcSpan)
 parseInput inp = do
     contents <- getInput inp

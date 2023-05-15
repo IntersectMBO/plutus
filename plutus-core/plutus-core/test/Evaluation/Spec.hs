@@ -110,7 +110,8 @@ test_alwaysThrows =
 
 prop_builtinEvaluation ::
     forall uni fun.
-    (ToBuiltinMeaning uni fun, PrettyUni uni, Pretty fun) =>
+    (ToBuiltinMeaning uni fun, Pretty (SomeTypeIn uni),
+        Pretty fun, Closed uni, uni `Everywhere` PrettyConst) =>
     PLC.BuiltinVersion fun ->
     fun ->
     CostingPart uni fun ->

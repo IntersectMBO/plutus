@@ -237,7 +237,7 @@ processSingleBinding body = \case
             -- this binding is going to be unconditionally inlined
             Nothing -> pure Nothing
             Just processedRhs -> do
-                let (varArity, bodyToCheck) = computeArity processedRhs
+                let (varArity, bodyToCheck) = computeArity rhs
                 -- when we encounter a binding, we add it to
                 -- the global map `Utils.NonRecInScopeSet`.
                 -- The `varDef` added to the map has been unconditionally inlined.

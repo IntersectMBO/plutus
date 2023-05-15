@@ -64,25 +64,23 @@
             )
             a_i1
             (constr
-              (sop
-                []
-                [a_i1
-                [
-                  (lam
-                    a_i0
-                    (type)
-                    (ifix
-                      (lam
-                        List_i0
-                        (fun (type) (type))
-                        (lam a_i0 (type) (sop [] [a_i1 [ List_i2 a_i1 ]]))
-                      )
-                      a_i1
+              [
+                (lam
+                  List_i0 (fun (type) (type)) (sop [] [a_i2 [ List_i1 a_i2 ]])
+                )
+                (lam
+                  a_i0
+                  (type)
+                  (ifix
+                    (lam
+                      List_i0
+                      (fun (type) (type))
+                      (lam a_i0 (type) (sop [] [a_i1 [ List_i2 a_i1 ]]))
                     )
+                    a_i1
                   )
-                  a_i1
-                ]]
-              )
+                )
+              ]
               0
             )
           )
@@ -119,25 +117,23 @@
               )
               a_i3
               (constr
-                (sop
-                  []
-                  [a_i3
-                  [
-                    (lam
-                      a_i0
-                      (type)
-                      (ifix
-                        (lam
-                          List_i0
-                          (fun (type) (type))
-                          (lam a_i0 (type) (sop [] [a_i1 [ List_i2 a_i1 ]]))
-                        )
-                        a_i1
+                [
+                  (lam
+                    List_i0 (fun (type) (type)) (sop [] [a_i4 [ List_i1 a_i4 ]])
+                  )
+                  (lam
+                    a_i0
+                    (type)
+                    (ifix
+                      (lam
+                        List_i0
+                        (fun (type) (type))
+                        (lam a_i0 (type) (sop [] [a_i1 [ List_i2 a_i1 ]]))
                       )
+                      a_i1
                     )
-                    a_i3
-                  ]]
-                )
+                  )
+                ]
                 1
                 arg_0_i2
                 arg_1_i1

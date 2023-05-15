@@ -19,10 +19,14 @@ import PlutusCore.Pretty.PrettyConst
 
 import Prettyprinter
 import Prettyprinter.Custom
-import Universe (Some (..), SomeTypeIn (SomeTypeIn), ValueOf (..))
+import Universe (Closed (Everywhere), Some (..), SomeTypeIn (SomeTypeIn), ValueOf (..))
 
-instance (PrettyClassicBy configName name, PrettyUni uni, Pretty fun, Pretty ann) =>
-        PrettyBy (PrettyConfigClassic configName) (Term name uni fun ann) where
+instance
+        ( PrettyClassicBy configName name
+        , Pretty (SomeTypeIn uni)
+        , Closed uni, uni `Everywhere` PrettyConst, Pretty fun
+        , Pretty ann
+        ) => PrettyBy (PrettyConfigClassic configName) (Term name uni fun ann) where
     prettyBy config = \case
         Var ann n ->
             sep (consAnnIf config ann [prettyBy config n])
@@ -50,8 +54,8 @@ instance (PrettyClassicBy configName name, PrettyUni uni, Pretty fun, Pretty ann
         Case ann arg cs ->
             sexp "case" (consAnnIf config ann (prettyBy config arg : fmap (prettyBy config) cs))
       where
-        prettyTypeOf :: Some (ValueOf uni) -> Doc dann
-        prettyTypeOf (Some (ValueOf uni _ )) = prettyParens $ SomeTypeIn uni
+        prettyTypeOf :: Pretty (SomeTypeIn t) => Some (ValueOf t) -> Doc dann
+        prettyTypeOf (Some (ValueOf uni _ )) = pretty $ SomeTypeIn uni
 
 instance (PrettyClassicBy configName (Term name uni fun ann), Pretty ann) =>
         PrettyBy (PrettyConfigClassic configName) (Program name uni fun ann) where

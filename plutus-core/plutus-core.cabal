@@ -235,7 +235,6 @@ library
     UntypedPlutusCore.Size
     UntypedPlutusCore.Subst
     UntypedPlutusCore.Transform.CaseReduce
-    UntypedPlutusCore.Transform.FloatDelay
     UntypedPlutusCore.Transform.ForceDelay
     UntypedPlutusCore.Transform.Inline
 
@@ -291,7 +290,6 @@ library
     , prettyprinter               >=1.1.0.1
     , prettyprinter-configurable  ^>=1.6
     , primitive
-    , profunctors
     , recursion-schemes
     , satint
     , semigroups                  >=0.19.1

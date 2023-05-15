@@ -38,7 +38,6 @@ import PlutusCore.Builtin.Polymorphism
 import PlutusCore.Core
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Result
-import PlutusCore.Pretty
 
 import Control.Monad.Except
 import Data.DList (DList)
@@ -52,7 +51,7 @@ import Universe
 -- | A constraint for \"@a@ is a 'ReadKnownIn' and 'MakeKnownIn' by means of being included
 -- in @uni@\".
 type KnownBuiltinTypeIn uni val a =
-    (HasConstantIn uni val, PrettyParens (SomeTypeIn uni), GEq uni, uni `Contains` a)
+    (HasConstantIn uni val, Pretty (SomeTypeIn uni), GEq uni, uni `Contains` a)
 
 -- | A constraint for \"@a@ is a 'ReadKnownIn' and 'MakeKnownIn' by means of being included
 -- in @UniOf term@\".
@@ -250,14 +249,14 @@ throwKnownTypeErrorWithCause cause = \case
     KnownTypeEvaluationFailure     -> throwingWithCause _EvaluationFailure () $ Just cause
 
 typeMismatchError
-    :: PrettyParens (SomeTypeIn uni)
+    :: Pretty (SomeTypeIn uni)
     => uni (Esc a)
     -> uni (Esc b)
     -> UnliftingError
 typeMismatchError uniExp uniAct = fromString $ concat
     [ "Type mismatch: "
-    , "expected: " ++ render (prettyParens $ SomeTypeIn uniExp)
-    , "; actual: " ++ render (prettyParens $ SomeTypeIn uniAct)
+    , "expected: " ++ display (SomeTypeIn uniExp)
+    , "; actual: " ++ display (SomeTypeIn uniAct)
     ]
 -- Just for tidier Core to get generated, we don't care about performance here, since it's just a
 -- failure message and evaluation is about to be shut anyway.

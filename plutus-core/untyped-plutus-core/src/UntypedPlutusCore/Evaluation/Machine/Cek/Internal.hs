@@ -44,7 +44,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.Internal
     , EvaluationError(..)
     , ExBudgetCategory(..)
     , StepKind(..)
-    , ThrowableBuiltins
+    , PrettyUni
     , extractEvaluationResult
     , spendBudgetStreamCek
     , runCekDeBruijn
@@ -400,6 +400,15 @@ newtype CekM uni fun s a = CekM
 type CekEvaluationException name uni fun =
     EvaluationException CekUserError (MachineError fun) (Term name uni fun ())
 
+-- | The set of constraints we need to be able to print things in universes, which we need in order to throw exceptions.
+type PrettyUni uni fun =
+    ( Pretty (SomeTypeIn uni)
+    , Closed uni, uni `Everywhere` PrettyConst
+    , Pretty fun
+    , Typeable uni
+    , Typeable fun
+    )
+
 {- Note [Throwing exceptions in ST]
 This note represents MPJ's best understanding right now, might be wrong.
 
@@ -430,14 +439,14 @@ But in our case this is okay, because:
 -- | Call 'dischargeCekValue' over the received 'CekVal' and feed the resulting 'Term' to
 -- 'throwingWithCause' as the cause of the failure.
 throwingDischarged
-    :: ThrowableBuiltins uni fun
+    :: PrettyUni uni fun
     => AReview (EvaluationError CekUserError (MachineError fun)) t
     -> t
     -> CekValue uni fun ann
     -> CekM uni fun s x
 throwingDischarged l t = throwingWithCause l t . Just . dischargeCekValue
 
-instance ThrowableBuiltins uni fun => MonadError (CekEvaluationException NamedDeBruijn uni fun) (CekM uni fun s) where
+instance PrettyUni uni fun => MonadError (CekEvaluationException NamedDeBruijn uni fun) (CekM uni fun s) where
     -- See Note [Throwing exceptions in ST].
     throwError = CekM . throwM
 
@@ -524,7 +533,8 @@ dischargeCekValue = \case
     VBuiltin _ term _                    -> term
     VConstr i es                         -> Constr () i (fmap dischargeCekValue es)
 
-instance (PrettyUni uni, Pretty fun) => PrettyBy PrettyConfigPlc (CekValue uni fun ann) where
+instance (Closed uni, Pretty (SomeTypeIn uni), uni `Everywhere` PrettyConst, Pretty fun) =>
+            PrettyBy PrettyConfigPlc (CekValue uni fun ann) where
     prettyBy cfg = prettyBy cfg . dischargeCekValue
 
 type instance UniOf (CekValue uni fun ann) = uni
@@ -575,8 +585,8 @@ tryError :: MonadError e m => m a -> m (Either e a)
 tryError a = (Right <$> a) `catchError` (pure . Left)
 
 runCekM
-    :: forall a cost uni fun ann
-    . ThrowableBuiltins uni fun
+    :: forall a cost uni fun ann.
+    (PrettyUni uni fun)
     => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun
@@ -599,10 +609,7 @@ runCekM (MachineParameters costs runtime) (ExBudgetMode getExBudgetInfo) (Emitte
 {-# INLINE runCekM #-}
 
 -- | Look up a variable name in the environment.
-lookupVarName
-    :: forall uni fun ann s
-    . ThrowableBuiltins uni fun
-    => NamedDeBruijn -> CekValEnv uni fun ann -> CekM uni fun s (CekValue uni fun ann)
+lookupVarName :: forall uni fun ann s . (PrettyUni uni fun) => NamedDeBruijn -> CekValEnv uni fun ann -> CekM uni fun s (CekValue uni fun ann)
 lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
     case varEnv `Env.indexOne` coerce varIx of
         Nothing  -> throwingWithCause _MachineError OpenTermEvaluatedMachineError $ Just var where
@@ -624,7 +631,7 @@ spendBudgetStreamCek exCat = go where
 -- 'makeKnown' or a partial builtin application depending on whether the built-in function is
 -- fully saturated or not.
 evalBuiltinApp
-    :: (GivenCekReqs uni fun ann s, ThrowableBuiltins uni fun)
+    :: (GivenCekReqs uni fun ann s, PrettyUni uni fun)
     => fun
     -> NTerm uni fun ()
     -> BuiltinRuntime (CekValue uni fun ann)
@@ -645,7 +652,7 @@ evalBuiltinApp fun term runtime = case runtime of
 -- | The entering point to the CEK machine's engine.
 enterComputeCek
     :: forall uni fun ann s
-    . (ThrowableBuiltins uni fun, GivenCekReqs uni fun ann s)
+    . (PrettyUni uni fun, GivenCekReqs uni fun ann s)
     => Context uni fun ann
     -> CekValEnv uni fun ann
     -> NTerm uni fun ann
@@ -846,7 +853,7 @@ enterComputeCek = computeCek
 -- See Note [Compilation peculiarities].
 -- | Evaluate a term using the CEK machine and keep track of costing, logging is optional.
 runCekDeBruijn
-    :: ThrowableBuiltins uni fun
+    :: PrettyUni uni fun
     => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun

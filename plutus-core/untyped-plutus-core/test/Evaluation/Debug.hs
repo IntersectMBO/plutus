@@ -10,7 +10,6 @@ module Evaluation.Debug
     ) where
 
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
-import PlutusCore.Pretty
 import UntypedPlutusCore
 import UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver
 import UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal
@@ -65,7 +64,7 @@ mock cmds t = runST $ unCekM $ do
 -------------------------------
 
 handle :: forall uni fun s m.
-         ( ThrowableBuiltins uni fun
+         ( PrettyUni uni fun
          , MonadWriter [String] m, MonadReader [Cmd Breakpoints] m
          , PrimMonad m, PrimState m ~ s
          )

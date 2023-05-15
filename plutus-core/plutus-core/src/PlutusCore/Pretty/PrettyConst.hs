@@ -14,7 +14,6 @@
 module PlutusCore.Pretty.PrettyConst where
 
 import PlutusCore.Data
-import PlutusCore.Pretty.Readable
 
 import Codec.Serialise (serialise)
 import Data.ByteString qualified as BS
@@ -23,7 +22,6 @@ import Data.Coerce
 import Data.Foldable (fold)
 import Data.Proxy
 import Data.Text qualified as T
-import Data.Typeable
 import Data.Word (Word8)
 import Numeric (showHex)
 import Prettyprinter
@@ -76,13 +74,6 @@ data ConstConfig = ConstConfig
 type instance HasPrettyDefaults ConstConfig = 'False
 
 type PrettyConst = PrettyBy ConstConfig
-
--- | The set of constraints we need to be able to print built-in types and their values.
-type PrettyUni uni = (PrettyParens (SomeTypeIn uni), Closed uni, uni `Everywhere` PrettyConst)
-
--- | The set of constraints we need to be able to throw exceptions with things with built-in types
--- and functions in them.
-type ThrowableBuiltins uni fun = (PrettyUni uni, Pretty fun, Typeable uni, Typeable fun)
 
 -- These two can be generalized to any @config@, but that breaks some use cases of 'PrettyAny'
 -- then. Perhaps we should split the functionality and have two separate @newtype@ wrappers

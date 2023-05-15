@@ -15,10 +15,8 @@ module PlutusCore.Pretty.Readable
 import PlutusPrelude
 
 import PlutusCore.Pretty.ConfigName
-import PlutusCore.Pretty.Extra as Export
 
 import Control.Lens
-import Data.Profunctor as Export (Profunctor (..))
 import Text.Pretty
 import Text.PrettyBy.Fixity as Export
 

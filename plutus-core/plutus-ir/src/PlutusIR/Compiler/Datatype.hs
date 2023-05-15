@@ -431,7 +431,7 @@ SOPs:
 @
 -}
 mkConstructor :: MonadQuote m => DatatypeCompilationOpts -> PLCRecType uni fun a -> Datatype TyName Name uni (Provenance a) -> Word64 -> m (PIRTerm uni fun a)
-mkConstructor opts dty d@(Datatype ann _ tvs _ constrs) index = do
+mkConstructor opts dty d@(Datatype ann tv tvs _ constrs) index = do
     -- This is inelegant, but it should never fail
     let thisConstr = constrs !! fromIntegral index
 
@@ -452,8 +452,9 @@ mkConstructor opts dty d@(Datatype ann _ tvs _ constrs) index = do
 
             -- The pattern functor with a hole in it
             pf <- mkPatternFunctorBody opts ann d
-            -- ... and with the hole filled in with the datatype type
-            let unrolled = unveilDatatype (getType dty) d pf
+            -- ... and with the hole filled in with the datatype type, by making
+            -- a type lambda and immediately applying it
+            let unrolled = TyApp ann (PIR.mkIterTyLam [tv] pf) (getType dty)
 
             pure $ Constr ann unrolled index (fmap (PIR.mkVar ann) argsAndTypes)
           ScottEncoding -> do

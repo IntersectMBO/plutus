@@ -56,26 +56,34 @@ instance PLC.AsFreeVariableError (Error uni fun a) where
 -- Pretty-printing
 ------------------
 
-instance (PLC.PrettyUni uni, Pretty ann) =>
-        PrettyBy PLC.PrettyConfigPlc (TypeErrorExt uni ann) where
+type PrettyUni uni ann =
+    ( PP.Pretty (PLC.SomeTypeIn uni)
+    , PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst
+    , PP.Pretty ann
+    )
+
+instance (PrettyUni uni ann) => PrettyBy PLC.PrettyConfigPlc (TypeErrorExt uni ann) where
     prettyBy config (MalformedDataConstrResType ann expType) =
         vsep ["The result-type of a dataconstructor is malformed at location" <+> PP.pretty ann
              , "The expected result-type is:" <+> prettyBy config expType]
 
 -- show via pretty, for printing as SomeExceptions
-instance (PLC.PrettyUni uni, Pretty fun, Pretty ann) => Show (Error uni fun ann) where
+instance (PrettyUni uni ann, Pretty fun) => Show (Error uni fun ann) where
     show = show . PP.pretty
 
 -- FIXME: we get rid of this when our TestLib stops using rethrow
 deriving anyclass instance
-    (PLC.ThrowableBuiltins uni fun, PP.Pretty ann, Typeable ann) => Exception (Error uni fun ann)
+    (PrettyUni uni ann, Typeable uni, Typeable fun, Typeable ann, Pretty fun) => Exception (Error uni fun ann)
 
-instance (PLC.PrettyUni uni, Pretty fun, Pretty ann) => Pretty (Error uni fun ann) where
+instance
+        (Pretty ann, Pretty fun,
+        PP.Pretty (PLC.SomeTypeIn uni), PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst
+        ) => Pretty (Error uni fun ann) where
     pretty = PLC.prettyPlcClassicDef
 
 
-instance (PLC.PrettyUni uni, Pretty fun, Pretty ann) =>
-        PrettyBy PLC.PrettyConfigPlc (Error uni fun ann) where
+instance (PP.Pretty (PLC.SomeTypeIn uni), PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst, Pretty fun, Pretty ann) =>
+            PrettyBy PLC.PrettyConfigPlc (Error uni fun ann) where
      prettyBy config = \case
         CompilationError x e -> "Error during compilation:" <+> PP.pretty e <> "(" <> PP.pretty x <> ")"
         UnsupportedError x e -> "Unsupported construct:" <+> PP.pretty e <+> "(" <> PP.pretty x <> ")"

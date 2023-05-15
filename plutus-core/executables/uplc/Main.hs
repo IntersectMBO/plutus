@@ -291,7 +291,7 @@ instance D.Breakpointable DAnn MaybeBreakpoint where
     hasBreakpoints = error "Not implemented: Breakpointable DAnn Breakpoints"
 
 -- Peel off one layer
-handleDbg :: (Cek.ThrowableBuiltins uni fun)
+handleDbg :: (Cek.PrettyUni uni fun)
           => D.CekTrans uni fun DAnn RealWorld
           -> D.DebugF uni fun DAnn MaybeBreakpoint (Repl.InputT IO ())
           -> Repl.InputT IO ()
