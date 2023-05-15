@@ -79,6 +79,11 @@ reduction), and inline only if it does not increase the size. In the above examp
 the number of AST nodes in `f a b` and in `a`. The latter is smaller, which means inlining
 reduces the size.
 
+We care about program size increases primarily because it
+affects the size of the serialized script, which appears on chain and must be paid for.
+This is different to many compilers which care about this also because e.g. larger ASTs
+slow down compilation. We care about this too, but the serialized size is the main driver for us.
+
 The number of AST nodes is an approximate rather than a precise measure. It correlates,
 but doesn't directly map to the size of the serialised script. Different kinds of AST nodes
 may take different number of bits to encode; in particular, a `Constant` node always
