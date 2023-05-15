@@ -15,7 +15,6 @@ module PlutusTx.Code where
 import Control.Exception
 import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
-import Data.Functor (void)
 import Flat (Flat (..), unflat)
 import Flat.Decoder (DecodeException)
 import PlutusCore qualified as PLC
