@@ -54,7 +54,8 @@ let
     # Drop these once we switch to 9.2 by default
     { ghc810 = native-plutus-810-jobs; } //
     { ghc92 = native-plutus-92-jobs; } //
-    { ghc96 = native-plutus-96-jobs; } //
+    # 9.6 is busted on darwin because of https://github.com/well-typed/cborg/issues/311
+    lib.optionalAttrs (system == "x86_64-linux") { ghc96 = native-plutus-96-jobs; } //
     # Only cross-compile to windows from linux
     lib.optionalAttrs (system == "x86_64-linux") { mingwW64 = windows-plutus-92-jobs; } //
     other-jobs;
