@@ -53,6 +53,7 @@ toAnonDeBruijnProg (UPLC.Program () ver body) =
     UPLC.Program () ver $ UPLC.termMapNames (\(UPLC.NamedDeBruijn _ ix) -> UPLC.DeBruijn ix) body
 
 -- Create a list containing n bytestrings of length l.  This could be better.
+{-# NOINLINE listOfSizedByteStrings #-}
 listOfSizedByteStrings :: Integer -> Integer -> [ByteString]
 listOfSizedByteStrings n l = unsafePerformIO . G.sample $
                              G.list (R.singleton $ fromIntegral n)
