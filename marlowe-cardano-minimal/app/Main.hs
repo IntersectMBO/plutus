@@ -1,50 +1,82 @@
+
+-----------------------------------------------------------------------------
+--
+-- Module      :  $Headers
+-- License     :  Apache 2.0
+--
+-- Stability   :  Experimental
+-- Portability :  Portable
+--
+-- | Run benchmarks for Marlowe validators.
+--
+-----------------------------------------------------------------------------
+
+
 {-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE OverloadedStrings   #-}
 
 
 module Main (
+  -- * Entry point
   main
 ) where
 
 
-import Benchmark.Marlowe (executeBenchmark)
-import Benchmark.Marlowe.Types (Benchmark (bReferenceCost))
-import Language.Marlowe.Scripts (rolePayoutValidatorBytes, rolePayoutValidatorHash)
-import PlutusLedgerApi.V2 (SerialisedScript)
+import Benchmark.Marlowe (tabulateResults)
+import Cardano.Binary (serialize')
+import Data.List (intercalate)
+import PlutusLedgerApi.V2 (ScriptHash, SerialisedScript)
 
-import Benchmark.Marlowe.RolePayout qualified as RP
-import Data.ByteString qualified as BS
-import Data.ByteString.Base16 qualified as B16
-import Data.ByteString.Short qualified as SBS
+import Benchmark.Marlowe.RolePayout qualified as RolePayout (benchmarks, validatorBytes,
+                                                             validatorHash)
+import Benchmark.Marlowe.Semantics qualified as Semantics (benchmarks, validatorBytes,
+                                                           validatorHash)
+import Data.ByteString qualified as BS (writeFile)
+import Data.ByteString.Base16 qualified as B16 (encode)
 
 
+-- | Run the benchmarks and export information about the validators and the benchmarking results.
 main :: IO ()
 main =
   do
 
-    -- FIXME: Work in progress on benchmarks for semantics validator.
---  putStrLn $ "Semantics validator hash:   " <> show marloweValidatorHash
---  BS.writeFile "marlowe-semantics.plutus"
---    $ "{\"type\": \"PlutusScriptV2\", \"description\": \"\", \"cborHex\": \""
---    <> B16.encode (SBS.fromShort marloweValidatorBytes) <> "\"}"
+    benchmarks <- either error id <$> Semantics.benchmarks
+    writeFile "marlowe-semantics.tsv"
+      . unlines . fmap (intercalate "\t")
+      $ tabulateResults "Semantics" Semantics.validatorHash Semantics.validatorBytes benchmarks
 
-    putStrLn $ "Role-payout validator hash: " <> show rolePayoutValidatorHash
-    -- FIXME: I suspect that this serialization is incorrect because hashing it
-    --        with `cardano-cli` does not agree with the hash computed above.
-    BS.writeFile "marlowe-rolepayout.plutus"
+    printValidator
+      "Semantics"
+      "marlowe-semantics"
+      Semantics.validatorHash
+      Semantics.validatorBytes
+
+    benchmarks' <- either error id <$> RolePayout.benchmarks
+    writeFile "marlowe-rolepayout.tsv"
+      . unlines . fmap (intercalate "\t")
+      $ tabulateResults "Role Payout" RolePayout.validatorHash RolePayout.validatorBytes benchmarks'
+
+    printValidator
+      "Role payout"
+      "marlowe-rolepayout"
+      RolePayout.validatorHash
+      RolePayout.validatorBytes
+
+
+-- | Print information about a validator.
+printValidator
+  :: String  -- ^ The name of the validator.
+  -> FilePath  -- ^ The base file path for exported files.
+  -> ScriptHash  -- ^ The hash of the validator script.
+  -> SerialisedScript  -- ^ The serialised validator.
+  -> IO ()  -- ^ Action to print the information about the benchmarking, and write the files.
+printValidator name file hash validator =
+  do
+    putStrLn $ name <> ":"
+    putStrLn $ "  Validator hash: " <> show hash
+    putStrLn $ "  Validator file: " <> file <> ".plutus"
+    putStrLn $ "  Measurements file: " <> file <> ".tsv"
+    BS.writeFile (file <> ".plutus")
       $ "{\"type\": \"PlutusScriptV2\", \"description\": \"\", \"cborHex\": \""
-      <> B16.encode (SBS.fromShort rolePayoutValidatorBytes) <> "\"}"
-
-    mapM_ (printResult RP.serialisedValidator) RP.benchmarks
-
-printResult
-  :: SerialisedScript
-  -> Benchmark
-  -> IO ()
-printResult validator benchmark =
-  case executeBenchmark validator benchmark of
-    Right (_, Right budget) -> putStrLn
-                                 $ "actual = " <> show budget
-                                 <> " vs expected = " <> show (bReferenceCost benchmark)
-    Right (logs, Left msg) -> print (msg, logs)
-    Left msg -> print msg
+      <> B16.encode (serialize' validator) <> "\"}"
+    putStrLn ""

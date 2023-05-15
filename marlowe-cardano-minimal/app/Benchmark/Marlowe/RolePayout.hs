@@ -1,38 +1,75 @@
 
+-----------------------------------------------------------------------------
+--
+-- Module      :  $Headers
+-- License     :  Apache 2.0
+--
+-- Stability   :  Experimental
+-- Portability :  Portable
+--
+-- | Benchmarking support for Marlowe's role-payout validator.
+--
+-----------------------------------------------------------------------------
+
+
 {-# LANGUAGE ImportQualifiedPost #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE RecordWildCards     #-}
 
 
 module Benchmark.Marlowe.RolePayout (
+  -- * Benchmarking
   benchmarks
-, serialisedValidator
+, validatorBytes
+, validatorHash
+, exampleBenchmark
 ) where
 
 
-import Benchmark.Marlowe.Types (Benchmark, makeBenchmark)
+import Benchmark.Marlowe (readBenchmarks)
+import Benchmark.Marlowe.Types (Benchmark (..), makeBenchmark)
 import Benchmark.Marlowe.Util (lovelace, makeBuiltinData, makeDatumMap, makeInput, makeOutput,
-                               makeRedeemerMap)
-import Language.Marlowe.Scripts (rolePayoutValidatorBytes)
+                               makeRedeemerMap, updateScriptHash)
+import Data.Bifunctor (second)
+import Language.Marlowe.Scripts (rolePayoutValidatorBytes, rolePayoutValidatorHash)
 import PlutusLedgerApi.V2 (Credential (PubKeyCredential, ScriptCredential), ExBudget (ExBudget),
                            Extended (NegInf, PosInf), Interval (Interval), LowerBound (LowerBound),
                            ScriptContext (ScriptContext, scriptContextPurpose, scriptContextTxInfo),
-                           ScriptPurpose (Spending), SerialisedScript, TxInfo (..),
+                           ScriptHash, ScriptPurpose (Spending), SerialisedScript, TxInfo (..),
                            TxOutRef (TxOutRef), UpperBound (UpperBound), singleton)
 
-import PlutusTx.AssocMap qualified as AM
+import PlutusTx.AssocMap qualified as AM (empty)
 
 
-serialisedValidator :: SerialisedScript
-serialisedValidator = rolePayoutValidatorBytes
+-- | The serialised Marlowe role-payout validator.
+validatorBytes :: SerialisedScript
+validatorBytes = rolePayoutValidatorBytes
 
 
-benchmarks :: [Benchmark]
-benchmarks = pure soleBenchmark
+-- | The hash for the Marlowe role-payout validator.
+validatorHash :: ScriptHash
+validatorHash = rolePayoutValidatorHash
 
 
-soleBenchmark :: Benchmark
-soleBenchmark =
+-- | The benchmark cases for the Marlowe role-payout validator.
+benchmarks :: IO (Either String [Benchmark])
+benchmarks =
+  let
+    update benchmark@Benchmark{..} =
+      benchmark {
+        bScriptContext =
+          updateScriptHash
+            "e165610232235bbbbeff5b998b233daae42979dec92a6722d9cda989"
+            rolePayoutValidatorHash
+            bScriptContext
+      }
+  in
+    second (update <$>) <$> readBenchmarks "rolepayout"
+
+
+-- | An example benchmark for the Marlowe role-payout validator.
+exampleBenchmark :: Benchmark
+exampleBenchmark =
   let
     txInfoInputs =
       [
