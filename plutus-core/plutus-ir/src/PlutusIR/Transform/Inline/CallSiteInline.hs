@@ -20,7 +20,6 @@ import PlutusIR.Core
 import PlutusIR.Transform.Inline.Utils
 import PlutusIR.Transform.Substitute
 
-import Control.Monad.Extra
 import Control.Monad.State
 
 {- Note [Inlining and beta reduction of fully applied functions]
