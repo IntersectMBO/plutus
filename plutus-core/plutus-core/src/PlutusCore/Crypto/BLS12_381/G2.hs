@@ -21,9 +21,9 @@ import Cardano.Crypto.EllipticCurve.BLS12_381.Internal qualified as BlstBindings
 
 import PlutusCore.Crypto.Utils (byteStringAsHex)
 import PlutusCore.Pretty.PrettyConst (ConstConfig)
-import Text.PrettyBy (PrettyBy, prettyBy)
+import Text.PrettyBy (PrettyBy)
 
-import Control.DeepSeq (NFData, rnf)
+import Control.DeepSeq (NFData, rnf, rwhnf)
 import Data.Bifunctor (second)
 import Data.ByteString (ByteString, length, pack)
 import Data.Proxy (Proxy (..))
@@ -38,8 +38,7 @@ instance Show Element where
     show  = byteStringAsHex . compress
 instance Pretty Element where
     pretty = pretty . show
-instance PrettyBy ConstConfig Element where
-    prettyBy _ = pretty
+instance PrettyBy ConstConfig Element
 instance Flat Element where
     decode = do
         x <- decode
@@ -49,7 +48,7 @@ instance Flat Element where
     encode = encode . compress
     size = size . compress
 instance NFData Element where
-    rnf _ = ()
+    rnf (Element x) = rwhnf x  -- Just to be on the safe side.
 
 -- | Add two G2 group elements
 add :: Element -> Element -> Element

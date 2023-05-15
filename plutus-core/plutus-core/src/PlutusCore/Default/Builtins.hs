@@ -37,7 +37,7 @@ import Data.ByteString.Hash qualified as Hash
 import Data.ByteString.Lazy qualified as BSL
 import Data.Char
 import Data.Ix
-import Data.Text (Text)
+import Data.Text (Text, pack)
 import Data.Text.Encoding (decodeUtf8', encodeUtf8)
 import Flat hiding (from, to)
 import Flat.Decoder
@@ -163,12 +163,20 @@ instance Pretty DefaultFun where
 instance ExMemoryUsage DefaultFun where
     memoryUsage _ = singletonRose 1
 
--- | Turn a function into another function that returns 'EvaluationFailure' when its second argument
--- is 0 or calls the original function otherwise and wraps the result in 'EvaluationSuccess'.
--- Useful for correctly handling `div`, `mod`, etc.
+-- | Turn a function into another function that returns 'EvaluationFailure' when
+-- its second argument is 0 or calls the original function otherwise and wraps
+-- the result in 'EvaluationSuccess'.  Useful for correctly handling `div`,
+-- `mod`, etc.
 nonZeroArg :: (Integer -> Integer -> Integer) -> Integer -> Integer -> EvaluationResult Integer
 nonZeroArg _ _ 0 = EvaluationFailure
 nonZeroArg f x y = EvaluationSuccess $ f x y
+
+-- | Turn a function returning 'Either' into another function that emits an
+-- error message and returns 'EvaluationFailure' in the 'Left' case and wraps
+-- the result in 'EvaluationSuccess' in the 'Right' case.
+eitherToEmitter :: Show e => Either e b -> Emitter (EvaluationResult b)
+eitherToEmitter (Left e)  = (emit . pack . show $ e) >> pure EvaluationFailure
+eitherToEmitter (Right r) = pure . pure $ r
 
 {- Note [Constants vs built-in functions]
 A constant is any value of a built-in type. For example, 'Integer' is a built-in type, so anything
@@ -1408,20 +1416,12 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunOneArgument . paramBls12_381_G1_compress)
     toBuiltinMeaning _var Bls12_381_G1_uncompress =
         makeBuiltinMeaning
-            uncompressG1
+            (eitherToEmitter . BLS12_381.G1.uncompress)
             (runCostingFunOneArgument . paramBls12_381_G1_uncompress)
-        where uncompressG1 s =
-                  case BLS12_381.G1.uncompress s of
-                    Left _  -> EvaluationFailure
-                    Right p -> EvaluationSuccess p
     toBuiltinMeaning _var Bls12_381_G1_hashToGroup =
         makeBuiltinMeaning
-            hashToGroup
+            (eitherToEmitter .* BLS12_381.G1.hashToGroup)
             (runCostingFunTwoArguments . paramBls12_381_G1_hashToGroup)
-        where hashToGroup msg dst =
-                  case BLS12_381.G1.hashToGroup msg dst of
-                    Left _  -> EvaluationFailure
-                    Right p -> EvaluationSuccess p
     toBuiltinMeaning _var Bls12_381_G1_equal =
         makeBuiltinMeaning
             ((==) @BLS12_381.G1.Element)
@@ -1445,20 +1445,12 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunOneArgument . paramBls12_381_G2_compress)
     toBuiltinMeaning _var Bls12_381_G2_uncompress =
         makeBuiltinMeaning
-            uncompressG2
+            (eitherToEmitter . BLS12_381.G2.uncompress)
             (runCostingFunOneArgument . paramBls12_381_G2_uncompress)
-        where uncompressG2 s =
-                  case BLS12_381.G2.uncompress s of
-                    Left _  -> EvaluationFailure
-                    Right p -> EvaluationSuccess p
     toBuiltinMeaning _var Bls12_381_G2_hashToGroup =
         makeBuiltinMeaning
-            hashToGroup
+            (eitherToEmitter .* BLS12_381.G2.hashToGroup)
             (runCostingFunTwoArguments . paramBls12_381_G2_hashToGroup)
-        where hashToGroup msg dst =
-                  case BLS12_381.G2.hashToGroup msg dst of
-                    Left _  -> EvaluationFailure
-                    Right p -> EvaluationSuccess p
     toBuiltinMeaning _var Bls12_381_G2_equal =
         makeBuiltinMeaning
             ((==) @BLS12_381.G2.Element)
