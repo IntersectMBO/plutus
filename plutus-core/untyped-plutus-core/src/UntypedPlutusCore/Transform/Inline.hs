@@ -29,18 +29,20 @@ import UntypedPlutusCore.Core.Plated
 import UntypedPlutusCore.Core.Type
 import UntypedPlutusCore.MkUPlc
 import UntypedPlutusCore.Rename ()
+import UntypedPlutusCore.Subst
 
 import PlutusCore qualified as PLC
 import PlutusCore.Annotation
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Name
 import PlutusCore.Quote
+import UntypedPlutusCore.Size
 
 import Control.Lens hiding (Strict)
+import Control.Monad.Extra
 import Control.Monad.Reader
 import Control.Monad.State
 
-import Data.Semigroup.Generic (GenericSemigroupMonoid (..))
 import Witherable (wither)
 
 {- Note [Differences from PIR inliner]
@@ -66,10 +68,32 @@ newtype TermEnv name uni fun a =
 -- See Note [Differences from PIR inliner] 1
 newtype Subst name uni fun a = Subst { _termEnv :: TermEnv name uni fun a }
     deriving stock (Generic)
-    deriving (Semigroup, Monoid) via (GenericSemigroupMonoid (Subst name uni fun a))
+    deriving newtype (Semigroup, Monoid)
 
 makeLenses ''TermEnv
 makeLenses ''Subst
+
+data VarInfo name uni fun ann = VarInfo
+  { _varBinders :: [name]
+  , _varRhs     :: Term name uni fun ann
+  , _varRhsBody :: Term name uni fun ann
+  }
+
+makeLenses ''VarInfo
+
+-- | UPLC inliner state
+data S name uni fun a = S
+  { _subst :: Subst name uni fun a
+  , _vars  :: PLC.UniqueMap TermUnique (VarInfo name uni fun a)
+  }
+
+makeLenses ''S
+
+instance Semigroup (S name uni fun a) where
+  S a1 b1 <> S a2 b2 = S (a1 <> a2) (b1 <> b2)
+
+instance Monoid (S name uni fun a) where
+  mempty = S mempty mempty
 
 type ExternalConstraints name uni fun m =
     ( HasUnique name TermUnique
@@ -90,24 +114,39 @@ data InlineInfo name a = InlineInfo { _usages :: Usages.Usages, _hints :: Inline
 -- Using a concrete monad makes a very large difference to the performance of this module
 -- (determined from profiling)
 -- | The monad the inliner runs in.
-type InlineM name uni fun a = ReaderT (InlineInfo name a) (StateT (Subst name uni fun a) Quote)
+type InlineM name uni fun a = ReaderT (InlineInfo name a) (StateT (S name uni fun a) Quote)
 
 -- | Look up the unprocessed variable in the substitution.
 lookupTerm
     :: (HasUnique name TermUnique)
     => name
-    -> Subst name uni fun a
+    -> S name uni fun a
     -> Maybe (InlineTerm name uni fun a)
-lookupTerm n subst = lookupName n $ subst ^. termEnv . unTermEnv
+lookupTerm n s = lookupName n $ s ^. subst . termEnv . unTermEnv
 
 -- | Insert the unprocessed variable into the substitution.
 extendTerm
     :: (HasUnique name TermUnique)
     => name -- ^ The name of the variable.
     -> InlineTerm name uni fun a -- ^ The substitution range.
-    -> Subst name uni fun a -- ^ The substitution.
-    -> Subst name uni fun a
-extendTerm n clos subst = subst & termEnv . unTermEnv %~ insertByName n clos
+    -> S name uni fun a -- ^ The substitution.
+    -> S name uni fun a
+extendTerm n clos s = s & subst . termEnv . unTermEnv %~ insertByName n clos
+
+lookupVarInfo ::
+  (HasUnique name TermUnique) =>
+  name ->
+  S name uni fun a ->
+  Maybe (VarInfo name uni fun a)
+lookupVarInfo n s = lookupName n $ s ^. vars
+
+extendVarInfo ::
+  (HasUnique name TermUnique) =>
+  name ->
+  VarInfo name uni fun a ->
+  S name uni fun a ->
+  S name uni fun a
+extendVarInfo n info s = s & vars %~ insertByName n info
 
 -- | Inline simple bindings. Relies on global uniqueness, and preserves it.
 -- See Note [Inlining and global uniqueness]
@@ -135,10 +174,10 @@ Some examples will help:
 [[(\x . t) a] b] -> Nothing
 -}
 extractApps :: Term name uni fun a -> Maybe ([UTermDef name uni fun a], Term name uni fun a)
-extractApps = collectArgs []
+extractApps = go []
   where
-      collectArgs argStack (Apply _ f arg) = collectArgs (arg:argStack) f
-      collectArgs argStack t               = matchArgs argStack [] t
+      go argStack (Apply _ f arg) = go (arg:argStack) f
+      go argStack t               = matchArgs argStack [] t
       matchArgs (arg:rest) acc (LamAbs a n body) = matchArgs rest (Def (UVarDecl a n) arg:acc) body
       matchArgs []         acc t                 =
         if null acc then Nothing else Just (reverse acc, t)
@@ -159,7 +198,8 @@ processTerm
     :: forall name uni fun a. InliningConstraints name uni fun
     => Term name uni fun a
     -> InlineM name uni fun a (Term name uni fun a)
-processTerm = handleTerm where
+processTerm = handleTerm
+  where
     handleTerm :: Term name uni fun a -> InlineM name uni fun a (Term name uni fun a)
     handleTerm = \case
         v@(Var _ n) -> fromMaybe v <$> substName n
@@ -168,7 +208,7 @@ processTerm = handleTerm where
             bs' <- wither (processSingleBinding t) bs
             t' <- processTerm t
             pure $ restoreApps bs' t'
-        t -> forMOf termSubterms t processTerm
+        t -> forMOf termSubterms t processTerm >>= inlineSaturatedApp
 
     -- See Note [Renaming strategy]
     substName :: name -> InlineM name uni fun a (Maybe (Term name uni fun a))
@@ -185,9 +225,17 @@ processSingleBinding
   => Term name uni fun a
   -> UTermDef name uni fun a
   -> InlineM name uni fun a (Maybe (UTermDef name uni fun a))
-processSingleBinding body (Def vd@(UVarDecl a n) rhs) = do
-    rhs' <- maybeAddSubst body a n rhs
-    pure $ Def vd <$> rhs'
+processSingleBinding body (Def vd@(UVarDecl a n) rhs0) = do
+    maybeAddSubst body a n rhs0 >>= \case
+        Just rhs -> do
+            let (binders, rhsBody) = collectBinders rhs
+            modify' . extendVarInfo n $ VarInfo
+              { _varBinders = binders
+              , _varRhs = rhs
+              , _varRhsBody = rhsBody
+              }
+            pure . Just $ Def vd rhs
+        Nothing -> pure Nothing
 
 -- | Check against the heuristics we have for inlining and either inline the term binding or not.
 -- The arguments to this function are the fields of the `TermBinding` being processed.
@@ -367,6 +415,81 @@ isPure = go True
             Error {}                      -> False
             -- See Note [Differences from PIR inliner] 5
             Builtin{}                     -> True
+
+-- | Fully apply and beta reduce.
+fullyApply ::
+  forall name uni fun a.
+  (InliningConstraints name uni fun) =>
+  VarInfo name uni fun a ->
+  [(Term name uni fun a, a)] ->
+  InlineM name uni fun a (Maybe (Term name uni fun a))
+fullyApply info = go (info ^. varRhsBody) (info ^. varBinders)
+  where
+    go ::
+      Term name uni fun a ->
+      [name] ->
+      [(Term name uni fun a, a)] ->
+      InlineM name uni fun a (Maybe (Term name uni fun a))
+    go acc bs args = case (bs, args) of
+      ([], _) -> pure . Just $ mkApps acc args
+      (param : params, (arg, _ann) : args') ->
+        ifM
+          (safeToBetaReduce param arg)
+          ( do
+              acc' <-
+                termSubstNamesM
+                  (\n -> if n == param then Just <$> PLC.rename arg else pure Nothing)
+                  acc
+              go acc' params args'
+          )
+          (pure Nothing)
+      _ -> pure Nothing
+
+    safeToBetaReduce ::
+      name ->
+      Term name uni fun a ->
+      InlineM name uni fun a Bool
+    safeToBetaReduce n = effectSafe (info ^. varRhsBody) n <=< checkPurity
+
+-- | Strips off lambda binders.
+collectBinders :: Term name uni fun a -> ([name], Term name uni fun a)
+collectBinders = \case
+  LamAbs _ n t -> first (n :) (collectBinders t)
+  t            -> ([], t)
+
+-- | Strip off arguments
+collectArgs :: Term name uni fun a -> (Term name uni fun a, [(Term name uni fun a, a)])
+collectArgs = go []
+  where
+    go acc = \case
+      Apply ann fun arg -> go ((arg, ann) : acc) fun
+      t                 -> (t, acc)
+
+mkApps ::
+  Term name uni fun a ->
+  [(Term name uni fun a, a)] ->
+  Term name uni fun a
+mkApps = foldl' $ \acc (arg, ann) -> Apply ann acc arg
+
+inlineSaturatedApp ::
+  forall name uni fun a.
+  (InliningConstraints name uni fun) =>
+  Term name uni fun a ->
+  InlineM name uni fun a (Term name uni fun a)
+inlineSaturatedApp t
+  | (Var _ann name, args) <- collectArgs t =
+      gets (lookupVarInfo name) >>= \case
+        Nothing -> pure t
+        Just varInfo ->
+          fullyApply varInfo args >>= \case
+            Nothing -> pure t
+            Just fullyApplied -> do
+              let sizeIsOk = termSize fullyApplied <= termSize t
+                  rhs = varInfo ^. varRhs
+                  costIsOk = costIsAcceptable rhs
+              rhsPure <- checkPurity rhs
+              pure $ if sizeIsOk && costIsOk && rhsPure then fullyApplied else t
+  | otherwise = pure t
 
 {- Note [delayAndVarIsPure]
 

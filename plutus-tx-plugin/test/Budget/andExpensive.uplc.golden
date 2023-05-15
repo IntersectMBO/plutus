@@ -35,38 +35,38 @@
         )
       )
     ]
-    [
-      (lam
-        c_i0
-        [
-          [ c_i1 (constr 0) ]
-          [
-            [ c_i1 (constr 0) ]
-            [
-              [ c_i1 (constr 0) ]
-              [
-                [ c_i1 (constr 0) ]
-                [
-                  [ c_i1 (constr 0) ]
-                  [
-                    [ c_i1 (constr 0) ]
-                    [
-                      [ c_i1 (constr 0) ]
-                      [
-                        [ c_i1 (constr 0) ]
-                        [
-                          [ c_i1 (constr 0) ] [ [ c_i1 (constr 0) ] (constr 0) ]
-                        ]
-                      ]
-                    ]
-                  ]
-                ]
-              ]
-            ]
-          ]
-        ]
+    (constr
+      1
+      (constr 0)
+      (constr
+        1
+        (constr 0)
+        (constr
+          1
+          (constr 0)
+          (constr
+            1
+            (constr 0)
+            (constr
+              1
+              (constr 0)
+              (constr
+                1
+                (constr 0)
+                (constr
+                  1
+                  (constr 0)
+                  (constr
+                    1
+                    (constr 0)
+                    (constr 1 (constr 0) (constr 1 (constr 0) (constr 0)))
+                  )
+                )
+              )
+            )
+          )
+        )
       )
-      (lam ds_i0 (lam ds_i0 (constr 1 ds_i2 ds_i1)))
-    ]
+    )
   ]
 )

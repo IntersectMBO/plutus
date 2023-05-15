@@ -2,54 +2,24 @@
   1.1.0
   [
     (lam
-      Just_i0
+      fMonadMaybe_c_i0
       [
+        [ fMonadMaybe_c_i1 (constr 0 (con integer 1)) ]
         (lam
           x_i0
           [
-            (lam
-              y_i0
-              [
-                (lam
-                  fMonadMaybe_c_i0
-                  [
-                    [ fMonadMaybe_c_i1 x_i3 ]
-                    (lam
-                      x_i0
-                      [
-                        [ fMonadMaybe_c_i2 y_i3 ]
-                        (lam
-                          y_i0
-                          [
-                            (lam ds_i0 [ Just_i7 ds_i1 ])
-                            [ [ (builtin addInteger) x_i2 ] y_i1 ]
-                          ]
-                        )
-                      ]
-                    )
-                  ]
-                )
-                (lam
-                  ds_i0
-                  (lam
-                    k_i0
-                    (force
-                      (case
-                        ds_i2
-                        (lam x_i0 (delay [ k_i2 x_i1 ]))
-                        (delay (constr 1))
-                      )
-                    )
-                  )
-                )
-              ]
-            )
-            [ Just_i2 (con integer 2) ]
+            [ fMonadMaybe_c_i2 (constr 0 (con integer 2)) ]
+            (lam y_i0 (constr 0 [ [ (builtin addInteger) x_i2 ] y_i1 ]))
           ]
         )
-        [ Just_i1 (con integer 1) ]
       ]
     )
-    (lam arg_0_i0 (constr 0 arg_0_i1))
+    (lam
+      ds_i0
+      (lam
+        k_i0
+        (force (case ds_i2 (lam x_i0 (delay [ k_i2 x_i1 ])) (delay (constr 1))))
+      )
+    )
   ]
 )
