@@ -138,17 +138,16 @@ fullyApplyAndBetaReduce info args0 = do
       go acc arity args = case (arity, args) of
         -- success
         ([], _) -> pure . Just $ fillAppContext acc args
-        (TermParam param : arity', TermAppContext arg _ args') ->
-          ifM
-            (safeToBetaReduce param arg)
-            ( do
-                acc' <-
-                  termSubstNamesM
-                    (\n -> if n == param then Just <$> PLC.rename arg else pure Nothing)
-                    acc
-                go acc' arity' args'
-            )
-            (pure Nothing)
+        (TermParam param : arity', TermAppContext arg _ args') -> do
+          safe <- safeToBetaReduce param arg
+          if safe
+            then do
+              acc' <-
+                termSubstNamesM
+                  (\n -> if n == param then Just <$> PLC.rename arg else pure Nothing)
+                  acc
+              go acc' arity' args'
+            else pure Nothing
         (TypeParam param : arity', TypeAppContext arg _ args') -> do
           acc' <-
             termSubstTyNamesM
