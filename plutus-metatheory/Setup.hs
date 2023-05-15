@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                 #-}
 {-# LANGUAGE ImportQualifiedPost #-}
 
 import Distribution.Simple qualified as D
@@ -84,6 +85,9 @@ agdaPreProcessor :: D.BuildInfo -> D.LocalBuildInfo -> D.ComponentLocalBuildInfo
 agdaPreProcessor _ lbi _ = D.PreProcessor
   { D.platformIndependent = True
   , D.runPreProcessor = D.mkSimplePreProcessor preProcessors
+#if MIN_VERSION_Cabal(3,8,0)
+  , D.ppOrdering = D.unsorted
+#endif
   }
   where
     preProcessors :: FilePath -> FilePath -> D.Verbosity -> IO ()
