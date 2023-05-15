@@ -128,44 +128,46 @@ fullyApplyAndBetaReduce ::
   -- | The arguments
   AppContext tyname name uni fun ann ->
   InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
-fullyApplyAndBetaReduce info = go (varRhsBody info) (varArity info)
-  where
-    go ::
-      Term tyname name uni fun ann ->
-      Arity tyname name ->
-      AppContext tyname name uni fun ann ->
-      InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
-    go acc arity args = case (arity, args) of
-      -- success
-      ([], _) -> pure . Just $ fillAppContext acc args
-      (TermParam param : arity', TermAppContext arg _ args') ->
-        ifM
-          (safeToBetaReduce param arg)
-          ( do
-              acc' <-
-                termSubstNamesM
-                  (\n -> if n == param then Just <$> PLC.rename arg else pure Nothing)
-                  acc
-              go acc' arity' args'
-          )
-          (pure Nothing)
-      (TypeParam param : arity', TypeAppContext arg _ args') -> do
-        acc' <-
-          termSubstTyNamesM
-            (\n -> if n == param then Just <$> PLC.rename arg else pure Nothing)
-            acc
-        go
-          acc'
-          arity'
-          args'
-      _ -> pure Nothing
+fullyApplyAndBetaReduce info args0 = do
+  rhsBody <- liftDupable (let Done rhsBody = varRhsBody info in rhsBody)
+  let go ::
+        Term tyname name uni fun ann ->
+        Arity tyname name ->
+        AppContext tyname name uni fun ann ->
+        InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
+      go acc arity args = case (arity, args) of
+        -- success
+        ([], _) -> pure . Just $ fillAppContext acc args
+        (TermParam param : arity', TermAppContext arg _ args') ->
+          ifM
+            (safeToBetaReduce param arg)
+            ( do
+                acc' <-
+                  termSubstNamesM
+                    (\n -> if n == param then Just <$> PLC.rename arg else pure Nothing)
+                    acc
+                go acc' arity' args'
+            )
+            (pure Nothing)
+        (TypeParam param : arity', TypeAppContext arg _ args') -> do
+          acc' <-
+            termSubstTyNamesM
+              (\n -> if n == param then Just <$> PLC.rename arg else pure Nothing)
+              acc
+          go
+            acc'
+            arity'
+            args'
+        _ -> pure Nothing
 
-    -- namely, turning `(\a -> body) arg` into `body [a := arg]`.
-    safeToBetaReduce ::
-      name ->
-      Term tyname name uni fun ann ->
-      InlineM tyname name uni fun ann Bool
-    safeToBetaReduce n = effectSafe (varRhsBody info) Strict n <=< checkPurity
+      -- namely, turning `(\a -> body) arg` into `body [a := arg]`.
+      safeToBetaReduce ::
+        name ->
+        Term tyname name uni fun ann ->
+        InlineM tyname name uni fun ann Bool
+      safeToBetaReduce n = effectSafe rhsBody Strict n <=< checkPurity
+  go rhsBody (varArity info) args0
+
 
 -- | Consider whether to inline an application.
 inlineSaturatedApp ::
@@ -178,9 +180,9 @@ inlineSaturatedApp t
       gets (lookupVarInfo name) >>= \case
         Just varInfo -> fullyApplyAndBetaReduce varInfo args >>= \case
           Just fullyApplied -> do
-            rhs <- liftDupable (let Done rhs = varRhs varInfo in rhs)
+            let rhs = varRhs varInfo
                 -- Inline only if the size is no bigger than not inlining.
-            let sizeIsOk = termSize fullyApplied <= termSize t
+                sizeIsOk = termSize fullyApplied <= termSize t
                 -- The definition itself will be inlined, so we need to check that the cost
                 -- of that is acceptable. Note that we do _not_ check the cost of the _body_.
                 -- We would have paid that regardless.

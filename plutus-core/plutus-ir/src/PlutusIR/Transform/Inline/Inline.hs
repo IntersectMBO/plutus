@@ -211,17 +211,17 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
             -- actually have got rid of all of them!
             pure $ mkLet ann NonRec bs' t'
         -- This includes recursive let terms, we don't even consider inlining them at the moment
-        t -> do
+        t ->
             -- process all subterms first, so that the rhs won't be processed more than once. This
             -- is important because otherwise the number of times we process them can grow
             -- exponentially in the case that it has nested `let`s.
-            processedT <- forMOf termSubterms t processTerm
-            -- consider call site inlining for each node that have gone through unconditional
+            --
+            -- Then, consider call site inlining for each node that have gone through unconditional
             -- inlining. Because `inlineSaturatedApp` traverses *all* application nodes for each
             -- subterm, the runtime is quadratic for terms with a long chain of applications.
             -- If we use the context-based approach like in GHC, this won't be a problem, so we may
             -- consider that in the future.
-            inlineSaturatedApp processedT
+            inlineSaturatedApp =<< forMOf termSubterms t processTerm
 
 -- | Run the inliner on a single non-recursive let binding.
 processSingleBinding
@@ -230,14 +230,13 @@ processSingleBinding
     -> Binding tyname name uni fun ann -- ^ The binding.
     -> InlineM tyname name uni fun ann (Maybe (Binding tyname name uni fun ann))
 processSingleBinding body = \case
-    (TermBind ann s v@(VarDecl _ n _) rhs) -> do
+    (TermBind ann s v@(VarDecl _ n _) rhs0) -> do
         -- we want to do unconditional inline if possible
-        maybeRhs' <- maybeAddSubst body ann s n rhs
-        case maybeRhs' of
+        maybeAddSubst body ann s n rhs0 >>= \case
             -- this binding is going to be unconditionally inlined
             Nothing -> pure Nothing
-            Just processedRhs -> do
-                let (arity, bodyToCheck) = computeArity processedRhs
+            Just rhs -> do
+                let (arity, bodyToCheck) = computeArity rhs
                 -- when we encounter a binding, we add it to
                 -- the global map `Utils.NonRecInScopeSet`.
                 -- The `varRhs` added to the map has been unconditionally inlined.
@@ -248,8 +247,8 @@ processSingleBinding body = \case
                 modify' $
                     extendVarInfo
                         n
-                        (MkVarInfo s (Done (dupable processedRhs)) arity bodyToCheck)
-                pure $ Just $ TermBind ann s v processedRhs
+                        (MkVarInfo s rhs arity (Done (dupable bodyToCheck)))
+                pure $ Just $ TermBind ann s v rhs
     (TypeBind ann v@(TyVarDecl _ n _) rhs) -> do
         maybeRhs' <- maybeAddTySubst n rhs
         pure $ TypeBind ann v <$> maybeRhs'
