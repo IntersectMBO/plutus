@@ -115,7 +115,7 @@ type Arity tyname name = [Param tyname name]
 -- | Info attached to a let-binding needed for call site inlining.
 data VarInfo tyname name uni fun ann = MkVarInfo
     { varStrictness :: Strictness
-    , varDef        :: Term tyname name uni fun ann
+    , varDef        :: InlineTerm tyname name uni fun ann
     -- ^ its definition that has been unconditionally inlined.
     , varArity      :: Arity tyname name
     -- ^ its arity, storing to avoid repeated calculations.

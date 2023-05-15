@@ -13,6 +13,7 @@ See note [Inlining of fully applied functions].
 module PlutusIR.Transform.Inline.CallSiteInline where
 
 import PlutusCore qualified as PLC
+import PlutusCore.Rename
 import PlutusIR.Analysis.Size
 import PlutusIR.Contexts
 import PlutusIR.Core
@@ -177,9 +178,9 @@ inlineSaturatedApp t
       gets (lookupVarInfo name) >>= \case
         Just varInfo -> fullyApplyAndBetaReduce varInfo args >>= \case
           Just fullyApplied -> do
-            let def = varDef varInfo
+            def <- liftDupable (let Done rhs = varDef varInfo in rhs)
                 -- Inline only if the size is no bigger than not inlining.
-                sizeIsOk = termSize fullyApplied <= termSize t
+            let sizeIsOk = termSize fullyApplied <= termSize t
                 -- The definition itself will be inlined, so we need to check that the cost
                 -- of that is acceptable. Note that we do _not_ check the cost of the _body_.
                 -- We would have paid that regardless.

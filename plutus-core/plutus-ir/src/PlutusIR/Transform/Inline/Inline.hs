@@ -248,7 +248,7 @@ processSingleBinding body = \case
                 modify' $
                     extendVarInfo
                         n
-                        (MkVarInfo s processedRhs arity bodyToCheck)
+                        (MkVarInfo s (Done (dupable processedRhs)) arity bodyToCheck)
                 pure $ Just $ TermBind ann s v processedRhs
     (TypeBind ann v@(TyVarDecl _ n _) rhs) -> do
         maybeRhs' <- maybeAddTySubst n rhs
