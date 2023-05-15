@@ -128,7 +128,7 @@ fullyApplyAndBetaReduce ::
   -- | The arguments
   AppContext tyname name uni fun ann ->
   InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
-fullyApplyAndBetaReduce info = go (varBody info) (varArity info)
+fullyApplyAndBetaReduce info = go (varRhsBody info) (varArity info)
   where
     go ::
       Term tyname name uni fun ann ->
@@ -165,7 +165,7 @@ fullyApplyAndBetaReduce info = go (varBody info) (varArity info)
       name ->
       Term tyname name uni fun ann ->
       InlineM tyname name uni fun ann Bool
-    safeToBetaReduce n = effectSafe (varBody info) Strict n <=< checkPurity
+    safeToBetaReduce n = effectSafe (varRhsBody info) Strict n <=< checkPurity
 
 -- | Consider whether to inline an application.
 inlineSaturatedApp ::
@@ -178,7 +178,7 @@ inlineSaturatedApp t
       gets (lookupVarInfo name) >>= \case
         Just varInfo -> fullyApplyAndBetaReduce varInfo args >>= \case
           Just fullyApplied -> do
-            def <- liftDupable (let Done rhs = varDef varInfo in rhs)
+            rhs <- liftDupable (let Done rhs = varRhs varInfo in rhs)
                 -- Inline only if the size is no bigger than not inlining.
             let sizeIsOk = termSize fullyApplied <= termSize t
                 -- The definition itself will be inlined, so we need to check that the cost
@@ -187,13 +187,13 @@ inlineSaturatedApp t
                 -- Consider e.g. `let y = \x. f x`. We pay the cost of the `f x` at
                 -- every call site regardless. The work that is being duplicated is
                 -- the work for the lambda.
-                costIsOk = costIsAcceptable def
+                costIsOk = costIsAcceptable rhs
             -- check if binding is pure to avoid duplicated effects.
             -- For strict bindings we can't accidentally make any effects happen less often
             -- than it would have before, but we can make it happen more often.
             -- We could potentially do this safely in non-conservative mode.
-            defPure <- isTermBindingPure (varStrictness varInfo) def
-            pure $ if sizeIsOk && costIsOk && defPure then fullyApplied else t
+            rhsPure <- isTermBindingPure (varStrictness varInfo) rhs
+            pure $ if sizeIsOk && costIsOk && rhsPure then fullyApplied else t
           Nothing -> pure t
         -- The variable maybe a *recursive* let binding, in which case it won't be in the map,
         -- and we don't process it. ATM recursive bindings aren't inlined.

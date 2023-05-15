@@ -240,7 +240,7 @@ processSingleBinding body = \case
                 let (arity, bodyToCheck) = computeArity processedRhs
                 -- when we encounter a binding, we add it to
                 -- the global map `Utils.NonRecInScopeSet`.
-                -- The `varDef` added to the map has been unconditionally inlined.
+                -- The `varRhs` added to the map has been unconditionally inlined.
                 -- When we check the body of the let binding we look in this map for
                 -- call site inlining.
                 -- We don't remove the binding because we decide *at the call site*
