@@ -1,6 +1,5 @@
 -- Why is it needed here, but not in "Universe.Core"?
 {-# LANGUAGE ExplicitNamespaces #-}
-{-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE PatternSynonyms    #-}
 
 module PlutusCore
@@ -123,7 +122,6 @@ module PlutusCore
     , kindSize
     , programSize
     , serialisedSize
-    , getAppliedProgram
     ) where
 
 
@@ -155,8 +153,3 @@ applyProgram (Program a1 v1 t1) (Program a2 v2 t2) | v1 == v2
   = Right $ Program (a1 <> a2) v1 (Apply (termAnn t1 <> termAnn t2) t1 t2)
 applyProgram (Program _a1 v1 _t1) (Program _a2 v2 _t2) =
     Left $ MkApplyProgramError v1 v2
-
-getAppliedProgram :: Either ApplyProgramError prog -> prog
-getAppliedProgram = \case
-        Right prog -> prog
-        Left err   -> error $ show err

@@ -26,6 +26,7 @@ import PlutusTx.Coverage
 import PlutusTx.Lift.Instances ()
 import UntypedPlutusCore qualified as UPLC
 -- We do not use qualified import because the whole module contains off-chain code
+import PlutusPrelude
 import Prelude as Haskell
 
 -- The final type parameter is inferred to be phantom, but we give it a nominal
@@ -67,7 +68,7 @@ applyCode
     -> CompiledCodeIn uni fun a
     -> Either String (CompiledCodeIn uni fun b)
 applyCode fun arg = do
-  let uplc = PLC.getAppliedProgram $ UPLC.applyProgram (getPlc fun) (getPlc arg)
+  let uplc = unsafeFromRight $ UPLC.applyProgram (getPlc fun) (getPlc arg)
   -- Probably this could be done with more appropriate combinators, but the
   -- nested Maybes make it very easy to do the wrong thing here (I did it
   -- wrong first!), so I wrote it painfully explicitly.

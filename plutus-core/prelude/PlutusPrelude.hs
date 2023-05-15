@@ -88,6 +88,7 @@ module PlutusPrelude
     , Default (def)
     -- * Lists
     , zipExact
+    , unsafeFromRight
     ) where
 
 import Control.Applicative (Alternative (..), liftA2)
@@ -231,3 +232,9 @@ zipExact [] []         = Just []
 zipExact [a] [b]       = Just [(a,b)]
 zipExact (a:as) (b:bs) = (:) (a, b) <$> zipExact as bs
 zipExact _ _           = Nothing
+
+-- | Similar to Maybe's `fromJust`. Returns the `Right` and errors out with the show instance
+-- of the `Left`.
+unsafeFromRight :: (Show e) => Either e a -> a
+unsafeFromRight (Right a) = a
+unsafeFromRight (Left e)  = error $ show e

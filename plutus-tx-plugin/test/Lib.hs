@@ -41,7 +41,7 @@ runPlcCek :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => [a] -> ExceptT SomeExcept
 runPlcCek values = do
      ps <- traverse toUPlc values
      let p =
-          foldl1 (PLC.getAppliedProgram .* UPLC.applyProgram) ps
+          foldl1 (unsafeFromRight .* UPLC.applyProgram) ps
      fromRightM (throwError . SomeException) $ evaluateCekNoEmit PLC.defaultCekParameters (p ^. UPLC.progTerm)
 
 runPlcCekTrace ::
@@ -51,7 +51,7 @@ runPlcCekTrace ::
 runPlcCekTrace values = do
      ps <- traverse toUPlc values
      let p =
-          foldl1 (PLC.getAppliedProgram .* UPLC.applyProgram) ps
+          foldl1 (unsafeFromRight .* UPLC.applyProgram) ps
      let (result, TallyingSt tally _, logOut) = runCek PLC.defaultCekParameters tallying logEmitter (p ^. UPLC.progTerm)
      res <- fromRightM (throwError . SomeException) result
      pure (logOut, tally, res)

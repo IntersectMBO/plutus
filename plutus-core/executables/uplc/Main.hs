@@ -211,7 +211,7 @@ runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
         case void <$> scripts of
           []          -> errorWithoutStackTrace "No input files"
           progAndargs ->
-            foldl1 (PLC.getAppliedProgram .* UPLC.applyProgram) progAndargs
+            foldl1 (unsafeFromRight .* UPLC.applyProgram) progAndargs
   writeProgram outp ofmt mode appliedScript
 
 ---------------- Evaluation ----------------
