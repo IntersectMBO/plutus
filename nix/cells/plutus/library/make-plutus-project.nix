@@ -34,6 +34,7 @@ let
     # No source-repository-packages right now
     sha256map = {
       "https://github.com/Topsii/foundation"."d3136f4bb8b69e273535352620e53f2196941b35" = "1l1idylvv25xp40zxxb5iim4xarpxfycwh85rmgabb0mbz4gw5rb"; # editorconfig-checker-disable-line
+      "https://github.com/tweag/HaskellR"."411d15fe5027494123e326c838955eff1c8e7ec8" = "0jax08z81xbfs3xz7zkk7x83cmr487iglifmxri205mf5bcj8ycj"; # editorconfig-checker-disable-line
     };
 
     # TODO: move this into the cabal.project using the new conditional support?
