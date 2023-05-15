@@ -252,5 +252,5 @@ data ApplyProgramError =
 
 instance Show ApplyProgramError where
     show (MkApplyProgramError v1 v2) =
-        "The first program has version " <> show v1
+        "Cannot apply two programs together: the first program has version " <> show v1
             <> " but the second program has version " <> show v2
