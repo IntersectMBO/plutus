@@ -1,2 +1,5 @@
+*.flat
 *.plutus
 *.tsv
+.cache/
+.ipynb_checkpoints/
