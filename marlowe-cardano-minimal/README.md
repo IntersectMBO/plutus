@@ -69,3 +69,9 @@ The following files are output:
 
 
 See [analysis.ipynb](analysis.ipynb) for example plots of the results.
+
+
+## Benchmark Data
+
+See [benchmarks/](benchmarks/ReadMe.md) for a description of the benchmarking data and copies of the Plutus scripts,
+PIR, PLC, and UPLC for the reference validators.
