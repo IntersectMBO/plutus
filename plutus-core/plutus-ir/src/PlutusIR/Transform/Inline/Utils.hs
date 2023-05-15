@@ -23,6 +23,7 @@ import PlutusIR.Transform.Rename ()
 import PlutusPrelude
 
 import Control.Lens hiding (Strict)
+import Control.Monad.Extra
 import Control.Monad.Reader
 import Control.Monad.State
 
@@ -389,3 +390,28 @@ trivialType = \case
     TyBuiltin{} -> True
     TyVar{}     -> True
     _           -> False
+
+shouldUnconditionallyInline ::
+  (InliningConstraints tyname name uni fun) =>
+  Strictness ->
+  name ->
+  Term tyname name uni fun ann ->
+  Term tyname name uni fun ann ->
+  InlineM tyname name uni fun ann Bool
+shouldUnconditionallyInline s n rhs body = preUnconditional ||^ postUnconditional
+  where
+    -- similar to the paper, preUnconditional inlining checks that the binder is 'OnceSafe'.
+    -- I.e., it's used at most once AND it neither duplicate code or work.
+    -- While we don't check for lambda etc like in the paper, `effectSafe` ensures that it
+    -- isn't doing any substantial work.
+    -- We actually also inline 'Dead' binders (i.e., remove dead code) here.
+    preUnconditional = do
+      isTermPure <- checkPurity rhs
+      nameUsedAtMostOnce n &&^ effectSafe body s n isTermPure
+
+    -- See Note [Inlining approach and 'Secrets of the GHC Inliner'] and [Inlining and
+    -- purity]. This is the case where we don't know that the number of occurrences is
+    -- exactly one, so there's no point checking if the term is immediately evaluated.
+    postUnconditional = do
+      isBindingPure <- isTermBindingPure s rhs
+      pure $ isBindingPure && sizeIsAcceptable rhs && costIsAcceptable rhs

@@ -27,6 +27,7 @@ import PlutusCore.Quote
 import PlutusCore.Rename (dupable)
 
 import Control.Lens (forMOf, traverseOf)
+import Control.Monad.Extra
 import Control.Monad.Reader
 import Control.Monad.State
 
@@ -268,34 +269,20 @@ maybeAddSubst
     -> name
     -> Term tyname name uni fun ann
     -> InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
-maybeAddSubst body ann s n rhs = do
-    rhs' <- processTerm rhs
+maybeAddSubst body ann s n rhs0 = do
+    rhs <- processTerm rhs0
 
     -- Check whether we've been told specifically to inline this
     hints <- view iiHints
     let hinted = shouldInline hints ann n
 
     if hinted -- if we've been told specifically, then do it right away
-    then extendAndDrop (Done $ dupable rhs')
-    else do
-        isTermPure <- checkPurity rhs'
-        preUnconditional <- liftM2 (&&) (nameUsedAtMostOnce n) (effectSafe body s n isTermPure)
-        -- similar to the paper, preUnconditional inlining checks that the binder is 'OnceSafe'.
-        -- I.e., it's used at most once AND it neither duplicate code or work.
-        -- While we don't check for lambda etc like in the paper, `effectSafe` ensures that it
-        -- isn't doing any substantial work.
-        -- We actually also inline 'Dead' binders (i.e., remove dead code) here.
-        if preUnconditional
-        then extendAndDrop (Done $ dupable rhs')
-        else do
-            isBindingPure <- isTermBindingPure s rhs'
-            -- See Note [Inlining approach and 'Secrets of the GHC Inliner'] and [Inlining and
-            -- purity]. This is the case where we don't know that the number of occurrences is
-            -- exactly one, so there's no point checking if the term is immediately evaluated.
-            let postUnconditional = isBindingPure && sizeIsAcceptable rhs' && costIsAcceptable rhs'
-            if postUnconditional
-            then extendAndDrop (Done $ dupable rhs')
-            else pure $ Just rhs'
+    then extendAndDrop (Done $ dupable rhs)
+    else
+        ifM
+            (shouldUnconditionallyInline s n rhs body)
+            (extendAndDrop (Done $ dupable rhs))
+            (pure $ Just rhs)
     where
         extendAndDrop ::
             forall b . InlineTerm tyname name uni fun ann

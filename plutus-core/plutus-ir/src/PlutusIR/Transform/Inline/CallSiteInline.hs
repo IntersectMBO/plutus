@@ -160,12 +160,16 @@ fullyApplyAndBetaReduce info args0 = do
             args'
         _ -> pure Nothing
 
-      -- namely, turning `(\a -> body) arg` into `body [a := arg]`.
+      -- Is it safe to turning `(\a -> body) arg` into `body [a := arg]`?
+      -- The criteria is the same as the criteria for inlining `a` in
+      -- `let !a = arg in body`.
       safeToBetaReduce ::
+        -- `a`
         name ->
+        -- `arg`
         Term tyname name uni fun ann ->
         InlineM tyname name uni fun ann Bool
-      safeToBetaReduce n = effectSafe rhsBody Strict n <=< checkPurity
+      safeToBetaReduce a = shouldUnconditionallyInline Strict a rhsBody
   go rhsBody (varArity info) args0
 
 
