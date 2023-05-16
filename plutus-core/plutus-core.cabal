@@ -62,7 +62,7 @@ common lang
   ghc-options:
     -Wall -Wnoncanonical-monad-instances -Wincomplete-uni-patterns
     -Wincomplete-record-updates -Wredundant-constraints -Widentities
-    -Wunused-packages -Wmissing-deriving-strategies
+    -Wunused-packages -Wmissing-deriving-strategies -fforce-recomp
 
 -- This contains UPLC+TPLC, PIR must be explicitly included by depending
 -- on the public sub-library.
