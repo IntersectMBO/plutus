@@ -31,7 +31,7 @@ import PlutusCore.Name
 import PlutusCore.Pretty
 import PlutusCore.Pretty qualified as PLC
 import PlutusCore.Quote (runQuoteT)
-import PlutusCore.Test
+import PlutusCore.Test hiding (ppCatch, ppThrow)
 import PlutusIR as PIR
 import PlutusIR.Compiler as PIR
 import PlutusIR.Parser (Parser, parse)

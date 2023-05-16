@@ -15,8 +15,12 @@ module PlutusCore.Test
     , rethrow
     , runTPlc
     , runUPlc
+    , ppThrow
+    , ppCatch
+    , goldenTPlcWith
     , goldenTPlc
     , goldenTPlcCatch
+    , goldenUPlcWith
     , goldenUPlc
     , goldenUPlcCatch
     , goldenTEval
@@ -201,33 +205,51 @@ ppCatch value = either (PP.pretty . show) prettyPlcClassicDebug <$> runExceptT v
 ppThrow :: PrettyPlc a => ExceptT SomeException IO a -> IO (Doc ann)
 ppThrow value = rethrow $ prettyPlcClassicDebug <$> value
 
+goldenTPlcWith
+    :: ToTPlc a TPLC.DefaultUni TPLC.DefaultFun
+    => String
+    -> (ExceptT SomeException IO
+            (TPLC.Program TPLC.NamedTyDeBruijn TPLC.NamedDeBruijn TPLC.DefaultUni TPLC.DefaultFun ())
+        -> IO (Doc ann))
+    -> String
+    -> a
+    -> TestNested
+goldenTPlcWith ext pp name value = nestedGoldenVsDocM name ext $ pp $ do
+    p <- toTPlc value
+    withExceptT @_ @FreeVariableError toException $ traverseOf TPLC.progTerm deBruijnTerm p
+
 goldenTPlc
     :: ToTPlc a TPLC.DefaultUni TPLC.DefaultFun
     => String -> a -> TestNested
-goldenTPlc name value = nestedGoldenVsDocM name ".tplc" $ ppThrow $ do
-    p <- toTPlc value
-    withExceptT @_ @FreeVariableError toException $ traverseOf TPLC.progTerm deBruijnTerm p
+goldenTPlc = goldenTPlcWith ".tplc" ppThrow
 
 goldenTPlcCatch
     :: ToTPlc a TPLC.DefaultUni TPLC.DefaultFun
     => String -> a -> TestNested
-goldenTPlcCatch name value = nestedGoldenVsDocM name ".tplc-catch" $ ppCatch $ do
-    p <- toTPlc value
-    withExceptT @_ @FreeVariableError toException $ traverseOf TPLC.progTerm deBruijnTerm p
+goldenTPlcCatch = goldenTPlcWith ".tplc-catch" ppCatch
+
+goldenUPlcWith
+    :: ToUPlc a UPLC.DefaultUni UPLC.DefaultFun
+    => String
+    -> (ExceptT SomeException IO
+            (UPLC.Program UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ())
+        -> IO (Doc ann))
+    -> String
+    -> a
+    -> TestNested
+goldenUPlcWith ext pp name value = nestedGoldenVsDocM name ext $ pp $ do
+    p <- toUPlc value
+    withExceptT @_ @FreeVariableError toException $ traverseOf UPLC.progTerm UPLC.deBruijnTerm p
 
 goldenUPlc
-    :: ToUPlc a TPLC.DefaultUni TPLC.DefaultFun
-     => String -> a -> TestNested
-goldenUPlc name value = nestedGoldenVsDocM name ".uplc" $ ppThrow $ do
-    p <- toUPlc value
-    withExceptT @_ @FreeVariableError toException $ traverseOf UPLC.progTerm UPLC.deBruijnTerm p
+    :: ToUPlc a UPLC.DefaultUni UPLC.DefaultFun
+    => String -> a -> TestNested
+goldenUPlc = goldenUPlcWith ".uplc" ppThrow
 
 goldenUPlcCatch
-    :: ToUPlc a TPLC.DefaultUni TPLC.DefaultFun
+    :: ToUPlc a UPLC.DefaultUni UPLC.DefaultFun
     => String -> a -> TestNested
-goldenUPlcCatch name value = nestedGoldenVsDocM name ".uplc-catch" $ ppCatch $ do
-    p <- toUPlc value
-    withExceptT @_ @FreeVariableError toException $ traverseOf UPLC.progTerm UPLC.deBruijnTerm p
+goldenUPlcCatch = goldenUPlcWith ".uplc-catch" ppCatch
 
 goldenTEval
     :: ToTPlc a TPLC.DefaultUni TPLC.DefaultFun

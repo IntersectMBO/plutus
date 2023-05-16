@@ -1,4 +1,36 @@
-( (Right (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> f (delay (\z -> \f -> z)))))))))))))))))))))))
+( (Right (delay (\z
+                  f ->
+                   f
+                     (delay (\z
+                              f ->
+                               f
+                                 (delay (\z
+                                          f ->
+                                           f
+                                             (delay (\z
+                                                      f ->
+                                                       f
+                                                         (delay (\z
+                                                                  f ->
+                                                                   f
+                                                                     (delay (\z
+                                                                              f ->
+                                                                               f
+                                                                                 (delay (\z
+                                                                                          f ->
+                                                                                           f
+                                                                                             (delay (\z
+                                                                                                      f ->
+                                                                                                       f
+                                                                                                         (delay (\z
+                                                                                                                  f ->
+                                                                                                                   f
+                                                                                                                     (delay (\z
+                                                                                                                              f ->
+                                                                                                                               f
+                                                                                                                                 (delay (\z
+                                                                                                                                          f ->
+                                                                                                                                           z)))))))))))))))))))))))
 , ({ tally: ({BStep BConst causes ({cpu: 115000 | mem: 500})
 | BStep BVar causes ({cpu: 3496000 | mem: 15200})
 | BStep BLamAbs causes ({cpu: 2622000 | mem: 11400})
