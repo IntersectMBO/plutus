@@ -17,10 +17,7 @@ description:
   on Cardano Computation Layer.
 
 category:        Language
-extra-doc-files:
-  CHANGELOG.md
-  README.md
-
+extra-doc-files: README.md
 data-dir:        benchmarks
 data-files:
   rolepayout/0004000402010401030101030100040000010104020201030001000204020401.benchmark
