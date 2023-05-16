@@ -168,7 +168,7 @@ data CostModelApplyError =
       -- ^ internal error when we are transforming the applied params from json with given jsonstring error (should not happen)
     | CMTooFewParamsError { cmTooFewExpected :: !Int, cmTooFewActual :: !Int }
       -- ^ See Note [Cost model parameters from the ledger's point of view]
-    deriving stock Show
+    deriving stock (Eq, Show)
     deriving anyclass Exception
 
 -- | A non-fatal warning when trying to create a cost given some plain costmodel parameters.

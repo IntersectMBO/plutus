@@ -46,11 +46,9 @@ module UntypedPlutusCore.Evaluation.Machine.Cek
     , CekValue(..)
     , readKnownCek
     , Hashable
-    , PrettyUni
+    , ThrowableBuiltins
     )
 where
-
-import PlutusPrelude
 
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
@@ -63,17 +61,15 @@ import PlutusCore.Builtin
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Name
-import PlutusCore.Pretty
 
 import Data.Text (Text)
-import Universe
 
 {-| Evaluate a term using the CEK machine with logging enabled and keep track of costing.
 A wrapper around the internal runCek to debruijn input and undebruijn output.
 *THIS FUNCTION IS PARTIAL if the input term contains free variables*
 -}
 runCek
-    :: PrettyUni uni fun
+    :: ThrowableBuiltins uni fun
     => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun
@@ -84,7 +80,7 @@ runCek = Common.runCek runCekDeBruijn
 -- | Evaluate a term using the CEK machine with logging disabled and keep track of costing.
 -- *THIS FUNCTION IS PARTIAL if the input term contains free variables*
 runCekNoEmit
-    :: PrettyUni uni fun
+    :: ThrowableBuiltins uni fun
     => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> ExBudgetMode cost uni fun
     -> Term Name uni fun ann
@@ -96,10 +92,7 @@ May throw a 'CekMachineException'.
 *THIS FUNCTION IS PARTIAL if the input term contains free variables*
 -}
 unsafeRunCekNoEmit
-    :: ( Pretty (SomeTypeIn uni), Typeable uni
-       , Closed uni, uni `Everywhere` PrettyConst
-       , Pretty fun, Typeable fun
-       )
+    :: ThrowableBuiltins uni fun
     => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> ExBudgetMode cost uni fun
     -> Term Name uni fun ann
@@ -109,7 +102,7 @@ unsafeRunCekNoEmit = Common.unsafeRunCekNoEmit runCekDeBruijn
 -- | Evaluate a term using the CEK machine with logging enabled.
 -- *THIS FUNCTION IS PARTIAL if the input term contains free variables*
 evaluateCek
-    :: PrettyUni uni fun
+    :: ThrowableBuiltins uni fun
     => EmitterMode uni fun
     -> MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> Term Name uni fun ann
@@ -119,7 +112,7 @@ evaluateCek = Common.evaluateCek runCekDeBruijn
 -- | Evaluate a term using the CEK machine with logging disabled.
 -- *THIS FUNCTION IS PARTIAL if the input term contains free variables*
 evaluateCekNoEmit
-    :: PrettyUni uni fun
+    :: ThrowableBuiltins uni fun
     => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> Term Name uni fun ann
     -> Either (CekEvaluationException Name uni fun) (Term Name uni fun ())
@@ -128,10 +121,7 @@ evaluateCekNoEmit = Common.evaluateCekNoEmit runCekDeBruijn
 -- | Evaluate a term using the CEK machine with logging enabled. May throw a 'CekMachineException'.
 -- *THIS FUNCTION IS PARTIAL if the input term contains free variables*
 unsafeEvaluateCek
-    :: ( Pretty (SomeTypeIn uni), Typeable uni
-       , Closed uni, uni `Everywhere` PrettyConst
-       , Pretty fun, Typeable fun
-       )
+    :: ThrowableBuiltins uni fun
     => EmitterMode uni fun
     -> MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> Term Name uni fun ann
@@ -141,10 +131,7 @@ unsafeEvaluateCek = Common.unsafeEvaluateCek runCekDeBruijn
 -- | Evaluate a term using the CEK machine with logging disabled. May throw a 'CekMachineException'.
 -- *THIS FUNCTION IS PARTIAL if the input term contains free variables*
 unsafeEvaluateCekNoEmit
-    :: ( Pretty (SomeTypeIn uni), Typeable uni
-       , Closed uni, uni `Everywhere` PrettyConst
-       , Pretty fun, Typeable fun
-       )
+    :: ThrowableBuiltins uni fun
     => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> Term Name uni fun ann
     -> EvaluationResult (Term Name uni fun ())
@@ -153,9 +140,7 @@ unsafeEvaluateCekNoEmit = Common.unsafeEvaluateCekNoEmit runCekDeBruijn
 -- | Unlift a value using the CEK machine.
 -- *THIS FUNCTION IS PARTIAL if the input term contains free variables*
 readKnownCek
-    :: ( ReadKnown (Term Name uni fun ()) a
-       , PrettyUni uni fun
-       )
+    :: (ThrowableBuiltins uni fun, ReadKnown (Term Name uni fun ()) a)
     => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> Term Name uni fun ann
     -> Either (CekEvaluationException Name uni fun) a

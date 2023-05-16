@@ -17,20 +17,10 @@ import PlutusCore.Pretty.PrettyConst
 import UntypedPlutusCore.Core.Instance.Pretty.Classic ()
 import UntypedPlutusCore.Core.Type
 
-import Universe
-
-instance
-        ( PrettyClassic name
-        , Pretty (SomeTypeIn uni)
-        , Closed uni, uni `Everywhere` PrettyConst, Pretty fun
-        , Pretty ann
-        ) => Pretty (Term name uni fun ann) where
+instance (PrettyClassic name, PrettyUni uni, Pretty fun, Pretty ann) =>
+        Pretty (Term name uni fun ann) where
     pretty = prettyClassicDef
 
-instance
-        ( PrettyClassic name
-        , Pretty (SomeTypeIn uni)
-        , Closed uni, uni `Everywhere` PrettyConst, Pretty fun
-        , Pretty ann
-        ) => Pretty (Program name uni fun ann) where
+instance (PrettyClassic name, PrettyUni uni, Pretty fun, Pretty ann) =>
+        Pretty (Program name uni fun ann) where
     pretty = prettyClassicDef

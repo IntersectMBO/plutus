@@ -116,17 +116,17 @@
           )
           (lam Nat_i0 (type) (sop [] [Nat_i1]))
           (constr
-            [
-              (lam Nat_i0 (type) (sop [] [Nat_i1]))
-              (ifix
+            (sop
+              []
+              [(ifix
                 (lam
                   rec_i0
                   (fun (fun (type) (type)) (type))
                   (lam f_i0 (fun (type) (type)) [ f_i1 [ rec_i2 f_i1 ] ])
                 )
                 (lam Nat_i0 (type) (sop [] [Nat_i1]))
-              )
-            ]
+              )]
+            )
             0
           )
         )
@@ -149,17 +149,17 @@
           )
           (lam Nat_i0 (type) (sop [] [Nat_i1]))
           (constr
-            [
-              (lam Nat_i0 (type) (sop [] [Nat_i1]))
-              (ifix
+            (sop
+              []
+              [(ifix
                 (lam
                   rec_i0
                   (fun (fun (type) (type)) (type))
                   (lam f_i0 (fun (type) (type)) [ f_i1 [ rec_i2 f_i1 ] ])
                 )
                 (lam Nat_i0 (type) (sop [] [Nat_i1]))
-              )
-            ]
+              )]
+            )
             1
             arg_0_i1
           )

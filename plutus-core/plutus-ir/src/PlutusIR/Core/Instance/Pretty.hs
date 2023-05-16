@@ -24,7 +24,7 @@ import Prettyprinter.Custom
 
 instance ( PLC.PrettyClassicBy configName tyname
          , PLC.PrettyClassicBy configName name
-         , PLC.Pretty (PLC.SomeTypeIn uni)
+         , PLC.PrettyParens (PLC.SomeTypeIn uni)
          , Pretty ann
          ) => PrettyBy (PLC.PrettyConfigClassic configName) (VarDecl tyname name uni ann) where
     prettyBy config (VarDecl ann n ty) =
@@ -48,7 +48,7 @@ instance PrettyBy (PLC.PrettyConfigClassic configName) Strictness where
 
 instance ( PLC.PrettyClassicBy configName tyname
          , PLC.PrettyClassicBy configName name
-         , PLC.Pretty (PLC.SomeTypeIn uni)
+         , PLC.PrettyParens (PLC.SomeTypeIn uni)
          , Pretty ann
          ) => PrettyBy (PLC.PrettyConfigClassic configName) (Datatype tyname name uni ann) where
     prettyBy config (Datatype ann ty tyvars destr constrs) =
@@ -61,8 +61,7 @@ instance ( PLC.PrettyClassicBy configName tyname
 
 instance ( PLC.PrettyClassicBy configName tyname
          , PLC.PrettyClassicBy configName name
-         , PLC.Pretty (PLC.SomeTypeIn uni)
-         , PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst
+         , PLC.PrettyUni uni
          , Pretty fun
          , Pretty ann
          ) => PrettyBy (PLC.PrettyConfigClassic configName) (Binding tyname name uni fun ann) where
@@ -79,8 +78,7 @@ instance ( PLC.PrettyClassicBy configName tyname
 
 instance ( PLC.PrettyClassicBy configName tyname
          , PLC.PrettyClassicBy configName name
-         , PLC.Pretty (PLC.SomeTypeIn uni)
-         , PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst
+         , PLC.PrettyUni uni
          , Pretty fun
          , Pretty ann
          ) => PrettyBy (PLC.PrettyConfigClassic configName) (Term tyname name uni fun ann) where
@@ -124,14 +122,13 @@ instance ( PLC.PrettyClassicBy configName tyname
             sexp "case" (PLC.consAnnIf config ann
                          (prettyBy config ty : prettyBy config arg : fmap (prettyBy config) cs))
       where
-        prettyTypeOf :: PLC.Pretty (PLC.SomeTypeIn t)  => PLC.Some (PLC.ValueOf t) -> Doc dann
-        prettyTypeOf (PLC.Some (PLC.ValueOf uni _ )) = pretty $ PLC.SomeTypeIn uni
+        prettyTypeOf :: PLC.Some (PLC.ValueOf uni) -> Doc dann
+        prettyTypeOf (PLC.Some (PLC.ValueOf uni _ )) = PLC.prettyParens $ PLC.SomeTypeIn uni
 
 
 instance ( PLC.PrettyClassicBy configName tyname
          , PLC.PrettyClassicBy configName name
-         , PLC.Pretty (PLC.SomeTypeIn uni)
-         , PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst
+         , PLC.PrettyUni uni
          , Pretty fun
          , Pretty ann
          ) => PrettyBy (PLC.PrettyConfigClassic configName) (Program tyname name uni fun ann) where
@@ -145,23 +142,21 @@ instance (PLC.PrettyClassic tyname, Pretty ann) =>
 
 instance ( PLC.PrettyClassic tyname
          , PLC.PrettyClassic name
-         , PLC.Pretty (PLC.SomeTypeIn uni)
+         , PLC.PrettyParens (PLC.SomeTypeIn uni)
          , Pretty ann
          ) => Pretty (VarDecl tyname name uni ann) where
     pretty = PLC.prettyClassicDef
 
 instance ( PLC.PrettyClassic tyname
          , PLC.PrettyClassic name
-         , PLC.Pretty (PLC.SomeTypeIn uni)
-         , uni `PLC.Everywhere` PLC.PrettyConst
+         , PLC.PrettyUni uni
          , Pretty ann
          ) => Pretty (Datatype tyname name uni ann) where
     pretty = PLC.prettyClassicDef
 
 instance ( PLC.PrettyClassic tyname
          , PLC.PrettyClassic name
-         , PLC.Pretty (PLC.SomeTypeIn uni)
-         , PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst
+         , PLC.PrettyUni uni
          , Pretty fun
          , Pretty ann
          ) => Pretty (Binding tyname name uni fun ann) where
@@ -169,8 +164,7 @@ instance ( PLC.PrettyClassic tyname
 
 instance ( PLC.PrettyClassic tyname
          , PLC.PrettyClassic name
-         , PLC.Pretty (PLC.SomeTypeIn uni)
-         , PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst
+         , PLC.PrettyUni uni
          , Pretty fun
          , Pretty ann
          ) => Pretty (Term tyname name uni fun ann) where
@@ -178,8 +172,7 @@ instance ( PLC.PrettyClassic tyname
 
 instance ( PLC.PrettyClassic tyname
          , PLC.PrettyClassic name
-         , PLC.Pretty (PLC.SomeTypeIn uni)
-         , PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst
+         , PLC.PrettyUni uni
          , Pretty fun
          , Pretty ann
          ) => Pretty (Program tyname name uni fun ann) where

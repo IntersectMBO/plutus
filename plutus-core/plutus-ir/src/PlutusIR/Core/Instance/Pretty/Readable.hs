@@ -16,7 +16,6 @@ module PlutusIR.Core.Instance.Pretty.Readable
   , PrettyPir
   ) where
 
-import PlutusCore qualified as PLC
 import PlutusCore.Pretty
 import PlutusIR.Core.Type
 import PlutusPrelude
@@ -72,8 +71,7 @@ viewLet _       = Nothing
 type PrettyConstraints configName tyname name uni =
   ( PrettyReadableBy configName tyname
   , PrettyReadableBy configName name
-  , Pretty (PLC.SomeTypeIn uni)
-  , PLC.Closed uni, uni `PLC.Everywhere` PrettyConst
+  , PrettyUni uni
   )
 
 instance (PrettyConstraints configName tyname name uni, Pretty fun)
