@@ -18,6 +18,7 @@
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE DerivingVia           #-}
+{-# LANGUAGE EmptyDataDecls        #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE ImportQualifiedPost   #-}
@@ -28,6 +29,7 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE RecordWildCards       #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
@@ -500,11 +502,16 @@ marloweValidator =
             (unsafeFromBuiltinData d)
             (unsafeFromBuiltinData r)
             (unsafeFromBuiltinData p)
-  in
-    fromMaybe (Haskell.error "Application of role-payout validator hash to marlowe validator failed.")
-      $ $$(PlutusTx.compile [|| marloweValidator' ||])
-      `PlutusTx.applyCode` PlutusTx.liftCode plcVersion100 rolePayoutValidatorHash
 
+    errorOrApplied =
+      $$(PlutusTx.compile [|| marloweValidator' ||])
+        `PlutusTx.applyCode` PlutusTx.liftCode plcVersion100 rolePayoutValidatorHash
+  in
+    case errorOrApplied of
+      Haskell.Left err ->
+        Haskell.error $ "Application of role-payout validator hash to marlowe validator failed."
+          <> err
+      Haskell.Right applied -> applied
 
 -- | The serialisation of the Marlowe semantics validator.
 marloweValidatorBytes :: SerialisedScript
