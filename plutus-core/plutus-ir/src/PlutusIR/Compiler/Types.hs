@@ -111,7 +111,7 @@ defaultCompilationOpts = CompilationOpts
   , _coDoSimplifierEvaluateBuiltins = True
   , _coInlineHints = mempty
   , _coProfile = False
-  , _coRelaxedFloatin = False
+  , _coRelaxedFloatin = True
   , _coPreserveLogging = False
   }
 
