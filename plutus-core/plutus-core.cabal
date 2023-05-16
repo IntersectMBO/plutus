@@ -89,6 +89,7 @@ library
     PlutusCore.Compiler
     PlutusCore.Compiler.Erase
     PlutusCore.Core
+    PlutusCore.Crypto.BLS12_381.Error
     PlutusCore.Crypto.BLS12_381.G1
     PlutusCore.Crypto.BLS12_381.G2
     PlutusCore.Crypto.BLS12_381.Pairing
