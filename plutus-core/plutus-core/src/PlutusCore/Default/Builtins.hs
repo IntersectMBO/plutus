@@ -174,7 +174,7 @@ nonZeroArg f x y = EvaluationSuccess $ f x y
 -- | Turn a function returning 'Either' into another function that emits an
 -- error message and returns 'EvaluationFailure' in the 'Left' case and wraps
 -- the result in 'EvaluationSuccess' in the 'Right' case.
-eitherToEmitter :: Show e => Either e b -> Emitter (EvaluationResult b)
+eitherToEmitter :: Show e => Either e r -> Emitter (EvaluationResult r)
 eitherToEmitter (Left e)  = (emit . pack . show $ e) >> pure EvaluationFailure
 eitherToEmitter (Right r) = pure . pure $ r
 

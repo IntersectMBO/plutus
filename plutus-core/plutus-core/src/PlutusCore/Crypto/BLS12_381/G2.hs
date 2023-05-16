@@ -19,6 +19,7 @@ module PlutusCore.Crypto.BLS12_381.G2
 import Cardano.Crypto.EllipticCurve.BLS12_381 qualified as BlstBindings
 import Cardano.Crypto.EllipticCurve.BLS12_381.Internal qualified as BlstBindings.Internal
 
+import PlutusCore.Crypto.BLS12_381.Error
 import PlutusCore.Crypto.Utils (byteStringAsHex)
 import PlutusCore.Pretty.PrettyConst (ConstConfig)
 import Text.PrettyBy (PrettyBy)
@@ -27,7 +28,6 @@ import Control.DeepSeq (NFData, rnf, rwhnf)
 import Data.Bifunctor (second)
 import Data.ByteString (ByteString, length, pack)
 import Data.Proxy (Proxy (..))
-import Data.Text (Text)
 import Flat
 import Prettyprinter
 
@@ -84,10 +84,10 @@ uncompress = second Element . BlstBindings.blsUncompress @BlstBindings.Curve2
 
 -- Take an arbitrary bytestring and a Domain Separation Tag and hash them to a
 -- get point in G2.  See Note [Hashing and Domain Separation Tags].
-hashToGroup :: ByteString -> ByteString -> Either Text Element
+hashToGroup :: ByteString -> ByteString -> Either BLS12_381_Error Element
 hashToGroup msg dst =
     if Data.ByteString.length dst > 255
-    then Left "G2.hashToGroup: DST more than 255 bytes long"
+    then Left HashToCurveDstTooBig
     else Right . Element $ BlstBindings.blsHash @BlstBindings.Curve2 msg (Just dst) Nothing
 
 
