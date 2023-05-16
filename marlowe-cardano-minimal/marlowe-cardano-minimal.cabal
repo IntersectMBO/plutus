@@ -250,6 +250,9 @@ common lang
     -Wunused-packages
 
 library
+  if impl(ghc <9.0)
+    buildable: False
+
   import:          lang
   hs-source-dirs:  src "build-depends:"
   build-depends:
