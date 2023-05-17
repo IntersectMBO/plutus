@@ -262,8 +262,8 @@ library
     , newtype-generics
     , plutus-core
     , plutus-ledger-api
-    , plutus-tx
-    , plutus-tx-plugin
+    , plutus-tx             ^>=1.6
+    , plutus-tx-plugin      ^>=1.6
 
   exposed-modules:
     Language.Marlowe.Core.V1.Semantics
@@ -296,7 +296,7 @@ executable marlowe-validators
     , filepath
     , marlowe-cardano-minimal
     , mtl
-    , plutus-core
+    , plutus-core              ^>=1.6
     , plutus-ledger-api
-    , plutus-tx
+    , plutus-tx                ^>=1.6
     , serialise
