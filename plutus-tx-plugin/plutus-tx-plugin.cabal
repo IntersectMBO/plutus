@@ -41,17 +41,18 @@ common lang
     -Wunused-packages -Wmissing-deriving-strategies -fobject-code
     -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
 
+common ghc-version-support
+  -- See the section on GHC versions in CONTRIBUTING 
+  if impl(ghc <9.2)
+    buildable: False
+
 flag use-ghc-stub
   description: Use the `plutus-ghc-stub` package instead of `ghc`.
   default:     False
   manual:      True
 
 library
-  import:          lang
-
-  if (impl(ghc <9.2) || impl(ghc >=9.3))
-    buildable: False
-
+  import:          lang, ghc-version-support
   hs-source-dirs:  src
   exposed-modules:
     PlutusTx.Compiler.Error
@@ -94,14 +95,10 @@ library
       -Wno-unused-packages -Wno-unused-imports -Wno-overlapping-patterns
 
   else
-    build-depends: ghc >=9.2 && <9.4
+    build-depends: ghc >=9.2
 
 executable gen-plugin-opts-doc
-  import:           lang
-
-  if (impl(ghc <9.2) || impl(ghc >=9.3))
-    buildable: False
-
+  import:           lang, ghc-version-support
   main-is:          GeneratePluginOptionsDoc.hs
   hs-source-dirs:   app
   ghc-options:      -threaded -rtsopts -with-rtsopts=-N
@@ -118,9 +115,10 @@ executable gen-plugin-opts-doc
   default-language: Haskell2010
 
 test-suite plutus-tx-tests
-  import:         lang
+  import:         lang, ghc-version-support
 
-  if (impl(ghc <9.2) || impl(ghc >=9.3))
+  -- test output changes after 9.2, bad for golden tests
+  if impl(ghc >9.2)
     buildable: False
 
   if flag(use-ghc-stub)
@@ -175,10 +173,7 @@ test-suite plutus-tx-tests
   ghc-options:    -g
 
 test-suite size
-  import:         lang
-
-  if (impl(ghc <9.2) || impl(ghc >=9.3))
-    buildable: False
+  import:         lang, ghc-version-support
 
   -- needs plutus-tx-plugin but it looks unused
   ghc-options:    -Wno-unused-packages

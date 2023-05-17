@@ -266,15 +266,26 @@ There are various tools for visualizing the resulting profile, e.g. https://hack
 We have a set of supported GHC major versions, which are built in CI and which we commit to keeping working.
 
 We also have a primary development version.
-This is the version we use in the default dev shell, and also it is the _only_ version for which we support `plutus-tx-plugin`.
-The plugin and its dependents should be marked as unbuildable with cabal conditionals on all other major GHC versions.
-
+This is the version we use in the default dev shell, and the one we use day-to-day. 
 The primary development version should be whichever version the Cardano node is using (or migrating towards using).
 Supported versions older than the primary development version are deprecated, and we can drop them as soon as the Cardano node has moved to a later GHC version.
 
 At the moment, our supported GHC versions are:
 - 8.10 (deprecated)
 - 9.2 (primary)
+- 9.6
+
+=== Plugin support
+
+Making `plutus-tx-plugin` work on multiple GHC versions can be painful, because it uses a lot of GHC internals.
+Since the plugin is not in the dependency closure of the Cardano node, we don't _need_ to support all the GHC versions, which is helpful.
+We mostly commit to supporting our primary development version, but we _may_ support other versions as well if it is easy. 
+
+The plugin and its dependents should be marked as unbuildable with cabal conditionals on any non-supported major GHC versions.
+This makes cabal behave reasonably well (it will ignore them and not try and fail to build them).
+
+We currently support the plugin on:
+- 9.2
 - 9.6
 
 === Per-version tooling
