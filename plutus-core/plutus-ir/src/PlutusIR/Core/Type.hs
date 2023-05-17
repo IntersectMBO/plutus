@@ -43,11 +43,11 @@ import PlutusCore.Flat ()
 import PlutusCore.MkPlc (Def (..), TermLike (..), TyVarDecl (..), VarDecl (..))
 import PlutusCore.Name qualified as PLC
 
+import Universe
+
 import Data.Text qualified as T
 import Data.Word
 import PlutusCore.Error (ApplyProgramError (MkApplyProgramError))
-
-import Universe
 
 -- Datatypes
 
