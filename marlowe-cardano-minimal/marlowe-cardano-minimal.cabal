@@ -7,9 +7,9 @@ license-files:
   NOTICE
 
 build-type:      Simple
-maintainer:      alexander.nemish@iohk.io
+maintainer:      brian.bush@iohk.io
 stability:       experimental
-author:          Alexander Nemish
+author:          Brian Bush
 synopsis:        Marlowe: financial contracts on Cardano Computation Layer
 description:
   A reference implementation of Marlowe, domain-specific language targeted at
@@ -223,7 +223,7 @@ data-files:
 
 source-repository head
   type:     git
-  location: https://github.com/input-output-hk/marlowe-cardano
+  location: https://github.com/input-output-hk/plutus
 
 flag defer-plugin-errors
   description:
