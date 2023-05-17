@@ -283,6 +283,9 @@ executable marlowe-validators
     Benchmark.Marlowe.Util
     Paths_marlowe_cardano_minimal
 
+  if impl(ghc <9.0)
+    buildable: False
+
   build-depends:
     , base
     , base16-bytestring
