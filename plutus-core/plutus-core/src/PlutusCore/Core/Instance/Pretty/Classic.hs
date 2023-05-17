@@ -62,8 +62,7 @@ instance (PrettyClassicBy configName tyname, PrettyParens (SomeTypeIn uni), Pret
 instance
         ( PrettyClassicBy configName tyname
         , PrettyClassicBy configName name
-        , PrettyParens (SomeTypeIn uni)
-        , Closed uni, uni `Everywhere` PrettyConst
+        , PrettyUni uni
         , Pretty fun
         , Pretty ann
         ) => PrettyBy (PrettyConfigClassic configName) (Term tyname name uni fun ann) where

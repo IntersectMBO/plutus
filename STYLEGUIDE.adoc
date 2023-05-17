@@ -1,7 +1,7 @@
 = Plutus Haskell style guide
 :toc:
 
-The purpose of this document is to codify various aspects of how we write Haskell code as we contribute to Plutus. 
+The purpose of this document is to codify various aspects of how we write Haskell code as we contribute to Plutus.
 
 The goal is twofold:
 
@@ -18,13 +18,78 @@ The contents of this document are “recommendations”, that is:
 
 === Basic formatting
 
-Use 4 spaces for indentation. Avoid lines over 100 characters. This is codified in `.editorconfig`.
+Use 2 spaces for indentation. Full-indent for `where` is recommended.
+
+Bad:
+
+[source,Haskell]
+----
+f x = y
+ where
+  y = ...
+----
+
+Good:
+
+[source,Haskell]
+----
+f x = y
+  where
+    y = ...
+----
+
+Avoid lines over 100 characters. This is codified in `.editorconfig`.
 
 Format Haskell source with `stylish-haskell` (config in `.stylish-haskell.yaml`).
+This is enforced in the pre-commit hook and in CI.
+Formatting with `stylish-haskell` must be a no-op.
+
+Type signatures should have the double-colon on the same line as the name, separated by one space.
+
+Bad:
+
+[source,Haskell]
+----
+foo
+  :: A -> B
+  -> C
+----
+
+Good:
+
+[source,Haskell]
+----
+foo :: A -> B -> C
+----
+
+Good:
+[source,Haskell]
+----
+foo ::
+  A ->
+  B ->
+  C
+----
+
+Good:
+[source,Haskell]
+----
+foo ::
+  forall a b c.
+  ( C1 a
+  , C2 b
+  ) =>
+  A ->
+  B ->
+  C
+----
 
 ==== Reasoning
 
 The indentation is arbitrary. The line length is longer than the “traditional” 80 characters, but anecdotally Haskell code tends toward longer lines, and breaking them up doesn’t help readability much.
+
+Placing the double-colon on the same line makes it easier to find definitions.
+We don't necessarily have HLS running all the time, and it may not work on every module.
 
 `stylish-haskell` is a fairly modest formatter that doesn’t touch too much. At the moment we mostly use it for formatting imports!
 
@@ -33,6 +98,22 @@ In the past we tried `ormolu`, but its https://github.com/tweag/ormolu/issues/64
 === Write type signatures
 
 Every top-level binding should have a type signature. _Most_ other named bindings (e.g. `let` and `where` bindings) should also have type signatures.
+
+Constraints should be uncurried.
+
+Bad:
+
+[source,Haskell]
+----
+foo :: Eq a => Ord a => a -> a -> a
+----
+
+Good:
+
+[source,Haskell]
+----
+foo :: (Eq a, Ord a) => a -> a -> a
+----
 
 ==== Reasoning
 
@@ -84,7 +165,7 @@ The reasoning is essentially the same as for type signatures. We've got used to 
 
 Every top-level exported binding should have Haddock. Non-exported bindings should probably have Haddock too.
 
-Put the module’s haddock comment _right_ above the `module M where` line, and below the PRAGMAs. 
+Put the module’s haddock comment _right_ above the `module M where` line, and below the PRAGMAs.
 
 ==== Reasoning
 
@@ -402,7 +483,7 @@ Use the strict versions of most data structures by default unless you have a goo
 
 ==== Reasoning
 
-Lazy data structures are easy ways to get space leaks, and the performance difference is typically negligible. 
+Lazy data structures are easy ways to get space leaks, and the performance difference is typically negligible.
 
 === Use lenses judiciously
 
@@ -446,12 +527,12 @@ Haskell “languages” are basically a blessed set of extensions anyway, and pe
 Use the following set of warning flags:
 
 ```
--Wall 
+-Wall
 -Wnoncanonical-monad-instances
--Wincomplete-uni-patterns 
+-Wincomplete-uni-patterns
 -Wincomplete-record-updates
--Wredundant-constraints 
--Widentities 
+-Wredundant-constraints
+-Widentities
 -Wunused-packages
 -Wmissing-deriving-strategies
 ```

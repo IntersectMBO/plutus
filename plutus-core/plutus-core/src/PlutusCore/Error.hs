@@ -26,6 +26,7 @@ module PlutusCore.Error
     , AsError (..)
     , throwingEither
     , ShowErrorComponent (..)
+    , ApplyProgramError (..)
     ) where
 
 import PlutusPrelude
@@ -169,13 +170,8 @@ instance ( Pretty ann
         ". Term" <+> squotes (prettyBy config t) <+>
         "is not a" <+> pretty expct <> "."
 
-instance
-        ( Pretty term
-        , PrettyParens (SomeTypeIn uni)
-        , Closed uni, uni `Everywhere` PrettyConst
-        , Pretty fun
-        , Pretty ann
-        ) => PrettyBy PrettyConfigPlc (TypeError term uni fun ann) where
+instance (Pretty term, PrettyUni uni, Pretty fun, Pretty ann) =>
+        PrettyBy PrettyConfigPlc (TypeError term uni fun ann) where
     prettyBy config (KindMismatch ann ty k k')          =
         "Kind mismatch at" <+> pretty ann <+>
         "in type" <+> squotes (prettyBy config ty) <>
@@ -219,12 +215,8 @@ instance
         , "is attempted to be referenced"
         ]
 
-instance
-        ( PrettyParens (SomeTypeIn uni)
-        , Closed uni, uni `Everywhere` PrettyConst
-        , Pretty fun
-        , Pretty ann
-        ) => PrettyBy PrettyConfigPlc (Error uni fun ann) where
+instance (PrettyUni uni, Pretty fun, Pretty ann) =>
+        PrettyBy PrettyConfigPlc (Error uni fun ann) where
     prettyBy _      (ParseErrorE e)           = pretty e
     prettyBy _      (UniqueCoherencyErrorE e) = pretty e
     prettyBy config (TypeErrorE e)            = prettyBy config e
@@ -253,3 +245,12 @@ instance (tyname ~ TyName, name ~ Name) =>
 
 instance AsFreeVariableError (Error uni fun ann) where
     _FreeVariableError = _FreeVariableErrorE
+
+-- | Errors from `applyProgram` for PIR, PLC, UPLC.
+data ApplyProgramError =
+    MkApplyProgramError Version Version
+
+instance Show ApplyProgramError where
+    show (MkApplyProgramError v1 v2) =
+        "Cannot apply two programs together: the first program has version " <> show v1
+            <> " but the second program has version " <> show v2

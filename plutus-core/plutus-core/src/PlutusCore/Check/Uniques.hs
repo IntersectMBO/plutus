@@ -1,7 +1,6 @@
 module PlutusCore.Check.Uniques
     ( checkProgram
     , checkTerm
-    -- , checkType
     , UniqueError (..)
     , AsUniqueError (..)
     ) where
@@ -39,15 +38,3 @@ checkTerm
 checkTerm p t = do
     (_, errs) <- runTermDefs t
     for_ errs $ \e -> when (p e) $ throwing _UniqueError e
-
--- checkType
---     :: (Ord ann,
---         HasUnique tyname TypeUnique,
---         AsUniqueError e ann,
---         MonadError e m)
---     => (UniqueError ann -> Bool)
---     -> Type tyname uni ann
---     -> m ()
--- checkType p t = do
---     (_, errs) <- runTypeDefs t
---     for_ errs $ \e -> when (p e) $ throwing _UniqueError e

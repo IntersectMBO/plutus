@@ -34,7 +34,7 @@ import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.Evaluation.Result
 import PlutusCore.Name
-import PlutusCore.Pretty (PrettyConfigPlc, PrettyConst, PrettyParens)
+import PlutusCore.Pretty
 import PlutusCore.Subst
 
 import Control.Lens ((^?))
@@ -94,10 +94,7 @@ data CkEnv uni fun s = CkEnv
     , ckEnvMayEmitRef :: Maybe (STRef s (DList Text))
     }
 
-instance
-        ( PrettyParens (SomeTypeIn uni), Closed uni
-        , uni `Everywhere` PrettyConst, Pretty fun
-        ) => PrettyBy PrettyConfigPlc (CkValue uni fun) where
+instance (PrettyUni uni, Pretty fun) => PrettyBy PrettyConfigPlc (CkValue uni fun) where
     prettyBy cfg = prettyBy cfg . ckValueToTerm
 
 data CkUserError =
@@ -314,10 +311,7 @@ evaluateCkNoEmit runtime = fst . runCk runtime False
 
 -- | Evaluate a term using the CK machine with logging enabled. May throw a 'CkEvaluationException'.
 unsafeEvaluateCk
-    :: ( PrettyParens (SomeTypeIn uni), Closed uni
-       , Typeable uni, Typeable fun, uni `Everywhere` PrettyConst
-       , Pretty fun
-       )
+    :: ThrowableBuiltins uni fun
     => BuiltinsRuntime fun (CkValue uni fun)
     -> Term TyName Name uni fun ()
     -> (EvaluationResult (Term TyName Name uni fun ()), [Text])
@@ -325,10 +319,7 @@ unsafeEvaluateCk runtime = first unsafeExtractEvaluationResult . evaluateCk runt
 
 -- | Evaluate a term using the CK machine with logging disabled. May throw a 'CkEvaluationException'.
 unsafeEvaluateCkNoEmit
-    :: ( PrettyParens (SomeTypeIn uni), Closed uni
-       , Typeable uni, Typeable fun, uni `Everywhere` PrettyConst
-       , Pretty fun
-       )
+    :: ThrowableBuiltins uni fun
     => BuiltinsRuntime fun (CkValue uni fun)
     -> Term TyName Name uni fun ()
     -> EvaluationResult (Term TyName Name uni fun ())

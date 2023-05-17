@@ -198,10 +198,8 @@ type Compiling m e uni fun a =
     , PLC.Typecheckable uni fun
     , PLC.GEq uni
     -- Pretty printing instances
+    , PLC.PrettyUni uni
     , PLC.Pretty fun
-    , PLC.Closed uni
-    , PLC.PrettyParens (PLC.SomeTypeIn uni)
-    , uni `PLC.Everywhere` PLC.PrettyConst
     , PLC.Pretty a
     )
 
