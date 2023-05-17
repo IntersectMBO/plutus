@@ -81,7 +81,6 @@ to deal with gas, and could maybe be changed now.)
 -}
 
 -- See Note [NormalizedTypeT].
-
 -- | The monad transformer that type normalization runs in.
 newtype NormalizeTypeT m tyname uni ann a = NormalizeTypeT
   { unNormalizeTypeT :: ReaderT (NormalizeTypeEnv tyname uni ann) m a
@@ -224,7 +223,6 @@ normalized types. However we do not enforce this in the type signature, because
 -}
 
 -- See Note [Normalizing substitution].
-
 -- | Substitute a type for a variable in a type and normalize in the 'NormalizeTypeT' monad.
 substNormalizeTypeM ::
   (HasUnique tyname TypeUnique, MonadNormalizeType uni m) =>
