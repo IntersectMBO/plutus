@@ -25,7 +25,6 @@ let
         # We don't currently use this.
         withHoogle = false;
 
-
         # We would expect R to be pulled in automatically as it's a dependency of
         # plutus-core, but it appears it is not, so we need to be explicit about
         # the dependency on R here.  Adding it as a buildInput will ensure it's
@@ -34,7 +33,6 @@ let
       };
 
       inputMap = { "https://input-output-hk.github.io/cardano-haskell-packages" = inputs.CHaP; };
-      # No source-repository-packages right now
       sha256map = {
         "https://github.com/tweag/HaskellR"."411d15fe5027494123e326c838955eff1c8e7ec8" = "0jax08z81xbfs3xz7zkk7x83cmr487iglifmxri205mf5bcj8ycj"; # editorconfig-checker-disable-line
       };
