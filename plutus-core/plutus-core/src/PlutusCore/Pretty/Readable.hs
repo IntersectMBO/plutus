@@ -6,6 +6,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeFamilies      #-}
+{-# LANGUAGE TypeOperators     #-}
 
 module PlutusCore.Pretty.Readable
     ( module Export

@@ -2,6 +2,7 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE GADTs                  #-}
 {-# LANGUAGE LambdaCase             #-}
+{-# LANGUAGE TypeOperators          #-}
 module UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver
     ( Breakpointable (..)
     , CekState
@@ -23,7 +24,8 @@ module UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver
 import UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal
 
 import Control.Lens hiding (Context)
-import Control.Monad.Reader
+import Control.Monad (void)
+import Control.Monad.Reader (MonadReader, ask, local, runReaderT)
 import Control.Monad.Trans.Free as F
 import Data.Function
 

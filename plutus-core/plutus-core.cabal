@@ -245,7 +245,7 @@ library
     untyped-plutus-core/src prelude
 
   -- Notes on dependencies:
-  -- * Bound on cardano-crypto-class for the fixed SECP primitives
+  -- * Bound on cardano-crypto-class for the fixed SECP primitives and 9.6 support
   -- * The bound on 'dependent-sum' is needed to avoid https://github.com/obsidiansystems/dependent-sum/issues/72
   build-depends:
     , aeson
@@ -256,7 +256,7 @@ library
     , bimap
     , bytestring
     , cardano-crypto
-    , cardano-crypto-class        >=2.0.0.1 && <2.2
+    , cardano-crypto-class        ^>=2.1.0.2
     , cassava
     , cborg
     , composition-prelude         >=1.1.0.1
@@ -272,7 +272,7 @@ library
     , exceptions
     , extra
     , filepath
-    , flat                        <0.5
+    , flat                        ^>=0.6
     , free
     , ghc-prim
     , hashable                    >=1.4
@@ -338,7 +338,7 @@ test-suite plutus-core-test
     , containers
     , data-default-class
     , filepath
-    , flat                                            <0.5
+    , flat                                            ^>=0.6
     , hedgehog
     , hex-text
     , mmorph
@@ -385,7 +385,7 @@ test-suite untyped-plutus-core-test
     , bytestring
     , cardano-crypto-class
     , dlist
-    , flat                                            <0.5
+    , flat                                            ^>=0.6
     , hedgehog
     , index-envs
     , lens
@@ -500,7 +500,7 @@ library plutus-ir
     , containers
     , dom-lt
     , extra
-    , flat                 <0.5
+    , flat                 ^>=0.6
     , lens
     , megaparsec
     , mmorph
@@ -539,7 +539,7 @@ test-suite plutus-ir-test
   build-depends:
     , base                                                       >=4.9 && <5
     , containers
-    , flat                                                       <0.5
+    , flat                                                       ^>=0.6
     , hashable
     , hedgehog
     , lens
@@ -590,7 +590,7 @@ library plutus-core-execlib
     , base                                                       >=4.9 && <5
     , bytestring
     , deepseq
-    , flat                                                       <0.5
+    , flat                                                       ^>=0.6
     , lens
     , megaparsec
     , monoidal-containers
@@ -693,7 +693,7 @@ executable debugger
     , containers
     , megaparsec
     , microlens
-    , microlens-th
+    , microlens-th          ^>=0.4
     , mono-traversable
     , mtl
     , optparse-applicative
@@ -801,13 +801,13 @@ executable generate-cost-model
   build-depends:
     , aeson-pretty
     , barbies
-    , base                  >=4.9     && <5
+    , base                  >=4.9 && <5
     , bytestring
     , cassava
     , directory
     , exceptions
     , extra
-    , inline-r              >=1.0.0.0
+    , inline-r              >=1.0
     , optparse-applicative
     , plutus-core           ^>=1.6
     , text
@@ -836,13 +836,13 @@ benchmark cost-model-test
 
   build-depends:
     , barbies
-    , base              >=4.9     && <5
+    , base              >=4.9 && <5
     , bytestring
     , cassava
     , exceptions
     , extra
     , hedgehog
-    , inline-r          >=1.0.0.0
+    , inline-r          >=1.0
     , mmorph
     , plutus-core       ^>=1.6
     , template-haskell

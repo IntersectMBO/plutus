@@ -1,5 +1,6 @@
 {-# LANGUAGE ExplicitForAll #-}
 {-# LANGUAGE TypeFamilies   #-}
+{-# LANGUAGE TypeOperators  #-}
 
 -- | Default rendering to string types.
 

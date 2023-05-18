@@ -85,8 +85,9 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
 
 import Control.Lens ((^?))
 import Control.Lens.Review
+import Control.Monad (unless, when)
 import Control.Monad.Catch
-import Control.Monad.Except
+import Control.Monad.Except (MonadError, catchError, throwError)
 import Control.Monad.Primitive (PrimMonad (..))
 import Control.Monad.ST
 import Control.Monad.ST.Unsafe
@@ -240,7 +241,9 @@ data CekValue uni fun ann =
       -- Check the docs of 'BuiltinRuntime' for details.
     -- | A constructor value, including fully computed arguments and the tag.
   | VConstr {-# UNPACK #-} !Word64 ![CekValue uni fun ann]
-    deriving stock (Show)
+
+deriving stock instance (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
+    => Show (CekValue uni fun ann)
 
 type CekValEnv uni fun ann = Env.RAList (CekValue uni fun ann)
 
@@ -556,7 +559,9 @@ data Context uni fun ann
     | FrameCases !(CekValEnv uni fun ann) ![NTerm uni fun ann] !(Context uni fun ann)
     -- ^ @(case _ C0 .. Cn)@
     | NoFrame
-    deriving stock (Show)
+
+deriving stock instance (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
+    => Show (Context uni fun ann)
 
 -- See Note [ExMemoryUsage instances for non-constants].
 instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (CekValue uni fun ann) where

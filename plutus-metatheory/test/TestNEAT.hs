@@ -1,7 +1,8 @@
 -- editorconfig-checker-disable-file
 module Main where
 
-import Control.Monad.Except
+import Control.Monad (unless)
+import Control.Monad.Except (ExceptT (..), catchError, liftEither, withExceptT)
 import Data.Coolean
 import Data.Either
 import Data.List

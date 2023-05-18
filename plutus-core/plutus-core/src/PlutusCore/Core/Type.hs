@@ -118,8 +118,13 @@ data Term tyname name uni fun ann
     | Constant ann (Some (ValueOf uni)) -- ^ constants
     | Builtin ann fun -- ^ builtin functions
     | Error ann (Type tyname uni ann) -- ^ fail with error
-    deriving stock (Show, Functor, Generic)
-    deriving anyclass (NFData)
+    deriving stock (Functor, Generic)
+
+deriving stock instance (Show tyname, Show name, GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
+    => Show (Term tyname name uni fun ann)
+
+deriving anyclass instance (NFData tyname, NFData name, NFData fun, NFData ann, Everywhere uni NFData, Closed uni)
+    => NFData (Term tyname name uni fun ann)
 
 -- See Note [ExMemoryUsage instances for non-constants].
 instance ExMemoryUsage (Term tyname name uni fun ann) where
@@ -131,9 +136,15 @@ data Program tyname name uni fun ann = Program
     , _progVer  :: Version
     , _progTerm :: Term tyname name uni fun ann
     }
-    deriving stock (Show, Functor, Generic)
-    deriving anyclass (NFData)
+    deriving stock (Functor, Generic)
+
 makeLenses ''Program
+
+deriving stock instance (Show tyname, Show name, GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
+    => Show (Program tyname name uni fun ann)
+
+deriving anyclass instance (NFData tyname, NFData name, Everywhere uni NFData, NFData fun, NFData ann, Closed uni)
+    => NFData (Program tyname name uni fun ann)
 
 -- | Extract the universe from a type.
 type family UniOf a :: GHC.Type -> GHC.Type

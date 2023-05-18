@@ -28,7 +28,8 @@ import UntypedPlutusCore.DeBruijn
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
 
 import Control.DeepSeq (rnf)
-import Control.Monad.Except
+import Control.Monad.Except (runExcept)
+import Control.Monad.IO.Class (liftIO)
 import Options.Applicative
 import Prettyprinter
 import System.Exit (exitFailure)

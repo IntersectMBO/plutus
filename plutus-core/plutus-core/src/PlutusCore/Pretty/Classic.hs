@@ -3,6 +3,7 @@
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DataKinds       #-}
 {-# LANGUAGE TypeFamilies    #-}
+{-# LANGUAGE TypeOperators   #-}
 
 module PlutusCore.Pretty.Classic
     ( PrettyConfigClassic (..)

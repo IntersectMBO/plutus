@@ -40,7 +40,8 @@ import PlutusCore.Pretty
 import UntypedPlutusCore qualified as U
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as U
 
-import Control.Monad.Except
+import Control.Monad (unless)
+import Control.Monad.Except (ExceptT, catchError, liftEither, runExceptT, throwError, withExceptT)
 import Control.Search (Enumerable (..), Options (..), search')
 import Data.Maybe
 import Data.Stream qualified as Stream

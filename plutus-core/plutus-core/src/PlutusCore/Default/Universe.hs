@@ -5,6 +5,10 @@
 -- on 9.2.4 this is the flag that suppresses the above
 -- warning
 {-# OPTIONS -Wno-missing-signatures #-}
+-- 9.6 notices that all the constraints on TestTypesFromTheUniverseAreAllKnown
+-- are redundant (which they are), but we don't care because it only exists
+-- to test that some constraints are solvable
+{-# OPTIONS -Wno-redundant-constraints #-}
 
 {-# LANGUAGE BlockArguments        #-}
 {-# LANGUAGE ConstraintKinds       #-}
