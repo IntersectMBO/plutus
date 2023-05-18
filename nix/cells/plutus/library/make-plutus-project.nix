@@ -112,13 +112,6 @@ let
             plutus-core.components.benchmarks.cost-model-test = {
               build-tools = [ cell.library.r-with-packages ];
             };
-
-            # External package settings
-            inline-r.ghcOptions = [ "-XStandaloneKindSignatures" ];
-
-            # Honestly not sure why we need this, it has a mysterious unused dependency on "m"
-            # This will go away when we upgrade nixpkgs and things use ieee754 anyway.
-            ieee.components.library.libs = lib.mkForce [ ];
           };
         })
 
