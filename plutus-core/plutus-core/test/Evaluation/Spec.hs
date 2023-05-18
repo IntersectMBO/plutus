@@ -22,7 +22,7 @@ import PlutusCore.Pretty
 import PlutusPrelude
 
 import Control.Exception
-import Control.Monad.Except
+import Control.Monad.IO.Class (liftIO)
 import Data.Ix
 import Data.Kind qualified as GHC
 import Evaluation.Machines (test_machines)

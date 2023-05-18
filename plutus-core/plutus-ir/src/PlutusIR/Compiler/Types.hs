@@ -12,8 +12,9 @@ import PlutusIR qualified as PIR
 import PlutusIR.Compiler.Provenance
 import PlutusIR.Error
 
-import Control.Monad.Except
-import Control.Monad.Reader
+import Control.Monad (when)
+import Control.Monad.Except (MonadError)
+import Control.Monad.Reader (MonadReader, local)
 
 import Control.Lens
 

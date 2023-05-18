@@ -9,8 +9,9 @@ module PlutusIR.Analysis.Definitions
     ) where
 
 import Control.Lens (forMOf_)
-import Control.Monad.State
-import Control.Monad.Writer
+import Control.Monad (forM_)
+import Control.Monad.State (MonadState, execStateT)
+import Control.Monad.Writer (MonadWriter, runWriterT)
 import PlutusCore.Error (UniqueError)
 import PlutusCore.Name
 import PlutusIR.Core.Plated

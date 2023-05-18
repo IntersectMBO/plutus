@@ -16,7 +16,7 @@ import Codec.CBOR.Magic qualified as CBOR
 import Codec.Serialise (Serialise (decode, encode))
 import Codec.Serialise.Decoding (decodeSequenceLenIndef, decodeSequenceLenN)
 import Control.DeepSeq (NFData)
-import Control.Monad.Except
+import Control.Monad (unless)
 import Data.Bits (shiftR)
 import Data.ByteString qualified as BS
 import Data.ByteString.Base64 qualified as Base64

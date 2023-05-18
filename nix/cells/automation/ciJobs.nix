@@ -44,6 +44,7 @@ let
 
   native-plutus-810-jobs = make-haskell-jobs library.plutus-project-810;
   native-plutus-92-jobs = make-haskell-jobs library.plutus-project-92;
+  native-plutus-96-jobs = make-haskell-jobs library.plutus-project-96;
 
   windows-plutus-92-jobs = make-haskell-jobs library.plutus-project-92.projectCross.mingwW64;
 
@@ -53,9 +54,14 @@ let
     # Drop these once we switch to 9.2 by default
     { ghc810 = native-plutus-810-jobs; } //
     { ghc92 = native-plutus-92-jobs; } //
+    # 9.6 is busted on aarch64-darwin because of https://github.com/well-typed/cborg/issues/311
+    lib.optionalAttrs (system != "aarch64-darwin") { ghc96 = native-plutus-96-jobs; } //
     # Only cross-compile to windows from linux
     lib.optionalAttrs (system == "x86_64-linux") { mingwW64 = windows-plutus-92-jobs; } //
-    other-jobs;
+    # see above about 9.6 on aarch64-darwin
+    (if system == "aarch64-darwin"
+    then builtins.removeAttrs other-jobs [ "plutus-shell-96" ]
+    else other-jobs);
 
   # Hydra doesn't like these attributes hanging around in "jobsets": it thinks they're jobs!
   filtered-jobs = lib.filterAttrsRecursive (n: _: n != "recurseForDerivations") jobs;

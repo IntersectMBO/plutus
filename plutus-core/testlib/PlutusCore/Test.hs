@@ -71,7 +71,6 @@ import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State
 import Data.Either.Extras
-import Data.Maybe (fromJust)
 import Data.Text (Text)
 import Hedgehog
 import Prettyprinter qualified as PP
@@ -159,7 +158,9 @@ runTPlc
     -> ExceptT SomeException IO (TPLC.EvaluationResult (TPLC.Term TPLC.TyName TPLC.Name TPLC.DefaultUni TPLC.DefaultFun ()))
 runTPlc values = do
     ps <- traverse toTPlc values
-    let (TPLC.Program _ _ t) = foldl1 (fromJust .* TPLC.applyProgram) ps
+    let (TPLC.Program _ _ t) =
+            foldl1
+                (unsafeFromRight .* TPLC.applyProgram) ps
     liftEither $ first toException $ TPLC.extractEvaluationResult $ TPLC.evaluateCkNoEmit TPLC.defaultBuiltinsRuntime t
 
 runUPlc
@@ -168,7 +169,7 @@ runUPlc
     -> ExceptT SomeException IO (UPLC.EvaluationResult (UPLC.Term TPLC.Name TPLC.DefaultUni TPLC.DefaultFun ()))
 runUPlc values = do
     ps <- traverse toUPlc values
-    let (UPLC.Program _ _ t) = foldl1 (fromJust .* UPLC.applyProgram) ps
+    let (UPLC.Program _ _ t) = foldl1 (unsafeFromRight .* UPLC.applyProgram) ps
     liftEither $ first toException $ TPLC.extractEvaluationResult $ UPLC.evaluateCekNoEmit TPLC.defaultCekParameters t
 
 -- For golden tests of profiling.
@@ -180,7 +181,7 @@ runUPlcProfile :: ToUPlc a TPLC.DefaultUni UPLC.DefaultFun =>
      (UPLC.Term UPLC.Name TPLC.DefaultUni UPLC.DefaultFun (), [Text])
 runUPlcProfile values = do
     ps <- traverse toUPlc values
-    let (UPLC.Program _ _ t) = foldl1 (fromJust .* UPLC.applyProgram) ps
+    let (UPLC.Program _ _ t) = foldl1 (unsafeFromRight .* UPLC.applyProgram) ps
         (result, logOut) = UPLC.evaluateCek UPLC.logEmitter TPLC.defaultCekParameters t
     res <- fromRightM (throwError . SomeException) result
     pure (res, logOut)
@@ -194,7 +195,7 @@ runUPlcProfileExec :: ToUPlc a TPLC.DefaultUni UPLC.DefaultFun =>
      (UPLC.Term UPLC.Name TPLC.DefaultUni UPLC.DefaultFun (), [Text])
 runUPlcProfileExec values = do
     ps <- traverse toUPlc values
-    let (UPLC.Program _ _ t) = foldl1 (fromJust .* UPLC.applyProgram) ps
+    let (UPLC.Program _ _ t) = foldl1 (unsafeFromRight .* UPLC.applyProgram) ps
         (result, logOut) = UPLC.evaluateCek UPLC.logWithTimeEmitter TPLC.defaultCekParameters t
     res <- fromRightM (throwError . SomeException) result
     pure (res, logOut)

@@ -8,8 +8,8 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
-
 module PlutusCore.Pretty.Readable
     ( module Export
     , module PlutusCore.Pretty.Readable

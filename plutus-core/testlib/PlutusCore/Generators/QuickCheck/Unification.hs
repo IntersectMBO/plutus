@@ -13,9 +13,10 @@ import PlutusCore.Default
 import PlutusCore.Name
 import PlutusIR
 
-import Control.Monad.Except
-import Control.Monad.Reader
-import Control.Monad.State.Strict
+import Control.Monad (when)
+import Control.Monad.Except (MonadError, throwError)
+import Control.Monad.Reader (ReaderT, ask, local, runReaderT)
+import Control.Monad.State.Strict (StateT, execStateT, get, put)
 import Data.Foldable
 import Data.Map.Strict.Internal qualified as Map
 import Data.Set (Set)

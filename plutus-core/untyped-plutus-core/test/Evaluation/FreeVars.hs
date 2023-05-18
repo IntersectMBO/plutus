@@ -1,6 +1,7 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies     #-}
+{-# LANGUAGE TypeOperators    #-}
 
 module Evaluation.FreeVars
     ( test_freevars

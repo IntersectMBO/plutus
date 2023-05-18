@@ -6,6 +6,7 @@
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeOperators       #-}
 
 module Evaluation.Builtins.SignatureVerification (
   ecdsaSecp256k1Prop,

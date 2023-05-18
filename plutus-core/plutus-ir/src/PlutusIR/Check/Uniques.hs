@@ -10,8 +10,9 @@ import PlutusCore.Name
 import PlutusIR.Analysis.Definitions
 import PlutusIR.Core
 
+import Control.Monad (when)
 import Control.Monad.Error.Lens
-import Control.Monad.Except
+import Control.Monad.Except (MonadError)
 
 import Data.Foldable
 

@@ -10,8 +10,9 @@ import PlutusCore.Core
 import PlutusCore.Error
 import PlutusCore.Name
 
+import Control.Monad (when)
 import Control.Monad.Error.Lens
-import Control.Monad.Except
+import Control.Monad.Except (MonadError)
 
 import Data.Foldable
 

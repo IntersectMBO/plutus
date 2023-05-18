@@ -21,7 +21,6 @@ import PlutusIR
 import PlutusIR.Compiler
 import PlutusIR.Subst
 
-import Control.Monad.Except
 import Control.Monad.Reader
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map
