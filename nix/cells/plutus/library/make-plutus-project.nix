@@ -71,36 +71,6 @@ let
         };
       })
 
-      # Windows
-      ({ pkgs, ... }:
-        lib.mkIf (pkgs.stdenv.hostPlatform.isWindows) {
-          packages = {
-            # These three tests try to use `diff` and the following could be used to make
-            # the linux version of diff available.  Unfortunately the paths passed to it
-            # are windows style.
-            # plutus-core.components.tests.plutus-core-test.build-tools =
-            #   [ pkgs.buildPackages.diffutils ];
-            # plutus-core.components.tests.plutus-ir-test.build-tools =
-            #   [ pkgs.buildPackages.diffutils ];
-            # plutus-core.components.tests.untyped-plutus-core-test.build-tools =
-            #   [ pkgs.buildPackages.diffutils ];
-            plutus-core.components.tests.plutus-core-test.buildable = lib.mkForce false;
-            plutus-core.components.tests.plutus-ir-test.buildable = lib.mkForce false;
-            plutus-core.components.tests.untyped-plutus-core-test.buildable = lib.mkForce false;
-          };
-        })
-
-      # Darwin
-      (lib.mkIf (pkgs.stdenv.hostPlatform.isDarwin) {
-        packages = {
-          # These fail on Darwin with strange errors and I don't know why
-          # > Error: C stack usage  17556409549320 is too close to the limit
-          # > Fatal error: unable to initialize the JI
-          plutus-core.components.exes.generate-cost-model.buildable = lib.mkForce false;
-          plutus-core.components.benchmarks.cost-model-test.buildable = lib.mkForce false;
-        };
-      })
-
       # Common
       ({ pkgs, config, ... }: {
         packages = {
