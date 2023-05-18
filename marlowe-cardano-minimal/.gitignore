@@ -3,3 +3,4 @@
 *.tsv
 .cache/
 .ipynb_checkpoints/
+*.ipynb
