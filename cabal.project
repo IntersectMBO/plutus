@@ -55,6 +55,9 @@ if impl(ghc >= 9.6)
     , th-extras:template-haskell
     , th-extras:th-abstraction
 
+-- This is suboptimal, but shouldn't block us from releasing to CHaP, since
+-- we turn off our R dependency by default
+--
 -- need https://github.com/tweag/HaskellR/commit/3cb01da0902ef705d2bd40874fe53333f4949b2f
 -- for 9.6 support
 -- need https://github.com/tweag/HaskellR/commit/e49242000a49b48511481c6b1bb6487d8965c524
