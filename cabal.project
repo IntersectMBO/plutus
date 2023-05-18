@@ -43,10 +43,6 @@ test-show-details: direct
 package plutus-core
   flags: +with-inline-r
 
--- See https://github.com/input-output-hk/nothunks/issues/17
-package nothunks
-  flags: +vector
-
 -- See the note on nix/pkgs/default.nix:agdaPackages for why this is here.
 -- (NOTE this will change to ieee754 in newer versions of nixpkgs).
 extra-packages: ieee, filemanip
