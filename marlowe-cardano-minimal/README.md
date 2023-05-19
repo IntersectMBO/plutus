@@ -63,15 +63,8 @@ The following files are output:
 - For Marlowe's semantics valdator
     - Plutus script: `marlowe-semantics.plutus`
     - Benchmarking results: `marlowe-semantics.tsv`   
+    - Flat UPLC files: `benchmarks/semantics/*-uplc.flat`
 - For Marlowe's role-payout valdator
     - Plutus script: `marlowe-rolepayout.plutus`
     - Benchmarking results: `marlowe-rolepayout.tsv`   
-
-
-See [analysis.ipynb](analysis.ipynb) for example plots of the results.
-
-
-## Benchmark Data
-
-See [benchmarks/](benchmarks/ReadMe.md) for a description of the benchmarking data and copies of the Plutus scripts,
-PIR, PLC, and UPLC for the reference validators.
+    - Flat UPLC files: `benchmarks/rolepayout/*-uplc.flat`
