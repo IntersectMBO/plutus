@@ -328,6 +328,7 @@ writeFlat outp flatMode prog = do
     case outp of
         FileOutput file -> BSL.writeFile file flatProg
         StdOutput       -> BSL.putStr flatProg
+        NoOutput        -> pure ()
 
 ---------------- Write an AST as PLC source ----------------
 
@@ -359,6 +360,7 @@ writePrettyToFileOrStd outp mode prog = do
     case outp of
         FileOutput file -> writeFile file . Prelude.show . printMethod $ prog
         StdOutput       -> print . printMethod $ prog
+        NoOutput        -> pure ()
 
 writeToFileOrStd ::
     Output -> String -> IO ()
@@ -366,6 +368,7 @@ writeToFileOrStd outp v = do
     case outp of
         FileOutput file -> writeFile file v
         StdOutput       -> putStrLn v
+        NoOutput        -> pure ()
 
 ---------------- Examples ----------------
 
@@ -619,6 +622,7 @@ runPrint (PrintOptions inp outp mode) = do
     case outp of
         FileOutput path -> writeFile path printed
         StdOutput       -> putStrLn printed
+        NoOutput        -> pure ()
 
 ---------------- Conversions ----------------
 
