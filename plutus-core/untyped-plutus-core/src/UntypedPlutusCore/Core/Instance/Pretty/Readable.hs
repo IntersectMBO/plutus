@@ -7,6 +7,7 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE ViewPatterns          #-}
 
 module UntypedPlutusCore.Core.Instance.Pretty.Readable () where
 
@@ -15,11 +16,25 @@ import PlutusPrelude
 import UntypedPlutusCore.Core.Type
 
 import PlutusCore.Pretty.PrettyConst
-import PlutusCore.Pretty.Readable (Direction (ToTheRight), PrettyConfigReadable, PrettyReadableBy,
-                                   binderFixity, botFixity, compoundDocM, inContextM, juxtFixity,
-                                   juxtPrettyM, prettyM, sequenceDocM, unitDocM)
+import PlutusCore.Pretty.Readable
 
+import Data.Void
 import Prettyprinter
+
+-- | Split an iterated 'LamAbs' (if any) into a list of variables that it binds and its body.
+viewLamAbs :: Term name uni fun ann -> Maybe ([name], Term name uni fun ann)
+viewLamAbs term0@LamAbs{} = Just $ go term0 where
+    go (LamAbs _ name body) = first (name :) $ go body
+    go term                 = ([], term)
+viewLamAbs _ = Nothing
+
+-- | Split an iterated 'Apply' (if any) into the head of the application and the spine.
+viewApp
+    :: Term name uni fun ann -> Maybe (Term name uni fun ann, [Either Void (Term name uni fun ann)])
+viewApp term0 = go term0 [] where
+    go (Apply _ fun argTerm) args = go fun $ Right argTerm : args
+    go _                     []   = Nothing
+    go fun                   args = Just (fun, args)
 
 instance (PrettyReadableBy configName name, PrettyUni uni, Pretty fun) =>
         PrettyBy (PrettyConfigReadable configName) (Term name uni fun a) where
@@ -27,11 +42,10 @@ instance (PrettyReadableBy configName name, PrettyUni uni, Pretty fun) =>
         Constant _ val -> unitDocM $ pretty val
         Builtin _ bi -> unitDocM $ pretty bi
         Var _ name -> prettyM name
-        LamAbs _ name body ->
-            compoundDocM binderFixity $ \prettyIn ->
-                let prettyBot x = prettyIn ToTheRight botFixity x
-                in "\\" <> prettyBot name <+> "->" <+> prettyBot body
-        Apply _ fun arg -> fun `juxtPrettyM` arg
+        (viewLamAbs -> Just (args, body)) -> iterLamAbsPrettyM args body
+        LamAbs {} -> error "Panic: 'LamAbs' is not covered by 'viewLamAbs'"
+        (viewApp -> Just (fun, args)) -> iterAppPrettyM fun args
+        Apply {} -> error "Panic: 'Apply' is not covered by 'viewApp'"
         Delay _ term ->
             sequenceDocM ToTheRight juxtFixity $ \prettyEl ->
                 "delay" <+> prettyEl term

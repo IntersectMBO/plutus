@@ -3,10 +3,12 @@
 {-# LANGUAGE InstanceSigs          #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
+-- | Pretty-printing stuff, some of which should probably go into the main library.
 module PlutusCore.Pretty.Extra
     ( PrettyParens
     , prettyParens
@@ -22,6 +24,8 @@ import Data.Set (Set)
 import Data.Set qualified as Set
 import Text.PrettyBy.Fixity
 import Text.PrettyBy.Internal
+
+type instance HasPrettyDefaults (Sole config) = HasPrettyDefaults config
 
 instance Profunctor InContextM where
     lmap
