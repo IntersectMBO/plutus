@@ -1,4 +1,5 @@
 cabal-version:   3.0
+cabal-version:   3.0
 name:            marlowe-cardano-minimal
 version:         0.1.0.3
 license:         Apache-2.0
@@ -49,7 +50,7 @@ common lang
   ghc-options:
     -Wall -Wnoncanonical-monad-instances -Wincomplete-uni-patterns
     -Wincomplete-record-updates -Wredundant-constraints -Widentities
-    -Wunused-packages
+    -Wunused-packages -Werror
 
 library
   import:          lang
@@ -72,7 +73,8 @@ library
     Language.Marlowe.Core.V1.Semantics
     Language.Marlowe.Core.V1.Semantics.Types
     Language.Marlowe.Core.V1.Semantics.Types.Address
-    Language.Marlowe.Scripts
+    Language.Marlowe.Scripts.RolePayout
+    Language.Marlowe.Scripts.Semantics
 
 executable marlowe-validators
   import:           lang
@@ -95,12 +97,11 @@ executable marlowe-validators
     , base16-bytestring
     , bytestring
     , cardano-binary
-    , containers
     , directory
     , filepath
     , marlowe-cardano-minimal
     , mtl
-    , plutus-core              ^>=1.7
+    , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.7
     , plutus-ledger-api
-    , plutus-tx                ^>=1.7
+    , plutus-tx                                       ^>=1.7
     , serialise

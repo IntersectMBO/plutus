@@ -1,4 +1,5 @@
 
+
 -----------------------------------------------------------------------------
 --
 -- Module      :  $Headers
@@ -23,15 +24,17 @@ module Benchmark.Marlowe.RolePayout (
 , validatorBytes
 , validatorHash
 , exampleBenchmark
+, writeUPLC
 ) where
 
 
-import Benchmark.Marlowe (readBenchmarks)
+import Benchmark.Marlowe (readBenchmarks, writeFlatUPLC)
 import Benchmark.Marlowe.Types (Benchmark (..), makeBenchmark)
 import Benchmark.Marlowe.Util (lovelace, makeBuiltinData, makeDatumMap, makeInput, makeOutput,
                                makeRedeemerMap, updateScriptHash)
 import Data.Bifunctor (second)
-import Language.Marlowe.Scripts (rolePayoutValidatorBytes, rolePayoutValidatorHash)
+import Language.Marlowe.Scripts.RolePayout (rolePayoutValidator, rolePayoutValidatorBytes,
+                                            rolePayoutValidatorHash)
 import PlutusLedgerApi.V2 (Credential (PubKeyCredential, ScriptCredential), ExBudget (ExBudget),
                            Extended (NegInf, PosInf), Interval (Interval), LowerBound (LowerBound),
                            ScriptContext (ScriptContext, scriptContextPurpose, scriptContextTxInfo),
@@ -39,6 +42,14 @@ import PlutusLedgerApi.V2 (Credential (PubKeyCredential, ScriptCredential), ExBu
                            TxOutRef (TxOutRef), UpperBound (UpperBound), singleton)
 
 import PlutusTx.AssocMap qualified as AM (empty)
+
+
+-- | Write a flat UPLC file for a benchmark.
+writeUPLC
+  :: FilePath
+  -> Benchmark
+  -> IO ()
+writeUPLC = writeFlatUPLC rolePayoutValidator
 
 
 -- | The serialised Marlowe role-payout validator.
@@ -53,19 +64,24 @@ validatorHash = rolePayoutValidatorHash
 
 -- | The benchmark cases for the Marlowe role-payout validator.
 benchmarks :: IO (Either String [Benchmark])
-benchmarks =
-  let
-    update benchmark@Benchmark{..} =
-      benchmark {
-        bScriptContext =
-          updateScriptHash
-            "e165610232235bbbbeff5b998b233daae42979dec92a6722d9cda989"
-            rolePayoutValidatorHash
-            bScriptContext
-      }
-  in
-    second (update <$>) <$> readBenchmarks "rolepayout"
+benchmarks = second (rescript <$>) <$> readBenchmarks "rolepayout"
 
+
+-- | Revise the validator hashes in the benchmark's script context.
+rescript
+  :: Benchmark
+  -> Benchmark
+rescript benchmark@Benchmark{..} =
+  benchmark {
+    bScriptContext =
+      updateScriptHash
+        "e165610232235bbbbeff5b998b233daae42979dec92a6722d9cda989"
+        rolePayoutValidatorHash
+        bScriptContext
+  }
+
+
+{-# DEPRECATED exampleBenchmark "Experimental, not thoroughly tested." #-}
 
 -- | An example benchmark for the Marlowe role-payout validator.
 exampleBenchmark :: Benchmark
