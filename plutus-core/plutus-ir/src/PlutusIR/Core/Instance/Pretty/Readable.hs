@@ -12,7 +12,6 @@
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 module PlutusIR.Core.Instance.Pretty.Readable
     ( prettyPirReadable
-    , prettyPirReadableNoUnique
     , PrettyPir
     ) where
 
@@ -31,12 +30,6 @@ prettyPirReadable = prettyBy prettyConfigReadable
   -- Using 'debugPrettyConfigName', because it's actually helpful unlike 'defPrettyConfigName'.
   where
     prettyConfigReadable = botPrettyConfigReadable debugPrettyConfigName def
-
--- | Like `prettyPirReadable`, but does not print uniques.
-prettyPirReadableNoUnique :: PrettyPir a => a -> Doc ann
-prettyPirReadableNoUnique = prettyBy prettyConfigReadable
-  where
-    prettyConfigReadable = botPrettyConfigReadable defPrettyConfigName def
 
 -- | Split an iterated 'LamAbs' (if any) into a list of variables that it binds and its body.
 viewLamAbs

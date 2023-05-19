@@ -19,6 +19,7 @@ module PlutusTx.Test (
   goldenPirBy,
   goldenTPlc,
   goldenUPlc,
+  goldenUPlcReadable,
 
   -- * Evaluation testing
   goldenEvalCek,
@@ -53,7 +54,6 @@ import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Pretty
 import PlutusCore.Pretty qualified as PLC
 import PlutusCore.Test
-import PlutusIR.Core.Instance.Pretty.Readable
 import PlutusIR.Core.Type (progTerm)
 import PlutusIR.Test ()
 import PlutusPrelude
@@ -171,7 +171,7 @@ goldenPir ::
   TestNested
 goldenPir name value = nestedGoldenVsDoc name ".pir" $ pretty $ getPirNoAnn value
 
--- | Use `prettyPirReadableNoUnique` for the golden files.
+-- | Does not print uniques.
 goldenPirReadable ::
   (PrettyUni uni, Pretty fun, uni `PLC.Everywhere` Flat, Flat fun) =>
   String ->
@@ -180,7 +180,7 @@ goldenPirReadable ::
 goldenPirReadable name value =
   nestedGoldenVsDoc name ".pir-readable"
     . fromMaybe "PIR not found in CompiledCode"
-    . fmap (prettyPirReadableNoUnique . view progTerm)
+    . fmap (pretty . AsReadable . view progTerm)
     $ getPirNoAnn value
 
 goldenPirBy ::
