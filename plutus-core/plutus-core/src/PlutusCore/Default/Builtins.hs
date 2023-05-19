@@ -119,7 +119,7 @@ data DefaultFun
     | MkPairData
     | MkNilData
     | MkNilPairData
-    deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
+    deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix, Typeable)
     deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
 {- Note [Textual representation of names of built-in functions]. The plc parser

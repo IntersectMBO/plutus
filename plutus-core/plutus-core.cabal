@@ -89,6 +89,7 @@ library
     PlutusCore.Check.Value
     PlutusCore.Compiler
     PlutusCore.Compiler.Erase
+    PlutusCore.Compiler.Types
     PlutusCore.Core
     PlutusCore.Data
     PlutusCore.DataFilePaths
@@ -234,6 +235,7 @@ library
     UntypedPlutusCore.Simplify
     UntypedPlutusCore.Size
     UntypedPlutusCore.Subst
+    UntypedPlutusCore.Transform.CaseOfCase
     UntypedPlutusCore.Transform.CaseReduce
     UntypedPlutusCore.Transform.FloatDelay
     UntypedPlutusCore.Transform.ForceDelay

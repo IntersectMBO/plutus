@@ -450,45 +450,37 @@
                                                                                             trace
                                                                                           )
                                                                                         )
-                                                                                        (case
+                                                                                        [
                                                                                           [
                                                                                             [
-                                                                                              [
-                                                                                                (force
-                                                                                                  (builtin
-                                                                                                    ifThenElse
-                                                                                                  )
+                                                                                              (force
+                                                                                                (builtin
+                                                                                                  ifThenElse
                                                                                                 )
-                                                                                                [
-                                                                                                  [
-                                                                                                    (builtin
-                                                                                                      lessThanEqualsInteger
-                                                                                                    )
-                                                                                                    c_i1
-                                                                                                  ]
-                                                                                                  (con
-                                                                                                    integer
-                                                                                                    0
-                                                                                                  )
-                                                                                                ]
-                                                                                              ]
-                                                                                              (constr
-                                                                                                1
                                                                                               )
+                                                                                              [
+                                                                                                [
+                                                                                                  (builtin
+                                                                                                    lessThanEqualsInteger
+                                                                                                  )
+                                                                                                  c_i1
+                                                                                                ]
+                                                                                                (con
+                                                                                                  integer
+                                                                                                  0
+                                                                                                )
+                                                                                              ]
                                                                                             ]
-                                                                                            (constr
-                                                                                              0
+                                                                                            (con
+                                                                                              string
+                                                                                              "False"
                                                                                             )
                                                                                           ]
                                                                                           (con
                                                                                             string
                                                                                             "True"
                                                                                           )
-                                                                                          (con
-                                                                                            string
-                                                                                            "False"
-                                                                                          )
-                                                                                        )
+                                                                                        ]
                                                                                       ]
                                                                                       c_i1
                                                                                     ]
@@ -740,47 +732,39 @@
                                                                                                   w_i0
                                                                                                   (case
                                                                                                     (force
-                                                                                                      (case
+                                                                                                      [
                                                                                                         [
                                                                                                           [
-                                                                                                            [
-                                                                                                              (force
-                                                                                                                (builtin
-                                                                                                                  ifThenElse
-                                                                                                                )
+                                                                                                            (force
+                                                                                                              (builtin
+                                                                                                                ifThenElse
                                                                                                               )
-                                                                                                              [
-                                                                                                                [
-                                                                                                                  (builtin
-                                                                                                                    lessThanEqualsInteger
-                                                                                                                  )
-                                                                                                                  w_i1
-                                                                                                                ]
-                                                                                                                (con
-                                                                                                                  integer
-                                                                                                                  0
-                                                                                                                )
-                                                                                                              ]
-                                                                                                            ]
-                                                                                                            (constr
-                                                                                                              0
                                                                                                             )
-                                                                                                          ]
-                                                                                                          (constr
-                                                                                                            1
-                                                                                                          )
-                                                                                                        ]
-                                                                                                        (delay
-                                                                                                          [
                                                                                                             [
-                                                                                                              UTuple2_i8
-                                                                                                              (constr
+                                                                                                              [
+                                                                                                                (builtin
+                                                                                                                  lessThanEqualsInteger
+                                                                                                                )
+                                                                                                                w_i1
+                                                                                                              ]
+                                                                                                              (con
+                                                                                                                integer
                                                                                                                 0
                                                                                                               )
                                                                                                             ]
-                                                                                                            ds_i6
                                                                                                           ]
-                                                                                                        )
+                                                                                                          (delay
+                                                                                                            [
+                                                                                                              [
+                                                                                                                UTuple2_i8
+                                                                                                                (constr
+                                                                                                                  0
+                                                                                                                )
+                                                                                                              ]
+                                                                                                              ds_i6
+                                                                                                            ]
+                                                                                                          )
+                                                                                                        ]
                                                                                                         (delay
                                                                                                           (case
                                                                                                             [
@@ -815,7 +799,7 @@
                                                                                                             )
                                                                                                           )
                                                                                                         )
-                                                                                                      )
+                                                                                                      ]
                                                                                                     )
                                                                                                     (lam
                                                                                                       ww_i0
@@ -963,53 +947,45 @@
                                                                             ys_i0
                                                                             (delay
                                                                               (force
-                                                                                (case
+                                                                                [
                                                                                   [
                                                                                     [
-                                                                                      [
-                                                                                        (force
-                                                                                          (builtin
-                                                                                            ifThenElse
-                                                                                          )
+                                                                                      (force
+                                                                                        (builtin
+                                                                                          ifThenElse
                                                                                         )
-                                                                                        [
-                                                                                          [
-                                                                                            (builtin
-                                                                                              equalsInteger
-                                                                                            )
-                                                                                            ds_i4
-                                                                                          ]
-                                                                                          (con
-                                                                                            integer
-                                                                                            1
-                                                                                          )
-                                                                                        ]
-                                                                                      ]
-                                                                                      (constr
-                                                                                        0
                                                                                       )
+                                                                                      [
+                                                                                        [
+                                                                                          (builtin
+                                                                                            equalsInteger
+                                                                                          )
+                                                                                          ds_i4
+                                                                                        ]
+                                                                                        (con
+                                                                                          integer
+                                                                                          1
+                                                                                        )
+                                                                                      ]
                                                                                     ]
-                                                                                    (constr
-                                                                                      1
+                                                                                    (delay
+                                                                                      [
+                                                                                        [
+                                                                                          Tuple2_i8
+                                                                                          [
+                                                                                            [
+                                                                                              Cons_i17
+                                                                                              y_i2
+                                                                                            ]
+                                                                                            (constr
+                                                                                              0
+                                                                                            )
+                                                                                          ]
+                                                                                        ]
+                                                                                        ys_i1
+                                                                                      ]
                                                                                     )
                                                                                   ]
-                                                                                  (delay
-                                                                                    [
-                                                                                      [
-                                                                                        Tuple2_i8
-                                                                                        [
-                                                                                          [
-                                                                                            Cons_i17
-                                                                                            y_i2
-                                                                                          ]
-                                                                                          (constr
-                                                                                            0
-                                                                                          )
-                                                                                        ]
-                                                                                      ]
-                                                                                      ys_i1
-                                                                                    ]
-                                                                                  )
                                                                                   (delay
                                                                                     (case
                                                                                       [
@@ -1061,7 +1037,7 @@
                                                                                       )
                                                                                     )
                                                                                   )
-                                                                                )
+                                                                                ]
                                                                               )
                                                                             )
                                                                           )
@@ -1103,7 +1079,108 @@
                                                   (lam
                                                     y_i0
                                                     (force
-                                                      (case
+                                                      [
+                                                        [
+                                                          [
+                                                            (force
+                                                              (builtin
+                                                                ifThenElse
+                                                              )
+                                                            )
+                                                            [
+                                                              [
+                                                                (builtin
+                                                                  lessThanEqualsInteger
+                                                                )
+                                                                x_i2
+                                                              ]
+                                                              y_i1
+                                                            ]
+                                                          ]
+                                                          (delay
+                                                            [
+                                                              [ Cons_i11 x_i2 ]
+                                                              [
+                                                                [
+                                                                  fEnumBool_cenumFromTo_i3
+                                                                  [
+                                                                    [
+                                                                      (builtin
+                                                                        addInteger
+                                                                      )
+                                                                      x_i2
+                                                                    ]
+                                                                    (con
+                                                                      integer 1
+                                                                    )
+                                                                  ]
+                                                                ]
+                                                                y_i1
+                                                              ]
+                                                            ]
+                                                          )
+                                                        ]
+                                                        (delay (constr 0))
+                                                      ]
+                                                    )
+                                                  )
+                                                )
+                                              )
+                                            ]
+                                          ]
+                                        )
+                                        (lam
+                                          x_i0
+                                          (force
+                                            [
+                                              [
+                                                [
+                                                  (force (builtin ifThenElse))
+                                                  [
+                                                    [
+                                                      (builtin
+                                                        lessThanEqualsInteger
+                                                      )
+                                                      x_i1
+                                                    ]
+                                                    (con integer 9)
+                                                  ]
+                                                ]
+                                                (delay [ wcshowsPrec_i4 x_i1 ])
+                                              ]
+                                              (delay
+                                                (force
+                                                  [
+                                                    [
+                                                      [
+                                                        (force
+                                                          (builtin ifThenElse)
+                                                        )
+                                                        [
+                                                          [
+                                                            (builtin
+                                                              equalsInteger
+                                                            )
+                                                            x_i1
+                                                          ]
+                                                          (con integer 10)
+                                                        ]
+                                                      ]
+                                                      (delay
+                                                        (lam
+                                                          ds_i0
+                                                          [
+                                                            [
+                                                              Cons_i9
+                                                              (con string "a")
+                                                            ]
+                                                            ds_i1
+                                                          ]
+                                                        )
+                                                      )
+                                                    ]
+                                                    (delay
+                                                      (force
                                                         [
                                                           [
                                                             [
@@ -1115,315 +1192,130 @@
                                                               [
                                                                 [
                                                                   (builtin
-                                                                    lessThanEqualsInteger
+                                                                    equalsInteger
                                                                   )
-                                                                  x_i2
+                                                                  x_i1
                                                                 ]
-                                                                y_i1
+                                                                (con integer 11)
                                                               ]
                                                             ]
-                                                            (constr 1)
-                                                          ]
-                                                          (constr 0)
-                                                        ]
-                                                        (delay (constr 0))
-                                                        (delay
-                                                          [
-                                                            [ Cons_i11 x_i2 ]
-                                                            [
-                                                              [
-                                                                fEnumBool_cenumFromTo_i3
+                                                            (delay
+                                                              (lam
+                                                                ds_i0
                                                                 [
                                                                   [
-                                                                    (builtin
-                                                                      addInteger
+                                                                    Cons_i9
+                                                                    (con
+                                                                      string "b"
                                                                     )
-                                                                    x_i2
                                                                   ]
-                                                                  (con
-                                                                    integer 1
-                                                                  )
+                                                                  ds_i1
                                                                 ]
-                                                              ]
-                                                              y_i1
-                                                            ]
-                                                          ]
-                                                        )
-                                                      )
-                                                    )
-                                                  )
-                                                )
-                                              )
-                                            ]
-                                          ]
-                                        )
-                                        (lam
-                                          x_i0
-                                          (force
-                                            (case
-                                              [
-                                                [
-                                                  [
-                                                    (force (builtin ifThenElse))
-                                                    [
-                                                      [
-                                                        (builtin
-                                                          lessThanEqualsInteger
-                                                        )
-                                                        x_i1
-                                                      ]
-                                                      (con integer 9)
-                                                    ]
-                                                  ]
-                                                  (constr 0)
-                                                ]
-                                                (constr 1)
-                                              ]
-                                              (delay [ wcshowsPrec_i4 x_i1 ])
-                                              (delay
-                                                (force
-                                                  (case
-                                                    [
-                                                      [
-                                                        [
-                                                          (force
-                                                            (builtin ifThenElse)
-                                                          )
-                                                          [
-                                                            [
-                                                              (builtin
-                                                                equalsInteger
                                                               )
-                                                              x_i1
-                                                            ]
-                                                            (con integer 10)
-                                                          ]
-                                                        ]
-                                                        (constr 0)
-                                                      ]
-                                                      (constr 1)
-                                                    ]
-                                                    (delay
-                                                      (lam
-                                                        ds_i0
-                                                        [
-                                                          [
-                                                            Cons_i9
-                                                            (con string "a")
-                                                          ]
-                                                          ds_i1
-                                                        ]
-                                                      )
-                                                    )
-                                                    (delay
-                                                      (force
-                                                        (case
-                                                          [
-                                                            [
-                                                              [
-                                                                (force
-                                                                  (builtin
-                                                                    ifThenElse
-                                                                  )
-                                                                )
-                                                                [
-                                                                  [
-                                                                    (builtin
-                                                                      equalsInteger
-                                                                    )
-                                                                    x_i1
-                                                                  ]
-                                                                  (con
-                                                                    integer 11
-                                                                  )
-                                                                ]
-                                                              ]
-                                                              (constr 0)
-                                                            ]
-                                                            (constr 1)
-                                                          ]
-                                                          (delay
-                                                            (lam
-                                                              ds_i0
-                                                              [
-                                                                [
-                                                                  Cons_i9
-                                                                  (con
-                                                                    string "b"
-                                                                  )
-                                                                ]
-                                                                ds_i1
-                                                              ]
                                                             )
-                                                          )
+                                                          ]
                                                           (delay
                                                             (force
-                                                              (case
+                                                              [
                                                                 [
                                                                   [
-                                                                    [
-                                                                      (force
-                                                                        (builtin
-                                                                          ifThenElse
-                                                                        )
+                                                                    (force
+                                                                      (builtin
+                                                                        ifThenElse
                                                                       )
+                                                                    )
+                                                                    [
+                                                                      [
+                                                                        (builtin
+                                                                          equalsInteger
+                                                                        )
+                                                                        x_i1
+                                                                      ]
+                                                                      (con
+                                                                        integer
+                                                                        12
+                                                                      )
+                                                                    ]
+                                                                  ]
+                                                                  (delay
+                                                                    (lam
+                                                                      ds_i0
                                                                       [
                                                                         [
-                                                                          (builtin
-                                                                            equalsInteger
+                                                                          Cons_i9
+                                                                          (con
+                                                                            string
+                                                                            "c"
                                                                           )
-                                                                          x_i1
                                                                         ]
-                                                                        (con
-                                                                          integer
-                                                                          12
-                                                                        )
+                                                                        ds_i1
                                                                       ]
-                                                                    ]
-                                                                    (constr 0)
-                                                                  ]
-                                                                  (constr 1)
+                                                                    )
+                                                                  )
                                                                 ]
                                                                 (delay
-                                                                  (lam
-                                                                    ds_i0
+                                                                  (force
                                                                     [
                                                                       [
-                                                                        Cons_i9
-                                                                        (con
-                                                                          string
-                                                                          "c"
-                                                                        )
-                                                                      ]
-                                                                      ds_i1
-                                                                    ]
-                                                                  )
-                                                                )
-                                                                (delay
-                                                                  (force
-                                                                    (case
-                                                                      [
                                                                         [
-                                                                          [
-                                                                            (force
-                                                                              (builtin
-                                                                                ifThenElse
-                                                                              )
+                                                                          (force
+                                                                            (builtin
+                                                                              ifThenElse
                                                                             )
+                                                                          )
+                                                                          [
+                                                                            [
+                                                                              (builtin
+                                                                                equalsInteger
+                                                                              )
+                                                                              x_i1
+                                                                            ]
+                                                                            (con
+                                                                              integer
+                                                                              13
+                                                                            )
+                                                                          ]
+                                                                        ]
+                                                                        (delay
+                                                                          (lam
+                                                                            ds_i0
                                                                             [
                                                                               [
-                                                                                (builtin
-                                                                                  equalsInteger
+                                                                                Cons_i9
+                                                                                (con
+                                                                                  string
+                                                                                  "d"
                                                                                 )
-                                                                                x_i1
                                                                               ]
-                                                                              (con
-                                                                                integer
-                                                                                13
-                                                                              )
+                                                                              ds_i1
                                                                             ]
-                                                                          ]
-                                                                          (constr
-                                                                            0
                                                                           )
-                                                                        ]
-                                                                        (constr
-                                                                          1
                                                                         )
                                                                       ]
-                                                                      (delay
-                                                                        (lam
-                                                                          ds_i0
-                                                                          [
-                                                                            [
-                                                                              Cons_i9
-                                                                              (con
-                                                                                string
-                                                                                "d"
-                                                                              )
-                                                                            ]
-                                                                            ds_i1
-                                                                          ]
-                                                                        )
-                                                                      )
                                                                       (delay
                                                                         (force
-                                                                          (case
+                                                                          [
                                                                             [
                                                                               [
-                                                                                [
-                                                                                  (force
-                                                                                    (builtin
-                                                                                      ifThenElse
-                                                                                    )
+                                                                                (force
+                                                                                  (builtin
+                                                                                    ifThenElse
                                                                                   )
-                                                                                  [
-                                                                                    [
-                                                                                      (builtin
-                                                                                        equalsInteger
-                                                                                      )
-                                                                                      x_i1
-                                                                                    ]
-                                                                                    (con
-                                                                                      integer
-                                                                                      14
-                                                                                    )
-                                                                                  ]
-                                                                                ]
-                                                                                (constr
-                                                                                  0
                                                                                 )
-                                                                              ]
-                                                                              (constr
-                                                                                1
-                                                                              )
-                                                                            ]
-                                                                            (delay
-                                                                              (lam
-                                                                                ds_i0
                                                                                 [
                                                                                   [
-                                                                                    Cons_i9
-                                                                                    (con
-                                                                                      string
-                                                                                      "e"
+                                                                                    (builtin
+                                                                                      equalsInteger
                                                                                     )
+                                                                                    x_i1
                                                                                   ]
-                                                                                  ds_i1
-                                                                                ]
-                                                                              )
-                                                                            )
-                                                                            (delay
-                                                                              (case
-                                                                                [
-                                                                                  [
-                                                                                    [
-                                                                                      (force
-                                                                                        (builtin
-                                                                                          ifThenElse
-                                                                                        )
-                                                                                      )
-                                                                                      [
-                                                                                        [
-                                                                                          (builtin
-                                                                                            equalsInteger
-                                                                                          )
-                                                                                          x_i1
-                                                                                        ]
-                                                                                        (con
-                                                                                          integer
-                                                                                          15
-                                                                                        )
-                                                                                      ]
-                                                                                    ]
-                                                                                    (constr
-                                                                                      0
-                                                                                    )
-                                                                                  ]
-                                                                                  (constr
-                                                                                    1
+                                                                                  (con
+                                                                                    integer
+                                                                                    14
                                                                                   )
                                                                                 ]
+                                                                              ]
+                                                                              (delay
                                                                                 (lam
                                                                                   ds_i0
                                                                                   [
@@ -1431,12 +1323,50 @@
                                                                                       Cons_i9
                                                                                       (con
                                                                                         string
-                                                                                        "f"
+                                                                                        "e"
                                                                                       )
                                                                                     ]
                                                                                     ds_i1
                                                                                   ]
                                                                                 )
+                                                                              )
+                                                                            ]
+                                                                            (delay
+                                                                              [
+                                                                                [
+                                                                                  [
+                                                                                    (force
+                                                                                      (builtin
+                                                                                        ifThenElse
+                                                                                      )
+                                                                                    )
+                                                                                    [
+                                                                                      [
+                                                                                        (builtin
+                                                                                          equalsInteger
+                                                                                        )
+                                                                                        x_i1
+                                                                                      ]
+                                                                                      (con
+                                                                                        integer
+                                                                                        15
+                                                                                      )
+                                                                                    ]
+                                                                                  ]
+                                                                                  (lam
+                                                                                    ds_i0
+                                                                                    [
+                                                                                      [
+                                                                                        Cons_i9
+                                                                                        (con
+                                                                                          string
+                                                                                          "f"
+                                                                                        )
+                                                                                      ]
+                                                                                      ds_i1
+                                                                                    ]
+                                                                                  )
+                                                                                ]
                                                                                 (lam
                                                                                   ds_i0
                                                                                   [
@@ -1450,24 +1380,24 @@
                                                                                     ds_i1
                                                                                   ]
                                                                                 )
-                                                                              )
+                                                                              ]
                                                                             )
-                                                                          )
+                                                                          ]
                                                                         )
                                                                       )
-                                                                    )
+                                                                    ]
                                                                   )
                                                                 )
-                                                              )
+                                                              ]
                                                             )
                                                           )
-                                                        )
+                                                        ]
                                                       )
                                                     )
-                                                  )
+                                                  ]
                                                 )
                                               )
-                                            )
+                                            ]
                                           )
                                         )
                                       ]
@@ -1488,41 +1418,37 @@
                                 (lam
                                   w_i0
                                   (force
-                                    (case
+                                    [
                                       [
                                         [
+                                          (force (builtin ifThenElse))
                                           [
-                                            (force (builtin ifThenElse))
-                                            [
-                                              [ (builtin lessThanInteger) w_i1 ]
-                                              (con integer 0)
-                                            ]
+                                            [ (builtin lessThanInteger) w_i1 ]
+                                            (con integer 0)
                                           ]
-                                          (constr 0)
                                         ]
-                                        (constr 1)
-                                      ]
-                                      (delay
-                                        (lam
-                                          x_i0
-                                          [
-                                            [ Cons_i7 (con string "-") ]
+                                        (delay
+                                          (lam
+                                            x_i0
                                             [
+                                              [ Cons_i7 (con string "-") ]
                                               [
-                                                wcshowsPrec_i3
                                                 [
+                                                  wcshowsPrec_i3
                                                   [
-                                                    (builtin subtractInteger)
-                                                    (con integer 0)
+                                                    [
+                                                      (builtin subtractInteger)
+                                                      (con integer 0)
+                                                    ]
+                                                    w_i2
                                                   ]
-                                                  w_i2
                                                 ]
+                                                x_i1
                                               ]
-                                              x_i1
                                             ]
-                                          ]
+                                          )
                                         )
-                                      )
+                                      ]
                                       (delay
                                         [
                                           [
@@ -1545,399 +1471,328 @@
                                                       [
                                                         Cons_i9
                                                         (force
-                                                          (case
+                                                          [
                                                             [
                                                               [
-                                                                [
-                                                                  (force
-                                                                    (builtin
-                                                                      ifThenElse
-                                                                    )
+                                                                (force
+                                                                  (builtin
+                                                                    ifThenElse
                                                                   )
+                                                                )
+                                                                [
                                                                   [
-                                                                    [
-                                                                      (builtin
-                                                                        equalsInteger
-                                                                      )
-                                                                      digit_i3
-                                                                    ]
-                                                                    (con
-                                                                      integer 0
+                                                                    (builtin
+                                                                      equalsInteger
                                                                     )
+                                                                    digit_i3
                                                                   ]
+                                                                  (con
+                                                                    integer 0
+                                                                  )
                                                                 ]
-                                                                (constr 0)
                                                               ]
-                                                              (constr 1)
+                                                              (delay
+                                                                (con string "0")
+                                                              )
                                                             ]
                                                             (delay
-                                                              (con string "0")
-                                                            )
-                                                            (delay
                                                               (force
-                                                                (case
+                                                                [
                                                                   [
                                                                     [
-                                                                      [
-                                                                        (force
-                                                                          (builtin
-                                                                            ifThenElse
-                                                                          )
+                                                                      (force
+                                                                        (builtin
+                                                                          ifThenElse
                                                                         )
+                                                                      )
+                                                                      [
                                                                         [
-                                                                          [
-                                                                            (builtin
-                                                                              equalsInteger
-                                                                            )
-                                                                            digit_i3
-                                                                          ]
-                                                                          (con
-                                                                            integer
-                                                                            1
+                                                                          (builtin
+                                                                            equalsInteger
                                                                           )
+                                                                          digit_i3
                                                                         ]
+                                                                        (con
+                                                                          integer
+                                                                          1
+                                                                        )
                                                                       ]
-                                                                      (constr 0)
                                                                     ]
-                                                                    (constr 1)
+                                                                    (delay
+                                                                      (con
+                                                                        string
+                                                                        "1"
+                                                                      )
+                                                                    )
                                                                   ]
                                                                   (delay
-                                                                    (con
-                                                                      string "1"
-                                                                    )
-                                                                  )
-                                                                  (delay
                                                                     (force
-                                                                      (case
+                                                                      [
                                                                         [
                                                                           [
-                                                                            [
-                                                                              (force
-                                                                                (builtin
-                                                                                  ifThenElse
-                                                                                )
+                                                                            (force
+                                                                              (builtin
+                                                                                ifThenElse
                                                                               )
-                                                                              [
-                                                                                [
-                                                                                  (builtin
-                                                                                    equalsInteger
-                                                                                  )
-                                                                                  digit_i3
-                                                                                ]
-                                                                                (con
-                                                                                  integer
-                                                                                  2
-                                                                                )
-                                                                              ]
-                                                                            ]
-                                                                            (constr
-                                                                              0
                                                                             )
+                                                                            [
+                                                                              [
+                                                                                (builtin
+                                                                                  equalsInteger
+                                                                                )
+                                                                                digit_i3
+                                                                              ]
+                                                                              (con
+                                                                                integer
+                                                                                2
+                                                                              )
+                                                                            ]
                                                                           ]
-                                                                          (constr
-                                                                            1
+                                                                          (delay
+                                                                            (con
+                                                                              string
+                                                                              "2"
+                                                                            )
                                                                           )
                                                                         ]
                                                                         (delay
-                                                                          (con
-                                                                            string
-                                                                            "2"
-                                                                          )
-                                                                        )
-                                                                        (delay
                                                                           (force
-                                                                            (case
+                                                                            [
                                                                               [
                                                                                 [
-                                                                                  [
-                                                                                    (force
-                                                                                      (builtin
-                                                                                        ifThenElse
-                                                                                      )
+                                                                                  (force
+                                                                                    (builtin
+                                                                                      ifThenElse
                                                                                     )
-                                                                                    [
-                                                                                      [
-                                                                                        (builtin
-                                                                                          equalsInteger
-                                                                                        )
-                                                                                        digit_i3
-                                                                                      ]
-                                                                                      (con
-                                                                                        integer
-                                                                                        3
-                                                                                      )
-                                                                                    ]
-                                                                                  ]
-                                                                                  (constr
-                                                                                    0
                                                                                   )
+                                                                                  [
+                                                                                    [
+                                                                                      (builtin
+                                                                                        equalsInteger
+                                                                                      )
+                                                                                      digit_i3
+                                                                                    ]
+                                                                                    (con
+                                                                                      integer
+                                                                                      3
+                                                                                    )
+                                                                                  ]
                                                                                 ]
-                                                                                (constr
-                                                                                  1
+                                                                                (delay
+                                                                                  (con
+                                                                                    string
+                                                                                    "3"
+                                                                                  )
                                                                                 )
                                                                               ]
                                                                               (delay
-                                                                                (con
-                                                                                  string
-                                                                                  "3"
-                                                                                )
-                                                                              )
-                                                                              (delay
                                                                                 (force
-                                                                                  (case
+                                                                                  [
                                                                                     [
                                                                                       [
-                                                                                        [
-                                                                                          (force
-                                                                                            (builtin
-                                                                                              ifThenElse
-                                                                                            )
+                                                                                        (force
+                                                                                          (builtin
+                                                                                            ifThenElse
                                                                                           )
-                                                                                          [
-                                                                                            [
-                                                                                              (builtin
-                                                                                                equalsInteger
-                                                                                              )
-                                                                                              digit_i3
-                                                                                            ]
-                                                                                            (con
-                                                                                              integer
-                                                                                              4
-                                                                                            )
-                                                                                          ]
-                                                                                        ]
-                                                                                        (constr
-                                                                                          0
                                                                                         )
+                                                                                        [
+                                                                                          [
+                                                                                            (builtin
+                                                                                              equalsInteger
+                                                                                            )
+                                                                                            digit_i3
+                                                                                          ]
+                                                                                          (con
+                                                                                            integer
+                                                                                            4
+                                                                                          )
+                                                                                        ]
                                                                                       ]
-                                                                                      (constr
-                                                                                        1
+                                                                                      (delay
+                                                                                        (con
+                                                                                          string
+                                                                                          "4"
+                                                                                        )
                                                                                       )
                                                                                     ]
                                                                                     (delay
-                                                                                      (con
-                                                                                        string
-                                                                                        "4"
-                                                                                      )
-                                                                                    )
-                                                                                    (delay
                                                                                       (force
-                                                                                        (case
+                                                                                        [
                                                                                           [
                                                                                             [
-                                                                                              [
-                                                                                                (force
-                                                                                                  (builtin
-                                                                                                    ifThenElse
-                                                                                                  )
+                                                                                              (force
+                                                                                                (builtin
+                                                                                                  ifThenElse
                                                                                                 )
-                                                                                                [
-                                                                                                  [
-                                                                                                    (builtin
-                                                                                                      equalsInteger
-                                                                                                    )
-                                                                                                    digit_i3
-                                                                                                  ]
-                                                                                                  (con
-                                                                                                    integer
-                                                                                                    5
-                                                                                                  )
-                                                                                                ]
-                                                                                              ]
-                                                                                              (constr
-                                                                                                0
                                                                                               )
+                                                                                              [
+                                                                                                [
+                                                                                                  (builtin
+                                                                                                    equalsInteger
+                                                                                                  )
+                                                                                                  digit_i3
+                                                                                                ]
+                                                                                                (con
+                                                                                                  integer
+                                                                                                  5
+                                                                                                )
+                                                                                              ]
                                                                                             ]
-                                                                                            (constr
-                                                                                              1
+                                                                                            (delay
+                                                                                              (con
+                                                                                                string
+                                                                                                "5"
+                                                                                              )
                                                                                             )
                                                                                           ]
                                                                                           (delay
-                                                                                            (con
-                                                                                              string
-                                                                                              "5"
-                                                                                            )
-                                                                                          )
-                                                                                          (delay
                                                                                             (force
-                                                                                              (case
+                                                                                              [
                                                                                                 [
                                                                                                   [
-                                                                                                    [
-                                                                                                      (force
-                                                                                                        (builtin
-                                                                                                          ifThenElse
-                                                                                                        )
+                                                                                                    (force
+                                                                                                      (builtin
+                                                                                                        ifThenElse
                                                                                                       )
-                                                                                                      [
-                                                                                                        [
-                                                                                                          (builtin
-                                                                                                            equalsInteger
-                                                                                                          )
-                                                                                                          digit_i3
-                                                                                                        ]
-                                                                                                        (con
-                                                                                                          integer
-                                                                                                          6
-                                                                                                        )
-                                                                                                      ]
-                                                                                                    ]
-                                                                                                    (constr
-                                                                                                      0
                                                                                                     )
+                                                                                                    [
+                                                                                                      [
+                                                                                                        (builtin
+                                                                                                          equalsInteger
+                                                                                                        )
+                                                                                                        digit_i3
+                                                                                                      ]
+                                                                                                      (con
+                                                                                                        integer
+                                                                                                        6
+                                                                                                      )
+                                                                                                    ]
                                                                                                   ]
-                                                                                                  (constr
-                                                                                                    1
+                                                                                                  (delay
+                                                                                                    (con
+                                                                                                      string
+                                                                                                      "6"
+                                                                                                    )
                                                                                                   )
                                                                                                 ]
                                                                                                 (delay
-                                                                                                  (con
-                                                                                                    string
-                                                                                                    "6"
-                                                                                                  )
-                                                                                                )
-                                                                                                (delay
                                                                                                   (force
-                                                                                                    (case
+                                                                                                    [
                                                                                                       [
                                                                                                         [
-                                                                                                          [
-                                                                                                            (force
-                                                                                                              (builtin
-                                                                                                                ifThenElse
-                                                                                                              )
+                                                                                                          (force
+                                                                                                            (builtin
+                                                                                                              ifThenElse
                                                                                                             )
-                                                                                                            [
-                                                                                                              [
-                                                                                                                (builtin
-                                                                                                                  equalsInteger
-                                                                                                                )
-                                                                                                                digit_i3
-                                                                                                              ]
-                                                                                                              (con
-                                                                                                                integer
-                                                                                                                7
-                                                                                                              )
-                                                                                                            ]
-                                                                                                          ]
-                                                                                                          (constr
-                                                                                                            0
                                                                                                           )
+                                                                                                          [
+                                                                                                            [
+                                                                                                              (builtin
+                                                                                                                equalsInteger
+                                                                                                              )
+                                                                                                              digit_i3
+                                                                                                            ]
+                                                                                                            (con
+                                                                                                              integer
+                                                                                                              7
+                                                                                                            )
+                                                                                                          ]
                                                                                                         ]
-                                                                                                        (constr
-                                                                                                          1
+                                                                                                        (delay
+                                                                                                          (con
+                                                                                                            string
+                                                                                                            "7"
+                                                                                                          )
                                                                                                         )
                                                                                                       ]
                                                                                                       (delay
-                                                                                                        (con
-                                                                                                          string
-                                                                                                          "7"
-                                                                                                        )
-                                                                                                      )
-                                                                                                      (delay
                                                                                                         (force
-                                                                                                          (case
+                                                                                                          [
                                                                                                             [
                                                                                                               [
-                                                                                                                [
-                                                                                                                  (force
-                                                                                                                    (builtin
-                                                                                                                      ifThenElse
-                                                                                                                    )
+                                                                                                                (force
+                                                                                                                  (builtin
+                                                                                                                    ifThenElse
                                                                                                                   )
-                                                                                                                  [
-                                                                                                                    [
-                                                                                                                      (builtin
-                                                                                                                        equalsInteger
-                                                                                                                      )
-                                                                                                                      digit_i3
-                                                                                                                    ]
-                                                                                                                    (con
-                                                                                                                      integer
-                                                                                                                      8
-                                                                                                                    )
-                                                                                                                  ]
-                                                                                                                ]
-                                                                                                                (constr
-                                                                                                                  0
                                                                                                                 )
+                                                                                                                [
+                                                                                                                  [
+                                                                                                                    (builtin
+                                                                                                                      equalsInteger
+                                                                                                                    )
+                                                                                                                    digit_i3
+                                                                                                                  ]
+                                                                                                                  (con
+                                                                                                                    integer
+                                                                                                                    8
+                                                                                                                  )
+                                                                                                                ]
                                                                                                               ]
-                                                                                                              (constr
-                                                                                                                1
+                                                                                                              (delay
+                                                                                                                (con
+                                                                                                                  string
+                                                                                                                  "8"
+                                                                                                                )
                                                                                                               )
                                                                                                             ]
                                                                                                             (delay
-                                                                                                              (con
-                                                                                                                string
-                                                                                                                "8"
-                                                                                                              )
-                                                                                                            )
-                                                                                                            (delay
-                                                                                                              (case
+                                                                                                              [
                                                                                                                 [
                                                                                                                   [
-                                                                                                                    [
-                                                                                                                      (force
-                                                                                                                        (builtin
-                                                                                                                          ifThenElse
-                                                                                                                        )
+                                                                                                                    (force
+                                                                                                                      (builtin
+                                                                                                                        ifThenElse
                                                                                                                       )
-                                                                                                                      [
-                                                                                                                        [
-                                                                                                                          (builtin
-                                                                                                                            equalsInteger
-                                                                                                                          )
-                                                                                                                          digit_i3
-                                                                                                                        ]
-                                                                                                                        (con
-                                                                                                                          integer
-                                                                                                                          9
-                                                                                                                        )
-                                                                                                                      ]
-                                                                                                                    ]
-                                                                                                                    (constr
-                                                                                                                      0
                                                                                                                     )
+                                                                                                                    [
+                                                                                                                      [
+                                                                                                                        (builtin
+                                                                                                                          equalsInteger
+                                                                                                                        )
+                                                                                                                        digit_i3
+                                                                                                                      ]
+                                                                                                                      (con
+                                                                                                                        integer
+                                                                                                                        9
+                                                                                                                      )
+                                                                                                                    ]
                                                                                                                   ]
-                                                                                                                  (constr
-                                                                                                                    1
+                                                                                                                  (con
+                                                                                                                    string
+                                                                                                                    "9"
                                                                                                                   )
                                                                                                                 ]
-                                                                                                                (con
-                                                                                                                  string
-                                                                                                                  "9"
-                                                                                                                )
                                                                                                                 (con
                                                                                                                   string
                                                                                                                   "<invalid digit>"
                                                                                                                 )
-                                                                                                              )
+                                                                                                              ]
                                                                                                             )
-                                                                                                          )
+                                                                                                          ]
                                                                                                         )
                                                                                                       )
-                                                                                                    )
+                                                                                                    ]
                                                                                                   )
                                                                                                 )
-                                                                                              )
+                                                                                              ]
                                                                                             )
                                                                                           )
-                                                                                        )
+                                                                                        ]
                                                                                       )
                                                                                     )
-                                                                                  )
+                                                                                  ]
                                                                                 )
                                                                               )
-                                                                            )
+                                                                            ]
                                                                           )
                                                                         )
-                                                                      )
+                                                                      ]
                                                                     )
                                                                   )
-                                                                )
+                                                                ]
                                                               )
                                                             )
-                                                          )
+                                                          ]
                                                         )
                                                       ]
                                                       [ acc_i2 x_i1 ]
@@ -1951,7 +1806,7 @@
                                           [ [ go_i5 (constr 0) ] w_i1 ]
                                         ]
                                       )
-                                    )
+                                    ]
                                   )
                                 )
                               )
@@ -2033,31 +1888,28 @@
                           [
                             (lam
                               q_i0
-                              (case
+                              [
                                 [
                                   [
+                                    (force (builtin ifThenElse))
                                     [
-                                      (force (builtin ifThenElse))
-                                      [
-                                        [ (builtin equalsInteger) (force q_i1) ]
-                                        (con integer 0)
-                                      ]
+                                      [ (builtin equalsInteger) (force q_i1) ]
+                                      (con integer 0)
                                     ]
-                                    (constr 0)
                                   ]
-                                  (constr 1)
+                                  (delay
+                                    [
+                                      [
+                                        Cons_i5
+                                        [
+                                          [ (builtin remainderInteger) n_i2 ]
+                                          y_i6
+                                        ]
+                                      ]
+                                      acc_i3
+                                    ]
+                                  )
                                 ]
-                                (delay
-                                  [
-                                    [
-                                      Cons_i5
-                                      [
-                                        [ (builtin remainderInteger) n_i2 ] y_i6
-                                      ]
-                                    ]
-                                    acc_i3
-                                  ]
-                                )
                                 (delay
                                   [
                                     [
@@ -2076,7 +1928,7 @@
                                     (force q_i1)
                                   ]
                                 )
-                              )
+                              ]
                             )
                             (delay [ [ (builtin quotientInteger) n_i1 ] y_i5 ])
                           ]

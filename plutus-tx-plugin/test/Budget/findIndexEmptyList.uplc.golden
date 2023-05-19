@@ -23,37 +23,33 @@
                           xs_i0
                           (delay
                             (force
-                              (case
+                              [
                                 [
                                   [
+                                    (force (builtin ifThenElse))
                                     [
-                                      (force (builtin ifThenElse))
                                       [
-                                        [
-                                          (builtin lessThanEqualsInteger)
-                                          (con integer 1)
-                                        ]
-                                        x_i2
-                                      ]
-                                    ]
-                                    (constr 1)
-                                  ]
-                                  (constr 0)
-                                ]
-                                (delay (constr 0 x_i5))
-                                (delay
-                                  [
-                                    [
-                                      go_i4
-                                      [
-                                        [ (builtin addInteger) x_i5 ]
+                                        (builtin lessThanEqualsInteger)
                                         (con integer 1)
                                       ]
+                                      x_i2
                                     ]
-                                    xs_i1
                                   ]
-                                )
-                              )
+                                  (delay
+                                    [
+                                      [
+                                        go_i4
+                                        [
+                                          [ (builtin addInteger) x_i5 ]
+                                          (con integer 1)
+                                        ]
+                                      ]
+                                      xs_i1
+                                    ]
+                                  )
+                                ]
+                                (delay (constr 0 x_i5))
+                              ]
                             )
                           )
                         )

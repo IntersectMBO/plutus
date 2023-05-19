@@ -31,6 +31,26 @@ interveningLambda = runQuote $ do
         arg = mkConstant @Integer () 1
     pure $ Force () $ Apply () lam arg
 
+caseOfCase1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+caseOfCase1 = runQuote $ do
+    b <- freshName "b"
+    let ite = Force () (Builtin () PLC.IfThenElse)
+        true = Constr () 0 []
+        false = Constr () 1 []
+        alts = [mkConstant @Integer () 1, mkConstant @Integer () 2]
+    pure $ Case () (mkApplication ite [(Var () b, ()), (true, ()), (false, ())]) alts
+
+-- | This should not simplify, because one of the branches of `ifThenElse` is not a `Constr`.
+caseOfCase2 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+caseOfCase2 = runQuote $ do
+    b <- freshName "b"
+    t <- freshName "t"
+    let ite = Force () (Builtin () PLC.IfThenElse)
+        true = Var () t
+        false = Constr () 1 []
+        alts = [mkConstant @Integer () 1, mkConstant @Integer () 2]
+    pure $ Case () (mkApplication ite [(Var () b, ()), (true, ()), (false, ())]) alts
+
 -- | The `Delay` should be floated into the lambda.
 floatDelay1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 floatDelay1 = runQuote $ do
@@ -164,6 +184,8 @@ test_simplify =
         [ goldenVsSimplified "basic" basic
         , goldenVsSimplified "nested" nested
         , goldenVsSimplified "extraDelays" extraDelays
+        , goldenVsSimplified "caseOfCase1" caseOfCase1
+        , goldenVsSimplified "caseOfCase2" caseOfCase2
         , goldenVsSimplified "floatDelay1" floatDelay1
         , goldenVsSimplified "floatDelay2" floatDelay2
         , goldenVsSimplified "floatDelay3" floatDelay3

@@ -87,29 +87,24 @@
                   (lam
                     xs_i0
                     (force
-                      (case
+                      [
                         [
                           [
+                            (force (builtin ifThenElse))
                             [
-                              (force (builtin ifThenElse))
                               [
+                                (builtin equalsInteger)
                                 [
-                                  (builtin equalsInteger)
-                                  [
-                                    [ (builtin modInteger) e_i2 ]
-                                    (con integer 2)
-                                  ]
+                                  [ (builtin modInteger) e_i2 ] (con integer 2)
                                 ]
-                                (con integer 0)
                               ]
+                              (con integer 0)
                             ]
-                            (constr 0)
                           ]
-                          (constr 1)
+                          (delay [ [ Cons_i4 e_i2 ] xs_i1 ])
                         ]
-                        (delay [ [ Cons_i4 e_i2 ] xs_i1 ])
                         (delay xs_i1)
-                      )
+                      ]
                     )
                   )
                 )

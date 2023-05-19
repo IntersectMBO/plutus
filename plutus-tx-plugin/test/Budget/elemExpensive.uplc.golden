@@ -23,26 +23,21 @@
                           xs_i0
                           (delay
                             (force
-                              (case
+                              [
                                 [
                                   [
+                                    (force (builtin ifThenElse))
                                     [
-                                      (force (builtin ifThenElse))
                                       [
-                                        [
-                                          (builtin equalsInteger)
-                                          (con integer 0)
-                                        ]
-                                        x_i2
+                                        (builtin equalsInteger) (con integer 0)
                                       ]
+                                      x_i2
                                     ]
-                                    (constr 0)
                                   ]
-                                  (constr 1)
+                                  (delay (constr 0))
                                 ]
-                                (delay (constr 0))
                                 (delay [ go_i3 xs_i1 ])
-                              )
+                              ]
                             )
                           )
                         )
