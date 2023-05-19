@@ -11,6 +11,7 @@ import Test.Tasty.Extras
 import PlutusCore.Quote
 
 import PlutusCore qualified as PLC
+import PlutusCore.Name
 import PlutusCore.Pretty qualified as PLC
 import PlutusPrelude
 

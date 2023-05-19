@@ -43,6 +43,8 @@ import PlutusCore.Flat ()
 import PlutusCore.MkPlc (Def (..), TermLike (..), TyVarDecl (..), VarDecl (..))
 import PlutusCore.Name qualified as PLC
 
+import Universe
+
 import Data.Text qualified as T
 import Data.Word
 import PlutusCore.Error (ApplyProgramError (MkApplyProgramError))
@@ -91,7 +93,10 @@ data Strictness = NonStrict | Strict
 data Binding tyname name uni fun a = TermBind a Strictness (VarDecl tyname name uni a) (Term tyname name uni fun a)
                            | TypeBind a (TyVarDecl tyname a) (Type tyname uni a)
                            | DatatypeBind a (Datatype tyname name uni a)
-    deriving stock (Functor, Show, Generic)
+    deriving stock (Functor, Generic)
+
+deriving stock instance (Show tyname, Show name, GShow uni, Everywhere uni Show, Show fun, Show a, Closed uni)
+    => Show (Binding tyname name uni fun a)
 
 -- Terms
 
@@ -137,7 +142,10 @@ data Term tyname name uni fun a =
                         -- See Note [Constr tag type]
                         | Constr a (Type tyname uni a) Word64 [Term tyname name uni fun a]
                         | Case a (Type tyname uni a) (Term tyname name uni fun a) [Term tyname name uni fun a]
-                        deriving stock (Functor, Show, Generic)
+                        deriving stock (Functor, Generic)
+
+deriving stock instance (Show tyname, Show name, GShow uni, Everywhere uni Show, Show fun, Show a, Closed uni)
+    => Show (Term tyname name uni fun a)
 
 -- See Note [ExMemoryUsage instances for non-constants].
 instance ExMemoryUsage (Term tyname name uni fun ann) where
@@ -176,8 +184,12 @@ data Program tyname name uni fun ann = Program
     , _progVersion :: Version
     , _progTerm    :: Term tyname name uni fun ann
     }
-    deriving stock (Show, Functor, Generic)
+    deriving stock (Functor, Generic)
 makeLenses ''Program
+
+deriving stock instance (Show tyname, Show name, GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
+    => Show (Program tyname name uni fun ann)
+
 
 type instance PLC.HasUniques (Term tyname name uni fun ann) = (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
 type instance PLC.HasUniques (Program tyname name uni fun ann) = PLC.HasUniques (Term tyname name uni fun ann)

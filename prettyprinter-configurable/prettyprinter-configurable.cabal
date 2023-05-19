@@ -82,7 +82,7 @@ test-suite prettyprinter-configurable-test
     , base                        >=4.9 && <5
     , megaparsec
     , parser-combinators
-    , prettyprinter-configurable  ^>=1.6
+    , prettyprinter-configurable
     , QuickCheck
     , quickcheck-text
     , tasty

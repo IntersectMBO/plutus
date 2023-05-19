@@ -23,7 +23,7 @@ import PlutusIR.Error
 import PlutusIR.Transform.Rename ()
 import PlutusIR.TypeCheck.Internal
 
-import Control.Monad.Except
+import Control.Monad ((>=>))
 
 {- Note [Goal of PIR typechecker]
 

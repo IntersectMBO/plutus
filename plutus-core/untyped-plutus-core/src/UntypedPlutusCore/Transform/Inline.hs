@@ -37,8 +37,9 @@ import PlutusCore.Name
 import PlutusCore.Quote
 
 import Control.Lens hiding (Strict)
-import Control.Monad.Reader
-import Control.Monad.State
+import Control.Monad (liftM2)
+import Control.Monad.Reader (ReaderT, asks, runReaderT)
+import Control.Monad.State (StateT, evalStateT, gets, modify')
 
 import Data.Semigroup.Generic (GenericSemigroupMonoid (..))
 import Witherable (wither)

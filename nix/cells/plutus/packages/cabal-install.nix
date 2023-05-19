@@ -4,7 +4,7 @@ let
   project = cell.library.haskell-nix.hackage-project {
     name = "cabal-install";
 
-    version = "3.8.1.0";
+    version = "3.10.1.0";
 
     compiler-nix-name = cell.library.ghc-compiler-nix-name;
 

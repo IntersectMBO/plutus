@@ -77,8 +77,16 @@ instance Exception (UniqueError SrcSpan)
 data NormCheckError tyname name uni fun ann
     = BadType !ann !(Type tyname uni ann) !T.Text
     | BadTerm !ann !(Term tyname name uni fun ann) !T.Text
-    deriving stock (Show, Functor, Generic)
-    deriving anyclass (NFData)
+    deriving stock (Functor, Generic)
+
+deriving anyclass instance
+    (NFData tyname, NFData name, Closed uni, Everywhere uni NFData, NFData fun, NFData ann) =>
+        NFData (NormCheckError tyname name uni fun ann)
+
+deriving stock instance
+    (Show tyname, Show name, Closed uni, Everywhere uni Show, Show fun, Show ann, GShow uni) =>
+        Show (NormCheckError tyname name uni fun ann)
+
 deriving stock instance
     ( Eq (Term tyname name uni fun ann)
     , Eq (Type tyname uni ann)
@@ -121,8 +129,16 @@ data Error uni fun ann
     | TypeErrorE !(TypeError (Term TyName Name uni fun ()) uni fun ann)
     | NormCheckErrorE !(NormCheckError TyName Name uni fun ann)
     | FreeVariableErrorE !FreeVariableError
-    deriving stock (Eq, Generic, Functor)
-    deriving anyclass (NFData)
+    deriving stock (Generic, Functor)
+
+deriving stock instance
+    (Eq fun, Eq ann, Closed uni, Everywhere uni Eq, GEq uni, Eq ParserError) =>
+        Eq (Error uni fun ann)
+
+deriving anyclass instance
+    (NFData fun, NFData ann, Closed uni, Everywhere uni NFData, NFData ParserError) =>
+        NFData (Error uni fun ann)
+
 deriving stock instance
     (Show fun, Show ann, Closed uni, Everywhere uni Show, GShow uni, Show ParserError) =>
         Show (Error uni fun ann)
