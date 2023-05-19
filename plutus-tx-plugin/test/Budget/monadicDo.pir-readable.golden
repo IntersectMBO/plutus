@@ -2,7 +2,7 @@ let
   data (Maybe :: * -> *) a | Maybe_match where
     Just : a -> Maybe a
     Nothing : Maybe a
-  !fMonadMaybe_c : all a. all b. Maybe a -> (a -> Maybe b) -> Maybe b
+  !fMonadMaybe_c : all a b. Maybe a -> (a -> Maybe b) -> Maybe b
     = /\a
         b ->
         \(ds : Maybe a)

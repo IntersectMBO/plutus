@@ -19,6 +19,7 @@ module Plugin.Data.Spec where
 
 import Test.Tasty.Extras
 
+import PlutusCore.Pretty qualified as PLC
 import PlutusCore.Test
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code
@@ -248,7 +249,11 @@ recursiveTypes = testNested "recursive" [
     , goldenUEval "ptreeFirstEval" [ toUPlc ptreeFirst, toUPlc ptreeConstruct ]
     , goldenUEval "sameEmptyRoseEval" [ toUPlc sameEmptyRose, toUPlc emptyRoseConstruct ]
     , goldenUPlc "sameEmptyRose" sameEmptyRose
-    , goldenTPlc "interListConstruct" interListConstruct
+    , goldenTPlcWith
+        ".tplc-read"
+        (ppThrow . fmap PLC.AsReadable)
+        "interListConstruct"
+        interListConstruct
     , goldenUEval "processInterListEval" [ toUPlc processInterList, toUPlc interListConstruct ]
   ]
 
