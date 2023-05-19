@@ -61,6 +61,7 @@ let
             # Things that need plutus-tx-plugin
             plutus-benchmark.package.buildable = false;
             plutus-tx-plugin.package.buildable = false;
+            marlowe-cardano-minimal.package.buildable = false;
             # Needs agda
             plutus-metatheory.package.buildable = false;
             # These need R
