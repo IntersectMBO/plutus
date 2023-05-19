@@ -42,7 +42,7 @@ common lang
     -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
 
 common ghc-version-support
-  -- See the section on GHC versions in CONTRIBUTING 
+  -- See the section on GHC versions in CONTRIBUTING
   if impl(ghc <9.2)
     buildable: False
 
@@ -118,7 +118,7 @@ test-suite plutus-tx-tests
   import:         lang, ghc-version-support
 
   -- test output changes after 9.2, bad for golden tests
-  if impl(ghc >9.2)
+  if impl(ghc >=9.3)
     buildable: False
 
   if flag(use-ghc-stub)
