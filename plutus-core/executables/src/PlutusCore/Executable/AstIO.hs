@@ -10,7 +10,9 @@ module PlutusCore.Executable.AstIO
     , serialiseUplcProgramFlat
     , loadPirASTfromFlat
     , loadPlcASTfromFlat
-    , loadUplcASTfromFlat)
+    , loadUplcASTfromFlat
+    , fromNamedDeBruijnUPLC
+    )
 where
 
 import PlutusCore.Executable.Types
