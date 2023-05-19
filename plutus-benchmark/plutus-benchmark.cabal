@@ -49,7 +49,7 @@ common lang
     -Wunused-packages -Wmissing-deriving-strategies
 
 common ghc-version-support
-  -- See the section on GHC versions in CONTRIBUTING 
+  -- See the section on GHC versions in CONTRIBUTING
   if impl(ghc <9.2)
     buildable: False
 
@@ -144,7 +144,7 @@ test-suite plutus-benchmark-nofib-tests
   import:         lang, ghc-version-support
 
   -- test output changes after 9.2, bad for golden tests
-  if impl(ghc >9.2)
+  if impl(ghc >=9.3)
     buildable: False
 
   type:           exitcode-stdio-1.0
@@ -352,7 +352,7 @@ test-suite plutus-benchmark-script-contexts-tests
   import:         lang, ghc-version-support
 
   -- test output changes after 9.2, bad for golden tests
-  if impl(ghc >9.2)
+  if impl(ghc >=9.3)
     buildable: False
 
   type:           exitcode-stdio-1.0
