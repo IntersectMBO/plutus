@@ -20,7 +20,6 @@ import PlutusCore.Executable.Parsers
 import Data.Foldable
 import Data.List (nub)
 import Data.List.Split (splitOn)
-import Data.Maybe (fromJust)
 import Data.Text qualified as T
 import PlutusPrelude
 
@@ -29,7 +28,8 @@ import UntypedPlutusCore.DeBruijn
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
 
 import Control.DeepSeq (rnf)
-import Control.Monad.Except
+import Control.Monad.Except (runExcept)
+import Control.Monad.IO.Class (liftIO)
 import Options.Applicative
 import Prettyprinter
 import System.Exit (exitFailure)
@@ -211,7 +211,8 @@ runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
   let appliedScript =
         case void <$> scripts of
           []          -> errorWithoutStackTrace "No input files"
-          progAndargs -> foldl1 (fromJust .* UPLC.applyProgram) progAndargs
+          progAndargs ->
+            foldl1 (unsafeFromRight .* UPLC.applyProgram) progAndargs
   writeProgram outp ofmt mode appliedScript
 
 ---------------- Evaluation ----------------

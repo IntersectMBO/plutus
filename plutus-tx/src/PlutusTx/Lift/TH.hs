@@ -32,9 +32,10 @@ import PlutusIR.MkPir hiding (constr)
 import PlutusCore.Default qualified as PLC
 import PlutusCore.MkPlc qualified as PLC
 
-import Control.Monad.Except hiding (lift)
-import Control.Monad.Reader hiding (lift)
-import Control.Monad.State hiding (lift)
+import Control.Monad ((<=<))
+import Control.Monad.Except (ExceptT, runExceptT, throwError)
+import Control.Monad.Reader (MonadReader, ReaderT, ask, asks, local, runReaderT)
+import Control.Monad.State (StateT, gets, modify, runStateT)
 import Control.Monad.Trans qualified as Trans
 
 import Language.Haskell.TH qualified as TH hiding (newName)

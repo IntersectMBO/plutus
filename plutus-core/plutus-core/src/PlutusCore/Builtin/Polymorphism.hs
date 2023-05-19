@@ -150,7 +150,10 @@ type instance UniOf (Opaque val rep) = UniOf val
 -- @Opaque val rep@).
 newtype SomeConstant uni (rep :: GHC.Type) = SomeConstant
     { unSomeConstant :: Some (ValueOf uni)
-    } deriving newtype (ExMemoryUsage)
+    }
+
+deriving newtype instance (Everywhere uni ExMemoryUsage, Closed uni)
+    => ExMemoryUsage (SomeConstant uni rep)
 
 type instance UniOf (SomeConstant uni rep) = uni
 

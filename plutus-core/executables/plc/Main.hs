@@ -12,7 +12,6 @@ import PlutusCore.Executable.Common
 import PlutusCore.Executable.Parsers
 import PlutusCore.Pretty qualified as PP
 
-import Data.Maybe (fromJust)
 import Data.Text.IO qualified as T
 import PlutusPrelude
 
@@ -116,7 +115,8 @@ runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
   let appliedScript =
         case map (\case p -> () <$ p) scripts of
           []          -> errorWithoutStackTrace "No input files"
-          progAndargs -> foldl1 (fromJust .* PLC.applyProgram) progAndargs
+          progAndargs ->
+            foldl1 (unsafeFromRight .* PLC.applyProgram) progAndargs
   writeProgram outp ofmt mode appliedScript
 
 ---------------- Typechecking ----------------

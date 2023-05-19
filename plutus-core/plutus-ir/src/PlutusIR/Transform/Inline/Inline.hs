@@ -28,8 +28,8 @@ import PlutusCore.Rename (dupable)
 
 import Control.Lens (forMOf, traverseOf)
 import Control.Monad.Extra
-import Control.Monad.Reader
-import Control.Monad.State
+import Control.Monad.Reader (runReaderT)
+import Control.Monad.State (evalStateT, modify')
 
 import Algebra.Graph qualified as G
 import Data.Map qualified as Map

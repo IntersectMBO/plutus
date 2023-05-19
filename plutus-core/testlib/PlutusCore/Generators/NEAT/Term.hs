@@ -142,7 +142,7 @@ data TermG tyname name
     | WrapG (TermG tyname name)
     | UnWrapG (TypeG tyname) (Kind ()) (TypeG tyname) (TermG tyname name)
     | ErrorG (TypeG tyname)
-    deriving stock (Eq, Show)
+    deriving stock (Eq, Functor, Show)
 
 deriveBifunctor ''TermG
 deriveEnumerable ''TermG

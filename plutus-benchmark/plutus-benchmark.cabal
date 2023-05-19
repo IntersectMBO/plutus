@@ -48,6 +48,11 @@ common lang
     -Wincomplete-record-updates -Wredundant-constraints -Widentities
     -Wunused-packages -Wmissing-deriving-strategies
 
+common ghc-version-support
+  -- See the section on GHC versions in CONTRIBUTING 
+  if impl(ghc <9.2)
+    buildable: False
+
 ---------------- Common code for benchmarking ----------------
 
 library plutus-benchmark-common
@@ -68,10 +73,7 @@ library plutus-benchmark-common
 ---------------- nofib ----------------
 
 library nofib-internal
-  import:          lang
-
-  if impl(ghc <9.0)
-    buildable: False
+  import:          lang, ghc-version-support
 
   -- Something weird causes this to sometimes report
   -- the plugin package as unused...
@@ -98,18 +100,14 @@ library nofib-internal
     , plutus-tx-plugin         ^>=1.6
 
 executable nofib-exe
-  import:         lang
-
-  if impl(ghc <9.0)
-    buildable: False
-
+  import:         lang, ghc-version-support
   main-is:        Main.hs
   hs-source-dirs: nofib/exe
   build-depends:
     , ansi-wl-pprint
     , base                     >=4.9 && <5
     , bytestring
-    , flat                     <0.5
+    , flat                     ^>=0.6
     , lens
     , nofib-internal
     , optparse-applicative
@@ -119,11 +117,7 @@ executable nofib-exe
     , transformers
 
 benchmark nofib
-  import:         lang
-
-  if impl(ghc <9.0)
-    buildable: False
-
+  import:         lang, ghc-version-support
   type:           exitcode-stdio-1.0
   main-is:        BenchPlc.hs
   hs-source-dirs: nofib/bench
@@ -135,11 +129,7 @@ benchmark nofib
     , plutus-benchmark-common
 
 benchmark nofib-hs
-  import:         lang
-
-  if impl(ghc <9.0)
-    buildable: False
-
+  import:         lang, ghc-version-support
   type:           exitcode-stdio-1.0
   main-is:        BenchHaskell.hs
   hs-source-dirs: nofib/bench
@@ -151,9 +141,10 @@ benchmark nofib-hs
     , plutus-benchmark-common
 
 test-suite plutus-benchmark-nofib-tests
-  import:         lang
+  import:         lang, ghc-version-support
 
-  if impl(ghc <9.0)
+  -- test output changes after 9.2, bad for golden tests
+  if impl(ghc >9.2)
     buildable: False
 
   type:           exitcode-stdio-1.0
@@ -172,10 +163,7 @@ test-suite plutus-benchmark-nofib-tests
 ---------------- lists ----------------
 
 library lists-internal
-  import:          lang
-
-  if impl(ghc <9.0)
-    buildable: False
+  import:          lang, ghc-version-support
 
   -- Something weird causes this to sometimes report
   -- the plugin package as unused...
@@ -201,11 +189,7 @@ library lists-internal
     , plutus-tx-plugin         ^>=1.6
 
 executable list-sort-exe
-  import:         lang
-
-  if impl(ghc <9.0)
-    buildable: False
-
+  import:         lang, ghc-version-support
   main-is:        Main.hs
   hs-source-dirs: lists/exe
   build-depends:
@@ -216,11 +200,7 @@ executable list-sort-exe
     , plutus-core              ^>=1.6
 
 benchmark lists
-  import:         lang
-
-  if impl(ghc <9.0)
-    buildable: False
-
+  import:         lang, ghc-version-support
   type:           exitcode-stdio-1.0
   main-is:        Bench.hs
   hs-source-dirs: lists/bench
@@ -231,11 +211,7 @@ benchmark lists
     , plutus-benchmark-common
 
 test-suite plutus-benchmark-lists-tests
-  import:         lang
-
-  if impl(ghc <9.0)
-    buildable: False
-
+  import:         lang, ghc-version-support
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
   hs-source-dirs: lists/test
@@ -267,7 +243,7 @@ benchmark validation
     , deepseq
     , directory
     , filepath
-    , flat                     <0.5
+    , flat                     ^>=0.6
     , optparse-applicative
     , plutus-benchmark-common
     , plutus-core              ^>=1.6
@@ -288,7 +264,7 @@ benchmark validation-decode
     , deepseq
     , directory
     , filepath
-    , flat                     <0.5
+    , flat                     ^>=0.6
     , optparse-applicative
     , plutus-benchmark-common
     , plutus-core              ^>=1.6
@@ -309,7 +285,7 @@ benchmark validation-full
     , deepseq
     , directory
     , filepath
-    , flat                                                              <0.5
+    , flat                                                              ^>=0.6
     , optparse-applicative
     , plutus-benchmark-common
     , plutus-core                                                       ^>=1.6
@@ -318,10 +294,7 @@ benchmark validation-full
 ---------------- Cek cost model calibration ----------------
 
 benchmark cek-calibration
-  import:           lang
-
-  if impl(ghc <9.0)
-    buildable: False
+  import:           lang, ghc-version-support
 
   -- Something weird causes this to sometimes report
   -- the plugin package as unused...
@@ -342,11 +315,7 @@ benchmark cek-calibration
 ---------------- Signature verification throughput ----------------
 
 executable ed25519-throughput
-  import:           lang
-
-  if impl(ghc <9.0)
-    buildable: False
-
+  import:           lang, ghc-version-support
   default-language: Haskell2010
   main-is:          Main.hs
   hs-source-dirs:   ed25519-throughput
@@ -357,7 +326,7 @@ executable ed25519-throughput
     , base                  >=4.9 && <5
     , bytestring
     , cardano-crypto-class
-    , flat                  <0.5
+    , flat                  ^>=0.6
     , hedgehog
     , plutus-core           ^>=1.6
     , plutus-tx             ^>=1.6
@@ -366,10 +335,7 @@ executable ed25519-throughput
 ---------------- script contexts ----------------
 
 library script-contexts-internal
-  import:          lang
-
-  if impl(ghc <9.0)
-    buildable: False
+  import:          lang, ghc-version-support
 
   -- Something weird causes this to sometimes report
   -- the plugin package as unused...
@@ -383,9 +349,10 @@ library script-contexts-internal
     , plutus-tx-plugin   ^>=1.6
 
 test-suite plutus-benchmark-script-contexts-tests
-  import:         lang
+  import:         lang, ghc-version-support
 
-  if impl(ghc <9.0)
+  -- test output changes after 9.2, bad for golden tests
+  if impl(ghc >9.2)
     buildable: False
 
   type:           exitcode-stdio-1.0

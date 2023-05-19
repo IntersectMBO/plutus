@@ -49,10 +49,15 @@ common lang
 
   if flag(defer-plugin-errors)
 
-executable doc-doctests
-  import:             lang
+common ghc-version-support
+  -- See the section on GHC versions in CONTRIBUTING 
+  if impl(ghc <9.2)
+    buildable: False
 
-  if ((impl(ghcjs) || os(windows)) || impl(ghc <9.0))
+executable doc-doctests
+  import:             lang, ghc-version-support
+
+  if (impl(ghcjs) || os(windows))
     buildable: False
 
   hs-source-dirs:     tutorials howtos
@@ -70,7 +75,7 @@ executable doc-doctests
     , base               >=4.9      && <5
     , bytestring
     , containers
-    , flat               <0.5
+    , flat               ^>=0.6
     , lens
     , plutus-core        ^>=1.6
     , plutus-ledger-api  ^>=1.6
