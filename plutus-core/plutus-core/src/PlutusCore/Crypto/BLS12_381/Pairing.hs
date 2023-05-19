@@ -7,7 +7,8 @@ module PlutusCore.Crypto.BLS12_381.Pairing
      millerLoop,
      mulMlResult,
      finalVerify,
-     mlResultMemSizeBytes
+     mlResultMemSizeBytes,
+     identityMlResult
     ) where
 
 import Cardano.Crypto.EllipticCurve.BLS12_381 qualified as BlstBindings
@@ -57,9 +58,13 @@ finalVerify :: MlResult -> MlResult -> Bool
 finalVerify (MlResult a) (MlResult b) = BlstBindings.ptFinalVerify a b
 
 
--- Not exposed as a builtin
+-- Not exposed as builtins
 
 -- | Memory usage of an MlResult point (576 bytes)
 mlResultMemSizeBytes :: Int
 mlResultMemSizeBytes = BlstBindings.Internal.sizePT
 
+-- | For some of the tests we need a small element of the MlResult type.  We can
+-- get the identity element by pairing the zero elements of G1 and G2.
+identityMlResult :: MlResult
+identityMlResult = millerLoop G1.zero G2.zero
