@@ -106,7 +106,7 @@ compileWithOpts optsMod pir = do
     -- PLC errors are parameterized over PLC.Terms, whereas PIR errors over PIR.Terms
     -- and as such, these prism errors cannot be unified.
     -- We instead run the ExceptT, collect any PLC error and explicitly lift into a PIR
-    error by wrapping with PIR._PLCError
+    -- error by wrapping with PIR._PLCError
     plcConcrete <- runExceptT $ void $ PLC.inferTypeOfProgram tcConfig compiled
     liftEither $ first (view (re _PLCError)) plcConcrete
     pure compiled
