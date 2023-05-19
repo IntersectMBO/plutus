@@ -1,5 +1,6 @@
-{-# LANGUAGE LambdaCase   #-}
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE LambdaCase    #-}
+{-# LANGUAGE TypeFamilies  #-}
+{-# LANGUAGE TypeOperators #-}
 
 {- | A special case of case-of-case optimisation: transforms
 
