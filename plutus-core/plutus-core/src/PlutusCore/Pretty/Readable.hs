@@ -82,7 +82,7 @@ instance
   DefaultPrettyBy config (AsReadable a)
   where
   defaultPrettyBy config (AsReadable x) =
-    prettyBy (topPrettyConfigReadable (toPrettyConfigName config) def) x
+    prettyBy (botPrettyConfigReadable (toPrettyConfigName config) def) x
 
 instance (PrettyReadable a) => Show (AsReadable a) where
   show = displayBy $ Sole defPrettyConfigName

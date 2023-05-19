@@ -22,6 +22,7 @@ module PlutusCore.Test (
   goldenUPlcWith,
   goldenUPlc,
   goldenUPlcCatch,
+  goldenUPlcReadable,
   goldenTEval,
   goldenUEval,
   goldenTEvalCatch,
@@ -226,6 +227,12 @@ ppCatch value = either (PP.pretty . show) prettyPlcClassicDebug <$> runExceptT v
 ppThrow :: (PrettyPlc a) => ExceptT SomeException IO a -> IO (Doc ann)
 ppThrow value = rethrow $ prettyPlcClassicDebug <$> value
 
+ppThrowReadable ::
+  (PrettyBy (PrettyConfigReadable PrettyConfigName) a) =>
+  ExceptT SomeException IO a ->
+  IO (Doc ann)
+ppThrowReadable value = rethrow $ pretty . AsReadable <$> value
+
 goldenTPlcWith ::
   (ToTPlc a TPLC.DefaultUni TPLC.DefaultFun) =>
   String ->
@@ -278,6 +285,13 @@ goldenUPlc ::
   a ->
   TestNested
 goldenUPlc = goldenUPlcWith ".uplc" ppThrow
+
+goldenUPlcReadable ::
+  (ToUPlc a UPLC.DefaultUni UPLC.DefaultFun) =>
+  String ->
+  a ->
+  TestNested
+goldenUPlcReadable = goldenUPlcWith ".uplc-readable" ppThrowReadable
 
 goldenUPlcCatch ::
   (ToUPlc a UPLC.DefaultUni UPLC.DefaultFun) =>
