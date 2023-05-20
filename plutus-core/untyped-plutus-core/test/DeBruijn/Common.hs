@@ -1,18 +1,20 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies     #-}
 {-# LANGUAGE TypeOperators    #-}
+
 module DeBruijn.Common where
 
-import Data.Semigroup
 import PlutusCore.MkPlc
 import UntypedPlutusCore as UPLC
 
-timesT :: Index -> (a -> a)  -> a -> a
+import Data.Semigroup
+
+timesT :: Index -> (a -> a) -> a -> a
 timesT n = appEndo . stimes n . Endo
 
 -- a big debruijn index for testing.
--- the actual number does not matter, as long as it is sufficiently large to not interfere with the rest of the test code.
+-- the actual number does not matter, as long as it is sufficiently large to not interfere
+-- with the rest of the test code.
 ix99 :: DeBruijn
 ix99 = DeBruijn 999999
 

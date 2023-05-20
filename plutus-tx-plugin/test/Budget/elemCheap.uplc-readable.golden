@@ -1,0 +1,33 @@
+program 1.1.0 ((\eta ->
+                  (\s ->
+                     s s)
+                    (\s
+                      x ->
+                       (\go ->
+                          force (case x [ (delay (constr 1 []))
+                                        , (\x
+                                            xs ->
+                                             delay (force (force ifThenElse
+                                                             (equalsInteger 1 x)
+                                                             (delay (constr 0 [  ]))
+                                                             (delay (go
+                                                                       xs))))) ]))
+                         (s s))
+                    eta)
+                 ((\c ->
+                     c
+                       1
+                       (c
+                          2
+                          (c
+                             3
+                             (c
+                                4
+                                (c
+                                   5
+                                   (c
+                                      6
+                                      (c
+                                         7
+                                         (c 8 (c 9 (c 10 (constr 0 [])))))))))))
+                    (\ds ds -> constr 1 [ds, ds])))
