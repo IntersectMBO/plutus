@@ -146,7 +146,7 @@ instance ArbitraryBuiltin BLS12_381.G2.Element where
            Left err -> error $ show err
            Right p  -> pure p
     -- See the comment about shrinking for G1; G2 is even worse.
-    shrinkBuiltin x = []
+    shrinkBuiltin _ = []
 
 instance ArbitraryBuiltin BLS12_381.Pairing.MlResult where
     arbitraryBuiltin = BLS12_381.Pairing.millerLoop <$> arbitraryBuiltin <*> arbitraryBuiltin
