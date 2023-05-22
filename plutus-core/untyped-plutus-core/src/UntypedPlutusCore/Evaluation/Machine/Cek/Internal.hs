@@ -560,7 +560,7 @@ we can match on context and the top frame in a single, strict pattern match.
 data Context uni fun ann
     = FrameAwaitArg !(CekValue uni fun ann) !(Context uni fun ann)
     -- ^ @[V _]@
-    | FrameAwaitFun !(CekValEnv uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann)
+    | FrameAwaitFunTerm !(CekValEnv uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann)
     -- ^ @[_ N]@
     | FrameAwaitFunValue !(CekValue uni fun ann) !(Context uni fun ann)
     -- ^ @[_ V]@
@@ -710,7 +710,7 @@ enterComputeCek = computeCek
     -- s ; ρ ▻ [L M]  ↦  s , [_ (M,ρ)]  ; ρ ▻ L
     computeCek !ctx !env (Apply _ fun arg) = do
         stepAndMaybeSpend BApply
-        computeCek (FrameAwaitFun env arg ctx) env fun
+        computeCek (FrameAwaitFunTerm env arg ctx) env fun
     -- s ; ρ ▻ builtin bn  ↦  s ◅ builtin bn arity arity [] [] ρ
     computeCek !ctx !_ (Builtin _ bn) = do
         stepAndMaybeSpend BBuiltin
@@ -752,7 +752,7 @@ enterComputeCek = computeCek
     -- s , {_ A} ◅ abs α M  ↦  s ; ρ ▻ M [ α / A ]*
     returnCek (FrameForce ctx) fun = forceEvaluate ctx fun
     -- s , [_ (M,ρ)] ◅ V  ↦  s , [V _] ; ρ ▻ M
-    returnCek (FrameAwaitFun argVarEnv arg ctx) fun =
+    returnCek (FrameAwaitFunTerm argVarEnv arg ctx) fun =
         computeCek (FrameAwaitArg fun ctx) argVarEnv arg
     -- s , [(lam x (M,ρ)) _] ◅ V  ↦  s ; ρ [ x  ↦  V ] ▻ M
     -- FIXME: add rule for VBuiltin once it's in the specification.

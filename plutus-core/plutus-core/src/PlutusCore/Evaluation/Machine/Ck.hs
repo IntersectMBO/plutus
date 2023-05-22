@@ -136,9 +136,9 @@ instance HasConstant (CkValue uni fun) where
     fromConstant = VCon
 
 data Frame uni fun
-    = FrameApplyFun (CkValue uni fun)                       -- ^ @[V _]@
-    | FrameApplyArg (Term TyName Name uni fun ())           -- ^ @[_ N]@
-    | FrameApplyValues ![CkValue uni fun]                   -- ^ @[_ V...]@
+    = FrameAwaitArg (CkValue uni fun)                       -- ^ @[V _]@
+    | FrameAwaitFunTerm (Term TyName Name uni fun ())       -- ^ @[_ N]@
+    | FrameAwaitFunValue (CkValue uni fun)                  -- ^ @[_ V]@
     | FrameTyInstArg (Type TyName uni ())                   -- ^ @{_ A}@
     | FrameUnwrap                                           -- ^ @(unwrap _)@
     | FrameIWrap (Type TyName uni ()) (Type TyName uni ())  -- ^ @(iwrap A B _)@
@@ -181,7 +181,7 @@ runCkM runtime emitting a = runST $ do
 (|>)
     :: Context uni fun -> Term TyName Name uni fun () -> CkM uni fun s (Term TyName Name uni fun ())
 stack |> TyInst  _ fun ty        = FrameTyInstArg ty  : stack |> fun
-stack |> Apply   _ fun arg       = FrameApplyArg arg  : stack |> fun
+stack |> Apply   _ fun arg       = FrameAwaitFunTerm arg  : stack |> fun
 stack |> IWrap   _ pat arg term  = FrameIWrap pat arg : stack |> term
 stack |> Unwrap  _ term          = FrameUnwrap        : stack |> term
 stack |> TyAbs   _ tn k term     = stack <| VTyAbs tn k term
@@ -217,11 +217,9 @@ _     |> var@Var{}               =
     :: Context uni fun -> CkValue uni fun -> CkM uni fun s (Term TyName Name uni fun ())
 []                         <| val     = pure $ ckValueToTerm val
 FrameTyInstArg ty  : stack <| fun     = instantiateEvaluate stack ty fun
-FrameApplyArg arg  : stack <| fun     = FrameApplyFun fun : stack |> arg
-FrameApplyFun fun  : stack <| arg     = applyEvaluate stack fun arg
-FrameApplyValues args : stack <| fun  = case args of
-  []         -> stack <| fun
-  arg : rest -> applyEvaluate (FrameApplyValues rest : stack) fun arg
+FrameAwaitFunTerm arg  : stack <| fun = FrameAwaitArg fun : stack |> arg
+FrameAwaitArg fun  : stack <| arg     = applyEvaluate stack fun arg
+FrameAwaitFunValue arg : stack <| fun = applyEvaluate stack fun arg
 FrameIWrap pat arg : stack <| value   = stack <| VIWrap pat arg value
 FrameUnwrap        : stack <| wrapped = case wrapped of
     VIWrap _ _ term -> stack <| term
@@ -234,7 +232,10 @@ FrameConstr ty i todo done : stack <| e =
         []     -> stack <| VConstr ty i (reverse done')
 FrameCase cs : stack <| e = case e of
     VConstr _ i args -> case cs ^? wix i of
-        Just t  -> FrameApplyValues args : stack |> t
+        Just t  -> go (reverse args) stack |> t
+          where
+            go [] s         = s
+            go (arg:rest) s = go rest (FrameAwaitFunValue arg : s)
         Nothing -> throwingWithCause _MachineError (MissingCaseBranch i) (Just $ ckValueToTerm e)
     _ -> throwingWithCause _MachineError NonConstrScrutinized (Just $ ckValueToTerm e)
 

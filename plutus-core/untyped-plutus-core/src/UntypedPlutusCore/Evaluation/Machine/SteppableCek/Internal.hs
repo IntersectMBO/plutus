@@ -58,7 +58,6 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
 import Control.Lens hiding (Context)
 import Control.Monad
 import Control.Monad.Except (MonadError, catchError)
-import Data.DList qualified as DList
 import Data.List.Extras (wix)
 import Data.Proxy
 import Data.RandomAccessList.Class qualified as Env
@@ -96,9 +95,9 @@ instance Pretty (CekState uni fun ann) where
 
 -- | Similar to 'Cek.Internal.Context', but augmented with an 'ann'
 data Context uni fun ann
-    = FrameApplyFun ann !(CekValue uni fun ann) !(Context uni fun ann)                         -- ^ @[V _]@
-    | FrameApplyArg ann !(CekValEnv uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann) -- ^ @[_ N]@
-    | FrameApplyValue ann !(CekValue uni fun ann) !(Context uni fun ann)
+    = FrameAwaitArg ann !(CekValue uni fun ann) !(Context uni fun ann)                         -- ^ @[V _]@
+    | FrameAwaitFunTerm ann !(CekValEnv uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann) -- ^ @[_ N]@
+    | FrameAwaitFunValue ann !(CekValue uni fun ann) !(Context uni fun ann)
     | FrameForce ann !(Context uni fun ann)                                               -- ^ @(force _)@
     | FrameConstr ann !(CekValEnv uni fun ann) {-# UNPACK #-} !Word64 ![NTerm uni fun ann] !(ArgStack uni fun ann) !(Context uni fun ann)
     | FrameCases ann !(CekValEnv uni fun ann) ![NTerm uni fun ann] !(Context uni fun ann)
@@ -112,7 +111,7 @@ transferArgStack :: ann -> ArgStack uni fun ann -> Context uni fun ann -> Contex
 transferArgStack ann = go
   where
     go EmptyStack c           = c
-    go (ConsStack arg rest) c = go rest (FrameApplyValue ann arg c)
+    go (ConsStack arg rest) c = go rest (FrameAwaitFunValue ann arg c)
 
 computeCek
     :: forall uni fun ann s
@@ -142,7 +141,7 @@ computeCek !ctx !env (Force _ body) = do
 -- s ; ρ ▻ [L M]  ↦  s , [_ (M,ρ)]  ; ρ ▻ L
 computeCek !ctx !env (Apply _ fun arg) = do
     stepAndMaybeSpend BApply
-    pure $ Computing (FrameApplyArg (termAnn fun) env arg ctx) env fun
+    pure $ Computing (FrameAwaitFunTerm (termAnn fun) env arg ctx) env fun
 -- s ; ρ ▻ abs α L  ↦  s ◅ abs α (L , ρ)
 -- s ; ρ ▻ con c  ↦  s ◅ con c
 -- s ; ρ ▻ builtin bn  ↦  s ◅ builtin bn arity arity [] [] ρ
@@ -179,15 +178,15 @@ returnCek NoFrame val = do
 -- s , {_ A} ◅ abs α M  ↦  s ; ρ ▻ M [ α / A ]*
 returnCek (FrameForce _ ctx) fun = forceEvaluate ctx fun
 -- s , [_ (M,ρ)] ◅ V  ↦  s , [V _] ; ρ ▻ M
-returnCek (FrameApplyArg _funAnn argVarEnv arg ctx) fun =
+returnCek (FrameAwaitFunTerm _funAnn argVarEnv arg ctx) fun =
     -- MAYBE: perhaps it is worth here to merge the _funAnn with argAnn
-    pure $ Computing (FrameApplyFun (termAnn arg) fun ctx) argVarEnv arg
+    pure $ Computing (FrameAwaitArg (termAnn arg) fun ctx) argVarEnv arg
 -- s , [(lam x (M,ρ)) _] ◅ V  ↦  s ; ρ [ x  ↦  V ] ▻ M
 -- FIXME: add rule for VBuiltin once it's in the specification.
-returnCek (FrameApplyFun _ fun ctx) arg =
+returnCek (FrameAwaitArg _ fun ctx) arg =
     applyEvaluate ctx fun arg
 -- s , [_ V1 .. Vn] ◅ lam x (M,ρ)  ↦  s , [_ V2 .. Vn]; ρ [ x  ↦  V1 ] ▻ M
-returnCek (FrameApplyValue _ arg ctx) fun =
+returnCek (FrameAwaitFunValue _ arg ctx) fun =
     applyEvaluate ctx fun arg
 -- s , constr I V0 ... Vj-1 _ (Tj+1 ... Tn, ρ) ◅ Vj  ↦  s , constr i V0 ... Vj _ (Tj+2... Tn, ρ)  ; ρ ▻ Tj+1
 returnCek (FrameConstr ann env i todo done ctx) e = do
@@ -369,26 +368,26 @@ cekStateAnn = \case
 
 contextAnn :: Context uni fun ann -> Maybe ann
 contextAnn = \case
-    FrameApplyFun ann _ _     -> pure ann
-    FrameApplyArg ann _ _ _   -> pure ann
-    FrameApplyValue ann _ _   -> pure ann
-    FrameForce ann _          -> pure ann
-    FrameConstr ann _ _ _ _ _ -> pure ann
-    FrameCases ann _ _ _      -> pure ann
-    NoFrame                   -> empty
+    FrameAwaitArg ann _ _       -> pure ann
+    FrameAwaitFunTerm ann _ _ _ -> pure ann
+    FrameAwaitFunValue ann _ _  -> pure ann
+    FrameForce ann _            -> pure ann
+    FrameConstr ann _ _ _ _ _   -> pure ann
+    FrameCases ann _ _ _        -> pure ann
+    NoFrame                     -> empty
 
 lenContext :: Context uni fun ann -> Word
 lenContext = go 0
     where
       go :: Word -> Context uni fun ann -> Word
       go !n = \case
-              FrameApplyFun _ _ k     -> go (n+1) k
-              FrameApplyArg _ _ _ k   -> go (n+1) k
-              FrameApplyValue _ _ k   -> go (n+1) k
-              FrameForce _ k          -> go (n+1) k
-              FrameConstr _ _ _ _ _ k -> go (n+1) k
-              FrameCases _ _ _ k      -> go (n+1) k
-              NoFrame                 -> 0
+              FrameAwaitArg _ _ k       -> go (n+1) k
+              FrameAwaitFunTerm _ _ _ k -> go (n+1) k
+              FrameAwaitFunValue _ _ k  -> go (n+1) k
+              FrameForce _ k            -> go (n+1) k
+              FrameConstr _ _ _ _ _ k   -> go (n+1) k
+              FrameCases _ _ _ k        -> go (n+1) k
+              NoFrame                   -> 0
 
 
 -- * Duplicated functions from Cek.Internal module
