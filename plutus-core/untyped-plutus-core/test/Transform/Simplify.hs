@@ -51,6 +51,22 @@ caseOfCase2 = runQuote $ do
         alts = [mkConstant @Integer () 1, mkConstant @Integer () 2]
     pure $ Case () (mkApplication ite [(Var () b, ()), (true, ()), (false, ())]) alts
 
+-- | Similar to `caseOfCase1`, but the type of the @true@ and @false@ branches is
+-- @[Integer]@ rather than Bool (note that @Constr 0@ has two parameters, @x@ and @xs@).
+caseOfCase3 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+caseOfCase3 = runQuote $ do
+    b <- freshName "b"
+    x <- freshName "x"
+    xs <- freshName "xs"
+    f <- freshName "f"
+    let ite = Force () (Builtin () PLC.IfThenElse)
+        true = Constr () 0 [Var () x, Var () xs]
+        false = Constr () 1 []
+        altTrue = Var () f
+        altFalse = mkConstant @Integer () 2
+        alts = [altTrue, altFalse]
+    pure $ Case () (mkApplication ite [(Var () b, ()), (true, ()), (false, ())]) alts
+
 -- | The `Delay` should be floated into the lambda.
 floatDelay1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 floatDelay1 = runQuote $ do
@@ -186,6 +202,7 @@ test_simplify =
         , goldenVsSimplified "extraDelays" extraDelays
         , goldenVsSimplified "caseOfCase1" caseOfCase1
         , goldenVsSimplified "caseOfCase2" caseOfCase2
+        , goldenVsSimplified "caseOfCase3" caseOfCase3
         , goldenVsSimplified "floatDelay1" floatDelay1
         , goldenVsSimplified "floatDelay2" floatDelay2
         , goldenVsSimplified "floatDelay3" floatDelay3
