@@ -11,7 +11,7 @@
 into
 
 @
-    force ifThenElse b (case (constr t) branches) (case (constr f) branches)
+    force ifThenElse b (case (constr t) alts) (case (constr f) alts)
 @
 
 This is always an improvement.
@@ -27,8 +27,10 @@ caseOfCase :: (fun ~ PLC.DefaultFun) => Term name uni fun a -> Term name uni fun
 caseOfCase = transformOf termSubterms $ \case
   Case ann scrut alts
     | ( ite@(Force _ (Builtin _ PLC.IfThenElse))
-        , [cond, (true@Constr{}, trueAnn), (false@Constr{}, falseAnn)]
+        , [cond, Arg trueAnn true@Constr{}, Arg falseAnn false@Constr{}]
         ) <-
         splitApplication scrut ->
-        mkApplication ite [cond, (Case ann true alts, trueAnn), (Case ann false alts, falseAnn)]
+        mkApplication
+          ite
+          [cond, Arg trueAnn (Case ann true alts), Arg falseAnn (Case ann false alts)]
   other -> other

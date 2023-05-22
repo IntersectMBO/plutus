@@ -2,6 +2,7 @@
 
 module UntypedPlutusCore.Core (
   module Export,
+  Arg (..),
   splitApplication,
   mkApplication,
 ) where
