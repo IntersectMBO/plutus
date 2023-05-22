@@ -41,6 +41,8 @@ caseOfCase1 = runQuote $ do
     pure $ Case () (mkApplication ite [(Var () b, ()), (true, ()), (false, ())]) alts
 
 -- | This should not simplify, because one of the branches of `ifThenElse` is not a `Constr`.
+-- Unless both branches are known constructors, the case-of-case transformation
+-- may increase the program size.
 caseOfCase2 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 caseOfCase2 = runQuote $ do
     b <- freshName "b"
