@@ -219,7 +219,9 @@ instance Show (BuiltinRuntime (CekValue uni fun ann)) where
 data ArgStack uni fun ann =
   EmptyStack
   | ConsStack !(CekValue uni fun ann) !(ArgStack uni fun ann)
-  deriving stock Show
+
+deriving stock instance (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
+    => Show (ArgStack uni fun ann)
 
 -- 'Values' for the modified CEK machine.
 data CekValue uni fun ann =
