@@ -38,7 +38,7 @@ caseOfCase1 = runQuote $ do
         true = Constr () 0 []
         false = Constr () 1 []
         alts = [mkConstant @Integer () 1, mkConstant @Integer () 2]
-    pure $ Case () (mkApplication ite [(Var () b, ()), (true, ()), (false, ())]) alts
+    pure $ Case () (mkApplication ite [Arg () (Var () b), Arg () true, Arg () false]) alts
 
 -- | This should not simplify, because one of the branches of `ifThenElse` is not a `Constr`.
 -- Unless both branches are known constructors, the case-of-case transformation
@@ -51,7 +51,7 @@ caseOfCase2 = runQuote $ do
         true = Var () t
         false = Constr () 1 []
         alts = [mkConstant @Integer () 1, mkConstant @Integer () 2]
-    pure $ Case () (mkApplication ite [(Var () b, ()), (true, ()), (false, ())]) alts
+    pure $ Case () (mkApplication ite [Arg () (Var () b), Arg () true, Arg () false]) alts
 
 -- | Similar to `caseOfCase1`, but the type of the @true@ and @false@ branches is
 -- @[Integer]@ rather than Bool (note that @Constr 0@ has two parameters, @x@ and @xs@).
@@ -67,7 +67,7 @@ caseOfCase3 = runQuote $ do
         altTrue = Var () f
         altFalse = mkConstant @Integer () 2
         alts = [altTrue, altFalse]
-    pure $ Case () (mkApplication ite [(Var () b, ()), (true, ()), (false, ())]) alts
+    pure $ Case () (mkApplication ite [Arg () (Var () b), Arg () true, Arg () false]) alts
 
 -- | The `Delay` should be floated into the lambda.
 floatDelay1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
