@@ -43,10 +43,6 @@ test-show-details: direct
 package plutus-core
   flags: +with-inline-r
 
--- See https://github.com/input-output-hk/nothunks/issues/17
-package nothunks
-  flags: +vector
-
 -- See the note on nix/pkgs/default.nix:agdaPackages for why this is here.
 -- (NOTE this will change to ieee754 in newer versions of nixpkgs).
 extra-packages: ieee, filemanip
@@ -59,6 +55,9 @@ if impl(ghc >= 9.6)
     , th-extras:template-haskell
     , th-extras:th-abstraction
 
+-- This is suboptimal, but shouldn't block us from releasing to CHaP, since
+-- we turn off our R dependency by default
+--
 -- need https://github.com/tweag/HaskellR/commit/3cb01da0902ef705d2bd40874fe53333f4949b2f
 -- for 9.6 support
 -- need https://github.com/tweag/HaskellR/commit/e49242000a49b48511481c6b1bb6487d8965c524

@@ -11,6 +11,7 @@ where
 import PlutusCore hiding (Constr)
 import PlutusCore.Compiler.Erase
 import PlutusCore.Data
+import PlutusCore.Evaluation.Machine.CostStream (sumCostStream)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.Evaluation.Machine.MachineParameters
@@ -27,7 +28,7 @@ import Data.Typeable (Typeable)
 type PlainTerm uni fun = UPLC.Term Name uni fun ()
 
 showMemoryUsage :: ExMemoryUsage a => a -> String
-showMemoryUsage = show . memoryUsage
+showMemoryUsage = show . sumCostStream . flattenCostRose . memoryUsage
 
 ---------------- Cloning objects ----------------
 -- TODO: look at GHC.Compact

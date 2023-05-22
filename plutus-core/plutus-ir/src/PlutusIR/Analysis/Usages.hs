@@ -1,5 +1,5 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE FlexibleContexts #-}
+
 -- | Functions for computing variable usage inside terms and types.
 module PlutusIR.Analysis.Usages (termUsages, typeUsages, Usages, getUsageCount, allUsed) where
 
@@ -27,15 +27,15 @@ getUsageCount n = MSet.occur (n ^. PLC.unique . coerced)
 allUsed :: Usages -> Set.Set PLC.Unique
 allUsed = MSet.toSet
 
-termUsages
-    :: (PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique)
-    => Term tyname name uni fun a
-    -> Usages
+termUsages ::
+  (PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique) =>
+  Term tyname name uni fun a ->
+  Usages
 termUsages = multiSetOf (vTerm . PLC.theUnique <^> tvTerm . PLC.theUnique)
 
 -- TODO: move to plutus-core
-typeUsages
-    :: (PLC.HasUnique tyname PLC.TypeUnique)
-    => Type tyname uni a
-    -> Usages
+typeUsages ::
+  (PLC.HasUnique tyname PLC.TypeUnique) =>
+  Type tyname uni a ->
+  Usages
 typeUsages = multiSetOf (tvTy . PLC.theUnique)

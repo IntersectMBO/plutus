@@ -67,65 +67,70 @@ import Data.Set (Set)
 import Data.Set qualified as Set
 
 floatDelay ::
-    (PLC.MonadQuote m, PLC.Rename (Term name uni fun a), Ord name) =>
-    Term name uni fun a ->
-    m (Term name uni fun a)
-floatDelay = PLC.rename >=> \t ->
+  (PLC.MonadQuote m, PLC.Rename (Term name uni fun a), Ord name) =>
+  Term name uni fun a ->
+  m (Term name uni fun a)
+floatDelay =
+  PLC.rename >=> \t ->
     pure . uncurry (flip simplifyBodies) $ simplifyArgs (unforcedVars t) t
 
--- | First pass. Returns the names of all variables, at least one occurrence
--- of which is not under `Force`.
-unforcedVars :: forall name uni fun a. Ord name => Term name uni fun a -> Set name
+{- | First pass. Returns the names of all variables, at least one occurrence
+of which is not under `Force`.
+-}
+unforcedVars :: forall name uni fun a. (Ord name) => Term name uni fun a -> Set name
 unforcedVars = execWriter . go
   where
     go :: Term name uni fun a -> Writer (Set name) ()
     go = \case
-        Var _ n       -> tell (Set.singleton n)
-        Force _ Var{} -> pure ()
-        t             -> forOf_ termSubterms t go
+      Var _ n       -> tell (Set.singleton n)
+      Force _ Var{} -> pure ()
+      t             -> forOf_ termSubterms t go
 
--- | Second pass. Removes `Delay` from eligible arguments, and returns
--- the names of variables whose corresponding arguments are modified.
+{- | Second pass. Removes `Delay` from eligible arguments, and returns
+the names of variables whose corresponding arguments are modified.
+-}
 simplifyArgs ::
-    forall name uni fun a.
-    Ord name =>
-    -- | The set of variables returned by `unforcedVars`.
-    Set name ->
-    Term name uni fun a ->
-    (Term name uni fun a, Map name a)
+  forall name uni fun a.
+  (Ord name) =>
+  -- | The set of variables returned by `unforcedVars`.
+  Set name ->
+  Term name uni fun a ->
+  (Term name uni fun a, Map name a)
 simplifyArgs blacklist = runWriter . go
   where
     go :: Term name uni fun ann -> Writer (Map name ann) (Term name uni fun ann)
     go = \case
-        Apply appAnn (LamAbs lamAnn n lamBody) (Delay delayAnn arg)
-            | isEssentiallyWorkFree arg
-            , n `Set.notMember` blacklist -> do
-                tell (Map.singleton n delayAnn)
-                Apply appAnn <$> (LamAbs lamAnn n <$> go lamBody) <*> go arg
-        t -> forOf termSubterms t go
+      Apply appAnn (LamAbs lamAnn n lamBody) (Delay delayAnn arg)
+        | isEssentiallyWorkFree arg
+        , n `Set.notMember` blacklist -> do
+            tell (Map.singleton n delayAnn)
+            Apply appAnn <$> (LamAbs lamAnn n <$> go lamBody) <*> go arg
+      t -> forOf termSubterms t go
 
 -- | Third pass. Turns @Force n@ into @Force (Delay n)@ for all eligibile @n@.
-simplifyBodies :: Ord name => Map name a -> Term name uni fun a -> Term name uni fun a
+simplifyBodies :: (Ord name) => Map name a -> Term name uni fun a -> Term name uni fun a
 simplifyBodies whitelist = transformOf termSubterms $ \case
-    var@(Var _ n)
-        | Just ann <- Map.lookup n whitelist -> Delay ann var
-    t -> t
+  var@(Var _ n)
+    | Just ann <- Map.lookup n whitelist -> Delay ann var
+  t -> t
 
--- | Whether evaluating the given `Term` is pure and essentially work-free
--- (barring the CEK machine overhead).
+{- | Whether evaluating the given `Term` is pure and essentially work-free
+(barring the CEK machine overhead).
+-}
+
 --- This should be the erased version of 'PlutusIR.Transform.LetFloat.isEssentiallyWorkFree'.
 isEssentiallyWorkFree :: Term name uni fun a -> Bool
 isEssentiallyWorkFree = \case
-    LamAbs{}   -> True
-    Constant{} -> True
-    Delay{}    -> True
-    Constr{}   -> True
-    Builtin{}  -> True
-    Var{}      -> False
-    Force{}    -> False
-    -- Unsaturated builtin applications should also be essentially work-free,
-    -- but this is currently not implemented for UPLC.
-    -- `UntypedPlutusCore.Transform.Inline.isPure` has the same problem.
-    Apply{}    -> False
-    Case{}     -> False
-    Error{}    -> False
+  LamAbs{}   -> True
+  Constant{} -> True
+  Delay{}    -> True
+  Constr{}   -> True
+  Builtin{}  -> True
+  Var{}      -> False
+  Force{}    -> False
+  -- Unsaturated builtin applications should also be essentially work-free,
+  -- but this is currently not implemented for UPLC.
+  -- `UntypedPlutusCore.Transform.Inline.isPure` has the same problem.
+  Apply{}    -> False
+  Case{}     -> False
+  Error{}    -> False
