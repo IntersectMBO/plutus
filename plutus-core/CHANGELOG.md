@@ -1,4 +1,24 @@
 
+<a id='changelog-1.7.0.0'></a>
+# 1.7.0.0 — 2023-05-22
+
+## Added
+
+- Float Delay optimization for UPLC.
+
+- GHC 9.6 support
+
+## Changed
+
+- Improved "readable" pretty-printing functions by making them insert line breaks properly
+- Simplified using "readable" pretty-printing by introducing the `PlutusCore.Pretty.Readable.AsReadable` wrapper
+
+## Fixed
+
+- The PIR executable now actually checks uniqueness when reading a program.
+
+- `applyProgram` and `applyCode` now return `Either` instead of `Maybe` for better error messages.
+
 <a id='changelog-1.6.0.0'></a>
 # 1.6.0.0 — 2023-05-04
 
