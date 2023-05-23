@@ -137,20 +137,20 @@ program 1.1.0 ((\fix1 ->
                                                                                    (\i
                                                                                      acc
                                                                                      x ->
-                                                                                      (\x ->
-                                                                                         toHex
-                                                                                           (divideInteger
-                                                                                              (force x)
+                                                                                      toHex
+                                                                                        (divideInteger
+                                                                                           (indexByteString
+                                                                                              w
+                                                                                              i)
+                                                                                           16)
+                                                                                        (toHex
+                                                                                           (modInteger
+                                                                                              (indexByteString
+                                                                                                 w
+                                                                                                 i)
                                                                                               16)
-                                                                                           (toHex
-                                                                                              (modInteger
-                                                                                                 (force x)
-                                                                                                 16)
-                                                                                              (acc
-                                                                                                 x)))
-                                                                                        (delay (indexByteString
-                                                                                                  w
-                                                                                                  i)))
+                                                                                           (acc
+                                                                                              x)))
                                                                                    id
                                                                                    (fEnumBool_cenumFromTo
                                                                                       0
@@ -464,23 +464,25 @@ program 1.1.0 ((\fix1 ->
                              (\go
                                acc
                                n ->
-                                force ((\q ->
-                                          case (force ifThenElse
-                                                  (equalsInteger (force q) 0)
-                                                  (constr 0 [])
-                                                  (constr 1 [  ])) [ (delay (Cons
+                                force (case (force ifThenElse
+                                               (equalsInteger
+                                                  (quotientInteger n y)
+                                                  0)
+                                               (constr 0 [])
+                                               (constr 1 [  ])) [ (delay (Cons
+                                                                            (remainderInteger
+                                                                               n
+                                                                               y)
+                                                                            acc))
+                                                                , (delay (go
+                                                                            (Cons
                                                                                (remainderInteger
                                                                                   n
                                                                                   y)
-                                                                               acc))
-                                                                   , (delay (go
-                                                                               (Cons
-                                                                                  (remainderInteger
-                                                                                     n
-                                                                                     y)
-                                                                                  acc)
-                                                                               (force q))) ])
-                                         (delay (quotientInteger n y))))))
+                                                                               acc)
+                                                                            (quotientInteger
+                                                                               n
+                                                                               y))) ]))))
                        (\arg_0 arg_1 -> constr 1 [arg_0, arg_1]))
                     10)
                  (\f -> (\s -> s s) (\s x -> f (s s) x)))

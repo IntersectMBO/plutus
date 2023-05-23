@@ -1,4 +1,4 @@
-( [TermParam]
+( [TermParam (Name {_nameText = "b", _nameUnique = Unique {unUnique = 4}})]
 , [
   [
     { b (con integer) }

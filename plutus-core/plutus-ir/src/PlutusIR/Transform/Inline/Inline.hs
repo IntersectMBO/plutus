@@ -27,13 +27,13 @@ import PlutusCore.Quote
 import PlutusCore.Rename (dupable)
 
 import Control.Lens (forMOf, traverseOf)
-import Control.Monad (liftM2)
+import Control.Monad.Extra
 import Control.Monad.Reader (runReaderT)
 import Control.Monad.State (evalStateT, modify')
 
 import Algebra.Graph qualified as G
 import Data.Map qualified as Map
-import PlutusIR.Transform.Inline.CallSiteInline (computeArity, considerInlineSat)
+import PlutusIR.Transform.Inline.CallSiteInline (computeArity, inlineSaturatedApp)
 import Witherable (Witherable (wither))
 
 {- Note [Inlining approach and 'Secrets of the GHC Inliner']
@@ -212,17 +212,17 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
             -- actually have got rid of all of them!
             pure $ mkLet ann NonRec bs' t'
         -- This includes recursive let terms, we don't even consider inlining them at the moment
-        t -> do
+        t ->
             -- process all subterms first, so that the rhs won't be processed more than once. This
             -- is important because otherwise the number of times we process them can grow
             -- exponentially in the case that it has nested `let`s.
-            processedT <- forMOf termSubterms t processTerm
-            -- consider call site inlining for each node that have gone through unconditional
-            -- inlining. Because `considerInlineSat` traverses *all* application nodes for each
+            --
+            -- Then, consider call site inlining for each node that have gone through unconditional
+            -- inlining. Because `inlineSaturatedApp` traverses *all* application nodes for each
             -- subterm, the runtime is quadratic for terms with a long chain of applications.
             -- If we use the context-based approach like in GHC, this won't be a problem, so we may
             -- consider that in the future.
-            considerInlineSat processedT
+            inlineSaturatedApp =<< forMOf termSubterms t processTerm
 
 -- | Run the inliner on a single non-recursive let binding.
 processSingleBinding
@@ -231,26 +231,25 @@ processSingleBinding
     -> Binding tyname name uni fun ann -- ^ The binding.
     -> InlineM tyname name uni fun ann (Maybe (Binding tyname name uni fun ann))
 processSingleBinding body = \case
-    (TermBind ann s v@(VarDecl _ n _) rhs) -> do
+    (TermBind ann s v@(VarDecl _ n _) rhs0) -> do
         -- we want to do unconditional inline if possible
-        maybeRhs' <- maybeAddSubst body ann s n rhs
-        case maybeRhs' of
+        maybeAddSubst body ann s n rhs0 >>= \case
             -- this binding is going to be unconditionally inlined
             Nothing -> pure Nothing
-            Just processedRhs -> do
-                let (varArity, bodyToCheck) = computeArity processedRhs
+            Just rhs -> do
+                let (arity, bodyToCheck) = computeArity rhs
                 -- when we encounter a binding, we add it to
                 -- the global map `Utils.NonRecInScopeSet`.
-                -- The `varDef` added to the map has been unconditionally inlined.
+                -- The `varRhs` added to the map has been unconditionally inlined.
                 -- When we check the body of the let binding we look in this map for
                 -- call site inlining.
                 -- We don't remove the binding because we decide *at the call site*
                 -- whether we want to inline, and it may be called more than once.
-                void $ modify' $
+                modify' $
                     extendVarInfo
                         n
-                        (MkVarInfo s (Done (dupable processedRhs)) varArity bodyToCheck)
-                pure $ Just $ TermBind ann s v processedRhs
+                        (MkVarInfo s rhs arity (Done (dupable bodyToCheck)))
+                pure $ Just $ TermBind ann s v rhs
     (TypeBind ann v@(TyVarDecl _ n _) rhs) -> do
         maybeRhs' <- maybeAddTySubst n rhs
         pure $ TypeBind ann v <$> maybeRhs'
@@ -270,34 +269,20 @@ maybeAddSubst
     -> name
     -> Term tyname name uni fun ann
     -> InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
-maybeAddSubst body ann s n rhs = do
-    rhs' <- processTerm rhs
+maybeAddSubst body ann s n rhs0 = do
+    rhs <- processTerm rhs0
 
     -- Check whether we've been told specifically to inline this
     hints <- view iiHints
     let hinted = shouldInline hints ann n
 
     if hinted -- if we've been told specifically, then do it right away
-    then extendAndDrop (Done $ dupable rhs')
-    else do
-        isTermPure <- checkPurity rhs'
-        preUnconditional <- liftM2 (&&) (nameUsedAtMostOnce n) (effectSafe body s n isTermPure)
-        -- similar to the paper, preUnconditional inlining checks that the binder is 'OnceSafe'.
-        -- I.e., it's used at most once AND it neither duplicate code or work.
-        -- While we don't check for lambda etc like in the paper, `effectSafe` ensures that it
-        -- isn't doing any substantial work.
-        -- We actually also inline 'Dead' binders (i.e., remove dead code) here.
-        if preUnconditional
-        then extendAndDrop (Done $ dupable rhs')
-        else do
-            isBindingPure <- isTermBindingPure s rhs'
-            -- See Note [Inlining approach and 'Secrets of the GHC Inliner'] and [Inlining and
-            -- purity]. This is the case where we don't know that the number of occurrences is
-            -- exactly one, so there's no point checking if the term is immediately evaluated.
-            let postUnconditional = isBindingPure && sizeIsAcceptable rhs' && costIsAcceptable rhs'
-            if postUnconditional
-            then extendAndDrop (Done $ dupable rhs')
-            else pure $ Just rhs'
+    then extendAndDrop (Done $ dupable rhs)
+    else
+        ifM
+            (shouldUnconditionallyInline s n rhs body)
+            (extendAndDrop (Done $ dupable rhs))
+            (pure $ Just rhs)
     where
         extendAndDrop ::
             forall b . InlineTerm tyname name uni fun ann

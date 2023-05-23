@@ -1,1 +1,4 @@
-([TermParam, TermParam, TermParam], x)
+( [ TermParam (Name {_nameText = "x", _nameUnique = Unique {unUnique = 3}})
+  , TermParam (Name {_nameText = "y", _nameUnique = Unique {unUnique = 4}})
+  , TermParam (Name {_nameText = "z", _nameUnique = Unique {unUnique = 5}}) ]
+, x )
