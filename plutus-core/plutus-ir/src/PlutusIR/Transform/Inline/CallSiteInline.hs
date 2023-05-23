@@ -158,7 +158,7 @@ fullyApplyAndBetaReduce info args0 = do
             args'
         _ -> pure Nothing
 
-      -- Is it safe to turning `(\a -> body) arg` into `body [a := arg]`?
+      -- Is it safe to turn `(\a -> body) arg` into `body [a := arg]`?
       -- The criteria is the same as the criteria for inlining `a` in
       -- `let !a = arg in body`.
       safeToBetaReduce ::
