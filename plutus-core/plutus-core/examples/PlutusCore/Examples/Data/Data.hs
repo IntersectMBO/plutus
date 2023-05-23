@@ -65,7 +65,7 @@ ofoldrData = runQuote $ do
     es      <- freshName "es"
     let listData = mkTyBuiltin @_ @[Data] ()
         listR = TyApp () list r
-        opair a = mkIterTyApp () pair [a, a]
+        opair a = mkIterTyAppNoAnn pair [a, a]
         unwrap' ann = apply ann $ mapFun Left caseData
     return
         . lamAbs () fConstr (TyFun () integer $ TyFun () listR r)

@@ -1,6 +1,7 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections     #-}
 {-# LANGUAGE TypeApplications  #-}
 
 module PlutusCore.Parser.Type where
@@ -59,7 +60,8 @@ appType :: Parser PType
 appType = withSpan $ \sp -> inBrackets $ do
     fn   <- pType
     args <- some pType
-    pure $ mkIterTyApp sp fn args
+    -- TODO: should not use the same `sp` for all arguments.
+    pure $ mkIterTyApp fn ((sp,) <$> args)
 
 kind :: Parser (Kind SrcSpan)
 kind = withSpan $ \sp ->

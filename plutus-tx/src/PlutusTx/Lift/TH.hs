@@ -350,7 +350,7 @@ compileTypeRep dt@TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeVars=tvs} =
                         (_, dtvd) <- mkTyVarDecl tyName typeKind
                         tvds <- traverse (uncurry mkTyVarDecl) tvNamesAndKinds
 
-                        let resultType = mkIterTyApp () (mkTyVar () dtvd) (fmap (mkTyVar () . snd) tvds)
+                        let resultType = mkIterTyAppNoAnn (mkTyVar () dtvd) (fmap (mkTyVar () . snd) tvds)
                         matchName <- safeFreshName (T.pack "match_" <> showName tyName)
 
                         -- See Note [Occurrences of recursive names]

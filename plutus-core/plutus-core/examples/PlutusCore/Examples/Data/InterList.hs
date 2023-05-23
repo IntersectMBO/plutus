@@ -47,7 +47,7 @@ interListData = runQuote $ do
     b         <- freshTyName "b"
     interlist <- freshTyName "interlist"
     r         <- freshTyName "r"
-    let interlistBA = mkIterTyApp () (TyVar () interlist) [TyVar () b, TyVar () a]
+    let interlistBA = mkIterTyAppNoAnn (TyVar () interlist) [TyVar () b, TyVar () a]
     makeRecursiveType () interlist [TyVarDecl () a $ Type (), TyVarDecl () b $ Type ()]
         . TyForall () r (Type ())
         . TyFun () (TyVar () r)
@@ -62,7 +62,7 @@ interNil = runQuote $ do
     r <- freshTyName "r"
     z <- freshName "z"
     f <- freshName "f"
-    let interlistBA = mkIterTyApp () interlist [TyVar () b, TyVar () a]
+    let interlistBA = mkIterTyAppNoAnn interlist [TyVar () b, TyVar () a]
     return
         . TyAbs () a (Type ())
         . TyAbs () b (Type ())
@@ -83,7 +83,7 @@ interCons = runQuote $ do
     r  <- freshTyName "r"
     z  <- freshName "z"
     f  <- freshName "f"
-    let interlistBA = mkIterTyApp () interlist [TyVar () b, TyVar () a]
+    let interlistBA = mkIterTyAppNoAnn interlist [TyVar () b, TyVar () a]
     return
         . TyAbs () a (Type ())
         . TyAbs () b (Type ())
@@ -119,7 +119,7 @@ foldrInterList = runQuote $ do
     xs' <- freshName "xs'"
     x'  <- freshName "x'"
     y'  <- freshName "y'"
-    let interlistOf a' b' = mkIterTyApp () interlist [TyVar () a', TyVar () b']
+    let interlistOf a' b' = mkIterTyAppNoAnn interlist [TyVar () a', TyVar () b']
         fTy a' b' = mkIterTyFun () [TyVar () a', TyVar () b', TyVar () r] $ TyVar () r
         fixTyArg2
             = TyForall () a (Type ())

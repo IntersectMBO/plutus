@@ -116,7 +116,7 @@ asTree = runQuote $ do
     return
         . TyLam () d (star ~~> (star ~~> star ~~> star) ~~> star)
         . TyLam () a star
-        $ mkIterTyApp () (TyVar () d)
+        $ mkIterTyAppNoAnn (TyVar () d)
             [ TyVar () a
             , treeTag
             ]
@@ -128,7 +128,7 @@ asForest = runQuote $ do
     return
         . TyLam () d (star ~~> (star ~~> star ~~> star) ~~> star)
         . TyLam () a star
-        $ mkIterTyApp () (TyVar () d)
+        $ mkIterTyAppNoAnn (TyVar () d)
             [ TyVar () a
             , forestTag
             ]
@@ -142,11 +142,11 @@ treeForestData = runQuote $ do
     let vA = TyVar () a
         vR = TyVar () r
         recSpine = [TyVar () treeForest, vA]
-    let tree   = mkIterTyApp () asTree   recSpine
-        forest = mkIterTyApp () asForest recSpine
+    let tree   = mkIterTyAppNoAnn asTree   recSpine
+        forest = mkIterTyAppNoAnn asForest recSpine
         body
             = TyForall () r (Type ())
-            $ mkIterTyApp () (TyVar () tag)
+            $ mkIterTyAppNoAnn (TyVar () tag)
                 [ (vA ~~> forest ~~> vR) ~~> vR
                 , vR ~~> (tree ~~> forest ~~> vR) ~~> vR
                 ]

@@ -179,7 +179,7 @@ prodNAccessor arity index = runQuote $ do
         tn <- liftQuote $ freshTyName $ "t_" <> showText i
         pure $ TyVarDecl () tn $ Type ()
 
-    let tupleTy = mkIterTyApp () (prodN arity) (fmap (mkTyVar ()) tyVars)
+    let tupleTy = mkIterTyAppNoAnn (prodN arity) (fmap (mkTyVar ()) tyVars)
         selectedTy = mkTyVar () $ tyVars !! index
 
     args <- for [0..(arity -1)] $ \i -> do

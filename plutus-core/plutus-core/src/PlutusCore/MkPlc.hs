@@ -46,6 +46,7 @@ module PlutusCore.MkPlc
     , mkIterInstNoAnn
     , mkIterTyAbs
     , mkIterTyApp
+    , mkIterTyAppNoAnn
     , mkIterKindArrow
     ) where
 
@@ -220,7 +221,7 @@ mkIterApp
     => term ann
     -> [(ann, term ann)]
     -> term ann
-mkIterApp = foldl' (uncurry . flip apply)
+mkIterApp = foldl' $ \acc (ann, arg) -> apply ann acc arg
 
 -- | Make an iterated application with no annotation.
 mkIterAppNoAnn
@@ -237,7 +238,7 @@ mkIterInst
     => term ann -- ^ @a@
     -> [(ann, Type tyname uni ann)] -- ^ @ [ x0 ... xn ] @
     -> term ann -- ^ @{ a x0 ... xn }@
-mkIterInst = foldl' (uncurry . flip tyInst)
+mkIterInst = foldl' $ \acc (ann, arg) -> tyInst ann acc arg
 
 -- | Make an iterated instantiation with no annotation.
 mkIterInstNoAnn
@@ -265,13 +266,20 @@ mkIterTyAbs
 mkIterTyAbs args body =
     foldr (\(TyVarDecl ann name kind) acc -> tyAbs ann name kind acc) body args
 
--- | Make an iterated type application.
+-- | Make an iterated type application. Each `TyApp` node uses the annotation associated with
+-- the corresponding argument.
 mkIterTyApp
-    :: ann
-    -> Type tyname uni ann -- ^ @f@
-    -> [Type tyname uni ann] -- ^ @[ x0 ... xn ]@
+    :: Type tyname uni ann -- ^ @f@
+    -> [(ann, Type tyname uni ann)] -- ^ @[ x0 ... xn ]@
     -> Type tyname uni ann -- ^ @[ f x0 ... xn ]@
-mkIterTyApp ann = foldl' (TyApp ann)
+mkIterTyApp = foldl' $ \acc (ann, arg) -> TyApp ann acc arg
+
+-- | Make an iterated type application with no annotation.
+mkIterTyAppNoAnn
+    :: Type tyname uni () -- ^ @f@
+    -> [Type tyname uni ()] -- ^ @[ x0 ... xn ]@
+    -> Type tyname uni () -- ^ @[ f x0 ... xn ]@
+mkIterTyAppNoAnn ty = mkIterTyApp ty . fmap ((),)
 
 -- | Make an iterated function type.
 mkIterTyFun

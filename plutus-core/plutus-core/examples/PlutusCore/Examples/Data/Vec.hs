@@ -39,7 +39,7 @@ getEta n = do
     return
         . TyLam () f (KindArrow () (Type ()) $ Type ())
         . TyLam () z (Type ())
-        $ mkIterTyApp () n
+        $ mkIterTyAppNoAnn n
             [ TyVar () f
             , TyVar () z
             ]
@@ -69,7 +69,7 @@ succT = runQuote $ do
         . TyLam () f (KindArrow () (Type ()) $ Type ())
         . TyLam () z (Type ())
         . TyApp () (TyVar () f)
-        $ mkIterTyApp () (TyVar () n)
+        $ mkIterTyAppNoAnn (TyVar () n)
             [ TyVar () f
             , TyVar () z
             ]
@@ -88,9 +88,9 @@ plusT = runQuote $ do
         . TyLam () m natK
         . TyLam () f (KindArrow () (Type ()) $ Type ())
         . TyLam () z (Type ())
-        $ mkIterTyApp () (TyVar () n)
+        $ mkIterTyAppNoAnn (TyVar () n)
             [ TyVar () f
-            , mkIterTyApp () (TyVar () m)
+            , mkIterTyAppNoAnn (TyVar () m)
                 [ TyVar () f
                 , TyVar () z
                 ]
@@ -170,7 +170,7 @@ churchCons = runQuote $ do
         . TyAbs () a (Type ())
         . TyAbs () n natK
         . LamAbs () x (TyVar () a)
-        . LamAbs () xs (mkIterTyApp () churchVec [TyVar () a, TyVar () n])
+        . LamAbs () xs (mkIterTyAppNoAnn churchVec [TyVar () a, TyVar () n])
         . TyAbs () r (KindArrow () natK $ Type ())
         . LamAbs () f stepFun
         . LamAbs () z (TyApp () (TyVar () r) zeroT)
@@ -204,13 +204,13 @@ churchConcat = runQuote $ do
     p <- freshTyName "p"
     stepFun <- getStepFun a (TyVar () r) r
     mEta <- getEta $ TyVar () m
-    let plusTPM = mkIterTyApp () plusT [TyVar () p, TyVar () m]
+    let plusTPM = mkIterTyAppNoAnn plusT [TyVar () p, TyVar () m]
     return
         . TyAbs () a (Type ())
         . TyAbs () n natK
         . TyAbs () m natK
-        . LamAbs () xs (mkIterTyApp () churchVec [TyVar () a, TyVar () n])
-        . LamAbs () ys (mkIterTyApp () churchVec [TyVar () a, mEta])
+        . LamAbs () xs (mkIterTyAppNoAnn churchVec [TyVar () a, TyVar () n])
+        . LamAbs () ys (mkIterTyAppNoAnn churchVec [TyVar () a, mEta])
         . TyAbs () r (KindArrow () natK $ Type ())
         . LamAbs () f stepFun
         . LamAbs () z (TyApp () (TyVar () r) zeroT)
@@ -302,7 +302,7 @@ scottCons = runQuote $ do
         . TyAbs () a (Type ())
         . TyAbs () n natK
         . LamAbs () x (TyVar () a)
-        . LamAbs () xs (mkIterTyApp () scottVec [TyVar () a, TyVar () n])
+        . LamAbs () xs (mkIterTyAppNoAnn scottVec [TyVar () a, TyVar () n])
         . IWrap () (TyApp () scottVecF $ TyVar () a) (TyApp () succT $ TyVar () n)
         . TyAbs () r (KindArrow () natK $ Type ())
         . LamAbs () f stepFun
@@ -333,17 +333,17 @@ scottHead = runQuote $ do
     return
         . TyAbs () a (Type ())
         . TyAbs () n natK
-        . LamAbs () xs (mkIterTyApp () scottVec [TyVar () a, TyApp () succT $ TyVar () n])
+        . LamAbs () xs (mkIterTyAppNoAnn scottVec [TyVar () a, TyApp () succT $ TyVar () n])
         $ mkIterAppNoAnn
             (   TyInst () (Unwrap () $ Var () xs)
               . TyLam () p natK
-                $ mkIterTyApp () (TyVar () p)
+                $ mkIterTyAppNoAnn (TyVar () p)
                     [ TyLam () z (Type ()) $ TyVar () a
                     , unit
                     ])
             [   TyAbs () p natK
               . LamAbs () x (TyVar () a)
-              . LamAbs () xs' (mkIterTyApp () scottVec [TyVar () a, TyVar () p])
+              . LamAbs () xs' (mkIterTyAppNoAnn scottVec [TyVar () a, TyVar () p])
               $ Var () x
             , unitval
             ]
@@ -371,7 +371,7 @@ scottSumHeadsOr0 = runQuote $ do
     ys <- freshName "ys"
     xs' <- freshName "xs'"
     coe <- freshName "coe"
-    let vecInteger l = mkIterTyApp () scottVec [integer, l]
+    let vecInteger l = mkIterTyAppNoAnn scottVec [integer, l]
     return
         . TyAbs () n natK
         . LamAbs () xs (vecInteger $ TyVar () n)

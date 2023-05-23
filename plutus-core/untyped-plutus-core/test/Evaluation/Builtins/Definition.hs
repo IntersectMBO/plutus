@@ -576,7 +576,7 @@ test_Data = testCase "Data" $ do
                         -- map
                       , runQuote $ do
                               a1 <- freshName "a1"
-                              pure $ lamAbs () a1 (TyApp () Builtin.list $ mkIterTyApp () pair [dataTy,dataTy]) false
+                              pure $ lamAbs () a1 (TyApp () Builtin.list $ mkIterTyAppNoAnn pair [dataTy,dataTy]) false
                        -- list
                       , runQuote $ do
                               a1 <- freshName "a1"

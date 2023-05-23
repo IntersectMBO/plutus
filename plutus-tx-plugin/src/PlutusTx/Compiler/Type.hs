@@ -101,9 +101,9 @@ compileType t = withContextM 2 (sdToTxt $ "Compiling type:" GHC.<+> GHC.ppr t) $
 #endif
         -- ignoring 'RuntimeRep' type arguments, see Note [Unboxed tuples]
         (GHC.splitTyConApp_maybe -> Just (tc, ts)) ->
-            PIR.mkIterTyApp annMayInline
+            PIR.mkIterTyApp
                 <$> compileTyCon tc
-                <*> traverse compileType (GHC.dropRuntimeRepArgs ts)
+                <*> (traverse (fmap (annMayInline,) . compileType) (GHC.dropRuntimeRepArgs ts))
         (GHC.splitAppTy_maybe -> Just (t1, t2)) ->
             PIR.TyApp annMayInline <$> compileType t1 <*> compileType t2
         (GHC.splitForAllTyCoVar_maybe -> Just (tv, tpe)) -> mkTyForallScoped tv (compileType tpe)

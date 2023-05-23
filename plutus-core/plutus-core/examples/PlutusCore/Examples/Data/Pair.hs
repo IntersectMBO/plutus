@@ -27,7 +27,7 @@ obothPair = runQuote $ do
     return
         . tyAbs () a (Type ())
         . lamAbs () f (TyFun () (TyVar () a) $ TyVar () a)
-        . lamAbs () p (mkIterTyApp () pair [TyVar () a, TyVar () a])
+        . lamAbs () p (mkIterTyAppNoAnn pair [TyVar () a, TyVar () a])
         $ mkIterAppNoAnn (atAA $ Right Comma)
             [ apply () (var () f) . apply () (atAA $ Left FstPair) $ var () p
             , apply () (var () f) . apply () (atAA $ Left SndPair) $ var () p
