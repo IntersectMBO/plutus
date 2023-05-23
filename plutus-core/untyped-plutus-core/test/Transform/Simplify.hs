@@ -76,7 +76,6 @@ mkInlinePurityTest termToInline = runQuote $ do
     -- if and only if it is pure.
     Apply () (LamAbs () a $ LamAbs () b $ Var () a) <$> termToInline
 
-
 -- | A single @Var@ is pure.
 inlinePure1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 inlinePure1 = mkInlinePurityTest $ Var () <$> freshName "a"
@@ -136,6 +135,28 @@ inlineImpure4 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 inlineImpure4 = mkInlinePurityTest $
     Force () . Force () . Force () . Delay () . Delay () . Var () <$> freshName "a"
 
+-- | @(\a -> f (a 0 1) (a 2)) (\x y -> g x y)@
+--
+-- The first occurrence of `a` should be inlined because doing so does not increase
+-- the size or the cost.
+--
+-- The second occurrence of `a` should be unconditionally inlined in the second simplifier
+-- iteration, but in this test we are only running one iteration.
+callsiteInline :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+callsiteInline = runQuote $ do
+    a <- freshName "a"
+    f <- freshName "f"
+    g <- freshName "g"
+    x <- freshName "x"
+    y <- freshName "y"
+    let fun = LamAbs () a $
+          mkIterAppNoAnn (Var () f)
+            [ mkIterAppNoAnn (Var () a) [mkConstant @Integer () 0, mkConstant @Integer () 1]
+            , mkIterAppNoAnn (Var () a) [mkConstant @Integer () 2]
+            ]
+        arg = LamAbs () x . LamAbs () y $ mkIterAppNoAnn (Var () g) [Var () y, Var () x]
+    pure $ Apply () fun arg
+
 multiApp :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 multiApp = runQuote $ do
     a <- freshName "a"
@@ -153,7 +174,7 @@ goldenVsPretty extn name value =
 
 goldenVsSimplified :: String -> Term Name PLC.DefaultUni PLC.DefaultFun () -> TestTree
 goldenVsSimplified name
-    = goldenVsPretty ".plc.golden" name
+    = goldenVsPretty ".uplc.golden" name
     . PLC.runQuote
     -- Just run one iteration, to see what that does
     . simplifyTerm (defaultSimplifyOpts & soMaxSimplifierIterations .~ 1)
@@ -169,6 +190,7 @@ test_simplify =
         , goldenVsSimplified "floatDelay3" floatDelay3
         , goldenVsSimplified "interveningLambda" interveningLambda
         , goldenVsSimplified "basicInline" basicInline
+        , goldenVsSimplified "callsiteInline" callsiteInline
         , goldenVsSimplified "inlinePure1" inlinePure1
         , goldenVsSimplified "inlinePure2" inlinePure2
         , goldenVsSimplified "inlinePure3" inlinePure3

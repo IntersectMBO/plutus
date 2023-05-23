@@ -42,12 +42,12 @@ main = defaultMain . testGroup "Size regression tests" $ [
       ],
     testGroup "Serialization" [
       fitsInto "toBuiltinData" ratToBuiltin 30,
-      fitsInto "fromBuiltinData" ratFromBuiltin 325,
+      fitsInto "fromBuiltinData" ratFromBuiltin 317,
       fitsInto "unsafeFromBuiltinData" ratUnsafeFromBuiltin 199
       ],
     testGroup "Construction" [
       fitsInto "unsafeRatio" ratMkUnsafe 126,
-      fitsInto "ratio" ratMkSafe 212,
+      fitsInto "ratio" ratMkSafe 194,
       fitsInto "fromInteger" ratFromInteger 4
       ],
     testGroup "Other" [
@@ -56,8 +56,8 @@ main = defaultMain . testGroup "Size regression tests" $ [
       fitsInto "round" ratRound 299,
       fitsInto "truncate" ratTruncate 10,
       fitsInto "properFraction" ratProperFraction 21,
-      fitsInto "recip" ratRecip 66,
-      fitsInto "abs (specialized)" ratAbs 45
+      fitsInto "recip" ratRecip 55,
+      fitsInto "abs (specialized)" ratAbs 34
       ],
     testGroup "Comparison" [
       fitsUnder "negate" ("specialized", ratNegate) ("general", genNegate),

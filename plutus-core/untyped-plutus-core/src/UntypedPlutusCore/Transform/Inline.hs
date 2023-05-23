@@ -22,21 +22,22 @@ See Note [The problem of inlining destructors] for why this pass exists.
 -}
 module UntypedPlutusCore.Transform.Inline (inline, InlineHints (..)) where
 
+import PlutusCore qualified as PLC
+import PlutusCore.Annotation
+import PlutusCore.Builtin qualified as PLC
+import PlutusCore.MkPlc (mkIterApp)
+import PlutusCore.Name
+import PlutusCore.Quote
 import PlutusCore.Rename (Dupable, dupable, liftDupable)
 import PlutusPrelude
 import UntypedPlutusCore.Analysis.Usages qualified as Usages
+import UntypedPlutusCore.Core qualified as UPLC
 import UntypedPlutusCore.Core.Plated
 import UntypedPlutusCore.Core.Type
 import UntypedPlutusCore.MkUPlc
 import UntypedPlutusCore.Rename ()
-import UntypedPlutusCore.Subst
-
-import PlutusCore qualified as PLC
-import PlutusCore.Annotation
-import PlutusCore.Builtin qualified as PLC
-import PlutusCore.Name
-import PlutusCore.Quote
 import UntypedPlutusCore.Size
+import UntypedPlutusCore.Subst
 
 import Control.Lens hiding (Strict)
 import Control.Monad.Extra
@@ -75,7 +76,7 @@ makeLenses ''Subst
 data VarInfo name uni fun ann = VarInfo
   { _varBinders :: [name]
   , _varRhs     :: Term name uni fun ann
-  , _varRhsBody :: Term name uni fun ann
+  , _varRhsBody :: InlineTerm name uni fun ann
   }
 
 makeLenses ''VarInfo
@@ -227,11 +228,11 @@ processSingleBinding
 processSingleBinding body (Def vd@(UVarDecl a n) rhs0) = do
     maybeAddSubst body a n rhs0 >>= \case
         Just rhs -> do
-            let (binders, rhsBody) = collectBinders rhs
+            let (binders, rhsBody) = UPLC.splitLamAbs rhs
             modify' . extendVarInfo n $ VarInfo
               { _varBinders = binders
               , _varRhs = rhs
-              , _varRhsBody = rhsBody
+              , _varRhsBody = (Done (dupable rhsBody))
               }
             pure . Just $ Def vd rhs
         Nothing -> pure Nothing
@@ -248,38 +249,46 @@ maybeAddSubst
     -> name
     -> Term name uni fun a
     -> InlineM name uni fun a (Maybe (Term name uni fun a))
-maybeAddSubst body a n rhs = do
-    rhs' <- processTerm rhs
+maybeAddSubst body a n rhs0 = do
+    rhs <- processTerm rhs0
 
     -- Check whether we've been told specifically to inline this
     hints <- asks _hints
     let hinted = shouldInline hints a n
 
     if hinted -- if we've been told specifically, then do it right away
-    then extendAndDrop (Done $ dupable rhs')
-    else do
-        termIsPure <- checkPurity rhs'
-        preUnconditional <- liftM2 (&&) (nameUsedAtMostOnce n) (effectSafe body n termIsPure)
-        -- similar to the paper, preUnconditional inlining checks that the binder is 'OnceSafe'.
-        -- I.e., it's used at most once AND it neither duplicate code or work.
-        -- While we don't check for lambda etc like in the paper, `effectSafe` ensures that it
-        -- isn't doing any substantial work.
-        -- We actually also inline 'Dead' binders (i.e., remove dead code) here.
-        if preUnconditional
-        then extendAndDrop (Done $ dupable rhs')
-        else do
-            -- See Note [Inlining approach and 'Secrets of the GHC Inliner'] and [Inlining and
-            -- purity]. This is the case where we don't know that the number of occurrences is
-            -- exactly one, so there's no point checking if the term is immediately evaluated.
-            postUnconditional <- fmap ((&&) termIsPure) (acceptable rhs')
-            if postUnconditional
-            then extendAndDrop (Done $ dupable rhs')
-            else pure $ Just rhs'
+    then extendAndDrop (Done $ dupable rhs)
+    else
+      ifM
+        (shouldUnconditionallyInline n rhs body)
+        (extendAndDrop (Done $ dupable rhs))
+        (pure $ Just rhs)
     where
         extendAndDrop ::
             forall b . InlineTerm name uni fun a
             -> InlineM name uni fun a (Maybe b)
         extendAndDrop t = modify' (extendTerm n t) >> pure Nothing
+
+shouldUnconditionallyInline
+  :: InliningConstraints name uni fun
+  => name
+  -> Term name uni fun a
+  -> Term name uni fun a
+  -> InlineM name uni fun a Bool
+shouldUnconditionallyInline n rhs body = do
+  isTermPure <- checkPurity rhs
+  preUnconditional isTermPure ||^ postUnconditional isTermPure
+    where
+      -- similar to the paper, preUnconditional inlining checks that the binder is 'OnceSafe'.
+      -- I.e., it's used at most once AND it neither duplicate code or work.
+      -- While we don't check for lambda etc like in the paper, `effectSafe` ensures that it
+      -- isn't doing any substantial work.
+      -- We actually also inline 'Dead' binders (i.e., remove dead code) here.
+      preUnconditional isTermPure = nameUsedAtMostOnce n &&^ effectSafe body n isTermPure
+      -- See Note [Inlining approach and 'Secrets of the GHC Inliner'] and [Inlining and
+      -- purity]. This is the case where we don't know that the number of occurrences is
+      -- exactly one, so there's no point checking if the term is immediately evaluated.
+      postUnconditional isTermPure = pure isTermPure &&^ acceptable rhs
 
 -- | Check if term is pure. See Note [Inlining and purity]
 checkPurity :: Term name uni fun a -> InlineM name uni fun a Bool
@@ -416,76 +425,65 @@ isPure = go True
             Builtin{}                     -> True
 
 -- | Fully apply and beta reduce.
-fullyApply ::
+fullyApplyAndBetaReduce ::
   forall name uni fun a.
   (InliningConstraints name uni fun) =>
   VarInfo name uni fun a ->
-  [(Term name uni fun a, a)] ->
+  [(a, Term name uni fun a)] ->
   InlineM name uni fun a (Maybe (Term name uni fun a))
-fullyApply info = go (info ^. varRhsBody) (info ^. varBinders)
-  where
-    go ::
-      Term name uni fun a ->
-      [name] ->
-      [(Term name uni fun a, a)] ->
-      InlineM name uni fun a (Maybe (Term name uni fun a))
-    go acc bs args = case (bs, args) of
-      ([], _) -> pure . Just $ mkApps acc args
-      (param : params, (arg, _ann) : args') ->
-        ifM
-          (safeToBetaReduce param arg)
-          ( do
-              acc' <-
-                termSubstNamesM
-                  (\n -> if n == param then Just <$> PLC.rename arg else pure Nothing)
-                  acc
-              go acc' params args'
-          )
-          (pure Nothing)
-      _ -> pure Nothing
+fullyApplyAndBetaReduce info args0 = do
+  rhsBody <- liftDupable (let Done rhsBody = info ^. varRhsBody in rhsBody)
+  let go ::
+        Term name uni fun a ->
+        [name] ->
+        [(a, Term name uni fun a)] ->
+        InlineM name uni fun a (Maybe (Term name uni fun a))
+      go acc bs args = case (bs, args) of
+        ([], _) -> pure . Just $ mkIterApp acc args
+        (param : params, (_ann, arg) : args') ->
+          ifM
+            (safeToBetaReduce param arg)
+            ( do
+                acc' <-
+                  termSubstNamesM
+                    (\n -> if n == param then Just <$> PLC.rename arg else pure Nothing)
+                    acc
+                go acc' params args'
+            )
+            (pure Nothing)
+        _ -> pure Nothing
 
-    safeToBetaReduce ::
-      name ->
-      Term name uni fun a ->
-      InlineM name uni fun a Bool
-    safeToBetaReduce n = effectSafe (info ^. varRhsBody) n <=< checkPurity
+      -- Is it safe to turn `(\a -> body) arg` into `body [a := arg]`?
+      -- The criteria is the same as the criteria for unconditionally inlining `a`,
+      -- since inlining is the same as beta reduction.
+      safeToBetaReduce ::
+        name ->
+        Term name uni fun a ->
+        InlineM name uni fun a Bool
+      safeToBetaReduce a = shouldUnconditionallyInline a rhsBody
+  go rhsBody (info ^. varBinders) args0
 
--- | Strips off lambda binders.
-collectBinders :: Term name uni fun a -> ([name], Term name uni fun a)
-collectBinders = \case
-  LamAbs _ n t -> first (n :) (collectBinders t)
-  t            -> ([], t)
-
--- | Strip off arguments
-collectArgs :: Term name uni fun a -> (Term name uni fun a, [(Term name uni fun a, a)])
-collectArgs = go []
-  where
-    go acc = \case
-      Apply ann fun arg -> go ((arg, ann) : acc) fun
-      t                 -> (t, acc)
-
-mkApps ::
-  Term name uni fun a ->
-  [(Term name uni fun a, a)] ->
-  Term name uni fun a
-mkApps = foldl' $ \acc (arg, ann) -> Apply ann acc arg
-
+-- | This works in the same way as `PlutusIR.Transform.Inline.CallSiteInline.inlineSaturatedApp`.
+-- See Note [Inlining and beta reduction of fully applied functions].
 inlineSaturatedApp ::
   forall name uni fun a.
   (InliningConstraints name uni fun) =>
   Term name uni fun a ->
   InlineM name uni fun a (Term name uni fun a)
 inlineSaturatedApp t
-  | (Var _ann name, args) <- collectArgs t =
+  | (Var _ann name, args) <- UPLC.splitApplication t =
       gets (lookupVarInfo name) >>= \case
         Nothing -> pure t
         Just varInfo ->
-          fullyApply varInfo args >>= \case
+          fullyApplyAndBetaReduce varInfo args >>= \case
             Nothing -> pure t
             Just fullyApplied -> do
-              let sizeIsOk = termSize fullyApplied <= termSize t
+              let -- Inline only if the size is no bigger than not inlining.
+                  sizeIsOk = termSize fullyApplied <= termSize t
                   rhs = varInfo ^. varRhs
+                  -- Cost is always OK if the RHS is a LamAbs, but may not be otherwise.
                   costIsOk = costIsAcceptable rhs
+              -- The RHS is always pure if it is a LamAbs, but may not be otherwise.
               rhsPure <- checkPurity rhs
               pure $ if sizeIsOk && costIsOk && rhsPure then fullyApplied else t
   | otherwise = pure t

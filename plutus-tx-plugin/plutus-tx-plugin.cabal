@@ -40,7 +40,6 @@ common lang
     -Wincomplete-record-updates -Wredundant-constraints -Widentities
     -Wunused-packages -Wmissing-deriving-strategies -fobject-code
     -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
-    -fforce-recomp
 
 common ghc-version-support
   -- See the section on GHC versions in CONTRIBUTING
