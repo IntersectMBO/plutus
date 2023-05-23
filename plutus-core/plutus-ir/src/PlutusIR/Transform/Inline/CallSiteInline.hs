@@ -4,12 +4,11 @@
 {-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE TypeFamilies     #-}
 
-{-|
+{- |
 Call site inlining machinery. For now there's only one part: inlining of fully applied functions.
 We inline fully applied functions if the cost and size are acceptable.
 See note [Inlining of fully applied functions].
 -}
-
 module PlutusIR.Transform.Inline.CallSiteInline where
 
 import PlutusCore qualified as PLC
@@ -104,21 +103,23 @@ not have side effects; (2) all arguments be pure, since otherwise it is unsafe t
 perform beta reduction.
 -}
 
--- | Computes the 'Utils.Arity' of a term. Also returns the function body, for checking whether
--- it's `Utils.acceptable`.
+{- | Computes the 'Utils.Arity' of a term. Also returns the function body, for checking whether
+it's `Utils.acceptable`.
+-}
 computeArity ::
-    Term tyname name uni fun ann
-    -> (Arity tyname name, Term tyname name uni fun ann)
+  Term tyname name uni fun ann ->
+  (Arity tyname name, Term tyname name uni fun ann)
 computeArity = \case
-    LamAbs _ n _ body ->
-      let (nextArgs, nextBody) = computeArity body in (TermParam n : nextArgs, nextBody)
-    TyAbs _ n _ body  ->
-      let (nextArgs, nextBody) = computeArity body in (TypeParam n : nextArgs, nextBody)
-    -- Whenever we encounter a body that is not a lambda or type abstraction, we are done counting
-    tm                -> ([],tm)
+  LamAbs _ n _ body ->
+    let (nextArgs, nextBody) = computeArity body in (TermParam n : nextArgs, nextBody)
+  TyAbs _ n _ body ->
+    let (nextArgs, nextBody) = computeArity body in (TypeParam n : nextArgs, nextBody)
+  -- Whenever we encounter a body that is not a lambda or type abstraction, we are done counting
+  tm -> ([], tm)
 
--- | Fully apply the RHS of the given variable to the given arguments, and beta-reduce
--- the application, if possible.
+{- | Fully apply the RHS of the given variable to the given arguments, and beta-reduce
+the application, if possible.
+-}
 fullyApplyAndBetaReduce ::
   forall tyname name uni fun ann.
   (InliningConstraints tyname name uni fun) =>
@@ -152,10 +153,7 @@ fullyApplyAndBetaReduce info args0 = do
             termSubstTyNamesM
               (\n -> if n == param then Just <$> PLC.rename arg else pure Nothing)
               acc
-          go
-            acc'
-            arity'
-            args'
+          go acc' arity' args'
         _ -> pure Nothing
 
       -- Is it safe to turn `(\a -> body) arg` into `body [a := arg]`?
@@ -170,7 +168,6 @@ fullyApplyAndBetaReduce info args0 = do
       safeToBetaReduce a = shouldUnconditionallyInline Strict a rhsBody
   go rhsBody (varArity info) args0
 
-
 -- | Consider whether to inline an application.
 inlineSaturatedApp ::
   forall tyname name uni fun ann.
@@ -180,25 +177,26 @@ inlineSaturatedApp ::
 inlineSaturatedApp t
   | (Var _ann name, args) <- splitApplication t =
       gets (lookupVarInfo name) >>= \case
-        Just varInfo -> fullyApplyAndBetaReduce varInfo args >>= \case
-          Just fullyApplied -> do
-            let rhs = varRhs varInfo
-                -- Inline only if the size is no bigger than not inlining.
-                sizeIsOk = termSize fullyApplied <= termSize t
-                -- The definition itself will be inlined, so we need to check that the cost
-                -- of that is acceptable. Note that we do _not_ check the cost of the _body_.
-                -- We would have paid that regardless.
-                -- Consider e.g. `let y = \x. f x`. We pay the cost of the `f x` at
-                -- every call site regardless. The work that is being duplicated is
-                -- the work for the lambda.
-                costIsOk = costIsAcceptable rhs
-            -- check if binding is pure to avoid duplicated effects.
-            -- For strict bindings we can't accidentally make any effects happen less often
-            -- than it would have before, but we can make it happen more often.
-            -- We could potentially do this safely in non-conservative mode.
-            rhsPure <- isTermBindingPure (varStrictness varInfo) rhs
-            pure $ if sizeIsOk && costIsOk && rhsPure then fullyApplied else t
-          Nothing -> pure t
+        Just varInfo ->
+          fullyApplyAndBetaReduce varInfo args >>= \case
+            Just fullyApplied -> do
+              let rhs = varRhs varInfo
+                  -- Inline only if the size is no bigger than not inlining.
+                  sizeIsOk = termSize fullyApplied <= termSize t
+                  -- The definition itself will be inlined, so we need to check that the cost
+                  -- of that is acceptable. Note that we do _not_ check the cost of the _body_.
+                  -- We would have paid that regardless.
+                  -- Consider e.g. `let y = \x. f x`. We pay the cost of the `f x` at
+                  -- every call site regardless. The work that is being duplicated is
+                  -- the work for the lambda.
+                  costIsOk = costIsAcceptable rhs
+              -- check if binding is pure to avoid duplicated effects.
+              -- For strict bindings we can't accidentally make any effects happen less often
+              -- than it would have before, but we can make it happen more often.
+              -- We could potentially do this safely in non-conservative mode.
+              rhsPure <- isTermBindingPure (varStrictness varInfo) rhs
+              pure $ if sizeIsOk && costIsOk && rhsPure then fullyApplied else t
+            Nothing -> pure t
         -- The variable maybe a *recursive* let binding, in which case it won't be in the map,
         -- and we don't process it. ATM recursive bindings aren't inlined.
         Nothing -> pure t
