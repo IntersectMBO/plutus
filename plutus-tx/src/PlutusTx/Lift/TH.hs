@@ -468,7 +468,7 @@ compileConstructorClause dt@TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeV
                         -- The types are compiled in an (empty) local scope.
                         types <- flip runReaderT mempty $ sequence tyExprs'
 
-                        pure $ mkIterApp () (mkIterInst () constr types) lifts
+                        pure $ mkIterAppNoAnn (mkIterInstNoAnn constr types) lifts
                   ||]
     pure $ TH.clause [pat] (TH.normalB $ TH.unTypeQ rhsExpr) []
 

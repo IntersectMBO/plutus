@@ -4,6 +4,7 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections     #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE ViewPatterns      #-}
 
@@ -309,7 +310,7 @@ getMatchInstantiated t = withContextM 3 (sdToTxt $ "Creating instantiated matche
         match <- getMatch tc
         -- We drop 'RuntimeRep' arguments, see Note [Unboxed tuples]
         args' <- mapM compileTypeNorm (GHC.dropRuntimeRepArgs args)
-        pure $ PIR.mkIterInst annMayInline match args'
+        pure $ PIR.mkIterInst match $ (annMayInline,) <$> args'
     -- must be a TC app
     _ -> throwSd CompilationError $ "Cannot case on a value of a type which is not a datatype:" GHC.<+> GHC.ppr t
 

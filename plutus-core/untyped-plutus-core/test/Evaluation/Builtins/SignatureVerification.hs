@@ -40,7 +40,7 @@ import PlutusCore (DefaultFun (VerifyEcdsaSecp256k1Signature, VerifyEd25519Signa
 import PlutusCore.Default as Plutus (BuiltinVersion (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 
-import PlutusCore.MkPlc (builtin, mkConstant, mkIterApp)
+import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn)
 import PlutusPrelude
 import Text.Show.Pretty (ppShow)
 
@@ -92,7 +92,7 @@ runTestDataWith :: forall (a :: Type) (msg :: Type) .
   PropertyT IO ()
 runTestDataWith ver testData f op = do
   let (vk, msg, sig) = getCaseData f testData
-  let actualExp = mkIterApp () (builtin () op) [
+  let actualExp = mkIterAppNoAnn (builtin () op) [
         mkConstant @ByteString () vk,
         mkConstant @ByteString () msg,
         mkConstant @ByteString () sig
@@ -447,5 +447,3 @@ genSignKey :: forall (a :: Type) . (DSIGNAlgorithm a) => Gen (SignKeyDSIGN a)
 genSignKey = do
   seed <- mkSeedFromBytes <$> (Gen.bytes . Range.linear 64 $ 128)
   pure . genKeyDSIGN $ seed
-
-

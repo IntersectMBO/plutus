@@ -86,7 +86,7 @@ bunchOfIdNats =
     FolderContents [treeFolderContents "IdNat" $ map idNatFile [0 :: Int, 3.. 9]] where
         idNatFile i = plcTermFile (show i) (idNat id0 i)
         -- > id0 = foldNat {nat} succ zero
-        id0 = mkIterApp () (tyInst () Plc.foldNat $ Plc.natTy) [Plc.succ, Plc.zero]
+        id0 = mkIterAppNoAnn (tyInst () Plc.foldNat $ Plc.natTy) [Plc.succ, Plc.zero]
 
         idNat idN 0 = apply () idN $ metaIntegerToNat 10
         idNat idN n = idNat idN' (n - 1) where
@@ -102,7 +102,7 @@ bunchOfIfThenElseNats =
     FolderContents [treeFolderContents "IfThenElse" $ map ifThenElseNatFile [0 :: Int, 1.. 5]] where
         ifThenElseNatFile i = plcTermFile (show i) (ifThenElseNat id0 i)
         -- > id0 = foldNat {nat} succ zero
-        id0 = mkIterApp () (tyInst () Plc.foldNat Plc.natTy) [Plc.succ, Plc.zero]
+        id0 = mkIterAppNoAnn (tyInst () Plc.foldNat Plc.natTy) [Plc.succ, Plc.zero]
 
         ifThenElseNat idN 0 = apply () idN $ metaIntegerToNat 10
         ifThenElseNat idN n = ifThenElseNat idN' (n - 1) where
@@ -112,7 +112,7 @@ bunchOfIfThenElseNats =
             idN'
 
                 = etaExpand Plc.natTy
-                $ mkIterApp () (tyInst () (builtin () IfThenElse) $ Plc.TyFun () Plc.natTy Plc.natTy)
+                $ mkIterAppNoAnn (tyInst () (builtin () IfThenElse) $ Plc.TyFun () Plc.natTy Plc.natTy)
                     [mkConstant () $ even n, idN, idN]
 
 test_budget :: TestTree

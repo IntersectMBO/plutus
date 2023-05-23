@@ -189,7 +189,7 @@ treeNode = runQuote $ normalizeTypesIn =<< do
         . wrapTree [vA]
         . TyAbs () r (Type ())
         . LamAbs () f (mkIterTyFun () [vA, forestA] vR)
-        $ mkIterApp () (Var () f)
+        $ mkIterAppNoAnn (Var () f)
             [ Var () x
             , Var () fr
             ]
@@ -244,7 +244,7 @@ forestCons = runQuote $ normalizeTypesIn =<< do
         . TyAbs () r (Type ())
         . LamAbs () z vR
         . LamAbs () f (mkIterTyFun () [treeA, forestA] vR)
-        $ mkIterApp () (Var () f)
+        $ mkIterAppNoAnn (Var () f)
             [ Var () tr
             , Var () fr
             ]

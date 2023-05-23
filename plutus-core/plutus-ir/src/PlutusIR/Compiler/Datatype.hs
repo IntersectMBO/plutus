@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections     #-}
 {-# LANGUAGE TypeApplications  #-}
 -- | Functions for compiling let-bound PIR datatypes into PLC.
 module PlutusIR.Compiler.Datatype
@@ -477,7 +478,7 @@ mkConstructor opts dty d@(Datatype ann _ tvs _ constrs) index = do
                 -- \case_1 .. case_j
                 PIR.mkIterLamAbs casesAndTypes $
                 -- c_i arg_1 .. arg_m
-                PIR.mkIterApp ann thisCase (fmap (PIR.mkVar ann) argsAndTypes)
+                PIR.mkIterApp thisCase (fmap ((ann,) . PIR.mkVar ann) argsAndTypes)
 
     let constr =
             -- /\t_1 .. t_n
@@ -590,7 +591,10 @@ compileDatatype r body d = do
         vars = fmap PIR.defVar constrDefs ++ [ PIR.defVar destrDef ]
         vals = fmap PIR.defVal constrDefs ++ [ PIR.defVal destrDef ]
     -- See note [Abstract data types]
-    pure $ PIR.mkIterApp p (PIR.mkIterInst p (PIR.mkIterTyAbs tyVars (PIR.mkIterLamAbs vars body)) tys) vals
+    pure $
+      PIR.mkIterApp
+        (PIR.mkIterInst (PIR.mkIterTyAbs tyVars (PIR.mkIterLamAbs vars body)) ((p,) <$> tys))
+        ((p,) <$> vals)
 
 -- | Compile a 'Datatype' to a triple of type-constructor, data-constructors, destructor definitions.
 compileDatatypeDefs

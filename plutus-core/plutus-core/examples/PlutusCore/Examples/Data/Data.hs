@@ -73,25 +73,25 @@ ofoldrData = runQuote $ do
         . lamAbs () fList (TyFun () listR r)
         . lamAbs () fI (TyFun () integer r)
         . lamAbs () fB (TyFun () (mkTyBuiltin @_ @ByteString ()) r)
-        . apply () (mkIterInst () fix [dataTy, r])
+        . apply () (mkIterInstNoAnn fix [dataTy, r])
         . lamAbs () rec (TyFun () dataTy r)
         . lamAbs () d dataTy
-        $ mkIterApp () (tyInst () (unwrap' () (var () d)) r)
+        $ mkIterAppNoAnn (tyInst () (unwrap' () (var () d)) r)
             [   lamAbs () i integer
               . lamAbs () ds listData
-              $ mkIterApp () (var () fConstr)
+              $ mkIterAppNoAnn (var () fConstr)
                   [ var () i
-                  , mkIterApp () (tyInst () omapList dataTy) [var () rec, var () ds]
+                  , mkIterAppNoAnn (tyInst () omapList dataTy) [var () rec, var () ds]
                   ]
             ,   lamAbs () es (TyApp () list $ opair dataTy)
               . apply () (var () fMap)
-              $ mkIterApp () (tyInst () omapList $ opair dataTy)
+              $ mkIterAppNoAnn (tyInst () omapList $ opair dataTy)
                   [ apply () (tyInst () obothPair dataTy) $ var () rec
                   , var () es
                   ]
             ,   lamAbs () ds listData
               . apply () (var () fList)
-              $ mkIterApp () (tyInst () omapList dataTy)
+              $ mkIterAppNoAnn (tyInst () omapList dataTy)
                   [ var () rec
                   , var () ds
                   ]

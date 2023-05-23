@@ -5,6 +5,7 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE LambdaCase             #-}
 {-# LANGUAGE PolyKinds              #-}
+{-# LANGUAGE TupleSections          #-}
 {-# LANGUAGE TypeApplications       #-}
 {-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE TypeOperators          #-}
@@ -38,9 +39,11 @@ module PlutusCore.MkPlc
     , mkIterTyForall
     , mkIterTyLam
     , mkIterApp
+    , mkIterAppNoAnn
     , mkIterTyFun
     , mkIterLamAbs
     , mkIterInst
+    , mkIterInstNoAnn
     , mkIterTyAbs
     , mkIterTyApp
     , mkIterKindArrow
@@ -210,23 +213,39 @@ mkImmediateTyAbs
 mkImmediateTyAbs ann1 (Def (TyVarDecl ann2 name k) bind) body =
     tyInst ann1 (tyAbs ann2 name k body) bind
 
--- | Make an iterated application.
+-- | Make an iterated application. Each `apply` node uses the annotation associated with
+-- the corresponding argument.
 mkIterApp
     :: TermLike term tyname name uni fun
-    => ann
-    -> term ann -- ^ @f@
-    -> [term ann] -- ^@[ x0 ... xn ]@
-    -> term ann -- ^ @[f x0 ... xn ]@
-mkIterApp ann = foldl' (apply ann)
+    => term ann
+    -> [(ann, term ann)]
+    -> term ann
+mkIterApp = foldl' (uncurry . flip apply)
 
--- | Make an iterated instantiation.
+-- | Make an iterated application with no annotation.
+mkIterAppNoAnn
+    :: TermLike term tyname name uni fun
+    => term () -- ^ @f@
+    -> [term ()] -- ^@[ x0 ... xn ]@
+    -> term () -- ^ @[f x0 ... xn ]@
+mkIterAppNoAnn term = mkIterApp term . fmap ((),)
+
+-- | Make an iterated instantiation. Each `tyInst` node uses the annotation associated with
+-- the corresponding argument.
 mkIterInst
     :: TermLike term tyname name uni fun
-    => ann
-    -> term ann -- ^ @a@
-    -> [Type tyname uni ann] -- ^ @ [ x0 ... xn ] @
+    => term ann -- ^ @a@
+    -> [(ann, Type tyname uni ann)] -- ^ @ [ x0 ... xn ] @
     -> term ann -- ^ @{ a x0 ... xn }@
-mkIterInst ann = foldl' (tyInst ann)
+mkIterInst = foldl' (uncurry . flip tyInst)
+
+-- | Make an iterated instantiation with no annotation.
+mkIterInstNoAnn
+    :: TermLike term tyname name uni fun
+    => term () -- ^ @a@
+    -> [Type tyname uni ()] -- ^ @ [ x0 ... xn ] @
+    -> term () -- ^ @{ a x0 ... xn }@
+mkIterInstNoAnn term = mkIterInst term . fmap ((),)
 
 -- | Lambda abstract a list of names.
 mkIterLamAbs

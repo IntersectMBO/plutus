@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections     #-}
 
 -- | Parsers for PIR terms in DefaultUni.
 
@@ -120,11 +121,13 @@ letTerm = withSpan $ \sp ->
 
 appTerm :: Parametric
 appTerm tm = withSpan $ \sp ->
-    inBrackets $ PIR.mkIterApp sp <$> tm <*> some tm
+    -- TODO: should not use the same `sp` for all arguments.
+    inBrackets $ PIR.mkIterApp <$> tm <*> (fmap (sp,) <$> some tm)
 
 tyInstTerm :: Parametric
 tyInstTerm tm = withSpan $ \sp ->
-    inBraces $ PIR.mkIterInst sp <$> tm <*> some pType
+    -- TODO: should not use the same `sp` for all arguments.
+    inBraces $ PIR.mkIterInst <$> tm <*> (fmap (sp,) <$> some pType)
 
 pTerm :: Parser PTerm
 pTerm = leadingWhitespace go
