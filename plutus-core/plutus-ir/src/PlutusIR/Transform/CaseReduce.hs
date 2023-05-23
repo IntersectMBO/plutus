@@ -1,4 +1,6 @@
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE LambdaCase    #-}
+{-# LANGUAGE TupleSections #-}
+
 module PlutusIR.Transform.CaseReduce
     ( caseReduce
     ) where
@@ -14,5 +16,5 @@ caseReduce = transformOf termSubterms processTerm
 
 processTerm :: Term tyname name uni fun a -> Term tyname name uni fun a
 processTerm = \case
-    Case ann _ (Constr _ _ i args) cs | Just c <- cs ^? wix i -> mkIterApp ann c args
+    Case ann _ (Constr _ _ i args) cs | Just c <- cs ^? wix i -> mkIterApp c ((ann,) <$> args)
     t                                                         -> t

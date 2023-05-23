@@ -24,7 +24,7 @@ test_appAppLamLam = do
         Normalized integer2' = runQuote $ do
             x <- freshTyName "x"
             y <- freshTyName "y"
-            normalizeType $ mkIterTyApp ()
+            normalizeType $ mkIterTyAppNoAnn
                 (TyLam () x (Type ()) (TyLam () y (Type ()) $ TyVar () y))
                 [integer2, integer2]
     integer2 @?= integer2'

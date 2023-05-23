@@ -4,6 +4,7 @@
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE Rank2Types        #-}
+{-# LANGUAGE TupleSections     #-}
 
 module PlutusCore.StdLib.Type
     ( RecursiveType (..)
@@ -375,7 +376,7 @@ The code constructing the data type itself:
     [a, b, interlist, r] <- traverse freshTyName ["a", "b", "interlist", "r"]
 
     -- Define some aliases.
-    let interlistBA = mkIterTyApp () (TyVar () interlist) [TyVar () b, TyVar () a]
+    let interlistBA = mkIterTyAppNoAnn (TyVar () interlist) [TyVar () b, TyVar () a]
         nilElimTy   = TyVar () r
         consElimTy  = mkIterTyFun () [TyVar () a, TyVar () b, interlistBA] $ TyVar () r)
 
@@ -544,8 +545,8 @@ getToSpine ann = do
 
     return $ \args ->
           TyLam ann dat (argKindsToDataKindN ann $ map _tyDeclKind args)
-        . mkIterTyApp ann (TyVar ann dat)
-        $ map _tyDeclType args
+        . mkIterTyApp (TyVar ann dat)
+        $ map ((ann,) . _tyDeclType) args
 
 -- | Pack a list of 'TyDecl's as a spine using the CPS trick.
 --

@@ -41,15 +41,15 @@ failBody99 = lamAbs99 outVar
 
 -- [(lam x (lam y x)) (con integer 1) (lam0 outVar)]
 failConst :: UPLC.Term DeBruijn DefaultUni DefaultFun ()
-failConst = mkIterApp () constFun [true, failBody0]
+failConst = mkIterAppNoAnn constFun [true, failBody0]
 
 -- [(lam x (lam y x)) (con bool true) (lam99 x_1)]
 failConst99 :: UPLC.Term DeBruijn DefaultUni DefaultFun ()
-failConst99 = mkIterApp () constFun [true, failId99]
+failConst99 = mkIterAppNoAnn constFun [true, failId99]
 
 -- [(force (builtin ifThenElse)) (con bool True) (lam0 x1) (lam99 outVar)]
 failITE :: UPLC.Term DeBruijn DefaultUni DefaultFun ()
-failITE = mkIterApp ()
+failITE = mkIterAppNoAnn
          (Force () (Builtin () IfThenElse))
          [ mkConstant @Bool () True -- pred
          , okId0 -- then

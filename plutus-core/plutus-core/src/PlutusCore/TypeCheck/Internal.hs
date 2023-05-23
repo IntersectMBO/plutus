@@ -422,7 +422,7 @@ unfoldIFixOf pat arg k = do
     -- But breaking global uniqueness is a bad idea regardless.
     vPat' <- rename vPat
     normalizeTypeM $
-        mkIterTyApp () vPat'
+        mkIterTyAppNoAnn vPat'
             [ TyLam () a k . TyIFix () vPat $ TyVar () a
             , vArg
             ]

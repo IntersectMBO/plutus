@@ -418,7 +418,9 @@ executable plc
   hs-source-dirs: executables
   build-depends:
     , base                  >=4.9 && <5
+    , bytestring
     , deepseq
+    , flat
     , optparse-applicative
     , plutus-core           ^>=1.7
     , plutus-core-execlib   ^>=1.7
@@ -430,7 +432,9 @@ executable uplc
   hs-source-dirs: executables
   build-depends:
     , base                  >=4.9 && <5
+    , bytestring
     , deepseq
+    , flat
     , haskeline
     , mtl
     , optparse-applicative

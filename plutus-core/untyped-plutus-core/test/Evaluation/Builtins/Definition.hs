@@ -82,7 +82,7 @@ test_Const =
         let tC = mkConstant () c
             tB = mkConstant () b
             text = toTypeAst @_ @DefaultUni @Text Proxy
-            runConst con = mkIterApp () (mkIterInst () con [text, bool]) [tC, tB]
+            runConst con = mkIterAppNoAnn (mkIterInstNoAnn con [text, bool]) [tC, tB]
             lhs = typecheckReadKnownCek def defaultBuiltinCostModelExt $ runConst $ builtin () (Right Const)
             rhs = typecheckReadKnownCek def defaultBuiltinCostModelExt $ runConst $ mapFun @DefaultFun Left Plc.const
         lhs === Right (Right c)
@@ -108,7 +108,7 @@ test_Id =
             oneU = mkConstant @Integer @DefaultUni () 1
             -- > id {integer -> integer} ((\(i : integer) (j : integer) -> i) 1) 0
             term =
-                mkIterApp () (tyInst () (builtin () $ Right Id) (TyFun () integer integer))
+                mkIterAppNoAnn (tyInst () (builtin () $ Right Id) (TyFun () integer integer))
                     [ apply () constIntegerInteger oneT
                     , zer
                     ] where
@@ -133,7 +133,7 @@ test_IdFInteger =
             term
                 = apply () (mapFun Left Scott.sum)
                 . apply () (tyInst () (builtin () $ Right IdFInteger) Scott.listTy)
-                $ mkIterApp () (mapFun Left Scott.enumFromTo) [one, ten]
+                $ mkIterAppNoAnn (mapFun Left Scott.enumFromTo) [one, ten]
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModelExt term @?= Right (EvaluationSuccess res)
 
 test_IdList :: TestTree
@@ -150,7 +150,7 @@ test_IdList =
             term
                 = apply () (mapFun Left Scott.sum)
                 . apply () (tyInst () (builtin () $ Right IdList) integer)
-                $ mkIterApp () (mapFun Left Scott.enumFromTo) [one, ten]
+                $ mkIterAppNoAnn (mapFun Left Scott.enumFromTo) [one, ten]
         tyAct @?= tyExp
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModelExt term @?= Right (EvaluationSuccess res)
 
@@ -235,7 +235,7 @@ test_FailingPlus :: TestTree
 test_FailingPlus =
     testCase "FailingPlus" $ do
         let term =
-                mkIterApp () (builtin () $ Right FailingPlus)
+                mkIterAppNoAnn (builtin () $ Right FailingPlus)
                     [ mkConstant @Integer @DefaultUni @DefaultFunExt () 0
                     , mkConstant @Integer @DefaultUni () 1
                     ]
@@ -251,7 +251,7 @@ test_ExpensivePlus :: TestTree
 test_ExpensivePlus =
     testCase "ExpensivePlus" $ do
         let term =
-                mkIterApp () (builtin () $ Right ExpensivePlus)
+                mkIterAppNoAnn (builtin () $ Right ExpensivePlus)
                     [ mkConstant @Integer @DefaultUni @DefaultFunExt () 0
                     , mkConstant @Integer @DefaultUni () 1
                     ]
@@ -266,7 +266,7 @@ test_BuiltinList =
         let xs  = [1..10]
             res = mkConstant @Integer @DefaultUni () $ foldr (-) 0 xs
             term
-                = mkIterApp () (mkIterInst () Builtin.foldrList [integer, integer])
+                = mkIterAppNoAnn (mkIterInstNoAnn Builtin.foldrList [integer, integer])
                     [ Builtin () SubtractInteger
                     , mkConstant @Integer () 0
                     , mkConstant @[Integer] () xs
@@ -281,7 +281,7 @@ test_IdBuiltinList =
             xsTerm = mkConstant @[Integer] () [1..10]
             listOfInteger = mkTyBuiltin @_ @[Integer] ()
             term
-                = mkIterApp () (mkIterInst () (mapFun Left Builtin.foldrList) [integer, listOfInteger])
+                = mkIterAppNoAnn (mkIterInstNoAnn (mapFun Left Builtin.foldrList) [integer, listOfInteger])
                     [ tyInst () (builtin () $ Left MkCons) integer
                     , mkConstant @[Integer] () []
                     , xsTerm
@@ -292,7 +292,7 @@ test_BuiltinPair :: TestTree
 test_BuiltinPair =
     testCase "BuiltinPair" $ do
         let arg = mkConstant @(Integer, Bool) @DefaultUni () (1, False)
-            inst efun = mkIterInst () (builtin () efun) [integer, bool]
+            inst efun = mkIterInstNoAnn (builtin () efun) [integer, bool]
             swapped = apply () (inst $ Right Swap) arg
             fsted   = apply () (inst $ Left FstPair) arg
             snded   = apply () (inst $ Left SndPair) arg
@@ -313,17 +313,17 @@ test_SwapEls =
             res = mkConstant @Integer @DefaultUni () $
                     foldr (\p r -> r + (if snd p then -1 else 1) * fst p) 0 xs
             el = mkTyBuiltin @_ @(Integer, Bool) ()
-            instProj p = mkIterInst () (builtin () p) [integer, bool]
+            instProj p = mkIterInstNoAnn (builtin () p) [integer, bool]
             fun = runQuote $ do
                     p <- freshName "p"
                     r <- freshName "r"
                     return
                         . lamAbs () p el
                         . lamAbs () r integer
-                        $ mkIterApp () (builtin () AddInteger)
+                        $ mkIterAppNoAnn (builtin () AddInteger)
                             [ Var () r
-                            , mkIterApp () (builtin () MultiplyInteger)
-                                [ mkIterApp () (tyInst () (builtin () IfThenElse) integer)
+                            , mkIterAppNoAnn (builtin () MultiplyInteger)
+                                [ mkIterAppNoAnn (tyInst () (builtin () IfThenElse) integer)
                                     [ apply () (instProj SndPair) $ Var () p
                                     , mkConstant @Integer () (-1)
                                     , mkConstant @Integer () 1
@@ -332,7 +332,7 @@ test_SwapEls =
                                 ]
                             ]
             term
-                = mkIterApp () (mkIterInst () Builtin.foldrList [el, integer])
+                = mkIterAppNoAnn (mkIterInstNoAnn Builtin.foldrList [el, integer])
                     [ fun
                     , mkConstant @Integer () 0
                     , mkConstant () xs
@@ -347,7 +347,7 @@ test_IdBuiltinData =
         let dTerm :: TermLike term tyname name DefaultUni fun => term ()
             dTerm = mkConstant @Data () $ Map [(I 42, Constr 4 [List [B "abc", Constr 2 []], I 0])]
             emb = builtin () . Left
-            term = mkIterApp () ofoldrData
+            term = mkIterAppNoAnn ofoldrData
                 [ emb ConstrData
                 , emb MapData
                 , emb ListData
@@ -500,21 +500,21 @@ test_List = testCase "List" $ do
  where
    evalsL :: Contains DefaultUni a => a -> DefaultFun -> Type TyName DefaultUni () -> [Term TyName Name DefaultUni DefaultFun ()]  -> Assertion
    evalsL expectedVal b tyArg args =
-    let actualExp = mkIterApp () (tyInst () (builtin () b) tyArg) args
+    let actualExp = mkIterAppNoAnn (tyInst () (builtin () b) tyArg) args
     in  Right (EvaluationSuccess $ cons expectedVal)
         @=?
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModel actualExp
 
    failsL :: DefaultFun -> Type TyName DefaultUni () -> [Term TyName Name DefaultUni DefaultFun ()]  -> Assertion
    failsL b tyArg args =
-    let actualExp = mkIterApp () (tyInst () (builtin () b) tyArg) args
+    let actualExp = mkIterAppNoAnn (tyInst () (builtin () b) tyArg) args
     in  Right EvaluationFailure
         @=?
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModel actualExp
 
    -- the null function that utilizes the ChooseList builtin (through the caseList helper function)
    nullViaChooseList :: [Integer] -> Term TyName Name DefaultUni DefaultFun ()
-   nullViaChooseList l = mkIterApp ()
+   nullViaChooseList l = mkIterAppNoAnn
                       (tyInst () (apply () (tyInst () Builtin.caseList integer) $ cons l) bool)
                       [ -- zero
                         true
@@ -566,7 +566,7 @@ test_Data = testCase "Data" $ do
     evals @ByteString "\162\ETX@Ehello8c" SerialiseData [cons $ Map [(I 3, B ""), (B "hello", I $ -100)]]
 
     -- ChooseData
-    let actualExp = mkIterApp ()
+    let actualExp = mkIterAppNoAnn
                       (tyInst () (apply () caseData $ cons $ I 3) bool)
                       [ -- constr
                         runQuote $ do
@@ -576,7 +576,7 @@ test_Data = testCase "Data" $ do
                         -- map
                       , runQuote $ do
                               a1 <- freshName "a1"
-                              pure $ lamAbs () a1 (TyApp () Builtin.list $ mkIterTyApp () pair [dataTy,dataTy]) false
+                              pure $ lamAbs () a1 (TyApp () Builtin.list $ mkIterTyAppNoAnn pair [dataTy,dataTy]) false
                        -- list
                       , runQuote $ do
                               a1 <- freshName "a1"
@@ -629,13 +629,13 @@ test_Crypto = testCase "Crypto" $ do
 -- Test all remaining builtins of the default universe
 test_Other :: TestTree
 test_Other = testCase "Other" $ do
-    let expr1 = mkIterApp () (tyInst () (builtin () ChooseUnit) bool) [unitval, true]
+    let expr1 = mkIterAppNoAnn (tyInst () (builtin () ChooseUnit) bool) [unitval, true]
     Right (EvaluationSuccess true) @=? typecheckEvaluateCekNoEmit def defaultBuiltinCostModel expr1
 
-    let expr2 = mkIterApp () (tyInst () (builtin () IfThenElse) integer) [true, cons @Integer 1, cons @Integer 0]
+    let expr2 = mkIterAppNoAnn (tyInst () (builtin () IfThenElse) integer) [true, cons @Integer 1, cons @Integer 0]
     Right (EvaluationSuccess $ cons @Integer 1) @=? typecheckEvaluateCekNoEmit def defaultBuiltinCostModel expr2
 
-    let expr3 = mkIterApp () (tyInst () (builtin () Trace) integer) [cons @Text "hello world", cons @Integer 1]
+    let expr3 = mkIterAppNoAnn (tyInst () (builtin () Trace) integer) [cons @Text "hello world", cons @Integer 1]
     Right (EvaluationSuccess $ cons @Integer 1) @=? typecheckEvaluateCekNoEmit def defaultBuiltinCostModel expr3
 
 -- | Check that 'ExtensionVersion' evaluates correctly.
@@ -655,7 +655,7 @@ test_ConsByteString =
         let asciiBangWrapped = fromIntegral @Word8 @Integer maxBound
                              + 1 -- to make word8 wraparound
                              + 33 -- the index of '!' in ascii table
-            expr1 = mkIterApp () (builtin () (Left ConsByteString :: DefaultFunExt)) [cons @Integer asciiBangWrapped, cons @ByteString "hello world"]
+            expr1 = mkIterAppNoAnn (builtin () (Left ConsByteString :: DefaultFunExt)) [cons @Integer asciiBangWrapped, cons @ByteString "hello world"]
         Right (EvaluationSuccess $ cons @ByteString "!hello world")  @=? typecheckEvaluateCekNoEmit (PairV DefaultFunV1 def) defaultBuiltinCostModelExt expr1
         Right EvaluationFailure @=? typecheckEvaluateCekNoEmit (PairV DefaultFunV2 def) defaultBuiltinCostModelExt expr1
         Right EvaluationFailure @=? typecheckEvaluateCekNoEmit def defaultBuiltinCostModelExt expr1
@@ -667,7 +667,7 @@ cons = mkConstant ()
 -- shorthand
 evals :: Contains DefaultUni a => a -> DefaultFun -> [Term TyName Name DefaultUni DefaultFun ()]  -> Assertion
 evals expectedVal b args =
-    let actualExp = mkIterApp () (builtin () b) args
+    let actualExp = mkIterAppNoAnn (builtin () b) args
     in  Right (EvaluationSuccess $ cons expectedVal)
         @=?
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModel actualExp
@@ -675,7 +675,7 @@ evals expectedVal b args =
 -- shorthand
 fails :: DefaultFun -> [Term TyName Name DefaultUni DefaultFun ()]  -> Assertion
 fails b args =
-    let actualExp = mkIterApp () (builtin () b) args
+    let actualExp = mkIterAppNoAnn (builtin () b) args
     in  Right EvaluationFailure
         @=?
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModel actualExp
