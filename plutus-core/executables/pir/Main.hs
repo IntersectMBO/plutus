@@ -254,7 +254,9 @@ loadPirAndAnalyse (AnalyseOptions inp ifmt outp) = do
         case outp of
             FileOutput path -> BSL.writeFile path
             StdOutput       -> BSL.putStr
-
+            -- NoOutput supresses the output of programs/terms, but that's not
+            -- what we've got here.
+            NoOutput        -> BSL.putStr
 
 ---------------- Parse and print a PIR source file ----------------
 -- This option for PIR source file does NOT check for @UniqueError@'s.
@@ -276,7 +278,7 @@ runPrint (PrintOptions inp outp mode) = do
         case outp of
             FileOutput path -> writeFile path printed
             StdOutput       -> putStrLn printed
-
+            NoOutput        -> pure ()
 
 ---------------- Main ----------------
 

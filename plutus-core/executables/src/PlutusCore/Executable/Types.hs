@@ -50,7 +50,7 @@ instance Show Input where
     show (FileInput path) = show path
     show StdInput         = "<stdin>"
 
-data Output = FileOutput FilePath | StdOutput
+data Output = FileOutput FilePath | StdOutput | NoOutput
 data TimingMode = NoTiming | Timing Integer deriving stock (Eq) -- Report program execution time?
 data CekModel = Default | Unit -- Which cost model should we use for CEK machine steps?
 data PrintMode = Classic | Debug | Readable | ReadableDebug deriving stock (Show, Read)

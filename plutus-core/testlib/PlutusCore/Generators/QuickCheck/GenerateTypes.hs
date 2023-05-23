@@ -17,7 +17,8 @@ import PlutusCore.Quote (runQuote)
 import PlutusIR
 import PlutusIR.Core.Instance.Pretty.Readable
 
-import Control.Monad.Reader
+import Control.Monad (replicateM, when)
+import Control.Monad.Reader (asks, local)
 import Data.Foldable
 import Data.Map.Strict qualified as Map
 import Data.Maybe

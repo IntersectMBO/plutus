@@ -1,4 +1,18 @@
 
+<a id='changelog-1.7.0.0'></a>
+# 1.7.0.0 — 2023-05-22
+
+## Added
+
+- GHC 9.6 support
+
+## Changed
+
+- Monomorphized functions in PlutusTx.Foldable that should short-circuit.
+  This makes them short-circuit properly.
+
+- `liftCode` and some other functions in `PlutusTx.Lift` now return PIR in addition to UPLC.
+
 <a id='changelog-1.6.0.0'></a>
 # 1.6.0.0 — 2023-05-04
 

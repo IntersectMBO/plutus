@@ -32,7 +32,7 @@ import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 
 import Control.Lens (imap)
-import Control.Monad.Except
+import Control.Monad (when)
 import Data.Hashable (Hashable)
 import Data.HashMap.Monoidal as HashMap
 import Data.Map.Strict qualified as Map

@@ -1,0 +1,11 @@
+program 1.1.0 ((\fMonadMaybe_c ->
+                  fMonadMaybe_c
+                    (constr 0 [1])
+                    (\x ->
+                       fMonadMaybe_c
+                         (constr 0 [2])
+                         (\y -> constr 0 [(addInteger x y)])))
+                 (\ds
+                   k ->
+                    force (case ds [ (\x -> delay (k x))
+                                   , (delay (constr 1 [])) ])))

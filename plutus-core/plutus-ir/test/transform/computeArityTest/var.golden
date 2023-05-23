@@ -1,1 +1,2 @@
-([TermParam], (let (nonrec) (termbind (strict) (vardecl x (con integer)) y) x))
+( [TermParam (Name {_nameText = "y", _nameUnique = Unique {unUnique = 2}})]
+, (let (nonrec) (termbind (strict) (vardecl x (con integer)) y) x) )

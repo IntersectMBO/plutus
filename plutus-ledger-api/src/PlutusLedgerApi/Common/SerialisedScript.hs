@@ -26,8 +26,9 @@ import Codec.Serialise
 import Control.Arrow ((>>>))
 import Control.Exception
 import Control.Lens
+import Control.Monad (unless, void, when)
 import Control.Monad.Error.Lens
-import Control.Monad.Except
+import Control.Monad.Except (MonadError)
 import Data.ByteString.Lazy as BSL (ByteString, fromStrict, toStrict)
 import Data.ByteString.Short
 import Data.Coerce

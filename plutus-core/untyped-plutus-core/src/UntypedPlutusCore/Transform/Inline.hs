@@ -42,7 +42,6 @@ import Control.Lens hiding (Strict)
 import Control.Monad.Extra
 import Control.Monad.Reader
 import Control.Monad.State
-
 import Witherable (wither)
 
 {- Note [Differences from PIR inliner]

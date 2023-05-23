@@ -1,7 +1,6 @@
 -- editorconfig-checker-disable-file
 -- | @tuple@s of various sizes and related functions.
 
-{-# LANGUAGE GADTs             #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module PlutusCore.StdLib.Meta.Data.Tuple
@@ -28,11 +27,11 @@ import Control.Lens.Indexed (ifor, itraverse)
 import Data.Traversable
 
 -- | A Plutus Core (Scott-encoded) tuple.
-data Tuple term uni ann where
-    Tuple :: TermLike term TyName Name uni fun =>
+data Tuple term uni ann =
+    Tuple
         { _tupleElementTypes :: [Type TyName uni ann] -- ^ The types of elements of a tuple.
         , _tupleTerm         :: term ann              -- ^ A term representation of the tuple.
-        } -> Tuple term uni ann
+        }
 
 -- | Get the type of a 'Tuple'.
 --

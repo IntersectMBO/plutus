@@ -2,6 +2,7 @@
 {-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE PatternSynonyms      #-}
 {-# LANGUAGE TypeFamilies         #-}
+{-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ViewPatterns         #-}
 module Data.RandomAccessList.SkewBinarySlab
@@ -16,7 +17,7 @@ module Data.RandomAccessList.SkewBinarySlab
 import Data.Bits (unsafeShiftR)
 import Data.Vector.NonEmpty qualified as NEV
 import Data.Word
-import GHC.Exts
+import GHC.Exts (IsList, toList)
 
 import Data.RandomAccessList.Class qualified as RAL
 

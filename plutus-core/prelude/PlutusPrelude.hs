@@ -1,5 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
+{-# LANGUAGE CPP                   #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -88,16 +89,18 @@ module PlutusPrelude
     , Default (def)
     -- * Lists
     , zipExact
+    , unsafeFromRight
     ) where
 
-import Control.Applicative (Alternative (..), liftA2)
+import Control.Applicative
 import Control.Arrow ((&&&))
 import Control.Composition ((.*))
 import Control.DeepSeq (NFData)
 import Control.Exception (Exception, throw)
-import Control.Lens
-import Control.Monad.Reader
-import Data.Array
+import Control.Lens (Fold, Lens', lens, over, set, view, (%~), (&), (.~), (<&>), (^.))
+import Control.Monad (guard, join, void, (<=<), (>=>))
+import Control.Monad.Reader (MonadReader, ask)
+import Data.Array (Array, Ix, listArray)
 import Data.Bifunctor (first, second)
 import Data.Coerce (Coercible, coerce)
 import Data.Default.Class
@@ -113,8 +116,8 @@ import Data.Text qualified as T
 import Data.Traversable (for)
 import Data.Typeable (Typeable)
 import Data.Word (Word8)
-import Debug.Trace
-import GHC.Generics
+import Debug.Trace (trace, traceShowId)
+import GHC.Generics (Generic)
 import GHC.Natural (Natural)
 import Prettyprinter
 import Text.PrettyBy.Default
@@ -231,3 +234,9 @@ zipExact [] []         = Just []
 zipExact [a] [b]       = Just [(a,b)]
 zipExact (a:as) (b:bs) = (:) (a, b) <$> zipExact as bs
 zipExact _ _           = Nothing
+
+-- | Similar to Maybe's `fromJust`. Returns the `Right` and errors out with the show instance
+-- of the `Left`.
+unsafeFromRight :: (Show e) => Either e a -> a
+unsafeFromRight (Right a) = a
+unsafeFromRight (Left e)  = error $ show e

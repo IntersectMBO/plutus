@@ -86,8 +86,13 @@ data Term name uni fun ann
     -- See Note [Constr tag type]
     | Constr !ann !Word64 ![Term name uni fun ann]
     | Case !ann !(Term name uni fun ann) ![Term name uni fun ann]
-    deriving stock (Show, Functor, Generic)
-    deriving anyclass (NFData)
+    deriving stock (Functor, Generic)
+
+deriving stock instance (Show name, GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
+    => Show (Term name uni fun ann)
+
+deriving anyclass instance (NFData name, NFData fun, NFData ann, Everywhere uni NFData, Closed uni)
+    => NFData (Term name uni fun ann)
 
 -- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core language.
 data Program name uni fun ann = Program
@@ -95,9 +100,14 @@ data Program name uni fun ann = Program
     , _progVer  :: TPLC.Version
     , _progTerm :: Term name uni fun ann
     }
-    deriving stock (Show, Functor, Generic)
-    deriving anyclass (NFData)
+    deriving stock (Functor, Generic)
 makeLenses ''Program
+
+deriving stock instance (Show name, GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
+    => Show (Program name uni fun ann)
+
+deriving anyclass instance (NFData name, Everywhere uni NFData, NFData fun, NFData ann, Closed uni)
+    => NFData (Program name uni fun ann)
 
 type instance TPLC.UniOf (Term name uni fun ann) = uni
 

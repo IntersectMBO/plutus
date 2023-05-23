@@ -1,5 +1,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies        #-}
+{-# LANGUAGE TypeOperators       #-}
 module UntypedPlutusCore.Core.Zip
     ( pzipWith
     , pzip
@@ -7,7 +8,8 @@ module UntypedPlutusCore.Core.Zip
     , tzip
     ) where
 
-import Control.Monad.Except
+import Control.Monad (void, when)
+import Control.Monad.Except (MonadError, throwError)
 import UntypedPlutusCore.Core.Instance.Eq ()
 import UntypedPlutusCore.Core.Type
 

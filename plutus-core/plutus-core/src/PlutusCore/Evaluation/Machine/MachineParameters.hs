@@ -42,7 +42,12 @@ data MachineParameters machinecosts fun val =
     , builtinsRuntime :: BuiltinsRuntime fun val
     }
     deriving stock Generic
-    deriving anyclass (NFData, NoThunks)
+    deriving anyclass (NFData)
+
+-- For some reason the generic instance gives incorrect nothunk errors,
+-- see https://github.com/input-output-hk/nothunks/issues/24
+instance (NoThunks machinecosts, Bounded fun, Enum fun) => NoThunks (MachineParameters machinecosts fun val) where
+  wNoThunks ctx (MachineParameters costs runtime) = allNoThunks [ noThunks ctx costs, noThunks ctx runtime ]
 
 {- Note [The equality constraint in mkMachineParameters]
 Discharging the @CostingPart uni fun ~ builtincosts@ constraint in 'mkMachineParameters' causes GHC

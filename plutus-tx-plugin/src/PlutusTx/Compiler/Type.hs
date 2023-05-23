@@ -1,4 +1,5 @@
 -- editorconfig-checker-disable-file
+{-# LANGUAGE CPP               #-}
 {-# LANGUAGE ConstraintKinds   #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE GADTs             #-}
@@ -28,6 +29,9 @@ import PlutusTx.PIRTypes
 import GHC.Builtin.Types.Prim qualified as GHC
 import GHC.Core.FamInstEnv qualified as GHC
 import GHC.Core.Multiplicity qualified as GHC
+#if MIN_VERSION_ghc(9,4,0)
+import GHC.Core.Reduction qualified as GHC
+#endif
 import GHC.Plugins qualified as GHC
 
 import PlutusIR qualified as PIR
@@ -70,7 +74,11 @@ compileTypeNorm :: CompilingDefault uni fun m ann => GHC.Type -> m (PIRType uni)
 compileTypeNorm ty = do
     CompileContext {ccFamInstEnvs=envs} <- ask
     -- See Note [Type families and normalizing types]
+#if MIN_VERSION_ghc(9,4,0)
+    let (GHC.Reduction _ ty') = GHC.normaliseType envs GHC.Representational ty
+#else
     let (_, ty') = GHC.normaliseType envs GHC.Representational ty
+#endif
     compileType ty'
 
 -- | Compile a type.
@@ -84,7 +92,12 @@ compileType t = withContextM 2 (sdToTxt $ "Compiling type:" GHC.<+> GHC.ppr t) $
             Just (PIR.TyVarDecl _ name _) -> pure $ PIR.TyVar annMayInline name
             Nothing                       ->
                 throwSd FreeVariableError $ "Type variable:" GHC.<+> GHC.ppr v
-        (GHC.splitFunTy_maybe -> Just (_m, i, o)) -> PIR.TyFun annMayInline <$> compileType i <*> compileType o
+        (GHC.splitFunTy_maybe -> Just r) -> case r of
+#if MIN_VERSION_ghc(9,6,0)
+            (_t, _m, i, o) -> PIR.TyFun annMayInline <$> compileType i <*> compileType o
+#else
+            (_m, i, o)     -> PIR.TyFun annMayInline <$> compileType i <*> compileType o
+#endif
         -- ignoring 'RuntimeRep' type arguments, see Note [Unboxed tuples]
         (GHC.splitTyConApp_maybe -> Just (tc, ts)) ->
             PIR.mkIterTyApp annMayInline
