@@ -180,6 +180,7 @@ library
     Data.Aeson.THReader
     Data.Functor.Foldable.Monadic
     GHC.Natural.Extras
+    GHC.Num.Integer.Extras
     PlutusCore.Builtin.HasConstant
     PlutusCore.Builtin.KnownKind
     PlutusCore.Builtin.KnownType

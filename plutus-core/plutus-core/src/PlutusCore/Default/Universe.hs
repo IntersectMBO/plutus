@@ -57,6 +57,7 @@ import Text.Pretty
 import Text.PrettyBy
 import Text.PrettyBy.Fixity
 import Universe as Export
+import GHC.Num.Integer.Extras
 
 {- Note [PLC types and universes]
 We encode built-in types in PLC as tags for Haskell types (the latter are also called meta-types),
@@ -327,10 +328,9 @@ instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Int where
         inline readKnownConstant term >>= oneShot \(i :: Integer) ->
             -- We don't make use here of `toIntegralSized` because of performance considerations,
             -- see: https://gitlab.haskell.org/ghc/ghc/-/issues/19641
-            -- OPTIMIZE: benchmark an alternative `integerToIntMaybe`, modified from 'ghc-bignum'
-            if fromIntegral (minBound :: Int) <= i && i <= fromIntegral (maxBound :: Int)
-                then pure $ fromIntegral i
-                else throwing_ _EvaluationFailure
+           case integerToIntMaybe i of
+               Just i' -> pure i'
+               _       -> throwing_ _EvaluationFailure
     {-# INLINE readKnown #-}
 
 instance KnownTypeAst DefaultUni Int where
