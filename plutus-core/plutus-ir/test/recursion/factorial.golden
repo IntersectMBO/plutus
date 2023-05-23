@@ -2,30 +2,30 @@
   1.1.0
   [
     [
-      (lam s_512 [ s_512 s_512 ])
+      (lam s_545 [ s_545 s_545 ])
       (lam
-        s_513
+        s_546
         (lam
-          x_514
+          x_547
           [
             (lam
-              factorial_515
+              factorial_548
               [
                 [
                   [
                     [
                       (force (builtin ifThenElse))
-                      [ [ (builtin equalsInteger) x_514 ] (con integer 0) ]
+                      [ [ (builtin equalsInteger) x_547 ] (con integer 0) ]
                     ]
-                    (lam u_516 (con integer 1))
+                    (lam u_549 (con integer 1))
                   ]
                   (lam
-                    u_517
+                    u_550
                     [
-                      [ (builtin multiplyInteger) x_514 ]
+                      [ (builtin multiplyInteger) x_547 ]
                       [
-                        factorial_515
-                        [ [ (builtin subtractInteger) x_514 ] (con integer 1) ]
+                        factorial_548
+                        [ [ (builtin subtractInteger) x_547 ] (con integer 1) ]
                       ]
                     ]
                   )
@@ -33,7 +33,7 @@
                 (con unit ())
               ]
             )
-            [ s_513 s_513 ]
+            [ s_546 s_546 ]
           ]
         )
       )

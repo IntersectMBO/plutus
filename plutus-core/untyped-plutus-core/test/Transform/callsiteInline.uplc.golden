@@ -2,7 +2,7 @@
   (lam
     a_5
     [
-      [ f_1 [ [ g_2 (con integer 1) ] (con integer 0) ] ]
+      [ f_1 [ [ a_5 (con integer 0) ] (con integer 1) ] ]
       [ a_5 (con integer 2) ]
     ]
   )
