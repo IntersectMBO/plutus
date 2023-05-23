@@ -23,14 +23,11 @@ See [CONTRIBUTING.md](https://github.com/input-output-hk/plutus/blob/master/CONT
 
 Of the most common Marlowe transactions, input application transactions are the most relevant, as they are complex and can go over the execution limits at times. So there is a priority on examining those contracts.
 
-
 ## Managing versions
-
 
 ### Versioning of this package 
 
 Note that the off-chain code is evolving. However the on-chain code is very stable and is compatible with GHC 8.10.7. For best benchmarking results, eventually we may have to update some of these files by hand if the on chain code is updated. (We don't want to depend on the Marlowe repository because this will have the problem of circular dependency.)
-
 
 ### Script versions
 
@@ -38,10 +35,9 @@ The production version of Marlowe currently uses (PlutusV2, vasilPV, plcVersion1
 
 For documentation on Plutus vs PLC vs protocol version, see [here](https://github.com/input-output-hk/plutus/blob/master/plutus-ledger-api/src/PlutusLedgerApi/Common/Versions.hs)
 
+## Running the benchmarks with executable `marlowe-validators`
 
-## Running the benchmarks
-
-The application serialises the two Marlowe validator scripts, computes their hashes, and runs all of the benchmarks, storing the results in a pair of tab-separated-value files.
+The application `marlowe-validators` serialises the two Marlowe validator scripts, computes their hashes, and runs all of the benchmarks, storing the results in a pair of tab-separated-value files.
 
 ```bash
 cabal run exe:marlowe-validators
@@ -68,8 +64,7 @@ The following files are output:
     - Benchmarking results: `marlowe-rolepayout.tsv`   
 
 
-See [analysis.ipynb](analysis.ipynb) for example plots of the results.
-
+After running the application, one can see [analysis.ipynb](analysis.ipynb) for a visualized plots of the results.
 
 ## Benchmark Data
 

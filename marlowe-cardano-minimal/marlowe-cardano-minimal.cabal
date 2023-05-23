@@ -1,4 +1,4 @@
-cabal-version:   2.2
+cabal-version:   3.0
 name:            marlowe-cardano-minimal
 version:         0.1.0.3
 license:         Apache-2.0
@@ -63,10 +63,10 @@ library
     , bytestring
     , cardano-crypto-class  >=2.0.0.1 && <2.2
     , newtype-generics
-    , plutus-core
+    , plutus-core           ^>=1.7
     , plutus-ledger-api
-    , plutus-tx             ^>=1.6
-    , plutus-tx-plugin      ^>=1.6
+    , plutus-tx             ^>=1.7
+    , plutus-tx-plugin      ^>=1.7
 
   exposed-modules:
     Language.Marlowe.Core.V1.Semantics
@@ -100,7 +100,7 @@ executable marlowe-validators
     , filepath
     , marlowe-cardano-minimal
     , mtl
-    , plutus-core              ^>=1.6
+    , plutus-core              ^>=1.7
     , plutus-ledger-api
-    , plutus-tx                ^>=1.6
+    , plutus-tx                ^>=1.7
     , serialise
