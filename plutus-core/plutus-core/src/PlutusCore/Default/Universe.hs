@@ -49,8 +49,6 @@ import PlutusCore.Pretty.Extra
 import Control.Applicative
 import Data.Bits (toIntegralSized)
 import Data.ByteString qualified as BS
-import Data.Int
-import Data.IntCast (intCastEq)
 import Data.Proxy
 import Data.Text qualified as Text
 import Data.Word
@@ -300,20 +298,13 @@ This is inconvenient and also error-prone: dealing with a function that takes an
 downcasting the 'Integer', running the function, potentially upcasting at the end. And it's easy to get
 wrong by e.g. blindly using 'fromInteger'.
 
-Moreover, there is a latent risk here: if we *were* to build on a 32-bit platform, then programs which
+Moreover, there is a latent risk here: if we *were* to build on a 32-bit architecture, then programs which
 use arguments between @maxBound :: Int32@ and @maxBound :: Int64@ would behave differently!
 
 So, what to do? We adopt the following strategy:
-- We allow lifting/unlifting 'Int64' via 'Integer', including a safe downcast in 'readKnown'.
 - We allow lifting/unlifting 'Word8' via 'Integer', including a safe downcast in 'readKnown'.
-- We allow lifting/unlifting 'Int' via 'Int64', converting between them using 'intCastEq'.
-
-This has the effect of allowing the use of 'Int64' always, and 'Int' iff it is provably equal to
-'Int64'. So we can use 'Int' conveniently, but only if it has predictable behaviour.
-
-(An alternative would be to just add 'Int', but add 'IntCastEq Int Int64' as an instance constraint.
-That would also work, this way just seemed a little more explicit, and avoids adding constraints,
-which can sometimes interfere with optimization and inling.)
+- We allow lifting/unlifting 'Int' via 'Integer'. The downcast in 'readKnown' is safe because
+we restrict building to only 64-bit architectures via Cabal.
 
 Doing this effectively bans builds on 32-bit systems, but that's fine, since we don't care about
 supporting 32-bit systems anyway, and this way any attempts to build on them will fail fast.
@@ -323,15 +314,12 @@ internal one -- it's a normal evaluation failure, but unlifting errors have this
 being "internal".
 -}
 
-instance KnownTypeAst DefaultUni Int64 where
-    toTypeAst _ = toTypeAst $ Proxy @Integer
-
 -- See Note [Integral types as Integer].
-instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Int64 where
+instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Int where
     makeKnown = makeKnown . toInteger
     {-# INLINE makeKnown #-}
 
-instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Int64 where
+instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Int where
     readKnown term =
         -- See Note [Performance of KnownTypeIn instances].
         -- Funnily, we don't need 'inline' here, unlike in the default implementation of 'readKnown'
@@ -340,24 +328,13 @@ instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Int64 wher
             -- We don't make use here of `toIntegralSized` because of performance considerations,
             -- see: https://gitlab.haskell.org/ghc/ghc/-/issues/19641
             -- OPTIMIZE: benchmark an alternative `integerToIntMaybe`, modified from 'ghc-bignum'
-            if fromIntegral (minBound :: Int64) <= i && i <= fromIntegral (maxBound :: Int64)
+            if fromIntegral (minBound :: Int) <= i && i <= fromIntegral (maxBound :: Int)
                 then pure $ fromIntegral i
                 else throwing_ _EvaluationFailure
     {-# INLINE readKnown #-}
 
 instance KnownTypeAst DefaultUni Int where
     toTypeAst _ = toTypeAst $ Proxy @Integer
-
--- See Note [Integral types as Integer].
-instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Int where
-    -- This could safely just be toInteger, but this way is more explicit and it'll
-    -- turn into the same thing anyway.
-    makeKnown = makeKnown . intCastEq @Int @Int64
-    {-# INLINE makeKnown #-}
-
-instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Int where
-    readKnown term = intCastEq @Int64 @Int <$> readKnown term
-    {-# INLINE readKnown #-}
 
 instance KnownTypeAst DefaultUni Word8 where
     toTypeAst _ = toTypeAst $ Proxy @Integer
