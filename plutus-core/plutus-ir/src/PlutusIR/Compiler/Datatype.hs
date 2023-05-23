@@ -2,6 +2,7 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections     #-}
 {-# LANGUAGE TypeApplications  #-}
 -- | Functions for compiling let-bound PIR datatypes into PLC.
 module PlutusIR.Compiler.Datatype
@@ -393,7 +394,7 @@ mkDatatypeType opts r d@(Datatype ann tn tvs _ _) = do
 
 -- | The type of a datatype-value is of the form `[TyCon tyarg1 tyarg2 ... tyargn]`
 mkDatatypeValueType :: a -> Datatype TyName Name uni a -> Type TyName uni a
-mkDatatypeValueType ann (Datatype _ tn tvs _ _)  = PIR.mkIterTyApp ann (PIR.mkTyVar ann tn) $ PIR.mkTyVar ann <$> tvs
+mkDatatypeValueType ann (Datatype _ tn tvs _ _)  = PIR.mkIterTyApp (PIR.mkTyVar ann tn) $ (ann,) . PIR.mkTyVar ann <$> tvs
 
 -- Constructors
 
@@ -477,7 +478,7 @@ mkConstructor opts dty d@(Datatype ann _ tvs _ constrs) index = do
                 -- \case_1 .. case_j
                 PIR.mkIterLamAbs casesAndTypes $
                 -- c_i arg_1 .. arg_m
-                PIR.mkIterApp ann thisCase (fmap (PIR.mkVar ann) argsAndTypes)
+                PIR.mkIterApp thisCase (fmap ((ann,) . PIR.mkVar ann) argsAndTypes)
 
     let constr =
             -- /\t_1 .. t_n
@@ -513,7 +514,7 @@ mkDestructor opts dty d@(Datatype ann _ tvs _ constrs) = do
     -- This term appears *outside* the scope of the abstraction for the datatype, so we need to put in the Scott-encoded type here
     -- see note [Abstract data types]
     -- dty t_1 .. t_n
-    let appliedReal = PIR.mkIterTyApp ann (getType dty) (fmap (PIR.mkTyVar ann) tvs)
+    let appliedReal = PIR.mkIterTyApp (getType dty) (fmap ((ann,) . PIR.mkTyVar ann) tvs)
 
     xn <- safeFreshName "x"
 
@@ -590,7 +591,10 @@ compileDatatype r body d = do
         vars = fmap PIR.defVar constrDefs ++ [ PIR.defVar destrDef ]
         vals = fmap PIR.defVal constrDefs ++ [ PIR.defVal destrDef ]
     -- See note [Abstract data types]
-    pure $ PIR.mkIterApp p (PIR.mkIterInst p (PIR.mkIterTyAbs tyVars (PIR.mkIterLamAbs vars body)) tys) vals
+    pure $
+      PIR.mkIterApp
+        (PIR.mkIterInst (PIR.mkIterTyAbs tyVars (PIR.mkIterLamAbs vars body)) ((p,) <$> tys))
+        ((p,) <$> vals)
 
 -- | Compile a 'Datatype' to a triple of type-constructor, data-constructors, destructor definitions.
 compileDatatypeDefs

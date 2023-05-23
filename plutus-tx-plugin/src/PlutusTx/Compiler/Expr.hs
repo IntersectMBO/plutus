@@ -7,6 +7,7 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# LANGUAGE TemplateHaskellQuotes #-}
+{-# LANGUAGE TupleSections         #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE ViewPatterns          #-}
@@ -517,9 +518,8 @@ mkTrace
     -> PIRTerm uni PLC.DefaultFun
 mkTrace ty str v =
     PLC.mkIterApp
-        annMayInline
         (PIR.TyInst annMayInline (PIR.Builtin annMayInline PLC.Trace) ty)
-        [PLC.mkConstant annMayInline str, v]
+        ((annMayInline,) <$> [PLC.mkConstant annMayInline str, v])
 
 -- `mkLazyTrace ty str v` builds the term `force (trace str (delay v))` if `v` has type `ty`
 mkLazyTrace
@@ -839,7 +839,7 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                 resultType <- compileTypeNorm t >>= maybeDelayType lazyCase
                 let instantiated = PIR.TyInst annMayInline matched resultType
 
-                let applied = PIR.mkIterApp annMayInline instantiated branches
+                let applied = PIR.mkIterApp instantiated $ (annMayInline,) <$> branches
                 -- See Note [Case expressions and laziness]
                 mainCase <- maybeForce lazyCase applied
 
@@ -979,7 +979,7 @@ coverageCompile originalExpr exprType src compiledTerm covT =
             let mkMetadata = CoverageMetadata . foldMap (Set.singleton . ApplicationHeadSymbol . GHC.getOccString)
             fc <- addBoolCaseToCoverageIndex (toCovLoc src) False (mkMetadata headSymName)
             tc <- addBoolCaseToCoverageIndex (toCovLoc src) True (mkMetadata headSymName)
-            pure $ PLC.mkIterApp annMayInline traceBoolCompiled
+            pure $ PLC.mkIterApp traceBoolCompiled $ (annMayInline,) <$>
                 [ PLC.mkConstant annMayInline (T.pack . show $ tc)
                 , PLC.mkConstant annMayInline (T.pack . show $ fc)
                 , compiledTerm

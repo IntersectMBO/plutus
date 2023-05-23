@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections     #-}
 
 -- | Parsers for PLC terms in DefaultUni.
 
@@ -46,7 +47,8 @@ lamTerm = withSpan $ \sp ->
 
 appTerm :: Parser PTerm
 appTerm = withSpan $ \sp ->
-    inBrackets $ mkIterApp sp <$> term <*> some term
+    -- TODO: should not use the same `sp` for all arguments.
+    inBrackets $ mkIterApp <$> term <*> (fmap (sp,) <$> some term)
 
 conTerm :: Parser PTerm
 conTerm = withSpan $ \sp ->
@@ -58,7 +60,8 @@ builtinTerm = withSpan $ \sp ->
 
 tyInstTerm :: Parser PTerm
 tyInstTerm = withSpan $ \sp ->
-    inBraces $ mkIterInst sp <$> term <*> many pType
+    -- TODO: should not use the same `sp` for all arguments.
+    inBraces $ mkIterInst <$> term <*> (fmap (sp,) <$> many pType)
 
 unwrapTerm :: Parser PTerm
 unwrapTerm = withSpan $ \sp ->

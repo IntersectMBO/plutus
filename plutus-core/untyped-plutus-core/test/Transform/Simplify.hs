@@ -141,8 +141,8 @@ multiApp = runQuote $ do
     a <- freshName "a"
     b <- freshName "b"
     c <- freshName "c"
-    let lam = LamAbs () a $ LamAbs () b $ LamAbs () c $ mkIterApp () (Var () c) [Var () a, Var () b]
-        app = mkIterApp () lam [mkConstant @Integer () 1, mkConstant @Integer () 2, mkConstant @Integer () 3]
+    let lam = LamAbs () a $ LamAbs () b $ LamAbs () c $ mkIterAppNoAnn (Var () c) [Var () a, Var () b]
+        app = mkIterAppNoAnn lam [mkConstant @Integer () 1, mkConstant @Integer () 2, mkConstant @Integer () 3]
     pure app
 
 -- TODO Fix duplication with other golden tests, quite annoying
