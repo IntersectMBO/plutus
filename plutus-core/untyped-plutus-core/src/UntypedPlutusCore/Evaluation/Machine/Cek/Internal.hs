@@ -538,9 +538,9 @@ dischargeCekValue = \case
     VBuiltin _ term _                    -> term
     VConstr i es                         -> Constr () i (fmap dischargeCekValue $ stack2list es)
       where
-        stack2list s = reverse $ go s
-        go EmptyStack           = []
-        go (ConsStack arg rest) = arg : go rest
+        stack2list = go []
+        go acc EmptyStack           = acc
+        go acc (ConsStack arg rest) = go (arg : acc) rest
 
 instance (PrettyUni uni, Pretty fun) => PrettyBy PrettyConfigPlc (CekValue uni fun ann) where
     prettyBy cfg = prettyBy cfg . dischargeCekValue
