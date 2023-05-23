@@ -30,24 +30,24 @@ main = defaultMain . testGroup "Size regression tests" $ [
       fitsInto "min" ratMin 36
       ],
     testGroup "Additive" [
-      fitsInto "+" ratPlus 109,
+      fitsInto "+" ratPlus 107,
       fitsInto "zero" ratZero 3,
-      fitsInto "-" ratMinus 109,
+      fitsInto "-" ratMinus 107,
       fitsInto "negate (specialized)" ratNegate 12
       ],
     testGroup "Multiplicative" [
-      fitsInto "*" ratTimes 101,
+      fitsInto "*" ratTimes 97,
       fitsInto "one" ratOne 6,
-      fitsInto "scale" ratScale 81
+      fitsInto "scale" ratScale 79
       ],
     testGroup "Serialization" [
       fitsInto "toBuiltinData" ratToBuiltin 30,
-      fitsInto "fromBuiltinData" ratFromBuiltin 331,
-      fitsInto "unsafeFromBuiltinData" ratUnsafeFromBuiltin 201
+      fitsInto "fromBuiltinData" ratFromBuiltin 325,
+      fitsInto "unsafeFromBuiltinData" ratUnsafeFromBuiltin 199
       ],
     testGroup "Construction" [
-      fitsInto "unsafeRatio" ratMkUnsafe 128,
-      fitsInto "ratio" ratMkSafe 216,
+      fitsInto "unsafeRatio" ratMkUnsafe 126,
+      fitsInto "ratio" ratMkSafe 212,
       fitsInto "fromInteger" ratFromInteger 4
       ],
     testGroup "Other" [
