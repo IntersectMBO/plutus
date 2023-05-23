@@ -208,7 +208,7 @@ processTerm = handleTerm
             bs' <- wither (processSingleBinding t) bs
             t' <- processTerm t
             pure $ restoreApps bs' t'
-        t -> forMOf termSubterms t processTerm >>= inlineSaturatedApp
+        t -> inlineSaturatedApp =<< forMOf termSubterms t processTerm
 
     -- See Note [Renaming strategy]
     substName :: name -> InlineM name uni fun a (Maybe (Term name uni fun a))
@@ -440,17 +440,16 @@ fullyApplyAndBetaReduce info args0 = do
         InlineM name uni fun a (Maybe (Term name uni fun a))
       go acc bs args = case (bs, args) of
         ([], _) -> pure . Just $ mkIterApp acc args
-        (param : params, (_ann, arg) : args') ->
-          ifM
-            (safeToBetaReduce param arg)
-            ( do
-                acc' <-
-                  termSubstNamesM
-                    (\n -> if n == param then Just <$> PLC.rename arg else pure Nothing)
-                    acc
-                go acc' params args'
-            )
-            (pure Nothing)
+        (param : params, (_ann, arg) : args') -> do
+          safe <- safeToBetaReduce param arg
+          if safe
+            then do
+              acc' <-
+                termSubstNamesM
+                  (\n -> if n == param then Just <$> PLC.rename arg else pure Nothing)
+                  acc
+              go acc' params args'
+            else pure Nothing
         _ -> pure Nothing
 
       -- Is it safe to turn `(\a -> body) arg` into `body [a := arg]`?
