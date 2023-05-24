@@ -49,9 +49,7 @@ let
 
   native-plutus-810-jobs = make-haskell-jobs library.plutus-project-810;
   native-plutus-92-jobs = make-haskell-jobs library.plutus-project-92;
-  native-plutus-96-jobs =
-    lib.optionalAttrs (system != aarchdarwin)
-      (make-haskell-jobs library.plutus-project-96);
+  native-plutus-96-jobs = make-haskell-jobs library.plutus-project-96;
 
   # - Only test cross on our primary dev version
   # - Cross-compiling to windows only works from linux
