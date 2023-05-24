@@ -97,8 +97,8 @@ runKnights depth boardSize = depthSearch depth (root boardSize) grow isFinished
 mkKnightsCode :: Integer -> Integer -> Tx.CompiledCode [Solution]
 mkKnightsCode depth boardSize =
        $$(Tx.compile [|| runKnights ||])
-             `Tx.unsafeApplyCode` Tx.liftCode depth
-                  `Tx.unsafeApplyCode` Tx.liftCode boardSize
+             `Tx.unsafeApplyCode` Tx.liftCodeDef depth
+                  `Tx.unsafeApplyCode` Tx.liftCodeDef boardSize
 
 mkKnightsTerm :: Integer -> Integer -> Term
 mkKnightsTerm depth boardSize = compiledCodeToTerm $ mkKnightsCode depth boardSize

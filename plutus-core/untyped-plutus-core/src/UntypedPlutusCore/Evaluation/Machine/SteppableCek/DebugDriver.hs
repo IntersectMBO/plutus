@@ -2,6 +2,7 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE GADTs                  #-}
 {-# LANGUAGE LambdaCase             #-}
+{-# LANGUAGE TypeOperators          #-}
 module UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver
     ( Breakpointable (..)
     , CekState
@@ -23,7 +24,8 @@ module UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver
 import UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal
 
 import Control.Lens hiding (Context)
-import Control.Monad.Reader
+import Control.Monad (void)
+import Control.Monad.Reader (MonadReader, ask, local, runReaderT)
 import Control.Monad.Trans.Free as F
 import Data.Function
 
@@ -82,8 +84,8 @@ data DebugF uni fun ann bps a
 
 -- | The monad that the driver operates in
 type Driving m uni fun ann bps =
-    ( MonadReader (CekState uni fun ann) m -- ^ the state of the debugger
-    , MonadFree (DebugF uni fun ann bps) m -- ^ the effects of the driver
+    ( MonadReader (CekState uni fun ann) m -- the state of the debugger
+    , MonadFree (DebugF uni fun ann bps) m -- the effects of the driver
     , Breakpointable ann bps
     )
 

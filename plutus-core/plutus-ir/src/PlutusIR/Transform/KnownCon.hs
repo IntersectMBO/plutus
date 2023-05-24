@@ -1,16 +1,11 @@
-{-# LANGUAGE BangPatterns      #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE TupleSections     #-}
-{-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE LambdaCase #-}
 
 module PlutusIR.Transform.KnownCon (knownCon) where
 
 import PlutusCore qualified as PLC
 import PlutusCore.Name qualified as PLC
 import PlutusIR
+import PlutusIR.Contexts
 import PlutusIR.Core
 import PlutusIR.Transform.Rename ()
 
@@ -71,26 +66,26 @@ go ::
     Term tyname name uni fun a ->
     Term tyname name uni fun a
 go ctxt t
-    | (Var _ n, args) <- collectArgs t
+    | (Var _ n, args) <- splitApplication t
     , Just (cons, numTvs) <- Map.lookup n ctxt
-    , ((TermArg scrut, _) : (TypeArg _resTy, _) : rest) <-
+    , (TermAppContext scrut _ (TypeAppContext _resTy _ branchArgs)) <-
         -- The datatype may have some type arguments, we
         -- aren't interested in them, so we drop them.
-        drop numTvs args
+        dropAppContext numTvs args
     , -- The scrutinee is itself an application
-      (Var _ con, conArgs) <- collectArgs scrut
+      (Var _ con, conArgs) <- splitApplication scrut
     , -- ... of one of the constructors from the same datatype as the destructor
       Just i <- List.findIndex (== con) cons
     , -- ... and there is a  branch for that constructor in the destructor application
-      Just (TermArg branch, _) <- rest List.!? i
+      (TermAppContext branch _ _) <- dropAppContext i branchArgs
     , -- This condition ensures the destructor is fully-applied
       -- (which should always be the case in programs that come from Plutus Tx,
       -- but not necessarily in arbitrary PIR programs).
-      length rest == length cons =
-        mkTermApps
+      lengthContext branchArgs == length cons =
+        fillAppContext
             branch
             -- The arguments to the selected branch consists of the arguments
             -- to the constructor, without the leading type arguments - e.g.,
             -- if the scrutinee is `Just {integer} 1`, we only need the `1`).
-            (drop numTvs conArgs)
+            (dropAppContext numTvs conArgs)
     | otherwise = t

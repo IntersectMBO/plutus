@@ -1,1 +1,0 @@
-/\a -> \(x : list a) -> /\r -> \(z : r) -> \(f : a -> list a -> r) -> chooseList {a} {unit -> r} x (\(u : unit) -> z) (\(u : unit) -> f (headList {a} x) (tailList {a} x)) ()

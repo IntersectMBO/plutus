@@ -5,6 +5,10 @@
 -- on 9.2.4 this is the flag that suppresses the above
 -- warning
 {-# OPTIONS -Wno-missing-signatures #-}
+-- 9.6 notices that all the constraints on TestTypesFromTheUniverseAreAllKnown
+-- are redundant (which they are), but we don't care because it only exists
+-- to test that some constraints are solvable
+{-# OPTIONS -Wno-redundant-constraints #-}
 
 {-# LANGUAGE BlockArguments        #-}
 {-# LANGUAGE ConstraintKinds       #-}
@@ -40,6 +44,7 @@ import PlutusCore.Builtin
 import PlutusCore.Data
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Result
+import PlutusCore.Pretty.Extra
 
 import Control.Applicative
 import Data.Bits (toIntegralSized)
@@ -195,13 +200,13 @@ instance HasRenderContext config => PrettyBy config (DefaultUni a) where
         DefaultUniApply uniF uniA -> uniF `juxtPrettyM` uniA
         DefaultUniData            -> "data"
 
+instance HasRenderContext config => PrettyBy config (SomeTypeIn DefaultUni) where
+    prettyBy config (SomeTypeIn uni) = prettyBy config uni
+
 -- | This always pretty-prints parens around type applications (e.g. @(list bool)@) and
 -- doesn't pretty-print them otherwise (e.g. @integer@).
--- This is so we can have a single instance that is safe to use with both the classic and the
--- readable pretty-printers, even though for the latter it may result in redundant parens being
--- shown. We are planning to change the classic syntax to remove this silliness.
 instance Pretty (DefaultUni a) where
-    pretty = prettyBy $ RenderContext ToTheRight juxtFixity
+    pretty = prettyParens
 instance Pretty (SomeTypeIn DefaultUni) where
     pretty (SomeTypeIn uni) = pretty uni
 

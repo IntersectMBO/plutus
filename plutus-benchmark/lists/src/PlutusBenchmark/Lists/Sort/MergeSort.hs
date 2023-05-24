@@ -50,7 +50,7 @@ mergeSortWorstCase n = f [1..n]
 
 mkMergeSortTerm :: [Integer] -> Term
 mkMergeSortTerm l =
-    compiledCodeToTerm $ $$(Tx.compile [|| mergeSort ||]) `Tx.unsafeApplyCode` Tx.liftCode l
+    compiledCodeToTerm $ $$(Tx.compile [|| mergeSort ||]) `Tx.unsafeApplyCode` Tx.liftCodeDef l
 
 mkWorstCaseMergeSortTerm :: Integer -> Term
 mkWorstCaseMergeSortTerm = mkMergeSortTerm . mergeSortWorstCase

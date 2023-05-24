@@ -1,8 +1,9 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE LambdaCase         #-}
+{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE RecordWildCards    #-}
 
 module PlutusCore.Evaluation.Machine.CostModelInterface
     ( CostModelParams
@@ -23,6 +24,7 @@ import Control.Exception
 import Control.Monad.Except
 import Data.Aeson
 import Data.Aeson.Flatten
+import Data.Data (Data)
 import Data.HashMap.Strict qualified as HM
 import Data.Map qualified as Map
 import Data.Map.Merge.Lazy qualified as Map
@@ -168,7 +170,7 @@ data CostModelApplyError =
       -- ^ internal error when we are transforming the applied params from json with given jsonstring error (should not happen)
     | CMTooFewParamsError { cmTooFewExpected :: !Int, cmTooFewActual :: !Int }
       -- ^ See Note [Cost model parameters from the ledger's point of view]
-    deriving stock Show
+    deriving stock (Eq, Show, Data)
     deriving anyclass Exception
 
 -- | A non-fatal warning when trying to create a cost given some plain costmodel parameters.

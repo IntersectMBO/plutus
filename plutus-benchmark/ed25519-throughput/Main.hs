@@ -6,6 +6,7 @@
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
+{-# LANGUAGE TypeOperators       #-}
 {-# LANGUAGE ViewPatterns        #-}
 
 {- | Check how many Ed25519 signature verifications we can perform within the
@@ -172,7 +173,7 @@ verifyInputs hash d =
 -- verification script to that.
 mkSigCheckScript :: Integer -> UProg
 mkSigCheckScript n =
-    Tx.getPlcNoAnn $ $$(Tx.compile [|| verifyInputs builtinHash ||]) `Tx.unsafeApplyCode` Tx.liftCode (mkInputsAsData n haskellHash)
+    Tx.getPlcNoAnn $ $$(Tx.compile [|| verifyInputs builtinHash ||]) `Tx.unsafeApplyCode` Tx.liftCodeDef (mkInputsAsData n haskellHash)
 
 -- Printing utilities
 percentage :: (Integral a, Integral b) => a -> b -> Double

@@ -4,9 +4,13 @@
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
+
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:target-version=1.0.0 #-}
+
 module BasicPlutusTx where
 
 import PlutusCore.Default qualified as PLC
+import PlutusCore.Version (plcVersion100)
 -- Main Plutus Tx module.
 import PlutusTx
 -- Additional support for lifting.
@@ -119,8 +123,10 @@ addOneToN n =
     -- 'unsafeApplyCode' applies one 'CompiledCode' to another.
     `unsafeApplyCode`
     -- 'liftCode' lifts the argument 'n' into a
-    -- 'CompiledCode Integer'.
-    liftCode n
+    -- 'CompiledCode Integer'. It needs a version to tell it what
+    -- Plutus Core language version to target, if you don't care you
+    -- can use 'liftCodeDef'
+    liftCode plcVersion100 n
 
 {- |
 >>> pretty $ getPlc addOne
@@ -168,9 +174,9 @@ pastEndAt :: EndDate -> Integer -> CompiledCode Bool
 pastEndAt end current =
     pastEnd
     `unsafeApplyCode`
-    liftCode end
+    liftCode plcVersion100 end
     `unsafeApplyCode`
-    liftCode current
+    liftCode plcVersion100 current
 
 {- |
 >>> let program = getPlc $ pastEndAt Never 5

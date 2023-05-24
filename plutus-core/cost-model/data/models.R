@@ -120,10 +120,11 @@ get.bench.data <- function(path) {
         comment.char="#"
     )
 
-    benchname <- regex("([[:alnum:]_]+)/ExMemory (\\d+)(?:/ExMemory (\\d+))?(?:/ExMemory (\\d+))?")
-    ## We have benchmark names like "AddInteger/ExMemory 11/ExMemory 22".  This extracts the name
-    ## and up to three numbers, returning "NA" for any that are missing.  If we ever have builtins
-    ## with more than three arguments we'lll need to extend this and add names for the new arguments.
+    benchname <- regex("([[:alnum:]_]+)/(\\d+)(?:/(\\d+))?(?:/(\\d+))?")
+    ## We have benchmark names like "AddInteger/11/22", the numbers representing the sizes of
+    ## the inputs to the benchmark.  This extracts the name and up to three numbers, returning
+    ## "NA" for any that are missing.  If we ever have builtins with more than three arguments
+    ## we'll need to extend this and add names for the new arguments.
 
     ## FIXME: the benchmarks for Nop4, Nop5, and Nop6 do have more than three
     ## arguments, but we're not paying any attention to the extra ones because

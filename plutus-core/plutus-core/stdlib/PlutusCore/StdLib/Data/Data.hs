@@ -65,9 +65,9 @@ caseData = runQuote $ do
         . lamAbs () fList (TyFun () listData $ TyVar () r)
         . lamAbs () fI (TyFun () integer $ TyVar () r)
         . lamAbs () fB (TyFun () (mkTyBuiltin @_ @ByteString ()) $ TyVar () r)
-        $ mkIterApp () (tyInst () (builtin () ChooseData) . TyFun () unit $ TyVar () r)
+        $ mkIterAppNoAnn (tyInst () (builtin () ChooseData) . TyFun () unit $ TyVar () r)
             [ var () d
-            , lamAbs () u unit $ mkIterApp () (mkIterInst () uncurry [integer, listData, TyVar () r])
+            , lamAbs () u unit $ mkIterAppNoAnn (mkIterInstNoAnn uncurry [integer, listData, TyVar () r])
                 [ var () fConstr
                 , apply () (builtin () UnConstrData) $ var () d
                 ]

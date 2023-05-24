@@ -30,8 +30,9 @@ import PlutusCore.Rename
 import PlutusPrelude
 
 import Control.Lens
+import Control.Monad (when)
 import Control.Monad.Error.Lens
-import Control.Monad.Except
+import Control.Monad.Except (MonadError)
 -- Using @transformers@ rather than @mtl@, because the former doesn't impose the 'Monad' constraint
 -- on 'local'.
 import Control.Monad.Trans.Reader
@@ -366,6 +367,7 @@ inferKindM (TyForall ann n k body) = do
     withTyVar n (void k) $ checkKindM ann body (Type ())
     pure $ Type ()
 
+
 -- [infer| G !- arg :: k]    [check| G !- pat :: (k -> *) -> k -> *]
 -- -----------------------------------------------------------------
 -- [infer| G !- ifix pat arg :: *]
@@ -374,6 +376,11 @@ inferKindM (TyIFix ann pat arg)    = do
     checkKindM ann pat $ toPatFuncKind k
     pure $ Type ()
 
+-- s_0 = [p_0_0 ... p_0_m]   [check| G !- p_0_0 :: *] ... [check| G !- p_0_m :: *]
+-- ...
+-- s_n = [p_n_0 ... p_n_m]   [check| G !- p_n_0 :: *] ... [check| G !- p_n_m :: *]
+-- -------------------------------------------------------------------------------
+-- [infer| G !- sop s_0 ... s_n :: *]
 inferKindM (TySOP ann tyls)        = do
     for_ tyls $ \tyl -> for_ tyl $ \ty -> checkKindM ann ty (Type ())
     pure $ Type ()
@@ -415,7 +422,7 @@ unfoldIFixOf pat arg k = do
     -- But breaking global uniqueness is a bad idea regardless.
     vPat' <- rename vPat
     normalizeTypeM $
-        mkIterTyApp () vPat'
+        mkIterTyAppNoAnn vPat'
             [ TyLam () a k . TyIFix () vPat $ TyVar () a
             , vArg
             ]
@@ -515,10 +522,10 @@ inferTypeM (Error ann ty) = do
     checkKindM ann ty $ Type ()
     normalizeTypeM $ void ty
 
--- resTy ~> vResTy     vResTy = sop s_0 ... s_i ... s_n     s_i = [p_0 ... p_m]
--- [check| G !- t_j : p_j]
--- ----------------------------------------------------------------------------
--- [infer| G !- constr resTy i t_0 ... t_n : vResTy]
+-- resTy ~> vResTy     vResTy = sop s_0 ... s_i ... s_n
+-- s_i = [p_i_0 ... p_i_m]   [check| G !- t_0 : p_i_0] ... [check| G !- t_m : p_i_m]
+-- ---------------------------------------------------------------------------------
+-- [infer| G !- constr resTy i t_0 ... t_m : vResTy]
 inferTypeM t@(Constr ann resTy i args) = do
     vResTy <- normalizeTypeM $ void resTy
 
@@ -540,9 +547,11 @@ inferTypeM t@(Constr ann resTy i args) = do
 
     pure vResTy
 
--- resTy ~> vResTy     vResTy = sop s_0 ... s_n     s_i = [p_i_0 ... p_i_m]
--- [check| G !- c_j : p_i_0 -> ... -> p_i_m -> vResTy]
--- ----------------------------------------------------------------------------
+-- resTy ~> vResTy   [infer| G !- scrut : sop s_0 ... s_n]
+-- s_0 = [p_0_0 ... p_0_m]   [check| G !- c_0 : p_0_0 -> ... -> p_0_m -> vResTy]
+-- ...
+-- s_n = [p_n_0 ... p_n_m]   [check| G !- c_n : p_n_0 -> ... -> p_n_m -> vResTy]
+-- -----------------------------------------------------------------------------
 -- [infer| G !- case resTy scrut c_0 ... c_n : vResTy]
 inferTypeM (Case ann resTy scrut cases) = do
     vResTy <- normalizeTypeM $ void resTy
@@ -553,8 +562,8 @@ inferTypeM (Case ann resTy scrut cases) = do
     let expectedType = TySOP () (replicate (length cases) [dummyType])
     case unNormalized vScrutTy of
         TySOP _ sTys -> case zipExact cases sTys of
-            -- made of sub-parts of a normalized type, so normalized
             Just casesAndArgTypes -> for_ casesAndArgTypes $ \(c, argTypes) ->
+                -- made of sub-parts of a normalized type, so normalized
                 checkTypeM ann c (Normalized $ mkIterTyFun () argTypes (unNormalized vResTy))
             -- scrutinee does not have a SOP type with the right number of alternatives
             -- for the number of cases

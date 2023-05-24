@@ -12,16 +12,14 @@ repository cardano-haskell-packages
 
 -- See CONTRIBUTING for some Nix commands you will need to run if you
 -- update either of these.
-
--- repeating hackage index-state to work around haskell.nix parsing limitation
-index-state: 2023-03-24T00:00:00Z
 index-state:
-  -- Bump this if you need newer packages from Hackage
-  , hackage.haskell.org 2023-03-24T00:00:00Z
+  -- Bump both the following dates if you need newer packages from Hackage
+  , hackage.haskell.org 2023-05-23T01:25:23Z
   -- Bump this if you need newer packages from CHaP
-  , cardano-haskell-packages 2023-03-24T00:00:00Z
+  , cardano-haskell-packages 2023-05-16T08:53:30Z
 
 packages: doc/read-the-docs-site
+          marlowe-cardano-minimal
           plutus-benchmark
           plutus-conformance
           plutus-core
@@ -46,11 +44,15 @@ test-show-details: direct
 package plutus-core
   flags: +with-inline-r
 
--- See https://github.com/input-output-hk/nothunks/issues/17
-package nothunks
-  flags: +vector
-
 -- See the note on nix/pkgs/default.nix:agdaPackages for why this is here.
 -- (NOTE this will change to ieee754 in newer versions of nixpkgs).
 extra-packages: ieee, filemanip
+
+if impl(ghc >= 9.6)
+  allow-newer:
+    -- unmaintained? would be good to do something here
+    , int-cast:base
+    -- https://github.com/mokus0/th-extras/pull/20
+    , th-extras:template-haskell
+    , th-extras:th-abstraction
 

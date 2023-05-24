@@ -11,6 +11,7 @@
 {-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE TypeFamilies           #-}
+{-# LANGUAGE TypeOperators          #-}
 {-# LANGUAGE UndecidableInstances   #-}
 
 module PlutusCore.Evaluation.Machine.Exception
@@ -196,7 +197,7 @@ instance (HasPrettyDefaults config ~ 'True, Pretty fun) =>
     prettyBy _      (UnknownBuiltin fun)                  =
         "Encountered an unknown built-in function:" <+> pretty fun
     prettyBy _      NonConstrScrutinized =
-        "A non-constructor value was scrutinitzed in a case expression"
+        "A non-constructor value was scrutinized in a case expression"
     prettyBy _      (MissingCaseBranch i) =
         "Case expression missing the branch required by the scrutinee tag:" <+> pretty i
 

@@ -39,8 +39,8 @@ import PlutusCore.MkPlc (mkIterTyFun)
 -- we mirror inferTypeM, checkTypeM of plc-tc and extend it for plutus-ir terms
 import PlutusCore.TypeCheck.Internal hiding (checkTypeM, inferTypeM, runTypeCheckM)
 
+import Control.Monad (when)
 import Control.Monad.Error.Lens
-import Control.Monad.Except
 -- Using @transformers@ rather than @mtl@, because the former doesn't impose the 'Monad' constraint
 -- on 'local'.
 import Control.Lens ((^?))
@@ -222,16 +222,16 @@ inferTypeM (Error ann ty)           = do
     checkKindM ann ty $ Type ()
     normalizeTypeM $ void ty
 
--- resTy ~> vResTy     vResTy = sop s_0 ... s_i ... s_n     s_i = [p_0 ... p_m]
--- [check| G !- t_j : p_j]
--- ----------------------------------------------------------------------------
--- [infer| G !- constr resTy i t_0 ... t_n : vResTy]
+-- resTy ~> vResTy     vResTy = sop s_0 ... s_i ... s_n
+-- s_i = [p_i_0 ... p_i_m]   [check| G !- t_0 : p_i_0] ... [check| G !- t_m : p_i_m]
+-- ---------------------------------------------------------------------------------
+-- [infer| G !- constr resTy i t_0 ... t_m : vResTy]
 inferTypeM t@(Constr ann resTy i args) = do
     vResTy <- normalizeTypeM $ void resTy
 
     -- We don't know exactly what to expect, we only know what the i-th sum should look like, so we
     -- assert that we should have some types in the sum up to there, and then the known product type.
-    let expectedType = TySOP () (replicate ((fromIntegral i)-1) [dummyType] ++ [replicate (length args) dummyType])
+    let expectedType = TySOP () (replicate ((fromIntegral i) - 1) [dummyType] ++ [replicate (length args) dummyType])
     case unNormalized vResTy of
         TySOP _ vSTys -> case vSTys ^? wix i of
             Just pTys -> case zipExact args pTys of
@@ -247,9 +247,11 @@ inferTypeM t@(Constr ann resTy i args) = do
 
     pure vResTy
 
--- resTy ~> vResTy     vResTy = sop s_0 ... s_n     s_i = [p_i_0 ... p_i_m]
--- [check| G !- c_j : p_i_0 -> ... -> p_i_m -> vResTy]
--- ----------------------------------------------------------------------------
+-- resTy ~> vResTy   [infer| G !- scrut : sop s_0 ... s_n]
+-- s_0 = [p_0_0 ... p_0_m]   [check| G !- c_0 : p_0_0 -> ... -> p_0_m -> vResTy]
+-- ...
+-- s_n = [p_n_0 ... p_n_m]   [check| G !- c_n : p_n_0 -> ... -> p_n_m -> vResTy]
+-- -----------------------------------------------------------------------------
 -- [infer| G !- case resTy scrut c_0 ... c_n : vResTy]
 inferTypeM (Case ann resTy scrut cases) = do
     vResTy <- normalizeTypeM $ void resTy
@@ -260,8 +262,8 @@ inferTypeM (Case ann resTy scrut cases) = do
     let expectedType = TySOP () (replicate (length cases) [dummyType])
     case unNormalized vScrutTy of
         TySOP _ sTys -> case zipExact cases sTys of
-            -- made of sub-parts of a normalized type, so normalized
             Just casesAndArgTypes -> for_ casesAndArgTypes $ \(c, argTypes) ->
+                -- made of sub-parts of a normalized type, so normalized
                 checkTypeM ann c (Normalized $ mkIterTyFun () argTypes (unNormalized vResTy))
             -- scrutinee does not have a SOP type with the right number of alternatives
             -- for the number of cases
@@ -445,7 +447,8 @@ withVarsOfBinding _ (TermBind _ _ vdecl _) k = do
     withVar (_varDeclName vdecl) (void <$> vTy) k
 withVarsOfBinding r (DatatypeBind _ dt) k = do
     -- generate all the definitions
-    (_tyconstrDef, constrDefs, destrDef) <- compileDatatypeDefs r (original dt)
+    -- options don't matter, we're just doing it for the types
+    (_tyconstrDef, constrDefs, destrDef) <- compileDatatypeDefs defaultDatatypeCompilationOpts r (original dt)
     -- ignore the generated rhs terms of constructors/destructor
     let structorDecls = PIR.defVar <$> destrDef:constrDefs
     foldr normRenameScope k structorDecls

@@ -1,8 +1,10 @@
 -- editorconfig-checker-disable-file
+{-# LANGUAGE CPP               #-}
 {-# LANGUAGE ConstraintKinds   #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections     #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE ViewPatterns      #-}
 
@@ -28,6 +30,9 @@ import PlutusTx.PIRTypes
 import GHC.Builtin.Types.Prim qualified as GHC
 import GHC.Core.FamInstEnv qualified as GHC
 import GHC.Core.Multiplicity qualified as GHC
+#if MIN_VERSION_ghc(9,4,0)
+import GHC.Core.Reduction qualified as GHC
+#endif
 import GHC.Plugins qualified as GHC
 
 import PlutusIR qualified as PIR
@@ -40,7 +45,6 @@ import Control.Monad.Extra
 import Control.Monad.Reader
 
 import Data.List (sortBy)
-import Data.List.NonEmpty qualified as NE
 import Data.Set qualified as Set
 import Data.Traversable
 
@@ -71,27 +75,35 @@ compileTypeNorm :: CompilingDefault uni fun m ann => GHC.Type -> m (PIRType uni)
 compileTypeNorm ty = do
     CompileContext {ccFamInstEnvs=envs} <- ask
     -- See Note [Type families and normalizing types]
+#if MIN_VERSION_ghc(9,4,0)
+    let (GHC.Reduction _ ty') = GHC.normaliseType envs GHC.Representational ty
+#else
     let (_, ty') = GHC.normaliseType envs GHC.Representational ty
+#endif
     compileType ty'
 
 -- | Compile a type.
 compileType :: CompilingDefault uni fun m ann => GHC.Type -> m (PIRType uni)
 compileType t = withContextM 2 (sdToTxt $ "Compiling type:" GHC.<+> GHC.ppr t) $ do
     -- See Note [Scopes]
-    CompileContext {ccScopes=stack} <- ask
-    let top = NE.head stack
+    CompileContext {ccScope=scope} <- ask
     case t of
         -- in scope type name
-        (GHC.getTyVar_maybe -> Just v) -> case lookupTyName top (GHC.getName v) of
+        (GHC.getTyVar_maybe -> Just v) -> case lookupTyName scope (GHC.getName v) of
             Just (PIR.TyVarDecl _ name _) -> pure $ PIR.TyVar annMayInline name
             Nothing                       ->
                 throwSd FreeVariableError $ "Type variable:" GHC.<+> GHC.ppr v
-        (GHC.splitFunTy_maybe -> Just (_m, i, o)) -> PIR.TyFun annMayInline <$> compileType i <*> compileType o
+        (GHC.splitFunTy_maybe -> Just r) -> case r of
+#if MIN_VERSION_ghc(9,6,0)
+            (_t, _m, i, o) -> PIR.TyFun annMayInline <$> compileType i <*> compileType o
+#else
+            (_m, i, o)     -> PIR.TyFun annMayInline <$> compileType i <*> compileType o
+#endif
         -- ignoring 'RuntimeRep' type arguments, see Note [Unboxed tuples]
         (GHC.splitTyConApp_maybe -> Just (tc, ts)) ->
-            PIR.mkIterTyApp annMayInline
+            PIR.mkIterTyApp
                 <$> compileTyCon tc
-                <*> traverse compileType (GHC.dropRuntimeRepArgs ts)
+                <*> (traverse (fmap (annMayInline,) . compileType) (GHC.dropRuntimeRepArgs ts))
         (GHC.splitAppTy_maybe -> Just (t1, t2)) ->
             PIR.TyApp annMayInline <$> compileType t1 <*> compileType t2
         (GHC.splitForAllTyCoVar_maybe -> Just (tv, tpe)) -> mkTyForallScoped tv (compileType tpe)
@@ -298,7 +310,7 @@ getMatchInstantiated t = withContextM 3 (sdToTxt $ "Creating instantiated matche
         match <- getMatch tc
         -- We drop 'RuntimeRep' arguments, see Note [Unboxed tuples]
         args' <- mapM compileTypeNorm (GHC.dropRuntimeRepArgs args)
-        pure $ PIR.mkIterInst annMayInline match args'
+        pure $ PIR.mkIterInst match $ (annMayInline,) <$> args'
     -- must be a TC app
     _ -> throwSd CompilationError $ "Cannot case on a value of a type which is not a datatype:" GHC.<+> GHC.ppr t
 

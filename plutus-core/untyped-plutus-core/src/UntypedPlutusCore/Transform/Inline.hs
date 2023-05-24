@@ -37,8 +37,9 @@ import PlutusCore.Name
 import PlutusCore.Quote
 
 import Control.Lens hiding (Strict)
-import Control.Monad.Reader
-import Control.Monad.State
+import Control.Monad (liftM2)
+import Control.Monad.Reader (ReaderT, asks, runReaderT)
+import Control.Monad.State (StateT, evalStateT, gets, modify')
 
 import Data.Semigroup.Generic (GenericSemigroupMonoid (..))
 import Witherable (wither)
@@ -356,10 +357,17 @@ isPure = go True
             -- This case is not needed in PIR's `isPure`, because PIR's beta-reduction pass
             -- turns terms like this into `Let` bindings.
             Apply _ (LamAbs _ _ body) arg -> go True arg && go delayAndVarIsPure body
+            -- Applications can do work
+            Apply {}                      -> False
             Force _ body                  -> go False body
+            -- A constructor is pure if all of its elements are pure
+            Constr _ _ es                 -> all (go True) es
+            -- A case will compute the case branch, which could do anything
+            Case {}                       -> False
+            -- Error is obviously not pure
+            Error {}                      -> False
             -- See Note [Differences from PIR inliner] 5
             Builtin{}                     -> True
-            _                             -> False
 
 {- Note [delayAndVarIsPure]
 
@@ -373,7 +381,7 @@ no longer be considered unconditionally pure, because the following terms are im
 ```
 force (delay impure)
 force (force (delay (delay impure)))
-force x  -- because `x` may expand into an impure `Term`
+force x  -- because `x` may expand into an delayed impure `Term`
 force (force (delay x))
 ```
 

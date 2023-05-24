@@ -36,4 +36,3 @@ pattern bool = atomic aBool
 pattern pdata = atomic aData
 ```
 
-

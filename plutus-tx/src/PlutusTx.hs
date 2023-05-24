@@ -24,7 +24,8 @@ module PlutusTx (
     Typeable,
     makeLift,
     safeLiftCode,
-    liftCode) where
+    liftCode,
+    liftCodeDef) where
 
 import PlutusCore.Data (Data (..))
 import PlutusTx.Builtins (BuiltinData, builtinDataToData, dataToBuiltinData)
@@ -32,6 +33,6 @@ import PlutusTx.Code (CompiledCode, CompiledCodeIn, applyCode, getPir, getPirNoA
                       getPlcNoAnn, unsafeApplyCode)
 import PlutusTx.IsData (FromData (..), ToData (..), UnsafeFromData (..), fromData,
                         makeIsDataIndexed, toData, unstableMakeIsData)
-import PlutusTx.Lift (liftCode, makeLift, safeLiftCode)
+import PlutusTx.Lift (liftCode, liftCodeDef, makeLift, safeLiftCode)
 import PlutusTx.Lift.Class (Lift, Typeable)
 import PlutusTx.TH as Export

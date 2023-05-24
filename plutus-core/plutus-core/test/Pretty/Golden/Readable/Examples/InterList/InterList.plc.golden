@@ -1,1 +1,0 @@
-\a -> \b -> ifix (\(rec :: ((* -> * -> *) -> *) -> *) -> \(spine :: (* -> * -> *) -> *) -> spine ((\(interlist :: * -> * -> *) -> \a -> \b -> all r. r -> (a -> b -> interlist b a -> r) -> r) (\a -> \b -> rec (\(dat :: * -> * -> *) -> dat a b)))) (\(dat :: * -> * -> *) -> dat a b)

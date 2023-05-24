@@ -11,21 +11,12 @@ module PlutusTx.Foldable (
   -- * Specialized folds
   concat,
   concatMap,
-  and,
-  or,
-  any,
-  all,
-  -- * Searches
-  notElem,
-  find,
   -- * Other
   foldMap,
   fold,
   foldl,
   toList,
-  null,
   length,
-  elem,
   sum,
   product
   ) where
@@ -35,10 +26,8 @@ import Data.Functor.Identity (Identity (..))
 import GHC.Exts (build)
 import PlutusTx.Applicative (Applicative (pure), (*>))
 import PlutusTx.Base
-import PlutusTx.Bool (Bool (..), not, (&&), (||))
 import PlutusTx.Builtins (Integer)
 import PlutusTx.Either (Either (..))
-import PlutusTx.Eq (Eq (..))
 import PlutusTx.Maybe (Maybe (..))
 import PlutusTx.Monoid (Monoid (..))
 import PlutusTx.Numeric
@@ -103,20 +92,10 @@ toList :: Foldable t => t a -> [a]
 {-# INLINE toList #-}
 toList t = build (\ c n -> foldr c n t)
 
--- | Plutus Tx version of 'Data.Foldable.null'.
-{-# INLINABLE null #-}
-null :: Foldable t => t a -> Bool
-null = foldr (\_ _ -> False) True
-
 -- | Plutus Tx version of 'Data.Foldable.length'.
 {-# INLINABLE length #-}
 length :: Foldable t => t a -> Integer
 length = foldl (\c _ -> c + 1) 0
-
--- | Plutus Tx version of 'Data.Foldable.elem'.
-{-# INLINABLE elem #-}
-elem :: (Foldable t, Eq a) => a -> t a -> Bool
-elem = any . (==)
 
 -- | Plutus Tx version of 'Data.Foldable.sum'.
 {-# INLINEABLE sum #-}
@@ -159,39 +138,3 @@ concat xs = build (\c n -> foldr (\x y -> foldr c y x) n xs)
 concatMap :: Foldable t => (a -> [b]) -> t a -> [b]
 concatMap f xs = build (\c n -> foldr (\x b -> foldr c b (f x)) n xs)
 {-# INLINE concatMap #-}
-
--- | Plutus Tx version of 'Data.Foldable.and'.
-{-# INLINABLE and #-}
-and :: Foldable t => t Bool -> Bool
-and = product
-
--- | Plutus Tx version of 'Data.Foldable.or'.
-{-# INLINABLE or #-}
-or :: Foldable t => t Bool -> Bool
-or = sum
-
--- | Plutus Tx version of 'Data.Foldable.any'.
-{-# INLINABLE any #-}
-any :: Foldable t => (a -> Bool) -> t a -> Bool
-any p = foldr f False
-  where
-    f a acc = p a || acc
-
--- | Plutus Tx version of 'Data.Foldable.all'.
-{-# INLINABLE all #-}
-all :: Foldable t => (a -> Bool) -> t a -> Bool
-all p = foldr f True
-  where
-    f a acc = p a && acc
-
--- | Plutus Tx version of 'Data.Foldable.notElem'.
-{-# INLINABLE notElem #-}
-notElem :: (Foldable t, Eq a) => a -> t a -> Bool
-notElem x = not . elem x
-
--- | Plutus Tx version of 'Data.Foldable.find'.
-{-# INLINABLE find #-}
-find :: Foldable t => (a -> Bool) -> t a -> Maybe a
-find p = foldr f Nothing
-  where
-    f a acc = if p a then Just a else acc

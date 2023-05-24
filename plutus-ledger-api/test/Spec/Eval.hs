@@ -1,6 +1,7 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies     #-}
+{-# LANGUAGE TypeOperators    #-}
 module Spec.Eval (tests) where
 
 import PlutusCore.Default
@@ -41,12 +42,12 @@ outLam = mkLam outOfScope
 -- The evaluation result (success or failure) depends on how the machine
 -- ignores  the irrelevant to the computation) part of the environment.
 outConst :: UPLC.Term DeBruijn DefaultUni DefaultFun ()
-outConst = mkIterApp () (mkLam $ mkLam $ Var () $ DeBruijn 2) [true, outLam]
+outConst = mkIterAppNoAnn (mkLam $ mkLam $ Var () $ DeBruijn 2) [true, outLam]
 
 -- [(force (builtin ifThenElse)) (con bool True) (con bool True) outOfScope]
 -- Both branches are evaluate *before* the predicate, so it is clear that this should fail in every case.
 outITEStrict :: UPLC.Term DeBruijn DefaultUni DefaultFun ()
-outITEStrict = mkIterApp ()
+outITEStrict = mkIterAppNoAnn
          (Force () (Builtin () IfThenElse))
          [ true -- pred
          , true -- then
@@ -56,7 +57,7 @@ outITEStrict = mkIterApp ()
 -- The branches are *lazy*. The evaluation result (success or failure) depends on how the machine
 -- ignores  the irrelevant to the computation) part of the environment.
 outITELazy :: UPLC.Term DeBruijn DefaultUni DefaultFun ()
-outITELazy = mkIterApp ()
+outITELazy = mkIterAppNoAnn
          (Force () (Builtin () IfThenElse))
          [ true -- pred
          , Delay () true -- then
@@ -66,7 +67,7 @@ outITELazy = mkIterApp ()
 -- [(force (builtin ifThenElse)) (con bool True) (con bool  True) (con unit ())]
 -- Note that the branches have **different** types. The machine cannot catch such a type error.
 illITEStrict :: UPLC.Term DeBruijn DefaultUni DefaultFun ()
-illITEStrict = mkIterApp ()
+illITEStrict = mkIterAppNoAnn
          (Force () (Builtin () IfThenElse))
          [ true -- pred
          , true -- then
@@ -76,7 +77,7 @@ illITEStrict = mkIterApp ()
 -- [(force (builtin ifThenElse)) (con bool True) (lam x (con bool  True)) (lam x (con unit ()))]
 -- The branches are *lazy*. Note that the branches have **different** types. The machine cannot catch such a type error.
 illITELazy :: UPLC.Term DeBruijn DefaultUni DefaultFun ()
-illITELazy = mkIterApp ()
+illITELazy = mkIterAppNoAnn
          (Force () (Builtin () IfThenElse))
          [ true -- pred
          , mkLam true -- then
@@ -85,7 +86,7 @@ illITELazy = mkIterApp ()
 -- [(builtin addInteger) (con integer 1) (con unit ())]
 -- Interesting because it involves a runtime type-error of a builtin.
 illAdd :: UPLC.Term DeBruijn DefaultUni DefaultFun ()
-illAdd = mkIterApp ()
+illAdd = mkIterAppNoAnn
          (Builtin () AddInteger)
          [ one
          , unit
@@ -94,7 +95,7 @@ illAdd = mkIterApp ()
 -- [(builtin addInteger) (con integer 1) (con integer 1) (con integer 1)]
 -- Interesting because it involves a (builtin) over-saturation type-error, which the machine can recognize.
 illOverSat :: UPLC.Term DeBruijn DefaultUni DefaultFun ()
-illOverSat = mkIterApp ()
+illOverSat = mkIterAppNoAnn
              (Builtin () AddInteger)
              [ one
              , one
@@ -103,7 +104,7 @@ illOverSat = mkIterApp ()
 -- [(lam x x) (con integer 1) (con integer 1)]
 -- Interesting because it involves a (lambda) over-saturation type-error, which the machine can recognize.
 illOverApp :: UPLC.Term DeBruijn DefaultUni DefaultFun ()
-illOverApp = mkIterApp ()
+illOverApp = mkIterAppNoAnn
              (mkLam $ Var () $ DeBruijn 1) -- id
              [ one
              , one

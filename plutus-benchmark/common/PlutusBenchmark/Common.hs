@@ -72,7 +72,7 @@ compiledCodeToTerm (Tx.getPlcNoAnn -> UPLC.Program _ _ body) = body
    if we try to do this over an arbitrary universe.-}
 haskellValueToTerm
     :: Tx.Lift DefaultUni a => a -> Term
-haskellValueToTerm = compiledCodeToTerm . Tx.liftCode
+haskellValueToTerm = compiledCodeToTerm . Tx.liftCodeDef
 
 
 {- | Convert a de-Bruijn-named UPLC term to a Benchmark -}

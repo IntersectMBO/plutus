@@ -24,6 +24,7 @@ module PlutusCore.Subst
     , vTerm
     , tvTerm
     , tvTy
+    , purely
     ) where
 
 import PlutusPrelude

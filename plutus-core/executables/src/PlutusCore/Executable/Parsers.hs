@@ -28,7 +28,7 @@ stdInput = flag' StdInput
 -- | Parser for an output stream. If none is specified,
 -- default to stdout for ease of use in pipeline.
 output :: Parser Output
-output = fileOutput <|> stdOutput <|> pure StdOutput
+output = fileOutput <|> stdOutput <|> noOutput <|> pure StdOutput
 
 fileOutput :: Parser Output
 fileOutput = FileOutput <$> strOption
@@ -41,6 +41,12 @@ stdOutput :: Parser Output
 stdOutput = flag' StdOutput
   (  long "stdout"
   <> help "Write to stdout (default)" )
+
+noOutput :: Parser Output
+noOutput = flag' NoOutput
+  (  long "silent"
+  <> short 's'
+  <> help "Don't output the evaluation result" )
 
 formatHelp :: String
 formatHelp =

@@ -15,6 +15,9 @@ open import Data.String using (String;_++_)
 
 open import Builtin using (Builtin)
 open Builtin.Builtin
+
+open import Builtin.Signature using (_⊢♯;con) 
+open import Builtin.Constant.Type ℕ (_⊢♯)
 open import Builtin.Constant.AtomicType using (aBool)
 
 open import Raw using (RawTy;RawTm;RawTyCon)
@@ -26,7 +29,6 @@ open import Utils using (Kind;Maybe;nothing;just;maybe;Monad;Either;inj₁;inj�
 open Monad{{...}}
 
 open import RawU using (TyTag;TmCon;tmCon;tagCon2TmCon;tmCon2TagCon)
-open TyTag
 \end{code}
 
 \begin{code}
@@ -331,8 +333,8 @@ uglyWeirdFin (T x) = "(T " ++ uglyWeirdFin x ++ ")"
 uglyWeirdFin (S x) = "(S " ++ uglyWeirdFin x ++ ")"
 
 uglyTmCon : TmCon → String
-uglyTmCon (tmCon integer x) = "(integer " ++ ishow x ++ ")"
-uglyTmCon (tmCon bytestring x) = "bytestring"
+uglyTmCon (tmCon (con integer) x) = "(integer " ++ ishow x ++ ")"
+uglyTmCon (tmCon (con bytestring) x) = "bytestring"
 uglyTmCon size = "size"
 
 postulate showNat : ℕ → String

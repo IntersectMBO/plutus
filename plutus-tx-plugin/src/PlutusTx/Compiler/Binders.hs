@@ -38,7 +38,7 @@ withVarScoped ::
 withVarScoped v k = do
     let ghcName = GHC.getName v
     var <- compileVarFresh annMayInline v
-    local (\c -> c {ccScopes=pushName ghcName var (ccScopes c)}) (k var)
+    local (\c -> c {ccScope=pushName ghcName var (ccScope c)}) (k var)
 
 withVarsScoped ::
     CompilingDefault uni fun m ann =>
@@ -50,7 +50,7 @@ withVarsScoped vs k = do
         let name = GHC.getName v
         var' <- compileVarFresh annMayInline v
         pure (name, var')
-    local (\c -> c {ccScopes=pushNames vars (ccScopes c)}) (k (fmap snd vars))
+    local (\c -> c {ccScope=pushNames vars (ccScope c)}) (k (fmap snd vars))
 
 withTyVarScoped ::
     Compiling uni fun m ann =>
@@ -60,7 +60,7 @@ withTyVarScoped ::
 withTyVarScoped v k = do
     let ghcName = GHC.getName v
     var <- compileTyVarFresh v
-    local (\c -> c {ccScopes=pushTyName ghcName var (ccScopes c)}) (k var)
+    local (\c -> c {ccScope=pushTyName ghcName var (ccScope c)}) (k var)
 
 withTyVarsScoped ::
     Compiling uni fun m ann =>
@@ -72,7 +72,7 @@ withTyVarsScoped vs k = do
         let name = GHC.getName v
         var' <- compileTyVarFresh v
         pure (name, var')
-    local (\c -> c {ccScopes=pushTyNames vars (ccScopes c)}) (k (fmap snd vars))
+    local (\c -> c {ccScope=pushTyNames vars (ccScope c)}) (k (fmap snd vars))
 
 -- | Builds a lambda, binding the given variable to a name that
 -- will be in scope when running the second argument.

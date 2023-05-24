@@ -4,6 +4,7 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
 {-# OPTIONS_GHC -Wno-orphans       #-}
 module PlutusIR.Core.Instance.Scoping where
 
@@ -116,8 +117,8 @@ establishScopingConstrTy
     -> Quote (Type TyName uni NameAnn)
 establishScopingConstrTy regSelf dataName params = goSpine where
     toDataAppliedToParams reg
-        = mkIterTyApp NotAName (TyVar (reg dataName) dataName)
-        $ map (\(TyVarDecl _ name _) -> TyVar (registerBound name) name) params
+        = mkIterTyApp (TyVar (reg dataName) dataName)
+        $ map (\(TyVarDecl _ name _) -> (NotAName, TyVar (registerBound name) name)) params
 
     goSpine (TyForall _ nameDup kindDup ty) = do
         -- Similar to 'establishScopingBinder', but uses 'TyFun' rather than whatever 'registerVia'

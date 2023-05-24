@@ -12,8 +12,6 @@ library.haskell-nix.hackage-project {
 
   compiler-nix-name = library.ghc-compiler-nix-name;
 
-  index-state = library.cabal-project-index-state;
-
   modules = [{
     # Agda is a huge pain. They have a special custom setup that compiles the
     # interface files for the Agda that ships with the compiler. These go in

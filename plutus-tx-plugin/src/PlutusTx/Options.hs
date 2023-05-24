@@ -10,8 +10,13 @@
 
 module PlutusTx.Options where
 
+import PlutusCore.Error as PLC
+import PlutusCore.Parser as PLC
+import PlutusCore.Quote as PLC
+import PlutusCore.Version qualified as PLC
 import PlutusIR.Compiler qualified as PIR
 import PlutusTx.Compiler.Types
+import UntypedPlutusCore qualified as UPLC
 
 import Control.Exception
 import Control.Lens
@@ -32,10 +37,10 @@ import PyF (fmt)
 
 import Text.Read (readMaybe)
 import Type.Reflection
-import UntypedPlutusCore qualified as UPLC
 
 data PluginOptions = PluginOptions
-    { _posDoTypecheck                    :: Bool
+    { _posPlcTargetVersion               :: PLC.Version
+    , _posDoTypecheck                    :: Bool
     , _posDeferErrors                    :: Bool
     , _posConservativeOpts               :: Bool
     , _posContextLevel                   :: Int
@@ -50,12 +55,15 @@ data PluginOptions = PluginOptions
     , _posDoSimplifierUnwrapCancel       :: Bool
     , _posDoSimplifierBeta               :: Bool
     , _posDoSimplifierInline             :: Bool
+    , _posDoSimplifierEvaluateBuiltins   :: Bool
     , _posDoSimplifierRemoveDeadBindings :: Bool
     , _posProfile                        :: ProfileOpts
     , _posCoverageAll                    :: Bool
     , _posCoverageLocation               :: Bool
     , _posCoverageBoolean                :: Bool
     , _posRelaxedFloatin                 :: Bool
+    -- | Whether to try and retain the logging behaviour of the program.
+    , _posPreserveLogging                :: Bool
     , -- Setting to `True` defines `trace` as `\_ a -> a` instead of the builtin version.
       -- Which effectively ignores the trace text.
       _posRemoveTrace                    :: Bool
@@ -126,7 +134,10 @@ renderParseError = \case
 pluginOptions :: Map OptionKey PluginOption
 pluginOptions =
     Map.fromList
-        [ let k = "typecheck"
+        [ let k = "target-version"
+              desc = "The target Plutus Core language version"
+           in (k, PluginOption typeRep (plcParserOption PLC.version k) posPlcTargetVersion desc [])
+        , let k = "typecheck"
               desc = "Perform type checking during compilation."
            in (k, PluginOption typeRep (setTrue k) posDoTypecheck desc [])
         , let k = "defer-errors"
@@ -147,13 +158,16 @@ pluginOptions =
                     posConservativeOpts
                     desc
                     -- conservative-optimisation implies no-relaxed-floatin, and vice versa
+                    -- similarly, it implies preserving logging
                     [ Implication (== True) posRelaxedFloatin False
+                    , Implication (== True) posPreserveLogging True
                     , Implication (== False) posRelaxedFloatin True
+                    , Implication (== False) posPreserveLogging False
                     ]
               )
         , let k = "context-level"
               desc = "Set context level for error messages."
-           in (k, PluginOption typeRep (intOption k) posContextLevel desc [])
+           in (k, PluginOption typeRep (readOption k) posContextLevel desc [])
         , let k = "dump-pir"
               desc = "Dump Plutus IR"
            in (k, PluginOption typeRep (setTrue k) posDumpPir desc [])
@@ -178,17 +192,17 @@ pluginOptions =
            in ( k
               , PluginOption
                     typeRep
-                    (fromIntOption k (Success . toVerbosity))
+                    (fromReadOption @Int k (Success . toVerbosity))
                     posVerbosity
                     desc
                     []
               )
         , let k = "max-simplifier-iterations-pir"
               desc = "Set the max iterations for the PIR simplifier"
-           in (k, PluginOption typeRep (intOption k) posMaxSimplifierIterationsPir desc [])
+           in (k, PluginOption typeRep (readOption k) posMaxSimplifierIterationsPir desc [])
         , let k = "max-simplifier-iterations-uplc"
               desc = "Set the max iterations for the UPLC simplifier"
-           in (k, PluginOption typeRep (intOption k) posMaxSimplifierIterationsUPlc desc [])
+           in (k, PluginOption typeRep (readOption k) posMaxSimplifierIterationsUPlc desc [])
         , let k = "simplifier-unwrap-cancel"
               desc = "Run a simplification pass that cancels unwrap/wrap pairs"
            in (k, PluginOption typeRep (setTrue k) posDoSimplifierUnwrapCancel desc [])
@@ -229,20 +243,29 @@ flag f k = maybe (Success f) (Failure . UnexpectedValue k)
 setTrue :: OptionKey -> Maybe OptionValue -> Validation ParseError (Bool -> Bool)
 setTrue = flag (const True)
 
-intOption :: OptionKey -> Maybe OptionValue -> Validation ParseError (Int -> Int)
-intOption k = \case
+plcParserOption :: PLC.Parser a -> OptionKey -> Maybe OptionValue -> Validation ParseError (a -> a)
+plcParserOption p k = \case
+    Just t -> case PLC.runQuoteT $ PLC.parse p "none" t of
+      Right v -> Success $ const v
+      -- TODO: use the error
+      Left (_e :: PLC.ParserErrorBundle) -> Failure $ CannotParseValue k t (someTypeRep (Proxy @Int))
+    Nothing -> Failure $ MissingValue k
+
+readOption :: (Read a) => OptionKey -> Maybe OptionValue -> Validation ParseError (a -> a)
+readOption k = \case
     Just v
         | Just i <- readMaybe (Text.unpack v) -> Success $ const i
         | otherwise -> Failure $ CannotParseValue k v (someTypeRep (Proxy @Int))
     Nothing -> Failure $ MissingValue k
 
 -- | Obtain an option value of type @a@ from an `Int`.
-fromIntOption ::
+fromReadOption ::
+    (Read a) =>
     OptionKey ->
-    (Int -> Validation ParseError a) ->
+    (a -> Validation ParseError b) ->
     Maybe OptionValue ->
-    Validation ParseError (a -> a)
-fromIntOption k f = \case
+    Validation ParseError (b -> b)
+fromReadOption k f = \case
     Just v
         | Just i <- readMaybe (Text.unpack v) -> const <$> f i
         | otherwise -> Failure $ CannotParseValue k v (someTypeRep (Proxy @Int))
@@ -251,7 +274,8 @@ fromIntOption k f = \case
 defaultPluginOptions :: PluginOptions
 defaultPluginOptions =
     PluginOptions
-        { _posDoTypecheck = True
+        { _posPlcTargetVersion = PLC.plcVersion110
+        , _posDoTypecheck = True
         , _posDeferErrors = False
         , _posConservativeOpts = False
         , _posContextLevel = 1
@@ -266,12 +290,14 @@ defaultPluginOptions =
         , _posDoSimplifierUnwrapCancel = True
         , _posDoSimplifierBeta = True
         , _posDoSimplifierInline = True
+        , _posDoSimplifierEvaluateBuiltins = True
         , _posDoSimplifierRemoveDeadBindings = True
         , _posProfile = None
         , _posCoverageAll = False
         , _posCoverageLocation = False
         , _posCoverageBoolean = False
         , _posRelaxedFloatin = True
+        , _posPreserveLogging = False
         , _posRemoveTrace = False
         }
 

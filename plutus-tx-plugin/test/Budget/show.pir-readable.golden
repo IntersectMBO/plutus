@@ -1,0 +1,580 @@
+let
+  !y : integer = 10
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+in
+letrec
+  data (List :: * -> *) a | Nil_match where
+    Nil : List a
+    Cons : a -> List a -> List a
+in
+letrec
+  !go : List integer -> integer -> List integer
+    = \(acc : List integer)
+       (n : integer) ->
+        let
+          ~q : integer = quotientInteger n y
+        in
+        Bool_match
+          (ifThenElse {Bool} (equalsInteger q 0) True False)
+          {all dead. List integer}
+          (/\dead -> Cons {integer} (remainderInteger n y) acc)
+          (/\dead -> go (Cons {integer} (remainderInteger n y) acc) q)
+          {all dead. dead}
+in
+letrec
+  !foldr : all a b. (a -> b -> b) -> b -> List a -> b
+    = /\a
+        b ->
+        \(f : a -> b -> b)
+         (acc : b)
+         (l : List a) ->
+          Nil_match
+            {a}
+            l
+            {all dead. b}
+            (/\dead -> acc)
+            (\(x : a) (xs : List a) -> /\dead -> f x (foldr {a} {b} f acc xs))
+            {all dead. dead}
+in
+let
+  !id : all a. a -> a = /\a -> \(x : a) -> x
+in
+letrec
+  !`$w$cshowsPrec`
+     : integer -> List string -> List string
+    = \(w : integer) ->
+        Bool_match
+          (ifThenElse {Bool} (lessThanInteger w 0) True False)
+          {all dead. List string -> List string}
+          (/\dead ->
+             \(x : List string) ->
+               Cons {string} "-" (`$w$cshowsPrec` (subtractInteger 0 w) x))
+          (/\dead ->
+             foldr
+               {integer}
+               {List string -> List string}
+               (\(digit : integer)
+                 (acc : List string -> List string)
+                 (x : List string) ->
+                  Cons
+                    {string}
+                    (Bool_match
+                       (ifThenElse {Bool} (equalsInteger digit 0) True False)
+                       {all dead. string}
+                       (/\dead -> "0")
+                       (/\dead ->
+                          Bool_match
+                            (ifThenElse
+                               {Bool}
+                               (equalsInteger digit 1)
+                               True
+                               False)
+                            {all dead. string}
+                            (/\dead -> "1")
+                            (/\dead ->
+                               Bool_match
+                                 (ifThenElse
+                                    {Bool}
+                                    (equalsInteger digit 2)
+                                    True
+                                    False)
+                                 {all dead. string}
+                                 (/\dead -> "2")
+                                 (/\dead ->
+                                    Bool_match
+                                      (ifThenElse
+                                         {Bool}
+                                         (equalsInteger digit 3)
+                                         True
+                                         False)
+                                      {all dead. string}
+                                      (/\dead -> "3")
+                                      (/\dead ->
+                                         Bool_match
+                                           (ifThenElse
+                                              {Bool}
+                                              (equalsInteger digit 4)
+                                              True
+                                              False)
+                                           {all dead. string}
+                                           (/\dead -> "4")
+                                           (/\dead ->
+                                              Bool_match
+                                                (ifThenElse
+                                                   {Bool}
+                                                   (equalsInteger digit 5)
+                                                   True
+                                                   False)
+                                                {all dead. string}
+                                                (/\dead -> "5")
+                                                (/\dead ->
+                                                   Bool_match
+                                                     (ifThenElse
+                                                        {Bool}
+                                                        (equalsInteger digit 6)
+                                                        True
+                                                        False)
+                                                     {all dead. string}
+                                                     (/\dead -> "6")
+                                                     (/\dead ->
+                                                        Bool_match
+                                                          (ifThenElse
+                                                             {Bool}
+                                                             (equalsInteger
+                                                                digit
+                                                                7)
+                                                             True
+                                                             False)
+                                                          {all dead. string}
+                                                          (/\dead -> "7")
+                                                          (/\dead ->
+                                                             Bool_match
+                                                               (ifThenElse
+                                                                  {Bool}
+                                                                  (equalsInteger
+                                                                     digit
+                                                                     8)
+                                                                  True
+                                                                  False)
+                                                               {all dead.
+                                                                  string}
+                                                               (/\dead -> "8")
+                                                               (/\dead ->
+                                                                  Bool_match
+                                                                    (ifThenElse
+                                                                       {Bool}
+                                                                       (equalsInteger
+                                                                          digit
+                                                                          9)
+                                                                       True
+                                                                       False)
+                                                                    {string}
+                                                                    "9"
+                                                                    "<invalid digit>")
+                                                               {all dead. dead})
+                                                          {all dead. dead})
+                                                     {all dead. dead})
+                                                {all dead. dead})
+                                           {all dead. dead})
+                                      {all dead. dead})
+                                 {all dead. dead})
+                            {all dead. dead})
+                       {all dead. dead})
+                    (acc x))
+               (id {List string})
+               (go (Nil {integer}) w))
+          {all dead. dead}
+in
+let
+  !toHex : integer -> List string -> List string
+    = \(x : integer) ->
+        Bool_match
+          (ifThenElse {Bool} (lessThanEqualsInteger x 9) True False)
+          {all dead. List string -> List string}
+          (/\dead -> `$w$cshowsPrec` x)
+          (/\dead ->
+             Bool_match
+               (ifThenElse {Bool} (equalsInteger x 10) True False)
+               {all dead. List string -> List string}
+               (/\dead -> \(ds : List string) -> Cons {string} "a" ds)
+               (/\dead ->
+                  Bool_match
+                    (ifThenElse {Bool} (equalsInteger x 11) True False)
+                    {all dead. List string -> List string}
+                    (/\dead -> \(ds : List string) -> Cons {string} "b" ds)
+                    (/\dead ->
+                       Bool_match
+                         (ifThenElse {Bool} (equalsInteger x 12) True False)
+                         {all dead. List string -> List string}
+                         (/\dead -> \(ds : List string) -> Cons {string} "c" ds)
+                         (/\dead ->
+                            Bool_match
+                              (ifThenElse
+                                 {Bool}
+                                 (equalsInteger x 13)
+                                 True
+                                 False)
+                              {all dead. List string -> List string}
+                              (/\dead ->
+                                 \(ds : List string) -> Cons {string} "d" ds)
+                              (/\dead ->
+                                 Bool_match
+                                   (ifThenElse
+                                      {Bool}
+                                      (equalsInteger x 14)
+                                      True
+                                      False)
+                                   {all dead. List string -> List string}
+                                   (/\dead ->
+                                      \(ds : List string) ->
+                                        Cons {string} "e" ds)
+                                   (/\dead ->
+                                      Bool_match
+                                        (ifThenElse
+                                           {Bool}
+                                           (equalsInteger x 15)
+                                           True
+                                           False)
+                                        {List string -> List string}
+                                        (\(ds : List string) ->
+                                           Cons {string} "f" ds)
+                                        (\(ds : List string) ->
+                                           Cons {string} "<invalid byte>" ds))
+                                   {all dead. dead})
+                              {all dead. dead})
+                         {all dead. dead})
+                    {all dead. dead})
+               {all dead. dead})
+          {all dead. dead}
+  !w : bytestring = #5468697320697320616e206578616d706c65
+  !x : integer = -1234567890
+in
+letrec
+  !`$fEnumBool_$cenumFromTo` : integer -> integer -> List integer
+    = \(x : integer)
+       (y : integer) ->
+        Bool_match
+          (ifThenElse {Bool} (lessThanEqualsInteger x y) False True)
+          {all dead. List integer}
+          (/\dead -> Nil {integer})
+          (/\dead ->
+             Cons {integer} x (`$fEnumBool_$cenumFromTo` (addInteger x 1) y))
+          {all dead. dead}
+in
+let
+  !`$fShowInteger_$cshowsPrec`
+     : integer -> integer -> List string -> List string
+    = \(w : integer) (w : integer) -> `$w$cshowsPrec` w
+  data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
+    Tuple2 : a -> b -> Tuple2 a b
+in
+letrec
+  !go : all a. integer -> List a -> Tuple2 (List a) (List a)
+    = /\a ->
+        \(ds : integer)
+         (ds : List a) ->
+          Nil_match
+            {a}
+            ds
+            {all dead. Tuple2 (List a) (List a)}
+            (/\dead -> Tuple2 {List a} {List a} (Nil {a}) (Nil {a}))
+            (\(y : a)
+              (ys : List a) ->
+               /\dead ->
+                 Bool_match
+                   (ifThenElse {Bool} (equalsInteger ds 1) True False)
+                   {all dead. Tuple2 (List a) (List a)}
+                   (/\dead ->
+                      Tuple2
+                        {List a}
+                        {List a}
+                        ((let
+                             a = List a
+                           in
+                           \(c : a -> a -> a) (n : a) -> c y n)
+                           (\(ds : a) (ds : List a) -> Cons {a} ds ds)
+                           (Nil {a}))
+                        ys)
+                   (/\dead ->
+                      Tuple2_match
+                        {List a}
+                        {List a}
+                        (go {a} (subtractInteger ds 1) ys)
+                        {Tuple2 (List a) (List a)}
+                        (\(zs : List a)
+                          (ws : List a) ->
+                           Tuple2 {List a} {List a} (Cons {a} y zs) ws))
+                   {all dead. dead})
+            {all dead. dead}
+in
+letrec
+  !go : List string -> integer -> integer
+    = \(ds : List string)
+       (eta : integer) ->
+        Nil_match
+          {string}
+          ds
+          {all dead. integer}
+          (/\dead -> eta)
+          (\(x : string)
+            (xs : List string) ->
+             /\dead -> go xs (addInteger eta 1))
+          {all dead. dead}
+in
+let
+  data (UTuple2 :: * -> * -> *) a b | UTuple2_match where
+    UTuple2 : a -> b -> UTuple2 a b
+in
+letrec
+  !concatBuiltinStrings : List string -> string
+    = \(ds : List string) ->
+        let
+          ~ds : Tuple2 (List string) (List string)
+            = let
+              !w : integer = divideInteger (go ds 0) 2
+            in
+            UTuple2_match
+              {List string}
+              {List string}
+              (Bool_match
+                 (ifThenElse {Bool} (lessThanEqualsInteger w 0) True False)
+                 {all dead. UTuple2 (List string) (List string)}
+                 (/\dead ->
+                    UTuple2 {List string} {List string} (Nil {string}) ds)
+                 (/\dead ->
+                    Tuple2_match
+                      {List string}
+                      {List string}
+                      (go {string} w ds)
+                      {UTuple2 (List string) (List string)}
+                      (\(ww : List string)
+                        (ww : List string) ->
+                         UTuple2 {List string} {List string} ww ww))
+                 {all dead. dead})
+              {Tuple2 (List string) (List string)}
+              (\(ww : List string)
+                (ww : List string) ->
+                 Tuple2 {List string} {List string} ww ww)
+        in
+        Nil_match
+          {string}
+          ds
+          {string}
+          ""
+          (\(x : string)
+            (ds : List string) ->
+             Nil_match
+               {string}
+               ds
+               {all dead. string}
+               (/\dead -> x)
+               (\(ipv : string)
+                 (ipv : List string) ->
+                  /\dead ->
+                    appendString
+                      (Tuple2_match
+                         {List string}
+                         {List string}
+                         ds
+                         {string}
+                         (\(ys : List string)
+                           (zs : List string) ->
+                            concatBuiltinStrings ys))
+                      (Tuple2_match
+                         {List string}
+                         {List string}
+                         ds
+                         {string}
+                         (\(ys : List string)
+                           (zs : List string) ->
+                            concatBuiltinStrings zs)))
+               {all dead. dead})
+in
+let
+  !`$fShowInteger_$cshow` : integer -> string
+    = \(x : integer) ->
+        concatBuiltinStrings (`$fShowInteger_$cshowsPrec` 0 x (Nil {string}))
+  data (Show :: * -> *) a | Show_match where
+    CConsShow
+      : (integer -> a -> List string -> List string) -> (a -> string) -> Show a
+  ~`$fShowInteger` : Show integer
+    = CConsShow {integer} `$fShowInteger_$cshowsPrec` `$fShowInteger_$cshow`
+  data (Tuple5 :: * -> * -> * -> * -> * -> *) a b c d e | Tuple5_match where
+    Tuple5 : a -> b -> c -> d -> e -> Tuple5 a b c d e
+  !showsPrec : all a. Show a -> integer -> a -> List string -> List string
+    = /\a ->
+        \(v : Show a) ->
+          Show_match
+            {a}
+            v
+            {integer -> a -> List string -> List string}
+            (\(v : integer -> a -> List string -> List string)
+              (v : a -> string) ->
+               v)
+<<<<<<< HEAD:plutus-tx-plugin/test/Budget/show.plc.golden
+  !a : integer = trace {integer} (`$fShowInteger_$cshow` x) x
+  !b : integer = trace {integer} "This is an example" a
+  !c : integer
+    = trace
+        {integer}
+        (let
+          !x : bytestring = encodeUtf8 "This is an example"
+        in
+        concatBuiltinStrings
+          (foldr
+             {integer}
+             {List string -> List string}
+             (\(i : integer) ->
+                let
+                  ~x : integer = indexByteString x i
+                in
+                \(acc : List string -> List string)
+                 (x : List string) ->
+                  toHex (divideInteger x 16) (toHex (modInteger x 16) (acc x)))
+             (id {List string})
+             (`$fEnumBool_$cenumFromTo`
+                0
+                (subtractInteger (lengthOfByteString x) 1))
+             (Nil {string})))
+        b
+=======
+  !a : integer = trace {integer} (fShowInteger_cshow x) x
+  !c : integer
+    = trace
+        {integer}
+        (concatBuiltinStrings
+           (foldr
+              {integer}
+              {List string -> List string}
+              (\(i : integer) ->
+                 let
+                   ~x : integer = indexByteString w i
+                 in
+                 \(acc : List string -> List string)
+                  (x : List string) ->
+                   toHex (divideInteger x 16) (toHex (modInteger x 16) (acc x)))
+              (id {List string})
+              (fEnumBool_cenumFromTo
+                 0
+                 (subtractInteger (lengthOfByteString w) 1))
+              (Nil {string})))
+        a
+>>>>>>> 5b7848040e932f3344ec31ff131f52371470da72:plutus-tx-plugin/test/Budget/show.pir-readable.golden
+  !d : integer
+    = trace
+        {integer}
+        (let
+          !b : Bool = ifThenElse {Bool} (lessThanEqualsInteger c 0) False True
+        in
+        Bool_match b {string} "True" "False")
+        c
+  !e : integer
+    = trace
+        {integer}
+        (let
+          !`$dShow` : Show integer = `$fShowInteger`
+          !x : List integer
+            = (let
+                  a = List integer
+                in
+                \(c : integer -> a -> a) (n : a) -> c a (c a (c c (c d n))))
+                (\(ds : integer) (ds : List integer) -> Cons {integer} ds ds)
+                (Nil {integer})
+        in
+        concatBuiltinStrings
+<<<<<<< HEAD:plutus-tx-plugin/test/Budget/show.plc.golden
+          (let
+            !w : integer -> List string -> List string
+              = showsPrec {integer} `$dShow` 0
+            !w : List string = Nil {string}
+          in
+          UTuple2_match
+            {string}
+            {List string}
+            (Nil_match
+=======
+          ((let
+               !showElem : integer -> List string -> List string
+                 = showsPrec {integer} dShow 0
+             in
+             Nil_match
+>>>>>>> 5b7848040e932f3344ec31ff131f52371470da72:plutus-tx-plugin/test/Budget/show.pir-readable.golden
+               {integer}
+               x
+               {List string -> List string}
+               (\(ds : List string) -> Cons {string} "[]" ds)
+               (\(x : integer)
+                 (xs : List integer)
+                 (x : List string) ->
+                  Cons
+                    {string}
+                    "["
+                    (showElem
+                       x
+                       (foldr
+                          {integer}
+                          {List string -> List string}
+                          (\(a : integer)
+                            (acc : List string -> List string)
+                            (x : List string) ->
+                             Cons {string} "," (showElem a (acc x)))
+                          (id {List string})
+                          xs
+                          (Cons {string} "]" x)))))
+             (Nil {string})))
+        d
+  !x : integer
+    = trace
+        {integer}
+        (let
+          !w : Show integer = `$fShowInteger`
+          !w : Show integer = `$fShowInteger`
+          !w : Show integer = `$fShowInteger`
+          !w : Show integer = `$fShowInteger`
+          !w : Show integer = `$fShowInteger`
+          !w : Tuple5 integer integer integer integer integer
+            = Tuple5 {integer} {integer} {integer} {integer} {integer} a a c d e
+        in
+        Tuple5_match
+          {integer}
+          {integer}
+          {integer}
+          {integer}
+          {integer}
+          w
+          {string}
+          (\(ww : integer)
+            (ww : integer)
+            (ww : integer)
+            (ww : integer)
+            (ww : integer) ->
+             concatBuiltinStrings
+               (let
+                 !x : List string = Nil {string}
+               in
+               Cons
+                 {string}
+                 "("
+                 (showsPrec
+                    {integer}
+                    w
+                    0
+                    ww
+                    (Cons
+                       {string}
+                       ","
+                       (showsPrec
+                          {integer}
+                          w
+                          0
+                          ww
+                          (Cons
+                             {string}
+                             ","
+                             (showsPrec
+                                {integer}
+                                w
+                                0
+                                ww
+                                (Cons
+                                   {string}
+                                   ","
+                                   (showsPrec
+                                      {integer}
+                                      w
+                                      0
+                                      ww
+                                      (Cons
+                                         {string}
+                                         ","
+                                         (showsPrec
+                                            {integer}
+                                            w
+                                            0
+                                            ww
+                                            (Cons {string} ")" x)))))))))))))
+        e
+in
+multiplyInteger x 2

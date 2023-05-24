@@ -26,6 +26,7 @@ module PlutusCore.Error
     , AsError (..)
     , throwingEither
     , ShowErrorComponent (..)
+    , ApplyProgramError (..)
     ) where
 
 import PlutusPrelude
@@ -39,6 +40,7 @@ import Control.Lens hiding (use)
 import Control.Monad.Error.Lens
 import Control.Monad.Except
 import Data.Text qualified as T
+import PlutusCore.Annotation (SrcSpan)
 import Prettyprinter (hardline, hsep, indent, squotes, (<+>))
 import Text.Megaparsec as M
 import Universe
@@ -70,11 +72,21 @@ data UniqueError ann
     deriving stock (Show, Eq, Generic, Functor)
     deriving anyclass (NFData)
 
+instance Exception (UniqueError SrcSpan)
+
 data NormCheckError tyname name uni fun ann
     = BadType !ann !(Type tyname uni ann) !T.Text
     | BadTerm !ann !(Term tyname name uni fun ann) !T.Text
-    deriving stock (Show, Functor, Generic)
-    deriving anyclass (NFData)
+    deriving stock (Functor, Generic)
+
+deriving anyclass instance
+    (NFData tyname, NFData name, Closed uni, Everywhere uni NFData, NFData fun, NFData ann) =>
+        NFData (NormCheckError tyname name uni fun ann)
+
+deriving stock instance
+    (Show tyname, Show name, Closed uni, Everywhere uni Show, Show fun, Show ann, GShow uni) =>
+        Show (NormCheckError tyname name uni fun ann)
+
 deriving stock instance
     ( Eq (Term tyname name uni fun ann)
     , Eq (Type tyname uni ann)
@@ -117,8 +129,16 @@ data Error uni fun ann
     | TypeErrorE !(TypeError (Term TyName Name uni fun ()) uni fun ann)
     | NormCheckErrorE !(NormCheckError TyName Name uni fun ann)
     | FreeVariableErrorE !FreeVariableError
-    deriving stock (Eq, Generic, Functor)
-    deriving anyclass (NFData)
+    deriving stock (Generic, Functor)
+
+deriving stock instance
+    (Eq fun, Eq ann, Closed uni, Everywhere uni Eq, GEq uni, Eq ParserError) =>
+        Eq (Error uni fun ann)
+
+deriving anyclass instance
+    (NFData fun, NFData ann, Closed uni, Everywhere uni NFData, NFData ParserError) =>
+        NFData (Error uni fun ann)
+
 deriving stock instance
     (Show fun, Show ann, Closed uni, Everywhere uni Show, GShow uni, Show ParserError) =>
         Show (Error uni fun ann)
@@ -166,13 +186,8 @@ instance ( Pretty ann
         ". Term" <+> squotes (prettyBy config t) <+>
         "is not a" <+> pretty expct <> "."
 
-instance
-        ( Pretty term
-        , Pretty (SomeTypeIn uni)
-        , Closed uni, uni `Everywhere` PrettyConst
-        , Pretty fun
-        , Pretty ann
-        ) => PrettyBy PrettyConfigPlc (TypeError term uni fun ann) where
+instance (Pretty term, PrettyUni uni, Pretty fun, Pretty ann) =>
+        PrettyBy PrettyConfigPlc (TypeError term uni fun ann) where
     prettyBy config (KindMismatch ann ty k k')          =
         "Kind mismatch at" <+> pretty ann <+>
         "in type" <+> squotes (prettyBy config ty) <>
@@ -216,12 +231,8 @@ instance
         , "is attempted to be referenced"
         ]
 
-instance
-        ( Pretty (SomeTypeIn uni)
-        , Closed uni, uni `Everywhere` PrettyConst
-        , Pretty fun
-        , Pretty ann
-        ) => PrettyBy PrettyConfigPlc (Error uni fun ann) where
+instance (PrettyUni uni, Pretty fun, Pretty ann) =>
+        PrettyBy PrettyConfigPlc (Error uni fun ann) where
     prettyBy _      (ParseErrorE e)           = pretty e
     prettyBy _      (UniqueCoherencyErrorE e) = pretty e
     prettyBy config (TypeErrorE e)            = prettyBy config e
@@ -250,3 +261,12 @@ instance (tyname ~ TyName, name ~ Name) =>
 
 instance AsFreeVariableError (Error uni fun ann) where
     _FreeVariableError = _FreeVariableErrorE
+
+-- | Errors from `applyProgram` for PIR, PLC, UPLC.
+data ApplyProgramError =
+    MkApplyProgramError Version Version
+
+instance Show ApplyProgramError where
+    show (MkApplyProgramError v1 v2) =
+        "Cannot apply two programs together: the first program has version " <> show v1
+            <> " but the second program has version " <> show v2

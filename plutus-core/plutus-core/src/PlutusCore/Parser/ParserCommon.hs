@@ -7,8 +7,9 @@
 
 module PlutusCore.Parser.ParserCommon where
 
-import Control.Monad.Except
-import Control.Monad.Reader
+import Control.Monad (void, when)
+import Control.Monad.Except (MonadError)
+import Control.Monad.Reader (ReaderT, ask, local, runReaderT)
 import Control.Monad.State (MonadState (..), StateT, evalStateT)
 import Data.Map qualified as M
 import Data.Text qualified as T

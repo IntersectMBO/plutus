@@ -1,4 +1,19 @@
 
+<a id='changelog-1.7.0.0'></a>
+# 1.7.0.0 — 2023-05-22
+
+## Added
+
+- GHC 9.6 support
+
+<a id='changelog-1.6.0.0'></a>
+# 1.6.0.0 — 2023-05-04
+
+## Changed
+
+- PlutusV3 is now allowed in protocol version 9.
+- Plutus Core version 1.1.0 is now allwed in protocol version 9.
+
 <a id='changelog-1.5.0.0'></a>
 # 1.5.0.0 — 2023-04-16
 

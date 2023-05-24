@@ -8,8 +8,9 @@ import Control.Lens hiding (index)
 import UntypedPlutusCore.Core.Type as UPLC
 import UntypedPlutusCore.DeBruijn as UPLC
 
+import Control.Monad (unless)
 import Control.Monad.Error.Lens
-import Control.Monad.Except
+import Control.Monad.Except (MonadError)
 
 {- | A pass to check that the input term:
 1) does not contain free variables and

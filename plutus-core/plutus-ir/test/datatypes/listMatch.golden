@@ -47,21 +47,7 @@
               (lam
                 List_i0
                 (fun (type) (type))
-                (lam
-                  a_i0
-                  (type)
-                  (all
-                    out_List_i0
-                    (type)
-                    (fun
-                      out_List_i1
-                      (fun
-                        (fun a_i2 (fun [ List_i3 a_i2 ] out_List_i1))
-                        out_List_i1
-                      )
-                    )
-                  )
-                )
+                (lam a_i0 (type) (sop [] [a_i1 [ List_i2 a_i1 ]]))
               )
               a_i1
             )
@@ -74,70 +60,30 @@
             (lam
               List_i0
               (fun (type) (type))
-              (lam
-                a_i0
-                (type)
-                (all
-                  out_List_i0
-                  (type)
-                  (fun
-                    out_List_i1
-                    (fun
-                      (fun a_i2 (fun [ List_i3 a_i2 ] out_List_i1)) out_List_i1
-                    )
-                  )
-                )
-              )
+              (lam a_i0 (type) (sop [] [a_i1 [ List_i2 a_i1 ]]))
             )
             a_i1
-            (abs
-              out_List_i0
-              (type)
-              (lam
-                case_Nil_i0
-                out_List_i2
-                (lam
-                  case_Cons_i0
-                  (fun
-                    a_i4
-                    (fun
-                      [
-                        (lam
-                          a_i0
-                          (type)
-                          (ifix
-                            (lam
-                              List_i0
-                              (fun (type) (type))
-                              (lam
-                                a_i0
-                                (type)
-                                (all
-                                  out_List_i0
-                                  (type)
-                                  (fun
-                                    out_List_i1
-                                    (fun
-                                      (fun
-                                        a_i2 (fun [ List_i3 a_i2 ] out_List_i1)
-                                      )
-                                      out_List_i1
-                                    )
-                                  )
-                                )
-                              )
-                            )
-                            a_i1
-                          )
-                        )
-                        a_i4
-                      ]
-                      out_List_i3
+            (constr
+              (sop
+                []
+                [a_i1
+                [
+                  (lam
+                    a_i0
+                    (type)
+                    (ifix
+                      (lam
+                        List_i0
+                        (fun (type) (type))
+                        (lam a_i0 (type) (sop [] [a_i1 [ List_i2 a_i1 ]]))
+                      )
+                      a_i1
                     )
                   )
-                  case_Nil_i2
-                )
+                  a_i1
+                ]]
               )
+              0
             )
           )
         )
@@ -158,21 +104,7 @@
                   (lam
                     List_i0
                     (fun (type) (type))
-                    (lam
-                      a_i0
-                      (type)
-                      (all
-                        out_List_i0
-                        (type)
-                        (fun
-                          out_List_i1
-                          (fun
-                            (fun a_i2 (fun [ List_i3 a_i2 ] out_List_i1))
-                            out_List_i1
-                          )
-                        )
-                      )
-                    )
+                    (lam a_i0 (type) (sop [] [a_i1 [ List_i2 a_i1 ]]))
                   )
                   a_i1
                 )
@@ -183,72 +115,32 @@
               (lam
                 List_i0
                 (fun (type) (type))
-                (lam
-                  a_i0
-                  (type)
-                  (all
-                    out_List_i0
-                    (type)
-                    (fun
-                      out_List_i1
-                      (fun
-                        (fun a_i2 (fun [ List_i3 a_i2 ] out_List_i1))
-                        out_List_i1
-                      )
-                    )
-                  )
-                )
+                (lam a_i0 (type) (sop [] [a_i1 [ List_i2 a_i1 ]]))
               )
               a_i3
-              (abs
-                out_List_i0
-                (type)
-                (lam
-                  case_Nil_i0
-                  out_List_i2
-                  (lam
-                    case_Cons_i0
-                    (fun
-                      a_i6
-                      (fun
-                        [
-                          (lam
-                            a_i0
-                            (type)
-                            (ifix
-                              (lam
-                                List_i0
-                                (fun (type) (type))
-                                (lam
-                                  a_i0
-                                  (type)
-                                  (all
-                                    out_List_i0
-                                    (type)
-                                    (fun
-                                      out_List_i1
-                                      (fun
-                                        (fun
-                                          a_i2
-                                          (fun [ List_i3 a_i2 ] out_List_i1)
-                                        )
-                                        out_List_i1
-                                      )
-                                    )
-                                  )
-                                )
-                              )
-                              a_i1
-                            )
-                          )
-                          a_i6
-                        ]
-                        out_List_i3
+              (constr
+                (sop
+                  []
+                  [a_i3
+                  [
+                    (lam
+                      a_i0
+                      (type)
+                      (ifix
+                        (lam
+                          List_i0
+                          (fun (type) (type))
+                          (lam a_i0 (type) (sop [] [a_i1 [ List_i2 a_i1 ]]))
+                        )
+                        a_i1
                       )
                     )
-                    [ [ case_Cons_i1 arg_0_i5 ] arg_1_i4 ]
-                  )
+                    a_i3
+                  ]]
                 )
+                1
+                arg_0_i2
+                arg_1_i1
               )
             )
           )
@@ -268,28 +160,46 @@
               (lam
                 List_i0
                 (fun (type) (type))
-                (lam
-                  a_i0
-                  (type)
-                  (all
-                    out_List_i0
-                    (type)
-                    (fun
-                      out_List_i1
-                      (fun
-                        (fun a_i2 (fun [ List_i3 a_i2 ] out_List_i1))
-                        out_List_i1
-                      )
-                    )
-                  )
-                )
+                (lam a_i0 (type) (sop [] [a_i1 [ List_i2 a_i1 ]]))
               )
               a_i1
             )
           )
           a_i2
         ]
-        (unwrap x_i1)
+        (abs
+          out_List_i0
+          (type)
+          (lam
+            case_Nil_i0
+            out_List_i2
+            (lam
+              case_Cons_i0
+              (fun
+                a_i5
+                (fun
+                  [
+                    (lam
+                      a_i0
+                      (type)
+                      (ifix
+                        (lam
+                          List_i0
+                          (fun (type) (type))
+                          (lam a_i0 (type) (sop [] [a_i1 [ List_i2 a_i1 ]]))
+                        )
+                        a_i1
+                      )
+                    )
+                    a_i5
+                  ]
+                  out_List_i3
+                )
+              )
+              (case out_List_i3 (unwrap x_i4) case_Nil_i2 case_Cons_i1)
+            )
+          )
+        )
       )
     )
   ]

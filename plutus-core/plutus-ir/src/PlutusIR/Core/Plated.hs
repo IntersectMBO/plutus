@@ -26,6 +26,7 @@ module PlutusIR.Core.Plated
     , bindingIds
     , termUniques
     , termUniquesDeep
+    , varDeclSubtypes
     ) where
 
 import PlutusCore qualified as PLC

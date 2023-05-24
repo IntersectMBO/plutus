@@ -1,4 +1,43 @@
 
+<a id='changelog-1.7.0.0'></a>
+# 1.7.0.0 — 2023-05-22
+
+## Added
+
+- Float Delay optimization for UPLC.
+
+- GHC 9.6 support
+
+## Changed
+
+- Improved "readable" pretty-printing functions by making them insert line breaks properly
+- Simplified using "readable" pretty-printing by introducing the `PlutusCore.Pretty.Readable.AsReadable` wrapper
+
+## Fixed
+
+- The PIR executable now actually checks uniqueness when reading a program.
+
+- `applyProgram` and `applyCode` now return `Either` instead of `Maybe` for better error messages.
+
+<a id='changelog-1.6.0.0'></a>
+# 1.6.0.0 — 2023-05-04
+
+## Added
+
+- Case-of-known-constructor for Plutus IR.
+
+- The Plutus IR compiler can now compile datatypes using SOPs.
+
+- Generic builtin evaluation pass for PIR (subsumes constant-folding).
+
+## Changed
+
+- Various `intercept` and `slope` constants are now wrapped in `Intercept` and `Slope` `newtype`s
+
+## Fixed
+
+- The inliner now rename before call site inlining to ensure global uniqueness.
+
 <a id='changelog-1.5.0.0'></a>
 # 1.5.0.0 — 2023-04-16
 

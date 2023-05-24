@@ -17,12 +17,13 @@ import PlutusCore.Quote (runQuote)
 import PlutusIR
 import PlutusIR.Core.Instance.Pretty.Readable
 
-import Control.Monad.Reader
+import Control.Monad (replicateM, when)
+import Control.Monad.Reader (asks, local)
 import Data.Foldable
 import Data.Map.Strict qualified as Map
 import Data.Maybe
 import Data.String
-import Test.QuickCheck (shuffle)
+import Test.QuickCheck (chooseInt, shuffle)
 
 {- Note [Debugging generators that don't generate well-typed/kinded terms/types]
     This module implements generators for well-typed terms and well-kinded types.
@@ -72,13 +73,15 @@ genAtomicType k = do
 genType :: Kind () -> GenTm (Type TyName DefaultUni ())
 genType k = do
     ty <- onAstSize (min 10) $ ifAstSizeZero (genAtomicType k) $
-        frequency $
-          [ (5, genAtomicType k) ] ++
-          [ (10, genFun) | k == Type () ] ++
-          [ (5, genForall) | k == Type () ] ++
-          [ (1, genIFix) | k == Type () ] ++
-          [ (5, genLam k1 k2) | KindArrow _ k1 k2 <- [k] ] ++
-          [ (5, genApp) ]
+        frequency $ concat
+          [ [ (5, genAtomicType k) ]
+          , [ (10, genFun) | k == Type () ]
+          , [ (5, genForall) | k == Type () ]
+          , [ (1, genIFix) | k == Type () ]
+          , [ (5, genLam k1 k2) | KindArrow _ k1 k2 <- [k] ]
+          , [ (5, genApp) ]
+          , [ (3, genSOP) | k == Type () ]
+          ]
     debug <- asks geDebug
     when debug $ do
       ctx <- asks geTypes
@@ -93,7 +96,7 @@ genType k = do
                   ]
     pure ty
   where
-    -- this size split keeps us from generating riddiculous types that
+    -- This size split keeps us from generating ridiculous types that
     -- grow huge to the left of an arrow or abstraction (See also the
     -- genApp case below). This ratio of 1:7 was not scientifically
     -- established, if you are unhappy about the compleixty of the
@@ -119,6 +122,18 @@ genType k = do
       uncurry (TyIFix ()) <$> astSizeSplit_ 5 2
         (genType $ toPatFuncKind k')
         (genType k')
+
+    genSOP = do
+        n <- asks geAstSize
+        -- Generate up to five constructors or fewer than that if we don't have much size left.
+        iSum <- liftGen $ chooseInt (0, min 5 $ n `div` 5)
+        jsProd <- liftGen . replicateM iSum $
+            -- The more constructors a data type has, the less arguments each of them can have.
+            -- This is so that we don't generate data types with a large number of constructors each
+            -- which takes a large number of arguments.
+            chooseInt (0, min (7 - iSum) $ n `div` (2 * iSum))
+        withAstSize (n `div` sum jsProd) $
+            TySOP () <$> traverse (\j -> replicateM j . genType $ Type ()) jsProd
 
 -- | Generate a closed type at a given kind
 genClosedType :: Kind () -> Gen (Type TyName DefaultUni ())
