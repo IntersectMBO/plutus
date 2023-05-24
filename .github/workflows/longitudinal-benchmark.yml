@@ -28,7 +28,7 @@ jobs:
 
       - name: Run benchmarks
         env: 
-          BENCHMARKS: "validation validation-decode"
+          BENCHMARKS: "validation validation-decode nofib lists"
         run: nix develop --no-warn-dirty --accept-flake-config --command bash ./scripts/run-longitudinal-benchmarks.sh
 
       # We need this otherwise the next step (Store benchmark result) will fail with:
