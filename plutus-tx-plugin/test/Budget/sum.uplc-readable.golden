@@ -1,4 +1,4 @@
-program 1.1.0 ((\dAdditiveMonoid ->
+program 1.1.0 ((\`$dAdditiveMonoid` ->
                   (\f ->
                      (\z ->
                         (\go eta -> go eta)
@@ -11,8 +11,8 @@ program 1.1.0 ((\dAdditiveMonoid ->
                                                      xs ->
                                                       delay (f x (go xs))) ]))
                                   (s s))))
-                       (case dAdditiveMonoid [(\v v -> v)]))
-                    (case dAdditiveMonoid [(\v v -> v)]))
+                       (case `$dAdditiveMonoid` [(\v v -> v)]))
+                    (case `$dAdditiveMonoid` [(\v v -> v)]))
                  (constr 0 [(\x y -> addInteger x y), 0])
                  ((\c ->
                      c

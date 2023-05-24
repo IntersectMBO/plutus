@@ -1,12 +1,12 @@
 program 1.1.0 ((\Just ->
                   (\x ->
                      (\y ->
-                        force (case x [ (\x ->
-                                           delay (force (case y [ (\y ->
+                        force (case x [ (\x' ->
+                                           delay (force (case y [ (\y' ->
                                                                      delay (Just
                                                                               (addInteger
-                                                                                 x
-                                                                                 y)))
+                                                                                 x'
+                                                                                 y')))
                                                                 , (delay (constr 1 [  ])) ])))
                                       , (delay (constr 1 [])) ]))
                        (Just 2))

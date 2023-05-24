@@ -4,23 +4,23 @@ program 1.1.0 ((\fix1 ->
                         (\go ->
                            (\foldr ->
                               (\id ->
-                                 (\wcshowsPrec ->
+                                 (\`$w$cshowsPrec` ->
                                     (\x ->
                                        (\w ->
                                           (\toHex ->
-                                             (\fEnumBool_cenumFromTo ->
+                                             (\`$fEnumBool_$cenumFromTo` ->
                                                 (\Tuple2 ->
-                                                   (\fShowInteger_cshowsPrec ->
+                                                   (\`$fShowInteger_$cshowsPrec` ->
                                                       (\go ->
                                                          (\go ->
                                                             (\UTuple2 ->
                                                                (\concatBuiltinStrings ->
-                                                                  (\fShowInteger_cshow ->
+                                                                  (\`$fShowInteger_$cshow` ->
                                                                      (\a ->
                                                                         (\c ->
                                                                            (\d ->
                                                                               (\showsPrec ->
-                                                                                 (\fShowInteger ->
+                                                                                 (\`$fShowInteger` ->
                                                                                     (\e ->
                                                                                        (\x ->
                                                                                           multiplyInteger
@@ -31,31 +31,31 @@ program 1.1.0 ((\fix1 ->
                                                                                                (Cons
                                                                                                   "("
                                                                                                   (showsPrec
-                                                                                                     fShowInteger
+                                                                                                     `$fShowInteger`
                                                                                                      0
                                                                                                      a
                                                                                                      (Cons
                                                                                                         ","
                                                                                                         (showsPrec
-                                                                                                           fShowInteger
+                                                                                                           `$fShowInteger`
                                                                                                            0
                                                                                                            a
                                                                                                            (Cons
                                                                                                               ","
                                                                                                               (showsPrec
-                                                                                                                 fShowInteger
+                                                                                                                 `$fShowInteger`
                                                                                                                  0
                                                                                                                  c
                                                                                                                  (Cons
                                                                                                                     ","
                                                                                                                     (showsPrec
-                                                                                                                       fShowInteger
+                                                                                                                       `$fShowInteger`
                                                                                                                        0
                                                                                                                        d
                                                                                                                        (Cons
                                                                                                                           ","
                                                                                                                           (showsPrec
-                                                                                                                             fShowInteger
+                                                                                                                             `$fShowInteger`
                                                                                                                              0
                                                                                                                              e
                                                                                                                              (Cons
@@ -95,7 +95,7 @@ program 1.1.0 ((\fix1 ->
                                                                                                                           "]"
                                                                                                                           x)))) ])
                                                                                                   (showsPrec
-                                                                                                     fShowInteger
+                                                                                                     `$fShowInteger`
                                                                                                      0)
                                                                                                   (constr 0 [  ])))
                                                                                             ((\c ->
@@ -114,8 +114,8 @@ program 1.1.0 ((\fix1 ->
                                                                                                     ds
                                                                                                     ds)))
                                                                                          d))
-                                                                                   (constr 0 [ fShowInteger_cshowsPrec
-                                                                                             , fShowInteger_cshow ]))
+                                                                                   (constr 0 [ `$fShowInteger_$cshowsPrec`
+                                                                                             , `$fShowInteger_$cshow` ]))
                                                                                 (\v ->
                                                                                    case v [ (\v
                                                                                               v ->
@@ -152,7 +152,7 @@ program 1.1.0 ((\fix1 ->
                                                                                            (acc
                                                                                               x)))
                                                                                    id
-                                                                                   (fEnumBool_cenumFromTo
+                                                                                   (`$fEnumBool_$cenumFromTo`
                                                                                       0
                                                                                       (subtractInteger
                                                                                          (lengthOfByteString
@@ -161,12 +161,12 @@ program 1.1.0 ((\fix1 ->
                                                                                    (constr 0 [  ])))
                                                                              a))
                                                                        (force trace
-                                                                          (fShowInteger_cshow
+                                                                          (`$fShowInteger_$cshow`
                                                                              x)
                                                                           x))
                                                                     (\x ->
                                                                        concatBuiltinStrings
-                                                                         (fShowInteger_cshowsPrec
+                                                                         (`$fShowInteger_$cshowsPrec`
                                                                             0
                                                                             x
                                                                             (constr 0 [  ]))))
@@ -265,12 +265,14 @@ program 1.1.0 ((\fix1 ->
                                                                                                                                                                   y
                                                                                                                                                                   zs)
                                                                                                                                                                ws) ])) ]))) ])))))
-                                                     (\w w -> wcshowsPrec w))
+                                                     (\w
+                                                       w ->
+                                                        `$w$cshowsPrec` w))
                                                   (\arg_0
                                                     arg_1 ->
                                                      constr 0 [arg_0, arg_1]))
                                                (fix1
-                                                  (\fEnumBool_cenumFromTo
+                                                  (\`$fEnumBool_$cenumFromTo`
                                                     x
                                                     y ->
                                                      force (case (force ifThenElse
@@ -281,7 +283,7 @@ program 1.1.0 ((\fix1 ->
                                                                     (constr 0 [  ])) [ (delay (constr 0 [  ]))
                                                                                      , (delay (Cons
                                                                                                  x
-                                                                                                 (fEnumBool_cenumFromTo
+                                                                                                 (`$fEnumBool_$cenumFromTo`
                                                                                                     (addInteger
                                                                                                        x
                                                                                                        1)
@@ -292,7 +294,7 @@ program 1.1.0 ((\fix1 ->
                                                                  x
                                                                  9)
                                                               (constr 0 [])
-                                                              (constr 1 [  ])) [ (delay (wcshowsPrec
+                                                              (constr 1 [  ])) [ (delay (`$w$cshowsPrec`
                                                                                            x))
                                                                                , (delay (force (case (force ifThenElse
                                                                                                         (equalsInteger
@@ -355,7 +357,7 @@ program 1.1.0 ((\fix1 ->
                                          #5468697320697320616e206578616d706c65)
                                       -1234567890)
                                    (fix1
-                                      (\wcshowsPrec
+                                      (\`$w$cshowsPrec`
                                         w ->
                                          force (case (force ifThenElse
                                                         (lessThanInteger w 0)
@@ -363,7 +365,7 @@ program 1.1.0 ((\fix1 ->
                                                         (constr 1 [  ])) [ (delay (\x ->
                                                                                      Cons
                                                                                        "-"
-                                                                                       (wcshowsPrec
+                                                                                       (`$w$cshowsPrec`
                                                                                           (subtractInteger
                                                                                              0
                                                                                              w)

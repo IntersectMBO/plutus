@@ -4,15 +4,15 @@
     (nonrec)
     (datatypebind
       (datatype
-        (tyvardecl RBasicDataBool (type))
+        (tyvardecl `R:BasicDataBool` (type))
 
         RConsBasicDataBool_match
-        (vardecl Inst (fun (con integer) RBasicDataBool))
+        (vardecl Inst (fun (con integer) `R:BasicDataBool`))
       )
     )
     (lam
       ds
-      RBasicDataBool
+      `R:BasicDataBool`
       [
         { [ RConsBasicDataBool_match ds ] (con integer) }
         (lam i (con integer) i)

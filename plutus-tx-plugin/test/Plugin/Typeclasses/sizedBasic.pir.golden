@@ -4,15 +4,15 @@
     (nonrec)
     (termbind
       (strict)
-      (vardecl csize (fun (con integer) (con integer)))
+      (vardecl `$csize` (fun (con integer) (con integer)))
       (lam x (con integer) x)
     )
     (termbind
       (nonstrict)
       (vardecl
-        fSizedInteger [ (lam a (type) (fun a (con integer))) (con integer) ]
+        `$fSizedInteger` [ (lam a (type) (fun a (con integer))) (con integer) ]
       )
-      csize
+      `$csize`
     )
     (termbind
       (strict)
@@ -26,6 +26,6 @@
       )
       (abs a (type) (lam v [ (lam a (type) (fun a (con integer))) a ] v))
     )
-    (lam ds (con integer) [ [ { size (con integer) } fSizedInteger ] ds ])
+    (lam ds (con integer) [ [ { size (con integer) } `$fSizedInteger` ] ds ])
   )
 )
