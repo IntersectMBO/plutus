@@ -63,11 +63,11 @@ data Name = Name
 
 -- | Allowed characters in the starting position of a non-quoted identifier.
 isIdentifierStartingChar :: Char -> Bool
-isIdentifierStartingChar c = isAscii c && isAlpha c
+isIdentifierStartingChar c = isAscii c && isAlpha c || c == '_'
 
 -- | Allowed characters in a non-starting position of a non-quoted identifier.
 isIdentifierChar :: Char -> Bool
-isIdentifierChar c = isIdentifierStartingChar c || isDigit c || c == '\'' || c == '_'
+isIdentifierChar c = isIdentifierStartingChar c || isDigit c || c == '\''
 
 -- | Allowed characters in a quoted identifier.
 isQuotedIdentifierChar :: Char -> Bool
@@ -100,6 +100,7 @@ data Named a = Named
 
 instance HasPrettyConfigName config => PrettyBy config Name where
     prettyBy config (Name txt (Unique uniq))
+        -- See Note [Pretty-printing names with uniques]
         | showsUnique = pretty . toPrintedName $ txt <> "_" <> render (pretty uniq)
         | otherwise   = pretty $ toPrintedName txt
       where
@@ -232,3 +233,14 @@ lookupNameIndex = lookupUnique . coerce . view unique
 {-# INLINE isEmpty #-}
 isEmpty :: UniqueMap unique a -> Bool
 isEmpty (UniqueMap m) = IM.null m
+
+{- Note [Pretty-printing names with uniques]
+
+Our parser can't currently parse unqiues properly. As a hacky workaround, when pretty-printing,
+we print the uniques as part of the names. That is, if the name proper is @++@ and the
+unique is 123, then it is printed as @`++_123`@, rather than @`++`_123@.
+
+This way, when it is parsed back, the entire @`++_123`@ becomes the name proper. This works:
+a program would be alpha-equivalent after being pretty-printed and then parsed back. But we
+should still fix this and do it properly.
+-}

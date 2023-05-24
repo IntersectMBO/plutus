@@ -1,13 +1,13 @@
 program 1.1.0 ((\Just ->
                   (\x ->
                      (\y ->
-                        (\fMonadMaybe_c ->
-                           fMonadMaybe_c
+                        (\`$fMonadMaybe_$c>>=` ->
+                           `$fMonadMaybe_$c>>=`
                              x
-                             (\x ->
-                                fMonadMaybe_c
+                             (\x' ->
+                                `$fMonadMaybe_$c>>=`
                                   y
-                                  (\y -> (\ds -> Just ds) (addInteger x y))))
+                                  (\y' -> (\ds -> Just ds) (addInteger x' y'))))
                           (\ds
                             k ->
                              force (case ds [ (\x -> delay (k x))

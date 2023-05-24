@@ -20,18 +20,7 @@
             )
           )
         )
-<<<<<<< HEAD:plutus-tx-plugin/test/Lift/list.plc.golden
-        (delay
-          (delay
-            (lam
-              `case_GHC.Types.Nil_i0`
-              (lam `case_GHC.Types.Cons_i0` `case_GHC.Types.Nil_i2`)
-            )
-          )
-        )
-=======
         (delay (constr 0))
->>>>>>> 5b7848040e932f3344ec31ff131f52371470da72:plutus-tx-plugin/test/Lift/list.uplc.golden
       ]
       (delay (lam arg_0_i0 (lam arg_1_i0 (constr 1 arg_0_i2 arg_1_i1))))
     ]
@@ -40,22 +29,10 @@
         x_i0
         (delay
           (lam
-<<<<<<< HEAD:plutus-tx-plugin/test/Lift/list.plc.golden
-            arg_1_i0
-            (delay
-              (lam
-                `case_GHC.Types.Nil_i0`
-                (lam
-                  `case_GHC.Types.Cons_i0`
-                  [ [ `case_GHC.Types.Cons_i1` arg_0_i4 ] arg_1_i3 ]
-                )
-              )
-=======
-            case_GHC_Types_Nil_i0
+            `case_GHC.Types.Nil_i0`
             (lam
-              case_GHC_Types_Cons_i0
-              (case x_i3 case_GHC_Types_Nil_i2 case_GHC_Types_Cons_i1)
->>>>>>> 5b7848040e932f3344ec31ff131f52371470da72:plutus-tx-plugin/test/Lift/list.uplc.golden
+              `case_GHC.Types.Cons_i0`
+              (case x_i3 `case_GHC.Types.Nil_i2` `case_GHC.Types.Cons_i1`)
             )
           )
         )

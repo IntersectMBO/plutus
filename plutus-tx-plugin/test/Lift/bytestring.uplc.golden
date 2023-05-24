@@ -11,23 +11,14 @@
             )
           )
         )
-<<<<<<< HEAD:plutus-tx-plugin/test/Lift/bytestring.plc.golden
-        (lam
-          arg_0_i0
-          (delay
-            (lam
-              `case_Lift.Spec.WrappedBS_i0`
-              [ `case_Lift.Spec.WrappedBS_i1` arg_0_i2 ]
-            )
-=======
         (lam arg_0_i0 (constr 0 arg_0_i1))
       ]
       (lam
         x_i0
         (delay
           (lam
-            case_Lift_Spec_WrappedBS_i0 (case x_i2 case_Lift_Spec_WrappedBS_i1)
->>>>>>> 5b7848040e932f3344ec31ff131f52371470da72:plutus-tx-plugin/test/Lift/bytestring.uplc.golden
+            `case_Lift.Spec.WrappedBS_i0`
+            (case x_i2 `case_Lift.Spec.WrappedBS_i1`)
           )
         )
       )

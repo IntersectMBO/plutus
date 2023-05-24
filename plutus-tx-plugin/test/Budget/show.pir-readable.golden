@@ -393,34 +393,7 @@ let
             (\(v : integer -> a -> List string -> List string)
               (v : a -> string) ->
                v)
-<<<<<<< HEAD:plutus-tx-plugin/test/Budget/show.plc.golden
   !a : integer = trace {integer} (`$fShowInteger_$cshow` x) x
-  !b : integer = trace {integer} "This is an example" a
-  !c : integer
-    = trace
-        {integer}
-        (let
-          !x : bytestring = encodeUtf8 "This is an example"
-        in
-        concatBuiltinStrings
-          (foldr
-             {integer}
-             {List string -> List string}
-             (\(i : integer) ->
-                let
-                  ~x : integer = indexByteString x i
-                in
-                \(acc : List string -> List string)
-                 (x : List string) ->
-                  toHex (divideInteger x 16) (toHex (modInteger x 16) (acc x)))
-             (id {List string})
-             (`$fEnumBool_$cenumFromTo`
-                0
-                (subtractInteger (lengthOfByteString x) 1))
-             (Nil {string})))
-        b
-=======
-  !a : integer = trace {integer} (fShowInteger_cshow x) x
   !c : integer
     = trace
         {integer}
@@ -436,12 +409,11 @@ let
                   (x : List string) ->
                    toHex (divideInteger x 16) (toHex (modInteger x 16) (acc x)))
               (id {List string})
-              (fEnumBool_cenumFromTo
+              (`$fEnumBool_$cenumFromTo`
                  0
                  (subtractInteger (lengthOfByteString w) 1))
               (Nil {string})))
         a
->>>>>>> 5b7848040e932f3344ec31ff131f52371470da72:plutus-tx-plugin/test/Budget/show.pir-readable.golden
   !d : integer
     = trace
         {integer}
@@ -464,23 +436,11 @@ let
                 (Nil {integer})
         in
         concatBuiltinStrings
-<<<<<<< HEAD:plutus-tx-plugin/test/Budget/show.plc.golden
-          (let
-            !w : integer -> List string -> List string
-              = showsPrec {integer} `$dShow` 0
-            !w : List string = Nil {string}
-          in
-          UTuple2_match
-            {string}
-            {List string}
-            (Nil_match
-=======
           ((let
                !showElem : integer -> List string -> List string
-                 = showsPrec {integer} dShow 0
+                 = showsPrec {integer} `$dShow` 0
              in
              Nil_match
->>>>>>> 5b7848040e932f3344ec31ff131f52371470da72:plutus-tx-plugin/test/Budget/show.pir-readable.golden
                {integer}
                x
                {List string -> List string}

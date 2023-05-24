@@ -26,18 +26,8 @@
                   x_i0
                   (delay
                     (lam
-<<<<<<< HEAD:plutus-tx-plugin/test/Lift/tuple.plc.golden
-                      arg_1_i0
-                      (delay
-                        (lam
-                          `case_GHC.Tuple.Tuple2_i0`
-                          [ [ `case_GHC.Tuple.Tuple2_i1` arg_0_i3 ] arg_1_i2 ]
-                        )
-                      )
-=======
-                      case_GHC_Tuple_Tuple2_i0
-                      (case x_i2 case_GHC_Tuple_Tuple2_i1)
->>>>>>> 5b7848040e932f3344ec31ff131f52371470da72:plutus-tx-plugin/test/Lift/tuple.uplc.golden
+                      `case_GHC.Tuple.Tuple2_i0`
+                      (case x_i2 `case_GHC.Tuple.Tuple2_i1`)
                     )
                   )
                 )

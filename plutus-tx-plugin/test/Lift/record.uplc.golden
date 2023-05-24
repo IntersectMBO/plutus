@@ -21,21 +21,8 @@
           x_i0
           (delay
             (lam
-<<<<<<< HEAD:plutus-tx-plugin/test/Lift/record.plc.golden
-              arg_1_i0
-              (delay
-                (lam
-                  `case_Plugin.Data.Spec.MyMonoRecord_i0`
-                  [
-                    [ `case_Plugin.Data.Spec.MyMonoRecord_i1` arg_0_i3 ]
-                    arg_1_i2
-                  ]
-                )
-              )
-=======
-              case_Plugin_Data_Spec_MyMonoRecord_i0
-              (case x_i2 case_Plugin_Data_Spec_MyMonoRecord_i1)
->>>>>>> 5b7848040e932f3344ec31ff131f52371470da72:plutus-tx-plugin/test/Lift/record.uplc.golden
+              `case_Plugin.Data.Spec.MyMonoRecord_i0`
+              (case x_i2 `case_Plugin.Data.Spec.MyMonoRecord_i1`)
             )
           )
         )

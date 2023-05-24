@@ -120,6 +120,7 @@ instance Wrapped TyDeBruijn
 
 instance HasPrettyConfigName config => PrettyBy config NamedDeBruijn where
     prettyBy config (NamedDeBruijn txt (Index ix))
+        -- See Note [Pretty-printing names with uniques]
         | showsUnique = pretty . toPrintedName $ txt <> "_i" <> render (pretty ix)
         | otherwise   = pretty $ toPrintedName txt
       where

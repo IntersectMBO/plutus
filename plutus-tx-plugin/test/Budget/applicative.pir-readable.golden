@@ -8,12 +8,8 @@ let
     = (let
           b = integer -> integer
         in
-<<<<<<< HEAD:plutus-tx-plugin/test/Budget/applicative.plc.golden
         \(`$dFunctor`
-            : (\(f :: * -> *) -> all a. all b. (a -> b) -> f a -> f b) Maybe)
-=======
-        \(dFunctor : (\(f :: * -> *) -> all a b. (a -> b) -> f a -> f b) Maybe)
->>>>>>> 5b7848040e932f3344ec31ff131f52371470da72:plutus-tx-plugin/test/Budget/applicative.pir-readable.golden
+            : (\(f :: * -> *) -> all a b. (a -> b) -> f a -> f b) Maybe)
          (f : integer -> b)
          (fa : Maybe integer) ->
           `$dFunctor` {integer} {b} f fa)

@@ -2,11 +2,7 @@ let
   data (Maybe :: * -> *) a | Maybe_match where
     Just : a -> Maybe a
     Nothing : Maybe a
-<<<<<<< HEAD:plutus-tx-plugin/test/Budget/monadicDo.plc.golden
-  !`$fMonadMaybe_$c>>=` : all a. all b. Maybe a -> (a -> Maybe b) -> Maybe b
-=======
-  !fMonadMaybe_c : all a b. Maybe a -> (a -> Maybe b) -> Maybe b
->>>>>>> 5b7848040e932f3344ec31ff131f52371470da72:plutus-tx-plugin/test/Budget/monadicDo.pir-readable.golden
+  !`$fMonadMaybe_$c>>=` : all a b. Maybe a -> (a -> Maybe b) -> Maybe b
     = /\a
         b ->
         \(ds : Maybe a)
