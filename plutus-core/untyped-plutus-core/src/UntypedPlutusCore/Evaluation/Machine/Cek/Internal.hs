@@ -101,6 +101,7 @@ import Data.Proxy
 import Data.Semigroup (stimes)
 import Data.Text (Text)
 import Data.Word
+import GHC.Magic (inline)
 import GHC.TypeLits
 import Prettyprinter
 import Universe
@@ -700,11 +701,13 @@ enterComputeCek = computeCek
     -- s ; ρ ▻ lam x L  ↦  s ◅ lam x (L , ρ)
     computeCek !ctx !env (LamAbs _ name body) = do
         stepAndMaybeSpend BLamAbs
-        returnCek ctx (VLamAbs name body env)
+        -- See Note [Avoiding allocation of values]
+        (inline returnCek) ctx (VLamAbs name body env)
     -- s ; ρ ▻ delay L  ↦  s ◅ delay (L , ρ)
     computeCek !ctx !env (Delay _ body) = do
         stepAndMaybeSpend BDelay
-        returnCek ctx (VDelay body env)
+        -- See Note [Avoiding allocation of values]
+        (inline returnCek) ctx (VDelay body env)
     -- s ; ρ ▻ force T  ↦  s , force _ ; ρ ▻ L
     computeCek !ctx !env (Force _ body) = do
         stepAndMaybeSpend BForce
@@ -803,6 +806,7 @@ enterComputeCek = computeCek
                 throwingWithCause _MachineError BuiltinTermArgumentExpectedMachineError (Just term')
     forceEvaluate !_ val =
         throwingDischarged _MachineError NonPolymorphicInstantiationMachineError val
+    {-# INLINE forceEvaluate #-}
 
     -- | Apply a function to an argument and proceed.
     -- If the function is a lambda 'lam x ty body' then extend the environment with a binding of @v@
@@ -835,6 +839,7 @@ enterComputeCek = computeCek
                 throwingWithCause _MachineError UnexpectedBuiltinTermArgumentMachineError (Just term')
     applyEvaluate !_ val _ =
         throwingDischarged _MachineError NonFunctionalApplicationMachineError val
+    {-# INLINE applyEvaluate #-}
 
     -- | Spend the budget that has been accumulated for a number of machine steps.
     spendAccumulatedBudget :: CekM uni fun s ()
@@ -907,4 +912,22 @@ We tried at least three variants of this:
 
 Suprisingly, option 3 was just as performant as the others, so we opted to go with it for simplicity.
 But there may well be a faster version.
+-}
+
+{- Note [Avoiding allocation of values]
+Allocation can really slow us down. One of the main things we allocate in the evaluator is values.
+Normally, this is difficult to avoid: we may create a value in one place, and then pass it around for
+a while before we destruct it.
+
+There are a few exceptions where we may create a value with a frame on the stack that will immediately
+deconstruct it. These cases are:
+- We are constructing a lambda value, and on the stack we have a frame for applying it to an already
+  computed value. Then we will proceed immediately to evaluating the body of the lambda. Note that if
+  we have a _term_ argument waiting, then we won't be able to immediately deconstruct the lambda, we
+  will need to evaluate the term first.
+- We are constructing a delay value, and on the stack we have a frame for forcing it.
+
+The question then is how to exploit this. We can in fact do this fairly simply: just inline returnCek
+once at this site: then GHC will see there is a case where we immediately deconstruct the value, and
+skip the construction. The main cost is some code bloat in the generated code, but it's not too bad.
 -}
