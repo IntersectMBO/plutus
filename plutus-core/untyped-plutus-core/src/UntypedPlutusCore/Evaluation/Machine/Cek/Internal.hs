@@ -772,9 +772,7 @@ enterComputeCek = computeCek
     -- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci
     returnCek (FrameCases env cs ctx) e = case e of
         (VConstr i args) -> case cs ^? wix i of
-            Just t  ->
-              let ctx' = transferArgStack args ctx
-              in computeCek ctx' env t
+            Just t  -> computeCek (transferArgStack args ctx) env t
             Nothing -> throwingDischarged _MachineError (MissingCaseBranch i) e
         _ -> throwingDischarged _MachineError NonConstrScrutinized e
 
