@@ -54,6 +54,7 @@ import PlutusIR.Compiler.Types
 import PlutusIR.Error
 import PlutusIR.Transform.Beta qualified as Beta
 import PlutusIR.Transform.CaseReduce qualified as CaseReduce
+import PlutusIR.Transform.CommuteConst qualified as CommuteConst
 import PlutusIR.Transform.DeadCode qualified as DeadCode
 import PlutusIR.Transform.EvaluateBuiltins qualified as EvaluateBuiltins
 import PlutusIR.Transform.Inline.Inline qualified as Inline
@@ -126,6 +127,7 @@ availablePasses =
                                                                                   ver <- view ccBuiltinVer
                                                                                   Inline.inline hints ver t
                                                                               )
+    , Pass "commuteConst" (onOption coDoSimplifiercommuteConst) CommuteConst.commuteConst
     ]
 
 -- | Actual simplifier

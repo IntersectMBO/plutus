@@ -82,6 +82,7 @@ data CompilationOpts a = CompilationOpts {
     , _coMaxSimplifierIterations      :: Int
     , _coDoSimplifierUnwrapCancel     :: Bool
     , _coDoSimplifierCaseReduce       :: Bool
+    , _coDoSimplifiercommuteConst     :: Bool
     , _coDoSimplifierBeta             :: Bool
     , _coDoSimplifierInline           :: Bool
     , _coDoSimplifierKnownCon         :: Bool
@@ -106,6 +107,7 @@ defaultCompilationOpts = CompilationOpts
   , _coMaxSimplifierIterations = 12
   , _coDoSimplifierUnwrapCancel = True
   , _coDoSimplifierCaseReduce = True
+  , _coDoSimplifiercommuteConst = True
   , _coDoSimplifierKnownCon = True
   , _coDoSimplifierBeta = True
   , _coDoSimplifierInline = True
