@@ -16,6 +16,7 @@
 {-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE MagicHash                 #-}
 {-# LANGUAGE InstanceSigs          #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -55,7 +56,7 @@ import PlutusCore.Pretty.Extra
 import Control.Applicative
 import Data.Bits (toIntegralSized)
 import Data.ByteString qualified as BS
-import Data.Int
+import GHC.Int
 import Data.Proxy
 import Data.Text qualified as Text
 import Data.Word
@@ -64,6 +65,7 @@ import Text.Pretty
 import Text.PrettyBy
 import Text.PrettyBy.Fixity
 import Universe as Export
+import GHC.Num.Integer
 
 {- Note [PLC types and universes]
 We encode built-in types in PLC as tags for Haskell types (the latter are also called meta-types),
@@ -352,46 +354,27 @@ is not an internal one -- it's a normal evaluation failure, but unlifting errors
 have this connotation of being "internal".
 -}
 
-instance KnownTypeAst DefaultUni Int64 where
-    toTypeAst _ = toTypeAst $ Proxy @Integer
-
--- See Note [Integral types as Integer].
-instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Int64 where
-    makeKnown = makeKnown . toInteger
-    {-# INLINE makeKnown #-}
-
-instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Int64 where
-    readKnown term =
-        -- See Note [Performance of KnownTypeIn instances].
-        -- Funnily, we don't need 'inline' here, unlike in the default implementation of 'readKnown'
-        -- (go figure why).
-        inline readKnownConstant term >>= oneShot \(i :: Integer) ->
-            -- We don't make use here of `toIntegralSized` because of performance considerations,
-            -- see: https://gitlab.haskell.org/ghc/ghc/-/issues/19641
-            -- OPTIMIZE: benchmark an alternative `integerToIntMaybe`, modified from 'ghc-bignum'
-            if fromIntegral (minBound :: Int64) <= i && i <= fromIntegral (maxBound :: Int64)
-                then pure $ fromIntegral i
-                else throwing_ _EvaluationFailure
-    {-# INLINE readKnown #-}
-
 #if WORD_SIZE_IN_BITS == 64
 -- See Note [Integral types as Integer].
 
 instance KnownTypeAst DefaultUni Int where
     toTypeAst _ = toTypeAst $ Proxy @Integer
 
+-- See Note [Integral types as Integer].
 instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Int where
-    -- Convert Int-to-Integer via Int64.  We could go directly `toInteger`, but this way
-    -- is more explicit and it'll turn into the same thing anyway.
-    -- Although this conversion is safe regardless of the CPU arch (unlike the opposite conversion),
-    -- we constrain it to 64-bit for the sake of uniformity.
-    makeKnown = makeKnown . fromIntegral @Int @Int64
+    makeKnown = makeKnown . toInteger
     {-# INLINE makeKnown #-}
 
 instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Int where
-    -- Convert Integer-to-Int via Int64. This instance is safe only for 64-bit architecture
-    -- where Int===Int64 (i.e. no truncation happening).
-    readKnown term = fromIntegral @Int64 @Int <$> readKnown term
+    readKnown term =
+        -- See Note [Performance of KnownTypeIn instances].
+        -- Funnily, we don't need 'inline' here, unlike in the default implementation of 'readKnown'
+        -- (go figure why).
+        -- We don't make use here of `toIntegralSized` because of performance considerations,
+        -- see: https://gitlab.haskell.org/ghc/ghc/-/issues/19641
+        inline readKnownConstant term >>= oneShot \case
+                IS i' -> pure $ I# i'
+                _ -> throwing_ _EvaluationFailure
     {-# INLINE readKnown #-}
 #endif
 
