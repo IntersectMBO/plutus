@@ -727,7 +727,7 @@ enterComputeCek = computeCek
         stepAndMaybeSpend BConstr
         case es of
           (t : rest) -> computeCek (FrameConstr env i rest EmptyStack ctx) env t
-          []         -> returnCek ctx $ VConstr i EmptyStack
+          []         -> (inline returnCek) ctx $ VConstr i EmptyStack
     -- s ; ρ ▻ case S C0 ... Cn  ↦  s , case _ (C0 ... Cn, ρ) ; ρ ▻ S
     computeCek !ctx !env (Case _ scrut cs) = do
         stepAndMaybeSpend BCase
@@ -749,35 +749,43 @@ enterComputeCek = computeCek
         :: Context uni fun ann
         -> CekValue uni fun ann
         -> CekM uni fun s (NTerm uni fun ())
-    --- Instantiate all the free variable of the resulting term in case there are any.
-    -- . ◅ V           ↦  [] V
-    returnCek NoFrame val = do
-        spendAccumulatedBudget
-        pure $ dischargeCekValue val
     -- s , {_ A} ◅ abs α M  ↦  s ; ρ ▻ M [ α / A ]*
     returnCek (FrameForce ctx) fun = forceEvaluate ctx fun
-    -- s , [_ (M,ρ)] ◅ V  ↦  s , [V _] ; ρ ▻ M
-    returnCek (FrameAwaitFunTerm argVarEnv arg ctx) fun =
-        computeCek (FrameAwaitArg fun ctx) argVarEnv arg
-    -- s , [(lam x (M,ρ)) _] ◅ V  ↦  s ; ρ [ x  ↦  V ] ▻ M
-    -- FIXME: add rule for VBuiltin once it's in the specification.
-    returnCek (FrameAwaitArg fun ctx) arg =
-        applyEvaluate ctx fun arg
     -- s , [_ V] ◅ lam x (M,ρ)  ↦  s ; ρ [ x  ↦  V ] ▻ M
     returnCek (FrameAwaitFunValue arg ctx) fun =
         applyEvaluate ctx fun arg
-    -- s , constr I V0 ... Vj-1 _ (Tj+1 ... Tn, ρ) ◅ Vj  ↦  s , constr i V0 ... Vj _ (Tj+2... Tn, ρ)  ; ρ ▻ Tj+1
-    returnCek (FrameConstr env i todo done ctx) e = do
-        let done' = ConsStack e done
-        case todo of
-          (next : todo') -> computeCek (FrameConstr env i todo' done' ctx) env next
-          _              -> returnCek ctx $ VConstr i done'
     -- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci
     returnCek (FrameCases env cs ctx) e = case e of
         (VConstr i args) -> case cs ^? wix i of
             Just t  -> computeCek (transferArgStack args ctx) env t
             Nothing -> throwingDischarged _MachineError (MissingCaseBranch i) e
         _ -> throwingDischarged _MachineError NonConstrScrutinized e
+    returnCek ctx v = returnCekNonScrut ctx v
+
+    {-# NOINLINE returnCekNonScrut #-}
+    returnCekNonScrut
+        :: Context uni fun ann
+        -> CekValue uni fun ann
+        -> CekM uni fun s (NTerm uni fun ())
+    --- Instantiate all the free variable of the resulting term in case there are any.
+    -- . ◅ V           ↦  [] V
+    returnCekNonScrut NoFrame val = do
+        spendAccumulatedBudget
+        pure $ dischargeCekValue val
+    -- s , [_ (M,ρ)] ◅ V  ↦  s , [V _] ; ρ ▻ M
+    returnCekNonScrut (FrameAwaitFunTerm argVarEnv arg ctx) fun =
+        computeCek (FrameAwaitArg fun ctx) argVarEnv arg
+    -- s , [(lam x (M,ρ)) _] ◅ V  ↦  s ; ρ [ x  ↦  V ] ▻ M
+    -- FIXME: add rule for VBuiltin once it's in the specification.
+    returnCekNonScrut (FrameAwaitArg fun ctx) arg =
+        applyEvaluate ctx fun arg
+    -- s , constr I V0 ... Vj-1 _ (Tj+1 ... Tn, ρ) ◅ Vj  ↦  s , constr i V0 ... Vj _ (Tj+2... Tn, ρ)  ; ρ ▻ Tj+1
+    returnCekNonScrut (FrameConstr env i todo done ctx) e = do
+        let done' = ConsStack e done
+        case todo of
+          (next : todo') -> computeCek (FrameConstr env i todo' done' ctx) env next
+          _              -> (inline returnCek) ctx $ VConstr i done'
+    returnCekNonScrut _ _ = error "impossible"
 
     -- | @force@ a term and proceed.
     -- If v is a delay then compute the body of v;
@@ -926,6 +934,8 @@ deconstruct it. These cases are:
   we have a _term_ argument waiting, then we won't be able to immediately deconstruct the lambda, we
   will need to evaluate the term first.
 - We are constructing a delay value, and on the stack we have a frame for forcing it.
+- We are constructing a finished constructor value, and on the stack we have a frame for case-analyzing
+  it.
 
 The question then is how to exploit this. We can in fact do this fairly simply: just inline returnCek
 once at this site: then GHC will see there is a case where we immediately deconstruct the value, and
