@@ -50,6 +50,8 @@ extra-packages: ieee, filemanip
 
 if impl(ghc >= 9.6)
   allow-newer:
+    -- unmaintained? would be good to do something here
+    , int-cast:base
     -- https://github.com/mokus0/th-extras/pull/20
     , th-extras:template-haskell
     , th-extras:th-abstraction

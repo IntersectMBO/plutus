@@ -1092,7 +1092,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     toBuiltinMeaning _ver IndexByteString =
         makeBuiltinMeaning
             (\xs n -> if n >= 0 && n < BS.length xs then EvaluationSuccess $ toInteger $ BS.index xs n else EvaluationFailure)
-            -- TODO: fix the mess above with `indexMaybe` from `ghc>=9.2,bytestring >= 0.11.0.0`.
+            -- TODO: fix the mess above with `indexMaybe` from `bytestring >= 0.11.0.0`.
             (runCostingFunTwoArguments . paramIndexByteString)
     toBuiltinMeaning _ver EqualsByteString =
         makeBuiltinMeaning

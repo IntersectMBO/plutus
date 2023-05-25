@@ -278,6 +278,7 @@ library
     , hashable                    >=1.4
     , hedgehog                    >=1.0
     , index-envs
+    , int-cast
     , lens
     , megaparsec
     , mmorph
