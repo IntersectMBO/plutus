@@ -238,6 +238,8 @@ inline =
             , "single"
             , "immediateVar"
             , "immediateApp"
+            , "firstEffectfulTerm1"
+            , "firstEffectfulTerm2"
             -- these tests are all let bindings of functions
             , "letFunConstInt" -- const fn fully applied (integer)
             , "letFunConstBool" -- const fn fully applied (bool)

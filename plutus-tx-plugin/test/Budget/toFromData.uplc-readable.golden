@@ -2,8 +2,7 @@ program 1.1.0 ((\unitval ->
                   (\Just ->
                      (\Right ->
                         (\Tuple3 ->
-                           (\reconstructCaseError
-                             d ->
+                           (\reconstructCaseError ->
                               (\tup ->
                                  (\index ->
                                     force ifThenElse
@@ -19,100 +18,94 @@ program 1.1.0 ((\unitval ->
                                                           (\arg ->
                                                              Just
                                                                ((\tup ->
-                                                                   (\index ->
-                                                                      force ifThenElse
-                                                                        (equalsInteger
-                                                                           index
-                                                                           0)
-                                                                        (\ds ->
-                                                                           (\t ->
-                                                                              (\arg ->
-                                                                                 (\t ->
+                                                                   force ifThenElse
+                                                                     (equalsInteger
+                                                                        (force (force fstPair)
+                                                                           tup)
+                                                                        0)
+                                                                     (\ds ->
+                                                                        (\t ->
+                                                                           (\arg ->
+                                                                              (\t ->
+                                                                                 (\arg ->
                                                                                     (\arg ->
-                                                                                       (\arg ->
-                                                                                          Tuple3
-                                                                                            ((\tup ->
-                                                                                                (\index ->
-                                                                                                   force ifThenElse
-                                                                                                     (equalsInteger
-                                                                                                        index
-                                                                                                        1)
-                                                                                                     (\ds ->
-                                                                                                        constr 0 [  ])
-                                                                                                     (\ds ->
-                                                                                                        force ifThenElse
-                                                                                                          (equalsInteger
-                                                                                                             index
-                                                                                                             0)
-                                                                                                          (\ds ->
-                                                                                                             constr 1 [  ])
-                                                                                                          (\ds ->
-                                                                                                             (\thunk ->
-                                                                                                                error)
-                                                                                                               ((\wild ->
-                                                                                                                   unitval)
-                                                                                                                  (force trace
-                                                                                                                     reconstructCaseError
-                                                                                                                     (constr 0 [  ]))))
-                                                                                                          unitval)
-                                                                                                     unitval)
-                                                                                                  (force (force fstPair)
-                                                                                                     tup))
-                                                                                               (unConstrData
-                                                                                                  arg))
-                                                                                            (unIData
-                                                                                               arg)
-                                                                                            ((\tup ->
-                                                                                                (\index ->
-                                                                                                   force ifThenElse
-                                                                                                     (equalsInteger
-                                                                                                        index
-                                                                                                        1)
-                                                                                                     (\ds ->
-                                                                                                        constr 0 [  ])
-                                                                                                     (\ds ->
-                                                                                                        force ifThenElse
-                                                                                                          (equalsInteger
-                                                                                                             index
-                                                                                                             0)
-                                                                                                          (\ds ->
-                                                                                                             constr 1 [  ])
-                                                                                                          (\ds ->
-                                                                                                             (\thunk ->
-                                                                                                                error)
-                                                                                                               ((\wild ->
-                                                                                                                   unitval)
-                                                                                                                  (force trace
-                                                                                                                     reconstructCaseError
-                                                                                                                     (constr 0 [  ]))))
-                                                                                                          unitval)
-                                                                                                     unitval)
-                                                                                                  (force (force fstPair)
-                                                                                                     tup))
+                                                                                       Tuple3
+                                                                                         ((\index ->
+                                                                                             force ifThenElse
+                                                                                               (equalsInteger
+                                                                                                  index
+                                                                                                  1)
+                                                                                               (\ds ->
+                                                                                                  constr 0 [  ])
+                                                                                               (\ds ->
+                                                                                                  force ifThenElse
+                                                                                                    (equalsInteger
+                                                                                                       index
+                                                                                                       0)
+                                                                                                    (\ds ->
+                                                                                                       constr 1 [  ])
+                                                                                                    (\ds ->
+                                                                                                       (\thunk ->
+                                                                                                          error)
+                                                                                                         ((\wild ->
+                                                                                                             unitval)
+                                                                                                            (force trace
+                                                                                                               reconstructCaseError
+                                                                                                               (constr 0 [  ]))))
+                                                                                                    unitval)
+                                                                                               unitval)
+                                                                                            (force (force fstPair)
                                                                                                (unConstrData
                                                                                                   arg)))
-                                                                                         (force headList
-                                                                                            (force tailList
-                                                                                               (force t))))
+                                                                                         (unIData
+                                                                                            arg)
+                                                                                         ((\index ->
+                                                                                             force ifThenElse
+                                                                                               (equalsInteger
+                                                                                                  index
+                                                                                                  1)
+                                                                                               (\ds ->
+                                                                                                  constr 0 [  ])
+                                                                                               (\ds ->
+                                                                                                  force ifThenElse
+                                                                                                    (equalsInteger
+                                                                                                       index
+                                                                                                       0)
+                                                                                                    (\ds ->
+                                                                                                       constr 1 [  ])
+                                                                                                    (\ds ->
+                                                                                                       (\thunk ->
+                                                                                                          error)
+                                                                                                         ((\wild ->
+                                                                                                             unitval)
+                                                                                                            (force trace
+                                                                                                               reconstructCaseError
+                                                                                                               (constr 0 [  ]))))
+                                                                                                    unitval)
+                                                                                               unitval)
+                                                                                            (force (force fstPair)
+                                                                                               (unConstrData
+                                                                                                  arg))))
                                                                                       (force headList
-                                                                                         (force t)))
-                                                                                   (delay (force tailList
-                                                                                             (force t))))
-                                                                                (force headList
-                                                                                   (force t)))
-                                                                             (delay (force (force sndPair)
-                                                                                       tup)))
-                                                                        (\ds ->
-                                                                           (\thunk ->
-                                                                              error)
-                                                                             ((\wild ->
-                                                                                 unitval)
-                                                                                (force trace
-                                                                                   reconstructCaseError
-                                                                                   (constr 0 [  ]))))
-                                                                        unitval)
-                                                                     (force (force fstPair)
-                                                                        tup))
+                                                                                         (force tailList
+                                                                                            (force t))))
+                                                                                   (force headList
+                                                                                      (force t)))
+                                                                                (delay (force tailList
+                                                                                          (force t))))
+                                                                             (force headList
+                                                                                (force t)))
+                                                                          (delay (force (force sndPair)
+                                                                                    tup)))
+                                                                     (\ds ->
+                                                                        (\thunk ->
+                                                                           error)
+                                                                          ((\wild ->
+                                                                              unitval)
+                                                                             (force trace
+                                                                                reconstructCaseError
+                                                                                (constr 0 [  ]))))
+                                                                     unitval)
                                                                   (unConstrData
                                                                      arg)))
                                                             (force headList
@@ -142,9 +135,10 @@ program 1.1.0 ((\unitval ->
                                          force ifThenElse
                                            (equalsInteger index 0)
                                            (\ds ->
-                                              (\arg -> constr 0 [(unIData arg)])
-                                                (force headList
-                                                   (force (force sndPair) tup)))
+                                              constr 0 [ (unIData
+                                                            (force headList
+                                                               (force (force sndPair)
+                                                                  tup))) ])
                                            (\ds ->
                                               (\thunk -> error)
                                                 ((\wild -> unitval)
@@ -154,46 +148,33 @@ program 1.1.0 ((\unitval ->
                                            unitval)
                                       unitval)
                                    (force (force fstPair) tup))
-                                (unConstrData d))
-                             "PT1"
-                             (case (Right
-                                      (Just
-                                         (Tuple3
-                                            (constr 0 [])
-                                            1
-                                            (constr 1 [  ])))) [ (\arg ->
-                                                                    constrData
-                                                                      0
-                                                                      (force mkCons
-                                                                         (iData
-                                                                            arg)
-                                                                         (mkNilData
-                                                                            unitval)))
-                                                               , (\arg ->
-                                                                    constrData
-                                                                      1
-                                                                      (force mkCons
-                                                                         (force (case arg [ (\arg ->
-                                                                                               delay (constrData
-                                                                                                        0
-                                                                                                        (force mkCons
-                                                                                                           (case arg [ (\ww
-                                                                                                                         ww
-                                                                                                                         ww ->
-                                                                                                                          constrData
-                                                                                                                            0
-                                                                                                                            (force mkCons
-                                                                                                                               (force (case ww [ (delay (constrData
-                                                                                                                                                           1
-                                                                                                                                                           (mkNilData
-                                                                                                                                                              unitval)))
-                                                                                                                                               , (delay (constrData
-                                                                                                                                                           0
-                                                                                                                                                           (mkNilData
-                                                                                                                                                              unitval))) ]))
-                                                                                                                               (force mkCons
-                                                                                                                                  (iData
-                                                                                                                                     ww)
+                                (unConstrData
+                                   (case (Right
+                                            (Just
+                                               (Tuple3
+                                                  (constr 0 [])
+                                                  1
+                                                  (constr 1 [  ])))) [ (\arg ->
+                                                                          constrData
+                                                                            0
+                                                                            (force mkCons
+                                                                               (iData
+                                                                                  arg)
+                                                                               (mkNilData
+                                                                                  unitval)))
+                                                                     , (\arg ->
+                                                                          constrData
+                                                                            1
+                                                                            (force mkCons
+                                                                               (force (case arg [ (\arg ->
+                                                                                                     delay (constrData
+                                                                                                              0
+                                                                                                              (force mkCons
+                                                                                                                 (case arg [ (\ww
+                                                                                                                               ww
+                                                                                                                               ww ->
+                                                                                                                                constrData
+                                                                                                                                  0
                                                                                                                                   (force mkCons
                                                                                                                                      (force (case ww [ (delay (constrData
                                                                                                                                                                  1
@@ -203,16 +184,29 @@ program 1.1.0 ((\unitval ->
                                                                                                                                                                  0
                                                                                                                                                                  (mkNilData
                                                                                                                                                                     unitval))) ]))
-                                                                                                                                     (mkNilData
-                                                                                                                                        unitval))))) ])
-                                                                                                           (mkNilData
-                                                                                                              unitval))))
-                                                                                          , (delay (constrData
-                                                                                                      1
-                                                                                                      (mkNilData
-                                                                                                         unitval))) ]))
-                                                                         (mkNilData
-                                                                            unitval))) ]))
+                                                                                                                                     (force mkCons
+                                                                                                                                        (iData
+                                                                                                                                           ww)
+                                                                                                                                        (force mkCons
+                                                                                                                                           (force (case ww [ (delay (constrData
+                                                                                                                                                                       1
+                                                                                                                                                                       (mkNilData
+                                                                                                                                                                          unitval)))
+                                                                                                                                                           , (delay (constrData
+                                                                                                                                                                       0
+                                                                                                                                                                       (mkNilData
+                                                                                                                                                                          unitval))) ]))
+                                                                                                                                           (mkNilData
+                                                                                                                                              unitval))))) ])
+                                                                                                                 (mkNilData
+                                                                                                                    unitval))))
+                                                                                                , (delay (constrData
+                                                                                                            1
+                                                                                                            (mkNilData
+                                                                                                               unitval))) ]))
+                                                                               (mkNilData
+                                                                                  unitval))) ])))
+                             "PT1")
                           (\arg_0
                             arg_1
                             arg_2 ->

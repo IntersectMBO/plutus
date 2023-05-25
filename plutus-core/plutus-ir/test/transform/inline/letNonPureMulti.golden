@@ -7,7 +7,6 @@
       [ { (builtin trace) (con integer) } (con string "hello") ] (con integer 1)
     ]
   )
-  (termbind (strict) (vardecl z (con integer)) y)
   (termbind (strict) (vardecl x (con integer)) y)
-  [ [ (builtin addInteger) z ] [ [ (builtin addInteger) x ] x ] ]
+  [ [ (builtin addInteger) y ] [ [ (builtin addInteger) x ] x ] ]
 )

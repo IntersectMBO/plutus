@@ -1,5 +1,27 @@
-program 1.1.0 ((\x ->
-                  (\s ->
+program 1.1.0 ((\go ->
+                  (\x -> go x)
+                    ((\c ->
+                        c
+                          1
+                          (c
+                             2
+                             (c
+                                3
+                                (c
+                                   4
+                                   (c
+                                      5
+                                      (c
+                                         6
+                                         (c
+                                            7
+                                            (c
+                                               8
+                                               (c
+                                                  9
+                                                  (c 10 (constr 0 [])))))))))))
+                       (\ds ds -> constr 1 [ds, ds])))
+                 ((\s ->
                      s s)
                     (\s
                       x ->
@@ -15,22 +37,4 @@ program 1.1.0 ((\x ->
                                                                    (constr 1 [  ])) [ (delay (constr 1 [  ]))
                                                                                     , (delay (go
                                                                                                 xs)) ]))) ]))
-                         (s s))
-                    x)
-                 ((\c ->
-                     c
-                       1
-                       (c
-                          2
-                          (c
-                             3
-                             (c
-                                4
-                                (c
-                                   5
-                                   (c
-                                      6
-                                      (c
-                                         7
-                                         (c 8 (c 9 (c 10 (constr 0 [])))))))))))
-                    (\ds ds -> constr 1 [ds, ds])))
+                         (s s))))

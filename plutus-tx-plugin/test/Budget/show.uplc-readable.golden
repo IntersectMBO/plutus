@@ -22,10 +22,7 @@ program 1.1.0 ((\fix1 ->
                                                                               (\showsPrec ->
                                                                                  (\`$fShowInteger` ->
                                                                                     (\e ->
-                                                                                       (\x ->
-                                                                                          multiplyInteger
-                                                                                            x
-                                                                                            2)
+                                                                                       multiplyInteger
                                                                                          (force trace
                                                                                             (concatBuiltinStrings
                                                                                                (Cons
@@ -61,7 +58,8 @@ program 1.1.0 ((\fix1 ->
                                                                                                                              (Cons
                                                                                                                                 ")"
                                                                                                                                 (constr 0 [  ])))))))))))))
-                                                                                            e))
+                                                                                            e)
+                                                                                         2)
                                                                                       (force trace
                                                                                          ((\x ->
                                                                                              concatBuiltinStrings

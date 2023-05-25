@@ -18,7 +18,7 @@ import PlutusCore.Subst (typeSubstTyNamesM)
 import PlutusIR
 import PlutusIR.Analysis.Dependencies qualified as Deps
 import PlutusIR.Analysis.Usages qualified as Usages
-import PlutusIR.Purity (firstEffectfulTerm, isPure)
+import PlutusIR.Purity (FirstEffectfulTerm (..), firstEffectfulTerm, isPure)
 import PlutusIR.Transform.Rename ()
 import PlutusPrelude
 
@@ -301,8 +301,8 @@ effectSafe body s n purity = do
     -- doing ~quadratic work as we process the program. However in practice most term
     -- types will make it give up, so it's not too bad.
     let immediatelyEvaluated = case firstEffectfulTerm body of
-            Just (Var _ n') -> n == n'
-            _               -> False
+            Just (EffectfulTerm (Var _ n')) -> n == n'
+            _                               -> False
     pure $ case s of
         Strict    -> purity || immediatelyEvaluated
         NonStrict -> True
