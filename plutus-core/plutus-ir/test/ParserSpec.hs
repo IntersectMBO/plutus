@@ -1,5 +1,6 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 -- | Tests for PIR parser.
@@ -53,15 +54,24 @@ separator :: Char -> Bool
 separator c = c `elem` separators || isSpace c
 
 aroundSeparators :: MonadGen m => m String -> String -> m String
-aroundSeparators _ [] = return []
-aroundSeparators splice [s] = (s:) <$> splice
-aroundSeparators splice (a:b:l)
-    | separator b = do
-          s1 <- splice
-          s2 <- splice
-          rest <- aroundSeparators splice l
-          return $ a : s1 ++ b : s2 ++ rest
-    | otherwise = (a :) <$> aroundSeparators splice (b:l)
+aroundSeparators = go False
+  where
+    -- Quoted names may contain separators, but they are part of the name, so
+    -- we cannot scramble inside quoted names.
+    go inQuotedName splice = \case
+        [] -> pure []
+        [s] -> (s:) <$> splice
+        ('`' : l) -> do
+            s <- splice
+            rest <- go (not inQuotedName) splice l
+            pure $ if inQuotedName then '`' : s ++ rest else s ++ '`' : rest
+        (a : b : l)
+            | not (inQuotedName) && separator b -> do
+                s1 <- splice
+                s2 <- splice
+                rest <- go inQuotedName splice l
+                pure $ a : s1 ++ b : s2 ++ rest
+            | otherwise -> (a :) <$> go inQuotedName splice (b : l)
 
 genScrambledWith :: MonadGen m => m String -> m (String, String)
 genScrambledWith splice = do

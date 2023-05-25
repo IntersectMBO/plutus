@@ -278,7 +278,6 @@ library
     , hashable                    >=1.4
     , hedgehog                    >=1.0
     , index-envs
-    , int-cast
     , lens
     , megaparsec
     , mmorph
@@ -826,13 +825,13 @@ executable generate-cost-model
   build-depends:
     , aeson-pretty
     , barbies
-    , base                  >=4.9 && <5
+    , base                  >=4.9   && <5
     , bytestring
     , cassava
     , directory
     , exceptions
     , extra
-    , inline-r              >=1.0
+    , inline-r              >=1.0.1
     , optparse-applicative
     , plutus-core           ^>=1.7
     , text
@@ -867,13 +866,13 @@ benchmark cost-model-test
 
   build-depends:
     , barbies
-    , base              >=4.9 && <5
+    , base              >=4.9   && <5
     , bytestring
     , cassava
     , exceptions
     , extra
     , hedgehog
-    , inline-r          >=1.0
+    , inline-r          >=1.0.1
     , mmorph
     , plutus-core       ^>=1.7
     , template-haskell

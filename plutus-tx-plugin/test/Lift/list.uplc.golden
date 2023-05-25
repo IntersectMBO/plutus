@@ -6,14 +6,14 @@
         (force
           (delay
             (lam
-              GHC_Types_Nil_i0
+              `GHC.Types.Nil_i0`
               (lam
-                GHC_Types_Cons_i0
+                `GHC.Types.Cons_i0`
                 (lam
-                  match_GHC_Types_Nil_i0
+                  `match_GHC.Types.Nil_i0`
                   [
-                    [ (force GHC_Types_Cons_i2) (con integer 1) ]
-                    (force GHC_Types_Nil_i3)
+                    [ (force `GHC.Types.Cons_i2`) (con integer 1) ]
+                    (force `GHC.Types.Nil_i3`)
                   ]
                 )
               )
@@ -29,10 +29,10 @@
         x_i0
         (delay
           (lam
-            case_GHC_Types_Nil_i0
+            `case_GHC.Types.Nil_i0`
             (lam
-              case_GHC_Types_Cons_i0
-              (case x_i3 case_GHC_Types_Nil_i2 case_GHC_Types_Cons_i1)
+              `case_GHC.Types.Cons_i0`
+              (case x_i3 `case_GHC.Types.Nil_i2` `case_GHC.Types.Cons_i1`)
             )
           )
         )

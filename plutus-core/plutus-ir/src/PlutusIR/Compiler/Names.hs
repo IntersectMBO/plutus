@@ -2,9 +2,9 @@
 module PlutusIR.Compiler.Names (safeFreshName, safeFreshTyName) where
 
 import PlutusCore qualified as PLC
+import PlutusCore.Name (isQuotedIdentifierChar)
 import PlutusCore.Quote
 
-import Data.Char
 import Data.List
 import Data.Text qualified as T
 
@@ -15,15 +15,9 @@ in the long run it would be nice to have a more principled encoding so we can
 support unicode identifiers as well.
 -}
 
-replacements :: [(T.Text, T.Text)]
-replacements = [
-    -- this helps with module prefixes
-    (".", "_")
-    ]
-
 typeReplacements :: [(T.Text, T.Text)]
-typeReplacements = replacements ++ [
-    ("[]", "List")
+typeReplacements =
+    [ ("[]", "List")
     , ("()", "Unit")
     , ("(,)", "Tuple2")
     , ("(,,)", "Tuple3")
@@ -36,8 +30,8 @@ typeReplacements = replacements ++ [
     ]
 
 termReplacements :: [(T.Text, T.Text)]
-termReplacements = replacements ++ [
-    (":", "Cons")
+termReplacements =
+    [ (":", "Cons")
     , ("[]", "Nil")
     , ("()", "Unit")
     , ("(,)", "Tuple2")
@@ -61,12 +55,8 @@ safeName kind t =
             TermName -> termReplacements
         replaced = foldl' (\acc (old, new) -> T.replace old new acc) t toReplace
         -- strip out disallowed characters
-        stripped = T.filter (\c -> isLetter c || isDigit c || c == '_' || c == '`') replaced
-        -- can't start with these
-        dropped = T.dropWhile (\c -> c == '_' || c == '`') stripped
-        -- empty name, just put something to mark that
-        nonEmpty = if T.null dropped then "bad_name" else dropped
-    in nonEmpty
+        stripped = T.filter isQuotedIdentifierChar replaced
+     in if T.null stripped then "bad_name" else stripped
 
 safeFreshName :: MonadQuote m => T.Text -> m PLC.Name
 safeFreshName s = liftQuote $ freshName $ safeName TermName s
