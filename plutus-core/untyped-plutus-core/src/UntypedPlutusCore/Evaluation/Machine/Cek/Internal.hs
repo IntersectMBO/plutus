@@ -721,7 +721,7 @@ enterComputeCek = computeCek
         stepAndMaybeSpend BBuiltin
         let meaning = lookupBuiltin bn ?cekRuntime
         -- 'Builtin' is fully discharged.
-        returnCek ctx (VBuiltin bn (Builtin () bn) meaning)
+        (inline returnCek) ctx (VBuiltin bn (Builtin () bn) meaning)
     -- s ; ρ ▻ constr I T0 .. Tn  ↦  s , constr I _ (T1 ... Tn, ρ) ; ρ ▻ T0
     computeCek !ctx !env (Constr _ i es) = do
         stepAndMaybeSpend BConstr
@@ -798,7 +798,18 @@ enterComputeCek = computeCek
         -> CekValue uni fun ann
         -> CekM uni fun s (NTerm uni fun ())
     forceEvaluate !ctx (VDelay body env) = computeCek ctx env body
-    forceEvaluate !ctx (VBuiltin fun term runtime) = do
+    forceEvaluate !ctx (VBuiltin fun term runtime) = forceBuiltin ctx fun term runtime
+    forceEvaluate !_ val =
+        throwingDischarged _MachineError NonPolymorphicInstantiationMachineError val
+    {-# INLINE forceEvaluate #-}
+
+    forceBuiltin
+        :: Context uni fun ann
+        -> fun
+        -> NTerm uni fun ()
+        -> BuiltinRuntime (CekValue uni fun ann)
+        -> CekM uni fun s (NTerm uni fun ())
+    forceBuiltin !ctx !fun term !runtime = do
         -- @term@ is fully discharged, and so @term'@ is, hence we can put it in a 'VBuiltin'.
         let term' = Force () term
         case runtime of
@@ -809,12 +820,11 @@ enterComputeCek = computeCek
                 -- otherwise we could just assemble a 'VBuiltin' without trying to evaluate the
                 -- application.
                 res <- evalBuiltinApp fun term' runtime'
-                returnCek ctx res
+                (inline returnCek) ctx res
             _ ->
                 throwingWithCause _MachineError BuiltinTermArgumentExpectedMachineError (Just term')
-    forceEvaluate !_ val =
-        throwingDischarged _MachineError NonPolymorphicInstantiationMachineError val
-    {-# INLINE forceEvaluate #-}
+    -- break inlining loop with returnCek
+    {-# NOINLINE forceBuiltin #-}
 
     -- | Apply a function to an argument and proceed.
     -- If the function is a lambda 'lam x ty body' then extend the environment with a binding of @v@
@@ -832,7 +842,19 @@ enterComputeCek = computeCek
         computeCek ctx (Env.cons arg env) body
     -- Annotating @f@ and @exF@ with bangs gave us some speed-up, but only until we added a bang to
     -- 'VCon'. After that the bangs here were making things a tiny bit slower and so we removed them.
-    applyEvaluate !ctx (VBuiltin fun term runtime) arg = do
+    applyEvaluate !ctx (VBuiltin fun term runtime) arg = applyBuiltin ctx fun term runtime arg
+    applyEvaluate !_ val _ =
+        throwingDischarged _MachineError NonFunctionalApplicationMachineError val
+    {-# INLINE applyEvaluate #-}
+
+    applyBuiltin
+        :: Context uni fun ann
+        -> fun
+        -> NTerm uni fun ()
+        -> BuiltinRuntime (CekValue uni fun ann)
+        -> CekValue uni fun ann
+        -> CekM uni fun s (NTerm uni fun ())
+    applyBuiltin !ctx !fun term !runtime arg = do
         let argTerm = dischargeCekValue arg
             -- @term@ and @argTerm@ are fully discharged, and so @term'@ is, hence we can put it
             -- in a 'VBuiltin'.
@@ -842,12 +864,11 @@ enterComputeCek = computeCek
             -- argument next.
             BuiltinExpectArgument f -> do
                 res <- evalBuiltinApp fun term' $ f arg
-                returnCek ctx res
+                (inline returnCek) ctx res
             _ ->
                 throwingWithCause _MachineError UnexpectedBuiltinTermArgumentMachineError (Just term')
-    applyEvaluate !_ val _ =
-        throwingDischarged _MachineError NonFunctionalApplicationMachineError val
-    {-# INLINE applyEvaluate #-}
+    -- break inlining loop with returnCek
+    {-# NOINLINE applyBuiltin #-}
 
     -- | Spend the budget that has been accumulated for a number of machine steps.
     spendAccumulatedBudget :: CekM uni fun s ()
