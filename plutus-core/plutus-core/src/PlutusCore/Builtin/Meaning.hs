@@ -382,9 +382,21 @@ toBuiltinsRuntime
     => BuiltinVersion fun -> cost -> BuiltinsRuntime fun val
 toBuiltinsRuntime ver cost =
     let runtime = BuiltinsRuntime $ toBuiltinRuntime cost . inline toBuiltinMeaning ver
-        -- TODO: explain
-       -- Force each 'BuiltinRuntime' to WHNF, so that the thunk is allocated and forced at
-       -- initialization time rather than at runtime. Not that we'd lose much by not forcing all
-       -- 'BuiltinRuntime's here, but why pay even very little if there's an easy way not to pay.
-    in force runtime
+        -- This pragma is very important, removing it destroys the carefully set up optimizations of
+        -- of costing functions (see Note [Optimizations of runCostingFun*]). The reason for that is
+        -- that if @runtime@ doesn't have a pragma, then GHC sees that it's only referenced once and
+        -- inlines it below, together with this entire function (since we tell GHC to), at which
+        -- point everything's inlined and we're completely at GHC's mercy to optimize things
+        -- properly. Unfortunately, GHC doesn't want to cooperate and push 'toBuiltinRuntime' to
+        -- the inside of the inlined to 'toBuiltinMeaning' call, creating lots of 'BuiltinMeaning's
+        -- instead of 'BuiltinRuntime's with the former hiding the costing optimizations behind a
+        -- lambda binding the @cost@ variable, which renders all the optimizations useless. By
+        -- using a @NOINLINE@ pragma we tell GHC to create a separate thunk, which it can properly
+        -- optimize, because the other bazillion things don't get in the way.
+        {-# NOINLINE runtime #-}
+    in
+        -- Force each 'BuiltinRuntime' to WHNF, so that the thunk is allocated and forced at
+        -- initialization time rather than at runtime. Not that we'd lose much by not forcing all
+        -- 'BuiltinRuntime's here, but why pay even very little if there's an easy way not to pay.
+        force runtime
 {-# INLINE toBuiltinsRuntime #-}
