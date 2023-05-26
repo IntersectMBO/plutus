@@ -25,7 +25,7 @@ type PlcError = PLC.Error PLC.DefaultUni PLC.DefaultFun ()
 type UplcTerm = UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ()
 
 data CekResult =
-    TypeCheckEvaluateError PlcError
+    TypeCheckError PlcError
   | CekError
   | CekSuccess UplcTerm
     deriving stock (Eq, Show)
@@ -33,7 +33,7 @@ data CekResult =
 evalTerm :: PlcTerm -> CekResult
 evalTerm term =
     case typecheckEvaluateCekNoEmit PLC.DefaultFunV1 defaultBuiltinCostModel term
-    of Left e -> TypeCheckEvaluateError e
+    of Left e -> TypeCheckError e
        Right x  ->
            case x of
              PLC.EvaluationFailure   -> CekError
