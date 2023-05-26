@@ -95,7 +95,7 @@ testQueens = testGroup "queens"
                , runTestNested    $ Tx.goldenBudget "queens5budget" $
                   Queens.mkQueensCode 5 Queens.Bt
                ]
-             , Tx.fitsInto "Bt (size)" (Queens.mkQueensCode 5 Queens.Bt) 1943
+             , Tx.fitsInto "Bt (size)" (Queens.mkQueensCode 5 Queens.Bt) 1939
              ]
 
 ---------------- Primes ----------------

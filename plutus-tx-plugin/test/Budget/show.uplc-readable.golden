@@ -19,10 +19,7 @@ program 1.1.0 ((\fix1 ->
                                                                      (\showsPrec ->
                                                                         (\`$fShowInteger` ->
                                                                            (\e ->
-                                                                              (\x ->
-                                                                                 multiplyInteger
-                                                                                   x
-                                                                                   2)
+                                                                              multiplyInteger
                                                                                 (force trace
                                                                                    (concatBuiltinStrings
                                                                                       (constr 1 [ "("
@@ -52,7 +49,8 @@ program 1.1.0 ((\fix1 ->
                                                                                                                                                                  e
                                                                                                                                                                  (constr 1 [ ")"
                                                                                                                                                                            , (constr 0 [  ]) ])) ])) ])) ])) ])) ]))
-                                                                                   e))
+                                                                                   e)
+                                                                                2)
                                                                              (force trace
                                                                                 (concatBuiltinStrings
                                                                                    ((\showElem ->
