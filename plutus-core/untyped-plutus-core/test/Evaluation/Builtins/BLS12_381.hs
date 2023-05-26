@@ -1,5 +1,6 @@
 -- editorconfig-checker-disable
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE GADTs               #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE TypeApplications    #-}
 
@@ -12,6 +13,7 @@ import Evaluation.Builtins.BLS12_381.Utils
 import PlutusCore.Crypto.BLS12_381.G1 qualified as G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as G2
 import PlutusCore.Default
+import UntypedPlutusCore qualified as UPLC
 
 import Cardano.Crypto.EllipticCurve.BLS12_381 (scalarPeriod)
 import Data.ByteString as BS (empty, length, pack)
@@ -24,16 +26,16 @@ import Test.Tasty.QuickCheck
 
 -- QuickCheck utilities
 
-mkTestName :: forall a. TestableAbelianGroup a => String -> String
-mkTestName s = printf "%s_%s" (groupName @a) s
+mkTestName :: forall g. TestableAbelianGroup g => String -> String
+mkTestName s = printf "%s_%s" (groupName @g) s
 
 withNTests :: Testable prop => prop -> Property
 withNTests = withMaxSuccess 200
 
 -- QuickCheck generators for scalars and group elements as PLC terms
 
-arbitraryConstant :: forall a . TestableAbelianGroup a => Gen PlcTerm
-arbitraryConstant = toTerm <$> (arbitrary @a)
+arbitraryConstant :: forall g. TestableAbelianGroup g => Gen PlcTerm
+arbitraryConstant = toTerm <$> (arbitrary @g)
 
 arbitraryScalar :: Gen PlcTerm
 arbitraryScalar = integer <$> (arbitrary @Integer)
@@ -56,193 +58,193 @@ finalVerifyTerm = mkApp2 Bls12_381_finalVerify
 ---------------- G is an Abelian group ----------------
 
 -- | Group addition is associative.
-test_add_assoc :: forall a. TestableAbelianGroup a => TestTree
+test_add_assoc :: forall g. TestableAbelianGroup g => TestTree
 test_add_assoc =
     testProperty
-    (mkTestName @a "add_assoc") .
+    (mkTestName @g "add_assoc") .
     withNTests $ do
-      p1 <- arbitraryConstant @a
-      p2 <- arbitraryConstant @a
-      p3 <- arbitraryConstant @a
-      let e = eqTerm @a (addTerm @a p1 (addTerm @a p2 p3)) (addTerm @a (addTerm @a p1 p2) p3)
+      p1 <- arbitraryConstant @g
+      p2 <- arbitraryConstant @g
+      p3 <- arbitraryConstant @g
+      let e = eqTerm @g (addTerm @g p1 (addTerm @g p2 p3)) (addTerm @g (addTerm @g p1 p2) p3)
       pure $ evalTerm e === uplcTrue
 
 -- | Zero is an identity for addition.
-test_add_zero :: forall a. TestableAbelianGroup a => TestTree
+test_add_zero :: forall g. TestableAbelianGroup g => TestTree
 test_add_zero =
     testProperty
-    (mkTestName @a "add_zero") .
+    (mkTestName @g "add_zero") .
     withNTests $ do
-      p <- arbitraryConstant @a
-      let e = eqTerm @a (addTerm @a  p $ zeroTerm @a) p
+      p <- arbitraryConstant @g
+      let e = eqTerm @g (addTerm @g  p $ zeroTerm @g) p
       pure $ evalTerm e === uplcTrue
 
 -- | Every element has an inverse
 -- | a+(-a) = 0 for all group elements.
-test_neg :: forall a. TestableAbelianGroup a => TestTree
+test_neg :: forall g. TestableAbelianGroup g => TestTree
 test_neg =
     testProperty
-    (mkTestName @a "additive_inverse") .
+    (mkTestName @g "additive_inverse") .
     withNTests $ do
-      p <- arbitraryConstant @a
-      let e = eqTerm @a (addTerm @a p (negTerm @a p)) $ zeroTerm @a
+      p <- arbitraryConstant @g
+      let e = eqTerm @g (addTerm @g p (negTerm @g p)) $ zeroTerm @g
       pure $ evalTerm e === uplcTrue
 
 -- | Group addition is commutative.
-test_add_commutative :: forall a. TestableAbelianGroup a => TestTree
+test_add_commutative :: forall g. TestableAbelianGroup g => TestTree
 test_add_commutative=
     testProperty
-    (mkTestName @a "add_commutative") .
+    (mkTestName @g "add_commutative") .
     withNTests $ do
-      p1 <- arbitraryConstant @a
-      p2 <- arbitraryConstant @a
-      let e = eqTerm @a (addTerm @a p1 p2) (addTerm @a p2 p1)
+      p1 <- arbitraryConstant @g
+      p2 <- arbitraryConstant @g
+      let e = eqTerm @g (addTerm @g p1 p2) (addTerm @g p2 p1)
       pure $ evalTerm e === uplcTrue
 
-test_is_an_abelian_group :: forall a. TestableAbelianGroup a => TestTree
+test_is_an_abelian_group :: forall g. TestableAbelianGroup g => TestTree
 test_is_an_abelian_group =
-    testGroup (mkTestName @a "is_an_abelian_group")
-              [ test_add_assoc       @a
-              , test_add_zero        @a
-              , test_neg             @a
-              , test_add_commutative @a
+    testGroup (mkTestName @g "is_an_abelian_group")
+              [ test_add_assoc       @g
+              , test_add_zero        @g
+              , test_neg             @g
+              , test_add_commutative @g
               ]
 
 ---------------- Z acts on G correctly ----------------
 
 -- | (ab)p = a(bp) for all scalars a and b and all group elements p.
-test_scalarMul_assoc :: forall a. TestableAbelianGroup a => TestTree
+test_scalarMul_assoc :: forall g. TestableAbelianGroup g => TestTree
 test_scalarMul_assoc =
     testProperty
-    (mkTestName @a "scalarMul_mul_assoc") .
+    (mkTestName @g "scalarMul_mul_assoc") .
     withNTests $ do
       m <- arbitraryScalar
       n <- arbitraryScalar
-      p <- arbitraryConstant @a
-      let e1 = scalarMulTerm @a (mkApp2 MultiplyInteger m n) p
-          e2 = scalarMulTerm @a m (scalarMulTerm @a n p)
-          e3 = eqTerm @a e1 e2
+      p <- arbitraryConstant @g
+      let e1 = scalarMulTerm @g (mkApp2 MultiplyInteger m n) p
+          e2 = scalarMulTerm @g m (scalarMulTerm @g n p)
+          e3 = eqTerm @g e1 e2
       pure $ evalTerm e3 === uplcTrue
 
 -- | (a+b)p = ap +bp for all scalars a and b and all group elements p.
-test_scalarMul_distributive_left :: forall a. TestableAbelianGroup a => TestTree
+test_scalarMul_distributive_left :: forall g. TestableAbelianGroup g => TestTree
 test_scalarMul_distributive_left =
     testProperty
-    (mkTestName @a "scalarMul_distributive_left") .
+    (mkTestName @g "scalarMul_distributive_left") .
     withNTests $  do
       m <- arbitraryScalar
       n <- arbitraryScalar
-      p <- arbitraryConstant @a
-      let e1 = scalarMulTerm @a (mkApp2 AddInteger m n) p
-          e2 = addTerm @a (scalarMulTerm @a m p) (scalarMulTerm @a n p)
-          e3 = eqTerm @a e1 e2
+      p <- arbitraryConstant @g
+      let e1 = scalarMulTerm @g (mkApp2 AddInteger m n) p
+          e2 = addTerm @g (scalarMulTerm @g m p) (scalarMulTerm @g n p)
+          e3 = eqTerm @g e1 e2
       pure $ evalTerm e3 === uplcTrue
 
 -- | a(p+q) = ap + aq for all scalars a and all group elements p and q.
-test_scalarMul_distributive_right :: forall a. TestableAbelianGroup a => TestTree
+test_scalarMul_distributive_right :: forall g. TestableAbelianGroup g => TestTree
 test_scalarMul_distributive_right =
     testProperty
-    (mkTestName @a "scalarMul_distributive_right") .
+    (mkTestName @g "scalarMul_distributive_right") .
     withNTests $  do
       n <- arbitraryScalar
-      p <- arbitraryConstant @a
-      q <- arbitraryConstant @a
-      let e1 = scalarMulTerm @a n (addTerm @a p q)
-          e2 = addTerm @a (scalarMulTerm @a n p) (scalarMulTerm @a n q)
-          e3 = eqTerm @a e1 e2
+      p <- arbitraryConstant @g
+      q <- arbitraryConstant @g
+      let e1 = scalarMulTerm @g n (addTerm @g p q)
+          e2 = addTerm @g (scalarMulTerm @g n p) (scalarMulTerm @g n q)
+          e3 = eqTerm @g e1 e2
       pure $ evalTerm e3 === uplcTrue
 
 -- | 0p = 0 for all group elements p.
-test_scalarMul_zero :: forall a. TestableAbelianGroup a => TestTree
+test_scalarMul_zero :: forall g. TestableAbelianGroup g => TestTree
 test_scalarMul_zero =
     testProperty
-    (mkTestName @a "scalarMul_zero") .
+    (mkTestName @g "scalarMul_zero") .
     withNTests $ do
-      p <- arbitraryConstant @a
-      let e = eqTerm @a (scalarMulTerm @a (integer 0) p) $ zeroTerm @a
+      p <- arbitraryConstant @g
+      let e = eqTerm @g (scalarMulTerm @g (integer 0) p) $ zeroTerm @g
       pure $ evalTerm e === uplcTrue
 
 -- | 1p = p for all group elements p.
-test_scalarMul_one :: forall a. TestableAbelianGroup a => TestTree
+test_scalarMul_one :: forall g. TestableAbelianGroup g => TestTree
 test_scalarMul_one =
     testProperty
-    (mkTestName @a "scalarMul_one") .
+    (mkTestName @g "scalarMul_one") .
     withNTests $ do
-      p <- arbitraryConstant @a
-      let e = eqTerm @a (scalarMulTerm @a (integer 1) p) p
+      p <- arbitraryConstant @g
+      let e = eqTerm @g (scalarMulTerm @g (integer 1) p) p
       pure $ evalTerm e === uplcTrue
 
 -- | (-1)p = -p for all group elements p.
-test_scalarMul_inverse :: forall a. TestableAbelianGroup a => TestTree
+test_scalarMul_inverse :: forall g. TestableAbelianGroup g => TestTree
 test_scalarMul_inverse =
     testProperty
-    (mkTestName @a "scalarMul_inverse") .
+    (mkTestName @g "scalarMul_inverse") .
     withNTests $ do
-      p <- arbitraryConstant @a
-      let e = eqTerm @a (scalarMulTerm @a (integer (-1)) p) (negTerm @a p)
+      p <- arbitraryConstant @g
+      let e = eqTerm @g (scalarMulTerm @g (integer (-1)) p) (negTerm @g p)
       pure $ evalTerm e == uplcTrue
 
 -- Check that scalar multiplication is repeated addition (including negative
 -- scalars). We should really check this for scalars greater than the group
 -- order, but that would be prohibitively slow because the order of G1 and G2
 -- has 256 bits (about 5*10^76).
-test_scalarMul_repeated_addition :: forall a. TestableAbelianGroup a => TestTree
+test_scalarMul_repeated_addition :: forall g. TestableAbelianGroup g => TestTree
 test_scalarMul_repeated_addition =
     testProperty
-    (mkTestName @a "scalarMul_repeated_addition") .
+    (mkTestName @g "scalarMul_repeated_addition") .
     withNTests $ do
       n <- resize 100 arbitrary
-      p <- arbitraryConstant @a
+      p <- arbitraryConstant @g
       let e1 = repeatedAdd n p
-          e2 = eqTerm @a (scalarMulTerm @a (integer n) p) e1
+          e2 = eqTerm @g (scalarMulTerm @g (integer n) p) e1
       pure $ evalTerm e2 === uplcTrue
           where
             repeatedAdd :: Integer -> PlcTerm -> PlcTerm
             repeatedAdd n t =
                 if n>=0
-                then foldl' (addTerm @a) (zeroTerm @a) $ genericReplicate n t
-                else repeatedAdd (-n) (negTerm @a t)
+                then foldl' (addTerm @g) (zeroTerm @g) $ genericReplicate n t
+                else repeatedAdd (-n) (negTerm @g t)
 
 -- (m + n|G|)p = mp for all group elements p and integers m and n.
 -- We have |G1| = |G2| = scalarPeriod
-test_scalarMul_periodic :: forall a. TestableAbelianGroup a => TestTree
+test_scalarMul_periodic :: forall g. TestableAbelianGroup g => TestTree
 test_scalarMul_periodic =
     testProperty
-    (mkTestName @a "scalarMul_periodic") .
+    (mkTestName @g "scalarMul_periodic") .
     withNTests $ do
       m <- arbitraryScalar
       n <- arbitraryScalar
-      p <- arbitraryConstant @a
-      let e1 = scalarMulTerm @a m p
+      p <- arbitraryConstant @g
+      let e1 = scalarMulTerm @g m p
           k = mkApp2 AddInteger m (mkApp2 MultiplyInteger n (integer scalarPeriod))
-          e2 = scalarMulTerm @a k p -- k = m+n|G|
-          e = eqTerm @a e1 e2
+          e2 = scalarMulTerm @g k p -- k = m+n|G|
+          e = eqTerm @g e1 e2
       pure $ evalTerm e === uplcTrue
 
-test_Z_action_good :: forall a. TestableAbelianGroup a => TestTree
+test_Z_action_good :: forall g. TestableAbelianGroup g => TestTree
 test_Z_action_good =
-    testGroup (printf "Z acts correctly on %s" $ groupName @a)
-         [ test_scalarMul_assoc              @a
-         , test_scalarMul_distributive_left  @a
-         , test_scalarMul_distributive_right @a
-         , test_scalarMul_zero               @a
-         , test_scalarMul_one                @a
-         , test_scalarMul_inverse            @a
-         , test_scalarMul_repeated_addition  @a
-         , test_scalarMul_periodic           @a
+    testGroup (printf "Z acts correctly on %s" $ groupName @g)
+         [ test_scalarMul_assoc              @g
+         , test_scalarMul_distributive_left  @g
+         , test_scalarMul_distributive_right @g
+         , test_scalarMul_zero               @g
+         , test_scalarMul_one                @g
+         , test_scalarMul_inverse            @g
+         , test_scalarMul_repeated_addition  @g
+         , test_scalarMul_periodic           @g
          ]
 
 
 {- Generic tests for the HashAndCompress class.  Later these are instantiated at
    the G1 and G2 types. -}
 
-test_roundtrip_compression :: forall a. HashAndCompress a => TestTree
+test_roundtrip_compression :: forall g. HashAndCompress g => TestTree
 test_roundtrip_compression =
     testProperty
-    (mkTestName @a "roundtrip_compression") .
+    (mkTestName @g "roundtrip_compression") .
     withNTests $ do
-      p <- arbitraryConstant @a
-      let e = eqTerm @a (uncompressTerm @a (compressTerm @a p)) p
+      p <- arbitraryConstant @g
+      let e = eqTerm @g (uncompressTerm @g (compressTerm @g p)) p
       pure $ evalTerm e === uplcTrue
 
 -- | Uncompression should only accept inputs of the expected length, so we check
@@ -251,119 +253,124 @@ test_roundtrip_compression =
 -- have the expected length it would be very unlikely to deserialise to a point
 -- in the group because the cofactors are very big (7.6*10^37 for G1 and
 -- 3.1*10^152 for G2).
-test_uncompression_wrong_size :: forall a . HashAndCompress a => TestTree
+test_uncompression_wrong_size :: forall g. HashAndCompress g => TestTree
 test_uncompression_wrong_size =
     testProperty
-    (mkTestName @a "uncompression_wrong_size") .
+    (mkTestName @g "uncompression_wrong_size") .
     withNTests $ do
       b <- suchThat (resize 128 arbitrary) incorrectSize
-      let e = uncompressTerm @a (bytestring b)
+      let e = uncompressTerm @g (bytestring b)
       pure $ evalTerm e === CekError
-    where incorrectSize s = BS.length s /= compressedSize @a
+    where incorrectSize s = BS.length s /= compressedSize @g
 
 -- | This tests the case we've omitted in the previous test, and should fail
 -- with very high probablity.  It's quite difficult to test this with random
 -- inputs.  We can improve our chances of getting a bytestring which encodes a
 -- point on the curve by setting the compression bit and clearing the infinity
 -- bit, but about 50% of the samples will still not be the x-coordinate of a
--- point on the curve.  We can generate also generate points with an
--- x-coordinate that's bigger than the field size (especially for G2), which
--- will give us a bad encoding.  Maybe this just isn't a very good test.
-test_uncompress_out_of_group :: forall a . HashAndCompress a => TestTree
+-- point on the curve.  We can also generate points with an x-coordinate that's
+-- bigger than the field size (especially for G2), which will give us a bad
+-- encoding.  Maybe this just isn't a very good test.
+test_uncompress_out_of_group :: forall g. HashAndCompress g => TestTree
 test_uncompress_out_of_group =
     testProperty
-    (mkTestName @a "uncompress_out_of_group") .
+    (mkTestName @g "uncompress_out_of_group") .
     withMaxSuccess 400 $ do
       b <- suchThat (resize  128 arbitrary) correctSize
       let b' = setBits compressionBit $ clearBits infinityBit b
-      let e = uncompressTerm @a (bytestring b')
+      let e = uncompressTerm @g (bytestring b')
       pure $ evalTerm e === CekError
-    where correctSize s = BS.length s == compressedSize @a
+    where correctSize s = BS.length s == compressedSize @g
 
 -- | Check that the most significant bit is set for all compressed points
-test_compression_bit_set :: forall a. HashAndCompress a => TestTree
+test_compression_bit_set :: forall g. HashAndCompress g => TestTree
 test_compression_bit_set =
     testProperty
-    (mkTestName @a "compression_bit_set") .
-    withNTests $ do True === True
+    (mkTestName @g "compression_bit_set") .
+    withNTests $ do
+      p <- arbitraryConstant @g
+      case evalTerm (compressTerm @g p) of
+        CekSuccess (UPLC.Constant _ (Some (ValueOf DefaultUniByteString bs)))
+            -> pure $ isSet compressionBit bs
+        _ -> pure False
 
 -- | Check that bytestrings with the compression bit clear fail to uncompress.
-test_clear_compression_bit :: forall a. HashAndCompress a => TestTree
+test_clear_compression_bit :: forall g. HashAndCompress g => TestTree
 test_clear_compression_bit =
     testProperty
-    (mkTestName @a "clear_compression_bit") .
+    (mkTestName @g "clear_compression_bit") .
     withNTests $ do
-      p <- arbitrary @a
-      let b = clearBits compressionBit $ compress @a p
-          e = uncompressTerm @a (bytestring b)
+      p <- arbitrary @g
+      let b = clearBits compressionBit $ compress @g p
+          e = uncompressTerm @g (bytestring b)
       pure $ evalTerm e === CekError
 
 -- | Check that flipping the sign bit in a compressed point gives the inverse of
 -- the point.
-test_flip_sign_bit :: forall a. HashAndCompress a => TestTree
+test_flip_sign_bit :: forall g. HashAndCompress g => TestTree
 test_flip_sign_bit =
     testProperty
-    (mkTestName @a "flip_sign_bit") .
+    (mkTestName @g "flip_sign_bit") .
     withNTests $ do
-      p <- arbitrary @a
-      let b1 = compress @a p
+      p <- arbitrary @g
+      let b1 = compress @g p
           b2 = flipBits signBit b1
-          e1 = uncompressTerm @a (bytestring b1)
-          e2 = uncompressTerm @a (bytestring b2)
-          e  = eqTerm @a e2 (negTerm @a e1)
+          e1 = uncompressTerm @g (bytestring b1)
+          e2 = uncompressTerm @g (bytestring b2)
+          e  = eqTerm @g e2 (negTerm @g e1)
       pure $ evalTerm e === uplcTrue
 
 -- | Check that bytestrings with the infinity bit set fail to uncompress.
-test_set_infinity_bit :: forall a. HashAndCompress a => TestTree
+test_set_infinity_bit :: forall g. HashAndCompress g => TestTree
 test_set_infinity_bit =
     testProperty
-    (mkTestName @a "set_infinity_bit") .
+    (mkTestName @g "set_infinity_bit") .
     withNTests $ do
-      p <- arbitrary @a
-      let b = setBits infinityBit $ compress @a p
-          e = uncompressTerm @a (bytestring b)
+      p <- arbitrary @g
+      let b = setBits infinityBit $ compress @g p
+          e = uncompressTerm @g (bytestring b)
       pure $ evalTerm e === CekError
 
 -- | Hashing into G1 or G2 should be collision-free. A failure here would be
 -- interesting.  Here we test multiple messages but always use an empty Domain
 -- Separation Tag.
-test_no_hash_collisions :: forall a . HashAndCompress a => TestTree
+test_no_hash_collisions :: forall g. HashAndCompress g => TestTree
 test_no_hash_collisions =
     let emptyBS = bytestring BS.empty
     in testProperty
-           (mkTestName @a "no_hash_collisions") .
+           (mkTestName @g "no_hash_collisions") .
            withNTests $ do
              b1 <- arbitrary
              b2 <- arbitrary
-             let e = eqTerm @a (hashToGroupTerm @a (bytestring b1) emptyBS) (hashToGroupTerm @a (bytestring b2) emptyBS)
+             let e = eqTerm @g (hashToGroupTerm @g (bytestring b1) emptyBS) (hashToGroupTerm @g (bytestring b2) emptyBS)
              pure $ b1 /= b2 ==> evalTerm e === uplcFalse
 
 -- | Test that we get no collisions if we keep the message constant but vary the
 -- DST.  DSTs can be at most 255 bytes long in Plutus Core; there's a test
 -- elsewhere that we get a failure for longer DSTs.
-test_no_hash_collisions_dst :: forall a . HashAndCompress a => TestTree
+test_no_hash_collisions_dst :: forall g. HashAndCompress g => TestTree
 test_no_hash_collisions_dst =
     let msg = bytestring $ pack [0x01, 0x02]
     in testProperty
-           (mkTestName @a "no_hash_collisions_dst") .
+           (mkTestName @g "no_hash_collisions_dst") .
            withNTests $ do
              dst1 <- resize 255 arbitrary
              dst2 <- resize 255 arbitrary
-             let e = eqTerm @a (hashToGroupTerm @a msg (bytestring dst1)) (hashToGroupTerm @a msg (bytestring dst2))
+             let e = eqTerm @g (hashToGroupTerm @g msg (bytestring dst1)) (hashToGroupTerm @g msg (bytestring dst2))
              pure $ dst1 /= dst2 ==> evalTerm e === uplcFalse
 
-test_compress_hash :: forall a. HashAndCompress a => TestTree
+test_compress_hash :: forall g. HashAndCompress g => TestTree
 test_compress_hash =
-    testGroup (printf "Uncompression and hashing behave properly for %s" $ groupName @a)
-         [ test_roundtrip_compression    @a
-         , test_uncompression_wrong_size @a
-         , test_compression_bit_set      @a
-         , test_clear_compression_bit    @a
-         , test_flip_sign_bit            @a
-         , test_set_infinity_bit         @a
-         , test_uncompress_out_of_group  @a
-         , test_no_hash_collisions       @a
-         , test_no_hash_collisions_dst   @a
+    testGroup (printf "Uncompression and hashing behave properly for %s" $ groupName @g)
+         [ test_roundtrip_compression    @g
+         , test_uncompression_wrong_size @g
+         , test_compression_bit_set      @g
+         , test_clear_compression_bit    @g
+         , test_flip_sign_bit            @g
+         , test_set_infinity_bit         @g
+         , test_uncompress_out_of_group  @g
+         , test_no_hash_collisions       @g
+         , test_no_hash_collisions_dst   @g
          ]
 
 

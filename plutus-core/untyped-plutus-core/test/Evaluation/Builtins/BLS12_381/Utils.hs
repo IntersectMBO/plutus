@@ -63,7 +63,7 @@ mkApp2 b x y = mkIterApp () (builtin () b) [x,y]
    compressed points conforms to the specification at
    https://github.com/supranational/blst#serialization-format . -}
 
--- The most siginificant bit of a serialised curve point is set if the
+-- The most signiificant bit of a serialised curve point is set if the
 -- serialised point is in compressed form (x-coordinate only)
 compressionBit :: Word8
 compressionBit = 0x80
@@ -92,19 +92,19 @@ modifyMSB f s =
     let (w,rest) = unsafeUnconsBS s
     in BS.cons (f w) rest
 
--- | Flip a specified set of bits in the most siginficant byte of a bytestring.
+-- | Flip a specified set of bits in the most significant byte of a bytestring.
 flipBits :: Word8 -> ByteString -> ByteString
 flipBits mask = modifyMSB (mask `xor`)
 
--- | Clear a specified set of bits in the most siginficant byte of a bytestring.
+-- | Clear a specified set of bits in the most significant byte of a bytestring.
 clearBits :: Word8 -> ByteString -> ByteString
 clearBits mask = modifyMSB ((complement mask) .&.)
 
--- | Set a specified set of bits in the most siginficant byte of a bytestring.
+-- | Set a specified set of bits in the most significant byte of a bytestring.
 setBits :: Word8 -> ByteString -> ByteString
 setBits mask = modifyMSB (mask .|.)
 
--- | Check that a specified set of bits is set in the most siginficant byte of a
+-- | Check that a specified set of bits is set in the most significant byte of a
 -- bytestring.
 isSet :: Word8 -> ByteString -> Bool
 isSet mask s =
