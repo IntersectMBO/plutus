@@ -426,5 +426,8 @@ commuteDefaultFun =
     testNested "commuteDefaultFun" $
     map
         (goldenPir CommuteFnWithConst.commuteDefaultFun pTerm)
-        [ "equalsInt"
+        [ "equalsInt" -- this tests that the function works on equalInteger
+        , "divideInt" -- this tests that the function excludes not commutative functions
+        , "multiplyInt" -- this tests that the function works on multiplyInteger
+        , "let" -- this tests that it works in the subterms
         ]
