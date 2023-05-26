@@ -2,7 +2,7 @@
 {-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE TypeApplications #-}
 
-module PlutusIR.Transform.CommuteConst (commuteConst) where
+module PlutusIR.Transform.CommuteFnWithConst (commuteFnWithConst) where
 
 import Data.Typeable (Typeable, eqT)
 import PlutusCore.Default
@@ -38,20 +38,20 @@ isConstant :: Term tyname name uni fun a -> Bool
 isConstant Constant{} = True
 isConstant _          = False
 
-commuteConstDefault ::
+commuteFnWithConstDefault ::
     forall tyname name uni a.
     Term tyname name uni DefaultFun a ->
     Term tyname name uni DefaultFun a
-commuteConstDefault tm@(Apply ann (Apply ann1 (Builtin annB fun) x) y) =
+commuteFnWithConstDefault tm@(Apply ann (Apply ann1 (Builtin annB fun) x) y) =
   case (isCommutativeWithConstant fun, isConstant x, isConstant y) of
     (True, False, True) -> Apply ann (Apply ann1 (Builtin annB fun) y) x
     _                   -> tm
-commuteConstDefault tm = tm
+commuteFnWithConstDefault tm = tm
 
-commuteConst :: forall tyname name uni fun a. Typeable fun =>
+commuteFnWithConst :: forall tyname name uni fun a. Typeable fun =>
     Term tyname name uni fun a -> Term tyname name uni fun a
-commuteConst = case eqT @fun @DefaultFun of
-    Just Refl -> commuteConstDefault
+commuteFnWithConst = case eqT @fun @DefaultFun of
+    Just Refl -> commuteFnWithConstDefault
     Nothing   -> id
 
 -- | Returns whether a `DefaultFun` is commutative with `Constant`'s as arguments. Not using

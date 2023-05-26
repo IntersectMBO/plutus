@@ -476,7 +476,7 @@ library plutus-ir
     PlutusIR.Subst
     PlutusIR.Transform.Beta
     PlutusIR.Transform.CaseReduce
-    PlutusIR.Transform.CommuteConst
+    PlutusIR.Transform.CommuteFnWithConst
     PlutusIR.Transform.DeadCode
     PlutusIR.Transform.EvaluateBuiltins
     PlutusIR.Transform.Inline.CallSiteInline
