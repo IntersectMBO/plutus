@@ -16,8 +16,9 @@ import PlutusCore.Default
 import UntypedPlutusCore qualified as UPLC
 
 import Cardano.Crypto.EllipticCurve.BLS12_381 (scalarPeriod)
+import Control.Monad (replicateM)
 import Data.ByteString as BS (empty, length, pack)
-import Data.List (foldl', genericReplicate)
+import Data.List as List (foldl', genericReplicate, length, nub)
 import Text.Printf (printf)
 
 import Test.QuickCheck
@@ -331,33 +332,47 @@ test_set_infinity_bit =
           e = uncompressTerm @g (bytestring b)
       pure $ evalTerm e === CekError
 
--- | Hashing into G1 or G2 should be collision-free. A failure here would be
--- interesting.  Here we test multiple messages but always use an empty Domain
--- Separation Tag.
+
+-- We test for hash collisions by generating a list of `numHashCollisionTests`
+-- bytestrings, discarding duplicates, hashing the remaining bytestrings, and
+-- then checking that no two of the resulting group elements are equal. The time
+-- taken by the tests increases quadratically with the number of bytestrings,
+-- and is quite long even for numHashCollisionTests = 50.
+numHashCollisionInputs :: Int
+numHashCollisionInputs = 50
+
+-- | Hashing into G1 or G2 should be collision-free.  A failure here would
+-- suggest an implementation error somewhere.  Here we test multiple messages
+-- but always use an empty Domain Separation Tag.
 test_no_hash_collisions :: forall g. HashAndCompress g => TestTree
 test_no_hash_collisions =
     let emptyBS = bytestring BS.empty
     in testProperty
-           (mkTestName @g "no_hash_collisions") .
-           withNTests $ do
-             b1 <- arbitrary
-             b2 <- arbitrary
-             let e = eqTerm @g (hashToGroupTerm @g (bytestring b1) emptyBS) (hashToGroupTerm @g (bytestring b2) emptyBS)
-             pure $ b1 /= b2 ==> evalTerm e === uplcFalse
+           (mkTestName @g "no_hash_collisions") $ do
+             msgs <- nub <$> replicateM numHashCollisionInputs arbitrary
+             let terms = fmap (\msg -> hashToGroupTerm @g (bytestring msg) emptyBS) msgs
+                 hashed = fmap evalTerm terms
+                 noErrors = conjoin $ fmap (=/= CekError) hashed -- Just in case
+                 noDuplicates = List.length hashed === List.length (nub hashed)
+             pure $ noErrors .&. noDuplicates
 
 -- | Test that we get no collisions if we keep the message constant but vary the
 -- DST.  DSTs can be at most 255 bytes long in Plutus Core; there's a test
--- elsewhere that we get a failure for longer DSTs.
+-- elsewhere that we get a failure for longer DSTs.  This test could fail (but
+-- not because of a hash collision) if we let it generate longer DSTs because
+-- the final list could contain multiple occurrences of CekError.
 test_no_hash_collisions_dst :: forall g. HashAndCompress g => TestTree
 test_no_hash_collisions_dst =
     let msg = bytestring $ pack [0x01, 0x02]
+        maxDstSize = 255
     in testProperty
-           (mkTestName @g "no_hash_collisions_dst") .
-           withNTests $ do
-             dst1 <- resize 255 arbitrary
-             dst2 <- resize 255 arbitrary
-             let e = eqTerm @g (hashToGroupTerm @g msg (bytestring dst1)) (hashToGroupTerm @g msg (bytestring dst2))
-             pure $ dst1 /= dst2 ==> evalTerm e === uplcFalse
+           (mkTestName @g "no_hash_collisions_dst") $ do
+             dsts <- nub <$> replicateM numHashCollisionInputs (resize maxDstSize arbitrary)
+             let terms = fmap (\dst -> hashToGroupTerm @g msg (bytestring dst)) dsts
+                 hashed = fmap evalTerm terms
+                 noErrors = conjoin $ fmap (=/= CekError) hashed
+                 noDuplicates = List.length hashed === List.length (nub hashed)
+             pure $ noErrors .&. noDuplicates
 
 test_compress_hash :: forall g. HashAndCompress g => TestTree
 test_compress_hash =
