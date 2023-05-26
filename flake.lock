@@ -63,6 +63,23 @@
         "type": "github"
       }
     },
+    "blst": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1656163412,
+        "narHash": "sha256-xero1aTe2v4IhWIJaEDUsVDOfE77dOV5zKeHWntHogY=",
+        "owner": "supranational",
+        "repo": "blst",
+        "rev": "03b5124029979755c752eec45f3c29674b558446",
+        "type": "github"
+      },
+      "original": {
+        "owner": "supranational",
+        "repo": "blst",
+        "rev": "03b5124029979755c752eec45f3c29674b558446",
+        "type": "github"
+      }
+    },
     "cabal-32": {
       "flake": false,
       "locked": {
@@ -577,16 +594,19 @@
     },
     "iohk-nix": {
       "inputs": {
+        "blst": "blst",
         "nixpkgs": [
           "nixpkgs"
-        ]
+        ],
+        "secp256k1": "secp256k1",
+        "sodium": "sodium"
       },
       "locked": {
-        "lastModified": 1681957618,
-        "narHash": "sha256-6fo/QohImV8buYiIhnSniquMmBj4IgtgQrq0JDpsav4=",
+        "lastModified": 1684223806,
+        "narHash": "sha256-IyLoP+zhuyygLtr83XXsrvKyqqLQ8FHXTiySFf4FJOI=",
         "owner": "input-output-hk",
         "repo": "iohk-nix",
-        "rev": "26f56e32169dcc9ef72ac754eccdb3c96d714751",
+        "rev": "86421fdd89b3af43fa716ccd07638f96c6ecd1e4",
         "type": "github"
       },
       "original": {
@@ -1077,6 +1097,40 @@
         "pre-commit-hooks-nix": "pre-commit-hooks-nix",
         "sphinxcontrib-haddock": "sphinxcontrib-haddock",
         "std": "std_2"
+      }
+    },
+    "secp256k1": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1683999695,
+        "narHash": "sha256-9nJJVENMXjXEJZzw8DHzin1DkFkF8h9m/c6PuM7Uk4s=",
+        "owner": "bitcoin-core",
+        "repo": "secp256k1",
+        "rev": "acf5c55ae6a94e5ca847e07def40427547876101",
+        "type": "github"
+      },
+      "original": {
+        "owner": "bitcoin-core",
+        "ref": "v0.3.2",
+        "repo": "secp256k1",
+        "type": "github"
+      }
+    },
+    "sodium": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1675156279,
+        "narHash": "sha256-0uRcN5gvMwO7MCXVYnoqG/OmeBFi8qRVnDWJLnBb9+Y=",
+        "owner": "input-output-hk",
+        "repo": "libsodium",
+        "rev": "dbb48cce5429cb6585c9034f002568964f1ce567",
+        "type": "github"
+      },
+      "original": {
+        "owner": "input-output-hk",
+        "repo": "libsodium",
+        "rev": "dbb48cce5429cb6585c9034f002568964f1ce567",
+        "type": "github"
       }
     },
     "sphinxcontrib-haddock": {
