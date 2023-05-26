@@ -127,7 +127,7 @@ availablePasses =
                                                                                   ver <- view ccBuiltinVer
                                                                                   Inline.inline hints ver t
                                                                               )
-    , Pass "commuteConst" (onOption coDoSimplifiercommuteConst) CommuteConst.commuteConst
+    , Pass "commuteConst" (onOption coDoSimplifiercommuteConst) (pure . CommuteConst.commuteConst)
     ]
 
 -- | Actual simplifier

@@ -33,25 +33,23 @@ the one that will benefit the most. Plutonomy only commutes `EqualsInteger`.
 -}
 
 commuteConstDefault ::
-    forall m tyname name uni a.
-    ( PLC.MonadQuote m
-    ) => Term tyname name uni PLC.DefaultFun a ->
-    m (Term tyname name uni PLC.DefaultFun a)
+    forall tyname name uni a.
+    Term tyname name uni PLC.DefaultFun a ->
+    Term tyname name uni PLC.DefaultFun a
 commuteConstDefault (Apply ann (Builtin annB PLC.EqualsInteger) (Apply ann1 x y@(Constant{}))) =
-    pure $ Apply ann (Builtin annB PLC.EqualsInteger) (Apply ann1 y x)
+    Apply ann (Builtin annB PLC.EqualsInteger) (Apply ann1 y x)
 commuteConstDefault (Apply ann (Builtin annB PLC.EqualsByteString) (Apply ann1 x y@(Constant{}))) =
-    pure $ Apply ann (Builtin annB PLC.EqualsByteString) (Apply ann1 y x)
+    Apply ann (Builtin annB PLC.EqualsByteString) (Apply ann1 y x)
 commuteConstDefault (Apply ann (Builtin annB PLC.EqualsString) (Apply ann1 x y@(Constant{}))) =
-    pure $ Apply ann (Builtin annB PLC.EqualsString) (Apply ann1 y x)
+    Apply ann (Builtin annB PLC.EqualsString) (Apply ann1 y x)
 commuteConstDefault (Apply ann (Builtin annB PLC.AddInteger) (Apply ann1 x y@(Constant{}))) =
-    pure $ Apply ann (Builtin annB PLC.AddInteger) (Apply ann1 y x)
+    Apply ann (Builtin annB PLC.AddInteger) (Apply ann1 y x)
 commuteConstDefault (Apply ann (Builtin annB PLC.MultiplyInteger) (Apply ann1 x y@(Constant{}))) =
-    pure $ Apply ann (Builtin annB PLC.MultiplyInteger) (Apply ann1 y x)
-commuteConstDefault tm = pure tm
+    Apply ann (Builtin annB PLC.MultiplyInteger) (Apply ann1 y x)
+commuteConstDefault tm = tm
 
-commuteConst :: forall m tyname name uni fun a.
-    ( PLC.MonadQuote m, Typeable fun
-    ) => Term tyname name uni fun a -> m (Term tyname name uni fun a)
+commuteConst :: forall tyname name uni fun a. Typeable fun =>
+    Term tyname name uni fun a -> Term tyname name uni fun a
 commuteConst = case eqT @fun @PLC.DefaultFun of
     Just Refl -> commuteConstDefault
-    Nothing   -> \x -> pure x
+    Nothing   -> id
