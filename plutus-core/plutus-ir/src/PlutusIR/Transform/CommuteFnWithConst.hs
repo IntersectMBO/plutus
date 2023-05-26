@@ -2,11 +2,16 @@
 {-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE TypeApplications #-}
 
-module PlutusIR.Transform.CommuteFnWithConst (commuteFnWithConst) where
+module PlutusIR.Transform.CommuteFnWithConst
+  (commuteFnWithConst
+  , commuteDefaultFun)
+  where
 
+import Control.Lens (over)
 import Data.Typeable (Typeable, eqT)
 import PlutusCore.Default
-import PlutusIR.Core (Term (Apply, Builtin, Constant))
+import PlutusIR.Core.Plated (termSubterms)
+import PlutusIR.Core.Type (Term (Apply, Builtin, Constant))
 
 {- | Commute such that constants are the first arguments. Consider:
 
@@ -38,20 +43,22 @@ isConstant :: Term tyname name uni fun a -> Bool
 isConstant Constant{} = True
 isConstant _          = False
 
-commuteFnWithConstDefault ::
+commuteDefaultFun ::
     forall tyname name uni a.
     Term tyname name uni DefaultFun a ->
     Term tyname name uni DefaultFun a
-commuteFnWithConstDefault tm@(Apply ann (Apply ann1 (Builtin annB fun) x) y) =
-  case (isCommutativeWithConstant fun, isConstant x, isConstant y) of
-    (True, False, True) -> Apply ann (Apply ann1 (Builtin annB fun) y) x
-    _                   -> tm
-commuteFnWithConstDefault tm = tm
+commuteDefaultFun = over termSubterms commuteDefaultFun . localCommute
+  where
+    localCommute tm@(Apply ann (Apply ann1 (Builtin annB fun) x) y) =
+      case (isCommutativeWithConstant fun, isConstant x, isConstant y) of
+        (True, False, True) -> Apply ann (Apply ann1 (Builtin annB fun) y) x
+        _                   -> tm
+    localCommute tm = tm
 
 commuteFnWithConst :: forall tyname name uni fun a. Typeable fun =>
     Term tyname name uni fun a -> Term tyname name uni fun a
 commuteFnWithConst = case eqT @fun @DefaultFun of
-    Just Refl -> commuteFnWithConstDefault
+    Just Refl -> commuteDefaultFun
     Nothing   -> id
 
 -- | Returns whether a `DefaultFun` is commutative with `Constant`'s as arguments. Not using
