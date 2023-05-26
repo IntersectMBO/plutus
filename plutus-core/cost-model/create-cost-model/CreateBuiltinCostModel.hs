@@ -517,7 +517,7 @@ verifyEd25519Signature cpuModelR = do
      code is very fast.  The Z-based cost function returns a constant cost since
      the size of the third argument is constant; we should be using a Y-based
      function instead, but that would give similar results and we're not
-     undercharging siginficantly.  To fix this we need to change the shape of
+     undercharging significantly.  To fix this we need to change the shape of
      the model from "linear_in_z" to "linear_in_y", but that's something we need
      to be careful about: see SCP-3038.
    -}
