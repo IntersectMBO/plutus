@@ -262,7 +262,7 @@ library
     , bimap
     , bytestring
     , cardano-crypto
-    , cardano-crypto-class
+    , cardano-crypto-class        >=2.1.2.0
     , cassava
     , cborg
     , composition-prelude         >=1.1.0.1
