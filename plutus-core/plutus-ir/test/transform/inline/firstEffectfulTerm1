@@ -1,0 +1,10 @@
+-- `a` should be inlined since it is the first effectful term in the body.
+(let
+  (nonrec)
+  (termbind
+    (strict)
+    (vardecl a (con integer))
+    { error (con integer) }
+  )
+  [ (lam x (con integer) x) a ]
+)

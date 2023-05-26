@@ -465,76 +465,76 @@ let
                           (Cons {string} "]" x)))))
              (Nil {string})))
         d
-  !x : integer
-    = trace
-        {integer}
-        (let
-          !w : Show integer = `$fShowInteger`
-          !w : Show integer = `$fShowInteger`
-          !w : Show integer = `$fShowInteger`
-          !w : Show integer = `$fShowInteger`
-          !w : Show integer = `$fShowInteger`
-          !w : Tuple5 integer integer integer integer integer
-            = Tuple5 {integer} {integer} {integer} {integer} {integer} a a c d e
-        in
-        Tuple5_match
-          {integer}
-          {integer}
-          {integer}
-          {integer}
-          {integer}
-          w
-          {string}
-          (\(ww : integer)
-            (ww : integer)
-            (ww : integer)
-            (ww : integer)
-            (ww : integer) ->
-             concatBuiltinStrings
-               (let
-                 !x : List string = Nil {string}
-               in
-               Cons
-                 {string}
-                 "("
-                 (showsPrec
-                    {integer}
-                    w
-                    0
-                    ww
-                    (Cons
-                       {string}
-                       ","
-                       (showsPrec
-                          {integer}
-                          w
-                          0
-                          ww
-                          (Cons
-                             {string}
-                             ","
-                             (showsPrec
-                                {integer}
-                                w
-                                0
-                                ww
-                                (Cons
-                                   {string}
-                                   ","
-                                   (showsPrec
-                                      {integer}
-                                      w
-                                      0
-                                      ww
-                                      (Cons
-                                         {string}
-                                         ","
-                                         (showsPrec
-                                            {integer}
-                                            w
-                                            0
-                                            ww
-                                            (Cons {string} ")" x)))))))))))))
-        e
 in
-multiplyInteger x 2
+multiplyInteger
+  (trace
+     {integer}
+     (let
+       !w : Show integer = `$fShowInteger`
+       !w : Show integer = `$fShowInteger`
+       !w : Show integer = `$fShowInteger`
+       !w : Show integer = `$fShowInteger`
+       !w : Show integer = `$fShowInteger`
+       !w : Tuple5 integer integer integer integer integer
+         = Tuple5 {integer} {integer} {integer} {integer} {integer} a a c d e
+     in
+     Tuple5_match
+       {integer}
+       {integer}
+       {integer}
+       {integer}
+       {integer}
+       w
+       {string}
+       (\(ww : integer)
+         (ww : integer)
+         (ww : integer)
+         (ww : integer)
+         (ww : integer) ->
+          concatBuiltinStrings
+            (let
+              !x : List string = Nil {string}
+            in
+            Cons
+              {string}
+              "("
+              (showsPrec
+                 {integer}
+                 w
+                 0
+                 ww
+                 (Cons
+                    {string}
+                    ","
+                    (showsPrec
+                       {integer}
+                       w
+                       0
+                       ww
+                       (Cons
+                          {string}
+                          ","
+                          (showsPrec
+                             {integer}
+                             w
+                             0
+                             ww
+                             (Cons
+                                {string}
+                                ","
+                                (showsPrec
+                                   {integer}
+                                   w
+                                   0
+                                   ww
+                                   (Cons
+                                      {string}
+                                      ","
+                                      (showsPrec
+                                         {integer}
+                                         w
+                                         0
+                                         ww
+                                         (Cons {string} ")" x)))))))))))))
+     e)
+  2

@@ -5,6 +5,7 @@
 
 module PlutusIR.Purity
     ( isPure
+    , FirstEffectfulTerm (..)
     , firstEffectfulTerm
     , asBuiltinApp
     , isSaturated
@@ -12,10 +13,11 @@ module PlutusIR.Purity
     , Arg (..)
     ) where
 
+import PlutusCore.Builtin
 import PlutusIR
 
+import Control.Applicative
 import Data.List.NonEmpty qualified as NE
-import PlutusCore.Builtin
 
 -- | An argument taken by a builtin: could be a term of a type.
 data Arg tyname name uni fun a = TypeArg (Type tyname uni a) | TermArg (Term tyname name uni fun a)
@@ -127,39 +129,49 @@ isPure ver varStrictness = go
             TermBind _ Strict _ rhs -> go rhs
             _                       -> True
 
+-- | Isomorphic to @Maybe (Term tyname name uni fun a)@. Used to represent the first
+-- subterm which will be evaluated in a term and which could have an effect.
+data FirstEffectfulTerm tyname name uni fun a
+  = EffectfulTerm (Term tyname name uni fun a)
+  -- | `Uncertain` indicates that we don't know for sure.
+  | Uncertain
+
 {- |
 Try to identify the first sub term which will be evaluated in the given term and
-which could have an effect. 'Nothing' indicates that we don't know, this function
-is conservative.
+which could have an effect. 'Nothing' indicates that there's no term to evaluate.
 -}
-firstEffectfulTerm :: Term tyname name uni fun a -> Maybe (Term tyname name uni fun a)
+firstEffectfulTerm ::
+  forall tyname name uni fun a.
+  Term tyname name uni fun a ->
+  Maybe (FirstEffectfulTerm tyname name uni fun a)
 firstEffectfulTerm = goTerm
     where
+      goTerm :: Term tyname name uni fun a -> Maybe (FirstEffectfulTerm tyname name uni fun a)
       goTerm = \case
-        Let _ NonRec bs b -> case goBindings (NE.toList bs) of
-            Just t' -> Just t'
-            Nothing -> goTerm b
+        Let _ NonRec bs b -> goBindings (NE.toList bs) <|> goTerm b
 
-        Apply _ l _ -> goTerm l
-        TyInst _ t _ -> goTerm t
-        IWrap _ _ _ t -> goTerm t
-        Unwrap _ t -> goTerm t
-        Constr _ _ _ [] -> Nothing
-        Constr _ _ _ (t:_) -> goTerm t
-        Case _ _ t _ -> goTerm t
+        Apply _ fun args  -> goTerm fun <|> goTerm args
+        TyInst _ t _      -> goTerm t
+        IWrap _ _ _ t     -> goTerm t
+        Unwrap _ t        -> goTerm t
+        Constr _ _ _ []   -> Nothing
+        Constr _ _ _ ts   -> asum $ goTerm <$> ts
+        Case _ _ t _      -> goTerm t
 
-        t@Var{} -> Just t
-        t@Error{} -> Just t
-        t@Builtin{} -> Just t
+        t@Var{}           -> Just (EffectfulTerm t)
+        t@Error{}         -> Just (EffectfulTerm t)
+        Builtin{}         -> Nothing
 
         -- Hard to know what gets evaluated first in a recursive let-binding,
-        -- just give up and say nothing
-        (Let _ Rec _ _) -> Nothing
-        TyAbs{} -> Nothing
-        LamAbs{} -> Nothing
-        Constant{} -> Nothing
+        -- just give up and return `Uncertain`.
+        (Let _ Rec _ _)   -> Just Uncertain
+        TyAbs{}           -> Nothing
+        LamAbs{}          -> Nothing
+        Constant{}        -> Nothing
 
-      goBindings :: [Binding tyname name uni fun a] -> Maybe (Term tyname name uni fun a)
+      goBindings ::
+        [Binding tyname name uni fun a] ->
+        Maybe (FirstEffectfulTerm tyname name uni fun a)
       goBindings [] = Nothing
       goBindings (b:bs) = case b of
         -- Only strict term bindings can cause effects

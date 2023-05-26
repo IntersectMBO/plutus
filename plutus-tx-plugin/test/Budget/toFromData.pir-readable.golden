@@ -93,11 +93,10 @@ in
           !tup : pair integer (list data) = unConstrData d
           ~t : list data = sndPair {integer} {list data} tup
           ~t : list data = tailList {data} t
-          !index : integer = fstPair {integer} {list data} tup
         in
         ifThenElse
           {unit -> Tuple3 Bool integer Bool}
-          (equalsInteger index 0)
+          (equalsInteger (fstPair {integer} {list data} tup) 0)
           (\(ds : unit) ->
              let
                !arg : data = headList {data} t
@@ -109,8 +108,8 @@ in
                {integer}
                {Bool}
                (let
-                 !tup : pair integer (list data) = unConstrData arg
-                 !index : integer = fstPair {integer} {list data} tup
+                 !index : integer
+                   = fstPair {integer} {list data} (unConstrData arg)
                in
                ifThenElse
                  {unit -> Bool}
@@ -135,8 +134,8 @@ in
                  unitval)
                (unIData arg)
                (let
-                 !tup : pair integer (list data) = unConstrData arg
-                 !index : integer = fstPair {integer} {list data} tup
+                 !index : integer
+                   = fstPair {integer} {list data} (unConstrData arg)
                in
                ifThenElse
                  {unit -> Bool}
