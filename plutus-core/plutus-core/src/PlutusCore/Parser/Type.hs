@@ -11,6 +11,7 @@ import PlutusCore.Annotation
 import PlutusCore.Core.Type
 import PlutusCore.Crypto.BLS12_381.G1 as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 as BLS12_381.G2
+import PlutusCore.Crypto.BLS12_381.Pairing as BLS12_381.Pairing
 import PlutusCore.Data
 import PlutusCore.Default
 import PlutusCore.MkPlc (mkIterTyApp)
@@ -126,21 +127,20 @@ defaultUniApplication = do
 -- i.e. parse into @Tree Text@ and do the kind checking afterwards, but given that we'll still need
 -- to do the kind checking of builtins regardless (even for UPLC), we don't win much by deferring
 -- doing it.
--- We don't support constants of type bls12_381_mlresult, so there's no case for that.
 defaultUni :: Parser (SomeTypeIn (Kinded DefaultUni))
 defaultUni = choice $ map try
     [ trailingWhitespace (inParens defaultUniApplication)
-    , someType @_ @Integer              <$ symbol "integer"
-    , someType @_ @ByteString           <$ symbol "bytestring"
-    , someType @_ @Text                 <$ symbol "string"
-    , someType @_ @()                   <$ symbol "unit"
-    , someType @_ @Bool                 <$ symbol "bool"
-    , someType @_ @[]                   <$ symbol "list"
-    , someType @_ @(,)                  <$ symbol "pair"
-    , someType @_ @Data                 <$ symbol "data"
-    , someType @_ @BLS12_381.G1.Element <$ symbol "bls12_381_G1_element"
-    , someType @_ @BLS12_381.G2.Element <$ symbol "bls12_381_G2_element"
-    -- BLS12_381.Pairing.MlResult is deliberately not supported.
+    , someType @_ @Integer                    <$ symbol "integer"
+    , someType @_ @ByteString                 <$ symbol "bytestring"
+    , someType @_ @Text                       <$ symbol "string"
+    , someType @_ @()                         <$ symbol "unit"
+    , someType @_ @Bool                       <$ symbol "bool"
+    , someType @_ @[]                         <$ symbol "list"
+    , someType @_ @(,)                        <$ symbol "pair"
+    , someType @_ @Data                       <$ symbol "data"
+    , someType @_ @BLS12_381.G1.Element       <$ symbol "bls12_381_G1_element"
+    , someType @_ @BLS12_381.G2.Element       <$ symbol "bls12_381_G2_element"
+    , someType @_ @BLS12_381.Pairing.MlResult <$ symbol "bls12_381_mlresult"
     ]
 
 tyName :: Parser TyName
