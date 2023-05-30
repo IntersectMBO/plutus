@@ -82,7 +82,7 @@ let
         //
         { ghc96 = native-plutus-96-jobs; }
         //
-        { mingwW64 = windows-plutus-92-jobs; }
+        { mingwW64 = windows-plutus-810-jobs; }
         //
         inputs.cells.plutus.packages
       )
