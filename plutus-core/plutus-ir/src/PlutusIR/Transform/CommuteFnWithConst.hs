@@ -2,17 +2,6 @@
 {-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE TypeApplications #-}
 
-module PlutusIR.Transform.CommuteFnWithConst
-  (commuteFnWithConst
-  , commuteDefaultFun)
-  where
-
-import Control.Lens (over)
-import Data.Typeable (Typeable, eqT)
-import PlutusCore.Default
-import PlutusIR.Core.Plated (termSubterms)
-import PlutusIR.Core.Type (Term (Apply, Builtin, Constant))
-
 {- | Commute such that constants are the first arguments. Consider:
 
 (1)    equalsInteger 1 x
@@ -39,6 +28,17 @@ might expect that `equalsInteger` is the one that will benefit the most.
 Plutonomy only commutes `EqualsInteger` in their `commEquals`.
 -}
 
+module PlutusIR.Transform.CommuteFnWithConst
+  (commuteFnWithConst
+  , commuteDefaultFun)
+  where
+
+import Control.Lens (over)
+import Data.Typeable (Typeable, eqT)
+import PlutusCore.Default
+import PlutusIR.Core.Plated (termSubterms)
+import PlutusIR.Core.Type (Term (Apply, Builtin, Constant))
+
 isConstant :: Term tyname name uni fun a -> Bool
 isConstant Constant{} = True
 isConstant _          = False
@@ -49,10 +49,10 @@ commuteDefaultFun ::
     Term tyname name uni DefaultFun a
 commuteDefaultFun = over termSubterms commuteDefaultFun . localCommute
   where
-    localCommute tm@(Apply ann (Apply ann1 (Builtin annB fun) x) y) =
-      case (isCommutativeWithConstant fun, isConstant x, isConstant y) of
-        (True, False, True) -> Apply ann (Apply ann1 (Builtin annB fun) y) x
-        _                   -> tm
+    localCommute tm@(Apply ann (Apply ann1 (Builtin annB fun) x) y@Constant{})
+      | isCommutative fun && not (isConstant x) =
+          Apply ann (Apply ann1 (Builtin annB fun) y) x
+      | otherwise                   = tm
     localCommute tm = tm
 
 commuteFnWithConst :: forall tyname name uni fun a. Typeable fun =>
@@ -61,11 +61,11 @@ commuteFnWithConst = case eqT @fun @DefaultFun of
     Just Refl -> commuteDefaultFun
     Nothing   -> id
 
--- | Returns whether a `DefaultFun` is commutative with `Constant`'s as arguments. Not using
+-- | Returns whether a `DefaultFun` is commutative. Not using
 -- catchall to make sure that this function catches newly added `DefaultFun`.
-isCommutativeWithConstant :: DefaultFun -> Bool
-isCommutativeWithConstant = \case
-  AddInteger                      -> False
+isCommutative :: DefaultFun -> Bool
+isCommutative = \case
+  AddInteger                      -> True
   SubtractInteger                 -> False
   MultiplyInteger                 -> True
   DivideInteger                   -> False
@@ -123,7 +123,7 @@ isCommutativeWithConstant = \case
   UnListData                      -> False
   UnIData                         -> False
   UnBData                         -> False
-  EqualsData                      -> False -- doesn't take constant
+  EqualsData                      -> True
   SerialiseData                   -> False
   MkPairData                      -> False
   MkNilData                       -> False
