@@ -504,9 +504,9 @@
                           )
                           (lam Nat_i0 (type) (sop [] [Nat_i1]))
                           (constr
-                            [
-                              (lam Nat_i0 (type) (sop [] [Nat_i1]))
-                              (ifix
+                            (sop
+                              []
+                              [(ifix
                                 (lam
                                   rec_i0
                                   (fun (fun (type) (type)) (type))
@@ -517,8 +517,8 @@
                                   )
                                 )
                                 (lam Nat_i0 (type) (sop [] [Nat_i1]))
-                              )
-                            ]
+                              )]
+                            )
                             0
                           )
                         )
@@ -545,9 +545,9 @@
                           )
                           (lam Nat_i0 (type) (sop [] [Nat_i1]))
                           (constr
-                            [
-                              (lam Nat_i0 (type) (sop [] [Nat_i1]))
-                              (ifix
+                            (sop
+                              []
+                              [(ifix
                                 (lam
                                   rec_i0
                                   (fun (fun (type) (type)) (type))
@@ -558,8 +558,8 @@
                                   )
                                 )
                                 (lam Nat_i0 (type) (sop [] [Nat_i1]))
-                              )
-                            ]
+                              )]
+                            )
                             1
                             arg_0_i1
                           )
@@ -615,9 +615,9 @@
           )
           (sop [] [])
         }
-        (constr [ (lam Bool_i0 (type) (sop [] [])) (sop [] []) ] 0)
+        (constr (sop [] []) 0)
       ]
-      (constr [ (lam Bool_i0 (type) (sop [] [])) (sop [] []) ] 1)
+      (constr (sop [] []) 1)
     ]
     (lam
       x_i0

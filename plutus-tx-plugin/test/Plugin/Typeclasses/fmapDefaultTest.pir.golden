@@ -16,7 +16,7 @@
     (termbind
       (nonstrict)
       (vardecl
-        fAdditiveSemigroupInteger
+        `$fAdditiveSemigroupInteger`
         [ (lam a (type) (fun a (fun a a))) (con integer) ]
       )
       addInteger
@@ -24,7 +24,7 @@
     (termbind
       (strict)
       (vardecl
-        bad_name
+        `+`
         (all
           a
           (type)
@@ -36,7 +36,7 @@
     (termbind
       (nonstrict)
       (vardecl v (fun (con integer) (fun (con integer) (con integer))))
-      [ { bad_name (con integer) } fAdditiveSemigroupInteger ]
+      [ { `+` (con integer) } `$fAdditiveSemigroupInteger` ]
     )
     (let
       (rec)
@@ -54,7 +54,7 @@
         (termbind
           (strict)
           (vardecl
-            fFoldableNil_cfoldr
+            `$fFoldableNil_$cfoldr`
             (all
               a
               (type)
@@ -113,7 +113,7 @@
           (termbind
             (strict)
             (vardecl
-              fFunctorNil_cfmap
+              `$fFunctorNil_$cfmap`
               (all
                 a
                 (type)
@@ -149,7 +149,7 @@
                               (type)
                               [
                                 [ { Cons b } [ f x ] ]
-                                [ [ { { fFunctorNil_cfmap a } b } f ] xs ]
+                                [ [ { { `$fFunctorNil_$cfmap` a } b } f ] xs ]
                               ]
                             )
                           )
@@ -204,7 +204,7 @@
             (termbind
               (strict)
               (vardecl
-                p1Applicative
+                `$p1Applicative`
                 (all
                   f
                   (fun (type) (type))
@@ -286,7 +286,7 @@
             (termbind
               (strict)
               (vardecl
-                bad_name
+                `<*>`
                 (all
                   f
                   (fun (type) (type))
@@ -415,7 +415,7 @@
               (termbind
                 (strict)
                 (vardecl
-                  fTraversableNil_ctraverse
+                  `$fTraversableNil_$ctraverse`
                   (all
                     f
                     (fun (type) (type))
@@ -445,7 +445,7 @@
                       b
                       (type)
                       (lam
-                        dApplicative
+                        `$dApplicative`
                         [ Applicative f ]
                         (lam
                           ds
@@ -464,7 +464,10 @@
                                     dead
                                     (type)
                                     [
-                                      { [ { pure f } dApplicative ] [ List b ] }
+                                      {
+                                        [ { pure f } `$dApplicative` ]
+                                        [ List b ]
+                                      }
                                       { Nil b }
                                     ]
                                   )
@@ -482,7 +485,7 @@
                                         [
                                           {
                                             {
-                                              [ { bad_name f } dApplicative ]
+                                              [ { `<*>` f } `$dApplicative` ]
                                               [ List b ]
                                             }
                                             [ List b ]
@@ -492,8 +495,8 @@
                                               {
                                                 {
                                                   [
-                                                    { p1Applicative f }
-                                                    dApplicative
+                                                    { `$p1Applicative` f }
+                                                    `$dApplicative`
                                                   ]
                                                   b
                                                 }
@@ -518,13 +521,14 @@
                                               {
                                                 {
                                                   {
-                                                    fTraversableNil_ctraverse f
+                                                    `$fTraversableNil_$ctraverse`
+                                                    f
                                                   }
                                                   a
                                                 }
                                                 b
                                               }
-                                              dApplicative
+                                              `$dApplicative`
                                             ]
                                             ds
                                           ]
@@ -616,13 +620,13 @@
                 )
                 (termbind
                   (nonstrict)
-                  (vardecl fTraversableNil [ Traversable List ])
+                  (vardecl `$fTraversableNil` [ Traversable List ])
                   [
                     [
-                      [ { CConsTraversable List } fFunctorNil_cfmap ]
-                      fFoldableNil_cfoldr
+                      [ { CConsTraversable List } `$fFunctorNil_$cfmap` ]
+                      `$fFoldableNil_$cfoldr`
                     ]
-                    fTraversableNil_ctraverse
+                    `$fTraversableNil_$ctraverse`
                   ]
                 )
                 (termbind
@@ -659,7 +663,7 @@
                 (termbind
                   (strict)
                   (vardecl
-                    fApplicativeIdentity_c
+                    `$fApplicativeIdentity_$c<*>`
                     (all
                       a
                       (type)
@@ -690,7 +694,7 @@
                 (termbind
                   (strict)
                   (vardecl
-                    fApplicativeIdentity_cpure
+                    `$fApplicativeIdentity_$cpure`
                     (all a (type) (fun a [ (lam a (type) a) a ]))
                   )
                   (abs a (type) (lam ds a ds))
@@ -698,7 +702,7 @@
                 (termbind
                   (strict)
                   (vardecl
-                    fFunctorIdentity_cfmap
+                    `$fFunctorIdentity_$cfmap`
                     (all
                       a
                       (type)
@@ -725,17 +729,17 @@
                 (termbind
                   (nonstrict)
                   (vardecl
-                    fApplicativeIdentity [ Applicative (lam a (type) a) ]
+                    `$fApplicativeIdentity` [ Applicative (lam a (type) a) ]
                   )
                   [
                     [
                       [
                         { CConsApplicative (lam a (type) a) }
-                        fFunctorIdentity_cfmap
+                        `$fFunctorIdentity_$cfmap`
                       ]
-                      fApplicativeIdentity_cpure
+                      `$fApplicativeIdentity_$cpure`
                     ]
-                    fApplicativeIdentity_c
+                    `$fApplicativeIdentity_$c<*>`
                   ]
                 )
                 (termbind
@@ -892,20 +896,20 @@
                         b
                         (type)
                         (lam
-                          dTraversable
+                          `$dTraversable`
                           [ Traversable t ]
                           [
                             {
                               {
                                 {
-                                  [ { traverse t } dTraversable ]
+                                  [ { traverse t } `$dTraversable` ]
                                   (lam a (type) a)
                                 }
                                 a
                               }
                               b
                             }
-                            fApplicativeIdentity
+                            `$fApplicativeIdentity`
                           ]
                         )
                       )
@@ -916,7 +920,7 @@
                   [
                     [
                       { { { fmapDefault List } (con integer) } (con integer) }
-                      fTraversableNil
+                      `$fTraversableNil`
                     ]
                     (lam v (con integer) [ [ v v ] v ])
                   ]

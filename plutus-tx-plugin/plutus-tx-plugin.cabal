@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-tx-plugin
-version:         1.6.0.0
+version:         1.7.0.0
 license:         Apache-2.0
 license-files:
   LICENSE
@@ -41,17 +41,18 @@ common lang
     -Wunused-packages -Wmissing-deriving-strategies -fobject-code
     -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
 
+common ghc-version-support
+  -- See the section on GHC versions in CONTRIBUTING
+  if impl(ghc <9.2)
+    buildable: False
+
 flag use-ghc-stub
   description: Use the `plutus-ghc-stub` package instead of `ghc`.
   default:     False
   manual:      True
 
 library
-  import:          lang
-
-  if impl(ghc <9.0)
-    buildable: False
-
+  import:          lang, ghc-version-support
   hs-source-dirs:  src
   exposed-modules:
     PlutusTx.Compiler.Error
@@ -78,11 +79,11 @@ library
     , containers
     , either
     , extra
-    , flat                                  <0.5
+    , flat                                  ^>=0.6
     , lens
     , mtl
-    , plutus-core:{plutus-core, plutus-ir}  ^>=1.6
-    , plutus-tx                             ^>=1.6
+    , plutus-core:{plutus-core, plutus-ir}  ^>=1.7
+    , plutus-tx                             ^>=1.7
     , prettyprinter
     , PyF                                   >=0.11.1.0
     , template-haskell
@@ -94,14 +95,10 @@ library
       -Wno-unused-packages -Wno-unused-imports -Wno-overlapping-patterns
 
   else
-    build-depends: ghc >=9.2 && <9.4
+    build-depends: ghc >=9.2
 
 executable gen-plugin-opts-doc
-  import:           lang
-
-  if impl(ghc <9.0)
-    buildable: False
-
+  import:           lang, ghc-version-support
   main-is:          GeneratePluginOptionsDoc.hs
   hs-source-dirs:   app
   ghc-options:      -threaded -rtsopts -with-rtsopts=-N
@@ -110,17 +107,18 @@ executable gen-plugin-opts-doc
     , containers
     , lens
     , optparse-applicative
-    , plutus-tx-plugin      ^>=1.6
+    , plutus-tx-plugin      ^>=1.7
     , prettyprinter
     , PyF                   >=0.11.1.0
     , text
 
   default-language: Haskell2010
 
-test-suite plutus-tx-plugin-tests
-  import:         lang
+test-suite plutus-tx-tests
+  import:         lang, ghc-version-support
 
-  if impl(ghc <9.0)
+  -- test output changes after 9.2, bad for golden tests
+  if impl(ghc >=9.3)
     buildable: False
 
   if flag(use-ghc-stub)
@@ -158,13 +156,13 @@ test-suite plutus-tx-plugin-tests
     , base                                            >=4.9 && <5
     , containers
     , deepseq
-    , flat                                            <0.5
+    , flat                                            ^>=0.6
     , hedgehog
     , lens
     , mtl
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.6
-    , plutus-tx-plugin                                ^>=1.6
-    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.6
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.7
+    , plutus-tx-plugin                                ^>=1.7
+    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.7
     , tasty
     , tasty-hedgehog
     , tasty-hunit
@@ -175,10 +173,7 @@ test-suite plutus-tx-plugin-tests
   ghc-options:    -g
 
 test-suite size
-  import:         lang
-
-  if impl(ghc <9.0)
-    buildable: False
+  import:         lang, ghc-version-support
 
   -- needs plutus-tx-plugin but it looks unused
   ghc-options:    -Wno-unused-packages
@@ -187,7 +182,7 @@ test-suite size
   hs-source-dirs: test/size
   build-depends:
     , base                                      >=4.9 && <5.0
-    , plutus-tx-plugin                          ^>=1.6
-    , plutus-tx:{plutus-tx, plutus-tx-testlib}  ^>=1.6
+    , plutus-tx-plugin                          ^>=1.7
+    , plutus-tx:{plutus-tx, plutus-tx-testlib}  ^>=1.7
     , tagged
     , tasty

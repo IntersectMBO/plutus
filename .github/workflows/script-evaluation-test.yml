@@ -12,11 +12,18 @@ concurrency:
 
 jobs:
   script-evaluation-test:
-    runs-on: [self-hosted, plutus-benchmark]
+    runs-on: [self-hosted, default]
 
     steps:
       - name: Checkout
         uses: actions/checkout@v3.3.0
+
+      - name: Quick Install Nix
+        uses: cachix/install-nix-action@v21
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            accept-flake-config = true
 
       - name: Download and Unzip Dump Files
         if: always() 

@@ -1,20 +1,18 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecursiveDo       #-}
-
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 -- | Common functions for parsers of UPLC, PLC, and PIR.
-
 module PlutusCore.Parser.ParserCommon where
 
-import Control.Monad.Except
-import Control.Monad.Reader
+import Control.Monad (void, when)
+import Control.Monad.Except (MonadError)
+import Control.Monad.Reader (ReaderT, ask, local, runReaderT)
 import Control.Monad.State (MonadState (..), StateT, evalStateT)
-import Data.Char (isAlphaNum)
 import Data.Map qualified as M
 import Data.Text qualified as T
 import Text.Megaparsec hiding (ParseError, State, parse, some)
-import Text.Megaparsec.Char (char, letterChar, space1)
+import Text.Megaparsec.Char (char, space1)
 import Text.Megaparsec.Char.Lexer qualified as Lex hiding (hexadecimal)
 
 import PlutusCore.Annotation
@@ -29,31 +27,34 @@ sure to enclose every 'Parser' that doesn't consume trailing whitespce (e.g. 'ta
 'manyTill', 'Lex.decimal' etc) in a call to 'lexeme'.
 -}
 
-newtype ParserState = ParserState { identifiers :: M.Map T.Text Unique }
-    deriving stock (Show)
+newtype ParserState = ParserState {identifiers :: M.Map T.Text Unique}
+  deriving stock (Show)
 
 type Parser =
-    ParsecT ParserError T.Text (StateT ParserState (ReaderT (Maybe Version) Quote))
+  ParsecT ParserError T.Text (StateT ParserState (ReaderT (Maybe Version) Quote))
 
 instance (Stream s, MonadQuote m) => MonadQuote (ParsecT e s m)
 
 initial :: ParserState
 initial = ParserState M.empty
 
--- | Return the unique identifier of a name.
--- If it's not in the current parser state, map the name to a fresh id
--- and add it to the state. Used in the Name parser.
-intern :: (MonadState ParserState m, MonadQuote m)
-    => T.Text -> m Unique
+{- | Return the unique identifier of a name.
+If it's not in the current parser state, map the name to a fresh id
+and add it to the state. Used in the Name parser.
+-}
+intern ::
+  (MonadState ParserState m, MonadQuote m) =>
+  T.Text ->
+  m Unique
 intern n = do
-    st <- get
-    case M.lookup n (identifiers st) of
-        Just u -> return u
-        Nothing -> do
-            fresh <- freshUnique
-            let identifiers' = M.insert n fresh $ identifiers st
-            put $ ParserState identifiers'
-            return fresh
+  st <- get
+  case M.lookup n (identifiers st) of
+    Just u -> return u
+    Nothing -> do
+      fresh <- freshUnique
+      let identifiers' = M.insert n fresh $ identifiers st
+      put $ ParserState identifiers'
+      return fresh
 
 -- | Get the version of the program being parsed, if we know it.
 getVersion :: Parser (Maybe Version)
@@ -63,9 +64,10 @@ getVersion = ask
 withVersion :: Version -> Parser a -> Parser a
 withVersion v = local (const $ Just v)
 
--- | Run an action conditionally based on a predicate on the version.
--- If we don't know the version then the predicate is assumed to be
--- false, i.e. we act if we _know_ the predicate is satisfied.
+{- | Run an action conditionally based on a predicate on the version.
+If we don't know the version then the predicate is assumed to be
+false, i.e. we act if we _know_ the predicate is satisfied.
+-}
 whenVersion :: (Version -> Bool) -> Parser () -> Parser ()
 whenVersion p act = do
   mv <- getVersion
@@ -73,11 +75,15 @@ whenVersion p act = do
     Nothing -> pure ()
     Just v  -> when (p v) act
 
-parse :: (AsParserErrorBundle e, MonadError e m, MonadQuote m) =>
-    Parser a -> String -> T.Text -> m a
+parse ::
+  (AsParserErrorBundle e, MonadError e m, MonadQuote m) =>
+  Parser a ->
+  String ->
+  T.Text ->
+  m a
 parse p file str = do
-    let res = fmap toErrorB (runReaderT (evalStateT (runParserT p file str) initial) Nothing)
-    throwingEither _ParserErrorBundle =<< liftQuote res
+  let res = fmap toErrorB (runReaderT (evalStateT (runParserT p file str) initial) Nothing)
+  throwingEither _ParserErrorBundle =<< liftQuote res
 
 toErrorB :: Either (ParseErrorBundle T.Text ParserError) a -> Either ParserErrorBundle a
 toErrorB (Left err) = Left $ ParseErrorB err
@@ -97,12 +103,13 @@ leadingWhitespace = (whitespace *>)
 trailingWhitespace :: Parser a -> Parser a
 trailingWhitespace = (<* whitespace)
 
--- | Returns a parser for @a@ by calling the supplied function on the starting
--- and ending positions of @a@.
---
--- The supplied function should usually return a parser that does /not/ consume trailing
--- whitespaces. Otherwise, the end position will be the first character after the
--- trailing whitespaces.
+{- | Returns a parser for @a@ by calling the supplied function on the starting
+and ending positions of @a@.
+
+The supplied function should usually return a parser that does /not/ consume trailing
+whitespaces. Otherwise, the end position will be the first character after the
+trailing whitespaces.
+-}
 withSpan' :: (SrcSpan -> Parser a) -> Parser a
 withSpan' f = mdo
   start <- getSourcePos
@@ -111,9 +118,10 @@ withSpan' f = mdo
   let sp = toSrcSpan start end
   pure res
 
--- | Like `withSpan'`, but the result parser consumes whitespaces.
---
--- @withSpan = (<* whitespace) . withSpan'
+{- | Like `withSpan'`, but the result parser consumes whitespaces.
+
+@withSpan = (<* whitespace) . withSpan'
+-}
 withSpan :: (SrcSpan -> Parser a) -> Parser a
 withSpan = (<* whitespace) . withSpan'
 
@@ -132,30 +140,35 @@ inBrackets = between (symbol "[") (char ']')
 inBraces :: Parser a -> Parser a
 inBraces = between (symbol "{") (char '}')
 
-isIdentifierChar :: Char -> Bool
-isIdentifierChar c = isAlphaNum c || c == '_' || c == '\''
-
 toSrcSpan :: SourcePos -> SourcePos -> SrcSpan
 toSrcSpan start end =
-    SrcSpan
-        { srcSpanFile = sourceName start
-        , srcSpanSLine = unPos (sourceLine start)
-        , srcSpanSCol = unPos (sourceColumn start)
-        , srcSpanELine = unPos (sourceLine end)
-        , srcSpanECol = unPos (sourceColumn end)
-        }
+  SrcSpan
+    { srcSpanFile = sourceName start
+    , srcSpanSLine = unPos (sourceLine start)
+    , srcSpanSCol = unPos (sourceColumn start)
+    , srcSpanELine = unPos (sourceLine end)
+    , srcSpanECol = unPos (sourceColumn end)
+    }
 
 version :: Parser Version
 version = trailingWhitespace $ do
-    x <- Lex.decimal
-    void $ char '.'
-    y <- Lex.decimal
-    void $ char '.'
-    Version x y <$> Lex.decimal
+  x <- Lex.decimal
+  void $ char '.'
+  y <- Lex.decimal
+  void $ char '.'
+  Version x y <$> Lex.decimal
 
 -- | Parses a `Name`. Does not consume leading or trailing whitespaces.
 name :: Parser Name
-name = try $ do
-    void $ lookAhead letterChar
-    str <- takeWhileP (Just "identifier") isIdentifierChar
-    Name str <$> intern str
+name = try $ parseUnquoted <|> parseQuoted
+  where
+    parseUnquoted = do
+      void $ lookAhead (satisfy isIdentifierStartingChar)
+      str <- takeWhileP (Just "identifier-unquoted") isIdentifierChar
+      Name str <$> intern str
+    parseQuoted = do
+      void $ char '`'
+      void $ lookAhead (satisfy isQuotedIdentifierChar)
+      str <- takeWhileP (Just "identifier-quoted") isQuotedIdentifierChar
+      void $ char '`'
+      Name str <$> intern str

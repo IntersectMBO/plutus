@@ -55,10 +55,16 @@ module PlutusCore.Pretty
     , pcrShowKinds
     , PrettyReadableBy
     , PrettyReadable
+    , AsReadable (..)
     , topPrettyConfigReadable
     , botPrettyConfigReadable
     , binderFixity
     , arrowFixity
+    , arrowPrettyM
+    , iterTyForallPrettyM
+    , iterLamAbsPrettyM
+    , iterTyAbsPrettyM
+    , iterAppPrettyM
     -- * Utils
     , prettyBytes
     , ConstConfig (..)

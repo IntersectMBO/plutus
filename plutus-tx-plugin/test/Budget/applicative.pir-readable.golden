@@ -2,17 +2,16 @@ let
   data (Maybe :: * -> *) a | Maybe_match where
     Just : a -> Maybe a
     Nothing : Maybe a
-  !x : Maybe integer = Just {integer} 1
   !y : Maybe integer = Just {integer} 2
   !ds : Maybe (integer -> integer)
     = (let
           b = integer -> integer
         in
-        \(dFunctor
-            : (\(f :: * -> *) -> all a. all b. (a -> b) -> f a -> f b) Maybe)
+        \(`$dFunctor`
+            : (\(f :: * -> *) -> all a b. (a -> b) -> f a -> f b) Maybe)
          (f : integer -> b)
          (fa : Maybe integer) ->
-          dFunctor {integer} {b} f fa)
+          `$dFunctor` {integer} {b} f fa)
         (/\a
            b ->
            \(f : a -> b)
@@ -25,7 +24,7 @@ let
                (/\dead -> Nothing {b})
                {all dead. dead})
         (\(x : integer) (y : integer) -> addInteger x y)
-        x
+        (Just {integer} 1)
 in
 Maybe_match
   {integer -> integer}

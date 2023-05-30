@@ -2,6 +2,7 @@
 -- | Combinators.
 
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections     #-}
 
 module PlutusCore.StdLib.Data.Function
     ( const
@@ -131,7 +132,7 @@ fixAndType = runQuote $ do
             . wrapSelf [funAB]
             . lamAbs () s selfFunAB
             . lamAbs () x (TyVar () a)
-            $ mkIterApp () (var () f)
+            $ mkIterAppNoAnn (var () f)
             [ apply () unrollFunAB $ var () s
             , var () x
             ]
@@ -325,11 +326,11 @@ fixNAndType n fixByTerm = runQuote $ do
           -- abstract out all the As and Bs
           mkIterTyAbs (fmap (\tn -> TyVarDecl () tn (Type ())) allAsBs) $
           lamAbs () f fTy $
-          mkIterApp () instantiatedFix
+          mkIterAppNoAnn instantiatedFix
               [ lamAbs () k kTy $
                 tyAbs () s (Type ()) $
                 lamAbs () h hTy $
-                mkIterApp () (var () h) branches
+                mkIterAppNoAnn (var () h) branches
               , var () f
               ]
     pure (fixNTerm, fixNType)
@@ -339,7 +340,7 @@ getSingleFixOf
     :: (TermLike term TyName Name uni fun)
     => ann -> term ann -> FunctionDef term TyName Name uni fun ann -> term ann
 getSingleFixOf ann fix1 fun@FunctionDef{_functionDefType=(FunctionType _ dom cod)} =
-    let instantiatedFix = mkIterInst ann fix1 [dom, cod]
+    let instantiatedFix = mkIterInst fix1 [(ann, dom), (ann, cod)]
         abstractedBody = mkIterLamAbs [functionDefVarDecl fun] $ _functionDefTerm fun
     in apply ann instantiatedFix abstractedBody
 
@@ -366,7 +367,7 @@ getMutualFixOf ann fixn funs = do
 
     -- \v1 ... vn -> choose f1 ... fn
     let rhss    = map _functionDefTerm funs
-        chosen  = mkIterApp ann (var ann choose) rhss
+        chosen  = mkIterApp (var ann choose) ((ann,) <$> rhss)
         vsLam   = mkIterLamAbs (map functionDefVarDecl funs) chosen
 
     -- abstract out Q and choose
@@ -375,7 +376,7 @@ getMutualFixOf ann fixn funs = do
     -- fixN {A1} {B1} ... {An} {Bn}
     instantiatedFix <- do
         let domCods = foldMap (\(FunctionDef _ _ (FunctionType _ dom cod) _) -> [dom, cod]) funs
-        pure $ mkIterInst ann fixn domCods
+        pure $ mkIterInst fixn ((ann,) <$> domCods)
 
     let term = apply ann instantiatedFix cLam
 

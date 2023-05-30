@@ -1,12 +1,18 @@
 -- editorconfig-checker-disable-file
+
 -- | The universe used by default and its instances.
 
 {-# OPTIONS -fno-warn-missing-pattern-synonym-signatures #-}
 -- on 9.2.4 this is the flag that suppresses the above
 -- warning
 {-# OPTIONS -Wno-missing-signatures #-}
+-- 9.6 notices that all the constraints on TestTypesFromTheUniverseAreAllKnown
+-- are redundant (which they are), but we don't care because it only exists
+-- to test that some constraints are solvable
+{-# OPTIONS -Wno-redundant-constraints #-}
 
 {-# LANGUAGE BlockArguments        #-}
+{-# LANGUAGE CPP                   #-}
 {-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
@@ -22,6 +28,7 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
+#include "MachDeps.h"
 
 -- effectfully: to the best of my experimentation, -O2 here improves performance, however by
 -- inspecting GHC Core I was only able to see a difference in how the 'KnownTypeIn' instance for
@@ -49,7 +56,6 @@ import Control.Applicative
 import Data.Bits (toIntegralSized)
 import Data.ByteString qualified as BS
 import Data.Int
-import Data.IntCast (intCastEq)
 import Data.Proxy
 import Data.Text qualified as Text
 import Data.Word
@@ -88,7 +94,7 @@ to juggle values of polymorphic built-in types instantiated with non-built-in ty
 (it's not even possible to represent such a value in the AST, even though it's possible to represent
 such a 'Type').
 
-Finally, it is not necessarily the case that we need to allow embedding PLC terms into meta-constants.
+Finally, it is not necessary to allow embedding PLC terms into meta-constants.
 We already allow built-in functions with polymorphic types. There might be a way to utilize this
 feature and have meta-constructors as built-in functions.
 -}
@@ -121,7 +127,7 @@ instance GEq DefaultUni where
     -- recursive definition and we want two instead. The reason why we want two is because this
     -- allows GHC to inline the initial step that appears non-recursive to GHC, because recursion
     -- is hidden in the other function that is marked as @NOINLINE@ and is chosen by GHC as a
-    -- loop-breaker, see https://wiki.haskell.org/Inlining_and_Specialisation#What_is_a_loop-breaker.3F
+    -- loop-breaker, see https://wiki.haskell.org/Inlining_and_Specialisation#What_is_a_loop-breaker
     -- (we're not really sure if this is a reliable solution, but if it stops working, we won't miss
     -- very much and we've failed to settle on any other approach).
     --
@@ -325,31 +331,28 @@ instance TestTypesFromTheUniverseAreAllKnown DefaultUni
 Technically our universe only contains 'Integer', but many of the builtin functions that we would
 like to use work over 'Int' and 'Word8'.
 
-This is inconvenient and also error-prone: dealing with a function that takes an 'Int' or 'Word8' means carefully
-downcasting the 'Integer', running the function, potentially upcasting at the end. And it's easy to get
-wrong by e.g. blindly using 'fromInteger'.
+This is inconvenient and also error-prone: dealing with a function that takes an 'Int' or 'Word8'
+means carefully downcasting the 'Integer', running the function, potentially upcasting at the end.
+And it's easy to get wrong by e.g. blindly using 'fromInteger'.
 
-Moreover, there is a latent risk here: if we *were* to build on a 32-bit platform, then programs which
-use arguments between @maxBound :: Int32@ and @maxBound :: Int64@ would behave differently!
+Moreover, there is a latent risk here: if we *were* to build on a 32-bit architecture, then programs
+which use arguments between @maxBound :: Int32@ and @maxBound :: Int64@ would behave differently!
 
 So, what to do? We adopt the following strategy:
-- We allow lifting/unlifting 'Int64' via 'Integer', including a safe downcast in 'readKnown'.
 - We allow lifting/unlifting 'Word8' via 'Integer', including a safe downcast in 'readKnown'.
-- We allow lifting/unlifting 'Int' via 'Int64', converting between them using 'intCastEq'.
-
-This has the effect of allowing the use of 'Int64' always, and 'Int' iff it is provably equal to
-'Int64'. So we can use 'Int' conveniently, but only if it has predictable behaviour.
-
-(An alternative would be to just add 'Int', but add 'IntCastEq Int Int64' as an instance constraint.
-That would also work, this way just seemed a little more explicit, and avoids adding constraints,
-which can sometimes interfere with optimization and inling.)
+- We allow lifting/unlifting 'Int64' via 'Integer', including a safe downcast in 'readKnown'.
+- We allow lifting/unlifting 'Int' via 'Int64', constraining the conversion between them to
+64-bit architectures where this conversion is safe.
 
 Doing this effectively bans builds on 32-bit systems, but that's fine, since we don't care about
 supporting 32-bit systems anyway, and this way any attempts to build on them will fail fast.
 
-Note: we couldn't fail the bounds check with 'AsUnliftingError', because an out-of-bounds error is not an
-internal one -- it's a normal evaluation failure, but unlifting errors have this connotation of
-being "internal".
+Note: We have another 64-bit limitation, this time not during script execution but during
+script deserialization, for more see Note [Index (Word64) (de)serialized through Natural].
+
+Note: we couldn't fail the bounds check with 'AsUnliftingError', because an out-of-bounds error
+is not an internal one -- it's a normal evaluation failure, but unlifting errors
+have this connotation of being "internal".
 -}
 
 instance KnownTypeAst DefaultUni Int64 where
@@ -374,19 +377,26 @@ instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Int64 wher
                 else throwing_ _EvaluationFailure
     {-# INLINE readKnown #-}
 
+#if WORD_SIZE_IN_BITS == 64
+-- See Note [Integral types as Integer].
+
 instance KnownTypeAst DefaultUni Int where
     toTypeAst _ = toTypeAst $ Proxy @Integer
 
--- See Note [Integral types as Integer].
 instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Int where
-    -- This could safely just be toInteger, but this way is more explicit and it'll
-    -- turn into the same thing anyway.
-    makeKnown = makeKnown . intCastEq @Int @Int64
+    -- Convert Int-to-Integer via Int64.  We could go directly `toInteger`, but this way
+    -- is more explicit and it'll turn into the same thing anyway.
+    -- Although this conversion is safe regardless of the CPU arch (unlike the opposite conversion),
+    -- we constrain it to 64-bit for the sake of uniformity.
+    makeKnown = makeKnown . fromIntegral @Int @Int64
     {-# INLINE makeKnown #-}
 
 instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Int where
-    readKnown term = intCastEq @Int64 @Int <$> readKnown term
+    -- Convert Integer-to-Int via Int64. This instance is safe only for 64-bit architecture
+    -- where Int===Int64 (i.e. no truncation happening).
+    readKnown term = fromIntegral @Int64 @Int <$> readKnown term
     {-# INLINE readKnown #-}
+#endif
 
 instance KnownTypeAst DefaultUni Word8 where
     toTypeAst _ = toTypeAst $ Proxy @Integer

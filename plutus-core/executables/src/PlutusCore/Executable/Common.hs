@@ -161,26 +161,15 @@ printBudgetStateTally ::
     Cek.CekExTally fun ->
     IO ()
 printBudgetStateTally term model (Cek.CekExTally costs) = do
-    putStrLn $ "Const      " ++ pbudget (Cek.BStep Cek.BConst)
-    putStrLn $ "Var        " ++ pbudget (Cek.BStep Cek.BVar)
-    putStrLn $ "LamAbs     " ++ pbudget (Cek.BStep Cek.BLamAbs)
-    putStrLn $ "Apply      " ++ pbudget (Cek.BStep Cek.BApply)
-    putStrLn $ "Delay      " ++ pbudget (Cek.BStep Cek.BDelay)
-    putStrLn $ "Force      " ++ pbudget (Cek.BStep Cek.BForce)
-    putStrLn $ "Builtin    " ++ pbudget (Cek.BStep Cek.BBuiltin)
+    traverse_ printStepCost allStepKinds
     putStrLn ""
-    putStrLn $ "startup    " ++ pbudget Cek.BStartup
-    putStrLn $ "compute    " ++ printf "%-20s" (budgetToString totalComputeCost)
+    putStrLn $ "startup    " ++ (budgetToString $ getSpent Cek.BStartup)
+    putStrLn $ "compute    " ++ budgetToString totalComputeCost
     putStrLn $ "AST nodes  " ++ printf "%15d" (UPLC.unSize $ UPLC.termSize term)
     putStrLn ""
-    putStrLn $ "BuiltinApp " ++ budgetToString builtinCosts
     case model of
         Default ->
             do
-                putStrLn $
-                    printf
-                        "Time spent executing builtins:  %4.2f%%\n"
-                        (100 * (getCPU builtinCosts) / totalTime)
                 putStrLn ""
                 traverse_
                     ( \(b, cost) ->
@@ -188,8 +177,13 @@ printBudgetStateTally term model (Cek.CekExTally costs) = do
                     )
                     builtinsAndCosts
                 putStrLn ""
-                putStrLn $ "Total budget spent: " ++ printf (budgetToString totalCost)
-                putStrLn $ "Predicted execution time: " ++ formatTimePicoseconds totalTime
+                putStrLn $ "Total builtin costs:   " ++ budgetToString totalBuiltinCosts
+                printf "Time spent executing builtins:  %4.2f%%\n"
+                        (100 * (getCPU totalBuiltinCosts) / (getCPU totalCost))
+                putStrLn ""
+                putStrLn $ "Total budget spent:    " ++ printf (budgetToString totalCost)
+                putStrLn $ "Predicted execution time: "
+                             ++ (formatTimePicoseconds $ getCPU totalCost)
         Unit -> do
             putStrLn ""
             traverse_
@@ -198,31 +192,27 @@ printBudgetStateTally term model (Cek.CekExTally costs) = do
                 )
                 builtinsAndCosts
   where
+    allStepKinds = [minBound..maxBound] :: [Cek.StepKind]
     getSpent k =
         case H.lookup k costs of
             Just v  -> v
             Nothing -> ExBudget 0 0
-    allNodeTags =
-        fmap
-            Cek.BStep
-            [Cek.BConst, Cek.BVar, Cek.BLamAbs, Cek.BApply, Cek.BDelay, Cek.BForce, Cek.BBuiltin]
     totalComputeCost =
         -- For unitCekCosts this will be the total number of compute steps
-        foldMap getSpent allNodeTags
+        foldMap (getSpent . Cek.BStep) allStepKinds
     budgetToString (ExBudget (ExCPU cpu) (ExMemory mem)) =
         case model of
             -- Not %d: doesn't work when CostingInteger is SatInt.
             Default -> printf "%15s  %15s" (show cpu) (show mem) :: String
             -- Memory usage figures are meaningless in this case
             Unit    -> printf "%15s" (show cpu) :: String
-    pbudget = budgetToString . getSpent
-    f l e = case e of (Cek.BBuiltinApp b, cost) -> (b, cost) : l; _ -> l
-    builtinsAndCosts = List.foldl f [] (H.toList costs)
-    builtinCosts = mconcat (map snd builtinsAndCosts)
+    printStepCost constr =
+        printf "%-10s %20s\n" (tail $ show constr) (budgetToString . getSpent $ Cek.BStep constr)
+    getBuiltinCost l e = case e of (Cek.BBuiltinApp b, cost) -> (b, cost) : l; _ -> l
+    builtinsAndCosts = List.foldl getBuiltinCost [] (H.toList costs)
+    totalBuiltinCosts = mconcat (map snd builtinsAndCosts)
     getCPU b = let ExCPU b' = exBudgetCPU b in fromSatInt b' :: Double
-    totalCost = getSpent Cek.BStartup <> totalComputeCost <> builtinCosts
-    totalTime =
-        (getCPU $ getSpent Cek.BStartup) + getCPU totalComputeCost + getCPU builtinCosts
+    totalCost = getSpent Cek.BStartup <> totalComputeCost <> totalBuiltinCosts :: ExBudget
 
 class PrintBudgetState cost where
     printBudgetState ::
@@ -328,6 +318,7 @@ writeFlat outp flatMode prog = do
     case outp of
         FileOutput file -> BSL.writeFile file flatProg
         StdOutput       -> BSL.putStr flatProg
+        NoOutput        -> pure ()
 
 ---------------- Write an AST as PLC source ----------------
 
@@ -359,6 +350,7 @@ writePrettyToFileOrStd outp mode prog = do
     case outp of
         FileOutput file -> writeFile file . Prelude.show . printMethod $ prog
         StdOutput       -> print . printMethod $ prog
+        NoOutput        -> pure ()
 
 writeToFileOrStd ::
     Output -> String -> IO ()
@@ -366,6 +358,7 @@ writeToFileOrStd outp v = do
     case outp of
         FileOutput file -> writeFile file v
         StdOutput       -> putStrLn v
+        NoOutput        -> pure ()
 
 ---------------- Examples ----------------
 
@@ -597,7 +590,7 @@ runPrintBuiltinSignatures :: IO ()
 runPrintBuiltinSignatures = do
     let builtins = enumerate @PLC.DefaultFun
     mapM_
-      (\x -> putStr (printf "%-32s: %s\n" (show $ PP.pretty x) (show $ getSignature x)))
+      (\x -> putStr (printf "%-35s: %s\n" (show $ PP.pretty x) (show $ getSignature x)))
       builtins
   where
     getSignature (PLC.toBuiltinMeaning @_ @_ @(PlcTerm ()) def -> PLC.BuiltinMeaning sch _ _) =
@@ -619,6 +612,7 @@ runPrint (PrintOptions inp outp mode) = do
     case outp of
         FileOutput path -> writeFile path printed
         StdOutput       -> putStrLn printed
+        NoOutput        -> pure ()
 
 ---------------- Conversions ----------------
 

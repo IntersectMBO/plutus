@@ -36,9 +36,11 @@ import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Name
 import PlutusCore.Quote
 
+import Control.Applicative
 import Control.Lens hiding (Strict)
-import Control.Monad.Reader
-import Control.Monad.State
+import Control.Monad (liftM2)
+import Control.Monad.Reader (ReaderT, asks, runReaderT)
+import Control.Monad.State (StateT, evalStateT, gets, modify')
 
 import Data.Semigroup.Generic (GenericSemigroupMonoid (..))
 import Witherable (wither)
@@ -269,23 +271,22 @@ acceptable t =
 
 {- |
 Try to identify the first sub term which will be evaluated in the given term and
-which could have an effect. 'Nothing' indicates that we don't know, this function
-is conservative.
+which could have an effect. 'Nothing' indicates that there's no term to evaluate.
 -}
 firstEffectfulTerm :: Term name uni fun a -> Maybe (Term name uni fun a)
 firstEffectfulTerm = goTerm
     where
       goTerm = \case
 
-        Apply _ l _      -> goTerm l
+        Apply _ fun args -> goTerm fun <|> goTerm args
         Force _ t        -> goTerm t
         Constr _ _ []    -> Nothing
-        Constr _ _ (t:_) -> goTerm t
+        Constr _ _ ts    -> asum $ goTerm <$> ts
         Case _ t _       -> goTerm t
 
         t@Var{}          -> Just t
         t@Error{}        -> Just t
-        t@Builtin{}      -> Just t
+        Builtin{}        -> Nothing
 
         LamAbs{}         -> Nothing
         Constant{}       -> Nothing

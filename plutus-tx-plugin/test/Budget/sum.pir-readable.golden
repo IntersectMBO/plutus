@@ -8,7 +8,7 @@ let
     CConsAdditiveMonoid : (\a -> a -> a -> a) a -> a -> AdditiveMonoid a
 in
 (let
-    !dAdditiveMonoid : AdditiveMonoid integer
+    !`$dAdditiveMonoid` : AdditiveMonoid integer
       = CConsAdditiveMonoid
           {integer}
           (\(x : integer) (y : integer) -> addInteger x y)
@@ -16,13 +16,13 @@ in
     !f : integer -> integer -> integer
       = AdditiveMonoid_match
           {integer}
-          dAdditiveMonoid
+          `$dAdditiveMonoid`
           {(\a -> a -> a -> a) integer}
           (\(v : (\a -> a -> a -> a) integer) (v : integer) -> v)
     !z : integer
       = AdditiveMonoid_match
           {integer}
-          dAdditiveMonoid
+          `$dAdditiveMonoid`
           {integer}
           (\(v : (\a -> a -> a -> a) integer) (v : integer) -> v)
   in

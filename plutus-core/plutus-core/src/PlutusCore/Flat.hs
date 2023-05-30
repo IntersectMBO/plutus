@@ -91,23 +91,29 @@ By default, Flat does not use any space to serialise `()`.
 {- Note [Index (Word64) (de)serialized through Natural]
 
 With the recent change of CEK to use DeBruijn instead of Name,
-we decided to change Index to be a Word instead of Natural, for performance reasons.
+we decided to change Index to be a Word64 instead of Natural, for performance reasons.
 
 However, to be absolutely sure that the script format *does not change*
-for plutus language version 1, we are converting from/to Word64 and (de)-serialize *only through
-Natural*, to keep the old v1 flat format the same.
+for plutus, we are converting from/to Word64 and (de)-serialize *only through
+Natural*, to keep the flat format the same.
 
-Natural and Word64 are flat-compatible up-to `maxBound :: Word64`.
-However, the current blockchain might have already stored a plutus v1 script
-containing a hugely-indexed variable `>maxBound::Word64` -- such a script must be failing
-because such a huge index must be a free variable (given the current script-size constraints).
+Also, for sake of speed & simplicity we restrict the current deserialization to work
+only on 64-bit architectures (serialization still works on 32-bit architecture because it
+is not in the critical path).
 
-When decoding such an already-stored (failing) script
-the Natural deserializer makes the script fail at the scopechecking step (previously
-undebruijnification step). Hypotheically using the Word64 deserializer, the script would *hopefully*
-fail as well, although earlier at the deserialization step. Initial tests and looking at flat
-internals make this likely, but until proven, we postpone the transition to Word64 deserializer for
-version 2 language.
+Note: We have another 64-bit limitation, this time not during script deserialization but during
+script execution, for more see Note [Integral types as Integer].
+
+Going a step further is to switch to *direct* Word64 (de)-serializization:
+afterall, Natural and Word64 are flat-compatible up-to `maxBound :: Word64`.
+A problem may arise in currently stored scripts on the chain containing
+a variable with a huge debruijn index: `>maxBound::Word64`. Such a script
+will definitely fail at phase-2 validation (more specifically, at scope-checking)
+because of the current script-size constraints deeming the hugely-indexed variable a free-variable.
+Changing to direct Word64 (de)-serialization will turn those existing stored
+scripts to a phase-1 failure instead of current phase-2 failure.
+
+We postpone this transition to direct Word64 (de)-serializer for a future plutus version.
 -}
 
 

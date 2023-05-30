@@ -30,8 +30,9 @@ import PlutusCore.Rename
 import PlutusPrelude
 
 import Control.Lens
+import Control.Monad (when)
 import Control.Monad.Error.Lens
-import Control.Monad.Except
+import Control.Monad.Except (MonadError)
 -- Using @transformers@ rather than @mtl@, because the former doesn't impose the 'Monad' constraint
 -- on 'local'.
 import Control.Monad.Trans.Reader
@@ -284,7 +285,7 @@ dummyUnique :: Unique
 dummyUnique = Unique 0
 
 dummyTyName :: TyName
-dummyTyName = TyName (Name "*" dummyUnique)
+dummyTyName = TyName (Name "any" dummyUnique)
 
 dummyKind :: Kind ()
 dummyKind = Type ()
@@ -421,7 +422,7 @@ unfoldIFixOf pat arg k = do
     -- But breaking global uniqueness is a bad idea regardless.
     vPat' <- rename vPat
     normalizeTypeM $
-        mkIterTyApp () vPat'
+        mkIterTyAppNoAnn vPat'
             [ TyLam () a k . TyIFix () vPat $ TyVar () a
             , vArg
             ]
