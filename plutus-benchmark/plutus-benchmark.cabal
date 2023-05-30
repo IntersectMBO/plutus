@@ -352,9 +352,9 @@ library bls-internal
     , deepseq
     , hedgehog
     , plutus-benchmark-common
-    , plutus-core              ^>=1.6
-    , plutus-tx                ^>=1.6
-    , plutus-tx-plugin         ^>=1.6
+    , plutus-core              ^>=1.7
+    , plutus-tx                ^>=1.7
+    , plutus-tx-plugin         ^>=1.7
 
 -- Print out predicted costs of various scripts involving BLS12_381 operations
 executable bls-costs
@@ -371,8 +371,8 @@ executable bls-costs
     , bls-internal
     , bytestring
     , flat
-    , plutus-core   ^>=1.6
-    , plutus-tx     ^>=1.6
+    , plutus-core   ^>=1.7
+    , plutus-tx     ^>=1.7
 
 -- Run benchmarks for various scripts involving BLS12_381 operations
 benchmark bls-benchmarks
@@ -390,8 +390,8 @@ benchmark bls-benchmarks
     , bytestring
     , criterion                >=1.5.9.0
     , plutus-benchmark-common
-    , plutus-core              ^>=1.6
-    , plutus-tx                ^>=1.6
+    , plutus-core              ^>=1.7
+    , plutus-tx                ^>=1.7
 
 ---------------- script contexts ----------------
 

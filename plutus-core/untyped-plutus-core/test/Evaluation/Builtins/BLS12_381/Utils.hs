@@ -9,7 +9,7 @@ import Evaluation.Builtins.Common
 import PlutusCore qualified as PLC
 import PlutusCore.Default qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModel)
-import PlutusCore.MkPlc (builtin, mkConstant, mkIterApp)
+import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn)
 import UntypedPlutusCore qualified as UPLC
 
 import Data.Bits (complement, xor, (.&.), (.|.))
@@ -54,10 +54,10 @@ bytestring :: ByteString -> PlcTerm
 bytestring = mkConstant ()
 
 mkApp1 :: PLC.DefaultFun -> PlcTerm -> PlcTerm
-mkApp1 b x = mkIterApp () (builtin () b) [x]
+mkApp1 b x = mkIterAppNoAnn (builtin () b) [x]
 
 mkApp2 :: PLC.DefaultFun -> PlcTerm -> PlcTerm -> PlcTerm
-mkApp2 b x y = mkIterApp () (builtin () b) [x,y]
+mkApp2 b x y = mkIterAppNoAnn (builtin () b) [x,y]
 
 {- | ByteString utilities.  These are used in tests to check that the format of
    compressed points conforms to the specification at

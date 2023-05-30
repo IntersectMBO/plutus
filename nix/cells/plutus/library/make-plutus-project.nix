@@ -37,21 +37,6 @@ let
         "https://github.com/tweag/HaskellR"."411d15fe5027494123e326c838955eff1c8e7ec8" = "0jax08z81xbfs3xz7zkk7x83cmr487iglifmxri205mf5bcj8ycj"; # editorconfig-checker-disable-line
       };
 
-      # <<<<<<< HEAD
-      #     inputMap =
-      #       { "https://input-output-hk.github.io/cardano-haskell-packages" = inputs.CHaP; };
-      #     # No source-repository-packages right now
-      #     sha256map = { };
-      #     # TODO: move this into the cabal.project using the new conditional support?
-      #     # Configuration settings needed for cabal configure to work when cross compiling
-      #     # for windows. We can't use `modules` for these as `modules` are only applied
-      #     # after cabal has been configured.
-      #     cabalProjectLocal = lib.optionalString pkgs.stdenv.hostPlatform.isWindows ''
-      #       -- When cross compiling for windows we don't have a `ghc` package, so use
-      #       -- the `plutus-ghc-stub` package instead.
-      #       package plutus-tx-plugin
-      #         flags: +use-ghc-stub
-      # =======
       # TODO: move this into the cabal.project using the new conditional support?
       # Configuration settings needed for cabal configure to work when cross compiling.
       # We can't use `modules` for these as `modules` are only applied
@@ -62,12 +47,11 @@ let
         package plutus-tx-plugin
           flags: +use-ghc-stub
 
-        -- Exclude test that use `doctest`.  They will not work for
+        -- Exclude tests that use `doctest`.  They will not work for
         -- cross compilation and `cabal` will not be able to make a plan.
         package prettyprinter-configurable
           tests: False
       '';
-      # >>>>>>> master
 
       modules = [
 
