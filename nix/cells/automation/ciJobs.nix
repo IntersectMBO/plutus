@@ -51,7 +51,11 @@ let
   native-plutus-92-jobs = make-haskell-jobs library.plutus-project-92;
   native-plutus-96-jobs = make-haskell-jobs library.plutus-project-96;
 
-  windows-plutus-810-jobs = make-haskell-jobs library.plutus-project-810.projectCross.mingwW64;
+  # - Only test cross on our primary dev version
+  # - Cross-compiling to windows only works from linux
+  windows-plutus-92-jobs =
+    lib.optionalAttrs (system == x86linux)
+      (make-haskell-jobs library.plutus-project-92.projectCross.mingwW64);
 
   devshells =
     # Note: We can't build the 9.6 shell on aarch64-darwin
