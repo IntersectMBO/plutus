@@ -71,7 +71,6 @@ common lang
 library
   import:             lang
   exposed-modules:
-    Crypto
     Data.ByteString.Hash
     Data.Either.Extras
     Data.List.Extras
@@ -90,6 +89,12 @@ library
     PlutusCore.Compiler
     PlutusCore.Compiler.Erase
     PlutusCore.Core
+    PlutusCore.Crypto.BLS12_381.Error
+    PlutusCore.Crypto.BLS12_381.G1
+    PlutusCore.Crypto.BLS12_381.G2
+    PlutusCore.Crypto.BLS12_381.Pairing
+    PlutusCore.Crypto.Ed25519
+    PlutusCore.Crypto.Secp256k1
     PlutusCore.Data
     PlutusCore.DataFilePaths
     PlutusCore.DeBruijn
@@ -199,6 +204,7 @@ library
     PlutusCore.Core.Instance.Scoping
     PlutusCore.Core.Plated
     PlutusCore.Core.Type
+    PlutusCore.Crypto.Utils
     PlutusCore.DeBruijn.Internal
     PlutusCore.Default.Builtins
     PlutusCore.Default.Universe
@@ -376,6 +382,9 @@ test-suite untyped-plutus-core-test
     DeBruijn.Spec
     DeBruijn.UnDeBruijnify
     Evaluation.Builtins
+    Evaluation.Builtins.BLS12_381
+    Evaluation.Builtins.BLS12_381.TestClasses
+    Evaluation.Builtins.BLS12_381.Utils
     Evaluation.Builtins.Common
     Evaluation.Builtins.Costing
     Evaluation.Builtins.Definition

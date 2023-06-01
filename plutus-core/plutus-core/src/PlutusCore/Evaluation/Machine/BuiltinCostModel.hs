@@ -135,6 +135,24 @@ data BuiltinCostModelBase f =
     , paramMkNilData                       :: f ModelOneArgument
     , paramMkNilPairData                   :: f ModelOneArgument
     , paramSerialiseData                   :: f ModelOneArgument
+    -- BLS12-381
+    , paramBls12_381_G1_add                :: f ModelTwoArguments
+    , paramBls12_381_G1_neg                :: f ModelOneArgument
+    , paramBls12_381_G1_scalarMul          :: f ModelTwoArguments
+    , paramBls12_381_G1_equal              :: f ModelTwoArguments
+    , paramBls12_381_G1_compress           :: f ModelOneArgument
+    , paramBls12_381_G1_uncompress         :: f ModelOneArgument
+    , paramBls12_381_G1_hashToGroup        :: f ModelTwoArguments
+    , paramBls12_381_G2_add                :: f ModelTwoArguments
+    , paramBls12_381_G2_neg                :: f ModelOneArgument
+    , paramBls12_381_G2_scalarMul          :: f ModelTwoArguments
+    , paramBls12_381_G2_equal              :: f ModelTwoArguments
+    , paramBls12_381_G2_compress           :: f ModelOneArgument
+    , paramBls12_381_G2_uncompress         :: f ModelOneArgument
+    , paramBls12_381_G2_hashToGroup        :: f ModelTwoArguments
+    , paramBls12_381_millerLoop            :: f ModelTwoArguments
+    , paramBls12_381_mulMlResult           :: f ModelTwoArguments
+    , paramBls12_381_finalVerify           :: f ModelTwoArguments
     }
     deriving stock (Generic)
     deriving anyclass (FunctorB, TraversableB, ConstraintsB)

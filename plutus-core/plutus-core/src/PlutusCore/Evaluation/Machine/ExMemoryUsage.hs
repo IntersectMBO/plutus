@@ -12,6 +12,9 @@ module PlutusCore.Evaluation.Machine.ExMemoryUsage
     , flattenCostRose
     ) where
 
+import PlutusCore.Crypto.BLS12_381.G1 as BLS12_381.G1
+import PlutusCore.Crypto.BLS12_381.G2 as BLS12_381.G2
+import PlutusCore.Crypto.BLS12_381.Pairing as BLS12_381.Pairing
 import PlutusCore.Data
 import PlutusCore.Evaluation.Machine.CostStream
 import PlutusCore.Evaluation.Machine.ExMemory
@@ -254,3 +257,15 @@ instance ExMemoryUsage Data where
             List l     -> CostRose 0 $ l <&> sizeData
             I n        -> memoryUsage n
             B b        -> memoryUsage b
+
+instance ExMemoryUsage BLS12_381.G1.Element where
+    memoryUsage _ = singletonRose . unsafeToSatInt $ BLS12_381.G1.memSizeBytes `div` 8
+    -- Should be 12
+
+instance ExMemoryUsage BLS12_381.G2.Element where
+    memoryUsage _ = singletonRose . unsafeToSatInt $ BLS12_381.G2.memSizeBytes `div` 8
+    -- Should be 24
+
+instance ExMemoryUsage BLS12_381.Pairing.MlResult where
+    memoryUsage _ = singletonRose . unsafeToSatInt $ BLS12_381.Pairing.mlResultMemSizeBytes `div` 8
+    -- Should be 144

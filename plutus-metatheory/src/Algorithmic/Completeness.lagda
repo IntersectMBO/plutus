@@ -74,12 +74,15 @@ lem[] A B = trans
 
 
 nfTypeTC : ∀{φ}{A : φ ⊢⋆ *} → STermCon.TermCon A → NTermCon.TermCon (nf A)
-nfTypeTC (STermCon.tmInteger i)    = NTermCon.tmInteger i
-nfTypeTC (STermCon.tmBytestring b) = NTermCon.tmBytestring b
-nfTypeTC (STermCon.tmString s)     = NTermCon.tmString s
-nfTypeTC (STermCon.tmBool b)       = NTermCon.tmBool b
-nfTypeTC STermCon.tmUnit           = NTermCon.tmUnit
-nfTypeTC (STermCon.tmData d)       = NTermCon.tmData d
+nfTypeTC (STermCon.tmInteger i)              = NTermCon.tmInteger i
+nfTypeTC (STermCon.tmBytestring b)           = NTermCon.tmBytestring b
+nfTypeTC (STermCon.tmString s)               = NTermCon.tmString s
+nfTypeTC (STermCon.tmBool b)                 = NTermCon.tmBool b
+nfTypeTC STermCon.tmUnit                     = NTermCon.tmUnit
+nfTypeTC (STermCon.tmData d)                 = NTermCon.tmData d
+nfTypeTC (STermCon.tmBls12-381-g1-element e) = NTermCon.tmBls12-381-g1-element e
+nfTypeTC (STermCon.tmBls12-381-g2-element e) = NTermCon.tmBls12-381-g2-element e
+nfTypeTC (STermCon.tmBls12-381-mlresult r)   = NTermCon.tmBls12-381-mlresult r
 
 lemσ : ∀{Γ Δ Δ'}
   → (σ : Sub Δ Γ)

@@ -153,8 +153,8 @@ instance Pretty ParserError where
         "Expected a type of kind star (to later parse a constant), but got:" <+>
             squotes (pretty ty) <+> "at" <+> pretty loc
     pretty (UnknownBuiltinFunction s loc lBuiltin)   =
-        "Unknown built-in function" <+> squotes (pretty s) <+> "at" <+> pretty loc <+>
-            ". Parsable functions are " <+> pretty lBuiltin
+        "Unknown built-in function" <+> squotes (pretty s) <+> "at" <+> pretty loc <>
+            "." <> hardline <> "Parsable functions are " <+> pretty lBuiltin
     pretty (InvalidBuiltinConstant c s loc) =
         "Invalid constant" <+> squotes (pretty c) <+> "of type" <+> squotes (pretty s) <+> "at" <+>
             pretty loc

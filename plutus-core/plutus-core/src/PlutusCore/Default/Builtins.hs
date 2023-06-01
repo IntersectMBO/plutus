@@ -25,15 +25,19 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 
+import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
+import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
+import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
+import PlutusCore.Crypto.Ed25519 (verifyEd25519Signature_V1, verifyEd25519Signature_V2)
+import PlutusCore.Crypto.Secp256k1 (verifyEcdsaSecp256k1Signature, verifySchnorrSecp256k1Signature)
+
 import Codec.Serialise (serialise)
-import Crypto (verifyEcdsaSecp256k1Signature, verifyEd25519Signature_V1, verifyEd25519Signature_V2,
-               verifySchnorrSecp256k1Signature)
 import Data.ByteString qualified as BS
 import Data.ByteString.Hash qualified as Hash
 import Data.ByteString.Lazy qualified as BSL
 import Data.Char
 import Data.Ix
-import Data.Text (Text)
+import Data.Text (Text, pack)
 import Data.Text.Encoding (decodeUtf8', encodeUtf8)
 import Flat hiding (from, to)
 import Flat.Decoder
@@ -119,6 +123,28 @@ data DefaultFun
     | MkPairData
     | MkNilData
     | MkNilPairData
+    -- BLS12_381 operations
+    -- G1
+    | Bls12_381_G1_add
+    | Bls12_381_G1_neg
+    | Bls12_381_G1_scalarMul
+    | Bls12_381_G1_equal
+    | Bls12_381_G1_hashToGroup
+    | Bls12_381_G1_compress
+    | Bls12_381_G1_uncompress
+    -- G2
+    | Bls12_381_G2_add
+    | Bls12_381_G2_neg
+    | Bls12_381_G2_scalarMul
+    | Bls12_381_G2_equal
+    | Bls12_381_G2_hashToGroup
+    | Bls12_381_G2_compress
+    | Bls12_381_G2_uncompress
+    -- Pairing
+    | Bls12_381_millerLoop
+    | Bls12_381_mulMlResult
+    | Bls12_381_finalVerify
+
     deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
     deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
@@ -137,12 +163,20 @@ instance Pretty DefaultFun where
 instance ExMemoryUsage DefaultFun where
     memoryUsage _ = singletonRose 1
 
--- | Turn a function into another function that returns 'EvaluationFailure' when its second argument
--- is 0 or calls the original function otherwise and wraps the result in 'EvaluationSuccess'.
--- Useful for correctly handling `div`, `mod`, etc.
+-- | Turn a function into another function that returns 'EvaluationFailure' when
+-- its second argument is 0 or calls the original function otherwise and wraps
+-- the result in 'EvaluationSuccess'.  Useful for correctly handling `div`,
+-- `mod`, etc.
 nonZeroArg :: (Integer -> Integer -> Integer) -> Integer -> Integer -> EvaluationResult Integer
 nonZeroArg _ _ 0 = EvaluationFailure
 nonZeroArg f x y = EvaluationSuccess $ f x y
+
+-- | Turn a function returning 'Either' into another function that emits an
+-- error message and returns 'EvaluationFailure' in the 'Left' case and wraps
+-- the result in 'EvaluationSuccess' in the 'Right' case.
+eitherToEmitter :: Show e => Either e r -> Emitter (EvaluationResult r)
+eitherToEmitter (Left e)  = (emit . pack . show $ e) >> pure EvaluationFailure
+eitherToEmitter (Right r) = pure . pure $ r
 
 {- Note [Constants vs built-in functions]
 A constant is any value of a built-in type. For example, 'Integer' is a built-in type, so anything
@@ -1363,6 +1397,77 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             (\() -> [] @(Data,Data))
             (runCostingFunOneArgument . paramMkNilPairData)
+    -- BLS12_381.G1
+    toBuiltinMeaning _var Bls12_381_G1_add =
+        makeBuiltinMeaning
+            BLS12_381.G1.add
+            (runCostingFunTwoArguments . paramBls12_381_G1_add)
+    toBuiltinMeaning _var Bls12_381_G1_neg =
+        makeBuiltinMeaning
+            BLS12_381.G1.neg
+            (runCostingFunOneArgument . paramBls12_381_G1_neg)
+    toBuiltinMeaning _var Bls12_381_G1_scalarMul =
+        makeBuiltinMeaning
+            BLS12_381.G1.scalarMul
+            (runCostingFunTwoArguments . paramBls12_381_G1_scalarMul)
+    toBuiltinMeaning _var Bls12_381_G1_compress =
+        makeBuiltinMeaning
+            BLS12_381.G1.compress
+            (runCostingFunOneArgument . paramBls12_381_G1_compress)
+    toBuiltinMeaning _var Bls12_381_G1_uncompress =
+        makeBuiltinMeaning
+            (eitherToEmitter . BLS12_381.G1.uncompress)
+            (runCostingFunOneArgument . paramBls12_381_G1_uncompress)
+    toBuiltinMeaning _var Bls12_381_G1_hashToGroup =
+        makeBuiltinMeaning
+            (eitherToEmitter .* BLS12_381.G1.hashToGroup)
+            (runCostingFunTwoArguments . paramBls12_381_G1_hashToGroup)
+    toBuiltinMeaning _var Bls12_381_G1_equal =
+        makeBuiltinMeaning
+            ((==) @BLS12_381.G1.Element)
+            (runCostingFunTwoArguments . paramBls12_381_G1_equal)
+    -- BLS12_381.G2
+    toBuiltinMeaning _var Bls12_381_G2_add =
+        makeBuiltinMeaning
+            BLS12_381.G2.add
+            (runCostingFunTwoArguments . paramBls12_381_G2_add)
+    toBuiltinMeaning _var Bls12_381_G2_neg =
+        makeBuiltinMeaning
+            BLS12_381.G2.neg
+            (runCostingFunOneArgument . paramBls12_381_G2_neg)
+    toBuiltinMeaning _var Bls12_381_G2_scalarMul =
+        makeBuiltinMeaning
+            BLS12_381.G2.scalarMul
+            (runCostingFunTwoArguments . paramBls12_381_G2_scalarMul)
+    toBuiltinMeaning _var Bls12_381_G2_compress =
+        makeBuiltinMeaning
+            BLS12_381.G2.compress
+            (runCostingFunOneArgument . paramBls12_381_G2_compress)
+    toBuiltinMeaning _var Bls12_381_G2_uncompress =
+        makeBuiltinMeaning
+            (eitherToEmitter . BLS12_381.G2.uncompress)
+            (runCostingFunOneArgument . paramBls12_381_G2_uncompress)
+    toBuiltinMeaning _var Bls12_381_G2_hashToGroup =
+        makeBuiltinMeaning
+            (eitherToEmitter .* BLS12_381.G2.hashToGroup)
+            (runCostingFunTwoArguments . paramBls12_381_G2_hashToGroup)
+    toBuiltinMeaning _var Bls12_381_G2_equal =
+        makeBuiltinMeaning
+            ((==) @BLS12_381.G2.Element)
+            (runCostingFunTwoArguments . paramBls12_381_G2_equal)
+    -- BLS12_381.Pairing
+    toBuiltinMeaning _var Bls12_381_millerLoop =
+        makeBuiltinMeaning
+            BLS12_381.Pairing.millerLoop
+            (runCostingFunTwoArguments . paramBls12_381_millerLoop)
+    toBuiltinMeaning _var Bls12_381_mulMlResult =
+        makeBuiltinMeaning
+            BLS12_381.Pairing.mulMlResult
+            (runCostingFunTwoArguments . paramBls12_381_mulMlResult)
+    toBuiltinMeaning _var Bls12_381_finalVerify =
+        makeBuiltinMeaning
+            BLS12_381.Pairing.finalVerify
+            (runCostingFunTwoArguments . paramBls12_381_finalVerify)
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}
 
@@ -1412,8 +1517,6 @@ instance Flat DefaultFun where
               Sha3_256                        -> 19
               Blake2b_256                     -> 20
               VerifyEd25519Signature          -> 21
-              VerifyEcdsaSecp256k1Signature   -> 52
-              VerifySchnorrSecp256k1Signature -> 53
 
               AppendString                    -> 22
               EqualsString                    -> 23
@@ -1451,6 +1554,25 @@ instance Flat DefaultFun where
               MkNilData                       -> 49
               MkNilPairData                   -> 50
               SerialiseData                   -> 51
+              VerifyEcdsaSecp256k1Signature   -> 52
+              VerifySchnorrSecp256k1Signature -> 53
+              Bls12_381_G1_add                -> 54
+              Bls12_381_G1_neg                -> 55
+              Bls12_381_G1_scalarMul          -> 56
+              Bls12_381_G1_equal              -> 57
+              Bls12_381_G1_compress           -> 58
+              Bls12_381_G1_uncompress         -> 59
+              Bls12_381_G1_hashToGroup        -> 60
+              Bls12_381_G2_add                -> 61
+              Bls12_381_G2_neg                -> 62
+              Bls12_381_G2_scalarMul          -> 63
+              Bls12_381_G2_equal              -> 64
+              Bls12_381_G2_compress           -> 65
+              Bls12_381_G2_uncompress         -> 66
+              Bls12_381_G2_hashToGroup        -> 67
+              Bls12_381_millerLoop            -> 68
+              Bls12_381_mulMlResult           -> 69
+              Bls12_381_finalVerify           -> 70
 
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
@@ -1507,6 +1629,23 @@ instance Flat DefaultFun where
               go 51 = pure SerialiseData
               go 52 = pure VerifyEcdsaSecp256k1Signature
               go 53 = pure VerifySchnorrSecp256k1Signature
+              go 54 = pure Bls12_381_G1_add
+              go 55 = pure Bls12_381_G1_neg
+              go 56 = pure Bls12_381_G1_scalarMul
+              go 57 = pure Bls12_381_G1_equal
+              go 58 = pure Bls12_381_G1_compress
+              go 59 = pure Bls12_381_G1_uncompress
+              go 60 = pure Bls12_381_G1_hashToGroup
+              go 61 = pure Bls12_381_G2_add
+              go 62 = pure Bls12_381_G2_neg
+              go 63 = pure Bls12_381_G2_scalarMul
+              go 64 = pure Bls12_381_G2_equal
+              go 65 = pure Bls12_381_G2_compress
+              go 66 = pure Bls12_381_G2_uncompress
+              go 67 = pure Bls12_381_G2_hashToGroup
+              go 68 = pure Bls12_381_millerLoop
+              go 69 = pure Bls12_381_mulMlResult
+              go 70 = pure Bls12_381_finalVerify
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth

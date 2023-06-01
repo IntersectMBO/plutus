@@ -402,6 +402,86 @@ BUILTIN mkNilPairData = λ
   { (app base (V-con (con unit) tt)) -> inj₂ (V-con (con (list (con (pair (con pdata) (con pdata))))) [])
   ; _ -> inj₁ userError
   }
+BUILTIN bls12-381-G1-add = λ
+  { (app (app base (V-con (con bls12-381-g1-element) e)) (V-con (con bls12-381-g1-element) e')) -> inj₂ (V-con (con bls12-381-g1-element) (BLS12-381-G1-add e e'))
+  ; _ -> inj₁ userError
+  }
+BUILTIN bls12-381-G1-neg = λ
+  { (app base (V-con (con bls12-381-g1-element) e)) -> inj₂ (V-con (con bls12-381-g1-element) (BLS12-381-G1-neg e))
+  ; _ -> inj₁ userError
+  }
+BUILTIN bls12-381-G1-scalarMul = λ
+  { (app (app base (V-con (con integer) i)) (V-con (con bls12-381-g1-element) e)) -> inj₂ (V-con (con bls12-381-g1-element) (BLS12-381-G1-scalarMul i e))
+  ;  _ -> inj₁ userError
+  }
+BUILTIN bls12-381-G1-equal = λ
+  { (app (app base (V-con (con bls12-381-g1-element) e)) (V-con (con bls12-381-g1-element) e')) -> inj₂ (V-con (con bool) (BLS12-381-G1-equal e e'))
+  ; _ -> inj₁ userError
+  }
+BUILTIN bls12-381-G1-hashToGroup = λ
+  { (app (app base (V-con (con bytestring) msg)) (V-con (con bytestring) dst)) -> case BLS12-381-G1-hashToGroup msg dst of λ 
+     { (just p) -> inj₂ (V-con (con bls12-381-g1-element) p)
+     ; nothing  -> inj₁ userError
+     }
+  ; _ -> inj₁ userError
+  }
+BUILTIN bls12-381-G1-compress = λ
+  { (app base (V-con (con bls12-381-g1-element) e)) -> inj₂ (V-con (con bytestring) (BLS12-381-G1-compress e))
+  ; _ -> inj₁ userError
+  }
+BUILTIN bls12-381-G1-uncompress = λ 
+  { (app base (V-con (con bytestring) b)) -> case  BLS12-381-G1-uncompress b of λ
+     { (just e) -> inj₂ (V-con (con bls12-381-g1-element) e)
+     ; nothing  -> inj₁ userError
+     }
+  ; _ -> inj₁ userError
+  }
+BUILTIN bls12-381-G2-add = λ
+  { (app (app base (V-con (con bls12-381-g2-element) e)) (V-con (con bls12-381-g2-element) e')) -> inj₂ (V-con (con bls12-381-g2-element) (BLS12-381-G2-add e e'))
+  ; _ -> inj₁ userError
+  }
+BUILTIN bls12-381-G2-neg = λ
+  { (app base (V-con (con bls12-381-g2-element) e)) -> inj₂ (V-con (con bls12-381-g2-element) (BLS12-381-G2-neg e))
+  ; _ -> inj₁ userError
+  }
+BUILTIN bls12-381-G2-scalarMul = λ
+  { (app (app base (V-con (con integer) i)) (V-con (con bls12-381-g2-element) e)) -> inj₂ (V-con (con bls12-381-g2-element) (BLS12-381-G2-scalarMul i e))
+  ;  _ -> inj₁ userError
+  }
+BUILTIN bls12-381-G2-equal = λ
+  { (app (app base (V-con (con bls12-381-g2-element) e)) (V-con (con bls12-381-g2-element) e')) -> inj₂ (V-con (con bool) (BLS12-381-G2-equal e e'))
+  ; _ -> inj₁ userError
+  }
+BUILTIN bls12-381-G2-hashToGroup = λ
+  { (app (app base (V-con (con bytestring) msg)) (V-con (con bytestring) dst)) -> case BLS12-381-G2-hashToGroup msg dst of λ 
+     { (just p) -> inj₂ (V-con (con bls12-381-g2-element) p)
+     ; nothing  -> inj₁ userError
+     }
+  ; _ -> inj₁ userError
+  }
+BUILTIN bls12-381-G2-compress = λ
+  { (app base (V-con (con bls12-381-g2-element) e)) -> inj₂ (V-con (con bytestring) (BLS12-381-G2-compress e))
+  ; _ -> inj₁ userError
+  }
+BUILTIN bls12-381-G2-uncompress = λ 
+  { (app base (V-con (con bytestring) b)) -> case  BLS12-381-G2-uncompress b of λ
+     { (just e) -> inj₂ (V-con (con bls12-381-g2-element) e)
+     ; nothing  -> inj₁ userError
+     }
+  ; _ -> inj₁ userError
+  }
+BUILTIN bls12-381-millerLoop = λ
+  { (app (app base (V-con (con bls12-381-g1-element) e1)) (V-con (con bls12-381-g2-element) e2)) -> inj₂ (V-con (con bls12-381-mlresult) (BLS12-381-millerLoop e1 e2))
+  ;  _ -> inj₁ userError
+  }
+BUILTIN bls12-381-mulMlResult = λ
+  { (app (app base (V-con (con bls12-381-mlresult) r)) (V-con (con bls12-381-mlresult) r')) -> inj₂ (V-con (con bls12-381-mlresult) (BLS12-381-mulMlResult r r'))
+  ; _ -> inj₁ userError
+  }
+BUILTIN bls12-381-finalVerify = λ
+  { (app (app base (V-con (con bls12-381-mlresult) r)) (V-con (con bls12-381-mlresult) r')) -> inj₂ (V-con (con bool) (BLS12-381-finalVerify r r'))
+  ; _ -> inj₁ userError
+  }
 
 
 BUILTIN' : ∀ b

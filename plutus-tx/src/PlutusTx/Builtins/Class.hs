@@ -19,6 +19,9 @@ import Data.String (IsString (..))
 import Data.Text (Text, pack)
 
 import GHC.Magic qualified as Magic
+import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1 (Element)
+import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2 (Element)
+import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing (MlResult)
 import PlutusTx.Base (const, id, ($))
 import PlutusTx.Bool (Bool (..))
 import PlutusTx.Integer (Integer)
@@ -195,3 +198,26 @@ instance FromBuiltin BuiltinData BuiltinData where
 instance ToBuiltin BuiltinData BuiltinData where
     {-# INLINABLE toBuiltin #-}
     toBuiltin = id
+
+instance FromBuiltin BuiltinBLS12_381_G1_Element BLS12_381.G1.Element where
+    {-# INLINABLE fromBuiltin #-}
+    fromBuiltin (BuiltinBLS12_381_G1_Element a) = a
+instance ToBuiltin BLS12_381.G1.Element BuiltinBLS12_381_G1_Element where
+    {-# INLINABLE toBuiltin #-}
+    toBuiltin = BuiltinBLS12_381_G1_Element
+
+instance FromBuiltin BuiltinBLS12_381_G2_Element BLS12_381.G2.Element where
+    {-# INLINABLE fromBuiltin #-}
+    fromBuiltin (BuiltinBLS12_381_G2_Element a) = a
+instance ToBuiltin BLS12_381.G2.Element BuiltinBLS12_381_G2_Element where
+    {-# INLINABLE toBuiltin #-}
+    toBuiltin = BuiltinBLS12_381_G2_Element
+
+instance FromBuiltin BuiltinBLS12_381_MlResult BLS12_381.Pairing.MlResult where
+    {-# INLINABLE fromBuiltin #-}
+    fromBuiltin (BuiltinBLS12_381_MlResult a) = a
+instance ToBuiltin BLS12_381.Pairing.MlResult BuiltinBLS12_381_MlResult where
+    {-# INLINABLE toBuiltin #-}
+    toBuiltin = BuiltinBLS12_381_MlResult
+
+
