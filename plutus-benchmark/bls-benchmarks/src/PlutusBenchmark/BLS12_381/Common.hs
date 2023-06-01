@@ -36,7 +36,7 @@ import Hedgehog.Internal.Gen qualified as G
 import Hedgehog.Internal.Range qualified as R
 import System.IO.Unsafe (unsafePerformIO)
 
-import Prelude (fromIntegral, ($!))
+import Prelude (fromIntegral)
 
 -------------------------------- PLC stuff--------------------------------
 
