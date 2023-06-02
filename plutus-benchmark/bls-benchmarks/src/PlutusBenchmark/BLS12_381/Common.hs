@@ -1,4 +1,5 @@
 -- editorconfig-checker-disable-file
+{-# LANGUAGE BangPatterns      #-}
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TemplateHaskell   #-}
@@ -68,8 +69,8 @@ hashAndAddG1 :: [BuiltinByteString] -> BuiltinBLS12_381_G1_Element
 hashAndAddG1 [] = error ()
 hashAndAddG1 (p:ps) =
     go ps (Tx.bls12_381_G1_hashToGroup p emptyByteString)
-    where go [] acc     = acc
-          go (q:qs) acc = go qs $ Tx.bls12_381_G1_add (Tx.bls12_381_G1_hashToGroup q emptyByteString) acc
+    where go [] !acc     = acc
+          go (q:qs) !acc = go qs $ Tx.bls12_381_G1_add (Tx.bls12_381_G1_hashToGroup q emptyByteString) acc
 
 mkHashAndAddG1Script :: [ByteString] -> UProg
 mkHashAndAddG1Script l =
@@ -82,8 +83,8 @@ hashAndAddG2 :: [BuiltinByteString] -> BuiltinBLS12_381_G2_Element
 hashAndAddG2 [] = error ()
 hashAndAddG2 (p:ps) =
     go ps (Tx.bls12_381_G2_hashToGroup p emptyByteString)
-    where go [] acc     = acc
-          go (q:qs) acc = go qs $ Tx.bls12_381_G2_add (Tx.bls12_381_G2_hashToGroup q emptyByteString) acc
+    where go [] !acc     = acc
+          go (q:qs) !acc = go qs $ Tx.bls12_381_G2_add (Tx.bls12_381_G2_hashToGroup q emptyByteString) acc
 
 mkHashAndAddG2Script :: [ByteString] -> UProg
 mkHashAndAddG2Script l =
@@ -148,6 +149,7 @@ mkPairingScript p1 q1 p2 q2 =
           `Tx.unsafeApplyCode` Tx.liftCodeDef q1
           `Tx.unsafeApplyCode` Tx.liftCodeDef p2
           `Tx.unsafeApplyCode` Tx.liftCodeDef q2
+
 
 ---------------- Groth16 verification ----------------
 
@@ -274,7 +276,7 @@ groth16Verify
     :: BuiltinByteString  -- G1
     -> BuiltinByteString  -- G2
     -> BuiltinByteString  -- G2
-    -> BuiltinByteString  -- G1
+    -> BuiltinByteString  -- G2
     -> BuiltinByteString  -- G1
     -> BuiltinByteString  -- G1
     -> BuiltinByteString  -- G1
