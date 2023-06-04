@@ -422,7 +422,7 @@ test-suite bls12-381-costs-test
     , plutus-benchmark-common
 
 -- Run benchmarks for various scripts involving BLS12-381 operations
-benchmark bls-benchmarks
+benchmark bls12-381-benchmarks
   import:         lang
 
   if impl(ghc <9.0)

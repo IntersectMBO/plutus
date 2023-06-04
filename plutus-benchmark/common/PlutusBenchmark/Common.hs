@@ -155,7 +155,7 @@ percentTxt a b = printf "(%.1f%%)" (percentage a b)
 -- | Print a header to be followed by a list of size statistics.
 printHeader :: Handle -> IO ()
 printHeader h = do
-  hPrintf h "    n     script size             CPU usage               Memory usage\n"
+  hPrintf h "    n     Script size             CPU usage               Memory usage\n"
   hPrintf h "  ----------------------------------------------------------------------\n"
 
 -- | Evaluate a script and print out the serialised size and the CPU and memory
