@@ -194,7 +194,8 @@ goldenVsTextualOutput
 goldenVsTextualOutput testName goldenFile filename runTest =  do
   setLocaleEncoding utf8
   tmpdir <- getCanonicalTemporaryDirectory
-  (resultsFile, handle) <- openTempFile tmpdir filename
+  (resultsFile, handle) <- openBinaryTempFile tmpdir filename
+  -- ^ Binary mode to avoid problems with line endings.  See documentation for Test.Tasty.Golden
   Test.Tasty.defaultMain $
     localOption OnPass $  -- Delete the output if the test succeeds.
       goldenVsFileDiff

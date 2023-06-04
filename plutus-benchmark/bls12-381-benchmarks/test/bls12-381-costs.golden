@@ -1,6 +1,6 @@
 Hash n bytestrings onto G1 and add points
 
-    n     script size             CPU usage               Memory usage
+    n     Script size             CPU usage               Memory usage
   ----------------------------------------------------------------------
     0      77   (0.5%)             100   (0.0%)             100   (0.0%) 
    10     187   (1.1%)       681707800   (6.8%)           39342   (0.3%) 
@@ -22,7 +22,7 @@ Hash n bytestrings onto G1 and add points
 
 Hash n bytestrings onto G2 and add points
 
-    n     script size             CPU usage               Memory usage
+    n     Script size             CPU usage               Memory usage
   ----------------------------------------------------------------------
     0      77   (0.5%)             100   (0.0%)             100   (0.0%) 
    10     187   (1.1%)      2075992430  (20.8%)           39684   (0.3%) 
@@ -44,7 +44,7 @@ Hash n bytestrings onto G2 and add points
 
 Uncompress n G1 points and add the results
 
-    n     script size             CPU usage               Memory usage
+    n     Script size             CPU usage               Memory usage
   ----------------------------------------------------------------------
     0      69   (0.4%)             100   (0.0%)             100   (0.0%) 
    10     619   (3.8%)       183823250   (1.8%)           37042   (0.3%) 
@@ -66,7 +66,7 @@ Uncompress n G1 points and add the results
 
 Uncompress n G2 points and add the results
 
-    n     script size             CPU usage               Memory usage
+    n     Script size             CPU usage               Memory usage
   ----------------------------------------------------------------------
     0      69   (0.4%)             100   (0.0%)             100   (0.0%) 
    10    1099   (6.7%)       361567910   (3.6%)           37384   (0.3%) 
@@ -88,14 +88,14 @@ Uncompress n G2 points and add the results
 
 Apply pairing to two pairs of points in G1 x G2 and run finalVerify on the results
 
-    n     script size             CPU usage               Memory usage
+    n     Script size             CPU usage               Memory usage
   ----------------------------------------------------------------------
     -     332   (2.0%)      1193672374  (11.9%)            3446   (0.0%) 
 
 
 Groth16 verification example
 
-    n     script size             CPU usage               Memory usage
+    n     Script size             CPU usage               Memory usage
   ----------------------------------------------------------------------
     -     772   (4.7%)      2316102514  (23.2%)           10004   (0.1%) 
 
