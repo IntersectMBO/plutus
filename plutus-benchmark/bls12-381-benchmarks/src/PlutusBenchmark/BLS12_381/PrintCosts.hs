@@ -49,15 +49,6 @@ percentage a b =
 percentTxt :: (Integral a, Integral b) => a -> b -> String
 percentTxt a b = printf "(%.1f%%)" (percentage a b)
 
--- | Evaluate a script and return the CPU and memory costs (according to the cost model)
-evaluate :: UProg -> (Integer, Integer)
-evaluate (UPLC.Program _ _ prog) =
-    case Cek.runCekDeBruijn PLC.defaultCekParameters Cek.tallying Cek.noEmitter prog of
-      (_res, Cek.TallyingSt _ budget, _logs) ->
-          let ExCPU cpu = exBudgetCPU budget
-              ExMemory mem = exBudgetMemory budget
-          in (fromSatInt cpu, fromSatInt mem)
-
 -- | Evaluate a script and print out the serialised size and the CPU and memory
 -- usage, both as absolute values and percentages of the maxima specified in the
 -- protocol parameters.
@@ -65,7 +56,7 @@ printStatistics :: Handle -> TestSize -> UProg -> IO ()
 printStatistics h n script = do
     let serialised = Flat.flat (UPLC.UnrestrictedProgram $ toAnonDeBruijnProg script)
         size = BS.length serialised
-        (cpu, mem) = evaluate script
+        (cpu, mem) = getCostsCek script
     hPrintf h "  %3s %7d %8s %15d %8s %15d %8s \n"
            (stringOfTestSize n)
            size (percentTxt size PP.max_tx_size)
