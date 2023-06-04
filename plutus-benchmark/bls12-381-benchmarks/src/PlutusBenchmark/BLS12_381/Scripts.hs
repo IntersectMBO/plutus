@@ -1,25 +1,21 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE DataKinds       #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE ViewPatterns    #-}
 
 {- | Approximations of the sort of computations involving BLS12-381 primitives
  that one might wish to perform on the chain.  Real on-chain code will have
  extra overhead, but these examples help to give us an idea of the sort of
  computation that can feasibly be carried out within the validation budget
  limits. -}
-module PlutusBenchmark.BLS12_381.Common ( UProg
-                                        , UTerm
-                                        , checkGroth16Verify_Haskell
-                                        , listOfSizedByteStrings
-                                        , mkGroth16VerifyScript
-                                        , mkHashAndAddG1Script
-                                        , mkHashAndAddG2Script
-                                        , mkPairingScript
-                                        , mkUncompressAndAddG1Script
-                                        , mkUncompressAndAddG2Script
-                                        , toAnonDeBruijnProg
+module PlutusBenchmark.BLS12_381.Scripts ( checkGroth16Verify_Haskell
+                                         , listOfSizedByteStrings
+                                         , mkGroth16VerifyScript
+                                         , mkHashAndAddG1Script
+                                         , mkHashAndAddG2Script
+                                         , mkPairingScript
+                                         , mkUncompressAndAddG1Script
+                                         , mkUncompressAndAddG2Script
                                         )
 where
 import PlutusCore (DefaultFun, DefaultUni)
@@ -36,21 +32,6 @@ import Hedgehog.Internal.Range qualified as R
 import System.IO.Unsafe (unsafePerformIO)
 
 import Prelude (fromIntegral)
-
--------------------------------- PLC stuff--------------------------------
-
-type UTerm   = UPLC.Term    UPLC.NamedDeBruijn DefaultUni DefaultFun ()
-type UProg   = UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
-type UDBProg = UPLC.Program UPLC.DeBruijn      DefaultUni DefaultFun ()
-
-compiledCodeToTerm
-    :: Tx.CompiledCodeIn DefaultUni DefaultFun a -> UTerm
-compiledCodeToTerm (Tx.getPlcNoAnn -> UPLC.Program _ _ body) = body
-
-{- | Remove the textual names from a NamedDeBruijn program -}
-toAnonDeBruijnProg :: UProg -> UDBProg
-toAnonDeBruijnProg (UPLC.Program () ver body) =
-    UPLC.Program () ver $ UPLC.termMapNames (\(UPLC.NamedDeBruijn _ ix) -> UPLC.DeBruijn ix) body
 
 -- Create a list containing n bytestrings of length l.  This could be better.
 {-# NOINLINE listOfSizedByteStrings #-}
@@ -71,7 +52,7 @@ hashAndAddG1 (p:ps) =
     where go [] acc     = acc
           go (q:qs) acc = go qs $ Tx.bls12_381_G1_add (Tx.bls12_381_G1_hashToGroup q emptyByteString) acc
 
-mkHashAndAddG1Script :: [ByteString] -> UProg
+mkHashAndAddG1Script :: [ByteString] -> UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
 mkHashAndAddG1Script l =
     let points = map toBuiltin l
     in Tx.getPlcNoAnn $ $$(Tx.compile [|| hashAndAddG1 ||]) `Tx.unsafeApplyCode` Tx.liftCodeDef points
@@ -85,7 +66,7 @@ hashAndAddG2 (p:ps) =
     where go [] acc     = acc
           go (q:qs) acc = go qs $ Tx.bls12_381_G2_add (Tx.bls12_381_G2_hashToGroup q emptyByteString) acc
 
-mkHashAndAddG2Script :: [ByteString] -> UProg
+mkHashAndAddG2Script :: [ByteString] -> UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
 mkHashAndAddG2Script l =
     let points = map toBuiltin l
     in Tx.getPlcNoAnn $ $$(Tx.compile [|| hashAndAddG2 ||]) `Tx.unsafeApplyCode` Tx.liftCodeDef points
@@ -99,7 +80,7 @@ uncompressAndAddG1 (p:ps) =
     where go [] acc     = acc
           go (q:qs) acc = go qs $ Tx.bls12_381_G1_add (Tx.bls12_381_G1_uncompress q) acc
 
-mkUncompressAndAddG1Script :: [ByteString] -> UProg
+mkUncompressAndAddG1Script :: [ByteString] -> UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
 mkUncompressAndAddG1Script l =
     let ramdomPoint bs = Tx.bls12_381_G1_hashToGroup bs emptyByteString
         points = map (Tx.bls12_381_G1_compress . ramdomPoint . toBuiltin) l
@@ -114,7 +95,7 @@ uncompressAndAddG2 (p:ps) =
     where go [] acc     = acc
           go (q:qs) acc = go qs $ Tx.bls12_381_G2_add (Tx.bls12_381_G2_uncompress q) acc
 
-mkUncompressAndAddG2Script :: [ByteString] -> UProg
+mkUncompressAndAddG2Script :: [ByteString] -> UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
 mkUncompressAndAddG2Script l =
     let ramdomPoint bs = Tx.bls12_381_G2_hashToGroup bs emptyByteString
         points = map (Tx.bls12_381_G2_compress . ramdomPoint . toBuiltin) l
@@ -141,7 +122,7 @@ mkPairingScript
     -> BuiltinBLS12_381_G2_Element
     -> BuiltinBLS12_381_G1_Element
     -> BuiltinBLS12_381_G2_Element
-    -> UProg
+    -> UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
 mkPairingScript p1 q1 p2 q2 =
     Tx.getPlcNoAnn $ $$(Tx.compile [|| runPairingFunctions ||])
           `Tx.unsafeApplyCode` Tx.liftCodeDef p1
@@ -303,7 +284,7 @@ groth16Verify (Tx.bls12_381_G1_uncompress -> alpha')
 {- | Make a UPLC script applying groth16Verify to the inputs.  Passing the
  newtype inputs increases the size and CPU cost slightly, so we unwrap them
  first.  This should return `True`. -}
-mkGroth16VerifyScript :: UProg
+mkGroth16VerifyScript :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
 mkGroth16VerifyScript =
     Tx.getPlcNoAnn $ $$(Tx.compile [|| groth16Verify ||])
            `Tx.unsafeApplyCode` (Tx.liftCodeDef $ g1 alpha)

@@ -1,7 +1,5 @@
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RankNTypes        #-}
-{-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE LambdaCase   #-}
+{-# LANGUAGE ViewPatterns #-}
 
 {- | Miscellaneous shared code for benchmarking-related things. -}
 module PlutusBenchmark.Common
@@ -15,22 +13,37 @@ module PlutusBenchmark.Common
     , benchTermCek
     , runTermCek
     , cekResultMatchesHaskellValue
-     )
+    , TestSize (..)
+    , printHeader
+    , printSizeStatistics
+    , goldenVsTextualOutput
+    )
 where
 
 import Paths_plutus_benchmark as Export
-
-import PlutusTx qualified as Tx
+import PlutusBenchmark.ProtocolParameters as PP
 
 import PlutusCore qualified as PLC
 import PlutusCore.Default
+import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (exBudgetCPU, exBudgetMemory))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
+import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
+import PlutusTx qualified as Tx
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 
 import Criterion.Main
 import Criterion.Types (Config (..))
+import Data.ByteString qualified as BS
+import Data.SatInt (fromSatInt)
+import Flat qualified
+import GHC.IO.Encoding (setLocaleEncoding)
 import System.FilePath
+import System.IO
+import System.IO.Temp
+import Test.Tasty
+import Test.Tasty.Golden
+import Text.Printf (hPrintf, printf)
 
 {- | The Criterion configuration returned by `getConfig` will cause an HTML report
    to be generated.  If run via stack/cabal this will be written to the
@@ -63,6 +76,13 @@ toAnonDeBruijnTerm
     -> UPLC.Term UPLC.DeBruijn DefaultUni DefaultFun ()
 toAnonDeBruijnTerm = UPLC.termMapNames (\(UPLC.NamedDeBruijn _ ix) -> UPLC.DeBruijn ix)
 
+toAnonDeBruijnProg
+    :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+    -> UPLC.Program UPLC.DeBruijn      DefaultUni DefaultFun ()
+toAnonDeBruijnProg (UPLC.Program () ver body) =
+    UPLC.Program () ver $ toAnonDeBruijnTerm body
+
+
 {- | Just extract the body of a program wrapped in a 'CompiledCodeIn'.  We use this a lot. -}
 compiledCodeToTerm
     :: Tx.CompiledCodeIn DefaultUni DefaultFun a -> Term
@@ -80,14 +100,23 @@ benchTermCek :: Term -> Benchmarkable
 benchTermCek term =
     nf (runTermCek) $! term -- Or whnf?
 
+type Result = EvaluationResult Term
+
 {- | Just run a term (used for tests etc.) -}
-runTermCek :: Term -> EvaluationResult Term
+runTermCek :: Term -> Result
 runTermCek =
     unsafeExtractEvaluationResult .
         (\ (fstT,_,_) -> fstT) .
             runCekDeBruijn PLC.defaultCekParameters Cek.restrictingEnormous Cek.noEmitter
 
-type Result = EvaluationResult Term
+-- | Evaluate a script and return the CPU and memory costs (according to the cost model)
+getCostsCek :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun () -> (Integer, Integer)
+getCostsCek (UPLC.Program _ _ prog) =
+    case Cek.runCekDeBruijn PLC.defaultCekParameters Cek.tallying Cek.noEmitter prog of
+      (_res, Cek.TallyingSt _ budget, _logs) ->
+          let ExCPU cpu = exBudgetCPU budget
+              ExMemory mem = exBudgetMemory budget
+          in (fromSatInt cpu, fromSatInt mem)
 
 {- | Evaluate a PLC term and check that the result matches a given Haskell value
    (perhaps obtained by running the Haskell code that the term was compiled
@@ -98,3 +127,81 @@ type Result = EvaluationResult Term
 cekResultMatchesHaskellValue :: Tx.Lift DefaultUni a => Term -> (Result -> Result -> b) -> a -> b
 cekResultMatchesHaskellValue term matches value =
     (runTermCek term) `matches` (runTermCek $ haskellValueToTerm value)
+
+
+
+---------------- Printing tables of information about costs ----------------
+
+data TestSize =
+    NoSize
+  | TestSize Integer
+
+stringOfTestSize :: TestSize -> String
+stringOfTestSize =
+    \case
+     NoSize     -> "-"
+     TestSize n -> show n
+
+-- Printing utilities
+percentage :: (Integral a, Integral b) => a -> b -> Double
+percentage a b =
+    let a' = fromIntegral a :: Double
+        b' = fromIntegral b :: Double
+    in (a'* 100) / b'
+
+percentTxt :: (Integral a, Integral b) => a -> b -> String
+percentTxt a b = printf "(%.1f%%)" (percentage a b)
+
+-- | Print a header to be followed by a list of size statistics.
+printHeader :: Handle -> IO ()
+printHeader h = do
+  hPrintf h "    n     script size             CPU usage               Memory usage\n"
+  hPrintf h "  ----------------------------------------------------------------------\n"
+
+-- | Evaluate a script and print out the serialised size and the CPU and memory
+-- usage, both as absolute values and percentages of the maxima specified in the
+-- protocol parameters.
+printSizeStatistics
+    :: Handle
+    -> TestSize
+    -> UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
+    -> IO ()
+printSizeStatistics h n script = do
+    let serialised = Flat.flat (UPLC.UnrestrictedProgram $ toAnonDeBruijnProg script)
+        size = BS.length serialised
+        (cpu, mem) = getCostsCek script
+    hPrintf h "  %3s %7d %8s %15d %8s %15d %8s \n"
+           (stringOfTestSize n)
+           size (percentTxt size PP.max_tx_size)
+           cpu  (percentTxt cpu  PP.max_tx_ex_steps)
+           mem  (percentTxt mem  PP.max_tx_ex_mem)
+
+
+---------------- Golden tests for tabular output ----------------
+
+{- | Run a program which produces textual output and compare the results with a
+   golden file.  This is intended for tests which produce a lot of formatted
+   text.  The output is written to a file in the system temporary directory and
+   deleted if the test passes.  If the test fails then the output is retained
+   for furher inspection. -}
+
+goldenVsTextualOutput
+    :: TestName          -- The name of the test.
+    -> FilePath          -- The path to the golden file.
+    -> String            -- The name of the results file (may be extended to make it unique).
+    -> (Handle -> IO a)  -- A function which runs tests and writes output to the given handle.
+    -> IO ()
+goldenVsTextualOutput testName goldenFile filename runTest =  do
+  setLocaleEncoding utf8
+  tmpdir <- getCanonicalTemporaryDirectory
+  (resultsFile, handle) <- openTempFile tmpdir filename
+  Test.Tasty.defaultMain $
+    localOption OnPass $  -- Delete the output if the test succeeds.
+      goldenVsFileDiff
+        testName
+        (\expected actual -> ["diff", "-u", expected, actual])  -- How to to display differences.
+        goldenFile
+        resultsFile
+        (runTest handle >> hClose handle)
+
+

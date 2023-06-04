@@ -1,16 +1,16 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE NumericUnderscores #-}
+{-# LANGUAGE LambdaCase #-}
 
 {- | Print out the costs of various test scripts involving the BLS12_381
    primitives.  Most of these work on varying numbers of inputs so that we can
    get an idea of what we can do within the on-chain execution limits.
 -}
-module Main (main)
+module PlutusBenchmark.BLS12_381.RunTests (runTests)
 
 where
 
 import PlutusBenchmark.BLS12_381.Common
+import PlutusBenchmark.ProtocolParameters as PP
 
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (exBudgetCPU, exBudgetMemory))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
@@ -22,24 +22,10 @@ import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
 import Data.ByteString qualified as BS
 import Data.SatInt (fromSatInt)
 import Flat qualified
-import Text.Printf (printf)
+import System.IO (Handle, stdout)
+import Text.Printf (hPrintf, printf)
 
 import Prelude (Double, IO, Integral, String, fromIntegral, mapM_, show, (*), (/))
-
--- Protocol parameters (November 2022)
-
--- | This is the "maximum transaction size".  We're just comparing the size of
--- the script with this, so our results may be a little optimistic if the
--- transaction includes other stuff (I'm not sure exactly what "maximum
--- transaction size" means).
-max_tx_size :: Integer
-max_tx_size = 16384
-
-max_tx_ex_steps :: Integer
-max_tx_ex_steps = 10_000_000_000
-
-max_tx_ex_mem :: Integer
-max_tx_ex_mem = 14_000_000
 
 -------------------------------- Printing --------------------------------
 
@@ -75,96 +61,96 @@ evaluate (UPLC.Program _ _ prog) =
 -- | Evaluate a script and print out the serialised size and the CPU and memory
 -- usage, both as absolute values and percentages of the maxima specified in the
 -- protocol parameters.
-printStatistics :: TestSize -> UProg -> IO ()
-printStatistics n script = do
+printStatistics :: Handle -> TestSize -> UProg -> IO ()
+printStatistics h n script = do
     let serialised = Flat.flat (UPLC.UnrestrictedProgram $ toAnonDeBruijnProg script)
         size = BS.length serialised
         (cpu, mem) = evaluate script
-    printf "  %3s %7d %8s %15d %8s %15d %8s \n"
+    hPrintf h "  %3s %7d %8s %15d %8s %15d %8s \n"
            (stringOfTestSize n)
-           size (percentTxt size max_tx_size)
-           cpu  (percentTxt cpu  max_tx_ex_steps)
-           mem  (percentTxt mem  max_tx_ex_mem)
+           size (percentTxt size PP.max_tx_size)
+           cpu  (percentTxt cpu  PP.max_tx_ex_steps)
+           mem  (percentTxt mem  PP.max_tx_ex_mem)
 
 ------------------------------- Examples ---------------------------------
 
-printCosts_HashAndAddG1 :: Integer -> IO ()
-printCosts_HashAndAddG1 n =
+printCosts_HashAndAddG1 :: Handle -> Integer -> IO ()
+printCosts_HashAndAddG1 h n =
     let script = mkHashAndAddG1Script (listOfSizedByteStrings n 4)
-    in printStatistics (TestSize n) script
+    in printStatistics h (TestSize n) script
 
 
-printCosts_HashAndAddG2 :: Integer -> IO ()
-printCosts_HashAndAddG2 n =
+printCosts_HashAndAddG2 :: Handle -> Integer -> IO ()
+printCosts_HashAndAddG2 h n =
     let script = mkHashAndAddG2Script (listOfSizedByteStrings n 4)
-    in printStatistics (TestSize n) script
+    in printStatistics h (TestSize n) script
 
 
-printCosts_UncompressAndAddG1 :: Integer -> IO ()
-printCosts_UncompressAndAddG1 n =
+printCosts_UncompressAndAddG1 :: Handle -> Integer -> IO ()
+printCosts_UncompressAndAddG1 h n =
     let script = mkUncompressAndAddG1Script (listOfSizedByteStrings n 4)
-    in printStatistics (TestSize n) script
+    in printStatistics h (TestSize n) script
 
-printCosts_UncompressAndAddG2 :: Integer -> IO ()
-printCosts_UncompressAndAddG2 n =
+printCosts_UncompressAndAddG2 :: Handle -> Integer -> IO ()
+printCosts_UncompressAndAddG2 h n =
     let script = mkUncompressAndAddG2Script (listOfSizedByteStrings n 4)
-    in printStatistics (TestSize n) script
+    in printStatistics h (TestSize n) script
 
-printCosts_Pairing :: IO ()
-printCosts_Pairing = do
+printCosts_Pairing :: Handle -> IO ()
+printCosts_Pairing h = do
     let emptyDST = toBuiltin BS.empty
         p1 = Tx.bls12_381_G1_hashToGroup (toBuiltin . BS.pack $ [0x23, 0x43, 0x56, 0xf2]) emptyDST
         p2 = Tx.bls12_381_G2_hashToGroup (toBuiltin . BS.pack $ [0x10, 0x00, 0xff, 0x88]) emptyDST
         q1 = Tx.bls12_381_G1_hashToGroup (toBuiltin . BS.pack $ [0x11, 0x22, 0x33, 0x44]) emptyDST
         q2 = Tx.bls12_381_G2_hashToGroup (toBuiltin . BS.pack $ [0xa0, 0xb1, 0xc2, 0xd3]) emptyDST
         script = mkPairingScript p1 p2 q1 q2
-    printStatistics NoSize script
+    printStatistics h NoSize script
 
-printCosts_Groth16Verify :: IO ()
-printCosts_Groth16Verify = do
+printCosts_Groth16Verify :: Handle -> IO ()
+printCosts_Groth16Verify h = do
   let script = mkGroth16VerifyScript
-  printStatistics NoSize script
+  printStatistics h NoSize script
 
-printHeader :: IO ()
-printHeader = do
-  printf "    n     script size             CPU usage               Memory usage\n"
-  printf "  ----------------------------------------------------------------------\n"
+printHeader :: Handle -> IO ()
+printHeader h = do
+  hPrintf h "    n     script size             CPU usage               Memory usage\n"
+  hPrintf h "  ----------------------------------------------------------------------\n"
 
-main :: IO ()
-main = do
+runTests :: Handle -> IO ()
+runTests h = do
+  let h = stdout
 
-  printf "Hash n bytestrings onto G1 and add points\n\n"
-  printHeader
-  mapM_ printCosts_HashAndAddG1 [0, 10..150]
+  hPrintf h "Hash n bytestrings onto G1 and add points\n\n"
+  printHeader h
+  mapM_ (printCosts_HashAndAddG1 h) [0, 10..150]
+  hPrintf h "\n\n"
+
+  hPrintf h "Hash n bytestrings onto G2 and add points\n\n"
+  printHeader h
+  mapM_ (printCosts_HashAndAddG2 h) [0, 10..150]
+  hPrintf h "\n\n"
+
+  hPrintf h "Uncompress n G1 points and add the results\n\n"
+  printHeader h
+  mapM_ (printCosts_UncompressAndAddG1 h) [0, 10..150]
+  hPrintf h "\n\n"
+
+  hPrintf h "Uncompress n G2 points and add the results\n\n"
+  printHeader h
+  mapM_ (printCosts_UncompressAndAddG2 h) [0, 10..150]
   printf "\n\n"
 
-  printf "Hash n bytestrings onto G2 and add points\n\n"
-  printHeader
-  mapM_ printCosts_HashAndAddG2 [0, 10..150]
-  printf "\n\n"
+  hPrintf h "Apply pairing to two pairs of points in G1 x G2 and run finalVerify on the results\n\n"
+  printHeader h
+  printCosts_Pairing h
+  hPrintf h "\n\n"
 
-  printf "Uncompress n G1 points and add the results\n\n"
-  printHeader
-  mapM_ printCosts_UncompressAndAddG1 [0, 10..150]
-  printf "\n\n"
-
-  printf "Uncompress n G2 points and add the results\n\n"
-  printHeader
-  mapM_ printCosts_UncompressAndAddG2 [0, 10..150]
-  printf "\n\n"
-
-  printf "Apply pairing to two pairs of points in G1 x G2 and run finalVerify on the results\n\n"
-  printHeader
-  printCosts_Pairing
-  printf "\n\n"
-
-  printf "Groth16 verification example\n\n"
-  printHeader
-  printCosts_Groth16Verify
-  printf "\n"
+  hPrintf h "Groth16 verification example\n\n"
+  printHeader h
+  printCosts_Groth16Verify h
+  hPrintf h "\n"
 
   if checkGroth16Verify_Haskell
-  then printf "Groth16Verify succeeded\n"
-  else printf "Groth16Verify failed\n"
-
+  then hPrintf h "Groth16Verify succeeded\n"
+  else hPrintf h "Groth16Verify failed\n"
 
