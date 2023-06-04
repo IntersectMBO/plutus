@@ -183,7 +183,7 @@ printSizeStatistics h n script = do
    golden file.  This is intended for tests which produce a lot of formatted
    text.  The output is written to a file in the system temporary directory and
    deleted if the test passes.  If the test fails then the output is retained
-   for furher inspection. -}
+   for further inspection. -}
 
 goldenVsTextualOutput
     :: TestName          -- The name of the test.

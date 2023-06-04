@@ -1,9 +1,8 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE BangPatterns      #-}
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE BangPatterns    #-}
+{-# LANGUAGE DataKinds       #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE ViewPatterns    #-}
 
 {- | Approximations of the sort of computations involving BLS12-381 primitives
  that one might wish to perform on the chain.  Real on-chain code will have
