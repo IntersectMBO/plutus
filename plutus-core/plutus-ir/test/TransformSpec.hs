@@ -26,7 +26,7 @@ import PlutusIR.Test
 import PlutusIR.Transform.Beta qualified as Beta
 import PlutusIR.Transform.DeadCode qualified as DeadCode
 import PlutusIR.Transform.EvaluateBuiltins qualified as EvaluateBuiltins
-import PlutusIR.Transform.Inline.CallSiteInline (computeArity)
+import PlutusIR.Transform.Inline.CallSiteInline (splitParams)
 import PlutusIR.Transform.Inline.Inline qualified as Inline
 import PlutusIR.Transform.KnownCon qualified as KnownCon
 import PlutusIR.Transform.LetFloatIn qualified as LetFloatIn
@@ -296,7 +296,7 @@ nameCapture =
 computeArityTest :: TestNested
 computeArityTest = testNested "computeArityTest" $
         map
-            (goldenPir (computeArity . runQuote . PLC.rename) pTerm)
+            (goldenPir (splitParams . runQuote . PLC.rename) pTerm)
             [ "var" -- from inline tests, testing let terms
             , "tyvar"
             , "single"

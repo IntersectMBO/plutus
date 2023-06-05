@@ -2,7 +2,7 @@
 
 module UntypedPlutusCore.Core (
   module Export,
-  splitLamAbs,
+  splitParams,
   splitApplication,
 ) where
 
@@ -13,9 +13,9 @@ import UntypedPlutusCore.Core.Type as Export
 import Data.Bifunctor
 
 -- | Strips off lambda binders.
-splitLamAbs :: Term name uni fun a -> ([name], Term name uni fun a)
-splitLamAbs = \case
-  LamAbs _ n t -> first (n :) (splitLamAbs t)
+splitParams :: Term name uni fun a -> ([name], Term name uni fun a)
+splitParams = \case
+  LamAbs _ n t -> first (n :) (splitParams t)
   t            -> ([], t)
 
 -- | Strip off arguments

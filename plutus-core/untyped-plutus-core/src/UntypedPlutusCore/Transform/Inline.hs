@@ -76,8 +76,12 @@ makeLenses ''Subst
 
 data VarInfo name uni fun ann = VarInfo
   { _varBinders :: [name]
+  -- ^ Lambda binders in the RHS (definition) of the variable.
   , _varRhs     :: Term name uni fun ann
+  -- ^ The RHS (definition) of the variable.
   , _varRhsBody :: InlineTerm name uni fun ann
+  -- ^ The body of the RHS of the variable (i.e., RHS minus the binders). Using `InlineTerm`
+  -- here to ensure the body is renamed when inlined.
   }
 
 makeLenses ''VarInfo
@@ -229,7 +233,7 @@ processSingleBinding
 processSingleBinding body (Def vd@(UVarDecl a n) rhs0) = do
     maybeAddSubst body a n rhs0 >>= \case
         Just rhs -> do
-            let (binders, rhsBody) = UPLC.splitLamAbs rhs
+            let (binders, rhsBody) = UPLC.splitParams rhs
             modify' . extendVarInfo n $ VarInfo
               { _varBinders = binders
               , _varRhs = rhs

@@ -33,7 +33,7 @@ import Control.Monad.State (evalStateT, modify')
 
 import Algebra.Graph qualified as G
 import Data.Map qualified as Map
-import PlutusIR.Transform.Inline.CallSiteInline (computeArity, inlineSaturatedApp)
+import PlutusIR.Transform.Inline.CallSiteInline (inlineSaturatedApp, splitParams)
 import Witherable (Witherable (wither))
 
 {- Note [Inlining approach and 'Secrets of the GHC Inliner']
@@ -237,7 +237,7 @@ processSingleBinding body = \case
             -- this binding is going to be unconditionally inlined
             Nothing -> pure Nothing
             Just rhs -> do
-                let (arity, bodyToCheck) = computeArity rhs
+                let (arity, bodyToCheck) = splitParams rhs
                 -- when we encounter a binding, we add it to
                 -- the global map `Utils.NonRecInScopeSet`.
                 -- The `varRhs` added to the map has been unconditionally inlined.
