@@ -52,7 +52,7 @@ main =
 
     -- Write the flat UPLC files for the semantics benchmarks.
     writeFlatUPLCs Semantics.writeUPLC benchmarks
-      . (</> "semantics")
+      . (</> "marlowe/bench/semantics")
       =<< getDataDir
 
     -- Print the semantics validator, and write the plutus file.
@@ -72,7 +72,7 @@ main =
 
     -- Write the flat UPLC files for the role-payout benchmarks.
     writeFlatUPLCs RolePayout.writeUPLC benchmarks'
-      . (</> "rolepayout")
+      . (</> "marlowe/bench/rolepayout")
       =<< getDataDir
 
     -- Print the role-payout validator, and write the plutus file.

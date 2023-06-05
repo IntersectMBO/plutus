@@ -64,7 +64,7 @@ validatorHash = rolePayoutValidatorHash
 
 -- | The benchmark cases for the Marlowe role-payout validator.
 benchmarks :: IO (Either String [Benchmark])
-benchmarks = second (rescript <$>) <$> readBenchmarks "rolepayout"
+benchmarks = second (rescript <$>) <$> readBenchmarks "marlowe/bench/rolepayout"
 
 
 -- | Revise the validator hashes in the benchmark's script context.

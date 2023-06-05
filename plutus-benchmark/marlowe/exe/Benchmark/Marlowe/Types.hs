@@ -34,7 +34,7 @@ data Benchmark =
   -- ^ The previously measured execution costs in production, which uses the Plutus version on
   -- August 18 2022 (commit 6ed578b592f46afc0e77f4d19e5955a6eb439ba4).
   }
-    deriving Show
+    deriving stock (Show)
 
 
 -- | Construct a benchmarking case.
