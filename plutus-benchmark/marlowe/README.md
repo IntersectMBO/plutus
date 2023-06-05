@@ -1,5 +1,7 @@
 # Experimental version of Marlowe validator for Cardano, with minimal dependencies
 
+## `marlowe-internal`
+
 This package is fully representative version of the Marlowe validator on chain. It is primarily for benchmarking/profiling Marlowe scripts. 
 
 Marlowe is a platform for financial products as smart contracts. [Marlowe-Cardano](https://github.com/input-output-hk/marlowe-cardano) is an implementation of Marlowe for the Cardano blockchain, built on top of Plutus.
@@ -15,7 +17,7 @@ It would be informative for both the Plutus and Marlowe teams to investigate in 
 
 (1) Benchmarking: compare the budget before and after optimizations that the Plutus team implemented. It could be helpful to do the benchmarking *as* we implement the optimization even.
 
-The benchmarking portion of the code lives in `plutus-benchmark`, which imports this package.
+The benchmarking portion of the code lives in `marlowe/bench`, which depends on this package.
 
 (2) Profiling: look at each script in more detail, what functions are taking up the most budget? How can they be optimized?
 
@@ -56,11 +58,11 @@ Role payout:
 ```
 
 The following files are output:
-- For Marlowe's semantics valdator
+- For Marlowe's semantics validator
     - Plutus script: `marlowe-semantics.plutus`
     - Benchmarking results: `marlowe-semantics.tsv`   
     - Flat UPLC files: `benchmarks/semantics/*-uplc.flat`
-- For Marlowe's role-payout valdator
+- For Marlowe's role-payout validator
     - Plutus script: `marlowe-rolepayout.plutus`
     - Benchmarking results: `marlowe-rolepayout.tsv`   
     - Flat UPLC files: `benchmarks/rolepayout/*-uplc.flat`

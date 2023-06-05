@@ -41,7 +41,7 @@ import Data.Bifunctor (bimap)
 import Data.List (isSuffixOf)
 import Language.Marlowe.Core.V1.Semantics (MarloweData)
 import Language.Marlowe.Scripts.Semantics (MarloweInput)
-import Paths_marlowe_cardano_minimal (getDataDir)
+import PlutusBenchmark.Common (getDataDir)
 import PlutusCore.Executable.AstIO (fromNamedDeBruijnUPLC)
 import PlutusCore.Executable.Common (writeProgram)
 import PlutusCore.Executable.Types (AstNameType (NamedDeBruijn), Format (Flat), Output (FileOutput),

@@ -32,7 +32,7 @@ import Cardano.Binary (serialize')
 import Data.ByteString qualified as BS (writeFile)
 import Data.ByteString.Base16 qualified as B16 (encode)
 import Data.List (intercalate)
-import Paths_marlowe_cardano_minimal (getDataDir)
+import PlutusBenchmark.Common (getDataDir)
 import PlutusLedgerApi.V2 (ScriptHash, SerialisedScript)
 import System.FilePath ((</>))
 

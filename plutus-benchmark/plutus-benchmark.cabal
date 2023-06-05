@@ -495,12 +495,13 @@ library marlowe-internal
   build-depends:
     , base
     , bytestring
-    , cardano-crypto-class  >=2.0.0.1 && <2.2
+    , cardano-crypto-class     >=2.0.0.1 && <2.2
     , newtype-generics
-    , plutus-core           ^>=1.7
+    , plutus-benchmark-common
+    , plutus-core              ^>=1.7
     , plutus-ledger-api
-    , plutus-tx             ^>=1.7
-    , plutus-tx-plugin      ^>=1.7
+    , plutus-tx                ^>=1.7
+    , plutus-tx-plugin         ^>=1.7
 
   exposed-modules:
     Language.Marlowe.Core.V1.Semantics
@@ -512,7 +513,7 @@ library marlowe-internal
 executable marlowe-validators
   import:           lang
   default-language: Haskell2010
-  hs-source-dirs:   app
+  hs-source-dirs:   marlowe/exe
   main-is:          Main.hs
   other-modules:
     Benchmark.Marlowe
@@ -520,7 +521,6 @@ executable marlowe-validators
     Benchmark.Marlowe.Semantics
     Benchmark.Marlowe.Types
     Benchmark.Marlowe.Util
-    Paths_marlowe_cardano_minimal
 
   if impl(ghc <9.0)
     buildable: False
@@ -534,6 +534,7 @@ executable marlowe-validators
     , filepath
     , marlowe-internal
     , mtl
+    , plutus-benchmark-common
     , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.7
     , plutus-ledger-api
     , plutus-tx                                       ^>=1.7
