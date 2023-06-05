@@ -1,23 +1,29 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE TypeOperators       #-}
 
--- | Budgeting benchmarks for cryptographic functions, including hashing.
 module Benchmarks.Crypto (makeBenchmarks) where
 
 import Common
 import Generators
 import PlutusCore
 
-import Cardano.Crypto.DSIGN.Class
+import Cardano.Crypto.DSIGN.Class (ContextDSIGN, DSIGNAlgorithm, Signable, deriveVerKeyDSIGN,
+                                   genKeyDSIGN, rawSerialiseSigDSIGN, rawSerialiseVerKeyDSIGN,
+                                   signDSIGN)
 import Cardano.Crypto.DSIGN.EcdsaSecp256k1 (EcdsaSecp256k1DSIGN, toMessageHash)
 import Cardano.Crypto.DSIGN.Ed25519 (Ed25519DSIGN)
 import Cardano.Crypto.DSIGN.SchnorrSecp256k1 (SchnorrSecp256k1DSIGN)
 import Cardano.Crypto.Seed (mkSeedFromBytes)
 
+import PlutusCore.Crypto.BLS12_381.G1 qualified as G1
+import PlutusCore.Crypto.BLS12_381.G2 qualified as G2
+import PlutusCore.Crypto.BLS12_381.Pairing qualified as Pairing
+
 import Criterion.Main (Benchmark, bgroup)
-import Data.ByteString (ByteString)
+import Data.ByteString (ByteString, empty)
 import Hedgehog qualified as H (Seed)
 import System.Random (StdGen)
 
@@ -33,7 +39,6 @@ mediumByteStrings seed = makeSizedByteStrings seed byteStringSizes
 bigByteStrings :: H.Seed -> [ByteString]
 bigByteStrings seed = makeSizedByteStrings seed (fmap (10*) byteStringSizes)
 -- Up to  784,000 bytes.
-
 
 ---------------- Signature verification ----------------
 
@@ -63,12 +68,12 @@ data MessageSize = Arbitrary | Fixed Int
    length.  This means that we have to add a ByteString -> message conversion
    function as a parameter here.
 -}
-mkBmInputs :: forall v msg .
+mkDsignBmInputs :: forall v msg .
     (Signable v msg, DSIGNAlgorithm v, ContextDSIGN v ~ ())
     => (ByteString -> msg)
     -> MessageSize
     -> [(ByteString, ByteString, ByteString)]
-mkBmInputs toMsg msgSize =
+mkDsignBmInputs toMsg msgSize =
     map mkOneInput (zip seeds messages)
     where seeds = listOfSizedByteStrings numSamples 128
           -- ^ Seeds for key generation. For some algorithms the seed has to be
@@ -79,23 +84,21 @@ mkBmInputs toMsg msgSize =
                 Arbitrary -> bigByteStrings seedA
                 Fixed n   -> listOfSizedByteStrings numSamples n
           mkOneInput (seed, msg) =
-                  -- Signing key (private)
-              let signKey = genKeyDSIGN @v $ mkSeedFromBytes seed
-                  -- Verification key (public)
-                  vkBytes = rawSerialiseVerKeyDSIGN $ deriveVerKeyDSIGN signKey
+              let signKey = genKeyDSIGN @v $ mkSeedFromBytes seed                 -- Signing key (private)
+                  vkBytes = rawSerialiseVerKeyDSIGN $ deriveVerKeyDSIGN signKey   -- Verification key (public)
                   sigBytes = rawSerialiseSigDSIGN $ signDSIGN () (toMsg msg) signKey
               in (vkBytes, msg, sigBytes)
 
 benchVerifyEd25519Signature :: Benchmark
 benchVerifyEd25519Signature =
     let name = VerifyEd25519Signature
-        inputs = mkBmInputs @Ed25519DSIGN id Arbitrary
+        inputs = mkDsignBmInputs @Ed25519DSIGN id Arbitrary
     in createThreeTermBuiltinBenchElementwise name [] inputs
 
 benchVerifyEcdsaSecp256k1Signature :: Benchmark
 benchVerifyEcdsaSecp256k1Signature =
     let name = VerifyEcdsaSecp256k1Signature
-        inputs = mkBmInputs @EcdsaSecp256k1DSIGN toMsg (Fixed 32)
+        inputs = mkDsignBmInputs @EcdsaSecp256k1DSIGN toMsg (Fixed 32)
     in createThreeTermBuiltinBenchElementwise name [] inputs
         where toMsg b =
                   case toMessageHash b of
@@ -107,7 +110,7 @@ benchVerifyEcdsaSecp256k1Signature =
 benchVerifySchnorrSecp256k1Signature :: Benchmark
 benchVerifySchnorrSecp256k1Signature =
     let name = VerifySchnorrSecp256k1Signature
-        inputs = mkBmInputs @SchnorrSecp256k1DSIGN id Arbitrary
+        inputs = mkDsignBmInputs @SchnorrSecp256k1DSIGN id Arbitrary
     in createThreeTermBuiltinBenchElementwise name [] inputs
 
 
@@ -119,15 +122,200 @@ benchByteStringOneArgOp name =
            where mkBM b = benchDefault (showMemoryUsage b) $ mkApp1 name [] b
 
 
+---------------- BLS12_381 buitlins ----------------
+
+
+byteStrings :: [ByteString]
+byteStrings = listOfSizedByteStrings 200 20
+
+byteStringsA :: [ByteString]
+byteStringsA = take 100 byteStrings
+
+byteStringsB :: [ByteString]
+byteStringsB = take 100 (drop 100 byteStrings)
+
+
+-- Random elements in G1
+
+-- Create random group elements by hashing a random bytestring (with an empty
+-- DST). This will always give us a valid group element, unlike uncompressing
+-- random bytestrings, which will almost always fail.
+randomG1Element :: ByteString -> G1.Element
+randomG1Element s =
+    case G1.hashToGroup s Data.ByteString.empty of
+      Left err -> error $ "Error in randomG1Element: " ++ show err
+      Right p  -> p
+
+g1inputsA :: [G1.Element]
+g1inputsA = fmap randomG1Element byteStringsA
+
+g1inputsB :: [G1.Element]
+g1inputsB = fmap randomG1Element byteStringsB
+
+-- Random elements in G2
+randomG2Element :: ByteString -> G2.Element
+randomG2Element s =
+    case G2.hashToGroup s Data.ByteString.empty of
+      Left err -> error $ "Error in randomG2Element: " ++ show err
+      Right p  -> p
+
+g2inputsA :: [G2.Element]
+g2inputsA = fmap randomG2Element byteStringsA
+
+g2inputsB :: [G2.Element]
+g2inputsB = fmap randomG2Element byteStringsB
+
+-- Random values of type MlResult.  The only way we can manufacture values of
+-- this type is by using millerLoop, which should always succeed on the inputs
+-- we give it here.
+gtinputsA :: [Pairing.MlResult]
+gtinputsA = zipWith Pairing.millerLoop g1inputsA g2inputsA
+
+gtinputsB :: [Pairing.MlResult]
+gtinputsB = zipWith Pairing.millerLoop g1inputsB g2inputsB
+
+benchBls12_381_G1_add :: Benchmark
+benchBls12_381_G1_add =
+        let name = Bls12_381_G1_add
+        in createTwoTermBuiltinBenchElementwise name [] g1inputsA g1inputsB
+-- constant time
+-- Two arguments, points on G1
+
+benchBls12_381_G1_neg :: Benchmark
+benchBls12_381_G1_neg =
+    let name = Bls12_381_G1_neg
+    in createOneTermBuiltinBench name [] g1inputsA
+-- constant time
+
+benchBls12_381_G1_scalarMul :: [Integer] -> Benchmark
+benchBls12_381_G1_scalarMul multipliers =
+    let name = Bls12_381_G1_scalarMul
+    in createTwoTermBuiltinBenchElementwise name [] multipliers g1inputsA
+-- linear in x (size of scalar)
+
+benchBls12_381_G1_equal :: Benchmark
+benchBls12_381_G1_equal =
+    let name = Bls12_381_G1_equal
+    in createTwoTermBuiltinBenchElementwise name [] g1inputsA g1inputsA
+    -- Same arguments twice
+-- constant time
+
+benchBls12_381_G1_hashToGroup :: Benchmark
+benchBls12_381_G1_hashToGroup =
+    let name = Bls12_381_G1_hashToGroup
+        inputs = listOfByteStrings 100
+        -- The maximum length of a DST is 255 bytes, so let's use that for all
+        -- cases (DST size shouldn't make much difference anyway).
+        dsts = listOfSizedByteStrings 100 255
+    in createTwoTermBuiltinBenchElementwise name [] inputs dsts
+-- linear in input size
+
+benchBls12_381_G1_compress :: Benchmark
+benchBls12_381_G1_compress =
+    let name = Bls12_381_G1_compress
+    in createOneTermBuiltinBench name [] g1inputsA
+-- constant time
+
+benchBls12_381_G1_uncompress :: Benchmark
+benchBls12_381_G1_uncompress =
+    let name = Bls12_381_G1_uncompress
+        inputs = fmap G1.compress g1inputsA
+    in createOneTermBuiltinBench name [] inputs
+-- constant time
+
+benchBls12_381_G2_add :: Benchmark
+benchBls12_381_G2_add =
+    let name = Bls12_381_G2_add
+    in createTwoTermBuiltinBenchElementwise name [] g2inputsA g2inputsB
+-- constant time
+
+benchBls12_381_G2_neg :: Benchmark
+benchBls12_381_G2_neg =
+    let name = Bls12_381_G2_neg
+    in createOneTermBuiltinBench name [] g2inputsB
+-- constant time
+
+benchBls12_381_G2_scalarMul :: [Integer] -> Benchmark
+benchBls12_381_G2_scalarMul multipliers =
+    let name = Bls12_381_G2_scalarMul
+    in createTwoTermBuiltinBenchElementwise name [] multipliers g2inputsA
+-- linear in x (size of scalar)
+
+benchBls12_381_G2_equal :: Benchmark
+benchBls12_381_G2_equal =
+    let name = Bls12_381_G2_equal
+    in createTwoTermBuiltinBenchElementwise name [] g2inputsA g2inputsA
+    -- Same arguments twice
+-- constant time
+
+benchBls12_381_G2_hashToGroup :: Benchmark
+benchBls12_381_G2_hashToGroup =
+    let name = Bls12_381_G2_hashToGroup
+        inputs = listOfByteStrings 100
+        dsts = listOfSizedByteStrings 100 255
+    in createTwoTermBuiltinBenchElementwise name [] inputs dsts
+-- linear in size of input
+
+benchBls12_381_G2_compress :: Benchmark
+benchBls12_381_G2_compress =
+    let name = Bls12_381_G2_compress
+    in createOneTermBuiltinBench name [] g2inputsA
+-- constant time
+
+benchBls12_381_G2_uncompress :: Benchmark
+benchBls12_381_G2_uncompress =
+    let name = Bls12_381_G2_uncompress
+        inputs = fmap G2.compress g2inputsA
+    in createOneTermBuiltinBench name [] inputs
+-- constant time
+
+benchBls12_381_millerLoop :: Benchmark
+benchBls12_381_millerLoop =
+    let name = Bls12_381_millerLoop
+    in createTwoTermBuiltinBenchElementwise name [] g1inputsA g2inputsA
+-- constant time
+
+benchBls12_381_mulMlResult :: Benchmark
+benchBls12_381_mulMlResult =
+    let name = Bls12_381_mulMlResult
+    in createTwoTermBuiltinBenchElementwise name [] gtinputsA gtinputsB
+-- constant time
+
+benchBls12_381_finalVerify :: Benchmark
+benchBls12_381_finalVerify =
+    let name = Bls12_381_finalVerify
+    in createTwoTermBuiltinBenchElementwise name [] gtinputsA gtinputsB
+-- constant time
+
+
+blsBenchmarks :: StdGen -> [Benchmark]
+blsBenchmarks gen =
+    let multipliers = fst $ makeSizedIntegers gen [1..100] -- Constants for scalar multiplication functions
+    in [ benchBls12_381_G1_add
+       , benchBls12_381_G1_neg
+       , benchBls12_381_G1_scalarMul multipliers
+       , benchBls12_381_G1_equal
+       , benchBls12_381_G1_hashToGroup
+       , benchBls12_381_G1_compress
+       , benchBls12_381_G1_uncompress
+       , benchBls12_381_G2_add
+       , benchBls12_381_G2_neg
+       , benchBls12_381_G2_scalarMul multipliers
+       , benchBls12_381_G2_equal
+       , benchBls12_381_G2_hashToGroup
+       , benchBls12_381_G2_compress
+       , benchBls12_381_G2_uncompress
+       , benchBls12_381_millerLoop
+       , benchBls12_381_mulMlResult
+       , benchBls12_381_finalVerify
+  ]
+
 ---------------- Main benchmarks ----------------
 
 makeBenchmarks :: StdGen -> [Benchmark]
-makeBenchmarks _gen =
-    [benchVerifyEd25519Signature
-    , benchVerifyEcdsaSecp256k1Signature
-    , benchVerifySchnorrSecp256k1Signature]
-        <> (benchByteStringOneArgOp <$> [Sha2_256, Sha3_256, Blake2b_256])
-
--- Sha3_256 takes about 2.65 times longer than Sha2_256, which in turn takes
--- 2.82 times longer than Blake2b_256.  All are (very) linear in the size of the
--- input.
+makeBenchmarks gen =  [ benchVerifyEd25519Signature
+                      , benchVerifyEcdsaSecp256k1Signature
+                      , benchVerifySchnorrSecp256k1Signature
+                      ]
+                     <> (benchByteStringOneArgOp <$> [Sha2_256, Sha3_256, Blake2b_256])
+                     <> blsBenchmarks gen

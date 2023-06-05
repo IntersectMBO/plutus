@@ -15,8 +15,8 @@ program 1.1.0 ((\s ->
                                                                  (constr 0 [  ])) [ (delay (constr 0 [ x ]))
                                                                                   , (delay (go
                                                                                               (addInteger
-                                                                                                 x
-                                                                                                 1)
+                                                                                                 1
+                                                                                                 x)
                                                                                               xs)) ]))) ]))
                       (s s))
                  0

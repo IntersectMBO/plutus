@@ -34,6 +34,9 @@ data AtomicTyCon = ATyConInt
                  | ATyConUnit
                  | ATyConBool
                  | ATyConData
+                 | ATyConBLS12_381_G1_Element
+                 | ATyConBLS12_381_G2_Element
+                 | ATyConBLS12_381_MlResult
               deriving Show
 
 data RTyCon = RTyConAtom AtomicTyCon
@@ -70,17 +73,20 @@ convT (TyBuiltin _ b)               = RTyCon (convTyCon b)
 convT (TyIFix _ a b)                = RTyMu (convT a) (convT b)
 
 convTyCon :: SomeTypeIn DefaultUni -> RTyCon
-convTyCon (SomeTypeIn DefaultUniInteger)    = RTyConAtom ATyConInt
-convTyCon (SomeTypeIn DefaultUniByteString) = RTyConAtom ATyConBS
-convTyCon (SomeTypeIn DefaultUniString)     = RTyConAtom ATyConStr
-convTyCon (SomeTypeIn DefaultUniBool)       = RTyConAtom ATyConBool
-convTyCon (SomeTypeIn DefaultUniUnit)       = RTyConAtom ATyConUnit
-convTyCon (SomeTypeIn DefaultUniData)       = RTyConAtom ATyConData
-convTyCon (SomeTypeIn (DefaultUniApply DefaultUniProtoList a)) = RTyConList (RTyCon (convTyCon (SomeTypeIn a)))
+convTyCon (SomeTypeIn DefaultUniInteger)                                           = RTyConAtom ATyConInt
+convTyCon (SomeTypeIn DefaultUniByteString)                                        = RTyConAtom ATyConBS
+convTyCon (SomeTypeIn DefaultUniString)                                            = RTyConAtom ATyConStr
+convTyCon (SomeTypeIn DefaultUniBool)                                              = RTyConAtom ATyConBool
+convTyCon (SomeTypeIn DefaultUniUnit)                                              = RTyConAtom ATyConUnit
+convTyCon (SomeTypeIn DefaultUniData)                                              = RTyConAtom ATyConData
+convTyCon (SomeTypeIn (DefaultUniApply DefaultUniProtoList a))                     = RTyConList (RTyCon (convTyCon (SomeTypeIn a)))
 convTyCon (SomeTypeIn (DefaultUniApply (DefaultUniApply DefaultUniProtoPair a) b)) = RTyConPair (RTyCon (convTyCon (SomeTypeIn a))) (RTyCon (convTyCon (SomeTypeIn b)))
-convTyCon (SomeTypeIn (DefaultUniApply _ _)) = error "unsupported builtin type application"
-convTyCon (SomeTypeIn DefaultUniProtoList) = error "unsupported usage of builtin list type"
-convTyCon (SomeTypeIn DefaultUniProtoPair) = error "unsupported usage of builtin pair type"
+convTyCon (SomeTypeIn (DefaultUniApply _ _))                                       = error "unsupported builtin type application"
+convTyCon (SomeTypeIn DefaultUniProtoList)                                         = error "unsupported usage of builtin list type"
+convTyCon (SomeTypeIn DefaultUniProtoPair)                                         = error "unsupported usage of builtin pair type"
+convTyCon (SomeTypeIn DefaultUniBLS12_381_G1_Element)                              = RTyConAtom ATyConBLS12_381_G1_Element
+convTyCon (SomeTypeIn DefaultUniBLS12_381_G2_Element)                              = RTyConAtom ATyConBLS12_381_G2_Element
+convTyCon (SomeTypeIn DefaultUniBLS12_381_MlResult)                                = RTyConAtom ATyConBLS12_381_MlResult
 
 conv :: Term NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun a -> RTerm
 conv (Var _ x)           = RVar (unIndex (ndbnIndex x))
@@ -140,7 +146,6 @@ unconvTyCon i (RTyConPair (RTyCon a) (RTyCon b)) =
         _ -> error "encode;decode failed"
 unconvTyCon i (RTyConPair a b) =
   error "builtin pairs of arbitrary type not supported"
-
 
 tmnames = ['a' .. 'z']
 --tynames = ['α','β','γ','δ','ε','ζ','θ','ι','κ','ν','ξ','ο','π','ρ','σ','τ','υ','ϕ','χ','ψ','ω']

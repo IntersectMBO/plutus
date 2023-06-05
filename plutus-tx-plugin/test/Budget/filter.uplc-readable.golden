@@ -22,7 +22,7 @@ program 1.1.0 (force (force ((\s ->
                  (\e
                    xs ->
                     force (case (force ifThenElse
-                                   (equalsInteger (modInteger e 2) 0)
+                                   (equalsInteger 0 (modInteger e 2))
                                    (constr 0 [])
                                    (constr 1 [])) [ (delay (constr 1 [e, xs]))
                                                   , (delay xs) ]))

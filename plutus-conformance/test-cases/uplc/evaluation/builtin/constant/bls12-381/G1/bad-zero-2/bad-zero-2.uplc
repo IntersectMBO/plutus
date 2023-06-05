@@ -1,0 +1,4 @@
+-- Almost a correct representation of the zero point, but with the negation bit set.
+(program 0.0.0
+(con bls12_381_G1_element 0xe00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000)
+)

@@ -1,0 +1,12 @@
+(program 1.0.0
+[ [(builtin multiplyInteger)
+
+(con integer 2342)
+
+]
+
+(con integer 32331)
+
+
+]
+)

@@ -47,7 +47,7 @@ let
         package plutus-tx-plugin
           flags: +use-ghc-stub
 
-        -- Exclude test that use `doctest`.  They will not work for
+        -- Exclude tests that use `doctest`.  They will not work for
         -- cross compilation and `cabal` will not be able to make a plan.
         package prettyprinter-configurable
           tests: False

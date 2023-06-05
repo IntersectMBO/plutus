@@ -17,7 +17,6 @@ module PlutusTx.Builtins.Internal where
 import Codec.Serialise
 import Control.DeepSeq (NFData (..))
 import Control.Monad.Trans.Writer.Strict (runWriter)
-import Crypto qualified
 import Data.ByteArray qualified as BA
 import Data.ByteString qualified as BS
 import Data.ByteString.Hash qualified as Hash
@@ -30,11 +29,17 @@ import Data.Kind (Type)
 import Data.Text as Text (Text, empty)
 import Data.Text.Encoding as Text (decodeUtf8, encodeUtf8)
 import PlutusCore.Builtin.Emitter (Emitter (Emitter))
+import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
+import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
+import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
+import PlutusCore.Crypto.Ed25519 qualified
+import PlutusCore.Crypto.Secp256k1 qualified
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Evaluation.Result (EvaluationResult (EvaluationFailure, EvaluationSuccess))
 import PlutusCore.Pretty (Pretty (..))
 import PlutusTx.Utils (mustBeReplaced)
 import Prettyprinter (viaShow)
+
 
 {-
 We do not use qualified import because the whole module contains off-chain code
@@ -241,7 +246,7 @@ blake2b_256 (BuiltinByteString b) = BuiltinByteString $ Hash.blake2b_256 b
 {-# NOINLINE verifyEd25519Signature #-}
 verifyEd25519Signature :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString -> BuiltinBool
 verifyEd25519Signature (BuiltinByteString vk) (BuiltinByteString msg) (BuiltinByteString sig) =
-  case Crypto.verifyEd25519Signature_V1 vk msg sig of
+  case PlutusCore.Crypto.Ed25519.verifyEd25519Signature_V1 vk msg sig of
     Emitter f -> case runWriter f of
       (res, logs) -> traceAll logs $ case res of
         EvaluationFailure   -> mustBeReplaced "Ed25519 signature verification errored."
@@ -254,7 +259,7 @@ verifyEcdsaSecp256k1Signature ::
   BuiltinByteString ->
   BuiltinBool
 verifyEcdsaSecp256k1Signature (BuiltinByteString vk) (BuiltinByteString msg) (BuiltinByteString sig) =
-  case Crypto.verifyEcdsaSecp256k1Signature vk msg sig of
+  case PlutusCore.Crypto.Secp256k1.verifyEcdsaSecp256k1Signature vk msg sig of
     Emitter f -> case runWriter f of
       (res, logs) -> traceAll logs $ case res of
         EvaluationFailure   -> mustBeReplaced "ECDSA SECP256k1 signature verification errored."
@@ -267,7 +272,7 @@ verifySchnorrSecp256k1Signature ::
   BuiltinByteString ->
   BuiltinBool
 verifySchnorrSecp256k1Signature (BuiltinByteString vk) (BuiltinByteString msg) (BuiltinByteString sig) =
-  case Crypto.verifySchnorrSecp256k1Signature vk msg sig of
+  case PlutusCore.Crypto.Secp256k1.verifySchnorrSecp256k1Signature vk msg sig of
     Emitter f -> case runWriter f of
       (res, logs) -> traceAll logs $ case res of
         EvaluationFailure   -> mustBeReplaced "Schnorr SECP256k1 signature verification errored."
@@ -505,3 +510,145 @@ equalsData (BuiltinData b1) (BuiltinData b2) = BuiltinBool $ b1 Haskell.== b2
 {-# NOINLINE serialiseData #-}
 serialiseData :: BuiltinData -> BuiltinByteString
 serialiseData (BuiltinData b) = BuiltinByteString $ BSL.toStrict $ serialise b
+
+
+{-
+BLS12_381
+-}
+
+{- | Note [Wrapping the BLS12-381 types in PlutusTx]
+
+As explained in Note [Wrapping the BLS12-381 types in Plutus Core], the types
+exported by the Haskell bindings for the `blst` library are ForeignPtrs which
+have to be wrapped in newtypes to keep the PLC builtin machinery happy.
+However, there's a further complication in PlutusTx: if you try to use the
+newtypes directly then the plugin sees through the newtypes to the foreign
+pointers and fails because it doesn't know how to handle them.  To avoid this we
+further wrap the newtypes in datatypes here.  We could have done this in Plutus
+Core by using `data` instead of `newtype`, but then the code here dealing with
+BLS types and builtins doesn't look like the code for the other builtins.
+Because of this it seemed safer and more uniform to add the datatype wrapper
+here rather than in the Plutus Core code.
+-}
+
+---------------- G1 ----------------
+
+data BuiltinBLS12_381_G1_Element = BuiltinBLS12_381_G1_Element BLS12_381.G1.Element
+
+instance Haskell.Show BuiltinBLS12_381_G1_Element where
+    show (BuiltinBLS12_381_G1_Element a) = show a
+instance Haskell.Eq BuiltinBLS12_381_G1_Element where
+    (==) (BuiltinBLS12_381_G1_Element a) (BuiltinBLS12_381_G1_Element b) = (==) a b
+instance NFData BuiltinBLS12_381_G1_Element where
+     rnf (BuiltinBLS12_381_G1_Element d) = rnf d
+instance Pretty BuiltinBLS12_381_G1_Element where
+    pretty (BuiltinBLS12_381_G1_Element a) = pretty a
+
+{-# NOINLINE bls12_381_G1_equals #-}
+bls12_381_G1_equals :: BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G1_Element -> BuiltinBool
+bls12_381_G1_equals a b = BuiltinBool $ coerce ((==) @BuiltinBLS12_381_G1_Element) a b
+
+{-# NOINLINE bls12_381_G1_add #-}
+bls12_381_G1_add :: BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G1_Element
+bls12_381_G1_add (BuiltinBLS12_381_G1_Element a) (BuiltinBLS12_381_G1_Element b) = BuiltinBLS12_381_G1_Element (BLS12_381.G1.add a b)
+
+{-# NOINLINE bls12_381_G1_neg #-}
+bls12_381_G1_neg :: BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G1_Element
+bls12_381_G1_neg (BuiltinBLS12_381_G1_Element a) = BuiltinBLS12_381_G1_Element (BLS12_381.G1.neg a)
+
+{-# NOINLINE bls12_381_G1_scalarMul #-}
+bls12_381_G1_scalarMul :: BuiltinInteger -> BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G1_Element
+bls12_381_G1_scalarMul n (BuiltinBLS12_381_G1_Element a) = BuiltinBLS12_381_G1_Element (BLS12_381.G1.scalarMul n a)
+
+{-# NOINLINE bls12_381_G1_compress #-}
+bls12_381_G1_compress :: BuiltinBLS12_381_G1_Element -> BuiltinByteString
+bls12_381_G1_compress (BuiltinBLS12_381_G1_Element a) = BuiltinByteString (BLS12_381.G1.compress a)
+
+{-# NOINLINE bls12_381_G1_uncompress #-}
+bls12_381_G1_uncompress :: BuiltinByteString -> BuiltinBLS12_381_G1_Element
+bls12_381_G1_uncompress (BuiltinByteString b) =
+    case BLS12_381.G1.uncompress b of
+      Left err -> mustBeReplaced $ "BSL12_381 G1 uncompression error: " ++ show err
+      Right a  -> BuiltinBLS12_381_G1_Element a
+
+{-# NOINLINE bls12_381_G1_hashToGroup #-}
+bls12_381_G1_hashToGroup ::  BuiltinByteString -> BuiltinByteString -> BuiltinBLS12_381_G1_Element
+bls12_381_G1_hashToGroup (BuiltinByteString msg) (BuiltinByteString dst) =
+    case BLS12_381.G1.hashToGroup msg dst of
+      Left err -> mustBeReplaced $ show err
+      Right p  -> BuiltinBLS12_381_G1_Element p
+
+---------------- G2 ----------------
+
+data BuiltinBLS12_381_G2_Element = BuiltinBLS12_381_G2_Element BLS12_381.G2.Element
+
+instance Haskell.Show BuiltinBLS12_381_G2_Element where
+    show (BuiltinBLS12_381_G2_Element a) = show a
+instance Haskell.Eq BuiltinBLS12_381_G2_Element where
+    (==) (BuiltinBLS12_381_G2_Element a) (BuiltinBLS12_381_G2_Element b) = (==) a b
+instance NFData BuiltinBLS12_381_G2_Element where
+     rnf (BuiltinBLS12_381_G2_Element d) = rnf d
+instance Pretty BuiltinBLS12_381_G2_Element where
+    pretty (BuiltinBLS12_381_G2_Element a) = pretty a
+
+{-# NOINLINE bls12_381_G2_equals #-}
+bls12_381_G2_equals :: BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_G2_Element -> BuiltinBool
+bls12_381_G2_equals a b = BuiltinBool $ coerce ((==) @BuiltinBLS12_381_G2_Element) a b
+
+{-# NOINLINE bls12_381_G2_add #-}
+bls12_381_G2_add :: BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_G2_Element
+bls12_381_G2_add (BuiltinBLS12_381_G2_Element a) (BuiltinBLS12_381_G2_Element b) = BuiltinBLS12_381_G2_Element (BLS12_381.G2.add a b)
+
+{-# NOINLINE bls12_381_G2_neg #-}
+bls12_381_G2_neg :: BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_G2_Element
+bls12_381_G2_neg (BuiltinBLS12_381_G2_Element a) = BuiltinBLS12_381_G2_Element (BLS12_381.G2.neg a)
+
+{-# NOINLINE bls12_381_G2_scalarMul #-}
+bls12_381_G2_scalarMul :: BuiltinInteger -> BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_G2_Element
+bls12_381_G2_scalarMul n (BuiltinBLS12_381_G2_Element a) = BuiltinBLS12_381_G2_Element (BLS12_381.G2.scalarMul n a)
+
+{-# NOINLINE bls12_381_G2_compress #-}
+bls12_381_G2_compress :: BuiltinBLS12_381_G2_Element -> BuiltinByteString
+bls12_381_G2_compress (BuiltinBLS12_381_G2_Element a) = BuiltinByteString (BLS12_381.G2.compress a)
+
+{-# NOINLINE bls12_381_G2_uncompress #-}
+bls12_381_G2_uncompress :: BuiltinByteString -> BuiltinBLS12_381_G2_Element
+bls12_381_G2_uncompress (BuiltinByteString b) =
+    case BLS12_381.G2.uncompress b of
+      Left err -> mustBeReplaced $ "BSL12_381 G2 uncompression error: " ++ show err
+      Right a  -> BuiltinBLS12_381_G2_Element a
+
+{-# NOINLINE bls12_381_G2_hashToGroup #-}
+bls12_381_G2_hashToGroup ::  BuiltinByteString -> BuiltinByteString -> BuiltinBLS12_381_G2_Element
+bls12_381_G2_hashToGroup (BuiltinByteString msg) (BuiltinByteString dst) =
+    case BLS12_381.G2.hashToGroup msg dst of
+      Left err -> mustBeReplaced $ show err
+      Right p  -> BuiltinBLS12_381_G2_Element p
+
+---------------- Pairing ----------------
+
+data BuiltinBLS12_381_MlResult = BuiltinBLS12_381_MlResult BLS12_381.Pairing.MlResult
+
+instance Haskell.Show BuiltinBLS12_381_MlResult where
+    show (BuiltinBLS12_381_MlResult a) = show a
+instance Haskell.Eq BuiltinBLS12_381_MlResult where
+    (==) (BuiltinBLS12_381_MlResult a) (BuiltinBLS12_381_MlResult b) = (==) a b
+instance NFData BuiltinBLS12_381_MlResult where
+     rnf (BuiltinBLS12_381_MlResult a) = rnf a
+instance Pretty BuiltinBLS12_381_MlResult where
+    pretty (BuiltinBLS12_381_MlResult a) = pretty a
+
+{-# NOINLINE bls12_381_millerLoop #-}
+bls12_381_millerLoop :: BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_MlResult
+bls12_381_millerLoop (BuiltinBLS12_381_G1_Element a) (BuiltinBLS12_381_G2_Element b) =
+    BuiltinBLS12_381_MlResult $ BLS12_381.Pairing.millerLoop a b
+
+{-# NOINLINE bls12_381_mulMlResult #-}
+bls12_381_mulMlResult :: BuiltinBLS12_381_MlResult -> BuiltinBLS12_381_MlResult -> BuiltinBLS12_381_MlResult
+bls12_381_mulMlResult (BuiltinBLS12_381_MlResult a) (BuiltinBLS12_381_MlResult b)
+    = BuiltinBLS12_381_MlResult $ BLS12_381.Pairing.mulMlResult a b
+
+{-# NOINLINE bls12_381_finalVerify #-}
+bls12_381_finalVerify ::  BuiltinBLS12_381_MlResult ->  BuiltinBLS12_381_MlResult -> BuiltinBool
+bls12_381_finalVerify (BuiltinBLS12_381_MlResult a) (BuiltinBLS12_381_MlResult b)
+    = BuiltinBool $ BLS12_381.Pairing.finalVerify a b

@@ -3,19 +3,19 @@ program 1.1.0 ((\unitval ->
                      (\tup ->
                         (\index ->
                            force ifThenElse
-                             (equalsInteger index 1)
+                             (equalsInteger 1 index)
                              (\ds ->
                                 constr 1 [ ((\tup ->
                                                (\index ->
                                                   force ifThenElse
-                                                    (equalsInteger index 0)
+                                                    (equalsInteger 0 index)
                                                     (\ds ->
                                                        constr 0 [ ((\tup ->
                                                                       force ifThenElse
                                                                         (equalsInteger
+                                                                           0
                                                                            (force (force fstPair)
-                                                                              tup)
-                                                                           0)
+                                                                              tup))
                                                                         (\ds ->
                                                                            (\t ->
                                                                               (\arg ->
@@ -25,15 +25,15 @@ program 1.1.0 ((\unitval ->
                                                                                           constr 0 [ ((\index ->
                                                                                                          force ifThenElse
                                                                                                            (equalsInteger
-                                                                                                              index
-                                                                                                              1)
+                                                                                                              1
+                                                                                                              index)
                                                                                                            (\ds ->
                                                                                                               constr 0 [  ])
                                                                                                            (\ds ->
                                                                                                               force ifThenElse
                                                                                                                 (equalsInteger
-                                                                                                                   index
-                                                                                                                   0)
+                                                                                                                   0
+                                                                                                                   index)
                                                                                                                 (\ds ->
                                                                                                                    constr 1 [  ])
                                                                                                                 (\ds ->
@@ -54,15 +54,15 @@ program 1.1.0 ((\unitval ->
                                                                                                    , ((\index ->
                                                                                                          force ifThenElse
                                                                                                            (equalsInteger
-                                                                                                              index
-                                                                                                              1)
+                                                                                                              1
+                                                                                                              index)
                                                                                                            (\ds ->
                                                                                                               constr 0 [  ])
                                                                                                            (\ds ->
                                                                                                               force ifThenElse
                                                                                                                 (equalsInteger
-                                                                                                                   index
-                                                                                                                   0)
+                                                                                                                   0
+                                                                                                                   index)
                                                                                                                 (\ds ->
                                                                                                                    constr 1 [  ])
                                                                                                                 (\ds ->
@@ -104,7 +104,7 @@ program 1.1.0 ((\unitval ->
                                                                               tup)))) ])
                                                     (\ds ->
                                                        force ifThenElse
-                                                         (equalsInteger index 1)
+                                                         (equalsInteger 1 index)
                                                          (\ds -> constr 1 [])
                                                          (\ds ->
                                                             (\thunk ->
@@ -123,7 +123,7 @@ program 1.1.0 ((\unitval ->
                                                        tup)))) ])
                              (\ds ->
                                 force ifThenElse
-                                  (equalsInteger index 0)
+                                  (equalsInteger 0 index)
                                   (\ds ->
                                      constr 0 [ (unIData
                                                    (force headList

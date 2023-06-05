@@ -307,5 +307,3 @@ ival : ∀ b → Value (builtin b / refl)
 ival b = V-I b base
 -- -}
 ```
-
- 

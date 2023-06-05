@@ -52,6 +52,10 @@ import Hedgehog.Range qualified as Range
    Haskell result agreee to within a factor of 1/100 (one percent).
 -}
 
+-- | Maximum allowable difference beween R result and Haskell result.
+epsilon :: Double
+epsilon = 1/100
+
 {-
    The tests here use Haskell costing functions (in 'costModelsR' from
    'CreateBuiltinCostModel.hs') which are loaded directly from R, based purely
@@ -102,7 +106,7 @@ data TestDomain
 (~=) :: CostingInteger -> CostingInteger -> Bool
 x ~= y
   | x==0 && y==0 = True
-  | otherwise = err < 1/100
+  | otherwise = err < epsilon
     where x' = fromSatInt x :: Double
           y' = fromSatInt y :: Double
           err = abs ((x'-y')/y')
@@ -396,5 +400,24 @@ main =
                     , $(genTest 2 "mkPairData") Everywhere
                     , $(genTest 1 "mkNilData")
                     , $(genTest 1 "mkNilPairData")
+
+                    -- BLS
+                    , $(genTest 2 "bls12_381_G1_add")         Everywhere
+                    , $(genTest 1 "bls12_381_G1_neg")
+                    , $(genTest 2 "bls12_381_G1_scalarMul")   Everywhere
+                    , $(genTest 2 "bls12_381_G1_equal")       Everywhere
+                    , $(genTest 1 "bls12_381_G1_compress")
+                    , $(genTest 1 "bls12_381_G1_uncompress")
+                    , $(genTest 2 "bls12_381_G1_hashToGroup") Everywhere
+                    , $(genTest 2 "bls12_381_G2_add")         Everywhere
+                    , $(genTest 1 "bls12_381_G2_neg")
+                    , $(genTest 2 "bls12_381_G2_scalarMul")   Everywhere
+                    , $(genTest 2 "bls12_381_G2_equal")       Everywhere
+                    , $(genTest 1 "bls12_381_G2_compress")
+                    , $(genTest 1 "bls12_381_G2_uncompress")
+                    , $(genTest 2 "bls12_381_G2_hashToGroup") Everywhere
+                    , $(genTest 2 "bls12_381_millerLoop")     Everywhere
+                    , $(genTest 2 "bls12_381_mulMlResult")    Everywhere
+                    , $(genTest 2 "bls12_381_finalVerify")    Everywhere
                     ]
 

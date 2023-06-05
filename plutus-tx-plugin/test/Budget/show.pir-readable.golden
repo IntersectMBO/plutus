@@ -17,7 +17,7 @@ letrec
           ~q : integer = quotientInteger n y
         in
         Bool_match
-          (ifThenElse {Bool} (equalsInteger q 0) True False)
+          (ifThenElse {Bool} (equalsInteger 0 q) True False)
           {all dead. List integer}
           (/\dead -> Cons {integer} (remainderInteger n y) acc)
           (/\dead -> go (Cons {integer} (remainderInteger n y) acc) q)
@@ -61,14 +61,14 @@ letrec
                   Cons
                     {string}
                     (Bool_match
-                       (ifThenElse {Bool} (equalsInteger digit 0) True False)
+                       (ifThenElse {Bool} (equalsInteger 0 digit) True False)
                        {all dead. string}
                        (/\dead -> "0")
                        (/\dead ->
                           Bool_match
                             (ifThenElse
                                {Bool}
-                               (equalsInteger digit 1)
+                               (equalsInteger 1 digit)
                                True
                                False)
                             {all dead. string}
@@ -77,7 +77,7 @@ letrec
                                Bool_match
                                  (ifThenElse
                                     {Bool}
-                                    (equalsInteger digit 2)
+                                    (equalsInteger 2 digit)
                                     True
                                     False)
                                  {all dead. string}
@@ -86,7 +86,7 @@ letrec
                                     Bool_match
                                       (ifThenElse
                                          {Bool}
-                                         (equalsInteger digit 3)
+                                         (equalsInteger 3 digit)
                                          True
                                          False)
                                       {all dead. string}
@@ -95,7 +95,7 @@ letrec
                                          Bool_match
                                            (ifThenElse
                                               {Bool}
-                                              (equalsInteger digit 4)
+                                              (equalsInteger 4 digit)
                                               True
                                               False)
                                            {all dead. string}
@@ -104,7 +104,7 @@ letrec
                                               Bool_match
                                                 (ifThenElse
                                                    {Bool}
-                                                   (equalsInteger digit 5)
+                                                   (equalsInteger 5 digit)
                                                    True
                                                    False)
                                                 {all dead. string}
@@ -113,7 +113,7 @@ letrec
                                                    Bool_match
                                                      (ifThenElse
                                                         {Bool}
-                                                        (equalsInteger digit 6)
+                                                        (equalsInteger 6 digit)
                                                         True
                                                         False)
                                                      {all dead. string}
@@ -123,8 +123,8 @@ letrec
                                                           (ifThenElse
                                                              {Bool}
                                                              (equalsInteger
-                                                                digit
-                                                                7)
+                                                                7
+                                                                digit)
                                                              True
                                                              False)
                                                           {all dead. string}
@@ -134,8 +134,8 @@ letrec
                                                                (ifThenElse
                                                                   {Bool}
                                                                   (equalsInteger
-                                                                     digit
-                                                                     8)
+                                                                     8
+                                                                     digit)
                                                                   True
                                                                   False)
                                                                {all dead.
@@ -146,8 +146,8 @@ letrec
                                                                     (ifThenElse
                                                                        {Bool}
                                                                        (equalsInteger
-                                                                          digit
-                                                                          9)
+                                                                          9
+                                                                          digit)
                                                                        True
                                                                        False)
                                                                     {string}
@@ -176,24 +176,24 @@ let
           (/\dead -> `$w$cshowsPrec` x)
           (/\dead ->
              Bool_match
-               (ifThenElse {Bool} (equalsInteger x 10) True False)
+               (ifThenElse {Bool} (equalsInteger 10 x) True False)
                {all dead. List string -> List string}
                (/\dead -> \(ds : List string) -> Cons {string} "a" ds)
                (/\dead ->
                   Bool_match
-                    (ifThenElse {Bool} (equalsInteger x 11) True False)
+                    (ifThenElse {Bool} (equalsInteger 11 x) True False)
                     {all dead. List string -> List string}
                     (/\dead -> \(ds : List string) -> Cons {string} "b" ds)
                     (/\dead ->
                        Bool_match
-                         (ifThenElse {Bool} (equalsInteger x 12) True False)
+                         (ifThenElse {Bool} (equalsInteger 12 x) True False)
                          {all dead. List string -> List string}
                          (/\dead -> \(ds : List string) -> Cons {string} "c" ds)
                          (/\dead ->
                             Bool_match
                               (ifThenElse
                                  {Bool}
-                                 (equalsInteger x 13)
+                                 (equalsInteger 13 x)
                                  True
                                  False)
                               {all dead. List string -> List string}
@@ -203,7 +203,7 @@ let
                                  Bool_match
                                    (ifThenElse
                                       {Bool}
-                                      (equalsInteger x 14)
+                                      (equalsInteger 14 x)
                                       True
                                       False)
                                    {all dead. List string -> List string}
@@ -214,7 +214,7 @@ let
                                       Bool_match
                                         (ifThenElse
                                            {Bool}
-                                           (equalsInteger x 15)
+                                           (equalsInteger 15 x)
                                            True
                                            False)
                                         {List string -> List string}
@@ -240,7 +240,7 @@ letrec
           {all dead. List integer}
           (/\dead -> Nil {integer})
           (/\dead ->
-             Cons {integer} x (`$fEnumBool_$cenumFromTo` (addInteger x 1) y))
+             Cons {integer} x (`$fEnumBool_$cenumFromTo` (addInteger 1 x) y))
           {all dead. dead}
 in
 let
@@ -264,7 +264,7 @@ letrec
               (ys : List a) ->
                /\dead ->
                  Bool_match
-                   (ifThenElse {Bool} (equalsInteger ds 1) True False)
+                   (ifThenElse {Bool} (equalsInteger 1 ds) True False)
                    {all dead. Tuple2 (List a) (List a)}
                    (/\dead ->
                       Tuple2
@@ -300,7 +300,7 @@ letrec
           (/\dead -> eta)
           (\(x : string)
             (xs : List string) ->
-             /\dead -> go xs (addInteger eta 1))
+             /\dead -> go xs (addInteger 1 eta))
           {all dead. dead}
 in
 let
@@ -467,6 +467,7 @@ let
         d
 in
 multiplyInteger
+  2
   (trace
      {integer}
      (let
@@ -537,4 +538,3 @@ multiplyInteger
                                          ww
                                          (Cons {string} ")" x)))))))))))))
      e)
-  2
