@@ -31,6 +31,36 @@ interveningLambda = runQuote $ do
         arg = mkConstant @Integer () 1
     pure $ Force () $ Apply () lam arg
 
+-- | The `Delay` should be floated into the lambda.
+floatDelay1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+floatDelay1 = runQuote $ do
+    a <- freshName "a"
+    let body = Apply () (Apply () (Builtin () PLC.AddInteger) (Force () (Var () a))) (Force () (Var () a))
+        lam = LamAbs () a body
+    pure $ Apply () lam (Delay () (mkConstant @Integer () 1))
+
+-- | The `Delay` should not be floated into the lambda, because the argument (1 + 2)
+-- is not work-free.
+floatDelay2 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+floatDelay2 = runQuote $ do
+    a <- freshName "a"
+    let body = Apply () (Apply () (Builtin () PLC.AddInteger) (Force () (Var () a))) (Force () (Var () a))
+        lam = LamAbs () a body
+        arg = Apply () (Apply () (Builtin () PLC.AddInteger) (mkConstant @Integer () 1)) (mkConstant @Integer () 2)
+    pure $ Apply () lam (Delay () arg)
+
+-- | The `Delay` should not be floated into the lambda in the first simplifier iteration,
+-- because one of the occurrences of `a` is not under `Force`. It should be floated into
+-- the lambda in the second simplifier iteration, after `b` is inlined.
+floatDelay3 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+floatDelay3 = runQuote $ do
+    a <- freshName "a"
+    b <- freshName "b"
+    let secondArg = Force () (Apply () (LamAbs () b (Var () b)) (Var () a))
+        body = Apply () (Apply () (Builtin () PLC.AddInteger) (Force () (Var () a))) secondArg
+        lam = LamAbs () a body
+    pure $ Apply () lam (Delay () (mkConstant @Integer () 1))
+
 basicInline :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 basicInline = runQuote $ do
     n <- freshName "a"
@@ -45,6 +75,7 @@ mkInlinePurityTest termToInline = runQuote $ do
     -- In `[(\a . \b . a) termToInline]`, `termToInline` will be inlined
     -- if and only if it is pure.
     Apply () (LamAbs () a $ LamAbs () b $ Var () a) <$> termToInline
+
 
 -- | A single @Var@ is pure.
 inlinePure1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
@@ -110,8 +141,8 @@ multiApp = runQuote $ do
     a <- freshName "a"
     b <- freshName "b"
     c <- freshName "c"
-    let lam = LamAbs () a $ LamAbs () b $ LamAbs () c $ mkIterApp () (Var () c) [Var () a, Var () b]
-        app = mkIterApp () lam [mkConstant @Integer () 1, mkConstant @Integer () 2, mkConstant @Integer () 3]
+    let lam = LamAbs () a $ LamAbs () b $ LamAbs () c $ mkIterAppNoAnn (Var () c) [Var () a, Var () b]
+        app = mkIterAppNoAnn lam [mkConstant @Integer () 1, mkConstant @Integer () 2, mkConstant @Integer () 3]
     pure app
 
 -- TODO Fix duplication with other golden tests, quite annoying
@@ -133,6 +164,9 @@ test_simplify =
         [ goldenVsSimplified "basic" basic
         , goldenVsSimplified "nested" nested
         , goldenVsSimplified "extraDelays" extraDelays
+        , goldenVsSimplified "floatDelay1" floatDelay1
+        , goldenVsSimplified "floatDelay2" floatDelay2
+        , goldenVsSimplified "floatDelay3" floatDelay3
         , goldenVsSimplified "interveningLambda" interveningLambda
         , goldenVsSimplified "basicInline" basicInline
         , goldenVsSimplified "inlinePure1" inlinePure1

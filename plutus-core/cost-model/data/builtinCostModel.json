@@ -70,6 +70,188 @@
             "type": "constant_cost"
         }
     },
+    "bls12_381_G1_add": {
+        "cpu": {
+            "arguments": 1046420,
+            "type": "constant_cost"
+        },
+        "memory": {
+            "arguments": 18,
+            "type": "constant_cost"
+        }
+    },
+    "bls12_381_G1_compress": {
+        "cpu": {
+            "arguments": 3387741,
+            "type": "constant_cost"
+        },
+        "memory": {
+            "arguments": 6,
+            "type": "constant_cost"
+        }
+    },
+    "bls12_381_G1_equal": {
+        "cpu": {
+            "arguments": 545063,
+            "type": "constant_cost"
+        },
+        "memory": {
+            "arguments": 1,
+            "type": "constant_cost"
+        }
+    },
+    "bls12_381_G1_hashToGroup": {
+        "cpu": {
+            "arguments": {
+                "intercept": 66311195,
+                "slope": 23097
+            },
+            "type": "linear_in_x"
+        },
+        "memory": {
+            "arguments": 18,
+            "type": "constant_cost"
+        }
+    },
+    "bls12_381_G1_neg": {
+        "cpu": {
+            "arguments": 292890,
+            "type": "constant_cost"
+        },
+        "memory": {
+            "arguments": 18,
+            "type": "constant_cost"
+        }
+    },
+    "bls12_381_G1_scalarMul": {
+        "cpu": {
+            "arguments": {
+                "intercept": 94607019,
+                "slope": 87060
+            },
+            "type": "linear_in_x"
+        },
+        "memory": {
+            "arguments": 18,
+            "type": "constant_cost"
+        }
+    },
+    "bls12_381_G1_uncompress": {
+        "cpu": {
+            "arguments": 16598737,
+            "type": "constant_cost"
+        },
+        "memory": {
+            "arguments": 18,
+            "type": "constant_cost"
+        }
+    },
+    "bls12_381_G2_add": {
+        "cpu": {
+            "arguments": 2359410,
+            "type": "constant_cost"
+        },
+        "memory": {
+            "arguments": 36,
+            "type": "constant_cost"
+        }
+    },
+    "bls12_381_G2_compress": {
+        "cpu": {
+            "arguments": 3973992,
+            "type": "constant_cost"
+        },
+        "memory": {
+            "arguments": 12,
+            "type": "constant_cost"
+        }
+    },
+    "bls12_381_G2_equal": {
+        "cpu": {
+            "arguments": 1102635,
+            "type": "constant_cost"
+        },
+        "memory": {
+            "arguments": 1,
+            "type": "constant_cost"
+        }
+    },
+    "bls12_381_G2_hashToGroup": {
+        "cpu": {
+            "arguments": {
+                "intercept": 204557793,
+                "slope": 23271
+            },
+            "type": "linear_in_x"
+        },
+        "memory": {
+            "arguments": 36,
+            "type": "constant_cost"
+        }
+    },
+    "bls12_381_G2_neg": {
+        "cpu": {
+            "arguments": 307813,
+            "type": "constant_cost"
+        },
+        "memory": {
+            "arguments": 36,
+            "type": "constant_cost"
+        }
+    },
+    "bls12_381_G2_scalarMul": {
+        "cpu": {
+            "arguments": {
+                "intercept": 190191402,
+                "slope": 85902
+            },
+            "type": "linear_in_x"
+        },
+        "memory": {
+            "arguments": 36,
+            "type": "constant_cost"
+        }
+    },
+    "bls12_381_G2_uncompress": {
+        "cpu": {
+            "arguments": 33191512,
+            "type": "constant_cost"
+        },
+        "memory": {
+            "arguments": 36,
+            "type": "constant_cost"
+        }
+    },
+    "bls12_381_finalVerify": {
+        "cpu": {
+            "arguments": 388656972,
+            "type": "constant_cost"
+        },
+        "memory": {
+            "arguments": 1,
+            "type": "constant_cost"
+        }
+    },
+    "bls12_381_mulMlResult": {
+        "cpu": {
+            "arguments": 2544991,
+            "type": "constant_cost"
+        },
+        "memory": {
+            "arguments": 72,
+            "type": "constant_cost"
+        }
+    },
+    "bls12_381_millerLoop": {
+        "cpu": {
+            "arguments": 402099373,
+            "type": "constant_cost"
+        },
+        "memory": {
+            "arguments": 72,
+            "type": "constant_cost"
+        }
+    },
     "chooseData": {
         "cpu": {
             "arguments": 19537,

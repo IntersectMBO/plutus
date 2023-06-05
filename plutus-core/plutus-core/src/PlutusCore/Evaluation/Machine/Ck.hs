@@ -34,7 +34,7 @@ import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.Evaluation.Result
 import PlutusCore.Name
-import PlutusCore.Pretty (PrettyConfigPlc, PrettyConst, PrettyParens)
+import PlutusCore.Pretty
 import PlutusCore.Subst
 
 import Control.Lens ((^?))
@@ -62,7 +62,9 @@ data CkValue uni fun =
   | VIWrap (Type TyName uni ()) (Type TyName uni ()) (CkValue uni fun)
   | VBuiltin (Term TyName Name uni fun ()) (BuiltinRuntime (CkValue uni fun))
   | VConstr (Type TyName uni ()) Word64 [CkValue uni fun]
-    deriving stock (Show)
+
+deriving stock instance (GShow uni, Everywhere uni Show, Show fun, Closed uni)
+    => Show (CkValue uni fun)
 
 -- | Take pieces of a possibly partial builtin application and either create a 'CkValue' using
 -- 'makeKnown' or a partial builtin application depending on whether the built-in function is
@@ -94,10 +96,7 @@ data CkEnv uni fun s = CkEnv
     , ckEnvMayEmitRef :: Maybe (STRef s (DList Text))
     }
 
-instance
-        ( PrettyParens (SomeTypeIn uni), Closed uni
-        , uni `Everywhere` PrettyConst, Pretty fun
-        ) => PrettyBy PrettyConfigPlc (CkValue uni fun) where
+instance (PrettyUni uni, Pretty fun) => PrettyBy PrettyConfigPlc (CkValue uni fun) where
     prettyBy cfg = prettyBy cfg . ckValueToTerm
 
 data CkUserError =
@@ -137,9 +136,9 @@ instance HasConstant (CkValue uni fun) where
     fromConstant = VCon
 
 data Frame uni fun
-    = FrameApplyFun (CkValue uni fun)                       -- ^ @[V _]@
-    | FrameApplyArg (Term TyName Name uni fun ())           -- ^ @[_ N]@
-    | FrameApplyValues ![CkValue uni fun]                   -- ^ @[_ V...]@
+    = FrameAwaitArg (CkValue uni fun)                       -- ^ @[V _]@
+    | FrameAwaitFunTerm (Term TyName Name uni fun ())       -- ^ @[_ N]@
+    | FrameAwaitFunValue (CkValue uni fun)                  -- ^ @[_ V]@
     | FrameTyInstArg (Type TyName uni ())                   -- ^ @{_ A}@
     | FrameUnwrap                                           -- ^ @(unwrap _)@
     | FrameIWrap (Type TyName uni ()) (Type TyName uni ())  -- ^ @(iwrap A B _)@
@@ -182,7 +181,7 @@ runCkM runtime emitting a = runST $ do
 (|>)
     :: Context uni fun -> Term TyName Name uni fun () -> CkM uni fun s (Term TyName Name uni fun ())
 stack |> TyInst  _ fun ty        = FrameTyInstArg ty  : stack |> fun
-stack |> Apply   _ fun arg       = FrameApplyArg arg  : stack |> fun
+stack |> Apply   _ fun arg       = FrameAwaitFunTerm arg  : stack |> fun
 stack |> IWrap   _ pat arg term  = FrameIWrap pat arg : stack |> term
 stack |> Unwrap  _ term          = FrameUnwrap        : stack |> term
 stack |> TyAbs   _ tn k term     = stack <| VTyAbs tn k term
@@ -218,11 +217,9 @@ _     |> var@Var{}               =
     :: Context uni fun -> CkValue uni fun -> CkM uni fun s (Term TyName Name uni fun ())
 []                         <| val     = pure $ ckValueToTerm val
 FrameTyInstArg ty  : stack <| fun     = instantiateEvaluate stack ty fun
-FrameApplyArg arg  : stack <| fun     = FrameApplyFun fun : stack |> arg
-FrameApplyFun fun  : stack <| arg     = applyEvaluate stack fun arg
-FrameApplyValues args : stack <| fun  = case args of
-  []         -> stack <| fun
-  arg : rest -> applyEvaluate (FrameApplyValues rest : stack) fun arg
+FrameAwaitFunTerm arg  : stack <| fun = FrameAwaitArg fun : stack |> arg
+FrameAwaitArg fun  : stack <| arg     = applyEvaluate stack fun arg
+FrameAwaitFunValue arg : stack <| fun = applyEvaluate stack fun arg
 FrameIWrap pat arg : stack <| value   = stack <| VIWrap pat arg value
 FrameUnwrap        : stack <| wrapped = case wrapped of
     VIWrap _ _ term -> stack <| term
@@ -235,7 +232,10 @@ FrameConstr ty i todo done : stack <| e =
         []     -> stack <| VConstr ty i (reverse done')
 FrameCase cs : stack <| e = case e of
     VConstr _ i args -> case cs ^? wix i of
-        Just t  -> FrameApplyValues args : stack |> t
+        Just t  -> go (reverse args) stack |> t
+          where
+            go [] s         = s
+            go (arg:rest) s = go rest (FrameAwaitFunValue arg : s)
         Nothing -> throwingWithCause _MachineError (MissingCaseBranch i) (Just $ ckValueToTerm e)
     _ -> throwingWithCause _MachineError NonConstrScrutinized (Just $ ckValueToTerm e)
 
@@ -314,10 +314,7 @@ evaluateCkNoEmit runtime = fst . runCk runtime False
 
 -- | Evaluate a term using the CK machine with logging enabled. May throw a 'CkEvaluationException'.
 unsafeEvaluateCk
-    :: ( PrettyParens (SomeTypeIn uni), Closed uni
-       , Typeable uni, Typeable fun, uni `Everywhere` PrettyConst
-       , Pretty fun
-       )
+    :: ThrowableBuiltins uni fun
     => BuiltinsRuntime fun (CkValue uni fun)
     -> Term TyName Name uni fun ()
     -> (EvaluationResult (Term TyName Name uni fun ()), [Text])
@@ -325,10 +322,7 @@ unsafeEvaluateCk runtime = first unsafeExtractEvaluationResult . evaluateCk runt
 
 -- | Evaluate a term using the CK machine with logging disabled. May throw a 'CkEvaluationException'.
 unsafeEvaluateCkNoEmit
-    :: ( PrettyParens (SomeTypeIn uni), Closed uni
-       , Typeable uni, Typeable fun, uni `Everywhere` PrettyConst
-       , Pretty fun
-       )
+    :: ThrowableBuiltins uni fun
     => BuiltinsRuntime fun (CkValue uni fun)
     -> Term TyName Name uni fun ()
     -> EvaluationResult (Term TyName Name uni fun ())

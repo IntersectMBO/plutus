@@ -32,9 +32,10 @@ import PlutusIR.MkPir hiding (constr)
 import PlutusCore.Default qualified as PLC
 import PlutusCore.MkPlc qualified as PLC
 
-import Control.Monad.Except hiding (lift)
-import Control.Monad.Reader hiding (lift)
-import Control.Monad.State hiding (lift)
+import Control.Monad ((<=<))
+import Control.Monad.Except (ExceptT, runExceptT, throwError)
+import Control.Monad.Reader (MonadReader, ReaderT, ask, asks, local, runReaderT)
+import Control.Monad.State (StateT, gets, modify, runStateT)
 import Control.Monad.Trans qualified as Trans
 
 import Language.Haskell.TH qualified as TH hiding (newName)
@@ -349,7 +350,7 @@ compileTypeRep dt@TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeVars=tvs} =
                         (_, dtvd) <- mkTyVarDecl tyName typeKind
                         tvds <- traverse (uncurry mkTyVarDecl) tvNamesAndKinds
 
-                        let resultType = mkIterTyApp () (mkTyVar () dtvd) (fmap (mkTyVar () . snd) tvds)
+                        let resultType = mkIterTyAppNoAnn (mkTyVar () dtvd) (fmap (mkTyVar () . snd) tvds)
                         matchName <- safeFreshName (T.pack "match_" <> showName tyName)
 
                         -- See Note [Occurrences of recursive names]
@@ -467,7 +468,7 @@ compileConstructorClause dt@TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeV
                         -- The types are compiled in an (empty) local scope.
                         types <- flip runReaderT mempty $ sequence tyExprs'
 
-                        pure $ mkIterApp () (mkIterInst () constr types) lifts
+                        pure $ mkIterAppNoAnn (mkIterInstNoAnn constr types) lifts
                   ||]
     pure $ TH.clause [pat] (TH.normalB $ TH.unTypeQ rhsExpr) []
 

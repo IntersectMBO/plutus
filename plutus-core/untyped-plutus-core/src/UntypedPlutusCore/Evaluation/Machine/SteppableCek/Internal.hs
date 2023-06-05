@@ -17,6 +17,7 @@
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
 module UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal
@@ -47,15 +48,16 @@ import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Evaluation.Result
 import PlutusPrelude
+import Universe
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts (..))
-import UntypedPlutusCore.Evaluation.Machine.Cek.Internal hiding (Context (..), runCekDeBruijn)
+import UntypedPlutusCore.Evaluation.Machine.Cek.Internal hiding (Context (..), runCekDeBruijn,
+                                                          transferArgStack)
 import UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
 
 import Control.Lens hiding (Context)
 import Control.Monad
-import Control.Monad.Except
-import Data.DList qualified as DList
+import Control.Monad.Except (MonadError, catchError)
 import Data.List.Extras (wix)
 import Data.Proxy
 import Data.RandomAccessList.Class qualified as Env
@@ -93,18 +95,27 @@ instance Pretty (CekState uni fun ann) where
 
 -- | Similar to 'Cek.Internal.Context', but augmented with an 'ann'
 data Context uni fun ann
-    = FrameApplyFun ann !(CekValue uni fun ann) !(Context uni fun ann)                         -- ^ @[V _]@
-    | FrameApplyArg ann !(CekValEnv uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann) -- ^ @[_ N]@
-    | FrameApplyValues ann ![CekValue uni fun ann] !(Context uni fun ann)
+    = FrameAwaitArg ann !(CekValue uni fun ann) !(Context uni fun ann)                         -- ^ @[V _]@
+    | FrameAwaitFunTerm ann !(CekValEnv uni fun ann) !(NTerm uni fun ann) !(Context uni fun ann) -- ^ @[_ N]@
+    | FrameAwaitFunValue ann !(CekValue uni fun ann) !(Context uni fun ann)
     | FrameForce ann !(Context uni fun ann)                                               -- ^ @(force _)@
-    | FrameConstr ann !(CekValEnv uni fun ann) {-# UNPACK #-} !Word64 ![NTerm uni fun ann] !(DList.DList (CekValue uni fun ann)) !(Context uni fun ann)
+    | FrameConstr ann !(CekValEnv uni fun ann) {-# UNPACK #-} !Word64 ![NTerm uni fun ann] !(ArgStack uni fun ann) !(Context uni fun ann)
     | FrameCases ann !(CekValEnv uni fun ann) ![NTerm uni fun ann] !(Context uni fun ann)
     | NoFrame
-    deriving stock (Show)
+
+deriving stock instance (GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
+    => Show (Context uni fun ann)
+
+-- | Transfers an 'ArgStack' to a series of 'Context' frames.
+transferArgStack :: ann -> ArgStack uni fun ann -> Context uni fun ann -> Context uni fun ann
+transferArgStack ann = go
+  where
+    go EmptyStack c           = c
+    go (ConsStack arg rest) c = go rest (FrameAwaitFunValue ann arg c)
 
 computeCek
     :: forall uni fun ann s
-    . (PrettyUni uni fun, GivenCekReqs uni fun ann s)
+    . (ThrowableBuiltins uni fun, GivenCekReqs uni fun ann s)
     => Context uni fun ann
     -> CekValEnv uni fun ann
     -> NTerm uni fun ann
@@ -130,7 +141,7 @@ computeCek !ctx !env (Force _ body) = do
 -- s ; ρ ▻ [L M]  ↦  s , [_ (M,ρ)]  ; ρ ▻ L
 computeCek !ctx !env (Apply _ fun arg) = do
     stepAndMaybeSpend BApply
-    pure $ Computing (FrameApplyArg (termAnn fun) env arg ctx) env fun
+    pure $ Computing (FrameAwaitFunTerm (termAnn fun) env arg ctx) env fun
 -- s ; ρ ▻ abs α L  ↦  s ◅ abs α (L , ρ)
 -- s ; ρ ▻ con c  ↦  s ◅ con c
 -- s ; ρ ▻ builtin bn  ↦  s ◅ builtin bn arity arity [] [] ρ
@@ -143,8 +154,8 @@ computeCek !ctx !_ (Builtin _ bn) = do
 computeCek !ctx !env (Constr ann i es) = do
     stepAndMaybeSpend BConstr
     case es of
-        (t : rest) -> computeCek (FrameConstr ann env i rest mempty ctx) env t
-        _          -> returnCek ctx $ VConstr i []
+        (t : rest) -> computeCek (FrameConstr ann env i rest EmptyStack ctx) env t
+        _          -> returnCek ctx $ VConstr i EmptyStack
 -- s ; ρ ▻ case S C0 ... Cn  ↦  s , case _ (C0 ... Cn, ρ) ; ρ ▻ S
 computeCek !ctx !env (Case ann scrut cs) = do
     stepAndMaybeSpend BCase
@@ -155,7 +166,7 @@ computeCek !_ !_ (Error _) =
 
 returnCek
     :: forall uni fun ann s
-    . (PrettyUni uni fun, GivenCekReqs uni fun ann s)
+    . (ThrowableBuiltins uni fun, GivenCekReqs uni fun ann s)
     => Context uni fun ann
     -> CekValue uni fun ann
     -> CekM uni fun s (CekState uni fun ann)
@@ -167,27 +178,28 @@ returnCek NoFrame val = do
 -- s , {_ A} ◅ abs α M  ↦  s ; ρ ▻ M [ α / A ]*
 returnCek (FrameForce _ ctx) fun = forceEvaluate ctx fun
 -- s , [_ (M,ρ)] ◅ V  ↦  s , [V _] ; ρ ▻ M
-returnCek (FrameApplyArg _funAnn argVarEnv arg ctx) fun =
+returnCek (FrameAwaitFunTerm _funAnn argVarEnv arg ctx) fun =
     -- MAYBE: perhaps it is worth here to merge the _funAnn with argAnn
-    pure $ Computing (FrameApplyFun (termAnn arg) fun ctx) argVarEnv arg
+    pure $ Computing (FrameAwaitArg (termAnn arg) fun ctx) argVarEnv arg
 -- s , [(lam x (M,ρ)) _] ◅ V  ↦  s ; ρ [ x  ↦  V ] ▻ M
 -- FIXME: add rule for VBuiltin once it's in the specification.
-returnCek (FrameApplyFun _ fun ctx) arg =
+returnCek (FrameAwaitArg _ fun ctx) arg =
     applyEvaluate ctx fun arg
 -- s , [_ V1 .. Vn] ◅ lam x (M,ρ)  ↦  s , [_ V2 .. Vn]; ρ [ x  ↦  V1 ] ▻ M
-returnCek (FrameApplyValues ann args ctx) fun = case args of
-    (arg:rest) -> applyEvaluate (FrameApplyValues ann rest ctx) fun arg
-    _          -> returnCek ctx fun
+returnCek (FrameAwaitFunValue _ arg ctx) fun =
+    applyEvaluate ctx fun arg
 -- s , constr I V0 ... Vj-1 _ (Tj+1 ... Tn, ρ) ◅ Vj  ↦  s , constr i V0 ... Vj _ (Tj+2... Tn, ρ)  ; ρ ▻ Tj+1
 returnCek (FrameConstr ann env i todo done ctx) e = do
-    let done' = done `DList.snoc` e
+    let done' = ConsStack e done
     case todo of
         (next : todo') -> computeCek (FrameConstr ann env i todo' done' ctx) env next
-        _              -> returnCek ctx $ VConstr i (toList done')
+        _              -> returnCek ctx $ VConstr i done'
 -- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci
 returnCek (FrameCases ann env cs ctx) e = case e of
     (VConstr i args) -> case cs ^? wix i of
-        Just t  -> computeCek (FrameApplyValues ann args ctx) env t
+        Just t  ->
+              let ctx' = transferArgStack ann args ctx
+              in computeCek ctx' env t
         Nothing -> throwingDischarged _MachineError (MissingCaseBranch i) e
     _ -> throwingDischarged _MachineError NonConstrScrutinized e
 
@@ -199,7 +211,7 @@ returnCek (FrameCases ann env cs ctx) e = case e of
 -- if v is anything else, fail.
 forceEvaluate
     :: forall uni fun ann s
-    . (PrettyUni uni fun, GivenCekReqs uni fun ann s)
+    . (ThrowableBuiltins uni fun, GivenCekReqs uni fun ann s)
     => Context uni fun ann
     -> CekValue uni fun ann
     -> CekM uni fun s (CekState uni fun ann)
@@ -231,7 +243,7 @@ forceEvaluate !_ val =
 -- If v is anything else, fail.
 applyEvaluate
     :: forall uni fun ann s
-    . (PrettyUni uni fun, GivenCekReqs uni fun ann s)
+    . (ThrowableBuiltins uni fun, GivenCekReqs uni fun ann s)
     => Context uni fun ann
     -> CekValue uni fun ann   -- lhs of application
     -> CekValue uni fun ann   -- rhs of application
@@ -258,7 +270,7 @@ applyEvaluate !_ val _ =
 
 -- MAYBE: runCekDeBruijn can be shared between original&debug ceks by passing a `enterComputeCek` func.
 runCekDeBruijn
-    :: (PrettyUni uni fun)
+    :: ThrowableBuiltins uni fun
     => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun
@@ -273,7 +285,7 @@ runCekDeBruijn params mode emitMode term =
 -- | The entering point to the CEK machine's engine.
 enterComputeCek
     :: forall uni fun ann s
-    . (PrettyUni uni fun, GivenCekReqs uni fun ann s)
+    . (ThrowableBuiltins uni fun, GivenCekReqs uni fun ann s)
     => Context uni fun ann
     -> CekValEnv uni fun ann
     -> NTerm uni fun ann
@@ -301,7 +313,7 @@ type CekTrans uni fun ann s = Trans (CekM uni fun s) (CekState uni fun ann)
 
 -- | The state transition function of the machine.
 cekTrans :: forall uni fun ann s
-           . (PrettyUni uni fun, GivenCekReqs uni fun ann s)
+           . (ThrowableBuiltins uni fun, GivenCekReqs uni fun ann s)
            => CekTrans uni fun ann s
 cekTrans = \case
     Starting term          -> pure $ Computing NoFrame Env.empty term
@@ -314,7 +326,7 @@ cekTrans = \case
 -- Returns the constructed transition function paired with the methods to live access the running budget.
 mkCekTrans
     :: forall cost uni fun ann m s
-    . ( PrettyUni uni fun
+    . ( ThrowableBuiltins uni fun
       , PrimMonad m, s ~ PrimState m) -- the outer monad that initializes the transition function
     => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> ExBudgetMode cost uni fun
@@ -356,26 +368,26 @@ cekStateAnn = \case
 
 contextAnn :: Context uni fun ann -> Maybe ann
 contextAnn = \case
-    FrameApplyFun ann _ _     -> pure ann
-    FrameApplyArg ann _ _ _   -> pure ann
-    FrameApplyValues ann _ _  -> pure ann
-    FrameForce ann _          -> pure ann
-    FrameConstr ann _ _ _ _ _ -> pure ann
-    FrameCases ann _ _ _      -> pure ann
-    NoFrame                   -> empty
+    FrameAwaitArg ann _ _       -> pure ann
+    FrameAwaitFunTerm ann _ _ _ -> pure ann
+    FrameAwaitFunValue ann _ _  -> pure ann
+    FrameForce ann _            -> pure ann
+    FrameConstr ann _ _ _ _ _   -> pure ann
+    FrameCases ann _ _ _        -> pure ann
+    NoFrame                     -> empty
 
 lenContext :: Context uni fun ann -> Word
 lenContext = go 0
     where
       go :: Word -> Context uni fun ann -> Word
       go !n = \case
-              FrameApplyFun _ _ k     -> go (n+1) k
-              FrameApplyArg _ _ _ k   -> go (n+1) k
-              FrameApplyValues _ _ k  -> go (n+1) k
-              FrameForce _ k          -> go (n+1) k
-              FrameConstr _ _ _ _ _ k -> go (n+1) k
-              FrameCases _ _ _ k      -> go (n+1) k
-              NoFrame                 -> 0
+              FrameAwaitArg _ _ k       -> go (n+1) k
+              FrameAwaitFunTerm _ _ _ k -> go (n+1) k
+              FrameAwaitFunValue _ _ k  -> go (n+1) k
+              FrameForce _ k            -> go (n+1) k
+              FrameConstr _ _ _ _ _ k   -> go (n+1) k
+              FrameCases _ _ _ k        -> go (n+1) k
+              NoFrame                   -> 0
 
 
 -- * Duplicated functions from Cek.Internal module
@@ -403,7 +415,7 @@ cekStepCost costs = \case
 -- | Call 'dischargeCekValue' over the received 'CekVal' and feed the resulting 'Term' to
 -- 'throwingWithCause' as the cause of the failure.
 throwingDischarged
-    :: PrettyUni uni fun
+    :: ThrowableBuiltins uni fun
     => AReview (EvaluationError CekUserError (MachineError fun)) t
     -> t
     -> CekValue uni fun ann
@@ -411,7 +423,10 @@ throwingDischarged
 throwingDischarged l t = throwingWithCause l t . Just . dischargeCekValue
 
 -- | Look up a variable name in the environment.
-lookupVarName :: forall uni fun ann s . (PrettyUni uni fun) => NamedDeBruijn -> CekValEnv uni fun ann -> CekM uni fun s (CekValue uni fun ann)
+lookupVarName
+    :: forall uni fun ann s .
+       ThrowableBuiltins uni fun
+    => NamedDeBruijn -> CekValEnv uni fun ann -> CekM uni fun s (CekValue uni fun ann)
 lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
     case varEnv `Env.indexOne` coerce varIx of
         Nothing  -> throwingWithCause _MachineError OpenTermEvaluatedMachineError $ Just var where
@@ -422,7 +437,7 @@ lookupVarName varName@(NamedDeBruijn _ varIx) varEnv =
 -- 'makeKnown' or a partial builtin application depending on whether the built-in function is
 -- fully saturated or not.
 evalBuiltinApp
-    :: (GivenCekReqs uni fun ann s, PrettyUni uni fun)
+    :: (GivenCekReqs uni fun ann s, ThrowableBuiltins uni fun)
     => fun
     -> NTerm uni fun ()
     -> BuiltinRuntime (CekValue uni fun ann)

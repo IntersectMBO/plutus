@@ -1,5 +1,6 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 
 module PlutusCore.Generators.Hedgehog.AST
     ( simpleRecursive
@@ -21,6 +22,7 @@ module PlutusCore.Generators.Hedgehog.AST
 import PlutusPrelude
 
 import PlutusCore
+import PlutusCore.Name (isQuotedIdentifierChar)
 import PlutusCore.Subst
 
 import Control.Lens (coerced)
@@ -29,6 +31,8 @@ import Control.Monad.Reader
 import Data.Set (Set)
 import Data.Set qualified as Set
 import Data.Set.Lens (setOf)
+import Data.Text (Text)
+import Data.Text qualified as Text
 import Hedgehog hiding (Size, Var)
 import Hedgehog.Internal.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
@@ -59,6 +63,16 @@ genVersion :: MonadGen m => m Version
 genVersion = Version <$> intFrom 1 <*> intFrom 1 <*> intFrom 0 where
     intFrom x = Gen.integral_ $ Range.linear x 20
 
+genNameText :: MonadGen m => m Text
+genNameText = Gen.choice [genUnquoted, genQuoted]
+  where
+    genUnquoted =
+        Text.cons
+            <$> Gen.alpha
+            <*> Gen.text (Range.linear 0 4) (Gen.choice [Gen.alphaNum, Gen.element ['_', '\'']])
+    genQuoted =
+        Gen.text (Range.linear 1 5) (Gen.filterT isQuotedIdentifierChar Gen.ascii)
+
 -- | Generate a fixed set of names which we will use, of only up to a short size to make it
 -- likely that we get reuse.
 -- We do not attempt not to generate reserved words such as @all@ or @abs@ as the classic syntax
@@ -68,9 +82,8 @@ genNames :: MonadGen m => m [Name]
 genNames = do
     let genUniq = Unique <$> Gen.int (Range.linear 0 100)
     uniqs <- Set.toList <$> Gen.set (Range.linear 1 20) genUniq
-    let genText = Gen.text (Range.linear 1 4) Gen.lower
     for uniqs $ \uniq -> do
-        text <- genText
+        text <- genNameText
         return $ Name text uniq
 
 genName :: AstGen Name

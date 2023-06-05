@@ -1,4 +1,5 @@
 -- editorconfig-checker-disable-file
+{-# LANGUAGE CPP                   #-}
 {-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE LambdaCase            #-}
@@ -6,6 +7,7 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# LANGUAGE TemplateHaskellQuotes #-}
+{-# LANGUAGE TupleSections         #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE ViewPatterns          #-}
@@ -112,7 +114,7 @@ compileLiteral = \case
     GHC.LitDouble _     -> throwPlain $ UnsupportedError "Literal double"
     GHC.LitLabel {}     -> throwPlain $ UnsupportedError "Literal label"
     GHC.LitNullAddr     -> throwPlain $ UnsupportedError "Literal null"
-    GHC.LitRubbish _    -> throwPlain $ UnsupportedError "Literal rubbish"
+    GHC.LitRubbish {}   -> throwPlain $ UnsupportedError "Literal rubbish"
 
 -- TODO: this is annoyingly duplicated with the code 'compileExpr', but I failed to unify them since they
 -- do different things to the inner expression. This one assumes it's a literal, the other one keeps compiling
@@ -167,7 +169,14 @@ compileDataConRef dc =
 findAlt :: GHC.DataCon -> [GHC.CoreAlt] -> GHC.Type -> GHC.CoreAlt
 findAlt dc alts t = case GHC.findAlt (GHC.DataAlt dc) alts of
     Just alt -> alt
-    Nothing  -> GHC.Alt GHC.DEFAULT [] (GHC.mkImpossibleExpr t)
+    Nothing  ->
+      let
+#if MIN_VERSION_ghc(9,6,0)
+        e = GHC.mkImpossibleExpr t "unreachable alternative"
+#else
+        e = GHC.mkImpossibleExpr t
+#endif
+      in GHC.Alt GHC.DEFAULT [] e
 
 -- | Make alternatives with non-delayed and delayed bodies for a given 'CoreAlt'.
 compileAlt
@@ -210,6 +219,14 @@ isProbablyBytestringEq (GHC.getName -> n)
     , GHC.occNameString (GHC.nameOccName n) == "eq"
     = True
 isProbablyBytestringEq _ = False
+
+isProbablyIntegerEq :: GHC.Id -> Bool
+isProbablyIntegerEq (GHC.getName -> n)
+    | Just m <- GHC.nameModule_maybe n
+    , GHC.moduleNameString (GHC.moduleName m) == "GHC.Num.Integer"
+    , GHC.occNameString (GHC.nameOccName n) == "integerEq"
+    = True
+isProbablyIntegerEq _ = False
 
 {- Note [GHC runtime errors]
 GHC has a number of runtime errors for things like pattern matching failures and so on.
@@ -501,9 +518,8 @@ mkTrace
     -> PIRTerm uni PLC.DefaultFun
 mkTrace ty str v =
     PLC.mkIterApp
-        annMayInline
         (PIR.TyInst annMayInline (PIR.Builtin annMayInline PLC.Trace) ty)
-        [PLC.mkConstant annMayInline str, v]
+        ((annMayInline,) <$> [PLC.mkConstant annMayInline str, v])
 
 -- `mkLazyTrace ty str v` builds the term `force (trace str (delay v))` if `v` has type `ty`
 mkLazyTrace
@@ -686,6 +702,9 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
         -- C# is just a wrapper around a literal
         GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) `GHC.App` arg | dc == GHC.charDataCon -> compileExpr arg
 
+        -- constructors of 'Integer' just wrap literals
+        GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) `GHC.App` arg | GHC.dataConTyCon dc == GHC.integerTyCon -> compileExpr arg
+
         -- Unboxed unit, (##).
         GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) | dc == GHC.unboxedUnitDataCon -> pure (PIR.mkConstant annMayInline ())
 
@@ -706,7 +725,7 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
 
         -- See Note [Uses of Eq]
         GHC.Var n | GHC.getName n == GHC.eqName -> throwPlain $ UnsupportedError "Use of == from the Haskell Eq typeclass"
-        GHC.Var n | GHC.getName n == GHC.integerEqName -> throwPlain $ UnsupportedError "Use of Haskell Integer equality, possibly via the Haskell Eq typeclass"
+        GHC.Var n | isProbablyIntegerEq n -> throwPlain $ UnsupportedError "Use of Haskell Integer equality, possibly via the Haskell Eq typeclass"
         GHC.Var n | isProbablyBytestringEq n -> throwPlain $ UnsupportedError "Use of Haskell ByteString equality, possibly via the Haskell Eq typeclass"
 
         -- locally bound vars
@@ -820,7 +839,7 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
                 resultType <- compileTypeNorm t >>= maybeDelayType lazyCase
                 let instantiated = PIR.TyInst annMayInline matched resultType
 
-                let applied = PIR.mkIterApp annMayInline instantiated branches
+                let applied = PIR.mkIterApp instantiated $ (annMayInline,) <$> branches
                 -- See Note [Case expressions and laziness]
                 mainCase <- maybeForce lazyCase applied
 
@@ -960,7 +979,7 @@ coverageCompile originalExpr exprType src compiledTerm covT =
             let mkMetadata = CoverageMetadata . foldMap (Set.singleton . ApplicationHeadSymbol . GHC.getOccString)
             fc <- addBoolCaseToCoverageIndex (toCovLoc src) False (mkMetadata headSymName)
             tc <- addBoolCaseToCoverageIndex (toCovLoc src) True (mkMetadata headSymName)
-            pure $ PLC.mkIterApp annMayInline traceBoolCompiled
+            pure $ PLC.mkIterApp traceBoolCompiled $ (annMayInline,) <$>
                 [ PLC.mkConstant annMayInline (T.pack . show $ tc)
                 , PLC.mkConstant annMayInline (T.pack . show $ fc)
                 , compiledTerm

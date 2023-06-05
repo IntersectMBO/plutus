@@ -51,8 +51,8 @@ uncurry = runQuote $ do
         . tyAbs () b (Type ())
         . tyAbs () c (Type ())
         . lamAbs () f (TyFun () (TyVar () a) . TyFun () (TyVar () b) $ TyVar () c)
-        . lamAbs () p (mkIterTyApp () pair [TyVar () a, TyVar () b])
-        $ mkIterApp () (var () f)
-            [ apply () (mkIterInst () fstPair [TyVar () a, TyVar () b]) $ var () p
-            , apply () (mkIterInst () sndPair [TyVar () a, TyVar () b]) $ var () p
+        . lamAbs () p (mkIterTyAppNoAnn pair [TyVar () a, TyVar () b])
+        $ mkIterAppNoAnn (var () f)
+            [ apply () (mkIterInstNoAnn fstPair [TyVar () a, TyVar () b]) $ var () p
+            , apply () (mkIterInstNoAnn sndPair [TyVar () a, TyVar () b]) $ var () p
             ]

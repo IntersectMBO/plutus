@@ -1,0 +1,17 @@
+program 1.1.0 ((\Just ->
+                  (\x ->
+                     (\y ->
+                        (\`$fMonadMaybe_$c>>=` ->
+                           `$fMonadMaybe_$c>>=`
+                             x
+                             (\x' ->
+                                `$fMonadMaybe_$c>>=`
+                                  y
+                                  (\y' -> (\ds -> Just ds) (addInteger x' y'))))
+                          (\ds
+                            k ->
+                             force (case ds [ (\x -> delay (k x))
+                                            , (delay (constr 1 [])) ])))
+                       (Just 2))
+                    (Just 1))
+                 (\arg_0 -> constr 0 [arg_0]))

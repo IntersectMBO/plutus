@@ -54,13 +54,14 @@ library
   build-depends:
     , base
     , bytestring
+    , composition-prelude
     , cryptonite
     , extra
     , ieee754
     , megaparsec
     , memory
     , optparse-applicative
-    , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.6
+    , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.7
     , process
     , text
     , transformers
@@ -472,8 +473,8 @@ executable plc-agda
 test-suite test1
   import:             lang
   build-tool-depends:
-    , plutus-core:plc   ^>=1.6
-    , plutus-core:uplc  ^>=1.6
+    , plutus-core:plc   ^>=1.7
+    , plutus-core:uplc  ^>=1.7
 
   hs-source-dirs:     test
   build-depends:
@@ -488,8 +489,8 @@ test-suite test1
 test-suite test2
   import:             lang
   build-tool-depends:
-    , plutus-core:plc   ^>=1.6
-    , plutus-core:uplc  ^>=1.6
+    , plutus-core:plc   ^>=1.7
+    , plutus-core:uplc  ^>=1.7
 
   hs-source-dirs:     test
   type:               detailed-0.9
@@ -513,7 +514,7 @@ test-suite test3
     , base
     , lazy-search
     , mtl
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.6
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.7
     , plutus-metatheory
     , size-based
     , Stream

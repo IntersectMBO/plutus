@@ -160,7 +160,7 @@ stringResultFalse = mkConstant @Text () "¬(11 <= 22)"
 
 -- 11 <= 22
 lteExpr :: Term TyName Name DefaultUni DefaultFun ()
-lteExpr = mkIterApp () lte [eleven, twentytwo]
+lteExpr = mkIterAppNoAnn lte [eleven, twentytwo]
 
 
 -- Various combinations of (partial) instantiation/application for ifThenElse
@@ -181,7 +181,7 @@ iteUninstantiatedWithCond  = Apply () ite lteExpr
 -- (builtin ifThenElse) (11<=22) "11 <= 22" "¬(11<=22)" : IllTypedFails (no
 -- instantiation)
 iteUninstantiatedFullyApplied :: Term TyName Name DefaultUni DefaultFun ()
-iteUninstantiatedFullyApplied = mkIterApp () ite [lteExpr, stringResultTrue, stringResultFalse]
+iteUninstantiatedFullyApplied = mkIterAppNoAnn ite [lteExpr, stringResultTrue, stringResultFalse]
 
 -- { (builtin ifThenElse) (con integer) } : WellTypedRuns
 iteAtInteger :: Term TyName Name DefaultUni DefaultFun ()
@@ -200,7 +200,7 @@ iteAtIntegerWithCond = Apply () iteAtInteger lteExpr
 -- the builtin application machinery unlifts an argument and checks its type the moment it gets it,
 -- without waiting for full saturation.
 iteAtIntegerWrongCondTypeUnSat :: Term TyName Name DefaultUni DefaultFun ()
-iteAtIntegerWrongCondTypeUnSat = mkIterApp () iteAtInteger [stringResultTrue, stringResultFalse]
+iteAtIntegerWrongCondTypeUnSat = mkIterAppNoAnn iteAtInteger [stringResultTrue, stringResultFalse]
 
 -- [ { (builtin ifThenElse) (con integer) } "11 <= 22" "¬(11<=22)" "¬(11<=22)" ] :
 -- IllTypedFails. This is ill-typed because the first term argument is a string
@@ -209,18 +209,18 @@ iteAtIntegerWrongCondTypeUnSat = mkIterApp () iteAtInteger [stringResultTrue, st
 -- builtin function, since the builtin application is fully saturated. The older unlifting
 -- mode would also fail, but earlier before the builtin call got even saturated, see `iteAtIntegerWrongCondTypeUnSat`.
 iteAtIntegerWrongCondTypeSat :: Term TyName Name DefaultUni DefaultFun ()
-iteAtIntegerWrongCondTypeSat = mkIterApp () iteAtInteger [stringResultTrue, stringResultFalse, stringResultFalse]
+iteAtIntegerWrongCondTypeSat = mkIterAppNoAnn iteAtInteger [stringResultTrue, stringResultFalse, stringResultFalse]
 
 -- [ { (builtin ifThenElse) (con integer) } (11<=22) "11 <= 22" "¬(11<=22)" ] :
 -- IllTypedRuns.  We're instantiating at `integer` but returning a string: at
 -- execution time we only check that type instantiations and term arguments are
 -- correctly interleaved, not that instantiations are correct.
 iteAtIntegerFullyApplied :: Term TyName Name DefaultUni DefaultFun ()
-iteAtIntegerFullyApplied = mkIterApp () iteAtIntegerWithCond [stringResultTrue, stringResultFalse]
+iteAtIntegerFullyApplied = mkIterAppNoAnn iteAtIntegerWithCond [stringResultTrue, stringResultFalse]
 
 -- [ (builtin divideInteger) 1 0 ] : WellTypedFails. Division by zero.
 diFullyApplied :: Term TyName Name DefaultUni DefaultFun ()
-diFullyApplied = mkIterApp () (Builtin () DivideInteger)
+diFullyApplied = mkIterAppNoAnn (Builtin () DivideInteger)
     [ mkConstant @Integer () 1
     , mkConstant @Integer () 0
     ]
@@ -238,14 +238,14 @@ iteAtStringWithCond = Apply () iteAtString lteExpr
 -- @string@. It still runs succefully, because even in typed world (the CK machine) we don't look
 -- at types at runtime.
 iteAtStringWithCondWithIntegerWithString :: Term TyName Name DefaultUni DefaultFun ()
-iteAtStringWithCondWithIntegerWithString = mkIterApp () (iteAtStringWithCond)
+iteAtStringWithCondWithIntegerWithString = mkIterAppNoAnn (iteAtStringWithCond)
     [ mkConstant @Integer () 33
     , mkConstant @Text () "abc"
     ]
 
 -- [ { (builtin ifThenElse)  (con string) } (11<=22) "11 <= 22" "¬(11<=22)" ] : WellTypedRuns
 iteAtStringFullyApplied :: Term TyName Name DefaultUni DefaultFun ()
-iteAtStringFullyApplied = mkIterApp () iteAtStringWithCond [stringResultTrue, stringResultFalse]
+iteAtStringFullyApplied = mkIterAppNoAnn iteAtStringWithCond [stringResultTrue, stringResultFalse]
 
 -- { builtin ifThenElse (fun (con integer) (con integer)) } : WellTypedRuns
 iteAtIntegerArrowInteger :: Term TyName Name DefaultUni DefaultFun ()
@@ -258,7 +258,7 @@ iteAtIntegerArrowIntegerWithCond = Apply () iteAtIntegerArrowInteger lteExpr
 -- [ { (builtin ifThenElse) (fun (con integer) (con integer)) } (11<=22) (11 *) (22 -)] :
 -- WellTypedRuns (returns a function of type int -> int)
 iteAtIntegerArrowIntegerApplied1 ::  Term TyName Name DefaultUni DefaultFun ()
-iteAtIntegerArrowIntegerApplied1 =  mkIterApp ()
+iteAtIntegerArrowIntegerApplied1 =  mkIterAppNoAnn
                                    iteAtIntegerArrowInteger
                                    [ lteExpr
                                    , Apply () (Builtin () MultiplyInteger) eleven
@@ -268,7 +268,7 @@ iteAtIntegerArrowIntegerApplied1 =  mkIterApp ()
 -- [ { (builtin ifThenElse) (fun (con integer) (con integer)) } (11<=22) (*) (-)] :
 -- IllTypedRuns (int -> int -> int instead of int -> int).
 iteAtIntegerArrowIntegerApplied2 ::  Term TyName Name DefaultUni DefaultFun ()
-iteAtIntegerArrowIntegerApplied2 =  mkIterApp ()
+iteAtIntegerArrowIntegerApplied2 =  mkIterAppNoAnn
                                     iteAtIntegerArrowInteger
                                     [ lteExpr
                                     , Builtin () MultiplyInteger
@@ -298,7 +298,7 @@ iteAtHigherKindWithCond = Apply () iteAtHigherKind lteExpr
 -- [ {(builtin ifThenElse) (lam a . a -> a) } (11<=22) "11 <= 22" "¬(11<=22) ]" :
 -- IllTypedRuns (illegal kind)
 iteAtHigherKindFullyApplied :: Term TyName Name DefaultUni DefaultFun ()
-iteAtHigherKindFullyApplied = mkIterApp () (Apply () iteAtHigherKind lteExpr) [stringResultTrue, stringResultFalse]
+iteAtHigherKindFullyApplied = mkIterAppNoAnn (Apply () iteAtHigherKind lteExpr) [stringResultTrue, stringResultFalse]
 
 -- { {(builtin ifThenElse) integer} integer } : IllTypedFails (instantiated twice).
 iteAtIntegerAtInteger :: Term TyName Name DefaultUni DefaultFun ()
@@ -377,8 +377,8 @@ caseProd1 = runQuote $ do
     b <- freshName "b"
     c <- freshName "c"
     let branch1 = LamAbs () a integer $ LamAbs () b integer $ LamAbs () c integer $
-                    mkIterApp () (Builtin () SubtractInteger) [
-                      mkIterApp () (Builtin () AddInteger) [Var () a, Var () b]
+                    mkIterAppNoAnn (Builtin () SubtractInteger) [
+                      mkIterAppNoAnn (Builtin () AddInteger) [Var () a, Var () b]
                       , Var () c
                       ]
         branch2 = LamAbs () a string (mkConstant @Integer () 2)

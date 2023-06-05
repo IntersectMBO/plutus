@@ -5,30 +5,30 @@
       (force
         (delay
           (lam
-            GHC_Tuple_Tuple2_i0
+            `GHC.Tuple.Tuple2_i0`
             (lam
-              match_GHC_Tuple_Tuple2_i0
+              `match_GHC.Tuple.Tuple2_i0`
               [
                 [
                   [
                     (force
                       (delay
                         (lam
-                          GHC_Maybe_Just_i0
+                          `GHC.Maybe.Just_i0`
                           (lam
-                            GHC_Maybe_Nothing_i0
+                            `GHC.Maybe.Nothing_i0`
                             (lam
-                              match_GHC_Maybe_Maybe_i0
+                              `match_GHC.Maybe.Maybe_i0`
                               [
                                 [
                                   [
                                     (force
                                       (delay
                                         (lam
-                                          Lift_Spec_NestedRecord_i0
+                                          `Lift.Spec.NestedRecord_i0`
                                           (lam
-                                            match_Lift_Spec_NestedRecord_i0
-                                            Lift_Spec_NestedRecord_i2
+                                            `match_Lift.Spec.NestedRecord_i0`
+                                            `Lift.Spec.NestedRecord_i2`
                                           )
                                         )
                                       )
@@ -39,19 +39,19 @@
                                     x_i0
                                     (delay
                                       (lam
-                                        case_Lift_Spec_NestedRecord_i0
+                                        `case_Lift.Spec.NestedRecord_i0`
                                         (case
-                                          x_i2 case_Lift_Spec_NestedRecord_i1
+                                          x_i2 `case_Lift.Spec.NestedRecord_i1`
                                         )
                                       )
                                     )
                                   )
                                 ]
                                 [
-                                  (force GHC_Maybe_Just_i3)
+                                  (force `GHC.Maybe.Just_i3`)
                                   [
                                     [
-                                      (force (force GHC_Tuple_Tuple2_i5))
+                                      (force (force `GHC.Tuple.Tuple2_i5`))
                                       (con integer 1)
                                     ]
                                     (con integer 2)
@@ -72,13 +72,13 @@
                     x_i0
                     (delay
                       (lam
-                        case_GHC_Maybe_Just_i0
+                        `case_GHC.Maybe.Just_i0`
                         (lam
-                          case_GHC_Maybe_Nothing_i0
+                          `case_GHC.Maybe.Nothing_i0`
                           (case
                             x_i3
-                            case_GHC_Maybe_Just_i2
-                            case_GHC_Maybe_Nothing_i1
+                            `case_GHC.Maybe.Just_i2`
+                            `case_GHC.Maybe.Nothing_i1`
                           )
                         )
                       )
@@ -97,7 +97,9 @@
         (lam
           x_i0
           (delay
-            (lam case_GHC_Tuple_Tuple2_i0 (case x_i2 case_GHC_Tuple_Tuple2_i1))
+            (lam
+              `case_GHC.Tuple.Tuple2_i0` (case x_i2 `case_GHC.Tuple.Tuple2_i1`)
+            )
           )
         )
       )

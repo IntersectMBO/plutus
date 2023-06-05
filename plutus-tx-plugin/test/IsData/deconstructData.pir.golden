@@ -83,7 +83,7 @@
     (termbind
       (strict)
       (vardecl
-        fFromDataTuple2_cfromBuiltinData
+        `$fFromDataTuple2_$cfromBuiltinData`
         (all
           a
           (type)
@@ -107,10 +107,10 @@
           b
           (type)
           (lam
-            dFromData
+            `$dFromData`
             [ (lam a (type) (fun (con data) [ Maybe a ])) a ]
             (lam
-              dFromData
+              `$dFromData`
               [ (lam a (type) (fun (con data) [ Maybe a ])) b ]
               (lam
                 d
@@ -144,7 +144,7 @@
                           {
                             [
                               { Maybe_match a }
-                              [ dFromData [ { head (con data) } l ] ]
+                              [ `$dFromData` [ { head (con data) } l ] ]
                             ]
                             (all dead (type) [ Maybe [ [ Tuple2 a ] b ] ])
                           }
@@ -160,7 +160,9 @@
                                     {
                                       [
                                         { Maybe_match b }
-                                        [ dFromData [ { head (con data) } l ] ]
+                                        [
+                                          `$dFromData` [ { head (con data) } l ]
+                                        ]
                                       ]
                                       (all
                                         dead (type) [ Maybe [ [ Tuple2 a ] b ] ]
@@ -326,7 +328,7 @@
     (termbind
       (nonstrict)
       (vardecl
-        fFromDataTuple2
+        `$fFromDataTuple2`
         (all
           a
           (type)
@@ -345,7 +347,7 @@
           )
         )
       )
-      fFromDataTuple2_cfromBuiltinData
+      `$fFromDataTuple2_$cfromBuiltinData`
     )
     (termbind
       (strict)
@@ -355,7 +357,7 @@
     (termbind
       (strict)
       (vardecl
-        fFromDataInteger_cfromBuiltinData
+        `$fFromDataInteger_$cfromBuiltinData`
         (fun (con data) [ Maybe (con integer) ])
       )
       (lam
@@ -385,23 +387,26 @@
     (termbind
       (nonstrict)
       (vardecl
-        fFromDataInteger
+        `$fFromDataInteger`
         [ (lam a (type) (fun (con data) [ Maybe a ])) (con integer) ]
       )
-      fFromDataInteger_cfromBuiltinData
+      `$fFromDataInteger_$cfromBuiltinData`
     )
     (termbind
       (nonstrict)
       (vardecl
-        dFromData
+        `$dFromData`
         [
           (lam a (type) (fun (con data) [ Maybe a ]))
           [ [ Tuple2 (con integer) ] (con integer) ]
         ]
       )
       [
-        [ { { fFromDataTuple2 (con integer) } (con integer) } fFromDataInteger ]
-        fFromDataInteger
+        [
+          { { `$fFromDataTuple2` (con integer) } (con integer) }
+          `$fFromDataInteger`
+        ]
+        `$fFromDataInteger`
       ]
     )
     (termbind
@@ -425,7 +430,7 @@
       [
         [
           { fromBuiltinData [ [ Tuple2 (con integer) ] (con integer) ] }
-          dFromData
+          `$dFromData`
         ]
         ds
       ]

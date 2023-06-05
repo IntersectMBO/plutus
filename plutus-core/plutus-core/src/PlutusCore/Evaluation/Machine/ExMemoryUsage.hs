@@ -12,6 +12,9 @@ module PlutusCore.Evaluation.Machine.ExMemoryUsage
     , flattenCostRose
     ) where
 
+import PlutusCore.Crypto.BLS12_381.G1 as BLS12_381.G1
+import PlutusCore.Crypto.BLS12_381.G2 as BLS12_381.G2
+import PlutusCore.Crypto.BLS12_381.Pairing as BLS12_381.Pairing
 import PlutusCore.Data
 import PlutusCore.Evaluation.Machine.CostStream
 import PlutusCore.Evaluation.Machine.ExMemory
@@ -254,3 +257,36 @@ instance ExMemoryUsage Data where
             List l     -> CostRose 0 $ l <&> sizeData
             I n        -> memoryUsage n
             B b        -> memoryUsage b
+
+
+{- Note [Costing constant-size types]
+The memory usage of each of the BLS12-381 types is constant, so we may be able
+to optimise things a little by ensuring that we don't re-compute the size of
+(say) a G1 element every time one is used. GHC will probably do this anyway, but
+we make sure by defining a top level function for each of the size measures and
+getting the memoryUsage instances to call those.
+-}
+
+{-# NOINLINE g1ElementCost #-}
+g1ElementCost :: CostRose
+g1ElementCost = singletonRose . unsafeToSatInt $ BLS12_381.G1.memSizeBytes `div` 8
+
+instance ExMemoryUsage BLS12_381.G1.Element where
+    memoryUsage _ = g1ElementCost
+    -- Should be 12
+
+{-# NOINLINE g2ElementCost #-}
+g2ElementCost :: CostRose
+g2ElementCost = singletonRose . unsafeToSatInt $ BLS12_381.G2.memSizeBytes `div` 8
+
+instance ExMemoryUsage BLS12_381.G2.Element where
+    memoryUsage _ = g2ElementCost
+    -- Should be 24
+
+{-# NOINLINE mlResultElementCost #-}
+mlResultElementCost :: CostRose
+mlResultElementCost = singletonRose . unsafeToSatInt $ BLS12_381.Pairing.mlResultMemSizeBytes `div` 8
+
+instance ExMemoryUsage BLS12_381.Pairing.MlResult where
+    memoryUsage _ = mlResultElementCost
+    -- Should be 144

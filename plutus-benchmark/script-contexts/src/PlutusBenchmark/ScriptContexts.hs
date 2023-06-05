@@ -77,7 +77,7 @@ checkScriptContext2 d =
   -- for now!
   in case sc of
     !_ ->
-      if 48*9900 PlutusTx.== (475200 :: Integer)
+      if 48 PlutusTx.* 9900 PlutusTx.== (475200 :: Integer)
       then ()
       else PlutusTx.traceError "Got my sums wrong"
 

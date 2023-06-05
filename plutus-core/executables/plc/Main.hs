@@ -6,17 +6,19 @@ module Main (main) where
 
 import PlutusCore qualified as PLC
 import PlutusCore.Compiler.Erase qualified as PLC (eraseProgram)
+import PlutusCore.Data
 import PlutusCore.Evaluation.Machine.Ck qualified as Ck
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Executable.Common
 import PlutusCore.Executable.Parsers
+import PlutusCore.MkPlc (mkConstant)
 import PlutusCore.Pretty qualified as PP
-
-import Data.Maybe (fromJust)
-import Data.Text.IO qualified as T
 import PlutusPrelude
 
 import Control.DeepSeq (rnf)
+import Data.ByteString.Lazy qualified as BSL (readFile)
+import Data.Text.IO qualified as T
+import Flat (unflat)
 import Options.Applicative
 import System.Exit (exitSuccess)
 
@@ -32,14 +34,15 @@ data EraseOptions     = EraseOptions Input Format Output Format PrintMode
 
 
 -- Main commands
-data Command = Apply     ApplyOptions
-             | Typecheck TypecheckOptions
-             | Optimise  OptimiseOptions
-             | Convert   ConvertOptions
-             | Print     PrintOptions
-             | Example   ExampleOptions
-             | Erase     EraseOptions
-             | Eval      EvalOptions
+data Command = Apply       ApplyOptions
+             | ApplyToData ApplyOptions
+             | Typecheck   TypecheckOptions
+             | Optimise    OptimiseOptions
+             | Convert     ConvertOptions
+             | Print       PrintOptions
+             | Example     ExampleOptions
+             | Erase       EraseOptions
+             | Eval        EvalOptions
              | DumpModel
              | PrintBuiltinSignatures
 
@@ -68,12 +71,20 @@ plutusOpts :: Parser Command
 plutusOpts = hsubparser $
        command "apply"
            (info (Apply <$> applyOpts)
-            (progDesc $
-            "Given a list of input scripts f g1 g2 ... gn, output a script consisting of "
-              ++ "(... ((f g1) g2) ... gn); "
-              ++ "for example, "
-              ++ "'plc apply --if flat Validator.flat Datum.flat Redeemer.flat Context.flat"
-              ++" --of flat -o Script.flat'."))
+            (progDesc $ "Given a list of input files f g1 g2 ... gn " <>
+             "containing Typed Plutus Core scripts, " <>
+             "output a script consisting of (... ((f g1) g2) ... gn); " <>
+             "for example, 'plc apply --if flat Validator.flat " <>
+             "Datum.flat Redeemer.flat Context.flat --of flat -o Script.flat'."))
+    <> command "apply-to-data"
+           (info (ApplyToData <$> applyOpts)
+            (progDesc $ "Given a list f d1 d2 ... dn where f is a " <>
+             "Typed Plutus Core script and d1,...,dn are files " <>
+             "containing flat-encoded data ojbects, output a script " <>
+             "consisting of f applied to the data objects; " <>
+             "for example, 'plc apply-to-data --if " <>
+             "flat Validator.flat Datum.flat Redeemer.flat Context.flat " <>
+             "--of flat -o Script.flat'."))
     <> command "print"
            (info (Print <$> printOpts)
             (progDesc "Parse a program then prettyprint it."))
@@ -109,15 +120,38 @@ plutusOpts = hsubparser $
 
 ---------------- Script application ----------------
 
--- | Apply one script to a list of others.
+-- | Apply one script to a list of others and output the result.  All of the
+-- scripts must be PLC.Program objects.
 runApply :: ApplyOptions -> IO ()
 runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
   scripts <- mapM ((readProgram ifmt ::  Input -> IO (PlcProg PLC.SrcSpan)) . FileInput) inputfiles
   let appliedScript =
         case map (\case p -> () <$ p) scripts of
           []          -> errorWithoutStackTrace "No input files"
-          progAndargs -> foldl1 (fromJust .* PLC.applyProgram) progAndargs
+          progAndargs ->
+            foldl1 (unsafeFromRight .* PLC.applyProgram) progAndargs
   writeProgram outp ofmt mode appliedScript
+
+-- | Apply a PLC program to script to a list of flat-encoded Data objects and
+-- output the result.
+runApplyToData :: ApplyOptions -> IO ()
+runApplyToData (ApplyOptions inputfiles ifmt outp ofmt mode) = do
+  case inputfiles  of
+    [] -> errorWithoutStackTrace "No input files"
+    p:ds -> do
+         prog@(PLC.Program _ version _) :: PlcProg PLC.SrcSpan <- readProgram ifmt (FileInput p)
+         args <- mapM (getDataObject version) ds
+         let prog' = () <$ prog
+             appliedScript = foldl1 (unsafeFromRight .* PLC.applyProgram) (prog':args)
+         writeProgram outp ofmt mode appliedScript
+             where getDataObject :: PLC.Version -> FilePath -> IO (PlcProg ())
+                   getDataObject ver path = do
+                     bs <- BSL.readFile path
+                     case unflat bs of
+                       Left err -> fail ("Error reading " ++ show path ++ ": " ++ show err)
+                       Right (d :: Data) ->
+                           pure $ PLC.Program () ver $ mkConstant () d
+
 
 ---------------- Typechecking ----------------
 
@@ -179,13 +213,14 @@ main :: IO ()
 main = do
     options <- customExecParser (prefs showHelpOnEmpty) plcInfoCommand
     case options of
-        Apply     opts         -> runApply            opts
-        Typecheck opts         -> runTypecheck        opts
-        Optimise  opts         -> runOptimisations    opts
-        Eval      opts         -> runEval             opts
-        Example   opts         -> runPlcPrintExample  opts
-        Erase     opts         -> runErase            opts
-        Print     opts         -> runPrint   @PlcProg opts
-        Convert   opts         -> runConvert @PlcProg opts
+        Apply       opts       -> runApply            opts
+        ApplyToData opts       -> runApplyToData      opts
+        Typecheck   opts       -> runTypecheck        opts
+        Optimise    opts       -> runOptimisations    opts
+        Eval        opts       -> runEval             opts
+        Example     opts       -> runPlcPrintExample  opts
+        Erase       opts       -> runErase            opts
+        Print       opts       -> runPrint   @PlcProg opts
+        Convert     opts       -> runConvert @PlcProg opts
         DumpModel              -> runDumpModel
         PrintBuiltinSignatures -> runPrintBuiltinSignatures

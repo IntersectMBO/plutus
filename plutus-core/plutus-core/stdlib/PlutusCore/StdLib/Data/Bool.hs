@@ -54,6 +54,6 @@ ifThenElse = runQuote $ do
           VarDecl () x unitFunA,
           VarDecl () y unitFunA
           ]
-      $ mkIterApp ()
+      $ mkIterAppNoAnn
           (tyInst () (builtin () IfThenElse) unitFunA)
           [var () b, var () x, var () y, unitval]

@@ -12,7 +12,7 @@ import PlutusCore.Name
 import PlutusIR
 import PlutusIR.Subst
 
-import Control.Monad.Except
+import Control.Monad ((<=<))
 import Data.Map.Strict (Map)
 import Data.Map.Strict.Internal qualified as Map
 import Data.Maybe

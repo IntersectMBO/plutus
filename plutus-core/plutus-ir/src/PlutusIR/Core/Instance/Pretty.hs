@@ -61,8 +61,7 @@ instance ( PLC.PrettyClassicBy configName tyname
 
 instance ( PLC.PrettyClassicBy configName tyname
          , PLC.PrettyClassicBy configName name
-         , PLC.PrettyParens (PLC.SomeTypeIn uni)
-         , PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst
+         , PLC.PrettyUni uni
          , Pretty fun
          , Pretty ann
          ) => PrettyBy (PLC.PrettyConfigClassic configName) (Binding tyname name uni fun ann) where
@@ -79,8 +78,7 @@ instance ( PLC.PrettyClassicBy configName tyname
 
 instance ( PLC.PrettyClassicBy configName tyname
          , PLC.PrettyClassicBy configName name
-         , PLC.PrettyParens (PLC.SomeTypeIn uni)
-         , PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst
+         , PLC.PrettyUni uni
          , Pretty fun
          , Pretty ann
          ) => PrettyBy (PLC.PrettyConfigClassic configName) (Term tyname name uni fun ann) where
@@ -130,8 +128,7 @@ instance ( PLC.PrettyClassicBy configName tyname
 
 instance ( PLC.PrettyClassicBy configName tyname
          , PLC.PrettyClassicBy configName name
-         , PLC.PrettyParens (PLC.SomeTypeIn uni)
-         , PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst
+         , PLC.PrettyUni uni
          , Pretty fun
          , Pretty ann
          ) => PrettyBy (PLC.PrettyConfigClassic configName) (Program tyname name uni fun ann) where
@@ -152,16 +149,14 @@ instance ( PLC.PrettyClassic tyname
 
 instance ( PLC.PrettyClassic tyname
          , PLC.PrettyClassic name
-         , PLC.PrettyParens (PLC.SomeTypeIn uni)
-         , uni `PLC.Everywhere` PLC.PrettyConst
+         , PLC.PrettyUni uni
          , Pretty ann
          ) => Pretty (Datatype tyname name uni ann) where
     pretty = PLC.prettyClassicDef
 
 instance ( PLC.PrettyClassic tyname
          , PLC.PrettyClassic name
-         , PLC.PrettyParens (PLC.SomeTypeIn uni)
-         , PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst
+         , PLC.PrettyUni uni
          , Pretty fun
          , Pretty ann
          ) => Pretty (Binding tyname name uni fun ann) where
@@ -169,8 +164,7 @@ instance ( PLC.PrettyClassic tyname
 
 instance ( PLC.PrettyClassic tyname
          , PLC.PrettyClassic name
-         , PLC.PrettyParens (PLC.SomeTypeIn uni)
-         , PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst
+         , PLC.PrettyUni uni
          , Pretty fun
          , Pretty ann
          ) => Pretty (Term tyname name uni fun ann) where
@@ -178,8 +172,7 @@ instance ( PLC.PrettyClassic tyname
 
 instance ( PLC.PrettyClassic tyname
          , PLC.PrettyClassic name
-         , PLC.PrettyParens (PLC.SomeTypeIn uni)
-         , PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst
+         , PLC.PrettyUni uni
          , Pretty fun
          , Pretty ann
          ) => Pretty (Program tyname name uni fun ann) where

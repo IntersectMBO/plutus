@@ -31,13 +31,13 @@ metaEitherToSum
     -> Type TyName uni ()
     -> Either (term ()) (term ())
     -> term ()
-metaEitherToSum a b (Left  x) = apply () (mkIterInst () left  [a, b]) x
-metaEitherToSum a b (Right y) = apply () (mkIterInst () right [a, b]) y
+metaEitherToSum a b (Left  x) = apply () (mkIterInstNoAnn left  [a, b]) x
+metaEitherToSum a b (Right y) = apply () (mkIterInstNoAnn right [a, b]) y
 
 -- | Convert a Haskell list of 'Term's to a PLC @list@.
 metaListToScottList
     :: TermLike term TyName Name uni fun => Type TyName uni () -> [term ()] -> term ()
 metaListToScottList ty =
     foldr
-        (\x xs -> mkIterApp () (tyInst () cons ty) [x, xs])
+        (\x xs -> mkIterAppNoAnn (tyInst () cons ty) [x, xs])
         (tyInst () nil ty)

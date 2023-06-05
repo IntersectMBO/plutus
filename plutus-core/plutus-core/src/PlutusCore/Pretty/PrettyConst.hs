@@ -14,6 +14,7 @@
 module PlutusCore.Pretty.PrettyConst where
 
 import PlutusCore.Data
+import PlutusCore.Pretty.Readable
 
 import Codec.Serialise (serialise)
 import Data.ByteString qualified as BS
@@ -22,6 +23,7 @@ import Data.Coerce
 import Data.Foldable (fold)
 import Data.Proxy
 import Data.Text qualified as T
+import Data.Typeable
 import Data.Word (Word8)
 import Numeric (showHex)
 import Prettyprinter
@@ -75,6 +77,13 @@ type instance HasPrettyDefaults ConstConfig = 'False
 
 type PrettyConst = PrettyBy ConstConfig
 
+-- | The set of constraints we need to be able to print built-in types and their values.
+type PrettyUni uni = (PrettyParens (SomeTypeIn uni), Closed uni, uni `Everywhere` PrettyConst)
+
+-- | The set of constraints we need to be able to throw exceptions with things with built-in types
+-- and functions in them.
+type ThrowableBuiltins uni fun = (PrettyUni uni, Pretty fun, Typeable uni, Typeable fun)
+
 -- These two can be generalized to any @config@, but that breaks some use cases of 'PrettyAny'
 -- then. Perhaps we should split the functionality and have two separate @newtype@ wrappers
 -- in @prettyprinter-configurable@ instead of a single 'PrettyAny'.
@@ -104,8 +113,6 @@ deriving via PrettyAny Integer instance NonDefaultPrettyBy ConstConfig Integer
 instance PrettyConst a => NonDefaultPrettyBy ConstConfig [a]
 instance (PrettyConst a, PrettyConst b) => NonDefaultPrettyBy ConstConfig (a, b)
 
-instance PrettyBy ConstConfig BS.ByteString where
-    prettyBy _ b = "#" <> fold (asBytes <$> BS.unpack b)
 
 -- Special instance for bytestrings
 asBytes :: Word8 -> Doc ann
@@ -114,6 +121,12 @@ asBytes x = Text 2 $ T.pack $ addLeadingZero $ showHex x mempty
           addLeadingZero
               | x < 16    = ('0' :)
               | otherwise = id
+
+toBytes :: BS.ByteString -> Doc ann
+toBytes b = fold (asBytes <$> BS.unpack b)
+
+instance PrettyBy ConstConfig BS.ByteString where
+    prettyBy _ b = "#" <> toBytes b
 
 instance PrettyBy ConstConfig Data where
     prettyBy c d = prettyBy c $ BSL.toStrict $ serialise d

@@ -1,4 +1,4 @@
-\begin{code}
+sre\begin{code}
 {-# OPTIONS --rewriting #-}
 
 module Algorithmic.Erasure.RenamingSubstitution where
@@ -114,12 +114,15 @@ conv⊢-erase refl t = refl
 renTermCon-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(ρ⋆ : ⋆.Ren Φ Ψ)
   → (ρ : A.Ren ρ⋆ Γ Δ) → ∀{A}(c : AB.TermCon A)
   → eraseTC {Γ = Δ} (A.renTermCon ρ⋆ c) ≡ eraseTC {Γ = Γ} c 
-renTermCon-erase ρ⋆ ρ (AB.tmInteger i)    = refl
-renTermCon-erase ρ⋆ ρ (AB.tmBytestring b) = refl
-renTermCon-erase ρ⋆ ρ (AB.tmString s)     = refl
-renTermCon-erase ρ⋆ ρ (AB.tmBool b)       = refl
-renTermCon-erase ρ⋆ ρ AB.tmUnit           = refl
-renTermCon-erase ρ⋆ ρ (AB.tmData d)       = refl
+renTermCon-erase ρ⋆ ρ (AB.tmInteger i)              = refl
+renTermCon-erase ρ⋆ ρ (AB.tmBytestring b)           = refl
+renTermCon-erase ρ⋆ ρ (AB.tmString s)               = refl
+renTermCon-erase ρ⋆ ρ (AB.tmBool b)                 = refl
+renTermCon-erase ρ⋆ ρ AB.tmUnit                     = refl
+renTermCon-erase ρ⋆ ρ (AB.tmData d)                 = refl
+renTermCon-erase ρ⋆ ρ (AB.tmBls12-381-g1-element e) = refl
+renTermCon-erase ρ⋆ ρ (AB.tmBls12-381-g2-element e) = refl
+renTermCon-erase ρ⋆ ρ (AB.tmBls12-381-mlresult e)   = refl
 
 ext⋆-erase : ∀{Φ Ψ K}{Γ : Ctx Φ}{Δ : Ctx Ψ}(ρ⋆ : ⋆.Ren Φ Ψ)
   → (ρ : A.Ren ρ⋆ Γ Δ)(α : len Γ)
@@ -213,6 +216,9 @@ subTermCon-erase σ⋆ σ (AB.tmString s)     = refl
 subTermCon-erase σ⋆ σ (AB.tmBool b)       = refl
 subTermCon-erase σ⋆ σ AB.tmUnit           = refl
 subTermCon-erase σ⋆ σ (AB.tmData d)       = refl
+subTermCon-erase σ⋆ σ (AB.tmBls12-381-g1-element e) = refl
+subTermCon-erase σ⋆ σ (AB.tmBls12-381-g2-element e) = refl
+subTermCon-erase σ⋆ σ (AB.tmBls12-381-mlresult e)   = refl
 
 sub-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(σ⋆ : SubNf Φ Ψ)
   → (σ : A.Sub σ⋆ Γ Δ){A : Φ ⊢Nf⋆ *} → (t : Γ ⊢ A)

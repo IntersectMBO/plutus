@@ -12,8 +12,9 @@ import PlutusIR qualified as PIR
 import PlutusIR.Compiler.Provenance
 import PlutusIR.Error
 
-import Control.Monad.Except
-import Control.Monad.Reader
+import Control.Monad (when)
+import Control.Monad.Except (MonadError)
+import Control.Monad.Reader (MonadReader, local)
 
 import Control.Lens
 
@@ -198,10 +199,8 @@ type Compiling m e uni fun a =
     , PLC.Typecheckable uni fun
     , PLC.GEq uni
     -- Pretty printing instances
+    , PLC.PrettyUni uni
     , PLC.Pretty fun
-    , PLC.Closed uni
-    , PLC.PrettyParens (PLC.SomeTypeIn uni)
-    , uni `PLC.Everywhere` PLC.PrettyConst
     , PLC.Pretty a
     )
 

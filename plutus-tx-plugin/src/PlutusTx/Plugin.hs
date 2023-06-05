@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                        #-}
 {-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE DerivingStrategies         #-}
 {-# LANGUAGE FlexibleContexts           #-}
@@ -7,7 +8,12 @@
 {-# LANGUAGE TemplateHaskellQuotes      #-}
 {-# LANGUAGE TypeApplications           #-}
 {-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE TypeOperators              #-}
 {-# LANGUAGE ViewPatterns               #-}
+
+-- Due to CPP
+{-# OPTIONS_GHC -Wno-unused-matches #-}
+{-# OPTIONS_GHC -Wno-unused-imports #-}
 -- For some reason this module is very slow to compile otherwise
 {-# OPTIONS_GHC -O0 #-}
 module PlutusTx.Plugin (plugin, plc) where
@@ -27,8 +33,16 @@ import PlutusTx.Plugin.Utils
 import PlutusTx.Trace
 
 import GHC.ByteCode.Types qualified as GHC
+import GHC.Core.Coercion.Opt qualified as GHC
 import GHC.Core.FamInstEnv qualified as GHC
+import GHC.Core.Opt.Arity qualified as GHC
 import GHC.Core.Opt.OccurAnal qualified as GHC
+import GHC.Core.Opt.Simplify qualified as GHC
+import GHC.Core.Opt.Simplify.Env qualified as GHC
+import GHC.Core.Opt.Simplify.Monad qualified as GHC
+#if MIN_VERSION_ghc(9,6,0)
+import GHC.Core.Rules.Config qualified as GHC
+#endif
 import GHC.Core.Unfold qualified as GHC
 import GHC.Plugins qualified as GHC
 import GHC.Types.TyThing qualified as GHC
@@ -54,7 +68,7 @@ import Control.Lens
 import Control.Monad
 import Control.Monad.Except
 import Control.Monad.Reader
-import Control.Monad.Writer hiding (All)
+import Control.Monad.Writer
 import Flat (Flat, flat, unflat)
 
 import Data.ByteString qualified as BS
@@ -164,23 +178,47 @@ See https://gitlab.haskell.org/ghc/ghc/-/issues/23337.
 
 -- | A simplifier pass, implemented by GHC
 mkSimplPass :: GHC.DynFlags -> GHC.Logger -> GHC.CoreToDo
-mkSimplPass flags logger =
+mkSimplPass dflags logger =
   -- See Note [Making sure unfoldings are present]
-  GHC.CoreDoSimplify 1 $ GHC.SimplMode {
-              GHC.sm_names = ["Ensure unfoldings are present"]
-            , GHC.sm_phase = GHC.InitialPhase
-            , GHC.sm_uf_opts = GHC.defaultUnfoldingOpts
-            , GHC.sm_dflags = flags
-            , GHC.sm_rules = False
-            , GHC.sm_cast_swizzle = True
-            -- See Note [GHC.sm_pre_inline]
-            , GHC.sm_pre_inline = True
-            , GHC.sm_logger = logger
-            -- You might think you would need this, but apparently not
-            , GHC.sm_inline = False
-            , GHC.sm_case_case = False
-            , GHC.sm_eta_expand = False
-            }
+#if MIN_VERSION_ghc(9,6,0)
+  -- Changed in 9.6
+  GHC.CoreDoSimplify $ GHC.SimplifyOpts
+    { GHC.so_dump_core_sizes = False
+    , GHC.so_iterations = 1
+    , GHC.so_mode = simplMode
+    , GHC.so_pass_result_cfg = Nothing
+    , GHC.so_hpt_rules = GHC.emptyRuleBase
+    , GHC.so_top_env_cfg = GHC.TopEnvConfig 0 0
+    }
+#else
+  GHC.CoreDoSimplify 1 simplMode
+#endif
+    where
+      simplMode = GHC.SimplMode
+        { GHC.sm_names = ["Ensure unfoldings are present"]
+        , GHC.sm_phase = GHC.InitialPhase
+        , GHC.sm_uf_opts = GHC.defaultUnfoldingOpts
+        , GHC.sm_rules = False
+        , GHC.sm_cast_swizzle = True
+        -- See Note [GHC.sm_pre_inline]
+        , GHC.sm_pre_inline = True
+        -- You might think you would need this, but apparently not
+        , GHC.sm_inline = False
+        , GHC.sm_case_case = False
+        , GHC.sm_eta_expand = False
+#if MIN_VERSION_ghc(9,6,0)
+        , GHC.sm_float_enable = GHC.FloatDisabled
+        , GHC.sm_do_eta_reduction = False
+        , GHC.sm_arity_opts = GHC.ArityOpts False False
+        , GHC.sm_rule_opts = GHC.RuleOpts (GHC.targetPlatform dflags) False True False
+        , GHC.sm_case_folding = False
+        , GHC.sm_case_merge = False
+        , GHC.sm_co_opt_opts = GHC.OptCoercionOpts False
+#else
+        , GHC.sm_logger = logger
+        , GHC.sm_dflags = dflags
+#endif
+        }
 
 {- Note [Marker resolution]
 We use TH's 'foo exact syntax for resolving the 'plc marker's ghc name, as
@@ -231,9 +269,7 @@ type PluginM uni fun = ReaderT PluginCtx (ExceptT (CompileError uni fun Ann) GHC
 
 -- | Runs the plugin monad in a given context; throws a Ghc.Exception when compilation fails.
 runPluginM
-    :: ( PLC.PrettyParens (PLC.SomeTypeIn uni)
-       , PLC.Closed uni, PLC.Everywhere uni PLC.PrettyConst, PP.Pretty fun
-       )
+    :: (PLC.PrettyUni uni, PP.Pretty fun)
     => PluginCtx -> PluginM uni fun a -> GHC.CoreM a
 runPluginM pctx act = do
     res <- runExceptT $ runReaderT act pctx
@@ -322,16 +358,18 @@ compileMarkedExprOrDefer locStr codeTy origE = do
 -- | Given an expected Haskell type 'a', it generates Haskell code which throws a GHC runtime error
 -- \"as\" 'CompiledCode a'.
 emitRuntimeError
-    :: ( PLC.PrettyParens (PLC.SomeTypeIn uni)
-       , PLC.Closed uni, PP.Pretty fun, PLC.Everywhere uni PLC.PrettyConst
-       )
+    :: (PLC.PrettyUni uni, PP.Pretty fun)
     => GHC.Type -> CompileError uni fun Ann -> PluginM uni fun GHC.CoreExpr
 emitRuntimeError codeTy e = do
     opts <- asks pcOpts
     let shown = show $ PP.pretty (pruneContext (_posContextLevel opts) e)
     tcName <- thNameToGhcNameOrFail ''CompiledCode
     tc <- lift . lift $ GHC.lookupTyCon tcName
+#if MIN_VERSION_ghc (9,6,0)
+    pure $ GHC.mkImpossibleExpr (GHC.mkTyConApp tc [codeTy]) shown
+#else
     pure $ GHC.mkRuntimeErrorApp GHC.rUNTIME_ERROR_ID (GHC.mkTyConApp tc [codeTy]) shown
+#endif
 
 -- | Compile the core expression that is surrounded by a 'plc' marker,
 -- and return a core expression which evaluates to the compiled plc AST as a serialized bytestring,

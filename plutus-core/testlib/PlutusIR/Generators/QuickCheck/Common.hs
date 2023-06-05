@@ -17,7 +17,7 @@ import PlutusIR.Error
 import PlutusIR.Subst
 import PlutusIR.TypeCheck
 
-import Control.Monad.Except
+import Control.Monad (void)
 import Data.Bifunctor
 import Data.Map.Strict (Map)
 import Data.Map.Strict qualified as Map

@@ -1,7 +1,8 @@
 -- editorconfig-checker-disable-file
 -- | This module defines functions useful for testing.
 
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeFamilies  #-}
+{-# LANGUAGE TypeOperators #-}
 
 module PlutusCore.Generators.Hedgehog.Test
     ( TypeEvalCheckError (..)
@@ -30,7 +31,7 @@ import PlutusCore.Evaluation.Result
 import PlutusCore.Name
 import PlutusCore.Pretty
 
-import Control.Monad.Except
+import Control.Monad ((>=>))
 import Data.Functor ((<&>))
 import Data.Text.IO qualified as Text
 import Hedgehog hiding (Size, Var, eval)

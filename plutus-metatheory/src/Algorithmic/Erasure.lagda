@@ -67,12 +67,15 @@ eraseVar (S α) = just (eraseVar α)
 eraseVar (T α) = eraseVar α
 
 eraseTC : ∀{Φ}{Γ : Ctx Φ}{A : Φ ⊢Nf⋆ *} → AC.TyTermCon A → TmCon
-eraseTC (AC.tmInteger i)    = tmCon (con integer)  i
-eraseTC (AC.tmBytestring b) = tmCon (con bytestring) b
-eraseTC (AC.tmString s)     = tmCon (con string) s
-eraseTC (AC.tmBool b)       = tmCon (con bool) b
-eraseTC AC.tmUnit           = tmCon (con unit) tt
-eraseTC (AC.tmData d)       = tmCon (con pdata) d
+eraseTC (AC.tmInteger i)              = tmCon (con integer) i
+eraseTC (AC.tmBytestring b)           = tmCon (con bytestring) b
+eraseTC (AC.tmString s)               = tmCon (con string) s
+eraseTC (AC.tmBool b)                 = tmCon (con bool) b
+eraseTC AC.tmUnit                     = tmCon (con unit) tt
+eraseTC (AC.tmData d)                 = tmCon (con pdata) d
+eraseTC (AC.tmBls12-381-g1-element e) = tmCon (con bls12-381-g1-element) e
+eraseTC (AC.tmBls12-381-g2-element e) = tmCon (con bls12-381-g2-element) e
+eraseTC (AC.tmBls12-381-mlresult r)   = tmCon (con bls12-381-mlresult) r
 
 erase : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ ⊢ A → len Γ ⊢
 erase (` α)                = ` (eraseVar α)
@@ -125,6 +128,9 @@ sameTC (DC.tmString s)       = refl
 sameTC (DC.tmBool b)         = refl
 sameTC DC.tmUnit             = refl
 sameTC (DC.tmData d)         = refl
+sameTC (DC.tmBls12-381-g1-element e) = refl
+sameTC (DC.tmBls12-381-g2-element e) = refl
+sameTC (DC.tmBls12-381-mlresult r)   = refl
 
 -- map D.eraseTC xs ≡ map (eraseTC ∘ nfTypeTC) xs
 
@@ -249,12 +255,15 @@ same'Var {Γ = Γ ,⋆ _} (T {A = A} x) = trans
 
 same'TC : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(tcn : AC.TyTermCon A)
   → eraseTC {Γ = Γ} tcn ≡ D.eraseTC {Φ}{Γ = embCtx Γ} (embTC tcn)
-same'TC (AC.tmInteger i)      = refl
-same'TC (AC.tmBytestring b)   = refl
-same'TC (AC.tmString s)       = refl
-same'TC (AC.tmBool b)         = refl
-same'TC AC.tmUnit             = refl
-same'TC (AC.tmData d)         = refl
+same'TC (AC.tmInteger i)              = refl
+same'TC (AC.tmBytestring b)           = refl
+same'TC (AC.tmString s)               = refl
+same'TC (AC.tmBool b)                 = refl
+same'TC AC.tmUnit                     = refl
+same'TC (AC.tmData d)                 = refl
+same'TC (AC.tmBls12-381-g1-element e) = refl
+same'TC (AC.tmBls12-381-g2-element e) = refl
+same'TC (AC.tmBls12-381-mlresult r)   = refl
 
 same' : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(x : Γ A.⊢ A)
   →  erase x ≡ subst _⊢ (same'Len Γ) (D.erase (emb x))

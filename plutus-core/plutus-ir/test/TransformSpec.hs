@@ -11,6 +11,7 @@ import Test.Tasty.Extras
 import PlutusCore.Quote
 
 import PlutusCore qualified as PLC
+import PlutusCore.Name
 import PlutusCore.Pretty qualified as PLC
 import PlutusPrelude
 
@@ -223,19 +224,22 @@ inline =
                         Inline.inline mempty def renamed
                 -- Make sure the inlined term is globally unique.
                 _ <- checkUniques pirInlined
-                pure $ pirInlined
+                pure pirInlined
     in
     testNested "inline" $
         map
             (goldenPirM goldenInlineUnique pTerm)
             [ "var"
             , "builtin"
+            , "callsite-non-trivial-body"
             , "constant"
             , "transitive"
             , "tyvar"
             , "single"
             , "immediateVar"
             , "immediateApp"
+            , "firstEffectfulTerm1"
+            , "firstEffectfulTerm2"
             -- these tests are all let bindings of functions
             , "letFunConstInt" -- const fn fully applied (integer)
             , "letFunConstBool" -- const fn fully applied (bool)
@@ -273,9 +277,9 @@ checkUniques =
 -- | Tests that the inliner doesn't incorrectly capture variable names.
 nameCapture :: TestNested
 nameCapture =
-    let goldenInlineUnique :: Term TyName Name PLC.DefaultUni PLC.DefaultFun PLC.SrcSpan ->
+    let goldenNameCapture :: Term TyName Name PLC.DefaultUni PLC.DefaultFun PLC.SrcSpan ->
             IO String
-        goldenInlineUnique pir =
+        goldenNameCapture pir =
             rethrow . asIfThrown @(UniqueError PLC.SrcSpan) $ do
                 let pirInlined = runQuote $ do
                         renamed <- PLC.rename pir
@@ -286,7 +290,7 @@ nameCapture =
     in
     testNested "nameCapture" $
         map
-            (goldenPirMUnique goldenInlineUnique pTerm)
+            (goldenPirMUnique goldenNameCapture pTerm)
             [ "nameCapture"]
 
 computeArityTest :: TestNested

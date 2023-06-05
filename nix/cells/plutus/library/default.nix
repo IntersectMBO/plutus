@@ -8,6 +8,8 @@
 
   plutus-project-92 = import ./plutus-project-92.nix block;
 
+  plutus-project-96 = import ./plutus-project-96.nix block;
+
   # default
   plutus-project = import ./plutus-project-92.nix block;
 

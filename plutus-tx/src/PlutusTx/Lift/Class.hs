@@ -23,6 +23,9 @@ import PlutusIR
 import PlutusIR.Compiler.Definitions
 
 import PlutusCore qualified as PLC
+import PlutusCore.Crypto.BLS12_381.G1 (Element)
+import PlutusCore.Crypto.BLS12_381.G2 (Element)
+import PlutusCore.Crypto.BLS12_381.Pairing (MlResult)
 import PlutusCore.Data
 import PlutusCore.Quote
 import PlutusIR.MkPir
@@ -161,3 +164,12 @@ instance uni `PLC.Includes` T.Text => Lift uni BuiltinString where
 
 instance (FromBuiltin arep a, uni `PLC.Includes` [a]) => Lift uni (BuiltinList arep) where
     lift b = liftBuiltin $ fromBuiltin b
+
+instance uni `PLC.Includes` PlutusCore.Crypto.BLS12_381.G1.Element => Lift uni BuiltinBLS12_381_G1_Element where
+    lift a = liftBuiltin $ fromBuiltin a
+
+instance uni `PLC.Includes` PlutusCore.Crypto.BLS12_381.G2.Element => Lift uni BuiltinBLS12_381_G2_Element where
+    lift a = liftBuiltin $ fromBuiltin a
+
+instance uni `PLC.Includes` PlutusCore.Crypto.BLS12_381.Pairing.MlResult => Lift uni BuiltinBLS12_381_MlResult where
+    lift a = liftBuiltin $ fromBuiltin a

@@ -1,0 +1,10 @@
+-- This checks that the uncompression function fails on a valid *serialised* G2
+-- point (obtained by hashing 0x0102030405 onto G2).  The deserialisation
+-- function in the blst library can handle both serialised and compressed
+-- points, but we should fail on the former.
+(program 0.0.0
+ [
+  (builtin bls12_381_G2_uncompress)
+  (con bytestring #08138ebea766d4d1aa64dd3b5826244c32ea3fe9351f9c8d584203716dae151d14bb5d06e245c24877955c79287682ba082d077bbb2afdb1ad1d48d18e2f0c56b001bce207801adfa9fd451fc59d56f0433b02f921ba5a272c58c06536291d071676b275e27060b26dd91aac0a1feb56d1c1de7c323f486e48d54eae0c3c8f4caa45faad589c5d180ac0830dcdb3ecd8126c9c5db86cdf7129cf18582013d267a7c2827a901ef61ab58e7ef150219441abc57671eb39009f6bb166bcbade700d)
+ ]
+)

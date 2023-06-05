@@ -22,7 +22,7 @@ open import Relation.Binary using (DecidableEquality)
 open import Data.Bool using (Bool)
 open import Agda.Builtin.Int using (Int)
 open import Agda.Builtin.String using (String)
-open import Utils using (ByteString;Maybe;DATA)
+open import Utils using (ByteString;Maybe;DATA;Bls12-381-G1-Element;Bls12-381-G2-Element;Bls12-381-MlResult)
 import Utils as U
 open import Builtin.Signature using (Sig;sig;_⊢♯;con;`;Args) 
 import Builtin.Constant.Type ℕ (_⊢♯) as T
@@ -67,7 +67,7 @@ data Builtin : Set where
   appendString                    : Builtin
   equalsString                    : Builtin
   encodeUtf8                      : Builtin
-  decodeUtf8                      : Builtin  
+  decodeUtf8                      : Builtin
   -- Bool
   ifThenElse                      : Builtin
   -- Unit
@@ -101,6 +101,28 @@ data Builtin : Set where
   mkPairData                      : Builtin
   mkNilData                       : Builtin
   mkNilPairData                   : Builtin
+  -- BLS12_381
+  -- G1
+  bls12-381-G1-add                : Builtin
+  bls12-381-G1-neg                : Builtin
+  bls12-381-G1-scalarMul          : Builtin
+  bls12-381-G1-equal              : Builtin
+  bls12-381-G1-hashToGroup        : Builtin
+  bls12-381-G1-compress           : Builtin
+  bls12-381-G1-uncompress         : Builtin
+  -- G2
+  bls12-381-G2-add                : Builtin
+  bls12-381-G2-neg                : Builtin
+  bls12-381-G2-scalarMul          : Builtin
+  bls12-381-G2-equal              : Builtin
+  bls12-381-G2-hashToGroup        : Builtin
+  bls12-381-G2-compress           : Builtin
+  bls12-381-G2-uncompress         : Builtin
+  -- Pairing
+  bls12-381-millerLoop            : Builtin
+  bls12-381-mulMlResult           : Builtin
+  bls12-381-finalVerify           : Builtin
+
 ```
 
 ## Signatures
@@ -122,13 +144,16 @@ This is defined in its own module so that these definitions are not exported.
     ∀b,a = 2
 
     -- shortened names for type constants and type constructors
-    integer bool bytestring string unit pdata : ∀{n} → n ⊢♯
+    integer bool bytestring string unit pdata bls12-381-g1-element bls12-381-g2-element bls12-381-mlresult : ∀{n} → n ⊢♯
     integer = con T.integer
     bool = con T.bool
     bytestring = con T.bytestring
     string = con T.string
     unit = con T.unit
     pdata = con T.pdata
+    bls12-381-g1-element = con T.bls12-381-g1-element
+    bls12-381-g2-element = con T.bls12-381-g2-element
+    bls12-381-mlresult = con T.bls12-381-mlresult
 
     pair : ∀{n} → n ⊢♯ → n ⊢♯ → n ⊢♯
     pair x y = con (T.pair x y)
@@ -189,7 +214,7 @@ This is defined in its own module so that these definitions are not exported.
     signature lessThanEqualsInteger           = ∙ [ integer , integer ]⟶ bool
     signature appendByteString                = ∙ [ bytestring , bytestring ]⟶ bytestring
     signature consByteString                  = ∙ [ integer , bytestring ]⟶ bytestring
-    signature sliceByteString                 = ∙ [ integer , integer , bytestring ]⟶ bytestring                            
+    signature sliceByteString                 = ∙ [ integer , integer , bytestring ]⟶ bytestring
     signature lengthOfByteString              = ∙ [ bytestring ]⟶ integer
     signature indexByteString                 = ∙ [ bytestring , integer ]⟶ integer
     signature equalsByteString                = ∙ [ bytestring , bytestring ]⟶ bool
@@ -204,7 +229,7 @@ This is defined in its own module so that these definitions are not exported.
     signature appendString                    = ∙ [ string , string ]⟶ string
     signature equalsString                    = ∙ [ string , string ]⟶ bool
     signature encodeUtf8                      = ∙ [ string ]⟶ bytestring
-    signature decodeUtf8                      = ∙ [ bytestring ]⟶ string 
+    signature decodeUtf8                      = ∙ [ bytestring ]⟶ string
     signature ifThenElse                      = ∀a [ bool , a , a ]⟶ a
     signature chooseUnit                      = ∀a [ a , unit ]⟶ a
     signature trace                           = ∀a [ string , a ]⟶ a
@@ -231,6 +256,23 @@ This is defined in its own module so that these definitions are not exported.
     signature mkPairData                      = ∙ [ pdata , pdata ]⟶ pair pdata pdata
     signature mkNilData                       = ∙ [ unit ]⟶ list pdata
     signature mkNilPairData                   = ∙ [ unit ]⟶ list (pair pdata pdata)
+    signature bls12-381-G1-add                = ∙ [ bls12-381-g1-element , bls12-381-g1-element ]⟶ bls12-381-g1-element
+    signature bls12-381-G1-neg                = ∙ [ bls12-381-g1-element ]⟶ bls12-381-g1-element
+    signature bls12-381-G1-scalarMul          = ∙ [ integer , bls12-381-g1-element ]⟶ bls12-381-g1-element
+    signature bls12-381-G1-equal              = ∙ [ bls12-381-g1-element , bls12-381-g1-element ]⟶ bool
+    signature bls12-381-G1-hashToGroup        = ∙ [ bytestring , bytestring ]⟶ bls12-381-g1-element
+    signature bls12-381-G1-compress           = ∙ [ bls12-381-g1-element ]⟶ bytestring
+    signature bls12-381-G1-uncompress         = ∙ [ bytestring ]⟶ bls12-381-g1-element
+    signature bls12-381-G2-add                = ∙ [ bls12-381-g2-element , bls12-381-g2-element ]⟶ bls12-381-g2-element
+    signature bls12-381-G2-neg                = ∙ [ bls12-381-g2-element ]⟶ bls12-381-g2-element
+    signature bls12-381-G2-scalarMul          = ∙ [ integer , bls12-381-g2-element ]⟶ bls12-381-g2-element
+    signature bls12-381-G2-equal              = ∙ [ bls12-381-g2-element , bls12-381-g2-element ]⟶ bool
+    signature bls12-381-G2-hashToGroup        = ∙ [ bytestring , bytestring ]⟶ bls12-381-g2-element
+    signature bls12-381-G2-compress           = ∙ [ bls12-381-g2-element ]⟶ bytestring
+    signature bls12-381-G2-uncompress         = ∙ [ bytestring ]⟶ bls12-381-g2-element
+    signature bls12-381-millerLoop            = ∙ [ bls12-381-g1-element , bls12-381-g2-element ]⟶ bls12-381-mlresult
+    signature bls12-381-mulMlResult           = ∙ [ bls12-381-mlresult , bls12-381-mlresult ]⟶ bls12-381-mlresult
+    signature bls12-381-finalVerify           = ∙ [ bls12-381-mlresult , bls12-381-mlresult ]⟶ bool
 
 open SugaredSignature using (signature) public
 ```
@@ -295,13 +337,30 @@ Each Agda built-in name must be mapped to a Haskell name.
                                           | MkPairData
                                           | MkNilData
                                           | MkNilPairData
+                                          | Bls12_381_G1_add
+                                          | Bls12_381_G1_neg
+                                          | Bls12_381_G1_scalarMul
+                                          | Bls12_381_G1_equal
+                                          | Bls12_381_G1_hashToGroup
+                                          | Bls12_381_G1_compress
+                                          | Bls12_381_G1_uncompress
+                                          | Bls12_381_G2_add
+                                          | Bls12_381_G2_neg
+                                          | Bls12_381_G2_scalarMul
+                                          | Bls12_381_G2_equal
+                                          | Bls12_381_G2_hashToGroup
+                                          | Bls12_381_G2_compress
+                                          | Bls12_381_G2_uncompress
+                                          | Bls12_381_millerLoop
+                                          | Bls12_381_mulMlResult
+                                          | Bls12_381_finalVerify
                                           ) #-}
 ```
 
 ### Abstract semantics of builtins
 
-We need to postulate the Agda type of built-in functions 
-whose semantics are provided by a Haskell funciton.
+We need to postulate the Agda type of built-in functions
+whose semantics are provided by a Haskell function.
 
 ```
 postulate
@@ -314,34 +373,52 @@ postulate
 
   TRACE      : {a : Set} → String → a → a
 
-  concat    : ByteString → ByteString → ByteString
-  cons  : Int → ByteString → Maybe ByteString
-  slice     : Int → Int → ByteString → ByteString
-  B<        : ByteString -> ByteString -> Bool
-  B<=        : ByteString -> ByteString -> Bool
-  SHA2-256  : ByteString → ByteString
-  SHA3-256  : ByteString → ByteString
+  concat     : ByteString → ByteString → ByteString
+  cons       : Int → ByteString → Maybe ByteString
+  slice      : Int → Int → ByteString → ByteString
+  B<         : ByteString → ByteString → Bool
+  B<=        : ByteString → ByteString → Bool
+  SHA2-256   : ByteString → ByteString
+  SHA3-256   : ByteString → ByteString
   BLAKE2B-256  : ByteString → ByteString
   verifyEd25519Sig : ByteString → ByteString → ByteString → Maybe Bool
   verifyEcdsaSecp256k1Sig : ByteString → ByteString → ByteString → Maybe Bool
   verifySchnorrSecp256k1Sig : ByteString → ByteString → ByteString → Maybe Bool
-  equals    : ByteString → ByteString → Bool
-  ENCODEUTF8 : String → ByteString
-  DECODEUTF8 : ByteString → Maybe String
+  equals        : ByteString → ByteString → Bool
+  ENCODEUTF8    : String → ByteString
+  DECODEUTF8    : ByteString → Maybe String
   serialiseDATA : DATA → ByteString
+  BLS12-381-G1-add                : Bls12-381-G1-Element → Bls12-381-G1-Element → Bls12-381-G1-Element
+  BLS12-381-G1-neg                : Bls12-381-G1-Element → Bls12-381-G1-Element
+  BLS12-381-G1-scalarMul          : Int → Bls12-381-G1-Element → Bls12-381-G1-Element
+  BLS12-381-G1-equal              : Bls12-381-G1-Element → Bls12-381-G1-Element → Bool
+  BLS12-381-G1-hashToGroup        : ByteString → ByteString → Maybe Bls12-381-G1-Element
+  BLS12-381-G1-compress           : Bls12-381-G1-Element → ByteString
+  BLS12-381-G1-uncompress         : ByteString → Maybe Bls12-381-G1-Element -- FIXME: this really returns Either BLSTError Element
+  BLS12-381-G2-add                : Bls12-381-G2-Element → Bls12-381-G2-Element → Bls12-381-G2-Element
+  BLS12-381-G2-neg                : Bls12-381-G2-Element → Bls12-381-G2-Element
+  BLS12-381-G2-scalarMul          : Int → Bls12-381-G2-Element → Bls12-381-G2-Element
+  BLS12-381-G2-equal              : Bls12-381-G2-Element → Bls12-381-G2-Element → Bool
+  BLS12-381-G2-hashToGroup        : ByteString → ByteString → Maybe Bls12-381-G2-Element
+  BLS12-381-G2-compress           : Bls12-381-G2-Element → ByteString
+  BLS12-381-G2-uncompress         : ByteString → Maybe Bls12-381-G2-Element -- FIXME: this really returns Either BLSTError Element
+  BLS12-381-millerLoop            : Bls12-381-G1-Element → Bls12-381-G2-Element → Bls12-381-MlResult
+  BLS12-381-mulMlResult           : Bls12-381-MlResult → Bls12-381-MlResult → Bls12-381-MlResult
+  BLS12-381-finalVerify           : Bls12-381-MlResult → Bls12-381-MlResult → Bool
 ```
 
 ### What builtin operations should be compiled to if we compile to Haskell
 
 ```
 {-# FOREIGN GHC {-# LANGUAGE TypeApplications #-} #-}
+{-# FOREIGN GHC import Control.Composition ((.*)) #-}
 {-# FOREIGN GHC import qualified Data.ByteString as BS #-}
 {-# FOREIGN GHC import qualified Data.ByteArray as B #-}
 {-# FOREIGN GHC import Debug.Trace (trace) #-}
 {-# FOREIGN GHC import Data.ByteString.Hash as Hash #-}
 {-# FOREIGN GHC import Data.Text.Encoding #-}
 {-# FOREIGN GHC import qualified Data.Text as Text #-}
-{-# FOREIGN GHC import Data.Either.Extra #-}
+{-# FOREIGN GHC import Data.Either.Extra (eitherToMaybe) #-}
 {-# FOREIGN GHC import Data.Word (Word8) #-}
 {-# FOREIGN GHC import Data.Bits (toIntegralSized) #-}
 {-# COMPILE GHC length = toInteger . BS.length #-}
@@ -374,7 +451,8 @@ postulate
 {-# COMPILE GHC cons = \n xs -> fmap (\w8 -> BS.cons w8 xs) (toIntegralSized n) #-}
 {-# COMPILE GHC slice = \start n xs -> BS.take (fromIntegral n) (BS.drop (fromIntegral start) xs) #-}
 {-# COMPILE GHC index = \xs n -> fromIntegral (BS.index xs (fromIntegral n)) #-}
-{-# FOREIGN GHC import Crypto #-}
+{-# FOREIGN GHC import PlutusCore.Crypto.Ed25519 #-}
+{-# FOREIGN GHC import PlutusCore.Crypto.Secp256k1 #-}
 
 -- The Vasil verification functions return results wrapped in Emitters, which
 -- may perform a side-effect such as writing some text to a log.  The code below
@@ -393,6 +471,28 @@ postulate
 {-# COMPILE GHC ENCODEUTF8 = encodeUtf8 #-}
 {-# COMPILE GHC DECODEUTF8 = eitherToMaybe . decodeUtf8' #-}
 
+{-# FOREIGN GHC import PlutusCore.Crypto.BLS12_381.G1 qualified as G1 #-}
+{-# COMPILE GHC BLS12-381-G1-add = G1.add #-}
+{-# COMPILE GHC BLS12-381-G1-neg = G1.neg #-}
+{-# COMPILE GHC BLS12-381-G1-scalarMul = G1.scalarMul #-}
+{-# COMPILE GHC BLS12-381-G1-equal = (==) #-}
+{-# COMPILE GHC BLS12-381-G1-hashToGroup = eitherToMaybe .* G1.hashToGroup #-}
+{-# COMPILE GHC BLS12-381-G1-compress = G1.compress #-}
+{-# COMPILE GHC BLS12-381-G1-uncompress = eitherToMaybe . G1.uncompress #-}
+{-# FOREIGN GHC import PlutusCore.Crypto.BLS12_381.G2 qualified as G2 #-}
+{-# COMPILE GHC BLS12-381-G2-add = G2.add #-}
+{-# COMPILE GHC BLS12-381-G2-neg = G2.neg #-}
+{-# COMPILE GHC BLS12-381-G2-scalarMul = G2.scalarMul #-}
+{-# COMPILE GHC BLS12-381-G2-equal = (==) #-}
+{-# COMPILE GHC BLS12-381-G2-hashToGroup = eitherToMaybe .* G2.hashToGroup #-}
+{-# COMPILE GHC BLS12-381-G2-compress = G2.compress #-}
+{-# COMPILE GHC BLS12-381-G2-uncompress = eitherToMaybe . G2.uncompress #-}
+{-# FOREIGN GHC import PlutusCore.Crypto.BLS12_381.Pairing qualified as Pairing #-}
+{-# COMPILE GHC BLS12-381-millerLoop = Pairing.millerLoop #-}
+{-# COMPILE GHC BLS12-381-mulMlResult = Pairing.mulMlResult #-}
+{-# COMPILE GHC BLS12-381-finalVerify = Pairing.finalVerify #-}
+
+
 -- no binding needed for appendStr
 -- no binding needed for traceStr
 ```
@@ -405,4 +505,3 @@ comparing expected with actual results.
 decBuiltin : DecidableEquality Builtin
 unquoteDef decBuiltin = defDec (quote Builtin) decBuiltin
 ```
- 
