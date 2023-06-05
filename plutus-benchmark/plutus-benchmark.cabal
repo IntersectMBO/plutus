@@ -374,7 +374,7 @@ library bls12-381lib-internal
   -- Something weird causes this to sometimes report
   -- the plugin package as unused...
   ghc-options:     -Wno-unused-packages
-  hs-source-dirs:  bls12-381-benchmarks/src
+  hs-source-dirs:  bls12-381-costs/src
   exposed-modules:
     PlutusBenchmark.BLS12_381.RunTests
     PlutusBenchmark.BLS12_381.Scripts
@@ -400,7 +400,7 @@ executable bls12-381-costs
 
   default-language: Haskell2010
   main-is:          Main.hs
-  hs-source-dirs:   bls12-381-benchmarks/exe
+  hs-source-dirs:   bls12-381-costs/exe
   build-depends:
     , base                   >=4.9 && <5
     , bls12-381lib-internal
@@ -415,7 +415,7 @@ test-suite bls12-381-costs-test
 
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
-  hs-source-dirs: bls12-381-benchmarks/test
+  hs-source-dirs: bls12-381-costs/test
   build-depends:
     , base                     >=4.9 && <5
     , bls12-381lib-internal
@@ -430,7 +430,7 @@ benchmark bls12-381-benchmarks
 
   type:           exitcode-stdio-1.0
   main-is:        Bench.hs
-  hs-source-dirs: bls12-381-benchmarks/bench
+  hs-source-dirs: bls12-381-costs/bench
   build-depends:
     , base                     >=4.9     && <5
     , bls12-381lib-internal
