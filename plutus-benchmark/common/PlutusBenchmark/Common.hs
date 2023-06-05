@@ -184,7 +184,6 @@ printSizeStatistics h n script = do
    text.  The output is written to a file in the system temporary directory and
    deleted if the test passes.  If the test fails then the output is retained
    for further inspection. -}
-
 goldenVsTextualOutput
     :: TestName          -- The name of the test.
     -> FilePath          -- The path to the golden file.
@@ -204,5 +203,3 @@ goldenVsTextualOutput testName goldenFile filename runTest =  do
         goldenFile
         resultsFile
         (runTest handle >> hClose handle)
-
-

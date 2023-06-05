@@ -11,4 +11,3 @@ goldenFile = "bls12-381-benchmarks/test/bls12-381-costs.golden"
 
 main :: IO ()
 main = goldenVsTextualOutput "BLS12-381 costs test" goldenFile outputFile runTests
-

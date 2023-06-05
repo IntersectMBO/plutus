@@ -90,4 +90,3 @@ runTests h = do
   if checkGroth16Verify_Haskell
   then hPrintf h "Groth16Verify succeeded\n"
   else hPrintf h "Groth16Verify failed\n"
-
