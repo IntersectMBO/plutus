@@ -2,3 +2,10 @@ flat-report.html
 flat-sizes.txt
 report.html
 report.json
+*.flat
+*.plutus
+*.tsv
+*.png
+.cache/
+.ipynb_checkpoints/
+*.ipynb
