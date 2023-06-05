@@ -7,7 +7,7 @@ outputFile :: String
 outputFile = "bls12-381-costs.txt"
 
 goldenFile :: FilePath
-goldenFile = "bls12-381-benchmarks/test/bls12-381-costs.golden"
+goldenFile = "bls12-381-costs/test/bls12-381-costs.golden"
 
 main :: IO ()
 main = goldenVsTextualOutput "BLS12-381 costs test" goldenFile outputFile runTests
