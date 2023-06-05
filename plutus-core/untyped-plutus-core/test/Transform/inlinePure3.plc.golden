@@ -1,1 +1,0 @@
-(lam b_5 [ (lam x_8 (lam y_9 [ x_8 x_8 ])) (con integer 1) ])

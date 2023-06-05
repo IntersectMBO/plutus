@@ -10,26 +10,14 @@ program 1.1.0 ((\s ->
                                                                            xs))
                                                                , (delay (constr 1 [  ])) ]))) ]))
                       (s s))
-                 ((\c ->
-                     c
-                       (constr 1 [])
-                       (c
-                          (constr 0 [])
-                          (c
-                             (constr 0 [])
-                             (c
-                                (constr 0 [])
-                                (c
-                                   (constr 0 [])
-                                   (c
-                                      (constr 0 [])
-                                      (c
-                                         (constr 0 [])
-                                         (c
-                                            (constr 0 [])
-                                            (c
-                                               (constr 0 [])
-                                               (c
-                                                  (constr 0 [])
-                                                  (constr 0 [])))))))))))
-                    (\ds ds -> constr 1 [ds, ds])))
+                 (constr 1 [ (constr 1 [])
+                           , (constr 1 [ (constr 0 [])
+                                       , (constr 1 [ (constr 0 [])
+                                                   , (constr 1 [ (constr 0 [])
+                                                               , (constr 1 [ (constr 0 [  ])
+                                                                           , (constr 1 [ (constr 0 [  ])
+                                                                                       , (constr 1 [ (constr 0 [  ])
+                                                                                                   , (constr 1 [ (constr 0 [  ])
+                                                                                                               , (constr 1 [ (constr 0 [  ])
+                                                                                                                           , (constr 1 [ (constr 0 [  ])
+                                                                                                                                       , (constr 0 [  ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]))

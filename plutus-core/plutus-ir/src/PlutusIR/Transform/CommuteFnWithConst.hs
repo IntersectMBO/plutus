@@ -91,6 +91,23 @@ isCommutative = \case
   VerifyEd25519Signature          -> False
   VerifyEcdsaSecp256k1Signature   -> False
   VerifySchnorrSecp256k1Signature -> False
+  Bls12_381_G1_add                -> False
+  Bls12_381_G1_neg                -> False
+  Bls12_381_G1_scalarMul          -> False
+  Bls12_381_G1_equal              -> False
+  Bls12_381_G1_hashToGroup        -> False
+  Bls12_381_G1_compress           -> False
+  Bls12_381_G1_uncompress         -> False
+  Bls12_381_G2_add                -> False
+  Bls12_381_G2_neg                -> False
+  Bls12_381_G2_scalarMul          -> False
+  Bls12_381_G2_equal              -> False
+  Bls12_381_G2_hashToGroup        -> False
+  Bls12_381_G2_compress           -> False
+  Bls12_381_G2_uncompress         -> False
+  Bls12_381_millerLoop            -> False
+  Bls12_381_mulMlResult           -> False
+  Bls12_381_finalVerify           -> False
     -- Strings
   AppendString                    -> False
   EqualsString                    -> True

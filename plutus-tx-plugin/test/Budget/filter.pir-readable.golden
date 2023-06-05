@@ -40,7 +40,7 @@ foldr
   (\(e : integer)
     (xs : List integer) ->
      Bool_match
-       (ifThenElse {Bool} (equalsInteger (modInteger e 2) 0) True False)
+       (ifThenElse {Bool} (equalsInteger 0 (modInteger e 2)) True False)
        {all dead. List integer}
        (/\dead -> Cons {integer} e xs)
        (/\dead -> xs)

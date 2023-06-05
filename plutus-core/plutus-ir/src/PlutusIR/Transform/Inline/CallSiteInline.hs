@@ -106,14 +106,14 @@ perform beta reduction.
 {- | Computes the 'Utils.Arity' of a term. Also returns the function body, for checking whether
 it's `Utils.acceptable`.
 -}
-computeArity ::
+splitParams ::
   Term tyname name uni fun ann ->
   (Arity tyname name, Term tyname name uni fun ann)
-computeArity = \case
+splitParams = \case
   LamAbs _ n _ body ->
-    let (nextArgs, nextBody) = computeArity body in (TermParam n : nextArgs, nextBody)
+    let (nextArgs, nextBody) = splitParams body in (TermParam n : nextArgs, nextBody)
   TyAbs _ n _ body ->
-    let (nextArgs, nextBody) = computeArity body in (TypeParam n : nextArgs, nextBody)
+    let (nextArgs, nextBody) = splitParams body in (TypeParam n : nextArgs, nextBody)
   -- Whenever we encounter a body that is not a lambda or type abstraction, we are done counting
   tm -> ([], tm)
 

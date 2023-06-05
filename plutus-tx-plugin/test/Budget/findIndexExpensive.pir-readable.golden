@@ -29,7 +29,7 @@ letrec
                  (ifThenElse {Bool} (lessThanEqualsInteger 1 x) False True)
                  {all dead. Maybe integer}
                  (/\dead -> Just {integer} i)
-                 (/\dead -> go (addInteger i 1) xs)
+                 (/\dead -> go (addInteger 1 i) xs)
                  {all dead. dead})
           {all dead. dead}
 in

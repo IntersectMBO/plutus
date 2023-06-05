@@ -1,488 +1,425 @@
 program 1.1.0 ((\fix1 ->
                   (\y ->
-                     (\Cons ->
-                        (\go ->
-                           (\foldr ->
-                              (\id ->
-                                 (\`$w$cshowsPrec` ->
-                                    (\x ->
-                                       (\w ->
-                                          (\toHex ->
-                                             (\`$fEnumBool_$cenumFromTo` ->
-                                                (\Tuple2 ->
-                                                   (\`$fShowInteger_$cshowsPrec` ->
-                                                      (\go ->
-                                                         (\go ->
-                                                            (\UTuple2 ->
-                                                               (\concatBuiltinStrings ->
-                                                                  (\`$fShowInteger_$cshow` ->
-                                                                     (\a ->
-                                                                        (\c ->
-                                                                           (\d ->
-                                                                              (\showsPrec ->
-                                                                                 (\`$fShowInteger` ->
-                                                                                    (\e ->
-                                                                                       multiplyInteger
-                                                                                         (force trace
-                                                                                            (concatBuiltinStrings
-                                                                                               (Cons
-                                                                                                  "("
-                                                                                                  (showsPrec
+                     (\go ->
+                        (\foldr ->
+                           (\id ->
+                              (\`$w$cshowsPrec` ->
+                                 (\x ->
+                                    (\w ->
+                                       (\toHex ->
+                                          (\`$fEnumBool_$cenumFromTo` ->
+                                             (\`$fShowInteger_$cshowsPrec` ->
+                                                (\go ->
+                                                   (\go ->
+                                                      (\concatBuiltinStrings ->
+                                                         (\`$fShowInteger_$cshow` ->
+                                                            (\a ->
+                                                               (\c ->
+                                                                  (\d ->
+                                                                     (\showsPrec ->
+                                                                        (\`$fShowInteger` ->
+                                                                           (\e ->
+                                                                              multiplyInteger
+                                                                                2
+                                                                                (force trace
+                                                                                   (concatBuiltinStrings
+                                                                                      (constr 1 [ "("
+                                                                                                , (showsPrec
                                                                                                      `$fShowInteger`
                                                                                                      0
                                                                                                      a
-                                                                                                     (Cons
-                                                                                                        ","
-                                                                                                        (showsPrec
-                                                                                                           `$fShowInteger`
-                                                                                                           0
-                                                                                                           a
-                                                                                                           (Cons
-                                                                                                              ","
-                                                                                                              (showsPrec
-                                                                                                                 `$fShowInteger`
-                                                                                                                 0
-                                                                                                                 c
-                                                                                                                 (Cons
-                                                                                                                    ","
-                                                                                                                    (showsPrec
-                                                                                                                       `$fShowInteger`
-                                                                                                                       0
-                                                                                                                       d
-                                                                                                                       (Cons
-                                                                                                                          ","
-                                                                                                                          (showsPrec
-                                                                                                                             `$fShowInteger`
-                                                                                                                             0
-                                                                                                                             e
-                                                                                                                             (Cons
-                                                                                                                                ")"
-                                                                                                                                (constr 0 [  ])))))))))))))
-                                                                                            e)
-                                                                                         2)
-                                                                                      (force trace
-                                                                                         ((\x ->
-                                                                                             concatBuiltinStrings
-                                                                                               ((\showElem ->
-                                                                                                   case x [ (\ds ->
-                                                                                                               Cons
-                                                                                                                 "[]"
-                                                                                                                 ds)
-                                                                                                          , (\x
-                                                                                                              xs
-                                                                                                              x ->
-                                                                                                               Cons
-                                                                                                                 "["
-                                                                                                                 (showElem
-                                                                                                                    x
-                                                                                                                    (force (force (foldr
-                                                                                                                                     (delay (\x ->
-                                                                                                                                               x))))
-                                                                                                                       (\a
-                                                                                                                         acc
-                                                                                                                         x ->
-                                                                                                                          Cons
-                                                                                                                            ","
-                                                                                                                            (showElem
-                                                                                                                               a
-                                                                                                                               (acc
-                                                                                                                                  x)))
-                                                                                                                       id
-                                                                                                                       xs
-                                                                                                                       (Cons
-                                                                                                                          "]"
-                                                                                                                          x)))) ])
-                                                                                                  (showsPrec
-                                                                                                     `$fShowInteger`
-                                                                                                     0)
-                                                                                                  (constr 0 [  ])))
-                                                                                            ((\c ->
-                                                                                                c
-                                                                                                  a
-                                                                                                  (c
-                                                                                                     a
-                                                                                                     (c
-                                                                                                        c
-                                                                                                        (c
-                                                                                                           d
-                                                                                                           (constr 0 [  ])))))
-                                                                                               (\ds
-                                                                                                 ds ->
-                                                                                                  Cons
-                                                                                                    ds
-                                                                                                    ds)))
-                                                                                         d))
-                                                                                   (constr 0 [ `$fShowInteger_$cshowsPrec`
-                                                                                             , `$fShowInteger_$cshow` ]))
-                                                                                (\v ->
-                                                                                   case v [ (\v
-                                                                                              v ->
-                                                                                               v) ]))
+                                                                                                     (constr 1 [ ","
+                                                                                                               , (showsPrec
+                                                                                                                    `$fShowInteger`
+                                                                                                                    0
+                                                                                                                    a
+                                                                                                                    (constr 1 [ ","
+                                                                                                                              , (showsPrec
+                                                                                                                                   `$fShowInteger`
+                                                                                                                                   0
+                                                                                                                                   c
+                                                                                                                                   (constr 1 [ ","
+                                                                                                                                             , (showsPrec
+                                                                                                                                                  `$fShowInteger`
+                                                                                                                                                  0
+                                                                                                                                                  d
+                                                                                                                                                  (constr 1 [ ","
+                                                                                                                                                            , (showsPrec
+                                                                                                                                                                 `$fShowInteger`
+                                                                                                                                                                 0
+                                                                                                                                                                 e
+                                                                                                                                                                 (constr 1 [ ")"
+                                                                                                                                                                           , (constr 0 [  ]) ])) ])) ])) ])) ])) ]))
+                                                                                   e))
                                                                              (force trace
-                                                                                (case (force ifThenElse
-                                                                                         (lessThanEqualsInteger
-                                                                                            c
-                                                                                            0)
-                                                                                         (constr 1 [  ])
-                                                                                         (constr 0 [  ])) [ "True"
-                                                                                                          , "False" ])
-                                                                                c))
-                                                                          (force trace
-                                                                             (concatBuiltinStrings
-                                                                                (force (force (foldr
-                                                                                                 (delay (\x ->
-                                                                                                           x))))
-                                                                                   (\i
-                                                                                     acc
-                                                                                     x ->
-                                                                                      toHex
-                                                                                        (divideInteger
-                                                                                           (indexByteString
-                                                                                              w
-                                                                                              i)
-                                                                                           16)
-                                                                                        (toHex
-                                                                                           (modInteger
-                                                                                              (indexByteString
-                                                                                                 w
-                                                                                                 i)
-                                                                                              16)
-                                                                                           (acc
-                                                                                              x)))
-                                                                                   id
-                                                                                   (`$fEnumBool_$cenumFromTo`
-                                                                                      0
-                                                                                      (subtractInteger
-                                                                                         (lengthOfByteString
-                                                                                            w)
-                                                                                         1))
-                                                                                   (constr 0 [  ])))
-                                                                             a))
-                                                                       (force trace
-                                                                          (`$fShowInteger_$cshow`
-                                                                             x)
-                                                                          x))
-                                                                    (\x ->
-                                                                       concatBuiltinStrings
-                                                                         (`$fShowInteger_$cshowsPrec`
-                                                                            0
-                                                                            x
-                                                                            (constr 0 [  ]))))
-                                                                 (fix1
-                                                                    (\concatBuiltinStrings
-                                                                      ds ->
-                                                                       case ds [ ""
-                                                                               , (\x
-                                                                                   ds ->
-                                                                                    force (case ds [ (delay x)
-                                                                                                   , (\ipv
-                                                                                                       ipv ->
-                                                                                                        delay ((\ds ->
-                                                                                                                  appendString
-                                                                                                                    (case (force ds) [ (\ys
-                                                                                                                                         zs ->
-                                                                                                                                          concatBuiltinStrings
-                                                                                                                                            ys) ])
-                                                                                                                    (case (force ds) [ (\ys
-                                                                                                                                         zs ->
-                                                                                                                                          concatBuiltinStrings
-                                                                                                                                            zs) ]))
-                                                                                                                 (delay ((\w ->
-                                                                                                                            case (force (case (force ifThenElse
-                                                                                                                                                 (lessThanEqualsInteger
-                                                                                                                                                    w
-                                                                                                                                                    0)
-                                                                                                                                                 (constr 0 [  ])
-                                                                                                                                                 (constr 1 [  ])) [ (delay (UTuple2
-                                                                                                                                                                              (constr 0 [  ])
-                                                                                                                                                                              ds))
-                                                                                                                                                                  , (delay (case (force (go
-                                                                                                                                                                                           (delay (\x ->
-                                                                                                                                                                                                     x)))
-                                                                                                                                                                                    w
-                                                                                                                                                                                    ds) [ (\ww
-                                                                                                                                                                                            ww ->
-                                                                                                                                                                                             UTuple2
-                                                                                                                                                                                               ww
-                                                                                                                                                                                               ww) ])) ])) [ (\ww
-                                                                                                                                                                                                               ww ->
-                                                                                                                                                                                                                Tuple2
-                                                                                                                                                                                                                  ww
-                                                                                                                                                                                                                  ww) ])
-                                                                                                                           (divideInteger
-                                                                                                                              (go
-                                                                                                                                 ds
-                                                                                                                                 0)
-                                                                                                                              2))))) ])) ])))
-                                                              (\arg_0
-                                                                arg_1 ->
-                                                                 constr 0 [ arg_0
-                                                                          , arg_1 ]))
-                                                           (fix1
-                                                              (\go
-                                                                ds
-                                                                eta ->
-                                                                 force (case ds [ (delay eta)
-                                                                                , (\x
-                                                                                    xs ->
-                                                                                     delay (go
-                                                                                              xs
-                                                                                              (addInteger
-                                                                                                 eta
-                                                                                                 1))) ]))))
+                                                                                (concatBuiltinStrings
+                                                                                   ((\showElem ->
+                                                                                       constr 1 [ "["
+                                                                                                , (showElem
+                                                                                                     a
+                                                                                                     (force (force (foldr
+                                                                                                                      (delay (\x ->
+                                                                                                                                x))))
+                                                                                                        (\a
+                                                                                                          acc
+                                                                                                          x ->
+                                                                                                           constr 1 [ ","
+                                                                                                                    , (showElem
+                                                                                                                         a
+                                                                                                                         (acc
+                                                                                                                            x)) ])
+                                                                                                        id
+                                                                                                        (constr 1 [ a
+                                                                                                                  , (constr 1 [ c
+                                                                                                                              , (constr 1 [ d
+                                                                                                                                          , (constr 0 [  ]) ]) ]) ])
+                                                                                                        (constr 1 [ "]"
+                                                                                                                  , (constr 0 [  ]) ]))) ])
+                                                                                      (showsPrec
+                                                                                         `$fShowInteger`
+                                                                                         0)))
+                                                                                d))
+                                                                          (constr 0 [ `$fShowInteger_$cshowsPrec`
+                                                                                    , `$fShowInteger_$cshow` ]))
+                                                                       (\v ->
+                                                                          case v [ (\v
+                                                                                     v ->
+                                                                                      v) ]))
+                                                                    (force trace
+                                                                       (case (force ifThenElse
+                                                                                (lessThanEqualsInteger
+                                                                                   c
+                                                                                   0)
+                                                                                (constr 1 [  ])
+                                                                                (constr 0 [  ])) [ "True"
+                                                                                                 , "False" ])
+                                                                       c))
+                                                                 (force trace
+                                                                    (concatBuiltinStrings
+                                                                       (force (force (foldr
+                                                                                        (delay (\x ->
+                                                                                                  x))))
+                                                                          (\i
+                                                                            acc
+                                                                            x ->
+                                                                             toHex
+                                                                               (divideInteger
+                                                                                  (indexByteString
+                                                                                     w
+                                                                                     i)
+                                                                                  16)
+                                                                               (toHex
+                                                                                  (modInteger
+                                                                                     (indexByteString
+                                                                                        w
+                                                                                        i)
+                                                                                     16)
+                                                                                  (acc
+                                                                                     x)))
+                                                                          id
+                                                                          (`$fEnumBool_$cenumFromTo`
+                                                                             0
+                                                                             (subtractInteger
+                                                                                (lengthOfByteString
+                                                                                   w)
+                                                                                1))
+                                                                          (constr 0 [  ])))
+                                                                    a))
+                                                              (force trace
+                                                                 (`$fShowInteger_$cshow`
+                                                                    x)
+                                                                 x))
+                                                           (\x ->
+                                                              concatBuiltinStrings
+                                                                (`$fShowInteger_$cshowsPrec`
+                                                                   0
+                                                                   x
+                                                                   (constr 0 [  ]))))
                                                         (fix1
-                                                           (\go
-                                                             arg ->
-                                                              delay (\ds
-                                                                      ds ->
-                                                                       force (case ds [ (delay (Tuple2
-                                                                                                  (constr 0 [  ])
-                                                                                                  (constr 0 [  ])))
-                                                                                      , (\y
-                                                                                          ys ->
-                                                                                           delay (force (case (force ifThenElse
-                                                                                                                 (equalsInteger
-                                                                                                                    ds
-                                                                                                                    1)
-                                                                                                                 (constr 0 [  ])
-                                                                                                                 (constr 1 [  ])) [ (delay (Tuple2
-                                                                                                                                              (Cons
-                                                                                                                                                 y
-                                                                                                                                                 (constr 0 [  ]))
-                                                                                                                                              ys))
-                                                                                                                                  , (delay (case (force (go
-                                                                                                                                                           (delay (\x ->
-                                                                                                                                                                     x)))
-                                                                                                                                                    (subtractInteger
-                                                                                                                                                       ds
-                                                                                                                                                       1)
-                                                                                                                                                    ys) [ (\zs
-                                                                                                                                                            ws ->
-                                                                                                                                                             Tuple2
-                                                                                                                                                               (Cons
-                                                                                                                                                                  y
-                                                                                                                                                                  zs)
-                                                                                                                                                               ws) ])) ]))) ])))))
-                                                     (\w
-                                                       w ->
-                                                        `$w$cshowsPrec` w))
-                                                  (\arg_0
-                                                    arg_1 ->
-                                                     constr 0 [arg_0, arg_1]))
-                                               (fix1
-                                                  (\`$fEnumBool_$cenumFromTo`
-                                                    x
-                                                    y ->
-                                                     force (case (force ifThenElse
-                                                                    (lessThanEqualsInteger
-                                                                       x
-                                                                       y)
-                                                                    (constr 1 [  ])
-                                                                    (constr 0 [  ])) [ (delay (constr 0 [  ]))
-                                                                                     , (delay (Cons
-                                                                                                 x
-                                                                                                 (`$fEnumBool_$cenumFromTo`
-                                                                                                    (addInteger
-                                                                                                       x
-                                                                                                       1)
-                                                                                                    y))) ]))))
-                                            (\x ->
-                                               force (case (force ifThenElse
-                                                              (lessThanEqualsInteger
-                                                                 x
-                                                                 9)
-                                                              (constr 0 [])
-                                                              (constr 1 [  ])) [ (delay (`$w$cshowsPrec`
-                                                                                           x))
-                                                                               , (delay (force (case (force ifThenElse
-                                                                                                        (equalsInteger
-                                                                                                           x
-                                                                                                           10)
-                                                                                                        (constr 0 [  ])
-                                                                                                        (constr 1 [  ])) [ (delay (\ds ->
-                                                                                                                                     Cons
-                                                                                                                                       "a"
-                                                                                                                                       ds))
-                                                                                                                         , (delay (force (case (force ifThenElse
-                                                                                                                                                  (equalsInteger
-                                                                                                                                                     x
-                                                                                                                                                     11)
-                                                                                                                                                  (constr 0 [  ])
-                                                                                                                                                  (constr 1 [  ])) [ (delay (\ds ->
-                                                                                                                                                                               Cons
-                                                                                                                                                                                 "b"
-                                                                                                                                                                                 ds))
-                                                                                                                                                                   , (delay (force (case (force ifThenElse
-                                                                                                                                                                                            (equalsInteger
-                                                                                                                                                                                               x
-                                                                                                                                                                                               12)
-                                                                                                                                                                                            (constr 0 [  ])
-                                                                                                                                                                                            (constr 1 [  ])) [ (delay (\ds ->
-                                                                                                                                                                                                                         Cons
-                                                                                                                                                                                                                           "c"
-                                                                                                                                                                                                                           ds))
-                                                                                                                                                                                                             , (delay (force (case (force ifThenElse
-                                                                                                                                                                                                                                      (equalsInteger
-                                                                                                                                                                                                                                         x
-                                                                                                                                                                                                                                         13)
-                                                                                                                                                                                                                                      (constr 0 [  ])
-                                                                                                                                                                                                                                      (constr 1 [  ])) [ (delay (\ds ->
-                                                                                                                                                                                                                                                                   Cons
-                                                                                                                                                                                                                                                                     "d"
-                                                                                                                                                                                                                                                                     ds))
-                                                                                                                                                                                                                                                       , (delay (force (case (force ifThenElse
-                                                                                                                                                                                                                                                                                (equalsInteger
-                                                                                                                                                                                                                                                                                   x
-                                                                                                                                                                                                                                                                                   14)
-                                                                                                                                                                                                                                                                                (constr 0 [  ])
-                                                                                                                                                                                                                                                                                (constr 1 [  ])) [ (delay (\ds ->
-                                                                                                                                                                                                                                                                                                             Cons
-                                                                                                                                                                                                                                                                                                               "e"
-                                                                                                                                                                                                                                                                                                               ds))
-                                                                                                                                                                                                                                                                                                 , (delay (case (force ifThenElse
-                                                                                                                                                                                                                                                                                                                   (equalsInteger
-                                                                                                                                                                                                                                                                                                                      x
-                                                                                                                                                                                                                                                                                                                      15)
-                                                                                                                                                                                                                                                                                                                   (constr 0 [  ])
-                                                                                                                                                                                                                                                                                                                   (constr 1 [  ])) [ (\ds ->
-                                                                                                                                                                                                                                                                                                                                         Cons
-                                                                                                                                                                                                                                                                                                                                           "f"
-                                                                                                                                                                                                                                                                                                                                           ds)
-                                                                                                                                                                                                                                                                                                                                    , (\ds ->
-                                                                                                                                                                                                                                                                                                                                         Cons
-                                                                                                                                                                                                                                                                                                                                           "<invalid byte>"
-                                                                                                                                                                                                                                                                                                                                           ds) ])) ]))) ]))) ]))) ]))) ]))) ])))
-                                         #5468697320697320616e206578616d706c65)
-                                      -1234567890)
-                                   (fix1
-                                      (\`$w$cshowsPrec`
-                                        w ->
-                                         force (case (force ifThenElse
-                                                        (lessThanInteger w 0)
-                                                        (constr 0 [])
-                                                        (constr 1 [  ])) [ (delay (\x ->
-                                                                                     Cons
-                                                                                       "-"
-                                                                                       (`$w$cshowsPrec`
-                                                                                          (subtractInteger
-                                                                                             0
-                                                                                             w)
-                                                                                          x)))
-                                                                         , (delay (force (force (foldr
-                                                                                                   (delay (\x ->
-                                                                                                             x))))
-                                                                                     (\digit
-                                                                                       acc
-                                                                                       x ->
-                                                                                        Cons
-                                                                                          (force (case (force ifThenElse
-                                                                                                          (equalsInteger
-                                                                                                             digit
-                                                                                                             0)
-                                                                                                          (constr 0 [  ])
-                                                                                                          (constr 1 [  ])) [ (delay "0")
-                                                                                                                           , (delay (force (case (force ifThenElse
-                                                                                                                                                    (equalsInteger
-                                                                                                                                                       digit
-                                                                                                                                                       1)
-                                                                                                                                                    (constr 0 [  ])
-                                                                                                                                                    (constr 1 [  ])) [ (delay "1")
-                                                                                                                                                                     , (delay (force (case (force ifThenElse
-                                                                                                                                                                                              (equalsInteger
-                                                                                                                                                                                                 digit
-                                                                                                                                                                                                 2)
-                                                                                                                                                                                              (constr 0 [  ])
-                                                                                                                                                                                              (constr 1 [  ])) [ (delay "2")
-                                                                                                                                                                                                               , (delay (force (case (force ifThenElse
-                                                                                                                                                                                                                                        (equalsInteger
-                                                                                                                                                                                                                                           digit
-                                                                                                                                                                                                                                           3)
-                                                                                                                                                                                                                                        (constr 0 [  ])
-                                                                                                                                                                                                                                        (constr 1 [  ])) [ (delay "3")
-                                                                                                                                                                                                                                                         , (delay (force (case (force ifThenElse
-                                                                                                                                                                                                                                                                                  (equalsInteger
-                                                                                                                                                                                                                                                                                     digit
-                                                                                                                                                                                                                                                                                     4)
-                                                                                                                                                                                                                                                                                  (constr 0 [  ])
-                                                                                                                                                                                                                                                                                  (constr 1 [  ])) [ (delay "4")
-                                                                                                                                                                                                                                                                                                   , (delay (force (case (force ifThenElse
-                                                                                                                                                                                                                                                                                                                            (equalsInteger
-                                                                                                                                                                                                                                                                                                                               digit
-                                                                                                                                                                                                                                                                                                                               5)
-                                                                                                                                                                                                                                                                                                                            (constr 0 [  ])
-                                                                                                                                                                                                                                                                                                                            (constr 1 [  ])) [ (delay "5")
-                                                                                                                                                                                                                                                                                                                                             , (delay (force (case (force ifThenElse
-                                                                                                                                                                                                                                                                                                                                                                      (equalsInteger
-                                                                                                                                                                                                                                                                                                                                                                         digit
-                                                                                                                                                                                                                                                                                                                                                                         6)
-                                                                                                                                                                                                                                                                                                                                                                      (constr 0 [  ])
-                                                                                                                                                                                                                                                                                                                                                                      (constr 1 [  ])) [ (delay "6")
-                                                                                                                                                                                                                                                                                                                                                                                       , (delay (force (case (force ifThenElse
-                                                                                                                                                                                                                                                                                                                                                                                                                (equalsInteger
-                                                                                                                                                                                                                                                                                                                                                                                                                   digit
-                                                                                                                                                                                                                                                                                                                                                                                                                   7)
-                                                                                                                                                                                                                                                                                                                                                                                                                (constr 0 [  ])
-                                                                                                                                                                                                                                                                                                                                                                                                                (constr 1 [  ])) [ (delay "7")
-                                                                                                                                                                                                                                                                                                                                                                                                                                 , (delay (force (case (force ifThenElse
-                                                                                                                                                                                                                                                                                                                                                                                                                                                          (equalsInteger
-                                                                                                                                                                                                                                                                                                                                                                                                                                                             digit
-                                                                                                                                                                                                                                                                                                                                                                                                                                                             8)
-                                                                                                                                                                                                                                                                                                                                                                                                                                                          (constr 0 [  ])
-                                                                                                                                                                                                                                                                                                                                                                                                                                                          (constr 1 [  ])) [ (delay "8")
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                           , (delay (case (force ifThenElse
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             (equalsInteger
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                digit
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                9)
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             (constr 0 [  ])
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             (constr 1 [  ])) [ "9"
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              , "<invalid digit>" ])) ]))) ]))) ]))) ]))) ]))) ]))) ]))) ]))) ]))
-                                                                                          (acc
-                                                                                             x))
-                                                                                     id
-                                                                                     (go
-                                                                                        (constr 0 [  ])
-                                                                                        w))) ]))))
-                                (\x -> x))
-                             (fix1
-                                (\foldr
-                                  arg ->
-                                   delay (delay (\f
-                                                  acc
-                                                  l ->
-                                                   force (case l [ (delay acc)
-                                                                 , (\x
-                                                                     xs ->
-                                                                      delay (f
-                                                                               x
-                                                                               (force (force (foldr
+                                                           (\concatBuiltinStrings
+                                                             ds ->
+                                                              case ds [ ""
+                                                                      , (\x
+                                                                          ds ->
+                                                                           force (case ds [ (delay x)
+                                                                                          , (\ipv
+                                                                                              ipv ->
+                                                                                               delay ((\ds ->
+                                                                                                         appendString
+                                                                                                           (case (force ds) [ (\ys
+                                                                                                                                zs ->
+                                                                                                                                 concatBuiltinStrings
+                                                                                                                                   ys) ])
+                                                                                                           (case (force ds) [ (\ys
+                                                                                                                                zs ->
+                                                                                                                                 concatBuiltinStrings
+                                                                                                                                   zs) ]))
+                                                                                                        (delay ((\w ->
+                                                                                                                   case (force (case (force ifThenElse
+                                                                                                                                        (lessThanEqualsInteger
+                                                                                                                                           w
+                                                                                                                                           0)
+                                                                                                                                        (constr 0 [  ])
+                                                                                                                                        (constr 1 [  ])) [ (delay (constr 0 [ (constr 0 [  ])
+                                                                                                                                                                            , ds ]))
+                                                                                                                                                         , (delay (case (force (go
+                                                                                                                                                                                  (delay (\x ->
+                                                                                                                                                                                            x)))
+                                                                                                                                                                           w
+                                                                                                                                                                           ds) [ (\ww
+                                                                                                                                                                                   ww ->
+                                                                                                                                                                                    constr 0 [ ww
+                                                                                                                                                                                             , ww ]) ])) ])) [ (\ww
+                                                                                                                                                                                                                 ww ->
+                                                                                                                                                                                                                  constr 0 [ ww
+                                                                                                                                                                                                                           , ww ]) ])
+                                                                                                                  (divideInteger
+                                                                                                                     (go
+                                                                                                                        ds
+                                                                                                                        0)
+                                                                                                                     2))))) ])) ])))
+                                                     (fix1
+                                                        (\go
+                                                          ds
+                                                          eta ->
+                                                           force (case ds [ (delay eta)
+                                                                          , (\x
+                                                                              xs ->
+                                                                               delay (go
+                                                                                        xs
+                                                                                        (addInteger
+                                                                                           1
+                                                                                           eta))) ]))))
+                                                  (fix1
+                                                     (\go
+                                                       arg ->
+                                                        delay (\ds
+                                                                ds ->
+                                                                 force (case ds [ (delay (constr 0 [ (constr 0 [  ])
+                                                                                                   , (constr 0 [  ]) ]))
+                                                                                , (\y
+                                                                                    ys ->
+                                                                                     delay (force (case (force ifThenElse
+                                                                                                           (equalsInteger
+                                                                                                              1
+                                                                                                              ds)
+                                                                                                           (constr 0 [  ])
+                                                                                                           (constr 1 [  ])) [ (delay (constr 0 [ (constr 1 [ y
+                                                                                                                                                           , (constr 0 [  ]) ])
+                                                                                                                                               , ys ]))
+                                                                                                                            , (delay (case (force (go
+                                                                                                                                                     (delay (\x ->
+                                                                                                                                                               x)))
+                                                                                                                                              (subtractInteger
+                                                                                                                                                 ds
+                                                                                                                                                 1)
+                                                                                                                                              ys) [ (\zs
+                                                                                                                                                      ws ->
+                                                                                                                                                       constr 0 [ (constr 1 [ y
+                                                                                                                                                                            , zs ])
+                                                                                                                                                                , ws ]) ])) ]))) ])))))
+                                               (\w w -> `$w$cshowsPrec` w))
+                                            (fix1
+                                               (\`$fEnumBool_$cenumFromTo`
+                                                 x
+                                                 y ->
+                                                  force (case (force ifThenElse
+                                                                 (lessThanEqualsInteger
+                                                                    x
+                                                                    y)
+                                                                 (constr 1 [])
+                                                                 (constr 0 [  ])) [ (delay (constr 0 [  ]))
+                                                                                  , (delay (constr 1 [ x
+                                                                                                     , (`$fEnumBool_$cenumFromTo`
+                                                                                                          (addInteger
+                                                                                                             1
+                                                                                                             x)
+                                                                                                          y) ])) ]))))
+                                         (\x ->
+                                            force (case (force ifThenElse
+                                                           (lessThanEqualsInteger
+                                                              x
+                                                              9)
+                                                           (constr 0 [])
+                                                           (constr 1 [  ])) [ (delay (`$w$cshowsPrec`
+                                                                                        x))
+                                                                            , (delay (force (case (force ifThenElse
+                                                                                                     (equalsInteger
+                                                                                                        10
+                                                                                                        x)
+                                                                                                     (constr 0 [  ])
+                                                                                                     (constr 1 [  ])) [ (delay (\ds ->
+                                                                                                                                  constr 1 [ "a"
+                                                                                                                                           , ds ]))
+                                                                                                                      , (delay (force (case (force ifThenElse
+                                                                                                                                               (equalsInteger
+                                                                                                                                                  11
+                                                                                                                                                  x)
+                                                                                                                                               (constr 0 [  ])
+                                                                                                                                               (constr 1 [  ])) [ (delay (\ds ->
+                                                                                                                                                                            constr 1 [ "b"
+                                                                                                                                                                                     , ds ]))
+                                                                                                                                                                , (delay (force (case (force ifThenElse
+                                                                                                                                                                                         (equalsInteger
+                                                                                                                                                                                            12
+                                                                                                                                                                                            x)
+                                                                                                                                                                                         (constr 0 [  ])
+                                                                                                                                                                                         (constr 1 [  ])) [ (delay (\ds ->
+                                                                                                                                                                                                                      constr 1 [ "c"
+                                                                                                                                                                                                                               , ds ]))
+                                                                                                                                                                                                          , (delay (force (case (force ifThenElse
+                                                                                                                                                                                                                                   (equalsInteger
+                                                                                                                                                                                                                                      13
+                                                                                                                                                                                                                                      x)
+                                                                                                                                                                                                                                   (constr 0 [  ])
+                                                                                                                                                                                                                                   (constr 1 [  ])) [ (delay (\ds ->
+                                                                                                                                                                                                                                                                constr 1 [ "d"
+                                                                                                                                                                                                                                                                         , ds ]))
+                                                                                                                                                                                                                                                    , (delay (force (case (force ifThenElse
+                                                                                                                                                                                                                                                                             (equalsInteger
+                                                                                                                                                                                                                                                                                14
+                                                                                                                                                                                                                                                                                x)
+                                                                                                                                                                                                                                                                             (constr 0 [  ])
+                                                                                                                                                                                                                                                                             (constr 1 [  ])) [ (delay (\ds ->
+                                                                                                                                                                                                                                                                                                          constr 1 [ "e"
+                                                                                                                                                                                                                                                                                                                   , ds ]))
+                                                                                                                                                                                                                                                                                              , (delay (case (force ifThenElse
+                                                                                                                                                                                                                                                                                                                (equalsInteger
+                                                                                                                                                                                                                                                                                                                   15
+                                                                                                                                                                                                                                                                                                                   x)
+                                                                                                                                                                                                                                                                                                                (constr 0 [  ])
+                                                                                                                                                                                                                                                                                                                (constr 1 [  ])) [ (\ds ->
+                                                                                                                                                                                                                                                                                                                                      constr 1 [ "f"
+                                                                                                                                                                                                                                                                                                                                               , ds ])
+                                                                                                                                                                                                                                                                                                                                 , (\ds ->
+                                                                                                                                                                                                                                                                                                                                      constr 1 [ "<invalid byte>"
+                                                                                                                                                                                                                                                                                                                                               , ds ]) ])) ]))) ]))) ]))) ]))) ]))) ])))
+                                      #5468697320697320616e206578616d706c65)
+                                   -1234567890)
+                                (fix1
+                                   (\`$w$cshowsPrec`
+                                     w ->
+                                      force (case (force ifThenElse
+                                                     (lessThanInteger w 0)
+                                                     (constr 0 [])
+                                                     (constr 1 [  ])) [ (delay (\x ->
+                                                                                  constr 1 [ "-"
+                                                                                           , (`$w$cshowsPrec`
+                                                                                                (subtractInteger
+                                                                                                   0
+                                                                                                   w)
+                                                                                                x) ]))
+                                                                      , (delay (force (force (foldr
                                                                                                 (delay (\x ->
                                                                                                           x))))
-                                                                                  f
-                                                                                  acc
-                                                                                  xs))) ]))))))
+                                                                                  (\digit
+                                                                                    acc
+                                                                                    x ->
+                                                                                     constr 1 [ (force (case (force ifThenElse
+                                                                                                                (equalsInteger
+                                                                                                                   0
+                                                                                                                   digit)
+                                                                                                                (constr 0 [  ])
+                                                                                                                (constr 1 [  ])) [ (delay "0")
+                                                                                                                                 , (delay (force (case (force ifThenElse
+                                                                                                                                                          (equalsInteger
+                                                                                                                                                             1
+                                                                                                                                                             digit)
+                                                                                                                                                          (constr 0 [  ])
+                                                                                                                                                          (constr 1 [  ])) [ (delay "1")
+                                                                                                                                                                           , (delay (force (case (force ifThenElse
+                                                                                                                                                                                                    (equalsInteger
+                                                                                                                                                                                                       2
+                                                                                                                                                                                                       digit)
+                                                                                                                                                                                                    (constr 0 [  ])
+                                                                                                                                                                                                    (constr 1 [  ])) [ (delay "2")
+                                                                                                                                                                                                                     , (delay (force (case (force ifThenElse
+                                                                                                                                                                                                                                              (equalsInteger
+                                                                                                                                                                                                                                                 3
+                                                                                                                                                                                                                                                 digit)
+                                                                                                                                                                                                                                              (constr 0 [  ])
+                                                                                                                                                                                                                                              (constr 1 [  ])) [ (delay "3")
+                                                                                                                                                                                                                                                               , (delay (force (case (force ifThenElse
+                                                                                                                                                                                                                                                                                        (equalsInteger
+                                                                                                                                                                                                                                                                                           4
+                                                                                                                                                                                                                                                                                           digit)
+                                                                                                                                                                                                                                                                                        (constr 0 [  ])
+                                                                                                                                                                                                                                                                                        (constr 1 [  ])) [ (delay "4")
+                                                                                                                                                                                                                                                                                                         , (delay (force (case (force ifThenElse
+                                                                                                                                                                                                                                                                                                                                  (equalsInteger
+                                                                                                                                                                                                                                                                                                                                     5
+                                                                                                                                                                                                                                                                                                                                     digit)
+                                                                                                                                                                                                                                                                                                                                  (constr 0 [  ])
+                                                                                                                                                                                                                                                                                                                                  (constr 1 [  ])) [ (delay "5")
+                                                                                                                                                                                                                                                                                                                                                   , (delay (force (case (force ifThenElse
+                                                                                                                                                                                                                                                                                                                                                                            (equalsInteger
+                                                                                                                                                                                                                                                                                                                                                                               6
+                                                                                                                                                                                                                                                                                                                                                                               digit)
+                                                                                                                                                                                                                                                                                                                                                                            (constr 0 [  ])
+                                                                                                                                                                                                                                                                                                                                                                            (constr 1 [  ])) [ (delay "6")
+                                                                                                                                                                                                                                                                                                                                                                                             , (delay (force (case (force ifThenElse
+                                                                                                                                                                                                                                                                                                                                                                                                                      (equalsInteger
+                                                                                                                                                                                                                                                                                                                                                                                                                         7
+                                                                                                                                                                                                                                                                                                                                                                                                                         digit)
+                                                                                                                                                                                                                                                                                                                                                                                                                      (constr 0 [  ])
+                                                                                                                                                                                                                                                                                                                                                                                                                      (constr 1 [  ])) [ (delay "7")
+                                                                                                                                                                                                                                                                                                                                                                                                                                       , (delay (force (case (force ifThenElse
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                (equalsInteger
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                   8
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                   digit)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                (constr 0 [  ])
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                (constr 1 [  ])) [ (delay "8")
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 , (delay (case (force ifThenElse
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   (equalsInteger
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      9
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      digit)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   (constr 0 [  ])
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   (constr 1 [  ])) [ "9"
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    , "<invalid digit>" ])) ]))) ]))) ]))) ]))) ]))) ]))) ]))) ]))) ]))
+                                                                                              , (acc
+                                                                                                   x) ])
+                                                                                  id
+                                                                                  (go
+                                                                                     (constr 0 [  ])
+                                                                                     w))) ]))))
+                             (\x -> x))
                           (fix1
-                             (\go
-                               acc
-                               n ->
-                                force (case (force ifThenElse
-                                               (equalsInteger
-                                                  (quotientInteger n y)
-                                                  0)
-                                               (constr 0 [])
-                                               (constr 1 [  ])) [ (delay (Cons
-                                                                            (remainderInteger
-                                                                               n
-                                                                               y)
-                                                                            acc))
-                                                                , (delay (go
-                                                                            (Cons
-                                                                               (remainderInteger
-                                                                                  n
-                                                                                  y)
-                                                                               acc)
-                                                                            (quotientInteger
-                                                                               n
-                                                                               y))) ]))))
-                       (\arg_0 arg_1 -> constr 1 [arg_0, arg_1]))
+                             (\foldr
+                               arg ->
+                                delay (delay (\f
+                                               acc
+                                               l ->
+                                                force (case l [ (delay acc)
+                                                              , (\x
+                                                                  xs ->
+                                                                   delay (f
+                                                                            x
+                                                                            (force (force (foldr
+                                                                                             (delay (\x ->
+                                                                                                       x))))
+                                                                               f
+                                                                               acc
+                                                                               xs))) ]))))))
+                       (fix1
+                          (\go
+                            acc
+                            n ->
+                             force (case (force ifThenElse
+                                            (equalsInteger
+                                               0
+                                               (quotientInteger n y))
+                                            (constr 0 [])
+                                            (constr 1 [  ])) [ (delay (constr 1 [ (remainderInteger
+                                                                                     n
+                                                                                     y)
+                                                                                , acc ]))
+                                                             , (delay (go
+                                                                         (constr 1 [ (remainderInteger
+                                                                                        n
+                                                                                        y)
+                                                                                   , acc ])
+                                                                         (quotientInteger
+                                                                            n
+                                                                            y))) ]))))
                     10)
                  (\f -> (\s -> s s) (\s x -> f (s s) x)))
