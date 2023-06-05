@@ -15,7 +15,7 @@
                   [
                     [
                       (force (builtin ifThenElse))
-                      [ [ (builtin equalsInteger) x_514 ] (con integer 0) ]
+                      [ [ (builtin equalsInteger) (con integer 0) ] x_514 ]
                     ]
                     (lam u_516 (con integer 1))
                   ]
