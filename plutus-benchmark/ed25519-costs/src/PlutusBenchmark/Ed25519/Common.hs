@@ -141,8 +141,8 @@ printSigCheckCosts h n = printSizeStatistics h (TestSize n) (mkSigCheckScript n)
 testHaskell :: Handle -> Integer -> IO ()
 testHaskell h n =
     if verifyInputs builtinHash $ mkInputsAsData n haskellHash
-    then hPrintf h "Off-chain version succeeded on %d inputs\n\n" n
-    else hPrintf h "Off-chain version failed\n\n"
+    then hPrintf h "Off-chain version succeeded on %d inputs\n" n
+    else hPrintf h "Off-chain version failed\n"
 
 runTests :: Handle -> IO ()
 runTests h = do
