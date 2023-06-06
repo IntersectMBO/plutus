@@ -3,7 +3,9 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
@@ -50,6 +52,10 @@ type PrettyReadableBy configName = PrettyBy (PrettyConfigReadable configName)
 
 type PrettyReadable = PrettyReadableBy PrettyConfigName
 
+-- | A constraint for \"@m@ is a monad that allows for pretty-printing values via a
+-- 'PrettyConfigReadable'.
+type MonadPrettyReadable configName env m = MonadPretty (PrettyConfigReadable configName) env m
+
 type HasPrettyConfigReadable env configName =
   HasPrettyConfig env (PrettyConfigReadable configName)
 
@@ -95,6 +101,26 @@ deriving via
   instance
     (PrettyDefaultBy config (AsReadable a)) => PrettyBy config (AsReadable a)
 
+-- | A value of type @a@ to render in parens using the readable pretty-printer.
+data Parened a = Parened
+    { parenOpening :: String
+    , parenClosing :: String
+    , parenedValue :: a
+    }
+
+instance PrettyReadableBy configName a =>
+        PrettyBy (PrettyConfigReadable configName) (Parened a) where
+    prettyBy config (Parened opening closing x) = fold
+        [ pretty opening
+        , prettyBy (config & renderContext .~ botRenderContext) x
+        , pretty closing
+        ]
+
+-- | Enclose the given value, so that it's rendered inside of braces with no additional parens
+-- regardless of the 'RenderContext'.
+inBraces :: a -> Parened a
+inBraces = Parened "{" "}"
+
 -- | A 'PrettyConfigReadable' with the fixity specified to 'botFixity'.
 botPrettyConfigReadable :: configName -> ShowKinds -> PrettyConfigReadable configName
 botPrettyConfigReadable configName = PrettyConfigReadable configName botRenderContext
@@ -111,15 +137,6 @@ binderFixity = Fixity RightAssociative 1
 arrowFixity :: Fixity
 arrowFixity = Fixity RightAssociative 2
 
--- | Pretty-print two things with a @->@ between them.
-arrowPrettyM ::
-  (MonadPrettyContext config env m, PrettyBy config a, PrettyBy config b) =>
-  a ->
-  b ->
-  m (Doc ann)
-arrowPrettyM a b =
-  infixDocM arrowFixity $ \prettyL prettyR -> prettyL a <+> "->" <+> prettyR b
-
 {- | Lay out an iterated binder. For example, this function lays out iterated lambdas either as
 
 > \(x : a) (y : b) (z : c) -> body
@@ -132,26 +149,24 @@ or as
 >   body
 -}
 iterBinderPrettyM ::
-  ( MonadPrettyContext config env m
-  , PrettyBy config arg
-  , PrettyBy config body
+  ( MonadPrettyReadable configName env m
+  , PrettyReadableBy configName arg
+  , PrettyReadableBy configName body
   ) =>
   (Doc ann -> Doc ann) ->
   [arg] ->
   body ->
   m (Doc ann)
 iterBinderPrettyM enframe args body =
-  -- TODO: should this be @infixDocM binderFixity@?
-  compoundDocM binderFixity $ \prettyIn ->
-    let prettyBot x = prettyIn ToTheRight botFixity x
-        prettyBinds = align . vsep $ map (prettyIn ToTheLeft binderFixity) args
-     in enframe prettyBinds <?> prettyBot body
+  infixDocM binderFixity $ \prettyBind prettyBody ->
+    let prettyBinds = align . sep $ map prettyBind args
+    in enframe prettyBinds <?> prettyBody body
 
 -- | Lay out an iterated 'TyForall' via 'iterBinderPrettyM'.
 iterTyForallPrettyM ::
-  ( MonadPrettyContext config env m
-  , PrettyBy config arg
-  , PrettyBy config body
+  ( MonadPrettyReadable configName env m
+  , PrettyReadableBy configName arg
+  , PrettyReadableBy configName body
   ) =>
   [arg] ->
   body ->
@@ -160,9 +175,9 @@ iterTyForallPrettyM = iterBinderPrettyM $ \binds -> "all" <+> binds <> "."
 
 -- | Lay out an iterated 'LamAbs' via 'iterBinderPrettyM'.
 iterLamAbsPrettyM ::
-  ( MonadPrettyContext config env m
-  , PrettyBy config arg
-  , PrettyBy config body
+  ( MonadPrettyReadable configName env m
+  , PrettyReadableBy configName arg
+  , PrettyReadableBy configName body
   ) =>
   [arg] ->
   body ->
@@ -171,14 +186,61 @@ iterLamAbsPrettyM = iterBinderPrettyM $ \binds -> "\\" <> binds <+> "->"
 
 -- | Lay out an iterated 'TyAbs' via 'iterBinderPrettyM'.
 iterTyAbsPrettyM ::
-  ( MonadPrettyContext config env m
-  , PrettyBy config arg
-  , PrettyBy config body
+  ( MonadPrettyReadable configName env m
+  , PrettyReadableBy configName arg
+  , PrettyReadableBy configName body
   ) =>
   [arg] ->
   body ->
   m (Doc ann)
 iterTyAbsPrettyM = iterBinderPrettyM $ \binds -> "/\\" <> binds <+> "->"
+
+-- | Lay out an iterated @->@.
+iterArrowPrettyM ::
+  (MonadPrettyReadable configName env m, PrettyReadableBy configName a) =>
+  [a] ->
+  a ->
+  m (Doc ann)
+iterArrowPrettyM args res =
+  infixDocM arrowFixity $ \prettyArg prettyRes ->
+    align . sep $ map (\x -> prettyArg x <+> "->") args ++ [prettyRes res]
+
+-- | The type of a 'PrettyConfigReadable'-based pretty-printer, similar to 'AnyToDoc'.
+type ReadableToDoc configName ann = forall a. PrettyReadableBy configName a => a -> Doc ann
+
+-- | Lay out an iteration application, providing to the caller a function to render the head of the
+-- application and a function to render each of the arguments.
+iterAppDocM ::
+    MonadPrettyReadable configName env m =>
+    (ReadableToDoc configName ann -> ReadableToDoc configName ann -> NonEmpty (Doc ann)) ->
+    m (Doc ann)
+iterAppDocM k =
+  infixDocM juxtFixity $ \prettyFun prettyArg ->
+    let fun :| args = k prettyFun prettyArg
+    in fun <?> vsep args
+
+{- | Lay out iterated function applications either as
+
+> foo x y z
+
+or as
+
+> foo
+>   x
+>   y
+>   z
+-}
+iterAppPrettyM ::
+  ( MonadPrettyReadable configName env m
+  , PrettyReadableBy configName fun
+  , PrettyReadableBy configName term
+  ) =>
+  fun ->
+  [term] ->
+  m (Doc ann)
+iterAppPrettyM fun args =
+  iterAppDocM $ \prettyFun prettyArg ->
+    prettyFun fun :| map prettyArg args
 
 {- | Lay out interleaved function applications either as
 
@@ -195,17 +257,17 @@ or as
 
 'Left's are laid out in braces, 'Right's are laid out without braces.
 -}
-iterAppPrettyM ::
-  ( MonadPrettyContext config env m
-  , PrettyBy config fun
-  , PrettyBy config ty
-  , PrettyBy config term
+iterInterAppPrettyM ::
+  ( MonadPrettyReadable configName env m
+  , PrettyReadableBy configName fun
+  , PrettyReadableBy configName ty
+  , PrettyReadableBy configName term
   ) =>
   fun ->
   [Either ty term] ->
   m (Doc ann)
-iterAppPrettyM fun args =
-  compoundDocM juxtFixity $ \prettyIn ->
-    let ppArg (Left a)  = braces $ prettyIn ToTheRight botFixity a
-        ppArg (Right t) = prettyIn ToTheRight juxtFixity t
-     in prettyIn ToTheLeft juxtFixity fun <?> vsep (map ppArg args)
+iterInterAppPrettyM fun args =
+  iterAppDocM $ \prettyFun prettyArg ->
+    let ppArg (Left ty)    = prettyArg $ inBraces ty
+        ppArg (Right term) = prettyArg term
+    in prettyFun fun :| map ppArg args
