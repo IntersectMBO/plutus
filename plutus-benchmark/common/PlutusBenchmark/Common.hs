@@ -100,10 +100,8 @@ benchTermCek :: Term -> Benchmarkable
 benchTermCek term =
     nf (runTermCek) $! term -- Or whnf?
 
-type Result = EvaluationResult Term
-
 {- | Just run a term (used for tests etc.) -}
-runTermCek :: Term -> Result
+runTermCek :: Term -> EvaluationResult Term
 runTermCek =
     unsafeExtractEvaluationResult .
         (\ (fstT,_,_) -> fstT) .
@@ -124,7 +122,12 @@ getCostsCek (UPLC.Program _ _ prog) =
    produce reducible terms. The function is polymorphic in the comparison
    operator so that we can use it with both HUnit Assertions and QuickCheck
    Properties.  -}
-cekResultMatchesHaskellValue :: Tx.Lift DefaultUni a => Term -> (Result -> Result -> b) -> a -> b
+cekResultMatchesHaskellValue
+    :: Tx.Lift DefaultUni a
+    => Term
+    -> (EvaluationResult Term -> EvaluationResult Term -> b)
+    -> a
+    -> b
 cekResultMatchesHaskellValue term matches value =
     (runTermCek term) `matches` (runTermCek $ haskellValueToTerm value)
 
