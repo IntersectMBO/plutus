@@ -61,7 +61,7 @@ library plutus-benchmark-common
   exposed-modules:
     PlutusBenchmark.Common
     PlutusBenchmark.NaturalSort
-    PlutusBenchmark.NONEXISTENTFILE
+    PlutusBenchmark.NOSUCHFILE
 
   other-modules:   Paths_plutus_benchmark
   build-depends:
