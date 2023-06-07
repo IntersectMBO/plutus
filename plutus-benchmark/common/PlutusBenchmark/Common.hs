@@ -15,10 +15,12 @@ module PlutusBenchmark.Common
     , benchTermCek
     , runTermCek
     , cekResultMatchesHaskellValue
+    , testfunction
      )
 where
 
 import Paths_plutus_benchmark as Export
+import PlutusBenchmark.NOSUCHFILE (nosuchconstant)
 
 import PlutusTx qualified as Tx
 
@@ -98,3 +100,7 @@ type Result = EvaluationResult Term
 cekResultMatchesHaskellValue :: Tx.Lift DefaultUni a => Term -> (Result -> Result -> b) -> a -> b
 cekResultMatchesHaskellValue term matches value =
     (runTermCek term) `matches` (runTermCek $ haskellValueToTerm value)
+
+
+testfunction :: Integer -> Integer
+testfunction n = n + nosuchconstant
