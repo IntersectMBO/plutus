@@ -17,7 +17,7 @@
 {-# LANGUAGE RecordWildCards     #-}
 
 
-module Benchmark.Marlowe.Util (
+module PlutusBenchmark.Marlowe.Util (
   -- * Conversion
   lovelace
 , makeInput

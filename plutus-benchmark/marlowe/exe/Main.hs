@@ -23,16 +23,16 @@ module Main (
 ) where
 
 
-import Benchmark.Marlowe (tabulateResults, writeFlatUPLCs)
-import Benchmark.Marlowe.RolePayout qualified as RolePayout (benchmarks, validatorBytes,
-                                                             validatorHash, writeUPLC)
-import Benchmark.Marlowe.Semantics qualified as Semantics (benchmarks, validatorBytes,
-                                                           validatorHash, writeUPLC)
 import Cardano.Binary (serialize')
 import Data.ByteString qualified as BS (writeFile)
 import Data.ByteString.Base16 qualified as B16 (encode)
 import Data.List (intercalate)
 import PlutusBenchmark.Common (getDataDir)
+import PlutusBenchmark.Marlowe (tabulateResults, writeFlatUPLCs)
+import PlutusBenchmark.Marlowe.RolePayout qualified as RolePayout (benchmarks, validatorBytes,
+                                                                   validatorHash, writeUPLC)
+import PlutusBenchmark.Marlowe.Semantics qualified as Semantics (benchmarks, validatorBytes,
+                                                                 validatorHash, writeUPLC)
 import PlutusLedgerApi.V2 (ScriptHash, SerialisedScript)
 import System.FilePath ((</>))
 
@@ -46,19 +46,19 @@ main =
     benchmarks <- either error id <$> Semantics.benchmarks
 
     -- Write the tabulation of semantics benchmark results.
-    writeFile "plutus-benchmark/marlowe/exe/marlowe-semantics.tsv"
+    writeFile "marlowe/exe/marlowe-semantics.tsv"
       . unlines . fmap (intercalate "\t")
       $ tabulateResults "Semantics" Semantics.validatorHash Semantics.validatorBytes benchmarks
 
     -- Write the flat UPLC files for the semantics benchmarks.
     writeFlatUPLCs Semantics.writeUPLC benchmarks
-      . (</> "marlowe/bench/semantics")
+      . (</> "marlowe/exe/scripts/semantics")
       =<< getDataDir
 
     -- Print the semantics validator, and write the plutus file.
     printValidator
       "Semantics"
-      "plutus-benchmark/marlowe/exe/marlowe-semantics"
+      "marlowe/exe/marlowe-semantics"
       Semantics.validatorHash
       Semantics.validatorBytes
 
@@ -66,19 +66,19 @@ main =
     benchmarks' <- either error id <$> RolePayout.benchmarks
 
     -- Write the tabulation of role-payout benchmark results.
-    writeFile "plutus-benchmark/marlowe/exe/marlowe-rolepayout.tsv"
+    writeFile "marlowe/exe/marlowe-rolepayout.tsv"
       . unlines . fmap (intercalate "\t")
       $ tabulateResults "Role Payout" RolePayout.validatorHash RolePayout.validatorBytes benchmarks'
 
     -- Write the flat UPLC files for the role-payout benchmarks.
     writeFlatUPLCs RolePayout.writeUPLC benchmarks'
-      . (</> "marlowe/bench/rolepayout")
+      . (</> "marlowe/exe/scripts/rolepayout")
       =<< getDataDir
 
     -- Print the role-payout validator, and write the plutus file.
     printValidator
       "Role payout"
-      "plutus-benchmark/marlowe/exe/marlowe-rolepayout"
+      "marlowe/exe/marlowe-rolepayout"
       RolePayout.validatorHash
       RolePayout.validatorBytes
 

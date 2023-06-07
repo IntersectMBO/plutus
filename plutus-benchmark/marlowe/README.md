@@ -39,7 +39,9 @@ For documentation on Plutus vs PLC vs protocol version, see [here](https://githu
 
 ## Running the benchmarks with executable `marlowe-validators`
 
-The application `marlowe-validators` works with scripts in the `plutus-benchmark/marlowe/bench/rolepayout` and `plutus-benchmark/marlowe/bench/semantics` directories. It serialises the two Marlowe validator scripts, computes their hashes, and runs all of the benchmarks, storing the results in a pair of tab-separated-value files.
+The application `marlowe-validators` works with scripts in the `plutus-benchmark/marlowe/exe/scripts/rolepayout` and `plutus-benchmark/marlowe/exe/scripts/semantics` directories. It serialises the two Marlowe validator scripts, computes their hashes, and runs all of the benchmarks, storing the results in a pair of tab-separated-value files.
+
+In `plutus-benchmark/marlowe/src/Language/Marlowe/Scripts.hs`, the plugin option to dump Plutus programs is turned on. Therefore, running the executable dumps the initial and simplified PIR program and the typed and untyped PLC program to the `plutus/`. The dumped files are named with the module name followed by a brief description and ".flat".
 
 ```bash
 cabal run marlowe-validators

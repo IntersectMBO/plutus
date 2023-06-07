@@ -13,7 +13,7 @@
 -----------------------------------------------------------------------------
 
 
-module Benchmark.Marlowe.Types (
+module PlutusBenchmark.Marlowe.Types (
   -- * Benchmarking
   Benchmark(..)
 , makeBenchmark

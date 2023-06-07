@@ -20,7 +20,7 @@
 {-# LANGUAGE RecordWildCards     #-}
 
 
-module Benchmark.Marlowe.Semantics (
+module PlutusBenchmark.Marlowe.Semantics (
   -- * Benchmarking
   benchmarks
 , validatorBytes
@@ -31,14 +31,14 @@ module Benchmark.Marlowe.Semantics (
 ) where
 
 
-import Benchmark.Marlowe (readBenchmarks, writeFlatUPLC)
-import Benchmark.Marlowe.Types (Benchmark (..), makeBenchmark)
-import Benchmark.Marlowe.Util (lovelace, makeBuiltinData, makeDatumMap, makeInput, makeOutput,
-                               makeRedeemerMap, updateScriptHash)
 import Data.Bifunctor (second)
 import Language.Marlowe.Scripts.RolePayout (rolePayoutValidatorHash)
 import Language.Marlowe.Scripts.Semantics (marloweValidator, marloweValidatorBytes,
                                            marloweValidatorHash)
+import PlutusBenchmark.Marlowe (readBenchmarks, writeFlatUPLC)
+import PlutusBenchmark.Marlowe.Types (Benchmark (..), makeBenchmark)
+import PlutusBenchmark.Marlowe.Util (lovelace, makeBuiltinData, makeDatumMap, makeInput, makeOutput,
+                                     makeRedeemerMap, updateScriptHash)
 import PlutusLedgerApi.V2 (Credential (PubKeyCredential, ScriptCredential), ExBudget (ExBudget),
                            Extended (..), Interval (Interval), LowerBound (LowerBound),
                            ScriptContext (ScriptContext, scriptContextPurpose, scriptContextTxInfo),
@@ -61,7 +61,7 @@ validatorHash = marloweValidatorHash
 
 -- | The benchmark cases for the Marlowe semantics validator.
 benchmarks :: IO (Either String [Benchmark])
-benchmarks = second (rescript <$>) <$> readBenchmarks "marlowe/bench/semantics"
+benchmarks = second (rescript <$>) <$> readBenchmarks "marlowe/exe/scripts/semantics"
 
 
 -- | Write flat UPLC for a benchmark.

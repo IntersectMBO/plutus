@@ -16,8 +16,8 @@ description:
 build-type:    Simple
 data-files:
   common/templates/*.tpl
-  rolepayout/*.benchmark
-  semantics/*.benchmark
+  marlowe/exe/scripts/rolepayout/*.benchmark
+  marlowe/exe/scripts/semantics/*.benchmark
   validation/data/*.flat
 
 source-repository head
@@ -481,7 +481,7 @@ test-suite plutus-benchmark-script-contexts-tests
     , tasty
     , tasty-hunit
 
----------------- Marlowe script budget tests ----------------
+---------------- Marlowe scripts ----------------
 
 library marlowe-internal
   import:          lang
@@ -489,7 +489,6 @@ library marlowe-internal
   if impl(ghc <9.0)
     buildable: False
 
-  ghc-options:     -Wno-unused-packages
   hs-source-dirs:  marlowe/src
   exposed-modules:
   build-depends:
@@ -516,11 +515,11 @@ executable marlowe-validators
   hs-source-dirs:   marlowe/exe
   main-is:          Main.hs
   other-modules:
-    Benchmark.Marlowe
-    Benchmark.Marlowe.RolePayout
-    Benchmark.Marlowe.Semantics
-    Benchmark.Marlowe.Types
-    Benchmark.Marlowe.Util
+    PlutusBenchmark.Marlowe
+    PlutusBenchmark.Marlowe.RolePayout
+    PlutusBenchmark.Marlowe.Semantics
+    PlutusBenchmark.Marlowe.Types
+    PlutusBenchmark.Marlowe.Util
 
   if impl(ghc <9.0)
     buildable: False
@@ -540,21 +539,15 @@ executable marlowe-validators
     , plutus-tx                                       ^>=1.7
     , serialise
 
--- Run benchmarks for various Marlowe scripts
-benchmark marlowe
-  import:         lang
+-- TODO
+-- benchmark marlowe
+--   import:         lang
 
-  if impl(ghc <9.0)
-    buildable: False
+--   if impl(ghc <9.0)
+--     buildable: False
 
-  type:           exitcode-stdio-1.0
-  main-is:        Bench.hs
-  hs-source-dirs: marlowe/bench
-  build-depends:
-    , base                     >=4.9     && <5
-    , bls-internal
-    , bytestring
-    , criterion                >=1.5.9.0
-    , plutus-benchmark-common
-    , plutus-core              ^>=1.7
-    , plutus-tx                ^>=1.7
+--   type:           exitcode-stdio-1.0
+--   main-is:        Bench.hs
+--   hs-source-dirs: marlowe/bench
+--   build-depends:
+

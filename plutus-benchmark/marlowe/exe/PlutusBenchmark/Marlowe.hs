@@ -18,7 +18,7 @@
 {-# LANGUAGE RecordWildCards     #-}
 
 
-module Benchmark.Marlowe (
+module PlutusBenchmark.Marlowe (
   -- * Benchmarking
   executeBenchmark
 , evaluationContext
@@ -32,7 +32,6 @@ module Benchmark.Marlowe (
 ) where
 
 
-import Benchmark.Marlowe.Types (Benchmark (..))
 import Codec.Serialise (deserialise)
 import Control.Monad (void)
 import Control.Monad.Except (runExcept)
@@ -42,6 +41,7 @@ import Data.List (isSuffixOf)
 import Language.Marlowe.Core.V1.Semantics (MarloweData)
 import Language.Marlowe.Scripts.Semantics (MarloweInput)
 import PlutusBenchmark.Common (getDataDir)
+import PlutusBenchmark.Marlowe.Types (Benchmark (..))
 import PlutusCore.Executable.AstIO (fromNamedDeBruijnUPLC)
 import PlutusCore.Executable.Common (writeProgram)
 import PlutusCore.Executable.Types (AstNameType (NamedDeBruijn), Format (Flat), Output (FileOutput),

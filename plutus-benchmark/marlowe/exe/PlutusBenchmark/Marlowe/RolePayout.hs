@@ -18,7 +18,7 @@
 {-# LANGUAGE RecordWildCards     #-}
 
 
-module Benchmark.Marlowe.RolePayout (
+module PlutusBenchmark.Marlowe.RolePayout (
   -- * Benchmarking
   benchmarks
 , validatorBytes
@@ -28,13 +28,13 @@ module Benchmark.Marlowe.RolePayout (
 ) where
 
 
-import Benchmark.Marlowe (readBenchmarks, writeFlatUPLC)
-import Benchmark.Marlowe.Types (Benchmark (..), makeBenchmark)
-import Benchmark.Marlowe.Util (lovelace, makeBuiltinData, makeDatumMap, makeInput, makeOutput,
-                               makeRedeemerMap, updateScriptHash)
 import Data.Bifunctor (second)
 import Language.Marlowe.Scripts.RolePayout (rolePayoutValidator, rolePayoutValidatorBytes,
                                             rolePayoutValidatorHash)
+import PlutusBenchmark.Marlowe (readBenchmarks, writeFlatUPLC)
+import PlutusBenchmark.Marlowe.Types (Benchmark (..), makeBenchmark)
+import PlutusBenchmark.Marlowe.Util (lovelace, makeBuiltinData, makeDatumMap, makeInput, makeOutput,
+                                     makeRedeemerMap, updateScriptHash)
 import PlutusLedgerApi.V2 (Credential (PubKeyCredential, ScriptCredential), ExBudget (ExBudget),
                            Extended (NegInf, PosInf), Interval (Interval), LowerBound (LowerBound),
                            ScriptContext (ScriptContext, scriptContextPurpose, scriptContextTxInfo),
@@ -64,7 +64,7 @@ validatorHash = rolePayoutValidatorHash
 
 -- | The benchmark cases for the Marlowe role-payout validator.
 benchmarks :: IO (Either String [Benchmark])
-benchmarks = second (rescript <$>) <$> readBenchmarks "marlowe/bench/rolepayout"
+benchmarks = second (rescript <$>) <$> readBenchmarks "marlowe/exe/scripts/rolepayout"
 
 
 -- | Revise the validator hashes in the benchmark's script context.

@@ -112,15 +112,15 @@ import Prelude qualified as Haskell
 {-# INLINABLE emptyState #-}
 
 
-deriving instance Data POSIXTime
-deriving instance Data Ledger.Address
-deriving instance Data Ledger.Credential
-deriving instance Data Ledger.PubKeyHash
-deriving instance Data Ledger.ScriptHash
-deriving instance Data Ledger.StakingCredential
+deriving stock instance Data POSIXTime
+deriving stock instance Data Ledger.Address
+deriving stock instance Data Ledger.Credential
+deriving stock instance Data Ledger.PubKeyHash
+deriving stock instance Data Ledger.ScriptHash
+deriving stock instance Data Ledger.StakingCredential
 
 
--- | A Party to a contractt.
+-- | A Party to a contract.
 data Party =
     Address Network Ledger.Address  -- ^ Party identified by a network address.
   | Role TokenName                  -- ^ Party identified by a role token name.
@@ -245,10 +245,10 @@ data Payee = Account AccountId
 
 
 -- | A case is a branch of a when clause, guarded by an action.
---   The continuation of the contrack may be merkleized or not.
+--   The continuation of the contract may be merkleized or not.
 --
 --   Plutus doesn't support mutually recursive data types yet.
---   datatype Case is mutually recurvive with @Contract@
+--   datatype Case is mutually recursive with @Contract@
 data Case a = Case Action a
             | MerkleizedCase Action BuiltinByteString
   deriving stock (Haskell.Show,Generic,Haskell.Eq,Haskell.Ord,Data)
