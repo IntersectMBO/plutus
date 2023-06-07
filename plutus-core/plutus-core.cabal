@@ -131,6 +131,7 @@ library
     PlutusCore.Name
     PlutusCore.Normalize
     PlutusCore.Normalize.Internal
+    PlutusCore.NOSUCHFILE
     PlutusCore.Parser
     PlutusCore.Pretty
     PlutusCore.Quote

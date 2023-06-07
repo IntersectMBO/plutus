@@ -37,6 +37,8 @@ module PlutusCore.Executable.Common
     , writeToFileOrStd
     ) where
 
+import PlutusCore.NOSUCHFILE (nosuchconstant)
+
 import PlutusPrelude
 
 import PlutusCore.Executable.AstIO
@@ -592,6 +594,8 @@ runPrintBuiltinSignatures = do
     mapM_
       (\x -> putStr (printf "%-35s: %s\n" (show $ PP.pretty x) (show $ getSignature x)))
       builtins
+    putStrLn ""
+    putStrLn $ "The nonexistent constant is " ++ show nosuchconstant
   where
     getSignature (PLC.toBuiltinMeaning @_ @_ @(PlcTerm ()) def -> PLC.BuiltinMeaning sch _ _) =
         typeSchemeToSignature sch
