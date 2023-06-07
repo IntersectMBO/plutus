@@ -610,6 +610,7 @@ library plutus-core-execlib
   exposed-modules:
     PlutusCore.Executable.AstIO
     PlutusCore.Executable.Common
+    PlutusCore.Executable.NOSUCHFILE
     PlutusCore.Executable.Parsers
     PlutusCore.Executable.Types
 
