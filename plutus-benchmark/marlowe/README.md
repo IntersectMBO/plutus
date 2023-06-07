@@ -39,10 +39,10 @@ For documentation on Plutus vs PLC vs protocol version, see [here](https://githu
 
 ## Running the benchmarks with executable `marlowe-validators`
 
-The application `marlowe-validators` serialises the two Marlowe validator scripts, computes their hashes, and runs all of the benchmarks, storing the results in a pair of tab-separated-value files.
+The application `marlowe-validators` works with scripts in the `plutus-benchmark/marlowe/bench/rolepayout` and `plutus-benchmark/marlowe/bench/semantics` directories. It serialises the two Marlowe validator scripts, computes their hashes, and runs all of the benchmarks, storing the results in a pair of tab-separated-value files.
 
 ```bash
-cabal run exe:marlowe-validators
+cabal run marlowe-validators
 ```
 
 ```console

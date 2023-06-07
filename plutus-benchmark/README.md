@@ -53,7 +53,7 @@ See also [validation/README.md](./validation/README.md).
 
 * `lists`: some simple algorithms on lists.  See [lists/README.md](./lists/README.md) for more information.
 
-* `marlowe`: 
+* `marlowe`(TODO): 
 
    * The source for the individual programs is in `marlowe/src`
    * There is an executable in `marlowe/exe` which can be used to run the individual programs (compiled into Plutus)
@@ -96,5 +96,4 @@ total amount of time spent running each benchmark.
 
 The directory `nofib/test` contains some tests for the nofib examples which
 compare the result of evaluating the benchmarks as Haskell programs and as
-Plutus Core programs.  Run these with `cabal test plutus-benchmark` or
-`cabal test plutus-benchmark`.
+Plutus Core programs.  Run these with `cabal test plutus-benchmark`.

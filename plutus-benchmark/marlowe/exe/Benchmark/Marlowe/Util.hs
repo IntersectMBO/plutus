@@ -76,7 +76,7 @@ makeOutput credential value =
     . maybe NoOutputDatum OutputDatumHash
 
 
--- Construct a map of redemers.
+-- Construct a map of redeemers.
 makeRedeemerMap
   :: ScriptPurpose
   -> LedgerBytes
