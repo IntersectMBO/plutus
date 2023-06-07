@@ -6,14 +6,14 @@ module Main where
 
 import Criterion.Main
 
-import PlutusBenchmark.BLS12_381.Common
+import PlutusBenchmark.BLS12_381.Scripts
 import PlutusBenchmark.Common (benchTermCek)
 import PlutusTx.Prelude qualified as Tx
 import UntypedPlutusCore qualified as UPLC
 
 import Data.ByteString qualified as BS (empty)
 
-benchProgCek :: UProg -> Benchmarkable
+benchProgCek :: UPLC.Program UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ()  -> Benchmarkable
 benchProgCek (UPLC.Program _ _ t) = benchTermCek t
 
 benchHashAndAddG1 :: Integer -> Benchmark

@@ -61,14 +61,20 @@ library plutus-benchmark-common
   exposed-modules:
     PlutusBenchmark.Common
     PlutusBenchmark.NaturalSort
+    PlutusBenchmark.ProtocolParameters
 
   other-modules:   Paths_plutus_benchmark
   build-depends:
-    , base         >=4.9 && <5
+    , base          >=4.9 && <5
+    , bytestring
     , criterion
     , filepath
-    , plutus-core  ^>=1.7
-    , plutus-tx    ^>=1.7
+    , flat
+    , plutus-core   ^>=1.7
+    , plutus-tx     ^>=1.7
+    , tasty
+    , tasty-golden
+    , temporary
 
 ---------------- nofib ----------------
 
@@ -314,27 +320,52 @@ benchmark cek-calibration
 
 ---------------- Signature verification throughput ----------------
 
-executable ed25519-throughput
+executable ed25519-costs
   import:           lang, ghc-version-support
   default-language: Haskell2010
+  hs-source-dirs:   ed25519-costs/exe ed25519-costs/src
   main-is:          Main.hs
-  hs-source-dirs:   ed25519-throughput
+  other-modules:    PlutusBenchmark.Ed25519.Common
 
   -- Without the line below we get a warning that plutus-tx-plugin is unused which causes a CI failure.
   ghc-options:      -Wno-unused-packages
   build-depends:
-    , base                  >=4.9 && <5
+    , base                     >=4.9 && <5
     , bytestring
     , cardano-crypto-class
-    , flat                  ^>=0.6
     , hedgehog
-    , plutus-core           ^>=1.7
-    , plutus-tx             ^>=1.7
-    , plutus-tx-plugin      ^>=1.7
+    , plutus-benchmark-common
+    , plutus-core              ^>=1.7
+    , plutus-tx                ^>=1.7
+    , plutus-tx-plugin         ^>=1.7
+
+-- Calculate the predicted costs of sequences of ed25519 signature verification
+-- operations and compare them with a golden file.
+test-suite ed25519-costs-test
+  import:         lang
+
+  if impl(ghc <9.0)
+    buildable: False
+
+  type:           exitcode-stdio-1.0
+  hs-source-dirs: ed25519-costs/test ed25519-costs/src
+  main-is:        Spec.hs
+  other-modules:  PlutusBenchmark.Ed25519.Common
+  build-depends:
+    , base                     >=4.9 && <5
+    , bytestring
+    , cardano-crypto-class
+    , hedgehog
+    , plutus-benchmark-common
+    , plutus-core              ^>=1.7
+    , plutus-tx                ^>=1.7
+    , plutus-tx-plugin         ^>=1.7
 
 ---------------- BLS12-381 experiments ----------------
 
-library bls-internal
+library bls12-381lib-internal
+  -- bls12-381-internal isn't allowed: you must have at least one letter in each
+  -- component.
   import:          lang
 
   if impl(ghc <9.0)
@@ -343,21 +374,25 @@ library bls-internal
   -- Something weird causes this to sometimes report
   -- the plugin package as unused...
   ghc-options:     -Wno-unused-packages
-  hs-source-dirs:  bls-benchmarks/src
-  exposed-modules: PlutusBenchmark.BLS12_381.Common
+  hs-source-dirs:  bls12-381-costs/src
+  exposed-modules:
+    PlutusBenchmark.BLS12_381.RunTests
+    PlutusBenchmark.BLS12_381.Scripts
+
   build-depends:
     , base                     >=4.9 && <5
     , bytestring
     , cardano-crypto-class
     , deepseq
+    , flat
     , hedgehog
     , plutus-benchmark-common
     , plutus-core              ^>=1.7
     , plutus-tx                ^>=1.7
     , plutus-tx-plugin         ^>=1.7
 
--- Print out predicted costs of various scripts involving BLS12_381 operations
-executable bls-costs
+-- Print out predicted costs of various scripts involving BLS12-381 operations
+executable bls12-381-costs
   import:           lang
 
   if impl(ghc <9.0)
@@ -365,17 +400,29 @@ executable bls-costs
 
   default-language: Haskell2010
   main-is:          Main.hs
-  hs-source-dirs:   bls-benchmarks/exe
+  hs-source-dirs:   bls12-381-costs/exe
   build-depends:
-    , base          >=4.9 && <5
-    , bls-internal
-    , bytestring
-    , flat
-    , plutus-core   ^>=1.7
-    , plutus-tx     ^>=1.7
+    , base                   >=4.9 && <5
+    , bls12-381lib-internal
 
--- Run benchmarks for various scripts involving BLS12_381 operations
-benchmark bls-benchmarks
+-- Calculate predicted costs of various scripts involving BLS12-381 operations
+-- and compare them with a golden file.
+test-suite bls12-381-costs-test
+  import:         lang
+
+  if impl(ghc <9.0)
+    buildable: False
+
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  hs-source-dirs: bls12-381-costs/test
+  build-depends:
+    , base                     >=4.9 && <5
+    , bls12-381lib-internal
+    , plutus-benchmark-common
+
+-- Run benchmarks for various scripts involving BLS12-381 operations
+benchmark bls12-381-benchmarks
   import:         lang
 
   if impl(ghc <9.0)
@@ -383,10 +430,10 @@ benchmark bls-benchmarks
 
   type:           exitcode-stdio-1.0
   main-is:        Bench.hs
-  hs-source-dirs: bls-benchmarks/bench
+  hs-source-dirs: bls12-381-costs/bench
   build-depends:
     , base                     >=4.9     && <5
-    , bls-internal
+    , bls12-381lib-internal
     , bytestring
     , criterion                >=1.5.9.0
     , plutus-benchmark-common
