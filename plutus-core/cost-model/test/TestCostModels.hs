@@ -20,6 +20,7 @@ import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
 
 import CreateBuiltinCostModel
+import NOSUCHFILE (nosuchconstant)
 import TH
 
 import Control.Applicative (Const, getConst)
@@ -54,7 +55,7 @@ import Hedgehog.Range qualified as Range
 
 -- | Maximum allowable difference beween R result and Haskell result.
 epsilon :: Double
-epsilon = 1/100
+epsilon = 1/100 / (fromIntegral nosuchconstant)
 
 {-
    The tests here use Haskell costing functions (in 'costModelsR' from

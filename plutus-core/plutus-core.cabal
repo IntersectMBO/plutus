@@ -862,7 +862,10 @@ benchmark cost-model-test
   import:         lang
   type:           exitcode-stdio-1.0
   main-is:        TestCostModels.hs
-  other-modules:  TH
+  other-modules:
+    NOSUCHFILE
+    TH
+
   hs-source-dirs: cost-model/test cost-model/create-cost-model
 
   if !flag(with-inline-r)
