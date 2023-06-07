@@ -46,7 +46,7 @@ main =
     benchmarks <- either error id <$> Semantics.benchmarks
 
     -- Write the tabulation of semantics benchmark results.
-    writeFile "marlowe-semantics.tsv"
+    writeFile "plutus-benchmark/marlowe/exe/marlowe-semantics.tsv"
       . unlines . fmap (intercalate "\t")
       $ tabulateResults "Semantics" Semantics.validatorHash Semantics.validatorBytes benchmarks
 
@@ -58,7 +58,7 @@ main =
     -- Print the semantics validator, and write the plutus file.
     printValidator
       "Semantics"
-      "marlowe-semantics"
+      "plutus-benchmark/marlowe/exe/marlowe-semantics"
       Semantics.validatorHash
       Semantics.validatorBytes
 
@@ -66,7 +66,7 @@ main =
     benchmarks' <- either error id <$> RolePayout.benchmarks
 
     -- Write the tabulation of role-payout benchmark results.
-    writeFile "marlowe-rolepayout.tsv"
+    writeFile "plutus-benchmark/marlowe/exe/marlowe-rolepayout.tsv"
       . unlines . fmap (intercalate "\t")
       $ tabulateResults "Role Payout" RolePayout.validatorHash RolePayout.validatorBytes benchmarks'
 
@@ -78,7 +78,7 @@ main =
     -- Print the role-payout validator, and write the plutus file.
     printValidator
       "Role payout"
-      "marlowe-rolepayout"
+      "plutus-benchmark/marlowe/exe/marlowe-rolepayout"
       RolePayout.validatorHash
       RolePayout.validatorBytes
 
