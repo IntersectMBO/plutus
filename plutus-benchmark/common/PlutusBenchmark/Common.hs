@@ -17,6 +17,7 @@ module PlutusBenchmark.Common
     , printHeader
     , printSizeStatistics
     , goldenVsTextualOutput
+    , checkGoldenFileExists
     )
 where
 
@@ -38,6 +39,7 @@ import Data.ByteString qualified as BS
 import Data.SatInt (fromSatInt)
 import Flat qualified
 import GHC.IO.Encoding (setLocaleEncoding)
+import System.Directory
 import System.FilePath
 import System.IO
 import System.IO.Temp
@@ -205,3 +207,46 @@ goldenVsTextualOutput testName goldenFile filename runTest =  do
         goldenFile
         resultsFile
         (runTest handle >> hClose handle)
+
+{- | Note [Paths to golden files]
+   Some of our tests contain hard-coded relative paths to golden files.  This is
+   a little unsatisfactory because if for example we change the name of the
+   directory containing the file then it won't be found during the test but the
+   test will succeed and a new golden file will be created in the new directory,
+   leading to the possibility that a change in the output won't be detected.  A
+   similar thing will happen if someone forgets to check a golden file into the
+   repository and the test is run in a new checkout.  Golden tests from
+   tasty-golden do print out a message when the golden file doesn't exist, but
+   it's in a very unobtrusive colour and easy to miss.  Another issue is that
+   tests can be run from cabal using either `cabal test` or `cabal run`. If
+   `cabal test` is used, cabal sets the working directory of the test program
+   (which is used as the root for relative paths) to be the directory containing
+   the relevant .cabal file, which is what our tests expect.  However, if `cabal
+   run` is used then cabal sets the working directory to the current shell
+   directory, and this can again lead to the wrong path being used with the
+   possibility of a change being missed; also new golden files may be produced
+   in unexpected places.  This function is used to mitigate these risks by
+   checking that a golden file already exists in the expected place and issuing
+   an error if it isn't.  This does mean that an error may occur the first time
+   a golden test is run.  To avoid this, create an initial version of the file
+   manually and if necessary use the `--accept` option to overwrite its
+   contents.
+   -}
+checkGoldenFileExists :: FilePath -> IO ()
+checkGoldenFileExists path = do
+  fullPath <- makeAbsolute path
+  fileExists <- doesFileExist path
+  if not fileExists
+  then errorWithExplanation $ "golden file " ++ fullPath ++ " does not exist."
+  else do
+    perms <- getPermissions path
+    if not (writable perms)
+    then errorWithExplanation $ "golden file " ++ fullPath ++ " is not writable."
+    else pure ()
+    where errorWithExplanation s =
+              let msg = "\n* ERROR: " ++ s ++ "\n"
+                        ++ "* To ensure that the correct path is used, either use `cabal test` "
+                        ++ "or run the test in the root directory of the relevant package.\n"
+                        ++ "* If this is the first time this test has been run, create an "
+                        ++ "initial golden file manually."
+              in error msg

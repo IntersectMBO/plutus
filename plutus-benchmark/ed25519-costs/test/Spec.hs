@@ -1,6 +1,6 @@
 module Main where
 
-import PlutusBenchmark.Common (goldenVsTextualOutput)
+import PlutusBenchmark.Common (checkGoldenFileExists, goldenVsTextualOutput)
 import PlutusBenchmark.Ed25519.Common (runTests)
 
 outputFile :: String
@@ -10,4 +10,6 @@ goldenFile :: FilePath
 goldenFile = "ed25519-costs/test/ed25519-costs.golden"
 
 main :: IO ()
-main = goldenVsTextualOutput "Ed25519 costs test" goldenFile outputFile runTests
+main = do
+  checkGoldenFileExists goldenFile -- See Note [Paths to golden files]
+  goldenVsTextualOutput "Ed25519 costs test" goldenFile outputFile runTests

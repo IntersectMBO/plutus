@@ -68,6 +68,7 @@ library plutus-benchmark-common
     , base          >=4.9 && <5
     , bytestring
     , criterion
+    , directory
     , filepath
     , flat
     , plutus-core   ^>=1.7
