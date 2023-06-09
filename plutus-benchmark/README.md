@@ -55,8 +55,8 @@ See also [validation/README.md](./validation/README.md).
 
 * `marlowe`(TODO): 
 
-   * The source for the individual programs is in `marlowe/src`
-   * There is an executable in `marlowe/exe` which can be used to run the individual programs (compiled into Plutus)
+   * The source for a minimal version of the Marlowe validators is in `marlowe/src`.
+   * There is an executable in `marlowe/exe` which can be used to run benchmarks for a set of scripts.
    * The benchmarking code is in `marlowe/bench`.
 
    * To run the benchmarks using cabal, type a command like this
@@ -70,7 +70,7 @@ The `nofib-exe` program in `nofib/exe` allows you to run the `nofib` benchmarks 
 output Plutus Core versions in a number of formats.  See the built-in help information
 for details.
 
-Similarly for `marlowe`.
+For `marlowe`, the `marlowe-validators` program allows you to run benchmarks in certain folders and get a summary of results. See the [marlowe/README.md](./marlowe/README.md) for detail.
 
 ### Criterion output
 

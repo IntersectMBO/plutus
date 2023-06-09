@@ -41,25 +41,10 @@ For documentation on Plutus vs PLC vs protocol version, see [here](https://githu
 
 The application `marlowe-validators` works with scripts in the `plutus-benchmark/marlowe/exe/scripts/rolepayout` and `plutus-benchmark/marlowe/exe/scripts/semantics` directories. It serialises the two Marlowe validator scripts, computes their hashes, and runs all of the benchmarks, storing the results in a pair of tab-separated-value files.
 
-In `plutus-benchmark/marlowe/src/Language/Marlowe/Scripts.hs`, the plugin option to dump Plutus programs is turned on. Therefore, running the executable dumps the initial and simplified PIR program and the typed and untyped PLC program to the `plutus/`. The dumped files are named with the module name followed by a brief description and ".flat".
+In `plutus-benchmark/marlowe/src/Language/Marlowe/Scripts.hs`, the plugin option to dump Plutus programs is turned on. Therefore, running the executable dumps the initial and simplified PIR program and the typed and untyped PLC program. You can find them in the `plutus/` directory. The dumped files are named with the module name followed by a brief description and ".flat".
 
-```bash
-cabal run marlowe-validators
-```
+Running `cabal run marlowe-validators` outputs the following files:
 
-```console
-Semantics:
-  Validator hash: 626424dba5741cb1f0a3cab8643da59ffccba351495c4257f9ec3689
-  Validator file: marlowe-semantics.plutus
-  Measurements file: marlowe-semantics.tsv
-
-Role payout:
-  Validator hash: fb5a52cc79da601eff8901272d3115444c1cd1ae82dd42caeee7346b
-  Validator file: marlowe-rolepayout.plutus
-  Measurements file: marlowe-rolepayout.tsv
-```
-
-The following files are output:
 - For Marlowe's semantics validator
     - Plutus script: `marlowe-semantics.plutus`
     - Benchmarking results: `marlowe-semantics.tsv`   
