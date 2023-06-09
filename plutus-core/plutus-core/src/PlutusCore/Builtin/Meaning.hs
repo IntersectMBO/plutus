@@ -209,7 +209,7 @@ class KnownMonotype val args res where
 
 -- | Once we've run out of term-level arguments, we return a
 -- 'TypeSchemeResult'/'RuntimeSchemeResult'.
-instance (Typeable res, KnownTypeAst (UniOf val) res, MakeKnown val res) =>
+instance (Typeable res, KnownTypeAst TyName (UniOf val) res, MakeKnown val res) =>
             KnownMonotype val '[] res where
     knownMonotype = TypeSchemeResult
 
@@ -260,7 +260,7 @@ evaluation anyway, hence we care much more about optimizing the happy path.
 
 -- | Every term-level argument becomes a 'TypeSchemeArrow'/'RuntimeSchemeArrow'.
 instance
-        ( Typeable arg, KnownTypeAst (UniOf val) arg, MakeKnown val arg, ReadKnown val arg
+        ( Typeable arg, KnownTypeAst TyName (UniOf val) arg, MakeKnown val arg, ReadKnown val arg
         , KnownMonotype val args res
         ) => KnownMonotype val (arg ': args) res where
     knownMonotype = TypeSchemeArrow knownMonotype
@@ -351,9 +351,9 @@ class MakeBuiltinMeaning a val where
         -> (cost -> FoldArgs (GetArgs a) ExBudgetStream)
         -> BuiltinMeaning val cost
 instance
-        ( binds ~ ToBinds '[] a, args ~ GetArgs a, a ~ FoldArgs args res
-        , ThrowOnBothEmpty binds args (IsBuiltin a) a
-        , ElaborateFromTo 0 j val a, KnownPolytype binds val args res
+        ( uni ~ UniOf val, binds ~ ToBinds uni '[] a, args ~ GetArgs a, a ~ FoldArgs args res
+        , ThrowOnBothEmpty binds args (IsBuiltin uni a) a
+        , ElaborateFromTo uni 0 j val a, KnownPolytype binds val args res
         ) => MakeBuiltinMeaning a val where
     makeBuiltinMeaning f toExF =
         BuiltinMeaning (knownPolytype @binds @val @args @res) f $ \cost ->

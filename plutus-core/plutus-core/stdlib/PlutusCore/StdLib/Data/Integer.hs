@@ -15,15 +15,13 @@ import PlutusCore.MkPlc
 import PlutusCore.Name
 import PlutusCore.Quote
 
-import Universe
-
-integer :: uni `Includes` Integer => Type tyname uni ()
+integer :: uni `HasTypeLevel` Integer => Type tyname uni ()
 integer = mkTyBuiltin @_ @Integer ()
 
 -- |  @succ :: Integer -> Integer@ as a PLC term.
 --
 -- > \(i : integer) -> addInteger i 1
-succInteger :: (TermLike term tyname Name uni DefaultFun, uni `Includes` Integer) => term ()
+succInteger :: (TermLike term tyname Name uni DefaultFun, uni `HasBothLevel` Integer) => term ()
 succInteger = runQuote $ do
     i  <- freshName "i"
     return

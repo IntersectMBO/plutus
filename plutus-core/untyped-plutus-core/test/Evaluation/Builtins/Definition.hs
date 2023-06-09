@@ -83,7 +83,7 @@ test_Const =
         b <- forAll Gen.bool
         let tC = mkConstant () c
             tB = mkConstant () b
-            text = toTypeAst @_ @DefaultUni @Text Proxy
+            text = toTypeAst @_ @_ @DefaultUni @Text Proxy
             runConst con = mkIterAppNoAnn (mkIterInstNoAnn con [text, bool]) [tC, tB]
             lhs = typecheckReadKnownCek def defaultBuiltinCostModelExt $ runConst $ builtin () (Right Const)
             rhs = typecheckReadKnownCek def defaultBuiltinCostModelExt $ runConst $ mapFun @DefaultFun Left Plc.const

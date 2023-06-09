@@ -110,7 +110,7 @@ revealUnique (Name name uniq) =
 withTypedBuiltinGen
     :: Monad m
     => Proxy fun
-    -> (forall a. (KnownTypeAst DefaultUni a, MakeKnown (Plain Term DefaultUni fun) a) =>
+    -> (forall a. (KnownTypeAst TyName DefaultUni a, MakeKnown (Plain Term DefaultUni fun) a) =>
             TypeRep a -> GenT m c)
     -> GenT m c
 withTypedBuiltinGen _ k = Gen.choice

@@ -92,21 +92,23 @@ benchDefault = benchWith defaultCekParameters
 
 ---------------- Constructing Polymorphic PLC terms for benchmarking ----------------
 
-integer :: uni `Includes` Integer => Type tyname uni ()
+integer :: uni `HasTypeLevel` Integer => Type TyName uni ()
 integer = mkTyBuiltin @_ @Integer ()
 
-bytestring :: uni `Includes` BS.ByteString => Type tyname uni ()
+bytestring :: uni `HasTypeLevel` BS.ByteString => Type TyName uni ()
 bytestring = mkTyBuiltin @_ @BS.ByteString ()
 
 
 -- To make monomorphic terms, make tys equal to [] in the mkApp functions
 
 -- Just make the term (con unit ()), which is about the simplest possible.
-mkUnit :: uni `Includes` () => PlainTerm uni fun
+mkUnit :: uni `HasTermLevel` () => PlainTerm uni fun
 mkUnit = eraseTerm $  mkConstant () ()
 
 -- Create a term instantiating a builtin and applying it to one argument
-mkApp1 :: (uni `Includes` a, NFData a) => fun -> [Type tyname uni ()] -> a -> PlainTerm uni fun
+mkApp1
+    :: (uni `HasTermLevel` a, NFData a)
+    => fun -> [Type tyname uni ()] -> a -> PlainTerm uni fun
 mkApp1 !name !tys (force -> !x) =
     eraseTerm $ mkIterAppNoAnn instantiated [mkConstant () x]
     where instantiated = mkIterInstNoAnn (builtin () name) tys
@@ -114,8 +116,8 @@ mkApp1 !name !tys (force -> !x) =
 
 -- Create a term instantiating a builtin and applying it to two arguments
 mkApp2
-    :: (uni `Includes` a, uni `Includes` b, NFData a, NFData b)
-    =>  fun -> [Type tyname uni ()]-> a -> b -> PlainTerm uni fun
+    :: (uni `HasTermLevel` a, uni `HasTermLevel` b, NFData a, NFData b)
+    => fun -> [Type tyname uni ()]-> a -> b -> PlainTerm uni fun
 mkApp2 !name !tys (force -> !x) (force -> !y) =
     eraseTerm $ mkIterAppNoAnn instantiated [mkConstant () x,  mkConstant () y]
     where instantiated = mkIterInstNoAnn (builtin () name) tys
@@ -123,7 +125,9 @@ mkApp2 !name !tys (force -> !x) (force -> !y) =
 
 -- Create a term instantiating a builtin and applying it to three arguments
 mkApp3
-    :: (uni `Includes` a, uni `Includes` b, uni `Includes` c, NFData a, NFData b, NFData c)
+    :: ( uni `HasTermLevel` a, uni `HasTermLevel` b, uni `HasTermLevel` c
+       , NFData a, NFData b, NFData c
+       )
     => fun -> [Type tyname uni ()] -> a -> b -> c -> PlainTerm uni fun
 mkApp3 !name !tys (force -> !x) (force -> !y) (force -> !z) =
     eraseTerm $ mkIterAppNoAnn instantiated [mkConstant () x, mkConstant () y, mkConstant () z]
@@ -132,9 +136,10 @@ mkApp3 !name !tys (force -> !x) (force -> !y) (force -> !z) =
 
 -- Create a term instantiating a builtin and applying it to four arguments
 mkApp4
-    :: (uni `Includes` a, uni `Includes` b,
-        uni `Includes` c, uni `Includes` d,
-        NFData a, NFData b, NFData c, NFData d)
+    :: ( uni `HasTermLevel` a, uni `HasTermLevel` b
+       , uni `HasTermLevel` c, uni `HasTermLevel` d
+       , NFData a, NFData b, NFData c, NFData d
+       )
     => fun -> [Type tyname uni ()] -> a -> b -> c -> d -> PlainTerm uni fun
 mkApp4 !name !tys (force -> !x) (force -> !y) (force -> !z) (force -> !t) =
     eraseTerm $ mkIterAppNoAnn instantiated [ mkConstant () x, mkConstant () y
@@ -144,9 +149,10 @@ mkApp4 !name !tys (force -> !x) (force -> !y) (force -> !z) (force -> !t) =
 
 -- Create a term instantiating a builtin and applying it to five arguments
 mkApp5
-    :: (uni `Includes` a, uni `Includes` b, uni `Includes` c,
-        uni `Includes` d, uni `Includes` e,
-        NFData a, NFData b, NFData c, NFData d, NFData e)
+    :: ( uni `HasTermLevel` a, uni `HasTermLevel` b, uni `HasTermLevel` c
+       , uni `HasTermLevel` d, uni `HasTermLevel` e
+       , NFData a, NFData b, NFData c, NFData d, NFData e
+       )
     => fun -> [Type tyname uni ()] -> a -> b -> c -> d -> e -> PlainTerm uni fun
 mkApp5 !name !tys (force -> !x) (force -> !y) (force -> !z) (force -> !t) (force -> !u) =
     eraseTerm $ mkIterAppNoAnn instantiated [ mkConstant () x, mkConstant () y, mkConstant () z
@@ -156,9 +162,10 @@ mkApp5 !name !tys (force -> !x) (force -> !y) (force -> !z) (force -> !t) (force
 
 -- Create a term instantiating a builtin and applying it to six arguments
 mkApp6
-    :: (uni `Includes` a, uni `Includes` b, uni `Includes` c,
-        uni `Includes` d, uni `Includes` e, uni `Includes` f,
-        NFData a, NFData b, NFData c, NFData d, NFData e, NFData f)
+    :: ( uni `HasTermLevel` a, uni `HasTermLevel` b, uni `HasTermLevel` c
+       , uni `HasTermLevel` d, uni `HasTermLevel` e, uni `HasTermLevel` f
+       , NFData a, NFData b, NFData c, NFData d, NFData e, NFData f
+       )
     => fun -> [Type tyname uni ()] -> a -> b -> c -> d -> e -> f-> PlainTerm uni fun
 mkApp6 name tys (force -> !x) (force -> !y) (force -> !z) (force -> !t) (force -> !u) (force -> !v)=
     eraseTerm $ mkIterAppNoAnn instantiated [mkConstant () x, mkConstant () y, mkConstant () z,
@@ -179,7 +186,7 @@ mkApp6 name tys (force -> !x) (force -> !y) (force -> !z) (force -> !t) (force -
 {- | Given a builtin function f of type a -> _ together with a lists xs, create a
    collection of benchmarks which run f on all elements of xs. -}
 createOneTermBuiltinBench
-    :: (fun ~ DefaultFun, uni ~ DefaultUni, uni `Includes` a, ExMemoryUsage a, NFData a)
+    :: (fun ~ DefaultFun, uni ~ DefaultUni, uni `HasTermLevel` a, ExMemoryUsage a, NFData a)
     => fun
     -> [Type tyname uni ()]
     -> [a]
@@ -192,8 +199,11 @@ createOneTermBuiltinBench name tys xs =
    ys::[b], create a collection of benchmarks which run f on all pairs in
    {(x,y}: x in xs, y in ys}. -}
 createTwoTermBuiltinBench
-    :: (fun ~ DefaultFun, uni ~ DefaultUni, uni `Includes` a, DefaultUni `Includes` b,
-        ExMemoryUsage a, ExMemoryUsage b, NFData a, NFData b)
+    :: ( fun ~ DefaultFun, uni ~ DefaultUni
+       , uni `HasTermLevel` a, DefaultUni `HasTermLevel` b
+       , ExMemoryUsage a, ExMemoryUsage b
+       , NFData a, NFData b
+       )
     => fun
     -> [Type tyname uni ()]
     -> [a]
@@ -214,8 +224,11 @@ createTwoTermBuiltinBench name tys xs ys =
    builtin can spot that its arguments both point to the same heap object.
 -}
 createTwoTermBuiltinBenchElementwise
-    :: (fun ~ DefaultFun, uni ~ DefaultUni, uni `Includes` a, uni `Includes` b,
-            ExMemoryUsage a, ExMemoryUsage b, NFData a, NFData b)
+    :: ( fun ~ DefaultFun, uni ~ DefaultUni
+       , uni `HasTermLevel` a, uni `HasTermLevel` b
+       , ExMemoryUsage a, ExMemoryUsage b
+       , NFData a, NFData b
+       )
     => fun
     -> [Type tyname uni ()]
     -> [a]
@@ -232,8 +245,11 @@ createTwoTermBuiltinBenchElementwise name tys xs ys =
    inputs.
 -}
 createThreeTermBuiltinBenchElementwise
-    :: (fun ~ DefaultFun, uni ~ DefaultUni, uni `Includes` a, uni `Includes` b, uni `Includes` c,
-            ExMemoryUsage a, ExMemoryUsage b, ExMemoryUsage c, NFData a, NFData b, NFData c)
+    :: ( fun ~ DefaultFun, uni ~ DefaultUni
+       , uni `HasTermLevel` a, uni `HasTermLevel` b, uni `HasTermLevel` c
+       , ExMemoryUsage a, ExMemoryUsage b, ExMemoryUsage c
+       , NFData a, NFData b, NFData c
+       )
     => fun
     -> [Type tyname uni ()]
     -> [(a,b,c)]

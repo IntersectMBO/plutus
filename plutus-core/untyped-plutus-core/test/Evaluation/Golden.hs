@@ -35,14 +35,14 @@ import Test.Tasty
 import Test.Tasty.Golden
 
 -- (con integer)
-integer :: uni `Includes` Integer => Type TyName uni ()
+integer :: uni `HasTypeLevel` Integer => Type TyName uni ()
 integer = mkTyBuiltin @_ @Integer ()
 
 -- (con string)
-string :: uni `Includes` Text => Type TyName uni ()
+string :: uni `HasTypeLevel` Text => Type TyName uni ()
 string = mkTyBuiltin @_ @Text ()
 
-evenAndOdd :: uni `Includes` Bool => Tuple (Term TyName Name uni fun) uni ()
+evenAndOdd :: uni `HasBothLevel` Bool => Tuple (Term TyName Name uni fun) uni ()
 evenAndOdd = runQuote $ do
     let nat = _recursiveType natData
 
@@ -60,7 +60,7 @@ evenAndOdd = runQuote $ do
 
     getMutualFixOf () (fixN 2 fixBy) [evenF, oddF]
 
-even :: uni `Includes` Bool => Term TyName Name uni fun ()
+even :: uni `HasBothLevel` Bool => Term TyName Name uni fun ()
 even = runQuote $ tupleTermAt () 0 evenAndOdd
 
 evenAndOddList :: Tuple (Term TyName Name uni fun) uni ()
@@ -115,7 +115,7 @@ polyError = runQuote $ do
 
 -- | For checking that evaluating a term to a non-constant results in all remaining variables
 -- being instantiated.
-closure :: uni `Includes` Integer => Term TyName Name uni fun ()
+closure :: uni `HasBothLevel` Integer => Term TyName Name uni fun ()
 closure = runQuote $ do
     i <- freshName "i"
     j <- freshName "j"

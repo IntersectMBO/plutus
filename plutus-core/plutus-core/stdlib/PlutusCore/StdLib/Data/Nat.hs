@@ -25,8 +25,6 @@ import PlutusCore.Quote
 import PlutusCore.StdLib.Data.Function
 import PlutusCore.StdLib.Type
 
-import Universe
-
 -- | @Nat@ as a PLC type.
 --
 -- > fix \(nat :: *) -> all r. r -> (nat -> r) -> r
@@ -136,7 +134,7 @@ foldNat = runQuote $ do
 -- | Convert a @nat@ to an @integer@.
 --
 -- > foldNat {integer} (addInteger 1) 1
-natToInteger :: (TermLike term TyName Name uni DefaultFun, uni `Includes` Integer) => term ()
+natToInteger :: (TermLike term TyName Name uni DefaultFun, uni `HasBothLevel` Integer) => term ()
 natToInteger = runQuote $ do
     return $
         mkIterAppNoAnn (tyInst () foldNat $ mkTyBuiltin @_ @Integer ())

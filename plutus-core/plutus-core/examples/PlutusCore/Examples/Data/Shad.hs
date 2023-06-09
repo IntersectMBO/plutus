@@ -14,12 +14,10 @@ import PlutusCore.MkPlc
 import PlutusCore.Name
 import PlutusCore.Quote
 
-import Universe
-
 -- |
 --
 -- > getShadF a = \(rec :: * -> *) (i :: *) -> a -> all (a :: * -> *). a i -> integer
-getShadF :: uni `Includes` Integer => TyName -> Quote (Type TyName uni ())
+getShadF :: uni `HasTypeLevel` Integer => TyName -> Quote (Type TyName uni ())
 getShadF a = do
     rec <- freshTyName "rec"
     i   <- freshTyName "i"
@@ -34,7 +32,7 @@ getShadF a = do
 -- |
 --
 -- > \(a :: *) -> ifix (getShadF a) a
-shad :: uni `Includes` Integer => Type TyName uni ()
+shad :: uni `HasTypeLevel` Integer => Type TyName uni ()
 shad = runQuote $ do
     a     <- freshTyName "a"
     shadF <- getShadF a
@@ -62,7 +60,7 @@ shad = runQuote $ do
 -- But that problem is already solved before type checking starts as we rename the program and that
 -- makes all binders uniques, so no variable capture is possible due to the outer and inner bindings
 -- being distinct.
-mkShad :: uni `Includes` Integer => Term TyName Name uni fun ()
+mkShad :: uni `HasBothLevel` Integer => Term TyName Name uni fun ()
 mkShad = runQuote $ do
     a     <- freshTyName "a"
     f     <- freshTyName "f"
@@ -96,7 +94,7 @@ recUnitF = runQuote $ do
 -- |
 --
 -- > ifix recUnitF ()
-recUnit :: uni `Includes` () => Type TyName uni ()
+recUnit :: uni `HasTypeLevel` () => Type TyName uni ()
 recUnit = TyIFix () recUnitF $ mkTyBuiltin @_ @() ()
 
 -- |  Test that a binder in a pattern functor does not get duplicated. The definition is as follows:
@@ -117,7 +115,7 @@ recUnit = TyIFix () recUnitF $ mkTyBuiltin @_ @() ()
 -- But this doesn't happen in the actual code, since when a variable gets looked up during type
 -- normalization, its value gets renamed, which means that a fresh variable will be generated for
 -- the inner binder and there will be no shadowing.
-runRecUnit :: uni `Includes` () => Term TyName Name uni fun ()
+runRecUnit :: uni `HasBothLevel` () => Term TyName Name uni fun ()
 runRecUnit = runQuote $ do
     a  <- freshTyName "a"
     ru <- freshName "ru"

@@ -1,3 +1,5 @@
+-- editorconfig-checker-disable-file
+{-# LANGUAGE AllowAmbiguousTypes      #-}
 {-# LANGUAGE ConstraintKinds          #-}
 {-# LANGUAGE DataKinds                #-}
 {-# LANGUAGE DefaultSignatures        #-}
@@ -17,6 +19,10 @@ module PlutusCore.Builtin.KnownTypeAst
     , TyForallRep
     , Hole
     , RepHole
+    , HasTermLevel
+    , HasTypeLevel
+    , HasBothLevel
+    , mkTyBuiltin
     , TypeHole
     , KnownBuiltinTypeAst
     , KnownTypeAst (..)
@@ -29,14 +35,15 @@ import PlutusCore.Builtin.KnownKind
 import PlutusCore.Builtin.Polymorphism
 import PlutusCore.Core
 import PlutusCore.Evaluation.Result
-import PlutusCore.MkPlc hiding (error)
 import PlutusCore.Name
+import PlutusCore.Subst (typeMapNames)
 
 import Data.Kind qualified as GHC (Constraint, Type)
 import Data.Proxy
 import Data.Some.GADT qualified as GADT
 import Data.Text qualified as Text
 import Data.Type.Bool
+import Data.Void
 import GHC.TypeLits
 import Universe
 
@@ -143,77 +150,101 @@ data family RepHole x
 type TypeHole :: forall hole. GHC.Type -> hole
 data family TypeHole a
 
--- | For annotating an uninstantiated built-in type, so that it gets handled by the right instance
--- or type family.
-type BuiltinHead :: forall k. k -> k
-data family BuiltinHead f
+{- Note [Name generality of KnownTypeAst]
+The 'KnownTypeAst' class takes a @tyname@ argument. The reason for this is that we want to be able
+to define 'mkTyBuiltin' such that it's generic over the type of names, because in addition to
+'TyName' we also have 'TyDeBruijn' and it's convenient to seemlessly embed built-in types into a
+'Type' regardless of which kind of names it expects.
 
--- | Take an iterated application of a built-in type and elaborate every function application
--- inside of it to 'TypeAppRep', plus annotate the head with 'BuiltinHead'.
--- The idea is that we don't need to process built-in types manually if we simply add some
--- annotations for instance resolution to look for. Think what we'd have to do manually for, say,
--- 'ToHoles': traverse the spine of the application and collect all the holes into a list, which is
--- troubling, because type applications are left-nested and lists are right-nested, so we'd have to
--- use accumulators or an explicit 'Reverse' type family. And then we also have 'KnownTypeAst' and
--- 'ToBinds', so handling built-in types in a special way for each of those would be a hassle,
--- especially given the fact that type-level Haskell is not exactly good at computing things.
--- With the 'ElaborateBuiltin' approach we get 'KnownTypeAst', 'ToHoles' and 'ToBinds' for free.
-type ElaborateBuiltin :: forall k. k -> k
-type family ElaborateBuiltin a where
-    ElaborateBuiltin (f x) = ElaborateBuiltin f `TyAppRep` x
-    ElaborateBuiltin f     = BuiltinHead f
+However we don't want that @tyname@ to proliferate through the entire code base. For example,
+'HasTypeLevel' propagates up to PlutusTx and it doesn't make sense to mention implementation details
+such as 'TyName' there. For this reason we instantiate @tyname@ as soon as possible. When we want
+and can have full generality, we instantiate @tyname@ with 'Void', because anything can be recovered
+from 'Void' via 'absurd' while allowing us not to thread the @tyname@ parameter through half the
+codebase. And when we don't want or can't have generality, we instantiate @tyname@ with 'TyName'.
+-}
+
+-- | Specifies that the given type is a built-in one and can be embedded into a 'Type'.
+type HasTypeLevel :: forall a. (GHC.Type -> GHC.Type) -> a -> GHC.Constraint
+type HasTypeLevel uni x = KnownTypeAst Void uni (ElaborateBuiltin uni x)
+
+-- | Specifies that the given type is a built-in one and its values can be embedded into a 'Term'.
+type HasTermLevel :: forall a. (GHC.Type -> GHC.Type) -> a -> GHC.Constraint
+type HasTermLevel uni = Includes uni
+
+-- | The product of 'HasTypeLevel' and 'HasTermLevel'.
+type HasBothLevel :: forall a. (GHC.Type -> GHC.Type) -> a -> GHC.Constraint
+type HasBothLevel uni x = (uni `HasTypeLevel` x, uni `HasTermLevel` x)
+
+-- See Note [Name generality of KnownTypeAst].
+-- TODO: make it @forall {a}@ once we have that.
+-- (see https://github.com/ghc-proposals/ghc-proposals/blob/master/proposals/0099-explicit-specificity.rst)
+-- | Convert a Haskell representation of a possibly 0-ary application of a built-in type to
+-- arbitrary types implementing 'KnownTypeAst'.
+mkTyBuiltin :: forall a (x :: a) uni ann tyname. uni `HasTypeLevel` x => ann -> Type tyname uni ann
+mkTyBuiltin ann = ann <$ typeMapNames absurd (toTypeAst $ Proxy @(ElaborateBuiltin uni x))
+{-# INLINE mkTyBuiltin #-}
 
 -- | A constraint for \"@a@ is a 'KnownTypeAst' by means of being included in @uni@\".
-type KnownBuiltinTypeAst uni a = KnownTypeAst uni (ElaborateBuiltin a)
+type KnownBuiltinTypeAst :: forall a. GHC.Type -> (GHC.Type -> GHC.Type) -> a -> GHC.Constraint
+type KnownBuiltinTypeAst tyname uni x = AllBuiltinArgs uni (KnownTypeAst tyname uni) x
 
-type KnownTypeAst :: forall a. (GHC.Type -> GHC.Type) -> a -> GHC.Constraint
-class KnownTypeAst uni x where
+-- See Note [Name generality of KnownTypeAst].
+-- | This class allows one to convert the type-level Haskell representation of a Plutus type into
+-- the corresponding Plutus type. Associated type families are needed to help elaboration.
+--
+-- Depending on the universe converting a Haskell type to a Plutus team can give different results
+-- (e.g. 'Int' can be a built-in type instead of being encoded via built-in 'Integer'), hence this
+-- class takes a @uni@ argument. Plus, elaboration is universe-specific too.
+type KnownTypeAst :: forall a. GHC.Type -> (GHC.Type -> GHC.Type) -> a -> GHC.Constraint
+class KnownTypeAst tyname uni x where
     -- | Whether @x@ is a built-in type.
-    type IsBuiltin x :: Bool
-    type IsBuiltin x = IsBuiltin (ElaborateBuiltin x)
+    type IsBuiltin uni x :: Bool
+    type IsBuiltin uni x = IsBuiltin uni (ElaborateBuiltin uni x)
 
     -- | Return every part of the type that can be a to-be-instantiated type variable.
     -- For example, in @Integer@ there's no such types and in @(a, b)@ it's the two arguments
     -- (@a@ and @b@) and the same applies to @a -> b@ (to mention a type that is not built-in).
-    type ToHoles x :: [Hole]
-    type ToHoles x = ToHoles (ElaborateBuiltin x)
+    type ToHoles uni x :: [Hole]
+    type ToHoles uni x = ToHoles uni (ElaborateBuiltin uni x)
 
     -- | Collect all unique variables (a variable consists of a textual name, a unique and a kind)
     -- in an accumulator and return the accumulator once a leaf is reached.
-    type ToBinds (acc :: [GADT.Some TyNameRep]) x :: [GADT.Some TyNameRep]
-    type ToBinds acc x = ToBinds acc (ElaborateBuiltin x)
+    type ToBinds uni (acc :: [GADT.Some TyNameRep]) x :: [GADT.Some TyNameRep]
+    type ToBinds uni acc x = ToBinds uni acc (ElaborateBuiltin uni x)
 
     -- | The type representing @a@ used on the PLC side.
-    toTypeAst :: proxy x -> Type TyName uni ()
-    default toTypeAst :: KnownBuiltinTypeAst uni x => proxy x -> Type TyName uni ()
-    toTypeAst _ = toTypeAst $ Proxy @(ElaborateBuiltin x)
+    toTypeAst :: proxy x -> Type tyname uni ()
+    default toTypeAst
+        :: KnownTypeAst tyname uni (ElaborateBuiltin uni x) => proxy x -> Type tyname uni ()
+    toTypeAst _ = toTypeAst (Proxy @(ElaborateBuiltin uni x))
     {-# INLINE toTypeAst #-}
 
-instance KnownTypeAst uni a => KnownTypeAst uni (EvaluationResult a) where
-    type IsBuiltin (EvaluationResult a) = 'False
-    type ToHoles (EvaluationResult a) = '[TypeHole a]
-    type ToBinds acc (EvaluationResult a) = ToBinds acc a
+instance KnownTypeAst tyname uni a => KnownTypeAst tyname uni (EvaluationResult a) where
+    type IsBuiltin _ (EvaluationResult a) = 'False
+    type ToHoles _ (EvaluationResult a) = '[TypeHole a]
+    type ToBinds uni acc (EvaluationResult a) = ToBinds uni acc a
     toTypeAst _ = toTypeAst $ Proxy @a
     {-# INLINE toTypeAst #-}
 
-instance KnownTypeAst uni a => KnownTypeAst uni (Emitter a) where
-    type IsBuiltin (Emitter a) = 'False
-    type ToHoles (Emitter a) = '[TypeHole a]
-    type ToBinds acc (Emitter a) = ToBinds acc a
+instance KnownTypeAst tyname uni a => KnownTypeAst tyname uni (Emitter a) where
+    type IsBuiltin _ (Emitter a) = 'False
+    type ToHoles _ (Emitter a) = '[TypeHole a]
+    type ToBinds uni acc (Emitter a) = ToBinds uni acc a
     toTypeAst _ = toTypeAst $ Proxy @a
     {-# INLINE toTypeAst #-}
 
-instance KnownTypeAst uni rep => KnownTypeAst uni (SomeConstant uni rep) where
-    type IsBuiltin (SomeConstant uni rep) = 'False
-    type ToHoles (SomeConstant _ rep) = '[RepHole rep]
-    type ToBinds acc (SomeConstant _ rep) = ToBinds acc rep
+instance KnownTypeAst tyname uni rep => KnownTypeAst tyname uni (SomeConstant uni rep) where
+    type IsBuiltin _ (SomeConstant uni rep) = 'False
+    type ToHoles _ (SomeConstant _ rep) = '[RepHole rep]
+    type ToBinds uni acc (SomeConstant _ rep) = ToBinds uni acc rep
     toTypeAst _ = toTypeAst $ Proxy @rep
     {-# INLINE toTypeAst #-}
 
-instance KnownTypeAst uni rep => KnownTypeAst uni (Opaque val rep) where
-    type IsBuiltin (Opaque val rep) = 'False
-    type ToHoles (Opaque _ rep) = '[RepHole rep]
-    type ToBinds acc (Opaque _ rep) = ToBinds acc rep
+instance KnownTypeAst tyname uni rep => KnownTypeAst tyname uni (Opaque val rep) where
+    type IsBuiltin _ (Opaque val rep) = 'False
+    type ToHoles _ (Opaque _ rep) = '[RepHole rep]
+    type ToBinds uni acc (Opaque _ rep) = ToBinds uni acc rep
     toTypeAst _ = toTypeAst $ Proxy @rep
     {-# INLINE toTypeAst #-}
 
@@ -226,42 +257,44 @@ toTyNameAst _ =
         (Unique . fromIntegral $ natVal @uniq Proxy)
 {-# INLINE toTyNameAst #-}
 
-instance uni `Contains` f => KnownTypeAst uni (BuiltinHead f) where
-    type IsBuiltin (BuiltinHead f) = 'True
-    type ToHoles (BuiltinHead f) = '[]
-    type ToBinds acc (BuiltinHead f) = acc
-    toTypeAst _ = mkTyBuiltin @_ @f ()
+instance uni `Contains` f => KnownTypeAst tyname uni (BuiltinHead f) where
+    type IsBuiltin _ (BuiltinHead f) = 'True
+    type ToHoles _ (BuiltinHead f) = '[]
+    type ToBinds _ acc (BuiltinHead f) = acc
+    toTypeAst _ = TyBuiltin () $ someType @_ @f
     {-# INLINE toTypeAst #-}
 
-instance (KnownTypeAst uni a, KnownTypeAst uni b) => KnownTypeAst uni (a -> b) where
-    type IsBuiltin (a -> b) = 'False
-    type ToHoles (a -> b) = '[TypeHole a, TypeHole b]
-    type ToBinds acc (a -> b) = ToBinds (ToBinds acc a) b
+instance (KnownTypeAst tyname uni a, KnownTypeAst tyname uni b) =>
+        KnownTypeAst tyname uni (a -> b) where
+    type IsBuiltin _ (a -> b) = 'False
+    type ToHoles _ (a -> b) = '[TypeHole a, TypeHole b]
+    type ToBinds uni acc (a -> b) = ToBinds uni (ToBinds uni acc a) b
     toTypeAst _ = TyFun () (toTypeAst $ Proxy @a) (toTypeAst $ Proxy @b)
     {-# INLINE toTypeAst #-}
 
-instance (name ~ 'TyNameRep text uniq, KnownSymbol text, KnownNat uniq) =>
-            KnownTypeAst uni (TyVarRep name) where
-    type IsBuiltin (TyVarRep name) = 'False
-    type ToHoles (TyVarRep name) = '[]
-    type ToBinds acc (TyVarRep name) = Insert ('GADT.Some name) acc
+instance (tyname ~ TyName, name ~ 'TyNameRep text uniq, KnownSymbol text, KnownNat uniq) =>
+            KnownTypeAst tyname uni (TyVarRep name) where
+    type IsBuiltin _ (TyVarRep name) = 'False
+    type ToHoles _ (TyVarRep name) = '[]
+    type ToBinds _ acc (TyVarRep name) = Insert ('GADT.Some name) acc
     toTypeAst _ = TyVar () . toTyNameAst $ Proxy @('TyNameRep text uniq)
     {-# INLINE toTypeAst #-}
 
-instance (KnownTypeAst uni fun, KnownTypeAst uni arg) => KnownTypeAst uni (TyAppRep fun arg) where
-    type IsBuiltin (TyAppRep fun arg) = IsBuiltin fun && IsBuiltin arg
-    type ToHoles (TyAppRep fun arg) = '[RepHole fun, RepHole arg]
-    type ToBinds acc (TyAppRep fun arg) = ToBinds (ToBinds acc fun) arg
+instance (KnownTypeAst tyname uni fun, KnownTypeAst tyname uni arg) =>
+        KnownTypeAst tyname uni (TyAppRep fun arg) where
+    type IsBuiltin uni (TyAppRep fun arg) = IsBuiltin uni fun && IsBuiltin uni arg
+    type ToHoles _ (TyAppRep fun arg) = '[RepHole fun, RepHole arg]
+    type ToBinds uni acc (TyAppRep fun arg) = ToBinds uni (ToBinds uni acc fun) arg
     toTypeAst _ = TyApp () (toTypeAst $ Proxy @fun) (toTypeAst $ Proxy @arg)
     {-# INLINE toTypeAst #-}
 
 instance
-        ( name ~ 'TyNameRep @kind text uniq, KnownSymbol text, KnownNat uniq
-        , KnownKind kind, KnownTypeAst uni a
-        ) => KnownTypeAst uni (TyForallRep name a) where
-    type IsBuiltin (TyForallRep name a) = 'False
-    type ToHoles (TyForallRep name a) = '[RepHole a]
-    type ToBinds acc (TyForallRep name a) = Delete ('GADT.Some name) (ToBinds acc a)
+        ( tyname ~ TyName, name ~ 'TyNameRep @kind text uniq, KnownSymbol text, KnownNat uniq
+        , KnownKind kind, KnownTypeAst tyname uni a
+        ) => KnownTypeAst tyname uni (TyForallRep name a) where
+    type IsBuiltin _ (TyForallRep name a) = 'False
+    type ToHoles _ (TyForallRep name a) = '[RepHole a]
+    type ToBinds uni acc (TyForallRep name a) = Delete ('GADT.Some name) (ToBinds uni acc a)
     toTypeAst _ =
         TyForall ()
             (toTyNameAst $ Proxy @('TyNameRep text uniq))

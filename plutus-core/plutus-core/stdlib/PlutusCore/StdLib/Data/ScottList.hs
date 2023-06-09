@@ -33,8 +33,6 @@ import PlutusCore.StdLib.Data.Integer
 import PlutusCore.StdLib.Data.Unit
 import PlutusCore.StdLib.Type
 
-import Universe
-
 -- | @List@ as a PLC type.
 --
 -- > fix \(list :: * -> *) (a :: *) -> all (r :: *). r -> (a -> list a -> r) -> r
@@ -219,7 +217,7 @@ reverse = runQuote $ do
 -- >         n
 enumFromTo
     :: ( TermLike term TyName Name uni DefaultFun
-       , uni `Includes` Integer, uni `Includes` (), uni `Includes` Bool
+       , uni `HasBothLevel` Integer, uni `HasBothLevel` (), uni `HasBothLevel` Bool
        )
     => term ()
 enumFromTo = runQuote $ do
@@ -253,7 +251,7 @@ enumFromTo = runQuote $ do
 -- |  'sum' as a PLC term.
 --
 -- > foldList {integer} {integer} addInteger 0
-sum :: (TermLike term TyName Name uni DefaultFun, uni `Includes` Integer) => term ()
+sum :: (TermLike term TyName Name uni DefaultFun, uni `HasBothLevel` Integer) => term ()
 sum = runQuote $ do
     let int = mkTyBuiltin @_ @Integer ()
         add = builtin () AddInteger
@@ -262,7 +260,7 @@ sum = runQuote $ do
         $ [ add , mkConstant @Integer () 0]
 
 -- > foldrList {integer} {integer} 0 addInteger
-sumr :: (TermLike term TyName Name uni DefaultFun, uni `Includes` Integer) => term ()
+sumr :: (TermLike term TyName Name uni DefaultFun, uni `HasBothLevel` Integer) => term ()
 sumr = runQuote $ do
     let int = mkTyBuiltin @_ @Integer ()
         add = builtin () AddInteger
@@ -273,7 +271,7 @@ sumr = runQuote $ do
 -- |  'product' as a PLC term.
 --
 -- > foldList {integer} {integer} multiplyInteger 1
-product :: (TermLike term TyName Name uni DefaultFun, uni `Includes` Integer) => term ()
+product :: (TermLike term TyName Name uni DefaultFun, uni `HasBothLevel` Integer) => term ()
 product = runQuote $ do
     let int = mkTyBuiltin @_ @Integer ()
         mul = builtin () MultiplyInteger
