@@ -10,11 +10,6 @@ let
   inherit (pkgs.stdenv) system;
   inherit (pkgs) lib;
 
-  x86linux = "x86_64-linux";
-  x86darwin = "x86_64-darwin";
-  aarchdarwin = "aarch64-darwin";
-  supportedSystems = [ x86linux x86darwin aarchdarwin ];
-
   make-haskell-jobs = project:
     let
       packages = library.haskell-nix.haskellLib.selectProjectPackages project.hsPkgs;
@@ -47,70 +42,48 @@ let
       plan-nix = project.plan-nix;
     };
 
-  native-plutus-810-jobs = make-haskell-jobs library.plutus-project-810;
-  native-plutus-92-jobs = make-haskell-jobs library.plutus-project-92;
-  native-plutus-96-jobs = make-haskell-jobs library.plutus-project-96;
+  all-jobs = 
+    let 
+      x86_64-linux = {
+        ghc810 = make-haskell-jobs library.plutus-project-810;
+        ghc92 =  make-haskell-jobs library.plutus-project-92;
+        ghc96 =  make-haskell-jobs library.plutus-project-96;
+        devshells = inputs.cells.plutus.devshells;
+        packages = inputs.cells.plutus.packages;
+        mingwW64 = make-haskell-jobs library.plutus-project-92.projectCross.mingwW64;
+      };
 
-  # - Only test cross on our primary dev version
-  # - Cross-compiling to windows only works from linux
-  windows-plutus-92-jobs =
-    lib.optionalAttrs (system == x86linux)
-      (make-haskell-jobs library.plutus-project-92.projectCross.mingwW64);
+      x86_64-darwin = 
+        # Cross-compiling to windows only works from linux, and we only care about ghc 9.2
+        removeAttrs x86_64-linux [ "mingwW64" ];
 
-  devshells =
-    # Note: We can't build the 9.6 shell on aarch64-darwin
-    # because of https://github.com/well-typed/cborg/issues/311
-    let s = inputs.cells.plutus.devshells;
-    in
-    if system == aarchdarwin
-    then builtins.removeAttrs s [ "plutus-shell-96" ]
-    else s;
+      # Plausibly if things build on x86 darwin then they'll build on aarch darwin.
+      # Se we only build roots and devshells on aarch to avoid overloading the builders.
+      aarch64-darwin = {
+        ghc810.roots = x86_64-linux.ghc810.roots;
+        ghc92.roots = x86_64-linux.ghc92.roots;
+        ghc96.roots = x86_64-linux.ghc96.roots;
+        packages = x86_64-linux.packages;
+        # Note: We can't build the 9.6 shell on aarch64-darwin
+        # because of https://github.com/well-typed/cborg/issues/311
+        devshells = removeAttrs x86_64-linux.devshells ["plutus-shell-96"];
+      };
 
-  # this just has all the package roots in, which we're going to want
-  # to be extra sure we always build
-  roots = {
-    ghc810 = native-plutus-810-jobs.roots;
-    ghc92 = native-plutus-92-jobs.roots;
-    ghc96 = native-plutus-96-jobs.roots;
-  };
-
-  jobs =
-    # Only build all the main packages on linux and _one_ dawin platform, to avoid doing too
-    # much work in CI. Plausibly if things build on x86 darwin then they'll build on aarch
-    # darwin, and it avoids overloading the builders.
-    lib.optionalAttrs (system == x86linux || system == x86darwin)
-      (
-        { ghc810 = native-plutus-810-jobs; }
-        //
-        { ghc92 = native-plutus-92-jobs; }
-        //
-        { ghc96 = native-plutus-96-jobs; }
-        //
-        { mingwW64 = windows-plutus-92-jobs; }
-        //
-        inputs.cells.plutus.packages
-      )
-    //
-    # Build devshells on all platforms so people can work effectively
-    devshells
-    //
-    # Build roots on all platforms so stuff doesn't get GCd
-    roots;
+      system-matrix = { inherit x86_64-linux x86_64-darwin aarch64-darwin; };
+    in 
+      system-matrix.${system};
 
   # Hydra doesn't like these attributes hanging around in "jobsets": it thinks they're jobs!
-  filtered-jobs = lib.filterAttrsRecursive (n: _: n != "recurseForDerivations") jobs;
+  filtered-jobs = lib.filterAttrsRecursive (n: _: n != "recurseForDerivations") all-jobs;
 
+  # Require everything: there's not much point having a CI job if it isn't required!
   required-job = pkgs.releaseTools.aggregate {
     name = "required-plutus";
     meta.description = "All jobs required to pass CI";
-    # require everything: there's not much point having a CI job if it isn't required!
     constituents = lib.collect lib.isDerivation filtered-jobs;
   };
 
-  final-jobset =
-    if builtins.elem system supportedSystems
-    then filtered-jobs // { required = required-job; }
-    else { };
+  final-jobset = filtered-jobs // { required = required-job; };
 
 in
 
