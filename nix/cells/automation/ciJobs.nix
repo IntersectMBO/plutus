@@ -42,18 +42,18 @@ let
       plan-nix = project.plan-nix;
     };
 
-  all-jobs = 
-    let 
+  all-jobs =
+    let
       x86_64-linux = {
         ghc810 = make-haskell-jobs library.plutus-project-810;
-        ghc92 =  make-haskell-jobs library.plutus-project-92;
-        ghc96 =  make-haskell-jobs library.plutus-project-96;
+        ghc92 = make-haskell-jobs library.plutus-project-92;
+        ghc96 = make-haskell-jobs library.plutus-project-96;
         devshells = inputs.cells.plutus.devshells;
         packages = inputs.cells.plutus.packages;
         mingwW64 = make-haskell-jobs library.plutus-project-92.projectCross.mingwW64;
       };
 
-      x86_64-darwin = 
+      x86_64-darwin =
         # Cross-compiling to windows only works from linux, and we only care about ghc 9.2
         removeAttrs x86_64-linux [ "mingwW64" ];
 
@@ -66,14 +66,14 @@ let
         packages = x86_64-linux.packages;
         # Note: We can't build the 9.6 shell on aarch64-darwin
         # because of https://github.com/well-typed/cborg/issues/311
-        devshells = removeAttrs x86_64-linux.devshells ["plutus-shell-96"];
+        devshells = removeAttrs x86_64-linux.devshells [ "plutus-shell-96" ];
       };
 
-      aarch64-linux = {}; 
+      aarch64-linux = { };
 
       system-matrix = { inherit x86_64-linux x86_64-darwin aarch64-darwin aarch64-linux; };
-    in 
-      system-matrix.${system};
+    in
+    system-matrix.${system};
 
   # Hydra doesn't like these attributes hanging around in "jobsets": it thinks they're jobs!
   filtered-jobs = lib.filterAttrsRecursive (n: _: n != "recurseForDerivations") all-jobs;
