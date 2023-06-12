@@ -20,7 +20,7 @@ import PlutusIR.Transform.Substitute
 
 import Control.Monad.State
 
-{- Note [Inlining and beta reduction of fully applied functions]
+{- Note [Inlining and beta reduction of functions]
 
 We inline if its cost and size are acceptable.
 

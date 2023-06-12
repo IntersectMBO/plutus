@@ -251,7 +251,7 @@ processSingleBinding body (Def vd@(UVarDecl a n) rhs0) = do
         VarInfo
           { _varBinders = binders
           , _varRhs = rhs
-          , _varRhsBody = (Done (dupable rhsBody))
+          , _varRhsBody = Done (dupable rhsBody)
           }
       pure . Just $ Def vd rhs
     Nothing -> pure Nothing
@@ -444,14 +444,14 @@ isPure = go True
       -- See Note [Differences from PIR inliner] 5
       Builtin{}                     -> True
 
--- | Fully apply and beta reduce.
-fullyApplyAndBetaReduce ::
+-- | Apply and beta reduce.
+applyAndBetaReduce ::
   forall name uni fun a.
   (InliningConstraints name uni fun) =>
   VarInfo name uni fun a ->
   [(a, Term name uni fun a)] ->
   InlineM name uni fun a (Maybe (Term name uni fun a))
-fullyApplyAndBetaReduce info args0 = do
+applyAndBetaReduce info args0 = do
   rhsBody <- liftDupable (let Done rhsBody = info ^. varRhsBody in rhsBody)
   let go ::
         Term name uni fun a ->
@@ -470,7 +470,8 @@ fullyApplyAndBetaReduce info args0 = do
                   acc
               go acc' params args'
             else pure Nothing
-        _ -> pure Nothing
+        -- no more arguments to apply, just apply what we have
+        (_, []) -> pure . Just $ mkIterApp acc args
 
       -- Is it safe to turn `(\a -> body) arg` into `body [a := arg]`?
       -- The criteria is the same as the criteria for unconditionally inlining `a`,
@@ -483,7 +484,7 @@ fullyApplyAndBetaReduce info args0 = do
   go rhsBody (info ^. varBinders) args0
 
 {- | This works in the same way as `PlutusIR.Transform.Inline.CallSiteInline.inlineSaturatedApp`.
-See Note [Inlining and beta reduction of fully applied functions].
+See Note [Inlining and beta reduction of functions].
 -}
 inlineSaturatedApp ::
   forall name uni fun a.
@@ -495,18 +496,18 @@ inlineSaturatedApp t
       gets (lookupVarInfo name) >>= \case
         Nothing -> pure t
         Just varInfo ->
-          fullyApplyAndBetaReduce varInfo args >>= \case
+          applyAndBetaReduce varInfo args >>= \case
             Nothing -> pure t
-            Just fullyApplied -> do
+            Just applied -> do
               let
                 -- Inline only if the size is no bigger than not inlining.
-                sizeIsOk = termSize fullyApplied <= termSize t
+                sizeIsOk = termSize applied <= termSize t
                 rhs = varInfo ^. varRhs
                 -- Cost is always OK if the RHS is a LamAbs, but may not be otherwise.
                 costIsOk = costIsAcceptable rhs
               -- The RHS is always pure if it is a LamAbs, but may not be otherwise.
               rhsPure <- checkPurity rhs
-              pure $ if sizeIsOk && costIsOk && rhsPure then fullyApplied else t
+              pure $ if sizeIsOk && costIsOk && rhsPure then applied else t
   | otherwise = pure t
 
 {- Note [delayAndVarIsPure]
