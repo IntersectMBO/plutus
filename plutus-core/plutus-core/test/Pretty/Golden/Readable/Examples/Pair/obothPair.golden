@@ -1,6 +1,5 @@
 /\a ->
-  \(f : a -> a)
-   (p : pair a a) ->
+  \(f : a -> a) (p : pair a a) ->
     (Right Comma)
       {a}
       {a}

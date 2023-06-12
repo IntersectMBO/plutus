@@ -16,8 +16,7 @@ letrec
           ds
           {all dead. Bool}
           (/\dead -> False)
-          (\(x : Bool)
-            (xs : List Bool) ->
+          (\(x : Bool) (xs : List Bool) ->
              /\dead ->
                Bool_match
                  x
@@ -31,8 +30,7 @@ or
   ((let
        a = List Bool
      in
-     \(c : Bool -> a -> a)
-      (n : a) ->
+     \(c : Bool -> a -> a) (n : a) ->
        c
          True
          (c

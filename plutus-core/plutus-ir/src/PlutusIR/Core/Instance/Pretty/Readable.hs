@@ -81,7 +81,7 @@ instance (PrettyConstraints configName tyname name uni, Pretty fun)
     prettyBy = inContextM $ \case
         Constant _ con -> unitDocM $ pretty con
         Builtin _ bi   -> unitDocM $ pretty bi
-        (viewApp -> Just (fun, args)) -> iterAppPrettyM fun args
+        (viewApp -> Just (fun, args)) -> iterInterAppPrettyM fun args
         Apply {} -> error "Panic: 'Apply' is not covered by 'viewApp'"
         TyInst {} -> error "Panic: 'TyInst' is not covered by 'viewApp'"
         Var _ name -> prettyM name
@@ -89,15 +89,11 @@ instance (PrettyConstraints configName tyname name uni, Pretty fun)
         TyAbs {} -> error "Panic: 'TyAbs' is not covered by 'viewTyAbs'"
         (viewLamAbs -> Just (args, body)) -> iterLamAbsPrettyM args body
         LamAbs {} -> error "Panic: 'LamAbs' is not covered by 'viewLamAbs'"
-        Unwrap _ term          ->
-            sequenceDocM ToTheRight juxtFixity $ \prettyEl ->
-                "unwrap" <+> prettyEl term
-        IWrap _ pat arg term   ->
-            sequenceDocM ToTheRight juxtFixity $ \prettyEl ->
-                "iwrap" <+> prettyEl pat <+> prettyEl arg <+> prettyEl term
-        Error _ ty             ->
-            compoundDocM juxtFixity $ \prettyIn ->
-                "error" <+> braces (prettyIn ToTheRight botFixity ty)
+        Unwrap _ term -> iterAppDocM $ \_ prettyArg -> "unwrap" :| [prettyArg term]
+        IWrap _ pat arg term ->
+            iterAppDocM $ \_ prettyArg ->
+                "iwrap" :| [prettyArg pat, prettyArg arg, prettyArg term]
+        Error _ ty -> iterAppDocM $ \_ prettyArg -> "error" :| [prettyArg $ inBraces ty]
         (viewLet -> Just (lets, body)) ->
             compoundDocM binderFixity $ \prettyIn ->
                 let prettyBot x = prettyIn ToTheRight botFixity x
@@ -115,16 +111,15 @@ instance (PrettyConstraints configName tyname name uni, Pretty fun)
                 -- foo x y
                 in vsep $ [ prettyLet r binds | (r, binds) <- lets ] ++ [ prettyBot body ]
         Let {} -> error "Panic: 'Let' is not covered by 'viewLet'"
-        Constr _ ty i es -> sequenceDocM ToTheRight juxtFixity $ \prettyEl ->
-          "constr" <+> prettyEl ty <+> prettyEl i <+> prettyEl es
-        Case _ ty arg cs -> sequenceDocM ToTheRight juxtFixity $ \prettyEl ->
-          "case" <+> prettyEl ty <+> prettyEl arg <+> prettyEl cs
+        Constr _ ty i es ->
+            iterAppDocM $ \_ prettyArg -> "constr" :| [prettyArg ty, prettyArg i, prettyArg es]
+        Case _ ty arg cs ->
+            iterAppDocM $ \_ prettyArg -> "case" :| [prettyArg ty, prettyArg arg, prettyArg cs]
 
 instance (PrettyConstraints configName tyname name uni, Pretty fun)
           => PrettyBy (PrettyConfigReadable configName) (Program tyname name uni fun a) where
-  prettyBy = inContextM $ \(Program _ _ term) ->
-    sequenceDocM ToTheRight juxtFixity $ \prettyEl ->
-        "program" <+> prettyEl term
+  prettyBy = inContextM $ \(Program _ version term) ->
+    iterAppDocM $ \_ prettyArg -> "program" :| [pretty version, prettyArg term]
 
 instance (PrettyConstraints configName tyname name uni, Pretty fun)
           => PrettyBy (PrettyConfigReadable configName) (Binding tyname name uni fun ann) where

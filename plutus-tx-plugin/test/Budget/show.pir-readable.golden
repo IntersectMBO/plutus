@@ -11,8 +11,7 @@ letrec
 in
 letrec
   !go : List integer -> integer -> List integer
-    = \(acc : List integer)
-       (n : integer) ->
+    = \(acc : List integer) (n : integer) ->
         let
           ~q : integer = quotientInteger n y
         in
@@ -25,11 +24,8 @@ letrec
 in
 letrec
   !foldr : all a b. (a -> b -> b) -> b -> List a -> b
-    = /\a
-        b ->
-        \(f : a -> b -> b)
-         (acc : b)
-         (l : List a) ->
+    = /\a b ->
+        \(f : a -> b -> b) (acc : b) (l : List a) ->
           Nil_match
             {a}
             l
@@ -42,8 +38,8 @@ let
   !id : all a. a -> a = /\a -> \(x : a) -> x
 in
 letrec
-  !`$w$cshowsPrec`
-     : integer -> List string -> List string
+  !`$w$cshowsPrec` :
+     integer -> List string -> List string
     = \(w : integer) ->
         Bool_match
           (ifThenElse {Bool} (lessThanInteger w 0) True False)
@@ -233,8 +229,7 @@ let
 in
 letrec
   !`$fEnumBool_$cenumFromTo` : integer -> integer -> List integer
-    = \(x : integer)
-       (y : integer) ->
+    = \(x : integer) (y : integer) ->
         Bool_match
           (ifThenElse {Bool} (lessThanEqualsInteger x y) False True)
           {all dead. List integer}
@@ -244,8 +239,8 @@ letrec
           {all dead. dead}
 in
 let
-  !`$fShowInteger_$cshowsPrec`
-     : integer -> integer -> List string -> List string
+  !`$fShowInteger_$cshowsPrec` :
+     integer -> integer -> List string -> List string
     = \(w : integer) (w : integer) -> `$w$cshowsPrec` w
   data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
     Tuple2 : a -> b -> Tuple2 a b
@@ -253,15 +248,13 @@ in
 letrec
   !go : all a. integer -> List a -> Tuple2 (List a) (List a)
     = /\a ->
-        \(ds : integer)
-         (ds : List a) ->
+        \(ds : integer) (ds : List a) ->
           Nil_match
             {a}
             ds
             {all dead. Tuple2 (List a) (List a)}
             (/\dead -> Tuple2 {List a} {List a} (Nil {a}) (Nil {a}))
-            (\(y : a)
-              (ys : List a) ->
+            (\(y : a) (ys : List a) ->
                /\dead ->
                  Bool_match
                    (ifThenElse {Bool} (equalsInteger 1 ds) True False)
@@ -283,23 +276,20 @@ letrec
                         {List a}
                         (go {a} (subtractInteger ds 1) ys)
                         {Tuple2 (List a) (List a)}
-                        (\(zs : List a)
-                          (ws : List a) ->
+                        (\(zs : List a) (ws : List a) ->
                            Tuple2 {List a} {List a} (Cons {a} y zs) ws))
                    {all dead. dead})
             {all dead. dead}
 in
 letrec
   !go : List string -> integer -> integer
-    = \(ds : List string)
-       (eta : integer) ->
+    = \(ds : List string) (eta : integer) ->
         Nil_match
           {string}
           ds
           {all dead. integer}
           (/\dead -> eta)
-          (\(x : string)
-            (xs : List string) ->
+          (\(x : string) (xs : List string) ->
              /\dead -> go xs (addInteger 1 eta))
           {all dead. dead}
 in
@@ -329,13 +319,11 @@ letrec
                       {List string}
                       (go {string} w ds)
                       {UTuple2 (List string) (List string)}
-                      (\(ww : List string)
-                        (ww : List string) ->
+                      (\(ww : List string) (ww : List string) ->
                          UTuple2 {List string} {List string} ww ww))
                  {all dead. dead})
               {Tuple2 (List string) (List string)}
-              (\(ww : List string)
-                (ww : List string) ->
+              (\(ww : List string) (ww : List string) ->
                  Tuple2 {List string} {List string} ww ww)
         in
         Nil_match
@@ -343,15 +331,13 @@ letrec
           ds
           {string}
           ""
-          (\(x : string)
-            (ds : List string) ->
+          (\(x : string) (ds : List string) ->
              Nil_match
                {string}
                ds
                {all dead. string}
                (/\dead -> x)
-               (\(ipv : string)
-                 (ipv : List string) ->
+               (\(ipv : string) (ipv : List string) ->
                   /\dead ->
                     appendString
                       (Tuple2_match
@@ -359,16 +345,14 @@ letrec
                          {List string}
                          ds
                          {string}
-                         (\(ys : List string)
-                           (zs : List string) ->
+                         (\(ys : List string) (zs : List string) ->
                             concatBuiltinStrings ys))
                       (Tuple2_match
                          {List string}
                          {List string}
                          ds
                          {string}
-                         (\(ys : List string)
-                           (zs : List string) ->
+                         (\(ys : List string) (zs : List string) ->
                             concatBuiltinStrings zs)))
                {all dead. dead})
 in
@@ -377,8 +361,8 @@ let
     = \(x : integer) ->
         concatBuiltinStrings (`$fShowInteger_$cshowsPrec` 0 x (Nil {string}))
   data (Show :: * -> *) a | Show_match where
-    CConsShow
-      : (integer -> a -> List string -> List string) -> (a -> string) -> Show a
+    CConsShow :
+      (integer -> a -> List string -> List string) -> (a -> string) -> Show a
   ~`$fShowInteger` : Show integer
     = CConsShow {integer} `$fShowInteger_$cshowsPrec` `$fShowInteger_$cshow`
   data (Tuple5 :: * -> * -> * -> * -> * -> *) a b c d e | Tuple5_match where
@@ -405,8 +389,7 @@ let
                  let
                    ~x : integer = indexByteString w i
                  in
-                 \(acc : List string -> List string)
-                  (x : List string) ->
+                 \(acc : List string -> List string) (x : List string) ->
                    toHex (divideInteger x 16) (toHex (modInteger x 16) (acc x)))
               (id {List string})
               (`$fEnumBool_$cenumFromTo`
@@ -445,9 +428,7 @@ let
                x
                {List string -> List string}
                (\(ds : List string) -> Cons {string} "[]" ds)
-               (\(x : integer)
-                 (xs : List integer)
-                 (x : List string) ->
+               (\(x : integer) (xs : List integer) (x : List string) ->
                   Cons
                     {string}
                     "["
