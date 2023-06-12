@@ -69,9 +69,9 @@ let
         devshells = removeAttrs x86_64-linux.devshells ["plutus-shell-96"];
       };
 
-      aarch64-darwin = {}; 
+      aarch64-linux = {}; 
 
-      system-matrix = { inherit x86_64-linux x86_64-darwin aarch64-darwin aarch64-darwin; };
+      system-matrix = { inherit x86_64-linux x86_64-darwin aarch64-darwin aarch64-linux; };
     in 
       system-matrix.${system};
 
