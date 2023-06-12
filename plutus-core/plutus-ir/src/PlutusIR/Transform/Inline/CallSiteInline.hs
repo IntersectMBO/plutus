@@ -5,8 +5,7 @@
 {-# LANGUAGE TypeFamilies     #-}
 
 {- |
-Call site inlining machinery. For now there's only one part: inlining of fully applied functions.
-We inline fully applied functions if the cost and size are acceptable.
+Call site inlining machinery. We inline if the size of the inlined result is not larger.
 See note [Inlining of fully applied functions].
 -}
 module PlutusIR.Transform.Inline.CallSiteInline where
@@ -23,55 +22,7 @@ import Control.Monad.State (gets)
 
 {- Note [Inlining and beta reduction of fully applied functions]
 
-We inline if (1) a function is fully applied (2) its cost and size are acceptable. We discuss
-each in detail below.
-
-(1) What do we mean by "fully applied"?
-
-A function is fully applied when it has been applied to all arguments as indicated by its
-"syntactic arity":
-
-Consider `let v = rhs in body`, in which `body` calls `v`.
-
-We focus on cases when `v` is a function. (Non-functions have arity () or 0).
-I.e., it has type/term lambda abstraction(s). E.g.:
-
-let v = \x1.\x2...\xn. v_body in body
-
-(x1,x2...xn) or n is the syntactic arity of a term. That is, a record of the arguments that the
-term expects before it may do some work. Since we have both type and lambda
-abstractions, this is not a simple argument count, but rather a list of values
-indicating whether the next argument should be a term or a type.
-
-Note that this just corresponds to the number of
-syntactic lambda and type abstractions on the outside of the term. It is thus
-an under-approximation of how many arguments the term may need.
-e.g. consider the term @let id = \x -> x in id@: the variable @id@ has syntactic
-arity @[]@, but does in fact need an argument before it does any work.
-
-In `body`, where `v` is called,
-if it was given the `n` term or type arguments in the correct order, then it is *fully applied*.
-If the changes in size and cost caused by the inlining is acceptable, and the inlining and
-the beta reduction is effect-safe, we inline the call site of the fully applied `v`, and perform
-beta reduction. E.g.
-
-let f = \x.\y -> x
-in
-  let z = f q
-  in f a b
-
-becomes
-
-let f = \x.\y -> x
-in
-  let z = f q
-  in a
-
-Note that because `f` occurs twice in the original term, and the RHS of `f` is not small enough,
-`f` is not unconditionally inlined. Instead, the second usage of `f` is inlined. The first
-usage is not inlined because it is not fully applied.
-
-(2) How do we decide whether a fully saturated application can be inlined?
+We inline if its cost and size are acceptable.
 
 For size, we compare the sizes (in terms of AST nodes before and after the inlining and beta
 reduction), and inline only if it does not increase the size. In the above example, we count
@@ -117,10 +68,10 @@ splitParams = \case
   -- Whenever we encounter a body that is not a lambda or type abstraction, we are done counting
   tm -> ([], tm)
 
-{- | Fully apply the RHS of the given variable to the given arguments, and beta-reduce
+{- | Apply the RHS of the given variable to the given arguments, and beta-reduce
 the application, if possible.
 -}
-fullyApplyAndBetaReduce ::
+applyAndBetaReduce ::
   forall tyname name uni fun ann.
   (InliningConstraints tyname name uni fun) =>
   -- | The rhs of the variable
@@ -128,7 +79,7 @@ fullyApplyAndBetaReduce ::
   -- | The arguments
   AppContext tyname name uni fun ann ->
   InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
-fullyApplyAndBetaReduce rhs args0 = do
+applyAndBetaReduce rhs args0 = do
   let -- split the rhs to its lambdas and function body
       (varArity, rhsBody) = splitParams rhs
       -- | Drop one term or type lambda abstraction of the given term.
@@ -162,7 +113,11 @@ fullyApplyAndBetaReduce rhs args0 = do
               (\n -> if n == param then Just <$> PLC.rename arg else pure Nothing)
               (getFnBody acc) -- drop the beta reduced type lambda
           go acc' arity' args'
-        _ -> pure Nothing
+        -- term/type argument mismatch, don't inline
+        (TermParam _:_, TypeAppContext{}) -> pure Nothing
+        (TypeParam _:_, TermAppContext{}) -> pure Nothing
+        -- no more arguments to apply, just apply what we have
+        (_, AppContextEnd) -> pure $ Just acc
 
       -- Is it safe to turn `(\a -> body) arg` into `body [a := arg]`?
       -- The criteria is the same as the criteria for inlining `a` in
@@ -174,7 +129,7 @@ fullyApplyAndBetaReduce rhs args0 = do
         Term tyname name uni fun ann ->
         InlineM tyname name uni fun ann Bool
       safeToBetaReduce a arg = shouldUnconditionallyInline Strict a arg rhsBody
-  go rhsBody varArity args0
+  go rhs varArity args0
 
 -- | Consider whether to inline an application.
 inlineSaturatedApp ::
@@ -188,10 +143,10 @@ inlineSaturatedApp t
         Just varInfo -> do
           -- rename the rhs of the variable before any substitution
           rhs <- liftDupable (let Done rhs = varRhs varInfo in rhs)
-          fullyApplyAndBetaReduce rhs args >>= \case
-            Just fullyApplied -> do
+          applyAndBetaReduce rhs args >>= \case
+            Just applied -> do
               let -- Inline only if the size is no bigger than not inlining.
-                  sizeIsOk = termSize fullyApplied <= termSize t
+                  sizeIsOk = termSize applied <= termSize t
                   -- The definition itself will be inlined, so we need to check that the cost
                   -- of that is acceptable. Note that we do _not_ check the cost of the _body_.
                   -- We would have paid that regardless.
@@ -204,7 +159,7 @@ inlineSaturatedApp t
               -- than it would have before, but we can make it happen more often.
               -- We could potentially do this safely in non-conservative mode.
               rhsPure <- isTermBindingPure (varStrictness varInfo) rhs
-              pure $ if sizeIsOk && costIsOk && rhsPure then fullyApplied else t
+              pure $ if sizeIsOk && costIsOk && rhsPure then applied else t
             Nothing -> pure t
         -- The variable maybe a *recursive* let binding, in which case it won't be in the map,
         -- and we don't process it. ATM recursive bindings aren't inlined.
