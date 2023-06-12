@@ -1,6 +1,7 @@
-(Left Type mismatch at () in term
-  '(con integer 1)'.
-Expected type
-  '(sop )',
-found type
-  '(con integer)')
+(Left Type mismatch at ()
+Expected a term of type
+  '(sop)'
+But found one of type
+  '(con integer)'
+Namely,
+  '(con integer 1)')
