@@ -385,7 +385,7 @@ library bls12-381lib-internal
     PlutusBenchmark.BLS12_381.Scripts
 
   build-depends:
-    , base                     >=4.9 && <5
+    , base                     >=4.9     && <5
     , bytestring
     , cardano-crypto-class
     , deepseq
@@ -393,6 +393,7 @@ library bls12-381lib-internal
     , hedgehog
     , plutus-benchmark-common
     , plutus-core              ^>=1.8
+    , plutus-ledger-api        >=1.1.1.0
     , plutus-tx                ^>=1.8
     , plutus-tx-plugin         ^>=1.8
 

@@ -90,3 +90,35 @@ runTests h = do
   if checkGroth16Verify_Haskell
   then hPrintf h "Groth16Verify succeeded\n"
   else hPrintf h "Groth16Verify failed\n"
+
+  if checkVerifyBlsSimpleScript
+  then hPrintf h "Simple Verify succeeded\n"
+  else hPrintf h "Simple Verify failed\n"
+
+  if checkVrfBlsScript
+  then hPrintf h "VRF succeeded\n"
+  else hPrintf h "VRF failed\n"
+
+  if checkG1VerifyScript
+  then hPrintf h "G1 Verify succeeded\n"
+  else hPrintf h "G1 Verify failed\n"
+
+  if checkG2VerifyScript
+  then hPrintf h "G2 Verify succeeded\n"
+  else hPrintf h "G2 Verify failed\n"
+
+  if checkAggregateSingleKeyG1Script
+  then hPrintf h "Aggregate Signature Single Key G1 Verify succeeded\n"
+  else hPrintf h "Aggregate Signature Single Key G1 Verify failed\n"
+
+  if checkAggregateMultiKeyG2Script
+  then hPrintf h "Aggregate Signature Multi Key G2 Verify succeeded\n"
+  else hPrintf h "Aggregate Signature Multi Key G2 Verify failed\n"
+
+  if checkSchnorrG1VerifyScript
+  then hPrintf h "Schnorr G1 Verify succeeded\n"
+  else hPrintf h "Schnorr G1 Verify failed\n"
+
+  if checkSchnorrG2VerifyScript
+  then hPrintf h "Schnorr G2 Verify succeeded\n"
+  else hPrintf h "Schnorr G2 Verify failed\n"
