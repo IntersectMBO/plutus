@@ -23,6 +23,7 @@ module PlutusBenchmark.Common
 where
 
 import Paths_plutus_benchmark as Export
+import PlutusBenchmark.NOSUCHFILE (nosuchconstant)
 import PlutusBenchmark.ProtocolParameters as PP
 
 import PlutusCore qualified as PLC
