@@ -1,47 +1,33 @@
-/\a
-  r ->
+/\a r ->
   \(f : r -> a -> r) ->
-    (/\a
-       b ->
+    (/\a b ->
        \(f : (a -> b) -> a -> b) ->
          (/\a ->
             \(s : (\a -> ifix (\(self :: * -> *) a -> self a -> a) a) a) ->
               unwrap s s)
            {a -> b}
-           (iwrap (\(self :: * -> *)
-                    a ->
-                     self
-                       a -> a) (a -> b) (\(s
-                                             : (\a ->
-                                                  ifix (\(self :: * -> *)
-                                                         a ->
-                                                          self a -> a) a)
-                                                 (a -> b))
-                                          (x : a) ->
-                                           f
-                                             ((/\a ->
-                                                 \(s
-                                                     : (\a ->
-                                                          ifix (\(self
-                                                                    :: * -> *)
-                                                                 a ->
-                                                                  self
-                                                                    a -> a) a)
-                                                         a) ->
-                                                   unwrap s s)
-                                                {a -> b}
-                                                s)
-                                             x)))
+           (iwrap
+              (\(self :: * -> *) a -> self a -> a)
+              (a -> b)
+              (\(s :
+                   (\a -> ifix (\(self :: * -> *) a -> self a -> a) a) (a -> b))
+                (x : a) ->
+                 f
+                   ((/\a ->
+                       \(s :
+                           (\a -> ifix (\(self :: * -> *) a -> self a -> a) a)
+                             a) ->
+                         unwrap s s)
+                      {a -> b}
+                      s)
+                   x)))
       {r}
       {list a -> r}
-      (\(rec : r -> list a -> r)
-        (z : r)
-        (xs : list a) ->
+      (\(rec : r -> list a -> r) (z : r) (xs : list a) ->
          (/\a ->
             \(x : list a) ->
               /\r ->
-                \(z : r)
-                 (f : a -> list a -> r) ->
+                \(z : r) (f : a -> list a -> r) ->
                   chooseList
                     {a}
                     {unit -> r}

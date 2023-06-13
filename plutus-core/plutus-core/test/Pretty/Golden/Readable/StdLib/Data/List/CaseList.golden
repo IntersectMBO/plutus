@@ -1,8 +1,7 @@
 /\a ->
   \(x : list a) ->
     /\r ->
-      \(z : r)
-       (f : a -> list a -> r) ->
+      \(z : r) (f : a -> list a -> r) ->
         chooseList
           {a}
           {unit -> r}
