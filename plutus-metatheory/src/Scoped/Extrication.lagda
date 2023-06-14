@@ -91,6 +91,9 @@ extricateC (tmString s)     = tmCon (con string) s
 extricateC (tmBool b)       = tmCon (con bool) b
 extricateC tmUnit           = tmCon (con unit) tt
 extricateC (tmData d)       = tmCon (con pdata) d
+extricateC (tmBls12-381-g1-element e) = tmCon (con bls12-381-g1-element) e
+extricateC (tmBls12-381-g2-element e) = tmCon (con bls12-381-g2-element) e
+extricateC (tmBls12-381-mlresult r)   = tmCon (con bls12-381-mlresult) r
 
 extricateSub : ∀ {Γ Δ} → (∀ {J} → Δ ∋⋆ J → Γ ⊢Nf⋆ J)
   → Scoped.Tel⋆ (len⋆ Γ) (len⋆ Δ)

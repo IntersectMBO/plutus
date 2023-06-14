@@ -33,13 +33,13 @@ omapList = runQuote $ do
     return
         . tyAbs () a (Type ())
         . lamAbs () f (TyFun () (TyVar () a) $ TyVar () a)
-        . apply () (mkIterInst () fix [listA, listA])
+        . apply () (mkIterInstNoAnn fix [listA, listA])
         . lamAbs () rec (TyFun () listA listA)
         . lamAbs () xs listA
         . apply () (apply () (tyInst () (unwrap' () (var () xs)) listA) $ var () xs)
         . lamAbs () x (TyVar () a)
         . lamAbs () xs' listA
-        $ mkIterApp () (tyInst () (builtin () $ Left MkCons) $ TyVar () a)
+        $ mkIterAppNoAnn (tyInst () (builtin () $ Left MkCons) $ TyVar () a)
             [ apply () (var () f) $ var () x
             , apply () (var () rec) $ var () xs'
             ]

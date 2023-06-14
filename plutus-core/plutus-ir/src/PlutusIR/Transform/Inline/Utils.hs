@@ -9,6 +9,7 @@
 
 module PlutusIR.Transform.Inline.Utils where
 
+import PlutusCore.Annotation
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Name
 import PlutusCore.Quote
@@ -17,13 +18,12 @@ import PlutusCore.Subst (typeSubstTyNamesM)
 import PlutusIR
 import PlutusIR.Analysis.Dependencies qualified as Deps
 import PlutusIR.Analysis.Usages qualified as Usages
-import PlutusIR.Purity (firstEffectfulTerm, isPure)
+import PlutusIR.Purity (FirstEffectfulTerm (..), firstEffectfulTerm, isPure)
 import PlutusIR.Transform.Rename ()
 import PlutusPrelude
 
-import PlutusCore.Annotation
-
 import Control.Lens hiding (Strict)
+import Control.Monad.Extra
 import Control.Monad.Reader
 import Control.Monad.State
 
@@ -37,6 +37,7 @@ type ExternalConstraints tyname name uni fun m =
     ( HasUnique name TermUnique
     , HasUnique tyname TypeUnique
     , Eq name
+    , Eq tyname
     , PLC.ToBuiltinMeaning uni fun
     , MonadQuote m
     )
@@ -45,6 +46,7 @@ type InliningConstraints tyname name uni fun =
     ( HasUnique name TermUnique
     , HasUnique tyname TypeUnique
     , Eq name
+    , Eq tyname
     , PLC.ToBuiltinMeaning uni fun
     )
 
@@ -69,7 +71,7 @@ makeLenses ''InlineInfo
 -- (determined from profiling)
 -- | The monad the inliner runs in.
 type InlineM tyname name uni fun ann =
-    ReaderT (InlineInfo name fun ann) (StateT (InlinerContext tyname name uni fun ann) Quote)
+    ReaderT (InlineInfo name fun ann) (StateT (InlinerState tyname name uni fun ann) Quote)
 -- For unconditional inlining:
 
 -- | Substitution range, 'SubstRng' in the paper but no 'Susp' case.
@@ -109,43 +111,43 @@ an under-approximation of how many arguments the term may need.
 e.g. consider the term @let id = \x -> x in id@: the variable @id@ has syntactic
 arity @[]@, but does in fact need an argument before it does any work.
 -}
-type Arity = [ParamKind]
+type Arity tyname name = [Param tyname name]
 
 -- | Info attached to a let-binding needed for call site inlining.
-data VarInfo tyname name uni fun ann =
-  MkVarInfo {
-    varStrictness :: Strictness
-    ,varDef       :: InlineTerm tyname name uni fun ann
+data VarInfo tyname name uni fun ann = MkVarInfo
+    { varStrictness :: Strictness
+    , varRhs        :: Term tyname name uni fun ann
     -- ^ its definition that has been unconditionally inlined.
-    , arity       :: Arity -- ^ its arity, storing to avoid repeated calculations.
-    , varBody     :: Term tyname name uni fun ann
+    , varArity      :: Arity tyname name
+    -- ^ its arity, storing to avoid repeated calculations.
+    , varRhsBody    :: InlineTerm tyname name uni fun ann
     -- ^ the body of the function, for checking `acceptable` or not. Storing this to avoid repeated
     -- calculations.
-  }
+    }
 -- | Is the next argument a term or a type?
-data ParamKind =
-    TermParam | TypeParam
-    deriving stock (Eq, Show)
+data Param tyname name =
+    TermParam name | TypeParam tyname
+    deriving stock (Show)
 
-instance Pretty ParamKind where
+instance (Show tyname, Show name) => Pretty (Param tyname name) where
   pretty = viaShow
 
 -- | Inliner context for both unconditional inlining and call site inlining.
 -- It includes substitution for both terms and types, which is similar to 'Subst' in the paper.
 -- It also includes the non recursive in-scope set for call site inlining.
-data InlinerContext tyname name uni fun ann =
-    InlinerContext { _termSubst :: TermSubst tyname name uni fun ann
-           , _typeSubst         :: TypeSubst tyname uni ann
-           , _nonRecInScopeSet  :: NonRecInScopeSet tyname name uni fun ann
+data InlinerState tyname name uni fun ann =
+    InlinerState { _termSubst  :: TermSubst tyname name uni fun ann
+           , _typeSubst        :: TypeSubst tyname uni ann
+           , _nonRecInScopeSet :: NonRecInScopeSet tyname name uni fun ann
           }
     deriving stock (Generic)
     deriving (Semigroup, Monoid) via
-        (GenericSemigroupMonoid (InlinerContext tyname name uni fun ann))
+        (GenericSemigroupMonoid (InlinerState tyname name uni fun ann))
 
 makeLenses ''TermSubst
 makeLenses ''TypeSubst
 makeLenses ''NonRecInScopeSet
-makeLenses ''InlinerContext
+makeLenses ''InlinerState
 
 -- Helper functions:
 
@@ -153,56 +155,56 @@ makeLenses ''InlinerContext
 lookupTerm
     :: (HasUnique name TermUnique)
     => name -- ^ The name of the variable.
-    -> InlinerContext tyname name uni fun ann
+    -> InlinerState tyname name uni fun ann
     -> Maybe (InlineTerm tyname name uni fun ann)
-lookupTerm n subst = lookupName n $ subst ^. termSubst . unTermSubst
+lookupTerm n s = lookupName n $ s ^. termSubst . unTermSubst
 
 -- | Insert the unprocessed variable into the term substitution.
 extendTerm
     :: (HasUnique name TermUnique)
     => name -- ^ The name of the variable.
     -> InlineTerm tyname name uni fun ann -- ^ The substitution range.
-    -> InlinerContext tyname name uni fun ann
-    -> InlinerContext tyname name uni fun ann
-extendTerm n clos subst = subst & termSubst . unTermSubst %~ insertByName n clos
+    -> InlinerState tyname name uni fun ann
+    -> InlinerState tyname name uni fun ann
+extendTerm n clos s = s & termSubst . unTermSubst %~ insertByName n clos
 
 -- | Look up the unprocessed type variable in the type substitution.
 lookupType
     :: (HasUnique tyname TypeUnique)
     => tyname
-    -> InlinerContext tyname name uni fun ann
+    -> InlinerState tyname name uni fun ann
     -> Maybe (Dupable (Type tyname uni ann))
-lookupType tn subst = lookupName tn $ subst ^. typeSubst . unTypeSubst
+lookupType tn s = lookupName tn $ s ^. typeSubst . unTypeSubst
 
 -- | Check if the type substitution is empty.
-isTypeSubstEmpty :: InlinerContext tyname name uni fun ann -> Bool
-isTypeSubstEmpty (InlinerContext _ (TypeSubst tyEnv) _) = isEmpty tyEnv
+isTypeSubstEmpty :: InlinerState tyname name uni fun ann -> Bool
+isTypeSubstEmpty (InlinerState _ (TypeSubst tyEnv) _) = isEmpty tyEnv
 
 -- | Insert the unprocessed type variable into the type substitution.
 extendType
     :: (HasUnique tyname TypeUnique)
     => tyname -- ^ The name of the type variable.
     -> Type tyname uni ann -- ^ Its type.
-    -> InlinerContext tyname name uni fun ann
-    -> InlinerContext tyname name uni fun ann
-extendType tn ty subst = subst &  typeSubst . unTypeSubst %~ insertByName tn (dupable ty)
+    -> InlinerState tyname name uni fun ann
+    -> InlinerState tyname name uni fun ann
+extendType tn ty s = s &  typeSubst . unTypeSubst %~ insertByName tn (dupable ty)
 
 -- | Look up a variable in the in scope set.
 lookupVarInfo
     :: (HasUnique name TermUnique)
     => name -- ^ The name of the variable.
-    -> InlinerContext tyname name uni fun ann
+    -> InlinerState tyname name uni fun ann
     -> Maybe (VarInfo tyname name uni fun ann)
-lookupVarInfo n subst = lookupName n $ subst ^. nonRecInScopeSet . unNonRecInScopeSet
+lookupVarInfo n s = lookupName n $ s ^. nonRecInScopeSet . unNonRecInScopeSet
 
 -- | Insert a variable into the substitution.
 extendVarInfo
     :: (HasUnique name TermUnique)
     => name -- ^ The name of the variable.
     -> VarInfo tyname name uni fun ann -- ^ The variable's info.
-    -> InlinerContext tyname name uni fun ann
-    -> InlinerContext tyname name uni fun ann
-extendVarInfo n info subst = subst & nonRecInScopeSet . unNonRecInScopeSet %~ insertByName n info
+    -> InlinerState tyname name uni fun ann
+    -> InlinerState tyname name uni fun ann
+extendVarInfo n info s = s & nonRecInScopeSet . unNonRecInScopeSet %~ insertByName n info
 
 
 applyTypeSubstitution :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
@@ -299,8 +301,8 @@ effectSafe body s n purity = do
     -- doing ~quadratic work as we process the program. However in practice most term
     -- types will make it give up, so it's not too bad.
     let immediatelyEvaluated = case firstEffectfulTerm body of
-            Just (Var _ n') -> n == n'
-            _               -> False
+            Just (EffectfulTerm (Var _ n')) -> n == n'
+            _                               -> False
     pure $ case s of
         Strict    -> purity || immediatelyEvaluated
         NonStrict -> True
@@ -388,3 +390,28 @@ trivialType = \case
     TyBuiltin{} -> True
     TyVar{}     -> True
     _           -> False
+
+shouldUnconditionallyInline ::
+  (InliningConstraints tyname name uni fun) =>
+  Strictness ->
+  name ->
+  Term tyname name uni fun ann ->
+  Term tyname name uni fun ann ->
+  InlineM tyname name uni fun ann Bool
+shouldUnconditionallyInline s n rhs body = preUnconditional ||^ postUnconditional
+  where
+    -- similar to the paper, preUnconditional inlining checks that the binder is 'OnceSafe'.
+    -- I.e., it's used at most once AND it neither duplicate code or work.
+    -- While we don't check for lambda etc like in the paper, `effectSafe` ensures that it
+    -- isn't doing any substantial work.
+    -- We actually also inline 'Dead' binders (i.e., remove dead code) here.
+    preUnconditional = do
+      isTermPure <- checkPurity rhs
+      nameUsedAtMostOnce n &&^ effectSafe body s n isTermPure
+
+    -- See Note [Inlining approach and 'Secrets of the GHC Inliner'] and [Inlining and
+    -- purity]. This is the case where we don't know that the number of occurrences is
+    -- exactly one, so there's no point checking if the term is immediately evaluated.
+    postUnconditional = do
+      isBindingPure <- isTermBindingPure s rhs
+      pure $ isBindingPure && sizeIsAcceptable rhs && costIsAcceptable rhs

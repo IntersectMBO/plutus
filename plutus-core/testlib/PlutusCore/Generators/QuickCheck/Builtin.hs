@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable
 {-# LANGUAGE DefaultSignatures #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs             #-}
@@ -11,10 +12,13 @@ module PlutusCore.Generators.QuickCheck.Builtin where
 
 import PlutusCore hiding (Constr)
 import PlutusCore.Builtin
+import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
+import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
+import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data
 import PlutusCore.Generators.QuickCheck.Common (genList)
 
-import Data.ByteString (ByteString)
+import Data.ByteString (ByteString, empty)
 import Data.Coerce
 import Data.Int
 import Data.Kind qualified as GHC
@@ -30,7 +34,6 @@ import Universe
 
 instance Arbitrary Data where
     arbitrary = sized genData
-
     shrink = genericShrink
 
 genData :: Int -> Gen Data
@@ -121,6 +124,35 @@ instance ArbitraryBuiltin Text where
 instance ArbitraryBuiltin ByteString where
     arbitraryBuiltin = Text.encodeUtf8 <$> arbitraryBuiltin
     shrinkBuiltin = map Text.encodeUtf8 . shrinkBuiltin . Text.decodeUtf8
+
+instance ArbitraryBuiltin BLS12_381.G1.Element where
+    arbitraryBuiltin =
+      BLS12_381.G1.hashToGroup <$> arbitrary <*> pure Data.ByteString.empty >>= \case
+      -- We should only get a failure if the second argument is greater than 255 bytes, which it isn't.
+           Left err -> error $ show err
+           Right p  -> pure p
+    -- It's difficult to come up with a sensible shrinking function here given
+    -- that there's no sensible order on the elements of G1, let alone one
+    -- that's compatible with the group structure.  We can't try shrinking the
+    -- x-coordinate of a known point for example because only about only about
+    -- 1/10^39 of the field elements are the x-coordinate of a point in G1, so
+    -- we're highly unlikely to find a suitable x value.
+    shrinkBuiltin _ = []
+
+instance ArbitraryBuiltin BLS12_381.G2.Element where
+    arbitraryBuiltin =
+      BLS12_381.G2.hashToGroup <$> arbitrary <*> pure Data.ByteString.empty >>= \case
+      -- We should only get a failure if the second argument is greater than 255 bytes, which it isn't.
+           Left err -> error $ show err
+           Right p  -> pure p
+    -- See the comment about shrinking for G1; G2 is even worse.
+    shrinkBuiltin _ = []
+
+instance ArbitraryBuiltin BLS12_381.Pairing.MlResult where
+    arbitraryBuiltin = BLS12_381.Pairing.millerLoop <$> arbitraryBuiltin <*> arbitraryBuiltin
+    -- Shrinking here is even more difficult than for G1 and G2 since we don't
+    -- have direct access to elements of MlResult.
+    shrinkBuiltin _ = []
 
 -- | For providing an 'Arbitrary' instance deferring to 'ArbitraryBuiltin'. Useful for implementing
 -- 'ArbitraryBuiltin' for a polymorphic built-in type by taking the logic for handling spines from
@@ -245,6 +277,9 @@ instance KnownKind k => Arbitrary (MaybeSomeTypeOf k) where
                , JustSomeType DefaultUniUnit
                , JustSomeType DefaultUniBool
                , JustSomeType DefaultUniData
+               , JustSomeType DefaultUniBLS12_381_G1_Element
+               , JustSomeType DefaultUniBLS12_381_G2_Element
+               , JustSomeType DefaultUniBLS12_381_MlResult
                ]
            SingType `SingKindArrow` SingType ->
                [genDefaultUniApply | size > 10] ++

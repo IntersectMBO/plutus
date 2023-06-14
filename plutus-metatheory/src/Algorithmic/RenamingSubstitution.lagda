@@ -63,12 +63,15 @@ renTermCon : ∀ {Φ Ψ}
   → (ρ⋆ : ⋆.Ren Φ Ψ)
     -----------------------------------------------------
   → ({A : Φ ⊢Nf⋆ *} → TermCon A → TermCon (renNf ρ⋆ A ))
-renTermCon ρ⋆ (tmInteger i)    = tmInteger i
-renTermCon ρ⋆ (tmBytestring b) = tmBytestring b
-renTermCon ρ⋆ (tmString s)     = tmString s
-renTermCon ρ⋆ (tmBool b)       = tmBool b
-renTermCon ρ⋆ tmUnit           = tmUnit
-renTermCon ρ⋆ (tmData d)       = tmData d
+renTermCon ρ⋆ (tmInteger i)              = tmInteger i
+renTermCon ρ⋆ (tmBytestring b)           = tmBytestring b
+renTermCon ρ⋆ (tmString s)               = tmString s
+renTermCon ρ⋆ (tmBool b)                 = tmBool b
+renTermCon ρ⋆ tmUnit                     = tmUnit
+renTermCon ρ⋆ (tmData d)                 = tmData d
+renTermCon ρ⋆ (tmBls12-381-g1-element e) = tmBls12-381-g1-element e
+renTermCon ρ⋆ (tmBls12-381-g2-element e) = tmBls12-381-g2-element e
+renTermCon ρ⋆ (tmBls12-381-mlresult r)   = tmBls12-381-mlresult r
 \end{code}
 
 \begin{code}
@@ -151,12 +154,15 @@ subTermCon : ∀ {Φ Ψ}
   → (σ⋆ : SubNf Φ Ψ)
     ------------------------------------------------------
   → ({A : Φ ⊢Nf⋆ *} → TermCon A → TermCon (subNf σ⋆ A ))
-subTermCon σ⋆ (tmInteger i)    = tmInteger i
-subTermCon σ⋆ (tmBytestring b) = tmBytestring b
-subTermCon σ⋆ (tmString s)     = tmString s
-subTermCon σ⋆ (tmBool b)       = tmBool b
-subTermCon σ⋆ tmUnit           = tmUnit
-subTermCon σ⋆ (tmData d)       = tmData d
+subTermCon σ⋆ (tmInteger i)              = tmInteger i
+subTermCon σ⋆ (tmBytestring b)           = tmBytestring b
+subTermCon σ⋆ (tmString s)               = tmString s
+subTermCon σ⋆ (tmBool b)                 = tmBool b
+subTermCon σ⋆ tmUnit                     = tmUnit
+subTermCon σ⋆ (tmData d)                 = tmData d
+subTermCon σ⋆ (tmBls12-381-g1-element e) = tmBls12-381-g1-element e
+subTermCon σ⋆ (tmBls12-381-g2-element e) = tmBls12-381-g2-element e
+subTermCon σ⋆ (tmBls12-381-mlresult r)   = tmBls12-381-mlresult r
 \end{code}
 
 \begin{code}

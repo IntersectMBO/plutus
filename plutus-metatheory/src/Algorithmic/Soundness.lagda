@@ -81,13 +81,15 @@ soundness-μ p A B = trans≡β
 embTC : ∀{φ}{A : φ ⊢Nf⋆ *}
   → NTermCon.TermCon A
   → STermCon.TermCon (embNf A)
-embTC (NTermCon.tmInteger i)    = STermCon.tmInteger i
-embTC (NTermCon.tmBytestring b) = STermCon.tmBytestring b
-embTC (NTermCon.tmString s)     = STermCon.tmString s
-embTC (NTermCon.tmBool b)       = STermCon.tmBool b
-embTC NTermCon.tmUnit           = STermCon.tmUnit
-embTC (NTermCon.tmData d)       = STermCon.tmData d
-
+embTC (NTermCon.tmInteger i)              = STermCon.tmInteger i
+embTC (NTermCon.tmBytestring b)           = STermCon.tmBytestring b
+embTC (NTermCon.tmString s)               = STermCon.tmString s
+embTC (NTermCon.tmBool b)                 = STermCon.tmBool b
+embTC NTermCon.tmUnit                     = STermCon.tmUnit
+embTC (NTermCon.tmData d)                 = STermCon.tmData d
+embTC (NTermCon.tmBls12-381-g1-element e) = STermCon.tmBls12-381-g1-element e
+embTC (NTermCon.tmBls12-381-g2-element e) = STermCon.tmBls12-381-g2-element e
+embTC (NTermCon.tmBls12-381-mlresult r)   = STermCon.tmBls12-381-mlresult r
 \end{code}
 
 \begin{code}

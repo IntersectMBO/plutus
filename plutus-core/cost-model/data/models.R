@@ -4,6 +4,10 @@ library(stringr, quietly=TRUE, warn.conflicts=FALSE)
 library(dplyr,   quietly=TRUE, warn.conflicts=FALSE)
 library(broom,   quietly=TRUE, warn.conflicts=FALSE)
 
+## Let's see any warnings immediately instead of them being saved up to surprise
+## us later on.
+options(warn=1)
+
 ## See Note [Creation of the Cost Model]
 
 ## This R code is used to analyse the data in `benching.csv` produced by
@@ -106,7 +110,24 @@ arity <- function(name) {
         "EqualsData" = 2,
         "MkPairData" = 2,
         "MkNilData" = 1,
-        "MkNilPairData" = 1
+        "MkNilPairData" = 1,
+        "Bls12_381_G1_add" = 2 ,
+        "Bls12_381_G1_neg" = 1,
+        "Bls12_381_G1_scalarMul" = 2,
+        "Bls12_381_G1_equal" = 2,
+        "Bls12_381_G1_hashToGroup" = 2,
+        "Bls12_381_G1_compress" = 1,
+        "Bls12_381_G1_uncompress" = 1,
+        "Bls12_381_G2_add" = 2,
+        "Bls12_381_G2_neg" = 1,
+        "Bls12_381_G2_scalarMul" = 2,
+        "Bls12_381_G2_equal" = 2,
+        "Bls12_381_G2_hashToGroup" = 2,
+        "Bls12_381_G2_compress" = 1,
+        "Bls12_381_G2_uncompress" = 1,
+        "Bls12_381_millerLoop" = 2,
+        "Bls12_381_mulMlResult" = 2,
+        "Bls12_381_finalVerify" = 2
         )
 }
 
@@ -324,8 +345,24 @@ modelFun <- function(path) {
             discard.upper.outliers () %>%
             discard.overhead ()
         m <- lm(t ~ 1, filtered)
-        adjustModel (m,fname)
+        adjustModel(m,fname)
     }
+
+   linearInX <- function (fname) {
+        filtered <- data %>%
+            filter.and.check.nonempty (fname) %>%
+            discard.overhead ()
+        m <- lm(t ~ x_mem, filtered)
+        adjustModel(m,fname)
+   }
+
+   linearInY <- function (fname) {
+        filtered <- data %>%
+            filter.and.check.nonempty(fname) %>%
+            discard.overhead ()
+        m <- lm(t ~ y_mem, filtered)
+        adjustModel(m,fname)
+   }
 
 
     ##### Integers #####
@@ -336,7 +373,7 @@ modelFun <- function(path) {
             filter.and.check.nonempty (fname)  %>%
             discard.overhead ()
         m <- lm(t ~ pmax(x_mem, y_mem), filtered)
-        adjustModel (m, fname)
+        adjustModel(m, fname)
     }
 
     subtractIntegerModel <- addIntegerModel
@@ -348,7 +385,7 @@ modelFun <- function(path) {
             filter(x_mem > 0 & y_mem > 0) %>%
             discard.overhead ()
         m <- lm(t ~ I(x_mem + y_mem), filtered)
-        adjustModel (m, fname)
+        adjustModel(m, fname)
     }
     ## We do want I(x+y) here ^: the cost is linear, but symmetric.
 
@@ -422,14 +459,7 @@ modelFun <- function(path) {
     ## Note that this is symmetrical in the arguments: a new bytestring is
     ## created and the contents of both arguments are copied into it.
 
-    consByteStringModel  <- {
-        fname <- "ConsByteString"
-        filtered <- data %>%
-            filter.and.check.nonempty(fname) %>%
-            discard.overhead ()
-        m <- lm(t ~ y_mem, filtered)
-        adjustModel(m,fname)
-    }
+    consByteStringModel  <- linearInY ("ConsByteString")
     ## Depends on the size of the second argument, which has to be copied into
     ## the destination.
 
@@ -464,64 +494,26 @@ modelFun <- function(path) {
 
     ###### Hashing functions #####
 
-    sha2_256Model <- {
-        fname <- "Sha2_256"
-        filtered <- data %>%
-            filter.and.check.nonempty(fname) %>%
-            discard.overhead ()
-        m <- lm(t ~ x_mem, filtered)
-        adjustModel(m,fname)
-    }
-
-    sha3_256Model <- {
-        fname <- "Sha3_256"
-        filtered <- data %>%
-            filter.and.check.nonempty(fname) %>%
-            discard.overhead ()
-      m <- lm(t ~ x_mem, filtered)
-      adjustModel(m,fname)
-    }
-
-    blake2b_256Model <- {
-        fname <- "Blake2b_256"
-        filtered <- data %>%
-            filter.and.check.nonempty(fname) %>%
-            discard.overhead ()
-      m <- lm(t ~ x_mem, filtered)
-      adjustModel(m,fname)
-    }
-
+    sha2_256Model    <- linearInX ("Sha2_256")
+    sha3_256Model    <- linearInX ("Sha3_256")
+    blake2b_256Model <- linearInX ("Blake2b_256")
 
     ###### Signature verification #####
 
     ## VerifyEd25519Signature in fact takes three arguments, but the first and
     ## third are of fixed size so we only gather benchmarking data for
     ## different sizes of the second argument (the message being signed).
-    verifyEd25519SignatureModel <- {
-        fname <- "VerifyEd25519Signature"
-        filtered <- data %>%
-            filter.and.check.nonempty(fname) %>%
-            discard.overhead ()
-        m <- lm(t ~ y_mem, filtered)
-        adjustModel(m,fname)
-    }
+    verifyEd25519SignatureModel <- linearInY ("VerifyEd25519Signature")
 
     ## Similar to VerifyEd25519Signature.
-    verifySchnorrSecp256k1SignatureModel <- {
-        fname <- "VerifySchnorrSecp256k1Signature"
-        filtered <- data %>%
-            filter.and.check.nonempty(fname) %>%
-            discard.overhead ()
-        m <- lm(t ~ y_mem, filtered)
-        adjustModel(m,fname)
-    }
+    verifySchnorrSecp256k1SignatureModel <- linearInY ("VerifySchnorrSecp256k1Signature")
 
     ## All of the arguments of VerifyEcdsaSecp256k1Signature are of fixed size.
     ## The "message" (usually a hash of the real message) is always 32 bytes
     ## long.
     verifyEcdsaSecp256k1SignatureModel <- constantModel ("VerifyEcdsaSecp256k1Signature")
 
-    
+
     ##### Strings #####
 
     appendStringModel <- {
@@ -544,24 +536,8 @@ modelFun <- function(path) {
         adjustModel(m,fname)
     }
 
-    decodeUtf8Model <- {
-        fname <- "DecodeUtf8"
-        filtered <- data %>%
-            filter.and.check.nonempty(fname) %>%
-            discard.overhead ()
-        m <- lm(t ~ x_mem, filtered)
-        adjustModel(m,fname)
-    }
-
-    encodeUtf8Model <- {
-        fname <- "EncodeUtf8"
-        filtered <- data %>%
-            filter.and.check.nonempty(fname) %>%
-            discard.overhead ()
-        m <- lm(t ~ x_mem, filtered)
-        adjustModel(m,fname)
-    }
-
+    decodeUtf8Model <- linearInX ("DecodeUtf8")
+    encodeUtf8Model <- linearInX ("EncodeUtf8")
 
     ##### Bool #####
 
@@ -651,6 +627,26 @@ modelFun <- function(path) {
     mkNilDataModel      <- constantModel ("MkNilData")
     mkNilPairDataModel  <- constantModel ("MkNilPairData")
 
+    ##### BLS12_381 operations #####
+
+    bls12_381_G1_addModel            <- constantModel ("Bls12_381_G1_add")
+    bls12_381_G1_negModel            <- constantModel ("Bls12_381_G1_neg")
+    bls12_381_G1_scalarMulModel      <- linearInX     ("Bls12_381_G1_scalarMul")
+    bls12_381_G1_equalModel          <- constantModel ("Bls12_381_G1_equal")
+    bls12_381_G1_hashToGroupModel    <- linearInX     ("Bls12_381_G1_hashToGroup")
+    bls12_381_G1_compressModel       <- constantModel ("Bls12_381_G1_compress")
+    bls12_381_G1_uncompressModel     <- constantModel ("Bls12_381_G1_uncompress")
+    bls12_381_G2_addModel            <- constantModel ("Bls12_381_G2_add")
+    bls12_381_G2_negModel            <- constantModel ("Bls12_381_G2_neg")
+    bls12_381_G2_scalarMulModel      <- linearInX     ("Bls12_381_G2_scalarMul")
+    bls12_381_G2_equalModel          <- constantModel ("Bls12_381_G2_equal")
+    bls12_381_G2_hashToGroupModel    <- linearInX     ("Bls12_381_G2_hashToGroup")
+    bls12_381_G2_compressModel       <- constantModel ("Bls12_381_G2_compress")
+    bls12_381_G2_uncompressModel     <- constantModel ("Bls12_381_G2_uncompress")
+    bls12_381_millerLoopModel        <- constantModel ("Bls12_381_millerLoop")
+    bls12_381_mulMlResultModel       <- constantModel ("Bls12_381_mulMlResult")
+    bls12_381_finalVerifyModel       <- constantModel ("Bls12_381_finalVerify")
+
     list(
         addIntegerModel                      = addIntegerModel,
         subtractIntegerModel                 = subtractIntegerModel,
@@ -705,6 +701,23 @@ modelFun <- function(path) {
         mkPairDataModel                      = mkPairDataModel,
         mkNilDataModel                       = mkNilDataModel,
         mkNilPairDataModel                   = mkNilPairDataModel,
-        serialiseDataModel                   = serialiseDataModel
+        serialiseDataModel                   = serialiseDataModel,
+        bls12_381_G1_addModel                = bls12_381_G1_addModel,
+        bls12_381_G1_negModel                = bls12_381_G1_negModel,
+        bls12_381_G1_scalarMulModel          = bls12_381_G1_scalarMulModel,
+        bls12_381_G1_equalModel              = bls12_381_G1_equalModel,
+        bls12_381_G1_hashToGroupModel        = bls12_381_G1_hashToGroupModel,
+        bls12_381_G1_compressModel           = bls12_381_G1_compressModel,
+        bls12_381_G1_uncompressModel         = bls12_381_G1_uncompressModel,
+        bls12_381_G2_addModel                = bls12_381_G2_addModel,
+        bls12_381_G2_negModel                = bls12_381_G2_negModel,
+        bls12_381_G2_scalarMulModel          = bls12_381_G2_scalarMulModel,
+        bls12_381_G2_equalModel              = bls12_381_G2_equalModel,
+        bls12_381_G2_hashToGroupModel        = bls12_381_G2_hashToGroupModel,
+        bls12_381_G2_compressModel           = bls12_381_G2_compressModel,
+        bls12_381_G2_uncompressModel         = bls12_381_G2_uncompressModel,
+        bls12_381_millerLoopModel            = bls12_381_millerLoopModel,
+        bls12_381_mulMlResultModel           = bls12_381_mulMlResultModel,
+        bls12_381_finalVerifyModel           = bls12_381_finalVerifyModel
     )
 }

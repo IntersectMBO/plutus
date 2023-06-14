@@ -42,40 +42,50 @@ let
       plan-nix = project.plan-nix;
     };
 
-  native-plutus-810-jobs = make-haskell-jobs library.plutus-project-810;
-  native-plutus-92-jobs = make-haskell-jobs library.plutus-project-92;
-  native-plutus-96-jobs = make-haskell-jobs library.plutus-project-96;
+  all-jobs =
+    let
+      x86_64-linux = {
+        ghc810 = make-haskell-jobs library.plutus-project-810;
+        ghc92 = make-haskell-jobs library.plutus-project-92;
+        ghc96 = make-haskell-jobs library.plutus-project-96;
+        devshells = inputs.cells.plutus.devshells;
+        packages = inputs.cells.plutus.packages;
+        mingwW64 = make-haskell-jobs library.plutus-project-92.projectCross.mingwW64;
+      };
 
-  windows-plutus-92-jobs = make-haskell-jobs library.plutus-project-92.projectCross.mingwW64;
+      x86_64-darwin =
+        # Cross-compiling to windows only works from linux, and we only care about ghc 9.2
+        removeAttrs x86_64-linux [ "mingwW64" ];
 
-  other-jobs = inputs.cells.plutus.devshells // inputs.cells.plutus.packages;
+      # Plausibly if things build on x86 darwin then they'll build on aarch darwin.
+      # Se we only build roots and devshells on aarch to avoid overloading the builders.
+      aarch64-darwin = {
+        ghc810.roots = x86_64-linux.ghc810.roots;
+        ghc92.roots = x86_64-linux.ghc92.roots;
+        ghc96.roots = x86_64-linux.ghc96.roots;
+        packages = x86_64-linux.packages;
+        # Note: We can't build the 9.6 shell on aarch64-darwin
+        # because of https://github.com/well-typed/cborg/issues/311
+        devshells = removeAttrs x86_64-linux.devshells [ "plutus-shell-96" ];
+      };
 
-  jobs =
-    # Drop these once we switch to 9.2 by default
-    { ghc810 = native-plutus-810-jobs; } //
-    { ghc92 = native-plutus-92-jobs; } //
-    # 9.6 is busted on aarch64-darwin because of https://github.com/well-typed/cborg/issues/311
-    lib.optionalAttrs (system != "aarch64-darwin") { ghc96 = native-plutus-96-jobs; } //
-    # Only cross-compile to windows from linux
-    lib.optionalAttrs (system == "x86_64-linux") { mingwW64 = windows-plutus-92-jobs; } //
-    # see above about 9.6 on aarch64-darwin
-    (if system == "aarch64-darwin"
-    then builtins.removeAttrs other-jobs [ "plutus-shell-96" ]
-    else other-jobs);
+      aarch64-linux = { };
+
+      system-matrix = { inherit x86_64-linux x86_64-darwin aarch64-darwin aarch64-linux; };
+    in
+    system-matrix.${system};
 
   # Hydra doesn't like these attributes hanging around in "jobsets": it thinks they're jobs!
-  filtered-jobs = lib.filterAttrsRecursive (n: _: n != "recurseForDerivations") jobs;
+  filtered-jobs = lib.filterAttrsRecursive (n: _: n != "recurseForDerivations") all-jobs;
 
+  # Require everything: there's not much point having a CI job if it isn't required!
   required-job = pkgs.releaseTools.aggregate {
     name = "required-plutus";
     meta.description = "All jobs required to pass CI";
     constituents = lib.collect lib.isDerivation filtered-jobs;
   };
 
-  final-jobset =
-    if system == "x86_64-linux" || system == "x86_64-darwin" || system == "aarch64-darwin" then
-      filtered-jobs // { required = required-job; }
-    else { };
+  final-jobset = filtered-jobs // { required = required-job; };
 
 in
 

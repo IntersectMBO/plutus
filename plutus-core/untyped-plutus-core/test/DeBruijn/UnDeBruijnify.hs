@@ -40,15 +40,15 @@ failBody99 = lamAbs99 outVar
 
 -- [(lam x (lam y x)) (con bool true) (lam99 x_1)]
 okConst :: UPLC.Term DeBruijn DefaultUni DefaultFun ()
-okConst = mkIterApp () constFun [true, okId99]
+okConst = mkIterAppNoAnn constFun [true, okId99]
 
 -- [(lam x (lam y x)) (con integer 1) (lam0 outVar)]
 failConst :: UPLC.Term DeBruijn DefaultUni DefaultFun ()
-failConst = mkIterApp () constFun [true, failBody0]
+failConst = mkIterAppNoAnn constFun [true, failBody0]
 
 -- [(force (builtin ifThenElse)) (con bool True) (lam0 x1) (lam99 outVar)]
 failITE :: UPLC.Term DeBruijn DefaultUni DefaultFun ()
-failITE = mkIterApp ()
+failITE = mkIterAppNoAnn
          (Force () (Builtin () IfThenElse))
          [ mkConstant @Bool () True -- pred
          , okId0 -- then
@@ -91,11 +91,11 @@ failMix n = timesT n lamAbs0 $ timesT n lamAbs99 $ Var () $ DeBruijn $ n+n+1
 -- (lam0 [2 1 4 (lam99 [1 4 3 5])])
 graceElaborate :: UPLC.Term DeBruijn DefaultUni DefaultFun ()
 graceElaborate = lamAbs0 $
-    mkIterApp () (d 2)
+    mkIterAppNoAnn (d 2)
       [
         d 1
       , d 4
-      , lamAbs99 (mkIterApp () (d 1)
+      , lamAbs99 (mkIterAppNoAnn (d 1)
                  [
                    d 4
                  , d 3

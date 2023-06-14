@@ -2,29 +2,26 @@
 
 module UntypedPlutusCore.Core (
   module Export,
-  Arg (..),
+  splitParams,
   splitApplication,
-  mkApplication,
 ) where
 
 import UntypedPlutusCore.Core.Instance as Export
 import UntypedPlutusCore.Core.Plated as Export
 import UntypedPlutusCore.Core.Type as Export
 
-import Data.List (foldl')
+import Data.Bifunctor
 
--- | An argument consists of an annotation and a `Term`. The annotation should be
--- used when constructing an `Apply` node.
-data Arg name uni fun a = Arg a (Term name uni fun a)
+-- | Strips off lambda binders.
+splitParams :: Term name uni fun a -> ([name], Term name uni fun a)
+splitParams = \case
+  LamAbs _ n t -> first (n :) (splitParams t)
+  t            -> ([], t)
 
 -- | Strip off arguments
-splitApplication :: Term name uni fun a -> (Term name uni fun a, [Arg name uni fun a])
+splitApplication :: Term name uni fun a -> (Term name uni fun a, [(a, Term name uni fun a)])
 splitApplication = go []
   where
     go acc = \case
-      Apply ann fun arg -> go (Arg ann arg : acc) fun
+      Apply ann fun arg -> go ((ann, arg) : acc) fun
       t                 -> (t, acc)
-
--- | Make an Apply node from the given function and arguments.
-mkApplication :: Term name uni fun a -> [Arg name uni fun a] -> Term name uni fun a
-mkApplication = foldl' $ \acc (Arg ann arg) -> Apply ann acc arg

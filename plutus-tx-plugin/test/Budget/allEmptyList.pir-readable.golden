@@ -16,8 +16,7 @@ letrec
           ds
           {all dead. Bool}
           (/\dead -> True)
-          (\(x : integer)
-            (xs : List integer) ->
+          (\(x : integer) (xs : List integer) ->
              /\dead ->
                Bool_match
                  (ifThenElse {Bool} (lessThanEqualsInteger 1 x) False True)

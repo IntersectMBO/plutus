@@ -108,8 +108,8 @@ mkUnit = eraseTerm $  mkConstant () ()
 -- Create a term instantiating a builtin and applying it to one argument
 mkApp1 :: (uni `Includes` a, NFData a) => fun -> [Type tyname uni ()] -> a -> PlainTerm uni fun
 mkApp1 !name !tys (force -> !x) =
-    eraseTerm $ mkIterApp () instantiated [mkConstant () x]
-    where instantiated = mkIterInst () (builtin () name) tys
+    eraseTerm $ mkIterAppNoAnn instantiated [mkConstant () x]
+    where instantiated = mkIterInstNoAnn (builtin () name) tys
 
 
 -- Create a term instantiating a builtin and applying it to two arguments
@@ -117,8 +117,8 @@ mkApp2
     :: (uni `Includes` a, uni `Includes` b, NFData a, NFData b)
     =>  fun -> [Type tyname uni ()]-> a -> b -> PlainTerm uni fun
 mkApp2 !name !tys (force -> !x) (force -> !y) =
-    eraseTerm $ mkIterApp () instantiated [mkConstant () x,  mkConstant () y]
-    where instantiated = mkIterInst () (builtin () name) tys
+    eraseTerm $ mkIterAppNoAnn instantiated [mkConstant () x,  mkConstant () y]
+    where instantiated = mkIterInstNoAnn (builtin () name) tys
 
 
 -- Create a term instantiating a builtin and applying it to three arguments
@@ -126,8 +126,8 @@ mkApp3
     :: (uni `Includes` a, uni `Includes` b, uni `Includes` c, NFData a, NFData b, NFData c)
     => fun -> [Type tyname uni ()] -> a -> b -> c -> PlainTerm uni fun
 mkApp3 !name !tys (force -> !x) (force -> !y) (force -> !z) =
-    eraseTerm $ mkIterApp () instantiated [mkConstant () x, mkConstant () y, mkConstant () z]
-    where instantiated = mkIterInst () (builtin () name) tys
+    eraseTerm $ mkIterAppNoAnn instantiated [mkConstant () x, mkConstant () y, mkConstant () z]
+    where instantiated = mkIterInstNoAnn (builtin () name) tys
 
 
 -- Create a term instantiating a builtin and applying it to four arguments
@@ -137,9 +137,9 @@ mkApp4
         NFData a, NFData b, NFData c, NFData d)
     => fun -> [Type tyname uni ()] -> a -> b -> c -> d -> PlainTerm uni fun
 mkApp4 !name !tys (force -> !x) (force -> !y) (force -> !z) (force -> !t) =
-    eraseTerm $ mkIterApp () instantiated [ mkConstant () x, mkConstant () y
+    eraseTerm $ mkIterAppNoAnn instantiated [ mkConstant () x, mkConstant () y
                                       , mkConstant () z, mkConstant () t ]
-    where instantiated = mkIterInst () (builtin () name) tys
+    where instantiated = mkIterInstNoAnn (builtin () name) tys
 
 
 -- Create a term instantiating a builtin and applying it to five arguments
@@ -149,9 +149,9 @@ mkApp5
         NFData a, NFData b, NFData c, NFData d, NFData e)
     => fun -> [Type tyname uni ()] -> a -> b -> c -> d -> e -> PlainTerm uni fun
 mkApp5 !name !tys (force -> !x) (force -> !y) (force -> !z) (force -> !t) (force -> !u) =
-    eraseTerm $ mkIterApp () instantiated [ mkConstant () x, mkConstant () y, mkConstant () z
+    eraseTerm $ mkIterAppNoAnn instantiated [ mkConstant () x, mkConstant () y, mkConstant () z
                                       , mkConstant () t, mkConstant () u ]
-    where instantiated = mkIterInst () (builtin () name) tys
+    where instantiated = mkIterInstNoAnn (builtin () name) tys
 
 
 -- Create a term instantiating a builtin and applying it to six arguments
@@ -161,9 +161,9 @@ mkApp6
         NFData a, NFData b, NFData c, NFData d, NFData e, NFData f)
     => fun -> [Type tyname uni ()] -> a -> b -> c -> d -> e -> f-> PlainTerm uni fun
 mkApp6 name tys (force -> !x) (force -> !y) (force -> !z) (force -> !t) (force -> !u) (force -> !v)=
-    eraseTerm $ mkIterApp () instantiated [mkConstant () x, mkConstant () y, mkConstant () z,
+    eraseTerm $ mkIterAppNoAnn instantiated [mkConstant () x, mkConstant () y, mkConstant () z,
                                        mkConstant () t, mkConstant () u, mkConstant () v]
-    where instantiated = mkIterInst () (builtin () name) tys
+    where instantiated = mkIterInstNoAnn (builtin () name) tys
 
 
 ---------------- Creating benchmarks ----------------

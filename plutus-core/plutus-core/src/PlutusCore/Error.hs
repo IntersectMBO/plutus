@@ -18,6 +18,7 @@ module PlutusCore.Error
     , AsNormCheckError (..)
     , UniqueError (..)
     , AsUniqueError (..)
+    , ExpectedShapeOr (..)
     , TypeError (..)
     , AsTypeError (..)
     , FreeVariableError (..)
@@ -35,6 +36,7 @@ import PlutusCore.Core
 import PlutusCore.DeBruijn.Internal
 import PlutusCore.Name
 import PlutusCore.Pretty
+import Prettyprinter.Custom (sexp)
 
 import Control.Lens hiding (use)
 import Control.Monad.Error.Lens
@@ -94,14 +96,37 @@ deriving stock instance
     , Eq fun, Eq ann
     ) => Eq (NormCheckError tyname name uni fun ann)
 
+-- | This is needed for nice kind/type checking error messages. In some cases the type checker knows
+-- the exact type that an expression has to have for type checking to succeed (see any of
+-- 'checkTypeM' functions and its usages), which is what 'ExpectedExact' is suitable for. In other
+-- cases the type checker only cares about the shape of the inferred type, e.g. the type checker
+-- knows that the type of a function has to be @dom -> cod@ for type checking to succeed, but it
+-- doesn't yet care what @dom@ and @cod@ exactly are. Which is what 'ExpectedShape' is useful for as
+-- it allows one to specify the shape of an expected type with some existential variables in it when
+-- it's impossible to provide an exact type.
+data ExpectedShapeOr a
+    = ExpectedShape
+        !T.Text
+        -- ^ The expected shape potentially referencing existential variables.
+        ![T.Text]
+        -- ^ The list of existential variables.
+    | ExpectedExact !a
+    deriving stock (Show, Eq, Generic, Functor)
+    deriving anyclass (NFData)
+
 data TypeError term uni fun ann
-    = KindMismatch !ann !(Type TyName uni ()) !(Kind ()) !(Kind ())
+    = KindMismatch !ann
+        !(Type TyName uni ())
+        !(ExpectedShapeOr (Kind ()))
+        -- ^ The expected type or the shape of a kind.
+        !(Kind ())
+        -- ^ The actual kind.
     | TypeMismatch !ann
         !term
-        !(Type TyName uni ())
-        -- ^ Expected type
+        !(ExpectedShapeOr (Type TyName uni ()))
+        -- ^ The expected type or the shape of a type.
         !(Normalized (Type TyName uni ()))
-        -- ^ Actual type
+        -- ^ The actual type.
     | TyNameMismatch !ann !TyName !TyName
     | NameMismatch !ann !Name !Name
     | FreeTypeVariableE !ann !TyName
@@ -153,8 +178,8 @@ instance Pretty ParserError where
         "Expected a type of kind star (to later parse a constant), but got:" <+>
             squotes (pretty ty) <+> "at" <+> pretty loc
     pretty (UnknownBuiltinFunction s loc lBuiltin)   =
-        "Unknown built-in function" <+> squotes (pretty s) <+> "at" <+> pretty loc <+>
-            ". Parsable functions are " <+> pretty lBuiltin
+        "Unknown built-in function" <+> squotes (pretty s) <+> "at" <+> pretty loc <>
+            "." <> hardline <> "Parsable functions are " <+> pretty lBuiltin
     pretty (InvalidBuiltinConstant c s loc) =
         "Invalid constant" <+> squotes (pretty c) <+> "of type" <+> squotes (pretty s) <+> "at" <+>
             pretty loc
@@ -186,24 +211,49 @@ instance ( Pretty ann
         ". Term" <+> squotes (prettyBy config t) <+>
         "is not a" <+> pretty expct <> "."
 
+-- | Align a list of existential variables in a pretty way.
+--
+-- >>> :set -XOverloadedStrings
+-- >>> existentialVars []
+-- >>> existentialVars ["'a'"]
+--  for some 'a'
+-- >>> existentialVars ["'a'", "'b'"]
+--  for some 'a' and 'b'
+-- >>> existentialVars ["'a'", "'b'", "'c'"]
+--  for some 'a', 'b' and 'c'
+existentialVars :: [Doc ann] -> Doc ann
+existentialVars [] = ""
+existentialVars (x0:xs0) = " for some " <> go x0 xs0 where
+    go x []     = x
+    go x [y]    = x <> " and " <> y
+    go x (y:xs) = x <> ", " <> go y xs
+
+instance PrettyBy PrettyConfigPlc a => PrettyBy PrettyConfigPlc (ExpectedShapeOr a) where
+    prettyBy _ (ExpectedShape shape vars) =
+        squotes (sexp (pretty shape) []) <> existentialVars (map (squotes . pretty) vars)
+    prettyBy config (ExpectedExact thing) = squotes (prettyBy config thing)
+
 instance (Pretty term, PrettyUni uni, Pretty fun, Pretty ann) =>
         PrettyBy PrettyConfigPlc (TypeError term uni fun ann) where
-    prettyBy config (KindMismatch ann ty k k')          =
-        "Kind mismatch at" <+> pretty ann <+>
-        "in type" <+> squotes (prettyBy config ty) <>
-        ". Expected kind" <+> squotes (prettyBy config k) <+>
-        ", found kind" <+> squotes (prettyBy config k')
-    prettyBy config (TypeMismatch ann t ty ty')         =
+    prettyBy config (KindMismatch ann ty shapeOrK k') =
+        "Kind mismatch at" <+> pretty ann <>
+        hardline <>
+        "Expected a type of kind" <> hardline <> indent 2 (prettyBy config shapeOrK) <>
+        hardline <>
+        "But found one of kind" <> hardline <> indent 2 (squotes (prettyBy config k')) <>
+        hardline <>
+        "Namely," <> hardline <> indent 2 (squotes (prettyBy config ty))
+    prettyBy config (TypeMismatch ann t shapeOrTy ty')         =
         "Type mismatch at" <+> pretty ann <>
+        hardline <>
+        "Expected a term of type" <> hardline <> indent 2 (prettyBy config shapeOrTy) <>
+        hardline <>
+        "But found one of type" <> hardline <> indent 2 (squotes (prettyBy config ty')) <>
         (if _pcpoCondensedErrors (_pcpOptions config) == CondensedErrorsYes
             then mempty
             -- TODO: we should use prettyBy here but the problem is
             -- that `instance PrettyClassic PIR.Term` whereas `instance PrettyPLC PLC.Term`
-            else " in term" <> hardline <> indent 2 (squotes (pretty t)) <> ".") <>
-        hardline <>
-        "Expected type" <> hardline <> indent 2 (squotes (prettyBy config ty)) <>
-        "," <> hardline <>
-        "found type" <> hardline <> indent 2 (squotes (prettyBy config ty'))
+            else hardline <> "Namely," <> hardline <> indent 2 (squotes (pretty t)))
     prettyBy config (FreeTypeVariableE ann name)          =
         "Free type variable at " <+> pretty ann <+> ": " <+> prettyBy config name
     prettyBy config (FreeVariableE ann name)              =

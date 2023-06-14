@@ -56,14 +56,18 @@ module PlutusCore.Pretty
     , PrettyReadableBy
     , PrettyReadable
     , AsReadable (..)
+    , Parened (..)
+    , inBraces
     , topPrettyConfigReadable
     , botPrettyConfigReadable
     , binderFixity
     , arrowFixity
-    , arrowPrettyM
     , iterTyForallPrettyM
     , iterLamAbsPrettyM
     , iterTyAbsPrettyM
+    , iterArrowPrettyM
+    , iterAppDocM
+    , iterInterAppPrettyM
     , iterAppPrettyM
     -- * Utils
     , prettyBytes

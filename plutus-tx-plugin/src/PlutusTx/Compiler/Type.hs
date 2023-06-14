@@ -4,6 +4,7 @@
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections     #-}
 {-# LANGUAGE TypeApplications  #-}
 {-# LANGUAGE ViewPatterns      #-}
 
@@ -100,9 +101,9 @@ compileType t = withContextM 2 (sdToTxt $ "Compiling type:" GHC.<+> GHC.ppr t) $
 #endif
         -- ignoring 'RuntimeRep' type arguments, see Note [Unboxed tuples]
         (GHC.splitTyConApp_maybe -> Just (tc, ts)) ->
-            PIR.mkIterTyApp annMayInline
+            PIR.mkIterTyApp
                 <$> compileTyCon tc
-                <*> traverse compileType (GHC.dropRuntimeRepArgs ts)
+                <*> (traverse (fmap (annMayInline,) . compileType) (GHC.dropRuntimeRepArgs ts))
         (GHC.splitAppTy_maybe -> Just (t1, t2)) ->
             PIR.TyApp annMayInline <$> compileType t1 <*> compileType t2
         (GHC.splitForAllTyCoVar_maybe -> Just (tv, tpe)) -> mkTyForallScoped tv (compileType tpe)
@@ -309,7 +310,7 @@ getMatchInstantiated t = withContextM 3 (sdToTxt $ "Creating instantiated matche
         match <- getMatch tc
         -- We drop 'RuntimeRep' arguments, see Note [Unboxed tuples]
         args' <- mapM compileTypeNorm (GHC.dropRuntimeRepArgs args)
-        pure $ PIR.mkIterInst annMayInline match args'
+        pure $ PIR.mkIterInst match $ (annMayInline,) <$> args'
     -- must be a TC app
     _ -> throwSd CompilationError $ "Cannot case on a value of a type which is not a datatype:" GHC.<+> GHC.ppr t
 

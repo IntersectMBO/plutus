@@ -287,14 +287,17 @@ inv-complete {A = A}{A' = A'} p = trans≡β
   (trans≡β (≡2β (sym (cong embNf p))) (sym≡β (soundness A)))
 
 inferTypeCon : ∀{Φ} → TmCon → Either TypeError (Σ (T.TyCon _) λ c → A.TermCon {Φ} (con c))
-inferTypeCon (tmCon (con integer) i)          = return (T.integer ,, A.tmInteger i)
-inferTypeCon (tmCon (con bytestring) b)       = return (T.bytestring ,, A.tmBytestring b)
-inferTypeCon (tmCon (con string) s)           = return (T.string ,, A.tmString s)
-inferTypeCon (tmCon (con bool) b)             = return (T.bool ,, A.tmBool b)
-inferTypeCon (tmCon (con unit) _)             = return (T.unit ,, A.tmUnit)
-inferTypeCon (tmCon (con pdata) d)            = return (T.pdata ,, A.tmData d)
-inferTypeCon (tmCon (con (pair _ _)) (x , y)) = inj₁ (Unimplemented "Typed pairs")
-inferTypeCon (tmCon (con (list _)) xs)        = inj₁ (Unimplemented "Typed lists")
+inferTypeCon (tmCon (con integer) i)              = return (T.integer ,, A.tmInteger i)
+inferTypeCon (tmCon (con bytestring) b)           = return (T.bytestring ,, A.tmBytestring b)
+inferTypeCon (tmCon (con string) s)               = return (T.string ,, A.tmString s)
+inferTypeCon (tmCon (con bool) b)                 = return (T.bool ,, A.tmBool b)
+inferTypeCon (tmCon (con unit) _)                 = return (T.unit ,, A.tmUnit)
+inferTypeCon (tmCon (con pdata) d)                = return (T.pdata ,, A.tmData d)
+inferTypeCon (tmCon (con (pair _ _)) (x , y))     = inj₁ (Unimplemented "Typed pairs")
+inferTypeCon (tmCon (con (list _)) xs)            = inj₁ (Unimplemented "Typed lists")
+inferTypeCon (tmCon (con bls12-381-g1-element) e) = return (T.bls12-381-g1-element ,, A.tmBls12-381-g1-element e)
+inferTypeCon (tmCon (con bls12-381-g2-element) e) = return (T.bls12-381-g2-element ,, A.tmBls12-381-g2-element e)
+inferTypeCon (tmCon (con bls12-381-mlresult) r)   = return (T.bls12-381-mlresult ,, A.tmBls12-381-mlresult r)
 
 checkType : ∀{Φ}(Γ : Ctx Φ) → ScopedTm (len Γ) → (A : Φ ⊢Nf⋆ *)
   → Either TypeError (Γ ⊢ A)
@@ -341,4 +344,3 @@ inferType Γ (unwrap L) = do
   K ,, A ,, B ,, L ← isMu (inferType Γ L)
   return (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B) ,, unwrap L refl)
 ```
-  

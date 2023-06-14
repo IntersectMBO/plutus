@@ -30,8 +30,8 @@ tests =
             166 @=? length v1CostModelParamNames
             175 @=? length (enumerate @V2.ParamName)
             175 @=? length v2CostModelParamNames
-            179 @=? length (enumerate @V3.ParamName)
-            179 @=? length v3CostModelParamNames
+            217 @=? length (enumerate @V3.ParamName)
+            217 @=? length v3CostModelParamNames
     , testCase "context length" $ do
             let defaultCostValues = Map.elems $ fromJust defaultCostModelParams
             -- the defaultcostmodelparams reflects only the latest version V3, so this should succeed because the lengths match
@@ -44,7 +44,6 @@ tests =
     , testCase "cost model parameters" $ do
          -- v1 is missing some cost model parameters because new builtins are added in v2
          assertBool "v1 params is proper subset of v2 params" $ Set.fromList v1CostModelParamNames `Set.isProperSubsetOf` Set.fromList v2CostModelParamNames
-         -- v2 is missing some cost model parameters because new builtins and term constructors are added in v3
          assertBool "v2 params is proper subset of v3 params" $ Set.fromList v2CostModelParamNames `Set.isProperSubsetOf` Set.fromList v3CostModelParamNames
     ]
   where

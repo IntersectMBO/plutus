@@ -47,7 +47,7 @@ let
         package plutus-tx-plugin
           flags: +use-ghc-stub
 
-        -- Exclude test that use `doctest`.  They will not work for
+        -- Exclude tests that use `doctest`.  They will not work for
         -- cross compilation and `cabal` will not be able to make a plan.
         package prettyprinter-configurable
           tests: False
@@ -61,6 +61,7 @@ let
             # Things that need plutus-tx-plugin
             plutus-benchmark.package.buildable = false;
             plutus-tx-plugin.package.buildable = false;
+            marlowe-cardano-minimal.package.buildable = false;
             # Needs agda
             plutus-metatheory.package.buildable = false;
             # These need R

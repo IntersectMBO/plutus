@@ -1,0 +1,78 @@
+(program 1.0.0
+  [
+    [
+      [
+        {
+          (abs
+            a
+            (type)
+            (lam
+              b
+              (con bool)
+              (lam
+                x
+                (fun (con unit) a)
+                (lam
+                  y
+                  (fun (con unit) a)
+                  [
+                    [
+                      [ [ { (builtin ifThenElse) (fun (con unit) a) } b ] x ] y
+                    ]
+                    (con unit ())
+                  ]
+                )
+              )
+            )
+          )
+          (con integer)
+        }
+        (con bool True)
+      ]
+      [
+        {
+          { (abs a (type) (abs b (type) (lam x a (lam y b x)))) (con integer) }
+          (con unit)
+        }
+        [
+          (lam x0 (con integer) [ [ (builtin multiplyInteger) x0 ] x0 ])
+          [
+            (lam
+              x1
+              (con bytestring)
+              [
+                [
+                  (builtin multiplyInteger)
+                  [ [ (builtin addInteger) (con integer 2) ] (con integer 2) ]
+                ]
+                [
+                  [ (builtin multiplyInteger) (con integer 0) ] (con integer 2)
+                ]
+              ]
+            )
+            [
+              [
+                (builtin concatenate)
+                [
+                  [ (builtin takeByteString) (con integer 3) ]
+                  (con bytestring #666f7a)
+                ]
+              ]
+              [
+                [ (builtin concatenate) (con bytestring #71) ]
+                (con bytestring #697168)
+              ]
+            ]
+          ]
+        ]
+      ]
+    ]
+    [
+      {
+        { (abs a (type) (abs b (type) (lam x a (lam y b x)))) (con integer) }
+        (con unit)
+      }
+      (con integer 2)
+    ]
+  ]
+)

@@ -95,7 +95,7 @@ mkTermToEvaluate lv pv bs args = do
     -- It decodes the program through the optimized ScriptForExecution. See `ScriptForExecution`.
     ScriptForExecution (UPLC.Program _ _ t) <- fromSerialisedScript lv pv bs
     let termArgs = fmap (UPLC.mkConstant ()) args
-        appliedT = UPLC.mkIterApp () t termArgs
+        appliedT = UPLC.mkIterAppNoAnn t termArgs
 
     -- make sure that term is closed, i.e. well-scoped
     through (liftEither . first DeBruijnError . UPLC.checkScope) appliedT

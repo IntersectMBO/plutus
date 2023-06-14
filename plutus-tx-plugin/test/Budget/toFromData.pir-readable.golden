@@ -18,8 +18,8 @@ in
 (let
     b = Maybe (Tuple3 Bool integer Bool)
   in
-  \(dUnsafeFromData : (\a -> data -> a) integer)
-   (dUnsafeFromData : (\a -> data -> a) b)
+  \(`$dUnsafeFromData` : (\a -> data -> a) integer)
+   (`$dUnsafeFromData` : (\a -> data -> a) b)
    (d : data) ->
     let
       !tup : pair integer (list data) = unConstrData d
@@ -27,22 +27,22 @@ in
     in
     ifThenElse
       {unit -> Either integer b}
-      (equalsInteger index 1)
+      (equalsInteger 1 index)
       (\(ds : unit) ->
          let
            !arg : data = headList {data} (sndPair {integer} {list data} tup)
          in
-         Right {integer} {b} (dUnsafeFromData arg))
+         Right {integer} {b} (`$dUnsafeFromData` arg))
       (\(ds : unit) ->
          ifThenElse
            {unit -> Either integer b}
-           (equalsInteger index 0)
+           (equalsInteger 0 index)
            (\(ds : unit) ->
               let
                 !arg : data
                   = headList {data} (sndPair {integer} {list data} tup)
               in
-              Left {integer} {b} (dUnsafeFromData arg))
+              Left {integer} {b} (`$dUnsafeFromData` arg))
            (\(ds : unit) ->
               let
                 !thunk : unit
@@ -58,24 +58,23 @@ in
   ((let
        a = Tuple3 Bool integer Bool
      in
-     \(dUnsafeFromData : (\a -> data -> a) a)
-      (d : data) ->
+     \(`$dUnsafeFromData` : (\a -> data -> a) a) (d : data) ->
        let
          !tup : pair integer (list data) = unConstrData d
          !index : integer = fstPair {integer} {list data} tup
        in
        ifThenElse
          {unit -> Maybe a}
-         (equalsInteger index 0)
+         (equalsInteger 0 index)
          (\(ds : unit) ->
             let
               !arg : data = headList {data} (sndPair {integer} {list data} tup)
             in
-            Just {a} (dUnsafeFromData arg))
+            Just {a} (`$dUnsafeFromData` arg))
          (\(ds : unit) ->
             ifThenElse
               {unit -> Maybe a}
-              (equalsInteger index 1)
+              (equalsInteger 1 index)
               (\(ds : unit) -> Nothing {a})
               (\(ds : unit) ->
                  let
@@ -93,11 +92,10 @@ in
           !tup : pair integer (list data) = unConstrData d
           ~t : list data = sndPair {integer} {list data} tup
           ~t : list data = tailList {data} t
-          !index : integer = fstPair {integer} {list data} tup
         in
         ifThenElse
           {unit -> Tuple3 Bool integer Bool}
-          (equalsInteger index 0)
+          (equalsInteger 0 (fstPair {integer} {list data} tup))
           (\(ds : unit) ->
              let
                !arg : data = headList {data} t
@@ -109,17 +107,17 @@ in
                {integer}
                {Bool}
                (let
-                 !tup : pair integer (list data) = unConstrData arg
-                 !index : integer = fstPair {integer} {list data} tup
+                 !index : integer
+                   = fstPair {integer} {list data} (unConstrData arg)
                in
                ifThenElse
                  {unit -> Bool}
-                 (equalsInteger index 1)
+                 (equalsInteger 1 index)
                  (\(ds : unit) -> True)
                  (\(ds : unit) ->
                     ifThenElse
                       {unit -> Bool}
-                      (equalsInteger index 0)
+                      (equalsInteger 0 index)
                       (\(ds : unit) -> False)
                       (\(ds : unit) ->
                          let
@@ -135,17 +133,17 @@ in
                  unitval)
                (unIData arg)
                (let
-                 !tup : pair integer (list data) = unConstrData arg
-                 !index : integer = fstPair {integer} {list data} tup
+                 !index : integer
+                   = fstPair {integer} {list data} (unConstrData arg)
                in
                ifThenElse
                  {unit -> Bool}
-                 (equalsInteger index 1)
+                 (equalsInteger 1 index)
                  (\(ds : unit) -> True)
                  (\(ds : unit) ->
                     ifThenElse
                       {unit -> Bool}
-                      (equalsInteger index 0)
+                      (equalsInteger 0 index)
                       (\(ds : unit) -> False)
                       (\(ds : unit) ->
                          let
@@ -172,8 +170,8 @@ in
   ((let
        b = Maybe (Tuple3 Bool integer Bool)
      in
-     \(dToData : (\a -> a -> data) integer)
-      (dToData : (\a -> a -> data) b)
+     \(`$dToData` : (\a -> a -> data) integer)
+      (`$dToData` : (\a -> a -> data) b)
       (ds : Either integer b) ->
        Either_match
          {integer}
@@ -181,22 +179,23 @@ in
          ds
          {data}
          (\(arg : integer) ->
-            constrData 0 (mkCons {data} (dToData arg) (mkNilData unitval)))
+            constrData 0 (mkCons {data} (`$dToData` arg) (mkNilData unitval)))
          (\(arg : b) ->
-            constrData 1 (mkCons {data} (dToData arg) (mkNilData unitval))))
+            constrData 1 (mkCons {data} (`$dToData` arg) (mkNilData unitval))))
      (\(i : integer) -> iData i)
      ((let
           a = Tuple3 Bool integer Bool
         in
-        \(dToData : (\a -> a -> data) a)
-         (ds : Maybe a) ->
+        \(`$dToData` : (\a -> a -> data) a) (ds : Maybe a) ->
           Maybe_match
             {a}
             ds
             {all dead. data}
             (\(arg : a) ->
                /\dead ->
-                 constrData 0 (mkCons {data} (dToData arg) (mkNilData unitval)))
+                 constrData
+                   0
+                   (mkCons {data} (`$dToData` arg) (mkNilData unitval)))
             (/\dead -> constrData 1 (mkNilData unitval))
             {all dead. dead})
         (\(w : Tuple3 Bool integer Bool) ->
@@ -206,9 +205,7 @@ in
              {Bool}
              w
              {data}
-             (\(ww : Bool)
-               (ww : integer)
-               (ww : Bool) ->
+             (\(ww : Bool) (ww : integer) (ww : Bool) ->
                 constrData
                   0
                   (mkCons

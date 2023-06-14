@@ -23,12 +23,12 @@ obothPair = runQuote $ do
     a <- freshTyName "a"
     f <- freshName "f"
     p <- freshName "p"
-    let atAA fun = mkIterInst () (builtin () fun) [TyVar () a, TyVar () a]
+    let atAA fun = mkIterInstNoAnn (builtin () fun) [TyVar () a, TyVar () a]
     return
         . tyAbs () a (Type ())
         . lamAbs () f (TyFun () (TyVar () a) $ TyVar () a)
-        . lamAbs () p (mkIterTyApp () pair [TyVar () a, TyVar () a])
-        $ mkIterApp () (atAA $ Right Comma)
+        . lamAbs () p (mkIterTyAppNoAnn pair [TyVar () a, TyVar () a])
+        $ mkIterAppNoAnn (atAA $ Right Comma)
             [ apply () (var () f) . apply () (atAA $ Left FstPair) $ var () p
             , apply () (var () f) . apply () (atAA $ Left SndPair) $ var () p
             ]

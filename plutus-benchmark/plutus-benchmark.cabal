@@ -57,18 +57,26 @@ common ghc-version-support
 
 library plutus-benchmark-common
   import:          lang
+  ghc-options:     -Wno-unused-packages
   hs-source-dirs:  common
   exposed-modules:
     PlutusBenchmark.Common
     PlutusBenchmark.NaturalSort
+    PlutusBenchmark.ProtocolParameters
 
   other-modules:   Paths_plutus_benchmark
   build-depends:
-    , base         >=4.9 && <5
+    , base          >=4.9 && <5
+    , bytestring
     , criterion
+    , directory
     , filepath
-    , plutus-core  ^>=1.6
-    , plutus-tx    ^>=1.6
+    , flat
+    , plutus-core   ^>=1.7
+    , plutus-tx     ^>=1.7
+    , tasty
+    , tasty-golden
+    , temporary
 
 ---------------- nofib ----------------
 
@@ -95,9 +103,9 @@ library nofib-internal
     , base                     >=4.9 && <5
     , deepseq
     , plutus-benchmark-common
-    , plutus-core              ^>=1.6
-    , plutus-tx                ^>=1.6
-    , plutus-tx-plugin         ^>=1.6
+    , plutus-core              ^>=1.7
+    , plutus-tx                ^>=1.7
+    , plutus-tx-plugin         ^>=1.7
 
 executable nofib-exe
   import:         lang, ghc-version-support
@@ -112,8 +120,8 @@ executable nofib-exe
     , nofib-internal
     , optparse-applicative
     , plutus-benchmark-common
-    , plutus-core              ^>=1.6
-    , plutus-tx                ^>=1.6
+    , plutus-core              ^>=1.7
+    , plutus-tx                ^>=1.7
     , transformers
 
 benchmark nofib
@@ -154,8 +162,8 @@ test-suite plutus-benchmark-nofib-tests
     , base                                            >=4.9 && <5
     , nofib-internal
     , plutus-benchmark-common
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.6
-    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.6
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.7
+    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.7
     , tasty
     , tasty-hunit
     , tasty-quickcheck
@@ -184,9 +192,9 @@ library lists-internal
     , base                     >=4.9 && <5
     , mtl
     , plutus-benchmark-common
-    , plutus-core              ^>=1.6
-    , plutus-tx                ^>=1.6
-    , plutus-tx-plugin         ^>=1.6
+    , plutus-core              ^>=1.7
+    , plutus-tx                ^>=1.7
+    , plutus-tx-plugin         ^>=1.7
 
 executable list-sort-exe
   import:         lang, ghc-version-support
@@ -197,7 +205,7 @@ executable list-sort-exe
     , lists-internal
     , monoidal-containers
     , plutus-benchmark-common
-    , plutus-core              ^>=1.6
+    , plutus-core              ^>=1.7
 
 benchmark lists
   import:         lang, ghc-version-support
@@ -223,8 +231,8 @@ test-suite plutus-benchmark-lists-tests
     , base                             >=4.9 && <5
     , lists-internal
     , plutus-benchmark-common
-    , plutus-core:plutus-core-testlib  ^>=1.6
-    , plutus-tx:plutus-tx-testlib      ^>=1.6
+    , plutus-core:plutus-core-testlib  ^>=1.7
+    , plutus-tx:plutus-tx-testlib      ^>=1.7
     , tasty
     , tasty-quickcheck
 
@@ -246,8 +254,8 @@ benchmark validation
     , flat                     ^>=0.6
     , optparse-applicative
     , plutus-benchmark-common
-    , plutus-core              ^>=1.6
-    , plutus-ledger-api        ^>=1.6
+    , plutus-core              ^>=1.7
+    , plutus-ledger-api        ^>=1.7
 
 ---------------- validation-decode ----------------
 
@@ -267,8 +275,8 @@ benchmark validation-decode
     , flat                     ^>=0.6
     , optparse-applicative
     , plutus-benchmark-common
-    , plutus-core              ^>=1.6
-    , plutus-ledger-api        ^>=1.6
+    , plutus-core              ^>=1.7
+    , plutus-ledger-api        ^>=1.7
 
 ---------------- validation-full ----------------
 
@@ -288,8 +296,8 @@ benchmark validation-full
     , flat                                                              ^>=0.6
     , optparse-applicative
     , plutus-benchmark-common
-    , plutus-core                                                       ^>=1.6
-    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.6
+    , plutus-core                                                       ^>=1.7
+    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.7
 
 ---------------- Cek cost model calibration ----------------
 
@@ -308,29 +316,132 @@ benchmark cek-calibration
     , criterion         >=1.5.9.0
     , lens
     , mtl
-    , plutus-core       ^>=1.6
-    , plutus-tx         ^>=1.6
-    , plutus-tx-plugin  ^>=1.6
+    , plutus-core       ^>=1.7
+    , plutus-tx         ^>=1.7
+    , plutus-tx-plugin  ^>=1.7
 
 ---------------- Signature verification throughput ----------------
 
-executable ed25519-throughput
+executable ed25519-costs
   import:           lang, ghc-version-support
   default-language: Haskell2010
-  main-is:          Main.hs
-  hs-source-dirs:   ed25519-throughput
 
   -- Without the line below we get a warning that plutus-tx-plugin is unused which causes a CI failure.
   ghc-options:      -Wno-unused-packages
+  hs-source-dirs:   ed25519-costs/exe ed25519-costs/src
+  main-is:          Main.hs
+  other-modules:    PlutusBenchmark.Ed25519.Common
   build-depends:
-    , base                  >=4.9 && <5
+    , base                     >=4.9 && <5
     , bytestring
     , cardano-crypto-class
-    , flat                  ^>=0.6
     , hedgehog
-    , plutus-core           ^>=1.6
-    , plutus-tx             ^>=1.6
-    , plutus-tx-plugin      ^>=1.6
+    , plutus-benchmark-common
+    , plutus-core              ^>=1.7
+    , plutus-tx                ^>=1.7
+    , plutus-tx-plugin         ^>=1.7
+
+-- Calculate the predicted costs of sequences of ed25519 signature verification
+-- operations and compare them with a golden file.
+test-suite ed25519-costs-test
+  import:         lang
+
+  if impl(ghc <9.0)
+    buildable: False
+
+  type:           exitcode-stdio-1.0
+  ghc-options:    -Wno-unused-packages
+  hs-source-dirs: ed25519-costs/test ed25519-costs/src
+  main-is:        Spec.hs
+  other-modules:  PlutusBenchmark.Ed25519.Common
+  build-depends:
+    , base                     >=4.9 && <5
+    , bytestring
+    , cardano-crypto-class
+    , hedgehog
+    , plutus-benchmark-common
+    , plutus-core              ^>=1.7
+    , plutus-tx                ^>=1.7
+    , plutus-tx-plugin         ^>=1.7
+
+---------------- BLS12-381 experiments ----------------
+
+library bls12-381lib-internal
+  -- bls12-381-internal isn't allowed: you must have at least one letter in each
+  -- component.
+  import:          lang
+
+  if impl(ghc <9.0)
+    buildable: False
+
+  -- Something weird causes this to sometimes report
+  -- the plugin package as unused...
+  ghc-options:     -Wno-unused-packages
+  hs-source-dirs:  bls12-381-costs/src
+  exposed-modules:
+    PlutusBenchmark.BLS12_381.RunTests
+    PlutusBenchmark.BLS12_381.Scripts
+
+  build-depends:
+    , base                     >=4.9 && <5
+    , bytestring
+    , cardano-crypto-class
+    , deepseq
+    , flat
+    , hedgehog
+    , plutus-benchmark-common
+    , plutus-core              ^>=1.7
+    , plutus-tx                ^>=1.7
+    , plutus-tx-plugin         ^>=1.7
+
+-- Print out predicted costs of various scripts involving BLS12-381 operations
+executable bls12-381-costs
+  import:           lang
+
+  if impl(ghc <9.0)
+    buildable: False
+
+  default-language: Haskell2010
+  main-is:          Main.hs
+  hs-source-dirs:   bls12-381-costs/exe
+  build-depends:
+    , base                   >=4.9 && <5
+    , bls12-381lib-internal
+
+-- Calculate predicted costs of various scripts involving BLS12-381 operations
+-- and compare them with a golden file.
+test-suite bls12-381-costs-test
+  import:         lang
+
+  if impl(ghc <9.0)
+    buildable: False
+
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  hs-source-dirs: bls12-381-costs/test
+  build-depends:
+    , base                     >=4.9 && <5
+    , bls12-381lib-internal
+    , plutus-benchmark-common
+
+-- Run benchmarks for various scripts involving BLS12-381 operations
+benchmark bls12-381-benchmarks
+  import:         lang
+
+  if impl(ghc <9.0)
+    buildable: False
+
+  type:           exitcode-stdio-1.0
+  main-is:        Bench.hs
+  hs-source-dirs: bls12-381-costs/bench
+  build-depends:
+    , base                     >=4.9     && <5
+    , bls12-381lib-internal
+    , bytestring
+    , criterion                >=1.5.9.0
+    , plutus-benchmark-common
+    , plutus-core              ^>=1.7
+    , plutus-tx                ^>=1.7
 
 ---------------- script contexts ----------------
 
@@ -344,9 +455,9 @@ library script-contexts-internal
   exposed-modules: PlutusBenchmark.ScriptContexts
   build-depends:
     , base               >=4.9 && <5
-    , plutus-ledger-api  ^>=1.6
-    , plutus-tx          ^>=1.6
-    , plutus-tx-plugin   ^>=1.6
+    , plutus-ledger-api  ^>=1.7
+    , plutus-tx          ^>=1.7
+    , plutus-tx-plugin   ^>=1.7
 
 test-suite plutus-benchmark-script-contexts-tests
   import:         lang, ghc-version-support
@@ -362,8 +473,8 @@ test-suite plutus-benchmark-script-contexts-tests
   build-depends:
     , base                                            >=4.9 && <5
     , plutus-benchmark-common
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.6
-    , plutus-tx:plutus-tx-testlib                     ^>=1.6
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.7
+    , plutus-tx:plutus-tx-testlib                     ^>=1.7
     , script-contexts-internal
     , tasty
     , tasty-hunit

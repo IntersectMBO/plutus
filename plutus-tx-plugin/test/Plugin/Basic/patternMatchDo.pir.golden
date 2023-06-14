@@ -12,13 +12,13 @@
     )
     (termbind
       (strict)
-      (vardecl fApplicativeMaybe_cpure (all a (type) (fun a [ Maybe a ])))
+      (vardecl `$fApplicativeMaybe_$cpure` (all a (type) (fun a [ Maybe a ])))
       (abs a (type) (lam ds a [ { Just a } ds ]))
     )
     (termbind
       (strict)
       (vardecl
-        fMonadMaybe_c
+        `$fMonadMaybe_$c>>=`
         (all
           a
           (type)
@@ -79,7 +79,9 @@
         [
           [
             {
-              { fMonadMaybe_c [ [ Tuple2 (con integer) ] (con integer) ] }
+              {
+                `$fMonadMaybe_$c>>=` [ [ Tuple2 (con integer) ] (con integer) ]
+              }
               (con integer)
             }
             ds
@@ -99,13 +101,16 @@
                   x
                   (con integer)
                   [
-                    [ { { fMonadMaybe_c (con integer) } (con integer) } ds ]
+                    [
+                      { { `$fMonadMaybe_$c>>=` (con integer) } (con integer) }
+                      ds
+                    ]
                     (lam
-                      y
+                      y'
                       (con integer)
                       [
-                        { fApplicativeMaybe_cpure (con integer) }
-                        [ [ addInteger [ [ addInteger x ] x ] ] y ]
+                        { `$fApplicativeMaybe_$cpure` (con integer) }
+                        [ [ addInteger [ [ addInteger x ] x ] ] y' ]
                       ]
                     )
                   ]
