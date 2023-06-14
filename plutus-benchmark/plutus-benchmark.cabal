@@ -494,13 +494,12 @@ library marlowe-internal
   build-depends:
     , base
     , bytestring
-    , cardano-crypto-class     >=2.0.0.1 && <2.2
+    , cardano-crypto-class  >=2.0.0.1 && <2.2
     , newtype-generics
-    , plutus-benchmark-common
-    , plutus-core              ^>=1.7
+    , plutus-core           ^>=1.7
     , plutus-ledger-api
-    , plutus-tx                ^>=1.7
-    , plutus-tx-plugin         ^>=1.7
+    , plutus-tx             ^>=1.7
+    , plutus-tx-plugin      ^>=1.7
 
   exposed-modules:
     Language.Marlowe.Core.V1.Semantics
@@ -538,16 +537,3 @@ executable marlowe-validators
     , plutus-ledger-api
     , plutus-tx                                       ^>=1.7
     , serialise
-
--- TODO
--- benchmark marlowe
---   import:         lang
-
---   if impl(ghc <9.0)
---     buildable: False
-
---   type:           exitcode-stdio-1.0
---   main-is:        Bench.hs
---   hs-source-dirs: marlowe/bench
---   build-depends:
-
