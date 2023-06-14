@@ -156,12 +156,12 @@ applyAndBetaReduce info args0 = do
   go rhsBody (varArity info) args0
 
 -- | Consider whether to inline an application.
-inlineSaturatedApp ::
+inlineApp ::
   forall tyname name uni fun ann.
   (InliningConstraints tyname name uni fun) =>
   Term tyname name uni fun ann ->
   InlineM tyname name uni fun ann (Term tyname name uni fun ann)
-inlineSaturatedApp t
+inlineApp t
   | (Var _ann name, args) <- splitApplication t =
       gets (lookupVarInfo name) >>= \case
         Just varInfo ->
