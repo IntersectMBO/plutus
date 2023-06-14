@@ -40,11 +40,11 @@ import UntypedPlutusCore.Rename ()
 import UntypedPlutusCore.Size
 import UntypedPlutusCore.Subst
 
-import Control.Applicative
 import Control.Lens hiding (Strict)
 import Control.Monad.Extra
 import Control.Monad.Reader
 import Control.Monad.State
+import Data.Foldable
 import Witherable (wither)
 
 {- Note [Differences from PIR inliner]

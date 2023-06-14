@@ -16,7 +16,8 @@ module PlutusIR.Purity
 import PlutusCore.Builtin
 import PlutusIR
 
-import Control.Applicative
+import Control.Applicative ((<|>))
+import Data.Foldable (asum)
 import Data.List.NonEmpty qualified as NE
 
 -- | An argument taken by a builtin: could be a term of a type.
