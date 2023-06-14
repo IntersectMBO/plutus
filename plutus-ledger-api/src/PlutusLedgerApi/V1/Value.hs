@@ -74,7 +74,7 @@ A `Value` is a map from `CurrencySymbol`'s to a map from `TokenName` to an `Inte
 
 This is a simple type without any validation, __use with caution__.
 You may want to add checks for its invariants. See the
- [Shelley ledger specification](https://hydra.iohk.io/build/16861845/download/1/ledger-spec.pdf).
+ [Shelley ledger specification](https://github.com/input-output-hk/cardano-ledger/releases/latest/download/shelley-ledger.pdf).
 -}
 newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: PlutusTx.BuiltinByteString }
     deriving
@@ -98,7 +98,7 @@ Forms an `AssetClass` along with a `CurrencySymbol`.
 
 This is a simple type without any validation, __use with caution__.
 You may want to add checks for its invariants. See the
- [Shelley ledger specification](https://hydra.iohk.io/build/16861845/download/1/ledger-spec.pdf).
+ [Shelley ledger specification](https://github.com/input-output-hk/cardano-ledger/releases/latest/download/shelley-ledger.pdf).
 -}
 newtype TokenName = TokenName { unTokenName :: PlutusTx.BuiltinByteString }
     deriving stock (Generic, Data)
