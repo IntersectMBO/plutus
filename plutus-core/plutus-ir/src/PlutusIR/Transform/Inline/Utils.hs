@@ -30,6 +30,7 @@ import Control.Monad.State
 import Data.Map qualified as Map
 import Data.Semigroup.Generic (GenericSemigroupMonoid (..))
 import Prettyprinter (viaShow)
+import Universe (GShow)
 
 -- General infra:
 
@@ -111,29 +112,26 @@ an under-approximation of how many arguments the term may need.
 e.g. consider the term @let id = \x -> x in id@: the variable @id@ has syntactic
 arity @[]@, but does in fact need an argument before it does any work.
 -}
-type Arity tyname name = [Param tyname name]
+type Arity tyname name uni ann = [Param tyname name uni ann]
 
 -- | Info attached to a let-binding needed for call site inlining.
 data VarInfo tyname name uni fun ann = MkVarInfo
     { varStrictness :: Strictness
     , varRhs        :: Term tyname name uni fun ann
     -- ^ its definition that has been unconditionally inlined.
-    , varArity      :: Arity tyname name
+    , varArity      :: Arity tyname name uni ann
     -- ^ its arity, storing to avoid repeated calculations.
     , varRhsBody    :: InlineTerm tyname name uni fun ann
     -- ^ the body of the function, for checking `acceptable` or not. Storing this to avoid repeated
     -- calculations.
     }
 -- | Is the next argument a term or a type?
-data Param tyname name =
-    TermParam name | TypeParam tyname
+data Param tyname name uni ann =
+    TermParam ann name (Type tyname uni ann)
+    | TypeParam ann tyname (Kind ann)
     deriving stock (Show)
 
-data Lam tyname name uni ann =
-    TermLam ann name (Type tyname uni ann)
-    | TypeLam ann tyname (Kind ann)
-
-instance (Show tyname, Show name) => Pretty (Param tyname name) where
+instance (Show tyname, Show name, GShow uni, Show ann) => Pretty (Param tyname name uni ann) where
   pretty = viaShow
 
 -- | Inliner context for both unconditional inlining and call site inlining.

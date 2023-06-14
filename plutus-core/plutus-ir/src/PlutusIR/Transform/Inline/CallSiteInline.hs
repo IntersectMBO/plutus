@@ -59,27 +59,27 @@ it's `Utils.acceptable`.
 -}
 splitParams ::
   Term tyname name uni fun ann ->
-  (Arity tyname name, Term tyname name uni fun ann)
+  (Arity tyname name uni ann, Term tyname name uni fun ann)
 splitParams = \case
-  LamAbs _ n _ body ->
-    let (nextArgs, nextBody) = splitParams body in (TermParam n : nextArgs, nextBody)
-  TyAbs _ n _ body ->
-    let (nextArgs, nextBody) = splitParams body in (TypeParam n : nextArgs, nextBody)
+  LamAbs ann n ty body ->
+    let (nextArgs, nextBody) = splitParams body in (TermParam ann n ty : nextArgs, nextBody)
+  TyAbs ann n kd body ->
+    let (nextArgs, nextBody) = splitParams body in (TypeParam ann n kd : nextArgs, nextBody)
   -- Whenever we encounter a body that is not a lambda or type abstraction, we are done counting
   tm -> ([], tm)
 
-{- | Split the lambdas out from a term.
--}
-splitLambdas ::
+-- | Returns the function with the supplied term or type lambda abstractions.
+mkAbs ::
+  -- | The function body
   Term tyname name uni fun ann ->
-  ([Lam tyname name uni ann], Term tyname name uni fun ann)
-splitLambdas = \case
-  LamAbs ann n ty body ->
-    let (nextArgs, nextBody) = splitLambdas body in ( TermLam ann n ty : nextArgs, nextBody)
-  TyAbs ann n kd body ->
-    let (nextArgs, nextBody) = splitLambdas body in (TypeLam ann n kd : nextArgs, nextBody)
-  -- Whenever we encounter a body that is not a lambda or type abstraction, we are done splitting
-  tm -> ([], tm)
+  Arity tyname name uni ann -> -- The abstractions
+  Term tyname name uni fun ann
+mkAbs body (TermParam ann n ty : nextLam) =
+  mkAbs (LamAbs ann n ty body) nextLam
+mkAbs body  (TypeParam ann n kd : nextLam) =
+  mkAbs (TyAbs ann n kd body) nextLam
+mkAbs body _ = body
+
 
 {- | Apply the RHS of the given variable to the given arguments and beta-reduce
 the application, if possible.
@@ -97,13 +97,13 @@ applyAndBetaReduce info args0 = do
   let go ::
         -- | The function body of the variable
         Term tyname name uni fun ann ->
-        Arity tyname name ->
+        Arity tyname name uni ann ->
         AppContext tyname name uni fun ann ->
         InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
       go acc arity args = case (arity, args) of
         -- fully applied
         ([], _) -> pure $ Just $ fillAppContext acc args
-        (TermParam param : arity', TermAppContext arg _ args') -> do
+        (TermParam _ann param _ty: arity', TermAppContext arg _ args') -> do
           safe <- safeToBetaReduce param arg
           if safe
             then do
@@ -113,35 +113,18 @@ applyAndBetaReduce info args0 = do
                   acc
               go acc' arity' args'
             else pure Nothing
-        (TypeParam param : arity', TypeAppContext arg _ args') -> do
+        (TypeParam _ann param _kd: arity', TypeAppContext arg _ args') -> do
           acc' <-
             termSubstTyNamesM
               (\n -> if n == param then Just <$> PLC.rename arg else pure Nothing)
               acc
           go acc' arity' args'
         -- term/type argument mismatch, don't inline
-        (TermParam _:_, TypeAppContext{}) -> pure Nothing
-        (TypeParam _:_, TermAppContext{}) -> pure Nothing
+        (TermParam{}:_, TypeAppContext{}) -> pure Nothing
+        (TypeParam{}:_, TermAppContext{}) -> pure Nothing
         -- no more arguments to apply, just apply what we have
-        (remainingArity, AppContextEnd) ->
-          let numberOfUnappliedLam = length remainingArity
-              allLambdas = fst $ splitLambdas (varRhs info)
-              -- | Returns the function with the unapplied lambda.
-              partiallyAppliedFun ::
-                -- | The function body
-                Term tyname name uni fun ann ->
-                -- | The number of arguments not applied
-                Int ->
-                [Lam tyname name uni ann] -> -- The whole list of lambdas of the function
-                Term tyname name uni fun ann
-              partiallyAppliedFun body numArg (TermLam ann n ty : nextLam) =
-                partiallyAppliedFun (LamAbs ann n ty body) (numArg - 1) nextLam
-              partiallyAppliedFun body numArg (TypeLam ann n kd : nextLam) =
-                partiallyAppliedFun (TyAbs ann n kd body) (numArg - 1) nextLam
-              partiallyAppliedFun body 0 _ = body
-              partiallyAppliedFun body _ [] = body
-          in
-            pure $ Just (partiallyAppliedFun acc numberOfUnappliedLam allLambdas)
+        (remainingArity, AppContextEnd) -> pure Nothing
+            -- pure $ Just (mkAbs acc remainingArity)
 
       -- Is it safe to turn `(\a -> body) arg` into `body [a := arg]`?
       -- The criteria is the same as the criteria for inlining `a` in
