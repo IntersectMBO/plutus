@@ -10,20 +10,12 @@ This directory contains four sets of benchmarks:
 
    * To run the benchmarks using cabal, type a command like this
        * `cabal bench plutus-benchmark:nofib` (run all benchmarks; this will take a long time)
-       * `cabal bench plutus-benchmark:nofib --ba "clausify/formula2 -L300"` (run the `clausify/formula2`
-          benchmark with a time limit of 300 seconds)
-       * `cabal run plutus-benchmark:nofib`
-       * `cabal run plutus-benchmark:nofib -- clausify/formula2 -L300`
-
-     The difference is that `cabal run` runs the benchmarks with the working directory
-     set to the shell's current working directory, but `cabal bench` sets the working directory
-     to the `plutus-benchmark` directory.
-
-   * By default, the `nofib` benchmarks are run for a minimum of **60 seconds
+       * `cabal run plutus-benchmark:nofib` (runs the benchmarks with the working directory set to the shell's current working directory. `cabal bench` sets the working directory to the `plutus-benchmark` directory.)
+       * `cabal run plutus-benchmark:nofib -- clausify/formula2 -L300` (run the `clausify/formula2` benchmark with a time limit of 300 seconds. By default, the `nofib` benchmarks are run for a minimum of **60 seconds
      each** in order to get a statistically reasonable number of executions.
      You can change this with Criterion's `-L` option.  With the 60 second limit
      the entire suite takes perhaps 20-40 minutes to run (although this will
-     depend on the hardware).
+     depend on the hardware))
 
 See also [nofib/README.md](./nofib/README.md).
 
@@ -35,10 +27,9 @@ See also [nofib/README.md](./nofib/README.md).
    * The benchmarking code is in `validation/Main.hs`.
 
    * To run the benchmarks using cabal, type a command like this
-       * `cabal bench plutus-benchmark:validation` (run all benchmarks)
-       * `cabal bench plutus-benchmark:validation --ba "crowdfunding/2 -L60"` (run the `crowdfunding/2`
+       * `cabal bench plutus-benchmark:validation` or `cabal run plutus-benchmark:validation` (run all benchmarks)
+       * `cabal run plutus-benchmark:validation -- crowdfunding/2 -L60` (run the `crowdfunding/2`
            benchmark with a time limit of 60 seconds)
-     or the `cabal run` equivalents (see the `nofib` section).
 
    * During benchmarking each validation script is run repeatedly up to a limit
      of 20 seconds (a single execution takes approximately 5-15 ms) to get
@@ -82,7 +73,7 @@ are interpreted relative to `plutus-benchmark` when running the benchmarks via
 cabal): for example
 
 ```
-  cabal bench plutus-benchmark:validation --ba "crowdfunding -L60 --output $PWD/crowdfunding-report.html"
+  cabal run plutus-benchmark:validation -- crowdfunding -L60 --output $PWD/crowdfunding-report.html
 ```
 
 `cabal run` will write the output into

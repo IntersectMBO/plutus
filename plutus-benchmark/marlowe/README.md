@@ -2,7 +2,7 @@
 
 ## `marlowe-internal`
 
-This package is fully representative version of the Marlowe validator on chain. It is primarily for benchmarking/profiling Marlowe scripts. 
+This package is a fully representative version of the Marlowe validator on chain, currently. (See the "Managing versions" section below) It is primarily for benchmarking/profiling Marlowe scripts. 
 
 Marlowe is a platform for financial products as smart contracts. [Marlowe-Cardano](https://github.com/input-output-hk/marlowe-cardano) is an implementation of Marlowe for the Cardano blockchain, built on top of Plutus.
 
