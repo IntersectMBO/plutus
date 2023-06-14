@@ -24,9 +24,8 @@ open import Agda.Builtin.Int using (Int)
 open import Agda.Builtin.String using (String)
 open import Utils using (ByteString;Maybe;DATA;Bls12-381-G1-Element;Bls12-381-G2-Element;Bls12-381-MlResult;♯)
 import Utils as U
-open import Builtin.Signature using (Sig;sig;_⊢♯;Args)
+open import Builtin.Signature using (Sig;sig;_⊢♯;Args;integer;string;bytestring;unit;bool;pdata)
 open _⊢♯
---import Builtin.Constant.Type as T
 open import Builtin.Constant.AtomicType 
 
 open import Utils.Reflection using (defDec)
@@ -145,17 +144,6 @@ This is defined in its own module so that these definitions are not exported.
     ∀a = 1
     ∀b,a = 2
 
-    -- shortened names for type constants and type constructors
-    pattern integer = atomic aInteger
-    pattern bytestring = atomic aBytestring
-    pattern string = atomic aString
-    pattern unit = atomic aUnit
-    pattern bool = atomic aBool
-    pattern pdata = atomic aData
-    pattern bls12-381-g1-element = atomic aBls12-381-g1-element
-    pattern bls12-381-g2-element = atomic aBls12-381-g2-element
-    pattern bls12-381-mlresult = atomic aBls12-381-mlresult
-    
     -- names for type variables
     a : ∀{n} → suc n ⊢♯
     a = ` Z
@@ -269,7 +257,7 @@ This is defined in its own module so that these definitions are not exported.
     signature bls12-381-mulMlResult           = ∙ [ bls12-381-mlresult , bls12-381-mlresult ]⟶ bls12-381-mlresult
     signature bls12-381-finalVerify           = ∙ [ bls12-381-mlresult , bls12-381-mlresult ]⟶ bool
 
-open SugaredSignature using (signature;integer;bytestring;string;unit;pdata;bool) public
+open SugaredSignature using (signature) public
 ```
 
 ## GHC Mappings

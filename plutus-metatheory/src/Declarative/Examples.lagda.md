@@ -25,7 +25,7 @@ open Ctx
 open _⊢_
 open _∋_
 open import Builtin using (addInteger)
-open import Builtin.Constant.Type using (TyCon;integer)
+open import Builtin.Constant.Type using (TyCon;aInteger)
 open TyCon
 open import Declarative.Examples.StdLib.Function using (unwrap0;Z-comb)
 import Declarative.Examples.StdLib.ChurchNat using (inc;N;Succ;Zero;Iter)
@@ -34,6 +34,8 @@ import Declarative.Examples.StdLib.ChurchNat using (inc;N;Succ;Zero;Iter)
 ## Examples
 
 ```
+integer = atomic aInteger
+
 module Builtins where
   open Declarative.Examples.StdLib.ChurchNat
 

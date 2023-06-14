@@ -16,7 +16,7 @@ open import Data.String using (String;_++_)
 open import Builtin using (Builtin)
 open Builtin.Builtin
 
-open import Builtin.Signature using (_⊢♯) 
+open import Builtin.Signature using (_⊢♯;integer;bytestring) 
 open import Builtin.Constant.Type
 open import Builtin.Constant.AtomicType using (aBool)
 
@@ -273,24 +273,7 @@ scopeCheckTm (unwrap t) = fmap unwrap (scopeCheckTm t)
 \end{code}
 
 \begin{code}
-{-
-wftoℕ : ∀{n}{w : Weirdℕ n} → WeirdFin w → ℕ
-wftoℕ Z = zero
-wftoℕ (S i) = ℕ.suc (wftoℕ i)
-wftoℕ (T i) = ℕ.suc (wftoℕ i)
--}
-\end{code}
-
-\begin{code}
 extricateScopeTy : ∀{n} → ScopedTy n → RawTy
-
-{-
-extricateTyCon : ∀{n} → TyCon n → RawTyCon
-extricateTyCon (atomic ty) = atomic ty
-extricateTyCon list        = list (extricateScopeTy A)
-extricateTyCon pair        = pair (extricateScopeTy A) (extricateScopeTy B)
--}
-
 extricateScopeTy (` x) = ` (toℕ x)
 extricateScopeTy (A ⇒ B) = extricateScopeTy A ⇒ extricateScopeTy B
 extricateScopeTy (Π K A) = Π K (extricateScopeTy A)
@@ -324,23 +307,11 @@ uglyWeirdFin Z = "0"
 uglyWeirdFin (T x) = "(T " ++ uglyWeirdFin x ++ ")"
 uglyWeirdFin (S x) = "(S " ++ uglyWeirdFin x ++ ")"
 
-{-
 uglyTmCon : TmCon → String
-uglyTmCon (tmCon (_⊢♯.atomic Builtin.Constant.AtomicType.aInteger) x) = {!   !}
-uglyTmCon (tmCon (_⊢♯.atomic Builtin.Constant.AtomicType.aBytestring) x) = {!   !}
-uglyTmCon (tmCon (_⊢♯.atomic Builtin.Constant.AtomicType.aString) x) = {!   !}
-uglyTmCon (tmCon (_⊢♯.atomic Builtin.Constant.AtomicType.aUnit) x) = {!   !}
-uglyTmCon (tmCon (_⊢♯.atomic aBool) x) = {!   !}
-uglyTmCon (tmCon (_⊢♯.atomic Builtin.Constant.AtomicType.aData) x) = {!   !}
-uglyTmCon (tmCon (_⊢♯.list t) x) = {!   !}
-uglyTmCon (tmCon (_⊢♯.pair t t₁) x) = {!   !} 
-
-{-
-uglyTmCon (tmCon (con integer) x) = "(integer " ++ ishow x ++ ")"
-uglyTmCon (tmCon (con bytestring) x) = "bytestring"
+uglyTmCon (tmCon integer x) = "(integer " ++ ishow x ++ ")"
+uglyTmCon (tmCon bytestring x) = "bytestring"
 uglyTmCon size = "size"
--}
--}
+
 
 postulate showNat : ℕ → String
 

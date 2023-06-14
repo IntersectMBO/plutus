@@ -30,7 +30,7 @@ open import Builtin using (Builtin;signature)
 open import Type.BetaNBE using (nf;reify;eval;idEnv;exte)
 open import Builtin.Signature using (Sig;sig;nat2Ctx⋆;fin2∈⋆;_⊢♯)
 open Builtin.Signature.FromSig Ctx⋆ _⊢Nf⋆_ _⊢Ne⋆_ ne nat2Ctx⋆ (λ x → ` (fin2∈⋆ x)) _·_ ^ con _⇒_   Π 
-     using (♯2*;sig2type;SigTy;sigTy2type;convSigTy) public
+     using (♯2*;sig2type;SigTy;sigTy2type;convSigTy;sig2typeΠ;sig2type⇒) public
 open SigTy
 
 

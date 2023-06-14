@@ -54,12 +54,6 @@ open import Type.BetaNBE.RenamingSubstitution using (_[_]Nf;subNf∅)
 
 open import Builtin.Constant.AtomicType using (AtomicTyCon;decAtomicTyCon)
 open AtomicTyCon
---import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) as T
---import Builtin.Constant.Type ℕ ScopedTy as S
-import Builtin.Constant.Type as T
-import Builtin.Constant.Type as S
-
---import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as A
 ```
 
 ```
@@ -178,18 +172,6 @@ isMu p = do
 
 checkKind : ∀ Φ (A : ScopedTy (len⋆ Φ)) → ∀ K → Either TypeError (Φ ⊢Nf⋆ K)
 inferKind : ∀ Φ (A : ScopedTy (len⋆ Φ)) → Either TypeError (Σ Kind (Φ ⊢Nf⋆_))
---inferKindCon : ∀ Φ (c : S.TyCon (len⋆ Φ)) → Either TypeError (T.TyCon Φ)
-
-{-
-inferKindCon Φ (S.list A) = do
-  A ← isStar (inferKind Φ A)
-  return (T.list A)
-inferKindCon Φ (S.pair A B) = do
-  A ← isStar (inferKind Φ A)
-  B ← isStar (inferKind Φ B)  
-  return (T.pair A B)
-inferKindCon Φ (S.atomic A)= inj₂ (T.atomic A)
--}
 
 checkKind Φ A K = do
   K' ,, A ← inferKind Φ A
@@ -244,8 +226,8 @@ decTyVar (S α) Z      = no λ()
 
 decNfTy : ∀{Φ K}(A A' : Φ ⊢Nf⋆ K) → Dec (A ≡ A')
 decNeTy : ∀{Φ K}(A A' : Φ ⊢Ne⋆ K) → Dec (A ≡ A')
-decTyCon : ∀{Φ}(c c' : T.TyCon Φ) → Dec (c ≡ c')
-decTyCon (atomic x) (atomic y) = dcong T.atomic (λ {refl → refl}) (decAtomicTyCon x y)
+decTyCon : ∀{Φ}(c c' : TyCon Φ) → Dec (c ≡ c')
+decTyCon (atomic x) (atomic y) = dcong atomic (λ {refl → refl}) (decAtomicTyCon x y)
 decTyCon list list = yes refl
 decTyCon pair pair = yes refl
 

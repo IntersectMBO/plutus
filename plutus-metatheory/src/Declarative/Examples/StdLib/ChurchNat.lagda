@@ -15,11 +15,13 @@ open _⊢_
 open _∋_
 open import Type.RenamingSubstitution using (sub∅)
 open import Builtin using (addInteger)
-open import Builtin.Constant.Type using (TyCon;integer)
+open import Builtin.Constant.Type using (TyCon;aInteger)
 open TyCon
 \end{code}
 
 \begin{code}
+integer = atomic aInteger
+
 -- all (r :: *). r -> (r -> r) -> r
 N : ∀{Φ} → Φ ⊢⋆ *
 N = Π (` Z ⇒ (` Z ⇒ ` Z) ⇒ ` Z)

@@ -19,7 +19,7 @@ module Builtin.Constant.Type where
 
 ```
 open import Utils using (Kind;♯;_⇒_)
-open import Builtin.Constant.AtomicType
+open import Builtin.Constant.AtomicType public
 ```
 
 Type constants are either atomic, or pair, or lists.
@@ -29,14 +29,4 @@ data TyCon : Kind → Set where
   atomic     : AtomicTyCon → TyCon ♯
   list       : TyCon (♯ ⇒ ♯)
   pair       : TyCon (♯ ⇒ (♯ ⇒ ♯))
-
-pattern integer = atomic aInteger
-pattern bytestring = atomic aBytestring
-pattern string = atomic aString
-pattern unit = atomic aUnit
-pattern bool = atomic aBool
-pattern pdata = atomic aData
-pattern bls12-381-g1-element = atomic aBls12-381-g1-element
-pattern bls12-381-g2-element = atomic aBls12-381-g2-element 
-pattern bls12-381-mlresult   = atomic aBls12-381-mlresult
 ```

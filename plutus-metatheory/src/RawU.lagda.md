@@ -31,7 +31,7 @@ open import Builtin using (Builtin;equals)
 open Builtin.Builtin
 
 
-open import Builtin.Signature using (Sig;sig;nat2Ctx⋆;fin2∈⋆;_⊢♯)
+open import Builtin.Signature as B using (Sig;sig;nat2Ctx⋆;fin2∈⋆;_⊢♯) 
 open _⊢♯
 import Builtin.Constant.Type as T
 open import Builtin.Constant.AtomicType using (AtomicTyCon;decAtomicTyCon)
@@ -41,7 +41,7 @@ open import Type using (Ctx⋆;∅)
 open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_)
 open _⊢Nf⋆_
 open _⊢Ne⋆_
-open Builtin.Signature.FromSig Ctx⋆ _⊢Nf⋆_ _⊢Ne⋆_ ne nat2Ctx⋆ (λ x → ` (fin2∈⋆ x)) _·_ ^ con _⇒_   Π 
+open B.FromSig Ctx⋆ _⊢Nf⋆_ _⊢Ne⋆_ ne nat2Ctx⋆ (λ x → ` (fin2∈⋆ x)) _·_ ^ con _⇒_   Π 
      using (♯2*;sig2type;SigTy;sigTy2type;convSigTy) public
 open import Algorithmic using (⟦_⟧)
 
@@ -280,6 +280,4 @@ tmCon2TagCon (tmCon (atomic aBls12-381-mlresult) x) = tagCon bls12-381-mlresult 
 tmCon2TagCon (tmCon (list t) x) rewrite tyTagLemma t = tagCon (list (proj₂ (tyTag2Tag t))) x
 tmCon2TagCon (tmCon (pair t u) (x , y)) rewrite tyTagLemma t | tyTagLemma u = 
     tagCon (pair (proj₂ (tyTag2Tag t)) (proj₂ (tyTag2Tag u))) (x , y)
-tmCon2TagCon (tmCon (con (T.list t)) x) rewrite tyTagLemma t = tagCon (list (proj₂ (tyTag2Tag t))) x
-
-``` 
+```

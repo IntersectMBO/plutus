@@ -34,7 +34,7 @@ open import Builtin
 open import Utils
 
 open import Builtin.Constant.AtomicType
-open import Builtin.Constant.Type using (TyCon;integer;bool;bytestring;string;pdata;bls12-381-g1-element;bls12-381-g2-element)
+open import Builtin.Constant.Type using (TyCon)
 open TyCon
 
 open import Builtin.Signature using (Sig;sig;Args;nat2Ctx⋆;fin2∈⋆;args♯) renaming (_⊢♯ to _⊢b♯)

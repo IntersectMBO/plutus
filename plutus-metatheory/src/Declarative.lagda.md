@@ -28,7 +28,7 @@ open import Utils using (Kind;*;♯;_⇒_;K)
 open import Builtin.Constant.Type using (TyCon)
 open TyCon
 
-open Builtin.Signature.FromSig Ctx⋆ (_⊢⋆_) (_⊢⋆_) (λ x → x) nat2Ctx⋆ (λ x → ` (fin2∈⋆ x)) _·_ ^ con _⇒_ Π using (sig2type)
+open Builtin.Signature.FromSig Ctx⋆ (_⊢⋆_) (_⊢⋆_) (λ x → x) nat2Ctx⋆ (λ x → ` (fin2∈⋆ x)) _·_ ^ con _⇒_ Π using (sig2type;sig2type⇒;sig2typeΠ;♯2*) public
 open import Type.BetaNBE using (nf)
 open import Algorithmic using (⟦_⟧;ty2sty)
 open import RawU using (TyTag)
@@ -121,7 +121,6 @@ We define it this way because it is easier to define the meaning of a normalised
 ty2TyTag : ∀ (A : ∅ ⊢⋆ ♯) → TyTag
 ty2TyTag A = ty2sty (nf A) 
 ```
-
 
 ## Terms
 

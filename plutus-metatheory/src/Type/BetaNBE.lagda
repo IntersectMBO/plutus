@@ -122,19 +122,11 @@ inj₂ f ·V v = f id v
 Evaluation a term in an environment yields a value. The most
 interesting cases are ƛ where we introduce a new Kripke function that
 will evaluate when it receives an argument and Π/μ where we need to go
-under the binder and extend the environement before evaluating and
+under the binder and extend the environment before evaluating and
 reifying.
 
 \begin{code}
 eval : ∀{Φ Ψ K} → Ψ ⊢⋆ K → Env Ψ Φ → Val Φ K
-
-{-
-evalTyCon : ∀{Φ Ψ} → Syn.TyCon Ψ → Env Ψ Φ → Nf.TyCon Φ
-
-evalTyCon (Syn.list A)   η = Nf.list (eval A η)
-evalTyCon (Syn.pair A B) η = Nf.pair (eval A η) (eval B η)
-evalTyCon (Syn.atomic A) η = Nf.atomic A
--}
 eval (` α)   η = η α
 eval (Π B)   η = Π (reify (eval B (exte η)))
 eval (A ⇒ B) η = reify (eval A η) ⇒ reify (eval B η)

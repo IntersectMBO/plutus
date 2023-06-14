@@ -2,9 +2,12 @@
 module Algorithmic.Completeness where
 
 
-
-open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;sym;trans) 
+open import Data.Nat using (zero;suc)
+open import Data.List using ([];_∷_)
+open import Data.List.NonEmpty using (_∷_;toList)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;sym;trans;cong₂) 
                                                   renaming (subst to substEq) 
+open Relation.Binary.PropositionalEquality.≡-Reasoning
 open import Function using (_∘_)
 open import Data.Product using (_×_) renaming (_,_ to _,,_)
 open import Data.List using (List;[];_∷_;map)
@@ -15,19 +18,22 @@ open _⊢⋆_
 
 open import Type.Equality using (_≡β_;≡2β)
 open _≡β_
-open import Type.RenamingSubstitution using (weaken;ren;_[_];sub-cons;Sub;sub;sub∅)
+open import Type.RenamingSubstitution using (weaken;ren;_[_];sub-cons;Sub;sub;sub∅;sub-cong)
+open import Builtin using (signature)
+open import Builtin.Signature using (Sig;sig;_⊢♯;nat2Ctx⋆)
+open import Builtin.Constant.Type
+
 import Declarative as Syn
 import Algorithmic as Norm
 import Algorithmic.Signature as Norm
 open import Type.BetaNormal using (embNf;weakenNf;ne;_⊢Nf⋆_;_⊢Ne⋆_)
 open _⊢Nf⋆_
 open _⊢Ne⋆_
-open import Type.BetaNBE using (nf)
-open import Type.BetaNBE.Completeness using (completeness;sub-eval;idCR;fund;symCR)
-open import Type.BetaNBE.RenamingSubstitution using (ren-nf;subNf;subNf-cong;subNf-cong';subNf-lemma';_[_]Nf;subNf-cons;subNf∅;subNf∅≡subNf)
+open import Type.BetaNBE using (nf;idEnv;reify;eval;exte)
+open import Type.BetaNBE.Completeness using (completeness;sub-eval;idCR;fund;symCR;reifyCR;exte-lem;idext)
+open import Type.BetaNBE.RenamingSubstitution using (ren-nf;subNf;subNf-cong;subNf-cong';subNf-lemma';_[_]Nf;subNf-cons;subNf∅;subNf∅≡subNf;subNf-nf)
 open import Type.BetaNBE.Soundness using (soundness)
---import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con as STermCon
---import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as NTermCon
+open import Type.BetaNBE.Stability using (stability)
 
 nfCtx : ∀ {Φ} → Syn.Ctx Φ → Norm.Ctx Φ
 nfCtx Syn.∅ = Norm.∅
@@ -100,11 +106,73 @@ lemσ σ C _ refl q = trans
 nfList : ∀{Δ} → List (Δ ⊢⋆ *) → List (Δ ⊢Nf⋆ *)
 nfList []       = []
 nfList (A ∷ As) = nf A ∷ nfList As
+ 
+\end{code}
 
-postulate btype-lem : ∀ {Φ} b → Norm.btype {Φ} b ≡ nf (Syn.btype b)
+We need to prove that the type of a builtin `b` for the Algorithmic system is the same as normalising the type
+of the Declarative system
+           Norm.btype b ≡ nf (Syn.btype b)
+           
+This involves doing an analogous proof for every function in the definition of btype
 
-postulate subNf∅-sub∅ : ∀{Φ}{K} (A : ∅ ⊢⋆ K) → nf {Φ} (sub∅ A) ≡ subNf∅ (nf A) 
+\begin{code}
+subNf-sub∅ : ∀{Φ}{K} (A : ∅ ⊢⋆ K) → nf {Φ} (sub∅ A) ≡ subNf (λ()) (nf A)
+subNf-sub∅ {Φ} A = begin
+          nf (sub∅ A)
+        ≡⟨⟩
+          nf (sub (λ ()) A)
+        ≡⟨ cong nf (sub-cong (λ ()) A) ⟩  
+          nf (sub (embNf ∘ λ ()) A)
+        ≡⟨ subNf-nf ((λ ())) A ⟩
+          subNf (λ ()) (nf A)
+        ∎
 
+subNf∅-sub∅ : ∀{Φ}{K} (A : ∅ ⊢⋆ K) → nf {Φ} (sub∅ A) ≡ subNf∅ (nf A)
+subNf∅-sub∅ A = trans (subNf-sub∅ A) (sym subNf∅≡subNf)
+
+con-injective : ∀ {Φ}{n m : Φ ⊢Nf⋆ ♯} → _≡_ {_} {Φ ⊢Nf⋆ *} (con n) (con m) → n ≡ m
+con-injective refl = refl
+
+♯2*-lem : ∀ {n}(t : n ⊢♯) → con (ne (Norm.♯2* t)) ≡ nf (con (Syn.♯2* t))
+♯2*-lem (_⊢♯.` x) = refl
+♯2*-lem (_⊢♯.atomic x) = refl
+♯2*-lem (_⊢♯.list t)  = cong (λ x → con (ne (^ Builtin.Constant.Type.TyCon.list · x))) (con-injective (♯2*-lem t))
+♯2*-lem (_⊢♯.pair t t₁) = cong₂ (λ x y → con (ne (^ pair · x · y))) (con-injective (♯2*-lem t)) (con-injective (♯2*-lem t₁))
+
+sig2type⇒-lem : ∀{n}{algRes}{synRes} (args : List (n ⊢♯)) → (algRes ≡ nf synRes) →
+                          Norm.sig2type⇒ args algRes ≡ nf (Syn.sig2type⇒ args synRes)
+sig2type⇒-lem [] p = p
+sig2type⇒-lem (x ∷ args) p = sig2type⇒-lem args (cong₂ _⇒_ (♯2*-lem x) p)
+
+sig2typeΠ-lem : ∀{n}{at : nat2Ctx⋆ n ⊢Nf⋆ *}{t : nat2Ctx⋆ n ⊢⋆ *} → (at ≡ nf t) →
+                          Norm.sig2typeΠ at ≡ nf (Syn.sig2typeΠ t)
+sig2typeΠ-lem {zero} p = p
+sig2typeΠ-lem {suc n}{at}{t} refl = sig2typeΠ-lem {n} (cong Π (sym (reifyCR (idext exte-lem t))))
+
+sig2type-lem : ∀ s → Norm.sig2type s ≡ nf (Syn.sig2type s) 
+sig2type-lem (sig zero a r) = sig2type⇒-lem (toList a) (♯2*-lem r)
+sig2type-lem (sig (suc n) (head ∷ tail) r) = 
+    sig2typeΠ-lem {at = (Π (Norm.sig2type⇒ tail(con (ne (Norm.♯2* head)) ⇒ con (ne (Norm.♯2* r)))))} 
+                  {(Π (Syn.sig2type⇒ tail (con (Syn.♯2* head) ⇒ con (Syn.♯2* r))))}
+                  (cong Π (trans (sig2type⇒-lem {suc n} {con (ne (Norm.♯2* r))} {con (Syn.♯2* r)} (head ∷ tail) (♯2*-lem r)) 
+                                 (sym (reifyCR (idext exte-lem (Syn.sig2type⇒ tail (con (Syn.♯2* head) ⇒ con (Syn.♯2* r))))))
+                   ))
+
+btype-lem : ∀ {Φ} b → Norm.btype {Φ} b ≡ nf (Syn.btype b)
+btype-lem b = begin 
+        Norm.btype b
+      ≡⟨⟩
+        subNf∅ (Norm.sig2type (signature b))
+      ≡⟨ cong subNf∅ (sig2type-lem (signature  b)) ⟩
+        subNf∅ (nf (Syn.sig2type (signature b)))
+      ≡⟨ sym (subNf∅-sub∅ (Syn.sig2type (signature b))) ⟩
+         nf (sub∅ (Syn.sig2type (signature b)))
+      ≡⟨⟩
+       nf (Syn.btype b)
+      ∎
+\end{code}
+
+\begin{code}
 nfType : ∀{Φ Γ}
   → {A : Φ ⊢⋆ *}
   → Γ Syn.⊢ A
@@ -136,3 +204,4 @@ completenessT : ∀{Φ Γ}{A : Φ ⊢⋆ *} → Γ Syn.⊢ A
 completenessT {A = A} t = nfType t ,, soundness A
 \end{code}
   
+ 

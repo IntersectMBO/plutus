@@ -37,7 +37,7 @@ open _⊢_
 open import Builtin using (Builtin)
 open Builtin.Builtin
 
-open import Builtin.Constant.Type using (TyCon;unit)
+open import Builtin.Constant.Type using (TyCon;aUnit)
 open TyCon
 
 open import Algorithmic.RenamingSubstitution using (_[_];_[_]⋆)
@@ -175,7 +175,7 @@ thm64b ((s , unwrap-) ◅ V-wrap V) s' (step* refl p) = CC.step*
 thm64b (□ x₁) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 thm64b (◆ A) s' (step* refl p) = CC.step* refl (thm64b _ s' p)
 
-test : State (con (ne (^ unit)))
+test : State (con (ne (^ (atomic aUnit))))
 test = ε ▻ (ƛ (con tt refl) · (builtin iData / refl · con (+ 0) refl))
 
 postulate

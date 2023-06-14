@@ -529,5 +529,4 @@ subNf∅-subNf σ A = begin
           ≡⟨ sym subNf∅≡subNf ⟩
            subNf∅ A
           ∎
-  
 \end{code}

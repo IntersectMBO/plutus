@@ -25,7 +25,7 @@ open import Type.BetaNBE.RenamingSubstitution using (subNf∅) renaming (_[_]Nf 
 
 open import Builtin using (Builtin)
 
-open import Builtin.Constant.Type using (TyCon;integer;bool;string;pdata;bytestring;unit)
+open import Builtin.Constant.Type using (TyCon)
 open TyCon
 open import Builtin.Constant.AtomicType using (⟦_⟧at)
 
@@ -236,4 +236,4 @@ conv⊢ : ∀ {Γ Γ'}{A A' : Φ ⊢Nf⋆ *}
  → Γ ⊢ A
  → Γ' ⊢ A'
 conv⊢ refl refl t = t
-\end{code} 
+\end{code}

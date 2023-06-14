@@ -30,7 +30,6 @@ open import Builtin.Signature using (Sig;sig;Args;_⊢♯;nat2Ctx⋆;fin2∈⋆;
 open _⊢♯
 open Sig
 open import RawU using (TmCon;tmCon;TyTag;decTag;⟦_⟧tag)
-open import Builtin.Constant.Type
 ```
 
 ```

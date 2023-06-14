@@ -43,7 +43,7 @@ distinct type variables.
 ```
 
 
-open import Builtin.Constant.Type using (TyCon;integer;bytestring;bool;unit;string;pdata)
+open import Builtin.Constant.Type using (TyCon)
 open TyCon
 
 data _⊢♯ : ℕ → Set where

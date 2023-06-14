@@ -29,7 +29,7 @@ open import Data.String using (String;_++_)
 open import Data.Empty using (⊥)
 open import Utils using (_×_;_,_)
 open import RawU using (TagCon;Tag;decTagCon;TmCon;TyTag;Untyped;tmCon;tmCon2TagCon;tagCon2TmCon)
-open import Builtin.Signature using (_⊢♯) 
+open import Builtin.Signature using (_⊢♯;integer;bool;string;pdata;bytestring;unit) 
 open _⊢♯
 open import Builtin.Constant.AtomicType using (AtomicTyCon)
 open AtomicTyCon
@@ -66,18 +66,18 @@ uglyDATA : DATA → String
 uglyDATA d = "(DATA)"
 
 uglyTmCon : TmCon → String
-uglyTmCon (tmCon (atomic aInteger) x) = "(integer " ++ show x ++ ")"
-uglyTmCon (tmCon (atomic aBytestring) x) = "bytestring"
-uglyTmCon (tmCon (atomic aUnit) _)  = "()"
-uglyTmCon (tmCon (atomic aString) s) = "(string " ++ s ++ ")"
-uglyTmCon (tmCon (atomic aBool) false) = "(bool " ++ "false" ++ ")"
-uglyTmCon (tmCon (atomic aBool) true) = "(bool " ++ "true" ++ ")"
-uglyTmCon (tmCon (atomic aData) d) = uglyDATA d
-uglyTmCon (tmCon (atomic aBls12-381-g1-element) e) = "(bls12-381-g1-element ???)"  -- FIXME
-uglyTmCon (tmCon (atomic aBls12-381-g2-element) e) = "(bls12-381-g2-element ???)"  -- FIXME
-uglyTmCon (tmCon (atomic aBls12-381-mlresult) r) = "(bls12-381-mlresult ???)"      -- FIXME
-uglyTmCon (tmCon ((pair t u)) (x , y)) = "(pair " ++ uglyTmCon (tmCon t x) ++ " " ++ uglyTmCon (tmCon u y) ++ ")"
-uglyTmCon (tmCon ((list t)) xs) = "(list [ something ])"
+uglyTmCon (tmCon integer x)          = "(integer " ++ show x ++ ")"
+uglyTmCon (tmCon bytestring x)       = "bytestring"
+uglyTmCon (tmCon unit _)             = "()"
+uglyTmCon (tmCon string s)           = "(string " ++ s ++ ")"
+uglyTmCon (tmCon bool false)         = "(bool " ++ "false" ++ ")"
+uglyTmCon (tmCon bool true)          = "(bool " ++ "true" ++ ")"
+uglyTmCon (tmCon pdata d)            = uglyDATA d
+uglyTmCon (tmCon (bls12-381-g1-element) e) = "(bls12-381-g1-element ???)"  -- FIXME
+uglyTmCon (tmCon (bls12-381-g2-element) e) = "(bls12-381-g2-element ???)"  -- FIXME
+uglyTmCon (tmCon (bls12-381-mlresult) r) = "(bls12-381-mlresult ???)"      -- FIXME
+uglyTmCon (tmCon (pair t u) (x , y)) = "(pair " ++ uglyTmCon (tmCon t x) ++ " " ++ uglyTmCon (tmCon u y) ++ ")"
+uglyTmCon (tmCon (list t) xs)        = "(list [ something ])"
 
 {-# FOREIGN GHC import qualified Data.Text as T #-}
 
