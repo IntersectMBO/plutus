@@ -471,7 +471,7 @@ applyAndBetaReduce info args0 = do
               go acc' params args'
             else pure Nothing
         -- no more arguments to apply, just apply what we have
-        (_, []) -> pure . Just $ mkIterApp acc args
+        (_, []) -> pure $ Just acc
 
       -- Is it safe to turn `(\a -> body) arg` into `body [a := arg]`?
       -- The criteria is the same as the criteria for unconditionally inlining `a`,

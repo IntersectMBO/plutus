@@ -88,7 +88,7 @@ applyAndBetaReduce info args0 = do
         InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
       go acc arity args = case (arity, args) of
         -- fully applied
-        ([], _) -> pure . Just $ fillAppContext acc args
+        ([], _) -> pure $ Just $ fillAppContext acc args
         (TermParam param : arity', TermAppContext arg _ args') -> do
           safe <- safeToBetaReduce param arg
           if safe
@@ -109,7 +109,7 @@ applyAndBetaReduce info args0 = do
         (TermParam _:_, TypeAppContext{}) -> pure Nothing
         (TypeParam _:_, TermAppContext{}) -> pure Nothing
         -- no more arguments to apply, just apply what we have
-        (_, AppContextEnd) -> pure . Just $ fillAppContext acc args
+        (_, AppContextEnd) -> pure $ Just acc
 
       -- Is it safe to turn `(\a -> body) arg` into `body [a := arg]`?
       -- The criteria is the same as the criteria for inlining `a` in
