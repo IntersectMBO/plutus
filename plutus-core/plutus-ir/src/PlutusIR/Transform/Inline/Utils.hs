@@ -129,6 +129,10 @@ data Param tyname name =
     TermParam name | TypeParam tyname
     deriving stock (Show)
 
+data Lam tyname name uni ann =
+    TermLam ann name (Type tyname uni ann)
+    | TypeLam ann tyname (Kind ann)
+
 instance (Show tyname, Show name) => Pretty (Param tyname name) where
   pretty = viaShow
 
