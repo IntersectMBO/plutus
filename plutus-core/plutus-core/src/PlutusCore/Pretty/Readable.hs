@@ -210,9 +210,9 @@ type ReadableToDoc configName ann = forall a. PrettyReadableBy configName a => a
 -- | Lay out an iteration application, providing to the caller a function to render the head of the
 -- application and a function to render each of the arguments.
 iterAppDocM ::
-    MonadPrettyReadable configName env m =>
-    (ReadableToDoc configName ann -> ReadableToDoc configName ann -> NonEmpty (Doc ann)) ->
-    m (Doc ann)
+   MonadPrettyContext config env m =>
+   (AnyToDoc config ann -> AnyToDoc config ann -> NonEmpty (Doc ann)) ->
+   m (Doc ann)
 iterAppDocM k =
   infixDocM juxtFixity $ \prettyFun prettyArg ->
     let fun :| args = k prettyFun prettyArg
@@ -230,9 +230,8 @@ or as
 >   z
 -}
 iterAppPrettyM ::
-  ( MonadPrettyReadable configName env m
-  , PrettyReadableBy configName fun
-  , PrettyReadableBy configName term
+  ( MonadPrettyContext config env m
+  , PrettyBy config fun, PrettyBy config term
   ) =>
   fun ->
   [term] ->

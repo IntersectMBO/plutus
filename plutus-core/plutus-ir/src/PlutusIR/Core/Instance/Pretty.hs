@@ -123,7 +123,8 @@ instance ( PLC.PrettyClassicBy configName tyname
                          (prettyBy config ty : prettyBy config arg : fmap (prettyBy config) cs))
       where
         prettyTypeOf :: PLC.Some (PLC.ValueOf uni) -> Doc dann
-        prettyTypeOf (PLC.Some (PLC.ValueOf uni _ )) = PLC.prettyParens $ PLC.SomeTypeIn uni
+        prettyTypeOf (PLC.Some (PLC.ValueOf uni _ )) =
+            PLC.prettyBy PLC.juxtRenderContext $ PLC.SomeTypeIn uni
 
 
 instance ( PLC.PrettyClassicBy configName tyname

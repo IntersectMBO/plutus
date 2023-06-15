@@ -535,6 +535,7 @@ library plutus-ir
     , parser-combinators   >=0.4.0
     , plutus-core          ^>=1.7
     , prettyprinter        >=1.1.0.1
+    , profunctors
     , semigroupoids
     , semigroups           >=0.19.1
     , text

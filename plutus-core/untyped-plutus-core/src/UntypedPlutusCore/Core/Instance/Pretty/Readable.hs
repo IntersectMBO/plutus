@@ -38,7 +38,7 @@ instance
   PrettyBy (PrettyConfigReadable configName) (Term name uni fun a)
   where
   prettyBy = inContextM $ \case
-    Constant _ val -> unitDocM $ pretty val
+    Constant _ val -> lmap (ConstConfig . _pcrRenderContext) $ prettyM val
     Builtin _ bi -> unitDocM $ pretty bi
     Var _ name -> prettyM name
     (viewLamAbs -> Just (args, body)) -> iterLamAbsPrettyM args body

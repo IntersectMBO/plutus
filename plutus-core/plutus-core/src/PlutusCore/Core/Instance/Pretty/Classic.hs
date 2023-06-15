@@ -50,7 +50,7 @@ instance (PrettyClassicBy configName tyname, PrettyParens (SomeTypeIn uni), Pret
             sexp "all" (consAnnIf config ann
                 [prettyBy config n, prettyBy config k, prettyBy config t])
         TyBuiltin ann n    ->
-            sexp "con" (consAnnIf config ann [prettyParens n])
+            sexp "con" (consAnnIf config ann [prettyBy juxtRenderContext n])
         TyLam ann n k t    ->
             sexp "lam" (consAnnIf config ann
                 [prettyBy config n, prettyBy config k, prettyBy config t])
@@ -100,7 +100,7 @@ instance
                                                ++ (fmap (prettyBy config) cs)))
       where
         prettyTypeOf :: Some (ValueOf uni) -> Doc dann
-        prettyTypeOf (Some (ValueOf uni _ )) = prettyParens $ SomeTypeIn uni
+        prettyTypeOf (Some (ValueOf uni _ )) = prettyBy juxtRenderContext $ SomeTypeIn uni
 
 instance (PrettyClassicBy configName (Term tyname name uni fun ann), Pretty ann) =>
         PrettyBy (PrettyConfigClassic configName) (Program tyname name uni fun ann) where

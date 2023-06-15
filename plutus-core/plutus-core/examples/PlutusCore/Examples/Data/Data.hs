@@ -3,10 +3,11 @@
 
 module PlutusCore.Examples.Data.Data
     ( ofoldrData
+    , exampleData
     ) where
 
 import PlutusCore.Core
-import PlutusCore.Data
+import PlutusCore.Data as Data
 import PlutusCore.Default
 import PlutusCore.MkPlc
 import PlutusCore.Name
@@ -17,6 +18,7 @@ import PlutusCore.StdLib.Data.Function
 import PlutusCore.StdLib.Data.Integer
 import PlutusCore.StdLib.Data.List
 import PlutusCore.StdLib.Data.Pair
+import PlutusCore.StdLib.Data.Unit
 
 import PlutusCore.Examples.Builtins
 import PlutusCore.Examples.Data.List
@@ -97,4 +99,24 @@ ofoldrData = runQuote $ do
                   ]
             , var () fI
             , var () fB
+            ]
+
+-- | Just a random 'Data' object.
+exampleData :: Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+exampleData = runQuote $ do
+    x <- freshName "x"
+    pure
+        . mkIterLamAbs (replicate 4 $ VarDecl () x unit)
+        . mkConstant ()
+        $ Data.Constr 1
+            [ Map
+                [ ( B "abcdef"
+                  , Data.Constr 2
+                      [ B ""
+                      , I 0
+                      ]
+                  )
+                ]
+            , List [List [List [List [I 123456]], B "ffffffffffffffffffffffffffffffffffffffffff"]]
+            , I 42
             ]

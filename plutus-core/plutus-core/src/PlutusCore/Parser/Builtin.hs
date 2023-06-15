@@ -9,16 +9,14 @@ import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Data
 import PlutusCore.Default
-import PlutusCore.Error (ParserError (InvalidData, UnknownBuiltinFunction))
+import PlutusCore.Error (ParserError (UnknownBuiltinFunction))
 import PlutusCore.Name
 import PlutusCore.Parser.ParserCommon
 import PlutusCore.Parser.Type (defaultUni)
 import PlutusCore.Pretty (display)
 
-import Codec.Serialise
 import Control.Monad.Combinators
 import Data.ByteString (ByteString, pack)
-import Data.ByteString.Lazy qualified as Lazy
 import Data.Map.Strict qualified as Map
 import Data.Text qualified as T
 import Data.Text.Internal.Read (hexDigitToInt)
@@ -73,7 +71,8 @@ conBool =
 
 -- | Parser for lists.
 conList :: DefaultUni (Esc a) -> Parser [a]
-conList uniA = inBrackets $ constantOf uniA `sepBy` symbol ","
+conList uniA = trailingWhitespace . inBrackets $
+    constantOf uniA `sepBy` symbol ","
 
 -- | Parser for pairs.
 conPair :: DefaultUni (Esc a) -> DefaultUni (Esc b) -> Parser (a, b)
@@ -84,11 +83,15 @@ conPair uniA uniB = trailingWhitespace . inParens $ do
   pure (a, b)
 
 conData :: Parser Data
-conData = do
-  b <- conBS
-  case deserialiseOrFail (Lazy.fromStrict b) of
-    Right d  -> pure d
-    Left err -> getSourcePos >>= customFailure . InvalidData (T.pack (show err))
+conData =
+    choice
+        [ trailingWhitespace $ inParens conData
+        , symbol "Constr" *> (Constr <$> conInteger <*> conList knownUni)
+        , symbol "Map" *> (Map <$> conList knownUni)
+        , symbol "List" *> (List <$> conList knownUni)
+        , symbol "I" *> (I <$> conInteger)
+        , symbol "B" *> (B <$> conBS)
+        ]
 
 -- Serialised BLS12_381 elements are "0x" followed by a hex string of even
 -- length.  Maybe we should just use the usual bytestring syntax.

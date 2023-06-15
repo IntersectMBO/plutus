@@ -36,6 +36,7 @@ examples =
       [ treeFolderContents "Examples"
           [ treeFolderContents "Data"
               [ plcTermFile "ofoldrData" ofoldrData
+              , plcTermFile "exampleData" exampleData
               ]
           , treeFolderContents "InterList"
               [ plcTypeFile "InterList"      $ _recursiveType interListData

@@ -1,4 +1,4 @@
-( (Right (2))
+( (Right 2)
 , ({ tally: ({BStep BConst causes ({cpu: 345000 | mem: 1500})
 | BStep BVar causes ({cpu: 1357000 | mem: 5900})
 | BStep BLamAbs causes ({cpu: 1058000 | mem: 4600})
