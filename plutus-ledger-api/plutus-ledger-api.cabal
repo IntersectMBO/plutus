@@ -144,7 +144,7 @@ test-suite plutus-ledger-api-test
     , hedgehog
     , mtl
     , nothunks
-    , plutus-core                                                       ^>=1.8
+    , plutus-core:{plutus-core, plutus-core-testlib}                    ^>=1.8
     , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.8
     , plutus-tx:plutus-tx-testlib                                       ^>=1.8
     , tasty

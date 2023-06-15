@@ -15,7 +15,7 @@ module UntypedPlutusCore.Parser
 
 import Prelude hiding (fail)
 
-import Control.Monad ((<=<))
+import Control.Monad (fail, (<=<))
 import Control.Monad.Except (MonadError)
 
 import PlutusCore qualified as PLC
@@ -27,7 +27,6 @@ import UntypedPlutusCore.Check.Uniques (checkProgram)
 import UntypedPlutusCore.Core.Type qualified as UPLC
 import UntypedPlutusCore.Rename (Rename (rename))
 
-import Control.Monad (fail)
 import Data.Text (Text)
 import PlutusCore.Error (AsParserErrorBundle)
 import PlutusCore.MkPlc (mkIterApp)

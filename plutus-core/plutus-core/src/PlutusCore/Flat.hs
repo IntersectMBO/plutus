@@ -24,7 +24,6 @@ import PlutusCore.DeBruijn
 import PlutusCore.Name
 
 import Codec.Serialise (Serialise, deserialiseOrFail, serialise)
-import Data.Coerce
 import Data.Functor
 import Data.Proxy
 import Data.Word (Word8)
@@ -374,7 +373,7 @@ instance Flat (Binder DeBruijn) where
     encode _ = mempty
     decode = pure $ Binder $ DeBruijn deBruijnInitIndex
 
--- (Binder TyDeBruin) could similarly have a flat instance, but we don't need it.
+-- (Binder TyDeBruijn) could similarly have a flat instance, but we don't need it.
 
 deriving newtype instance Flat (Binder Name)
 deriving newtype instance Flat (Binder TyName)
@@ -384,16 +383,25 @@ deriving newtype instance Flat (Binder TyName)
 deriving newtype instance Flat (Binder NamedDeBruijn)
 deriving newtype instance Flat (Binder NamedTyDeBruijn)
 
--- this instance is very similar to the Flat DeBruijn instance.
--- NOTE: the serialization roundtrip holds iff the invariant name==fakeName holds
+{- This instance is going via Flat DeBruijn.
+FakeNamedDeBruijn <-> DeBruijn are isomorphic: we could use iso-deriving package,
+but we do not need any other isomorphic Flat deriving for the moment.
+See NOTE: [Why newtype FakeNamedDeBruijn]
+-}
 instance Flat FakeNamedDeBruijn where
-    size  = size . fromFake -- via debruijn
-    encode  = encode . fromFake -- via debruijn
-    decode =  toFake <$> decode -- via debruijn
+    size = size . fromFake
+    encode = encode . fromFake
+    decode =  toFake <$> decode
 
--- this instance is very similar to the Flat (Binder DeBruijn) instance.
--- NOTE: the serialization roundtrip holds iff the invariant name==fakeName holds
+{- This instance is going via Flat (Binder DeBruijn) instance.
+Binder FakeNamedDeBruijn <-> Binder DeBruijn are isomorphic because
+FakeNamedDeBruijn <-> DeBruijn are isomorphic and Binder is a functor:
+we could use iso-deriving package,
+but  we do not need any other isomorphic Flat deriving for the moment.
+See NOTE: [Why newtype FakeNamedDeBruijn]
+NOTE: the serialization roundtrip holds iff the invariant binder.index==0 holds
+-}
 instance Flat (Binder FakeNamedDeBruijn) where
-    size  = size . fromFake . coerce -- via binder debruijn
-    encode = encode . fromFake . coerce -- via binder debruijn
-    decode = coerce . toFake . coerce <$> decode @(Binder DeBruijn) -- via binder debruijn
+    size  = size . fmap fromFake
+    encode = encode . fmap fromFake
+    decode =  fmap toFake <$> decode

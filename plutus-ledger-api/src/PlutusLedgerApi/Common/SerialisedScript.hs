@@ -18,6 +18,9 @@ import PlutusCore
 import PlutusLedgerApi.Common.Versions
 import PlutusTx.Code
 import UntypedPlutusCore qualified as UPLC
+-- this allows us to safe, 0-cost coerce from FND->ND. Unfortunately, since Coercible is symmetric,
+-- we cannot expose this safe Coercible FND ND w.o. also allowing the unsafe Coercible ND FND.
+import PlutusCore.DeBruijn.Internal (FakeNamedDeBruijn (FakeNamedDeBruijn))
 
 import Codec.CBOR.Decoding qualified as CBOR
 import Codec.CBOR.Extras
@@ -76,16 +79,20 @@ format otherwise, we have defined the `serialiseUPLC` and `uncheckedDeserialiseU
 
 Because Flat is not self-describing and it gets used in the encoding of Programs,
 data structures that include scripts (for example, transactions) no-longer benefit
-for CBOR's ability to self-describe it's format.
+from CBOR's ability to self-describe its format.
 -}
 
 -- | Turns a program which was compiled using the \'PlutusTx\' toolchain into
 -- a binary format that is understood by the network and can be stored on-chain.
 serialiseCompiledCode :: forall a. CompiledCode a -> SerialisedScript
-serialiseCompiledCode = serialiseUPLC . toNameless . getPlcNoAnn
-    where
+serialiseCompiledCode =
+    -- Instead of this `serialiseUPLC . toNameLess` we could instead
+    -- call `serialise(coerce @(Prog ND) @(Prog FND))` which, despite violating momentarily the
+    -- invariant `fnd.name==fakeName`, would be faster.
+    serialiseUPLC . toNameless . getPlcNoAnn
+  where
         toNameless :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
-                -> UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun ()
+                   -> UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun ()
         toNameless = over UPLC.progTerm $ UPLC.termMapNames UPLC.unNameDeBruijn
 
 -- | Turns a program's AST (most likely manually constructed)

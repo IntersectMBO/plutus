@@ -99,6 +99,7 @@ library
     PlutusCore.Data
     PlutusCore.DataFilePaths
     PlutusCore.DeBruijn
+    PlutusCore.DeBruijn.Internal
     PlutusCore.Default
     PlutusCore.Error
     PlutusCore.Evaluation.Machine.BuiltinCostModel
@@ -205,7 +206,6 @@ library
     PlutusCore.Core.Plated
     PlutusCore.Core.Type
     PlutusCore.Crypto.Utils
-    PlutusCore.DeBruijn.Internal
     PlutusCore.Default.Builtins
     PlutusCore.Default.Universe
     PlutusCore.Eq
@@ -378,7 +378,6 @@ test-suite untyped-plutus-core-test
   hs-source-dirs: untyped-plutus-core/test
   ghc-options:    -O2 -threaded -rtsopts -with-rtsopts=-N
   other-modules:
-    DeBruijn.Common
     DeBruijn.FlatNatWord
     DeBruijn.Scope
     DeBruijn.Spec
@@ -397,6 +396,7 @@ test-suite untyped-plutus-core-test
     Evaluation.Golden
     Evaluation.Machines
     Evaluation.Regressions
+    Flat.Spec
     Generators
     Transform.Simplify
 
@@ -407,7 +407,6 @@ test-suite untyped-plutus-core-test
     , dlist
     , flat                                            ^>=0.6
     , hedgehog
-    , index-envs
     , lens
     , mtl
     , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.8
@@ -669,6 +668,8 @@ library plutus-core-testlib
     PlutusIR.Generators.QuickCheck.ShrinkTerms
     PlutusIR.Test
     Test.Tasty.Extras
+    UntypedPlutusCore.Test.DeBruijn.Bad
+    UntypedPlutusCore.Test.DeBruijn.Good
 
   build-depends:
     , base                                  >=4.9     && <5
