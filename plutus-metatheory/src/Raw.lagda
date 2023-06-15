@@ -82,9 +82,9 @@ decRKi * * = true
 decRKi * _ = false
 decRKi ♯ ♯ = true
 decRKi ♯ _ = false
-
 decRKi (K ⇒ J) (K' ⇒ J') = decRKi K K' ∧ decRKi J J' 
 decRKi (K ⇒ J) _ = false
+
 
 decRTy (` x) (` x') = does (x ≟ x')
 decRTy (A ⇒ B) (A' ⇒ B') = decRTy A A' ∧ decRTy B B'
