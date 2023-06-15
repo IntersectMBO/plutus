@@ -20,7 +20,7 @@ testCheckSc1 = testGroup "checkScriptContext1"
         runTermCek $ compiledCodeToTerm $ mkCheckScriptContext1Code (mkScriptContext 4)
     , testCase "fails on 5" $ assertBool "evaluation succeeded" $ isEvaluationFailure $
         runTermCek $ compiledCodeToTerm $ mkCheckScriptContext1Code (mkScriptContext 5)
-    , Tx.fitsInto "checkScriptContext1 (size)" (mkCheckScriptContext1Code (mkScriptContext 1)) 1963
+    , Tx.fitsInto "checkScriptContext1 (size)" (mkCheckScriptContext1Code (mkScriptContext 1)) 1960
     , runTestNested $ Tx.goldenBudget "checkScriptContext1-4" $
         mkCheckScriptContext1Code (mkScriptContext 4)
     , runTestNested $ Tx.goldenBudget "checkScriptContext1-20" $

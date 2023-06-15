@@ -1,0 +1,5 @@
+(case
+  [ [ [ (force (builtin ifThenElse)) b_0 ] t_1 ] (constr 1) ]
+  (con integer 1)
+  (con integer 2)
+)

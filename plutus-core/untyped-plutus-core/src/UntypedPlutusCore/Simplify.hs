@@ -1,4 +1,6 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE GADTs            #-}
+{-# LANGUAGE TemplateHaskell  #-}
+{-# LANGUAGE TypeApplications #-}
 
 module UntypedPlutusCore.Simplify (
     simplifyTerm,
@@ -10,7 +12,11 @@ module UntypedPlutusCore.Simplify (
     InlineHints (..),
 ) where
 
+import PlutusCore.Compiler.Types
+import PlutusCore.Default.Builtins
+import PlutusCore.Name
 import UntypedPlutusCore.Core.Type
+import UntypedPlutusCore.Transform.CaseOfCase
 import UntypedPlutusCore.Transform.CaseReduce
 import UntypedPlutusCore.Transform.FloatDelay
 import UntypedPlutusCore.Transform.ForceDelay
@@ -19,9 +25,7 @@ import UntypedPlutusCore.Transform.Inline
 import Control.Lens.TH
 import Control.Monad
 import Data.List
-import PlutusCore.Builtin qualified as PLC
-import PlutusCore.Name
-import PlutusCore.Quote
+import Data.Typeable
 
 data SimplifyOpts name a = SimplifyOpts
     { _soMaxSimplifierIterations :: Int
@@ -40,7 +44,7 @@ defaultSimplifyOpts =
 
 simplifyProgram ::
     forall name uni fun m a.
-    (PLC.ToBuiltinMeaning uni fun, MonadQuote m, HasUnique name TermUnique, Ord name) =>
+    (Compiling m uni fun name) =>
     SimplifyOpts name a ->
     Program name uni fun a ->
     m (Program name uni fun a)
@@ -48,7 +52,7 @@ simplifyProgram opts (Program a v t) = Program a v <$> simplifyTerm opts t
 
 simplifyTerm ::
     forall name uni fun m a.
-    (PLC.ToBuiltinMeaning uni fun, MonadQuote m, HasUnique name TermUnique, Ord name) =>
+    (Compiling m uni fun name) =>
     SimplifyOpts name a ->
     Term name uni fun a ->
     m (Term name uni fun a)
@@ -62,5 +66,11 @@ simplifyTerm opts = simplifyNTimes (_soMaxSimplifierIterations opts)
     simplifyStep _ =
         floatDelay
             >=> pure . forceDelayCancel
+            >=> pure . caseOfCase'
             >=> pure . caseReduce
             >=> inline (_soInlineHints opts)
+
+    caseOfCase' :: Term name uni fun a -> Term name uni fun a
+    caseOfCase' = case eqT @fun @DefaultFun of
+        Just Refl -> caseOfCase
+        Nothing   -> id

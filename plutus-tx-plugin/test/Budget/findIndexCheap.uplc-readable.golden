@@ -11,13 +11,10 @@ program
                 , (\x xs ->
                      delay
                        (force
-                          (case
-                             (force ifThenElse
-                                (lessThanEqualsInteger 10 x)
-                                (constr 1 [])
-                                (constr 0 []))
-                             [ (delay (constr 0 [x]))
-                             , (delay (go (addInteger 1 x) xs)) ]))) ]))
+                          (force ifThenElse
+                             (lessThanEqualsInteger 10 x)
+                             (delay (go (addInteger 1 x) xs))
+                             (delay (constr 0 [x]))))) ]))
           (s s))
      0
      (constr 1

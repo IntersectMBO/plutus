@@ -88,6 +88,7 @@ library
     PlutusCore.Check.Value
     PlutusCore.Compiler
     PlutusCore.Compiler.Erase
+    PlutusCore.Compiler.Types
     PlutusCore.Core
     PlutusCore.Crypto.BLS12_381.Error
     PlutusCore.Crypto.BLS12_381.G1
@@ -240,6 +241,7 @@ library
     UntypedPlutusCore.Simplify
     UntypedPlutusCore.Size
     UntypedPlutusCore.Subst
+    UntypedPlutusCore.Transform.CaseOfCase
     UntypedPlutusCore.Transform.CaseReduce
     UntypedPlutusCore.Transform.FloatDelay
     UntypedPlutusCore.Transform.ForceDelay

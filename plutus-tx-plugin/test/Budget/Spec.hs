@@ -18,6 +18,7 @@ import Test.Tasty.Extras
 import PlutusTx.Builtins qualified as PlutusTx
 import PlutusTx.Code
 import PlutusTx.IsData qualified as PlutusTx
+import PlutusTx.Lift (liftCodeDef)
 import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Show qualified as PlutusTx
 import PlutusTx.Test (goldenBudget, goldenPirReadable, goldenUPlcReadable)
@@ -120,6 +121,10 @@ tests = testNested "Budget" [
   , goldenBudget "toFromData" compiledToFromData
   , goldenUPlcReadable "toFromData" compiledToFromData
   , goldenPirReadable "toFromData" compiledToFromData
+
+  , goldenBudget "not-not" compiledNotNot
+  , goldenUPlcReadable "not-not" compiledNotNot
+  , goldenPirReadable "not-not" compiledNotNot
 
   , goldenBudget "monadicDo" monadicDo
   , goldenUPlcReadable "monadicDo" monadicDo
@@ -373,3 +378,15 @@ compiledIfThenElse2 = $$(compile [||
             else \x -> x PlutusTx.+ a PlutusTx.+ a
         )
             (6 PlutusTx.+ 7) ||])
+
+-- TODO: this can be further optimized.
+compiledNotNot :: CompiledCode Bool
+compiledNotNot =
+  $$( compile
+        [||
+        \x ->
+          (\a -> if a then False else True) . (\a -> if a then False else True) PlutusTx.$
+            if PlutusTx.lessThanInteger 0 x then True else False
+        ||]
+    )
+    `PlutusTx.Code.unsafeApplyCode` liftCodeDef 1
