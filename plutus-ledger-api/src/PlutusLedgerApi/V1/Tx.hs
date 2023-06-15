@@ -52,7 +52,7 @@ import PlutusLedgerApi.V1.Value
 
 This is a simple type without any validation, __use with caution__.
 You may want to add checks for its invariants. See the
- [Shelley ledger specification](https://github.com/input-output-hk/cardano-ledger/releases/latest/download/shelley-ledger.pdf).
+ [Shelley ledger specification](https://github.com/input-output-hk/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf).
 -}
 newtype TxId = TxId { getTxId :: PlutusTx.BuiltinByteString }
     deriving stock (Eq, Ord, Generic)
