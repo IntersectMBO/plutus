@@ -134,6 +134,13 @@ data Param tyname name uni ann =
 instance (Show tyname, Show name, GShow uni, Show ann) => Pretty (Param tyname name uni ann) where
   pretty = viaShow
 
+-- | Build a LamAbs or TyAbs from a `Param`.
+extractAbs :: Param tyname name uni ann ->
+  Term tyname name uni fun ann -> -- the function body
+  Term tyname name uni fun ann
+extractAbs (TermParam ann n ty) body = LamAbs ann n ty body
+extractAbs (TypeParam ann n kd) body = TyAbs ann n kd body
+
 -- | Inliner context for both unconditional inlining and call site inlining.
 -- It includes substitution for both terms and types, which is similar to 'Subst' in the paper.
 -- It also includes the non recursive in-scope set for call site inlining.

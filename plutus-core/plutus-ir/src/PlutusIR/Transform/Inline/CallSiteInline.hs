@@ -68,17 +68,21 @@ splitParams = \case
   -- Whenever we encounter a body that is not a lambda or type abstraction, we are done counting
   tm -> ([], tm)
 
--- | Returns the function with the supplied term or type lambda abstractions.
-mkAbs ::
-  -- | The function body
-  Term tyname name uni fun ann ->
+-- | Returns a function with the supplied term or type lambda abstractions. The result is wrapped in
+-- `Dupable` for renaming.
+mkAbs ::forall tyname name uni fun ann.
+  (InliningConstraints tyname name uni fun) =>
+  -- | The function body wrapped in `Dupable`.
+  Dupable (Term tyname name uni fun ann) ->
   Arity tyname name uni ann -> -- The abstractions
-  Term tyname name uni fun ann
-mkAbs body (TermParam ann n ty : nextLam) =
-  mkAbs (LamAbs ann n ty body) nextLam
-mkAbs body  (TypeParam ann n kd : nextLam) =
-  mkAbs (TyAbs ann n kd body) nextLam
-mkAbs body _ = body
+  InlineM tyname name uni fun ann (Dupable (Term tyname name uni fun ann))
+mkAbs body (TermParam ann n ty : nextLam) = do
+  liftedBody <- liftDupable body
+  mkAbs (dupable (LamAbs ann n ty liftedBody)) nextLam
+mkAbs body  (TypeParam ann n kd : nextLam) = do
+  liftedBody <- liftDupable body
+  mkAbs (dupable (TyAbs ann n kd liftedBody)) nextLam
+mkAbs body _ = pure body
 
 
 {- | Apply the RHS of the given variable to the given arguments and beta-reduce
@@ -123,8 +127,11 @@ applyAndBetaReduce info args0 = do
         (TermParam{}:_, TypeAppContext{}) -> pure Nothing
         (TypeParam{}:_, TermAppContext{}) -> pure Nothing
         -- no more arguments to apply, just apply what we have
-        (remainingArity, AppContextEnd) -> pure Nothing
-            -- pure $ Just (mkAbs acc remainingArity)
+        (remainingArity, AppContextEnd) -> do
+          -- renaming is needed otherwise we get multiply defined errors.
+          bodyWithAbs <- mkAbs (dupable acc) remainingArity
+          renamed <- liftDupable bodyWithAbs
+          pure $ Just renamed
 
       -- Is it safe to turn `(\a -> body) arg` into `body [a := arg]`?
       -- The criteria is the same as the criteria for inlining `a` in

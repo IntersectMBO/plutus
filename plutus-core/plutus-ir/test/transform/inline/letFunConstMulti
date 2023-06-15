@@ -1,7 +1,7 @@
 {-
 Multiple occurrences of the const function:
 The const function should not be inlined by the unconditional inlining optimization.
-The second constFun should be inlined by the optimization that inlines fully applied functions.
+The second constFun should be inlined by the optimization that inlines functions.
 The first constFun is not fully applied so it should not be inlined.
  
 let 
