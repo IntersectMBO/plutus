@@ -18,6 +18,9 @@ import PlutusCore
 import PlutusLedgerApi.Common.Versions
 import PlutusTx.Code
 import UntypedPlutusCore qualified as UPLC
+-- this allows us to safe, 0-cost coerce from FND->ND. Unfortunately, since Coercible is symmetric,
+-- we cannot expose this safe Coercible FND ND w.o. also allowing the unsafe Coercible ND FND.
+import PlutusCore.DeBruijn.Internal (FakeNamedDeBruijn (FakeNamedDeBruijn))
 
 import Codec.CBOR.Decoding qualified as CBOR
 import Codec.CBOR.Extras

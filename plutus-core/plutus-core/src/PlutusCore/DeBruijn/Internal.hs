@@ -14,6 +14,8 @@ module PlutusCore.DeBruijn.Internal (
   HasIndex (..),
   DeBruijn (..),
   NamedDeBruijn (..),
+  -- we follow the same approach as Renamed: expose the constructor from Internal module,
+  -- but hide it on the parent module.
   FakeNamedDeBruijn (..),
   TyDeBruijn (..),
   NamedTyDeBruijn (..),
@@ -64,7 +66,40 @@ import Control.DeepSeq (NFData)
 import Data.Coerce
 import GHC.Generics
 
--- | A relative index used for de Bruijn identifiers.
+{- NOTE: [Why newtype FakeNamedDeBruijn]
+We use a newtype wrapper to optimize away the expensive re-traversing of the deserialized Term
+for adding fake names everywhere --- the CEK works on names, but the scripts on ledger
+don't have names for size reduction.
+
+Specifically the expensive pipeline:
+
+```
+decode @(Term DeBruijn)
+>>> term-Map-Names(FakeNamedDeBruijn)
+>>> cekExecute
+```
+
+is optimized to to the faster:
+
+```
+decode @(Term FakeNamedDeBruijn)
+>>> coerce @(Term FakeNamedDeBruijn) @(Term NamedDeBruijn)
+>>> cekExecute
+```
+
+To achieve this we make sure:
+- to use `coerce` since its 0-cost
+- not to GeneralizeNewtypeDeriving the`Flat NamedDeBruijn` instance, but "derive via"
+the optimized `Flat DeBruijn` instance. This is ok, because `FND<->D` are
+isomorphic.
+-}
+
+{-| A relative index used for de Bruijn identifiers.
+
+FIXME: downside of using newtype+Num instead of type-synonym is that `-Woverflowed-literals`
+does not work, e.g.: `DeBruijn (-1)` has no warning. To trigger the warning you have to bypass
+the Num and write `DeBruijn (Index -1)`. This can be revisited when we implement PLT-1053.
+-}
 newtype Index = Index Word64
   deriving stock (Generic)
   deriving newtype (Show, Num, Enum, Real, Integral, Eq, Ord, Pretty, NFData, Read)
@@ -80,8 +115,14 @@ data NamedDeBruijn = NamedDeBruijn {ndbnString :: !T.Text, ndbnIndex :: !Index}
   deriving stock (Show, Generic, Read)
   deriving anyclass (NFData)
 
--- | A wrapper around nameddebruijn that must hold the invariant of name=`fakeName`.
-newtype FakeNamedDeBruijn = FakeNamedDeBruijn NamedDeBruijn
+{-| A wrapper around `NamedDeBruijn` that *must* hold the invariant of name=`fakeName`.
+
+We do not export the `FakeNamedDeBruijn` constructor: the projection `FND->ND` is safe
+but injection `ND->FND` is unsafe, thus they are not isomorphic.
+
+See NOTE: [Why newtype FakeNamedDeBruijn]
+-}
+newtype FakeNamedDeBruijn = FakeNamedDeBruijn { unFakeNamedDeBruijn :: NamedDeBruijn }
   deriving newtype (Show, Eq, NFData, PrettyBy config)
 
 toFake :: DeBruijn -> FakeNamedDeBruijn

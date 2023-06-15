@@ -99,6 +99,7 @@ library
     PlutusCore.Data
     PlutusCore.DataFilePaths
     PlutusCore.DeBruijn
+    PlutusCore.DeBruijn.Internal
     PlutusCore.Default
     PlutusCore.Error
     PlutusCore.Evaluation.Machine.BuiltinCostModel
@@ -205,7 +206,6 @@ library
     PlutusCore.Core.Plated
     PlutusCore.Core.Type
     PlutusCore.Crypto.Utils
-    PlutusCore.DeBruijn.Internal
     PlutusCore.Default.Builtins
     PlutusCore.Default.Universe
     PlutusCore.Eq

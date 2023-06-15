@@ -2,14 +2,15 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
 -- | Support for using de Bruijn indices for term names.
 module UntypedPlutusCore.DeBruijn
     ( Index (..)
     , HasIndex (..)
     , DeBruijn (..)
     , NamedDeBruijn (..)
-    , FakeNamedDeBruijn (..)
+    -- we follow the same approach as Renamed, expose the constructor from Internal module,
+    -- but hide it on the parent module.
+    , FakeNamedDeBruijn (unFakeNamedDeBruijn)
     , FreeVariableError (..)
     , AsFreeVariableError (..)
     , deBruijnTerm

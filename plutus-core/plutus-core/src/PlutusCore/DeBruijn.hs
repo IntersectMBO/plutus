@@ -9,7 +9,9 @@ module PlutusCore.DeBruijn
     , HasIndex (..)
     , DeBruijn (..)
     , NamedDeBruijn (..)
-    , FakeNamedDeBruijn (..)
+    -- we follow the same approach as Renamed, expose the constructor from Internal module,
+    -- but hide it on this parent module.
+    , FakeNamedDeBruijn (unFakeNamedDeBruijn)
     , TyDeBruijn (..)
     , NamedTyDeBruijn (..)
     , FreeVariableError (..)
@@ -29,7 +31,8 @@ module PlutusCore.DeBruijn
     , unDeBruijnTermWith
     , freeIndexAsConsistentLevel
     , deBruijnInitIndex
-    , fromFake, toFake
+    , fromFake
+    , toFake
     ) where
 
 import PlutusCore.DeBruijn.Internal
