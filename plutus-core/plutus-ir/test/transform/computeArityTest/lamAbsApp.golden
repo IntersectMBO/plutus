@@ -1,4 +1,4 @@
-( [ TermParam (Name {_nameText = "x", _nameUnique = Unique {unUnique = 4}})
-  , TermParam (Name {_nameText = "y", _nameUnique = Unique {unUnique = 5}})
-  , TermParam (Name {_nameText = "z", _nameUnique = Unique {unUnique = 6}}) ]
+( [ TermParam lamAbsApp:3:1-7:1 (Name {_nameText = "x", _nameUnique = Unique {unUnique = 4}}) (TyBuiltin lamAbsApp:5:5-5:17 (SomeTypeIn DefaultUniInteger))
+  , TermParam lamAbsApp:6:5-6:89 (Name {_nameText = "y", _nameUnique = Unique {unUnique = 5}}) (TyBuiltin lamAbsApp:6:12-6:24 (SomeTypeIn DefaultUniInteger))
+  , TermParam lamAbsApp:6:26-6:88 (Name {_nameText = "z", _nameUnique = Unique {unUnique = 6}}) (TyBuiltin lamAbsApp:6:33-6:45 (SomeTypeIn DefaultUniInteger)) ]
 , [ (lam k (con integer) x) (con integer 3) ] )

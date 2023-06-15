@@ -1,5 +1,5 @@
-( [ TypeParam (TyName {unTyName = Name {_nameText = "a", _nameUnique = Unique {unUnique = 4}}})
-  , TypeParam (TyName {unTyName = Name {_nameText = "b", _nameUnique = Unique {unUnique = 5}}})
-  , TermParam (Name {_nameText = "x", _nameUnique = Unique {unUnique = 6}})
-  , TermParam (Name {_nameText = "y", _nameUnique = Unique {unUnique = 7}}) ]
+( [ TypeParam tyAbs2:1:1-1:51 (TyName {unTyName = Name {_nameText = "a", _nameUnique = Unique {unUnique = 4}}}) (Type tyAbs2:1:8-1:13)
+  , TypeParam tyAbs2:1:15-1:50 (TyName {unTyName = Name {_nameText = "b", _nameUnique = Unique {unUnique = 5}}}) (Type tyAbs2:1:22-1:27)
+  , TermParam tyAbs2:1:29-1:49 (Name {_nameText = "x", _nameUnique = Unique {unUnique = 6}}) (TyVar tyAbs2:1:36-1:36 (TyName {unTyName = Name {_nameText = "a", _nameUnique = Unique {unUnique = 4}}}))
+  , TermParam tyAbs2:1:38-1:48 (Name {_nameText = "y", _nameUnique = Unique {unUnique = 7}}) (TyVar tyAbs2:1:45-1:45 (TyName {unTyName = Name {_nameText = "b", _nameUnique = Unique {unUnique = 5}}})) ]
 , y )
