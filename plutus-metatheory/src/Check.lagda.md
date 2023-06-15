@@ -147,15 +147,13 @@ isFunType (μ A B ,, _) = inj₁ (notFunType (μ A B) (λ _ _ ()))
  
   
 isMu :  ∀{Φ Γ}
-       → Either TypeError (Σ (Φ ⊢Nf⋆ *) (Γ ⊢_))
+       → Σ (Φ ⊢Nf⋆ *) (Γ ⊢_)
        → Either TypeError (Σ Kind λ K → Σ (Φ ⊢Nf⋆ (K ⇒ *) ⇒ (K ⇒ *)) λ A → Σ (Φ ⊢Nf⋆ K) λ B → Γ ⊢ μ A B)
-isMu p = do
-  μ A B ,, L ← p
-    where Π A ,, _ → inj₁ (notMu (Π A) (λ _ _ ()))
-          ne A  ,, _ → inj₁ (notMu (ne A) (λ _ _ ()))
-          con {Φ} c ,, _ → inj₁ (notMu (con {Φ} c) (λ _ _ ()))
-          A ⇒ B ,, _ → inj₁ (notMu (A ⇒ B) (λ _ _ ()))
-  return (_ ,, A ,, B ,, L)
+isMu (μ A B ,, L) = return (_ ,, A ,, B ,, L)
+isMu (Π A ,, _) = inj₁ (notMu (Π A) (λ _ _ ()))
+isMu (ne A  ,, _) = inj₁ (notMu (ne A) (λ _ _ ()))
+isMu (con {Φ} c ,, _) = inj₁ (notMu (con {Φ} c) (λ _ _ ()))
+isMu (A ⇒ B ,, _) = inj₁ (notMu (A ⇒ B) (λ _ _ ()))
 
 checkKind : ∀ Φ (A : ScopedTy (len⋆ Φ)) → ∀ K → Either TypeError (Φ ⊢Nf⋆ K)
 inferKind : ∀ Φ (A : ScopedTy (len⋆ Φ)) → Either TypeError (Σ Kind (Φ ⊢Nf⋆_))
@@ -324,6 +322,7 @@ inferType Γ (wrap A B L) = do
   L ← checkType Γ L (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B))
   return (μ A B ,, wrap A B L)
 inferType Γ (unwrap L) = do
-  K ,, A ,, B ,, L ← isMu (inferType Γ L)
+  TL ← inferType Γ L
+  K ,, A ,, B ,, L ← isMu TL
   return (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B) ,, unwrap L refl)
 ```
