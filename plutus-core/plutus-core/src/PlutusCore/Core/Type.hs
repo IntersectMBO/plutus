@@ -246,6 +246,7 @@ mapFun f = go where
 -- This marking allows us to skip the (de)serialization of binders at LamAbs/TyAbs positions
 -- iff 'name' is DeBruijn-encoded (level or index). See for example the instance of  'UntypedPlutusCore.Core.Instance.Flat'
 newtype Binder name = Binder { unBinder :: name }
+    deriving stock (Eq, Show, Functor)
 
 {- Note [Constr tag type]
 Constructor tags are not dynamically created, they can only come from the program itself.
