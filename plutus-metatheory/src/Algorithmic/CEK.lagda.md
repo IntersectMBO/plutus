@@ -172,26 +172,26 @@ discharge (V-IΠ b bt) = dischargeB bt
 ```
 BUILTIN : ∀ b {A} → {Ab : saturatedSigTy (signature b) A} → BApp b A Ab → Either (∅ ⊢Nf⋆ *) (Value A)
 BUILTIN addInteger (base $ V-con i $ V-con i') = inj₂ (V-con (i + i'))
+BUILTIN subtractInteger (base $ V-con i $ V-con i') = inj₂ (V-con (i - i'))
+BUILTIN multiplyInteger (base $ V-con i $ V-con i') = inj₂ (V-con (i ** i'))
+BUILTIN divideInteger (base $ V-con i $ V-con i') = decIf
+  (i' ≟ ℤ.pos 0)
+  (inj₁ (con (ne (^ (atomic aInteger)))))
+  (inj₂ (V-con (div i i')))
+BUILTIN quotientInteger (base $ V-con i $ V-con i') = decIf
+  (i' ≟ ℤ.pos 0)
+  (inj₁ (con (ne (^ (atomic aInteger)))))
+  (inj₂ (V-con (quot i i')))
+BUILTIN remainderInteger (base $ V-con i $ V-con i') = decIf
+  (i' ≟ ℤ.pos 0)
+  (inj₁ (con (ne (^ (atomic aInteger)))))
+  (inj₂ (V-con (rem i i')))
+BUILTIN modInteger (base $ V-con i $ V-con i') = decIf
+  (i' ≟ ℤ.pos 0)
+   (inj₁ (con (ne (^ (atomic aInteger)))))
+  (inj₂ (V-con (mod i i')))
+BUILTIN lessThanInteger (base $ V-con i $ V-con i') = decIf (i <? i') (inj₂ (V-con true)) (inj₂ (V-con false))
 {-
-BUILTIN subtractInteger (app (app base (V-con (tmInteger i))) (V-con (tmInteger i'))) = inj₂ (V-con (tmInteger (i - i')))
-BUILTIN multiplyInteger (app (app base (V-con (tmInteger i))) (V-con (tmInteger i'))) = inj₂ (V-con (tmInteger (i ** i')))
-BUILTIN divideInteger (app (app base (V-con (tmInteger i))) (V-con (tmInteger i'))) = decIf
-  (i' ≟ ℤ.pos 0)
-  (inj₁ (con integer))
-  (inj₂ (V-con (tmInteger (div i i'))))
-BUILTIN quotientInteger (app (app base (V-con (tmInteger i))) (V-con (tmInteger i'))) = decIf
-  (i' ≟ ℤ.pos 0)
-  (inj₁ (con integer))
-  (inj₂ (V-con (tmInteger (quot i i'))))
-BUILTIN remainderInteger (app (app base (V-con (tmInteger i))) (V-con (tmInteger i'))) = decIf
-  (i' ≟ ℤ.pos 0)
-  (inj₁ (con integer))
-  (inj₂ (V-con (tmInteger (rem i i'))))
-BUILTIN modInteger (app (app base (V-con (tmInteger i))) (V-con (tmInteger i'))) = decIf
-  (i' ≟ ℤ.pos 0)
-  (inj₁ (con integer))
-  (inj₂ (V-con (tmInteger (mod i i'))))
-BUILTIN lessThanInteger (app (app base (V-con (tmInteger i))) (V-con (tmInteger i'))) = decIf (i <? i') (inj₂ (V-con (tmBool true))) (inj₂ (V-con (tmBool false)))
 BUILTIN lessThanEqualsInteger (app (app base (V-con (tmInteger i))) (V-con (tmInteger i'))) = decIf (i ≤? i') (inj₂ (V-con (tmBool true))) (inj₂ (V-con (tmBool false)))
 BUILTIN equalsInteger (app (app base (V-con (tmInteger i))) (V-con (tmInteger i'))) = decIf (i ≟ i') (inj₂ (V-con (tmBool true))) (inj₂ (V-con (tmBool false)))
 BUILTIN appendByteString (app (app base (V-con (tmBytestring b))) (V-con (tmBytestring b'))) = inj₂ (V-con (tmBytestring (concat b b')))
@@ -217,18 +217,15 @@ BUILTIN encodeUtf8 (app base (V-con (tmString s))) =
 BUILTIN decodeUtf8 (app base (V-con (tmBytestring b))) with DECODEUTF8 b
 ... | nothing = inj₁ (con string)
 ... | just s  = inj₂ (V-con (tmString s))
-BUILTIN equalsByteString (app (app base (V-con (tmBytestring b))) (V-con (tmBytestring b'))) = inj₂ (V-con (tmBool (equals b b')))
 -}
+BUILTIN equalsByteString (base $ V-con b $ V-con b') = inj₂ (V-con (equals b b'))
 BUILTIN ifThenElse (Λ̂ A $ V-con false $ vt $ vf) = inj₂ vf
 BUILTIN ifThenElse (Λ̂ A $ V-con true  $ vt $ vf) = inj₂ vt
+BUILTIN appendString (base $ V-con s $ V-con s') = inj₂ (V-con (primStringAppend s s'))
+BUILTIN trace (Λ̂ A $ V-con s $  v) =  inj₂ (TRACE s v)
+BUILTIN iData (base $ V-con i) = inj₂ (V-con (iDATA i))
+BUILTIN bData (base $ V-con b) = inj₂ (V-con (bDATA b))
 {-
-BUILTIN appendString (app (app base (V-con (tmString s))) (V-con (tmString s'))) = inj₂ (V-con (tmString (primStringAppend s s')))
-BUILTIN trace (app (app (app⋆ base refl refl) (V-con (tmString s))) v) =
-  inj₂ (TRACE s v)
-BUILTIN iData (app base (V-con (tmInteger i))) =
-  inj₂ (V-con (tmData (iDATA i)))
-BUILTIN bData (app base (V-con (tmBytestring b))) =
-  inj₂ (V-con (tmData (bDATA b)))
 BUILTIN consByteString (app (app base (V-con (tmInteger i))) (V-con (tmBytestring b))) with cons i b 
 ... | just b' = inj₂ (V-con (tmBytestring b'))
 ... | nothing = inj₁ (con bytestring)

@@ -274,16 +274,16 @@ scopeCheckTm (unwrap t) = fmap unwrap (scopeCheckTm t)
 
 \begin{code}
 extricateScopeTy : ∀{n} → ScopedTy n → RawTy
-extricateScopeTy (` x) = ` (toℕ x)
-extricateScopeTy (A ⇒ B) = extricateScopeTy A ⇒ extricateScopeTy B
-extricateScopeTy (Π K A) = Π K (extricateScopeTy A)
-extricateScopeTy (ƛ K A) = ƛ K (extricateScopeTy A)
-extricateScopeTy (A · B) = extricateScopeTy A · extricateScopeTy B
+extricateScopeTy (` x)      = ` (toℕ x)
+extricateScopeTy (A ⇒ B)    = extricateScopeTy A ⇒ extricateScopeTy B
+extricateScopeTy (Π K A)    = Π K (extricateScopeTy A)
+extricateScopeTy (ƛ K A)    = ƛ K (extricateScopeTy A)
+extricateScopeTy (A · B)    = extricateScopeTy A · extricateScopeTy B
 extricateScopeTy (con (atomic x)) = con (atomic x)
 extricateScopeTy (con list) = con list
 extricateScopeTy (con pair) = con pair
-extricateScopeTy (μ A B) = μ (extricateScopeTy A) (extricateScopeTy B)
-extricateScopeTy missing = con (atomic aBool) -- TODO
+extricateScopeTy (μ A B)    = μ (extricateScopeTy A) (extricateScopeTy B)
+extricateScopeTy missing    = con (atomic aBool) -- TODO
 
 extricateScope : ∀{n}{w : Weirdℕ n} → ScopedTm w → RawTm
 extricateScope (` x) = ` (WeirdFintoℕ x)

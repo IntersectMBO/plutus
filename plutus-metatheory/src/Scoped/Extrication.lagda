@@ -39,7 +39,7 @@ type level
 
 \begin{code}
 len⋆ : Ctx⋆ → ℕ
-len⋆ ∅ = zero
+len⋆ ∅        = zero
 len⋆ (Γ ,⋆ K) = suc (len⋆ Γ)
 
 extricateVar⋆ : ∀{Γ K}(A : Γ ∋⋆ K) → Fin (len⋆ Γ)
@@ -49,44 +49,37 @@ extricateVar⋆ (S α) = suc (extricateVar⋆ α)
 extricateNf⋆ : ∀{Γ K}(A : Γ ⊢Nf⋆ K) → ScopedTy (len⋆ Γ)
 extricateNe⋆ : ∀{Γ K}(A : Γ ⊢Ne⋆ K) → ScopedTy (len⋆ Γ)
 
---extricateTyConNf⋆ : ∀{Γ}(A : T.TyCon Γ) → S.TyCon (len⋆ Γ)
-
 -- intrinsically typed terms should also carry user chosen names as
 -- instructions to the pretty printer
-{-
-extricateTyConNf⋆ (T.list A) = S.list (extricateNf⋆ A)
-extricateTyConNf⋆ (T.pair A B) = S.pair (extricateNf⋆ A) (extricateNf⋆ B) 
-extricateTyConNf⋆ (T.atomic A) = S.atomic A
--}
 
 extricateNf⋆ (Π {K = K} A) = Π K (extricateNf⋆ A)
-extricateNf⋆ (A ⇒ B) = extricateNf⋆ A ⇒ extricateNf⋆ B
+extricateNf⋆ (A ⇒ B)       = extricateNf⋆ A ⇒ extricateNf⋆ B
 extricateNf⋆ (ƛ {K = K} A) = ƛ K (extricateNf⋆ A)
-extricateNf⋆ (ne n) = extricateNe⋆ n
-extricateNf⋆ (con (ne x)) = extricateNe⋆ x
-extricateNf⋆ (μ A B) = μ (extricateNf⋆ A) (extricateNf⋆ B)
+extricateNf⋆ (ne n)        = extricateNe⋆ n
+extricateNf⋆ (con (ne x))  = extricateNe⋆ x
+extricateNf⋆ (μ A B)       = μ (extricateNf⋆ A) (extricateNf⋆ B)
 
-extricateNe⋆ (` α) = ` (extricateVar⋆ α)
+extricateNe⋆ (` α)    = ` (extricateVar⋆ α)
 extricateNe⋆ (n · n') = extricateNe⋆ n · extricateNf⋆ n'
-extricateNe⋆ (^ tc) = con tc
+extricateNe⋆ (^ tc)   = con tc
 \end{code}
 
 
 \begin{code}
 len : ∀{Φ} → Ctx Φ → Weirdℕ (len⋆ Φ)
-len ∅ = Z
+len ∅        = Z
 len (Γ ,⋆ K) = T (len Γ)
-len (Γ , A) = S (len Γ)
+len (Γ , A)  = S (len Γ)
 
 
 
 extricateVar : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ ∋ A → WeirdFin (len Γ)
-extricateVar Z = Z
+extricateVar Z     = Z
 extricateVar (S x) = S (extricateVar x)
 extricateVar (T x) = T (extricateVar x)
 
 extricateSub : ∀ {Γ Δ} → (∀ {J} → Δ ∋⋆ J → Γ ⊢Nf⋆ J)
-  → Scoped.Tel⋆ (len⋆ Γ) (len⋆ Δ)
+             → Scoped.Tel⋆ (len⋆ Γ) (len⋆ Δ)
 extricateSub {Δ = ∅}     σ = []
 extricateSub {Γ}{Δ ,⋆ K} σ =
   Eq.subst (Scoped.Tel⋆ (len⋆ Γ))
@@ -94,15 +87,14 @@ extricateSub {Γ}{Δ ,⋆ K} σ =
            (extricateSub {Δ = Δ} (σ ∘ S) ++ Data.Vec.[ extricateNf⋆ (σ Z) ])
 
 extricate : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ ⊢ A → ScopedTm (len Γ)
-extricate (` x) = ` (extricateVar x)
-extricate {Φ}{Γ} (ƛ {A = A} t) = ƛ (extricateNf⋆ A) (extricate t)
-extricate (t · u) = extricate t · extricate u
-extricate (Λ {K = K} t) = Λ K (extricate t)
-extricate {Φ}{Γ} (t ·⋆ A / refl) = extricate t ScopedTm.·⋆ extricateNf⋆ A
-extricate {Φ}{Γ} (wrap pat arg t) = wrap (extricateNf⋆ pat) (extricateNf⋆ arg)
-  (extricate t)
-extricate (unwrap t refl) = unwrap (extricate t)
-extricate (con {A = A} c p) = con (tmCon (ty2sty A) (subst ⟦_⟧ (ty≅sty₁ A) c))
-extricate (builtin b / refl) = builtin b
-extricate {Φ}{Γ} (error A) = error (extricateNf⋆ A)
+extricate (` x)                   = ` (extricateVar x)
+extricate {Φ}{Γ} (ƛ {A = A} t)    = ƛ (extricateNf⋆ A) (extricate t)
+extricate (t · u)                 = extricate t · extricate u
+extricate (Λ {K = K} t)           = Λ K (extricate t)
+extricate {Φ}{Γ} (t ·⋆ A / refl)  = extricate t ScopedTm.·⋆ extricateNf⋆ A
+extricate {Φ}{Γ} (wrap pat arg t) = wrap (extricateNf⋆ pat) (extricateNf⋆ arg) (extricate t)
+extricate (unwrap t refl)         = unwrap (extricate t)
+extricate (con {A = A} c p)       = con (tmCon (ty2sty A) (subst ⟦_⟧ (ty≅sty₁ A) c))
+extricate (builtin b / refl)      = builtin b
+extricate {Φ}{Γ} (error A)        = error (extricateNf⋆ A)
 \end{code}

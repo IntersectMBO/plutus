@@ -96,68 +96,55 @@ decKind (K ⇒ J) ♯ = no λ()
 decKind (K ⇒ J) (K' ⇒ J') = dcong₂ _⇒_ (λ { refl → refl ,, refl}) (decKind K K') (decKind J J')
 
 isStar : ∀{Φ}
-       → Either TypeError (Σ Kind (Φ ⊢Nf⋆_))
+       → Σ Kind (Φ ⊢Nf⋆_)
        → Either TypeError (Φ ⊢Nf⋆ *)
-isStar p = do
-  * ,, A ← p
-   where (K ⇒ J ,, _) → inj₁ (notStar (K ⇒ J) λ())
-         (♯ ,, _) → inj₁ (notStar ♯ λ())
-  return A
+isStar (* ,, A)     = return A
+isStar (K ⇒ J ,, _) = inj₁ (notStar (K ⇒ J) λ())
+isStar (♯ ,, _)     = inj₁ (notStar ♯ λ())
 
 isFunKind : ∀{Φ}
-       → Either TypeError (Σ Kind (Φ ⊢Nf⋆_))
+       → Σ Kind (Φ ⊢Nf⋆_)
        → Either TypeError (Σ Kind λ K → Σ Kind λ J → Φ ⊢Nf⋆ K ⇒ J)
-isFunKind p = do
-  K ⇒ J ,, A ← p
-    where (♯ ,, _) → inj₁ (notFunKind ♯ λ _ _ ())
-          (* ,, _) → inj₁ (notFunKind * λ _ _ ())
-  return (K ,, J ,, A)
-
+isFunKind (K ⇒ J ,, A) = return (K ,, J ,, A)
+isFunKind (♯ ,, _)     = inj₁ (notFunKind ♯ λ _ _ ())
+isFunKind (* ,, _)     = inj₁ (notFunKind * λ _ _ ())
+  
 isPat : ∀{Φ}
-       → Either TypeError (Σ Kind (Φ ⊢Nf⋆_))
+       → Σ Kind (Φ ⊢Nf⋆_)
        → Either TypeError (Σ Kind λ K → Φ ⊢Nf⋆ (K ⇒ *) ⇒ (K ⇒ *))
-isPat p =
- do
-  (K ⇒ *) ⇒ (K' ⇒ *) ,, A ← p
-    where
-      (* ,, _) → inj₁ (notPat * λ _ ())
-      (♯ ,, _) → inj₁ (notPat ♯ λ _ ())
-      (K@(_ ⇒ *) ,, _) → inj₁ (notPat K λ _ ())
-      (K@(_ ⇒ ♯) ,, _) → inj₁ (notPat K λ _ ())
-      (K@(_ ⇒ (_ ⇒ (_ ⇒ _))) ,, _) → inj₁ (notPat K λ _ ())
-      (K@(* ⇒ (_ ⇒ *)) ,, _) → inj₁ (notPat K λ _ ())
-      (K@(* ⇒ (_ ⇒ ♯)) ,, _) → inj₁ (notPat K λ _ ())
-      (K@(♯ ⇒ (_ ⇒ ♯)) ,, _) → inj₁ (notPat K λ _ ())
-      (K@(♯ ⇒ (_ ⇒ *)) ,, _) → inj₁ (notPat K λ _ ())
-      (K@((_ ⇒ ♯) ⇒ (_ ⇒ ♯)) ,, _) → inj₁ (notPat K λ _ ())
-      (K@((_ ⇒ *) ⇒ (_ ⇒ ♯)) ,, _) → inj₁ (notPat K λ _ ())
-      (K@((_ ⇒ ♯) ⇒ (_ ⇒ *)) ,, _) → inj₁ (notPat K λ _ ())
-      (K@((_ ⇒ (_ ⇒ _)) ⇒ (_ ⇒ *)) ,, _) → inj₁ (notPat K λ _ ())
-      (K@((_ ⇒ (_ ⇒ _)) ⇒ (_ ⇒ ♯)) ,, _) → inj₁ (notPat K λ _ ())
-  refl ← withE (kindMismatch _ _) (dec2Either (decKind K K'))
-  return (K ,, A)
+isPat (* ,, A) = inj₁ (notPat * λ _ ())
+isPat (♯ ,, A) = inj₁ (notPat * λ _ ())
+isPat ((* ⇒ K₁) ,, A) = inj₁ (notPat * λ _ ())
+isPat ((♯ ⇒ K₁) ,, A) = inj₁ (notPat * λ _ ())
+isPat (((K ⇒ K₂) ⇒ *) ,, A) = inj₁ (notPat * λ _ ())
+isPat (((K ⇒ K₂) ⇒ ♯) ,, A) = inj₁ (notPat * λ _ ())
+isPat (((K ⇒ *) ⇒ (K₁ ⇒ *)) ,, A) = do
+      refl ← withE (kindMismatch _ _) (dec2Either (decKind K K₁))
+      return (K ,, A) 
+isPat (((K ⇒ *) ⇒ (K₁ ⇒ ♯)) ,, A) = inj₁ (notPat * λ _ ())
+isPat (((K ⇒ *) ⇒ (K₁ ⇒ (K₃ ⇒ K₄))) ,, A) = inj₁ (notPat * λ _ ())
+isPat (((K ⇒ ♯) ⇒ (K₁ ⇒ K₃)) ,, A) = inj₁ (notPat * λ _ ())
+isPat (((K ⇒ (K₂ ⇒ K₄)) ⇒ (K₁ ⇒ K₃)) ,, A) = inj₁ (notPat * λ _ ())
 
 isPi :  ∀{Φ Γ}
-       → Either TypeError (Σ (Φ ⊢Nf⋆ *) (Γ ⊢_))
+       → Σ (Φ ⊢Nf⋆ *) (Γ ⊢_)
        → Either TypeError (Σ Kind λ K → Σ (Φ ,⋆ K ⊢Nf⋆ *) λ A → Γ ⊢ Π A)
-isPi p = do
-  Π A ,, L ← p
-    where A ⇒ B ,, _ → inj₁ (notPi (A ⇒ B) (λ _ ()))
-          ne A  ,, _ → inj₁ (notPi (ne A) (λ _ ()))
-          con {Φ} c ,, _ → inj₁ (notPi (con {Φ} c) (λ _ ()))
-          μ A B ,, _ → inj₁ (notPi (μ A B) (λ _ ()))
-  return (_ ,, A ,, L)
+isPi (Π A ,, L)       = return (_ ,, A ,, L)
+isPi (A ⇒ B ,, _)     = inj₁ (notPi (A ⇒ B) (λ _ ()))
+isPi (ne A  ,, _)     = inj₁ (notPi (ne A) (λ _ ()))
+isPi (con {Φ} c ,, _) = inj₁ (notPi (con {Φ} c) (λ _ ()))
+isPi (μ A B ,, _)     = inj₁ (notPi (μ A B) (λ _ ()))
+  
 
 isFunType :  ∀{Φ Γ}
-       → Either TypeError (Σ (Φ ⊢Nf⋆ *) (Γ ⊢_))
+       → Σ (Φ ⊢Nf⋆ *) (Γ ⊢_)
        → Either TypeError (Σ (Φ ⊢Nf⋆ *) λ A → Σ (Φ ⊢Nf⋆ *) λ B → Γ ⊢ A ⇒ B)
-isFunType p = do
-  A ⇒ B ,, L ← p
-    where Π A ,, _ → inj₁ (notFunType (Π A) (λ _ _ ()))
-          ne A  ,, _ → inj₁ (notFunType (ne A) (λ _ _ ()))
-          con {Φ} c ,, _ → inj₁ (notFunType (con {Φ} c) (λ _ _ ()))
-          μ A B ,, _ → inj₁ (notFunType (μ A B) (λ _ _ ()))
-  return (A ,, B ,, L)
+isFunType (A ⇒ B ,, L ) =  return (A ,, B ,, L)
+isFunType (Π A ,, _) = inj₁ (notFunType (Π A) (λ _ _ ()))
+isFunType (ne A  ,, _ ) = inj₁ (notFunType (ne A) (λ _ _ ()))
+isFunType (con {Φ} c ,, _) = inj₁ (notFunType (con {Φ} c) (λ _ _ ()))
+isFunType (μ A B ,, _) = inj₁ (notFunType (μ A B) (λ _ _ ()))
+ 
   
 isMu :  ∀{Φ Γ}
        → Either TypeError (Σ (Φ ⊢Nf⋆ *) (Γ ⊢_))
@@ -180,23 +167,28 @@ checkKind Φ A K = do
 
 inferKind Φ (` α) = let K ,, β = inferTyVar Φ α in return (K ,, ne (` β))
 inferKind Φ (A ⇒ B) = do
-  A ← isStar (inferKind Φ A)
-  B ← isStar (inferKind Φ B)
+  KA ← inferKind Φ A
+  A  ← isStar KA
+  KB ← inferKind Φ B
+  B  ← isStar KB 
   return (* ,, A ⇒ B)
 inferKind Φ (Π K A) = do
-  A ← isStar (inferKind (Φ ,⋆ K) A)
+  K ← inferKind (Φ ,⋆ K) A
+  A ← isStar K
   return (* ,, Π A)
 inferKind Φ (ƛ K A) = do
   J ,, A ← inferKind (Φ ,⋆ K) A
   return (K ⇒ J ,, ƛ A)
 inferKind Φ (A · B) = do
-  (K ,, J ,, A) ← isFunKind (inferKind Φ A)
+  KA ← inferKind Φ A
+  (K ,, J ,, A) ← isFunKind KA
   B ← checkKind Φ B K
   return (J ,, nf (embNf A · embNf B))
-inferKind Φ (con {K} tc) =
-  return (K ,, ne (^ tc))
+inferKind Φ (con {♯} tc) = return (* ,, con (ne (^ tc)))
+inferKind Φ (con {K ⇒ K₁} tc) = inj₁ (kindMismatch ♯ (K ⇒ K₁) (λ ())) 
 inferKind Φ (μ A B) = do
-  K ,, A ← isPat (inferKind Φ A)
+  KA ← inferKind Φ A
+  K ,, A ← isPat KA
   B ← checkKind Φ B K
   return (* ,, μ A B)
 inferKind Φ missing = inj₁ UnknownType
@@ -207,22 +199,22 @@ len (Γ ,⋆ J) = Weirdℕ.T (len Γ)
 len (Γ , A)  = Weirdℕ.S (len Γ)
 
 inferVarType : ∀{Φ}(Γ : Ctx Φ) → WeirdFin (len Γ) 
-  → Either TypeError (Σ (Φ ⊢Nf⋆ *) λ A → Γ ∋ A)
+             → Either TypeError (Σ (Φ ⊢Nf⋆ *) λ A → Γ ∋ A)
 inferVarType (Γ ,⋆ J) (WeirdFin.T x) = do
-  A ,, α ← inferVarType Γ x
-  return (weakenNf A ,, T α)
+        A ,, α ← inferVarType Γ x
+        return (weakenNf A ,, T α)
 inferVarType (Γ , A) Z = return (A ,, Z)
 inferVarType (Γ , A) (S x) = do
-  A ,, α ← inferVarType Γ x
-  return (A ,, S α)
+        A ,, α ← inferVarType Γ x
+        return (A ,, S α)
 
 decTyVar : ∀{Φ K}(α α' : Φ ∋⋆ K) → Dec (α ≡ α')
 decTyVar Z     Z      = yes refl 
 decTyVar (S α) (S α') with (decTyVar α α')
-... | yes refl = yes refl 
-... | no  ¬p   = no (λ { refl → ¬p refl})
-decTyVar Z     (S α') = no λ()
-decTyVar (S α) Z      = no λ()
+...        | yes refl = yes refl 
+...        | no  ¬p   = (no (λ { refl → ¬p refl}))
+decTyVar Z     (S α') = (no λ())
+decTyVar (S α) Z      = (no λ())
 
 decNfTy : ∀{Φ K}(A A' : Φ ⊢Nf⋆ K) → Dec (A ≡ A')
 decNeTy : ∀{Φ K}(A A' : Φ ⊢Ne⋆ K) → Dec (A ≡ A')
@@ -235,32 +227,32 @@ decNfTy (Π {K = K} A) (Π {K = K'} A') = dhcong (λ k t → Π {K = k} t)
                                                 (λ {refl → refl ,, refl}) 
                                                 (decKind K K')
                                                 (decNfTy A) 
-decNfTy (Π t) (u ⇒ u₁) = no λ()
-decNfTy (Π t) (ne x) = no λ()
-decNfTy (Π t) (con u) = no λ()
-decNfTy (Π t) (μ u u₁) = no λ()
-decNfTy (t ⇒ t₁) (Π u) = no λ()
+decNfTy (Π _) (_ ⇒ _)     = no λ()
+decNfTy (Π _) (ne _)      = no λ()
+decNfTy (Π _) (con _)     = no λ()
+decNfTy (Π _) (μ _ _)     = no λ()
+decNfTy (_ ⇒ _) (Π _)     = no λ()
 decNfTy (A ⇒ B) (A' ⇒ B') = dcong₂ _⇒_ (λ {refl → refl ,, refl }) (decNfTy A A') (decNfTy B B') 
-decNfTy (t ⇒ t₁) (ne x) = no λ()
-decNfTy (t ⇒ t₁) (con u) = no λ()
-decNfTy (t ⇒ t₁) (μ u u₁) = no λ()
-decNfTy (ƛ A) (ƛ A') = dcong ƛ (λ {refl → refl}) (decNfTy A A')
-decNfTy (ƛ t) (ne x) = no λ()
-decNfTy (ne x) (Π u) = no λ()
-decNfTy (ne x) (u ⇒ u₁) = no λ()
-decNfTy (ne x) (ƛ u) = no λ()
-decNfTy (ne A) (ne A') = dcong ne (λ {refl → refl}) (decNeTy A A')
-decNfTy (ne x) (con u) = no λ()
-decNfTy (ne x) (μ u u₁) = no λ()
-decNfTy (con t) (Π u) =  no λ()
-decNfTy (con t) (u ⇒ u₁) =  no λ()
-decNfTy (con t) (ne x) =  no λ()
-decNfTy (con t) (con u) = dcong con (λ {refl → refl}) (decNfTy t u)
-decNfTy (con t) (μ u u₁) =  no λ()
-decNfTy (μ t t₁) (Π u) =  no λ()
-decNfTy (μ t t₁) (u ⇒ u₁) =  no λ()
-decNfTy (μ t t₁) (ne x) =  no λ()
-decNfTy (μ t t₁) (con u) =  no λ()
+decNfTy (_ ⇒ _) (ne _)    = no λ()
+decNfTy (_ ⇒ _) (con _)   = no λ()
+decNfTy (_ ⇒ _) (μ _ _)   = no λ()
+decNfTy (ƛ A) (ƛ A')      = dcong ƛ (λ {refl → refl}) (decNfTy A A')
+decNfTy (ƛ _) (ne _)      = no λ()
+decNfTy (ne _) (Π _)      = no λ()
+decNfTy (ne _) (_ ⇒ _)    = no λ()
+decNfTy (ne _) (ƛ _)      = no λ()
+decNfTy (ne A) (ne A')    = dcong ne (λ {refl → refl}) (decNeTy A A')
+decNfTy (ne _) (con _)    = no λ()
+decNfTy (ne _) (μ _ _)    = no λ()
+decNfTy (con _) (Π _)     = no λ()
+decNfTy (con _) (_ ⇒ _)   = no λ()
+decNfTy (con _) (ne _)    = no λ()
+decNfTy (con t) (con u)   = dcong con (λ {refl → refl}) (decNfTy t u)
+decNfTy (con _) (μ _ _)   = no λ()
+decNfTy (μ _ _) (Π _)     = no λ()
+decNfTy (μ _ _) (u ⇒ u₁)  = no λ()
+decNfTy (μ _ _) (ne _)    = no λ()
+decNfTy (μ _ _) (con _)   = no λ()
 decNfTy (μ {K = K} A B) (μ {K = K'} A' B') = dhcong₂ (λ k x y → μ {K = k} x y)
                                                      (λ { refl → refl ,, refl ,, refl }) 
                                                      (decKind K K') 
@@ -269,7 +261,7 @@ decNfTy (μ {K = K} A B) (μ {K = K'} A' B') = dhcong₂ (λ k x y → μ {K = k
 
 decNeTy (` α) (` α') = dcong ` (λ {refl → refl}) (decTyVar α α')
 decNeTy (` _) (_ · _) = no λ()
-decNeTy (` _) (^ _) = no λ()
+decNeTy (` _) (^ _)   = no λ()
 decNeTy (_ · _) (` _) = no λ()
 decNeTy (_·_ {K = K} A B) (_·_ {K = K'} A' B') = dhcong₂ (λ k t u → _·_ {K = k} t u)
                                                          (λ { refl → refl ,, refl ,, refl }) 
@@ -277,9 +269,9 @@ decNeTy (_·_ {K = K} A B) (_·_ {K = K'} A' B') = dhcong₂ (λ k t u → _·_ 
                                                          (decNeTy A) 
                                                          (decNfTy B)
 decNeTy (_ · _) (^ _) = no λ()
-decNeTy (^ _) (` _) = no λ()
+decNeTy (^ _) (` _)   = no λ()
 decNeTy (^ _) (_ · _) = no λ()
-decNeTy (^ C) (^ C') = dcong ^ ((λ {refl → refl})) (decTyCon C C')
+decNeTy (^ C) (^ C')  = dcong ^ (λ {refl → refl}) (decTyCon C C')
 
 inv-complete : ∀{Φ K}{A A' : Φ ⊢⋆ K} → nf A ≡ nf A' → A' ≡β A
 inv-complete {A = A}{A' = A'} p = trans≡β
@@ -294,7 +286,8 @@ inferType : ∀{Φ}(Γ : Ctx Φ) → ScopedTm (len Γ)
 
 checkType Γ L A = do
   A' ,, L ← inferType Γ L
-  refl ← withE (typeMismatch _ _) (dec2Either (decNfTy A A'))
+  let d = decNfTy A A'
+  refl ← withE (typeMismatch _ _) (dec2Either d)
   return L
   
 inferType Γ (` x) = do
@@ -304,24 +297,29 @@ inferType Γ (Λ K L) = do
   A ,, L ← inferType (Γ ,⋆ K) L
   return (Π A ,, Λ L)
 inferType Γ (L ·⋆ A) = do
-  K ,, B ,, L ← isPi (inferType Γ L)
+  t ← inferType Γ L
+  K ,, B ,, L ← isPi t
   A ← checkKind _ A K
   return (B [ A ]Nf ,, L ·⋆ A / refl)
 inferType Γ (ƛ A L) = do
-  A ← isStar (inferKind _ A)
+  K ← inferKind _ A
+  A ← isStar K
   B ,, L ← inferType (Γ , A) L 
   return (A ⇒ B ,, ƛ L)
 inferType {Φ} Γ (L · M) = do
-  A ,, B ,, L ← isFunType (inferType Γ L)
+  ty ← inferType Γ L
+  A ,, B ,, L ← isFunType ty
   M ← checkType Γ M A
   return (B ,, L · M)
-inferType {Φ} Γ (con (tmCon t x)) = return ((con (subNf∅ (sty2ty t))) ,, con x refl)
+inferType Γ (con (tmCon t x)) = return (con (subNf∅ (sty2ty t)) ,, con x refl)
 inferType Γ (error A) = do
-  A ← isStar (inferKind _ A)
+  K ← inferKind _ A
+  A ← isStar K
   return (A ,, error A)
 inferType Γ (builtin b) = inj₂ (btype b ,, builtin b / refl)
 inferType Γ (wrap A B L) = do
-  K ,, A ← isPat (inferKind _ A)
+  KA ← inferKind _ A
+  K ,, A ← isPat KA
   B ← checkKind _ B K
   L ← checkType Γ L (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B))
   return (μ A B ,, wrap A B L)
