@@ -68,23 +68,6 @@ splitParams = \case
   -- Whenever we encounter a body that is not a lambda or type abstraction, we are done counting
   tm -> ([], tm)
 
--- | Returns a function with the supplied term or type lambda abstractions. The result is wrapped in
--- `Dupable` for renaming.
-mkAbs ::forall tyname name uni fun ann.
-  (InliningConstraints tyname name uni fun) =>
-  -- | The function body wrapped in `Dupable`.
-  Dupable (Term tyname name uni fun ann) ->
-  Arity tyname name uni ann -> -- The abstractions
-  InlineM tyname name uni fun ann (Dupable (Term tyname name uni fun ann))
-mkAbs body (TermParam ann n ty : nextLam) = do
-  liftedBody <- liftDupable body
-  mkAbs (dupable (LamAbs ann n ty liftedBody)) nextLam
-mkAbs body  (TypeParam ann n kd : nextLam) = do
-  liftedBody <- liftDupable body
-  mkAbs (dupable (TyAbs ann n kd liftedBody)) nextLam
-mkAbs body _ = pure body
-
-
 {- | Apply the RHS of the given variable to the given arguments and beta-reduce
 the application, if possible.
 -}
@@ -97,9 +80,14 @@ applyAndBetaReduce ::
   AppContext tyname name uni fun ann ->
   InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
 applyAndBetaReduce info args0 = do
+  -- FIXME: renaming just the function body is problematic!
   rhsBody <- liftDupable (let Done rhsBody = varRhsBody info in rhsBody)
-  let go ::
-        -- | The function body of the variable
+  let getFnBody :: Term tyname name uni fun ann -> Term tyname name uni fun ann
+      getFnBody (LamAbs _ann _n _ty body) = body
+      getFnBody (TyAbs _ann _n _kd body)  = body
+      getFnBody tm                        = tm
+      go ::
+        -- | The rhs of the variable
         Term tyname name uni fun ann ->
         Arity tyname name uni ann ->
         AppContext tyname name uni fun ann ->
@@ -111,26 +99,24 @@ applyAndBetaReduce info args0 = do
           safe <- safeToBetaReduce param arg
           if safe
             then do
-              acc' <-
+              acc' <- do
                 termSubstNamesM
                   (\n -> if n == param then Just <$> PLC.rename arg else pure Nothing)
-                  acc
+                  (getFnBody acc)
               go acc' arity' args'
             else pure Nothing
         (TypeParam _ann param _kd: arity', TypeAppContext arg _ args') -> do
           acc' <-
             termSubstTyNamesM
               (\n -> if n == param then Just <$> PLC.rename arg else pure Nothing)
-              acc
+              (getFnBody acc)
           go acc' arity' args'
         -- term/type argument mismatch, don't inline
         (TermParam{}:_, TypeAppContext{}) -> pure Nothing
         (TypeParam{}:_, TermAppContext{}) -> pure Nothing
         -- no more arguments to apply, just apply what we have
-        (remainingArity, AppContextEnd) -> do
-          -- renaming is needed otherwise we get multiply defined errors.
-          bodyWithAbs <- mkAbs (dupable acc) remainingArity
-          renamed <- liftDupable bodyWithAbs
+        (_remainingArity, AppContextEnd) -> do
+          renamed <- PLC.rename acc
           pure $ Just renamed
 
       -- Is it safe to turn `(\a -> body) arg` into `body [a := arg]`?
@@ -143,7 +129,7 @@ applyAndBetaReduce info args0 = do
         Term tyname name uni fun ann ->
         InlineM tyname name uni fun ann Bool
       safeToBetaReduce a = shouldUnconditionallyInline Strict a rhsBody
-  go rhsBody (varArity info) args0
+  go (varRhs info) (varArity info) args0
 
 -- | Consider whether to inline an application.
 inlineApp ::
