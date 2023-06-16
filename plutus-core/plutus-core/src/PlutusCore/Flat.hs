@@ -394,7 +394,9 @@ instance Flat FakeNamedDeBruijn where
     decode =  toFake <$> decode
 
 {- This instance is going via Flat (Binder DeBruijn) instance.
-Binder FakeNamedDeBruijn <->Binder DeBruijn are isomorphic:  we could use iso-deriving package,
+Binder FakeNamedDeBruijn <->Binder DeBruijn are isomorphic because
+FakeNamedDeBruijn<->DeBruijn are isomorphic and Binder is a functor:
+we could use iso-deriving package,
 but  we do not need any other isomorphic Flat deriving for the moment.
 See NOTE: [Why newtype FakeNamedDeBruijn]
 NOTE: the serialization roundtrip holds iff the invariant binder.index==0 holds
