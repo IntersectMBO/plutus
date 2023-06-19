@@ -195,7 +195,7 @@ unitCostBuiltinCostModel = BuiltinCostModelBase
     , paramBls12_381_millerLoop            = unitCostTwoArguments
     , paramBls12_381_mulMlResult           = unitCostTwoArguments
     , paramBls12_381_finalVerify           = unitCostTwoArguments
-    -- Keccak256
-    , paramKeccak256                       = unitCostOneArgument
+    -- Keccak_256
+    , paramKeccak_256                      = unitCostOneArgument
     }
 

@@ -121,7 +121,7 @@ builtinCostModelNames = BuiltinCostModelBase
   , paramBls12_381_millerLoop            = "bls12_381_millerLoopModel"
   , paramBls12_381_mulMlResult           = "bls12_381_mulMlResultModel"
   , paramBls12_381_finalVerify           = "bls12_381_finalVerifyModel"
-  , paramKeccak256                       = "keccak256Model"
+  , paramKeccak_256                      = "keccak_256Model"
   }
 
 
@@ -233,7 +233,7 @@ createBuiltinCostModel bmfile rfile = do
     paramBls12_381_mulMlResult           <- getParams bls12_381_mulMlResult     paramBls12_381_mulMlResult
     paramBls12_381_finalVerify           <- getParams bls12_381_finalVerify     paramBls12_381_finalVerify
 
-    paramKeccak256                       <- getParams keccak256                 paramKeccak256
+    paramKeccak_256                      <- getParams keccak_256                paramKeccak_256
 
     pure $ BuiltinCostModelBase {..}
 
@@ -494,10 +494,10 @@ blake2b_256 cpuModelR = do
   let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ PlutusHash.blake2b_256 "")
   pure $ CostingFun cpuModel memModel
 
-keccak256 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
-keccak256 cpuModelR = do
+keccak_256 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+keccak_256 cpuModelR = do
   cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
-  let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ PlutusHash.keccak256 "")
+  let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ PlutusHash.keccak_256 "")
   pure $ CostingFun cpuModel memModel
 
 -- NB: the R model is based purely on the size of the second argument (since the

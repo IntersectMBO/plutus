@@ -108,7 +108,7 @@ isCommutative = \case
   Bls12_381_millerLoop            -> False
   Bls12_381_mulMlResult           -> False
   Bls12_381_finalVerify           -> False
-  Keccak256                       -> False
+  Keccak_256                      -> False
     -- Strings
   AppendString                    -> False
   EqualsString                    -> True

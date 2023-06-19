@@ -420,7 +420,7 @@ main =
                     , $(genTest 2 "bls12_381_mulMlResult")    Everywhere
                     , $(genTest 2 "bls12_381_finalVerify")    Everywhere
 
-                    -- Keccak256
-                    , $(genTest 1 "keccak256")
+                    -- Keccak_256
+                    , $(genTest 1 "keccak_256")
                     ]
 

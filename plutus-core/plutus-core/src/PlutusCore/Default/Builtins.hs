@@ -144,8 +144,8 @@ data DefaultFun
     | Bls12_381_millerLoop
     | Bls12_381_mulMlResult
     | Bls12_381_finalVerify
-    -- Keccak256
-    | Keccak256
+    -- Keccak_256
+    | Keccak_256
     deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
     deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
@@ -1469,10 +1469,10 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             BLS12_381.Pairing.finalVerify
             (runCostingFunTwoArguments . paramBls12_381_finalVerify)
-    toBuiltinMeaning _ver Keccak256 =
+    toBuiltinMeaning _ver Keccak_256 =
         makeBuiltinMeaning
-            Hash.keccak256
-            (runCostingFunOneArgument . paramKeccak256)
+            Hash.keccak_256
+            (runCostingFunOneArgument . paramKeccak_256)
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}
 
@@ -1578,7 +1578,7 @@ instance Flat DefaultFun where
               Bls12_381_millerLoop            -> 68
               Bls12_381_mulMlResult           -> 69
               Bls12_381_finalVerify           -> 70
-              Keccak256                       -> 71
+              Keccak_256                      -> 71
 
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
@@ -1652,7 +1652,7 @@ instance Flat DefaultFun where
               go 68 = pure Bls12_381_millerLoop
               go 69 = pure Bls12_381_mulMlResult
               go 70 = pure Bls12_381_finalVerify
-              go 71 = pure Keccak256
+              go 71 = pure Keccak_256
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth

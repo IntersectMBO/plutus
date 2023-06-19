@@ -467,7 +467,7 @@
             "type": "constant_cost"
         }
     },
-    "keccak256": {
+    "keccak_256": {
         "cpu": {
             "arguments": {
                 "intercept": 1234567890,
