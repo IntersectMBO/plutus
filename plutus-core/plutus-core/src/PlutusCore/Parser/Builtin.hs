@@ -85,13 +85,19 @@ conPair uniA uniB = trailingWhitespace . inParens $ do
 conData :: Parser Data
 conData =
     choice
-        [ trailingWhitespace $ inParens conData
-        , symbol "Constr" *> (Constr <$> conInteger <*> conList knownUni)
-        , symbol "Map" *> (Map <$> conList knownUni)
-        , symbol "List" *> (List <$> conList knownUni)
-        , symbol "I" *> (I <$> conInteger)
-        , symbol "B" *> (B <$> conBS)
+        [ trailingWhitespace $ inParens conDataContent
+        -- Unparented data values can appear inside of lists and tuples.
+        , conDataContent
         ]
+  where
+    conDataContent =
+        choice
+            [ symbol "Constr" *> (Constr <$> conInteger <*> conList knownUni)
+            , symbol "Map" *> (Map <$> conList knownUni)
+            , symbol "List" *> (List <$> conList knownUni)
+            , symbol "I" *> (I <$> conInteger)
+            , symbol "B" *> (B <$> conBS)
+            ]
 
 -- Serialised BLS12_381 elements are "0x" followed by a hex string of even
 -- length.  Maybe we should just use the usual bytestring syntax.

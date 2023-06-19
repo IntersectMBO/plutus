@@ -4,7 +4,6 @@
 {-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TypeApplications      #-}
@@ -60,9 +59,10 @@ a value of a compound type (list of lists, list of tuples, tuple of lists etc) v
 In practice this means that we have some additional spaces printed after punctuation symbols
 that 'show' alone would have omitted, for example:
 
->>> print $ prettyConst botRenderContext ("abc\nx\tyz∀" :: Text, [((), False), ((), True)])
+>>> let whateverList = ("abc\nx\tyz∀" :: Text, [((), False), ((), True)])
+>>> print $ prettyConst botRenderContext whateverList
 ("abc\nx\tyz\8704", [((), False), ((), True)])
->>> putStrLn $ show                      ("abc\nx\tyz∀" :: Text, [((), False), ((), True)])
+>>> putStrLn $ show whateverList
 ("abc\nx\tyz\8704",[((),False),((),True)])
 
 Not a big deal, since our parser isn't whitespace-sensitive.
@@ -141,8 +141,8 @@ instance PrettyBy ConstConfig Data where
         Constr i ds ->  ("Constr" <+> prettyArg i) :| [prettyArg ds]
         Map ps      ->  "Map" :| [prettyArg ps]
         List ds     ->  "List" :| [prettyArg ds]
-        I i         ->  "I" :| [prettyArg i]
-        B b         ->  "B" :| [prettyArg b]
+        I i         ->  ("I" <+> prettyArg i) :| []
+        B b         ->  ("B" <+> prettyArg b) :| []
 
 instance PrettyBy ConstConfig BS.ByteString where
     prettyBy _ b = "#" <> toBytes b

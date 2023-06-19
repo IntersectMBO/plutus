@@ -216,7 +216,9 @@ iterAppDocM ::
 iterAppDocM k =
   infixDocM juxtFixity $ \prettyFun prettyArg ->
     let fun :| args = k prettyFun prettyArg
-    in fun <?> vsep args
+    in if null args
+        then fun
+        else fun <?> vsep args
 
 {- | Lay out iterated function applications either as
 
