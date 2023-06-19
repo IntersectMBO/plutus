@@ -256,8 +256,8 @@ typeMismatchError
     -> UnliftingError
 typeMismatchError uniExp uniAct = fromString $ concat
     [ "Type mismatch: "
-    , "expected: " ++ render (prettyParens $ SomeTypeIn uniExp)
-    , "; actual: " ++ render (prettyParens $ SomeTypeIn uniAct)
+    , "expected: " ++ render (prettyBy botRenderContext $ SomeTypeIn uniExp)
+    , "; actual: " ++ render (prettyBy botRenderContext $ SomeTypeIn uniAct)
     ]
 -- Just for tidier Core to get generated, we don't care about performance here, since it's just a
 -- failure message and evaluation is about to be shut anyway.

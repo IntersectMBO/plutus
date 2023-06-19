@@ -16,11 +16,11 @@ module PlutusCore.Pretty.PrettyConst where
 import PlutusCore.Data
 import PlutusCore.Pretty.Readable
 
-import Codec.Serialise (serialise)
+import Control.Lens hiding (List)
 import Data.ByteString qualified as BS
-import Data.ByteString.Lazy qualified as BSL
 import Data.Coerce
 import Data.Foldable (fold)
+import Data.List.NonEmpty
 import Data.Proxy
 import Data.Text qualified as T
 import Data.Typeable
@@ -33,25 +33,20 @@ import Text.PrettyBy.Internal (DefaultPrettyBy (..))
 import Universe
 
 {- Note [Prettyprinting built-in constants]
-When we're printing PLC
-code, the prettyprinter has to render built-in constants.
-Unfortunately the instance of `Data.Text.Pretyprint.Doc.Pretty` for
-`Char` and `String` (via `Char` and `[]`) does the wrong thing if
-control characters are involved.  For example, the string
-['a', 'b', 'c', '\n', 'x', '\t', 'y', 'z'] renders as
+When we're printing PLC code, the prettyprinter has to render built-in constants. Unfortunately the
+instance of "Data.Text.Pretyprint.Doc.Pretty" for 'Text' does the wrong thing if control characters
+are involved. For example, the 'Text' "abc\nx\tyz" renders as
 
 abc
 x    yz
 
-which the PLC parser can't deal with.  However, `show` renders the
-string as "abc\nx\tyz" (including the quotes), which can be
-successfuly parsed using `read`.  This class provides a
-`prettyConst` method which should be used whenever it's necessary
-to render a built-in constant: see for example
-`PlutusCore.Core.Instance.Pretty.Classic`.  The constraint
-`uni `Everywhere` PrettyConst` occurs in many places in the
-codebase to make sure that we know how to print a constant from any
-type appearing in a universe of built-in types.
+which the PLC parser can't deal with. However, 'show' renders the string as "abc\nx\tyz" (including
+the quotes).
+
+This module provides a 'prettyConst' method which should be used whenever it's necessary to render a
+built-in constant: see for example "PlutusCore.Core.Instance.Pretty.Classic". The constraint @uni
+`Everywhere` PrettyConst@ occurs in many places in the codebase to make sure that we know how to
+print a constant from any type appearing in a universe of built-in types.
 
 Setting up our own machinery for overloading pretty-printing behavior would be laborious,
 but fortunately the @prettyprinter-configurable@ library already provides us with all the tools
@@ -64,16 +59,25 @@ a value of a compound type (list of lists, list of tuples, tuple of lists etc) v
 In practice this means that we have some additional spaces printed after punctuation symbols
 that 'show' alone would have omitted, for example:
 
->>> putStrLn $ displayConst ("abc\nx\tyz∀" :: String, [((), False), ((), True)])
+>>> let whateverList = ("abc\nx\tyz∀" :: Text, [((), False), ((), True)])
+>>> print $ prettyConst botRenderContext whateverList
 ("abc\nx\tyz\8704", [((), False), ((), True)])
->>> putStrLn $ show         ("abc\nx\tyz∀" :: String, [((), False), ((), True)])
+>>> putStrLn $ show whateverList
 ("abc\nx\tyz\8704",[((),False),((),True)])
 
-Not a big deal, since 'read' can see through these spaces perfectly fine.
+Not a big deal, since our parser isn't whitespace-sensitive.
 -}
 
-data ConstConfig = ConstConfig
+-- See Note [Prettyprinting built-in constants].
+-- | The type of configs used for pretty-printing constants. Has a 'RenderContext' inside, so that
+-- we don't add redundant parens to the output.
+newtype ConstConfig = ConstConfig
+    { unConstConfig :: RenderContext
+    }
 type instance HasPrettyDefaults ConstConfig = 'False
+
+instance HasRenderContext ConstConfig where
+    renderContext = coerced
 
 type PrettyConst = PrettyBy ConstConfig
 
@@ -97,11 +101,8 @@ instance Show a => DefaultPrettyBy ConstConfig (PrettyAny a) where
     defaultPrettyBy     _ = pretty . show @a   . coerce
     defaultPrettyListBy _ = pretty . show @[a] . coerce
 
-prettyConst :: PrettyConst a => a -> Doc ann
-prettyConst = prettyBy ConstConfig
-
-displayConst :: forall str a. (PrettyConst a, Render str) => a -> str
-displayConst = render . prettyConst
+prettyConst :: PrettyConst a => RenderContext -> a -> Doc ann
+prettyConst = prettyBy . ConstConfig
 
 -- This instance for String quotes control characters (which is what we want)
 -- but also Unicode characters (\8704 and so on).
@@ -110,9 +111,19 @@ deriving via PrettyAny ()      instance NonDefaultPrettyBy ConstConfig ()
 deriving via PrettyAny Bool    instance NonDefaultPrettyBy ConstConfig Bool
 deriving via PrettyAny Integer instance NonDefaultPrettyBy ConstConfig Integer
 
-instance PrettyConst a => NonDefaultPrettyBy ConstConfig [a]
-instance (PrettyConst a, PrettyConst b) => NonDefaultPrettyBy ConstConfig (a, b)
+-- | For rendering values without parens, i.e. in 'botRenderContext'.
+newtype NoParens a = NoParens
+    { unNoParens :: a
+    }
 
+instance PrettyConst a => PrettyBy ConstConfig (NoParens a) where
+    prettyBy     config = prettyBy     @_ @a (config & renderContext .~ botRenderContext) . coerce
+    prettyListBy config = prettyListBy @_ @a (config & renderContext .~ botRenderContext) . coerce
+
+instance PrettyConst a => NonDefaultPrettyBy ConstConfig [a] where
+    nonDefaultPrettyBy config = defaultPrettyBy @_ @[NoParens a] config . coerce
+instance (PrettyConst a, PrettyConst b) => NonDefaultPrettyBy ConstConfig (a, b) where
+    nonDefaultPrettyBy config = defaultPrettyBy @_ @(NoParens a, NoParens b) config . coerce
 
 -- Special instance for bytestrings
 asBytes :: Word8 -> Doc ann
@@ -125,19 +136,33 @@ asBytes x = Text 2 $ T.pack $ addLeadingZero $ showHex x mempty
 toBytes :: BS.ByteString -> Doc ann
 toBytes b = fold (asBytes <$> BS.unpack b)
 
+instance PrettyBy ConstConfig Data where
+    prettyBy = inContextM $ \d0 -> iterAppDocM $ \_ prettyArg -> case d0 of
+        Constr i ds ->  ("Constr" <+> prettyArg i) :| [prettyArg ds]
+        Map ps      ->  "Map" :| [prettyArg ps]
+        List ds     ->  "List" :| [prettyArg ds]
+        I i         ->  ("I" <+> prettyArg i) :| []
+        B b         ->  ("B" <+> prettyArg b) :| []
+
 instance PrettyBy ConstConfig BS.ByteString where
     prettyBy _ b = "#" <> toBytes b
-
-instance PrettyBy ConstConfig Data where
-    prettyBy c d = prettyBy c $ BSL.toStrict $ serialise d
 
 instance Pretty (SomeTypeIn uni) => Pretty (SomeTypeIn (Kinded uni)) where
     pretty (SomeTypeIn (Kinded uni)) = pretty (SomeTypeIn uni)
 
--- | Special treatment for built-in constants: see the Note in PlutusCore.Pretty.PrettyConst.
-instance (Closed uni, uni `Everywhere` PrettyConst) => Pretty (ValueOf uni a) where
-    pretty (ValueOf uni x) = bring (Proxy @PrettyConst) uni $ prettyConst x
+-- See Note [Prettyprinting built-in constants].
+instance (Closed uni, uni `Everywhere` PrettyConst) => PrettyBy ConstConfig (ValueOf uni a) where
+    prettyBy config (ValueOf uni x) = bring (Proxy @PrettyConst) uni $ prettyBy config x
 
--- Note that the call to `pretty` here is to the instance for `ValueOf uni a`, which calls prettyConst.
+-- See Note [Prettyprinting built-in constants].
+instance (Closed uni, uni `Everywhere` PrettyConst) =>
+        PrettyBy ConstConfig (Some (ValueOf uni)) where
+    prettyBy config (Some s) = prettyBy config s
+
+-- See Note [Prettyprinting built-in constants].
+instance (Closed uni, uni `Everywhere` PrettyConst) => Pretty (ValueOf uni a) where
+    pretty = prettyConst juxtRenderContext
+
+-- See Note [Prettyprinting built-in constants].
 instance (Closed uni, uni `Everywhere` PrettyConst) => Pretty (Some (ValueOf uni)) where
-    pretty (Some s) = pretty s
+    pretty = prettyConst juxtRenderContext

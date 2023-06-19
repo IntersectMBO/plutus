@@ -208,7 +208,7 @@ instance HasUniApply DefaultUni where
 deriving stock instance Show (DefaultUni a)
 instance GShow DefaultUni where gshowsPrec = showsPrec
 
-instance HasRenderContext config => PrettyBy config (DefaultUni a) where
+instance PrettyBy RenderContext (DefaultUni a) where
     prettyBy = inContextM $ \case
         DefaultUniInteger              -> "integer"
         DefaultUniByteString           -> "bytestring"
@@ -223,13 +223,13 @@ instance HasRenderContext config => PrettyBy config (DefaultUni a) where
         DefaultUniBLS12_381_G2_Element -> "bls12_381_G2_element"
         DefaultUniBLS12_381_MlResult   -> "bls12_381_mlresult"
 
-instance HasRenderContext config => PrettyBy config (SomeTypeIn DefaultUni) where
+instance PrettyBy RenderContext (SomeTypeIn DefaultUni) where
     prettyBy config (SomeTypeIn uni) = prettyBy config uni
 
 -- | This always pretty-prints parens around type applications (e.g. @(list bool)@) and
 -- doesn't pretty-print them otherwise (e.g. @integer@).
 instance Pretty (DefaultUni a) where
-    pretty = prettyParens
+    pretty = prettyBy juxtRenderContext
 instance Pretty (SomeTypeIn DefaultUni) where
     pretty (SomeTypeIn uni) = pretty uni
 

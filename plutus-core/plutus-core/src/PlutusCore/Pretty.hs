@@ -10,7 +10,7 @@ module PlutusCore.Pretty
     , PrettyParens
     , display
     , displayBy
-    , prettyParens
+    , juxtRenderContext
     -- * Defaults
     , prettyPlcDef
     , displayPlcDef
@@ -76,7 +76,6 @@ module PlutusCore.Pretty
     , PrettyUni
     , ThrowableBuiltins
     , prettyConst
-    , displayConst
     , module Export
     ) where
 

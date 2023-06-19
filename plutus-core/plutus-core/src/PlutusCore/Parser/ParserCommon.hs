@@ -172,3 +172,7 @@ name = try $ parseUnquoted <|> parseQuoted
       str <- takeWhileP (Just "identifier-quoted") isQuotedIdentifierChar
       void $ char '`'
       Name str <$> intern str
+
+data ExpectParens
+    = ExpectParensYes
+    | ExpectParensNo
