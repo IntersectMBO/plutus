@@ -70,31 +70,25 @@ conBool =
     ]
 
 -- | Parser for lists.
-conList :: DefaultUni (Esc a) -> Parser [a]
-conList uniA = trailingWhitespace . inBrackets $
-    constantOf uniA `sepBy` symbol ","
+conList :: Parser a -> Parser [a]
+conList getX = trailingWhitespace . inBrackets $
+    getX `sepBy` symbol ","
 
 -- | Parser for pairs.
-conPair :: DefaultUni (Esc a) -> DefaultUni (Esc b) -> Parser (a, b)
-conPair uniA uniB = trailingWhitespace . inParens $ do
-  a <- constantOf uniA
+conPair :: Parser a -> Parser b -> Parser (a, b)
+conPair getX getY = trailingWhitespace . inParens $ do
+  a <- getX
   _ <- symbol ","
-  b <- constantOf uniB
+  b <- getY
   pure (a, b)
 
 conData :: Parser Data
-conData =
-    choice
-        [ trailingWhitespace $ inParens conDataContent
-        -- Unparented data values can appear inside of lists and tuples.
-        , conDataContent
-        ]
-  where
+conData = trailingWhitespace $ inParens conDataContent where
     conDataContent =
         choice
-            [ symbol "Constr" *> (Constr <$> conInteger <*> conList knownUni)
-            , symbol "Map" *> (Map <$> conList knownUni)
-            , symbol "List" *> (List <$> conList knownUni)
+            [ symbol "Constr" *> (Constr <$> conInteger <*> conList conDataContent)
+            , symbol "Map" *> (Map <$> conList (conPair conDataContent conDataContent))
+            , symbol "List" *> (List <$> conList conDataContent)
             , symbol "I" *> (I <$> conInteger)
             , symbol "B" *> (B <$> conBS)
             ]
@@ -126,8 +120,9 @@ constantOf uni = case uni of
     DefaultUniString                                                  -> conText
     DefaultUniUnit                                                    -> conUnit
     DefaultUniBool                                                    -> conBool
-    DefaultUniProtoList `DefaultUniApply` uniA                        -> conList uniA
-    DefaultUniProtoPair `DefaultUniApply` uniA `DefaultUniApply` uniB -> conPair uniA uniB
+    DefaultUniProtoList `DefaultUniApply` uniA                        -> conList (constantOf uniA)
+    DefaultUniProtoPair `DefaultUniApply` uniA `DefaultUniApply` uniB ->
+        conPair (constantOf uniA) (constantOf uniB)
     f `DefaultUniApply` _ `DefaultUniApply` _ `DefaultUniApply` _     -> noMoreTypeFunctions f
     DefaultUniData                                                    -> conData
     DefaultUniBLS12_381_G1_Element                                    -> conBLS12_381_G1_Element
