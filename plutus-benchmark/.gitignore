@@ -2,10 +2,9 @@ flat-report.html
 flat-sizes.txt
 report.html
 report.json
-*.flat
+Language.Marlowe.Scripts.*.flat
+marlowe/*.flat
 *.plutus
 *.tsv
 *.png
-.cache/
-.ipynb_checkpoints/
-*.ipynb
+

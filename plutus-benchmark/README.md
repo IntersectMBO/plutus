@@ -61,7 +61,7 @@ The `nofib-exe` program in `nofib/exe` allows you to run the `nofib` benchmarks 
 output Plutus Core versions in a number of formats.  See the built-in help information
 for details.
 
-For `marlowe`, the `marlowe-validators` program allows you to run benchmarks in certain folders and get a summary of results. See the [marlowe/README.md](./marlowe/README.md) for detail.
+For `marlowe`, the `marlowe-validators` program allows you to run benchmarks in certain folders and get a summary of results. See the [marlowe/README.md](./marlowe/README.md) for details.
 
 ### Criterion output
 

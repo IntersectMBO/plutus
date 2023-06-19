@@ -17,7 +17,7 @@ It would be informative for both the Plutus and Marlowe teams to investigate in 
 
 (1) Benchmarking: compare the budget before and after optimizations that the Plutus team implemented. It could be helpful to do the benchmarking *as* we implement the optimization even.
 
-The benchmarking portion of the code lives in `marlowe/bench`, which depends on this package.
+The benchmarking portion of the code lives in `marlowe/bench`(TODO), which depends on this package.
 
 (2) Profiling: look at each script in more detail, what functions are taking up the most budget? How can they be optimized?
 
@@ -41,7 +41,7 @@ For documentation on Plutus vs PLC vs protocol version, see [here](https://githu
 
 The application `marlowe-validators` works with scripts in the `plutus-benchmark/marlowe/exe/scripts/rolepayout` and `plutus-benchmark/marlowe/exe/scripts/semantics` directories. It serialises the two Marlowe validator scripts, computes their hashes, and runs all of the benchmarks, storing the results in a pair of tab-separated-value files.
 
-In `plutus-benchmark/marlowe/src/Language/Marlowe/Scripts.hs`, the plugin option to dump Plutus programs is turned on. Therefore, running the executable dumps the initial and simplified PIR program and the typed and untyped PLC program. You can find them in the `plutus/` directory. The dumped files are named with the module name followed by a brief description and ".flat".
+In `plutus-benchmark/marlowe/src/Language/Marlowe/Scripts.hs`, the plugin option to dump Plutus programs is turned on. Therefore, running the executable dumps the initial and simplified PIR program and the typed and untyped PLC program. You can find them in the `plutus/plutus-benchmark` directory. The dumped files are named with the module name followed by a brief description and ".flat".
 
 Running `cabal run marlowe-validators` outputs the following files:
 
