@@ -70,28 +70,31 @@ conBool =
     ]
 
 -- | Parser for lists.
-conList :: Parser a -> Parser [a]
-conList getX = trailingWhitespace . inBrackets $
-    getX `sepBy` symbol ","
+conList :: DefaultUni (Esc a) -> Parser [a]
+conList uniA = trailingWhitespace . inBrackets $
+    constantOf ExpectParensNo uniA `sepBy` symbol ","
 
 -- | Parser for pairs.
-conPair :: Parser a -> Parser b -> Parser (a, b)
-conPair getX getY = trailingWhitespace . inParens $ do
-  a <- getX
+conPair :: DefaultUni (Esc a) -> DefaultUni (Esc b) -> Parser (a, b)
+conPair uniA uniB = trailingWhitespace . inParens $ do
+  a <- constantOf ExpectParensNo uniA
   _ <- symbol ","
-  b <- getY
+  b <- constantOf ExpectParensNo uniB
   pure (a, b)
 
-conData :: Parser Data
-conData = trailingWhitespace $ inParens conDataContent where
-    conDataContent =
-        choice
-            [ symbol "Constr" *> (Constr <$> conInteger <*> conList conDataContent)
-            , symbol "Map" *> (Map <$> conList (conPair conDataContent conDataContent))
-            , symbol "List" *> (List <$> conList conDataContent)
-            , symbol "I" *> (I <$> conInteger)
-            , symbol "B" *> (B <$> conBS)
-            ]
+conDataNoParens :: Parser Data
+conDataNoParens =
+    choice
+        [ symbol "Constr" *> (Constr <$> conInteger <*> conList knownUni)
+        , symbol "Map" *> (Map <$> conList knownUni)
+        , symbol "List" *> (List <$> conList knownUni)
+        , symbol "I" *> (I <$> conInteger)
+        , symbol "B" *> (B <$> conBS)
+        ]
+
+conData :: ExpectParens -> Parser Data
+conData ExpectParensYes = trailingWhitespace $ inParens conDataNoParens
+conData ExpectParensNo  = conDataNoParens
 
 -- Serialised BLS12_381 elements are "0x" followed by a hex string of even
 -- length.  Maybe we should just use the usual bytestring syntax.
@@ -113,18 +116,17 @@ conBLS12_381_G2_Element = do
       Right e  -> pure e
 
 -- | Parser for constants of the given type.
-constantOf :: DefaultUni (Esc a) -> Parser a
-constantOf uni = case uni of
+constantOf :: ExpectParens -> DefaultUni (Esc a) -> Parser a
+constantOf expectParens uni = case uni of
     DefaultUniInteger                                                 -> conInteger
     DefaultUniByteString                                              -> conBS
     DefaultUniString                                                  -> conText
     DefaultUniUnit                                                    -> conUnit
     DefaultUniBool                                                    -> conBool
-    DefaultUniProtoList `DefaultUniApply` uniA                        -> conList (constantOf uniA)
-    DefaultUniProtoPair `DefaultUniApply` uniA `DefaultUniApply` uniB ->
-        conPair (constantOf uniA) (constantOf uniB)
+    DefaultUniProtoList `DefaultUniApply` uniA                        -> conList uniA
+    DefaultUniProtoPair `DefaultUniApply` uniA `DefaultUniApply` uniB -> conPair uniA uniB
     f `DefaultUniApply` _ `DefaultUniApply` _ `DefaultUniApply` _     -> noMoreTypeFunctions f
-    DefaultUniData                                                    -> conData
+    DefaultUniData                                                    -> conData expectParens
     DefaultUniBLS12_381_G1_Element                                    -> conBLS12_381_G1_Element
     DefaultUniBLS12_381_G2_Element                                    -> conBLS12_381_G2_Element
     DefaultUniBLS12_381_MlResult
@@ -139,4 +141,4 @@ constant = do
   -- kind @*@.
   Refl <- reoption $ checkStar uni
   -- Parse the constant of the type represented by the type tag.
-  someValueOf uni <$> constantOf uni
+  someValueOf uni <$> constantOf ExpectParensYes uni
