@@ -3,8 +3,8 @@ flat-sizes.txt
 report.html
 report.json
 Language.Marlowe.Scripts.*.flat
-marlowe/*.flat
+marlowe/exe/scripts/rolepayout/*.flat
+marlowe/exe/scripts/semantics/*.flat
 *.plutus
 *.tsv
-*.png
 
