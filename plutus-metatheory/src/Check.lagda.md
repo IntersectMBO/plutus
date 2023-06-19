@@ -4,10 +4,13 @@ layout: page
 ## Type checker
 
 ```
+{-# OPTIONS --rewriting #-}
 module Check where
 ```
 
 ```
+import Debug.Trace as D
+
 open import Data.Nat using (ℕ;zero;suc)
 open import Data.Fin using (Fin;zero;suc)
 open import Data.List using (map;[];_∷_)
@@ -72,6 +75,7 @@ inferTyVar (Φ ,⋆ K) (suc i) = let J ,, α = inferTyVar Φ i in  J ,, S α
 data TypeError : Set where
   kindMismatch : (K K' : Kind) → ¬ (K ≡ K') → TypeError
   notStar : (K : Kind) → ¬ (K ≡ *) → TypeError
+  notBuiltin : (K : Kind) → ¬ (K ≡ ♯) → TypeError
   notFunKind  : (K : Kind) → (∀ K' J → ¬ (K ≡ K' ⇒ J)) → TypeError
   notPat  : (K : Kind) → (∀ K' → ¬ (K ≡ (K' ⇒ *) ⇒ (K' ⇒ *))) → TypeError
   UnknownType : TypeError
@@ -101,6 +105,13 @@ isStar : ∀{Φ}
 isStar (* ,, A)     = return A
 isStar (K ⇒ J ,, _) = inj₁ (notStar (K ⇒ J) λ())
 isStar (♯ ,, _)     = inj₁ (notStar ♯ λ())
+
+isBuiltin : ∀{Φ}
+       → Σ Kind (Φ ⊢Nf⋆_)
+       → Either TypeError (Φ ⊢Nf⋆ ♯)
+isBuiltin (♯ ,, A)     = return A
+isBuiltin (K ⇒ J ,, _) = inj₁ (notBuiltin (K ⇒ J) λ())
+isBuiltin (* ,, _)     = inj₁ (notBuiltin * λ())
 
 isFunKind : ∀{Φ}
        → Σ Kind (Φ ⊢Nf⋆_)
@@ -177,11 +188,13 @@ inferKind Φ (Π K A) = do
 inferKind Φ (ƛ K A) = do
   J ,, A ← inferKind (Φ ,⋆ K) A
   return (K ⇒ J ,, ƛ A)
-inferKind Φ (A · B) = do
+inferKind Φ (A · B) =
+ do
   KA ← inferKind Φ A
   (K ,, J ,, A) ← isFunKind KA
   B ← checkKind Φ B K
   return (J ,, nf (embNf A · embNf B))
+-- FIXME: There is no way to express a list applied to something.
 inferKind Φ (con {♯} tc) = return (* ,, con (ne (^ tc)))
 inferKind Φ (con {K ⇒ K₁} tc) = inj₁ (kindMismatch ♯ (K ⇒ K₁) (λ ())) 
 inferKind Φ (μ A B) = do
@@ -289,33 +302,49 @@ checkType Γ L A = do
   return L
   
 inferType Γ (` x) = do
+  D.trace "inferType `" (return x)
   A ,, α ← inferVarType Γ x
   return (A ,, ` α)
 inferType Γ (Λ K L) = do
+  D.trace "inferType Λ" (return K)
   A ,, L ← inferType (Γ ,⋆ K) L
   return (Π A ,, Λ L)
 inferType Γ (L ·⋆ A) = do
+  D.trace "inferType ·⋆" (return A)
   t ← inferType Γ L
   K ,, B ,, L ← isPi t
   A ← checkKind _ A K
   return (B [ A ]Nf ,, L ·⋆ A / refl)
 inferType Γ (ƛ A L) = do
+  D.trace "inferType ­ƛ" (return A)
   K ← inferKind _ A
   A ← isStar K
   B ,, L ← inferType (Γ , A) L 
   return (A ⇒ B ,, ƛ L)
 inferType {Φ} Γ (L · M) = do
+  D.trace "inferType ­·" (return L)
   ty ← inferType Γ L
+  D.trace "inferType ­­· function type inferred" (return L)
   A ,, B ,, L ← isFunType ty
+  D.trace "inferType ­· function is a function" (return L)
   M ← checkType Γ M A
+  D.trace "inferType ­· function argument type and argument coincide" (return L)
   return (B ,, L · M)
-inferType Γ (con (tmCon t x)) = return (con (subNf∅ (sty2ty t)) ,, con x refl)
+inferType Γ (con (tmCon t x)) = do 
+  D.trace "inferType ­con" (return x)
+  return (con (subNf∅ (sty2ty t)) ,, con x refl)
 inferType Γ (error A) = do
+  D.trace "inferType ­error" (return A)
   K ← inferKind _ A
   A ← isStar K
   return (A ,, error A)
-inferType Γ (builtin b) = inj₂ (btype b ,, builtin b / refl)
+inferType Γ (builtin b) = do 
+  D.trace "inferType builtin" (return b)
+  let bty = btype b
+  D.trace "inferType btype" (return b)
+  return (bty ,, builtin b / refl)
 inferType Γ (wrap A B L) = do
+  D.trace "inferType ­wrap" (return A)
   KA ← inferKind _ A
   K ,, A ← isPat KA
   B ← checkKind _ B K

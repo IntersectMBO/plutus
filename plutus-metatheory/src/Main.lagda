@@ -1,5 +1,7 @@
 \begin{code}
+{-# OPTIONS --rewriting #-}
 module Main where
+
 open import Agda.Builtin.IO using (IO)
 import IO.Primitive as IO using (return;_>>=_)
 open import Agda.Builtin.Unit using (⊤;tt)
@@ -210,6 +212,8 @@ data ERROR : Set where
 uglyTypeError : TypeError → String
 uglyTypeError (kindMismatch K K' x) = "kindMismatch"
 uglyTypeError (notStar K x) = "notStar"
+uglyTypeError (notBuiltin K x) = "notBuiltin"
+
 uglyTypeError (notFunKind K x) = "NotFunKind"
 uglyTypeError (notPat K x) = "notPat"
 uglyTypeError UnknownType = "UnknownType"
