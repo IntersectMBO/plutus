@@ -1,6 +1,4 @@
-sre\begin{code}
-{-# OPTIONS --rewriting #-}
-
+\begin{code}
 module Algorithmic.Erasure.RenamingSubstitution where
 \end{code}
 
