@@ -24,7 +24,8 @@ open import Agda.Builtin.Int using (Int)
 open import Agda.Builtin.String using (String)
 open import Utils using (ByteString;Maybe;DATA;Bls12-381-G1-Element;Bls12-381-G2-Element;Bls12-381-MlResult;♯)
 import Utils as U
-open import Builtin.Signature using (Sig;sig;_⊢♯;Args;integer;string;bytestring;unit;bool;pdata)
+open import Builtin.Signature using (Sig;sig;_⊢♯;Args)
+                 using (integer;string;bytestring;unit;bool;pdata;bls12-381-g1-element;bls12-381-g2-element;bls12-381-mlresult)
 open _⊢♯
 open import Builtin.Constant.AtomicType 
 
