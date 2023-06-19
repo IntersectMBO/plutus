@@ -482,6 +482,10 @@ BUILTIN bls12-381-finalVerify = λ
   { (app (app base (V-con (con bls12-381-mlresult) r)) (V-con (con bls12-381-mlresult) r')) -> inj₂ (V-con (con bool) (BLS12-381-finalVerify r r'))
   ; _ -> inj₁ userError
   }
+BUILTIN keccak-256 = λ
+  { (app base (V-con (con bytestring) b)) -> inj₂ (V-con (con bytestring) (KECCAK-256 b))
+  ; _ -> inj₁ userError
+  }
 
 
 BUILTIN' : ∀ b

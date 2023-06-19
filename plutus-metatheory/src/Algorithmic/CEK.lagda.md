@@ -290,6 +290,8 @@ BUILTIN bls12-381-G2-uncompress (app base (V-con (tmBytestring b))) with BLS12-3
 BUILTIN bls12-381-millerLoop (app (app base (V-con (tmBls12-381-g1-element e1))) (V-con (tmBls12-381-g2-element e2))) = inj₂ (V-con (tmBls12-381-mlresult (BLS12-381-millerLoop e1 e2)))
 BUILTIN bls12-381-mulMlResult (app (app base (V-con (tmBls12-381-mlresult r))) (V-con (tmBls12-381-mlresult r'))) = inj₂ (V-con (tmBls12-381-mlresult (BLS12-381-mulMlResult r r')))
 BUILTIN bls12-381-finalVerify (app (app base (V-con (tmBls12-381-mlresult r))) (V-con (tmBls12-381-mlresult r'))) = inj₂ (V-con (tmBool (BLS12-381-finalVerify r r')))
+BUILTIN keccak-256 (app base (V-con (tmBytestring b))) =
+  inj₂ (V-con (tmBytestring (KECCAK-256 b)))
 
 BUILTIN' : ∀ b {A}
   → ∀{tn} → {pt : tn ∔ 0 ≣ fv♯ (signature b)}
