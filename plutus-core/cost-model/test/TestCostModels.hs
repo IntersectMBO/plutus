@@ -419,5 +419,8 @@ main =
                     , $(genTest 2 "bls12_381_millerLoop")     Everywhere
                     , $(genTest 2 "bls12_381_mulMlResult")    Everywhere
                     , $(genTest 2 "bls12_381_finalVerify")    Everywhere
+
+                    -- Keccak256
+                    , $(genTest 1 "keccak256")
                     ]
 

@@ -4,10 +4,12 @@ module Data.ByteString.Hash
     ( sha2_256
     , sha3_256
     , blake2b_256
+    , keccak256
     ) where
 
 import Cardano.Crypto.Hash.Blake2b
 import Cardano.Crypto.Hash.Class
+import Cardano.Crypto.Hash.Keccak256
 import Cardano.Crypto.Hash.SHA256
 import Cardano.Crypto.Hash.SHA3_256
 import Data.ByteString qualified as BS
@@ -24,3 +26,7 @@ sha3_256 = digest (Proxy @SHA3_256)
 -- | Hash a [[BSL.ByteString]] using the Blake2B-256 hash function.
 blake2b_256 :: BS.ByteString -> BS.ByteString
 blake2b_256 = digest (Proxy @Blake2b_256)
+
+-- | Hash a [[BSL.ByteString]] using the Keccak-256 hash function.
+keccak256 :: BS.ByteString -> BS.ByteString
+keccak256 = digest (Proxy @Keccak256)

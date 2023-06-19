@@ -467,6 +467,19 @@
             "type": "constant_cost"
         }
     },
+    "keccak256": {
+        "cpu": {
+            "arguments": {
+                "intercept": 1234567890,
+                "slope": 12345
+            },
+            "type": "linear_cost"
+        },
+        "memory": {
+            "arguments": 4,
+            "type": "constant_cost"
+        }
+    },
     "lengthOfByteString": {
         "cpu": {
             "arguments": 1000,
