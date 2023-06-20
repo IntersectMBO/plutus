@@ -16,6 +16,7 @@ This directory contains four sets of benchmarks:
      You can change this with Criterion's `-L` option.  With the 60 second limit
      the entire suite takes perhaps 20-40 minutes to run (although this will
      depend on the hardware))
+       *`cabal bench plutus-benchmark:nofib --benchmark-options "clausify/formula2 -L300"` (similar to above)
 
 See also [nofib/README.md](./nofib/README.md).
 
