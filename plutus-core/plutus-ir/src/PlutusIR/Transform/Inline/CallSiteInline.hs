@@ -129,30 +129,36 @@ fullyApplyAndBetaReduce ::
   AppContext tyname name uni fun ann ->
   InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
 fullyApplyAndBetaReduce info args0 = do
-  rhsBody <- liftDupable (let Done rhsBody = varRhsBody info in rhsBody)
-  let go ::
+  rhs <- liftDupable (let Done rhs = varRhs info in rhs)
+  let rhsBody = varRhsBody info
+      getFnBody :: Term tyname name uni fun ann -> Term tyname name uni fun ann
+      getFnBody (LamAbs _ann _n _ty body) = body
+      getFnBody (TyAbs _ann _n _kd body)  = body
+      getFnBody tm                        = tm
+      go ::
+        -- | The rhs of the variable
         Term tyname name uni fun ann ->
         Arity tyname name ->
         AppContext tyname name uni fun ann ->
         InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
       go acc arity args = case (arity, args) of
-        -- success
-        ([], _) -> pure . Just $ fillAppContext acc args
-        (TermParam param : arity', TermAppContext arg _ args') -> do
+        -- fully applied
+        ([], _) -> pure $ Just $ fillAppContext acc args
+        (TermParam param: arity', TermAppContext arg _ args') -> do
           safe <- safeToBetaReduce param arg
           if safe
             then do
-              acc' <-
+              acc' <- do
                 termSubstNamesM
                   (\n -> if n == param then Just <$> PLC.rename arg else pure Nothing)
-                  acc
+                  (getFnBody acc)
               go acc' arity' args'
             else pure Nothing
-        (TypeParam param : arity', TypeAppContext arg _ args') -> do
+        (TypeParam param: arity', TypeAppContext arg _ args') -> do
           acc' <-
             termSubstTyNamesM
               (\n -> if n == param then Just <$> PLC.rename arg else pure Nothing)
-              acc
+              (getFnBody acc)
           go acc' arity' args'
         _ -> pure Nothing
 
@@ -180,8 +186,8 @@ inlineSaturatedApp t
         Just varInfo ->
           fullyApplyAndBetaReduce varInfo args >>= \case
             Just fullyApplied -> do
-              let rhs = varRhs varInfo
-                  -- Inline only if the size is no bigger than not inlining.
+              rhs <- liftDupable (let Done rhs = varRhs varInfo in rhs)
+              let -- Inline only if the size is no bigger than not inlining.
                   sizeIsOk = termSize fullyApplied <= termSize t
                   -- The definition itself will be inlined, so we need to check that the cost
                   -- of that is acceptable. Note that we do _not_ check the cost of the _body_.
