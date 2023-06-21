@@ -1,6 +1,4 @@
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE LambdaCase       #-}
-{-# LANGUAGE ViewPatterns     #-}
 
 -- | Implements naive substitution functions for replacing type and term variables.
 module PlutusIR.Transform.Substitute (
