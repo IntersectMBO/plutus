@@ -31,7 +31,7 @@ open import Type.BetaNormal using (_⊢Nf⋆_;embNf;weakenNf)
 open _⊢Nf⋆_
 open import Algorithmic.ReductionEC
 open import Builtin using (Builtin;signature)
-open import Builtin.Signature using (Sig;args♯)
+open import Builtin.Signature using (Sig;args♯;fv)
 open Sig
 ```
 
@@ -52,9 +52,9 @@ conv∔≣ p refl refl refl = p
 
 conv∔≣t : ∀{b b' tn tm tn' tm'}
   → b ≡ b'
-  → (tn'  ∔ tm'  ≣ fv♯ (signature b')) 
+  → (tn'  ∔ tm'  ≣ fv (signature b')) 
   → tn ≡ tn' → tm ≡ tm'
-  → tn ∔ tm ≣ fv♯ (signature b)
+  → tn ∔ tm ≣ fv (signature b)
 conv∔≣t refl pt = conv∔≣ pt refl  
 
 conv∔≣a : ∀{b b' an am an' am'}
@@ -68,7 +68,7 @@ conv∔≣a refl pa = conv∔≣ pa refl
 uniqueVal : ∀{A}(M : ∅ ⊢ A)(v v' : Value M) → v ≡ v'
 
 uniqueBApp : ∀{A b}
-  → ∀{tn tm}{pt : tn ∔ tm ≣ fv♯ (signature b)}
+  → ∀{tn tm}{pt : tn ∔ tm ≣ fv (signature b)}
   → ∀{an am}{pa : an ∔ am ≣ args♯ (signature b)}
   → {σA : SigTy pt pa A}
   → (M : ∅ ⊢ A)(v v' : BApp b σA M) → v ≡ v'
@@ -81,10 +81,10 @@ uniqueBApp (M ·⋆ A / refl) (step⋆ {σB = σA} v refl) (step⋆ {σB = σA'}
 
 uniqueBApp' : ∀{A b b'}
   → (M : ∅ ⊢ A)
-  → ∀{tn tm}{pt : tn ∔ tm ≣ fv♯ (signature b)} 
+  → ∀{tn tm}{pt : tn ∔ tm ≣ fv (signature b)} 
   → ∀{an am}{pa : an ∔ am ≣ args♯ (signature b)}
   → {σA : SigTy pt pa A}
-  → ∀{tn' tm'}{pt' : tn' ∔ tm' ≣ fv♯ (signature b')} 
+  → ∀{tn' tm'}{pt' : tn' ∔ tm' ≣ fv (signature b')} 
   → ∀{an' am'}{pa' : an' ∔ am' ≣ args♯ (signature b')}
   → {σA' : SigTy pt' pa' A}
   → (v : BApp b σA M)(v' : BApp b' σA' M)
@@ -127,7 +127,7 @@ lemV·⋆ ¬VM (V-IΠ b (step⋆ q r)) = ¬VM (V-IΠ b q)
 
 
 lemBAppβ : ∀{A B}{b}
-  → ∀{tn tm}{pt : tn ∔ tm ≣ fv♯ (signature b)}
+  → ∀{tn tm}{pt : tn ∔ tm ≣ fv (signature b)}
   → ∀{an am}{pa : an ∔ am ≣ args♯ (signature b)}
   → {σB : SigTy pt pa B}
   → {M : ∅ , A ⊢ B} → ∀{M'}
@@ -136,7 +136,7 @@ lemBAppβ (step () x)
 
 
 lemBAppβ⋆ : ∀{A : ∅ ⊢Nf⋆ K}{B}{b}
-  → ∀{tn tm}{pt : tn ∔ tm ≣ fv♯ (signature b)}
+  → ∀{tn tm}{pt : tn ∔ tm ≣ fv (signature b)}
   → ∀{an am}{pa : an ∔ am ≣ args♯ (signature b)}
   → ∀{C}{σC : SigTy pt pa C}
   → ∀{M : ∅ ,⋆ K ⊢ B}{q : C ≡ B [ A ]Nf} → ¬ (BApp b σC (Λ M ·⋆ A / q))
@@ -163,7 +163,7 @@ lemVE M (unwrap EC₁ / x) (V-I⇒ b ())
 lemVE M (unwrap EC₁ / x) (V-IΠ b ())
 
 lemBE : ∀{A B b} M (E : EC A B)
-  → ∀{tn tm}{pt : tn ∔ tm ≣ fv♯ (signature b)}
+  → ∀{tn tm}{pt : tn ∔ tm ≣ fv (signature b)}
   → ∀{an am}{pa : an ∔ suc am ≣ args♯ (signature b)}
   → {σ : SigTy pt pa A}
   → BApp b σ (E [ M ]ᴱ) → Value M
@@ -212,10 +212,10 @@ substƛVal refl = V-ƛ _
 
 
 BUILTIN-eq : ∀{A b b'}(M : ∅ ⊢ A)
-  → ∀{tn}{pt : tn ∔ _ ≣ fv♯ (signature b)} 
+  → ∀{tn}{pt : tn ∔ _ ≣ fv (signature b)} 
   → ∀{an}{pa : an ∔ _ ≣ args♯ (signature b)}
   → {σA : SigTy pt pa A}
-  → ∀{tn'}{pt' : tn' ∔ _ ≣ fv♯ (signature b')} 
+  → ∀{tn'}{pt' : tn' ∔ _ ≣ fv (signature b')} 
   → ∀{an'}{pa' : an' ∔ _ ≣ args♯ (signature b')}
   → {σA' : SigTy pt' pa' A}
   → (bv : BApp b σA M)

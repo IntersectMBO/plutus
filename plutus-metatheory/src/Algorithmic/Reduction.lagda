@@ -36,11 +36,11 @@ open _—→⋆_
 open import Algorithmic.ReductionEC.Progress using (step;done;error)
 
 open import Builtin using (Builtin;signature)
-open import Builtin.Signature using (Sig;sig;Args;_⊢♯;args♯)
+open import Builtin.Signature using (Sig;sig;Args;_⊢♯;args♯;fv)
 open Sig
 
 open Builtin.Signature.FromSig _⊢Nf⋆_ _⊢Ne⋆_ ne ` _·_ ^ con _⇒_   Π 
-    using (sig2type;♯2*;SigTy;sig2SigTy;sigTy2type;saturatedSigTy;convSigTy)
+    using (sig2type;SigTy;sig2SigTy;sigTy2type;saturatedSigTy;convSigTy)
 open SigTy
 
 
@@ -105,7 +105,7 @@ data _—→V_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set wh
   β-builtin : ∀{A B}{tn}
       (b : Builtin)
     → (t : ∅ ⊢ A ⇒ B)
-    → {pt : tn ∔ 0 ≣ fv♯ (signature b)} 
+    → {pt : tn ∔ 0 ≣ fv (signature b)} 
     → ∀{an} → {pa : an ∔ 1 ≣  args♯ (signature b)}
     → {σB : SigTy pt (bubble pa) B}
     → (bt : BApp b (A B⇒ σB) t) -- one left

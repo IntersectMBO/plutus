@@ -23,7 +23,7 @@ open _∋_
 open import Algorithmic.Signature using (SigTy;btype;_[_]SigTy)
 open SigTy
 open import Builtin using (signature)
-open import Builtin.Signature using (Sig;args♯)
+open import Builtin.Signature using (Sig;args♯;fv)
 open Sig
 open import Algorithmic.RenamingSubstitution using (Sub;sub;exts;exts⋆;_[_];_[_]⋆)
 open import Utils hiding (_×_)
@@ -61,7 +61,7 @@ ck2cekState (CK.◆ A) = ◆ A
 cek2ckVal : ∀{A} → (V : Value A) → Red.Value (discharge V)
 
 cek2ckBApp : ∀{b}
-   {tn tm}{pt : tn ∔ tm ≣ fv♯ (signature b)}
+   {tn tm}{pt : tn ∔ tm ≣ fv (signature b)}
    {an am}{pa : an ∔ am ≣ args♯ (signature b)}
    {A}{σA : SigTy pt pa A}
   → (vs : BApp b A σA) → Red.BApp b σA (dischargeB vs)
@@ -123,7 +123,7 @@ step** (step* x p) q = step* x (step** p q)
 -- some syntactic assumptions
 {-
 V-Ilem : ∀ {b}{A : ∅ ⊢Nf⋆ *}
-       → ∀{tn tm} {pt : tn ∔ tm ≣ fv♯ (signature b)}
+       → ∀{tn tm} {pt : tn ∔ tm ≣ fv (signature b)}
        → ∀{an am} {pa : an ∔ suc am ≣ args♯ (signature b)}
        → {σA : SigTy pt pa A}
        → {t : ∅ ⊢ A}
@@ -170,8 +170,8 @@ postulate dischargeBody⋆-lem' : ∀{Γ K B A}(M : Γ ,⋆ K ⊢ B) ρ → disc
 dischargeBody⋆-lem : ∀{Γ K B A C}{s : CK.Stack C _}(M : Γ ,⋆ K ⊢ B) ρ → (s CK.▻ (dischargeBody⋆ M ρ [ A ]⋆)) ≡ (s CK.▻ cek2ckClos (M [ A ]⋆) ρ)
 dischargeBody⋆-lem M ρ = cong (_ CK.▻_) (dischargeBody⋆-lem' M ρ)
 
-postulate dischargeB-lem : ∀ {A}{B : ∅ ,⋆ ♯ ⊢Nf⋆ *}{C b}
-                     {tn tm}{pt : tn ∔ suc tm ≣ fv♯ (signature b)}
+postulate dischargeB-lem : ∀ {K}{A : ∅ ⊢Nf⋆ K}{B : ∅ ,⋆ K ⊢Nf⋆ *}{C b}
+                     {tn tm}{pt : tn ∔ suc tm ≣ fv (signature b)}
                      {an am}{pa : an ∔ suc am ≣ args♯ (signature b)}
                      {σB : SigTy (bubble pt) pa B}
                      {x : BApp b (Π B) (sucΠ σB)} 
@@ -179,7 +179,7 @@ postulate dischargeB-lem : ∀ {A}{B : ∅ ,⋆ ♯ ⊢Nf⋆ *}{C b}
                 → s CK.◅ Red.V-I b {σA = σB [ A ]SigTy} (Red.step⋆ (cek2ckBApp x) refl) ≡ (s CK.◅ cek2ckVal (V-I b {σA = σB [ A ]SigTy} (x $$ refl)))
 
 postulate dischargeB'-lem : ∀ {A}{C b}
-                    {tn tm}{pt : tn ∔ tm ≣ fv♯ (signature b)}
+                    {tn tm}{pt : tn ∔ tm ≣ fv (signature b)}
                      {an am}{pa : an ∔ suc am ≣ args♯ (signature b)}
                      {σA : SigTy pt pa A}
                      {x : BApp b A σA} 
@@ -187,7 +187,7 @@ postulate dischargeB'-lem : ∀ {A}{C b}
                   → s CK.◅ Red.V-I b (cek2ckBApp x) ≡ (s CK.◅ cek2ckVal (V-I b x))
 
 postulate dischargeB-lem' : ∀ {A}{b}
-                  {tn tm}{pt : tn ∔ tm ≣ fv♯ (signature b)}
+                  {tn tm}{pt : tn ∔ tm ≣ fv (signature b)}
                     {an am}{pa : an ∔ suc am ≣ args♯ (signature b)}
                     {σA : SigTy pt pa A}
                     {x : BApp b A σA} 
@@ -195,7 +195,7 @@ postulate dischargeB-lem' : ∀ {A}{b}
                 
 
 postulate dischargeB-lem'' :  ∀ {A}{b}
-                  {tn tm}{pt : tn ∔ tm ≣ fv♯ (signature b)}
+                  {tn tm}{pt : tn ∔ tm ≣ fv (signature b)}
                     {an am}{pa : an ∔ suc am ≣ args♯ (signature b)}
                     {σA : SigTy pt pa A}
                     {x : BApp b A σA} 
@@ -205,7 +205,7 @@ postulate dischargeB-lem'' :  ∀ {A}{b}
 -- assuming that builtins work the same way for CEK and red/CK
 
 postulate BUILTIN-lem : ∀ b {A}
-               {tn}{pt : tn ∔ 0 ≣ fv♯ (signature b)}
+               {tn}{pt : tn ∔ 0 ≣ fv (signature b)}
                 {an}{pa : an ∔ 0 ≣ args♯ (signature b)}
                 {σA : SigTy pt pa A}          
               → (q : BApp b A σA) 
