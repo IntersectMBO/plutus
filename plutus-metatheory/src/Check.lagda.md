@@ -166,40 +166,66 @@ isMu (A ⇒ B ,, _) = inj₁ (notMu (A ⇒ B) (λ _ _ ()))
 checkKind : ∀ Φ (A : ScopedTy (len⋆ Φ)) → ∀ K → Either TypeError (Φ ⊢Nf⋆ K)
 inferKind : ∀ Φ (A : ScopedTy (len⋆ Φ)) → Either TypeError (Σ Kind (Φ ⊢Nf⋆_))
 
+-- We treat the ♯ case differently: 
+--  it can be matched with a * if the term is a con.
+checkKind Φ A ♯ with inferKind Φ A
+... | inj₁ x = inj₁ x
+... | inj₂ (* ,, con snd) = return snd
+... | inj₂ (♯ ,, snd) = inj₂ snd
+... | inj₂ (* ,, _)  = inj₁ (kindMismatch ♯ * (λ ()))
+... | inj₂ ((K ⇒ J) ,, _) = inj₁ (kindMismatch ♯ (K ⇒ J) (λ ()))   
 checkKind Φ A K = do
   K' ,, A ← inferKind Φ A
   refl ← withE (kindMismatch _ _) (dec2Either (decKind K K'))
   return A
 
+-- When the kind is ♯ we convert it to a constant of kind *
+addCon : ∀ {Φ} →  (Σ Kind (Φ ⊢Nf⋆_)) → (Σ Kind (Φ ⊢Nf⋆_))
+addCon (♯ ,, snd) = * ,, con snd
+addCon kA = kA
+
+-- We don't need to treat variables especially since variables of kind ♯
+-- can only occur under builtin constructors list and pair
+
+
 inferKind Φ (` α) = let K ,, β = inferTyVar Φ α in return (K ,, ne (` β))
 inferKind Φ (A ⇒ B) = do
-  KA ← inferKind Φ A
-  A  ← isStar KA
-  KB ← inferKind Φ B
-  B  ← isStar KB 
-  return (* ,, A ⇒ B)
+          KA ← inferKind Φ A
+          A  ← isStar KA
+          KB ← inferKind Φ B
+          B  ← isStar KB 
+          return (* ,, A ⇒ B)
 inferKind Φ (Π K A) = do
-  K ← inferKind (Φ ,⋆ K) A
-  A ← isStar K
-  return (* ,, Π A)
+          K ← inferKind (Φ ,⋆ K) A
+          A ← isStar K
+          return (* ,, Π A)
 inferKind Φ (ƛ K A) = do
   J ,, A ← inferKind (Φ ,⋆ K) A
   return (K ⇒ J ,, ƛ A)
-inferKind Φ (A · B) =
- do
-  KA ← inferKind Φ A
-  (K ,, J ,, A) ← isFunKind KA
-  B ← checkKind Φ B K
-  return (J ,, nf (embNf A · embNf B))
--- FIXME: There is no way to express a list applied to something.
+inferKind Φ (A · B) =  do
+          KA ← inferKind Φ A
+          (K ,, J ,, A) ← isFunKind KA
+          B ← checkKind Φ B K
+          return (addCon (J ,, nf (embNf A · embNf B)))
 inferKind Φ (con {♯} tc) = return (* ,, con (ne (^ tc)))
-inferKind Φ (con {K ⇒ K₁} tc) = inj₁ (kindMismatch ♯ (K ⇒ K₁) (λ ())) 
+inferKind Φ (con list) = return (♯ ⇒ ♯ ,, ne (^ list))
+inferKind Φ (con pair) = return (♯ ⇒ ♯ ⇒ ♯ ,, ne (^ pair)) 
 inferKind Φ (μ A B) = do
-  KA ← inferKind Φ A
-  K ,, A ← isPat KA
-  B ← checkKind Φ B K
-  return (* ,, μ A B)
+          KA ← inferKind Φ A
+          K ,, A ← isPat KA
+          B ← checkKind Φ B K
+          return (* ,, μ A B)
 inferKind Φ missing = inj₁ UnknownType
+
+_ :  inferKind ∅ (con (atomic aInteger)) ≡ inj₂ (* ,, con (ne (^ (atomic aInteger))))
+_ = refl
+
+_ : inferKind ∅ (con list · con (atomic aInteger)) ≡ inj₂ (* ,, con (ne (^ list · ne (^ (atomic aInteger))))) 
+_ = refl
+
+_ : inferKind (∅ ,⋆ ♯ ,⋆ ♯) (con pair · ` zero · ` (suc zero)) ≡ inj₂ (* ,, (con (ne (^ pair · ne (` Z) · ne (` (S Z))))))
+_ = refl
+
 
 len : ∀{Φ} → Ctx Φ → Weirdℕ (len⋆ Φ)
 len ∅        = Z
