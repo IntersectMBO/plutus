@@ -10,6 +10,6 @@
       (vardecl funApp (fun (con integer) (con integer)))
       { idFun (con integer) }
     )
-    [ x (con integer 3) ]
+    [ funApp (con integer 3) ]
   )
 )
