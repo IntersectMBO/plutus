@@ -37,11 +37,11 @@ open import Builtin.Constant.AtomicType
 open import Builtin.Constant.Type using (TyCon)
 open TyCon
 
-open import Builtin.Signature using (Sig;sig;Args;nat2Ctx⋆;fin2∈⋆;args♯) renaming (_⊢♯ to _⊢b♯)
+open import Builtin.Signature using (Sig;sig;Args;args♯;fv) renaming (_⊢♯ to _⊢b♯)
 open Sig
 
-open Builtin.Signature.FromSig Ctx⋆ _⊢Nf⋆_ _⊢Ne⋆_ ne nat2Ctx⋆ (λ x → ` (fin2∈⋆ x)) _·_ ^ con _⇒_   Π 
-    using (sig2type;♯2*;SigTy;sig2SigTy;saturatedSigTy;convSigTy)
+open Builtin.Signature.FromSig _⊢Nf⋆_ _⊢Ne⋆_ ne ` _·_ ^ con _⇒_   Π 
+    using (sig2type;⊢♯2TyNe♯;SigTy;sig2SigTy;saturatedSigTy;convSigTy)
 open SigTy
 
 data Env : Ctx ∅ → Set
@@ -73,14 +73,14 @@ data Value : (A : ∅ ⊢Nf⋆ *) → Set where
     → Value (con A)
 
   V-I⇒ : ∀ b {A B}{tn}
-       → {pt : tn ∔ 0 ≣ fv♯ (signature b)} 
+       → {pt : tn ∔ 0 ≣ fv (signature b)} 
        → ∀{an am}{pa : an ∔ (suc am) ≣ args♯ (signature b)}
        → {σB : SigTy pt (bubble pa) B}
        → BApp b (A ⇒ B) (A B⇒ σB)
        → Value (A ⇒ B)
 
-  V-IΠ : ∀ b {B : ∅ ,⋆ ♯ ⊢Nf⋆ *}
-       → ∀{tn tm} {pt : tn ∔ (suc tm) ≣ fv♯ (signature b)} 
+  V-IΠ : ∀ b {K}{B : ∅ ,⋆ K ⊢Nf⋆ *}
+       → ∀{tn tm} {pt : tn ∔ (suc tm) ≣ fv (signature b)} 
        → ∀{an am}{pa : an ∔ suc am ≣ args♯ (signature b)}
        → {σB : SigTy (bubble pt) pa B}
        → BApp b (Π B) (sucΠ σB)
@@ -89,18 +89,18 @@ data Value : (A : ∅ ⊢Nf⋆ *) → Set where
 data BApp b where
   base : BApp b (sig2type (signature b)) (sig2SigTy (signature b))
   _$_ : ∀{A B}{tn}
-    → {pt : tn ∔ 0 ≣ fv♯ (signature b)} 
+    → {pt : tn ∔ 0 ≣ fv (signature b)} 
     → ∀{an am}{pa : an ∔ suc am ≣ args♯ (signature b)}
     → {σB : SigTy pt (bubble pa) B}
     → BApp b (A ⇒ B) (A B⇒ σB)
     → Value A 
     → BApp b B σB
-  _$$_ : ∀{B C}
-    → ∀{tn tm} {pt : tn ∔ (suc tm) ≣ fv♯ (signature b)} 
+  _$$_ : ∀{K}{B : ∅ ,⋆ K ⊢Nf⋆ * }{C}
+    → ∀{tn tm} {pt : tn ∔ (suc tm) ≣ fv (signature b)} 
     → ∀{an am}{pa : an ∔ (suc am) ≣ args♯ (signature b)}
     → {σB : SigTy (bubble pt) pa B}
     → BApp b (Π B) (sucΠ σB)
-    → {A : ∅ ⊢Nf⋆ ♯}
+    → {A : ∅ ⊢Nf⋆ K}
     → (q : C ≡ B [ A ]Nf)
     → {σC : SigTy (bubble pt) pa C}
     → BApp b C σC
@@ -151,7 +151,7 @@ dischargeBody⋆ {A = A} M ρ = conv⊢
   (sub (extsNf (ne ∘ `)) (exts⋆ (ne ∘ `) (env2sub ρ)) M)
 
 dischargeB : ∀{b : Builtin}
-          → ∀{tn tm} → {pt : tn ∔ tm ≣ fv♯ (signature b)}
+          → ∀{tn tm} → {pt : tn ∔ tm ≣ fv (signature b)}
           → ∀{an am} → {pa : an ∔ am ≣ args♯ (signature b)}
           → ∀{C} → {Cb : SigTy pt pa C} → (bp : BApp b C Cb) 
           → ∅ ⊢ C
@@ -296,13 +296,13 @@ BUILTIN bls12-381-finalVerify (base $ V-con r $ V-con r') = inj₂ (V-con (BLS12
 --BUILTIN _ {A} _ = inj₁ A 
 
 BUILTIN' : ∀ b {A}
-  → ∀{tn} → {pt : tn ∔ 0 ≣ fv♯ (signature b)}
+  → ∀{tn} → {pt : tn ∔ 0 ≣ fv (signature b)}
   → ∀{an} → {pa : an ∔ 0 ≣ args♯ (signature b)}
   → {σA : SigTy pt pa A}
   → BApp b A σA
   → ∅ ⊢ A
 BUILTIN' b {pt = pt} {pa = pa} bt with trans (sym (+-identityʳ _)) (∔2+ pt) | trans (sym (+-identityʳ _)) (∔2+ pa)
-... | refl | refl with unique∔ pt (alldone (fv♯ (signature b))) | unique∔ pa (alldone (args♯ (signature b)))
+... | refl | refl with unique∔ pt (alldone (fv (signature b))) | unique∔ pa (alldone (args♯ (signature b)))
 ... | refl | refl with BUILTIN b bt
 ... | inj₁ A = error _
 ... | inj₂ V = discharge V
@@ -310,7 +310,7 @@ BUILTIN' b {pt = pt} {pa = pa} bt with trans (sym (+-identityʳ _)) (∔2+ pt) |
 
 ```
 V-I : ∀ (b : Builtin) {A : ∅ ⊢Nf⋆ *}
-       → ∀{tn tm} {pt : tn ∔ tm ≣ fv♯ (signature b)}
+       → ∀{tn tm} {pt : tn ∔ tm ≣ fv (signature b)}
        → ∀{an am} {pa : an ∔ suc am ≣ args♯ (signature b)}
        → {σA : SigTy pt pa A}
        → BApp b A σA

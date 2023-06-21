@@ -16,7 +16,7 @@ open import Data.Bool using (Bool;true;false)
 open import Data.Nat using (ℕ;suc)
 open import Data.Fin using (Fin) renaming (zero to Z; suc to S)
 open import Data.List.NonEmpty using (List⁺;_∷⁺_;[_];reverse)
-open import Data.Product using (Σ;proj₁)
+open import Data.Product using (Σ;proj₁;proj₂)
 open import Relation.Binary using (DecidableEquality)
 
 open import Data.Bool using (Bool)
@@ -24,9 +24,10 @@ open import Agda.Builtin.Int using (Int)
 open import Agda.Builtin.String using (String)
 open import Utils using (ByteString;Maybe;DATA;Bls12-381-G1-Element;Bls12-381-G2-Element;Bls12-381-MlResult;♯)
 import Utils as U
-open import Builtin.Signature using (Sig;sig;_⊢♯;Args)
+open import Builtin.Signature using (Sig;sig;_⊢♯;_/_⊢⋆;Args)
                  using (integer;string;bytestring;unit;bool;pdata;bls12-381-g1-element;bls12-381-g2-element;bls12-381-mlresult)
-open _⊢♯
+open _⊢♯ renaming (pair to bpair; list to blist)
+open _/_⊢⋆
 open import Builtin.Constant.AtomicType 
 
 open import Utils.Reflection using (defDec)
@@ -141,16 +142,32 @@ This is defined in its own module so that these definitions are not exported.
     open import Data.Product using (_×_) renaming (_,_ to _,,_)
 
     -- number of different type variables
-    ∙ = 0
-    ∀a = 1
-    ∀b,a = 2
+    ∙ ∀a ∀b,a ∀A ∀A,a : ℕ × ℕ
+    ∙    = (0 ,, 0)
+    ∀a   = (0 ,, 1)
+    ∀b,a = (0 ,, 2)
+    ∀A   = (1 ,, 0)
+    ∀A,a = (1 ,, 1)
 
-    -- names for type variables
-    a : ∀{n} → suc n ⊢♯
+    -- names for type variables of kind ⋆
+    A :  ∀{n⋆ n♯} → suc n⋆ / n♯ ⊢⋆
+    A = ` Z
+
+    B :  ∀{n⋆ n♯} → suc (suc n⋆) / n♯ ⊢⋆
+    B = ` (S Z)
+
+    -- names for type variables of kind ♯
+    a : ∀{n♯} → suc n♯ ⊢♯
     a = ` Z
 
-    b : ∀{n} → suc (suc n) ⊢♯
+    b : ∀{n♯} → suc (suc n♯) ⊢♯
     b = ` (S Z)
+
+    pair : ∀{n⋆ n♯} → n♯ ⊢♯ → n♯ ⊢♯ → n⋆ / n♯ ⊢⋆
+    pair a b = (bpair a b) ↑
+    
+    list :  ∀{n⋆ n♯} → n♯ ⊢♯ → n⋆ / n♯ ⊢⋆
+    list a = (blist a) ↑
     ```
     
     ###Operators for constructing signatures
@@ -169,96 +186,103 @@ This is defined in its own module so that these definitions are not exported.
     sig n (t₃ ∷ t₂ ∷ t₁) tᵣ
 
     ```
+    ArgSet : Set
+    ArgSet = Σ (ℕ × ℕ) (λ { (n⋆ ,, n♯) → Args n⋆ n♯}) 
+
+    ArgTy : ArgSet → Set
+    ArgTy ((n⋆ ,, n♯) ,, _) = n⋆ / n♯ ⊢⋆ 
+
     infix 12 _[_
-    _[_ : (n : ℕ) → n ⊢♯ → Σ ℕ (λ n → Args n) 
-    _[_ n x = n ,, [ x ]  
+    _[_ : (nn : ℕ × ℕ)  → proj₁ nn / proj₂ nn ⊢⋆ → ArgSet
+    _[_ (n⋆ ,, n♯) x = (n⋆ ,, n♯) ,, [ x ]  
 
     infixl 10 _,_
-    _,_ : (p : Σ ℕ (λ n → Args n)) → proj₁ p ⊢♯ → Σ ℕ (λ n → Args n)
-    _,_ (n ,, args) arg = n ,, arg  ∷⁺ args
+    _,_ : (p : ArgSet) → ArgTy p → ArgSet
+    _,_ ((n⋆ ,, n♯) ,, args) arg = (n⋆ ,, n♯) ,, arg  ∷⁺ args
 
     infix 8 _]⟶_
-    _]⟶_ : (p : Σ ℕ (λ n → Args n)) → proj₁ p ⊢♯ → Sig
-    _]⟶_ (n ,, as) res = sig n as res
+    _]⟶_ : (p : ArgSet) → ArgTy p → Sig
+    _]⟶_ ((n⋆ ,, n♯) ,, as) res = sig n⋆ n♯ as res
     ```
 
     The signature of each builtin
 
     ```
     signature : Builtin → Sig
-    signature addInteger                      = ∙ [ integer , integer ]⟶ integer
-    signature subtractInteger                 = ∙ [ integer , integer ]⟶ integer
-    signature multiplyInteger                 = ∙ [ integer , integer ]⟶ integer
-    signature divideInteger                   = ∙ [ integer , integer ]⟶ integer
-    signature quotientInteger                 = ∙ [ integer , integer ]⟶ integer
-    signature remainderInteger                = ∙ [ integer , integer ]⟶ integer
-    signature modInteger                      = ∙ [ integer , integer ]⟶ integer
-    signature equalsInteger                   = ∙ [ integer , integer ]⟶ bool
-    signature lessThanInteger                 = ∙ [ integer , integer ]⟶ bool
-    signature lessThanEqualsInteger           = ∙ [ integer , integer ]⟶ bool
-    signature appendByteString                = ∙ [ bytestring , bytestring ]⟶ bytestring
-    signature consByteString                  = ∙ [ integer , bytestring ]⟶ bytestring
-    signature sliceByteString                 = ∙ [ integer , integer , bytestring ]⟶ bytestring
-    signature lengthOfByteString              = ∙ [ bytestring ]⟶ integer
-    signature indexByteString                 = ∙ [ bytestring , integer ]⟶ integer
-    signature equalsByteString                = ∙ [ bytestring , bytestring ]⟶ bool
-    signature lessThanByteString              = ∙ [ bytestring , bytestring ]⟶ bool
-    signature lessThanEqualsByteString        = ∙ [ bytestring , bytestring ]⟶ bool
-    signature sha2-256                        = ∙ [ bytestring ]⟶ bytestring
-    signature sha3-256                        = ∙ [ bytestring ]⟶ bytestring
-    signature blake2b-256                     = ∙ [ bytestring ]⟶ bytestring
-    signature verifyEd25519Signature          = ∙ [ bytestring , bytestring , bytestring ]⟶ bool
-    signature verifyEcdsaSecp256k1Signature   = ∙ [ bytestring , bytestring , bytestring ]⟶ bool
-    signature verifySchnorrSecp256k1Signature = ∙ [ bytestring , bytestring , bytestring ]⟶ bool
-    signature appendString                    = ∙ [ string , string ]⟶ string
-    signature equalsString                    = ∙ [ string , string ]⟶ bool
-    signature encodeUtf8                      = ∙ [ string ]⟶ bytestring
-    signature decodeUtf8                      = ∙ [ bytestring ]⟶ string
-    signature ifThenElse                      = ∀a [ bool , a , a ]⟶ a
-    signature chooseUnit                      = ∀a [ a , unit ]⟶ a
-    signature trace                           = ∀a [ string , a ]⟶ a
-    signature fstPair                         = ∀b,a [ pair b a ]⟶ b
-    signature sndPair                         = ∀b,a [ pair b a ]⟶ a
-    signature chooseList                      = ∀b,a [ list b , a , a ]⟶ a
-    signature mkCons                          = ∀a [ a , list a ]⟶ list a
-    signature headList                        = ∀a [ list a ]⟶ a
+    signature addInteger                      = ∙ [ integer ↑ , integer ↑ ]⟶ integer ↑ 
+    signature subtractInteger                 = ∙ [ integer ↑ , integer ↑ ]⟶ integer ↑
+    signature multiplyInteger                 = ∙ [ integer ↑ , integer ↑ ]⟶ integer ↑
+    signature divideInteger                   = ∙ [ integer ↑ , integer ↑ ]⟶ integer ↑
+    signature quotientInteger                 = ∙ [ integer ↑ , integer ↑ ]⟶ integer ↑
+    signature remainderInteger                = ∙ [ integer ↑ , integer ↑ ]⟶ integer ↑
+    signature modInteger                      = ∙ [ integer ↑ , integer ↑ ]⟶ integer ↑
+    signature equalsInteger                   = ∙ [ integer ↑ , integer ↑ ]⟶ bool ↑
+    signature lessThanInteger                 = ∙ [ integer ↑ , integer ↑ ]⟶ bool ↑
+    signature lessThanEqualsInteger           = ∙ [ integer ↑ , integer ↑ ]⟶ bool ↑
+    signature appendByteString                = ∙ [ bytestring ↑ , bytestring ↑ ]⟶ bytestring ↑
+    signature consByteString                  = ∙ [ integer ↑ , bytestring ↑ ]⟶ bytestring ↑
+    signature sliceByteString                 = ∙ [ integer ↑ , integer ↑ , bytestring ↑ ]⟶ bytestring ↑
+    signature lengthOfByteString              = ∙ [ bytestring ↑ ]⟶ integer ↑
+    signature indexByteString                 = ∙ [ bytestring ↑ , integer ↑ ]⟶ integer ↑
+    signature equalsByteString                = ∙ [ bytestring ↑ , bytestring ↑ ]⟶ bool ↑
+    signature lessThanByteString              = ∙ [ bytestring ↑ , bytestring ↑ ]⟶ bool ↑
+    signature lessThanEqualsByteString        = ∙ [ bytestring ↑ , bytestring ↑ ]⟶ bool ↑
+    signature sha2-256                        = ∙ [ bytestring ↑ ]⟶ bytestring ↑
+    signature sha3-256                        = ∙ [ bytestring ↑ ]⟶ bytestring ↑
+    signature blake2b-256                     = ∙ [ bytestring ↑ ]⟶ bytestring ↑
+    signature verifyEd25519Signature          = ∙ [ bytestring ↑ , bytestring ↑ , bytestring ↑ ]⟶ bool ↑
+    signature verifyEcdsaSecp256k1Signature   = ∙ [ bytestring ↑ , bytestring ↑ , bytestring ↑ ]⟶ bool ↑
+    signature verifySchnorrSecp256k1Signature = ∙ [ bytestring ↑ , bytestring ↑ , bytestring ↑ ]⟶ bool ↑
+    signature appendString                    = ∙ [ string ↑ , string ↑ ]⟶ string ↑
+    signature equalsString                    = ∙ [ string ↑ , string ↑ ]⟶ bool ↑
+    signature encodeUtf8                      = ∙ [ string ↑ ]⟶ bytestring ↑
+    signature decodeUtf8                      = ∙ [ bytestring ↑ ]⟶ string ↑
+    signature ifThenElse                      = ∀A [ bool ↑ , A , A ]⟶ A
+    signature chooseUnit                      = ∀A [ A , unit ↑ ]⟶ A
+    signature trace                           = ∀A [ string ↑ , A ]⟶ A
+    signature fstPair                         = ∀b,a [ pair b a ]⟶ b ↑
+    signature sndPair                         = ∀b,a [ pair b a ]⟶ a ↑
+    signature chooseList                      = ∀A,a [ list a , A , A ]⟶ A
+    signature mkCons                          = ∀a [ a ↑ , list a ]⟶ list a
+    signature headList                        = ∀a [ list a ]⟶ a ↑
     signature tailList                        = ∀a [ list a ]⟶ list a
-    signature nullList                        = ∀a [ list a ]⟶ bool
-    signature chooseData                      = ∀a [ pdata , a , a , a , a , a ]⟶ a
-    signature constrData                      = ∙ [ integer , list pdata ]⟶ pdata
-    signature mapData                         = ∙ [ list (pair pdata pdata) ]⟶ pdata
-    signature listData                        = ∙ [ list pdata ]⟶ pdata
-    signature iData                           = ∙ [ integer ]⟶ pdata
-    signature bData                           = ∙ [ bytestring ]⟶ pdata
-    signature unConstrData                    = ∙ [ pdata ]⟶ pair integer (list pdata)
-    signature unMapData                       = ∙ [ pdata ]⟶ list (pair pdata pdata)
-    signature unListData                      = ∙ [ pdata ]⟶ list pdata
-    signature unIData                         = ∙ [ pdata ]⟶ integer
-    signature unBData                         = ∙ [ pdata ]⟶ bytestring
-    signature equalsData                      = ∙ [ pdata , pdata ]⟶ bool
-    signature serialiseData                   = ∙ [ pdata ]⟶ bytestring
-    signature mkPairData                      = ∙ [ pdata , pdata ]⟶ pair pdata pdata
-    signature mkNilData                       = ∙ [ unit ]⟶ list pdata
-    signature mkNilPairData                   = ∙ [ unit ]⟶ list (pair pdata pdata)
-    signature bls12-381-G1-add                = ∙ [ bls12-381-g1-element , bls12-381-g1-element ]⟶ bls12-381-g1-element
-    signature bls12-381-G1-neg                = ∙ [ bls12-381-g1-element ]⟶ bls12-381-g1-element
-    signature bls12-381-G1-scalarMul          = ∙ [ integer , bls12-381-g1-element ]⟶ bls12-381-g1-element
-    signature bls12-381-G1-equal              = ∙ [ bls12-381-g1-element , bls12-381-g1-element ]⟶ bool
-    signature bls12-381-G1-hashToGroup        = ∙ [ bytestring , bytestring ]⟶ bls12-381-g1-element
-    signature bls12-381-G1-compress           = ∙ [ bls12-381-g1-element ]⟶ bytestring
-    signature bls12-381-G1-uncompress         = ∙ [ bytestring ]⟶ bls12-381-g1-element
-    signature bls12-381-G2-add                = ∙ [ bls12-381-g2-element , bls12-381-g2-element ]⟶ bls12-381-g2-element
-    signature bls12-381-G2-neg                = ∙ [ bls12-381-g2-element ]⟶ bls12-381-g2-element
-    signature bls12-381-G2-scalarMul          = ∙ [ integer , bls12-381-g2-element ]⟶ bls12-381-g2-element
-    signature bls12-381-G2-equal              = ∙ [ bls12-381-g2-element , bls12-381-g2-element ]⟶ bool
-    signature bls12-381-G2-hashToGroup        = ∙ [ bytestring , bytestring ]⟶ bls12-381-g2-element
-    signature bls12-381-G2-compress           = ∙ [ bls12-381-g2-element ]⟶ bytestring
-    signature bls12-381-G2-uncompress         = ∙ [ bytestring ]⟶ bls12-381-g2-element
-    signature bls12-381-millerLoop            = ∙ [ bls12-381-g1-element , bls12-381-g2-element ]⟶ bls12-381-mlresult
-    signature bls12-381-mulMlResult           = ∙ [ bls12-381-mlresult , bls12-381-mlresult ]⟶ bls12-381-mlresult
-    signature bls12-381-finalVerify           = ∙ [ bls12-381-mlresult , bls12-381-mlresult ]⟶ bool
+    signature nullList                        = ∀a [ list a ]⟶ bool ↑
+    signature chooseData                      = ∀A [ pdata ↑ , A , A , A , A , A ]⟶ A
+    signature constrData                      = ∙ [ integer ↑ , list pdata ]⟶ pdata ↑
+    signature mapData                         = ∙ [ list (bpair pdata pdata) ]⟶ pdata ↑
+    signature listData                        = ∙ [ list pdata ]⟶ pdata ↑
+    signature iData                           = ∙ [ integer ↑ ]⟶ pdata ↑
+    signature bData                           = ∙ [ bytestring ↑ ]⟶ pdata ↑
+    signature unConstrData                    = ∙ [ pdata ↑ ]⟶ pair integer (blist pdata)
+    signature unMapData                       = ∙ [ pdata ↑ ]⟶ list (bpair pdata pdata)
+    signature unListData                      = ∙ [ pdata ↑ ]⟶ list pdata 
+    signature unIData                         = ∙ [ pdata ↑ ]⟶ integer ↑
+    signature unBData                         = ∙ [ pdata ↑ ]⟶ bytestring ↑
+    signature equalsData                      = ∙ [ pdata ↑ , pdata ↑ ]⟶ bool ↑
+    signature serialiseData                   = ∙ [ pdata ↑ ]⟶ bytestring ↑
+    signature mkPairData                      = ∙ [ pdata ↑ , pdata ↑ ]⟶ pair pdata pdata
+    signature mkNilData                       = ∙ [ unit ↑ ]⟶ list pdata
+    signature mkNilPairData                   = ∙ [ unit ↑ ]⟶ list (bpair pdata pdata)
+    signature bls12-381-G1-add                = ∙ [ bls12-381-g1-element ↑ , bls12-381-g1-element ↑ ]⟶ bls12-381-g1-element ↑
+    signature bls12-381-G1-neg                = ∙ [ bls12-381-g1-element ↑ ]⟶ bls12-381-g1-element ↑
+    signature bls12-381-G1-scalarMul          = ∙ [ integer ↑ , bls12-381-g1-element ↑ ]⟶ bls12-381-g1-element ↑
+    signature bls12-381-G1-equal              = ∙ [ bls12-381-g1-element ↑ , bls12-381-g1-element ↑ ]⟶ bool ↑
+    signature bls12-381-G1-hashToGroup        = ∙ [ bytestring ↑ , bytestring ↑ ]⟶ bls12-381-g1-element ↑
+    signature bls12-381-G1-compress           = ∙ [ bls12-381-g1-element ↑ ]⟶ bytestring ↑
+    signature bls12-381-G1-uncompress         = ∙ [ bytestring ↑ ]⟶ bls12-381-g1-element ↑
+    signature bls12-381-G2-add                = ∙ [ bls12-381-g2-element ↑ , bls12-381-g2-element ↑ ]⟶ bls12-381-g2-element ↑
+    signature bls12-381-G2-neg                = ∙ [ bls12-381-g2-element ↑ ]⟶ bls12-381-g2-element ↑
+    signature bls12-381-G2-scalarMul          = ∙ [ integer ↑ , bls12-381-g2-element ↑ ]⟶ bls12-381-g2-element ↑
+    signature bls12-381-G2-equal              = ∙ [ bls12-381-g2-element ↑ , bls12-381-g2-element ↑ ]⟶ bool ↑
+    signature bls12-381-G2-hashToGroup        = ∙ [ bytestring ↑ , bytestring ↑ ]⟶ bls12-381-g2-element ↑
+    signature bls12-381-G2-compress           = ∙ [ bls12-381-g2-element ↑ ]⟶ bytestring ↑
+    signature bls12-381-G2-uncompress         = ∙ [ bytestring ↑ ]⟶ bls12-381-g2-element ↑
+    signature bls12-381-millerLoop            = ∙ [ bls12-381-g1-element ↑ , bls12-381-g2-element ↑ ]⟶ bls12-381-mlresult ↑
+    signature bls12-381-mulMlResult           = ∙ [ bls12-381-mlresult ↑ , bls12-381-mlresult ↑ ]⟶ bls12-381-mlresult ↑
+    signature bls12-381-finalVerify           = ∙ [ bls12-381-mlresult ↑ , bls12-381-mlresult ↑ ]⟶ bool ↑
 
 open SugaredSignature using (signature) public
+
 ```
 
 ## GHC Mappings

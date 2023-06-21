@@ -32,7 +32,7 @@ open import Builtin.Constant.AtomicType using (⟦_⟧at)
 open import Builtin.Signature using (_⊢♯)
 open _⊢♯
 
-open import Algorithmic.Signature using (btype;♯2*)
+open import Algorithmic.Signature using (btype;⊢♯2TyNe♯)
 \end{code}
 
 ## Fixity declarations
@@ -116,7 +116,7 @@ ty2sty (ne (^ list · x)) = list (ty2sty x)
 ty2sty (ne (^ (atomic x))) = atomic x
 
 sty2ty : 0 ⊢♯ → ∅ ⊢Nf⋆ ♯
-sty2ty t = ne (♯2* t)
+sty2ty t = ne (⊢♯2TyNe♯ t)
 \end{code}
 
 Now we have functions `ty2sty` and `sty2ty`. We prove that they are inverses.
@@ -236,4 +236,4 @@ conv⊢ : ∀ {Γ Γ'}{A A' : Φ ⊢Nf⋆ *}
  → Γ ⊢ A
  → Γ' ⊢ A'
 conv⊢ refl refl t = t
-\end{code}
+\end{code} 

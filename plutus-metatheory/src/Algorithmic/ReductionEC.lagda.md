@@ -40,14 +40,12 @@ open _⊢Nf⋆_
 open _⊢Ne⋆_
 open import Builtin 
 open import Builtin.Constant.Type using (TyCon)
---open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con using (TermCon)
---open TermCon
 
-open import Builtin.Signature using (Sig;sig;Args;_⊢♯;nat2Ctx⋆;fin2∈⋆;args♯)
+open import Builtin.Signature using (Sig;sig;Args;_⊢♯;args♯;fv)
 open Sig
 
-open Builtin.Signature.FromSig Ctx⋆ _⊢Nf⋆_ _⊢Ne⋆_ ne nat2Ctx⋆ (λ x → ` (fin2∈⋆ x)) _·_ ^ con _⇒_   Π 
-    using (sig2type;♯2*;SigTy;sig2SigTy;sigTy2type;saturatedSigTy;convSigTy)
+open Builtin.Signature.FromSig _⊢Nf⋆_ _⊢Ne⋆_ ne ` _·_ ^ con _⇒_   Π 
+    using (sig2type;SigTy;sig2SigTy;sigTy2type;saturatedSigTy;convSigTy)
 open SigTy
 
 import Algorithmic.CEK as CEK
@@ -64,17 +62,17 @@ data BApp (b : Builtin) :
   → ∀{A} → SigTy pt pa A → ∅ ⊢ A → Set where
   base : BApp b (sig2SigTy (signature b)) (builtin b / refl )
   step : ∀{A B}{tn}
-    → {pt : tn ∔ 0 ≣ fv♯ (signature b)} 
+    → {pt : tn ∔ 0 ≣ fv (signature b)} 
     → ∀{an am}{pa : an ∔ suc am ≣ args♯ (signature b)}
     → {σB : SigTy pt (bubble pa) B}
     → {t : ∅ ⊢ A ⇒ B} → BApp b (A B⇒ σB) t
     → {u : ∅ ⊢ A} → Value u → BApp b σB (t · u)
-  step⋆ : ∀{C B}
-    → ∀{tn tm} {pt : tn ∔ (suc tm) ≣ fv♯ (signature b)} 
+  step⋆ : ∀{C}{K}{B : ∅ ,⋆ K ⊢Nf⋆ *}
+    → ∀{tn tm} {pt : tn ∔ (suc tm) ≣ fv (signature b)} 
     → ∀{an am}{pa : an ∔ (suc am) ≣ args♯ (signature b)}
     → {σB : SigTy (bubble pt) pa B}
     → {t : ∅ ⊢ Π B} → BApp b (sucΠ σB) t
-    → {A : ∅ ⊢Nf⋆ ♯}
+    → {A : ∅ ⊢Nf⋆ K}
     → (q : C ≡ B [ A ]Nf)
     → {σC : SigTy (bubble pt) pa C}
     → BApp b σC (t ·⋆ A / q)
@@ -102,14 +100,14 @@ data Value where
     → Value (con {A = A} x refl)
 
   V-I⇒ : ∀ b {A B}{tn}
-       → {pt : tn ∔ 0 ≣ fv♯ (signature b)} 
+       → {pt : tn ∔ 0 ≣ fv (signature b)} 
        → ∀{an am}{pa : an ∔ (suc am) ≣ args♯ (signature b)}
        → {σB : SigTy pt (bubble pa) B}
        → {t : ∅ ⊢ A ⇒ B}
        → BApp b (A B⇒ σB) t
        → Value t
-  V-IΠ : ∀ b {A : ∅ ,⋆ ♯ ⊢Nf⋆ *}
-       → ∀{tn tm} {pt : tn ∔ (suc tm) ≣ fv♯ (signature b)} 
+  V-IΠ : ∀ b {K}{A : ∅ ,⋆ K ⊢Nf⋆ *}
+       → ∀{tn tm} {pt : tn ∔ (suc tm) ≣ fv (signature b)} 
        → ∀{an am}{pa : an ∔ suc am ≣ args♯ (signature b)}
        → {σA : SigTy (bubble pt) pa A}
        → {t : ∅ ⊢ Π A}
@@ -139,7 +137,7 @@ red2cekVal (V-I⇒ b x) = CEK.V-I⇒ b (red2cekBApp x)
 red2cekVal (V-IΠ b x) = CEK.V-IΠ b (red2cekBApp x)
 
 BUILTIN' : ∀ b {A}{t : ∅ ⊢ A}
-  → ∀{tn} → {pt : tn ∔ 0 ≣ fv♯ (signature b)}
+  → ∀{tn} → {pt : tn ∔ 0 ≣ fv (signature b)}
   → ∀{an} → {pa : an ∔ 0 ≣ args♯ (signature b)}
   → {σA : SigTy pt pa A}
   → BApp b σA t
@@ -232,7 +230,7 @@ data _—→⋆_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set 
   β-builtin : ∀{A B}{tn}
       (b : Builtin)
     → (t : ∅ ⊢ A ⇒ B)
-    → {pt : tn ∔ 0 ≣ fv♯ (signature b)} 
+    → {pt : tn ∔ 0 ≣ fv (signature b)} 
     → ∀{an} → {pa : an ∔ 1 ≣  args♯ (signature b)}
     → {σB : SigTy pt (bubble pa) B}
     → (bt : BApp b (A B⇒ σB) t) -- one left
@@ -288,7 +286,7 @@ right constructor
 
 ```
 V-I :  ∀ (b : Builtin) {A : ∅ ⊢Nf⋆ *}
-       → ∀{tn tm} {pt : tn ∔ tm ≣ fv♯ (signature b)}
+       → ∀{tn tm} {pt : tn ∔ tm ≣ fv (signature b)}
        → ∀{an am} {pa : an ∔ suc am ≣ args♯ (signature b)}
        → {σA : SigTy pt pa A}
        → {t : ∅ ⊢ A}

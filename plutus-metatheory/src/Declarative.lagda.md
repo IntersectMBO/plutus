@@ -22,13 +22,13 @@ open import Type.Equality using (_≡β_)
 open import Builtin using (Builtin;signature)
 open Builtin.Builtin
 
-open import Builtin.Signature using (nat2Ctx⋆;fin2∈⋆)
-
 open import Utils using (Kind;*;♯;_⇒_;K)
 open import Builtin.Constant.Type using (TyCon)
 open TyCon
 
-open Builtin.Signature.FromSig Ctx⋆ (_⊢⋆_) (_⊢⋆_) (λ x → x) nat2Ctx⋆ (λ x → ` (fin2∈⋆ x)) _·_ ^ con _⇒_ Π using (sig2type;sig2type⇒;sig2typeΠ;♯2*) public
+open import Builtin.Signature using ()
+open Builtin.Signature.FromSig  (_⊢⋆_) (_⊢⋆_) (λ x → x) (`) _·_ ^ con _⇒_ Π 
+          using (sig2type;sig2type⇒;sig2typeΠ;⊢♯2TyNe♯;mkTy) public
 open import Type.BetaNBE using (nf)
 open import Algorithmic using (⟦_⟧;ty2sty)
 open import RawU using (TyTag)

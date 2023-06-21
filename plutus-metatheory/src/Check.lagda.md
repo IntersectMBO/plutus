@@ -4,13 +4,10 @@ layout: page
 ## Type checker
 
 ```
-{-# OPTIONS --rewriting #-}
 module Check where
 ```
 
 ```
-import Debug.Trace as D
-
 open import Data.Nat using (ℕ;zero;suc)
 open import Data.Fin using (Fin;zero;suc)
 open import Data.List using (map;[];_∷_)
@@ -302,49 +299,36 @@ checkType Γ L A = do
   return L
   
 inferType Γ (` x) = do
-  D.trace "inferType `" (return x)
   A ,, α ← inferVarType Γ x
   return (A ,, ` α)
 inferType Γ (Λ K L) = do
-  D.trace "inferType Λ" (return K)
   A ,, L ← inferType (Γ ,⋆ K) L
   return (Π A ,, Λ L)
 inferType Γ (L ·⋆ A) = do
-  D.trace "inferType ·⋆" (return A)
   t ← inferType Γ L
   K ,, B ,, L ← isPi t
   A ← checkKind _ A K
   return (B [ A ]Nf ,, L ·⋆ A / refl)
 inferType Γ (ƛ A L) = do
-  D.trace "inferType ­ƛ" (return A)
   K ← inferKind _ A
   A ← isStar K
   B ,, L ← inferType (Γ , A) L 
   return (A ⇒ B ,, ƛ L)
 inferType {Φ} Γ (L · M) = do
-  D.trace "inferType ­·" (return L)
   ty ← inferType Γ L
-  D.trace "inferType ­­· function type inferred" (return L)
   A ,, B ,, L ← isFunType ty
-  D.trace "inferType ­· function is a function" (return L)
   M ← checkType Γ M A
-  D.trace "inferType ­· function argument type and argument coincide" (return L)
   return (B ,, L · M)
 inferType Γ (con (tmCon t x)) = do 
-  D.trace "inferType ­con" (return x)
   return (con (subNf∅ (sty2ty t)) ,, con x refl)
 inferType Γ (error A) = do
-  D.trace "inferType ­error" (return A)
   K ← inferKind _ A
   A ← isStar K
   return (A ,, error A)
 inferType Γ (builtin b) = do 
-  D.trace "inferType builtin" (return b)
   let bty = btype b
-  D.trace "inferType btype" (return b)
   return (bty ,, builtin b / refl)
 inferType Γ (wrap A B L) = do
-  D.trace "inferType ­wrap" (return A)
   KA ← inferKind _ A
   K ,, A ← isPat KA
   B ← checkKind _ B K

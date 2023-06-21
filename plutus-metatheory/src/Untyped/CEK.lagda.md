@@ -26,7 +26,7 @@ open _⊢
 open import Untyped.RenamingSubstitution using (Sub;sub;lifts)
 open import Utils hiding (List)
 open import Builtin
-open import Builtin.Signature using (Sig;sig;Args;_⊢♯;nat2Ctx⋆;fin2∈⋆;args♯)
+open import Builtin.Signature using (Sig;sig;Args;_⊢♯;args♯;fv)
             using (integer;bool;bytestring;string;pdata;unit;bls12-381-g1-element;bls12-381-g2-element;bls12-381-mlresult)
 open _⊢♯
 open Sig
@@ -56,26 +56,26 @@ data Value where
   V-delay : ∀{X} → Env X → X ⊢ → Value
   V-constr : (i : ℕ) → (vs : Stack Value) → Value
   V-I⇒ : ∀ b {tn} 
-       → {pt : tn ∔ 0 ≣ fv♯ (signature b)} 
+       → {pt : tn ∔ 0 ≣ fv (signature b)} 
        → ∀{an am}{pa : an ∔ (suc am) ≣ args♯ (signature b)}
        → BApp b pt pa
        → Value
   V-IΠ : ∀ b 
-       → ∀{tn tm}{pt : tn ∔ (suc tm) ≣ fv♯ (signature b)} 
+       → ∀{tn tm}{pt : tn ∔ (suc tm) ≣ fv (signature b)} 
        → ∀{an am}{pa : an ∔ suc am ≣ args♯ (signature b)}
        → BApp b pt pa
        → Value
 
 data BApp b where
-  base : BApp b (start (fv♯ (signature b))) (start (args♯ (signature b)))
+  base : BApp b (start (fv (signature b))) (start (args♯ (signature b)))
   app : ∀{tn}
-      {pt : tn ∔ 0 ≣ fv♯ (signature b)} 
+      {pt : tn ∔ 0 ≣ fv (signature b)} 
     → ∀{an am}{pa : an ∔ suc am ≣ args♯ (signature b)}
     → BApp b pt pa
     → Value
     → BApp b pt (bubble pa)
   app⋆ : 
-      ∀{tn tm} {pt : tn ∔ (suc tm) ≣ fv♯ (signature b)} 
+      ∀{tn tm} {pt : tn ∔ (suc tm) ≣ fv (signature b)} 
     → ∀{an am}{pa : an ∔ (suc am) ≣ args♯ (signature b)}
     → BApp b pt pa
     → BApp b (bubble pt) pa
@@ -85,7 +85,7 @@ env2sub : ∀{Γ} → Env Γ → Sub Γ ⊥
 discharge : Value → ⊥ ⊢
 
 dischargeB : ∀{b}
-          → ∀{tn tm} → {pt : tn ∔ tm ≣ fv♯ (signature b)}
+          → ∀{tn tm} → {pt : tn ∔ tm ≣ fv (signature b)}
           → ∀{an am} → {pa : an ∔ am ≣ args♯ (signature b)}
           → BApp b pt pa → ⊥ ⊢
 
@@ -129,7 +129,7 @@ lookup (ρ ∷ v) nothing  = v
 lookup (ρ ∷ v) (just x) = lookup ρ x
 
 V-I : ∀ b 
-    → ∀{tn tm} {pt : tn ∔ tm ≣ fv♯ (signature b)}
+    → ∀{tn tm} {pt : tn ∔ tm ≣ fv (signature b)}
     → ∀{an am} {pa : an ∔ suc am ≣ args♯ (signature b)}
     → BApp b pt pa
     → Value
@@ -143,7 +143,7 @@ WARNING: This untyped BUILTIN function implements all builtin functions, but not
 This WARNING will be removed once the tests are done.
 -}
 
-BUILTIN : ∀ b → BApp b (alldone (fv♯ (signature b))) (alldone (args♯ (signature b))) → Either RuntimeError Value
+BUILTIN : ∀ b → BApp b (alldone (fv (signature b))) (alldone (args♯ (signature b))) → Either RuntimeError Value
 BUILTIN addInteger = λ
   { (app (app base (V-con integer i)) (V-con integer i')) -> inj₂ (V-con integer (i + i'))
   ; _ -> inj₁ userError
@@ -486,12 +486,12 @@ BUILTIN bls12-381-finalVerify = λ
 
 
 BUILTIN' : ∀ b
-  → ∀{tn} → {pt : tn ∔ 0 ≣ fv♯ (signature b)}
+  → ∀{tn} → {pt : tn ∔ 0 ≣ fv (signature b)}
   → ∀{an} → {pa : an ∔ 0 ≣ args♯ (signature b)}
   → BApp b pt pa
   → ⊥ ⊢
 BUILTIN' b {pt = pt} {pa = pa} bt with trans (sym (+-identityʳ _)) (∔2+ pt) | trans (sym (+-identityʳ _)) (∔2+ pa)
-... | refl | refl with unique∔ pt (alldone (fv♯ (signature b))) | unique∔ pa (alldone (args♯ (signature b)))
+... | refl | refl with unique∔ pt (alldone (fv (signature b))) | unique∔ pa (alldone (args♯ (signature b)))
 ... | refl | refl with BUILTIN b bt
 ... | inj₁ _ = error
 ... | inj₂ V = discharge V

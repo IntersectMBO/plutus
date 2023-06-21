@@ -31,7 +31,7 @@ open import Builtin using (Builtin;equals)
 open Builtin.Builtin
 
 
-open import Builtin.Signature as B using (Sig;sig;nat2Ctx⋆;fin2∈⋆;_⊢♯) 
+open import Builtin.Signature as B using (Sig;sig;_⊢♯) 
 open _⊢♯
 import Builtin.Constant.Type as T
 open import Builtin.Constant.AtomicType using (AtomicTyCon;decAtomicTyCon)
@@ -41,8 +41,8 @@ open import Type using (Ctx⋆;∅)
 open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_)
 open _⊢Nf⋆_
 open _⊢Ne⋆_
-open B.FromSig Ctx⋆ _⊢Nf⋆_ _⊢Ne⋆_ ne nat2Ctx⋆ (λ x → ` (fin2∈⋆ x)) _·_ ^ con _⇒_   Π 
-     using (♯2*;sig2type;SigTy;sigTy2type;convSigTy) public
+open B.FromSig _⊢Nf⋆_ _⊢Ne⋆_ ne ` _·_ ^ con _⇒_   Π 
+     using (⊢♯2TyNe♯;sig2type;SigTy;sigTy2type;convSigTy) public
 open import Algorithmic using (⟦_⟧)
 
 
@@ -159,7 +159,7 @@ an Agda type.
 
 ```
 ⟦_⟧tag : 0 ⊢♯ → Set
-⟦ t ⟧tag =  ⟦ ne (♯2* t) ⟧ 
+⟦ t ⟧tag =  ⟦ ne (⊢♯2TyNe♯ t) ⟧ 
 ```
 
 

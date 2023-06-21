@@ -20,7 +20,8 @@ open import Type.Equality using (_≡β_;≡2β)
 open _≡β_
 open import Type.RenamingSubstitution using (weaken;ren;_[_];sub-cons;Sub;sub;sub∅;sub-cong)
 open import Builtin using (signature)
-open import Builtin.Signature using (Sig;sig;_⊢♯;nat2Ctx⋆)
+open import Builtin.Signature using (Sig;sig;_⊢♯;_/_⊢⋆;mkCtx⋆)
+open _/_⊢⋆
 open import Builtin.Constant.Type
 
 import Declarative as Syn
@@ -133,30 +134,49 @@ subNf∅-sub∅ A = trans (subNf-sub∅ A) (sym subNf∅≡subNf)
 con-injective : ∀ {Φ}{n m : Φ ⊢Nf⋆ ♯} → _≡_ {_} {Φ ⊢Nf⋆ *} (con n) (con m) → n ≡ m
 con-injective refl = refl
 
-♯2*-lem : ∀ {n}(t : n ⊢♯) → con (ne (Norm.♯2* t)) ≡ nf (con (Syn.♯2* t))
-♯2*-lem (_⊢♯.` x) = refl
-♯2*-lem (_⊢♯.atomic x) = refl
-♯2*-lem (_⊢♯.list t)  = cong (λ x → con (ne (^ Builtin.Constant.Type.TyCon.list · x))) (con-injective (♯2*-lem t))
-♯2*-lem (_⊢♯.pair t t₁) = cong₂ (λ x y → con (ne (^ pair · x · y))) (con-injective (♯2*-lem t)) (con-injective (♯2*-lem t₁))
+{-
+⊢♯2TyNe♯-lem : ∀ {n}(t : n ⊢♯) → con (ne (Norm.⊢♯2TyNe♯ t)) ≡ nf (con (Syn.⊢♯2TyNe♯ t))
+⊢♯2TyNe♯-lem (_⊢♯.` x) = refl
+⊢♯2TyNe♯-lem (_⊢♯.atomic x) = refl
+⊢♯2TyNe♯-lem (_⊢♯.list t)  = cong (λ x → con (ne (^ Builtin.Constant.Type.TyCon.list · x))) (con-injective (⊢♯2TyNe♯-lem t))
+⊢♯2TyNe♯-lem (_⊢♯.pair t t₁) = cong₂ (λ x y → con (ne (^ pair · x · y))) (con-injective (⊢♯2TyNe♯-lem t)) (con-injective (⊢♯2TyNe♯-lem t₁))
+-}
 
-sig2type⇒-lem : ∀{n}{algRes}{synRes} (args : List (n ⊢♯)) → (algRes ≡ nf synRes) →
+helper : ∀ {n⋆} {n♯} (x : n♯ ⊢♯) → ne (Norm.⊢♯2TyNe♯ x) ≡ eval (Syn.⊢♯2TyNe♯ x) (idEnv (Builtin.Signature.mkCtx⋆ n⋆ n♯))
+helper (_⊢♯.` x) = refl
+helper (_⊢♯.atomic x) = refl
+helper (_⊢♯.list x) = cong ne (cong (^ list ·_) (helper x))
+helper (_⊢♯.pair x x₁) = cong ne (cong₂ (λ x y → ^ pair · x · y) (helper x) (helper x₁))
+
+
+mkTy-lem : ∀ {n⋆ n♯}(t : n⋆ / n♯ ⊢⋆) → Norm.mkTy t ≡ nf (Syn.mkTy t)
+mkTy-lem (` x) = refl
+mkTy-lem (x ↑) = cong con (helper x)
+
+sig2type⇒-lem : ∀{n⋆ n♯}{algRes}{synRes} (args : List (n⋆ / n♯ ⊢⋆)) → (algRes ≡ nf synRes) →
                           Norm.sig2type⇒ args algRes ≡ nf (Syn.sig2type⇒ args synRes)
 sig2type⇒-lem [] p = p
-sig2type⇒-lem (x ∷ args) p = sig2type⇒-lem args (cong₂ _⇒_ (♯2*-lem x) p)
+sig2type⇒-lem (x ∷ args) p = sig2type⇒-lem args (cong₂ _⇒_ (mkTy-lem x) p)
 
-sig2typeΠ-lem : ∀{n}{at : nat2Ctx⋆ n ⊢Nf⋆ *}{t : nat2Ctx⋆ n ⊢⋆ *} → (at ≡ nf t) →
+sig2typeΠ-lem : ∀{n⋆ n♯}{t : mkCtx⋆ n⋆ n♯ ⊢⋆ *}{at : mkCtx⋆ n⋆ n♯ ⊢Nf⋆ *} → (at ≡ nf t) →
                           Norm.sig2typeΠ at ≡ nf (Syn.sig2typeΠ t)
-sig2typeΠ-lem {zero} p = p
-sig2typeΠ-lem {suc n}{at}{t} refl = sig2typeΠ-lem {n} (cong Π (sym (reifyCR (idext exte-lem t))))
+sig2typeΠ-lem {zero} {zero} p = p
+sig2typeΠ-lem {zero} {suc n♯} {t} refl = sig2typeΠ-lem {_} {n♯} (cong Π (sym (reifyCR (idext exte-lem t))))
+sig2typeΠ-lem {suc n} {n♯} {t} refl = sig2typeΠ-lem {n} (cong Π (sym (reifyCR (idext exte-lem t))))
 
 sig2type-lem : ∀ s → Norm.sig2type s ≡ nf (Syn.sig2type s) 
-sig2type-lem (sig zero a r) = sig2type⇒-lem (toList a) (♯2*-lem r)
-sig2type-lem (sig (suc n) (head ∷ tail) r) = 
-    sig2typeΠ-lem {at = (Π (Norm.sig2type⇒ tail(con (ne (Norm.♯2* head)) ⇒ con (ne (Norm.♯2* r)))))} 
-                  {(Π (Syn.sig2type⇒ tail (con (Syn.♯2* head) ⇒ con (Syn.♯2* r))))}
-                  (cong Π (trans (sig2type⇒-lem {suc n} {con (ne (Norm.♯2* r))} {con (Syn.♯2* r)} (head ∷ tail) (♯2*-lem r)) 
-                                 (sym (reifyCR (idext exte-lem (Syn.sig2type⇒ tail (con (Syn.♯2* head) ⇒ con (Syn.♯2* r))))))
-                   ))
+sig2type-lem (sig zero zero a r) = sig2type⇒-lem (toList a) (mkTy-lem r)
+
+sig2type-lem (sig zero (suc n) (head ∷ tail) r) = sig2typeΠ-lem {t = Π (Syn.sig2type⇒ tail (Syn.mkTy head ⇒ Syn.mkTy r))}
+                  {Π (Norm.sig2type⇒ tail (Norm.mkTy head ⇒ Norm.mkTy r))}
+                  (cong Π (trans (sig2type⇒-lem {zero} {suc n} {Norm.mkTy r} {Syn.mkTy r} (head ∷ tail) (mkTy-lem r)) 
+                                 (sym (reifyCR (idext exte-lem (Syn.sig2type⇒ tail (Syn.mkTy head ⇒ Syn.mkTy r)))))
+                   )) 
+sig2type-lem (sig (suc n) n♯ (head ∷ tail) r) = sig2typeΠ-lem {t = Π (Syn.sig2type⇒ tail (Syn.mkTy head ⇒ Syn.mkTy r))}
+                  {Π (Norm.sig2type⇒ tail (Norm.mkTy head ⇒ Norm.mkTy r))}
+                  (cong Π (trans (sig2type⇒-lem {suc n} {n♯} {Norm.mkTy r} {Syn.mkTy r} (head ∷ tail) (mkTy-lem r)) 
+                                 (sym (reifyCR (idext exte-lem (Syn.sig2type⇒ tail (Syn.mkTy head ⇒ Syn.mkTy r)))))
+                   )) 
 
 btype-lem : ∀ {Φ} b → Norm.btype {Φ} b ≡ nf (Syn.btype b)
 btype-lem b = begin 

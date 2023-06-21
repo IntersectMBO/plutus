@@ -28,12 +28,10 @@ open import Type.BetaNBE.RenamingSubstitution
                          renaming (_[_]Nf to _[_])
 open import Builtin using (Builtin;signature)
 open import Type.BetaNBE using (nf;reify;eval;idEnv;exte)
-open import Builtin.Signature using (Sig;sig;nat2Ctx⋆;fin2∈⋆;_⊢♯)
-open Builtin.Signature.FromSig Ctx⋆ _⊢Nf⋆_ _⊢Ne⋆_ ne nat2Ctx⋆ (λ x → ` (fin2∈⋆ x)) _·_ ^ con _⇒_   Π 
-     using (♯2*;sig2type;SigTy;sigTy2type;convSigTy;sig2typeΠ;sig2type⇒) public
+open import Builtin.Signature using ()
+open Builtin.Signature.FromSig _⊢Nf⋆_ _⊢Ne⋆_ ne ` _·_ ^ con _⇒_   Π 
+     using (sig2type;SigTy;sigTy2type;convSigTy;sig2typeΠ;sig2type⇒;⊢♯2TyNe♯;mkTy) public
 open SigTy
-
-
 ```
 
 ```
@@ -65,31 +63,31 @@ subNf-Π {Φ}{Ψ}{J} ρ B = begin
     Π (subNf (extsNf ρ) B)
   ∎
 
-subSigTy : ∀ {n m}
-  → (σ : SubNf (nat2Ctx⋆ n) (nat2Ctx⋆ m))
+subSigTy : ∀ {Φ Ψ}
+   -- {n⋆ n♯}
+  → (σ : SubNf Φ Ψ)
   → ∀{tn tm tt} {pt : tn ∔ tm ≣ tt} 
   → ∀{am an at} {pa : an ∔ am ≣ at} 
-  → {A : nat2Ctx⋆ n ⊢Nf⋆ *} → SigTy pt pa A 
+  → {A : Φ ⊢Nf⋆ *} → SigTy pt pa A 
   -------------------------
   → SigTy pt pa (subNf σ A)
 subSigTy σ (bresult _) = bresult _
 subSigTy σ (A B⇒ bt) = (subNf σ A) B⇒ (subSigTy σ bt)
-subSigTy σ (sucΠ bt) rewrite (subNf-Π σ (sigTy2type bt))
-            = sucΠ (subSigTy (extsNf σ) bt)
+subSigTy σ (sucΠ bt) rewrite (subNf-Π σ (sigTy2type bt)) = sucΠ (subSigTy (extsNf σ) bt) 
 
-_[_]SigTy : ∀{n} 
+_[_]SigTy : ∀{Φ K} 
           → ∀{tn tm tt} {pt : tn ∔ tm ≣ tt} 
           → ∀{am an at} {pa : an ∔ am ≣ at} 
-          → {B : (nat2Ctx⋆ (suc n)) ⊢Nf⋆ *} 
+          → {B : Φ ,⋆ K ⊢Nf⋆ *} 
           → SigTy pt pa B 
-          → (A : (nat2Ctx⋆ n) ⊢Nf⋆ ♯) 
+          → (A : Φ ⊢Nf⋆ K) 
           → SigTy pt pa (B [ A ])
 _[_]SigTy bt A  = subSigTy (subNf-cons (ne ∘ `) A) bt
 
-uniqueSigTy :          
+uniqueSigTy :  
       ∀{tn tm tt} → {pt : tn ∔ tm ≣ tt}
     → ∀{an am at} → {pa : an ∔ am ≣ at}
-    → ∀{n}{A : (nat2Ctx⋆ n) ⊢Nf⋆ *}
+    → ∀{Φ} → {A : Φ ⊢Nf⋆ *}
     → (s s' : SigTy pt pa A)
     → s ≡ s'
 uniqueSigTy (bresult _) (bresult _) = refl
