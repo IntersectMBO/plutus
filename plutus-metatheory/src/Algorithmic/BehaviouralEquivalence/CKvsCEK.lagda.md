@@ -77,7 +77,6 @@ cek2ckVal (V-I⇒ b x) = Red.V-I⇒ b (cek2ckBApp x)
 cek2ckVal (V-IΠ b x) = Red.V-IΠ b (cek2ckBApp x)
 
 cek2ckClos : ∀{A Γ} → Γ ⊢ A → Env Γ → ∅ ⊢ A
--- cek2ckClos L ρ = conv⊢ refl (subNf-id _) (sub (ne ∘ `) (env2sub ρ) L)
 cek2ckClos (` x) ρ = discharge (lookup x ρ)
 cek2ckClos (ƛ L) ρ = ƛ (dischargeBody L ρ)
 cek2ckClos (L · M) ρ = cek2ckClos L ρ · cek2ckClos M ρ

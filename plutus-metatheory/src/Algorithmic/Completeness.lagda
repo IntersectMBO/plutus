@@ -134,20 +134,11 @@ subNf∅-sub∅ A = trans (subNf-sub∅ A) (sym subNf∅≡subNf)
 con-injective : ∀ {Φ}{n m : Φ ⊢Nf⋆ ♯} → _≡_ {_} {Φ ⊢Nf⋆ *} (con n) (con m) → n ≡ m
 con-injective refl = refl
 
-{-
-⊢♯2TyNe♯-lem : ∀ {n}(t : n ⊢♯) → con (ne (Norm.⊢♯2TyNe♯ t)) ≡ nf (con (Syn.⊢♯2TyNe♯ t))
-⊢♯2TyNe♯-lem (_⊢♯.` x) = refl
-⊢♯2TyNe♯-lem (_⊢♯.atomic x) = refl
-⊢♯2TyNe♯-lem (_⊢♯.list t)  = cong (λ x → con (ne (^ Builtin.Constant.Type.TyCon.list · x))) (con-injective (⊢♯2TyNe♯-lem t))
-⊢♯2TyNe♯-lem (_⊢♯.pair t t₁) = cong₂ (λ x y → con (ne (^ pair · x · y))) (con-injective (⊢♯2TyNe♯-lem t)) (con-injective (⊢♯2TyNe♯-lem t₁))
--}
-
 helper : ∀ {n⋆} {n♯} (x : n♯ ⊢♯) → ne (Norm.⊢♯2TyNe♯ x) ≡ eval (Syn.⊢♯2TyNe♯ x) (idEnv (Builtin.Signature.mkCtx⋆ n⋆ n♯))
 helper (_⊢♯.` x) = refl
 helper (_⊢♯.atomic x) = refl
 helper (_⊢♯.list x) = cong ne (cong (^ list ·_) (helper x))
-helper (_⊢♯.pair x x₁) = cong ne (cong₂ (λ x y → ^ pair · x · y) (helper x) (helper x₁))
-
+helper (_⊢♯.pair x y) = cong ne (cong₂ (λ x y → ^ pair · x · y) (helper x) (helper y))
 
 mkTy-lem : ∀ {n⋆ n♯}(t : n⋆ / n♯ ⊢⋆) → Norm.mkTy t ≡ nf (Syn.mkTy t)
 mkTy-lem (` x) = refl
@@ -223,5 +214,3 @@ completenessT : ∀{Φ Γ}{A : Φ ⊢⋆ *} → Γ Syn.⊢ A
   → nfCtx Γ Norm.⊢ nf A × (A ≡β embNf (nf A))
 completenessT {A = A} t = nfType t ,, soundness A
 \end{code}
-  
- 

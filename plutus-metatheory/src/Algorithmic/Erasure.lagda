@@ -41,8 +41,6 @@ open import Type.BetaNBE.RenamingSubstitution using (ren-nf;subNf-lemma')
 open import Type.BetaNBE.Stability using (stability)
 
 open import Builtin using (Builtin)
---import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con as DC renaming (TermCon to TyTermCon)
---import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as AC renaming (TermCon to TyTermCon)
 open import Type.RenamingSubstitution as T
 
 import Declarative as D

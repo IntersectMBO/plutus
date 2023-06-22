@@ -30,9 +30,6 @@ open import Type.BetaNBE.Completeness using (sub-eval;idCR;idext;reflectCR;fund)
 open import Type.BetaNBE.Soundness using (soundness)
 open import Type.BetaNBE.RenamingSubstitution using (_[_]Nf;subNf;subNf-cons;subNf∅)
 open import Builtin using (Builtin)
---import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con as STermCon
---import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as NTermCon
-open import Algorithmic.Completeness using ()
 open import Type.BetaNBE.Stability
 \end{code}
 
