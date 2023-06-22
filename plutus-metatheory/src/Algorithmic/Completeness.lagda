@@ -206,7 +206,7 @@ nfType (Syn.unwrap {A = A}{B = B} t) = Norm.conv⊢
   (sym (stability-μ A B))
   (Norm.unwrap (nfType t) refl)
 nfType (Syn.conv p t) = Norm.conv⊢ refl (completeness p) (nfType t)
-nfType (Syn.con {A} t refl) = Norm.con {A = nf A} t (subNf∅-sub∅ A)
+nfType (Syn.con {A} t p) = Norm.con {A = nf A} t (trans (completeness p) (subNf∅-sub∅ A))
 nfType (Syn.builtin b) = Norm.conv⊢ refl (btype-lem b) (Norm.builtin b / refl)
 nfType (Syn.error A) = Norm.error (nf A)
 

@@ -203,7 +203,7 @@ same {Γ = Γ} (D.unwrap {A = A}{B = B} t) = trans
 same {Γ = Γ} (D.conv p t) = trans
   (same t)
   (cong (subst _⊢ (lenLemma Γ)) (lem-erase' (completeness p) (nfType t)))
-same {Γ = Γ} (D.con {A = A} tcn refl) = (lemcon' (lenLemma Γ) (eraseTC (nf A) tcn))
+same {Γ = Γ} (D.con {A = A} tcn p) = lemcon' (lenLemma Γ) (eraseTC (nf A) tcn) 
 same {Γ = Γ} (D.builtin b) = trans
   (lembuiltin b (lenLemma Γ)) (cong (subst _⊢ (lenLemma Γ))
   (lem-erase refl (btype-lem b) (builtin b / refl)))

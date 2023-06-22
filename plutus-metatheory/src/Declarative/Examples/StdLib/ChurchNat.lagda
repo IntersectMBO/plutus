@@ -16,6 +16,8 @@ open _∋_
 open import Type.RenamingSubstitution using (sub∅)
 open import Builtin using (addInteger)
 open import Builtin.Constant.Type using (TyCon;aInteger)
+open import Type.Equality using (_≡β_)
+open _≡β_
 open TyCon
 \end{code}
 
@@ -38,10 +40,10 @@ Iter : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ Π (` Z ⇒ (` Z ⇒ ` Z) ⇒ N ⇒ (` Z)
 Iter = Λ (ƛ (ƛ (ƛ ((` Z) ·⋆ (` Z) · (` (S (S Z))) · (` (S Z))))))
 
 con0 : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ con (^ integer)
-con0 = con {A = ^ integer}(ℤ.pos 0) refl 
+con0 = con {A = ^ integer}(ℤ.pos 0) (refl≡β (^ (atomic aInteger))) 
 
 con1 : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ con (^ integer)
-con1 = con {A = ^ integer}(ℤ.pos 1) refl 
+con1 = con {A = ^ integer}(ℤ.pos 1) (refl≡β (^ (atomic aInteger))) 
 
 inc : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ con (^ integer) ⇒ con (^ integer)
 inc = ƛ (builtin addInteger · con1  · ` Z)

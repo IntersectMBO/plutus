@@ -171,7 +171,7 @@ data _⊢_ (Γ : Ctx Φ) : Φ ⊢⋆ * → Set where
 
   con : ∀ {A : ∅ ⊢⋆ ♯ }{B}
       → ⟦ A ⟧d
-      → B ≡ sub∅ A
+      → B ≡β sub∅ A
         ---------------
       → Γ ⊢ con B
 

@@ -29,6 +29,8 @@ open import Builtin.Constant.Type using (TyCon;aInteger)
 open TyCon
 open import Declarative.Examples.StdLib.Function using (unwrap0;Z-comb)
 import Declarative.Examples.StdLib.ChurchNat using (inc;N;Succ;Zero;Iter)
+open import Type.Equality using (_≡β_)
+open _≡β_
 ```
 
 ## Examples
@@ -40,7 +42,7 @@ module Builtins where
   open Declarative.Examples.StdLib.ChurchNat
 
   con2 : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ con (^ integer)
-  con2 = con {A = ^ integer} (pos 2) refl
+  con2 = con {A = ^ integer} (pos 2) (refl≡β (^ (atomic aInteger)))
 
   builtin2plus2 : ∅ ⊢ con (^ integer)
   builtin2plus2 = builtin addInteger · con2 · con2
