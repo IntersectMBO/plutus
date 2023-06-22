@@ -11,12 +11,12 @@ open import Function using (_∘_)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;cong;trans) 
                                                   renaming (subst to substEq)
 open import Data.Unit using (⊤;tt)
-                    
 open import Data.Sum using (_⊎_;inj₁;inj₂)
 open import Data.Integer using (_<?_;_+_;_-_;∣_∣;_≤?_;_≟_;ℤ) 
                          renaming (_*_ to _**_)
 open import Data.Bool using (true;false)
 open import Relation.Nullary using (no;yes)
+
 open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_;_∋⋆_;Z;S)
 open _⊢⋆_
 open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;embNf;weakenNf)
@@ -292,8 +292,6 @@ BUILTIN bls12-381-G2-uncompress (base $ V-con b) with BLS12-381-G2-uncompress b
 BUILTIN bls12-381-millerLoop (base $ V-con e1 $ V-con e2) = inj₂ (V-con (BLS12-381-millerLoop e1 e2))
 BUILTIN bls12-381-mulMlResult (base $ V-con r $ V-con r') = inj₂ (V-con (BLS12-381-mulMlResult r r'))
 BUILTIN bls12-381-finalVerify (base $ V-con r $ V-con r') = inj₂ (V-con (BLS12-381-finalVerify r r'))
-
---BUILTIN _ {A} _ = inj₁ A 
 
 BUILTIN' : ∀ b {A}
   → ∀{tn} → {pt : tn ∔ 0 ≣ fv (signature b)}
