@@ -61,7 +61,7 @@ data _⊢♯ : ℕ → Set where
         -----------
       → n♯ ⊢♯
   -- type operator applied to a built-in-compatible type
-  list : ∀ {n}
+  list : ∀ {n♯}
       → n♯ ⊢♯ 
         -------
       → n♯ ⊢♯
