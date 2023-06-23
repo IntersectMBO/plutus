@@ -347,9 +347,6 @@ So, what to do? We adopt the following strategy:
 Doing this effectively bans builds on 32-bit systems, but that's fine, since we don't care about
 supporting 32-bit systems anyway, and this way any attempts to build on them will fail fast.
 
-Note: We have another 64-bit limitation, this time not during script execution but during
-script deserialization, for more see Note [Index (Word64) (de)serialized through Natural].
-
 Note: we couldn't fail the bounds check with 'AsUnliftingError', because an out-of-bounds error
 is not an internal one -- it's a normal evaluation failure, but unlifting errors
 have this connotation of being "internal".

@@ -185,7 +185,6 @@ library
     Data.Aeson.Flatten
     Data.Aeson.THReader
     Data.Functor.Foldable.Monadic
-    GHC.Natural.Extras
     PlutusCore.Builtin.HasConstant
     PlutusCore.Builtin.KnownKind
     PlutusCore.Builtin.KnownType
@@ -380,6 +379,7 @@ test-suite untyped-plutus-core-test
   ghc-options:    -O2 -threaded -rtsopts -with-rtsopts=-N
   other-modules:
     DeBruijn.Common
+    DeBruijn.FlatNatWord
     DeBruijn.Scope
     DeBruijn.Spec
     DeBruijn.UnDeBruijnify
@@ -430,7 +430,7 @@ executable plc
     , base                  >=4.9 && <5
     , bytestring
     , deepseq
-    , flat
+    , flat                  ^>=0.6
     , optparse-applicative
     , plutus-core           ^>=1.8
     , plutus-core-execlib   ^>=1.8
@@ -444,7 +444,7 @@ executable uplc
     , base                  >=4.9 && <5
     , bytestring
     , deepseq
-    , flat
+    , flat                  ^>=0.6
     , haskeline
     , mtl
     , optparse-applicative

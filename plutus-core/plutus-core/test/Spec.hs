@@ -24,7 +24,6 @@ import TypeSynthesis.Spec (test_typecheck)
 
 import PlutusCore
 import PlutusCore.Check.Uniques qualified as Uniques
-import PlutusCore.DeBruijn
 import PlutusCore.Error
 import PlutusCore.Generators.Hedgehog
 import PlutusCore.Generators.Hedgehog.AST as AST
@@ -35,14 +34,12 @@ import PlutusCore.Test
 
 import Control.Monad.Except
 import Data.ByteString.Lazy qualified as BSL
-import Data.Either (isLeft)
 import Data.Foldable (for_)
 import Data.Proxy
 import Data.Text qualified as T
 import Data.Text.Encoding (encodeUtf8)
 import Data.Text.IO (readFile)
-import Data.Word (Word64)
-import Flat (flat, unflat)
+import Flat qualified
 import Hedgehog hiding (Var)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
@@ -144,18 +141,6 @@ propFlat :: Property
 propFlat = property $ do
   prog <- forAllPretty $ runAstGen (genProgram @DefaultFun)
   Hedgehog.tripping prog Flat.flat Flat.unflat
-
-{- | Asserts that an index serialized as a 'Natural' will deserialize as 'Word64'
-iff it is in bounds.
--}
-natWordSerializationProp :: Property
-natWordSerializationProp = Hedgehog.withTests 10000 $ property $ do
-  let maxWord :: Natural = fromIntegral (maxBound :: Word64)
-  (n :: Natural) <- forAll $ Gen.integral (Range.linear 0 (maxWord * 2))
-  let res = unflat @Index (flat n)
-  if n <= maxWord
-    then res === Right (fromIntegral n)
-    else Hedgehog.assert (isLeft res)
 
 {- The following tests check that (A) the parser can
   handle the output of the prettyprinter on constants from types in the default
@@ -336,10 +321,6 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles =
     , testPropertyNamed "lexing constants" "propLexConstant" propLexConstant
     , testPropertyNamed "parser round-trip" "propParser" propParser
     , testPropertyNamed "serialization round-trip (Flat)" "propFlat" propFlat
-    , testPropertyNamed
-        "nat/word serialization test"
-        "natWordSerializationProp"
-        natWordSerializationProp
     , testsGolden plcFiles
     , testsRewrite rwFiles
     , testsType typeFiles
