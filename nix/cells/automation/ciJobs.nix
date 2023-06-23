@@ -68,9 +68,7 @@ let
         devshells = removeAttrs x86_64-linux.devshells [ "plutus-shell-96" ];
       };
 
-      aarch64-linux = { };
-
-      system-matrix = { inherit x86_64-linux x86_64-darwin aarch64-darwin aarch64-linux; };
+      system-matrix = { inherit x86_64-linux x86_64-darwin aarch64-darwin; };
     in
     system-matrix.${system};
 
@@ -84,7 +82,11 @@ let
     constituents = lib.collect lib.isDerivation filtered-jobs;
   };
 
-  final-jobset = filtered-jobs // { required = required-job; };
+  merged-jobset = filtered-jobs // { required = required-job; };
+
+  is-supported-system = lib.elem system [ "x86_64-linux" "x86_64-darwin" "aarch64-darwin" ];
+
+  final-jobset = lib.optionalAttrs is-supported-system merged-jobset;
 
 in
 
