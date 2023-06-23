@@ -32,7 +32,7 @@ open import Type.BetaNBE.Soundness using (soundness)
 open import Type.BetaNBE.RenamingSubstitution using (_[_]Nf;subNf;subNf-cons;subNf∅;subNf∅≡subNf)
 open import Builtin using (Builtin)
 open import Type.BetaNBE.Stability
-open import Algorithmic.Completeness using (subNf∅-sub∅;btype-lem)
+open import Algorithmic.Completeness using (btype-lem)
 \end{code}
 
 \begin{code}
@@ -130,10 +130,11 @@ lemsub A A' σ p = trans≡β
   (sym≡β (soundness (sub (embNf ∘ σ) A')))
 
 subNf-sub∅-lem : ∀ Φ (A : ∅ ⊢Nf⋆ ♯) → embNf {Φ} (subNf (λ()) A) ≡β sub∅ (embNf A)
-subNf-sub∅-lem Φ A = trans≡β (lemsub A (embNf A) (λ {J} → λ()) (refl≡β (embNf A))) (≡2β (sub-cong (λ {()}) (embNf A)))
+subNf-sub∅-lem Φ A = trans≡β (lemsub A (embNf A) (λ {J} → λ()) (refl≡β (embNf A))) 
+                             (≡2β (sub-cong (λ {()}) (embNf A)))
 
 subNf∅-sub∅-lem : ∀ Φ  (A : ∅ ⊢Nf⋆ ♯)  → embNf {Φ} (subNf∅ A) ≡β sub∅ (embNf A)
-subNf∅-sub∅-lem Φ A = trans≡β (≡2β (cong embNf subNf∅≡subNf)) (subNf-sub∅-lem Φ A)
+subNf∅-sub∅-lem Φ A rewrite subNf∅≡subNf {Φ} {A = A} = subNf-sub∅-lem Φ A
 
 btype-lem≡β : ∀{Φ} b → Dec.btype {Φ} b ≡β embNf (Alg.btype b)
 btype-lem≡β {Φ} b rewrite btype-lem {Φ} b = soundness (Dec.btype {Φ} b)

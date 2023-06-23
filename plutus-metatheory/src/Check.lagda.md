@@ -3,9 +3,16 @@ layout: page
 ---
 ## Type checker
 
+This module implements typechecking and inference for Scoped terms.
+
+Scoped terms `ScopedTm` have scoped types `ScopedTy` which don't have kinds, so
+kinds need to be inferred. Since we have two base kinds (`*` and `♯`) and the 
+latter embeds into the former, there is some subtleties discussed below.
 ```
 module Check where
 ```
+
+## Imports
 
 ```
 open import Data.Nat using (ℕ;zero;suc)
@@ -56,6 +63,28 @@ open import Builtin.Constant.AtomicType using (AtomicTyCon;decAtomicTyCon)
 open AtomicTyCon
 ```
 
+### Type Errors
+
+We define the possible type errors that may occur.
+
+```
+data TypeError : Set where
+  kindMismatch : (K K' : Kind) → ¬ (K ≡ K') → TypeError
+  notFunKind  : (K : Kind) → (∀ K' J → ¬ (K ≡ K' ⇒ J)) → TypeError
+  notPat  : (K : Kind) → (∀ K' → ¬ (K ≡ (K' ⇒ *) ⇒ (K' ⇒ *))) → TypeError
+  UnknownType : TypeError
+  notPi  : ∀{Φ}(A : Φ ⊢Nf⋆ *) → (∀{K}(A' : Φ ,⋆ K ⊢Nf⋆ *) → ¬ (A ≡ Π A')) →
+    TypeError
+  notMu : ∀{Φ}(A : Φ ⊢Nf⋆ *) → (∀{K}(A' : Φ ⊢Nf⋆ _)(B : Φ ⊢Nf⋆ K) → ¬ (A ≡ μ A' B))
+    → TypeError
+  notFunType : ∀{Φ}(A : Φ ⊢Nf⋆ *) → ((A' B : Φ ⊢Nf⋆ *) → ¬ (A ≡ A' ⇒ B)) → TypeError
+  typeMismatch : ∀{Φ K}(A A' : Φ ⊢Nf⋆ K) → ¬ (A ≡ A') → TypeError
+  builtinError : TypeError
+  Unimplemented : String → TypeError
+```
+
+### Auxiliary Functions
+
 ```
 len⋆ : Ctx⋆ → ℕ
 len⋆ ∅        = 0
@@ -69,22 +98,6 @@ inferTyVar (Φ ,⋆ K) (suc i) = let J ,, α = inferTyVar Φ i in  J ,, S α
 ⊎bind (inj₁ a) f = f a
 ⊎bind (inj₂ c) f = inj₂ c
 
-data TypeError : Set where
-  kindMismatch : (K K' : Kind) → ¬ (K ≡ K') → TypeError
-  notStar : (K : Kind) → ¬ (K ≡ *) → TypeError
-  notBuiltin : (K : Kind) → ¬ (K ≡ ♯) → TypeError
-  notFunKind  : (K : Kind) → (∀ K' J → ¬ (K ≡ K' ⇒ J)) → TypeError
-  notPat  : (K : Kind) → (∀ K' → ¬ (K ≡ (K' ⇒ *) ⇒ (K' ⇒ *))) → TypeError
-  UnknownType : TypeError
-  notPi  : ∀{Φ}(A : Φ ⊢Nf⋆ *) → (∀{K}(A' : Φ ,⋆ K ⊢Nf⋆ *) → ¬ (A ≡ Π A')) →
-    TypeError
-  notMu : ∀{Φ}(A : Φ ⊢Nf⋆ *) → (∀{K}(A' : Φ ⊢Nf⋆ _)(B : Φ ⊢Nf⋆ K) → ¬ (A ≡ μ A' B))
-    → TypeError
-  notFunType : ∀{Φ}(A : Φ ⊢Nf⋆ *) → ((A' B : Φ ⊢Nf⋆ *) → ¬ (A ≡ A' ⇒ B)) → TypeError
-  typeMismatch : ∀{Φ K}(A A' : Φ ⊢Nf⋆ K) → ¬ (A ≡ A') → TypeError
-  builtinError : TypeError
-  Unimplemented : String → TypeError
-
 decKind : (K K' : Kind) → Dec (K ≡ K')
 decKind * * = yes refl
 decKind ♯ ♯ = yes refl
@@ -95,20 +108,6 @@ decKind ♯ (K' ⇒ J') = no λ()
 decKind (K ⇒ J) * = no λ()
 decKind (K ⇒ J) ♯ = no λ()
 decKind (K ⇒ J) (K' ⇒ J') = dcong₂ _⇒_ (λ { refl → refl ,, refl}) (decKind K K') (decKind J J')
-
-isStar : ∀{Φ}
-       → Σ Kind (Φ ⊢Nf⋆_)
-       → Either TypeError (Φ ⊢Nf⋆ *)
-isStar (* ,, A)     = return A
-isStar (K ⇒ J ,, _) = inj₁ (notStar (K ⇒ J) λ())
-isStar (♯ ,, _)     = inj₁ (notStar ♯ λ())
-
-isBuiltin : ∀{Φ}
-       → Σ Kind (Φ ⊢Nf⋆_)
-       → Either TypeError (Φ ⊢Nf⋆ ♯)
-isBuiltin (♯ ,, A)     = return A
-isBuiltin (K ⇒ J ,, _) = inj₁ (notBuiltin (K ⇒ J) λ())
-isBuiltin (* ,, _)     = inj₁ (notBuiltin * λ())
 
 isFunKind : ∀{Φ}
        → Σ Kind (Φ ⊢Nf⋆_)
@@ -162,42 +161,68 @@ isMu (Π A ,, _) = inj₁ (notMu (Π A) (λ _ _ ()))
 isMu (ne A  ,, _) = inj₁ (notMu (ne A) (λ _ _ ()))
 isMu (con {Φ} c ,, _) = inj₁ (notMu (con {Φ} c) (λ _ _ ()))
 isMu (A ⇒ B ,, _) = inj₁ (notMu (A ⇒ B) (λ _ _ ()))
+```
+We have two base kinds, * and ♯, and we have an embedding of ♯ into *
 
+   con : Φ ⊢⋆ ♯
+         ------
+       → Φ ⊢⋆ *
+
+Hence, when inferring a kind we sometimes nned to decide if we want a ♯ kind or a * kind. For example,
+
+  con (atomic aInteger) : ScopedTy 0 
+
+  might be inferred as kind ♯
+
+  1.    ne (^ (atomic aInteger))
+  
+  or as kind *
+  
+  2.    con (ne (^ (atomic aInteger)))
+
+Whenever we have a constant of kind `♯` we embed it into `*` using `con`.
+This means that a composition of, for instance a list (kind `♯ ⇒ ♯`) applied 
+to a constant (which will be of kind `*`) doesn't match exactly. So we relax 
+this condition  when checking kinds and allow
+  1. Checking a `*`-kinded type against `♯`, whenever the type is of the form `con A` : 
+       we "downgrade" the type to A of kind `♯`. 
+  2. Checking a `♯`-kinded type against `*`: 
+       we "upgrade" the type to `*` using `con`.
+```
 checkKind : ∀ Φ (A : ScopedTy (len⋆ Φ)) → ∀ K → Either TypeError (Φ ⊢Nf⋆ K)
 inferKind : ∀ Φ (A : ScopedTy (len⋆ Φ)) → Either TypeError (Σ Kind (Φ ⊢Nf⋆_))
 
--- We treat the ♯ case differently: 
---  it can be matched with a * if the term is a con.
-checkKind Φ A ♯ with inferKind Φ A
-... | inj₁ x = inj₁ x
-... | inj₂ (* ,, con snd) = return snd
-... | inj₂ (♯ ,, snd) = inj₂ snd
-... | inj₂ (* ,, _)  = inj₁ (kindMismatch ♯ * (λ ()))
-... | inj₂ ((K ⇒ J) ,, _) = inj₁ (kindMismatch ♯ (K ⇒ J) (λ ()))   
-checkKind Φ A K = do
-  K' ,, A ← inferKind Φ A
-  refl ← withE (kindMismatch _ _) (dec2Either (decKind K K'))
-  return A
+checkKind-aux : ∀{Φ} → (Σ Kind (Φ ⊢Nf⋆_)) → ∀ K → Either TypeError (Φ ⊢Nf⋆ K)
+checkKind-aux (* ,, A)        * = return A
+checkKind-aux (♯ ,, A)        * = return (con A) --upgrade from ♯ to *
+checkKind-aux ((K ⇒ J) ,, _)  * = inj₁ (kindMismatch (K ⇒ J) * (λ ()))
+checkKind-aux (* ,, con A)    ♯ = return A       --downgrade from * to ♯
+checkKind-aux (* ,, _)        ♯ = inj₁ (kindMismatch ♯ * (λ ()))
+checkKind-aux (♯ ,, A)        ♯ = return A
+checkKind-aux ((K ⇒ J) ,, _)  ♯ = inj₁ (kindMismatch (K ⇒ J) ♯ (λ ()))
+checkKind-aux (* ,, A) (J ⇒ J₁) = inj₁ (kindMismatch * (J ⇒ J₁) (λ ()))
+checkKind-aux (♯ ,, A) (J ⇒ J₁) = inj₁ (kindMismatch ♯ (J ⇒ J₁) (λ ()))
+checkKind-aux (K ,, A) K'@(_ ⇒ _) = do 
+            refl ← withE (kindMismatch _ _) (dec2Either (decKind K K'))
+            return A
 
--- When the kind is ♯ we convert it to a constant of kind *
+checkKind Φ A K = do 
+             KA ← inferKind Φ A
+             checkKind-aux KA K 
+
+-- When the kind is ♯ we may convert it to a constant of kind *
 addCon : ∀ {Φ} →  (Σ Kind (Φ ⊢Nf⋆_)) → (Σ Kind (Φ ⊢Nf⋆_))
 addCon (♯ ,, snd) = * ,, con snd
 addCon kA = kA
 
--- We don't need to treat variables especially since variables of kind ♯
--- can only occur under builtin constructors list and pair
-
-
+-- But we don't need to add con to variables, because ♯ only should occur under `pair` or `list`
 inferKind Φ (` α) = let K ,, β = inferTyVar Φ α in return (K ,, ne (` β))
 inferKind Φ (A ⇒ B) = do
-          KA ← inferKind Φ A
-          A  ← isStar KA
-          KB ← inferKind Φ B
-          B  ← isStar KB 
+          A ← checkKind Φ A *
+          B ← checkKind Φ B * 
           return (* ,, A ⇒ B)
 inferKind Φ (Π K A) = do
-          K ← inferKind (Φ ,⋆ K) A
-          A ← isStar K
+          A ← checkKind (Φ ,⋆ K) A *
           return (* ,, Π A)
 inferKind Φ (ƛ K A) = do
   J ,, A ← inferKind (Φ ,⋆ K) A
@@ -216,17 +241,55 @@ inferKind Φ (μ A B) = do
           B ← checkKind Φ B K
           return (* ,, μ A B)
 inferKind Φ missing = inj₁ UnknownType
+```
 
-_ :  inferKind ∅ (con (atomic aInteger)) ≡ inj₂ (* ,, con (ne (^ (atomic aInteger))))
-_ = refl
+Some examples to check that everything is working as expected
 
-_ : inferKind ∅ (con list · con (atomic aInteger)) ≡ inj₂ (* ,, con (ne (^ list · ne (^ (atomic aInteger))))) 
-_ = refl
+```
+private module _ where 
 
-_ : inferKind (∅ ,⋆ ♯ ,⋆ ♯) (con pair · ` zero · ` (suc zero)) ≡ inj₂ (* ,, (con (ne (^ pair · ne (` Z) · ne (` (S Z))))))
-_ = refl
+  int : ScopedTy 0
+  int = con (atomic aInteger)
+   
+  -- integer
+  _ :  inferKind ∅ int ≡ inj₂ (* ,, con (ne (^ (atomic aInteger))))
+  _ = refl
 
+  -- list of integers
+  _ : inferKind ∅ (con list · int) ≡ inj₂ (* ,, con (ne (^ list · ne (^ (atomic aInteger))))) 
+  _ = refl
 
+  -- list of lists of integers
+  _ : inferKind ∅ (con list · (con list · int)) ≡ inj₂ (* ,, con (ne (^ list · ne (^ list · ne (^ (atomic aInteger))))))
+  _ = refl
+
+  _ : inferKind ∅ (con list · int) ≡ inj₂ (* ,, con (ne (^ list · ne (^ (atomic aInteger)))))
+  _ = refl
+
+  -- pair of some variables of kind ♯
+  _ : inferKind (∅ ,⋆ ♯ ,⋆ ♯) (con pair · ` zero · ` (suc zero)) ≡ inj₂ (* ,, (con (ne (^ pair · ne (` Z) · ne (` (S Z))))))
+  _ = refl
+
+  -- we can't have kind * under a pair
+  _ : inferKind (∅ ,⋆ ♯ ,⋆ *) (con pair · ` zero · ` (suc zero)) ≡ inj₁ (kindMismatch ♯ * (λ ()))
+  _ = refl
+
+  -- list of integer under a function
+  _ : inferKind ∅ ((con list · int) ⇒ int) ≡ inj₂ (* ,, (con (nf (^ list · ^ (atomic aInteger))) ⇒ con (ne (^ (atomic aInteger)))))
+  _ = refl
+
+  -- Some Π type. Note that the variable is of kind ♯ 
+  _ : inferKind ∅ (Π ♯ (con list · ` zero)) ≡ inj₂ (* ,, Π (con (ne (^ list · ne (` Z)))))
+  _ = refl
+
+  -- The variable to which we apply the list cannot be *
+  _ : inferKind ∅ (Π * (con list · ` zero)) ≡ inj₁ (kindMismatch ♯ * (λ ()))
+  _ = refl
+```
+
+### Inferring the type of variables
+
+```
 len : ∀{Φ} → Ctx Φ → Weirdℕ (len⋆ Φ)
 len ∅        = Z
 len (Γ ,⋆ J) = Weirdℕ.T (len Γ)
@@ -241,7 +304,11 @@ inferVarType (Γ , A) Z = return (A ,, Z)
 inferVarType (Γ , A) (S x) = do
         A ,, α ← inferVarType Γ x
         return (A ,, S α)
+```
 
+### Some Decidability predicates
+
+```
 decTyVar : ∀{Φ K}(α α' : Φ ∋⋆ K) → Dec (α ≡ α')
 decTyVar Z     Z      = yes refl 
 decTyVar (S α) (S α') with (decTyVar α α')
@@ -306,12 +373,11 @@ decNeTy (_ · _) (^ _) = no λ()
 decNeTy (^ _) (` _)   = no λ()
 decNeTy (^ _) (_ · _) = no λ()
 decNeTy (^ C) (^ C')  = dcong ^ (λ {refl → refl}) (decTyCon C C')
+```
 
-inv-complete : ∀{Φ K}{A A' : Φ ⊢⋆ K} → nf A ≡ nf A' → A' ≡β A
-inv-complete {A = A}{A' = A'} p = trans≡β
-  (soundness A')
-  (trans≡β (≡2β (sym (cong embNf p))) (sym≡β (soundness A)))
+## The main functions for checking and inferring types
 
+```
 checkType : ∀{Φ}(Γ : Ctx Φ) → ScopedTm (len Γ) → (A : Φ ⊢Nf⋆ *)
   → Either TypeError (Γ ⊢ A)
 
@@ -336,8 +402,7 @@ inferType Γ (L ·⋆ A) = do
   A ← checkKind _ A K
   return (B [ A ]Nf ,, L ·⋆ A / refl)
 inferType Γ (ƛ A L) = do
-  K ← inferKind _ A
-  A ← isStar K
+  A ← checkKind _ A *
   B ,, L ← inferType (Γ , A) L 
   return (A ⇒ B ,, ƛ L)
 inferType {Φ} Γ (L · M) = do
@@ -348,8 +413,7 @@ inferType {Φ} Γ (L · M) = do
 inferType Γ (con (tmCon t x)) = do 
   return (con (subNf∅ (sty2ty t)) ,, con x refl)
 inferType Γ (error A) = do
-  K ← inferKind _ A
-  A ← isStar K
+  A ← checkKind _ A *
   return (A ,, error A)
 inferType Γ (builtin b) = do 
   let bty = btype b

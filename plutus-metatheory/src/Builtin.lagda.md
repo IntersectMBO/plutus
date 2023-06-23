@@ -138,6 +138,16 @@ private module SugaredSignature where
 Syntactic sugar for writing the signature of built-ins.
 This is defined in its own module so that these definitions are not exported.
 
+Signature types can have two kinds of polymorphic variables: variables that 
+range over arbitrary types (of kind *) and variables that range over builtin 
+types (of kind ♯). In order to distinguish them in the sugares syntax we write
+with an uppercase variables of kind *, and with lowercase variables of kind ♯.
+
+The arguments of signature types (argument types) are of type `n⋆ / n♯ ⊢⋆`, for 
+n⋆ free variables of kind *, and n♯ free variables of kind ♯. However, 
+shorthands for types, such  as `integer`, `bool`, etc are of type `n♯ ⊢♯`, and
+hence need to be embedded into `n⋆ / n♯ ⊢⋆` using the postfix constructor `↑`.
+
 ```
     open import Data.Product using (_×_) renaming (_,_ to _,,_)
 
@@ -176,14 +186,14 @@ This is defined in its own module so that these definitions are not exported.
     but ultimately, they construct a Sig 
 
     An expression 
-      n [ t₁ , t₂ , t₃ ]⟶ tᵣ
+      n⋆×n♯ [ t₁ , t₂ , t₃ ]⟶ tᵣ
     
     is actually parsed as
-      (((n [ t₁) , t₂) , t₃) ]⟶ tᵣ
+      (((n⋆×n♯ [ t₁) , t₂) , t₃) ]⟶ tᵣ
     
     and constructs a signature
 
-    sig n (t₃ ∷ t₂ ∷ t₁) tᵣ
+    sig n⋆ n♯ (t₃ ∷ t₂ ∷ t₁) tᵣ
 
     ```
     ArgSet : Set

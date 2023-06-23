@@ -95,19 +95,26 @@ data _∋_ : (Γ : Ctx Φ) → Φ ⊢Nf⋆ * → Set where
     → Γ ,⋆ K ∋ weakenNf A
 \end{code}
           
-Let `x`, `y` range over variables.
-
 ## Semantic of constant terms
+
+We define a predicate ♯Kinded for kinds that ultimately end in ♯.
 
 \begin{code}
 data ♯Kinded : Kind → Set where
    ♯ : ♯Kinded ♯
    K♯ : ∀{K J} → ♯Kinded J → ♯Kinded (K ⇒ J)
+\end{code}
 
+There is no type of a ♯Kinded kind which takes more than two type arguments. 
+
+\begin{code}
 lemma♯Kinded : ∀ {K K₁ K₂ J} → ♯Kinded J → ∅ ⊢Ne⋆ (K₂ ⇒ (K₁ ⇒ (K ⇒ J))) → ⊥
 lemma♯Kinded k (f · _) = lemma♯Kinded (K♯ k) f
+\end{code}
 
--- Closed types can be mapped into the signature universe and viceversa
+Closed types can be mapped into the signature universe and viceversa.
+
+\begin{code}
 ty2sty : ∅ ⊢Nf⋆ ♯ → 0 ⊢♯
 ty2sty (ne (((f · _) · _) · _)) with lemma♯Kinded ♯ f 
 ... | ()
@@ -119,7 +126,8 @@ sty2ty : 0 ⊢♯ → ∅ ⊢Nf⋆ ♯
 sty2ty t = ne (⊢♯2TyNe♯ t)
 \end{code}
 
-Now we have functions `ty2sty` and `sty2ty`. We prove that they are inverses.
+Now we have functions `ty2sty` and `sty2ty`. We prove that they are inverses, and therefore
+define an isomorphism.
 
 \begin{code}
 ty≅sty₁ : ∀ (A : ∅ ⊢Nf⋆ ♯) → A ≡ sty2ty (ty2sty A)
@@ -135,7 +143,7 @@ ty≅sty₂ (list A) = cong list (ty≅sty₂ A)
 ty≅sty₂ (pair A B) = cong₂ pair (ty≅sty₂ A) (ty≅sty₂ B)
 \end{code}
 
-
+The semantics of types is given by the following interpretation function
 
 \begin{code}
 ⟦_⟧ : (ty : ∅ ⊢Nf⋆ ♯) → Set
@@ -146,11 +154,20 @@ ty≅sty₂ (pair A B) = cong₂ pair (ty≅sty₂ A) (ty≅sty₂ B)
 ⟦ ne (^ (atomic x)) ⟧ = ⟦ x ⟧at
 \end{code}
 
+All these types need to be able to be interfaced with Haskell, as this 
+interpretation function is used everywhere of type or a type tag needs to be 
+interpreted. It is precisely because they need to be interfaced with Haskell
+that we use the version of product and list from the Utils module.
+
 ## Terms
 
 A term is indexed over by its context and type.  A term is a variable,
-an abstraction, an application, a type abstraction, or a type
-application.
+an abstraction, an application, a type abstraction, a type
+application, a wrapping or unwrapping of a recursive type, a constant,
+a builtin function, or an error.
+
+Constants of a builtin type A are given directly by its meaning ⟦ A ⟧, where
+A is restricted to kind ♯.
 
 \begin{code}
 infixl 7 _·⋆_/_

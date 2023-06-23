@@ -59,8 +59,8 @@ subst-T' : ∀{Φ}{Γ : Ctx Φ}{A A' : Φ ⊢Nf⋆ *}{K}{A'' : Φ ,⋆ K ⊢Nf�
   → (p : A ≡ A')
   → (q : weakenNf {K = K} A ≡ A'')
   → (r : weakenNf  {K = K} A' ≡ A'')
-  → (x : Γ ∋ A) →
-  conv∋ refl q (T x) ≡ conv∋ refl r (T (conv∋ refl p x))
+  → (x : Γ ∋ A) 
+  → conv∋ refl q (T x) ≡ conv∋ refl r (T (conv∋ refl p x))
 subst-T' refl refl refl x = refl
 
 cong-erase-ren : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(ρ⋆ : ⋆.Ren Φ Ψ)
@@ -77,8 +77,7 @@ backVar-eraseVar (S x) = trans
   (cong S (backVar-eraseVar x))
 backVar-eraseVar (T x) = trans (subst-T (backVar⋆-eraseVar x) (cong weakenNf (backVar⋆-eraseVar x)) (backVar _ (eraseVar x))) (cong T (backVar-eraseVar x))
 
-eraseVar-backVar : ∀{Φ}(Γ : Ctx Φ)(x : len Γ) →
-  eraseVar (backVar Γ x) ≡ x
+eraseVar-backVar : ∀{Φ}(Γ : Ctx Φ)(x : len Γ) → eraseVar (backVar Γ x) ≡ x
 eraseVar-backVar ∅       ()
 eraseVar-backVar (Γ ,⋆ J) x        = eraseVar-backVar Γ x
 eraseVar-backVar (Γ , A)  nothing  = refl
