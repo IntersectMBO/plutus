@@ -63,7 +63,6 @@ let
         ghc810.roots = x86_64-linux.ghc810.roots;
         ghc92.roots = x86_64-linux.ghc92.roots;
         ghc96.roots = x86_64-linux.ghc96.roots;
-        packages = x86_64-linux.packages;
         # Note: We can't build the 9.6 shell on aarch64-darwin
         # because of https://github.com/well-typed/cborg/issues/311
         devshells = removeAttrs x86_64-linux.devshells [ "plutus-shell-96" ];
