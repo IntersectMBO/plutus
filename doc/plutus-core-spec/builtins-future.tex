@@ -42,16 +42,15 @@ types.
 
 
 %% \paragraph{$G_1$ and $G_2$}.
-\noindent $G_1$ and  $G_2$ are both cyclic groups of prime order $r$, where 
+\noindent Here $G_1$ and  $G_2$ are both cyclic groups of prime order $r$, where 
 $$
 r = \mathtt{0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001}
 $$
-
-
-\noindent The groups are all defined in terms of the finite field $\Fq$ where
+        
+\noindent To define these groups we need the finite field $\Fq$ where
 \begin{align*}
 q = \mathtt{0x}&\mathtt{1a0111ea397fe69a4b1ba7b6434bacd764774b84f38512bf}\\
-              &\mathtt{6730d2a0f6b0f6241eabfffeb153ffffb9feffffffffaaab}\\
+              &\mathtt{6730d2a0f6b0f6241eabfffeb153ffffb9feffffffffaaab}
 \end{align*}
 
 \noindent which is a 381-bit prime. The field $\Fq$ is isomorphic to $\Z_q$, the ring of
@@ -62,8 +61,14 @@ integer $\tilde{x}$ to represent an element $x \in \Fq$.  We also make use of
 the field $\Fqq = \Fq[x]/(x^2+1)$; we may regard $\Fqq$ as the set $\{a+bu:
 a,b \in \Fq\}$ where $u^2=-1$.
 
-\medskip\noindent There are elliptic curves $E_1$ defined over $\Fq$,
+It is convenient to say that an element $a$ of $\Fq$ is \textit{larger} than
+another element $b$ (and $b$ is \textit{smaller} than $a$) if $\tilde{a}
+> \tilde{b}$.  We extend this terminology to $\Fqq$ by saying that $a+bu$ is
+larger than $c+du$ if either $a$ is larger than $c$ or $a=c$ and $b$ is larger
+than $d$ (\red{this could be the wrong way round}).
 
+
+\medskip\noindent There are elliptic curves $E_1$ defined over $\Fq$:
 $$
 E_1: y^2 = x^3 + 4
 $$
@@ -72,10 +77,6 @@ $$
 $$
 E_2: y^2 = x^3 + 4(u+1)
 $$
-
-
-\red{ORDERING}
-\medskip
 
 \noindent $E_1(\Fq)$ and  $E_2(\Fqq)$  are abelian groups under the
 usual elliptic curve addition operations as described
@@ -180,7 +181,6 @@ but it must be an abelian group. See Note~\ref{note:pairing} for more on this.
 
 \note{Hashing into $G_1$ and $G_2$.}
 \label{note:hashing-into-group}
-
 The denotations $\hash_{G_1}$ and $\hash_{G_2}$
 of \texttt{bls12\_381\_G1\_hashToGroup} and
 \texttt{bls12\_381\_G2\_hashToGroup} both take an arbitrary bytestring $b$ (the
@@ -193,10 +193,15 @@ that
 longer DST directly will cause an error.  If a longer DST is required then it
 should be hashed to obtain a short DST as described
 in~\cite[5.3.3]{IETF-hash-to-curve}, and then this should be supplied as the
-second argument to the appropriate \texttt{hashToGroup} function.  Some hashing
-implementations also allow a third argument (an ``augmentation string''), but we
-do not support this since the same effect can be obtained by appending
-(prepending?) the augmentation string to the message before hashing.
+second argument to the appropriate \texttt{hashToGroup} function.
+
+%% Some hashing
+%% implementations also allow a third argument (an ``augmentation string''), but we
+%% do not support this since the same effect can be obtained by appending
+%% (prepending?) the augmentation string to the message before hashing.
+
+\newcommand{\ymin}{y_{\text{min}}}
+\newcommand{\ymax}{y_{\text{max}}}
 
 \note{Compression and uncompression for group elements.} 
 \label{note:group-compression}
@@ -210,16 +215,20 @@ detail,
 
 \item Given an element $x$ of $\Fq$, $\tilde{x}$ can be written as a 381-bit
 binary number: $\tilde{x} = \sum_{i=0}^{380}b_i2^i$ with $b_i \in \{0,1\}$.  We
-define $\mathsf{bits}(x)$ to be the string $b_{380}\cdots b_0$.
+define $\mathsf{bits}(x)$ to be the bitstring $b_{380}\cdots b_0$.
 
-\item A nonzero element of $G_1$ can be written in the form $(x,y)$ with $x,y\in\Fq$,
-and for every valid $x$ coordinate there are in fact two valid $y$ coordinates.
+\item A non-identity element of $G_1$ can be written in the form $(x,y)$ with $x,y\in\Fq$.
+Not every element $x$ of $\Fq$ is the $x$ coordinate of a point in $G_1$, but
+those which are in fact occur as the $x$ coordinate of two distinct points in
+$G_1$ with distinct $y$ coordinates, one the negative of the other.  We denote
+the smaller of the possible $y$ coordinates by $\ymin(x)$ and the larger by
+$\ymax(x)$.
 
-\item For $a = (x,y) \in G_1\backslash \mathcal{O}$ we define
+\item For $(x,y) \in G_1\backslash \mathcal{O}$ we define
 $$
 \compress_{G_1} (x,y) = \begin{cases}
-\mathsf{1}\mathsf{0}\mathsf{1}\cdot\mathsf{bits}(x) & \text{if $y$ is the larger of the two possible $y$-coordinates}\\
-\mathsf{1}\mathsf{0}\mathsf{0}\cdot\mathsf{bits}(x) & \text{otherwise}\\
+\mathsf{1}\mathsf{0}\mathsf{0}\cdot\mathsf{bits}(x) & \text{if $y=\ymin(x)$}\\
+\mathsf{1}\mathsf{0}\mathsf{1}\cdot\mathsf{bits}(x) & \text{if $y=\ymax(x)$}\\
 \end{cases}
 $$
 \item We encode the identity element of $G_1$ using
@@ -235,10 +244,10 @@ in the form $(x,y)$ with $x,y \in \Fqq$.
 
 $$
 \compress_{G_2} (a+bu,y) = \begin{cases}
-\mathsf{1}\mathsf{0}\mathsf{1}\cdot\mathsf{bits}(b)\cdot\mathsf{0}\mathsf{0}\mathsf{0}\cdot\mathsf{bits}(a)
-& \text{if $y$ is the larger!!! of the two possible $y$-coordinates}\\
-\mathsf{1}\mathsf{0}\mathsf{0}\cdot\mathsf{bits}(b)\cdot\mathsf{0}\mathsf{0}\mathsf{0}\cdot\mathsf{bits}(a) &
- \text{otherwise}\\
+\mathsf{1}\mathsf{0}\mathsf{0}\cdot\mathsf{bits}(b)\cdot\mathsf{0}\mathsf{0}\mathsf{0}\cdot\mathsf{bits}(a)
+& \text{if $y=\ymin(a+bu)$}\\
+\mathsf{1}\mathsf{0}\mathsf{1}\cdot\mathsf{bits}(b)\cdot\mathsf{0}\mathsf{0}\mathsf{0}\cdot\mathsf{bits}(a) &
+ \text{if $y=\ymax(a+bu)$}\\
 \end{cases}
 $$
 and
@@ -254,16 +263,17 @@ Zcash also supports a serialisation format where both the $x$ and $y$
 coordinates of a point are encoded, and in that case the leading bit of the
 encoded point is 0.  We do not support this format.
 
-
+\
 The two $\uncompress$ functions are obtained by inverting the process above.
 
 \paragraph{$G_1$ uncompression.}  Given a bytestring $b$, it is checked that
-$b$ contains exactly 48 bytes.  If not $\uncompress(b) = \errorX$ (ie,
+$b$ contains exactly 48 bytes.  If not, then $\uncompress(b) = \errorX$ (ie,
 uncompression fails).  If the length is equal to 48 bytes, write $b$ as a
 sequence of bits: $b = b_{383} \cdots b_0$.
 \begin{itemize}
 \item If $b_{383} \neq 1$, then $\uncompress_{G_1}(b) = \errorX$.
-\item If $b_{382} = 1$ then $\uncompress_{G_1}(b) =
+\item If $b_{382} = 1$ then
+$\uncompress_{G_1}(b) =
 \begin{cases}
 \mathcal{O}_{G_1} & \text{if $b_{381} = b_{380} = \cdots = b_0 = 0$}\\
 \errorX & \text{otherwise}.
@@ -271,9 +281,13 @@ sequence of bits: $b = b_{383} \cdots b_0$.
 \item If $b_{382}=0$, set $c=\sum_{i=0}^{381}b_i2^i \in \N$.
 \begin{itemize}
 \item If $c \geq q$, $\uncompress_{G_1}(b) = \errorX$.
-\item Otherwise, let $x = \pi(c) \in \Fq$ and let $z = x^3+4$. If $z$ is not a square in $\Fq$, $\uncompress_{G_1}(b) = \errorX$.
-\item If $x$ is a square then let $y$ be the larger or smaller square root of $z$ according to
-whether $b_{381}$ is 0 or 1 (so $(x,y)$ lies on the curve $E_1$).
+\item Otherwise, let $x = \pi(c) \in \Fq$ and let $z = x^3+4$. If $z$ is not a
+square in $\Fq$, then $\uncompress_{G_1}(b) = \errorX$.
+\item If $z$ is a square then let
+$y=\begin{cases}
+\ymin(x) & \text{if $b_{381}=0$}\\
+\ymax(x) & \text{if $b_{381}=1$}.
+\end{cases}$
 \item Then $\uncompress_{G_1}(b) = \begin{cases}
 (x,y) & \text{if $(x,y) \in G_1$}\\
 \errorX & \text{otherwise}.
@@ -283,7 +297,7 @@ whether $b_{381}$ is 0 or 1 (so $(x,y)$ lies on the curve $E_1$).
 
 
 \paragraph{$G_2$ uncompression.}  Given a bytestring $b$, it is checked that
-$b$ contains exactly 96 bytes.  If not $\uncompress(b) = \errorX$ (ie,
+$b$ contains exactly 96 bytes.  If not, then $\uncompress(b) = \errorX$ (ie,
 uncompression fails).  If the length is equal to 96 bytes, write $b$ as a
 sequence of bits: $b = b_{767} \cdots b_0$.
 \begin{itemize}
@@ -297,10 +311,13 @@ sequence of bits: $b = b_{767} \cdots b_0$.
 \begin{itemize}
 \item If $c \geq q$ or $d \geq q$, $\uncompress_{G_2}(b) = \errorX$.
 \item Otherwise, let $x = \pi(c)+\pi(d)u \in \Fqq$ and let $z = x^3+4(u+1)$.
-If $z$ is not a square in $\Fqq$, $\uncompress_{G_2}(b) = \errorX$.
-\item If $x$ is a square then let $y$ be the larger or smaller square root of $z$ according to
-whether $b_{765}$ is 0 or 1 (so $(x,y)$ lies on the curve $E_2$).
-\item Then $\uncompress_{G_s}(b) = \begin{cases}
+If $z$ is not a square in $\Fqq$, then $\uncompress_{G_2}(b) = \errorX$.
+\item If $z$ is a square then let
+$y=\begin{cases}
+\ymin(x) & \text{if $b_{765}=0$}\\
+\ymax(x) & \text{if $b_{765}=1$}.
+\end{cases}$
+\item Then $\uncompress_{G_2}(b) = \begin{cases}
 (x,y) & \text{if $(x,y) \in G_2$}\\
 \errorX & \text{otherwise}.
 \end{cases}$
