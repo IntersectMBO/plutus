@@ -75,7 +75,11 @@ instance Serialise Redeemer where
     encode (Redeemer (BuiltinData d)) = encode d
     decode = Redeemer . BuiltinData Haskell.<$> decode
 
--- | Script runtime representation of a @Digest SHA256@.
+{- | Type representing the /BLAKE2b-224/ hash of a script. 28 bytes.
+This is a simple type without any validation, __use with caution__.
+You may want to add checks for its invariants. See the
+ [Shelley ledger specification](https://github.com/input-output-hk/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf).
+-}
 newtype ScriptHash =
     ScriptHash { getScriptHash :: Builtins.BuiltinByteString }
     deriving
@@ -87,7 +91,11 @@ newtype ScriptHash =
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, ToData, FromData, UnsafeFromData)
     deriving anyclass (NFData)
 
--- | Script runtime representation of a @Digest SHA256@.
+{- | Type representing the /BLAKE2b-256/ hash of a datum. 32 bytes.
+This is a simple type without any validation, __use with caution__.
+You may want to add checks for its invariants. See the
+ [Shelley ledger specification](https://github.com/input-output-hk/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf).
+-}
 newtype DatumHash =
     DatumHash Builtins.BuiltinByteString
     deriving
@@ -103,7 +111,7 @@ newtype DatumHash =
 
 This is a simple type without any validation, __use with caution__.
 You may want to add checks for its invariants. See the
- [Shelley ledger specification](https://hydra.iohk.io/build/16861845/download/1/ledger-spec.pdf).
+ [Shelley ledger specification](https://github.com/input-output-hk/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf).
 -}
 newtype RedeemerHash =
     RedeemerHash Builtins.BuiltinByteString

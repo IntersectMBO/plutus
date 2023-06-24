@@ -10,7 +10,7 @@ module PlutusCore.Pretty
     , PrettyParens
     , display
     , displayBy
-    , prettyParens
+    , juxtRenderContext
     -- * Defaults
     , prettyPlcDef
     , displayPlcDef
@@ -56,14 +56,18 @@ module PlutusCore.Pretty
     , PrettyReadableBy
     , PrettyReadable
     , AsReadable (..)
+    , Parened (..)
+    , inBraces
     , topPrettyConfigReadable
     , botPrettyConfigReadable
     , binderFixity
     , arrowFixity
-    , arrowPrettyM
     , iterTyForallPrettyM
     , iterLamAbsPrettyM
     , iterTyAbsPrettyM
+    , iterArrowPrettyM
+    , iterAppDocM
+    , iterInterAppPrettyM
     , iterAppPrettyM
     -- * Utils
     , prettyBytes
@@ -72,7 +76,6 @@ module PlutusCore.Pretty
     , PrettyUni
     , ThrowableBuiltins
     , prettyConst
-    , displayConst
     , module Export
     ) where
 

@@ -1,0 +1,3 @@
+[
+  [ [ (force (builtin ifThenElse)) b_0 ] [ [ f_3 x_1 ] xs_2 ] ] (con integer 2)
+]

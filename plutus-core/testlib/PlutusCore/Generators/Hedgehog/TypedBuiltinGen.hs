@@ -65,7 +65,7 @@ attachCoercedTerm a = do
         -- but it turned out to be too much of a pain for something that we do not really need.
         EvaluationFailure -> fail $ concat
             [ "Got 'EvaluationFailure' when generating a value of a built-in type: "
-            , show $ prettyConst x
+            , render $ prettyConst botRenderContext x
             ]
         EvaluationSuccess v -> pure $ TermOf v x
 

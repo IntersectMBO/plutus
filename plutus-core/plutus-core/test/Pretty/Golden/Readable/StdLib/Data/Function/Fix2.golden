@@ -1,41 +1,30 @@
-/\a
-  b
-  a
-  b ->
+/\a b a b ->
   \(f : all Q. ((a -> b) -> (a -> b) -> Q) -> (a -> b) -> (a -> b) -> Q) ->
     (/\(F :: * -> *) ->
        \(by : (all Q. F Q -> Q) -> (all Q. F Q -> Q)) ->
-         (/\a
-            b ->
+         (/\a b ->
             \(f : (a -> b) -> a -> b) ->
               (/\a ->
                  \(s : (\a -> ifix (\(self :: * -> *) a -> self a -> a) a) a) ->
                    unwrap s s)
                 {a -> b}
-                (iwrap (\(self :: * -> *)
-                         a ->
-                          self
-                            a -> a) (a -> b) (\(s
-                                                  : (\a ->
-                                                       ifix (\(self :: * -> *)
-                                                              a ->
-                                                               self a -> a) a)
-                                                      (a -> b))
-                                               (x : a) ->
-                                                f
-                                                  ((/\a ->
-                                                      \(s
-                                                          : (\a ->
-                                                               ifix (\(self
-                                                                         :: * -> *)
-                                                                      a ->
-                                                                       self
-                                                                         a -> a) a)
-                                                              a) ->
-                                                        unwrap s s)
-                                                     {a -> b}
-                                                     s)
-                                                  x)))
+                (iwrap
+                   (\(self :: * -> *) a -> self a -> a)
+                   (a -> b)
+                   (\(s :
+                        (\a -> ifix (\(self :: * -> *) a -> self a -> a) a)
+                          (a -> b))
+                     (x : a) ->
+                      f
+                        ((/\a ->
+                            \(s :
+                                (\a ->
+                                   ifix (\(self :: * -> *) a -> self a -> a) a)
+                                  a) ->
+                              unwrap s s)
+                           {a -> b}
+                           s)
+                        x)))
            {all Q. F Q -> F Q}
            {all Q. F Q -> Q}
            (\(rec : (all Q. F Q -> F Q) -> (all Q. F Q -> Q))

@@ -24,9 +24,10 @@ import PlutusIR.Error as PIR
 import PlutusIR.Parser
 import PlutusIR.Test
 import PlutusIR.Transform.Beta qualified as Beta
+import PlutusIR.Transform.CommuteFnWithConst qualified as CommuteFnWithConst
 import PlutusIR.Transform.DeadCode qualified as DeadCode
 import PlutusIR.Transform.EvaluateBuiltins qualified as EvaluateBuiltins
-import PlutusIR.Transform.Inline.CallSiteInline (computeArity)
+import PlutusIR.Transform.Inline.CallSiteInline (splitParams)
 import PlutusIR.Transform.Inline.Inline qualified as Inline
 import PlutusIR.Transform.KnownCon qualified as KnownCon
 import PlutusIR.Transform.LetFloatIn qualified as LetFloatIn
@@ -59,6 +60,7 @@ transform =
         , retainedSize
         , rename
         , evaluateBuiltins
+        , commuteDefaultFun
         ]
 
 thunkRecursions :: TestNested
@@ -296,7 +298,7 @@ nameCapture =
 computeArityTest :: TestNested
 computeArityTest = testNested "computeArityTest" $
         map
-            (goldenPir (computeArity . runQuote . PLC.rename) pTerm)
+            (goldenPir (splitParams . runQuote . PLC.rename) pTerm)
             [ "var" -- from inline tests, testing let terms
             , "tyvar"
             , "single"
@@ -418,3 +420,14 @@ evaluateBuiltins =
             , "overApplication"
             , "underApplication"
             ]
+
+commuteDefaultFun :: TestNested
+commuteDefaultFun =
+    testNested "commuteDefaultFun" $
+    map
+        (goldenPir CommuteFnWithConst.commuteDefaultFun pTerm)
+        [ "equalsInt" -- this tests that the function works on equalInteger
+        , "divideInt" -- this tests that the function excludes not commutative functions
+        , "multiplyInt" -- this tests that the function works on multiplyInteger
+        , "let" -- this tests that it works in the subterms
+        ]

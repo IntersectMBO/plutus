@@ -1,14 +1,1 @@
-program 1.1.0 ((\Just ->
-                  (\x ->
-                     (\y ->
-                        force (case x [ (\x' ->
-                                           delay (force (case y [ (\y' ->
-                                                                     delay (Just
-                                                                              (addInteger
-                                                                                 x'
-                                                                                 y')))
-                                                                , (delay (constr 1 [  ])) ])))
-                                      , (delay (constr 1 [])) ]))
-                       (Just 2))
-                    (Just 1))
-                 (\arg_0 -> constr 0 [arg_0]))
+program 1.1.0 (constr 0 [(addInteger 1 2)])

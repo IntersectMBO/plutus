@@ -10,7 +10,7 @@ module PlutusCore.Pretty.Classic
     , PrettyClassicBy
     , PrettyClassic
     , PrettyParens
-    , prettyParens
+    , juxtRenderContext
     , consAnnIf
     , defPrettyConfigClassic
     , debugPrettyConfigClassic

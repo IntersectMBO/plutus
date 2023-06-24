@@ -88,6 +88,7 @@ library
     PlutusCore.Check.Value
     PlutusCore.Compiler
     PlutusCore.Compiler.Erase
+    PlutusCore.Compiler.Types
     PlutusCore.Core
     PlutusCore.Crypto.BLS12_381.Error
     PlutusCore.Crypto.BLS12_381.G1
@@ -240,6 +241,7 @@ library
     UntypedPlutusCore.Simplify
     UntypedPlutusCore.Size
     UntypedPlutusCore.Subst
+    UntypedPlutusCore.Transform.CaseOfCase
     UntypedPlutusCore.Transform.CaseReduce
     UntypedPlutusCore.Transform.FloatDelay
     UntypedPlutusCore.Transform.ForceDelay
@@ -485,6 +487,7 @@ library plutus-ir
     PlutusIR.Subst
     PlutusIR.Transform.Beta
     PlutusIR.Transform.CaseReduce
+    PlutusIR.Transform.CommuteFnWithConst
     PlutusIR.Transform.DeadCode
     PlutusIR.Transform.EvaluateBuiltins
     PlutusIR.Transform.Inline.CallSiteInline
@@ -532,6 +535,7 @@ library plutus-ir
     , parser-combinators   >=0.4.0
     , plutus-core          ^>=1.7
     , prettyprinter        >=1.1.0.1
+    , profunctors
     , semigroupoids
     , semigroups           >=0.19.1
     , text

@@ -73,25 +73,26 @@ defaultDatatypeCompilationOpts :: DatatypeCompilationOpts
 defaultDatatypeCompilationOpts = DatatypeCompilationOpts SumsOfProducts
 
 data CompilationOpts a = CompilationOpts {
-    _coOptimize                       :: Bool
-    , _coPedantic                     :: Bool
-    , _coVerbose                      :: Bool
-    , _coDebug                        :: Bool
-    , _coDatatypes                    :: DatatypeCompilationOpts
+    _coOptimize                         :: Bool
+    , _coPedantic                       :: Bool
+    , _coVerbose                        :: Bool
+    , _coDebug                          :: Bool
+    , _coDatatypes                      :: DatatypeCompilationOpts
     -- Simplifier passes
-    , _coMaxSimplifierIterations      :: Int
-    , _coDoSimplifierUnwrapCancel     :: Bool
-    , _coDoSimplifierCaseReduce       :: Bool
-    , _coDoSimplifierBeta             :: Bool
-    , _coDoSimplifierInline           :: Bool
-    , _coDoSimplifierKnownCon         :: Bool
-    , _coDoSimplifierEvaluateBuiltins :: Bool
-    , _coInlineHints                  :: InlineHints PLC.Name (Provenance a)
+    , _coMaxSimplifierIterations        :: Int
+    , _coDoSimplifierUnwrapCancel       :: Bool
+    , _coDoSimplifierCaseReduce         :: Bool
+    , _coDoSimplifiercommuteFnWithConst :: Bool
+    , _coDoSimplifierBeta               :: Bool
+    , _coDoSimplifierInline             :: Bool
+    , _coDoSimplifierKnownCon           :: Bool
+    , _coDoSimplifierEvaluateBuiltins   :: Bool
+    , _coInlineHints                    :: InlineHints PLC.Name (Provenance a)
     -- Profiling
-    , _coProfile                      :: Bool
-    , _coRelaxedFloatin               :: Bool
+    , _coProfile                        :: Bool
+    , _coRelaxedFloatin                 :: Bool
     -- | Whether to try and preserve the logging beahviour of the program.
-    , _coPreserveLogging              :: Bool
+    , _coPreserveLogging                :: Bool
     } deriving stock (Show)
 
 makeLenses ''CompilationOpts
@@ -106,6 +107,7 @@ defaultCompilationOpts = CompilationOpts
   , _coMaxSimplifierIterations = 12
   , _coDoSimplifierUnwrapCancel = True
   , _coDoSimplifierCaseReduce = True
+  , _coDoSimplifiercommuteFnWithConst = True
   , _coDoSimplifierKnownCon = True
   , _coDoSimplifierBeta = True
   , _coDoSimplifierInline = True

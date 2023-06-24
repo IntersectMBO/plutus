@@ -3,10 +3,8 @@ let
     Just : a -> Maybe a
     Nothing : Maybe a
   !`$fMonadMaybe_$c>>=` : all a b. Maybe a -> (a -> Maybe b) -> Maybe b
-    = /\a
-        b ->
-        \(ds : Maybe a)
-         (k : a -> Maybe b) ->
+    = /\a b ->
+        \(ds : Maybe a) (k : a -> Maybe b) ->
           Maybe_match
             {a}
             ds

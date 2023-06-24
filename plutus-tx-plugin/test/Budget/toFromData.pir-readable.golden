@@ -27,7 +27,7 @@ in
     in
     ifThenElse
       {unit -> Either integer b}
-      (equalsInteger index 1)
+      (equalsInteger 1 index)
       (\(ds : unit) ->
          let
            !arg : data = headList {data} (sndPair {integer} {list data} tup)
@@ -36,7 +36,7 @@ in
       (\(ds : unit) ->
          ifThenElse
            {unit -> Either integer b}
-           (equalsInteger index 0)
+           (equalsInteger 0 index)
            (\(ds : unit) ->
               let
                 !arg : data
@@ -58,15 +58,14 @@ in
   ((let
        a = Tuple3 Bool integer Bool
      in
-     \(`$dUnsafeFromData` : (\a -> data -> a) a)
-      (d : data) ->
+     \(`$dUnsafeFromData` : (\a -> data -> a) a) (d : data) ->
        let
          !tup : pair integer (list data) = unConstrData d
          !index : integer = fstPair {integer} {list data} tup
        in
        ifThenElse
          {unit -> Maybe a}
-         (equalsInteger index 0)
+         (equalsInteger 0 index)
          (\(ds : unit) ->
             let
               !arg : data = headList {data} (sndPair {integer} {list data} tup)
@@ -75,7 +74,7 @@ in
          (\(ds : unit) ->
             ifThenElse
               {unit -> Maybe a}
-              (equalsInteger index 1)
+              (equalsInteger 1 index)
               (\(ds : unit) -> Nothing {a})
               (\(ds : unit) ->
                  let
@@ -96,7 +95,7 @@ in
         in
         ifThenElse
           {unit -> Tuple3 Bool integer Bool}
-          (equalsInteger (fstPair {integer} {list data} tup) 0)
+          (equalsInteger 0 (fstPair {integer} {list data} tup))
           (\(ds : unit) ->
              let
                !arg : data = headList {data} t
@@ -113,12 +112,12 @@ in
                in
                ifThenElse
                  {unit -> Bool}
-                 (equalsInteger index 1)
+                 (equalsInteger 1 index)
                  (\(ds : unit) -> True)
                  (\(ds : unit) ->
                     ifThenElse
                       {unit -> Bool}
-                      (equalsInteger index 0)
+                      (equalsInteger 0 index)
                       (\(ds : unit) -> False)
                       (\(ds : unit) ->
                          let
@@ -139,12 +138,12 @@ in
                in
                ifThenElse
                  {unit -> Bool}
-                 (equalsInteger index 1)
+                 (equalsInteger 1 index)
                  (\(ds : unit) -> True)
                  (\(ds : unit) ->
                     ifThenElse
                       {unit -> Bool}
-                      (equalsInteger index 0)
+                      (equalsInteger 0 index)
                       (\(ds : unit) -> False)
                       (\(ds : unit) ->
                          let
@@ -187,8 +186,7 @@ in
      ((let
           a = Tuple3 Bool integer Bool
         in
-        \(`$dToData` : (\a -> a -> data) a)
-         (ds : Maybe a) ->
+        \(`$dToData` : (\a -> a -> data) a) (ds : Maybe a) ->
           Maybe_match
             {a}
             ds
@@ -207,9 +205,7 @@ in
              {Bool}
              w
              {data}
-             (\(ww : Bool)
-               (ww : integer)
-               (ww : Bool) ->
+             (\(ww : Bool) (ww : integer) (ww : Bool) ->
                 constrData
                   0
                   (mkCons

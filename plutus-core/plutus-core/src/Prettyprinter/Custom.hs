@@ -52,7 +52,9 @@ sexp a es =
   -- when it's split over multiple lines. So we include it in the "initial" segment. But then
   -- we also have to have a space after that rather than no space. So we start with "(keyword"
   -- and a line-or-space, but end with a line-or-nothing and ")".
-  section' ("(" <> a <> line) (line' <> ")") (sep es)
+  -- However if @es@ is empty, then we don't want to insert a space right before @)@, so in that
+  -- case we use line-or-nothing as well.
+  section' ("(" <> a <> if null es then line' else line) (line' <> ")") (sep es)
 
 {- | Lay out a sequence of documents vertically with forced lines between documents. Useful
 for prettyprinting layout-sensitive things like let-bindings.

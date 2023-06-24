@@ -17,11 +17,11 @@ main :: IO ()
 main = defaultMain . testGroup "Size regression tests" $ [
   testGroup "Rational" [
     testGroup "Eq" [
-      fitsInto "==" ratEq 39,
-      fitsInto "/=" ratNeq 45
+      fitsInto "==" ratEq 36,
+      fitsInto "/=" ratNeq 42
       ],
     testGroup "Ord" [
-      fitsInto "compare" ratCompare 59,
+      fitsInto "compare" ratCompare 53,
       fitsInto "<=" ratLe 30,
       fitsInto ">=" ratGe 30,
       fitsInto "<" ratLt 30,
@@ -30,34 +30,34 @@ main = defaultMain . testGroup "Size regression tests" $ [
       fitsInto "min" ratMin 36
       ],
     testGroup "Additive" [
-      fitsInto "+" ratPlus 107,
+      fitsInto "+" ratPlus 104,
       fitsInto "zero" ratZero 3,
-      fitsInto "-" ratMinus 107,
+      fitsInto "-" ratMinus 104,
       fitsInto "negate (specialized)" ratNegate 12
       ],
     testGroup "Multiplicative" [
-      fitsInto "*" ratTimes 97,
+      fitsInto "*" ratTimes 94,
       fitsInto "one" ratOne 6,
-      fitsInto "scale" ratScale 79
+      fitsInto "scale" ratScale 76
       ],
     testGroup "Serialization" [
       fitsInto "toBuiltinData" ratToBuiltin 30,
-      fitsInto "fromBuiltinData" ratFromBuiltin 325,
-      fitsInto "unsafeFromBuiltinData" ratUnsafeFromBuiltin 193
+      fitsInto "fromBuiltinData" ratFromBuiltin 305,
+      fitsInto "unsafeFromBuiltinData" ratUnsafeFromBuiltin 184
       ],
     testGroup "Construction" [
-      fitsInto "unsafeRatio" ratMkUnsafe 126,
-      fitsInto "ratio" ratMkSafe 212,
+      fitsInto "unsafeRatio" ratMkUnsafe 117,
+      fitsInto "ratio" ratMkSafe 179,
       fitsInto "fromInteger" ratFromInteger 4
       ],
     testGroup "Other" [
       fitsInto "numerator" ratNumerator 6,
       fitsInto "denominator" ratDenominator 6,
-      fitsInto "round" ratRound 299,
+      fitsInto "round" ratRound 278,
       fitsInto "truncate" ratTruncate 10,
       fitsInto "properFraction" ratProperFraction 21,
-      fitsInto "recip" ratRecip 66,
-      fitsInto "abs (specialized)" ratAbs 45
+      fitsInto "recip" ratRecip 49,
+      fitsInto "abs (specialized)" ratAbs 31
       ],
     testGroup "Comparison" [
       fitsUnder "negate" ("specialized", ratNegate) ("general", genNegate),
