@@ -11,14 +11,16 @@
 \label{appendix:default-builtins-future}
 A future release will add support for BLS12-381 elliptic curve pairing
 operations.  This involves adding three new types and seventeen new built-in
-functions.
+functions.  The description of the semantics of these types and functions is
+quite complex and requires a considerable amount of notation, most of which is
+local to this section.
 
 \subsection{Built-in types}
 \label{sec:future-built-in-types}
 Tables~\ref{table:future-built-in-types} describes three new built-in
 types.
 
-\newcommand{\MlResult}{R}
+\newcommand{\MlResult}{H}
 \newcommand{\Fq}{\mathbb{F}_q}
 \newcommand{\Fqq}{\mathbb{F}_{q^2}}
 \newcommand{\FF}{\mathbb{F}_{q^{12}}}
@@ -29,9 +31,9 @@ types.
         \hline
         Type & Denotation & Concrete Syntax\\
         \hline
-        $\ty{bls12\_381\_G1\_element}$ &   $G_1$ & \texttt{0x[0-9A-Fa-f]\{48\}}\\
-        $\ty{bls12\_381\_G2\_element}$ &   $G_2$ & \texttt{0x[0-9A-Fa-f]\{96\}}\\
-        $\ty{bls12\_381\_MlResult}$    &   $\MlResult$  &  None\\
+        $\ty{bls12\_381\_G1\_element}$ &   $G_1$ & \texttt{0x[0-9A-Fa-f]\{96\}} \text{(see Note~\ref{note:bls-syntax})}\\
+        $\ty{bls12\_381\_G2\_element}$ &   $G_2$ & \texttt{0x[0-9A-Fa-f]\{192\}} \text{(see Note~\ref{note:bls-syntax})}\\
+        $\ty{bls12\_381\_MlResult}$    &   $\MlResult$  &  None (see Note~\ref{note:bls-syntax})\\
         \hline
     \end{tabular}
     \caption{Atomic Types}
@@ -39,6 +41,7 @@ types.
 \end{table}
 
 
+%% \paragraph{$G_1$ and $G_2$}.
 \noindent $G_1$ and  $G_2$ are both cyclic groups of prime order $r$, where 
 $$
 r = \mathtt{0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001}
@@ -70,23 +73,27 @@ $$
 E_2: y^2 = x^3 + 4(u+1)
 $$
 
+
+\red{ORDERING}
+\medskip
+
 \noindent $E_1(\Fq)$ and  $E_2(\Fqq)$  are abelian groups under the
 usual elliptic curve addition operations as described
-in~\cite[III.2]{Silverman-Arithmetic-EC}.  $G_1$ is a subgroup of $E_1(\Fq)$ and
-$G_2$ is a subgroup of $E_2(\Fqq)$; explicit generators for $G_1$ and $G_2$ are
-given in~\cite[4.2.1]{IETF-pairing-friendly-curves}.  We denote the identity
-element (the point at infinity) in $G_1$ by $\mathcal{O}_{G_1}$ and
-that in $G_2$ by $\mathcal{O}_{G_2}$.
+in~\cite[III.2]{Silverman-Arithmetic-EC} or~\cite[2.1]{Costello-pairings}.
+$G_1$ is a subgroup of $E_1(\Fq)$ and $G_2$ is a subgroup of $E_2(\Fqq)$;
+explicit generators for $G_1$ and $G_2$ are given
+in~\cite[4.2.1]{IETF-pairing-friendly-curves}.  We denote the identity element
+(the point at infinity) in $G_1$ by $\mathcal{O}_{G_1}$ and that in $G_2$ by
+$\mathcal{O}_{G_2}$.
 
 \bigskip
 \noindent Values of the \texttt{bls12\_381\_MlResult} type are completely
 opaque and can only be obtained as a result of \texttt{millerLoop} or by
 multiplying two existing elements of type \texttt{bls12\_381\_MlResult}.  We
-provide neither a serialisation format nor a concrete syntax for values of type:
-such elements exist only ephemerally during computation.  We do not specify
-$\MlResult$, the denotation of \texttt{bls12\_381\_MlResult}, precisely: our
-only assumption is that it is an Abelian group. See Note~\ref{note:pairing} for
-more on this.
+provide neither a serialisation format nor a concrete syntax for values of this
+type: they exist only ephemerally during computation.  We do not
+specify $\MlResult$, the denotation of \texttt{bls12\_381\_MlResult}, precisely,
+but it must be an abelian group. See Note~\ref{note:pairing} for more on this.
 
 \subsection{Built-in functions}
 \label{sec:future-built-in-functions}
@@ -171,7 +178,7 @@ more on this.
     \hline
 \end{longtable}
 
-\note{Hashing into $G_1$ and $G_2$}
+\note{Hashing into $G_1$ and $G_2$.}
 \label{note:hashing-into-group}
 
 The denotations $\hash_{G_1}$ and $\hash_{G_2}$
@@ -191,7 +198,7 @@ implementations also allow a third argument (an ``augmentation string''), but we
 do not support this since the same effect can be obtained by appending
 (prepending?) the augmentation string to the message before hashing.
 
-\note{Compression and uncompression for group elements} 
+\note{Compression and uncompression for group elements.} 
 \label{note:group-compression}
 Points in $G_1$ and $G_2$ are encoded as bytestrings in a ``compressed'' format
 where only the $x$-coordinate of a point is encoded and some metadata is used to
@@ -202,7 +209,7 @@ detail,
 \begin{itemize}
 
 \item Given an element $x$ of $\Fq$, $\tilde{x}$ can be written as a 381-bit
-binary number: $\tilde{x} = \Sigma_{i=0}^{380}b_i2^i$ with $b_i \in \{0,1\}$.  We
+binary number: $\tilde{x} = \sum_{i=0}^{380}b_i2^i$ with $b_i \in \{0,1\}$.  We
 define $\mathsf{bits}(x)$ to be the string $b_{380}\cdots b_0$.
 
 \item A nonzero element of $G_1$ can be written in the form $(x,y)$ with $x,y\in\Fq$,
@@ -238,37 +245,83 @@ and
 $$
 \compress_{G_2}(\mathcal{O}_{G_2}) = \mathsf{1}\mathsf{1}\mathsf{0}\cdot\mathsf{0}^{765},
 $$
-The encoding of an element of $G_2$ requires exactly 786 bits, or 96 bytes.
-
-
-\item $\Fq$ elements are encoded in big-endian form. They occupy 48 bytes in this form.
-\item $\Fqq$ elements are encoded in big-endian form, meaning that the $\Fqq$ element $c_0 + c_1u$
-  is represented by the $\Fq$ element $c_1$ followed by the $\Fq$ element $c_0$;
-  elements of $\Fqq$ occupy 96 bytes in this form.
-\item The zero element of $G$ is encoded
-\item The most significant bit must always be set (indicating that we are using the Zcash compressed format).
-\item The second most significant bit is set if and only if the encoding represents the zero
-element of the group (the ``point at infinity'').  In this case all other bits
-must be zero.
-\item The third most significant bit is set if and only if the encoding does not represent the zero
-element and its $y$-coordinate is the lexicographically larger of the two
-associated with the encoded $x$-coordinate; if the bit is clear then it
-indicates that the $y$-coordinate of the point is the smaller one.
+The encoding of an element of $G_2$ requires exactly 768 bits, or 96 bytes.
 \end{itemize}
 
+Note that in both cases the most significant bit of a compressed point is 1.
+In the Zcash serialisation scheme this indicates that the point is compressed;
+Zcash also supports a serialisation format where both the $x$ and $y$
+coordinates of a point are encoded, and in that case the leading bit of the
+encoded point is 0.  We do not support this format.
+
+
 The two $\uncompress$ functions are obtained by inverting the process above.
+
+\paragraph{$G_1$ uncompression.}  Given a bytestring $b$, it is checked that
+$b$ contains exactly 48 bytes.  If not $\uncompress(b) = \errorX$ (ie,
+uncompression fails).  If the length is equal to 48 bytes, write $b$ as a
+sequence of bits: $b = b_{383} \cdots b_0$.
+\begin{itemize}
+\item If $b_{383} \neq 1$, then $\uncompress_{G_1}(b) = \errorX$.
+\item If $b_{382} = 1$ then $\uncompress_{G_1}(b) =
+\begin{cases}
+\mathcal{O}_{G_1} & \text{if $b_{381} = b_{380} = \cdots = b_0 = 0$}\\
+\errorX & \text{otherwise}.
+\end{cases}$
+\item If $b_{382}=0$, set $c=\sum_{i=0}^{381}b_i2^i \in \N$.
+\begin{itemize}
+\item If $c \geq q$, $\uncompress_{G_1}(b) = \errorX$.
+\item Otherwise, let $x = \pi(c) \in \Fq$ and let $z = x^3+4$. If $z$ is not a square in $\Fq$, $\uncompress_{G_1}(b) = \errorX$.
+\item If $x$ is a square then let $y$ be the larger or smaller square root of $z$ according to
+whether $b_{381}$ is 0 or 1 (so $(x,y)$ lies on the curve $E_1$).
+\item Then $\uncompress_{G_1}(b) = \begin{cases}
+(x,y) & \text{if $(x,y) \in G_1$}\\
+\errorX & \text{otherwise}.
+\end{cases}$
+\end{itemize}
+\end{itemize}
+
+
+\paragraph{$G_2$ uncompression.}  Given a bytestring $b$, it is checked that
+$b$ contains exactly 96 bytes.  If not $\uncompress(b) = \errorX$ (ie,
+uncompression fails).  If the length is equal to 96 bytes, write $b$ as a
+sequence of bits: $b = b_{767} \cdots b_0$.
+\begin{itemize}
+\item If $b_{767} \neq 1$, then $\uncompress_{G_2}(b) = \errorX$.
+\item If $b_{766} = 1$ then $\uncompress_{G_2}(b) =
+\begin{cases}
+\mathcal{O}_{G_1} & \text{if $b_{765} = b_{764} = \cdots = b_0 = 0$}\\
+\errorX & \text{otherwise}.
+\end{cases}$
+\item If $b_{766} = 0$, set $c=\sum_{i=0}^{383}b_i2^i$ and $d=\sum_{i=384}^{765}b_i2^{i-384} \in \N$.
+\begin{itemize}
+\item If $c \geq q$ or $d \geq q$, $\uncompress_{G_2}(b) = \errorX$.
+\item Otherwise, let $x = \pi(c)+\pi(d)u \in \Fqq$ and let $z = x^3+4(u+1)$.
+If $z$ is not a square in $\Fqq$, $\uncompress_{G_2}(b) = \errorX$.
+\item If $x$ is a square then let $y$ be the larger or smaller square root of $z$ according to
+whether $b_{765}$ is 0 or 1 (so $(x,y)$ lies on the curve $E_2$).
+\item Then $\uncompress_{G_s}(b) = \begin{cases}
+(x,y) & \text{if $(x,y) \in G_2$}\\
+\errorX & \text{otherwise}.
+\end{cases}$
+\end{itemize}
+\end{itemize}
+
+
 For $G_1$ a 48-byte bytestring $b$ is expected. If every bit of $b$ is zero
 apart from the second most significant then $\uncompress_{G_1}(b)
 = \mathcal{O}_{G_1}$.  Otherwise, it is checked that the first bit is set and
 the second bit is clear, and then the final 381 bits are converted into an
-element $x\in\Fq$ and it is checked whether $x^3+4$ has a square root in $\Fq$;
-if so then a point $p=(x,y) \in E_1(\Fq)$ is obtained, where $y$ is the larger
-square root of $x^3+4$ if the second bit of $b$ is set and the smaller square
-root otherwise.  It is then checked whether $p$ lies in the subgroup $G_1$ and
-if so we have $\uncompress_{G_1}(b)=p$.
+element $x\in\Fq$ (assuming that they represent an integer less than $q$ and it
+is checked whether $x^3+4$ has a square root in $\Fq$; if so then a point
+$p=(x,y) \in E_1(\Fq)$ is obtained, where $y$ is the larger square root of
+$x^3+4$ if the second bit of $b$ is set and the smaller square root otherwise.
+It is then checked whether $p$ lies in the subgroup $G_1$ and if so we have
+$\uncompress_{G_1}(b)=p$.
 
 \medskip
-\noindent The $\uncompress_{G_2}$ function is defined similarly.
+\noindent The $\uncompress_{G_2}$ function is defined similarly. There are 3 spare bits
+between the two components of the $\Fqq$ element and these must be equal to zero.
 
 \medskip\noindent The uncompression process can fail in a number of ways:
 \begin{itemize}
@@ -279,18 +332,36 @@ not obey the conditions described above.
 but the point does not lie in the relevant group.
 \end{itemize}
 
-\note{Pairing}
-\label{note:pairing}
-Also group operation on $\MlResult$, and mention embedding degree.
+\note{Concrete syntax for BLS12-381 types.}
+\label{note:bls-syntax}
+Concrete syntax for the $\ty{bls12\_381\_G1\_element}$ and
+$\ty{bls12\_381\_G2\_element}$ types is provided via the compression and
+decompression functions defined in Note~\ref{note:group-compression}.  Specifically, a
+value of type $\ty{bls12\_381\_G1\_element}$ is denoted by a term of the
+form \texttt{(con bls12\_381\_G1\_element 0x...)} where \texttt{...} consists of
+96 hexadecimal digits representing the 48-byte compressed form of the relevant
+point.  Similarly, a value of type $\ty{bls12\_381\_G2\_element}$ is denoted by
+a term of the form \texttt{(con bls12\_381\_G2\_element 0x...)}
+where \texttt{...} consists of 192 hexadecimal digits representing the 96-byte
+compressed form of the relevant point.
 
+No syntax is provided for values of type $\ty{bls12\_381\_mlresult}$. It is not
+possible to parse such values, and they will appear as \texttt{(con
+bls12\_381\_mlresult <opaque>)} if output by a program.
+
+
+\note{Pairing operations.}
+\label{note:pairing}
 For efficiency reasons we split the pairing process into two parts:
 the \texttt{millerLoop} and \texttt{finalVerify} functions.  We assume that we
 have
 \begin{itemize}
-\item An intermediate multiplicative group $\MlResult$.
-\item A cyclic group $\mu_r$ of order $r$.
+\item An intermediate multiplicative abelian group $\MlResult$;
+$\denote{\mathtt{bls12\_381\_mulMlResult}}$
+is the group multiplication operation in $\MlResult$.
 \item A function (not necessarily itself a pairing) $e: G_1 \times
 G_2 \rightarrow \MlResult$.
+\item A cyclic group $\mu_r$ of order $r$.
 \item An epimorphism $\psi: \MlResult \rightarrow \mu_r$ of groups such
 that $\psi \circ e: G_1 \times G_2 \rightarrow \mu_r$ is a (nondegenerate,
 bilinear) pairing.
@@ -307,11 +378,18 @@ $$
 We do not mandate specific choices for $\MlResult, \mu_r, e$, and $\phi$, but a
 plausible choice would be
 \begin{itemize}
-\item $\MlResult = (\FF)^*$
-\item $\mu_r = \{x \in (\FF)^*: x^r=1\}$, the group of $r$th roots of unity in $(\FF)^*$
-\item $e$ is the Miller loop~\cite{Miller} associated with the optimal Ate pairing~\cite{Ate}
+\item $\MlResult = \FF^*$
+\item $e$ is the Miller loop associated with the optimal Ate pairing
+for $E_1$ and $E_2$~\cite{Vercauteren}.
+\item $\mu_r = \{x \in \FF^*: x^r=1\}$, the group of $r$th roots of unity in $\FF^*$.
+(There are $r$ distinct $r$th roots of unity in $\FF^*$ because the embedding
+degree of $E_1$ and $E_2$ with respect to $r$ is 12 (see~\cite[4.1]{Costello-pairings}).
 \item $\psi(x) = x^{\frac{q-1}{r}}$.
 \end{itemize}
+
+\noindent The functions \texttt{millerLoop} and (especially) \texttt{finalVerify} are expected
+to be very expensive, so their use should be kept to a minimum.  Fortunately
+most current use cases do not require many uses of these functions.
 
 %% \setlength{\LTleft}{-18mm} % Shift the table left a bit to centre it on the page
 %% \begin{longtable}[H]{|l|p{5cm}|p{5cm}|c|c|}

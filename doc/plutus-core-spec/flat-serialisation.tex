@@ -451,7 +451,8 @@ tags for the basic types together with a tag for a type application operator.
 
 \noindent We define auxiliary functions $\etype: \Uni \rightarrow \N^*$ and
 $\dtype: \N^* \rightharpoonup \N^* \times \Uni$ ($\dtype$ is partial and $\Uni$
-denotes the universe of types used in Alonzo, Vasil, and ???) by
+denotes the universe of types defined in Appendices~\ref{appendix:default-builtins-alonzo},
+\ref{appendix:default-builtins-vasil}, and~\ref{appendix:default-builtins-future}).
 
 \begin{alignat*}{2}
   &\etype(\ty{integer})      &&= [0]  \\
@@ -503,6 +504,16 @@ then using $\E_{\B^*}$.  The decoding process is the opposite of this: a
 bytestring is obtained using $\D_{\B^*}$ and this is then decoded from CBOR
 using $\dData$ to obtain a $\ty{data}$ object.
 
+The $\ty{bls12\_381\_G1\_element}$ and $\ty{bls12\_381\_G2\_element}$ types are
+serialised by converting to byestrings using the $\compress_{G_1}$ and
+$\compress_{G_2}$ functions defined in
+Section~\ref{sec:future-built-in-functions}, and decoding is similarly performed
+via bytestrings using the $\uncompress$ functions.  We do not provide
+serialisation and deserialisation for constants of the
+$\ty{bls12\_381\_mlresult}$ type; we have specified a tag for this type, but if
+that tag is encountered during deserialisation then deserialisation fails and
+any subsequent input is ingored.
+
 
 \begin{alignat*}{2}
   & \Econstant{\ty{integer}}(s,n)                  &&= \E_{\Z}(s, n) \\
@@ -513,7 +524,9 @@ using $\dData$ to obtain a $\ty{data}$ object.
   & \Econstant{\ty{bool}}(s, \texttt{True})        &&= s \cdot \bits{1}\\
   & \Econstant{\listOf{\tn}}(s,l)                  &&= \Elist^{\tn}_{\mathsf{constant}}(s, l) \\
   & \Econstant{\pairOf{\tn_1}{\tn_2}}(s,(c_1,c_2))  &&= \Econstant{\tn_2}(\Econstant{\tn_1}(s, c_1), c_2)\\
-  & \Econstant{\ty{data}}(s,d)                     &&= \E_{\B^*}(s, \eData(d)).
+  & \Econstant{\ty{data}}(s,d)                     &&= \E_{\B^*}(s, \eData(d))\\
+  & \Econstant{\ty{bls12\_381\_G1\_element}}(s,e)  &&= \E_{\B^*}(s, \compress_{G_1}(e))\\
+  & \Econstant{\ty{bls12\_381\_G2\_element}}(s,e)  &&= \E_{\B^*}(s, \compress_{G_2}(e)).
 \end{alignat*}
 
 \begin{alignat*}{3}
@@ -531,7 +544,9 @@ using $\dData$ to obtain a $\ty{data}$ object.
      \end{cases}\\
   &\dConstant{\ty{data}}(s)                  &&= (s', d) &&
                                            \text{if $\D_{\B*}(s) = (s', t)$
-                                            and $\dData(t) = (t', d)$ for some $t'$}. 
+                                            and $\dData(t) = (t', d)$ for some $t'$}\\
+  & \dConstant{\ty{bls12\_381\_G1\_element}}(s)  &&= (s',e) && \text{if $\D_{\B^*}(s) = (s',b)$ and $\uncompress_{G_1}(b)=e$}\\
+  & \dConstant{\ty{bls12\_381\_G2\_element}}(s)  &&= (s',e) && \text{if $\D_{\B^*}(s) = (s',b)$ and $\uncompress_{G_2}(b)=e$}.
 \end{alignat*}
 
 \subsubsection{Built-in functions}
