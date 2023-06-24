@@ -427,15 +427,18 @@ tags for the basic types together with a tag for a type application operator.
   \Strut
   Type & Binary  & Decimal \\
   \hline
-  $\ty{integer}$     & $\bits{0000}$ & 0 \\
-  $\ty{bytestring}$  & $\bits{0001}$ & 1 \\
-  $\ty{string}$      & $\bits{0010}$ & 2 \\
-  $\ty{unit}$        & $\bits{0011}$ & 3 \\
-  $\ty{bool}$        & $\bits{0100}$ & 4 \\
-  $\ty{list}$        & $\bits{0101}$ & 5 \\
-  $\ty{pair}$        & $\bits{0110}$ & 6 \\
-  (type application) & $\bits{0111}$ & 7 \\
-  $\ty{data}$        & $\bits{1000}$ & 8 \\
+  $\ty{integer}$                 & $\bits{0000}$ & 0  \\
+  $\ty{bytestring}$              & $\bits{0001}$ & 1  \\
+  $\ty{string}$                  & $\bits{0010}$ & 2  \\
+  $\ty{unit}$                    & $\bits{0011}$ & 3  \\
+  $\ty{bool}$                    & $\bits{0100}$ & 4  \\
+  $\ty{list}$                    & $\bits{0101}$ & 5  \\
+  $\ty{pair}$                    & $\bits{0110}$ & 6  \\
+  (type application)             & $\bits{0111}$ & 7  \\
+  $\ty{data}$                    & $\bits{1000}$ & 8  \\
+  $\ty{bls12\_381\_G1\_element}$ & $\bits{1001}$ & 9  \\
+  $\ty{bls12\_381\_G2\_element}$ & $\bits{1010}$ & 10 \\
+  $\ty{bls12\_381\_MlResult}$    & $\bits{1011}$ & 11 \\
   \hline
 \end{tabular}
 \caption{Type tags}
@@ -448,7 +451,7 @@ tags for the basic types together with a tag for a type application operator.
 
 \noindent We define auxiliary functions $\etype: \Uni \rightarrow \N^*$ and
 $\dtype: \N^* \rightharpoonup \N^* \times \Uni$ ($\dtype$ is partial and $\Uni$
-denotes the universe of types used in Alonzo and Vasil) by
+denotes the universe of types used in Alonzo, Vasil, and ???) by
 
 \begin{alignat*}{2}
   &\etype(\ty{integer})      &&= [0]  \\
@@ -534,7 +537,7 @@ using $\dData$ to obtain a $\ty{data}$ object.
 \subsubsection{Built-in functions}
 Built-in functions are represented by seven-bit integer tags and encoded and
 decoded using $\E_7$ and $\D_7$.  The tags are specified in
-Tables~\ref{table:builtin-tags-alonzo} and \ref{table:builtin-tags-vasil}.  We
+Tables~\ref{table:builtin-tags-alonzo}, \ref{table:builtin-tags-vasil}, and~\ref{table:builtin-tags-future}.  We
 assume that there are (partial) functions $\Tag$ and $\unTag$ which convert back
 and forth between builtin names and their tags.
 
@@ -589,14 +592,46 @@ and forth between builtin names and their tags.
   \Strut
   Builtin & Binary & Decimal\\
   \hline
- \TT{serialiseData}                   & $\bits{0110011}$  & 51  \\
- \TT{verifyEcdsaSecp256k1Signature}   & $\bits{0110100}$  & 52   \\
- \TT{verifySchnorrSecp256k1Signature} & $\bits{0110101}$  & 53   \\
+ \TT{serialiseData}                   & $\bits{0110011}$  & 51 \\
+ \TT{verifyEcdsaSecp256k1Signature}   & $\bits{0110100}$  & 52 \\
+ \TT{verifySchnorrSecp256k1Signature} & $\bits{0110101}$  & 53 \\
 \hline
 \end{tabular}
 \caption{Extra tags for Vasil builtins}
 \label{table:builtin-tags-vasil}
 \end{table}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|c|c|}
+  \hline
+  \Strut
+  Builtin & Binary & Decimal\\
+  \hline
+    \TT{bls12\_381\_G1\_add}         & $\bits{0110110}$  & 54 \\
+    \TT{bls12\_381\_G1\_neg}         & $\bits{0110111}$  & 55 \\
+    \TT{bls12\_381\_G1\_scalarMul}   & $\bits{0111000}$  & 56 \\
+    \TT{bls12\_381\_G1\_equal}       & $\bits{0111001}$  & 57 \\
+    \TT{bls12\_381\_G1\_hashToGroup} & $\bits{0111010}$  & 58 \\
+    \TT{bls12\_381\_G1\_compress}    & $\bits{0111011}$  & 59 \\
+    \TT{bls12\_381\_G1\_uncompress}  & $\bits{0111100}$  & 60 \\
+    \TT{bls12\_381\_G2\_add}         & $\bits{0111101}$  & 61 \\
+    \TT{bls12\_381\_G2\_neg}         & $\bits{0111110}$  & 62 \\
+    \TT{bls12\_381\_G2\_scalarMul}   & $\bits{0111111}$  & 63 \\
+    \TT{bls12\_381\_G2\_equal}       & $\bits{1000000}$  & 64 \\
+    \TT{bls12\_381\_G2\_hashToGroup} & $\bits{1000001}$  & 65 \\
+    \TT{bls12\_381\_G2\_compress}    & $\bits{1000010}$  & 66 \\
+    \TT{bls12\_381\_G2\_uncompress}  & $\bits{1000011}$  & 67 \\
+    \TT{bls12\_381\_millerLoop}      & $\bits{1000100}$  & 68 \\
+    \TT{bls12\_381\_mulMlResult}     & $\bits{1000101}$  & 69 \\
+    \TT{bls12\_381\_finalVerify}     & $\bits{1000110}$  & 70 \\
+\hline
+\end{tabular}
+\caption{Extra tags for future builtins}
+\label{table:builtin-tags-future}
+\end{table}
+
+
 
 \subsubsection{Variable names}
 Variable names are encoded and decoded using the $\Ename$ and $\Dname$
