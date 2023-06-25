@@ -64,8 +64,8 @@ a,b \in \Fq\}$ where $u^2=-1$.
 It is convenient to say that an element $a$ of $\Fq$ is \textit{larger} than
 another element $b$ (and $b$ is \textit{smaller} than $a$) if $\tilde{a}
 > \tilde{b}$.  We extend this terminology to $\Fqq$ by saying that $a+bu$ is
-larger than $c+du$ if either $a$ is larger than $c$ or $a=c$ and $b$ is larger
-than $d$ (\red{this could be the wrong way round}).
+larger than $c+du$ if either $b$ is larger than $d$ or $b=d$ and $a$ is larger
+than $c$.  \red{Is this the right way round? Ie, we compare the $u$-parts first?}
 
 
 \medskip\noindent There are elliptic curves $E_1$ defined over $\Fq$:
@@ -115,7 +115,8 @@ but it must be an abelian group. See Note~\ref{note:pairing} for more on this.
     % (continued). Unfortunately it doesn't seem to be easy to do that in a
     % longtable.
     \endfoot
-    \caption[]{Built-in Functions (continued)}
+    \caption[]{Built-in Functions}
+%%    \caption[]{Built-in Functions (continued)}
     \label{table:future-built-in-functions}
     \endlastfoot
 %% G1
@@ -405,8 +406,8 @@ degree of $E_1$ and $E_2$ with respect to $r$ is 12 (see~\cite[4.1]{Costello-pai
 \end{itemize}
 
 \noindent The functions \texttt{millerLoop} and (especially) \texttt{finalVerify} are expected
-to be very expensive, so their use should be kept to a minimum.  Fortunately
-most current use cases do not require many uses of these functions.
+to be expensive, so their use should be kept to a minimum.  Fortunately most
+current use cases do not require many uses of these functions.
 
 %% \setlength{\LTleft}{-18mm} % Shift the table left a bit to centre it on the page
 %% \begin{longtable}[H]{|l|p{5cm}|p{5cm}|c|c|}
