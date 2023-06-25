@@ -12,6 +12,7 @@ module PlutusCore.Crypto.BLS12_381.G2
     , compress
     , uncompress
     , zero
+    , generator
     , memSizeBytes
     , compressedSizeBytes
     ) where
@@ -25,8 +26,8 @@ import PlutusCore.Pretty.PrettyConst (ConstConfig)
 import Text.PrettyBy (PrettyBy)
 
 import Control.DeepSeq (NFData, rnf, rwhnf)
-import Data.Bifunctor (second)
-import Data.ByteString (ByteString, length, pack)
+import Data.ByteString (ByteString, length)
+import Data.Coerce (coerce)
 import Data.Proxy (Proxy (..))
 import Flat
 import Prettyprinter
@@ -52,14 +53,14 @@ instance NFData Element where
 
 -- | Add two G2 group elements
 add :: Element -> Element -> Element
-add (Element a) (Element b) = Element $ BlstBindings.blsAddOrDouble @BlstBindings.Curve2 a b
+add = coerce BlstBindings.blsAddOrDouble
 
--- | Negate a G2group element
+-- | Negate a G2 group element
 neg :: Element -> Element
-neg (Element a) = Element $ BlstBindings.blsNeg @BlstBindings.Curve2 a
+neg = coerce BlstBindings.blsNeg
 
 scalarMul :: Integer -> Element -> Element -- Other way round from library function
-scalarMul k (Element a) = Element $ BlstBindings.blsMult @BlstBindings.Curve2 a k
+scalarMul = coerce $ flip BlstBindings.blsMult
 
 {- | Compress a G2 element to a bytestring. This serialises a curve point to its x
  coordinate only, using an extra bit to determine which of two possible y
@@ -67,7 +68,7 @@ scalarMul k (Element a) = Element $ BlstBindings.blsMult @BlstBindings.Curve2 a 
  https://github.com/supranational/blst#serialization-format
 -}
 compress :: Element -> ByteString
-compress (Element a) = BlstBindings.blsCompress @BlstBindings.Curve2 a
+compress = coerce BlstBindings.blsCompress
 
 {- | Uncompress a bytestring to get a G2 point.  This will fail if any of the
    following are true:
@@ -80,7 +81,7 @@ compress (Element a) = BlstBindings.blsCompress @BlstBindings.Curve2 a
 -}
 -- TODO: perhaps make this emit the error in the Left case.
 uncompress :: ByteString -> Either BlstBindings.BLSTError Element
-uncompress = second Element . BlstBindings.blsUncompress @BlstBindings.Curve2
+uncompress = coerce BlstBindings.blsUncompress
 
 -- Take an arbitrary bytestring and a Domain Separation Tag and hash them to a
 -- get point in G2.  See Note [Hashing and Domain Separation Tags].
@@ -88,18 +89,18 @@ hashToGroup :: ByteString -> ByteString -> Either BLS12_381_Error Element
 hashToGroup msg dst =
     if Data.ByteString.length dst > 255
     then Left HashToCurveDstTooBig
-    else Right . Element $ BlstBindings.blsHash @BlstBindings.Curve2 msg (Just dst) Nothing
-
-
--- Utilities (not exposed as builtins)
+    else Right . Element $ BlstBindings.blsHash msg (Just dst) Nothing
 
 -- | The zero element of G2
 zero :: Element
-zero =
-    let b = pack (0xc0 : replicate 95 0x00) -- Compressed serialised G2 points are bytestrings of length 96: see CIP-0381.
-    in case uncompress b of
-         Left err       -> error $ "Unexpected failure deserialising point at infinity on BLS12_381.G2:  " ++ show err
-         Right infinity -> infinity   -- The zero point on this curve is chosen to be the point at infinity.
+zero = coerce BlstBindings.Internal.blsZero
+
+-- | The standard generator of G2
+generator :: Element
+generator = coerce BlstBindings.Internal.blsGenerator
+
+
+-- Utilities (not exposed as builtins)
 
 -- | Memory usage of a G2 point (288 bytes)
 memSizeBytes :: Int
@@ -108,4 +109,3 @@ memSizeBytes = BlstBindings.Internal.sizePoint (Proxy @BlstBindings.Curve2)
 -- | Compressed size of a G2 point (96 bytes)
 compressedSizeBytes :: Int
 compressedSizeBytes = BlstBindings.Internal.compressedSizePoint (Proxy @BlstBindings.Curve2)
-
