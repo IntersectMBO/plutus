@@ -34,7 +34,6 @@ ren⋆ ρ (ƛ K A) = ƛ K (ren⋆ (lift⋆ ρ) A)
 ren⋆ ρ (A · B) = ren⋆ ρ A · ren⋆ ρ B
 ren⋆ ρ (con c) = con c
 ren⋆ ρ (μ A B) = μ (ren⋆ ρ A) (ren⋆ ρ B)
-ren⋆ ρ missing = missing
 
 ren⋆T : ∀{m n o} → Ren⋆ m n → Tel⋆ m o → Tel⋆ n o
 ren⋆T ρ⋆ []       = []
@@ -85,7 +84,6 @@ sub⋆ σ (ƛ K A) = ƛ K (sub⋆ (slift⋆ σ) A)
 sub⋆ σ (A · B) = sub⋆ σ A · sub⋆ σ B
 sub⋆ σ (con c) = con c
 sub⋆ σ (μ A B) = μ (sub⋆ σ A) (sub⋆ σ B)
-sub⋆ ρ missing = missing
 
 sub⋆T : ∀{m n o} → Sub⋆ m n → Tel⋆ m o → Tel⋆ n o
 sub⋆T σ⋆ []       = []
@@ -157,7 +155,6 @@ ren⋆-cong p (ƛ K A)     = cong (ƛ K) (ren⋆-cong (lift⋆-cong p) A)
 ren⋆-cong p (A · B)     = cong₂ _·_ (ren⋆-cong p A) (ren⋆-cong p B)
 ren⋆-cong p (con c)     = refl
 ren⋆-cong p (μ pat arg) = cong₂ μ (ren⋆-cong p pat) (ren⋆-cong p arg)
-ren⋆-cong p missing     = refl
 
 slift⋆-cong : ∀{m n}{ρ ρ' : Sub⋆ m n}
   → (∀ x → ρ x ≡ ρ' x)
@@ -175,7 +172,6 @@ sub⋆-cong p (ƛ K A)     = cong (ƛ K) (sub⋆-cong (slift⋆-cong p) A)
 sub⋆-cong p (A · B)     = cong₂ _·_ (sub⋆-cong p A) (sub⋆-cong p B)
 sub⋆-cong p (con c)     = refl 
 sub⋆-cong p (μ pat arg) = cong₂ μ (sub⋆-cong p pat) (sub⋆-cong p arg)
-sub⋆-cong p missing     = refl
 
 sub-cons : ∀{n n'}{w : Weirdℕ n}{w' : Weirdℕ n'} → Sub w w' → ScopedTm w' →
   Sub (S w) w'

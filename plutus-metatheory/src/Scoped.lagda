@@ -40,7 +40,6 @@ data ScopedTy (n : ℕ) : Set where
   _·_  : ScopedTy n → ScopedTy n → ScopedTy n
   con  : ∀{K} → TyCon K → ScopedTy n
   μ    : ScopedTy n → ScopedTy n → ScopedTy n
-  missing : ScopedTy n -- for when things compute to error
 
 Tel⋆ : ℕ → ℕ → Set
 Tel⋆ n m = Vec (ScopedTy n) m
@@ -283,7 +282,6 @@ extricateScopeTy (con (atomic x)) = con (atomic x)
 extricateScopeTy (con list) = con list
 extricateScopeTy (con pair) = con pair
 extricateScopeTy (μ A B)    = μ (extricateScopeTy A) (extricateScopeTy B)
-extricateScopeTy missing    = con (atomic aBool) -- TODO
 
 extricateScope : ∀{n}{w : Weirdℕ n} → ScopedTm w → RawTm
 extricateScope (` x) = ` (WeirdFintoℕ x)

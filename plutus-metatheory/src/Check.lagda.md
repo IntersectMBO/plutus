@@ -120,18 +120,18 @@ isPat : ∀{Φ}
        → Σ Kind (Φ ⊢Nf⋆_)
        → Either TypeError (Σ Kind λ K → Φ ⊢Nf⋆ (K ⇒ *) ⇒ (K ⇒ *))
 isPat (* ,, A) = inj₁ (notPat * λ _ ())
-isPat (♯ ,, A) = inj₁ (notPat * λ _ ())
-isPat ((* ⇒ K₁) ,, A) = inj₁ (notPat * λ _ ())
-isPat ((♯ ⇒ K₁) ,, A) = inj₁ (notPat * λ _ ())
-isPat (((K ⇒ K₂) ⇒ *) ,, A) = inj₁ (notPat * λ _ ())
-isPat (((K ⇒ K₂) ⇒ ♯) ,, A) = inj₁ (notPat * λ _ ())
+isPat (♯ ,, A) = inj₁ (notPat ♯ λ _ ())
+isPat ((* ⇒ K₁) ,, A) = inj₁ (notPat (* ⇒ K₁) λ _ ())
+isPat ((♯ ⇒ K₁) ,, A) = inj₁ (notPat (♯ ⇒ K₁) λ _ ())
+isPat (((K ⇒ K₂) ⇒ *) ,, A) = inj₁ (notPat ((K ⇒ K₂) ⇒ *) λ _ ())
+isPat (((K ⇒ K₂) ⇒ ♯) ,, A) = inj₁ (notPat ((K ⇒ K₂) ⇒ ♯) λ _ ())
 isPat (((K ⇒ *) ⇒ (K₁ ⇒ *)) ,, A) = do
       refl ← withE (kindMismatch _ _) (dec2Either (decKind K K₁))
       return (K ,, A) 
-isPat (((K ⇒ *) ⇒ (K₁ ⇒ ♯)) ,, A) = inj₁ (notPat * λ _ ())
-isPat (((K ⇒ *) ⇒ (K₁ ⇒ (K₃ ⇒ K₄))) ,, A) = inj₁ (notPat * λ _ ())
-isPat (((K ⇒ ♯) ⇒ (K₁ ⇒ K₃)) ,, A) = inj₁ (notPat * λ _ ())
-isPat (((K ⇒ (K₂ ⇒ K₄)) ⇒ (K₁ ⇒ K₃)) ,, A) = inj₁ (notPat * λ _ ())
+isPat (((K ⇒ *) ⇒ (K₁ ⇒ ♯)) ,, A) = inj₁ (notPat ((K ⇒ *) ⇒ (K₁ ⇒ ♯)) λ _ ())
+isPat (((K ⇒ *) ⇒ (K₁ ⇒ (K₃ ⇒ K₄))) ,, A) = inj₁ (notPat ((K ⇒ *) ⇒ (K₁ ⇒ (K₃ ⇒ K₄))) λ _ ())
+isPat (((K ⇒ ♯) ⇒ (K₁ ⇒ K₃)) ,, A) = inj₁ (notPat ((K ⇒ ♯) ⇒ (K₁ ⇒ K₃)) λ _ ())
+isPat (((K ⇒ (K₂ ⇒ K₄)) ⇒ (K₁ ⇒ K₃)) ,, A) = inj₁ (notPat ((K ⇒ (K₂ ⇒ K₄)) ⇒ (K₁ ⇒ K₃)) λ _ ())
 
 isPi :  ∀{Φ Γ}
        → Σ (Φ ⊢Nf⋆ *) (Γ ⊢_)
@@ -168,7 +168,7 @@ We have two base kinds, * and ♯, and we have an embedding of ♯ into *
          ------
        → Φ ⊢⋆ *
 
-Hence, when inferring a kind we sometimes nned to decide if we want a ♯ kind or a * kind. For example,
+Hence, when inferring a kind we sometimes need to decide if we want a ♯ kind or a * kind. For example,
 
   con (atomic aInteger) : ScopedTy 0 
 
@@ -240,7 +240,6 @@ inferKind Φ (μ A B) = do
           K ,, A ← isPat KA
           B ← checkKind Φ B K
           return (* ,, μ A B)
-inferKind Φ missing = inj₁ UnknownType
 ```
 
 Some examples to check that everything is working as expected

@@ -205,16 +205,6 @@ data Kind : Set where
   ♯   : Kind               -- builtin
   _⇒_ : Kind → Kind → Kind -- function kind
 
--- {-# FOREIGN GHC import PlutusCore                       #-}
--- {-# FOREIGN GHC {-# LANGUAGE GADTs, PatternSynonyms #-} #-}
-
--- {-# FOREIGN GHC type KIND = Kind ()                     #-}
-
--- {-# FOREIGN GHC pattern Star    = Type ()               #-}
-
--- {- TODO: Map Sharp to the correct kind once it is added to the Haskell implementation -}
--- {-# FOREIGN GHC pattern Sharp   = Type ()               #-}
--- {-# FOREIGN GHC pattern Arrow k j = KindArrow () k j    #-}
 {-# COMPILE GHC Kind = data KIND (Star | Sharp | Arrow )         #-}
 \end{code}
 
