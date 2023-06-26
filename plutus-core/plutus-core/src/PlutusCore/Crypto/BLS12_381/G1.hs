@@ -66,16 +66,19 @@ instance NFData Element where
     rnf (Element x) = rwhnf x  -- Just to be on the safe side.
 
 -- | Add two G1 group elements
+{-# INLINE add #-}
 add :: Element -> Element -> Element
 add = coerce BlstBindings.blsAddOrDouble
 
 -- | Negate a G1 group element
+{-# INLINE neg #-}
 neg :: Element -> Element
 neg = coerce BlstBindings.blsNeg
 
 -- | Multiplication of group elements by scalars. In the blst library the
 -- arguments are the other way round, but scalars acting on the left is more
 -- consistent with standard mathematical practice.
+{-# INLINE scalarMul #-}
 scalarMul :: Integer -> Element -> Element
 scalarMul = coerce $ flip BlstBindings.blsMult
 
@@ -86,6 +89,7 @@ scalarMul = coerce $ flip BlstBindings.blsMult
  point is the point at infinity. See
  https://github.com/supranational/blst#serialization-format
 -}
+{-# INLINE compress #-}
 compress :: Element -> ByteString
 compress = coerce BlstBindings.blsCompress
 
@@ -98,6 +102,7 @@ compress = coerce BlstBindings.blsCompress
      * The bytestring does represent a point on the E1 curve, but the
        point is not in the G1 subgroup.
 -}
+{-# INLINE uncompress #-}
 uncompress :: ByteString -> Either BlstBindings.BLSTError Element
 uncompress = coerce BlstBindings.blsUncompress
 
