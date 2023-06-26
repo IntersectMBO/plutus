@@ -1,4 +1,69 @@
 
+<a id='changelog-1.8.0.0'></a>
+# 1.8.0.0 — 2023-06-22
+
+## Added
+
+- Three new types for BLS12-381 objects (see CIP-0381).
+- Seventeen new built-in functions for BLS12-381 operations (see CIP-0381).
+- Costing benchmarks for the BLS12-381 builtins.
+- R code to infer cost models for the BLS12-381 builtins.
+- Property tests for the BLS12-381 builtins.
+- Code for Haskell bindings to the`blst` library has been added in `cbits` and
+  `plutus-core/src/Crypto/External/`.  These have been copied from PR #266
+  in `cardano-base` and will be removed when that is merged.
+
+- A special case of case-of-case optimization for UPLC, where the inner case is
+  an `ifThenElse` application.
+
+- Added `PlutusCore.MkPlc.mkIterAppNoAnn`, `PlutusCore.MkPlc.mkIterInstNoAnn` and
+  `PlutusCore.MkPlc.mkIterTyAppNoAnn`.
+
+- Callsite inlining for UPLC.
+
+- An `apply-to-data` command was added to the `plc` and `uplc` executables which
+  allows a script to be applied to a list of flat-encoded data objects (the
+  existing `apply` command requires all inputs to be programs).
+
+- Added `commuteFnWithConst` to the PIR simplifier pass.
+
+## Changed
+
+- The PLC, UPLC, and PIR parsers accept names quoted in backticks. Quoted names may have symbolic characters.
+
+- Costing functions for the BLS12-381 builtins were added to `builtinCostModel.json`.
+- Costing benchmark results for the BLS12-381 builtins were added to `benching.csv`.
+- Some of the R code in `models.R` was improved.
+- The files in `plutus-core/src/crypto` were reorganised to put code relating to
+  different sets of crypto functions into separate files.
+
+- Improved the inlining of fully saturated functions such that it measures the size
+  differences more accurately, and also performs beta reduction after inlining.
+
+- Changed `PlutusCore.MkPlc.mkIterApp`, `PlutusCore.MkPlc.mkIterInst` and
+  `PlutusCore.MkPlc.mkIterTyApp` to require an annotation to be provided
+  for each argument.
+
+- Updated the parser and the pretty-printers to the new syntax of `Data` in [#5391](https://github.com/input-output-hk/plutus/pull/5391) according to [this](https://github.com/input-output-hk/plutus/issues/4751#issuecomment-1538377273), for example:
+
+```
+Constr 1
+  [ Map [(B #616263646566, Constr 2 [B #, I 0])]
+  , List
+      [ List
+          [ List [List [I 123456]]
+          , B #666666666666666666666666666666666666666666666666666666666666666666666666666666666666 ] ]
+  , I 42 ]
+```
+
+## Fixed
+
+- The plc and uplc commands were failing to account for the new Constr and Case
+  constructors for sums of products.
+
+- Fixed `PlutusIR.Purity.firstEffectfulTerm` and `UntypedPlutusCore.Transform.Inline.firstEffectfulTerm`,
+  which were sometimes too conservative and sometimes incorrect.
+
 <a id='changelog-1.7.0.0'></a>
 # 1.7.0.0 — 2023-05-22
 
