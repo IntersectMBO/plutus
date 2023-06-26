@@ -1,6 +1,8 @@
 # Experimental version of Marlowe validator for Cardano, with minimal dependencies
 
-This package is fully representative version of the Marlowe validator on chain. It is primarily for benchmarking/profiling Marlowe scripts. 
+## `marlowe-internal`
+
+This package is a fully representative version of the Marlowe validator on chain, currently. (See the "Managing versions" section below) It is primarily for benchmarking/profiling Marlowe scripts. 
 
 Marlowe is a platform for financial products as smart contracts. [Marlowe-Cardano](https://github.com/input-output-hk/marlowe-cardano) is an implementation of Marlowe for the Cardano blockchain, built on top of Plutus.
 
@@ -15,7 +17,7 @@ It would be informative for both the Plutus and Marlowe teams to investigate in 
 
 (1) Benchmarking: compare the budget before and after optimizations that the Plutus team implemented. It could be helpful to do the benchmarking *as* we implement the optimization even.
 
-The benchmarking portion of the code lives in `plutus-benchmark`, which imports this package.
+The benchmarking portion of the code lives in `marlowe/bench`(TODO), which depends on this package.
 
 (2) Profiling: look at each script in more detail, what functions are taking up the most budget? How can they be optimized?
 
@@ -37,30 +39,17 @@ For documentation on Plutus vs PLC vs protocol version, see [here](https://githu
 
 ## Running the benchmarks with executable `marlowe-validators`
 
-The application `marlowe-validators` serialises the two Marlowe validator scripts, computes their hashes, and runs all of the benchmarks, storing the results in a pair of tab-separated-value files.
+The application `marlowe-validators` works with scripts in the `plutus-benchmark/marlowe/exe/scripts/rolepayout` and `plutus-benchmark/marlowe/exe/scripts/semantics` directories. It serialises the two Marlowe validator scripts, computes their hashes, and runs all of the benchmarks, storing the results in a pair of tab-separated-value files.
 
-```bash
-cabal run exe:marlowe-validators
-```
+In `plutus-benchmark/marlowe/src/Language/Marlowe/Scripts.hs`, the plugin option to dump Plutus programs is turned on. Therefore, running the executable dumps the initial and simplified PIR program and the typed and untyped PLC program. You can find them in the `plutus/plutus-benchmark` directory. The dumped files are named with the module name followed by a brief description and ".flat".
 
-```console
-Semantics:
-  Validator hash: 626424dba5741cb1f0a3cab8643da59ffccba351495c4257f9ec3689
-  Validator file: marlowe-semantics.plutus
-  Measurements file: marlowe-semantics.tsv
+Running `cabal run marlowe-validators` outputs the following files:
 
-Role payout:
-  Validator hash: fb5a52cc79da601eff8901272d3115444c1cd1ae82dd42caeee7346b
-  Validator file: marlowe-rolepayout.plutus
-  Measurements file: marlowe-rolepayout.tsv
-```
-
-The following files are output:
-- For Marlowe's semantics valdator
+- For Marlowe's semantics validator
     - Plutus script: `marlowe-semantics.plutus`
     - Benchmarking results: `marlowe-semantics.tsv`   
     - Flat UPLC files: `benchmarks/semantics/*-uplc.flat`
-- For Marlowe's role-payout valdator
+- For Marlowe's role-payout validator
     - Plutus script: `marlowe-rolepayout.plutus`
     - Benchmarking results: `marlowe-rolepayout.tsv`   
     - Flat UPLC files: `benchmarks/rolepayout/*-uplc.flat`
