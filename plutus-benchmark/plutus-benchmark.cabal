@@ -496,10 +496,10 @@ library marlowe-internal
     , bytestring
     , cardano-crypto-class  >=2.0.0.1 && <2.2
     , newtype-generics
-    , plutus-core           ^>=1.7
+    , plutus-core           ^>=1.8
     , plutus-ledger-api
-    , plutus-tx             ^>=1.7
-    , plutus-tx-plugin      ^>=1.7
+    , plutus-tx             ^>=1.8
+    , plutus-tx-plugin      ^>=1.8
 
   exposed-modules:
     Language.Marlowe.Core.V1.Semantics
@@ -533,7 +533,7 @@ executable marlowe-validators
     , marlowe-internal
     , mtl
     , plutus-benchmark-common
-    , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.7
+    , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.8
     , plutus-ledger-api
-    , plutus-tx                                       ^>=1.7
+    , plutus-tx                                       ^>=1.8
     , serialise
