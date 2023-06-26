@@ -1,7 +1,0 @@
-*.flat
-*.plutus
-*.tsv
-*.png
-.cache/
-.ipynb_checkpoints/
-*.ipynb

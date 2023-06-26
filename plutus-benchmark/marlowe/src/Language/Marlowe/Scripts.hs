@@ -95,8 +95,8 @@ import PlutusTx.Prelude as PlutusTxPrelude (AdditiveGroup ((-)), AdditiveMonoid 
                                             BuiltinData, BuiltinString, Enum (fromEnum), Eq (..),
                                             Functor (fmap), Integer, Maybe (..), Ord ((>)),
                                             Semigroup ((<>)), all, any, check, elem, error, filter,
-                                            find, foldMap, fromMaybe, id, null, otherwise, snd,
-                                            toBuiltin, ($), (&&), (.), (/=), (||))
+                                            find, foldMap, id, null, otherwise, snd, toBuiltin, ($),
+                                            (&&), (.), (/=), (||))
 
 import Cardano.Crypto.Hash qualified as Hash
 import Data.ByteString qualified as BS
