@@ -57,7 +57,7 @@ add :: Element -> Element -> Element
 add = coerce BlstBindings.blsAddOrDouble
 
 -- | Negate a G2 group element
-{-# INLINE new #-}
+{-# INLINE neg #-}
 neg :: Element -> Element
 neg = coerce BlstBindings.blsNeg
 
