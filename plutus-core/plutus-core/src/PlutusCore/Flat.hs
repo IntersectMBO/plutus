@@ -384,7 +384,7 @@ deriving newtype instance Flat (Binder NamedDeBruijn)
 deriving newtype instance Flat (Binder NamedTyDeBruijn)
 
 {- This instance is going via Flat DeBruijn.
-FakeNamedDeBruijn<->DeBruijn are isomorphic: we could use iso-deriving package,
+FakeNamedDeBruijn <-> DeBruijn are isomorphic: we could use iso-deriving package,
 but we do not need any other isomorphic Flat deriving for the moment.
 See NOTE: [Why newtype FakeNamedDeBruijn]
 -}
@@ -394,8 +394,8 @@ instance Flat FakeNamedDeBruijn where
     decode =  toFake <$> decode
 
 {- This instance is going via Flat (Binder DeBruijn) instance.
-Binder FakeNamedDeBruijn <->Binder DeBruijn are isomorphic because
-FakeNamedDeBruijn<->DeBruijn are isomorphic and Binder is a functor:
+Binder FakeNamedDeBruijn <-> Binder DeBruijn are isomorphic because
+FakeNamedDeBruijn <-> DeBruijn are isomorphic and Binder is a functor:
 we could use iso-deriving package,
 but  we do not need any other isomorphic Flat deriving for the moment.
 See NOTE: [Why newtype FakeNamedDeBruijn]

@@ -12,8 +12,8 @@ import PlutusCore.Quote
 import PlutusCore.StdLib.Data.Bool
 import PlutusPrelude
 import UntypedPlutusCore as UPLC
-import UntypedPlutusCore.Test.DeBruijn
 import UntypedPlutusCore.Test.DeBruijn.Bad
+import UntypedPlutusCore.Test.DeBruijn.Good
 
 import Control.Monad.Except
 import Control.Monad.State
@@ -55,6 +55,9 @@ testsDefault =
     ,("failApply01", manyFree01)
     ]
 
+-- | This is testing the (non-default) behavior of undebruijnification where
+-- free debruijn indices are gracefully (without throwing an error) converted to fresh uniques.
+-- See `freeIndexAsConsistentLevel`
 testsGrace :: [(String, T)]
 testsGrace =
     [("graceTop", Delay () var0)

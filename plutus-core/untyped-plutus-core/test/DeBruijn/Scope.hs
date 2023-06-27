@@ -8,8 +8,8 @@ import PlutusCore.MkPlc
 import PlutusCore.StdLib.Data.Unit
 import PlutusPrelude
 import UntypedPlutusCore
-import UntypedPlutusCore.Test.DeBruijn
 import UntypedPlutusCore.Test.DeBruijn.Bad
+import UntypedPlutusCore.Test.DeBruijn.Good
 
 import Control.Monad.Except
 import Test.Tasty.Extras

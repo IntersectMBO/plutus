@@ -228,14 +228,14 @@ mkIterApp = foldl' $ \acc (ann, arg) -> apply ann acc arg
 mkIterAppNoAnn
     :: TermLike term tyname name uni fun
     => term () -- ^ @f@
-    -> [term ()] -- ^@[ x0 ... xn ]@
+    -> [term ()] -- ^ @[ x0 ... xn ]@
     -> term () -- ^ @[f x0 ... xn ]@
 mkIterAppNoAnn term = mkIterApp term . fmap ((),)
 
 -- | An infix synonym for `mkIterAppNoAnn`
 (@@) :: TermLike term tyname name uni fun
      => term () -- ^ @f@
-     -> [term ()] -- ^@[ x0 ... xn ]@
+     -> [term ()] -- ^ @[ x0 ... xn ]@
      -> term () -- ^ @[f x0 ... xn ]@
 (@@) = mkIterAppNoAnn
 

@@ -1,5 +1,6 @@
-{-# LANGUAGE TypeFamilies #-}
-module UntypedPlutusCore.Test.DeBruijn
+{-# LANGUAGE TypeFamilies  #-}
+{-# LANGUAGE TypeOperators #-}
+module UntypedPlutusCore.Test.DeBruijn.Good
     ( lamAbs0
     , idFun0
     , const0

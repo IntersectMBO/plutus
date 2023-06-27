@@ -9,7 +9,7 @@ module UntypedPlutusCore.DeBruijn
     , DeBruijn (..)
     , NamedDeBruijn (..)
     -- we follow the same approach as Renamed, expose the constructor from Internal module,
-    -- but hide it on the parent module.
+    -- but hide it in the parent module.
     , FakeNamedDeBruijn (unFakeNamedDeBruijn)
     , FreeVariableError (..)
     , AsFreeVariableError (..)

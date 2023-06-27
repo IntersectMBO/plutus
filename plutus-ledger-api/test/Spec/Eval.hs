@@ -11,8 +11,8 @@ import PlutusLedgerApi.Common.Versions
 import PlutusLedgerApi.Test.EvaluationContext (evalCtxForTesting)
 import PlutusLedgerApi.V1 as Api
 import UntypedPlutusCore as UPLC
-import UntypedPlutusCore.Test.DeBruijn
 import UntypedPlutusCore.Test.DeBruijn.Bad
+import UntypedPlutusCore.Test.DeBruijn.Good
 
 import Data.Either
 import Test.Tasty

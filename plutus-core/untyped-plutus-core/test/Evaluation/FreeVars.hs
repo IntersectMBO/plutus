@@ -11,8 +11,8 @@ import PlutusPrelude
 import UntypedPlutusCore as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek
 import UntypedPlutusCore.Evaluation.Machine.Cek.Internal
-import UntypedPlutusCore.Test.DeBruijn
 import UntypedPlutusCore.Test.DeBruijn.Bad
+import UntypedPlutusCore.Test.DeBruijn.Good
 
 import Test.Tasty
 import Test.Tasty.HUnit

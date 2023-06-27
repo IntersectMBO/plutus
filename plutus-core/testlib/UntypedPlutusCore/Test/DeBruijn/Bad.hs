@@ -29,7 +29,7 @@ import PlutusCore.StdLib.Data.Bool
 import PlutusCore.StdLib.Data.Unit
 import PlutusPrelude
 import UntypedPlutusCore
-import UntypedPlutusCore.Test.DeBruijn
+import UntypedPlutusCore.Test.DeBruijn.Good
 
 -- | A definitely out-of-scope variable. Our variables start by 1.
 var0 :: Term DeBruijn uni fun ()
@@ -78,8 +78,8 @@ deepOutMix1_0 n = timesA n lamAbs1 $
                     timesA n lamAbs0 $
                         Var () $ DeBruijn $ fromIntegral $ n+n+1
 
--- | [(force (builtin ifThenElse)) (con bool True) (con bool True) var99]
--- Both branches are evaluate *before* the predicate,
+-- | [(force (builtin ifThenElse) (con bool True) (con bool True) var99]
+-- Both branches are evaluated *before* the predicate,
 -- so it is clear that this should fail in every case.
 iteStrict0 :: Term DeBruijn DefaultUni DefaultFun ()
 iteStrict0 = mkIterAppNoAnn
@@ -89,7 +89,7 @@ iteStrict0 = mkIterAppNoAnn
              , var0 -- else
              ]
 
--- | [(force (builtin ifThenElse)) (con bool True) (delay true) (delay var99)]
+-- | [(force (builtin ifThenElse) (con bool True) (delay true) (delay var99)]
 -- The branches are *lazy*. The evaluation result (success or failure) depends on how the machine
 -- ignores  the irrelevant to the computation) part of the environment.
 iteLazy0 :: Term DeBruijn DefaultUni DefaultFun ()
@@ -100,7 +100,7 @@ iteLazy0 = mkIterAppNoAnn
          , Delay () var0 -- else
          ]
 
--- | [(force (builtin ifThenElse)) (con bool True) (lam0 var1) (lam1 var0)]
+-- | [(force (builtin ifThenElse) (con bool True) (lam0 var1) (lam1 var0)]
 ite10 :: Term DeBruijn DefaultUni DefaultFun ()
 ite10 = mkIterAppNoAnn
          (Force () (Builtin () IfThenElse))
@@ -120,7 +120,7 @@ manyFree01 = timesA 5 (Apply () (timesA 10 forceDelay var0)) $
 
 -- * Examples will ill-typed terms
 
--- | [(force (builtin ifThenElse)) (con bool True) (con bool  True) (con unit ())]
+-- | [(force (builtin ifThenElse) (con bool True) (con bool  True) (con unit ())]
 -- Note that the branches have **different** types. The machine cannot catch such a type error.
 illITEStrict :: Term DeBruijn DefaultUni DefaultFun ()
 illITEStrict = mkIterAppNoAnn
@@ -130,7 +130,7 @@ illITEStrict = mkIterAppNoAnn
          , unitval -- else
          ]
 
--- | [(force (builtin ifThenElse)) (con bool True) (lam x (con bool  True)) (lam x (con unit ()))]
+-- | [(force (builtin ifThenElse) (con bool True) (lam x (con bool  True)) (lam x (con unit ()))]
 -- The branches are *lazy*. Note that the branches have **different** types.
 -- The machine cannot catch such a type error.
 illITELazy :: Term DeBruijn DefaultUni DefaultFun ()

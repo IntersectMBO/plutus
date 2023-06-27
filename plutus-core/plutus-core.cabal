@@ -668,8 +668,8 @@ library plutus-core-testlib
     PlutusIR.Generators.QuickCheck.ShrinkTerms
     PlutusIR.Test
     Test.Tasty.Extras
-    UntypedPlutusCore.Test.DeBruijn
     UntypedPlutusCore.Test.DeBruijn.Bad
+    UntypedPlutusCore.Test.DeBruijn.Good
 
   build-depends:
     , base                                  >=4.9     && <5

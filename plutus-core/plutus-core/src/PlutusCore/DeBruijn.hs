@@ -10,7 +10,7 @@ module PlutusCore.DeBruijn
     , DeBruijn (..)
     , NamedDeBruijn (..)
     -- we follow the same approach as Renamed, expose the constructor from Internal module,
-    -- but hide it on this parent module.
+    -- but hide it in this parent module.
     , FakeNamedDeBruijn (unFakeNamedDeBruijn)
     , TyDeBruijn (..)
     , NamedTyDeBruijn (..)
