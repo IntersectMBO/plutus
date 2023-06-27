@@ -1,7 +1,5 @@
-{-# LANGUAGE CPP              #-}
 {-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE TypeApplications #-}
-#include "MachDeps.h"
 -- | Check compatibility of Flat Natural to Flat Word64
 -- needed for Index (de)serialization see Note [DeBruijn Index serialization]
 module DeBruijn.FlatNatWord (test_flatNatWord) where
@@ -85,26 +83,14 @@ test_flatNatWord = testNested "FlatNatWord" $ fmap pure
 
 -- * Old implementation of Flat Index copy-pasted and renamed to OldIndex
 
-{- | We only support 64-bit architectures, see Note [Index (Word64) (de)serialized through Natural].
-This implementation is safe w.r.t. cross-compilation, because WORD_SIZE_IN_BITS will point
-to the compiler's target word size when compiling this module.
+{- |
+The old implementation relied on this function which is safe
+*only* for 64-bit systems. There were previously safety checks to fail compilation
+on other systems, but we removed them  since we only test on 64-bit systems afterall.
 -}
 {-# INLINABLE naturalToWord64Maybe #-}
 naturalToWord64Maybe :: Natural -> Maybe Word64
-naturalToWord64Maybe n =
-#if WORD_SIZE_IN_BITS == 64
-    fromIntegral <$> naturalToWordMaybe n
-#else
-
-{- HLint does not know about WORD_SIZE_IN_BITS, so it calls cpphs to preprocess away these lines;
-cpphs fails on encountering the #error cpp directive (as it should).
-HLint treats this cpphs failure as an hlint failure. Skip HLint then.
--}
-#ifndef __HLINT__
-#error unsupported WORD_SIZE_IN_BITS. We only support 64-bit architectures.
-#endif
-
-#endif
+naturalToWord64Maybe n = fromIntegral <$> naturalToWordMaybe n
 
 newtype OldIndex = OldIndex {unOldIndex :: Word64}
   deriving stock (Generic)
