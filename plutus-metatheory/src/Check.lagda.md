@@ -94,10 +94,6 @@ inferTyVar : ∀ Φ (i : Fin (len⋆ Φ)) → Σ Kind (Φ ∋⋆_)
 inferTyVar (Φ ,⋆ K) zero    = K ,, Z
 inferTyVar (Φ ,⋆ K) (suc i) = let J ,, α = inferTyVar Φ i in  J ,, S α
 
-⊎bind : {A B C : Set} → A ⊎ C → (A → B ⊎ C) → B ⊎ C
-⊎bind (inj₁ a) f = f a
-⊎bind (inj₂ c) f = inj₂ c
-
 decKind : (K K' : Kind) → Dec (K ≡ K')
 decKind * * = yes refl
 decKind ♯ ♯ = yes refl
@@ -188,7 +184,18 @@ this condition  when checking kinds and allow
        we "downgrade" the type to A of kind `♯`. 
   2. Checking a `♯`-kinded type against `*`: 
        we "upgrade" the type to `*` using `con`.
+
+Another option to one may try is to leave alone kind `♯` and only upgrade it as
+needed. However, this is not easy, as when one detects the need to upgrade a ♯ 
+to *, it might be too late. One example of this, would be in the case of `μ`, 
+where one needs a kind (K ⇒ *) ⇒ (K ⇒ *). Here, it is difficult to upgrade a 
+kind (K ⇒ ♯) ⇒ (K ⇒ ♯) because one would need to find the places inside the type
+to insert the appropriate `con`s.
+ 
 ```
+inferTyCon : ∀ {Φ} {K} → TyCon K → Σ Kind (Φ ⊢Nf⋆_)
+inferTyCon {K = K} tycon = K ,, (ne (^ tycon))
+
 checkKind : ∀ Φ (A : ScopedTy (len⋆ Φ)) → ∀ K → Either TypeError (Φ ⊢Nf⋆ K)
 inferKind : ∀ Φ (A : ScopedTy (len⋆ Φ)) → Either TypeError (Σ Kind (Φ ⊢Nf⋆_))
 
@@ -232,9 +239,7 @@ inferKind Φ (A · B) =  do
           (K ,, J ,, A) ← isFunKind KA
           B ← checkKind Φ B K
           return (addCon (J ,, nf (embNf A · embNf B)))
-inferKind Φ (con {♯} tc) = return (* ,, con (ne (^ tc)))
-inferKind Φ (con list) = return (♯ ⇒ ♯ ,, ne (^ list))
-inferKind Φ (con pair) = return (♯ ⇒ ♯ ⇒ ♯ ,, ne (^ pair)) 
+inferKind Φ (con tc) = return (addCon (inferTyCon tc))
 inferKind Φ (μ A B) = do
           KA ← inferKind Φ A
           K ,, A ← isPat KA
@@ -247,7 +252,7 @@ Some examples to check that everything is working as expected
 ```
 private module _ where 
 
-  int : ScopedTy 0
+  int : ∀{n} → ScopedTy n
   int = con (atomic aInteger)
    
   -- integer
@@ -283,6 +288,10 @@ private module _ where
 
   -- The variable to which we apply the list cannot be *
   _ : inferKind ∅ (Π * (con list · ` zero)) ≡ inj₁ (kindMismatch ♯ * (λ ()))
+  _ = refl
+
+  -- Some mu type, where we need to upgrade ♯.
+  _ : inferKind ∅ (μ (ƛ (* ⇒ *) (ƛ * int)) int) ≡ inj₂ (* ,, μ (ƛ (ƛ (con (ne (^ (atomic aInteger)))))) (con (ne (^ (atomic aInteger)))))
   _ = refl
 ```
 

@@ -143,7 +143,8 @@ ty≅sty₂ (list A) = cong list (ty≅sty₂ A)
 ty≅sty₂ (pair A B) = cong₂ pair (ty≅sty₂ A) (ty≅sty₂ B)
 \end{code}
 
-The semantics of types is given by the following interpretation function
+The semantics of closed types of kind ♯ is given by the following 
+interpretation function
 
 \begin{code}
 ⟦_⟧ : (ty : ∅ ⊢Nf⋆ ♯) → Set
