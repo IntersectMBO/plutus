@@ -5,6 +5,8 @@
 -- | Support for using de Bruijn indices for term names.
 module UntypedPlutusCore.DeBruijn
     ( Index (..)
+    , Level (..)
+    , LevelInfo (..)
     , HasIndex (..)
     , DeBruijn (..)
     , NamedDeBruijn (..)
@@ -55,7 +57,7 @@ unDeBruijnTerm = unDeBruijnTermWith freeIndexThrow
 -- | Takes a "handler" function to execute when encountering free variables.
 deBruijnTermWith
     :: Monad m
-    => (Unique -> ReaderT Levels m Index)
+    => (Unique -> ReaderT LevelInfo m Index)
     -> Term Name uni fun ann
     -> m (Term NamedDeBruijn uni fun ann)
 deBruijnTermWith = (runDeBruijnT .) . deBruijnTermWithM
@@ -63,13 +65,13 @@ deBruijnTermWith = (runDeBruijnT .) . deBruijnTermWithM
 -- | Takes a "handler" function to execute when encountering free variables.
 unDeBruijnTermWith
     :: MonadQuote m
-    => (Index -> ReaderT Levels m Unique)
+    => (Index -> ReaderT LevelInfo m Unique)
     -> Term NamedDeBruijn uni fun ann
     -> m (Term Name uni fun ann)
 unDeBruijnTermWith = (runDeBruijnT .) . unDeBruijnTermWithM
 
 deBruijnTermWithM
-    :: MonadReader Levels m
+    :: MonadReader LevelInfo m
     => (Unique -> m Index)
     -> Term Name uni fun ann
     -> m (Term NamedDeBruijn uni fun ann)
@@ -95,7 +97,7 @@ deBruijnTermWithM h = go
 
 -- | Takes a "handler" function to execute when encountering free variables.
 unDeBruijnTermWithM
-    :: (MonadReader Levels m, MonadQuote m)
+    :: (MonadReader LevelInfo m, MonadQuote m)
     => (Index -> m Unique)
     -> Term NamedDeBruijn uni fun ann
     -> m (Term Name uni fun ann)
