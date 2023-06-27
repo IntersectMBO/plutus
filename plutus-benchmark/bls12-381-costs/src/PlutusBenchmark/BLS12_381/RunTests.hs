@@ -49,11 +49,6 @@ printCosts_Pairing h = do
         script = mkPairingScript p1 p2 q1 q2
     printSizeStatistics h NoSize script
 
-printCosts_Groth16Verify :: Handle -> IO ()
-printCosts_Groth16Verify h = do
-  let script = mkGroth16VerifyScript
-  printSizeStatistics h NoSize script
-
 runTests :: Handle -> IO ()
 runTests h = do
 
@@ -84,7 +79,7 @@ runTests h = do
 
   hPrintf h "Groth16 verification example\n\n"
   printHeader h
-  printCosts_Groth16Verify h
+  printSizeStatistics h NoSize mkGroth16VerifyScript
   hPrintf h "\n"
 
   if checkGroth16Verify_Haskell
