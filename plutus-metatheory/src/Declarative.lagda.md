@@ -17,20 +17,21 @@ open Ctx⋆
 open _⊢⋆_
 open _∋⋆_
 
-open import Type.RenamingSubstitution using (weaken;sub;Ren;ren;Sub;_[_])
+open import Type.RenamingSubstitution using (weaken;sub;Ren;ren;Sub;_[_];sub∅;sub∅-ren;sub∅-sub)
 open import Type.Equality using (_≡β_)
 open import Builtin using (Builtin;signature)
 open Builtin.Builtin
 
-open import Builtin.Signature using (nat2Ctx⋆;fin2∈⋆)
-
-open import Utils using (Kind;*;_⇒_;K)
+open import Utils using (Kind;*;♯;_⇒_;K)
 open import Builtin.Constant.Type using (TyCon)
 open TyCon
 
-open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con using (TermCon)
-
-open Builtin.Signature.FromSig Ctx⋆ (_⊢⋆ *) nat2Ctx⋆ (λ x → ` (fin2∈⋆ x)) con _⇒_ Π using (sig2type)
+open import Builtin.Signature using ()
+open Builtin.Signature.FromSig  (_⊢⋆_) (_⊢⋆_) (λ x → x) (`) _·_ ^ con _⇒_ Π 
+          using (sig2type;sig2type⇒;sig2typeΠ;⊢♯2TyNe♯;mkTy) public
+open import Type.BetaNBE using (nf)
+open import Algorithmic using (⟦_⟧;ty2sty)
+open import RawU using (TyTag)
 ```
 
 ## Fixity declarations
@@ -93,14 +94,32 @@ Compute the type for a builtin:
 
 ```
 btype : Builtin → Φ ⊢⋆ *
-btype b = sub (λ()) (sig2type (signature b))
+btype b = sub∅ (sig2type (signature b))
 ```
 
 Two lemmas concerning renaming and substituting types of builtins:
 
 ```
-postulate btype-ren : ∀ b (ρ : Ren Φ Ψ) → btype b ≡ ren ρ (btype b)
-postulate btype-sub : ∀ b (ρ : Sub Φ Ψ) → btype b ≡ sub ρ (btype b)
+btype-ren : ∀ b (ρ : Ren Φ Ψ) → btype b ≡ ren ρ (btype b)
+btype-ren b ρ = sub∅-ren (sig2type (signature b)) ρ
+
+btype-sub : ∀ b (ρ : Sub Φ Ψ) → btype b ≡ sub ρ (btype b)
+btype-sub b ρ = sub∅-sub (sig2type (signature b)) ρ
+```
+
+The meaning of types is the meaning of its normalised type.
+We define it this way because it is easier to define the meaning of a normalised type.
+
+```
+⟦_⟧d : ∀ (A : ∅ ⊢⋆ ♯) → Set
+⟦ A ⟧d = ⟦ nf A ⟧
+```
+
+
+
+```
+ty2TyTag : ∀ (A : ∅ ⊢⋆ ♯) → TyTag
+ty2TyTag A = ty2sty (nf A) 
 ```
 
 ## Terms
@@ -150,10 +169,11 @@ data _⊢_ (Γ : Ctx Φ) : Φ ⊢⋆ * → Set where
          -----
        → Γ ⊢ B
 
-  con : ∀ {c}
-      →  TermCon {Φ} (con c)
+  con : ∀ {A : ∅ ⊢⋆ ♯ }{B}
+      → ⟦ A ⟧d
+      → B ≡β sub∅ A
         ---------------
-      → Γ ⊢ con c
+      → Γ ⊢ con B
 
   builtin : (b : Builtin)
             --------------

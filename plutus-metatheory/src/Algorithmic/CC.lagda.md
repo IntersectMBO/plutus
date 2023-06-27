@@ -24,6 +24,7 @@ open import Type.BetaNormal using (_⊢Nf⋆_)
 open import Algorithmic using (Ctx;_⊢_)
 open Ctx
 open _⊢_
+open import Algorithmic.Signature using (_[_]SigTy)
 open import Algorithmic.RenamingSubstitution using (_[_];_[_]⋆)
 open import Algorithmic.ReductionEC using (Value;BApp;EC;Frame;ival;deval;BUILTIN';V-I)
 open Value
@@ -91,7 +92,7 @@ stepV V (inj₂ (_ ,, E ,, (V-I⇒ b {am = suc _} q ·-))) =
   E ◅ V-I b (step q V)
 stepV V (inj₂ (_ ,, E ,, wrap-)) = E ◅ V-wrap V
 stepV (V-Λ M) (inj₂ (_ ,, E ,, -·⋆ A)) = E ▻ (M [ A ]⋆)
-stepV (V-IΠ b q) (inj₂ (_ ,, E ,, -·⋆ A)) = E ◅ V-I b (step⋆ q refl refl)
+stepV (V-IΠ b {σA = σ} q) (inj₂ (_ ,, E ,, -·⋆ A)) = E ◅ V-I b (step⋆ q refl {σ [ A ]SigTy})
 stepV (V-wrap V) (inj₂ (_ ,, E ,, unwrap-)) = E ▻ deval V -- E ◅ V
 
 stepT : ∀{A} → State A → State A
@@ -101,7 +102,7 @@ stepT (E ▻ Λ M)                = E ◅ V-Λ M
 stepT (E ▻ (M ·⋆ A / refl))    = extEC E (-·⋆ A) ▻ M
 stepT (E ▻ wrap A B M)         = extEC E wrap- ▻ M
 stepT (E ▻ unwrap M refl)      = extEC E unwrap- ▻ M
-stepT (E ▻ con c)              = E ◅ V-con c
+stepT (E ▻ con c refl)         = E ◅ V-con c
 stepT (E ▻ (builtin b / refl)) = E ◅ ival b
 stepT (E ▻ error A)            = ◆ A
 stepT (E ◅ V)                  = stepV V (dissect E)

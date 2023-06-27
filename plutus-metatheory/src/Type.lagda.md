@@ -26,7 +26,8 @@ infix  9 S
 ## Imports
 
 ```
-open import Utils using (Kind;*;_⇒_;J;K)
+open import Utils using (Kind;J;K)
+open Kind
 ```
 
 ## Type contexts
@@ -82,7 +83,7 @@ arbitrary kind `k` which goes beyond standard iso-recursive types.
 ```
 data _⊢⋆_ : Ctx⋆ → Kind → Set
 
-open import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *) using (TyCon)
+open import Builtin.Constant.Type using (TyCon)
 
 data _⊢⋆_ where
   ` : Φ ∋⋆ J
@@ -112,7 +113,11 @@ data _⊢⋆_ where
       ---------------------
     → Φ ⊢⋆ *
 
-  con : TyCon Φ
+  ^ : TyCon K
+      -------
+    → Φ ⊢⋆ K
+
+  con : Φ ⊢⋆ ♯
         ------
       → Φ ⊢⋆ *
 ```

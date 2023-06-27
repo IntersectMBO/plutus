@@ -119,7 +119,6 @@ library
     MAlonzo.Code.Algorithmic.Signature
     MAlonzo.Code.Builtin
     MAlonzo.Code.Builtin.Constant.AtomicType
-    MAlonzo.Code.Builtin.Constant.Term
     MAlonzo.Code.Builtin.Constant.Type
     MAlonzo.Code.Builtin.Signature
     MAlonzo.Code.Category.Applicative.Indexed
@@ -313,7 +312,6 @@ library
     MAlonzo.Code.Algorithmic.Signature
     MAlonzo.Code.Builtin
     MAlonzo.Code.Builtin.Constant.AtomicType
-    MAlonzo.Code.Builtin.Constant.Term
     MAlonzo.Code.Builtin.Constant.Type
     MAlonzo.Code.Builtin.Signature
     MAlonzo.Code.Category.Applicative.Indexed

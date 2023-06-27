@@ -24,16 +24,15 @@ open Ctx
 open _⊢_
 open import Algorithmic.RenamingSubstitution using (_[_];_[_]⋆)
 open import Algorithmic.Properties using (lem-·⋆;lem-unwrap)
-open import Algorithmic.Signature using (SigTy;convSigTy;uniqueSigTy)
+open import Algorithmic.Signature using (SigTy;convSigTy;uniqueSigTy;_[_]SigTy)
 open import Type.BetaNBE using (nf)
 open import Type.BetaNBE.RenamingSubstitution using (_[_]Nf)
 open import Type.BetaNormal using (_⊢Nf⋆_;embNf;weakenNf)
 open _⊢Nf⋆_
 open import Algorithmic.ReductionEC
 open import Builtin using (Builtin;signature)
-open import Builtin.Signature using (Sig;args♯)
+open import Builtin.Signature using (Sig;args♯;fv)
 open Sig
-
 ```
 
 ```
@@ -53,9 +52,9 @@ conv∔≣ p refl refl refl = p
 
 conv∔≣t : ∀{b b' tn tm tn' tm'}
   → b ≡ b'
-  → (tn'  ∔ tm'  ≣ fv♯ (signature b')) 
+  → (tn'  ∔ tm'  ≣ fv (signature b')) 
   → tn ≡ tn' → tm ≡ tm'
-  → tn ∔ tm ≣ fv♯ (signature b)
+  → tn ∔ tm ≣ fv (signature b)
 conv∔≣t refl pt = conv∔≣ pt refl  
 
 conv∔≣a : ∀{b b' an am an' am'}
@@ -69,23 +68,23 @@ conv∔≣a refl pa = conv∔≣ pa refl
 uniqueVal : ∀{A}(M : ∅ ⊢ A)(v v' : Value M) → v ≡ v'
 
 uniqueBApp : ∀{A b}
-  → ∀{tn tm}{pt : tn ∔ tm ≣ fv♯ (signature b)}
+  → ∀{tn tm}{pt : tn ∔ tm ≣ fv (signature b)}
   → ∀{an am}{pa : an ∔ am ≣ args♯ (signature b)}
   → {σA : SigTy pt pa A}
   → (M : ∅ ⊢ A)(v v' : BApp b σA M) → v ≡ v'
 uniqueBApp .(builtin _ / refl) base base = refl
 uniqueBApp (M · M') (step v x) (step v' x') with uniqueBApp M v v' | uniqueVal M' x x'
 ... | refl | refl  = refl
-uniqueBApp (M ·⋆ A / refl) (step⋆ {σB = σA} v refl refl) (step⋆ {σB = σA'} v' refl σq') with uniqueSigTy σA σA' 
-... | refl with uniqueBApp M v v' | σq' 
-... | refl | refl = refl
+uniqueBApp (M ·⋆ A / refl) (step⋆ {σB = σA} v refl) (step⋆ {σB = σA'} v' refl) with uniqueSigTy σA σA' 
+... | refl with uniqueBApp M v v'  
+... | refl = refl
 
 uniqueBApp' : ∀{A b b'}
   → (M : ∅ ⊢ A)
-  → ∀{tn tm}{pt : tn ∔ tm ≣ fv♯ (signature b)} 
+  → ∀{tn tm}{pt : tn ∔ tm ≣ fv (signature b)} 
   → ∀{an am}{pa : an ∔ am ≣ args♯ (signature b)}
   → {σA : SigTy pt pa A}
-  → ∀{tn' tm'}{pt' : tn' ∔ tm' ≣ fv♯ (signature b')} 
+  → ∀{tn' tm'}{pt' : tn' ∔ tm' ≣ fv (signature b')} 
   → ∀{an' am'}{pa' : an' ∔ am' ≣ args♯ (signature b')}
   → {σA' : SigTy pt' pa' A}
   → (v : BApp b σA M)(v' : BApp b' σA' M)
@@ -93,14 +92,14 @@ uniqueBApp' : ∀{A b b'}
   → (pt ≡ conv∔≣t be pt' tne tme) × (pa ≡ conv∔≣a be pa' ane ame)
 uniqueBApp' (M · _) (step v _) (step v' _) with uniqueBApp' M v v'
 ... | refl ,, refl ,, refl ,, refl ,, refl ,, refl ,, refl  = refl ,, refl ,, refl ,, refl ,, refl ,, refl ,, refl
-uniqueBApp' (M ·⋆ A / x) (step⋆ v .x _) (step⋆ v' .x _) with uniqueBApp' M v v' 
+uniqueBApp' (M ·⋆ A / x) (step⋆ v .x) (step⋆ v' .x) with uniqueBApp' M v v' 
 ... | refl ,, refl ,, refl ,, refl ,, refl ,, refl ,, refl = refl ,, refl ,, refl ,, refl ,, refl ,, refl ,, refl
 uniqueBApp' (builtin b / x) base base = refl ,, refl ,, refl ,, refl ,, refl ,, refl ,, refl
 
 uniqueVal .(ƛ M) (V-ƛ M) (V-ƛ .M) = refl
 uniqueVal .(Λ M) (V-Λ M) (V-Λ .M) = refl
 uniqueVal .(wrap _ _ _) (V-wrap v) (V-wrap v') = cong V-wrap (uniqueVal _ v v')
-uniqueVal .(con cn) (V-con cn) (V-con .cn) = refl
+uniqueVal .(con x refl) (V-con x) (V-con .x) = refl
 uniqueVal M (V-I⇒ b {σB = s} x) (V-I⇒ b' {σB = s'} x') with uniqueBApp' M x x'
 ... | refl ,, refl ,, refl ,, refl ,, refl ,, refl ,, refl with uniqueSigTy s s'
 ... | refl = cong (V-I⇒ b) (uniqueBApp M x x')
@@ -112,11 +111,9 @@ uniqueVal M (V-IΠ b {σA = s} x) (V-IΠ b' {σA = s'} x') with uniqueBApp' M x 
 ```
 lemV· : ∀{A B}{M : ∅ ⊢ A ⇒ B}{M'} → ¬ (Value M) → ¬ (Value (M · M'))
 lemV· ¬VM (V-I⇒ b (step q VM')) = ⊥-elim (¬VM (V-I⇒ b q))
---lemV· ¬VM (V-IΠ b (step q VM')) = ⊥-elim (¬VM (V-I⇒ b q))
 
 lemV'· : ∀{A B}{M : ∅ ⊢ A ⇒ B}{M'} → ¬ (Value M') → ¬ (Value (M · M'))
 lemV'· ¬VM' (V-I⇒ b (step q VM')) = ⊥-elim (¬VM' VM')
---lemV'· ¬VM' (V-IΠ b (step q VM')) = ⊥-elim (¬VM' VM')
 
 lemVunwrap :  ∀{K}{A : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}{B : ∅ ⊢Nf⋆ K}{C}{q : C ≡ _}{M}
   → ¬ (Value (unwrap {A = A}{B} M q))
@@ -125,12 +122,12 @@ lemVunwrap (V-IΠ b ())
 
 lemV·⋆ : ∀{K}{A : ∅ ⊢Nf⋆ K}{B}{M : ∅ ⊢ Π B}{C}{p : C ≡ B [ A ]Nf}
   → ¬ (Value M) → ¬ (Value (M ·⋆ A / p))
-lemV·⋆ ¬VM (V-I⇒ b (step⋆ q r _)) = ¬VM (V-IΠ b q)
-lemV·⋆ ¬VM (V-IΠ b (step⋆ q r _)) = ¬VM (V-IΠ b q)
+lemV·⋆ ¬VM (V-I⇒ b (step⋆ q r)) = ¬VM (V-IΠ b q)
+lemV·⋆ ¬VM (V-IΠ b (step⋆ q r)) = ¬VM (V-IΠ b q)
 
 
 lemBAppβ : ∀{A B}{b}
-  → ∀{tn tm}{pt : tn ∔ tm ≣ fv♯ (signature b)}
+  → ∀{tn tm}{pt : tn ∔ tm ≣ fv (signature b)}
   → ∀{an am}{pa : an ∔ am ≣ args♯ (signature b)}
   → {σB : SigTy pt pa B}
   → {M : ∅ , A ⊢ B} → ∀{M'}
@@ -139,11 +136,11 @@ lemBAppβ (step () x)
 
 
 lemBAppβ⋆ : ∀{A : ∅ ⊢Nf⋆ K}{B}{b}
-  → ∀{tn tm}{pt : tn ∔ tm ≣ fv♯ (signature b)}
+  → ∀{tn tm}{pt : tn ∔ tm ≣ fv (signature b)}
   → ∀{an am}{pa : an ∔ am ≣ args♯ (signature b)}
   → ∀{C}{σC : SigTy pt pa C}
   → ∀{M : ∅ ,⋆ K ⊢ B}{q : C ≡ B [ A ]Nf} → ¬ (BApp b σC (Λ M ·⋆ A / q))
-lemBAppβ⋆ (step⋆ () refl refl)
+lemBAppβ⋆ (step⋆ () refl)
 
 
 lemVβ : ∀{A B}{M : ∅ , A ⊢ B}{M'} → ¬ (Value (ƛ M · M'))
@@ -159,21 +156,21 @@ lemVE : ∀{A B} M (E : EC A B) → Value (E [ M ]ᴱ) → Value M
 lemVE M [] V = V
 lemVE M (EC₁ l· x) (V-I⇒ b (step x₁ x₂)) = lemVE M EC₁ ((V-I⇒ b x₁))
 lemVE M (x ·r EC₁) (V-I⇒ b (step x₁ v)) = lemVE M EC₁ v
-lemVE M (EC₁ ·⋆ A / x) (V-I⇒ b (step⋆ x₁ .x σq)) = lemVE _ EC₁ (V-I b x₁)
-lemVE M (EC₁ ·⋆ A / x) (V-IΠ b (step⋆ x₁ .x σq)) = lemVE _ EC₁ (V-I b x₁)
+lemVE M (EC₁ ·⋆ A / x) (V-I⇒ b (step⋆ x₁ .x)) = lemVE _ EC₁ (V-I b x₁)
+lemVE M (EC₁ ·⋆ A / x) (V-IΠ b (step⋆ x₁ .x)) = lemVE _ EC₁ (V-I b x₁)
 lemVE M (wrap EC₁) (V-wrap V) = lemVE _ EC₁ V
 lemVE M (unwrap EC₁ / x) (V-I⇒ b ())
 lemVE M (unwrap EC₁ / x) (V-IΠ b ())
 
 lemBE : ∀{A B b} M (E : EC A B)
-  → ∀{tn tm}{pt : tn ∔ tm ≣ fv♯ (signature b)}
+  → ∀{tn tm}{pt : tn ∔ tm ≣ fv (signature b)}
   → ∀{an am}{pa : an ∔ suc am ≣ args♯ (signature b)}
   → {σ : SigTy pt pa A}
   → BApp b σ (E [ M ]ᴱ) → Value M
 lemBE {b = b} M [] {σ = s} bt = V-I b bt
 lemBE M (E l· x) (step bt y) = lemBE _ E bt
 lemBE M (x ·r E) (step bt y) = lemVE _ E y
-lemBE M (E ·⋆ A / refl) (step⋆ bt refl refl) = lemBE _ E bt
+lemBE M (E ·⋆ A / refl) (step⋆ bt refl) = lemBE _ E bt
 
 
 -- these adhoc lemmas about subst are needed as do the uniqueness bits of
@@ -196,8 +193,8 @@ proj· refl = refl ,, refl ,, refl
 
 valred : ∀{A}{L N : ∅ ⊢ A} → Value L → L —→⋆ N → ⊥
 valred (V-I⇒ b (step () x₂)) (β-ƛ x)
-valred (V-I⇒ b (step⋆ () .p σq)) (β-Λ p)
-valred (V-IΠ b (step⋆ () .p σq)) (β-Λ p)
+valred (V-I⇒ b (step⋆ () .p)) (β-Λ p)
+valred (V-IΠ b (step⋆ () .p)) (β-Λ p)
 valred (V-I⇒ b ()) (β-wrap x p)
 valred (V-IΠ b ()) (β-wrap x p)
 valred (V-I⇒ b₁ (step bt₁ x₁)) (β-builtin b t bt u vu)  with uniqueBApp' t bt₁ bt
@@ -215,10 +212,10 @@ substƛVal refl = V-ƛ _
 
 
 BUILTIN-eq : ∀{A b b'}(M : ∅ ⊢ A)
-  → ∀{tn}{pt : tn ∔ _ ≣ fv♯ (signature b)} 
+  → ∀{tn}{pt : tn ∔ _ ≣ fv (signature b)} 
   → ∀{an}{pa : an ∔ _ ≣ args♯ (signature b)}
   → {σA : SigTy pt pa A}
-  → ∀{tn'}{pt' : tn' ∔ _ ≣ fv♯ (signature b')} 
+  → ∀{tn'}{pt' : tn' ∔ _ ≣ fv (signature b')} 
   → ∀{an'}{pa' : an' ∔ _ ≣ args♯ (signature b')}
   → {σA' : SigTy pt' pa' A}
   → (bv : BApp b σA M)
@@ -436,10 +433,10 @@ rlemma51! (M · N) | done (V-I⇒ b {am = 0} x) | done VN = step
 rlemma51! (M · N) | done (V-I⇒ b {am = suc _} x) | done VN =
   done (V-I b (step x VN))
 rlemma51! (Λ M) = done (V-Λ M)
-rlemma51! (M ·⋆ A / x) with rlemma51! M
-... | step ¬VM E p q U = step (λ V → lemV·⋆ (λ V → ¬VM V) V) (E ·⋆ A / x) p (cong (_·⋆ A / x) q) (λ E p q → U·⋆2 ¬VM x E p q U)
-... | done (V-Λ M) = step lemVβ⋆ [] (β (β-Λ x)) refl (U·⋆1 x)
-... | done (V-IΠ b bt) = done (V-I b (step⋆ bt x refl))
+rlemma51! (M ·⋆ A / refl) with rlemma51! M
+... | step ¬VM E p q U = step (λ V → lemV·⋆ (λ V → ¬VM V) V) (E ·⋆ A / refl) p (cong (_·⋆ A / refl) q) (λ E p q → U·⋆2 ¬VM refl E p q U)
+... | done (V-Λ M) = step lemVβ⋆ [] (β (β-Λ refl)) refl (U·⋆1 refl)
+... | done (V-IΠ b {σA = σ} bt) = done (V-I b (step⋆ bt refl {σ [ A ]SigTy}))
 rlemma51! (wrap A B M) with rlemma51! M
 ... | step ¬VM E p q U = step
   (λ {(V-wrap VM) → ¬VM VM})
@@ -461,7 +458,7 @@ rlemma51! (unwrap M x) with rlemma51! M
   (β (β-wrap VM x))
   refl
   λ E p' q' → Uunwrap2 VM x E p' q'
-rlemma51! (con c) = done (V-con c)
+rlemma51! (con c refl) = done (V-con c)
 rlemma51! (builtin b / refl) = done (ival b)
 rlemma51! (error _) = step
   (valerr E-error)
@@ -514,4 +511,4 @@ determinism {L = L} (ruleErr E' p) (ruleEC .E () q' q'') | step ¬VL E err r' U 
 determinism {L = L} (ruleErr E' p) (ruleErr E'' q) | step ¬VL E err r' U with U E' p err | U E'' q err
 ... | refl ,, refl ,, refl | refl ,, refl ,, refl = refl
 -- -}
-``` 
+```  
