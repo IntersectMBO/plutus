@@ -17,7 +17,7 @@ It would be informative for both the Plutus and Marlowe teams to investigate in 
 
 (1) Benchmarking: compare the budget before and after optimizations that the Plutus team implemented. It could be helpful to do the benchmarking *as* we implement the optimization even.
 
-The benchmarking portion of the code lives in `marlowe/bench`(TODO), which depends on this package.
+The benchmarking portion of the code lives in `marlowe/bench`, which depends on this package.
 
 (2) Profiling: look at each script in more detail, what functions are taking up the most budget? How can they be optimized?
 

@@ -287,7 +287,7 @@ mkMarloweValidator
       -> Maybe TxInInfo           -- The input for this validator, if found so far.
       -> Bool                     -- Whether no other validator has been found so far.
       -> [TxInInfo]               -- The inputs remaining to be examined.
-      -> (TxInInfo, Bool)         -- The input for this validator and whehter no other validators are present.
+      -> (TxInInfo, Bool)         -- The input for this validator and whether no other validators are present.
     -- This validator has not been found.
     examineScripts _ Nothing _ [] = traceError "x"
     -- This validator has been found, and other validators may have been found.

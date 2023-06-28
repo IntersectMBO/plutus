@@ -537,3 +537,18 @@ executable marlowe-validators
     , plutus-ledger-api
     , plutus-tx                                       ^>=1.8
     , serialise
+
+benchmark marlowe
+  import:         lang
+
+  if impl(ghc <9.0)
+    buildable: False
+
+  type:           exitcode-stdio-1.0
+  main-is:        Bench.hs
+  hs-source-dirs: marlowe/bench
+  build-depends:
+    , base
+    , criterion
+    , marlowe-internal
+    , plutus-benchmark-common
