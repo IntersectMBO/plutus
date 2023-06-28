@@ -18,9 +18,8 @@ open import Utils using (Kind;*;K)
 open import Type using (Ctx⋆;_⊢⋆_;Φ;Ψ;A;B)
 open _⊢⋆_
 import Type.RenamingSubstitution as ⋆
-open import Type.Equality using (ren≡β;sub≡β)
-open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con using (TermCon)
-open TermCon
+open import Type.Equality using (ren≡β;sub≡β;≡2β;_≡β_)
+open _≡β_
 open import Declarative using (Ctx;Γ;Δ;_∋_;conv∋;_⊢_;conv⊢;piBody;btype-ren;btype-sub;muPat;muArg;typeOf;typeOf∋)
 open Ctx
 open _∋_
@@ -70,24 +69,7 @@ ext⋆ _ ρ (T x) = conv∋
   (T (ρ x))
 ```
 
-Renaming a term constant
-
-```
-renTermCon : (ρ⋆ : ⋆.Ren Φ Ψ)
-             ------------------------------------------
-           → (∀{A} → TermCon A → TermCon (⋆.ren ρ⋆ A ))
-renTermCon _ (tmInteger i)              = tmInteger i
-renTermCon _ (tmBytestring b)           = tmBytestring b
-renTermCon _ (tmString s)               = tmString s
-renTermCon _ (tmBool b)                 = tmBool b
-renTermCon _ tmUnit                     = tmUnit
-renTermCon _ (tmData d)                 = tmData d
-renTermCon _ (tmBls12-381-g1-element e) = tmBls12-381-g1-element e
-renTermCon _ (tmBls12-381-g2-element e) = tmBls12-381-g2-element e
-renTermCon _ (tmBls12-381-mlresult r)   = tmBls12-381-mlresult r
-```
-
-Renaming for terms
+## Renaming for terms
 
 ```
 ren : (ρ⋆ : ⋆.Ren Φ Ψ)
@@ -103,7 +85,7 @@ ren ρ⋆ ρ (L ·⋆ A) =
 ren _ ρ (wrap A B L) = wrap _ _ (conv⊢ refl (⋆.ren-μ _ A B) (ren _ ρ L))
 ren _ ρ (unwrap L) = conv⊢ refl (sym (⋆.ren-μ _ _ _)) (unwrap (ren _ ρ L))
 ren _ ρ (conv p L) = conv (ren≡β _ p) (ren _ ρ L)
-ren ρ⋆ ρ (con cn) = con (renTermCon ρ⋆ cn)
+ren ρ⋆ ρ (con {A} cn p) = con {A = A} cn (trans≡β (ren≡β ρ⋆ p) (≡2β (sym (⋆.sub∅-ren A ρ⋆))))
 ren ρ⋆ _ (builtin b) = conv⊢ refl (btype-ren b ρ⋆) (builtin b)
 ren _ _ (error A) = error (⋆.ren _ A)
 ```
@@ -165,24 +147,7 @@ exts⋆ _ σ (T {A = A} x) = conv⊢
   (weaken⋆ (σ x))
 ```
 
-Substitution for term constants
-
-```
-subTermCon : (σ⋆ : ⋆.Sub Φ Ψ)
-             -------------------------------------------
-           → ∀ {A} → TermCon A → TermCon (⋆.sub σ⋆ A )
-subTermCon _ (tmInteger i)    = tmInteger i
-subTermCon _ (tmBytestring b) = tmBytestring b
-subTermCon _ (tmString s)     = tmString s
-subTermCon _ (tmBool b)       = tmBool b
-subTermCon _ tmUnit           = tmUnit
-subTermCon _ (tmData d)       = tmData d
-subTermCon _ (tmBls12-381-g1-element e) = tmBls12-381-g1-element e
-subTermCon _ (tmBls12-381-g2-element e) = tmBls12-381-g2-element e
-subTermCon _ (tmBls12-381-mlresult r)   = tmBls12-381-mlresult r
-```
-
-Substitution for terms
+## Substitution for terms
 
 ```
 sub : (σ⋆ : ⋆.Sub Φ Ψ)
@@ -199,8 +164,8 @@ sub _  σ (wrap A B L) = wrap _ _ (conv⊢ refl (⋆.sub-μ _ A B) (sub _ σ L))
 sub _  σ (unwrap L)   =
   conv⊢ refl (sym (⋆.sub-μ _ (muPat L) (muArg L))) (unwrap (sub _ σ L))
 sub _  σ (conv p L)   = conv (sub≡β _ p) (sub _ σ L)
-sub σ⋆ _ (con cn)     = con (subTermCon σ⋆ cn)
-sub _  _ (builtin b) = conv⊢ refl (btype-sub b _) (builtin b)
+sub σ⋆ _ (con {A} cn p) = con {A = A} cn (trans≡β (sub≡β σ⋆ p) (≡2β (sym (⋆.sub∅-sub A σ⋆))))
+sub _  _ (builtin b)  = conv⊢ refl (btype-sub b _) (builtin b)
 sub _  _ (error A)    = error (⋆.sub _ A)
 ```
 

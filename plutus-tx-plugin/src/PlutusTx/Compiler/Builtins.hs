@@ -250,6 +250,8 @@ builtinNames = [
     , 'Builtins.bls12_381_G1_compress
     , 'Builtins.bls12_381_G1_uncompress
     , 'Builtins.bls12_381_G1_hashToGroup
+    , 'Builtins.bls12_381_G1_zero
+    , 'Builtins.bls12_381_G1_generator
 
     , ''Builtins.BuiltinBLS12_381_G2_Element
     , 'Builtins.bls12_381_G2_equals
@@ -259,6 +261,8 @@ builtinNames = [
     , 'Builtins.bls12_381_G2_compress
     , 'Builtins.bls12_381_G2_uncompress
     , 'Builtins.bls12_381_G2_hashToGroup
+    , 'Builtins.bls12_381_G2_zero
+    , 'Builtins.bls12_381_G2_generator
 
     , ''Builtins.BuiltinBLS12_381_MlResult
     , 'Builtins.bls12_381_millerLoop
@@ -400,6 +404,9 @@ defineBuiltinTerms = do
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_G1_compress    $ mkBuiltin PLC.Bls12_381_G1_compress
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_G1_uncompress  $ mkBuiltin PLC.Bls12_381_G1_uncompress
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_G1_hashToGroup $ mkBuiltin PLC.Bls12_381_G1_hashToGroup
+    -- The next two constants are both 48 bytes long, so in fact we probably don't want to inline them.
+    defineBuiltinTerm annMayInline 'Builtins.bls12_381_G1_zero        $ PIR.mkConstant annMayInline BLS12_381.G1.zero
+    defineBuiltinTerm annMayInline 'Builtins.bls12_381_G1_generator   $ PIR.mkConstant annMayInline BLS12_381.G1.generator
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_equals      $ mkBuiltin PLC.Bls12_381_G2_equal
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_add         $ mkBuiltin PLC.Bls12_381_G2_add
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_scalarMul   $ mkBuiltin PLC.Bls12_381_G2_scalarMul
@@ -407,9 +414,13 @@ defineBuiltinTerms = do
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_compress    $ mkBuiltin PLC.Bls12_381_G2_compress
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_uncompress  $ mkBuiltin PLC.Bls12_381_G2_uncompress
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_hashToGroup $ mkBuiltin PLC.Bls12_381_G2_hashToGroup
+    -- The next two constants are both 96 bytes long, so in fact we probably don't want to inline them.
+    defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_zero        $ PIR.mkConstant annMayInline BLS12_381.G2.zero
+    defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_generator   $ PIR.mkConstant annMayInline BLS12_381.G2.generator
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_millerLoop     $ mkBuiltin PLC.Bls12_381_millerLoop
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_mulMlResult    $ mkBuiltin PLC.Bls12_381_mulMlResult
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_finalVerify    $ mkBuiltin PLC.Bls12_381_finalVerify
+
 
 defineBuiltinTypes
     :: CompilingDefault uni fun m ann

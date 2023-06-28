@@ -29,6 +29,7 @@ open _⊢Nf⋆_
 open import Algorithmic using (Ctx;_⊢_)
 open Ctx
 open _⊢_
+open import Algorithmic.Signature using (_[_]SigTy)
 open import Algorithmic.RenamingSubstitution using (_[_];_[_]⋆)
 open import Algorithmic.ReductionEC
 open import Algorithmic.ReductionEC.Determinism
@@ -223,7 +224,7 @@ unwindVE A B E E' refl VM VN with dissect E' | inspect dissect E'
 unwindVE .(Λ M) .(E' [ Λ M ]ᴱ) E E' refl (V-Λ M) VN | inj₂ (_ ,, E'' ,, -·⋆ C) | I[ eq ] rewrite dissect-inj₂ E' E'' (-·⋆ C) eq 
  = ⊥-elim (lemVβ⋆ (lemVE _ E'' (subst Value (extEC-[]ᴱ E'' (-·⋆ C) (Λ M)) VN)))
 unwindVE A .(E' [ A ]ᴱ) E E' refl (V-IΠ b x) VN | inj₂ (_ ,, E'' ,, -·⋆ C) | I[ eq ] rewrite dissect-inj₂ E' E'' (-·⋆ C) eq  
- = step* (trans (cong (λ E → stepV _ (dissect E)) (compEC'-extEC E E'' (-·⋆ C))) (cong (stepV (V-IΠ b x)) (dissect-lemma (compEC' E E'') (-·⋆ C)))) (unwindVE _ _ E E'' (extEC-[]ᴱ E'' (-·⋆ C) A) (V-I b (step⋆ x refl refl)) VN) 
+ = step* (trans (cong (λ E → stepV _ (dissect E)) (compEC'-extEC E E'' (-·⋆ C))) (cong (stepV (V-IΠ b x)) (dissect-lemma (compEC' E E'') (-·⋆ C)))) (unwindVE _ _ E E'' (extEC-[]ᴱ E'' (-·⋆ C) A) (V-I b (step⋆ x refl)) VN) 
 ... | inj₂ (_ ,, E'' ,, wrap-) | I[ eq ] rewrite dissect-inj₂ E' E'' wrap- eq 
     = step* (trans (cong (λ E → stepV VM (dissect E)) (compEC'-extEC E E'' wrap-)) (cong (stepV VM) (dissect-lemma (compEC' E E'') wrap-))) (unwindVE _ _ E E'' (extEC-[]ᴱ E'' wrap- A) (V-wrap VM) VN)
 unwindVE _ _ E E' refl (V-wrap VM) VN | inj₂ (_ ,, E'' ,, unwrap-) | I[ eq ] rewrite dissect-inj₂ E' E'' unwrap- eq 
@@ -359,7 +360,9 @@ refocus E .(Λ M) (V-Λ M) E₁ L r p | inj₂ (_ ,, E₂ ,, -·⋆ A) | I[ eq ]
 ... | step ¬VEƛM E₃ x₁ x₂ U rewrite dissect-inj₂ E E₂ (-·⋆ A) eq with U E₁ p r
 ... | refl ,, refl ,, refl with U E₂ (extEC-[]ᴱ E₂ (-·⋆ A) (Λ M)) (β (β-Λ refl))
 ... | refl ,, refl ,, refl = locate E₂ (-·⋆ A) [] refl (V-Λ M) (λ V → lemVβ⋆ V) [] (sym (extEC-[]ᴱ E₂ (-·⋆ A) (Λ M)))
-refocus E M (V-IΠ b x) E₁ L r p | inj₂ (_ ,, E₂ ,, -·⋆ A) | I[ eq ] rewrite dissect-inj₂ E E₂ (-·⋆ A) eq with refocus E₂ (M ·⋆ A / refl) (V-I b (step⋆ x refl refl)) E₁ L r (trans (sym (extEC-[]ᴱ E₂ (-·⋆ A) M)) p)
+refocus E M (V-IΠ b {σA = σ} x) E₁ L r p | inj₂ (_ ,, E₂ ,, -·⋆ A) | I[ eq ]
+       rewrite dissect-inj₂ E E₂ (-·⋆ A) eq
+       with refocus E₂ (M ·⋆ A / refl) (V-I b (step⋆ x refl {σ [ A ]SigTy})) E₁ L r (trans (sym (extEC-[]ᴱ E₂ (-·⋆ A) M)) p)
 ... | locate E₃ F E₄ x₂ x₃ x₄ E₅ x₅ = locate
   E₃
   F
@@ -472,7 +475,7 @@ lemmaF' .(Λ M) (-·⋆ A) E E' L L' (V-Λ M) x x₁ x₂ | step ¬VM·⋆A .(co
 lemmaF' .(Λ M) (-·⋆ A) E E' L L' (V-Λ M) x x₁ x₂ | step ¬VM·⋆A .(compEC' E E') x₃ x₄ U | refl ,, refl ,, refl | refl ,, q ,, refl rewrite determinism⋆ x (β-Λ refl) = step*
   (cong (stepV (V-Λ M)) (dissect-lemma E (-·⋆ A)))
   (subst (λ E' → (E ▻ _) -→s (E' ▻ _)) (sym q) base)
-lemmaF' M (-·⋆ A) E E' L L' (V-IΠ b x₅) x x₁ x₂ | step ¬VM·⋆A .(compEC' E E') x₃ x₄ U | refl ,, refl ,, refl = ⊥-elim (x₁ (V-I b (step⋆ x₅ refl refl)))
+lemmaF' M (-·⋆ A) E E' L L' (V-IΠ b {σA = σ} x₅) x x₁ x₂ | step ¬VM·⋆A .(compEC' E E') x₃ x₄ U | refl ,, refl ,, refl = ⊥-elim (x₁ (V-I b (step⋆ x₅ refl {σ [ A ]SigTy})))
 lemmaF' M wrap- E E' L L' V x x₁ x₂ = ⊥-elim (x₁ (V-wrap V))
 lemmaF' (wrap A B M) unwrap- E E' L L' (V-wrap V) x x₁ x₂ with rlemma51! (extEC E unwrap- [ wrap A B M ]ᴱ)
 ... | done VEunwrapwrapV = ⊥-elim (x₁ (lemVE (unwrap (wrap A B M) refl) E (subst Value (extEC-[]ᴱ E unwrap- (wrap A B M)) VEunwrapwrapV)))
@@ -536,7 +539,7 @@ thm1b (wrap A B M) M' E p N V (step* refl q) =
   thm1b M _ (extEC E wrap-) (trans p (sym (extEC-[]ᴱ E wrap- M))) N V q
 thm1b (unwrap M refl) M' E p N V (step* refl q) =
   thm1b M _ (extEC E unwrap-) (trans p (sym (extEC-[]ᴱ E unwrap- M))) N V q
-thm1b (con c) M' E p N V (step* refl q) = thm1bV (con c) (V-con c) M' E p N V q
+thm1b (con c refl) M' E p N V (step* refl q) = thm1bV (con c refl) (V-con c) M' E p N V q
 thm1b (builtin b / refl) M' E p N V (step* refl q) =
   thm1bV (builtin b / refl) (ival b) M' E p N V q
 thm1b (error _) M' E p N V (step* refl q) = ⊥-elim (diamond2box N V q)
@@ -571,7 +574,7 @@ thm1bV M W M' E p N V (step* refl q) | inj₂ (_ ,, E' ,, (VI@(V-I⇒ b {am = su
 thm1bV .(Λ M) (V-Λ M) M' E p N V (step* refl q) | inj₂ (_ ,, E' ,, -·⋆ A) | I[ eq ] rewrite dissect-inj₂ E E' (-·⋆ A) eq = trans—↠ (ruleEC E' (β-Λ refl) (trans p (extEC-[]ᴱ E' (-·⋆ A) (Λ M))) refl) (thm1b (M [ A ]⋆) _ E' refl N V q)
 thm1bV M (V-IΠ b x₁) M' E p N V (step* refl q) | inj₂ (_ ,, E' ,, -·⋆ A) | I[ eq ] rewrite dissect-inj₂ E E' (-·⋆ A) eq =
   thm1bV (M ·⋆ A / refl)
-         (V-I b (step⋆ x₁ refl refl))
+         (V-I b (step⋆ x₁ refl))
          M'
          E'
          (trans p (extEC-[]ᴱ E' (-·⋆ A) M))

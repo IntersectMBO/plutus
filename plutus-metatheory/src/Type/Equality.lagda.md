@@ -18,13 +18,11 @@ infix  1 _≡β_
 ```
 open import Relation.Binary.PropositionalEquality
   using (_≡_; refl; trans; sym)
-open import Utils using (*;J;K)
+open import Utils using (*;♯;J;K)
 open import Type using (Ctx⋆;_,⋆_;Φ;Ψ;_⊢⋆_;A;A';B;B';C)
 open _⊢⋆_
 open import Type.RenamingSubstitution 
-   using (_[_];Ren;ren;Sub;sub;renTyCon;ext;sub-ren;ren-sub;sub-cong;ren-sub-cons;subTyCon;exts;sub-comp;sub-sub-cons)
-open import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *) using (TyCon)
-open TyCon
+   using (_[_];Ren;ren;Sub;sub;ext;sub-ren;ren-sub;sub-cong;ren-sub-cons;exts;sub-comp;sub-sub-cons)
 ```
 
 ## Beta equality relation for types
@@ -39,23 +37,7 @@ reflexivity). Finally, we have one computation rule: the beta-rule for
 application.
 
 ```
-data _≡β_ : Φ ⊢⋆ J → Φ ⊢⋆ J → Set
-data _≡βTyCon_ : TyCon Φ → TyCon Φ → Set where
-  refl≡β : (c : TyCon Φ)
-           ------------
-         → c ≡βTyCon c
-
-  list≡β : A ≡β A'
-           ----------------------
-         → list A ≡βTyCon list A'
-
-  pair≡β : A ≡β A'
-         → B ≡β B'
-           ----------------------
-         → pair A B ≡βTyCon pair A' B'
-
-data _≡β_ where
-
+data _≡β_ : Φ ⊢⋆ J → Φ ⊢⋆ J → Set where
   -- structural rules
 
   refl≡β : (A : Φ ⊢⋆ J)
@@ -98,8 +80,8 @@ data _≡β_ where
         ----------------
       → μ A B ≡β μ A' B'
 
-  con≡β : ∀{c c' : TyCon Φ}
-        → c ≡βTyCon c'
+  con≡β : ∀{c c' : Φ ⊢⋆ ♯}
+        → c ≡β c'
           -----------
         → con c ≡β con c'
 
@@ -124,16 +106,6 @@ ren≡β : (ρ : Ren Φ Ψ)
       → A ≡β B
         ------------------
       → ren ρ A ≡β ren ρ B
-
-ren≡βTyCon : (ρ : Ren Φ Ψ)
-      → ∀{c c'}
-      → c ≡βTyCon c'
-        ------------------
-      → renTyCon ρ c ≡βTyCon renTyCon ρ c'
-ren≡βTyCon ρ (refl≡β _)   = refl≡β _
-ren≡βTyCon ρ (list≡β p)   = list≡β (ren≡β ρ p)
-ren≡βTyCon ρ (pair≡β p q) = pair≡β (ren≡β ρ p) (ren≡β ρ q)
-
 ren≡β ρ (refl≡β A)    = refl≡β (ren ρ A)
 ren≡β ρ (sym≡β p)     = sym≡β (ren≡β ρ p)
 ren≡β ρ (trans≡β p q) = trans≡β (ren≡β ρ p) (ren≡β ρ q)
@@ -147,7 +119,7 @@ ren≡β ρ (β≡β B A)     = trans≡β
   (≡2β (trans (sym (sub-ren B))
               (trans (sub-cong (ren-sub-cons ρ A) B)
                      (ren-sub B))))
-ren≡β ρ (con≡β p) = con≡β (ren≡βTyCon ρ p)
+ren≡β ρ (con≡β p) = con≡β (ren≡β ρ p)
 ```
 
 ## Substitution for proofs of type equality
@@ -157,16 +129,6 @@ sub≡β : (σ : Sub Φ Ψ)
       → A ≡β B
         ------------------
       → sub σ A ≡β sub σ B
-
-sub≡βTyCon : (σ : Sub Φ Ψ)
-      → ∀{c c'}
-      → c ≡βTyCon c'
-        ------------------
-      → subTyCon σ c ≡βTyCon subTyCon σ c'
-sub≡βTyCon σ (refl≡β _)   = refl≡β _
-sub≡βTyCon σ (list≡β p)   = list≡β (sub≡β σ p)
-sub≡βTyCon σ (pair≡β p q) = pair≡β (sub≡β σ p) (sub≡β σ q)
-
 sub≡β σ (refl≡β A)    = refl≡β (sub σ A)
 sub≡β σ (sym≡β p)     = sym≡β (sub≡β σ p)
 sub≡β σ (trans≡β p q) = trans≡β (sub≡β σ p) (sub≡β σ q) 
@@ -180,6 +142,6 @@ sub≡β σ (β≡β B A)     = trans≡β
   (≡2β (trans (trans (sym (sub-comp B))
                      (sub-cong (sub-sub-cons σ A) B))
               (sub-comp B)))
-sub≡β ρ (con≡β p) = con≡β (sub≡βTyCon ρ p)       
+sub≡β ρ (con≡β p) = con≡β (sub≡β ρ p)       
 ```
 

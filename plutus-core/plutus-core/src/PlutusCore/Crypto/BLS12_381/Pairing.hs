@@ -20,6 +20,7 @@ import PlutusCore.Pretty.PrettyConst (ConstConfig)
 import Text.PrettyBy (PrettyBy, prettyBy)
 
 import Control.DeepSeq (NFData, rnf)
+import Data.Coerce (coerce)
 import Flat
 import Prettyprinter
 
@@ -49,13 +50,13 @@ instance NFData MlResult where
     rnf _ = ()
 
 millerLoop :: G1.Element -> G2.Element -> MlResult
-millerLoop (G1.Element e1) (G2.Element e2) = MlResult $ BlstBindings.millerLoop e1 e2
+millerLoop = coerce BlstBindings.millerLoop
 
 mulMlResult :: MlResult -> MlResult -> MlResult
-mulMlResult (MlResult a) (MlResult b) = MlResult $ BlstBindings.ptMult a b
+mulMlResult = coerce BlstBindings.ptMult
 
 finalVerify :: MlResult -> MlResult -> Bool
-finalVerify (MlResult a) (MlResult b) = BlstBindings.ptFinalVerify a b
+finalVerify = coerce BlstBindings.ptFinalVerify
 
 
 -- Not exposed as builtins

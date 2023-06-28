@@ -1,6 +1,6 @@
 ## Plutus Benchmarks
 
-This directory contains three sets of benchmarks:
+This directory contains four sets of benchmarks:
 
 * `nofib`: Plutus versions of some of Haskell's `nofib` benchmarks from https://github.com/ghc/nofib.
 
@@ -8,29 +8,17 @@ This directory contains three sets of benchmarks:
    * There is an executable in `nofib/exe` which can be used to run the individual programs (compiled into Plutus)
    * The benchmarking code is in `nofib/bench`.
 
-   * To run the benchmarks using stack, type a command like this
-       * `stack bench plutus-benchmark:nofib` (run all benchmarks; this will take a long time)
-       * `stack bench plutus-benchmark:nofib --ba "clausify/formula2 -L300"` (run the `clausify/formula2`
-          benchmark with a time limit of 300 seconds)
-
-   * The corresponding cabal commands are
-       * `cabal bench plutus-benchmark:nofib`
-       * `cabal bench plutus-benchmark:nofib --benchmark-options "clausify/formula2 -L300"`
-
-   * With cabal, you can also say
-       * `cabal run plutus-benchmark:nofib`
-       * `cabal run plutus-benchmark:nofib -- clausify/formula2 -L300`
-
-     The difference is that `cabal run` runs the benchmarks with the working directory
-     set to the shell's current working directory, but `cabal bench` sets the working directory
-     to the `plutus-benchmark` directory.  Stack uses the benchmark directory for its
-     working directory; there doesn't seem to be any way to get it to use any other directory.
-
-   * By default, the `nofib` benchmarks are run for a minimum of **60 seconds
+   * To run the benchmarks using cabal, type a command like this
+       * `cabal bench plutus-benchmark:nofib` (run all benchmarks; this will take a long time)
+       * `cabal run plutus-benchmark:nofib` (runs the benchmarks with the working directory set to the shell's current working directory. `cabal bench` sets the working directory to the `plutus-benchmark` directory.)
+       * `cabal run plutus-benchmark:nofib -- clausify/formula2 -L300` (run the `clausify/formula2` benchmark with a time limit of 300 seconds. By default, the `nofib` benchmarks are run for a minimum of **60 seconds
      each** in order to get a statistically reasonable number of executions.
      You can change this with Criterion's `-L` option.  With the 60 second limit
      the entire suite takes perhaps 20-40 minutes to run (although this will
-     depend on the hardware).
+     depend on the hardware))
+       *`cabal bench plutus-benchmark:nofib --benchmark-options "clausify/formula2 -L300"` (similar to above)
+
+See also [nofib/README.md](./nofib/README.md).
 
 * `validation`:  a number of Plutus Core scripts extracted from the `plutus-use-cases` tests which represent realistic on-chain
    transaction validations.
@@ -39,15 +27,10 @@ This directory contains three sets of benchmarks:
 
    * The benchmarking code is in `validation/Main.hs`.
 
-   * To run the benchmarks using stack, type a command like this
-       * `stack bench plutus-benchmark:validation` (run all benchmarks)
-       * `stack bench plutus-benchmark:validation --ba "crowdfunding/2 -L60"` (run the `crowdfunding/2`
+   * To run the benchmarks using cabal, type a command like this
+       * `cabal bench plutus-benchmark:validation` or `cabal run plutus-benchmark:validation` (run all benchmarks)
+       * `cabal run plutus-benchmark:validation -- crowdfunding/2 -L60` (run the `crowdfunding/2`
            benchmark with a time limit of 60 seconds)
-
-   * The corresponding cabal commands are
-       * `cabal bench plutus-benchmark:validation`
-       * `cabal bench plutus-benchmark:validation --benchmark-options "crowdfunding/2 -L60"`
-     or the `cabal run` equivalents (see the `nofib` section).
 
    * During benchmarking each validation script is run repeatedly up to a limit
      of 20 seconds (a single execution takes approximately 5-15 ms) to get
@@ -55,32 +38,46 @@ This directory contains three sets of benchmarks:
      minutes to run the entire suite (again, this will depend on the hardware).
 
    * There are also two variants (`validation-decode` & `validation-full` ) that measure
-     the peformance of the validation dataset for the script deserialization,
-     and for the deserialization+extrachecks+execution, respectively.
+     the performance of the validation dataset for the script deserialization,
+     and for the deserialization and extra checks and execution, respectively.
+
+See also [validation/README.md](./validation/README.md).
 
 * `lists`: some simple algorithms on lists.  See [lists/README.md](./lists/README.md) for more information.
 
-See also [nofib/README.md](./nofib/README.md) and [validation/README.md](./validation/README.md).
+* `marlowe`(TODO): 
 
-### nofib-exe
+   * The source for a minimal version of the Marlowe validators is in `marlowe/src`.
+   * There is an executable in `marlowe/exe` which can be used to run benchmarks for a set of scripts.
+   * The benchmarking code is in `marlowe/bench`.
+
+   * To run the benchmarks using cabal, type a command like this
+       * `cabal bench plutus-benchmark:marlowe` or
+       * `cabal run plutus-benchmark:marlowe`
+
+See also [marlowe/README.md](./marlowe/README.md).
+
+### Executables
 The `nofib-exe` program in `nofib/exe` allows you to run the `nofib` benchmarks from the command line and
 output Plutus Core versions in a number of formats.  See the built-in help information
 for details.
 
+For `marlowe`, the `marlowe-validators` program allows you to run benchmarks in certain folders and get a summary of results. See the [marlowe/README.md](./marlowe/README.md) for details.
+
 ### Criterion output
 
-Both sets of benchmarks will generate a file called `report.html` containing
+The benchmarks will generate a file called `report.html` containing
 detailed information about the results of running the benchmarks. This will be
 written to the `plutus-benchmark` directory.  To put it elsewhere, pass
 Criterion the `--output` option along with an *absolute* path (relative paths
 are interpreted relative to `plutus-benchmark` when running the benchmarks via
-stack or cabal): for example
+cabal): for example
 
 ```
-  stack bench plutus-benchmark:validation --ba "crowdfunding -L60 --output $PWD/crowdfunding-report.html"
+  cabal run plutus-benchmark:validation -- crowdfunding -L60 --output $PWD/crowdfunding-report.html
 ```
 
-If using `cabal bench` you'll have to do something similar, but `cabal run` will write the output into
+`cabal run` will write the output into
 the current directory (unless you use `cabal run <benchmark> -- --output ...`).
 
 The `templates` directory contains a template file for use by Criterion: this extends
@@ -91,5 +88,4 @@ total amount of time spent running each benchmark.
 
 The directory `nofib/test` contains some tests for the nofib examples which
 compare the result of evaluating the benchmarks as Haskell programs and as
-Plutus Core programs.  Run these with `stack test plutus-benchmark` or
-`cabal test plutus-benchmark`.
+Plutus Core programs.  Run these with `cabal test plutus-benchmark`.

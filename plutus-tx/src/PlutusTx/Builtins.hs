@@ -78,6 +78,8 @@ module PlutusTx.Builtins (
                          , bls12_381_G1_compress
                          , bls12_381_G1_uncompress
                          , bls12_381_G1_hashToGroup
+                         , bls12_381_G1_zero
+                         , bls12_381_G1_generator
                          , BuiltinBLS12_381_G2_Element
                          , bls12_381_G2_equals
                          , bls12_381_G2_add
@@ -86,6 +88,8 @@ module PlutusTx.Builtins (
                          , bls12_381_G2_compress
                          , bls12_381_G2_uncompress
                          , bls12_381_G2_hashToGroup
+                         , bls12_381_G2_zero
+                         , bls12_381_G2_generator
                          , BuiltinBLS12_381_MlResult
                          , bls12_381_millerLoop
                          , bls12_381_mulMlResult
@@ -497,6 +501,14 @@ bls12_381_G1_uncompress = BI.bls12_381_G1_uncompress
 bls12_381_G1_hashToGroup :: BuiltinByteString -> BuiltinByteString -> BuiltinBLS12_381_G1_Element
 bls12_381_G1_hashToGroup = BI.bls12_381_G1_hashToGroup
 
+{-# INLINABLE bls12_381_G1_zero #-}
+bls12_381_G1_zero :: BuiltinBLS12_381_G1_Element
+bls12_381_G1_zero = BI.bls12_381_G1_zero
+
+{-# INLINABLE bls12_381_G1_generator #-}
+bls12_381_G1_generator :: BuiltinBLS12_381_G1_Element
+bls12_381_G1_generator = BI.bls12_381_G1_generator
+
 -- G2 --
 {-# INLINABLE bls12_381_G2_equals #-}
 bls12_381_G2_equals :: BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_G2_Element -> Bool
@@ -526,6 +538,14 @@ bls12_381_G2_uncompress = BI.bls12_381_G2_uncompress
 bls12_381_G2_hashToGroup :: BuiltinByteString -> BuiltinByteString -> BuiltinBLS12_381_G2_Element
 bls12_381_G2_hashToGroup = BI.bls12_381_G2_hashToGroup
 
+{-# INLINABLE bls12_381_G2_zero #-}
+bls12_381_G2_zero :: BuiltinBLS12_381_G2_Element
+bls12_381_G2_zero = BI.bls12_381_G2_zero
+
+{-# INLINABLE bls12_381_G2_generator #-}
+bls12_381_G2_generator :: BuiltinBLS12_381_G2_Element
+bls12_381_G2_generator = BI.bls12_381_G2_generator
+
 -- Pairing --
 {-# INLINABLE bls12_381_millerLoop #-}
 bls12_381_millerLoop :: BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_MlResult
@@ -538,5 +558,3 @@ bls12_381_mulMlResult = BI.bls12_381_mulMlResult
 {-# INLINABLE bls12_381_finalVerify #-}
 bls12_381_finalVerify :: BuiltinBLS12_381_MlResult -> BuiltinBLS12_381_MlResult -> Bool
 bls12_381_finalVerify a b = fromBuiltin (BI.bls12_381_finalVerify a b)
-
-

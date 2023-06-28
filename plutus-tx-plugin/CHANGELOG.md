@@ -1,4 +1,11 @@
 
+<a id='changelog-1.8.0.0'></a>
+# 1.8.0.0 — 2023-06-22
+
+## Added
+
+- New built-in types and functions for BLS12-381 operations.
+
 <a id='changelog-1.7.0.0'></a>
 # 1.7.0.0 — 2023-05-22
 

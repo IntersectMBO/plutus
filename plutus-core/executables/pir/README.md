@@ -16,9 +16,7 @@ Plutus plugin supports dumping binary representation of the PIR via `dump-pir-fl
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:dump-pir-flat #-}
 ```
 
-Ideally, we would want to use the module when naming the PIR binary dump file,
-but for the time being it received a random name.
-
+The PIR binary dump file dumps to `plutus/plutus-core/` and has the name as the module name followed by a brief description and ".flat".
 # Debugging PIR Compilation
 
 When dealing with issues with PIR compilation, we can simply re-run the
