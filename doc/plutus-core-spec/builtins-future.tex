@@ -94,7 +94,7 @@ $\mathcal{O}_{G_2}$.
 
 \bigskip
 \noindent Values of the \texttt{bls12\_381\_MlResult} type are completely
-opaque and can only be obtained as a result of \texttt{millerLoop} or by
+opaque and can only be obtained as a result of \texttt{bls12\_381\_millerLoop} or by
 multiplying two existing elements of type \texttt{bls12\_381\_MlResult}.  We
 provide neither a serialisation format nor a concrete syntax for values of this
 type: they exist only ephemerally during computation.  We do not
@@ -365,8 +365,8 @@ bls12\_381\_mlresult <opaque>)} if output by a program.
 \note{Pairing operations.}
 \label{note:pairing}
 For efficiency reasons we split the pairing process into two parts:
-the \texttt{millerLoop} and \texttt{finalVerify} functions.  We assume that we
-have
+the \texttt{bls12\_381\_millerLoop} and \texttt{bls12\_381\_finalVerify}
+functions.  We assume that we have
 \begin{itemize}
 \item An intermediate multiplicative abelian group $H$.
 \item A function (not necessarily itself a pairing) $e: G_1 \times
@@ -411,51 +411,3 @@ degree of $E_1$ and $E_2$ with respect to $r$ is 12 (see~\cite[4.1]{Costello-pai
 \texttt{bls12\_381\_finalVerify} are expected
 to be expensive, so their use should be kept to a minimum.  Fortunately most
 current use cases do not require many uses of these functions.
-
-%% \setlength{\LTleft}{-18mm} % Shift the table left a bit to centre it on the page
-%% \begin{longtable}[H]{|l|p{5cm}|p{5cm}|c|c|}
-%%     \hline
-%%     \text{Function} & \text{Signature} & \text{Denotation} & \text{Can} & \text{Note} \\
-%%     & & & Fail? & \\
-%%     \hline
-%%     \endfirsthead
-%%     \hline
-%%     \text{Function} & \text{Type} & \text{Denotation} & \text{Can} & \text{Note}\\
-%%     & & & Fail? & \\
-%%     \hline
-%%     \endhead
-%%     \hline
-%%     \caption{Built-in Functions}
-%%     % This caption goes on every page of the table except the last.  Ideally it
-%%     % would appear only on the first page and all the rest would say
-%%     % (continued). Unfortunately it doesn't seem to be easy to do that in a
-%%     % longtable.
-%%     \endfoot
-%%     \caption[]{Future Built-in  Functions (continued)}
-%%     \label{table:future-built-in-functions}
-%%     \endlastfoot
-%%     \TT{addInteger}               & $[\ty{integer}, \ty{integer}] \to \ty{integer}$   & $+$ &  & \\
-%%     \TT{bls12\_381\_G1\_add}     & $[ \ty{bls12\_381\_G1\_element}, \ty{bls12\_381\_G1\_element} ] \to \ty{bls12\_381\_G1\_element}$ & x& y & x \\
-%%     \TT{bls12\_381\_G1\_neg}     & $ [ \ty{bls12\_381\_G1\_element} ] \to \ty{bls12\_381\_G1\_element}$ & x & y & z
-%%     \hline 
-%% \end{longtable}
-
-%% bls12\_381\_G1\_add                : [ bls12\_381\_G1\_element, bls12\_381\_G1\_element ] -> bls12\_381\_G1\_element
-%% bls12\_381\_G1\_neg                : [ bls12\_381\_G1\_element ] -> bls12\_381\_G1\_element
-%% bls12\_381\_G1\_scalarMul          : [ integer, bls12\_381\_G1\_element ] -> bls12\_381\_G1\_element
-%% bls12\_381\_G1\_equal              : [ bls12\_381\_G1\_element, bls12\_381\_G1\_element ] -> bool
-%% bls12\_381\_G1\_hashToGroup        : [ bytestring ] -> bls12\_381\_G1\_element
-%% bls12\_381\_G1\_compress           : [ bls12\_381\_G1\_element ] -> bytestring
-%% bls12\_381\_G1\_uncompress         : [ bytestring ] -> bls12\_381\_G1\_element
-%% bls12\_381\_G2\_add                : [ bls12\_381\_G2\_element, bls12\_381\_G2\_element ] -> bls12\_381\_G2\_element
-%% bls12\_381\_G2\_neg                : [ bls12\_381\_G2\_element ] -> bls12\_381\_G2\_element
-%% bls12\_381\_G2\_scalarMul          : [ integer, bls12\_381\_G2\_element ] -> bls12\_381\_G2\_element
-%% bls12\_381\_G2\_equal              : [ bls12\_381\_G2\_element, bls12\_381\_G2\_element ] -> bool
-%% bls12\_381\_G2\_hashToGroup        : [ bytestring ] -> bls12\_381\_G2\_element
-%% bls12\_381\_G2\_compress           : [ bls12\_381\_G2\_element ] -> bytestring
-%% bls12\_381\_G2\_uncompress         : [ bytestring ] -> bls12\_381\_G2\_element
-%% bls12\_381\_millerLoop            : [ bls12\_381\_G1\_element, bls12\_381\_G2\_element ] -> bls12\_381\_mlresult
-%% bls12\_381\_mulMlResult           : [ bls12\_381\_mlresult, bls12\_381\_mlresult ] -> bls12\_381\_mlresult
-%% bls12\_381\_finalVerify           : [ bls12\_381\_mlresult, bls12\_381\_mlresult ] -> bool
-
-
