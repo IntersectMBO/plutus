@@ -86,7 +86,7 @@ from CBOR's ability to self-describe its format.
 -- a binary format that is understood by the network and can be stored on-chain.
 serialiseCompiledCode :: forall a. CompiledCode a -> SerialisedScript
 serialiseCompiledCode =
-    -- Instead of this `serialiseUPLC . toNameLess` we could instead
+    -- MAYBE: Instead of this `serialiseUPLC . toNameLess` we could instead
     -- call `serialise(coerce @(Prog ND) @(Prog FND))` which, despite violating momentarily the
     -- invariant `fnd.name==fakeName`, would be faster.
     serialiseUPLC . toNameless . getPlcNoAnn

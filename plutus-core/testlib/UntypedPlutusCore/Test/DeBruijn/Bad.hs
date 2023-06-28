@@ -1,5 +1,6 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies     #-}
+{-# LANGUAGE TypeOperators    #-}
 module UntypedPlutusCore.Test.DeBruijn.Bad
     ( var0
     , lamAbs1

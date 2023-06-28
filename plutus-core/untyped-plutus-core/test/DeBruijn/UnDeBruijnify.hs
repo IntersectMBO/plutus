@@ -10,7 +10,6 @@ import PlutusCore.MkPlc
 import PlutusCore.Pretty
 import PlutusCore.Quote
 import PlutusCore.StdLib.Data.Bool
-import PlutusPrelude
 import UntypedPlutusCore as UPLC
 import UntypedPlutusCore.Test.DeBruijn.Bad
 import UntypedPlutusCore.Test.DeBruijn.Good
@@ -79,8 +78,8 @@ test_undebruijnify = testNested "Golden"
 
     actDefault = progTerm unDeBruijnTerm
 
-    actGrace = progTerm (unDeBruijnTermWith freeIndexAsConsistentLevel)
-               >>> flip evalStateT mempty
+    actGrace = flip evalStateT mempty
+               . progTerm (unDeBruijnTermWith freeIndexAsConsistentLevel)
 
     mkProg = Program () PLC.latestVersion . termMapNames fakeNameDeBruijn
 

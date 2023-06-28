@@ -24,12 +24,11 @@ import PlutusCore.DeBruijn
 import PlutusCore.Name
 
 import Codec.Serialise (Serialise, deserialiseOrFail, serialise)
-import Data.Functor
 import Data.Proxy
-import Data.Word (Word8)
 import Flat
 import Flat.Decoder
 import Flat.Encoder
+import PlutusPrelude
 import Universe
 
 {- Note [Stable encoding of PLC]
@@ -402,6 +401,6 @@ See NOTE: [Why newtype FakeNamedDeBruijn]
 NOTE: the serialization roundtrip holds iff the invariant binder.index==0 holds
 -}
 instance Flat (Binder FakeNamedDeBruijn) where
-    size  = size . fmap fromFake
+    size = size . fmap fromFake
     encode = encode . fmap fromFake
     decode =  fmap toFake <$> decode
