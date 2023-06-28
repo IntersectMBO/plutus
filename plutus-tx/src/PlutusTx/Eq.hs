@@ -38,6 +38,14 @@ instance Eq Builtins.BuiltinString where
     {-# INLINABLE (==) #-}
     (==) = Builtins.equalsString
 
+instance Eq Builtins.BuiltinBLS12_381_G1_Element where
+    {-# INLINABLE (==) #-}
+    (==) = Builtins.bls12_381_G1_equals
+
+instance Eq Builtins.BuiltinBLS12_381_G2_Element where
+    {-# INLINABLE (==) #-}
+    (==) = Builtins.bls12_381_G2_equals
+
 instance Eq a => Eq [a] where
     {-# INLINABLE (==) #-}
     [] == []         = True
