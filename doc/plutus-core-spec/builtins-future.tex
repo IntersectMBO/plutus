@@ -225,13 +225,13 @@ binary number: $\tilde{x} = \sum_{i=0}^{380}b_i2^i$ with $b_i \in \{0,1\}$.  We
 define $\mathsf{bits}(x)$ to be the bitstring $b_{380}\cdots b_0$.
 
 \item A non-identity element of $G_1$ can be written in the form $(x,y)$ with $x,y\in\Fq$.
-Not every element $x$ of $\Fq$ is the $x$ coordinate of a point in $G_1$, but
-those which are in fact occur as the $x$ coordinate of two distinct points in
-$G_1$ with distinct $y$ coordinates, one the negative of the other.  We denote
-the smaller of the possible $y$ coordinates by $\ymin(x)$ and the larger by
-$\ymax(x)$.
+Not every element $x$ of $\Fq$ is the $x$-coordinate of a point in $G_1$, but
+those which are in fact occur as the $x$-coordinate of two distinct points in
+$G_1$ whose $y$-coordinates are the negatives of each other.  A similar
+statement is true for $\Fqq$ and $G_2$.  In both cases we denote the smaller of
+the possible $y$-coordinates by $\ymin(x)$ and the larger by $\ymax(x)$.
 
-\item For $(x,y) \in G_1\backslash \mathcal{O}$ we define
+\item For $(x,y) \in G_1\backslash \mathcal{O}_{G_1}$ we define
 $$
 \compress_{G_1} (x,y) = \begin{cases}
 \mathsf{1}\mathsf{0}\mathsf{0}\cdot\mathsf{bits}(x) & \text{if $y=\ymin(x)$}\\
@@ -268,33 +268,35 @@ $$
 \compress_{G_2}(\mathcal{O}_{G_2}) = \mathsf{1}\mathsf{1}\mathsf{0}\cdot\mathsf{0}^{765}.
 $$
 
-\noindent The encoding of an element of $G_2$ requires exactly 768 bits, or 96 bytes.
 \end{itemize}
+\noindent The encoding of an element of $G_2$ requires exactly 768 bits, or 96 bytes.
 
-Note that in all cases the most significant bit of a compressed point is 1.
-In the Zcash serialisation scheme this indicates that the point is compressed;
-Zcash also supports a serialisation format where both the $x$ and $y$
-coordinates of a point are encoded, and in that case the leading bit of the
+Note that in all cases the most significant bit of a compressed point is 1.  In
+the Zcash serialisation scheme this indicates that the point is compressed;
+Zcash also supports a serialisation format where both the $x$- and
+$y$-coordinates of a point are encoded, and in that case the leading bit of the
 encoded point is 0.  We do not support this format.
 
 \note{Uncompression for elements of $G_1$ and $G_2$.} 
 \label{note:group-uncompression}
-The two $\uncompress$ functions are obtained by inverting the process described
-in Note~\ref{note:group-compression}.
+There are two (partial) ``uncompression'' functions $\uncompress_{G_1}$ and
+$\uncompress_{G_2}$ which convert bytestrings into group elements; these are
+obtained by inverting the process described in
+Note~\ref{note:group-compression}.
 
-\paragraph{$G_1$ uncompression.}  Given a bytestring $b$, it is checked that
-$b$ contains exactly 48 bytes.  If not, then $\uncompress(b) = \errorX$ (ie,
+\paragraph{Uncompression for $G_1$ elements.}  Given a bytestring $b$, it is checked that
+$b$ contains exactly 48 bytes.  If not, then $\uncompress_{G_1}(b) = \errorX$ (ie,
 uncompression fails).  If the length is equal to 48 bytes, write $b$ as a
 sequence of bits: $b = b_{383} \cdots b_0$.
 \begin{itemize}
 \item If $b_{383} \neq 1$, then $\uncompress_{G_1}(b) = \errorX$.
-\item If $b_{382} = 1$ then
+\item If $b_{383} = b_{382} = 1$ then
 $\uncompress_{G_1}(b) =
 \begin{cases}
 \mathcal{O}_{G_1} & \text{if $b_{381} = b_{380} = \cdots = b_0 = 0$}\\
 \errorX & \text{otherwise}.
 \end{cases}$
-\item If $b_{382}=0$, set $c=\sum_{i=0}^{380}b_i2^i \in \N$.
+\item If $b_{383}=1$ and $b_{382}=0$, let $c=\sum_{i=0}^{380}b_i2^i \in \N$.
 \begin{itemize}
 \item If $c \geq q$, $\uncompress_{G_1}(b) = \errorX$.
 \item Otherwise, let $x = \bar{c} \in \Fq$ and let $z = x^3+4$. If $z$ is not a
@@ -312,18 +314,18 @@ $y=\begin{cases}
 \end{itemize}
 
 
-\paragraph{$G_2$ uncompression.}  Given a bytestring $b$, it is checked that
-$b$ contains exactly 96 bytes.  If not, then $\uncompress(b) = \errorX$ (ie,
+\paragraph{Uncompression for $G_2$ elements.}  Given a bytestring $b$, it is checked that
+$b$ contains exactly 96 bytes.  If not, then $\uncompress_{G_2}(b) = \errorX$ (ie,
 uncompression fails).  If the length is equal to 96 bytes, write $b$ as a
 sequence of bits: $b = b_{767} \cdots b_0$.
 \begin{itemize}
 \item If $b_{767} \neq 1$, then $\uncompress_{G_2}(b) = \errorX$.
-\item If $b_{766} = 1$ then $\uncompress_{G_2}(b) =
+\item If $b_{767} = b_{766} = 1$ then $\uncompress_{G_2}(b) =
 \begin{cases}
 \mathcal{O}_{G_1} & \text{if $b_{765} = b_{764} = \cdots = b_0 = 0$}\\
 \errorX & \text{otherwise}.
 \end{cases}$
-\item If $b_{766} = 0$, set $c=\sum_{i=0}^{383}b_i2^i$ and $d=\sum_{i=384}^{764}b_i2^{i-384} \in \N$.
+\item If $b_{767}=1$ and $b_{766} = 0$, let $c=\sum_{i=0}^{383}b_i2^i$ and $d=\sum_{i=384}^{764}b_i2^{i-384} \in \N$.
 \begin{itemize}
 \item If $c \geq q$ or $d \geq q$, $\uncompress_{G_2}(b) = \errorX$.
 \item Otherwise, let $x = \bar{c}+\bar{d}u \in \Fqq$ and let $z = x^3+4(u+1)$.
