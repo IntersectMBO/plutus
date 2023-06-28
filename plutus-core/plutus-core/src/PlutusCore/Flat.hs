@@ -31,7 +31,6 @@ import Data.Word (Word8)
 import Flat
 import Flat.Decoder
 import Flat.Encoder
-import GHC.Natural.Extras
 import Universe
 
 {- Note [Stable encoding of PLC]
@@ -88,32 +87,25 @@ implementations for them (if they have any constructors reserved for future use)
 By default, Flat does not use any space to serialise `()`.
 -}
 
-{- Note [Index (Word64) (de)serialized through Natural]
+{- Note [DeBruijn Index serialization]
 
-With the recent change of CEK to use DeBruijn instead of Name,
-we decided to change Index to be a Word64 instead of Natural, for performance reasons.
+Back in the days, `Index` was a Natural and we flat (de)-serialized it via Natural.
+Later `Index` was changed to Word64 (for performance reasons):
+its flat encoding remained via Natural,
+but its decoding was changed to a *custom* Word64 decoder.
 
-However, to be absolutely sure that the script format *does not change*
-for plutus, we are converting from/to Word64 and (de)-serialize *only through
-Natural*, to keep the flat format the same.
+Why custom decoder: there was a bug in Word64 decoder of flat versions <0.5.2 and
+fixed in flat>=0.5.2.
 
-Also, for sake of speed & simplicity we restrict the current deserialization to work
-only on 64-bit architectures (serialization still works on 32-bit architecture because it
-is not in the critical path).
+We are now running flat>=0.6, so we switch to the non-custom, fixed flat Word64 decoder.
 
-Note: We have another 64-bit limitation, this time not during script deserialization but during
-script execution, for more see Note [Integral types as Integer].
-
-Going a step further is to switch to *direct* Word64 (de)-serializization:
-afterall, Natural and Word64 are flat-compatible up-to `maxBound :: Word64`.
-A problem may arise in currently stored scripts on the chain containing
-a variable with a huge debruijn index: `>maxBound::Word64`. Such a script
-will definitely fail at phase-2 validation (more specifically, at scope-checking)
-because of the current script-size constraints deeming the hugely-indexed variable a free-variable.
-Changing to direct Word64 (de)-serialization will turn those existing stored
-scripts to a phase-1 failure instead of current phase-2 failure.
-
-We postpone this transition to direct Word64 (de)-serializer for a future plutus version.
+Since we are there, we also switch the encoder of Index from the Natural encoder
+to Word64 encoder. This encoding change only breaks client-code and not nodes' behavior:
+the script would just fail earlier at encoding phase (in the client's software)
+than the later decoding phase (when trying to send the encoded script to the node network and
+only get back a decoding error, aka phase-1 validation error).
+This phase-1 validation is in place both for normal (locked scripts) and for inline scripts,
+so the nodes' behavior does not change.
 -}
 
 
@@ -364,20 +356,8 @@ instance ( Flat ann
 
 deriving newtype instance (Flat a) => Flat (Normalized a)
 
--- See Note [Index (Word64) (de)serialized through Natural]
-instance Flat Index where
-    -- encode from word64 to natural
-    encode = encode @Natural . fromIntegral
-    -- decode from natural to word64
-    decode = do
-        n <- decode @Natural
-        case naturalToWord64Maybe n of
-            Nothing  -> fail $ "Index outside representable range: " ++ show n
-            Just w64 -> pure $ Index w64
-    -- to be exact, we must not let this be generically derived,
-    -- because the `gsize` would derive the size of the underlying Word64,
-    -- whereas we want the size of Natural
-    size = sNatural . fromIntegral
+-- See Note [DeBruijn Index serialization]
+deriving newtype instance Flat Index -- via word64
 
 deriving newtype instance Flat DeBruijn -- via index
 deriving newtype instance Flat TyDeBruijn -- via debruijn
