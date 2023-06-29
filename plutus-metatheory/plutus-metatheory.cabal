@@ -71,6 +71,7 @@ library
     Raw
     Untyped
 
+  --    Scoped
   -- WARNING: Order is important! MAlonzo modules must be listed last.
   -- But cabal-fmt reorders modules alphabetically, so we use two 
   -- exposed-modules subsets to work around that. See Setup.hs

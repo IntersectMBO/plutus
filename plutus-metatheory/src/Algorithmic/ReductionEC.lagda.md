@@ -186,6 +186,12 @@ data Error :  ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set where
 Frames used by the CC and the CK machine, and their plugging function.
 
 ```
+data VListZipper : (tot : List (∅ ⊢Nf⋆ *)) → ∀{vs}{h}{ts : List (∅ ⊢Nf⋆ *)} → tot ≣ vs <>> (h ∷ ts) → Set  where 
+     mkVZ : ∀{tot vs A ts} → {tvs : IBwd (∅ ⊢_) vs} → {idx : tot ≣ vs <>> (A ∷ ts)} → VList tvs → ConstrArgs ∅ ts → VListZipper tot idx
+
+plugZipper : ∀{tot vs h ts}{idx : tot ≣ vs <>> (h ∷ ts)} → VListZipper tot idx → (t : ∅ ⊢ h) → IList (∅ ⊢_) tot  
+plugZipper {idx = idx}(mkVZ {tvs = tvs} vs ts) t = substEq (IList (∅ ⊢_)) (sym (lem-≣-<>> idx)) (tvs <>>I (t ∷ ts))
+
 data Frame : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
   -·_     : {A B : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → Frame B (A ⇒ B)
   -·v     : ∀{A B : ∅ ⊢Nf⋆ *}{t : ∅ ⊢ A} → Value t → Frame B (A ⇒ B)

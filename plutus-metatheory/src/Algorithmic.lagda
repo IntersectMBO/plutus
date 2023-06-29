@@ -191,6 +191,9 @@ data Cases (Γ : Ctx Φ) (B : Φ ⊢Nf⋆ *) : ∀{n} → Vec (List (Φ ⊢Nf⋆
 The actual type of terms
 
 \begin{code}
+mkCaseType : ∀{Φ} (A : Φ ⊢Nf⋆ *) → List (Φ ⊢Nf⋆ *) → Φ ⊢Nf⋆ *
+mkCaseType A = foldr _⇒_ A
+
 infixl 7 _·⋆_/_
 
 data _⊢_ (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
@@ -320,7 +323,7 @@ constr-cong :  ∀{Γ : Ctx Φ}{n}{i : Fin n}{A : Vec (List (Φ ⊢Nf⋆ *)) n}{
             → (p : ts ≡ lookup A i)
             → {cs : ConstrArgs Γ ts}
             → {cs' : ConstrArgs Γ (lookup A i)}
-            → (q : cs' ≡ subst (IList (Γ ⊢_)) p cs)
-            → constr i A refl cs' ≡ constr i A p cs
-constr-cong refl refl = refl
-\end{code}
+            → (q : cs' ≡ subst (IList (Γ ⊢_)) (sym p) cs)
+            → constr i A refl cs' ≡ constr i A (sym p) cs
+constr-cong refl refl = refl            
+\end{code}   

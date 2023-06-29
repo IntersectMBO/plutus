@@ -160,7 +160,6 @@ data _≣_<>>_ {A : Set} : (as : List A) → Bwd A → List A → Set where
            ---------------------------
          → as ≣ (vs :< t) <>> ts 
 
-
 lem-≣-<>> : ∀{A : Set}{tot vs}{ts : List A} → tot ≣ vs <>> ts → tot ≡ vs <>> ts
 lem-≣-<>> start = refl
 lem-≣-<>> (bubble x) = lem-≣-<>> x
