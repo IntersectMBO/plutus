@@ -2,7 +2,7 @@
 \begin{code}
 module Utils where
 
-open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;sym;trans;cong₂)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;sym;trans;cong₂;subst)
 open import Function using (const;_∘_)
 open import Data.Nat using (ℕ;zero;suc;_≤‴_;_≤_;_+_)
 open _≤_
@@ -51,7 +51,12 @@ cong₃ : {A B C D : Set} → (f : A → B → C → D)
   → {c c' : C} → c ≡ c'
   → f a b c ≡ f a' b' c'
 cong₃ f refl refl refl = refl
-\end{code}
+
+≡-subst-removable : ∀ {a p} {A : Set a}
+                    (P : A → Set p) {x y} (p q : x ≡ y) z →
+                    subst P p z ≡ subst P q z
+≡-subst-removable P refl refl z = refl 
+ \end{code}
 
 The type `n ∔ n' ≡ m` 
 allows to take two naturals `n` and `n'` such that they sum m.
@@ -143,6 +148,10 @@ data _×_ (A B : Set) : Set where
 data List (A : Set) : Set where
   []  : List A
   _∷_ : A → List A → List A
+
+length : ∀ {A} → List A → ℕ
+length [] = 0
+length (x ∷ xs) = suc (length xs)
 
 map : ∀{A B} → (A → B) → List A → List B
 map f [] = []

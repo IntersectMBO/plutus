@@ -69,9 +69,9 @@ library
   exposed-modules:
     Opts
     Raw
-    Scoped
     Untyped
 
+  --    Scoped
   -- WARNING: Order is important! MAlonzo modules must be listed last.
   -- But cabal-fmt reorders modules alphabetically, so we use two 
   -- exposed-modules subsets to work around that. See Setup.hs
@@ -264,6 +264,7 @@ library
     MAlonzo.Code.Untyped.RenamingSubstitution
     MAlonzo.Code.Utils
     MAlonzo.Code.Utils.Decidable
+    MAlonzo.Code.Utils.List
     MAlonzo.Code.Utils.Reflection
     MAlonzo.RTE
     MAlonzo.RTE.Float
@@ -456,6 +457,7 @@ library
     MAlonzo.Code.Untyped.RenamingSubstitution
     MAlonzo.Code.Utils
     MAlonzo.Code.Utils.Decidable
+    MAlonzo.Code.Utils.List
     MAlonzo.Code.Utils.Reflection
     MAlonzo.RTE
     MAlonzo.RTE.Float

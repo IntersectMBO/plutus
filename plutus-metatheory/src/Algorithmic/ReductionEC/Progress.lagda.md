@@ -5,12 +5,15 @@ module Algorithmic.ReductionEC.Progress where
 
 ```
 open import Data.Nat using (zero;suc)
-open import Data.List as List using (List; _∷_; [])
-open import Relation.Binary.PropositionalEquality using (_≡_;refl)  
+open import Data.Fin using (Fin;zero;suc)
+open import Data.Vec as Vec using ([];_∷_;lookup)
+open import Data.Product using (Σ;_×_) renaming (_,_ to _,,_)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;trans;cong;subst)  
 
-open import Utils using (*;bubble)
+open import Utils using (*;bubble;≡-subst-removable)
+open import Utils.List 
 open import Type using (Ctx⋆;∅)
-open import Algorithmic using (Ctx;_⊢_)
+open import Algorithmic using (Ctx;_⊢_;ConstrArgs)
 open Ctx
 open _⊢_
 
@@ -19,7 +22,7 @@ open import Algorithmic.Signature using (_[_]SigTy)
 open import Type.BetaNormal using (_⊢Nf⋆_)
 open _⊢Nf⋆_
 
-open import Algorithmic.ReductionEC using (Value;BApp;_—→⋆_;_—→_;Error;EC;V-I;ival;E-error)
+open import Algorithmic.ReductionEC using (Value;BApp;_—→⋆_;_—→_;Error;EC;V-I;ival;E-error;VListZipper;mkVZ;VList)
 open Value
 open BApp
 open _—→⋆_
@@ -46,9 +49,54 @@ data Progress {A : ∅ ⊢Nf⋆ *} (M : ∅ ⊢ A) : Set where
     → Progress M
 ```
 
+## Progress for lists 
+
+When processing constructors, we need to know the progress of a list of terms.
+A ProgressList is a zipper consisting of:
+  * a typed backwards list of constructors already evaluated (vs),
+  * Progress on the current term M of type H  
+  * a (typed) lists of terms to be evaluated (ts)
 
 ```
+PList : ∀{ts} → IList (∅ ⊢_) ts → Set 
+PList = IIList Progress
+
+ProgDissect : ∀{tot}{itot : IList (∅ ⊢_) tot}(iitot : IIList Progress itot) → Set 
+ProgDissect = IIDissect Value Progress                 
+
 progress : {A : ∅ ⊢Nf⋆ *} → (M : ∅ ⊢ A) → Progress M
+
+-- Walk the list to look for the first term than can make progress or is an error.
+-- If all are done, leave focus on the last element.
+{-# TERMINATING #-} --Although obviously terminating, Agda is not convinced.
+progress-focus : ∀{AS : List (∅ ⊢Nf⋆ *)}{cs : IList (_⊢_ ∅) AS }{pcs : IIList Progress cs} → ProgDissect pcs → ProgDissect pcs
+progress-focus z@(iiDissect x Vs []) = z
+progress-focus z@(iiDissect x Vs (step _ ∷ iils)) = z
+progress-focus z@(iiDissect x Vs (done V ∷ iils)) = progress-focus (iiDissect (bubble x) (Vs :< V) iils)
+progress-focus z@(iiDissect x Vs (error _ ∷ iils)) = z
+
+--  iils ≡ [] ∨ (iils ≡ (x ∷ xs) ∧ ¬(∃ Value (x ≡ done v) 
+
+postulate CannotHappen : ∀ {n} {e = i : Fin n}
+                 {A = TSS : Vec.Vec (List (∅ ⊢Nf⋆ *)) n}
+                 {cs : ConstrArgs ∅ (lookup TSS i)} →
+               Progress (constr i TSS refl cs)
+
+
+
+progress-List :  ∀ {TS : List (∅ ⊢Nf⋆ *)}
+                → (cs : ConstrArgs ∅ TS) 
+                → PList cs
+progress-List [] = []
+progress-List (c ∷ cs) = progress c ∷ progress-List cs
+
+progress-constr : ∀ {n} (e : Fin n)
+                    (TSS : Vec.Vec (List (∅ ⊢Nf⋆ *)) n)
+                    {cs : ConstrArgs ∅ (lookup TSS e)}
+                    (ps : PList cs)
+                  → ProgDissect ps
+progress-constr e TSS ps = progress-focus (iiDissect start [] ps) 
+
 progress (ƛ M)        = done (V-ƛ M)
 progress (M · M')     with progress M
 ... | error E-error = step (ruleErr ([] l· M') refl)
@@ -86,6 +134,41 @@ progress (unwrap M refl) with progress M
 progress (con c refl)      = done (V-con c)
 progress (builtin b / refl ) = done (ival b)
 progress (error A)    = error E-error
+progress (constr i TSS refl cs)  with progress-constr i TSS (progress-List cs) 
+... | iiDissect {bs}{ibs}{idx = idx} x Vs [] = done (V-constr i 
+                                                     TSS 
+                                                     refl 
+                                                     (trans (sym (lemma<>2 bs [])) (cong ([] <><_) (sym (lem-≣-<>> idx)))) 
+                                                     Vs 
+                                                     (trans (≡-subst-removable (IList (_⊢_ ∅)) _ _ (ibs <>>I [])) (sym (lem-≣T-<>>r x))))
+... | iiDissect x Vs (step (ruleEC E p refl refl) ∷ Ps) = 
+              step (ruleEC (constr i TSS refl {getIdx≡T x} (mkVZ Vs (iiGetIdx Ps)) E) 
+                           p 
+                           (cong (constr i TSS refl) (lem-≣T-<>>r x)) 
+                           refl)
+... | iiDissect x Vs (step (ruleErr E refl) ∷ Ps) = 
+               step (ruleErr (constr i TSS refl {getIdx≡T x} (mkVZ Vs (iiGetIdx Ps)) E) 
+                    (cong (constr i TSS refl) (lem-≣T-<>>r x)))
+   --- when reaching a done it should be the last one so Ps should be empty.
+   -- Currently we have no way of letting Agda know that.                 
+... | iiDissect {bs}{ibs}{idx = idx} x Vs (done V ∷ []) = done (V-constr i 
+                                                               TSS 
+                                                               refl 
+                                                               (trans (sym (lemma<>2 (bs :< _) [])) 
+                                                                           (cong ([] <><_) (sym (lem-≣-<>> idx)))) 
+                                                               (Vs :< V) 
+                                                               (trans (≡-subst-removable (IList (_⊢_ ∅)) _ _ (ibs <>>I (_ ∷ []))) (sym (lem-≣T-<>>r x))))
+     -- the following case cannot happen
+... | iiDissect x Vs (done V ∷ (x₁ ∷ Ps)) = CannotHappen
+... | iiDissect {ibs = ibs}{idx = idx} x Vs (_∷_ {is = is} (error E-error) Ps) =
+        step (ruleErr (constr i TSS refl {idx} (mkVZ Vs is) []) 
+                             (cong (constr i TSS refl) (trans (lem-≣T-<>>r x) refl
+                             )))
+progress (case M cases)  with progress M 
+... | step (ruleEC E p refl refl) = step (ruleEC (case cases E) p refl refl)
+... | step (ruleErr E refl) = step (ruleErr (case cases E) refl)
+... | done (V-constr e TSS refl refl vs refl) = step (ruleEC [] (β-case e TSS refl vs refl cases) refl refl)
+... | error E-error = step (ruleErr (case cases []) refl)
 
 {- These definitions seems unused
 _↓ : ∀{A} → ∅ ⊢ A → Set
@@ -142,3 +225,4 @@ progress' M with lemma51 M
 ... | inj₂ (B ,, E ,, L ,, inj₂ E-error ,, refl) = step (ruleErr E refl)
 
 -}
+ 

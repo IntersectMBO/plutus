@@ -388,7 +388,7 @@ whose semantics are provided by a Haskell function.
 
 ```
 postulate
-  length                    : ByteString → Int
+  lengthBS                  : ByteString → Int
   index                     : ByteString → Int → Int
   div                       : Int → Int → Int
   quot                      : Int → Int → Int
@@ -447,7 +447,7 @@ postulate
 {-# FOREIGN GHC import Data.Either.Extra (eitherToMaybe) #-}
 {-# FOREIGN GHC import Data.Word (Word8) #-}
 {-# FOREIGN GHC import Data.Bits (toIntegralSized) #-}
-{-# COMPILE GHC length = toInteger . BS.length #-}
+{-# COMPILE GHC lengthBS = toInteger . BS.length #-}
 
 -- no binding needed for addition
 -- no binding needed for subtract

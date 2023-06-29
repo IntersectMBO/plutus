@@ -224,6 +224,12 @@ uglyTypeError (typeMismatch A A' x) =
   prettyPrintTy (extricateScopeTy (extricateNf⋆ A'))
 uglyTypeError builtinError = "builtinError"
 uglyTypeError (Unimplemented x) = "Feature " ++ x ++ " not implemented"
+uglyTypeError (notSOP A x) = "notSOP" ++ prettyPrintTy (extricateScopeTy (extricateNf⋆ A))
+uglyTypeError (IndexOutOfBounds x) = "IndexOutOfBounds"
+uglyTypeError TooManyConstrArgs = "TooManyConstrArgs"
+uglyTypeError TooFewConstrArgs = "TooFewConstrArgs"
+uglyTypeError TooFewCases = "TooFewCases"
+uglyTypeError TooManyCases = "TooManyCases"
 
 -- the haskell version of Error is defined in Raw
 

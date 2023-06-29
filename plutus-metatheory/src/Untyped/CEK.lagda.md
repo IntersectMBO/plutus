@@ -24,7 +24,7 @@ open import Data.Product using (_,_)
 open import Untyped using (_⊢)
 open _⊢
 open import Untyped.RenamingSubstitution using (Sub;sub;lifts)
-open import Utils hiding (List)
+open import Utils hiding (List;length)
 open import Builtin
 open import Builtin.Signature using (Sig;sig;Args;_⊢♯;args♯;fv)
             using (integer;bool;bytestring;string;pdata;unit;bls12-381-g1-element;bls12-381-g2-element;bls12-381-mlresult)
@@ -287,14 +287,14 @@ BUILTIN sliceByteString = λ
   ; _ -> inj₁ userError
   }
 BUILTIN lengthOfByteString = λ
-  { (app base (V-con bytestring b)) -> inj₂ (V-con integer (length b))
+  { (app base (V-con bytestring b)) -> inj₂ (V-con integer (lengthBS b))
   ; _ -> inj₁ userError
   }
 BUILTIN indexByteString = λ
   { (app (app base (V-con bytestring b)) (V-con integer i)) ->
       case Data.Integer.ℤ.pos 0 ≤? i of λ
         { (no  _) -> inj₁ userError
-        ; (yes _) -> case i <? length b of λ
+        ; (yes _) -> case i <? lengthBS b of λ
           { (no _)  -> inj₁ userError
           ; (yes _) -> inj₂ (V-con integer (index b i))
           }

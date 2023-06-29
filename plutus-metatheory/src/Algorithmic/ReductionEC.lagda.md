@@ -7,15 +7,17 @@ module Algorithmic.ReductionEC where
 open import Agda.Builtin.String using (primStringAppend ; primStringEquality)
 open import Data.Nat using (ℕ;zero;suc)
 open import Data.Nat.Properties using (+-identityʳ)
+open import Data.Fin using (Fin;zero;suc)
 open import Data.Bool using (Bool;true;false)
 open import Data.Empty using (⊥;⊥-elim)
 open import Data.Integer using (_<?_;∣_∣;_≤?_;_≟_)
-open import Data.List as List using (List; _∷_; [];length)
+open import Data.Vec as Vec using (Vec;[];_∷_;lookup)
 open import Data.Maybe using (just;from-just)
 open import Data.Product using (_×_;∃;proj₁;proj₂) renaming (_,_ to _,,_)
 open import Data.String using (String)
 open import Data.Sum using (_⊎_;inj₁;inj₂)
 open import Data.Unit using (tt)
+open import Function using (_∘_)
 open import Relation.Nullary using (¬_;yes;no)
 open import Relation.Binary.PropositionalEquality 
                     using (_≡_;refl;sym;trans;cong)  
@@ -23,11 +25,12 @@ open import Relation.Binary.PropositionalEquality
 open import Relation.Binary.HeterogeneousEquality 
         using (_≅_;refl;≅-to-≡) 
 
-open import Utils
+open import Utils hiding (List;length;case;map)
+open import Utils.List using (List;_∷_;[];length;map;IBwd;_:<_;IIBwd;_<><_;IList;IBwd2IList;_≣_<>>_;lem-≣-<>>;_<>>I_)
 open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_;_∋⋆_;Z)
 open _⊢⋆_
 import Type.RenamingSubstitution as T
-open import Algorithmic using (Ctx;_⊢_;conv⊢;⟦_⟧)
+open import Algorithmic using (Ctx;_⊢_;conv⊢;⟦_⟧;ConstrArgs;Cases;lookupCase;mkCaseType)
 open import Algorithmic.Signature using (btype;_[_]SigTy)
 open Ctx
 open _⊢_
@@ -51,10 +54,25 @@ open SigTy
 import Algorithmic.CEK as CEK
 ```
 
+
 ## Values
+
+Values are indexed by terms
+List of values are indexed by list of terms.
 
 ``` 
 data Value : {A : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → Set
+
+-- List of Values
+VList : ∀{ts} → IBwd (∅ ⊢_) ts → Set
+VList = IIBwd Value 
+
+deval : {A : ∅ ⊢Nf⋆ *}{u : ∅ ⊢ A} → Value u → ∅ ⊢ A
+deval {u = u} _ = u
+
+deval-VecList : ∀{n} → (A : Vec (List (∃ (∅ ⊢_))) n) → Vec (List (∅ ⊢Nf⋆ *)) n
+deval-VecList [] = []
+deval-VecList (xs ∷ xss) = map proj₁ xs ∷ (deval-VecList xss)
 
 data BApp (b : Builtin) : 
     ∀{tn tm tt} → {pt : tn ∔ tm ≣ tt}
@@ -113,9 +131,14 @@ data Value where
        → {t : ∅ ⊢ Π A}
        → BApp b (sucΠ σA) t
        → Value t
-
-deval : {A : ∅ ⊢Nf⋆ *}{u : ∅ ⊢ A} → Value u → ∅ ⊢ A
-deval {u = u} _ = u
+  V-constr : ∀{n}(e : Fin n) 
+          → (TSS : Vec (List ( ∅ ⊢Nf⋆ *)) n )
+          → ∀{XS} → (p : XS ≡ Vec.lookup TSS e)
+          → ∀{YS} → (q : YS ≡ [] <>< XS)
+          → {ts : IBwd (∅ ⊢_) YS}
+          → (vs : VList ts)
+          → ∀ {ts' : IList (∅ ⊢_) XS} → (IBwd2IList q ts ≡ ts')
+          → Value (constr e TSS p ts')
 
 red2cekVal : ∀{A}{L : ∅ ⊢ A} → Value L → CEK.Value A
 red2cekBApp : ∀{b}
@@ -129,12 +152,17 @@ red2cekBApp (base) = CEK.base
 red2cekBApp (step x x₁) = (red2cekBApp x) CEK.$ (red2cekVal x₁)
 red2cekBApp (step⋆ x refl) = (red2cekBApp x) CEK.$$ refl
 
+red2cekVal-VList : ∀{TS}{ts : IBwd (_⊢_ ∅) TS} →  (vs : VList ts) → CEK.VList TS
+red2cekVal-VList [] = []
+red2cekVal-VList (vs :< x) = (red2cekVal-VList vs) :< (red2cekVal x)
+
 red2cekVal (V-ƛ M) = CEK.V-ƛ M CEK.[]
 red2cekVal (V-Λ M) = CEK.V-Λ M CEK.[]
 red2cekVal (V-wrap V) = CEK.V-wrap (red2cekVal V)
 red2cekVal (V-con {A} cn) = CEK.V-con cn
 red2cekVal (V-I⇒ b x) = CEK.V-I⇒ b (red2cekBApp x)
 red2cekVal (V-IΠ b x) = CEK.V-IΠ b (red2cekBApp x)
+red2cekVal (V-constr e TSS refl refl vs refl) = CEK.V-constr e TSS (red2cekVal-VList vs) refl
 
 BUILTIN' : ∀ b {A}{t : ∅ ⊢ A}
   → ∀{tn} → {pt : tn ∔ 0 ≣ fv (signature b)}
@@ -156,9 +184,20 @@ data Error :  ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set where
 ### Frames
 
 Frames used by the CC and the CK machine, and their plugging function.
+
+Frames for constructors need to differentiate between evaluated arguments
+and arguments which are not yet evaluated. This is modelled by VListZipper. 
+
 ```
+data VListZipper : (tot : List (∅ ⊢Nf⋆ *)) → ∀{vs}{h}{ts : List (∅ ⊢Nf⋆ *)} → tot ≣ vs <>> (h ∷ ts) → Set  where 
+     mkVZ : ∀{tot vs A ts} → {tvs : IBwd (∅ ⊢_) vs} → {idx : tot ≣ vs <>> (A ∷ ts)} → VList tvs → ConstrArgs ∅ ts → VListZipper tot idx
+
+plugZipper : ∀{tot vs h ts}{idx : tot ≣ vs <>> (h ∷ ts)} → VListZipper tot idx → (t : ∅ ⊢ h) → IList (∅ ⊢_) tot  
+plugZipper {idx = idx}(mkVZ {tvs = tvs} vs ts) t = substEq (IList (∅ ⊢_)) (sym (lem-≣-<>> idx)) (tvs <>>I (t ∷ ts))
+
 data Frame : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
   -·_     : {A B : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → Frame B (A ⇒ B)
+  -·v     : ∀{A B : ∅ ⊢Nf⋆ *}{t : ∅ ⊢ A} → Value t → Frame B (A ⇒ B)
   _·-     : {A B : ∅ ⊢Nf⋆ *}{t : ∅ ⊢ A ⇒ B} → Value t → Frame B A
   -·⋆     : ∀{K}{B : ∅ ,⋆ K ⊢Nf⋆ *}(A : ∅ ⊢Nf⋆ K) → Frame (B [ A ]Nf) (Π B)
 
@@ -166,13 +205,23 @@ data Frame : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
     → Frame (μ A B) (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B))
   unwrap- : ∀{K}{A : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}{B : ∅ ⊢Nf⋆ K}
     → Frame (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)) (μ A B)
+  constr- : ∀{n VS H TS} 
+          → (i : Fin n) 
+          → (TSS : Vec _ n)  
+          → ∀ {XS} → (XS ≡ Vec.lookup TSS i)
+          → {tidx : XS ≣ VS <>> (H ∷ TS)} → VListZipper XS tidx 
+          → Frame (SOP TSS) H
+  case-   : ∀{A n}{TSS : Vec _ n} → Cases ∅ A TSS → Frame A (SOP TSS) 
 
 _[_]ᶠ : ∀{A B : ∅ ⊢Nf⋆ *} → Frame B A → ∅ ⊢ A → ∅ ⊢ B
-(-· M') [ L ]ᶠ = L · M'
-(V ·-)  [ L ]ᶠ = deval V · L
--·⋆ A   [ L ]ᶠ = L ·⋆ A / refl
-wrap-   [ L ]ᶠ = wrap _ _ L
-unwrap- [ L ]ᶠ = unwrap L refl
+(-· M')          [ L ]ᶠ = L · M'
+(-·v V)          [ L ]ᶠ = L · deval V
+(V ·-)           [ L ]ᶠ = deval V · L
+-·⋆ A            [ L ]ᶠ = L ·⋆ A / refl
+wrap-            [ L ]ᶠ = wrap _ _ L
+unwrap-          [ L ]ᶠ = unwrap L refl
+constr- i TSS refl {tidx} (mkVZ {tvs = tvs} _ ts) [ L ]ᶠ = constr i TSS (sym (lem-≣-<>> tidx)) (tvs <>>I (L ∷ ts))
+case- cs         [ L ]ᶠ = case L cs
 ```
 
 ## Evaluation Contexts
@@ -181,6 +230,7 @@ unwrap- [ L ]ᶠ = unwrap L refl
 data EC : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
   []   : {A : ∅ ⊢Nf⋆ *} → EC A A
   _l·_ : {A B C : ∅ ⊢Nf⋆ *} → EC (A ⇒ B) C → ∅ ⊢ A → EC B C
+  _l·v_ : {A B C : ∅ ⊢Nf⋆ *} → EC (A ⇒ B) C → {t : ∅ ⊢ A} → Value t → EC B C
   _·r_ : {A B C : ∅ ⊢Nf⋆ *}{t : ∅ ⊢ A ⇒ B} → Value t → EC A C → EC B C
   _·⋆_/_ : ∀{K}{B : ∅ ,⋆ K ⊢Nf⋆ *}{C}{X}
     → EC (Π B) C → (A : ∅ ⊢Nf⋆ K) → X ≡ B [ A ]Nf → EC X C
@@ -191,6 +241,15 @@ data EC : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
     → EC (μ A B) C
     → X ≡ (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B)) 
     → EC X C
+  constr : ∀{n VS H TS C} 
+          → (i : Fin n) 
+          → (TSS : Vec _ n)  
+          → ∀ {XS} → (XS ≡ Vec.lookup TSS i)
+          → {tidx : XS ≣ VS <>> (H ∷ TS)} 
+          → VListZipper XS tidx
+          → EC H C
+          → EC (SOP TSS) C
+  case   :  ∀{A C n}{TSS : Vec _ n} → Cases ∅ A TSS → EC (SOP TSS) C → EC A C
 
 -- Plugging of evaluation contexts
 _[_]ᴱ : ∀{A B : ∅ ⊢Nf⋆ *} → EC B A → ∅ ⊢ A → ∅ ⊢ B
@@ -200,11 +259,22 @@ _[_]ᴱ : ∀{A B : ∅ ⊢Nf⋆ *} → EC B A → ∅ ⊢ A → ∅ ⊢ B
 (E ·⋆ A / q) [ L ]ᴱ = E [ L ]ᴱ ·⋆ A / q
 (wrap   E) [ L ]ᴱ = wrap _ _ (E [ L ]ᴱ)
 (unwrap E / q) [ L ]ᴱ = unwrap (E [ L ]ᴱ) q
+(E l·v V) [ L ]ᴱ = E  [ L ]ᴱ · deval V
+constr i TSS refl vz E [ L ]ᴱ = constr i TSS refl (plugZipper vz (E [ L ]ᴱ))
+case cs E [ L ]ᴱ = case (E [ L ]ᴱ) cs
 ```
 
 ## Evaluation Relation
 
 ```
+applyCase : ∀ {A : ∅ ⊢Nf⋆ *} 
+              {ts : List (∅ ⊢Nf⋆ *)}
+              (f : ∅ ⊢ mkCaseType A ts)
+           →  (cs : ConstrArgs ∅ ts)
+           → ∅ ⊢ A
+applyCase f [] = f
+applyCase f (x ∷ cs) = applyCase (f · x) cs            
+
 infix 2 _—→⋆_
 
 data _—→⋆_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set where
@@ -238,9 +308,18 @@ data _—→⋆_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set 
     → (vu : Value u)
       -----------------------------
     → t · u —→⋆ BUILTIN' b (step bt vu)
+
+  β-case : ∀{n}{A : ∅ ⊢Nf⋆ *}
+    → (e : Fin n)
+    → (TSS : Vec (List (∅ ⊢Nf⋆ *)) n)
+    → ∀{YS} → (q : YS ≡ [] <>< Vec.lookup TSS e)
+    → {ts : IBwd (∅ ⊢_) YS}
+    → (vs : VList ts)
+    → ∀ {ts' : IList (∅ ⊢_) (Vec.lookup TSS e)} → (IBwd2IList q ts ≡ ts')
+    → (cases : Cases ∅ A TSS)
+    → case (constr e TSS refl ts') cases —→⋆ applyCase (lookupCase e cases) ts'
+-- -}
 ```
-
-
 
 ```
 infix 2 _—→_
@@ -303,3 +382,4 @@ ival : ∀ b → Value (builtin b / refl)
 ival b = V-I b base
 -- -}
 ```
+ 

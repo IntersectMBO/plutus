@@ -5,13 +5,16 @@ module Algorithmic where
 ## Imports
 
 \begin{code}
-open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;cong₂)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;trans;cong;cong₂)
 
 open import Data.Empty using (⊥)
-open import Data.List using (List)
+open import Data.Fin using (Fin)
 open import Data.Product using (_×_)
+open import Data.Vec as Vec using (Vec;[];_∷_;lookup) 
+open import Data.List.Properties using (foldr-++)
 
-open import Utils renaming (_×_ to _U×_; List to UList)
+open import Utils hiding (case) renaming (_×_ to _U×_; List to UList; map to umap)
+open import Utils.List using (List;_++_;foldr;IList;[];_∷_;Bwd;_:<_;bwd-foldr;lemma-bwd-foldr;_<><_;lemma<>1)
 open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_;_∋⋆_;Z;S;Φ)
 open _⊢⋆_
 
@@ -171,10 +174,15 @@ Constants of a builtin type A are given directly by its meaning ⟦ A ⟧, where
 A is restricted to kind ♯.
 
 \begin{code}
+mkCaseType : ∀{Φ} (A : Φ ⊢Nf⋆ *) → List (Φ ⊢Nf⋆ *) → Φ ⊢Nf⋆ *
+mkCaseType A = foldr _⇒_ A
+
 infixl 7 _·⋆_/_
 
-data _⊢_ (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
+ConstrArgs : (Γ : Ctx Φ) → List (Φ ⊢Nf⋆ *) → Set
+data Cases (Γ : Ctx Φ) (B : Φ ⊢Nf⋆ *) : ∀{n} → Vec (List (Φ ⊢Nf⋆ *)) n → Set 
 
+data _⊢_ (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
   ` : ∀ {A : Φ ⊢Nf⋆ *}
     → Γ ∋ A
       -----
@@ -220,6 +228,20 @@ data _⊢_ (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
       -------------------------------------------------------------
     → Γ ⊢ C
 
+  constr : ∀{n}
+      → (e : Fin n)
+      → (A : Vec (List (Φ ⊢Nf⋆ *)) n)
+      → ∀ {ts} → ts ≡ lookup A e
+      → ConstrArgs Γ ts
+        --------------------------------------
+      → Γ ⊢ SOP A
+
+  case : ∀{n}{tss : Vec _ n}{A : Φ ⊢Nf⋆ *}
+      → (t : Γ ⊢ SOP tss)
+      → (cases : Cases Γ A tss)
+        --------------------------
+      → Γ ⊢ A  
+
   con : ∀{A : ∅ ⊢Nf⋆ ♯}{B}
     → ⟦ A ⟧ 
     → B ≡ subNf∅ A
@@ -236,6 +258,16 @@ data _⊢_ (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
       (A : Φ ⊢Nf⋆ *)
       --------------
     → Γ ⊢ A
+
+ConstrArgs Γ = IList (Γ ⊢_)
+
+data Cases Γ B where 
+   []  : Cases Γ B []
+   _∷_ : ∀{n}{AS}{ASS : Vec _ n}(
+         c : Γ ⊢ (mkCaseType B AS)) 
+       → (cs : Cases Γ B ASS)
+         --------------------- 
+       → Cases Γ B (AS ∷ ASS) 
 \end{code}
 
 Utility functions
@@ -254,4 +286,14 @@ conv⊢ : ∀ {Γ Γ'}{A A' : Φ ⊢Nf⋆ *}
  → Γ ⊢ A
  → Γ' ⊢ A'
 conv⊢ refl refl t = t
-\end{code} 
+
+lookupCase : ∀{n Φ}{Γ : Ctx Φ}{B}{TSS : Vec _ n} → (i : Fin n) → Cases Γ B TSS → Γ ⊢ mkCaseType B (Vec.lookup TSS i)
+lookupCase Fin.zero (c ∷ cs) = c
+lookupCase (Fin.suc i) (c ∷ cs) = lookupCase i cs
+
+bwdMkCaseType : ∀{Φ} → Bwd (Φ ⊢Nf⋆ *) → (A : Φ ⊢Nf⋆ *) → Φ ⊢Nf⋆ *
+bwdMkCaseType bs A = bwd-foldr _⇒_ A bs
+
+lemma-bwdfwdfunction' : ∀{Φ} {B : Φ ⊢Nf⋆ *} TS → mkCaseType B TS ≡ bwdMkCaseType ([] <>< TS) B
+lemma-bwdfwdfunction' {B = B} TS = trans (cong (mkCaseType B) (sym (lemma<>1 [] TS))) (lemma-bwd-foldr _⇒_ B ([] <>< TS))
+\end{code}  
