@@ -6,10 +6,14 @@
 -- | Support for using de Bruijn indices for term and type names.
 module PlutusCore.DeBruijn
     ( Index (..)
+    , Level (..)
+    , LevelInfo (..)
     , HasIndex (..)
     , DeBruijn (..)
     , NamedDeBruijn (..)
-    , FakeNamedDeBruijn (..)
+    -- we follow the same approach as Renamed, expose the constructor from Internal module,
+    -- but hide it in this parent module.
+    , FakeNamedDeBruijn (unFakeNamedDeBruijn)
     , TyDeBruijn (..)
     , NamedTyDeBruijn (..)
     , FreeVariableError (..)
@@ -29,7 +33,8 @@ module PlutusCore.DeBruijn
     , unDeBruijnTermWith
     , freeIndexAsConsistentLevel
     , deBruijnInitIndex
-    , fromFake, toFake
+    , fromFake
+    , toFake
     ) where
 
 import PlutusCore.DeBruijn.Internal
@@ -53,7 +58,7 @@ a fixed debruijn index '0' at their introduction.
 -- | Takes a "handler" function to execute when encountering free variables.
 unDeBruijnTyWith
     :: MonadQuote m
-    => (Index -> ReaderT Levels m Unique)
+    => (Index -> ReaderT LevelInfo m Unique)
     -> Type NamedTyDeBruijn uni ann
     -> m (Type TyName uni ann)
 unDeBruijnTyWith = (runDeBruijnT .) . unDeBruijnTyWithM
@@ -61,7 +66,7 @@ unDeBruijnTyWith = (runDeBruijnT .) . unDeBruijnTyWithM
 -- | Takes a "handler" function to execute when encountering free variables.
 unDeBruijnTermWith
     :: MonadQuote m
-    => (Index -> ReaderT Levels m Unique)
+    => (Index -> ReaderT LevelInfo m Unique)
     -> Term NamedTyDeBruijn NamedDeBruijn uni fun ann
     -> m (Term TyName Name uni fun ann)
 unDeBruijnTermWith = (runDeBruijnT .) . unDeBruijnTermWithM
@@ -96,14 +101,14 @@ deBruijnTerm = deBruijnTermWith freeUniqueThrow
 
 deBruijnTermWith
     :: Monad m
-    => (Unique -> ReaderT Levels m Index)
+    => (Unique -> ReaderT LevelInfo m Index)
     -> Term TyName Name uni fun ann
     -> m (Term NamedTyDeBruijn NamedDeBruijn uni fun ann)
 deBruijnTermWith = (runDeBruijnT .) . deBruijnTermWithM
 
 deBruijnTyWith
     :: Monad m
-    => (Unique -> ReaderT Levels m Index)
+    => (Unique -> ReaderT LevelInfo m Index)
     -> Type TyName uni ann
     -> m (Type NamedTyDeBruijn uni ann)
 deBruijnTyWith = (runDeBruijnT .) . deBruijnTyWithM
@@ -115,7 +120,7 @@ These are normally constant in a catamorphic application.
 -}
 
 deBruijnTyWithM
-    :: forall m uni ann. MonadReader Levels m
+    :: forall m uni ann. MonadReader LevelInfo m
     => (Unique -> m Index)
     -> Type TyName uni ann
     -> m (Type NamedTyDeBruijn uni ann)
@@ -141,7 +146,7 @@ deBruijnTyWithM h = go
         TyBuiltin ann con -> pure $ TyBuiltin ann con
 
 deBruijnTermWithM
-    :: forall m uni fun ann. (MonadReader Levels m)
+    :: forall m uni fun ann. (MonadReader LevelInfo m)
     => (Unique -> m Index)
     -> Term TyName Name uni fun ann
     -> m (Term NamedTyDeBruijn NamedDeBruijn uni fun ann)
@@ -175,7 +180,7 @@ deBruijnTermWithM h = go
 
 -- | Takes a "handler" function to execute when encountering free variables.
 unDeBruijnTyWithM
-    :: forall m uni ann. (MonadReader Levels m, MonadQuote m)
+    :: forall m uni ann. (MonadReader LevelInfo m, MonadQuote m)
     => (Index -> m Unique)
     -> Type NamedTyDeBruijn uni ann
     -> m (Type TyName uni ann)
@@ -206,7 +211,7 @@ unDeBruijnTyWithM h = go
 
 -- | Takes a "handler" function to execute when encountering free variables.
 unDeBruijnTermWithM
-    :: forall m uni fun ann. (MonadReader Levels m, MonadQuote m)
+    :: forall m uni fun ann. (MonadReader LevelInfo m, MonadQuote m)
     => (Index -> m Unique)
     -> Term NamedTyDeBruijn NamedDeBruijn uni fun ann
     -> m (Term TyName Name uni fun ann)

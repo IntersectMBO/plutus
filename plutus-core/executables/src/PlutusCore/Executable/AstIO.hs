@@ -16,6 +16,7 @@ module PlutusCore.Executable.AstIO
 where
 
 import PlutusCore.Executable.Types
+import PlutusPrelude
 
 import PlutusCore qualified as PLC
 import PlutusCore.DeBruijn (fakeNameDeBruijn, fakeTyNameDeBruijn, unNameDeBruijn, unNameTyDeBruijn)
@@ -25,9 +26,7 @@ import PlutusIR.Core.Instance.Pretty ()
 import UntypedPlutusCore qualified as UPLC
 
 import Control.Lens (traverseOf)
-import Control.Monad.Except (runExcept, runExceptT)
 import Data.ByteString.Lazy qualified as BSL
-import Data.Functor ((<&>))
 import Flat (Flat, flat, unflat)
 
 type UplcProgDB ann = UPLC.Program PLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ann
@@ -50,23 +49,17 @@ unsupportedNameTypeError nameType = error $ "ASTs with " ++ show nameType ++ " n
 -- | Convert an untyped program to one where the 'name' type is textual names
 -- with de Bruijn indices.
 toNamedDeBruijnUPLC :: UplcProg ann -> UplcProgNDB ann
-toNamedDeBruijnUPLC prog =
-    case runExcept @PLC.FreeVariableError $ traverseOf UPLC.progTerm UPLC.deBruijnTerm prog of
-        Left e  -> error $ show e
-        Right p -> p
+toNamedDeBruijnUPLC = unsafeFromRight @PLC.FreeVariableError
+                    . traverseOf UPLC.progTerm UPLC.deBruijnTerm
 
 -- | Convert an untyped program to one where the 'name' type is de Bruijn indices.
 toDeBruijnUPLC :: UplcProg ann -> UplcProgDB ann
 toDeBruijnUPLC = UPLC.programMapNames unNameDeBruijn . toNamedDeBruijnUPLC
 
-
 -- | Convert an untyped program with named de Bruijn indices to one with textual names.
 fromNamedDeBruijnUPLC :: UplcProgNDB ann -> UplcProg ann
-fromNamedDeBruijnUPLC prog =
-    case PLC.runQuote $
-         runExceptT @PLC.FreeVariableError $ traverseOf UPLC.progTerm UPLC.unDeBruijnTerm prog of
-      Left e  -> error $ show e
-      Right p -> p
+fromNamedDeBruijnUPLC = unsafeFromRight @PLC.FreeVariableError
+                      . PLC.runQuoteT . traverseOf UPLC.progTerm UPLC.unDeBruijnTerm
 
 -- | Convert an untyped program with de Bruijn indices to one with textual names.
 fromDeBruijnUPLC :: UplcProgDB ann -> UplcProg ann
@@ -77,10 +70,8 @@ fromDeBruijnUPLC = fromNamedDeBruijnUPLC . UPLC.programMapNames fakeNameDeBruijn
 -- | Convert a typed program to one where the 'name' type is textual names with
 -- de Bruijn indices.
 toNamedDeBruijnPLC :: PlcProg ann -> PlcProgNDB ann
-toNamedDeBruijnPLC prog =
-    case runExcept @PLC.FreeVariableError $ traverseOf PLC.progTerm PLC.deBruijnTerm prog of
-        Left e  -> error $ show e
-        Right p -> p
+toNamedDeBruijnPLC = unsafeFromRight @PLC.FreeVariableError
+                   . traverseOf PLC.progTerm PLC.deBruijnTerm
 
 -- | Convert a typed program to one where the 'name' type is de Bruijn indices.
 toDeBruijnPLC :: PlcProg ann -> PlcProgDB ann
@@ -89,11 +80,8 @@ toDeBruijnPLC = PLC.programMapNames unNameTyDeBruijn unNameDeBruijn . toNamedDeB
 
 -- | Convert a typed program with named de Bruijn indices to one with textual names.
 fromNamedDeBruijnPLC :: PlcProgNDB ann -> PlcProg ann
-fromNamedDeBruijnPLC prog = do
-  case PLC.runQuote $
-       runExceptT @PLC.FreeVariableError $ traverseOf PLC.progTerm PLC.unDeBruijnTerm prog of
-    Left e  -> error $ show e
-    Right p -> p
+fromNamedDeBruijnPLC = unsafeFromRight @PLC.FreeVariableError
+                     . PLC.runQuoteT . traverseOf PLC.progTerm PLC.unDeBruijnTerm
 
 -- | Convert a typed program with de Bruijn indices to one with textual names.
 fromDeBruijnPLC :: PlcProgDB ann -> PlcProg ann

@@ -20,19 +20,19 @@ import PlutusCore.Name
 import PlutusCore.Quote
 
 -- | @(,)@ as a built-in PLC type.
-pair :: uni `Contains` (,) => Type TyName uni ()
+pair :: uni `Contains` (,) => Type tyname uni ()
 pair = mkTyBuiltin @_ @(,) ()
 
 -- | @fst@ as a PLC term.
 --
 -- > /\(a :: *) (b :: *) -> \(p : pair a b) -> fst {a} {b} p
-fstPair :: TermLike term TyName Name DefaultUni DefaultFun => term ()
+fstPair :: TermLike term tyname name DefaultUni DefaultFun => term ()
 fstPair = builtin () FstPair
 
 -- | @snd@ as a PLC term.
 --
 -- > /\(a :: *) (b :: *) -> \(p : pair a b) -> snd {a} {b} p
-sndPair :: TermLike term TyName Name DefaultUni DefaultFun => term ()
+sndPair :: TermLike term tyname name DefaultUni DefaultFun => term ()
 sndPair = builtin () SndPair
 
 -- | @uncurry@ as a PLC term.

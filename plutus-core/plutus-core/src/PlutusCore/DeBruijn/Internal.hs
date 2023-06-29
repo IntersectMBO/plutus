@@ -14,13 +14,15 @@ module PlutusCore.DeBruijn.Internal (
   HasIndex (..),
   DeBruijn (..),
   NamedDeBruijn (..),
+  -- we follow the same approach as Renamed: expose the constructor from Internal module,
+  -- but hide it in the parent module.
   FakeNamedDeBruijn (..),
   TyDeBruijn (..),
   NamedTyDeBruijn (..),
   FreeVariableError (..),
   AsFreeVariableError (..),
   Level (..),
-  Levels (..),
+  LevelInfo (..),
   declareUnique,
   declareBinder,
   withScope,
@@ -64,7 +66,40 @@ import Control.DeepSeq (NFData)
 import Data.Coerce
 import GHC.Generics
 
--- | A relative index used for de Bruijn identifiers.
+{- NOTE: [Why newtype FakeNamedDeBruijn]
+We use a newtype wrapper to optimize away the expensive re-traversing of the deserialized Term
+for adding fake names everywhere --- the CEK works on names, but the scripts on ledger
+don't have names for size reduction.
+
+Specifically the expensive pipeline:
+
+```
+decode @(Term DeBruijn)
+>>> term-Map-Names(FakeNamedDeBruijn)
+>>> cekExecute
+```
+
+is optimized to to the faster:
+
+```
+decode @(Term FakeNamedDeBruijn)
+>>> coerce @(Term FakeNamedDeBruijn) @(Term NamedDeBruijn)
+>>> cekExecute
+```
+
+To achieve this we make sure:
+- to use `coerce` since its 0-cost
+- not to GeneralizeNewtypeDeriving the`Flat NamedDeBruijn` instance, but "derive via"
+the optimized `Flat DeBruijn` instance. This is ok, because `FND<->D` are
+isomorphic.
+-}
+
+{-| A relative index used for de Bruijn identifiers.
+
+FIXME: downside of using newtype+Num instead of type-synonym is that `-Woverflowed-literals`
+does not work, e.g.: `DeBruijn (-1)` has no warning. To trigger the warning you have to bypass
+the Num and write `DeBruijn (Index -1)`. This can be revisited when we implement PLT-1053.
+-}
 newtype Index = Index Word64
   deriving stock (Generic)
   deriving newtype (Show, Num, Enum, Real, Integral, Eq, Ord, Pretty, NFData, Read)
@@ -80,8 +115,14 @@ data NamedDeBruijn = NamedDeBruijn {ndbnString :: !T.Text, ndbnIndex :: !Index}
   deriving stock (Show, Generic, Read)
   deriving anyclass (NFData)
 
--- | A wrapper around nameddebruijn that must hold the invariant of name=`fakeName`.
-newtype FakeNamedDeBruijn = FakeNamedDeBruijn NamedDeBruijn
+{-| A wrapper around `NamedDeBruijn` that *must* hold the invariant of name=`fakeName`.
+
+We do not export the `FakeNamedDeBruijn` constructor: the projection `FND->ND` is safe
+but injection `ND->FND` is unsafe, thus they are not isomorphic.
+
+See NOTE: [Why newtype FakeNamedDeBruijn]
+-}
+newtype FakeNamedDeBruijn = FakeNamedDeBruijn { unFakeNamedDeBruijn :: NamedDeBruijn }
   deriving newtype (Show, Eq, NFData, PrettyBy config)
 
 toFake :: DeBruijn -> FakeNamedDeBruijn
@@ -186,31 +227,31 @@ scoping (levelMapping).
 Invariant-A: the current level is positive and greater than all levels in the levelMapping.
 Invariant-B: only positive levels are stored in the levelMapping.
 -}
-data Levels = Levels
+data LevelInfo = LevelInfo
   { currentLevel :: Level
   , levelMapping :: BM.Bimap Unique Level
   }
 
 -- | Declare a name with a unique, recording the mapping to a 'Level'.
-declareUnique :: (MonadReader Levels m, HasUnique name unique) => name -> m a -> m a
+declareUnique :: (MonadReader LevelInfo m, HasUnique name unique) => name -> m a -> m a
 declareUnique n =
-  local $ \(Levels current ls) -> Levels current $ BM.insert (n ^. theUnique) current ls
+  local $ \(LevelInfo current ls) -> LevelInfo current $ BM.insert (n ^. theUnique) current ls
 
 {- | Declares a new binder by assigning a fresh unique to the *current level*.
-Maintains invariant-B of 'Levels' (that only positive levels are stored),
+Maintains invariant-B of 'LevelInfo' (that only positive levels are stored),
 since current level is always positive (invariant-A).
 See NOTE: [DeBruijn indices of Binders]
 -}
-declareBinder :: (MonadReader Levels m, MonadQuote m) => m a -> m a
+declareBinder :: (MonadReader LevelInfo m, MonadQuote m) => m a -> m a
 declareBinder act = do
   newU <- freshUnique
-  local (\(Levels current ls) -> Levels current $ BM.insert newU current ls) act
+  local (\(LevelInfo current ls) -> LevelInfo current $ BM.insert newU current ls) act
 
 {- | Enter a scope, incrementing the current 'Level' by one
 Maintains invariant-A (that the current level is positive).
 -}
-withScope :: (MonadReader Levels m) => m a -> m a
-withScope = local $ \(Levels current ls) -> Levels (current + 1) ls
+withScope :: (MonadReader LevelInfo m) => m a -> m a
+withScope = local $ \(LevelInfo current ls) -> LevelInfo (current + 1) ls
 
 {- | We cannot do a correct translation to or from de Bruijn indices if the program is
 not well-scoped. So we throw an error in such a case.
@@ -229,9 +270,9 @@ makeClassyPrisms ''FreeVariableError
 {- | Get the 'Index' corresponding to a given 'Unique'.
 Uses supplied handler for free names (uniques).
 -}
-getIndex :: (MonadReader Levels m) => Unique -> (Unique -> m Index) -> m Index
+getIndex :: (MonadReader LevelInfo m) => Unique -> (Unique -> m Index) -> m Index
 getIndex u h = do
-  Levels current ls <- ask
+  LevelInfo current ls <- ask
   case BM.lookup u ls of
     Just foundlvl -> pure $ levelToIx current foundlvl
     -- This call should return an index greater than the current level,
@@ -249,9 +290,9 @@ getIndex u h = do
 {- | Get the 'Unique' corresponding to a given 'Index'.
 Uses supplied handler for free debruijn indices.
 -}
-getUnique :: (MonadReader Levels m) => Index -> (Index -> m Unique) -> m Unique
+getUnique :: (MonadReader LevelInfo m) => Index -> (Index -> m Unique) -> m Unique
 getUnique ix h = do
-  Levels current ls <- ask
+  LevelInfo current ls <- ask
   case BM.lookupR (ixToLevel current ix) ls of
     -- Because of invariant-B, the levelMapping contains only positive (absolute) levels.
     Just u -> pure u
@@ -277,28 +318,28 @@ fakeTyNameDeBruijn :: TyDeBruijn -> NamedTyDeBruijn
 fakeTyNameDeBruijn (TyDeBruijn n) = NamedTyDeBruijn $ fakeNameDeBruijn n
 
 nameToDeBruijn ::
-  (MonadReader Levels m) =>
+  (MonadReader LevelInfo m) =>
   (Unique -> m Index) ->
   Name ->
   m NamedDeBruijn
 nameToDeBruijn h (Name str u) = NamedDeBruijn str <$> getIndex u h
 
 tyNameToDeBruijn ::
-  (MonadReader Levels m) =>
+  (MonadReader LevelInfo m) =>
   (Unique -> m Index) ->
   TyName ->
   m NamedTyDeBruijn
 tyNameToDeBruijn h (TyName n) = NamedTyDeBruijn <$> nameToDeBruijn h n
 
 deBruijnToName ::
-  (MonadReader Levels m) =>
+  (MonadReader LevelInfo m) =>
   (Index -> m Unique) ->
   NamedDeBruijn ->
   m Name
 deBruijnToName h (NamedDeBruijn str ix) = Name str <$> getUnique ix h
 
 deBruijnToTyName ::
-  (MonadReader Levels m) =>
+  (MonadReader LevelInfo m) =>
   (Index -> m Unique) ->
   NamedTyDeBruijn ->
   m TyName
@@ -321,12 +362,12 @@ after applying this handler.
 These generated free uniques are consistent across the open term (by using a state cache).
 -}
 freeIndexAsConsistentLevel ::
-  (MonadReader Levels m, MonadState (M.Map Level Unique) m, MonadQuote m) =>
+  (MonadReader LevelInfo m, MonadState (M.Map Level Unique) m, MonadQuote m) =>
   Index ->
   m Unique
 freeIndexAsConsistentLevel ix = do
   cache <- get
-  Levels current _ <- ask
+  LevelInfo current _ <- ask
   -- the absolute level is strictly-negative
   let absoluteLevel = ixToLevel current ix
   case M.lookup absoluteLevel cache of
@@ -343,5 +384,5 @@ freeIndexAsConsistentLevel ix = do
 ixToLevel :: Level -> Index -> Level
 ixToLevel (Level current) ixAST = Level $ current - fromIntegral ixAST
 
-runDeBruijnT :: ReaderT Levels m a -> m a
-runDeBruijnT = flip runReaderT (Levels (Level $ fromIntegral deBruijnInitIndex) BM.empty)
+runDeBruijnT :: ReaderT LevelInfo m a -> m a
+runDeBruijnT = flip runReaderT (LevelInfo (Level $ fromIntegral deBruijnInitIndex) BM.empty)

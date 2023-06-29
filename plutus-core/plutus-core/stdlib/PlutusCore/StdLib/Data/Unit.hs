@@ -18,15 +18,15 @@ import PlutusCore.Quote
 import Universe
 
 -- | '()' as a PLC type.
-unit :: uni `Includes` () => Type TyName uni ()
+unit :: uni `Includes` () => Type tyname uni ()
 unit = mkTyBuiltin @_ @() ()
 
 -- | '()' as a PLC term.
-unitval :: (TermLike term TyName Name uni fun, uni `Includes` ()) => term ()
+unitval :: (TermLike term tyname name uni fun, uni `Includes` ()) => term ()
 unitval = mkConstant () ()
 
 -- | 'seq' specified to '()' as a PLC term.
-sequ :: (TermLike term TyName Name uni fun, uni `Includes` ()) => term ()
+sequ :: (TermLike term tyname Name uni fun, uni `Includes` ()) => term ()
 sequ = runQuote $ do
     x <- freshName "x"
     y <- freshName "y"
