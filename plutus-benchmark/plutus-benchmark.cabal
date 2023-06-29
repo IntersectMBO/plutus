@@ -289,17 +289,17 @@ benchmark validation-full
   hs-source-dirs: validation
   other-modules:  Common
   build-depends:
-    , base                                                              >=4.9     && <5
+    , base                     >=4.9     && <5
     , bytestring
-    , criterion                                                         >=1.5.9.0
+    , criterion                >=1.5.9.0
     , deepseq
     , directory
     , filepath
-    , flat                                                              ^>=0.6
+    , flat                     ^>=0.6
     , optparse-applicative
     , plutus-benchmark-common
-    , plutus-core                                                       ^>=1.8
-    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.8
+    , plutus-core              ^>=1.8
+    , plutus-ledger-api        ^>=1.8
 
 ---------------- Cek cost model calibration ----------------
 
