@@ -145,3 +145,16 @@ isCommutative = \case
   MkPairData                      -> False
   MkNilData                       -> False
   MkNilPairData                   -> False
+   -- Bitwise operations
+  IntegerToByteString             -> False
+  ByteStringToInteger             -> False
+  AndByteString                   -> True
+  IorByteString                   -> True
+  XorByteString                   -> True
+  ComplementByteString            -> False
+  ShiftByteString                 -> False
+  RotateByteString                -> False
+  PopCountByteString              -> False
+  TestBitByteString               -> False
+  WriteBitByteString              -> False
+  FindFirstSetByteString          -> False

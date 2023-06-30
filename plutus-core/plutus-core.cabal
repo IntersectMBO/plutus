@@ -72,7 +72,6 @@ library
   import:             lang
   exposed-modules:
     Bitwise
-    Crypto
     Data.ByteString.Hash
     Data.Either.Extras
     Data.List.Extras
@@ -283,7 +282,7 @@ library
     , filepath
     , flat                        ^>=0.6
     , free
-    , ghc-bignum                  ^>=1.2
+    , ghc-bignum                  ^>=1.3
     , ghc-prim
     , hashable                    >=1.4
     , hedgehog                    >=1.0
@@ -386,10 +385,10 @@ test-suite untyped-plutus-core-test
     DeBruijn.Spec
     DeBruijn.UnDeBruijnify
     Evaluation.Builtins
+    Evaluation.Builtins.Bitwise
     Evaluation.Builtins.BLS12_381
     Evaluation.Builtins.BLS12_381.TestClasses
     Evaluation.Builtins.BLS12_381.Utils
-    Evaluation.Builtins.Bitwise
     Evaluation.Builtins.Common
     Evaluation.Builtins.Costing
     Evaluation.Builtins.Definition

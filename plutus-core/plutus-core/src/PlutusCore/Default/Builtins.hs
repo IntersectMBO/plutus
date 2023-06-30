@@ -20,19 +20,15 @@ import PlutusCore.Builtin
 import PlutusCore.Data
 import PlutusCore.Default.Universe
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
+import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (ExBudget))
 import PlutusCore.Evaluation.Machine.ExBudgetStream
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 
-import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
-import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
-import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
-import PlutusCore.Crypto.Ed25519 (verifyEd25519Signature_V1, verifyEd25519Signature_V2)
-import PlutusCore.Crypto.Secp256k1 (verifyEcdsaSecp256k1Signature, verifySchnorrSecp256k1Signature)
-import Bitwise (andByteString, byteStringToInteger, complementByteString, findFirstSetByteString, integerToByteString,
-                             iorByteString, popCountByteString, rotateByteString, shiftByteString, testBitByteString,
-                writeBitByteString, xorByteString)
+import Bitwise (andByteString, byteStringToInteger, complementByteString, findFirstSetByteString,
+                integerToByteString, iorByteString, popCountByteString, rotateByteString,
+                shiftByteString, testBitByteString, writeBitByteString, xorByteString)
 import Codec.Serialise (serialise)
 import Data.ByteString qualified as BS
 import Data.ByteString.Hash qualified as Hash
@@ -44,6 +40,11 @@ import Data.Text.Encoding (decodeUtf8', encodeUtf8)
 import Flat hiding (from, to)
 import Flat.Decoder
 import Flat.Encoder as Flat
+import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
+import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
+import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
+import PlutusCore.Crypto.Ed25519 (verifyEd25519Signature_V1, verifyEd25519Signature_V2)
+import PlutusCore.Crypto.Secp256k1 (verifyEcdsaSecp256k1Signature, verifySchnorrSecp256k1Signature)
 import Prettyprinter (viaShow)
 
 -- See Note [Pattern matching on built-in types].
@@ -1484,7 +1485,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunTwoArguments . paramBls12_381_finalVerify)
     -- Bitwise
     toBuiltinMeaning _ver IntegerToByteString =
-        makeBuiltinMeaning integerToByteStringPlc mempty
+        makeBuiltinMeaning integerToByteStringPlc (\_ _ -> ExBudgetLast $ ExBudget 0 0)
         where
           integerToByteStringPlc :: SomeConstant uni Integer -> EvaluationResult BS.ByteString
           integerToByteStringPlc (SomeConstant (Some (ValueOf uni n))) = do
@@ -1494,27 +1495,27 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                 Nothing -> fail "negative integer passed to integerByteString"
           {-# INLINE integerToByteStringPlc #-}
     toBuiltinMeaning _ver ByteStringToInteger =
-        makeBuiltinMeaning byteStringToInteger mempty
+        makeBuiltinMeaning byteStringToInteger (\_ _  -> ExBudgetLast $ ExBudget 0 0)
     toBuiltinMeaning _ver AndByteString =
-        makeBuiltinMeaning andByteString mempty
+        makeBuiltinMeaning andByteString (\_ _ _ -> ExBudgetLast $ ExBudget 0 0)
     toBuiltinMeaning _ver IorByteString =
-        makeBuiltinMeaning iorByteString mempty
+        makeBuiltinMeaning iorByteString (\_ _ _ -> ExBudgetLast $ ExBudget 0 0)
     toBuiltinMeaning _ver XorByteString =
-        makeBuiltinMeaning xorByteString mempty
+        makeBuiltinMeaning xorByteString (\_ _ _ -> ExBudgetLast $ ExBudget 0 0)
     toBuiltinMeaning _ver ComplementByteString =
-        makeBuiltinMeaning complementByteString mempty
+        makeBuiltinMeaning complementByteString (\_ _ -> ExBudgetLast $ ExBudget 0 0)
     toBuiltinMeaning _ver ShiftByteString =
-        makeBuiltinMeaning shiftByteString mempty
+        makeBuiltinMeaning shiftByteString (\_ _ _ -> ExBudgetLast $ ExBudget 0 0)
     toBuiltinMeaning _ver RotateByteString =
-        makeBuiltinMeaning rotateByteString mempty
+        makeBuiltinMeaning rotateByteString (\_ _ _ -> ExBudgetLast $ ExBudget 0 0)
     toBuiltinMeaning _ver PopCountByteString =
-        makeBuiltinMeaning popCountByteString mempty
+        makeBuiltinMeaning popCountByteString (\_ _ -> ExBudgetLast $ ExBudget 0 0)
     toBuiltinMeaning _ver TestBitByteString =
-        makeBuiltinMeaning testBitByteString mempty
+        makeBuiltinMeaning testBitByteString (\_ _ _ -> ExBudgetLast $ ExBudget 0 0)
     toBuiltinMeaning _ver WriteBitByteString =
-        makeBuiltinMeaning writeBitByteString mempty
+        makeBuiltinMeaning writeBitByteString (\_ _ _ _ -> ExBudgetLast $ ExBudget 0 0)
     toBuiltinMeaning _ver FindFirstSetByteString =
-        makeBuiltinMeaning findFirstSetByteString mempty
+        makeBuiltinMeaning findFirstSetByteString (\_ _ -> ExBudgetLast $ ExBudget 0 0)
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}
 
