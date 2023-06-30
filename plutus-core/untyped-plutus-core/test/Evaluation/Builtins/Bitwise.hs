@@ -49,20 +49,23 @@ module Evaluation.Builtins.Bitwise (
 import Control.Lens.Fold (Fold, folding, has, hasn't, preview)
 import Control.Monad (guard)
 import Data.Bitraversable (bitraverse)
-import Data.Bits (bit, complement, countTrailingZeros, popCount, shiftL, xor, zeroBits, (.&.), (.|.))
+import Data.Bits (bit, complement, countTrailingZeros, popCount, shiftL, xor, zeroBits, (.&.),
+                  (.|.))
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.Text (Text)
 import Data.Word (Word8)
 import Evaluation.Builtins.Common (typecheckEvaluateCek)
 import GHC.Exts (fromListN, toList)
-import Hedgehog (Gen, PropertyT, Range, annotate, annotateShow, cover, evalEither, failure, forAllWith, success, (===))
+import Hedgehog (Gen, PropertyT, Range, annotate, annotateShow, cover, evalEither, failure,
+                 forAllWith, success, (===))
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import PlutusCore (DefaultFun (AddInteger, AndByteString, AppendByteString, ByteStringToInteger, ComplementByteString, FindFirstSetByteString, IntegerToByteString, IorByteString, PopCountByteString, RotateByteString, ShiftByteString, TestBitByteString, WriteBitByteString, XorByteString),
-                   DefaultUni, Error, EvaluationResult (EvaluationFailure, EvaluationSuccess), Name, Term)
+                   DefaultUni, Error, EvaluationResult (EvaluationFailure, EvaluationSuccess), Name,
+                   Term)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModel)
-import PlutusCore.MkPlc (builtin, mkConstant, mkIterApp)
+import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn)
 import PlutusPrelude (def)
 import Text.Show.Pretty (ppShow)
 import UntypedPlutusCore qualified as Untyped
@@ -109,14 +112,14 @@ bitwiseXorComplement = do
     goXor leftArg rightArg = do
       let leftArg' = mkConstant @ByteString () leftArg
       let rightArg' = mkConstant @ByteString () rightArg
-      let comp = mkIterApp () (builtin () XorByteString) [leftArg', rightArg']
+      let comp = mkIterAppNoAnn (builtin () XorByteString) [leftArg', rightArg']
       cekEval comp
     goComplement ::
       ByteString ->
       PropertyT IO (EvaluationResult (Untyped.Term Name DefaultUni DefaultFun ()))
     goComplement bs = do
       let bs' = mkConstant @ByteString () bs
-      let comp = mkIterApp () (builtin () ComplementByteString) [bs']
+      let comp = mkIterAppNoAnn (builtin () ComplementByteString) [bs']
       cekEval comp
 
 bitwiseAndSelf :: PropertyT IO ()
@@ -131,7 +134,7 @@ bitwiseXorSelf = do
   let len = BS.length bs
   let bs' = mkConstant @ByteString () bs
   let expected = mkConstant @ByteString () . BS.replicate len $ zeroBits
-  let comp = mkIterApp () (builtin () XorByteString) [bs', bs']
+  let comp = mkIterAppNoAnn (builtin () XorByteString) [bs', bs']
   outcome <- cekEval comp
   case outcome of
     EvaluationSuccess res -> res === expected
@@ -150,8 +153,8 @@ bitwiseComplementSelfInverts :: PropertyT IO ()
 bitwiseComplementSelfInverts = do
   bs <- forAllWith ppShow . Gen.bytes $ byteBoundRange
   let bs' = mkConstant @ByteString () bs
-  let comp = mkIterApp () (builtin () ComplementByteString) [
-        mkIterApp () (builtin () ComplementByteString) [bs']
+  let comp = mkIterAppNoAnn (builtin () ComplementByteString) [
+        mkIterAppNoAnn (builtin () ComplementByteString) [bs']
         ]
   outcome <- cekEval comp
   case outcome of
@@ -169,7 +172,7 @@ popCountSingleByte = do
   w8 <- forAllWith ppShow Gen.enumBounded
   let bs = BS.singleton w8
   let expected :: Integer = fromIntegral . popCount $ w8
-  let comp = mkIterApp () (builtin () PopCountByteString) [
+  let comp = mkIterAppNoAnn (builtin () PopCountByteString) [
         mkConstant @ByteString () bs
         ]
   outcome <- cekEval comp
@@ -183,12 +186,12 @@ popCountAppend = do
   bs' <- forAllWith ppShow . Gen.bytes $ byteBoundRange
   let arg1 = mkConstant @ByteString () bs
   let arg2 = mkConstant @ByteString () bs'
-  let comp1 = mkIterApp () (builtin () PopCountByteString) [
-        mkIterApp () (builtin () AppendByteString) [arg1, arg2]
+  let comp1 = mkIterAppNoAnn (builtin () PopCountByteString) [
+        mkIterAppNoAnn (builtin () AppendByteString) [arg1, arg2]
         ]
-  let comp2 = mkIterApp () (builtin () AddInteger) [
-        mkIterApp () (builtin () PopCountByteString) [arg1],
-        mkIterApp () (builtin () PopCountByteString) [arg2]
+  let comp2 = mkIterAppNoAnn (builtin () AddInteger) [
+        mkIterAppNoAnn (builtin () PopCountByteString) [arg1],
+        mkIterAppNoAnn (builtin () PopCountByteString) [arg2]
         ]
   outcome <- bitraverse cekEval cekEval (comp1, comp2)
   case outcome of
@@ -199,7 +202,7 @@ testBitEmpty :: PropertyT IO ()
 testBitEmpty = do
   ix <- forAllWith ppShow . Gen.integral $ indexRange
   let arg = mkConstant @ByteString () ""
-  let comp = mkIterApp () (builtin () TestBitByteString) [
+  let comp = mkIterAppNoAnn (builtin () TestBitByteString) [
         arg,
         mkConstant @Integer () ix
         ]
@@ -216,7 +219,7 @@ testBitSingleByte = do
   cover 45 "out of bounds" $ ix < 0 || ix >= 8
   cover 45 "in-bounds" $ 0 <= ix && ix < 8
   let expected = bitAt w8 ix
-  let comp = mkIterApp () (builtin () TestBitByteString) [
+  let comp = mkIterAppNoAnn (builtin () TestBitByteString) [
         mkConstant @ByteString () bs,
         mkConstant @Integer () ix
         ]
@@ -236,8 +239,8 @@ testBitAppend = do
   let arg1 = mkConstant @ByteString () x
   let arg2 = mkConstant @ByteString () y
   let argIx = mkConstant @Integer () ix
-  let comp = mkIterApp () (builtin () TestBitByteString) [
-        mkIterApp () (builtin () AppendByteString) [arg1, arg2],
+  let comp = mkIterAppNoAnn (builtin () TestBitByteString) [
+        mkIterAppNoAnn (builtin () AppendByteString) [arg1, arg2],
         argIx
         ]
   let comp' = go x y ix
@@ -257,11 +260,11 @@ testBitAppend = do
       Term Untyped.TyName Name DefaultUni DefaultFun ()
     go bs bs' ix = let len' = fromIntegral $ 8 * BS.length bs' in
       case compare ix len' of
-        LT -> mkIterApp () (builtin () TestBitByteString) [
+        LT -> mkIterAppNoAnn (builtin () TestBitByteString) [
                 mkConstant @ByteString () bs',
                 mkConstant @Integer () ix
                 ]
-        _ -> mkIterApp () (builtin () TestBitByteString) [
+        _ -> mkIterAppNoAnn (builtin () TestBitByteString) [
                 mkConstant @ByteString () bs,
                 mkConstant @Integer () (ix - len')
                 ]
@@ -276,8 +279,8 @@ writeBitRead = do
   let bs' = mkConstant @ByteString () bs
   let ix' = mkConstant @Integer () ix
   let b' = mkConstant @Bool () b
-  let comp = mkIterApp () (builtin () TestBitByteString) [
-        mkIterApp () (builtin () WriteBitByteString) [bs', ix', b'],
+  let comp = mkIterAppNoAnn (builtin () TestBitByteString) [
+        mkIterAppNoAnn (builtin () WriteBitByteString) [bs', ix', b'],
         ix'
         ]
   outcome <- cekEval comp
@@ -295,12 +298,12 @@ writeBitDouble = do
   b' <- forAllWith ppShow Gen.enumBounded
   let bs' = mkConstant @ByteString () bs
   let ix' = mkConstant @Integer () ix
-  let writeTwice = mkIterApp () (builtin () WriteBitByteString) [
-        mkIterApp () (builtin () WriteBitByteString) [bs', ix', mkConstant @Bool () b],
+  let writeTwice = mkIterAppNoAnn (builtin () WriteBitByteString) [
+        mkIterAppNoAnn (builtin () WriteBitByteString) [bs', ix', mkConstant @Bool () b],
         ix',
         mkConstant @Bool () b'
         ]
-  let writeOnce = mkIterApp () (builtin () WriteBitByteString) [
+  let writeOnce = mkIterAppNoAnn (builtin () WriteBitByteString) [
         bs',
         ix',
         mkConstant @Bool () b'
@@ -317,8 +320,8 @@ writeBitAgreement = do
   let (bs, writeIx, readIx) = getWriteBitAgreementArgs testCase
   cover 45 "read known zero" $ writeIx /= readIx
   cover 45 "read known one" $ writeIx == readIx
-  let comp = mkIterApp () (builtin () TestBitByteString) [
-          mkIterApp () (builtin () WriteBitByteString) [
+  let comp = mkIterAppNoAnn (builtin () TestBitByteString) [
+          mkIterAppNoAnn (builtin () WriteBitByteString) [
             mkConstant @ByteString () bs,
             mkConstant @Integer () writeIx,
             mkConstant @Bool () True
@@ -340,7 +343,7 @@ ffsSingleByte = do
   let expected = case w8 of
         0 -> (-1)
         _ -> fromIntegral . countTrailingZeros $ w8
-  let comp = mkIterApp () (builtin () FindFirstSetByteString) [
+  let comp = mkIterAppNoAnn (builtin () FindFirstSetByteString) [
         mkConstant @ByteString () bs
         ]
   outcome <- cekEval comp
@@ -356,8 +359,8 @@ ffsAppend = do
   cover 30 "second argument zero" $ which == ZeroSecond
   cover 30 "second argument nonzero" $ which == NotZeroSecond
   let (bs, bs') = getFFSAppendArgs testCase
-  let comp = mkIterApp () (builtin () FindFirstSetByteString) [
-        mkIterApp () (builtin () AppendByteString) [
+  let comp = mkIterAppNoAnn (builtin () FindFirstSetByteString) [
+        mkIterAppNoAnn (builtin () AppendByteString) [
           mkConstant @ByteString () bs,
           mkConstant @ByteString () bs'
           ]
@@ -365,13 +368,13 @@ ffsAppend = do
   let comp' = case which of
         ZeroBoth -> mkConstant @Integer () (-1)
         ZeroSecond -> let bitLen' = fromIntegral $ 8 * BS.length bs' in
-          mkIterApp () (builtin () AddInteger) [
-            mkIterApp () (builtin () FindFirstSetByteString) [
+          mkIterAppNoAnn (builtin () AddInteger) [
+            mkIterAppNoAnn (builtin () FindFirstSetByteString) [
               mkConstant @ByteString () bs
               ],
             mkConstant @Integer () bitLen'
           ]
-        NotZeroSecond -> mkIterApp () (builtin () FindFirstSetByteString) [
+        NotZeroSecond -> mkIterAppNoAnn (builtin () FindFirstSetByteString) [
             mkConstant @ByteString () bs'
             ]
   outcome <- bitraverse cekEval cekEval (comp, comp')
@@ -382,7 +385,7 @@ ffsAppend = do
 rotateIdentity :: PropertyT IO ()
 rotateIdentity = do
   bs <- forAllWith ppShow . Gen.bytes $ byteBoundRange
-  let comp = mkIterApp () (builtin () RotateByteString) [
+  let comp = mkIterAppNoAnn (builtin () RotateByteString) [
           mkConstant @ByteString () bs,
           mkConstant @Integer () 0
           ]
@@ -394,7 +397,7 @@ rotateIdentity = do
 shiftIdentity :: PropertyT IO ()
 shiftIdentity = do
   bs <- forAllWith ppShow . Gen.bytes $ byteBoundRange
-  let comp = mkIterApp () (builtin () ShiftByteString) [
+  let comp = mkIterAppNoAnn (builtin () ShiftByteString) [
           mkConstant @ByteString () bs,
           mkConstant @Integer () 0
           ]
@@ -419,14 +422,14 @@ rotateIndexMotion = do
                 _    -> raw
         0 -> readIx
         _ -> (readIx - i) `rem` bitLen
-  let comp = mkIterApp () (builtin () TestBitByteString) [
-        mkIterApp () (builtin () RotateByteString) [
+  let comp = mkIterAppNoAnn (builtin () TestBitByteString) [
+        mkIterAppNoAnn (builtin () RotateByteString) [
           mkConstant @ByteString () bs',
           mkConstant @Integer () i
           ],
         mkConstant @Integer () readIx
         ]
-  let expected = mkIterApp () (builtin () TestBitByteString) [
+  let expected = mkIterAppNoAnn (builtin () TestBitByteString) [
         mkConstant @ByteString () bs',
         mkConstant @Integer () expectedReadIx
         ]
@@ -443,8 +446,8 @@ shiftIndexMotion = do
   let bitLen = fromIntegral $ BS.length bs' * 8
   i <- forAllWith ppShow . Gen.integral . indexRangeOf $ bitLen
   readIx <- forAllWith ppShow . Gen.integral . indexRangeFor $ bitLen
-  let comp = mkIterApp () (builtin () TestBitByteString) [
-        mkIterApp () (builtin () ShiftByteString) [
+  let comp = mkIterAppNoAnn (builtin () TestBitByteString) [
+        mkIterAppNoAnn (builtin () ShiftByteString) [
           mkConstant @ByteString () bs',
           mkConstant @Integer () i
           ],
@@ -453,7 +456,7 @@ shiftIndexMotion = do
   let comp' = let expectedIx = readIx - i in
         if | expectedIx < 0 -> mkConstant @Bool () False
            | expectedIx >= bitLen -> mkConstant @Bool () False
-           | otherwise -> mkIterApp () (builtin () TestBitByteString) [
+           | otherwise -> mkIterAppNoAnn (builtin () TestBitByteString) [
                             mkConstant @ByteString () bs',
                             mkConstant @Integer () expectedIx
                             ]
@@ -470,7 +473,7 @@ rotateHomogenous = do
   len <- forAllWith ppShow . Gen.integral $ byteBoundRange
   let bs = BS.replicate len w8
   rotation <- forAllWith ppShow . Gen.integral $ indexRange
-  let comp = mkIterApp () (builtin () RotateByteString) [
+  let comp = mkIterAppNoAnn (builtin () RotateByteString) [
         mkConstant @ByteString () bs,
         mkConstant @Integer () rotation
         ]
@@ -484,7 +487,7 @@ shiftHomogenous = do
   len <- forAllWith ppShow . Gen.integral $ byteBoundRange
   i <- forAllWith ppShow . Gen.integral $ indexRange
   let bs = BS.replicate len zeroBits
-  let comp = mkIterApp () (builtin () ShiftByteString) [
+  let comp = mkIterAppNoAnn (builtin () ShiftByteString) [
         mkConstant @ByteString () bs,
         mkConstant @Integer () i
         ]
@@ -498,16 +501,16 @@ rotateSum = do
   bs <- forAllWith ppShow . Gen.bytes $ byteBoundRange
   i <- forAllWith ppShow . Gen.integral $ indexRange
   j <- forAllWith ppShow . Gen.integral $ indexRange
-  let comp1 = mkIterApp () (builtin () RotateByteString) [
-        mkIterApp () (builtin () RotateByteString) [
+  let comp1 = mkIterAppNoAnn (builtin () RotateByteString) [
+        mkIterAppNoAnn (builtin () RotateByteString) [
           mkConstant @ByteString () bs,
           mkConstant @Integer () i
           ],
         mkConstant @Integer () j
         ]
-  let comp2 = mkIterApp () (builtin () RotateByteString) [
+  let comp2 = mkIterAppNoAnn (builtin () RotateByteString) [
         mkConstant @ByteString () bs,
-        mkIterApp () (builtin () AddInteger) [
+        mkIterAppNoAnn (builtin () AddInteger) [
           mkConstant @Integer () i,
           mkConstant @Integer () j
           ]
@@ -522,14 +525,14 @@ shiftSum = do
   bs <- forAllWith ppShow . Gen.bytes $ byteBoundRange
   ij <- forAllWith ppShow . Gen.integral $ indexRange
   (i, j) <- forAllWith ppShow . genSplit $ ij
-  let comp1 = mkIterApp () (builtin () ShiftByteString) [
-        mkIterApp () (builtin () ShiftByteString) [
+  let comp1 = mkIterAppNoAnn (builtin () ShiftByteString) [
+        mkIterAppNoAnn (builtin () ShiftByteString) [
           mkConstant @ByteString () bs,
           mkConstant @Integer () i
           ],
         mkConstant @Integer () j
         ]
-  let comp2 = mkIterApp () (builtin () ShiftByteString) [
+  let comp2 = mkIterAppNoAnn (builtin () ShiftByteString) [
         mkConstant @ByteString () bs,
         mkConstant @Integer () ij
         ]
@@ -541,8 +544,8 @@ shiftSum = do
 iToBsRoundtrip :: PropertyT IO ()
 iToBsRoundtrip = do
   i <- forAllWith ppShow . Gen.integral $ integerRange
-  let comp = mkIterApp () (builtin () ByteStringToInteger) [
-              mkIterApp () (builtin () IntegerToByteString) [
+  let comp = mkIterAppNoAnn (builtin () ByteStringToInteger) [
+              mkIterAppNoAnn (builtin () IntegerToByteString) [
                 mkConstant @Integer () i
                 ]
               ]
@@ -554,13 +557,13 @@ iToBsRoundtrip = do
 bsToITrailing :: PropertyT IO ()
 bsToITrailing = do
   BsToITrailingCase extension bs <- forAllWith ppShow genBsToITrailingCase
-  let comp = mkIterApp () (builtin () ByteStringToInteger) [
-              mkIterApp () (builtin () AppendByteString) [
+  let comp = mkIterAppNoAnn (builtin () ByteStringToInteger) [
+              mkIterAppNoAnn (builtin () AppendByteString) [
                 mkConstant @ByteString () bs,
                 mkConstant @ByteString () extension
                 ]
               ]
-  let comp' = mkIterApp () (builtin () ByteStringToInteger) [
+  let comp' = mkIterAppNoAnn (builtin () ByteStringToInteger) [
                 mkConstant @ByteString () bs
                 ]
   outcome <- bitraverse cekEval cekEval (comp, comp')
@@ -678,12 +681,12 @@ demorganing ::
 demorganing fun fun' x y = do
   let x' = mkConstant @ByteString () x
   let y' = mkConstant @ByteString () y
-  let comp = mkIterApp () (builtin () ComplementByteString) [
-        mkIterApp () (builtin () fun) [x', y']
+  let comp = mkIterAppNoAnn (builtin () ComplementByteString) [
+        mkIterAppNoAnn (builtin () fun) [x', y']
         ]
-  let comp' = mkIterApp () (builtin () fun') [
-        mkIterApp () (builtin () ComplementByteString) [x'],
-        mkIterApp () (builtin () ComplementByteString) [y']
+  let comp' = mkIterAppNoAnn (builtin () fun') [
+        mkIterAppNoAnn (builtin () ComplementByteString) [x'],
+        mkIterAppNoAnn (builtin () ComplementByteString) [y']
         ]
   bitraverse cekEval cekEval (comp, comp')
 
@@ -732,13 +735,13 @@ associatively fun x y z = do
   let x' = mkConstant @ByteString () x
   let y' = mkConstant @ByteString () y
   let z' = mkConstant @ByteString () z
-  let leftAssoc = mkIterApp () (builtin () fun) [
-        mkIterApp () (builtin () fun) [x', y'],
+  let leftAssoc = mkIterAppNoAnn (builtin () fun) [
+        mkIterAppNoAnn (builtin () fun) [x', y'],
         z'
         ]
-  let rightAssoc = mkIterApp () (builtin () fun) [
+  let rightAssoc = mkIterAppNoAnn (builtin () fun) [
         x',
-        mkIterApp () (builtin () fun) [y', z']
+        mkIterAppNoAnn (builtin () fun) [y', z']
         ]
   bitraverse cekEval cekEval (leftAssoc, rightAssoc)
 
@@ -746,7 +749,7 @@ self :: DefaultFun -> PropertyT IO ()
 self b = do
   bs <- forAllWith ppShow . Gen.bytes $ byteBoundRange
   let bs' = mkConstant @ByteString () bs
-  let comp = mkIterApp () (builtin () b) [bs', bs']
+  let comp = mkIterAppNoAnn (builtin () b) [bs', bs']
   outcome <- cekEval comp
   case outcome of
     EvaluationSuccess res -> res === mkConstant @ByteString () bs
@@ -882,7 +885,7 @@ commutatively fun leftArg rightArg = do
     go :: Term Untyped.TyName Name DefaultUni DefaultFun () ->
           Term Untyped.TyName Name DefaultUni DefaultFun () ->
           Term Untyped.TyName Name DefaultUni DefaultFun ()
-    go arg1 arg2 = mkIterApp () (builtin () fun) [arg1, arg2]
+    go arg1 arg2 = mkIterAppNoAnn (builtin () fun) [arg1, arg2]
 
 cekEval ::
   Term Untyped.TyName Name DefaultUni DefaultFun () ->
