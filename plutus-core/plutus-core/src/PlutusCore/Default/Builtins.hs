@@ -30,7 +30,9 @@ import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Crypto.Ed25519 (verifyEd25519Signature_V1, verifyEd25519Signature_V2)
 import PlutusCore.Crypto.Secp256k1 (verifyEcdsaSecp256k1Signature, verifySchnorrSecp256k1Signature)
-
+import Bitwise (andByteString, byteStringToInteger, complementByteString, findFirstSetByteString, integerToByteString,
+                             iorByteString, popCountByteString, rotateByteString, shiftByteString, testBitByteString,
+                writeBitByteString, xorByteString)
 import Codec.Serialise (serialise)
 import Data.ByteString qualified as BS
 import Data.ByteString.Hash qualified as Hash
@@ -144,7 +146,19 @@ data DefaultFun
     | Bls12_381_millerLoop
     | Bls12_381_mulMlResult
     | Bls12_381_finalVerify
-
+    -- Bitwise
+    | IntegerToByteString
+    | ByteStringToInteger
+    | AndByteString
+    | IorByteString
+    | XorByteString
+    | ComplementByteString
+    | ShiftByteString
+    | RotateByteString
+    | PopCountByteString
+    | TestBitByteString
+    | WriteBitByteString
+    | FindFirstSetByteString
     deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
     deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
@@ -1468,6 +1482,39 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             BLS12_381.Pairing.finalVerify
             (runCostingFunTwoArguments . paramBls12_381_finalVerify)
+    -- Bitwise
+    toBuiltinMeaning _ver IntegerToByteString =
+        makeBuiltinMeaning integerToByteStringPlc mempty
+        where
+          integerToByteStringPlc :: SomeConstant uni Integer -> EvaluationResult BS.ByteString
+          integerToByteStringPlc (SomeConstant (Some (ValueOf uni n))) = do
+              DefaultUniInteger <- pure uni
+              case integerToByteString n of
+                Just bs -> pure $ bs
+                Nothing -> fail "negative integer passed to integerByteString"
+          {-# INLINE integerToByteStringPlc #-}
+    toBuiltinMeaning _ver ByteStringToInteger =
+        makeBuiltinMeaning byteStringToInteger mempty
+    toBuiltinMeaning _ver AndByteString =
+        makeBuiltinMeaning andByteString mempty
+    toBuiltinMeaning _ver IorByteString =
+        makeBuiltinMeaning iorByteString mempty
+    toBuiltinMeaning _ver XorByteString =
+        makeBuiltinMeaning xorByteString mempty
+    toBuiltinMeaning _ver ComplementByteString =
+        makeBuiltinMeaning complementByteString mempty
+    toBuiltinMeaning _ver ShiftByteString =
+        makeBuiltinMeaning shiftByteString mempty
+    toBuiltinMeaning _ver RotateByteString =
+        makeBuiltinMeaning rotateByteString mempty
+    toBuiltinMeaning _ver PopCountByteString =
+        makeBuiltinMeaning popCountByteString mempty
+    toBuiltinMeaning _ver TestBitByteString =
+        makeBuiltinMeaning testBitByteString mempty
+    toBuiltinMeaning _ver WriteBitByteString =
+        makeBuiltinMeaning writeBitByteString mempty
+    toBuiltinMeaning _ver FindFirstSetByteString =
+        makeBuiltinMeaning findFirstSetByteString mempty
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}
 
@@ -1574,6 +1621,19 @@ instance Flat DefaultFun where
               Bls12_381_mulMlResult           -> 69
               Bls12_381_finalVerify           -> 70
 
+              IntegerToByteString             -> 72
+              ByteStringToInteger             -> 73
+              AndByteString                   -> 74
+              IorByteString                   -> 75
+              XorByteString                   -> 76
+              ComplementByteString            -> 77
+              ShiftByteString                 -> 78
+              RotateByteString                -> 79
+              PopCountByteString              -> 80
+              TestBitByteString               -> 81
+              WriteBitByteString              -> 82
+              FindFirstSetByteString          -> 83
+
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
               go 1  = pure SubtractInteger
@@ -1646,6 +1706,19 @@ instance Flat DefaultFun where
               go 68 = pure Bls12_381_millerLoop
               go 69 = pure Bls12_381_mulMlResult
               go 70 = pure Bls12_381_finalVerify
+              go 71 = fail "Reserved"
+              go 72 = pure IntegerToByteString
+              go 73 = pure ByteStringToInteger
+              go 74 = pure AndByteString
+              go 75 = pure IorByteString
+              go 76 = pure XorByteString
+              go 77 = pure ComplementByteString
+              go 78 = pure ShiftByteString
+              go 79 = pure RotateByteString
+              go 80 = pure PopCountByteString
+              go 81 = pure TestBitByteString
+              go 82 = pure WriteBitByteString
+              go 83 = pure FindFirstSetByteString
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth

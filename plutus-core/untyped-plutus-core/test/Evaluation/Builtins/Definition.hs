@@ -49,12 +49,55 @@ import Data.ByteString (ByteString)
 import Data.DList qualified as DList
 import Data.Proxy
 import Data.Text (Text)
+import Control.Exception (evaluate, try)
+import Data.ByteString (ByteString)
+import Data.Proxy (Proxy (Proxy))
+import Data.Text (Text)
+import Evaluation.Builtins.Bitwise (bitwiseAndAbsorbing, bitwiseAndAssociates, bitwiseAndCommutes, bitwiseAndDeMorgan,
+                                    bitwiseAndIdentity, bitwiseAndSelf, bitwiseComplementSelfInverts,
+                                    bitwiseIorAbsorbing, bitwiseIorAssociates, bitwiseIorCommutes, bitwiseIorDeMorgan,
+                                    bitwiseIorIdentity, bitwiseIorSelf, bitwiseXorAssociates, bitwiseXorCommutes,
+                                    bitwiseXorComplement, bitwiseXorIdentity, bitwiseXorSelf, bsToITrailing, ffsAppend,
+                                    ffsSingleByte, iToBsRoundtrip, popCountAppend, popCountSingleByte, rotateHomogenous,
+                                    rotateIdentity, rotateIndexMotion, rotateSum, shiftHomogenous, shiftIdentity,
+                                    shiftIndexMotion, shiftSum, testBitAppend, testBitEmpty, testBitSingleByte,
+                                    writeBitAgreement, writeBitDouble, writeBitRead)
+import Evaluation.Builtins.Common (typecheckEvaluateCek, typecheckEvaluateCekNoEmit, typecheckReadKnownCek,
+                                   unsafeEvaluateCekNoEmit)
+import Evaluation.Builtins.SignatureVerification (ecdsaSecp256k1Prop, ed25519_V1Prop, ed25519_V2Prop,
+                                                  schnorrSecp256k1Prop)
 import Hedgehog hiding (Opaque, Size, Var)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import Test.Tasty
-import Test.Tasty.Hedgehog
-import Test.Tasty.HUnit
+import PlutusCore (Contains,
+                   DefaultFun (AddInteger, AppendByteString, AppendString, BData, Blake2b_256, ChooseUnit, ConsByteString, ConstrData, DecodeUtf8, DivideInteger, EncodeUtf8, EqualsByteString, EqualsData, EqualsInteger, EqualsString, FindFirstSetByteString, FstPair, HeadList, IData, IfThenElse, IndexByteString, LengthOfByteString, LessThanByteString, LessThanEqualsInteger, LessThanInteger, ListData, MapData, MkCons, MkNilData, MkNilPairData, ModInteger, MultiplyInteger, NullList, PopCountByteString, QuotientInteger, RemainderInteger, SerialiseData, Sha2_256, Sha3_256, SliceByteString, SndPair, SubtractInteger, TailList, Trace, UnBData, UnConstrData, UnIData, UnListData, UnMapData, VerifyEd25519Signature),
+                   DefaultUni, EvaluationResult (EvaluationFailure, EvaluationSuccess), Kind (Type), Name (Name),
+                   Term (Builtin, LamAbs, Var), TyName (TyName), Type (TyApp, TyForall, TyFun, TyVar), Unique (Unique),
+                   freshName, mapFun, runQuote)
+import PlutusCore.Builtin (CostingPart, toTypeAst, typeOfBuiltinFunction)
+import PlutusCore.Compiler.Erase (eraseTerm)
+import PlutusCore.Data (Data (B, Constr, I, List, Map))
+import PlutusCore.Default (BuiltinVersion (DefaultFunV1, DefaultFunV2))
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModel, defaultCekMachineCosts)
+import PlutusCore.Evaluation.Machine.MachineParameters (CostModel (CostModel), mkMachineParameters)
+import PlutusCore.Examples.Builtins (BuiltinErrorCall (BuiltinErrorCall), BuiltinVersion (ExtensionFunV0, PairV),
+                                     ExtensionFun (Const, ExpensivePlus, ExpensiveSucc, ExtensionVersion, Factorial, FailingPlus, FailingSucc, ForallFortyTwo, Id, IdFInteger, IdList, IdRank2, ScottToMetaUnit, Swap))
+import PlutusCore.Examples.Data.Data (ofoldrData)
+import PlutusCore.Generators.Hedgehog.Interesting (factorial)
+import PlutusCore.MkPlc hiding (error)
+import PlutusCore.StdLib.Data.Bool (bool, false, true)
+import PlutusCore.StdLib.Data.Data (caseData, dataTy)
+import PlutusCore.StdLib.Data.Function qualified as Plc
+import PlutusCore.StdLib.Data.Integer (integer)
+import PlutusCore.StdLib.Data.List qualified as Builtin
+import PlutusCore.StdLib.Data.Pair (pair)
+import PlutusCore.StdLib.Data.ScottList qualified as Scott
+import PlutusCore.StdLib.Data.ScottUnit qualified as Scott
+import PlutusCore.StdLib.Data.Unit (unitval)
+import PlutusPrelude (Word8, def, isRight)
+import Test.Tasty (TestTree, adjustOption, testGroup)
+import Test.Tasty.Hedgehog (HedgehogTestLimit (HedgehogTestLimit), testPropertyNamed)
+import Test.Tasty.HUnit (Assertion, assertBool, testCase, (@=?), (@?=))
 
 type DefaultFunExt = Either DefaultFun ExtensionFun
 
@@ -708,8 +751,143 @@ test_SignatureVerification =
                             "Schnorr verification behaves correctly on all inputs"
                             "schnorr_correct"
                             . property $ schnorrSecp256k1Prop
+                      ],
+        testGroup "Ed25519 signatures (V1)" [
+                       testPropertyNamed "Ed25519_V1 verification behaves correctly on all inputs" "ed25519_V1_correct" . property $ ed25519_V1Prop
+                      ],
+        testGroup "Ed25519 signatures (V2)" [
+                       testPropertyNamed "Ed25519_V2 verification behaves correctly on all inputs" "ed25519_V2_correct" . property $ ed25519_V2Prop
+                      ],
+        testGroup "Signatures on the SECP256k1 curve" [
+                       testPropertyNamed "ECDSA verification behaves correctly on all inputs" "ecdsa_correct" . property $ ecdsaSecp256k1Prop,
+                                         testPropertyNamed "Schnorr verification behaves correctly on all inputs" "schnorr_correct" . property $ schnorrSecp256k1Prop
                       ]
                 ]
+
+-- Test the bitwise builtins are behaving correctly
+testBitwise :: TestTree
+testBitwise =
+  adjustOption (\x -> max x . HedgehogTestLimit . Just $ 8000) .
+  testGroup "Bitwise operations" $ [
+    testAndByteString,
+    testIorByteString,
+    testXorByteString,
+    testComplementByteString,
+    testPopCountByteString,
+    testTestBitByteString,
+    testWriteBitByteString,
+    testFindFirstSetByteString,
+    testRotateByteString,
+    testShiftByteString,
+    testIntegerToByteString,
+    testByteStringToInteger
+  ]
+
+-- Tests for bitwise AND on ByteStrings
+testAndByteString :: TestTree
+testAndByteString = testGroup "AndByteString" [
+  testPropertyNamed "Commutativity" "and_commutes" . property $ bitwiseAndCommutes,
+  testPropertyNamed "Associativity" "and_associates" . property $ bitwiseAndAssociates,
+  testPropertyNamed "All-1s is an identity" "and_all_1_identity" . property $ bitwiseAndIdentity,
+  testPropertyNamed "All-0s is absorbing" "and_all_0_absorb" . property $ bitwiseAndAbsorbing,
+  testPropertyNamed "AND with yourself does nothing" "and_self_nothing" . property $ bitwiseAndSelf,
+  testPropertyNamed "De Morgan's law" "and_demorgan" . property $ bitwiseAndDeMorgan
+  ]
+
+-- Tests for bitwise IOR on ByteStrings
+testIorByteString :: TestTree
+testIorByteString = testGroup "IorByteString" [
+  testPropertyNamed "Commutativity" "ior_commutes" . property $ bitwiseIorCommutes,
+  testPropertyNamed "Associativity" "ior_associates" . property $ bitwiseIorAssociates,
+  testPropertyNamed "All-0s is an identity" "ior_all_0_identity" . property $ bitwiseIorIdentity,
+  testPropertyNamed "All-1s is absorbing" "ior_all_1_absorb" . property $ bitwiseIorAbsorbing,
+  testPropertyNamed "IOR with yourself does nothing" "ior_self_nothing" . property $ bitwiseIorSelf,
+  testPropertyNamed "De Morgan's law" "ior_demorgan" . property $ bitwiseIorDeMorgan
+  ]
+
+-- Tests for bitwise XOR on ByteStrings
+testXorByteString :: TestTree
+testXorByteString = testGroup "XorByteString" [
+  testPropertyNamed "Commutativity" "xor_commutes" . property $ bitwiseXorCommutes,
+  testPropertyNamed "Associativity" "xor_associates" . property $ bitwiseXorAssociates,
+  testPropertyNamed "All-0s is an identity" "xor_all_0_identity" . property $ bitwiseXorIdentity,
+  testPropertyNamed "XOR with all 1s is complement" "xor_all_1_complement" . property $ bitwiseXorComplement,
+  testPropertyNamed "XOR with yourself gives all-0" "xor_self_all_0" . property $ bitwiseXorSelf
+  ]
+
+-- Tests for bitwise complement on ByteStrings
+testComplementByteString :: TestTree
+testComplementByteString = testGroup "ComplementByteString" [
+  testPropertyNamed "Self-inversion" "complement_self_inversion" . property $ bitwiseComplementSelfInverts
+  ]
+
+-- Tests for population count on ByteStrings
+testPopCountByteString :: TestTree
+testPopCountByteString = testGroup "PopCountByteString" [
+  testCase "popcount of empty ByteString is 0" $ do
+    let arg = mkConstant @ByteString () ""
+    let comp = mkIterApp () (builtin () PopCountByteString) [ arg ]
+    typecheckEvaluateCekNoEmit def defaultBuiltinCostModel comp @?= Right (EvaluationSuccess . mkConstant @Integer () $ 0),
+  testPropertyNamed "popcount of singleton ByteString is correct" "popcount_singleton" . property $ popCountSingleByte,
+  testPropertyNamed "popcount of append is sum of popcounts" "popcount_append_sum" . property $ popCountAppend
+  ]
+
+-- Tests for bit indexing into a ByteString
+testTestBitByteString :: TestTree
+testTestBitByteString = testGroup "TestBitByteString" [
+  testPropertyNamed "any index on an empty ByteString fails" "test_bit_empty" . property $ testBitEmpty,
+  testPropertyNamed "indexing on singletons works correctly" "test_bit_singleton" . property $ testBitSingleByte,
+  testPropertyNamed "indexing appends agrees with components" "test_bit_agreement" . property $ testBitAppend
+  ]
+
+-- Tests for bit setting or clearing of a ByteString
+testWriteBitByteString :: TestTree
+testWriteBitByteString = testGroup "WriteBitByteString" [
+  testPropertyNamed "writing then reading gives back what you wrote" "write_bit_read" . property $ writeBitRead,
+  testPropertyNamed "second write wins" "write_bit_write" . property $ writeBitDouble,
+  testPropertyNamed "single write to zeroes gives right reads" "write_bit_agreement" . property $ writeBitAgreement
+  ]
+
+-- Tests for finding first set bit of a ByteString
+testFindFirstSetByteString :: TestTree
+testFindFirstSetByteString = testGroup "FindFirstSetByteString" [
+  testCase "find first set of empty Bytestring is -1" $ do
+    let arg = mkConstant @ByteString () ""
+    let comp = mkIterApp () (builtin () FindFirstSetByteString) [ arg ]
+    typecheckEvaluateCekNoEmit def defaultBuiltinCostModel comp @?= Right (EvaluationSuccess . mkConstant @Integer () $ (-1)),
+  testPropertyNamed "find first set on singletons works correctly" "ffs_singleton" . property $ ffsSingleByte,
+  testPropertyNamed "find first set on appended ByteStrings works correctly" "ffs_append" . property $ ffsAppend
+  ]
+
+-- Tests for ByteString rotations
+testRotateByteString :: TestTree
+testRotateByteString = testGroup "RotateByteString" [
+  testPropertyNamed "rotating by 0 does nothing" "rotate_0_nothing" . property $ rotateIdentity,
+  testPropertyNamed "rotation adjusts indices correctly" "rotate_adjust" . property $ rotateIndexMotion,
+  testPropertyNamed "rotating all-zero or all-one changes nothing" "rotate_homogenous" . property $ rotateHomogenous,
+  testPropertyNamed "rotating by i, then by j is the same as rotating by i + j" "rotate_sum" . property $ rotateSum
+  ]
+
+-- Tests for ByteString shifts
+testShiftByteString :: TestTree
+testShiftByteString = testGroup "ShiftByteString" [
+  testPropertyNamed "shifting by 0 does nothing" "shift_0_nothing" . property $ shiftIdentity,
+  testPropertyNamed "shifting adjusts indices correctly" "shift_adjust" . property $ shiftIndexMotion,
+  testPropertyNamed "shifting all-zeroes does nothing" "shift_homogenous" . property $ shiftHomogenous,
+  testPropertyNamed "shifting in two steps is the same as shifting in one" "shift_sum" . property $ shiftSum
+  ]
+
+-- Tests for conversion into ByteString from Integer
+testIntegerToByteString :: TestTree
+testIntegerToByteString = testGroup "IntegerToByteString" [
+  testPropertyNamed "Round trip" "i_to_bs_roundtrip" . property $ iToBsRoundtrip
+  ]
+
+-- Tests for conversion into Integer from ByteString
+testByteStringToInteger :: TestTree
+testByteStringToInteger = testGroup "ByteStringToInteger" [
+  testPropertyNamed "trailing zeros ignored" "bs_to_i_trailing" . property $ bsToITrailing
+  ]
 
 test_definition :: TestTree
 test_definition =
@@ -738,6 +916,7 @@ test_definition =
         , test_List
         , test_Data
         , test_Crypto
+        , testBitwise
         , test_SignatureVerification
         , test_BLS12_381
         , test_Other

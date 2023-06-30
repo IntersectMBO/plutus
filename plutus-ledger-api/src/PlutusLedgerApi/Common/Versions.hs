@@ -108,7 +108,12 @@ builtinsIntroducedIn = Map.fromList [
           Bls12_381_G2_add, Bls12_381_G2_neg, Bls12_381_G2_scalarMul,
           Bls12_381_G2_equal, Bls12_381_G2_hashToGroup,
           Bls12_381_G2_compress, Bls12_381_G2_uncompress,
-          Bls12_381_millerLoop, Bls12_381_mulMlResult, Bls12_381_finalVerify
+          Bls12_381_millerLoop, Bls12_381_mulMlResult, Bls12_381_finalVerify,
+          IntegerToByteString, ByteStringToInteger,
+          AndByteString, IorByteString, XorByteString, ComplementByteString,
+          ShiftByteString, RotateByteString,
+          TestBitByteString, WriteBitByteString,
+          PopCountByteString, FindFirstSetByteString
           ])
   ]
 

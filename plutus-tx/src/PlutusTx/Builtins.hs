@@ -4,8 +4,8 @@
 
 -- | Primitive names and functions for working with Plutus Core builtins.
 module PlutusTx.Builtins (
-                          -- * Bytestring builtins
-                          BuiltinByteString
+                         -- * Bytestring builtins
+                           BuiltinByteString
                          , appendByteString
                          , consByteString
                          , sliceByteString
@@ -94,9 +94,19 @@ module PlutusTx.Builtins (
                          , bls12_381_millerLoop
                          , bls12_381_mulMlResult
                          , bls12_381_finalVerify
-                         -- * Conversions
-                         , fromBuiltin
-                         , toBuiltin
+                         -- * Bitwise builtins
+                         , integerToByteString
+                         , byteStringToInteger
+                         , andByteString
+                         , iorByteString
+                         , xorByteString
+                         , complementByteString
+                         , shiftByteString
+                         , rotateByteString
+                         , popCountByteString
+                         , testBitByteString
+                         , writeBitByteString
+                         , findFirstSetByteString
                          ) where
 
 import PlutusTx.Base (const, uncurry)
@@ -270,6 +280,90 @@ verifySchnorrSecp256k1Signature
   -> Bool
 verifySchnorrSecp256k1Signature vk msg sig =
   fromBuiltin (BI.verifySchnorrSecp256k1Signature vk msg sig)
+
+-- | Converts a non-negative 'Integer' into its base-256 'BuiltinByteString' representation.
+-- The format is little-endian, i.e. the first byte is the least significant.
+-- The inverse of this is 'byteStringToInteger'.
+-- The output does not contain any trailing zero-bytes, hence zeros are empty bytestrings.
+-- If the input is negative, this function errs.
+{-# INLINEABLE integerToByteString #-}
+integerToByteString :: Integer -> BuiltinByteString
+integerToByteString i = BI.integerToByteString (toBuiltin i)
+
+-- | Converts a base-256 'BuiltinByteString' into its 'Integer' representation.
+-- The format is little-endian, i.e. the first byte is the least significant.
+-- The inverse of this is 'integerToByteString'.
+-- The input can contain trailing zero-bytes.
+{-# INLINEABLE byteStringToInteger #-}
+byteStringToInteger :: BuiltinByteString -> Integer
+byteStringToInteger bs = fromBuiltin (BI.byteStringToInteger bs)
+
+-- | If given bytestrings of equal length, constructs their bitwise logical
+-- AND, erring otherwise.
+{-# INLINEABLE andByteString #-}
+andByteString :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString
+andByteString = BI.andByteString
+
+-- | If given bytestrings of equal length, constructs their bitwise logical
+-- OR, erring otherwise.
+{-# INLINEABLE iorByteString #-}
+iorByteString :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString
+iorByteString = BI.iorByteString
+
+-- | If given bytestrings of equal length, constructs their bitwise logical
+-- XOR, erroring otherwise.
+{-# INLINEABLE xorByteString #-}
+xorByteString :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString
+xorByteString = BI.xorByteString
+
+-- | If given bytestrings of equal length, constructs the flipped bytestring,
+-- i.e. each bit is flipped.
+{-# INLINEABLE complementByteString #-}
+complementByteString :: BuiltinByteString -> BuiltinByteString
+complementByteString = BI.complementByteString
+
+-- | Shifts the input bytestring left by the specified (possibly negative) amount.
+-- If positive, shifts left/to higher significance.
+-- If negative, shifts right/to lower significance.
+-- The shift is **not** arithmetic. You can emulate an arithmetic
+-- shift by OR-ing with what is morally -1 left-shifted the appropriate amount.
+-- The output is not trimmed, hence trailing zero-bytes may remain.
+{-# INLINEABLE shiftByteString #-}
+shiftByteString :: BuiltinByteString -> Integer -> BuiltinByteString
+shiftByteString bs i = BI.shiftByteString bs (toBuiltin i)
+
+-- | Rotates the input bytestring left by the specified (possibly negative) amount.
+-- If positive, rotates left/to higher significance.
+-- If negative, rotates right/to lower significance.
+{-# INLINEABLE rotateByteString #-}
+rotateByteString :: BuiltinByteString -> Integer -> BuiltinByteString
+rotateByteString bs i = BI.rotateByteString bs (toBuiltin i)
+
+-- | Counts the number of 1 bits in the argument.
+{-# INLINEABLE popCountByteString #-}
+popCountByteString :: BuiltinByteString -> Integer
+popCountByteString bs = fromBuiltin (BI.popCountByteString bs)
+
+-- | Bitwise indexing operation. Errs when given an index that's not
+-- in-bounds: specifically, indices that are either negative or greater than or
+-- equal to the number of bits in the 'BuiltinByteString' argument.
+{-# INLINEABLE testBitByteString #-}
+testBitByteString :: BuiltinByteString -> Integer -> Bool
+testBitByteString bs i = fromBuiltin (BI.testBitByteString bs (toBuiltin i))
+
+-- | Bitwise modification at an index. Errs when given an index that's not
+-- in-bounds: specifically, indices that are either negative or greater than
+-- or equal to the number of bits in the 'BuiltinByteString' argument.
+{-# INLINEABLE writeBitByteString #-}
+writeBitByteString :: BuiltinByteString -> Integer -> Bool -> BuiltinByteString
+writeBitByteString bs i b = BI.writeBitByteString bs (toBuiltin i) (toBuiltin b)
+
+-- | Finds the lowest bit index such that 'testBitByteString' at that index is
+-- 'True'. Returns @-1@ if no such index exists: that is, the
+-- 'BuiltinByteString' argument has only zero bytes in it, or is empty.
+{-# INLINEABLE findFirstSetByteString #-}
+findFirstSetByteString :: BuiltinByteString -> Integer
+findFirstSetByteString bs = fromBuiltin (BI.findFirstSetByteString bs)
 
 {-# INLINABLE addInteger #-}
 -- | Add two 'Integer's.
