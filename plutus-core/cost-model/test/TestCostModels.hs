@@ -419,5 +419,20 @@ main =
                     , $(genTest 2 "bls12_381_millerLoop")     Everywhere
                     , $(genTest 2 "bls12_381_mulMlResult")    Everywhere
                     , $(genTest 2 "bls12_381_finalVerify")    Everywhere
+
+                    -- Bitwise operations
+                    , $(genTest 1 "integerToByteString")
+                    , $(genTest 1 "byteStringToInteger")
+                    , $(genTest 2 "andByteString")            Everywhere
+                    , $(genTest 2 "iorByteString")            Everywhere
+                    , $(genTest 2 "xorByteString")            Everywhere
+                    , $(genTest 1 "complementByteString")
+                    , $(genTest 2 "shiftByteString")          Everywhere
+                    , $(genTest 2 "rotateByteString")         Everywhere
+                    , $(genTest 1 "popCountByteString")
+                    , $(genTest 2 "testBitByteString")        Everywhere
+                    , $(genTest 3 "writeBitByteString")
+                    , $(genTest 1 "findFirstSetByteString")
+
                     ]
 
