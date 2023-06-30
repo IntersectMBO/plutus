@@ -107,6 +107,9 @@ module PlutusTx.Builtins (
                          , testBitByteString
                          , writeBitByteString
                          , findFirstSetByteString
+                         -- * Conversions
+                         , fromBuiltin
+                         , toBuiltin
                          ) where
 
 import PlutusTx.Base (const, uncurry)
