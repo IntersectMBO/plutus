@@ -873,5 +873,197 @@
             "arguments": 10,
             "type": "constant_cost"
         }
+    },
+    "integerToByteString": {
+        "cpu": {
+            "arguments": {
+                "intercept": 9999999999,
+                "slope": 9999999999
+            },
+            "type": "linear_cost"
+        },
+        "memory": {
+            "arguments": {
+                "intercept": 0,
+                "slope": 1
+            },
+            "type": "linear_cost"
+        }
+    },
+    "byteStringToInteger": {
+        "cpu": {
+            "arguments": {
+                "intercept": 9999999999,
+                "slope": 9999999999
+            },
+            "type": "linear_cost"
+        },
+        "memory": {
+            "arguments": {
+                "intercept": 1,
+                "slope": 1
+            },
+            "type": "linear_cost"
+        }
+    },        
+    "andByteString": {
+        "cpu": {
+            "arguments": {
+                "intercept": 9999999999,
+                "slope": 9999999999
+            },
+            "type": "max_size"
+        },
+        "memory": {
+            "arguments": {
+                "intercept": 1,
+                "slope": 1
+            },
+            "type": "max_size"
+        }
+    },
+    "iorByteString": {
+        "cpu": {
+            "arguments": {
+                "intercept": 9999999999,
+                "slope": 9999999999
+            },
+            "type": "max_size"
+        },
+        "memory": {
+            "arguments": {
+                "intercept": 1,
+                "slope": 1
+            },
+            "type": "max_size"
+        }
+    },
+    "xorByteString": {
+        "cpu": {
+            "arguments": {
+                "intercept": 9999999999,
+                "slope": 9999999999
+            },
+            "type": "max_size"
+        },
+        "memory": {
+            "arguments": {
+                "intercept": 1,
+                "slope": 1
+            },
+            "type": "max_size"
+        }
+    },
+    "complementByteString": {
+        "cpu": {
+            "arguments": {
+                "intercept": 9999999999,
+                "slope": 9999999999
+            },
+            "type": "linear_cost"
+        },
+        "memory": {
+            "arguments": {
+                "intercept": 0,
+                "slope": 1
+            },
+            "type": "linear_cost"
+        }
+    },
+    "shiftByteString": {
+        "cpu": {
+            "arguments": {
+                "intercept": 9999999999,
+                "slope": 9999999999
+            },
+            "type": "max_size"
+        },
+        "memory": {
+            "arguments": {
+                "intercept": 1,
+                "slope": 1
+            },
+            "type": "max_size"
+        }
+    },
+    "rotateByteString": {
+        "cpu": {
+            "arguments": {
+                "intercept": 9999999999,
+                "slope": 9999999999
+            },
+            "type": "max_size"
+        },
+        "memory": {
+            "arguments": {
+                "intercept": 1,
+                "slope": 1
+            },
+            "type": "max_size"
+        }
+    },
+    "popCountByteString": {
+        "cpu": {
+            "arguments": {
+                "intercept": 9999999999,
+                "slope": 9999999999
+            },
+            "type": "linear_cost"
+        },
+        "memory": {
+            "arguments": {
+                "intercept": 0,
+                "slope": 1
+            },
+            "type": "linear_cost"
+        }
+    },
+    "testBitByteString": {
+        "cpu": {
+            "arguments": {
+                "intercept": 9999999999,
+                "slope": 9999999999
+            },
+            "type": "linear_in_x"
+        },
+        "memory": {
+            "arguments": {
+                "intercept": 0,
+                "slope": 1
+            },
+            "type": "linear_in_x"
+        }
+    },
+    "writeBitByteString": {
+        "cpu": {
+            "arguments": {
+                "intercept": 9999999999,
+                "slope": 9999999999
+            },
+            "type": "linear_in_x"
+        },
+        "memory": {
+            "arguments": {
+                "intercept": 0,
+                "slope": 1
+            },
+            "type": "linear_in_x"
+        }
+    },
+    "findFirstSetByteString": {
+        "cpu": {
+            "arguments": {
+                "intercept": 9999999999,
+                "slope": 9999999999
+            },
+            "type": "linear_cost"
+        },
+        "memory": {
+            "arguments": {
+                "intercept": 0,
+                "slope": 1
+            },
+            "type": "linear_cost"
+        }
     }
 }

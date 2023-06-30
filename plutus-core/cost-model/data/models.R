@@ -647,6 +647,20 @@ modelFun <- function(path) {
     bls12_381_mulMlResultModel       <- constantModel ("Bls12_381_mulMlResult")
     bls12_381_finalVerifyModel       <- constantModel ("Bls12_381_finalVerify")
 
+    ##### Bitwise operations #####
+    integerToByteStringModel    <- NULL   ### FIXME
+    byteStringToIntegerModel    <- NULL
+    andByteStringModel          <- NULL
+    iorByteStringModel          <- NULL
+    xorByteStringModel          <- NULL
+    complementByteStringModel   <- NULL
+    shiftByteStringModel        <- NULL
+    rotateByteStringModel       <- NULL
+    popCountByteStringModel     <- NULL
+    testBitByteStringModel      <- NULL
+    writeBitByteStringModel     <- NULL
+    findFirstSetByteStringModel <- NULL
+
     list(
         addIntegerModel                      = addIntegerModel,
         subtractIntegerModel                 = subtractIntegerModel,
@@ -718,6 +732,18 @@ modelFun <- function(path) {
         bls12_381_G2_uncompressModel         = bls12_381_G2_uncompressModel,
         bls12_381_millerLoopModel            = bls12_381_millerLoopModel,
         bls12_381_mulMlResultModel           = bls12_381_mulMlResultModel,
-        bls12_381_finalVerifyModel           = bls12_381_finalVerifyModel
+        bls12_381_finalVerifyModel           = bls12_381_finalVerifyModel,
+        integerToByteStringModel             = integerToByteStringModel,
+        byteStringToIntegerModel             = byteStringToIntegerModel,
+        andByteStringModel                   = andByteStringModel,
+        iorByteStringModel                   = iorByteStringModel,
+        xorByteStringModel                   = xorByteStringModel,
+        complementByteStringModel            = complementByteStringModel,
+        shiftByteStringModel                 = shiftByteStringModel,
+        rotateByteStringModel                = rotateByteStringModel,
+        popCountByteStringModel              = popCountByteStringModel,
+        testBitByteStringModel               = testBitByteStringModel,
+        writeBitByteStringModel              = writeBitByteStringModel,
+        findFirstSetByteStringModel          = findFirstSetByteStringModel
     )
 }
