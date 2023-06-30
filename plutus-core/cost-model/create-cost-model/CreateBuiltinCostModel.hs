@@ -121,6 +121,18 @@ builtinCostModelNames = BuiltinCostModelBase
   , paramBls12_381_millerLoop            = "bls12_381_millerLoopModel"
   , paramBls12_381_mulMlResult           = "bls12_381_mulMlResultModel"
   , paramBls12_381_finalVerify           = "bls12_381_finalVerifyModel"
+  , paramIntegerToByteString             = "integerToByteStringModel"
+  , paramByteStringToInteger             = "byteStringToIntegerModel"
+  , paramAndByteString                   = "andByteStringModel"
+  , paramIorByteString                   = "iorByteStringModel"
+  , paramXorByteString                   = "xorByteStringModel"
+  , paramComplementByteString            = "complementByteStringModel"
+  , paramShiftByteString                 = "shiftByteStringModel"
+  , paramRotateByteString                = "rotateByteStringModel"
+  , paramPopCountByteString              = "popCountByteStringModel"
+  , paramTestBitByteString               = "testBitByteStringModel"
+  , paramWriteBitByteString              = "writeBitByteStringModel"
+  , paramFindFirstSetByteString          = "findFirstSetByteStringModel"
   }
 
 
@@ -231,6 +243,19 @@ createBuiltinCostModel bmfile rfile = do
     paramBls12_381_millerLoop            <- getParams bls12_381_millerLoop      paramBls12_381_millerLoop
     paramBls12_381_mulMlResult           <- getParams bls12_381_mulMlResult     paramBls12_381_mulMlResult
     paramBls12_381_finalVerify           <- getParams bls12_381_finalVerify     paramBls12_381_finalVerify
+    -- Bitwise operations
+    paramIntegerToByteString             <- getParams integerToByteString       paramIntegerToByteString
+    paramByteStringToInteger             <- getParams byteStringToInteger       paramByteStringToInteger
+    paramAndByteString                   <- getParams andByteString             paramAndByteString
+    paramIorByteString                   <- getParams iorByteString             paramIorByteString
+    paramXorByteString                   <- getParams xorByteString             paramXorByteString
+    paramComplementByteString            <- getParams complementByteString      paramComplementByteString
+    paramShiftByteString                 <- getParams shiftByteString           paramShiftByteString
+    paramRotateByteString                <- getParams rotateByteString          paramRotateByteString
+    paramPopCountByteString              <- getParams popCountByteString        paramPopCountByteString
+    paramTestBitByteString               <- getParams testBitByteString         paramTestBitByteString
+    paramWriteBitByteString              <- getParams writeBitByteString        paramWriteBitByteString
+    paramFindFirstSetByteString          <- getParams findFirstSetByteString    paramFindFirstSetByteString
 
     pure $ BuiltinCostModelBase {..}
 
@@ -903,9 +928,80 @@ bls12_381_mulMlResult cpuModelR = do
     pure $ CostingFun cpuModel memModel
 
 bls12_381_finalVerify :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
-bls12_381_finalVerify cpuModelR= do
+bls12_381_finalVerify cpuModelR = do
     cpuModel <- ModelTwoArgumentsConstantCost <$> readModelConstantCost cpuModelR
     let memModel = boolMemModel
     pure $ CostingFun cpuModel memModel
 
+integerToByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+integerToByteString cpuModelR = do
+  cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
+  let memModel = ModelOneArgumentLinearCost $ ModelLinearSize 0 1
+  pure $ CostingFun cpuModel memModel
+
+byteStringToInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+byteStringToInteger cpuModelR = do
+  cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
+  let memModel = ModelOneArgumentLinearCost $ ModelLinearSize 0 1
+  pure $ CostingFun cpuModel memModel
+
+andByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+andByteString cpuModelR = do
+  cpuModel <-  ModelTwoArgumentsMaxSize <$> readModelMaxSize cpuModelR
+  let memModel = ModelTwoArgumentsMaxSize $ ModelMaxSize 0 1
+  pure $ CostingFun cpuModel memModel
+
+iorByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+iorByteString cpuModelR = do
+  cpuModel <-  ModelTwoArgumentsMaxSize <$> readModelMaxSize cpuModelR
+  let memModel = ModelTwoArgumentsMaxSize $ ModelMaxSize 0 1
+  pure $ CostingFun cpuModel memModel
+
+xorByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+xorByteString cpuModelR = do
+  cpuModel <-  ModelTwoArgumentsMaxSize <$> readModelMaxSize cpuModelR
+  let memModel = ModelTwoArgumentsMaxSize $ ModelMaxSize 0 1
+  pure $ CostingFun cpuModel memModel
+
+complementByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+complementByteString cpuModelR = do
+  cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
+  let memModel = ModelOneArgumentLinearCost $ ModelLinearSize 0 1
+  pure $ CostingFun cpuModel memModel
+
+shiftByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+shiftByteString cpuModelR = do
+  cpuModel <- undefined
+  let memModel = undefined
+  pure $ CostingFun cpuModel memModel
+
+rotateByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+rotateByteString cpuModelR = do
+  cpuModel <- undefined  -- FIXME
+  let memModel = undefined -- FIXME
+  pure $ CostingFun cpuModel memModel
+
+popCountByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+popCountByteString cpuModelR = do
+  cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
+  let memModel = ModelOneArgumentLinearCost $ ModelLinearSize 0 1  -- FIXME
+  pure $ CostingFun cpuModel memModel
+
+testBitByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+testBitByteString cpuModelR = do
+  cpuModel <- undefined -- FIXME
+  let memModel = ModelTwoArgumentsConstantCost 1
+  pure $ CostingFun cpuModel memModel
+
+writeBitByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
+writeBitByteString cpuModelR = do
+  cpuModel <- undefined -- FIXME
+  let memModel = undefined -- FIXME
+  pure $ CostingFun cpuModel memModel
+
+findFirstSetByteString :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+findFirstSetByteString cpuModelR = do
+  cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
+  let memModel = undefined -- FIXME
+  pure $ CostingFun cpuModel memModel
 

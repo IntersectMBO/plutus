@@ -195,5 +195,17 @@ unitCostBuiltinCostModel = BuiltinCostModelBase
     , paramBls12_381_millerLoop            = unitCostTwoArguments
     , paramBls12_381_mulMlResult           = unitCostTwoArguments
     , paramBls12_381_finalVerify           = unitCostTwoArguments
+    , paramIntegerToByteString             = unitCostOneArgument
+    , paramByteStringToInteger             = unitCostOneArgument
+    , paramAndByteString                   = unitCostTwoArguments
+    , paramIorByteString                   = unitCostTwoArguments
+    , paramXorByteString                   = unitCostTwoArguments
+    , paramComplementByteString            = unitCostOneArgument
+    , paramShiftByteString                 = unitCostTwoArguments
+    , paramRotateByteString                = unitCostTwoArguments
+    , paramPopCountByteString              = unitCostOneArgument
+    , paramTestBitByteString               = unitCostTwoArguments
+    , paramWriteBitByteString              = unitCostThreeArguments
+    , paramFindFirstSetByteString          = unitCostOneArgument
     }
 
