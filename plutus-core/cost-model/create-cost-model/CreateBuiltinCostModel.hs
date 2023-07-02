@@ -278,7 +278,7 @@ unsafeReadModelFromR formula rmodel = do
     Right x  -> pure x
 
 -- t = ax+by+c
-unsafeReadModelFromR2 :: MonadR m => String -> String -> (SomeSEXP (Region m)) -> m (CostingInteger, CostingInteger, CostingInteger)
+unsafeReadModelFromR2 :: MonadR m => String -> String -> (SomeSEXP (Region m)) -> m (Intercept, Slope, Slope)
 unsafeReadModelFromR2 formula1 formula2 rmodel = do
   j <- [r| write.csv(tidy(rmodel_hs), file=textConnection("out", "w", local=TRUE))
           paste(out, collapse="\n") |]
@@ -287,7 +287,7 @@ unsafeReadModelFromR2 formula1 formula2 rmodel = do
         intercept <- linearModelRawEstimate <$> findInRaw "(Intercept)" model
         slope1    <- linearModelRawEstimate <$> findInRaw formula1 model
         slope2    <- linearModelRawEstimate <$> findInRaw formula2 model
-        pure $ (microToPico intercept, microToPico slope1, microToPico slope2)
+        pure $ (Intercept $ microToPico intercept, Slope $ microToPico slope1, Slope $ microToPico slope2)
   case m of
     Left err -> throwM (TypeError err)
     Right x  -> pure x
@@ -319,6 +319,10 @@ readModelLinearInX model = (\(intercept, slope) -> pure $ ModelLinearSize interc
 
 readModelLinearInY :: MonadR m => (SomeSEXP (Region m)) -> m ModelLinearSize
 readModelLinearInY model = (\(intercept, slope) -> pure $ ModelLinearSize intercept slope) =<< unsafeReadModelFromR "y_mem" model
+
+readModelLinearInXandY :: MonadR m => (SomeSEXP (Region m)) -> m ModelLinearSizeTwoVariables
+readModelLinearInXandY model = (\(intercept, slope1, slope2)
+                                    -> pure $ ModelLinearSizeTwoVariables intercept slope1 slope2) =<< unsafeReadModelFromR2 "x_mem" "y_mem" model
 
 -- For models which are linear on the diagonal and constant elsewhere we currently
 -- only benchmark and model the linear part, so here we read in the model from R

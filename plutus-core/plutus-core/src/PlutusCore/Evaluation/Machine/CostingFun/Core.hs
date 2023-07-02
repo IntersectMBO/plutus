@@ -17,6 +17,7 @@ module PlutusCore.Evaluation.Machine.CostingFun.Core
     , ModelConstantOrLinear(..)
     , ModelConstantOrTwoArguments(..)
     , ModelLinearSize(..)
+    , ModelLinearSizeTwoVariables(..)
     , ModelMultipliedSizes(..)
     , ModelMinSize(..)
     , ModelMaxSize(..)
@@ -179,6 +180,16 @@ scaleLinearly (Intercept intercept) (Slope slope) =
     addCostStream (CostLast intercept) . mapCostStream (slope *)
 {-# INLINE scaleLinearly #-}
 
+-- | Take an intercept, two slopes and stwo streams, and scale each element of
+-- the first stream by the first slope, each element of the second stream by the
+-- second slope, add the two scaled streams together, and cons the intercept to
+-- the stream afterwards.
+scaleLinearlyTwoVariables :: Intercept -> Slope -> CostStream -> Slope -> CostStream -> CostStream
+scaleLinearlyTwoVariables (Intercept intercept) (Slope slope1) stream1 (Slope slope2) stream2 =
+    addCostStream (CostLast intercept) $
+                  addCostStream (mapCostStream (slope1 *) stream1) (mapCostStream (slope2 *) stream2)
+{-# INLINE scaleLinearlyTwoVariables #-}
+
 runOneArgumentModel
     :: ModelOneArgument
     -> CostStream
@@ -206,9 +217,18 @@ data ModelSubtractedSizes = ModelSubtractedSizes
     } deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 
+-- | s * x + I
 data ModelLinearSize = ModelLinearSize
     { modelLinearSizeIntercept :: Intercept
     , modelLinearSizeSlope     :: Slope
+    } deriving stock (Show, Eq, Generic, Lift)
+    deriving anyclass (NFData)
+
+-- | s1 * x + s2 * y + I
+data ModelLinearSizeTwoVariables = ModelLinearSizeTwoVariables
+    { modelLinearSizeTwoVariablesIntercept :: Intercept
+    , modelLinearSizeTwoVariablesSlopeX    :: Slope
+    , modelLinearSizeTwoVariablesSlopeY    :: Slope
     } deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 
@@ -253,6 +273,7 @@ data ModelTwoArguments =
     ModelTwoArgumentsConstantCost       CostingInteger
   | ModelTwoArgumentsLinearInX          ModelLinearSize
   | ModelTwoArgumentsLinearInY          ModelLinearSize
+  | ModelTwoArgumentsLinearInXandY      ModelLinearSizeTwoVariables
   | ModelTwoArgumentsAddedSizes         ModelAddedSizes
   | ModelTwoArgumentsSubtractedSizes    ModelSubtractedSizes
   | ModelTwoArgumentsMultipliedSizes    ModelMultipliedSizes
@@ -325,6 +346,10 @@ runTwoArgumentModel
     (ModelTwoArgumentsLinearInY (ModelLinearSize intercept slope)) =
         lazy $ \_ costs2 ->
             scaleLinearly intercept slope costs2
+runTwoArgumentModel
+    (ModelTwoArgumentsLinearInXandY (ModelLinearSizeTwoVariables intercept slope1 slope2)) =
+        lazy $ \costs1 costs2 ->
+            scaleLinearlyTwoVariables intercept slope1 costs1 slope2 costs2
 runTwoArgumentModel
     -- Off the diagonal, return the constant.  On the diagonal, run the one-variable linear model.
     (ModelTwoArgumentsLinearOnDiagonal (ModelConstantOrLinear c intercept slope)) =

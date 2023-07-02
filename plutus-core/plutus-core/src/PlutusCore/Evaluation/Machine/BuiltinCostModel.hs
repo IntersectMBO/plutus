@@ -21,6 +21,7 @@ module PlutusCore.Evaluation.Machine.BuiltinCostModel
     , ModelConstantOrLinear(..)
     , ModelConstantOrTwoArguments(..)
     , ModelLinearSize(..)
+    , ModelLinearSizeTwoVariables(..)
     , ModelMultipliedSizes(..)
     , ModelMinSize(..)
     , ModelMaxSize(..)
