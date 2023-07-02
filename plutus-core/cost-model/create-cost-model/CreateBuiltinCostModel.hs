@@ -320,8 +320,8 @@ readModelLinearInX model = (\(intercept, slope) -> pure $ ModelLinearSize interc
 readModelLinearInY :: MonadR m => (SomeSEXP (Region m)) -> m ModelLinearSize
 readModelLinearInY model = (\(intercept, slope) -> pure $ ModelLinearSize intercept slope) =<< unsafeReadModelFromR "y_mem" model
 
-readModelLinearInXandY :: MonadR m => (SomeSEXP (Region m)) -> m ModelLinearSizeTwoVariables
-readModelLinearInXandY model = (\(intercept, slope1, slope2)
+readModelLinearInXAndY :: MonadR m => (SomeSEXP (Region m)) -> m ModelLinearSizeTwoVariables
+readModelLinearInXAndY model = (\(intercept, slope1, slope2)
                                     -> pure $ ModelLinearSizeTwoVariables intercept slope1 slope2) =<< unsafeReadModelFromR2 "x_mem" "y_mem" model
 
 -- For models which are linear on the diagonal and constant elsewhere we currently

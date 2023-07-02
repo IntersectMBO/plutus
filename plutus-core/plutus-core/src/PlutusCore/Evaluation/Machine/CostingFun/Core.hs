@@ -273,7 +273,7 @@ data ModelTwoArguments =
     ModelTwoArgumentsConstantCost       CostingInteger
   | ModelTwoArgumentsLinearInX          ModelLinearSize
   | ModelTwoArgumentsLinearInY          ModelLinearSize
-  | ModelTwoArgumentsLinearInXandY      ModelLinearSizeTwoVariables
+  | ModelTwoArgumentsLinearInXAndY      ModelLinearSizeTwoVariables
   | ModelTwoArgumentsAddedSizes         ModelAddedSizes
   | ModelTwoArgumentsSubtractedSizes    ModelSubtractedSizes
   | ModelTwoArgumentsMultipliedSizes    ModelMultipliedSizes
@@ -347,7 +347,7 @@ runTwoArgumentModel
         lazy $ \_ costs2 ->
             scaleLinearly intercept slope costs2
 runTwoArgumentModel
-    (ModelTwoArgumentsLinearInXandY (ModelLinearSizeTwoVariables intercept slope1 slope2)) =
+    (ModelTwoArgumentsLinearInXAndY (ModelLinearSizeTwoVariables intercept slope1 slope2)) =
         lazy $ \costs1 costs2 ->
             scaleLinearlyTwoVariables intercept slope1 costs1 slope2 costs2
 runTwoArgumentModel
