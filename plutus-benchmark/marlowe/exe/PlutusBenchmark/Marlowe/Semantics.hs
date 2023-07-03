@@ -61,7 +61,7 @@ validatorHash = marloweValidatorHash
 
 -- | The benchmark cases for the Marlowe semantics validator.
 benchmarks :: IO (Either String [Benchmark])
-benchmarks = second (rescript <$>) <$> readBenchmarks "marlowe/exe/scripts/semantics"
+benchmarks = second (rescript <$>) <$> readBenchmarks "marlowe/scripts/semantics"
 
 
 -- | Write flat UPLC for a benchmark.
