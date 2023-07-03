@@ -13,7 +13,7 @@
 -----------------------------------------------------------------------------
 
 
-module Language.Marlowe.Core.V1.Semantics.Types.Address
+module PlutusBenchmark.Marlowe.Core.V1.Semantics.Types.Address
   ( -- * Types
     Network
   ) where

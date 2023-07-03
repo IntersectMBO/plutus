@@ -29,12 +29,12 @@ module PlutusBenchmark.Marlowe.RolePayout (
 
 
 import Data.Bifunctor (second)
-import Language.Marlowe.Scripts.RolePayout (rolePayoutValidator, rolePayoutValidatorBytes,
-                                            rolePayoutValidatorHash)
-import PlutusBenchmark.Marlowe (readBenchmarks, writeFlatUPLC)
+import PlutusBenchmark.Marlowe.BenchUtil (readBenchmarks, updateScriptHash, writeFlatUPLC)
+import PlutusBenchmark.Marlowe.Scripts.RolePayout (rolePayoutValidator, rolePayoutValidatorBytes,
+                                                   rolePayoutValidatorHash)
 import PlutusBenchmark.Marlowe.Types (Benchmark (..), makeBenchmark)
 import PlutusBenchmark.Marlowe.Util (lovelace, makeBuiltinData, makeDatumMap, makeInput, makeOutput,
-                                     makeRedeemerMap, updateScriptHash)
+                                     makeRedeemerMap)
 import PlutusLedgerApi.V2 (Credential (PubKeyCredential, ScriptCredential), ExBudget (ExBudget),
                            Extended (NegInf, PosInf), Interval (Interval), LowerBound (LowerBound),
                            ScriptContext (ScriptContext, scriptContextPurpose, scriptContextTxInfo),

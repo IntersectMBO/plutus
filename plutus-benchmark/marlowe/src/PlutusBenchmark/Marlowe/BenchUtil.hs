@@ -18,7 +18,7 @@
 {-# LANGUAGE RecordWildCards     #-}
 
 
-module PlutusBenchmark.Marlowe (
+module PlutusBenchmark.Marlowe.BenchUtil (
   -- * Benchmarking
   executeBenchmark
 , evaluationContext
@@ -29,30 +29,27 @@ module PlutusBenchmark.Marlowe (
 , tabulateResults
 , writeFlatUPLC
 , writeFlatUPLCs
+, updateScriptHash
+, semanticsBenchmarks
+, rolePayoutBenchmarks
 ) where
-
 
 import Codec.Serialise (deserialise)
 import Control.Monad (void)
 import Control.Monad.Except (runExcept)
 import Control.Monad.Writer (runWriterT)
-import Data.Bifunctor (bimap)
+import Data.Bifunctor (bimap, second)
 import Data.List (isSuffixOf)
-import Language.Marlowe.Core.V1.Semantics (MarloweData)
-import Language.Marlowe.Scripts.Semantics (MarloweInput)
 import PlutusBenchmark.Common (getDataDir)
+import PlutusBenchmark.Marlowe.Core.V1.Semantics (MarloweData)
+import PlutusBenchmark.Marlowe.Scripts.Semantics (MarloweInput, marloweValidatorHash)
 import PlutusBenchmark.Marlowe.Types (Benchmark (..))
 import PlutusCore.Executable.AstIO (fromNamedDeBruijnUPLC)
 import PlutusCore.Executable.Common (writeProgram)
 import PlutusCore.Executable.Types (AstNameType (NamedDeBruijn), Format (Flat), Output (FileOutput),
                                     PrintMode (Readable), UplcProg)
 import PlutusCore.MkPlc (mkConstant)
-import PlutusLedgerApi.V2 (Data (Constr, I), EvaluationContext, EvaluationError,
-                           ExBudget (ExBudget, exBudgetCPU, exBudgetMemory), ExCPU (ExCPU),
-                           ExMemory (ExMemory), LogOutput, ProtocolVersion (..),
-                           ScriptContext (scriptContextTxInfo), ScriptHash (..), SerialisedScript,
-                           TxInfo (txInfoId), VerboseMode (Verbose), evaluateScriptCounting,
-                           fromData, mkEvaluationContext, toData)
+import PlutusLedgerApi.V2
 import PlutusPrelude ((.*))
 import PlutusTx.Code (CompiledCode, getPlc)
 import System.Directory (listDirectory)
@@ -60,6 +57,7 @@ import System.FilePath ((<.>), (</>))
 import UntypedPlutusCore (Program (..), Version (..), applyProgram)
 
 import Data.ByteString.Lazy qualified as LBS (readFile)
+import PlutusBenchmark.Marlowe.Scripts.RolePayout (rolePayoutValidatorHash)
 
 
 -- | Read all of the benchmarking cases for a particular validator.
@@ -91,6 +89,60 @@ readBenchmark filename =
                  bReferenceCost = Just $ ExBudget (fromInteger cpu) (fromInteger memory)
                pure Benchmark{..}
         _ -> Left "Failed deserializing benchmark file."
+
+-- Rewrite all of a particular script hash in the script context.
+updateScriptHash
+  :: ScriptHash
+  -> ScriptHash
+  -> ScriptContext
+  -> ScriptContext
+updateScriptHash oldHash newHash scriptContext =
+  let
+    updateAddress address@(Address (ScriptCredential hash) stakeCredential)
+      | hash == oldHash = Address (ScriptCredential newHash) stakeCredential
+      | otherwise = address
+    updateAddress address = address
+    updateTxOut txOut@TxOut{..} = txOut {txOutAddress = updateAddress txOutAddress}
+    updateTxInInfo txInInfo@TxInInfo{..} =
+      txInInfo {txInInfoResolved = updateTxOut txInInfoResolved}
+    txInfo@TxInfo{..} = scriptContextTxInfo scriptContext
+    txInfo' =
+      txInfo
+      {
+        txInfoInputs = updateTxInInfo <$> txInfoInputs
+      , txInfoOutputs = updateTxOut <$> txInfoOutputs
+      }
+  in
+    scriptContext
+    {
+      scriptContextTxInfo = txInfo'
+    }
+
+
+-- | Revise the validator hashes in the benchmark's script context.
+rescript
+  :: Benchmark
+  -> Benchmark
+rescript benchmark@Benchmark{..} =
+  benchmark {
+    bScriptContext =
+      updateScriptHash
+        "2ed2631dbb277c84334453c5c437b86325d371f0835a28b910a91a6e"
+        marloweValidatorHash
+      $ updateScriptHash
+        "e165610232235bbbbeff5b998b233daae42979dec92a6722d9cda989"
+        rolePayoutValidatorHash
+        bScriptContext
+  }
+
+
+-- | The benchmark cases for the Marlowe semantics validator.
+semanticsBenchmarks :: IO (Either String [Benchmark])
+semanticsBenchmarks = second (rescript <$>) <$> readBenchmarks "marlowe/scripts/semantics"
+
+-- | The benchmark cases for the Marlowe semantics validator.
+rolePayoutBenchmarks :: IO (Either String [Benchmark])
+rolePayoutBenchmarks = second (rescript <$>) <$> readBenchmarks "marlowe/scripts/rolepayout"
 
 
 -- | Print a benchmarking case.

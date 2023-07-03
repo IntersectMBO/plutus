@@ -28,13 +28,12 @@ import Data.ByteString qualified as BS (writeFile)
 import Data.ByteString.Base16 qualified as B16 (encode)
 import Data.List (intercalate)
 import PlutusBenchmark.Common (getDataDir)
-import PlutusBenchmark.Marlowe (tabulateResults, writeFlatUPLCs)
+import PlutusBenchmark.Marlowe.BenchUtil (semanticsBenchmarks, tabulateResults, writeFlatUPLCs)
 import PlutusBenchmark.Marlowe.RolePayout qualified as RolePayout (benchmarks, validatorBytes,
                                                                    validatorHash, writeUPLC)
-import PlutusBenchmark.Marlowe.Semantics qualified as Semantics (benchmarks, validatorBytes,
-                                                                 validatorHash, writeUPLC)
+import PlutusBenchmark.Marlowe.Semantics qualified as Semantics (validatorBytes, validatorHash,
+                                                                 writeUPLC)
 import PlutusLedgerApi.V2 (ScriptHash, SerialisedScript)
-
 
 -- | Run the benchmarks and export information about the validators and the benchmarking results.
 main :: IO ()
@@ -43,7 +42,7 @@ main =
     dir <- getDataDir
 
     -- Read the semantics benchmarks.
-    benchmarks <- either error id <$> Semantics.benchmarks
+    benchmarks <- either error id <$> semanticsBenchmarks
 
     -- Write the tabulation of semantics benchmark results.
     writeFile (dir <> "/marlowe/exe/marlowe-semantics.tsv")

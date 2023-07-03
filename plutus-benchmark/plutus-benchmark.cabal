@@ -491,22 +491,28 @@ library marlowe-internal
 
   hs-source-dirs:  marlowe/src
   exposed-modules:
+    PlutusBenchmark.Marlowe.BenchUtil
+    PlutusBenchmark.Marlowe.Core.V1.Semantics
+    PlutusBenchmark.Marlowe.Core.V1.Semantics.Types
+    PlutusBenchmark.Marlowe.Core.V1.Semantics.Types.Address
+    PlutusBenchmark.Marlowe.Scripts.RolePayout
+    PlutusBenchmark.Marlowe.Scripts.Semantics
+    PlutusBenchmark.Marlowe.Types
+
   build-depends:
     , base
     , bytestring
-    , cardano-crypto-class  >=2.0.0.1 && <2.2
+    , cardano-crypto-class                            >=2.0.0.1 && <2.2
+    , directory
+    , filepath
+    , mtl
     , newtype-generics
-    , plutus-core           ^>=1.8
+    , plutus-benchmark-common
+    , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.8
     , plutus-ledger-api
-    , plutus-tx             ^>=1.8
-    , plutus-tx-plugin      ^>=1.8
-
-  exposed-modules:
-    Language.Marlowe.Core.V1.Semantics
-    Language.Marlowe.Core.V1.Semantics.Types
-    Language.Marlowe.Core.V1.Semantics.Types.Address
-    Language.Marlowe.Scripts.RolePayout
-    Language.Marlowe.Scripts.Semantics
+    , plutus-tx                                       ^>=1.8
+    , plutus-tx-plugin                                ^>=1.8
+    , serialise
 
 executable marlowe-validators
   import:           lang
@@ -514,10 +520,8 @@ executable marlowe-validators
   hs-source-dirs:   marlowe/exe
   main-is:          Main.hs
   other-modules:
-    PlutusBenchmark.Marlowe
     PlutusBenchmark.Marlowe.RolePayout
     PlutusBenchmark.Marlowe.Semantics
-    PlutusBenchmark.Marlowe.Types
     PlutusBenchmark.Marlowe.Util
 
   if impl(ghc <9.0)
@@ -552,3 +556,6 @@ benchmark marlowe
     , criterion
     , marlowe-internal
     , plutus-benchmark-common
+    , plutus-core              ^>=1.8
+    , plutus-ledger-api
+    , plutus-tx
