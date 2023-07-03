@@ -133,7 +133,8 @@ fullyApplyAndBetaReduce info args0 = do
       -- cannot use `liftDupable` here because then the variables will get renamed and we won't be
       -- able to find them to do the substitutions
   let Done (Dupable rhs) = varRhs info
-      rhsBody = varRhsBody info
+      (varArity, rhsBody) = splitParams rhs
+      -- | Drop one term or type lambda abstraction of the given term.
       getFnBody :: Term tyname name uni fun ann -> Term tyname name uni fun ann
       getFnBody (LamAbs _ann _n _ty body) = body
       getFnBody (TyAbs _ann _n _kd body)  = body
