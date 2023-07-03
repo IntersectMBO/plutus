@@ -119,11 +119,6 @@ data VarInfo tyname name uni fun ann = MkVarInfo
     , varRhs        :: InlineTerm tyname name uni fun ann
     -- ^ its definition that has been unconditionally inlined, as an `InlineTerm`. To preserve
     -- global uniqueness, we rename before substituting in.
-    , varArity      :: Arity tyname name
-    -- ^ its arity, storing to avoid repeated calculations.
-    , varRhsBody    :: Term tyname name uni fun ann
-    -- ^ the body of the function, for checking `acceptable` or not. Storing this to avoid repeated
-    -- calculations.
     }
 -- | Is the next argument a term or a type?
 data Param tyname name =
