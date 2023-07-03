@@ -49,7 +49,8 @@ $$
 r = \mathtt{0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001}.
 $$
         
-\noindent To define these groups we need the finite field $\Fq$ where
+\paragraph{The fields $\Fq$ and $\Fqq$.}
+\noindent To define the groups $G_1$ and $G_2$ we need the finite field $\Fq$ where
 \begin{align*}
 q = \mathtt{0x}&\mathtt{1a0111ea397fe69a4b1ba7b6434bacd764774b84f38512bf}\\
               &\mathtt{6730d2a0f6b0f6241eabfffeb153ffffb9feffffffffaaab}
@@ -69,11 +70,11 @@ It is convenient to say that an element $a$ of $\Fq$ is \textit{larger} than
 another element $b$ (and $b$ is \textit{smaller} than $a$) if $\tilde{a}
 > \tilde{b}$ in $\Z$.  We extend this terminology to $\Fqq$ by saying that
 $a+bu$ is larger than $c+du$ if either $b$ is larger than $d$ or $b=d$ and $a$
-is larger than $c$.  \red{Is this the right way round? Ie, we compare the
-$u$-parts first?}
+is larger than $c$.
 
 
-\medskip\noindent There are elliptic curves $E_1$ defined over $\Fq$:
+\paragraph{The groups $G_1$ and $G_2$}
+\noindent There are elliptic curves $E_1$ defined over $\Fq$:
 $$
 E_1: Y^2 = X^3 + 4
 $$
@@ -90,9 +91,12 @@ $G_1$ is a subgroup of $E_1(\Fq)$ and $G_2$ is a subgroup of $E_2(\Fqq)$;
 explicit generators for $G_1$ and $G_2$ are given
 in~\cite[4.2.1]{IETF-pairing-friendly-curves}.  We denote the identity element
 (the point at infinity) in $G_1$ by $\mathcal{O}_{G_1}$ and that in $G_2$ by
-$\mathcal{O}_{G_2}$.
+$\mathcal{O}_{G_2}$.  Given an integer $n$ and a group element $a$ in $G_1$ or
+$G_2$, the scalar multiple $na$ is defined as usual to be $a + \cdots + a$ ($n$
+times) if $n>0$ and $-a + \cdots + -a$ ($-n$ times) if $n<0$; $0a$ is the
+identity element of the group.
 
-\bigskip
+\paragraph{The \texttt{bls12\_381\_MlResult} type.}
 \noindent Values of the \texttt{bls12\_381\_MlResult} type are completely
 opaque and can only be obtained as a result of \texttt{bls12\_381\_millerLoop} or by
 multiplying two existing elements of type \texttt{bls12\_381\_MlResult}.  We
@@ -128,9 +132,9 @@ but it must be an abelian group. See Note~\ref{note:pairing} for more on this.
     \TT{bls12\_381\_G1\_add}  &
     $[ \ty{bls12\_381\_G1\_element}$,
       \text{\; $\ty{bls12\_381\_G1\_element} ]$}
-      \text{\: $ \to \ty{bls12\_381\_G1\_element}$} & Group addition &  No & \\
+      \text{\: $ \to \ty{bls12\_381\_G1\_element}$} & $(a,b) \mapsto a+b$  &  No & \\
     \TT{bls12\_381\_G1\_neg}  &
-      $ [ \ty{bls12\_381\_G1\_element} ]$  \text{\;\; $\to \ty{bls12\_381\_G1\_element}$} & Group inverse  & No & \\
+      $ [ \ty{bls12\_381\_G1\_element} ]$  \text{\;\; $\to \ty{bls12\_381\_G1\_element}$} & $a \mapsto -a$  & No & \\
     \TT{bls12\_381\_G1\_scalarMul}  &
     $[ \ty{integer}$,
       \text{\; $\ty{bls12\_381\_G1\_element} ]$}
@@ -179,7 +183,7 @@ but it must be an abelian group. See Note~\ref{note:pairing} for more on this.
       \text{\; $\ty{bls12\_381\_G2\_element} ]$}
     \text{\: $ \to \ty{\MlResult}$} & $e$ &  No & \ref{note:pairing}\\
     \TT{bls12\_381\_mulMlResult}  &
-    $[ \ty{\MlResult}, \ty{\MlResult}] \to \ty{\MlResult}$ & Group multiplication & No & \ref{note:pairing}\\
+    $[ \ty{\MlResult}, \ty{\MlResult}] \to \ty{\MlResult}$ & $(a,b) \mapsto ab$ & No & \ref{note:pairing}\\
     \TT{bls12\_381\_finalVerify}  &
     $[ \ty{\MlResult}, \ty{\MlResult}] \to \ty{bool}$ & $\phi$ & No & \ref{note:pairing}\\
     \hline
