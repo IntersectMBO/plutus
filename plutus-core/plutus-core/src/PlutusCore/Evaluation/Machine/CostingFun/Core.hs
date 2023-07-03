@@ -180,7 +180,7 @@ scaleLinearly (Intercept intercept) (Slope slope) =
     addCostStream (CostLast intercept) . mapCostStream (slope *)
 {-# INLINE scaleLinearly #-}
 
--- | Take an intercept, two slopes and stwo streams, and scale each element of
+-- | Take an intercept, two slopes and two streams, and scale each element of
 -- the first stream by the first slope, each element of the second stream by the
 -- second slope, add the two scaled streams together, and cons the intercept to
 -- the stream afterwards.
