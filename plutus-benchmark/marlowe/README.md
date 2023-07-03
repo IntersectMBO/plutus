@@ -1,8 +1,14 @@
 # Experimental version of Marlowe validator for Cardano, with minimal dependencies
 
+The `marlowe` directory contains three packages:
+
+- Validator source code: `marlowe-internal`
+- Benchmarking: `marlowe`
+- Executable: `marlowe-validators`
+
 ## `marlowe-internal`
 
-This package is a fully representative version of the Marlowe validator on chain, currently. (See the "Managing versions" section below) It is primarily for benchmarking/profiling Marlowe scripts. 
+This package is a fully representative version of the Marlowe validator on chain, currently. (See the "Managing versions" section below) It is primarily for measuring budgets/performance of Marlowe scripts. 
 
 Marlowe is a platform for financial products as smart contracts. [Marlowe-Cardano](https://github.com/input-output-hk/marlowe-cardano) is an implementation of Marlowe for the Cardano blockchain, built on top of Plutus.
 
@@ -25,23 +31,19 @@ See [CONTRIBUTING.md](https://github.com/input-output-hk/plutus/blob/master/CONT
 
 Of the most common Marlowe transactions, input application transactions are the most relevant, as they are complex and can go over the execution limits at times. So there is a priority on examining those contracts.
 
-## Managing versions
+## Benchmarking with `marlowe`
 
-### Versioning of this package 
+To benchmark the Marlowe scripts, run `cabal bench marlowe`. The default time to run each benchmark is 5 seconds. One can change this with `-L` or `--timeout` when running it locally.
 
-Note that the off-chain code is evolving. However the on-chain code is very stable and is compatible with GHC 8.10.7. For best benchmarking results, eventually we may have to update some of these files by hand if the on chain code is updated. (We don't want to depend on the Marlowe repository because this will have the problem of circular dependency.)
+The scripts are the results of applying the script's datum, redeemer and context, taken from files of type `M.Benchmark` from `/marlowe/scripts`, which is a data type in `marlow-internal`. This is not to be confused with `criterion`'s [`Benchmark`](https://hackage.haskell.org/package/criterion-measurement-0.2.1.0/docs/Criterion-Measurement-Types.html#t:Benchmark) type. 
 
-### Script versions
+`M.Benchmark` also contains the execution costs, measured using the Plutus version on August 18 2022 (commit 6ed578b592f46afc0e77f4d19e5955a6eb439ba4). This is used by the executable.
 
-The production version of Marlowe currently uses (PlutusV2, vasilPV, plcVersion100 or 1.0.0). We should use the same combination in the benchmarking.
-
-For documentation on Plutus vs PLC vs protocol version, see [here](https://github.com/input-output-hk/plutus/blob/master/plutus-ledger-api/src/PlutusLedgerApi/Common/Versions.hs)
+There are two sets of scripts: semantics (in `/marlowe/scripts/semantics`) and role payout (in `/marlowe/scripts/rolepayout`). The benchmark prints the transaction IDs of each script. 
 
 ## Running the benchmarks with executable `marlowe-validators`
 
-The application `marlowe-validators` works with scripts in the `plutus-benchmark/marlowe/exe/scripts/rolepayout` and `plutus-benchmark/marlowe/exe/scripts/semantics` directories. It serialises the two Marlowe validator scripts, computes their hashes, and runs all of the benchmarks, storing the results in a pair of tab-separated-value files.
-
-In `plutus-benchmark/marlowe/src/Language/Marlowe/Scripts.hs`, the plugin option to dump Plutus programs is turned on. Therefore, running the executable dumps the initial and simplified PIR program and the typed and untyped PLC program. You can find them in the `plutus/plutus-benchmark` directory. The dumped files are named with the module name followed by a brief description and ".flat".
+The application `marlowe-validators` works with scripts in the `plutus-benchmark/marlowe/scripts/rolepayout` and `plutus-benchmark/marlowe/scripts/semantics` directories. It serialises the two Marlowe validator scripts, computes their hashes, and runs all of the benchmarks, storing the results in a pair of tab-separated-value files.
 
 Running `cabal run marlowe-validators` outputs the following files:
 
@@ -53,3 +55,15 @@ Running `cabal run marlowe-validators` outputs the following files:
     - Plutus script: `marlowe-rolepayout.plutus`
     - Benchmarking results: `marlowe-rolepayout.tsv`   
     - Flat UPLC files: `benchmarks/rolepayout/*-uplc.flat`
+
+## Managing versions
+
+### Versioning of `marlowe-internal`
+
+Note that the off-chain code is evolving. However the on-chain code is very stable and is compatible with GHC 8.10.7. For best benchmarking results, eventually we may have to update some of these files by hand if the on chain code is updated. (We don't want to depend on the Marlowe repository because this will have the problem of circular dependency.)
+
+### Script versions
+
+The production version of Marlowe currently uses (PlutusV2, vasilPV, plcVersion100 or 1.0.0). We should use the same combination in the benchmarking. Again we should make sure this is synced up.
+
+For documentation on Plutus vs PLC vs protocol version, see [here](https://github.com/input-output-hk/plutus/blob/master/plutus-ledger-api/src/PlutusLedgerApi/Common/Versions.hs)
