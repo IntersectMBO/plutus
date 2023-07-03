@@ -293,44 +293,41 @@ unsafeReadModelFromR2 formula1 formula2 rmodel = do
     Right x  -> pure x
 
 readModelAddedSizes :: MonadR m => (SomeSEXP (Region m)) -> m ModelAddedSizes
-readModelAddedSizes model = (pure . uncurry ModelAddedSizes) =<< unsafeReadModelFromR "I(x_mem + y_mem)" model
+readModelAddedSizes model = uncurry ModelAddedSizes <$> unsafeReadModelFromR "I(x_mem + y_mem)" model
 
 readModelMinSize :: MonadR m => (SomeSEXP (Region m)) -> m ModelMinSize
-readModelMinSize model = (pure . uncurry ModelMinSize) =<< unsafeReadModelFromR "pmin(x_mem, y_mem)" model
+readModelMinSize model = uncurry ModelMinSize <$> unsafeReadModelFromR "pmin(x_mem, y_mem)" model
 
 readModelMaxSize :: MonadR m => (SomeSEXP (Region m)) -> m ModelMaxSize
-readModelMaxSize model = (pure . uncurry ModelMaxSize) =<< unsafeReadModelFromR "pmax(x_mem, y_mem)" model
+readModelMaxSize model = uncurry ModelMaxSize <$> unsafeReadModelFromR "pmax(x_mem, y_mem)" model
 
 uncurry3 :: (a -> b -> c -> d) -> ((a, b, c) -> d)
 uncurry3 f ~(a,b,c) = f a b c
 
 
 readModelMultipliedSizes :: MonadR m => (SomeSEXP (Region m)) -> m ModelMultipliedSizes
-readModelMultipliedSizes model = (pure . uncurry ModelMultipliedSizes) =<< unsafeReadModelFromR "I(x_mem * y_mem)" model
+readModelMultipliedSizes model = uncurry ModelMultipliedSizes <$> unsafeReadModelFromR "I(x_mem * y_mem)" model
 
 readModelIntercept :: MonadR m => (SomeSEXP (Region m)) -> m Intercept
-readModelIntercept model = (\(i, _i) -> pure i) =<< unsafeReadModelFromR "(Intercept)" model
+readModelIntercept model = fst <$> unsafeReadModelFromR "(Intercept)" model
 
 readModelConstantCost :: MonadR m => (SomeSEXP (Region m)) -> m CostingInteger
 readModelConstantCost = fmap unIntercept . readModelIntercept
 
 readModelLinearInX :: MonadR m => (SomeSEXP (Region m)) -> m ModelLinearSize
-readModelLinearInX model = (\(intercept, slope) -> pure $ ModelLinearSize intercept slope) =<< unsafeReadModelFromR "x_mem" model
+readModelLinearInX model = uncurry ModelLinearSize <$> unsafeReadModelFromR "x_mem" model
 
 readModelLinearInY :: MonadR m => (SomeSEXP (Region m)) -> m ModelLinearSize
-readModelLinearInY model = (\(intercept, slope) -> pure $ ModelLinearSize intercept slope) =<< unsafeReadModelFromR "y_mem" model
+readModelLinearInY model = uncurry ModelLinearSize <$> unsafeReadModelFromR "y_mem" model
 
 readModelLinearInXAndY :: MonadR m => (SomeSEXP (Region m)) -> m ModelLinearSizeTwoVariables
-readModelLinearInXAndY model = (\(intercept, slope1, slope2)
-                                    -> pure $ ModelLinearSizeTwoVariables intercept slope1 slope2) =<< unsafeReadModelFromR2 "x_mem" "y_mem" model
+readModelLinearInXAndY model = uncurry3 ModelLinearSizeTwoVariables <$> unsafeReadModelFromR2 "x_mem" "y_mem" model
 
 -- For models which are linear on the diagonal and constant elsewhere we currently
 -- only benchmark and model the linear part, so here we read in the model from R
 -- and supply the constant as a parameter
 readModelLinearOnDiagonal :: MonadR m => (SomeSEXP (Region m)) -> CostingInteger -> m ModelConstantOrLinear
-readModelLinearOnDiagonal model c = do
-  (intercept, slope) <- unsafeReadModelFromR "x_mem" model
-  pure $ ModelConstantOrLinear c intercept slope
+readModelLinearOnDiagonal model c = uncurry (ModelConstantOrLinear c) <$> unsafeReadModelFromR "x_mem" model
 
 boolMemModel :: ModelTwoArguments
 boolMemModel = ModelTwoArgumentsConstantCost 1
