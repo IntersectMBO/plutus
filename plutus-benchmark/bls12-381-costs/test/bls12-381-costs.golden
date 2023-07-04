@@ -100,3 +100,11 @@ Groth16 verification example
     -     772   (4.7%)      2316102514  (23.2%)           10004   (0.1%) 
 
 Groth16Verify succeeded
+Simple Verify succeeded
+VRF succeeded
+G1 Verify succeeded
+G2 Verify succeeded
+Aggregate Signature Single Key G1 Verify succeeded
+Aggregate Signature Multi Key G2 Verify succeeded
+Schnorr G1 Verify succeeded
+Schnorr G2 Verify succeeded

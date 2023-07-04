@@ -1,9 +1,10 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE BangPatterns      #-}
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE BangPatterns          #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE ViewPatterns          #-}
 
 {- | Approximations of the sort of computations involving BLS12-381 primitives
  that one might wish to perform on the chain.  Real on-chain code will have
@@ -353,11 +354,62 @@ vrfPrivKey = 5016693729127622200761010046154639241415757031406095724480846148176
 
 {-# INLINABLE vrfMessage #-}
 vrfMessage :: BuiltinByteString
-vrfMessage  = "I am a message" :: BuiltinByteString
+vrfMessage = "I am a message" :: BuiltinByteString
+
+data VrfProof = VrfProof
+  { gamma :: BuiltinBLS12_381_G2_Element -- requires Typeable and ToData instances (TODO: to be added on master before merge)
+  , c     :: BuiltinByteString
+  , s     :: Integer
+  }
+Tx.makeLift ''VrfProof
+Tx.unstableMakeIsData ''VrfProof
+
+data VrfProofWithOutput = VrfProofWithOutput
+  { beta  :: BuiltinByteString
+  , proof :: VrfProof
+  }
+Tx.makeLift ''VrfProofWithOutput
+Tx.unstableMakeIsData ''VrfProofWithOutput
 
 {-# INLINABLE vrfBlsScript #-}
-vrfBlsScript :: Integer -> BuiltinByteString -> BuiltinBLS12_381_G2_Element -> Bool
-vrfBlsScript privKey message g2Gen = do
+vrfBlsScript :: BuiltinByteString -> BuiltinBLS12_381_G2_Element -> VrfProofWithOutput -> BuiltinBLS12_381_G2_Element -> Bool
+vrfBlsScript message pubKey (VrfProofWithOutput beta' (VrfProof gamma' c' s')) g2Gen = do
+  let
+    -- gamma' = Tx.bls12_381_G2_uncompress gamma''
+    f = 305502333931268344200999753193121504214466019254188142667664032982267604182971884026507427359259977847832272839041692990889188039904403802465579155252111 :: Integer
+
+    -- The proof of that the VRF hash of input alpha under our priv key is beta
+    -- To verify a VRF hash given an
+    --        input alpha
+    --        output beta
+    --        proof pi (gamma, c, s)
+    --        pubkey pub
+    -- do the following calculation
+    u = Tx.bls12_381_G2_add (Tx.bls12_381_G2_scalarMul (os2ip c') pubKey) (Tx.bls12_381_G2_scalarMul s' g2Gen)
+    h' = Tx.bls12_381_G2_hashToGroup message emptyByteString
+    v = Tx.bls12_381_G2_add (Tx.bls12_381_G2_scalarMul (os2ip c') gamma') (Tx.bls12_381_G2_scalarMul s' h')
+
+    -- and check
+
+  c' == (sha2_256 . mconcat $ Tx.bls12_381_G2_compress <$> [g2Gen, h', pubKey, gamma', u, v])
+    &&
+      beta' == (sha2_256 . Tx.bls12_381_G2_compress $ Tx.bls12_381_G2_scalarMul f gamma')
+
+  where
+    os2ip :: BuiltinByteString -> Integer
+    os2ip bs
+      | bs == emptyByteString = error ()
+      | otherwise = go bs
+     where
+      len xs = lengthOfByteString xs - 1
+      intAtLastByte xs = indexByteString xs $ len xs
+      stripLastByte xs = takeByteString (len xs) xs
+      go xs
+        | xs == emptyByteString = 0
+        | otherwise = intAtLastByte xs + 256 * go (stripLastByte xs)
+
+generateVrfProof :: Integer -> BuiltinByteString -> BuiltinBLS12_381_G2_Element -> VrfProofWithOutput
+generateVrfProof privKey message g2Gen = do
   let
     -- calculate public key
     pub = Tx.bls12_381_G2_scalarMul privKey g2Gen
@@ -367,6 +419,7 @@ vrfBlsScript privKey message g2Gen = do
 
     -- define first element of the proof of correct VRF
     gamma = Tx.bls12_381_G2_scalarMul privKey h
+    -- gammaComp = Tx.bls12_381_G2_compress gamma
 
     -- for this signed hash with preimage alpha, define a ephemeral interger (for each signature take a new one)
     -- Random 32 byte int
@@ -375,8 +428,10 @@ vrfBlsScript privKey message g2Gen = do
     -- define second element of the proof of correct VRF
     -- the paper notes that this can actually be truncated to 128 bits without loss of the 128 bits security.
     -- truncating this will allow for smaller proof sizes.
-    c = sha2_256 . mconcat $ Tx.bls12_381_G2_compress <$>
-        [g2Gen, h, pub, gamma, Tx.bls12_381_G2_scalarMul k g2Gen, Tx.bls12_381_G2_scalarMul k h]
+    c =
+      sha2_256 . mconcat $
+        Tx.bls12_381_G2_compress
+          <$> [g2Gen, h, pub, gamma, Tx.bls12_381_G2_scalarMul k g2Gen, Tx.bls12_381_G2_scalarMul k h]
 
     -- define the third and last element of a proof of correct VRF
     s = (k - (os2ip c) * privKey) `modulo` 52435875175126190479447740508185965837690552500527637822603658699938581184513
@@ -387,43 +442,30 @@ vrfBlsScript privKey message g2Gen = do
     -- create our VRF hash output
     beta = sha2_256 . Tx.bls12_381_G2_compress $ Tx.bls12_381_G2_scalarMul f gamma
 
-    -- The proof of that the VRF hash of input alpha under our priv key is beta
-    pi = (gamma, c, s)
-
-    -- To verify a VRF hash given an
-    --        input alpha
-    --        output beta
-    --        proof pi (gamma, c, s)
-    --        pubkey pub
-    -- do the following calculation
-    u  = Tx.bls12_381_G2_add (Tx.bls12_381_G2_scalarMul (os2ip c) pub) (Tx.bls12_381_G2_scalarMul s g2Gen)
-    h' = Tx.bls12_381_G2_hashToGroup message emptyByteString
-    v  = Tx.bls12_381_G2_add (Tx.bls12_381_G2_scalarMul (os2ip c) gamma) (Tx.bls12_381_G2_scalarMul s h')
-
-  -- and check
-  c == (sha2_256 . mconcat $ Tx.bls12_381_G2_compress <$> [g2Gen,h',pub,gamma,u,v])
-
-  where
-    os2ip :: BuiltinByteString -> Integer
-    os2ip bs
-      | bs == emptyByteString = error ()
-      | otherwise             = go bs
-      where
-        len xs = lengthOfByteString xs - 1
-        intAtLastByte xs = indexByteString xs $ len xs
-        stripLastByte xs = takeByteString (len xs) xs
-        go xs
-          | xs == emptyByteString = 0
-          | otherwise             = intAtLastByte xs + 256 * go (stripLastByte xs)
+  VrfProofWithOutput beta (VrfProof gamma c s)
+ where
+  os2ip :: BuiltinByteString -> Integer
+  os2ip bs
+    | bs == emptyByteString = error ()
+    | otherwise = go bs
+   where
+    len xs = lengthOfByteString xs - 1
+    intAtLastByte xs = indexByteString xs $ len xs
+    stripLastByte xs = takeByteString (len xs) xs
+    go xs
+      | xs == emptyByteString = 0
+      | otherwise = intAtLastByte xs + 256 * go (stripLastByte xs)
 
 checkVrfBlsScript :: Bool
-checkVrfBlsScript = vrfBlsScript vrfPrivKey vrfMessage g2Generator
+checkVrfBlsScript = vrfBlsScript vrfMessage (Tx.bls12_381_G2_scalarMul vrfPrivKey g2Generator) (generateVrfProof vrfPrivKey vrfMessage g2Generator) g2Generator
 
 mkVrfBlsPolicy :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()
 mkVrfBlsPolicy =
-    Tx.getPlcNoAnn $ $$(Tx.compile [|| vrfBlsScript ||])
-      `Tx.unsafeApplyCode` Tx.liftCodeDef vrfPrivKey
+  Tx.getPlcNoAnn $
+    $$(Tx.compile [||vrfBlsScript||])
       `Tx.unsafeApplyCode` Tx.liftCodeDef vrfMessage
+      `Tx.unsafeApplyCode` Tx.liftCodeDef (Tx.bls12_381_G2_scalarMul vrfPrivKey g2Generator)
+      `Tx.unsafeApplyCode` Tx.liftCodeDef (generateVrfProof vrfPrivKey vrfMessage g2Generator)
       `Tx.unsafeApplyCode` Tx.liftCodeDef g2Generator
 
 ---------------- Verify over G1 ----------------
