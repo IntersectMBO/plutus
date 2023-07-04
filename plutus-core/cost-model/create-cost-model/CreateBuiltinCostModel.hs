@@ -314,14 +314,14 @@ readModelIntercept model = fst <$> unsafeReadModelFromR "(Intercept)" model
 readModelConstantCost :: MonadR m => (SomeSEXP (Region m)) -> m CostingInteger
 readModelConstantCost = fmap unIntercept . readModelIntercept
 
-readModelLinearInX :: MonadR m => (SomeSEXP (Region m)) -> m ModelLinearSize
-readModelLinearInX model = uncurry ModelLinearSize <$> unsafeReadModelFromR "x_mem" model
+readModelLinearInX :: MonadR m => (SomeSEXP (Region m)) -> m OneVariableLinearFunction
+readModelLinearInX model = uncurry OneVariableLinearFunction <$> unsafeReadModelFromR "x_mem" model
 
-readModelLinearInY :: MonadR m => (SomeSEXP (Region m)) -> m ModelLinearSize
-readModelLinearInY model = uncurry ModelLinearSize <$> unsafeReadModelFromR "y_mem" model
+readModelLinearInY :: MonadR m => (SomeSEXP (Region m)) -> m OneVariableLinearFunction
+readModelLinearInY model = uncurry OneVariableLinearFunction  <$> unsafeReadModelFromR "y_mem" model
 
-readModelLinearInXAndY :: MonadR m => (SomeSEXP (Region m)) -> m ModelLinearSizeTwoVariables
-readModelLinearInXAndY model = uncurry3 ModelLinearSizeTwoVariables <$> unsafeReadModelFromR2 "x_mem" "y_mem" model
+readModelLinearInXAndY :: MonadR m => (SomeSEXP (Region m)) -> m TwoVariableLinearFunction
+readModelLinearInXAndY model = uncurry3 TwoVariableLinearFunction <$> unsafeReadModelFromR2 "x_mem" "y_mem" model
 
 -- For models which are linear on the diagonal and constant elsewhere we currently
 -- only benchmark and model the linear part, so here we read in the model from R
@@ -441,8 +441,8 @@ consByteString cpuModelR = do
 sliceByteString ::  MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
 sliceByteString cpuModelR = do
   c <- readModelIntercept cpuModelR
-  let cpuModel = ModelThreeArgumentsLinearInZ $ ModelLinearSize c 0
-  let memModel = ModelThreeArgumentsLinearInZ $ ModelLinearSize 4 0
+  let cpuModel = ModelThreeArgumentsLinearInZ $ OneVariableLinearFunction c 0
+  let memModel = ModelThreeArgumentsLinearInZ $ OneVariableLinearFunction 4 0
   pure $ CostingFun cpuModel memModel
 
 lengthOfByteString ::  MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
@@ -553,7 +553,7 @@ equalsString cpuModelR = do
 encodeUtf8 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 encodeUtf8 cpuModelR = do
   cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
-  let memModel = ModelOneArgumentLinearCost $ ModelLinearSize 4 2
+  let memModel = ModelOneArgumentLinearCost $ OneVariableLinearFunction 4 2
                  -- In the worst case two UTF-16 bytes encode to three UTF-8
                  -- bytes, so two output words per input word should cover that.
   pure $ CostingFun cpuModel memModel
@@ -561,7 +561,7 @@ encodeUtf8 cpuModelR = do
 decodeUtf8 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 decodeUtf8 cpuModelR = do
   cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
-  let memModel = ModelOneArgumentLinearCost $ ModelLinearSize 4 2
+  let memModel = ModelOneArgumentLinearCost $ OneVariableLinearFunction 4 2
                  -- In the worst case one UTF-8 byte decodes to two UTF-16 bytes
   pure $ CostingFun cpuModel memModel
 
@@ -747,7 +747,7 @@ equalsData cpuModelR = do
 serialiseData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 serialiseData cpuModelR = do
   cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
-  let memModel = ModelOneArgumentLinearCost $ ModelLinearSize 0 2
+  let memModel = ModelOneArgumentLinearCost $ OneVariableLinearFunction 0 2
   pure $ CostingFun cpuModel memModel
 
 ---------------- Misc constructors ----------------

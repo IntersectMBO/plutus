@@ -71,14 +71,14 @@ deriving via ModelJSON "modelSubtractedSizes" ModelSubtractedSizes
     instance FromJSON ModelSubtractedSizes
 deriving via ModelJSON "modelSubtractedSizes" ModelSubtractedSizes
     instance ToJSON ModelSubtractedSizes
-deriving via ModelJSON "modelLinearSize" ModelLinearSize
-    instance FromJSON ModelLinearSize
-deriving via ModelJSON "modelLinearSize" ModelLinearSize
-    instance ToJSON ModelLinearSize
-deriving via ModelJSON "modelLinearSizeTwoVariables" ModelLinearSizeTwoVariables
-    instance FromJSON ModelLinearSizeTwoVariables
-deriving via ModelJSON "modelLinearSizeTwoVariables" ModelLinearSizeTwoVariables
-    instance ToJSON ModelLinearSizeTwoVariables
+deriving via ModelJSON "oneVariableLinearFunction" OneVariableLinearFunction
+    instance FromJSON OneVariableLinearFunction
+deriving via ModelJSON "oneVariableLinearFunction" OneVariableLinearFunction
+    instance ToJSON OneVariableLinearFunction
+deriving via ModelJSON "twoVariableLinearFunction" TwoVariableLinearFunction
+    instance FromJSON TwoVariableLinearFunction
+deriving via ModelJSON "twoVariableLinearFunction" TwoVariableLinearFunction
+    instance ToJSON TwoVariableLinearFunction
 deriving via ModelJSON "modelMultipliedSizes" ModelMultipliedSizes
     instance FromJSON ModelMultipliedSizes
 deriving via ModelJSON "modelMultipliedSizes" ModelMultipliedSizes
