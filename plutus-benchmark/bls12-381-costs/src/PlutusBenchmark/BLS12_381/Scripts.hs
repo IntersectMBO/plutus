@@ -10,7 +10,10 @@
  that one might wish to perform on the chain.  Real on-chain code will have
  extra overhead, but these examples help to give us an idea of the sort of
  computation that can feasibly be carried out within the validation budget
- limits. -}
+ limits.
+
+ Some of these test vectors were produced using https://github.com/input-output-hk/bls-e2e-testvectors
+ -}
 module PlutusBenchmark.BLS12_381.Scripts ( checkGroth16Verify_Haskell
                                          , listOfSizedByteStrings
                                          , mkGroth16VerifyScript
@@ -78,8 +81,8 @@ g2Generator = Tx.bls12_381_G2_uncompress $ toBuiltin $ BS.pack
    81, 11, 100, 122, 227, 209, 119, 11, 172, 3, 38, 168, 5, 187, 239, 212, 128, 86, 200, 193, 33, 189, 184]
 
 -- | Treat string of hexidecimal bytes literally, without encoding. Useful for hashes.
-bytesFromHex :: BS.ByteString -> BS.ByteString
-bytesFromHex = P.bytes . fromEither . P.fromHex
+bytesFromHex :: BS.ByteString -> BuiltinByteString
+bytesFromHex = toBuiltin . P.bytes . fromEither . P.fromHex
   where
     fromEither (Left _)   = traceError "bytesFromHex failed"
     fromEither (Right bs) = bs
@@ -89,7 +92,18 @@ blsSigBls12381G2XmdSha256SswuRoNul = toBuiltin $ C8.pack "BLS_SIG_BLS12381G2_XMD
 
 {-# INLINABLE byteString16Null #-}
 byteString16Null :: BuiltinByteString
-byteString16Null = toBuiltin $ bytesFromHex "00000000000000000000000000000000"
+byteString16Null = bytesFromHex "00000000000000000000000000000000"
+
+-- workaround the lack of ByteString to Integer interpretation
+-- replace with builtin when available, see https://github.com/input-output-hk/plutus/pull/4733
+byteStringToInteger  :: BuiltinByteString -> Integer
+byteStringToInteger b =
+  go 0
+    where len = Tx.lengthOfByteString b
+          go i =
+              if i >= len
+              then 0
+              else (Tx.indexByteString b i) + 256 * (go (i + 1))
 
 ---------------- Examples ----------------
 
@@ -193,13 +207,13 @@ newtype CompressedG1Element = CompressedG1Element { g1 :: BuiltinByteString }
     deriving newtype (Tx.Lift DefaultUni)
 
 mkG1Element :: ByteString ->  CompressedG1Element
-mkG1Element = CompressedG1Element . toBuiltin . bytesFromHex
+mkG1Element = CompressedG1Element . bytesFromHex
 
 newtype CompressedG2Element = CompressedG2Element { g2 :: BuiltinByteString }
     deriving newtype (Tx.Lift DefaultUni)
 
 mkG2Element :: ByteString -> CompressedG2Element
-mkG2Element = CompressedG2Element . toBuiltin . bytesFromHex
+mkG2Element = CompressedG2Element . bytesFromHex
 
 groth16scalar :: Integer
 groth16scalar = 0x1884d0cbcc5947434e46d19b3e904e18a8ee8d0d39ce9d315f3b00e338c8f618
@@ -357,25 +371,25 @@ vrfMessage :: BuiltinByteString
 vrfMessage = "I am a message" :: BuiltinByteString
 
 data VrfProof = VrfProof
-  { gamma :: BuiltinBLS12_381_G2_Element -- requires Typeable and ToData instances (TODO: to be added on master before merge)
-  , c     :: BuiltinByteString
-  , s     :: Integer
+  { vrfProofGamma :: BuiltinBLS12_381_G2_Element -- requires Typeable and ToData instances (TODO: to be added on master before merge)
+  , vrfProofC     :: BuiltinByteString
+  , vrfProofS     :: Integer
   }
 Tx.makeLift ''VrfProof
 Tx.unstableMakeIsData ''VrfProof
 
 data VrfProofWithOutput = VrfProofWithOutput
-  { beta  :: BuiltinByteString
-  , proof :: VrfProof
+  { vrfProofOutput :: BuiltinByteString
+  , vrfProofProof  :: VrfProof
   }
 Tx.makeLift ''VrfProofWithOutput
 Tx.unstableMakeIsData ''VrfProofWithOutput
 
 {-# INLINABLE vrfBlsScript #-}
 vrfBlsScript :: BuiltinByteString -> BuiltinBLS12_381_G2_Element -> VrfProofWithOutput -> BuiltinBLS12_381_G2_Element -> Bool
-vrfBlsScript message pubKey (VrfProofWithOutput beta' (VrfProof gamma' c' s')) g2Gen = do
+vrfBlsScript message pubKey (VrfProofWithOutput beta (VrfProof gamma c s)) g2Gen = do
   let
-    -- gamma' = Tx.bls12_381_G2_uncompress gamma''
+    -- cofactor of G2
     f = 305502333931268344200999753193121504214466019254188142667664032982267604182971884026507427359259977847832272839041692990889188039904403802465579155252111 :: Integer
 
     -- The proof of that the VRF hash of input alpha under our priv key is beta
@@ -385,29 +399,17 @@ vrfBlsScript message pubKey (VrfProofWithOutput beta' (VrfProof gamma' c' s')) g
     --        proof pi (gamma, c, s)
     --        pubkey pub
     -- do the following calculation
-    u = Tx.bls12_381_G2_add (Tx.bls12_381_G2_scalarMul (os2ip c') pubKey) (Tx.bls12_381_G2_scalarMul s' g2Gen)
-    h' = Tx.bls12_381_G2_hashToGroup message emptyByteString
-    v = Tx.bls12_381_G2_add (Tx.bls12_381_G2_scalarMul (os2ip c') gamma') (Tx.bls12_381_G2_scalarMul s' h')
+    u = Tx.bls12_381_G2_add (Tx.bls12_381_G2_scalarMul (byteStringToInteger c) pubKey) (Tx.bls12_381_G2_scalarMul s g2Gen)
+    h = Tx.bls12_381_G2_hashToGroup message emptyByteString
+    v = Tx.bls12_381_G2_add (Tx.bls12_381_G2_scalarMul (byteStringToInteger c) gamma) (Tx.bls12_381_G2_scalarMul s h)
 
     -- and check
 
-  c' == (sha2_256 . mconcat $ Tx.bls12_381_G2_compress <$> [g2Gen, h', pubKey, gamma', u, v])
+  c == (sha2_256 . mconcat $ Tx.bls12_381_G2_compress <$> [g2Gen, h, pubKey, gamma, u, v])
     &&
-      beta' == (sha2_256 . Tx.bls12_381_G2_compress $ Tx.bls12_381_G2_scalarMul f gamma')
+      beta == (sha2_256 . Tx.bls12_381_G2_compress $ Tx.bls12_381_G2_scalarMul f gamma)
 
-  where
-    os2ip :: BuiltinByteString -> Integer
-    os2ip bs
-      | bs == emptyByteString = error ()
-      | otherwise = go bs
-     where
-      len xs = lengthOfByteString xs - 1
-      intAtLastByte xs = indexByteString xs $ len xs
-      stripLastByte xs = takeByteString (len xs) xs
-      go xs
-        | xs == emptyByteString = 0
-        | otherwise = intAtLastByte xs + 256 * go (stripLastByte xs)
-
+-- used offchain to generate the vrf proof output
 generateVrfProof :: Integer -> BuiltinByteString -> BuiltinBLS12_381_G2_Element -> VrfProofWithOutput
 generateVrfProof privKey message g2Gen = do
   let
@@ -434,27 +436,15 @@ generateVrfProof privKey message g2Gen = do
           <$> [g2Gen, h, pub, gamma, Tx.bls12_381_G2_scalarMul k g2Gen, Tx.bls12_381_G2_scalarMul k h]
 
     -- define the third and last element of a proof of correct VRF
-    s = (k - (os2ip c) * privKey) `modulo` 52435875175126190479447740508185965837690552500527637822603658699938581184513
+    s = (k - (byteStringToInteger c) * privKey) `modulo` 52435875175126190479447740508185965837690552500527637822603658699938581184513
 
-    -- Define the cofactor of G2
+    -- cofactor of G2
     f = 305502333931268344200999753193121504214466019254188142667664032982267604182971884026507427359259977847832272839041692990889188039904403802465579155252111 :: Integer
 
     -- create our VRF hash output
     beta = sha2_256 . Tx.bls12_381_G2_compress $ Tx.bls12_381_G2_scalarMul f gamma
 
   VrfProofWithOutput beta (VrfProof gamma c s)
- where
-  os2ip :: BuiltinByteString -> Integer
-  os2ip bs
-    | bs == emptyByteString = error ()
-    | otherwise = go bs
-   where
-    len xs = lengthOfByteString xs - 1
-    intAtLastByte xs = indexByteString xs $ len xs
-    stripLastByte xs = takeByteString (len xs) xs
-    go xs
-      | xs == emptyByteString = 0
-      | otherwise = intAtLastByte xs + 256 * go (stripLastByte xs)
 
 checkVrfBlsScript :: Bool
 checkVrfBlsScript = vrfBlsScript vrfMessage (Tx.bls12_381_G2_scalarMul vrfPrivKey g2Generator) (generateVrfProof vrfPrivKey vrfMessage g2Generator) g2Generator
@@ -480,18 +470,18 @@ mkVrfBlsPolicy =
 
 {-# INLINABLE g1VerifyMessage #-}
 g1VerifyMessage :: BuiltinByteString
-g1VerifyMessage  = toBuiltin $ bytesFromHex "3e00ef2f895f40d67f5bb8e81f09a5a12c840ec3ce9a7f3b181be188ef711a1e"
+g1VerifyMessage  = bytesFromHex "3e00ef2f895f40d67f5bb8e81f09a5a12c840ec3ce9a7f3b181be188ef711a1e"
 
 {-# INLINABLE g1VerifyPubKey #-}
 g1VerifyPubKey :: BuiltinByteString
-g1VerifyPubKey = toBuiltin $ bytesFromHex ("aa04a34d4db073e41505ebb84eee16c0094fde9fa22ec974" <>
-                                           "adb36e5b3df5b2608639f091bff99b5f090b3608c3990173")
+g1VerifyPubKey = bytesFromHex ("aa04a34d4db073e41505ebb84eee16c0094fde9fa22ec974" <>
+                               "adb36e5b3df5b2608639f091bff99b5f090b3608c3990173")
 
 {-# INLINABLE g1VerifySignature #-}
 g1VerifySignature :: BuiltinByteString
-g1VerifySignature = toBuiltin $ bytesFromHex
+g1VerifySignature = bytesFromHex
                    ("808ccec5435a63ae01e10d81be2707ab55cd0dfc235dfdf9f70ad32799e42510d67c9f61d98a6578a96a76cf6f4c105d" <>
-                   "09262ec1d86b06515360b290e7d52d347e48438de2ea2233f3c72a0c2221ed2da5e115367bca7a2712165032340e0b29")
+                    "09262ec1d86b06515360b290e7d52d347e48438de2ea2233f3c72a0c2221ed2da5e115367bca7a2712165032340e0b29")
 
 {-# INLINABLE g1VerifyScript #-}
 g1VerifyScript ::
@@ -533,18 +523,18 @@ mkG1VerifyPolicy =
 
 {-# INLINABLE g2VerifyMessage #-}
 g2VerifyMessage :: BuiltinByteString
-g2VerifyMessage  = toBuiltin $ bytesFromHex "5032ec38bbc5da98ee0c6f568b872a65a08abf251deb21bb4b56e5d8821e68aa"
+g2VerifyMessage  = bytesFromHex "5032ec38bbc5da98ee0c6f568b872a65a08abf251deb21bb4b56e5d8821e68aa"
 
 {-# INLINABLE g2VerifyPubKey #-}
 g2VerifyPubKey :: BuiltinByteString
-g2VerifyPubKey = toBuiltin $ bytesFromHex
+g2VerifyPubKey = bytesFromHex
                   ("b4953c4ba10c4d4196f90169e76faf154c260ed73fc77bb65dc3be31e0cec614a7287cda94195343676c2c57494f0e65" <>
                   "1527e6504c98408e599a4eb96f7c5a8cfb85d2fdc772f28504580084ef559b9b623bc84ce30562ed320f6b7f65245ad4")
 
 {-# INLINABLE g2VerifySignature #-}
 g2VerifySignature :: BuiltinByteString
-g2VerifySignature  = toBuiltin $ bytesFromHex ("a9d4de7b0b2805fe52bccb86415ef7b8ffecb313c3c25404" <>
-                                              "4dfc1bdc531d3eae999d87717822a052692140774bd7245c")
+g2VerifySignature  = bytesFromHex ("a9d4de7b0b2805fe52bccb86415ef7b8ffecb313c3c25404" <>
+                                   "4dfc1bdc531d3eae999d87717822a052692140774bd7245c")
 
 {-# INLINABLE g2VerifyScript #-}
 g2VerifyScript ::
@@ -591,26 +581,26 @@ mkG2VerifyPolicy =
 {-# INLINABLE aggregateSingleKeyG1Messages #-}
 aggregateSingleKeyG1Messages :: [BuiltinByteString]
 aggregateSingleKeyG1Messages  = [
-        toBuiltin $ bytesFromHex "2ba037cdb63cb5a7277dc5d6dc549e4e28a15c70670f0e97787c170485829264"
-      , toBuiltin $ bytesFromHex "ecbf14bddeb68410f423e8849e0ce35c10d20a802bbc3d9a6ca01c386279bf01"
-      , toBuiltin $ bytesFromHex "e8f75f478cb0d159db767341602fa02d3e01c3d9aacf9b686eccf1bb5ff4c8fd"
-      , toBuiltin $ bytesFromHex "21473e89d50f51f9a1ced2390c72ee7e37f15728e61d1fb2c8c839495e489052"
-      , toBuiltin $ bytesFromHex "8c146d00fe2e1caec31b159fc42dcd7e06865c6fa5267c6ca9c5284e651e175a"
-      , toBuiltin $ bytesFromHex "362f469b6e722347de959f76533315542ffa440d37cde8862da3b3331e53b60d"
-      , toBuiltin $ bytesFromHex "73baeb620e63a2e646ea148974350aa337491e5f5fc087cb429173d1eeb74f5a"
-      , toBuiltin $ bytesFromHex "73acc6c3d72b59b8bf5ab58cdcf76aa001689aac938a75b1bb25d77b5382898c"
-      , toBuiltin $ bytesFromHex "4e73ba04bae3a083c8a2109f15b8c4680ae4ba1c70df5b513425349a77e95d3b"
-      , toBuiltin $ bytesFromHex "565825a0227d45068e61eb90aa1a4dc414c0976911a52d46b39f40c5849e5abe"
+        bytesFromHex "2ba037cdb63cb5a7277dc5d6dc549e4e28a15c70670f0e97787c170485829264"
+      , bytesFromHex "ecbf14bddeb68410f423e8849e0ce35c10d20a802bbc3d9a6ca01c386279bf01"
+      , bytesFromHex "e8f75f478cb0d159db767341602fa02d3e01c3d9aacf9b686eccf1bb5ff4c8fd"
+      , bytesFromHex "21473e89d50f51f9a1ced2390c72ee7e37f15728e61d1fb2c8c839495e489052"
+      , bytesFromHex "8c146d00fe2e1caec31b159fc42dcd7e06865c6fa5267c6ca9c5284e651e175a"
+      , bytesFromHex "362f469b6e722347de959f76533315542ffa440d37cde8862da3b3331e53b60d"
+      , bytesFromHex "73baeb620e63a2e646ea148974350aa337491e5f5fc087cb429173d1eeb74f5a"
+      , bytesFromHex "73acc6c3d72b59b8bf5ab58cdcf76aa001689aac938a75b1bb25d77b5382898c"
+      , bytesFromHex "4e73ba04bae3a083c8a2109f15b8c4680ae4ba1c70df5b513425349a77e95d3b"
+      , bytesFromHex "565825a0227d45068e61eb90aa1a4dc414c0976911a52d46b39f40c5849e5abe"
       ]
 
 {-# INLINABLE aggregateSingleKeyG1PubKey #-}
 aggregateSingleKeyG1PubKey :: BuiltinByteString
-aggregateSingleKeyG1PubKey = toBuiltin $ bytesFromHex ("97c919babda8d928d771d107a69adfd85a75cee2cedc4afa" <>
-                                                      "4c0a7e902f38b340ea21a701a46df825210dd6942632b46c")
+aggregateSingleKeyG1PubKey = bytesFromHex ("97c919babda8d928d771d107a69adfd85a75cee2cedc4afa" <>
+                                           "4c0a7e902f38b340ea21a701a46df825210dd6942632b46c")
 
 {-# INLINABLE aggregateSingleKeyG1Signature #-}
 aggregateSingleKeyG1Signature :: BuiltinByteString
-aggregateSingleKeyG1Signature = toBuiltin $ bytesFromHex
+aggregateSingleKeyG1Signature = bytesFromHex
                                  ("b425291f423235b022cdd038e1a3cbdcc73b5a4470251634" <>
                                   "abb874c7585a3a05b8ea54ceb93286edb0e9184bf9a852a1" <>
                                   "138c6dd860e4b756c63dff65c433a6c5aa06834f00ac5a1a" <>
@@ -668,48 +658,48 @@ mkAggregateSingleKeyG1Policy =
 
 {-# INLINABLE aggregateMultiKeyG2Message #-}
 aggregateMultiKeyG2Message :: BuiltinByteString
-aggregateMultiKeyG2Message  = toBuiltin $ bytesFromHex
+aggregateMultiKeyG2Message  = bytesFromHex
                                 "e345b7f2c017b16bb335c696bc0cc302f3db897fa25365a2ead1f149d87a97e8"
 
 {-# INLINABLE aggregateMultiKeyG2PubKeys #-}
 aggregateMultiKeyG2PubKeys :: [BuiltinByteString]
 aggregateMultiKeyG2PubKeys = [
-    toBuiltin $ bytesFromHex
+    bytesFromHex
       ("83718f20d08471565b3a6ca6ea82c1928e8730f87e2afe460b74842f2880facd8e63b8abcdcd7350fe5813a08aa0efed" <>
        "13216b10de1c56dc059c3a8910bd97ae133046ae031d2a53a44e460ab71ebda94bab64ed7478cf1a91b6d3981e32fc95")
-  , toBuiltin $ bytesFromHex
+  , bytesFromHex
       ("814f825911bd066855333b74a3cc564d512503ee29ea1ec3bd57a3c07fa5768ad27ea1ddd8047f43fbc9a4ebda897c14" <>
        "06415fefbb8838b8782aa747e2fde7b1813d0f89fad06c8971041c9427abf848503e34e3ca033ba85d50b72ffac4be4a")
-  , toBuiltin $ bytesFromHex
+  , bytesFromHex
       ("9974c70513ed5538a8e55f5ce1a0267282b9e8431e25ae566950b2d0793a44a0a3c52110f4d83d694a5296615ee68573" <>
        "098c14d255783a9b1a169d2be1baefbef914a4f830a9099f720063914cc919064d2244582bb9f302eac39c8b195cf3d2")
-  , toBuiltin $ bytesFromHex
+  , bytesFromHex
       ("894a3a01d38169a38bea13097cf904dd3ff9dceefb51e8b539725a237ae55a361758be1cdf0e21a7b8db3599adaf2305" <>
        "050f1d8450b924a4b910ff536fc2f7960cd3251c2a457b975d46f7c0f74493cc9b5e8d2fed2e489363e641cc79933d1e")
-  , toBuiltin $ bytesFromHex
+  , bytesFromHex
       ("9646da0149ed140e33a99e1ffc5fe9c97c2368ca273544024993cdcb7aa04c0be936e6d4427747e62c4caea4fe1f69e5" <>
        "162fad222e0487f5556524c9d3db74921e1c0f5893f0e26c759e3873e8fd6637e6051f70ef9a3363cf284e8eee67bcf3")
-  , toBuiltin $ bytesFromHex
+  , bytesFromHex
       ("b75743fb2f8321ac56cee19aacd7e141a3592b7230992ea84d8800d45ad71924a477f61cf9d4a2783df59dac21cd17e7" <>
        "0e4ce5d526cbe73edc4a10b78fa56a2ef34d2009f2756d2d50188031e026a6a1dadcd5e753f5e7f7276048277d3819f1")
-  , toBuiltin $ bytesFromHex
+  , bytesFromHex
       ("873c1e7d525265afa8c037d33874261a90daaa2c6ed5e46ed043ec48a28b7111d0de65800aa72448c1fdb1026ba076bd" <>
        "04193bd2d04e0de63e7a008b8417420eb4920767a1d32f6330ed25bdb4dc7726d989d6cf192db6b32728bb388195ba27")
-  , toBuiltin $ bytesFromHex
+  , bytesFromHex
       ("b993f867f9f1f84c3c5c3e5b80013055da7705491c36a80e1201a6a503d7364000c50bc27e03477646874a3074cc4e39" <>
       "0febfea78a2b4d0e40c57d6deaf9fae430a19fcce0c03f43ff8f7e788de0c7b8ce1b69b69d1d026175c8f2730777866d")
-  , toBuiltin $ bytesFromHex
+  , bytesFromHex
       ("99836a204576636f34a4663cfa7e02a05cb2d4fd1b582427d199ac3ddac6f087968d2290198aa15e04f6e7e0d070b7dd" <>
       "03607db9c2e4b17709853c30b2f6490261599408fbbc17371de74d0a2a76ff10cd8c9b55461c444bbebc82547bb40c9f")
-  , toBuiltin $ bytesFromHex
+  , bytesFromHex
       ("96f8d678f40dd83b2060e14372d0bc43a423fecac44f082afd89cb481b855885ac83fb366516dc74023cc41a0c606be2" <>
       "067ba826ea612f84c9f0e895d02bc04d6c34e201ff8c26cc22cb4c426c53f503d8948eafceb12e2f4b6ad49b4e051690")
   ]
 
 {-# INLINABLE aggregateMultiKeyG2Signature #-}
 aggregateMultiKeyG2Signature :: BuiltinByteString
-aggregateMultiKeyG2Signature = toBuiltin $ bytesFromHex ("b24d876661d0d1190c796bf7eaa7e02b807ff603093b1733" <>
-                                                        "6289d4de0477f6c17afb487275cb9de44325016edfeda042")
+aggregateMultiKeyG2Signature = bytesFromHex ("b24d876661d0d1190c796bf7eaa7e02b807ff603093b1733" <>
+                                             "6289d4de0477f6c17afb487275cb9de44325016edfeda042")
 
 {-# INLINABLE aggregateMultiKeyG2Script #-}
 aggregateMultiKeyG2Script ::
@@ -738,17 +728,6 @@ aggregateMultiKeyG2Script message pubKeys aggregateSignature bs16Null dst g2Gen 
       foldl1 _ [_]    = traceError "foldr1: only one element in list"
       foldl1 f (x:xs) = Tx.foldl f x xs
 
-      -- a (probably inefficient) workaround for lack of ByteString to Integer interpretation
-      -- to be addressed by byteStringToInteger in https://github.com/input-output-hk/plutus/pull/4733
-      byteStringToInteger  :: BuiltinByteString -> Integer
-      byteStringToInteger b =
-        go 0
-          where len = Tx.lengthOfByteString b
-                go i =
-                    if i >= len
-                    then 0
-                    else (Tx.indexByteString b i) + 256 * (go (i + 1))
-
       calcAggregatedPubkeys :: Integer -> [BuiltinBLS12_381_G2_Element] -> BuiltinBLS12_381_G2_Element
       calcAggregatedPubkeys dsScalar' pksDeser' =
         go 1 (calc 0)
@@ -758,22 +737,11 @@ aggregateMultiKeyG2Script message pubKeys aggregateSignature bs16Null dst g2Gen 
               | i >= length pksDeser' = acc
               | otherwise = go (i + 1) (acc `Tx.bls12_381_G2_add` (calc i))
 
-      -- TODO: Is this one better?
-      -- calcAggregatedPubkeys :: Integer -> [BuiltinBLS12_381_G2_Element] -> BuiltinBLS12_381_G2_Element
-      -- calcAggregatedPubkeys dsScalar' pksDeser' =
-      --   Tx.foldl (\acc i -> acc `Tx.bls12_381_G2_add` (calc i)) (calc 0) loop
-      --   where
-      --     calc i = (dsScalar' `power` (i + 1)) `Tx.bls12_381_G2_scalarMul` (pksDeser' Tx.!! i)
-      --     loop = loop' [] 1
-      --     loop' a i
-      --       | i == (Tx.length pksDeser' Tx.- 1) = (a Tx.++ [i])
-      --       | otherwise                         = loop' (a Tx.++ [i]) (i Tx.+ 1)
-
       power :: Integer -> Integer -> Integer
-      --power _ 0 = 1 -- this line breaks script compilation
       power x n
         | n == 0 = 1
         | n > 0 = x * power x (n - 1)
+        | otherwise = 0
 
 checkAggregateMultiKeyG2Script :: Bool
 checkAggregateMultiKeyG2Script =
@@ -803,19 +771,19 @@ mkAggregateMultiKeyG2Policy =
 
 {-# INLINABLE schnorrG1VerifyMessage #-}
 schnorrG1VerifyMessage :: BuiltinByteString
-schnorrG1VerifyMessage  = toBuiltin $ bytesFromHex "0558db9aff738e5421439601e7f30e88b74f43b80c1d172b5d371ce0dc05c912"
+schnorrG1VerifyMessage  = bytesFromHex "0558db9aff738e5421439601e7f30e88b74f43b80c1d172b5d371ce0dc05c912"
 
 {-# INLINABLE schnorrG1VerifyPubKey #-}
 schnorrG1VerifyPubKey :: BuiltinByteString
-schnorrG1VerifyPubKey = toBuiltin $ bytesFromHex ("b91cacee903a53383c504e9e9a39e57d1eaa6403d5d38fc9" <>
-                                                 "496e5007d54ca92d106d1059f09461972aa98514d07000ae")
+schnorrG1VerifyPubKey = bytesFromHex ("b91cacee903a53383c504e9e9a39e57d1eaa6403d5d38fc9" <>
+                                      "496e5007d54ca92d106d1059f09461972aa98514d07000ae")
 
 {-# INLINABLE schnorrG1VerifySignature #-}
 schnorrG1VerifySignature :: (BuiltinByteString, BuiltinByteString)
 schnorrG1VerifySignature =
-                 (toBuiltin $ bytesFromHex
+                 (bytesFromHex
                     "8477e8491acc1cfbcf675acf7cf6b92e027cad7dd604a0e8205703aa2cc590066c1746f89e10d492d0230e6620c29726",
-                  toBuiltin $ bytesFromHex "4e908280c0100cfe53501171ffa93528b9e2bb551d1025decb4a5b416a0aee53")
+                  bytesFromHex "4e908280c0100cfe53501171ffa93528b9e2bb551d1025decb4a5b416a0aee53")
 
 {-# INLINABLE schnorrG1VerifyScript #-}
 schnorrG1VerifyScript ::
@@ -836,17 +804,6 @@ schnorrG1VerifyScript message pubKey signature bs16Null g1Gen = do
     rDeser = byteStringToInteger r
   (rDeser `Tx.bls12_381_G1_scalarMul` g1Gen) `Tx.bls12_381_G1_equals`
     (aDeser `Tx.bls12_381_G1_add` (c `Tx.bls12_381_G1_scalarMul` pkDeser))
-    where
-      -- a (probably inefficient) workaround for lack of ByteString to Integer interpretation
-      -- to be addressed by byteStringToInteger in https://github.com/input-output-hk/plutus/pull/4733
-      byteStringToInteger  :: BuiltinByteString -> Integer
-      byteStringToInteger b =
-        go 0
-          where len = Tx.lengthOfByteString b
-                go i =
-                    if i >= len
-                    then 0
-                    else (Tx.indexByteString b i) + 256 * (go (i + 1))
 
 checkSchnorrG1VerifyScript :: Bool
 checkSchnorrG1VerifyScript = schnorrG1VerifyScript schnorrG1VerifyMessage schnorrG1VerifyPubKey
@@ -874,21 +831,21 @@ mkSchnorrG1VerifyPolicy =
 
 {-# INLINABLE schnorrG2VerifyMessage #-}
 schnorrG2VerifyMessage :: BuiltinByteString
-schnorrG2VerifyMessage  = toBuiltin $ bytesFromHex "2b71175d0486006a33f14bc4e1fe711a3d4a3a3549b230013240e8f80e54372f"
+schnorrG2VerifyMessage  = bytesFromHex "2b71175d0486006a33f14bc4e1fe711a3d4a3a3549b230013240e8f80e54372f"
 
 {-# INLINABLE schnorrG2VerifyPubKey #-}
 schnorrG2VerifyPubKey :: BuiltinByteString
-schnorrG2VerifyPubKey = toBuiltin $ bytesFromHex
+schnorrG2VerifyPubKey = bytesFromHex
      ("88370a4b4ddc627613b0396498fb068f1c1ff8f2aa6b946a9fc65f930d24394ddc45042e602094f6a88d49a8a037e781" <>
      "08dce014586ff5ff5744842f382e3917d180c7eb969585748d20ae8c6e07ca786e8da7ea2c7bdef5ae1becebe4da59ad")
 
 {-# INLINABLE schnorrG2VerifySignature #-}
 schnorrG2VerifySignature :: (BuiltinByteString, BuiltinByteString)
 schnorrG2VerifySignature  =
-                (toBuiltin $ bytesFromHex
+                (bytesFromHex
                   ("964851eb8823492c8720bf8c515b87043f5bab648000e63cfb6fc6fcdf6709061e0035c315cd23d239866471dea907d9" <>
                   "1568b69297dc8c4360f65d0bd399c2de19781c13bbf3a82ff1fcab8ac9f688ed96d6f2ea9a8ed057e76f0347d858ae22"),
-                 toBuiltin $ bytesFromHex "2c5a22cb1e2fb77586c0c6908060b38107675a6277b8a61b1d6394a162af6718")
+                 bytesFromHex "2c5a22cb1e2fb77586c0c6908060b38107675a6277b8a61b1d6394a162af6718")
 
 {-# INLINABLE schnorrG2VerifyScript #-}
 schnorrG2VerifyScript ::
@@ -909,17 +866,6 @@ schnorrG2VerifyScript message pubKey signature bs16Null g2Gen = do
     rDeser = byteStringToInteger r
   (rDeser `Tx.bls12_381_G2_scalarMul` g2Gen) `Tx.bls12_381_G2_equals`
     (aDeser `Tx.bls12_381_G2_add` (c `Tx.bls12_381_G2_scalarMul` pkDeser))
-    where
-      -- a (probably inefficient) workaround for lack of ByteString to Integer interpretation
-      -- to be addressed by byteStringToInteger in https://github.com/input-output-hk/plutus/pull/4733
-      byteStringToInteger  :: BuiltinByteString -> Integer
-      byteStringToInteger b =
-        go 0
-          where len = Tx.lengthOfByteString b
-                go i =
-                    if i >= len
-                    then 0
-                    else (Tx.indexByteString b i) + 256 * (go (i Tx.+ 1))
 
 checkSchnorrG2VerifyScript :: Bool
 checkSchnorrG2VerifyScript = schnorrG2VerifyScript schnorrG2VerifyMessage schnorrG2VerifyPubKey

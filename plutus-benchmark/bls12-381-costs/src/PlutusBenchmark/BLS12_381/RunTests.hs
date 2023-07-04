@@ -82,6 +82,41 @@ runTests h = do
   printSizeStatistics h NoSize mkGroth16VerifyScript
   hPrintf h "\n"
 
+  hPrintf h "VRF example\n\n"
+  printHeader h
+  printSizeStatistics h NoSize mkVrfBlsPolicy
+  hPrintf h "\n"
+
+  hPrintf h "G1 Verify\n\n"
+  printHeader h
+  printSizeStatistics h NoSize mkG1VerifyPolicy
+  hPrintf h "\n"
+
+  hPrintf h "G2 Verify\n\n"
+  printHeader h
+  printSizeStatistics h NoSize mkG2VerifyPolicy
+  hPrintf h "\n"
+
+  hPrintf h "Aggregate Single Key\n\n"
+  printHeader h
+  printSizeStatistics h NoSize mkAggregateSingleKeyG1Policy
+  hPrintf h "\n"
+
+  hPrintf h "Aggregate Multi Key\n\n"
+  printHeader h
+  printSizeStatistics h NoSize mkAggregateMultiKeyG2Policy
+  hPrintf h "\n"
+
+  hPrintf h "Schnorr Signature G1\n\n"
+  printHeader h
+  printSizeStatistics h NoSize mkSchnorrG1VerifyPolicy
+  hPrintf h "\n"
+
+  hPrintf h "Schnorr Signature G2\n\n"
+  printHeader h
+  printSizeStatistics h NoSize mkSchnorrG2VerifyPolicy
+  hPrintf h "\n"
+
   if checkGroth16Verify_Haskell
   then hPrintf h "Groth16Verify succeeded\n"
   else hPrintf h "Groth16Verify failed\n"
