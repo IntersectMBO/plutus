@@ -804,6 +804,11 @@ schnorrG1VerifyScript message pubKey signature bs16Null g1Gen = do
     rDeser = byteStringToInteger r
   (rDeser `Tx.bls12_381_G1_scalarMul` g1Gen) `Tx.bls12_381_G1_equals`
     (aDeser `Tx.bls12_381_G1_add` (c `Tx.bls12_381_G1_scalarMul` pkDeser))
+  -- additional check using negation is for testing the function
+  -- it can be removed to improve performance
+    &&
+      (rDeser `Tx.bls12_381_G1_scalarMul` g1Gen) `Tx.bls12_381_G1_add` (Tx.bls12_381_G1_neg aDeser)
+        `Tx.bls12_381_G1_equals` (c `Tx.bls12_381_G1_scalarMul` pkDeser)
 
 checkSchnorrG1VerifyScript :: Bool
 checkSchnorrG1VerifyScript = schnorrG1VerifyScript schnorrG1VerifyMessage schnorrG1VerifyPubKey
@@ -866,6 +871,11 @@ schnorrG2VerifyScript message pubKey signature bs16Null g2Gen = do
     rDeser = byteStringToInteger r
   (rDeser `Tx.bls12_381_G2_scalarMul` g2Gen) `Tx.bls12_381_G2_equals`
     (aDeser `Tx.bls12_381_G2_add` (c `Tx.bls12_381_G2_scalarMul` pkDeser))
+  -- additional check using negation is for testing the function
+  -- it can be removed to improve performance
+    &&
+      (rDeser `Tx.bls12_381_G2_scalarMul` g2Gen) `Tx.bls12_381_G2_add` (Tx.bls12_381_G2_neg aDeser)
+        `Tx.bls12_381_G2_equals` (c `Tx.bls12_381_G2_scalarMul` pkDeser)
 
 checkSchnorrG2VerifyScript :: Bool
 checkSchnorrG2VerifyScript = schnorrG2VerifyScript schnorrG2VerifyMessage schnorrG2VerifyPubKey
