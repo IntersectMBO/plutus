@@ -2,22 +2,20 @@
 
 ## Preface
 
-This document elaborates on the triaging process that we use to prioritize and resolve incoming requests, bug reports etc.
-
-Triaging can be defined as
-
-> In software engineering, triaging is a process where each bug is prioritized on its severity, frequency, risk, impact on the team, etc. The goal of triage is to evaluate, prioritize, and assign the resolution of bugs or defects. The main task the team needs to do is validate the severity of the defect, assign the required resources to solve the defects, make changes as needed, and finalize the resolution of the defects.
-
-quoting [this](https://str-wibowo98.medium.com/what-is-software-triage-b66c6b0a2777) article.
+This document elaborates on the triage process that we use to prioritize and resolve incoming requests, bug reports, questions -- anything relevant to the contents of this repo that the reporter wants to bring to our attention. The goal is to make sure that every issue or pull request opened on GitHub gets evaluated, classified, put into the queue and eventually resolved.
 
 ## Why
 
 Before we start, why even bother with triage? It's another thing to learn and spend time on, why do we consider this a worthwhile effort investment? Here are a couple of reasons:
 
 - We care about our users. There isn't much point in developing something and then ignoring the feedback of people for whom you developed the product in the first place. Satisfaction of our users is the most important indicator that we do well, hence we always need to keep user experience in mind and work towards improving it, as otherwise people will go elsewhere.
-- There have been numerous times that our users not only reported important findings, but also fully investigated a potential issue and proposed a reasonable way forward (check out [#5135](https://github.com/input-output-hk/plutus/issues/5135) for a great example). We don't want to miss out on those by not handling reported issues properly.
+- There have been numerous times that our users not only reported important findings, but also fully investigated a potential issue and proposed a reasonable way forward (check out [#5135](https://github.com/input-output-hk/plutus/issues/5135) and [#5185](https://github.com/input-output-hk/plutus/issues/5185) for a couple of great examples). We don't want to miss out on those by not handling reported issues properly.
 
-As for why we need a process -- it's simple: because otherwise we'd revert back to shortly glossing over an issue and moving on hoping it'll somehow resolve itself. Believe it or not, but this strategy wasn't working well at all and we could easily forget about an important report or even miss it completely in the past.
+As for why we need a process -- it's simple: because otherwise we'd revert back to shortly glossing over an issue and moving on hoping it'll somehow resolve itself. This strategy wasn't working well and we would easily forget about an important report or even miss it completely in the past, hence we decided to create a dedicated process.
+
+Now that there's a dedicated process, we encourage the community to report issues on GitHub, so that we can tackle them efficiently. This doesn't mean that an issue reported elsewhere is going to be ignored -- it's a responsibility of any Plutus team member to escalate a potentially important issue regardless of where it was reported, however it can be much harder to recognize such a report upon accidentally encountering it on a public forum or some other random place. In contrast, reporting an issue on GitHub guarantees that the Plutus team will look into it.
+
+Triaging is generally expected to affect the scope of work being done by the Plutus team, both long-term and short-term whenever appropriate (for example, a reported vulnerability needs to be investigated as soon as possible and, if confirmed, fixing it needs to be put at the top of the development queue immediately).
 
 ## Metacommentary
 
@@ -45,8 +43,8 @@ However if you don't feel comfortable triaging a certain issue (for any reason, 
 
 When serving the triage role, your main responsibility is to move a number of issues forward. We do not mandate any specific number of issues to tackle or any specific amount of time to devote to triaging issues, but here are some general guidelines:
 
-- Try to triage every issue that was created during the time you've been serving the triage role.
-- Try to resolve at least one old issue per week. Failing that, make sure to at least move forward a few old issues.
+- Try to triage every issue that was created during the time you've been serving the triage role. If it's hard to keep up with everything, reach out to the team and ask for help -- we want to make sure that issues get triaged speedily.
+- Try to resolve at least one old issue per week. Failing that, make sure to at least move forward a few old ones.
 
 ### Closing issues
 
@@ -57,6 +55,7 @@ The best thing you can do with an issue is close it with a reasonable explanatio
 - The issue does not reproduce and the reporter does not fulfill a request for additional information. For example, we can't do much about "build fails on my machine" with no additional context.
 - It was decided by the team that the reported bug is a feature or the requested changes aren't an improvement over the status quo.
 - Too radical changes are requested, but even some of the clearly beneficial ones aren't viewed by the team as cost-effective. But don't just close an issue because it's low-priority -- only if it's both enormous and a very low-priority one.
+- The issue is a duplicate of another one. When closing, make sure to provide a link to the existing issue. If the duplicate has additional information that the original issue doesn't have, then copy-paste the information into the original issue (credit the reporter properly, of course). In general, if one issue/PR is related to another PR/issue, establish the relation between them in a comment. If there's any internal ticket associated with an issue/PR, link it as well just for us to keep track.
 
 Don't keep issues that are not going to be worked on open.
 
@@ -86,7 +85,7 @@ Regarding the last one: it is fine to ask the reporter or anybody from the commu
 
 Pinging people is something that you're going to do a lot while serving the triage role, so we'll discuss it in detail.
 
-You can ping people privately via DMs or in public Slack channels or even directly on GitHub -- as you see fit.
+You can ping people privately via DMs or in public Slack channels or directly on GitHub -- as you see fit.
 
 Don't ping a lot of people at the same time, 1-2 should be enough in most cases, unless you're escalating an issue to the entire team on Slack.
 
@@ -121,7 +120,9 @@ We use the GitHub labels feature. Reasons:
 
 There's no obligation to polish labels on an issue that you're about to close. In general, don't worry about labels on closed issues. However if an issue got reopened, then you do need to label it appropriately.
 
-Below you'll find the full list of "regulated" labels. If you introduce a new such label, please add it to the list. All other labels (e.g. `enhancement`, `Performance`, `Refactoring` etc) can be used freely, i.e. feel free to use or not to use any of them. The list:
+Below you'll find the full list of "regulated" labels. If you introduce a new such label, please add it to the list. All other labels (e.g. `enhancement`, `Performance`, `Refactoring` etc) can be used freely, i.e. feel free to use or not to use any of them (and if any such label was added by a user, then only remove it if it's wrong as we don't want to discourage engagement).
+
+The list of regulated labels:
 
 - `status: needs triage` -- means that the issue hasn't been triaged yet and requires attention. Note that any amount of discussion isn't indicative of the issue being successfully triaged. I.e. as long as this label is there, the issue still requires attention. Once the issue is triaged, this label must be replaced with some other `status: <something>` one. This label is added automatically to every new issue.
 - `status: needs action from the team` -- means that the issue needs to be addressed by the team. Not necessarily ASAP, but better sooner than later, depending on what is determined during the prioritization process. In any case such an issue needs to be actively tracked and progress must be regularly reported in the issue (once any substantial progress is made or every month or two otherwise). It is fine to demote the issue in future and label it differently, if it's what the team arrives at during the prioritization process.
@@ -129,6 +130,7 @@ Below you'll find the full list of "regulated" labels. If you introduce a new su
 - `status: triaged` -- means that the issue has been triaged and deemed reasonable but not requiring immediate attention. The reason why the issue doesn't require immediate attention must be reflected in another label, of which we only have:
   - `Low priority` -- self-explanatory, but do write a comment making it clear why the issue is considered low-priority. It is fine to use this label with issues not labeled as `status: triaged`.
   - `Internal` -- an employee of IOG or one of its subsidiaries has opened the issue and is working or going to work on it. We don't need to provide a lot of feedback to ourselves via GitHub issues, so internal issues aren't regulated as much.
+  - `Objective` -- there's a certain class of issues that can neither be closed nor fully resolved. For example, someone reports that evaluation is slow and we need to work on speeding it up. Neither does it make sense to close such an issue (especially when it has concrete suggestions), nor can we speed up evaluation a bit and resolve the issue on this basis. What we can do here is tell the reporter that we recognize the problem and have a dedicated objective to work on improving the situation. However before using such a label, make sure that the objective does actually exist and there's a plan in place on improving the situation (not necessarily resolving it fully). Use this label sparingly and only for issues that are indeed open-ended objectives and not specific requests (even if such a request falls under a certain objective).
 - `bug` -- means that we recognize that the reported behavior is wrong and we have an intention to fix it. Issues labeled this way tend to be high-priority, however if the bug is in a not too important test for example, then there is nothing high-priority about it and the issue can wait, i.e. in principle it is fine to mix `bug` with `Low priority` for example.
 
 ### Useful queries
