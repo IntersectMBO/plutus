@@ -705,12 +705,11 @@ aggregateMultiKeyG2Script message pubKeys aggregateSignature bs16Null dst = do
 
       calcAggregatedPubkeys :: Integer -> [BuiltinBLS12_381_G2_Element] -> BuiltinBLS12_381_G2_Element
       calcAggregatedPubkeys dsScalar' pksDeser' =
-        go 1 (length pksDeser') (calc 0)
-          where
-            calc i = (dsScalar' `power` (i + 1)) `Tx.bls12_381_G2_scalarMul` (pksDeser' Tx.!! i)
-            go i u acc
-              | i >= u = acc
-              | otherwise = go (i + 1) u (acc `Tx.bls12_381_G2_add` (calc i))
+        go 1 (drop 1 pksDeser') (calc (head pksDeser') 0)
+        where
+          calc pk i = (dsScalar' `power` (i + 1)) `Tx.bls12_381_G2_scalarMul` pk
+          go _ [] acc     = acc
+          go i (x:xs) acc = go (i + 1) xs (acc `Tx.bls12_381_G2_add` (calc x i))
 
       power :: Integer -> Integer -> Integer
       power x n
