@@ -190,10 +190,10 @@ instance (TypeError ('Text "toBuiltinData is not supported for BuiltinBLS12_381_
     => ToData Builtins.BuiltinBLS12_381_MlResult where
     toBuiltinData = Haskell.error "unsupported"
 instance (TypeError ('Text "fromBuiltinData is not supported for BuiltinBLS12_381_MlResult"))
-    => FromData Haskell.Int where
+    => FromData Builtins.BuiltinBLS12_381_MlResult where
     fromBuiltinData = Haskell.error "unsupported"
 instance (TypeError ('Text "unsafeFromBuiltinData is not supported for BuiltinBLS12_381_MlResult"))
-    => UnsafeFromData Haskell.Int where
+    => UnsafeFromData Builtins.BuiltinBLS12_381_MlResult where
     unsafeFromBuiltinData = Haskell.error "unsupported"
 
 -- | Convert a value to 'PLC.Data'.
