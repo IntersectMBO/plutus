@@ -73,7 +73,7 @@ $a+bu$ is larger than $c+du$ if either $b$ is larger than $d$ or $b=d$ and $a$
 is larger than $c$.
 
 
-\paragraph{The groups $G_1$ and $G_2$}
+\paragraph{The groups $G_1$ and $G_2$.}
 \noindent There are elliptic curves $E_1$ defined over $\Fq$:
 $$
 E_1: Y^2 = X^3 + 4
@@ -326,7 +326,7 @@ sequence of bits: $b = b_{767} \cdots b_0$.
 \item If $b_{767} \neq 1$, then $\uncompress_{G_2}(b) = \errorX$.
 \item If $b_{767} = b_{766} = 1$ then $\uncompress_{G_2}(b) =
 \begin{cases}
-\mathcal{O}_{G_1} & \text{if $b_{765} = b_{764} = \cdots = b_0 = 0$}\\
+\mathcal{O}_{G_2} & \text{if $b_{765} = b_{764} = \cdots = b_0 = 0$}\\
 \errorX & \text{otherwise}.
 \end{cases}$
 \item If $b_{767}=1$ and $b_{766} = 0$, let $c=\sum_{i=0}^{383}b_i2^i$ and $d=\sum_{i=384}^{764}b_i2^{i-384} \in \N$.
@@ -402,12 +402,12 @@ $$
 We do not mandate specific choices for $\MlResult, \mu_r, e$, and $\phi$, but a
 plausible choice would be
 \begin{itemize}
-\item $\MlResult = \FF^*$
+\item $\MlResult = \FF^*$.
 \item $e$ is the Miller loop associated with the optimal Ate pairing
 for $E_1$ and $E_2$~\cite{Vercauteren}.
 \item $\mu_r = \{x \in \FF^*: x^r=1\}$, the group of $r$th roots of unity in $\FF^*$.
 (There are $r$ distinct $r$th roots of unity in $\FF^*$ because the embedding
-degree of $E_1$ and $E_2$ with respect to $r$ is 12 (see~\cite[4.1]{Costello-pairings}).
+degree of $E_1$ and $E_2$ with respect to $r$ is 12 (see~\cite[4.1]{Costello-pairings}).)
 \item $\psi(x) = x^{\frac{q-1}{r}}$.
 \end{itemize}
 
