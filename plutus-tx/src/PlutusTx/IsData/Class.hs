@@ -9,8 +9,10 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module PlutusTx.IsData.Class where
 
-import Prelude qualified as Haskell (Int, error)
+import Prelude qualified as Haskell (Either (..), Int, error)
 
+import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
+import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Data qualified as PLC
 import PlutusTx.Base
 import PlutusTx.Builtins as Builtins
@@ -138,6 +140,61 @@ instance FromData Void where
 instance UnsafeFromData Void where
     {-# INLINABLE unsafeFromBuiltinData #-}
     unsafeFromBuiltinData _ = traceError voidIsNotSupportedError
+
+{- | For the BLS12-381 G1 and G2 types we use the `compress` functions to convert
+   to a ByteString and then encode that as Data as usual.  We have to be more
+   careful going the other way because we decode a Data object to (possibly) get
+   a BuiltinByteString and then uncompress the underlying ByteString to get a
+   group element.  However uncompression can fail so we have to check what
+   happens: we don't use bls12_381_G?_uncompress because that invokes `error` if
+   something goes wrong (but we do use it for unsafeFromData).
+-}
+instance ToData Builtins.BuiltinBLS12_381_G1_Element where
+    {-# INLINABLE toBuiltinData #-}
+    toBuiltinData = toBuiltinData . Builtins.bls12_381_G1_compress
+instance FromData Builtins.BuiltinBLS12_381_G1_Element where
+    {-# INLINABLE fromBuiltinData #-}
+    fromBuiltinData d =
+        case fromBuiltinData d of
+          Nothing -> Nothing
+          Just (BI.BuiltinByteString bs) ->
+              case BLS12_381.G1.uncompress bs of
+                Haskell.Left _  -> Nothing
+                Haskell.Right g -> Just $ toBuiltin g
+instance UnsafeFromData Builtins.BuiltinBLS12_381_G1_Element where
+    {-# INLINABLE unsafeFromBuiltinData #-}
+    unsafeFromBuiltinData = Builtins.bls12_381_G1_uncompress . unsafeFromBuiltinData
+
+instance ToData Builtins.BuiltinBLS12_381_G2_Element where
+    {-# INLINABLE toBuiltinData #-}
+    toBuiltinData = toBuiltinData . Builtins.bls12_381_G2_compress
+instance FromData Builtins.BuiltinBLS12_381_G2_Element where
+    {-# INLINABLE fromBuiltinData #-}
+    fromBuiltinData d =
+        case fromBuiltinData d of
+          Nothing -> Nothing
+          Just (BI.BuiltinByteString bs) ->
+              case BLS12_381.G2.uncompress bs of
+                Haskell.Left _  -> Nothing
+                Haskell.Right g -> Just $ toBuiltin g
+instance UnsafeFromData Builtins.BuiltinBLS12_381_G2_Element where
+    {-# INLINABLE unsafeFromBuiltinData #-}
+    unsafeFromBuiltinData = Builtins.bls12_381_G2_uncompress . unsafeFromBuiltinData
+
+{- | We do not provide instances of any of these classes for
+   BuiltinBLS12_381_MlResult since there is no serialisation format: we expect
+   that values of that type will only occur as the result of on-chain
+   computations.
+-}
+instance (TypeError ('Text "toBuiltinData is not supported for BuiltinBLS12_381_MlResult"))
+    => ToData Builtins.BuiltinBLS12_381_MlResult where
+    toBuiltinData = Haskell.error "unsupported"
+instance (TypeError ('Text "fromBuiltinData is not supported for BuiltinBLS12_381_MlResult"))
+    => FromData Haskell.Int where
+    fromBuiltinData = Haskell.error "unsupported"
+instance (TypeError ('Text "unsafeFromBuiltinData is not supported for BuiltinBLS12_381_MlResult"))
+    => UnsafeFromData Haskell.Int where
+    unsafeFromBuiltinData = Haskell.error "unsupported"
 
 -- | Convert a value to 'PLC.Data'.
 toData :: (ToData a) => a -> PLC.Data
