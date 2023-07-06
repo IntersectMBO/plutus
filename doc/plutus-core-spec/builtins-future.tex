@@ -44,7 +44,7 @@ types.
 
 
 %% \paragraph{$G_1$ and $G_2$}.
-\noindent Here $G_1$ and  $G_2$ are both cyclic groups of prime order $r$, where 
+\noindent Here $G_1$ and  $G_2$ are both additive cyclic groups of prime order $r$, where 
 $$
 r = \mathtt{0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001}.
 $$
@@ -98,12 +98,13 @@ identity element of the group.
 
 \paragraph{The \texttt{bls12\_381\_MlResult} type.}
 \noindent Values of the \texttt{bls12\_381\_MlResult} type are completely
-opaque and can only be obtained as a result of \texttt{bls12\_381\_millerLoop} or by
-multiplying two existing elements of type \texttt{bls12\_381\_MlResult}.  We
-provide neither a serialisation format nor a concrete syntax for values of this
-type: they exist only ephemerally during computation.  We do not
-specify $\MlResult$, the denotation of \texttt{bls12\_381\_MlResult}, precisely,
-but it must be an abelian group. See Note~\ref{note:pairing} for more on this.
+opaque and can only be obtained as a result of \texttt{bls12\_381\_millerLoop}
+or by multiplying two existing elements of type \texttt{bls12\_381\_MlResult}.
+We provide neither a serialisation format nor a concrete syntax for values of
+this type: they exist only ephemerally during computation.  We do not specify
+$\MlResult$, the denotation of \texttt{bls12\_381\_MlResult}, precisely, but it
+must be a multiplicative abelian group. See Note~\ref{note:pairing} for more on
+this.
 
 \subsection{Built-in functions}
 \label{sec:future-built-in-functions}
