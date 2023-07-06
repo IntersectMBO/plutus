@@ -130,9 +130,10 @@ fullyApplyAndBetaReduce ::
   AppContext tyname name uni fun ann ->
   InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
 fullyApplyAndBetaReduce info args0 = do
-      -- cannot use `liftDupable` here because then the variables will get renamed and we won't be
-      -- able to find them to do the substitutions
-  let Done (Dupable rhs) = varRhs info
+  -- must rename rhs *before* splitting out the parameters so that the lambdas and their variables
+  -- are synced up. substitution.
+  rhs <- liftDupable (let Done rhs = varRhs info in rhs)
+  let -- split the rhs to its lambdas and function body
       (varArity, rhsBody) = splitParams rhs
       -- | Drop one term or type lambda abstraction of the given term.
       getFnBody :: Term tyname name uni fun ann -> Term tyname name uni fun ann
@@ -150,10 +151,10 @@ fullyApplyAndBetaReduce info args0 = do
         ([], _) -> pure $ Just acc
         (TermParam param: arity', TermAppContext arg _ args') -> do
           safe <- safeToBetaReduce param arg
-          if safe
+          if safe -- we only do substitution if it is safe to beta reduce
             then do
               acc' <- do
-                termSubstNamesM -- substitute the var with the arg in the function body
+                termSubstNamesM -- substitute the term param with the arg in the function body
                   -- rename before substitution to ensure global uniqueness
                   (\n -> if n == param then Just <$> PLC.rename arg else pure Nothing)
                   (getFnBody acc) -- drop one term lambda
@@ -161,7 +162,7 @@ fullyApplyAndBetaReduce info args0 = do
             else pure Nothing
         (TypeParam param: arity', TypeAppContext arg _ args') -> do
           acc' <-
-            termSubstTyNamesM -- substitute the var with the arg in the function body
+            termSubstTyNamesM -- substitute the type param with the arg
               (\n -> if n == param then Just <$> PLC.rename arg else pure Nothing)
               (getFnBody acc) -- drop one type lambda
           go acc' arity' args'
@@ -191,8 +192,8 @@ inlineSaturatedApp t
         Just varInfo ->
           fullyApplyAndBetaReduce varInfo args >>= \case
             Just fullyApplied -> do
-              rhs <- liftDupable (let Done rhs = varRhs varInfo in rhs)
-              let -- Inline only if the size is no bigger than not inlining.
+              let Done (Dupable rhs) = varRhs varInfo
+                  -- Inline only if the size is no bigger than not inlining.
                   sizeIsOk = termSize fullyApplied <= termSize t
                   -- The definition itself will be inlined, so we need to check that the cost
                   -- of that is acceptable. Note that we do _not_ check the cost of the _body_.
