@@ -12,15 +12,14 @@ See note [Inlining of fully applied functions].
 module PlutusIR.Transform.Inline.CallSiteInline where
 
 import PlutusCore qualified as PLC
-import PlutusCore.Rename
-import PlutusCore.Rename.Internal (Dupable (Dupable))
-import PlutusIR.Analysis.Size
+import PlutusCore.Rename (liftDupable)
+import PlutusIR.Analysis.Size (termSize)
 import PlutusIR.Contexts
 import PlutusIR.Core
 import PlutusIR.Transform.Inline.Utils
 import PlutusIR.Transform.Substitute
 
-import Control.Monad.State
+import Control.Monad.State (gets)
 
 {- Note [Inlining and beta reduction of fully applied functions]
 
@@ -124,15 +123,12 @@ the application, if possible.
 fullyApplyAndBetaReduce ::
   forall tyname name uni fun ann.
   (InliningConstraints tyname name uni fun) =>
-  -- | The variable
-  VarInfo tyname name uni fun ann ->
+  -- | The rhs of the variable
+  Term tyname name uni fun ann ->
   -- | The arguments
   AppContext tyname name uni fun ann ->
   InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
-fullyApplyAndBetaReduce info args0 = do
-  -- must rename rhs *before* splitting out the parameters so that the lambdas and their variables
-  -- are synced up. substitution.
-  rhs <- liftDupable (let Done rhs = varRhs info in rhs)
+fullyApplyAndBetaReduce rhs args0 = do
   let -- split the rhs to its lambdas and function body
       (varArity, rhsBody) = splitParams rhs
       -- | Drop one term or type lambda abstraction of the given term.
@@ -157,14 +153,14 @@ fullyApplyAndBetaReduce info args0 = do
                 termSubstNamesM -- substitute the term param with the arg in the function body
                   -- rename before substitution to ensure global uniqueness
                   (\n -> if n == param then Just <$> PLC.rename arg else pure Nothing)
-                  (getFnBody acc) -- drop one term lambda
+                  (getFnBody acc) -- drop the beta reduced term lambda
               go acc' arity' args'
             else pure Nothing
         (TypeParam param: arity', TypeAppContext arg _ args') -> do
           acc' <-
             termSubstTyNamesM -- substitute the type param with the arg
               (\n -> if n == param then Just <$> PLC.rename arg else pure Nothing)
-              (getFnBody acc) -- drop one type lambda
+              (getFnBody acc) -- drop the beta reduced type lambda
           go acc' arity' args'
         _ -> pure Nothing
 
@@ -178,7 +174,7 @@ fullyApplyAndBetaReduce info args0 = do
         Term tyname name uni fun ann ->
         InlineM tyname name uni fun ann Bool
       safeToBetaReduce a arg = shouldUnconditionallyInline Strict a arg rhsBody
-  go rhsBody (varArity info) args0
+  go rhsBody varArity args0
 
 -- | Consider whether to inline an application.
 inlineSaturatedApp ::
@@ -189,11 +185,12 @@ inlineSaturatedApp ::
 inlineSaturatedApp t
   | (Var _ann name, args) <- splitApplication t =
       gets (lookupVarInfo name) >>= \case
-        Just varInfo ->
-          fullyApplyAndBetaReduce varInfo args >>= \case
+        Just varInfo -> do
+          -- rename the rhs of the variable before any substitution
+          rhs <- liftDupable (let Done rhs = varRhs varInfo in rhs)
+          fullyApplyAndBetaReduce rhs args >>= \case
             Just fullyApplied -> do
-              let Done (Dupable rhs) = varRhs varInfo
-                  -- Inline only if the size is no bigger than not inlining.
+              let -- Inline only if the size is no bigger than not inlining.
                   sizeIsOk = termSize fullyApplied <= termSize t
                   -- The definition itself will be inlined, so we need to check that the cost
                   -- of that is acceptable. Note that we do _not_ check the cost of the _body_.
