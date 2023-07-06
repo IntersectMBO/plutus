@@ -704,18 +704,47 @@ aggregateMultiKeyG2Script message pubKeys aggregateSignature bs16Null dst = do
       foldl1 f (x:xs) = Tx.foldl f x xs
 
       calcAggregatedPubkeys :: Integer -> [BuiltinBLS12_381_G2_Element] -> BuiltinBLS12_381_G2_Element
-      calcAggregatedPubkeys dsScalar' pksDeser' =
-        go 1 (drop 1 pksDeser') (calc (head pksDeser') 0)
-        where
-          calc pk i = (dsScalar' `power` (i + 1)) `Tx.bls12_381_G2_scalarMul` pk
-          go _ [] acc     = acc
-          go i (x:xs) acc = go (i + 1) xs (acc `Tx.bls12_381_G2_add` (calc x i))
+      calcAggregatedPubkeys dsScalar' pksDeser' = do
+        let dsScalars = calcDsScalars pksDeser' [dsScalar']
+        go 1 (drop 1 pksDeser') (drop 1 dsScalars) (calcAggregatedPubkey (head pksDeser') (head dsScalars))
 
-      power :: Integer -> Integer -> Integer
-      power x n
-        | n == 0 = 1
-        | n > 0 = x * power x (n - 1)
-        | otherwise = 0
+      calcDsScalars :: [BuiltinBLS12_381_G2_Element] -> [Integer] -> [Integer]
+      calcDsScalars [] acc              = acc
+      calcDsScalars (_:xs) [x']         = calcDsScalars xs [x', x' * x']
+      calcDsScalars (_:xs) acc@(x':xs') = calcDsScalars xs (acc ++ [last xs' * x'])
+      calcDsScalars _ _                 = traceError "calcDsScalars: unexpected"
+
+      go :: Integer -> [BuiltinBLS12_381_G2_Element] -> [Integer] -> BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_G2_Element
+      go _ [] _ acc     = acc
+      go i (x:xs) (x':xs') acc = go (i + 1) xs xs' (acc `Tx.bls12_381_G2_add` (calcAggregatedPubkey x x'))
+      go _ _ _ _ = traceError "go: unexpected"
+
+      calcAggregatedPubkey :: BuiltinBLS12_381_G2_Element -> Integer -> BuiltinBLS12_381_G2_Element
+      calcAggregatedPubkey pk ds = ds `Tx.bls12_381_G2_scalarMul` pk
+
+      -- PlutusTx.Prelude has no last
+      last :: [a] -> a
+      last []     = traceError "last: needs at least two elements"
+      last [x]    = x
+      last (_:xs) = last xs
+
+{- An alternative implementation of calcAggregatedPubkeys which uses a different
+-- means of scalar exponentiation. It results in a slightly smaller script using less CPU but
+-- considerably more memory, so the overall cost is a greater.
+-- Worth keeping for reference because it is simpler and more readble than the implementation used above.
+-}
+--      calcAggregatedPubkeys dsScalar' pksDeser' =
+--        go 1 (drop 1 pksDeser') (calc (head pksDeser') 0)
+--        where
+--          calc pk i = (dsScalar' `power` (i + 1)) `Tx.bls12_381_G2_scalarMul` pk
+--          go _ [] acc     = acc
+--          go i (x:xs) acc = go (i + 1) xs (acc `Tx.bls12_381_G2_add` (calc x i))
+--
+--      power :: Integer -> Integer -> Integer
+--      power x n
+--        | n == 0 = 1
+--        | n > 0 = x * power x (n - 1)
+--        | otherwise = 0
 
 checkAggregateMultiKeyG2Script :: Bool
 checkAggregateMultiKeyG2Script =
