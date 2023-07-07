@@ -67,6 +67,9 @@ module PlutusTx.Prelude (
     -- * Hashes and Signatures
     sha2_256,
     sha3_256,
+    blake2b_224,
+    blake2b_256,
+    keccak_256,
     verifyEd25519Signature,
     verifyEcdsaSecp256k1Signature,
     verifySchnorrSecp256k1Signature,

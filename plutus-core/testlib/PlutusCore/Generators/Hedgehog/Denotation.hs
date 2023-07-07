@@ -137,5 +137,8 @@ typedBuiltins
     . insertBuiltin AppendByteString
     . insertBuiltin Sha2_256
     . insertBuiltin Sha3_256
+    . insertBuiltin Blake2b_224
+    . insertBuiltin Blake2b_256
+    . insertBuiltin Keccak_256
     . insertBuiltin EqualsByteString
     $ DenotationContext mempty
