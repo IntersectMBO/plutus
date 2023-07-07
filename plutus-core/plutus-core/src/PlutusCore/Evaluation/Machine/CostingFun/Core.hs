@@ -12,11 +12,12 @@ module PlutusCore.Evaluation.Machine.CostingFun.Core
     ( CostingFun(..)
     , Intercept(..)
     , Slope(..)
+    , OneVariableLinearFunction(..)
+    , TwoVariableLinearFunction(..)
     , ModelAddedSizes(..)
     , ModelSubtractedSizes(..)
     , ModelConstantOrLinear(..)
     , ModelConstantOrTwoArguments(..)
-    , ModelLinearSize(..)
     , ModelMultipliedSizes(..)
     , ModelMinSize(..)
     , ModelMaxSize(..)
@@ -95,7 +96,7 @@ newtype Slope = Slope
 
 data ModelOneArgument =
     ModelOneArgumentConstantCost CostingInteger
-    | ModelOneArgumentLinearCost ModelLinearSize
+    | ModelOneArgumentLinearCost OneVariableLinearFunction
     deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 instance Default ModelOneArgument where
@@ -185,11 +186,40 @@ runOneArgumentModel
     -> CostStream
 runOneArgumentModel (ModelOneArgumentConstantCost c) =
     lazy $ \_ -> CostLast c
-runOneArgumentModel (ModelOneArgumentLinearCost (ModelLinearSize intercept slope)) =
+runOneArgumentModel (ModelOneArgumentLinearCost (OneVariableLinearFunction intercept slope)) =
     lazy $ \costs1 -> scaleLinearly intercept slope costs1
 {-# NOINLINE runOneArgumentModel #-}
 
 ---------------- Two-argument costing functions ----------------
+
+{- Because of the way the costing code has evolved the names of the model types
+below aren't very consistent.  However it's a little difficult to change them
+because that would change some of the JSON tags in the cost model file.  The
+basic models are one-variable and two-variable linear models and their names
+(`OneVariableLinearFunction` and `TwoVariableLinearFunction`) reflect this .
+Other models have names like `ModelAddedSizes` and it might be more logical if
+they were called things like `LinearInXPlusY` and so on since these are really
+abstract functions that don't know anything about sizes.  Also many of the types
+have their own intercept and slope values because they are linear on some
+function of the inputs or are linear in some region of the plane.  Maybe these
+should contain nested objects of type ModelLinearInOneVariable instead, but that
+would complicate the JSON encoding and might also impact efficiency.
+-}
+
+-- | s * x + I
+data OneVariableLinearFunction = OneVariableLinearFunction
+    { oneVariableLinearFunctionIntercept :: Intercept
+    , oneVariableLinearFunctionSlope     :: Slope
+    } deriving stock (Show, Eq, Generic, Lift)
+    deriving anyclass (NFData)
+
+-- | s1 * x + s2 * y + I
+data TwoVariableLinearFunction = TwoVariableLinearFunction
+    { twoVariableLinearFunctionIntercept :: Intercept
+    , twoVariableLinearFunctionSlopeX    :: Slope
+    , twoVariableLinearFunctionSlopeY    :: Slope
+    } deriving stock (Show, Eq, Generic, Lift)
+    deriving anyclass (NFData)
 
 -- | s * (x + y) + I
 data ModelAddedSizes = ModelAddedSizes
@@ -203,12 +233,6 @@ data ModelSubtractedSizes = ModelSubtractedSizes
     { modelSubtractedSizesIntercept :: Intercept
     , modelSubtractedSizesSlope     :: Slope
     , modelSubtractedSizesMinimum   :: CostingInteger
-    } deriving stock (Show, Eq, Generic, Lift)
-    deriving anyclass (NFData)
-
-data ModelLinearSize = ModelLinearSize
-    { modelLinearSizeIntercept :: Intercept
-    , modelLinearSizeSlope     :: Slope
     } deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 
@@ -251,8 +275,9 @@ data ModelConstantOrTwoArguments = ModelConstantOrTwoArguments
 
 data ModelTwoArguments =
     ModelTwoArgumentsConstantCost       CostingInteger
-  | ModelTwoArgumentsLinearInX          ModelLinearSize
-  | ModelTwoArgumentsLinearInY          ModelLinearSize
+  | ModelTwoArgumentsLinearInX          OneVariableLinearFunction
+  | ModelTwoArgumentsLinearInY          OneVariableLinearFunction
+  | ModelTwoArgumentsLinearInXAndY      TwoVariableLinearFunction
   | ModelTwoArgumentsAddedSizes         ModelAddedSizes
   | ModelTwoArgumentsSubtractedSizes    ModelSubtractedSizes
   | ModelTwoArgumentsMultipliedSizes    ModelMultipliedSizes
@@ -283,6 +308,20 @@ runCostingFunTwoArguments (CostingFun cpu mem) =
                 (runCpu mem1 mem2)
                 (runMem mem1 mem2)
 {-# INLINE runCostingFunTwoArguments #-}
+
+-- | Take an intercept, two slopes and two streams, and scale each element of
+-- the first stream by the first slope, each element of the second stream by the
+-- second slope, add the two scaled streams together, and cons the intercept to
+-- the stream afterwards.
+scaleLinearlyTwoVariables :: Intercept -> Slope -> CostStream -> Slope -> CostStream -> CostStream
+scaleLinearlyTwoVariables (Intercept intercept) (Slope slope1) stream1 (Slope slope2) stream2 =
+    addCostStream
+    (CostLast intercept)
+    (addCostStream
+     (mapCostStream (slope1 *) stream1)
+     (mapCostStream (slope2 *) stream2)
+    )
+{-# INLINE scaleLinearlyTwoVariables #-}
 
 runTwoArgumentModel
     :: ModelTwoArguments
@@ -318,13 +357,17 @@ runTwoArgumentModel
                 !size2 = sumCostStream costs2
             scaleLinearly intercept slope $ CostLast (max size1 size2)
 runTwoArgumentModel
-    (ModelTwoArgumentsLinearInX (ModelLinearSize intercept slope)) =
+    (ModelTwoArgumentsLinearInX (OneVariableLinearFunction intercept slope)) =
         lazy $ \costs1 _ ->
             scaleLinearly intercept slope costs1
 runTwoArgumentModel
-    (ModelTwoArgumentsLinearInY (ModelLinearSize intercept slope)) =
+    (ModelTwoArgumentsLinearInY (OneVariableLinearFunction intercept slope)) =
         lazy $ \_ costs2 ->
             scaleLinearly intercept slope costs2
+runTwoArgumentModel
+    (ModelTwoArgumentsLinearInXAndY (TwoVariableLinearFunction intercept slope1 slope2)) =
+        lazy $ \costs1 costs2 ->
+            scaleLinearlyTwoVariables intercept slope1 costs1 slope2 costs2
 runTwoArgumentModel
     -- Off the diagonal, return the constant.  On the diagonal, run the one-variable linear model.
     (ModelTwoArgumentsLinearOnDiagonal (ModelConstantOrLinear c intercept slope)) =
@@ -362,9 +405,9 @@ runTwoArgumentModel
 data ModelThreeArguments =
     ModelThreeArgumentsConstantCost CostingInteger
   | ModelThreeArgumentsAddedSizes   ModelAddedSizes
-  | ModelThreeArgumentsLinearInX    ModelLinearSize
-  | ModelThreeArgumentsLinearInY    ModelLinearSize
-  | ModelThreeArgumentsLinearInZ    ModelLinearSize
+  | ModelThreeArgumentsLinearInX    OneVariableLinearFunction
+  | ModelThreeArgumentsLinearInY    OneVariableLinearFunction
+  | ModelThreeArgumentsLinearInZ    OneVariableLinearFunction
     deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 
@@ -383,15 +426,15 @@ runThreeArgumentModel
         lazy $ \costs1 costs2 costs3 ->
             scaleLinearly intercept slope . addCostStream costs1 $ addCostStream costs2 costs3
 runThreeArgumentModel
-    (ModelThreeArgumentsLinearInX (ModelLinearSize intercept slope)) =
+    (ModelThreeArgumentsLinearInX (OneVariableLinearFunction intercept slope)) =
         lazy $ \costs1 _ _ ->
             scaleLinearly intercept slope costs1
 runThreeArgumentModel
-    (ModelThreeArgumentsLinearInY (ModelLinearSize intercept slope)) =
+    (ModelThreeArgumentsLinearInY (OneVariableLinearFunction intercept slope)) =
         lazy $ \_ costs2 _ ->
             scaleLinearly intercept slope costs2
 runThreeArgumentModel
-    (ModelThreeArgumentsLinearInZ (ModelLinearSize intercept slope)) =
+    (ModelThreeArgumentsLinearInZ (OneVariableLinearFunction intercept slope)) =
         lazy $ \_ _ costs3 ->
             scaleLinearly intercept slope costs3
 {-# NOINLINE runThreeArgumentModel #-}

@@ -148,28 +148,37 @@ instance uni `PLC.Includes` Data => Typeable uni BuiltinData where
     typeRep _ = typeRepBuiltin (Proxy @Data)
 
 instance uni `PLC.Includes` Data => Lift uni BuiltinData where
-    lift d = liftBuiltin (builtinDataToData d)
+    lift = liftBuiltin . builtinDataToData
 
 instance uni `PLC.Includes` BS.ByteString => Typeable uni BuiltinByteString where
     typeRep _proxyPByteString = typeRepBuiltin (Proxy @BS.ByteString)
 
 instance uni `PLC.Includes` BS.ByteString => Lift uni BuiltinByteString where
-    lift b = liftBuiltin $ fromBuiltin b
+    lift = liftBuiltin . fromBuiltin
 
 instance uni `PLC.Includes` T.Text => Typeable uni BuiltinString where
     typeRep _proxyPByteString = typeRepBuiltin (Proxy @T.Text)
 
 instance uni `PLC.Includes` T.Text => Lift uni BuiltinString where
-    lift b = liftBuiltin $ fromBuiltin b
+    lift = liftBuiltin . fromBuiltin
 
 instance (FromBuiltin arep a, uni `PLC.Includes` [a]) => Lift uni (BuiltinList arep) where
-    lift b = liftBuiltin $ fromBuiltin b
+    lift = liftBuiltin . fromBuiltin
+
+instance uni `PLC.Includes` PlutusCore.Crypto.BLS12_381.G1.Element => Typeable uni BuiltinBLS12_381_G1_Element where
+    typeRep _ = typeRepBuiltin (Proxy @PlutusCore.Crypto.BLS12_381.G1.Element)
 
 instance uni `PLC.Includes` PlutusCore.Crypto.BLS12_381.G1.Element => Lift uni BuiltinBLS12_381_G1_Element where
-    lift a = liftBuiltin $ fromBuiltin a
+    lift = liftBuiltin . fromBuiltin
+
+instance uni `PLC.Includes` PlutusCore.Crypto.BLS12_381.G2.Element => Typeable uni BuiltinBLS12_381_G2_Element where
+    typeRep _ = typeRepBuiltin (Proxy @PlutusCore.Crypto.BLS12_381.G2.Element)
 
 instance uni `PLC.Includes` PlutusCore.Crypto.BLS12_381.G2.Element => Lift uni BuiltinBLS12_381_G2_Element where
-    lift a = liftBuiltin $ fromBuiltin a
+    lift = liftBuiltin . fromBuiltin
+
+instance uni `PLC.Includes` PlutusCore.Crypto.BLS12_381.Pairing.MlResult => Typeable uni BuiltinBLS12_381_MlResult where
+    typeRep _ = typeRepBuiltin (Proxy @PlutusCore.Crypto.BLS12_381.Pairing.MlResult)
 
 instance uni `PLC.Includes` PlutusCore.Crypto.BLS12_381.Pairing.MlResult => Lift uni BuiltinBLS12_381_MlResult where
-    lift a = liftBuiltin $ fromBuiltin a
+    lift = liftBuiltin . fromBuiltin
