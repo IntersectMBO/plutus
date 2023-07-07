@@ -153,8 +153,9 @@ data BuiltinCostModelBase f =
     , paramBls12_381_millerLoop            :: f ModelTwoArguments
     , paramBls12_381_mulMlResult           :: f ModelTwoArguments
     , paramBls12_381_finalVerify           :: f ModelTwoArguments
-    -- Keccak_256
+    -- Keccak_256, Blake2b_224
     , paramKeccak_256                      :: f ModelOneArgument
+    , paramBlake2b_224                     :: f ModelOneArgument
     }
     deriving stock (Generic)
     deriving anyclass (FunctorB, TraversableB, ConstraintsB)

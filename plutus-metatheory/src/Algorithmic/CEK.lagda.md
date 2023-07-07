@@ -292,6 +292,8 @@ BUILTIN bls12-381-mulMlResult (app (app base (V-con (tmBls12-381-mlresult r))) (
 BUILTIN bls12-381-finalVerify (app (app base (V-con (tmBls12-381-mlresult r))) (V-con (tmBls12-381-mlresult r'))) = inj₂ (V-con (tmBool (BLS12-381-finalVerify r r')))
 BUILTIN keccak-256 (app base (V-con (tmBytestring b))) =
   inj₂ (V-con (tmBytestring (KECCAK-256 b)))
+BUILTIN blake2b-224 (app base (V-con (tmBytestring b))) =
+  inj₂ (V-con (tmBytestring (BLAKE2B-224 b)))
 
 BUILTIN' : ∀ b {A}
   → ∀{tn} → {pt : tn ∔ 0 ≣ fv♯ (signature b)}

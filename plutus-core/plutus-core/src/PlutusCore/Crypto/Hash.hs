@@ -1,8 +1,9 @@
 -- | Hash functions for lazy [[Data.ByteString.ByteString]]s
 {-# LANGUAGE TypeApplications #-}
-module Data.ByteString.Hash
+module PlutusCore.Crypto.Hash
     ( sha2_256
     , sha3_256
+    , blake2b_224
     , blake2b_256
     , keccak_256
     ) where
@@ -22,6 +23,10 @@ sha2_256 = digest (Proxy @SHA256)
 -- | Hash a [[BSL.ByteString]] using the SHA3-256 hash function.
 sha3_256 :: BS.ByteString -> BS.ByteString
 sha3_256 = digest (Proxy @SHA3_256)
+
+-- | Hash a [[BSL.ByteString]] using the Blake2B-256 hash function.
+blake2b_224 :: BS.ByteString -> BS.ByteString
+blake2b_224 = digest (Proxy @Blake2b_224)
 
 -- | Hash a [[BSL.ByteString]] using the Blake2B-256 hash function.
 blake2b_256 :: BS.ByteString -> BS.ByteString

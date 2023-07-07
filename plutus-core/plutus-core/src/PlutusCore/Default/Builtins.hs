@@ -29,11 +29,11 @@ import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Crypto.Ed25519 (verifyEd25519Signature_V1, verifyEd25519Signature_V2)
+import PlutusCore.Crypto.Hash qualified as Hash
 import PlutusCore.Crypto.Secp256k1 (verifyEcdsaSecp256k1Signature, verifySchnorrSecp256k1Signature)
 
 import Codec.Serialise (serialise)
 import Data.ByteString qualified as BS
-import Data.ByteString.Hash qualified as Hash
 import Data.ByteString.Lazy qualified as BSL
 import Data.Char
 import Data.Ix
@@ -144,8 +144,9 @@ data DefaultFun
     | Bls12_381_millerLoop
     | Bls12_381_mulMlResult
     | Bls12_381_finalVerify
-    -- Keccak_256
+    -- Keccak_256, Blake2b_224
     | Keccak_256
+    | Blake2b_224
     deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
     deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
@@ -1473,6 +1474,10 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             Hash.keccak_256
             (runCostingFunOneArgument . paramKeccak_256)
+    toBuiltinMeaning _ver Blake2b_224 =
+        makeBuiltinMeaning
+            Hash.blake2b_224
+            (runCostingFunOneArgument . paramBlake2b_224)
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}
 
@@ -1579,6 +1584,7 @@ instance Flat DefaultFun where
               Bls12_381_mulMlResult           -> 69
               Bls12_381_finalVerify           -> 70
               Keccak_256                      -> 71
+              Blake2b_224                     -> 72
 
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
@@ -1653,6 +1659,7 @@ instance Flat DefaultFun where
               go 69 = pure Bls12_381_mulMlResult
               go 70 = pure Bls12_381_finalVerify
               go 71 = pure Keccak_256
+              go 72 = pure Blake2b_224
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth

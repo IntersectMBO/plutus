@@ -128,7 +128,8 @@ arity <- function(name) {
         "Bls12_381_millerLoop" = 2,
         "Bls12_381_mulMlResult" = 2,
         "Bls12_381_finalVerify" = 2,
-        "Keccak256" = 1
+        "Keccak_256" = 1,
+        "Blake2b_224" = 1
         )
 }
 
@@ -497,8 +498,9 @@ modelFun <- function(path) {
 
     sha2_256Model    <- linearInX ("Sha2_256")
     sha3_256Model    <- linearInX ("Sha3_256")
+    blake2b_224Model <- linearInX ("Blake2b_224")
     blake2b_256Model <- linearInX ("Blake2b_256")
-    keccak256_model  <- linearInX ("Keccak256")
+    keccak_256Model  <- linearInX ("Keccak_256")
     
     ###### Signature verification #####
 
@@ -670,8 +672,9 @@ modelFun <- function(path) {
         lessThanEqualsByteStringModel        = lessThanEqualsByteStringModel,
         sha2_256Model                        = sha2_256Model,
         sha3_256Model                        = sha3_256Model,
+        blake2b_224Model                     = blake2b_224Model,
         blake2b_256Model                     = blake2b_256Model,
-        keccak256_model                      = keccak256_model,
+        keccak_256Model                      = keccak_256Model,
         verifyEd25519SignatureModel          = verifyEd25519SignatureModel,
         verifyEcdsaSecp256k1SignatureModel   = verifyEcdsaSecp256k1SignatureModel,
         verifySchnorrSecp256k1SignatureModel = verifySchnorrSecp256k1SignatureModel,

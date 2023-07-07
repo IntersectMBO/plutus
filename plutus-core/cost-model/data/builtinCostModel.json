@@ -57,6 +57,19 @@
             "type": "constant_cost"
         }
     },
+    "blake2b_224": {
+        "cpu": {
+            "arguments": {
+                "intercept": 9999999999,
+                "slope": 9999999999
+            },
+            "type": "linear_cost"
+        },
+        "memory": {
+            "arguments": 4,
+            "type": "constant_cost"
+        }
+    },
     "blake2b_256": {
         "cpu": {
             "arguments": {
@@ -470,8 +483,8 @@
     "keccak_256": {
         "cpu": {
             "arguments": {
-                "intercept": 1234567890,
-                "slope": 12345
+                "intercept": 9999999999,
+                "slope": 9999999999
             },
             "type": "linear_cost"
         },

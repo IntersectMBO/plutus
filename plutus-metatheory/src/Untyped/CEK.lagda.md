@@ -486,6 +486,10 @@ BUILTIN keccak-256 = λ
   { (app base (V-con (con bytestring) b)) -> inj₂ (V-con (con bytestring) (KECCAK-256 b))
   ; _ -> inj₁ userError
   }
+BUILTIN blake2b-224 = λ
+  { (app base (V-con (con bytestring) b)) -> inj₂ (V-con (con bytestring) (BLAKE2B-224 b))
+  ; _ -> inj₁ userError
+  }
 
 
 BUILTIN' : ∀ b

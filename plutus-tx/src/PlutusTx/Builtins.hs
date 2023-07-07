@@ -19,7 +19,9 @@ module PlutusTx.Builtins (
                          , greaterThanEqualsByteString
                          , sha2_256
                          , sha3_256
+                         , blake2b_224
                          , blake2b_256
+                         , keccak_256
                          , verifyEd25519Signature
                          , verifyEcdsaSecp256k1Signature
                          , verifySchnorrSecp256k1Signature
@@ -144,10 +146,20 @@ sha2_256 = BI.sha2_256
 sha3_256 :: BuiltinByteString -> BuiltinByteString
 sha3_256 = BI.sha3_256
 
+{-# INLINABLE blake2b_224 #-}
+-- | The BLAKE2B-224 hash of a 'ByteString'
+blake2b_224 :: BuiltinByteString -> BuiltinByteString
+blake2b_224 = BI.blake2b_256
+
 {-# INLINABLE blake2b_256 #-}
 -- | The BLAKE2B-256 hash of a 'ByteString'
 blake2b_256 :: BuiltinByteString -> BuiltinByteString
 blake2b_256 = BI.blake2b_256
+
+{-# INLINABLE keccak_256 #-}
+-- | The KECCAK-256 hash of a 'ByteString'
+keccak_256 :: BuiltinByteString -> BuiltinByteString
+keccak_256 = BI.keccak_256
 
 {-# INLINABLE verifyEd25519Signature #-}
 -- | Ed25519 signature verification. Verify that the signature is a signature of

@@ -122,8 +122,9 @@ data Builtin : Set where
   bls12-381-millerLoop            : Builtin
   bls12-381-mulMlResult           : Builtin
   bls12-381-finalVerify           : Builtin
-  -- Keccak-256
+  -- Keccak-256, Blake2b-224
   keccak-256                      : Builtin
+  blake2b-224                     : Builtin
 ```
 
 ## Signatures
@@ -275,6 +276,7 @@ This is defined in its own module so that these definitions are not exported.
     signature bls12-381-mulMlResult           = ∙ [ bls12-381-mlresult , bls12-381-mlresult ]⟶ bls12-381-mlresult
     signature bls12-381-finalVerify           = ∙ [ bls12-381-mlresult , bls12-381-mlresult ]⟶ bool
     signature keccak-256                      = ∙ [ bytestring ]⟶ bytestring
+    signature blake2b-224                     = ∙ [ bytestring ]⟶ bytestring
 
 open SugaredSignature using (signature) public
 ```
@@ -357,6 +359,7 @@ Each Agda built-in name must be mapped to a Haskell name.
                                           | Bls12_381_mulMlResult
                                           | Bls12_381_finalVerify
                                           | Keccak_256
+                                          | Blake2b_224
                                           ) #-}
 ```
 
@@ -409,6 +412,7 @@ postulate
   BLS12-381-mulMlResult     : Bls12-381-MlResult → Bls12-381-MlResult → Bls12-381-MlResult
   BLS12-381-finalVerify     : Bls12-381-MlResult → Bls12-381-MlResult → Bool
   KECCAK-256                : ByteString → ByteString
+  BLAKE2B-224               : ByteString → ByteString
 ```
 
 ### What builtin operations should be compiled to if we compile to Haskell
@@ -419,7 +423,7 @@ postulate
 {-# FOREIGN GHC import qualified Data.ByteString as BS #-}
 {-# FOREIGN GHC import qualified Data.ByteArray as B #-}
 {-# FOREIGN GHC import Debug.Trace (trace) #-}
-{-# FOREIGN GHC import Data.ByteString.Hash as Hash #-}
+{-# FOREIGN GHC import PlutusCore.Crypto.Hash as Hash #-}
 {-# FOREIGN GHC import Data.Text.Encoding #-}
 {-# FOREIGN GHC import qualified Data.Text as Text #-}
 {-# FOREIGN GHC import Data.Either.Extra (eitherToMaybe) #-}
@@ -497,6 +501,7 @@ postulate
 {-# COMPILE GHC BLS12-381-finalVerify = Pairing.finalVerify #-}
 
 {-# COMPILE GHC KECCAK-256 = B.convert . Hash.keccak_256 #-}
+{-# COMPILE GHC BLAKE2B-224 = B.convert . Hash.blake2b_224 #-}
 
 -- no binding needed for appendStr
 -- no binding needed for traceStr
