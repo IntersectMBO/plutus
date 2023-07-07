@@ -9,16 +9,14 @@ import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Data
 import PlutusCore.Default
-import PlutusCore.Error (ParserError (InvalidData, UnknownBuiltinFunction))
+import PlutusCore.Error (ParserError (UnknownBuiltinFunction))
 import PlutusCore.Name
 import PlutusCore.Parser.ParserCommon
 import PlutusCore.Parser.Type (defaultUni)
 import PlutusCore.Pretty (display)
 
-import Codec.Serialise
 import Control.Monad.Combinators
 import Data.ByteString (ByteString, pack)
-import Data.ByteString.Lazy qualified as Lazy
 import Data.Map.Strict qualified as Map
 import Data.Text qualified as T
 import Data.Text.Internal.Read (hexDigitToInt)
@@ -73,22 +71,30 @@ conBool =
 
 -- | Parser for lists.
 conList :: DefaultUni (Esc a) -> Parser [a]
-conList uniA = inBrackets $ constantOf uniA `sepBy` symbol ","
+conList uniA = trailingWhitespace . inBrackets $
+    constantOf ExpectParensNo uniA `sepBy` symbol ","
 
 -- | Parser for pairs.
 conPair :: DefaultUni (Esc a) -> DefaultUni (Esc b) -> Parser (a, b)
 conPair uniA uniB = trailingWhitespace . inParens $ do
-  a <- constantOf uniA
+  a <- constantOf ExpectParensNo uniA
   _ <- symbol ","
-  b <- constantOf uniB
+  b <- constantOf ExpectParensNo uniB
   pure (a, b)
 
-conData :: Parser Data
-conData = do
-  b <- conBS
-  case deserialiseOrFail (Lazy.fromStrict b) of
-    Right d  -> pure d
-    Left err -> getSourcePos >>= customFailure . InvalidData (T.pack (show err))
+conDataNoParens :: Parser Data
+conDataNoParens =
+    choice
+        [ symbol "Constr" *> (Constr <$> conInteger <*> conList knownUni)
+        , symbol "Map" *> (Map <$> conList knownUni)
+        , symbol "List" *> (List <$> conList knownUni)
+        , symbol "I" *> (I <$> conInteger)
+        , symbol "B" *> (B <$> conBS)
+        ]
+
+conData :: ExpectParens -> Parser Data
+conData ExpectParensYes = trailingWhitespace $ inParens conDataNoParens
+conData ExpectParensNo  = conDataNoParens
 
 -- Serialised BLS12_381 elements are "0x" followed by a hex string of even
 -- length.  Maybe we should just use the usual bytestring syntax.
@@ -110,8 +116,8 @@ conBLS12_381_G2_Element = do
       Right e  -> pure e
 
 -- | Parser for constants of the given type.
-constantOf :: DefaultUni (Esc a) -> Parser a
-constantOf uni = case uni of
+constantOf :: ExpectParens -> DefaultUni (Esc a) -> Parser a
+constantOf expectParens uni = case uni of
     DefaultUniInteger                                                 -> conInteger
     DefaultUniByteString                                              -> conBS
     DefaultUniString                                                  -> conText
@@ -120,7 +126,7 @@ constantOf uni = case uni of
     DefaultUniProtoList `DefaultUniApply` uniA                        -> conList uniA
     DefaultUniProtoPair `DefaultUniApply` uniA `DefaultUniApply` uniB -> conPair uniA uniB
     f `DefaultUniApply` _ `DefaultUniApply` _ `DefaultUniApply` _     -> noMoreTypeFunctions f
-    DefaultUniData                                                    -> conData
+    DefaultUniData                                                    -> conData expectParens
     DefaultUniBLS12_381_G1_Element                                    -> conBLS12_381_G1_Element
     DefaultUniBLS12_381_G2_Element                                    -> conBLS12_381_G2_Element
     DefaultUniBLS12_381_MlResult
@@ -135,4 +141,4 @@ constant = do
   -- kind @*@.
   Refl <- reoption $ checkStar uni
   -- Parse the constant of the type represented by the type tag.
-  someValueOf uni <$> constantOf uni
+  someValueOf uni <$> constantOf ExpectParensYes uni

@@ -14,6 +14,8 @@ open import Algorithmic using (Ctx;_⊢_)
 open Ctx
 open _⊢_
 
+open import Algorithmic.Signature using (_[_]SigTy)
+
 open import Type.BetaNormal using (_⊢Nf⋆_)
 open _⊢Nf⋆_
 
@@ -68,9 +70,9 @@ progress (M ·⋆ A / refl) with progress M
 ... | step (ruleEC E p refl refl) = step (ruleEC (E ·⋆ A / refl) p refl refl)
 ... | step (ruleErr E refl) = step (ruleErr (E ·⋆ A / refl) refl)
 ... | done (V-Λ M') = step (ruleEC [] (β-Λ refl) refl refl)
-progress (M ·⋆ A / refl) | done (V-IΠ b {tm = 0} q) = done (V-I b (step⋆ q refl refl))
-progress (M ·⋆ A / refl) | done (V-IΠ b {tm = suc _} q) =
-  done (V-I b (step⋆ q refl refl))
+progress (M ·⋆ A / refl) | done (V-IΠ b {tm = 0} {σA = σ} q) = done (V-I b (step⋆ q refl {σ [ A ]SigTy}))
+progress (M ·⋆ A / refl) | done (V-IΠ b {tm = suc _} {σA = σ} q) =
+  done (V-I b (step⋆ q refl {σ [ A ]SigTy}))
 progress (wrap A B M) with progress M
 ... | done V            = done (V-wrap V)
 ... | step (ruleEC E p refl refl) = step (ruleEC (wrap E) p refl refl)
@@ -81,7 +83,7 @@ progress (unwrap M refl) with progress M
 ... | step (ruleErr E refl) = step (ruleErr (unwrap E / refl) refl)
 ... | done (V-wrap V) = step (ruleEC [] (β-wrap V refl) refl refl)
 ... | error E-error = step (ruleErr (unwrap [] / refl) refl)
-progress (con c)      = done (V-con c)
+progress (con c refl)      = done (V-con c)
 progress (builtin b / refl ) = done (ival b)
 progress (error A)    = error E-error
 
@@ -140,4 +142,3 @@ progress' M with lemma51 M
 ... | inj₂ (B ,, E ,, L ,, inj₂ E-error ,, refl) = step (ruleErr E refl)
 
 -}
- 

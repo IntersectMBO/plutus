@@ -76,7 +76,7 @@ toNamedDeBruijnTerm = UPLC.termMapNames UPLC.fakeNameDeBruijn
 toAnonDeBruijnTerm
     :: Term
     -> UPLC.Term UPLC.DeBruijn DefaultUni DefaultFun ()
-toAnonDeBruijnTerm = UPLC.termMapNames (\(UPLC.NamedDeBruijn _ ix) -> UPLC.DeBruijn ix)
+toAnonDeBruijnTerm = UPLC.termMapNames UPLC.unNameDeBruijn
 
 toAnonDeBruijnProg
     :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ()

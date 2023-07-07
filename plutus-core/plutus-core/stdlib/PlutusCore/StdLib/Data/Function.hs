@@ -146,7 +146,7 @@ fixAndType = runQuote $ do
 -- | A type that looks like a transformation.
 --
 -- > trans F G Q : F Q -> G Q
-trans :: Type TyName uni () -> Type TyName uni () -> Type TyName uni () -> Quote (Type TyName uni ())
+trans :: Type tyname uni () -> Type tyname uni () -> Type tyname uni () -> Quote (Type tyname uni ())
 trans f g q = pure $ TyFun () (TyApp () f q) (TyApp () g q)
 
 -- | A type that looks like a natural transformation, sometimes written 'F ~> G'.

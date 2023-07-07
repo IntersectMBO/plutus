@@ -59,7 +59,6 @@ data ParserError
     | BuiltinTypeNotAStar !T.Text !SourcePos
     | UnknownBuiltinFunction !T.Text !SourcePos ![T.Text]
     | InvalidBuiltinConstant !T.Text !T.Text !SourcePos
-    | InvalidData !T.Text !SourcePos
     deriving stock (Eq, Ord, Generic)
     deriving anyclass (NFData)
 
@@ -183,7 +182,6 @@ instance Pretty ParserError where
     pretty (InvalidBuiltinConstant c s loc) =
         "Invalid constant" <+> squotes (pretty c) <+> "of type" <+> squotes (pretty s) <+> "at" <+>
             pretty loc
-    pretty (InvalidData err loc) = "Invalid data:" <+> squotes (pretty err) <+> "at" <+> pretty loc
 
 instance ShowErrorComponent ParserError where
     showErrorComponent = show . pretty

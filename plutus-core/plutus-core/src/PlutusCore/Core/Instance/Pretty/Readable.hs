@@ -138,7 +138,7 @@ instance
         , Pretty fun
         ) => PrettyBy (PrettyConfigReadable configName) (Term tyname name uni fun a) where
     prettyBy = inContextM $ \case
-        Constant _ con -> unitDocM $ pretty con
+        Constant _ con -> lmap (ConstConfig . _pcrRenderContext) $ prettyM con
         Builtin _ bi -> unitDocM $ pretty bi
         (viewApp -> Just (fun, args)) -> iterInterAppPrettyM fun args
         Apply {} -> error "Panic: 'Apply' is not covered by 'viewApp'"

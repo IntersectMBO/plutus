@@ -11,7 +11,7 @@
 -- | Pretty-printing stuff, some of which should probably go into the main library.
 module PlutusCore.Pretty.Extra
     ( PrettyParens
-    , prettyParens
+    , juxtRenderContext
     ) where
 
 import PlutusPrelude
@@ -47,9 +47,11 @@ instance Profunctor InContextM where
 -- | For pretty-printing a value with a minimum amount of parens.
 type PrettyParens = PrettyBy RenderContext
 
--- | Pretty-print an expression with a minimum amount of parens.
-prettyParens :: PrettyParens a => a -> Doc ann
-prettyParens = prettyBy $ RenderContext ToTheRight juxtFixity
+-- | An initial 'RenderContext'.
+-- An expression printed in this context gets enclosed in parens unless its outermost operator (if
+-- any) binds even stronger than function application.
+juxtRenderContext :: RenderContext
+juxtRenderContext = RenderContext ToTheRight juxtFixity
 
 instance PrettyDefaultBy config [(k, v)] => DefaultPrettyBy config (Map k v) where
     defaultPrettyBy config = prettyBy config . Map.toList

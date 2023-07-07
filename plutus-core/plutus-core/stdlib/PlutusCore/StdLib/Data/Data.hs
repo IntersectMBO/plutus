@@ -25,7 +25,7 @@ import PlutusCore.StdLib.Data.Pair
 import PlutusCore.StdLib.Data.Unit
 
 -- | @Data@ as a built-in PLC type.
-dataTy :: uni `Contains` Data => Type TyName uni ()
+dataTy :: uni `Contains` Data => Type tyname uni ()
 dataTy = mkTyBuiltin @_ @Data ()
 
 -- | Pattern matching over 'Data' inside PLC.

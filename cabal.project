@@ -19,7 +19,6 @@ index-state:
   , cardano-haskell-packages 2023-05-26T00:00:00Z
 
 packages: doc/read-the-docs-site
-          marlowe-cardano-minimal
           plutus-benchmark
           plutus-conformance
           plutus-core

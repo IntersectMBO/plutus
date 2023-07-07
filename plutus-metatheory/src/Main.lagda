@@ -1,5 +1,6 @@
 \begin{code}
 module Main where
+
 open import Agda.Builtin.IO using (IO)
 import IO.Primitive as IO using (return;_>>=_)
 open import Agda.Builtin.Unit using (⊤;tt)
@@ -209,7 +210,6 @@ data ERROR : Set where
 
 uglyTypeError : TypeError → String
 uglyTypeError (kindMismatch K K' x) = "kindMismatch"
-uglyTypeError (notStar K x) = "notStar"
 uglyTypeError (notFunKind K x) = "NotFunKind"
 uglyTypeError (notPat K x) = "notPat"
 uglyTypeError UnknownType = "UnknownType"
@@ -269,7 +269,7 @@ executePLC U t = do
   (A ,, t) ← withE (λ e → typeError (uglyTypeError e)) $ typeCheckPLC t
   □ V ← withE runtimeError $ U.stepper maxsteps (ε ; [] ▻ erase t)
     where ◆  → inj₁ (runtimeError userError)
-          _    → inj₁ (runtimeError gasError)
+          _  → inj₁ (runtimeError gasError)
 {-
 just t' ← withE runtimeError $ U.stepper maxsteps (ε ; [] ▻ erase t)
     where nothing → inj₁ (runtimeError userError)
@@ -306,7 +306,7 @@ evalProgramNU namedprog = do
 
 evalProgramN : EvalMode → ProgramN → Either ERROR String
 evalProgramN m namedprog = do
-{-
+  {-
   -- some debugging code
   prog ← withE (ERROR.scopeError ∘ freeVariableError) $ deBruijnify namedprog
   let shiftedprog = shifter Z (convP prog)
@@ -319,9 +319,9 @@ evalProgramN m namedprog = do
           "extricated: " ++ rawPrinter extricatedprog ++ "\n" ++
           "unshifted: " ++ rawPrinter unshiftedprog ++ "\n" ++
           "unconved: " ++ prettyPrintTm unshiftedprog ++ "\n")
--}
-  t ← parsePLC namedprog
-  executePLC m t
+   -}
+   t ← parsePLC namedprog
+   executePLC m t
 
 typeCheckProgramN : ProgramN → Either ERROR String
 typeCheckProgramN namedprog = do
@@ -335,7 +335,7 @@ typeCheckProgramN namedprog = do
           "extricated: " ++ rawTyPrinter extricatedtype ++ "\n" ++
           "unshifted: " ++ rawTyPrinter unshiftedtype ++ "\n" ++
           "unconved: " ++ prettyPrintTy unshiftedtype ++ "\n")
--}
+ -}
   return (prettyPrintTy (unshifterTy Z (extricateScopeTy (extricateNf⋆ A))))
 
 blah : String → String → String

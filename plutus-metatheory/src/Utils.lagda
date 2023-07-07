@@ -202,14 +202,10 @@ a kind called `#` which is used for sized integers and bytestrings.
 \begin{code}
 data Kind : Set where
   *   : Kind               -- type
+  ♯   : Kind               -- builtin
   _⇒_ : Kind → Kind → Kind -- function kind
 
-{-# FOREIGN GHC import PlutusCore                       #-}
-{-# FOREIGN GHC {-# LANGUAGE GADTs, PatternSynonyms #-} #-}
-{-# FOREIGN GHC type KIND = Kind ()                     #-}
-{-# FOREIGN GHC pattern Star    = Type ()               #-}
-{-# FOREIGN GHC pattern Arrow k j = KindArrow () k j    #-}
-{-# COMPILE GHC Kind = data KIND (Star | Arrow)         #-}
+{-# COMPILE GHC Kind = data KIND (Star | Sharp | Arrow )         #-}
 \end{code}
 
 Let `I`, `J`, `K` range over kinds:

@@ -11,6 +11,7 @@ module PlutusPrelude
     ( -- * Reexports from base
       (&)
     , (&&&)
+    , (>>>)
     , (<&>)
     , toList
     , first
@@ -30,6 +31,7 @@ module PlutusPrelude
     , ($>)
     , fromRight
     , isRight
+    , isLeft
     , void
     , through
     , coerce
@@ -72,6 +74,7 @@ module PlutusPrelude
     , (?)
     , ensure
     , asksM
+    , timesA
     -- * Pretty-printing
     , Doc
     , ShowPretty (..)
@@ -93,18 +96,18 @@ module PlutusPrelude
     ) where
 
 import Control.Applicative
-import Control.Arrow ((&&&))
+import Control.Arrow ((&&&), (>>>))
 import Control.Composition ((.*))
 import Control.DeepSeq (NFData)
 import Control.Exception (Exception, throw)
-import Control.Lens (Fold, Lens', lens, over, set, view, (%~), (&), (.~), (<&>), (^.))
+import Control.Lens (Fold, Lens', ala, lens, over, set, view, (%~), (&), (.~), (<&>), (^.))
 import Control.Monad (guard, join, void, (<=<), (>=>))
 import Control.Monad.Reader (MonadReader, ask)
 import Data.Array (Array, Ix, listArray)
 import Data.Bifunctor (first, second)
 import Data.Coerce (Coercible, coerce)
 import Data.Default.Class
-import Data.Either (fromRight, isRight)
+import Data.Either (fromRight, isLeft, isRight)
 import Data.Foldable (fold, toList)
 import Data.Function (on)
 import Data.Functor (($>))
@@ -112,6 +115,7 @@ import Data.List (foldl')
 import Data.List.Extra (enumerate)
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Maybe (fromMaybe, isJust, isNothing)
+import Data.Semigroup (Endo (..), stimes)
 import Data.Text qualified as T
 import Data.Traversable (for)
 import Data.Typeable (Typeable)
@@ -240,3 +244,7 @@ zipExact _ _           = Nothing
 unsafeFromRight :: (Show e) => Either e a -> a
 unsafeFromRight (Right a) = a
 unsafeFromRight (Left e)  = error $ show e
+
+-- | function recursively applied N times
+timesA :: Natural -> (a -> a) -> a -> a
+timesA = ala Endo . stimes

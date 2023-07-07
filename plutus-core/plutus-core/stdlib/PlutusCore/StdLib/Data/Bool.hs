@@ -22,15 +22,15 @@ import PlutusCore.StdLib.Data.Unit
 import Universe
 
 -- | 'Bool' as a PLC type.
-bool :: uni `Includes` Bool => Type TyName uni ()
+bool :: uni `Includes` Bool => Type tyname uni ()
 bool = mkTyBuiltin @_ @Bool ()
 
 -- | 'True' as a PLC term.
-true :: (TermLike term TyName Name uni fun, uni `Includes` Bool) => term ()
+true :: (TermLike term tyname name uni fun, uni `Includes` Bool) => term ()
 true = mkConstant () True
 
 -- | 'False' as a PLC term.
-false :: (TermLike term TyName Name uni fun, uni `Includes` Bool) => term ()
+false :: (TermLike term tyname name uni fun, uni `Includes` Bool) => term ()
 false = mkConstant () False
 
 -- | @if_then_else_@ as a PLC term.

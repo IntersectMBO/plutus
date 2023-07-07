@@ -1,4 +1,16 @@
 
+<a id='changelog-1.8.0.0'></a>
+# 1.8.0.0 — 2023-06-22
+
+## Added
+
+  - New entries for the BLS12-381 types and builtins
+
+## Changed
+
+  - The new built-in functions have been added to futurePV
+    and the tests modified to deal with the additions.
+
 <a id='changelog-1.7.0.0'></a>
 # 1.7.0.0 — 2023-05-22
 

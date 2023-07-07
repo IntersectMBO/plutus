@@ -1,6 +1,6 @@
 cabal-version:      3.0
 name:               plutus-core
-version:            1.7.0.0
+version:            1.8.0.0
 license:            Apache-2.0
 license-files:
   LICENSE
@@ -99,6 +99,7 @@ library
     PlutusCore.Data
     PlutusCore.DataFilePaths
     PlutusCore.DeBruijn
+    PlutusCore.DeBruijn.Internal
     PlutusCore.Default
     PlutusCore.Error
     PlutusCore.Evaluation.Machine.BuiltinCostModel
@@ -185,7 +186,6 @@ library
     Data.Aeson.Flatten
     Data.Aeson.THReader
     Data.Functor.Foldable.Monadic
-    GHC.Natural.Extras
     PlutusCore.Builtin.HasConstant
     PlutusCore.Builtin.KnownKind
     PlutusCore.Builtin.KnownType
@@ -206,7 +206,6 @@ library
     PlutusCore.Core.Plated
     PlutusCore.Core.Type
     PlutusCore.Crypto.Utils
-    PlutusCore.DeBruijn.Internal
     PlutusCore.Default.Builtins
     PlutusCore.Default.Universe
     PlutusCore.Eq
@@ -296,7 +295,7 @@ library
     , nothunks                    >=0.1.1
     , parser-combinators          >=0.4.0
     , prettyprinter               >=1.1.0.1
-    , prettyprinter-configurable  ^>=1.7
+    , prettyprinter-configurable  ^>=1.8
     , primitive
     , profunctors
     , recursion-schemes
@@ -355,7 +354,7 @@ test-suite plutus-core-test
     , hex-text
     , mmorph
     , mtl
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.7
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.8
     , prettyprinter
     , serialise
     , tasty
@@ -379,7 +378,7 @@ test-suite untyped-plutus-core-test
   hs-source-dirs: untyped-plutus-core/test
   ghc-options:    -O2 -threaded -rtsopts -with-rtsopts=-N
   other-modules:
-    DeBruijn.Common
+    DeBruijn.FlatNatWord
     DeBruijn.Scope
     DeBruijn.Spec
     DeBruijn.UnDeBruijnify
@@ -397,6 +396,7 @@ test-suite untyped-plutus-core-test
     Evaluation.Golden
     Evaluation.Machines
     Evaluation.Regressions
+    Flat.Spec
     Generators
     Transform.Simplify
 
@@ -407,10 +407,9 @@ test-suite untyped-plutus-core-test
     , dlist
     , flat                                            ^>=0.6
     , hedgehog
-    , index-envs
     , lens
     , mtl
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.7
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.8
     , pretty-show
     , prettyprinter
     , QuickCheck
@@ -430,10 +429,10 @@ executable plc
     , base                  >=4.9 && <5
     , bytestring
     , deepseq
-    , flat
+    , flat                  ^>=0.6
     , optparse-applicative
-    , plutus-core           ^>=1.7
-    , plutus-core-execlib   ^>=1.7
+    , plutus-core           ^>=1.8
+    , plutus-core-execlib   ^>=1.8
     , text
 
 executable uplc
@@ -444,12 +443,12 @@ executable uplc
     , base                  >=4.9 && <5
     , bytestring
     , deepseq
-    , flat
+    , flat                  ^>=0.6
     , haskeline
     , mtl
     , optparse-applicative
-    , plutus-core           ^>=1.7
-    , plutus-core-execlib   ^>=1.7
+    , plutus-core           ^>=1.8
+    , plutus-core-execlib   ^>=1.8
     , prettyprinter
     , split
     , text
@@ -533,8 +532,9 @@ library plutus-ir
     , mtl
     , multiset
     , parser-combinators   >=0.4.0
-    , plutus-core          ^>=1.7
+    , plutus-core          ^>=1.8
     , prettyprinter        >=1.1.0.1
+    , profunctors
     , semigroupoids
     , semigroups           >=0.19.1
     , text
@@ -574,7 +574,7 @@ test-suite plutus-ir-test
     , hedgehog
     , lens
     , mtl
-    , plutus-core:{plutus-core, plutus-core-testlib, plutus-ir}  ^>=1.7
+    , plutus-core:{plutus-core, plutus-core-testlib, plutus-ir}  ^>=1.8
     , QuickCheck
     , serialise
     , tasty
@@ -596,8 +596,8 @@ executable pir
     , lens
     , megaparsec
     , optparse-applicative
-    , plutus-core-execlib                   ^>=1.7
-    , plutus-core:{plutus-core, plutus-ir}  ^>=1.7
+    , plutus-core-execlib                   ^>=1.8
+    , plutus-core:{plutus-core, plutus-ir}  ^>=1.8
     , text
     , transformers
 
@@ -626,7 +626,7 @@ library plutus-core-execlib
     , monoidal-containers
     , mtl
     , optparse-applicative
-    , plutus-core:{plutus-core, plutus-core-testlib, plutus-ir}  ^>=1.7
+    , plutus-core:{plutus-core, plutus-core-testlib, plutus-ir}  ^>=1.8
     , prettyprinter
     , text
 
@@ -668,6 +668,8 @@ library plutus-core-testlib
     PlutusIR.Generators.QuickCheck.ShrinkTerms
     PlutusIR.Test
     Test.Tasty.Extras
+    UntypedPlutusCore.Test.DeBruijn.Bad
+    UntypedPlutusCore.Test.DeBruijn.Good
 
   build-depends:
     , base                                  >=4.9     && <5
@@ -683,9 +685,9 @@ library plutus-core-testlib
     , mmorph
     , mtl
     , multiset
-    , plutus-core:{plutus-core, plutus-ir}  ^>=1.7
+    , plutus-core:{plutus-core, plutus-ir}  ^>=1.8
     , prettyprinter                         >=1.1.0.1
-    , prettyprinter-configurable            ^>=1.7
+    , prettyprinter-configurable            ^>=1.8
     , QuickCheck
     , quickcheck-instances
     , quickcheck-transformer
@@ -727,8 +729,8 @@ executable debugger
     , mono-traversable
     , mtl
     , optparse-applicative
-    , plutus-core           ^>=1.7
-    , plutus-core-execlib   ^>=1.7
+    , plutus-core           ^>=1.8
+    , plutus-core-execlib   ^>=1.8
     , prettyprinter
     , text
     , text-zipper
@@ -808,7 +810,7 @@ executable cost-model-budgeting-bench
     , hedgehog
     , mtl
     , optparse-applicative
-    , plutus-core            ^>=1.7
+    , plutus-core            ^>=1.8
     , QuickCheck
     , quickcheck-instances
     , random
@@ -845,7 +847,7 @@ executable generate-cost-model
     , extra
     , inline-r              >=1.0.1
     , optparse-applicative
-    , plutus-core           ^>=1.7
+    , plutus-core           ^>=1.8
     , text
     , vector
 
@@ -886,7 +888,7 @@ benchmark cost-model-test
     , hedgehog
     , inline-r          >=1.0.1
     , mmorph
-    , plutus-core       ^>=1.7
+    , plutus-core       ^>=1.8
     , template-haskell
     , text
     , vector

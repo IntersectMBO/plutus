@@ -12,6 +12,7 @@ module PlutusCore.Crypto.BLS12_381.G1
     , compress
     , uncompress
     , zero
+    , generator
     , memSizeBytes
     , compressedSizeBytes
     ) where
@@ -25,20 +26,24 @@ import PlutusCore.Pretty.PrettyConst (ConstConfig)
 import Text.PrettyBy (PrettyBy)
 
 import Control.DeepSeq (NFData, rnf, rwhnf)
-import Data.Bifunctor (second)
-import Data.ByteString (ByteString, length, pack)
+import Data.ByteString (ByteString, length)
+import Data.Coerce (coerce)
 import Data.Proxy (Proxy (..))
 import Flat
 import Prettyprinter
 
 {- | Note [Wrapping the BLS12-381 types in Plutus Core].  In the Haskell bindings
-to the `blst` library, points in G1 and G2 are represented as ForeignPtrs
-pointing to C objects, with a phantom type determining which group is
-involved. We have to wrap these in a newtype here because otherwise the builtin
-machinery spots that they're applications and can't find the relevant type
-parameters.  In theory I think we could add a couple of phantom types to the
-default universe, but it seemed simpler and safer to use monomorphic types
-instead, even though it requires a bit of code duplication between G1 and G2.
+to the `blst` library in cardano-crypto-class, points in G1 and G2 are
+represented as ForeignPtrs pointing to C objects, with a phantom type
+determining which group is involved. We have to wrap these in a newtype here
+because otherwise the builtin machinery spots that they're applications and
+can't find the relevant type parameters.  In theory I think we could add a
+couple of phantom types to the default universe, but it seemed simpler and safer
+to use monomorphic types instead, even though it requires a bit of code
+duplication between G1 and G2.  Much of the code here has apparently identical
+versions in PlutusCore.Crypto.BLS12_381.G2, but the signatures of the functions
+in the two versions are invisibly instantiating the cardano-crypto-class
+functions at the appropriate phantom types.
 
 See also Note [Wrapping the BLS12-381 types in PlutusTx].
 -}
@@ -61,18 +66,21 @@ instance NFData Element where
     rnf (Element x) = rwhnf x  -- Just to be on the safe side.
 
 -- | Add two G1 group elements
+{-# INLINE add #-}
 add :: Element -> Element -> Element
-add (Element a) (Element b) = Element $ BlstBindings.blsAddOrDouble @BlstBindings.Curve1 a b
+add = coerce BlstBindings.blsAddOrDouble
 
 -- | Negate a G1 group element
+{-# INLINE neg #-}
 neg :: Element -> Element
-neg (Element a) = Element $ BlstBindings.blsNeg @BlstBindings.Curve1 a
+neg = coerce BlstBindings.blsNeg
 
 -- | Multiplication of group elements by scalars. In the blst library the
 -- arguments are the other way round, but scalars acting on the left is more
 -- consistent with standard mathematical practice.
+{-# INLINE scalarMul #-}
 scalarMul :: Integer -> Element -> Element
-scalarMul k (Element a) = Element $ BlstBindings.blsMult @BlstBindings.Curve1 a k
+scalarMul = coerce $ flip BlstBindings.blsMult
 
 {- | Compress a G1 element to a bytestring. This serialises a curve point to its
  x coordinate only.  The compressed bytestring is 48 bytes long, with three
@@ -81,8 +89,9 @@ scalarMul k (Element a) = Element $ BlstBindings.blsMult @BlstBindings.Curve1 a 
  point is the point at infinity. See
  https://github.com/supranational/blst#serialization-format
 -}
+{-# INLINE compress #-}
 compress :: Element -> ByteString
-compress (Element a) = BlstBindings.blsCompress @BlstBindings.Curve1 a
+compress = coerce BlstBindings.blsCompress
 
 {- | Uncompress a bytestring to get a G1 point.  This will fail if any of the
    following are true.
@@ -93,9 +102,9 @@ compress (Element a) = BlstBindings.blsCompress @BlstBindings.Curve1 a
      * The bytestring does represent a point on the E1 curve, but the
        point is not in the G1 subgroup.
 -}
--- TODO: perhaps make this emit the error in the Left case.
+{-# INLINE uncompress #-}
 uncompress :: ByteString -> Either BlstBindings.BLSTError Element
-uncompress = second Element . BlstBindings.blsUncompress @BlstBindings.Curve1
+uncompress = coerce BlstBindings.blsUncompress
 
 {- | Note [Hashing and Domain Separation Tags].  The hashToGroup functions take a
    bytestring and hash it to obtain an element in the relevant group, as
@@ -126,17 +135,18 @@ hashToGroup :: ByteString -> ByteString -> Either BLS12_381_Error Element
 hashToGroup msg dst =
     if Data.ByteString.length dst > 255
     then Left HashToCurveDstTooBig
-    else Right . Element $ BlstBindings.blsHash @BlstBindings.Curve1 msg (Just dst) Nothing
-
--- Utilities (not exposed as builtins)
+    else Right . Element $ BlstBindings.blsHash msg (Just dst) Nothing
 
 -- | The zero element of G1
 zero :: Element
-zero =
-    let b = pack (0xc0 : replicate 47 0x00) -- Compressed serialised G1 points are bytestrings of length 48: see CIP-0381.
-    in case uncompress b of
-         Left err       -> error $ "Unexpected failure deserialising point at infinity on BLS12_381.G1:  " ++ show err
-         Right infinity -> infinity  -- The zero point on this curve is chosen to be the point at infinity.
+zero = coerce BlstBindings.Internal.blsZero
+
+-- | The standard generator of G1
+generator :: Element
+generator = coerce BlstBindings.Internal.blsGenerator
+
+
+-- Utilities (not exposed as builtins)
 
 -- | Memory usage of a G1 point (144 bytes)
 memSizeBytes :: Int
@@ -145,4 +155,3 @@ memSizeBytes = BlstBindings.Internal.sizePoint (Proxy @BlstBindings.Curve1)
 -- | Compressed size of a G1 point (48 bytes)
 compressedSizeBytes :: Int
 compressedSizeBytes = BlstBindings.Internal.compressedSizePoint (Proxy @BlstBindings.Curve1)
-

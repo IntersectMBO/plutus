@@ -18,7 +18,6 @@ import UntypedPlutusCore as UPLC
 
 import Control.Monad.Except
 import Data.ByteString.Short as BSS
-import Data.Either
 import Data.Foldable (for_)
 import Data.Map qualified as Map
 import Data.Set qualified as Set

@@ -14,7 +14,6 @@ import PlutusCore.Generators.Hedgehog.AST
 import PlutusCore.MkPlc
 
 import Control.Monad.Except
-import Data.Either
 import Hedgehog hiding (Var)
 import Test.Tasty
 import Test.Tasty.Hedgehog
