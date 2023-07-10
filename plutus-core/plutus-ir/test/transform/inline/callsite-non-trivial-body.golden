@@ -2,11 +2,6 @@
   (nonrec)
   (termbind
     (strict)
-    (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
-    (lam x (con integer) (lam y (con integer) [ [ (builtin addInteger) x ] y ]))
-  )
-  (termbind
-    (strict)
     (vardecl
       f
       (fun
@@ -48,14 +43,16 @@
   )
   [
     [
-      addInteger
+      (builtin addInteger)
       [
-        [ [ f (lam unused (con integer) (con integer 5)) ] addInteger ]
+        [
+          [ f (lam unused (con integer) (con integer 5)) ] (builtin addInteger)
+        ]
         (con integer 6)
       ]
     ]
     [
-      [ addInteger (con integer 11) ]
+      [ (builtin addInteger) (con integer 11) ]
       [
         [
           (builtin addInteger)
