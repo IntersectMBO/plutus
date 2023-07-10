@@ -16,8 +16,8 @@ description:
 build-type:    Simple
 data-files:
   common/templates/*.tpl
-  marlowe/exe/scripts/rolepayout/*.benchmark
-  marlowe/exe/scripts/semantics/*.benchmark
+  marlowe/scripts/rolepayout/*.benchmark
+  marlowe/scripts/semantics/*.benchmark
   validation/data/*.flat
 
 source-repository head
@@ -532,14 +532,10 @@ executable marlowe-validators
     , base16-bytestring
     , bytestring
     , cardano-binary
-    , directory
-    , filepath
     , marlowe-internal
-    , mtl
     , plutus-benchmark-common
-    , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.8
     , plutus-ledger-api
-    , plutus-tx                                       ^>=1.8
+    , plutus-tx                ^>=1.8
     , serialise
 
 benchmark marlowe
