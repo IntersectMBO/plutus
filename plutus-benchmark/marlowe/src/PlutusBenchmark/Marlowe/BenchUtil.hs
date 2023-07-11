@@ -119,7 +119,15 @@ updateScriptHash oldHash newHash scriptContext =
     }
 
 
--- | Revise the validator hashes in the benchmark's script context.
+{-  | Revise the validator hashes in the benchmark's script context. Reasons:
+
+- Marlowe's semantics validator takes the hash of Marlowe's payout validator as an argument.
+If the script context pays from the semantics validator to the payout validator address, then that
+hash has to be correct. Hence, we need to edit the script context to ensure that the hash of the
+new payout validator is correct for any payments to that address.
+- Marlowe's semantics validator's prevention of double-satisfaction involves it checking for another
+Marlowe script running in the same transaction. Thus, the script context needs editing here, too.
+ -}
 rescript
   :: Benchmark
   -> Benchmark
