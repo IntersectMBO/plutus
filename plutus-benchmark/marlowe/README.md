@@ -1,6 +1,6 @@
 # Experimental version of Marlowe validator for Cardano, with minimal dependencies
 
-The `marlowe` directory contains three packages:
+The `marlowe` directory contains three components:
 
 - Validator source code: `marlowe-internal`
 - Benchmarking: `marlowe`
@@ -8,7 +8,7 @@ The `marlowe` directory contains three packages:
 
 ## `marlowe-internal`
 
-This package is a fully representative version of the Marlowe validator on chain, currently. (See the "Managing versions" section below) It is primarily for measuring budgets/performance of Marlowe scripts. 
+This library is a fully representative version of the Marlowe validator on chain, currently. (See the "Managing versions" section below) It is primarily for measuring budgets/performance of Marlowe scripts. 
 
 Marlowe is a platform for financial products as smart contracts. [Marlowe-Cardano](https://github.com/input-output-hk/marlowe-cardano) is an implementation of Marlowe for the Cardano blockchain, built on top of Plutus.
 
@@ -23,7 +23,7 @@ It would be informative for both the Plutus and Marlowe teams to investigate in 
 
 (1) Benchmarking: compare the budget before and after optimizations that the Plutus team implemented. It could be helpful to do the benchmarking *as* we implement the optimization even.
 
-The benchmarking portion of the code lives in `marlowe/bench`, which depends on this package.
+The benchmarking portion of the code lives in `marlowe/bench`, which depends on this library.
 
 (2) Profiling: look at each script in more detail, what functions are taking up the most budget? How can they be optimized?
 
