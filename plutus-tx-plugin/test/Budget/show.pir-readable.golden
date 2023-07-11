@@ -239,9 +239,6 @@ letrec
           {all dead. dead}
 in
 let
-  !`$fShowInteger_$cshowsPrec` :
-     integer -> integer -> List string -> List string
-    = \(w : integer) (w : integer) -> `$w$cshowsPrec` w
   data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
     Tuple2 : a -> b -> Tuple2 a b
 in
@@ -358,13 +355,15 @@ letrec
 in
 let
   !`$fShowInteger_$cshow` : integer -> string
-    = \(x : integer) ->
-        concatBuiltinStrings (`$fShowInteger_$cshowsPrec` 0 x (Nil {string}))
+    = \(x : integer) -> concatBuiltinStrings (`$w$cshowsPrec` x (Nil {string}))
   data (Show :: * -> *) a | Show_match where
     CConsShow :
       (integer -> a -> List string -> List string) -> (a -> string) -> Show a
   ~`$fShowInteger` : Show integer
-    = CConsShow {integer} `$fShowInteger_$cshowsPrec` `$fShowInteger_$cshow`
+    = CConsShow
+        {integer}
+        (\(w : integer) (w : integer) -> `$w$cshowsPrec` w)
+        `$fShowInteger_$cshow`
   data (Tuple5 :: * -> * -> * -> * -> * -> *) a b c d e | Tuple5_match where
     Tuple5 : a -> b -> c -> d -> e -> Tuple5 a b c d e
   !showsPrec : all a. Show a -> integer -> a -> List string -> List string
