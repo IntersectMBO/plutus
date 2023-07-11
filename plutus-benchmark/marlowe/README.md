@@ -33,7 +33,9 @@ Of the most common Marlowe transactions, input application transactions are the 
 
 ## Benchmarking with `marlowe`
 
-To benchmark the Marlowe scripts, run `cabal bench marlowe`. The default time to run each benchmark is 5 seconds. One can change this with `-L` or `--timeout` when running it locally.
+To benchmark the Marlowe scripts, run `cabal bench marlowe`. 
+
+The default time for each benchmark to run is 5 seconds. One can change this with `-L` or `--timeout` when running it locally. For each benchmark Criterion runs it as many times as it can within the `-L` argument and then analyses the collected results to get the mean time and the standard deviation and so on. If you've got a long-running benchmark then you might want to increase the timeout to get more accurate statistics. The default is kept low to not overload our benchmarking machine.
 
 The scripts are the results of applying the script's datum, redeemer and context, taken from files of type `M.Benchmark` from `/marlowe/scripts`, which is a data type in `marlow-internal`. This is not to be confused with `criterion`'s [`Benchmark`](https://hackage.haskell.org/package/criterion-measurement-0.2.1.0/docs/Criterion-Measurement-Types.html#t:Benchmark) type. 
 
