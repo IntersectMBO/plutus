@@ -14,8 +14,6 @@
 
 
 {-# LANGUAGE ImportQualifiedPost #-}
-{-# LANGUAGE RecordWildCards     #-}
-
 
 module PlutusBenchmark.Marlowe.Util (
   -- * Conversion
@@ -25,8 +23,6 @@ module PlutusBenchmark.Marlowe.Util (
 , makeRedeemerMap
 , makeDatumMap
 , makeBuiltinData
-  -- * Rewriting
-, updateScriptHash
 ) where
 
 
@@ -34,9 +30,9 @@ import Codec.Serialise (deserialise)
 import PlutusLedgerApi.V2 (Address (Address), BuiltinData, Credential (..), Datum (Datum),
                            DatumHash, LedgerBytes (getLedgerBytes),
                            OutputDatum (NoOutputDatum, OutputDatumHash), Redeemer (Redeemer),
-                           ScriptContext (..), ScriptHash, ScriptPurpose, TxId, TxInInfo (..),
-                           TxInfo (..), TxOut (..), TxOutRef (TxOutRef), Value, adaSymbol, adaToken,
-                           dataToBuiltinData, fromBuiltin, singleton)
+                           ScriptHash, ScriptPurpose, TxId, TxInInfo (..), TxOut (..),
+                           TxOutRef (TxOutRef), Value, adaSymbol, adaToken, dataToBuiltinData,
+                           fromBuiltin, singleton)
 
 import Data.ByteString.Lazy qualified as LBS (fromStrict)
 import PlutusTx.AssocMap qualified as AM (Map, singleton)
@@ -104,30 +100,3 @@ makeBuiltinData =
     . getLedgerBytes
 
 
--- Rewrite all of a particular script hash in the script context.
-updateScriptHash
-  :: ScriptHash
-  -> ScriptHash
-  -> ScriptContext
-  -> ScriptContext
-updateScriptHash oldHash newHash scriptContext =
-  let
-    updateAddress address@(Address (ScriptCredential hash) stakeCredential)
-      | hash == oldHash = Address (ScriptCredential newHash) stakeCredential
-      | otherwise = address
-    updateAddress address = address
-    updateTxOut txOut@TxOut{..} = txOut {txOutAddress = updateAddress txOutAddress}
-    updateTxInInfo txInInfo@TxInInfo{..} =
-      txInInfo {txInInfoResolved = updateTxOut txInInfoResolved}
-    txInfo@TxInfo{..} = scriptContextTxInfo scriptContext
-    txInfo' =
-      txInfo
-      {
-        txInfoInputs = updateTxInInfo <$> txInfoInputs
-      , txInfoOutputs = updateTxOut <$> txInfoOutputs
-      }
-  in
-    scriptContext
-    {
-      scriptContextTxInfo = txInfo'
-    }

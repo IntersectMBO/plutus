@@ -62,7 +62,7 @@
 {- HLINT ignore "Avoid restricted function" -}
 
 
-module Language.Marlowe.Core.V1.Semantics
+module PlutusBenchmark.Marlowe.Core.V1.Semantics
   ( -- * Semantics
     MarloweData(..)
   , MarloweParams(..)
@@ -112,13 +112,14 @@ module Language.Marlowe.Core.V1.Semantics
 
 import Data.Data (Data)
 import GHC.Generics (Generic)
-import Language.Marlowe.Core.V1.Semantics.Types (AccountId, Accounts, Action (..), Case (..),
-                                                 Contract (..), Environment (..), Input (..),
-                                                 InputContent (..), IntervalError (..),
-                                                 IntervalResult (..), Money, Observation (..),
-                                                 Party, Payee (..), State (..), TimeInterval,
-                                                 Token (..), Value (..), ValueId, emptyState,
-                                                 getAction, getInputContent, inBounds)
+import PlutusBenchmark.Marlowe.Core.V1.Semantics.Types (AccountId, Accounts, Action (..), Case (..),
+                                                        Contract (..), Environment (..), Input (..),
+                                                        InputContent (..), IntervalError (..),
+                                                        IntervalResult (..), Money,
+                                                        Observation (..), Party, Payee (..),
+                                                        State (..), TimeInterval, Token (..),
+                                                        Value (..), ValueId, emptyState, getAction,
+                                                        getInputContent, inBounds)
 import PlutusLedgerApi.V2 (CurrencySymbol, POSIXTime (..))
 import PlutusTx (makeIsDataIndexed)
 import PlutusTx.Lift (makeLift)

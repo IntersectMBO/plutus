@@ -44,7 +44,7 @@
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 
 
-module Language.Marlowe.Scripts.RolePayout
+module PlutusBenchmark.Marlowe.Scripts.RolePayout
   (-- * Payout Validator
     rolePayoutValidatorHash
   , rolePayoutValidatorBytes

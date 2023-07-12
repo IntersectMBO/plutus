@@ -45,7 +45,7 @@
 {-# OPTIONS_GHC -Wno-unused-imports #-}
 
 
-module Language.Marlowe.Core.V1.Semantics.Types
+module PlutusBenchmark.Marlowe.Core.V1.Semantics.Types
   ( -- * Type Aliases
     AccountId
   , Accounts
@@ -86,7 +86,7 @@ import Control.Newtype.Generics (Newtype)
 import Data.Data (Data)
 import Data.String (IsString (..))
 import GHC.Generics (Generic)
-import Language.Marlowe.Core.V1.Semantics.Types.Address (Network)
+import PlutusBenchmark.Marlowe.Core.V1.Semantics.Types.Address (Network)
 import PlutusLedgerApi.V2 (CurrencySymbol (unCurrencySymbol), POSIXTime (..),
                            TokenName (unTokenName))
 import PlutusTx (makeIsDataIndexed)
