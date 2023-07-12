@@ -479,7 +479,7 @@ fullyApplyAndBetaReduce info args0 = do
         name ->
         Term name uni fun a ->
         InlineM name uni fun a Bool
-      safeToBetaReduce a = shouldUnconditionallyInline a rhsBody
+      safeToBetaReduce a arg = shouldUnconditionallyInline a arg rhsBody
   go rhsBody (info ^. varBinders) args0
 
 {- | This works in the same way as `PlutusIR.Transform.Inline.CallSiteInline.inlineSaturatedApp`.
