@@ -22,7 +22,8 @@ section.
 Tables~\ref{table:future-built-in-types} describes three new built-in
 types.
 
-\newcommand{\MlResult}{H}
+\newcommand{\TyMlResult}{\ty{bls12\_381\_mlresult}}
+\newcommand{\MlResultDenotation}{H}
 \newcommand{\Fq}{\mathbb{F}_q}
 \newcommand{\Fqq}{\mathbb{F}_{q^2}}
 \newcommand{\FF}{\mathbb{F}_{q^{12}}}
@@ -35,7 +36,7 @@ types.
         \hline
         $\ty{bls12\_381\_G1\_element}$ &   $G_1$ & \texttt{0x[0-9A-Fa-f]\{96\}} \text{(see Note~\ref{note:bls-syntax})}\\
         $\ty{bls12\_381\_G2\_element}$ &   $G_2$ & \texttt{0x[0-9A-Fa-f]\{192\}} \text{(see Note~\ref{note:bls-syntax})}\\
-        $\ty{bls12\_381\_MlResult}$    &   $\MlResult$  &  None (see Note~\ref{note:bls-syntax})\\
+        $\TyMlResult$    &   $\MlResultDenotation$  &  None (see Note~\ref{note:bls-syntax})\\
         \hline
     \end{tabular}
     \caption{Atomic Types}
@@ -81,7 +82,7 @@ $$
 
 \noindent and $E_2$ defined over $\Fqq$:
 $$
-E_2: Y^2 = X^3 + 4(u+1)
+E_2: Y^2 = X^3 + 4(u+1).
 $$
 
 \noindent $E_1(\Fq)$ and  $E_2(\Fqq)$  are abelian groups under the
@@ -102,7 +103,7 @@ opaque and can only be obtained as a result of \texttt{bls12\_381\_millerLoop}
 or by multiplying two existing elements of type \texttt{bls12\_381\_MlResult}.
 We provide neither a serialisation format nor a concrete syntax for values of
 this type: they exist only ephemerally during computation.  We do not specify
-$\MlResult$, the denotation of \texttt{bls12\_381\_MlResult}, precisely, but it
+$\MlResultDenotation$, the denotation of $\TyMlResult$, precisely, but it
 must be a multiplicative abelian group. See Note~\ref{note:pairing} for more on
 this.
 
@@ -125,8 +126,8 @@ this.
     % (continued). Unfortunately it doesn't seem to be easy to do that in a
     % longtable.
     \endfoot
-    \caption[]{Built-in Functions}
-%%    \caption[]{Built-in Functions (continued)}
+%%    \caption[]{Built-in Functions}
+    \caption[]{Built-in Functions (continued)}
     \label{table:future-built-in-functions}
     \endlastfoot
 %% G1
@@ -182,11 +183,14 @@ this.
     \TT{bls12\_381\_millerLoop}  &
     $[ \ty{bls12\_381\_G1\_element}$,
       \text{\; $\ty{bls12\_381\_G2\_element} ]$}
-    \text{\: $ \to \ty{\MlResult}$} & $e$ &  No & \ref{note:pairing}\\
+    \text{\: $ \to \TyMlResult$} & $e$ &  No & \ref{note:pairing}\\
     \TT{bls12\_381\_mulMlResult}  &
-    $[ \ty{\MlResult}, \ty{\MlResult}] \to \ty{\MlResult}$ & $(a,b) \mapsto ab$ & No & \ref{note:pairing}\\
+    $[ \TyMlResult$,
+    \text{\; $\TyMlResult]$}
+    \text{\: $\to \TyMlResult$} & $(a,b) \mapsto ab$ & No & \ref{note:pairing}\\
     \TT{bls12\_381\_finalVerify}  &
-    $[ \ty{\MlResult}, \ty{\MlResult}] \to \ty{bool}$ & $\phi$ & No & \ref{note:pairing}\\
+    $[ \TyMlResult$,
+    \text{\; $\TyMlResult] \to \ty{bool}$} & $\phi$ & No & \ref{note:pairing}\\
     \hline
 \end{longtable}
 
@@ -375,18 +379,18 @@ functions.  We assume that we have
 \begin{itemize}
 \item An intermediate multiplicative abelian group $H$.
 \item A function (not necessarily itself a pairing) $e: G_1 \times
-G_2 \rightarrow \MlResult$.
+G_2 \rightarrow \MlResultDenotation$.
 \item A cyclic group $\mu_r$ of order $r$.
-\item An epimorphism $\psi: \MlResult \rightarrow \mu_r$ of groups such
+\item An epimorphism $\psi: \MlResultDenotation \rightarrow \mu_r$ of groups such
 that $\psi \circ e: G_1 \times G_2 \rightarrow \mu_r$ is a (nondegenerate,
 bilinear) pairing.
 \end{itemize}
 
 \noindent Given these ingredients, we define
 \begin{itemize}
-\item $\denote{\ty{bls12\_381\_mlresult}} = \MlResult$.
+\item $\denote{\TyMlResult} = \MlResultDenotation$.
 \item $\denote{\mathtt{bls12\_381\_mulMlResult}} =$
-the group multiplication operation in $\MlResult$.
+the group multiplication operation in $\MlResultDenotation$.
 \item $\denote{\mathtt{bls12\_381\_millerLoop}} = e$.
 \item $\denote{\mathtt{bls12\_381\_finalVerify}} = \phi$,
 where
@@ -400,10 +404,10 @@ $$
 
 \medskip
 \noindent
-We do not mandate specific choices for $\MlResult, \mu_r, e$, and $\phi$, but a
+We do not mandate specific choices for $\MlResultDenotation, \mu_r, e$, and $\phi$, but a
 plausible choice would be
 \begin{itemize}
-\item $\MlResult = \FF^*$.
+\item $\MlResultDenotation = \FF^*$.
 \item $e$ is the Miller loop associated with the optimal Ate pairing
 for $E_1$ and $E_2$~\cite{Vercauteren}.
 \item $\mu_r = \{x \in \FF^*: x^r=1\}$, the group of $r$th roots of unity in $\FF^*$.
