@@ -47,7 +47,7 @@ import Control.Monad.ST (RealWorld)
 import System.Console.Haskeline qualified as Repl
 
 uplcHelpText :: String
-uplcHelpText = helpText "Untyped Plutus Core"
+uplcHelpText = helpText "Untyped Plutus Core?"
 
 uplcInfoCommand :: ParserInfo Command
 uplcInfoCommand = plutus uplcHelpText
