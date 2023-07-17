@@ -47,7 +47,7 @@ main = defaultMain . testGroup "Size regression tests" $ [
       ],
     testGroup "Construction" [
       fitsInto "unsafeRatio" ratMkUnsafe 117,
-      fitsInto "ratio" ratMkSafe 179,
+      fitsInto "ratio" ratMkSafe 190,
       fitsInto "fromInteger" ratFromInteger 4
       ],
     testGroup "Other" [
@@ -56,7 +56,7 @@ main = defaultMain . testGroup "Size regression tests" $ [
       fitsInto "round" ratRound 278,
       fitsInto "truncate" ratTruncate 10,
       fitsInto "properFraction" ratProperFraction 21,
-      fitsInto "recip" ratRecip 49,
+      fitsInto "recip" ratRecip 52,
       fitsInto "abs (specialized)" ratAbs 31
       ],
     testGroup "Comparison" [
