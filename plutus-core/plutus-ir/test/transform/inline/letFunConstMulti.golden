@@ -5,5 +5,7 @@
     (vardecl constFun (fun (con integer) (fun (con integer) (con integer))))
     (lam x (con integer) (lam y (con integer) x))
   )
-  [ constFun (con integer 3) ]
+  (lam
+    y (con integer) [ (lam y (con integer) (con integer 3)) (con integer 5) ]
+  )
 )
