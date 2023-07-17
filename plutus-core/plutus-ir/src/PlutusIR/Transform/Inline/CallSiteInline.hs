@@ -81,7 +81,7 @@ applyAndBetaReduce ::
   InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
 applyAndBetaReduce rhs args0 = do
   let -- split the rhs to its lambdas and function body
-      (varArity, rhsBody) = splitParams rhs
+      (varArity, _rhsBody) = splitParams rhs
       -- | Drop one term or type lambda abstraction of the given term.
       getFnBody :: Term tyname name uni fun ann -> Term tyname name uni fun ann
       getFnBody (LamAbs _ann _n _ty body) = body
@@ -97,7 +97,7 @@ applyAndBetaReduce rhs args0 = do
         -- fully applied
         ([], _) -> pure $ Just acc
         (TermParam param: arity', TermAppContext arg _ args') -> do
-          safe <- safeToBetaReduce param arg
+          safe <- safeToBetaReduce param arg acc
           if safe -- we only do substitution if it is safe to beta reduce
             then do
               acc' <- do
@@ -127,8 +127,10 @@ applyAndBetaReduce rhs args0 = do
         name ->
         -- `arg`
         Term tyname name uni fun ann ->
+        -- the body `a` will be beta reduced in
+        Term tyname name uni fun ann ->
         InlineM tyname name uni fun ann Bool
-      safeToBetaReduce a arg = shouldUnconditionallyInline Strict a arg rhsBody
+      safeToBetaReduce = shouldUnconditionallyInline Strict
   go rhs varArity args0
 
 -- | Consider whether to inline an application.
