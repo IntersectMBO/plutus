@@ -33,7 +33,7 @@ import Control.Monad.State (evalStateT, modify')
 
 import Algebra.Graph qualified as G
 import Data.Map qualified as Map
-import PlutusIR.Transform.Inline.CallSiteInline (inlineSaturatedApp)
+import PlutusIR.Transform.Inline.CallSiteInline (inlineApp)
 import Witherable (Witherable (wither))
 
 {- Note [Inlining approach and 'Secrets of the GHC Inliner']
@@ -218,11 +218,11 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
             -- exponentially in the case that it has nested `let`s.
             --
             -- Then, consider call site inlining for each node that have gone through unconditional
-            -- inlining. Because `inlineSaturatedApp` traverses *all* application nodes for each
+            -- inlining. Because `inlineApp` traverses *all* application nodes for each
             -- subterm, the runtime is quadratic for terms with a long chain of applications.
             -- If we use the context-based approach like in GHC, this won't be a problem, so we may
             -- consider that in the future.
-            inlineSaturatedApp =<< forMOf termSubterms t processTerm
+            inlineApp =<< forMOf termSubterms t processTerm
 
 -- | Run the inliner on a single non-recursive let binding.
 processSingleBinding
