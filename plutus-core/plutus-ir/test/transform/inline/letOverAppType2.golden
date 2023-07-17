@@ -3,13 +3,11 @@
   (termbind
     (strict) (vardecl idFun (all a (type) (fun a a))) (abs a (type) (lam x a x))
   )
-  (let
-    (nonrec)
-    (termbind
-      (strict)
-      (vardecl funApp (fun (con integer) (con integer)))
-      { idFun (con integer) }
-    )
-    [ funApp (con integer 3) ]
-  )
+  [
+    [
+      (lam x (con integer) x)
+      [ (lam x (con integer) x) (lam x (con integer) x) ]
+    ]
+    (con integer 3)
+  ]
 )
