@@ -75,4 +75,4 @@ main = do
   config <- getConfig 5.0
   defaultMainWith config [
     bgroup "semantics" semanticsBench
-    , bgroup "role payout" rolePayoutBench]
+    , bgroup "role-payout" rolePayoutBench]
