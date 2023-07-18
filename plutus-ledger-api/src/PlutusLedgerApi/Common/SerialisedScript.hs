@@ -136,12 +136,9 @@ fromSerialisedScript lv currentPv sScript = do
     unless (llIntroPv <= currentPv)  $
         throwing _ScriptDecodeError $ LedgerLanguageNotAvailableError lv llIntroPv currentPv
 
-    (remderBS, script@(ScriptForExecution (UPLC.Program _ v _))) <- deserialiseSScript sScript
+    (remderBS, script@(ScriptForExecution (UPLC.Program{}))) <- deserialiseSScript sScript
     when (lv /= PlutusV1 && lv /= PlutusV2 && remderBS /= mempty) $
         throwing _ScriptDecodeError $ RemainderError remderBS
-
-    -- check that the Plutus Core language version is available
-    unless (v `Set.member` plcVersionsAvailableIn lv currentPv) $ throwing _ScriptDecodeError $ PlutusCoreLanguageNotAvailableError v currentPv
 
     pure script
   where
