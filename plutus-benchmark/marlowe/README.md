@@ -32,7 +32,7 @@ See [CONTRIBUTING.md](https://github.com/input-output-hk/plutus/blob/master/CONT
 
 Of the most common Marlowe transactions, input application transactions are the most relevant, as they are complex and can go over the execution limits at times. So there is a priority on examining those contracts.
 
-## Benchmarking with `marlowe`
+## Benchmarking with `marlowe` - testing
 
 To benchmark the Marlowe scripts, run `cabal bench marlowe`. 
 
