@@ -13,27 +13,10 @@
 -----------------------------------------------------------------------------
 
 
-{-# LANGUAGE BlockArguments             #-}
-{-# LANGUAGE DataKinds                  #-}
-{-# LANGUAGE DefaultSignatures          #-}
-{-# LANGUAGE DeriveAnyClass             #-}
-{-# LANGUAGE DeriveDataTypeable         #-}
-{-# LANGUAGE DeriveGeneric              #-}
-{-# LANGUAGE DerivingVia                #-}
-{-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE FlexibleInstances          #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE ImportQualifiedPost        #-}
-{-# LANGUAGE LambdaCase                 #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE NamedFieldPuns             #-}
-{-# LANGUAGE NoImplicitPrelude          #-}
-{-# LANGUAGE OverloadedStrings          #-}
-{-# LANGUAGE RankNTypes                 #-}
-{-# LANGUAGE RecordWildCards            #-}
-{-# LANGUAGE ScopedTypeVariables        #-}
-{-# LANGUAGE StandaloneDeriving         #-}
-{-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE DeriveAnyClass        #-}
+{-# LANGUAGE DeriveDataTypeable    #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TemplateHaskell       #-}
 
 {-# OPTIONS_GHC -fno-specialise #-}  -- A big hammer, but it helps.
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
@@ -42,10 +25,8 @@
 
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}
-{-# OPTIONS_GHC -Wno-unused-imports #-}
 
-
-module Language.Marlowe.Core.V1.Semantics.Types
+module PlutusBenchmark.Marlowe.Core.V1.Semantics.Types
   ( -- * Type Aliases
     AccountId
   , Accounts
@@ -81,22 +62,18 @@ module Language.Marlowe.Core.V1.Semantics.Types
   ) where
 
 
-import Control.Applicative ((<*>), (<|>))
 import Control.Newtype.Generics (Newtype)
 import Data.Data (Data)
 import Data.String (IsString (..))
 import GHC.Generics (Generic)
-import Language.Marlowe.Core.V1.Semantics.Types.Address (Network)
-import PlutusLedgerApi.V2 (CurrencySymbol (unCurrencySymbol), POSIXTime (..),
-                           TokenName (unTokenName))
+import PlutusBenchmark.Marlowe.Core.V1.Semantics.Types.Address (Network)
+import PlutusLedgerApi.V2 (CurrencySymbol, POSIXTime (..), TokenName)
 import PlutusTx (makeIsDataIndexed)
 import PlutusTx.AssocMap (Map)
 import PlutusTx.Lift (makeLift)
 import PlutusTx.Prelude (Bool (..), BuiltinByteString, Eq (..), Integer, Ord ((<=), (>=)), all, and,
                          any, length, zip, zipWith, (&&))
-import Prelude (mapM, (<$>))
 
-import Data.Foldable qualified as F
 import PlutusLedgerApi.V1.Value qualified as Val
 import PlutusLedgerApi.V2 qualified as Ledger (Address (..), Credential (..), PubKeyHash (..),
                                                ScriptHash (..), StakingCredential (..))

@@ -165,7 +165,7 @@ fullyApplyAndBetaReduce info args0 = do
         -- `arg`
         Term tyname name uni fun ann ->
         InlineM tyname name uni fun ann Bool
-      safeToBetaReduce a = shouldUnconditionallyInline Strict a rhsBody
+      safeToBetaReduce a arg = shouldUnconditionallyInline Strict a arg rhsBody
   go rhsBody (varArity info) args0
 
 -- | Consider whether to inline an application.

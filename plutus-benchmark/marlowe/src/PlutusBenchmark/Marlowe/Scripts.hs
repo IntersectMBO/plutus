@@ -1,7 +1,4 @@
-
 -- editorconfig-checker-disable-file
-
-
 -----------------------------------------------------------------------------
 --
 -- Module      :  $Headers
@@ -15,39 +12,20 @@
 -----------------------------------------------------------------------------
 
 
-{-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE DefaultSignatures     #-}
-{-# LANGUAGE DeriveAnyClass        #-}
-{-# LANGUAGE DeriveGeneric         #-}
-{-# LANGUAGE DerivingVia           #-}
-{-# LANGUAGE EmptyDataDecls        #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE ImportQualifiedPost   #-}
-{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns        #-}
-{-# LANGUAGE NoImplicitPrelude     #-}
 {-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE RecordWildCards       #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE TypeOperators         #-}
 
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:target-version=1.0.0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:dump-pir #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:dump-plc #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:dump-uplc #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 
 
-module Language.Marlowe.Scripts.Semantics
+module PlutusBenchmark.Marlowe.Scripts
   ( -- * Types
     MarloweInput
   , MarloweTxInput(..)
@@ -56,30 +34,37 @@ module Language.Marlowe.Scripts.Semantics
   , marloweValidatorBytes
   , marloweValidator
   , mkMarloweValidator
+    -- * Payout Validator
+  , rolePayoutValidatorHash
+  , rolePayoutValidatorBytes
+  , rolePayoutValidator
+  , mkRolePayoutValidator
     -- * Utilities
   , marloweTxInputsFromInputs
   ) where
 
 
 import GHC.Generics (Generic)
-import Language.Marlowe.Core.V1.Semantics as Semantics (MarloweData (..),
-                                                        MarloweParams (MarloweParams, rolesCurrency),
-                                                        Payment (..),
-                                                        TransactionError (TEAmbiguousTimeIntervalError, TEApplyNoMatchError, TEHashMismatch, TEIntervalError, TEUselessTransaction),
-                                                        TransactionInput (TransactionInput, txInputs, txInterval),
-                                                        TransactionOutput (Error, TransactionOutput, txOutContract, txOutPayments, txOutState),
-                                                        computeTransaction, totalBalance)
-import Language.Marlowe.Core.V1.Semantics.Types as Semantics (ChoiceId (ChoiceId), Contract (Close),
-                                                              Input (..), InputContent (..),
-                                                              IntervalError (IntervalInPastError, InvalidInterval),
-                                                              Party (..), Payee (Account, Party),
-                                                              State (..), Token (Token),
-                                                              getInputContent)
-import Language.Marlowe.Scripts.RolePayout (rolePayoutValidatorHash)
-import PlutusLedgerApi.V2 (Credential (..), Datum (Datum), DatumHash (DatumHash), Extended (..),
-                           Interval (..), LowerBound (..), POSIXTime (..), POSIXTimeRange,
+import PlutusBenchmark.Marlowe.Core.V1.Semantics as Semantics (MarloweData (..),
+                                                               MarloweParams (MarloweParams, rolesCurrency),
+                                                               Payment (..),
+                                                               TransactionError (TEAmbiguousTimeIntervalError, TEApplyNoMatchError, TEHashMismatch, TEIntervalError, TEUselessTransaction),
+                                                               TransactionInput (TransactionInput, txInputs, txInterval),
+                                                               TransactionOutput (Error, TransactionOutput, txOutContract, txOutPayments, txOutState),
+                                                               computeTransaction, totalBalance)
+import PlutusBenchmark.Marlowe.Core.V1.Semantics.Types as Semantics (ChoiceId (ChoiceId),
+                                                                     Contract (Close), Input (..),
+                                                                     InputContent (..),
+                                                                     IntervalError (IntervalInPastError, InvalidInterval),
+                                                                     Party (..),
+                                                                     Payee (Account, Party),
+                                                                     State (..), Token (Token),
+                                                                     getInputContent)
+import PlutusLedgerApi.V2 (Credential (..), CurrencySymbol, Datum (Datum), DatumHash (DatumHash),
+                           Extended (..), Interval (..), LowerBound (..), POSIXTime (..),
+                           POSIXTimeRange,
                            ScriptContext (ScriptContext, scriptContextPurpose, scriptContextTxInfo),
-                           ScriptHash (..), ScriptPurpose (Spending), SerialisedScript,
+                           ScriptHash (..), ScriptPurpose (Spending), SerialisedScript, TokenName,
                            TxInInfo (TxInInfo, txInInfoOutRef, txInInfoResolved),
                            TxInfo (TxInfo, txInfoInputs, txInfoOutputs, txInfoValidRange),
                            UpperBound (..), serialiseCompiledCode)
@@ -127,10 +112,25 @@ type MarloweInput = [MarloweTxInput]
 data TypedMarloweValidator
 
 
+-- | Tag for the Marlowe payout validator.
+data TypedRolePayoutValidator
+
+
 -- | A single input applied in the Marlowe semantics validator.
 data MarloweTxInput = Input InputContent
                     | MerkleizedTxInput InputContent BuiltinByteString
   deriving stock (Haskell.Show,Haskell.Eq,Generic)
+
+
+-- | The Marlowe payout validator.
+mkRolePayoutValidator :: (CurrencySymbol, TokenName)  -- ^ The datum is the currency symbol and role name for the payout.
+                      -> ()                           -- ^ No redeemer is required.
+                      -> ScriptContext                -- ^ The script context.
+                      -> Bool                         -- ^ Whether the transaction validated.
+mkRolePayoutValidator (currency, role) _ ctx =
+    -- The role token for the correct currency must be present.
+    -- [Marlowe-Cardano Specification: "17. Payment authorized".]
+    Val.singleton currency role 1 `Val.leq` valueSpent (scriptContextTxInfo ctx)
 
 
 {-# INLINABLE closeInterval #-}
@@ -270,7 +270,7 @@ mkMarloweValidator
       -> Maybe TxInInfo           -- The input for this validator, if found so far.
       -> Bool                     -- Whether no other validator has been found so far.
       -> [TxInInfo]               -- The inputs remaining to be examined.
-      -> (TxInInfo, Bool)         -- The input for this validator and whehter no other validators are present.
+      -> (TxInInfo, Bool)         -- The input for this validator and whether no other validators are present.
     -- This validator has not been found.
     examineScripts _ Nothing _ [] = traceError "x"
     -- This validator has been found, and other validators may have been found.
@@ -449,6 +449,31 @@ hashScript =
     . serialiseCompiledCode
 
 
+{-# INLINABLE rolePayoutValidator #-}
+-- | The Marlowe payout validator.
+rolePayoutValidator :: CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> ())
+rolePayoutValidator =
+  $$(PlutusTx.compile [|| rolePayoutValidator' ||])
+    where
+      rolePayoutValidator' :: BuiltinData -> BuiltinData -> BuiltinData -> ()
+      rolePayoutValidator' d r p =
+        check
+          $ mkRolePayoutValidator
+            (unsafeFromBuiltinData d)
+            (unsafeFromBuiltinData r)
+            (unsafeFromBuiltinData p)
+
+
+-- | The serialisation of the Marlowe payout validator.
+rolePayoutValidatorBytes :: SerialisedScript
+rolePayoutValidatorBytes = serialiseCompiledCode rolePayoutValidator
+
+
+-- | The hash of the Marlowe payout validator.
+rolePayoutValidatorHash :: ScriptHash
+rolePayoutValidatorHash = hashScript rolePayoutValidator
+
+
 -- | The validator for Marlowe semantics.
 marloweValidator :: CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> ())
 marloweValidator =
@@ -470,7 +495,6 @@ marloweValidator =
         Haskell.error $ "Application of role-payout validator hash to marlowe validator failed."
           <> err
       Haskell.Right applied -> applied
-
 
 -- | The serialisation of the Marlowe semantics validator.
 marloweValidatorBytes :: SerialisedScript
