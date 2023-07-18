@@ -1,7 +1,0 @@
--- \x y z -> ((\k -> x) 3)
-
-(lam
-    x
-    (con integer)
-    (lam y (con integer) (lam z (con integer) [(lam k (con integer) x) (con integer 3)]))
-)

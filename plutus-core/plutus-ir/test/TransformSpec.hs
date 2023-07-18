@@ -27,7 +27,6 @@ import PlutusIR.Transform.Beta qualified as Beta
 import PlutusIR.Transform.CommuteFnWithConst qualified as CommuteFnWithConst
 import PlutusIR.Transform.DeadCode qualified as DeadCode
 import PlutusIR.Transform.EvaluateBuiltins qualified as EvaluateBuiltins
-import PlutusIR.Transform.Inline.CallSiteInline (splitParams)
 import PlutusIR.Transform.Inline.Inline qualified as Inline
 import PlutusIR.Transform.KnownCon qualified as KnownCon
 import PlutusIR.Transform.LetFloatIn qualified as LetFloatIn
@@ -54,7 +53,6 @@ transform =
         , recSplit
         , inline
         , nameCapture
-        , computeArityTest
         , beta
         , unwrapCancel
         , deadCode
@@ -296,27 +294,6 @@ nameCapture =
         map
             (goldenPirMUnique goldenNameCapture pTerm)
             [ "nameCapture"]
-
-computeArityTest :: TestNested
-computeArityTest = testNested "computeArityTest" $
-        map
-            (goldenPir (splitParams . runQuote . PLC.rename) pTerm)
-            [ "var" -- from inline tests, testing let terms
-            , "tyvar"
-            , "single"
-            , "immediateVar"
-            -- from beta tests, testing app terms
-            , "absapp" -- type application
-            , "multiapp"
-            , "multilet"
-            , "lamAbs3" -- 3 term lambdas
-            , "lamAbsApp" -- 3 term lambdas and the function body is an application
-            , "ifError" -- more complicated body
-            , "tyAbs" -- type lambda abstraction
-            , "tyAbs2" -- 2 type lambda abstractions
-            , "tyAbs2Arrow" -- type lambda abstraction with an arrow kind
-            , "tyAbsInterleaved" -- interleaving type and term lambda abstractions
-            ]
 
 beta :: TestNested
 beta =

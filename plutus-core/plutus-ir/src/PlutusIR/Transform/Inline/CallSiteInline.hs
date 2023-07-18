@@ -54,70 +54,51 @@ not have side effects; (2) all arguments be pure, since otherwise it is unsafe t
 perform beta reduction.
 -}
 
-{- | Computes the 'Utils.Arity' of a term. Also returns the function body, for checking whether
-it's `Utils.acceptable`.
--}
-splitParams ::
-  Term tyname name uni fun ann ->
-  (Arity tyname name, Term tyname name uni fun ann)
-splitParams = \case
-  LamAbs _ n _ body ->
-    let (nextArgs, nextBody) = splitParams body in (TermParam n : nextArgs, nextBody)
-  TyAbs _ n _ body ->
-    let (nextArgs, nextBody) = splitParams body in (TypeParam n : nextArgs, nextBody)
-  -- Whenever we encounter a body that is not a lambda or type abstraction, we are done counting
-  tm -> ([], tm)
-
 {- | Apply the RHS of the given variable to the given arguments, and beta-reduce
 the application, if possible.
 -}
 applyAndBetaReduce ::
   forall tyname name uni fun ann.
   (InliningConstraints tyname name uni fun) =>
-  -- | The rhs of the variable
+  -- | The rhs of the variable, should have been renamed already
   Term tyname name uni fun ann ->
   -- | The arguments
   AppContext tyname name uni fun ann ->
   InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
 applyAndBetaReduce rhs args0 = do
-  let -- split the rhs to its lambdas and function body
-      (varArity, _rhsBody) = splitParams rhs
-      -- | Drop one term or type lambda abstraction of the given term.
+  let -- | Drop one term or type lambda abstraction of the given term.
       getFnBody :: Term tyname name uni fun ann -> Term tyname name uni fun ann
       getFnBody (LamAbs _ann _n _ty body) = body
       getFnBody (TyAbs _ann _n _kd body)  = body
       getFnBody tm                        = tm
       go ::
-        -- | The rhs of the variable
+        -- | The rhs of the variable, should have been renamed already
         Term tyname name uni fun ann ->
-        Arity tyname name ->
         AppContext tyname name uni fun ann ->
         InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
-      go acc arity args = case (arity, args) of
-        -- fully applied
-        ([], _) -> pure $ Just acc
-        (TermParam param: arity', TermAppContext arg _ args') -> do
-          safe <- safeToBetaReduce param arg acc
+      go acc args = case (acc, args) of
+        (LamAbs _ann n _ty _tm, TermAppContext arg _ args') -> do
+          safe <- safeToBetaReduce n arg acc
           if safe -- we only do substitution if it is safe to beta reduce
             then do
               acc' <- do
                 termSubstNamesM -- substitute the term param with the arg in the function body
                   -- rename before substitution to ensure global uniqueness
-                  (\n -> if n == param then Just <$> PLC.rename arg else pure Nothing)
+                  (\tmName -> if tmName == n then Just <$> PLC.rename arg else pure Nothing)
                   (getFnBody acc) -- drop the beta reduced term lambda
-              go acc' arity' args'
+              go acc' args'
             else pure Nothing
-        (TypeParam param: arity', TypeAppContext arg _ args') -> do
+        (TyAbs _ann n _kd _tm, TypeAppContext arg _ args') -> do
           acc' <-
             termSubstTyNamesM -- substitute the type param with the arg
-              (\n -> if n == param then Just <$> PLC.rename arg else pure Nothing)
+              (\tyName -> if tyName == n then Just <$> PLC.rename arg else pure Nothing)
               (getFnBody acc) -- drop the beta reduced type lambda
-          go acc' arity' args'
+          go acc' args'
         -- term/type argument mismatch, don't inline
-        (TermParam _:_, TypeAppContext{}) -> pure Nothing
-        (TypeParam _:_, TermAppContext{}) -> pure Nothing
-        -- no more arguments to apply, just apply what we have
-        (_, AppContextEnd) -> pure $ Just acc
+        (LamAbs{}, TypeAppContext{}) -> pure Nothing
+        (TyAbs{}, TermAppContext{}) -> pure Nothing
+        -- no more lambda abstraction, just return the processed application
+        (_, appCtx) -> pure . Just $ fillAppContext acc appCtx
 
       -- Is it safe to turn `(\a -> body) arg` into `body [a := arg]`?
       -- The criteria is the same as the criteria for inlining `a` in
@@ -131,7 +112,7 @@ applyAndBetaReduce rhs args0 = do
         Term tyname name uni fun ann ->
         InlineM tyname name uni fun ann Bool
       safeToBetaReduce = shouldUnconditionallyInline Strict
-  go rhs varArity args0
+  go rhs args0
 
 -- | Consider whether to inline an application.
 inlineApp ::
@@ -146,7 +127,7 @@ inlineApp t
           -- rename the rhs of the variable before any substitution
           rhs <- liftDupable (let Done rhs = varRhs varInfo in rhs)
           applyAndBetaReduce rhs args >>= \case
-            Just applied -> do
+            Just applied -> do -- there is beta reduction of the application
               let -- Inline only if the size is no bigger than not inlining.
                   sizeIsOk = termSize applied <= termSize t
                   -- The definition itself will be inlined, so we need to check that the cost
