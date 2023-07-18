@@ -1622,18 +1622,21 @@ instance Flat DefaultFun where
               Bls12_381_mulMlResult           -> 69
               Bls12_381_finalVerify           -> 70
 
-              IntegerToByteString             -> 72
-              ByteStringToInteger             -> 73
-              AndByteString                   -> 74
-              IorByteString                   -> 75
-              XorByteString                   -> 76
-              ComplementByteString            -> 77
-              ShiftByteString                 -> 78
-              RotateByteString                -> 79
-              PopCountByteString              -> 80
-              TestBitByteString               -> 81
-              WriteBitByteString              -> 82
-              FindFirstSetByteString          -> 83
+              -- 71 is reserved for Keccak_256
+              -- 72 is reserved for Blake2b_224
+
+              IntegerToByteString             -> 73
+              ByteStringToInteger             -> 74
+              AndByteString                   -> 75
+              IorByteString                   -> 76
+              XorByteString                   -> 77
+              ComplementByteString            -> 78
+              ShiftByteString                 -> 79
+              RotateByteString                -> 90
+              PopCountByteString              -> 81
+              TestBitByteString               -> 82
+              WriteBitByteString              -> 83
+              FindFirstSetByteString          -> 84
 
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
@@ -1707,19 +1710,20 @@ instance Flat DefaultFun where
               go 68 = pure Bls12_381_millerLoop
               go 69 = pure Bls12_381_mulMlResult
               go 70 = pure Bls12_381_finalVerify
-              go 71 = fail "Reserved"
-              go 72 = pure IntegerToByteString
-              go 73 = pure ByteStringToInteger
-              go 74 = pure AndByteString
-              go 75 = pure IorByteString
-              go 76 = pure XorByteString
-              go 77 = pure ComplementByteString
-              go 78 = pure ShiftByteString
-              go 79 = pure RotateByteString
-              go 80 = pure PopCountByteString
-              go 81 = pure TestBitByteString
-              go 82 = pure WriteBitByteString
-              go 83 = pure FindFirstSetByteString
+              go 71 = fail "Reserved for Keccak_256"
+              go 72 = fail "Reserved for Blake2b_224"
+              go 73 = pure IntegerToByteString
+              go 74 = pure ByteStringToInteger
+              go 75 = pure AndByteString
+              go 76 = pure IorByteString
+              go 77 = pure XorByteString
+              go 78 = pure ComplementByteString
+              go 79 = pure ShiftByteString
+              go 80 = pure RotateByteString
+              go 81 = pure PopCountByteString
+              go 82 = pure TestBitByteString
+              go 83 = pure WriteBitByteString
+              go 84 = pure FindFirstSetByteString
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth
