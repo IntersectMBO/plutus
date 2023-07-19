@@ -1495,27 +1495,49 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                 Nothing -> fail "negative integer passed to integerByteString"
           {-# INLINE integerToByteStringPlc #-}
     toBuiltinMeaning _ver ByteStringToInteger =
-        makeBuiltinMeaning byteStringToInteger (\_ _  -> ExBudgetLast $ ExBudget 0 0)
+        makeBuiltinMeaning
+            byteStringToInteger
+            (runCostingFunOneArgument . paramByteStringToInteger)
     toBuiltinMeaning _ver AndByteString =
-        makeBuiltinMeaning andByteString (\_ _ _ -> ExBudgetLast $ ExBudget 0 0)
+        makeBuiltinMeaning
+            andByteString
+            (runCostingFunTwoArguments . paramAndByteString)
     toBuiltinMeaning _ver IorByteString =
-        makeBuiltinMeaning iorByteString (\_ _ _ -> ExBudgetLast $ ExBudget 0 0)
+        makeBuiltinMeaning
+            iorByteString
+            (runCostingFunTwoArguments . paramIorByteString)
     toBuiltinMeaning _ver XorByteString =
-        makeBuiltinMeaning xorByteString (\_ _ _ -> ExBudgetLast $ ExBudget 0 0)
+        makeBuiltinMeaning
+            xorByteString
+            (runCostingFunTwoArguments . paramXorByteString)
     toBuiltinMeaning _ver ComplementByteString =
-        makeBuiltinMeaning complementByteString (\_ _ -> ExBudgetLast $ ExBudget 0 0)
+        makeBuiltinMeaning
+            complementByteString
+            (runCostingFunOneArgument . paramComplementByteString)
     toBuiltinMeaning _ver ShiftByteString =
-        makeBuiltinMeaning shiftByteString (\_ _ _ -> ExBudgetLast $ ExBudget 0 0)
+        makeBuiltinMeaning
+            shiftByteString
+            (runCostingFunTwoArguments . paramShiftByteString)
     toBuiltinMeaning _ver RotateByteString =
-        makeBuiltinMeaning rotateByteString (\_ _ _ -> ExBudgetLast $ ExBudget 0 0)
+        makeBuiltinMeaning
+            rotateByteString
+            (runCostingFunTwoArguments . paramRotateByteString)
     toBuiltinMeaning _ver PopCountByteString =
-        makeBuiltinMeaning popCountByteString (\_ _ -> ExBudgetLast $ ExBudget 0 0)
+        makeBuiltinMeaning
+            popCountByteString
+            (runCostingFunOneArgument . paramPopCountByteString)
     toBuiltinMeaning _ver TestBitByteString =
-        makeBuiltinMeaning testBitByteString (\_ _ _ -> ExBudgetLast $ ExBudget 0 0)
+        makeBuiltinMeaning
+            testBitByteString
+            (runCostingFunTwoArguments . paramTestBitByteString)
     toBuiltinMeaning _ver WriteBitByteString =
-        makeBuiltinMeaning writeBitByteString (\_ _ _ _ -> ExBudgetLast $ ExBudget 0 0)
+        makeBuiltinMeaning
+            writeBitByteString
+            (runCostingFunThreeArguments . paramWriteBitByteString)
     toBuiltinMeaning _ver FindFirstSetByteString =
-        makeBuiltinMeaning findFirstSetByteString (\_ _ -> ExBudgetLast $ ExBudget 0 0)
+        makeBuiltinMeaning
+            findFirstSetByteString
+            (runCostingFunOneArgument . paramFindFirstSetByteString)
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}
 
