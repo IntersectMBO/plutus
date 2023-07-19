@@ -35,9 +35,6 @@ letrec
             (\(x : a) (xs : List a) -> /\dead -> f x (foldr {a} {b} f acc xs))
             {all dead. dead}
 in
-let
-  !id : all a. a -> a = /\a -> \(x : a) -> x
-in
 letrec
   !`$fShowBuiltinByteString_$cshowsPrec` :
      integer -> integer -> List string -> List string
@@ -67,125 +64,111 @@ letrec
                  (eta : List string) ->
                   Cons
                     {string}
-                    (let
-                      !b : bool = equalsInteger 0 digit
-                    in
-                    Bool_match
-                      (ifThenElse {Bool} b True False)
-                      {all dead. string}
-                      (/\dead -> "0")
-                      (/\dead ->
-                         let
-                           !b : bool = equalsInteger 1 digit
-                         in
-                         Bool_match
-                           (ifThenElse {Bool} b True False)
-                           {all dead. string}
-                           (/\dead -> "1")
-                           (/\dead ->
-                              let
-                                !b : bool = equalsInteger 2 digit
-                              in
-                              Bool_match
-                                (ifThenElse {Bool} b True False)
-                                {all dead. string}
-                                (/\dead -> "2")
-                                (/\dead ->
-                                   let
-                                     !b : bool = equalsInteger 3 digit
-                                   in
-                                   Bool_match
-                                     (ifThenElse {Bool} b True False)
-                                     {all dead. string}
-                                     (/\dead -> "3")
-                                     (/\dead ->
-                                        let
-                                          !b : bool = equalsInteger 4 digit
-                                        in
-                                        Bool_match
-                                          (ifThenElse {Bool} b True False)
-                                          {all dead. string}
-                                          (/\dead -> "4")
-                                          (/\dead ->
-                                             let
-                                               !b : bool = equalsInteger 5 digit
-                                             in
-                                             Bool_match
-                                               (ifThenElse {Bool} b True False)
-                                               {all dead. string}
-                                               (/\dead -> "5")
-                                               (/\dead ->
-                                                  let
-                                                    !b : bool
-                                                      = equalsInteger 6 digit
-                                                  in
-                                                  Bool_match
-                                                    (ifThenElse
-                                                       {Bool}
-                                                       b
-                                                       True
-                                                       False)
-                                                    {all dead. string}
-                                                    (/\dead -> "6")
-                                                    (/\dead ->
-                                                       let
-                                                         !b : bool
-                                                           = equalsInteger
-                                                               7
-                                                               digit
-                                                       in
-                                                       Bool_match
-                                                         (ifThenElse
-                                                            {Bool}
-                                                            b
-                                                            True
-                                                            False)
-                                                         {all dead. string}
-                                                         (/\dead -> "7")
-                                                         (/\dead ->
-                                                            let
-                                                              !b : bool
-                                                                = equalsInteger
-                                                                    8
-                                                                    digit
-                                                            in
-                                                            Bool_match
-                                                              (ifThenElse
-                                                                 {Bool}
-                                                                 b
-                                                                 True
-                                                                 False)
-                                                              {all dead. string}
-                                                              (/\dead -> "8")
-                                                              (/\dead ->
-                                                                 let
-                                                                   !b :
-                                                                      bool
-                                                                     = equalsInteger
-                                                                         9
-                                                                         digit
-                                                                 in
-                                                                 Bool_match
-                                                                   (ifThenElse
-                                                                      {Bool}
-                                                                      b
-                                                                      True
-                                                                      False)
-                                                                   {string}
-                                                                   "9"
-                                                                   "<invalid digit>")
-                                                              {all dead. dead})
-                                                         {all dead. dead})
-                                                    {all dead. dead})
-                                               {all dead. dead})
-                                          {all dead. dead})
-                                     {all dead. dead})
-                                {all dead. dead})
-                           {all dead. dead})
-                      {all dead. dead})
-                    (acc eta))
-               (id {List string})
-               (go (Nil {integer}) n))
+                    (Bool_match
+                       (ifThenElse {Bool} (equalsInteger 0 digit) True False)
+                       {all dead. string}
+                       (/\dead -> "0")
+                       (/\dead ->
+                          Bool_match
+                            (ifThenElse
+                               {Bool}
+                               (equalsInteger 1 digit)
+                               True
+                               False)
+                            {all dead. string}
+                            (/\dead -> "1")
+                            (/\dead ->
+                               Bool_match
+                                 (ifThenElse
+                                    {Bool}
+                                    (equalsInteger 2 digit)
+                                    True
+                                    False)
+                                 {all dead. string}
+                                 (/\dead -> "2")
+                                 (/\dead ->
+                                    Bool_match
+                                      (ifThenElse
+                                         {Bool}
+                                         (equalsInteger 3 digit)
+                                         True
+                                         False)
+                                      {all dead. string}
+                                      (/\dead -> "3")
+                                      (/\dead ->
+                                         Bool_match
+                                           (ifThenElse
+                                              {Bool}
+                                              (equalsInteger 4 digit)
+                                              True
+                                              False)
+                                           {all dead. string}
+                                           (/\dead -> "4")
+                                           (/\dead ->
+                                              Bool_match
+                                                (ifThenElse
+                                                   {Bool}
+                                                   (equalsInteger 5 digit)
+                                                   True
+                                                   False)
+                                                {all dead. string}
+                                                (/\dead -> "5")
+                                                (/\dead ->
+                                                   Bool_match
+                                                     (ifThenElse
+                                                        {Bool}
+                                                        (equalsInteger 6 digit)
+                                                        True
+                                                        False)
+                                                     {all dead. string}
+                                                     (/\dead -> "6")
+                                                     (/\dead ->
+                                                        Bool_match
+                                                          (ifThenElse
+                                                             {Bool}
+                                                             (equalsInteger
+                                                                7
+                                                                digit)
+                                                             True
+                                                             False)
+                                                          {all dead. string}
+                                                          (/\dead -> "7")
+                                                          (/\dead ->
+                                                             Bool_match
+                                                               (ifThenElse
+                                                                  {Bool}
+                                                                  (equalsInteger
+                                                                     8
+                                                                     digit)
+                                                                  True
+                                                                  False)
+                                                               {all dead.
+                                                                  string}
+                                                               (/\dead -> "8")
+                                                               (/\dead ->
+                                                                  Bool_match
+                                                                    (ifThenElse
+                                                                       {Bool}
+                                                                       (equalsInteger
+                                                                          9
+                                                                          digit)
+                                                                       True
+                                                                       False)
+                                                                    {string}
+                                                                    "9"
+                                                                    "<invalid digit>")
+                                                               {all dead. dead})
+                                                          {all dead. dead})
+                                                     {all dead. dead})
+                                                {all dead. dead})
+                                           {all dead. dead})
+                                      {all dead. dead})
+                                 {all dead. dead})
+                            {all dead. dead})
+                       {all dead. dead})
+                    (acc x))
+               (\(x : List string) -> x)
+               (go (Nil {integer}) w))
           {all dead. dead}
 in
 let
@@ -415,29 +398,19 @@ let
     = trace
         {integer}
         (concatBuiltinStrings
-           ((let
-                !len : integer = lengthOfByteString s
-              in
-              foldr
-                {integer}
-                {List string -> List string}
-                (\(i : integer)
-                  (acc : List string -> List string)
-                  (eta : List string) ->
-                   (let
-                       !x : integer = indexByteString s i
-                     in
-                     \(eta : List string) ->
-                       let
-                         !f : List string -> List string
-                           = toHex (divideInteger x 16)
-                         !g : List string -> List string
-                           = toHex (modInteger x 16)
-                       in
-                       f (g eta))
-                     (acc eta))
-                (id {List string})
-                (`$fEnumBool_$cenumFromTo` 0 (subtractInteger len 1)))
+           (foldr
+              {integer}
+              {List string -> List string}
+              (\(i : integer) ->
+                 let
+                   ~x : integer = indexByteString w i
+                 in
+                 \(acc : List string -> List string) (x : List string) ->
+                   toHex (divideInteger x 16) (toHex (modInteger x 16) (acc x)))
+              (\(x : List string) -> x)
+              (`$fEnumBool_$cenumFromTo`
+                 0
+                 (subtractInteger (lengthOfByteString w) 1))
               (Nil {string})))
         a
   !d : integer
@@ -482,9 +455,9 @@ let
                           {List string -> List string}
                           (\(a : integer)
                             (acc : List string -> List string)
-                            (eta : List string) ->
-                             Cons {string} "," (showElem a (acc eta)))
-                          (id {List string})
+                            (x : List string) ->
+                             Cons {string} "," (showElem a (acc x)))
+                          (\(x : List string) -> x)
                           xs
                           (Cons {string} "]" eta)))))
              (Nil {string})))
