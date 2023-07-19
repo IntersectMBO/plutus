@@ -99,4 +99,54 @@ Groth16 verification example
   ----------------------------------------------------------------------
     -     772   (4.7%)      2316102514  (23.2%)           10004   (0.1%) 
 
+VRF example
+
+    n     Script size             CPU usage               Memory usage
+  ----------------------------------------------------------------------
+    -     783   (4.8%)      1547576705  (15.5%)          400191   (2.9%) 
+
+G1 Verify
+
+    n     Script size             CPU usage               Memory usage
+  ----------------------------------------------------------------------
+    -     320   (2.0%)      1448297500  (14.5%)            4336   (0.0%) 
+
+G2 Verify
+
+    n     Script size             CPU usage               Memory usage
+  ----------------------------------------------------------------------
+    -     368   (2.2%)      1310050206  (13.1%)            4318   (0.0%) 
+
+Aggregate Single Key
+
+    n     Script size             CPU usage               Memory usage
+  ----------------------------------------------------------------------
+    -     785   (4.8%)      3330204083  (33.3%)           86784   (0.6%) 
+
+Aggregate Multi Key
+
+    n     Script size             CPU usage               Memory usage
+  ----------------------------------------------------------------------
+    -    1747  (10.7%)      4937875359  (49.4%)         1432278  (10.2%) 
+
+Schnorr Signature G1
+
+    n     Script size             CPU usage               Memory usage
+  ----------------------------------------------------------------------
+    -     439   (2.7%)       713827080   (7.1%)          652662   (4.7%) 
+
+Schnorr Signature G2
+
+    n     Script size             CPU usage               Memory usage
+  ----------------------------------------------------------------------
+    -     583   (3.6%)      1167036839  (11.7%)          652908   (4.7%) 
+
 Groth16Verify succeeded
+Simple Verify succeeded
+VRF succeeded
+G1 Verify succeeded
+G2 Verify succeeded
+Aggregate Signature Single Key G1 Verify succeeded
+Aggregate Signature Multi Key G2 Verify succeeded
+Schnorr G1 Verify succeeded
+Schnorr G2 Verify succeeded
