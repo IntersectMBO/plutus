@@ -2,9 +2,7 @@
 funApp gets inlined because it only occurs once.
 k should not get inlined by the unconditional inline optimization because it occurs more
 than once.
-Both instances of k should get inlined by the optimization that inlines fully applied functions 
-because it is fully applied.
-The first instance of k being inlined verifies that an over-applied function still gets inline.
+Both instances of k should get inlined by the callsite inliner.
 
 let 
     idFun :: Integer -> Integer

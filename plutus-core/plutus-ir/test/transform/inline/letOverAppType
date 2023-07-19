@@ -2,10 +2,10 @@
 funApp gets inlined because it only occurs once.
 k should not get inlined by the unconditional inline optimization because it occurs more
 than once.
-Both instances of k should get inlined by the optimization that inlines fully applied functions 
-because it is fully applied.
-The first instance of k being inlined verifies that an over-applied function still gets inline with
-type applications.
+Both instances of k should get inlined.
+The first instance of k being inlined verifies that the inliner works with type applications.
+
+We have a [tmArg, tmArg, tyArg, tyArg] applying to k's which requires [ty,tm]. 
 
 let 
     idFun :: forall a . a -> a

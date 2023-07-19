@@ -1,7 +1,7 @@
 {- 
 Multiple occurrences of a let binding that is a function application (funApp). It should not get 
-inlined by the unconditional inlining optimization. The optimization that inlines fully
-applied function should also not inline funApp, even though it is fully applied.
+inlined by the unconditional inlining optimization. The callsite inliner should also not inline 
+funApp.
 Because it is an application, so it's not acceptable in terms of both cost and size. This test
 verifies that the cost and size heuristics are checked.
 

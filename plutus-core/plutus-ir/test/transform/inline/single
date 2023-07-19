@@ -7,8 +7,7 @@
 
 - the `f` in `simple`, `insideLambda`, `variableCapture` get inlined by unconditional inlining 
 because it occurs only once in those.
-- the `f` in `trivialLambda` gets inlined by the call site inliner because `f` occurs more than once
-and is fully applied.
+- the `f` in `trivialLambda` gets inlined by the call site inliner as it occurs more than once
 -}
 
 (let

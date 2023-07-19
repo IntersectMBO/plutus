@@ -316,8 +316,6 @@ There are two easy cases:
 After that it gets more difficult. As soon as we're inlining things that are not variable-sized
 and are used more than once, we are at risk of doing more work or making things bigger.
 
-There are a few things we could do to do this in a more principled way, such as call-site inlining
-based on whether a function is fully applied.
 -}
 
 -- See Note [Inlining criteria]

@@ -3,7 +3,7 @@ let f :: (Integer -> Integer) -> (Integer -> Integer -> Integer) -> Integer -> I
     f unused a b = a b (1 + 2 + 3 + 4)
  in f (\unused -> 5) (+) 6 + f (\unused -> 7 + 8 + 9 + 10) (+) 11
 
-Both occurrences of `f` are fully applied, but only the second occurrence should be
+Only the second occurrence of f should be
 inlined, because inlining the first occurrence increases the program size:
 size ((+) 6 (1 + 2 + 3 + 4)) > size (f (\unused -> 5) (+) 6)
 -}
