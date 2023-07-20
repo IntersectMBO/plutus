@@ -1413,73 +1413,73 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (\() -> [] @(Data,Data))
             (runCostingFunOneArgument . paramMkNilPairData)
     -- BLS12_381.G1
-    toBuiltinMeaning _var Bls12_381_G1_add =
+    toBuiltinMeaning _ver Bls12_381_G1_add =
         makeBuiltinMeaning
             BLS12_381.G1.add
             (runCostingFunTwoArguments . paramBls12_381_G1_add)
-    toBuiltinMeaning _var Bls12_381_G1_neg =
+    toBuiltinMeaning _ver Bls12_381_G1_neg =
         makeBuiltinMeaning
             BLS12_381.G1.neg
             (runCostingFunOneArgument . paramBls12_381_G1_neg)
-    toBuiltinMeaning _var Bls12_381_G1_scalarMul =
+    toBuiltinMeaning _ver Bls12_381_G1_scalarMul =
         makeBuiltinMeaning
             BLS12_381.G1.scalarMul
             (runCostingFunTwoArguments . paramBls12_381_G1_scalarMul)
-    toBuiltinMeaning _var Bls12_381_G1_compress =
+    toBuiltinMeaning _ver Bls12_381_G1_compress =
         makeBuiltinMeaning
             BLS12_381.G1.compress
             (runCostingFunOneArgument . paramBls12_381_G1_compress)
-    toBuiltinMeaning _var Bls12_381_G1_uncompress =
+    toBuiltinMeaning _ver Bls12_381_G1_uncompress =
         makeBuiltinMeaning
             (eitherToEmitter . BLS12_381.G1.uncompress)
             (runCostingFunOneArgument . paramBls12_381_G1_uncompress)
-    toBuiltinMeaning _var Bls12_381_G1_hashToGroup =
+    toBuiltinMeaning _ver Bls12_381_G1_hashToGroup =
         makeBuiltinMeaning
             (eitherToEmitter .* BLS12_381.G1.hashToGroup)
             (runCostingFunTwoArguments . paramBls12_381_G1_hashToGroup)
-    toBuiltinMeaning _var Bls12_381_G1_equal =
+    toBuiltinMeaning _ver Bls12_381_G1_equal =
         makeBuiltinMeaning
             ((==) @BLS12_381.G1.Element)
             (runCostingFunTwoArguments . paramBls12_381_G1_equal)
     -- BLS12_381.G2
-    toBuiltinMeaning _var Bls12_381_G2_add =
+    toBuiltinMeaning _ver Bls12_381_G2_add =
         makeBuiltinMeaning
             BLS12_381.G2.add
             (runCostingFunTwoArguments . paramBls12_381_G2_add)
-    toBuiltinMeaning _var Bls12_381_G2_neg =
+    toBuiltinMeaning _ver Bls12_381_G2_neg =
         makeBuiltinMeaning
             BLS12_381.G2.neg
             (runCostingFunOneArgument . paramBls12_381_G2_neg)
-    toBuiltinMeaning _var Bls12_381_G2_scalarMul =
+    toBuiltinMeaning _ver Bls12_381_G2_scalarMul =
         makeBuiltinMeaning
             BLS12_381.G2.scalarMul
             (runCostingFunTwoArguments . paramBls12_381_G2_scalarMul)
-    toBuiltinMeaning _var Bls12_381_G2_compress =
+    toBuiltinMeaning _ver Bls12_381_G2_compress =
         makeBuiltinMeaning
             BLS12_381.G2.compress
             (runCostingFunOneArgument . paramBls12_381_G2_compress)
-    toBuiltinMeaning _var Bls12_381_G2_uncompress =
+    toBuiltinMeaning _ver Bls12_381_G2_uncompress =
         makeBuiltinMeaning
             (eitherToEmitter . BLS12_381.G2.uncompress)
             (runCostingFunOneArgument . paramBls12_381_G2_uncompress)
-    toBuiltinMeaning _var Bls12_381_G2_hashToGroup =
+    toBuiltinMeaning _ver Bls12_381_G2_hashToGroup =
         makeBuiltinMeaning
             (eitherToEmitter .* BLS12_381.G2.hashToGroup)
             (runCostingFunTwoArguments . paramBls12_381_G2_hashToGroup)
-    toBuiltinMeaning _var Bls12_381_G2_equal =
+    toBuiltinMeaning _ver Bls12_381_G2_equal =
         makeBuiltinMeaning
             ((==) @BLS12_381.G2.Element)
             (runCostingFunTwoArguments . paramBls12_381_G2_equal)
     -- BLS12_381.Pairing
-    toBuiltinMeaning _var Bls12_381_millerLoop =
+    toBuiltinMeaning _ver Bls12_381_millerLoop =
         makeBuiltinMeaning
             BLS12_381.Pairing.millerLoop
             (runCostingFunTwoArguments . paramBls12_381_millerLoop)
-    toBuiltinMeaning _var Bls12_381_mulMlResult =
+    toBuiltinMeaning _ver Bls12_381_mulMlResult =
         makeBuiltinMeaning
             BLS12_381.Pairing.mulMlResult
             (runCostingFunTwoArguments . paramBls12_381_mulMlResult)
-    toBuiltinMeaning _var Bls12_381_finalVerify =
+    toBuiltinMeaning _ver Bls12_381_finalVerify =
         makeBuiltinMeaning
             BLS12_381.Pairing.finalVerify
             (runCostingFunTwoArguments . paramBls12_381_finalVerify)
