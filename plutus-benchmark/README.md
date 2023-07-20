@@ -45,7 +45,7 @@ See also [validation/README.md](./validation/README.md).
 
 * `lists`: some simple algorithms on lists.  See [lists/README.md](./lists/README.md) for more information.
 
-* `marlowe`(TODO): 
+* `marlowe`: 
 
    * The source for a minimal version of the Marlowe validators is in `marlowe/src`.
    * There is an executable in `marlowe/exe` which can be used to run benchmarks for a set of scripts.

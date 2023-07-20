@@ -20,7 +20,6 @@ module PlutusLedgerApi.Common.Eval
     , assertWellFormedCostModelParams
     ) where
 
-import Control.Lens
 import PlutusCore
 import PlutusCore.Data as Plutus
 import PlutusCore.Default
@@ -36,9 +35,12 @@ import PlutusPrelude
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
-
-import Control.Monad.Except
-import Control.Monad.Writer
+import Control.Lens
+import Control.Monad (unless)
+import Control.Monad.Error.Lens
+import Control.Monad.Except (MonadError (..), liftEither, runExceptT)
+import Control.Monad.Writer (MonadWriter (..), runWriter)
+import Data.Set as Set
 import Data.Text as Text
 import Data.Tuple
 import NoThunks.Class
@@ -93,9 +95,13 @@ mkTermToEvaluate
     -> m (UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ())
 mkTermToEvaluate lv pv bs args = do
     -- It decodes the program through the optimized ScriptForExecution. See `ScriptForExecution`.
-    ScriptForExecution (UPLC.Program _ _ t) <- fromSerialisedScript lv pv bs
+    ScriptForExecution (UPLC.Program _ v t) <- fromSerialisedScript lv pv bs
     let termArgs = fmap (UPLC.mkConstant ()) args
         appliedT = UPLC.mkIterAppNoAnn t termArgs
+
+    -- check that the Plutus Core language version is available
+    -- See Note [Checking the Plutus Core language version]
+    unless (v `Set.member` plcVersionsAvailableIn lv pv) $ throwing _ScriptDecodeError $ PlutusCoreLanguageNotAvailableError v pv
 
     -- make sure that term is closed, i.e. well-scoped
     through (liftEither . first DeBruijnError . UPLC.checkScope) appliedT
@@ -201,3 +207,10 @@ evaluateScriptCounting lv pv verbose ectx p args = swap $ runWriter @LogOutput $
     tell logs
     liftEither $ first CekError $ void res
     pure final
+
+{- Note [Checking the Plutus Core language version]
+Since long ago this check has been in `mkTermToEvaluate`, which makes it a phase 2 failure.
+But this is really far too strict: we can check when deserializing, so it can be a phase 1
+failure, like the other such checks that we have. For now we keep it as it is, but we may
+try to move it later.
+-}
