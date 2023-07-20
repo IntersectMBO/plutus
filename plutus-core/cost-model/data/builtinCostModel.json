@@ -60,8 +60,8 @@
     "blake2b_224": {
         "cpu": {
             "arguments": {
-                "intercept": 9999999999,
-                "slope": 9999999999
+                "intercept": 117366,
+                "slope": 10475
             },
             "type": "linear_cost"
         },
@@ -483,8 +483,8 @@
     "keccak_256": {
         "cpu": {
             "arguments": {
-                "intercept": 9999999999,
-                "slope": 9999999999
+                "intercept": 1927926,
+                "slope": 82523
             },
             "type": "linear_cost"
         },
