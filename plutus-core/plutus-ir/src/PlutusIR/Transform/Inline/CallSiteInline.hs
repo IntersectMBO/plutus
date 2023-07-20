@@ -66,18 +66,13 @@ applyAndBetaReduce ::
   AppContext tyname name uni fun ann ->
   InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
 applyAndBetaReduce rhs args0 = do
-  let -- | Drop one term or type lambda abstraction of the given term.
-      getFnBody :: Term tyname name uni fun ann -> Term tyname name uni fun ann
-      getFnBody (LamAbs _ann _n _ty body) = body
-      getFnBody (TyAbs _ann _n _kd body)  = body
-      getFnBody tm                        = tm
-      go ::
+  let go ::
         -- | The rhs of the variable, should have been renamed already
         Term tyname name uni fun ann ->
         AppContext tyname name uni fun ann ->
         InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
       go acc args = case (acc, args) of
-        (LamAbs _ann n _ty _tm, TermAppContext arg _ args') -> do
+        (LamAbs _ann n _ty tm, TermAppContext arg _ args') -> do
           safe <- safeToBetaReduce n arg acc
           if safe -- we only do substitution if it is safe to beta reduce
             then do
@@ -85,14 +80,14 @@ applyAndBetaReduce rhs args0 = do
                 termSubstNamesM -- substitute the term param with the arg in the function body
                   -- rename before substitution to ensure global uniqueness
                   (\tmName -> if tmName == n then Just <$> PLC.rename arg else pure Nothing)
-                  (getFnBody acc) -- drop the beta reduced term lambda
+                  tm -- drop the beta reduced term lambda
               go acc' args'
             else pure Nothing
-        (TyAbs _ann n _kd _tm, TypeAppContext arg _ args') -> do
+        (TyAbs _ann n _kd tm, TypeAppContext arg _ args') -> do
           acc' <-
             termSubstTyNamesM -- substitute the type param with the arg
               (\tyName -> if tyName == n then Just <$> PLC.rename arg else pure Nothing)
-              (getFnBody acc) -- drop the beta reduced type lambda
+              tm -- drop the beta reduced type lambda
           go acc' args'
         -- term/type argument mismatch, don't inline
         (LamAbs{}, TypeAppContext{}) -> pure Nothing
