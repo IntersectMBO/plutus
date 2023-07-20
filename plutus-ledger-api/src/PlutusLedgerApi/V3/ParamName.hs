@@ -232,5 +232,11 @@ data ParamName =
   | Bls12_381_millerLoop'memory'arguments
   | Bls12_381_mulMlResult'cpu'arguments
   | Bls12_381_mulMlResult'memory'arguments
+  | Keccak_256'cpu'arguments'intercept
+  | Keccak_256'cpu'arguments'slope
+  | Keccak_256'memory'arguments
+  | Blake2b_224'cpu'arguments'intercept
+  | Blake2b_224'cpu'arguments'slope
+  | Blake2b_224'memory'arguments
     deriving stock (Eq, Ord, Enum, Ix, Bounded, Generic)
     deriving IsParamName via (GenericParamName ParamName)
