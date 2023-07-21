@@ -38,12 +38,6 @@ errorScript = serialiseUPLC $ UPLC.Program () PLC.plcVersion100 $ UPLC.Error ()
 v110script :: SerialisedScript
 v110script = serialiseUPLC $ UPLC.Program () PLC.plcVersion110 $ UPLC.Constr () 0 []
 
-badConstrScript :: SerialisedScript
-badConstrScript = serialiseUPLC $ UPLC.Program () PLC.plcVersion100 $ UPLC.Constr () 0 []
-
-badCaseScript :: SerialisedScript
-badCaseScript = serialiseUPLC $ UPLC.Program () PLC.plcVersion100 $ UPLC.Case () (UPLC.Error ()) []
-
 tests :: TestTree
 tests = testGroup "versions"
     [ testLedgerLanguages
