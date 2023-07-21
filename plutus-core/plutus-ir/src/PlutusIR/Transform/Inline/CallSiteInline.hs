@@ -72,7 +72,7 @@ applyAndBetaReduce rhs args0 = do
         AppContext tyname name uni fun ann ->
         InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
       go acc args = case (acc, args) of
-        (LamAbs _ann n _ty tm, TermAppContext arg _ args') -> do
+        (LamAbs _ann n _ty tm, appCtx@(TermAppContext arg _ args')) -> do
           safe <- safeToBetaReduce n arg acc
           if safe -- we only do substitution if it is safe to beta reduce
             then do
@@ -82,7 +82,8 @@ applyAndBetaReduce rhs args0 = do
                   (\tmName -> if tmName == n then Just <$> PLC.rename arg else pure Nothing)
                   tm -- drop the beta reduced term lambda
               go acc' args'
-            else pure Nothing
+            -- if it is not safe to beta reduce, just return the processed application
+            else pure . Just $ fillAppContext acc appCtx
         (TyAbs _ann n _kd tm, TypeAppContext arg _ args') -> do
           acc' <-
             termSubstTyNamesM -- substitute the type param with the arg
