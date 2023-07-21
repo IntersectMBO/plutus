@@ -24,7 +24,7 @@ sha2_256 = digest (Proxy @SHA256)
 sha3_256 :: BS.ByteString -> BS.ByteString
 sha3_256 = digest (Proxy @SHA3_256)
 
--- | Hash a [[BSL.ByteString]] using the Blake2B-256 hash function.
+-- | Hash a [[BSL.ByteString]] using the Blake2B-224 hash function.
 blake2b_224 :: BS.ByteString -> BS.ByteString
 blake2b_224 = digest (Proxy @Blake2b_224)
 
