@@ -1,4 +1,16 @@
 
+<a id='changelog-1.9.0.0'></a>
+# 1.9.0.0 — 2023-07-21
+
+## Changed
+
+- Flat serialization&deserialization of DeBruijn indices go directly via Word64,
+instead of the previous indirection via Natural.
+
+## Fixed
+
+- The `FakeNamedDeBruijn`'s `encode`&`size` methods  are fixed to roundtrip its flat format
+
 <a id='changelog-1.8.0.0'></a>
 # 1.8.0.0 — 2023-06-22
 
