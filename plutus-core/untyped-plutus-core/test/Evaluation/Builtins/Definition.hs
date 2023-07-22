@@ -646,7 +646,7 @@ test_HashSize hashFun expectedNumBits =
     in testPropertyNamed
        testName
        propName
-       .  property $ do
+       . property $ do
          bs <- forAll $ Gen.bytes (Range.linear 0 1000)
          let term = mkIterAppNoAnn (builtin () MultiplyInteger)
                     [ cons @Integer 8
