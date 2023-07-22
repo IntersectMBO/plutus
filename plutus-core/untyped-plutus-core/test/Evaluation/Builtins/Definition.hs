@@ -650,9 +650,8 @@ test_HashSize hashFun expectedNumBits =
          bs <- forAll $ Gen.bytes (Range.linear 0 1000)
          let term = mkIterAppNoAnn (builtin () MultiplyInteger)
                     [ cons @Integer 8
-                    , mkIterAppNoAnn (builtin () LengthOfByteString) [
-                           mkIterAppNoAnn (builtin () hashFun) [cons @ByteString bs]
-                          ]
+                    , mkIterAppNoAnn (builtin () LengthOfByteString)
+                          [mkIterAppNoAnn (builtin () hashFun) [cons @ByteString bs]]
                     ]
          typecheckEvaluateCekNoEmit def defaultBuiltinCostModel term === Right (EvaluationSuccess (cons @Integer expectedNumBits))
 
