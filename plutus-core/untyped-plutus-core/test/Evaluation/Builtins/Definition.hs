@@ -48,6 +48,7 @@ import Control.Exception
 import Data.ByteString (ByteString)
 import Data.DList qualified as DList
 import Data.Proxy
+import Data.String (fromString)
 import Data.Text (Text)
 import Hedgehog hiding (Opaque, Size, Var)
 import Hedgehog.Gen qualified as Gen
@@ -637,6 +638,33 @@ test_Crypto = testCase "Crypto" $ do
     evals @ByteString "G\ETB2\133\168\215\&4\RS^\151/\198w(c\132\248\STX\248\239B\165\236_\ETX\187\250%L\176\US\173"
         Keccak_256 [cons @ByteString "hello world"]
 
+test_HashSize :: DefaultFun -> Integer -> TestTree
+test_HashSize hashFun expectedNumBits =
+    let testName = "HashSize " ++ show hashFun ++ " is " ++ show expectedNumBits ++ " bits"
+        propName = fromString $ "HashSize " ++ show hashFun
+    in testPropertyNamed
+       testName
+       propName
+       .  property $ do
+         bs <- forAll $ Gen.bytes (Range.linear 0 1000)
+         let term = mkIterAppNoAnn (builtin () MultiplyInteger)
+                    [ cons @Integer 8
+                    , mkIterAppNoAnn (builtin () LengthOfByteString) [
+                           mkIterAppNoAnn (builtin () hashFun) [cons @ByteString bs]
+                          ]
+                    ]
+         typecheckEvaluateCekNoEmit def defaultBuiltinCostModel term === Right (EvaluationSuccess (cons @Integer expectedNumBits))
+
+test_HashSizes :: TestTree
+test_HashSizes =
+    testGroup "Hash sizes"
+        [ test_HashSize Sha2_256    256
+        , test_HashSize Sha3_256    256
+        , test_HashSize Blake2b_256 256
+        , test_HashSize Keccak_256  256
+        , test_HashSize Blake2b_224 224
+        ]
+
 -- Test all remaining builtins of the default universe
 test_Other :: TestTree
 test_Other = testCase "Other" $ do
@@ -699,8 +727,8 @@ test_SignatureVerification =
         testGroup "Ed25519 signatures (V1)"
                       [ testPropertyNamed
                         "Ed25519_V1 verification behaves correctly on all inputs"
-                        "ed25519_V1_correct" .
-                        property $ ed25519_V1Prop
+                        "ed25519_V1_correct"
+                        . property $ ed25519_V1Prop
                       ],
         testGroup "Ed25519 signatures (V2)"
                       [ testPropertyNamed
@@ -747,6 +775,7 @@ test_definition =
         , test_List
         , test_Data
         , test_Crypto
+        , test_HashSizes
         , test_SignatureVerification
         , test_BLS12_381
         , test_Other
