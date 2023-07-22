@@ -638,6 +638,7 @@ test_Crypto = testCase "Crypto" $ do
     evals @ByteString "G\ETB2\133\168\215\&4\RS^\151/\198w(c\132\248\STX\248\239B\165\236_\ETX\187\250%L\176\US\173"
         Keccak_256 [cons @ByteString "hello world"]
 
+-- | Test that hashes produced by a hash function contain the expected number of bits
 test_HashSize :: DefaultFun -> Integer -> TestTree
 test_HashSize hashFun expectedNumBits =
     let testName = "HashSize " ++ show hashFun ++ " is " ++ show expectedNumBits ++ " bits"
@@ -655,6 +656,7 @@ test_HashSize hashFun expectedNumBits =
                     ]
          typecheckEvaluateCekNoEmit def defaultBuiltinCostModel term === Right (EvaluationSuccess (cons @Integer expectedNumBits))
 
+-- | Check that all hash functions return hashes with the correct number of bits
 test_HashSizes :: TestTree
 test_HashSizes =
     testGroup "Hash sizes"
