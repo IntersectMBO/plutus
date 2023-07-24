@@ -78,7 +78,8 @@ applyAndBetaReduce rhs args0 = do
             then do
               acc' <- do
                 termSubstNamesM -- substitute the term param with the arg in the function body
-                  -- rename before substitution to ensure global uniqueness
+                  -- rename before substitution to ensure global uniqueness (may not be needed but
+                  -- no harm in renaming just to be sure)
                   (\tmName -> if tmName == n then Just <$> PLC.rename arg else pure Nothing)
                   tm -- drop the beta reduced term lambda
               go acc' args'
@@ -111,12 +112,12 @@ applyAndBetaReduce rhs args0 = do
   go rhs args0
 
 -- | Consider whether to inline an application.
-inlineApp ::
+callSiteInline ::
   forall tyname name uni fun ann.
   (InliningConstraints tyname name uni fun) =>
   Term tyname name uni fun ann ->
   InlineM tyname name uni fun ann (Term tyname name uni fun ann)
-inlineApp t
+callSiteInline t
   | (Var _ann name, args) <- splitApplication t =
       gets (lookupVarInfo name) >>= \case
         Just varInfo -> do

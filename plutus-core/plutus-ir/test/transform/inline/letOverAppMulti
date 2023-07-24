@@ -1,7 +1,7 @@
 {- 
 funApp gets inlined because it only occurs once.
 k should not get inlined by the unconditional inline optimization because it occurs more
-than once.
+than once and is big (once funApp is inlined).
 Both instances of k should get inlined by the callsite inliner.
 
 let 
@@ -11,11 +11,11 @@ let
     funApp x = idFun
     k :: (Integer -> Integer) -> (Integer -> Integer)
     k = funApp
-in k (k idFun) 3
+in k (k idFun) 6
 
 k idFun :: (Integer -> Integer)
 k (k idFun) :: (Integer -> Integer)
-k (k idFun) 3 :: Integer
+k (k idFun) 6 :: Integer
 -}
 
 (let

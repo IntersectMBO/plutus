@@ -17,6 +17,6 @@
       )
       (lam x (fun (con integer) (con integer)) idFun)
     )
-    (con integer 6)
+    [ [ k idFun ] (con integer 6) ]
   )
 )

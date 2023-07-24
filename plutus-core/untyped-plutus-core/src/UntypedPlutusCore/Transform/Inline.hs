@@ -226,7 +226,7 @@ processTerm = handleTerm
         bs' <- wither (processSingleBinding t) bs
         t' <- processTerm t
         pure $ restoreApps bs' t'
-      t -> inlineApp =<< forMOf termSubterms t processTerm
+      t -> inlineSaturatedApp =<< forMOf termSubterms t processTerm
 
     -- See Note [Renaming strategy]
     substName :: name -> InlineM name uni fun a (Maybe (Term name uni fun a))
@@ -482,15 +482,15 @@ fullyApplyAndBetaReduce info args0 = do
       safeToBetaReduce a arg = shouldUnconditionallyInline a arg rhsBody
   go rhsBody (info ^. varBinders) args0
 
-{- | This works in the same way as `PlutusIR.Transform.Inline.CallSiteInline.inlineApp`.
+{- | This works in the same way as `PlutusIR.Transform.Inline.CallSiteInline.inlineSaturatedApp`.
 See Note [Inlining and beta reduction of fully applied functions].
 -}
-inlineApp ::
+inlineSaturatedApp ::
   forall name uni fun a.
   (InliningConstraints name uni fun) =>
   Term name uni fun a ->
   InlineM name uni fun a (Term name uni fun a)
-inlineApp t
+inlineSaturatedApp t
   | (Var _ann name, args) <- UPLC.splitApplication t =
       gets (lookupVarInfo name) >>= \case
         Nothing -> pure t

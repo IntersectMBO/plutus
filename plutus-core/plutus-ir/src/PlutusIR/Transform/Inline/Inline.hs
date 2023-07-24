@@ -33,7 +33,8 @@ import Control.Monad.State (evalStateT, modify')
 
 import Algebra.Graph qualified as G
 import Data.Map qualified as Map
-import PlutusIR.Transform.Inline.CallSiteInline (inlineApp)
+import PlutusIR.Contexts (splitApplication)
+import PlutusIR.Transform.Inline.CallSiteInline (callSiteInline)
 import Witherable (Witherable (wither))
 
 {- Note [Inlining approach and 'Secrets of the GHC Inliner']
@@ -212,17 +213,91 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
             -- actually have got rid of all of them!
             pure $ mkLet ann NonRec bs' t'
         -- This includes recursive let terms, we don't even consider inlining them at the moment
-        t ->
-            -- process all subterms first, so that the rhs won't be processed more than once. This
-            -- is important because otherwise the number of times we process them can grow
-            -- exponentially in the case that it has nested `let`s.
-            --
-            -- Then, consider call site inlining for each node that have gone through unconditional
-            -- inlining. Because `inlineApp` traverses *all* application nodes for each
-            -- subterm, the runtime is quadratic for terms with a long chain of applications.
-            -- If we use the context-based approach like in GHC, this won't be a problem, so we may
-            -- consider that in the future.
-            inlineApp =<< forMOf termSubterms t processTerm
+        t -> do
+            -- See note [Processing order of call site inlining]
+            let (tm, args) = splitApplication t
+            -- TODO process the args
+            t' <- callSiteInline t
+            forMOf termSubterms t' processTerm
+
+{- Note [Processing order of call site inlining]
+We have two options on how we process terms for the call site inliner:
+
+1. process the subterms first, then go up each node
+2. process the whole term first, then process the subterms
+
+Depending on which option we choose we get different results after one `inline` pass. For example:
+
+For the `letFunConstMulti` test:
+
+let
+  constFun :: Integer -> Integer -> Integer
+  constFun = \x y -> x
+in  constFun (constFun 3 5)
+
+With option 1, we first look at the subterms `constFun 3` and `5`. The application of `constFun` to
+3 is safe, so it is applied and beta reduced, turning
+
+constFun (constFun 3 5) to constFun ((\y -> 3) 5)
+
+Then, we look at the term constFun ((\y -> 3) 5). I.e., application of constFun to ((\y -> 3) 5).
+Because the argument ((\y -> 3) 5) is an application, it is considered unsafe.
+So no application applies here and the golden file returns:
+
+let
+  constFun :: Integer -> Integer -> Integer
+  constFun = \x y -> x
+in  constFun ((\y -> 3) 5)
+
+With option 2, we first look at `constFun (constFun 3 5)`. The application of constFun to
+(constFun 3 5) is unsafe because the argument (constFun 3 5) is an application.
+So no application applies here and we move on to the subterm (constFun 3 5). Application of constFun
+3 to the argument 5 is safe. Thus
+
+constFun 3 5 ==> (((\x y -> x) 3) 5) ==> (\x -> x) 3 and again application of 3 is safe and is
+applied and beta reduced to 3.
+
+So in this case, we get more reduction in 1 pass with option 2. However, in some cases we get
+more reduction in 1 pass with option 1. Consider the `letOverAppMulti` test case (with unconditional
+inlining already done):
+
+let
+    idFun :: Integer -> Integer
+    idFun = \y -> y
+    k :: (Integer -> Integer) -> (Integer -> Integer)
+    k = \x -> idFun
+in (k (k idFun)) 6
+
+With option 1, we look at the subterms (k idFun) and 6 first. The argument idFun is a variable that
+is safe to beta reduce, so
+
+k idFun reduces to (\x -> idFun) idFun which reduces to idFun
+
+Now we have the term k idFun 6. Applying k to idFun is safe so it is reduced to idFun. idFun 6
+reduces to 6.
+
+With option 2, we look at the whole term (k (k idFun)) 6. The argument (k idFun) is an application
+and thus it is unsafe. No inlining happens here. Then we look at the subterm (k idFun), again it can
+be reduced to idFun and we have
+
+let
+    idFun :: Integer -> Integer
+    idFun = \y -> y
+    k :: (Integer -> Integer) -> (Integer -> Integer)
+    k = \x -> idFun
+in (k idFun) 6
+
+in the golden file in 1 inline pass.
+
+We can see from this eg that we are not reducing as much because the arguments are unsafe,
+frequently because they are applications. So if we process the arguments first, then we will be
+reducing the most in 1 pass. Thus, how we process the terms is actually the third option:
+
+First, split the term into an application context. Then, process the sub-parts of the application
+context. Finally, consider call site inlining starting with the whole term, but with arguments
+already processed.
+
+-}
 
 -- | Run the inliner on a single non-recursive let binding.
 processSingleBinding

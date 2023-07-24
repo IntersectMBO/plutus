@@ -21,22 +21,5 @@
       )
     )
   )
-  (let
-    (nonrec)
-    (termbind
-      (strict)
-      (vardecl g (con integer))
-      [
-        [
-          (lam c (con integer) (lam d (con integer) (con integer 5)))
-          (con integer 3)
-        ]
-        (con integer 4)
-      ]
-    )
-    [
-      (lam c (con integer) (lam d (con integer) (con integer 5)))
-      (con integer 3)
-    ]
-  )
+  (lam d (con integer) (con integer 5))
 )
