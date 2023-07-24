@@ -125,68 +125,68 @@ We also need to think about the types. In general, we need:
 
 For example, consider 'data Maybe a = Nothing | Just a'. Then:
 - The type corresponding to the datatype is:
-  Maybe = \(a :: *) -> forall out_Maybe . out_Maybe -> (a -> out_Maybe) -> out_Maybe
+  Maybe = \(t :: *) . forall (out_Maybe :: *) . out_Maybe -> (t -> out_Maybe) -> out_Maybe
 - The type of the constructors are:
-  Just : forall (a :: *) . a -> Maybe a
-  Nothing : forall (a :: *) . Maybe a
+  Just : forall (t :: *) . t -> Maybe t
+  Nothing : forall (t :: *) . Maybe t
 - The terms for the constructors are:
-  Just = \(arg1 : a). /\ (out_Maybe :: *) . \(case_Nothing : out_Maybe) (case_Just : a -> out_Maybe) . case_Just arg1
-  Nothing = /\ (out_Maybe :: *) . \(case_Nothing : out_Maybe) (case_Just : a -> out_Maybe) . case_Nothing
+  Just = /\ (t :: *) \(x : t) /\ (out_Maybe :: *) \(case_Nothing : out_Maybe) (case_Just : t -> out_Maybe) . case_Just x
+  Nothing = /\ (t :: *) /\ (out_Maybe :: *) \(case_Nothing : out_Maybe) (case_Just : t -> out_Maybe) . case_Nothing
 - The type of the destructor is:
-  match_Maybe : forall (a :: *) . Maybe a -> forall (out_Maybe :: *) . out_Maybe -> (a -> out_Maybe) -> out_Maybe
+  match_Maybe : forall (t :: *) . Maybe t -> forall (out_Maybe :: *) . out_Maybe -> (t -> out_Maybe) -> out_Maybe
 - The term for the destructor is:
-  match_Maybe = /\(a :: *) . \(x : Maybe a) . x
+  match_Maybe = /\(t :: *) \(x : Maybe t) . x
 
 -- General case
 
 Consider a datatype as defined in Plutus IR:
 (datatype
   (tyvardecl T (type))
-  (tyvardecl a_0 t_0)
+  (tyvardecl t_0 k_0)
   ..
-  (tyvardecl a_n t_n)
+  (tyvardecl t_n k_n)
   match_T
-  (vardecl c_0 (fun t_c_0_0 .. (fun t_c_0_(c_1_k)) [T t0 .. tn]))
+  (vardecl c_0 (fun t_c_0_0 .. (fun t_c_0_(c_0_k)) [T t0 .. tn]))
   ..
   (vardecl c_j (fun t_c_j_0 .. (fun t_c_j_(c_j_k)) [T t0 .. tn]))
 )
 
 That is, it has:
 - Name T
-- Kind *
-- Type parameters of type t_0 to t_n
+- Type parameters t_0 to t_n of kind k_0 to k_n
+- Kind * -> ... n times ... -> *
 - Destructor match_t
-_ Constructors with arguments each of types t_c_i_1 to t_c_i_(c_i_k)
+_ Constructors c_0 to c_j with the arguments of c_i having types t_c_i_1 to t_c_i_(c_i_k)
 
 The type corresponding to the datatype is:
-\(t_0 :: *) .. (t_n :: *) .
+\(t_0 :: k_0) .. (t_n :: k_n) .
   forall out_T :: * .
     (t_c_0_0 -> .. -> t_c_0_(c_0_k) -> out_T) -> .. -> (t_c_j_0 -> .. -> t_c_j_(c_j_k) -> out_T) ->
       out_T
 
-The type of the constructor c_i is:
-forall (t_0 :: *) .. (t_n :: *) .
+The type of the constructor c_i (0 <= i <= j) is:
+forall (t_0 :: k_0) .. (t_n :: k_n) .
   t_c_i_0 -> .. -> t_c_i_(c_i_k) ->
     (T t_0 .. t_n)
 This is actually declared for us in the datatype declaration, but without the type
 variables being abstracted out. We use this to get the argument types of the constructor.
 
-The term for the constructor c_i is:
-/\(t_0 :: *) .. (t_n :: *) .
-  \(a_0 : t_c_j_0) .. (a_c_i_(c_i_k) : t_c_i_(c_i_k)) .
+The term for the constructor c_i (0 <= i <= j) is (slightly fudged types, see Note [Abstract data types]):
+/\(t_0 :: k_0) .. (t_n :: k_n) .
+  \(x_0 : t_c_i_0) .. (x_(c_i_k) : t_c_i_(c_i_k)) .
     /\(out_T :: *) .
-      \(case_c_0 : (t_c_0_0 -> .. -> t_c_0_(c_1_k) -> out_T)) .. (case_c_j : (t_c_j_0 -> .. -> t_c_j_(c_j_k) -> out_T)) .
-        case_c_i a_0 .. a_c_i_(c_i_k)
+      \(case_c_0 : (t_c_0_0 -> .. -> t_c_0_(c_0_k) -> out_T)) .. (case_c_j : (t_c_j_0 -> .. -> t_c_j_(c_j_k) -> out_T)) .
+        case_c_i x_0 .. x_(c_i_k)
 
 The type of the destructor is:
-forall (t_0 :: *) .. (t_n :: *) .
+forall (t_0 :: k_0) .. (t_n :: k_n) .
   (T t_0 .. t_n) ->
     forall out_T :: * .
       (t_c_0_0 -> .. -> t_c_0_(c_0_k) -> out_T) -> .. -> (t_c_j_0 -> .. -> t_c_j_(c_j_k) -> out_T) ->
         out_T
 
-The term for the destructor is:
-/\(t_0 :: *) .. (t_n :: *) .
+The term for the destructor is (slightly fudged types, see Note [Abstract data types]):
+/\(t_0 :: k_0) .. (t_n :: k_n) .
   \(x :: (T t_0 .. t_n)) .
     x
 -}
@@ -206,66 +206,67 @@ We still need to think about the types. In general, we need:
 
 For example, consider 'data Maybe a = Nothing | Just a'. Then:
 - The type corresponding to the datatype is:
-  Maybe = \(a :: *) -> sop [] [a]
+  Maybe = \(t :: *) . sop [] [a]
 - The type of the constructors are:
-  Just : forall (a :: *) . a -> Maybe a
-  Nothing : forall (a :: *) . Maybe a
+  Just : forall (t :: *) . a -> Maybe a
+  Nothing : forall (t :: *) . Maybe a
 - The terms for the constructors are:
-  Just = \(arg1 : a). constr (Maybe a) 1 a
-  Nothing = constr 0 (Maybe a)
+  Just = /\(t :: *) \(x :: t) . constr (Maybe t) 1 x
+  Nothing = /\(t :: *) . constr 0 (Maybe t)
 - The type of the destructor is:
-  match_Maybe : forall (a :: *) . Maybe a -> forall (out_Maybe :: *) . out_Maybe -> (a -> out_Maybe) -> out_Maybe
+  match_Maybe :: forall (t :: *) . Maybe t -> forall (out_Maybe :: *) . out_Maybe -> (t -> out_Maybe) -> out_Maybe
 - The term for the destructor is:
-  match_Maybe = /\(a :: *) -> \(x : Maybe a) -> /\(out_Maybe :: *) -> \(case_Nothing :: out_Maybe) (case_Just :: a -> out_Maybe) -> case out_Maybe x case_Nothing case_Just
+  match_Maybe = /\(t :: *) \(x : Maybe t) /\(out_Maybe :: *) \(case_Nothing :: out_Maybe) (case_Just :: t -> out_Maybe) .
+    case out_Maybe x case_Nothing case_Just
 
 -- General case
 
 Consider a datatype as defined in Plutus IR:
 (datatype
   (tyvardecl T (type))
-  (tyvardecl a_0 t_0)
+  (tyvardecl t_0 k_0)
   ..
-  (tyvardecl a_n t_n)
+  (tyvardecl t_n k_n)
   match_T
-  (vardecl c_0 (fun t_c_0_0 .. (fun t_c_0_(c_1_k)) [T t0 .. tn]))
+  (vardecl c_0 (fun t_c_0_0 .. (fun t_c_0_(c_0_k)) [T t0 .. tn]))
   ..
   (vardecl c_j (fun t_c_j_0 .. (fun t_c_j_(c_j_k)) [T t0 .. tn]))
 )
 
 That is, it has:
 - Name T
-- Kind *
-- Type parameters of type t_0 to t_n
+- Type parameters t_0 to t_n of kind k_0 to k_n
+- Kind * -> ... n times .. -> *
 - Destructor match_T
-_ Constructors with arguments each of types t_c_i_0 to t_c_i_(c_i_k)
+_ Constructors c_0 to c_j with the arguments of c_i having types t_c_i_0 to t_c_i_(c_i_k)
 
 The type corresponding to the datatype is:
-\(t_0 :: *) .. (t_n :: *) . sop [t_c_0_0 .. t_c_0_(c_0_k)] .. [t_c_j_0 .. t_c_j_(c_j_k)]
+\(t_0 :: k_0) .. (t_n :: k_n) . sop [t_c_0_0 .. t_c_0_(c_0_k)] .. [t_c_j_0 .. t_c_j_(c_j_k)]
 
-The type of the constructor c_i is:
-forall (t_0 :: *) .. (t_n :: *) .
+The type of the constructor c_i (0 <= i <= j) is:
+forall (t_0 :: t_0) .. (t_n :: k_n) .
   t_c_i_0 -> .. -> t_c_i_(c_i_k) ->
     (T t_0 .. t_n)
 This is actually declared for us in the datatype declaration, but without the type
 variables being abstracted out. We use this to get the argument types of the constructor.
 
-The term for the constructor c_i is:
-/\(t_0 :: *) .. (t_n :: *) .
-  \(a_0 : t_c_j_0) .. (a_c_i_(c_i_k) : t_c_i_(c_i_k)) .
-    constr (T t_0 .. t_n) i (T t_0 .. t_n) a_0 .. a_c_i_(c_i_j)
+The term for the constructor c_i (0 <= i <= j) is (slightly fudged types, see Note [Abstract data types]):
+/\(t_0 :: t_0) .. (t_n :: k_n) .
+  \(x_0 : t_c_i_0) .. (x_(c_i_k) : t_c_i_(c_i_k)) .
+    constr (T t_0 .. t_n) i (T t_0 .. t_n) x_0 .. x_(c_i_k)
 
 The type of the destructor is:
-forall (t_0 :: *) .. (t_n :: *) .
+forall (t_0 :: k_0) .. (t_n :: k_n) .
   (T t_0 .. t_n) ->
     forall out_T :: * .
       (t_c_0_1 -> .. -> t_c_0_(c_0_k) -> out_T) -> .. -> (t_c_j_0 -> .. -> t_c_j_(c_j_k) -> out_T) ->
         out_T
 
-The term for the destructor is:
-/\(t_0 :: *) .. (t_n :: *) .
+The term for the destructor is (slightly fudged types, see Note [Abstract data types]):
+/\(t_0 :: k_0) .. (t_n :: k_n) .
   \(x :: (T t_0 .. t_n)) .
     /\(out_T :: *) .
-      \(case_c_0 : (t_c_0_1 -> .. -> t_c_0_(c_0_k) -> out_T)) .. (case_c_j : (t_c_j_0 -> .. -> t_c_j_(c_j_k) -> out_T)) .
+      \(case_c_0 : (t_c_0_0 -> .. -> t_c_0_(c_0_k) -> out_T)) .. (case_c_j : (t_c_j_0 -> .. -> t_c_j_(c_j_k) -> out_T)) .
         case out_T x case_c_0 .. case_c_j
 -}
 
@@ -418,7 +419,7 @@ that we are interested in in the list of constructors.
 Scott:
 @
     mkConstructor <definition of List> List Cons
-        = /\(a :: *) . \(arg1 : a) (arg2 : <definition of List> a) .
+        = /\(a :: *) . \(x : a) (xs : <definition of List> a) .
             wrap <pattern functor of List> /\(out_List :: *) .
                 \(case_Nil : out_List) (case_Cons : a -> List a -> out_List) . case_Cons arg1 arg2
 @
@@ -426,8 +427,8 @@ Scott:
 SOPs:
 @
     mkConstructor <definition of List> List Cons
-        = /\(a :: *) . \(arg1 : a) (arg2 : <definition of List> a) .
-            wrap <pattern functor of List> /\(out_List :: *) .
+        = /\(a :: *) . \(x : a) (xs : <definition of List> a) .
+            wrap <pattern functor of List>
                 constr ((\(List :: * -> *) . <pattern functor of List>) <definition of List>) arg1 arg2
 @
 -}
