@@ -17,8 +17,6 @@ import PlutusCore.StdLib.Data.Function
 import PlutusCore.StdLib.Data.Unit
 import PlutusCore.StdLib.Type
 
-import Universe
-
 {- Note [InterList]
 We encode the following in this module:
 
@@ -100,7 +98,7 @@ interCons = runQuote $ do
           , Var () xs
           ]
 
-foldrInterList :: uni `Includes` () => Term TyName Name uni fun ()
+foldrInterList :: uni `HasTypeAndTermLevel` () => Term TyName Name uni fun ()
 foldrInterList = runQuote $ do
     let interlist = _recursiveType interListData
     a0  <- freshTyName "a0"

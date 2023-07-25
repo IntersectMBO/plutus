@@ -14,7 +14,7 @@ import System.Random (StdGen)
 
 
 createChooseUnitBench
-    :: (DefaultUni `Includes` a, ExMemoryUsage a, NFData a)
+    :: (DefaultUni `HasTermLevel` a, ExMemoryUsage a, NFData a)
     => Type TyName DefaultUni ()
     -> [a]
     -> Benchmark

@@ -59,10 +59,10 @@ on readability of the Core output.
 -- E.g. @Text -> Bool -> Integer@ is encoded as @TypeScheme val [Text, Bool] Integer@.
 data TypeScheme val (args :: [GHC.Type]) res where
     TypeSchemeResult
-        :: (Typeable res, KnownTypeAst (UniOf val) res, MakeKnown val res)
+        :: (Typeable res, KnownTypeAst TyName (UniOf val) res, MakeKnown val res)
         => TypeScheme val '[] res
     TypeSchemeArrow
-        :: (Typeable arg, KnownTypeAst (UniOf val) arg, MakeKnown val arg, ReadKnown val arg)
+        :: (Typeable arg, KnownTypeAst TyName (UniOf val) arg, MakeKnown val arg, ReadKnown val arg)
         => TypeScheme val args res -> TypeScheme val (arg ': args) res
     TypeSchemeAll
         :: (KnownSymbol text, KnownNat uniq, KnownKind kind)

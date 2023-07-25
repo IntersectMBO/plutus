@@ -23,7 +23,7 @@ import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2 (zero)
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing (identityMlResult)
 import PlutusCore.Data
 import PlutusCore.Default
-import PlutusCore.MkPlc (mkConstantOf, mkTyBuiltin, mkTyBuiltinOf)
+import PlutusCore.MkPlc (mkConstantOf, mkTyBuiltinOf)
 import PlutusCore.Name
 import PlutusCore.Pretty
 import PlutusCore.Subst (typeSubstClosedType)

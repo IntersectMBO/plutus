@@ -19,26 +19,25 @@ import PlutusCore.Quote
 
 import PlutusCore.StdLib.Data.Unit
 
-import Universe
-
 -- | 'Bool' as a PLC type.
-bool :: uni `Includes` Bool => Type tyname uni ()
+bool :: uni `HasTypeLevel` Bool => Type tyname uni ()
 bool = mkTyBuiltin @_ @Bool ()
 
 -- | 'True' as a PLC term.
-true :: (TermLike term tyname name uni fun, uni `Includes` Bool) => term ()
+true :: (TermLike term tyname name uni fun, uni `HasTermLevel` Bool) => term ()
 true = mkConstant () True
 
 -- | 'False' as a PLC term.
-false :: (TermLike term tyname name uni fun, uni `Includes` Bool) => term ()
+false :: (TermLike term tyname name uni fun, uni `HasTermLevel` Bool) => term ()
 false = mkConstant () False
 
 -- | @if_then_else_@ as a PLC term.
 --
 -- > /\(A :: *) -> \(b : Bool) (x y : () -> A) -> IfThenElse {() -> A} b x y ()
 ifThenElse
-    :: ( TermLike term TyName Name uni DefaultFun
-       , uni `Includes` Bool, uni `Includes` ()
+    :: forall term uni.
+       ( TermLike term TyName Name uni DefaultFun
+       , uni `HasTypeAndTermLevel` Bool, uni `HasTypeAndTermLevel` ()
        )
     => term ()
 ifThenElse = runQuote $ do

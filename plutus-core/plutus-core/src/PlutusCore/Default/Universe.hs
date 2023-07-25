@@ -11,23 +11,24 @@
 -- to test that some constraints are solvable
 {-# OPTIONS -Wno-redundant-constraints #-}
 
-{-# LANGUAGE BlockArguments        #-}
-{-# LANGUAGE CPP                   #-}
-{-# LANGUAGE ConstraintKinds       #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE GADTs                 #-}
-{-# LANGUAGE InstanceSigs          #-}
-{-# LANGUAGE LambdaCase            #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE PatternSynonyms       #-}
-{-# LANGUAGE PolyKinds             #-}
-{-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE BlockArguments           #-}
+{-# LANGUAGE CPP                      #-}
+{-# LANGUAGE ConstraintKinds          #-}
+{-# LANGUAGE FlexibleInstances        #-}
+{-# LANGUAGE GADTs                    #-}
+{-# LANGUAGE InstanceSigs             #-}
+{-# LANGUAGE LambdaCase               #-}
+{-# LANGUAGE MultiParamTypeClasses    #-}
+{-# LANGUAGE OverloadedStrings        #-}
+{-# LANGUAGE PatternSynonyms          #-}
+{-# LANGUAGE PolyKinds                #-}
+{-# LANGUAGE RankNTypes               #-}
+{-# LANGUAGE StandaloneKindSignatures #-}
+{-# LANGUAGE TemplateHaskell          #-}
+{-# LANGUAGE TypeApplications         #-}
+{-# LANGUAGE TypeFamilies             #-}
+{-# LANGUAGE TypeOperators            #-}
+{-# LANGUAGE UndecidableInstances     #-}
 #include "MachDeps.h"
 
 -- effectfully: to the best of my experimentation, -O2 here improves performance, however by
@@ -39,8 +40,8 @@ module PlutusCore.Default.Universe
     ( DefaultUni (..)
     , pattern DefaultUniList
     , pattern DefaultUniPair
-    , module Export  -- Re-exporting universes infrastructure for convenience.
     , noMoreTypeFunctions
+    , module Export  -- Re-exporting universes infrastructure for convenience.
     ) where
 
 import PlutusCore.Builtin
@@ -54,10 +55,10 @@ import PlutusCore.Pretty.Extra
 
 import Control.Applicative
 import Data.Bits (toIntegralSized)
-import Data.ByteString qualified as BS
+import Data.ByteString (ByteString)
 import Data.Int
 import Data.Proxy
-import Data.Text qualified as Text
+import Data.Text (Text)
 import Data.Word
 import GHC.Exts (inline, oneShot)
 import Text.Pretty
@@ -102,18 +103,18 @@ feature and have meta-constructors as built-in functions.
 -- See Note [Representing polymorphism].
 -- | The universe used by default.
 data DefaultUni a where
-    DefaultUniInteger              :: DefaultUni (Esc Integer)
-    DefaultUniByteString           :: DefaultUni (Esc BS.ByteString)
-    DefaultUniString               :: DefaultUni (Esc Text.Text)
-    DefaultUniUnit                 :: DefaultUni (Esc ())
-    DefaultUniBool                 :: DefaultUni (Esc Bool)
-    DefaultUniProtoList            :: DefaultUni (Esc [])
-    DefaultUniProtoPair            :: DefaultUni (Esc (,))
-    DefaultUniApply                :: !(DefaultUni (Esc f)) -> !(DefaultUni (Esc a)) -> DefaultUni (Esc (f a))
-    DefaultUniData                 :: DefaultUni (Esc Data)
+    DefaultUniInteger :: DefaultUni (Esc Integer)
+    DefaultUniByteString :: DefaultUni (Esc ByteString)
+    DefaultUniString :: DefaultUni (Esc Text)
+    DefaultUniUnit :: DefaultUni (Esc ())
+    DefaultUniBool :: DefaultUni (Esc Bool)
+    DefaultUniProtoList :: DefaultUni (Esc [])
+    DefaultUniProtoPair :: DefaultUni (Esc (,))
+    DefaultUniApply :: !(DefaultUni (Esc f)) -> !(DefaultUni (Esc a)) -> DefaultUni (Esc (f a))
+    DefaultUniData :: DefaultUni (Esc Data)
     DefaultUniBLS12_381_G1_Element :: DefaultUni (Esc BLS12_381.G1.Element)
     DefaultUniBLS12_381_G2_Element :: DefaultUni (Esc BLS12_381.G2.Element)
-    DefaultUniBLS12_381_MlResult   :: DefaultUni (Esc BLS12_381.Pairing.MlResult)
+    DefaultUniBLS12_381_MlResult :: DefaultUni (Esc BLS12_381.Pairing.MlResult)
 
 -- GHC infers crazy types for these two and the straightforward ones break pattern matching,
 -- so we just leave GHC with its craziness.
@@ -233,96 +234,108 @@ instance Pretty (DefaultUni a) where
 instance Pretty (SomeTypeIn DefaultUni) where
     pretty (SomeTypeIn uni) = pretty uni
 
-instance DefaultUni `Contains` Integer                    where knownUni = DefaultUniInteger
-instance DefaultUni `Contains` BS.ByteString              where knownUni = DefaultUniByteString
-instance DefaultUni `Contains` Text.Text                  where knownUni = DefaultUniString
-instance DefaultUni `Contains` ()                         where knownUni = DefaultUniUnit
-instance DefaultUni `Contains` Bool                       where knownUni = DefaultUniBool
-instance DefaultUni `Contains` []                         where knownUni = DefaultUniProtoList
-instance DefaultUni `Contains` (,)                        where knownUni = DefaultUniProtoPair
-instance DefaultUni `Contains` Data                       where knownUni = DefaultUniData
-instance DefaultUni `Contains` BLS12_381.G1.Element       where knownUni = DefaultUniBLS12_381_G1_Element
-instance DefaultUni `Contains` BLS12_381.G2.Element       where knownUni = DefaultUniBLS12_381_G2_Element
-instance DefaultUni `Contains` BLS12_381.Pairing.MlResult where knownUni = DefaultUniBLS12_381_MlResult
+-- | Elaborate a built-in type (see 'ElaborateBuiltin') from 'DefaultUni'.
+type ElaborateBuiltinDefaultUni :: forall a. a -> a
+type family ElaborateBuiltinDefaultUni x where
+    ElaborateBuiltinDefaultUni (f x) = ElaborateBuiltinDefaultUni f `TyAppRep` x
+    ElaborateBuiltinDefaultUni x     = BuiltinHead x
+
+type instance ElaborateBuiltin DefaultUni x = ElaborateBuiltinDefaultUni x
 
 instance (DefaultUni `Contains` f, DefaultUni `Contains` a) => DefaultUni `Contains` f a where
     knownUni = knownUni `DefaultUniApply` knownUni
 
-instance KnownBuiltinTypeAst DefaultUni Integer                    => KnownTypeAst DefaultUni Integer
-instance KnownBuiltinTypeAst DefaultUni BS.ByteString              => KnownTypeAst DefaultUni BS.ByteString
-instance KnownBuiltinTypeAst DefaultUni Text.Text                  => KnownTypeAst DefaultUni Text.Text
-instance KnownBuiltinTypeAst DefaultUni ()                         => KnownTypeAst DefaultUni ()
-instance KnownBuiltinTypeAst DefaultUni Bool                       => KnownTypeAst DefaultUni Bool
-instance KnownBuiltinTypeAst DefaultUni [a]                        => KnownTypeAst DefaultUni [a]
-instance KnownBuiltinTypeAst DefaultUni (a, b)                     => KnownTypeAst DefaultUni (a, b)
-instance KnownBuiltinTypeAst DefaultUni Data                       => KnownTypeAst DefaultUni Data
-instance KnownBuiltinTypeAst DefaultUni BLS12_381.G1.Element       => KnownTypeAst DefaultUni BLS12_381.G1.Element
-instance KnownBuiltinTypeAst DefaultUni BLS12_381.G2.Element       => KnownTypeAst DefaultUni BLS12_381.G2.Element
-instance KnownBuiltinTypeAst DefaultUni BLS12_381.Pairing.MlResult => KnownTypeAst DefaultUni BLS12_381.Pairing.MlResult
+instance DefaultUni `Contains` Integer where
+    knownUni = DefaultUniInteger
+instance DefaultUni `Contains` ByteString where
+    knownUni = DefaultUniByteString
+instance DefaultUni `Contains` Text where
+    knownUni = DefaultUniString
+instance DefaultUni `Contains` () where
+    knownUni = DefaultUniUnit
+instance DefaultUni `Contains` Bool where
+    knownUni = DefaultUniBool
+instance DefaultUni `Contains` [] where
+    knownUni = DefaultUniProtoList
+instance DefaultUni `Contains` (,) where
+    knownUni = DefaultUniProtoPair
+instance DefaultUni `Contains` Data where
+    knownUni = DefaultUniData
+instance DefaultUni `Contains` BLS12_381.G1.Element where
+    knownUni = DefaultUniBLS12_381_G1_Element
+instance DefaultUni `Contains` BLS12_381.G2.Element where
+    knownUni = DefaultUniBLS12_381_G2_Element
+instance DefaultUni `Contains` BLS12_381.Pairing.MlResult where
+    knownUni = DefaultUniBLS12_381_MlResult
 
-{- Note [Constraints of ReadKnownIn and MakeKnownIn instances]
-For a monomorphic data type @X@ one only needs to add a @HasConstantIn DefaultUni term@ constraint
-in order to be able to provide a @ReadTypeIn DefaultUni term X@ instance and the same applies to
-'MakeKnownIn'.
+instance KnownBuiltinTypeAst tyname DefaultUni Integer =>
+    KnownTypeAst tyname DefaultUni Integer
+instance KnownBuiltinTypeAst tyname DefaultUni ByteString =>
+    KnownTypeAst tyname DefaultUni ByteString
+instance KnownBuiltinTypeAst tyname DefaultUni Text =>
+    KnownTypeAst tyname DefaultUni Text
+instance KnownBuiltinTypeAst tyname DefaultUni () =>
+    KnownTypeAst tyname DefaultUni ()
+instance KnownBuiltinTypeAst tyname DefaultUni Bool =>
+    KnownTypeAst tyname DefaultUni Bool
+instance KnownBuiltinTypeAst tyname DefaultUni [a] =>
+    KnownTypeAst tyname DefaultUni [a]
+instance KnownBuiltinTypeAst tyname DefaultUni (a, b) =>
+    KnownTypeAst tyname DefaultUni (a, b)
+instance KnownBuiltinTypeAst tyname DefaultUni Data =>
+    KnownTypeAst tyname DefaultUni Data
+instance KnownBuiltinTypeAst tyname DefaultUni BLS12_381.G1.Element =>
+    KnownTypeAst tyname DefaultUni BLS12_381.G1.Element
+instance KnownBuiltinTypeAst tyname DefaultUni BLS12_381.G2.Element =>
+    KnownTypeAst tyname DefaultUni BLS12_381.G2.Element
+instance KnownBuiltinTypeAst tyname DefaultUni BLS12_381.Pairing.MlResult =>
+    KnownTypeAst tyname DefaultUni BLS12_381.Pairing.MlResult
 
-For a polymorphic data type @Y@ in addition to the same @HasConstantIn DefaultUni term@ constraint
-one also needs to add @DefaultUni `Contains` Y@, where @Y@ contains all of its type variables.
-
-See the reference site of this Note for examples.
-
-The difference is due to the fact that for any monomorphic type @X@ the @DefaultUni `Contains` X@
-constraint can be discharged statically, so we don't need it to provide the instance, while in
-the polymorphic case whether @Y@ is in the universe or not depends on whether its type arguments are
-in the universe or not, so the @DefaultUni `Contains` Y@ constraint can't be discharged statically.
-
-Could we still provide @DefaultUni `Contains` X@ even though it's redundant? That works, but then
-GHC does not attempt to discharge it statically and takes the type tag needed for unlifting from
-the provided constraint rather than the global scope, which makes the code measurably slower.
-
-Could we at least hide the discrepancy behind a type family? Unfortunately, that generates worse
-Core as some things don't get inlined properly. Somehow GHC is not able to see through the type
-family that it fully reduces anyway.
-
-Finally, instead of writing @DefaultUni `Contains` Y@ we could write @DefaultUni `Contains` a@
-for each argument type @a@ in @Y@ (because that implies @DefaultUni `Contains` Y@), however GHC
-creates a redundant @let@ in that case (@-fno-cse@ or some other technique for preventing GHC from
-doing CSE may solve that problem). For now we do the simplest thing and just write
-@DefaultUni `Contains` Y@.
-
-A call to 'geq' does not get inlined due to 'geq' being recursive. It's an obvious inefficiency and
-one that can be fixed, see https://github.com/input-output-hk/plutus/pull/4462
-It's some pretty annoying boilerplate and for now we've decided it's not worth it.
--}
-
--- See Note [Constraints of ReadKnownIn and MakeKnownIn instances].
-instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Integer
-instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term BS.ByteString
-instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Text.Text
-instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term ()
-instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Bool
-instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Data
-instance (HasConstantIn DefaultUni term, DefaultUni `Contains` [a]) =>
-    MakeKnownIn DefaultUni term [a]
-instance (HasConstantIn DefaultUni term, DefaultUni `Contains` (a, b)) =>
-    MakeKnownIn DefaultUni term (a, b)
-instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term BLS12_381.G1.Element
-instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term BLS12_381.G2.Element
-instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term BLS12_381.Pairing.MlResult
-
--- See Note [Constraints of ReadKnownIn and MakeKnownIn instances].
-instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Integer
-instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term BS.ByteString
-instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Text.Text
-instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term ()
-instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Bool
-instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Data
-instance (HasConstantIn DefaultUni term, DefaultUni `Contains` [a]) =>
+instance KnownBuiltinTypeIn DefaultUni term Integer =>
+    ReadKnownIn DefaultUni term Integer
+instance KnownBuiltinTypeIn DefaultUni term ByteString =>
+    ReadKnownIn DefaultUni term ByteString
+instance KnownBuiltinTypeIn DefaultUni term Text =>
+    ReadKnownIn DefaultUni term Text
+instance KnownBuiltinTypeIn DefaultUni term () =>
+    ReadKnownIn DefaultUni term ()
+instance KnownBuiltinTypeIn DefaultUni term Bool =>
+    ReadKnownIn DefaultUni term Bool
+instance KnownBuiltinTypeIn DefaultUni term Data =>
+    ReadKnownIn DefaultUni term Data
+instance KnownBuiltinTypeIn DefaultUni term [a] =>
     ReadKnownIn DefaultUni term [a]
-instance (HasConstantIn DefaultUni term, DefaultUni `Contains` (a, b)) =>
+instance KnownBuiltinTypeIn DefaultUni term (a, b) =>
     ReadKnownIn DefaultUni term (a, b)
-instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term BLS12_381.G1.Element
-instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term BLS12_381.G2.Element
-instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term BLS12_381.Pairing.MlResult
+instance KnownBuiltinTypeIn DefaultUni term BLS12_381.G1.Element =>
+    ReadKnownIn DefaultUni term BLS12_381.G1.Element
+instance KnownBuiltinTypeIn DefaultUni term BLS12_381.G2.Element =>
+    ReadKnownIn DefaultUni term BLS12_381.G2.Element
+instance KnownBuiltinTypeIn DefaultUni term BLS12_381.Pairing.MlResult =>
+    ReadKnownIn DefaultUni term BLS12_381.Pairing.MlResult
+
+instance KnownBuiltinTypeIn DefaultUni term Integer =>
+    MakeKnownIn DefaultUni term Integer
+instance KnownBuiltinTypeIn DefaultUni term ByteString =>
+    MakeKnownIn DefaultUni term ByteString
+instance KnownBuiltinTypeIn DefaultUni term Text =>
+    MakeKnownIn DefaultUni term Text
+instance KnownBuiltinTypeIn DefaultUni term () =>
+    MakeKnownIn DefaultUni term ()
+instance KnownBuiltinTypeIn DefaultUni term Bool =>
+    MakeKnownIn DefaultUni term Bool
+instance KnownBuiltinTypeIn DefaultUni term Data =>
+    MakeKnownIn DefaultUni term Data
+instance KnownBuiltinTypeIn DefaultUni term [a] =>
+    MakeKnownIn DefaultUni term [a]
+instance KnownBuiltinTypeIn DefaultUni term (a, b) =>
+    MakeKnownIn DefaultUni term (a, b)
+instance KnownBuiltinTypeIn DefaultUni term BLS12_381.G1.Element =>
+    MakeKnownIn DefaultUni term BLS12_381.G1.Element
+instance KnownBuiltinTypeIn DefaultUni term BLS12_381.G2.Element =>
+    MakeKnownIn DefaultUni term BLS12_381.G2.Element
+instance KnownBuiltinTypeIn DefaultUni term BLS12_381.Pairing.MlResult =>
+    MakeKnownIn DefaultUni term BLS12_381.Pairing.MlResult
 
 -- If this tells you an instance is missing, add it right above, following the pattern.
 instance TestTypesFromTheUniverseAreAllKnown DefaultUni
@@ -352,7 +365,7 @@ is not an internal one -- it's a normal evaluation failure, but unlifting errors
 have this connotation of being "internal".
 -}
 
-instance KnownTypeAst DefaultUni Int64 where
+instance KnownTypeAst tyname DefaultUni Int64 where
     toTypeAst _ = toTypeAst $ Proxy @Integer
 
 -- See Note [Integral types as Integer].
@@ -377,7 +390,7 @@ instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Int64 wher
 #if WORD_SIZE_IN_BITS == 64
 -- See Note [Integral types as Integer].
 
-instance KnownTypeAst DefaultUni Int where
+instance KnownTypeAst tyname DefaultUni Int where
     toTypeAst _ = toTypeAst $ Proxy @Integer
 
 instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Int where
@@ -395,7 +408,7 @@ instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Int where
     {-# INLINE readKnown #-}
 #endif
 
-instance KnownTypeAst DefaultUni Word8 where
+instance KnownTypeAst tyname DefaultUni Word8 where
     toTypeAst _ = toTypeAst $ Proxy @Integer
 
 -- See Note [Integral types as Integer].
@@ -411,7 +424,6 @@ instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Word8 wher
                _       -> throwing_ _EvaluationFailure
     {-# INLINE readKnown #-}
 
-
 {- Note [Stable encoding of tags]
 'encodeUni' and 'decodeUni' are used for serialisation and deserialisation of types from the
 universe and we need serialised things to be extremely stable, hence the definitions of 'encodeUni'
@@ -423,8 +435,8 @@ See Note [Stable encoding of PLC]
 instance Closed DefaultUni where
     type DefaultUni `Everywhere` constr =
         ( constr `Permits` Integer
-        , constr `Permits` BS.ByteString
-        , constr `Permits` Text.Text
+        , constr `Permits` ByteString
+        , constr `Permits` Text
         , constr `Permits` ()
         , constr `Permits` Bool
         , constr `Permits` []
@@ -449,6 +461,7 @@ instance Closed DefaultUni where
     encodeUni DefaultUniBLS12_381_G1_Element = [9]
     encodeUni DefaultUniBLS12_381_G2_Element = [10]
     encodeUni DefaultUniBLS12_381_MlResult   = [11]
+
     -- See Note [Decoding universes].
     -- See Note [Stable encoding of tags].
     withDecodedUni k = peelUniTag >>= \case
@@ -473,11 +486,11 @@ instance Closed DefaultUni where
     bring
         :: forall constr a r proxy. DefaultUni `Everywhere` constr
         => proxy constr -> DefaultUni (Esc a) -> (constr a => r) -> r
-    bring _ DefaultUniInteger    r = r
+    bring _ DefaultUniInteger r = r
     bring _ DefaultUniByteString r = r
-    bring _ DefaultUniString     r = r
-    bring _ DefaultUniUnit       r = r
-    bring _ DefaultUniBool       r = r
+    bring _ DefaultUniString r = r
+    bring _ DefaultUniUnit r = r
+    bring _ DefaultUniBool r = r
     bring p (DefaultUniProtoList `DefaultUniApply` uniA) r =
         bring p uniA r
     bring p (DefaultUniProtoPair `DefaultUniApply` uniA `DefaultUniApply` uniB) r =
@@ -487,5 +500,4 @@ instance Closed DefaultUni where
     bring _ DefaultUniData r = r
     bring _ DefaultUniBLS12_381_G1_Element r = r
     bring _ DefaultUniBLS12_381_G2_Element r = r
-    bring _ DefaultUniBLS12_381_MlResult  r = r
-
+    bring _ DefaultUniBLS12_381_MlResult r = r

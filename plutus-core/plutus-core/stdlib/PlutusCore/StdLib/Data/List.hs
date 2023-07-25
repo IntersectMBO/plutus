@@ -26,7 +26,7 @@ import PlutusCore.StdLib.Data.Function
 import PlutusCore.StdLib.Data.Unit
 
 -- | @[]@ as a built-in PLC type.
-list :: uni `Contains` [] => Type tyname uni ()
+list :: uni `HasTypeLevel` [] => Type tyname uni ()
 list = mkTyBuiltin @_ @[] ()
 
 -- See Note [Pattern matching on built-in types].

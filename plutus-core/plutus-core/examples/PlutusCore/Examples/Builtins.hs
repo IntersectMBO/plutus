@@ -169,24 +169,25 @@ instance (Default (BuiltinVersion fun1), Default (BuiltinVersion fun2))
 newtype MetaForall name a = MetaForall a
 instance
         ( name ~ 'TyNameRep @kind text uniq, KnownSymbol text, KnownNat uniq
-        , KnownKind kind, KnownTypeAst uni a
-        ) => KnownTypeAst uni (MetaForall name a) where
-    type IsBuiltin (MetaForall name a) = 'False
-    type ToHoles (MetaForall name a) = '[TypeHole a]
-    type ToBinds acc (MetaForall name a) = ToBinds (Insert ('GADT.Some name) acc) a
+        , KnownKind kind, KnownTypeAst tyname uni a
+        ) => KnownTypeAst tyname uni (MetaForall name a) where
+    type IsBuiltin _ (MetaForall name a) = 'False
+    type ToHoles _ (MetaForall name a) = '[TypeHole a]
+    type ToBinds uni acc (MetaForall name a) = ToBinds uni (Insert ('GADT.Some name) acc) a
     toTypeAst _ = toTypeAst $ Proxy @a
 instance MakeKnownIn DefaultUni term a => MakeKnownIn DefaultUni term (MetaForall name a) where
     makeKnown (MetaForall x) = makeKnown x
 -- 'ReadKnownIn' doesn't make sense for 'MetaForall'.
 
 data PlcListRep (a :: GHC.Type)
-instance KnownTypeAst uni a => KnownTypeAst uni (PlcListRep a) where
-    type IsBuiltin (PlcListRep a) = 'False
-    type ToHoles (PlcListRep a) = '[RepHole a]
-    type ToBinds acc (PlcListRep a) = ToBinds acc a
+instance (tyname ~ TyName, KnownTypeAst tyname uni a) =>
+        KnownTypeAst tyname uni (PlcListRep a) where
+    type IsBuiltin _ (PlcListRep a) = 'False
+    type ToHoles _ (PlcListRep a) = '[RepHole a]
+    type ToBinds uni acc (PlcListRep a) = ToBinds uni acc a
     toTypeAst _ = TyApp () Plc.listTy . toTypeAst $ Proxy @a
 
-instance KnownTypeAst DefaultUni Void where
+instance tyname ~ TyName => KnownTypeAst tyname DefaultUni Void where
     toTypeAst _ = runQuote $ do
         a <- freshTyName "a"
         pure $ TyForall () a (Type ()) $ TyVar () a

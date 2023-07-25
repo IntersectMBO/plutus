@@ -16,7 +16,6 @@ import PlutusCore.Generators.QuickCheck.GenTm
 import PlutusCore.Builtin
 import PlutusCore.Core
 import PlutusCore.Default
-import PlutusCore.MkPlc (mkTyBuiltin)
 import PlutusCore.Name
 import PlutusCore.Pretty
 import PlutusCore.Subst

@@ -312,7 +312,7 @@ instance Default (BuiltinVersion NopFun) where
  -}
 
 benchNop1
-    :: (ExMemoryUsage a, DefaultUni `Contains` a, NFData a)
+    :: (ExMemoryUsage a, DefaultUni `HasTermLevel` a, NFData a)
     => NopFun
     -> (StdGen -> (a, StdGen))
     -> StdGen
@@ -322,7 +322,7 @@ benchNop1 nop rand gen =
     in bgroup (show nop) [benchWith nopCostParameters (showMemoryUsage x) $ mkApp1 nop [] x]
 
 benchNop2
-    :: (ExMemoryUsage a, DefaultUni `Contains` a, NFData a)
+    :: (ExMemoryUsage a, DefaultUni `HasTermLevel` a, NFData a)
     => NopFun
     -> (StdGen -> (a, StdGen))
     -> StdGen
@@ -336,7 +336,7 @@ benchNop2 nop rand gen =
            ]
 
 benchNop3
-    :: (ExMemoryUsage a, DefaultUni `Contains` a, NFData a)
+    :: (ExMemoryUsage a, DefaultUni `HasTermLevel` a, NFData a)
     => NopFun
     -> (StdGen -> (a, StdGen))
     -> StdGen
@@ -353,7 +353,7 @@ benchNop3 nop rand gen =
            ]
 
 benchNop4
-    :: (ExMemoryUsage a, DefaultUni `Contains` a, NFData a)
+    :: (ExMemoryUsage a, DefaultUni `HasTermLevel` a, NFData a)
     => NopFun
     -> (StdGen -> (a, StdGen))
     -> StdGen
@@ -373,7 +373,7 @@ benchNop4 nop rand gen =
            ]
 
 benchNop5
-    :: (ExMemoryUsage a, DefaultUni `Contains` a, NFData a)
+    :: (ExMemoryUsage a, DefaultUni `HasTermLevel` a, NFData a)
     => NopFun
     -> (StdGen -> (a, StdGen))
     -> StdGen
@@ -396,7 +396,7 @@ benchNop5 nop rand gen =
            ]
 
 benchNop6
-    :: (ExMemoryUsage a, DefaultUni `Contains` a, NFData a)
+    :: (ExMemoryUsage a, DefaultUni `HasTermLevel` a, NFData a)
     => NopFun
     -> (StdGen -> (a, StdGen))
     -> StdGen

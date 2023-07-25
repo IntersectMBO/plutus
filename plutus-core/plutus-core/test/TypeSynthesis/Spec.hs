@@ -16,7 +16,6 @@ import PlutusCore
 import PlutusCore.Builtin
 import PlutusCore.Error
 import PlutusCore.FsTree
-import PlutusCore.MkPlc
 import PlutusCore.Pretty
 
 import PlutusCore.Examples.Builtins

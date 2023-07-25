@@ -20,7 +20,7 @@ import PlutusCore.Name
 import PlutusCore.Quote
 
 -- | @(,)@ as a built-in PLC type.
-pair :: uni `Contains` (,) => Type tyname uni ()
+pair :: uni `HasTypeLevel` (,) => Type tyname uni ()
 pair = mkTyBuiltin @_ @(,) ()
 
 -- | @fst@ as a PLC term.
