@@ -217,7 +217,9 @@ reverse = runQuote $ do
 -- >         n
 enumFromTo
     :: ( TermLike term TyName Name uni DefaultFun
-       , uni `HasBothLevel` Integer, uni `HasBothLevel` (), uni `HasBothLevel` Bool
+       , uni `HasTypeAndTermLevel` Integer
+       , uni `HasTypeAndTermLevel` ()
+       , uni `HasTypeAndTermLevel` Bool
        )
     => term ()
 enumFromTo = runQuote $ do
@@ -251,7 +253,7 @@ enumFromTo = runQuote $ do
 -- |  'sum' as a PLC term.
 --
 -- > foldList {integer} {integer} addInteger 0
-sum :: (TermLike term TyName Name uni DefaultFun, uni `HasBothLevel` Integer) => term ()
+sum :: (TermLike term TyName Name uni DefaultFun, uni `HasTypeAndTermLevel` Integer) => term ()
 sum = runQuote $ do
     let int = mkTyBuiltin @_ @Integer ()
         add = builtin () AddInteger
@@ -260,7 +262,7 @@ sum = runQuote $ do
         $ [ add , mkConstant @Integer () 0]
 
 -- > foldrList {integer} {integer} 0 addInteger
-sumr :: (TermLike term TyName Name uni DefaultFun, uni `HasBothLevel` Integer) => term ()
+sumr :: (TermLike term TyName Name uni DefaultFun, uni `HasTypeAndTermLevel` Integer) => term ()
 sumr = runQuote $ do
     let int = mkTyBuiltin @_ @Integer ()
         add = builtin () AddInteger
@@ -271,7 +273,7 @@ sumr = runQuote $ do
 -- |  'product' as a PLC term.
 --
 -- > foldList {integer} {integer} multiplyInteger 1
-product :: (TermLike term TyName Name uni DefaultFun, uni `HasBothLevel` Integer) => term ()
+product :: (TermLike term TyName Name uni DefaultFun, uni `HasTypeAndTermLevel` Integer) => term ()
 product = runQuote $ do
     let int = mkTyBuiltin @_ @Integer ()
         mul = builtin () MultiplyInteger

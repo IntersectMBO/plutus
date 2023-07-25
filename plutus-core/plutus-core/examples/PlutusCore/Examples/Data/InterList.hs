@@ -98,7 +98,7 @@ interCons = runQuote $ do
           , Var () xs
           ]
 
-foldrInterList :: uni `HasBothLevel` () => Term TyName Name uni fun ()
+foldrInterList :: uni `HasTypeAndTermLevel` () => Term TyName Name uni fun ()
 foldrInterList = runQuote $ do
     let interlist = _recursiveType interListData
     a0  <- freshTyName "a0"

@@ -21,7 +21,7 @@ module PlutusCore.Builtin.KnownTypeAst
     , RepHole
     , HasTermLevel
     , HasTypeLevel
-    , HasBothLevel
+    , HasTypeAndTermLevel
     , mkTyBuiltin
     , TypeHole
     , KnownBuiltinTypeAst
@@ -169,8 +169,8 @@ type HasTypeLevel :: forall a. (GHC.Type -> GHC.Type) -> a -> GHC.Constraint
 type HasTypeLevel uni x = KnownTypeAst Void uni (ElaborateBuiltin uni x)
 
 -- | The product of 'HasTypeLevel' and 'HasTermLevel'.
-type HasBothLevel :: forall a. (GHC.Type -> GHC.Type) -> a -> GHC.Constraint
-type HasBothLevel uni x = (uni `HasTypeLevel` x, uni `HasTermLevel` x)
+type HasTypeAndTermLevel :: forall a. (GHC.Type -> GHC.Type) -> a -> GHC.Constraint
+type HasTypeAndTermLevel uni x = (uni `HasTypeLevel` x, uni `HasTermLevel` x)
 
 -- See Note [Name generality of KnownTypeAst].
 -- TODO: make it @forall {a}@ once we have that.

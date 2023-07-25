@@ -24,7 +24,7 @@ unitval :: (TermLike term tyname name uni fun, uni `HasTermLevel` ()) => term ()
 unitval = mkConstant () ()
 
 -- | 'seq' specified to '()' as a PLC term.
-sequ :: (TermLike term tyname Name uni fun, uni `HasBothLevel` ()) => term ()
+sequ :: (TermLike term tyname Name uni fun, uni `HasTypeAndTermLevel` ()) => term ()
 sequ = runQuote $ do
     x <- freshName "x"
     y <- freshName "y"

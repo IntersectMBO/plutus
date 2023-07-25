@@ -319,7 +319,7 @@ scottCons = runQuote $ do
 -- >             {\(p :: natK) -> p (\(z :: *) -> a) unit}
 -- >             (/\(p :: natK) (x : a) (xs' : scottVec a p) -> x)
 -- >             unitval
-scottHead :: uni `HasBothLevel` () => Term TyName Name uni fun ()
+scottHead :: uni `HasTypeAndTermLevel` () => Term TyName Name uni fun ()
 scottHead = runQuote $ do
     a <- freshTyName "a"
     n <- freshTyName "n"
@@ -359,7 +359,7 @@ scottHead = runQuote $ do
 -- >             (\(coe : scottVec Integer n -> scottVec integer zero) -> 0)
 -- >             (/\(xs' :: scottVec Integer n) -> xs')
 scottSumHeadsOr0
-    :: (uni `HasBothLevel` Integer, uni `HasBothLevel` ())
+    :: (uni `HasTypeAndTermLevel` Integer, uni `HasTypeAndTermLevel` ())
     => Term TyName Name uni DefaultFun ()
 scottSumHeadsOr0 = runQuote $ do
     n <- freshTyName "n"

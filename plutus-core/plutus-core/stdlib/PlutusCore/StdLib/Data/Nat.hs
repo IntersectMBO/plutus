@@ -134,7 +134,8 @@ foldNat = runQuote $ do
 -- | Convert a @nat@ to an @integer@.
 --
 -- > foldNat {integer} (addInteger 1) 1
-natToInteger :: (TermLike term TyName Name uni DefaultFun, uni `HasBothLevel` Integer) => term ()
+natToInteger
+    :: (TermLike term TyName Name uni DefaultFun, uni `HasTypeAndTermLevel` Integer) => term ()
 natToInteger = runQuote $ do
     return $
         mkIterAppNoAnn (tyInst () foldNat $ mkTyBuiltin @_ @Integer ())

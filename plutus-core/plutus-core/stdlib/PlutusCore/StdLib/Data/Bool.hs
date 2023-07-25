@@ -37,7 +37,7 @@ false = mkConstant () False
 ifThenElse
     :: forall term uni.
        ( TermLike term TyName Name uni DefaultFun
-       , uni `HasBothLevel` Bool, uni `HasBothLevel` ()
+       , uni `HasTypeAndTermLevel` Bool, uni `HasTypeAndTermLevel` ()
        )
     => term ()
 ifThenElse = runQuote $ do

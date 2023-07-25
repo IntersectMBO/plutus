@@ -21,7 +21,8 @@ integer = mkTyBuiltin @_ @Integer ()
 -- |  @succ :: Integer -> Integer@ as a PLC term.
 --
 -- > \(i : integer) -> addInteger i 1
-succInteger :: (TermLike term tyname Name uni DefaultFun, uni `HasBothLevel` Integer) => term ()
+succInteger
+    :: (TermLike term tyname Name uni DefaultFun, uni `HasTypeAndTermLevel` Integer) => term ()
 succInteger = runQuote $ do
     i  <- freshName "i"
     return

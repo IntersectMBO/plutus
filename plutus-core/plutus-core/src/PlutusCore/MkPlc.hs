@@ -16,7 +16,7 @@ module PlutusCore.MkPlc
     , UniOf
     , HasTypeLevel
     , HasTermLevel
-    , HasBothLevel
+    , HasTypeAndTermLevel
     , mkTyBuiltinOf
     , mkTyBuiltin
     , mkConstantOf
