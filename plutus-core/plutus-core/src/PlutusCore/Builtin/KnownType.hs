@@ -52,7 +52,7 @@ import Universe
 -- | A constraint for \"@a@ is a 'ReadKnownIn' and 'MakeKnownIn' by means of being included
 -- in @uni@\".
 type KnownBuiltinTypeIn uni val a =
-    (HasConstantIn uni val, PrettyParens (SomeTypeIn uni), GEq uni, uni `Contains` a)
+    (HasConstantIn uni val, PrettyParens (SomeTypeIn uni), GEq uni, uni `HasTermLevel` a)
 
 -- | A constraint for \"@a@ is a 'ReadKnownIn' and 'MakeKnownIn' by means of being included
 -- in @UniOf term@\".

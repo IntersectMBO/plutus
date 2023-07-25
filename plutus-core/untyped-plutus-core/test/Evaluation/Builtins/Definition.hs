@@ -4,6 +4,7 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeOperators         #-}
 
 
 -- Sure GHC, I'm enabling the extension just so that you can warn me about its usages.
@@ -500,7 +501,7 @@ test_List = testCase "List" $ do
     Right (EvaluationSuccess false)  @=?  typecheckEvaluateCekNoEmit def defaultBuiltinCostModel (nullViaChooseList [1..10])
 
  where
-   evalsL :: Contains DefaultUni a => a -> DefaultFun -> Type TyName DefaultUni () -> [Term TyName Name DefaultUni DefaultFun ()]  -> Assertion
+   evalsL :: DefaultUni `HasTermLevel` a => a -> DefaultFun -> Type TyName DefaultUni () -> [Term TyName Name DefaultUni DefaultFun ()]  -> Assertion
    evalsL expectedVal b tyArg args =
     let actualExp = mkIterAppNoAnn (tyInst () (builtin () b) tyArg) args
     in  Right (EvaluationSuccess $ cons expectedVal)
@@ -663,11 +664,11 @@ test_ConsByteString =
         Right EvaluationFailure @=? typecheckEvaluateCekNoEmit def defaultBuiltinCostModelExt expr1
 
 -- shorthand
-cons :: (Contains DefaultUni a, TermLike term tyname name DefaultUni fun) => a -> term ()
+cons :: (DefaultUni `HasTermLevel` a, TermLike term tyname name DefaultUni fun) => a -> term ()
 cons = mkConstant ()
 
 -- shorthand
-evals :: Contains DefaultUni a => a -> DefaultFun -> [Term TyName Name DefaultUni DefaultFun ()]  -> Assertion
+evals :: DefaultUni `HasTermLevel` a => a -> DefaultFun -> [Term TyName Name DefaultUni DefaultFun ()]  -> Assertion
 evals expectedVal b args =
     let actualExp = mkIterAppNoAnn (builtin () b) args
     in  Right (EvaluationSuccess $ cons expectedVal)

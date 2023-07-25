@@ -168,10 +168,6 @@ codebase. And when we don't want or can't have generality, we instantiate @tynam
 type HasTypeLevel :: forall a. (GHC.Type -> GHC.Type) -> a -> GHC.Constraint
 type HasTypeLevel uni x = KnownTypeAst Void uni (ElaborateBuiltin uni x)
 
--- | Specifies that the given type is a built-in one and its values can be embedded into a 'Term'.
-type HasTermLevel :: forall a. (GHC.Type -> GHC.Type) -> a -> GHC.Constraint
-type HasTermLevel uni = Includes uni
-
 -- | The product of 'HasTypeLevel' and 'HasTermLevel'.
 type HasBothLevel :: forall a. (GHC.Type -> GHC.Type) -> a -> GHC.Constraint
 type HasBothLevel uni x = (uni `HasTypeLevel` x, uni `HasTermLevel` x)

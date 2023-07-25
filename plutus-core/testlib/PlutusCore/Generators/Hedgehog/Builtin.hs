@@ -72,7 +72,7 @@ class GenArbitraryTerm uni where
 instance GenArbitraryTerm DefaultUni where
     genArbitraryTerm = runAstGen genTerm
 
-data SomeGen uni = forall a. uni `Contains` a => SomeGen (Gen a)
+data SomeGen uni = forall a. uni `HasTermLevel` a => SomeGen (Gen a)
 
 genConstant :: forall (a :: GHC.Type). TypeRep a -> SomeGen DefaultUni
 genConstant tr
