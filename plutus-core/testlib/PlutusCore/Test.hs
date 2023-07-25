@@ -28,6 +28,7 @@ module PlutusCore.Test (
   goldenTEvalCatch,
   goldenUEvalCatch,
   goldenUEvalProfile,
+  goldenUplcBudget,
   initialSrcSpan,
   topSrcSpan,
   NoMarkRenameT (..),
@@ -63,9 +64,6 @@ import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as TPLC
 import PlutusCore.Pretty
 import PlutusCore.Rename.Monad qualified as TPLC
 
-import UntypedPlutusCore qualified as UPLC
-import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
-
 import Control.Exception
 import Control.Lens
 import Control.Monad.Except
@@ -79,12 +77,15 @@ import System.IO.Unsafe
 import Test.Tasty
 import Test.Tasty.Hedgehog
 import Test.Tasty.HUnit
+import UntypedPlutusCore qualified as UPLC
+import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
 import Hedgehog.Internal.Config
 import Hedgehog.Internal.Property
 import Hedgehog.Internal.Region
 import Hedgehog.Internal.Report
 import Hedgehog.Internal.Runner
+import System.FilePath.Posix ((</>))
 
 -- | Map the 'TestLimit' of a 'Property' with a given function.
 mapTestLimit :: (TestLimit -> TestLimit) -> Property -> Property
@@ -339,6 +340,25 @@ goldenUEvalProfile ::
 goldenUEvalProfile name values =
   nestedGoldenVsDocM name ".ueval-profile" $
     pretty . view _2 <$> (rethrow $ runUPlcProfile values)
+
+-- Budget testing
+
+goldenUplcBudget ::
+  TestName
+  -> UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
+  -> TestNested
+goldenUplcBudget name uplcTerm = do
+  let uplcTm = TPLC.runQuote $
+          runExceptT @UPLC.FreeVariableError $ UPLC.unDeBruijnTerm uplcTerm
+  path <- ask
+  let measureBudget tm =
+        let (_, UPLC.TallyingSt _ budget) =
+                UPLC.runCekNoEmit TPLC.defaultCekParameters UPLC.tallying tm
+        in budget
+      filename = foldr (</>) (name ++ ".budget.golden") path
+  case uplcTm of
+    Left err -> pure $ goldenVsDoc name filename (pretty err)
+    Right tm -> pure $ goldenVsDoc name filename (pretty (measureBudget tm))
 
 -- | A made-up `SrcSpan` for testing.
 initialSrcSpan :: FilePath -> SrcSpan

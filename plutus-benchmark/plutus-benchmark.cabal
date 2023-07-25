@@ -558,3 +558,19 @@ benchmark marlowe
     , plutus-core              ^>=1.10
     , plutus-ledger-api        ^>=1.10
     , plutus-tx                ^>=1.10
+    , plutus-ledger-api        ^>=1.10
+    , plutus-tx                ^>=1.10
+
+test-suite plutus-benchmark-marlowe-tests
+  import:         lang, ghc-version-support
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  hs-source-dirs: marlowe/test
+  other-modules:
+  build-depends:
+    , base                                            >=4.9 && <5
+    , marlowe-internal
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.10
+    , plutus-ledger-api                               ^>=1.10
+    , plutus-tx                                       ^>=1.10
+    , tasty

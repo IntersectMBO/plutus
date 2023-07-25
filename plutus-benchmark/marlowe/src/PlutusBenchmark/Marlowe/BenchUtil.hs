@@ -20,7 +20,8 @@
 
 module PlutusBenchmark.Marlowe.BenchUtil (
   -- * Benchmarking
-  executeBenchmark
+  benchmarkToUPLC
+, executeBenchmark
 , evaluationContext
 , readBenchmark
 , readBenchmarks
@@ -39,11 +40,15 @@ import Control.Monad (void)
 import Control.Monad.Except (runExcept)
 import Control.Monad.Writer (runWriterT)
 import Data.Bifunctor (bimap, second)
+import Data.ByteString.Lazy qualified as LBS (readFile)
 import Data.List (isSuffixOf)
 import PlutusBenchmark.Common (getDataDir)
 import PlutusBenchmark.Marlowe.Core.V1.Semantics (MarloweData)
+import PlutusBenchmark.Marlowe.Scripts.RolePayout (rolePayoutValidatorHash)
 import PlutusBenchmark.Marlowe.Scripts.Semantics (MarloweInput, marloweValidatorHash)
 import PlutusBenchmark.Marlowe.Types (Benchmark (..))
+import PlutusBenchmark.Marlowe.Types qualified as M
+import PlutusCore.Default qualified as PLC
 import PlutusCore.Executable.AstIO (fromNamedDeBruijnUPLC)
 import PlutusCore.Executable.Common (writeProgram)
 import PlutusCore.Executable.Types (AstNameType (NamedDeBruijn), Format (Flat), Output (FileOutput),
@@ -54,11 +59,31 @@ import PlutusPrelude ((.*))
 import PlutusTx.Code (CompiledCode, getPlc)
 import System.Directory (listDirectory)
 import System.FilePath ((<.>), (</>))
-import UntypedPlutusCore (Program (..), Version (..), applyProgram)
+import UntypedPlutusCore (NamedDeBruijn, Program (..), Version (..), applyProgram)
+import UntypedPlutusCore.Core.Type qualified as UPLC
 
-import Data.ByteString.Lazy qualified as LBS (readFile)
-import PlutusBenchmark.Marlowe.Scripts.RolePayout (rolePayoutValidatorHash)
-
+-- | Turn a `PlutusBenchmark.Marlowe.Types.Benchmark` to a UPLC program.
+benchmarkToUPLC
+  :: CompiledCode a
+  -- ^ semantics or role payout validator.
+  -> M.Benchmark
+  -- ^ `PlutusBenchmark.Marlowe.Types.Benchmark`, benchmarking type used by the executable,
+  -- it includes benchmarking results along with script info.
+  -> UPLC.Term NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
+  -- A named DeBruijn term, for turning to `Benchmarkable`.
+benchmarkToUPLC validator M.Benchmark{..} =
+  let
+    unsafeFromRight (Right x) = x
+    unsafeFromRight _         = error "unsafeFromRight: applyProgram returned a Left"
+    wrap = UPLC.Program () (UPLC.Version 1 0 0)
+    datum = wrap $ mkConstant () bDatum
+    redeemer = wrap $ mkConstant () bRedeemer
+    context = wrap $ mkConstant () $ toData bScriptContext
+    prog = getPlc validator
+    appliedProg = foldl1 (unsafeFromRight .* applyProgram)
+        $ void prog : [datum, redeemer, context]
+  in
+    UPLC._progTerm appliedProg
 
 -- | Read all of the benchmarking cases for a particular validator.
 readBenchmarks
