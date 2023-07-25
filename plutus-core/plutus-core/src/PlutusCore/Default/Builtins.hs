@@ -1654,7 +1654,7 @@ instance Flat DefaultFun where
               XorByteString                   -> 77
               ComplementByteString            -> 78
               ShiftByteString                 -> 79
-              RotateByteString                -> 90
+              RotateByteString                -> 80
               PopCountByteString              -> 81
               TestBitByteString               -> 82
               WriteBitByteString              -> 83
