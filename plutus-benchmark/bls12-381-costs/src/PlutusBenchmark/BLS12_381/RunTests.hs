@@ -49,11 +49,6 @@ printCosts_Pairing h = do
         script = mkPairingScript p1 p2 q1 q2
     printSizeStatistics h NoSize script
 
-printCosts_Groth16Verify :: Handle -> IO ()
-printCosts_Groth16Verify h = do
-  let script = mkGroth16VerifyScript
-  printSizeStatistics h NoSize script
-
 runTests :: Handle -> IO ()
 runTests h = do
 
@@ -84,9 +79,76 @@ runTests h = do
 
   hPrintf h "Groth16 verification example\n\n"
   printHeader h
-  printCosts_Groth16Verify h
+  printSizeStatistics h NoSize mkGroth16VerifyScript
+  hPrintf h "\n"
+
+  hPrintf h "VRF example\n\n"
+  printHeader h
+  printSizeStatistics h NoSize mkVrfBlsPolicy
+  hPrintf h "\n"
+
+  hPrintf h "G1 Verify\n\n"
+  printHeader h
+  printSizeStatistics h NoSize mkG1VerifyPolicy
+  hPrintf h "\n"
+
+  hPrintf h "G2 Verify\n\n"
+  printHeader h
+  printSizeStatistics h NoSize mkG2VerifyPolicy
+  hPrintf h "\n"
+
+  hPrintf h "Aggregate Single Key\n\n"
+  printHeader h
+  printSizeStatistics h NoSize mkAggregateSingleKeyG1Policy
+  hPrintf h "\n"
+
+  hPrintf h "Aggregate Multi Key\n\n"
+  printHeader h
+  printSizeStatistics h NoSize mkAggregateMultiKeyG2Policy
+  hPrintf h "\n"
+
+  hPrintf h "Schnorr Signature G1\n\n"
+  printHeader h
+  printSizeStatistics h NoSize mkSchnorrG1VerifyPolicy
+  hPrintf h "\n"
+
+  hPrintf h "Schnorr Signature G2\n\n"
+  printHeader h
+  printSizeStatistics h NoSize mkSchnorrG2VerifyPolicy
   hPrintf h "\n"
 
   if checkGroth16Verify_Haskell
   then hPrintf h "Groth16Verify succeeded\n"
   else hPrintf h "Groth16Verify failed\n"
+
+  if checkVerifyBlsSimpleScript
+  then hPrintf h "Simple Verify succeeded\n"
+  else hPrintf h "Simple Verify failed\n"
+
+  if checkVrfBlsScript
+  then hPrintf h "VRF succeeded\n"
+  else hPrintf h "VRF failed\n"
+
+  if checkG1VerifyScript
+  then hPrintf h "G1 Verify succeeded\n"
+  else hPrintf h "G1 Verify failed\n"
+
+  if checkG2VerifyScript
+  then hPrintf h "G2 Verify succeeded\n"
+  else hPrintf h "G2 Verify failed\n"
+
+  if checkAggregateSingleKeyG1Script
+  then hPrintf h "Aggregate Signature Single Key G1 Verify succeeded\n"
+  else hPrintf h "Aggregate Signature Single Key G1 Verify failed\n"
+
+  if checkAggregateMultiKeyG2Script
+  then hPrintf h "Aggregate Signature Multi Key G2 Verify succeeded\n"
+  else hPrintf h "Aggregate Signature Multi Key G2 Verify failed\n"
+
+  if checkSchnorrG1VerifyScript
+  then hPrintf h "Schnorr G1 Verify succeeded\n"
+  else hPrintf h "Schnorr G1 Verify failed\n"
+
+  if checkSchnorrG2VerifyScript
+  then hPrintf h "Schnorr G2 Verify succeeded\n"
+  else hPrintf h "Schnorr G2 Verify failed\n"
