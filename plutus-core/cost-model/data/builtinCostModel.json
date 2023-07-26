@@ -57,6 +57,19 @@
             "type": "constant_cost"
         }
     },
+    "blake2b_224": {
+        "cpu": {
+            "arguments": {
+                "intercept": 117366,
+                "slope": 10475
+            },
+            "type": "linear_cost"
+        },
+        "memory": {
+            "arguments": 4,
+            "type": "constant_cost"
+        }
+    },
     "blake2b_256": {
         "cpu": {
             "arguments": {
@@ -461,6 +474,19 @@
         "cpu": {
             "arguments": 57667,
             "type": "constant_cost"
+        },
+        "memory": {
+            "arguments": 4,
+            "type": "constant_cost"
+        }
+    },
+    "keccak_256": {
+        "cpu": {
+            "arguments": {
+                "intercept": 1927926,
+                "slope": 82523
+            },
+            "type": "linear_cost"
         },
         "memory": {
             "arguments": 4,

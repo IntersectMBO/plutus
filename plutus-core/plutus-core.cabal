@@ -72,7 +72,6 @@ library
   import:             lang
   exposed-modules:
     Bitwise
-    Data.ByteString.Hash
     Data.Either.Extras
     Data.List.Extras
     Data.MultiSet.Lens
@@ -96,6 +95,7 @@ library
     PlutusCore.Crypto.BLS12_381.G2
     PlutusCore.Crypto.BLS12_381.Pairing
     PlutusCore.Crypto.Ed25519
+    PlutusCore.Crypto.Hash
     PlutusCore.Crypto.Secp256k1
     PlutusCore.Data
     PlutusCore.DataFilePaths

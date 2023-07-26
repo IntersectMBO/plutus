@@ -29,9 +29,15 @@ import PlutusCore.Pretty
 import Bitwise (andByteString, byteStringToInteger, complementByteString, findFirstSetByteString,
                 integerToByteString, iorByteString, popCountByteString, rotateByteString,
                 shiftByteString, testBitByteString, writeBitByteString, xorByteString)
+import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
+import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
+import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
+import PlutusCore.Crypto.Ed25519 (verifyEd25519Signature_V1, verifyEd25519Signature_V2)
+import PlutusCore.Crypto.Hash qualified as Hash
+import PlutusCore.Crypto.Secp256k1 (verifyEcdsaSecp256k1Signature, verifySchnorrSecp256k1Signature)
+
 import Codec.Serialise (serialise)
 import Data.ByteString qualified as BS
-import Data.ByteString.Hash qualified as Hash
 import Data.ByteString.Lazy qualified as BSL
 import Data.Char
 import Data.Ix
@@ -147,6 +153,9 @@ data DefaultFun
     | Bls12_381_millerLoop
     | Bls12_381_mulMlResult
     | Bls12_381_finalVerify
+    -- Keccak_256, Blake2b_224
+    | Keccak_256
+    | Blake2b_224
     -- Bitwise
     | IntegerToByteString
     | ByteStringToInteger
@@ -1483,6 +1492,15 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             BLS12_381.Pairing.finalVerify
             (runCostingFunTwoArguments . paramBls12_381_finalVerify)
+    -- Keccak_256, Blake2b_224
+    toBuiltinMeaning _ver Keccak_256 =
+        makeBuiltinMeaning
+            Hash.keccak_256
+            (runCostingFunOneArgument . paramKeccak_256)
+    toBuiltinMeaning _ver Blake2b_224 =
+        makeBuiltinMeaning
+            Hash.blake2b_224
+            (runCostingFunOneArgument . paramBlake2b_224)
     -- Bitwise
     toBuiltinMeaning _ver IntegerToByteString =
         makeBuiltinMeaning integerToByteStringPlc (\_ _ -> ExBudgetLast $ ExBudget 0 0)
@@ -1643,10 +1661,8 @@ instance Flat DefaultFun where
               Bls12_381_millerLoop            -> 68
               Bls12_381_mulMlResult           -> 69
               Bls12_381_finalVerify           -> 70
-
-              -- 71 is reserved for Keccak_256
-              -- 72 is reserved for Blake2b_224
-
+              Keccak_256                      -> 71
+              Blake2b_224                     -> 72
               IntegerToByteString             -> 73
               ByteStringToInteger             -> 74
               AndByteString                   -> 75
@@ -1732,8 +1748,8 @@ instance Flat DefaultFun where
               go 68 = pure Bls12_381_millerLoop
               go 69 = pure Bls12_381_mulMlResult
               go 70 = pure Bls12_381_finalVerify
-              go 71 = fail "Reserved for Keccak_256"
-              go 72 = fail "Reserved for Blake2b_224"
+              go 71 = pure Keccak_256
+              go 72 = pure Blake2b_224
               go 73 = pure IntegerToByteString
               go 74 = pure ByteStringToInteger
               go 75 = pure AndByteString
@@ -1746,6 +1762,7 @@ instance Flat DefaultFun where
               go 82 = pure TestBitByteString
               go 83 = pure WriteBitByteString
               go 84 = pure FindFirstSetByteString
+
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth

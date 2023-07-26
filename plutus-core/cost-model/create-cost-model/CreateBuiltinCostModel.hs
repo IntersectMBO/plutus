@@ -11,6 +11,7 @@ module CreateBuiltinCostModel where
 import PlutusCore.Crypto.BLS12_381.G1 qualified as G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as Pairing
+import PlutusCore.Crypto.Hash qualified as Hash
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.CostStream
 import PlutusCore.Evaluation.Machine.ExMemory
@@ -20,7 +21,6 @@ import Barbies (bmap, bsequence)
 import Control.Applicative (Const (Const, getConst))
 import Control.Exception (TypeError (TypeError))
 import Control.Monad.Catch (throwM)
-import Data.ByteString.Hash qualified as PlutusHash
 import Data.ByteString.Lazy qualified as BSL (fromStrict)
 import Data.Coerce (coerce)
 import Data.Csv (FromNamedRecord, FromRecord, HasHeader (HasHeader), decode, parseNamedRecord, (.:))
@@ -121,6 +121,8 @@ builtinCostModelNames = BuiltinCostModelBase
   , paramBls12_381_millerLoop            = "bls12_381_millerLoopModel"
   , paramBls12_381_mulMlResult           = "bls12_381_mulMlResultModel"
   , paramBls12_381_finalVerify           = "bls12_381_finalVerifyModel"
+  , paramBlake2b_224                     = "blake2b_224Model"
+  , paramKeccak_256                      = "keccak_256Model"
   , paramIntegerToByteString             = "integerToByteStringModel"
   , paramByteStringToInteger             = "byteStringToIntegerModel"
   , paramAndByteString                   = "andByteStringModel"
@@ -256,6 +258,9 @@ createBuiltinCostModel bmfile rfile = do
     paramTestBitByteString               <- getParams testBitByteString         paramTestBitByteString
     paramWriteBitByteString              <- getParams writeBitByteString        paramWriteBitByteString
     paramFindFirstSetByteString          <- getParams findFirstSetByteString    paramFindFirstSetByteString
+
+    paramKeccak_256                      <- getParams keccak_256                paramKeccak_256
+    paramBlake2b_224                     <- getParams blake2b_224               paramBlake2b_224
 
     pure $ BuiltinCostModelBase {..}
 
@@ -502,20 +507,33 @@ lessThanEqualsByteString = lessThanByteString
 sha2_256 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 sha2_256 cpuModelR = do
   cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
-  let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ PlutusHash.sha2_256 "")
+  let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ Hash.sha2_256 "")
   pure $ CostingFun cpuModel memModel
 
 sha3_256 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 sha3_256 cpuModelR = do
   cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
-  let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ PlutusHash.sha3_256 "")
+  let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ Hash.sha3_256 "")
+  pure $ CostingFun cpuModel memModel
+
+blake2b_224 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+blake2b_224 cpuModelR = do
+  cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
+  let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ Hash.blake2b_224 "")
   pure $ CostingFun cpuModel memModel
 
 blake2b_256 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 blake2b_256 cpuModelR = do
   cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
-  let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ PlutusHash.blake2b_256 "")
+  let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ Hash.blake2b_256 "")
   pure $ CostingFun cpuModel memModel
+
+keccak_256 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+keccak_256 cpuModelR = do
+  cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
+  let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ Hash.keccak_256 "")
+  pure $ CostingFun cpuModel memModel
+
 
 -- NB: the R model is based purely on the size of the second argument (since the
 -- first and third are constant size), so we have to rearrange things a bit to

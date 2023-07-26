@@ -20,7 +20,6 @@ import Control.DeepSeq (NFData (..))
 import Control.Monad.Trans.Writer.Strict (runWriter)
 import Data.ByteArray qualified as BA
 import Data.ByteString qualified as BS
-import Data.ByteString.Hash qualified as Hash
 import Data.ByteString.Lazy qualified as BSL
 import Data.Coerce (coerce)
 import Data.Data
@@ -35,6 +34,7 @@ import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Crypto.Ed25519 qualified
+import PlutusCore.Crypto.Hash qualified as Hash
 import PlutusCore.Crypto.Secp256k1 qualified
 import PlutusCore.Data qualified as PLC
 import PlutusCore.Evaluation.Result (EvaluationResult (EvaluationFailure, EvaluationSuccess))
@@ -241,9 +241,17 @@ sha2_256 (BuiltinByteString b) = BuiltinByteString $ Hash.sha2_256 b
 sha3_256 :: BuiltinByteString -> BuiltinByteString
 sha3_256 (BuiltinByteString b) = BuiltinByteString $ Hash.sha3_256 b
 
+{-# NOINLINE blake2b_224 #-}
+blake2b_224 :: BuiltinByteString -> BuiltinByteString
+blake2b_224 (BuiltinByteString b) = BuiltinByteString $ Hash.blake2b_224 b
+
 {-# NOINLINE blake2b_256 #-}
 blake2b_256 :: BuiltinByteString -> BuiltinByteString
 blake2b_256 (BuiltinByteString b) = BuiltinByteString $ Hash.blake2b_256 b
+
+{-# NOINLINE keccak_256 #-}
+keccak_256 :: BuiltinByteString -> BuiltinByteString
+keccak_256 (BuiltinByteString b) = BuiltinByteString $ Hash.keccak_256 b
 
 {-# NOINLINE verifyEd25519Signature #-}
 verifyEd25519Signature :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString -> BuiltinBool

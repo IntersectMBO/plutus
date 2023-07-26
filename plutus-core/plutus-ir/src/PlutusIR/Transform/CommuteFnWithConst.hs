@@ -87,7 +87,9 @@ isCommutative = \case
     -- Cryptography and hashes
   Sha2_256                        -> False
   Sha3_256                        -> False
+  Blake2b_224                     -> False
   Blake2b_256                     -> False
+  Keccak_256                      -> False
   VerifyEd25519Signature          -> False
   VerifyEcdsaSecp256k1Signature   -> False
   VerifySchnorrSecp256k1Signature -> False

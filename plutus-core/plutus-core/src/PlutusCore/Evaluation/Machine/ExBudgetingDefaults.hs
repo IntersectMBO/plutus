@@ -195,6 +195,10 @@ unitCostBuiltinCostModel = BuiltinCostModelBase
     , paramBls12_381_millerLoop            = unitCostTwoArguments
     , paramBls12_381_mulMlResult           = unitCostTwoArguments
     , paramBls12_381_finalVerify           = unitCostTwoArguments
+    -- Keccak_256, Blake2b_224
+    , paramKeccak_256                      = unitCostOneArgument
+    , paramBlake2b_224                     = unitCostOneArgument
+    -- Bitwise operations
     , paramIntegerToByteString             = unitCostOneArgument
     , paramByteStringToInteger             = unitCostOneArgument
     , paramAndByteString                   = unitCostTwoArguments
