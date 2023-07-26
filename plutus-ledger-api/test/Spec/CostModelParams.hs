@@ -30,13 +30,13 @@ tests =
             166 @=? length v1CostModelParamNames
             175 @=? length (enumerate @V2.ParamName)
             175 @=? length v2CostModelParamNames
-            217 @=? length (enumerate @V3.ParamName)
-            217 @=? length v3CostModelParamNames
+            223 @=? length (enumerate @V3.ParamName)
+            223 @=? length v3CostModelParamNames
     , testCase "context length" $ do
             let defaultCostValues = Map.elems $ fromJust defaultCostModelParams
             -- the defaultcostmodelparams reflects only the latest version V3, so this should succeed because the lengths match
             assertBool "wrong number of arguments in V2.mkContext" $ isRight $ runExcept $ runWriterT $ V3.mkEvaluationContext defaultCostValues
-            -- currently v2 args ==v3 args
+            -- currently v2 args == v3 args
             assertBool "wrong number of arguments in V2.mkContext" $ isRight $ runExcept $ runWriterT $ V2.mkEvaluationContext defaultCostValues
             -- this one should succeed because we pass more params
             assertBool "larger number of params did not warn" $ hasWarnMoreParams (length v3CostModelParamNames) (length v3CostModelParamNames+1) $

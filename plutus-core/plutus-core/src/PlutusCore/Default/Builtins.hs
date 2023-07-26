@@ -29,11 +29,11 @@ import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Crypto.Ed25519 (verifyEd25519Signature_V1, verifyEd25519Signature_V2)
+import PlutusCore.Crypto.Hash qualified as Hash
 import PlutusCore.Crypto.Secp256k1 (verifyEcdsaSecp256k1Signature, verifySchnorrSecp256k1Signature)
 
 import Codec.Serialise (serialise)
 import Data.ByteString qualified as BS
-import Data.ByteString.Hash qualified as Hash
 import Data.ByteString.Lazy qualified as BSL
 import Data.Char
 import Data.Ix
@@ -144,7 +144,9 @@ data DefaultFun
     | Bls12_381_millerLoop
     | Bls12_381_mulMlResult
     | Bls12_381_finalVerify
-
+    -- Keccak_256, Blake2b_224
+    | Keccak_256
+    | Blake2b_224
     deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
     deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
@@ -1398,76 +1400,84 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (\() -> [] @(Data,Data))
             (runCostingFunOneArgument . paramMkNilPairData)
     -- BLS12_381.G1
-    toBuiltinMeaning _var Bls12_381_G1_add =
+    toBuiltinMeaning _ver Bls12_381_G1_add =
         makeBuiltinMeaning
             BLS12_381.G1.add
             (runCostingFunTwoArguments . paramBls12_381_G1_add)
-    toBuiltinMeaning _var Bls12_381_G1_neg =
+    toBuiltinMeaning _ver Bls12_381_G1_neg =
         makeBuiltinMeaning
             BLS12_381.G1.neg
             (runCostingFunOneArgument . paramBls12_381_G1_neg)
-    toBuiltinMeaning _var Bls12_381_G1_scalarMul =
+    toBuiltinMeaning _ver Bls12_381_G1_scalarMul =
         makeBuiltinMeaning
             BLS12_381.G1.scalarMul
             (runCostingFunTwoArguments . paramBls12_381_G1_scalarMul)
-    toBuiltinMeaning _var Bls12_381_G1_compress =
+    toBuiltinMeaning _ver Bls12_381_G1_compress =
         makeBuiltinMeaning
             BLS12_381.G1.compress
             (runCostingFunOneArgument . paramBls12_381_G1_compress)
-    toBuiltinMeaning _var Bls12_381_G1_uncompress =
+    toBuiltinMeaning _ver Bls12_381_G1_uncompress =
         makeBuiltinMeaning
             (eitherToEmitter . BLS12_381.G1.uncompress)
             (runCostingFunOneArgument . paramBls12_381_G1_uncompress)
-    toBuiltinMeaning _var Bls12_381_G1_hashToGroup =
+    toBuiltinMeaning _ver Bls12_381_G1_hashToGroup =
         makeBuiltinMeaning
             (eitherToEmitter .* BLS12_381.G1.hashToGroup)
             (runCostingFunTwoArguments . paramBls12_381_G1_hashToGroup)
-    toBuiltinMeaning _var Bls12_381_G1_equal =
+    toBuiltinMeaning _ver Bls12_381_G1_equal =
         makeBuiltinMeaning
             ((==) @BLS12_381.G1.Element)
             (runCostingFunTwoArguments . paramBls12_381_G1_equal)
     -- BLS12_381.G2
-    toBuiltinMeaning _var Bls12_381_G2_add =
+    toBuiltinMeaning _ver Bls12_381_G2_add =
         makeBuiltinMeaning
             BLS12_381.G2.add
             (runCostingFunTwoArguments . paramBls12_381_G2_add)
-    toBuiltinMeaning _var Bls12_381_G2_neg =
+    toBuiltinMeaning _ver Bls12_381_G2_neg =
         makeBuiltinMeaning
             BLS12_381.G2.neg
             (runCostingFunOneArgument . paramBls12_381_G2_neg)
-    toBuiltinMeaning _var Bls12_381_G2_scalarMul =
+    toBuiltinMeaning _ver Bls12_381_G2_scalarMul =
         makeBuiltinMeaning
             BLS12_381.G2.scalarMul
             (runCostingFunTwoArguments . paramBls12_381_G2_scalarMul)
-    toBuiltinMeaning _var Bls12_381_G2_compress =
+    toBuiltinMeaning _ver Bls12_381_G2_compress =
         makeBuiltinMeaning
             BLS12_381.G2.compress
             (runCostingFunOneArgument . paramBls12_381_G2_compress)
-    toBuiltinMeaning _var Bls12_381_G2_uncompress =
+    toBuiltinMeaning _ver Bls12_381_G2_uncompress =
         makeBuiltinMeaning
             (eitherToEmitter . BLS12_381.G2.uncompress)
             (runCostingFunOneArgument . paramBls12_381_G2_uncompress)
-    toBuiltinMeaning _var Bls12_381_G2_hashToGroup =
+    toBuiltinMeaning _ver Bls12_381_G2_hashToGroup =
         makeBuiltinMeaning
             (eitherToEmitter .* BLS12_381.G2.hashToGroup)
             (runCostingFunTwoArguments . paramBls12_381_G2_hashToGroup)
-    toBuiltinMeaning _var Bls12_381_G2_equal =
+    toBuiltinMeaning _ver Bls12_381_G2_equal =
         makeBuiltinMeaning
             ((==) @BLS12_381.G2.Element)
             (runCostingFunTwoArguments . paramBls12_381_G2_equal)
     -- BLS12_381.Pairing
-    toBuiltinMeaning _var Bls12_381_millerLoop =
+    toBuiltinMeaning _ver Bls12_381_millerLoop =
         makeBuiltinMeaning
             BLS12_381.Pairing.millerLoop
             (runCostingFunTwoArguments . paramBls12_381_millerLoop)
-    toBuiltinMeaning _var Bls12_381_mulMlResult =
+    toBuiltinMeaning _ver Bls12_381_mulMlResult =
         makeBuiltinMeaning
             BLS12_381.Pairing.mulMlResult
             (runCostingFunTwoArguments . paramBls12_381_mulMlResult)
-    toBuiltinMeaning _var Bls12_381_finalVerify =
+    toBuiltinMeaning _ver Bls12_381_finalVerify =
         makeBuiltinMeaning
             BLS12_381.Pairing.finalVerify
             (runCostingFunTwoArguments . paramBls12_381_finalVerify)
+    toBuiltinMeaning _ver Keccak_256 =
+        makeBuiltinMeaning
+            Hash.keccak_256
+            (runCostingFunOneArgument . paramKeccak_256)
+    toBuiltinMeaning _ver Blake2b_224 =
+        makeBuiltinMeaning
+            Hash.blake2b_224
+            (runCostingFunOneArgument . paramBlake2b_224)
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}
 
@@ -1573,6 +1583,8 @@ instance Flat DefaultFun where
               Bls12_381_millerLoop            -> 68
               Bls12_381_mulMlResult           -> 69
               Bls12_381_finalVerify           -> 70
+              Keccak_256                      -> 71
+              Blake2b_224                     -> 72
 
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
@@ -1646,6 +1658,8 @@ instance Flat DefaultFun where
               go 68 = pure Bls12_381_millerLoop
               go 69 = pure Bls12_381_mulMlResult
               go 70 = pure Bls12_381_finalVerify
+              go 71 = pure Keccak_256
+              go 72 = pure Blake2b_224
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth

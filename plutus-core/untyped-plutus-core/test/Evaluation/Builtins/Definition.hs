@@ -49,6 +49,7 @@ import Control.Exception
 import Data.ByteString (ByteString)
 import Data.DList qualified as DList
 import Data.Proxy
+import Data.String (fromString)
 import Data.Text (Text)
 import Hedgehog hiding (Opaque, Size, Var)
 import Hedgehog.Gen qualified as Gen
@@ -628,6 +629,43 @@ test_Crypto = testCase "Crypto" $ do
     -- b2sum -l 256 hex output: 256c83b297114d201b30179f3f0ef0cace9783622da5974326b436178aeef610
     evals @ByteString "%l\131\178\151\DC1M \ESC0\ETB\159?\SO\240\202\206\151\131b-\165\151C&\180\&6\ETB\138\238\246\DLE"
         Blake2b_256 [cons @ByteString "hello world"]
+    -- independently verified by `/usr/bin/b2sum -l 224` with the hex output converted to ascii text
+    -- b2sum -l 224 hex output: 42d1854b7d69e3b57c64fcc7b4f64171b47dff43fba6ac0499ff437f
+    evals @ByteString "B\209\133K}i\227\181|d\252\199\180\246Aq\180}\255C\251\166\172\EOT\153\255C\DEL"
+        Blake2b_224 [cons @ByteString "hello world"]
+    -- independently verified by the calculator at `https://emn178.github.io/online-tools/keccak_256.html`
+    -- with the hex output converted to ascii text
+    -- hex output: 47173285a8d7341e5e972fc677286384f802f8ef42a5ec5f03bbfa254cb01fad
+    evals @ByteString "G\ETB2\133\168\215\&4\RS^\151/\198w(c\132\248\STX\248\239B\165\236_\ETX\187\250%L\176\US\173"
+        Keccak_256 [cons @ByteString "hello world"]
+
+-- | Test that hashes produced by a hash function contain the expected number of bits
+test_HashSize :: DefaultFun -> Integer -> TestTree
+test_HashSize hashFun expectedNumBits =
+    let testName = "HashSize " ++ show hashFun ++ " is " ++ show expectedNumBits ++ " bits"
+        propName = fromString $ "HashSize " ++ show hashFun
+    in testPropertyNamed
+       testName
+       propName
+       . property $ do
+         bs <- forAll $ Gen.bytes (Range.linear 0 1000)
+         let term = mkIterAppNoAnn (builtin () MultiplyInteger)
+                    [ cons @Integer 8
+                    , mkIterAppNoAnn (builtin () LengthOfByteString)
+                          [mkIterAppNoAnn (builtin () hashFun) [cons @ByteString bs]]
+                    ]
+         typecheckEvaluateCekNoEmit def defaultBuiltinCostModel term === Right (EvaluationSuccess (cons @Integer expectedNumBits))
+
+-- | Check that all hash functions return hashes with the correct number of bits
+test_HashSizes :: TestTree
+test_HashSizes =
+    testGroup "Hash sizes"
+        [ test_HashSize Sha2_256    256
+        , test_HashSize Sha3_256    256
+        , test_HashSize Blake2b_256 256
+        , test_HashSize Keccak_256  256
+        , test_HashSize Blake2b_224 224
+        ]
 
 -- Test all remaining builtins of the default universe
 test_Other :: TestTree
@@ -691,8 +729,8 @@ test_SignatureVerification =
         testGroup "Ed25519 signatures (V1)"
                       [ testPropertyNamed
                         "Ed25519_V1 verification behaves correctly on all inputs"
-                        "ed25519_V1_correct" .
-                        property $ ed25519_V1Prop
+                        "ed25519_V1_correct"
+                        . property $ ed25519_V1Prop
                       ],
         testGroup "Ed25519 signatures (V2)"
                       [ testPropertyNamed
@@ -739,6 +777,7 @@ test_definition =
         , test_List
         , test_Data
         , test_Crypto
+        , test_HashSizes
         , test_SignatureVerification
         , test_BLS12_381
         , test_Other

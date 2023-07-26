@@ -168,7 +168,9 @@ builtinNames = [
     , 'Builtins.indexByteString
     , 'Builtins.sha2_256
     , 'Builtins.sha3_256
+    , 'Builtins.blake2b_224
     , 'Builtins.blake2b_256
+    , 'Builtins.keccak_256
     , 'Builtins.equalsByteString
     , 'Builtins.lessThanByteString
     , 'Builtins.lessThanEqualsByteString
@@ -311,7 +313,9 @@ defineBuiltinTerms = do
     defineBuiltinTerm annMayInline 'Builtins.indexByteString                 $ mkBuiltin PLC.IndexByteString
     defineBuiltinTerm annMayInline 'Builtins.sha2_256                        $ mkBuiltin PLC.Sha2_256
     defineBuiltinTerm annMayInline 'Builtins.sha3_256                        $ mkBuiltin PLC.Sha3_256
+    defineBuiltinTerm annMayInline 'Builtins.blake2b_224                     $ mkBuiltin PLC.Blake2b_224
     defineBuiltinTerm annMayInline 'Builtins.blake2b_256                     $ mkBuiltin PLC.Blake2b_256
+    defineBuiltinTerm annMayInline 'Builtins.keccak_256                      $ mkBuiltin PLC.Keccak_256
     defineBuiltinTerm annMayInline 'Builtins.equalsByteString                $ mkBuiltin PLC.EqualsByteString
     defineBuiltinTerm annMayInline 'Builtins.lessThanByteString              $ mkBuiltin PLC.LessThanByteString
     defineBuiltinTerm annMayInline 'Builtins.lessThanEqualsByteString        $ mkBuiltin PLC.LessThanEqualsByteString

@@ -273,7 +273,7 @@ g1ElementCost = singletonRose . unsafeToSatInt $ BLS12_381.G1.memSizeBytes `div`
 
 instance ExMemoryUsage BLS12_381.G1.Element where
     memoryUsage _ = g1ElementCost
-    -- Should be 12
+    -- Should be 18
 
 {-# NOINLINE g2ElementCost #-}
 g2ElementCost :: CostRose
@@ -281,7 +281,7 @@ g2ElementCost = singletonRose . unsafeToSatInt $ BLS12_381.G2.memSizeBytes `div`
 
 instance ExMemoryUsage BLS12_381.G2.Element where
     memoryUsage _ = g2ElementCost
-    -- Should be 24
+    -- Should be 36
 
 {-# NOINLINE mlResultElementCost #-}
 mlResultElementCost :: CostRose
@@ -289,4 +289,4 @@ mlResultElementCost = singletonRose . unsafeToSatInt $ BLS12_381.Pairing.mlResul
 
 instance ExMemoryUsage BLS12_381.Pairing.MlResult where
     memoryUsage _ = mlResultElementCost
-    -- Should be 144
+    -- Should be 72

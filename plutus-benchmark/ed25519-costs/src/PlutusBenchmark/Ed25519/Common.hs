@@ -18,6 +18,7 @@ import PlutusBenchmark.Common
 import System.IO (Handle)
 
 import PlutusCore (DefaultFun, DefaultUni)
+import PlutusCore.Crypto.Hash qualified as Hash
 import PlutusTx qualified as Tx
 import UntypedPlutusCore qualified as UPLC
 
@@ -31,7 +32,6 @@ import Cardano.Crypto.DSIGN.Ed25519 (Ed25519DSIGN)
 import Cardano.Crypto.Seed (mkSeedFromBytes)
 
 import Data.ByteString (ByteString)
-import Data.ByteString.Hash qualified as Hash
 import Hedgehog.Internal.Gen qualified as G
 import Hedgehog.Internal.Range qualified as R
 import System.IO.Unsafe (unsafePerformIO)

@@ -35,7 +35,7 @@ that we provide, but there's opportunity for things to move out of sync:
 
 So it's sensible to have some regression tests.
 
-We can't just test against out own 'defaultCostModelParams', since in the case of error 2 that would
+We can't just test against our own 'defaultCostModelParams', since in the case of error 2 that would
 *also* change, so we instead need to have a checked-in version of the parameters.
 -}
 

@@ -125,7 +125,9 @@ data Builtin : Set where
   bls12-381-millerLoop            : Builtin
   bls12-381-mulMlResult           : Builtin
   bls12-381-finalVerify           : Builtin
-
+  -- Keccak-256, Blake2b-224
+  keccak-256                      : Builtin
+  blake2b-224                     : Builtin
 ```
 
 ## Signatures
@@ -239,7 +241,9 @@ hence need to be embedded into `n⋆ / n♯ ⊢⋆` using the postfix constructo
     signature lessThanEqualsByteString        = ∙ [ bytestring ↑ , bytestring ↑ ]⟶ bool ↑
     signature sha2-256                        = ∙ [ bytestring ↑ ]⟶ bytestring ↑
     signature sha3-256                        = ∙ [ bytestring ↑ ]⟶ bytestring ↑
+    signature blake2b-224                     = ∙ [ bytestring ↑ ]⟶ bytestring ↑
     signature blake2b-256                     = ∙ [ bytestring ↑ ]⟶ bytestring ↑
+    signature keccak-256                      = ∙ [ bytestring ↑ ]⟶ bytestring ↑
     signature verifyEd25519Signature          = ∙ [ bytestring ↑ , bytestring ↑ , bytestring ↑ ]⟶ bool ↑
     signature verifyEcdsaSecp256k1Signature   = ∙ [ bytestring ↑ , bytestring ↑ , bytestring ↑ ]⟶ bool ↑
     signature verifySchnorrSecp256k1Signature = ∙ [ bytestring ↑ , bytestring ↑ , bytestring ↑ ]⟶ bool ↑
@@ -372,6 +376,8 @@ Each Agda built-in name must be mapped to a Haskell name.
                                           | Bls12_381_millerLoop
                                           | Bls12_381_mulMlResult
                                           | Bls12_381_finalVerify
+                                          | Keccak_256
+                                          | Blake2b_224
                                           ) #-}
 ```
 
@@ -382,47 +388,49 @@ whose semantics are provided by a Haskell function.
 
 ```
 postulate
-  length     : ByteString → Int
-  index      : ByteString → Int → Int
-  div        : Int → Int → Int
-  quot       : Int → Int → Int
-  rem        : Int → Int → Int
-  mod        : Int → Int → Int
+  length                    : ByteString → Int
+  index                     : ByteString → Int → Int
+  div                       : Int → Int → Int
+  quot                      : Int → Int → Int
+  rem                       : Int → Int → Int
+  mod                       : Int → Int → Int
 
-  TRACE      : {a : Set} → String → a → a
+  TRACE                     : {a : Set} → String → a → a
 
-  concat     : ByteString → ByteString → ByteString
-  cons       : Int → ByteString → Maybe ByteString
-  slice      : Int → Int → ByteString → ByteString
-  B<         : ByteString → ByteString → Bool
-  B<=        : ByteString → ByteString → Bool
-  SHA2-256   : ByteString → ByteString
-  SHA3-256   : ByteString → ByteString
-  BLAKE2B-256  : ByteString → ByteString
-  verifyEd25519Sig : ByteString → ByteString → ByteString → Maybe Bool
-  verifyEcdsaSecp256k1Sig : ByteString → ByteString → ByteString → Maybe Bool
+  concat                    : ByteString → ByteString → ByteString
+  cons                      : Int → ByteString → Maybe ByteString
+  slice                     : Int → Int → ByteString → ByteString
+  B<                        : ByteString → ByteString → Bool
+  B<=                       : ByteString → ByteString → Bool
+  SHA2-256                  : ByteString → ByteString
+  SHA3-256                  : ByteString → ByteString
+  BLAKE2B-256               : ByteString → ByteString
+  verifyEd25519Sig          : ByteString → ByteString → ByteString → Maybe Bool
+  verifyEcdsaSecp256k1Sig   : ByteString → ByteString → ByteString → Maybe Bool
   verifySchnorrSecp256k1Sig : ByteString → ByteString → ByteString → Maybe Bool
-  equals        : ByteString → ByteString → Bool
-  ENCODEUTF8    : String → ByteString
-  DECODEUTF8    : ByteString → Maybe String
-  serialiseDATA : DATA → ByteString
-  BLS12-381-G1-add                : Bls12-381-G1-Element → Bls12-381-G1-Element → Bls12-381-G1-Element
-  BLS12-381-G1-neg                : Bls12-381-G1-Element → Bls12-381-G1-Element
-  BLS12-381-G1-scalarMul          : Int → Bls12-381-G1-Element → Bls12-381-G1-Element
-  BLS12-381-G1-equal              : Bls12-381-G1-Element → Bls12-381-G1-Element → Bool
-  BLS12-381-G1-hashToGroup        : ByteString → ByteString → Maybe Bls12-381-G1-Element
-  BLS12-381-G1-compress           : Bls12-381-G1-Element → ByteString
-  BLS12-381-G1-uncompress         : ByteString → Maybe Bls12-381-G1-Element -- FIXME: this really returns Either BLSTError Element
-  BLS12-381-G2-add                : Bls12-381-G2-Element → Bls12-381-G2-Element → Bls12-381-G2-Element
-  BLS12-381-G2-neg                : Bls12-381-G2-Element → Bls12-381-G2-Element
-  BLS12-381-G2-scalarMul          : Int → Bls12-381-G2-Element → Bls12-381-G2-Element
-  BLS12-381-G2-equal              : Bls12-381-G2-Element → Bls12-381-G2-Element → Bool
-  BLS12-381-G2-hashToGroup        : ByteString → ByteString → Maybe Bls12-381-G2-Element
-  BLS12-381-G2-compress           : Bls12-381-G2-Element → ByteString
-  BLS12-381-G2-uncompress         : ByteString → Maybe Bls12-381-G2-Element -- FIXME: this really returns Either BLSTError Element
-  BLS12-381-millerLoop            : Bls12-381-G1-Element → Bls12-381-G2-Element → Bls12-381-MlResult
-  BLS12-381-mulMlResult           : Bls12-381-MlResult → Bls12-381-MlResult → Bls12-381-MlResult
-  BLS12-381-finalVerify           : Bls12-381-MlResult → Bls12-381-MlResult → Bool
+  equals                    : ByteString → ByteString → Bool
+  ENCODEUTF8                : String → ByteString
+  DECODEUTF8                : ByteString → Maybe String
+  serialiseDATA             : DATA → ByteString
+  BLS12-381-G1-add          : Bls12-381-G1-Element → Bls12-381-G1-Element → Bls12-381-G1-Element
+  BLS12-381-G1-neg          : Bls12-381-G1-Element → Bls12-381-G1-Element
+  BLS12-381-G1-scalarMul    : Int → Bls12-381-G1-Element → Bls12-381-G1-Element
+  BLS12-381-G1-equal        : Bls12-381-G1-Element → Bls12-381-G1-Element → Bool
+  BLS12-381-G1-hashToGroup  : ByteString → ByteString → Maybe Bls12-381-G1-Element
+  BLS12-381-G1-compress     : Bls12-381-G1-Element → ByteString
+  BLS12-381-G1-uncompress   : ByteString → Maybe Bls12-381-G1-Element -- FIXME: this really returns Either BLSTError Element
+  BLS12-381-G2-add          : Bls12-381-G2-Element → Bls12-381-G2-Element → Bls12-381-G2-Element
+  BLS12-381-G2-neg          : Bls12-381-G2-Element → Bls12-381-G2-Element
+  BLS12-381-G2-scalarMul    : Int → Bls12-381-G2-Element → Bls12-381-G2-Element
+  BLS12-381-G2-equal        : Bls12-381-G2-Element → Bls12-381-G2-Element → Bool
+  BLS12-381-G2-hashToGroup  : ByteString → ByteString → Maybe Bls12-381-G2-Element
+  BLS12-381-G2-compress     : Bls12-381-G2-Element → ByteString
+  BLS12-381-G2-uncompress   : ByteString → Maybe Bls12-381-G2-Element -- FIXME: this really returns Either BLSTError Element
+  BLS12-381-millerLoop      : Bls12-381-G1-Element → Bls12-381-G2-Element → Bls12-381-MlResult
+  BLS12-381-mulMlResult     : Bls12-381-MlResult → Bls12-381-MlResult → Bls12-381-MlResult
+  BLS12-381-finalVerify     : Bls12-381-MlResult → Bls12-381-MlResult → Bool
+  KECCAK-256                : ByteString → ByteString
+  BLAKE2B-224               : ByteString → ByteString
 ```
 
 ### What builtin operations should be compiled to if we compile to Haskell
@@ -433,7 +441,7 @@ postulate
 {-# FOREIGN GHC import qualified Data.ByteString as BS #-}
 {-# FOREIGN GHC import qualified Data.ByteArray as B #-}
 {-# FOREIGN GHC import Debug.Trace (trace) #-}
-{-# FOREIGN GHC import Data.ByteString.Hash as Hash #-}
+{-# FOREIGN GHC import PlutusCore.Crypto.Hash as Hash #-}
 {-# FOREIGN GHC import Data.Text.Encoding #-}
 {-# FOREIGN GHC import qualified Data.Text as Text #-}
 {-# FOREIGN GHC import Data.Either.Extra (eitherToMaybe) #-}
@@ -510,6 +518,8 @@ postulate
 {-# COMPILE GHC BLS12-381-mulMlResult = Pairing.mulMlResult #-}
 {-# COMPILE GHC BLS12-381-finalVerify = Pairing.finalVerify #-}
 
+{-# COMPILE GHC KECCAK-256 = B.convert . Hash.keccak_256 #-}
+{-# COMPILE GHC BLAKE2B-224 = B.convert . Hash.blake2b_224 #-}
 
 -- no binding needed for appendStr
 -- no binding needed for traceStr
