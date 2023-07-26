@@ -41,7 +41,7 @@ import System.FilePath ((</>))
 -- | Generate a term using a given generator and check that it's well-typed and evaluates correctly.
 getSampleTermValue
     :: ( uni ~ DefaultUni, fun ~ DefaultFun
-       , KnownTypeAst uni a, MakeKnown (Term TyName Name uni fun ()) a
+       , KnownTypeAst TyName uni a, MakeKnown (Term TyName Name uni fun ()) a
        )
     => TermGen a
     -> IO (TermOf (Term TyName Name uni fun ()) (EvaluationResult (Term TyName Name uni fun ())))
@@ -50,7 +50,7 @@ getSampleTermValue genTerm = Gen.sample $ unsafeTypeEvalCheck <$> genTerm
 -- | Generate a program using a given generator and check that it's well-typed and evaluates correctly.
 getSampleProgramAndValue
     :: ( uni ~ DefaultUni, fun ~ DefaultFun
-       , KnownTypeAst uni a, MakeKnown (Term TyName Name uni fun ()) a
+       , KnownTypeAst TyName uni a, MakeKnown (Term TyName Name uni fun ()) a
        )
     => TermGen a -> IO (Program TyName Name uni fun (), EvaluationResult (Term TyName Name uni fun ()))
 getSampleProgramAndValue genTerm =
@@ -61,7 +61,7 @@ getSampleProgramAndValue genTerm =
 -- and pretty-print it to stdout using the default pretty-printing mode.
 printSampleProgramAndValue
     :: ( uni ~ DefaultUni, fun ~ DefaultFun
-       , KnownTypeAst uni a, MakeKnown (Term TyName Name uni fun ()) a
+       , KnownTypeAst TyName uni a, MakeKnown (Term TyName Name uni fun ()) a
        )
     => TermGen a -> IO ()
 printSampleProgramAndValue =
@@ -75,7 +75,7 @@ printSampleProgramAndValue =
 -- the second file contains the result of evaluation of the term.
 sampleProgramValueGolden
     :: ( uni ~ DefaultUni, fun ~ DefaultFun
-       , KnownTypeAst uni a, MakeKnown (Term TyName Name uni fun ()) a
+       , KnownTypeAst TyName uni a, MakeKnown (Term TyName Name uni fun ()) a
        )
     => String     -- ^ @folder@
     -> String     -- ^ @name@
@@ -93,7 +93,7 @@ sampleProgramValueGolden folder name genTerm = do
 -- indeed computes to that value according to the provided evaluate.
 propEvaluate
     :: ( uni ~ DefaultUni, fun ~ DefaultFun
-       , KnownTypeAst uni a, MakeKnown (Term TyName Name uni fun ()) a
+       , KnownTypeAst TyName uni a, MakeKnown (Term TyName Name uni fun ()) a
        , PrettyPlc internal
        )
     => (Term TyName Name uni fun () ->

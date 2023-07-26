@@ -432,7 +432,7 @@ someValueOf :: forall a uni. uni (Esc a) -> a -> Some (ValueOf uni)
 someValueOf uni = Some . ValueOf uni
 
 -- | Wrap a value into @Some (ValueOf uni)@, provided its type is in the universe.
-someValue :: forall a uni. uni `Includes` a => a -> Some (ValueOf uni)
+someValue :: forall a uni. uni `Contains` a => a -> Some (ValueOf uni)
 someValue = someValueOf knownUni
 
 someValueType :: Some (ValueOf uni) -> SomeTypeIn uni

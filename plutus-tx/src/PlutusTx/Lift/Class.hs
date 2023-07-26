@@ -115,12 +115,12 @@ instance Typeable uni (->) where
 -- Primitives
 
 typeRepBuiltin
-    :: forall (a :: GHC.Type) uni fun. uni `PLC.Includes` a
+    :: forall (a :: GHC.Type) uni fun. uni `PLC.HasTypeLevel` a
     => Proxy a -> RTCompile uni fun (Type TyName uni ())
 typeRepBuiltin (_ :: Proxy a) = pure $ mkTyBuiltin @_ @a ()
 
 liftBuiltin
-    :: forall a uni fun. uni `PLC.Includes` a
+    :: forall a uni fun. uni `PLC.HasTermLevel` a
     => a -> RTCompile uni fun (Term TyName Name uni fun ())
 liftBuiltin = pure . mkConstant ()
 
@@ -132,53 +132,59 @@ instance (TypeError ('Text "Int is not supported, use Integer instead"))
     => Lift uni Int where
     lift = Haskell.error "unsupported"
 
-instance uni `PLC.Includes` Integer => Typeable uni Integer where
+instance uni `PLC.HasTypeLevel` Integer => Typeable uni Integer where
     typeRep = typeRepBuiltin
 
-instance uni `PLC.Includes` Integer => Lift uni Integer where
+instance uni `PLC.HasTermLevel` Integer => Lift uni Integer where
     lift = liftBuiltin
 
-instance uni `PLC.Includes` BS.ByteString => Typeable uni BS.ByteString where
+instance uni `PLC.HasTypeLevel` BS.ByteString => Typeable uni BS.ByteString where
     typeRep = typeRepBuiltin
 
-instance uni `PLC.Includes` BS.ByteString => Lift uni BS.ByteString where
+instance uni `PLC.HasTermLevel` BS.ByteString => Lift uni BS.ByteString where
     lift = liftBuiltin
 
-instance uni `PLC.Includes` Data => Typeable uni BuiltinData where
+instance uni `PLC.HasTypeLevel` Data => Typeable uni BuiltinData where
     typeRep _ = typeRepBuiltin (Proxy @Data)
 
-instance uni `PLC.Includes` Data => Lift uni BuiltinData where
+instance uni `PLC.HasTermLevel` Data => Lift uni BuiltinData where
     lift = liftBuiltin . builtinDataToData
 
-instance uni `PLC.Includes` BS.ByteString => Typeable uni BuiltinByteString where
+instance uni `PLC.HasTypeLevel` BS.ByteString => Typeable uni BuiltinByteString where
     typeRep _proxyPByteString = typeRepBuiltin (Proxy @BS.ByteString)
 
-instance uni `PLC.Includes` BS.ByteString => Lift uni BuiltinByteString where
+instance uni `PLC.HasTermLevel` BS.ByteString => Lift uni BuiltinByteString where
     lift = liftBuiltin . fromBuiltin
 
-instance uni `PLC.Includes` T.Text => Typeable uni BuiltinString where
+instance uni `PLC.HasTypeLevel` T.Text => Typeable uni BuiltinString where
     typeRep _proxyPByteString = typeRepBuiltin (Proxy @T.Text)
 
-instance uni `PLC.Includes` T.Text => Lift uni BuiltinString where
+instance uni `PLC.HasTermLevel` T.Text => Lift uni BuiltinString where
     lift = liftBuiltin . fromBuiltin
 
-instance (FromBuiltin arep a, uni `PLC.Includes` [a]) => Lift uni (BuiltinList arep) where
+instance (FromBuiltin arep a, uni `PLC.HasTermLevel` [a]) => Lift uni (BuiltinList arep) where
     lift = liftBuiltin . fromBuiltin
 
-instance uni `PLC.Includes` PlutusCore.Crypto.BLS12_381.G1.Element => Typeable uni BuiltinBLS12_381_G1_Element where
+instance uni `PLC.HasTypeLevel` PlutusCore.Crypto.BLS12_381.G1.Element =>
+        Typeable uni BuiltinBLS12_381_G1_Element where
     typeRep _ = typeRepBuiltin (Proxy @PlutusCore.Crypto.BLS12_381.G1.Element)
 
-instance uni `PLC.Includes` PlutusCore.Crypto.BLS12_381.G1.Element => Lift uni BuiltinBLS12_381_G1_Element where
+instance uni `PLC.HasTermLevel` PlutusCore.Crypto.BLS12_381.G1.Element =>
+        Lift uni BuiltinBLS12_381_G1_Element where
     lift = liftBuiltin . fromBuiltin
 
-instance uni `PLC.Includes` PlutusCore.Crypto.BLS12_381.G2.Element => Typeable uni BuiltinBLS12_381_G2_Element where
+instance uni `PLC.HasTypeLevel` PlutusCore.Crypto.BLS12_381.G2.Element =>
+        Typeable uni BuiltinBLS12_381_G2_Element where
     typeRep _ = typeRepBuiltin (Proxy @PlutusCore.Crypto.BLS12_381.G2.Element)
 
-instance uni `PLC.Includes` PlutusCore.Crypto.BLS12_381.G2.Element => Lift uni BuiltinBLS12_381_G2_Element where
+instance uni `PLC.HasTermLevel` PlutusCore.Crypto.BLS12_381.G2.Element =>
+        Lift uni BuiltinBLS12_381_G2_Element where
     lift = liftBuiltin . fromBuiltin
 
-instance uni `PLC.Includes` PlutusCore.Crypto.BLS12_381.Pairing.MlResult => Typeable uni BuiltinBLS12_381_MlResult where
+instance uni `PLC.HasTypeLevel` PlutusCore.Crypto.BLS12_381.Pairing.MlResult =>
+        Typeable uni BuiltinBLS12_381_MlResult where
     typeRep _ = typeRepBuiltin (Proxy @PlutusCore.Crypto.BLS12_381.Pairing.MlResult)
 
-instance uni `PLC.Includes` PlutusCore.Crypto.BLS12_381.Pairing.MlResult => Lift uni BuiltinBLS12_381_MlResult where
+instance uni `PLC.HasTermLevel` PlutusCore.Crypto.BLS12_381.Pairing.MlResult =>
+        Lift uni BuiltinBLS12_381_MlResult where
     lift = liftBuiltin . fromBuiltin

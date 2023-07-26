@@ -24,6 +24,7 @@ module PlutusCore.Core.Type
     , Type (..)
     , Term (..)
     , Program (..)
+    , HasTermLevel
     , UniOf
     , Normalized (..)
     , TyVarDecl (..)
@@ -145,6 +146,10 @@ deriving stock instance (Show tyname, Show name, GShow uni, Everywhere uni Show,
 
 deriving anyclass instance (NFData tyname, NFData name, Everywhere uni NFData, NFData fun, NFData ann, Closed uni)
     => NFData (Program tyname name uni fun ann)
+
+-- | Specifies that the given type is a built-in one and its values can be embedded into a 'Term'.
+type HasTermLevel :: forall a. (GHC.Type -> GHC.Type) -> a -> GHC.Constraint
+type HasTermLevel uni = Includes uni
 
 -- | Extract the universe from a type.
 type family UniOf a :: GHC.Type -> GHC.Type

@@ -511,7 +511,7 @@ maybeProfileRhs var t = do
     else pure t
 
 mkTrace
-    :: (PLC.Contains uni T.Text)
+    :: (uni `PLC.HasTermLevel` T.Text)
     => PLC.Type PLC.TyName uni Ann
     -> T.Text
     -> PIRTerm uni PLC.DefaultFun

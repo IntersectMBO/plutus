@@ -21,7 +21,6 @@ module PlutusCore
     , someValueType
     , Esc
     , Contains (..)
-    , Includes
     , Closed (..)
     , EverywhereAll
     , knownUniOf
@@ -34,6 +33,9 @@ module PlutusCore
     , withApplicable
     , (:~:) (..)
     , type (<:)
+    , HasTypeLevel
+    , HasTermLevel
+    , HasTypeAndTermLevel
     , DefaultUni (..)
     , pattern DefaultUniList
     , pattern DefaultUniPair

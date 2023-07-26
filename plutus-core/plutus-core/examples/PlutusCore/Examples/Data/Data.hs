@@ -102,7 +102,7 @@ ofoldrData = runQuote $ do
             ]
 
 -- | Just a random 'Data' object.
-exampleData :: Term TyName Name DefaultUni (Either DefaultFun ExtensionFun) ()
+exampleData :: Term tyname Name DefaultUni (Either DefaultFun ExtensionFun) ()
 exampleData = runQuote $ do
     x <- freshName "x"
     pure
