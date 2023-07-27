@@ -89,7 +89,7 @@ decode @(Term FakeNamedDeBruijn)
 
 To achieve this we make sure:
 - to use `coerce` since its 0-cost
-- not to GeneralizeNewtypeDeriving the`Flat NamedDeBruijn` instance, but "derive via"
+- not to GeneralizeNewtypeDeriving the`Flat FakeNamedDeBruijn` instance, but "derive via"
 the optimized `Flat DeBruijn` instance. This is ok, because `FND<->D` are
 isomorphic.
 -}

@@ -32,7 +32,7 @@ import Data.Proxy (Proxy (..))
 import Flat
 import Prettyprinter
 
-{- | See Note [Wrapping the BLS12-381 types]. -}
+{- | See Note [Wrapping the BLS12-381 types in Plutus Core]. -}
 newtype Element = Element { unElement :: BlstBindings.Point2 }
     deriving newtype (Eq)
 instance Show Element where

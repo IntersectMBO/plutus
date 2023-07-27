@@ -12,10 +12,18 @@ import PlutusPrelude
 import Data.Either.Extras
 import Data.Maybe
 
--- | The raw cost model params, only to be used for testing purposes.
+{-| only for testing purposes: The default, raw cost model params.
+
+Note: It always reflects the latest, in-development Plutus version.
+-}
 costModelParamsForTesting :: Plutus.CostModelParams
 costModelParamsForTesting = fromJust Plutus.defaultCostModelParams
 
--- | only to be for testing purposes: make an evaluation context by applying an empty set of protocol parameters
+{- | only for testing purposes: get an evaluation context by re-applying the
+extracted default cost model parameters (resulting in no change to params).
+An alternative implementation would be to pass an empty map of params.
+
+Note: It reflects only the latest, in-development Plutus version.
+-}
 evalCtxForTesting :: EvaluationContext
 evalCtxForTesting = unsafeFromEither $ mkDynEvaluationContext def costModelParamsForTesting

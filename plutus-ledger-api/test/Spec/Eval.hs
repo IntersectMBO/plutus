@@ -1,4 +1,5 @@
 -- editorconfig-checker-disable-file
+-- TODO: merge this module to Versions.hs ?
 {-# LANGUAGE TypeFamilies #-}
 module Spec.Eval (tests) where
 
@@ -9,7 +10,7 @@ import PlutusCore.StdLib.Data.Unit
 import PlutusCore.Version as PLC
 import PlutusLedgerApi.Common.Versions
 import PlutusLedgerApi.Test.EvaluationContext (evalCtxForTesting)
-import PlutusLedgerApi.V1 as Api
+import PlutusLedgerApi.V1 as V1
 import UntypedPlutusCore as UPLC
 import UntypedPlutusCore.Test.DeBruijn.Bad
 import UntypedPlutusCore.Test.DeBruijn.Good
@@ -23,14 +24,10 @@ For this test-suite we write the programs directly in the UPLC AST,
 bypassing the GHC typechecker & compiler, the PIR typechecker & compiler and the PLC typechecker.
 The reason is that users can submit such hand-crafted code, and we want to test how it behaves.
 Because this is part of our API, we have to be careful not to change the behaviour of even weird untypeable programs.
-In particular, We test both the offline part (Scripts module) and the online part (API module).
+In particular, we test the online part (API module).
 -}
 
 type T = Term DeBruijn DefaultUni DefaultFun ()
-
--- | Evaluates using the Scripts module.
-testScripts :: TestTree
-testScripts = "v1-scripts" `testWith` evalAPI vasilPV
 
 {-| Evaluates scripts as they will be evaluated on-chain, by using the evaluation function we provide for the ledger.
 Notably, this goes via serialising and deserialising the program, so we can see any errors that might arise from that.
@@ -42,7 +39,7 @@ evalAPI :: ProtocolVersion -> T -> Bool
 evalAPI pv t =
     -- handcraft a serialised script
     let s :: SerialisedScript = serialiseUPLC $ Program () PLC.plcVersion100 t
-    in isRight $ snd $ Api.evaluateScriptRestricting pv Quiet evalCtxForTesting (unExRestrictingBudget enormousBudget) s []
+    in isRight $ snd $ V1.evaluateScriptRestricting pv Quiet evalCtxForTesting (unExRestrictingBudget enormousBudget) s []
 
 {-| Test a given eval function against the expected results.
 These tests are modified from untyped-plutus-core-test:Evaluation.FreeVars
@@ -65,14 +62,13 @@ testWith str evalFn = testGroup str $ fmap (uncurry testCase)
 
 testUnlifting :: TestTree
 testUnlifting = testCase "check unlifting behaviour changes in Vasil" $ do
-    -- Before Vasil the behavior of this was different, but since the behavior was never
+    -- Before Vasil the behavior of this would return `False`, but since the behavior was never
     -- exercised on chain, it was safe to be switched to the new behavior (jedi mind trick).
     evalAPI alonzoPV illPartialBuiltin @?= True
     evalAPI vasilPV illPartialBuiltin @?= True
 
 tests :: TestTree
 tests = testGroup "eval"
-            [ testScripts
-            , testAPI
+            [ testAPI
             , testUnlifting
             ]
