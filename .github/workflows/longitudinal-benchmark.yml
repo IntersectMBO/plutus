@@ -25,6 +25,9 @@ jobs:
     runs-on: [self-hosted, plutus-benchmark]
     steps:
       - uses: actions/checkout@v3.3.0
+      - uses: cachix/install-nix-action@v22
+        with:
+          nix_path: nixpkgs=channel:nixos-unstable
 
       - name: Run benchmarks
         env: 
