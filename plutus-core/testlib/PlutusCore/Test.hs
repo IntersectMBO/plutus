@@ -352,8 +352,8 @@ goldenUplcBudget name uplcTerm = do
           runExceptT @UPLC.FreeVariableError $ UPLC.unDeBruijnTerm uplcTerm
   path <- ask
   let measureBudget tm =
-        let (_, UPLC.TallyingSt _ budget) =
-                UPLC.runCekNoEmit TPLC.defaultCekParameters UPLC.tallying tm
+        let (_, UPLC.CountingSt budget) =
+                UPLC.runCekNoEmit TPLC.defaultCekParameters UPLC.counting tm
         in budget
       filename = foldr (</>) (name ++ ".budget.golden") path
   case uplcTm of

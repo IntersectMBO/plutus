@@ -158,8 +158,8 @@ measureBudget compiledCode =
    in case programE of
         Left _ -> Nothing
         Right program ->
-          let (_, UPLC.TallyingSt _ budget) =
-                UPLC.runCekNoEmit PLC.defaultCekParameters UPLC.tallying $
+          let (_, UPLC.CountingSt budget) =
+                UPLC.runCekNoEmit PLC.defaultCekParameters UPLC.counting $
                   program ^. UPLC.progTerm
            in Just budget
 
