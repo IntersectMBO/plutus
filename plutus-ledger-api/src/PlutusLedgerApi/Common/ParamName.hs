@@ -33,6 +33,8 @@ prettyprintable to a \"lower-Kebab\" string.
 -}
 class IsParamName a where
    -- | Take the raw textual form for a given typed-by-plutus-version cost model parameter
+   -- Any implementation *must be* an injective function.
+   -- The 'GIsParamName' generic implementation guarantees injection.
    showParamName :: a -> String
 
 -- | A Generic wrapper for use with deriving via
