@@ -45,7 +45,15 @@
         (lam
           `$dDefaultMethods`
           [ DefaultMethods a ]
-          (lam a a [ [ { method a } `$dDefaultMethods` ] a ])
+          (lam
+            a
+            a
+            (let
+              (nonrec)
+              (termbind (strict) (vardecl a a) a)
+              [ [ { method a } `$dDefaultMethods` ] a ]
+            )
+          )
         )
       )
     )
@@ -66,7 +74,15 @@
       (vardecl
         `$fDefaultMethodsInteger_$cmethod` (fun (con integer) (con integer))
       )
-      (lam a (con integer) [ [ addInteger a ] (con integer 1) ])
+      (lam
+        a
+        (con integer)
+        (let
+          (nonrec)
+          (termbind (strict) (vardecl a (con integer)) a)
+          [ [ addInteger a ] (con integer 1) ]
+        )
+      )
     )
     (termbind
       (nonstrict)
@@ -80,7 +96,13 @@
       ]
     )
     (lam
-      ds (con integer) [ [ { f (con integer) } `$fDefaultMethodsInteger` ] ds ]
+      ds
+      (con integer)
+      (let
+        (nonrec)
+        (termbind (strict) (vardecl ds (con integer)) ds)
+        [ [ { f (con integer) } `$fDefaultMethodsInteger` ] ds ]
+      )
     )
   )
 )

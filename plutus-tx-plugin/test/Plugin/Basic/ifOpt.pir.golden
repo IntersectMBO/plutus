@@ -14,7 +14,20 @@
       (vardecl
         divideInteger (fun (con integer) (fun (con integer) (con integer)))
       )
-      (lam x (con integer) (lam y (con integer) [ [ divideInteger x ] y ]))
+      (lam
+        x
+        (con integer)
+        (lam
+          y
+          (con integer)
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl x (con integer)) x)
+            (termbind (strict) (vardecl y (con integer)) y)
+            [ [ divideInteger x ] y ]
+          )
+        )
+      )
     )
     (datatypebind
       (datatype
@@ -43,7 +56,13 @@
         (lam
           y
           (con integer)
-          [ [ [ { ifThenElse Bool } [ [ equalsInteger x ] y ] ] True ] False ]
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl x (con integer)) x)
+            (termbind (strict) (vardecl y (con integer)) y)
+            (termbind (strict) (vardecl b (con bool)) [ [ equalsInteger x ] y ])
+            [ [ [ { ifThenElse Bool } b ] True ] False ]
+          )
         )
       )
     )

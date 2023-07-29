@@ -280,7 +280,7 @@ mkConstructorType dc =
             pure $ PIR.mkIterTyFun annMayInline args resultType
 
 ghcStrictnessNote :: GHC.SDoc
-ghcStrictnessNote = "Note: GHC can generate these unexpectedly, you may need '-fno-strictness', '-fno-specialise', or '-fno-spec-constr'"
+ghcStrictnessNote = "Note: GHC can generate these unexpectedly, you may need '-fno-strictness', '-fno-specialise', '-fno-spec-constr', '-fno-unbox-strict-fields', or '-fno-unbox-small-strict-fields'."
 
 -- | Get the constructors of the given 'TyCon' as PLC terms.
 getConstructors :: CompilingDefault uni fun m ann => GHC.TyCon -> m [PIRTerm uni fun]

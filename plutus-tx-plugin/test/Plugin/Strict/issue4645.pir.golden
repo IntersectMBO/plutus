@@ -39,44 +39,46 @@
       ]
     )
     [
-      [
+      {
         [
-          { (builtin ifThenElse) Bool }
+          { { Tuple2_match (con integer) } (con integer) }
           [
             [
-              (builtin equalsInteger)
-              [
-                [ { (builtin trace) (con integer) } (con string "x") ]
-                (con integer 0)
-              ]
+              { (builtin trace) [ [ Tuple2 (con integer) ] (con integer) ] }
+              (con string "zz")
             ]
-            [
-              [ { (builtin trace) (con integer) } (con string "t") ]
-              [
-                {
-                  [
-                    { { Tuple2_match (con integer) } (con integer) }
-                    [
-                      [
-                        {
-                          (builtin trace)
-                          [ [ Tuple2 (con integer) ] (con integer) ]
-                        }
-                        (con string "zz")
-                      ]
-                      z
-                    ]
-                  ]
-                  (con integer)
-                }
-                (lam zz (con integer) (lam ds (con integer) zz))
-              ]
-            ]
+            z
           ]
         ]
-        True
-      ]
-      False
+        Bool
+      }
+      (lam
+        zz
+        (con integer)
+        (lam
+          ds
+          (con integer)
+          [
+            [
+              [
+                { (builtin ifThenElse) Bool }
+                [
+                  [
+                    (builtin equalsInteger)
+                    [
+                      [ { (builtin trace) (con integer) } (con string "x") ]
+                      (con integer 0)
+                    ]
+                  ]
+                  [ [ { (builtin trace) (con integer) } (con string "t") ] zz ]
+                ]
+              ]
+              True
+            ]
+            False
+          ]
+        )
+      )
     ]
   )
 )

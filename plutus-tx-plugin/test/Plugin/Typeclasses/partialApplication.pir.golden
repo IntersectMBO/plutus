@@ -47,56 +47,52 @@
         (lam
           eta
           (con integer)
-          {
-            [
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl x (con integer)) eta)
+            (termbind (strict) (vardecl y (con integer)) eta)
+            (termbind (strict) (vardecl b (con bool)) [ [ equalsInteger x ] y ])
+            {
               [
-                {
-                  [
-                    Bool_match
-                    [
+                [
+                  {
+                    [ Bool_match [ [ [ { ifThenElse Bool } b ] True ] False ] ]
+                    (all dead (type) Ordering)
+                  }
+                  (abs dead (type) EQ)
+                ]
+                (abs
+                  dead
+                  (type)
+                  (let
+                    (nonrec)
+                    (termbind
+                      (strict)
+                      (vardecl b (con bool))
+                      [ [ lessThanEqualsInteger x ] y ]
+                    )
+                    {
                       [
-                        [ { ifThenElse Bool } [ [ equalsInteger eta ] eta ] ]
-                        True
-                      ]
-                      False
-                    ]
-                  ]
-                  (all dead (type) Ordering)
-                }
-                (abs dead (type) EQ)
-              ]
-              (abs
-                dead
-                (type)
-                {
-                  [
-                    [
-                      {
                         [
-                          Bool_match
-                          [
+                          {
                             [
-                              [
-                                { ifThenElse Bool }
-                                [ [ lessThanEqualsInteger eta ] eta ]
-                              ]
-                              True
+                              Bool_match
+                              [ [ [ { ifThenElse Bool } b ] True ] False ]
                             ]
-                            False
-                          ]
+                            (all dead (type) Ordering)
+                          }
+                          (abs dead (type) LT)
                         ]
-                        (all dead (type) Ordering)
-                      }
-                      (abs dead (type) LT)
-                    ]
-                    (abs dead (type) GT)
-                  ]
-                  (all dead (type) dead)
-                }
-              )
-            ]
-            (all dead (type) dead)
-          }
+                        (abs dead (type) GT)
+                      ]
+                      (all dead (type) dead)
+                    }
+                  )
+                )
+              ]
+              (all dead (type) dead)
+            }
+          )
         )
       )
     )

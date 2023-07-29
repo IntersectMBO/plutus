@@ -1,1 +1,12 @@
-(program 1.1.0 (lam ds (con integer) (lam ds (con integer) ds)))
+(program
+  1.1.0
+  (lam
+    ds
+    (con integer)
+    (let
+      (nonrec)
+      (termbind (strict) (vardecl ds (con integer)) ds)
+      (lam ds (con integer) ds)
+    )
+  )
+)

@@ -29,7 +29,13 @@
         (lam
           y
           (con integer)
-          [ [ [ { ifThenElse Bool } [ [ equalsInteger x ] y ] ] True ] False ]
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl x (con integer)) x)
+            (termbind (strict) (vardecl y (con integer)) y)
+            (termbind (strict) (vardecl b (con bool)) [ [ equalsInteger x ] y ])
+            [ [ [ { ifThenElse Bool } b ] True ] False ]
+          )
         )
       )
     )
@@ -45,7 +51,20 @@
       (vardecl
         subtractInteger (fun (con integer) (fun (con integer) (con integer)))
       )
-      (lam x (con integer) (lam y (con integer) [ [ subtractInteger x ] y ]))
+      (lam
+        x
+        (con integer)
+        (lam
+          y
+          (con integer)
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl x (con integer)) x)
+            (termbind (strict) (vardecl y (con integer)) y)
+            [ [ subtractInteger x ] y ]
+          )
+        )
+      )
     )
     (let
       (rec)
@@ -57,11 +76,7 @@
           (con integer)
           (let
             (nonrec)
-            (termbind
-              (nonstrict)
-              (vardecl n (con integer))
-              [ [ subtractInteger n ] (con integer 1) ]
-            )
+            (termbind (strict) (vardecl n (con integer)) n)
             {
               [
                 [
@@ -74,23 +89,33 @@
                 (abs
                   dead
                   (type)
-                  {
-                    [
+                  (let
+                    (nonrec)
+                    (termbind
+                      (strict)
+                      (vardecl n (con integer))
+                      [ [ subtractInteger n ] (con integer 1) ]
+                    )
+                    {
                       [
-                        {
-                          [ Bool_match [ [ equalsInteger n ] (con integer 0) ] ]
-                          (all dead (type) Bool)
-                        }
-                        (abs dead (type) False)
+                        [
+                          {
+                            [
+                              Bool_match [ [ equalsInteger n ] (con integer 0) ]
+                            ]
+                            (all dead (type) Bool)
+                          }
+                          (abs dead (type) False)
+                        ]
+                        (abs
+                          dead
+                          (type)
+                          [ even [ [ subtractInteger n ] (con integer 1) ] ]
+                        )
                       ]
-                      (abs
-                        dead
-                        (type)
-                        [ even [ [ subtractInteger n ] (con integer 1) ] ]
-                      )
-                    ]
-                    (all dead (type) dead)
-                  }
+                      (all dead (type) dead)
+                    }
+                  )
                 )
               ]
               (all dead (type) dead)

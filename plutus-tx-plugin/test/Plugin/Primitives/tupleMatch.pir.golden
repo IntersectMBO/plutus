@@ -13,12 +13,19 @@
     (lam
       ds
       [ [ Tuple2 (con integer) ] (con integer) ]
-      [
-        {
-          [ { { Tuple2_match (con integer) } (con integer) } ds ] (con integer)
-        }
-        (lam a (con integer) (lam ds (con integer) a))
-      ]
+      (let
+        (nonrec)
+        (termbind
+          (strict) (vardecl ds [ [ Tuple2 (con integer) ] (con integer) ]) ds
+        )
+        [
+          {
+            [ { { Tuple2_match (con integer) } (con integer) } ds ]
+            (con integer)
+          }
+          (lam a (con integer) (lam ds (con integer) a))
+        ]
+      )
     )
   )
 )

@@ -26,6 +26,14 @@
       )
       (abs a (type) (lam v [ (lam a (type) (fun a (con integer))) a ] v))
     )
-    (lam ds (con integer) [ [ { size (con integer) } `$fSizedInteger` ] ds ])
+    (lam
+      ds
+      (con integer)
+      (let
+        (nonrec)
+        (termbind (strict) (vardecl ds (con integer)) ds)
+        [ [ { size (con integer) } `$fSizedInteger` ] ds ]
+      )
+    )
   )
 )

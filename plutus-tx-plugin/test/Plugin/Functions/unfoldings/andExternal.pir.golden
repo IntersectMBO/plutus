@@ -19,15 +19,21 @@
         (lam
           b
           Bool
-          {
-            [
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl a Bool) a)
+            (termbind (strict) (vardecl b Bool) b)
+            {
               [
-                { [ Bool_match a ] (all dead (type) Bool) } (abs dead (type) b)
+                [
+                  { [ Bool_match a ] (all dead (type) Bool) }
+                  (abs dead (type) b)
+                ]
+                (abs dead (type) False)
               ]
-              (abs dead (type) False)
-            ]
-            (all dead (type) dead)
-          }
+              (all dead (type) dead)
+            }
+          )
         )
       )
     )

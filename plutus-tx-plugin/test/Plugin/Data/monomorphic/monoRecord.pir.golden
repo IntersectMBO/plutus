@@ -15,10 +15,14 @@
     (lam
       ds
       MyMonoRecord
-      [
-        { [ MyMonoRecord_match ds ] (con integer) }
-        (lam i (con integer) (lam ds (con integer) i))
-      ]
+      (let
+        (nonrec)
+        (termbind (strict) (vardecl ds MyMonoRecord) ds)
+        [
+          { [ MyMonoRecord_match ds ] (con integer) }
+          (lam i (con integer) (lam ds (con integer) i))
+        ]
+      )
     )
   )
 )

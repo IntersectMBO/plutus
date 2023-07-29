@@ -5,6 +5,8 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TemplateHaskell       #-}
+{-# OPTIONS_GHC -fno-specialise #-}
+{-# OPTIONS_GHC -fno-strictness #-}
 
 {-% Last piece puzzle, adapted from nofib/spectral/last-piece.
     This is a solver for a jigsaw problem:

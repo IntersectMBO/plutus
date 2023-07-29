@@ -55,7 +55,20 @@
                   (lam
                     a
                     a
-                    (lam b b [ [ addInteger [ `$dSized` a ] ] [ `$dSized` b ] ])
+                    (lam
+                      b
+                      b
+                      (let
+                        (nonrec)
+                        (termbind
+                          (strict) (vardecl x (con integer)) [ `$dSized` a ]
+                        )
+                        (termbind
+                          (strict) (vardecl y (con integer)) [ `$dSized` b ]
+                        )
+                        [ [ addInteger x ] y ]
+                      )
+                    )
                   )
                 ]
               )
@@ -130,10 +143,15 @@
       (lam
         ds
         (con integer)
-        [
-          [ { size [ [ Tuple2 (con integer) ] (con integer) ] } `$dSized` ]
-          [ [ { { Tuple2 (con integer) } (con integer) } ds ] ds ]
-        ]
+        (let
+          (nonrec)
+          (termbind (strict) (vardecl ds (con integer)) ds)
+          (termbind (strict) (vardecl ds (con integer)) ds)
+          [
+            [ { size [ [ Tuple2 (con integer) ] (con integer) ] } `$dSized` ]
+            [ [ { { Tuple2 (con integer) } (con integer) } ds ] ds ]
+          ]
+        )
       )
     )
   )

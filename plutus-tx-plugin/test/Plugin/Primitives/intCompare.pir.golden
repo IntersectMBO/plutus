@@ -31,10 +31,31 @@
         (lam
           y
           (con integer)
-          [ [ [ { ifThenElse Bool } [ [ lessThanInteger x ] y ] ] True ] False ]
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl x (con integer)) x)
+            (termbind (strict) (vardecl y (con integer)) y)
+            (termbind
+              (strict) (vardecl b (con bool)) [ [ lessThanInteger x ] y ]
+            )
+            [ [ [ { ifThenElse Bool } b ] True ] False ]
+          )
         )
       )
     )
-    lessThanInteger
+    (lam
+      ds
+      (con integer)
+      (lam
+        ds
+        (con integer)
+        (let
+          (nonrec)
+          (termbind (strict) (vardecl ds (con integer)) ds)
+          (termbind (strict) (vardecl ds (con integer)) ds)
+          [ [ lessThanInteger ds ] ds ]
+        )
+      )
+    )
   )
 )

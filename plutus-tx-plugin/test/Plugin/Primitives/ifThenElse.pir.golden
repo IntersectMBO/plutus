@@ -29,7 +29,13 @@
         (lam
           y
           (con integer)
-          [ [ [ { ifThenElse Bool } [ [ equalsInteger x ] y ] ] True ] False ]
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl x (con integer)) x)
+            (termbind (strict) (vardecl y (con integer)) y)
+            (termbind (strict) (vardecl b (con bool)) [ [ equalsInteger x ] y ])
+            [ [ [ { ifThenElse Bool } b ] True ] False ]
+          )
         )
       )
     )
@@ -39,19 +45,24 @@
       (lam
         ds
         (con integer)
-        {
-          [
+        (let
+          (nonrec)
+          (termbind (strict) (vardecl ds (con integer)) ds)
+          (termbind (strict) (vardecl ds (con integer)) ds)
+          {
             [
-              {
-                [ Bool_match [ [ equalsInteger ds ] ds ] ]
-                (all dead (type) (con integer))
-              }
+              [
+                {
+                  [ Bool_match [ [ equalsInteger ds ] ds ] ]
+                  (all dead (type) (con integer))
+                }
+                (abs dead (type) ds)
+              ]
               (abs dead (type) ds)
             ]
-            (abs dead (type) ds)
-          ]
-          (all dead (type) dead)
-        }
+            (all dead (type) dead)
+          }
+        )
       )
     )
   )
