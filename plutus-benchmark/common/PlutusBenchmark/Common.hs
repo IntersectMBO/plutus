@@ -11,6 +11,7 @@ module PlutusBenchmark.Common
     , compiledCodeToTerm
     , haskellValueToTerm
     , benchTermCek
+    , unsafeRunTermCek
     , runTermCek
     , cekResultMatchesHaskellValue
     , TestSize (..)
@@ -37,6 +38,7 @@ import Criterion.Main
 import Criterion.Types (Config (..))
 import Data.ByteString qualified as BS
 import Data.SatInt (fromSatInt)
+import Data.Text (Text)
 import Flat qualified
 import GHC.IO.Encoding (setLocaleEncoding)
 import System.Directory
@@ -100,14 +102,24 @@ haskellValueToTerm = compiledCodeToTerm . Tx.liftCodeDef
 {- | Convert a de-Bruijn-named UPLC term to a Benchmark -}
 benchTermCek :: Term -> Benchmarkable
 benchTermCek term =
-    nf (runTermCek) $! term -- Or whnf?
+    nf (unsafeRunTermCek) $! term -- Or whnf?
 
-{- | Just run a term (used for tests etc.) -}
-runTermCek :: Term -> EvaluationResult Term
+{- | Just run a term to obtain an `EvaluationResult` (used for tests etc.) -}
+unsafeRunTermCek :: Term -> EvaluationResult Term
+unsafeRunTermCek =
+    unsafeExtractEvaluationResult
+        . (\(res, _, _) -> res)
+        . runCekDeBruijn PLC.defaultCekParameters Cek.restrictingEnormous Cek.noEmitter
+
+-- | Just run a term.
+runTermCek ::
+    Term ->
+    ( Either (CekEvaluationException UPLC.NamedDeBruijn DefaultUni DefaultFun) Term
+    , [Text]
+    )
 runTermCek =
-    unsafeExtractEvaluationResult .
-        (\ (fstT,_,_) -> fstT) .
-            runCekDeBruijn PLC.defaultCekParameters Cek.restrictingEnormous Cek.noEmitter
+    (\(res, _, logs) -> (res, logs))
+        . runCekDeBruijn PLC.defaultCekParameters Cek.restrictingEnormous Cek.logEmitter
 
 -- | Evaluate a script and return the CPU and memory costs (according to the cost model)
 getCostsCek :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun () -> (Integer, Integer)
@@ -130,9 +142,7 @@ cekResultMatchesHaskellValue
     -> a
     -> b
 cekResultMatchesHaskellValue term matches value =
-    (runTermCek term) `matches` (runTermCek $ haskellValueToTerm value)
-
-
+    (unsafeRunTermCek term) `matches` (unsafeRunTermCek $ haskellValueToTerm value)
 
 ---------------- Printing tables of information about costs ----------------
 
