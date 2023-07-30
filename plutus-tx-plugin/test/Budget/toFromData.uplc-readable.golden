@@ -107,18 +107,11 @@ program
                                                                (force headList
                                                                   (force
                                                                      tailList
-                                                                     (force
-                                                                        t))))
-                                                            (force headList
-                                                               (force t)))
-                                                         (delay
-                                                            (force tailList
-                                                               (force t))))
-                                                      (force headList
-                                                         (force t)))
-                                                   (delay
-                                                      (force (force sndPair)
-                                                         tup)))
+                                                                     t)))
+                                                            (force headList t))
+                                                         (force tailList t))
+                                                      (force headList t))
+                                                   (force (force sndPair) tup))
                                               (\ds ->
                                                  (\thunk -> error)
                                                    ((\wild -> unitval)
