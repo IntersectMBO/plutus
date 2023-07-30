@@ -1,0 +1,17 @@
+let
+  data Unit | Unit_match where
+    Unit : Unit
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+in
+\(m : integer) ->
+  let
+    !n : all t. t = /\t -> error {integer -> t} m
+  in
+  Bool_match
+    (ifThenElse {Bool} (lessThanInteger m 0) True False)
+    {all dead. integer}
+    (/\dead -> let !y : integer = n {integer} in addInteger (n {integer}) y)
+    (/\dead -> m)
+    {all dead. dead}

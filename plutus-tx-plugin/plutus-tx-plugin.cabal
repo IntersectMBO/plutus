@@ -150,6 +150,7 @@ test-suite plutus-tx-tests
     Plugin.Typeclasses.Lib
     Plugin.Typeclasses.Spec
     StdLib.Spec
+    Strictness.Spec
     TH.Spec
     TH.TestTH
 

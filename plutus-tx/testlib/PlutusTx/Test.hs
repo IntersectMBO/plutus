@@ -23,6 +23,7 @@ module PlutusTx.Test (
 
   -- * Evaluation testing
   goldenEvalCek,
+  goldenEvalCekCatch,
   goldenEvalCekLog,
 
   -- * Budget testing
@@ -201,6 +202,11 @@ goldenPirBy config name value =
 goldenEvalCek :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun) => String -> [a] -> TestNested
 goldenEvalCek name values =
   nestedGoldenVsDocM name ".eval-cek" $ prettyPlcClassicDebug <$> (rethrow $ runPlcCek values)
+
+goldenEvalCekCatch :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun) => String -> [a] -> TestNested
+goldenEvalCekCatch name values =
+  nestedGoldenVsDocM name ".eval-cek-catch" $
+    either (pretty . show) prettyPlcClassicDebug <$> runExceptT (runPlcCek values)
 
 goldenEvalCekLog :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun) => String -> [a] -> TestNested
 goldenEvalCekLog name values =
