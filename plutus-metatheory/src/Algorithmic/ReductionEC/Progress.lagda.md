@@ -75,14 +75,13 @@ progress-focus z@(iiDissect x Vs (step _ ∷ iils)) = z
 progress-focus z@(iiDissect x Vs (done V ∷ iils)) = progress-focus (iiDissect (bubble x) (Vs :< V) iils)
 progress-focus z@(iiDissect x Vs (error _ ∷ iils)) = z
 
---  iils ≡ [] ∨ (iils ≡ (x ∷ xs) ∧ ¬(∃ Value (x ≡ done v) 
-
+-- The following postulate is for a case that cannot happen in the progress proof 
+-- We remove it by proving that after applying progress-focus we have 
+-- iils ≡ [] ∨ (iils ≡ (x ∷ xs) ∧ ¬(∃ Value (x ≡ done v)))
 postulate CannotHappen : ∀ {n} {e = i : Fin n}
                  {A = TSS : Vec.Vec (List (∅ ⊢Nf⋆ *)) n}
                  {cs : ConstrArgs ∅ (lookup TSS i)} →
                Progress (constr i TSS refl cs)
-
-
 
 progress-List :  ∀ {TS : List (∅ ⊢Nf⋆ *)}
                 → (cs : ConstrArgs ∅ TS) 
@@ -158,8 +157,9 @@ progress (constr i TSS refl cs)  with progress-constr i TSS (progress-List cs)
                                                                            (cong ([] <><_) (sym (lem-≣-<>> idx)))) 
                                                                (Vs :< V) 
                                                                (trans (≡-subst-removable (IList (_⊢_ ∅)) _ _ (ibs <>>I (_ ∷ []))) (sym (lem-≣T-<>>r x))))
-     -- the following case cannot happen
-... | iiDissect x Vs (done V ∷ (x₁ ∷ Ps)) = CannotHappen
+     -- the following case cannot happen because progress-focus 
+     -- consumes the prefix with `done`s.  
+... | iiDissect x Vs (done V ∷ (_ ∷ _)) = CannotHappen
 ... | iiDissect {ibs = ibs}{idx = idx} x Vs (_∷_ {is = is} (error E-error) Ps) =
         step (ruleErr (constr i TSS refl {idx} (mkVZ Vs is) []) 
                              (cong (constr i TSS refl) (trans (lem-≣T-<>>r x) refl
@@ -170,7 +170,7 @@ progress (case M cases)  with progress M
 ... | done (V-constr e TSS refl refl vs refl) = step (ruleEC [] (β-case e TSS refl vs refl cases) refl refl)
 ... | error E-error = step (ruleErr (case cases []) refl)
 
-{- These definitions seems unused
+{- These definitions seem unused
 _↓ : ∀{A} → ∅ ⊢ A → Set
 M ↓ = ∃ λ M' → M —→⋆ M'
 
