@@ -41,6 +41,7 @@ import Control.Monad.Except (runExcept)
 import Control.Monad.Writer (runWriterT)
 import Data.Bifunctor (bimap, second)
 import Data.ByteString.Lazy qualified as LBS (readFile)
+import Data.Either.Extras (unsafeFromEither)
 import Data.List (isSuffixOf)
 import PlutusBenchmark.Common (getDataDir)
 import PlutusBenchmark.Marlowe.Core.V1.Semantics (MarloweData)
@@ -73,14 +74,12 @@ benchmarkToUPLC
   -- A named DeBruijn term, for turning to `Benchmarkable`.
 benchmarkToUPLC validator M.Benchmark{..} =
   let
-    unsafeFromRight (Right x) = x
-    unsafeFromRight _         = error "unsafeFromRight: applyProgram returned a Left"
     wrap = UPLC.Program () (UPLC.Version 1 0 0)
     datum = wrap $ mkConstant () bDatum
     redeemer = wrap $ mkConstant () bRedeemer
     context = wrap $ mkConstant () $ toData bScriptContext
     prog = getPlc validator
-    appliedProg = foldl1 (unsafeFromRight .* applyProgram)
+    appliedProg = foldl1 (unsafeFromEither .* applyProgram)
         $ void prog : [datum, redeemer, context]
   in
     UPLC._progTerm appliedProg
@@ -267,15 +266,13 @@ writeFlatUPLC
   -> IO ()
 writeFlatUPLC validator filename Benchmark{..} =
   let
-    unsafeFromRight (Right x) = x
-    unsafeFromRight _         = error "unsafeFromRight failed"
     wrap = Program () (Version 1 0 0)
     datum = wrap $ mkConstant () bDatum :: UplcProg ()
     redeemer = wrap $ mkConstant () bRedeemer :: UplcProg ()
     context = wrap $ mkConstant () $ toData bScriptContext :: UplcProg ()
     prog = fromNamedDeBruijnUPLC $ getPlc validator
     applied =
-      foldl1 (unsafeFromRight .* applyProgram)
+      foldl1 (unsafeFromEither .* applyProgram)
         $ void prog : [datum, redeemer, context]
   in
     writeProgram (FileOutput filename) (Flat NamedDeBruijn) Readable applied
