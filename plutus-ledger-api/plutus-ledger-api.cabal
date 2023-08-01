@@ -72,6 +72,7 @@ library
     PlutusLedgerApi.V2.ParamName
     PlutusLedgerApi.V2.Tx
     PlutusLedgerApi.V3
+    PlutusLedgerApi.V3.Contexts
     PlutusLedgerApi.V3.EvaluationContext
     PlutusLedgerApi.V3.ParamName
 

@@ -5,10 +5,11 @@
 
 module PlutusBenchmark.ScriptContexts where
 
-import PlutusLedgerApi.V1
 import PlutusLedgerApi.V1.Address
 import PlutusLedgerApi.V1.Value
+import PlutusLedgerApi.V3
 import PlutusTx qualified as PlutusTx
+import PlutusTx.AssocMap qualified as Map
 import PlutusTx.Builtins qualified as PlutusTx
 import PlutusTx.Prelude qualified as PlutusTx
 
@@ -20,22 +21,29 @@ mkScriptContext i = ScriptContext (mkTxInfo i) (Spending (TxOutRef (TxId "") 0))
 mkTxInfo :: Int -> TxInfo
 mkTxInfo i = TxInfo {
   txInfoInputs=mempty,
+  txInfoReferenceInputs=mempty,
   txInfoOutputs=fmap mkTxOut [1..i],
   txInfoFee=mempty,
   txInfoMint=mempty,
-  txInfoDCert=mempty,
-  txInfoWdrl=mempty,
+  txInfoTxCerts=mempty,
+  txInfoWdrl=Map.empty,
   txInfoValidRange=always,
   txInfoSignatories=mempty,
-  txInfoData=mempty,
-  txInfoId=TxId ""
+  txInfoRedeemers=Map.empty,
+  txInfoData=Map.empty,
+  txInfoId=TxId "",
+  txInfoVotingProcedures=Map.empty,
+  txInfoProposalProcedures=mempty,
+  txInfoCurrentTreasuryAmount=Nothing,
+  txInfoTreasuryDonation=Nothing
   }
 
 mkTxOut :: Int -> TxOut
 mkTxOut i = TxOut {
   txOutAddress=pubKeyHashAddress (PubKeyHash ""),
   txOutValue=mkValue i,
-  txOutDatumHash=Nothing
+  txOutDatum=NoOutputDatum,
+  txOutReferenceScript=Nothing
   }
 
 mkValue :: Int -> Value

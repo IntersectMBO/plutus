@@ -320,6 +320,9 @@ instance Haskell.Eq BuiltinString where
 instance Haskell.Ord BuiltinString where
     compare (BuiltinString t) (BuiltinString t') = compare t t'
 
+instance Pretty BuiltinString where
+    pretty = viaShow
+
 {-# NOINLINE appendString #-}
 appendString :: BuiltinString -> BuiltinString -> BuiltinString
 appendString (BuiltinString s1) (BuiltinString s2) = BuiltinString (s1 <> s2)
