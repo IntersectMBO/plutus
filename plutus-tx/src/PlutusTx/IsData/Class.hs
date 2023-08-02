@@ -92,18 +92,6 @@ instance UnsafeFromData Builtins.BuiltinByteString where
     {-# INLINABLE unsafeFromBuiltinData #-}
     unsafeFromBuiltinData = BI.unsafeDataAsB
 
-instance ToData Builtins.BuiltinString where
-    {-# INLINABLE toBuiltinData #-}
-    toBuiltinData = mkB . BI.encodeUtf8
-instance FromData Builtins.BuiltinString where
-    {-# INLINABLE fromBuiltinData #-}
-    fromBuiltinData d = case fromBuiltinData d of
-        Nothing -> Nothing
-        Just b  -> Just (BI.decodeUtf8 b)
-instance UnsafeFromData Builtins.BuiltinString where
-    {-# INLINABLE unsafeFromBuiltinData #-}
-    unsafeFromBuiltinData = BI.decodeUtf8 . BI.unsafeDataAsB
-
 instance ToData a => ToData [a] where
     {-# INLINABLE toBuiltinData #-}
     toBuiltinData l = BI.mkList (mapToBuiltin l)

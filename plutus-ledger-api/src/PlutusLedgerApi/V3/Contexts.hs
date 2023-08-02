@@ -86,7 +86,7 @@ but it is here for completeness. So we might wanna omit them, especially since u
 bit tricky, since we can't guarantee their validity, not even that they are utf8-encoded.
 -}
 data Anchor = Anchor
-  { anchorUrl      :: PlutusTx.BuiltinString -- Arbitrary Url
+  { anchorUrl      :: PlutusTx.BuiltinByteString -- Arbitrary Url
   , anchorDataHash :: PlutusTx.BuiltinByteString -- Blake2b_256 of some off-chain data
   }
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
