@@ -13,9 +13,9 @@ module PlutusLedgerApi.V3 (
     , evaluateScriptRestricting
     , evaluateScriptCounting
     -- ** CIP-1694
-    , ColdCommitteeHash (..)
-    , HotCommitteeHash (..)
-    , DRepHash (..)
+    , ColdCommitteeCredential (..)
+    , HotCommitteeCredential (..)
+    , DRepCredential (..)
     , DRep (..)
     , Delegatee (..)
     , Anchor (..)

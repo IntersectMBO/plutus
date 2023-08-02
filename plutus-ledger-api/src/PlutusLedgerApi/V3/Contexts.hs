@@ -24,7 +24,7 @@ import Prelude qualified as Haskell
 
 newtype ColdCommitteeCredential = ColdCommitteeCredential V2.Credential
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
-  deriving (Pretty) via (PrettyShow ColdCommitteeHash)
+  deriving (Pretty) via (PrettyShow ColdCommitteeCredential)
   deriving newtype
     ( PlutusTx.Eq
     , PlutusTx.ToData
@@ -34,7 +34,7 @@ newtype ColdCommitteeCredential = ColdCommitteeCredential V2.Credential
 
 newtype HotCommitteeCredential = HotCommitteeCredential V2.Credential
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
-  deriving (Pretty) via (PrettyShow HotCommitteeHash)
+  deriving (Pretty) via (PrettyShow HotCommitteeCredential)
   deriving newtype
     ( PlutusTx.Eq
     , PlutusTx.ToData
@@ -44,7 +44,7 @@ newtype HotCommitteeCredential = HotCommitteeCredential V2.Credential
 
 newtype DRepCredential = DRepCredential V2.Credential
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
-  deriving (Pretty) via (PrettyShow DRepHash)
+  deriving (Pretty) via (PrettyShow DRepCredential)
   deriving newtype
     ( PlutusTx.Eq
     , PlutusTx.ToData
@@ -53,7 +53,7 @@ newtype DRepCredential = DRepCredential V2.Credential
     )
 
 data DRep
-  = DRepCredential DRepHash
+  = DRep DRepCredential
   | DRepAlwaysAbstain
   | DRepAlwaysNoConfidence
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
@@ -61,7 +61,7 @@ data DRep
 
 instance PlutusTx.Eq DRep where
   {-# INLINEABLE (==) #-}
-  DRepCredential a == DRepCredential a'            = a PlutusTx.== a'
+  DRep a == DRep a'                                = a PlutusTx.== a'
   DRepAlwaysAbstain == DRepAlwaysAbstain           = Haskell.True
   DRepAlwaysNoConfidence == DRepAlwaysNoConfidence = Haskell.True
   _ == _                                           = Haskell.False
@@ -126,14 +126,14 @@ data TxCert
     -- deposit is mandatory.
     TxCertRegDeleg V2.Credential Delegatee V2.Value
   | -- | Register a DRep with mandatory deposit value and an optional Anchor
-    TxCertRegDRep DRepHash V2.Value (Haskell.Maybe Anchor)
+    TxCertRegDRep DRepCredential V2.Value (Haskell.Maybe Anchor)
   | -- | Update DRep's optional Anchor
-    TxCertUpdateDRep DRepHash (Haskell.Maybe Anchor)
+    TxCertUpdateDRep DRepCredential (Haskell.Maybe Anchor)
   | -- | UnRegister a DRep with mandatory refund value
-    TxCertUnRegDRep DRepHash V2.Value
+    TxCertUnRegDRep DRepCredential V2.Value
   | -- | Authorize a Hot credential for a specific Committee member's cold credential
-    TxCertAuthHotCommittee ColdCommitteeHash HotCommitteeHash
-  | TxCertResignColdCommittee ColdCommitteeHash
+    TxCertAuthHotCommittee ColdCommitteeCredential HotCommitteeCredential
+  | TxCertResignColdCommittee ColdCommitteeCredential
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
   deriving (Pretty) via (PrettyShow TxCert)
 
@@ -160,8 +160,8 @@ instance PlutusTx.Eq TxCert where
   _ == _ = Haskell.False
 
 data Voter
-  = CommitteeVoter !HotCommitteeHash
-  | DRepVoter DRepHash
+  = CommitteeVoter !HotCommitteeCredential
+  | DRepVoter DRepCredential
   | StakePoolVoter V2.PubKeyHash
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
   deriving (Pretty) via (PrettyShow Voter)
@@ -228,7 +228,7 @@ instance PlutusTx.Eq VotingProcedure where
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
 
 data Committee = Committee
-  { committeeMembers :: Map ColdCommitteeHash Haskell.Integer
+  { committeeMembers :: Map ColdCommitteeCredential Haskell.Integer
   -- ^ Committee members with epoch number when each of them expires
   , committeeQuorum  :: PlutusTx.Rational
   -- ^ Quorum of the committee that is necessary for a successful vote
@@ -296,7 +296,7 @@ data GovernanceAction
   | NoConfidence
   | NewCommittee
       -- | Old committee
-      [ColdCommitteeHash]
+      [ColdCommitteeCredential]
       -- | New Committee
       Committee
   | NewConstitution Constitution
@@ -476,14 +476,14 @@ instance PlutusTx.Eq ScriptContext where
   ScriptContext a b == ScriptContext a' b' =
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
 
-PlutusTx.makeLift ''ColdCommitteeHash
-PlutusTx.makeLift ''HotCommitteeHash
-PlutusTx.makeLift ''DRepHash
+PlutusTx.makeLift ''ColdCommitteeCredential
+PlutusTx.makeLift ''HotCommitteeCredential
+PlutusTx.makeLift ''DRepCredential
 
 PlutusTx.makeLift ''DRep
 PlutusTx.makeIsDataIndexed
   ''DRep
-  [ ('DRepCredential, 0)
+  [ ('DRep, 0)
   , ('DRepAlwaysAbstain, 1)
   , ('DRepAlwaysNoConfidence, 2)
   ]
