@@ -69,7 +69,7 @@ From <http://lucacardelli.name/Papers/Notes/scott2.pdf>
          : N
     succ = λ n : N . Λ R . λ x : R . λ y : M → R . y (in n)
          : N → N
-    case = λ n : N . Λ R . λ a : R . λ f : N → N . n [R] a (f ∘ out)
+    mycase = λ n : N . Λ R . λ a : R . λ f : N → N . n [R] a (f ∘ out)
          : N → ∀ R . R → (N → R) → R
 -}
 
@@ -105,8 +105,8 @@ module ScottE where
   Four : ∅ ⊢ N
   Four = Succ · Three
 
-  case : ∀{Γ} → Γ ⊢ N ⇒ (Π (` Z ⇒ (N ⇒ ` Z) ⇒ ` Z))
-  case = ƛ (Λ (ƛ (ƛ ((` (S (S (T Z)))) ·⋆ (` Z) · (` (S Z)) · (ƛ (` (S Z) · unwrap • refl (` Z)))))))
+  mycase : ∀{Γ} → Γ ⊢ N ⇒ (Π (` Z ⇒ (N ⇒ ` Z) ⇒ ` Z))
+  mycase = ƛ (Λ (ƛ (ƛ ((` (S (S (T Z)))) ·⋆ (` Z) · (` (S Z)) · (ƛ (` (S Z) · unwrap • refl (` Z)))))))
 
   -- Y : (a -> a) -> a
   -- Y f = (\x. f (x x)) (\x. f (x x))
@@ -124,7 +124,7 @@ module ScottE where
   Z-comb = Λ {- a -} (Λ {- b -} (ƛ {- f -} (ƛ {- r -} (` (S Z) · ƛ {- x -} (unwrap • refl (` (S Z)) · ` (S Z) · ` Z)) · wrap (` Z ⇒ ` (S (S Z)) ⇒ ` (S Z)) • (ƛ {- r -} (` (S Z) · ƛ {- x -} (unwrap • refl (` (S Z)) · ` (S Z) · ` Z))) refl)))
 
   TwoPlus : ∀{Γ} → Γ ⊢ (N ⇒ N) ⇒ N ⇒ N
-  TwoPlus = ƛ (ƛ ((((case · (` Z)) ·⋆ N) · Two) · (ƛ (Succ · (` (S (S Z)) · (` Z))))))
+  TwoPlus = ƛ (ƛ ((((mycase · (` Z)) ·⋆ N) · Two) · (ƛ (Succ · (` (S (S Z)) · (` Z))))))
 
   TwoPlusOne : ∅ ⊢ N
   -- TwoPlusTwo = Y-comb ·⋆ (N ⇒ N) · TwoPlus · Two
@@ -133,7 +133,7 @@ module ScottE where
 
   -- Roman's more efficient version
   Plus : ∀ {Γ} → Γ ⊢ N ⇒ N ⇒ N
-  Plus = ƛ (ƛ ((Z-comb ·⋆ N) ·⋆ N · (ƛ (ƛ ((((case · ` Z) ·⋆ N) · ` (S (S (S Z)))) · (ƛ (Succ · (` (S (S Z)) · ` Z)))))) · ` (S Z)))
+  Plus = ƛ (ƛ ((Z-comb ·⋆ N) ·⋆ N · (ƛ (ƛ ((((mycase · ` Z) ·⋆ N) · ` (S (S (S Z)))) · (ƛ (Succ · (` (S (S Z)) · ` Z)))))) · ` (S Z)))
 
   TwoPlusTwo : ∅ ⊢ N
   TwoPlusTwo = (Plus · Two) · Two
@@ -202,18 +202,18 @@ module Scott1 where
   Four : ∅ ⊢ N
   Four = Succ · Three
 
-  case : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N ⇒ (Π (` Z ⇒ (N ⇒ ` Z) ⇒ ` Z))
-  case = ƛ (Λ (ƛ (ƛ (` (S (S (T Z))) ·⋆ ` Z · ` (S Z) · ƛ (` (S Z) · conv (β≡β _ _) (unwrap0 _ (` Z)))))))
+  mycase : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N ⇒ (Π (` Z ⇒ (N ⇒ ` Z) ⇒ ` Z))
+  mycase = ƛ (Λ (ƛ (ƛ (` (S (S (T Z))) ·⋆ ` Z · ` (S Z) · ƛ (` (S Z) · conv (β≡β _ _) (unwrap0 _ (` Z)))))))
 
   TwoPlus : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ (N ⇒ N) ⇒ N ⇒ N
-  TwoPlus = ƛ (ƛ ((((case · (` Z)) ·⋆ N) · Two) · (ƛ (Succ · (` (S (S Z)) · (` Z))))))
+  TwoPlus = ƛ (ƛ ((((mycase · (` Z)) ·⋆ N) · Two) · (ƛ (Succ · (` (S (S Z)) · (` Z))))))
 
   TwoPlusOne : ∅ ⊢ N
   TwoPlusOne = (Z-comb ·⋆ N) ·⋆ N · TwoPlus · One
 
   -- Roman's more efficient version
   Plus : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N ⇒ N ⇒ N
-  Plus = ƛ (ƛ ((Z-comb ·⋆ N) ·⋆ N · (ƛ (ƛ ((((case · ` Z) ·⋆ N) · ` (S (S (S Z)))) · (ƛ (Succ · (` (S (S Z)) · ` Z)))))) · ` (S Z)))
+  Plus = ƛ (ƛ ((Z-comb ·⋆ N) ·⋆ N · (ƛ (ƛ ((((mycase · ` Z) ·⋆ N) · ` (S (S (S Z)))) · (ƛ (Succ · (` (S (S Z)) · ` Z)))))) · ` (S Z)))
 
   TwoPlusTwo : ∅ ⊢ N
   TwoPlusTwo = (Plus · Two) · Two

@@ -122,15 +122,17 @@ types
 ```
 import Algorithmic
 import Algorithmic.RenamingSubstitution
-import Algorithmic.Reduction
+--TODO : Finish proof for SOPs
+--import Algorithmic.Reduction
 import Algorithmic.ReductionEC
 
 import Algorithmic.Evaluation
 import Algorithmic.Completeness
 import Algorithmic.Soundness
 import Algorithmic.Erasure
-import Algorithmic.Erasure.RenamingSubstitution
-import Algorithmic.CC
+--TODO : Finish proof for SOPs
+--import Algorithmic.Erasure.RenamingSubstitution
+--import Algorithmic.CC
 import Algorithmic.CK
 import Algorithmic.CEK
 
@@ -141,7 +143,9 @@ Proof for Progress and Determinism of the Reduction Semantics:
 
 ```
 import Algorithmic.ReductionEC.Progress
-import Algorithmic.ReductionEC.Determinism
+
+--TODO : Finish proof for SOPs
+--import Algorithmic.ReductionEC.Determinism
 ```
 
 There are proofs of correspondence of the semantics of:
@@ -151,9 +155,10 @@ There are proofs of correspondence of the semantics of:
  * (typed) CEK machine
 
 ```
-import Algorithmic.BehaviouralEquivalence.ReductionvsCC
-import Algorithmic.BehaviouralEquivalence.CCvsCK
-import Algorithmic.BehaviouralEquivalence.CKvsCEK
+--TODO : Finish proofs for SOPs
+--import Algorithmic.BehaviouralEquivalence.ReductionvsCC
+--import Algorithmic.BehaviouralEquivalence.CCvsCK
+--import Algorithmic.BehaviouralEquivalence.CKvsCEK
 ```
 ## Extrinsically typed syntax a.k.a. Well Scoped Terms
 
@@ -161,10 +166,10 @@ Extrinsically typed terms, reduction and evaluation
 
 ```
 import Scoped
-import Scoped.RenamingSubstitution
-
-import Scoped.Extrication
-import Scoped.Extrication.RenamingSubstitution
+--TODO : Finish proof for SOPs
+--import Scoped.RenamingSubstitution
+--import Scoped.Extrication
+--import Scoped.Extrication.RenamingSubstitution
 ```
 
 ## Untyped terms
