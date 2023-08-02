@@ -32,7 +32,7 @@ newtype ColdCommitteeCredential = ColdCommitteeCredential V2.Credential
     , PlutusTx.UnsafeFromData
     )
 
-newtype HotCommitteeHash = HotCommitteeHash V2.Credential
+newtype HotCommitteeCredential = HotCommitteeCredential V2.Credential
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
   deriving (Pretty) via (PrettyShow HotCommitteeHash)
   deriving newtype
