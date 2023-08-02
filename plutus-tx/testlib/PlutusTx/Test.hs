@@ -3,7 +3,6 @@
 {-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
@@ -35,22 +34,18 @@ import Prelude
 import Control.Exception
 import Control.Lens
 import Control.Monad.Except
-import Control.Monad.Reader qualified as Reader
 import Data.Either.Extras
 import Data.Kind (Type)
-import Data.Maybe
 import Data.Tagged (Tagged (Tagged))
 import Data.Text (Text)
 import Flat (Flat)
 import Prettyprinter
-import System.FilePath ((</>))
 import Test.Tasty (TestName, TestTree)
 import Test.Tasty.Extras
 import Test.Tasty.Providers (IsTest (run, testOptions), singleTest, testFailed, testPassed)
 
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
-import PlutusCore.Evaluation.Machine.ExBudget qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Pretty
 import PlutusCore.Pretty qualified as PLC
@@ -140,28 +135,7 @@ renderExcess tData mData diff =
 -- Budget testing
 
 goldenBudget :: TestName -> CompiledCode a -> TestNested
-goldenBudget name compiledCode = do
-  path <- Reader.ask
-  let budgetText = measureBudget compiledCode
-      filename = foldr (</>) (name ++ ".budget.golden") path
-  pure $
-    goldenVsDoc name filename (maybe "Failed" pretty budgetText)
-
--- TODO: expose something like this somewhere more useful
-measureBudget :: CompiledCode a -> Maybe PLC.ExBudget
-measureBudget compiledCode =
-  let programE =
-        PLC.runQuote $
-          runExceptT @PLC.FreeVariableError $
-            traverseOf UPLC.progTerm UPLC.unDeBruijnTerm $
-              getPlcNoAnn compiledCode
-   in case programE of
-        Left _ -> Nothing
-        Right program ->
-          let (_, UPLC.CountingSt budget) =
-                UPLC.runCekNoEmit PLC.defaultCekParameters UPLC.counting $
-                  program ^. UPLC.progTerm
-           in Just budget
+goldenBudget name compiledCode = goldenUplcBudget name (UPLC._progTerm (getPlcNoAnn compiledCode))
 
 -- Compilation testing
 
@@ -180,8 +154,7 @@ goldenPirReadable ::
   TestNested
 goldenPirReadable name value =
   nestedGoldenVsDoc name ".pir-readable"
-    . fromMaybe "PIR not found in CompiledCode"
-    . fmap (pretty . AsReadable . view progTerm)
+    . maybe "PIR not found in CompiledCode" (pretty . AsReadable . view progTerm)
     $ getPirNoAnn value
 
 goldenPirBy ::
@@ -198,7 +171,7 @@ goldenPirBy config name value =
 
 -- Evaluation testing
 
--- TODO: rationalize with the fucntions exported from PlcTestUtils
+-- TODO: rationalize with the functions exported from PlcTestUtils
 goldenEvalCek :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun) => String -> [a] -> TestNested
 goldenEvalCek name values =
   nestedGoldenVsDocM name ".eval-cek" $ prettyPlcClassicDebug <$> (rethrow $ runPlcCek values)
