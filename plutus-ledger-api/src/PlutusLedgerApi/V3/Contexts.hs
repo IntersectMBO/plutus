@@ -11,6 +11,7 @@
 
 module PlutusLedgerApi.V3.Contexts where
 
+import Data.String
 import GHC.Generics (Generic)
 import Prettyprinter (nest, vsep, (<+>))
 import Prettyprinter.Extras
@@ -19,34 +20,41 @@ import PlutusLedgerApi.V2 qualified as V2
 import PlutusTx qualified
 import PlutusTx.AssocMap hiding (filter, mapMaybe)
 import PlutusTx.Prelude qualified as PlutusTx
+import PlutusTx.Show qualified as PlutusTx
 
 import Prelude qualified as Haskell
 
 newtype ColdCommitteeCredential = ColdCommitteeCredential V2.Credential
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
+  deriving stock (Generic)
   deriving (Pretty) via (PrettyShow ColdCommitteeCredential)
   deriving newtype
-    ( PlutusTx.Eq
+    ( Haskell.Eq
+    , Haskell.Show
+    , PlutusTx.Eq
     , PlutusTx.ToData
     , PlutusTx.FromData
     , PlutusTx.UnsafeFromData
     )
 
 newtype HotCommitteeCredential = HotCommitteeCredential V2.Credential
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
+  deriving stock (Generic)
   deriving (Pretty) via (PrettyShow HotCommitteeCredential)
   deriving newtype
-    ( PlutusTx.Eq
+    ( Haskell.Eq
+    , Haskell.Show
+    , PlutusTx.Eq
     , PlutusTx.ToData
     , PlutusTx.FromData
     , PlutusTx.UnsafeFromData
     )
 
 newtype DRepCredential = DRepCredential V2.Credential
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
+  deriving stock (Generic)
   deriving (Pretty) via (PrettyShow DRepCredential)
   deriving newtype
-    ( PlutusTx.Eq
+    ( Haskell.Eq
+    , Haskell.Show
+    , PlutusTx.Eq
     , PlutusTx.ToData
     , PlutusTx.FromData
     , PlutusTx.UnsafeFromData
@@ -81,13 +89,30 @@ instance PlutusTx.Eq Delegatee where
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
   _ == _ = Haskell.False
 
-{- | There is probably no need for Plutus Scripts to even know about all this data in Anchors,
-but it is here for completeness. So we might wanna omit them, especially since urls are a
-bit tricky, since we can't guarantee their validity, not even that they are utf8-encoded.
--}
+newtype AnchorDataHash = AnchorDataHash {getAnchorDataHash :: PlutusTx.BuiltinByteString}
+  deriving stock (Generic)
+  deriving newtype
+    ( Haskell.Eq
+    , PlutusTx.Eq
+    , PlutusTx.Ord
+    , PlutusTx.Show
+    , PlutusTx.ToData
+    , PlutusTx.FromData
+    , PlutusTx.UnsafeFromData
+    )
+  deriving
+    ( -- | from hex encoding
+      IsString
+    , -- | using hex encoding
+      Haskell.Show
+    , -- | using hex encoding
+      Pretty
+    )
+    via V2.LedgerBytes
+
 data Anchor = Anchor
   { anchorUrl      :: PlutusTx.BuiltinByteString -- Arbitrary Url
-  , anchorDataHash :: PlutusTx.BuiltinByteString -- Blake2b_256 of some off-chain data
+  , anchorDataHash :: AnchorDataHash -- Blake2b_256 of some off-chain data
   }
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
 
@@ -160,7 +185,7 @@ instance PlutusTx.Eq TxCert where
   _ == _ = Haskell.False
 
 data Voter
-  = CommitteeVoter !HotCommitteeCredential
+  = CommitteeVoter HotCommitteeCredential
   | DRepVoter DRepCredential
   | StakePoolVoter V2.PubKeyHash
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
@@ -247,8 +272,29 @@ instance PlutusTx.Eq Committee where
   Committee a b == Committee a' b' =
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
 
+newtype ConstitutionHash = ConstitutionHash {getConstitutionHash :: PlutusTx.BuiltinByteString}
+  deriving stock (Generic)
+  deriving newtype
+    ( Haskell.Eq
+    , PlutusTx.Eq
+    , PlutusTx.Ord
+    , PlutusTx.Show
+    , PlutusTx.ToData
+    , PlutusTx.FromData
+    , PlutusTx.UnsafeFromData
+    )
+  deriving
+    ( -- | from hex encoding
+      IsString
+    , -- | using hex encoding
+      Haskell.Show
+    , -- | using hex encoding
+      Pretty
+    )
+    via V2.LedgerBytes
+
 data Constitution = Constitution
-  { constitutionHash   :: PlutusTx.BuiltinByteString -- Balke2b_256 of some off-chain data
+  { constitutionHash   :: ConstitutionHash -- Balke2b_256 of some off-chain data
   , constitutionScript :: Haskell.Maybe V2.ScriptHash
   }
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
@@ -292,7 +338,7 @@ data GovernanceAction
     --
   | -- | proposal to update protocol version
     HardForkInitiation ProtocolVersion
-  | TreasuryWithdrawals !(Map V2.Credential V2.Value)
+  | TreasuryWithdrawals (Map V2.Credential V2.Value)
   | NoConfidence
   | NewCommittee
       -- | Old committee
@@ -496,6 +542,7 @@ PlutusTx.makeIsDataIndexed
   , ('DelegStakeVote, 2)
   ]
 
+PlutusTx.makeLift ''AnchorDataHash
 PlutusTx.makeLift ''Anchor
 PlutusTx.makeIsDataIndexed ''Anchor [('Anchor, 0)]
 
@@ -538,6 +585,7 @@ PlutusTx.makeIsDataIndexed ''VotingProcedure [('VotingProcedure, 0)]
 PlutusTx.makeLift ''Committee
 PlutusTx.makeIsDataIndexed ''Committee [('Committee, 0)]
 
+PlutusTx.makeLift ''ConstitutionHash
 PlutusTx.makeLift ''Constitution
 PlutusTx.makeIsDataIndexed ''Constitution [('Constitution, 0)]
 
