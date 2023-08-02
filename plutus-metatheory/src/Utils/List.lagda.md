@@ -123,6 +123,21 @@ _<>>I_ :  ∀{A : Set}{B : A → Set}{bs : Bwd A}{ts : List A}
 [] <>>I tls = tls
 (tbs :< x) <>>I tls = tbs <>>I (x ∷ tls)
 
+_<><I_ :  ∀{A : Set}{B : A → Set}{bs : Bwd A}{ts : List A} 
+      → IBwd B bs → IList B ts → IBwd B (bs <>< ts)
+ibs <><I [] = ibs
+ibs <><I (x ∷ its) = (ibs :< x) <><I its
+
+lemma<>I1 : ∀{A}{B : A → Set}{xs : Bwd A}{ys : List A} → (ixs : IBwd B xs) → (iys : IList B ys) 
+                  → (subst (IList B) (lemma<>1 xs ys) ((ixs <><I iys) <>>I [])) ≡ ixs <>>I iys
+lemma<>I1 ixs [] = refl
+lemma<>I1 ixs (iy ∷ iys) = lemma<>I1 (ixs :< iy) iys
+
+lemma<>I2 : ∀{A}{B : A → Set}{xs : Bwd A}{ys : List A}(ixs : IBwd B xs)(iys : IList B ys) 
+                  → subst (IBwd B) (lemma<>2 xs ys) ([] <><I (ixs <>>I iys)) ≡ ixs <><I iys
+lemma<>I2 [] iys = refl
+lemma<>I2 (ixs :< ix) iys = lemma<>I2 ixs (ix ∷ iys)
+
 IBwd2IList : ∀{A}{B : A → Set}{ts}{ts'} → (ts ≡ [] <>< ts') → IBwd B ts → IList B ts'
 IBwd2IList {ts' = ts'} p tbs = subst (IList _) (trans (cong (_<>> []) p) (lemma<>1 [] ts')) (tbs <>>I [])
 ```
@@ -139,6 +154,7 @@ data _≣_<>>_ {A : Set} : (as : List A) → Bwd A → List A → Set where
            ---------------------------
          → as ≣ (vs :< t) <>> ts 
 
+
 lem-≣-<>> : ∀{A : Set}{tot vs}{ts : List A} → tot ≣ vs <>> ts → tot ≡ vs <>> ts
 lem-≣-<>> start = refl
 lem-≣-<>> (bubble x) = lem-≣-<>> x
@@ -146,6 +162,9 @@ lem-≣-<>> (bubble x) = lem-≣-<>> x
 lem-≣-<>>' : ∀{A : Set}{tot vs}{ts : List A} → tot ≡ vs <>> ts → tot ≣ vs <>> ts
 lem-≣-<>>' {vs = []} refl = start
 lem-≣-<>>' {vs = vs :< x}{ts} refl = bubble (lem-≣-<>>' refl)
+
+done-≣-<>> : ∀{A : Set}{tot : List A} → tot ≣ ([] <>< tot) <>> []
+done-≣-<>> = lem-≣-<>>' (sym (lemma<>1 [] _))
 
 no-empty-≣-<>> : ∀{A : Set}{vs}{h : A}{ts} → [] ≣ vs <>> (h ∷ ts) → ⊥
 no-empty-≣-<>> (bubble r) = no-empty-≣-<>> r
@@ -181,56 +200,69 @@ data IIBwd {A : Set}{B : A → Set}(C : ∀{a : A}→ B a → Set) : ∀{is} →
  Index for IIList zippers
 
  ```
-data _≣T_<>>_ {A : Set}{B : A → Set}{tot}(itot : IList B tot) : 
+data _≣I_<>>_ {A : Set}{B : A → Set}{tot}(itot : IList B tot) : 
                                         ∀{bs ts} 
                                       → IBwd B bs
                                       → IList B ts 
                                       → (tot ≣ bs <>> ts) 
                                       → Set where
-  start : (itot ≣T [] <>> itot) start
+  start : (itot ≣I [] <>> itot) start
   bubble : ∀{bs}{ibs : IBwd B bs}{t}{it : B t}{ts}{ils : IList B ts}{idx}
-         → (itot ≣T ibs <>> (it ∷ ils)) idx
+         → (itot ≣I ibs <>> (it ∷ ils)) idx
            ------------------------------------------
-         → (itot ≣T (ibs :< it) <>> ils) (bubble idx)
+         → (itot ≣I (ibs :< it) <>> ils) (bubble idx)
 
-getIdx≡T : ∀{A : Set}{B : A → Set}{tot}{itot : IList B tot}{bs ts}
+getIdx≡I : ∀{A : Set}{B : A → Set}{tot}{itot : IList B tot}{bs ts}
                                       → {ibs : IBwd B bs}
                                       → {ils : IList B ts}
                                       → {idx : tot ≣ bs <>> ts}
-                                      → (itot ≣T ibs <>> ils) idx
+                                      → (itot ≣I ibs <>> ils) idx
                                       → tot ≣ bs <>> ts
-getIdx≡T {idx = idx} _ = idx                                      
+getIdx≡I {idx = idx} _ = idx                                      
 
-lem-≣T-<>> : ∀{A : Set}{B : A → Set}{tot : List A}{itot : IList B tot}{bs} 
+
+
+lem-≣I-<>>1 : ∀{A : Set}{B : A → Set}{tot : List A}{itot : IList B tot}{bs} 
                                 {ibs : IBwd B bs}{ls}{ils : IList B ls}  
                                 {idx : tot ≣ bs <>> ls}     
-                           → (itot ≣T ibs <>> ils) idx 
+                           → (itot ≣I ibs <>> ils) idx 
                            → subst (IList B) (lem-≣-<>> idx) itot ≡ (ibs <>>I ils)
-lem-≣T-<>> start = refl
-lem-≣T-<>> (bubble x) = lem-≣T-<>> x
+lem-≣I-<>>1 start = refl
+lem-≣I-<>>1 (bubble x) = lem-≣I-<>>1 x
 
-lem-≣T-<>>r : ∀{A : Set}{B : A → Set}{tot : List A}{itot : IList B tot}{bs} 
+lem-≣I-<>>1' : ∀{A : Set}{B : A → Set}{tot : List A}{itot : IList B tot}{bs} 
                                 {ibs : IBwd B bs}{ls}{ils : IList B ls}  
                                 {idx : tot ≣ bs <>> ls}     
-                           → (itot ≣T ibs <>> ils) idx 
+                           → (itot ≣I ibs <>> ils) idx 
                            → itot ≡ subst (IList B)  (sym (lem-≣-<>> idx)) (ibs <>>I ils)
-lem-≣T-<>>r start = refl
-lem-≣T-<>>r (bubble r) = lem-≣T-<>>r r
+lem-≣I-<>>1' start = refl
+lem-≣I-<>>1' (bubble r) = lem-≣I-<>>1' r
 
-lem-≣T-<>>' : ∀{A : Set}{B : A → Set}{tot : List A}{itot : IList B tot}{bs} 
+lem-≣I-<>>2 : ∀{A : Set}{B : A → Set}{tot : List A}{itot : IList B tot}{bs} 
+                             {ibs : IBwd B bs}{ls}{ils : IList B ls}  
+                             (eq : bs <>> ls ≡ tot)
+                           → itot ≡ subst (IList B) eq ((ibs <>>I ils))
+                           → (itot ≣I ibs <>> ils) (lem-≣-<>>' (sym eq)) 
+lem-≣I-<>>2 {ibs = []} refl refl = start
+lem-≣I-<>>2 {ibs = ibs :< x} refl refl = bubble (lem-≣I-<>>2 refl refl)
+
+lem-≣I-<>>2' : ∀{A : Set}{B : A → Set}{tot : List A}{itot : IList B tot}{bs} 
                              {ibs : IBwd B bs}{ls}{ils : IList B ls}  
                              (eq : tot ≡ bs <>> ls)
                            → (subst (IList B) eq itot) ≡ ((ibs <>>I ils))
-                           → (itot ≣T ibs <>> ils) (lem-≣-<>>' eq) 
-lem-≣T-<>>' {ibs = []} refl refl = start
-lem-≣T-<>>' {ibs = ibs :< x} refl refl = bubble (lem-≣T-<>>' refl refl)
+                           → (itot ≣I ibs <>> ils) (lem-≣-<>>' eq) 
+lem-≣I-<>>2' {ibs = []} refl refl = start
+lem-≣I-<>>2' {ibs = ibs :< x} refl refl = bubble (lem-≣I-<>>2' refl refl)
 
-data IIDissect {A : Set}{B : A → Set}(DONE TODO : ∀{a : A} → B a → Set){tot : List A}{itot : IList B tot}(iitot : IIList TODO itot) : Set where 
+done-≣I-<>> : ∀{A : Set}{B : A → Set}{tot : List A}(itot : IList B tot) → (itot ≣I ([] <><I itot) <>> []) done-≣-<>>
+done-≣I-<>> itot = lem-≣I-<>>2 (lemma<>1 [] _) (sym (lemma<>I1 [] itot))
+
+data IIDissect {A : Set}{B : A → Set}(DONE TODO : ∀{a : A} → B a → Set){tot : List A}(itot : IList B tot) : Set where 
      iiDissect :  ∀{bs}{ibs : IBwd B bs}{ls}{ils : IList B ls}{idx : tot ≣ bs <>> ls} 
-               (iidx : (itot ≣T ibs <>> ils) idx)
+               (iidx : (itot ≣I ibs <>> ils) idx)
              → (iibs : IIBwd DONE ibs)(iils : IIList TODO ils) 
               -----------------------------------------------------
-             → IIDissect DONE TODO iitot
+             → IIDissect DONE TODO itot
 ```
 
 The following datatype can be used to process an IList while recording that predicate P holds for its elements.
@@ -240,7 +272,7 @@ data IIPZipper {A : Set}{B : A → Set}(P : ∀{a : A} → B a → Set){tot : Li
      iiPZipper :  ∀{bs}{ibs : IBwd B bs}{ls}{idx : tot ≣ bs <>> ls}
              → (iibs : IIBwd P ibs) 
              → (ils : IList B ls)
-             → (iidx : (itot ≣T ibs <>> ils) idx)
+             → (iidx : (itot ≣I ibs <>> ils) idx)
               -----------------------------------------------------
              → IIPZipper P itot                                   
 ```

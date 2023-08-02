@@ -61,27 +61,39 @@ A ProgressList is a zipper consisting of:
 PList : ∀{ts} → IList (∅ ⊢_) ts → Set 
 PList = IIList Progress
 
-ProgDissect : ∀{tot}{itot : IList (∅ ⊢_) tot}(iitot : IIList Progress itot) → Set 
+ProgDissect : ∀{tot}(itot : IList (∅ ⊢_) tot) → Set 
 ProgDissect = IIDissect Value Progress                 
+
+data FocusedProgDissect : ∀{tot}{itot : IList (∅ ⊢_) tot} → ProgDissect itot → Set 
+     where 
+     done  : ∀{bs}{ibs : IBwd (∅ ⊢_) bs}{tot}{itot : IList (∅ ⊢_) tot}
+              {idx : tot ≣ bs <>> []}
+             (x : (itot ≣I ibs <>> []) idx)
+             (vs : VList ibs)
+        → FocusedProgDissect (iiDissect x vs [])
+     step  :  ∀{tot}{itot : IList (∅ ⊢_) tot}
+           → ∀{bs}{ibs : IBwd (∅ ⊢_) bs}(vs : VList ibs) --evaluated
+           → ∀{A : ∅ ⊢Nf⋆ *} {M : ∅ ⊢ A}{N : ∅ ⊢ A} → (st : M —→ N)  --current step
+           → ∀ {ls : List (∅ ⊢Nf⋆ *)}{cs : ConstrArgs ∅ ls} (rest : PList cs) -- progress of rest
+           → {idx : tot ≣ bs <>> (A ∷ ls)}
+           → (x : (itot ≣I ibs <>> (M ∷ cs)) idx)
+           → FocusedProgDissect (iiDissect x vs (step st ∷ rest))
+     error :  ∀{tot}{itot : IList (∅ ⊢_) tot}
+           → ∀{bs}{ibs : IBwd (∅ ⊢_) bs}(vs : VList ibs) --evaluated
+           → ∀{A : ∅ ⊢Nf⋆ *} {M : ∅ ⊢ A} (err : Error M)
+           → ∀ {ls : List (∅ ⊢Nf⋆ *)}{cs : ConstrArgs ∅ ls} (rest : PList cs) -- progress of rest
+           → {idx : tot ≣ bs <>> (A ∷ ls)} → (iidx : (itot ≣I ibs <>> (M ∷ cs)) idx)
+           → FocusedProgDissect (iiDissect iidx vs (error err ∷ rest))
 
 progress : {A : ∅ ⊢Nf⋆ *} → (M : ∅ ⊢ A) → Progress M
 
 -- Walk the list to look for the first term than can make progress or is an error.
--- If all are done, leave focus on the last element.
 {-# TERMINATING #-} --Although obviously terminating, Agda is not convinced.
-progress-focus : ∀{AS : List (∅ ⊢Nf⋆ *)}{cs : IList (_⊢_ ∅) AS }{pcs : IIList Progress cs} → ProgDissect pcs → ProgDissect pcs
-progress-focus z@(iiDissect x Vs []) = z
-progress-focus z@(iiDissect x Vs (step _ ∷ iils)) = z
+progress-focus : ∀{AS : List (∅ ⊢Nf⋆ *)}{cs : IList (_⊢_ ∅) AS } → ProgDissect cs → Σ (ProgDissect cs) FocusedProgDissect
+progress-focus z@(iiDissect x Vs []) = z ,, done x Vs
+progress-focus z@(iiDissect x Vs (step st ∷ iils)) = z ,, step Vs st iils x
 progress-focus z@(iiDissect x Vs (done V ∷ iils)) = progress-focus (iiDissect (bubble x) (Vs :< V) iils)
-progress-focus z@(iiDissect x Vs (error _ ∷ iils)) = z
-
--- The following postulate is for a case that cannot happen in the progress proof 
--- We remove it by proving that after applying progress-focus we have 
--- iils ≡ [] ∨ (iils ≡ (x ∷ xs) ∧ ¬(∃ Value (x ≡ done v)))
-postulate CannotHappen : ∀ {n} {e = i : Fin n}
-                 {A = TSS : Vec.Vec (List (∅ ⊢Nf⋆ *)) n}
-                 {cs : ConstrArgs ∅ (lookup TSS i)} →
-               Progress (constr i TSS refl cs)
+progress-focus z@(iiDissect x Vs (error e ∷ iils)) = z ,, (error Vs e iils x)
 
 progress-List :  ∀ {TS : List (∅ ⊢Nf⋆ *)}
                 → (cs : ConstrArgs ∅ TS) 
@@ -93,7 +105,7 @@ progress-constr : ∀ {n} (e : Fin n)
                     (TSS : Vec.Vec (List (∅ ⊢Nf⋆ *)) n)
                     {cs : ConstrArgs ∅ (lookup TSS e)}
                     (ps : PList cs)
-                  → ProgDissect ps
+                  →  Σ (ProgDissect cs) FocusedProgDissect
 progress-constr e TSS ps = progress-focus (iiDissect start [] ps) 
 
 progress (ƛ M)        = done (V-ƛ M)
@@ -134,35 +146,23 @@ progress (con c refl)      = done (V-con c)
 progress (builtin b / refl ) = done (ival b)
 progress (error A)    = error E-error
 progress (constr i TSS refl cs)  with progress-constr i TSS (progress-List cs) 
-... | iiDissect {bs}{ibs}{idx = idx} x Vs [] = done (V-constr i 
+... | _ ,, done {bs}{ibs}{idx = idx} x Vs = done (V-constr i 
                                                      TSS 
                                                      refl 
                                                      (trans (sym (lemma<>2 bs [])) (cong ([] <><_) (sym (lem-≣-<>> idx)))) 
                                                      Vs 
-                                                     (trans (≡-subst-removable (IList (_⊢_ ∅)) _ _ (ibs <>>I [])) (sym (lem-≣T-<>>r x))))
-... | iiDissect x Vs (step (ruleEC E p refl refl) ∷ Ps) = 
-              step (ruleEC (constr i TSS refl {getIdx≡T x} (mkVZ Vs (iiGetIdx Ps)) E) 
+                                                     (trans (≡-subst-removable (IList (_⊢_ ∅)) _ _ (ibs <>>I [])) (sym (lem-≣I-<>>1' x))))
+... | _ ,, step Vs (ruleEC E p refl refl) Ps x = 
+                     step (ruleEC (constr i TSS refl {getIdx≡I x} (mkVZ Vs (iiGetIdx Ps)) E) 
                            p 
-                           (cong (constr i TSS refl) (lem-≣T-<>>r x)) 
+                           (cong (constr i TSS refl) (lem-≣I-<>>1' x)) 
                            refl)
-... | iiDissect x Vs (step (ruleErr E refl) ∷ Ps) = 
-               step (ruleErr (constr i TSS refl {getIdx≡T x} (mkVZ Vs (iiGetIdx Ps)) E) 
-                    (cong (constr i TSS refl) (lem-≣T-<>>r x)))
-   --- when reaching a done it should be the last one so Ps should be empty.
-   -- Currently we have no way of letting Agda know that.                 
-... | iiDissect {bs}{ibs}{idx = idx} x Vs (done V ∷ []) = done (V-constr i 
-                                                               TSS 
-                                                               refl 
-                                                               (trans (sym (lemma<>2 (bs :< _) [])) 
-                                                                           (cong ([] <><_) (sym (lem-≣-<>> idx)))) 
-                                                               (Vs :< V) 
-                                                               (trans (≡-subst-removable (IList (_⊢_ ∅)) _ _ (ibs <>>I (_ ∷ []))) (sym (lem-≣T-<>>r x))))
-     -- the following case cannot happen because progress-focus 
-     -- consumes the prefix with `done`s.  
-... | iiDissect x Vs (done V ∷ (_ ∷ _)) = CannotHappen
-... | iiDissect {ibs = ibs}{idx = idx} x Vs (_∷_ {is = is} (error E-error) Ps) =
-        step (ruleErr (constr i TSS refl {idx} (mkVZ Vs is) []) 
-                             (cong (constr i TSS refl) (trans (lem-≣T-<>>r x) refl
+... | _ ,, step Vs (ruleErr E refl) Ps x = 
+             step (ruleErr (constr i TSS refl {getIdx≡I x} (mkVZ Vs (iiGetIdx Ps)) E) 
+                    (cong (constr i TSS refl) (lem-≣I-<>>1' x)))
+... | _ ,, error {ibs = ibs} Vs E-error Ps {idx = idx} x = 
+               step (ruleErr (constr i TSS refl {idx} (mkVZ Vs _) []) 
+                             (cong (constr i TSS refl) (trans (lem-≣I-<>>1' x) refl
                              )))
 progress (case M cases)  with progress M 
 ... | step (ruleEC E p refl refl) = step (ruleEC (case cases E) p refl refl)
