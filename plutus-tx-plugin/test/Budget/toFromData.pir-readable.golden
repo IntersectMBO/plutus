@@ -90,15 +90,15 @@ in
      (\(d : data) ->
         let
           !tup : pair integer (list data) = unConstrData d
-          ~t : list data = sndPair {integer} {list data} tup
-          ~t : list data = tailList {data} t
         in
         ifThenElse
           {unit -> Tuple3 Bool integer Bool}
           (equalsInteger 0 (fstPair {integer} {list data} tup))
           (\(ds : unit) ->
              let
+               !t : list data = sndPair {integer} {list data} tup
                !arg : data = headList {data} t
+               !t : list data = tailList {data} t
                !arg : data = headList {data} t
                !arg : data = headList {data} (tailList {data} t)
              in
