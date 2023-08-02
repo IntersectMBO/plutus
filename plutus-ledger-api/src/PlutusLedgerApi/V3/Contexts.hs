@@ -344,7 +344,7 @@ instance PlutusTx.Eq ProposalProcedure where
 data ScriptPurpose
   = Minting V2.CurrencySymbol
   | Spending V2.TxOutRef
-  | Rewarding V2.StakingCredential
+  | Rewarding V2.Credential
   | Certifying TxCert
   | Voting Voter GovernanceActionId
   | Proposing -- For now this will only be used by Constitution, thus might turned out to be
