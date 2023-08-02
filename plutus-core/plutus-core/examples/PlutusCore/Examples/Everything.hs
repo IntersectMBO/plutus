@@ -22,6 +22,7 @@ import PlutusCore.StdLib.Type
 
 import PlutusCore.Examples.Builtins
 import PlutusCore.Examples.Data.Data
+import PlutusCore.Examples.Data.Function
 import PlutusCore.Examples.Data.InterList
 import PlutusCore.Examples.Data.List
 import PlutusCore.Examples.Data.Pair
@@ -37,6 +38,9 @@ examples =
           [ treeFolderContents "Data"
               [ plcTermFile "ofoldrData" ofoldrData
               , plcTermFile "exampleData" exampleData
+              ]
+          , treeFolderContents "Function"
+              [ plcTermFile "unsafeCoerce" unsafeCoerce
               ]
           , treeFolderContents "InterList"
               [ plcTypeFile "InterList"      $ _recursiveType interListData

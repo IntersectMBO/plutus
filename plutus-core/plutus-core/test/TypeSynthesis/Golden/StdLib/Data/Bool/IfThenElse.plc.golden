@@ -1,0 +1,1 @@
+all a. bool -> (unit -> a) -> (unit -> a) -> a

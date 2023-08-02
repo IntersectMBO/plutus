@@ -1,1 +1,0 @@
-(fun [ (con list) (con integer) ] (con integer))

@@ -1,1 +1,0 @@
-(fun [ (con list) [ [ (con pair) (con data) ] (con data) ] ] (con data))
