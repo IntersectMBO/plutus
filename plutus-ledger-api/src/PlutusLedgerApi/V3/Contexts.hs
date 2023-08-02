@@ -117,7 +117,7 @@ Notable changes:
 -}
 data TxCert
   = -- | Register staking credential with an optional deposit amount
-    TxCertRegStaking V2.StakingCredential (Haskell.Maybe V2.Value)
+    TxCertRegStaking V2.Credential (Haskell.Maybe V2.Value)
   | -- | Un-Register staking credential with an optional refund amount
     TxCertUnRegStaking V2.Credential (Haskell.Maybe V2.Value)
   | -- | Delegate staking credential to a Delegatee
