@@ -134,16 +134,17 @@
                     )
                     (termbind
                       (nonstrict)
-                      (vardecl t [ (con list) (con data) ])
-                      [
-                        { { snd (con integer) } [ (con list) (con data) ] } tup
-                      ]
-                    )
-                    (termbind
-                      (nonstrict)
-                      (vardecl x [ [ Tuple2 a ] b ])
+                      (vardecl indexMatchCase [ [ Tuple2 a ] b ])
                       (let
                         (nonrec)
+                        (termbind
+                          (strict)
+                          (vardecl t [ (con list) (con data) ])
+                          [
+                            { { snd (con integer) } [ (con list) (con data) ] }
+                            tup
+                          ]
+                        )
                         (termbind
                           (strict)
                           (vardecl arg (con data))
@@ -151,8 +152,13 @@
                         )
                         (termbind
                           (strict)
+                          (vardecl t [ (con list) (con data) ])
+                          [ { tail (con data) } t ]
+                        )
+                        (termbind
+                          (strict)
                           (vardecl arg (con data))
-                          [ { head (con data) } [ { tail (con data) } t ] ]
+                          [ { head (con data) } t ]
                         )
                         [
                           [ { { Tuple2 a } b } [ `$dUnsafeFromData` arg ] ]
@@ -174,7 +180,7 @@
                             { ifThenElse (fun (con unit) [ [ Tuple2 a ] b ]) }
                             [ [ equalsInteger index ] (con integer 0) ]
                           ]
-                          (lam ds (con unit) x)
+                          (lam ds (con unit) indexMatchCase)
                         ]
                         (lam ds (con unit) x)
                       ]
@@ -304,14 +310,15 @@
                     (nonrec)
                     (termbind
                       (strict)
-                      (vardecl arg (con data))
+                      (vardecl t [ (con list) (con data) ])
                       [
-                        { head (con data) }
-                        [
-                          { { snd (con integer) } [ (con list) (con data) ] }
-                          tup
-                        ]
+                        { { snd (con integer) } [ (con list) (con data) ] } tup
                       ]
+                    )
+                    (termbind
+                      (strict)
+                      (vardecl arg (con data))
+                      [ { head (con data) } t ]
                     )
                     [ { Just a } [ `$dUnsafeFromData` arg ] ]
                   )
@@ -323,7 +330,7 @@
                 )
                 (termbind
                   (nonstrict)
-                  (vardecl x [ Maybe a ])
+                  (vardecl fallthrough [ Maybe a ])
                   [
                     [
                       [
@@ -347,7 +354,7 @@
                       ]
                       (lam ds (con unit) x)
                     ]
-                    (lam ds (con unit) x)
+                    (lam ds (con unit) fallthrough)
                   ]
                   unitval
                 ]

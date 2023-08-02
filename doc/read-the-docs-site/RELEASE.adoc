@@ -65,7 +65,7 @@ Suppose we are releasing version `x.y.z.0`.
 - There's no need to create a release branch at this point.
 A release branch is only needed if bugs are found in `x.y.z.0-rc1` and we need to backport a fix from master.
 - This step can be omitted if no additional tests and checks are needed in the release QA process. See "Release QA Process" below.
-2. Run the release QA process. See "Release QA Process" below.
+2. In future it will be necessary to run the release QA process (see "Release QA Process" below) at this point, however currently it is not required for the lack of specific instructions.
 3. If no release blocking issue is found, run `./scripts/prepare-release.sh x.y.z.0 <packages>`.
 This updates versions and version bounds, and assembles the changelogs.open a PR for updating the cabal files and the changelog files.
 - `<packages>` should normally be empty, which will prepare the default packages, or can be an explicit list of packages to prepare.
