@@ -119,12 +119,12 @@ data TxCert
   = -- | Register staking credential with an optional deposit amount
     TxCertRegStaking V2.StakingCredential (Haskell.Maybe V2.Value)
   | -- | Un-Register staking credential with an optional refund amount
-    TxCertUnRegStaking V2.StakingCredential (Haskell.Maybe V2.Value)
+    TxCertUnRegStaking V2.Credential (Haskell.Maybe V2.Value)
   | -- | Delegate staking credential to a Delegatee
-    TxCertDelegStaking V2.StakingCredential Delegatee
+    TxCertDelegStaking V2.Credential Delegatee
   | -- | Register and delegate staking credential to a Delegatee in one certificate. Noter that
     -- deposit is mandatory.
-    TxCertRegDeleg V2.StakingCredential Delegatee V2.Value
+    TxCertRegDeleg V2.Credential Delegatee V2.Value
   | -- | Register a DRep with mandatory deposit value and an optional Anchor
     TxCertRegDRep DRepHash V2.Value (Haskell.Maybe Anchor)
   | -- | Update DRep's optional Anchor
