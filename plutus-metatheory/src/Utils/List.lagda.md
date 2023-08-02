@@ -169,18 +169,6 @@ done-≣-<>> = lem-≣-<>>' (sym (lemma<>1 [] _))
 no-empty-≣-<>> : ∀{A : Set}{vs}{h : A}{ts} → [] ≣ vs <>> (h ∷ ts) → ⊥
 no-empty-≣-<>> (bubble r) = no-empty-≣-<>> r
 ```
-And dissect the ILists 
-
-```
-data IDissect {A : Set}(TODO DONE : A → Set){tot : List A}(itot : IList TODO tot) : 
-              ∀{bs ts} 
-                                      → IBwd DONE bs
-                                      → IList TODO ts
-                                      → (tot ≣ bs <>> ts) 
-                                      → Set where 
-     Idissect : ∀{bs}(ibs : IBwd DONE bs){ts}(ils : IList TODO ts) idx 
-             → IDissect TODO DONE itot ibs ils idx
-```
 
 ## Lists indexed by an indexed list 
 
@@ -256,25 +244,6 @@ lem-≣I-<>>2' {ibs = ibs :< x} refl refl = bubble (lem-≣I-<>>2' refl refl)
 
 done-≣I-<>> : ∀{A : Set}{B : A → Set}{tot : List A}(itot : IList B tot) → (itot ≣I ([] <><I itot) <>> []) done-≣-<>>
 done-≣I-<>> itot = lem-≣I-<>>2 (lemma<>1 [] _) (sym (lemma<>I1 [] itot))
-
-data IIDissect {A : Set}{B : A → Set}(DONE TODO : ∀{a : A} → B a → Set){tot : List A}(itot : IList B tot) : Set where 
-     iiDissect :  ∀{bs}{ibs : IBwd B bs}{ls}{ils : IList B ls}{idx : tot ≣ bs <>> ls} 
-               (iidx : (itot ≣I ibs <>> ils) idx)
-             → (iibs : IIBwd DONE ibs)(iils : IIList TODO ils) 
-              -----------------------------------------------------
-             → IIDissect DONE TODO itot
-```
-
-The following datatype can be used to process an IList while recording that predicate P holds for its elements.
-
-```
-data IIPZipper {A : Set}{B : A → Set}(P : ∀{a : A} → B a → Set){tot : List A}(itot : IList B tot) : Set where 
-     iiPZipper :  ∀{bs}{ibs : IBwd B bs}{ls}{idx : tot ≣ bs <>> ls}
-             → (iibs : IIBwd P ibs) 
-             → (ils : IList B ls)
-             → (iidx : (itot ≣I ibs <>> ils) idx)
-              -----------------------------------------------------
-             → IIPZipper P itot                                   
 ```
 
 
