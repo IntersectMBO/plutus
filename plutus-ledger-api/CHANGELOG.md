@@ -1,4 +1,12 @@
 
+<a id='changelog-1.10.0.0'></a>
+# 1.10.0.0 — 2023-08-02
+
+## Added
+
+- cost model parameters for `keccak_256` builtin
+- cost model parameters for `blake2b_224` builtin
+
 <a id='changelog-1.8.0.0'></a>
 # 1.8.0.0 — 2023-06-22
 
