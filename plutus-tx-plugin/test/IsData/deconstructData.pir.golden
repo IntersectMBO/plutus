@@ -369,7 +369,7 @@
                                     args
                                   )
                                   (termbind
-                                    (strict)
+                                    (nonstrict)
                                     (vardecl
                                       indexMatchCase
                                       [ Maybe [ [ Tuple2 a ] b ] ]

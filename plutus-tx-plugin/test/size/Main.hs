@@ -41,9 +41,9 @@ main = defaultMain . testGroup "Size regression tests" $ [
       fitsInto "scale" ratScale 76
       ],
     testGroup "Serialization" [
-      fitsInto "toBuiltinData" ratToBuiltin 30,
-      fitsInto "fromBuiltinData" ratFromBuiltin 352,
-      fitsInto "unsafeFromBuiltinData" ratUnsafeFromBuiltin 189
+      fitsInto "toBuiltinData" ratToBuiltin 24,
+      fitsInto "fromBuiltinData" ratFromBuiltin 305,
+      fitsInto "unsafeFromBuiltinData" ratUnsafeFromBuiltin 181
       ],
     testGroup "Construction" [
       fitsInto "unsafeRatio" ratMkUnsafe 119,

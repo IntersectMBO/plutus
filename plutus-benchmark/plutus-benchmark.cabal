@@ -82,6 +82,7 @@ library plutus-benchmark-common
     , tasty
     , tasty-golden
     , temporary
+    , text
 
 ---------------- nofib ----------------
 
@@ -484,6 +485,7 @@ test-suite plutus-benchmark-script-contexts-tests
     , script-contexts-internal
     , tasty
     , tasty-hunit
+    , text
 
 ---------------- Marlowe scripts ----------------
 
