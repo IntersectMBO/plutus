@@ -22,7 +22,7 @@ import PlutusTx.Prelude qualified as PlutusTx
 
 import Prelude qualified as Haskell
 
-newtype ColdCommitteeHash = ColdCommitteeHash V2.Credential
+newtype ColdCommitteeCredential = ColdCommitteeCredential V2.Credential
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
   deriving (Pretty) via (PrettyShow ColdCommitteeHash)
   deriving newtype
