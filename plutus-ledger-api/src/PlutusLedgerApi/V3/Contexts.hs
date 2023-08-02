@@ -384,7 +384,7 @@ data TxInfo = TxInfo
   -- Fixes: https://github.com/input-output-hk/plutus/issues/5039
   , txInfoTxCerts               :: [TxCert]
   -- ^ Certificate type has changed
-  , txInfoWdrl                  :: Map V2.StakingCredential Haskell.Integer
+  , txInfoWdrl                  :: Map V2.Credential Haskell.Integer
   -- ^ Unchanged
   , txInfoValidRange            :: V2.POSIXTimeRange
   -- ^ Unchanged
