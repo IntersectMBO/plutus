@@ -551,13 +551,10 @@ benchmark marlowe
   main-is:        Bench.hs
   hs-source-dirs: marlowe/bench
   build-depends:
-    , base
+    , base                     >=4.9  && <5
     , criterion
     , marlowe-internal
     , plutus-benchmark-common
-    , plutus-core              ^>=1.10
-    , plutus-ledger-api        ^>=1.10
-    , plutus-tx                ^>=1.10
     , plutus-ledger-api        ^>=1.10
     , plutus-tx                ^>=1.10
 
@@ -573,7 +570,7 @@ test-suite plutus-benchmark-marlowe-tests
   hs-source-dirs: marlowe/test
   other-modules:
   build-depends:
-    , base                                            >=4.9 && <5
+    , base                                            >=4.9  && <5
     , marlowe-internal
     , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.10
     , plutus-ledger-api                               ^>=1.10
