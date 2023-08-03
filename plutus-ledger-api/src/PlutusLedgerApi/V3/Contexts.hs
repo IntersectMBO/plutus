@@ -127,19 +127,6 @@ instance PlutusTx.Eq Anchor where
   {-# INLINEABLE (==) #-}
   Anchor a b == Anchor a' b' = a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
 
-{- | Note that it no longer is called DCert, since certificates are no longer all about
-delegation, they are also about governance.
-
-Notable changes:
-
-* Pool certificates are unchanged
-* Addition of deposits and refunds. Those values are validated according to respectful
-  PParams. Certificates that where present before get their deposit/refund as
-  optional. This is done for graceful tarnsition, since next era after Conway will require
-  deposit/refund amount
-* New DRep entity
-* New Constitutional Committee entity
--}
 data TxCert
   = -- | Register staking credential with an optional deposit amount
     TxCertRegStaking V2.Credential (Haskell.Maybe V2.Value)
@@ -330,21 +317,15 @@ instance PlutusTx.Eq ProtocolVersion where
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
 
 data GovernanceAction
-  = -- | Proposed updates to PParams. This is a very tricky one, since PParamsUpdate is pretty
-    -- big and changes from one era to another. However, it could be very important for the
-    -- governance scripts to be able to see the values in the PParamsUpdate, but I am not
-    -- sure how to go forward about this, so for now I leave it as empty.
-    ParameterChange -- Should contain: (PParamsUpdate era)
-    --
+  = -- TODO: this is currently empty.
+    ParameterChange
   | -- | proposal to update protocol version
     HardForkInitiation ProtocolVersion
   | TreasuryWithdrawals (Map V2.Credential V2.Value)
   | NoConfidence
   | NewCommittee
-      -- | Old committee
-      [ColdCommitteeCredential]
-      -- | New Committee
-      Committee
+      [ColdCommitteeCredential] -- ^ Old committee
+      Committee -- ^ New Committee
   | NewConstitution Constitution
   | InfoAction
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
@@ -393,8 +374,8 @@ data ScriptPurpose
   | Rewarding V2.Credential
   | Certifying TxCert
   | Voting Voter GovernanceActionId
-  | Proposing -- For now this will only be used by Constitution, thus might turned out to be
-  -- unused.
+  | -- TODO: this may turn out to be unused.
+    Proposing
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
   deriving (Pretty) via (PrettyShow ScriptPurpose)
 
@@ -416,46 +397,21 @@ instance PlutusTx.Eq ScriptPurpose where
 -- | TxInfo for PlutusV3
 data TxInfo = TxInfo
   { txInfoInputs                :: [V2.TxInInfo]
-  -- ^ Unchanged
   , txInfoReferenceInputs       :: [V2.TxInInfo]
-  -- ^ Unchanged
   , txInfoOutputs               :: [V2.TxOut]
-  -- ^ Unchanged
   , txInfoFee                   :: V2.Value
-  -- ^ Unchanged
   , txInfoMint                  :: V2.Value
-  -- ^ Semantics changed:
-  -- In Conway for PlutusV3 translation is different from previous Plutus versions, since we no
-  -- longer add a zero ADA value to the mint field during translation.
-  -- Fixes: https://github.com/input-output-hk/plutus/issues/5039
   , txInfoTxCerts               :: [TxCert]
-  -- ^ Certificate type has changed
   , txInfoWdrl                  :: Map V2.Credential Haskell.Integer
-  -- ^ Unchanged
   , txInfoValidRange            :: V2.POSIXTimeRange
-  -- ^ Unchanged
   , txInfoSignatories           :: [V2.PubKeyHash]
-  -- ^ Unchanged
   , txInfoRedeemers             :: Map ScriptPurpose V2.Redeemer
-  -- ^ Semantics changed
-  --
-  -- ScriptPurpose is now different in Conway
   , txInfoData                  :: Map V2.DatumHash V2.Datum
-  -- ^ Unchanged
   , txInfoId                    :: V2.TxId
-  -- ^ Unchanged
-  , -- New in Conway ===========================================================
-    txInfoVotingProcedures      :: Map Voter (Map GovernanceActionId VotingProcedure)
-  -- ^ This is Map with all of the votes that were included in the transaction
+  , txInfoVotingProcedures      :: Map Voter (Map GovernanceActionId VotingProcedure)
   , txInfoProposalProcedures    :: [ProposalProcedure]
-  -- ^ This is a list with Proposals that will be turned into GovernanceActions, that everyone
-  -- can vote on
   , txInfoCurrentTreasuryAmount :: Haskell.Maybe V2.Value
-  -- ^ Optional amount for the current treasury. If included it will be checked to be equal
-  -- the current amount in the treasury.
   , txInfoTreasuryDonation      :: Haskell.Maybe V2.Value
-  -- ^ Optional amount for donating to the current treasury. If included, specified amount
-  -- will go into the treasury.
   }
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
 
