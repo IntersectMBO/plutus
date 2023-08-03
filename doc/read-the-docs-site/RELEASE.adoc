@@ -78,6 +78,10 @@ This updates versions and version bounds, and assembles the changelogs.open a PR
 It is desirable to minimize the amount of change between `rc1` and `rc2`, because it may reduce the tests and checks that need to be performed against `rc2`.
 For instance, if `plutus-ledger-api` is the only package changed, there is no need to re-run tests on `plutus-core` or `plutus-tx`.
 Another example is if a security audit is done on `rc1`, and the changes in `rc2` do not modify the audited code, then the audit does not need to be re-done.
+8. Once the CHaP PR has been merged, make a PR to update the version used in `cardano-ledger`.
+- Update the version bounds in cabal files.
+- Update the CHaP index state in `cabal.project`.
+- Update the CHaP flake input with `nix flake lock --update-input CHaP`.
 
 === Patch Releases
 
