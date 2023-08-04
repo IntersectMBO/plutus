@@ -374,7 +374,7 @@ encodeUtf8 :: BuiltinString -> BuiltinByteString
 encodeUtf8 = BI.encodeUtf8
 
 matchList :: forall a r . BI.BuiltinList a -> r -> (a -> BI.BuiltinList a -> r) -> r
-matchList l nilCase consCase = BI.chooseList l (const nilCase) (\_ -> consCase (BI.head l) (BI.tail l)) ()
+matchList l ~nilCase ~consCase = BI.chooseList l (const nilCase) (\_ -> consCase (BI.head l) (BI.tail l)) ()
 
 {-# INLINABLE chooseData #-}
 -- | Given five values for the five different constructors of 'BuiltinData', selects
@@ -453,7 +453,7 @@ matchData
     -> (Integer -> r)
     -> (BuiltinByteString -> r)
     -> r
-matchData d constrCase mapCase listCase iCase bCase =
+matchData d ~constrCase ~mapCase ~listCase ~iCase ~bCase =
    chooseData
    d
    (\_ -> uncurry constrCase (unsafeDataAsConstr d))
@@ -474,7 +474,7 @@ matchData'
     -> (Integer -> r)
     -> (BuiltinByteString -> r)
     -> r
-matchData' d constrCase mapCase listCase iCase bCase =
+matchData' d ~constrCase ~mapCase ~listCase ~iCase ~bCase =
    chooseData
    d
    (\_ -> let tup = BI.unsafeDataAsConstr d in constrCase (BI.fst tup) (BI.snd tup))
