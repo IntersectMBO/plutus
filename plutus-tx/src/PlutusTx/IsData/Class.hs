@@ -133,7 +133,7 @@ instance UnsafeFromData a => UnsafeFromData [a] where
 
 instance ToData Void where
     {-# INLINABLE toBuiltinData #-}
-    toBuiltinData v = absurd v
+    toBuiltinData ~v = absurd v
 instance FromData Void where
     {-# INLINABLE fromBuiltinData #-}
     fromBuiltinData _ = Nothing
