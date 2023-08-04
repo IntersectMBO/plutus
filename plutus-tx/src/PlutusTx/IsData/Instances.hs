@@ -1,6 +1,9 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE KindSignatures    #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+-- For some reason, using `Strict` in this module causes some unfoldings to be unavailable
+-- (e.g., the one for `$fFromDataRational_$s$fFromData(,)_$cfromBuiltinData`).
+{-# LANGUAGE NoStrict          #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
