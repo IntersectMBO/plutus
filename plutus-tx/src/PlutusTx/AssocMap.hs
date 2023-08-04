@@ -84,17 +84,17 @@ instance (FromData k, FromData v) => FromData (Map k v) where
           traverseFromBuiltin = go
             where
                 go :: BI.BuiltinList (BI.BuiltinPair BI.BuiltinData BI.BuiltinData) -> Maybe [(k, v)]
-                go l = BI.chooseList l (const (pure [])) (\_ -> let tup = BI.head l in liftA2 (:) (liftA2 (,) (fromBuiltinData $ BI.fst tup) (fromBuiltinData $ BI.snd tup)) (go (BI.tail l))) ()
+                go l = BI.chooseList l (const (pure [])) (\_ -> let ~tup = BI.head l in liftA2 (:) (liftA2 (,) (fromBuiltinData $ BI.fst tup) (fromBuiltinData $ BI.snd tup)) (go (BI.tail l))) ()
 
 instance (UnsafeFromData k, UnsafeFromData v) => UnsafeFromData (Map k v) where
-    unsafeFromBuiltinData d = let es = BI.unsafeDataAsMap d in Map $ mapFromBuiltin es
+    unsafeFromBuiltinData d = let ~es = BI.unsafeDataAsMap d in Map $ mapFromBuiltin es
       where
           {-# INLINE mapFromBuiltin #-}
           mapFromBuiltin :: BI.BuiltinList (BI.BuiltinPair BI.BuiltinData BI.BuiltinData) -> [(k, v)]
           mapFromBuiltin = go
             where
                 go ::  BI.BuiltinList (BI.BuiltinPair BI.BuiltinData BI.BuiltinData) -> [(k, v)]
-                go l = BI.chooseList l (const []) (\_ -> let tup = BI.head l in (unsafeFromBuiltinData $ BI.fst tup, unsafeFromBuiltinData $ BI.snd tup) : go (BI.tail l)) ()
+                go l = BI.chooseList l (const []) (\_ -> let ~tup = BI.head l in (unsafeFromBuiltinData $ BI.fst tup, unsafeFromBuiltinData $ BI.snd tup) : go (BI.tail l)) ()
 
 instance Functor (Map k) where
     {-# INLINABLE fmap #-}
