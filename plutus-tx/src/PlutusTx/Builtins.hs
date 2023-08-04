@@ -377,6 +377,7 @@ matchList :: forall a r . BI.BuiltinList a -> r -> (a -> BI.BuiltinList a -> r) 
 -- For some reason, everything here needs to be non-strict, otherwise we get the
 -- following error when compiling `fromBuiltinData @Rational`: no unfolding for
 -- `$fFromDataRational_$s$fFromData(,)_$cfromBuiltinData`.
+-- GHC 9.2, x86_64-linux.
 matchList ~l ~nilCase ~consCase = BI.chooseList l (const nilCase) (\(~_) -> consCase (BI.head l) (BI.tail l)) ()
 
 {-# INLINABLE chooseData #-}
@@ -480,6 +481,7 @@ matchData'
 -- For some reason, everything here needs to be non-strict, otherwise we get the
 -- following error when compiling `fromBuiltinData @Rational`: no unfolding for
 -- `$fFromDataRational_$s$fFromData(,)_$cfromBuiltinData`.
+-- GHC 9.2, x86_64-linux.
 matchData' ~d ~constrCase ~mapCase ~listCase ~iCase ~bCase =
    chooseData
    d

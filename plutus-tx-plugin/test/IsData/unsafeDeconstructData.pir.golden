@@ -120,7 +120,6 @@
                   (con data)
                   (let
                     (nonrec)
-                    (termbind (strict) (vardecl d (con data)) d)
                     (termbind
                       (strict)
                       (vardecl
@@ -292,7 +291,6 @@
               (con data)
               (let
                 (nonrec)
-                (termbind (strict) (vardecl d (con data)) d)
                 (termbind
                   (strict)
                   (vardecl
