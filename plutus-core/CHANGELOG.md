@@ -1,4 +1,16 @@
 
+<a id='changelog-1.10.0.0'></a>
+# 1.10.0.0 — 2023-08-02
+
+## Added
+
+- `keccak_256` builtin
+- `blake2b_224` builtin
+
+## Changed
+
+- Separated the single `Includes` constraint into two constraints, `HasTypeLevel` and `HasTermLevel` (which together form `HasTypeAndTermLevel`) in #5434.
+
 <a id='changelog-1.9.0.0'></a>
 # 1.9.0.0 — 2023-07-21
 

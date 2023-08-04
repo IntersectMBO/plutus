@@ -1,4 +1,12 @@
 
+<a id='changelog-1.10.0.0'></a>
+# 1.10.0.0 — 2023-08-02
+
+## Added
+
+- Haskell function for `keccak_256` builtin
+- Haskell function for `blake2b_224` builtin
+
 <a id='changelog-1.8.0.0'></a>
 # 1.8.0.0 — 2023-06-22
 

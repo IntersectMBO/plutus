@@ -50,7 +50,7 @@ library
     , directory
     , filepath
     , lens
-    , plutus-core             ^>=1.9
+    , plutus-core             ^>=1.10
     , tasty
     , tasty-expected-failure
     , tasty-golden
@@ -63,10 +63,10 @@ executable test-utils
   hs-source-dirs: executables/test-utils/
   other-modules:
   build-depends:
-    , base                  >=4.9 && <5
+    , base                  >=4.9  && <5
     , optparse-applicative
     , plutus-conformance
-    , plutus-core           ^>=1.9
+    , plutus-core           ^>=1.10
     , plutus-metatheory
     , tasty-golden
     , text
@@ -102,10 +102,10 @@ test-suite haskell-steppable-conformance
   hs-source-dirs: haskell-steppable test-cases
   other-modules:
   build-depends:
-    , base                >=4.9 && <5
+    , base                >=4.9  && <5
     , lens
     , plutus-conformance
-    , plutus-core         ^>=1.9
+    , plutus-core         ^>=1.10
 
 test-suite agda-conformance
   import:         lang
@@ -114,8 +114,8 @@ test-suite agda-conformance
   hs-source-dirs: agda test-cases
   other-modules:
   build-depends:
-    , base                >=4.9 && <5
+    , base                >=4.9  && <5
     , plutus-conformance
-    , plutus-core         ^>=1.9
+    , plutus-core         ^>=1.10
     , plutus-metatheory
     , transformers

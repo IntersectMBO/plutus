@@ -1,6 +1,6 @@
 cabal-version:      2.4
 name:               prettyprinter-configurable
-version:            1.9.0.0
+version:            1.10.0.0
 
 -- synopsis:
 -- description:
@@ -79,10 +79,10 @@ test-suite prettyprinter-configurable-test
     Universal
 
   build-depends:
-    , base                        >=4.9 && <5
+    , base                        >=4.9  && <5
     , megaparsec
     , parser-combinators
-    , prettyprinter-configurable  ^>=1.9
+    , prettyprinter-configurable  ^>=1.10
     , QuickCheck
     , quickcheck-text
     , tasty
