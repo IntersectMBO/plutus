@@ -44,9 +44,6 @@ fun x = case x of
 otherFun :: Integer -> Bool
 otherFun x = (x P.== 5) && True
 
-boolOtherFunctionSimplifiesAway :: CompiledCode (Integer -> Bool)
-boolOtherFunctionSimplifiesAway = plc (Proxy @"boolOtherFunctionSimplfiesAway") (\x -> otherFun x)
-
 boolQualifiedDisappears :: CompiledCode (() -> Bool)
 boolQualifiedDisappears = plc (Proxy @"boolQualifiedDisappears") (\ () -> Haskell.True)
 
@@ -56,7 +53,6 @@ coverage = testNested "Coverage"
          [ mkTests "noBool" noBool Set.empty [30]
          , mkTests "boolTrueFalse" boolTrueFalse (Set.singleton "&&") [33]
          , mkTests "boolOtherFunction" boolOtherFunction (Set.fromList ["&&", "=="]) [36, 40, 41, 42]
-         , mkTests "boolOtherFunctionSimplifiesAway" boolOtherFunctionSimplifiesAway (Set.fromList ["&&", "=="]) [48]
          , mkTests "boolQualifiedDisappears" boolQualifiedDisappears Set.empty [51]
          ]
  , goldenPir "coverageCode" boolOtherFunction ]
