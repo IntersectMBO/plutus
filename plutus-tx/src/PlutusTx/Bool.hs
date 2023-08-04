@@ -17,7 +17,7 @@ import Prelude (Bool (..), otherwise)
 --
 infixr 3 &&
 (&&) :: Bool -> Bool -> Bool
-(&&) l r = if l then r else False
+(&&) l ~r = if l then r else False
 
 {-# INLINABLE (||) #-}
 -- | Logical OR
@@ -27,7 +27,7 @@ infixr 3 &&
 --
 infixr 2 ||
 (||) :: Bool -> Bool -> Bool
-(||) l r = if l then True else r
+(||) l ~r = if l then True else r
 
 {-# INLINABLE not #-}
 -- | Logical negation
