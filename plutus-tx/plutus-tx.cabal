@@ -129,7 +129,6 @@ library plutus-tx-testlib
 
   build-depends:
     , base                                                       >=4.9  && <5
-    , filepath
     , flat                                                       ^>=0.6
     , hedgehog
     , lens

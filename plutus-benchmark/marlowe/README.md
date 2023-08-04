@@ -1,10 +1,11 @@
 # Experimental version of Marlowe validator for Cardano, with minimal dependencies
 
-The `marlowe` directory contains three components:
+The `marlowe` directory contains four components:
 
 - Validator source code: `marlowe-internal`
 - Benchmarking: `marlowe`
 - Executable: `marlowe-validators`
+- Budget tests: `plutus-benchmark-marlowe-tests`
 
 ## `marlowe-internal`
 
@@ -57,6 +58,14 @@ Running `cabal run marlowe-validators` outputs the following files:
     - Plutus script: `marlowe-rolepayout.plutus`
     - Benchmarking results: `marlowe-rolepayout.tsv`   
     - Flat UPLC files: `benchmarks/rolepayout/*-uplc.flat`
+
+## Running the budget tests
+
+To run the budget tests for Marlowe scripts, run `cabal test plutus-benchmark-marlowe-tests`. 
+
+Similar to the benchmarking, the budget tests use two sets of scripts: semantics (in `/marlowe/scripts/semantics`) and role payout (in `/marlowe/scripts/rolepayout`). The test names are the transaction IDs of each script.
+
+The golden files contain the counted CPU and memory budget of the scripts.
 
 ## Managing versions
 
