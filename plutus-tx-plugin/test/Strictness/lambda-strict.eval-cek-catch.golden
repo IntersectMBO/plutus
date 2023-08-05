@@ -1,1 +1,2 @@
-(lam n_0 (lam m_1 [ [ (builtin addInteger) n_0 ] m_1 ]))
+An error has occurred:  User error:
+The machine terminated because of an error, either from a built-in function or from an explicit use of 'error'.
