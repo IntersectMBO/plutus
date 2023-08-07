@@ -318,15 +318,16 @@ instance PlutusTx.Eq ProtocolVersion where
 
 data GovernanceAction
   = -- TODO: this is currently empty.
-    ParameterChange
+    ParameterChange GovernanceActionId
   | -- | proposal to update protocol version
-    HardForkInitiation ProtocolVersion
+    HardForkInitiation GovernanceActionId ProtocolVersion
   | TreasuryWithdrawals (Map V2.Credential V2.Value)
-  | NoConfidence
+  | NoConfidence GovernanceActionId
   | NewCommittee
+      GovernanceActionId
       [ColdCommitteeCredential] -- ^ Old committee
       Committee -- ^ New Committee
-  | NewConstitution Constitution
+  | NewConstitution GovernanceActionId Constitution
   | InfoAction
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
   deriving (Pretty) via (PrettyShow GovernanceAction)
