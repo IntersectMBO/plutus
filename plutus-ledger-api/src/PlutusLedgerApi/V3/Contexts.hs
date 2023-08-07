@@ -261,27 +261,6 @@ instance PlutusTx.Eq Committee where
   Committee a b == Committee a' b' =
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
 
-newtype ConstitutionHash = ConstitutionHash {getConstitutionHash :: PlutusTx.BuiltinByteString}
-  deriving stock (Generic)
-  deriving newtype
-    ( Haskell.Eq
-    , PlutusTx.Eq
-    , PlutusTx.Ord
-    , PlutusTx.Show
-    , PlutusTx.ToData
-    , PlutusTx.FromData
-    , PlutusTx.UnsafeFromData
-    )
-  deriving
-    ( -- | from hex encoding
-      IsString
-    , -- | using hex encoding
-      Haskell.Show
-    , -- | using hex encoding
-      Pretty
-    )
-    via V2.LedgerBytes
-
 data Constitution = Constitution
   { constitutionAnchor :: Anchor
   , constitutionScript :: Haskell.Maybe V2.ScriptHash
@@ -291,7 +270,7 @@ data Constitution = Constitution
 instance Pretty Constitution where
   pretty Constitution{..} =
     vsep
-      [ "constitutionHash:" <+> pretty constitutionHash
+      [ "constitutionAnchor:" <+> pretty constitutionAnchor
       , "constitutionScript:" <+> pretty constitutionScript
       ]
 
@@ -546,7 +525,6 @@ PlutusTx.makeIsDataIndexed ''VotingProcedure [('VotingProcedure, 0)]
 PlutusTx.makeLift ''Committee
 PlutusTx.makeIsDataIndexed ''Committee [('Committee, 0)]
 
-PlutusTx.makeLift ''ConstitutionHash
 PlutusTx.makeLift ''Constitution
 PlutusTx.makeIsDataIndexed ''Constitution [('Constitution, 0)]
 

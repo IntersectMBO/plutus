@@ -26,7 +26,6 @@ module PlutusLedgerApi.V3 (
     , GovernanceActionId (..)
     , VotingProcedure (..)
     , Committee (..)
-    , ConstitutionHash (..)
     , Constitution (..)
     , GovernanceAction (..)
     , ProposalProcedure (..)
