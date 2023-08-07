@@ -283,7 +283,7 @@ newtype ConstitutionHash = ConstitutionHash {getConstitutionHash :: PlutusTx.Bui
     via V2.LedgerBytes
 
 data Constitution = Constitution
-  { constitutionHash   :: ConstitutionHash -- Balke2b_256 of some off-chain data
+  { constitutionAnchor :: Anchor
   , constitutionScript :: Haskell.Maybe V2.ScriptHash
   }
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
