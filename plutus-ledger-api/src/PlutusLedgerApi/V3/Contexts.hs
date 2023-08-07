@@ -111,7 +111,9 @@ newtype AnchorDataHash = AnchorDataHash {getAnchorDataHash :: PlutusTx.BuiltinBy
     via V2.LedgerBytes
 
 data Anchor = Anchor
-  { anchorUrl      :: PlutusTx.BuiltinByteString -- Arbitrary Url
+  { -- TODO: determine whether or not this is needed.
+    -- See https://github.com/input-output-hk/plutus/pull/5449#discussion_r1286325298
+    anchorUrl      :: PlutusTx.BuiltinByteString -- Arbitrary Url
   , anchorDataHash :: AnchorDataHash -- Blake2b_256 of some off-chain data
   }
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
