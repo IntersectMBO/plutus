@@ -67,7 +67,7 @@ closeState (◆ A)             = error _
 discharge : ∀{A : ∅ ⊢Nf⋆ *}{t : ∅ ⊢ A} → Value t → ∅ ⊢ A
 discharge {t = t} _ = t
 
-pushValueFrames : ∀{T H BS XS} → Stack T H → {xs : IBwd (_⊢_ ∅) BS} → VList xs → XS ≡ bwdMkCaseType BS H → Stack T XS
+pushValueFrames : ∀{T H BS XS} → Stack T H → {xs : IBwd (∅ ⊢_) BS} → VList xs → XS ≡ bwdMkCaseType BS H → Stack T XS
 pushValueFrames s [] refl = s
 pushValueFrames s (vs :< v) refl = pushValueFrames (s , -·v v) vs refl
 
@@ -94,7 +94,7 @@ step ((s , unwrap-) ◅ V-wrap V)               = s ▻ deval V
 step ((s , constr- i TSS refl {tidx} chip) ◅ v) with Vec.lookup TSS i in eq 
 ... | []   with no-empty-≣-<>> tidx 
 ...      | () 
-step ((s , constr- {n} {VS} {H} i TSS refl {_} (mkVZ {tvs = tidx}{idx = r} vs [])) ◅ v) | _ ∷ _  = s ◅  
+step ((s , constr- {n} {VS} {H} i TSS refl (mkVZ {tvs = tidx}{idx = r} vs [])) ◅ v) | _ ∷ _  = s ◅  
    V-constr i TSS
             (sym eq) 
             (trans (sym (lemma<>2 VS (H ∷ []))) (sym (cong ([] <><_) (lem-≣-<>> r))))
