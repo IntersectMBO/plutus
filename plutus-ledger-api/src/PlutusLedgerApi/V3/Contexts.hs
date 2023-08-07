@@ -334,13 +334,15 @@ data GovernanceAction
 
 instance PlutusTx.Eq GovernanceAction where
   {-# INLINEABLE (==) #-}
-  ParameterChange == ParameterChange = Haskell.True
-  HardForkInitiation a == HardForkInitiation a' = a PlutusTx.== a'
-  TreasuryWithdrawals a == TreasuryWithdrawals a' = a PlutusTx.== a'
-  NoConfidence == NoConfidence = Haskell.True
-  NewCommittee a b == NewCommittee a' b' =
+  ParameterChange a == ParameterChange a' = a PlutusTx.== a'
+  HardForkInitiation a b == HardForkInitiation a' b' =
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
-  NewConstitution a == NewConstitution a' = a PlutusTx.== a'
+  TreasuryWithdrawals a == TreasuryWithdrawals a' = a PlutusTx.== a'
+  NoConfidence a == NoConfidence a' = a PlutusTx.== a'
+  NewCommittee a b c == NewCommittee a' b' c' =
+    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b' PlutusTx.&& c PlutusTx.== c'
+  NewConstitution a b == NewConstitution a' b' =
+    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
   InfoAction == InfoAction = Haskell.True
   _ == _ = Haskell.False
 
