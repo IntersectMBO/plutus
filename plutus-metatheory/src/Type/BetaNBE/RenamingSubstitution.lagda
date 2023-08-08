@@ -1,19 +1,26 @@
 \begin{code}
 module Type.BetaNBE.RenamingSubstitution where
 
-open import Utils
-open import Type
-open import Type.Equality
-open import Type.RenamingSubstitution
-open import Type.BetaNormal
-open import Type.BetaNormal.Equality
-open import Type.BetaNBE
-open import Type.BetaNBE.Soundness
-open import Type.BetaNBE.Completeness
-open import Type.BetaNBE.Stability
 
-open import Relation.Binary.PropositionalEquality hiding (subst; [_])
-open import Function
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;trans;cong;cong₂)
+open import Function using (_∘_)
+
+open import Utils using (*;_⇒_)
+open import Type using (Ctx⋆;_,⋆_;_⊢⋆_;_∋⋆_;Z;S)
+open _⊢⋆_
+open import Type.Equality using (_≡β_;≡2β)
+open _≡β_
+open import Type.RenamingSubstitution 
+      using (Ren;ren;ext;ren-comp;sub;sub-id;sub-comp;sub-cong;exts;sub-ren;weaken)
+open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;renNf;embNf;weakenNf;ren-embNf)
+open _⊢Nf⋆_
+open _⊢Ne⋆_
+open import Type.BetaNormal.Equality using (renNf-comp)
+open import Type.BetaNBE using (reify;reflect;Env;eval;nf;renVal;idEnv;_,,⋆_;fresh;exte)
+open import Type.BetaNBE.Soundness using (soundness)
+open import Type.BetaNBE.Completeness 
+   using (EnvCR;CR;fund;ren-reify;idext;idCR;reifyCR;renCR;transCR;reflectCR;renVal-eval;renVal-reflect;symCR;ren-eval;sub-eval;completeness)
+open import Type.BetaNBE.Stability using (stability)
 \end{code}
 
 
@@ -415,7 +422,7 @@ weakenNf[] B A = trans
          (evalCRSubst idCR (sym (sub-id (embNf A)))))
   (subNf-renNf S (subNf-cons (ne ∘ `) B) A)
 
-open import Data.Sum
+
 
 sub-nf-Π : ∀ {Φ Ψ}
   → (σ⋆ : SubNf Φ Ψ)

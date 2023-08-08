@@ -2,16 +2,20 @@
 module Type.BetaNormal.Equality where
 ```
 
-```
-open import Utils
-open import Type
-open import Type.Equality
-open import Type.BetaNormal
-open import Type.RenamingSubstitution
-open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *)
+## Imports
 
-open import Function
-open import Relation.Binary.PropositionalEquality
+```
+open import Function using (id;_∘_)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;trans;cong;cong₂)
+
+open import Utils using (*;J)
+open import Type using (Ctx⋆;Θ;Φ;Ψ;_∋⋆_)
+open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;renNf;renNe;renNfTyCon)
+open _⊢Nf⋆_
+open _⊢Ne⋆_
+open import Type.RenamingSubstitution using (Ren;ext-cong;ext-id;ext-comp)
+open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) using (TyCon)
+open TyCon
 ```
 
 ```
@@ -33,7 +37,7 @@ renNfTyCon-cong p unit       = refl
 renNfTyCon-cong p bool       = refl
 renNfTyCon-cong p (list A)   = cong list (renNf-cong p A) 
 renNfTyCon-cong p (pair A B) = cong₂ pair (renNf-cong p A) (renNf-cong p B)
-renNfTyCon-cong p Data       = refl
+renNfTyCon-cong p pdata       = refl
 
 
 renNe-cong : {f g : Ren Φ Ψ}
@@ -68,7 +72,7 @@ renNfTyCon-id unit       = refl
 renNfTyCon-id bool       = refl
 renNfTyCon-id (list A)   = cong list (renNf-id A) 
 renNfTyCon-id (pair A B) = cong₂ pair (renNf-id A) (renNf-id B)
-renNfTyCon-id Data       = refl
+renNfTyCon-id pdata       = refl
 
 renNe-id : (n : Φ ⊢Ne⋆ J)
            --------------
@@ -104,7 +108,7 @@ renNfTyCon-comp unit       = refl
 renNfTyCon-comp bool       = refl
 renNfTyCon-comp (list A)   = cong list (renNf-comp A) 
 renNfTyCon-comp (pair A B) = cong₂ pair (renNf-comp A) (renNf-comp B)
-renNfTyCon-comp Data       = refl
+renNfTyCon-comp pdata       = refl
 
 renNe-comp : {g : Ren Φ Ψ}
            → {f : Ren Ψ Θ}

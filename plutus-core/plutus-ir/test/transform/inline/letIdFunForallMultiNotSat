@@ -1,0 +1,20 @@
+{- 
+idFun occurs more than once so it should not get inlined by the unconditional inlining optimization.
+However, the first idFun is fully applied so it should get inlined by the optimization that
+inlines fully applied functions.
+The second idFun is not fully applied so it should not get inlined.
+
+let idFun :: forall a . a -> a
+    idFun = \x -> x
+in (idFun @(Integer-> Integer)) (idFun @Integer)
+-}
+
+(let
+    (nonrec)
+    (termbind
+        (strict)
+        (vardecl idFun (all a (type) (fun a a)))
+        (abs a (type) (lam x a x))
+    )
+    [ { idFun (fun (con integer) (con integer)) } { idFun (con integer) } ]
+)

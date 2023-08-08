@@ -135,7 +135,12 @@ plutus-ledger-api.
 -}
 
 
--- See Note [Cost model parameters]
+{-| A raw representation of the ledger's cost model parameters.
+
+The associated keys/names to the parameter values are arbitrarily set by the plutus team; the ledger does not hold any such names.
+
+See Note [Cost model parameters]
+-}
 type CostModelParams = Map.Map Text.Text Integer
 
 -- See Note [Cost model parameters]
@@ -152,22 +157,26 @@ extractParams cm = case toJSON cm of
     _ -> Nothing
 
 
--- | The type of errors that 'applyParams' can throw.
+-- | A fatal error when trying to create a cost given some plain costmodel parameters.
 data CostModelApplyError =
-      CMUnknownParamError Text.Text
+      CMUnknownParamError !Text.Text
       -- ^ a costmodel parameter with the give name does not exist in the costmodel to be applied upon
     | CMInternalReadError
       -- ^ internal error when we are transforming the applyParams' input to json (should not happen)
-    | CMInternalWriteError String
+    | CMInternalWriteError !String
       -- ^ internal error when we are transforming the applied params from json with given jsonstring error (should not happen)
-    | CMTooFewParamsError { cmTooFewExpected :: Int, cmTooFewActual :: Int }
+    | CMTooFewParamsError { cmTooFewExpected :: !Int, cmTooFewActual :: !Int }
       -- ^ See Note [Cost model parameters from the ledger's point of view]
     deriving stock Show
     deriving anyclass Exception
 
+-- | A non-fatal warning when trying to create a cost given some plain costmodel parameters.
 data CostModelApplyWarn =
-    CMTooManyParamsWarn { cmTooManyExpected :: Int, cmTooManyActual :: Int }
-    -- ^ See Note [Cost model parameters from the ledger's point of view]
+    CMTooManyParamsWarn { cmTooManyExpected :: !Int, cmTooManyActual :: !Int }
+    {- ^ More costmodel parameters given, than expected
+
+    See Note [Cost model parameters from the ledger's point of view]
+    -}
 
 instance Pretty CostModelApplyError where
     pretty = (preamble <+>) . \case
@@ -255,7 +264,9 @@ applySplitCostModelParams prefix model params =
     in CostModel <$> applyParams (_machineCostModel model) machineparams
                  <*> applyParams (_builtinCostModel model) builtinparams
 
--- | Update a CostModel for the CEK machine with a given set of parameters,
+-- | Update a CostModel for the CEK machine with a given set of parameters.
+-- Note that this is costly. See [here](https://github.com/input-output-hk/plutus/issues/4962).
+-- Callers are recommended to call this once and cache the results.
 applyCostModelParams
     :: (FromJSON evaluatorcosts, FromJSON builtincosts, ToJSON evaluatorcosts, ToJSON builtincosts, MonadError CostModelApplyError m)
     => CostModel evaluatorcosts builtincosts

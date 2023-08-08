@@ -1,5 +1,6 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeFamilies          #-}
@@ -22,6 +23,7 @@ module PlutusIR.Core.Type (
     Program (..),
     applyProgram,
     termAnn,
+    bindingAnn,
     progAnn,
     progTerm,
     ) where
@@ -161,7 +163,7 @@ data Program tyname name uni fun ann = Program
     { _progAnn  :: ann
     , _progTerm :: Term tyname name uni fun ann
     }
-    deriving stock Generic
+    deriving stock (Show, Functor, Generic)
 makeLenses ''Program
 
 type instance PLC.HasUniques (Term tyname name uni fun ann) = (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
@@ -175,15 +177,21 @@ applyProgram
 applyProgram (Program a1 t1) (Program a2 t2) = Program (a1 <> a2) (Apply mempty t1 t2)
 
 termAnn :: Term tyname name uni fun a -> a
-termAnn t = case t of
-  Let a _ _ _    -> a
-  Var a _        -> a
-  TyAbs a _ _ _  -> a
-  LamAbs a _ _ _ -> a
-  Apply a _ _    -> a
-  Constant a _   -> a
-  Builtin a _    -> a
-  TyInst a _ _   -> a
-  Error a _      -> a
-  IWrap a _ _ _  -> a
-  Unwrap a _     -> a
+termAnn = \case
+    Let a _ _ _    -> a
+    Var a _        -> a
+    TyAbs a _ _ _  -> a
+    LamAbs a _ _ _ -> a
+    Apply a _ _    -> a
+    Constant a _   -> a
+    Builtin a _    -> a
+    TyInst a _ _   -> a
+    Error a _      -> a
+    IWrap a _ _ _  -> a
+    Unwrap a _     -> a
+
+bindingAnn :: Binding tyname name uni fun a -> a
+bindingAnn = \case
+    TermBind a _ _ _ -> a
+    TypeBind a _ _   -> a
+    DatatypeBind a _ -> a

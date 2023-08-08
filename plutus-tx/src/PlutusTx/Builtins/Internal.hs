@@ -20,14 +20,15 @@ import Control.DeepSeq (NFData (..))
 import Control.Monad.Trans.Writer.Strict (runWriter)
 import Crypto qualified
 import Data.ByteArray qualified as BA
-import Data.ByteString as BS
+import Data.ByteString qualified as BS
 import Data.ByteString.Hash qualified as Hash
-import Data.ByteString.Lazy as BS (toStrict)
+import Data.ByteString.Lazy qualified as BSL
 import Data.Coerce (coerce)
 import Data.Data
 import Data.Foldable qualified as Foldable
 import Data.Hashable (Hashable (..))
 import Data.Kind (Type)
+import Data.Maybe (fromJust)
 import Data.Text as Text (Text, empty)
 import Data.Text.Encoding as Text (decodeUtf8, encodeUtf8)
 import PlutusCore.Builtin.Emitter (Emitter (Emitter))
@@ -175,7 +176,7 @@ BYTESTRING
 
 -- See Note [Opaque builtin types]
 -- | An opaque type representing Plutus Core ByteStrings.
-data BuiltinByteString = BuiltinByteString ByteString deriving stock Data
+data BuiltinByteString = BuiltinByteString BS.ByteString deriving stock Data
 
 instance Haskell.Show BuiltinByteString where
     show (BuiltinByteString bs) = show bs
@@ -245,7 +246,7 @@ verifyEd25519Signature (BuiltinByteString vk) (BuiltinByteString msg) (BuiltinBy
   case Crypto.verifyEd25519Signature_V1 vk msg sig of
     Emitter f -> case runWriter f of
       (res, logs) -> traceAll logs $ case res of
-        EvaluationFailure   -> mustBeReplaced "ECDSA SECP256k1 signature verification errored."
+        EvaluationFailure   -> mustBeReplaced "Ed25519 signature verification errored."
         EvaluationSuccess b -> BuiltinBool b
 
 {-# NOINLINE verifyEcdsaSecp256k1Signature #-}
@@ -296,7 +297,7 @@ decodeUtf8 (BuiltinByteString b) = BuiltinString $ Text.decodeUtf8 b
 
 {-# NOINLINE integerToByteString #-}
 integerToByteString :: BuiltinInteger -> BuiltinByteString
-integerToByteString = BuiltinByteString . Bitwise.integerToByteString
+integerToByteString = BuiltinByteString . fromJust . Bitwise.integerToByteString
 
 {-# NOINLINE byteStringToInteger #-}
 byteStringToInteger :: BuiltinByteString -> BuiltinInteger
@@ -585,4 +586,4 @@ equalsData (BuiltinData b1) (BuiltinData b2) = BuiltinBool $ b1 Haskell.== b2
 
 {-# NOINLINE serialiseData #-}
 serialiseData :: BuiltinData -> BuiltinByteString
-serialiseData (BuiltinData b) = BuiltinByteString $ BS.toStrict $ serialise b
+serialiseData (BuiltinData b) = BuiltinByteString $ BSL.toStrict $ serialise b

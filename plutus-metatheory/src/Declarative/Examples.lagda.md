@@ -13,25 +13,23 @@ module Declarative.Examples where
 ## Imports
 
 ```
-open import Type
+open import Agda.Builtin.Int using (pos)
+
+open import Type using (_⊢⋆_;_∋⋆_;Z;S)
+open _⊢⋆_
 import Type.RenamingSubstitution as ⋆
-open import Type.Equality
-open import Declarative
-open import Declarative.RenamingSubstitution
-open import Builtin
-open import Builtin.Constant.Type
-open import Builtin.Constant.Term
-open import Declarative.Examples.StdLib.Function
-
-open import Relation.Binary.PropositionalEquality renaming (subst to substEq) hiding ([_])
-open import Function
-open import Agda.Builtin.Int
-open import Data.Integer
-open import Data.Product renaming (_,_ to _,,_)
-open import Data.Nat
-open import Data.Unit
-
-import Declarative.Examples.StdLib.ChurchNat
+open import Type.Equality using (β≡β)
+open import Declarative using (Ctx;_⊢_;_∋_)
+open Ctx
+open _⊢_
+open _∋_
+open import Builtin using (addInteger)
+open import Builtin.Constant.Type using (TyCon)
+open TyCon
+open import Builtin.Constant.Term using (TermCon)
+open TermCon
+open import Declarative.Examples.StdLib.Function using (unwrap0;Z-comb)
+import Declarative.Examples.StdLib.ChurchNat using (inc;N;Succ;Zero;Iter)
 ```
 
 ## Examples
@@ -244,8 +242,6 @@ module Church where
 
   TwoPlusTwo' : ∅ ⊢ N
   TwoPlusTwo' = Two ·⋆ N · Two · Succ
-
---open Church public
 ```
 
 ```

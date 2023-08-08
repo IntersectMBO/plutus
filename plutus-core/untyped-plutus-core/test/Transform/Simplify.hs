@@ -36,6 +36,75 @@ basicInline = runQuote $ do
     n <- freshName "a"
     pure $ Apply () (LamAbs () n (Var () n)) (mkConstant @Integer () 1)
 
+mkInlinePurityTest ::
+    Quote (Term Name PLC.DefaultUni PLC.DefaultFun ()) ->
+    Term Name PLC.DefaultUni PLC.DefaultFun ()
+mkInlinePurityTest termToInline = runQuote $ do
+    a <- freshName "a"
+    b <- freshName "b"
+    -- In `[(\a . \b . a) termToInline]`, `termToInline` will be inlined
+    -- if and only if it is pure.
+    Apply () (LamAbs () a $ LamAbs () b $ Var () a) <$> termToInline
+
+-- | A single @Var@ is pure.
+inlinePure1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+inlinePure1 = mkInlinePurityTest $ Var () <$> freshName "a"
+
+-- | @force (delay a)@ is pure.
+--
+-- Note that this relies on @forceDelayCancel@ to cancel the @force@ and the @delay@,
+-- otherwise the inliner would treat the term as impure.
+inlinePure2 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+inlinePure2 = mkInlinePurityTest $ Force () . Delay () . Var () <$> freshName "a"
+
+-- | @[(\x -> \y -> [x x]) (con integer 1)]@ is pure.
+--
+-- Note that the @(con integer 1)@ won't get inlined: it isn't pre-inlined because
+-- @x@ occurs twice, and it isn't post-inlined because @costIsAcceptable Constant{} = False@.
+-- However, the entire term will be inlined since it is pure.
+inlinePure3 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+inlinePure3 = mkInlinePurityTest $ do
+    x <- freshName "x"
+    y <- freshName "y"
+    pure $
+        Apply
+            ()
+            (LamAbs () x $ LamAbs () y $ Apply () (Var () x) (Var () x))
+            (mkConstant @Integer () 1)
+
+-- | @force ([(\x -> delay (\y -> [x x])) (delay ([error (con integer 1)]))])@ is pure.
+--
+-- The @error@ is not evaluated when evaluating this term.
+inlinePure4 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+inlinePure4 = mkInlinePurityTest $ do
+    x <- freshName "x"
+    y <- freshName "y"
+    pure . Force () $
+        Apply
+            ()
+            (LamAbs () x $ Delay () $ LamAbs () y $ Apply () (Var () x) (Var () x))
+            (Delay () $ Apply () (Error ()) $ mkConstant @Integer () 1)
+
+-- | @error@ is impure.
+inlineImpure1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+inlineImpure1 = mkInlinePurityTest $ pure $ Error ()
+
+-- | @force (delay error)@ is impure.
+inlineImpure2 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+inlineImpure2 = mkInlinePurityTest $ pure . Force () . Delay () $ Error ()
+
+-- | @force (force (force (delay (delay (delay (error))))))@ is impure, since it
+-- is the same as @error@.
+inlineImpure3 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+inlineImpure3 = mkInlinePurityTest $ pure .
+    Force () . Force () . Force () . Delay () . Delay () . Delay () $ Error ()
+
+-- | @force (force (force (delay (delay a))))@ is impure, since @a@ may expand
+-- to an impure term such as @error@.
+inlineImpure4 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+inlineImpure4 = mkInlinePurityTest $
+    Force () . Force () . Force () . Delay () . Delay () . Var () <$> freshName "a"
+
 multiApp :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 multiApp = runQuote $ do
     a <- freshName "a"
@@ -66,5 +135,13 @@ test_simplify =
         , goldenVsSimplified "extraDelays" extraDelays
         , goldenVsSimplified "interveningLambda" interveningLambda
         , goldenVsSimplified "basicInline" basicInline
+        , goldenVsSimplified "inlinePure1" inlinePure1
+        , goldenVsSimplified "inlinePure2" inlinePure2
+        , goldenVsSimplified "inlinePure3" inlinePure3
+        , goldenVsSimplified "inlinePure4" inlinePure4
+        , goldenVsSimplified "inlineImpure1" inlineImpure1
+        , goldenVsSimplified "inlineImpure2" inlineImpure2
+        , goldenVsSimplified "inlineImpure3" inlineImpure3
+        , goldenVsSimplified "inlineImpure4" inlineImpure4
         , goldenVsSimplified "multiApp" multiApp
         ]

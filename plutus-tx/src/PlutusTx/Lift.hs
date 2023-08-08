@@ -5,7 +5,6 @@
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TypeOperators         #-}
 module PlutusTx.Lift (
-    makeLift,
     safeLift,
     safeLiftProgram,
     safeLiftCode,
@@ -14,12 +13,15 @@ module PlutusTx.Lift (
     liftProgramDef,
     liftCode,
     typeCheckAgainst,
-    typeCode) where
+    typeCode,
+    makeTypeable,
+    makeLift,
+    LiftError(..)) where
 
 import PlutusTx.Code
-import PlutusTx.Lift.Class (makeLift)
 import PlutusTx.Lift.Class qualified as Lift
 import PlutusTx.Lift.Instances ()
+import PlutusTx.Lift.TH (LiftError (..), makeLift, makeTypeable)
 
 import Data.Bifunctor
 import PlutusIR
@@ -89,7 +91,7 @@ safeLiftProgram
        , PrettyPrintable uni fun
        )
     => a -> m (UPLC.Program UPLC.NamedDeBruijn uni fun ())
-safeLiftProgram x = UPLC.Program () (PLC.defaultVersion ()) <$> safeLift x
+safeLiftProgram x = UPLC.Program () (PLC.defaultVersion) <$> safeLift x
 
 safeLiftCode
     :: (Lift.Lift uni a
@@ -101,7 +103,11 @@ safeLiftCode
        , PrettyPrintable uni fun
        )
     => a -> m (CompiledCodeIn uni fun a)
-safeLiftCode x = DeserializedCode <$> safeLiftProgram x <*> pure Nothing <*> pure mempty
+safeLiftCode x =
+    DeserializedCode
+        <$> ((const mempty <$>) <$> safeLiftProgram x)
+        <*> pure Nothing
+        <*> pure mempty
 
 unsafely
     :: Throwable uni fun
@@ -122,7 +128,7 @@ lift a = unsafely $ safeLift a
 liftProgram
     :: (Lift.Lift uni a, Throwable uni fun, PLC.Typecheckable uni fun)
     => a -> UPLC.Program UPLC.NamedDeBruijn uni fun ()
-liftProgram x = UPLC.Program () (PLC.defaultVersion ()) $ lift x
+liftProgram x = UPLC.Program () (PLC.defaultVersion) $ lift x
 
 -- | Get a Plutus Core program in the default universe corresponding to the given value, throwing any errors that occur as exceptions and ignoring fresh names.
 liftProgramDef
@@ -208,4 +214,4 @@ typeCode p prog@(PLC.Program _ _ term) = do
     _ <- typeCheckAgainst p term
     compiled <- flip runReaderT PLC.defaultCompilationOpts $ PLC.compileProgram prog
     db <- traverseOf UPLC.progTerm UPLC.deBruijnTerm compiled
-    pure $ DeserializedCode db Nothing mempty
+    pure $ DeserializedCode (const mempty <$> db) Nothing mempty

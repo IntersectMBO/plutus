@@ -14,7 +14,8 @@ import UntypedPlutusCore.Evaluation.Machine.Cek
 import Control.Monad.Except
 import GHC.Exts (inline)
 
-type DefaultMachineParameters = MachineParameters CekMachineCosts CekValue DefaultUni DefaultFun
+type DefaultMachineParameters =
+    MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ())
 
 {- Note [Inlining meanings of builtins]
 It's vitally important to inline the 'toBuiltinMeaning' method of a set of built-in functions as
@@ -40,10 +41,11 @@ inlining).
 
 mkMachineParametersFor :: (MonadError CostModelApplyError m)
                        => BuiltinVersion DefaultFun
-                       -> UnliftingMode
                        -> CostModelParams
                        -> m DefaultMachineParameters
-mkMachineParametersFor ver unlMode newCMP =
-    inline mkMachineParameters ver unlMode <$>
+mkMachineParametersFor ver newCMP =
+    inline mkMachineParameters ver <$>
         applyCostModelParams defaultCekCostModel newCMP
-{-# INLINE mkMachineParametersFor #-}
+-- Not marking this function with @INLINE@, since at this point everything we wanted to be inlined
+-- is inlined and there's zero reason to duplicate thousands and thousands of lines of Core down
+-- the line.

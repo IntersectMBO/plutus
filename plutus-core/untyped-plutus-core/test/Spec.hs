@@ -7,6 +7,7 @@ import GHC.IO.Encoding (setLocaleEncoding, utf8)
 
 import DeBruijn.Spec (test_debruijn)
 import Evaluation.Builtins (test_builtins)
+import Evaluation.Debug (test_debug)
 import Evaluation.FreeVars (test_freevars)
 import Evaluation.Golden (test_golden)
 import Evaluation.Machines
@@ -29,6 +30,6 @@ main = do
     , test_debruijn
     , test_freevars
     , test_parsing
+    , test_debug
     , schnorrVerifyRegressions
     ]
-

@@ -26,6 +26,7 @@ module PlutusIR.Compiler (
     coDoSimplifierInline,
     coInlineHints,
     coProfile,
+    coRelaxedFloatin,
     defaultCompilationOpts,
     CompilationCtx,
     ccOpts,
@@ -44,8 +45,9 @@ import PlutusIR.Compiler.Types
 import PlutusIR.Error
 import PlutusIR.Transform.Beta qualified as Beta
 import PlutusIR.Transform.DeadCode qualified as DeadCode
-import PlutusIR.Transform.Inline qualified as Inline
-import PlutusIR.Transform.LetFloat qualified as LetFloat
+import PlutusIR.Transform.Inline.UnconditionalInline qualified as UInline
+import PlutusIR.Transform.LetFloatIn qualified as LetFloatIn
+import PlutusIR.Transform.LetFloatOut qualified as LetFloatOut
 import PlutusIR.Transform.LetMerge qualified as LetMerge
 import PlutusIR.Transform.NonStrict qualified as NonStrict
 import PlutusIR.Transform.RecSplit qualified as RecSplit
@@ -102,7 +104,7 @@ availablePasses =
     , Pass "inline"               (onOption coDoSimplifierInline)             (\t -> do
                                                                                   hints <- view (ccOpts . coInlineHints)
                                                                                   ver <- view ccBuiltinVer
-                                                                                  Inline.inline hints ver t
+                                                                                  UInline.inline hints ver t
                                                                               )
     ]
 
@@ -133,15 +135,26 @@ simplifyTerm = runIfOpts simplify'
           simplify term
 
 
--- | Perform floating/merging of lets in a 'Term' to their nearest lambda/Lambda/letStrictNonValue.
+-- | Perform floating out/merging of lets in a 'Term' to their
+-- nearest lambda/Lambda/letStrictNonValue.
 -- Note: It assumes globally unique names
-floatTerm
+floatOut
     :: (Compiling m e uni fun a, Semigroup b)
     => Term TyName Name uni fun b
     -> m (Term TyName Name uni fun b)
-floatTerm t = do
+floatOut t = do
     ver <- view ccBuiltinVer
-    runIfOpts (pure . LetMerge.letMerge . RecSplit.recSplit . LetFloat.floatTerm ver) t
+    runIfOpts (pure . LetMerge.letMerge . RecSplit.recSplit . LetFloatOut.floatTerm ver) t
+
+-- | Perform floating in/merging of lets in a 'Term'.
+floatIn
+    :: Compiling m e uni fun a
+    => Term TyName Name uni fun b
+    -> m (Term TyName Name uni fun b)
+floatIn t = do
+    ver <- view ccBuiltinVer
+    relaxed <- view (ccOpts . coRelaxedFloatin)
+    runIfOpts (fmap LetMerge.letMerge . LetFloatIn.floatTerm ver relaxed) t
 
 -- | Typecheck a PIR Term iff the context demands it.
 -- Note: assumes globally unique names
@@ -178,8 +191,8 @@ compileToReadable =
     >=> (withVer . flip DeadCode.removeDeadBindings)
     >=> (<$ logVerbose "  !!! simplifyTerm")
     >=> simplifyTerm
-    >=> (<$ logVerbose "  !!! floatTerm")
-    >=> floatTerm
+    >=> (<$ logVerbose "  !!! floatOut")
+    >=> floatOut
     >=> through check
 
 -- | The 2nd half of the PIR compiler pipeline.
@@ -187,7 +200,10 @@ compileToReadable =
 -- Note: the result *does* have globally unique names.
 compileReadableToPlc :: (Compiling m e uni fun a, b ~ Provenance a) => Term TyName Name uni fun b -> m (PLCTerm uni fun a)
 compileReadableToPlc =
-    (<$ logVerbose "  !!! compileNonStrictBindings")
+    (<$ logVerbose "  !!! floatIn")
+    >=> floatIn
+    >=> through check
+    >=> (<$ logVerbose "  !!! compileNonStrictBindings")
     >=> NonStrict.compileNonStrictBindings False
     >=> through check
     >=> (<$ logVerbose "  !!! thunkRecursions")

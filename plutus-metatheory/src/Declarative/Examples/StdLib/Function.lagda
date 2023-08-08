@@ -3,10 +3,14 @@ module Declarative.Examples.StdLib.Function where
 \end{code}
 
 \begin{code}
-open import Utils
-open import Type
-open import Type.Equality
-open import Declarative
+open import Utils using (Kind;*;_⇒_)
+open import Type using (_⊢⋆_;Z;S)
+open _⊢⋆_
+open import Type.Equality using (_≡β_)
+open _≡β_
+open import Declarative using (Ctx;_⊢_;_∋_)
+open _⊢_
+open _∋_
 \end{code}
 
 These examples are pretty old and not used, I am only ensuring that they

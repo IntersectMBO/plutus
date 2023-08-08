@@ -11,6 +11,11 @@
     )
     (termbind
       (strict)
+      (vardecl fApplicativeMaybe_cpure (all a (type) (fun a [ Maybe a ])))
+      (abs a (type) (lam ds a [ { Just a } ds ]))
+    )
+    (termbind
+      (strict)
       (vardecl
         fMonadMaybe_c
         (all
@@ -98,7 +103,7 @@
                       y
                       (con integer)
                       [
-                        { Just (con integer) }
+                        { fApplicativeMaybe_cpure (con integer) }
                         [ [ addInteger [ [ addInteger x ] x ] ] y ]
                       ]
                     )

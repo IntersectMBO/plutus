@@ -24,8 +24,10 @@ benchmarks =
       [ bgroup "compiled-from-Haskell"
         [ mkBMsForSum "sum-right-builtin" Sum.Compiled.mkSumRightBuiltinTerm
         , mkBMsForSum "sum-right-Scott"   Sum.Compiled.mkSumRightScottTerm
+        , mkBMsForSum "sum-right-data"    Sum.Compiled.mkSumRightDataTerm
         , mkBMsForSum "sum-left-builtin"  Sum.Compiled.mkSumLeftBuiltinTerm
         , mkBMsForSum "sum-left-Scott"    Sum.Compiled.mkSumLeftScottTerm
+        , mkBMsForSum "sum-left-data"     Sum.Compiled.mkSumLeftDataTerm
        ]
       , bgroup "hand-written-PLC"
         [ mkBMsForSum "sum-right-builtin" Sum.HandWritten.mkSumRightBuiltinTerm

@@ -3,7 +3,14 @@
 {-# LANGUAGE TypeApplications     #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module PlutusLedgerApi.Common.ParamName where
+module PlutusLedgerApi.Common.ParamName
+    ( IsParamName (..)
+    , GenericParamName (..)
+    , toCostModelParams
+    , tagWithParamNames
+    , CostModelApplyError (..)
+    , CostModelApplyWarn (..)
+    ) where
 
 import PlutusCore.Evaluation.Machine.CostModelInterface
 
@@ -16,13 +23,16 @@ import Data.Map as Map
 import Data.Text qualified as Text
 import GHC.Generics
 
-{-| A valid parameter name has to be enumeration, bounded, ordered, and
-prettyprintable in a "lowerKebab" way.
+{-| A parameter name for different plutus versions.
 
-Each API version should expose such an enumeration as an ADT and create
-an instance of ParamName out of it.
+Each Plutus version should expose such an enumeration as an ADT and create
+an instance of 'ParamName' out of it.
+
+A valid parameter name has to be enumeration, bounded, ordered, and
+prettyprintable to a \"lower-Kebab\" string.
 -}
 class IsParamName a where
+   -- | Take the raw textual form for a given typed-by-plutus-version cost model parameter
    showParamName :: a -> String
 
 -- | A Generic wrapper for use with deriving via
@@ -60,7 +70,9 @@ instance (GIsParamName a, GIsParamName b) => GIsParamName ((:+:) a b) where
     gshowParamName (R1 x) = gshowParamName x
 
 -- | Given an ordered list of parameter values, tag them with their parameter names.
--- See Note [Cost model parameters from the ledger's point of view]
+-- If the passed parameter values are more than expected: the function will ignore the extraneous values at the tail of the list,
+-- if the passed values are less than expected: the function will throw an error; for more information,
+-- see Note [Cost model parameters from the ledger's point of view]
 tagWithParamNames :: forall k m. (Enum k, Bounded k,
                             MonadError CostModelApplyError m,
                             -- OPTIMIZE: MonadWriter.CPS is probably better than MonadWriter.Strict but needs mtl>=2.3
@@ -76,15 +88,14 @@ tagWithParamNames ledgerParams =
             pure $ zip paramNames ledgerParams
         LT -> do
             -- See Note [Cost model parameters from the ledger's point of view]
-            when (lenActual > lenExpected) $
-                tell [CMTooManyParamsWarn {cmTooManyExpected = lenExpected, cmTooManyActual = lenActual}]
-            -- zip will truncate any extraneous params
+            tell [CMTooManyParamsWarn {cmTooManyExpected = lenExpected, cmTooManyActual = lenActual}]
+            -- zip will truncate/ignore any extraneous parameter values
             pure $ zip paramNames ledgerParams
         GT ->
             -- See Note [Cost model parameters from the ledger's point of view]
             throwError $ CMTooFewParamsError {cmTooFewExpected = lenExpected, cmTooFewActual = lenActual }
 
--- | Essentially untag the association of param names to values
--- so that CostModelInterface can make use of it.
+-- | Untags the plutus version from the typed cost model parameters and returns their raw textual form
+-- (internally used by CostModelInterface).
 toCostModelParams :: IsParamName k => [(k, Integer)] -> CostModelParams
 toCostModelParams = Map.fromList . fmap (first $ Text.pack . showParamName)

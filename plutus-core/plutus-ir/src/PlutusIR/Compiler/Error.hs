@@ -20,9 +20,9 @@ import Data.Typeable
 import Prettyprinter ((<+>))
 import Prettyprinter qualified as PP
 
-data Error uni fun a = CompilationError a T.Text -- ^ A generic compilation error.
-                     | UnsupportedError a T.Text -- ^ An error relating specifically to an unsupported feature.
-                     | PLCError (PLC.Error uni fun a) -- ^ An error from running some PLC function, lifted into this error type for convenience.
+data Error uni fun a = CompilationError !a !T.Text -- ^ A generic compilation error.
+                     | UnsupportedError !a !T.Text -- ^ An error relating specifically to an unsupported feature.
+                     | PLCError !(PLC.Error uni fun a) -- ^ An error from running some PLC function, lifted into this error type for convenience.
 makeClassyPrisms ''Error
 
 instance PLC.AsTypeError (Error uni fun a) (PLC.Term PLC.TyName PLC.Name uni fun ()) uni fun a where

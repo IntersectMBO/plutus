@@ -6,25 +6,25 @@ module Algorithmic.RenamingSubstitution where
 
 \begin{code}
 open import Function using (id; _∘_)
-open import Relation.Binary.PropositionalEquality
-  renaming (subst to substEq; [_] to [_]≅)
-open import Data.Sum
-open import Data.List hiding ([_])
-open import Data.Product renaming (_,_ to _,,_)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;trans;cong;cong₂)
 
-open import Utils hiding (TermCon)
-open import Type
-open import Type.Equality
+open import Utils using (Kind;*)
+open import Type using (Ctx⋆;_,⋆_;S)
 import Type.RenamingSubstitution as ⋆
---open import Type.Reduction
-open import Type.BetaNormal
-open import Type.BetaNBE
-open import Type.BetaNBE.Soundness
-open import Type.BetaNBE.Completeness
+open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;renNf;weakenNf)
+open _⊢Nf⋆_
+open _⊢Ne⋆_
+
 open import Type.BetaNBE.RenamingSubstitution
-open import Algorithmic
-open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
-open import Type.BetaNormal.Equality
+open import Algorithmic using (Ctx;_∋_;conv∋;_⊢_;conv⊢;btype-ren;btype-sub)
+open Ctx
+open _∋_
+open _⊢_
+
+open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con using (TermCon)
+open TermCon
+
+open import Type.BetaNormal.Equality using (renNf-id)
 \end{code}
 
 ## Renaming
@@ -67,7 +67,7 @@ renTermCon ρ⋆ (bytestring b) = bytestring b
 renTermCon ρ⋆ (string s)     = string s
 renTermCon ρ⋆ (bool b)       = bool b
 renTermCon ρ⋆ unit           = unit
-renTermCon ρ⋆ (Data d)       = Data d
+renTermCon ρ⋆ (pdata d)       = pdata d
 \end{code}
 
 \begin{code}
@@ -155,7 +155,7 @@ subTermCon σ⋆ (bytestring b) = bytestring b
 subTermCon σ⋆ (string s)     = string s
 subTermCon σ⋆ (bool b)       = bool b
 subTermCon σ⋆ unit           = unit
-subTermCon σ⋆ (Data d)       = Data d
+subTermCon σ⋆ (pdata d)       = pdata d
 \end{code}
 
 \begin{code}

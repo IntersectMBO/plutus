@@ -1,58 +1,43 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes        #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 module Main where
 
-import Common
 import Control.Lens hiding (argument, set', (<.>))
 import Control.Monad.Trans.Except
 import Control.Monad.Trans.Reader
-import Data.ByteString qualified as BS
 import Data.ByteString.Lazy.Char8 qualified as BSL
 import Data.Coerce
 import Data.Csv qualified as Csv
 import Data.IntMap qualified as IM
 import Data.List (sortOn)
 import Data.Text qualified as T
-import Flat (unflat)
 import GHC.Generics
 import Options.Applicative
-import Parsers
 import PlutusCore qualified as PLC
+import PlutusCore.Error (ParserErrorBundle (..))
+import PlutusCore.Executable.Common hiding (runPrint)
+import PlutusCore.Executable.Parsers
 import PlutusCore.Quote (runQuoteT)
 import PlutusIR as PIR
 import PlutusIR.Analysis.RetainedSize qualified as PIR
 import PlutusIR.Compiler qualified as PIR
 import PlutusIR.Core.Plated
 import PlutusPrelude
+import Text.Megaparsec (errorBundlePretty)
 
-data Command = Analyse AOpts
+type PLCTerm  = PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun (PIR.Provenance ())
+type PIRError = PIR.Error PLC.DefaultUni PLC.DefaultFun (PIR.Provenance ())
+type PIRCompilationCtx a = PIR.CompilationCtx PLC.DefaultUni PLC.DefaultFun a
+data Command = Analyse IOSpec
              | Compile COpts
-             | Print POpts
-
-data AOpts = AOpts
-  {
-    aIn  :: Input
-  , aOut :: Output
-  }
+             | Print PrintOptions
 
 data COpts = COpts
   { cIn       :: Input
   , cOptimize :: Bool
   }
-
-data POpts = POpts
-  {
-    pIn  :: Input
-  , pOut :: Output
-  }
-
-pAOpts :: Parser AOpts
-pAOpts = AOpts
-    <$> input
-    <*> output
 
 pCOpts :: Parser COpts
 pCOpts = COpts
@@ -64,55 +49,58 @@ pCOpts = COpts
     switch' :: Mod FlagFields Bool -> Parser Bool
     switch' = fmap not . switch
 
-pPOpts :: Parser POpts
-pPOpts = POpts
-    <$> input
-    <*> output
-
 pPirOpts :: Parser Command
 pPirOpts = hsubparser $
     command "analyse"
-        (info (Analyse <$> pAOpts) $
-            progDesc "Given a PIR program in flat format, deserialise and analyse the program looking for variables with the largest retained size.")
+        (info (Analyse <$> ioSpec) $
+            progDesc $
+              "Given a PIR program in flat format, deserialise and analyse the program, " <>
+              "looking for variables with the largest retained size.")
   <> command "compile"
         (info (Compile <$> pCOpts) $
-            progDesc "Given a PIR program in flat format, deserialise it and test if it can be successfully compiled to PLC.")
+            progDesc $
+              "Given a PIR program in flat format, deserialise it, " <>
+              "and test if it can be successfully compiled to PLC.")
   <> command "print"
-        (info (Print <$> pPOpts) $
-            progDesc "Given a PIR program in flat format, deserialise it and print it out textually.")
+        (info (Print <$> printOpts) $
+            progDesc $
+              "Given a PIR program in flat format, " <>
+              "deserialise it and print it out textually.")
 
+-- | Load flat pir and deserialize it
+loadPir :: Input -> IO (PirProg ())
+loadPir = loadASTfromFlat Named
 
-type PIRTerm  = PIR.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun ()
-type PLCTerm  = PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun (PIR.Provenance ())
-type PIRError = PIR.Error PLC.DefaultUni PLC.DefaultFun (PIR.Provenance ())
-type PIRCompilationCtx a = PIR.CompilationCtx PLC.DefaultUni PLC.DefaultFun a
-
-compile :: COpts -> PIRTerm -> Either PIRError PLCTerm
-compile opts pirT = do
+compile :: COpts -> PirProg () -> Either PIRError PLCTerm
+compile opts (PIR.Program _ pirT) = do
     plcTcConfig <- PLC.getDefTypeCheckConfig PIR.noProvenance
     let pirCtx = defaultCompilationCtx plcTcConfig
     runExcept $ flip runReaderT pirCtx $ runQuoteT $ PIR.compileTerm pirT
   where
-    set' :: Lens' (PIR.CompilationOpts a) b -> (COpts -> b) -> PIRCompilationCtx a -> PIRCompilationCtx a
+    set' :: Lens' (PIR.CompilationOpts a) b
+      -> (COpts -> b)
+      -> PIRCompilationCtx a
+      -> PIRCompilationCtx a
     set' pirOpt opt = set (PIR.ccOpts . pirOpt) (opt opts)
 
-    defaultCompilationCtx :: PLC.TypeCheckConfig PLC.DefaultUni PLC.DefaultFun -> PIRCompilationCtx a
+    defaultCompilationCtx :: PLC.TypeCheckConfig PLC.DefaultUni PLC.DefaultFun
+      -> PIRCompilationCtx a
     defaultCompilationCtx plcTcConfig =
       PIR.toDefaultCompilationCtx plcTcConfig
       & set' PIR.coOptimize                     cOptimize
 
 loadPirAndCompile :: COpts -> IO ()
 loadPirAndCompile copts = do
-    pirT <- loadPir $ cIn copts
+    pirProg <- loadPir $ cIn copts
     putStrLn "!!! Compiling"
-    case compile copts pirT of
+    case compile copts pirProg of
         Left pirError -> error $ show pirError
         Right _       -> putStrLn "!!! Compilation successful"
 
-loadPirAndAnalyse :: AOpts -> IO ()
-loadPirAndAnalyse aopts = do
+loadPirAndAnalyse :: IOSpec -> IO ()
+loadPirAndAnalyse ioSpecs = do
     -- load pir and make sure that it is globally unique (required for retained size)
-    pirT <- PLC.runQuote . PLC.rename <$> loadPir (aIn aopts)
+    PIR.Program _ pirT <- PLC.runQuote . PLC.rename <$> loadPir (inputSpec ioSpecs)
     putStrLn "!!! Analysing for retention"
     let
         -- all the variable names (tynames coerced to names)
@@ -129,35 +117,37 @@ loadPirAndAnalyse aopts = do
 
         -- change uniques to texts and use csv-outputtable records
         sortedRecords :: [RetentionRecord]
-        sortedRecords = (\(i,s) -> RetentionRecord (IM.findWithDefault "???" i nameTable) i s) <$> sortedRetained
+        sortedRecords =
+          sortedRetained <&> \(i, s) ->
+            RetentionRecord (IM.findWithDefault "given key is not in map" i nameTable) i s
 
     -- encode to csv and output it
     Csv.encodeDefaultOrderedByName sortedRecords &
-        case aOut aopts of
+        case outputSpec ioSpecs of
             FileOutput path -> BSL.writeFile path
             StdOutput       -> BSL.putStr
 
-loadPirAndPrint :: POpts -> IO ()
-loadPirAndPrint popts = do
-    pirT <- loadPir $ pIn popts
-    let
-        printed :: String
-        printed = show $ pretty pirT
-    case pOut popts of
-        FileOutput path -> writeFile path printed
-        StdOutput       -> putStrLn printed
-
--- | Load flat pir and deserialize it
-loadPir :: Input -> IO PIRTerm
-loadPir inp =do
-    bs <- case inp of
-             FileInput path -> do
-                 putStrLn $ "!!! Loading file " ++ path
-                 BS.readFile path
-             StdInput -> BS.getContents
-    case unflat bs of
-        Left decodeErr -> error $ show decodeErr
-        Right pirT     -> pure pirT
+---------------- Parse and print a PIR source file ----------------
+-- This option for PIR source file does NOT check for @UniqueError@'s.
+-- Only the print option for PLC or UPLC files check for them.
+runPrint :: PrintOptions -> IO ()
+runPrint (PrintOptions iospec _mode) = do
+    let inputPath = inputSpec iospec
+    contents <- getInput inputPath
+    -- parse the program
+    case parseNamedProgram (show inputPath) contents of
+      -- when fail, pretty print the parse errors.
+      Left (ParseErrorB err) ->
+          errorWithoutStackTrace $ errorBundlePretty err
+      -- otherwise,
+      Right (p::PirProg PLC.SrcSpan) -> do
+        -- pretty print the program. Print mode may be added later on.
+        let
+            printed :: String
+            printed = show $ pretty p
+        case outputSpec iospec of
+            FileOutput path -> writeFile path printed
+            StdOutput       -> putStrLn printed
 
 main :: IO ()
 main = do
@@ -165,13 +155,14 @@ main = do
     case comm of
         Analyse opts -> loadPirAndAnalyse opts
         Compile opts -> loadPirAndCompile opts
-        Print opts   -> loadPirAndPrint opts
+        Print opts   -> runPrint opts
   where
     infoOpts =
       info (pPirOpts <**> helper)
            ( fullDesc
-           <> progDesc "Load a flat pir term from file and run the compiler on it"
-           <> header "pir - a small tool for loading pir from flat representation for analysis or compilation to PLC")
+           <> header "PIR tool"
+           <> progDesc ("This program provides a number of utilities for dealing with "
+           <> "PIR programs, including print, analysis, and compilation to PLC."))
 
 -- | a csv-outputtable record row of {name,unique,size}
 data RetentionRecord = RetentionRecord { name :: T.Text, unique :: Int, size :: PIR.Size}

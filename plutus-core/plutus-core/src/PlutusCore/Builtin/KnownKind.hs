@@ -10,8 +10,11 @@ module PlutusCore.Builtin.KnownKind where
 import PlutusCore.Core
 
 import Data.Kind as GHC
+import Data.Proxy
 import GHC.Types
 import Universe
+
+infixr 5 `SingKindArrow`
 
 -- | The type of singletonized Haskell kinds representing Plutus kinds.
 -- Indexing by a Haskell kind allows us to avoid an 'error' call in the 'ToKind' instance of
@@ -19,6 +22,14 @@ import Universe
 data SingKind k where
     SingType      :: SingKind GHC.Type
     SingKindArrow :: SingKind k -> SingKind l -> SingKind (k -> l)
+
+-- | Feed the 'SingKind' version of the given 'Kind' to the given continuation.
+withSingKind :: Kind ann -> (forall k. SingKind k -> r) -> r
+withSingKind (Type _) k = k SingType
+withSingKind (KindArrow _ dom cod) k =
+    withSingKind dom $ \domS ->
+        withSingKind cod $ \codS ->
+            k $ SingKindArrow domS codS
 
 -- | For reifying Haskell kinds representing Plutus kinds at the term level.
 class KnownKind k where
@@ -30,6 +41,16 @@ instance rep ~ LiftedRep => KnownKind (TYPE rep) where
 
 instance (KnownKind dom, KnownKind cod) => KnownKind (dom -> cod) where
     knownKind = SingKindArrow (knownKind @dom) (knownKind @cod)
+
+-- | Satisfy the 'KnownKind' constraint of a continuation using the given 'SingKind'.
+bringKnownKind :: SingKind k -> (KnownKind k => r) -> r
+bringKnownKind SingType                r = r
+bringKnownKind (SingKindArrow dom cod) r = bringKnownKind dom $ bringKnownKind cod r
+
+withKnownKind :: Kind ann -> (forall k. KnownKind k => Proxy k -> r) -> r
+withKnownKind kind k =
+    withSingKind kind $ \(kindS :: SingKind kind) ->
+       bringKnownKind kindS $ k $ Proxy @kind
 
 -- We need this for type checking Plutus, however we get Plutus types/terms/programs by either
 -- producing them directly or by parsing/decoding them and in both the cases we have access to the

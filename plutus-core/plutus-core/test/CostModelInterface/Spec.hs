@@ -23,9 +23,9 @@ import Instances.TH.Lift ()
 import Language.Haskell.TH.Syntax qualified as TH
 import Prettyprinter
 import System.FilePath
-import TH.RelativePaths
 import Test.Tasty
 import Test.Tasty.HUnit
+import TH.RelativePaths
 
 {- Note [Testing the expected ledger cost model parameters]
 The ledger is going to call us with a particular 'CostModelParams'. This will be originally derived from the model

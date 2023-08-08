@@ -10,12 +10,16 @@ module Type.RenamingSubstitution where
 ## Imports
 
 ```
-open import Utils
-open import Type
-open import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *)
-open import Function using (id; _∘_)
+open import Function using (id;_∘_)
 open import Relation.Binary.PropositionalEquality
-  renaming (subst to substEq) using (_≡_; refl; cong; cong₂; trans; sym)
+  using (_≡_; refl; cong; cong₂; trans; sym)
+  renaming (subst to substEq) 
+
+open import Utils using (*;J;K)
+open import Type using (Ctx⋆;_,⋆_;Φ;Ψ;_⊢⋆_;_∋⋆_;S;Z)
+open _⊢⋆_
+open import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *) using (TyCon)
+open TyCon
 ```
 
 ## Type renaming
@@ -60,7 +64,7 @@ renTyCon ρ unit       = unit
 renTyCon ρ bool       = bool
 renTyCon ρ (list A)   = list (ren ρ A)
 renTyCon ρ (pair A B) = pair (ren ρ A) (ren ρ B)
-renTyCon ρ Data       = Data
+renTyCon ρ pdata      = pdata
 
 ren ρ (` α)       = ` (ρ α)
 ren ρ (Π B)       = Π (ren (ext ρ) B)
@@ -128,7 +132,7 @@ renTyCon-cong p unit       = refl
 renTyCon-cong p bool       = refl
 renTyCon-cong p (list A)   = cong list (ren-cong p A)
 renTyCon-cong p (pair A B) = cong₂ pair (ren-cong p A) (ren-cong p B)
-renTyCon-cong p Data       = refl
+renTyCon-cong p pdata       = refl
 
 ren-cong p (` α)   = cong ` (p α)
 ren-cong p (Π A)   = cong Π (ren-cong (ext-cong p) A)
@@ -156,7 +160,7 @@ renTyCon-id unit       = refl
 renTyCon-id bool       = refl
 renTyCon-id (list A)   = cong list (ren-id A)
 renTyCon-id (pair A B) = cong₂ pair (ren-id A) (ren-id B)
-renTyCon-id Data       = refl
+renTyCon-id pdata       = refl
 
 ren-id (` α)   = refl
 ren-id (Π A)   = cong Π (trans (ren-cong ext-id A) (ren-id A))
@@ -195,7 +199,7 @@ renTyCon-comp unit       = refl
 renTyCon-comp bool       = refl
 renTyCon-comp (list A)   = cong list (ren-comp A)
 renTyCon-comp (pair A B) = cong₂ pair (ren-comp A) (ren-comp B)
-renTyCon-comp Data       = refl
+renTyCon-comp pdata       = refl
 
 ren-comp (` x)   = refl
 ren-comp (Π A)   = cong Π (trans (ren-cong ext-comp A) (ren-comp A))
@@ -249,7 +253,7 @@ subTyCon σ unit       = unit
 subTyCon σ bool       = bool
 subTyCon σ (list A)   = list (sub σ A)
 subTyCon σ (pair A B) = pair (sub σ A) (sub σ B)
-subTyCon σ Data       = Data
+subTyCon σ pdata       = pdata
 
 sub σ (` α)   = σ α
 sub σ (Π B)   = Π (sub (exts σ) B)
@@ -323,7 +327,7 @@ subTyCon-cong p unit       = refl
 subTyCon-cong p bool       = refl
 subTyCon-cong p (list A)   = cong list (sub-cong p A)
 subTyCon-cong p (pair A B) = cong₂ pair (sub-cong p A) (sub-cong p B)
-subTyCon-cong p Data       = refl
+subTyCon-cong p pdata       = refl
 
 sub-cong p (` α)   = p α
 sub-cong p (Π A)   = cong Π (sub-cong (exts-cong p) A)
@@ -352,7 +356,7 @@ subTyCon-id unit       = refl
 subTyCon-id bool       = refl
 subTyCon-id (list A)   = cong  list (sub-id A)
 subTyCon-id (pair A B) = cong₂ pair (sub-id A) (sub-id B)
-subTyCon-id Data       = refl
+subTyCon-id pdata       = refl
 
 sub-id (` α)      = refl
 sub-id (Π A)      = cong Π (trans (sub-cong exts-id A) (sub-id A))
@@ -391,7 +395,7 @@ subTyCon-renTyCon unit       = refl
 subTyCon-renTyCon bool       = refl
 subTyCon-renTyCon (list A)   = cong list (sub-ren A)
 subTyCon-renTyCon (pair A B) = cong₂ pair (sub-ren A) (sub-ren B)
-subTyCon-renTyCon Data       = refl
+subTyCon-renTyCon pdata       = refl
 
 sub-ren (` α)   = refl
 sub-ren (Π A)   = cong Π (trans (sub-cong exts-ext A) (sub-ren A))
@@ -430,7 +434,7 @@ renTyCon-subTyCon unit       = refl
 renTyCon-subTyCon bool       = refl
 renTyCon-subTyCon (list A)   = cong list (ren-sub A)
 renTyCon-subTyCon (pair A B) = cong₂ pair (ren-sub A) (ren-sub B) 
-renTyCon-subTyCon Data       = refl
+renTyCon-subTyCon pdata       = refl
 
 ren-sub (` α)   = refl
 ren-sub (Π A)   = cong Π (trans (sub-cong ren-ext-exts  A) (ren-sub A))
@@ -469,7 +473,7 @@ subTyCon-comp unit       = refl
 subTyCon-comp bool       = refl
 subTyCon-comp (list A)   = cong list (sub-comp A)
 subTyCon-comp (pair A B) = cong₂ pair (sub-comp A) (sub-comp B)
-subTyCon-comp Data       = refl
+subTyCon-comp pdata       = refl
 
 sub-comp (` x)   = refl
 sub-comp (Π A)   = cong Π (trans (sub-cong extscomp A) (sub-comp A))

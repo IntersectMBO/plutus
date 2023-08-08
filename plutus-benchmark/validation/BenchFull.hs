@@ -4,15 +4,11 @@ module Main where
 import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusLedgerApi.Test.EvaluationContext (evalCtxForTesting)
 import PlutusLedgerApi.V1
-import PlutusLedgerApi.V1.Scripts
 import UntypedPlutusCore qualified as UPLC
 
-import Codec.Serialise qualified as Serialise (serialise)
 import Common
 import Criterion
 import Data.ByteString as BS
-import Data.ByteString.Lazy as BSL
-import Data.ByteString.Short (toShort)
 import Data.Either
 
 {-|
@@ -40,9 +36,8 @@ main = benchWith mkFullBM
             -- of them are policy scripts with only 2.
             (term, args) = peelDataArguments body
 
-            bslCBOR :: BSL.ByteString = Serialise.serialise (Script $ UPLC.Program () v term)
             -- strictify and "short" the result cbor to create a real `SerialisedScript`
-            benchScript :: SerialisedScript = toShort . BSL.toStrict $ bslCBOR
+            benchScript :: SerialisedScript = serialiseUPLC $ UPLC.Program () v term
 
         in  whnf (\ script ->
                       (isRight $ snd $ evaluateScriptRestricting

@@ -186,9 +186,9 @@ instance Flat Name where
 
 deriving newtype instance Flat TyName -- via Name
 
-instance Flat ann => Flat (Version ann) where
-    encode (Version ann n n' n'') = encode ann <> encode n <> encode n' <> encode n''
-    decode = Version <$> decode <*> decode <*> decode <*> decode
+instance Flat Version where
+    encode (Version n n' n'') = encode n <> encode n' <> encode n''
+    decode = Version <$> decode <*> decode <*> decode
 
 -- | Use 1 bit to encode kind tags.
 kindTagWidth :: NumBits

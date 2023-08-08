@@ -15,7 +15,7 @@ import Control.DeepSeq (NFData)
 import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Credential (StakingCredential)
 import PlutusLedgerApi.V1.Crypto (PubKeyHash)
-import PlutusTx qualified as PlutusTx
+import PlutusTx qualified
 import PlutusTx.Prelude qualified as P
 import Prettyprinter.Extras
 
@@ -35,7 +35,7 @@ data DCert
       -- ^ poolId
       PubKeyHash
       -- ^ pool VFR
-  | -- | The retiremant certificate and the Epoch N
+  | -- | The retirement certificate and the Epoch in which the retirement will take place
     DCertPoolRetire PubKeyHash Integer -- NB: Should be Word64 but we only have Integer on-chain
   | -- | A really terse Digest
     DCertGenesis

@@ -3,22 +3,23 @@ module Type.BetaNBE.Soundness where
 \end{code}
 
 \begin{code}
-open import Utils
-open import Type
-open import Type.Equality
-open import Type.RenamingSubstitution
-open import Type.BetaNormal
-open import Type.BetaNBE
-import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *) as Syn
+open import Function using (_∘_;id)
+open import Data.Sum using (inj₁;inj₂)
+open import Data.Product using (Σ;_×_;_,_)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;trans;cong;cong₂)
 
-open import Relation.Binary.PropositionalEquality
-  renaming (subst to substEq)
-  hiding ([_])
-open import Function
-open import Data.Sum
-open import Data.Empty
-open import Data.Product
-open import Data.String
+open import Utils using (*;_⇒_)
+open import Type using (Ctx⋆;_,⋆_;_⊢⋆_;_∋⋆_;Z;S)
+open _⊢⋆_
+open import Type.Equality using (_≡β_;≡2β;ren≡β;_≡βTyCon_)
+open _≡β_
+open _≡βTyCon_
+open import Type.RenamingSubstitution 
+     using (Ren;ren;ext;ext-id;ren-comp;ren-id;ren-cong;ext-comp;exts;weaken)
+     using (Sub;sub;sub-cons;sub-id;sub-comp;sub-cong;sub-ren;subTyCon)
+open import Type.BetaNormal using (_⊢Ne⋆_;embNf;ren-embNf;embNe;ren-embNe;embNfTyCon)
+open import Type.BetaNBE using (Val;renVal;_·V_;reflect;reify;Env;_,,⋆_;fresh;eval;evalTyCon;idEnv;nf)
+import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *) as Syn
 \end{code}
 
 The Soundness Relation (SR) is a Kripke logical relation between types
@@ -192,7 +193,7 @@ evalSRTyCon Syn.unit p = refl≡β _
 evalSRTyCon Syn.bool p = refl≡β _
 evalSRTyCon (Syn.list A) p = list≡β (evalSR A p)
 evalSRTyCon (Syn.pair A B) p = pair≡β (evalSR A p) (evalSR B p)
-evalSRTyCon Syn.Data p = refl≡β _
+evalSRTyCon Syn.pdata p = refl≡β _
 
 
 evalSR (` α)                   p = p α

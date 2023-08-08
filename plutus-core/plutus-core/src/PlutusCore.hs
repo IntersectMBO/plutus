@@ -9,7 +9,8 @@ module PlutusCore
     , parseTerm
     , parseType
     , SourcePos
-    , topSourcePos
+    , SrcSpan (..)
+    , SrcSpans
     -- * Builtins
     , Some (..)
     , SomeTypeIn (..)
@@ -45,6 +46,9 @@ module PlutusCore
     , Type (..)
     , typeSubtypes
     , Kind (..)
+    , toPatFuncKind
+    , fromPatFuncKind
+    , argsFunKind
     , ParserError (..)
     , Version (..)
     , Program (..)
@@ -108,7 +112,6 @@ module PlutusCore
     , freshTyName
     -- * Evaluation
     , EvaluationResult (..)
-    , UnliftingMode (..)
     -- * Combining programs
     , applyProgram
     -- * Benchmarking
@@ -120,6 +123,7 @@ module PlutusCore
     ) where
 
 
+import PlutusCore.Annotation
 import PlutusCore.Builtin
 import PlutusCore.Core
 import PlutusCore.DeBruijn
@@ -135,6 +139,7 @@ import PlutusCore.Rename
 import PlutusCore.Size
 import PlutusCore.TypeCheck as TypeCheck
 
+
 -- | Take one PLC program and apply it to another.
 applyProgram
     :: Monoid a
@@ -144,4 +149,4 @@ applyProgram
 -- TODO: 'mappend' annotations, ignore versions and return the default one (whatever that means),
 -- what a mess. Needs to be fixed.
 applyProgram (Program a1 _ t1) (Program a2 _ t2) =
-    Program (a1 <> a2) (defaultVersion mempty) (Apply mempty t1 t2)
+    Program (a1 <> a2) defaultVersion (Apply mempty t1 t2)

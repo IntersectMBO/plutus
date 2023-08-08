@@ -1,0 +1,39 @@
+#!/bin/bash
+# shellcheck disable=all
+
+plc=../result/bin/plc
+size=4
+n=1000000
+echo Loop $n
+gpp -DSIZE=$size -DARG=$n ../test/Loop.plc > test.plc 
+/usr/bin/time -f "%U %S %M" $plc evaluate -f test.plc -mL
+echo LoopY $n
+gpp -DSIZE=$size -DARG=$n ../test/LoopY.plc > test.plc
+/usr/bin/time -f "%U %S %M" $plc evaluate -f test.plc -mL
+
+size=8
+n=2000000
+echo Tri $n
+gpp -DSIZE=$size -DARG=$n ../test/Tri.plc > test.plc
+/usr/bin/time -f "%U %S %M" $plc evaluate -f test.plc -mL
+echo TriY $n
+gpp -DSIZE=$size -DARG=$n ../test/TriY.plc > test.plc
+/usr/bin/time -f "%U %S %M" $plc evaluate -f test.plc -mL
+
+size=190000
+n=65000
+echo Fac $n
+gpp -DSIZE=$size -DARG=$n ../test/Fac.plc > test.plc
+/usr/bin/time -f "%U %S %M" $plc evaluate -f test.plc -mL
+echo FacY $n
+gpp -DSIZE=$size -DARG=$n ../test/FacY.plc > test.plc
+/usr/bin/time -f "%U %S %M" $plc evaluate -f test.plc -mL
+
+size=4
+n=31
+echo Fib $n
+gpp -DSIZE=$size -DARG=$n ../test/Fib.plc > test.plc
+/usr/bin/time -f "%U %S %M" $plc evaluate -f test.plc -mL
+echo FibY $n
+gpp -DSIZE=$size -DARG=$n ../test/FibY.plc > test.plc
+/usr/bin/time -f "%U %S %M" $plc evaluate -f test.plc -mL

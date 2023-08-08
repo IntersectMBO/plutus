@@ -5,6 +5,7 @@
 {-# LANGUAGE FlexibleInstances        #-}
 {-# LANGUAGE LambdaCase               #-}
 {-# LANGUAGE MultiParamTypeClasses    #-}
+{-# LANGUAGE PatternSynonyms          #-}
 {-# LANGUAGE PolyKinds                #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
 {-# LANGUAGE TemplateHaskell          #-}
@@ -12,11 +13,16 @@
 {-# LANGUAGE TypeFamilies             #-}
 {-# LANGUAGE UndecidableInstances     #-}
 
+-- We rely on things from this module being lazy (e.g. the PIR generators rely on types being lazy),
+-- so don't use @StrictData@ in this module.
+
 module PlutusCore.Core.Type
     ( Kind (..)
+    , toPatFuncKind
+    , fromPatFuncKind
+    , argsFunKind
     , Type (..)
     , Term (..)
-    , Version (..)
     , Program (..)
     , UniOf
     , Normalized (..)
@@ -26,7 +32,7 @@ module PlutusCore.Core.Type
     , tyDeclVar
     , HasUniques
     , Binder (..)
-    , defaultVersion
+    , module Export
     -- * Helper functions
     , termAnn
     , typeAnn
@@ -50,6 +56,7 @@ import PlutusPrelude
 
 import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Name
+import PlutusCore.Version as Export
 
 import Control.Lens
 import Data.Hashable
@@ -63,6 +70,23 @@ data Kind ann
     | KindArrow ann (Kind ann) (Kind ann)
     deriving stock (Eq, Show, Functor, Generic, Lift)
     deriving anyclass (NFData, Hashable)
+
+-- | The kind of a pattern functor (the first 'Type' argument of 'TyIFix') at a given kind (of the
+-- second 'Type' argument of 'TyIFix'):
+--
+-- > toPatFuncKind k = (k -> *) -> k -> *
+toPatFuncKind :: Kind () -> Kind ()
+toPatFuncKind k = KindArrow () (KindArrow () k (Type ())) (KindArrow () k (Type ()))
+
+fromPatFuncKind :: Kind () -> Maybe (Kind ())
+fromPatFuncKind (KindArrow () (KindArrow () k1 (Type ())) (KindArrow () k2 (Type ())))
+    | k1 == k2 = Just k1
+fromPatFuncKind _ = Nothing
+
+-- | Extract all @a_i@ from @a_0 -> a_1 -> ... -> r@.
+argsFunKind :: Kind ann -> [Kind ann]
+argsFunKind Type{}            = []
+argsFunKind (KindArrow _ k l) = k : argsFunKind l
 
 -- | A 'Type' assigned to expressions.
 type Type :: GHC.Type -> (GHC.Type -> GHC.Type) -> GHC.Type -> GHC.Type
@@ -96,36 +120,10 @@ data Term tyname name uni fun ann
 instance ExMemoryUsage (Term tyname name uni fun ann) where
     memoryUsage = error "Internal error: 'memoryUsage' for Core 'Term' is not supposed to be forced"
 
-{- |
-The version of Plutus Core used by this program.
-
-The intention is to convey different levels of backwards compatibility for existing scripts:
-- Major version changes are backwards-incompatible
-- Minor version changes are backwards-compatible
-- Patch version changes should be entirely invisible (and we will likely not use this level)
-
-The version used should be changed only when the /language itself/ changes.
-For example, adding a new kind of term to the language would require a minor
-version bump; removing a kind of term would require a major version bump.
-
-Similarly, changing the semantics of the language will require a version bump,
-typically a major one. This is the main reason why the version is actually
-tracked in the AST: we can have two language versions with identical ASTs but
-different semantics, so we need to track the version explicitly.
-
-Compatibility is about compatibility for specific scripts, not about e.g. tools which consume scripts.
-Adding a new kind of term does not change how existing scripts behave, but does change what
-tools would need to do to process scripts.
--}
-data Version ann
-    = Version ann Natural Natural Natural
-    deriving stock (Eq, Show, Functor, Generic)
-    deriving anyclass (NFData, Hashable)
-
 -- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core language.
 data Program tyname name uni fun ann = Program
     { _progAnn  :: ann
-    , _progVer  :: Version ann
+    , _progVer  :: Version
     , _progTerm :: Term tyname name uni fun ann
     }
     deriving stock (Show, Functor, Generic)
@@ -186,10 +184,6 @@ type instance HasUniques (Term tyname name uni fun ann) =
     (HasUnique tyname TypeUnique, HasUnique name TermUnique)
 type instance HasUniques (Program tyname name uni fun ann) =
     HasUniques (Term tyname name uni fun ann)
-
--- | The default version of Plutus Core supported by this library.
-defaultVersion :: ann -> Version ann
-defaultVersion ann = Version ann 1 0 0
 
 typeAnn :: Type tyname uni ann -> ann
 typeAnn (TyVar ann _       ) = ann

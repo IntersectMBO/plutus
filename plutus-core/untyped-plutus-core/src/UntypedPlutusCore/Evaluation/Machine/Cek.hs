@@ -72,7 +72,6 @@ import PlutusCore.Quote
 import Control.Monad.Except
 import Control.Monad.State
 import Data.Bifunctor
-import Data.Ix (Ix)
 import Data.Text (Text)
 import Universe
 
@@ -92,11 +91,11 @@ A wrapper around the internal runCek to debruijn input and undebruijn output.
 *THIS FUNCTION IS PARTIAL if the input term contains free variables*
 -}
 runCek
-    :: (Ix fun, PrettyUni uni fun)
-    => MachineParameters CekMachineCosts CekValue uni fun
+    :: PrettyUni uni fun
+    => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> ExBudgetMode cost uni fun
     -> EmitterMode uni fun
-    -> Term Name uni fun ()
+    -> Term Name uni fun ann
     -> (Either (CekEvaluationException Name uni fun) (Term Name uni fun ()), cost, [Text])
 runCek params mode emitMode term =
     -- translating input
@@ -123,10 +122,10 @@ runCek params mode emitMode term =
 -- | Evaluate a term using the CEK machine with logging disabled and keep track of costing.
 -- *THIS FUNCTION IS PARTIAL if the input term contains free variables*
 runCekNoEmit
-    :: (Ix fun, PrettyUni uni fun)
-    => MachineParameters CekMachineCosts CekValue uni fun
+    :: PrettyUni uni fun
+    => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> ExBudgetMode cost uni fun
-    -> Term Name uni fun ()
+    -> Term Name uni fun ann
     -> (Either (CekEvaluationException Name uni fun) (Term Name uni fun ()), cost)
 runCekNoEmit params mode =
     -- throw away the logs
@@ -139,11 +138,11 @@ May throw a 'CekMachineException'.
 unsafeRunCekNoEmit
     :: ( Pretty (SomeTypeIn uni), Typeable uni
        , Closed uni, uni `Everywhere` PrettyConst
-       , Ix fun, Pretty fun, Typeable fun
+       , Pretty fun, Typeable fun
        )
-    => MachineParameters CekMachineCosts CekValue uni fun
+    => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
     -> ExBudgetMode cost uni fun
-    -> Term Name uni fun ()
+    -> Term Name uni fun ann
     -> (EvaluationResult (Term Name uni fun ()), cost)
 unsafeRunCekNoEmit params mode =
     -- Don't use 'first': https://github.com/input-output-hk/plutus/issues/3876
@@ -152,10 +151,10 @@ unsafeRunCekNoEmit params mode =
 -- | Evaluate a term using the CEK machine with logging enabled.
 -- *THIS FUNCTION IS PARTIAL if the input term contains free variables*
 evaluateCek
-    :: (Ix fun, PrettyUni uni fun)
+    :: PrettyUni uni fun
     => EmitterMode uni fun
-    -> MachineParameters CekMachineCosts CekValue uni fun
-    -> Term Name uni fun ()
+    -> MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+    -> Term Name uni fun ann
     -> (Either (CekEvaluationException Name uni fun) (Term Name uni fun ()), [Text])
 evaluateCek emitMode params =
     -- throw away the cost
@@ -164,9 +163,9 @@ evaluateCek emitMode params =
 -- | Evaluate a term using the CEK machine with logging disabled.
 -- *THIS FUNCTION IS PARTIAL if the input term contains free variables*
 evaluateCekNoEmit
-    :: (Ix fun, PrettyUni uni fun)
-    => MachineParameters CekMachineCosts CekValue uni fun
-    -> Term Name uni fun ()
+    :: PrettyUni uni fun
+    => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+    -> Term Name uni fun ann
     -> Either (CekEvaluationException Name uni fun) (Term Name uni fun ())
 evaluateCekNoEmit params = fst . runCekNoEmit params restrictingEnormous
 
@@ -175,11 +174,11 @@ evaluateCekNoEmit params = fst . runCekNoEmit params restrictingEnormous
 unsafeEvaluateCek
     :: ( Pretty (SomeTypeIn uni), Typeable uni
        , Closed uni, uni `Everywhere` PrettyConst
-       , Ix fun, Pretty fun, Typeable fun
+       , Pretty fun, Typeable fun
        )
     => EmitterMode uni fun
-    -> MachineParameters CekMachineCosts CekValue uni fun
-    -> Term Name uni fun ()
+    -> MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+    -> Term Name uni fun ann
     -> (EvaluationResult (Term Name uni fun ()), [Text])
 unsafeEvaluateCek emitTime params =
     -- Don't use 'first': https://github.com/input-output-hk/plutus/issues/3876
@@ -190,10 +189,10 @@ unsafeEvaluateCek emitTime params =
 unsafeEvaluateCekNoEmit
     :: ( Pretty (SomeTypeIn uni), Typeable uni
        , Closed uni, uni `Everywhere` PrettyConst
-       , Ix fun, Pretty fun, Typeable fun
+       , Pretty fun, Typeable fun
        )
-    => MachineParameters CekMachineCosts CekValue uni fun
-    -> Term Name uni fun ()
+    => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+    -> Term Name uni fun ann
     -> EvaluationResult (Term Name uni fun ())
 unsafeEvaluateCekNoEmit params = unsafeExtractEvaluationResult . evaluateCekNoEmit params
 
@@ -201,9 +200,9 @@ unsafeEvaluateCekNoEmit params = unsafeExtractEvaluationResult . evaluateCekNoEm
 -- *THIS FUNCTION IS PARTIAL if the input term contains free variables*
 readKnownCek
     :: ( ReadKnown (Term Name uni fun ()) a
-       , Ix fun, PrettyUni uni fun
+       , PrettyUni uni fun
        )
-    => MachineParameters CekMachineCosts CekValue uni fun
-    -> Term Name uni fun ()
+    => MachineParameters CekMachineCosts fun (CekValue uni fun ann)
+    -> Term Name uni fun ann
     -> Either (CekEvaluationException Name uni fun) a
 readKnownCek params = evaluateCekNoEmit params >=> readKnownSelf

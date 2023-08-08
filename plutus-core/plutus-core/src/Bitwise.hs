@@ -2,12 +2,15 @@
 {-# LANGUAGE ImpredicativeTypes #-}
 {-# LANGUAGE KindSignatures     #-}
 {-# LANGUAGE LambdaCase         #-}
+{-# LANGUAGE MagicHash          #-}
 {-# LANGUAGE MultiWayIf         #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TupleSections      #-}
 {-# LANGUAGE TypeApplications   #-}
 {-# LANGUAGE UnboxedSums        #-}
+{-# OPTIONS_GHC -fexpose-all-unfoldings #-}
 
+-- FIXME: Should be its own library
 module Bitwise (
   integerToByteString,
   byteStringToInteger,
@@ -23,11 +26,11 @@ module Bitwise (
   rotateByteString,
   ) where
 
-import Control.Monad (foldM, when)
-import Control.Monad.State.Strict (State, evalState, get, modify, put)
 import Data.Bits (FiniteBits, bit, complement, popCount, rotate, shift, shiftL, xor, zeroBits, (.&.), (.|.))
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
+import Data.ByteString.Internal (toForeignPtr0)
+import Data.ByteString.Short qualified as SBS
 import Data.ByteString.Unsafe (unsafePackMallocCStringLen, unsafeUseAsCString, unsafeUseAsCStringLen)
 import Data.Foldable (foldl', for_)
 import Data.Functor (void)
@@ -38,13 +41,16 @@ import Foreign.C.Types (CChar, CSize)
 import Foreign.Marshal.Alloc (mallocBytes)
 import Foreign.Ptr (Ptr, castPtr, plusPtr)
 import Foreign.Storable (Storable (peek, poke, sizeOf))
-import GHC.Exts (fromList, fromListN)
+import GHC.ForeignPtr (ForeignPtr (ForeignPtr))
 import GHC.IO.Handle.Text (memcpy)
+import GHC.Num.Integer (Integer (IN), integerFromAddr, integerToBigNatClamp#)
+import GHC.Prim (int2Word#)
+import GHC.Types (Int (I#))
 import PlutusCore.Builtin.Emitter (Emitter, emit)
 import PlutusCore.Evaluation.Result (EvaluationResult (EvaluationFailure))
 import System.IO.Unsafe (unsafeDupablePerformIO)
 
-{-# NOINLINE rotateByteString #-}
+-- | See 'PlutusTx.Builtins.rotateByteString'.
 rotateByteString :: ByteString -> Integer -> ByteString
 rotateByteString bs i
   -- If a ByteString is completely homogenous, rotating won't change it. This
@@ -52,17 +58,18 @@ rotateByteString bs i
   | isAllZero bs || isAllOne bs = bs
   -- Rotating by more than the number of bits in a ByteString 'wraps around',
   -- so we're only interested in the rotation modulo the number of bits.
-  | otherwise = case i `rem` bitLen of
+  | otherwise = case i `mod` bitLen of
             -- Means we have a multiple of the bit count, so nothing to do.
-            0         -> bs
-            magnitude -> overPtrLen bs $ \ptr len -> go ptr len magnitude
+            0            -> bs
+            displacement -> overPtrLen bs $ \ptr len -> go ptr len displacement
   where
+    -- not recursive!
     go :: Ptr Word8 -> Int -> Integer -> IO (Ptr Word8)
     go src len displacement = do
       dst <- mallocBytes len
       case len of
-        -- If we only have one byte, we an borrow from the Bits instance for
-        -- Word8.
+        -- If we only have one byte, we can borrow from the Bits instance for
+        -- Word8, since it rotates in the same direction that we want.
         1 -> do
           srcByte <- peek src
           let srcByte' = srcByte `rotate` fromIntegral displacement
@@ -70,16 +77,16 @@ rotateByteString bs i
         -- If we rotate by a multiple of 8, we only need to move around whole
         -- bytes, rather than individual bits. Because we only move contiguous
         -- blocks (regardless of rotation direction), we can do this using
-        -- memcpy, which is must faster, especially on larger ByteStrings.
+        -- memcpy, which is much faster, especially on larger ByteStrings.
         _ -> case displacement `quotRem` 8 of
           (bigMove, 0) -> do
-            let mainLen :: CSize = fromIntegral . abs $ bigMove
+            let mainLen :: CSize = fromIntegral $ bigMove
             let restLen :: CSize = fromIntegral len - mainLen
-            void $ case signum bigMove of
-              1 -> memcpy (plusPtr dst . fromIntegral $ restLen) src mainLen >>
-                   memcpy dst (plusPtr src . fromIntegral $ mainLen) restLen
-              _ -> memcpy (plusPtr dst . fromIntegral $ mainLen) src restLen >>
-                   memcpy dst (plusPtr src . fromIntegral $ restLen) mainLen
+            -- Copy the portion [..mainLen] to [restLen..],
+            -- and the portion [mainLen..] to [..restLen].
+            _ <- memcpy (plusPtr dst (fromIntegral restLen)) src mainLen
+            _ <- memcpy dst (plusPtr src (fromIntegral mainLen)) restLen
+            pure ()
           -- If we don't rotate by a multiple of 8, we have to construct new
           -- bytes, rather than just copying over old ones. We do this in two
           -- steps:
@@ -105,7 +112,7 @@ rotateByteString bs i
         then acc .|. (bit . fromIntegral $ offset)
         else acc
 
-{-# NOINLINE shiftByteString #-}
+-- | See 'PlutusTx.Builtins.shiftByteString.
 shiftByteString :: ByteString -> Integer -> ByteString
 shiftByteString bs i
   -- Shifting by the number of bits, or more, would zero everything anyway,
@@ -123,8 +130,8 @@ shiftByteString bs i
     go src len = do
       dst <- mallocBytes len
       case len of
-        -- If we only have one byte, we an borrow from the Bits instance for
-        -- Word8.
+        -- If we only have one byte, we can borrow from the Bits instance for
+        -- Word8, since it shifts in the same direction that we want.
         1 -> do
           srcByte <- peek src
           let srcByte' = srcByte `shift` fromIntegral i
@@ -163,6 +170,7 @@ shiftByteString bs i
            | dangerousRead bs possibleIx -> acc .|. (bit . fromIntegral $ offset)
            | otherwise                   -> acc
 
+-- | See 'PlutusTx.Builtins.findFirstSetByteString'.
 findFirstSetByteString :: ByteString -> Integer
 findFirstSetByteString bs = foldl' go (-1) [0 .. len - 1]
   where
@@ -175,6 +183,7 @@ findFirstSetByteString bs = foldl' go (-1) [0 .. len - 1]
     len :: Int
     len = BS.length bs
 
+-- | See 'PlutusTx.Builtins.testBitByteString.
 testBitByteString :: ByteString -> Integer -> Emitter (EvaluationResult Bool)
 testBitByteString bs i
   | i < 0 || i >= bitLen = indexOutOfBoundsError "testBitByteString" bitLen i
@@ -183,7 +192,7 @@ testBitByteString bs i
     bitLen :: Integer
     bitLen = fromIntegral $ BS.length bs * 8
 
-{-# NOINLINE writeBitByteString #-}
+-- | See 'PlutusTx.Builtins.writeBitByteString.
 writeBitByteString :: ByteString -> Integer -> Bool -> Emitter (EvaluationResult ByteString)
 writeBitByteString bs i b
   | i < 0 || i >= bitLen = indexOutOfBoundsError "writeBitByteString" bitLen i
@@ -223,51 +232,20 @@ writeBitByteString bs i b
       poke (castPtr . plusPtr dst $ bigIx) byte'
       unsafePackMallocCStringLen (dst, len)
 
-integerToByteString :: Integer -> ByteString
-integerToByteString i = case signum i of
-  0    -> BS.singleton zeroBits
-  (-1) -> twosCompToNegative . fromList . go . abs $ i
-  _    -> fromList . go $ i
-  where
-    -- We encode into Word8-sized 'limbs', using a stack to ensure that their
-    -- ordering is little-endian. Effectively, we encode as a base-256 number,
-    -- where the least significant digit is at the end.
-    go :: Integer -> [Word8]
-    go = \case
-      0 -> []
-      pos -> case pos `quotRem` 256 of
-        (d, r) -> go d <> [fromIntegral r]
+-- | See 'PlutusTx.Builtins.integerToByteString.
+{-# INLINE integerToByteString #-}
+integerToByteString :: Integer -> Maybe ByteString
+integerToByteString (IN _) = Nothing
+integerToByteString n      = Just $ fst $ BS.spanEnd (== 0) $ SBS.fromShort $ SBS.SBS (integerToBigNatClamp# n)
 
+-- | See 'PlutusTx.Builtins.byteStringToInteger.
+{-# INLINE byteStringToInteger #-}
 byteStringToInteger :: ByteString -> Integer
-byteStringToInteger bs = case BS.uncons bs of
-  Nothing -> 0
-  -- We have to take some care with representations of exact powers of 256, as
-  -- the two's complement in such a case is the identity function. Therefore, if
-  -- we find an 'unpadded' power, we have to presume that it's positive; if we
-  -- find a leading 0x80, but _something_ else is not a zero byte, we assume
-  -- it's negative instead.
-  Just (w8, bs') ->
-    let len = BS.length bs
-        f x = evalState (foldM (go x) 0 [len - 1, len - 2 .. 0]) 1 in
-      if | isPositivePowerOf256 w8 bs' -> f bs
-         | bit 7 .&. w8 == zeroBits    -> f bs
-         | otherwise                   -> negate . f . twosCompToPositive $ bs
-  where
-    -- This is essentially the opposite to encoding. However, because
-    -- ByteStrings can be indexed from the end in constant time, we don't need
-    -- to use something like a stack: instead, we start from the end, and
-    -- accumulate the radix base as we go, increasing the further along we get.
-    -- This is more efficient, as we'd otherwise first have to compute the
-    -- largest power of 256 we need, then divide down, essentially doing the
-    -- work _twice_.
-    go :: ByteString -> Integer -> Int -> State Integer Integer
-    go bs' acc i = do
-      mult <- get
-      let byte = BS.index bs' i
-      modify (256 *)
-      pure $ acc + (fromIntegral byte * mult)
+byteStringToInteger bs =
+  case toForeignPtr0 bs of
+    (ForeignPtr addr _, I# len) -> unsafeDupablePerformIO $ integerFromAddr (int2Word# len) addr (case 0 of I# n -> n)
 
-{-# NOINLINE popCountByteString #-}
+-- | See 'PlutusTx.Builtins.popCountByteString.
 popCountByteString :: ByteString -> Integer
 popCountByteString bs = unsafeDupablePerformIO . unsafeUseAsCStringLen bs $ go
   where
@@ -320,7 +298,7 @@ popCountByteString bs = unsafeDupablePerformIO . unsafeUseAsCStringLen bs $ go
 -- only option was to 'zip out' into a list, then rebuild. This is not only
 -- inefficient (as you can't do a 'big step, little step' approach to this in
 -- general), it also copies too much.
-{-# NOINLINE andByteString #-}
+-- | See 'PlutusTx.Builtins.andByteString.
 andByteString :: ByteString -> ByteString -> Emitter (EvaluationResult ByteString)
 andByteString bs bs'
   | BS.length bs /= BS.length bs' = mismatchedLengthError "andByteString" bs bs'
@@ -328,7 +306,7 @@ andByteString bs bs'
       unsafeUseAsCString bs' $ \ptr' ->
         zipBuild (.&.) ptr ptr' len >>= (unsafePackMallocCStringLen . (,len))
 
-{-# NOINLINE iorByteString #-}
+-- | See 'PlutusTx.Builtins.iorByteString.
 iorByteString :: ByteString -> ByteString -> Emitter (EvaluationResult ByteString)
 iorByteString bs bs'
   | BS.length bs /= BS.length bs' = mismatchedLengthError "iorByteString" bs bs'
@@ -336,7 +314,7 @@ iorByteString bs bs'
       unsafeUseAsCString bs' $ \ptr' ->
         zipBuild (.|.) ptr ptr' len >>= (unsafePackMallocCStringLen . (,len))
 
-{-# NOINLINE xorByteString #-}
+-- | See 'PlutusTx.Builtins.xorByteString.
 xorByteString :: ByteString -> ByteString -> Emitter (EvaluationResult ByteString)
 xorByteString bs bs'
   | BS.length bs /= BS.length bs' = mismatchedLengthError "xorByteString" bs bs'
@@ -349,7 +327,7 @@ xorByteString bs bs'
 -- two. Similar reasoning applies to why we made this choice as to the
 -- previous operations.
 
-{-# NOINLINE complementByteString #-}
+-- | See 'PlutusTx.Builtins.complementByteString.
 complementByteString :: ByteString -> ByteString
 complementByteString bs = unsafeDupablePerformIO . unsafeUseAsCStringLen bs $ \(ptr, len) -> do
   resPtr <- mallocBytes len
@@ -374,9 +352,6 @@ complementByteString bs = unsafeDupablePerformIO . unsafeUseAsCStringLen bs $ \(
           go dst src (offset + 1) lim
 
 -- Helpers
-
-isPositivePowerOf256 :: Word8 -> ByteString -> Bool
-isPositivePowerOf256 w8 bs = w8 == 0x80 && BS.all (== zeroBits) bs
 
 -- We compute the read similarly to how we determine the change when we write.
 -- The only difference is that the mask is used on the input to read it, rather
@@ -409,54 +384,7 @@ overPtrLen bs f = unsafeDupablePerformIO . unsafeUseAsCStringLen bs $
   \(ptr, len) -> f (castPtr ptr) len >>= \p ->
     unsafePackMallocCStringLen (castPtr p, len)
 
--- Two's complement in a signed, unbounded representation is somewhat
--- problematic: in our particular case, we hit this issue on exact powers of
--- 256. This issue stems from such values (or rather, the ByteString
--- representations of such) having a two's complement identical to themselves,
--- as well as a trailing 1. This means that we can't distinguish between a
--- _negative_ and a _positive_ power from representation alone, and must default
--- one way or the other.
---
--- Thus, when we want to produce a negative representation, we have to ensure
--- that we 'mark' the result in a way that ensures we can detect that it was
--- negative. We do this by padding with trailing ones.
-twosCompToNegative :: ByteString -> ByteString
-twosCompToNegative bs = case twosComp bs of
-  bs' -> if bs == bs'
-         then BS.cons (complement zeroBits) bs'
-         else bs'
-
--- If we're taking a two's complement to produce a positive representation,
--- padding doesn't matter, as any trailing ones become trailing zeroes.
-twosCompToPositive :: ByteString -> ByteString
-twosCompToPositive = twosComp
-
--- This is a fused version of the 'standard' definition of two's complement:
--- 'flip all bits then add one'. We do this in one pass to avoid having to
--- produce two ByteStrings, only to throw one away. This is done by tracking
--- the add carry manually, and walking over the representation from the highest
--- byte index downward: if the carry is still present, we attempt an 'add one'
--- there and then. This can cause the carry to become 'absorbed', in which case
--- we no longer need to track it; otherwise, we continue on, tracking the carry.
---
--- This operation has to be done byte-wise, as bigger blocks would make carry
--- tracking too difficult, which would probably dwarf any performance
--- improvements. Furthermore, it's not even clear if a 'big step, small step'
--- approach would even help here, as we're reading backwards (against prefetch
--- order), and likely from unaligned memory to boot (as GHC only guarantees
--- alignment from the _start_, not the _end_).
-twosComp :: ByteString -> ByteString
-twosComp bs = let len = BS.length bs in
-  evalState (fromListN len <$> foldM go [] [len - 1, len - 2 .. 0]) False
-  where
-    go :: [Word8] -> Int -> State Bool [Word8]
-    go acc i = do
-      let byte = BS.index bs i
-      added <- get
-      let byte' = if added then complement byte else complement byte + 1
-      when (byte /= byte') (put True)
-      pure $ byte' : acc
-
+-- Error used when lengths of inputs aren't equal.
 mismatchedLengthError :: forall (a :: Type) .
   Text ->
   ByteString ->
@@ -469,6 +397,7 @@ mismatchedLengthError loc bs bs' = do
   emit $ "Length of second argument: " <> (pack . show . BS.length $ bs')
   pure EvaluationFailure
 
+-- Error used when an out of bounds index is used to index a bytestring.
 indexOutOfBoundsError :: forall (a :: Type) .
   Text ->
   Integer ->

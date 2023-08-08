@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 # Compare the output from two runs of some Criterion benchmarks and produce a
 # markdown table showing the increase/decrease in execution time for each
 # benchmark.
@@ -9,8 +8,8 @@
 #    `cabal bench plutus-benchmarks:validation >results2 2>&1`
 # in another, then
 #    `bench-compare results1 results2 "Old results" "New results"`
-# to see the comparison.  The (optional) third and fourth arguments
-# will be used as column headers.
+# to see the comparison.  
+# The (optional) third and fourth arguments will be used as column headers.
 #
 # You probably want to do this on a quiet machine, with things like Slack and
 # browsers turned off.

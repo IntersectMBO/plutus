@@ -36,8 +36,10 @@ benchBasic mainLabel len =
         matchLabel = "$NF == \"" <> naiveLabel <> "\" && $(NF - 1) == \"" <> testLabel <> "\"" in
       bgroup testLabel [
         bench naiveLabel . nfIO $ bitSet False (len - 1) <$> xs,
-        bcompare matchLabel . bench cnaiveLabel . nfIO $ wrapper cBitSetNaive False (len - 1) <$> xs,
-        bcompare matchLabel . bench cmemcpyLabel . nfIO $ wrapper cBitSetMemcpy False (len - 1) <$> xs
+        bcompare matchLabel . bench cnaiveLabel . nfIO
+          $ wrapper cBitSetNaive False (len - 1) <$> xs,
+        bcompare matchLabel . bench cmemcpyLabel . nfIO
+          $ wrapper cBitSetMemcpy False (len - 1) <$> xs
         ]
 
 bitSet :: Bool -> Int -> ByteString -> Maybe ByteString

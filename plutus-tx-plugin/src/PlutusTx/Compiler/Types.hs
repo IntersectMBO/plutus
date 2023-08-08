@@ -3,13 +3,14 @@
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE Rank2Types        #-}
 {-# LANGUAGE TypeFamilies      #-}
 {-# LANGUAGE TypeOperators     #-}
 
-module PlutusTx.Compiler.Types (module PlutusTx.Compiler.Types,
-  Ann (..)) where
+module PlutusTx.Compiler.Types (
+    module PlutusTx.Compiler.Types,
+    module PlutusCore.Annotation
+    ) where
 
 import PlutusTx.Compiler.Error
 import PlutusTx.Coverage
@@ -17,13 +18,14 @@ import PlutusTx.PLCTypes
 
 import PlutusIR.Compiler.Definitions
 
+import PlutusCore.Annotation
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Default qualified as PLC
 import PlutusCore.Quote
-import PlutusTx.Annotation
 
-import FamInstEnv qualified as GHC
-import GhcPlugins qualified as GHC
+import GHC qualified
+import GHC.Core.FamInstEnv qualified as GHC
+import GHC.Plugins qualified as GHC
 
 import Control.Monad.Except
 import Control.Monad.Reader
@@ -57,6 +59,16 @@ data CompileContext uni fun = CompileContext {
     ccModBreaks   :: Maybe GHC.ModBreaks,
     ccBuiltinVer  :: PLC.BuiltinVersion fun
     }
+
+-- | Verbosity level of the Plutus Tx compiler.
+data Verbosity =
+    Quiet
+    | Verbose
+    | Debug
+    deriving stock (Eq, Show)
+
+instance Pretty Verbosity where
+    pretty = viaShow
 
 -- | Profiling options. @All@ profiles everything. @None@ is the default.
 data ProfileOpts =
@@ -160,7 +172,7 @@ stableModuleCmp :: GHC.Module -> GHC.Module -> Ordering
 stableModuleCmp m1 m2 =
     (GHC.moduleName m1 `GHC.stableModuleNameCmp` GHC.moduleName m2) <>
     -- See Note [Stable name comparisons]
-    (GHC.moduleUnitId m1 `GHC.stableUnitIdCmp` GHC.moduleUnitId m2)
+    (GHC.moduleUnit m1 `GHC.stableUnitCmp` GHC.moduleUnit m2)
 
 -- See Note [Scopes]
 type Compiling uni fun m ann =

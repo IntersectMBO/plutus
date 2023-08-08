@@ -1,0 +1,23 @@
+(let
+  (nonrec)
+  (termbind
+    (nonstrict)
+    (vardecl x (con integer))
+    [ [ (builtin addInteger) (con integer 1) ] (con integer 2) ]
+  )
+  (termbind
+    (strict)
+    (vardecl f (all t (type) (con integer)))
+    (abs
+      t
+      (type)
+      x
+    )
+  )
+  [
+    [ (builtin addInteger) { f (con integer) } ]
+    { f (con integer) }
+  ]
+)
+-- In conservative float-in, `x` should not be floated into the type abstraction in the RHS of `f`,
+-- since `f` is used twice.

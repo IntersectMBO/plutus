@@ -64,19 +64,20 @@ import PlutusTx.Prelude as TxPrelude hiding (abs, sortBy)
 
 %-}
 
-
--- The different algorithms implemented in this file. The program iterates the
--- solver over this list of algortihms.
-
-allAlgorithms :: [Labeler]
-allAlgorithms = [bt, bm, bjbt, bjbt', fc]
-
 data Algorithm = Bt
                | Bm
                | Bjbt1
                | Bjbt2
                | Fc
                deriving stock (Haskell.Show, Haskell.Read)
+
+Tx.makeLift ''Algorithm
+
+-- The different algorithms implemented in this file. The program iterates the
+-- solver over this list of algortihms.
+
+allAlgorithms :: [Labeler]
+allAlgorithms = [bt, bm, bjbt, bjbt', fc]
 
 {-# INLINABLE lookupAlgorithm #-}
 lookupAlgorithm :: Algorithm -> Labeler
@@ -493,5 +494,4 @@ domainWipeOut CSP{vars=vars} t = mapTree f t
           where wipedDomains = ([vs | vs <- tbl, all (knownConflict) vs])
                 cs' = if null wipedDomains then cs else Known (collect (head wipedDomains))
 
-Tx.makeLift ''Algorithm
 Tx.makeLift ''Assign

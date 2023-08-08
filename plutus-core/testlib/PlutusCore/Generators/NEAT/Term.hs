@@ -189,9 +189,7 @@ convertType tns _ (TyVarG i) =
 convertType tns (Type _) (TyFunG ty1 ty2) =
   TyFun () <$> convertType tns (Type ()) ty1 <*> convertType tns (Type ()) ty2
 convertType tns (Type _) (TyIFixG ty1 k ty2) =
-  TyIFix () <$> convertType tns k' ty1 <*> convertType tns k ty2
-  where
-    k' = KindArrow () (KindArrow () k (Type ())) (KindArrow () k (Type ()))
+  TyIFix () <$> convertType tns (toPatFuncKind k) ty1 <*> convertType tns k ty2
 convertType tns (Type _) (TyForallG k ty) = do
   tns' <- extTyNameState tns
   TyForall () (tynameOf tns' FZ) k <$> convertType tns' (Type ()) ty
@@ -259,11 +257,13 @@ convertTerm tns ns _ (TyInstG tm cod ty k) =
 convertTerm _tns _ns _ (ConstantG c) =
   return $ Constant () (convertTermConstant c)
 convertTerm _tns _ns _ (BuiltinG b) = return $ Builtin () b
-convertTerm tns ns (TyIFixG ty1 k ty2) (WrapG tm) = IWrap () <$> convertType tns k' ty1 <*> convertType tns k ty2 <*> convertTerm tns ns (normalizeTypeG ty') tm
+convertTerm tns ns (TyIFixG ty1 k ty2) (WrapG tm) = IWrap ()
+    <$> convertType tns (toPatFuncKind k) ty1
+    <*> convertType tns k ty2
+    <*> convertTerm tns ns (normalizeTypeG ty') tm
   where
-  k'  = KindArrow () (KindArrow () k (Type ())) (KindArrow () k (Type ()))
-  -- Γ ⊢ A · ƛ (μ (weaken A) (` Z)) · B
-  ty' = TyAppG (TyAppG ty1 (TyLamG (TyIFixG (weakenTy ty1) k (TyVarG FZ))) (KindArrow () k (Type ()))) ty2 k
+    -- Γ ⊢ A · ƛ (μ (weaken A) (` Z)) · B
+    ty' = TyAppG (TyAppG ty1 (TyLamG (TyIFixG (weakenTy ty1) k (TyVarG FZ))) (KindArrow () k (Type ()))) ty2 k
 convertTerm tns ns _ (UnWrapG ty1 k ty2 tm) = Unwrap () <$> convertTerm tns ns (TyIFixG ty1 k ty2) tm
 convertTerm tns _ns _ (ErrorG ty) = Error () <$> convertType tns (Type ()) ty
 convertTerm _ _ ty tm = throwError $ BadTermG ty tm
@@ -319,8 +319,7 @@ checkKindG kcs (Type _) (TyFunG ty1 ty2)
 checkKindG kcs (Type _) (TyIFixG ty1 k ty2)
   = ty1KindOk &&& ty2KindOk
   where
-    ty1Kind   =
-      KindArrow () (KindArrow () k (Type ())) (KindArrow () k (Type ()))
+    ty1Kind   = toPatFuncKind k
     ty1KindOk = checkKindG kcs ty1Kind ty1
     ty2KindOk = checkKindG kcs k ty2
 
@@ -472,13 +471,13 @@ checkTypeG kcs tcs vTy (TyInstG tm vCod ty k)
 checkTypeG _kcs _tcs tc (ConstantG c) = check tc c
 checkTypeG kcs tcs (TyIFixG ty1 k ty2) (WrapG tm) = ty1Ok &&& ty2Ok &&& tmOk
   where
-    ty1Ok = checkKindG kcs (KindArrow () (KindArrow () k (Type ())) (KindArrow () k (Type ()))) ty1
+    ty1Ok = checkKindG kcs (toPatFuncKind k) ty1
     ty2Ok = checkKindG kcs k ty2
     tmTy  = TyAppG (TyAppG ty1 (TyLamG (TyIFixG (weakenTy ty1) k (TyVarG FZ))) (KindArrow () k (Type ()))) ty2 k
     tmOk  = checkTypeG kcs tcs (normalizeTypeG tmTy) tm
 checkTypeG kcs tcs vTy (UnWrapG ty1 k ty2 tm) = ty1Ok &&& ty2Ok &&& tmOk &&& vTyOk
   where
-    ty1Ok = checkKindG kcs (KindArrow () (KindArrow () k (Type ())) (KindArrow () k (Type ()))) ty1
+    ty1Ok = checkKindG kcs (toPatFuncKind k) ty1
     ty2Ok = checkKindG kcs k ty2
     tmOk  = checkTypeG kcs tcs (TyIFixG ty1 k ty2) tm
     vTyOk = vTy == normalizeTypeG (TyAppG (TyAppG ty1 (TyLamG (TyIFixG (weakenTy ty1) k (TyVarG FZ))) (KindArrow () k (Type ()))) ty2 k)

@@ -22,12 +22,12 @@ import PlutusTx.Prelude (dropByteString, one, takeByteString)
 import PlutusTx.Ratio (Rational, denominator, numerator, recip, unsafeRatio)
 import PlutusTx.Sqrt (Sqrt (Approximately, Exactly, Imaginary), isqrt, rsqrt)
 import Prelude hiding (Enum (..), Rational, negate, recip)
+import Rational.Laws (lawsTests)
 import Show.Spec qualified
-import Suites.Laws (lawsTests)
 import Test.Tasty (TestTree, defaultMain, testGroup)
 import Test.Tasty.Extras (runTestNestedIn)
-import Test.Tasty.HUnit (Assertion, testCase, (@?=))
 import Test.Tasty.Hedgehog (testPropertyNamed)
+import Test.Tasty.HUnit (Assertion, testCase, (@?=))
 
 main :: IO ()
 main = defaultMain tests

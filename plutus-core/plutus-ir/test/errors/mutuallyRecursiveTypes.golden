@@ -1,1 +1,1 @@
-E003: Unsupported construct: Mutually recursive datatypes ((recursive) let binding; from mutuallyRecursiveTypes:4:2)
+Unsupported construct: Mutually recursive datatypes ((recursive) let binding; from mutuallyRecursiveTypes:4:1-24:1)

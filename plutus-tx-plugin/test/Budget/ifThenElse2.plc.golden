@@ -1,0 +1,17 @@
+let
+  ~a : integer = addInteger 1 2
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+in
+Bool_match
+  (ifThenElse {Bool} (lessThanInteger 3 4) True False)
+  {integer -> integer}
+  (\(x : integer) -> addInteger x 5)
+  (\(x : integer) ->
+     let
+       !x : integer = let !y : integer = a in addInteger x y
+       !y : integer = a
+     in
+     addInteger x y)
+  (addInteger 6 7)

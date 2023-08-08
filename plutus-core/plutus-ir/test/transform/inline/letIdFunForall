@@ -1,0 +1,19 @@
+{- 
+A single occurrence polymorphic identity function. It should get inlined by the unconditional 
+inlining optimization.
+
+let
+    idFun :: forall a. a -> a
+    idFun x = x
+in idFun @Integer 3
+-}
+
+(let
+    (nonrec)
+    (termbind
+      (strict)
+      (vardecl idFun (all a (type) (fun a a)))
+      (abs a (type) (lam x a x))
+    )
+    [ { idFun (con integer) } (con integer 3) ]
+)

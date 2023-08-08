@@ -197,10 +197,9 @@ instance Monoid ExBudget where
     mempty = ExBudget mempty mempty
 
 instance Pretty ExBudget where
-    pretty (ExBudget cpu memory) = parens $ fold
-        [ "{ cpu: ", pretty cpu, line
-        , "| mem: ", pretty memory, line
-        , "}"
+    pretty (ExBudget cpu memory) = parens $ braces $ vsep
+        [ "cpu:" <+> pretty cpu
+        , "| mem:" <+> pretty memory
         ]
 
 newtype ExRestrictingBudget = ExRestrictingBudget
@@ -212,5 +211,4 @@ newtype ExRestrictingBudget = ExRestrictingBudget
 -- | When we want to just evaluate the program we use the 'Restricting' mode with an enormous
 -- budget, so that evaluation costs of on-chain budgeting are reflected accurately in benchmarks.
 enormousBudget :: ExRestrictingBudget
-enormousBudget = ExRestrictingBudget $ ExBudget (ExCPU maxInt) (ExMemory maxInt)
-                 where maxInt = fromIntegral (maxBound ::Int)
+enormousBudget = ExRestrictingBudget $ ExBudget maxBound maxBound
