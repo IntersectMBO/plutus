@@ -26,12 +26,14 @@ module Bitwise (
   rotateByteString,
   ) where
 
-import Data.Bits (FiniteBits, bit, complement, popCount, rotate, shift, shiftL, xor, zeroBits, (.&.), (.|.))
+import Data.Bits (FiniteBits, bit, complement, popCount, rotate, shift, shiftL, xor, zeroBits,
+                  (.&.), (.|.))
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.ByteString.Internal (toForeignPtr0)
 import Data.ByteString.Short qualified as SBS
-import Data.ByteString.Unsafe (unsafePackMallocCStringLen, unsafeUseAsCString, unsafeUseAsCStringLen)
+import Data.ByteString.Unsafe (unsafePackMallocCStringLen, unsafeUseAsCString,
+                               unsafeUseAsCStringLen)
 import Data.Foldable (foldl', for_)
 import Data.Functor (void)
 import Data.Kind (Type)
