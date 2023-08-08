@@ -1,3 +1,4 @@
+-- Scalar multiplication gives the correct result.
 (program 1.0.0
  [
   [

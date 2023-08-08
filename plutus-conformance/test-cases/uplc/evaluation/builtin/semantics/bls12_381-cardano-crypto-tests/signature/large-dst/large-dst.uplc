@@ -1,3 +1,4 @@
+-- Check that the procedure for using a DST greater than 255 bytes long gives the expected result.
 (program
  1.0.0
  [

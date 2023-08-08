@@ -1,3 +1,5 @@
+-- Check that a signature involving an agumentation string prepended to a message
+-- is as expected.
 (program
  1.0.0
  [
