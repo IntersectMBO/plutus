@@ -7,8 +7,10 @@ module PlutusCore.Pretty
     , IgnorePrettyConfig (..)
     , AttachPrettyConfig (..)
     , Render (..)
+    , PrettyParens
     , display
     , displayBy
+    , juxtRenderContext
     -- * Defaults
     , prettyPlcDef
     , displayPlcDef
@@ -16,6 +18,7 @@ module PlutusCore.Pretty
     , displayPlcDebug
     -- * Global configuration
     , CondensedErrors (..)
+    , DefaultPrettyPlcStrategy
     , PrettyConfigPlcOptions (..)
     , PrettyConfigPlcStrategy (..)
     , PrettyConfigPlc (..)
@@ -52,16 +55,27 @@ module PlutusCore.Pretty
     , pcrShowKinds
     , PrettyReadableBy
     , PrettyReadable
+    , AsReadable (..)
+    , Parened (..)
+    , inBraces
     , topPrettyConfigReadable
     , botPrettyConfigReadable
     , binderFixity
     , arrowFixity
+    , iterTyForallPrettyM
+    , iterLamAbsPrettyM
+    , iterTyAbsPrettyM
+    , iterArrowPrettyM
+    , iterAppDocM
+    , iterInterAppPrettyM
+    , iterAppPrettyM
     -- * Utils
     , prettyBytes
     , ConstConfig (..)
     , PrettyConst
+    , PrettyUni
+    , ThrowableBuiltins
     , prettyConst
-    , displayConst
     , module Export
     ) where
 
@@ -76,5 +90,4 @@ import PlutusCore.Pretty.Utils
 
 import Text.Pretty
 import Text.PrettyBy
-
 import Text.PrettyBy.Fixity as Export

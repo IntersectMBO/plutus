@@ -28,6 +28,7 @@ module UntypedPlutusCore.Core.Type
 import Control.Lens
 import PlutusPrelude
 
+import Data.Word
 import PlutusCore.Builtin qualified as TPLC
 import PlutusCore.Core qualified as TPLC
 import PlutusCore.MkPlc
@@ -80,8 +81,18 @@ data Term name uni fun ann
     -- This is the cutoff at which constructors won't get pointer tags
     -- See Note [Term constructor ordering and numbers]
     | Error !ann
-    deriving stock (Show, Functor, Generic)
-    deriving anyclass (NFData)
+    -- TODO: worry about overflow, maybe use an Integer
+    -- TODO: try spine-strict list or strict list or vector
+    -- See Note [Constr tag type]
+    | Constr !ann !Word64 ![Term name uni fun ann]
+    | Case !ann !(Term name uni fun ann) ![Term name uni fun ann]
+    deriving stock (Functor, Generic)
+
+deriving stock instance (Show name, GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
+    => Show (Term name uni fun ann)
+
+deriving anyclass instance (NFData name, NFData fun, NFData ann, Everywhere uni NFData, Closed uni)
+    => NFData (Term name uni fun ann)
 
 -- | A 'Program' is simply a 'Term' coupled with a 'Version' of the core language.
 data Program name uni fun ann = Program
@@ -89,9 +100,14 @@ data Program name uni fun ann = Program
     , _progVer  :: TPLC.Version
     , _progTerm :: Term name uni fun ann
     }
-    deriving stock (Show, Functor, Generic)
-    deriving anyclass (NFData)
+    deriving stock (Functor, Generic)
 makeLenses ''Program
+
+deriving stock instance (Show name, GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
+    => Show (Program name uni fun ann)
+
+deriving anyclass instance (NFData name, Everywhere uni NFData, NFData fun, NFData ann, Closed uni)
+    => NFData (Program name uni fun ann)
 
 type instance TPLC.UniOf (Term name uni fun ann) = uni
 
@@ -106,6 +122,8 @@ instance TermLike (Term name uni fun) TPLC.TyName name uni fun where
     unwrap   = const id
     iWrap    = \_ _ _ -> id
     error    = \ann _ -> Error ann
+    constr   = \ann _ i es -> Constr ann i es
+    kase     = \ann _ arg cs -> Case ann arg cs
 
 instance TPLC.HasConstant (Term name uni fun ()) where
     asConstant (Constant _ val) = pure val
@@ -133,6 +151,8 @@ termAnn (Apply ann _ _)  = ann
 termAnn (Delay ann _)    = ann
 termAnn (Force ann _)    = ann
 termAnn (Error ann)      = ann
+termAnn (Constr ann _ _) = ann
+termAnn (Case ann _ _)   = ann
 
 bindFunM
     :: Monad m
@@ -148,6 +168,8 @@ bindFunM f = go where
     go (Delay ann term)       = Delay ann <$> go term
     go (Force ann term)       = Force ann <$> go term
     go (Error ann)            = pure $ Error ann
+    go (Constr ann i args)    = Constr ann i <$> traverse go args
+    go (Case ann arg cs)      = Case ann <$> go arg <*> traverse go cs
 
 bindFun
     :: (ann -> fun -> Term name uni fun' ann)

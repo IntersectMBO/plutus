@@ -14,20 +14,15 @@ import PlutusPrelude
 
 import UntypedPlutusCore.Core.Type
 
-import PlutusCore.Core.Instance.Pretty.Common ()
 import PlutusCore.Pretty.Classic
 import PlutusCore.Pretty.PrettyConst
 
 import Prettyprinter
 import Prettyprinter.Custom
-import Universe
+import Universe (Some (..), SomeTypeIn (SomeTypeIn), ValueOf (..))
 
-instance
-        ( PrettyClassicBy configName name
-        , Pretty (SomeTypeIn uni)
-        , Closed uni, uni `Everywhere` PrettyConst, Pretty fun
-        , Pretty ann
-        ) => PrettyBy (PrettyConfigClassic configName) (Term name uni fun ann) where
+instance (PrettyClassicBy configName name, PrettyUni uni, Pretty fun, Pretty ann) =>
+        PrettyBy (PrettyConfigClassic configName) (Term name uni fun ann) where
     prettyBy config = \case
         Var ann n ->
             sep (consAnnIf config ann [prettyBy config n])
@@ -50,9 +45,13 @@ instance
         Force ann term ->
             sexp "force" (consAnnIf config ann
                 [prettyBy config term])
+        Constr ann i es ->
+            sexp "constr" (consAnnIf config ann (pretty i : fmap (prettyBy config) es))
+        Case ann arg cs ->
+            sexp "case" (consAnnIf config ann (prettyBy config arg : fmap (prettyBy config) cs))
       where
-        prettyTypeOf :: Pretty (SomeTypeIn t) => Some (ValueOf t) -> Doc dann
-        prettyTypeOf (Some (ValueOf uni _ )) = pretty $ SomeTypeIn uni
+        prettyTypeOf :: Some (ValueOf uni) -> Doc dann
+        prettyTypeOf (Some (ValueOf uni _ )) = prettyBy juxtRenderContext $ SomeTypeIn uni
 
 instance (PrettyClassicBy configName (Term name uni fun ann), Pretty ann) =>
         PrettyBy (PrettyConfigClassic configName) (Program name uni fun ann) where

@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 module Solver where
 
 import AlgTypes
@@ -8,7 +7,8 @@ import Data.Set qualified as S
 -- Identifying Systems of Mutually Recursive Types --
 -----------------------------------------------------
 
--- 'directReferences sig d'  is the set of declarations directly referred to by name in the definition of d.
+-- 'directReferences sig d'  is the set of declarations directly referred to by name in the
+-- definition of d.
 directReferences :: AlgSignature -> Decl AlgType -> AlgSignature
 directReferences sig (Decl _ t) = S.filter referredTo sig
   where

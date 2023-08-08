@@ -9,14 +9,20 @@ module Main (
     main,
 ) where
 
+import Control.Monad.Trans.Except
 import Data.Foldable (for_)
 import Data.Text.IO qualified as T
+import MAlonzo.Code.Main (runUAgda)
 import Options.Applicative
 import Options.Applicative.Help.Pretty (Doc, string)
 import PlutusConformance.Common
-import PlutusCore.Error (ParserErrorBundle (ParseErrorB))
+import PlutusCore.Error (Error (..), ParserErrorBundle (ParseErrorB))
 import PlutusCore.Pretty (Pretty (pretty), Render (render))
+import PlutusCore.Quote (Quote, runQuote)
 import Test.Tasty.Golden (findByExtension)
+import UntypedPlutusCore (DefaultFun, DefaultUni)
+import UntypedPlutusCore qualified as UPLC
+import UntypedPlutusCore.DeBruijn
 
 -- |  The arguments to the executable.
 data Args = MkArgs
@@ -149,3 +155,38 @@ main = do
                             (Left err) ->
                                 -- warn the user that the file failed to evaluate
                                 putStrLn $ inputFile <> " failed to evaluate. " <> err
+
+-- | For debugging failed UPLC evaluation tests (Agda implementation). Called by `test-utils`.
+agdaEvalUplcProgDebug :: UplcProg -> Either String UplcProg
+agdaEvalUplcProgDebug (UPLC.Program () version tmU) =
+    let
+        -- turn it into an untyped de Bruijn term
+        tmUDB :: ExceptT FreeVariableError Quote (UPLC.Term NamedDeBruijn DefaultUni DefaultFun ())
+        tmUDB = deBruijnTerm tmU
+    in
+    case runQuote $ runExceptT $ withExceptT FreeVariableErrorE tmUDB of
+        -- if there's an exception, evaluation failed, should return `Nothing`.
+        Left fvError ->
+            Left $ "deBruijnTerm returned an error: "
+                <> show (fvError :: Error DefaultUni DefaultFun ())
+        -- evaluate the untyped term with CEK
+        Right tmUDBSuccess ->
+            case runUAgda tmUDBSuccess of
+                Left evalError ->
+                    Left $ "runUAgda returned an error: " <> show evalError <>
+                        "The input to runUAgda was " <> show tmUDBSuccess <>
+                        ", returned by deBruijnTerm."
+                Right tmEvaluated ->
+                    let tmNamed = runQuote $ runExceptT $
+                            withExceptT FreeVariableErrorE $ unDeBruijnTerm tmEvaluated
+                    in
+                    -- turn it back into a named term
+                    case tmNamed of
+                        Left (err :: Error DefaultUni DefaultFun ())          ->
+                            Left $
+                                "unDeBruijnTerm returned an error: " <> show err <>
+                                "The input to unDebruijnTerm was " <> show tmEvaluated <>
+                                ", returned by runUAgda." <>
+                                "The input to runUAgda was " <> show tmUDBSuccess <>
+                                ", returned by deBruijnTerm."
+                        Right namedTerm -> Right $ UPLC.Program () version namedTerm

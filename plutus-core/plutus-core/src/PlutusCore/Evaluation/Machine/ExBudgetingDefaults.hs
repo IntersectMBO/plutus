@@ -177,4 +177,39 @@ unitCostBuiltinCostModel = BuiltinCostModelBase
     , paramMkNilData                       = unitCostOneArgument
     , paramMkNilPairData                   = unitCostOneArgument
     , paramSerialiseData                   = unitCostOneArgument
+    -- BLS12-381 operations
+    , paramBls12_381_G1_add                = unitCostTwoArguments
+    , paramBls12_381_G1_neg                = unitCostOneArgument
+    , paramBls12_381_G1_scalarMul          = unitCostTwoArguments
+    , paramBls12_381_G1_equal              = unitCostTwoArguments
+    , paramBls12_381_G1_compress           = unitCostOneArgument
+    , paramBls12_381_G1_uncompress         = unitCostOneArgument
+    , paramBls12_381_G1_hashToGroup        = unitCostTwoArguments
+    , paramBls12_381_G2_add                = unitCostTwoArguments
+    , paramBls12_381_G2_neg                = unitCostOneArgument
+    , paramBls12_381_G2_scalarMul          = unitCostTwoArguments
+    , paramBls12_381_G2_equal              = unitCostTwoArguments
+    , paramBls12_381_G2_compress           = unitCostOneArgument
+    , paramBls12_381_G2_uncompress         = unitCostOneArgument
+    , paramBls12_381_G2_hashToGroup        = unitCostTwoArguments
+    , paramBls12_381_millerLoop            = unitCostTwoArguments
+    , paramBls12_381_mulMlResult           = unitCostTwoArguments
+    , paramBls12_381_finalVerify           = unitCostTwoArguments
+    -- Keccak_256, Blake2b_224
+    , paramKeccak_256                      = unitCostOneArgument
+    , paramBlake2b_224                     = unitCostOneArgument
+    -- Bitwise operations
+    , paramIntegerToByteString             = unitCostOneArgument
+    , paramByteStringToInteger             = unitCostOneArgument
+    , paramAndByteString                   = unitCostTwoArguments
+    , paramIorByteString                   = unitCostTwoArguments
+    , paramXorByteString                   = unitCostTwoArguments
+    , paramComplementByteString            = unitCostOneArgument
+    , paramShiftByteString                 = unitCostTwoArguments
+    , paramRotateByteString                = unitCostTwoArguments
+    , paramPopCountByteString              = unitCostOneArgument
+    , paramTestBitByteString               = unitCostTwoArguments
+    , paramWriteBitByteString              = unitCostThreeArguments
+    , paramFindFirstSetByteString          = unitCostOneArgument
     }
+

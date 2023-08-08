@@ -1,0 +1,12 @@
+(let
+  (nonrec)
+  (datatypebind
+    (datatype
+      (tyvardecl Bool (type))
+
+      Bool_match
+      (vardecl True Bool) (vardecl False Bool)
+    )
+  )
+  { (abs dead (type) (con integer 1)) (all dead (type) dead) }
+)

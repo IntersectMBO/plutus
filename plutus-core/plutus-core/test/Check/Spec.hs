@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
@@ -15,7 +14,6 @@ import PlutusCore.Generators.Hedgehog.AST
 import PlutusCore.MkPlc
 
 import Control.Monad.Except
-import Data.Either
 import Hedgehog hiding (Var)
 import Test.Tasty
 import Test.Tasty.Hedgehog
@@ -88,10 +86,13 @@ propRenameCheck = property $ do
     annotateShow $ ShowPretty renamed
     Hedgehog.evalExceptT $ checkUniques renamed
         where
-            checkUniques :: (Ord a, MonadError (UniqueError a) m) => Program TyName Name uni fun a -> m ()
-            -- the renamer will fix incoherency between *bound* variables, but it ignores free variables, so
-            -- we can still get incoherent usage errors, ignore them for now
-            checkUniques = Uniques.checkProgram (\case { FreeVariable{} -> False; IncoherentUsage {} -> False; _ -> True})
+            checkUniques :: (Ord a, MonadError (UniqueError a) m)
+                => Program TyName Name uni fun a -> m ()
+            -- the renamer will fix incoherency between *bound* variables, but it ignores free
+            -- variables, so we can still get incoherent usage errors, ignore them for now
+            checkUniques =
+                Uniques.checkProgram
+                    (\case { FreeVariable{} -> False; IncoherentUsage {} -> False; _ -> True})
 
 values :: TestTree
 values = runQuote $ do
@@ -132,8 +133,8 @@ normalTypes = runQuote $ do
         , testCase "lamNonNormal" $ Normal.isNormalType (TyLam () aN (Type ()) nonNormal) @?= False
 
         , testCase "forallNormal" $ Normal.isNormalType (TyForall () aN (Type ()) normal) @?= True
-        , testCase "forallNonNormal" $ Normal.isNormalType (TyForall () aN (Type ()) nonNormal) @?= False
-
+        , testCase "forallNonNormal"
+            $ Normal.isNormalType (TyForall () aN (Type ()) nonNormal) @?= False
         , testCase "ifixNormal" $ Normal.isNormalType (TyIFix () normal normal) @?= True
         , testCase "ifixNonNormal" $ Normal.isNormalType (TyIFix () nonNormal normal) @?= False
 
@@ -154,12 +155,15 @@ normalTypesCheck = runQuote $ do
         nonNormal = TyApp () (TyLam () aN (Type ()) aV) normal
     pure $ testGroup "normalized types check" [
         testCase "lamNormal" $ isRight (checkNormal (LamAbs () xN normal xV)) @? "Normalization"
-        , testCase "lamNonNormal" $ isLeft (checkNormal (LamAbs () xN nonNormal xV)) @? "Normalization"
+        , testCase "lamNonNormal" $
+            isLeft (checkNormal (LamAbs () xN nonNormal xV)) @? "Normalization"
 
         , testCase "abs" $ isRight (checkNormal (TyAbs () aN (Type ()) xV)) @? "Normalization"
 
-        , testCase "wrapNormal" $ isRight (checkNormal (IWrap () normal normal xV)) @? "Normalization"
-        , testCase "wrapNonNormal" $ isLeft (checkNormal (IWrap () nonNormal nonNormal xV)) @? "Normalization"
+        , testCase "wrapNormal" $
+            isRight (checkNormal (IWrap () normal normal xV)) @? "Normalization"
+        , testCase "wrapNonNormal" $
+            isLeft (checkNormal (IWrap () nonNormal nonNormal xV)) @? "Normalization"
 
         , testCase "unwrap" $ isRight (checkNormal (Unwrap () xV)) @? "Normalization"
 
@@ -169,8 +173,10 @@ normalTypesCheck = runQuote $ do
         , testCase "errorNonNormal" $ isLeft (checkNormal (Error () nonNormal)) @? "Normalization"
 
         , testCase "constant" $ isRight (checkNormal (mkConstant @Integer () 2)) @? "Normalization"
+
         , testCase "builtin" $ isRight (checkNormal (Builtin () AddInteger)) @? "Normalization"
       ]
         where
-            checkNormal :: Term TyName Name DefaultUni DefaultFun () -> Either (Normal.NormCheckError TyName Name DefaultUni DefaultFun ()) ()
+            checkNormal :: Term TyName Name DefaultUni DefaultFun ()
+                -> Either (Normal.NormCheckError TyName Name DefaultUni DefaultFun ()) ()
             checkNormal = Normal.checkTerm

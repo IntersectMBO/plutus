@@ -3,6 +3,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeFamilies        #-}
+{-# LANGUAGE TypeOperators       #-}
 {-# LANGUAGE ViewPatterns        #-}
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 module PlutusIR.Transform.LetFloatOut (floatTerm) where
@@ -302,6 +303,8 @@ removeLets marks term = runWriter $ go term
         LamAbs a name ty t -> LamAbs a name ty <$> go t
         IWrap a ty1 ty2 t -> IWrap a ty1 ty2 <$> go t
         Unwrap a t -> Unwrap a <$> go t
+        Constr a ty i es -> Constr a ty i <$> traverse go es
+        Case a ty arg cs -> Case a ty <$> go arg <*> traverse go cs
 
         -- no term inside here, nothing to do
         t@Var{} -> pure t

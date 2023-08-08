@@ -4,6 +4,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
+{-# LANGUAGE TypeOperators       #-}
 
 module TypeSynthesis.Spec
     ( test_typecheck
@@ -15,14 +16,14 @@ import PlutusCore
 import PlutusCore.Builtin
 import PlutusCore.Error
 import PlutusCore.FsTree
-import PlutusCore.MkPlc
 import PlutusCore.Pretty
 
 import PlutusCore.Examples.Builtins
 import PlutusCore.Examples.Everything (builtins, examples)
 import PlutusCore.StdLib.Everything (stdLib)
 
-import Control.Monad.Except
+import Control.Monad (unless)
+import Control.Monad.Except (MonadError, runExcept)
 import System.FilePath ((</>))
 import Test.Tasty
 import Test.Tasty.Extras

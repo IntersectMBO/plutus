@@ -1,1 +1,0 @@
-\a -> ifix (\(self :: * -> *) -> \a -> self a -> a) a

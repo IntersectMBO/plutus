@@ -50,7 +50,7 @@ tests = testNested "TH" [
     , goldenEvalCekLog "tracePrelude" [tracePrelude]
     , goldenEvalCekLog "traceRepeatedly" [traceRepeatedly]
     -- want to see the raw structure, so using Show
-    , nestedGoldenVsDoc "someData" (pretty $ Haskell.show someData)
+    , nestedGoldenVsDoc "someData" "" (pretty $ Haskell.show someData)
   ]
 
 simple :: CompiledCode (Bool -> Integer)

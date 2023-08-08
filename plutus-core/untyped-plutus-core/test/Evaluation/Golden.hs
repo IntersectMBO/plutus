@@ -35,14 +35,14 @@ import Test.Tasty
 import Test.Tasty.Golden
 
 -- (con integer)
-integer :: uni `Includes` Integer => Type TyName uni ()
+integer :: uni `HasTypeLevel` Integer => Type TyName uni ()
 integer = mkTyBuiltin @_ @Integer ()
 
 -- (con string)
-string :: uni `Includes` Text => Type TyName uni ()
+string :: uni `HasTypeLevel` Text => Type TyName uni ()
 string = mkTyBuiltin @_ @Text ()
 
-evenAndOdd :: uni `Includes` Bool => Tuple (Term TyName Name uni fun) uni ()
+evenAndOdd :: uni `HasTypeAndTermLevel` Bool => Tuple (Term TyName Name uni fun) uni ()
 evenAndOdd = runQuote $ do
     let nat = _recursiveType natData
 
@@ -60,7 +60,7 @@ evenAndOdd = runQuote $ do
 
     getMutualFixOf () (fixN 2 fixBy) [evenF, oddF]
 
-even :: uni `Includes` Bool => Term TyName Name uni fun ()
+even :: uni `HasTypeAndTermLevel` Bool => Term TyName Name uni fun ()
 even = runQuote $ tupleTermAt () 0 evenAndOdd
 
 evenAndOddList :: Tuple (Term TyName Name uni fun) uni ()
@@ -115,7 +115,7 @@ polyError = runQuote $ do
 
 -- | For checking that evaluating a term to a non-constant results in all remaining variables
 -- being instantiated.
-closure :: uni `Includes` Integer => Term TyName Name uni fun ()
+closure :: uni `HasTypeAndTermLevel` Integer => Term TyName Name uni fun ()
 closure = runQuote $ do
     i <- freshName "i"
     j <- freshName "j"
@@ -160,7 +160,7 @@ stringResultFalse = mkConstant @Text () "¬(11 <= 22)"
 
 -- 11 <= 22
 lteExpr :: Term TyName Name DefaultUni DefaultFun ()
-lteExpr = mkIterApp () lte [eleven, twentytwo]
+lteExpr = mkIterAppNoAnn lte [eleven, twentytwo]
 
 
 -- Various combinations of (partial) instantiation/application for ifThenElse
@@ -181,7 +181,7 @@ iteUninstantiatedWithCond  = Apply () ite lteExpr
 -- (builtin ifThenElse) (11<=22) "11 <= 22" "¬(11<=22)" : IllTypedFails (no
 -- instantiation)
 iteUninstantiatedFullyApplied :: Term TyName Name DefaultUni DefaultFun ()
-iteUninstantiatedFullyApplied = mkIterApp () ite [lteExpr, stringResultTrue, stringResultFalse]
+iteUninstantiatedFullyApplied = mkIterAppNoAnn ite [lteExpr, stringResultTrue, stringResultFalse]
 
 -- { (builtin ifThenElse) (con integer) } : WellTypedRuns
 iteAtInteger :: Term TyName Name DefaultUni DefaultFun ()
@@ -200,7 +200,7 @@ iteAtIntegerWithCond = Apply () iteAtInteger lteExpr
 -- the builtin application machinery unlifts an argument and checks its type the moment it gets it,
 -- without waiting for full saturation.
 iteAtIntegerWrongCondTypeUnSat :: Term TyName Name DefaultUni DefaultFun ()
-iteAtIntegerWrongCondTypeUnSat = mkIterApp () iteAtInteger [stringResultTrue, stringResultFalse]
+iteAtIntegerWrongCondTypeUnSat = mkIterAppNoAnn iteAtInteger [stringResultTrue, stringResultFalse]
 
 -- [ { (builtin ifThenElse) (con integer) } "11 <= 22" "¬(11<=22)" "¬(11<=22)" ] :
 -- IllTypedFails. This is ill-typed because the first term argument is a string
@@ -209,18 +209,18 @@ iteAtIntegerWrongCondTypeUnSat = mkIterApp () iteAtInteger [stringResultTrue, st
 -- builtin function, since the builtin application is fully saturated. The older unlifting
 -- mode would also fail, but earlier before the builtin call got even saturated, see `iteAtIntegerWrongCondTypeUnSat`.
 iteAtIntegerWrongCondTypeSat :: Term TyName Name DefaultUni DefaultFun ()
-iteAtIntegerWrongCondTypeSat = mkIterApp () iteAtInteger [stringResultTrue, stringResultFalse, stringResultFalse]
+iteAtIntegerWrongCondTypeSat = mkIterAppNoAnn iteAtInteger [stringResultTrue, stringResultFalse, stringResultFalse]
 
 -- [ { (builtin ifThenElse) (con integer) } (11<=22) "11 <= 22" "¬(11<=22)" ] :
 -- IllTypedRuns.  We're instantiating at `integer` but returning a string: at
 -- execution time we only check that type instantiations and term arguments are
 -- correctly interleaved, not that instantiations are correct.
 iteAtIntegerFullyApplied :: Term TyName Name DefaultUni DefaultFun ()
-iteAtIntegerFullyApplied = mkIterApp () iteAtIntegerWithCond [stringResultTrue, stringResultFalse]
+iteAtIntegerFullyApplied = mkIterAppNoAnn iteAtIntegerWithCond [stringResultTrue, stringResultFalse]
 
 -- [ (builtin divideInteger) 1 0 ] : WellTypedFails. Division by zero.
 diFullyApplied :: Term TyName Name DefaultUni DefaultFun ()
-diFullyApplied = mkIterApp () (Builtin () DivideInteger)
+diFullyApplied = mkIterAppNoAnn (Builtin () DivideInteger)
     [ mkConstant @Integer () 1
     , mkConstant @Integer () 0
     ]
@@ -238,14 +238,14 @@ iteAtStringWithCond = Apply () iteAtString lteExpr
 -- @string@. It still runs succefully, because even in typed world (the CK machine) we don't look
 -- at types at runtime.
 iteAtStringWithCondWithIntegerWithString :: Term TyName Name DefaultUni DefaultFun ()
-iteAtStringWithCondWithIntegerWithString = mkIterApp () (iteAtStringWithCond)
+iteAtStringWithCondWithIntegerWithString = mkIterAppNoAnn (iteAtStringWithCond)
     [ mkConstant @Integer () 33
     , mkConstant @Text () "abc"
     ]
 
 -- [ { (builtin ifThenElse)  (con string) } (11<=22) "11 <= 22" "¬(11<=22)" ] : WellTypedRuns
 iteAtStringFullyApplied :: Term TyName Name DefaultUni DefaultFun ()
-iteAtStringFullyApplied = mkIterApp () iteAtStringWithCond [stringResultTrue, stringResultFalse]
+iteAtStringFullyApplied = mkIterAppNoAnn iteAtStringWithCond [stringResultTrue, stringResultFalse]
 
 -- { builtin ifThenElse (fun (con integer) (con integer)) } : WellTypedRuns
 iteAtIntegerArrowInteger :: Term TyName Name DefaultUni DefaultFun ()
@@ -258,7 +258,7 @@ iteAtIntegerArrowIntegerWithCond = Apply () iteAtIntegerArrowInteger lteExpr
 -- [ { (builtin ifThenElse) (fun (con integer) (con integer)) } (11<=22) (11 *) (22 -)] :
 -- WellTypedRuns (returns a function of type int -> int)
 iteAtIntegerArrowIntegerApplied1 ::  Term TyName Name DefaultUni DefaultFun ()
-iteAtIntegerArrowIntegerApplied1 =  mkIterApp ()
+iteAtIntegerArrowIntegerApplied1 =  mkIterAppNoAnn
                                    iteAtIntegerArrowInteger
                                    [ lteExpr
                                    , Apply () (Builtin () MultiplyInteger) eleven
@@ -268,7 +268,7 @@ iteAtIntegerArrowIntegerApplied1 =  mkIterApp ()
 -- [ { (builtin ifThenElse) (fun (con integer) (con integer)) } (11<=22) (*) (-)] :
 -- IllTypedRuns (int -> int -> int instead of int -> int).
 iteAtIntegerArrowIntegerApplied2 ::  Term TyName Name DefaultUni DefaultFun ()
-iteAtIntegerArrowIntegerApplied2 =  mkIterApp ()
+iteAtIntegerArrowIntegerApplied2 =  mkIterAppNoAnn
                                     iteAtIntegerArrowInteger
                                     [ lteExpr
                                     , Builtin () MultiplyInteger
@@ -298,7 +298,7 @@ iteAtHigherKindWithCond = Apply () iteAtHigherKind lteExpr
 -- [ {(builtin ifThenElse) (lam a . a -> a) } (11<=22) "11 <= 22" "¬(11<=22) ]" :
 -- IllTypedRuns (illegal kind)
 iteAtHigherKindFullyApplied :: Term TyName Name DefaultUni DefaultFun ()
-iteAtHigherKindFullyApplied = mkIterApp () (Apply () iteAtHigherKind lteExpr) [stringResultTrue, stringResultFalse]
+iteAtHigherKindFullyApplied = mkIterAppNoAnn (Apply () iteAtHigherKind lteExpr) [stringResultTrue, stringResultFalse]
 
 -- { {(builtin ifThenElse) integer} integer } : IllTypedFails (instantiated twice).
 iteAtIntegerAtInteger :: Term TyName Name DefaultUni DefaultFun ()
@@ -333,6 +333,62 @@ mulInstError2 = Apply () (TyInst () (Apply () mul eleven) string) twentytwo
 mulInstError3 :: Term TyName Name DefaultUni DefaultFun ()
 mulInstError3 = TyInst () (Apply () (Apply () mul eleven) twentytwo) string
 
+tag1 :: Term TyName Name DefaultUni DefaultFun ()
+tag1 = Constr () (TySOP () [[integer], [string]]) 0 [mkConstant @Integer () 1]
+
+tag2 :: Term TyName Name DefaultUni DefaultFun ()
+tag2 = Constr () (TySOP () [[integer], [string]]) 1 [mkConstant @Text () "hello"]
+
+tagProd1 :: Term TyName Name DefaultUni DefaultFun ()
+tagProd1 = Constr () (TySOP () [[integer, integer, integer], [string]]) 0
+    [mkConstant @Integer () 1, mkConstant @Integer () 2, mkConstant @Integer () 4]
+
+case1 :: Term TyName Name DefaultUni DefaultFun ()
+case1 = runQuote $ do
+    a <- freshName "a"
+    let branch1 = LamAbs () a integer (Var () a)
+        branch2 = LamAbs () a string (mkConstant @Integer () 2)
+    pure $ Case () integer tag1 [branch1, branch2]
+
+case2 :: Term TyName Name DefaultUni DefaultFun ()
+case2 = runQuote $ do
+    a <- freshName "a"
+    let branch1 = LamAbs () a integer (Var () a)
+        branch2 = LamAbs () a string (mkConstant @Integer () 2)
+    pure $ Case () integer tag2 [branch1, branch2]
+
+case3 :: Term TyName Name DefaultUni DefaultFun ()
+case3 = runQuote $ do
+    a <- freshName "a"
+    let branch1 = LamAbs () a integer (mkConstant @Text () "no")
+        branch2 = LamAbs () a string (Var () a)
+    pure $ Case () string tag1 [branch1, branch2]
+
+case4 :: Term TyName Name DefaultUni DefaultFun ()
+case4 = runQuote $ do
+    a <- freshName "a"
+    let branch1 = LamAbs () a integer (mkConstant @Text () "no")
+        branch2 = LamAbs () a string (Var () a)
+    pure $ Case () string tag2 [branch1, branch2]
+
+caseProd1 :: Term TyName Name DefaultUni DefaultFun ()
+caseProd1 = runQuote $ do
+    a <- freshName "a"
+    b <- freshName "b"
+    c <- freshName "c"
+    let branch1 = LamAbs () a integer $ LamAbs () b integer $ LamAbs () c integer $
+                    mkIterAppNoAnn (Builtin () SubtractInteger) [
+                      mkIterAppNoAnn (Builtin () AddInteger) [Var () a, Var () b]
+                      , Var () c
+                      ]
+        branch2 = LamAbs () a string (mkConstant @Integer () 2)
+    pure $ Case () integer tagProd1 [branch1, branch2]
+
+caseNoBranch :: Term TyName Name DefaultUni DefaultFun ()
+caseNoBranch = Case () integer tag1 []
+
+caseNonTag :: Term TyName Name DefaultUni DefaultFun ()
+caseNonTag = Case () integer (mkConstant @Integer () 1) []
 
 -- Running the tests
 
@@ -409,6 +465,16 @@ namesAndTests =
    , ("mulInstError1", mulInstError1)
    , ("mulInstError2", mulInstError2)
    , ("mulInstError3", mulInstError3)
+   , ("tag1", tag1)
+   , ("tag2", tag2)
+   , ("tagProd1", tagProd1)
+   , ("case1", case1)
+   , ("case2", case2)
+   , ("case3", case3)
+   , ("case4", case4)
+   , ("caseProd1", caseProd1)
+   , ("caseNoBranch", caseNoBranch)
+   , ("caseNonTag", caseNonTag)
    ]
 
 test_golden :: TestTree

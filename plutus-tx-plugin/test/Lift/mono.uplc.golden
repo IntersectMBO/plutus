@@ -1,0 +1,54 @@
+(program
+  1.1.0
+  [
+    [
+      [
+        [
+          [
+            (force
+              (delay
+                (lam
+                  `Plugin.Data.Spec.Mono1_i0`
+                  (lam
+                    `Plugin.Data.Spec.Mono2_i0`
+                    (lam
+                      `Plugin.Data.Spec.Mono3_i0`
+                      (lam
+                        `match_Plugin.Data.Spec.MyMonoData_i0`
+                        `Plugin.Data.Spec.Mono2_i3`
+                      )
+                    )
+                  )
+                )
+              )
+            )
+            (lam arg_0_i0 (lam arg_1_i0 (constr 0 arg_0_i2 arg_1_i1)))
+          ]
+          (lam arg_0_i0 (constr 1 arg_0_i1))
+        ]
+        (lam arg_0_i0 (constr 2 arg_0_i1))
+      ]
+      (lam
+        x_i0
+        (delay
+          (lam
+            `case_Plugin.Data.Spec.Mono1_i0`
+            (lam
+              `case_Plugin.Data.Spec.Mono2_i0`
+              (lam
+                `case_Plugin.Data.Spec.Mono3_i0`
+                (case
+                  x_i4
+                  `case_Plugin.Data.Spec.Mono1_i3`
+                  `case_Plugin.Data.Spec.Mono2_i2`
+                  `case_Plugin.Data.Spec.Mono3_i1`
+                )
+              )
+            )
+          )
+        )
+      )
+    ]
+    (con integer 2)
+  ]
+)

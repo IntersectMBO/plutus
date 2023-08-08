@@ -1,10 +1,17 @@
 -- editorconfig-checker-disable-file
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TypeFamilies      #-}
 module PlutusCore.Pretty.ConfigName
     ( PrettyConfigName (..)
     , HasPrettyConfigName (..)
     , defPrettyConfigName
     , debugPrettyConfigName
     ) where
+
+import Data.Coerce
+import Text.PrettyBy
+import Text.PrettyBy.Fixity
 
 {- Note [PLC names pretty-printing]
 UPDATE: We no longer have such fancy names that this note describes.
@@ -101,14 +108,19 @@ newtype PrettyConfigName = PrettyConfigName
     { _pcnShowsUnique :: Bool -- ^ Whether to show the 'Unique' of a name or not.
     }
 
+type instance HasPrettyDefaults PrettyConfigName = 'True
+
 -- | A class of configs from which a 'PrettyConfigName' can be extracted.
 class HasPrettyConfigName config where
     toPrettyConfigName :: config -> PrettyConfigName
 
--- | The 'PrettyConfigName' used by default: print neither 'Unique's, nor name attachments.
+instance HasPrettyConfigName (Sole PrettyConfigName) where
+    toPrettyConfigName = coerce
+
+-- | The 'PrettyConfigName' used by default: don't print 'Unique's.
 defPrettyConfigName :: PrettyConfigName
 defPrettyConfigName = PrettyConfigName False
 
--- | The 'PrettyConfigName' used for debugging: print 'Unique's, but not name attachments.
+-- | The 'PrettyConfigName' used for debugging: print 'Unique's.
 debugPrettyConfigName :: PrettyConfigName
 debugPrettyConfigName = PrettyConfigName True

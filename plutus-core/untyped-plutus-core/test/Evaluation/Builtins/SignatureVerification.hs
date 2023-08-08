@@ -6,6 +6,7 @@
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeOperators       #-}
 
 module Evaluation.Builtins.SignatureVerification (
   ecdsaSecp256k1Prop,
@@ -15,11 +16,12 @@ module Evaluation.Builtins.SignatureVerification (
   ) where
 
 
-import Cardano.Crypto.DSIGN.Class (ContextDSIGN, DSIGNAlgorithm, SignKeyDSIGN, Signable, deriveVerKeyDSIGN, genKeyDSIGN,
-                                   rawDeserialiseSigDSIGN, rawDeserialiseVerKeyDSIGN, rawSerialiseSigDSIGN,
+import Cardano.Crypto.DSIGN.Class (ContextDSIGN, DSIGNAlgorithm, SignKeyDSIGN, Signable,
+                                   deriveVerKeyDSIGN, genKeyDSIGN, rawDeserialiseSigDSIGN,
+                                   rawDeserialiseVerKeyDSIGN, rawSerialiseSigDSIGN,
                                    rawSerialiseVerKeyDSIGN, signDSIGN)
-import Cardano.Crypto.DSIGN.EcdsaSecp256k1 (EcdsaSecp256k1DSIGN, MessageHash, SigDSIGN, VerKeyDSIGN, fromMessageHash,
-                                            toMessageHash)
+import Cardano.Crypto.DSIGN.EcdsaSecp256k1 (EcdsaSecp256k1DSIGN, MessageHash, SigDSIGN, VerKeyDSIGN,
+                                            fromMessageHash, toMessageHash)
 import Cardano.Crypto.DSIGN.Ed25519 (Ed25519DSIGN)
 import Cardano.Crypto.DSIGN.SchnorrSecp256k1 (SchnorrSecp256k1DSIGN)
 import Cardano.Crypto.Seed (mkSeedFromBytes)
@@ -38,7 +40,7 @@ import PlutusCore (DefaultFun (VerifyEcdsaSecp256k1Signature, VerifyEd25519Signa
 import PlutusCore.Default as Plutus (BuiltinVersion (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 
-import PlutusCore.MkPlc (builtin, mkConstant, mkIterApp)
+import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn)
 import PlutusPrelude
 import Text.Show.Pretty (ppShow)
 
@@ -90,7 +92,7 @@ runTestDataWith :: forall (a :: Type) (msg :: Type) .
   PropertyT IO ()
 runTestDataWith ver testData f op = do
   let (vk, msg, sig) = getCaseData f testData
-  let actualExp = mkIterApp () (builtin () op) [
+  let actualExp = mkIterAppNoAnn (builtin () op) [
         mkConstant @ByteString () vk,
         mkConstant @ByteString () msg,
         mkConstant @ByteString () sig
@@ -445,5 +447,3 @@ genSignKey :: forall (a :: Type) . (DSIGNAlgorithm a) => Gen (SignKeyDSIGN a)
 genSignKey = do
   seed <- mkSeedFromBytes <$> (Gen.bytes . Range.linear 64 $ 128)
   pure . genKeyDSIGN $ seed
-
-

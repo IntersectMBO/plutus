@@ -3,36 +3,20 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module PlutusTx.Foldable (
   Foldable(..),
-  -- * Special biased folds
-  foldrM,
-  foldlM,
-  -- * Folding actions
-  -- ** Applicative actions
+  -- * Applicative actions
   traverse_,
   for_,
   sequenceA_,
-  sequence_,
   asum,
-  -- ** Monadic actions
-  mapM_,
   -- * Specialized folds
   concat,
   concatMap,
-  and,
-  or,
-  any,
-  all,
-  -- * Searches
-  notElem,
-  find,
   -- * Other
   foldMap,
   fold,
   foldl,
   toList,
-  null,
   length,
-  elem,
   sum,
   product
   ) where
@@ -42,16 +26,12 @@ import Data.Functor.Identity (Identity (..))
 import GHC.Exts (build)
 import PlutusTx.Applicative (Applicative (pure), (*>))
 import PlutusTx.Base
-import PlutusTx.Bool (Bool (..), not, (&&), (||))
 import PlutusTx.Builtins (Integer)
 import PlutusTx.Either (Either (..))
-import PlutusTx.Eq (Eq (..))
 import PlutusTx.Maybe (Maybe (..))
 import PlutusTx.Monoid (Monoid (..))
 import PlutusTx.Numeric
 import PlutusTx.Semigroup ((<>))
-
-import Prelude qualified as Haskell (Monad, return, (>>), (>>=))
 
 -- | Plutus Tx version of 'Data.Foldable.Foldable'.
 class Foldable t where
@@ -112,20 +92,10 @@ toList :: Foldable t => t a -> [a]
 {-# INLINE toList #-}
 toList t = build (\ c n -> foldr c n t)
 
--- | Plutus Tx version of 'Data.Foldable.null'.
-{-# INLINABLE null #-}
-null :: Foldable t => t a -> Bool
-null = foldr (\_ _ -> False) True
-
 -- | Plutus Tx version of 'Data.Foldable.length'.
 {-# INLINABLE length #-}
 length :: Foldable t => t a -> Integer
 length = foldl (\c _ -> c + 1) 0
-
--- | Plutus Tx version of 'Data.Foldable.elem'.
-{-# INLINABLE elem #-}
-elem :: (Foldable t, Eq a) => a -> t a -> Bool
-elem = any . (==)
 
 -- | Plutus Tx version of 'Data.Foldable.sum'.
 {-# INLINEABLE sum #-}
@@ -137,28 +107,10 @@ sum = foldr (+) zero
 product :: (Foldable t, MultiplicativeMonoid a) => t a -> a
 product = foldr (*) one
 
--- | Plutus Tx version of 'Data.Foldable.foldrM'.
-foldrM :: (Foldable t, Haskell.Monad m) => (a -> b -> m b) -> b -> t a -> m b
-foldrM f z0 xs = foldl c Haskell.return xs z0
-  where c k x z = f x z Haskell.>>= k
-        {-# INLINE c #-}
-
--- | Plutus Tx version of 'Data.Foldable.foldlM'.
-foldlM :: (Foldable t, Haskell.Monad m) => (b -> a -> m b) -> b -> t a -> m b
-foldlM f z0 xs = foldr c Haskell.return xs z0
-  where c x k z = f z x Haskell.>>= k
-        {-# INLINE c #-}
-
 -- | Plutus Tx version of 'Data.Foldable.traverse_'.
 traverse_ :: (Foldable t, Applicative f) => (a -> f b) -> t a -> f ()
 traverse_ f = foldr c (pure ())
   where c x k = f x *> k
-        {-# INLINE c #-}
-
--- | Plutus Tx version of 'Data.Foldable.sequence_'.
-sequence_ :: (Foldable t, Haskell.Monad m) => t (m a) -> m ()
-sequence_ = foldr c (Haskell.return ())
-  where c m k = m Haskell.>> k
         {-# INLINE c #-}
 
 -- | Plutus Tx version of 'Data.Foldable.for_'.
@@ -186,46 +138,3 @@ concat xs = build (\c n -> foldr (\x y -> foldr c y x) n xs)
 concatMap :: Foldable t => (a -> [b]) -> t a -> [b]
 concatMap f xs = build (\c n -> foldr (\x b -> foldr c b (f x)) n xs)
 {-# INLINE concatMap #-}
-
--- | Plutus Tx version of 'Data.Foldable.and'.
-{-# INLINABLE and #-}
-and :: Foldable t => t Bool -> Bool
-and = product
-
--- | Plutus Tx version of 'Data.Foldable.or'.
-{-# INLINABLE or #-}
-or :: Foldable t => t Bool -> Bool
-or = sum
-
--- | Plutus Tx version of 'Data.Foldable.any'.
-{-# INLINABLE any #-}
-any :: Foldable t => (a -> Bool) -> t a -> Bool
-any p = foldr f False
-  where
-    f a acc = p a || acc
-
--- | Plutus Tx version of 'Data.Foldable.all'.
-{-# INLINABLE all #-}
-all :: Foldable t => (a -> Bool) -> t a -> Bool
-all p = foldr f True
-  where
-    f a acc = p a && acc
-
--- | Plutus Tx version of 'Data.Foldable.notElem'.
-{-# INLINABLE notElem #-}
-notElem :: (Foldable t, Eq a) => a -> t a -> Bool
-notElem x = not . elem x
-
--- | Plutus Tx version of 'Data.Foldable.find'.
-{-# INLINABLE find #-}
-find :: Foldable t => (a -> Bool) -> t a -> Maybe a
-find p = foldr f Nothing
-  where
-    f a acc = if p a then Just a else acc
-
--- | Plutus Tx version of 'Data.Foldable.mapM_'.
-{-# INLINABLE mapM_ #-}
-mapM_ :: (Foldable t, Haskell.Monad m) => (a -> m b) -> t a -> m ()
-mapM_ f = foldr c (Haskell.return ())
-  where c x k = f x Haskell.>> k
-        {-# INLINE c #-}

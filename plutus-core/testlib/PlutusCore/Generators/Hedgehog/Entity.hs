@@ -34,7 +34,7 @@ import PlutusCore.Builtin
 import PlutusCore.Core
 import PlutusCore.Default
 import PlutusCore.Name
-import PlutusCore.Pretty (PrettyConst, prettyConst)
+import PlutusCore.Pretty (PrettyConst, botRenderContext, prettyConst)
 import PlutusCore.Quote
 
 import Control.Monad.Morph qualified as Morph
@@ -87,7 +87,7 @@ instance ( PrettyBy config (Plain Term uni fun)
     prettyBy config (IterAppValue term pia y) = parens $ fold
         [ "{ ", prettyBy config term, line
         , "| ", prettyBy config pia, line
-        , "| ", prettyConst y, line
+        , "| ", prettyConst botRenderContext y, line
         , "}"
         ]
 
@@ -110,7 +110,7 @@ revealUnique (Name name uniq) =
 withTypedBuiltinGen
     :: Monad m
     => Proxy fun
-    -> (forall a. (KnownTypeAst DefaultUni a, MakeKnown (Plain Term DefaultUni fun) a) =>
+    -> (forall a. (KnownTypeAst TyName DefaultUni a, MakeKnown (Plain Term DefaultUni fun) a) =>
             TypeRep a -> GenT m c)
     -> GenT m c
 withTypedBuiltinGen _ k = Gen.choice

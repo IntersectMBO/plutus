@@ -12,6 +12,8 @@ import Control.Monad ()
 import Control.Monad.Trans.Except (runExceptT)
 import Data.ByteString qualified as BS
 import Data.Char (isSpace)
+import Data.Foldable (traverse_)
+import Data.SatInt
 import Flat qualified
 import Options.Applicative as Opt hiding (action)
 import System.Exit (exitFailure)
@@ -35,7 +37,7 @@ import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 import PlutusCore.Pretty (prettyPlcClassicDebug)
 import PlutusTx (getPlcNoAnn)
 import PlutusTx.Code (CompiledCode, sizePlc)
-import PlutusTx.Prelude hiding (fmap, mappend, (<$), (<$>), (<*>), (<>))
+import PlutusTx.Prelude hiding (fmap, mappend, traverse_, (<$), (<$>), (<*>), (<>))
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
@@ -202,10 +204,10 @@ evaluateWithCek :: UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun () -> UPLC
 evaluateWithCek = UPLC.unsafeExtractEvaluationResult . (\(fstT,_,_) -> fstT) . UPLC.runCekDeBruijn PLC.defaultCekParameters UPLC.restrictingEnormous UPLC.noEmitter
 
 writeFlatNamed :: UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun () -> IO ()
-writeFlatNamed prog = BS.putStr $ Flat.flat prog
+writeFlatNamed prog = BS.putStr . Flat.flat . UPLC.UnrestrictedProgram $ prog
 
 writeFlatDeBruijn ::UPLC.Program UPLC.DeBruijn DefaultUni DefaultFun () -> IO ()
-writeFlatDeBruijn  prog = BS.putStr . Flat.flat $ prog
+writeFlatDeBruijn  prog = BS.putStr . Flat.flat . UPLC.UnrestrictedProgram $ prog
 
 description :: Hs.String
 description = "This program provides operations on a number of Plutus programs "
@@ -249,7 +251,7 @@ measureBudget compiledCode =
           let (_, UPLC.TallyingSt _ budget) = UPLC.runCekNoEmit PLC.defaultCekParameters UPLC.tallying $ program ^. UPLC.progTerm
               ExCPU cpu = exBudgetCPU budget
               ExMemory mem = exBudgetMemory budget
-          in (Hs.fromIntegral cpu, Hs.fromIntegral mem)
+          in (fromSatInt cpu, fromSatInt mem)
 
 getInfo :: (Hs.String, CompiledCode a) -> (Hs.String, Integer, Integer, Integer)
 getInfo (name, code) =
@@ -296,7 +298,7 @@ printSizesAndBudgets = do
 
   putStrLn "Script                     Size     CPU budget      Memory budget"
   putStrLn "-----------------------------------------------------------------"
-  mapM_ (putStr . formatInfo) statistics
+  traverse_ (putStr . formatInfo) statistics
 
 
 main :: IO ()
@@ -314,12 +316,12 @@ main = do
           Primetest n             -> if n<0 then Hs.error "Positive number expected"
                                      else print $ Prime.runPrimalityTest n
     DumpPLC pa ->
-        Hs.mapM_ putStrLn $ unindent . prettyPlcClassicDebug . UPLC.mkDefaultProg . getTerm $ pa
+        traverse_ putStrLn $ unindent . prettyPlcClassicDebug . UPLC.Program () PLC.latestVersion . getTerm $ pa
             where unindent d = map (dropWhile isSpace) $ (Hs.lines . Hs.show $ d)
     DumpFlatNamed pa ->
-        writeFlatNamed . UPLC.mkDefaultProg . getTerm $ pa
+        writeFlatNamed . UPLC.Program () PLC.latestVersion . getTerm $ pa
     DumpFlatDeBruijn pa ->
-        writeFlatDeBruijn . UPLC.mkDefaultProg . toAnonDeBruijnTerm . getTerm $ pa
+        writeFlatDeBruijn . UPLC.Program () PLC.latestVersion . toAnonDeBruijnTerm . getTerm $ pa
     SizesAndBudgets
         -> printSizesAndBudgets
     -- Write the output to stdout and let the user deal with redirecting it.

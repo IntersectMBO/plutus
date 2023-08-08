@@ -11,19 +11,11 @@
   [
     [
       {
-        [
-          { match_List (all a (type) (fun a a)) }
-          { Nil (all a (type) (fun a a)) }
-        ]
+        [{match_List (all a (type) (fun a a))} {Nil (all a (type) (fun a a))}]
         (all a (type) (fun a a))
       }
       (abs a (type) (lam x a x))
     ]
-    (lam
-      head
-      (all a (type) (fun a a))
-      (lam tail [List (all a (type) (fun a a))] head)
-    )
+    (lam h (all a (type) (fun a a)) (lam t [List (all a (type) (fun a a))] h))
   ]
 )
-

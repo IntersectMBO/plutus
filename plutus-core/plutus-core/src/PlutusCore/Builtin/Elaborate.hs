@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 -- GHC doesn't like the definition of 'TrySpecializeAsVar'.
 {-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
 
@@ -26,7 +25,8 @@ import Data.Type.Bool
 import Data.Type.Equality
 import GHC.TypeLits
 
--- The 'TryUnify' gadget explained in detail in https://github.com/effectfully/sketches/tree/master/poly-type-of-saga/part1-try-unify
+-- The 'TryUnify' gadget explained in detail in
+-- https://github.com/effectfully/sketches/tree/master/poly-type-of-saga/part1-try-unify
 
 -- | Check if two values of different kinds are in fact the same value (with the same kind).
 -- A heterogeneous version of @Type.Equality.(==)@.
@@ -173,28 +173,28 @@ instance {-# INCOHERENT #-} TrySpecializeAsVar i j mw a => TrySpecializeAsUnappl
 -- that using 'HandleHoles'.
 -- @i@ is a fresh id and @j@ is a final one as in 'TrySpecializeAsVar', but since 'HandleHole' can
 -- specialize multiple variables, @j@ can be equal to @i + n@ for any @n@ (including @0@).
-type HandleHole :: Nat -> Nat -> GHC.Type -> Hole -> GHC.Constraint
-class HandleHole i j val hole | i val hole -> j
+type HandleHole :: (GHC.Type -> GHC.Type) -> Nat -> Nat -> GHC.Type -> Hole -> GHC.Constraint
+class HandleHole uni i j val hole | uni i val hole -> j
 -- In the Rep context @x@ is attempted to be specialized as a 'TyVarRep'.
 instance
     ( TrySpecializeAsUnappliedVar i j RepHole 'Nothing x
-    , HandleHoles j k val x
-    ) => HandleHole i k val (RepHole x)
+    , HandleHoles uni j k val x
+    ) => HandleHole uni i k val (RepHole x)
 -- In the Type context @a@ is attempted to be specialized as a 'TyVarRep' wrapped in @Opaque val@.
 instance
     ( TrySpecializeAsUnappliedVar i j TypeHole ('Just (Opaque val)) a
-    , HandleHoles j k val a
-    ) => HandleHole i k val (TypeHole a)
+    , HandleHoles uni j k val a
+    ) => HandleHole uni i k val (TypeHole a)
 
 -- | Call 'HandleHole' over each hole from the list, threading the state (the fresh unique) through
 -- the calls.
-type HandleHolesGo :: Nat -> Nat -> GHC.Type -> [Hole] -> GHC.Constraint
-class HandleHolesGo i j val holes | i val holes -> j
-instance i ~ j => HandleHolesGo i j val '[]
+type HandleHolesGo :: (GHC.Type -> GHC.Type) -> Nat -> Nat -> GHC.Type -> [Hole] -> GHC.Constraint
+class HandleHolesGo uni i j val holes | uni i val holes -> j
+instance i ~ j => HandleHolesGo uni i j val '[]
 instance
-    ( HandleHole i j val hole
-    , HandleHolesGo j k val holes
-    ) => HandleHolesGo i k val (hole ': holes)
+    ( HandleHole uni i j val hole
+    , HandleHolesGo uni j k val holes
+    ) => HandleHolesGo uni i k val (hole ': holes)
 
 -- | If the outermost constructor of the second argument is known and happens to be one of the
 -- constructors of the list data type, then the second argument is returned back. Otherwise the
@@ -224,15 +224,17 @@ type family UnknownTypeError val x where
         )
 
 -- | Get the holes of @x@ and recurse into them.
-type HandleHoles :: forall a. Nat -> Nat -> GHC.Type -> a -> GHC.Constraint
-type HandleHoles i j val x =
+type HandleHoles
+    :: forall a. (GHC.Type -> GHC.Type) -> Nat -> Nat -> GHC.Type -> a -> GHC.Constraint
+type HandleHoles uni i j val x =
     -- Here we detect a stuck application of 'ToHoles' and throw 'UnknownTypeError' on it.
     -- See https://blog.csongor.co.uk/report-stuck-families for a detailed description of how
     -- detection of stuck type families works.
-    HandleHolesGo i j val (ThrowOnStuckList (UnknownTypeError val x) (ToHoles x))
+    HandleHolesGo uni i j val (ThrowOnStuckList (UnknownTypeError val x) (ToHoles uni x))
 
 -- | Specialize each Haskell type variable in @a@ as a type representing a PLC type variable.
 -- @i@ is a fresh id and @j@ is a final one as in 'TrySpecializeAsVar', but since 'HandleHole' can
 -- specialize multiple variables, @j@ can be equal to @i + n@ for any @n@ (including @0@).
-type ElaborateFromTo :: Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
-type ElaborateFromTo i j val a = HandleHole i j val (TypeHole a)
+type ElaborateFromTo
+    :: (GHC.Type -> GHC.Type) -> Nat -> Nat -> GHC.Type -> GHC.Type -> GHC.Constraint
+type ElaborateFromTo uni i j val a = HandleHole uni i j val (TypeHole a)

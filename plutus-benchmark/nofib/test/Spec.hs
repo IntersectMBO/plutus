@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {- | Tests for the Plutus nofib benchmarks, mostly comparing the result of Plutus
 evaluation with the result of Haskell evaluation. Lastpiece is currently omitted
 because its memory consumption as a Plutus program is too great to allow it to
@@ -47,8 +46,9 @@ testClausify = testGroup "clausify"
                , testCase "formula3" $ mkClausifyTest Clausify.F3
                , testCase "formula4" $ mkClausifyTest Clausify.F4
                , testCase "formula5" $ mkClausifyTest Clausify.F5
-               , Tx.fitsInto "formula1 (size)" (Clausify.mkClausifyCode Clausify.F1) 4901
-               , runTestNested $ Tx.goldenBudget "formulaBudget" $ Clausify.mkClausifyCode Clausify.F1
+               , Tx.fitsInto "formula1 (size)" (Clausify.mkClausifyCode Clausify.F1) 3436
+               , runTestNested $
+                  Tx.goldenBudget "formulaBudget" $ Clausify.mkClausifyCode Clausify.F1
                ]
 
 ---------------- Knights ----------------
@@ -65,7 +65,7 @@ testKnights = testGroup "knights"  -- Odd sizes call "error" because there are n
               , testCase "depth 100, 4x4" $ mkKnightsTest 100 4
               , testCase "depth 100, 6x6" $ mkKnightsTest 100 6
               , testCase "depth 100, 8x8" $ mkKnightsTest 100 8
-              , Tx.fitsInto "depth 10, 4x4 (size)" (Knights.mkKnightsCode 10 4) 3516
+              , Tx.fitsInto "depth 10, 4x4 (size)" (Knights.mkKnightsCode 10 4) 2613
               , runTestNested $ Tx.goldenBudget "knightsBudget" $ Knights.mkKnightsCode 10 4
               ]
 
@@ -83,7 +83,8 @@ testQueens = testGroup "queens"
                , testCase "Bjbt1" $ mkQueensTest 4 Queens.Bjbt1
                , testCase "Bjbt2" $ mkQueensTest 4 Queens.Bjbt2
                , testCase "Fc"    $ mkQueensTest 4 Queens.Fc
-               , runTestNested    $ Tx.goldenBudget "queens4budget" $ Queens.mkQueensCode 4 Queens.Bt
+               , runTestNested    $
+                  Tx.goldenBudget "queens4budget" $ Queens.mkQueensCode 4 Queens.Bt
                ]
              , testGroup "5x5"
                [ testCase "Bt"    $ mkQueensTest 5 Queens.Bt
@@ -91,9 +92,10 @@ testQueens = testGroup "queens"
                , testCase "Bjbt1" $ mkQueensTest 5 Queens.Bjbt1
                , testCase "Bjbt2" $ mkQueensTest 5 Queens.Bjbt2
                , testCase "Fc"    $ mkQueensTest 5 Queens.Fc
-               , runTestNested    $ Tx.goldenBudget "queens5budget" $ Queens.mkQueensCode 5 Queens.Bt
+               , runTestNested    $ Tx.goldenBudget "queens5budget" $
+                  Queens.mkQueensCode 5 Queens.Bt
                ]
-             , Tx.fitsInto "Bt (size)" (Queens.mkQueensCode 5 Queens.Bt) 2759
+             , Tx.fitsInto "Bt (size)" (Queens.mkQueensCode 5 Queens.Bt) 1972
              ]
 
 ---------------- Primes ----------------
@@ -132,7 +134,8 @@ sixDigits = choose (100000, 999999)
 
 prop_primalityTest :: Integer -> Property
 prop_primalityTest n =
-    n >= 2 ==> cekResultMatchesHaskellValue (Prime.mkPrimalityTestTerm n) (===) (Prime.runPrimalityTest n)
+    n >= 2 ==>
+      cekResultMatchesHaskellValue (Prime.mkPrimalityTestTerm n) (===) (Prime.runPrimalityTest n)
 
 testPrimalityQC :: TestTree
 testPrimalityQC = testProperty "primality test (QuickCheck)" (forAll sixDigits prop_primalityTest)

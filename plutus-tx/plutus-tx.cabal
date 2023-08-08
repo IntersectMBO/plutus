@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-tx
-version:         1.2.0.0
+version:         1.9.0.0
 license:         Apache-2.0
 license-files:
   LICENSE
@@ -97,16 +97,17 @@ library
     , base                                  >=4.9      && <5
     , bytestring
     , containers
+    , data-default-class
     , deepseq
     , deriving-compat
     , extra
-    , flat                                  <0.5
+    , flat                                  ^>=0.6
     , ghc-prim
     , hashable
     , lens
     , memory
     , mtl
-    , plutus-core:{plutus-core, plutus-ir}  ^>=1.2
+    , plutus-core:{plutus-core, plutus-ir}  ^>=1.9
     , prettyprinter
     , serialise
     , template-haskell                      >=2.13.0.0
@@ -119,18 +120,26 @@ library plutus-tx-testlib
   import:          lang
   visibility:      public
   hs-source-dirs:  testlib
-  exposed-modules: PlutusTx.Test
+  exposed-modules:
+    Hedgehog.Laws.Common
+    Hedgehog.Laws.Eq
+    Hedgehog.Laws.Lattice
+    Hedgehog.Laws.Ord
+    PlutusTx.Test
+
   build-depends:
     , base                                                       >=4.9 && <5
     , filepath
-    , flat                                                       <0.5
+    , flat                                                       ^>=0.6
+    , hedgehog
     , lens
     , mtl
-    , plutus-core:{plutus-core, plutus-core-testlib, plutus-ir}  ^>=1.2
-    , plutus-tx                                                  ^>=1.2
+    , plutus-core:{plutus-core, plutus-core-testlib, plutus-ir}  ^>=1.9
+    , plutus-tx                                                  ^>=1.9
     , prettyprinter
     , tagged
     , tasty
+    , tasty-hedgehog
     , text
 
 test-suite plutus-tx-test
@@ -142,6 +151,7 @@ test-suite plutus-tx-test
   type:               exitcode-stdio-1.0
   main-is:            Spec.hs
   other-modules:
+    List.Spec
     Rational.Laws
     Rational.Laws.Additive
     Rational.Laws.Construction
@@ -166,8 +176,8 @@ test-suite plutus-tx-test
     , filepath
     , hedgehog
     , hedgehog-fn
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.2
-    , plutus-tx                                       ^>=1.2
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.9
+    , plutus-tx                                       ^>=1.9
     , pretty-show
     , serialise
     , tasty

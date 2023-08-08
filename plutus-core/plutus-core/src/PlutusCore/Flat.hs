@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 {-# LANGUAGE FlexibleInstances    #-}
@@ -20,19 +19,16 @@ module PlutusCore.Flat
     ) where
 
 import PlutusCore.Core
-import PlutusCore.Data
+import PlutusCore.Data (Data)
 import PlutusCore.DeBruijn
 import PlutusCore.Name
 
 import Codec.Serialise (Serialise, deserialiseOrFail, serialise)
-import Data.Coerce
-import Data.Functor
 import Data.Proxy
-import Data.Word (Word8)
 import Flat
 import Flat.Decoder
 import Flat.Encoder
-import GHC.Natural.Extras
+import PlutusPrelude
 import Universe
 
 {- Note [Stable encoding of PLC]
@@ -64,12 +60,14 @@ This requires specialised encode/decode functions for each constructor
 that encodes a different number of possibilities. Here is a list of the
 tags and their used/available encoding possibilities.
 
-| Data type        | Function          | Used | Available |
-|------------------|-------------------|------|-----------|
-| default builtins | encodeBuiltin     | 47   | 128       |
-| Kinds            | encodeKind        | 2    | 2         |
-| Types            | encodeType        | 7    | 8         |
-| Terms            | encodeTerm        | 10   | 16        |
+** The BELOW table is about Typed-PLC and not UPLC. See `UntypedPlutusCore.Core.Instance.Flat`**
+
+| Data type        | Function          | Bit Width | Total | Used | Remaining |
+|------------------|-------------------|-----------|-------|------|-----------|
+| default builtins | encodeBuiltin     | 7         | 128   | 54   | 74        |
+| Kinds            | encodeKind        | 1         | 2     | 2    | 0         |
+| Types            | encodeType        | 3         | 8     | 7    | 1         |
+| Terms            | encodeTerm        | 4         | 16    | 12   | 4         |
 
 For format stability we are manually assigning the tag values to the
 constructors (and we do not use a generic algorithm that may change this order).
@@ -87,25 +85,25 @@ implementations for them (if they have any constructors reserved for future use)
 By default, Flat does not use any space to serialise `()`.
 -}
 
-{- Note [Index (Word64) (de)serialized through Natural]
+{- Note [DeBruijn Index serialization]
 
-With the recent change of CEK to use DeBruijn instead of Name,
-we decided to change Index to be a Word instead of Natural, for performance reasons.
+Back in the days, `Index` was a Natural and we flat (de)-serialized it via Natural.
+Later `Index` was changed to Word64 (for performance reasons):
+its flat encoding remained via Natural,
+but its decoding was changed to a *custom* Word64 decoder.
 
-However, to be absolutely sure that the script format *does not change*
-for plutus language version 1, we are converting from/to Word64 and (de)-serialize *only through Natural*,
-to keep the old v1 flat format the same.
+Why custom decoder: there was a bug in Word64 decoder of flat versions <0.5.2 and
+fixed in flat>=0.5.2.
 
-Natural and Word64 are flat-compatible up-to `maxBound :: Word64`.
-However, the current blockchain might have already stored a plutus v1 script
-containing a hugely-indexed variable `>maxBound::Word64` -- such a script must be failing
-because such a huge index must be a free variable (given the current script-size constraints).
+We are now running flat>=0.6, so we switch to the non-custom, fixed flat Word64 decoder.
 
-When decoding such an already-stored (failing) script
-the Natural deserializer makes the script fail at the scopechecking step (previously undebruijnification step).
-Hypotheically using the Word64 deserializer, the script would *hopefully* fail as well, although earlier
-at the deserialization step. Initial tests and looking at flat internals make this likely,
-but until proven, we postpone the transition to Word64 deserializer for version 2 language.
+Since we are there, we also switch the encoder of Index from the Natural encoder
+to Word64 encoder. This encoding change only breaks client-code and not nodes' behavior:
+the script would just fail earlier at encoding phase (in the client's software)
+than the later decoding phase (when trying to send the encoded script to the node network and
+only get back a decoding error, aka phase-1 validation error).
+This phase-1 validation is in place both for normal (locked scripts) and for inline scripts,
+so the nodes' behavior does not change.
 -}
 
 
@@ -124,11 +122,11 @@ instance Serialise a => Flat (AsSerialize a) where
     size = size . serialise
 
 safeEncodeBits :: NumBits -> Word8 -> Encoding
-safeEncodeBits n v =
-  if 2 ^ n < v
+safeEncodeBits maxBits v =
+  if 2 ^ maxBits <= v
   then error $ "Overflow detected, cannot fit "
-               <> show v <> " in " <> show n <> " bits."
-  else eBits n v
+               <> show v <> " in " <> show maxBits <> " bits."
+  else eBits maxBits v
 
 constantWidth :: NumBits
 constantWidth = 4
@@ -210,9 +208,12 @@ instance Flat ann => Flat (Kind ann) where
               go 1 = KindArrow <$> decode <*> decode <*> decode
               go _ = fail "Failed to decode Kind ()"
 
-    size tm sz = kindTagWidth + sz + case tm of
-        Type ann           -> getSize ann
-        KindArrow ann k k' -> getSize ann + getSize k + getSize k'
+    size tm sz =
+      let
+        sz' = sz + kindTagWidth
+      in case tm of
+        Type ann           -> size ann sz'
+        KindArrow ann k k' -> size ann $ size k $ size k' sz'
 
 -- | Use 3 bits to encode type tags.
 typeTagWidth :: NumBits
@@ -233,6 +234,9 @@ instance (Closed uni, Flat ann, Flat tyname) => Flat (Type tyname uni ann) where
         TyBuiltin ann con     -> encodeType 4 <> encode ann <> encode con
         TyLam     ann n k t   -> encodeType 5 <> encode ann <> encode n   <> encode k <> encode t
         TyApp     ann t t'    -> encodeType 6 <> encode ann <> encode t   <> encode t'
+        -- Note that this relies on the instance for lists. We shouldn't use this in the
+        -- serious on-chain version but it's okay here.
+        TySOP    ann tyls     -> encodeType 7 <> encode ann <> encode tyls
 
     decode = go =<< decodeType
         where go 0 = TyVar     <$> decode <*> decode
@@ -242,16 +246,21 @@ instance (Closed uni, Flat ann, Flat tyname) => Flat (Type tyname uni ann) where
               go 4 = TyBuiltin <$> decode <*> decode
               go 5 = TyLam     <$> decode <*> decode <*> decode <*> decode
               go 6 = TyApp     <$> decode <*> decode <*> decode
+              go 7 = TySOP     <$> decode <*> decode
               go _ = fail "Failed to decode Type TyName ()"
 
-    size tm sz = typeTagWidth + sz + case tm of
-        TyVar     ann tn      -> getSize ann + getSize tn
-        TyFun     ann t t'    -> getSize ann + getSize t   + getSize t'
-        TyIFix    ann pat arg -> getSize ann + getSize pat + getSize arg
-        TyForall  ann tn k t  -> getSize ann + getSize tn  + getSize k + getSize t
-        TyBuiltin ann con     -> getSize ann + getSize con
-        TyLam     ann n k t   -> getSize ann + getSize n   + getSize k + getSize t
-        TyApp     ann t t'    -> getSize ann + getSize t   + getSize t'
+    size tm sz =
+      let
+        sz' = sz + typeTagWidth
+      in case tm of
+        TyVar     ann tn      -> size ann $ size tn sz'
+        TyFun     ann t t'    -> size ann $ size t $ size t' sz'
+        TyIFix    ann pat arg -> size ann $ size pat $ size arg sz'
+        TyForall  ann tn k t  -> size ann $ size tn $ size k $ size t sz'
+        TyBuiltin ann con     -> size ann $ size con sz'
+        TyLam     ann n k t   -> size ann $ size n $ size k $ size t sz'
+        TyApp     ann t t'    -> size ann $ size t $ size t' sz'
+        TySOP     ann tyls    -> size ann $ size tyls sz'
 
 termTagWidth :: NumBits
 termTagWidth = 4
@@ -280,31 +289,50 @@ instance ( Closed uni
         IWrap    ann pat arg t -> encodeTerm 7 <> encode ann <> encode pat <> encode arg <> encode t
         Error    ann ty        -> encodeTerm 8 <> encode ann <> encode ty
         Builtin  ann bn        -> encodeTerm 9 <> encode ann <> encode bn
+        Constr   ann ty i es   ->
+          encodeTerm 10
+          <> encode ann
+          <> encode ty
+          <> encode i
+          <> encode es
+        Case     ann ty arg cs ->
+          encodeTerm 11
+          <> encode ann
+          <> encode ty
+          <> encode arg
+          <> encode cs
 
     decode = go =<< decodeTerm
-        where go 0 = Var      <$> decode <*> decode
-              go 1 = TyAbs    <$> decode <*> decode <*> decode <*> decode
-              go 2 = LamAbs   <$> decode <*> decode <*> decode <*> decode
-              go 3 = Apply    <$> decode <*> decode <*> decode
-              go 4 = Constant <$> decode <*> decode
-              go 5 = TyInst   <$> decode <*> decode <*> decode
-              go 6 = Unwrap   <$> decode <*> decode
-              go 7 = IWrap    <$> decode <*> decode <*> decode <*> decode
-              go 8 = Error    <$> decode <*> decode
-              go 9 = Builtin  <$> decode <*> decode
-              go _ = fail "Failed to decode Term TyName Name ()"
+        where go 0  = Var      <$> decode <*> decode
+              go 1  = TyAbs    <$> decode <*> decode <*> decode <*> decode
+              go 2  = LamAbs   <$> decode <*> decode <*> decode <*> decode
+              go 3  = Apply    <$> decode <*> decode <*> decode
+              go 4  = Constant <$> decode <*> decode
+              go 5  = TyInst   <$> decode <*> decode <*> decode
+              go 6  = Unwrap   <$> decode <*> decode
+              go 7  = IWrap    <$> decode <*> decode <*> decode <*> decode
+              go 8  = Error    <$> decode <*> decode
+              go 9  = Builtin  <$> decode <*> decode
+              go 10 = Constr   <$> decode <*> decode <*> decode <*> decode
+              go 11 = Case     <$> decode <*> decode <*> decode <*> decode
+              go _  = fail "Failed to decode Term TyName Name ()"
 
-    size tm sz = termTagWidth + sz + case tm of
-        Var      ann n         -> getSize ann + getSize n
-        TyAbs    ann tn k t    -> getSize ann + getSize tn  + getSize k   + getSize t
-        LamAbs   ann n ty t    -> getSize ann + getSize n   + getSize ty  + getSize t
-        Apply    ann t t'      -> getSize ann + getSize t   + getSize t'
-        Constant ann c         -> getSize ann + getSize c
-        TyInst   ann t ty      -> getSize ann + getSize t   + getSize ty
-        Unwrap   ann t         -> getSize ann + getSize t
-        IWrap    ann pat arg t -> getSize ann + getSize pat + getSize arg + getSize t
-        Error    ann ty        -> getSize ann + getSize ty
-        Builtin  ann bn        -> getSize ann + getSize bn
+    size tm sz =
+      let
+        sz' = termTagWidth + sz
+      in case tm of
+        Var      ann n         -> size ann $ size n sz'
+        TyAbs    ann tn k t    -> size ann $ size tn $ size k  $ size t sz'
+        LamAbs   ann n ty t    -> size ann $ size n $ size ty $ size t sz'
+        Apply    ann t t'      -> size ann $ size t $ size t' sz'
+        Constant ann c         -> size ann $ size c sz'
+        TyInst   ann t ty      -> size ann $ size t $ size ty sz'
+        Unwrap   ann t         -> size ann $ size t sz'
+        IWrap    ann pat arg t -> size ann $ size pat $ size arg $ size t sz'
+        Error    ann ty        -> size ann $ size ty sz'
+        Builtin  ann bn        -> size ann $ size bn sz'
+        Constr   ann ty i es   -> size ann $ size ty $ size i $ size es sz'
+        Case     ann ty arg cs -> size ann $ size ty $ size arg $ size cs sz'
 
 instance ( Closed uni
          , Flat ann
@@ -326,20 +354,8 @@ instance ( Flat ann
 
 deriving newtype instance (Flat a) => Flat (Normalized a)
 
--- See Note [Index (Word64) (de)serialized through Natural]
-instance Flat Index where
-    -- encode from word64 to natural
-    encode = encode @Natural . fromIntegral
-    -- decode from natural to word64
-    decode = do
-        n <- decode @Natural
-        case naturalToWord64Maybe n of
-            Nothing  -> fail $ "Index outside representable range: " ++ show n
-            Just w64 -> pure $ Index w64
-    -- to be exact, we must not let this be generically derived,
-    -- because the `gsize` would derive the size of the underlying Word64,
-    -- whereas we want the size of Natural
-    size = sNatural . fromIntegral
+-- See Note [DeBruijn Index serialization]
+deriving newtype instance Flat Index -- via word64
 
 deriving newtype instance Flat DeBruijn -- via index
 deriving newtype instance Flat TyDeBruijn -- via debruijn
@@ -356,7 +372,7 @@ instance Flat (Binder DeBruijn) where
     encode _ = mempty
     decode = pure $ Binder $ DeBruijn deBruijnInitIndex
 
--- (Binder TyDeBruin) could similarly have a flat instance, but we don't need it.
+-- (Binder TyDeBruijn) could similarly have a flat instance, but we don't need it.
 
 deriving newtype instance Flat (Binder Name)
 deriving newtype instance Flat (Binder TyName)
@@ -366,16 +382,25 @@ deriving newtype instance Flat (Binder TyName)
 deriving newtype instance Flat (Binder NamedDeBruijn)
 deriving newtype instance Flat (Binder NamedTyDeBruijn)
 
--- this instance is very similar to the Flat DeBruijn instance.
--- NOTE: the serialization roundtrip holds iff the invariant name==fakeName holds
+{- This instance is going via Flat DeBruijn.
+FakeNamedDeBruijn <-> DeBruijn are isomorphic: we could use iso-deriving package,
+but we do not need any other isomorphic Flat deriving for the moment.
+See NOTE: [Why newtype FakeNamedDeBruijn]
+-}
 instance Flat FakeNamedDeBruijn where
-    size  = size . fromFake -- via debruijn
-    encode  = encode . fromFake -- via debruijn
-    decode =  toFake <$> decode -- via debruijn
+    size = size . fromFake
+    encode = encode . fromFake
+    decode =  toFake <$> decode
 
--- this instance is very similar to the Flat (Binder DeBruijn) instance.
--- NOTE: the serialization roundtrip holds iff the invariant name==fakeName holds
+{- This instance is going via Flat (Binder DeBruijn) instance.
+Binder FakeNamedDeBruijn <-> Binder DeBruijn are isomorphic because
+FakeNamedDeBruijn <-> DeBruijn are isomorphic and Binder is a functor:
+we could use iso-deriving package,
+but  we do not need any other isomorphic Flat deriving for the moment.
+See NOTE: [Why newtype FakeNamedDeBruijn]
+NOTE: the serialization roundtrip holds iff the invariant binder.index==0 holds
+-}
 instance Flat (Binder FakeNamedDeBruijn) where
-    size  = size . fromFake . coerce -- via binder debruijn
-    encode = encode . fromFake . coerce -- via binder debruijn
-    decode = coerce . toFake . coerce <$> decode @(Binder DeBruijn) -- via binder debruijn
+    size = size . fmap fromFake
+    encode = encode . fmap fromFake
+    decode =  fmap toFake <$> decode

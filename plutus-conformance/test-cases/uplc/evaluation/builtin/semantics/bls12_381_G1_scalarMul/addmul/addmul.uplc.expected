@@ -1,0 +1,7 @@
+(program
+  1.0.0
+  (con
+    bls12_381_G1_element
+    0x8cc84679c6c870408169a656c245a2ab9ccc46598769b19f07711c18624284d1bfa33667cac7b99a12e058abfd14ef88
+  )
+)

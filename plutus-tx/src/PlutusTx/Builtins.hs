@@ -4,93 +4,122 @@
 
 -- | Primitive names and functions for working with Plutus Core builtins.
 module PlutusTx.Builtins (
-                                -- * Bytestring builtins
-                                BuiltinByteString
-                                , appendByteString
-                                , consByteString
-                                , sliceByteString
-                                , lengthOfByteString
-                                , indexByteString
-                                , emptyByteString
-                                , equalsByteString
-                                , lessThanByteString
-                                , lessThanEqualsByteString
-                                , greaterThanByteString
-                                , greaterThanEqualsByteString
-                                , sha2_256
-                                , sha3_256
-                                , blake2b_256
-                                , verifyEd25519Signature
-                                , verifyEcdsaSecp256k1Signature
-                                , verifySchnorrSecp256k1Signature
-                                , decodeUtf8
-                                -- * Integer builtins
-                                , Integer
-                                , addInteger
-                                , subtractInteger
-                                , multiplyInteger
-                                , divideInteger
-                                , modInteger
-                                , quotientInteger
-                                , remainderInteger
-                                , greaterThanInteger
-                                , greaterThanEqualsInteger
-                                , lessThanInteger
-                                , lessThanEqualsInteger
-                                , equalsInteger
-                                -- * Error
-                                , error
-                                -- * Data
-                                , BuiltinData
-                                , chooseData
-                                , matchData
-                                , matchData'
-                                , equalsData
-                                , serialiseData
-                                , mkConstr
-                                , mkMap
-                                , mkList
-                                , mkI
-                                , mkB
-                                , unsafeDataAsConstr
-                                , unsafeDataAsMap
-                                , unsafeDataAsList
-                                , unsafeDataAsI
-                                , unsafeDataAsB
-                                , BI.builtinDataToData
-                                , BI.dataToBuiltinData
-                                -- * Strings
-                                , BuiltinString
-                                , appendString
-                                , emptyString
-                                , equalsString
-                                , encodeUtf8
-                                -- * Lists
-                                , matchList
-                                -- * Tracing
-                                , trace
-                                -- * Conversions
-                                , fromBuiltin
-                                , toBuiltin
-                                -- * Bitwise builtins
-                                , integerToByteString
-                                , byteStringToInteger
-                                , andByteString
-                                , iorByteString
-                                , xorByteString
-                                , complementByteString
-                                , shiftByteString
-                                , rotateByteString
-                                , popCountByteString
-                                , testBitByteString
-                                , writeBitByteString
-                                , findFirstSetByteString
-                                ) where
+                         -- * Bytestring builtins
+                           BuiltinByteString
+                         , appendByteString
+                         , consByteString
+                         , sliceByteString
+                         , lengthOfByteString
+                         , indexByteString
+                         , emptyByteString
+                         , equalsByteString
+                         , lessThanByteString
+                         , lessThanEqualsByteString
+                         , greaterThanByteString
+                         , greaterThanEqualsByteString
+                         , sha2_256
+                         , sha3_256
+                         , blake2b_224
+                         , blake2b_256
+                         , keccak_256
+                         , verifyEd25519Signature
+                         , verifyEcdsaSecp256k1Signature
+                         , verifySchnorrSecp256k1Signature
+                         , decodeUtf8
+                         -- * Integer builtins
+                         , Integer
+                         , addInteger
+                         , subtractInteger
+                         , multiplyInteger
+                         , divideInteger
+                         , modInteger
+                         , quotientInteger
+                         , remainderInteger
+                         , greaterThanInteger
+                         , greaterThanEqualsInteger
+                         , lessThanInteger
+                         , lessThanEqualsInteger
+                         , equalsInteger
+                         -- * Error
+                         , error
+                         -- * Data
+                         , BuiltinData
+                         , chooseData
+                         , matchData
+                         , matchData'
+                         , equalsData
+                         , serialiseData
+                         , mkConstr
+                         , mkMap
+                         , mkList
+                         , mkI
+                         , mkB
+                         , unsafeDataAsConstr
+                         , unsafeDataAsMap
+                         , unsafeDataAsList
+                         , unsafeDataAsI
+                         , unsafeDataAsB
+                         , BI.builtinDataToData
+                         , BI.dataToBuiltinData
+                         -- * Strings
+                         , BuiltinString
+                         , appendString
+                         , emptyString
+                         , equalsString
+                         , encodeUtf8
+                         -- * Lists
+                         , matchList
+                         -- * Tracing
+                         , trace
+                         -- * BLS12_381
+                         , BuiltinBLS12_381_G1_Element
+                         , bls12_381_G1_equals
+                         , bls12_381_G1_add
+                         , bls12_381_G1_scalarMul
+                         , bls12_381_G1_neg
+                         , bls12_381_G1_compress
+                         , bls12_381_G1_uncompress
+                         , bls12_381_G1_hashToGroup
+                         , bls12_381_G1_zero
+                         , bls12_381_G1_generator
+                         , BuiltinBLS12_381_G2_Element
+                         , bls12_381_G2_equals
+                         , bls12_381_G2_add
+                         , bls12_381_G2_scalarMul
+                         , bls12_381_G2_neg
+                         , bls12_381_G2_compress
+                         , bls12_381_G2_uncompress
+                         , bls12_381_G2_hashToGroup
+                         , bls12_381_G2_zero
+                         , bls12_381_G2_generator
+                         , BuiltinBLS12_381_MlResult
+                         , bls12_381_millerLoop
+                         , bls12_381_mulMlResult
+                         , bls12_381_finalVerify
+                         -- * Bitwise builtins
+                         , integerToByteString
+                         , byteStringToInteger
+                         , andByteString
+                         , iorByteString
+                         , xorByteString
+                         , complementByteString
+                         , shiftByteString
+                         , rotateByteString
+                         , popCountByteString
+                         , testBitByteString
+                         , writeBitByteString
+                         , findFirstSetByteString
+                         -- * Conversions
+                         , fromBuiltin
+                         , toBuiltin
+                         ) where
 
 import PlutusTx.Base (const, uncurry)
 import PlutusTx.Bool (Bool (..))
 import PlutusTx.Builtins.Class
-import PlutusTx.Builtins.Internal (BuiltinByteString (..), BuiltinData, BuiltinString)
+import PlutusTx.Builtins.Internal (BuiltinBLS12_381_G1_Element (..),
+                                   BuiltinBLS12_381_G2_Element (..), BuiltinBLS12_381_MlResult (..),
+                                   BuiltinByteString (..), BuiltinData, BuiltinString)
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Integer (Integer)
 
@@ -134,10 +163,20 @@ sha2_256 = BI.sha2_256
 sha3_256 :: BuiltinByteString -> BuiltinByteString
 sha3_256 = BI.sha3_256
 
+{-# INLINABLE blake2b_224 #-}
+-- | The BLAKE2B-224 hash of a 'ByteString'
+blake2b_224 :: BuiltinByteString -> BuiltinByteString
+blake2b_224 = BI.blake2b_256
+
 {-# INLINABLE blake2b_256 #-}
 -- | The BLAKE2B-256 hash of a 'ByteString'
 blake2b_256 :: BuiltinByteString -> BuiltinByteString
 blake2b_256 = BI.blake2b_256
+
+{-# INLINABLE keccak_256 #-}
+-- | The KECCAK-256 hash of a 'ByteString'
+keccak_256 :: BuiltinByteString -> BuiltinByteString
+keccak_256 = BI.keccak_256
 
 {-# INLINABLE verifyEd25519Signature #-}
 -- | Ed25519 signature verification. Verify that the signature is a signature of
@@ -541,3 +580,90 @@ matchData' d constrCase mapCase listCase iCase bCase =
    (\_ -> iCase (unsafeDataAsI d))
    (\_ -> bCase (unsafeDataAsB d))
    ()
+
+-- G1 --
+{-# INLINABLE bls12_381_G1_equals #-}
+bls12_381_G1_equals :: BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G1_Element -> Bool
+bls12_381_G1_equals a b = fromBuiltin (BI.bls12_381_G1_equals a b)
+
+{-# INLINABLE bls12_381_G1_add #-}
+bls12_381_G1_add :: BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G1_Element
+bls12_381_G1_add = BI.bls12_381_G1_add
+
+{-# INLINABLE bls12_381_G1_scalarMul #-}
+bls12_381_G1_scalarMul :: Integer -> BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G1_Element
+bls12_381_G1_scalarMul = BI.bls12_381_G1_scalarMul
+
+{-# INLINABLE bls12_381_G1_neg #-}
+bls12_381_G1_neg :: BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G1_Element
+bls12_381_G1_neg = BI.bls12_381_G1_neg
+
+{-# INLINABLE bls12_381_G1_compress #-}
+bls12_381_G1_compress :: BuiltinBLS12_381_G1_Element -> BuiltinByteString
+bls12_381_G1_compress = BI.bls12_381_G1_compress
+
+{-# INLINABLE bls12_381_G1_uncompress #-}
+bls12_381_G1_uncompress :: BuiltinByteString -> BuiltinBLS12_381_G1_Element
+bls12_381_G1_uncompress = BI.bls12_381_G1_uncompress
+
+{-# INLINABLE bls12_381_G1_hashToGroup #-}
+bls12_381_G1_hashToGroup :: BuiltinByteString -> BuiltinByteString -> BuiltinBLS12_381_G1_Element
+bls12_381_G1_hashToGroup = BI.bls12_381_G1_hashToGroup
+
+{-# INLINABLE bls12_381_G1_zero #-}
+bls12_381_G1_zero :: BuiltinBLS12_381_G1_Element
+bls12_381_G1_zero = BI.bls12_381_G1_zero
+
+{-# INLINABLE bls12_381_G1_generator #-}
+bls12_381_G1_generator :: BuiltinBLS12_381_G1_Element
+bls12_381_G1_generator = BI.bls12_381_G1_generator
+
+-- G2 --
+{-# INLINABLE bls12_381_G2_equals #-}
+bls12_381_G2_equals :: BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_G2_Element -> Bool
+bls12_381_G2_equals a b = fromBuiltin (BI.bls12_381_G2_equals a b)
+
+{-# INLINABLE bls12_381_G2_add #-}
+bls12_381_G2_add :: BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_G2_Element
+bls12_381_G2_add = BI.bls12_381_G2_add
+
+{-# INLINABLE bls12_381_G2_scalarMul #-}
+bls12_381_G2_scalarMul :: Integer -> BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_G2_Element
+bls12_381_G2_scalarMul = BI.bls12_381_G2_scalarMul
+
+{-# INLINABLE bls12_381_G2_neg #-}
+bls12_381_G2_neg :: BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_G2_Element
+bls12_381_G2_neg = BI.bls12_381_G2_neg
+
+{-# INLINABLE bls12_381_G2_compress #-}
+bls12_381_G2_compress :: BuiltinBLS12_381_G2_Element -> BuiltinByteString
+bls12_381_G2_compress = BI.bls12_381_G2_compress
+
+{-# INLINABLE bls12_381_G2_uncompress #-}
+bls12_381_G2_uncompress :: BuiltinByteString -> BuiltinBLS12_381_G2_Element
+bls12_381_G2_uncompress = BI.bls12_381_G2_uncompress
+
+{-# INLINABLE bls12_381_G2_hashToGroup #-}
+bls12_381_G2_hashToGroup :: BuiltinByteString -> BuiltinByteString -> BuiltinBLS12_381_G2_Element
+bls12_381_G2_hashToGroup = BI.bls12_381_G2_hashToGroup
+
+{-# INLINABLE bls12_381_G2_zero #-}
+bls12_381_G2_zero :: BuiltinBLS12_381_G2_Element
+bls12_381_G2_zero = BI.bls12_381_G2_zero
+
+{-# INLINABLE bls12_381_G2_generator #-}
+bls12_381_G2_generator :: BuiltinBLS12_381_G2_Element
+bls12_381_G2_generator = BI.bls12_381_G2_generator
+
+-- Pairing --
+{-# INLINABLE bls12_381_millerLoop #-}
+bls12_381_millerLoop :: BuiltinBLS12_381_G1_Element -> BuiltinBLS12_381_G2_Element -> BuiltinBLS12_381_MlResult
+bls12_381_millerLoop = BI.bls12_381_millerLoop
+
+{-# INLINABLE bls12_381_mulMlResult #-}
+bls12_381_mulMlResult ::  BuiltinBLS12_381_MlResult -> BuiltinBLS12_381_MlResult -> BuiltinBLS12_381_MlResult
+bls12_381_mulMlResult = BI.bls12_381_mulMlResult
+
+{-# INLINABLE bls12_381_finalVerify #-}
+bls12_381_finalVerify :: BuiltinBLS12_381_MlResult -> BuiltinBLS12_381_MlResult -> Bool
+bls12_381_finalVerify a b = fromBuiltin (BI.bls12_381_finalVerify a b)

@@ -1,1 +1,0 @@
-/\a -> \(x : a) -> \(xs : (\a -> ifix (\(list :: * -> *) -> \a -> all r. r -> (a -> list a -> r) -> r) a) a) -> iwrap (\(list :: * -> *) -> \a -> all r. r -> (a -> list a -> r) -> r) a (/\r -> \(z : r) -> \(f : a -> (\a -> ifix (\(list :: * -> *) -> \a -> all r. r -> (a -> list a -> r) -> r) a) a -> r) -> f x xs)

@@ -1,11 +1,14 @@
-
 version: 2
 
 sphinx:
   configuration: doc/read-the-docs-site/conf.py
 
-# Optionally set the version of Python and requirements required to build your docs
+build:
+  os: "ubuntu-22.04"
+  tools:
+    # This means "latest version 3", which seems fine
+    python: "3"
+
 python:
-  version: 3.7
   install:
     - requirements: doc/read-the-docs-site/requirements.txt

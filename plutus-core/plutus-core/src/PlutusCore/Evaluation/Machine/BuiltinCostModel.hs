@@ -14,11 +14,14 @@ module PlutusCore.Evaluation.Machine.BuiltinCostModel
     ( BuiltinCostModel
     , BuiltinCostModelBase(..)
     , CostingFun(..)
+    , Intercept(..)
+    , Slope(..)
+    , OneVariableLinearFunction(..)
+    , TwoVariableLinearFunction(..)
     , ModelAddedSizes(..)
     , ModelSubtractedSizes(..)
     , ModelConstantOrLinear(..)
     , ModelConstantOrTwoArguments(..)
-    , ModelLinearSize(..)
     , ModelMultipliedSizes(..)
     , ModelMinSize(..)
     , ModelMaxSize(..)
@@ -133,6 +136,40 @@ data BuiltinCostModelBase f =
     , paramMkNilData                       :: f ModelOneArgument
     , paramMkNilPairData                   :: f ModelOneArgument
     , paramSerialiseData                   :: f ModelOneArgument
+    -- BLS12-381
+    , paramBls12_381_G1_add                :: f ModelTwoArguments
+    , paramBls12_381_G1_neg                :: f ModelOneArgument
+    , paramBls12_381_G1_scalarMul          :: f ModelTwoArguments
+    , paramBls12_381_G1_equal              :: f ModelTwoArguments
+    , paramBls12_381_G1_compress           :: f ModelOneArgument
+    , paramBls12_381_G1_uncompress         :: f ModelOneArgument
+    , paramBls12_381_G1_hashToGroup        :: f ModelTwoArguments
+    , paramBls12_381_G2_add                :: f ModelTwoArguments
+    , paramBls12_381_G2_neg                :: f ModelOneArgument
+    , paramBls12_381_G2_scalarMul          :: f ModelTwoArguments
+    , paramBls12_381_G2_equal              :: f ModelTwoArguments
+    , paramBls12_381_G2_compress           :: f ModelOneArgument
+    , paramBls12_381_G2_uncompress         :: f ModelOneArgument
+    , paramBls12_381_G2_hashToGroup        :: f ModelTwoArguments
+    , paramBls12_381_millerLoop            :: f ModelTwoArguments
+    , paramBls12_381_mulMlResult           :: f ModelTwoArguments
+    , paramBls12_381_finalVerify           :: f ModelTwoArguments
+    -- Keccak_256, Blake2b_224
+    , paramKeccak_256                      :: f ModelOneArgument
+    , paramBlake2b_224                     :: f ModelOneArgument
+    -- Bitwise operations
+    , paramIntegerToByteString             :: f ModelOneArgument
+    , paramByteStringToInteger             :: f ModelOneArgument
+    , paramAndByteString                   :: f ModelTwoArguments
+    , paramIorByteString                   :: f ModelTwoArguments
+    , paramXorByteString                   :: f ModelTwoArguments
+    , paramComplementByteString            :: f ModelOneArgument
+    , paramShiftByteString                 :: f ModelTwoArguments
+    , paramRotateByteString                :: f ModelTwoArguments
+    , paramPopCountByteString              :: f ModelOneArgument
+    , paramTestBitByteString               :: f ModelTwoArguments
+    , paramWriteBitByteString              :: f ModelThreeArguments
+    , paramFindFirstSetByteString          :: f ModelOneArgument
     }
     deriving stock (Generic)
     deriving anyclass (FunctorB, TraversableB, ConstraintsB)

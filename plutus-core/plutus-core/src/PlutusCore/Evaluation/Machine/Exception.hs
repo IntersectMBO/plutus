@@ -11,6 +11,7 @@
 {-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE TypeFamilies           #-}
+{-# LANGUAGE TypeOperators          #-}
 {-# LANGUAGE UndecidableInstances   #-}
 
 module PlutusCore.Evaluation.Machine.Exception
@@ -24,7 +25,6 @@ module PlutusCore.Evaluation.Machine.Exception
     , ErrorWithCause (..)
     , EvaluationException
     , throwNotAConstant
-    , mapCauseInMachineException
     , throwing
     , throwing_
     , throwingWithCause
@@ -34,7 +34,6 @@ module PlutusCore.Evaluation.Machine.Exception
 
 import PlutusPrelude
 
-import PlutusCore.Core.Instance.Pretty.Common ()
 import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 
@@ -44,6 +43,7 @@ import Control.Monad.Except
 import Data.Either.Extras
 import Data.String (IsString)
 import Data.Text (Text)
+import Data.Word (Word64)
 import Prettyprinter
 
 -- | When unlifting of a PLC term into a Haskell value fails, this error is thrown.
@@ -74,7 +74,9 @@ data MachineError fun
       -- ^ A builtin expected a term argument, but something else was received
     | UnexpectedBuiltinTermArgumentMachineError
       -- ^ A builtin received a term argument when something else was expected
-    | UnknownBuiltin !fun
+    | UnknownBuiltin fun
+    | NonConstrScrutinized
+    | MissingCaseBranch Word64
     deriving stock (Show, Eq, Functor, Generic)
     deriving anyclass (NFData)
 
@@ -131,12 +133,6 @@ type EvaluationException user internal =
 throwNotAConstant :: MonadError KnownTypeError m => m void
 throwNotAConstant = throwError $ KnownTypeUnliftingError "Not a constant"
 {-# INLINE throwNotAConstant #-}
-
-mapCauseInMachineException
-    :: (term1 -> term2)
-    -> EvaluationException user (MachineError fun) term1
-    -> EvaluationException user (MachineError fun) term2
-mapCauseInMachineException = fmap
 
 -- | "Prismatically" throw an error and its (optional) cause.
 throwingWithCause
@@ -200,6 +196,10 @@ instance (HasPrettyDefaults config ~ 'True, Pretty fun) =>
         pretty unliftingError
     prettyBy _      (UnknownBuiltin fun)                  =
         "Encountered an unknown built-in function:" <+> pretty fun
+    prettyBy _      NonConstrScrutinized =
+        "A non-constructor value was scrutinized in a case expression"
+    prettyBy _      (MissingCaseBranch i) =
+        "Case expression missing the branch required by the scrutinee tag:" <+> pretty i
 
 instance
         ( HasPrettyDefaults config ~ 'True

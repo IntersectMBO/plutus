@@ -1,1 +1,0 @@
-\a -> ifix (\(rec :: * -> *) -> \i -> a -> (all (a :: * -> *). a i -> integer)) a

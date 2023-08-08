@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE GADTs #-}
 
 
@@ -64,42 +63,45 @@ getBinding (b:bs) x = case b of
 --------------------
 {-
 kind :: Context -> Type -> Kind
-kind ctx (TyVar x) = case getBinding ctx x of
-                       (Left  t) -> error ("The type variable " ++ x ++ " is assigned type " ++ (show t) ++
-                                           " in the context, but it may only be bound to a kind")
-                       (Right k) -> k
+kind ctx (TyVar x) =
+  case getBinding ctx x of
+    (Left  t) -> error ("The type variable " ++ x ++ " is assigned type " ++ (show t) ++
+                        " in the context, but it may only be bound to a kind")
+    (Right k) -> k
 kind ctx (TyAbs x k1 t) = let ctx' = addBinding ctx (TypeBind x k1)
                               k2   = kind ctx' t in
                             (Arrow k1 k2)
-kind ctx (TyApp t1 t2) = let k1 = kind ctx t1
-                             k2 = kind ctx t2 in
-                           case k1 of
-                             (Arrow a b) -> if a == k2
-                                              then b
-                                              else error ("can't apply type " ++ (show t1) ++ " to type " ++ (show t2) ++
-                                                          " since " ++ (show t1) ++ " has kind " ++ (show k1) ++ " and " ++
-                                                           (show t2) ++ " has kind " ++ (show k2))
-                             Star -> error ("can't apply type " ++ (show t1) ++ " to type " ++ (show t2) ++
-                                            " since " ++ (show t1) ++ " has kind " ++ (show Star))
-kind ctx (TyFun t1 t2) = let k1 = kind ctx t1
-                             k2 = kind ctx t2 in
-                           if k1 == Star && k2 == Star
-                             then Star
-                             else error ("for " ++ (show (TyFun t1 t2)) ++ " to be a function type, both " ++ (show t1) ++
-                                         " and " ++ (show t2) ++ " must have kind " ++ (show Star))
-kind ctx (TyAll x k t) = let ctx' = addBinding ctx (TypeBind x k)
-                             kt   = kind ctx' t in
-                           if kt == Star
-                             then Star
-                             else error ("if " ++ x ++ " has kind " ++ (show k) ++ " then " ++ (show t) ++ " has kind " ++
-                                         (show kt) ++ ", but must have kind " ++ (show Star) ++
-                                         " to be universally quantified")
-kind ctx (TyFix t) = let k = kind ctx t in
-                       case k of
-                         (Arrow k1 k2) -> if k1 == k2 then k1 else (error "can only fix types of kind k -> k")
-                         Star          -> error "cannot fix types of kind *"
-
-
+kind ctx (TyApp t1 t2) =
+  let k1 = kind ctx t1
+      k2 = kind ctx t2 in
+  case k1 of
+    (Arrow a b) -> if a == k2
+                    then b
+                    else error ("can't apply type " ++ (show t1) ++ " to type " ++ (show t2) ++
+                                " since " ++ (show t1) ++ " has kind " ++ (show k1) ++ " and " ++
+                                  (show t2) ++ " has kind " ++ (show k2))
+    Star -> error ("can't apply type " ++ (show t1) ++ " to type " ++ (show t2) ++
+                  " since " ++ (show t1) ++ " has kind " ++ (show Star))
+kind ctx (TyFun t1 t2) =
+  let k1 = kind ctx t1
+      k2 = kind ctx t2 in
+  if k1 == Star && k2 == Star
+  then Star
+  else error ("for " ++ (show (TyFun t1 t2)) ++ " to be a function type, both " ++ (show t1) ++
+              " and " ++ (show t2) ++ " must have kind " ++ (show Star))
+kind ctx (TyAll x k t) =
+  let ctx' = addBinding ctx (TypeBind x k)
+      kt   = kind ctx' t in
+  if kt == Star
+    then Star
+    else error ("if " ++ x ++ " has kind " ++ (show k) ++ " then " ++ (show t) ++ " has kind " ++
+                (show kt) ++ ", but must have kind " ++ (show Star) ++
+                " to be universally quantified")
+kind ctx (TyFix t) =
+  let k = kind ctx t in
+    case k of
+    (Arrow k1 k2) -> if k1 == k2 then k1 else (error "can only fix types of kind k -> k")
+    Star          -> error "cannot fix types of kind *"
 -}
 ------------------------
 -- Type Normalization --
@@ -120,13 +122,15 @@ sub :: Type -> VarName -> Type -> Type
 sub = subExcept []
   where
   subExcept :: [VarName] -> Type -> VarName -> Type -> Type
-  subExcept bound t x t' = if x `elem` bound then t' else
-                             case t' of
-                               (TyVar y)     -> if x == y then t else (TyVar y)
-                               (TyFun t1 t2) -> TyFun (subExcept bound t x t1) (subExcept bound t x t2)
-                               (TyAll x' t') -> TyAll x' (subExcept (x:bound) t x t')
-                               (TyAbs x' t') -> TyAbs x' (subExcept (x:bound) t x t')
-                               (TyFix t')    -> TyFix (subExcept (bound) t x t')
-                               (TyApp t1 t2) -> TyApp (subExcept bound t x t1) (subExcept bound t x t2)
+  subExcept bound t x t' =
+    if x `elem` bound then t'
+    else
+      case t' of
+        (TyVar y)     -> if x == y then t else (TyVar y)
+        (TyFun t1 t2) -> TyFun (subExcept bound t x t1) (subExcept bound t x t2)
+        (TyAll x' t') -> TyAll x' (subExcept (x:bound) t x t')
+        (TyAbs x' t') -> TyAbs x' (subExcept (x:bound) t x t')
+        (TyFix t')    -> TyFix (subExcept (bound) t x t')
+        (TyApp t1 t2) -> TyApp (subExcept bound t x t1) (subExcept bound t x t2)
 
 

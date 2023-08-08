@@ -23,19 +23,13 @@
       (termbind
         (strict)
         (vardecl even (fun Nat Bool))
-        (lam
-          n
-          Nat
-          [ [ { [ match_Nat n ] Bool } True ] (lam pred Nat [ odd pred ]) ]
-        )
+        (lam n Nat [ [ { [ match_Nat n ] Bool } True ] (lam p Nat [ odd p ]) ])
       )
       (termbind
         (strict)
         (vardecl odd (fun Nat Bool))
         (lam
-          n
-          Nat
-          [ [ { [ match_Nat n ] Bool } False ] (lam pred Nat [ even pred ]) ]
+          n Nat [ [ { [ match_Nat n ] Bool } False ] (lam p Nat [ even p ]) ]
         )
       )
       (let

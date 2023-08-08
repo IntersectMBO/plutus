@@ -8,9 +8,39 @@
 {-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE ViewPatterns        #-}
 
-module PlutusCore.Executable.Common where
+module PlutusCore.Executable.Common
+    ( module PlutusCore.Executable.Types
+    , PrintBudgetState
+    , getInput
+    , getInteresting
+    , getPlcExamples
+    , getPrintMethod
+    , getUplcExamples
+    , handleEResult
+    , handleTimingResults
+    , helpText
+    , loadASTfromFlat
+    , parseInput
+    , parseNamedProgram
+    , printBudgetState
+    , readProgram
+    , runConvert
+    , runDumpModel
+    , runPrint
+    , runPrintBuiltinSignatures
+    , runPrintExample
+    , timeEval
+    , topSrcSpan
+    , writeFlat
+    , writePrettyToFileOrStd
+    , writeProgram
+    , writeToFileOrStd
+    ) where
 
 import PlutusPrelude
+
+import PlutusCore.Executable.AstIO
+import PlutusCore.Executable.Types
 
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
@@ -37,11 +67,11 @@ import UntypedPlutusCore.Check.Uniques qualified as UPLC (checkProgram)
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
 import UntypedPlutusCore.Parser qualified as UPLC (parse, program)
 
-import PlutusIR.Core.Type qualified as PIR
+import PlutusIR.Check.Uniques as PIR (checkProgram)
+import PlutusIR.Core.Instance.Pretty ()
 import PlutusIR.Parser qualified as PIR (parse, program)
 
 import Control.DeepSeq (rnf)
-import Control.Lens hiding (ix, op)
 import Control.Monad.Except
 import Data.Aeson qualified as Aeson
 import Data.ByteString.Lazy qualified as BSL
@@ -52,9 +82,10 @@ import Data.List (intercalate, nub)
 import Data.List qualified as List
 import Data.Maybe (fromJust)
 import Data.Proxy (Proxy (..))
+import Data.SatInt
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
-import Flat (Flat, flat, unflat)
+import Flat (Flat)
 import GHC.TypeLits (symbolVal)
 import Prettyprinter ((<+>))
 
@@ -65,22 +96,6 @@ import Text.Megaparsec (errorBundlePretty)
 import Text.Printf (printf)
 
 ----------- ProgramLike type class -----------
-
--- | PIR program type.
-type PirProg =
-    PIR.Program PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun
-
--- | PLC program type.
-type PlcProg =
-    PLC.Program PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun
-
--- | UPLC program type.
-type UplcProg =
-    UPLC.Program PLC.Name PLC.DefaultUni PLC.DefaultFun
-
--- | UPLC term type.
-type UplcTerm =
-    UPLC.Term UPLC.Name PLC.DefaultUni PLC.DefaultFun
 
 class ProgramLike p where
     -- | Parse a program.  The first argument (normally the file path) describes
@@ -99,68 +114,32 @@ class ProgramLike p where
         m ()
 
     -- | Convert names to de Bruijn indices and then serialise
-    serialiseProgramFlat :: (Flat ann, PP.Pretty ann) => AstNameType -> p ann -> IO BSL.ByteString
+    serialiseProgramFlat :: (Flat ann, PP.Pretty ann) => AstNameType -> p ann -> BSL.ByteString
 
     -- | Read and deserialise a Flat-encoded AST
     loadASTfromFlat :: Flat ann => AstNameType -> Input -> IO (p ann)
 
--- For PIR and PLC
-serialiseTProgramFlat :: Flat a => AstNameType -> a -> IO BSL.ByteString
-serialiseTProgramFlat nameType p =
-    case nameType of
-        Named         -> pure $ BSL.fromStrict $ flat p
-        DeBruijn      -> typedDeBruijnNotSupportedError
-        NamedDeBruijn -> typedDeBruijnNotSupportedError
-
 -- | Instance for PIR program.
 instance ProgramLike PirProg where
     parseNamedProgram inputName = PLC.runQuoteT . PIR.parse PIR.program inputName
-    checkUniques _ = pure () -- decided that it's not worth implementing since it's checked in PLC.
-    serialiseProgramFlat = serialiseTProgramFlat
-    loadASTfromFlat = loadTplcASTfromFlat
+    checkUniques = PIR.checkProgram (const True)
+    serialiseProgramFlat = serialisePirProgramFlat
+    loadASTfromFlat = loadPirASTfromFlat
 
 -- | Instance for PLC program.
 instance ProgramLike PlcProg where
     parseNamedProgram inputName = PLC.runQuoteT . UPLC.parse PLC.program inputName
     checkUniques = PLC.checkProgram (const True)
-    serialiseProgramFlat = serialiseTProgramFlat
-    loadASTfromFlat = loadTplcASTfromFlat
+    serialiseProgramFlat = serialisePlcProgramFlat
+    loadASTfromFlat = loadPlcASTfromFlat
 
 -- | Instance for UPLC program.
 instance ProgramLike UplcProg where
     parseNamedProgram inputName = PLC.runQuoteT . UPLC.parse UPLC.program inputName
     checkUniques = UPLC.checkProgram (const True)
-    serialiseProgramFlat nameType p =
-        case nameType of
-            Named         -> pure $ BSL.fromStrict $ flat p
-            DeBruijn      -> BSL.fromStrict . flat <$> toDeBruijn p
-            NamedDeBruijn -> BSL.fromStrict . flat <$> toNamedDeBruijn p
+    serialiseProgramFlat = serialiseUplcProgramFlat
     loadASTfromFlat = loadUplcASTfromFlat
 
--- We don't support de Bruijn names for typed programs because we really only
--- want serialisation for on-chain programs (and some of the functionality we'd
--- need isn't available anyway).
-typedDeBruijnNotSupportedError :: IO a
-typedDeBruijnNotSupportedError =
-    error "De-Bruijn-named ASTs are not supported for typed Plutus Core"
-
--- | Convert an untyped program to one where the 'name' type is de Bruijn indices.
-toDeBruijn :: UplcProg ann -> IO (UPLC.Program UPLC.DeBruijn PLC.DefaultUni PLC.DefaultFun ann)
-toDeBruijn prog =
-    case runExcept @UPLC.FreeVariableError $ traverseOf UPLC.progTerm UPLC.deBruijnTerm prog of
-        Left e  -> error $ show e
-        Right p -> return $ UPLC.programMapNames (\(UPLC.NamedDeBruijn _ ix) -> UPLC.DeBruijn ix) p
-
-{- | Convert an untyped program to one where the 'name' type is
- textual names with de Bruijn indices.
--}
-toNamedDeBruijn ::
-    UplcProg ann ->
-    IO (UPLC.Program UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ann)
-toNamedDeBruijn prog =
-    case runExcept @UPLC.FreeVariableError $ traverseOf UPLC.progTerm UPLC.deBruijnTerm prog of
-        Left e  -> error $ show e
-        Right p -> return p
 
 ---------------- Printing budgets and costs ----------------
 
@@ -182,26 +161,15 @@ printBudgetStateTally ::
     Cek.CekExTally fun ->
     IO ()
 printBudgetStateTally term model (Cek.CekExTally costs) = do
-    putStrLn $ "Const      " ++ pbudget (Cek.BStep Cek.BConst)
-    putStrLn $ "Var        " ++ pbudget (Cek.BStep Cek.BVar)
-    putStrLn $ "LamAbs     " ++ pbudget (Cek.BStep Cek.BLamAbs)
-    putStrLn $ "Apply      " ++ pbudget (Cek.BStep Cek.BApply)
-    putStrLn $ "Delay      " ++ pbudget (Cek.BStep Cek.BDelay)
-    putStrLn $ "Force      " ++ pbudget (Cek.BStep Cek.BForce)
-    putStrLn $ "Builtin    " ++ pbudget (Cek.BStep Cek.BBuiltin)
+    traverse_ printStepCost allStepKinds
     putStrLn ""
-    putStrLn $ "startup    " ++ pbudget Cek.BStartup
-    putStrLn $ "compute    " ++ printf "%-20s" (budgetToString totalComputeCost)
-    putStrLn $ "AST nodes  " ++ printf "%15d" (UPLC.termSize term)
+    putStrLn $ "startup    " ++ (budgetToString $ getSpent Cek.BStartup)
+    putStrLn $ "compute    " ++ budgetToString totalComputeCost
+    putStrLn $ "AST nodes  " ++ printf "%15d" (UPLC.unSize $ UPLC.termSize term)
     putStrLn ""
-    putStrLn $ "BuiltinApp " ++ budgetToString builtinCosts
     case model of
         Default ->
             do
-                putStrLn $
-                    printf
-                        "Time spent executing builtins:  %4.2f%%\n"
-                        (100 * (getCPU builtinCosts) / totalTime)
                 putStrLn ""
                 traverse_
                     ( \(b, cost) ->
@@ -209,8 +177,13 @@ printBudgetStateTally term model (Cek.CekExTally costs) = do
                     )
                     builtinsAndCosts
                 putStrLn ""
-                putStrLn $ "Total budget spent: " ++ printf (budgetToString totalCost)
-                putStrLn $ "Predicted execution time: " ++ formatTimePicoseconds totalTime
+                putStrLn $ "Total builtin costs:   " ++ budgetToString totalBuiltinCosts
+                printf "Time spent executing builtins:  %4.2f%%\n"
+                        (100 * (getCPU totalBuiltinCosts) / (getCPU totalCost))
+                putStrLn ""
+                putStrLn $ "Total budget spent:    " ++ printf (budgetToString totalCost)
+                putStrLn $ "Predicted execution time: "
+                             ++ (formatTimePicoseconds $ getCPU totalCost)
         Unit -> do
             putStrLn ""
             traverse_
@@ -219,33 +192,27 @@ printBudgetStateTally term model (Cek.CekExTally costs) = do
                 )
                 builtinsAndCosts
   where
+    allStepKinds = [minBound..maxBound] :: [Cek.StepKind]
     getSpent k =
         case H.lookup k costs of
             Just v  -> v
             Nothing -> ExBudget 0 0
-    allNodeTags =
-        fmap
-            Cek.BStep
-            [Cek.BConst, Cek.BVar, Cek.BLamAbs, Cek.BApply, Cek.BDelay, Cek.BForce, Cek.BBuiltin]
     totalComputeCost =
         -- For unitCekCosts this will be the total number of compute steps
-        foldMap getSpent allNodeTags
+        foldMap (getSpent . Cek.BStep) allStepKinds
     budgetToString (ExBudget (ExCPU cpu) (ExMemory mem)) =
         case model of
             -- Not %d: doesn't work when CostingInteger is SatInt.
             Default -> printf "%15s  %15s" (show cpu) (show mem) :: String
             -- Memory usage figures are meaningless in this case
             Unit    -> printf "%15s" (show cpu) :: String
-    pbudget = budgetToString . getSpent
-    f l e = case e of (Cek.BBuiltinApp b, cost) -> (b, cost) : l; _ -> l
-    builtinsAndCosts = List.foldl f [] (H.toList costs)
-    builtinCosts = mconcat (map snd builtinsAndCosts)
-    -- \^ Total builtin evaluation time (according to the models) in picoseconds
-    -- (units depend on BuiltinCostModel.costMultiplier)
-    getCPU b = let ExCPU b' = exBudgetCPU b in fromIntegral b' :: Double
-    totalCost = getSpent Cek.BStartup <> totalComputeCost <> builtinCosts
-    totalTime =
-        (getCPU $ getSpent Cek.BStartup) + getCPU totalComputeCost + getCPU builtinCosts
+    printStepCost constr =
+        printf "%-10s %20s\n" (tail $ show constr) (budgetToString . getSpent $ Cek.BStep constr)
+    getBuiltinCost l e = case e of (Cek.BBuiltinApp b, cost) -> (b, cost) : l; _ -> l
+    builtinsAndCosts = List.foldl getBuiltinCost [] (H.toList costs)
+    totalBuiltinCosts = mconcat (map snd builtinsAndCosts)
+    getCPU b = let ExCPU b' = exBudgetCPU b in fromSatInt b' :: Double
+    totalCost = getSpent Cek.BStartup <> totalComputeCost <> totalBuiltinCosts :: ExBudget
 
 class PrintBudgetState cost where
     printBudgetState ::
@@ -272,52 +239,6 @@ instance PrintBudgetState Cek.RestrictingSt where
     printBudgetState _term model (Cek.RestrictingSt (ExRestrictingBudget budget)) =
         printBudgetStateBudget model budget
 
----------------- Types for commands and arguments ----------------
-
-data Input = FileInput FilePath | StdInput
-instance Show Input where
-    show (FileInput path) = show path
-    show StdInput         = "<stdin>"
-
-data Output = FileOutput FilePath | StdOutput
-data IOSpec = MkIOSpec
-    { inputSpec  :: Input
-    , outputSpec :: Output
-    }
-data TimingMode = NoTiming | Timing Integer deriving stock (Eq) -- Report program execution time?
-data CekModel = Default | Unit -- Which cost model should we use for CEK machine steps?
-data PrintMode = Classic | Debug | Readable | ReadableDebug deriving stock (Show, Read)
-data TraceMode = None | Logs | LogsWithTimestamps | LogsWithBudgets deriving stock (Show, Read)
-type ExampleName = T.Text
-data ExampleMode = ExampleSingle ExampleName | ExampleAvailable
-
-{- | @Name@ can be @Name@s or de Bruijn indices when we (de)serialise the ASTs.
- PLC doesn't support de Bruijn indices when (de)serialising ASTs.
- UPLC supports @Name@ or de Bruijn indices.
--}
-data AstNameType
-    = Named
-    | DeBruijn
-    | NamedDeBruijn
-
-type Files = [FilePath]
-
--- | Input/output format for programs
-data Format
-    = Textual
-    | Flat AstNameType
-
-instance Show Format where
-    show Textual              = "textual"
-    show (Flat Named)         = "flat-named"
-    show (Flat DeBruijn)      = "flat-deBruijn"
-    show (Flat NamedDeBruijn) = "flat-namedDeBruijn"
-
-data ConvertOptions = ConvertOptions Input Format Output Format PrintMode
-data PrintOptions = PrintOptions IOSpec PrintMode
-newtype ExampleOptions = ExampleOptions ExampleMode
-data ApplyOptions = ApplyOptions Files Format Output Format PrintMode
-
 helpText ::
     -- | Either "Untyped Plutus Core" or "Typed Plutus Core"
     String ->
@@ -333,6 +254,7 @@ helpText lang =
         ++ "equipped with unit annotations.  Attempting to read a serialised AST with any "
         ++ "non-unit annotation type will cause an error."
 
+
 ---------------- Reading programs from files ----------------
 
 -- Read a source program
@@ -340,12 +262,12 @@ getInput :: Input -> IO T.Text
 getInput (FileInput file) = T.readFile file
 getInput StdInput         = T.getContents
 
--- | For PLC and UPLC source programs. Read and parse and check the program for @UniqueError@'s.
+-- | Read and parse and check the program for @UniqueError@'s.
 parseInput ::
     (ProgramLike p, PLC.Rename (p PLC.SrcSpan)) =>
     -- | The source program
     Input ->
-    -- | The output is either a UPLC or PLC program with annotation
+    -- | The output is a program with annotation
     IO (T.Text, p PLC.SrcSpan)
 parseInput inp = do
     contents <- getInput inp
@@ -366,67 +288,8 @@ parseInput inp = do
                     error $ PP.render $ pretty err
                 Right _ -> pure (contents, p)
 
--- Read a binary-encoded file (eg, Flat-encoded PLC)
-getBinaryInput :: Input -> IO BSL.ByteString
-getBinaryInput StdInput         = BSL.getContents
-getBinaryInput (FileInput file) = BSL.readFile file
-
----------------- Name conversions ----------------
-
-{- | Untyped AST with names consisting solely of De Bruijn indices. This is
- currently only used for intermediate values during Flat
- serialisation/deserialisation.  We may wish to add TypedProgramDeBruijn as
- well if we modify the CEK machine to run directly on de Bruijnified ASTs, but
- support for this is lacking elsewhere at the moment.
--}
-type UntypedProgramDeBruijn ann = UPLC.Program UPLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ann
-
-{- | Convert an untyped de-Bruijn-indexed program to one with standard names.
- We have nothing to base the names on, so every variable is named "v" (but
- with a Unique for disambiguation).  Again, we don't support typed programs.
--}
-fromDeBruijn :: UntypedProgramDeBruijn ann -> IO (UplcProg ann)
-fromDeBruijn prog = do
-    case PLC.runQuote $
-        runExceptT @UPLC.FreeVariableError $
-            traverseOf UPLC.progTerm UPLC.unDeBruijnTerm prog of
-        Left e  -> error $ show e
-        Right p -> return p
-
--- | Read and deserialise a Flat-encoded PIR/PLC AST
-loadTplcASTfromFlat :: Flat a => AstNameType -> Input -> IO a
-loadTplcASTfromFlat flatMode inp =
-    case flatMode of
-        Named         -> getBinaryInput inp >>= handleResult . unflat
-        DeBruijn      -> typedDeBruijnNotSupportedError
-        NamedDeBruijn -> typedDeBruijnNotSupportedError
-  where
-    handleResult =
-        \case
-            Left e  -> error $ "Flat deserialisation failure: " ++ show e
-            Right r -> return r
-
--- | Read and deserialise a Flat-encoded UPLC AST
-loadUplcASTfromFlat :: Flat ann => AstNameType -> Input -> IO (UplcProg ann)
-loadUplcASTfromFlat flatMode inp = do
-    input <- getBinaryInput inp
-    case flatMode of
-        Named -> handleResult $ unflat input
-        DeBruijn -> do
-            deserialised <- handleResult $ unflat input
-            let namedProgram = UPLC.programMapNames UPLC.fakeNameDeBruijn deserialised
-            fromDeBruijn namedProgram
-        NamedDeBruijn -> do
-            deserialised <- handleResult $ unflat input
-            fromDeBruijn deserialised
-  where
-    handleResult =
-        \case
-            Left e  -> error $ "Flat deserialisation failure: " ++ show e
-            Right r -> return r
-
--- Read either a UPLC/PLC/PIR file or a Flat file, depending on 'fmt'
-getProgram :: forall p.
+-- Read UPLC/PLC/PIR code in either textual or Flat format, depending on 'fmt'
+readProgram :: forall p.
     ( ProgramLike p
     , Functor p
     , PLC.Rename (p PLC.SrcSpan)
@@ -434,7 +297,7 @@ getProgram :: forall p.
     Format ->
     Input ->
     IO (p PLC.SrcSpan)
-getProgram fmt inp =
+readProgram fmt inp =
     case fmt of
         Textual -> snd <$> parseInput inp
         Flat flatMode -> do
@@ -451,10 +314,11 @@ writeFlat ::
     (ProgramLike p, Functor p) => Output -> AstNameType -> p ann -> IO ()
 writeFlat outp flatMode prog = do
     -- Change annotations to (): see Note [Annotation types].
-    flatProg <- serialiseProgramFlat flatMode (() <$ prog)
+    let flatProg = serialiseProgramFlat flatMode (() <$ prog)
     case outp of
         FileOutput file -> BSL.writeFile file flatProg
         StdOutput       -> BSL.putStr flatProg
+        NoOutput        -> pure ()
 
 ---------------- Write an AST as PLC source ----------------
 
@@ -486,6 +350,7 @@ writePrettyToFileOrStd outp mode prog = do
     case outp of
         FileOutput file -> writeFile file . Prelude.show . printMethod $ prog
         StdOutput       -> print . printMethod $ prog
+        NoOutput        -> pure ()
 
 writeToFileOrStd ::
     Output -> String -> IO ()
@@ -493,6 +358,7 @@ writeToFileOrStd outp v = do
     case outp of
         FileOutput file -> writeFile file v
         StdOutput       -> putStrLn v
+        NoOutput        -> pure ()
 
 ---------------- Examples ----------------
 
@@ -523,15 +389,15 @@ prettyExample =
     \case
         SomeTypedExample (SomeTypeExample (TypeExample _ ty)) -> PP.prettyPlcDef ty
         SomeTypedExample (SomeTypedTermExample (TypedTermExample _ term)) ->
-            PP.prettyPlcDef $ PLC.Program () (PLC.defaultVersion) term
+            PP.prettyPlcDef $ PLC.Program () PLC.latestVersion term
         SomeUntypedExample (SomeUntypedTermExample (UntypedTermExample term)) ->
-            PP.prettyPlcDef $ UPLC.Program () (PLC.defaultVersion) term
+            PP.prettyPlcDef $ UPLC.Program () PLC.latestVersion term
 
 toTypedTermExample ::
     PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun () -> TypedTermExample
 toTypedTermExample term = TypedTermExample ty term
   where
-    program = PLC.Program () (PLC.defaultVersion) term
+    program = PLC.Program () PLC.latestVersion term
     errOrTy = PLC.runQuote . runExceptT $ do
         tcConfig <- PLC.getDefTypeCheckConfig ()
         PLC.inferTypeOfProgram tcConfig program
@@ -676,7 +542,6 @@ runDumpModel = do
 ---------------- Print the type signatures of the default builtins ----------------
 
 -- Some types to represent signatures of built-in functions
-type PlcTerm = PLC.Term PLC.TyName PLC.Name PLC.DefaultUni PLC.DefaultFun ()
 type PlcType = PLC.Type PLC.TyName PLC.DefaultUni ()
 data QVarOrType = QVar String | Type PlcType -- Quantified type variable or actual type
 
@@ -707,10 +572,10 @@ instance Show Signature where
                 []       -> "<empty type application>" -- Should never happen
                 op : tys -> showTy op ++ "(" ++ intercalate ", " (map showTy tys) ++ ")"
 
-typeSchemeToSignature :: PLC.TypeScheme PlcTerm args res -> Signature
+typeSchemeToSignature :: PLC.TypeScheme (PlcTerm ()) args res -> Signature
 typeSchemeToSignature = toSig []
   where
-    toSig :: [QVarOrType] -> PLC.TypeScheme PlcTerm args res -> Signature
+    toSig :: [QVarOrType] -> PLC.TypeScheme (PlcTerm ()) args res -> Signature
     toSig acc =
         \case
             pR@PLC.TypeSchemeResult -> Signature acc (PLC.toTypeAst pR)
@@ -723,36 +588,43 @@ typeSchemeToSignature = toSig []
 
 runPrintBuiltinSignatures :: IO ()
 runPrintBuiltinSignatures = do
-    let builtins = enumerate @UPLC.DefaultFun
+    let builtins = enumerate @PLC.DefaultFun
     mapM_
-      (\x -> putStr (printf "%-25s: %s\n" (show $ PP.pretty x) (show $ getSignature x)))
+      (\x -> putStr (printf "%-35s: %s\n" (show $ PP.pretty x) (show $ getSignature x)))
       builtins
   where
-    getSignature (PLC.toBuiltinMeaning @_ @_ @PlcTerm def -> PLC.BuiltinMeaning sch _ _) =
+    getSignature (PLC.toBuiltinMeaning @_ @_ @(PlcTerm ()) def -> PLC.BuiltinMeaning sch _ _) =
         typeSchemeToSignature sch
 
 ---------------- Parse and print a PLC/UPLC source file ----------------
 
-runPrint :: PrintOptions -> IO ()
-runPrint (PrintOptions iospec mode) = do
-    parsed <- (snd <$> parseInput (inputSpec iospec) :: IO (PlcProg PLC.SrcSpan))
+runPrint
+    :: forall p .
+       ( ProgramLike p
+       , PLC.Rename (p PLC.SrcSpan)
+       , PrettyBy PP.PrettyConfigPlc (p PLC.SrcSpan)
+       )
+    => PrintOptions
+    -> IO ()
+runPrint (PrintOptions inp outp mode) = do
+    parsed <- (snd <$> parseInput inp :: IO (p PLC.SrcSpan))
     let printed = show $ getPrintMethod mode parsed
-    case outputSpec iospec of
+    case outp of
         FileOutput path -> writeFile path printed
         StdOutput       -> putStrLn printed
+        NoOutput        -> pure ()
 
 ---------------- Conversions ----------------
 
 -- | Convert between textual and FLAT representations.
-runConvert ::
-    forall (p :: Type -> Type).
-    ( ProgramLike p
-    , Functor p
-    , PLC.Rename (p PLC.SrcSpan)
-    , PP.PrettyBy PP.PrettyConfigPlc (p PLC.SrcSpan)
-    ) =>
-    ConvertOptions ->
-    IO ()
+runConvert
+    :: forall (p :: Type -> Type).
+       ( ProgramLike p
+       , Functor p
+       , PLC.Rename (p PLC.SrcSpan)
+       , PP.PrettyBy PP.PrettyConfigPlc (p PLC.SrcSpan))
+    => ConvertOptions
+    -> IO ()
 runConvert (ConvertOptions inp ifmt outp ofmt mode) = do
-    program :: p PLC.SrcSpan <- getProgram ifmt inp
+    program :: p PLC.SrcSpan <- readProgram ifmt inp
     writeProgram outp ofmt mode program

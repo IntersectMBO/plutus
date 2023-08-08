@@ -1,6 +1,4 @@
 \begin{code}
-{-# OPTIONS --rewriting #-}
-
 module Algorithmic.Erasure.RenamingSubstitution where
 \end{code}
 
@@ -18,7 +16,8 @@ open import Type.BetaNormal.Equality using (renNf-id;renNf-comp)
 open import Type.BetaNBE.RenamingSubstitution 
                 using (ren[]Nf;ren-nf-μ;SubNf;subNf-id;subNf;weakenNf[];weakenNf-subNf)
                 using (sub-nf-Π;sub[]Nf';sub-nf-μ;subNf-cons;extsNf)
-open import Algorithmic as A using (Ctx;_∋_;conv∋;_⊢_;conv⊢;btype-ren;btype-sub)
+open import Algorithmic as A using (Ctx;_∋_;conv∋;_⊢_;conv⊢)
+open import Algorithmic.Signature using (btype-ren;btype-sub)
 open Ctx
 open _∋_
 open _⊢_
@@ -27,8 +26,7 @@ open import Algorithmic.Erasure using (len;erase;eraseTC;eraseVar;lem-erase)
 open import Untyped using (_⊢)
 open _⊢
 import Untyped.RenamingSubstitution as U
-open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) using (TyCon)
-import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as AB
+open import Builtin.Constant.Type using (TyCon)
 \end{code}
 
 \begin{code}
@@ -61,8 +59,8 @@ subst-T' : ∀{Φ}{Γ : Ctx Φ}{A A' : Φ ⊢Nf⋆ *}{K}{A'' : Φ ,⋆ K ⊢Nf�
   → (p : A ≡ A')
   → (q : weakenNf {K = K} A ≡ A'')
   → (r : weakenNf  {K = K} A' ≡ A'')
-  → (x : Γ ∋ A) →
-  conv∋ refl q (T x) ≡ conv∋ refl r (T (conv∋ refl p x))
+  → (x : Γ ∋ A) 
+  → conv∋ refl q (T x) ≡ conv∋ refl r (T (conv∋ refl p x))
 subst-T' refl refl refl x = refl
 
 cong-erase-ren : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(ρ⋆ : ⋆.Ren Φ Ψ)
@@ -79,8 +77,7 @@ backVar-eraseVar (S x) = trans
   (cong S (backVar-eraseVar x))
 backVar-eraseVar (T x) = trans (subst-T (backVar⋆-eraseVar x) (cong weakenNf (backVar⋆-eraseVar x)) (backVar _ (eraseVar x))) (cong T (backVar-eraseVar x))
 
-eraseVar-backVar : ∀{Φ}(Γ : Ctx Φ)(x : len Γ) →
-  eraseVar (backVar Γ x) ≡ x
+eraseVar-backVar : ∀{Φ}(Γ : Ctx Φ)(x : len Γ) → eraseVar (backVar Γ x) ≡ x
 eraseVar-backVar ∅       ()
 eraseVar-backVar (Γ ,⋆ J) x        = eraseVar-backVar Γ x
 eraseVar-backVar (Γ , A)  nothing  = refl
@@ -109,16 +106,6 @@ conv⊢-erase : ∀{Φ}{Γ : Ctx Φ}{A A' : Φ ⊢Nf⋆ *}
   → (t : Γ ⊢ A)
   → erase (conv⊢ refl p t) ≡ erase t
 conv⊢-erase refl t = refl
-
-renTermCon-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(ρ⋆ : ⋆.Ren Φ Ψ)
-  → (ρ : A.Ren ρ⋆ Γ Δ){tc : TyCon _}(c : AB.TermCon (con tc))
-  → eraseTC {Γ = Δ} (A.renTermCon ρ⋆ c) ≡ eraseTC {Γ = Γ} c 
-renTermCon-erase ρ⋆ ρ (AB.integer i)    = refl
-renTermCon-erase ρ⋆ ρ (AB.bytestring b) = refl
-renTermCon-erase ρ⋆ ρ (AB.string s)     = refl
-renTermCon-erase ρ⋆ ρ (AB.bool b)       = refl
-renTermCon-erase ρ⋆ ρ AB.unit           = refl
-renTermCon-erase ρ⋆ ρ (AB.pdata d)       = refl
 
 ext⋆-erase : ∀{Φ Ψ K}{Γ : Ctx Φ}{Δ : Ctx Ψ}(ρ⋆ : ⋆.Ren Φ Ψ)
   → (ρ : A.Ren ρ⋆ Γ Δ)(α : len Γ)
@@ -158,7 +145,7 @@ ren-erase ρ⋆ ρ (wrap A B t)  = trans
 ren-erase ρ⋆ ρ (unwrap {A = A}{B = B} t refl) = trans
   (conv⊢-erase (sym (ren-nf-μ ρ⋆ A B)) (unwrap (A.ren ρ⋆ ρ t) refl))
   (ren-erase ρ⋆ ρ t)
-ren-erase ρ⋆ ρ (con c)            = cong con (renTermCon-erase ρ⋆ ρ c)
+ren-erase ρ⋆ ρ (con c refl)            = refl
 ren-erase ρ⋆ ρ (builtin b / refl)        =
  sym (lem-erase refl (btype-ren b ρ⋆) (builtin b / refl))
 ren-erase ρ⋆ ρ (error A)          = refl
@@ -203,16 +190,6 @@ exts⋆-erase {Γ = Γ}{Δ} σ⋆ σ {B} α = trans
       (U.ren-cong (eraseVar-backVar Δ) (erase (σ (backVar Γ α))))
       (sym (U.ren-id (erase (σ (backVar Γ α)))))))
 
-subTermCon-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(σ⋆ : SubNf Φ Ψ)
-  → (σ : A.Sub σ⋆ Γ Δ){tc : TyCon _}(c : AB.TermCon (con tc))
-  → eraseTC {Γ = Δ} (A.subTermCon σ⋆ c) ≡ eraseTC {Γ = Γ} c 
-subTermCon-erase σ⋆ σ (AB.integer i)    = refl
-subTermCon-erase σ⋆ σ (AB.bytestring b) = refl
-subTermCon-erase σ⋆ σ (AB.string s)     = refl
-subTermCon-erase σ⋆ σ (AB.bool b)       = refl
-subTermCon-erase σ⋆ σ AB.unit           = refl
-subTermCon-erase σ⋆ σ (AB.pdata d)       = refl
-
 sub-erase : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(σ⋆ : SubNf Φ Ψ)
   → (σ : A.Sub σ⋆ Γ Δ){A : Φ ⊢Nf⋆ *} → (t : Γ ⊢ A)
   →  erase (A.sub σ⋆ σ t) ≡ U.sub (erase-Sub σ⋆ σ) (erase t) 
@@ -239,7 +216,7 @@ sub-erase σ⋆ σ (wrap A B t) = trans
 sub-erase σ⋆ σ (unwrap {A = A}{B} t refl) = trans
   (conv⊢-erase (sym (sub-nf-μ σ⋆ A B)) (unwrap (A.sub σ⋆ σ t) refl))
   (sub-erase σ⋆ σ t)
-sub-erase σ⋆ σ (con c) = cong con (subTermCon-erase σ⋆ σ c)
+sub-erase σ⋆ σ (con c refl) = refl
 sub-erase σ⋆ σ (builtin b / refl) =
  sym (lem-erase refl (btype-sub b σ⋆) (builtin b / refl))
 sub-erase σ⋆ σ (error A) = refl

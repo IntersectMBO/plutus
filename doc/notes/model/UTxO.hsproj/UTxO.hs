@@ -1,11 +1,10 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE BangPatterns    #-}
 {-# LANGUAGE PackageImports  #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 -- This code models a UTxO-style ledger using the approach from
 --
---   "An Abstract Model of UTXO-based Cryptocurrencies with Scripts" <https://eprint.iacr.org/2018/469>
+-- "An Abstract Model of UTXO-based Cryptocurrencies with Scripts"<https://eprint.iacr.org/2018/469>
 --
 -- using Template Haskell as a concrete notation for validation
 -- scripts.
@@ -99,7 +98,8 @@ spentOutputsTx = Set.fromList . map refTI . inputsTX
 unspentOutputs :: Ledger -> Map TxOutRef Address
 unspentOutputs
   = foldr
-      (\t unspent -> (unspent `Map.difference` lift (spentOutputsTx t)) `Map.union` unspentOutputsTx t)
+      (\t unspent ->
+        (unspent `Map.difference` lift (spentOutputsTx t)) `Map.union` unspentOutputsTx t)
       Map.empty
   where
     lift = Map.fromSet (const ())

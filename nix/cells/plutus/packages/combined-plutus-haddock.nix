@@ -5,7 +5,7 @@ let
   inherit (cell.library.haskell-nix) haskellLib;
 
   toHaddock = haskellLib.collectComponents' "library"
-    (haskellLib.selectProjectPackages cell.library.plutus-project-925.hsPkgs);
+    (haskellLib.selectProjectPackages cell.library.plutus-project.hsPkgs);
 
 in
 
@@ -25,7 +25,6 @@ cell.library.combine-haddock {
         * "PlutusTx": Compiling Haskell to PLC (Plutus Core; on-chain code).
         * "PlutusTx.Prelude": Haskell prelude replacement compatible with PLC.
         * "PlutusCore": Programming language in which scripts on the Cardano blockchain are written.
-        * "PlutusIR": Intermediate Representation language that compiles to Plutus Core.
         * "UntypedPlutusCore": On-chain Plutus code.
     '';
   };

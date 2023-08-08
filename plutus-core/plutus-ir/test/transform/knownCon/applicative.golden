@@ -1,0 +1,118 @@
+(let
+  (nonrec)
+  (datatypebind
+    (datatype
+      (tyvardecl Maybe (fun (type) (type)))
+      (tyvardecl a (type))
+      Maybe_match
+      (vardecl Just (fun a [ Maybe a ])) (vardecl Nothing [ Maybe a ])
+    )
+  )
+  (termbind
+    (strict)
+    (vardecl x [ Maybe (con integer) ])
+    [ { Just (con integer) } (con integer 1) ]
+  )
+  (termbind
+    (strict)
+    (vardecl ds1 [ Maybe (fun (con integer) (con integer)) ])
+    [
+      [
+        [
+          (let
+            (nonrec)
+            (typebind (tyvardecl b (type)) (fun (con integer) (con integer)))
+            (lam
+              dFunctor
+              [
+                (lam
+                  f
+                  (fun (type) (type))
+                  (all
+                    a
+                    (type)
+                    (all b (type) (fun (fun a b) (fun [ f a ] [ f b ])))
+                  )
+                )
+                Maybe
+              ]
+              (lam
+                f
+                (fun (con integer) b)
+                (lam
+                  fa
+                  [ Maybe (con integer) ]
+                  [ [ { { dFunctor (con integer) } b } f ] fa ]
+                )
+              )
+            )
+          )
+          (abs
+            a
+            (type)
+            (abs
+              b
+              (type)
+              (lam
+                f
+                (fun a b)
+                (lam
+                  ds2
+                  [ Maybe a ]
+                  {
+                    [
+                      [
+                        {
+                          [ { Maybe_match a } ds2 ]
+                          (all dead (type) [ Maybe b ])
+                        }
+                        (lam a a (abs dead (type) [ { Just b } [ f a ] ]))
+                      ]
+                      (abs dead (type) { Nothing b })
+                    ]
+                    (all dead (type) dead)
+                  }
+                )
+              )
+            )
+          )
+        ]
+        (lam
+          p (con integer) (lam q (con integer) [ [ (builtin addInteger) p ] q ])
+        )
+      ]
+      x
+    ]
+  )
+  {
+    [
+      [
+        {
+          [ { Maybe_match (fun (con integer) (con integer)) } ds1 ]
+          (all dead (type) [ Maybe (con integer) ])
+        }
+        (lam
+          g
+          (fun (con integer) (con integer))
+          (abs
+            dead
+            (type)
+            {
+              [
+                (lam
+                  v
+                  (con integer)
+                  (abs dead (type) [ { Just (con integer) } [ g v ] ])
+                )
+                (con integer 2)
+              ]
+              (all dead (type) dead)
+            }
+          )
+        )
+      ]
+      (abs dead (type) { Nothing (con integer) })
+    ]
+    (all dead (type) dead)
+  }
+)

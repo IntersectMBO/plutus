@@ -18,9 +18,12 @@ import PlutusCore.Generators.QuickCheck.Substitutions
 import PlutusCore.Generators.QuickCheck.Utils
 
 import PlutusCore.Builtin
+import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1 (zero)
+import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2 (zero)
+import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing (identityMlResult)
 import PlutusCore.Data
 import PlutusCore.Default
-import PlutusCore.MkPlc (mkConstant, mkConstantOf, mkTyBuiltin)
+import PlutusCore.MkPlc (mkConstantOf, mkTyBuiltinOf)
 import PlutusCore.Name
 import PlutusCore.Pretty
 import PlutusCore.Subst (typeSubstClosedType)
@@ -36,7 +39,7 @@ import Data.Proxy
 import Data.Set qualified as Set
 import Data.Set.Lens (setOf)
 import GHC.Stack
-import Test.QuickCheck (shrinkList)
+import Test.QuickCheck (shrink, shrinkList)
 
 addTmBind :: Binding TyName Name DefaultUni DefaultFun ()
           -> Map Name (Type TyName DefaultUni ())
@@ -122,6 +125,9 @@ minimalBuiltin (SomeTypeIn uni) = case toSingKind uni of
     go (DefaultUniProtoList `DefaultUniApply` _)                        = []
     go (DefaultUniProtoPair `DefaultUniApply` a `DefaultUniApply` b)    = (go a, go b)
     go (f  `DefaultUniApply` _ `DefaultUniApply` _ `DefaultUniApply` _) = noMoreTypeFunctions f
+    go DefaultUniBLS12_381_G1_Element                                   = BLS12_381.G1.zero
+    go DefaultUniBLS12_381_G2_Element                                   = BLS12_381.G2.zero
+    go DefaultUniBLS12_381_MlResult                                     = BLS12_381.Pairing.identityMlResult
 
 shrinkBind :: HasCallStack
            => Recursivity
@@ -280,9 +286,9 @@ shrinkTypedTerm tyctx0 ctx0 (ty0, tm0) = concat
           ]
 
         -- Builtins can shrink to unit. More fine-grained shrinking is in `structural` below.
-        Constant _ (Some (ValueOf uni _)) -> case uni of
-            DefaultUniUnit -> []
-            _              -> [(mkTyBuiltin @_ @() (), mkConstant () ())]
+        Constant _ val -> do
+            val'@(Some (ValueOf uni _)) <- shrink val
+            pure (mkTyBuiltinOf () uni, Constant () val')
 
         _ -> []
 

@@ -5,6 +5,7 @@
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
+
 module PlutusIR.Core.Type (
     TyName (..),
     Name (..),
@@ -21,26 +22,32 @@ module PlutusIR.Core.Type (
     Binding (..),
     Term (..),
     Program (..),
+    Version (..),
     applyProgram,
     termAnn,
     bindingAnn,
     progAnn,
+    progVersion,
     progTerm,
     ) where
 
 import PlutusPrelude
 
 import Control.Lens.TH
-import PlutusCore (Kind, Name, TyName, Type (..))
+import PlutusCore (Kind, Name, TyName, Type (..), Version (..))
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin (HasConstant (..), throwNotAConstant)
 import PlutusCore.Core (UniOf)
-import PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.Flat ()
 import PlutusCore.MkPlc (Def (..), TermLike (..), TyVarDecl (..), VarDecl (..))
 import PlutusCore.Name qualified as PLC
 
+import Universe
+
 import Data.Text qualified as T
+import Data.Word
+import PlutusCore.Error (ApplyProgramError (MkApplyProgramError))
 
 -- Datatypes
 
@@ -86,7 +93,10 @@ data Strictness = NonStrict | Strict
 data Binding tyname name uni fun a = TermBind a Strictness (VarDecl tyname name uni a) (Term tyname name uni fun a)
                            | TypeBind a (TyVarDecl tyname a) (Type tyname uni a)
                            | DatatypeBind a (Datatype tyname name uni a)
-    deriving stock (Functor, Show, Generic)
+    deriving stock (Functor, Generic)
+
+deriving stock instance (Show tyname, Show name, GShow uni, Everywhere uni Show, Show fun, Show a, Closed uni)
+    => Show (Binding tyname name uni fun a)
 
 -- Terms
 
@@ -129,7 +139,13 @@ data Term tyname name uni fun a =
                         | Error a (Type tyname uni a)
                         | IWrap a (Type tyname uni a) (Type tyname uni a) (Term tyname name uni fun a)
                         | Unwrap a (Term tyname name uni fun a)
-                        deriving stock (Functor, Show, Generic)
+                        -- See Note [Constr tag type]
+                        | Constr a (Type tyname uni a) Word64 [Term tyname name uni fun a]
+                        | Case a (Type tyname uni a) (Term tyname name uni fun a) [Term tyname name uni fun a]
+                        deriving stock (Functor, Generic)
+
+deriving stock instance (Show tyname, Show name, GShow uni, Everywhere uni Show, Show fun, Show a, Closed uni)
+    => Show (Term tyname name uni fun a)
 
 -- See Note [ExMemoryUsage instances for non-constants].
 instance ExMemoryUsage (Term tyname name uni fun ann) where
@@ -155,26 +171,40 @@ instance TermLike (Term tyname name uni fun) tyname name uni fun where
     unwrap   = Unwrap
     iWrap    = IWrap
     error    = Error
+    constr   = Constr
+    kase     = Case
+
     termLet x (Def vd bind) = Let x NonRec (pure $ TermBind x Strict vd bind)
     typeLet x (Def vd bind) = Let x NonRec (pure $ TypeBind x vd bind)
 
--- no version as PIR is not versioned
 data Program tyname name uni fun ann = Program
-    { _progAnn  :: ann
-    , _progTerm :: Term tyname name uni fun ann
+    { _progAnn     :: ann
+    -- | The version of the program. This corresponds to the underlying
+    -- Plutus Core version.
+    , _progVersion :: Version
+    , _progTerm    :: Term tyname name uni fun ann
     }
-    deriving stock (Show, Functor, Generic)
+    deriving stock (Functor, Generic)
 makeLenses ''Program
+
+deriving stock instance (Show tyname, Show name, GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
+    => Show (Program tyname name uni fun ann)
+
 
 type instance PLC.HasUniques (Term tyname name uni fun ann) = (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
 type instance PLC.HasUniques (Program tyname name uni fun ann) = PLC.HasUniques (Term tyname name uni fun ann)
 
+-- | Applies one program to another. Fails if the versions do not match
+-- and tries to merge annotations.
 applyProgram
-    :: Monoid a
+    :: Semigroup a
     => Program tyname name uni fun a
     -> Program tyname name uni fun a
-    -> Program tyname name uni fun a
-applyProgram (Program a1 t1) (Program a2 t2) = Program (a1 <> a2) (Apply mempty t1 t2)
+    -> Either ApplyProgramError (Program tyname name uni fun a)
+applyProgram (Program a1 v1 t1) (Program a2 v2 t2) | v1 == v2
+  =  Right $ Program (a1 <> a2) v1 (Apply (termAnn t1 <> termAnn t2) t1 t2)
+applyProgram (Program _a1 v1 _t1) (Program _a2 v2 _t2) =
+    Left $ MkApplyProgramError v1 v2
 
 termAnn :: Term tyname name uni fun a -> a
 termAnn = \case
@@ -189,6 +219,8 @@ termAnn = \case
     Error a _      -> a
     IWrap a _ _ _  -> a
     Unwrap a _     -> a
+    Constr a _ _ _ -> a
+    Case a _ _ _   -> a
 
 bindingAnn :: Binding tyname name uni fun a -> a
 bindingAnn = \case

@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 
@@ -22,7 +21,7 @@ import Text.Printf (printf)
 data ModelComponent = Cpu | Memory
 
 
----------------- Types representing cost mode entries and functions for JSON parsing ----------------
+-------------- Types representing cost mode entries and functions for JSON parsing ----------------
 
 data LinearFunction =
     LinearFunction {intercept_ :: Integer, slope_ :: Integer}
@@ -91,14 +90,19 @@ instance FromJSON Model where
                "linear_in_x"          -> LinearInX             <$> parseJSON args
                "linear_in_y"          -> LinearInY             <$> parseJSON args
                "linear_in_z"          -> LinearInZ             <$> parseJSON args
-               "subtracted_sizes"     -> SubtractedSizes       <$> parseJSON args <*> objOf args .: "minimum"
-               "const_above_diagonal" -> ConstAboveDiagonal    <$> objOf args .: "constant" <*> objOf args .: "model"
-               "const_below_diagonal" -> ConstBelowDiagonal    <$> objOf args .: "constant" <*> objOf args .: "model"
-               "linear_on_diagonal"   -> LinearOnDiagonal      <$> parseJSON args <*> objOf args .: "constant"
+               "subtracted_sizes"     ->
+                  SubtractedSizes       <$> parseJSON args <*> objOf args .: "minimum"
+               "const_above_diagonal" ->
+                  ConstAboveDiagonal    <$> objOf args .: "constant" <*> objOf args .: "model"
+               "const_below_diagonal" ->
+                  ConstBelowDiagonal    <$> objOf args .: "constant" <*> objOf args .: "model"
+               "linear_on_diagonal"   ->
+                  LinearOnDiagonal      <$> parseJSON args <*> objOf args .: "constant"
                _                      -> errorWithoutStackTrace $ "Unknown model type " ++ show ty
 
                where objOf (Object o) = o
-                     objOf _          = errorWithoutStackTrace "Failed to get Object while parsing \"arguments\""
+                     objOf _          =
+                      errorWithoutStackTrace "Failed to get Object while parsing \"arguments\""
 
 {- | A CPU usage modelling function and a memory usage modelling function bundled
    together -}
@@ -213,11 +217,13 @@ parseArgs args defaultCostModelPath =
                 '-':_ -> parseOption arg rest (component, input)
                 _     -> parse rest (component, Just arg)
           parseOption arg rest (component, input)
-                      | elem arg ["-d", "--default"] = parse rest (component, Just defaultCostModelPath)
+                      | elem arg ["-d", "--default"] =
+                        parse rest (component, Just defaultCostModelPath)
                       | elem arg ["-c", "--cpu"]     = parse rest (Cpu, input)
                       | elem arg ["-m", "--mem", "--memory"] = parse rest (Memory, input)
                       | elem arg ["-h", "--help"] = usage defaultCostModelPath
-                      | otherwise = printf "Error: unknown option %s\n" arg >> usage defaultCostModelPath
+                      | otherwise =
+                        printf "Error: unknown option %s\n" arg >> usage defaultCostModelPath
 
 main :: IO ()
 main = do

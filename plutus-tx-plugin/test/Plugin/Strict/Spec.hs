@@ -6,6 +6,8 @@
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
+-- To ensure the traces don't get optimized away in the tests
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:conservative-optimisation #-}
 
 module Plugin.Strict.Spec (strict) where
 
@@ -30,6 +32,8 @@ strict = testNested "Strict" [
   , goldenPir "strictPair" strictPair
   , goldenPir "strictList" strictList
   , goldenPir "strictData" strictData
+  , goldenPir "issue4645" issue4645
+  , goldenEvalCekLog "issue4645Eval" [ issue4645 ]
   ]
 
 strictAdd :: CompiledCode (Integer -> Integer -> Integer)
@@ -82,3 +86,20 @@ strictData = plc (Proxy @"strictData") strictDataExample
 
 strictDataExample :: BI.BuiltinData -> Integer
 strictDataExample !d = BI.unsafeDataAsI d
+
+issue4645 :: CompiledCode Bool
+issue4645 = plc (Proxy @"issue4645") issue4645Example
+
+-- Reproducer for plutus#4645
+issue4645Example :: Bool
+issue4645Example =
+    let
+      !x = P.trace "x" 0 :: Integer
+      !y = P.trace "y" (1, 2) :: (Integer,Integer)
+      !z = P.trace "z" y
+      (!zz, _) = P.trace "zz" z
+      !t = P.trace "t" zz
+
+      !valid = x P.== t
+   in valid
+

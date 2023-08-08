@@ -138,7 +138,7 @@ instance Pretty UnexpectedEvaluationResult where
 
 data TestFailure
     = InvalidResult UnexpectedEvaluationResult
-    | MissingCostParametersFor LedgerPlutusVersion
+    | MissingCostParametersFor PlutusLedgerLanguage
 
 renderTestFailure :: TestFailure -> String
 renderTestFailure = \case

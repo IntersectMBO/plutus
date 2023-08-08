@@ -30,13 +30,17 @@ import PlutusCore.Rename
 import PlutusPrelude
 
 import Control.Lens
+import Control.Monad (when)
 import Control.Monad.Error.Lens
-import Control.Monad.Except
+import Control.Monad.Except (MonadError)
 -- Using @transformers@ rather than @mtl@, because the former doesn't impose the 'Monad' constraint
 -- on 'local'.
 import Control.Monad.Trans.Reader
 import Data.Array
-import Universe
+import Data.Foldable (for_)
+import Data.List.Extras (wix)
+import Data.Text qualified as Text
+import Universe (GEq, Some (Some), SomeTypeIn (SomeTypeIn), ValueOf (ValueOf))
 
 {- Note [Global uniqueness]
 WARNING: type inference/checking works under the assumption that the global uniqueness condition
@@ -274,22 +278,6 @@ lookupVarM ann name = do
                 else throwing _TypeError $
                         NameMismatch ann (Name nameOrig $ name ^. theUnique) name
 
--- #############
--- ## Dummies ##
--- #############
-
-dummyUnique :: Unique
-dummyUnique = Unique 0
-
-dummyTyName :: TyName
-dummyTyName = TyName (Name "*" dummyUnique)
-
-dummyKind :: Kind ()
-dummyKind = Type ()
-
-dummyType :: Type TyName uni ()
-dummyType = TyVar () dummyTyName
-
 -- ########################
 -- ## Type normalization ##
 -- ########################
@@ -347,7 +335,9 @@ inferKindM (TyApp ann fun arg)     = do
         KindArrow _ dom cod -> do
             checkKindM ann arg dom
             pure cod
-        _ -> throwing _TypeError $ KindMismatch ann (void fun) (KindArrow () dummyKind dummyKind) funKind
+        _ -> do
+            let expectedKindArrow = ExpectedShape "fun k l" ["k", "l"]
+            throwing _TypeError $ KindMismatch ann (void fun) expectedKindArrow funKind
 
 -- [check| G !- a :: *]    [check| G !- b :: *]
 -- --------------------------------------------
@@ -364,12 +354,22 @@ inferKindM (TyForall ann n k body) = do
     withTyVar n (void k) $ checkKindM ann body (Type ())
     pure $ Type ()
 
+
 -- [infer| G !- arg :: k]    [check| G !- pat :: (k -> *) -> k -> *]
 -- -----------------------------------------------------------------
 -- [infer| G !- ifix pat arg :: *]
 inferKindM (TyIFix ann pat arg)    = do
     k <- inferKindM arg
     checkKindM ann pat $ toPatFuncKind k
+    pure $ Type ()
+
+-- s_0 = [p_0_0 ... p_0_m]   [check| G !- p_0_0 :: *] ... [check| G !- p_0_m :: *]
+-- ...
+-- s_n = [p_n_0 ... p_n_m]   [check| G !- p_n_0 :: *] ... [check| G !- p_n_m :: *]
+-- -------------------------------------------------------------------------------
+-- [infer| G !- sop s_0 ... s_n :: *]
+inferKindM (TySOP ann tyls)        = do
+    for_ tyls $ \tyl -> for_ tyl $ \ty -> checkKindM ann ty (Type ())
     pure $ Type ()
 
 -- | Check a 'Type' against a 'Kind'.
@@ -382,7 +382,7 @@ checkKindM
 -- [check| G !- ty : k]
 checkKindM ann ty k = do
     tyK <- inferKindM ty
-    when (tyK /= k) $ throwing _TypeError (KindMismatch ann (void ty) k tyK)
+    when (tyK /= k) $ throwing _TypeError (KindMismatch ann (void ty) (ExpectedExact k) tyK)
 
 -- ###################
 -- ## Type checking ##
@@ -409,7 +409,7 @@ unfoldIFixOf pat arg k = do
     -- But breaking global uniqueness is a bad idea regardless.
     vPat' <- rename vPat
     normalizeTypeM $
-        mkIterTyApp () vPat'
+        mkIterTyAppNoAnn vPat'
             [ TyLam () a k . TyIFix () vPat $ TyVar () a
             , vArg
             ]
@@ -464,7 +464,9 @@ inferTypeM (Apply ann fun arg) = do
             -- Subparts of a normalized type, so normalized.
             checkTypeM ann arg $ Normalized vDom
             pure $ Normalized vCod
-        _ -> throwing _TypeError (TypeMismatch ann (void fun) (TyFun () dummyType dummyType) vFunTy)
+        _ -> do
+            let expectedTyFun = ExpectedShape "fun k l" ["k", "l"]
+            throwing _TypeError (TypeMismatch ann (void fun) expectedTyFun vFunTy)
 
 -- [infer| G !- body : all (n :: nK) vCod]    [check| G !- ty :: tyK]    ty ~> vTy
 -- -------------------------------------------------------------------------------
@@ -476,7 +478,9 @@ inferTypeM (TyInst ann body ty) = do
             checkKindM ann ty nK
             vTy <- normalizeTypeM $ void ty
             substNormalizeTypeM vTy n vCod
-        _ -> throwing _TypeError (TypeMismatch ann (void body) (TyForall () dummyTyName dummyKind dummyType) vBodyTy)
+        _ -> do
+            let expectedTyForall = ExpectedShape "all a kind body" ["a", "kind", "body"]
+            throwing _TypeError (TypeMismatch ann (void body) expectedTyForall vBodyTy)
 
 -- [infer| G !- arg :: k]    [check| G !- pat :: (k -> *) -> k -> *]    pat ~> vPat    arg ~> vArg
 -- [check| G !- term : NORM (vPat (\(a :: k) -> ifix vPat a) vArg)]
@@ -500,7 +504,9 @@ inferTypeM (Unwrap ann term) = do
             k <- inferKindM $ ann <$ vArg
             -- Subparts of a normalized type, so normalized.
             unfoldIFixOf (Normalized vPat) (Normalized vArg) k
-        _                  -> throwing _TypeError (TypeMismatch ann (void term) (TyIFix () dummyType dummyType) vTermTy)
+        _                  -> do
+            let expectedTyIFix = ExpectedShape "ifix pat arg" ["pat", "arg"]
+            throwing _TypeError (TypeMismatch ann (void term) expectedTyIFix vTermTy)
 
 -- [check| G !- ty :: *]    ty ~> vTy
 -- ----------------------------------
@@ -508,6 +514,66 @@ inferTypeM (Unwrap ann term) = do
 inferTypeM (Error ann ty) = do
     checkKindM ann ty $ Type ()
     normalizeTypeM $ void ty
+
+-- resTy ~> vResTy     vResTy = sop s_0 ... s_i ... s_n
+-- s_i = [p_i_0 ... p_i_m]   [check| G !- t_0 : p_i_0] ... [check| G !- t_m : p_i_m]
+-- ---------------------------------------------------------------------------------
+-- [infer| G !- constr resTy i t_0 ... t_m : vResTy]
+inferTypeM t@(Constr ann resTy i args) = do
+    vResTy <- normalizeTypeM $ void resTy
+
+    -- We don't know exactly what to expect, we only know what the i-th sum should look like, so we
+    -- assert that we should have some types in the sum up to there, and then the known product type.
+    let prodPrefix  = map (\j -> "prod_" <> Text.pack (show j)) [0 .. i - 1]
+        fields      = map (\k -> "field_" <> Text.pack (show k)) [0 .. length args - 1]
+        prod_i      = "[" <> Text.intercalate " " fields <> "]"
+        shape       = "sop " <> foldMap (<> " ") prodPrefix <> prod_i <> " ... prod_n"
+        vars        = prodPrefix ++ fields ++ ["prod_n"]
+        expectedSop = ExpectedShape shape vars
+    case unNormalized vResTy of
+        TySOP _ vSTys -> case vSTys ^? wix i of
+            Just pTys -> case zipExact args pTys of
+                -- pTy is a sub-part of a normalized type, so normalized
+                Just ps -> for_ ps $ \(arg, pTy) -> checkTypeM ann arg (Normalized pTy)
+                -- the number of args does not match the number of types in the i'th SOP
+                -- alternative
+                Nothing -> throwing _TypeError (TypeMismatch ann (void t) expectedSop vResTy)
+            -- result type does not contain an i'th sum alternative
+            Nothing -> throwing _TypeError (TypeMismatch ann (void t) expectedSop vResTy)
+        -- result type is not a SOP type
+        _ -> throwing _TypeError (TypeMismatch ann (void t) expectedSop vResTy)
+
+    pure vResTy
+
+-- resTy ~> vResTy   [infer| G !- scrut : sop s_0 ... s_n]
+-- s_0 = [p_0_0 ... p_0_m]   [check| G !- c_0 : p_0_0 -> ... -> p_0_m -> vResTy]
+-- ...
+-- s_n = [p_n_0 ... p_n_m]   [check| G !- c_n : p_n_0 -> ... -> p_n_m -> vResTy]
+-- -----------------------------------------------------------------------------
+-- [infer| G !- case resTy scrut c_0 ... c_n : vResTy]
+inferTypeM (Case ann resTy scrut cases) = do
+    vResTy <- normalizeTypeM $ void resTy
+    vScrutTy <- inferTypeM scrut
+
+    -- We don't know exactly what to expect, we only know that it should
+    -- be a SOP with the right number of sum alternatives
+    let prods = map (\j -> "prod_" <> Text.pack (show j)) [0 .. length cases - 1]
+        expectedSop = ExpectedShape (Text.intercalate " " $ "sop" : prods) prods
+    case unNormalized vScrutTy of
+        TySOP _ sTys -> case zipExact cases sTys of
+            Just casesAndArgTypes -> for_ casesAndArgTypes $ \(c, argTypes) ->
+                -- made of sub-parts of a normalized type, so normalized
+                checkTypeM ann c (Normalized $ mkIterTyFun () argTypes (unNormalized vResTy))
+            -- scrutinee does not have a SOP type with the right number of alternatives
+            -- for the number of cases
+            Nothing -> throwing _TypeError (TypeMismatch ann (void scrut) expectedSop vScrutTy)
+        -- scrutinee does not have a SOP type at all
+        _ -> throwing _TypeError (TypeMismatch ann (void scrut) expectedSop vScrutTy)
+
+    -- If we got through all that, then every case type is correct, including that
+    -- they all result in vResTy, so we can safely conclude that that is the type of the
+    -- whole expression.
+    pure vResTy
 
 -- See the [Global uniqueness] and [Type rules] notes.
 -- | Check a 'Term' against a 'NormalizedType'.
@@ -523,4 +589,6 @@ checkTypeM
 -- [check| G !- term : vTy]
 checkTypeM ann term vTy = do
     vTermTy <- inferTypeM term
-    when (vTermTy /= vTy) $ throwing _TypeError (TypeMismatch ann (void term) (unNormalized vTy) vTermTy)
+    when (vTermTy /= vTy) $ do
+        let expectedVTy = ExpectedExact $ unNormalized vTy
+        throwing _TypeError $ TypeMismatch ann (void term) expectedVTy vTermTy

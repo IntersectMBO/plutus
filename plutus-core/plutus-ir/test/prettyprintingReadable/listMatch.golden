@@ -8,6 +8,5 @@ match_List_2
   (Nil_3 {all a_1. a_1 -> a_1})
   {all a_1. a_1 -> a_1}
   (/\a_1 -> \(x_5 : a_1) -> x_5)
-  (\(head_6 : all a_1. a_1 -> a_1)
-    (tail_7 : List_0 (all a_1. a_1 -> a_1)) ->
+  (\(head_6 : all a_1. a_1 -> a_1) (tail_7 : List_0 (all a_1. a_1 -> a_1)) ->
      head_6)

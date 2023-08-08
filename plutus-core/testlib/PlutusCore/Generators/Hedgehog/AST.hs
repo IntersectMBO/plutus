@@ -1,5 +1,6 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications  #-}
 
 module PlutusCore.Generators.Hedgehog.AST
     ( simpleRecursive
@@ -21,6 +22,7 @@ module PlutusCore.Generators.Hedgehog.AST
 import PlutusPrelude
 
 import PlutusCore
+import PlutusCore.Name (isQuotedIdentifierChar)
 import PlutusCore.Subst
 
 import Control.Lens (coerced)
@@ -29,6 +31,8 @@ import Control.Monad.Reader
 import Data.Set (Set)
 import Data.Set qualified as Set
 import Data.Set.Lens (setOf)
+import Data.Text (Text)
+import Data.Text qualified as Text
 import Hedgehog hiding (Size, Var)
 import Hedgehog.Internal.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
@@ -51,9 +55,23 @@ runAstGen a = do
     names <- genNames
     Gen.fromGenT $ hoist (return . flip runReader names) a
 
+-- The parser will reject uses of new constructs if the version is not high enough
+-- In order to keep our lives simple, we just generate a version that is always high
+-- enough to support everything. That gives us less coverage of parsing versions, but
+-- that's not likely to be the place where things go wrong
 genVersion :: MonadGen m => m Version
-genVersion = Version <$> int' <*> int' <*> int' where
-    int' = Gen.integral_ $ Range.linear 0 10
+genVersion = Version <$> intFrom 1 <*> intFrom 1 <*> intFrom 0 where
+    intFrom x = Gen.integral_ $ Range.linear x 20
+
+genNameText :: MonadGen m => m Text
+genNameText = Gen.choice [genUnquoted, genQuoted]
+  where
+    genUnquoted =
+        Text.cons
+            <$> Gen.alpha
+            <*> Gen.text (Range.linear 0 4) (Gen.choice [Gen.alphaNum, Gen.element ['_', '\'']])
+    genQuoted =
+        Gen.text (Range.linear 1 5) (Gen.filterT isQuotedIdentifierChar Gen.ascii)
 
 -- | Generate a fixed set of names which we will use, of only up to a short size to make it
 -- likely that we get reuse.
@@ -64,9 +82,8 @@ genNames :: MonadGen m => m [Name]
 genNames = do
     let genUniq = Unique <$> Gen.int (Range.linear 0 100)
     uniqs <- Set.toList <$> Gen.set (Range.linear 1 20) genUniq
-    let genText = Gen.text (Range.linear 1 4) Gen.lower
     for uniqs $ \uniq -> do
-        text <- genText
+        text <- genNameText
         return $ Name text uniq
 
 genName :: AstGen Name
@@ -107,8 +124,9 @@ genType = simpleRecursive nonRecursive recursive where
     lamGen = TyLam () <$> genTyName <*> genKind <*> genType
     forallGen = TyForall () <$> genTyName <*> genKind <*> genType
     applyGen = TyApp () <$> genType <*> genType
+    sopGen = TySOP () <$> (Gen.list (Range.linear 0 10) (Gen.list (Range.linear 0 10) genType))
     tyBuiltinGen = TyBuiltin () <$> genSomeTypeIn
-    recursive = [funGen, applyGen]
+    recursive = [funGen, applyGen, sopGen]
     nonRecursive = [varGen, lamGen, forallGen, tyBuiltinGen]
 
 genTerm :: forall fun. (Bounded fun, Enum fun) => AstGen (Term TyName Name DefaultUni fun ())
@@ -121,7 +139,9 @@ genTerm = simpleRecursive nonRecursive recursive where
     unwrapGen = Unwrap () <$> genTerm
     wrapGen = IWrap () <$> genType <*> genType <*> genTerm
     errorGen = Error () <$> genType
-    recursive = [absGen, instGen, lamGen, applyGen, unwrapGen, wrapGen]
+    constrGen = Constr () <$> genType <*> Gen.word64 (Range.linear 0 10) <*> Gen.list (Range.linear 0 10) genTerm
+    caseGen = Case () <$> genType <*> genTerm <*> Gen.list (Range.linear 0 10) genTerm
+    recursive = [absGen, instGen, lamGen, applyGen, unwrapGen, wrapGen, constrGen, caseGen]
     nonRecursive = [varGen, Constant () <$> genConstant, Builtin () <$> genBuiltin, errorGen]
 
 genProgram :: forall fun. (Bounded fun, Enum fun) => AstGen (Program TyName Name DefaultUni fun ())

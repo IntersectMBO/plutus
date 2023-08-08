@@ -39,6 +39,7 @@ import PlutusIR.Core.Instance.Pretty.Readable
 import PlutusIR.Subst
 
 import Control.Lens ((<&>))
+import Control.Monad
 import Control.Monad.Except
 import Control.Monad.Reader
 import Data.Bifunctor

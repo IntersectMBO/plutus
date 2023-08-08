@@ -1,6 +1,7 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies     #-}
+{-# LANGUAGE TypeOperators    #-}
 
 module Evaluation.Machines
     ( test_machines
@@ -11,6 +12,7 @@ module Evaluation.Machines
 
 import UntypedPlutusCore
 import UntypedPlutusCore.Evaluation.Machine.Cek as Cek
+import UntypedPlutusCore.Evaluation.Machine.SteppableCek qualified as SCek
 
 import PlutusCore qualified as Plc
 import PlutusCore.Builtin
@@ -56,11 +58,12 @@ testMachine machine eval =
 test_machines :: TestTree
 test_machines =
     testGroup "machines"
-        [ testMachine "CEK"  $ evaluateCekNoEmit Plc.defaultCekParameters
+        [ testMachine "CEK"  $ Cek.evaluateCekNoEmit Plc.defaultCekParameters
+        , testMachine "SteppableCEK"  $ SCek.evaluateCekNoEmit Plc.defaultCekParameters
         ]
 
 testBudget
-    :: (Ix fun, Show fun, Hashable fun, PrettyUni DefaultUni fun)
+    :: (Ix fun, Show fun, Hashable fun, Pretty fun, Typeable fun)
     => BuiltinsRuntime fun (CekValue DefaultUni fun ())
     -> TestName
     -> Term Name DefaultUni fun ()
@@ -68,6 +71,7 @@ testBudget
 testBudget runtime name term =
                        nestedGoldenVsText
     name
+    ".uplc"
     (render $
         prettyPlcReadableDef $ runCekNoEmit (MachineParameters Plc.defaultCekMachineCosts runtime) Cek.tallying term)
 
@@ -82,7 +86,7 @@ bunchOfIdNats =
     FolderContents [treeFolderContents "IdNat" $ map idNatFile [0 :: Int, 3.. 9]] where
         idNatFile i = plcTermFile (show i) (idNat id0 i)
         -- > id0 = foldNat {nat} succ zero
-        id0 = mkIterApp () (tyInst () Plc.foldNat $ Plc.natTy) [Plc.succ, Plc.zero]
+        id0 = mkIterAppNoAnn (tyInst () Plc.foldNat $ Plc.natTy) [Plc.succ, Plc.zero]
 
         idNat idN 0 = apply () idN $ metaIntegerToNat 10
         idNat idN n = idNat idN' (n - 1) where
@@ -96,9 +100,9 @@ bunchOfIdNats =
 bunchOfIfThenElseNats :: PlcFolderContents DefaultUni DefaultFun
 bunchOfIfThenElseNats =
     FolderContents [treeFolderContents "IfThenElse" $ map ifThenElseNatFile [0 :: Int, 1.. 5]] where
-        ifThenElseNatFile i = plcTermFile (show i) (ifThenElseNat id0 i) where
+        ifThenElseNatFile i = plcTermFile (show i) (ifThenElseNat id0 i)
         -- > id0 = foldNat {nat} succ zero
-        id0 = mkIterApp () (tyInst () Plc.foldNat $ Plc.natTy) [Plc.succ, Plc.zero]
+        id0 = mkIterAppNoAnn (tyInst () Plc.foldNat Plc.natTy) [Plc.succ, Plc.zero]
 
         ifThenElseNat idN 0 = apply () idN $ metaIntegerToNat 10
         ifThenElseNat idN n = ifThenElseNat idN' (n - 1) where
@@ -108,7 +112,7 @@ bunchOfIfThenElseNats =
             idN'
 
                 = etaExpand Plc.natTy
-                $ mkIterApp () (tyInst () (builtin () IfThenElse) $ Plc.TyFun () Plc.natTy Plc.natTy)
+                $ mkIterAppNoAnn (tyInst () (builtin () IfThenElse) $ Plc.TyFun () Plc.natTy Plc.natTy)
                     [mkConstant () $ even n, idN, idN]
 
 test_budget :: TestTree
@@ -133,6 +137,7 @@ testTallying :: TestName -> Term Name DefaultUni DefaultFun () -> TestNested
 testTallying name term =
                        nestedGoldenVsText
     name
+    ".uplc"
     (render $
         prettyPlcReadableDef $ runCekNoEmit Plc.defaultCekParameters Cek.tallying term)
 

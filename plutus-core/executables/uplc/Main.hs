@@ -1,6 +1,5 @@
 {-# LANGUAGE BangPatterns              #-}
 {-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE ImplicitParams            #-}
 {-# LANGUAGE LambdaCase                #-}
 {-# LANGUAGE MultiParamTypeClasses     #-}
 {-# LANGUAGE OverloadedStrings         #-}
@@ -12,25 +11,32 @@ module Main (main) where
 
 import PlutusCore qualified as PLC
 import PlutusCore.Annotation
+import PlutusCore.Data
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
-import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Executable.Common
 import PlutusCore.Executable.Parsers
-
-import Data.Foldable
-import Data.List (nub)
-import Data.List.Split (splitOn)
-import Data.Text qualified as T
+import PlutusCore.MkPlc (mkConstant)
 import PlutusPrelude
+
+import UntypedPlutusCore.Evaluation.Machine.Cek
+import UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver qualified as D
+import UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal qualified as D
 
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.DeBruijn
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
 
 import Control.DeepSeq (rnf)
-import Control.Monad.Except
+import Control.Monad.Except (runExcept)
+import Control.Monad.IO.Class (liftIO)
+import Data.ByteString.Lazy as BSL (readFile)
+import Data.Foldable
+import Data.List (nub)
+import Data.List.Split (splitOn)
+import Data.Text qualified as T
+import Flat (unflat)
 import Options.Applicative
 import Prettyprinter
 import System.Exit (exitFailure)
@@ -39,8 +45,6 @@ import Text.Read (readMaybe)
 
 import Control.Monad.ST (RealWorld)
 import System.Console.Haskeline qualified as Repl
-import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Driver qualified as D
-import UntypedPlutusCore.Evaluation.Machine.Cek.Debug.Internal qualified as D
 
 uplcHelpText :: String
 uplcHelpText = helpText "Untyped Plutus Core"
@@ -63,12 +67,14 @@ data DbgOptions =
 
 ---------------- Main commands -----------------
 
-data Command = Apply     ApplyOptions
-             | Convert   ConvertOptions
-             | Print     PrintOptions
-             | Example   ExampleOptions
-             | Eval      EvalOptions
-             | Dbg     DbgOptions
+data Command = Apply       ApplyOptions
+             | ApplyToData ApplyOptions
+             | Convert     ConvertOptions
+             | Optimise    OptimiseOptions
+             | Print       PrintOptions
+             | Example     ExampleOptions
+             | Eval        EvalOptions
+             | Dbg         DbgOptions
              | DumpModel
              | PrintBuiltinSignatures
 
@@ -153,19 +159,31 @@ plutus langHelpText =
       (fullDesc <> header "Untyped Plutus Core Tool" <> progDesc langHelpText)
 
 plutusOpts :: Parser Command
-plutusOpts = hsubparser (
+plutusOpts = hsubparser $
        command "apply"
            (info (Apply <$> applyOpts)
-            (progDesc $ "Given a list of input scripts f g1 g2 ... gn, " <>
-            "output a script consisting of (... ((f g1) g2) ... gn); " <>
-            "for example, 'uplc apply --if " <>
-            "flat Validator.flat Datum.flat Redeemer.flat Context.flat --of flat -o Script.flat'"))
+            (progDesc $ "Given a list of input files f g1 g2 ... gn " <>
+             "containing Untyped Plutus Core scripts, " <>
+             "output a script consisting of (... ((f g1) g2) ... gn); " <>
+             "for example, 'uplc apply --if flat Validator.flat " <>
+             "Datum.flat Redeemer.flat Context.flat --of flat -o Script.flat'."))
+    <> command "apply-to-data"
+           (info (ApplyToData <$> applyOpts)
+            (progDesc $ "Given a list f d1 d2 ... dn where f is an " <>
+             "Untyped Plutus Core script and d1,...,dn are files " <>
+             "containing flat-encoded data ojbects, output a script " <>
+             "consisting of f applied to the data objects; " <>
+             "for example, 'uplc apply-to-data --if " <>
+             "flat Validator.flat Datum.flat Redeemer.flat Context.flat " <>
+             "--of flat -o Script.flat'."))
     <> command "print"
            (info (Print <$> printOpts)
             (progDesc "Parse a program then prettyprint it."))
     <> command "convert"
            (info (Convert <$> convertOpts)
-            (progDesc "Convert a program between various formats"))
+            (progDesc "Convert a program between various formats."))
+    <> command "optimise" (optimise "Run the UPLC optimisation pipeline on the input.")
+    <> command "optimize" (optimise "Same as 'optimise'.")
     <> command "example"
            (info (Example <$> exampleOpts)
             (progDesc $ "Show a program example. "
@@ -180,31 +198,64 @@ plutusOpts = hsubparser (
             (progDesc "Debug an untyped Plutus Core program using the CEK machine."))
     <> command "dump-model"
            (info (pure DumpModel)
-            (progDesc "Dump the cost model parameters"))
+            (progDesc "Dump the cost model parameters."))
     <> command "print-builtin-signatures"
            (info (pure PrintBuiltinSignatures)
-            (progDesc "Print the signatures of the built-in functions"))
-  )
+            (progDesc "Print the signatures of the built-in functions."))
+    where optimise desc = info (Optimise <$> optimiseOpts) $ progDesc desc
 
+
+---------------- Optimisation ----------------
+
+-- | Run the UPLC optimisations
+runOptimisations:: OptimiseOptions -> IO ()
+runOptimisations (OptimiseOptions inp ifmt outp ofmt mode) = do
+    prog <- readProgram ifmt inp :: IO (UplcProg SrcSpan)
+    simplified <- PLC.runQuoteT $ do
+                    renamed <- PLC.rename prog
+                    UPLC.simplifyProgram UPLC.defaultSimplifyOpts renamed
+    writeProgram outp ofmt mode simplified
 
 ---------------- Script application ----------------
 
--- | Apply one script to a list of others.
+-- | Apply one script to a list of others and output the result.  All of the
+-- scripts must be UPLC.Program objects.
 runApply :: ApplyOptions -> IO ()
 runApply (ApplyOptions inputfiles ifmt outp ofmt mode) = do
-  scripts <-
-    mapM ((getProgram ifmt ::  Input -> IO (UplcProg SrcSpan)) . FileInput) inputfiles
+  scripts <- mapM ((readProgram ifmt ::  Input -> IO (UplcProg SrcSpan)) . FileInput) inputfiles
   let appliedScript =
         case void <$> scripts of
           []          -> errorWithoutStackTrace "No input files"
-          progAndargs -> foldl1 UPLC.applyProgram progAndargs
+          progAndargs ->
+            foldl1 (unsafeFromRight .* UPLC.applyProgram) progAndargs
   writeProgram outp ofmt mode appliedScript
+
+-- | Apply a UPLC program to script to a list of flat-encoded Data objects and
+-- output the result.
+runApplyToData :: ApplyOptions -> IO ()
+runApplyToData (ApplyOptions inputfiles ifmt outp ofmt mode) =
+  case inputfiles  of
+    [] -> errorWithoutStackTrace "No input files"
+    p:ds -> do
+         prog@(UPLC.Program _ version _) :: UplcProg SrcSpan <- readProgram ifmt (FileInput p)
+         args <- mapM (getDataObject version) ds
+         let prog' = () <$ prog
+             appliedScript = foldl1 (unsafeFromRight .* UPLC.applyProgram) (prog':args)
+         writeProgram outp ofmt mode appliedScript
+             where getDataObject :: UPLC.Version -> FilePath -> IO (UplcProg ())
+                   getDataObject ver path = do
+                     bs <- BSL.readFile path
+                     case unflat bs of
+                       Left err -> fail ("Error reading " ++ show path ++ ": " ++ show err)
+                       Right (d :: Data) ->
+                           pure $ UPLC.Program () ver $ mkConstant () d
+
 
 ---------------- Evaluation ----------------
 
 runEval :: EvalOptions -> IO ()
 runEval (EvalOptions inp ifmt printMode budgetMode traceMode outputMode timingMode cekModel) = do
-    prog <- getProgram ifmt inp
+    prog <- readProgram ifmt inp
     let term = void $ prog ^. UPLC.progTerm
         !_ = rnf term
         cekparams = case cekModel of
@@ -248,7 +299,7 @@ runEval (EvalOptions inp ifmt printMode budgetMode traceMode outputMode timingMo
 
 runDbg :: DbgOptions -> IO ()
 runDbg (DbgOptions inp ifmt cekModel) = do
-    prog <- getProgram ifmt inp
+    prog <- readProgram ifmt inp
     let term = prog ^. UPLC.progTerm
         !_ = rnf term
         nterm = fromRight (error "Term to debug must be closed.") $
@@ -259,19 +310,15 @@ runDbg (DbgOptions inp ifmt cekModel) = do
                     -- AST nodes are charged one unit each, so we can see how many times each node
                     -- type is encountered.  This is useful for calibrating the budgeting code
                     Unit    -> PLC.unitCekParameters
-        MachineParameters costs runtime = cekparams
         replSettings = Repl.Settings { Repl.complete = Repl.noCompletion
                                      , Repl.historyFile = Nothing
                                      , Repl.autoAddHistory = False
                                      }
-    let ?cekRuntime = runtime
-        ?cekEmitter = const $ pure ()
-        ?cekBudgetSpender = Cek.CekBudgetSpender $ \_ _ -> pure ()
-        ?cekCosts = costs
-        ?cekSlippage = D.defaultSlippage
-      in Repl.runInputT replSettings $
-            -- MAYBE: use cutoff or partialIterT to prevent runaway
-            D.iterTM handleDbg $ D.runDriver nterm
+    -- nilSlippage is important so as to get correct live up-to-date budget
+    cekTrans <- fst <$> D.mkCekTrans cekparams restrictingEnormous noEmitter D.nilSlippage
+    Repl.runInputT replSettings $
+        -- MAYBE: use cutoff or partialIterT to prevent runaway
+        D.iterTM (handleDbg cekTrans) $ D.runDriverT nterm
 
 -- TODO: this is just an example of an optional single breakpoint, decide
 -- if we actually want breakpoints for the cli
@@ -281,14 +328,16 @@ instance D.Breakpointable DAnn MaybeBreakpoint where
     hasBreakpoints = error "Not implemented: Breakpointable DAnn Breakpoints"
 
 -- Peel off one layer
-handleDbg :: (Cek.PrettyUni uni fun, D.GivenCekReqs uni fun DAnn RealWorld)
-          => D.DebugF uni fun DAnn MaybeBreakpoint (Repl.InputT IO ())
+handleDbg :: (Cek.ThrowableBuiltins uni fun)
+          => D.CekTrans uni fun DAnn RealWorld
+          -> D.DebugF uni fun DAnn MaybeBreakpoint (Repl.InputT IO ())
           -> Repl.InputT IO ()
-handleDbg = \case
+handleDbg cekTrans = \case
     D.StepF prevState k  -> do
         -- Note that we first turn Cek to IO and then `liftIO` it to InputT; the alternative of
         -- directly using MonadTrans.lift needs MonadCatch+MonadMask instances for CekM, i.e. messy
-        eNewState <- liftIO $ D.cekMToIO $ D.tryHandleStep prevState
+        -- also liftIO would be unnecessary if haskeline.InputT worked with `primitive`
+        eNewState <- liftIO $ D.liftCek $ D.tryError $ cekTrans prevState
         case eNewState of
             Right newState -> k newState
             Left e         -> Repl.outputStrLn $ show e
@@ -323,11 +372,13 @@ main :: IO ()
 main = do
     options <- customExecParser (prefs showHelpOnEmpty) uplcInfoCommand
     case options of
-        Apply     opts         -> runApply        opts
-        Eval      opts         -> runEval         opts
-        Dbg     opts           -> runDbg         opts
-        Example   opts         -> runUplcPrintExample opts
-        Print     opts         -> runPrint        opts
-        Convert   opts         -> runConvert @UplcProg     opts
+        Apply       opts       -> runApply             opts
+        ApplyToData opts       -> runApplyToData       opts
+        Eval        opts       -> runEval              opts
+        Dbg         opts       -> runDbg               opts
+        Example     opts       -> runUplcPrintExample  opts
+        Optimise    opts       -> runOptimisations     opts
+        Print       opts       -> runPrint   @UplcProg opts
+        Convert     opts       -> runConvert @UplcProg opts
         DumpModel              -> runDumpModel
         PrintBuiltinSignatures -> runPrintBuiltinSignatures

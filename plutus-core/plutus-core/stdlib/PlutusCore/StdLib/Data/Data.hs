@@ -25,7 +25,7 @@ import PlutusCore.StdLib.Data.Pair
 import PlutusCore.StdLib.Data.Unit
 
 -- | @Data@ as a built-in PLC type.
-dataTy :: uni `Contains` Data => Type TyName uni ()
+dataTy :: uni `HasTypeLevel` Data => Type tyname uni ()
 dataTy = mkTyBuiltin @_ @Data ()
 
 -- | Pattern matching over 'Data' inside PLC.
@@ -65,9 +65,9 @@ caseData = runQuote $ do
         . lamAbs () fList (TyFun () listData $ TyVar () r)
         . lamAbs () fI (TyFun () integer $ TyVar () r)
         . lamAbs () fB (TyFun () (mkTyBuiltin @_ @ByteString ()) $ TyVar () r)
-        $ mkIterApp () (tyInst () (builtin () ChooseData) . TyFun () unit $ TyVar () r)
+        $ mkIterAppNoAnn (tyInst () (builtin () ChooseData) . TyFun () unit $ TyVar () r)
             [ var () d
-            , lamAbs () u unit $ mkIterApp () (mkIterInst () uncurry [integer, listData, TyVar () r])
+            , lamAbs () u unit $ mkIterAppNoAnn (mkIterInstNoAnn uncurry [integer, listData, TyVar () r])
                 [ var () fConstr
                 , apply () (builtin () UnConstrData) $ var () d
                 ]

@@ -33,6 +33,11 @@ deriving via ModelJSON "costingFun" (CostingFun model)
 deriving via ModelJSON "costingFun" (CostingFun model)
     instance ToJSON model => ToJSON (CostingFun model)
 
+deriving newtype instance FromJSON Intercept
+deriving newtype instance ToJSON   Intercept
+deriving newtype instance FromJSON Slope
+deriving newtype instance ToJSON   Slope
+
 deriving via ModelArgumentJSON "ModelOneArgument" ModelOneArgument
     instance FromJSON ModelOneArgument
 deriving via ModelArgumentJSON "ModelOneArgument" ModelOneArgument
@@ -66,10 +71,14 @@ deriving via ModelJSON "modelSubtractedSizes" ModelSubtractedSizes
     instance FromJSON ModelSubtractedSizes
 deriving via ModelJSON "modelSubtractedSizes" ModelSubtractedSizes
     instance ToJSON ModelSubtractedSizes
-deriving via ModelJSON "modelLinearSize" ModelLinearSize
-    instance FromJSON ModelLinearSize
-deriving via ModelJSON "modelLinearSize" ModelLinearSize
-    instance ToJSON ModelLinearSize
+deriving via ModelJSON "oneVariableLinearFunction" OneVariableLinearFunction
+    instance FromJSON OneVariableLinearFunction
+deriving via ModelJSON "oneVariableLinearFunction" OneVariableLinearFunction
+    instance ToJSON OneVariableLinearFunction
+deriving via ModelJSON "twoVariableLinearFunction" TwoVariableLinearFunction
+    instance FromJSON TwoVariableLinearFunction
+deriving via ModelJSON "twoVariableLinearFunction" TwoVariableLinearFunction
+    instance ToJSON TwoVariableLinearFunction
 deriving via ModelJSON "modelMultipliedSizes" ModelMultipliedSizes
     instance FromJSON ModelMultipliedSizes
 deriving via ModelJSON "modelMultipliedSizes" ModelMultipliedSizes

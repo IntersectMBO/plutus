@@ -17,16 +17,16 @@ open import Algorithmic using (Ctx;_⊢_)
 open Ctx
 import Algorithmic.RenamingSubstitution as AS
 import Type.RenamingSubstitution as T
-open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;renNf;renNe;renNfTyCon)
+open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;renNf;renNe)
 open _⊢Nf⋆_
 open _⊢Ne⋆_
 open import Type.BetaNBE.RenamingSubstitution using (extsNf)
 open import Scoped using (ScopedTy)
 open ScopedTy
-open import Scoped.Extrication using (len⋆;extricateVar⋆;extricateNf⋆;extricateNe⋆;extricateTyConNf⋆;extricate)
-open import Scoped.RenamingSubstitution as SS using (Ren⋆;lift⋆;ren⋆;renTyCon⋆;ren⋆-cong;Sub⋆;slift⋆)
-import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) as AC
-import Builtin.Constant.Type ℕ ScopedTy as SC
+open import Scoped.Extrication using (len⋆;extricateVar⋆;extricateNf⋆;extricateNe⋆;extricate)
+open import Scoped.RenamingSubstitution as SS using (Ren⋆;lift⋆;ren⋆;ren⋆-cong;Sub⋆;slift⋆)
+import Builtin.Constant.Type as AC
+import Builtin.Constant.Type as SC
 
 -- type renamings
 
@@ -77,26 +77,14 @@ ren-extricateNe⋆ :  ∀{Γ Δ J}
   → (ρ⋆ : ∀ {J} → Γ ∋⋆ J → Δ ∋⋆ J)
   → (A : Γ ⊢Ne⋆ J)
   → ren⋆ (extricateRenNf⋆ ρ⋆) (extricateNe⋆ A) ≡ extricateNe⋆ (renNe ρ⋆ A)
-ren-extricateTyConNf⋆ :  ∀{Γ Δ}
-  → (ρ⋆ : ∀ {J} → Γ ∋⋆ J → Δ ∋⋆ J)
-  → (A : AC.TyCon Γ)
-  → renTyCon⋆ (extricateRenNf⋆ ρ⋆) (extricateTyConNf⋆ A) ≡ extricateTyConNf⋆ (renNfTyCon ρ⋆ A)
-
-ren-extricateTyConNf⋆ ρ⋆ AC.integer = refl
-ren-extricateTyConNf⋆ ρ⋆ AC.bytestring = refl
-ren-extricateTyConNf⋆ ρ⋆ AC.string = refl
-ren-extricateTyConNf⋆ ρ⋆ AC.unit = refl
-ren-extricateTyConNf⋆ ρ⋆ AC.bool = refl
-ren-extricateTyConNf⋆ ρ⋆ (AC.list A) = cong SC.list (ren-extricateNf⋆ ρ⋆ A)
-ren-extricateTyConNf⋆ ρ⋆ (AC.pair A B) = cong₂ SC.pair (ren-extricateNf⋆ ρ⋆ A) (ren-extricateNf⋆ ρ⋆ B)
-ren-extricateTyConNf⋆ ρ⋆ AC.pdata = refl
-
 ren-extricateNe⋆ ρ⋆ (` x)   = cong
   `
   (trans (lem-extricateVar⋆ ρ⋆ (proj₂ (backVar (extricateVar⋆ x))) (lem-backVar₁ x))
   (cong (extricateVar⋆ ∘ ρ⋆) (lem-backVar x)))
 ren-extricateNe⋆ ρ⋆ (A · B) =
   cong₂ _·_ (ren-extricateNe⋆ ρ⋆ A) (ren-extricateNf⋆ ρ⋆ B)
+ren-extricateNe⋆ ρ⋆ (^ x) = refl
+
 ren-extricateNf⋆ ρ⋆ (Π A)  =
   cong (Π _)
        (trans (ren⋆-cong (lift⋆-ext ρ⋆) (extricateNf⋆ A))
@@ -107,7 +95,7 @@ ren-extricateNf⋆ ρ⋆ (ƛ A)  =
   cong (ƛ _)
        (trans (ren⋆-cong (lift⋆-ext ρ⋆) (extricateNf⋆ A)) (ren-extricateNf⋆ (T.ext ρ⋆) A))
 ren-extricateNf⋆ ρ⋆ (ne A)   = ren-extricateNe⋆ ρ⋆ A
-ren-extricateNf⋆ ρ⋆ (con c)  = cong con (ren-extricateTyConNf⋆ ρ⋆ c)
+ren-extricateNf⋆ ρ⋆ (con (ne x)) =  ren-extricateNe⋆ ρ⋆ x
 ren-extricateNf⋆ ρ⋆ (μ A B)  =
   cong₂ μ (ren-extricateNf⋆ ρ⋆ A) (ren-extricateNf⋆ ρ⋆ B)
 

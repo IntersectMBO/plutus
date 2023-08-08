@@ -1,6 +1,7 @@
-Type mismatch at test:2:3-2:35 in term
-  '(con integer 0)'.
-Expected type
-  '(all * (type) *)',
-found type
+Type mismatch at test:2:3-2:35
+Expected a term of type
+  '(all a kind body)' for some 'a', 'kind' and 'body'
+But found one of type
   '(con integer)'
+Namely,
+  '(con integer 0)'

@@ -1,1 +1,0 @@
-/\a -> \(f : a -> a) -> \(p : pair a a) -> (Right Comma) {a} {a} (f ((Left fstPair) {a} {a} p)) (f ((Left sndPair) {a} {a} p))

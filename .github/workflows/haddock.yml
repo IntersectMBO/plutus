@@ -3,8 +3,6 @@ on:
   push:
     branches:
       - master
-    tags:
-      - '[0-9]+.[0-9]+.[0-9]+.[0-9]+'
 jobs:
   build-haddock-site:
     runs-on: ubuntu-latest
@@ -14,8 +12,10 @@ jobs:
       name: github-pages
     steps:
       - uses: actions/checkout@v3
-      - uses: nixbuild/nix-quick-install-action@v21
+      - uses: nixbuild/nix-quick-install-action@v25
         with:
+          # 2.14.1 seems to have issues, see https://github.com/nixbuild/nix-quick-install-action/issues/29
+          nix_version: '2.13.3'
           nix_conf: |
             experimental-features = nix-command flakes
             accept-flake-config = true

@@ -11,12 +11,14 @@ jobs:
 
       - name: Find Changed Files in changelog.d
         id: changed-files
-        uses: tj-actions/changed-files@v35
+        uses: tj-actions/changed-files@v37
         with:
           files: '**/changelog.d/**'
 
       - name: Enforce New File or 'No Changelog Required' Label
         uses: actions/github-script@v6
+        # don't require changelogs for draft PRs
+        if: github.event.pull_request.draft == false
         with:
           script: | 
             function shouldCheckChangelog() {

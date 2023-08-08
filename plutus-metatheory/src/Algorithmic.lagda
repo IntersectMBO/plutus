@@ -5,11 +5,13 @@ module Algorithmic where
 ## Imports
 
 \begin{code}
-open import Data.List using (List;[];replicate;_++_)
-open import Relation.Binary.PropositionalEquality using (_≡_;refl)
-open import Data.List.NonEmpty using (length)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;cong₂)
 
-open import Utils hiding (TermCon)
+open import Data.Empty using (⊥)
+open import Data.List using (List)
+open import Data.Product using (_×_)
+
+open import Utils renaming (_×_ to _U×_; List to UList)
 open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_;_∋⋆_;Z;S;Φ)
 open _⊢⋆_
 
@@ -17,19 +19,20 @@ open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;weakenNf;renNf;embNf)
 open _⊢Nf⋆_
 open _⊢Ne⋆_
 
-import Type.RenamingSubstitution as ⋆ using (Ren)
+import Type.RenamingSubstitution as ⋆
 open import Type.BetaNBE using (nf)
-open import Type.BetaNBE.RenamingSubstitution using (subNf;SubNf) renaming (_[_]Nf to _[_])
+open import Type.BetaNBE.RenamingSubstitution using (subNf∅) renaming (_[_]Nf to _[_])
 
-open import Builtin using (Builtin;signature)
-open Builtin.Builtin
-open import Builtin.Signature using (Sig;sig;nat2Ctx⋆;fin2∈⋆)
+open import Builtin using (Builtin)
 
-open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con using (TermCon)
-open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) using (TyCon)
+open import Builtin.Constant.Type using (TyCon)
 open TyCon
+open import Builtin.Constant.AtomicType using (⟦_⟧at)
 
-open Builtin.Signature.FromSig Ctx⋆ (_⊢Nf⋆ *) nat2Ctx⋆ (λ x → ne (` (fin2∈⋆ x))) con _⇒_ Π using (sig2type)
+open import Builtin.Signature using (_⊢♯)
+open _⊢♯
+
+open import Algorithmic.Signature using (btype;⊢♯2TyNe♯)
 \end{code}
 
 ## Fixity declarations
@@ -91,21 +94,83 @@ data _∋_ : (Γ : Ctx Φ) → Φ ⊢Nf⋆ * → Set where
       -------------------
     → Γ ,⋆ K ∋ weakenNf A
 \end{code}
-Let `x`, `y` range over variables.
+          
+## Semantic of constant terms
+
+We define a predicate ♯Kinded for kinds that ultimately end in ♯.
+
+\begin{code}
+data ♯Kinded : Kind → Set where
+   ♯ : ♯Kinded ♯
+   K♯ : ∀{K J} → ♯Kinded J → ♯Kinded (K ⇒ J)
+\end{code}
+
+There is no type of a ♯Kinded kind which takes more than two type arguments. 
+
+\begin{code}
+lemma♯Kinded : ∀ {K K₁ K₂ J} → ♯Kinded J → ∅ ⊢Ne⋆ (K₂ ⇒ (K₁ ⇒ (K ⇒ J))) → ⊥
+lemma♯Kinded k (f · _) = lemma♯Kinded (K♯ k) f
+\end{code}
+
+Closed types can be mapped into the signature universe and viceversa.
+
+\begin{code}
+ty2sty : ∅ ⊢Nf⋆ ♯ → 0 ⊢♯
+ty2sty (ne (((f · _) · _) · _)) with lemma♯Kinded ♯ f 
+... | ()
+ty2sty (ne ((^ pair · x) · y)) = pair (ty2sty x) (ty2sty y)
+ty2sty (ne (^ list · x)) = list (ty2sty x)
+ty2sty (ne (^ (atomic x))) = atomic x
+
+sty2ty : 0 ⊢♯ → ∅ ⊢Nf⋆ ♯
+sty2ty t = ne (⊢♯2TyNe♯ t)
+\end{code}
+
+Now we have functions `ty2sty` and `sty2ty`. We prove that they are inverses, and therefore
+define an isomorphism.
+
+\begin{code}
+ty≅sty₁ : ∀ (A : ∅ ⊢Nf⋆ ♯) → A ≡ sty2ty (ty2sty A)
+ty≅sty₁ (ne (((f · _) · _) · _)) with  lemma♯Kinded ♯ f
+... | ()
+ty≅sty₁ (ne ((^ pair · x) · y))  = cong ne (cong₂ _·_ (cong (^ pair ·_) (ty≅sty₁ x)) (ty≅sty₁ y))
+ty≅sty₁ (ne (^ list · x))        = cong ne (cong (^ list ·_) (ty≅sty₁ x)) 
+ty≅sty₁ (ne (^ (atomic x)))      = refl
+
+ty≅sty₂ : ∀ (A : 0 ⊢♯) →  A ≡ ty2sty (sty2ty A)
+ty≅sty₂ (atomic x) = refl
+ty≅sty₂ (list A) = cong list (ty≅sty₂ A)
+ty≅sty₂ (pair A B) = cong₂ pair (ty≅sty₂ A) (ty≅sty₂ B)
+\end{code}
+
+The semantics of closed types of kind ♯ is given by the following 
+interpretation function
+
+\begin{code}
+⟦_⟧ : (ty : ∅ ⊢Nf⋆ ♯) → Set
+⟦ ne (((f · _) · _) · _) ⟧ with lemma♯Kinded ♯ f 
+... | ()
+⟦ ne ((^ pair · x) · y) ⟧ = ⟦ x ⟧ U× ⟦ y ⟧
+⟦ ne (^ list · x) ⟧ = UList ⟦ x ⟧
+⟦ ne (^ (atomic x)) ⟧ = ⟦ x ⟧at
+\end{code}
+
+All these types need to be able to be interfaced with Haskell, as this 
+interpretation function is used everywhere of type or a type tag needs to be 
+interpreted. It is precisely because they need to be interfaced with Haskell
+that we use the version of product and list from the Utils module.
 
 ## Terms
 
 A term is indexed over by its context and type.  A term is a variable,
-an abstraction, an application, a type abstraction, or a type
-application.
+an abstraction, an application, a type abstraction, a type
+application, a wrapping or unwrapping of a recursive type, a constant,
+a builtin function, or an error.
+
+Constants of a builtin type A are given directly by its meaning ⟦ A ⟧, where
+A is restricted to kind ♯.
 
 \begin{code}
-btype : Builtin → Φ ⊢Nf⋆ *
-btype b = subNf (λ()) (sig2type (signature b))
-
-postulate btype-ren : ∀{Φ Ψ} b (ρ : ⋆.Ren Φ Ψ) → btype b ≡ renNf ρ (btype b)
-postulate btype-sub : ∀{Φ Ψ} b (ρ : SubNf Φ Ψ) → btype b ≡ subNf ρ (btype b)
-
 infixl 7 _·⋆_/_
 
 data _⊢_ (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
@@ -155,10 +220,11 @@ data _⊢_ (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
       -------------------------------------------------------------
     → Γ ⊢ C
 
-  con : ∀{tcn}
-    → TermCon {Φ} (con tcn)
+  con : ∀{A : ∅ ⊢Nf⋆ ♯}{B}
+    → ⟦ A ⟧ 
+    → B ≡ subNf∅ A
       ---------------------
-    → Γ ⊢ con tcn
+    → Γ ⊢ con B
 
   builtin_/_ : ∀{C}
     → (b :  Builtin)
@@ -188,26 +254,4 @@ conv⊢ : ∀ {Γ Γ'}{A A' : Φ ⊢Nf⋆ *}
  → Γ ⊢ A
  → Γ' ⊢ A'
 conv⊢ refl refl t = t
-
-Ctx2type : (Γ : Ctx Φ) → Φ ⊢Nf⋆ * → ∅ ⊢Nf⋆ *
-Ctx2type ∅        C = C
-Ctx2type (Γ ,⋆ J) C = Ctx2type Γ (Π C)
-Ctx2type (Γ , x)  C = Ctx2type Γ (x ⇒ C)
-
-data Arg : Set where
-  Term Type : Arg
-
-Arity = List Arg
-
-arity : Builtin → Arity
-arity b with signature b 
-... | sig n ar _ = replicate n Type ++ replicate (length ar) Term
-
-\end{code}
-  
-When signatures supported universal quantifiers to be interleaved with other 
-parameters it made sense for `Arity` to be defined as above. Now that we don't,
-`Arity` should be rewritten to be two numbers (`n` and `length ar` above), representing
-the number of quantifiers and the number of (term) parameters.
-We keep `Arity` this way in order to make the current implementation works, 
-but it will be changed.
+\end{code} 

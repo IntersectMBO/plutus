@@ -1,0 +1,12 @@
+(let
+  (nonrec)
+  (termbind
+    (nonstrict)
+    (vardecl y (con integer))
+    [
+      [ { (builtin trace) (con integer) } (con string "hello") ] (con integer 1)
+    ]
+  )
+  (termbind (strict) (vardecl x (con integer)) y)
+  [ [ (builtin addInteger) y ] [ [ (builtin addInteger) x ] x ] ]
+)

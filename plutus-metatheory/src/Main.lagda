@@ -1,5 +1,6 @@
 \begin{code}
 module Main where
+
 open import Agda.Builtin.IO using (IO)
 import IO.Primitive as IO using (return;_>>=_)
 open import Agda.Builtin.Unit using (⊤;tt)
@@ -15,12 +16,13 @@ open import Data.List using (List)
 open import Data.Empty using (⊥)
 
 open import Type using (Ctx⋆;∅;_,⋆_)
-open import Check using (TypeError;inferType;inferKind;meqKind;checkKind;checkType)
+open import Check using (TypeError;inferType;inferKind;decKind;checkKind;checkType)
 open TypeError -- Bring all TypeError constructors in scope.
 
 open import Scoped.Extrication using (extricateNf⋆;extricate)
 open import Type.BetaNormal using (_⊢Nf⋆_)
-import Untyped as U using (Untyped;_⊢;scopeCheckU0;extricateU0;decUTm)
+import Untyped as U using (_⊢;scopeCheckU0;extricateU0;decUTm)
+import RawU as U using (Untyped)
 
 open import Untyped.CEK as U using (stepper;Stack;ε;Env;[];State)
 open U.State
@@ -28,7 +30,7 @@ open U.State
 open import Raw using (RawTm;RawTy;rawPrinter;rawTyPrinter;decRTy;decRTm)
 open import Scoped using (FreeVariableError;ScopeError;freeVariableError;extricateScopeTy;ScopedTm;Weirdℕ;scopeCheckTm;shifter;unshifter;extricateScope;unshifterTy;scopeCheckTy;shifterTy)
 open Weirdℕ -- Bring Weirdℕ constructors in scope
-open import Utils using (Either;inj₁;inj₂;withE;Kind;*;Maybe;nothing;just;Monad;RuntimeError)
+open import Utils using (Either;inj₁;inj₂;withE;Kind;*;Maybe;nothing;just;Monad;RuntimeError;dec2Either)
 open RuntimeError
 open Monad {{...}}
 
@@ -80,14 +82,6 @@ postulate
 {-# FOREIGN GHC import System.Exit #-}
 {-# COMPILE GHC exitSuccess = exitSuccess #-}
 {-# COMPILE GHC exitFailure = exitFailure #-}
-
--- System.Environment stuff
-
-postulate
-  getArgs : IO (List String)
-
-{-# FOREIGN GHC import System.Environment #-}
-{-# COMPILE GHC getArgs = (fmap . fmap) T.pack $ getArgs #-}
 
 -- Misc stuff
 
@@ -160,8 +154,8 @@ postulate
 {-# FOREIGN GHC import Data.Functor #-}
 {-# COMPILE GHC ParseError = type PlutusCore.Error.ParserErrorBundle #-}
 
-{-# COMPILE GHC parse = getProgram #-}
-{-# COMPILE GHC parseU = getProgram #-}
+{-# COMPILE GHC parse = readProgram #-}
+{-# COMPILE GHC parseU = readProgram #-}
 {-# COMPILE GHC parseTm = runQuoteT . parseTerm #-}
 {-# COMPILE GHC parseTy = runQuoteT . parseType #-}
 {-# COMPILE GHC parseTmU = runQuoteT . U.parseTerm #-}
@@ -216,7 +210,6 @@ data ERROR : Set where
 
 uglyTypeError : TypeError → String
 uglyTypeError (kindMismatch K K' x) = "kindMismatch"
-uglyTypeError (notStar K x) = "notStar"
 uglyTypeError (notFunKind K x) = "NotFunKind"
 uglyTypeError (notPat K x) = "notPat"
 uglyTypeError UnknownType = "UnknownType"
@@ -230,6 +223,7 @@ uglyTypeError (typeMismatch A A' x) =
   ++
   prettyPrintTy (extricateScopeTy (extricateNf⋆ A'))
 uglyTypeError builtinError = "builtinError"
+uglyTypeError (Unimplemented x) = "Feature " ++ x ++ " not implemented"
 
 -- the haskell version of Error is defined in Raw
 
@@ -275,7 +269,7 @@ executePLC U t = do
   (A ,, t) ← withE (λ e → typeError (uglyTypeError e)) $ typeCheckPLC t
   □ V ← withE runtimeError $ U.stepper maxsteps (ε ; [] ▻ erase t)
     where ◆  → inj₁ (runtimeError userError)
-          _    → inj₁ (runtimeError gasError)
+          _  → inj₁ (runtimeError gasError)
 {-
 just t' ← withE runtimeError $ U.stepper maxsteps (ε ; [] ▻ erase t)
     where nothing → inj₁ (runtimeError userError)
@@ -312,7 +306,7 @@ evalProgramNU namedprog = do
 
 evalProgramN : EvalMode → ProgramN → Either ERROR String
 evalProgramN m namedprog = do
-{-
+  {-
   -- some debugging code
   prog ← withE (ERROR.scopeError ∘ freeVariableError) $ deBruijnify namedprog
   let shiftedprog = shifter Z (convP prog)
@@ -325,9 +319,9 @@ evalProgramN m namedprog = do
           "extricated: " ++ rawPrinter extricatedprog ++ "\n" ++
           "unshifted: " ++ rawPrinter unshiftedprog ++ "\n" ++
           "unconved: " ++ prettyPrintTm unshiftedprog ++ "\n")
--}
-  t ← parsePLC namedprog
-  executePLC m t
+   -}
+   t ← parsePLC namedprog
+   executePLC m t
 
 typeCheckProgramN : ProgramN → Either ERROR String
 typeCheckProgramN namedprog = do
@@ -341,7 +335,7 @@ typeCheckProgramN namedprog = do
           "extricated: " ++ rawTyPrinter extricatedtype ++ "\n" ++
           "unshifted: " ++ rawTyPrinter unshiftedtype ++ "\n" ++
           "unconved: " ++ prettyPrintTy unshiftedtype ++ "\n")
--}
+ -}
   return (prettyPrintTy (unshifterTy Z (extricateScopeTy (extricateNf⋆ A))))
 
 blah : String → String → String
@@ -443,7 +437,7 @@ checkKindX : Type → Kind → Either ERROR ⊤
 checkKindX ty k = do
   ty        ← withE scopeError (scopeCheckTy (shifterTy Z (convTy ty)))
   (k' ,, _) ← withE (λ e → typeError (uglyTypeError e)) (inferKind ∅ ty)
-  _         ← withE ((λ e → ERROR.typeError (uglyTypeError e)) ∘ kindMismatch _ _) (meqKind k k')
+  _         ← withE ((λ e → ERROR.typeError (uglyTypeError e)) ∘ kindMismatch _ _) (dec2Either (decKind k k'))
   return tt
 
 {-# COMPILE GHC checkKindX as checkKindAgda #-}

@@ -2,14 +2,17 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
 -- | Support for using de Bruijn indices for term names.
 module UntypedPlutusCore.DeBruijn
     ( Index (..)
+    , Level (..)
+    , LevelInfo (..)
     , HasIndex (..)
     , DeBruijn (..)
     , NamedDeBruijn (..)
-    , FakeNamedDeBruijn (..)
+    -- we follow the same approach as Renamed, expose the constructor from Internal module,
+    -- but hide it in the parent module.
+    , FakeNamedDeBruijn (unFakeNamedDeBruijn)
     , FreeVariableError (..)
     , AsFreeVariableError (..)
     , deBruijnTerm
@@ -54,7 +57,7 @@ unDeBruijnTerm = unDeBruijnTermWith freeIndexThrow
 -- | Takes a "handler" function to execute when encountering free variables.
 deBruijnTermWith
     :: Monad m
-    => (Unique -> ReaderT Levels m Index)
+    => (Unique -> ReaderT LevelInfo m Index)
     -> Term Name uni fun ann
     -> m (Term NamedDeBruijn uni fun ann)
 deBruijnTermWith = (runDeBruijnT .) . deBruijnTermWithM
@@ -62,13 +65,13 @@ deBruijnTermWith = (runDeBruijnT .) . deBruijnTermWithM
 -- | Takes a "handler" function to execute when encountering free variables.
 unDeBruijnTermWith
     :: MonadQuote m
-    => (Index -> ReaderT Levels m Unique)
+    => (Index -> ReaderT LevelInfo m Unique)
     -> Term NamedDeBruijn uni fun ann
     -> m (Term Name uni fun ann)
 unDeBruijnTermWith = (runDeBruijnT .) . unDeBruijnTermWithM
 
 deBruijnTermWithM
-    :: MonadReader Levels m
+    :: MonadReader LevelInfo m
     => (Unique -> m Index)
     -> Term Name uni fun ann
     -> m (Term NamedDeBruijn uni fun ann)
@@ -85,6 +88,8 @@ deBruijnTermWithM h = go
        Apply ann t1 t2 -> Apply ann <$> go t1 <*> go t2
        Delay ann t -> Delay ann <$> go t
        Force ann t -> Force ann <$> go t
+       Constr ann i es -> Constr ann i <$> traverse go es
+       Case ann arg cs -> Case ann <$> go arg <*> traverse go cs
        -- boring non-recursive cases
        Constant ann con -> pure $ Constant ann con
        Builtin ann bn -> pure $ Builtin ann bn
@@ -92,7 +97,7 @@ deBruijnTermWithM h = go
 
 -- | Takes a "handler" function to execute when encountering free variables.
 unDeBruijnTermWithM
-    :: (MonadReader Levels m, MonadQuote m)
+    :: (MonadReader LevelInfo m, MonadQuote m)
     => (Index -> m Unique)
     -> Term NamedDeBruijn uni fun ann
     -> m (Term Name uni fun ann)
@@ -111,6 +116,8 @@ unDeBruijnTermWithM h = go
         Apply ann t1 t2 -> Apply ann <$> go t1 <*> go t2
         Delay ann t -> Delay ann <$> go t
         Force ann t -> Force ann <$> go t
+        Constr ann i es -> Constr ann i <$> traverse go es
+        Case ann arg cs -> Case ann <$> go arg <*> traverse go cs
         -- boring non-recursive cases
         Constant ann con -> pure $ Constant ann con
         Builtin ann bn -> pure $ Builtin ann bn

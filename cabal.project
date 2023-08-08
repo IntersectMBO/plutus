@@ -12,14 +12,11 @@ repository cardano-haskell-packages
 
 -- See CONTRIBUTING for some Nix commands you will need to run if you
 -- update either of these.
-
--- repeating hackage index-state to work around haskell.nix parsing limitation
-index-state: 2022-11-15T00:00:00Z
 index-state:
-  -- Bump this if you need newer packages from Hackage
-  , hackage.haskell.org 2022-11-15T00:00:00Z
+  -- Bump both the following dates if you need newer packages from Hackage
+  , hackage.haskell.org 2023-07-14T00:00:00Z
   -- Bump this if you need newer packages from CHaP
-  , cardano-haskell-packages 2023-02-23T00:00:00Z
+  , cardano-haskell-packages 2023-07-14T00:00:00Z
 
 packages: doc/read-the-docs-site
           plutus-benchmark
@@ -30,7 +27,6 @@ packages: doc/read-the-docs-site
           plutus-tx
           plutus-tx-plugin
           prettyprinter-configurable
-          word-array
           stubs/plutus-ghc-stub
 
 -- We never, ever, want this.
@@ -47,18 +43,17 @@ test-show-details: direct
 package plutus-core
   flags: +with-inline-r
 
--- See https://github.com/input-output-hk/nothunks/issues/17
-package nothunks
-  flags: +vector
-
 -- See the note on nix/pkgs/default.nix:agdaPackages for why this is here.
 -- (NOTE this will change to ieee754 in newer versions of nixpkgs).
 extra-packages: ieee, filemanip
 
--- An older version of this package might not generate GEq instances.
--- See https://github.com/obsidiansystems/dependent-sum/issues/72
--- TODO: is there some way we can get this into the cabal files given
--- that we don't depend on it explicitly? Maybe we can add an unused
--- dependency but turn off the warning?
-constraints:
-  dependent-sum >= 0.7.1.0,
+constraints: 
+  -- We need turtle > 1.6 to support GHC 9.6. But that version now allows
+  -- some broken situations: https://github.com/Gabriella439/turtle/pull/446#issuecomment-1637628373
+  -- We are forced into an old version of ansi-wl-pprint because of inline-c (dep of inline-r), which
+  -- doesn't support the new one.
+  -- So for now we just force old versions of optparse-applicative and ansi-wl-pprint.
+  -- This is fine for CHaP, since we don't publish plutus-metatheory and the flag for inline-r
+  -- is off by default.
+  optparse-applicative < 0.18
+  , ansi-wl-pprint < 1.0

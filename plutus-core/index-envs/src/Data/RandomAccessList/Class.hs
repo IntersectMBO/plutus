@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeFamilies      #-}
+{-# LANGUAGE TypeOperators     #-}
 module Data.RandomAccessList.Class
     ( RandomAccessList (..)
     , Data.RandomAccessList.Class.head

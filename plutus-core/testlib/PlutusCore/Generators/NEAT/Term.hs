@@ -142,7 +142,7 @@ data TermG tyname name
     | WrapG (TermG tyname name)
     | UnWrapG (TypeG tyname) (Kind ()) (TypeG tyname) (TermG tyname name)
     | ErrorG (TypeG tyname)
-    deriving stock (Eq, Show)
+    deriving stock (Eq, Functor, Show)
 
 deriveBifunctor ''TermG
 deriveEnumerable ''TermG
@@ -399,7 +399,7 @@ defaultFunTypes = Map.fromList [(TyFunG (TyBuiltinG TyIntegerG) (TyFunG (TyBuilt
                   ,(TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyIntegerG) (TyBuiltinG TyIntegerG))
                    ,[IndexByteString])
                   ,(TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyByteStringG)
-                   ,[Sha2_256,Sha3_256,Blake2b_256])
+                   ,[Sha2_256,Sha3_256,Blake2b_224,Blake2b_256,Keccak_256])
                   ,(TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyBoolG)))
                    ,[VerifyEd25519Signature])
                   ,(TyFunG (TyBuiltinG TyByteStringG) (TyFunG (TyBuiltinG TyByteStringG) (TyBuiltinG TyBoolG))

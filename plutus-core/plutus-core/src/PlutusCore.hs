@@ -21,7 +21,6 @@ module PlutusCore
     , someValueType
     , Esc
     , Contains (..)
-    , Includes
     , Closed (..)
     , EverywhereAll
     , knownUniOf
@@ -34,6 +33,9 @@ module PlutusCore
     , withApplicable
     , (:~:) (..)
     , type (<:)
+    , HasTypeLevel
+    , HasTermLevel
+    , HasTypeAndTermLevel
     , DefaultUni (..)
     , pattern DefaultUniList
     , pattern DefaultUniPair
@@ -42,9 +44,12 @@ module PlutusCore
     , Term (..)
     , termSubterms
     , termSubtypes
+    , termMapNames
+    , programMapNames
     , UniOf
     , Type (..)
     , typeSubtypes
+    , typeMapNames
     , Kind (..)
     , toPatFuncKind
     , fromPatFuncKind
@@ -57,7 +62,7 @@ module PlutusCore
     , Unique (..)
     , UniqueMap (..)
     , Normalized (..)
-    , defaultVersion
+    , latestVersion
     , termAnn
     , typeAnn
     , tyVarDeclAnn
@@ -75,7 +80,9 @@ module PlutusCore
     , mapFun
     -- * DeBruijn representation
     , DeBruijn (..)
+    , TyDeBruijn (..)
     , NamedDeBruijn (..)
+    , NamedTyDeBruijn (..)
     , deBruijnTerm
     , unDeBruijnTerm
     -- * Processing
@@ -96,9 +103,6 @@ module PlutusCore
     , AsUniqueError (..)
     , FreeVariableError (..)
     , AsFreeVariableError (..)
-    -- * Base functors
-    , TermF (..)
-    , TypeF (..)
     -- * Quotation and term construction
     , Quote
     , runQuote
@@ -137,16 +141,17 @@ import PlutusCore.Parser
 import PlutusCore.Quote
 import PlutusCore.Rename
 import PlutusCore.Size
+import PlutusCore.Subst
 import PlutusCore.TypeCheck as TypeCheck
 
-
--- | Take one PLC program and apply it to another.
+-- | Applies one program to another. Fails if the versions do not match
+-- and tries to merge annotations.
 applyProgram
-    :: Monoid a
+    :: Semigroup a
     => Program tyname name uni fun a
     -> Program tyname name uni fun a
-    -> Program tyname name uni fun a
--- TODO: 'mappend' annotations, ignore versions and return the default one (whatever that means),
--- what a mess. Needs to be fixed.
-applyProgram (Program a1 _ t1) (Program a2 _ t2) =
-    Program (a1 <> a2) defaultVersion (Apply mempty t1 t2)
+    -> Either ApplyProgramError (Program tyname name uni fun a)
+applyProgram (Program a1 v1 t1) (Program a2 v2 t2) | v1 == v2
+  = Right $ Program (a1 <> a2) v1 (Apply (termAnn t1 <> termAnn t2) t1 t2)
+applyProgram (Program _a1 v1 _t1) (Program _a2 v2 _t2) =
+    Left $ MkApplyProgramError v1 v2

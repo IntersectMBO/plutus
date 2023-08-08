@@ -16,13 +16,11 @@ open _⊢Nf⋆_
 open _⊢Ne⋆_
 
 open import Type.BetaNBE.RenamingSubstitution
-open import Algorithmic using (Ctx;_∋_;conv∋;_⊢_;conv⊢;btype-ren;btype-sub)
+open import Algorithmic using (Ctx;_∋_;conv∋;_⊢_;conv⊢)
+open import Algorithmic.Signature using (btype-ren;btype-sub)
 open Ctx
 open _∋_
 open _⊢_
-
-open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con using (TermCon)
-open TermCon
 
 open import Type.BetaNormal.Equality using (renNf-id)
 \end{code}
@@ -58,19 +56,6 @@ ext⋆ ρ⋆ ρ (T {A = A} x) = conv∋
 \end{code}
 
 \begin{code}
-renTermCon : ∀ {Φ Ψ}
-  → (ρ⋆ : ⋆.Ren Φ Ψ)
-    -----------------------------------------------------
-  → ({A : Φ ⊢Nf⋆ *} → TermCon A → TermCon (renNf ρ⋆ A ))
-renTermCon ρ⋆ (integer i)    = integer i
-renTermCon ρ⋆ (bytestring b) = bytestring b
-renTermCon ρ⋆ (string s)     = string s
-renTermCon ρ⋆ (bool b)       = bool b
-renTermCon ρ⋆ unit           = unit
-renTermCon ρ⋆ (pdata d)       = pdata d
-\end{code}
-
-\begin{code}
 ren : ∀ {Φ Ψ Γ Δ}
   → (ρ⋆ : ⋆.Ren Φ Ψ)
   → (ρ : Ren ρ⋆ Γ Δ)
@@ -92,7 +77,7 @@ ren ρ⋆ ρ (unwrap {A = A}{B} M refl) = conv⊢
   refl
   (sym (ren-nf-μ ρ⋆ A B))
   (unwrap (ren ρ⋆ ρ M) refl) 
-ren ρ⋆ ρ (con c) = con (renTermCon ρ⋆ c)
+ren ρ⋆ ρ (con {A} c refl) = con c (subNf∅-renNf ρ⋆ A)
 ren ρ⋆ ρ (builtin b / refl) = conv⊢ refl (btype-ren b ρ⋆) (builtin b / refl)
 ren ρ⋆ ρ (error A) = error (renNf ρ⋆ A)
 \end{code}
@@ -146,19 +131,6 @@ exts⋆ σ⋆ σ {K}(T {A = A} x) = conv⊢
 \end{code}
 
 \begin{code}
-subTermCon : ∀ {Φ Ψ}
-  → (σ⋆ : SubNf Φ Ψ)
-    ------------------------------------------------------
-  → ({A : Φ ⊢Nf⋆ *} → TermCon A → TermCon (subNf σ⋆ A ))
-subTermCon σ⋆ (integer i)    = integer i
-subTermCon σ⋆ (bytestring b) = bytestring b
-subTermCon σ⋆ (string s)     = string s
-subTermCon σ⋆ (bool b)       = bool b
-subTermCon σ⋆ unit           = unit
-subTermCon σ⋆ (pdata d)       = pdata d
-\end{code}
-
-\begin{code}
 sub : ∀ {Φ Ψ Γ Δ}
   → (σ⋆ : SubNf Φ Ψ)
   → (σ : Sub σ⋆ Γ Δ)
@@ -181,7 +153,7 @@ sub σ⋆ σ (unwrap {A = A}{B} M refl) = conv⊢
   refl
   (sym (sub-nf-μ σ⋆ A B))
   (unwrap (sub σ⋆ σ M) refl)
-sub σ⋆ σ (con c) = con (subTermCon σ⋆ c)
+sub σ⋆ σ (con {A} c refl) = con c (subNf∅-subNf σ⋆ A)
 sub σ⋆ σ (builtin b / refl) = conv⊢ refl (btype-sub b σ⋆) (builtin b / refl)
 sub σ⋆ σ (error A) = error (subNf σ⋆ A)
 \end{code}
@@ -274,8 +246,8 @@ renˢ ρ (L · M)         = renˢ ρ L · renˢ ρ M
 renˢ ρ (Λ M)           = Λ (renˢ (extˢ⋆ ρ) M)
 renˢ ρ (M ·⋆ A / p) = renˢ ρ M ·⋆ A / p
 renˢ ρ (wrap A B M)    = wrap A B (renˢ ρ M)
-renˢ ρ (unwrap M p) = unwrap (renˢ ρ M) p
-renˢ ρ (con c)         = con c
+renˢ ρ (unwrap M p)    = unwrap (renˢ ρ M) p
+renˢ ρ (con c refl)    = con c refl
 renˢ ρ (builtin b / p) = builtin b / p
 renˢ ρ (error _) = error _
 
@@ -340,7 +312,7 @@ renˢ-cong p (Λ M) = cong Λ (renˢ-cong (extˢ⋆-cong p) M)
 renˢ-cong p (M ·⋆ A / q) = cong (_·⋆ A / q) (renˢ-cong p M)
 renˢ-cong p (wrap A B M) = cong (wrap A B) (renˢ-cong p M)
 renˢ-cong p (unwrap M q) = cong (λ M → unwrap M q) (renˢ-cong p M)
-renˢ-cong p (con c) = refl
+renˢ-cong p (con c refl) = refl
 renˢ-cong p (builtin b / q) = refl
 renˢ-cong p (error _) = refl
 
@@ -353,7 +325,7 @@ renˢ-id (Λ M) = cong Λ (trans (renˢ-cong extˢ⋆-id M) (renˢ-id M))
 renˢ-id (M ·⋆ A / p) = cong (_·⋆ A / p) (renˢ-id M)
 renˢ-id (wrap A B M) = cong (wrap A B) (renˢ-id M)
 renˢ-id (unwrap M p) = cong (λ M → unwrap M p) (renˢ-id M)
-renˢ-id (con c) = refl
+renˢ-id (con c refl) = refl
 renˢ-id (builtin b / p) = refl
 renˢ-id (error _) = refl
 
@@ -367,7 +339,7 @@ renˢ-comp (Λ M) = cong Λ (trans (renˢ-cong extˢ⋆-comp M) (renˢ-comp M))
 renˢ-comp (M ·⋆ A / p) = cong (_·⋆ A / p) (renˢ-comp M)
 renˢ-comp (wrap A B M) = cong (wrap A B) (renˢ-comp M)
 renˢ-comp (unwrap M p) = cong (λ M → unwrap M p) (renˢ-comp M)
-renˢ-comp (con c) = refl
+renˢ-comp (con c refl) = refl
 renˢ-comp (builtin b / p) = refl
 renˢ-comp (error _) = refl
 
@@ -392,3 +364,5 @@ exts⋆ˢ : ∀{Φ}{Γ Δ : Ctx Φ}
   → Subˢ (Γ ,⋆ K) (Δ ,⋆ K)
 -}
 \end{code}
+
+ 

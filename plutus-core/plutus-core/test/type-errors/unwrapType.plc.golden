@@ -1,6 +1,7 @@
-Type mismatch at test:2:3-2:26 in term
-  '(con integer 0)'.
-Expected type
-  '(ifix * *)',
-found type
+Type mismatch at test:2:3-2:26
+Expected a term of type
+  '(ifix pat arg)' for some 'pat' and 'arg'
+But found one of type
   '(con integer)'
+Namely,
+  '(con integer 0)'

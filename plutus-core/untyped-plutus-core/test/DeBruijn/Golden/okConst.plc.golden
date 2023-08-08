@@ -1,3 +1,0 @@
-(Right (program
-  1.0.0 [ [ (lam i_0 (lam i_1 i_0)) (con bool True) ] (lam i_2 i_2) ]
-))

@@ -1,0 +1,1 @@
+[ (lam a_1 [ [ (builtin addInteger) a_1 ] a_1 ]) (con integer 1) ]

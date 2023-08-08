@@ -1,0 +1,3 @@
+( [ TypeParam (TyName {unTyName = Name {_nameText = "a", _nameUnique = Unique {unUnique = 2}}})
+  , TermParam (Name {_nameText = "x", _nameUnique = Unique {unUnique = 3}}) ]
+, x )

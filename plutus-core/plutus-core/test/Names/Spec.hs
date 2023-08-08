@@ -4,13 +4,13 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
 
 module Names.Spec where
 
 import PlutusCore.Test
 
 import PlutusCore
-import PlutusCore.DeBruijn
 import PlutusCore.Mark
 import PlutusCore.Pretty
 import PlutusCore.Rename.Internal

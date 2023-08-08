@@ -1,7 +1,8 @@
 -- editorconfig-checker-disable-file
 module Main where
 
-import Control.Monad.Except
+import Control.Monad (unless)
+import Control.Monad.Except (ExceptT (..), catchError, liftEither, withExceptT)
 import Data.Coolean
 import Data.Either
 import Data.List
@@ -18,8 +19,9 @@ import Test.Tasty.HUnit
 import UntypedPlutusCore qualified as U
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as U
 
-import MAlonzo.Code.Main (checkKindAgda, checkTypeAgda, inferKindAgda, inferTypeAgda, normalizeTypeAgda,
-                          normalizeTypeTermAgda, runTCEKAgda, runTCKAgda, runTLAgda, runUAgda)
+import MAlonzo.Code.Main (checkKindAgda, checkTypeAgda, inferKindAgda, inferTypeAgda,
+                          normalizeTypeAgda, normalizeTypeTermAgda, runTCEKAgda, runTCKAgda,
+                          runTLAgda, runUAgda)
 import PlutusCore.DeBruijn
 import Raw hiding (TypeError, tynames)
 
@@ -52,10 +54,11 @@ prop_Type k tyG = do
 
   -- 1. check soundness of Agda kindchecker with respect to NEAT:
   withExceptT (const $ Ctrex (CtrexKindCheckFail k tyG)) $ liftEither $
-    checkKindAgda tyDB k
+    checkKindAgda tyDB (convK k)
   -- infer kind using Agda kind inferer:
-  k1 <- withExceptT (const $ Ctrex (CtrexKindCheckFail k tyG)) $
+  k1a <- withExceptT (const $ Ctrex (CtrexKindCheckFail k tyG)) $
     liftEither $ inferKindAgda tyDB
+  let k1 = unconvK k1a
   -- infer kind using production kind inferer:
   k2 <- withExceptT TypeError $ inferKind defKindCheckConfig ty
 
@@ -70,7 +73,7 @@ prop_Type k tyG = do
 
   -- 3. check that the Agda type normalizer doesn't mange the kind:
   withExceptT (const $ Ctrex (CtrexKindPreservationFail k tyG)) $
-    liftEither $ checkKindAgda ty' k
+    liftEither $ checkKindAgda ty' (convK k)
 
   -- convert Agda normalized type back to named notation:
   ty1 <- withExceptT FVErrorP $ unDeBruijnTy ty'

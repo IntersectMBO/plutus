@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# LANGUAGE TypeApplications      #-}
@@ -10,17 +11,25 @@ import Test.Tasty.Extras
 import PlutusCore.Quote
 
 import PlutusCore qualified as PLC
+import PlutusCore.Name
 import PlutusCore.Pretty qualified as PLC
 import PlutusPrelude
 
+import Control.Monad.Except
 import PlutusIR.Analysis.RetainedSize qualified as RetainedSize
+import PlutusIR.Check.Uniques as Uniques
+import PlutusIR.Core.Instance.Pretty.Readable
+import PlutusIR.Core.Type
 import PlutusIR.Error as PIR
 import PlutusIR.Parser
 import PlutusIR.Test
 import PlutusIR.Transform.Beta qualified as Beta
+import PlutusIR.Transform.CommuteFnWithConst qualified as CommuteFnWithConst
 import PlutusIR.Transform.DeadCode qualified as DeadCode
-import PlutusIR.Transform.Inline.CallSiteInline (countLam)
-import PlutusIR.Transform.Inline.UnconditionalInline qualified as UInline
+import PlutusIR.Transform.EvaluateBuiltins qualified as EvaluateBuiltins
+import PlutusIR.Transform.Inline.CallSiteInline (splitParams)
+import PlutusIR.Transform.Inline.Inline qualified as Inline
+import PlutusIR.Transform.KnownCon qualified as KnownCon
 import PlutusIR.Transform.LetFloatIn qualified as LetFloatIn
 import PlutusIR.Transform.LetFloatOut qualified as LetFloatOut
 import PlutusIR.Transform.LetMerge qualified as LetMerge
@@ -40,14 +49,18 @@ transform =
         , letFloatOut
         , letFloatInConservative
         , letFloatInRelaxed
+        , knownCon
         , recSplit
         , inline
-        , countLamTest
+        , nameCapture
+        , computeArityTest
         , beta
         , unwrapCancel
         , deadCode
         , retainedSize
         , rename
+        , evaluateBuiltins
+        , commuteDefaultFun
         ]
 
 thunkRecursions :: TestNested
@@ -149,6 +162,9 @@ letFloatInRelaxed =
             , "float-into-RHS"
             , "float-into-tyabs1"
             , "float-into-tyabs2"
+            , "float-into-constr"
+            , "float-into-case-arg"
+            , "float-into-case-branch"
             , "type"
             ]
   where
@@ -158,6 +174,26 @@ letFloatInRelaxed =
         _ <- runQuoteT . flip inferType (() <$ pirFloated) =<< TC.getDefTypeCheckConfig ()
         -- letmerge is not necessary for floating, but is a nice visual transformation
         pure $ LetMerge.letMerge pirFloated
+
+knownCon :: TestNested
+knownCon =
+    testNested "knownCon" $
+        map
+            (goldenPirM goldenKnownConTC pTerm)
+            [ "applicative"
+            , "bool"
+            , "list"
+            , "maybe-just"
+            , "maybe-just-unsaturated"
+            , "maybe-nothing"
+            , "pair"
+            ]
+  where
+    goldenKnownConTC pir = rethrow . asIfThrown @(PIR.Error PLC.DefaultUni PLC.DefaultFun ()) $ do
+        let simplified = runQuote $ KnownCon.knownCon pir
+        -- make sure the result typechecks
+        _ <- runQuoteT . flip inferType (() <$ simplified) =<< TC.getDefTypeCheckConfig ()
+        pure simplified
 
 recSplit :: TestNested
 recSplit =
@@ -178,19 +214,34 @@ instance Semigroup PLC.SrcSpan where
 instance Monoid PLC.SrcSpan where
     mempty = initialSrcSpan ""
 
+-- | Tests of the inliner, include global uniqueness test.
 inline :: TestNested
 inline =
+    let goldenInlineUnique :: Term TyName Name PLC.DefaultUni PLC.DefaultFun PLC.SrcSpan ->
+            IO (Term TyName Name PLC.DefaultUni PLC.DefaultFun PLC.SrcSpan)
+        goldenInlineUnique pir =
+            rethrow . asIfThrown @(UniqueError PLC.SrcSpan) $ do
+                let pirInlined = runQuote $ do
+                        renamed <- PLC.rename pir
+                        Inline.inline mempty def renamed
+                -- Make sure the inlined term is globally unique.
+                _ <- checkUniques pirInlined
+                pure pirInlined
+    in
     testNested "inline" $
         map
-            (goldenPir (runQuote . (UInline.inline mempty def <=< PLC.rename)) pTerm)
+            (goldenPirM goldenInlineUnique pTerm)
             [ "var"
             , "builtin"
+            , "callsite-non-trivial-body"
             , "constant"
             , "transitive"
             , "tyvar"
             , "single"
             , "immediateVar"
             , "immediateApp"
+            , "firstEffectfulTerm1"
+            , "firstEffectfulTerm2"
             -- these tests are all let bindings of functions
             , "letFunConstInt" -- const fn fully applied (integer)
             , "letFunConstBool" -- const fn fully applied (bool)
@@ -198,23 +249,56 @@ inline =
             , "letFunInFun" -- fully applied fn inside another let, single occurrence.
             , "letFunInFunMulti" -- fully applied fn inside another let, multiple occurrences.
             -- similar to "letFunInFunMulti" but all fns are fully applied.
-            , "letFunInFunMultiFullyApplied"
+            , "letTypeAppMulti"
             -- singe occurrence of a polymorphic id function that is fully applied
-            , "letIdFunForall"
+            , "letTypeApp"
             -- multiple occurrences of a polymorphic id function that IS fully applied
-            , "letIdFunForallMulti"
+            , "letTypeAppMultiSat"
             -- multiple occurrences of a polymorphic id function that is NOT fully applied
-            , "letIdFunForallMultiNotSat"
+            , "letTypeAppMultiNotSat"
             , "letApp" -- single occurrence of a function application in rhs
-            , "letAppMulti" -- multiple occurrences of a function application in rhs
+            -- multiple occurrences of a function application in rhs with not acceptable body
+            , "letAppMultiNotAcceptable"
             , "letOverApp" -- over-application of a function, single occurrence
             , "letOverAppMulti" -- multiple occurrences of an over-application of a function
+            -- multiple occurrences of an over-application of a function with type arguments
+            , "letOverAppType"
+            , "letOverAppType2"
+            , "letOverAppType3"
+            , "letNonPure" -- multiple occurrences of a non-pure binding
+            , "letNonPureMulti"
+            , "letNonPureMultiStrict"
+            , "rhs-modified"
             ]
 
-countLamTest :: TestNested
-countLamTest = testNested "countLamTest" $
+-- | Check whether a term is globally unique.
+checkUniques :: (Ord a, MonadError (UniqueError a) m) => Term TyName Name uni fun a -> m ()
+checkUniques =
+    Uniques.checkTerm (\case { MultiplyDefined{} -> True; _ -> False})
+
+-- | Tests that the inliner doesn't incorrectly capture variable names.
+nameCapture :: TestNested
+nameCapture =
+    let goldenNameCapture :: Term TyName Name PLC.DefaultUni PLC.DefaultFun PLC.SrcSpan ->
+            IO String
+        goldenNameCapture pir =
+            rethrow . asIfThrown @(UniqueError PLC.SrcSpan) $ do
+                let pirInlined = runQuote $ do
+                        renamed <- PLC.rename pir
+                        Inline.inline mempty def renamed
+                -- Make sure the inlined term is globally unique.
+                _ <- checkUniques pirInlined
+                pure . render $ prettyPirReadable pirInlined
+    in
+    testNested "nameCapture" $
         map
-            (goldenPir (countLam . runQuote . PLC.rename) pTerm)
+            (goldenPirMUnique goldenNameCapture pTerm)
+            [ "nameCapture"]
+
+computeArityTest :: TestNested
+computeArityTest = testNested "computeArityTest" $
+        map
+            (goldenPir (splitParams . runQuote . PLC.rename) pTerm)
             [ "var" -- from inline tests, testing let terms
             , "tyvar"
             , "single"
@@ -322,3 +406,28 @@ rename =
             ]
   where
     debugConfig = PLC.PrettyConfigClassic PLC.debugPrettyConfigName False
+
+evaluateBuiltins :: TestNested
+evaluateBuiltins =
+    testNested "evaluateBuiltins" $
+        map
+            (goldenPir (EvaluateBuiltins.evaluateBuiltins True def def) pTerm)
+            [ "addInteger"
+            , "ifThenElse"
+            , "trace"
+            , "failingBuiltin"
+            , "nonConstantArg"
+            , "overApplication"
+            , "underApplication"
+            ]
+
+commuteDefaultFun :: TestNested
+commuteDefaultFun =
+    testNested "commuteDefaultFun" $
+    map
+        (goldenPir CommuteFnWithConst.commuteDefaultFun pTerm)
+        [ "equalsInt" -- this tests that the function works on equalInteger
+        , "divideInt" -- this tests that the function excludes not commutative functions
+        , "multiplyInt" -- this tests that the function works on multiplyInteger
+        , "let" -- this tests that it works in the subterms
+        ]

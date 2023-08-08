@@ -1,5 +1,5 @@
+{-# LANGUAGE TypeApplications #-}
 {- | Conformance tests for the Agda implementation. -}
-
 module Main (main) where
 
 import Control.Monad.Trans.Except
@@ -39,17 +39,6 @@ agdaEvalUplcProg (UPLC.Program () version tmU) =
 -- Once a fix for a test is pushed, the test will fail. Remove it from this list.
 failingTests :: [FilePath]
 failingTests = [
-    -- the metatheory for list and pair is not done
-    "test-cases/uplc/evaluation/builtin/semantics/mkNilPairData"
-    , "test-cases/uplc/evaluation/builtin/semantics/mkNilData"
-    -- The tests for consByteString are disabled because the V2 version of
-    -- consByteString requires the first argument to be in [0..255].  The V1
-    -- version accepts any integer and reduces it modulo 256 before consing.
-    -- Agda has the BuiltinVersion=V1 but Haskell defaults to the latest
-    -- BuilinVersion.
-    , "test-cases/uplc/evaluation/builtin/semantics/consByteString/consByteString1"
-    , "test-cases/uplc/evaluation/builtin/semantics/consByteString/consByteString2"
-
     ]
 
 main :: IO ()

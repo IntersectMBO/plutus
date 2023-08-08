@@ -1,0 +1,21 @@
+{- 
+y is impure. x occurs more than once and so it would not be inlined by unconditional inlining.
+y occurs only once so it gets inlined by unconditional inlining.
+x is then not "acceptable" because it's an application, so it doesn't get inlined by call site
+inlining. 
+
+let ~y = trace "hello" 1
+    !x = y -- so it looks small enough to inline
+in addInteger x x
+ -}
+
+(let
+    (nonrec)
+    (termbind
+      (nonstrict)
+      (vardecl y (con integer))
+      [ [ {(builtin trace) (con integer) } (con string "hello") ] (con integer 1) ]
+    )
+    (termbind (strict) (vardecl x (con integer)) y)
+    [ [(builtin addInteger) x ] x ]
+)

@@ -18,14 +18,11 @@ The following packages are versioned and released:
 * The main library `plutus-tx-plugin:plutus-tx-plugin`
 - `prettyprinter-configurable`
 * The main library `prettyprinter-configurable:prettyprinter-configurable`
-- `word-array`
-* The main library `word-array:word-array`
 
 == Version Scheme
 
 All above packages are versioned and released in sync.
 That is, whenever one package releases version X, so do all other packages.
-Since `prettyprinter-configurable` and `word-array` change infrequently, we only release version X if they have been changed since the previous release.
 
 We follow https://pvp.haskell.org/[the PVP version scheme] for the packages, where version numbers have a `major.major.minor.patch` pattern with the following semantics:
 
@@ -64,26 +61,23 @@ In all other cases, we always start a new major or minor release from master.
 
 Suppose we are releasing version `x.y.z.0`.
 
-1. Prepare the release by running `./scripts/prepare-release.sh x.y.z.0 <packages>`.
-This updates versions and version bounds, and assembles the changelogs.
-- `<packages>` should normally be empty, which will prepare the default packages, or can be an explicit list of packages to prepare.
-2. Review the changelogs and edit manually if needed.
-3. Tag `x.y.z.0-rc1` on master.
+1. Tag `x.y.z.0-rc1` on master.
 - There's no need to create a release branch at this point.
 A release branch is only needed if bugs are found in `x.y.z.0-rc1` and we need to backport a fix from master.
-4. Run the release QA process.
-5. If no release blocking issue is found, tag `x.y.z.0` and upload the packages to https://github.com/input-output-hk/cardano-haskell-packages[CHaP].
-- Adding the `x.y.z.0` tag triggers a GitHub action that publishes Haddock to `+https://input-output-hk.github.io/plutus/x.y.z.0/+`.
-The GitHub action is only triggered by pushing tags of the form `[0-9]+.[0-9]+.[0-9]+.[0-9]+`.
+- This step can be omitted if no additional tests and checks are needed in the release QA process. See "Release QA Process" below.
+2. Run the release QA process. See "Release QA Process" below.
+3. If no release blocking issue is found, run `./scripts/prepare-release.sh x.y.z.0 <packages>`.
+This updates versions and version bounds, and assembles the changelogs.open a PR for updating the cabal files and the changelog files.
+- `<packages>` should normally be empty, which will prepare the default packages, or can be an explicit list of packages to prepare.
+4. Review the changelogs and edit manually if needed.
+5. Open a PR for updating the cabal files and the changelog files.
+6. Once the PR is merged, tag the commit `x.y.z.0` using https://github.com/input-output-hk/plutus/releases/new[Github's release interface].
+7. Open a PR in the https://github.com/input-output-hk/cardano-haskell-packages[CHaP repository] for publishing the new version. Run `./scripts/add-from-github.sh "https://github.com/input-output-hk/plutus" COMMIT-SHA LIST-OF-UPDATED-PACKAGES` (see https://github.com/input-output-hk/cardano-haskell-packages#-from-github[the README on CHaP]).
 - If issues are found, create a release branch `release/x.y.z`, fix the issues on master, backport the fixes to `release/x.y.z`, tag `x.y.z.0-rc2`, and go to step 4.
 - Why not just fix the issues on master and tag `x.y.z.0-rc2` from master?
 It is desirable to minimize the amount of change between `rc1` and `rc2`, because it may reduce the tests and checks that need to be performed against `rc2`.
 For instance, if `plutus-ledger-api` is the only package changed, there is no need to re-run tests on `plutus-core` or `plutus-tx`.
 Another example is if a security audit is done on `rc1`, and the changes in `rc2` do not modify the audited code, then the audit does not need to be re-done.
-
-6. After the release, update version numbers in cabal files to `x.y.z+1.0`.
-- This may not be the actual version of the next release - it could be `x+1.0.0`.
-We don't need to be precise here; we just need a version number higher than the latest release.
 
 === Patch Releases
 
@@ -93,15 +87,17 @@ Suppose we are releasing version `x.y.z.w`.
 If so, create branch `release/x.y.z` from the `x.y.z.0` tag.
 - We create release branches lazily, because we do not expect to make many patch releases.
 2. Backport the needed fixes from master to `release/x.y.z`.
-3. Prepare the release by running `./scripts/prepare-release.sh x.y.z.w <packages>`.
-4. Tag `x.y.z.w-rc1` on the release branch.
-5. Run the release QA process.
-6. If no release blocking issue is found, tag version `x.y.z.w` and upload the packages to CHaP.
-- If issues are found, fix them on master, backport the fixes to `release/x.y.z`, and go to step 3.
+3. Tag `x.y.z.w-rc1` on the release branch.
+- This step can be omitted if no additional tests and checks are needed in the release QA process. See "Release QA Process" below.
+4. Run the release QA process. See "Release QA Process" below.
+5. If no release blocking issue is found, run `./scripts/prepare-release.sh x.y.z.w <packages>`.
+6. Open a PR for updating the cabal files and the changelog files.
+7. Once the PR is merged, tag the commit `x.y.z.w`, and open a PR in the CHaP repository for publishing the new version.
+- If issues are found, fix them on master, backport the fixes to `release/x.y.z`, and go to step 5.
 
 === Release QA Process
 
-All applicable tests and checks should be carried out prior to tagging and publishing a release.
+All applicable tests and checks that haven't been run on the release candidate should be carried out prior to tagging and publishing a release.
 - This includes all tests that can be done with only the Plutus repo, such as unit tests, property-based tests, conformance tests and nightly tests.
 - In some cases we need input from domain experts and/or security audit (e.g., when adding a cryptography builtin).
 The right group of people should be involved and sign off on the tests and checks.

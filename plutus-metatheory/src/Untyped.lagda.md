@@ -4,36 +4,38 @@ layout: page
 ---
 
 ```
-{-# OPTIONS --type-in-type #-}
-```
-
-```
 module Untyped where
 ```
 
 ## Imports
 
 ```
-open import Utils using (Maybe;nothing;just;Either;inj₁;inj₂;Monad;TermCon)
+open import Utils as U using (Maybe;nothing;just;Either;inj₁;inj₂;Monad;DATA;List;[];_∷_)
 open Monad {{...}}
-open TermCon
+import Data.List as L
 
 open import Scoped using (ScopeError;deBError)
-open import Builtin using (Builtin;equals)
+open import Builtin using (Builtin;equals;decBuiltin)
 open Builtin.Builtin
-
-open import Raw using (decBuiltin)
-open import Algorithmic using (arity;Term;Type)
 
 open import Agda.Builtin.String using (primStringFromList; primStringAppend; primStringEquality)
 open import Data.Nat using (ℕ;suc;zero)
+open import Data.Nat.Show using () renaming (show to showℕ)
 open import Data.Bool using (Bool;true;false;_∧_)
 open import Data.Integer using (_<?_;_+_;_-_;∣_∣;_≤?_;_≟_;ℤ) renaming (_*_ to _**_)
-open import Data.List using ([];_∷_)
-open import Relation.Nullary using (yes;no)
+open import Relation.Nullary using (does;yes;no)
 open import Data.Integer.Show using (show)
 open import Data.String using (String;_++_)
 open import Data.Empty using (⊥)
+open import Utils using (_×_;_,_)
+open import RawU using (TagCon;Tag;decTagCon;TmCon;TyTag;Untyped;tmCon;tmCon2TagCon;tagCon2TmCon)
+open import Builtin.Signature using (_⊢♯;integer;bool;string;pdata;bytestring;unit;bls12-381-g1-element;bls12-381-g2-element;bls12-381-mlresult) 
+open _⊢♯
+open import Builtin.Constant.AtomicType using (AtomicTyCon)
+open AtomicTyCon
+
+open import Builtin.Constant.Type
+open Untyped
 ```
 
 ## Well-scoped Syntax
@@ -45,7 +47,9 @@ data _⊢ (X : Set) : Set where
   _·_ : X ⊢ → X ⊢ → X ⊢
   force : X ⊢ → X ⊢
   delay : X ⊢ → X ⊢
-  con : TermCon → X ⊢
+  con : TmCon → X ⊢
+  constr : (i : ℕ) → (xs : L.List (X ⊢)) → X ⊢
+  case :  (t : X ⊢) → (ts : L.List (X ⊢)) → X ⊢
   builtin : (b : Builtin) → X ⊢
   error : X ⊢
 ```
@@ -58,14 +62,22 @@ variable
 ## Debug printing
 
 ```
-uglyTermCon : TermCon → String
-uglyTermCon (integer x) = "(integer " ++ show x ++ ")"
-uglyTermCon (bytestring x) = "bytestring"
-uglyTermCon unit = "()"
-uglyTermCon (string s) = "(string " ++ s ++ ")"
-uglyTermCon (bool false) = "(bool " ++ "false" ++ ")"
-uglyTermCon (bool true) = "(bool " ++ "true" ++ ")"
-uglyTermCon (pdata d) = "(DATA)"
+uglyDATA : DATA → String
+uglyDATA d = "(DATA)"
+
+uglyTmCon : TmCon → String
+uglyTmCon (tmCon integer x)              = "(integer " ++ show x ++ ")"
+uglyTmCon (tmCon bytestring x)           = "bytestring"
+uglyTmCon (tmCon unit _)                 = "()"
+uglyTmCon (tmCon string s)               = "(string " ++ s ++ ")"
+uglyTmCon (tmCon bool false)             = "(bool " ++ "false" ++ ")"
+uglyTmCon (tmCon bool true)              = "(bool " ++ "true" ++ ")"
+uglyTmCon (tmCon pdata d)                = uglyDATA d
+uglyTmCon (tmCon bls12-381-g1-element e) = "(bls12-381-g1-element ???)"  -- FIXME
+uglyTmCon (tmCon bls12-381-g2-element e) = "(bls12-381-g2-element ???)"  -- FIXME
+uglyTmCon (tmCon bls12-381-mlresult r)   = "(bls12-381-mlresult ???)"      -- FIXME
+uglyTmCon (tmCon (pair t u) (x , y))     = "(pair " ++ uglyTmCon (tmCon t x) ++ " " ++ uglyTmCon (tmCon u y) ++ ")"
+uglyTmCon (tmCon (list t) xs)            = "(list [ something ])"
 
 {-# FOREIGN GHC import qualified Data.Text as T #-}
 
@@ -78,35 +90,24 @@ uglyBuiltin : Builtin → String
 uglyBuiltin addInteger = "addInteger"
 uglyBuiltin _ = "other"
 
+uglyList : ∀{X} → L.List (X ⊢) → String
+uglyList' : ∀{X} → L.List (X ⊢) → String
 ugly : ∀{X} → X ⊢ → String
 ugly (` x) = "(` var )"
 ugly (ƛ t) = "(ƛ " ++ ugly t ++ ")"
 ugly (t · u) = "( " ++ ugly t ++ " · " ++ ugly u ++ ")"
-ugly (con c) = "(con " ++ uglyTermCon c ++ ")"
-ugly (force t) = "(f0rce " ++ ugly t ++ ")"
+ugly (con c) = "(con " ++ uglyTmCon c ++ ")"
+ugly (force t) = "(force " ++ ugly t ++ ")"
 ugly (delay t) = "(delay " ++ ugly t ++ ")"
 ugly (builtin b) = "(builtin " ++ uglyBuiltin b ++ ")"
+ugly (constr i xs) = "(constr " ++ showℕ i ++ uglyList xs ++ ")"
+ugly (case x ts) = "(case " ++ ugly x ++ " " ++ uglyList ts ++ ")"
 ugly error = "error"
-```
 
-## Raw syntax
+uglyList' L.[] = ""
+uglyList' (x L.∷ xs) = ugly x ++" , "++ uglyList' xs
 
-This version is not intrinsically well-scoped. It's an easy to work
-with rendering of the untyped plutus-core syntax.
-
-```
-data Untyped : Set where
-  UVar : ℕ → Untyped
-  ULambda : Untyped → Untyped
-  UApp : Untyped → Untyped → Untyped
-  UCon : TermCon → Untyped
-  UError : Untyped
-  UBuiltin : Builtin → Untyped
-  UDelay : Untyped → Untyped
-  UForce : Untyped → Untyped
-
-{-# FOREIGN GHC import Untyped #-}
-{-# COMPILE GHC Untyped = data UTerm (UVar | ULambda  | UApp | UCon | UError | UBuiltin | UDelay | UForce) #-}
+uglyList xs = "[" ++ uglyList' xs ++ "]"
 ```
 
 ## Scope checking and scope extrication
@@ -116,15 +117,22 @@ extG : {X : Set} → (X → ℕ) → Maybe X → ℕ
 extG g (just x) = suc (g x)
 extG g nothing  = 0
 
+extricateUList : {X : Set} → (X → ℕ) → L.List (X ⊢) → List Untyped
 extricateU : {X : Set} → (X → ℕ) → X ⊢ → Untyped
-extricateU g (` x)       = UVar (g x)
-extricateU g (ƛ t)       = ULambda (extricateU (extG g) t)
-extricateU g (t · u)     = UApp (extricateU g t) (extricateU g u)
-extricateU g (force t)   = UForce (extricateU g t)
-extricateU g (delay t)   = UDelay (extricateU g t)
-extricateU g (con c)     = UCon c
-extricateU g (builtin b) = UBuiltin b
-extricateU g error       = UError
+extricateU g (` x)         = UVar (g x)
+extricateU g (ƛ t)         = ULambda (extricateU (extG g) t)
+extricateU g (t · u)       = UApp (extricateU g t) (extricateU g u)
+extricateU g (force t)     = UForce (extricateU g t)
+extricateU g (delay t)     = UDelay (extricateU g t)
+extricateU g (con c)       = UCon (tmCon2TagCon c)
+extricateU g (builtin b)   = UBuiltin b
+extricateU g error         = UError
+extricateU g (constr i L.[]) = UConstr i []
+extricateU g (constr i (x L.∷ xs)) = UConstr i (extricateU g x ∷ extricateUList g xs)
+extricateU g (case x xs)   = UCase (extricateU g x) (extricateUList g xs)
+
+extricateUList g L.[] = []
+extricateUList g (x L.∷ xs) = extricateU g x ∷ extricateUList g xs
 
 extricateU0 : ⊥  ⊢ → Untyped
 extricateU0 t = extricateU (λ()) t
@@ -133,6 +141,8 @@ extG' : {X : Set} → (ℕ → Either ScopeError X) → ℕ → Either ScopeErro
 extG' g zero    = return nothing
 extG' g (suc n) = fmap just (g n)
 
+scopeCheckUList : {X : Set}
+            → (ℕ → Either ScopeError X) → List Untyped → Either ScopeError (L.List (X ⊢))
 scopeCheckU : {X : Set}
             → (ℕ → Either ScopeError X) → Untyped → Either ScopeError (X ⊢)
 scopeCheckU g (UVar x)     = fmap ` (g x)
@@ -141,11 +151,22 @@ scopeCheckU g (UApp t u)   = do
   t ← scopeCheckU g t
   u ← scopeCheckU g u
   return (t · u)
-scopeCheckU g (UCon c)     = return (con c)
-scopeCheckU g UError       = return error
-scopeCheckU g (UBuiltin b) = return (builtin b)
-scopeCheckU g (UDelay t)   = fmap delay (scopeCheckU g t)
-scopeCheckU g (UForce t)   = fmap force (scopeCheckU g t)
+scopeCheckU g (UCon c)       = return (con (tagCon2TmCon c))
+scopeCheckU g UError         = return error
+scopeCheckU g (UBuiltin b)   = return (builtin b)
+scopeCheckU g (UDelay t)     = fmap delay (scopeCheckU g t)
+scopeCheckU g (UForce t)     = fmap force (scopeCheckU g t)
+scopeCheckU g (UConstr i ts) = fmap (constr i) (scopeCheckUList g ts)
+scopeCheckU g (UCase t ts)   = do 
+                 u  ← scopeCheckU g t 
+                 us ← scopeCheckUList g ts
+                 return (case u us)
+                 
+scopeCheckUList g [] = inj₂ L.[]
+scopeCheckUList g (x ∷ xs) = do 
+                 u  ← scopeCheckU g x 
+                 us ← scopeCheckUList g xs
+                 return (u L.∷ us)
 
 scopeCheckU0 : Untyped → Either ScopeError (⊥ ⊢)
 scopeCheckU0 t = scopeCheckU (λ _ → inj₁ deBError) t
@@ -156,31 +177,14 @@ scopeCheckU0 t = scopeCheckU (λ _ → inj₁ deBError) t
 Used to compare outputs in testing
 
 ```
-decUTermCon : (C C' : TermCon) → Bool
-decUTermCon (integer i) (integer i') with i Data.Integer.≟ i'
-... | yes p = true
-... | no ¬p = false
-decUTermCon (bytestring b) (bytestring b') with equals b b'
-decUTermCon (bytestring b) (bytestring b') | false = false
-decUTermCon (bytestring b) (bytestring b') | true = true
-decUTermCon (string s) (string s') with s Data.String.≟ s'
-... | yes p = true
-... | no ¬p = false
-decUTermCon (bool b) (bool b') with b Data.Bool.≟ b'
-... | yes p = true
-... | no ¬p = false
-decUTermCon unit unit = true
-decUTermCon _ _ = false
-
 decUTm : (t t' : Untyped) → Bool
-decUTm (UVar x) (UVar x') with x Data.Nat.≟ x
-... | yes p = true
-... | no ¬p = false
+decUTm (UVar x) (UVar x') = does (x Data.Nat.≟ x)
 decUTm (ULambda t) (ULambda t') = decUTm t t'
 decUTm (UApp t u) (UApp t' u') = decUTm t t' ∧ decUTm u u'
-decUTm (UCon c) (UCon c') = decUTermCon c c'
+decUTm (UCon c) (UCon c') = decTagCon c c'
 decUTm UError UError = true
-decUTm (UBuiltin b) (UBuiltin b') = decBuiltin b b'
+decUTm (UBuiltin b) (UBuiltin b') = does (decBuiltin b b')
 decUTm (UDelay t) (UDelay t') = decUTm t t'
 decUTm (UForce t) (UForce t') = decUTm t t'
 decUTm _ _ = false
+```

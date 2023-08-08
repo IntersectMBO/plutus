@@ -8,15 +8,19 @@ open import Data.Nat using (ℕ;_≟_)
 open import Data.Integer using (ℤ)
 open import Data.Integer.Show using (show)
 open import Data.Unit using (⊤)
-open import Relation.Nullary using (Reflects;Dec;ofʸ;ofⁿ;_because_;yes;no)
+open import Relation.Nullary using (Reflects;Dec;ofʸ;ofⁿ;_because_;yes;no;does)
 open import Relation.Binary.PropositionalEquality using (_≡_;cong;cong₂;refl)
-open import Data.Bool using (Bool;false;true)
+open import Data.Bool using (Bool;false;true;_∧_)
 
-open import Builtin using (Builtin;equals)
+open import Builtin using (Builtin;equals;decBuiltin)
 open Builtin.Builtin
 
-open import Utils using (Kind;*;_⇒_;TermCon)
-open TermCon
+open import Builtin.Constant.AtomicType using (AtomicTyCon;decAtomicTyCon)
+open AtomicTyCon
+
+open import Utils using (Kind;*;♯;_⇒_)
+open import RawU using (TagCon;tagCon;Tag;decTagCon)
+open Tag
 \end{code}
 
 The raw un-scope-checked and un-type-checked syntax
@@ -33,23 +37,18 @@ data RawTy where
   ƛ   : Kind → RawTy → RawTy
   _·_ : RawTy → RawTy → RawTy
   con : RawTyCon → RawTy
-  μ    : RawTy → RawTy → RawTy
+  μ   : RawTy → RawTy → RawTy
 
 {-# COMPILE GHC RawTy = data RType (RTyVar | RTyFun | RTyPi | RTyLambda | RTyApp | RTyCon | RTyMu) #-}
 
 {-# FOREIGN GHC import Raw #-}
 
 data RawTyCon where
-  integer    : RawTyCon
-  bytestring : RawTyCon
-  string     : RawTyCon
-  unit       : RawTyCon
-  bool       : RawTyCon
-  list       : RawTy → RawTyCon
-  pair       : RawTy → RawTy → RawTyCon
-  pdata       : RawTyCon
+  atomic     : AtomicTyCon → RawTyCon
+  list       : RawTyCon
+  pair       : RawTyCon
 
-{-# COMPILE GHC RawTyCon = data RTyCon (RTyConInt | RTyConBS | RTyConStr | RTyConUnit | RTyConBool | RTyConList | RTyConPair | RTyConData) #-}
+{-# COMPILE GHC RawTyCon = data RTyCon (RTyConAtom | RTyConList | RTyConPair) #-}
 
 data RawTm : Set where
   `             : ℕ → RawTm
@@ -57,7 +56,7 @@ data RawTm : Set where
   _·⋆_          : RawTm → RawTy → RawTm
   ƛ             : RawTy → RawTm → RawTm
   _·_           : RawTm → RawTm → RawTm
-  con           : TermCon → RawTm
+  con           : TagCon → RawTm
   error         : RawTy → RawTm
   builtin       : Builtin → RawTm
   wrap          : RawTy → RawTy → RawTm → RawTm
@@ -67,179 +66,46 @@ data RawTm : Set where
 
 -- α equivalence
 
--- we don't have a decicable equality instance for bytestring, so I
+-- we don't have a decidable equality instance for bytestring, so I
 -- converted this to bool for now
 
+decRTy : (A A' : RawTy) → Bool
+
 decRTyCon : (C C' : RawTyCon) → Bool
-decRTyCon integer    integer    = true
-decRTyCon bytestring bytestring = true
-decRTyCon string     string     = true
-decRTyCon unit       unit       = true
-decRTyCon bool       bool       = true
-decRTyCon _          _          = false
-
-decTermCon : (C C' : TermCon) → Bool
-decTermCon (integer i) (integer i') with i Data.Integer.≟ i'
-... | yes p = true
-... | no ¬p = false
-decTermCon (bytestring b) (bytestring b') with equals b b'
-decTermCon (bytestring b) (bytestring b') | false = false
-decTermCon (bytestring b) (bytestring b') | true = true
-decTermCon (string s) (string s') with s Data.String.≟ s'
-... | yes p = true
-... | no ¬p = false
-decTermCon (bool b) (bool b') with b Data.Bool.≟ b'
-... | yes p = true
-... | no ¬p = false
-decTermCon unit unit = true
-decTermCon _ _ = false
-
-decBuiltin : (b b' : Builtin) → Bool
-decBuiltin addInteger addInteger = true
-decBuiltin subtractInteger subtractInteger = true
-decBuiltin multiplyInteger multiplyInteger = true
-decBuiltin divideInteger divideInteger = true
-decBuiltin quotientInteger quotientInteger = true
-decBuiltin remainderInteger remainderInteger = true
-decBuiltin modInteger modInteger = true
-decBuiltin lessThanInteger lessThanInteger = true
-decBuiltin lessThanEqualsInteger lessThanEqualsInteger = true
-decBuiltin equalsInteger equalsInteger = true
-decBuiltin appendByteString appendByteString = true
-decBuiltin sha2-256 sha2-256 = true
-decBuiltin sha3-256 sha3-256 = true
-decBuiltin verifyEd25519Signature verifyEd25519Signature = true
-decBuiltin verifyEcdsaSecp256k1Signature verifyEcdsaSecp256k1Signature = true
-decBuiltin verifySchnorrSecp256k1Signature verifySchnorrSecp256k1Signature = true
-decBuiltin equalsByteString equalsByteString = true
-decBuiltin appendString appendString = true
-decBuiltin trace trace = true
-decBuiltin _ _ = false
+decRTyCon (atomic t) (atomic t')  = does (decAtomicTyCon t t')
+decRTyCon pair       pair         = true
+decRTyCon list       list         = true
+decRTyCon _          _            = false
 
 decRKi : (K K' : Kind) → Bool
 decRKi * * = true
-decRKi * (K' ⇒ J') = false
-decRKi (K ⇒ J) * = false
-decRKi (K ⇒ J) (K' ⇒ J') with decRKi K K'
-decRKi (K ⇒ J) (K' ⇒ J') | true with decRKi J J'
-decRKi (K ⇒ J) (K' ⇒ J') | true | true = true
-decRKi (K ⇒ J) (K' ⇒ J') | true | false = false
-decRKi (K ⇒ J) (K' ⇒ J') | false = false
+decRKi * _ = false
+decRKi ♯ ♯ = true
+decRKi ♯ _ = false
+decRKi (K ⇒ J) (K' ⇒ J') = decRKi K K' ∧ decRKi J J' 
+decRKi (K ⇒ J) _ = false
 
-decRTy : (A A' : RawTy) → Bool
-decRTy (` x) (` x') with x ≟ x'
-... | yes _ = true
-... | no  _ = false
-decRTy (` x) (A' ⇒ B') = false
-decRTy (` x) (Π K' A') = false
-decRTy (` x) (ƛ K' A') = false
-decRTy (` x) (A' · A'') = false
-decRTy (` x) (con c') = false
-decRTy (` x) (μ A' B') = false
-decRTy (A ⇒ B) (` x') = false
-decRTy (A ⇒ B) (A' ⇒ B') with decRTy A A'
-... | false = false
-... | true with decRTy B B'
-... | false = false
-... | true = true
-decRTy (A ⇒ B) (Π K' A') = false
-decRTy (A ⇒ B) (ƛ K' A') = false
-decRTy (A ⇒ B) (A' · A'') = false
-decRTy (A ⇒ B) (con c') = false
-decRTy (A ⇒ B) (μ A' B') = false
-decRTy (Π K A) (` x') = false
-decRTy (Π K A) (A' ⇒ B') = false
-decRTy (Π K A) (Π K' A') with decRKi K K'
-... | false = false
-... | true with decRTy A A'
-... | false = false
-... | true = true
-decRTy (Π K A) (ƛ K' A') = false
-decRTy (Π K A) (A' · A'') = false
-decRTy (Π K A) (con c') = false
-decRTy (Π K A) (μ A' B') = false
-decRTy (ƛ K A) (` x') = false
-decRTy (ƛ K A) (A' ⇒ B') = false
-decRTy (ƛ K A) (Π K' A') = false
-decRTy (ƛ K A) (ƛ K' A') with decRKi K K'
-... | false = false
-... | true with decRTy A A'
-... | false = false
-... | true = true
-decRTy (ƛ K A) (A' · A'') = false
-decRTy (ƛ K A) (con c') = false
-decRTy (ƛ K A) (μ A' B') = false
-decRTy (A · B) (` x') = false
-decRTy (A · B) (A' ⇒ B') = false
-decRTy (A · B) (Π K' A') = false
-decRTy (A · B) (ƛ K' A') = false
-decRTy (A · B) (A' · B') with decRTy A A'
-... | false = false
-... | true with decRTy B B'
-... | false = false
-... | true = true
-decRTy (A · B) (con c') = false
-decRTy (A · B) (μ A' B') = false
-decRTy (con c) (` x') = false
-decRTy (con c) (A' ⇒ B') = false
-decRTy (con c) (Π K' A') = false
-decRTy (con c) (ƛ K' A') = false
-decRTy (con c) (A' · A'') = false
-decRTy (con c) (con c') with decRTyCon c c'
-... | false = false
-... | true = true
-decRTy (con c) (μ A' B') = false
-decRTy (μ A B) (` x') = false
-decRTy (μ A B) (A' ⇒ B') = false
-decRTy (μ A B) (Π K' A') = false
-decRTy (μ A B) (ƛ K' A') = false
-decRTy (μ A B) (A' · A'') = false
-decRTy (μ A B) (con c') = false
-decRTy (μ A B) (μ A' B') with decRTy A A'
-... | false = false
-... | true with decRTy B B'
-... | false = false
-... | true = true
+
+decRTy (` x) (` x') = does (x ≟ x')
+decRTy (A ⇒ B) (A' ⇒ B') = decRTy A A' ∧ decRTy B B'
+decRTy (Π K A) (Π K' A') = decRKi K K' ∧ decRTy A A'
+decRTy (ƛ K A) (ƛ K' A') = decRKi K K' ∧ decRTy A A'
+decRTy (A · B) (A' · B') = decRTy A A' ∧ decRTy B B'
+decRTy (con c) (con c') = decRTyCon c c'
+decRTy (μ A B) (μ A' B') = decRTy A A' ∧ decRTy B B'
+decRTy _ _ = false
 
 decRTm : (t t' : RawTm) → Bool
-decRTm (` x) (` x') with x ≟ x'
-decRTm (` x) (` x') | yes _ = true
-decRTm (` x) (` x') | no  _ = false
-decRTm (Λ K t) (Λ K' t') with decRKi K K'
-... | false = false
-... | true with decRTm t t'
-... | true = true
-... | false = false
-decRTm (t ·⋆ A) (t' ·⋆ A') with decRTm t t'
-... | false = false
-... | true with decRTy A A'
-... | true = true
-... | false = false
-decRTm (ƛ A t) (ƛ A' t') with decRTy A A'
-... | false = false
-... | true with decRTm t t'
-... | false = false
-... | true = true
-decRTm (t · u) (t' · u') with decRTm t t'
-... | false = false
-... | true with decRTm u u'
-... | false = false
-... | true = true
-decRTm (con c) (con c') = decTermCon c c'
-decRTm (error A) (error A') with decRTy A A'
-... | true = true
-... | false = false
-decRTm (builtin b) (builtin b') = decBuiltin b b'
-decRTm (wrap pat arg t) (wrap pat' arg' t') with decRTy pat pat'
-... | false = false
-... | true with decRTy arg arg'
-... | false = false
-... | true with decRTm t t'
-... | false = false
-... | true = true
-decRTm (unwrap t) (unwrap t') with decRTm t t'
-decRTm (unwrap t) (unwrap t') | true = true
-decRTm (unwrap t) (unwrap t') | false = false
+decRTm (` x) (` x') = does (x ≟ x')
+decRTm (Λ K t) (Λ K' t') = decRKi K K' ∧ decRTm t t'
+decRTm (t ·⋆ A) (t' ·⋆ A') = decRTm t t' ∧ decRTy A A'
+decRTm (ƛ A t) (ƛ A' t') = decRTy A A' ∧ decRTm t t'
+decRTm (t · u) (t' · u') = decRTm t t' ∧ decRTm u u'
+decRTm (con c) (con c') = decTagCon c c'
+decRTm (error A) (error A') = decRTy A A'
+decRTm (builtin b) (builtin b') = does (decBuiltin b b')
+decRTm (wrap pat ar t) (wrap pat' ar' t') = decRTy pat pat' ∧ decRTy ar ar' ∧ decRTm t t'
+decRTm (unwrap t) (unwrap t') = decRTm t t'
 decRTm _ _ = false
 
 -- We have to different approaches to de Bruijn terms.
@@ -263,6 +129,7 @@ rawPrinter (t · u) = "(" ++ rawPrinter t ++ "·" ++ rawPrinter u ++ ")"
 rawPrinter (con c) = "(con)"
 rawPrinter (error A) = "(error" ++ rawTyPrinter A ++ ")"
 rawPrinter (builtin b) = "(builtin)"
-rawPrinter (wrap pat arg t) = "(wrap" ++ ")"
+rawPrinter (wrap pat ar t) = "(wrap" ++ ")"
 rawPrinter (unwrap t) = "(unwrap" ++ rawPrinter t ++ ")"
 \end{code}
+ 

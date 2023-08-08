@@ -1,1 +1,0 @@
-/\a -> \(ru : ifix (\(rec :: * -> *) -> \i -> all r. rec i -> r -> r) unit) -> unwrap ru {a} ru

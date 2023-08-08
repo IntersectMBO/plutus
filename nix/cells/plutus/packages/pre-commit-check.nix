@@ -23,15 +23,6 @@ inputs.pre-commit-hooks-nix.lib.run {
 
     nixpkgs-fmt = {
       enable = true;
-      # While nixpkgs-fmt does exclude patterns specified in `.ignore` this
-      # does not appear to work inside the hook. For now we have to thus
-      # maintain excludes here *and* in `./.ignore` and *keep them in sync*.
-      excludes =
-        [
-          ".*nix/pkgs/haskell/materialized.*/.*"
-          ".*/spago-packages.nix$"
-          ".*/packages.nix$"
-        ];
     };
 
     png-optimization = {

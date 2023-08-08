@@ -1,5 +1,5 @@
-(program 0.0.0 (con data {
-    Map [ (ByteString #0123,   Integer 12345),
-          (ByteString #456789, Integer 789453),
-          (ByteString #0ABCDE, Integer 12364689486)]
-}))
+(program 0.0.0 (con data (
+    Map [ (B #0123,   I 12345),
+          (B #456789, I 789453),
+          (B #0ABCDE, I 12364689486)]
+)))

@@ -20,6 +20,7 @@ import Control.Monad.Trans
 
 import Control.Lens hiding (Strict)
 
+import Data.Foldable
 import Data.List.NonEmpty hiding (partition, reverse)
 import Data.List.NonEmpty qualified as NE
 
@@ -34,23 +35,6 @@ this, but this does the job.
 Also we should pull out more stuff (e.g. see 'NonStrict' which uses unit).
 -}
 
-{- Note [Right-associative compilation of let-bindings for linear scoping]
-
-The 'foldM' function for lists is left-associative, but we need right-associative for our case, i.e.
-every right let must be wrapped/scoped by its left let
-
-An pseudocode PIR example:
-let b1 = rhs1;
-    b2 = rhs2  (b1 is visible in rhs2);
-in ...
-
-must be treated the same as let b1 = rhs in (let b2 = rhs2 in ... )
-
-Since there is no 'foldrM' in the stdlib, so we first reverse the bindings list,
-and then apply the left-associative 'foldM' on them,
-which yields the same results as doing a right-associative fold.
--}
-
 data LetKind = RecTerms | NonRecTerms | Types | DataTypes
 
 -- | Compile the let terms out of a 'Term'. Note: the result does *not* have globally unique names.
@@ -62,8 +46,8 @@ compileLets kind t = getEnclosing >>= \p ->
 compileLet :: Compiling m e uni fun a => LetKind -> PIRTerm uni fun a -> DefT SharedName uni fun (Provenance a) m (PIRTerm uni fun a)
 compileLet kind = \case
     Let p r bs body -> withEnclosing (const $ LetBinding r p) $ case r of
-            -- See Note [Right-associative compilation of let-bindings for linear scoping]
-            NonRec -> lift $ foldM (compileNonRecBinding kind) body (NE.reverse bs)
+            -- Right-associative fold because `let {b1;b2} in t` === `let {b1} in (let {b2} in t)`
+            NonRec -> lift $ foldrM (compileNonRecBinding kind) body bs
             Rec    -> compileRecBindings kind body bs
     x -> pure x
 
@@ -112,11 +96,11 @@ compileRecDataBindings DataTypes body bs = do
     compileRecDatatypes body binds
 compileRecDataBindings _ body bs = getEnclosing >>= \p -> pure $ Let p Rec bs body
 
-compileNonRecBinding :: Compiling m e uni fun a => LetKind -> PIRTerm uni fun a -> Binding TyName Name uni fun (Provenance a) -> m (PIRTerm uni fun a)
-compileNonRecBinding NonRecTerms body (TermBind x Strict d rhs) = withEnclosing (const $ TermBinding (varDeclNameString d) x) $
+compileNonRecBinding :: Compiling m e uni fun a => LetKind -> Binding TyName Name uni fun (Provenance a) -> PIRTerm uni fun a -> m (PIRTerm uni fun a)
+compileNonRecBinding NonRecTerms (TermBind x Strict d rhs) body = withEnclosing (const $ TermBinding (varDeclNameString d) x) $
    PIR.mkImmediateLamAbs <$> getEnclosing <*> pure (PIR.Def d rhs) <*> pure body
-compileNonRecBinding Types body (TypeBind x d rhs) = withEnclosing (const $ TypeBinding (tyVarDeclNameString d) x) $
+compileNonRecBinding Types (TypeBind x d rhs) body = withEnclosing (const $ TypeBinding (tyVarDeclNameString d) x) $
    PIR.mkImmediateTyAbs <$> getEnclosing <*> pure (PIR.Def d rhs) <*> pure body
-compileNonRecBinding DataTypes body (DatatypeBind x d) = withEnclosing (const $ TypeBinding (datatypeNameString d) x) $
+compileNonRecBinding DataTypes (DatatypeBind x d) body = withEnclosing (const $ TypeBinding (datatypeNameString d) x) $
    compileDatatype NonRec body d
-compileNonRecBinding _ body b = getEnclosing >>= \p -> pure $ Let p NonRec (pure b) body
+compileNonRecBinding _ b body = getEnclosing >>= \p -> pure $ Let p NonRec (pure b) body

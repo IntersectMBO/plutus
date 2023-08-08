@@ -3,6 +3,7 @@
 ```
 module Algorithmic.BehaviouralEquivalence.CKvsCEK where
 
+open import Data.Nat using (suc)
 open import Data.Empty using (⊥-elim)
 open import Data.Product using (∃)
 open import Data.List using ([];_∷_)
@@ -15,42 +16,28 @@ open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_)
 open _⊢Nf⋆_
 open _⊢Ne⋆_
 open import Type.BetaNBE.RenamingSubstitution using (_[_]Nf;subNf-id)
-open import Algorithmic using (Ctx;arity;_⊢_;Term;Type;btype;_∋_;conv⊢;builtin_/_)
+open import Algorithmic using (Ctx;_⊢_;_∋_;conv⊢;builtin_/_;⟦_⟧)
 open Ctx
 open _⊢_
 open _∋_
+open import Algorithmic.Signature using (SigTy;btype;_[_]SigTy)
+open SigTy
+open import Builtin using (signature)
+open import Builtin.Signature using (Sig;args♯;fv)
+open Sig
 open import Algorithmic.RenamingSubstitution using (Sub;sub;exts;exts⋆;_[_];_[_]⋆)
-open import Utils hiding (TermCon)
+open import Utils hiding (_×_)
 
-open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *) using (TyCon)
+open import Builtin.Constant.Type using (TyCon)
 open TyCon
-
-open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con using (TermCon)
-open TermCon
 
 open import Algorithmic.CEK
 import Algorithmic.ReductionEC as Red
 import Algorithmic.CK as CK
 import Algorithmic.BehaviouralEquivalence.CCvsCK as CK
 import Algorithmic.CC as CC
-
+open import Algorithmic.ReductionEC using () renaming (red2cekVal to ck2cekVal)
 -- convert CK things to CEK things
-
-
-ck2cekVal : ∀{A}{L : ∅ ⊢ A} → Red.Value L → Value A
-ck2cekBApp : ∀{b az as}{p : az <>> as ∈ arity b}{A}{L : ∅ ⊢ A}
-  → Red.BApp b p L → BApp b p A
-
-ck2cekBApp (Red.base refl) = base
-ck2cekBApp (Red.step p x x₁) = app p (ck2cekBApp x) (ck2cekVal x₁)
-ck2cekBApp (Red.step⋆ p x refl) = app⋆ p (ck2cekBApp x) refl
-
-ck2cekVal (Red.V-ƛ M) = V-ƛ M []
-ck2cekVal (Red.V-Λ M) = V-Λ M []
-ck2cekVal (Red.V-wrap V) = V-wrap (ck2cekVal V)
-ck2cekVal (Red.V-con cn) = V-con cn
-ck2cekVal (Red.V-I⇒ b p x) = V-I⇒ b p (ck2cekBApp x)
-ck2cekVal (Red.V-IΠ b p x) = V-IΠ b p (ck2cekBApp x)
 
 ck2cekFrame : ∀{A B} → Red.Frame A B → Frame A B
 ck2cekFrame (Red.-· M) = -· M []
@@ -58,8 +45,6 @@ ck2cekFrame (VM Red.·-) = ck2cekVal VM ·-
 ck2cekFrame (Red.-·⋆ A) = -·⋆ A
 ck2cekFrame Red.wrap- = wrap-
 ck2cekFrame Red.unwrap- = unwrap-
-
-
 
 ck2cekStack : ∀{A B} → CK.Stack A B → Stack A B
 ck2cekStack CK.ε = ε
@@ -71,26 +56,27 @@ ck2cekState (s CK.◅ V) = ck2cekStack s ◅ ck2cekVal V
 ck2cekState (CK.□ V) = □ (ck2cekVal V)
 ck2cekState (CK.◆ A) = ◆ A
 
-
 -- convert CEK things to CK things
 
 cek2ckVal : ∀{A} → (V : Value A) → Red.Value (discharge V)
 
-cek2ckBApp : ∀{b az as}{p : az <>> as ∈ arity b}{A}
-  → (vs : BApp b p A) → Red.BApp b p (dischargeB vs)
-cek2ckBApp base = Red.base refl
-cek2ckBApp (app p vs v) = Red.step p (cek2ckBApp vs) (cek2ckVal v)
-cek2ckBApp (app⋆ p vs refl) = Red.step⋆ p (cek2ckBApp vs) refl
+cek2ckBApp : ∀{b}
+   {tn tm}{pt : tn ∔ tm ≣ fv (signature b)}
+   {an am}{pa : an ∔ am ≣ args♯ (signature b)}
+   {A}{σA : SigTy pt pa A}
+  → (vs : BApp b A σA) → Red.BApp b σA (dischargeB vs)
+cek2ckBApp base = Red.base
+cek2ckBApp (vs $ v) = Red.step (cek2ckBApp vs) (cek2ckVal v)
+cek2ckBApp (vs $$ refl) = Red.step⋆ (cek2ckBApp vs) refl
 
 cek2ckVal (V-ƛ M ρ) = Red.V-ƛ _
 cek2ckVal (V-Λ M ρ) = Red.V-Λ _
 cek2ckVal (V-wrap V) = Red.V-wrap (cek2ckVal V)
 cek2ckVal (V-con cn) = Red.V-con cn
-cek2ckVal (V-I⇒ b p x) = Red.V-I⇒ b p (cek2ckBApp x)
-cek2ckVal (V-IΠ b p x) = Red.V-IΠ b p (cek2ckBApp x)
+cek2ckVal (V-I⇒ b x) = Red.V-I⇒ b (cek2ckBApp x)
+cek2ckVal (V-IΠ b x) = Red.V-IΠ b (cek2ckBApp x)
 
 cek2ckClos : ∀{A Γ} → Γ ⊢ A → Env Γ → ∅ ⊢ A
--- cek2ckClos L ρ = conv⊢ refl (subNf-id _) (sub (ne ∘ `) (env2sub ρ) L)
 cek2ckClos (` x) ρ = discharge (lookup x ρ)
 cek2ckClos (ƛ L) ρ = ƛ (dischargeBody L ρ)
 cek2ckClos (L · M) ρ = cek2ckClos L ρ · cek2ckClos M ρ
@@ -98,7 +84,7 @@ cek2ckClos (Λ L) ρ = Λ (dischargeBody⋆ L ρ)
 cek2ckClos (L ·⋆ A / refl) ρ = cek2ckClos L ρ ·⋆ A / refl
 cek2ckClos (wrap A B L) ρ = wrap A B (cek2ckClos L ρ)
 cek2ckClos (unwrap L refl) ρ = unwrap (cek2ckClos L ρ) refl
-cek2ckClos (con c) ρ = con c
+cek2ckClos (con c refl) ρ = con c refl
 cek2ckClos (builtin b / refl) ρ = builtin b / refl
 cek2ckClos (error _) ρ = error _
 
@@ -134,8 +120,19 @@ step** base q = q
 step** (step* x p) q = step* x (step** p q)
 
 -- some syntactic assumptions
-
+{-
+V-Ilem : ∀ {b}{A : ∅ ⊢Nf⋆ *}
+       → ∀{tn tm} {pt : tn ∔ tm ≣ fv (signature b)}
+       → ∀{an am} {pa : an ∔ suc am ≣ args♯ (signature b)}
+       → {σA : SigTy pt pa A}
+       → {t : ∅ ⊢ A}
+       → (bt : Red.BApp b σA t)
+       → (p : discharge (V-I b (ck2cekBApp bt)) ≡ t)
+       → Red.V-I b bt ≡ subst (cek2ckVal (V-I b (ck2cekBApp bt)))
+V-Ilem bt = 
+-}
 postulate ival-lem : ∀ b {A}{s : CK.Stack A _} → (s CK.◅ Red.ival b) ≡ (s CK.◅ cek2ckVal (ival b))
+--ival-lem b {s = s} = {! cong (λ z → s CK.◅ z)  !}
 
 postulate dischargeBody-lem' : ∀{B}{Γ}{C}(M : Γ , C ⊢ B) ρ V → (dischargeBody M ρ [ CK.discharge (cek2ckVal V) ]) ≡ cek2ckClos M (ρ ∷ V)
 
@@ -153,9 +150,9 @@ sub (sub-cons ` (discharge (cek2ckVal V)))
 = { sub-comp (lemma required) }
 sub (sub (sub-cons ` (discharge (cek2ckVal V))) ∘ (exts (env2sub ρ)))
     M
-= { ? }
+= {  }
 sub (sub-cons (env2sub ρ) (discharge (cek2ckVal V))) M
-= { ? }
+= {  }
 sub (env2sub (ρ ∷ V)) M
 = { lemma required }
 cek2ckClos M (ρ ∷ V)
@@ -172,17 +169,47 @@ postulate dischargeBody⋆-lem' : ∀{Γ K B A}(M : Γ ,⋆ K ⊢ B) ρ → disc
 dischargeBody⋆-lem : ∀{Γ K B A C}{s : CK.Stack C _}(M : Γ ,⋆ K ⊢ B) ρ → (s CK.▻ (dischargeBody⋆ M ρ [ A ]⋆)) ≡ (s CK.▻ cek2ckClos (M [ A ]⋆) ρ)
 dischargeBody⋆-lem M ρ = cong (_ CK.▻_) (dischargeBody⋆-lem' M ρ)
 
-postulate dischargeB-lem : ∀ {K A}{B : ∅ ,⋆ K ⊢Nf⋆ *}{C b}{as a as'}{p : as <>> Type ∷ a ∷ as' ∈ arity b}{x : BApp b p (Π B)} (s : CK.Stack C (B [ A ]Nf)) → s CK.◅ Red.V-I b (bubble p) (Red.step⋆ p (cek2ckBApp x) refl) ≡ (s CK.◅ cek2ckVal (V-I b (bubble p) (app⋆ p x refl)))
+postulate dischargeB-lem : ∀ {K}{A : ∅ ⊢Nf⋆ K}{B : ∅ ,⋆ K ⊢Nf⋆ *}{C b}
+                     {tn tm}{pt : tn ∔ suc tm ≣ fv (signature b)}
+                     {an am}{pa : an ∔ suc am ≣ args♯ (signature b)}
+                     {σB : SigTy (bubble pt) pa B}
+                     {x : BApp b (Π B) (sucΠ σB)} 
+                  (s : CK.Stack C (B [ A ]Nf)) 
+                → s CK.◅ Red.V-I b {σA = σB [ A ]SigTy} (Red.step⋆ (cek2ckBApp x) refl) ≡ (s CK.◅ cek2ckVal (V-I b {σA = σB [ A ]SigTy} (x $$ refl)))
 
-postulate dischargeB'-lem : ∀ {A}{C b}{as a as'}{p : as <>> a ∷ as' ∈ arity b}{x : BApp b p A} (s : CK.Stack C _) → s CK.◅ Red.V-I b p (cek2ckBApp x) ≡ (s CK.◅ cek2ckVal (V-I b p x))
+postulate dischargeB'-lem : ∀ {A}{C b}
+                    {tn tm}{pt : tn ∔ tm ≣ fv (signature b)}
+                     {an am}{pa : an ∔ suc am ≣ args♯ (signature b)}
+                     {σA : SigTy pt pa A}
+                     {x : BApp b A σA} 
+                     (s : CK.Stack C _) 
+                  → s CK.◅ Red.V-I b (cek2ckBApp x) ≡ (s CK.◅ cek2ckVal (V-I b x))
 
-postulate dischargeB-lem' : ∀ {A}{b}{as a as'}{p : as <>> a ∷ as' ∈ arity b}{x : BApp b p A} → dischargeB x ≡ discharge (V-I b p x)
+postulate dischargeB-lem' : ∀ {A}{b}
+                  {tn tm}{pt : tn ∔ tm ≣ fv (signature b)}
+                    {an am}{pa : an ∔ suc am ≣ args♯ (signature b)}
+                    {σA : SigTy pt pa A}
+                    {x : BApp b A σA} 
+                  → dischargeB x ≡ discharge (V-I b x)
+                
 
-postulate dischargeB-lem'' : ∀ {A}{b}{as a as'}{p : as <>> a ∷ as' ∈ arity b}{x : BApp b p A} → substEq Red.Value dischargeB-lem' (Red.V-I b p (cek2ckBApp x)) ≡ cek2ckVal (V-I b p x)
+postulate dischargeB-lem'' :  ∀ {A}{b}
+                  {tn tm}{pt : tn ∔ tm ≣ fv (signature b)}
+                    {an am}{pa : an ∔ suc am ≣ args♯ (signature b)}
+                    {σA : SigTy pt pa A}
+                    {x : BApp b A σA} 
+                  → substEq Red.Value dischargeB-lem' (Red.V-I b (cek2ckBApp x)) ≡ cek2ckVal (V-I b x)
 
--- assuming that buitins work the same way for CEK and red/CK
 
-postulate BUILTIN-lem : ∀ b {A}{az}(p : az <>> [] ∈ arity b)(q : BApp b p A) → Red.BUILTIN' b p (cek2ckBApp q) ≡ cek2ckClos (BUILTIN' b p q) []
+-- assuming that builtins work the same way for CEK and red/CK
+
+postulate BUILTIN-lem : ∀ b {A}
+               {tn}{pt : tn ∔ 0 ≣ fv (signature b)}
+                {an}{pa : an ∔ 0 ≣ args♯ (signature b)}
+                {σA : SigTy pt pa A}          
+              → (q : BApp b A σA) 
+              → Red.BUILTIN' b (cek2ckBApp q) ≡ cek2ckClos (BUILTIN' b q) []
+
 
 thm65a : ∀{A}(s s' : State A) → s -→s s' → cek2ckState s CK.-→s cek2ckState s'
 thm65a s s  base        = CK.base
@@ -193,7 +220,7 @@ thm65a (s ; ρ ▻ Λ L) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
 thm65a (s ; ρ ▻ (L ·⋆ A / refl)) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
 thm65a (s ; ρ ▻ wrap A B L) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
 thm65a (s ; ρ ▻ unwrap L refl) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
-thm65a (s ; ρ ▻ con c) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
+thm65a (s ; ρ ▻ con c refl) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
 thm65a (s ; ρ ▻ (builtin b / refl)) s' (step* refl q) = CK.step* (ival-lem b) (thm65a _ s' q)
 thm65a (s ; ρ ▻ error _) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
 thm65a (ε ◅ V) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
@@ -201,15 +228,12 @@ thm65a ((s , -· L ρ) ◅ V) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
 thm65a ((s , (V-ƛ M ρ ·-)) ◅ V) s' (step* refl q)    = CK.step*
   (dischargeBody-lem M ρ V)
   (thm65a _ s' q)
-thm65a ((s , (V-I⇒ b {as' = []} p x ·-)) ◅ V) s' (step* refl q) = CK.step*
-  (cong (cek2ckStack s CK.▻_) (BUILTIN-lem b (bubble p) (app p x V)))
+thm65a ((s , (V-I⇒ b {am = 0} x ·-)) ◅ V) s' (step* refl q) = CK.step*
+  (cong (cek2ckStack s CK.▻_) (BUILTIN-lem b (x $ V)))
   (thm65a _ s' q)
-thm65a ((s , (V-I⇒ b {as' = x₁ ∷ as'} p x ·-)) ◅ V) s' (step* refl q) = CK.step* (dischargeB'-lem (cek2ckStack s)) (thm65a _ s' q)
+thm65a ((s , (V-I⇒ b {am = suc _} x ·-)) ◅ V) s' (step* refl q) = CK.step* (dischargeB'-lem (cek2ckStack s)) (thm65a _ s' q)
 thm65a ((s , -·⋆ A) ◅ V-Λ M ρ) s' (step* refl q) = CK.step* (dischargeBody⋆-lem M ρ) (thm65a _ s' q)
-thm65a ((s , -·⋆ A) ◅ V-IΠ b {as' = []} p x) s' (step* refl q) = CK.step*
-  (cong (cek2ckStack s CK.▻_) (BUILTIN-lem b (bubble p) (app⋆ p x refl)))
-  (thm65a _ s' q)
-thm65a ((s , -·⋆ A) ◅ V-IΠ b {as' = x₁ ∷ as'} p x) s' (step* refl q) = CK.step* (dischargeB-lem (cek2ckStack s)) (thm65a _ s' q)
+thm65a ((s , -·⋆ A) ◅ V-IΠ b x) s' (step* refl q) = CK.step* (dischargeB-lem (cek2ckStack s)) (thm65a _ s' q)
 thm65a ((s , wrap-) ◅ V) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
 thm65a ((s , unwrap-) ◅ V-wrap V) s' (step* refl q) = CK.step* (cong (cek2ckStack s CK.▻_) (discharge-lem V)) (CK.step** (CK.lemV _ (cek2ckVal V) (cek2ckStack s)) (thm65a _ s' q))
 thm65a (□ V) s' (step* refl q) = CK.step* refl (thm65a _ s' q)
@@ -244,7 +268,7 @@ postulate cek2ckClos-wraplem : ∀{K}{A}{B : ∅ ⊢Nf⋆ K}{L}{Γ}{ρ : Env Γ}
 
 postulate cek2ckClos-unwraplem : ∀{K}{A}{B : ∅ ⊢Nf⋆ K}{L : ∅ ⊢ μ A B}{Γ}{ρ : Env Γ}{N : Γ ⊢ _} → (p : unwrap L refl ≡ cek2ckClos N ρ) → (∃ λ L' → N ≡ unwrap L' refl × L ≡ cek2ckClos L' ρ)
 
-postulate cek2ckClos-conlem : ∀{tc : TyCon ∅}(c : TermCon (con tc)){Γ}{M' : Γ ⊢ con tc}{ρ : Env Γ} → con c ≡ cek2ckClos M' ρ → M' ≡ con c ⊎ ∃ λ x → M' ≡ ` x × V-con c ≡ lookup x ρ
+postulate cek2ckClos-conlem : ∀{A : ∅ ⊢Nf⋆ ♯}(c : ⟦ A ⟧){Γ}{M' : Γ ⊢ con A}{ρ : Env Γ} → con c refl ≡ cek2ckClos M' ρ → M' ≡ con c refl ⊎ ∃ λ x → M' ≡ ` x × V-con c ≡ lookup x ρ
 
 postulate cek2ckClos-ibuiltinlem : ∀{b}{Γ}{M' : Γ ⊢ btype b}{ρ : Env Γ} → builtin b / refl ≡ cek2ckClos M' ρ → (M' ≡ builtin b / refl × ∃ λ p → substEq Red.Value p (Red.ival b) ≡ cek2ckVal (ival b)) ⊎ ∃ λ x → M' ≡ ` x × ∃ λ (p : builtin b / refl ≡ discharge (lookup x ρ)) → substEq Red.Value p (Red.ival b) ≡ cek2ckVal (lookup x ρ)
 
@@ -331,12 +355,12 @@ thm65b {M = unwrap M refl} {s = s}{M' = N}{ρ = ρ} {s' = s'} p q (CK.step* refl
   with cek2ckClos-unwraplem {ρ = ρ}{N = N} p
 ... | L' ,, refl ,, x2 with thm65b x2 (cong (CK._, Red.unwrap-) q) r
 ... | V' ,, r' ,, y1 ,, y2 = _ ,, step* refl r' ,, y1 ,, y2
-thm65b {M = con c}{s = s}{M' = M'}{ρ = ρ}{s' = s'} p q (CK.step* refl r)
+thm65b {M = con c refl}{s = s}{M' = M'}{ρ = ρ}{s' = s'} p q (CK.step* refl r)
   with thm65bV refl refl q r
-... | W ,, r' ,, x1 ,, x2
-  with cek2ckClos-conlem c {M' = M'}{ρ = ρ} p
+... | W ,, r' ,, x1 ,, x2 with cek2ckClos-conlem c {M' = M'}{ρ = ρ} p
 ... | inj₁ refl = _ ,, step* refl r' ,, x1 ,, x2
 ... | inj₂ (var ,, refl ,, y2) = _ ,, step* (cong (s' ◅_) (sym y2)) r' ,, x1 ,, x2
+
 
 thm65b {M = builtin b / refl} {s = s}{M' = N}{ρ = ρ}{s' = s'} p q (CK.step* refl r)
   with cek2ckClos-ibuiltinlem {M' = N}{ρ = ρ} p
@@ -366,9 +390,9 @@ thm65bV {s = s CK., (x₁ Red.·-)} {W = W} {s' = s'} p q r (CK.step* refl x)
 thm65bV {M = _} {.(cek2ckStack fst) CK., (.(cek2ckVal (V-ƛ M x₁)) Red.·-)} {W = W} {_} {.(fst , (V-ƛ M x₁ ·-))} refl refl r (CK.step* refl x) | fst ,, .(V-ƛ M x₁ ·-) ,, refl ,, refl ,, z1 | V-ƛ M x₁ ,, refl ,, refl ,, refl
   with thm65b (dischargeBody-lem' M x₁ _) refl x
 ... | V'' ,, x' ,, refl ,, refl = _ ,, step* refl x' ,, refl ,, refl
-thm65bV {M = _} {.(cek2ckStack fst) CK., (.(cek2ckVal (V-I⇒ b p₁ x₁)) Red.·-)} {W = W} {_} {.(fst , (V-I⇒ b p₁ x₁ ·-))} refl refl r (CK.step* refl x) | fst ,, .(V-I⇒ b p₁ x₁ ·-) ,, refl ,, refl ,, z1 | V-I⇒ b {as' = []} p₁ x₁ ,, refl ,, refl ,, refl with thm65b (BUILTIN-lem b (bubble p₁) (app p₁ x₁ _)) refl x
+thm65bV {M = _} {.(cek2ckStack fst) CK., (.(cek2ckVal (V-I⇒ b x₁)) Red.·-)} {W = W} {_} {.(fst , (V-I⇒ b x₁ ·-))} refl refl r (CK.step* refl x) | fst ,, .(V-I⇒ b x₁ ·-) ,, refl ,, refl ,, z1 | V-I⇒ b {am = 0} x₁ ,, refl ,, refl ,, refl with thm65b (BUILTIN-lem b (x₁ $ _)) refl x
 ... | V' ,, r' ,, y1 ,, y2 = V' ,, step* refl r' ,, y1 ,, y2
-thm65bV {M = _} {.(cek2ckStack fst) CK., (.(cek2ckVal (V-I⇒ b p₁ x₁)) Red.·-)} {W = W} {_} {.(fst , (V-I⇒ b p₁ x₁ ·-))} refl refl r (CK.step* refl x) | fst ,, .(V-I⇒ b p₁ x₁ ·-) ,, refl ,, refl ,, z1 | V-I⇒ b {as' = x₂ ∷ as'} p₁ x₁ ,, refl ,, refl ,, refl with thm65bV dischargeB-lem'  dischargeB-lem'' refl x
+thm65bV {M = _} {.(cek2ckStack fst) CK., (.(cek2ckVal (V-I⇒ b x₁)) Red.·-)} {W = W} {_} {.(fst , (V-I⇒ b x₁ ·-))} refl refl r (CK.step* refl x) | fst ,, .(V-I⇒ b x₁ ·-) ,, refl ,, refl ,, z1 | V-I⇒ b {am = suc _} x₁ ,, refl ,, refl ,, refl with thm65bV dischargeB-lem'  dischargeB-lem'' refl x
 ... | V' ,, r' ,, y1 ,, y2 = V' ,, step* refl r' ,, y1 ,, y2
 thm65bV {s = s CK., Red.-·⋆ A} {W = .(cek2ckVal (V-Λ M x₁))} {V-Λ M x₁} {s' = s'} refl refl r (CK.step* refl x)
   with cek2ckStack-,lem _ _ _ r
@@ -377,18 +401,11 @@ thm65bV {s = s CK., Red.-·⋆ A} {W = .(cek2ckVal (V-Λ M x₁))} {V-Λ M x₁}
 ... | f ,, x' ,, refl ,, z2
   with cek2ckFrame--·⋆lem x2 z1
 ... | refl = _ ,, step* refl x' ,, refl ,, z2
-thm65bV {s = s CK., Red.-·⋆ A} {W = .(cek2ckVal (V-IΠ b p x₁))} {V-IΠ b {as' = []} p x₁} {s' = s'} refl refl r (CK.step* refl x)
+thm65bV {s = s CK., Red.-·⋆ A} {W = .(cek2ckVal (V-IΠ b x₁))} {V-IΠ b x₁} {s' = s'} refl refl r (CK.step* refl x)
   with cek2ckStack-,lem _ _ _ r
 ... | x1 ,, x2 ,, refl ,, z0 ,, z1
   with cek2ckFrame--·⋆lem x2 z1
-... | refl
-  with thm65b (BUILTIN-lem b (bubble p) (app⋆ p x₁ refl)) z0 x
-... | V' ,, r' ,, y1 ,, y2 = V' ,, step* refl r' ,, y1 ,, y2
-thm65bV {s = s CK., Red.-·⋆ A} {W = .(cek2ckVal (V-IΠ b p x₁))} {V-IΠ b {as' = x₂ ∷ as'} p x₁} {s' = s'} refl refl r (CK.step* refl x)
-  with cek2ckStack-,lem _ _ _ r
-... | x1 ,, x2 ,, refl ,, z0 ,, z1
-  with cek2ckFrame--·⋆lem x2 z1
-... | refl with thm65bV (dischargeB-lem' {b = b}{x = app⋆ p x₁ refl}) dischargeB-lem'' z0 x
+... | refl with thm65bV (dischargeB-lem' {b = b}{x = x₁ $$ refl}) dischargeB-lem'' z0 x
 ... | V' ,, x' ,, y1 ,, y2 = V' ,, step* refl x' ,, y1 ,, y2
 thm65bV {s = s CK., Red.wrap- } {W = W} {s' = s'} refl q r (CK.step* refl x)
   with cek2ckStack-,lem _ _ _ r

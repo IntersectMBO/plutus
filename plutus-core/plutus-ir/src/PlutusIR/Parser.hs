@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections     #-}
 
 -- | Parsers for PIR terms in DefaultUni.
 
@@ -15,17 +16,20 @@ module PlutusIR.Parser
 import PlutusCore.Annotation
 import PlutusCore.Default qualified as PLC (DefaultFun, DefaultUni)
 import PlutusCore.Parser hiding (parseProgram, program)
+import PlutusCore.Version
 import PlutusIR as PIR
 import PlutusIR.MkPir qualified as PIR
 import PlutusPrelude
 import Prelude hiding (fail)
 
+import Control.Monad (fail)
 import Control.Monad.Combinators.NonEmpty qualified as NE
 import Control.Monad.Except (MonadError)
 import Data.Text (Text)
 import PlutusCore (MonadQuote)
 import PlutusCore.Error (AsParserErrorBundle)
 import Text.Megaparsec hiding (ParseError, State, many, parse, some)
+import Text.Megaparsec.Char.Lexer qualified as Lex
 
 -- | A parsable PIR pTerm.
 type PTerm = PIR.Term TyName Name PLC.DefaultUni PLC.DefaultFun SrcSpan
@@ -99,17 +103,31 @@ errorTerm :: Parametric
 errorTerm _tm = withSpan $ \sp ->
     inParens $ PIR.error sp <$> (symbol "error" *> pType)
 
+constrTerm :: Parametric
+constrTerm tm = withSpan $ \sp -> inParens $ do
+    res <- PIR.constr sp <$> (symbol "constr" *> pType) <*> lexeme Lex.decimal <*> many tm
+    whenVersion (\v -> v < plcVersion110) $ fail "'constr' is not allowed before version 1.1.0"
+    pure res
+
+caseTerm :: Parametric
+caseTerm tm = withSpan $ \sp -> inParens $ do
+    res <- PIR.kase sp <$> (symbol "case" *> pType) <*> tm <*> many tm
+    whenVersion (\v -> v < plcVersion110) $ fail "'case' is not allowed before version 1.1.0"
+    pure res
+
 letTerm :: Parser PTerm
 letTerm = withSpan $ \sp ->
     inParens $ Let sp <$> (symbol "let" *> recursivity) <*> NE.some (try binding) <*> pTerm
 
 appTerm :: Parametric
 appTerm tm = withSpan $ \sp ->
-    inBrackets $ PIR.mkIterApp sp <$> tm <*> some tm
+    -- TODO: should not use the same `sp` for all arguments.
+    inBrackets $ PIR.mkIterApp <$> tm <*> (fmap (sp,) <$> some tm)
 
 tyInstTerm :: Parametric
 tyInstTerm tm = withSpan $ \sp ->
-    inBraces $ PIR.mkIterInst sp <$> tm <*> some pType
+    -- TODO: should not use the same `sp` for all arguments.
+    inBraces $ PIR.mkIterInst <$> tm <*> (fmap (sp,) <$> some pType)
 
 pTerm :: Parser PTerm
 pTerm = leadingWhitespace go
@@ -126,16 +144,17 @@ pTerm = leadingWhitespace go
         , errorTerm go
         , tyInstTerm go
         , appTerm go
+        , constrTerm go
+        , caseTerm go
         ]
 
--- Note that PIR programs do not actually carry a version number
--- we (optionally) parse it all the same so we can parse all PLC code
 program :: Parser (Program TyName Name PLC.DefaultUni PLC.DefaultFun SrcSpan)
 program = leadingWhitespace go
   where
     go = do
-        prog <- withSpan $ \sp ->
-            inParens $ Program sp <$> (symbol "program" *> option () (void version) *> pTerm)
+        prog <- withSpan $ \sp -> inParens $ do
+          v <- symbol "program" *> version
+          withVersion v $ Program sp v <$> pTerm
         notFollowedBy anySingle
         pure prog
 

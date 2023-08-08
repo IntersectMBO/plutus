@@ -19,28 +19,37 @@ import PlutusCore.Pretty
 import Data.Either
 import PlutusCore.Error (ParserErrorBundle)
 
+data KIND = Star | Sharp | Arrow KIND KIND
+           deriving Show
+
 data RType = RTyVar Integer
            | RTyFun RType RType
-           | RTyPi (Kind ()) RType
-           | RTyLambda (Kind ()) RType
+           | RTyPi KIND RType
+           | RTyLambda KIND RType
            | RTyApp RType RType
            | RTyCon RTyCon
            | RTyMu RType RType
            deriving Show
 
-data RTyCon = RTyConInt
-            | RTyConBS
-            | RTyConStr
-            | RTyConBool
-            | RTyConUnit
-            | RTyConList RType
-            | RTyConPair RType RType
-            | RTyConData
+data AtomicTyCon = ATyConInt
+                 | ATyConBS
+                 | ATyConStr
+                 | ATyConUnit
+                 | ATyConBool
+                 | ATyConData
+                 | ATyConBLS12_381_G1_Element
+                 | ATyConBLS12_381_G2_Element
+                 | ATyConBLS12_381_MlResult
+              deriving Show
+
+data RTyCon = RTyConAtom AtomicTyCon
+            | RTyConList
+            | RTyConPair
             deriving Show
 
 
 data RTerm = RVar Integer
-           | RTLambda (Kind ()) RTerm
+           | RTLambda KIND RTerm
            | RTApp RTerm RType
            | RLambda RType RTerm
            | RApp RTerm RTerm
@@ -57,31 +66,56 @@ unIndex (Index n) = toInteger n
 convP :: Program NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun a -> RTerm
 convP (Program _ _ t) = conv t
 
+convK :: Kind a -> KIND
+convK (Type _)           = Star
+convK (KindArrow _ k k') = Arrow (convK k) (convK k')
+
 convT :: Type NamedTyDeBruijn DefaultUni a -> RType
 convT (TyVar _ (NamedTyDeBruijn x)) = RTyVar (unIndex (ndbnIndex x))
 convT (TyFun _ _A _B)               = RTyFun (convT _A) (convT _B)
-convT (TyForall _ _ _K _A)          = RTyPi (() <$ _K) (convT _A)
-convT (TyLam _ _ _K _A)             = RTyLambda (() <$ _K) (convT _A)
+convT (TyForall _ _ _K _A)          = RTyPi (convK _K) (convT _A)
+convT (TyLam _ _ _K _A)             = RTyLambda (convK _K) (convT _A)
 convT (TyApp _ _A _B)               = RTyApp (convT _A) (convT _B)
-convT (TyBuiltin _ b)               = RTyCon (convTyCon b)
+convT (TyBuiltin ann (SomeTypeIn (DefaultUniApply f x))) =
+     RTyApp (convT (TyBuiltin ann (SomeTypeIn f)))
+            (convT (TyBuiltin ann (SomeTypeIn x)))
+convT (TyBuiltin _ b)               = convTyCon b
 convT (TyIFix _ a b)                = RTyMu (convT a) (convT b)
 
-convTyCon :: SomeTypeIn DefaultUni -> RTyCon
-convTyCon (SomeTypeIn DefaultUniInteger)    = RTyConInt
-convTyCon (SomeTypeIn DefaultUniByteString) = RTyConBS
-convTyCon (SomeTypeIn DefaultUniString)     = RTyConStr
-convTyCon (SomeTypeIn DefaultUniBool)       = RTyConBool
-convTyCon (SomeTypeIn DefaultUniUnit)       = RTyConUnit
-convTyCon (SomeTypeIn DefaultUniData)       = RTyConData
-convTyCon (SomeTypeIn (DefaultUniApply DefaultUniProtoList a)) = RTyConList (RTyCon (convTyCon (SomeTypeIn a)))
-convTyCon (SomeTypeIn (DefaultUniApply (DefaultUniApply DefaultUniProtoPair a) b)) = RTyConPair (RTyCon (convTyCon (SomeTypeIn a))) (RTyCon (convTyCon (SomeTypeIn b)))
-convTyCon (SomeTypeIn (DefaultUniApply _ _)) = error "unsupported builtin type application"
-convTyCon (SomeTypeIn DefaultUniProtoList) = error "unsupported usage of builtin list type"
-convTyCon (SomeTypeIn DefaultUniProtoPair) = error "unsupported usage of builtin pair type"
+convTyCon :: SomeTypeIn DefaultUni -> RType
+convTyCon (SomeTypeIn DefaultUniInteger)              = RTyCon (RTyConAtom ATyConInt)
+convTyCon (SomeTypeIn DefaultUniByteString)           = RTyCon (RTyConAtom ATyConBS)
+convTyCon (SomeTypeIn DefaultUniString)               = RTyCon (RTyConAtom ATyConStr)
+convTyCon (SomeTypeIn DefaultUniBool)                 = RTyCon (RTyConAtom ATyConBool)
+convTyCon (SomeTypeIn DefaultUniUnit)                 = RTyCon (RTyConAtom ATyConUnit)
+convTyCon (SomeTypeIn DefaultUniData)                 = RTyCon (RTyConAtom ATyConData)
+convTyCon (SomeTypeIn DefaultUniBLS12_381_G1_Element) = RTyCon (RTyConAtom ATyConBLS12_381_G1_Element)
+convTyCon (SomeTypeIn DefaultUniBLS12_381_G2_Element) = RTyCon (RTyConAtom ATyConBLS12_381_G2_Element)
+convTyCon (SomeTypeIn DefaultUniBLS12_381_MlResult)   = RTyCon (RTyConAtom ATyConBLS12_381_MlResult)
+convTyCon (SomeTypeIn DefaultUniProtoList)            = RTyCon RTyConList
+convTyCon (SomeTypeIn DefaultUniProtoPair)            = RTyCon RTyConPair
+convTyCon (SomeTypeIn (DefaultUniApply _ _))          = error "unsupported builtin type application"
+
+
+{-
+convTyCon :: DefaultUni (Esc a) -> RType
+convTyCon DefaultUniInteger              = RTyCon (RTyConAtom ATyConInt)
+convTyCon DefaultUniByteString           = RTyCon (RTyConAtom ATyConBS)
+convTyCon DefaultUniString               = RTyCon (RTyConAtom ATyConStr)
+convTyCon DefaultUniBool                 = RTyCon (RTyConAtom ATyConBool)
+convTyCon DefaultUniUnit                 = RTyCon (RTyConAtom ATyConUnit)
+convTyCon DefaultUniData                 = RTyCon (RTyConAtom ATyConData)
+convTyCon DefaultUniBLS12_381_G1_Element = RTyCon (RTyConAtom ATyConBLS12_381_G1_Element)
+convTyCon DefaultUniBLS12_381_G2_Element = RTyCon (RTyConAtom ATyConBLS12_381_G2_Element)
+convTyCon DefaultUniBLS12_381_MlResult   = RTyCon (RTyConAtom ATyConBLS12_381_MlResult)
+convTyCon DefaultUniProtoList            = RTyCon RTyConList
+convTyCon DefaultUniProtoPair            = RTyCon RTyConPair
+convTyCon (DefaultUniApply _ _)          = error "unsupported builtin type application"
+-}
 
 conv :: Term NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun a -> RTerm
 conv (Var _ x)           = RVar (unIndex (ndbnIndex x))
-conv (TyAbs _ _ _K t)    = RTLambda (() <$ _K) (conv t)
+conv (TyAbs _ _ _K t)    = RTLambda (convK _K) (conv t)
 conv (TyInst _ t _A)     = RTApp (conv t) (convT _A)
 conv (LamAbs _ _ _A t)   = RLambda (convT _A) (conv t)
 conv (Apply _ t u)       = RApp (conv t) (conv u)
@@ -97,46 +131,39 @@ varTm i = NamedDeBruijn (T.pack [tmnames !! i]) deBruijnInitIndex
 varTy :: Int -> NamedDeBruijn
 varTy i = NamedDeBruijn (T.pack [tynames !! i]) deBruijnInitIndex
 
+unconvK :: KIND -> Kind ()
+unconvK (Arrow k k') = KindArrow () (unconvK k) (unconvK k')
+unconvK _            = Type ()
+
 -- this should take a level and render levels as names
 unconvT :: Int -> RType -> Type NamedTyDeBruijn DefaultUni ()
 unconvT i (RTyVar x)        =
   TyVar () (NamedTyDeBruijn (NamedDeBruijn (T.pack [tynames !! (i - fromIntegral x)]) (Index (fromInteger x))))
 unconvT i (RTyFun t u)      = TyFun () (unconvT i t) (unconvT i u)
 unconvT i (RTyPi k t)       =
-  TyForall () (NamedTyDeBruijn (varTy i)) k (unconvT (i+1) t)
-unconvT i (RTyLambda k t) = TyLam () (NamedTyDeBruijn (varTy i)) k (unconvT (i+1) t)
+  TyForall () (NamedTyDeBruijn (varTy i)) (unconvK k) (unconvT (i+1) t)
+unconvT i (RTyLambda k t) = TyLam () (NamedTyDeBruijn (varTy i)) (unconvK k) (unconvT (i+1) t)
 
 unconvT i (RTyApp t u)      = TyApp () (unconvT i t) (unconvT i u)
-unconvT i (RTyCon c)        = TyBuiltin () (unconvTyCon i c)
+unconvT i (RTyCon c)        = TyBuiltin () (unconvTyCon c)
 unconvT i (RTyMu t u)       = TyIFix () (unconvT i t) (unconvT i u)
 
-unconvTyCon :: Int -> RTyCon -> SomeTypeIn DefaultUni
-unconvTyCon i RTyConInt        = SomeTypeIn DefaultUniInteger
-unconvTyCon i RTyConBS         = SomeTypeIn DefaultUniByteString
-unconvTyCon i RTyConStr        = SomeTypeIn DefaultUniString
-unconvTyCon i RTyConBool       = SomeTypeIn DefaultUniBool
-unconvTyCon i RTyConUnit       = SomeTypeIn DefaultUniUnit
-unconvTyCon i (RTyConList (RTyCon a)) =
-  case unconvTyCon i a of
-    SomeTypeIn a' -> case decodeKindedUni (encodeUni a') of
-      Nothing -> error "encode;decode failed"
-      Just (SomeTypeIn (Kinded ka)) -> case checkStar @DefaultUni ka of
-        Nothing   -> error "higher kinded thing in list"
-        Just Refl -> SomeTypeIn (DefaultUniList ka)
-unconvTyCon i (RTyConList a) =
-  error "builtin lists of arbitrary type not supported"
-unconvTyCon i (RTyConPair (RTyCon a) (RTyCon b)) =
-  case (unconvTyCon i a,unconvTyCon i b) of
-    (SomeTypeIn a',SomeTypeIn b') ->
-      case (decodeKindedUni (encodeUni a'),decodeKindedUni (encodeUni b')) of
-        (Just (SomeTypeIn (Kinded ka)),Just (SomeTypeIn (Kinded kb))) ->
-          case (checkStar @DefaultUni ka,checkStar @DefaultUni kb) of
-            (Just Refl,Just Refl) -> SomeTypeIn (DefaultUniPair ka kb)
-            _                     -> error "higher kinded thing in pair"
-        _ -> error "encode;decode failed"
-unconvTyCon i (RTyConPair a b) =
-  error "builtin pairs of arbitrary type not supported"
-unconvTyCon i RTyConData       = SomeTypeIn DefaultUniData
+unconvTyCon :: RTyCon -> SomeTypeIn DefaultUni
+unconvTyCon (RTyConAtom ATyConInt)  = SomeTypeIn DefaultUniInteger
+unconvTyCon (RTyConAtom ATyConBS)   = SomeTypeIn DefaultUniByteString
+unconvTyCon (RTyConAtom ATyConStr)  = SomeTypeIn DefaultUniString
+unconvTyCon (RTyConAtom ATyConBool) = SomeTypeIn DefaultUniBool
+unconvTyCon (RTyConAtom ATyConUnit) = SomeTypeIn DefaultUniUnit
+unconvTyCon (RTyConAtom ATyConData) = SomeTypeIn DefaultUniData
+unconvTyCon (RTyConAtom ATyConBLS12_381_G1_Element)
+                                    = SomeTypeIn DefaultUniBLS12_381_G1_Element
+unconvTyCon (RTyConAtom ATyConBLS12_381_G2_Element)
+                                    = SomeTypeIn DefaultUniBLS12_381_G2_Element
+unconvTyCon (RTyConAtom ATyConBLS12_381_MlResult)
+                                    = SomeTypeIn DefaultUniBLS12_381_MlResult
+unconvTyCon RTyConList              = SomeTypeIn DefaultUniProtoList
+unconvTyCon RTyConPair              = SomeTypeIn DefaultUniProtoPair
+
 
 tmnames = ['a' .. 'z']
 --tynames = ['α','β','γ','δ','ε','ζ','θ','ι','κ','ν','ξ','ο','π','ρ','σ','τ','υ','ϕ','χ','ψ','ω']
@@ -145,7 +172,7 @@ tynames = ['A' .. 'Z']
 unconv :: Int -> RTerm -> Term NamedTyDeBruijn NamedDeBruijn DefaultUni DefaultFun ()
 unconv i (RVar x)          =
   Var () (NamedDeBruijn (T.pack [tmnames !! (i - fromInteger x )]) (Index (fromInteger x)))
-unconv i (RTLambda k tm)   = TyAbs () (NamedTyDeBruijn (varTy i)) k (unconv (i+1) tm)
+unconv i (RTLambda k tm)   = TyAbs () (NamedTyDeBruijn (varTy i)) (unconvK k) (unconv (i+1) tm)
 unconv i (RTApp t ty)      = TyInst () (unconv i t) (unconvT i ty)
 unconv i (RLambda ty tm)   = LamAbs () (varTm i) (unconvT (i+1) ty) (unconv (i+1) tm)
 unconv i (RApp t u)        = Apply () (unconv i t) (unconv i u)
