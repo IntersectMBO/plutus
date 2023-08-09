@@ -227,6 +227,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     type CostingPart uni ExtensionFun = ()
 
     data BuiltinVersion ExtensionFun = ExtensionFunV0 | ExtensionFunV1
+        deriving stock (Enum, Bounded, Show)
 
     toBuiltinMeaning :: forall val. HasMeaningIn uni val
                      => BuiltinVersion ExtensionFun

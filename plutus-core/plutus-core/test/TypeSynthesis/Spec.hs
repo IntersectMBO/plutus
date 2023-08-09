@@ -19,12 +19,11 @@ import PlutusCore.FsTree
 import PlutusCore.Pretty
 
 import PlutusCore.Examples.Builtins
-import PlutusCore.Examples.Everything (builtins, examples)
+import PlutusCore.Examples.Everything (examples)
 import PlutusCore.StdLib.Everything (stdLib)
 
 import Control.Monad (unless)
 import Control.Monad.Except (MonadError, runExcept)
-import System.FilePath ((</>))
 import Test.Tasty
 import Test.Tasty.Extras
 import Test.Tasty.HUnit
@@ -38,27 +37,10 @@ kindcheck ty = do
 
 typecheck
     :: (uni ~ DefaultUni, MonadError (Error uni fun ()) m, ToBuiltinMeaning uni fun)
-    => BuiltinVersion fun -> Term TyName Name uni fun () -> m ()
-typecheck ver term = do
-    _ <- runQuoteT $ do
-        tcConfig <- TypeCheckConfig defKindCheckConfig <$> builtinMeaningsToTypes ver ()
-        inferType tcConfig term
-    return ()
-
--- | Assert a 'Type' is well-kinded.
-assertWellKinded :: HasCallStack => Type TyName DefaultUni () -> Assertion
-assertWellKinded ty = case runExcept . runQuoteT $ kindcheck ty of
-    Left  err -> assertFailure $ "Kind error: " ++ displayPlcCondensedErrorClassic err
-    Right _   -> return ()
-
--- | Assert a 'Term' is well-typed.
-assertWellTyped
-    :: (HasCallStack, ToBuiltinMeaning DefaultUni fun, Pretty fun)
-    => BuiltinVersion fun
-    -> Term TyName Name DefaultUni fun () -> Assertion
-assertWellTyped ver term = case runExcept . runQuoteT $ typecheck ver term of
-    Left  err -> assertFailure $ "Type error: " ++ displayPlcCondensedErrorClassic err
-    Right _   -> return ()
+    => BuiltinVersion fun -> Term TyName Name uni fun () -> m (Normalized (Type TyName uni ()))
+typecheck ver term = runQuoteT $ do
+    tcConfig <- TypeCheckConfig defKindCheckConfig <$> builtinMeaningsToTypes ver ()
+    inferType tcConfig term
 
 -- | Assert a term is ill-typed.
 assertIllTyped
@@ -68,27 +50,32 @@ assertIllTyped
     -> (Error DefaultUni DefaultFun () -> Bool)
     -> Assertion
 assertIllTyped ver term isExpected = case runExcept . runQuoteT $ typecheck ver term of
-    Right () -> assertFailure $ "Well-typed: " ++ displayPlcCondensedErrorClassic term
+    Right _  -> assertFailure $ "Expected ill-typed but got well-typed: " ++ display term
     Left err -> do
         unless (isExpected err) $
             assertFailure $ "Got an unexpected error: " ++ displayPlcCondensedErrorClassic err
 
+nestedGoldenVsErrorOrThing :: (PrettyPlc e, PrettyReadable a) => String -> Either e a -> TestNested
+nestedGoldenVsErrorOrThing name =
+    nestedGoldenVsText name ".plc" . either displayPlcCondensedErrorClassic (display . AsReadable)
+
 foldAssertWell
     :: (ToBuiltinMeaning DefaultUni fun, Pretty fun)
     => BuiltinVersion fun
-    -> PlcFolderContents DefaultUni fun -> [TestTree]
-foldAssertWell ver =
-    foldPlcFolderContents
-        testGroup
-        (\name -> testCase name . assertWellKinded)
-        (\name -> testCase name . assertWellTyped ver)
+    -> PlcFolderContents DefaultUni fun
+    -> TestTree
+foldAssertWell ver
+    = runTestNestedIn ["plutus-core", "test", "TypeSynthesis"]
+    . testNested "Golden"
+    . foldPlcFolderContents testNested
+        (\name -> nestedGoldenVsErrorOrThing name . kindcheck)
+        (\name -> nestedGoldenVsErrorOrThing name . typecheck ver)
 
 test_typecheckAvailable :: TestTree
 test_typecheckAvailable =
     testGroup "Available"
-        [ testGroup "DefaultFun"   $ foldAssertWell def stdLib
-        , testGroup "ExtensionFun" $ foldAssertWell ExtensionFunV1 builtins
-        , testGroup "Both"         $ foldAssertWell def examples
+        [ foldAssertWell def stdLib
+        , foldAssertWell def examples
         ]
 
 -- | Self-application. An example of ill-typed term.
@@ -138,23 +125,25 @@ test_typecheckIllTyped =
                 _                            -> False
             ]
 
-test_typecheckFun :: (ToBuiltinMeaning DefaultUni fun, Show fun) => BuiltinVersion fun -> fun -> TestTree
-test_typecheckFun ver name = goldenVsDoc testName path doc where
-    testName = show name
-    path     = "plutus-core" </> "test" </> "TypeSynthesis" </> "Golden" </> (testName ++ ".plc.golden")
-    doc      = prettyPlcDef $ typeOfBuiltinFunction @DefaultUni ver name
-
 test_typecheckAllFun
     :: forall fun. (ToBuiltinMeaning DefaultUni fun, Show fun)
-    => BuiltinVersion fun
-    -> String -> TestTree
-test_typecheckAllFun ver name = testGroup name . map (test_typecheckFun ver) $ enumerate @fun
+    => String -> BuiltinVersion fun -> TestTree
+test_typecheckAllFun name ver
+    = runTestNestedIn ["plutus-core", "test", "TypeSynthesis", "Golden"]
+    . testNested name
+    . map testFun
+    $ enumerate @fun
+  where
+    testFun fun =
+        nestedGoldenVsErrorOrThing (show fun) . kindcheck $ typeOfBuiltinFunction ver fun
 
 test_typecheckDefaultFuns :: TestTree
 test_typecheckDefaultFuns =
-    testGroup "builtins"
-        [ test_typecheckAllFun @DefaultFun def "DefaultFun"
-        , test_typecheckAllFun @ExtensionFun def "ExtensionFun"
+    -- This checks that for each set of builtins the Plutus type of every builtin is the same
+    -- regardless of versioning.
+    testGroup "builtins" $ concat
+        [ map (test_typecheckAllFun @DefaultFun "DefaultFun") enumerate
+        , map (test_typecheckAllFun @ExtensionFun "ExtensionFun") enumerate
         ]
 
 test_typecheck :: TestTree

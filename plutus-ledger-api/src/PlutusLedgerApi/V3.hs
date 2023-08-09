@@ -12,6 +12,23 @@ module PlutusLedgerApi.V3 (
     -- * Running scripts
     , evaluateScriptRestricting
     , evaluateScriptCounting
+    -- ** CIP-1694
+    , ColdCommitteeCredential (..)
+    , HotCommitteeCredential (..)
+    , DRepCredential (..)
+    , DRep (..)
+    , Delegatee (..)
+    , AnchorDataHash (..)
+    , Anchor (..)
+    , TxCert (..)
+    , Voter (..)
+    , Vote (..)
+    , GovernanceActionId (..)
+    , VotingProcedure (..)
+    , Committee (..)
+    , Constitution (..)
+    , GovernanceAction (..)
+    , ProposalProcedure (..)
     -- ** Protocol version
     , ProtocolVersion (..)
     -- ** Verbose mode and log output
@@ -19,9 +36,9 @@ module PlutusLedgerApi.V3 (
     , LogOutput
     -- * Costing-related types
     , ExBudget (..)
-    , ExCPU (..)
-    , ExMemory (..)
-    , SatInt
+    , V2.ExCPU (..)
+    , V2.ExMemory (..)
+    , V2.SatInt
     -- ** Cost model
     , EvaluationContext
     , mkEvaluationContext
@@ -34,90 +51,86 @@ module PlutusLedgerApi.V3 (
     , ScriptPurpose(..)
     -- ** Supporting types used in the context types
     -- *** ByteStrings
-    , BuiltinByteString
-    , toBuiltin
-    , fromBuiltin
+    , V2.BuiltinByteString
+    , V2.toBuiltin
+    , V2.fromBuiltin
     -- *** Bytes
-    , LedgerBytes (..)
-    , fromBytes
-    -- *** Certificates
-    , DCert(..)
+    , V2.LedgerBytes (..)
+    , V2.fromBytes
     -- *** Credentials
-    , StakingCredential(..)
-    , Credential(..)
+    , V2.StakingCredential(..)
+    , V2.Credential(..)
     -- *** Value
-    , Value (..)
-    , CurrencySymbol (..)
-    , TokenName (..)
-    , singleton
-    , unionWith
-    , adaSymbol
-    , adaToken
+    , V2.Value (..)
+    , V2.CurrencySymbol (..)
+    , V2.TokenName (..)
+    , V2.singleton
+    , V2.unionWith
+    , V2.adaSymbol
+    , V2.adaToken
     -- *** Time
-    , POSIXTime (..)
-    , POSIXTimeRange
+    , V2.POSIXTime (..)
+    , V2.POSIXTimeRange
     -- *** Types for representing transactions
-    , Address (..)
-    , PubKeyHash (..)
-    , TxId (..)
+    , V2.Address (..)
+    , V2.PubKeyHash (..)
+    , V2.TxId (..)
     , TxInfo (..)
-    , TxOut(..)
-    , TxOutRef(..)
-    , TxInInfo(..)
-    , OutputDatum (..)
+    , V2.TxOut(..)
+    , V2.TxOutRef(..)
+    , V2.TxInInfo(..)
+    , V2.OutputDatum (..)
     -- *** Intervals
-    , Interval (..)
-    , Extended (..)
-    , Closure
-    , UpperBound (..)
-    , LowerBound (..)
-    , always
-    , from
-    , to
-    , lowerBound
-    , upperBound
-    , strictLowerBound
-    , strictUpperBound
+    , V2.Interval (..)
+    , V2.Extended (..)
+    , V2.Closure
+    , V2.UpperBound (..)
+    , V2.LowerBound (..)
+    , V2.always
+    , V2.from
+    , V2.to
+    , V2.lowerBound
+    , V2.upperBound
+    , V2.strictLowerBound
+    , V2.strictUpperBound
     -- *** Association maps
-    , Map
-    , fromList
+    , V2.Map
+    , V2.fromList
     -- *** Newtypes and hash types
-    , ScriptHash (..)
-    , Redeemer (..)
-    , RedeemerHash (..)
-    , Datum (..)
-    , DatumHash (..)
+    , V2.ScriptHash (..)
+    , V2.Redeemer (..)
+    , V2.RedeemerHash (..)
+    , V2.Datum (..)
+    , V2.DatumHash (..)
     -- * Data
-    , Data (..)
-    , BuiltinData (..)
-    , ToData (..)
-    , FromData (..)
-    , UnsafeFromData (..)
-    , toData
-    , fromData
-    , dataToBuiltinData
-    , builtinDataToData
+    , V2.Data (..)
+    , V2.BuiltinData (..)
+    , V2.ToData (..)
+    , V2.FromData (..)
+    , V2.UnsafeFromData (..)
+    , V2.toData
+    , V2.fromData
+    , V2.dataToBuiltinData
+    , V2.builtinDataToData
     -- * Errors
-    , EvaluationError (..)
-    , ScriptDecodeError (..)
+    , V2.EvaluationError (..)
+    , V2.ScriptDecodeError (..)
     ) where
 
 import Control.Monad.Except (MonadError)
 
-import PlutusLedgerApi.Common as Common hiding (assertScriptWellFormed, evaluateScriptCounting,
-                                         evaluateScriptRestricting)
-import PlutusLedgerApi.Common qualified as Common (assertScriptWellFormed, evaluateScriptCounting,
+import PlutusLedgerApi.Common as Common hiding (ProtocolVersion (..), assertScriptWellFormed,
+                                         evaluateScriptCounting, evaluateScriptRestricting)
+import PlutusLedgerApi.Common qualified as Common (ProtocolVersion (..), assertScriptWellFormed,
+                                                   evaluateScriptCounting,
                                                    evaluateScriptRestricting)
-import PlutusLedgerApi.V1 hiding (ParamName, ScriptContext (..), TxInInfo (..), TxInfo (..),
-                           TxOut (..), assertScriptWellFormed, evaluateScriptCounting,
-                           evaluateScriptRestricting, mkEvaluationContext)
-import PlutusLedgerApi.V2.Contexts
-import PlutusLedgerApi.V2.Tx (OutputDatum (..))
+import PlutusLedgerApi.V2 qualified as V2 hiding (ScriptContext (..), ScriptPurpose (..),
+                                           TxInfo (..))
+import PlutusLedgerApi.V3.Contexts
 import PlutusLedgerApi.V3.EvaluationContext
 import PlutusLedgerApi.V3.ParamName
 
 import PlutusCore.Data qualified as PLC
-import PlutusTx.AssocMap (Map, fromList)
 
 -- | An alias to the Plutus ledger language this module exposes at runtime.
 --  MAYBE: Use CPP '__FILE__' + some TH to automate this.
@@ -127,7 +140,7 @@ thisLedgerLanguage = PlutusV3
 -- | Check if a 'Script' is "valid" according to a protocol version. At the moment this means "deserialises correctly", which in particular
 -- implies that it is (almost certainly) an encoded script and the script does not mention any builtins unavailable in the given protocol version.
 assertScriptWellFormed :: MonadError ScriptDecodeError m
-                       => ProtocolVersion -- ^ which protocol version to run the operation in
+                       => Common.ProtocolVersion -- ^ which protocol version to run the operation in
                        -> SerialisedScript -- ^ the script to check for well-formedness
                        -> m ()
 assertScriptWellFormed = Common.assertScriptWellFormed thisLedgerLanguage
@@ -137,7 +150,7 @@ assertScriptWellFormed = Common.assertScriptWellFormed thisLedgerLanguage
 -- limit the execution time of the script also, you can use 'evaluateScriptRestricting', which
 -- also returns the used budget.
 evaluateScriptCounting
-    :: ProtocolVersion -- ^ which protocol version to run the operation in
+    :: Common.ProtocolVersion -- ^ which protocol version to run the operation in
     -> VerboseMode     -- ^ Whether to produce log output
     -> EvaluationContext -- ^ Includes the cost model to use for tallying up the execution costs
     -> SerialisedScript          -- ^ The script to evaluate
@@ -152,7 +165,7 @@ evaluateScriptCounting = Common.evaluateScriptCounting thisLedgerLanguage
 -- Can be used to calculate budgets for scripts, but even in this case you must give
 -- a limit to guard against scripts that run for a long time or loop.
 evaluateScriptRestricting
-    :: ProtocolVersion -- ^ which protocol version to run the operation in
+    :: Common.ProtocolVersion -- ^ which protocol version to run the operation in
     -> VerboseMode     -- ^ Whether to produce log output
     -> EvaluationContext -- ^ Includes the cost model to use for tallying up the execution costs
     -> ExBudget        -- ^ The resource budget which must not be exceeded during evaluation

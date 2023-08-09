@@ -1,0 +1,1 @@
+all a b. pair a b -> pair b a

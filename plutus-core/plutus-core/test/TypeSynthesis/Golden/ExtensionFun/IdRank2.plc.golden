@@ -1,0 +1,1 @@
+all (f :: * -> *). (all b. f b) -> (all b. f b)

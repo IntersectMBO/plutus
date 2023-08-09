@@ -1,0 +1,21 @@
+all a b.
+  a ->
+  b ->
+  ifix
+    (\(rec :: ((* -> * -> *) -> *) -> *) (spine :: (* -> * -> *) -> *) ->
+       spine
+         (\a b ->
+            all r.
+              r ->
+              (a -> b -> rec (\(dat :: * -> * -> *) -> dat b a) -> r) ->
+              r))
+    (\(dat :: * -> * -> *) -> dat b a) ->
+  ifix
+    (\(rec :: ((* -> * -> *) -> *) -> *) (spine :: (* -> * -> *) -> *) ->
+       spine
+         (\a b ->
+            all r.
+              r ->
+              (a -> b -> rec (\(dat :: * -> * -> *) -> dat b a) -> r) ->
+              r))
+    (\(dat :: * -> * -> *) -> dat a b)

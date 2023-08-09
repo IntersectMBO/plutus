@@ -1,8 +1,0 @@
-(all
-  a
-  (type)
-  (fun
-    [ (con list) [ [ (con pair) a ] (con bool) ] ]
-    [ (con list) [ [ (con pair) (con bool) ] a ] ]
-  )
-)

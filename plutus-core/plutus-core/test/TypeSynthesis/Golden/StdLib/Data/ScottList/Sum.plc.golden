@@ -1,0 +1,2 @@
+ifix (\(list :: * -> *) a -> all r. r -> (a -> list a -> r) -> r) integer ->
+integer

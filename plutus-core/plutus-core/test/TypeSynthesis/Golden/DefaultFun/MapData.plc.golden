@@ -1,0 +1,1 @@
+list (pair data data) -> data

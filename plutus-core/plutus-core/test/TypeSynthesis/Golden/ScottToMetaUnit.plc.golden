@@ -1,1 +1,0 @@
-(fun (all a (type) (fun a a)) (con unit))

@@ -1,0 +1,3 @@
+all a b a b.
+  (all Q. ((a -> b) -> (a -> b) -> Q) -> (a -> b) -> (a -> b) -> Q) ->
+  (all Q. ((a -> b) -> (a -> b) -> Q) -> Q)

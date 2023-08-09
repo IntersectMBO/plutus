@@ -53,6 +53,7 @@ import Data.Aeson (FromJSON (parseJSON), ToJSON (toJSON), object, withObject, (.
 import GHC.Real qualified as Ratio
 import Prelude (Ord (..), Show, (*))
 import Prelude qualified as Haskell
+import Prettyprinter (Pretty (..), (<+>))
 
 -- | Represents an arbitrary-precision ratio.
 data Rational = Rational Integer Integer
@@ -60,6 +61,9 @@ data Rational = Rational Integer Integer
     Haskell.Eq,
     Show
     )
+
+instance Pretty Rational where
+  pretty (Rational a b) = "Rational:" <+> pretty a <+> pretty b
 
 -- We maintain two invariants for Rational:
 --
