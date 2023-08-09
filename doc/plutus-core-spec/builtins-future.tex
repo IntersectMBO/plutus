@@ -9,13 +9,17 @@
 
 \section{Future Built-in Types and Functions}
 \label{appendix:default-builtins-future}
-A future release will add support for BLS12-381 elliptic curve pairing
-operations
-(see~\cite{BLS12-381}, \cite[4.2.1]{IETF-pairing-friendly-curves}, \cite{BLST-library}).
-This involves adding three new types and seventeen new built-in functions.  The
-description of the semantics of these types and functions is quite complex and
-requires a considerable amount of notation, most of which is used only in this
-section.
+A future release will add support for
+\begin{itemize}
+\item BLS12-381 elliptic curve pairing operations
+(see~\cite{BLS12-381}, \cite[4.2.1]{IETF-pairing-friendly-curves}, \cite{BLST-library})
+\item The \texttt{Blake2b-224} and \texttt{Keccak-256} hash functions.
+\end{itemize}
+
+\noindent Supporting the BLS12-381 operations involves adding three new types
+and seventeen new built-in functions.  The description of the semantics of these
+types and functions is quite complex and requires a considerable amount of
+notation, most of which is used only in this section.
 
 \subsection{Built-in types}
 \label{sec:future-built-in-types}
@@ -191,6 +195,12 @@ this.
     \TT{bls12\_381\_finalVerify}  &
     $[ \TyMlResult$,
     \text{\; $\TyMlResult] \to \ty{bool}$} & $\phi$ & No & \ref{note:pairing}\\
+    \hline
+    \hline
+    \TT{blake2b\_224} & $[\ty{bytestring}] \to \ty{bytestring}$  & \text{Hash a $\ty{bytestring}$ using}
+                                                                   \TT{Blake2b-224}~\cite{IETF-Blake2}. &  & \\
+    \TT{keccak\_256}  & $[\ty{bytestring}] \to \ty{bytestring}$  & \text{Hash a $\ty{bytestring}$ using}
+                                                                   \TT{Keccak-256}~\cite{KeccakRef3}. &  & \\
     \hline
 \end{longtable}
 
