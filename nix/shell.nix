@@ -1,0 +1,30 @@
+{ nix, pkgs, ... }:
+
+{
+  name = "plutus-shell";
+
+  packages = [
+    nix.plutus.agda-with-stdlib
+
+    # R environment
+    nix.plutus.r-with-packages
+    pkgs.R
+
+    # Misc useful stuff, could make these commands but there's a lot already
+    pkgs.jekyll
+    pkgs.plantuml
+    pkgs.editorconfig-core-c
+    pkgs.jq
+    pkgs.pre-commit
+    pkgs.yq
+    pkgs.gnused
+    pkgs.awscli2
+    pkgs.act
+    pkgs.bzip2
+    pkgs.gawk
+
+    # Needed to make building things work, not for commands
+    pkgs.zlib
+    pkgs.cacert
+  ];
+}
