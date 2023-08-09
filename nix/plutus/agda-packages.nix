@@ -17,18 +17,17 @@
 # we have a few extra packages that it uses in our Haskell package set.
 let
 
-  Agda =
-    (nix.plutus.agda-project.hsPkgs.Agda;
+  Agda = nix.plutus.agda-project.hsPkgs.Agda;
 
-      frankenAgda = (pkgs.symlinkJoin {
-  name = "agda";
-  paths = [
-    Agda.components.exes.agda
-    Agda.components.exes.agda-mode
-  ];
+  frankenAgda = (pkgs.symlinkJoin {
+    name = "agda";
+    paths = [
+      Agda.components.exes.agda
+      Agda.components.exes.agda-mode
+    ];
   }) //
   {
-  version = Agda.identifier.version;
+    version = Agda.identifier.version;
   };
 
   frankenPkgs =

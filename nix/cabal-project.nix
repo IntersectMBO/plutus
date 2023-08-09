@@ -1,5 +1,7 @@
-{ nix, inputs, inputs', meta, config, l, pkgs, ... }:
+# This file is part of the IOGX template and is documented at the link below:
+# https://www.github.com/input-output-hk/iogx#33-nixcabal-projectnix
 
+{ nix, inputs, inputs', meta, config, l, pkgs, ... }:
 
 let
 
@@ -66,7 +68,7 @@ let
         cmp = config.hsPkgs.plutus-metatheory.components.tests.test1;
         deps = cmp.executableToolDepends;
       in
-      ''PATH=${lib.makeBinPath deps }:$PATH'';
+      ''PATH=${l.makeBinPath deps }:$PATH'';
 
     # FIXME: Somehow this is broken even with setting the path up as above
     plutus-metatheory.components.tests.test2.doCheck = false;
