@@ -11,11 +11,12 @@ specification](https://www.ietf.org/archive/id/draft-irtf-cfrg-pairing-friendly-
 cannot be used because they are **incorrect**.
 
 The other BLS12-381 conformance tests (in neighbouring directories of the
-current one) use inputs which were chosen semi-randomly and the outputs were
-generated using the Plutus Core implementations of the BLS12-381 built-in
-functions: thus they don't test against some independent source of truth,
-although they do guard against changes in the Plutus Core implementation and can
-be used to test other Plutus Core evaluators for compatibilty with the standard
-one.  Also, there are comprehensive property tests
+current one) test a wider range of properties, but their inputs were
+chosen semi-randomly and their outputs were generated using the Plutus Core
+implementations of the BLS12-381 built-in functions: thus they don't test
+against some independent source of truth, although they do guard against changes
+in the Plutus Core implementation and can be used to test other Plutus Core
+evaluators for compatibilty with the standard one.  Also, there are
+comprehensive property tests
 [here](https://github.com/input-output-hk/plutus/tree/master/plutus-core/untyped-plutus-core/test/Evaluation/Builtins)
 which may be converted into conformance tests at some point in the future.
