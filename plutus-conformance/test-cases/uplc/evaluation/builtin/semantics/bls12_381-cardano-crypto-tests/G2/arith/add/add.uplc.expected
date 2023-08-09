@@ -1,7 +1,1 @@
-(program
-  1.0.0
-  (con
-    bls12_381_G2_element
-    0xb3db03681aaf0d218be32f7cc94bd6a975c6870b4a1d4e461b77b60eee2461ca367154b0c4583b2d5f81124aa21fdf3e09ff6b54ce7c57572283a175fba381a32ac6f46abaf11cdbaeb206dcd7d4269caa4d0ebbb3adc1b8fce42ccfa855ea83
-  )
-)
+(program 1.0.0 (con bool True))
