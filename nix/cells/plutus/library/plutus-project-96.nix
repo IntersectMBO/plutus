@@ -1,2 +1,2 @@
 { inputs, cell }:
-cell.library.make-plutus-project { compiler-nix-name = "ghc961"; }
+cell.library.make-plutus-project { compiler-nix-name = "ghc96"; }
