@@ -9,7 +9,7 @@ import Prelude (Bool (..), otherwise)
 
 {- HLINT ignore -}
 
-{-# INLINABLE (&&) #-}
+{-# INLINE (&&) #-}
 -- | Logical AND
 --
 --   >>> True && False
@@ -19,7 +19,7 @@ infixr 3 &&
 (&&) :: Bool -> Bool -> Bool
 (&&) l ~r = if l then r else False
 
-{-# INLINABLE (||) #-}
+{-# INLINE (||) #-}
 -- | Logical OR
 --
 --   >>> True || False
