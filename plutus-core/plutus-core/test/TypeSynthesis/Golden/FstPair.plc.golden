@@ -1,1 +1,0 @@
-(all a (type) (all b (type) (fun [ [ (con pair) a ] b ] a)))

@@ -119,6 +119,7 @@ library
     PlutusCore.Evaluation.Result
     PlutusCore.Examples.Builtins
     PlutusCore.Examples.Data.Data
+    PlutusCore.Examples.Data.Function
     PlutusCore.Examples.Data.InterList
     PlutusCore.Examples.Data.List
     PlutusCore.Examples.Data.Pair
