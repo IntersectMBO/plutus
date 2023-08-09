@@ -128,7 +128,7 @@ library plutus-tx-testlib
     PlutusTx.Test
 
   build-depends:
-    , base                                                       >=4.9  && <5
+    , base                                                       >=4.9   && <5
     , flat                                                       ^>=0.6
     , hedgehog
     , lens
@@ -168,7 +168,7 @@ test-suite plutus-tx-test
   build-tool-depends: doctest:doctest
   build-depends:
     , aeson
-    , base                                            >=4.9  && <5
+    , base                                            >=4.9   && <5
     , base16-bytestring
     , bytestring
     , cborg

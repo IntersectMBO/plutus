@@ -85,7 +85,7 @@ library
     Prettyprinter.Extras
 
   build-depends:
-    , base               >=4.9  && <5
+    , base               >=4.9   && <5
     , base16-bytestring  >=1
     , bytestring
     , cborg
@@ -138,7 +138,7 @@ test-suite plutus-ledger-api-test
     Spec.Versions
 
   build-depends:
-    , base                                                              >=4.9  && <5
+    , base                                                              >=4.9   && <5
     , bytestring
     , containers
     , extra
@@ -163,7 +163,7 @@ executable evaluation-test
   ghc-options:      -threaded -rtsopts -with-rtsopts=-N
   build-depends:
     , async
-    , base                                                              >=4.9  && <5
+    , base                                                              >=4.9   && <5
     , extra
     , filepath
     , mtl

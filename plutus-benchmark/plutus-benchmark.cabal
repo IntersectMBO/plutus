@@ -68,7 +68,7 @@ library plutus-benchmark-common
 
   other-modules:   Paths_plutus_benchmark
   build-depends:
-    , base          >=4.9  && <5
+    , base          >=4.9   && <5
     , bytestring
     , criterion
     , directory
@@ -103,7 +103,7 @@ library nofib-internal
     PlutusBenchmark.NoFib.Queens
 
   build-depends:
-    , base                     >=4.9  && <5
+    , base                     >=4.9   && <5
     , deepseq
     , plutus-benchmark-common
     , plutus-core              ^>=1.10
@@ -116,7 +116,7 @@ executable nofib-exe
   hs-source-dirs: nofib/exe
   build-depends:
     , ansi-wl-pprint
-    , base                     >=4.9  && <5
+    , base                     >=4.9   && <5
     , bytestring
     , flat                     ^>=0.6
     , lens
@@ -162,7 +162,7 @@ test-suite plutus-benchmark-nofib-tests
   main-is:        Spec.hs
   hs-source-dirs: nofib/test
   build-depends:
-    , base                                            >=4.9  && <5
+    , base                                            >=4.9   && <5
     , nofib-internal
     , plutus-benchmark-common
     , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.10
@@ -192,7 +192,7 @@ library lists-internal
     PlutusBenchmark.Lists.Sort.QuickSort
 
   build-depends:
-    , base                     >=4.9  && <5
+    , base                     >=4.9   && <5
     , mtl
     , plutus-benchmark-common
     , plutus-core              ^>=1.10
@@ -204,7 +204,7 @@ executable list-sort-exe
   main-is:        Main.hs
   hs-source-dirs: lists/exe
   build-depends:
-    , base                     >=4.9  && <5
+    , base                     >=4.9   && <5
     , lists-internal
     , monoidal-containers
     , plutus-benchmark-common
@@ -231,7 +231,7 @@ test-suite plutus-benchmark-lists-tests
     Sum.Spec
 
   build-depends:
-    , base                             >=4.9  && <5
+    , base                             >=4.9   && <5
     , lists-internal
     , plutus-benchmark-common
     , plutus-core:plutus-core-testlib  ^>=1.10
@@ -335,7 +335,7 @@ executable ed25519-costs
   main-is:          Main.hs
   other-modules:    PlutusBenchmark.Ed25519.Common
   build-depends:
-    , base                     >=4.9  && <5
+    , base                     >=4.9   && <5
     , bytestring
     , cardano-crypto-class
     , hedgehog
@@ -358,7 +358,7 @@ test-suite ed25519-costs-test
   main-is:        Spec.hs
   other-modules:  PlutusBenchmark.Ed25519.Common
   build-depends:
-    , base                     >=4.9  && <5
+    , base                     >=4.9   && <5
     , bytestring
     , cardano-crypto-class
     , hedgehog
@@ -386,7 +386,7 @@ library bls12-381lib-internal
     PlutusBenchmark.BLS12_381.Scripts
 
   build-depends:
-    , base                     >=4.9  && <5
+    , base                     >=4.9   && <5
     , bytestring
     , cardano-crypto-class
     , deepseq
@@ -458,7 +458,7 @@ library script-contexts-internal
   hs-source-dirs:  script-contexts/src
   exposed-modules: PlutusBenchmark.ScriptContexts
   build-depends:
-    , base               >=4.9  && <5
+    , base               >=4.9   && <5
     , plutus-ledger-api  ^>=1.10
     , plutus-tx          ^>=1.10
     , plutus-tx-plugin   ^>=1.10
@@ -475,7 +475,7 @@ test-suite plutus-benchmark-script-contexts-tests
   hs-source-dirs: script-contexts/test
   other-modules:
   build-depends:
-    , base                                            >=4.9  && <5
+    , base                                            >=4.9   && <5
     , plutus-benchmark-common
     , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.10
     , plutus-tx:plutus-tx-testlib                     ^>=1.10
@@ -551,7 +551,7 @@ benchmark marlowe
   main-is:        Bench.hs
   hs-source-dirs: marlowe/bench
   build-depends:
-    , base                     >=4.9  && <5
+    , base                     >=4.9   && <5
     , criterion
     , marlowe-internal
     , plutus-benchmark-common
@@ -570,7 +570,7 @@ test-suite plutus-benchmark-marlowe-tests
   hs-source-dirs: marlowe/test
   other-modules:
   build-depends:
-    , base                                            >=4.9  && <5
+    , base                                            >=4.9   && <5
     , marlowe-internal
     , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.10
     , plutus-ledger-api                               ^>=1.10
