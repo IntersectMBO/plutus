@@ -245,7 +245,7 @@ data _⊢_ (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
       → (A : Vec (List (Φ ⊢Nf⋆ *)) n) -- The sum of products. We make it a Vector
                                       -- of lists, so that the tag is statically correct.
       
-      → ∀ {ts} → ts ≡ lookup A e      -- The reason to define it like this, rather than
+      → ∀ {ts} → ts ≡ lookup A i      -- The reason to define it like this, rather than
       → ConstrArgs Γ ts               -- simply ConstrArgs Γ (lookup A e) 
                                       -- is so that it is easier to construct terms (avoids using subst)
                                       -- as often the result of a function will not match definitionally
