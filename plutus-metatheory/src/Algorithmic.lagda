@@ -193,8 +193,10 @@ The actual type of terms
 \begin{code}
 mkCaseType : ∀{Φ} (A : Φ ⊢Nf⋆ *) → List (Φ ⊢Nf⋆ *) → Φ ⊢Nf⋆ *
 mkCaseType A = foldr _⇒_ A
+\end{code}
 
-infixl 7 _·⋆_/_
+We declare two auxiliary datatypes, which are mutually recursive with the type of terms,
+for constructor arguments and cases.
 
 data _⊢_ (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
   ` : ∀ {A : Φ ⊢Nf⋆ *}
