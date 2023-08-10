@@ -167,20 +167,31 @@ that we use the version of product and list from the Utils module.
 
 A term is indexed over by its context and type.  A term is a variable,
 an abstraction, an application, a type abstraction, a type
-application, a wrapping or unwrapping of a recursive type, a constant,
-a builtin function, or an error.
+application, a wrapping or unwrapping of a recursive type, a constructor, 
+a case, a constant, a builtin function, or an error.
 
 Constants of a builtin type A are given directly by its meaning ⟦ A ⟧, where
 A is restricted to kind ♯.
 
+The type of cases if a function consuming every type in a list.
+We construct it with the following function: 
 \begin{code}
 mkCaseType : ∀{Φ} (A : Φ ⊢Nf⋆ *) → List (Φ ⊢Nf⋆ *) → Φ ⊢Nf⋆ *
 mkCaseType A = foldr _⇒_ A
+\end{code}
 
-infixl 7 _·⋆_/_
+We declare two auxiliary datatypes, which are mutually recursive with the type of terms,
+for constructor arguments and cases.
 
+\begin{code}
 ConstrArgs : (Γ : Ctx Φ) → List (Φ ⊢Nf⋆ *) → Set
 data Cases (Γ : Ctx Φ) (B : Φ ⊢Nf⋆ *) : ∀{n} → Vec (List (Φ ⊢Nf⋆ *)) n → Set 
+\end{code}
+
+The actual type of terms
+
+\begin{code}
+infixl 7 _·⋆_/_
 
 data _⊢_ (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
   ` : ∀ {A : Φ ⊢Nf⋆ *}
@@ -229,10 +240,16 @@ data _⊢_ (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
     → Γ ⊢ C
 
   constr : ∀{n}
-      → (e : Fin n)
-      → (A : Vec (List (Φ ⊢Nf⋆ *)) n)
-      → ∀ {ts} → ts ≡ lookup A e
-      → ConstrArgs Γ ts
+      → (i : Fin n)                   -- The tag
+
+      → (A : Vec (List (Φ ⊢Nf⋆ *)) n) -- The sum of products. We make it a Vector
+                                      -- of lists, so that the tag is statically correct.
+      
+      → ∀ {ts} → ts ≡ lookup A e      -- The reason to define it like this, rather than
+      → ConstrArgs Γ ts               -- simply ConstrArgs Γ (lookup A e) 
+                                      -- is so that it is easier to construct terms (avoids using subst)
+                                      -- as often the result of a function will not match definitionally
+                                      -- with (lookup A e) but only propositionally.
         --------------------------------------
       → Γ ⊢ SOP A
 
@@ -261,6 +278,8 @@ data _⊢_ (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
 
 ConstrArgs Γ = IList (Γ ⊢_)
 
+-- Cases is indexed by a vector 
+-- so it can't be an IList
 data Cases Γ B where 
    []  : Cases Γ B []
    _∷_ : ∀{n}{AS}{ASS : Vec _ n}(
