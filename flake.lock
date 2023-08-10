@@ -117,6 +117,22 @@
         "type": "github"
       }
     },
+    "easy-purescript-nix": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1689933391,
+        "narHash": "sha256-jUuy2OzmxegEn0KT3u1uf87eGGA33+of9HodIqS3PLY=",
+        "owner": "justinwoo",
+        "repo": "easy-purescript-nix",
+        "rev": "5dcea83eecb56241ed72e3631d47e87bb11e45b9",
+        "type": "github"
+      },
+      "original": {
+        "owner": "justinwoo",
+        "repo": "easy-purescript-nix",
+        "type": "github"
+      }
+    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -416,6 +432,7 @@
     "iogx": {
       "inputs": {
         "CHaP": "CHaP",
+        "easy-purescript-nix": "easy-purescript-nix",
         "flake-utils": "flake-utils",
         "hackage": "hackage",
         "haskell-language-server-1_8_0_0": "haskell-language-server-1_8_0_0",
@@ -431,8 +448,11 @@
         "sphinxcontrib-haddock": "sphinxcontrib-haddock"
       },
       "locked": {
-        "lastModified": 1691533306,
-        "narHash": "sha256-YB3NZ/SQLKyBGkyjB/FRDfbSIaJVBe3OudD10tg+4pA=",
+        "lastModified": 1691673963,
+        "narHash": "sha256-ysa3pHrA2CTqsO7nXGU6PaOipbq+P2YIjRAcVZSpYtk=",
+        "ref": "refs/heads/main",
+        "rev": "84eb718a3560c6dec18edb86eb56c4acc48c6d9e",
+        "revCount": 124,
         "type": "git",
         "url": "file:///Users/zeme/Repos/iogx"
       },

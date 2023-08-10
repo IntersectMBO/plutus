@@ -7,6 +7,10 @@ pkgs.haskell-nix.hackage-project {
 
   compiler-nix-name = "ghc927";
 
+  cabalProjectLocal = ''
+    extra-packages: ieee754, filemanip
+  '';
+
   modules = [{
     # Agda is a huge pain. They have a special custom setup that compiles the
     # interface files for the Agda that ships with the compiler. These go in

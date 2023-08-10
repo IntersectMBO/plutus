@@ -5,4 +5,6 @@
 
 {
   documents = nix.plutus.latex-docs;
+
+  packages.plutus-metatheory-site = nix.plutus.plutus-metatheory-site;
 }

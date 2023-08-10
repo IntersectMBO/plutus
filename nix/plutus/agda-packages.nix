@@ -35,7 +35,7 @@ let
     {
       haskellPackages = pkgs.haskellPackages //
       {
-        # FIXME ghcWithPackages = project.ghcWithPackages;
+        inherit (nix.plutus.agda-project) ghcWithPackages;
       };
     };
 in

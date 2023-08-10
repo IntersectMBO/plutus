@@ -4,7 +4,7 @@
 { nix, pkgs, ... }:
 
 {
-  name = "plutus-shell";
+  name = "plutus";
 
   packages = [
     nix.plutus.agda-with-stdlib
@@ -16,9 +16,7 @@
     # Misc useful stuff, could make these commands but there's a lot already
     pkgs.jekyll
     pkgs.plantuml
-    pkgs.editorconfig-core-c
     pkgs.jq
-    pkgs.pre-commit
     pkgs.yq
     pkgs.gnused
     pkgs.awscli2

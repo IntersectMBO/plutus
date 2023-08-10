@@ -13,13 +13,7 @@
   enableCombinedHaddock = system == "x86_64-linux";
 
 
-  projectPackagesWithHaddock = [
-    "plutus-core"
-    "plutus-tx"
-    "plutus-tx-plugin"
-    "plutus-ledger-api"
-    "quickcheck-contractmodel"
-  ];
+  projectPackagesWithHaddock = [ ];
 
 
   combinedHaddockPrologue = ''
