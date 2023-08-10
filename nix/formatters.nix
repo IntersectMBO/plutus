@@ -8,4 +8,5 @@
   editorconfig-checker.enable = true;
   nixpkgs-fmt.enable = true;
   png-optimization.enable = true;
+  hlint.enable = true;
 }
