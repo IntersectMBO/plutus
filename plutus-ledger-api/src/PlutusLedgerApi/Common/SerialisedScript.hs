@@ -22,7 +22,8 @@ import PlutusTx.Code
 import UntypedPlutusCore qualified as UPLC
 -- this allows us to safe, 0-cost coerce from FND->ND. Unfortunately, since Coercible is symmetric,
 -- we cannot expose this safe Coercible FND ND w.o. also allowing the unsafe Coercible ND FND.
-import PlutusCore.DeBruijn.Internal (FakeNamedDeBruijn (FakeNamedDeBruijn))
+import PlutusCore.DeBruijn.Internal (fndSubOfNd)
+import UntypedPlutusCore.Subst (Program' (..))
 
 import Codec.CBOR.Decoding qualified as CBOR
 import Codec.CBOR.Extras as CBOR.Extras
@@ -39,6 +40,8 @@ import Data.ByteString.Short
 import Data.Coerce
 import Data.Set as Set
 import Prettyprinter
+
+import Data.Type.Coercion.Sub
 
 -- | An error that occurred during script deserialization.
 data ScriptDecodeError =
@@ -131,7 +134,7 @@ scriptCBORDecoder lv pv =
     in do
         -- Deserialise using 'FakeNamedDeBruijn' to get the fake names added
         (p :: UPLC.Program UPLC.FakeNamedDeBruijn DefaultUni DefaultFun ()) <- decodeViaFlat flatDecoder
-        pure $ coerce p
+        pure $ ScriptForExecution $ unProgram' $ upcastWith (mapR fndSubOfNd) (Program' p)
 
 -- | The deserialization from a serialised script to a Script (for execution).
 -- Called inside phase-1 validation (assertScriptWellFormed) and inside phase-2's `mkTermToEvaluate`

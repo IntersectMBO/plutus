@@ -102,6 +102,7 @@ library
     , serialise
     , tagged
     , text
+    , coercible-subtypes
 
 library plutus-ledger-api-testlib
   import:          lang

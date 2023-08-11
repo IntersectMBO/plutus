@@ -9,12 +9,13 @@ module UntypedPlutusCore.Subst
     , termMapNames
     , programMapNames
     , vTerm
+    , Program' (..)
     ) where
 
 import PlutusPrelude
 
 import UntypedPlutusCore.Core
-
+import Data.Bifunctor
 import Control.Lens
 
 purely :: ((a -> Identity b) -> c -> Identity d) -> (a -> b) -> c -> d
@@ -81,6 +82,11 @@ programMapNames
     -> Program name uni fun ann
     -> Program name' uni fun ann
 programMapNames f (Program a v term) = Program a v (termMapNames f term)
+
+newtype Program' uni fun ann name = Program' {unProgram' :: Program name uni fun ann}
+
+instance Functor (Program' uni fun ann) where
+    fmap f (Program' p) = Program' $ programMapNames f p
 
 -- TODO: this could be a Traversal
 -- | Get all the term variables in a term.

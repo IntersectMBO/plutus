@@ -16,7 +16,7 @@ module PlutusCore.DeBruijn.Internal (
   NamedDeBruijn (..),
   -- we follow the same approach as Renamed: expose the constructor from Internal module,
   -- but hide it in the parent module.
-  FakeNamedDeBruijn (..),
+  FakeNamedDeBruijn (unFakeNamedDeBruijn),
   TyDeBruijn (..),
   NamedTyDeBruijn (..),
   FreeVariableError (..),
@@ -43,6 +43,7 @@ module PlutusCore.DeBruijn.Internal (
   deBruijnInitIndex,
   toFake,
   fromFake,
+  fndSubOfNd
 ) where
 
 import PlutusCore.Name
@@ -65,6 +66,8 @@ import Prettyprinter
 import Control.DeepSeq (NFData)
 import Data.Coerce
 import GHC.Generics
+import Data.Type.Coercion.Sub
+
 
 {- NOTE: [Why newtype FakeNamedDeBruijn]
 We use a newtype wrapper to optimize away the expensive re-traversing of the deserialized Term
@@ -124,6 +127,10 @@ See NOTE: [Why newtype FakeNamedDeBruijn]
 -}
 newtype FakeNamedDeBruijn = FakeNamedDeBruijn { unFakeNamedDeBruijn :: NamedDeBruijn }
   deriving newtype (Show, Eq, NFData, PrettyBy config)
+
+-- | Witness that fnd is sub of nd
+fndSubOfNd :: Sub FakeNamedDeBruijn NamedDeBruijn
+fndSubOfNd = sub
 
 toFake :: DeBruijn -> FakeNamedDeBruijn
 toFake (DeBruijn ix) = FakeNamedDeBruijn $ NamedDeBruijn fakeName ix

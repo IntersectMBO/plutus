@@ -182,6 +182,7 @@ library
     UntypedPlutusCore.MkUPlc
     UntypedPlutusCore.Parser
     UntypedPlutusCore.Rename
+    UntypedPlutusCore.Subst
 
   other-modules:
     Data.Aeson.Flatten
@@ -240,7 +241,6 @@ library
     UntypedPlutusCore.Rename.Internal
     UntypedPlutusCore.Simplify
     UntypedPlutusCore.Size
-    UntypedPlutusCore.Subst
     UntypedPlutusCore.Transform.CaseOfCase
     UntypedPlutusCore.Transform.CaseReduce
     UntypedPlutusCore.Transform.FloatDelay
@@ -314,6 +314,7 @@ library
     , transformers
     , unordered-containers
     , witherable
+    , coercible-subtypes
 
   if impl(ghc <9.0)
     build-depends: integer-gmp
