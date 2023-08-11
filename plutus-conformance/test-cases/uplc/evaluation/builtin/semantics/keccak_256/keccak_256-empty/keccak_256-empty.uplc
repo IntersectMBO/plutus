@@ -1,4 +1,4 @@
--- Test vector (0-bit input) from ShortMsgKat.txt in
+-- Test vector (0-bit input) from ShortMsgKAT_256.txt in
 -- https://keccak.team/obsolete/KeccakKAT-3.zip.  The Keccak function we're
 -- testing here is the version used by Ethereum, which was the Keccak submission
 -- in round 3 of the SHA-3 competition.  The final SHA-3 hash function is a
