@@ -155,7 +155,7 @@ test-suite plutus-tx-tests
     TH.TestTH
 
   build-depends:
-    , base                                            >=4.9  && <5
+    , base                                            >=4.9   && <5
     , containers
     , deepseq
     , flat                                            ^>=0.6
@@ -183,7 +183,7 @@ test-suite size
   main-is:        Main.hs
   hs-source-dirs: test/size
   build-depends:
-    , base                                      >=4.9  && <5.0
+    , base                                      >=4.9   && <5.0
     , plutus-tx-plugin                          ^>=1.10
     , plutus-tx:{plutus-tx, plutus-tx-testlib}  ^>=1.10
     , tagged

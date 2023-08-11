@@ -79,7 +79,7 @@ test-suite prettyprinter-configurable-test
     Universal
 
   build-depends:
-    , base                        >=4.9  && <5
+    , base                        >=4.9   && <5
     , megaparsec
     , parser-combinators
     , prettyprinter-configurable  ^>=1.10

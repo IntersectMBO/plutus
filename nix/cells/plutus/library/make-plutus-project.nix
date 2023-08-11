@@ -80,6 +80,10 @@ let
             # FIXME: Haddock mysteriously gives a spurious missing-home-modules warning
             plutus-tx-plugin.doHaddock = false;
 
+            # Something goes wrong with the custom setup
+            # https://github.com/input-output-hk/haskell.nix/issues/2019
+            prettyprinter-configurable.doHaddock = false;
+
             # In this case we can just propagate the native dependencies for the build of
             # the test executable, which are actually set up right (we have a
             # build-tool-depends on the executable we need)
@@ -116,9 +120,9 @@ let
         # -Werror for CI
         # Only enable on the newer compilers. We don't care about warnings on the old ones,
         # and sometimes it's hard to be warning free on all compilers, e.g. the unused
-        # packages warning is bad in 8.10.7
+        # packages warning is bad in 8.10
         # (https://gitlab.haskell.org/ghc/ghc/-/merge_requests/6130)
-        (lib.mkIf (compiler-nix-name != "ghc8107") {
+        (lib.mkIf (compiler-nix-name != "ghc810") {
           packages = {
             # Werror everything.
             # This is a pain, see https://github.com/input-output-hk/haskell.nix/issues/519
