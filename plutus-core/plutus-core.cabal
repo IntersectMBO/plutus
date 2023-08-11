@@ -501,6 +501,7 @@ library plutus-ir
     PlutusIR.Transform.RecSplit
     PlutusIR.Transform.Rename
     PlutusIR.Transform.Substitute
+    PlutusIR.Transform.StrictifyBindings
     PlutusIR.Transform.ThunkRecursions
     PlutusIR.Transform.Unwrap
     PlutusIR.TypeCheck

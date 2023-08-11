@@ -36,7 +36,7 @@
       )
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl
         `$fOrdInteger_$ccompare`
         (fun (con integer) (fun (con integer) Ordering))
@@ -101,7 +101,7 @@
       )
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl
         `$fOrdInteger_$cmax`
         (fun (con integer) (fun (con integer) (con integer)))
@@ -140,7 +140,7 @@
       )
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl
         `$fOrdInteger_$cmin`
         (fun (con integer) (fun (con integer) (con integer)))
@@ -179,7 +179,7 @@
       )
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl equalsInteger (fun (con integer) (fun (con integer) Bool)))
       (lam
         x
@@ -199,7 +199,7 @@
       (builtin lessThanInteger)
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl
         greaterThanEqualsInteger (fun (con integer) (fun (con integer) Bool))
       )
@@ -214,7 +214,7 @@
       )
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl greaterThanInteger (fun (con integer) (fun (con integer) Bool)))
       (lam
         x
@@ -230,7 +230,7 @@
       )
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl
         lessThanEqualsInteger (fun (con integer) (fun (con integer) Bool))
       )
@@ -248,7 +248,7 @@
       )
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl lessThanInteger (fun (con integer) (fun (con integer) Bool)))
       (lam
         x
@@ -316,7 +316,7 @@
       ]
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl compare (all a (type) (fun [ Ord a ] (fun a (fun a Ordering)))))
       (abs
         a
@@ -356,7 +356,7 @@
       )
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl
         opCompare (all a (type) (fun [ Ord a ] (fun a (fun a Ordering))))
       )

@@ -81,7 +81,7 @@
       (builtin unConstrData)
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl
         `$fFromDataTuple2_$cfromBuiltinData`
         (all
@@ -355,7 +355,7 @@
       (builtin unIData)
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl
         `$fFromDataInteger_$cfromBuiltinData`
         (fun (con data) [ Maybe (con integer) ])
@@ -410,7 +410,7 @@
       ]
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl
         fromBuiltinData
         (all

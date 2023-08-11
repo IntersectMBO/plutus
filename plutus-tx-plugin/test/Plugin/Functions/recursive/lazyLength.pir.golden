@@ -21,14 +21,14 @@
         (builtin addInteger)
       )
       (termbind
-        (strict)
+        (nonstrict)
         (vardecl
           addInteger (fun (con integer) (fun (con integer) (con integer)))
         )
         (lam x (con integer) (lam y (con integer) [ [ addInteger x ] y ]))
       )
       (termbind
-        (strict)
+        (nonstrict)
         (vardecl lengthLazy (all a (type) (fun [ List a ] (con integer))))
         (abs
           a
@@ -36,7 +36,7 @@
           (let
             (rec)
             (termbind
-              (strict)
+              (nonstrict)
               (vardecl go (fun (con integer) (fun [ List a ] (con integer))))
               (lam
                 acc

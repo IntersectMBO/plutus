@@ -20,7 +20,7 @@
     )
     (termbind (strict) (vardecl unitval (con unit)) (con unit ()))
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl error (all a (type) (fun Unit a)))
       (abs a (type) (lam x Unit [ { error a } unitval ]))
     )

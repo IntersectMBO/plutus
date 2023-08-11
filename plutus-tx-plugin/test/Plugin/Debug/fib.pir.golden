@@ -24,7 +24,7 @@
     )
     (termbind
       { no-src-span }
-      (strict)
+      (nonstrict)
       (vardecl
         { no-src-span }
         addInteger
@@ -108,7 +108,7 @@
     )
     (termbind
       { no-src-span }
-      (strict)
+      (nonstrict)
       (vardecl
         { no-src-span }
         equalsInteger
@@ -176,7 +176,7 @@
     )
     (termbind
       { no-src-span }
-      (strict)
+      (nonstrict)
       (vardecl
         { no-src-span }
         subtractInteger
@@ -213,7 +213,7 @@
       (rec)
       (termbind
         { no-src-span }
-        (strict)
+        (nonstrict)
         (vardecl
           { no-src-span }
           fib

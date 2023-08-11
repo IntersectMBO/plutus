@@ -11,7 +11,7 @@
       )
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl `$WStrictTy` (all a (type) (fun a (fun a [ StrictTy a ]))))
       (abs
         a

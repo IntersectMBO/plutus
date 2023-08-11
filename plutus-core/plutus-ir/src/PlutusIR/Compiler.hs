@@ -26,6 +26,7 @@ module PlutusIR.Compiler (
     coDoSimplifierBeta,
     coDoSimplifierInline,
     coDoSimplifierEvaluateBuiltins,
+    coDoStrictifyBindings,
     coInlineHints,
     coProfile,
     coRelaxedFloatin,
@@ -64,6 +65,7 @@ import PlutusIR.Transform.LetFloatOut qualified as LetFloatOut
 import PlutusIR.Transform.LetMerge qualified as LetMerge
 import PlutusIR.Transform.NonStrict qualified as NonStrict
 import PlutusIR.Transform.RecSplit qualified as RecSplit
+import PlutusIR.Transform.StrictifyBindings qualified as StrictifyBindings
 import PlutusIR.Transform.Rename ()
 import PlutusIR.Transform.ThunkRecursions qualified as ThunkRec
 import PlutusIR.Transform.Unwrap qualified as Unwrap
@@ -116,6 +118,11 @@ availablePasses =
     , Pass "case reduce"          (onOption coDoSimplifierCaseReduce)         (pure . CaseReduce.caseReduce)
     , Pass "known constructor"    (onOption coDoSimplifierKnownCon)           KnownCon.knownCon
     , Pass "beta"                 (onOption coDoSimplifierBeta)               (pure . Beta.beta)
+    , Pass "strictify bindings"   (onOption coDoStrictifyBindings)            (\t ->
+                                                                                 do
+                                                                                   ver <- view ccBuiltinVer
+                                                                                   pure $ StrictifyBindings.strictifyBindings ver t
+                                                                              )
     , Pass "evaluate builtins"    (onOption coDoSimplifierEvaluateBuiltins)   (\t -> do
                                                                                   ver <- view ccBuiltinVer
                                                                                   costModel <- view ccBuiltinCostModel
