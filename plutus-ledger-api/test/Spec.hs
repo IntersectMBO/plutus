@@ -5,6 +5,7 @@ import PlutusLedgerApi.Common.Versions
 import PlutusLedgerApi.Test.EvaluationContext (evalCtxForTesting)
 import PlutusLedgerApi.Test.Examples
 import PlutusLedgerApi.V1
+import Spec.CBOR.DeserialiseFailureInfo qualified
 import Spec.CostModelParams qualified
 import Spec.Eval qualified
 import Spec.Interval qualified
@@ -96,4 +97,5 @@ tests = testGroup "plutus-ledger-api" [
     , Spec.Versions.tests
     , Spec.CostModelParams.tests
     , Spec.NoThunks.tests
+    , Spec.CBOR.DeserialiseFailureInfo.tests
     ]
