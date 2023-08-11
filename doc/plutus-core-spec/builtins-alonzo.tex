@@ -215,9 +215,9 @@ it applies at each possible monomorphisation in an obvious way.
     \TT{equalsString}             & $[\ty{string}, \ty{string}] \to \ty{bool}$           & = &  & \\
     \TT{encodeUtf8}               & $[\ty{string}] \to \ty{bytestring}$      & $\utfeight$ & & \ref{note:bytestring-encoding} \\
     \TT{decodeUtf8}               & $[\ty{bytestring}] \to \ty{string}$      & $\unutfeight$ & Yes & \ref{note:bytestring-encoding} \\
-    \TT{sha2\_256}                & $[\ty{bytestring}] \to \ty{bytestring}$  & Hash a $\ty{bytestring}$ using \TT{SHA\-256}. &  & \\
-    \TT{sha3\_256}                & $[\ty{bytestring}] \to \ty{bytestring}$  & Hash a $\ty{bytestring}$ using \TT{SHA3\-256}. &  & \\
-    \TT{blake2b\_256}             & $[\ty{bytestring}] \to \ty{bytestring}$  & Hash a $\ty{bytestring}$ using \TT{Blake2B\-256}. &  & \\
+    \TT{sha2\_256}                & $[\ty{bytestring}] \to \ty{bytestring}$  & \text{Hash a $\ty{bytestring}$ using} \TT{SHA-}\TT{256}~\cite{FIPS-SHA2}. &  & \\
+    \TT{sha3\_256}                & $[\ty{bytestring}] \to \ty{bytestring}$  & \text{Hash a $\ty{bytestring}$ using} \TT{SHA3-}\TT{256}~\cite{FIPS-SHA3}. &  & \\
+    \TT{blake2b\_256}             & $[\ty{bytestring}] \to \ty{bytestring}$  & \text{Hash a $\ty{bytestring}$ using} \TT{Blake2b-}\TT{256}~\cite{IETF-Blake2}. &  & \\
     \TT{verifyEd25519Signature}          & $[\ty{bytestring}, \ty{bytestring}, $ \text{$\;\; \ty{bytestring}] \to \ty{bool}$}
     & Verify an \TT{Ed25519} digital signature. &  Yes
     & \ref{note:digital-signature-verification-functions}, \ref{note:ed25519-signature-verification}\\
