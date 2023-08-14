@@ -62,12 +62,11 @@ applyAndBetaReduce ::
   (InliningConstraints tyname name uni fun) =>
   -- | The rhs of the variable, should have been renamed already
   Term tyname name uni fun ann ->
-  -- | The arguments
+  -- | The arguments, already processed
   AppContext tyname name uni fun ann ->
   InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
 applyAndBetaReduce rhs args0 = do
   let go ::
-        -- | The rhs of the variable, should have been renamed already
         Term tyname name uni fun ann ->
         AppContext tyname name uni fun ann ->
         InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
@@ -111,20 +110,26 @@ applyAndBetaReduce rhs args0 = do
       safeToBetaReduce = shouldUnconditionallyInline Strict
   go rhs args0
 
--- | Consider whether to inline an application.
+-- | Consider whether to inline a term. For applications, consider whether to apply and beta reduce.
 callSiteInline ::
   forall tyname name uni fun ann.
   (InliningConstraints tyname name uni fun) =>
+  -- | The term.
   Term tyname name uni fun ann ->
+  -- | The head of term, obtained from `Contexts.splitApplication`.
+  Term tyname name uni fun ann ->
+  -- | The application context of the term, already processed.
+  AppContext tyname name uni fun ann ->
   InlineM tyname name uni fun ann (Term tyname name uni fun ann)
-callSiteInline t
-  | (Var _ann name, args) <- splitApplication t =
+callSiteInline t = go
+  where
+    go (Var _ann name) args =
       gets (lookupVarInfo name) >>= \case
         Just varInfo -> do
           -- rename the rhs of the variable before any substitution
           rhs <- liftDupable (let Done rhs = varRhs varInfo in rhs)
           applyAndBetaReduce rhs args >>= \case
-            Just applied -> do -- there is beta reduction of the application
+            Just applied -> do
               let -- Inline only if the size is no bigger than not inlining.
                   sizeIsOk = termSize applied <= termSize t
                   -- The definition itself will be inlined, so we need to check that the cost
@@ -144,4 +149,4 @@ callSiteInline t
         -- The variable maybe a *recursive* let binding, in which case it won't be in the map,
         -- and we don't process it. ATM recursive bindings aren't inlined.
         Nothing -> pure t
-  | otherwise = pure t
+    go _ _ = pure t

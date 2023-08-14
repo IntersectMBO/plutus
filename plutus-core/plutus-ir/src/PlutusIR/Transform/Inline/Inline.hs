@@ -33,7 +33,7 @@ import Control.Monad.State (evalStateT, modify')
 
 import Algebra.Graph qualified as G
 import Data.Map qualified as Map
-import PlutusIR.Contexts (splitApplication)
+import PlutusIR.Contexts (AppContext (..), splitApplication)
 import PlutusIR.Transform.Inline.CallSiteInline (callSiteInline)
 import Witherable (Witherable (wither))
 
@@ -216,8 +216,21 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
         t -> do
             -- See note [Processing order of call site inlining]
             let (tm, args) = splitApplication t
-            -- TODO process the args
-            t' <- callSiteInline t
+                -- process the term args, ignore the type arguments
+                processArgs :: AppContext tyname name uni fun ann
+                    -> InlineM tyname name uni fun ann (AppContext tyname name uni fun ann)
+                processArgs (TermAppContext arg ann ctx) = do
+                    processedArg <- processTerm arg
+                    processedArgs <- processArgs ctx
+                    pure $ TermAppContext processedArg ann processedArgs
+                processArgs (TypeAppContext ty ann ctx) = do
+                    processedArgs <- processArgs ctx
+                    pure $ TypeAppContext ty ann processedArgs
+                processArgs AppContextEnd = pure AppContextEnd
+
+            -- process the args
+            processedArgs <- processArgs args
+            t' <- callSiteInline t tm processedArgs
             forMOf termSubterms t' processTerm
 
 {- Note [Processing order of call site inlining]
