@@ -138,7 +138,7 @@ callSiteInline t = go
                   -- Consider e.g. `let y = \x. f x`. We pay the cost of the `f x` at
                   -- every call site regardless. The work that is being duplicated is
                   -- the work for the lambda.
-                  costIsOk = costIsAcceptable applied
+                  costIsOk = costIsAcceptable rhs
               -- check if binding is pure to avoid duplicated effects.
               -- For strict bindings we can't accidentally make any effects happen less often
               -- than it would have before, but we can make it happen more often.
