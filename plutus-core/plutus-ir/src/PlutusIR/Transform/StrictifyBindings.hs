@@ -20,7 +20,8 @@ strictifyBindingsStep
 strictifyBindingsStep ver = \case
     Let a s bs t -> Let a s (fmap strictifyBinding bs) t
       where
-        strictifyBinding (TermBind x NonStrict vd rhs) | isPure ver (const NonStrict) rhs = TermBind x Strict vd rhs
+        strictifyBinding (TermBind x NonStrict vd rhs)
+          | isPure ver (const NonStrict) rhs = TermBind x Strict vd rhs
         strictifyBinding b = b
     t                                    -> t
 
