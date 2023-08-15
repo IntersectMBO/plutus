@@ -6,9 +6,9 @@ module PlutusIR.Transform.StrictifyBindings (
   strictifyBindings
   ) where
 
+import PlutusCore.Builtin
 import PlutusIR
 import PlutusIR.Purity
-import PlutusCore.Builtin
 
 import Control.Lens (transformOf)
 

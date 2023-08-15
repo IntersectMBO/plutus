@@ -65,8 +65,8 @@ import PlutusIR.Transform.LetFloatOut qualified as LetFloatOut
 import PlutusIR.Transform.LetMerge qualified as LetMerge
 import PlutusIR.Transform.NonStrict qualified as NonStrict
 import PlutusIR.Transform.RecSplit qualified as RecSplit
-import PlutusIR.Transform.StrictifyBindings qualified as StrictifyBindings
 import PlutusIR.Transform.Rename ()
+import PlutusIR.Transform.StrictifyBindings qualified as StrictifyBindings
 import PlutusIR.Transform.ThunkRecursions qualified as ThunkRec
 import PlutusIR.Transform.Unwrap qualified as Unwrap
 import PlutusIR.TypeCheck.Internal
