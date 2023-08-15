@@ -1,20 +1,16 @@
 {- 
 funApp gets inlined because it only occurs once.
-k should not get inlined by the unconditional inline optimization because it occurs more
-than once.
-Both instances of k should get inlined by the call site inliner.
+Both instances of k get inlined by unconditional inliner.
+The first instance of k being inlined verifies that the inliner works with type applications.
 
-The `idFun` binding is dead - the inline tests don't do dead code removal. The outputs sometimes 
-have the dead bindings removed because of the unconditional inliner. 
-
-let
+let 
     idFun :: forall a . a -> a
     idFun = \x -> x
     funApp :: Integer -> Integer
     funApp = idFun @Integer
     k :: forall a . a -> a
     k = idFun
-in k @Integer (k @(Integer -> Integer) funApp 3)
+in k @Integer (k @Integer (funApp 3))
 -}
 
 (let
@@ -30,8 +26,5 @@ in k @Integer (k @(Integer -> Integer) funApp 3)
       (vardecl funApp (fun (con integer) (con integer)))
       { idFun (con integer) }
     )
-    [
-      { k (con integer) }
-      [ [ { k (fun (con integer) (con integer)) } funApp ] (con integer 3) ]
-    ]
+    [ { k (con integer) } [ { k (con integer) } [ funApp (con integer 3) ] ] ]
 )

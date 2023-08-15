@@ -252,6 +252,7 @@ inline =
             , "letTypeAppMulti"
             -- singe occurrence of a polymorphic id function that is fully applied
             , "letTypeApp"
+            , "letTypeApp2" -- multiple occurrences of a function with type application
             -- multiple occurrences of a polymorphic id function that IS fully applied
             , "letTypeAppMultiSat"
             -- multiple occurrences of a polymorphic id function that is NOT fully applied
@@ -263,7 +264,6 @@ inline =
             , "letOverAppMulti" -- multiple occurrences of an over-application of a function
             -- multiple occurrences of an over-application of a function with type arguments
             , "letOverAppType"
-            , "letOverAppType3"
             , "letNonPure" -- multiple occurrences of a non-pure binding
             , "letNonPureMulti"
             , "letNonPureMultiStrict"
