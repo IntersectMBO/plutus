@@ -412,6 +412,10 @@ does not happen here, but does in some later decoders.
   \Dterm(\bits{1001} \cdot s)  &= (s', \Kase{u}{l}) &&\quad \text{if } \Dterm(s) = (s', u) &&\ \text{and}\ \Dlist_{\mathsf{term}}(s') = (s'', l)
 \end{alignat*}
 
+\paragraph{NOTE.} The decoder $\Dterm$ should fail if we are decoding a program
+with a version less than 1.1.0 and an input of the form $\bits{1000} \cdot s$ or
+$\bits{1001} \cdot s$ is encountered.
+
 \subsubsection{Built-in types}
 Constants from built-in types are essentially encoded by emitting a sequence of
 4-bit tags representing the constant's type and then emitting the encoding of

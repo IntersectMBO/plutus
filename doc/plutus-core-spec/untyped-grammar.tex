@@ -94,7 +94,11 @@ the Alonzo hard fork) is identical, except that \texttt{constr} and
 \texttt{case} are not included.  Version 1.0.0 is fully forward-compatible with
 version 1.1.0, so any valid version 1.0.0 program is also a valid version 1.1.0
 program.  The semantics, evaluator and serialisation formats described later in
-this document all apply to both versions.
+this document all apply to both versions, except that it is an error to use
+\texttt{constr} or \texttt{case} in any program with a version prior to 1.1.0: a
+parser, deserialiser, or evaluator should fail immediately if \texttt{constr} or
+\texttt{case} is encountered when processing such a program.
+
 
 \paragraph{Scoping.} For simplicity, \textbf{we assume throughout that the body of a
 Plutus Core program is a closed term}, ie, that it contains no free variables.

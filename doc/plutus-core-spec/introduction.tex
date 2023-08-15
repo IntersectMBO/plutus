@@ -32,13 +32,37 @@ convenience.
   may be added.  A \textit{Plutus Core language version} describes a version of
   the basic language with a particular set of features. A language version
   consists of three non-negative integers separated by decimal points, for
-  example \texttt{1.4.2}.
+  example \texttt{1.4.2}.  Language versions are ordered lexicographically.
 \item The built-in types and functions deployed on the chain along with a
-  particular language version can change with time, and we refer to a version of
-  Plutus Core along with a particular set of types and functions as a
-  \textit{Plutus Core ledger language version}.  These are referred to using
-  version names like ``Plutus V1,'', ``Plutus V2'', and so on.
+  particular language version can change with time, and we refer to Plutus Core
+  along with a particular set of types and functions as a \textit{Plutus Core
+    ledger language version}.  These are referred to using version names like
+  ``Plutus V1,'', ``Plutus V2'', and so on.
   \end{itemize}
+ \noindent These two kinds of version are independent: all Plutus Core language
+ versions must support all ledger language versions.
+
+\subsection{Cardano support for different Plutus Core language and ledger language versions}
+
+Cardano introduced support for Plutus Core in the Alonzo release, and
+Table~\ref{table:versions} shows later releases which have introduced new
+language versions and ledger language versions.  The features provided by
+these versions are described later in this document.
  
+\begin{table}[H]
+  \centering
+    \begin{tabular}{|l|l|l|l|}
+        \hline
+        Cardano release & Date & Language versions & Ledger language versions \\
+        \hline
+        Alonzo & September 2021 & 1.0.0 & V1 \\
+        Vasil & June 2022 & 1.0.0 & V1, V2 \\
+        (Forthcoming) & TBA & 1.0.0, 1.1.0 & V1, V2, V3 \\
+        \hline
+    \end{tabular}
+    \caption{Plutus Core language versions and ledger language versions}
+    \label{table:versions}
+\end{table}
+   
 
 
