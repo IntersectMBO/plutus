@@ -5,8 +5,8 @@ version of the untyped lambda calculus extended with some ``built-in'' types and
 functions; it is intended for the implementation of validation scripts on the
 Cardano blockchain.  This document presents the syntax and semantics of Plutus
 Core, a specification of an efficient evaluator, a description of the built-in
-types and functions available in the Alonzo release of Cardano, and a
-specification of the binary serialisation format used by Plutus Core.
+types and functions available in various releases of Cardano, and
+a specification of the binary serialisation format used by Plutus Core.
 
 Since Plutus Core is intended for use in an environment where
 computation is potentially expensive and excessively long computations can be
@@ -18,3 +18,27 @@ We also have a typed version of Plutus Core which provides extra robustness when
 untyped Plutus Core is used as a compilation target, and we will eventually
 provide a specification of the type system and semantics of Typed Plutus Core
 here as well, together with its relationship to Untyped Plutus Core.
+
+\subsection{Terminology and version numbers}
+\label{sec:version-numbers}
+Once a Plutus Core script has been deployed to the blockchain, it may be
+re-evaluated at any point in the future when the history of the chain is
+verified.  Plutus Core may evolve as time progresses, and because of this we
+have to be quite careful with versioning.  A detailed discussion of this issue
+can be found in~\cite{CIP-35}, but we reproduce two definitions here for
+convenience.
+\begin{itemize}
+\item The language itself may evolve: for example some fundamental new construct
+  may be added.  A \textit{Plutus Core language version} describes a version of
+  the basic language with a particular set of features. A language version
+  consists of three non-negative integers separated by decimal points, for
+  example \texttt{1.4.2}.
+\item The built-in types and functions deployed on the chain along with a
+  particular language version can change with time, and we refer to a version of
+  Plutus Core along with a particular set of types and functions as a
+  \textit{Plutus Core ledger language version}.  These are referred to using
+  version names like ``Plutus V1,'', ``Plutus V2'', and so on.
+  \end{itemize}
+ 
+
+

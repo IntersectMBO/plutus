@@ -7,12 +7,12 @@
 
 \newpage
 
-\section{Future Built-in Types and Functions}
-\label{appendix:default-builtins-future}
-A future release will add support for
+\section{Putus V3 Built-in Types and Functions}
+\label{appendix:default-builtins-V3}
+Plutus V3 (not yet released on Cardano) will add support for
 \begin{itemize}
 \item BLS12-381 elliptic curve pairing operations
-(see~\cite{BLS12-381}, \cite[4.2.1]{IETF-pairing-friendly-curves}, \cite{BLST-library})
+(see~\cite{CIP-0381}, \cite{BLS12-381}, \cite[4.2.1]{IETF-pairing-friendly-curves}, \cite{BLST-library})
 \item The \texttt{Blake2b-224} and \texttt{Keccak-256} hash functions.
 \end{itemize}
 
@@ -22,8 +22,8 @@ types and functions is quite complex and requires a considerable amount of
 notation, most of which is used only in this section.
 
 \subsection{Built-in types}
-\label{sec:future-built-in-types}
-Tables~\ref{table:future-built-in-types} describes three new built-in
+\label{sec:V3-built-in-types}
+Tables~\ref{table:V3-built-in-types} describes three new built-in
 types.
 
 \newcommand{\TyMlResult}{\ty{bls12\_381\_mlresult}}
@@ -44,7 +44,7 @@ types.
         \hline
     \end{tabular}
     \caption{Atomic Types}
-    \label{table:future-built-in-types}
+    \label{table:V3-built-in-types}
 \end{table}
 
 
@@ -112,7 +112,7 @@ must be a multiplicative abelian group. See Note~\ref{note:pairing} for more on
 this.
 
 \subsection{Built-in functions}
-\label{sec:future-built-in-functions}
+\label{sec:V3-built-in-functions}
 
 \newcommand{\hash}{\mathsf{hash}}
 \newcommand{\compress}{\mathsf{compress}}
@@ -132,7 +132,7 @@ this.
     \endfoot
 %%    \caption[]{Built-in Functions}
     \caption[]{Built-in Functions (continued)}
-    \label{table:future-built-in-functions}
+    \label{table:V3-built-in-functions}
     \endlastfoot
 %% G1
     \TT{bls12\_381\_G1\_add}  &
