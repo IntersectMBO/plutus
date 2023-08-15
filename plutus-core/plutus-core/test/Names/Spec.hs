@@ -177,8 +177,9 @@ test_names =
         , test_equalityRename
         , test_equalityBrokenRename
         , test_equalityNoMarkRename
-        , test_scopingGood (genProgram @DefaultFun) rename
-        , test_scopingBad (genProgram @DefaultFun) markNonFreshProgram renameProgramM
+        , test_scopingGood "renaming" (genProgram @DefaultFun) BindingRemovalNotOk PrerenameNo
+            rename
+        , test_scopingSpoilRenamer (genProgram @DefaultFun) markNonFreshProgram renameProgramM
         , test_alphaEquality
         , test_rebindShadowedVariable
         , test_rebindCapturedVariable

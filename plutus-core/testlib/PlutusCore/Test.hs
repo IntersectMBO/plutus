@@ -40,10 +40,12 @@ module PlutusCore.Test (
   runUPlcProfile,
   runUPlcProfileExec,
   brokenRename,
+  Prerename (..),
+  BindingRemoval (..),
   prop_scopingFor,
   test_scopingGood,
   test_scopingBad,
-
+  test_scopingSpoilRenamer,
   -- * Tasty extras
   module TastyExtras,
 ) where
@@ -74,7 +76,7 @@ import Data.Text (Text)
 import Hedgehog
 import Prettyprinter qualified as PP
 import System.IO.Unsafe
-import Test.Tasty
+import Test.Tasty hiding (after)
 import Test.Tasty.Hedgehog
 import Test.Tasty.HUnit
 import UntypedPlutusCore qualified as UPLC
@@ -443,47 +445,137 @@ brokenRename ::
   m t
 brokenRename mark renM = through mark >=> runBrokenRenameT . renM
 
+{- Note [Scoping tests API]
+If you want to test how a certain pass handles scoping you should use either 'test_scopingGood' or
+'test_scopingBad' depending on whether the pass is expected to preserve global uniqueness and not
+change scoping of its argument. Regarding the last one: substitution, for example, may remove free
+variables and scoping tests, being initially developed only to test renamers, will fail upon seeing
+that a free variable was removed. So any scoping test failure needs to be carefully scrutinized
+before concluding that it reveals a bug.
+
+As it turns out, most AST transformations don't do anything that would cause the scoping tests to
+false-positively report a bug:
+
+- a lot of passes simply do not do anything with names apart from maybe moving them around
+- those that do change names may produce alpha-equivalent results and this is one thing that the
+  scoping machinery is designed to test
+- some passes such as inlining may duplicate binders, but that is also fine as long as the
+  duplicates are properly renamed, since the scoping machinery doesn't count binders or variable
+  usages, it only expects free names to stay free, bound names to change together with their binders
+  and global uniqueness to be preserved (see 'ScopeError' for the full list of possible errors)
+- some passes such as inlining may remove bindings and there's special support implemented for
+  handling this: when invoking either 'test_scopingGood' or 'test_scopingBad' you need to provide a
+  'BindingRemoval' argument specifying whether binding removal is expected for the pass. Conversily,
+  make it 'BindingRemovalOk' whenever you use 'test_scopingBad' to emphasize that even with binding
+  removal allowed tests still fail
+- some passes do not perform renaming of the input themselves, in that case you need to provide
+  'PrerenameYes' for the 'Prerename' argument that both the test runners expect. It doesn't matter
+  whether the pass relies on global uniqueness itself, because the scoping tests rely on it anyway.
+  If the pass renames its input, and only in this case, provide 'PrerenameNo' for the 'Prerename'
+  argument, this will allow the scoping tests to ensure that the pass does indeed rename its input
+- due to a very specific design of the scoping tests some passes don't give false positives, but
+  don't get tested properly either. For example dead code elimination is a no-op within the scoping
+  tests, because internally all types/terms/programs only contain bindings that get referenced
+
+There's also 'test_scopingSpoilRenamer', this one is used to test that the scoping tests do catch
+various kinds of bugs. Don't use it with any passes that aren't renamers.
+
+All in all, in order to use the scoping tests you have to understand how they work, which is an
+unfortunate but seemingly inevitable requirement. On the bright side, it's worth the effort, because
+the tests do catch bugs occasionally.
+
+Whenever you use 'test_scopingBad' make sure to explain why, so that it's clear whether there's
+something wrong with the pass or it's just a limitation of the scoping tests.
+-}
+
+-- | Determines whether to perform renaming before running the scoping tests. Needed for passes that
+-- don't perform renaming themselves.
+data Prerename =
+  PrerenameYes |
+  PrerenameNo
+
+runPrerename :: TPLC.Rename a => Prerename -> a -> a
+runPrerename PrerenameYes = TPLC.runQuote . TPLC.rename
+runPrerename PrerenameNo  = id
+
 -- | Test scoping for a renamer.
 prop_scopingFor ::
-  (Pretty (t ann), Scoping t) =>
+  (PrettyPlc (t NameAnn), TPLC.Rename (t NameAnn), Scoping t) =>
+  -- | A generator of types\/terms\/programs.
   AstGen (t ann) ->
+  -- | Whether binding removal is expected for the pass.
+  BindingRemoval ->
+  -- | Whether renaming is required before running the scoping tests. Note that the scoping tests
+  -- rely on global uniqueness themselves, hence for any pass that doesn't perform renaming
+  -- internally this needs to be 'PrerenameYes'.
+  Prerename ->
+  -- | The runner of the pass.
   (t NameAnn -> TPLC.Quote (t NameAnn)) ->
   Property
-prop_scopingFor gen ren = property $ do
-  prog <- forAllPretty $ runAstGen gen
+prop_scopingFor gen bindRem preren run = withTests 1000 . property $ do
+  prog <- forAllNoShow $ runAstGen gen
   let catchEverything = unsafePerformIO . try @SomeException . evaluate
-  case catchEverything $ checkRespectsScoping (TPLC.runQuote . ren) prog of
-    Left exc         -> fail $ show exc
-    Right (Left err) -> fail $ show err
+      prep = runPrerename preren
+  case catchEverything $ checkRespectsScoping bindRem prep (TPLC.runQuote . run) prog of
+    Left exc         -> fail $ displayException exc
+    Right (Left err) -> fail $ displayPlcDef err
     Right (Right ()) -> success
 
--- | Test that a good renamer does not destroy scoping.
+-- | Test that a pass does not break global uniqueness.
 test_scopingGood ::
-  (Pretty (t ann), Scoping t) =>
+  (PrettyPlc (t NameAnn), TPLC.Rename (t NameAnn), Scoping t) =>
+  -- | The name of the pass we're about to test.
+  String ->
+  -- | A generator of types\/terms\/programs.
   AstGen (t ann) ->
+  -- | Whether binding removal is expected for the pass.
+  BindingRemoval ->
+  -- | Whether renaming is required before running the scoping tests. Note that the scoping tests
+  -- rely on global uniqueness themselves, hence for any pass that doesn't perform renaming
+  -- internally this needs to be 'PrerenameYes'.
+  Prerename ->
+  -- | The runner of the pass.
   (t NameAnn -> TPLC.Quote (t NameAnn)) ->
   TestTree
-test_scopingGood gen ren =
-  testPropertyNamed "renamer does not destroy scoping" "test_scopingGood" $
-    prop_scopingFor gen ren
+test_scopingGood pass gen bindRem preren run =
+  testPropertyNamed (pass ++ " does not break scoping and global uniqueness") "test_scopingGood" $
+    prop_scopingFor gen bindRem preren run
 
--- | Test that a renaming machinery destroys scoping when a bad renamer is chosen.
+-- | Test that a pass breaks global uniqueness.
 test_scopingBad ::
-  (Pretty (t ann), Scoping t, Monoid ren) =>
+  (PrettyPlc (t NameAnn), TPLC.Rename (t NameAnn), Scoping t) =>
+  -- | The name of the pass we're about to test.
+  String ->
+  -- | A generator of types\/terms\/programs.
+  AstGen (t ann) ->
+  -- | Whether binding removal is expected for the pass.
+  BindingRemoval ->
+  -- | Whether renaming is required before running the scoping tests. Note that the scoping tests
+  -- rely on global uniqueness themselves, hence for any pass that doesn't perform renaming
+  -- internally this needs to be 'PrerenameYes'.
+  Prerename ->
+  -- | The runner of the pass.
+  (t NameAnn -> TPLC.Quote (t NameAnn)) ->
+  TestTree
+test_scopingBad pass gen bindRem preren run =
+  testCase (pass ++ " breaks scoping or global uniqueness") . checkFails $
+    prop_scopingFor gen bindRem preren run
+
+-- | Test that the scoping machinery fails when the given renamer is spoiled in some way
+-- (e.g. marking is removed) to ensure that the machinery does catch bugs.
+test_scopingSpoilRenamer ::
+  (PrettyPlc (t NameAnn), TPLC.Rename (t NameAnn), Scoping t, Monoid ren) =>
   AstGen (t ann) ->
   (t NameAnn -> TPLC.Quote ()) ->
   (forall m. (TPLC.MonadQuote m, MonadReader ren m) => t NameAnn -> m (t NameAnn)) ->
   TestTree
-test_scopingBad gen mark renM =
+test_scopingSpoilRenamer gen mark renM =
   testGroup
-    "scoping bad"
-    [ testCase "wrong renaming destroys scoping" $
-        checkFails . prop_scopingFor gen $
-          brokenRename mark renM
-    , testCase "no renaming does not result in global uniqueness" $
-        checkFails . prop_scopingFor gen $
-          noRename mark renM
-    , testCase "renaming with no marking destroys scoping" $
-        checkFails . prop_scopingFor gen $
-          noMarkRename renM
+    "bad renaming"
+    [ test_scopingBad "wrong renaming" gen BindingRemovalNotOk PrerenameNo $
+        brokenRename mark renM
+    , test_scopingBad "no renaming" gen BindingRemovalNotOk PrerenameNo $
+        noRename mark renM
+    , test_scopingBad "renaming with no marking" gen BindingRemovalNotOk PrerenameNo $
+        noMarkRename renM
     ]
