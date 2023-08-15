@@ -57,7 +57,7 @@ import PlutusCore.Subst qualified as PLC
 
 import Control.Lens hiding (index, strict)
 import Control.Monad
-import Control.Monad.Reader (ask, asks)
+import Control.Monad.Reader (ask)
 import Data.Array qualified as Array
 import Data.ByteString qualified as BS
 import Data.List (elemIndex)
