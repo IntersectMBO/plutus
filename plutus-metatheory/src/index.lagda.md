@@ -132,7 +132,7 @@ import Algorithmic.Soundness
 import Algorithmic.Erasure
 --TODO : Finish proof for SOPs
 --import Algorithmic.Erasure.RenamingSubstitution
---import Algorithmic.CC
+import Algorithmic.CC
 import Algorithmic.CK
 import Algorithmic.CEK
 
