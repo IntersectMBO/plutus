@@ -193,7 +193,7 @@ import Check
 
 ## Executable
 
-This module is is compiled to Haskell and then can be compiled by ghc
+This module is compiled to Haskell and then can be compiled by ghc
 to produce an executable.
 
 ```

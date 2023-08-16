@@ -31,9 +31,8 @@ open _⊢_
 
 open import Algorithmic.Signature using (_[_]SigTy)
 open import Algorithmic.RenamingSubstitution using (_[_];_[_]⋆)
-open import Algorithmic.ReductionEC using (Frame;Value;deval;ival;BUILTIN';V-I;VList;[];VListZipper;_[_]ᶠ) 
+open import Algorithmic.ReductionEC using (Frame;Value;deval;ival;BUILTIN';V-I;VList;[];_[_]ᶠ) 
                                     renaming (step to app;step⋆ to app⋆)
-open VListZipper                                  
 open Frame
 open Value
 
@@ -81,7 +80,7 @@ step (s ▻ unwrap L refl)                      = (s , unwrap-) ▻ L
 step (s ▻ con cn refl)                        = s ◅ V-con cn
 step (s ▻ constr e A refl xs) with Vec.lookup A e in eq 
 step (s ▻ constr e TSS refl []) | []          = s ◅ V-constr e TSS (sym eq) refl [] refl
-step (s ▻ constr e TSS refl (x ∷ xs)) | _ ∷ _ = (s , constr- e TSS (sym eq) (mkVZ {idx = start} [] xs)) ▻ x
+step (s ▻ constr e TSS refl (x ∷ xs)) | _ ∷ _ = (s , constr- e TSS (sym eq) {tidx = start} [] xs) ▻ x
 step (s ▻ case t ts)                          = (s , case- ts) ▻ t
 step (s ▻ error A)                            = ◆ A
 step (ε ◅ V)                                  = □ V
@@ -91,18 +90,18 @@ step ((s , (V-ƛ t ·-)) ◅ V)                   = s ▻ (t [ discharge V ])
 step ((s , (-·⋆ A)) ◅ V-Λ t)                  = s ▻ (t [ A ]⋆)
 step ((s , wrap-) ◅ V)                        = s ◅ (V-wrap V)
 step ((s , unwrap-) ◅ V-wrap V)               = s ▻ deval V
-step ((s , constr- i TSS refl {tidx} chip) ◅ v) with Vec.lookup TSS i in eq 
+step ((s , constr- i TSS refl {tidx} vs ts) ◅ v) with Vec.lookup TSS i in eq 
 ... | []   with no-empty-≣-<>> tidx 
 ...      | () 
-step ((s , constr- {n} {VS} {H} i TSS refl (mkVZ {tvs = tidx}{idx = r} vs [])) ◅ v) | _ ∷ _  = s ◅  
+step ((s , constr- {n} {VS} {H} i TSS refl {tidx}{tvs} vs []) ◅ v) | _ ∷ _  = s ◅  
    V-constr i TSS
             (sym eq) 
-            (trans (sym (lemma<>2 VS (H ∷ []))) (sym (cong ([] <><_) (lem-≣-<>> r))))
-            {tidx :< deval v} 
+            (trans (sym (lemma<>2 VS (H ∷ []))) (sym (cong ([] <><_) (lem-≣-<>> tidx))))
+            {tvs :< deval v} 
             (vs :< v)
             refl
-step ((s , constr- i TSS refl {r} (mkVZ vs (t ∷ ts))) ◅ v) | _ ∷ _ = 
-      (s , constr- i TSS (sym eq) {bubble r} (mkVZ (vs :< v) ts)) ▻ t
+step ((s , constr- i TSS refl {r} vs (t ∷ ts)) ◅ v) | _ ∷ _ = 
+      (s , constr- i TSS (sym eq) {bubble r} (vs :< v) ts) ▻ t
 step ((s , case- cs) ◅ V-constr e TSS refl refl vs x) = pushValueFrames s vs (lemma-bwdfwdfunction' (Vec.lookup TSS e)) ▻ lookupCase e cs
 step (s ▻ (builtin b / refl))                 = s ◅ ival b
 step ((s , (V-I⇒ b {am = 0}     bt ·-)) ◅ vu) = s ▻ BUILTIN' b (app bt vu)

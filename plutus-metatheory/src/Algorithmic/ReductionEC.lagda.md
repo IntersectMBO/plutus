@@ -25,8 +25,8 @@ open import Relation.Binary.PropositionalEquality
 open import Relation.Binary.HeterogeneousEquality 
         using (_≅_;refl;≅-to-≡) 
 
-open import Utils hiding (List;length;case;map)
-open import Utils.List using (List;_∷_;[];length;map;IBwd;_:<_;IIBwd;_<><_;IList;IBwd2IList;_≣_<>>_;lem-≣-<>>;_<>>I_)
+open import Utils hiding (List;length;map)
+open import Utils.List
 open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_;_∋⋆_;Z)
 open _⊢⋆_
 import Type.RenamingSubstitution as T
@@ -189,12 +189,6 @@ Frames for constructors need to differentiate between evaluated arguments
 and arguments which are not yet evaluated. This is modelled by VListZipper. 
 
 ```
-data VListZipper : (tot : List (∅ ⊢Nf⋆ *)) → ∀{vs}{h}{ts : List (∅ ⊢Nf⋆ *)} → tot ≣ vs <>> (h ∷ ts) → Set  where 
-     mkVZ : ∀{tot vs A ts} → {tvs : IBwd (∅ ⊢_) vs} → {idx : tot ≣ vs <>> (A ∷ ts)} → VList tvs → ConstrArgs ∅ ts → VListZipper tot idx
-
-plugZipper : ∀{tot vs h ts}{idx : tot ≣ vs <>> (h ∷ ts)} → VListZipper tot idx → (t : ∅ ⊢ h) → IList (∅ ⊢_) tot  
-plugZipper {idx = idx}(mkVZ {tvs = tvs} vs ts) t = substEq (IList (∅ ⊢_)) (sym (lem-≣-<>> idx)) (tvs <>>I (t ∷ ts))
-
 data Frame : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
   -·_     : {A B : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → Frame B (A ⇒ B)
   -·v     : ∀{A B : ∅ ⊢Nf⋆ *}{t : ∅ ⊢ A} → Value t → Frame B (A ⇒ B)
@@ -209,7 +203,7 @@ data Frame : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
           → (i : Fin n) 
           → (TSS : Vec _ n)  
           → ∀ {XS} → (XS ≡ Vec.lookup TSS i)
-          → {tidx : XS ≣ VS <>> (H ∷ TS)} → VListZipper XS tidx 
+          → {tidx : XS ≣ VS <>> (H ∷ TS)} → {tvs : IBwd (∅ ⊢_) VS} → VList tvs → ConstrArgs ∅ TS
           → Frame (SOP TSS) H
   case-   : ∀{A n}{TSS : Vec _ n} → Cases ∅ A TSS → Frame A (SOP TSS) 
 
@@ -220,7 +214,7 @@ _[_]ᶠ : ∀{A B : ∅ ⊢Nf⋆ *} → Frame B A → ∅ ⊢ A → ∅ ⊢ B
 -·⋆ A            [ L ]ᶠ = L ·⋆ A / refl
 wrap-            [ L ]ᶠ = wrap _ _ L
 unwrap-          [ L ]ᶠ = unwrap L refl
-constr- i TSS refl {tidx} (mkVZ {tvs = tvs} _ ts) [ L ]ᶠ = constr i TSS (sym (lem-≣-<>> tidx)) (tvs <>>I (L ∷ ts))
+constr- i TSS refl {tidx} {tvs} _ ts [ L ]ᶠ = constr i TSS (sym (lem-≣-<>> tidx)) (tvs <>>I (L ∷ ts))
 case- cs         [ L ]ᶠ = case L cs
 ```
 
@@ -246,7 +240,7 @@ data EC : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
           → (TSS : Vec _ n)  
           → ∀ {XS} → (XS ≡ Vec.lookup TSS i)
           → {tidx : XS ≣ VS <>> (H ∷ TS)} 
-          → VListZipper XS tidx
+          → {tvs : IBwd (∅ ⊢_) VS} → VList tvs → ConstrArgs ∅ TS
           → EC H C
           → EC (SOP TSS) C
   case   :  ∀{A C n}{TSS : Vec _ n} → Cases ∅ A TSS → EC (SOP TSS) C → EC A C
@@ -260,7 +254,7 @@ _[_]ᴱ : ∀{A B : ∅ ⊢Nf⋆ *} → EC B A → ∅ ⊢ A → ∅ ⊢ B
 (wrap   E) [ L ]ᴱ = wrap _ _ (E [ L ]ᴱ)
 (unwrap E / q) [ L ]ᴱ = unwrap (E [ L ]ᴱ) q
 (E l·v V) [ L ]ᴱ = E  [ L ]ᴱ · deval V
-constr i TSS refl vz E [ L ]ᴱ = constr i TSS refl (plugZipper vz (E [ L ]ᴱ))
+constr i TSS refl {idx} {tvs} vs ts E [ L ]ᴱ = constr i TSS (sym (lem-≣-<>> idx)) (tvs <>>I (E [ L ]ᴱ ∷ ts))
 case cs E [ L ]ᴱ = case (E [ L ]ᴱ) cs
 ```
 

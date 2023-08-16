@@ -340,11 +340,6 @@ data Error : ∅ ⊢Nf⋆ * → Set where
   E-error : (A : ∅ ⊢Nf⋆ *) → Error A
 ```
 
-```
-data TListZipper (Γ : Ctx ∅) : (tot : List (∅ ⊢Nf⋆ *)) → ∀{vs}{h}{ts : List (∅ ⊢Nf⋆ *)} → tot ≣ vs <>> (h ∷ ts) → Set  where 
-     _∶_∣_ : ∀{tot vs A ts} (t : tot ≣ vs <>> (A ∷ ts)) → VList vs → ConstrArgs Γ ts → TListZipper Γ tot t
-```
-
 ## Frames 
 
 ```
@@ -367,7 +362,7 @@ data Frame : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
           → (TSS : Vec _ n) 
           → Env Γ 
           → ∀{XS} → (XS ≡ Vec.lookup TSS i)
-          → {tidx : XS ≣ VS <>> (H ∷ TS)} → TListZipper Γ XS tidx 
+          → {tidx : XS ≣ VS <>> (H ∷ TS)} → VList VS → ConstrArgs Γ TS
           → Frame (SOP TSS) H
   case- : ∀{Γ A n}{TSS : Vec _ n} → (ρ : Env Γ) → Cases Γ A TSS → Frame A (SOP TSS)
 
@@ -401,7 +396,7 @@ step (s ; ρ ▻ (builtin b / refl)) = s ◅ ival b
 step (s ; ρ ▻ error A) = ◆ A
 step (s ; ρ ▻ constr e A refl as) with Vec.lookup A e in eq 
 step (s ; ρ ▻ constr e A refl []) | []  = s ◅ V-constr e A [] (cong ([] <><_) (sym eq))
-step (_;_▻_ {Γ} s ρ (constr e A refl (_∷_ {xty} {xsty} x xs))) | _ ∷ _ = (s , constr- e A ρ (sym eq) {start} ( _ ∶ [] ∣ xs)) ; ρ ▻ x
+step (_;_▻_ {Γ} s ρ (constr e A refl (_∷_ {xty} {xsty} x xs))) | _ ∷ _ = (s , constr- e A ρ (sym eq) {start} [] xs) ; ρ ▻ x
 step (s ; ρ ▻ case t ts) = (s , case- ρ ts) ; ρ ▻ t
 step (ε ◅ V) = □ V
 step ((s , -· M ρ') ◅ V) = (s , V ·-) ; ρ' ▻ M
@@ -413,13 +408,13 @@ step ((s , -·⋆ A) ◅ V-Λ M ρ) = s ; ρ ▻ (M [ A ]⋆)
 step ((s , -·⋆ A) ◅ V-IΠ b {σB = σ} bapp) = s ◅ V-I b (_$$_ bapp refl {σ [ A ]SigTy})
 step ((s , wrap-) ◅ V) = s ◅ V-wrap V
 step ((s , unwrap-) ◅ V-wrap V) = s ◅ V
-step ((s , constr- i TSS ρ refl {tidx} chip) ◅ v) 
+step ((s , constr- i TSS ρ refl {tidx} vs ts) ◅ v) 
     with Vec.lookup TSS i in eq
 ... | [] with no-empty-≣-<>> tidx
 ... | ()
-step ((s , constr- i TSS ρ refl (r ∶ vs ∣ [])) ◅ v) | A ∷ AS  = s ◅ V-constr i TSS (vs :< v) 
+step ((s , constr- i TSS ρ refl {r} vs []) ◅ v) | A ∷ AS  = s ◅ V-constr i TSS (vs :< v) 
                  (sym (trans (cong ([] <><_) (trans eq (lem-≣-<>> r))) (lemma<>2 _ (_ ∷ []))))
-step ((s , constr- i TSS ρ refl (r ∶ vs ∣ (t ∷ ts))) ◅ v) | A ∷ AS = (s , constr- i TSS ρ (sym eq) ((bubble r ∶ (vs :< v) ∣ ts))) ; ρ ▻ t 
+step ((s , constr- i TSS ρ refl {r} vs (t ∷ ts)) ◅ v) | A ∷ AS = (s , constr- i TSS ρ (sym eq) {bubble r} (vs :< v) ts) ; ρ ▻ t 
 step {t} ((s , case- ρ cases) ◅ V-constr e TSS vs refl) = pushValueFrames s vs (lemma-bwdfwdfunction' (Vec.lookup TSS e)) ; ρ ▻ (lookupCase e cases) 
 step (□ V) = □ V
 step (◆ A) = ◆ A

@@ -5,7 +5,7 @@ module Algorithmic where
 ## Imports
 
 \begin{code}
-open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;trans;cong;cong₂)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;trans;cong;cong₂;subst)
 
 open import Data.Empty using (⊥)
 open import Data.Fin using (Fin)
@@ -315,4 +315,12 @@ bwdMkCaseType bs A = bwd-foldr _⇒_ A bs
 
 lemma-bwdfwdfunction' : ∀{Φ} {B : Φ ⊢Nf⋆ *} TS → mkCaseType B TS ≡ bwdMkCaseType ([] <>< TS) B
 lemma-bwdfwdfunction' {B = B} TS = trans (cong (mkCaseType B) (sym (lemma<>1 [] TS))) (lemma-bwd-foldr _⇒_ B ([] <>< TS))
-\end{code}  
+
+constr-cong :  ∀{Γ : Ctx Φ}{n}{i : Fin n}{A : Vec (List (Φ ⊢Nf⋆ *)) n}{ts} 
+            → (p : lookup A i ≡ ts)
+            → {cs : ConstrArgs Γ ts}
+            → {cs' : ConstrArgs Γ (lookup A i)}
+            → (q : cs' ≡ subst (IList (Γ ⊢_)) (sym p) cs)
+            → constr i A refl cs' ≡ constr i A (sym p) cs
+constr-cong refl refl = refl            
+\end{code}   

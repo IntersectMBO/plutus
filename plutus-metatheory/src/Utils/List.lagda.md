@@ -14,7 +14,6 @@ open import Data.List using (List;[];_∷_;_++_;map;foldr;length) public
 open import Data.List.Properties using (foldr-++)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;cong;trans;subst)
 open import Data.Empty using (⊥) 
-open import Data.Product using (_×_;_,_)
 ```
 
 ## Backward Lists
@@ -69,15 +68,9 @@ lemma<>1 : ∀{A}(xs : Bwd A)(ys : List A) → (xs <>< ys) <>> [] ≡ xs <>> ys
 lemma<>1 xs []       = refl
 lemma<>1 xs (x ∷ ys) = lemma<>1 (xs :< x) ys
 
-lemma<>1' : ∀{A}(xs : Bwd A)(ys : List A) → xs ≡ [] <>< ys → xs <>> [] ≡ ys
-lemma<>1' xs ys refl = lemma<>1 [] ys
-
 lemma<>2 : ∀{A}(xs : Bwd A)(ys : List A) → ([] <>< (xs <>> ys)) ≡ xs <>< ys
 lemma<>2 [] ys = refl
 lemma<>2 (xs :< x) ys = lemma<>2 xs (x ∷ ys)
-
-lemma<>2' : ∀{A}(xs : Bwd A)(ys : List A) → xs <>> [] ≡ ys → [] <>< ys ≡ xs
-lemma<>2' xs ys refl = lemma<>2 xs []
 
 lemma-<>>-++ : ∀{A : Set} bs (as as' : List A) →  bs <>> (as ++ as') ≡ (bs <>> as) ++ as'
 lemma-<>>-++ [] as as' = refl
@@ -145,36 +138,8 @@ lemma<>I2 : ∀{A}{B : A → Set}{xs : Bwd A}{ys : List A}(ixs : IBwd B xs)(iys 
 lemma<>I2 [] iys = refl
 lemma<>I2 (ixs :< ix) iys = lemma<>I2 ixs (ix ∷ iys)
 
-IBwd2IList' : ∀{A}{B : A → Set}{bs}{ts} → (bs ≡ [] <>< ts) → IBwd B bs → IList B ts
-IBwd2IList' {ts = ts} p tbs = subst (IList _) (trans (cong (_<>> []) p) (lemma<>1 [] ts)) (tbs <>>I [])
-
-IBwd2IList : ∀{A}{B : A → Set}{bs}{ts} → (bs <>> [] ≡ ts) → IBwd B bs → IList B ts
-IBwd2IList p tbs = subst (IList _) p (tbs <>>I [])
-
-IList2IBwd : ∀{A}{B : A → Set}{ts}{bs} → ([] <>< ts ≡ bs) → IList B ts → IBwd B bs
-IList2IBwd {ts = ts} p tbs = subst (IBwd _) p ([] <><I tbs)
-
-IBwd<>IList : ∀{A}{B : A → Set}{bs}{ts} → (p : bs <>> [] ≡ ts) → {ibs : IBwd B bs}
-            → {its : IList B ts} 
-            → IBwd2IList p ibs ≡ its 
-            → ibs ≡ IList2IBwd (lemma<>2' _ _ p) its
-IBwd<>IList refl {ibs} refl rewrite lemma<>I2 ibs [] = refl
-
-split :  ∀{A : Set} bs (ts : List A){B : A → Set} → IList B (bs <>> ts) → IBwd B bs × IList B ts
-split [] ts vs = [] , vs
-split (bs :< x) ts vs with split bs (x ∷ ts) vs 
-... | ls , (x ∷ rs) = ls :< x , rs
-
-bsplit : ∀{A : Set} bs (ts : List A){B : A → Set} → IBwd B (bs <>< ts) → IBwd B bs × IList B ts
-bsplit bs [] vs = vs , []
-bsplit bs (x ∷ ts) vs with bsplit (bs :< x) ts vs 
-... | ls :< x , rs = ls , (x ∷ rs)
-
-inj-IBwd2IList : ∀{A}{B : A → Set}{BS}{AS : List A}{ts ts' : IBwd B BS}
-           → (p : BS <>> [] ≡ AS)
-           → IBwd2IList {ts = AS} p ts ≡ IBwd2IList p ts'
-           → ts ≡ ts'
-inj-IBwd2IList refl q = trans (trans (sym (lemma<>I2 _ [])) (cong (IList2IBwd (lemma<>2' _ _ refl)) q)) (lemma<>I2 _ [])
+IBwd2IList : ∀{A}{B : A → Set}{bs}{ts} → (bs ≡ [] <>< ts) → IBwd B bs → IList B ts
+IBwd2IList {ts = ts} p tbs = subst (IList _) (trans (cong (_<>> []) p) (lemma<>1 [] ts)) (tbs <>>I [])
 ```
 
 ## A type for Zipper indexes
@@ -215,14 +180,6 @@ data IIList {A : Set}{B : A → Set}(C : ∀{a : A}(b : B a) → Set) : ∀{is} 
 data IIBwd {A : Set}{B : A → Set}(C : ∀{a : A}→ B a → Set) : ∀{is} → IBwd B is → Set where
   [] : IIBwd C []
   _:<_ : ∀{a as}{i : B a}{is : IBwd B as} → IIBwd C is → C i → IIBwd C (is :< i)
-
-
-bsplitI : ∀{A : Set}{bs}{ts : List A}{B : A → Set}{C : ∀{a : A}(b : B a) → Set} 
-           (ibs : IBwd B bs)(its : IList B ts)
-        → IIBwd C (ibs <><I its) → IIBwd C ibs × IIList C its
-bsplitI ibs [] vs = vs , []
-bsplitI ibs (x ∷ its) vs with bsplitI (ibs :< x) its vs 
-... | ls :< x , rs = ls , (x ∷ rs)
 ```
  
  Index for IIList zippers
@@ -246,9 +203,7 @@ getIdx≡I : ∀{A : Set}{B : A → Set}{tot}{itot : IList B tot}{bs ts}
                                       → {idx : tot ≣ bs <>> ts}
                                       → (itot ≣I ibs <>> ils) idx
                                       → tot ≣ bs <>> ts
-getIdx≡I {idx = idx} _ = idx                                      
-
-
+getIdx≡I {idx = idx} _ = idx
 
 lem-≣I-<>>1 : ∀{A : Set}{B : A → Set}{tot : List A}{itot : IList B tot}{bs} 
                                 {ibs : IBwd B bs}{ls}{ils : IList B ls}  

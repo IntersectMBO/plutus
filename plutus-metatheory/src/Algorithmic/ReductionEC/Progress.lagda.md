@@ -13,7 +13,7 @@ open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;trans;co
 open import Utils using (*;bubble;≡-subst-removable)
 open import Utils.List 
 open import Type using (Ctx⋆;∅)
-open import Algorithmic using (Ctx;_⊢_;ConstrArgs)
+open import Algorithmic using (Ctx;_⊢_;ConstrArgs;constr-cong)
 open Ctx
 open _⊢_
 
@@ -22,7 +22,7 @@ open import Algorithmic.Signature using (_[_]SigTy)
 open import Type.BetaNormal using (_⊢Nf⋆_)
 open _⊢Nf⋆_
 
-open import Algorithmic.ReductionEC using (Value;BApp;_—→⋆_;_—→_;Error;EC;V-I;ival;E-error;VListZipper;mkVZ;VList)
+open import Algorithmic.ReductionEC using (Value;BApp;_—→⋆_;_—→_;Error;EC;V-I;ival;E-error;VList)
 open Value
 open BApp
 open _—→⋆_
@@ -143,18 +143,19 @@ progress (constr i TSS refl cs)  with progress-constr i TSS cs
                                                      (trans (sym (lemma<>2 bs [])) (cong ([] <><_) (sym (lem-≣-<>> idx)))) 
                                                      Vs 
                                                      (trans (≡-subst-removable (IList (_⊢_ ∅)) _ _ (ibs <>>I [])) (sym (lem-≣I-<>>1' x))))
-... | step Vs (ruleEC E p refl refl) cs x = 
-                     step (ruleEC (constr i TSS refl {getIdx≡I x} (mkVZ Vs cs) E) 
+... | step Vs (ruleEC E p refl refl) cs {idx} x = 
+                     step (ruleEC (constr i TSS refl {getIdx≡I x} Vs cs E) 
                            p 
-                           (cong (constr i TSS refl) (lem-≣I-<>>1' x)) 
+                           (constr-cong (lem-≣-<>> idx) (lem-≣I-<>>1' x))
                            refl)
-... | step Vs (ruleErr E refl) cs x = 
-             step (ruleErr (constr i TSS refl {getIdx≡I x} (mkVZ Vs cs) E) 
-                    (cong (constr i TSS refl) (lem-≣I-<>>1' x)))
-... | error {ibs = ibs} Vs E-error Ps {idx = idx} x = 
-               step (ruleErr (constr i TSS refl {idx} (mkVZ Vs _) []) 
-                             (cong (constr i TSS refl) (trans (lem-≣I-<>>1' x) refl
-                             )))                            
+... | step Vs (ruleErr E refl) cs {idx} x = 
+             step (ruleErr (constr i TSS refl {getIdx≡I x} Vs cs E) 
+                    (constr-cong (lem-≣-<>> idx) (lem-≣I-<>>1' x))
+                  )
+... | error {ibs = ibs} Vs E-error Ps {idx} x = 
+               step (ruleErr (constr i TSS refl {idx} Vs _ []) 
+                             (constr-cong (lem-≣-<>> idx) (lem-≣I-<>>1' x))
+                             )                            
 progress (case M cases)  with progress M 
 ... | step (ruleEC E p refl refl) = step (ruleEC (case cases E) p refl refl)
 ... | step (ruleErr E refl) = step (ruleErr (case cases E) refl)
