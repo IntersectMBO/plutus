@@ -33,9 +33,9 @@ data Either (A B : Set) : Set where
 
 {-# COMPILE GHC Either = data Either (Left | Right) #-}
 
-case : {A B C : Set} → Either A B → (A → C) → (B → C) → C
-case (inj₁ a) f g = f a
-case (inj₂ b) f g = g b
+either : {A B C : Set} → Either A B → (A → C) → (B → C) → C
+either (inj₁ a) f g = f a
+either (inj₂ b) f g = g b
 
 eitherBind : ∀{A B E} → Either E A → (A → Either E B) → Either E B
 eitherBind (inj₁ e) f = inj₁ e
@@ -222,3 +222,4 @@ Let `I`, `J`, `K` range over kinds:
 variable
   I J K : Kind
 \end{code}
+ 

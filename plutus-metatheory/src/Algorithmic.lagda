@@ -13,7 +13,7 @@ open import Data.Product using (_×_)
 open import Data.Vec as Vec using (Vec;[];_∷_;lookup) 
 open import Data.List.Properties using (foldr-++)
 
-open import Utils hiding (case) renaming (_×_ to _U×_; List to UList; map to umap)
+open import Utils renaming (_×_ to _U×_; List to UList; map to umap)
 open import Utils.List using (List;_++_;foldr;IList;[];_∷_;Bwd;_:<_;bwd-foldr;lemma-bwd-foldr;_<><_;lemma<>1)
 open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_;_∋⋆_;Z;S;Φ)
 open _⊢⋆_
@@ -168,7 +168,7 @@ that we use the version of product and list from the Utils module.
 A term is indexed over by its context and type.  A term is a variable,
 an abstraction, an application, a type abstraction, a type
 application, a wrapping or unwrapping of a recursive type, a constructor, 
-a case, a constant, a builtin function, or an error.
+a case expression, a constant, a builtin function, or an error.
 
 Constants of a builtin type A are given directly by its meaning ⟦ A ⟧, where
 A is restricted to kind ♯.
