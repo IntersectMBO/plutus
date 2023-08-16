@@ -32,6 +32,7 @@ import Control.Monad.Reader (runReaderT)
 import Control.Monad.State (evalStateT, modify')
 
 import Algebra.Graph qualified as G
+import Control.Monad.State.Class (gets)
 import Data.Map qualified as Map
 import PlutusIR.Contexts (AppContext (..), splitApplication)
 import PlutusIR.Transform.Inline.CallSiteInline (callSiteInline)
@@ -228,10 +229,21 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
                     pure $ TypeAppContext ty ann processedArgs
                 processArgs AppContextEnd = pure AppContextEnd
 
-            -- process the args
-            processedArgs <- processArgs args
-            t' <- callSiteInline t tm processedArgs
-            forMOf termSubterms t' processTerm
+            case tm of
+                Var _ann name -> do
+                    gets (lookupVarInfo name) >>= \case
+                        Just varInfo -> do
+                            -- process the args if it's a variable that's in the map
+                            processedArgs <- processArgs args
+                            -- consider call site inlining since it's a variable
+                            t' <- callSiteInline t varInfo processedArgs
+                            forMOf termSubterms t' processTerm
+                        -- The variable maybe a *recursive* let binding, in which case it won't be
+                        -- in the map, and we don't process it. ATM recursive bindings aren't
+                        -- inlined.
+                        Nothing -> forMOf termSubterms t processTerm
+                _ -> -- Just process all the subterms
+                    forMOf termSubterms t processTerm
 
 {- Note [Processing order of call site inlining]
 We have two options on how we process terms for the call site inliner:

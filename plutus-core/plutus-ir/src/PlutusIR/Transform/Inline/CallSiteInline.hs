@@ -19,8 +19,6 @@ import PlutusIR.Core
 import PlutusIR.Transform.Inline.Utils
 import PlutusIR.Transform.Substitute
 
-import Control.Monad.State (gets)
-
 {- Note [Inlining and beta reduction of fully applied functions]
 
 We inline if its cost and size are acceptable.
@@ -115,49 +113,43 @@ applyAndBetaReduce rhs args0 = do
 callSiteInline ::
   forall tyname name uni fun ann.
   (InliningConstraints tyname name uni fun) =>
-  -- | The term.
+  -- | The term, with a "head"(obtained from `Contexts.splitApplication`) that is a variable.
   Term tyname name uni fun ann ->
-  -- | The head of term, obtained from `Contexts.splitApplication`.
-  Term tyname name uni fun ann ->
+  -- | The `Utils.VarInfo` of the variable (the head of the term).
+  VarInfo tyname name uni fun ann ->
   -- | The application context of the term, already processed.
   AppContext tyname name uni fun ann ->
   InlineM tyname name uni fun ann (Term tyname name uni fun ann)
 callSiteInline t = go
   where
-    go (Var _ann name) args =
-      gets (lookupVarInfo name) >>= \case
-        Just varInfo -> do
-          let
-            defAsInlineTerm = varRhs varInfo
-            inlineTermToTerm :: InlineTerm tyname name uni fun ann
-              -> Term tyname name uni fun ann
-            inlineTermToTerm (Done (Dupable var)) = var
-            -- extract out the rhs without renaming, we only rename when we know there's
-            -- substitution
-            rhs = inlineTermToTerm defAsInlineTerm
-            -- The definition itself will be inlined, so we need to check that the cost
-            -- of that is acceptable. Note that we do _not_ check the cost of the _body_.
-            -- We would have paid that regardless.
-            -- Consider e.g. `let y = \x. f x`. We pay the cost of the `f x` at
-            -- every call site regardless. The work that is being duplicated is
-            -- the work for the lambda.
-            costIsOk = costIsAcceptable rhs
-            -- check if binding is pure to avoid duplicated effects.
-          -- For strict bindings we can't accidentally make any effects happen less often
-          -- than it would have before, but we can make it happen more often.
-          -- We could potentially do this safely in non-conservative mode.
-          rhsPure <- isTermBindingPure (varStrictness varInfo) rhs
-          if costIsOk && rhsPure then do
-            -- rename the rhs of the variable before any substitution
-            renamedRhs <- liftDupable (let Done def = varRhs varInfo in def)
-            applyAndBetaReduce renamedRhs args >>= \case
-              Just applied -> do
-                let -- Inline only if the size is no bigger than not inlining.
-                    sizeIsOk = termSize applied <= termSize t
-                pure $ if sizeIsOk then applied else t
-              Nothing -> pure t
-          else pure t
-        -- The variable maybe a *recursive* let binding, in which case it won't be in the map,
-        -- and we don't process it. ATM recursive bindings aren't inlined.
-        Nothing -> pure t
-    go _ _ = pure t
+    go varInfo args = do
+        let
+          defAsInlineTerm = varRhs varInfo
+          inlineTermToTerm :: InlineTerm tyname name uni fun ann
+            -> Term tyname name uni fun ann
+          inlineTermToTerm (Done (Dupable var)) = var
+          -- extract out the rhs without renaming, we only rename when we know there's
+          -- substitution
+          rhs = inlineTermToTerm defAsInlineTerm
+          -- The definition itself will be inlined, so we need to check that the cost
+          -- of that is acceptable. Note that we do _not_ check the cost of the _body_.
+          -- We would have paid that regardless.
+          -- Consider e.g. `let y = \x. f x`. We pay the cost of the `f x` at
+          -- every call site regardless. The work that is being duplicated is
+          -- the work for the lambda.
+          costIsOk = costIsAcceptable rhs
+          -- check if binding is pure to avoid duplicated effects.
+        -- For strict bindings we can't accidentally make any effects happen less often
+        -- than it would have before, but we can make it happen more often.
+        -- We could potentially do this safely in non-conservative mode.
+        rhsPure <- isTermBindingPure (varStrictness varInfo) rhs
+        if costIsOk && rhsPure then do
+          -- rename the rhs of the variable before any substitution
+          renamedRhs <- liftDupable (let Done def = varRhs varInfo in def)
+          applyAndBetaReduce renamedRhs args >>= \case
+            Just applied -> do
+              let -- Inline only if the size is no bigger than not inlining.
+                  sizeIsOk = termSize applied <= termSize t
+              pure $ if sizeIsOk then applied else t
+            Nothing -> pure t
+        else pure t
