@@ -147,9 +147,9 @@ callSiteInline t = go
           -- rename the rhs of the variable before any substitution
           renamedRhs <- liftDupable (let Done def = varRhs varInfo in def)
           applyAndBetaReduce renamedRhs args >>= \case
-            Just applied -> do
+            Just inlined -> do
               let -- Inline only if the size is no bigger than not inlining.
-                  sizeIsOk = termSize applied <= termSize t
-              pure $ if sizeIsOk then applied else t
+                  sizeIsOk = termSize inlined <= termSize t
+              pure $ if sizeIsOk then inlined else t
             Nothing -> pure t
         else pure t
