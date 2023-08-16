@@ -1,5 +1,6 @@
 name: "Build and Deploy to Github Pages"
 on:
+  workflow_dispatch:
   push:
     branches:
       - master
