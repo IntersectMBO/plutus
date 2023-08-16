@@ -28,7 +28,7 @@ open Ctx
 open _⊢_
 open import Algorithmic.Signature using (_[_]SigTy)
 open import Algorithmic.RenamingSubstitution using (_[_];_[_]⋆)
-open import Algorithmic.ReductionEC using (Value;BApp;EC;Frame;ival;deval;BUILTIN';V-I;mkVZ;VList)
+open import Algorithmic.ReductionEC using (Value;BApp;EC;Frame;ival;deval;BUILTIN';V-I;VList)
 open Value
 open BApp
 open EC
@@ -54,41 +54,41 @@ dissect (unwrap E / refl) with dissect E
 dissect (E l·v V) with dissect E 
 ... | inj₁ refl           = inj₂ (_ ,, ([] ,, (-·v V)))
 ... | inj₂ (C ,, E' ,, F) = inj₂ (_ ,, ((E' l·v V) ,, F))
-dissect (constr i TSS p x E) with dissect E 
-... | inj₁ refl           = inj₂ (_ ,, ([] ,, (constr- i TSS p x)))
-... | inj₂ (C ,, E' ,, F) = inj₂ (_ ,, ((constr i TSS p x E') ,, F))
+dissect (constr i TSS p {tidx} vs ts E) with dissect E 
+... | inj₁ refl           = inj₂ (_ ,, ([] ,, (constr- i TSS p {tidx} vs ts)))
+... | inj₂ (C ,, E' ,, F) = inj₂ (_ ,, ((constr i TSS p {tidx} vs ts E') ,, F))
 dissect (case cs E)  with dissect E 
 ... | inj₁ refl           = inj₂ (_ ,, ([] ,, (case- cs)))
 ... | inj₂ (C ,, E' ,, F) = inj₂ (_ ,, ((case cs E') ,, F))
 
 compEC : ∀{A B C} → EC A B → EC B C → EC A C
-compEC []                   E' = E'
-compEC (E  l· M')           E' = compEC E E' l· M'
-compEC (E l·v V)            E' = (compEC E E') l·v V
-compEC (VM ·r E)            E' = VM ·r compEC E E'
-compEC (E ·⋆ A / refl)      E' = compEC E E' ·⋆ A / refl
-compEC (wrap E)             E' = wrap (compEC E E')
-compEC (unwrap E / refl)    E' = unwrap (compEC E E') / refl
-compEC (constr i TSS p z E) E' = constr i TSS p z (compEC E E')
-compEC (case cs E)          E' = case cs (compEC E E')
+compEC [] E' = E'
+compEC (E  l· M') E' = compEC E E' l· M'
+compEC (E l·v V) E' = (compEC E E') l·v V
+compEC (VM ·r E) E' = VM ·r compEC E E'
+compEC (E ·⋆ A / refl) E' = compEC E E' ·⋆ A / refl
+compEC (wrap E) E' = wrap (compEC E E')
+compEC (unwrap E / refl) E' = unwrap (compEC E E') / refl
+compEC (constr i TSS p {tidx} vs ts E) E' = constr i TSS p {tidx} vs ts (compEC E E')
+compEC (case cs E) E' = case cs (compEC E E')
 
 extEC : ∀{A B C}(E : EC A B)(F : Frame B C) → EC A C
-extEC []                 (-· M')             = [] l· M'
-extEC []                 (-·v V)             = [] l·v V
-extEC []                 (VM ·-)             = VM ·r []
-extEC []                 (-·⋆ A)             = [] ·⋆ A / refl
-extEC []                 wrap-               = wrap []
-extEC []                 unwrap-             = unwrap [] / refl
-extEC []                 (constr- i TSS p z) = constr i TSS p z []
-extEC []                 (case- cs)          = case cs []
-extEC (E l· M')          F                   = extEC E F l· M'
-extEC (E l·v V)          F                   = extEC E F l·v V
-extEC (VM ·r E)          F                   = VM ·r extEC E F
-extEC (E ·⋆ A / refl)    F                   = extEC E F ·⋆ A / refl
-extEC (wrap E)           F                   = wrap (extEC E F)
-extEC (unwrap E / refl)  F                   = unwrap (extEC E F) / refl
-extEC (constr i _ p y E) F                   = constr i _ p y (extEC E F)
-extEC (case cases E)     F                   = case cases (extEC E F)
+extEC [] (-· M') = [] l· M'
+extEC [] (-·v V) = [] l·v V
+extEC [] (VM ·-) = VM ·r []
+extEC [] (-·⋆ A) = [] ·⋆ A / refl
+extEC [] wrap- = wrap []
+extEC [] unwrap- = unwrap [] / refl
+extEC [] (constr- i TSS p {tidx} vs ts) = constr i TSS p {tidx} vs ts []
+extEC [] (case- cs) = case cs []
+extEC (E l· M') F = extEC E F l· M'
+extEC (E l·v V) F = extEC E F l·v V
+extEC (VM ·r E) F = VM ·r extEC E F
+extEC (E ·⋆ A / refl) F = extEC E F ·⋆ A / refl
+extEC (wrap E) F = wrap (extEC E F)
+extEC (unwrap E / refl) F = unwrap (extEC E F) / refl
+extEC (constr i _ p {tidx} vs ts E) F = constr i _ p {tidx} vs ts (extEC E F)
+extEC (case cases E) F = case cases (extEC E F)
 
 ```
 
@@ -109,25 +109,25 @@ stepV : ∀{A B }{M : ∅ ⊢ A}(V : Value M)
        → (B ≡ A) ⊎ ∃ (λ C → EC B C × Frame C A)
        → State B
 stepV V (inj₁ refl) = □ V
-stepV V (inj₂ (_ ,, E ,, (-· N)))            = extEC E (V ·-) ▻ N 
-stepV V (inj₂ (_ ,, E ,, -·v V'))            = stepV V' (inj₂ (_ ,, E ,, (V ·-)))
-stepV V (inj₂ (_ ,, E ,, (V-ƛ M ·-)))        = E ▻ (M [ deval V ])
+stepV V (inj₂ (_ ,, E ,, (-· N))) = extEC E (V ·-) ▻ N 
+stepV V (inj₂ (_ ,, E ,, -·v V')) = stepV V' (inj₂ (_ ,, E ,, (V ·-)))
+stepV V (inj₂ (_ ,, E ,, (V-ƛ M ·-))) = E ▻ (M [ deval V ])
 stepV V (inj₂ (_ ,, E ,, V-I⇒ b {am = 0} q ·-)) = 
           E ▻ BUILTIN' b (step q V)
 stepV V (inj₂ (_ ,, E ,, V-I⇒ b {am = suc am} q ·-)) = 
           E ◅ V-I b (step q V)
-stepV (V-Λ M) (inj₂ (_ ,, E ,, -·⋆ A))       = E ▻ (M [ A ]⋆)
+stepV (V-Λ M) (inj₂ (_ ,, E ,, -·⋆ A)) = E ▻ (M [ A ]⋆)
 stepV (V-IΠ b  {σA = σ} q) (inj₂ (_ ,, E ,, -·⋆ A)) = 
           E ◅ V-I b (step⋆ q refl {σ [ A ]SigTy})
-stepV V (inj₂ (_ ,, E ,, wrap-))             = E ◅ V-wrap V
-stepV (V-wrap V) (inj₂ (_ ,, E ,, unwrap-))  = E ▻ deval V -- E ◅ V
-stepV V (inj₂ (_ ,, E ,, constr- i A p xs))  with Vec.lookup A i in eq  
-stepV V (inj₂ (_ ,, E ,, constr- i _ refl {tidx} z)) | [] with no-empty-≣-<>> tidx 
+stepV V (inj₂ (_ ,, E ,, wrap-)) = E ◅ V-wrap V
+stepV (V-wrap V) (inj₂ (_ ,, E ,, unwrap-)) = E ▻ deval V -- E ◅ V
+stepV V (inj₂ (_ ,, E ,, constr- i A p vs ts)) with Vec.lookup A i in eq  
+stepV V (inj₂ (_ ,, E ,, constr- i _ refl {tidx} vs ts)) | [] with no-empty-≣-<>> tidx 
 ... | ()
-stepV V (inj₂ (_ ,, E ,, constr- {VS = VS} {H} i _ refl (mkVZ {tvs = tidx}{idx = r} vs []))) | _ ∷ _  = 
+stepV V (inj₂ (_ ,, E ,, constr- {VS = VS} {H} i _ refl {r}{tidx} vs [])) | _ ∷ _  = 
      E ◅ V-constr i _ (sym eq) (sym (trans (cong ([] <><_) (lem-≣-<>> r)) (lemma<>2 VS (H ∷ [])))) (vs :< V) refl
-stepV V (inj₂ (_ ,, E ,, constr- {VS = VS} i A refl {r} (mkVZ vs (t ∷ ts)))) | _ ∷ _  
-    = extEC E (constr- i A (sym eq) {bubble r} (mkVZ (vs :< V) ts)) ▻ t
+stepV V (inj₂ (_ ,, E ,, constr- {VS = VS} i A refl {r} vs (t ∷ ts))) | _ ∷ _  
+    = extEC E (constr- i A (sym eq) {bubble r} (vs :< V) ts) ▻ t
 stepV (V-constr e A refl refl vs x) (inj₂ (_ ,, E ,, case- cs)) = 
     extValueFrames E vs (lemma-bwdfwdfunction' (Vec.lookup A e)) ▻ lookupCase e cs
 
@@ -141,7 +141,7 @@ stepT (E ▻ unwrap M refl) = extEC E unwrap- ▻ M
 stepT (E ▻ constr e A refl z)  with Vec.lookup A e in eq  
 stepT (E ▻ constr e A refl []) | [] = E ◅ V-constr e A (sym eq) refl [] refl
 stepT (E ▻ constr e A refl (x ∷ xs)) | a ∷ as = 
-        extEC E (constr- e A (sym eq) (mkVZ {idx = start} [] xs)) ▻  x
+        extEC E (constr- e A (sym eq) {start} [] xs) ▻  x
 stepT (E ▻ case M cases) = extEC E (case- cases) ▻ M
 stepT (E ▻ con c refl) = E ◅ V-con c
 stepT (E ▻ (builtin b / refl)) = E ◅ ival b
