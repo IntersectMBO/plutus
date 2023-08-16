@@ -26,7 +26,7 @@ module PlutusIR.Compiler (
     coDoSimplifierBeta,
     coDoSimplifierInline,
     coDoSimplifierEvaluateBuiltins,
-    coDoStrictifyBindings,
+    coDoSimplifierStrictifyBindings,
     coInlineHints,
     coProfile,
     coRelaxedFloatin,
@@ -118,7 +118,7 @@ availablePasses =
     , Pass "case reduce"          (onOption coDoSimplifierCaseReduce)         (pure . CaseReduce.caseReduce)
     , Pass "known constructor"    (onOption coDoSimplifierKnownCon)           KnownCon.knownCon
     , Pass "beta"                 (onOption coDoSimplifierBeta)               (pure . Beta.beta)
-    , Pass "strictify bindings"   (onOption coDoStrictifyBindings)            (\t ->
+    , Pass "strictify bindings"   (onOption coDoSimplifierStrictifyBindings)  (\t ->
                                                                                  do
                                                                                    ver <- view ccBuiltinVer
                                                                                    pure $ StrictifyBindings.strictifyBindings ver t

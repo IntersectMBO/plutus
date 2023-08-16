@@ -347,7 +347,9 @@ We solve this by compiling let-bindings *non-strictly*. That means we delay the 
 and force all uses of it.
 
 Conveniently, we can just use PIR's support for non-strict let bindings to implement this.
-The PIR optimizer will also strictify any such bindings that turn out to be pure.
+The PIR optimizer (which we use by default) will also strictify any such bindings that
+turn out to be pure, so we shouldn't pay any cost for having unnecessary non-strict
+bindings.
 -}
 
 {- Note [String literals]

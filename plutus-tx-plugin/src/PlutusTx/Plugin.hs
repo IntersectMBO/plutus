@@ -482,7 +482,7 @@ runCompiler moduleName opts expr = do
                     (opts ^. posDoSimplifierInline)
                  & set (PIR.ccOpts . PIR.coDoSimplifierEvaluateBuiltins)
                     (opts ^. posDoSimplifierEvaluateBuiltins)
-                 & set (PIR.ccOpts . PIR.coDoStrictifyBindings)
+                 & set (PIR.ccOpts . PIR.coDoSimplifierStrictifyBindings)
                     (opts ^. posDoSimplifierStrictifyBindings)
                  & set (PIR.ccOpts . PIR.coInlineHints)                    hints
                  & set (PIR.ccOpts . PIR.coRelaxedFloatin) (opts ^. posRelaxedFloatin)
