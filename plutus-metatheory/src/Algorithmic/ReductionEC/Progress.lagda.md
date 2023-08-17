@@ -67,6 +67,12 @@ data FocusedProgDissect : ∀{tot}(itot : IList (∅ ⊢_) tot) → Set
            → {idx : tot ≣ bs <>> (A ∷ ls)}
            → (x : (itot ≣I ibs <>> (M ∷ cs)) idx)
            → FocusedProgDissect itot
+     error :  ∀{tot}{itot : IList (∅ ⊢_) tot}
+           → ∀{bs}{ibs : IBwd (∅ ⊢_) bs}(vs : VList ibs) --evaluated
+           → ∀{A : ∅ ⊢Nf⋆ *} {M : ∅ ⊢ A} (err : Error M)
+           → ∀ {ls : List (∅ ⊢Nf⋆ *)}(cs : ConstrArgs ∅ ls)
+           → {idx : tot ≣ bs <>> (A ∷ ls)} → (iidx : (itot ≣I ibs <>> (M ∷ cs)) idx)
+           → FocusedProgDissect itot
 
 progress : {A : ∅ ⊢Nf⋆ *} → (M : ∅ ⊢ A) → Progress M
 
@@ -81,6 +87,7 @@ progress-focus [] x Vs = done x Vs
 progress-focus (c ∷ cs) x Vs with progress c 
 ... | step st = step Vs st cs x
 ... | done V = progress-focus cs (bubble x) (Vs :< V)
+... | error e = error Vs e cs x
 
 progress (ƛ M)        = done (V-ƛ M)
 progress (M · M')     with progress M
@@ -113,7 +120,7 @@ progress (unwrap M refl) with progress M
 ... | done (V-wrap V) = step (ruleEC [] (β-wrap V refl) refl refl)
 progress (con c refl)      = done (V-con c)
 progress (builtin b / refl ) = done (ival b)
-progress (error A)    = step (ruleErr [] refl)
+progress (error A)    = error E-error
 progress (constr i TSS refl cs)  with progress-focus cs start []
 ... | done {bs}{ibs}{idx = idx} x Vs = done (V-constr i 
                                                      TSS 
@@ -130,9 +137,7 @@ progress (constr i TSS refl cs)  with progress-focus cs start []
                            refl)
 ... | step Vs (ruleErr E refl) cs {idx} x = 
              step (ruleErr (constr i TSS refl {idx} Vs cs E) 
-                    (constr-cong (trans (sym (lem-≣-<>> idx)) refl) 
-                                 (trans (lem-≣I-<>>1' x) 
-                                        (≡-subst-removable (IList (_⊢_ ∅)) (sym (lem-≣-<>> idx)) (trans (sym (lem-≣-<>> idx)) refl) _))) 
+                    (constr-cong (lem-≣-<>> idx) (lem-≣I-<>>1' x))
                   )
 progress (case M cases)  with progress M 
 ... | step (ruleEC E p refl refl) = step (ruleEC (case cases E) p refl refl)

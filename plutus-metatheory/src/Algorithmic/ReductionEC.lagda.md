@@ -137,8 +137,7 @@ data Value where
           → ∀{YS} → (q : YS ≡ [] <>< XS)
           → {ts : IBwd (∅ ⊢_) YS}
           → (vs : VList ts)
---          → ∀ {ts' : IList (∅ ⊢_) XS} → (IBwd2IList (lemma<>1' _ _ q) ts ≡ ts')
-          → ∀ {ts' : IList (∅ ⊢_) XS} → (IBwd2IList q ts ≡ ts')
+          → ∀ {ts' : IList (∅ ⊢_) XS} → (IBwd2IList (lemma<>1' _ _ q) ts ≡ ts')
           → Value (constr e TSS p ts')
 
 red2cekVal : ∀{A}{L : ∅ ⊢ A} → Value L → CEK.Value A
@@ -187,12 +186,6 @@ data Error :  ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} → Γ ⊢ A → Set where
 Frames used by the CC and the CK machine, and their plugging function.
 
 ```
-data VListZipper : (tot : List (∅ ⊢Nf⋆ *)) → ∀{vs}{h}{ts : List (∅ ⊢Nf⋆ *)} → tot ≣ vs <>> (h ∷ ts) → Set  where 
-     mkVZ : ∀{tot vs A ts} → {tvs : IBwd (∅ ⊢_) vs} → {idx : tot ≣ vs <>> (A ∷ ts)} → VList tvs → ConstrArgs ∅ ts → VListZipper tot idx
-
-plugZipper : ∀{tot vs h ts}{idx : tot ≣ vs <>> (h ∷ ts)} → VListZipper tot idx → (t : ∅ ⊢ h) → IList (∅ ⊢_) tot  
-plugZipper {idx = idx}(mkVZ {tvs = tvs} vs ts) t = substEq (IList (∅ ⊢_)) (sym (lem-≣-<>> idx)) (tvs <>>I (t ∷ ts))
-
 data Frame : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
   -·_     : {A B : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → Frame B (A ⇒ B)
   -·v     : ∀{A B : ∅ ⊢Nf⋆ *}{t : ∅ ⊢ A} → Value t → Frame B (A ⇒ B)
@@ -311,8 +304,7 @@ data _—→⋆_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set 
     → ∀{YS} → (q : YS ≡ [] <>< Vec.lookup TSS e)
     → {ts : IBwd (∅ ⊢_) YS}
     → (vs : VList ts)
---    → ∀ {ts' : IList (∅ ⊢_) (Vec.lookup TSS e)} → (IBwd2IList (lemma<>1' _ _ q) ts ≡ ts')
-    → ∀ {ts' : IList (∅ ⊢_) (Vec.lookup TSS e)} → (IBwd2IList q ts ≡ ts')
+    → ∀ {ts' : IList (∅ ⊢_) (Vec.lookup TSS e)} → (IBwd2IList (lemma<>1' _ _ q) ts ≡ ts')
     → (cases : Cases ∅ A TSS)
     → case (constr e TSS refl ts') cases —→⋆ applyCase (lookupCase e cases) ts'
 -- -}
