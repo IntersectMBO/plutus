@@ -3,7 +3,7 @@
   (let
     (nonrec)
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl `$csize` (fun (con integer) (con integer)))
       (lam x (con integer) x)
     )
@@ -15,7 +15,7 @@
       `$csize`
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl
         size
         (all

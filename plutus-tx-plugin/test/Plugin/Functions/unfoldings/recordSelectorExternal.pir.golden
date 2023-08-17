@@ -11,7 +11,7 @@
       )
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl myExternal (fun MyExternalRecord (con integer)))
       (lam
         ds

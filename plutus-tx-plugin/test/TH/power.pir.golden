@@ -10,7 +10,7 @@
       (builtin multiplyInteger)
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl
         multiplyInteger (fun (con integer) (fun (con integer) (con integer)))
       )

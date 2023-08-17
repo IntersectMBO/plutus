@@ -14,7 +14,7 @@
     (let
       (nonrec)
       (termbind
-        (strict)
+        (nonstrict)
         (vardecl
           `$fFoldableNil_$cfoldr`
           (all
@@ -38,7 +38,7 @@
                 (let
                   (rec)
                   (termbind
-                    (strict)
+                    (nonstrict)
                     (vardecl go (fun [ List a ] b))
                     (lam
                       ds
@@ -90,7 +90,7 @@
         `$fFoldableNil_$cfoldr`
       )
       (termbind
-        (strict)
+        (nonstrict)
         (vardecl
           build
           (all
@@ -116,7 +116,7 @@
         )
       )
       (termbind
-        (strict)
+        (nonstrict)
         (vardecl
           concat
           (all

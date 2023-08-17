@@ -11,7 +11,7 @@
       )
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl nandDirect (fun Bool (fun Bool Bool)))
       (lam
         ds
@@ -46,7 +46,7 @@
       )
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl andDirect (fun Bool (fun Bool Bool)))
       (lam
         ds
@@ -72,7 +72,7 @@
       (let
         (rec)
         (termbind
-          (strict)
+          (nonstrict)
           (vardecl
             allDirect (all a (type) (fun (fun a Bool) (fun [ List a ] Bool)))
           )
@@ -114,7 +114,7 @@
         (let
           (nonrec)
           (termbind
-            (strict)
+            (nonstrict)
             (vardecl
               build
               (all
@@ -156,7 +156,7 @@
             (builtin lessThanInteger)
           )
           (termbind
-            (strict)
+            (nonstrict)
             (vardecl
               lessThanInteger (fun (con integer) (fun (con integer) Bool))
             )

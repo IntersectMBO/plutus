@@ -23,7 +23,7 @@
       (builtin lessThanInteger)
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl lessThanInteger (fun (con integer) (fun (con integer) Bool)))
       (lam
         x

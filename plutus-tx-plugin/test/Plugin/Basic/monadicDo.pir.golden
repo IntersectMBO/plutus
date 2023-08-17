@@ -11,12 +11,12 @@
       )
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl `$fApplicativeMaybe_$cpure` (all a (type) (fun a [ Maybe a ])))
       (abs a (type) (lam ds a [ { Just a } ds ]))
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl
         `$fMonadMaybe_$c>>=`
         (all
@@ -58,7 +58,7 @@
       (builtin addInteger)
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
       (lam x (con integer) (lam y (con integer) [ [ addInteger x ] y ]))
     )
