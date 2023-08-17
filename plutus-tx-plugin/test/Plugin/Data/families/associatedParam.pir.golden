@@ -11,7 +11,7 @@
       )
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl `$WParam` (all a (type) (fun a [ Param a ])))
       (abs
         a
@@ -26,7 +26,7 @@
       )
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl paramId (all a (type) (fun [ Param a ] (fun a a))))
       (abs a (type) (lam ds [ Param a ] (lam x a x)))
     )

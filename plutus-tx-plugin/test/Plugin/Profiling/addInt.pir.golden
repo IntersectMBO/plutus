@@ -8,7 +8,7 @@
       (builtin addInteger)
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
       (lam
         x
@@ -45,7 +45,7 @@
       )
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl addInt (fun (con integer) (fun (con integer) (con integer))))
       (lam
         x

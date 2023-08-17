@@ -16,7 +16,7 @@
       (builtin addInteger)
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
       (lam
         x
@@ -34,7 +34,7 @@
       )
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl
         unboxedTuple
         (fun [ [ UTuple2 (con integer) ] (con integer) ] (con integer))

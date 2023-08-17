@@ -16,7 +16,7 @@
       )
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl strictField (fun RecordWithStrictField RecordNewtype))
       (lam
         ds

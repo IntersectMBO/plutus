@@ -27,7 +27,7 @@
       (builtin verifyEd25519Signature)
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl
         verifyEd25519Signature
         (fun

@@ -13,7 +13,7 @@ open import Data.Product using (Σ) renaming (_,_ to _,,_)
 open import Data.Bool using (Bool)
 open import Data.Vec using (Vec;[];_∷_)
 open import Data.List using (List)
-open import Data.Empty using (⊥)
+open import Data.Empty using (⊥) 
 
 open import Type using (Ctx⋆;∅;_,⋆_)
 open import Check using (TypeError;inferType;inferKind;decKind;checkKind;checkType)
@@ -224,6 +224,12 @@ uglyTypeError (typeMismatch A A' x) =
   prettyPrintTy (extricateScopeTy (extricateNf⋆ A'))
 uglyTypeError builtinError = "builtinError"
 uglyTypeError (Unimplemented x) = "Feature " ++ x ++ " not implemented"
+uglyTypeError (notSOP A x) = "notSOP" ++ prettyPrintTy (extricateScopeTy (extricateNf⋆ A))
+uglyTypeError (IndexOutOfBounds x) = "IndexOutOfBounds"
+uglyTypeError TooManyConstrArgs = "TooManyConstrArgs"
+uglyTypeError TooFewConstrArgs = "TooFewConstrArgs"
+uglyTypeError TooFewCases = "TooFewCases"
+uglyTypeError TooManyCases = "TooManyCases"
 
 -- the haskell version of Error is defined in Raw
 

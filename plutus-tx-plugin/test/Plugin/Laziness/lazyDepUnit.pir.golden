@@ -9,7 +9,7 @@
       (nonstrict) (vardecl emptyByteString (con bytestring)) emptyByteString
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl monoId (fun (con bytestring) (con bytestring)))
       (lam x (con bytestring) x)
     )

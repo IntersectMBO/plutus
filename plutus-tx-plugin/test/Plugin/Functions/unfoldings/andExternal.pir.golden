@@ -11,7 +11,7 @@
       )
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl andExternal (fun Bool (fun Bool Bool)))
       (lam
         a

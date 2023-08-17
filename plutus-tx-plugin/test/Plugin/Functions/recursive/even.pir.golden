@@ -21,7 +21,7 @@
       (builtin ifThenElse)
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl equalsInteger (fun (con integer) (fun (con integer) Bool)))
       (lam
         x
@@ -47,7 +47,7 @@
       (builtin subtractInteger)
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl
         subtractInteger (fun (con integer) (fun (con integer) (con integer)))
       )
@@ -69,7 +69,7 @@
     (let
       (rec)
       (termbind
-        (strict)
+        (nonstrict)
         (vardecl even (fun (con integer) Bool))
         (lam
           n

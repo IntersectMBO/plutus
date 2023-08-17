@@ -11,7 +11,7 @@
       )
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl `&&` (fun Bool (fun Bool Bool)))
       (lam
         l
@@ -54,7 +54,7 @@
       )
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl age (all a (type) (fun [ PersonLike a ] (fun a (con integer)))))
       (abs
         a
@@ -82,7 +82,7 @@
       (builtin lessThanInteger)
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl lessThanInteger (fun (con integer) (fun (con integer) Bool)))
       (lam
         x
@@ -103,7 +103,7 @@
       )
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl
         likesAnimal
         (all a (type) (fun [ PersonLike a ] (fun a (fun Animal Bool))))
@@ -122,7 +122,7 @@
       )
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl predicate (all p (type) (fun [ PersonLike p ] (fun p Bool))))
       (abs
         p
@@ -157,7 +157,7 @@
       )
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl `$cage` (fun Person (con integer)))
       (lam
         ds
@@ -169,7 +169,7 @@
       )
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl `$clikesAnimal` (fun Person (fun Animal Bool)))
       (lam
         ds

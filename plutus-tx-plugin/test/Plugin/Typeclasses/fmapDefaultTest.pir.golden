@@ -2,14 +2,14 @@
   1.1.0
   (let
     (nonrec)
-    (termbind (strict) (vardecl v (con integer)) (con integer 1))
+    (termbind (nonstrict) (vardecl v (con integer)) (con integer 1))
     (termbind
       (strict)
       (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
       (builtin addInteger)
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
       (lam
         x
@@ -35,7 +35,7 @@
       addInteger
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl
         `+`
         (all
@@ -65,7 +65,7 @@
       (let
         (nonrec)
         (termbind
-          (strict)
+          (nonstrict)
           (vardecl
             `$fFoldableNil_$cfoldr`
             (all
@@ -96,7 +96,7 @@
                       (let
                         (rec)
                         (termbind
-                          (strict)
+                          (nonstrict)
                           (vardecl go (fun [ List a ] b))
                           (lam
                             ds
@@ -133,7 +133,7 @@
         (let
           (rec)
           (termbind
-            (strict)
+            (nonstrict)
             (vardecl
               `$fFunctorNil_$cfmap`
               (all
@@ -230,7 +230,7 @@
               )
             )
             (termbind
-              (strict)
+              (nonstrict)
               (vardecl
                 `$p1Applicative`
                 (all
@@ -312,7 +312,7 @@
               )
             )
             (termbind
-              (strict)
+              (nonstrict)
               (vardecl
                 `<*>`
                 (all
@@ -382,7 +382,7 @@
               )
             )
             (termbind
-              (strict)
+              (nonstrict)
               (vardecl
                 pure
                 (all
@@ -441,7 +441,7 @@
             (let
               (rec)
               (termbind
-                (strict)
+                (nonstrict)
                 (vardecl
                   `$fTraversableNil_$ctraverse`
                   (all
@@ -674,7 +674,7 @@
                   ]
                 )
                 (termbind
-                  (strict)
+                  (nonstrict)
                   (vardecl
                     build
                     (all
@@ -705,7 +705,7 @@
                   )
                 )
                 (termbind
-                  (strict)
+                  (nonstrict)
                   (vardecl
                     `$fApplicativeIdentity_$c<*>`
                     (all
@@ -745,7 +745,7 @@
                   )
                 )
                 (termbind
-                  (strict)
+                  (nonstrict)
                   (vardecl
                     `$fApplicativeIdentity_$cpure`
                     (all a (type) (fun a [ (lam a (type) a) a ]))
@@ -753,7 +753,7 @@
                   (abs a (type) (lam ds a ds))
                 )
                 (termbind
-                  (strict)
+                  (nonstrict)
                   (vardecl
                     `$fFunctorIdentity_$cfmap`
                     (all
@@ -809,7 +809,7 @@
                   ]
                 )
                 (termbind
-                  (strict)
+                  (nonstrict)
                   (vardecl
                     traverse
                     (all
@@ -932,7 +932,7 @@
                   )
                 )
                 (termbind
-                  (strict)
+                  (nonstrict)
                   (vardecl
                     fmapDefault
                     (all

@@ -7,10 +7,10 @@
 {-# LANGUAGE TypeApplications      #-}
 module Raw where
 
-import Data.ByteString as BS
+import Data.ByteString as BS hiding (map)
 import Data.Text qualified as T
 import PlutusCore
-import PlutusCore.Data
+import PlutusCore.Data hiding (Constr)
 import PlutusCore.DeBruijn
 import PlutusCore.Default
 import PlutusCore.Parser
@@ -29,6 +29,7 @@ data RType = RTyVar Integer
            | RTyApp RType RType
            | RTyCon RTyCon
            | RTyMu RType RType
+           | RTySOP [[RType]]
            deriving Show
 
 data AtomicTyCon = ATyConInt
@@ -58,6 +59,8 @@ data RTerm = RVar Integer
            | RBuiltin DefaultFun
            | RWrap RType RType RTerm
            | RUnWrap RTerm
+           | RConstr RType Integer [RTerm]
+           | RCase RType RTerm [RTerm]
   deriving Show
 
 unIndex :: Index -> Integer
@@ -81,6 +84,7 @@ convT (TyBuiltin ann (SomeTypeIn (DefaultUniApply f x))) =
             (convT (TyBuiltin ann (SomeTypeIn x)))
 convT (TyBuiltin _ b)               = convTyCon b
 convT (TyIFix _ a b)                = RTyMu (convT a) (convT b)
+convT (TySOP _ xss)                 = RTySOP (map (map convT) xss)
 
 convTyCon :: SomeTypeIn DefaultUni -> RType
 convTyCon (SomeTypeIn DefaultUniInteger)              = RTyCon (RTyConAtom ATyConInt)
@@ -124,6 +128,8 @@ conv (Constant _ c)      = RCon c
 conv (Unwrap _ t)        = RUnWrap (conv t)
 conv (IWrap _ ty1 ty2 t) = RWrap (convT ty1) (convT ty2) (conv t)
 conv (Error _ _A)        = RError (convT _A)
+conv (Constr _ _A i cs)  = RConstr (convT _A) (toInteger i) (fmap conv cs)
+conv (Case _ _A arg cs)  = RCase (convT _A) (conv arg) (fmap conv cs)
 
 varTm :: Int -> NamedDeBruijn
 varTm i = NamedDeBruijn (T.pack [tmnames !! i]) deBruijnInitIndex
@@ -147,6 +153,7 @@ unconvT i (RTyLambda k t) = TyLam () (NamedTyDeBruijn (varTy i)) (unconvK k) (un
 unconvT i (RTyApp t u)      = TyApp () (unconvT i t) (unconvT i u)
 unconvT i (RTyCon c)        = TyBuiltin () (unconvTyCon c)
 unconvT i (RTyMu t u)       = TyIFix () (unconvT i t) (unconvT i u)
+unconvT i (RTySOP xss)      = TySOP () (map (map (unconvT i)) xss)
 
 unconvTyCon :: RTyCon -> SomeTypeIn DefaultUni
 unconvTyCon (RTyConAtom ATyConInt)  = SomeTypeIn DefaultUniInteger
@@ -181,6 +188,8 @@ unconv i (RError ty)       = Error () (unconvT i ty)
 unconv i (RBuiltin b)      = Builtin () b
 unconv i (RWrap tyA tyB t) = IWrap () (unconvT i tyA) (unconvT i tyB) (unconv i t)
 unconv i (RUnWrap t)       = Unwrap () (unconv i t)
+unconv i (RConstr ty j cs) = Constr () (unconvT i ty) (fromInteger j) (fmap (unconv i) cs)
+unconv i (RCase ty arg cs) = Case () (unconvT i ty) (unconv i arg) (fmap (unconv i) cs)
 
 -- I have put this here as it needs to be a .hs file so that it can be
 -- imported in multiple places

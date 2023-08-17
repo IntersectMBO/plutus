@@ -39,7 +39,7 @@ out : M → N
      : N
 succ = λ n : N . Λ R . λ x : R . λ y : M → R . y (in n)
      : N → N
-case = λ n : N . Λ R . λ a : R . λ f : N → N . n [R] a (f ∘ out)
+mycase = λ n : N . Λ R . λ a : R . λ f : N → N . n [R] a (f ∘ out)
      : N → ∀ R . R → (N → R) → R
 
 
@@ -99,8 +99,8 @@ module Scott where
   Four : ∅ ⊢ N
   Four = Succ · Three
 
-  case :  ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N ⇒ (Π (ne (` Z) ⇒ (N ⇒ ne (` Z)) ⇒ ne (` Z)))
-  case = ƛ (Λ (ƛ (ƛ (((` (S (S (T Z)))) ·⋆ ne (` Z) / refl) · (` (S Z)) · (ƛ (` (S Z) ·  unwrap0 (ƛ G) (` Z) ))))))
+  mycase :  ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N ⇒ (Π (ne (` Z) ⇒ (N ⇒ ne (` Z)) ⇒ ne (` Z)))
+  mycase = ƛ (Λ (ƛ (ƛ (((` (S (S (T Z)))) ·⋆ ne (` Z) / refl) · (` (S Z)) · (ƛ (` (S Z) ·  unwrap0 (ƛ G) (` Z) ))))))
 
 {-
   Y-comb : ∀{Γ} → Γ ⊢ Π ((ne (` Z) ⇒ ne (` Z)) ⇒ ne (` Z))
@@ -111,14 +111,14 @@ module Scott where
   Z-comb = Λ (Λ (ƛ (ƛ (` (S Z) · ƛ (unwrap0  (ƛ (ne (` Z) ⇒ ne (` (S (S Z))) ⇒ ne (` (S Z))))  (` (S Z)) · ` (S Z) · ` Z)) · wrap0 (ƛ (ne (` Z) ⇒ ne (` (S (S Z))) ⇒ ne (` (S Z)))) (ƛ (` (S Z) · ƛ (unwrap0 (ƛ (ne (` Z) ⇒ ne (` (S (S Z))) ⇒ ne (` (S Z)))) (` (S Z)) · ` (S Z) · ` Z))))))
 
   OnePlus :  ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ (N ⇒ N) ⇒ N ⇒ N
-  OnePlus = ƛ (ƛ ((((case · (` Z)) ·⋆ N / refl) · One) · (ƛ (Succ · (` (S (S Z)) · (` Z))))))
+  OnePlus = ƛ (ƛ ((((mycase · (` Z)) ·⋆ N / refl) · One) · (ƛ (Succ · (` (S (S Z)) · (` Z))))))
 
   OnePlusOne : ∅ ⊢ N
   OnePlusOne = ((Z-comb ·⋆ N / refl) ·⋆ N / refl) · OnePlus · One
 
  -- Roman's more efficient version
   Plus : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N ⇒ N ⇒ N
-  Plus = ƛ (ƛ (((Z-comb ·⋆ N / refl) ·⋆ N / refl) · (ƛ (ƛ ((((case · ` Z) ·⋆ N / refl) · ` (S (S (S Z)))) · (ƛ (Succ · (` (S (S Z)) · ` Z)))))) · ` (S Z)))
+  Plus = ƛ (ƛ (((Z-comb ·⋆ N / refl) ·⋆ N / refl) · (ƛ (ƛ ((((mycase · ` Z) ·⋆ N / refl) · ` (S (S (S Z)))) · (ƛ (Succ · (` (S (S Z)) · ` Z)))))) · ` (S Z)))
 
   TwoPlusTwo : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N
   TwoPlusTwo = (Plus · Two) · Two

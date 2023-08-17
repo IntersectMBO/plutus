@@ -52,7 +52,17 @@
                                                                       [
                                                                         (lam
                                                                           go_i0
-                                                                          go_i1
+                                                                          (force
+                                                                            [
+                                                                              go_i1
+                                                                              (delay
+                                                                                (lam
+                                                                                  x_i0
+                                                                                  x_i1
+                                                                                )
+                                                                              )
+                                                                            ]
+                                                                          )
                                                                         )
                                                                         [
                                                                           (force
@@ -134,21 +144,9 @@
                                                                                 arg_i0
                                                                                 (delay
                                                                                   [
-                                                                                    map_i6
-                                                                                    go_i2
-                                                                                  ]
-                                                                                )
-                                                                              )
-                                                                            ]
-                                                                            (lam
-                                                                              x_i0
-                                                                              [
-                                                                                (lam
-                                                                                  x_i0
-                                                                                  [
                                                                                     (force
                                                                                       [
-                                                                                        g_i5
+                                                                                        map_i6
                                                                                         (delay
                                                                                           (lam
                                                                                             x_i0
@@ -157,31 +155,87 @@
                                                                                         )
                                                                                       ]
                                                                                     )
-                                                                                    [
-                                                                                      f_i10
-                                                                                      x_i1
-                                                                                    ]
+                                                                                    (force
+                                                                                      [
+                                                                                        go_i2
+                                                                                        (delay
+                                                                                          (lam
+                                                                                            x_i0
+                                                                                            x_i1
+                                                                                          )
+                                                                                        )
+                                                                                      ]
+                                                                                    )
                                                                                   ]
                                                                                 )
-                                                                                x_i1
-                                                                              ]
+                                                                              )
+                                                                            ]
+                                                                            (lam
+                                                                              arg_i0
+                                                                              (delay
+                                                                                (lam
+                                                                                  x_i0
+                                                                                  [
+                                                                                    (lam
+                                                                                      x_i0
+                                                                                      [
+                                                                                        (force
+                                                                                          [
+                                                                                            g_i6
+                                                                                            (delay
+                                                                                              (lam
+                                                                                                x_i0
+                                                                                                x_i1
+                                                                                              )
+                                                                                            )
+                                                                                          ]
+                                                                                        )
+                                                                                        [
+                                                                                          (force
+                                                                                            f_i11
+                                                                                          )
+                                                                                          x_i1
+                                                                                        ]
+                                                                                      ]
+                                                                                    )
+                                                                                    x_i1
+                                                                                  ]
+                                                                                )
+                                                                              )
                                                                             )
                                                                           ]
                                                                           (lam
-                                                                            x_i0
-                                                                            [
+                                                                            arg_i0
+                                                                            (delay
                                                                               (lam
                                                                                 x_i0
                                                                                 [
-                                                                                  g_i9
-                                                                                  [
-                                                                                    f_i4
-                                                                                    x_i1
-                                                                                  ]
+                                                                                  (lam
+                                                                                    x_i0
+                                                                                    [
+                                                                                      (force
+                                                                                        g_i10
+                                                                                      )
+                                                                                      [
+                                                                                        (force
+                                                                                          [
+                                                                                            f_i5
+                                                                                            (delay
+                                                                                              (lam
+                                                                                                x_i0
+                                                                                                x_i1
+                                                                                              )
+                                                                                            )
+                                                                                          ]
+                                                                                        )
+                                                                                        x_i1
+                                                                                      ]
+                                                                                    ]
+                                                                                  )
+                                                                                  x_i1
                                                                                 ]
                                                                               )
-                                                                              x_i1
-                                                                            ]
+                                                                            )
                                                                           )
                                                                         ]
                                                                       )
@@ -212,60 +266,75 @@
                                                             (lam
                                                               map_i0
                                                               (lam
-                                                                ds_i0
-                                                                (lam
-                                                                  ds_i0
-                                                                  [
+                                                                arg_i0
+                                                                (delay
+                                                                  (lam
+                                                                    ds_i0
                                                                     (lam
                                                                       ds_i0
-                                                                      (force
-                                                                        [
-                                                                          [
-                                                                            (force
+                                                                      [
+                                                                        (lam
+                                                                          ds_i0
+                                                                          (force
+                                                                            [
                                                                               [
                                                                                 (force
-                                                                                  Nil_match_i10
-                                                                                )
-                                                                                ds_i2
-                                                                              ]
-                                                                            )
-                                                                            (delay
-                                                                              (force
-                                                                                Nil_i12
-                                                                              )
-                                                                            )
-                                                                          ]
-                                                                          (lam
-                                                                            x_i0
-                                                                            (lam
-                                                                              xs_i0
-                                                                              (delay
-                                                                                [
                                                                                   [
                                                                                     (force
-                                                                                      Cons_i13
+                                                                                      Nil_match_i11
                                                                                     )
-                                                                                    [
-                                                                                      ds_i3
-                                                                                      x_i2
-                                                                                    ]
+                                                                                    ds_i2
                                                                                   ]
-                                                                                  [
+                                                                                )
+                                                                                (delay
+                                                                                  (force
+                                                                                    Nil_i13
+                                                                                  )
+                                                                                )
+                                                                              ]
+                                                                              (lam
+                                                                                x_i0
+                                                                                (lam
+                                                                                  xs_i0
+                                                                                  (delay
                                                                                     [
-                                                                                      map_i6
-                                                                                      ds_i3
+                                                                                      [
+                                                                                        (force
+                                                                                          Cons_i14
+                                                                                        )
+                                                                                        [
+                                                                                          ds_i3
+                                                                                          x_i2
+                                                                                        ]
+                                                                                      ]
+                                                                                      [
+                                                                                        [
+                                                                                          (force
+                                                                                            [
+                                                                                              map_i7
+                                                                                              (delay
+                                                                                                (lam
+                                                                                                  x_i0
+                                                                                                  x_i1
+                                                                                                )
+                                                                                              )
+                                                                                            ]
+                                                                                          )
+                                                                                          ds_i3
+                                                                                        ]
+                                                                                        xs_i1
+                                                                                      ]
                                                                                     ]
-                                                                                    xs_i1
-                                                                                  ]
-                                                                                ]
+                                                                                  )
+                                                                                )
                                                                               )
-                                                                            )
+                                                                            ]
                                                                           )
-                                                                        ]
-                                                                      )
+                                                                        )
+                                                                        ds_i2
+                                                                      ]
                                                                     )
-                                                                    ds_i2
-                                                                  ]
+                                                                  )
                                                                 )
                                                               )
                                                             )
@@ -275,40 +344,49 @@
                                                     )
                                                   ]
                                                 )
-                                                (lam
-                                                  ds_i0
-                                                  [
+                                                (delay
+                                                  (lam
+                                                    ds_i0
                                                     [
-                                                      (lam
-                                                        `$WEmptyRose_i0`
-                                                        `$WEmptyRose_i1`
-                                                      )
-                                                      (lam
-                                                        dt_i0
-                                                        [
+                                                      [
+                                                        (lam
+                                                          `$WEmptyRose_i0`
+                                                          (force
+                                                            `$WEmptyRose_i1`
+                                                          )
+                                                        )
+                                                        (delay
                                                           (lam
                                                             dt_i0
                                                             [
-                                                              EmptyRose_i6 dt_i1
+                                                              (lam
+                                                                dt_i0
+                                                                [
+                                                                  EmptyRose_i6
+                                                                  dt_i1
+                                                                ]
+                                                              )
+                                                              dt_i1
                                                             ]
                                                           )
-                                                          dt_i1
-                                                        ]
-                                                      )
+                                                        )
+                                                      ]
+                                                      ds_i1
                                                     ]
-                                                    ds_i1
-                                                  ]
+                                                  )
                                                 )
                                               ]
                                             )
-                                            (lam
-                                              ds_i0
-                                              [
-                                                (force
-                                                  [ EmptyRose_match_i2 ds_i1 ]
-                                                )
-                                                (lam x_i0 x_i1)
-                                              ]
+                                            (delay
+                                              (lam
+                                                ds_i0
+                                                [
+                                                  (force
+                                                    [ EmptyRose_match_i2 ds_i1 ]
+                                                  )
+                                                  (lam x_i0 x_i1)
+                                                ]
+                                              )
                                             )
                                           ]
                                         )

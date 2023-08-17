@@ -5,7 +5,10 @@ module Type.BetaNBE where
 ## Imports
 
 \begin{code}
+
 open import Function using (_∘_;id)
+open import Data.Vec using (Vec;[];_∷_) renaming (map to vmap)
+open import Data.List using (List;[];_∷_;map)
 open import Data.Sum using (_⊎_;inj₁;inj₂)
 
 open import Utils using (Kind;*;_⇒_;♯)
@@ -127,14 +130,24 @@ reifying.
 
 \begin{code}
 eval : ∀{Φ Ψ K} → Ψ ⊢⋆ K → Env Ψ Φ → Val Φ K
-eval (` α)   η = η α
-eval (Π B)   η = Π (reify (eval B (exte η)))
-eval (A ⇒ B) η = reify (eval A η) ⇒ reify (eval B η)
-eval (ƛ B)   η = inj₂ λ ρ v → eval B ((renVal ρ ∘ η) ,,⋆ v)
-eval (A · B) η = eval A η ·V eval B η
-eval (μ A B) η = μ (reify (eval A η)) (reify (eval B η))
-eval (^ x)   η = reflect (^ x)
-eval (con c) η = con (eval c η)
+
+eval-List : ∀{Φ Ψ K} → List (Ψ ⊢⋆ K) → Env Ψ Φ → List (Val Φ K)
+eval-VecList : ∀{Φ Ψ K n} → Vec (List (Ψ ⊢⋆ K)) n → Env Ψ Φ → Vec (List (Val Φ K)) n
+
+eval (` α)     η = η α
+eval (Π B)     η = Π (reify (eval B (exte η)))
+eval (A ⇒ B)   η = reify (eval A η) ⇒ reify (eval B η)
+eval (ƛ B)     η = inj₂ λ ρ v → eval B ((renVal ρ ∘ η) ,,⋆ v)
+eval (A · B)   η = eval A η ·V eval B η
+eval (μ A B)   η = μ (reify (eval A η)) (reify (eval B η))
+eval (^ x)     η = reflect (^ x)
+eval (con c)   η = con (eval c η)
+eval (SOP xss) η = SOP (eval-VecList xss η)
+
+eval-List [] η = []
+eval-List (x ∷ xs) η = eval x η ∷ eval-List xs η
+eval-VecList [] η = []
+eval-VecList (xs ∷ xss) η = eval-List xs η ∷ eval-VecList xss η
 \end{code}
 
 Identity environment
@@ -151,4 +164,27 @@ and then reify to yield a normal form
 \begin{code}
 nf : ∀{Φ K} → Φ ⊢⋆ K → Φ ⊢Nf⋆ K
 nf t = reify (eval t (idEnv _))
+
+nf-VecList :  ∀{Φ K n} → Vec (List (Φ ⊢⋆ K)) n → Vec (List (Φ ⊢Nf⋆ K)) n
+nf-VecList tss =  vmap (map reify) (eval-VecList tss (idEnv _))
+\end{code}
+
+Some properties relating uses of lookup on VecList-functions with List-functions
+
+\begin{code}
+module _ where
+
+  open import Data.Fin using (Fin;zero;suc)
+  open import Data.Vec using (lookup)
+  open import Relation.Binary.PropositionalEquality using (_≡_;refl; cong; cong₂)
+
+  
+  lookup-eval-VecList : ∀ {Φ Ψ n}
+              → (e : Fin n)
+              → (A : Vec (List (Ψ ⊢⋆ *)) n)
+              → (η : Env Ψ Φ)
+                --------------------------------------------
+              → lookup (eval-VecList A η) e ≡ eval-List (lookup A e) η
+  lookup-eval-VecList zero (x ∷ A) η = refl
+  lookup-eval-VecList (suc e) (_ ∷ A) η = lookup-eval-VecList e A η
 \end{code}

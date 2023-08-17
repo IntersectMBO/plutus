@@ -3,7 +3,7 @@
   (let
     (nonrec)
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl `$fAdditiveMonoidInteger_$czero` (con integer))
       (con integer 0)
     )
@@ -13,7 +13,7 @@
       (builtin addInteger)
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
       (lam
         x
@@ -65,7 +65,7 @@
       (let
         (nonrec)
         (termbind
-          (strict)
+          (nonstrict)
           (vardecl
             `$fFoldableNil_$cfoldr`
             (all
@@ -96,7 +96,7 @@
                       (let
                         (rec)
                         (termbind
-                          (strict)
+                          (nonstrict)
                           (vardecl go (fun [ List a ] b))
                           (lam
                             ds
@@ -150,7 +150,7 @@
           `$fFoldableNil_$cfoldr`
         )
         (termbind
-          (strict)
+          (nonstrict)
           (vardecl
             build
             (all
@@ -176,7 +176,7 @@
           )
         )
         (termbind
-          (strict)
+          (nonstrict)
           (vardecl
             `$p1AdditiveMonoid`
             (all
@@ -202,7 +202,7 @@
           )
         )
         (termbind
-          (strict)
+          (nonstrict)
           (vardecl zero (all a (type) (fun [ AdditiveMonoid a ] a)))
           (abs
             a
@@ -218,7 +218,7 @@
           )
         )
         (termbind
-          (strict)
+          (nonstrict)
           (vardecl
             sum
             (all

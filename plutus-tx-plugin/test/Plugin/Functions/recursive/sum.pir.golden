@@ -21,7 +21,7 @@
         (builtin addInteger)
       )
       (termbind
-        (strict)
+        (nonstrict)
         (vardecl
           addInteger (fun (con integer) (fun (con integer) (con integer)))
         )
@@ -43,7 +43,7 @@
       (let
         (rec)
         (termbind
-          (strict)
+          (nonstrict)
           (vardecl sum (fun [ List (con integer) ] (con integer)))
           (lam
             ds

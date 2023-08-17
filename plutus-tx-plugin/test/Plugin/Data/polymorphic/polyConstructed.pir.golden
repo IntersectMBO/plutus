@@ -12,7 +12,7 @@
       )
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl
         `$WPoly`
         (all a (type) (all b (type) (fun a (fun b [ [ MyPolyData a ] b ]))))

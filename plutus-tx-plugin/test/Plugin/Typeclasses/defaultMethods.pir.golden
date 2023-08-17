@@ -17,7 +17,7 @@
       )
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl
         method (all a (type) (fun [ DefaultMethods a ] (fun a (con integer))))
       )
@@ -35,7 +35,7 @@
       )
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl
         f (all a (type) (fun [ DefaultMethods a ] (fun a (con integer))))
       )
@@ -58,7 +58,7 @@
       )
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl
         `$fDefaultMethodsInteger_$cmethod` (fun (con integer) (con integer))
       )
@@ -70,7 +70,7 @@
       (builtin addInteger)
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl
         `$fDefaultMethodsInteger_$cmethod` (fun (con integer) (con integer))
       )

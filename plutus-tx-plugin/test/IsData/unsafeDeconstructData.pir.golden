@@ -39,7 +39,7 @@
       (builtin ifThenElse)
     )
     (termbind
-      (strict) (vardecl reconstructCaseError (con string)) (con string "PT1")
+      (nonstrict) (vardecl reconstructCaseError (con string)) (con string "PT1")
     )
     (termbind
       (strict)
@@ -68,7 +68,7 @@
       (builtin unConstrData)
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl
         `$fUnsafeFromDataTuple2_$cunsafeFromBuiltinData`
         (all
@@ -253,7 +253,7 @@
       )
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl
         `$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
         (all
@@ -390,7 +390,7 @@
       ]
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl
         unsafeFromBuiltinData
         (all

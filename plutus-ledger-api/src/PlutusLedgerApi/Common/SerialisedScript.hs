@@ -10,6 +10,8 @@ module PlutusLedgerApi.Common.SerialisedScript
     , ScriptForExecution (..)
     , ScriptDecodeError (..)
     , AsScriptDecodeError (..)
+    , DeserialiseFailureInfo (..)
+    , DeserialiseFailureReason (..)
     , fromSerialisedScript
     , assertScriptWellFormed
     ) where
@@ -23,7 +25,7 @@ import UntypedPlutusCore qualified as UPLC
 import PlutusCore.DeBruijn.Internal (FakeNamedDeBruijn (FakeNamedDeBruijn))
 
 import Codec.CBOR.Decoding qualified as CBOR
-import Codec.CBOR.Extras
+import Codec.CBOR.Extras as CBOR.Extras
 import Codec.CBOR.Read qualified as CBOR
 import Codec.Serialise
 import Control.Arrow ((>>>))
@@ -40,7 +42,7 @@ import Prettyprinter
 
 -- | An error that occurred during script deserialization.
 data ScriptDecodeError =
-      CBORDeserialiseError !CBOR.DeserialiseFailure -- ^ an error from the underlying CBOR/serialise library
+      CBORDeserialiseError !CBOR.Extras.DeserialiseFailureInfo -- ^ an error from the underlying CBOR/serialise library
     | RemainderError !BSL.ByteString -- ^ Script was successfully parsed, but more (runaway) bytes encountered after script's position
     | LedgerLanguageNotAvailableError -- ^ the plutus version of the given script is not enabled yet
         { sdeAffectedLang :: !PlutusLedgerLanguage -- ^ the script's ledger language
@@ -155,7 +157,12 @@ fromSerialisedScript lv currentPv sScript = do
                        >>> fromStrict
                        >>> CBOR.deserialiseFromBytes (scriptCBORDecoder lv currentPv)
                        -- lift the underlying cbor error to our custom error
-                       >>> either (throwing _ScriptDecodeError . CBORDeserialiseError) pure
+                       >>> either (throwing _ScriptDecodeError . toScripDecodeError) pure
+
+    -- turn a cborg failure to our own error type
+    toScripDecodeError :: CBOR.DeserialiseFailure -> ScriptDecodeError
+    toScripDecodeError = CBORDeserialiseError . CBOR.Extras.readDeserialiseFailureInfo
+
 
 {-| Check if a 'Script' is "valid" according to a protocol version. At the moment this means "deserialises correctly", which in particular
 implies that it is (almost certainly) an encoded script and the script does not mention any builtins unavailable in the given protocol version.

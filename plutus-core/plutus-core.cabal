@@ -345,7 +345,7 @@ test-suite plutus-core-test
   default-language: Haskell2010
   build-depends:
     , aeson
-    , base                                            >=4.9  && <5
+    , base                                            >=4.9   && <5
     , bytestring
     , containers
     , data-default-class
@@ -402,7 +402,7 @@ test-suite untyped-plutus-core-test
     Transform.Simplify
 
   build-depends:
-    , base                                            >=4.9  && <5
+    , base                                            >=4.9   && <5
     , bytestring
     , cardano-crypto-class
     , dlist
@@ -427,7 +427,7 @@ executable plc
   main-is:        plc/Main.hs
   hs-source-dirs: executables
   build-depends:
-    , base                  >=4.9  && <5
+    , base                  >=4.9   && <5
     , bytestring
     , deepseq
     , flat                  ^>=0.6
@@ -441,7 +441,7 @@ executable uplc
   main-is:        uplc/Main.hs
   hs-source-dirs: executables
   build-depends:
-    , base                  >=4.9  && <5
+    , base                  >=4.9   && <5
     , bytestring
     , deepseq
     , flat                  ^>=0.6
@@ -500,6 +500,7 @@ library plutus-ir
     PlutusIR.Transform.NonStrict
     PlutusIR.Transform.RecSplit
     PlutusIR.Transform.Rename
+    PlutusIR.Transform.StrictifyBindings
     PlutusIR.Transform.Substitute
     PlutusIR.Transform.ThunkRecursions
     PlutusIR.Transform.Unwrap
@@ -568,7 +569,7 @@ test-suite plutus-ir-test
     TypeSpec
 
   build-depends:
-    , base                                                       >=4.9  && <5
+    , base                                                       >=4.9   && <5
     , containers
     , flat                                                       ^>=0.6
     , hashable
@@ -590,7 +591,7 @@ executable pir
   main-is:        pir/Main.hs
   hs-source-dirs: executables
   build-depends:
-    , base                                  >=4.9  && <5
+    , base                                  >=4.9   && <5
     , bytestring
     , cassava
     , containers
@@ -618,7 +619,7 @@ library plutus-core-execlib
 
   build-depends:
     , aeson
-    , base                                                       >=4.9  && <5
+    , base                                                       >=4.9   && <5
     , bytestring
     , deepseq
     , flat                                                       ^>=0.6
@@ -721,7 +722,7 @@ executable debugger
 
   ghc-options:    -O2 -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-    , base                  >=4.9  && <5
+    , base                  >=4.9   && <5
     , brick
     , containers
     , megaparsec
@@ -800,7 +801,7 @@ executable cost-model-budgeting-bench
 
   hs-source-dirs: cost-model/budgeting-bench
   build-depends:
-    , base                   >=4.9  && <5
+    , base                   >=4.9   && <5
     , bytestring
     , cardano-crypto-class
     , criterion
@@ -956,7 +957,7 @@ library index-envs
     Data.RandomAccessList.SkewBinarySlab
 
   build-depends:
-    , base             >=4.9 && <5
+    , base             >=4.9  && <5
     , containers
     , extra
     , nonempty-vector

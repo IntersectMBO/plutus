@@ -3,7 +3,7 @@
   (let
     (nonrec)
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl id (all a (type) (fun a a)))
       (abs
         a

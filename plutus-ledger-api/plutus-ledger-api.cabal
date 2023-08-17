@@ -51,6 +51,7 @@ library
   hs-source-dirs:   src
   default-language: Haskell2010
   exposed-modules:
+    Codec.CBOR.Extras
     PlutusLedgerApi.Common
     PlutusLedgerApi.Common.Versions
     PlutusLedgerApi.V1
@@ -78,7 +79,6 @@ library
     PlutusLedgerApi.V3.ParamName
 
   other-modules:
-    Codec.CBOR.Extras
     PlutusLedgerApi.Common.Eval
     PlutusLedgerApi.Common.ParamName
     PlutusLedgerApi.Common.ProtocolVersions
@@ -86,7 +86,7 @@ library
     Prettyprinter.Extras
 
   build-depends:
-    , base               >=4.9  && <5
+    , base               >=4.9   && <5
     , base16-bytestring  >=1
     , bytestring
     , cborg
@@ -132,6 +132,7 @@ test-suite plutus-ledger-api-test
   main-is:        Spec.hs
   hs-source-dirs: test
   other-modules:
+    Spec.CBOR.DeserialiseFailureInfo
     Spec.CostModelParams
     Spec.Eval
     Spec.Interval
@@ -139,8 +140,9 @@ test-suite plutus-ledger-api-test
     Spec.Versions
 
   build-depends:
-    , base                                                              >=4.9  && <5
+    , base                                                              >=4.9   && <5
     , bytestring
+    , cborg
     , containers
     , extra
     , hedgehog
@@ -164,7 +166,7 @@ executable evaluation-test
   ghc-options:      -threaded -rtsopts -with-rtsopts=-N
   build-depends:
     , async
-    , base                                                              >=4.9  && <5
+    , base                                                              >=4.9   && <5
     , extra
     , filepath
     , mtl

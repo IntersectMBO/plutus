@@ -1,0 +1,6 @@
+-- Here strictifying would (potentially) cost us, since the variable is never used
+(let
+  (nonrec)
+  (termbind (nonstrict) (vardecl x (con integer)) (con integer 1))
+  (con integer 1)
+)

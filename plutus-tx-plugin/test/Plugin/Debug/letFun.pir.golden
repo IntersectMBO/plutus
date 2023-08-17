@@ -58,7 +58,7 @@
     )
     (termbind
       { no-src-span }
-      (strict)
+      (nonstrict)
       (vardecl
         { no-src-span }
         equalsInteger

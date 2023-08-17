@@ -11,7 +11,7 @@
       )
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl
         `$fFunctorTuple2_$cfmap`
         (all
@@ -92,7 +92,7 @@
       (let
         (rec)
         (termbind
-          (strict)
+          (nonstrict)
           (vardecl
             `$fFunctorNil_$cfmap`
             (all
@@ -169,7 +169,7 @@
             `$fFunctorNil_$cfmap`
           )
           (termbind
-            (strict)
+            (nonstrict)
             (vardecl
               `.`
               (all
@@ -197,7 +197,7 @@
             )
           )
           (termbind
-            (strict)
+            (nonstrict)
             (vardecl
               fmap
               (all
@@ -271,7 +271,7 @@
           (let
             (rec)
             (termbind
-              (strict)
+              (nonstrict)
               (vardecl
                 `$s$fFromBuiltinBuiltinListNil_$cfromBuiltin_go`
                 (fun [ (con list) (con data) ] [ List (con data) ])
@@ -341,7 +341,7 @@
                 (builtin unConstrData)
               )
               (termbind
-                (strict)
+                (nonstrict)
                 (vardecl
                   unsafeDataAsConstr
                   (fun
@@ -393,7 +393,7 @@
                 (builtin unIData)
               )
               (termbind
-                (strict)
+                (nonstrict)
                 (vardecl unsafeDataAsI (fun (con data) (con integer)))
                 (lam
                   d

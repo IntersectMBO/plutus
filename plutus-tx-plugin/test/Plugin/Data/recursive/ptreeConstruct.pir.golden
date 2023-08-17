@@ -24,7 +24,7 @@
       (let
         (nonrec)
         (termbind
-          (strict)
+          (nonstrict)
           (vardecl `$WOne` (all a (type) (fun a [ B a ])))
           (abs
             a
@@ -39,7 +39,7 @@
           )
         )
         (termbind
-          (strict)
+          (nonstrict)
           (vardecl
             `$WTwo` (all a (type) (fun [ B [ [ Tuple2 a ] a ] ] [ B a ]))
           )

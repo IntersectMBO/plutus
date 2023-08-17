@@ -13,7 +13,7 @@
       )
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl `$WMono` (fun (con integer) MyMonoData))
       (lam
         dt

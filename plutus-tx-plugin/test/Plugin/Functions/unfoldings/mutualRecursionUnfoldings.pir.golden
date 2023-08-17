@@ -30,7 +30,7 @@
     (let
       (rec)
       (termbind
-        (strict)
+        (nonstrict)
         (vardecl evenDirect (fun (con integer) Bool))
         (lam
           n
@@ -64,7 +64,7 @@
         )
       )
       (termbind
-        (strict)
+        (nonstrict)
         (vardecl oddDirect (fun (con integer) Bool))
         (lam
           n

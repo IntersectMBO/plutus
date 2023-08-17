@@ -56,6 +56,7 @@ data PluginOptions = PluginOptions
     , _posDoSimplifierBeta               :: Bool
     , _posDoSimplifierInline             :: Bool
     , _posDoSimplifierEvaluateBuiltins   :: Bool
+    , _posDoSimplifierStrictifyBindings  :: Bool
     , _posDoSimplifierRemoveDeadBindings :: Bool
     , _posProfile                        :: ProfileOpts
     , _posCoverageAll                    :: Bool
@@ -212,6 +213,9 @@ pluginOptions =
         , let k = "simplifier-inline"
               desc = "Run a simplification pass that performs inlining"
            in (k, PluginOption typeRep (setTrue k) posDoSimplifierInline desc [])
+        , let k = "strictify-bindings"
+              desc = "Run a simplification pass that makes bindings stricter"
+           in (k, PluginOption typeRep (setTrue k) posDoSimplifierStrictifyBindings desc [])
         , let k = "simplifier-remove-dead-bindings"
               desc = "Run a simplification pass that removes dead bindings"
            in (k, PluginOption typeRep (setTrue k) posDoSimplifierRemoveDeadBindings desc [])
@@ -291,6 +295,7 @@ defaultPluginOptions =
         , _posDoSimplifierBeta = True
         , _posDoSimplifierInline = True
         , _posDoSimplifierEvaluateBuiltins = True
+        , _posDoSimplifierStrictifyBindings = True
         , _posDoSimplifierRemoveDeadBindings = True
         , _posProfile = None
         , _posCoverageAll = False

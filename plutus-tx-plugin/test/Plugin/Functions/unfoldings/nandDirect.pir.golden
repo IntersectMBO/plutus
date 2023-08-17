@@ -11,7 +11,7 @@
       )
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl nandDirect (fun Bool (fun Bool Bool)))
       (lam
         ds
