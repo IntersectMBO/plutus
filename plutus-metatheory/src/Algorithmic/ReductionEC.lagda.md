@@ -249,7 +249,7 @@ _[_]ᴱ : ∀{A B : ∅ ⊢Nf⋆ *} → EC B A → ∅ ⊢ A → ∅ ⊢ B
 (E ·⋆ A / q) [ L ]ᴱ = (E [ L ]ᴱ) ·⋆ A / q
 (wrap   E) [ L ]ᴱ = wrap _ _ (E [ L ]ᴱ)
 (unwrap E / q) [ L ]ᴱ = unwrap (E [ L ]ᴱ) q
-constr i TSS refl {idx} {tvs} vs ts E [ L ]ᴱ = constr i TSS (sym (lem-≣-<>> idx)) (tvs <>>I (E [ L ]ᴱ ∷ ts))
+constr i TSS p {idx} {tvs} vs ts E [ L ]ᴱ = constr i TSS (trans (sym (lem-≣-<>> idx)) p) (tvs <>>I (E [ L ]ᴱ ∷ ts))
 case cs E [ L ]ᴱ = case (E [ L ]ᴱ) cs
 ```
 

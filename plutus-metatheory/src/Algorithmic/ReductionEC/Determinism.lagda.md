@@ -16,7 +16,7 @@ open import Relation.Binary.PropositionalEquality
 open import Relation.Binary.HeterogeneousEquality 
         using (_≅_;refl;≅-to-≡) 
 
-open import Utils hiding (_×_;List;case)
+open import Utils hiding (_×_;List)
 open import Utils.List
 open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_;_∋⋆_;Z)
 open _⊢⋆_
@@ -170,29 +170,17 @@ proj-VList : ∀ {H} (M : ∅ ⊢ H)
 proj-VList M tvs cs vs with bsplitI tvs (M ∷ cs) vs
 ... | _ ,, (VM ∷ _) = VM
 
-{-
-VE-constr : ∀ {B} (M : ∅ ⊢ B){H}(E : EC H B)
-              AS {VS}{TS} {tidx : AS ≣ VS <>> (H ∷ TS)} 
-              (tvs : IBwd (_⊢_ ∅) VS) (cs : IList (∅ ⊢_) TS)
-              {zs : IBwd (∅ ⊢_) ([] <>< AS)} 
-             → IIBwd Value zs 
-             → zs ≡ substEq (IBwd (∅ ⊢_)) (lemma<>2' ([] <>< AS) AS (lemma<>1 [] AS))
-                         ([] <><I substEq (IList (_⊢_ ∅)) (sym (lem-≣-<>> tidx)) (tvs <>>I ((E [ M ]ᴱ) ∷ cs)))
-             → Value (E [ M ]ᴱ)
-VE-constr 
--}
-
 VE-constr-lemma : ∀ {VS} {H} {TS}
                     {tvs : IBwd (_⊢_ ∅) VS}
                     {M : ∅ ⊢ H}
-                    {ts : Algorithmic.ConstrArgs ∅ TS}
+                    (ts : Algorithmic.ConstrArgs ∅ TS)
                     {ZS}
                     (p : ZS ≡ (VS <>< (H ∷ TS)))
                     {zs : IBwd (∅ ⊢_) ZS} 
                     (q : substEq (IBwd (∅ ⊢_)) p zs ≡ (tvs <><I (M ∷ ts)))
                     (vs : VList zs)
                    → VList (tvs <><I (M ∷ ts))
-VE-constr-lemma p q vs = {!  !}            
+VE-constr-lemma ts refl refl vs = vs
 
 lemVE : ∀{A B} M (E : EC A B) → Value (E [ M ]ᴱ) → Value M
 lemVE M [] V = V
@@ -203,15 +191,13 @@ lemVE M (EC₁ ·⋆ A / x) (V-IΠ b (step⋆ x₁ .x)) = lemVE _ EC₁ (V-I b x
 lemVE M (wrap EC₁) (V-wrap V) = lemVE _ EC₁ V
 lemVE M (unwrap EC₁ / x) (V-I⇒ b ())
 lemVE M (unwrap EC₁ / x) (V-IΠ b ())
-lemVE M (constr i A refl {tidx} (mkVZ {tvs = tvs} vs ts) E) (V-constr .i .A .refl refl {zs} vs' x)
---     = lemVE M E (VE-constr M E (lookup A i) {_}{_}{tidx} tvs ts vs' (IBwd<>IList (lemma<>1 [] (lookup A i)) {zs} x))
-    = lemVE M E (proj-VList (E [ M ]ᴱ) {tidx = tidx} tvs ts {!   !})
-{-
-  from x : ts₁ ≡ tvs Utils.List.<>>I ((E [ M ]ᴱ) ∷ ts)
-  extract from vs' : VList ts₁ a value (vm : Value (E [ M ]ᴱ))
-  and call lemVE M E vm
--}
-
+lemVE M (constr {VS = VS}{H}{TS} i A refl {tidx} {tvs} vs ts E) (V-constr _ _ _ refl {zs} vs' x) = 
+       lemVE M E (proj-VList (E [ M ]ᴱ) {tidx = tidx} tvs ts 
+                             (VE-constr-lemma ts (lemma<>2 VS (H ∷ TS)) 
+                                         (trans (cong (substEq (IBwd (_⊢_ ∅)) (lemma<>2 VS (H ∷ TS))) 
+                                        (trans (IBwd<>IList (lemma<>1 [] (VS <>> (H ∷ TS))) x) 
+                                          ((≡-subst-removable (IBwd (_⊢_ ∅)) _ refl  ([] <><I (tvs <>>I ((E [ M ]ᴱ) ∷ ts))))))) 
+                                         (lemma<>I2 tvs ((E [ M ]ᴱ) ∷ ts))) vs'))
 lemVE M (EC.case cs E) (V-I⇒ b ())
 lemVE M (EC.case cs E) (V-IΠ b ())
 
@@ -243,25 +229,6 @@ proj· : ∀{A A' B}{t : ∅ ⊢ A ⇒ B}{t' : ∅ ⊢ A' ⇒ B}{u : ∅ ⊢ A}{
       × substEq (∅ ⊢_) p u ≡ u'
 proj· refl = refl ,, refl ,, refl
 
-{-
-proj-case : ∀ {n}{A}{B} 
-              {TSS : Vec.Vec (List (∅ ⊢Nf⋆ *)) n}
-              {cs cs₁ : Algorithmic.Cases ∅ B TSS}
-              {M : ∅ ⊢ SOP TSS}
-              (E' : EC (SOP TSS) A)
-              (L' : ∅ ⊢ A)
-              (p : _⊢_.case M cs ≡ (_⊢_.case (E' [ L' ]ᴱ) cs₁)) →
-              (M ≡ (E' [ L' ]ᴱ)) 
-proj-case E' L' refl = refl
-
-inj-case : ∀ {n} {TSS : Vec.Vec (List (∅ ⊢Nf⋆ *)) n}{A}
-               {M : ∅ ⊢ SOP TSS}{cs : Algorithmic.Cases ∅ A TSS} 
-               {n'}{TSS' : Vec.Vec (List (∅ ⊢Nf⋆ *)) n'}
-               {M' : ∅ ⊢ SOP TSS'}{cs' : Algorithmic.Cases ∅ A TSS'} 
-               (p : _⊢_.case M cs ≡ _⊢_.case M' cs') →
-              Σ (n ≡ n') λ { refl → Σ (TSS ≡ TSS') (λ { refl → M ≡ M' × cs ≡ cs'})}
-inj-case refl = refl ,, refl ,, refl ,, refl
--}
 subst-case : ∀ {B} {A} {B'} {n}
                {TSS = tss : Vec.Vec (List (∅ ⊢Nf⋆ *)) n}
                (cs : Algorithmic.Cases ∅ A tss) (E : EC (SOP tss) B)
@@ -362,7 +329,7 @@ U·⋆1 eq (E' ·⋆ A / r) p q with lem-·⋆ r eq p
 U·⋆1 {L = L} eq (E' ·⋆ A / r) {L'} p q | refl ,, Y ,, refl ,, refl
   with lemΛE'' E' Y
 U·⋆1 {_} {A} {L = L} eq (_·⋆_/_ {_} E' A r) {.(Λ L)} p (β ()) | refl ,, Y ,, refl ,, refl | refl ,, X ,, refl
-U·⋆1 p (constr i _ refl vs E') () y
+U·⋆1 p (constr i _ refl vs ts E') () y
 
 
 -- M is not a value, it has made a step
