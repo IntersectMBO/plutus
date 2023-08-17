@@ -36,6 +36,7 @@ import PlutusIR.Transform.LetMerge qualified as LetMerge
 import PlutusIR.Transform.NonStrict qualified as NonStrict
 import PlutusIR.Transform.RecSplit qualified as RecSplit
 import PlutusIR.Transform.Rename ()
+import PlutusIR.Transform.StrictifyBindings qualified as StrictifyBindings
 import PlutusIR.Transform.ThunkRecursions qualified as ThunkRec
 import PlutusIR.Transform.Unwrap qualified as Unwrap
 import PlutusIR.TypeCheck as TC
@@ -61,6 +62,7 @@ transform =
         , rename
         , evaluateBuiltins
         , commuteDefaultFun
+        , strictifyBindings
         ]
 
 thunkRecursions :: TestNested
@@ -431,3 +433,13 @@ commuteDefaultFun =
         , "multiplyInt" -- this tests that the function works on multiplyInteger
         , "let" -- this tests that it works in the subterms
         ]
+
+strictifyBindings :: TestNested
+strictifyBindings =
+    testNested "strictifyBindings" $
+        map
+            (goldenPir (StrictifyBindings.strictifyBindings def) pTerm)
+            [ "pure1"
+            , "impure1"
+            , "unused"
+            ]

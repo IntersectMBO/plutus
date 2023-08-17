@@ -30,7 +30,7 @@
     )
     (termbind (strict) (vardecl unitval (con unit)) (con unit ()))
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl traceError (all a (type) (fun (con string) a)))
       (abs
         a

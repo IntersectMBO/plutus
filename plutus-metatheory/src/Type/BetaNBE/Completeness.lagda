@@ -7,19 +7,23 @@ open import Data.Empty using (⊥)
 open import Data.Product using (proj₂;_×_;_,_)
 open import Data.Sum using (inj₁;inj₂)
 open import Function using (_∘_;id)
+open import Data.Vec using (Vec;[];_∷_)
+open import Data.List using (List;[];_∷_)
 open import Relation.Binary.PropositionalEquality 
    using (_≡_;refl;sym;trans;cong;cong₂)
 
 open import Utils using (*;♯;_⇒_;J;K)
 open import Type using (Ctx⋆;_,⋆_;Φ;Ψ;Θ;_⊢⋆_;_∋⋆_;S;Z)
 open _⊢⋆_
-open import Type.Equality using (_≡β_)
+open import Type.Equality using (_≡β_;_⟨[≡]⟩β_;_[≡]β_)
 open _≡β_
-open import Type.RenamingSubstitution using (Ren;ren;ext;Sub;sub;exts;sub-cons)
-open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;renNf;renNe)
+open _⟨[≡]⟩β_
+open _[≡]β_
+open import Type.RenamingSubstitution using (Ren;ren;ext;Sub;sub;exts;sub-cons;ren-List;ren-VecList;sub-List;sub-VecList)
+open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;renNf;renNe;renNf-List;renNf-VecList)
 open _⊢Nf⋆_
 open _⊢Ne⋆_
-open import Type.BetaNBE using (Val;renVal;reflect;reify;Env;_,,⋆_;_·V_;eval;idEnv;nf;exte)
+open import Type.BetaNBE using (Val;renVal;reflect;reify;Env;_,,⋆_;_·V_;eval;idEnv;nf;exte;eval-List;eval-VecList)
 open import Type.BetaNormal.Equality using (renNe-cong;renNf-id;renNe-id;renNf-comp;renNe-comp)
 \end{code}
 
@@ -131,7 +135,7 @@ reifyCR {K = K ⇒ J} {inj₂ f} {inj₂ f'} (p , p' , p'') =
   cong ƛ (reifyCR (p'' S (reflectCR refl)))
 \end{code}
 
-'equality' for environements/CR lifted from values to environements
+'equality' for environments/CR lifted from values to environments
 
 \begin{code}
 EnvCR : ∀ {Φ Ψ} → (η η' : Env Φ Ψ) →  Set
@@ -199,7 +203,11 @@ ren-reify {K = K ⇒ J} {v = inj₁ n} {inj₂ f'} () ρ
 ren-reify {K = K ⇒ J} {v = inj₂ f} {inj₁ n'} () ρ
 ren-reify {K = K ⇒ J} {v = inj₂ f} {inj₂ f'} (p , p' , p'') ρ = cong ƛ
   (trans (ren-reify (p'' S (reflectCR refl)) (ext ρ))
-         (reifyCR ((transCR ( p' S (ext ρ) _ _ (reflectCR refl)) (AppCR {f = renVal (S ∘ ρ) (inj₂ f')}{renVal (S ∘ ρ) (inj₂ f')} ((λ ρ₁ ρ' v → p' (ρ₁ ∘ S ∘ ρ) ρ' v) , (λ ρ₁ ρ' v → p' (ρ₁ ∘ S ∘ ρ) ρ' v) ,  λ ρ' q → proj₂ (proj₂ (reflCR {v = inj₂ f'}{v' = inj₂ f} (symCR {v = inj₂ f}{v' = inj₂ f'}(p , p' , p'')))) (ρ' ∘ S ∘ ρ) q) (renVal-reflect (ext ρ) (` Z)))))))
+         (reifyCR ((transCR ( p' S (ext ρ) _ _ (reflectCR refl)) 
+                            (AppCR {f = renVal (S ∘ ρ) (inj₂ f')}{renVal (S ∘ ρ) (inj₂ f')} 
+                                   ((λ ρ₁ ρ' v → p' (ρ₁ ∘ S ∘ ρ) ρ' v) , (λ ρ₁ ρ' v → p' (ρ₁ ∘ S ∘ ρ) ρ' v) ,  λ ρ' q → proj₂ (proj₂ (reflCR {v = inj₂ f'}{v' = inj₂ f} (symCR {v = inj₂ f}{v' = inj₂ f'}(p , p' , p'')))) 
+                                                                                                                                     (ρ' ∘ S ∘ ρ) q) 
+                                   (renVal-reflect (ext ρ) (` Z)))))))
 \end{code}
 
 first functor law for renVal
@@ -295,6 +303,16 @@ idext : ∀{K}{η η' : Env Φ Ψ}
     ---------------------------
   → CR K (eval t η) (eval t η')
 
+idext-List : ∀{η η' : Env Φ Ψ}
+  → EnvCR η η'
+  → (xs : List (Φ ⊢⋆ *)) 
+  → eval-List xs η ≡ eval-List xs η'
+
+idext-VecList : ∀{η η' : Env Φ Ψ}{n}
+  → EnvCR η η'
+  → (xss : Vec (List (Φ ⊢⋆ *)) n) 
+  → eval-VecList xss η ≡ eval-VecList xss η'
+
 renVal-eval : ∀{Φ Ψ Θ K}
   → (t : Ψ ⊢⋆ K)
   → {η η' : Env Ψ Φ}
@@ -302,6 +320,28 @@ renVal-eval : ∀{Φ Ψ Θ K}
   → (ρ : Ren Φ Θ )
     ---------------------------------------------------
   → CR K (renVal ρ (eval t η)) (eval t (renVal ρ ∘ η'))
+
+renVal-eval-List :  ∀{Φ Ψ Θ}
+  → (xs : List (Ψ ⊢⋆ *))
+  → {η η' : Env Ψ Φ}
+  → (p : EnvCR η η')
+  → (ρ : Ren Φ Θ )
+    ---------------------------------------------------
+   → renNf-List ρ (eval-List xs η) ≡ eval-List xs (renVal ρ ∘ η')
+
+renVal-eval-VecList :  ∀{Φ Ψ Θ n}
+  → (xss : Vec (List (Ψ ⊢⋆ *)) n)
+  → {η η' : Env Ψ Φ}
+  → (p : EnvCR η η')
+  → (ρ : Ren Φ Θ )
+    ---------------------------------------------------
+  → renNf-VecList ρ (eval-VecList xss η) ≡ eval-VecList xss (renVal ρ ∘ η')
+
+renVal-eval-List [] p ρ = refl
+renVal-eval-List (x ∷ xs) p ρ = cong₂ _∷_ (renVal-eval x p ρ) (renVal-eval-List xs p ρ)
+
+renVal-eval-VecList [] p ρ = refl
+renVal-eval-VecList (x ∷ xss) p ρ = cong₂ _∷_ (renVal-eval-List x p ρ) (renVal-eval-VecList xss p ρ)
 
 idext p (` x) = p x
 idext p (Π B) =
@@ -322,10 +362,16 @@ idext p (ƛ B) =
              B)) -- first two terms are identical (except for symCR (p x))
   ,
   λ ρ q → idext (CR,,⋆ (renCR ρ ∘ p) q) B
-idext p (A · B) = AppCR (idext p A) (idext p B)
-idext p (μ A B) = cong₂ μ (reifyCR (idext p A)) (reifyCR (idext p B))
-idext p (^ x)   = reflectCR refl
-idext p (con c) = cong con (idext p c)
+idext p (A · B)   = AppCR (idext p A) (idext p B)
+idext p (μ A B)   = cong₂ μ (reifyCR (idext p A)) (reifyCR (idext p B))
+idext p (^ x)     = reflectCR refl
+idext p (con c)   = cong con (idext p c)
+idext p (SOP xss) = cong SOP (idext-VecList p xss)
+
+idext-List p [] = refl
+idext-List p (x ∷ xs) = cong₂ _∷_ (reifyCR (idext p x)) (idext-List p xs)
+idext-VecList p [] = refl
+idext-VecList p (xs ∷ xss) = cong₂ _∷_ (idext-List p xs) (idext-VecList p xss)
 
 renVal-eval (` x) p ρ = renCR ρ (p x)
 renVal-eval (Π B) p ρ = cong Π (trans
@@ -356,14 +402,15 @@ renVal-eval (ƛ B) p ρ =
            B)) -- again two almost identical terms
   ,
   λ ρ' q → idext (λ { Z → q ; (S x) → renVal-comp ρ ρ' (p x) }) B
-renVal-eval (A · B) p ρ = transCR
+renVal-eval (A · B)   p ρ = transCR
   (renVal·V ρ (idext (reflCR ∘ p) A) (idext (reflCR ∘ p) B))
   (AppCR (renVal-eval A p ρ) (renVal-eval B p ρ))
-renVal-eval (μ A B) p ρ = cong₂ μ
+renVal-eval (μ A B)   p ρ = cong₂ μ
   (trans (ren-reify (idext (reflCR ∘ p) A) ρ) (reifyCR (renVal-eval A p ρ)))
   (trans (ren-reify (idext (reflCR ∘ p) B) ρ) (reifyCR (renVal-eval B p ρ)))
-renVal-eval (^ x) p ρ   = renVal-reflect ρ (^ x)
-renVal-eval (con c) p ρ = cong con (renVal-eval c p ρ)
+renVal-eval (^ x)     p ρ = renVal-reflect ρ (^ x)
+renVal-eval (con c)   p ρ = cong con (renVal-eval c p ρ)
+renVal-eval (SOP xss) p ρ = cong SOP (renVal-eval-VecList xss p ρ)
 \end{code}
 
 (pre) renaming commutes with eval
@@ -376,6 +423,23 @@ ren-eval :
   (ρ : Ren Θ Ψ) →
   -----------------------------------------
   CR K (eval (ren ρ t) η) (eval t (η' ∘ ρ))
+
+ren-eval-List :
+  (ts : List (Θ ⊢⋆ *))
+  {η η' : ∀{J} → Ψ ∋⋆ J → Val Φ J}
+  (p : EnvCR η η')
+  (ρ : Ren Θ Ψ) → 
+  ---------------------------------------------------
+  eval-List (ren-List ρ ts) η ≡ eval-List ts (η' ∘ ρ)
+
+ren-eval-VecList : ∀{n}
+  (tss : Vec (List (Θ ⊢⋆ *)) n)
+  {η η' : ∀{J} → Ψ ∋⋆ J → Val Φ J}
+  (p : EnvCR η η')
+  (ρ : Ren Θ Ψ) → 
+  --------------------------------------------------------------
+  eval-VecList (ren-VecList ρ tss) η ≡ eval-VecList tss (η' ∘ ρ)
+
 ren-eval (` x) p ρ = p (ρ x)
 ren-eval (Π B) p ρ =
   cong Π (trans (ren-eval
@@ -408,6 +472,13 @@ ren-eval (μ A B) p ρ =
   cong₂ μ (reifyCR (ren-eval A p ρ)) (reifyCR (ren-eval B p ρ))
 ren-eval (^ x) p ρ  = reflectCR refl
 ren-eval (con c) p ρ = cong con (ren-eval c p ρ)
+ren-eval (SOP xss) p ρ = cong SOP (ren-eval-VecList xss p ρ)
+
+ren-eval-List [] p ρ = refl
+ren-eval-List (x ∷ xs) p ρ = cong₂ _∷_ (ren-eval x p ρ) (ren-eval-List xs p ρ)
+
+ren-eval-VecList [] p ρ = refl
+ren-eval-VecList (xs ∷ xss) p ρ = cong₂ _∷_ (ren-eval-List xs p ρ) (ren-eval-VecList xss p ρ)
 \end{code}
 
 Subsitution lemma
@@ -420,8 +491,25 @@ sub-eval :
   (σ : Sub Θ Ψ) →
   ------------------------------------------------------
   CR K (eval (sub σ t) η) (eval t (λ x → eval (σ x) η'))
-sub-eval (` x)      p σ = idext p (σ x)
-sub-eval (Π B)    p σ = cong Π (trans
+
+sub-eval-List :
+  (ts : List (Θ ⊢⋆ *))
+  {η η' : ∀{J} → Ψ ∋⋆ J → Val Φ J}
+  (p : EnvCR η η')
+  (σ : Sub Θ Ψ) →
+  ---------------------------------------------------------------------------
+  eval-List (sub-List σ ts) η ≡ eval-List ts (λ x → eval (σ x) η')
+
+sub-eval-VecList : ∀{n}
+  (tss : Vec (List (Θ ⊢⋆ *)) n)
+  {η η' : ∀{J} → Ψ ∋⋆ J → Val Φ J}
+  (p : EnvCR η η')
+  (σ : Sub Θ Ψ) →
+  ---------------------------------------------------------------------------
+  eval-VecList (sub-VecList σ tss) η ≡ eval-VecList tss (λ x → eval (σ x) η')
+
+sub-eval (` x)     p σ = idext p (σ x)
+sub-eval (Π B)     p σ = cong Π (trans
   (sub-eval B (CR,,⋆ (renCR S ∘ p) (reflectCR refl)) (exts σ))
   (idext (λ{ Z     → reflectCR refl
            ; (S x) → transCR
@@ -430,8 +518,8 @@ sub-eval (Π B)    p σ = cong Π (trans
                   (CR,,⋆ (renCR S ∘ reflCR ∘ symCR ∘ p) (reflectCR refl)) S)
                 (symCR (renVal-eval (σ x)  (reflCR ∘ symCR ∘ p) S)) })
          B))
-sub-eval (A ⇒ B) p σ = cong₂ _⇒_ (sub-eval A p σ) (sub-eval B p σ)
-sub-eval (ƛ B) p σ =
+sub-eval (A ⇒ B)   p σ = cong₂ _⇒_ (sub-eval A p σ) (sub-eval B p σ)
+sub-eval (ƛ B)     p σ =
   (λ ρ ρ' v v' q → transCR
      (renVal-eval (sub (exts σ) B) (CR,,⋆ (renCR ρ ∘ reflCR ∘ p) q) ρ')
      (idext (λ { Z     → renCR ρ' (reflCR (symCR q))
@@ -454,11 +542,17 @@ sub-eval (ƛ B) p σ =
                      S)
                    (symCR (renVal-eval (σ x) (reflCR ∘ symCR ∘ p) ρ))})
            B)
-sub-eval (A · B) p σ = AppCR (sub-eval A p σ) (sub-eval B p σ)
-sub-eval (μ A B) p ρ =
-  cong₂ μ (reifyCR (sub-eval A p ρ)) (reifyCR (sub-eval B p ρ))
-sub-eval (^ x) p σ   = reflectCR refl
-sub-eval (con c) p ρ = cong con (sub-eval c p ρ)
+sub-eval (A · B)   p σ = AppCR (sub-eval A p σ) (sub-eval B p σ)
+sub-eval (μ A B)   p σ =
+  cong₂ μ (reifyCR (sub-eval A p σ)) (reifyCR (sub-eval B p σ))
+sub-eval (^ x)     p σ = reflectCR refl
+sub-eval (con c)   p σ = cong con (sub-eval c p σ)
+sub-eval (SOP xss) p σ = cong SOP (sub-eval-VecList xss p σ)
+
+sub-eval-List [] p σ = refl
+sub-eval-List (x ∷ xs) p σ = cong₂ _∷_ (sub-eval x p σ) (sub-eval-List xs p σ)
+sub-eval-VecList [] p σ = refl
+sub-eval-VecList (xs ∷ xss) p σ = cong₂ _∷_ (sub-eval-List xs p σ) (sub-eval-VecList xss p σ)
 \end{code}
 
 Fundamental Theorem of logical relations for CR
@@ -470,6 +564,18 @@ fund : {η η' : Env Φ Ψ}
      → t ≡β t'
        ----------------------------
      → CR K (eval t η) (eval t' η')
+
+fund-List : ∀{η η' : Env Φ Ψ}
+     → EnvCR η η'
+     → {ts ts' : List (Φ ⊢⋆ *)}
+     → ts [≡]β ts'
+     → eval-List ts η ≡ eval-List ts' η'
+fund-VecList : ∀{η η' : Env Φ Ψ}{n}
+     → EnvCR η η'
+     → {tss tss' : Vec (List (Φ ⊢⋆ *)) n}
+     → tss ⟨[≡]⟩β tss'
+       ----------------------------------------
+     → eval-VecList tss η ≡ eval-VecList tss' η'
 fund p (refl≡β A)          = idext p A
 fund p (sym≡β q)           = symCR (fund (symCR ∘ p) q)
 fund p (trans≡β q r)       = transCR (fund (reflCR ∘ p) q) (fund p r)
@@ -498,6 +604,13 @@ fund p (β≡β B A) =
                  B)
           (symCR (sub-eval B (symCR ∘ p) (sub-cons ` A)))
 fund p (con≡β q) = cong con (fund p q)
+fund p (SOP≡β q) = cong SOP (fund-VecList p q)
+
+fund-List p nil[≡]β = refl
+fund-List p (cons[≡]β x q) = cong₂ _∷_ (fund p x) (fund-List p q)
+
+fund-VecList p nil⟨[≡]⟩β = refl
+fund-VecList p (cons⟨[≡]⟩β xs q) = cong₂ _∷_ (fund-List p xs) (fund-VecList p q)
 \end{code}
 
 constructing the identity CR

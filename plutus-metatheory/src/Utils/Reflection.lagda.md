@@ -7,7 +7,10 @@ module Utils.Reflection where
 ## Imports
 
 ```
-open import Data.List using (List;[];_∷_;_++_;map;[_])
+open import Data.Nat using (ℕ;zero;suc)
+open import Data.Nat.Show using (show)
+open import Data.List using (List;[];_∷_;_++_;map;[_];length)
+open import Data.String using () renaming (_++_ to _+++_)
 open import Data.Unit using (⊤)
 open import Data.Bool using (Bool;true;false)
 open import Data.Product using (_,_)
@@ -20,21 +23,18 @@ open import Relation.Nullary using (_because_;Reflects;ofʸ;ofⁿ)
  Some definitions to help define functions by reflection
 
 ```
-constructors : Definition → List Name
+constructors : Definition → Names
 constructors (data-type pars cs) = cs
 constructors _ = []
 
-vra : {A : Set} → A → Arg A
-vra = arg (arg-info visible (modality relevant quantity-0))
-
 mk-cls : Name → Clause
-mk-cls q = clause [] (vra (con q []) ∷ vra (con q []) ∷ []) (con (quote true)  [])
+mk-cls q = clause [] (vArg (con q []) ∷ vArg (con q []) ∷ []) (con (quote true)  [])
 
 wildcard : Arg Pattern
-wildcard = vra (dot unknown)
+wildcard = vArg (dot unknown)
 
 absurd-lam : Term
-absurd-lam = pat-lam (absurd-clause (("()" , vra unknown) ∷ []) (vra (absurd 0) ∷ []) ∷ []) []
+absurd-lam = pat-lam (absurd-clause (("()" , vArg unknown) ∷ []) (vArg (absurd 0) ∷ []) ∷ []) []
 
 default-cls : Clause
 default-cls = clause [] (wildcard ∷ (wildcard ∷ [])) (con (quote false) [])
@@ -48,12 +48,12 @@ map2 {A = A} {B = B} f l = map2' f l l
 
 mk-DecCls : Name → Name → Clause
 mk-DecCls q1 q2 with primQNameEquality q1 q2
-... | true  = clause [] (vra (con q1 []) ∷ vra (con q2 []) ∷ []) 
+... | true  = clause [] (vArg (con q1 []) ∷ vArg (con q2 []) ∷ []) 
                         (con (quote _because_)  
-                             (vra (con (quote true) []) ∷ vra (con (quote ofʸ) [ vra (con (quote refl) []) ]) ∷ []))
-... | false = clause [] (vra (con q1 []) ∷ vra (con q2 []) ∷ []) 
+                             (vArg (con (quote true) []) ∷ vArg (con (quote ofʸ) [ vArg (con (quote refl) []) ]) ∷ []))
+... | false = clause [] (vArg (con q1 []) ∷ vArg (con q2 []) ∷ []) 
                         (con (quote _because_)  
-                        (vra (con (quote false) []) ∷ vra (con (quote ofⁿ) [ vra absurd-lam ]) ∷ []))
+                        (vArg (con (quote false) []) ∷ vArg (con (quote ofⁿ) [ vArg absurd-lam ]) ∷ []))
 ```
 
 The function `defEq` helps to define an equality function for datatypes which are simple enumerations.
@@ -75,4 +75,3 @@ defDec T defName = do
        let cls = map2 mk-DecCls (constructors d)
        defineFun defName cls
 ```
- 

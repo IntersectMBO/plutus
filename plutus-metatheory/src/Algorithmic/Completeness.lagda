@@ -1,18 +1,19 @@
 \begin{code}
 module Algorithmic.Completeness where
 
-
 open import Data.Nat using (zero;suc)
-open import Data.List using ([];_∷_)
+open import Data.Fin using (Fin)
+open import Data.Vec using (Vec;[];_∷_;lookup) renaming (map to vmap)
 open import Data.List.NonEmpty using (_∷_;toList)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;sym;trans;cong₂) 
                                                   renaming (subst to substEq) 
 open Relation.Binary.PropositionalEquality.≡-Reasoning
 open import Function using (_∘_)
 open import Data.Product using (_×_) renaming (_,_ to _,,_)
-open import Data.List using (List;[];_∷_;map)
+
 
 open import Utils using (Kind;*;♯)
+open import Utils.List using (List;IList;[];_∷_)
 open import Type using (_⊢⋆_;_∋⋆_;Z;S;Ctx⋆;∅;_,⋆_)
 open _⊢⋆_
 
@@ -30,7 +31,7 @@ import Algorithmic.Signature as Norm
 open import Type.BetaNormal using (embNf;weakenNf;ne;_⊢Nf⋆_;_⊢Ne⋆_)
 open _⊢Nf⋆_
 open _⊢Ne⋆_
-open import Type.BetaNBE using (nf;idEnv;reify;eval;exte)
+open import Type.BetaNBE using (nf;idEnv;reify;eval;exte;eval-VecList;eval-List;lookup-eval-VecList)
 open import Type.BetaNBE.Completeness using (completeness;sub-eval;idCR;fund;symCR;reifyCR;exte-lem;idext)
 open import Type.BetaNBE.RenamingSubstitution using (ren-nf;subNf;subNf-cong;subNf-cong';subNf-lemma';_[_]Nf;subNf-cons;subNf∅;subNf∅≡subNf;subNf-nf)
 open import Type.BetaNBE.Soundness using (soundness)
@@ -187,7 +188,28 @@ btype-lem b = begin
 nfType : ∀{Φ Γ}
   → {A : Φ ⊢⋆ *}
   → Γ Syn.⊢ A
-  → nfCtx Γ Norm.⊢ nf A
+  → nfCtx Γ Norm.⊢ nf A  
+
+nfType-ConstrArgs : ∀ {Φ} {Γ : Syn.Ctx Φ} 
+                  {TS : List (Φ ⊢⋆ *)}
+                → (cs : Syn.ConstrArgs Γ TS) 
+                → Norm.ConstrArgs (nfCtx Γ) (eval-List TS (idEnv Φ))
+nfType-ConstrArgs [] = []
+nfType-ConstrArgs (c ∷ cs) = (nfType c) ∷ (nfType-ConstrArgs cs)
+
+lemma-mkCaseType : ∀{Φ}{B} AS → 
+   nf (Syn.mkCaseType B AS) ≡ Norm.mkCaseType (nf B) (eval-List AS (idEnv Φ))
+lemma-mkCaseType [] = refl
+lemma-mkCaseType (A ∷ AS) = cong (eval A (idEnv _) ⇒_) (lemma-mkCaseType AS)
+
+nfType-Cases : ∀ {Φ} {Γ : Syn.Ctx Φ} {A : Φ ⊢⋆ *} {n}
+                 {tss : Vec (List (Φ ⊢⋆ *)) n} 
+                 (cases : Syn.Cases Γ A tss) →
+               Norm.Cases (nfCtx Γ) (nf A) (eval-VecList tss (idEnv Φ))
+nfType-Cases Syn.[] = Norm.[]
+nfType-Cases (Syn._∷_ {AS = AS} c cases) = substEq (nfCtx _ Norm.⊢_) (lemma-mkCaseType AS)  (nfType c) 
+                                           Norm.∷ (nfType-Cases cases)
+
 nfType (Syn.` α) = Norm.` (nfTyVar α)
 nfType (Syn.ƛ t) = Norm.ƛ (nfType t)
 nfType (t Syn.· u) = nfType t Norm.· nfType u
@@ -209,6 +231,8 @@ nfType (Syn.conv p t) = Norm.conv⊢ refl (completeness p) (nfType t)
 nfType (Syn.con {A} t p) = Norm.con {A = nf A} t (trans (completeness p) (subNf∅-sub∅ A))
 nfType (Syn.builtin b) = Norm.conv⊢ refl (btype-lem b) (Norm.builtin b / refl)
 nfType (Syn.error A) = Norm.error (nf A)
+nfType (Syn.constr e TSS refl cs) = Norm.constr e (eval-VecList TSS (idEnv _)) (sym (lookup-eval-VecList e TSS (idEnv _))) (nfType-ConstrArgs cs)
+nfType (Syn.case t cases) = Norm.case (nfType t) (nfType-Cases cases)
 
 completenessT : ∀{Φ Γ}{A : Φ ⊢⋆ *} → Γ Syn.⊢ A
   → nfCtx Γ Norm.⊢ nf A × (A ≡β embNf (nf A))

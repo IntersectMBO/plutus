@@ -6,18 +6,20 @@ module Type.BetaNBE.Soundness where
 open import Function using (_∘_;id)
 open import Data.Sum using (inj₁;inj₂)
 open import Data.Product using (Σ;_×_;_,_)
+open import Data.Vec using (Vec;[];_∷_)
+open import Data.List using (List;[];_∷_)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;trans;cong;cong₂)
 
 open import Utils using (*;♯;_⇒_)
 open import Type using (Ctx⋆;_,⋆_;_⊢⋆_;_∋⋆_;Z;S)
 open _⊢⋆_
-open import Type.Equality using (_≡β_;≡2β;ren≡β)
+open import Type.Equality using (_≡β_;≡2β;ren≡β;_⟨[≡]⟩β_;_[≡]β_)
 open _≡β_
 open import Type.RenamingSubstitution 
      using (Ren;ren;ext;ext-id;ren-comp;ren-id;ren-cong;ext-comp;exts;weaken)
-     using (Sub;sub;sub-cons;sub-id;sub-comp;sub-cong;sub-ren)
-open import Type.BetaNormal using (_⊢Ne⋆_;embNf;ren-embNf;embNe;ren-embNe)
-open import Type.BetaNBE using (Val;renVal;_·V_;reflect;reify;Env;_,,⋆_;fresh;eval;idEnv;nf)
+     using (Sub;sub;sub-cons;sub-id;sub-comp;sub-cong;sub-ren;sub-List;sub-VecList)
+open import Type.BetaNormal using (_⊢Ne⋆_;embNf;ren-embNf;embNe;ren-embNe;embNf-List;embNf-VecList)
+open import Type.BetaNBE using (Val;renVal;_·V_;reflect;reify;Env;_,,⋆_;fresh;eval;idEnv;nf;eval-List;eval-VecList)
 \end{code}
 
 The Soundness Relation (SR) is a Kripke logical relation between types
@@ -186,6 +188,13 @@ evalSR : ∀{Φ Ψ K}(A : Φ ⊢⋆ K){σ : Sub Φ Ψ}{η : Env Φ Ψ}
   → SREnv σ η
   → SR K (sub σ A) (eval A η)
 
+evalSR-List :  ∀{Φ Ψ}(xs : List (Φ ⊢⋆ *)){σ : Sub Φ Ψ}{η : Env Φ Ψ}
+  → SREnv σ η
+  → sub-List σ xs [≡]β embNf-List (eval-List xs η)
+evalSR-VecList :  ∀{Φ Ψ n}(xss : Vec (List (Φ ⊢⋆ *)) n){σ : Sub Φ Ψ}{η : Env Φ Ψ}
+  → SREnv σ η
+  → sub-VecList σ xss ⟨[≡]⟩β embNf-VecList (eval-VecList xss η)
+
 evalSR (` α)                   p = p α
 evalSR (Π B)                   p = Π≡β (evalSR B (SRweak p))
 evalSR (A ⇒ B)                 p = ⇒≡β (evalSR A p) (evalSR B p)
@@ -210,6 +219,12 @@ evalSR (A · B)     p = SRApp (evalSR A p) (evalSR B p)
 evalSR (μ A B)     p = μ≡β (reifySR (evalSR A p)) (reifySR (evalSR B p))
 evalSR (^ b)       p = reflectSR (refl≡β _)
 evalSR (con c)     p = con≡β (evalSR c p)
+evalSR (SOP xss)   p = SOP≡β (evalSR-VecList xss p)
+
+evalSR-List [] p = _[≡]β_.nil[≡]β
+evalSR-List (x ∷ xs) p = _[≡]β_.cons[≡]β (evalSR x p) (evalSR-List xs p)
+evalSR-VecList [] p = _⟨[≡]⟩β_.nil⟨[≡]⟩β
+evalSR-VecList (xs ∷ xss) p = _⟨[≡]⟩β_.cons⟨[≡]⟩β (evalSR-List xs p) (evalSR-VecList xss p)
 \end{code}
 
 Identity SREnv

@@ -10,7 +10,7 @@
       (builtin divideInteger)
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl
         divideInteger (fun (con integer) (fun (con integer) (con integer)))
       )
@@ -35,7 +35,7 @@
       (builtin ifThenElse)
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl equalsInteger (fun (con integer) (fun (con integer) Bool)))
       (lam
         x
