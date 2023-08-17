@@ -4,14 +4,16 @@ module Scoped.Extrication where
 
 \begin{code}
 open import Data.Unit using (tt)
-open import Data.Fin using (Fin;zero;suc)
+open import Data.Fin using (Fin;zero;suc;toℕ)
 open import Data.Nat using (ℕ;zero;suc)
 open import Data.Nat.Properties using (+-comm)
-open import Data.Vec using ([];_++_)
+open import Data.List using (List;[];_∷_)
+open import Data.Vec using (Vec;[];_∷_;_++_)
 open import Function using (_∘_)
 open import Relation.Binary.PropositionalEquality as Eq using (refl;subst)
 
-open import Utils using (Kind;*)
+open import Utils as U using (Kind;*)
+open import Utils.List using ([];_∷_)
 
 open import RawU using (TmCon;tmCon;TyTag)
 open import Builtin.Signature using (_⊢♯) 
@@ -21,7 +23,7 @@ open import Type using (Ctx⋆;∅;_,⋆_;_∋⋆_;Z;S)
 open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_)
 open _⊢Nf⋆_
 open _⊢Ne⋆_
-open import Algorithmic as A using (Ctx;_∋_;_⊢_)
+open import Algorithmic as A using (Ctx;_∋_;_⊢_;ConstrArgs;[];_∷_;Cases)
 open Ctx
 open _⊢_
 open _∋_
@@ -49,6 +51,14 @@ extricateVar⋆ (S α) = suc (extricateVar⋆ α)
 extricateNf⋆ : ∀{Γ K}(A : Γ ⊢Nf⋆ K) → ScopedTy (len⋆ Γ)
 extricateNe⋆ : ∀{Γ K}(A : Γ ⊢Ne⋆ K) → ScopedTy (len⋆ Γ)
 
+extricateNf⋆-List :  ∀{Γ K}(AS : List (Γ ⊢Nf⋆ K)) → U.List (ScopedTy (len⋆ Γ))
+extricateNf⋆-List [] = U.[]
+extricateNf⋆-List (A ∷ AS) = extricateNf⋆ A U.∷ extricateNf⋆-List AS
+
+extricateNf⋆-VecList :  ∀{Γ K n}(TSS : Vec (List (Γ ⊢Nf⋆ K)) n) → U.List (U.List (ScopedTy (len⋆ Γ)))
+extricateNf⋆-VecList [] = U.[]
+extricateNf⋆-VecList (TS ∷ TSS) = (extricateNf⋆-List TS) U.∷ (extricateNf⋆-VecList TSS)
+
 -- intrinsically typed terms should also carry user chosen names as
 -- instructions to the pretty printer
 
@@ -58,6 +68,7 @@ extricateNf⋆ (ƛ {K = K} A) = ƛ K (extricateNf⋆ A)
 extricateNf⋆ (ne n)        = extricateNe⋆ n
 extricateNf⋆ (con (ne x))  = extricateNe⋆ x
 extricateNf⋆ (μ A B)       = μ (extricateNf⋆ A) (extricateNf⋆ B)
+extricateNf⋆ (SOP x)       = SOP (extricateNf⋆-VecList x)
 
 extricateNe⋆ (` α)    = ` (extricateVar⋆ α)
 extricateNe⋆ (n · n') = extricateNe⋆ n · extricateNf⋆ n'
@@ -86,7 +97,20 @@ extricateSub {Γ}{Δ ,⋆ K} σ =
            (+-comm (len⋆ Δ) 1)
            (extricateSub {Δ = Δ} (σ ∘ S) ++ Data.Vec.[ extricateNf⋆ (σ Z) ])
 
+
 extricate : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ ⊢ A → ScopedTm (len Γ)
+
+extricate-ConstrArgs : ∀{Φ Γ}{AS : List (Φ ⊢Nf⋆ *)} → ConstrArgs Γ AS → U.List (ScopedTm (len Γ))
+extricate-ConstrArgs [] = U.[]
+extricate-ConstrArgs (c ∷ cs) = extricate c U.∷ extricate-ConstrArgs cs
+
+extricate-Cases : ∀ {Φ} {Γ : Ctx Φ} {A : Φ ⊢Nf⋆ *} {n}
+                 {tss : Vec (List (Φ ⊢Nf⋆ *)) n} 
+                 (cases : Cases Γ A tss) 
+                → U.List (ScopedTm (len Γ))
+extricate-Cases [] = U.[]
+extricate-Cases (c ∷ cs) = (extricate c) U.∷ (extricate-Cases cs)                
+
 extricate (` x)                   = ` (extricateVar x)
 extricate {Φ}{Γ} (ƛ {A = A} t)    = ƛ (extricateNf⋆ A) (extricate t)
 extricate (t · u)                 = extricate t · extricate u
@@ -96,5 +120,7 @@ extricate {Φ}{Γ} (wrap pat arg t) = wrap (extricateNf⋆ pat) (extricateNf⋆ 
 extricate (unwrap t refl)         = unwrap (extricate t)
 extricate (con {A = A} c p)       = con (tmCon (ty2sty A) (subst ⟦_⟧ (ty≅sty₁ A) c))
 extricate (builtin b / refl)      = builtin b
+extricate (constr e A refl x)     = constr (extricateNf⋆ (SOP A)) (toℕ e) (extricate-ConstrArgs x)
+extricate (case {A = A} x cases)  = case (extricateNf⋆ A) (extricate x) (extricate-Cases cases)
 extricate {Φ}{Γ} (error A)        = error (extricateNf⋆ A)
 \end{code}

@@ -5,12 +5,15 @@ module Algorithmic.ReductionEC.Progress where
 
 ```
 open import Data.Nat using (zero;suc)
-open import Data.List as List using (List; _∷_; [])
-open import Relation.Binary.PropositionalEquality using (_≡_;refl)  
+open import Data.Fin using (Fin;zero;suc)
+open import Data.Vec as Vec using ([];_∷_;lookup)
+open import Data.Product using (Σ;_×_) renaming (_,_ to _,,_)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;trans;cong;subst)  
 
-open import Utils using (*;bubble)
+open import Utils using (*;bubble;≡-subst-removable)
+open import Utils.List 
 open import Type using (Ctx⋆;∅)
-open import Algorithmic using (Ctx;_⊢_)
+open import Algorithmic using (Ctx;_⊢_;ConstrArgs;constr-cong)
 open Ctx
 open _⊢_
 
@@ -19,7 +22,7 @@ open import Algorithmic.Signature using (_[_]SigTy)
 open import Type.BetaNormal using (_⊢Nf⋆_)
 open _⊢Nf⋆_
 
-open import Algorithmic.ReductionEC using (Value;BApp;_—→⋆_;_—→_;Error;EC;V-I;ival;E-error)
+open import Algorithmic.ReductionEC using (Value;BApp;_—→⋆_;_—→_;Error;EC;V-I;ival;E-error;VList)
 open Value
 open BApp
 open _—→⋆_
@@ -46,9 +49,56 @@ data Progress {A : ∅ ⊢Nf⋆ *} (M : ∅ ⊢ A) : Set where
     → Progress M
 ```
 
+## Progress for lists 
+
+When processing constructors, we need to know the progress of a list of terms.
+A ProgressList is a zipper consisting of:
+  * a typed backwards list of constructors already evaluated (vs),
+  * Progress on the current term M of type H  
+  * a (typed) lists of terms to be evaluated (ts)
 
 ```
+data FocusedProgDissect : ∀{tot}(itot : IList (∅ ⊢_) tot) → Set 
+     where 
+     done  : ∀{bs}{ibs : IBwd (∅ ⊢_) bs}{tot}{itot : IList (∅ ⊢_) tot}
+              {idx : tot ≣ bs <>> []}
+             (x : (itot ≣I ibs <>> []) idx)
+             (vs : VList ibs)
+        → FocusedProgDissect itot
+     step  :  ∀{tot}{itot : IList (∅ ⊢_) tot}
+           → ∀{bs}{ibs : IBwd (∅ ⊢_) bs}(vs : VList ibs) --evaluated
+           → ∀{A : ∅ ⊢Nf⋆ *} {M : ∅ ⊢ A}{N : ∅ ⊢ A} → (st : M —→ N)  --current step
+           → ∀ {ls : List (∅ ⊢Nf⋆ *)}(cs : ConstrArgs ∅ ls) 
+           → {idx : tot ≣ bs <>> (A ∷ ls)}
+           → (x : (itot ≣I ibs <>> (M ∷ cs)) idx)
+           → FocusedProgDissect itot
+     error :  ∀{tot}{itot : IList (∅ ⊢_) tot}
+           → ∀{bs}{ibs : IBwd (∅ ⊢_) bs}(vs : VList ibs) --evaluated
+           → ∀{A : ∅ ⊢Nf⋆ *} {M : ∅ ⊢ A} (err : Error M)
+           → ∀ {ls : List (∅ ⊢Nf⋆ *)}(cs : ConstrArgs ∅ ls)
+           → {idx : tot ≣ bs <>> (A ∷ ls)} → (iidx : (itot ≣I ibs <>> (M ∷ cs)) idx)
+           → FocusedProgDissect itot
 progress : {A : ∅ ⊢Nf⋆ *} → (M : ∅ ⊢ A) → Progress M
+
+-- Walk the list to look for the first term than can make progress or is an error.
+progress-focus : ∀{tot}{itot : IList (∅ ⊢_) tot}{bs}{ibs : IBwd (∅ ⊢_) bs}
+                  {ls}{idx : tot ≣ bs <>> ls} 
+               → (cs : IList (∅ ⊢_) ls)
+               → (iidx : (itot ≣I ibs <>> cs) idx)
+               → VList ibs
+               → FocusedProgDissect itot
+progress-focus [] x Vs = done x Vs
+progress-focus (c ∷ cs) x Vs with progress c 
+... | step st = step Vs st cs x
+... | done V = progress-focus cs (bubble x) (Vs :< V)
+... | error e = error Vs e cs x
+
+progress-constr : ∀ {n} (e : Fin n)
+                    (TSS : Vec.Vec (List (∅ ⊢Nf⋆ *)) n)
+                    (cs : ConstrArgs ∅ (lookup TSS e))
+                  → FocusedProgDissect cs
+progress-constr e TSS cs = progress-focus cs start []
+
 progress (ƛ M)        = done (V-ƛ M)
 progress (M · M')     with progress M
 ... | error E-error = step (ruleErr ([] l· M') refl)
@@ -86,59 +136,30 @@ progress (unwrap M refl) with progress M
 progress (con c refl)      = done (V-con c)
 progress (builtin b / refl ) = done (ival b)
 progress (error A)    = error E-error
+progress (constr i TSS refl cs)  with progress-constr i TSS cs
+... | done {bs}{ibs}{idx = idx} x Vs = done (V-constr i 
+                                                     TSS 
+                                                     refl 
+                                                     (trans (sym (lemma<>2 bs [])) (cong ([] <><_) (sym (lem-≣-<>> idx)))) 
+                                                     Vs 
+                                                     (trans (≡-subst-removable (IList (_⊢_ ∅)) _ _ (ibs <>>I [])) (sym (lem-≣I-<>>1' x))))
+... | step Vs (ruleEC E p refl refl) cs {idx} x = 
+                     step (ruleEC (constr i TSS refl {getIdx≡I x} Vs cs E) 
+                           p 
+                           (constr-cong (lem-≣-<>> idx) (lem-≣I-<>>1' x))
+                           refl)
+... | step Vs (ruleErr E refl) cs {idx} x = 
+             step (ruleErr (constr i TSS refl {getIdx≡I x} Vs cs E) 
+                    (constr-cong (lem-≣-<>> idx) (lem-≣I-<>>1' x))
+                  )
+... | error {ibs = ibs} Vs E-error Ps {idx} x = 
+               step (ruleErr (constr i TSS refl {idx} Vs _ []) 
+                             (constr-cong (lem-≣-<>> idx) (lem-≣I-<>>1' x))
+                             )                            
+progress (case M cases)  with progress M 
+... | step (ruleEC E p refl refl) = step (ruleEC (case cases E) p refl refl)
+... | step (ruleErr E refl) = step (ruleErr (case cases E) refl)
+... | done (V-constr e TSS refl refl vs refl) = step (ruleEC [] (β-case e TSS refl vs refl cases) refl refl)
+... | error E-error = step (ruleErr (case cases []) refl)
 
-{- These definitions seems unused
-_↓ : ∀{A} → ∅ ⊢ A → Set
-M ↓ = ∃ λ M' → M —→⋆ M'
-
--- progress in disguise
-lemma51 : ∀{A}(M : ∅ ⊢ A)
-        → Value M
-        ⊎ ∃ λ B
-        → ∃ λ (E : EC A B)
-        → ∃ λ (L : ∅ ⊢ B)
-        → (L ↓ ⊎ Error L)
-        × M ≡ E [ L ]ᴱ
-lemma51 (ƛ M) = inj₁ (V-ƛ M)
-lemma51 (M · M') with lemma51 M
-... | inj₂ (B ,, E ,, L ,, p ,, q) =
-  inj₂ (B ,, E l· M' ,, L ,, p ,, cong (_· M') q)
-... | inj₁ VM with lemma51 M'
-... | inj₂ (B ,, E ,, L ,, p ,, q) =
-  inj₂ (B ,, VM ·r E ,, L ,, p ,, cong (M ·_) q)
-lemma51 (.(ƛ M) · M') | inj₁ (V-ƛ M)      | inj₁ VM' =
-  inj₂ (_ ,, [] ,, _ ,, inj₁ (_ ,, β-ƛ VM') ,, refl)
-lemma51 (M · M') | inj₁ (V-I⇒ b {as' = []} p x) | inj₁ VM' =
-  inj₂ (_ ,, [] ,, _ ,, inj₁ (_ ,, β-builtin b M p x M' VM') ,, refl)
-lemma51 (M · M') | inj₁ (V-I⇒ b {as' = a ∷ as'} p x) | inj₁ VM' =
-  inj₁ (V-I b (bubble p) (step p x VM'))
-lemma51 (Λ M) = inj₁ (V-Λ M)
-lemma51 (M ·⋆ A / refl) with lemma51 M
-... | inj₁ (V-Λ M') =
-  inj₂ (_ ,, [] ,, M ·⋆ A / refl ,, inj₁ (M' [ A ]⋆ ,, (β-Λ refl)) ,, refl)
-... | inj₂ (B ,, E ,, L ,, p ,, q) =
-  inj₂ (B ,, E ·⋆ A / refl ,, L ,, p ,, cong (_·⋆ A / refl) q)
-lemma51 (M ·⋆ A / refl) | inj₁ (V-IΠ b {as' = []} p x) =
-  inj₂ (_ ,, [] ,, _ ,, inj₁ (_ ,, β-builtin⋆ b M p x A refl) ,, refl)
-lemma51 (M ·⋆ A / refl) | inj₁ (V-IΠ b {as' = a ∷ as} p x) =
-  inj₁ (V-I b (bubble p) (step⋆ p x refl))
-lemma51 (wrap A B M) with lemma51 M
-... | inj₁ V = inj₁ (V-wrap V)
-... | inj₂ (C ,, E ,, L ,, p ,, p') =
-  inj₂ (C ,, wrap E ,, L ,, p ,, cong (wrap A B) p')
-lemma51 (unwrap M refl) with lemma51 M
-... | inj₁ (V-wrap V) =
-  inj₂ (_ ,, [] ,, unwrap M refl ,, inj₁ (deval V ,, β-wrap V refl) ,, refl)
-... | inj₂ (B ,, E ,, L ,, p ,, p') =
-  inj₂ (B ,, unwrap E / refl ,, L ,, p ,, cong (λ x → unwrap x refl) p')
-lemma51 (con c) = inj₁ (V-con c)
-lemma51 (builtin b / refl) = inj₁ (ival b)
-lemma51 (error _) = inj₂ (_ ,, ([] ,, (error _ ,, (inj₂ E-error) ,, refl)))
-
-progress' : {A : ∅ ⊢Nf⋆ *} → (M : ∅ ⊢ A) → Progress M
-progress' M with lemma51 M
-... | inj₁ V = done V
-... | inj₂ (B ,, E ,, L ,, inj₁ (M' ,, p) ,, refl) = step (ruleEC E p refl refl)
-... | inj₂ (B ,, E ,, L ,, inj₂ E-error ,, refl) = step (ruleErr E refl)
-
--}
+ 

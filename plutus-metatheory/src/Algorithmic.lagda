@@ -5,13 +5,16 @@ module Algorithmic where
 ## Imports
 
 \begin{code}
-open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;cong₂)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;trans;cong;cong₂;subst)
 
 open import Data.Empty using (⊥)
-open import Data.List using (List)
+open import Data.Fin using (Fin)
 open import Data.Product using (_×_)
+open import Data.Vec as Vec using (Vec;[];_∷_;lookup) 
+open import Data.List.Properties using (foldr-++)
 
-open import Utils renaming (_×_ to _U×_; List to UList)
+open import Utils renaming (_×_ to _U×_; List to UList; map to umap)
+open import Utils.List using (List;_++_;foldr;IList;[];_∷_;Bwd;_:<_;bwd-foldr;lemma-bwd-foldr;_<><_;lemma<>1)
 open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_;_∋⋆_;Z;S;Φ)
 open _⊢⋆_
 
@@ -164,17 +167,33 @@ that we use the version of product and list from the Utils module.
 
 A term is indexed over by its context and type.  A term is a variable,
 an abstraction, an application, a type abstraction, a type
-application, a wrapping or unwrapping of a recursive type, a constant,
-a builtin function, or an error.
+application, a wrapping or unwrapping of a recursive type, a constructor, 
+a case expression, a constant, a builtin function, or an error.
 
 Constants of a builtin type A are given directly by its meaning ⟦ A ⟧, where
 A is restricted to kind ♯.
+
+The type of cases if a function consuming every type in a list.
+We construct it with the following function: 
+\begin{code}
+mkCaseType : ∀{Φ} (A : Φ ⊢Nf⋆ *) → List (Φ ⊢Nf⋆ *) → Φ ⊢Nf⋆ *
+mkCaseType A = foldr _⇒_ A
+\end{code}
+
+We declare two auxiliary datatypes, which are mutually recursive with the type of terms,
+for constructor arguments and cases.
+
+\begin{code}
+ConstrArgs : (Γ : Ctx Φ) → List (Φ ⊢Nf⋆ *) → Set
+data Cases (Γ : Ctx Φ) (B : Φ ⊢Nf⋆ *) : ∀{n} → Vec (List (Φ ⊢Nf⋆ *)) n → Set 
+\end{code}
+
+The actual type of terms
 
 \begin{code}
 infixl 7 _·⋆_/_
 
 data _⊢_ (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
-
   ` : ∀ {A : Φ ⊢Nf⋆ *}
     → Γ ∋ A
       -----
@@ -220,6 +239,26 @@ data _⊢_ (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
       -------------------------------------------------------------
     → Γ ⊢ C
 
+  constr : ∀{n}
+      → (i : Fin n)                   -- The tag
+
+      → (A : Vec (List (Φ ⊢Nf⋆ *)) n) -- The sum of products. We make it a Vector
+                                      -- of lists, so that the tag is statically correct.
+      
+      → ∀ {ts} → ts ≡ lookup A i      -- The reason to define it like this, rather than
+      → ConstrArgs Γ ts               -- simply ConstrArgs Γ (lookup A e) 
+                                      -- is so that it is easier to construct terms (avoids using subst)
+                                      -- as often the result of a function will not match definitionally
+                                      -- with (lookup A e) but only propositionally.
+        --------------------------------------
+      → Γ ⊢ SOP A
+
+  case : ∀{n}{tss : Vec _ n}{A : Φ ⊢Nf⋆ *}
+      → (t : Γ ⊢ SOP tss)
+      → (cases : Cases Γ A tss)
+        --------------------------
+      → Γ ⊢ A  
+
   con : ∀{A : ∅ ⊢Nf⋆ ♯}{B}
     → ⟦ A ⟧ 
     → B ≡ subNf∅ A
@@ -236,6 +275,18 @@ data _⊢_ (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
       (A : Φ ⊢Nf⋆ *)
       --------------
     → Γ ⊢ A
+
+ConstrArgs Γ = IList (Γ ⊢_)
+
+-- Cases is indexed by a vector 
+-- so it can't be an IList
+data Cases Γ B where 
+   []  : Cases Γ B []
+   _∷_ : ∀{n}{AS}{ASS : Vec _ n}(
+         c : Γ ⊢ (mkCaseType B AS)) 
+       → (cs : Cases Γ B ASS)
+         --------------------- 
+       → Cases Γ B (AS ∷ ASS) 
 \end{code}
 
 Utility functions
@@ -254,4 +305,22 @@ conv⊢ : ∀ {Γ Γ'}{A A' : Φ ⊢Nf⋆ *}
  → Γ ⊢ A
  → Γ' ⊢ A'
 conv⊢ refl refl t = t
-\end{code} 
+
+lookupCase : ∀{n Φ}{Γ : Ctx Φ}{B}{TSS : Vec _ n} → (i : Fin n) → Cases Γ B TSS → Γ ⊢ mkCaseType B (Vec.lookup TSS i)
+lookupCase Fin.zero (c ∷ cs) = c
+lookupCase (Fin.suc i) (c ∷ cs) = lookupCase i cs
+
+bwdMkCaseType : ∀{Φ} → Bwd (Φ ⊢Nf⋆ *) → (A : Φ ⊢Nf⋆ *) → Φ ⊢Nf⋆ *
+bwdMkCaseType bs A = bwd-foldr _⇒_ A bs
+
+lemma-bwdfwdfunction' : ∀{Φ} {B : Φ ⊢Nf⋆ *} TS → mkCaseType B TS ≡ bwdMkCaseType ([] <>< TS) B
+lemma-bwdfwdfunction' {B = B} TS = trans (cong (mkCaseType B) (sym (lemma<>1 [] TS))) (lemma-bwd-foldr _⇒_ B ([] <>< TS))
+
+constr-cong :  ∀{Γ : Ctx Φ}{n}{i : Fin n}{A : Vec (List (Φ ⊢Nf⋆ *)) n}{ts} 
+            → (p : lookup A i ≡ ts)
+            → {cs : ConstrArgs Γ ts}
+            → {cs' : ConstrArgs Γ (lookup A i)}
+            → (q : cs' ≡ subst (IList (Γ ⊢_)) (sym p) cs)
+            → constr i A refl cs' ≡ constr i A (sym p) cs
+constr-cong refl refl = refl            
+\end{code}   

@@ -26,6 +26,9 @@ infix  9 S
 ## Imports
 
 ```
+open import Data.Vec using (Vec)
+open import Data.List using (List)
+
 open import Utils using (Kind;J;K)
 open Kind
 ```
@@ -120,6 +123,11 @@ data _⊢⋆_ where
   con : Φ ⊢⋆ ♯
         ------
       → Φ ⊢⋆ *
+  
+  SOP : ∀{n} → 
+        Vec (List (Φ ⊢⋆ *)) n 
+        ----------------------
+     →  Φ ⊢⋆ * 
 ```
 
 Let `A`, `B`, `C` range over types:
