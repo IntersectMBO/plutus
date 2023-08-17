@@ -191,13 +191,6 @@ data Cases (Γ : Ctx Φ) (B : Φ ⊢Nf⋆ *) : ∀{n} → Vec (List (Φ ⊢Nf⋆
 The actual type of terms
 
 \begin{code}
-mkCaseType : ∀{Φ} (A : Φ ⊢Nf⋆ *) → List (Φ ⊢Nf⋆ *) → Φ ⊢Nf⋆ *
-mkCaseType A = foldr _⇒_ A
-\end{code}
-
-We declare two auxiliary datatypes, which are mutually recursive with the type of terms,
-for constructor arguments and cases.
-
 data _⊢_ (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
   ` : ∀ {A : Φ ⊢Nf⋆ *}
     → Γ ∋ A
