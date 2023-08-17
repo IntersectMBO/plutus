@@ -297,25 +297,33 @@ instance PlutusTx.Eq ProtocolVersion where
   ProtocolVersion a b == ProtocolVersion a' b' =
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
 
+-- | A Plutus Data object containing proposed parameter changes. The Data object contains
+-- a @Map@ with one entry per changed parameter, from the parameter name to the new value.
+-- Unchanged parameters are not included.
+newtype ChangedParameters = ChangedParameters { getChangedParameters :: PlutusTx.BuiltinData }
+  deriving stock (Generic, Haskell.Show)
+  deriving newtype (Haskell.Eq, Haskell.Ord, PlutusTx.Eq, PlutusTx.ToData, PlutusTx.FromData,
+    PlutusTx.UnsafeFromData, Pretty)
+
 data GovernanceAction
-  = -- TODO: this is currently empty.
-    ParameterChange GovernanceActionId
+  = ParameterChange (Haskell.Maybe GovernanceActionId) ChangedParameters
   | -- | proposal to update protocol version
-    HardForkInitiation GovernanceActionId ProtocolVersion
+    HardForkInitiation (Haskell.Maybe GovernanceActionId) ProtocolVersion
   | TreasuryWithdrawals (Map V2.Credential V2.Value)
-  | NoConfidence GovernanceActionId
+  | NoConfidence (Haskell.Maybe GovernanceActionId)
   | NewCommittee
-      GovernanceActionId
+      (Haskell.Maybe GovernanceActionId)
       [ColdCommitteeCredential] -- ^ Old committee
       Committee -- ^ New Committee
-  | NewConstitution GovernanceActionId Constitution
+  | NewConstitution (Haskell.Maybe GovernanceActionId) Constitution
   | InfoAction
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
   deriving (Pretty) via (PrettyShow GovernanceAction)
 
 instance PlutusTx.Eq GovernanceAction where
   {-# INLINEABLE (==) #-}
-  ParameterChange a == ParameterChange a' = a PlutusTx.== a'
+  ParameterChange a b == ParameterChange a' b' =
+    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
   HardForkInitiation a b == HardForkInitiation a' b' =
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
   TreasuryWithdrawals a == TreasuryWithdrawals a' = a PlutusTx.== a'
@@ -358,8 +366,7 @@ data ScriptPurpose
   | Rewarding V2.Credential
   | Certifying TxCert
   | Voting Voter GovernanceActionId
-  | -- TODO: this may turn out to be unused.
-    Proposing
+  | Proposing Haskell.Integer
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
   deriving (Pretty) via (PrettyShow ScriptPurpose)
 
@@ -375,7 +382,8 @@ instance PlutusTx.Eq ScriptPurpose where
     a PlutusTx.== a'
   Voting a b == Voting a' b' =
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
-  Proposing == Proposing = Haskell.True
+  Proposing a == Proposing a' =
+    a PlutusTx.== a'
   _ == _ = Haskell.False
 
 -- | TxInfo for PlutusV3
@@ -531,6 +539,7 @@ PlutusTx.makeIsDataIndexed ''Constitution [('Constitution, 0)]
 PlutusTx.makeLift ''ProtocolVersion
 PlutusTx.makeIsDataIndexed ''ProtocolVersion [('ProtocolVersion, 0)]
 
+PlutusTx.makeLift ''ChangedParameters
 PlutusTx.makeLift ''GovernanceAction
 PlutusTx.makeIsDataIndexed
   ''GovernanceAction
