@@ -64,8 +64,8 @@ and adds three new ones: see Table~\ref{table:V2-built-in-functions}.
 \label{note:consbytestring-v2}
 In Plutus V1 the first argument of \texttt{consByteString} is an arbitrary
 integer which will be reduced modulo 256 before being prepended to the second
-argument.  In Plutus V2 we require that the first argument lies between 0 and 255
-(inclusive): an error will occur if this is not the case.
+argument.  In Plutus V2 we require that the first argument lies between 0 and
+255 (inclusive); in any other case an error will occur.
 
 \note{Serialising $\ty{data}$ objects.}
 \label{note:serialise-data}
