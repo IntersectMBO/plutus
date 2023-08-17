@@ -137,7 +137,8 @@ data Value where
           → ∀{YS} → (q : YS ≡ [] <>< XS)
           → {ts : IBwd (∅ ⊢_) YS}
           → (vs : VList ts)
-          → ∀ {ts' : IList (∅ ⊢_) XS} → (IBwd2IList (lemma<>1' _ _ q) ts ≡ ts')
+--          → ∀ {ts' : IList (∅ ⊢_) XS} → (IBwd2IList (lemma<>1' _ _ q) ts ≡ ts')
+          → ∀ {ts' : IList (∅ ⊢_) XS} → (IBwd2IList q ts ≡ ts')
           → Value (constr e TSS p ts')
 
 red2cekVal : ∀{A}{L : ∅ ⊢ A} → Value L → CEK.Value A
@@ -252,10 +253,10 @@ _[_]ᴱ : ∀{A B : ∅ ⊢Nf⋆ *} → EC B A → ∅ ⊢ A → ∅ ⊢ B
 []       [ L ]ᴱ = L
 (E l· B ) [ L ]ᴱ = E [ L ]ᴱ · B
 (V ·r E) [ L ]ᴱ = deval V · E [ L ]ᴱ
-(E ·⋆ A / q) [ L ]ᴱ = E [ L ]ᴱ ·⋆ A / q
+(E ·⋆ A / q) [ L ]ᴱ = (E [ L ]ᴱ) ·⋆ A / q
 (wrap   E) [ L ]ᴱ = wrap _ _ (E [ L ]ᴱ)
 (unwrap E / q) [ L ]ᴱ = unwrap (E [ L ]ᴱ) q
-constr i TSS p {idx} {tvs} vs ts E [ L ]ᴱ = constr i TSS (trans (sym (lem-≣-<>> idx)) p) (tvs <>>I (E [ L ]ᴱ ∷ ts))
+constr i TSS refl {idx} {tvs} vs ts E [ L ]ᴱ = constr i TSS (sym (lem-≣-<>> idx)) (tvs <>>I (E [ L ]ᴱ ∷ ts))
 case cs E [ L ]ᴱ = case (E [ L ]ᴱ) cs
 ```
 
@@ -310,7 +311,8 @@ data _—→⋆_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set 
     → ∀{YS} → (q : YS ≡ [] <>< Vec.lookup TSS e)
     → {ts : IBwd (∅ ⊢_) YS}
     → (vs : VList ts)
-    → ∀ {ts' : IList (∅ ⊢_) (Vec.lookup TSS e)} → (IBwd2IList (lemma<>1' _ _ q) ts ≡ ts')
+--    → ∀ {ts' : IList (∅ ⊢_) (Vec.lookup TSS e)} → (IBwd2IList (lemma<>1' _ _ q) ts ≡ ts')
+    → ∀ {ts' : IList (∅ ⊢_) (Vec.lookup TSS e)} → (IBwd2IList q ts ≡ ts')
     → (cases : Cases ∅ A TSS)
     → case (constr e TSS refl ts') cases —→⋆ applyCase (lookupCase e cases) ts'
 -- -}
