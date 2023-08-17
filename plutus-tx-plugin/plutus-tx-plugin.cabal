@@ -115,7 +115,7 @@ executable gen-plugin-opts-doc
   default-language: Haskell2010
 
 test-suite plutus-tx-tests
-  import:             lang
+  import:             lang, ghc-version-support
 
   -- test output changes after 9.2, bad for golden tests
   if impl(ghc >=9.3)
@@ -179,7 +179,7 @@ test-suite plutus-tx-tests
     -fno-unbox-small-strict-fields
 
 test-suite size
-  import:             lang
+  import:             lang, ghc-version-support
 
   if impl(ghc <9.0)
     buildable: False
