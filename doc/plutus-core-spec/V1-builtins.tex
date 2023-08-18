@@ -164,12 +164,12 @@ it applies at each possible monomorphisation in an obvious way.
 \begin{longtable}[H]{|l|p{5cm}|p{5cm}|c|c|}
     \hline
     \text{Function} & \text{Signature} & \text{Denotation} & \text{Can} & \text{Note} \\
-    & & & Fail? & \\
+    & & & fail? & \\
     \hline
     \endfirsthead
     \hline
     \text{Function} & \text{Type} & \text{Denotation} & \text{Can} & \text{Note}\\
-    & & & Fail? & \\
+    & & & fail? & \\
     \hline
     \endhead
     \hline
@@ -196,7 +196,8 @@ it applies at each possible monomorphisation in an obvious way.
     \TT{appendByteString}         & $[\ty{bytestring}, \ty{bytestring}] $ \text{$\;\; \to \ty{bytestring}$}
                                            & $([c_1, \dots, c_m], [d_1, \ldots, d_n]) $ \text{$\;\; \mapsto [c_1,\ldots, c_m,d_1, \ldots, d_n]$} &  & \\
     \TT{consByteString}         & $[\ty{integer}, \ty{bytestring}] $ \text{$\;\; \to \ty{bytestring}$}
-                                          & $(c,[c_1,\ldots,c_n]) $ \text{$\;\;\mapsto [\text{mod}(c,256) ,c_1,\ldots,c_{n}]$} &  & \\
+                                          & $(c,[c_1,\ldots,c_n]) $ \text{$\;\;\mapsto [\text{mod}(c,256) ,c_1,\ldots,c_{n}]$} &
+                                          & \ref{note:consbytestring}\\
     \TT{sliceByteString}        & $[\ty{integer}, \ty{integer}, \ty{bytestring]} $  \text {$\;\; \to  \ty{bytestring}$}
                                                    &   $(s,k,[c_0,\ldots,c_n])$ \text{$\;\;\mapsto [c_{\max(s,0)},\ldots,c_{\min(s+k-1,n-1)}]$}
                                                    &  & \ref{note:slicebytestring}\\
@@ -320,6 +321,11 @@ all of these functions return the error value $\errorX$.
 %% |  41 -5 | -9  -4  |  -8   1  |
 %% | -41 -5 |  8  -1  |   8  -1  |
 %% -------------------------------
+
+\note{The \texttt{consByteString} function.}
+\label{note:consbytestring}
+The semantics of \texttt{consByteString} are slightly different
+from Plutus V3 onward: see Table~\ref{table:V3-misc-built-in-functions}.
 
 \note{The \texttt{sliceByteString} function.}
 \label{note:slicebytestring}

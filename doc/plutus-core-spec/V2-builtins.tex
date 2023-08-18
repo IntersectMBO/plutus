@@ -23,19 +23,19 @@ The built-in types and type operators remain unchanged from Plutus V1
 \subsection{Built-in functions}
 \label{sec:V2-built-in-functions}
 Plutus V2 continues to support the V1 built-in functions (Table
-\ref{table:V1-built-in-functions}) (with a slight change to the semantics of \texttt{consByteString})
+\ref{table:V1-built-in-functions})
 and adds three new ones: see Table~\ref{table:V2-built-in-functions}.
 
 \setlength{\LTleft}{-22mm}  % Shift the table left a bit to centre it on the page
 \begin{longtable}[H]{|l|p{42mm}|p{55mm}|c|c|}
     \hline
     \text{Function} & \text{Signature} & \text{Denotation} & \text{Can} & \text{Note} \\
-    & & & Fail? & \\
+    & & & fail? & \\
     \hline
     \endfirsthead
     \hline
     \text{Function} & \text{Type} & \text{Denotation} & \text{Can} & \text{Note}\\
-    & & & Fail? & \\
+    & & & fail? & \\
     \hline
     \endhead
     \hline
@@ -44,12 +44,6 @@ and adds three new ones: see Table~\ref{table:V2-built-in-functions}.
     \caption[]{Built-in Functions}
     \label{table:V2-built-in-functions}
     \endlastfoot
-    \TT{consByteString}         & $[\ty{integer}, \ty{bytestring}] $ \text{$\;\; \to \ty{bytestring}$}
-                                                   & $(c,[c_1,\ldots,c_n])$ \text{$\;\;\mapsto
-                                                       \begin{cases}
-                                                          [c,c_1,\ldots,c_{n}] & \text{if $0 \leq c \leq 255$} \\
-                                                         \errorX & \text{otherwise}
-                                                       \end{cases}$} & Yes & \ref{note:consbytestring-v2}\\
     \TT{serialiseData}                        & $[\ty{data}] \to \ty{bytestring}$   &  $\mathcal{E}_{\mathtt{data}}$ &
       & \ref{note:serialise-data}\\
     \TT{verifyEcdsaSecp256k1Signature}        & $[\ty{bytestring}, \ty{bytestring}, $ \text{$\;\; \ty{bytestring}] \to \ty{bool}$}
@@ -59,13 +53,6 @@ and adds three new ones: see Table~\ref{table:V2-built-in-functions}.
 \hline 
 \end{longtable}
 
-
-\note{Changed semantics for \texttt{consByteString}.}
-\label{note:consbytestring-v2}
-In Plutus V1 the first argument of \texttt{consByteString} is an arbitrary
-integer which will be reduced modulo 256 before being prepended to the second
-argument.  In Plutus V2 we require that the first argument lies between 0 and
-255 (inclusive); in any other case an error will occur.
 
 \note{Serialising $\ty{data}$ objects.}
 \label{note:serialise-data}
