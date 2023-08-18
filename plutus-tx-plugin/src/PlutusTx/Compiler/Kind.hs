@@ -8,6 +8,7 @@
 module PlutusTx.Compiler.Kind (compileKind) where
 
 import PlutusTx.Compiler.Error
+import PlutusTx.Compiler.Trace
 import PlutusTx.Compiler.Types
 import PlutusTx.Compiler.Utils
 
@@ -16,7 +17,7 @@ import GHC.Plugins qualified as GHC
 import PlutusCore qualified as PLC
 
 compileKind :: Compiling uni fun m ann => GHC.Kind -> m (PLC.Kind ())
-compileKind k = withContextM 2 (sdToTxt $ "Compiling kind:" GHC.<+> GHC.ppr k) $ case k of
+compileKind k = withContextM 2 (sdToTxt msg) . traceCompilation msg $ case k of
     -- this is a bit weird because GHC uses 'Type' to represent kinds, so '* -> *' is a 'TyFun'
     (GHC.isLiftedTypeKind -> True)         -> pure $ PLC.Type ()
     (GHC.splitFunTy_maybe -> Just r) -> case r of
@@ -35,3 +36,5 @@ compileKind k = withContextM 2 (sdToTxt $ "Compiling kind:" GHC.<+> GHC.ppr k) $
     (GHC.classifiesTypeWithValues -> True) -> pure $ PLC.Type ()
 #endif
     _                                      -> throwSd UnsupportedError $ "Kind:" GHC.<+> (GHC.ppr k)
+  where
+    msg = "Compiling kind:" GHC.<+> GHC.ppr k

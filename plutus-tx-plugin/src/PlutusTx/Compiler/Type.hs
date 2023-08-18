@@ -23,6 +23,7 @@ import PlutusTx.Compiler.Binders
 import PlutusTx.Compiler.Error
 import PlutusTx.Compiler.Kind
 import PlutusTx.Compiler.Names
+import PlutusTx.Compiler.Trace
 import PlutusTx.Compiler.Types
 import PlutusTx.Compiler.Utils
 import PlutusTx.PIRTypes
@@ -84,7 +85,7 @@ compileTypeNorm ty = do
 
 -- | Compile a type.
 compileType :: CompilingDefault uni fun m ann => GHC.Type -> m (PIRType uni)
-compileType t = withContextM 2 (sdToTxt $ "Compiling type:" GHC.<+> GHC.ppr t) $ do
+compileType t = withContextM 2 (sdToTxt msg) . traceCompilation msg $ do
     -- See Note [Scopes]
     CompileContext {ccScope=scope} <- ask
     case t of
@@ -110,6 +111,8 @@ compileType t = withContextM 2 (sdToTxt $ "Compiling type:" GHC.<+> GHC.ppr t) $
         -- I think it's safe to ignore the coercion here
         (GHC.splitCastTy_maybe -> Just (tpe, _)) -> compileType tpe
         _ -> throwSd UnsupportedError $ "Type" GHC.<+> GHC.ppr t
+  where
+    msg = "Compiling type:" GHC.<+> GHC.ppr t
 
 {- Note [Occurrences of recursive names]
 When we compile recursive types/terms, we need to process their definitions before we can produce
@@ -271,9 +274,10 @@ mkConstructorType :: CompilingDefault uni fun m ann => GHC.DataCon -> m (PIRType
 mkConstructorType dc =
     -- see Note [On data constructor workers and wrappers]
     let argTys = GHC.scaledThing <$> GHC.dataConRepArgTys dc
+        msg = "Compiling data constructor type:" GHC.<+> GHC.ppr dc
     in
         -- See Note [Scott encoding of datatypes]
-        withContextM 3 (sdToTxt $ "Compiling data constructor type:" GHC.<+> GHC.ppr dc) $ do
+        withContextM 3 (sdToTxt msg) . traceCompilation msg $ do
             args <- mapM compileTypeNorm argTys
             resultType <- compileTypeNorm (GHC.dataConOrigResTy dc)
             -- t_c_i_1 -> ... -> t_c_i_j -> resultType
@@ -305,7 +309,7 @@ getMatch tc = do
 -- | Get the matcher of the given 'Type' (which must be equal to a type constructor application) as a PLC term instantiated for
 -- the type constructor argument types.
 getMatchInstantiated :: CompilingDefault uni fun m ann => GHC.Type -> m (PIRTerm uni fun)
-getMatchInstantiated t = withContextM 3 (sdToTxt $ "Creating instantiated matcher for type:" GHC.<+> GHC.ppr t) $ case t of
+getMatchInstantiated t = withContextM 3 (sdToTxt msg) . traceCompilation msg $ case t of
     (GHC.splitTyConApp_maybe -> Just (tc, args)) -> do
         match <- getMatch tc
         -- We drop 'RuntimeRep' arguments, see Note [Unboxed tuples]
@@ -313,6 +317,8 @@ getMatchInstantiated t = withContextM 3 (sdToTxt $ "Creating instantiated matche
         pure $ PIR.mkIterInst match $ (annMayInline,) <$> args'
     -- must be a TC app
     _ -> throwSd CompilationError $ "Cannot case on a value of a type which is not a datatype:" GHC.<+> GHC.ppr t
+  where
+    msg = "Creating instantiated matcher for type:" GHC.<+> GHC.ppr t
 
 -- | Drops prefix of 'RuntimeRep' type variables (similar to 'dropRuntimeRepArgs').
 -- Useful for e.g. dropping 'LiftedRep type variables arguments of unboxed tuple type applications:

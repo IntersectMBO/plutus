@@ -33,6 +33,7 @@ import PlutusTx.Compiler.Builtins
 import PlutusTx.Compiler.Error
 import PlutusTx.Compiler.Laziness
 import PlutusTx.Compiler.Names
+import PlutusTx.Compiler.Trace
 import PlutusTx.Compiler.Type
 import PlutusTx.Compiler.Types
 import PlutusTx.Compiler.Utils
@@ -184,7 +185,7 @@ compileAlt
     => GHC.CoreAlt -- ^ The 'CoreAlt' representing the branch itself.
     -> [GHC.Type] -- ^ The instantiated type arguments for the data constructor.
     -> m (PIRTerm uni fun, PIRTerm uni fun) -- ^ Non-delayed and delayed
-compileAlt (GHC.Alt alt vars body) instArgTys = withContextM 3 (sdToTxt $ "Creating alternative:" GHC.<+> GHC.ppr alt) $ case alt of
+compileAlt (GHC.Alt alt vars body) instArgTys = withContextM 3 (sdToTxt msg) . traceCompilation msg $ case alt of
     GHC.LitAlt _  -> throwPlain $ UnsupportedError "Literal case"
     -- We just package it up as a lambda bringing all the
     -- vars into scope whose body is the body of the case alternative.
@@ -206,6 +207,8 @@ compileAlt (GHC.Alt alt vars body) instArgTys = withContextM 3 (sdToTxt $ "Creat
             argTypes <- mapM compileTypeNorm instArgTys
             argNames <- forM [0..(length argTypes -1)] (\i -> safeFreshName $ "default_arg" <> (T.pack $ show i))
             pure $ PIR.mkIterLamAbs (zipWith (PIR.VarDecl annMayInline) argNames argTypes) body'
+
+        msg = "Creating alternative:" GHC.<+> GHC.ppr alt
 
 -- See Note [GHC runtime errors]
 isErrorId :: GHC.Id -> Bool
@@ -479,10 +482,11 @@ hoistExpr var t = do
     let addSpan = case getVarSourceSpan var of
             Nothing  -> id
             Just src -> fmap . fmap . addSrcSpan $ src ^. srcSpanIso
+        msg = "Compiling definition of:" GHC.<+> GHC.ppr var
     case maybeDef of
         Just term -> pure term
         -- See Note [Dependency tracking]
-        Nothing -> withCurDef lexName $ withContextM 1 (sdToTxt $ "Compiling definition of:" GHC.<+> GHC.ppr var) $ do
+        Nothing -> withCurDef lexName . withContextM 1 (sdToTxt msg) . traceCompilation msg $ do
             var' <- compileVarFresh ann var
             -- See Note [Occurrences of recursive names]
             PIR.defineTerm
@@ -652,7 +656,7 @@ entryExitTracing lamName displayName e ty =
 compileExpr
     :: CompilingDefault uni fun m ann
     => GHC.CoreExpr -> m (PIRTerm uni fun)
-compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $ do
+compileExpr e = withContextM 2 (sdToTxt msg) . traceCompilation msg $ do
     -- See Note [Scopes]
     CompileContext {ccScope=scope,ccNameInfo=nameInfo,ccModBreaks=maybeModBreaks, ccBuiltinVer=ver} <- ask
 
@@ -848,12 +852,13 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
         -- these are put in when you compile with -g
         -- See Note [What source locations to cover]
         GHC.Tick tick body | Just src <- getSourceSpan maybeModBreaks tick ->
-            withContextM 1 (sdToTxt $ "Compiling expr at:" GHC.<+> GHC.ppr src) $ do
-              CompileContext {ccOpts=coverageOpts} <- ask
-              -- See Note [Coverage annotations]
-              let anns = Set.toList $ activeCoverageTypes coverageOpts
-              compiledBody <- fmap (addSrcSpan $ src ^. srcSpanIso) <$> compileExpr body
-              foldM (coverageCompile body (GHC.exprType body) src) compiledBody anns
+            let msg' = "Compiling expr at:" GHC.<+> GHC.ppr src
+             in withContextM 1 (sdToTxt msg') . traceCompilation msg' $ do
+                    CompileContext {ccOpts=coverageOpts} <- ask
+                    -- See Note [Coverage annotations]
+                    let anns = Set.toList $ activeCoverageTypes coverageOpts
+                    compiledBody <- fmap (addSrcSpan $ src ^. srcSpanIso) <$> compileExpr body
+                    foldM (coverageCompile body (GHC.exprType body) src) compiledBody anns
 
         -- ignore other annotations
         GHC.Tick _ body -> compileExpr body
@@ -861,6 +866,8 @@ compileExpr e = withContextM 2 (sdToTxt $ "Compiling expr:" GHC.<+> GHC.ppr e) $
         GHC.Cast body _ -> compileExpr body
         GHC.Type _ -> throwPlain $ UnsupportedError "Types as standalone expressions"
         GHC.Coercion _ -> throwPlain $ UnsupportedError "Coercions as expressions"
+  where
+    msg = "Compiling expr:" GHC.<+> GHC.ppr e
 
 {- Note [What source locations to cover]
    We try to get as much coverage information as we can out of GHC. This means that

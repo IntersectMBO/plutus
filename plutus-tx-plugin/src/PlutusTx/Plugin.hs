@@ -24,6 +24,7 @@ import PlutusTx.Code
 import PlutusTx.Compiler.Builtins
 import PlutusTx.Compiler.Error
 import PlutusTx.Compiler.Expr
+import PlutusTx.Compiler.Trace
 import PlutusTx.Compiler.Types
 import PlutusTx.Compiler.Utils
 import PlutusTx.Coverage
@@ -68,6 +69,7 @@ import Control.Lens
 import Control.Monad
 import Control.Monad.Except
 import Control.Monad.Reader
+import Control.Monad.State
 import Control.Monad.Writer
 import Flat (Flat, flat, unflat)
 
@@ -403,13 +405,16 @@ compileMarkedExpr locStr codeTy origE = do
             ccCurDef = Nothing,
             ccModBreaks = modBreaks,
             ccBuiltinVer = def,
-            ccBuiltinCostModel = def
+            ccBuiltinCostModel = def,
+            ccDebugTraceOn = _posDumpCompilationTrace opts
             }
+        st = CompileState 0 mempty
     -- See Note [Occurrence analysis]
     let origE' = GHC.occurAnalyseExpr origE
+        msg = "Compiling expr at" GHC.<+> GHC.text locStr
 
-    ((pirP,uplcP), covIdx) <- runWriterT . runQuoteT . flip runReaderT ctx $
-        withContextM 1 (sdToTxt $ "Compiling expr at" GHC.<+> GHC.text locStr) $
+    ((pirP,uplcP), covIdx) <- runWriterT . runQuoteT . flip runReaderT ctx . flip evalStateT st $
+        withContextM 1 (sdToTxt msg) . traceCompilation msg $
             runCompiler moduleNameStr opts origE'
 
     -- serialize the PIR, PLC, and coverageindex outputs into a bytestring.
@@ -434,6 +439,7 @@ runCompiler ::
     ( uni ~ PLC.DefaultUni
     , fun ~ PLC.DefaultFun
     , MonadReader (CompileContext uni fun) m
+    , MonadState CompileState m
     , MonadWriter CoverageIndex m
     , MonadQuote m
     , MonadError (CompileError uni fun Ann) m
