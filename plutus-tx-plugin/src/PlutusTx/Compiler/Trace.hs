@@ -37,4 +37,5 @@ traceCompilation sd compile = ifM (notM (asks ccDebugTraceOn)) compile $ do
       <> show nextStep
       <> maybe "" (\parentStep -> ", Returning to step " <> show parentStep) mbParentStep
       <> ">"
+  modify' $ \(CompileState nextStep' prevSteps') -> CompileState nextStep' (drop 1 prevSteps')
   pure res
