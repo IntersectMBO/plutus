@@ -8,6 +8,7 @@ module PlutusConformance.Common where
 import Control.Lens (traverseOf)
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
+import PlutusCore.Annotation
 import PlutusCore.Default (DefaultFun, DefaultUni)
 import PlutusCore.Error (ParserErrorBundle)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParameters)
@@ -21,7 +22,6 @@ import Test.Tasty.ExpectedFailure (expectFail)
 import Test.Tasty.Golden (findByExtension)
 import Test.Tasty.Golden.Advanced (goldenTest)
 import Test.Tasty.Providers (TestTree)
-import Text.Megaparsec (SourcePos)
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek (evaluateCekNoEmit)
 import UntypedPlutusCore.Parser qualified as UPLC
@@ -42,7 +42,7 @@ shownEvaluationFailure = "evaluation failure"
 -- | The default parser to parse UPLC program inputs.
 parseTxt ::
     T.Text
-    -> Either ParserErrorBundle (UPLC.Program Name DefaultUni DefaultFun SourcePos)
+    -> Either ParserErrorBundle (UPLC.Program Name DefaultUni DefaultFun SrcSpan)
 parseTxt resTxt = runQuoteT $ UPLC.parseProgram resTxt
 
 -- | The input/output UPLC program type.
@@ -179,7 +179,8 @@ evalUplcProg :: UplcEvaluator
 evalUplcProg = traverseOf UPLC.progTerm eval
   where
     eval t = do
-        -- The evaluator throws if the term has free variables
+        -- runCek-like functions (e.g. evaluateCekNoEmit) are partial on term's with free variables,
+        -- that is why we manually check first for any free vars
         case UPLC.deBruijnTerm t of
             Left (_ :: UPLC.FreeVariableError) -> Nothing
             Right _                            -> Just ()
@@ -202,3 +203,4 @@ runUplcEvalTests eval expectedFailTests = do
             expectedFailTests
             "test-cases/uplc/evaluation"
     defaultMain $ testGroup "UPLC evaluation tests" [tests]
+

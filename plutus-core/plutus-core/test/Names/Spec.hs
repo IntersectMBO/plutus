@@ -4,27 +4,27 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
 
 module Names.Spec where
 
 import PlutusCore.Test
 
 import PlutusCore
-import PlutusCore.DeBruijn
 import PlutusCore.Mark
 import PlutusCore.Pretty
 import PlutusCore.Rename.Internal
 
-import PlutusCore.Generators
-import PlutusCore.Generators.AST as AST
-import PlutusCore.Generators.Interesting
+import PlutusCore.Generators.Hedgehog
+import PlutusCore.Generators.Hedgehog.AST as AST
+import PlutusCore.Generators.Hedgehog.Interesting
 
 import GHC.Exts (fromString)
 import Hedgehog hiding (Var)
 import Hedgehog.Gen qualified as Gen
 import Test.Tasty
-import Test.Tasty.HUnit
 import Test.Tasty.Hedgehog
+import Test.Tasty.HUnit
 
 prop_DeBruijn :: Gen (TermOf (Term TyName Name DefaultUni DefaultFun ()) a) -> Property
 prop_DeBruijn gen = property . generalizeT $ do
@@ -177,8 +177,9 @@ test_names =
         , test_equalityRename
         , test_equalityBrokenRename
         , test_equalityNoMarkRename
-        , test_scopingGood (genProgram @DefaultFun) rename
-        , test_scopingBad (genProgram @DefaultFun) markNonFreshProgram renameProgramM
+        , test_scopingGood "renaming" (genProgram @DefaultFun) BindingRemovalNotOk PrerenameNo
+            rename
+        , test_scopingSpoilRenamer (genProgram @DefaultFun) markNonFreshProgram renameProgramM
         , test_alphaEquality
         , test_rebindShadowedVariable
         , test_rebindCapturedVariable

@@ -1,9 +1,11 @@
 {-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MonoLocalBinds        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 {-# OPTIONS_GHC -Wno-orphans       #-}
+
 module PlutusIR.Core.Instance.Pretty () where
 
 import PlutusPrelude
@@ -12,6 +14,7 @@ import PlutusCore qualified as PLC
 import PlutusCore.Flat ()
 import PlutusCore.Pretty qualified as PLC
 
+import PlutusIR.Core.Instance.Pretty.Readable ()
 import PlutusIR.Core.Type
 
 import Prettyprinter
@@ -21,7 +24,7 @@ import Prettyprinter.Custom
 
 instance ( PLC.PrettyClassicBy configName tyname
          , PLC.PrettyClassicBy configName name
-         , PLC.Pretty (PLC.SomeTypeIn uni)
+         , PLC.PrettyParens (PLC.SomeTypeIn uni)
          , Pretty ann
          ) => PrettyBy (PLC.PrettyConfigClassic configName) (VarDecl tyname name uni ann) where
     prettyBy config (VarDecl ann n ty) =
@@ -45,7 +48,7 @@ instance PrettyBy (PLC.PrettyConfigClassic configName) Strictness where
 
 instance ( PLC.PrettyClassicBy configName tyname
          , PLC.PrettyClassicBy configName name
-         , PLC.Pretty (PLC.SomeTypeIn uni)
+         , PLC.PrettyParens (PLC.SomeTypeIn uni)
          , Pretty ann
          ) => PrettyBy (PLC.PrettyConfigClassic configName) (Datatype tyname name uni ann) where
     prettyBy config (Datatype ann ty tyvars destr constrs) =
@@ -58,8 +61,7 @@ instance ( PLC.PrettyClassicBy configName tyname
 
 instance ( PLC.PrettyClassicBy configName tyname
          , PLC.PrettyClassicBy configName name
-         , PLC.Pretty (PLC.SomeTypeIn uni)
-         , PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst
+         , PLC.PrettyUni uni
          , Pretty fun
          , Pretty ann
          ) => PrettyBy (PLC.PrettyConfigClassic configName) (Binding tyname name uni fun ann) where
@@ -76,8 +78,7 @@ instance ( PLC.PrettyClassicBy configName tyname
 
 instance ( PLC.PrettyClassicBy configName tyname
          , PLC.PrettyClassicBy configName name
-         , PLC.Pretty (PLC.SomeTypeIn uni)
-         , PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst
+         , PLC.PrettyUni uni
          , Pretty fun
          , Pretty ann
          ) => PrettyBy (PLC.PrettyConfigClassic configName) (Term tyname name uni fun ann) where
@@ -114,20 +115,26 @@ instance ( PLC.PrettyClassicBy configName tyname
         Unwrap ann t ->
             sexp "unwrap" (PLC.consAnnIf config ann
                 [prettyBy config t])
+        Constr ann ty i es ->
+            sexp "constr" (PLC.consAnnIf config ann
+                           (prettyBy config ty : pretty i : fmap (prettyBy config) es))
+        Case ann ty arg cs ->
+            sexp "case" (PLC.consAnnIf config ann
+                         (prettyBy config ty : prettyBy config arg : fmap (prettyBy config) cs))
       where
-        prettyTypeOf :: PLC.Pretty (PLC.SomeTypeIn t)  => PLC.Some (PLC.ValueOf t) -> Doc dann
-        prettyTypeOf (PLC.Some (PLC.ValueOf uni _ )) = pretty $ PLC.SomeTypeIn uni
+        prettyTypeOf :: PLC.Some (PLC.ValueOf uni) -> Doc dann
+        prettyTypeOf (PLC.Some (PLC.ValueOf uni _ )) =
+            PLC.prettyBy PLC.juxtRenderContext $ PLC.SomeTypeIn uni
 
 
 instance ( PLC.PrettyClassicBy configName tyname
          , PLC.PrettyClassicBy configName name
-         , PLC.Pretty (PLC.SomeTypeIn uni)
-         , PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst
+         , PLC.PrettyUni uni
          , Pretty fun
          , Pretty ann
          ) => PrettyBy (PLC.PrettyConfigClassic configName) (Program tyname name uni fun ann) where
-    prettyBy config (Program ann t) =
-        sexp "program" (PLC.consAnnIf config ann [prettyBy config t])
+    prettyBy config (Program ann v t) =
+        sexp "program" (PLC.consAnnIf config ann [pretty v, prettyBy config t])
 
 -- See note [Default pretty instances for PLC]
 instance (PLC.PrettyClassic tyname, Pretty ann) =>
@@ -136,23 +143,21 @@ instance (PLC.PrettyClassic tyname, Pretty ann) =>
 
 instance ( PLC.PrettyClassic tyname
          , PLC.PrettyClassic name
-         , PLC.Pretty (PLC.SomeTypeIn uni)
+         , PLC.PrettyParens (PLC.SomeTypeIn uni)
          , Pretty ann
          ) => Pretty (VarDecl tyname name uni ann) where
     pretty = PLC.prettyClassicDef
 
 instance ( PLC.PrettyClassic tyname
          , PLC.PrettyClassic name
-         , PLC.Pretty (PLC.SomeTypeIn uni)
-         , uni `PLC.Everywhere` PLC.PrettyConst
+         , PLC.PrettyUni uni
          , Pretty ann
          ) => Pretty (Datatype tyname name uni ann) where
     pretty = PLC.prettyClassicDef
 
 instance ( PLC.PrettyClassic tyname
          , PLC.PrettyClassic name
-         , PLC.Pretty (PLC.SomeTypeIn uni)
-         , PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst
+         , PLC.PrettyUni uni
          , Pretty fun
          , Pretty ann
          ) => Pretty (Binding tyname name uni fun ann) where
@@ -160,8 +165,7 @@ instance ( PLC.PrettyClassic tyname
 
 instance ( PLC.PrettyClassic tyname
          , PLC.PrettyClassic name
-         , PLC.Pretty (PLC.SomeTypeIn uni)
-         , PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst
+         , PLC.PrettyUni uni
          , Pretty fun
          , Pretty ann
          ) => Pretty (Term tyname name uni fun ann) where
@@ -169,9 +173,17 @@ instance ( PLC.PrettyClassic tyname
 
 instance ( PLC.PrettyClassic tyname
          , PLC.PrettyClassic name
-         , PLC.Pretty (PLC.SomeTypeIn uni)
-         , PLC.Closed uni, uni `PLC.Everywhere` PLC.PrettyConst
+         , PLC.PrettyUni uni
          , Pretty fun
          , Pretty ann
          ) => Pretty (Program tyname name uni fun ann) where
     pretty = PLC.prettyClassicDef
+
+
+deriving via PrettyAny (Term tyname name uni fun ann)
+    instance PLC.DefaultPrettyPlcStrategy (Term tyname name uni fun ann) =>
+        PrettyBy PLC.PrettyConfigPlc (Term tyname name uni fun ann)
+
+deriving via PrettyAny (Program tyname name uni fun ann)
+    instance PLC.DefaultPrettyPlcStrategy (Program tyname name uni fun ann) =>
+        PrettyBy PLC.PrettyConfigPlc (Program tyname name uni fun ann)

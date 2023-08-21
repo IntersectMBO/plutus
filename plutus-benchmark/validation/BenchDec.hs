@@ -1,17 +1,14 @@
--- editorconfig-checker-disable-file
+{-# LANGUAGE BangPatterns #-}
 module Main where
 
 import PlutusLedgerApi.V1
-import PlutusLedgerApi.V1.Scripts
 import UntypedPlutusCore qualified as UPLC
 
-import Codec.Serialise qualified as Serialise (serialise)
 import Common
+import Control.DeepSeq (force)
 import Control.Exception
 import Criterion
 import Data.ByteString as BS
-import Data.ByteString.Lazy as BSL
-import Data.ByteString.Short (toShort)
 
 {-|
 for each data/*.flat validation script, it benchmarks
@@ -31,17 +28,15 @@ main = benchWith mkDecBM
             UPLC.Program _ v (fullyApplied :: Term) = unsafeUnflat file bsFlat
 
             -- script arguments are not 64-byte size limited, so we make
-            -- sure to remove them from the fully-applied script, and then decode back just the "unsaturated" script
+            -- sure to remove them from the fully-applied script, and then decode back just the
+            -- "unsaturated" script
             -- See Note [Deserialization size limits]
             (unsaturated, _args) = peelDataArguments fullyApplied
 
-            -- we then have to re-encode it
-            bslCBOR :: BSL.ByteString = Serialise.serialise (Script $ UPLC.Program () v unsaturated)
-            -- strictify and "short" the result cbor to create a real `SerialisedScript`
-
-            benchScript :: SerialisedScript = toShort . BSL.toStrict $ bslCBOR
+            -- we then have to re-encode and serialise it
+            !(benchScript :: SerialisedScript) =
+                force (serialiseUPLC $ UPLC.Program () v unsaturated)
 
             -- Deserialize using 'FakeNamedDeBruijn' to get the fake names added
         in whnf (either throw id . assertScriptWellFormed (ProtocolVersion 6 0)
                 ) benchScript
-

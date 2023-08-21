@@ -52,7 +52,7 @@ import PlutusLedgerApi.V1.Value
 
 This is a simple type without any validation, __use with caution__.
 You may want to add checks for its invariants. See the
- [Shelley ledger specification](https://hydra.iohk.io/build/16861845/download/1/ledger-spec.pdf).
+ [Shelley ledger specification](https://github.com/input-output-hk/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf).
 -}
 newtype TxId = TxId { getTxId :: PlutusTx.BuiltinByteString }
     deriving stock (Eq, Ord, Generic)
@@ -65,6 +65,8 @@ newtype TxId = TxId { getTxId :: PlutusTx.BuiltinByteString }
         ) via LedgerBytes
 
 -- | A tag indicating the type of script that we are pointing to.
+--
+-- See also 'PlutusLedgerApi.V1.ScriptPurpose'
 data ScriptTag = Spend | Mint | Cert | Reward
     deriving stock (Show, Eq, Ord, Generic)
     deriving anyclass (NFData)
@@ -96,6 +98,7 @@ instance PlutusTx.Eq TxOutRef where
     l == r =
         txOutRefId l PlutusTx.== txOutRefId r
         PlutusTx.&& txOutRefIdx l PlutusTx.== txOutRefIdx r
+
 -- | A transaction output, consisting of a target address ('Address'), a value ('Value'),
 -- and optionally a datum hash ('DatumHash').
 data TxOut = TxOut {
@@ -126,8 +129,8 @@ txOutPubKey :: TxOut -> Maybe PubKeyHash
 txOutPubKey TxOut{txOutAddress} = toPubKeyHash txOutAddress
 
 -- | The validator hash attached to a 'TxOut', if there is one.
-txOutValidatorHash :: TxOut -> Maybe ValidatorHash
-txOutValidatorHash TxOut{txOutAddress} = toValidatorHash txOutAddress
+txOutScriptHash :: TxOut -> Maybe ScriptHash
+txOutScriptHash TxOut{txOutAddress} = toScriptHash txOutAddress
 
 -- | The address of a transaction output.
 outAddress :: Lens' TxOut Address
@@ -146,7 +149,7 @@ isPubKeyOut = isJust . txOutPubKey
 
 -- | Whether the output is a pay-to-script output.
 isPayToScriptOut :: TxOut -> Bool
-isPayToScriptOut = isJust . txOutValidatorHash
+isPayToScriptOut = isJust . txOutScriptHash
 
 -- | Create a transaction output locked by a public key.
 pubKeyHashTxOut :: Value -> PubKeyHash -> TxOut

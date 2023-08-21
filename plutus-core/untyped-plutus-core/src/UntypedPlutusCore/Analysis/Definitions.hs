@@ -10,14 +10,15 @@ module UntypedPlutusCore.Analysis.Definitions
 import UntypedPlutusCore.Core
 
 import PlutusCore.Analysis.Definitions (ScopeType (TermScope), UniqueInfos, addDef, addUsage)
-import PlutusCore.Error
-import PlutusCore.Name
+import PlutusCore.Error (UniqueError)
+import PlutusCore.Name (HasUnique, TermUnique (TermUnique), Unique (Unique))
 
-import Data.Functor.Foldable
+import Control.Lens (forMOf_)
+import Control.Monad.State (MonadState, execStateT)
+import Control.Monad.Writer (MonadWriter, WriterT (runWriterT))
 
-import Control.Monad.State
-import Control.Monad.Writer
-
+-- | Given a UPLC term, add all of its term definitions and usages, including its subterms,
+-- to a global map.
 termDefs
     :: (Ord ann,
         HasUnique name TermUnique,
@@ -25,10 +26,21 @@ termDefs
         MonadWriter [UniqueError ann] m)
     => Term name uni fun ann
     -> m ()
-termDefs = cata $ \case
-    VarF ann n      -> addUsage n ann TermScope
-    LamAbsF ann n t -> addDef n ann TermScope >> t
-    x               -> sequence_ x
+termDefs tm = do
+   forMOf_ termSubtermsDeep tm handleTerm
+
+handleTerm :: (Ord ann,
+        HasUnique name TermUnique,
+        MonadState (UniqueInfos ann) m,
+        MonadWriter [UniqueError ann] m)
+    => Term name uni fun ann
+    -> m ()
+handleTerm = \case
+    Var ann n      ->
+        addUsage n ann TermScope
+    LamAbs ann n _ ->
+        addDef n ann TermScope
+    _               -> pure ()
 
 runTermDefs
     :: (Ord ann,

@@ -1,8 +1,8 @@
 -- editorconfig-checker-disable-file
 -- | @tuple@s of various sizes and related functions.
 
-{-# LANGUAGE GADTs             #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections     #-}
 
 module PlutusCore.StdLib.Meta.Data.Tuple
     ( Tuple (..)
@@ -28,11 +28,11 @@ import Control.Lens.Indexed (ifor, itraverse)
 import Data.Traversable
 
 -- | A Plutus Core (Scott-encoded) tuple.
-data Tuple term uni ann where
-    Tuple :: TermLike term TyName Name uni fun =>
+data Tuple term uni ann =
+    Tuple
         { _tupleElementTypes :: [Type TyName uni ann] -- ^ The types of elements of a tuple.
         , _tupleTerm         :: term ann              -- ^ A term representation of the tuple.
-        } -> Tuple term uni ann
+        }
 
 -- | Get the type of a 'Tuple'.
 --
@@ -55,7 +55,7 @@ getSpineToTuple ann spine = liftQuote $ do
     f <- freshName "f"
     let (as, xs) = unzip spine
         caseTy = mkIterTyFun ann as $ TyVar ann r
-        y = mkIterApp ann (var ann f) xs
+        y = mkIterApp (var ann f) ((ann,) <$> xs)
     pure . Tuple as . tyAbs ann r (Type ann) $ lamAbs ann f caseTy y
 
 -- | Get the type of the ith element of a 'Tuple' along with the element itself.
@@ -164,7 +164,7 @@ prodNConstructor arity = runQuote $ do
         -- \case
         lamAbs () caseArg caseTy $
         -- case arg_1 .. arg_n
-        mkIterApp () (var () caseArg) $ fmap (mkVar ()) args
+        mkIterAppNoAnn (var () caseArg) $ fmap (mkVar ()) args
 
 -- | Given an arity @n@ and an index @i@, create a function for accessing the i'th component of a n-tuple.
 --
@@ -179,7 +179,7 @@ prodNAccessor arity index = runQuote $ do
         tn <- liftQuote $ freshTyName $ "t_" <> showText i
         pure $ TyVarDecl () tn $ Type ()
 
-    let tupleTy = mkIterTyApp () (prodN arity) (fmap (mkTyVar ()) tyVars)
+    let tupleTy = mkIterTyAppNoAnn (prodN arity) (fmap (mkTyVar ()) tyVars)
         selectedTy = mkTyVar () $ tyVars !! index
 
     args <- for [0..(arity -1)] $ \i -> do

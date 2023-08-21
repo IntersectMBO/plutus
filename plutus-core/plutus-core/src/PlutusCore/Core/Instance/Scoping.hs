@@ -2,6 +2,7 @@
 
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
 
 module PlutusCore.Core.Instance.Scoping () where
 
@@ -47,6 +48,8 @@ instance tyname ~ TyName => EstablishScoping (Type tyname uni) where
         name <- freshenTyName nameDup
         pure $ TyVar (registerFree name) name
     establishScoping (TyBuiltin _ fun) = pure $ TyBuiltin NotAName fun
+    establishScoping (TySOP _ tyls) =
+        TySOP NotAName <$> (traverse . traverse) establishScoping tyls
 
 instance (tyname ~ TyName, name ~ Name) => EstablishScoping (Term tyname name uni fun) where
     establishScoping (LamAbs _ nameDup ty body)  = do
@@ -68,10 +71,14 @@ instance (tyname ~ TyName, name ~ Name) => EstablishScoping (Term tyname name un
         pure $ Var (registerFree name) name
     establishScoping (Constant _ con) = pure $ Constant NotAName con
     establishScoping (Builtin _ bi) = pure $ Builtin NotAName bi
+    establishScoping (Constr _ ty i es) =
+      Constr NotAName <$> establishScoping ty <*> pure i <*> traverse establishScoping es
+    establishScoping (Case _ ty a es) =
+      Case NotAName <$> establishScoping ty <*> establishScoping a <*> traverse establishScoping es
 
 instance (tyname ~ TyName, name ~ Name) => EstablishScoping (Program tyname name uni fun) where
     establishScoping (Program _ ver term) =
-        Program NotAName (NotAName <$ ver) <$> establishScoping term
+        Program NotAName ver <$> establishScoping term
 
 instance tyname ~ TyName => CollectScopeInfo (Type tyname uni) where
     collectScopeInfo (TyLam ann name kind ty) =
@@ -83,6 +90,7 @@ instance tyname ~ TyName => CollectScopeInfo (Type tyname uni) where
     collectScopeInfo (TyFun _ dom cod) = collectScopeInfo dom <> collectScopeInfo cod
     collectScopeInfo (TyVar ann name) = handleSname ann name
     collectScopeInfo (TyBuiltin _ _) = mempty
+    collectScopeInfo (TySOP _ tyls) = (foldMap . foldMap) collectScopeInfo tyls
 
 instance (tyname ~ TyName, name ~ Name) => CollectScopeInfo (Term tyname name uni fun) where
     collectScopeInfo (LamAbs ann name ty body)  =
@@ -98,6 +106,10 @@ instance (tyname ~ TyName, name ~ Name) => CollectScopeInfo (Term tyname name un
     collectScopeInfo (Var ann name) = handleSname ann name
     collectScopeInfo (Constant _ _) = mempty
     collectScopeInfo (Builtin _ _) = mempty
+    collectScopeInfo (Constr _ ty _ es) =
+      collectScopeInfo ty <> foldMap collectScopeInfo es
+    collectScopeInfo (Case _ ty arg cs) =
+      collectScopeInfo ty <> collectScopeInfo arg <> foldMap collectScopeInfo cs
 
 instance (tyname ~ TyName, name ~ Name) => CollectScopeInfo (Program tyname name uni fun) where
     collectScopeInfo (Program _ _ term) = collectScopeInfo term

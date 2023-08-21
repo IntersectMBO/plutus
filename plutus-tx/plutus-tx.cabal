@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-tx
-version:         1.0.0.0
+version:         1.10.0.0
 license:         Apache-2.0
 license-files:
   LICENSE
@@ -89,26 +89,28 @@ library
     PlutusTx.IsData.Instances
     PlutusTx.IsData.TH
     PlutusTx.Lift.Instances
+    PlutusTx.Lift.TH
     PlutusTx.Lift.THUtils
 
   build-depends:
     , aeson
-    , base              >=4.9      && <5
+    , base                                  >=4.9      && <5
     , bytestring
     , containers
+    , data-default-class
     , deepseq
     , deriving-compat
     , extra
-    , flat
+    , flat                                  ^>=0.6
     , ghc-prim
     , hashable
     , lens
     , memory
     , mtl
-    , plutus-core       ^>=1.0
+    , plutus-core:{plutus-core, plutus-ir}  ^>=1.10
     , prettyprinter
     , serialise
-    , template-haskell  >=2.13.0.0
+    , template-haskell                      >=2.13.0.0
     , text
     , th-abstraction
     , th-compat
@@ -118,19 +120,25 @@ library plutus-tx-testlib
   import:          lang
   visibility:      public
   hs-source-dirs:  testlib
-  exposed-modules: PlutusTx.Test
+  exposed-modules:
+    Hedgehog.Laws.Common
+    Hedgehog.Laws.Eq
+    Hedgehog.Laws.Lattice
+    Hedgehog.Laws.Ord
+    PlutusTx.Test
+
   build-depends:
-    , base                                            >=4.9 && <5
-    , filepath
-    , flat
-    , ghc-prim
+    , base                                                       >=4.9   && <5
+    , flat                                                       ^>=0.6
+    , hedgehog
     , lens
     , mtl
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.0
-    , plutus-tx
+    , plutus-core:{plutus-core, plutus-core-testlib, plutus-ir}  ^>=1.10
+    , plutus-tx                                                  ^>=1.10
     , prettyprinter
     , tagged
     , tasty
+    , tasty-hedgehog
     , text
 
 test-suite plutus-tx-test
@@ -142,32 +150,33 @@ test-suite plutus-tx-test
   type:               exitcode-stdio-1.0
   main-is:            Spec.hs
   other-modules:
+    List.Spec
+    Rational.Laws
+    Rational.Laws.Additive
+    Rational.Laws.Construction
+    Rational.Laws.Eq
+    Rational.Laws.Helpers
+    Rational.Laws.Module
+    Rational.Laws.Multiplicative
+    Rational.Laws.Ord
+    Rational.Laws.Other
+    Rational.Laws.Ring
+    Rational.Laws.Serialization
     Show.Spec
-    Suites.Laws
-    Suites.Laws.Additive
-    Suites.Laws.Construction
-    Suites.Laws.Eq
-    Suites.Laws.Helpers
-    Suites.Laws.Module
-    Suites.Laws.Multiplicative
-    Suites.Laws.Ord
-    Suites.Laws.Other
-    Suites.Laws.Ring
-    Suites.Laws.Serialization
 
   hs-source-dirs:     test
   build-tool-depends: doctest:doctest
   build-depends:
     , aeson
-    , base                                            >=4.9 && <5
+    , base                                            >=4.9   && <5
     , base16-bytestring
     , bytestring
     , cborg
     , filepath
     , hedgehog
     , hedgehog-fn
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.0
-    , plutus-tx
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.10
+    , plutus-tx                                       ^>=1.10
     , pretty-show
     , serialise
     , tasty

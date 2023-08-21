@@ -1,10 +1,23 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE LambdaCase #-}
+{- | This module contains the code for handling the various kinds of version that we care about:
+
+* Protocol versions
+* Plutus ledger languages
+* Plutus Core language versions
+-}
 module PlutusLedgerApi.Common.Versions
-    ( module PlutusLedgerApi.Common.ProtocolVersions
-    , LedgerPlutusVersion (..)
-    , languageIntroducedIn
-    , languagesAvailableIn
+    ( -- * Cardano Protocol versions
+      module PlutusLedgerApi.Common.ProtocolVersions
+      -- * Plutus ledger languages
+    , PlutusLedgerLanguage (..)
+      -- * Plutus Core language versions
+    , Version (..)
+      -- * Version-testing functions
+    , ledgerLanguageIntroducedIn
+    , ledgerLanguagesAvailableIn
+    , plcVersionsIntroducedIn
+    , plcVersionsAvailableIn
     , builtinsIntroducedIn
     , builtinsAvailableIn
     ) where
@@ -15,47 +28,60 @@ import PlutusPrelude
 
 import Data.Map qualified as Map
 import Data.Set qualified as Set
+import PlutusCore.Version (plcVersion100, plcVersion110)
 import Prettyprinter
 
-{- Note [New builtins and protocol versions]
-When we add a new builtin to the language, that is a *backwards-compatible* change.
+{- Note [New builtins/language versions and protocol versions]
+When we add a new builtin to the Plutus language, that is a *backwards-compatible* change.
 Old scripts will still work (since they don't use the new builtins), we just make some more
 scripts possible.
 
+The same is true for new Plutus Core language versions: adding these is also backwards-compatible.
+
 It would be nice, therefore, to get away with just having one definition of the set of builtin
-functions. Then the new builtins will just "work". However, this neglects the fact that
-the new builtins will be added to the builtin universe in the *software update* that
-brings a new version of Plutus, but they should only be usable after the corresponding
-*hard fork*. So there is a period of time in which they must be present in the software but not
+functions/language features. Then the new features will just "work". However, this neglects the fact that
+support for the new feature will be added in the *software update* that
+brings a new Plutus ledger language, but they should only be usable after the corresponding
+*hard fork*. So there is a period of time in which the feature must be present in the software but not
 usable, so we need to decide this conditionally based on the protocol version.
 
 To do this we need to:
-- Know which protocol version a builtin was introduced in.
-- Given the protocol version, check a program for builtins that should not be usable yet.
+- Know which protocol version a feature was introduced in.
+- Given the protocol version, check a program for features that should not be usable yet.
 
-Note that this doesn't currently handle removals of builtins, although it fairly straighforwardly
+To simplify our lives, we pervasively make the assumption that after a
+feature is introduced in a ledger-language/protocol-version combo, it is present in all
+later ledger-languages/protocol-versions.
+
+Note that this doesn't currently handle removals, although it fairly straighforwardly
 could do, just by tracking when they were removed.
 -}
 
--- | The plutus language version as seen from the ledger's side.
--- Note: the ordering of constructors matters for deriving Ord
-data LedgerPlutusVersion =
-      PlutusV1
-    | PlutusV2
-    | PlutusV3
+{-| The Plutus ledger language. These are entirely different script languages from the ledger's perspective,
+which on our side are interpreted in very similar ways.
+
+It is a simple enumerated datatype (there is no major and minor components as in protocol version)
+and the __ordering of constructors__ is essential for deriving Enum,Ord,Bounded.
+
+IMPORTANT: this is different from the Plutus Core language version, `PlutusCore.Version`
+-}
+data PlutusLedgerLanguage =
+      PlutusV1 -- ^ introduced in shelley era
+    | PlutusV2 -- ^ introduced in vasil era
+    | PlutusV3 -- ^ not yet enabled
    deriving stock (Eq, Ord, Show, Generic, Enum, Bounded)
 
-instance Pretty LedgerPlutusVersion where
+instance Pretty PlutusLedgerLanguage where
     pretty = viaShow
 
-{-| A map indicating which builtin functions were introduced in which 'ProtocolVersion'. Each builtin function should appear at most once.
+{-| A map indicating which builtin functions were introduced in which 'ProtocolVersion'.
+Each builtin function should appear at most once.
 
-This *must* be updated when new builtins are added.
-See Note [New builtins and protocol versions]
+This __must__ be updated when new builtins are added.
+See Note [New builtins/language versions and protocol versions]
 -}
-builtinsIntroducedIn :: Map.Map (LedgerPlutusVersion, ProtocolVersion) (Set.Set DefaultFun)
+builtinsIntroducedIn :: Map.Map (PlutusLedgerLanguage, ProtocolVersion) (Set.Set DefaultFun)
 builtinsIntroducedIn = Map.fromList [
-  -- Alonzo is protocolversion=5.0
   ((PlutusV1, alonzoPV), Set.fromList [
           AddInteger, SubtractInteger, MultiplyInteger, DivideInteger, QuotientInteger, RemainderInteger, ModInteger, EqualsInteger, LessThanInteger, LessThanEqualsInteger,
           AppendByteString, ConsByteString, SliceByteString, LengthOfByteString, IndexByteString, EqualsByteString, LessThanByteString, LessThanEqualsByteString,
@@ -69,45 +95,82 @@ builtinsIntroducedIn = Map.fromList [
           ChooseData, ConstrData, MapData, ListData, IData, BData, UnConstrData, UnMapData, UnListData, UnIData, UnBData, EqualsData,
           MkPairData, MkNilData, MkNilPairData
           ]),
-  -- Vasil is protocolversion=7.0
   ((PlutusV2, vasilPV), Set.fromList [
           SerialiseData
           ]),
-  -- Chang is protocolversion=8.0
-  ((PlutusV2, changPV), Set.fromList [
+  ((PlutusV2, valentinePV), Set.fromList [
           VerifyEcdsaSecp256k1Signature, VerifySchnorrSecp256k1Signature
+          ]),
+  ((PlutusV3, futurePV), Set.fromList [
+          Bls12_381_G1_add, Bls12_381_G1_neg, Bls12_381_G1_scalarMul,
+          Bls12_381_G1_equal, Bls12_381_G1_hashToGroup,
+          Bls12_381_G1_compress, Bls12_381_G1_uncompress,
+          Bls12_381_G2_add, Bls12_381_G2_neg, Bls12_381_G2_scalarMul,
+          Bls12_381_G2_equal, Bls12_381_G2_hashToGroup,
+          Bls12_381_G2_compress, Bls12_381_G2_uncompress,
+          Bls12_381_millerLoop, Bls12_381_mulMlResult, Bls12_381_finalVerify,
+          Keccak_256, Blake2b_224
           ])
   ]
 
--- | Query the protocol version that a specific ledger plutus version was first introduced in.
--- 'Introduction' in this context means the enablement/allowance of scripts of that language version to be executed on-chain.
-languageIntroducedIn :: LedgerPlutusVersion -> ProtocolVersion
-languageIntroducedIn = \case
+{-| A map indicating which Plutus Core versions were introduced in which
+'ProtocolVersion' and 'PlutusLedgerLanguage'. Each version should appear at most once.
+
+This __must__ be updated when new versions are added.
+See Note [New builtins/language versions and protocol versions]
+-}
+plcVersionsIntroducedIn :: Map.Map (PlutusLedgerLanguage, ProtocolVersion) (Set.Set Version)
+plcVersionsIntroducedIn = Map.fromList [
+  ((PlutusV1, alonzoPV), Set.fromList [ plcVersion100 ]),
+  ((PlutusV3, conwayPV), Set.fromList [ plcVersion110 ])
+  ]
+
+{-| Query the protocol version that a specific Plutus ledger language was first introduced in.
+-}
+ledgerLanguageIntroducedIn :: PlutusLedgerLanguage -> ProtocolVersion
+ledgerLanguageIntroducedIn = \case
     PlutusV1 -> alonzoPV
     PlutusV2 -> vasilPV
-    PlutusV3 -> changPV
+    PlutusV3 -> conwayPV
 
--- | Given a protocol version return a set of all available plutus languages that are enabled/allowed to run.
--- Assumes that languages once introduced/enabled, will never be disabled in the future.
-languagesAvailableIn :: ProtocolVersion -> Set.Set LedgerPlutusVersion
-languagesAvailableIn searchPv =
+{-| Which Plutus language versions are available in the given 'ProtocolVersion'?
+
+See Note [New builtins/language versions and protocol versions]
+-}
+ledgerLanguagesAvailableIn :: ProtocolVersion -> Set.Set PlutusLedgerLanguage
+ledgerLanguagesAvailableIn searchPv =
     foldMap ledgerVersionToSet enumerate
   where
     -- OPTIMIZE: could be done faster using takeWhile
-    ledgerVersionToSet :: LedgerPlutusVersion -> Set.Set LedgerPlutusVersion
+    ledgerVersionToSet :: PlutusLedgerLanguage -> Set.Set PlutusLedgerLanguage
     ledgerVersionToSet lv
-        | languageIntroducedIn lv <= searchPv = Set.singleton lv
+        | ledgerLanguageIntroducedIn lv <= searchPv = Set.singleton lv
         | otherwise = mempty
 
-{-| Which builtin functions are available in the given 'ProtocolVersion'?
+{-| Which Plutus Core language versions are available in the given 'PlutusLedgerLanguage'
+and 'ProtocolVersion'?
 
-See Note [New builtins and protocol versions]
+See Note [New builtins/language versions and protocol versions]
 -}
-builtinsAvailableIn :: LedgerPlutusVersion -> ProtocolVersion -> Set.Set DefaultFun
+plcVersionsAvailableIn :: PlutusLedgerLanguage -> ProtocolVersion -> Set.Set Version
+plcVersionsAvailableIn thisLv thisPv = fold $ Map.elems $
+    Map.takeWhileAntitone plcVersionAvailableIn plcVersionsIntroducedIn
+    where
+      plcVersionAvailableIn :: (PlutusLedgerLanguage, ProtocolVersion) -> Bool
+      plcVersionAvailableIn (introducedInLv,introducedInPv) =
+          -- both should be satisfied
+          introducedInLv <= thisLv && introducedInPv <= thisPv
+
+{-| Which builtin functions are available in the given given 'PlutusLedgerLanguage'
+and 'ProtocolVersion'?
+
+See Note [New builtins/language versions and protocol versions]
+-}
+builtinsAvailableIn :: PlutusLedgerLanguage -> ProtocolVersion -> Set.Set DefaultFun
 builtinsAvailableIn thisLv thisPv = fold $ Map.elems $
     Map.takeWhileAntitone builtinAvailableIn builtinsIntroducedIn
     where
-      builtinAvailableIn :: (LedgerPlutusVersion, ProtocolVersion) -> Bool
+      builtinAvailableIn :: (PlutusLedgerLanguage, ProtocolVersion) -> Bool
       builtinAvailableIn (introducedInLv,introducedInPv) =
           -- both should be satisfied
           introducedInLv <= thisLv && introducedInPv <= thisPv

@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 -- | The user-facing API of the renamer.
 
 {-# LANGUAGE DerivingVia          #-}
@@ -61,7 +60,8 @@ instance HasUniques (Term tyname name uni fun ann) => Rename (Term tyname name u
     -- See Note [Marking].
     rename = through markNonFreshTerm >=> runRenameT . renameTermM
 
-instance HasUniques (Program tyname name uni fun ann) => Rename (Program tyname name uni fun ann) where
+instance HasUniques (Program tyname name uni fun ann) =>
+    Rename (Program tyname name uni fun ann) where
     -- See Note [Marking].
     rename = through markNonFreshProgram >=> runRenameT . renameProgramM
 

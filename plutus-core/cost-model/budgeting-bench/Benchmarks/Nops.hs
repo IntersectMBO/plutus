@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE InstanceSigs          #-}
@@ -21,8 +20,8 @@ import PlutusCore
 import PlutusCore.Builtin
 import PlutusCore.Evaluation.Machine.BuiltinCostModel hiding (BuiltinCostModel)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
-import PlutusCore.Evaluation.Machine.ExMemory (ExMemoryUsage)
-import PlutusCore.Evaluation.Machine.MachineParameters (CostModel (..), MachineParameters, mkMachineParameters)
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage)
+import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Pretty
 import PlutusPrelude
 import UntypedPlutusCore.Evaluation.Machine.Cek
@@ -124,9 +123,9 @@ nopCostModel =
                   (ModelSixArgumentsConstantCost 600)
     }
 
-nopCostParameters :: MachineParameters CekMachineCosts CekValue DefaultUni NopFun
+nopCostParameters :: MachineParameters CekMachineCosts NopFun (CekValue DefaultUni NopFun ())
 nopCostParameters =
-    mkMachineParameters def defaultUnliftingMode $
+    mkMachineParameters def $
         CostModel defaultCekMachineCosts nopCostModel
 
 -- This is just to avoid some deeply nested case expressions for the NopNc
@@ -266,7 +265,11 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFun where
              (runCostingFunThreeArguments . paramNop3)
     toBuiltinMeaning _ver Nop4o =
         makeBuiltinMeaning
-             @(Opaque val Integer -> Opaque val Integer-> Opaque val Integer-> Opaque val Integer -> Opaque val Integer)
+             @(Opaque val Integer
+                -> Opaque val Integer
+                -> Opaque val Integer
+                -> Opaque val Integer
+                -> Opaque val Integer)
              (\_ _ _ _ -> fromValueOf DefaultUniInteger 44)
              (runCostingFunFourArguments . paramNop4)
     toBuiltinMeaning _ver Nop5o =
@@ -278,7 +281,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFun where
     toBuiltinMeaning _ver Nop6o =
         makeBuiltinMeaning
              @(Opaque val Integer -> Opaque val Integer-> Opaque val Integer
-               -> Opaque val Integer -> Opaque val Integer -> Opaque val Integer -> Opaque val Integer)
+               -> Opaque val Integer -> Opaque val Integer -> Opaque val Integer
+               -> Opaque val Integer)
              (\_ _ _ _ _ _ -> fromValueOf DefaultUniInteger 66)
              (runCostingFunSixArguments . paramNop6)
 
@@ -308,7 +312,7 @@ instance Default (BuiltinVersion NopFun) where
  -}
 
 benchNop1
-    :: (ExMemoryUsage a, DefaultUni `Contains` a, NFData a)
+    :: (ExMemoryUsage a, DefaultUni `HasTermLevel` a, NFData a)
     => NopFun
     -> (StdGen -> (a, StdGen))
     -> StdGen
@@ -318,7 +322,7 @@ benchNop1 nop rand gen =
     in bgroup (show nop) [benchWith nopCostParameters (showMemoryUsage x) $ mkApp1 nop [] x]
 
 benchNop2
-    :: (ExMemoryUsage a, DefaultUni `Contains` a, NFData a)
+    :: (ExMemoryUsage a, DefaultUni `HasTermLevel` a, NFData a)
     => NopFun
     -> (StdGen -> (a, StdGen))
     -> StdGen
@@ -332,7 +336,7 @@ benchNop2 nop rand gen =
            ]
 
 benchNop3
-    :: (ExMemoryUsage a, DefaultUni `Contains` a, NFData a)
+    :: (ExMemoryUsage a, DefaultUni `HasTermLevel` a, NFData a)
     => NopFun
     -> (StdGen -> (a, StdGen))
     -> StdGen
@@ -349,7 +353,7 @@ benchNop3 nop rand gen =
            ]
 
 benchNop4
-    :: (ExMemoryUsage a, DefaultUni `Contains` a, NFData a)
+    :: (ExMemoryUsage a, DefaultUni `HasTermLevel` a, NFData a)
     => NopFun
     -> (StdGen -> (a, StdGen))
     -> StdGen
@@ -369,7 +373,7 @@ benchNop4 nop rand gen =
            ]
 
 benchNop5
-    :: (ExMemoryUsage a, DefaultUni `Contains` a, NFData a)
+    :: (ExMemoryUsage a, DefaultUni `HasTermLevel` a, NFData a)
     => NopFun
     -> (StdGen -> (a, StdGen))
     -> StdGen
@@ -392,7 +396,7 @@ benchNop5 nop rand gen =
            ]
 
 benchNop6
-    :: (ExMemoryUsage a, DefaultUni `Contains` a, NFData a)
+    :: (ExMemoryUsage a, DefaultUni `HasTermLevel` a, NFData a)
     => NopFun
     -> (StdGen -> (a, StdGen))
     -> StdGen

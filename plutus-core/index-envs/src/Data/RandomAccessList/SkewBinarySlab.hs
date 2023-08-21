@@ -1,8 +1,8 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE BangPatterns         #-}
 {-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE PatternSynonyms      #-}
 {-# LANGUAGE TypeFamilies         #-}
+{-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ViewPatterns         #-}
 module Data.RandomAccessList.SkewBinarySlab
@@ -17,7 +17,7 @@ module Data.RandomAccessList.SkewBinarySlab
 import Data.Bits (unsafeShiftR)
 import Data.Vector.NonEmpty qualified as NEV
 import Data.Word
-import GHC.Exts
+import GHC.Exts (IsList, toList)
 
 import Data.RandomAccessList.Class qualified as RAL
 
@@ -48,7 +48,8 @@ So it's not an unqualified win, but it may be better in some cases.
 -- Why not just store `NonEmptyVector`s and add singleton values by making singleton
 -- vectors? The answer is that using only vectors makes simple consing significantly
 -- slower, and doesn't obviously make the other code paths faster.
--- | The values that can be stored in a node. Either a single value, or a non-empty vector of values.
+-- | The values that can be stored in a node. Either a single value, or a non-empty vector of
+-- values.
 data Values a = One a | Many {-# UNPACK #-} !(NEV.NonEmptyVector a)
     deriving stock (Eq, Show)
 

@@ -12,7 +12,7 @@ import {-# SOURCE #-} PlutusTx.Compiler.Type
 import PlutusTx.Compiler.Types
 import PlutusTx.PLCTypes
 
-import GhcPlugins qualified as GHC
+import GHC.Plugins qualified as GHC
 
 import PlutusCore qualified as PLC
 import PlutusCore.MkPlc qualified as PLC
@@ -23,7 +23,6 @@ import PlutusIR.Compiler.Names
 import Data.Char
 import Data.Functor
 import Data.List
-import Data.List.NonEmpty qualified as NE
 import Data.Map qualified as Map
 import Data.Text qualified as T
 
@@ -69,22 +68,22 @@ compileTyVarFresh :: Compiling uni fun m ann => GHC.TyVar -> m PLCTyVar
 compileTyVarFresh v = do
     k' <- compileKind $ GHC.tyVarKind v
     t' <- compileTyNameFresh $ GHC.getName v
-    pure $ PLC.TyVarDecl AnnOther t' (k' $> AnnOther)
+    pure $ PLC.TyVarDecl annMayInline t' (k' $> annMayInline)
 
 compileTcTyVarFresh :: Compiling uni fun m ann => GHC.TyCon -> m PLCTyVar
 compileTcTyVarFresh tc = do
     k' <- compileKind $ GHC.tyConKind tc
     t' <- compileTyNameFresh $ GHC.getName tc
-    pure $ PLC.TyVarDecl AnnOther t' (k' $> AnnOther)
+    pure $ PLC.TyVarDecl annMayInline t' (k' $> annMayInline)
 
-pushName :: GHC.Name -> PLCVar uni-> ScopeStack uni -> ScopeStack uni
-pushName ghcName n stack = let Scope ns tyns = NE.head stack in Scope (Map.insert ghcName n ns) tyns NE.<| stack
+pushName :: GHC.Name -> PLCVar uni-> Scope uni -> Scope uni
+pushName ghcName n (Scope ns tyns) = Scope (Map.insert ghcName n ns) tyns
 
-pushNames :: [(GHC.Name, PLCVar uni)] -> ScopeStack uni -> ScopeStack uni
-pushNames mappings stack = foldl' (\acc (n, v) -> pushName n v acc) stack mappings
+pushNames :: [(GHC.Name, PLCVar uni)] -> Scope uni -> Scope uni
+pushNames mappings scope = foldl' (\acc (n, v) -> pushName n v acc) scope mappings
 
-pushTyName :: GHC.Name -> PLCTyVar -> ScopeStack uni -> ScopeStack uni
-pushTyName ghcName n stack = let Scope ns tyns = NE.head stack in Scope ns (Map.insert ghcName n tyns) NE.<| stack
+pushTyName :: GHC.Name -> PLCTyVar -> Scope uni -> Scope uni
+pushTyName ghcName n (Scope ns tyns) = Scope ns (Map.insert ghcName n tyns)
 
-pushTyNames :: [(GHC.Name, PLCTyVar)] -> ScopeStack uni -> ScopeStack uni
-pushTyNames mappings stack = foldl' (\acc (n, v) -> pushTyName n v acc) stack mappings
+pushTyNames :: [(GHC.Name, PLCTyVar)] -> Scope uni -> Scope uni
+pushTyNames mappings scope = foldl' (\acc (n, v) -> pushTyName n v acc) scope mappings

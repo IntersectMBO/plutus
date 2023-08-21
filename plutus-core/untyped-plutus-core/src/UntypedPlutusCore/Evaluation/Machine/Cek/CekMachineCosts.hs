@@ -40,6 +40,8 @@ data CekMachineCosts =
     -- ^ Just the cost of evaluating a Builtin node, not the builtin itself.
     -- There's no entry for Error since we'll be exiting anyway; also, what would
     -- happen if calling 'Error' caused the budget to be exceeded?
+    , cekConstrCost  :: ExBudget
+    , cekCaseCost    :: ExBudget
     }
     deriving stock (Eq, Show, Generic, Lift)
     deriving anyclass (NFData, NoThunks)
@@ -58,6 +60,8 @@ unitCekMachineCosts =
                     , cekForceCost   = unitCost
                     , cekApplyCost   = unitCost
                     , cekBuiltinCost = unitCost
+                    , cekConstrCost = unitCost
+                    , cekCaseCost = unitCost
                     }
         where
           zeroCost = ExBudget 0 0

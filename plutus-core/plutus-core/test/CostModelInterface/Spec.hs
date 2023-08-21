@@ -23,9 +23,9 @@ import Instances.TH.Lift ()
 import Language.Haskell.TH.Syntax qualified as TH
 import Prettyprinter
 import System.FilePath
-import TH.RelativePaths
 import Test.Tasty
 import Test.Tasty.HUnit
+import TH.RelativePaths
 
 {- Note [Testing the expected ledger cost model parameters]
 The ledger is going to call us with a particular 'CostModelParams'. This will be originally derived from the model
@@ -35,7 +35,7 @@ that we provide, but there's opportunity for things to move out of sync:
 
 So it's sensible to have some regression tests.
 
-We can't just test against out own 'defaultCostModelParams', since in the case of error 2 that would
+We can't just test against our own 'defaultCostModelParams', since in the case of error 2 that would
 *also* change, so we instead need to have a checked-in version of the parameters.
 -}
 
@@ -57,6 +57,8 @@ randomCekCosts =
                     , cekForceCost   = ExBudget 1028234 0
                     , cekApplyCost   = ExBudget 324628348 8273
                     , cekBuiltinCost = ExBudget 4 4
+                    , cekConstrCost  = ExBudget 8 100000
+                    , cekCaseCost    = ExBudget 3324234 555
                     }
 
 cekVarCostCpuKey :: Text.Text

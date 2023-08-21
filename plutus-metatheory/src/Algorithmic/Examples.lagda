@@ -1,6 +1,4 @@
 \begin{code}
-{-# OPTIONS --rewriting #-}
-
 module Algorithmic.Examples where
 \end{code}
 
@@ -8,15 +6,20 @@ module Algorithmic.Examples where
 
 \begin{code}
 open import Utils using (*;_⇒_)
-open import Type
-open import Type.BetaNormal
-open import Type.BetaNBE.RenamingSubstitution
+open import Relation.Binary.PropositionalEquality using (refl) 
+                                                  renaming (subst to substEq)
+open import Type using (_,⋆_;_⇒_;Z;S;_⊢⋆_)
+open _⊢⋆_
+open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;embNf;ne)
+open _⊢Nf⋆_
+open _⊢Ne⋆_
+open import Type.BetaNBE.RenamingSubstitution using (_[_]Nf)
 import Type.RenamingSubstitution as ⋆
-open import Algorithmic
-open import Algorithmic.RenamingSubstitution
-open import Algorithmic.Evaluation
-
-open import Relation.Binary.PropositionalEquality renaming (subst to substEq)
+open import Algorithmic using (Ctx;∅;_⊢_;_∋_)
+open _⊢_
+open _∋_
+open import Type.BetaNBE using (nf)
+open import Type.BetaNBE.Stability using (stability)
 \end{code}
 
 ## Examples
@@ -36,7 +39,7 @@ out : M → N
      : N
 succ = λ n : N . Λ R . λ x : R . λ y : M → R . y (in n)
      : N → N
-case = λ n : N . Λ R . λ a : R . λ f : N → N . n [R] a (f ∘ out)
+mycase = λ n : N . Λ R . λ a : R . λ f : N → N . n [R] a (f ∘ out)
      : N → ∀ R . R → (N → R) → R
 
 
@@ -45,8 +48,6 @@ case = λ n : N . Λ R . λ a : R . λ f : N → N . n [R] a (f ∘ out)
 \begin{code}
 -- bound variable names inserted below are not meaningful
 module Scott where
-  open import Type.BetaNBE
-  open import Type.BetaNBE.Stability
 
   _·Nf_ : ∀{Γ}{K J}
     → Γ ⊢Nf⋆ K ⇒ J
@@ -98,8 +99,8 @@ module Scott where
   Four : ∅ ⊢ N
   Four = Succ · Three
 
-  case :  ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N ⇒ (Π (ne (` Z) ⇒ (N ⇒ ne (` Z)) ⇒ ne (` Z)))
-  case = ƛ (Λ (ƛ (ƛ (((` (S (S (T Z)))) ·⋆ ne (` Z) / refl) · (` (S Z)) · (ƛ (` (S Z) ·  unwrap0 (ƛ G) (` Z) ))))))
+  mycase :  ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N ⇒ (Π (ne (` Z) ⇒ (N ⇒ ne (` Z)) ⇒ ne (` Z)))
+  mycase = ƛ (Λ (ƛ (ƛ (((` (S (S (T Z)))) ·⋆ ne (` Z) / refl) · (` (S Z)) · (ƛ (` (S Z) ·  unwrap0 (ƛ G) (` Z) ))))))
 
 {-
   Y-comb : ∀{Γ} → Γ ⊢ Π ((ne (` Z) ⇒ ne (` Z)) ⇒ ne (` Z))
@@ -110,14 +111,14 @@ module Scott where
   Z-comb = Λ (Λ (ƛ (ƛ (` (S Z) · ƛ (unwrap0  (ƛ (ne (` Z) ⇒ ne (` (S (S Z))) ⇒ ne (` (S Z))))  (` (S Z)) · ` (S Z) · ` Z)) · wrap0 (ƛ (ne (` Z) ⇒ ne (` (S (S Z))) ⇒ ne (` (S Z)))) (ƛ (` (S Z) · ƛ (unwrap0 (ƛ (ne (` Z) ⇒ ne (` (S (S Z))) ⇒ ne (` (S Z)))) (` (S Z)) · ` (S Z) · ` Z))))))
 
   OnePlus :  ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ (N ⇒ N) ⇒ N ⇒ N
-  OnePlus = ƛ (ƛ ((((case · (` Z)) ·⋆ N / refl) · One) · (ƛ (Succ · (` (S (S Z)) · (` Z))))))
+  OnePlus = ƛ (ƛ ((((mycase · (` Z)) ·⋆ N / refl) · One) · (ƛ (Succ · (` (S (S Z)) · (` Z))))))
 
   OnePlusOne : ∅ ⊢ N
   OnePlusOne = ((Z-comb ·⋆ N / refl) ·⋆ N / refl) · OnePlus · One
 
  -- Roman's more efficient version
   Plus : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N ⇒ N ⇒ N
-  Plus = ƛ (ƛ (((Z-comb ·⋆ N / refl) ·⋆ N / refl) · (ƛ (ƛ ((((case · ` Z) ·⋆ N / refl) · ` (S (S (S Z)))) · (ƛ (Succ · (` (S (S Z)) · ` Z)))))) · ` (S Z)))
+  Plus = ƛ (ƛ (((Z-comb ·⋆ N / refl) ·⋆ N / refl) · (ƛ (ƛ ((((mycase · ` Z) ·⋆ N / refl) · ` (S (S (S Z)))) · (ƛ (Succ · (` (S (S Z)) · ` Z)))))) · ` (S Z)))
 
   TwoPlusTwo : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N
   TwoPlusTwo = (Plus · Two) · Two

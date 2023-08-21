@@ -5,22 +5,37 @@ module Algorithmic where
 ## Imports
 
 \begin{code}
-open import Function hiding (_∋_)
-open import Data.Product renaming (_,_ to _,,_)
-open import Data.List hiding ([_])
-open import Relation.Binary.PropositionalEquality hiding ([_])
-open import Data.Unit
-open import Data.Sum
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;trans;cong;cong₂;subst)
 
-open import Utils hiding (TermCon)
-open import Type
-open import Type.BetaNormal
+open import Data.Empty using (⊥)
+open import Data.Fin using (Fin)
+open import Data.Product using (_×_)
+open import Data.Vec as Vec using (Vec;[];_∷_;lookup) 
+open import Data.List.Properties using (foldr-++)
+
+open import Utils renaming (_×_ to _U×_; List to UList; map to umap)
+open import Utils.List using (List;_++_;foldr;IList;[];_∷_;Bwd;_:<_;bwd-foldr;lemma-bwd-foldr;_<><_;lemma<>1)
+open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_;_∋⋆_;Z;S;Φ)
+open _⊢⋆_
+
+open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;weakenNf;renNf;embNf)
+open _⊢Nf⋆_
+open _⊢Ne⋆_
+
 import Type.RenamingSubstitution as ⋆
-open import Type.BetaNBE
-open import Type.BetaNBE.RenamingSubstitution renaming (_[_]Nf to _[_])
-open import Builtin
-open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
-open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *)
+open import Type.BetaNBE using (nf)
+open import Type.BetaNBE.RenamingSubstitution using (subNf∅) renaming (_[_]Nf to _[_])
+
+open import Builtin using (Builtin)
+
+open import Builtin.Constant.Type using (TyCon)
+open TyCon
+open import Builtin.Constant.AtomicType using (⟦_⟧at)
+
+open import Builtin.Signature using (_⊢♯)
+open _⊢♯
+
+open import Algorithmic.Signature using (btype;⊢♯2TyNe♯)
 \end{code}
 
 ## Fixity declarations
@@ -48,8 +63,8 @@ by a variable of a given type.
 \begin{code}
 data Ctx : Ctx⋆ → Set where
   ∅    : Ctx ∅
-  _,⋆_ : ∀{Φ} → Ctx Φ → (J : Kind) → Ctx (Φ ,⋆ J)
-  _,_  : ∀ {Φ} (Γ : Ctx Φ) → Φ ⊢Nf⋆ * → Ctx Φ
+  _,⋆_ : Ctx Φ → (J : Kind) → Ctx (Φ ,⋆ J)
+  _,_  : (Γ : Ctx Φ) → Φ ⊢Nf⋆ * → Ctx Φ
 \end{code}
 Let `Γ` range over contexts.  In the last rule,
 the type is indexed by the erasure of the previous
@@ -66,118 +81,119 @@ The erasure of a context is a type context.
 
 A variable is indexed by its context and type.
 \begin{code}
-open import Type.BetaNormal.Equality
-data _∋_ : ∀ {Φ} (Γ : Ctx Φ) → Φ ⊢Nf⋆ * → Set where
+data _∋_ : (Γ : Ctx Φ) → Φ ⊢Nf⋆ * → Set where
 
-  Z : ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *}
+  Z : ∀ {Γ} {A : Φ ⊢Nf⋆ *}
       ----------
     → Γ , A ∋ A
 
-  S : ∀ {Φ Γ} {A : Φ ⊢Nf⋆ *} {B : Φ ⊢Nf⋆ *}
+  S : ∀ {Γ} {A : Φ ⊢Nf⋆ *} {B : Φ ⊢Nf⋆ *}
     → Γ ∋ A
       ----------
     → Γ , B ∋ A
 
-  T : ∀ {Φ Γ K}{A : Φ ⊢Nf⋆ *}
+  T : ∀ {Γ K}{A : Φ ⊢Nf⋆ *}
     → Γ ∋ A
       -------------------
     → Γ ,⋆ K ∋ weakenNf A
 \end{code}
-Let `x`, `y` range over variables.
+          
+## Semantic of constant terms
+
+We define a predicate ♯Kinded for kinds that ultimately end in ♯.
+
+\begin{code}
+data ♯Kinded : Kind → Set where
+   ♯ : ♯Kinded ♯
+   K♯ : ∀{K J} → ♯Kinded J → ♯Kinded (K ⇒ J)
+\end{code}
+
+There is no type of a ♯Kinded kind which takes more than two type arguments. 
+
+\begin{code}
+lemma♯Kinded : ∀ {K K₁ K₂ J} → ♯Kinded J → ∅ ⊢Ne⋆ (K₂ ⇒ (K₁ ⇒ (K ⇒ J))) → ⊥
+lemma♯Kinded k (f · _) = lemma♯Kinded (K♯ k) f
+\end{code}
+
+Closed types can be mapped into the signature universe and viceversa.
+
+\begin{code}
+ty2sty : ∅ ⊢Nf⋆ ♯ → 0 ⊢♯
+ty2sty (ne (((f · _) · _) · _)) with lemma♯Kinded ♯ f 
+... | ()
+ty2sty (ne ((^ pair · x) · y)) = pair (ty2sty x) (ty2sty y)
+ty2sty (ne (^ list · x)) = list (ty2sty x)
+ty2sty (ne (^ (atomic x))) = atomic x
+
+sty2ty : 0 ⊢♯ → ∅ ⊢Nf⋆ ♯
+sty2ty t = ne (⊢♯2TyNe♯ t)
+\end{code}
+
+Now we have functions `ty2sty` and `sty2ty`. We prove that they are inverses, and therefore
+define an isomorphism.
+
+\begin{code}
+ty≅sty₁ : ∀ (A : ∅ ⊢Nf⋆ ♯) → A ≡ sty2ty (ty2sty A)
+ty≅sty₁ (ne (((f · _) · _) · _)) with  lemma♯Kinded ♯ f
+... | ()
+ty≅sty₁ (ne ((^ pair · x) · y))  = cong ne (cong₂ _·_ (cong (^ pair ·_) (ty≅sty₁ x)) (ty≅sty₁ y))
+ty≅sty₁ (ne (^ list · x))        = cong ne (cong (^ list ·_) (ty≅sty₁ x)) 
+ty≅sty₁ (ne (^ (atomic x)))      = refl
+
+ty≅sty₂ : ∀ (A : 0 ⊢♯) →  A ≡ ty2sty (sty2ty A)
+ty≅sty₂ (atomic x) = refl
+ty≅sty₂ (list A) = cong list (ty≅sty₂ A)
+ty≅sty₂ (pair A B) = cong₂ pair (ty≅sty₂ A) (ty≅sty₂ B)
+\end{code}
+
+The semantics of closed types of kind ♯ is given by the following 
+interpretation function
+
+\begin{code}
+⟦_⟧ : (ty : ∅ ⊢Nf⋆ ♯) → Set
+⟦ ne (((f · _) · _) · _) ⟧ with lemma♯Kinded ♯ f 
+... | ()
+⟦ ne ((^ pair · x) · y) ⟧ = ⟦ x ⟧ U× ⟦ y ⟧
+⟦ ne (^ list · x) ⟧ = UList ⟦ x ⟧
+⟦ ne (^ (atomic x)) ⟧ = ⟦ x ⟧at
+\end{code}
+
+All these types need to be able to be interfaced with Haskell, as this 
+interpretation function is used everywhere of type or a type tag needs to be 
+interpreted. It is precisely because they need to be interfaced with Haskell
+that we use the version of product and list from the Utils module.
 
 ## Terms
 
 A term is indexed over by its context and type.  A term is a variable,
-an abstraction, an application, a type abstraction, or a type
-application.
+an abstraction, an application, a type abstraction, a type
+application, a wrapping or unwrapping of a recursive type, a constructor, 
+a case expression, a constant, a builtin function, or an error.
+
+Constants of a builtin type A are given directly by its meaning ⟦ A ⟧, where
+A is restricted to kind ♯.
+
+The type of cases if a function consuming every type in a list.
+We construct it with the following function: 
 \begin{code}
-sig : Builtin → Σ Ctx⋆ λ Φ → Ctx Φ × Φ ⊢Nf⋆ *
-sig ifThenElse = _ ,, ∅ ,⋆ * , con bool , ne (` Z) , ne (` Z) ,, ne (` Z)
-sig addInteger = _ ,, ∅ , con integer , con integer ,, con integer
-sig subtractInteger = _ ,, ∅ , con integer , con integer ,, con integer
-sig multiplyInteger = _ ,, ∅ , con integer , con integer ,, con integer
-sig divideInteger = _ ,, ∅ , con integer , con integer ,, con integer
-sig quotientInteger = _ ,, ∅ , con integer , con integer ,, con integer
-sig remainderInteger = _ ,, ∅ , con integer , con integer ,, con integer
-sig modInteger = _ ,, ∅ , con integer , con integer ,, con integer
-sig lessThanInteger = _ ,, ∅ , con integer , con integer ,, con bool
-sig lessThanEqualsInteger = _ ,, ∅ , con integer , con integer ,, con bool
-sig equalsInteger = _ ,, ∅ , con integer , con integer ,, con bool
-sig appendByteString = _ ,, ∅ , con bytestring , con bytestring ,, con bytestring
-sig lessThanByteString = _ ,, ∅ , con bytestring , con bytestring ,, con bool
-sig lessThanEqualsByteString = _ ,, ∅ , con bytestring , con bytestring ,, con bool
-sig sha2-256 = _ ,, ∅ , con bytestring ,, con bytestring
-sig sha3-256 = _ ,, ∅ , con bytestring ,, con bytestring
-sig verifyEd25519Signature = _ ,, ∅ , con bytestring , con bytestring , con bytestring ,, con bool
-sig verifyEcdsaSecp256k1Signature = _ ,, ∅ , con bytestring , con bytestring , con bytestring ,, con bool
-sig verifySchnorrSecp256k1Signature = _ ,, ∅ , con bytestring , con bytestring , con bytestring ,, con bool
-sig equalsByteString = _ ,, ∅ , con bytestring , con bytestring ,, con bool
-sig appendString = _ ,, ∅ , con string , con string ,, con string
-sig trace = _ ,, ∅ ,⋆ * , con string , ne (` Z) ,, ne (` Z)
-sig equalsString = _ ,, ∅ , con string , con string ,, con bool
-sig encodeUtf8 = _ ,, ∅ , con string ,, con bytestring
-sig decodeUtf8 = _ ,, ∅ , con bytestring ,, con string
-sig fstPair =
-  _ ,, ∅ ,⋆ * ,⋆ * , con (pair (ne (` (S Z))) (ne (` Z))) ,, ne (` (S Z))
-sig sndPair = 
-  _ ,, ∅ ,⋆ * ,⋆ * , con (pair (ne (` (S Z))) (ne (` Z))) ,, ne (` Z)
-sig nullList = _ ,, ∅ ,⋆ * , con (list (ne (` Z))) ,, con bool
-sig headList = _ ,, ∅ ,⋆ * , con (list (ne (` Z))) ,, ne (` Z)
-sig tailList = _ ,, ∅ ,⋆ * , con (list (ne (` Z))) ,, con (list (ne (` Z)))
-sig chooseList =
-  _
-  ,,
-  ∅ ,⋆ * ,⋆ * , ne (` (S Z)) , ne (` (S Z)) , con (list (ne (` Z)))
-  ,,
-  ne (` (S Z)) 
-sig constrData = _ ,, ∅ , con integer , con (list (con Data)) ,, con Data
-sig mapData = _ ,, ∅ , con (pair (con Data) (con Data)) ,, con Data
-sig listData = _ ,, ∅ , con (list (con Data)) ,, con Data
-sig iData = _ ,, ∅ , con integer ,, con Data
-sig bData = _ ,, ∅ , con bytestring ,, con Data
-sig unConstrData =
-  _ ,, ∅ , con Data ,, con (pair (con integer) (con (list (con Data))))
-sig unMapData = _ ,, ∅ , con Data ,, con (pair (con Data) (con Data))
-sig unListData = _ ,, ∅ , con Data ,, con (list (con Data))
-sig unIData = _ ,, ∅ , con Data ,, con integer
-sig unBData = _ ,, ∅ , con Data ,, con bytestring
-sig equalsData = _ ,, ∅ , con Data , con Data ,, con bool
-sig serialiseData = _ ,, ∅ , con Data ,, con bytestring
-sig chooseData =
-  _
-  ,,
-  ∅ ,⋆ * , ne (` Z) , ne (` Z) , ne (` Z) , ne (` Z) , ne (` Z) , con Data
-  ,,
-  ne (` Z)
-sig chooseUnit = _ ,, ∅ ,⋆ * , ne (` Z) , con unit ,, ne (` Z)
-sig mkPairData =
-  _ ,, ∅ , con Data , con Data ,, con (pair (con Data) (con Data)) 
-sig mkNilData = _ ,, ∅ , con unit ,, con (list (con Data))
-sig mkNilPairData = _ ,, ∅ , con unit ,, con (list (con (pair (con Data) (con Data))))
-sig mkCons =
-  _ ,, ∅ , con Data , con (list (con Data)) ,, con (list (con Data))
-sig consByteString = _ ,, ∅ , con integer , con bytestring ,, con bytestring
-sig sliceByteString =
-  _ ,, ∅ , con integer , con integer , con bytestring ,, con bytestring
-sig lengthOfByteString = _ ,, ∅ , con bytestring ,, con integer
-sig indexByteString = _ ,, ∅ , con bytestring , con integer ,, con integer
-sig blake2b-256 = _ ,, ∅ , con bytestring ,, con bytestring
+mkCaseType : ∀{Φ} (A : Φ ⊢Nf⋆ *) → List (Φ ⊢Nf⋆ *) → Φ ⊢Nf⋆ *
+mkCaseType A = foldr _⇒_ A
+\end{code}
 
-sig2type : (Φ : Ctx⋆) → Ctx Φ → Φ ⊢Nf⋆ * → ∅ ⊢Nf⋆ *
-sig2type .∅ ∅ C = C
-sig2type (Φ ,⋆ J) (Γ ,⋆ J) C = sig2type Φ Γ (Π C)
-sig2type Φ        (Γ ,  A) C = sig2type Φ Γ (A ⇒ C)
+We declare two auxiliary datatypes, which are mutually recursive with the type of terms,
+for constructor arguments and cases.
 
-btype : ∀{Φ} → Builtin → Φ ⊢Nf⋆ *
-btype b = let Φ ,, Γ ,, C = sig b in subNf (λ()) (sig2type Φ Γ C)
+\begin{code}
+ConstrArgs : (Γ : Ctx Φ) → List (Φ ⊢Nf⋆ *) → Set
+data Cases (Γ : Ctx Φ) (B : Φ ⊢Nf⋆ *) : ∀{n} → Vec (List (Φ ⊢Nf⋆ *)) n → Set 
+\end{code}
 
-postulate btype-ren : ∀{Φ Ψ} b (ρ : ⋆.Ren Φ Ψ) → btype b ≡ renNf ρ (btype b)
-postulate btype-sub : ∀{Φ Ψ} b (ρ : SubNf Φ Ψ) → btype b ≡ subNf ρ (btype b)
+The actual type of terms
 
+\begin{code}
 infixl 7 _·⋆_/_
 
-data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
-
+data _⊢_ (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
   ` : ∀ {A : Φ ⊢Nf⋆ *}
     → Γ ∋ A
       -----
@@ -223,10 +239,31 @@ data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
       -------------------------------------------------------------
     → Γ ⊢ C
 
-  con : ∀{tcn}
-    → TermCon {Φ} (con tcn)
+  constr : ∀{n}
+      → (i : Fin n)                   -- The tag
+
+      → (A : Vec (List (Φ ⊢Nf⋆ *)) n) -- The sum of products. We make it a Vector
+                                      -- of lists, so that the tag is statically correct.
+      
+      → ∀ {ts} → ts ≡ lookup A i      -- The reason to define it like this, rather than
+      → ConstrArgs Γ ts               -- simply ConstrArgs Γ (lookup A e) 
+                                      -- is so that it is easier to construct terms (avoids using subst)
+                                      -- as often the result of a function will not match definitionally
+                                      -- with (lookup A e) but only propositionally.
+        --------------------------------------
+      → Γ ⊢ SOP A
+
+  case : ∀{n}{tss : Vec _ n}{A : Φ ⊢Nf⋆ *}
+      → (t : Γ ⊢ SOP tss)
+      → (cases : Cases Γ A tss)
+        --------------------------
+      → Γ ⊢ A  
+
+  con : ∀{A : ∅ ⊢Nf⋆ ♯}{B}
+    → ⟦ A ⟧ 
+    → B ≡ subNf∅ A
       ---------------------
-    → Γ ⊢ con tcn
+    → Γ ⊢ con B
 
   builtin_/_ : ∀{C}
     → (b :  Builtin)
@@ -238,46 +275,52 @@ data _⊢_ {Φ} (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
       (A : Φ ⊢Nf⋆ *)
       --------------
     → Γ ⊢ A
+
+ConstrArgs Γ = IList (Γ ⊢_)
+
+-- Cases is indexed by a vector 
+-- so it can't be an IList
+data Cases Γ B where 
+   []  : Cases Γ B []
+   _∷_ : ∀{n}{AS}{ASS : Vec _ n}(
+         c : Γ ⊢ (mkCaseType B AS)) 
+       → (cs : Cases Γ B ASS)
+         --------------------- 
+       → Cases Γ B (AS ∷ ASS) 
 \end{code}
 
 Utility functions
 
 \begin{code}
-open import Type.BetaNormal.Equality
-
-conv∋ : ∀ {Φ Γ Γ'}{A A' : Φ ⊢Nf⋆ *}
+conv∋ : ∀ {Γ Γ'}{A A' : Φ ⊢Nf⋆ *}
  → Γ ≡ Γ'
  → A ≡ A'
  → Γ ∋ A
  → Γ' ∋ A'
 conv∋ refl refl x = x
 
-open import Type.BetaNBE.Completeness
-open import Type.Equality
-open import Type.BetaNBE.RenamingSubstitution
-
-conv⊢ : ∀ {Φ Γ Γ'}{A A' : Φ ⊢Nf⋆ *}
+conv⊢ : ∀ {Γ Γ'}{A A' : Φ ⊢Nf⋆ *}
  → Γ ≡ Γ'
  → A ≡ A'
  → Γ ⊢ A
  → Γ' ⊢ A'
 conv⊢ refl refl t = t
 
-Ctx2type : ∀{Φ}(Γ : Ctx Φ) → Φ ⊢Nf⋆ * → ∅ ⊢Nf⋆ *
-Ctx2type ∅        C = C
-Ctx2type (Γ ,⋆ J) C = Ctx2type Γ (Π C)
-Ctx2type (Γ , x)  C = Ctx2type Γ (x ⇒ C)
+lookupCase : ∀{n Φ}{Γ : Ctx Φ}{B}{TSS : Vec _ n} → (i : Fin n) → Cases Γ B TSS → Γ ⊢ mkCaseType B (Vec.lookup TSS i)
+lookupCase Fin.zero (c ∷ cs) = c
+lookupCase (Fin.suc i) (c ∷ cs) = lookupCase i cs
 
-data Arg : Set where
-  Term Type : Arg
+bwdMkCaseType : ∀{Φ} → Bwd (Φ ⊢Nf⋆ *) → (A : Φ ⊢Nf⋆ *) → Φ ⊢Nf⋆ *
+bwdMkCaseType bs A = bwd-foldr _⇒_ A bs
 
-Arity = List Arg
+lemma-bwdfwdfunction' : ∀{Φ} {B : Φ ⊢Nf⋆ *} TS → mkCaseType B TS ≡ bwdMkCaseType ([] <>< TS) B
+lemma-bwdfwdfunction' {B = B} TS = trans (cong (mkCaseType B) (sym (lemma<>1 [] TS))) (lemma-bwd-foldr _⇒_ B ([] <>< TS))
 
-ctx2bwdarity : ∀{Φ}(Γ : Ctx Φ) → Bwd Arg
-ctx2bwdarity ∅        = []
-ctx2bwdarity (Γ ,⋆ J) = ctx2bwdarity Γ :< Type
-ctx2bwdarity (Γ , A)  = ctx2bwdarity Γ :< Term
-
-arity : Builtin → Arity
-arity b = ctx2bwdarity (proj₁ (proj₂ (sig b))) <>> []
-\end{code}
+constr-cong :  ∀{Γ : Ctx Φ}{n}{i : Fin n}{A : Vec (List (Φ ⊢Nf⋆ *)) n}{ts} 
+            → (p : lookup A i ≡ ts)
+            → {cs : ConstrArgs Γ ts}
+            → {cs' : ConstrArgs Γ (lookup A i)}
+            → (q : cs' ≡ subst (IList (Γ ⊢_)) (sym p) cs)
+            → constr i A refl cs' ≡ constr i A (sym p) cs
+constr-cong refl refl = refl            
+\end{code}   

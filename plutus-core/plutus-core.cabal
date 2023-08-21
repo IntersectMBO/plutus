@@ -1,6 +1,6 @@
 cabal-version:      3.0
 name:               plutus-core
-version:            1.0.0.0
+version:            1.10.0.0
 license:            Apache-2.0
 license-files:
   LICENSE
@@ -12,7 +12,10 @@ synopsis:           Language library for Plutus Core
 description:        Pretty-printer, parser, and typechecker for Plutus Core.
 category:           Language, Plutus
 build-type:         Simple
-extra-doc-files:    README.md
+extra-doc-files:
+  CHANGELOG.md
+  README.md
+
 extra-source-files:
   cost-model/data/*.R
   cost-model/data/benching.csv
@@ -23,6 +26,21 @@ extra-source-files:
 source-repository head
   type:     git
   location: https://github.com/input-output-hk/plutus
+
+-- inline-r is a problematic dependency. It doesn't build with newer
+-- versions of R, so if we depend on it then people need to install
+-- an old R. This is not so bad for people working on plutus itself
+-- (use Nix or work it out), although we may want to eventually
+-- purge it. However, due to a cabal bug (https://github.com/haskell/cabal/issues/4087),
+-- in some cases cabal will require R to be installed _at solving time_,
+-- even though it never wants to build it. This means that the problem
+-- leaks into our downstream dependencies. So our solution is to guard
+-- the dependency behind a flag, off by default, and turn it on for
+-- ourselves locally.
+flag with-inline-r
+  description: Enable build of packages that use `inline-r`.
+  manual:      True
+  default:     False
 
 common lang
   default-language:   Haskell2010
@@ -46,16 +64,19 @@ common lang
     -Wincomplete-record-updates -Wredundant-constraints -Widentities
     -Wunused-packages -Wmissing-deriving-strategies
 
+-- This contains UPLC+TPLC, PIR must be explicitly included by depending
+-- on the public sub-library.
+-- In due course UPLC and TPLC should be split, with the main library
+-- containing UPLC.
 library
-  import:          lang
+  import:             lang
   exposed-modules:
-    Crypto
-    Data.ByteString.Hash
     Data.Either.Extras
+    Data.List.Extras
     Data.MultiSet.Lens
-    Data.SatInt
-    ErrorCode
     PlutusCore
+    PlutusCore.Analysis.Definitions
+    PlutusCore.Annotation
     PlutusCore.Builtin
     PlutusCore.Builtin.Debug
     PlutusCore.Builtin.Elaborate
@@ -66,10 +87,19 @@ library
     PlutusCore.Check.Value
     PlutusCore.Compiler
     PlutusCore.Compiler.Erase
+    PlutusCore.Compiler.Types
     PlutusCore.Core
+    PlutusCore.Crypto.BLS12_381.Error
+    PlutusCore.Crypto.BLS12_381.G1
+    PlutusCore.Crypto.BLS12_381.G2
+    PlutusCore.Crypto.BLS12_381.Pairing
+    PlutusCore.Crypto.Ed25519
+    PlutusCore.Crypto.Hash
+    PlutusCore.Crypto.Secp256k1
     PlutusCore.Data
     PlutusCore.DataFilePaths
     PlutusCore.DeBruijn
+    PlutusCore.DeBruijn.Internal
     PlutusCore.Default
     PlutusCore.Error
     PlutusCore.Evaluation.Machine.BuiltinCostModel
@@ -77,17 +107,19 @@ library
     PlutusCore.Evaluation.Machine.CostingFun.Core
     PlutusCore.Evaluation.Machine.CostingFun.JSON
     PlutusCore.Evaluation.Machine.CostModelInterface
+    PlutusCore.Evaluation.Machine.CostStream
     PlutusCore.Evaluation.Machine.ExBudget
     PlutusCore.Evaluation.Machine.ExBudgetingDefaults
+    PlutusCore.Evaluation.Machine.ExBudgetStream
     PlutusCore.Evaluation.Machine.Exception
     PlutusCore.Evaluation.Machine.ExMemory
+    PlutusCore.Evaluation.Machine.ExMemoryUsage
     PlutusCore.Evaluation.Machine.MachineParameters
     PlutusCore.Evaluation.Machine.MachineParameters.Default
-    PlutusCore.Evaluation.Machine.MachineParameters.DeferredMachineParameters
-    PlutusCore.Evaluation.Machine.MachineParameters.ImmediateMachineParameters
     PlutusCore.Evaluation.Result
     PlutusCore.Examples.Builtins
     PlutusCore.Examples.Data.Data
+    PlutusCore.Examples.Data.Function
     PlutusCore.Examples.Data.InterList
     PlutusCore.Examples.Data.List
     PlutusCore.Examples.Data.Pair
@@ -108,6 +140,7 @@ library
     PlutusCore.Rename
     PlutusCore.Rename.Internal
     PlutusCore.Rename.Monad
+    PlutusCore.Size
     PlutusCore.StdLib.Data.Bool
     PlutusCore.StdLib.Data.ChurchNat
     PlutusCore.StdLib.Data.Data
@@ -128,11 +161,316 @@ library
     PlutusCore.Subst
     PlutusCore.TypeCheck
     PlutusCore.TypeCheck.Internal
+    PlutusCore.Version
+    PlutusPrelude
+    Prettyprinter.Custom
+    Universe
+    UntypedPlutusCore
+    UntypedPlutusCore.Check.Scope
+    UntypedPlutusCore.Check.Uniques
+    UntypedPlutusCore.Core
+    UntypedPlutusCore.Core.Type
+    UntypedPlutusCore.Core.Zip
+    UntypedPlutusCore.DeBruijn
+    UntypedPlutusCore.Evaluation.Machine.Cek
+    UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
+    UntypedPlutusCore.Evaluation.Machine.Cek.Internal
+    UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
+    UntypedPlutusCore.Evaluation.Machine.SteppableCek
+    UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver
+    UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal
+    UntypedPlutusCore.MkUPlc
+    UntypedPlutusCore.Parser
+    UntypedPlutusCore.Rename
+
+  other-modules:
+    Data.Aeson.Flatten
+    Data.Aeson.THReader
+    Data.Functor.Foldable.Monadic
+    PlutusCore.Builtin.HasConstant
+    PlutusCore.Builtin.KnownKind
+    PlutusCore.Builtin.KnownType
+    PlutusCore.Builtin.KnownTypeAst
+    PlutusCore.Builtin.Meaning
+    PlutusCore.Builtin.Polymorphism
+    PlutusCore.Builtin.Runtime
+    PlutusCore.Builtin.TestKnown
+    PlutusCore.Builtin.TypeScheme
+    PlutusCore.Core.Instance
+    PlutusCore.Core.Instance.Eq
+    PlutusCore.Core.Instance.Pretty
+    PlutusCore.Core.Instance.Pretty.Classic
+    PlutusCore.Core.Instance.Pretty.Default
+    PlutusCore.Core.Instance.Pretty.Plc
+    PlutusCore.Core.Instance.Pretty.Readable
+    PlutusCore.Core.Instance.Scoping
+    PlutusCore.Core.Plated
+    PlutusCore.Core.Type
+    PlutusCore.Crypto.Utils
+    PlutusCore.Default.Builtins
+    PlutusCore.Default.Universe
+    PlutusCore.Eq
+    PlutusCore.Parser.Builtin
+    PlutusCore.Parser.ParserCommon
+    PlutusCore.Parser.Type
+    PlutusCore.Pretty.Classic
+    PlutusCore.Pretty.ConfigName
+    PlutusCore.Pretty.Default
+    PlutusCore.Pretty.Extra
+    PlutusCore.Pretty.Plc
+    PlutusCore.Pretty.PrettyConst
+    PlutusCore.Pretty.Readable
+    PlutusCore.Pretty.Utils
+    Universe.Core
+    UntypedPlutusCore.Analysis.Definitions
+    UntypedPlutusCore.Analysis.Usages
+    UntypedPlutusCore.Core.Instance
+    UntypedPlutusCore.Core.Instance.Eq
+    UntypedPlutusCore.Core.Instance.Flat
+    UntypedPlutusCore.Core.Instance.Pretty
+    UntypedPlutusCore.Core.Instance.Pretty.Classic
+    UntypedPlutusCore.Core.Instance.Pretty.Default
+    UntypedPlutusCore.Core.Instance.Pretty.Plc
+    UntypedPlutusCore.Core.Instance.Pretty.Readable
+    UntypedPlutusCore.Core.Plated
+    UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode
+    UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
+    UntypedPlutusCore.Evaluation.Machine.CommonAPI
+    UntypedPlutusCore.Mark
+    UntypedPlutusCore.Rename.Internal
+    UntypedPlutusCore.Simplify
+    UntypedPlutusCore.Size
+    UntypedPlutusCore.Subst
+    UntypedPlutusCore.Transform.CaseOfCase
+    UntypedPlutusCore.Transform.CaseReduce
+    UntypedPlutusCore.Transform.FloatDelay
+    UntypedPlutusCore.Transform.ForceDelay
+    UntypedPlutusCore.Transform.Inline
+
+  reexported-modules: Data.SatInt
+  hs-source-dirs:
+    plutus-core/src plutus-core/stdlib plutus-core/examples
+    untyped-plutus-core/src prelude
+
+  -- Notes on dependencies:
+  -- * Bound on cardano-crypto-class for the fixed SECP primitives and 9.6 support
+  -- * The bound on 'dependent-sum' is needed to avoid https://github.com/obsidiansystems/dependent-sum/issues/72
+  build-depends:
+    , aeson
+    , array
+    , barbies
+    , base                        >=4.9     && <5
+    , base64-bytestring
+    , bimap
+    , bytestring
+    , cardano-crypto
+    , cardano-crypto-class        ^>=2.1.2
+    , cassava
+    , cborg
+    , composition-prelude         >=1.1.0.1
+    , containers
+    , cryptonite
+    , data-default-class
+    , deepseq
+    , dependent-sum               >=0.7.1.0
+    , dependent-sum-template      <0.1.2
+    , deriving-aeson              >=0.2.3
+    , deriving-compat
+    , dlist
+    , exceptions
+    , extra
+    , filepath
+    , flat                        ^>=0.6
+    , free
+    , ghc-prim
+    , hashable                    >=1.4
+    , hedgehog                    >=1.0
+    , index-envs
+    , lens
+    , megaparsec
+    , mmorph
+    , mono-traversable
+    , monoidal-containers
+    , mtl
+    , multiset
+    , nothunks                    >=0.1.1
+    , parser-combinators          >=0.4.0
+    , prettyprinter               >=1.1.0.1
+    , prettyprinter-configurable  ^>=1.10
+    , primitive
+    , profunctors
+    , recursion-schemes
+    , satint
+    , semigroups                  >=0.19.1
+    , serialise
+    , some
+    , template-haskell
+    , text
+    , th-compat
+    , th-lift
+    , th-lift-instances
+    , th-utilities
+    , time
+    , transformers
+    , unordered-containers
+    , witherable
+
+  if impl(ghc <9.0)
+    build-depends: integer-gmp
+
+test-suite plutus-core-test
+  import:           lang
+
+  -- needs linux 'diff' available
+  if os(windows)
+    buildable: False
+
+  type:             exitcode-stdio-1.0
+  main-is:          Spec.hs
+  hs-source-dirs:   plutus-core/test
+  ghc-options:      -threaded -rtsopts -with-rtsopts=-N
+  other-modules:
+    CBOR.DataStability
+    Check.Spec
+    CostModelInterface.Spec
+    Evaluation.Machines
+    Evaluation.Spec
+    Names.Spec
+    Normalization.Check
+    Normalization.Type
+    Parser.Spec
+    Pretty.Readable
+    TypeSynthesis.Spec
+
+  default-language: Haskell2010
+  build-depends:
+    , aeson
+    , base                                            >=4.9   && <5
+    , bytestring
+    , containers
+    , data-default-class
+    , filepath
+    , flat                                            ^>=0.6
+    , hedgehog
+    , hex-text
+    , mmorph
+    , mtl
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.10
+    , prettyprinter
+    , serialise
+    , tasty
+    , tasty-golden
+    , tasty-hedgehog
+    , tasty-hunit
+    , template-haskell
+    , text
+    , th-lift-instances
+    , th-utilities
+
+test-suite untyped-plutus-core-test
+  import:         lang
+
+  -- needs linux 'diff' available
+  if os(windows)
+    buildable: False
+
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  hs-source-dirs: untyped-plutus-core/test
+  ghc-options:    -O2 -threaded -rtsopts -with-rtsopts=-N
+  other-modules:
+    DeBruijn.FlatNatWord
+    DeBruijn.Scope
+    DeBruijn.Spec
+    DeBruijn.UnDeBruijnify
+    Evaluation.Builtins
+    Evaluation.Builtins.BLS12_381
+    Evaluation.Builtins.BLS12_381.TestClasses
+    Evaluation.Builtins.BLS12_381.Utils
+    Evaluation.Builtins.Common
+    Evaluation.Builtins.Costing
+    Evaluation.Builtins.Definition
+    Evaluation.Builtins.MakeRead
+    Evaluation.Builtins.SignatureVerification
+    Evaluation.Debug
+    Evaluation.FreeVars
+    Evaluation.Golden
+    Evaluation.Machines
+    Evaluation.Regressions
+    Flat.Spec
+    Generators
+    Transform.Simplify
+
+  build-depends:
+    , base                                            >=4.9   && <5
+    , bytestring
+    , cardano-crypto-class
+    , dlist
+    , flat                                            ^>=0.6
+    , hedgehog
+    , lens
+    , mtl
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.10
+    , pretty-show
+    , prettyprinter
+    , QuickCheck
+    , split
+    , tasty
+    , tasty-golden
+    , tasty-hedgehog
+    , tasty-hunit
+    , tasty-quickcheck
+    , text
+
+executable plc
+  import:         lang
+  main-is:        plc/Main.hs
+  hs-source-dirs: executables
+  build-depends:
+    , base                  >=4.9   && <5
+    , bytestring
+    , deepseq
+    , flat                  ^>=0.6
+    , optparse-applicative
+    , plutus-core           ^>=1.10
+    , plutus-core-execlib   ^>=1.10
+    , text
+
+executable uplc
+  import:         lang
+  main-is:        uplc/Main.hs
+  hs-source-dirs: executables
+  build-depends:
+    , base                  >=4.9   && <5
+    , bytestring
+    , deepseq
+    , flat                  ^>=0.6
+    , haskeline
+    , mtl
+    , optparse-applicative
+    , plutus-core           ^>=1.10
+    , plutus-core-execlib   ^>=1.10
+    , prettyprinter
+    , split
+    , text
+
+----------------------------------------------
+-- plutus-ir
+----------------------------------------------
+
+library plutus-ir
+  import:          lang
+  visibility:      public
+  exposed-modules:
     PlutusIR
     PlutusIR.Analysis.RetainedSize
+    PlutusIR.Check.Uniques
     PlutusIR.Compiler
+    PlutusIR.Compiler.Datatype
     PlutusIR.Compiler.Definitions
     PlutusIR.Compiler.Names
+    PlutusIR.Compiler.Provenance
+    PlutusIR.Contexts
     PlutusIR.Core
     PlutusIR.Core.Instance
     PlutusIR.Core.Instance.Flat
@@ -148,175 +486,151 @@ library
     PlutusIR.Purity
     PlutusIR.Subst
     PlutusIR.Transform.Beta
+    PlutusIR.Transform.CaseReduce
+    PlutusIR.Transform.CommuteFnWithConst
     PlutusIR.Transform.DeadCode
-    PlutusIR.Transform.Inline
-    PlutusIR.Transform.LetFloat
+    PlutusIR.Transform.EvaluateBuiltins
+    PlutusIR.Transform.Inline.CallSiteInline
+    PlutusIR.Transform.Inline.Inline
+    PlutusIR.Transform.Inline.Utils
+    PlutusIR.Transform.KnownCon
+    PlutusIR.Transform.LetFloatIn
+    PlutusIR.Transform.LetFloatOut
     PlutusIR.Transform.LetMerge
     PlutusIR.Transform.NonStrict
     PlutusIR.Transform.RecSplit
     PlutusIR.Transform.Rename
+    PlutusIR.Transform.StrictifyBindings
     PlutusIR.Transform.Substitute
     PlutusIR.Transform.ThunkRecursions
     PlutusIR.Transform.Unwrap
     PlutusIR.TypeCheck
     PlutusIR.TypeCheck.Internal
-    PlutusPrelude
-    Prettyprinter.Custom
-    Universe
-    UntypedPlutusCore
-    UntypedPlutusCore.Check.Scope
-    UntypedPlutusCore.Check.Uniques
-    UntypedPlutusCore.Core
-    UntypedPlutusCore.Core.Type
-    UntypedPlutusCore.DeBruijn
-    UntypedPlutusCore.Evaluation.Machine.Cek
-    UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
-    UntypedPlutusCore.Evaluation.Machine.Cek.Internal
-    UntypedPlutusCore.MkUPlc
-    UntypedPlutusCore.Parser
-    UntypedPlutusCore.Rename
 
-  hs-source-dirs:
-    plutus-core/src plutus-core/stdlib plutus-core/examples
-    plutus-ir/src untyped-plutus-core/src prelude common
-
+  hs-source-dirs:  plutus-ir/src
   other-modules:
-    Data.Aeson.Flatten
-    Data.Aeson.THReader
-    Data.Functor.Foldable.Monadic
-    GHC.Natural.Extras
-    PlutusCore.Analysis.Definitions
-    PlutusCore.Builtin.HasConstant
-    PlutusCore.Builtin.KnownKind
-    PlutusCore.Builtin.KnownType
-    PlutusCore.Builtin.KnownTypeAst
-    PlutusCore.Builtin.Meaning
-    PlutusCore.Builtin.Polymorphism
-    PlutusCore.Builtin.Runtime
-    PlutusCore.Builtin.TestKnown
-    PlutusCore.Builtin.TypeScheme
-    PlutusCore.Core.Instance
-    PlutusCore.Core.Instance.Eq
-    PlutusCore.Core.Instance.Pretty
-    PlutusCore.Core.Instance.Pretty.Classic
-    PlutusCore.Core.Instance.Pretty.Common
-    PlutusCore.Core.Instance.Pretty.Default
-    PlutusCore.Core.Instance.Pretty.Plc
-    PlutusCore.Core.Instance.Pretty.Readable
-    PlutusCore.Core.Instance.Recursive
-    PlutusCore.Core.Instance.Scoping
-    PlutusCore.Core.Plated
-    PlutusCore.Core.Type
-    PlutusCore.DeBruijn.Internal
-    PlutusCore.Default.Builtins
-    PlutusCore.Default.Universe
-    PlutusCore.Eq
-    PlutusCore.InlineUtils
-    PlutusCore.Parser.Builtin
-    PlutusCore.Parser.ParserCommon
-    PlutusCore.Parser.Type
-    PlutusCore.Pretty.Classic
-    PlutusCore.Pretty.ConfigName
-    PlutusCore.Pretty.Default
-    PlutusCore.Pretty.Plc
-    PlutusCore.Pretty.PrettyConst
-    PlutusCore.Pretty.Readable
-    PlutusCore.Pretty.Utils
-    PlutusCore.Size
+    PlutusIR.Analysis.Definitions
     PlutusIR.Analysis.Dependencies
     PlutusIR.Analysis.Size
     PlutusIR.Analysis.Usages
-    PlutusIR.Compiler.Datatype
     PlutusIR.Compiler.Error
     PlutusIR.Compiler.Let
     PlutusIR.Compiler.Lower
-    PlutusIR.Compiler.Provenance
     PlutusIR.Compiler.Recursion
     PlutusIR.Compiler.Types
     PlutusIR.Normalize
-    Universe.Core
-    UntypedPlutusCore.Analysis.Definitions
-    UntypedPlutusCore.Analysis.Usages
-    UntypedPlutusCore.Core.Instance
-    UntypedPlutusCore.Core.Instance.Eq
-    UntypedPlutusCore.Core.Instance.Flat
-    UntypedPlutusCore.Core.Instance.Pretty
-    UntypedPlutusCore.Core.Instance.Pretty.Classic
-    UntypedPlutusCore.Core.Instance.Pretty.Default
-    UntypedPlutusCore.Core.Instance.Pretty.Plc
-    UntypedPlutusCore.Core.Instance.Pretty.Readable
-    UntypedPlutusCore.Core.Instance.Recursive
-    UntypedPlutusCore.Core.Plated
-    UntypedPlutusCore.Evaluation.Machine.Cek.EmitterMode
-    UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
-    UntypedPlutusCore.Mark
-    UntypedPlutusCore.Rename.Internal
-    UntypedPlutusCore.Simplify
-    UntypedPlutusCore.Size
-    UntypedPlutusCore.Subst
-    UntypedPlutusCore.Transform.ForceDelay
-    UntypedPlutusCore.Transform.Inline
 
   build-depends:
-    , aeson
-    , algebraic-graphs            >=0.3
-    , array
-    , barbies
-    , base                        >=4.9     && <5
-    , base64-bytestring
-    , bimap
-    , bytestring
-    , cardano-crypto
-    , cardano-crypto-class
-    , cassava
-    , cborg
-    , composition-prelude         >=1.1.0.1
+    , algebraic-graphs     >=0.7
+    , base                 >=4.9     && <5
     , containers
-    , cryptonite
-    , data-default-class
-    , deepseq
-    , dependent-sum-template
-    , deriving-aeson              >=0.2.3
-    , deriving-compat
-    , dlist
     , dom-lt
-    , exceptions
     , extra
-    , filepath
-    , flat
-    , ghc-prim
-    , hashable
-    , hedgehog                    >=1.0
-    , index-envs
-    , int-cast
-    , integer-gmp
+    , flat                 ^>=0.6
     , lens
     , megaparsec
     , mmorph
     , monoidal-containers
     , mtl
     , multiset
-    , nothunks
-    , parser-combinators          >=0.4.0
-    , prettyprinter               >=1.1.0.1
-    , prettyprinter-configurable
-    , primitive
-    , recursion-schemes
+    , parser-combinators   >=0.4.0
+    , plutus-core          ^>=1.10
+    , prettyprinter        >=1.1.0.1
+    , profunctors
     , semigroupoids
-    , semigroups                  >=0.19.1
-    , serialise
-    , some                        <1.0.3
-    , template-haskell
+    , semigroups           >=0.19.1
     , text
-    , th-compat
-    , th-lift
-    , th-lift-instances
-    , th-utilities
-    , time
     , transformers
-    , unordered-containers
     , witherable
-    , word-array
+
+  if impl(ghc <9.0)
+    build-depends: integer-gmp
+
+test-suite plutus-ir-test
+  import:         lang
+
+  -- needs linux 'diff' available
+  if os(windows)
+    buildable: False
+
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  hs-source-dirs: plutus-ir/test
+  other-modules:
+    Check.Spec
+    GeneratorSpec
+    GeneratorSpec.Builtin
+    GeneratorSpec.Substitution
+    GeneratorSpec.Terms
+    GeneratorSpec.Types
+    NamesSpec
+    ParserSpec
+    TransformSpec
+    TypeSpec
+
+  build-depends:
+    , base                                                       >=4.9   && <5
+    , containers
+    , flat                                                       ^>=0.6
+    , hashable
+    , hedgehog
+    , lens
+    , mtl
+    , plutus-core:{plutus-core, plutus-core-testlib, plutus-ir}  ^>=1.10
+    , QuickCheck
+    , serialise
+    , tasty
+    , tasty-hedgehog
+    , tasty-hunit
+    , tasty-quickcheck
+    , text
+    , unordered-containers
+
+executable pir
+  import:         lang
+  main-is:        pir/Main.hs
+  hs-source-dirs: executables
+  build-depends:
+    , base                                  >=4.9   && <5
+    , bytestring
+    , cassava
+    , containers
+    , lens
+    , megaparsec
+    , optparse-applicative
+    , plutus-core-execlib                   ^>=1.10
+    , plutus-core:{plutus-core, plutus-ir}  ^>=1.10
+    , text
+    , transformers
+
+----------------------------------------------
+-- support libs
+----------------------------------------------
+
+library plutus-core-execlib
+  import:          lang
+  visibility:      public
+  hs-source-dirs:  executables/src
+  exposed-modules:
+    PlutusCore.Executable.AstIO
+    PlutusCore.Executable.Common
+    PlutusCore.Executable.Parsers
+    PlutusCore.Executable.Types
+
+  build-depends:
+    , aeson
+    , base                                                       >=4.9   && <5
+    , bytestring
+    , deepseq
+    , flat                                                       ^>=0.6
+    , lens
+    , megaparsec
+    , monoidal-containers
+    , mtl
+    , optparse-applicative
+    , plutus-core:{plutus-core, plutus-core-testlib, plutus-ir}  ^>=1.10
+    , prettyprinter
+    , text
 
 -- could split this up if we split up the main library for UPLC/PLC/PIR
 library plutus-core-testlib
@@ -324,260 +638,109 @@ library plutus-core-testlib
   visibility:      public
   hs-source-dirs:  testlib
   exposed-modules:
-    PlutusCore.Generators
-    PlutusCore.Generators.AST
-    PlutusCore.Generators.Interesting
+    PlutusCore.Generators.Hedgehog
+    PlutusCore.Generators.Hedgehog.AST
+    PlutusCore.Generators.Hedgehog.Builtin
+    PlutusCore.Generators.Hedgehog.Denotation
+    PlutusCore.Generators.Hedgehog.Entity
+    PlutusCore.Generators.Hedgehog.Interesting
+    PlutusCore.Generators.Hedgehog.Test
+    PlutusCore.Generators.Hedgehog.TypedBuiltinGen
+    PlutusCore.Generators.Hedgehog.TypeEvalCheck
+    PlutusCore.Generators.Hedgehog.Utils
     PlutusCore.Generators.NEAT.Common
     PlutusCore.Generators.NEAT.Spec
     PlutusCore.Generators.NEAT.Term
     PlutusCore.Generators.NEAT.Type
-    PlutusCore.Generators.Test
+    PlutusCore.Generators.QuickCheck
+    PlutusCore.Generators.QuickCheck.Builtin
+    PlutusCore.Generators.QuickCheck.Common
+    PlutusCore.Generators.QuickCheck.GenerateKinds
+    PlutusCore.Generators.QuickCheck.GenerateTypes
+    PlutusCore.Generators.QuickCheck.GenTm
+    PlutusCore.Generators.QuickCheck.ShrinkTypes
+    PlutusCore.Generators.QuickCheck.Substitutions
+    PlutusCore.Generators.QuickCheck.Unification
+    PlutusCore.Generators.QuickCheck.Utils
     PlutusCore.Test
     PlutusIR.Generators.AST
+    PlutusIR.Generators.QuickCheck
+    PlutusIR.Generators.QuickCheck.Common
+    PlutusIR.Generators.QuickCheck.GenerateTerms
+    PlutusIR.Generators.QuickCheck.ShrinkTerms
     PlutusIR.Test
     Test.Tasty.Extras
-
-  other-modules:
-    PlutusCore.Generators.Internal.Builtin
-    PlutusCore.Generators.Internal.Denotation
-    PlutusCore.Generators.Internal.Entity
-    PlutusCore.Generators.Internal.TypedBuiltinGen
-    PlutusCore.Generators.Internal.TypeEvalCheck
-    PlutusCore.Generators.Internal.Utils
+    UntypedPlutusCore.Test.DeBruijn.Bad
+    UntypedPlutusCore.Test.DeBruijn.Good
 
   build-depends:
-    , base                        >=4.9     && <5
+    , base                                  >=4.9     && <5
     , bifunctors
     , bytestring
     , containers
-    , dependent-map               >=0.4.0.0
+    , data-default-class
+    , dependent-map                         >=0.4.0.0
     , filepath
-    , ghc-prim
-    , hedgehog                    >=1.0
-    , integer-gmp
+    , hedgehog                              >=1.0
     , lazy-search
     , lens
-    , megaparsec
     , mmorph
     , mtl
-    , plutus-core
-    , prettyprinter               >=1.1.0.1
-    , prettyprinter-configurable
-    , size-based
-    , some                        <1.0.3
-    , Stream
-    , tasty
-    , tasty-golden
-    , tasty-hedgehog
-    , tasty-hunit
-    , text
-    , transformers
-
-test-suite satint-test
-  import:           lang
-  type:             exitcode-stdio-1.0
-  main-is:          TestSatInt.hs
-  build-depends:
-    , base                        >=4.9 && <5
-    , HUnit
-    , plutus-core
+    , multiset
+    , plutus-core:{plutus-core, plutus-ir}  ^>=1.10
+    , prettyprinter                         >=1.1.0.1
+    , prettyprinter-configurable            ^>=1.10
     , QuickCheck
-    , test-framework
-    , test-framework-hunit
-    , test-framework-quickcheck2
-
-  default-language: Haskell2010
-  hs-source-dirs:   plutus-core/satint-test
-
-test-suite plutus-core-test
-  import:           lang
-  type:             exitcode-stdio-1.0
-  main-is:          Spec.hs
-  hs-source-dirs:   plutus-core/test
-  ghc-options:      -threaded -rtsopts -with-rtsopts=-N
-  other-modules:
-    CBOR.DataStability
-    Check.Spec
-    CostModelInterface.Spec
-    Evaluation.Machines
-    Evaluation.Spec
-    Names.Spec
-    Normalization.Check
-    Normalization.Type
-    Pretty.Readable
-    TypeSynthesis.Spec
-
-  default-language: Haskell2010
-  build-depends:
-    , aeson
-    , base                 >=4.9 && <5
-    , bytestring
-    , containers
-    , data-default-class
-    , extra
-    , filepath
-    , flat
-    , hedgehog
-    , hex-text
-    , megaparsec
-    , mmorph
-    , mtl
-    , plutus-core
-    , plutus-core-testlib
-    , prettyprinter
-    , serialise
+    , quickcheck-instances
+    , quickcheck-transformer
+    , size-based
+    , Stream
+    , tagged
     , tasty
     , tasty-golden
     , tasty-hedgehog
     , tasty-hunit
-    , template-haskell
     , text
-    , th-lift-instances
-    , th-utilities
-    , transformers
 
-test-suite plutus-ir-test
+----------------------------------------------
+-- debugger
+----------------------------------------------
+
+executable debugger
   import:         lang
-  type:           exitcode-stdio-1.0
-  main-is:        Spec.hs
-  hs-source-dirs: plutus-ir/test
+  main-is:        Main.hs
+
+  -- brick does not work on windows
+  if os(windows)
+    buildable: False
+
+  hs-source-dirs: executables/debugger
   other-modules:
-    NamesSpec
-    ParserSpec
-    TransformSpec
-    TypeSpec
+    Draw
+    Event
+    Types
 
-  build-depends:
-    , base                 >=4.9 && <5
-    , flat
-    , hedgehog
-    , megaparsec
-    , plutus-core
-    , plutus-core-testlib
-    , tasty
-    , tasty-hedgehog
-    , text
-
-test-suite untyped-plutus-core-test
-  import:         lang
-  type:           exitcode-stdio-1.0
-  main-is:        Spec.hs
-  hs-source-dirs: untyped-plutus-core/test
   ghc-options:    -O2 -threaded -rtsopts -with-rtsopts=-N
-  other-modules:
-    DeBruijn.Common
-    DeBruijn.Scope
-    DeBruijn.Spec
-    DeBruijn.UnDeBruijnify
-    Evaluation.Builtins
-    Evaluation.Builtins.Common
-    Evaluation.Builtins.Definition
-    Evaluation.Builtins.MakeRead
-    Evaluation.Builtins.SignatureVerification
-    Evaluation.FreeVars
-    Evaluation.Golden
-    Evaluation.Machines
-    Evaluation.Regressions
-    Generators
-    Transform.Simplify
-
   build-depends:
-    , base                  >=4.9 && <5
-    , bytestring
-    , cardano-crypto-class
-    , flat
-    , hedgehog
-    , index-envs
-    , lens
-    , mtl
-    , plutus-core
-    , plutus-core-testlib
-    , pretty-show
-    , prettyprinter
-    , split
-    , tasty
-    , tasty-golden
-    , tasty-hedgehog
-    , tasty-hunit
-    , text
-
-executable plc
-  import:         lang
-  main-is:        plc/Main.hs
-  hs-source-dirs: executables
-  other-modules:
-    Common
-    Parsers
-
-  build-depends:
-    , aeson
-    , base                  >=4.9 && <5
-    , bytestring
-    , deepseq
-    , flat
-    , lens
-    , megaparsec
-    , monoidal-containers
-    , mtl
-    , optparse-applicative
-    , plutus-core
-    , plutus-core-testlib
-    , prettyprinter
-    , text
-    , transformers
-
-executable uplc
-  import:         lang
-  main-is:        uplc/Main.hs
-  hs-source-dirs: executables
-  other-modules:
-    Common
-    Parsers
-
-  build-depends:
-    , aeson
-    , base                  >=4.9 && <5
-    , bytestring
-    , deepseq
-    , flat
-    , lens
-    , megaparsec
-    , monoidal-containers
-    , mtl
-    , optparse-applicative
-    , plutus-core
-    , plutus-core-testlib
-    , prettyprinter
-    , split
-    , text
-    , transformers
-
-executable pir
-  import:         lang
-  main-is:        pir/Main.hs
-  hs-source-dirs: executables
-  other-modules:
-    Common
-    Parsers
-
-  build-depends:
-    , aeson
-    , base                  >=4.9 && <5
-    , bytestring
-    , cassava
+    , base                  >=4.9   && <5
+    , brick
     , containers
-    , deepseq
-    , flat
-    , lens
     , megaparsec
-    , monoidal-containers
+    , microlens
+    , microlens-th          ^>=0.4
+    , mono-traversable
     , mtl
     , optparse-applicative
-    , plutus-core
-    , plutus-core-testlib
+    , plutus-core           ^>=1.10
+    , plutus-core-execlib   ^>=1.10
     , prettyprinter
     , text
-    , transformers
+    , text-zipper
+    , vty
+
+----------------------------------------------
+-- profiling
+----------------------------------------------
 
 executable traceToStacks
   import:         lang
@@ -588,7 +751,6 @@ executable traceToStacks
     , base                  >=4.9 && <5
     , bytestring
     , cassava
-    , integer-gmp
     , optparse-applicative
     , text
     , vector
@@ -610,6 +772,10 @@ test-suite traceToStacks-test
     , text
     , vector
 
+----------------------------------------------
+-- cost-model
+----------------------------------------------
+
 -- This runs the microbenchmarks used to generate the cost models for built-in
 -- functions, saving the results in a CSV file which must be specified on the
 -- commmand line.  It will take several hours.
@@ -619,7 +785,7 @@ executable cost-model-budgeting-bench
   other-modules:
     Benchmarks.Bool
     Benchmarks.ByteStrings
-    Benchmarks.CryptoAndHashes
+    Benchmarks.Crypto
     Benchmarks.Data
     Benchmarks.Integers
     Benchmarks.Lists
@@ -635,7 +801,7 @@ executable cost-model-budgeting-bench
 
   hs-source-dirs: cost-model/budgeting-bench
   build-depends:
-    , base                   >=4.9 && <5
+    , base                   >=4.9   && <5
     , bytestring
     , cardano-crypto-class
     , criterion
@@ -646,7 +812,7 @@ executable cost-model-budgeting-bench
     , hedgehog
     , mtl
     , optparse-applicative
-    , plutus-core
+    , plutus-core            ^>=1.10
     , QuickCheck
     , quickcheck-instances
     , random
@@ -662,18 +828,28 @@ executable generate-cost-model
   main-is:        Main.hs
   hs-source-dirs: cost-model/create-cost-model
   ghc-options:    -threaded -rtsopts -with-rtsopts=-N
+
+  if !flag(with-inline-r)
+    buildable: False
+
+  -- This fails on Darwin with strange errors and I don't know why
+  -- > Error: C stack usage  17556409549320 is too close to the limit
+  -- > Fatal error: unable to initialize the JI
+  if os(osx)
+    buildable: False
+
   build-depends:
     , aeson-pretty
     , barbies
-    , base                  >=4.9 && <5
+    , base                  >=4.9   && <5
     , bytestring
     , cassava
     , directory
     , exceptions
     , extra
-    , inline-r
+    , inline-r              >=1.0.1
     , optparse-applicative
-    , plutus-core
+    , plutus-core           ^>=1.10
     , text
     , vector
 
@@ -694,17 +870,27 @@ benchmark cost-model-test
   main-is:        TestCostModels.hs
   other-modules:  TH
   hs-source-dirs: cost-model/test cost-model/create-cost-model
+
+  if !flag(with-inline-r)
+    buildable: False
+
+  -- This fails on Darwin with strange errors and I don't know why
+  -- > Error: C stack usage  17556409549320 is too close to the limit
+  -- > Fatal error: unable to initialize the JI
+  if os(osx)
+    buildable: False
+
   build-depends:
     , barbies
-    , base              >=4.9 && <5
+    , base              >=4.9   && <5
     , bytestring
     , cassava
     , exceptions
     , extra
     , hedgehog
-    , inline-r
+    , inline-r          >=1.0.1
     , mmorph
-    , plutus-core
+    , plutus-core       ^>=1.10
     , template-haskell
     , text
     , vector
@@ -722,6 +908,44 @@ executable print-cost-model
     , bytestring
     , text
 
+----------------------------------------------
+-- satint
+----------------------------------------------
+
+library satint
+  import:          lang
+  exposed-modules: Data.SatInt
+  hs-source-dirs:  satint/src
+  build-depends:
+    , aeson
+    , base              >=4.9 && <5
+    , cassava
+    , deepseq
+    , nothunks
+    , primitive
+    , serialise
+    , template-haskell
+
+test-suite satint-test
+  import:           lang
+  type:             exitcode-stdio-1.0
+  main-is:          TestSatInt.hs
+  build-depends:
+    , base                        >=4.9 && <5
+    , HUnit
+    , QuickCheck
+    , satint
+    , test-framework
+    , test-framework-hunit
+    , test-framework-quickcheck2
+
+  default-language: Haskell2010
+  hs-source-dirs:   satint/test
+
+----------------------------------------------
+-- index-envs
+----------------------------------------------
+
 library index-envs
   import:           lang
   hs-source-dirs:   index-envs/src
@@ -733,12 +957,11 @@ library index-envs
     Data.RandomAccessList.SkewBinarySlab
 
   build-depends:
-    , base             >=4.9 && <5
+    , base             >=4.9  && <5
     , containers
     , extra
     , nonempty-vector
-    , ral              ==0.1
-    , vector
+    , ral              ^>=0.2
 
 -- broken for ral-0.2 conflicts with cardano-binary:recursion-schemes
 benchmark index-envs-bench
@@ -752,7 +975,7 @@ benchmark index-envs-bench
     , criterion        >=1.5.9.0
     , index-envs
     , nonempty-vector
-    , ral              ==0.1
+    , ral              ^>=0.2
     , random           >=1.2.0
 
 -- broken for ral-0.2 conflicts with cardano-binary:recursion-schemes

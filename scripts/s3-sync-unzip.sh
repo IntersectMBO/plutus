@@ -29,6 +29,7 @@ do
   if ! [ -f "${zipped%".bz2"}" ]; then
     set -x
     bunzip2 -k "$zipped"
+    rm "$zipped"
     { set +x; } 2>/dev/null
   fi
 done

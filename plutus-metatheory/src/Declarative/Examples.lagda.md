@@ -13,40 +13,41 @@ module Declarative.Examples where
 ## Imports
 
 ```
-open import Type
+open import Agda.Builtin.Int using (pos)
+open import Relation.Binary.PropositionalEquality using (refl)
+
+open import Type using (_⊢⋆_;_∋⋆_;Z;S)
+open _⊢⋆_
 import Type.RenamingSubstitution as ⋆
-open import Type.Equality
-open import Declarative
-open import Declarative.RenamingSubstitution
-open import Builtin
-open import Builtin.Constant.Type
-open import Builtin.Constant.Term
-open import Declarative.Examples.StdLib.Function
-
-open import Relation.Binary.PropositionalEquality renaming (subst to substEq) hiding ([_])
-open import Function
-open import Agda.Builtin.Int
-open import Data.Integer
-open import Data.Product renaming (_,_ to _,,_)
-open import Data.Nat
-open import Data.Unit
-
-import Declarative.Examples.StdLib.ChurchNat
+open import Type.Equality using (β≡β)
+open import Declarative using (Ctx;_⊢_;_∋_)
+open Ctx
+open _⊢_
+open _∋_
+open import Builtin using (addInteger)
+open import Builtin.Constant.Type using (TyCon;aInteger)
+open TyCon
+open import Declarative.Examples.StdLib.Function using (unwrap0;Z-comb)
+import Declarative.Examples.StdLib.ChurchNat using (inc;N;Succ;Zero;Iter)
+open import Type.Equality using (_≡β_)
+open _≡β_
 ```
 
 ## Examples
 
 ```
+integer = atomic aInteger
+
 module Builtins where
   open Declarative.Examples.StdLib.ChurchNat
 
-  con2 : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ con integer
-  con2 = con (integer (pos 2))
+  con2 : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ con (^ integer)
+  con2 = con {A = ^ integer} (pos 2) (refl≡β (^ (atomic aInteger)))
 
-  builtin2plus2 : ∅ ⊢ con integer
+  builtin2plus2 : ∅ ⊢ con (^ integer)
   builtin2plus2 = builtin addInteger · con2 · con2
 
-  builtininc2 : ∅ ⊢ con integer
+  builtininc2 : ∅ ⊢ con (^ integer)
   builtininc2 = inc · con2
 ```
 
@@ -68,7 +69,7 @@ From <http://lucacardelli.name/Papers/Notes/scott2.pdf>
          : N
     succ = λ n : N . Λ R . λ x : R . λ y : M → R . y (in n)
          : N → N
-    case = λ n : N . Λ R . λ a : R . λ f : N → N . n [R] a (f ∘ out)
+    mycase = λ n : N . Λ R . λ a : R . λ f : N → N . n [R] a (f ∘ out)
          : N → ∀ R . R → (N → R) → R
 -}
 
@@ -104,8 +105,8 @@ module ScottE where
   Four : ∅ ⊢ N
   Four = Succ · Three
 
-  case : ∀{Γ} → Γ ⊢ N ⇒ (Π (` Z ⇒ (N ⇒ ` Z) ⇒ ` Z))
-  case = ƛ (Λ (ƛ (ƛ ((` (S (S (T Z)))) ·⋆ (` Z) · (` (S Z)) · (ƛ (` (S Z) · unwrap • refl (` Z)))))))
+  mycase : ∀{Γ} → Γ ⊢ N ⇒ (Π (` Z ⇒ (N ⇒ ` Z) ⇒ ` Z))
+  mycase = ƛ (Λ (ƛ (ƛ ((` (S (S (T Z)))) ·⋆ (` Z) · (` (S Z)) · (ƛ (` (S Z) · unwrap • refl (` Z)))))))
 
   -- Y : (a -> a) -> a
   -- Y f = (\x. f (x x)) (\x. f (x x))
@@ -123,7 +124,7 @@ module ScottE where
   Z-comb = Λ {- a -} (Λ {- b -} (ƛ {- f -} (ƛ {- r -} (` (S Z) · ƛ {- x -} (unwrap • refl (` (S Z)) · ` (S Z) · ` Z)) · wrap (` Z ⇒ ` (S (S Z)) ⇒ ` (S Z)) • (ƛ {- r -} (` (S Z) · ƛ {- x -} (unwrap • refl (` (S Z)) · ` (S Z) · ` Z))) refl)))
 
   TwoPlus : ∀{Γ} → Γ ⊢ (N ⇒ N) ⇒ N ⇒ N
-  TwoPlus = ƛ (ƛ ((((case · (` Z)) ·⋆ N) · Two) · (ƛ (Succ · (` (S (S Z)) · (` Z))))))
+  TwoPlus = ƛ (ƛ ((((mycase · (` Z)) ·⋆ N) · Two) · (ƛ (Succ · (` (S (S Z)) · (` Z))))))
 
   TwoPlusOne : ∅ ⊢ N
   -- TwoPlusTwo = Y-comb ·⋆ (N ⇒ N) · TwoPlus · Two
@@ -132,7 +133,7 @@ module ScottE where
 
   -- Roman's more efficient version
   Plus : ∀ {Γ} → Γ ⊢ N ⇒ N ⇒ N
-  Plus = ƛ (ƛ ((Z-comb ·⋆ N) ·⋆ N · (ƛ (ƛ ((((case · ` Z) ·⋆ N) · ` (S (S (S Z)))) · (ƛ (Succ · (` (S (S Z)) · ` Z)))))) · ` (S Z)))
+  Plus = ƛ (ƛ ((Z-comb ·⋆ N) ·⋆ N · (ƛ (ƛ ((((mycase · ` Z) ·⋆ N) · ` (S (S (S Z)))) · (ƛ (Succ · (` (S (S Z)) · ` Z)))))) · ` (S Z)))
 
   TwoPlusTwo : ∅ ⊢ N
   TwoPlusTwo = (Plus · Two) · Two
@@ -201,18 +202,18 @@ module Scott1 where
   Four : ∅ ⊢ N
   Four = Succ · Three
 
-  case : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N ⇒ (Π (` Z ⇒ (N ⇒ ` Z) ⇒ ` Z))
-  case = ƛ (Λ (ƛ (ƛ (` (S (S (T Z))) ·⋆ ` Z · ` (S Z) · ƛ (` (S Z) · conv (β≡β _ _) (unwrap0 _ (` Z)))))))
+  mycase : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N ⇒ (Π (` Z ⇒ (N ⇒ ` Z) ⇒ ` Z))
+  mycase = ƛ (Λ (ƛ (ƛ (` (S (S (T Z))) ·⋆ ` Z · ` (S Z) · ƛ (` (S Z) · conv (β≡β _ _) (unwrap0 _ (` Z)))))))
 
   TwoPlus : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ (N ⇒ N) ⇒ N ⇒ N
-  TwoPlus = ƛ (ƛ ((((case · (` Z)) ·⋆ N) · Two) · (ƛ (Succ · (` (S (S Z)) · (` Z))))))
+  TwoPlus = ƛ (ƛ ((((mycase · (` Z)) ·⋆ N) · Two) · (ƛ (Succ · (` (S (S Z)) · (` Z))))))
 
   TwoPlusOne : ∅ ⊢ N
   TwoPlusOne = (Z-comb ·⋆ N) ·⋆ N · TwoPlus · One
 
   -- Roman's more efficient version
   Plus : ∀{Φ}{Γ : Ctx Φ} → Γ ⊢ N ⇒ N ⇒ N
-  Plus = ƛ (ƛ ((Z-comb ·⋆ N) ·⋆ N · (ƛ (ƛ ((((case · ` Z) ·⋆ N) · ` (S (S (S Z)))) · (ƛ (Succ · (` (S (S Z)) · ` Z)))))) · ` (S Z)))
+  Plus = ƛ (ƛ ((Z-comb ·⋆ N) ·⋆ N · (ƛ (ƛ ((((mycase · ` Z) ·⋆ N) · ` (S (S (S Z)))) · (ƛ (Succ · (` (S (S Z)) · ` Z)))))) · ` (S Z)))
 
   TwoPlusTwo : ∅ ⊢ N
   TwoPlusTwo = (Plus · Two) · Two
@@ -244,8 +245,6 @@ module Church where
 
   TwoPlusTwo' : ∅ ⊢ N
   TwoPlusTwo' = Two ·⋆ N · Two · Succ
-
---open Church public
 ```
 
 ```

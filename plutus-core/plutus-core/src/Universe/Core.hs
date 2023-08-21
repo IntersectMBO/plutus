@@ -44,15 +44,21 @@ module Universe.Core
     , GShow (..)
     , gshow
     , GEq (..)
+    , defaultEq
     , deriveGEq
     , deriveGCompare
     , (:~:)(..)
+    -- strictly we don't use this, but this is here
+    -- partially so we have a dependency on dependent-sum
+    -- directly and so can bound it
+    , DSum (..)
     ) where
 
 import Control.Applicative
 import Control.DeepSeq
 import Control.Monad
 import Control.Monad.Trans.State.Strict
+import Data.Dependent.Sum
 import Data.GADT.Compare
 import Data.GADT.Compare.TH
 import Data.GADT.DeepSeq
@@ -426,7 +432,7 @@ someValueOf :: forall a uni. uni (Esc a) -> a -> Some (ValueOf uni)
 someValueOf uni = Some . ValueOf uni
 
 -- | Wrap a value into @Some (ValueOf uni)@, provided its type is in the universe.
-someValue :: forall a uni. uni `Includes` a => a -> Some (ValueOf uni)
+someValue :: forall a uni. uni `Contains` a => a -> Some (ValueOf uni)
 someValue = someValueOf knownUni
 
 someValueType :: Some (ValueOf uni) -> SomeTypeIn uni

@@ -4,9 +4,8 @@ module PlutusCore.Analysis.Definitions
     ( UniqueInfos
     , ScopeType(..)
     , termDefs
-    , typeDefs
+    , handleType
     , runTermDefs
-    , runTypeDefs
     , addDef
     , addUsage
     ) where
@@ -15,12 +14,11 @@ import PlutusCore.Core
 import PlutusCore.Error
 import PlutusCore.Name
 
-import Data.Functor.Foldable
 
-import Control.Lens hiding (use, uses)
-import Control.Monad.Except
-import Control.Monad.State
-import Control.Monad.Writer
+import Control.Lens (forMOf_, (^.))
+import Control.Monad (when)
+import Control.Monad.State (MonadState, execStateT, gets, modify)
+import Control.Monad.Writer (MonadWriter, runWriterT, tell)
 
 import Data.Foldable
 import Data.Set qualified as Set
@@ -128,6 +126,8 @@ checkCoherency n (ScopedLoc tpe loc) (def, uses) = do
         checkLoc (ScopedLoc tpe' loc') = when (tpe' /= tpe) $
             tell [IncoherentUsage (n ^. theUnique) loc' loc]
 
+-- | Given a PLC term, add all of its term and type definitions and usages, including its subterms
+-- and subtypes, to a global map.
 termDefs
     :: (Ord ann,
         HasUnique name TermUnique,
@@ -136,26 +136,42 @@ termDefs
         MonadWriter [UniqueError ann] m)
     => Term tyname name uni fun ann
     -> m ()
-termDefs = cata $ \case
-    VarF ann n         -> addUsage n ann TermScope
-    LamAbsF ann n ty t -> addDef n ann TermScope >> typeDefs ty >> t
-    IWrapF _ pat arg t -> typeDefs pat >> typeDefs arg >> t
-    TyAbsF ann tn _ t  -> addDef tn ann TypeScope >> t
-    TyInstF _ t ty     -> t >> typeDefs ty
-    x                  -> sequence_ x
+termDefs tm = do
+   forMOf_ termSubtermsDeep tm handleTerm
+   forMOf_ termSubtypesDeep tm handleType
 
-typeDefs
+handleTerm :: (Ord ann,
+        HasUnique name TermUnique,
+        HasUnique tyname TypeUnique,
+        MonadState (UniqueInfos ann) m,
+        MonadWriter [UniqueError ann] m)
+    => Term tyname name uni fun ann
+    -> m ()
+handleTerm = \case
+    Var ann n         ->
+        addUsage n ann TermScope
+    LamAbs ann n _ _ -> do
+        addDef n ann TermScope
+    TyAbs ann tn _ _  -> do
+        addDef tn ann TypeScope
+    _                  -> pure ()
+
+-- | Given a type, add its type definition/usage, including its subtypes, to a global map.
+handleType
     :: (Ord ann,
         HasUnique tyname TypeUnique,
         MonadState (UniqueInfos ann) m,
         MonadWriter [UniqueError ann] m)
     => Type tyname uni ann
     -> m ()
-typeDefs = cata $ \case
-    TyVarF ann n         -> addUsage n ann TypeScope
-    TyForallF ann tn _ t -> addDef tn ann TypeScope >> t
-    TyLamF ann tn _ t    -> addDef tn ann TypeScope >> t
-    x                    -> sequence_ x
+handleType = \case
+    TyVar ann n         ->
+        addUsage n ann TypeScope
+    TyForall ann tn _ _ ->
+        addDef tn ann TypeScope
+    TyLam ann tn _ _    ->
+        addDef tn ann TypeScope
+    _                    -> pure ()
 
 runTermDefs
     :: (Ord ann,
@@ -165,11 +181,3 @@ runTermDefs
     => Term tyname name uni fun ann
     -> m (UniqueInfos ann, [UniqueError ann])
 runTermDefs = runWriterT . flip execStateT mempty . termDefs
-
-runTypeDefs
-    :: (Ord ann,
-        HasUnique tyname TypeUnique,
-        Monad m)
-    => Type tyname uni ann
-    -> m (UniqueInfos ann, [UniqueError ann])
-runTypeDefs = runWriterT . flip execStateT mempty . typeDefs

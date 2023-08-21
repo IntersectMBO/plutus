@@ -14,20 +14,20 @@ import Data.Word (Word64)
 import Hedgehog (MonadGen, Property, PropertyT, annotateShow, assert, forAll, property, tripping)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
+import List.Spec (listTests)
 import PlutusCore.Data (Data (B, Constr, I, List, Map))
 import PlutusTx.Enum (Enum (..))
-import PlutusTx.List (nub, nubBy, partition, sort, sortBy)
 import PlutusTx.Numeric (negate)
 import PlutusTx.Prelude (dropByteString, one, takeByteString)
 import PlutusTx.Ratio (Rational, denominator, numerator, recip, unsafeRatio)
 import PlutusTx.Sqrt (Sqrt (Approximately, Exactly, Imaginary), isqrt, rsqrt)
 import Prelude hiding (Enum (..), Rational, negate, recip)
+import Rational.Laws (lawsTests)
 import Show.Spec qualified
-import Suites.Laws (lawsTests)
 import Test.Tasty (TestTree, defaultMain, testGroup)
 import Test.Tasty.Extras (runTestNestedIn)
-import Test.Tasty.HUnit (Assertion, testCase, (@?=))
 import Test.Tasty.Hedgehog (testPropertyNamed)
+import Test.Tasty.HUnit (Assertion, testCase, (@?=))
 
 main :: IO ()
 main = defaultMain tests
@@ -259,43 +259,4 @@ enumFromToTests = testGroup "enumFromTo"
   [ testCase "enumFromTo (-2) 2 == [-2..2]" $ enumFromTo @Integer (-2) 2 @?= [-2..2]
   , testCase "enumFromTo 2 (-2) == []" $ enumFromTo @Integer 2 (-2) @?= []
   , testCase "enumFromTo 42 42 == [42]" $ enumFromTo @Integer 42 42 @?= [42]
-  ]
-
-listTests :: TestTree
-listTests = testGroup "List"
-  [ nubByTests
-  , nubTests
-  , partitionTests
-  , sortTests
-  , sortByTests
-  ]
-
-nubByTests :: TestTree
-nubByTests = testGroup "nubBy"
-  [ testCase "equal up to mod 3" $ nubBy (\x y -> mod x 3 == mod y 3) [1 :: Integer,2,4,5,6] @?= [1,2,6]
-  ]
-
-nubTests :: TestTree
-nubTests = testGroup "nub"
-  [ testCase "[] == []" $ nub [] @?= ([] :: [Integer])
-  , testCase "[1, 2, 2] == [1, 2]" $ nub [1 :: Integer, 2, 2] @?= [1, 2]
-  , testCase "[2, 1, 1] == [2, 1]" $ nub [2 :: Integer, 1, 1] @?= [2, 1]
-  , testCase "[1, 1, 1] == [1]" $ nub [1 :: Integer, 1, 1] @?= [1]
-  , testCase "[1, 2, 3, 4, 5] == [1, 2, 3, 4, 5]" $ nub [1 :: Integer, 2, 3, 4, 5] @?= [1, 2, 3, 4, 5]
-  ]
-
-partitionTests :: TestTree
-partitionTests = testGroup "partition"
-  [ testCase "partition \"aeiou\" \"Hello World!\"" $ (partition (`elem` ("aeiou" :: String)) "Hello World!") @?= ("eoo","Hll Wrld!")
-  , testCase "partition even [1,2,3,4,5,6]" $ (partition even [1 :: Int,2,3,4,5,6]) @?= ([2,4,6],[1,3,5])
-  ]
-
-sortTests :: TestTree
-sortTests = testGroup "sort"
-  [ testCase "sort [1,6,4,3,2,5]" $ (sort [1 :: Integer,6,4,3,2,5]) @?= [1,2,3,4,5,6]
-  ]
-
-sortByTests :: TestTree
-sortByTests = testGroup "sortBy"
-  [ testCase "sortBy second pairs" $ (sortBy (\(a,_) (b,_) -> compare a b) [(2 :: Integer, "world" :: String), (4, "!"), (1, "Hello")]) @?= [(1,"Hello"),(2,"world"),(4,"!")]
   ]

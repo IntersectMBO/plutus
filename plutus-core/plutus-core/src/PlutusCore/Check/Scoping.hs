@@ -1,20 +1,28 @@
 {-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE UndecidableInstances  #-}
+-- TODO: add @NoFieldSelectors@ once we are past antiquity, so that 'ScopeError' doesn't generate
+-- partial field selectors.
 
 module PlutusCore.Check.Scoping where
 
 import PlutusCore.Name
 import PlutusCore.Quote
 
-import Control.Monad.Except
+import Control.Monad (join, unless)
+import Data.Bifunctor
 import Data.Coerce
 import Data.List.NonEmpty (NonEmpty)
 import Data.List.NonEmpty qualified as NonEmpty
 import Data.Map.Strict as Map
 import Data.Maybe
 import Data.Set as Set
+import Text.Pretty
+import Text.PrettyBy
 
 {- Note [Example of a scoping check]
 Consider the following type:
@@ -99,6 +107,9 @@ data NameAnn
     | NotAName
     deriving stock (Show)
 
+instance Pretty NameAnn where
+    pretty = viaShow
+
 class ToScopedName name where
     toScopedName :: name -> ScopedName
 
@@ -161,9 +172,12 @@ data ScopeEntry
 -- | A 'ScopeInfo' is a set of 'ScopedName's for each of the 'ScopeEntry'.
 -- If a 'ScopeEntry' is not present in the map, the corresponding set of 'ScopeName's is considered
 -- to be empty.
-newtype ScopeInfo = ScopeInfo
-    { unScopeInfo :: Map ScopeEntry (Set ScopedName)
-    } deriving stock (Show)
+newtype ScopeInfo = ScopeInfo (Map ScopeEntry (Set ScopedName))
+    deriving stock (Show)
+
+-- Defining manually because of plan to move to @NoFieldSelectors@.
+unScopeInfo :: ScopeInfo -> Map ScopeEntry (Set ScopedName)
+unScopeInfo = coerce
 
 -- | Extract the set stored in the provided 'ScopeInfo' at the provided 'ScopeEntry'.
 to :: ScopeEntry -> ScopeInfo -> Set ScopedName
@@ -173,27 +187,40 @@ emptyScopeInfo :: ScopeInfo
 emptyScopeInfo = ScopeInfo Map.empty
 
 -- | Check if a set is empty and report an error with the set embedded in it otherwise.
-checkEmpty :: (Set ScopedName -> ScopeError) -> Set ScopedName -> Either ScopeError ()
-checkEmpty err s = unless (Set.null s) . Left $ err s
+checkEmptyOn
+    :: (Set ScopedName -> Set ScopedName -> Set ScopedName)
+    -> (Set ScopedName -> Set ScopedName -> ScopeError)
+    -> Set ScopedName
+    -> Set ScopedName
+    -> Either ScopeError ()
+checkEmptyOn f err s1 s2 = unless (Set.null $ f s1 s2) . Left $ err s1 s2
 
--- | Merge two 'ScopeInfo's checking that they do not intersect along the way.
+-- | Merge two 'ScopeInfo's checking that binders in them do not intersect along the way.
 mergeScopeInfo :: ScopeInfo -> ScopeInfo -> Either ScopeError ScopeInfo
 mergeScopeInfo si1 si2 = do
     let disappearedBindings1 = to DisappearedBindings si1
         disappearedBindings2 = to DisappearedBindings si2
         appearedBindings1    = to AppearedBindings    si1
         appearedBindings2    = to AppearedBindings    si2
-        duplicateDisappearedBindings = disappearedBindings1 `Set.intersection` disappearedBindings2
-        duplicateAppearedBindings    = appearedBindings1    `Set.intersection` appearedBindings2
-    checkEmpty DuplicateBindersInTheInput  duplicateDisappearedBindings
-    checkEmpty DuplicateBindersInTheOutput duplicateAppearedBindings
+    checkEmptyOn
+        Set.intersection
+        DuplicateBindersInTheInput
+        disappearedBindings1
+        disappearedBindings2
+    checkEmptyOn
+        Set.intersection
+        DuplicateBindersInTheOutput
+        appearedBindings1
+        appearedBindings2
     Right $ coerce (Map.unionWith Set.union) si1 si2
 
+-- We might want to use @Validation@ or something instead of 'Either'.
 -- @newtype@-ing it for the sake of providing very convenient 'Semigroup' and 'Monoid' instances.
-newtype ScopeErrorOrInfo = ScopeErrorOrInfo
-    -- We might want to use @Validation@ or something instead of 'Either'.
-    { unScopeErrorOrInfo :: Either ScopeError ScopeInfo
-    }
+newtype ScopeErrorOrInfo = ScopeErrorOrInfo (Either ScopeError ScopeInfo)
+
+-- Defining manually because of plan to move to @NoFieldSelectors@.
+unScopeErrorOrInfo :: ScopeErrorOrInfo -> Either ScopeError ScopeInfo
+unScopeErrorOrInfo = coerce
 
 instance Semigroup ScopeErrorOrInfo where
     ScopeErrorOrInfo errOrInfo1 <> ScopeErrorOrInfo errOrInfo2 =
@@ -201,6 +228,13 @@ instance Semigroup ScopeErrorOrInfo where
 
 instance Monoid ScopeErrorOrInfo where
     mempty = ScopeErrorOrInfo $ Right emptyScopeInfo
+
+-- | Whether it's OK if the pass removes bindings. A renamer isn't supposed to do that, but for
+-- example an inliner may do it, since it's basically the entire point of an inliner.
+data BindingRemoval
+    = BindingRemovalOk
+    | BindingRemovalNotOk
+    deriving stock (Show, Eq)
 
 -- ########################################################################
 -- ## Main class for collecting scope information and relevant functions ##
@@ -275,19 +309,49 @@ establishScopingBinder binder name sort value = do
 
 -- | Every kind of error thrown by the scope checking machinery at different stages.
 data ScopeError
-    = UnannotatedName ScopedName
-    | NameChangedItsScope ScopedName ScopedName
-    | NameUnexpectedlyDisappeared ScopedName ScopedName
-    | NameUnexpectedlyStayed ScopedName
-    | DuplicateBindersInTheInput (Set ScopedName)
-    | DuplicateBindersInTheOutput (Set ScopedName)
-    | OldBindingsDiscordWithBoundVariables (Set ScopedName)
-    | OldBindingsDiscordWithOutOfScopeVariables (Set ScopedName)
-    | NewBindingsDiscordWithBoundVariables (Set ScopedName)
-    | OldBindingsClashWithFreeVariables (Set ScopedName)
-    | OldBindingsClashWithNewBindings (Set ScopedName)
-    | NewBindingsClashWithFreeVariabes (Set ScopedName)
+    = UnannotatedName !ScopedName
+    | NameChangedItsScope
+        { _oldName :: !ScopedName
+        , _newName :: !ScopedName
+        }
+    | NameUnexpectedlyDisappeared
+        { _oldName :: !ScopedName
+        , _newName :: !ScopedName
+        }
+    | NameUnexpectedlyStayed !ScopedName
+    | DuplicateBindersInTheInput
+        { _duplicateBindersLeft  :: !(Set ScopedName)
+        , _duplicateBindersRight :: !(Set ScopedName)
+        }
+    | DuplicateBindersInTheOutput !(Set ScopedName) !(Set ScopedName)
+    | DisappearedBindingsDiscordWithBoundVariables
+        { _disappearedBindings :: !(Set ScopedName)
+        , _boundVariables      :: !(Set ScopedName)
+        }
+    | DisappearedBindingsDiscordWithOutOfScopeVariables
+        { _disappearedBindings :: !(Set ScopedName)
+        , _outOfScopeVariables :: !(Set ScopedName)
+        }
+    | AppearedBindingsDiscordWithBoundVariables
+        { _appearedBindings :: !(Set ScopedName)
+        , _boundVariables   :: !(Set ScopedName)
+        }
+    | DisappearedBindingsClashWithFreeVariables
+        { _disappearedBindings :: !(Set ScopedName)
+        , _freeVariables       :: !(Set ScopedName)
+        }
+    | DisappearedBindingsClashWithAppearedBindings
+        { _disppearedBindings :: !(Set ScopedName)
+        , _appearedBindings   :: !(Set ScopedName)
+        }
+    | AppearedBindingsClashWithFreeVariabes
+        { _appearedBindings :: !(Set ScopedName)
+        , _freeVariables    :: !(Set ScopedName)
+        }
     deriving stock (Show)
+
+instance Pretty ScopeError where
+    pretty = viaShow
 
 -- | Override the set at the provided 'ScopeEntry' to contain only the provided 'ScopedName'.
 overrideSname :: ScopeEntry -> ScopedName -> ScopeInfo -> ScopeInfo
@@ -337,7 +401,7 @@ We start with these three relations that are based on the assumption that for ea
 at least one out-of-scope variable and at least one in-scope one:
 
 1. disappeared bindings should be the same as stayed out of scope variables
-     (an internal sanity check)
+     (ensures that old bindings disappear via renaming and not via removal)
 2. disappeared bindings should be the same as disappeared variables
      (ensures that old names consistently disappear at the binding and use sites)
 3. appeared bindings should be the same as appeared variables
@@ -353,29 +417,81 @@ so we only need to consider three more relations:
 
 The last two ensure that no new name has an old name's unique.
 -}
-checkScopeInfo :: ScopeInfo -> Either ScopeError ()
-checkScopeInfo scopeInfo = do
+checkScopeInfo :: BindingRemoval -> ScopeInfo -> Either ScopeError ()
+checkScopeInfo bindRem scopeInfo = do
     let disappearedBindings       = to DisappearedBindings       scopeInfo
         disappearedVariables      = to DisappearedVariables      scopeInfo
         appearedBindings          = to AppearedBindings          scopeInfo
         appearedVariables         = to AppearedVariables         scopeInfo
         stayedOutOfScopeVariables = to StayedOutOfScopeVariables scopeInfo
         stayedFreeVariables       = to StayedFreeVariables       scopeInfo
-    checkEmpty OldBindingsDiscordWithOutOfScopeVariables $
-        disappearedBindings `symmetricDifference` stayedOutOfScopeVariables
-    checkEmpty OldBindingsDiscordWithBoundVariables $
-        disappearedBindings `symmetricDifference` disappearedVariables
-    checkEmpty NewBindingsDiscordWithBoundVariables $
-        appearedBindings `symmetricDifference` appearedVariables
-    checkEmpty OldBindingsClashWithFreeVariables $
-        disappearedBindings `Set.intersection` stayedFreeVariables
-    checkEmpty OldBindingsClashWithNewBindings $
-        appearedBindings  `Set.intersection` disappearedBindings
-    checkEmpty NewBindingsClashWithFreeVariabes $
-        appearedBindings `Set.intersection` stayedFreeVariables
+    unless (bindRem == BindingRemovalOk) $ do
+        checkEmptyOn
+            symmetricDifference
+            DisappearedBindingsDiscordWithOutOfScopeVariables
+            disappearedBindings
+            stayedOutOfScopeVariables
+    checkEmptyOn
+        symmetricDifference
+        DisappearedBindingsDiscordWithBoundVariables
+        disappearedBindings
+        disappearedVariables
+    checkEmptyOn
+        symmetricDifference
+        AppearedBindingsDiscordWithBoundVariables
+        appearedBindings
+        appearedVariables
+    checkEmptyOn
+        Set.intersection
+        DisappearedBindingsClashWithFreeVariables
+        disappearedBindings
+        stayedFreeVariables
+    checkEmptyOn
+        Set.intersection
+        DisappearedBindingsClashWithAppearedBindings
+        appearedBindings
+        disappearedBindings
+    checkEmptyOn
+        Set.intersection
+        AppearedBindingsClashWithFreeVariabes
+        appearedBindings
+        stayedFreeVariables
+
+-- | The type of errors that the scope checking machinery returns.
+data ScopeCheckError t = ScopeCheckError
+    { _input  :: !(t NameAnn)  -- ^ What got fed to the scoping check pass.
+    , _output :: !(t NameAnn)  -- ^ What got out of it.
+    , _error  :: !ScopeError   -- ^ The error returned by the scoping check pass.
+    }
+
+deriving stock instance Show (t NameAnn) => Show (ScopeCheckError t)
+
+instance PrettyBy config (t NameAnn) => PrettyBy config (ScopeCheckError t) where
+    prettyBy config (ScopeCheckError input output err) = vsep
+        [ pretty err
+        , "when checking that transformation of" <> hardline
+        , indent 2 $ prettyBy config input <> hardline
+        , "to" <> hardline
+        , indent 2 $ prettyBy config output <> hardline
+        , "is correct"
+        ]
 
 -- See Note [Example of a scoping check].
--- | Check if a renamer respects scoping.
-checkRespectsScoping :: Scoping t => (t NameAnn -> t NameAnn) -> t ann -> Either ScopeError ()
-checkRespectsScoping ren =
-    checkScopeInfo <=< unScopeErrorOrInfo . collectScopeInfo . ren . runQuote . establishScoping
+-- | Check if a pass respects scoping.
+--
+-- Returns the thing that the scoping tests run on, the result of the pass and the scope checking
+-- outcome, respectively.
+checkRespectsScoping
+    :: Scoping t
+    => BindingRemoval
+    -> (t NameAnn -> t NameAnn)  -- ^ For preparation before running the scoping tests.
+                                 --   Commonly, either @runQuote . rename@ or @id@.
+    -> (t NameAnn -> t NameAnn)  -- ^ The runner of the pass.
+    -> t ann
+    -> Either (ScopeCheckError t) ()
+checkRespectsScoping bindRem prep run thing =
+    first (ScopeCheckError input output) $
+        unScopeErrorOrInfo (collectScopeInfo output) >>= checkScopeInfo bindRem
+  where
+    input  = prep . runQuote $ establishScoping thing
+    output = run input

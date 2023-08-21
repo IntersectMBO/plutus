@@ -5,6 +5,7 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE LambdaCase             #-}
 {-# LANGUAGE PolyKinds              #-}
+{-# LANGUAGE TupleSections          #-}
 {-# LANGUAGE TypeApplications       #-}
 {-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE TypeOperators          #-}
@@ -13,6 +14,9 @@
 module PlutusCore.MkPlc
     ( TermLike (..)
     , UniOf
+    , HasTypeLevel
+    , HasTermLevel
+    , HasTypeAndTermLevel
     , mkTyBuiltinOf
     , mkTyBuiltin
     , mkConstantOf
@@ -38,19 +42,25 @@ module PlutusCore.MkPlc
     , mkIterTyForall
     , mkIterTyLam
     , mkIterApp
+    , mkIterAppNoAnn
+    , (@@)
     , mkIterTyFun
     , mkIterLamAbs
     , mkIterInst
+    , mkIterInstNoAnn
     , mkIterTyAbs
     , mkIterTyApp
+    , mkIterTyAppNoAnn
     , mkIterKindArrow
     ) where
 
 import PlutusPrelude
 import Prelude hiding (error)
 
+import PlutusCore.Builtin
 import PlutusCore.Core
 
+import Data.Word
 import Universe
 
 -- | A final encoding for Term, to allow PLC terms to be used transparently as PIR terms.
@@ -65,6 +75,9 @@ class TermLike term tyname name uni fun | term -> tyname name uni fun where
     unwrap   :: ann -> term ann -> term ann
     iWrap    :: ann -> Type tyname uni ann -> Type tyname uni ann -> term ann -> term ann
     error    :: ann -> Type tyname uni ann -> term ann
+    constr   :: ann -> Type tyname uni ann -> Word64 -> [term ann] -> term ann
+    kase     :: ann -> Type tyname uni ann -> term ann -> [term ann] -> term ann
+
     termLet  :: ann -> TermDef term tyname name uni ann -> term ann -> term ann
     typeLet  :: ann -> TypeDef tyname uni ann -> term ann -> term ann
 
@@ -77,14 +90,6 @@ class TermLike term tyname name uni fun | term -> tyname name uni fun where
 mkTyBuiltinOf :: forall k (a :: k) uni tyname ann. ann -> uni (Esc a) -> Type tyname uni ann
 mkTyBuiltinOf ann = TyBuiltin ann . SomeTypeIn
 
--- TODO: make it @forall {k}@ once we have that.
--- (see https://github.com/ghc-proposals/ghc-proposals/blob/master/proposals/0099-explicit-specificity.rst)
--- | Embed a type (provided it's in the universe) into a PLC type.
-mkTyBuiltin
-    :: forall k (a :: k) uni tyname ann. uni `Contains` a
-    => ann -> Type tyname uni ann
-mkTyBuiltin ann = mkTyBuiltinOf ann $ knownUni @_ @uni @a
-
 -- | Embed a Haskell value (given its explicit type tag) into a PLC term.
 mkConstantOf
     :: forall a uni fun term tyname name ann. TermLike term tyname name uni fun
@@ -93,7 +98,8 @@ mkConstantOf ann uni = constant ann . someValueOf uni
 
 -- | Embed a Haskell value (provided its type is in the universe) into a PLC term.
 mkConstant
-    :: forall a uni fun term tyname name ann. (TermLike term tyname name uni fun, uni `Includes` a)
+    :: forall a uni fun term tyname name ann.
+       (TermLike term tyname name uni fun, uni `HasTermLevel` a)
     => ann -> a -> term ann
 mkConstant ann = constant ann . someValue
 
@@ -108,6 +114,8 @@ instance TermLike (Term tyname name uni fun) tyname name uni fun where
     unwrap   = Unwrap
     iWrap    = IWrap
     error    = Error
+    constr   = Constr
+    kase     = Case
 
 embed :: TermLike term tyname name uni fun => Term tyname name uni fun ann -> term ann
 embed = \case
@@ -121,6 +129,8 @@ embed = \case
     Error a ty        -> error a ty
     Unwrap a t        -> unwrap a (embed t)
     IWrap a ty1 ty2 t -> iWrap a ty1 ty2 (embed t)
+    Constr a ty i es  -> constr a ty i (fmap embed es)
+    Case a ty arg cs  -> kase a ty (embed arg) (fmap embed cs)
 
 -- | Make a 'Var' referencing the given 'VarDecl'.
 mkVar :: TermLike term tyname name uni fun => ann -> VarDecl tyname name uni ann -> term ann
@@ -202,23 +212,46 @@ mkImmediateTyAbs
 mkImmediateTyAbs ann1 (Def (TyVarDecl ann2 name k) bind) body =
     tyInst ann1 (tyAbs ann2 name k body) bind
 
--- | Make an iterated application.
+-- | Make an iterated application. Each `apply` node uses the annotation associated with
+-- the corresponding argument.
 mkIterApp
     :: TermLike term tyname name uni fun
-    => ann
-    -> term ann -- ^ @f@
-    -> [term ann] -- ^@[ x0 ... xn ]@
-    -> term ann -- ^ @[f x0 ... xn ]@
-mkIterApp ann = foldl' (apply ann)
+    => term ann
+    -> [(ann, term ann)]
+    -> term ann
+mkIterApp = foldl' $ \acc (ann, arg) -> apply ann acc arg
 
--- | Make an iterated instantiation.
+-- | Make an iterated application with no annotation.
+mkIterAppNoAnn
+    :: TermLike term tyname name uni fun
+    => term () -- ^ @f@
+    -> [term ()] -- ^ @[ x0 ... xn ]@
+    -> term () -- ^ @[f x0 ... xn ]@
+mkIterAppNoAnn term = mkIterApp term . fmap ((),)
+
+-- | An infix synonym for `mkIterAppNoAnn`
+(@@) :: TermLike term tyname name uni fun
+     => term () -- ^ @f@
+     -> [term ()] -- ^ @[ x0 ... xn ]@
+     -> term () -- ^ @[f x0 ... xn ]@
+(@@) = mkIterAppNoAnn
+
+-- | Make an iterated instantiation. Each `tyInst` node uses the annotation associated with
+-- the corresponding argument.
 mkIterInst
     :: TermLike term tyname name uni fun
-    => ann
-    -> term ann -- ^ @a@
-    -> [Type tyname uni ann] -- ^ @ [ x0 ... xn ] @
+    => term ann -- ^ @a@
+    -> [(ann, Type tyname uni ann)] -- ^ @ [ x0 ... xn ] @
     -> term ann -- ^ @{ a x0 ... xn }@
-mkIterInst ann = foldl' (tyInst ann)
+mkIterInst = foldl' $ \acc (ann, arg) -> tyInst ann acc arg
+
+-- | Make an iterated instantiation with no annotation.
+mkIterInstNoAnn
+    :: TermLike term tyname name uni fun
+    => term () -- ^ @a@
+    -> [Type tyname uni ()] -- ^ @ [ x0 ... xn ] @
+    -> term () -- ^ @{ a x0 ... xn }@
+mkIterInstNoAnn term = mkIterInst term . fmap ((),)
 
 -- | Lambda abstract a list of names.
 mkIterLamAbs
@@ -238,13 +271,20 @@ mkIterTyAbs
 mkIterTyAbs args body =
     foldr (\(TyVarDecl ann name kind) acc -> tyAbs ann name kind acc) body args
 
--- | Make an iterated type application.
+-- | Make an iterated type application. Each `TyApp` node uses the annotation associated with
+-- the corresponding argument.
 mkIterTyApp
-    :: ann
-    -> Type tyname uni ann -- ^ @f@
-    -> [Type tyname uni ann] -- ^ @[ x0 ... xn ]@
+    :: Type tyname uni ann -- ^ @f@
+    -> [(ann, Type tyname uni ann)] -- ^ @[ x0 ... xn ]@
     -> Type tyname uni ann -- ^ @[ f x0 ... xn ]@
-mkIterTyApp ann = foldl' (TyApp ann)
+mkIterTyApp = foldl' $ \acc (ann, arg) -> TyApp ann acc arg
+
+-- | Make an iterated type application with no annotation.
+mkIterTyAppNoAnn
+    :: Type tyname uni () -- ^ @f@
+    -> [Type tyname uni ()] -- ^ @[ x0 ... xn ]@
+    -> Type tyname uni () -- ^ @[ f x0 ... xn ]@
+mkIterTyAppNoAnn ty = mkIterTyApp ty . fmap ((),)
 
 -- | Make an iterated function type.
 mkIterTyFun

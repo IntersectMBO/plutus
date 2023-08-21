@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE BlockArguments        #-}
 {-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE DataKinds             #-}
@@ -42,6 +41,7 @@ import PlutusCore.Builtin.Polymorphism
 import PlutusCore.Core
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Result
+import PlutusCore.Pretty
 
 import Control.Monad.Except
 import Data.DList (DList)
@@ -57,7 +57,7 @@ import Universe
 -- | A constraint for \"@a@ is a 'ReadKnownIn' and 'MakeKnownIn' by means of being included
 -- in @uni@\".
 type KnownBuiltinTypeIn uni val a =
-    (HasConstantIn uni val, Pretty (SomeTypeIn uni), GEq uni, uni `Contains` a)
+    (HasConstantIn uni val, PrettyParens (SomeTypeIn uni), GEq uni, uni `HasTermLevel` a)
 
 -- | A constraint for \"@a@ is a 'ReadKnownIn' and 'MakeKnownIn' by means of being included
 -- in @UniOf term@\".
@@ -71,7 +71,8 @@ https://github.com/input-output-hk/plutus/pull/4307
 Replacing the @AsUnliftingError err, AsEvaluationFailure err@ constraints with the dedicated
 'KnownTypeError' data type gave us a speedup of up to 4%.
 
-All the same considerations apply to 'makeKnown': https://github.com/input-output-hk/plutus/pull/4421
+All the same considerations apply to 'makeKnown':
+https://github.com/input-output-hk/plutus/pull/4421
 
 It's beneficial to inline 'readKnown' and 'makeKnown' not only because we use them directly over
 concrete types once 'toBuiltinsRuntime' is inlined, but also because otherwise GHC compiles each of
@@ -254,14 +255,14 @@ throwKnownTypeErrorWithCause cause = \case
     KnownTypeEvaluationFailure     -> throwingWithCause _EvaluationFailure () $ Just cause
 
 typeMismatchError
-    :: Pretty (SomeTypeIn uni)
+    :: PrettyParens (SomeTypeIn uni)
     => uni (Esc a)
     -> uni (Esc b)
     -> UnliftingError
 typeMismatchError uniExp uniAct = fromString $ concat
     [ "Type mismatch: "
-    , "expected: " ++ display (SomeTypeIn uniExp)
-    , "; actual: " ++ display (SomeTypeIn uniAct)
+    , "expected: " ++ render (prettyBy botRenderContext $ SomeTypeIn uniExp)
+    , "; actual: " ++ render (prettyBy botRenderContext $ SomeTypeIn uniAct)
     ]
 -- Just for tidier Core to get generated, we don't care about performance here, since it's just a
 -- failure message and evaluation is about to be shut anyway.

@@ -1,0 +1,10 @@
+program
+  1.1.0
+  (\m ->
+     force
+       (force ifThenElse
+          (lessThanInteger m 0)
+          (delay
+             ((\n -> (\y -> addInteger (force n) y) (force n))
+                (delay (error m))))
+          (delay m)))

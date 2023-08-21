@@ -17,7 +17,6 @@ module PlutusLedgerApi.Test.EvaluationEvent (
 ) where
 
 import PlutusCore.Data qualified as PLC
-import PlutusCore.Evaluation.Machine.ExBudget (ExBudget)
 import PlutusCore.Pretty
 import PlutusLedgerApi.Common
 import PlutusLedgerApi.V1 qualified as V1
@@ -31,6 +30,7 @@ import Data.Text.Encoding qualified as Text
 import GHC.Generics (Generic)
 import Prettyprinter
 import PyF (fmt)
+
 
 data ScriptEvaluationResult = ScriptEvaluationSuccess | ScriptEvaluationFailure
     deriving stock (Show, Generic)
@@ -138,22 +138,20 @@ instance Pretty UnexpectedEvaluationResult where
 
 data TestFailure
     = InvalidResult UnexpectedEvaluationResult
-    | MissingCostParametersFor LedgerPlutusVersion
+    | MissingCostParametersFor PlutusLedgerLanguage
 
 renderTestFailure :: TestFailure -> String
 renderTestFailure = \case
     InvalidResult err -> display err
-    MissingCostParametersFor ver ->
-        [fmt|
-Missing cost parameters for {show ver}. Report this as a bug
-against the script dumper in plutus-apps."
-|]
+    MissingCostParametersFor ver -> [fmt|
+        Missing cost parameters for {show ver}.
+        Report this as a bug against the script dumper in plutus-apps.
+    |]
 
 renderTestFailures :: NonEmpty TestFailure -> String
-renderTestFailures xs =
-    [fmt|
-Number of failed test cases: {length xs}
-{unlines . fmap renderTestFailure $ toList xs}
+renderTestFailures xs = [fmt|
+    Number of failed test cases: {length xs}
+    {unlines . fmap renderTestFailure $ toList xs}
 |]
 
 -- | Re-evaluate an on-chain script evaluation event.

@@ -1,0 +1,4 @@
+all a.
+  (\a -> ifix (\(list :: * -> *) a -> all r. r -> (a -> list a -> r) -> r) a)
+    a ->
+  (\a -> ifix (\(list :: * -> *) a -> all r. r -> (a -> list a -> r) -> r) a) a

@@ -9,7 +9,6 @@ module PlutusCore.Evaluation.Machine.ExBudgetingDefaults
     , defaultCekMachineCosts
     , defaultCekParameters
     , defaultCostModelParams
-    , defaultUnliftingMode
     , defaultBuiltinCostModel
     , unitCekMachineCosts
     , unitCekParameters
@@ -29,8 +28,9 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts
 import UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 
 import Data.Aeson.THReader
+-- Not using 'noinline' from "GHC.Exts", because our CI was unable to find it there, somehow.
+import GHC.Magic (noinline)
 import PlutusPrelude
-
 
 -- | The default cost model for built-in functions.
 defaultBuiltinCostModel :: BuiltinCostModel
@@ -75,19 +75,24 @@ defaultCekCostModel = CostModel defaultCekMachineCosts defaultBuiltinCostModel
 defaultCostModelParams :: Maybe CostModelParams
 defaultCostModelParams = extractCostModelParams defaultCekCostModel
 
-defaultUnliftingMode :: UnliftingMode
-defaultUnliftingMode = UnliftingImmediate
+defaultCekParameters :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
+defaultCekParameters = mkMachineParameters def defaultCekCostModel
 
-defaultCekParameters :: MachineParameters CekMachineCosts CekValue DefaultUni DefaultFun
-defaultCekParameters = mkMachineParameters def defaultUnliftingMode defaultCekCostModel
+{- Note [noinline for saving on ticks]
+We use 'noinline' purely for saving on simplifier ticks for definitions, whose performance doesn't
+matter. Otherwise compilation for this module is slower and GHC may end up exhausting simplifier
+ticks leading to a compilation error.
+-}
 
-unitCekParameters :: MachineParameters CekMachineCosts CekValue DefaultUni DefaultFun
+unitCekParameters :: Typeable ann => MachineParameters CekMachineCosts DefaultFun (CekValue DefaultUni DefaultFun ann)
 unitCekParameters =
-    mkMachineParameters def defaultUnliftingMode $
+    -- See Note [noinline for saving on ticks].
+    noinline mkMachineParameters def $
         CostModel unitCekMachineCosts unitCostBuiltinCostModel
 
 defaultBuiltinsRuntime :: HasMeaningIn DefaultUni term => BuiltinsRuntime DefaultFun term
-defaultBuiltinsRuntime = toBuiltinsRuntime def defaultUnliftingMode defaultBuiltinCostModel
+-- See Note [noinline for saving on ticks].
+defaultBuiltinsRuntime = noinline toBuiltinsRuntime def defaultBuiltinCostModel
 
 
 -- A cost model with unit costs, so we can count how often each builtin is called
@@ -172,4 +177,26 @@ unitCostBuiltinCostModel = BuiltinCostModelBase
     , paramMkNilData                       = unitCostOneArgument
     , paramMkNilPairData                   = unitCostOneArgument
     , paramSerialiseData                   = unitCostOneArgument
+    -- BLS12-381 operations
+    , paramBls12_381_G1_add                = unitCostTwoArguments
+    , paramBls12_381_G1_neg                = unitCostOneArgument
+    , paramBls12_381_G1_scalarMul          = unitCostTwoArguments
+    , paramBls12_381_G1_equal              = unitCostTwoArguments
+    , paramBls12_381_G1_compress           = unitCostOneArgument
+    , paramBls12_381_G1_uncompress         = unitCostOneArgument
+    , paramBls12_381_G1_hashToGroup        = unitCostTwoArguments
+    , paramBls12_381_G2_add                = unitCostTwoArguments
+    , paramBls12_381_G2_neg                = unitCostOneArgument
+    , paramBls12_381_G2_scalarMul          = unitCostTwoArguments
+    , paramBls12_381_G2_equal              = unitCostTwoArguments
+    , paramBls12_381_G2_compress           = unitCostOneArgument
+    , paramBls12_381_G2_uncompress         = unitCostOneArgument
+    , paramBls12_381_G2_hashToGroup        = unitCostTwoArguments
+    , paramBls12_381_millerLoop            = unitCostTwoArguments
+    , paramBls12_381_mulMlResult           = unitCostTwoArguments
+    , paramBls12_381_finalVerify           = unitCostTwoArguments
+    -- Keccak_256, Blake2b_224
+    , paramKeccak_256                      = unitCostOneArgument
+    , paramBlake2b_224                     = unitCostOneArgument
     }
+

@@ -1,0 +1,13 @@
+(let
+  (nonrec)
+  (termbind (strict) (vardecl appNum (con integer)) (con integer 4))
+  (let
+    (nonrec)
+    (termbind
+      (strict)
+      (vardecl funApp (fun (con integer) (con integer)))
+      (lam x (con integer) [ [ (builtin addInteger) appNum ] x ])
+    )
+    [ funApp appNum ]
+  )
+)

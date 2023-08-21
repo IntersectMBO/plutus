@@ -1,8 +1,8 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE BangPatterns        #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
+{-# LANGUAGE TypeOperators       #-}
 module Main where
 
 import Criterion.Main
@@ -71,7 +71,8 @@ query [] _     = ()
 query (i:is) d = indexZero d i `seq` query is d
 
 -- | A mixed worload.
-mix :: (RandomAccessList e, Element e ~ ()) => Word64 -> Word64 -> Word64 -> Word64 -> Word64 -> [Word64] -> e -> Element e
+mix :: (RandomAccessList e, Element e ~ ()) =>
+    Word64 -> Word64 -> Word64 -> Word64 -> Word64 -> [Word64] -> e -> Element e
 mix sz front cons1 back cons2 rand d =
     query [0..front] d
     `seq`

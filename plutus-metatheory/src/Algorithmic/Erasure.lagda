@@ -1,42 +1,56 @@
 \begin{code}
-{-# OPTIONS --rewriting #-}
 {-# OPTIONS --injective-type-constructors #-}
 
 module Algorithmic.Erasure where
 \end{code}
 
 \begin{code}
+open import Agda.Primitive using (lzero)
+open import Data.Nat using (ℕ)
+open import Function using (_∘_;id)
+open import Data.Nat using (_+_)
+open import Data.Nat.Properties using (+-cancelˡ-≡)
+open import Data.Fin using (Fin;zero;suc;toℕ)
+open import Data.List.Properties using (map-compose;map-id)
+open import Data.Vec using (Vec;lookup)
+open import Data.Product using () renaming (_,_ to _,,_)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;subst;trans;sym;cong₂;cong-app)
+open import Data.Empty using (⊥)
+open import Data.Unit using (tt)
+
 open import Algorithmic as A
-open import Untyped
---open import Untyped.RenamingSubstitution as U
-open import Type.BetaNormal
-open import Type.BetaNBE
-open import Type.BetaNBE.Completeness
-open import Utils
-open import Type
-open import Type.BetaNBE.RenamingSubstitution
-open import Function hiding (_∋_)
-open import Builtin hiding (length)
-import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con as DC renaming (TermCon to TyTermCon)
-import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con as AC renaming (TermCon to TyTermCon)
+open import Untyped using (_⊢)
+open _⊢
+
+open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;ren-embNf;embNf)
+open _⊢Nf⋆_
+open _⊢Ne⋆_
+
+open import Type.BetaNBE using (nf;reflect;eval-VecList;lookup-eval-VecList )
+open import Type.BetaNBE.Completeness using (completeness)
+open import Utils using (Kind;*;Maybe;nothing;just;fromList;map-cong)
+open import Utils.List using (List;IList;[];_∷_;map)
+open import RawU using (TmCon;tmCon;TyTag)
+open import Builtin.Signature using (_⊢♯)
+open _⊢♯ 
+open import Builtin.Constant.Type
+
+open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_;_∋⋆_;S;Z)
+open _⊢⋆_
+
+open import Type.BetaNBE.RenamingSubstitution using (ren-nf;subNf-lemma')
+open import Type.BetaNBE.Stability using (stability)
+
+open import Builtin using (Builtin)
 open import Type.RenamingSubstitution as T
-open import Type.Equality
-open import Type.BetaNBE.Soundness
-open import Utils
 
-
-open import Data.Nat
-open import Data.Nat.Properties
-open import Data.Fin using (Fin;zero;suc)
-open import Data.List using (List;length;[];_∷_)
-open import Data.Vec hiding (length)
-open import Data.Product renaming (_,_ to _,,_)
-open import Relation.Binary.PropositionalEquality
+import Declarative as D
+import Declarative.Erasure as D
+open import Algorithmic.Completeness using (nfCtx;nfTyVar;nfType;lemΠ;lem[];stability-μ;btype-lem;nfType-ConstrArgs;nfType-Cases;lemma-mkCaseType)
+open import Algorithmic.Soundness using (embCtx;embVar;emb;emb-ConstrArgs;lema-mkCaseType)
 \end{code}
 
 \begin{code}
-open import Data.Empty
-
 len⋆ : Ctx⋆ → Set
 len⋆ ∅        = ⊥
 len⋆ (Γ ,⋆ K) = Maybe (len⋆ Γ)
@@ -53,25 +67,37 @@ eraseVar Z     = nothing
 eraseVar (S α) = just (eraseVar α)
 eraseVar (T α) = eraseVar α
 
-eraseTC : ∀{Φ}{Γ : Ctx Φ}{A : Φ ⊢Nf⋆ *} → AC.TyTermCon A → TermCon
-eraseTC (AC.integer i)    = integer i
-eraseTC (AC.bytestring b) = bytestring b
-eraseTC (AC.string s)     = string s
-eraseTC (AC.bool b)       = bool b
-eraseTC AC.unit           = unit
-eraseTC (AC.Data d)       = Data d
+eraseTC : (A : ∅ ⊢Nf⋆ Kind.♯) → ⟦ A ⟧ → TmCon
+eraseTC A t = tmCon (A.ty2sty A) (subst ⟦_⟧ (ty≅sty₁ A) t)
 
 erase : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ ⊢ A → len Γ ⊢
-erase (` α)                = ` (eraseVar α)
-erase (ƛ t)                = ƛ (erase t) 
-erase (t · u)              = erase t · erase u
-erase (Λ t)                = delay (erase t)
-erase (t ·⋆ A / refl)      = force (erase t)
-erase (wrap A B t)         = erase t
-erase (unwrap t refl)      = erase t
-erase {Γ = Γ} (con t)      = con (eraseTC {Γ = Γ} t)
-erase (builtin b / refl)   = builtin b
-erase (error A)            = error
+
+erase-ConstrArgs : ∀ {Φ} {Γ : Ctx Φ}
+               {TS : List (Φ ⊢Nf⋆ *)}
+               (cs : ConstrArgs Γ TS) 
+          → List (len Γ ⊢)
+erase-ConstrArgs [] = []
+erase-ConstrArgs (c ∷ cs) = (erase c) ∷ (erase-ConstrArgs cs)
+
+erase-Cases : ∀ {Φ} {Γ : Ctx Φ} {A : Φ ⊢Nf⋆ *} {n}
+                {tss : Vec (List (Φ ⊢Nf⋆ *)) n}
+                (cs : Cases Γ A tss) →
+              List (len Γ ⊢)
+erase-Cases [] = []
+erase-Cases (c ∷ cs) = (erase c) ∷ (erase-Cases cs) 
+
+erase (` α)                  = ` (eraseVar α)
+erase (ƛ t)                  = ƛ (erase t) 
+erase (t · u)                = erase t · erase u
+erase (Λ t)                  = delay (erase t)
+erase (t ·⋆ A / refl)        = force (erase t)
+erase (wrap A B t)           = erase t
+erase (unwrap t refl)        = erase t
+erase (con {A = A} t p)      = con (eraseTC A t)
+erase (builtin b / refl)     = builtin b
+erase (error A)              = error
+erase (constr e TSS p cs)    = constr (toℕ e) (erase-ConstrArgs cs)
+erase (case t cases)         = case (erase t) (erase-Cases cases)
 \end{code}
 
 Porting this from declarative required basically deleting one line but
@@ -81,14 +107,6 @@ I need to pattern match on the term constructors
 # Erasing decl/alg terms agree
 
 \begin{code}
-
-open import Relation.Binary.PropositionalEquality
-import Declarative as D
-import Declarative.Erasure as D
-open import Algorithmic.Completeness
-
-open import Utils
-
 lenLemma : ∀ {Φ}(Γ : D.Ctx Φ) → len (nfCtx Γ) ≡ D.len Γ
 lenLemma D.∅        = refl
 lenLemma (Γ D.,⋆ J) = lenLemma Γ
@@ -105,25 +123,12 @@ lenLemma⋆ (Φ ,⋆ K) = cong Maybe (lenLemma⋆ Φ)
 
 -- these lemmas (as stated and proved) require injectivity of type
 -- constructors
-lemzero : ∀{X X'}(p : Maybe X ≡ Maybe X') → nothing ≡ subst id p nothing
+lemzero : ∀{X X'}(p : Maybe {lzero} X ≡ Maybe X') → nothing ≡ subst id p nothing
 lemzero refl = refl
 
-lemsuc : ∀{X X'}(p : Maybe X ≡ Maybe X')(q : X ≡ X')(x : X) →
+lemsuc : ∀{X X'}(p : Maybe {lzero} X ≡ Maybe X')(q : X ≡ X')(x : X) →
   just (subst id q x) ≡ subst id p (just x)
 lemsuc refl refl x = refl
-
-open import Type.BetaNormal.Equality
-open import Function
-
-sameTC : ∀{Φ Γ}{A : Φ ⊢⋆ *}(tcn : DC.TyTermCon A)
-  → D.eraseTC {Γ = Γ} tcn ≡ eraseTC {Γ = nfCtx Γ} (nfTypeTC tcn)
-sameTC (DC.integer i)    = refl
-sameTC (DC.bytestring b) = refl
-sameTC (DC.string s)     = refl
-sameTC (DC.bool b)       = refl
-sameTC DC.unit           = refl
-sameTC (DC.Data d)       = refl
-
 
 lem≡Ctx : ∀{Φ}{Γ Γ' : Ctx Φ} → Γ ≡ Γ' → len Γ ≡ len Γ'
 lem≡Ctx refl = refl
@@ -158,7 +163,7 @@ lem-delay refl t = refl
 lem-force : ∀{X X'}(p : X ≡ X')(t : X ⊢) → force (subst _⊢ p t) ≡ subst _⊢ p (force t)
 lem-force refl t = refl
 
-lemcon' : ∀{X X'}(p : X ≡ X')(tcn : TermCon) → con tcn ≡ subst _⊢ p (con tcn)
+lemcon' : ∀{X X'}(p : X ≡ X')(tcn : TmCon) → con tcn ≡ subst _⊢ p (con tcn)
 lemcon' refl tcn = refl
 
 lemerror : ∀{X X'}(p : X ≡ X') →  error ≡ subst _⊢ p error
@@ -166,6 +171,15 @@ lemerror refl = refl
 
 lembuiltin : ∀{X X'}(b : Builtin)(p : X ≡ X') →  builtin b ≡ subst _⊢ p (builtin b)
 lembuiltin b refl = refl
+
+lemConstr : ∀ {X X'}(e : ℕ) (xs : List (X ⊢))(p : X ≡ X')
+         → subst _⊢ p (constr e xs) ≡ constr e (map (subst _⊢ p) xs)
+lemConstr e [] refl = refl
+lemConstr e (x ∷ xs) refl = cong (constr e) (cong (x ∷_) (sym (map-id xs)))
+
+lemCase : ∀ {X X'}(t : X ⊢) (cs : List (X ⊢))(p : X ≡ X')
+        → subst _⊢ p (case t cs) ≡ case (subst _⊢ p t) (map (subst _⊢ p) cs)
+lemCase t cs refl = cong (case t) (sym (map-id cs)) 
 
 lem-erase : ∀{Φ Γ Γ'}{A A' : Φ ⊢Nf⋆ *}(p : Γ ≡ Γ')(q : A ≡ A')(t : Γ A.⊢ A)
   → subst _⊢ (lem≡Ctx p) (erase t)  ≡ erase (conv⊢ p q t)
@@ -185,6 +199,29 @@ same : ∀{Φ Γ}{A : Φ ⊢⋆ *}(t : Γ D.⊢ A)
 
 +cancel : ∀{m m' n n'} → m + n ≡ m' + n' → m ≡ m' → n ≡ n'
 +cancel p refl = +-cancelˡ-≡ _ p
+
+same-ConstrArgs : ∀{Φ}{Γ : D.Ctx Φ}{TS : List (Φ ⊢⋆ *)} 
+            
+                   (xs : D.ConstrArgs Γ TS)
+   → D.erase-ConstrArgs xs ≡ map (subst _⊢ (lenLemma Γ)) (erase-ConstrArgs (nfType-ConstrArgs xs))
+same-ConstrArgs {Γ = Γ} [] = refl
+same-ConstrArgs {Γ = Γ} (x ∷ xs) = cong₂ _∷_ (same x) (same-ConstrArgs xs) 
+
+same-mkCaseType : ∀ {Φ} {Γ : Ctx Φ} {A B : Φ ⊢Nf⋆ *}
+                           (c : Γ ⊢ A)
+                           (eq : A ≡ B)
+            → erase {Φ} {Γ} { A } c ≡ erase {Φ} {Γ} { B } (subst (Γ ⊢_) eq c)     
+same-mkCaseType c refl = refl
+
+same-Cases : ∀ {Φ} {Γ : D.Ctx Φ} {A : Φ ⊢⋆ *} {n}
+               {tss : Vec (List (Φ ⊢⋆ *)) n}
+               (cases : D.Cases Γ A tss) →
+             D.erase-Cases cases ≡
+             map (subst _⊢ (lenLemma Γ)) (erase-Cases (nfType-Cases cases))
+same-Cases D.[] = refl
+same-Cases {Γ = Γ}(D._∷_ {AS = AS} c cs) = cong₂ _∷_ (trans (same c) 
+                                                (cong (subst _⊢ (lenLemma Γ)) (same-mkCaseType (nfType c) (lemma-mkCaseType AS))))
+                                         (same-Cases cs)
 
 same {Γ = Γ}(D.` x) =
   trans (cong ` (sameVar x)) (lemVar (lenLemma Γ) (eraseVar (nfTyVar x)))
@@ -216,15 +253,15 @@ same {Γ = Γ} (D.unwrap {A = A}{B = B} t) = trans
 same {Γ = Γ} (D.conv p t) = trans
   (same t)
   (cong (subst _⊢ (lenLemma Γ)) (lem-erase' (completeness p) (nfType t)))
-same {Γ = Γ} (D.con tcn) = trans
-  (cong con (sameTC {Γ = Γ} tcn))
-  (lemcon' (lenLemma Γ) (eraseTC {Γ = nfCtx Γ} (nfTypeTC tcn)))
+same {Γ = Γ} (D.con {A = A} tcn p) = lemcon' (lenLemma Γ) (eraseTC (nf A) tcn) 
 same {Γ = Γ} (D.builtin b) = trans
   (lembuiltin b (lenLemma Γ)) (cong (subst _⊢ (lenLemma Γ))
   (lem-erase refl (btype-lem b) (builtin b / refl)))
 same {Γ = Γ} (D.error A) = lemerror (lenLemma Γ)
-
-open import Algorithmic.Soundness
+same {Γ = Γ} (D.constr e TSS refl xs) rewrite lemConstr (toℕ e) (erase-ConstrArgs (nfType-ConstrArgs xs)) (lenLemma Γ)  
+                = cong (constr (toℕ e)) (same-ConstrArgs xs)
+same {Γ = Γ} (D.case t cases) rewrite lemCase (erase (nfType t)) (erase-Cases (Algorithmic.Completeness.nfType-Cases cases)) (lenLemma Γ)
+     = cong₂ case (same t) (same-Cases cases)
 
 same'Len : ∀ {Φ}(Γ : A.Ctx Φ) → D.len (embCtx Γ) ≡ len Γ
 same'Len ∅          = refl
@@ -246,17 +283,37 @@ same'Var {Γ = Γ ,⋆ _} (T {A = A} x) = trans
   (cong (subst id (same'Len Γ)) (lem-Dconv∋ refl (sym (ren-embNf S A))
         (D.T (embVar x))))
 
-same'TC : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(tcn : AC.TyTermCon A)
-  → eraseTC {Γ = Γ} tcn ≡ D.eraseTC {Φ}{Γ = embCtx Γ} (embTC tcn)
-same'TC (AC.integer i)    = refl
-same'TC (AC.bytestring b) = refl
-same'TC (AC.string s)     = refl
-same'TC (AC.bool b)       = refl
-same'TC AC.unit           = refl
-same'TC (AC.Data d)       = refl
-
+same'TC : ∀ {Φ} {Γ : Ctx Φ} A (tcn : ⟦ A ⟧) →
+         eraseTC A tcn ≡ D.eraseTC (embNf A) (subst ⟦_⟧ (sym (stability A)) tcn)
+same'TC A tcn rewrite stability A = refl
+  
 same' : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(x : Γ A.⊢ A)
   →  erase x ≡ subst _⊢ (same'Len Γ) (D.erase (emb x))
+
+same'ConstrArgs : ∀ {Φ} {Γ : Ctx Φ} 
+                    {TS : List (Φ ⊢Nf⋆ *)}
+                    (xs : ConstrArgs Γ TS)
+    → erase-ConstrArgs xs ≡  map (subst _⊢ (same'Len Γ))
+                                 (D.erase-ConstrArgs (emb-ConstrArgs xs))
+same'ConstrArgs [] = refl
+same'ConstrArgs (x ∷ xs) = cong₂ _∷_ (same' x) (same'ConstrArgs xs)                                 
+
+same-subst : ∀ {Φ} {Γ : D.Ctx Φ} {A B : Φ ⊢⋆ *} 
+               (c : Γ D.⊢ A)
+               (eq : A ≡ B)
+             → D.erase c ≡ D.erase (subst (D._⊢_ Γ) eq c)
+same-subst c refl = refl
+
+same'Case : ∀ {Φ} {Γ : Ctx Φ} {A : Φ ⊢Nf⋆ *} {n}
+              {tss : Vec (List (Φ ⊢Nf⋆ *)) n}
+              (cases : Cases Γ A tss) 
+      → erase-Cases cases ≡ map (subst _⊢ (same'Len Γ)) 
+                                (D.erase-Cases (Algorithmic.Soundness.emb-Cases cases))
+same'Case [] = refl
+same'Case {Γ = Γ} (_∷_ {AS = AS} c cases) = 
+    cong₂ _∷_ (trans (same' c) 
+                     (cong (subst _⊢ (same'Len Γ)) (same-subst (emb c) (lema-mkCaseType AS)))) 
+              (same'Case cases)
 same' {Γ = Γ} (` x) =
   trans (cong ` (same'Var x)) (lemVar (same'Len Γ) (D.eraseVar (embVar x)))
 same' {Γ = Γ} (ƛ t) = trans
@@ -271,11 +328,14 @@ same' {Γ = Γ} (Λ t) =  trans
 same' {Γ = Γ} (t ·⋆ A / refl)   = trans
   (cong force (same' t))
   (lem-force (same'Len Γ) (D.erase (emb t)))
-same' {Γ = Γ} (wrap A B t)   = same' t
-same' {Γ = Γ} (unwrap t refl) = same' t
-same' {Γ = Γ} (con x) = trans
-  (cong con (same'TC {Γ = Γ} x))
-  (lemcon' (same'Len Γ) (D.eraseTC {Γ = embCtx Γ}(embTC x)))
+same' (wrap A B t)   = same' t
+same' (unwrap t refl) = same' t
+same' {Γ = Γ} (con {A = A} tcn refl) = trans (cong con (same'TC {Γ = Γ} A tcn)) 
+  (lemcon' (same'Len Γ) (D.eraseTC (embNf A) (subst ⟦_⟧ (sym (stability A)) tcn)))
 same' {Γ = Γ} (builtin b / refl) = lembuiltin b (same'Len Γ)
 same' {Γ = Γ} (error A) = lemerror (same'Len Γ)
+same' {Γ = Γ} (constr e TSS {ts} refl xs) rewrite lemConstr (toℕ e) (D.erase-ConstrArgs (Algorithmic.Soundness.emb-ConstrArgs xs)) (same'Len Γ)
+            = cong (constr (toℕ e)) (same'ConstrArgs xs) 
+same' {Γ = Γ}(case t cases) rewrite lemCase (D.erase (emb t)) (D.erase-Cases (Algorithmic.Soundness.emb-Cases cases)) (same'Len Γ)
+     = cong₂ case (same' t) (same'Case cases)
 \end{code}

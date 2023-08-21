@@ -1,5 +1,5 @@
+{-# LANGUAGE TypeApplications #-}
 {- | Conformance tests for the Agda implementation. -}
-
 module Main (main) where
 
 import Control.Monad.Trans.Except
@@ -39,15 +39,6 @@ agdaEvalUplcProg (UPLC.Program () version tmU) =
 -- Once a fix for a test is pushed, the test will fail. Remove it from this list.
 failingTests :: [FilePath]
 failingTests = [
-    "test-cases/uplc/evaluation/builtin/mkNilPairData"
-    , "test-cases/uplc/evaluation/builtin/chooseUnit"
-    , "test-cases/uplc/evaluation/builtin/mkNilData"
-    , "test-cases/uplc/evaluation/example/churchZero"
-    , "test-cases/uplc/evaluation/example/force-lam"
-    , "test-cases/uplc/evaluation/example/succInteger"
-    , "test-cases/uplc/evaluation/example/churchSucc"
-    , "test-cases/uplc/evaluation/term/lam"
-    , "test-cases/uplc/evaluation/term/delay-lam"
     ]
 
 main :: IO ()

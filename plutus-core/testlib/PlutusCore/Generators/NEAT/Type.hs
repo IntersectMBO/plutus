@@ -29,7 +29,7 @@ module PlutusCore.Generators.NEAT.Type where
 
 
 import Control.Enumerable
-import Control.Monad.Except
+import Control.Monad (ap)
 import PlutusCore
 import PlutusCore.Generators.NEAT.Common
 

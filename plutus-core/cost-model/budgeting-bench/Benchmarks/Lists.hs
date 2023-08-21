@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 module Benchmarks.Lists (makeBenchmarks) where
 
 import Common
@@ -19,7 +18,8 @@ import System.Random (StdGen)
    integer and bytestring lists for confirmation. -}
 
 makeListOfSizedIntegers :: StdGen -> Int -> Int -> ([Integer], StdGen)
-makeListOfSizedIntegers gen count size = makeSizedIntegers gen (take count $ repeat size)
+makeListOfSizedIntegers gen count size =
+    makeSizedIntegers gen (take count $ repeat size)
 
 makeListOfIntegerLists :: StdGen -> [(Int, Int)] -> [[Integer]]
 makeListOfIntegerLists  _ [] = []
@@ -28,13 +28,14 @@ makeListOfIntegerLists  gen ((count, size):rest) =
     in l:(makeListOfIntegerLists gen' rest)
 
 makeListOfSizedBytestrings :: H.Seed -> Int -> Int -> [ByteString]
-makeListOfSizedBytestrings seed count size = makeSizedByteStrings seed (take count $ repeat size)
+makeListOfSizedBytestrings seed count size =
+    makeSizedByteStrings seed (take count $ repeat size)
 
 makeListOfByteStringLists :: H.Seed -> [(Int, Int)] -> [[ByteString]]
 makeListOfByteStringLists  _ [] = []
 makeListOfByteStringLists seed ((count, size):rest) =
     let l = makeListOfSizedBytestrings seed count size
-    in l:(makeListOfByteStringLists seed rest)
+    in l:makeListOfByteStringLists seed rest
 -- Don't like reusing the seed here.
 
 intLists :: StdGen -> [[Integer]]
@@ -44,10 +45,12 @@ nonEmptyIntLists :: StdGen -> [[Integer]]
 nonEmptyIntLists gen = makeListOfIntegerLists gen [(count,size) | count <- [1..7], size <- [1..7]]
 
 byteStringLists :: H.Seed -> [[ByteString]]
-byteStringLists seed = makeListOfByteStringLists seed [(count,size) | count <- [0..7], size <- [0, 500..3000]]
+byteStringLists seed =
+    makeListOfByteStringLists seed [(count,size) | count <- [0..7], size <- [0, 500..3000]]
 
 nonEmptyByteStringLists :: H.Seed -> [[ByteString]]
-nonEmptyByteStringLists seed = makeListOfByteStringLists seed [(count,size) | count <- [1..7], size <- [0, 500..3000]]
+nonEmptyByteStringLists seed =
+    makeListOfByteStringLists seed [(count,size) | count <- [1..7], size <- [0, 500..3000]]
 
 
 -- chooseList l a b = case l of [] -> a | _ -> b
@@ -78,7 +81,8 @@ benchMkCons gen =
         intInputs = intLists gen
         (intsToCons, _) = makeSizedIntegers gen $ take (length intInputs) (cycle [1,2,4,10,15])
         bsInputs = byteStringLists seedA
-        bssToCons = makeSizedByteStrings seedA $ take (length bsInputs) (cycle [5,80,500, 1000, 5000])
+        bssToCons =
+            makeSizedByteStrings seedA $ take (length bsInputs) (cycle [5,80,500, 1000, 5000])
         mkBM ty (x,xs) = benchDefault (showMemoryUsage x) $ mkApp2 name [ty] x xs
     in  bgroup (show name) $ fmap (mkBM integer) (zip intsToCons intInputs)
                            ++ fmap (mkBM bytestring) (zip bssToCons bsInputs)

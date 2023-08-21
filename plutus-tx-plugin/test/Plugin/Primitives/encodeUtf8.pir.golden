@@ -1,0 +1,17 @@
+(program
+  1.1.0
+  (let
+    (nonrec)
+    (termbind
+      (strict)
+      (vardecl encodeUtf (fun (con string) (con bytestring)))
+      (builtin encodeUtf8)
+    )
+    (termbind
+      (nonstrict)
+      (vardecl encodeUtf (fun (con string) (con bytestring)))
+      encodeUtf
+    )
+    [ encodeUtf (con string "abc") ]
+  )
+)

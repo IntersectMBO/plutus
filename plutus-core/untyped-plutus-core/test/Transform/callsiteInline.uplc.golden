@@ -1,0 +1,10 @@
+[
+  (lam
+    a_5
+    [
+      [ f_1 [ [ g_2 (con integer 1) ] (con integer 0) ] ]
+      [ a_5 (con integer 2) ]
+    ]
+  )
+  (lam x_6 (lam y_7 [ [ g_2 y_7 ] x_6 ]))
+]

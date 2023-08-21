@@ -1,19 +1,20 @@
-cabal-version: 3.0
-name:          plutus-ledger-api
-version:       1.0.0.0
-license:       Apache-2.0
+cabal-version:   3.0
+name:            plutus-ledger-api
+version:         1.10.0.0
+license:         Apache-2.0
 license-files:
   LICENSE
   NOTICE
 
-maintainer:    michael.peyton-jones@iohk.io
-author:        Michael Peyton Jones, Jann Mueller
-synopsis:      Interface to the Plutus ledger for the Cardano ledger.
+maintainer:      michael.peyton-jones@iohk.io
+author:          Michael Peyton Jones, Jann Mueller
+synopsis:        Interface to the Plutus ledger for the Cardano ledger.
 description:
   Interface to the Plutus scripting support for the Cardano ledger.
 
-category:      Language
-build-type:    Simple
+category:        Language
+build-type:      Simple
+extra-doc-files: CHANGELOG.md
 
 source-repository head
   type:     git
@@ -49,6 +50,7 @@ library
   hs-source-dirs:   src
   default-language: Haskell2010
   exposed-modules:
+    Codec.CBOR.Extras
     PlutusLedgerApi.Common
     PlutusLedgerApi.Common.Versions
     PlutusLedgerApi.V1
@@ -71,11 +73,11 @@ library
     PlutusLedgerApi.V2.ParamName
     PlutusLedgerApi.V2.Tx
     PlutusLedgerApi.V3
+    PlutusLedgerApi.V3.Contexts
     PlutusLedgerApi.V3.EvaluationContext
     PlutusLedgerApi.V3.ParamName
 
   other-modules:
-    Codec.CBOR.Extras
     PlutusLedgerApi.Common.Eval
     PlutusLedgerApi.Common.ParamName
     PlutusLedgerApi.Common.ProtocolVersions
@@ -83,25 +85,23 @@ library
     Prettyprinter.Extras
 
   build-depends:
-    , base               >=4.9 && <5
+    , base               >=4.9   && <5
     , base16-bytestring  >=1
     , bytestring
     , cborg
     , containers
     , deepseq
     , extra
-    , flat
+    , flat               ^>=0.6
     , lens
     , mtl
     , nothunks
-    , plutus-core        ^>=1.0
-    , plutus-tx          ^>=1.0
+    , plutus-core        ^>=1.10
+    , plutus-tx          ^>=1.10
     , prettyprinter
     , serialise
     , tagged
-    , template-haskell
     , text
-    , transformers
 
 library plutus-ledger-api-testlib
   import:          lang
@@ -114,14 +114,14 @@ library plutus-ledger-api-testlib
     PlutusLedgerApi.Test.Scripts
 
   build-depends:
-    , base               >=4.9 && <5
+    , base               >=4.9      && <5
     , base64-bytestring
     , bytestring
-    , plutus-core        ^>=1.0
-    , plutus-ledger-api
-    , plutus-tx          ^>=1.0
+    , plutus-core        ^>=1.10
+    , plutus-ledger-api  ^>=1.10
+    , plutus-tx          ^>=1.10
     , prettyprinter
-    , PyF
+    , PyF                >=0.11.1.0
     , serialise
     , text
 
@@ -131,6 +131,7 @@ test-suite plutus-ledger-api-test
   main-is:        Spec.hs
   hs-source-dirs: test
   other-modules:
+    Spec.CBOR.DeserialiseFailureInfo
     Spec.CostModelParams
     Spec.Eval
     Spec.Interval
@@ -138,19 +139,17 @@ test-suite plutus-ledger-api-test
     Spec.Versions
 
   build-depends:
-    , barbies
-    , base                       >=4.9 && <5
+    , base                                                              >=4.9   && <5
     , bytestring
+    , cborg
     , containers
     , extra
     , hedgehog
-    , lens
     , mtl
     , nothunks
-    , plutus-core                ^>=1.0
-    , plutus-ledger-api
-    , plutus-ledger-api-testlib
-    , serialise
+    , plutus-core:{plutus-core, plutus-core-testlib}                    ^>=1.10
+    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.10
+    , plutus-tx:plutus-tx-testlib                                       ^>=1.10
     , tasty
     , tasty-hedgehog
     , tasty-hunit
@@ -166,13 +165,12 @@ executable evaluation-test
   ghc-options:      -threaded -rtsopts -with-rtsopts=-N
   build-depends:
     , async
-    , base                       >=4.9 && <5
+    , base                                                              >=4.9   && <5
     , extra
     , filepath
     , mtl
-    , plutus-core
-    , plutus-ledger-api
-    , plutus-ledger-api-testlib
+    , plutus-core                                                       ^>=1.10
+    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.10
     , serialise
     , tasty
     , tasty-hunit

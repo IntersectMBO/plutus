@@ -3,22 +3,23 @@ module Type.BetaNBE.Soundness where
 \end{code}
 
 \begin{code}
-open import Utils
-open import Type
-open import Type.Equality
-open import Type.RenamingSubstitution
-open import Type.BetaNormal
-open import Type.BetaNBE
-import Builtin.Constant.Type Ctx⋆ (_⊢⋆ *) as Syn
+open import Function using (_∘_;id)
+open import Data.Sum using (inj₁;inj₂)
+open import Data.Product using (Σ;_×_;_,_)
+open import Data.Vec using (Vec;[];_∷_)
+open import Data.List using (List;[];_∷_)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;trans;cong;cong₂)
 
-open import Relation.Binary.PropositionalEquality
-  renaming (subst to substEq)
-  hiding ([_])
-open import Function
-open import Data.Sum
-open import Data.Empty
-open import Data.Product
-open import Data.String
+open import Utils using (*;♯;_⇒_)
+open import Type using (Ctx⋆;_,⋆_;_⊢⋆_;_∋⋆_;Z;S)
+open _⊢⋆_
+open import Type.Equality using (_≡β_;≡2β;ren≡β;_⟨[≡]⟩β_;_[≡]β_)
+open _≡β_
+open import Type.RenamingSubstitution 
+     using (Ren;ren;ext;ext-id;ren-comp;ren-id;ren-cong;ext-comp;exts;weaken)
+     using (Sub;sub;sub-cons;sub-id;sub-comp;sub-cong;sub-ren;sub-List;sub-VecList)
+open import Type.BetaNormal using (_⊢Ne⋆_;embNf;ren-embNf;embNe;ren-embNe;embNf-List;embNf-VecList)
+open import Type.BetaNBE using (Val;renVal;_·V_;reflect;reify;Env;_,,⋆_;fresh;eval;idEnv;nf;eval-List;eval-VecList)
 \end{code}
 
 The Soundness Relation (SR) is a Kripke logical relation between types
@@ -29,6 +30,7 @@ type is beta-eta-equal to the result of reifying the value.
 \begin{code}
 SR : ∀{Φ} K → Φ ⊢⋆ K → Val Φ K → Set
 SR *       A v        = A ≡β embNf v
+SR ♯       A v        = A ≡β embNf v
 SR (K ⇒ J) A (inj₁ n) = A ≡β embNe n
 SR (K ⇒ J) A (inj₂ f) = Σ (_ ,⋆ K ⊢⋆ J) λ B →
   (A ≡β ƛ B) -- this bit of indirection is needed as we have only β not βη
@@ -48,6 +50,7 @@ reflectSR : ∀{Φ K}{A : Φ ⊢⋆ K}{n : Φ ⊢Ne⋆ K}
     ------------------
   → SR K A (reflect n)
 reflectSR {K = *}     p = p
+reflectSR {K = ♯}     p = p
 reflectSR {K = K ⇒ J} p = p
 
 reifySR : ∀{Φ K}{A : Φ ⊢⋆ K}{v : Val Φ K}
@@ -55,6 +58,7 @@ reifySR : ∀{Φ K}{A : Φ ⊢⋆ K}{v : Val Φ K}
     --------------------
   → A ≡β embNf (reify v)
 reifySR {K = *}                  p            = p
+reifySR {K = ♯}                  p            = p
 reifySR {K = K ⇒ J} {v = inj₁ n} p            = p
 reifySR {K = K ⇒ J} {v = inj₂ f} (A' , p , q) = trans≡β
   p
@@ -92,6 +96,7 @@ subSR : ∀{Φ K}{A A' : Φ ⊢⋆ K}
     ---------------------------
   → SR K A' v
 subSR {K = *}     p          q            = trans≡β p q
+subSR {K = ♯}     p          q            = trans≡β p q
 subSR {K = K ⇒ J} p {inj₁ n} q            = trans≡β p q
 subSR {K = K ⇒ J} p {inj₂ f} (A' , q , r) = _ , trans≡β p q , r
 \end{code}
@@ -104,6 +109,7 @@ renSR : ∀{Φ Ψ}(ρ : Ren Φ Ψ){K}{A : Φ ⊢⋆ K}{v : Val Φ K}
     ---------------------------------
   → SR K (ren ρ A) (renVal ρ v)
 renSR ρ {*}{A}{n} p = trans≡β (ren≡β ρ p) (sym≡β (≡2β (ren-embNf ρ n)))
+renSR ρ {♯}{A}{n} p = trans≡β (ren≡β ρ p) (sym≡β (≡2β (ren-embNf ρ n)))
 renSR ρ {K ⇒ J} {A} {inj₁ n} p =
   trans≡β (ren≡β ρ p) (sym≡β (≡2β (ren-embNe ρ n)))
 renSR ρ {K ⇒ J} {A} {inj₂ f} (A' , p , q) =
@@ -182,18 +188,12 @@ evalSR : ∀{Φ Ψ K}(A : Φ ⊢⋆ K){σ : Sub Φ Ψ}{η : Env Φ Ψ}
   → SREnv σ η
   → SR K (sub σ A) (eval A η)
 
-evalSRTyCon : ∀{Φ Ψ}(c : Syn.TyCon Φ){σ : Sub Φ Ψ}{η : Env Φ Ψ}
+evalSR-List :  ∀{Φ Ψ}(xs : List (Φ ⊢⋆ *)){σ : Sub Φ Ψ}{η : Env Φ Ψ}
   → SREnv σ η
-  → subTyCon σ c ≡βTyCon embNfTyCon (evalTyCon c η)
-evalSRTyCon Syn.integer p = refl≡β _
-evalSRTyCon Syn.bytestring p = refl≡β _
-evalSRTyCon Syn.string p = refl≡β _
-evalSRTyCon Syn.unit p = refl≡β _
-evalSRTyCon Syn.bool p = refl≡β _
-evalSRTyCon (Syn.list A) p = list≡β (evalSR A p)
-evalSRTyCon (Syn.pair A B) p = pair≡β (evalSR A p) (evalSR B p)
-evalSRTyCon Syn.Data p = refl≡β _
-
+  → sub-List σ xs [≡]β embNf-List (eval-List xs η)
+evalSR-VecList :  ∀{Φ Ψ n}(xss : Vec (List (Φ ⊢⋆ *)) n){σ : Sub Φ Ψ}{η : Env Φ Ψ}
+  → SREnv σ η
+  → sub-VecList σ xss ⟨[≡]⟩β embNf-VecList (eval-VecList xss η)
 
 evalSR (` α)                   p = p α
 evalSR (Π B)                   p = Π≡β (evalSR B (SRweak p))
@@ -217,7 +217,14 @@ evalSR (ƛ B)   {σ}{η}          p =
     (evalSR B (SR,,⋆ (renSR ρ ∘ p) q))
 evalSR (A · B)     p = SRApp (evalSR A p) (evalSR B p)
 evalSR (μ A B)     p = μ≡β (reifySR (evalSR A p)) (reifySR (evalSR B p))
-evalSR (con c)     p = con≡β (evalSRTyCon c p)
+evalSR (^ b)       p = reflectSR (refl≡β _)
+evalSR (con c)     p = con≡β (evalSR c p)
+evalSR (SOP xss)   p = SOP≡β (evalSR-VecList xss p)
+
+evalSR-List [] p = _[≡]β_.nil[≡]β
+evalSR-List (x ∷ xs) p = _[≡]β_.cons[≡]β (evalSR x p) (evalSR-List xs p)
+evalSR-VecList [] p = _⟨[≡]⟩β_.nil⟨[≡]⟩β
+evalSR-VecList (xs ∷ xss) p = _⟨[≡]⟩β_.cons⟨[≡]⟩β (evalSR-List xs p) (evalSR-VecList xss p)
 \end{code}
 
 Identity SREnv

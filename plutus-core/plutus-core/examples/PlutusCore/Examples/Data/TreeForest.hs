@@ -1,8 +1,8 @@
--- editorconfig-checker-disable-file
 {-# OPTIONS_GHC -fno-warn-incomplete-uni-patterns #-}
 
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeFamilies      #-}
+{-# LANGUAGE TypeOperators     #-}
 
 module PlutusCore.Examples.Data.TreeForest
     ( treeData
@@ -67,7 +67,8 @@ using this representation:
     TreeForest : Set -> (Set -> Set -> Set) -> Set
     TreeForest =
       Fix₂ λ Rec A tag ->
-        ∀ R -> tag ((A -> AsForest Rec A -> R) -> R) (R -> (AsTree Rec A -> AsForest Rec A -> R) -> R)
+      ∀ R ->
+        tag ((A -> AsForest Rec A -> R) -> R) (R -> (AsTree Rec A -> AsForest Rec A -> R) -> R)
 
     Tree : Set -> Set
     Tree = AsTree TreeForest
@@ -115,7 +116,7 @@ asTree = runQuote $ do
     return
         . TyLam () d (star ~~> (star ~~> star ~~> star) ~~> star)
         . TyLam () a star
-        $ mkIterTyApp () (TyVar () d)
+        $ mkIterTyAppNoAnn (TyVar () d)
             [ TyVar () a
             , treeTag
             ]
@@ -127,7 +128,7 @@ asForest = runQuote $ do
     return
         . TyLam () d (star ~~> (star ~~> star ~~> star) ~~> star)
         . TyLam () a star
-        $ mkIterTyApp () (TyVar () d)
+        $ mkIterTyAppNoAnn (TyVar () d)
             [ TyVar () a
             , forestTag
             ]
@@ -141,11 +142,11 @@ treeForestData = runQuote $ do
     let vA = TyVar () a
         vR = TyVar () r
         recSpine = [TyVar () treeForest, vA]
-    let tree   = mkIterTyApp () asTree   recSpine
-        forest = mkIterTyApp () asForest recSpine
+    let tree   = mkIterTyAppNoAnn asTree   recSpine
+        forest = mkIterTyAppNoAnn asForest recSpine
         body
             = TyForall () r (Type ())
-            $ mkIterTyApp () (TyVar () tag)
+            $ mkIterTyAppNoAnn (TyVar () tag)
                 [ (vA ~~> forest ~~> vR) ~~> vR
                 , vR ~~> (tree ~~> forest ~~> vR) ~~> vR
                 ]
@@ -188,7 +189,7 @@ treeNode = runQuote $ normalizeTypesIn =<< do
         . wrapTree [vA]
         . TyAbs () r (Type ())
         . LamAbs () f (mkIterTyFun () [vA, forestA] vR)
-        $ mkIterApp () (Var () f)
+        $ mkIterAppNoAnn (Var () f)
             [ Var () x
             , Var () fr
             ]
@@ -243,7 +244,7 @@ forestCons = runQuote $ normalizeTypesIn =<< do
         . TyAbs () r (Type ())
         . LamAbs () z vR
         . LamAbs () f (mkIterTyFun () [treeA, forestA] vR)
-        $ mkIterApp () (Var () f)
+        $ mkIterAppNoAnn (Var () f)
             [ Var () tr
             , Var () fr
             ]

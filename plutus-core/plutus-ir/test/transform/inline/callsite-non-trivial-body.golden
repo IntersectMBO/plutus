@@ -1,0 +1,71 @@
+(let
+  (nonrec)
+  (termbind
+    (strict)
+    (vardecl
+      f
+      (fun
+        (fun (con integer) (con integer))
+        (fun
+          (fun (con integer) (fun (con integer) (con integer)))
+          (fun (con integer) (con integer))
+        )
+      )
+    )
+    (lam
+      unused
+      (fun (con integer) (con integer))
+      (lam
+        a
+        (fun (con integer) (fun (con integer) (con integer)))
+        (lam
+          b
+          (con integer)
+          [
+            [ a b ]
+            [
+              [
+                (builtin addInteger)
+                [
+                  [
+                    (builtin addInteger)
+                    [ [ (builtin addInteger) (con integer 1) ] (con integer 2) ]
+                  ]
+                  (con integer 3)
+                ]
+              ]
+              (con integer 4)
+            ]
+          ]
+        )
+      )
+    )
+  )
+  [
+    [
+      (builtin addInteger)
+      [
+        [
+          [ f (lam unused (con integer) (con integer 5)) ] (builtin addInteger)
+        ]
+        (con integer 6)
+      ]
+    ]
+    [
+      [ (builtin addInteger) (con integer 11) ]
+      [
+        [
+          (builtin addInteger)
+          [
+            [
+              (builtin addInteger)
+              [ [ (builtin addInteger) (con integer 1) ] (con integer 2) ]
+            ]
+            (con integer 3)
+          ]
+        ]
+        (con integer 4)
+      ]
+    ]
+  ]
+)

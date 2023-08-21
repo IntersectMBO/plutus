@@ -1,6 +1,7 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE BangPatterns        #-}
 {-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE NegativeLiterals    #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications    #-}
@@ -8,8 +9,9 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:no-context #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=0 #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 
@@ -17,6 +19,7 @@ module Plugin.Data.Spec where
 
 import Test.Tasty.Extras
 
+import PlutusCore.Pretty qualified as PLC
 import PlutusCore.Test
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code
@@ -76,8 +79,28 @@ instance P.Eq MyMonoData where
 monoDataType :: CompiledCode (MyMonoData -> Integer)
 monoDataType = plc (Proxy @"monoDataType") (\(x :: MyMonoData) -> case x of { Mono2 i -> i; _ -> 1; })
 
+{-
+This is one of the test cases that reveals a bug in GHC 9: it fails to perform some
+eta reductions that should be performed.
+
+The CoreExpr for this test case in GHC 8 is simply @Mono1@, but in GHC 9, it becomes
+@\ds1 ds2 -> Mono1 ds1 ds2@. This leads to bigger PIR, since we don't do eta reduction in PIR.
+
+The reason for the GHC 9 behavior appears to be this Multiplicity check:
+https://gitlab.haskell.org/ghc/ghc/-/blob/a54827e0b48af33fa9cfde6ad131c6751c2fe321/compiler/GHC/Core/Utils.hs#L2501.
+GHC thinks @Mono1@ has a linear type, but @ds1@ and @ds2@ are non-linear, and the check is False.
+
+The GHC 8 behavior is restored if @MyMonoData@ is defined this way:
+
+@
+data MyMonoData where
+  Mono1 :: Integer %Many -> Integer %Many -> MyMonoData
+  Mono2 :: Integer %Many -> MyMonoData
+  Mono3 :: Integer %Many -> MyMonoData
+@
+-}
 monoConstructor :: CompiledCode (Integer -> Integer -> MyMonoData)
-monoConstructor = plc (Proxy @"monConstructor") Mono1
+monoConstructor = plc (Proxy @"monoConstructor") Mono1
 
 monoConstructed :: CompiledCode MyMonoData
 monoConstructed = plc (Proxy @"monoConstructed") (Mono2 1)
@@ -226,6 +249,12 @@ recursiveTypes = testNested "recursive" [
     , goldenUEval "ptreeFirstEval" [ toUPlc ptreeFirst, toUPlc ptreeConstruct ]
     , goldenUEval "sameEmptyRoseEval" [ toUPlc sameEmptyRose, toUPlc emptyRoseConstruct ]
     , goldenUPlc "sameEmptyRose" sameEmptyRose
+    , goldenTPlcWith
+        ".tplc-read"
+        (ppThrow . fmap PLC.AsReadable)
+        "interListConstruct"
+        interListConstruct
+    , goldenUEval "processInterListEval" [ toUPlc processInterList, toUPlc interListConstruct ]
   ]
 
 listConstruct :: CompiledCode [Integer]
@@ -244,6 +273,16 @@ listConstruct3 = plc (Proxy @"listConstruct3") ((1::Integer):(2::Integer):(3::In
 listMatch :: CompiledCode ([Integer] -> Integer)
 listMatch = plc (Proxy @"listMatch") (\(l::[Integer]) -> case l of { (x:_) -> x ; [] -> 0; })
 
+{- Note [Non-regular data types in tests]
+A non-regular data type, a.k.a. a nested data type is, quoting "Nested Datatypes" by Richard Bird
+and Lambert Meertens, a parametrised data type whose declaration involves different instances of the
+accompanying type parameters. Such data types cannot be encoded with regular @fix :: (* -> *) -> *@
+and require our fancy @ifix@ business, hence they make for good tests, which is how we have so many
+of them.
+-}
+
+-- See Note [Non-regular data types in tests].
+-- | A type of perfectly balanced binary trees.
 data B a = One a | Two (B (a, a))
 
 ptreeConstruct :: CompiledCode (B Integer)
@@ -269,6 +308,8 @@ ptreeFirst = plc (Proxy @"ptreeFirst") (
         go k (Two b) = go (\(x, _) -> k x) b
     in go (\x -> x))
 
+-- See Note [Non-regular data types in tests].
+-- | A type of rose trees with empty leaves.
 data EmptyRose = EmptyRose [EmptyRose]
 
 emptyRoseConstruct :: CompiledCode EmptyRose
@@ -287,6 +328,28 @@ sameEmptyRose = plc (Proxy @"sameEmptyRose") (
         unEmptyRose (EmptyRose x) = x
         go = EmptyRose |. (map go .| unEmptyRose)
     in go)
+
+-- See Note [Non-regular data types in tests].
+-- | A type of lists containing two values at each node, with the types of those values getting
+-- swapped each time we move from one node to the next one.
+data InterList a b
+    = InterNil
+    | InterCons a b (InterList b a)  -- Note that the parameters get swapped.
+
+interListConstruct :: CompiledCode (InterList Integer Bool)
+interListConstruct =
+    plc
+        (Proxy @"interListConstruct")
+        (InterCons 0 False (InterCons False (-1) (InterCons 42 True InterNil)))
+
+processInterList :: CompiledCode (InterList Integer Bool -> Integer)
+processInterList = plc (Proxy @"foldrInterList") (
+    let foldrInterList :: forall a b r. (a -> b -> r -> r) -> r -> InterList a b -> r
+        foldrInterList f0 z = go f0 where
+          go :: forall a b. (a -> b -> r -> r) -> InterList a b -> r
+          go _  InterNil          = z
+          go f (InterCons x y xs) = f x y (go (flip f) xs)
+    in foldrInterList (\x b r -> if b then x else r) 0)
 
 typeFamilies :: TestNested
 typeFamilies = testNested "families" [

@@ -11,6 +11,7 @@
 {-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE TypeFamilies           #-}
+{-# LANGUAGE TypeOperators          #-}
 {-# LANGUAGE UndecidableInstances   #-}
 
 module PlutusCore.Evaluation.Machine.Exception
@@ -24,7 +25,6 @@ module PlutusCore.Evaluation.Machine.Exception
     , ErrorWithCause (..)
     , EvaluationException
     , throwNotAConstant
-    , mapCauseInMachineException
     , throwing
     , throwing_
     , throwingWithCause
@@ -34,7 +34,6 @@ module PlutusCore.Evaluation.Machine.Exception
 
 import PlutusPrelude
 
-import PlutusCore.Core.Instance.Pretty.Common ()
 import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 
@@ -44,7 +43,7 @@ import Control.Monad.Except
 import Data.Either.Extras
 import Data.String (IsString)
 import Data.Text (Text)
-import ErrorCode
+import Data.Word (Word64)
 import Prettyprinter
 
 -- | When unlifting of a PLC term into a Haskell value fails, this error is thrown.
@@ -55,7 +54,7 @@ newtype UnliftingError
 
 -- | The type of errors that 'readKnown' and 'makeKnown' can return.
 data KnownTypeError
-    = KnownTypeUnliftingError UnliftingError
+    = KnownTypeUnliftingError !UnliftingError
     | KnownTypeEvaluationFailure
     deriving stock (Eq)
 
@@ -75,20 +74,18 @@ data MachineError fun
       -- ^ A builtin expected a term argument, but something else was received
     | UnexpectedBuiltinTermArgumentMachineError
       -- ^ A builtin received a term argument when something else was expected
-    | EmptyBuiltinArityMachineError
-      -- ^ We've reached a state where a builtin instantiation or application is attempted
-      -- when the arity is zero. In the absence of nullary builtins, this should be impossible.
-      -- See the machine implementations for details.
     | UnknownBuiltin fun
+    | NonConstrScrutinized
+    | MissingCaseBranch Word64
     deriving stock (Show, Eq, Functor, Generic)
     deriving anyclass (NFData)
 
 -- | The type of errors (all of them) which can occur during evaluation
 -- (some are used-caused, some are internal).
 data EvaluationError user internal
-    = InternalEvaluationError internal
+    = InternalEvaluationError !internal
       -- ^ Indicates bugs.
-    | UserEvaluationError user
+    | UserEvaluationError !user
       -- ^ Indicates user errors.
     deriving stock (Show, Eq, Functor, Generic)
     deriving anyclass (NFData)
@@ -116,8 +113,8 @@ instance AsEvaluationFailure user => AsEvaluationFailure (EvaluationError user i
 
 -- | An error and (optionally) what caused it.
 data ErrorWithCause err cause = ErrorWithCause
-    { _ewcError :: err
-    , _ewcCause :: Maybe cause
+    { _ewcError :: !err
+    , _ewcCause :: !(Maybe cause)
     } deriving stock (Eq, Functor, Foldable, Traversable, Generic)
     deriving anyclass (NFData)
 
@@ -136,12 +133,6 @@ type EvaluationException user internal =
 throwNotAConstant :: MonadError KnownTypeError m => m void
 throwNotAConstant = throwError $ KnownTypeUnliftingError "Not a constant"
 {-# INLINE throwNotAConstant #-}
-
-mapCauseInMachineException
-    :: (term1 -> term2)
-    -> EvaluationException user (MachineError fun) term1
-    -> EvaluationException user (MachineError fun) term2
-mapCauseInMachineException = fmap
 
 -- | "Prismatically" throw an error and its (optional) cause.
 throwingWithCause
@@ -201,12 +192,14 @@ instance (HasPrettyDefaults config ~ 'True, Pretty fun) =>
         "A builtin expected a term argument, but something else was received"
     prettyBy _      UnexpectedBuiltinTermArgumentMachineError =
         "A builtin received a term argument when something else was expected"
-    prettyBy _      EmptyBuiltinArityMachineError =
-        "A builtin was applied to a term or type where no more arguments were expected"
     prettyBy _      (UnliftingMachineError unliftingError)  =
         pretty unliftingError
     prettyBy _      (UnknownBuiltin fun)                  =
         "Encountered an unknown built-in function:" <+> pretty fun
+    prettyBy _      NonConstrScrutinized =
+        "A non-constructor value was scrutinized in a case expression"
+    prettyBy _      (MissingCaseBranch i) =
+        "Case expression missing the branch required by the scrutinee tag:" <+> pretty i
 
 instance
         ( HasPrettyDefaults config ~ 'True
@@ -235,24 +228,3 @@ instance (PrettyPlc cause, PrettyPlc err) =>
 
 deriving anyclass instance
     (PrettyPlc cause, PrettyPlc err, Typeable cause, Typeable err) => Exception (ErrorWithCause err cause)
-
-instance HasErrorCode UnliftingError where
-      errorCode        UnliftingErrorE {}        = ErrorCode 30
-
-instance HasErrorCode (MachineError err) where
-      errorCode        EmptyBuiltinArityMachineError {}             = ErrorCode 34
-      errorCode        UnexpectedBuiltinTermArgumentMachineError {} = ErrorCode 33
-      errorCode        BuiltinTermArgumentExpectedMachineError {}   = ErrorCode 32
-      errorCode        OpenTermEvaluatedMachineError {}             = ErrorCode 27
-      errorCode        NonFunctionalApplicationMachineError {}      = ErrorCode 26
-      errorCode        NonWrapUnwrappedMachineError {}              = ErrorCode 25
-      errorCode        NonPolymorphicInstantiationMachineError {}   = ErrorCode 24
-      errorCode        (UnliftingMachineError e)                    = errorCode e
-      errorCode        UnknownBuiltin {}                            = ErrorCode 17
-
-instance (HasErrorCode user, HasErrorCode internal) => HasErrorCode (EvaluationError user internal) where
-  errorCode (InternalEvaluationError e) = errorCode e
-  errorCode (UserEvaluationError e)     = errorCode e
-
-instance HasErrorCode err => HasErrorCode (ErrorWithCause err t) where
-    errorCode (ErrorWithCause e _) = errorCode e

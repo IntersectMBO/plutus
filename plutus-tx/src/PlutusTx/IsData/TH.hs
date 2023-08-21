@@ -44,16 +44,21 @@ reconstructCase (TH.ConstructorInfo{TH.constructorName=name, TH.constructorField
         handleList [] lExp = [| matchList $lExp $app (\_ _ -> Nothing) |]
         handleList (argName:rest) lExp = do
             tailName <- TH.newName "t"
+            consCaseName <- TH.newName "consCase"
             [|
-             let !consCase = \ $(TH.varP argName) $(TH.varP tailName) -> $(handleList rest (TH.varE tailName))
-             in matchList $lExp Nothing consCase
+             -- See Note [Bang patterns in TH quotes]
+             let $(TH.bangP $ TH.varP consCaseName) = \ $(TH.varP argName) $(TH.varP tailName) -> $(handleList rest (TH.varE tailName))
+             in matchList $lExp Nothing $(TH.varE consCaseName)
              |]
     -- Check that the index matches the expected one, otherwise fallthrough to 'kont'
+    indexMatchCaseName <- TH.newName "indexMatchCase"
+    fallthroughName <- TH.newName "fallthrough"
     let body =
             [|
-                let !indexMatchCase = $(handleList argNames argsExpr)
-                    !fallthrough = $kont
-                in BI.ifThenElse ($ixExpr `BI.equalsInteger` (index :: Integer)) (const indexMatchCase) (const fallthrough) BI.unitval
+                -- See Note [indexMatchCase and fallthrough]
+                let $(TH.tildeP $ TH.varP indexMatchCaseName) = $(handleList argNames argsExpr)
+                    $(TH.tildeP $ TH.varP fallthroughName) = $kont
+                in BI.ifThenElse ($ixExpr `BI.equalsInteger` (index :: Integer)) (const $(TH.varE indexMatchCaseName)) (const $(TH.varE fallthroughName)) BI.unitval
             |]
     body
 
@@ -62,6 +67,7 @@ fromDataClause indexedCons = do
     dName <- TH.newName "d"
     indexName <- TH.newName "index"
     argsName <- TH.newName "args0"
+    constrMatchCaseName <- TH.newName "constrMatchCase"
     -- Call the clause for each constructor, falling through to the next one, until we get to the end in which case we return 'Nothing'
     let cases =
             foldl'
@@ -70,8 +76,9 @@ fromDataClause indexedCons = do
             indexedCons
     let body =
           [|
-            let !constrMatchCase = \ $(TH.varP indexName) $(TH.varP argsName) -> $cases
-            in matchData' $(TH.varE dName) constrMatchCase (const Nothing) (const Nothing) (const Nothing) (const Nothing)
+            -- See Note [Bang patterns in TH quotes]
+            let $(TH.bangP $ TH.varP constrMatchCaseName) = \ $(TH.varP indexName) $(TH.varP argsName) -> $cases
+            in matchData' $(TH.varE dName) $(TH.varE constrMatchCaseName) (const Nothing) (const Nothing) (const Nothing) (const Nothing)
           |]
     TH.clause [TH.varP dName] (TH.normalB body) []
 
@@ -87,18 +94,23 @@ unsafeReconstructCase (TH.ConstructorInfo{TH.constructorName=name, TH.constructo
     let handleList :: [TH.Name] -> TH.Q TH.Exp -> TH.Q TH.Exp
         handleList [] _ = [| $app |]
         handleList (argName:rest) lExp = do
+            tName <- TH.newName "t"
             [|
              let
-                 !t = $lExp
-                 $(TH.bangP $ TH.varP argName) = BI.head t
-             in $(handleList rest [| BI.tail t |])
+                 -- See Note [Bang patterns in TH quotes]
+                 $(TH.bangP $ TH.varP tName) = $lExp
+                 $(TH.bangP $ TH.varP argName) = BI.head $(TH.varE tName)
+             in $(handleList rest [| BI.tail $(TH.varE tName) |])
              |]
     -- Check that the index matches the expected one, otherwise fallthrough to 'kont'
+    indexMatchCaseName <- TH.newName "indexMatchCase"
+    fallthroughName <- TH.newName "fallthrough"
     let body =
             [|
-                let !indexMatchCase = $(handleList argNames argsExpr)
-                    !fallthrough = $kont
-                in BI.ifThenElse ($ixExpr `BI.equalsInteger` (index :: Integer)) (const indexMatchCase) (const fallthrough) BI.unitval
+                -- See Note [indexMatchCase and fallthrough]
+                let $(TH.tildeP $ TH.varP indexMatchCaseName) = $(handleList argNames argsExpr)
+                    $(TH.tildeP $ TH.varP fallthroughName) = $kont
+                in BI.ifThenElse ($ixExpr `BI.equalsInteger` (index :: Integer)) (const $(TH.varE indexMatchCaseName)) (const $(TH.varE fallthroughName)) BI.unitval
             |]
     body
 
@@ -115,6 +127,7 @@ unsafeFromDataClause indexedCons = do
             indexedCons
     let body =
           [|
+            -- See Note [Bang patterns in TH quotes]
             let $(TH.bangP $ TH.varP tupName) = BI.unsafeDataAsConstr $(TH.varE dName)
                 $(TH.bangP $ TH.varP indexName) = BI.fst $(TH.varE tupName)
             in $cases
@@ -170,3 +183,17 @@ makeIsDataIndexed name indices = do
         tyvarbndrName (TH.PlainTV n)      = n
         tyvarbndrName (TH.KindedTV n _)   = n
 #endif
+
+{- Note [indexMatchCase and fallthrough]
+`indexMatchCase` and `fallthrough` need to be non-strict, because (1) at most one of them
+needs to be evaluated; (2) evaluating `indexMatchCase` when it shouldn't be evaluated
+can lead to `BI.head []` (e.g., in the `UnsafeFromData (Maybe a)` instance); (3) evaluating
+`fallthrough` when it shouldn't be evaluated can lead to PT1 (reconstructCaseError).
+-}
+
+{- Note [Bang patterns in TH quotes]
+Bang patterns in TH quotes do not work before GHC 9.8.1. See
+https://gitlab.haskell.org/ghc/ghc/-/issues/23036.
+
+For the time being, we need to use `TH.bangP`.
+-}

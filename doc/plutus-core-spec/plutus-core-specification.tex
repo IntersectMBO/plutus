@@ -1,0 +1,65 @@
+\documentclass[a4paper]{article}
+
+\title{Formal Specification of\\the Plutus Core Language}
+\date{11th August 2023}
+\author{Plutus Core Team}
+
+\input{header.tex}
+\begin{document}
+
+\maketitle
+
+\begin{center}
+  \LARGE{\red{\textsf{DRAFT}}}
+\end{center}
+
+\begin{abstract}
+  This is intended to be a reference guide for developers who want to utilise
+  the Plutus Core infrastructure.  We lay out the grammar and syntax of untyped
+  Plutus Core terms, and their semantics and evaluation rules.  We also describe
+  the built-in types and functions.  The Appendices include a list of supported
+  builtins in each era and some aspects of Plutus Core which have been
+  mechanically formalised.
+  
+  This document only describes untyped Plutus Core: a subsequent version will also
+  include the syntax and semantics of Typed Plutus Core and describe its relation to
+  untyped Plutus Core.
+\end{abstract}
+
+\newpage
+\tableofcontents
+\newpage
+
+\kwxm{This could still do with some tidying up.  We use a mixture of syntactic
+  BNF-style notation, set-theoretic notation, and type theory, and that could
+  maybe be rationalised a bit.}
+
+\input{introduction.tex}
+\input{notation.tex}
+\input{untyped-grammar.tex}
+\input{builtins.tex}
+\input{untyped-reduction.tex}  % Also inputs untyped-values.tex
+\input{untyped-cek-machine.tex}
+\section{Cost Accounting for Untyped Plutus Core}
+To follow.
+\section{Typed Plutus Core}
+To follow.
+
+\begin{appendices}
+\input{builtins-alonzo.tex}
+\input{builtins-vasil.tex}
+\input{builtins-future.tex}
+\input{formal-verification.tex}
+\input{data-cbor.tex}
+\input{flat-serialisation.tex}
+\end{appendices}
+
+\newpage
+% \addcontentsline{toc}{section}{Bibliography}
+\bibliographystyle{plain} %% ... or whatever
+\bibliography{plutus-core-specification}
+
+\newpage
+\printnomenclature[2cm]  % Adjust horizontal space between notation and description
+
+\end{document}

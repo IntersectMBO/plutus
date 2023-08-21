@@ -67,6 +67,9 @@ module PlutusTx.Prelude (
     -- * Hashes and Signatures
     sha2_256,
     sha3_256,
+    blake2b_224,
+    blake2b_256,
+    keccak_256,
     verifyEd25519Signature,
     verifyEcdsaSecp256k1Signature,
     verifySchnorrSecp256k1Signature,
@@ -78,6 +81,32 @@ module PlutusTx.Prelude (
     round,
     -- * Data
     BuiltinData,
+    -- * BLS12_381
+    BuiltinBLS12_381_G1_Element,
+    bls12_381_G1_equals,
+    bls12_381_G1_add,
+    bls12_381_G1_neg,
+    bls12_381_G1_scalarMul,
+    bls12_381_G1_compress,
+    bls12_381_G1_uncompress,
+    bls12_381_G1_hashToGroup,
+    bls12_381_G1_zero,
+    bls12_381_G1_generator,
+    BuiltinBLS12_381_G2_Element,
+    bls12_381_G2_equals,
+    bls12_381_G2_add,
+    bls12_381_G2_neg,
+    bls12_381_G2_scalarMul,
+    bls12_381_G2_compress,
+    bls12_381_G2_uncompress,
+    bls12_381_G2_hashToGroup,
+    bls12_381_G2_zero,
+    bls12_381_G2_generator,
+    BuiltinBLS12_381_MlResult,
+    bls12_381_millerLoop,
+    bls12_381_mulMlResult,
+    bls12_381_finalVerify,
+    -- * Conversions
     fromBuiltin,
     toBuiltin
     ) where
@@ -87,11 +116,23 @@ import PlutusCore.Data (Data (..))
 import PlutusTx.Applicative as Applicative
 import PlutusTx.Base as Base
 import PlutusTx.Bool as Bool
-import PlutusTx.Builtins (BuiltinByteString, BuiltinData, BuiltinString, Integer, appendByteString, appendString,
-                          consByteString, decodeUtf8, emptyByteString, emptyString, encodeUtf8, equalsByteString,
-                          equalsString, error, fromBuiltin, greaterThanByteString, indexByteString, lengthOfByteString,
-                          lessThanByteString, sha2_256, sha3_256, sliceByteString, toBuiltin, trace,
-                          verifyEcdsaSecp256k1Signature, verifyEd25519Signature, verifySchnorrSecp256k1Signature)
+import PlutusTx.Builtins (BuiltinBLS12_381_G1_Element, BuiltinBLS12_381_G2_Element,
+                          BuiltinBLS12_381_MlResult, BuiltinByteString, BuiltinData, BuiltinString,
+                          Integer, appendByteString, appendString, blake2b_224, blake2b_256,
+                          bls12_381_G1_add, bls12_381_G1_compress, bls12_381_G1_equals,
+                          bls12_381_G1_generator, bls12_381_G1_hashToGroup, bls12_381_G1_neg,
+                          bls12_381_G1_scalarMul, bls12_381_G1_uncompress, bls12_381_G1_zero,
+                          bls12_381_G2_add, bls12_381_G2_compress, bls12_381_G2_equals,
+                          bls12_381_G2_generator, bls12_381_G2_hashToGroup, bls12_381_G2_neg,
+                          bls12_381_G2_scalarMul, bls12_381_G2_uncompress, bls12_381_G2_zero,
+                          bls12_381_finalVerify, bls12_381_millerLoop, bls12_381_mulMlResult,
+                          consByteString, decodeUtf8, emptyByteString, emptyString, encodeUtf8,
+                          equalsByteString, equalsString, error, fromBuiltin, greaterThanByteString,
+                          indexByteString, keccak_256, lengthOfByteString, lessThanByteString,
+                          sha2_256, sha3_256, sliceByteString, toBuiltin, trace,
+                          verifyEcdsaSecp256k1Signature, verifyEd25519Signature,
+                          verifySchnorrSecp256k1Signature)
+
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Either as Either
 import PlutusTx.Enum as Enum

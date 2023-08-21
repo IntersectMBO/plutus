@@ -3,8 +3,9 @@
 module PlutusLedgerApi.V1 (
     -- * Scripts
       SerialisedScript
-    , Script
-    , fromCompiledCode
+    , serialiseCompiledCode
+    , serialiseUPLC
+    , uncheckedDeserialiseUPLC
     -- * Validating scripts
     , assertScriptWellFormed
     -- * Running scripts
@@ -75,19 +76,8 @@ module PlutusLedgerApi.V1 (
     , upperBound
     , strictLowerBound
     , strictUpperBound
-    -- *** Newtypes for script/datum types and hash types
-    , Validator (..)
-    , mkValidatorScript
-    , unValidatorScript
-    , ValidatorHash (..)
-    , MintingPolicy (..)
-    , mkMintingPolicyScript
-    , unMintingPolicyScript
-    , MintingPolicyHash (..)
-    , StakeValidator (..)
-    , mkStakeValidatorScript
-    , unStakeValidatorScript
-    , StakeValidatorHash (..)
+    -- *** Newtypes and hash types
+    , ScriptHash (..)
     , Redeemer (..)
     , RedeemerHash (..)
     , Datum (..)
@@ -132,10 +122,10 @@ import PlutusTx (FromData (..), ToData (..), UnsafeFromData (..), fromData, toDa
 import PlutusTx.Builtins.Internal (BuiltinData (..), builtinDataToData, dataToBuiltinData)
 import PlutusTx.Prelude (BuiltinByteString, fromBuiltin, toBuiltin)
 
--- | An alias to the language version this module exposes at runtime.
+-- | An alias to the Plutus ledger language this module exposes at runtime.
 --  MAYBE: Use CPP '__FILE__' + some TH to automate this.
-thisPlutusVersion :: LedgerPlutusVersion
-thisPlutusVersion = PlutusV1
+thisLedgerLanguage :: PlutusLedgerLanguage
+thisLedgerLanguage = PlutusV1
 
 {- Note [Abstract types in the ledger API]
 We need to support old versions of the ledger API as we update the code that it depends on. You
@@ -156,23 +146,23 @@ anything, we're just going to create new versions.
 -- | Check if a 'Script' is "valid" according to a protocol version. At the moment this means "deserialises correctly", which in particular
 -- implies that it is (almost certainly) an encoded script and the script does not mention any builtins unavailable in the given protocol version.
 assertScriptWellFormed :: MonadError ScriptDecodeError m
-                       => ProtocolVersion
-                       -> SerialisedScript
+                       => ProtocolVersion -- ^ which protocol version to run the operation in
+                       -> SerialisedScript -- ^ the script to check for well-formedness
                        -> m ()
-assertScriptWellFormed = Common.assertScriptWellFormed thisPlutusVersion
+assertScriptWellFormed = Common.assertScriptWellFormed thisLedgerLanguage
 
 -- | Evaluates a script, returning the minimum budget that the script would need
 -- to evaluate successfully. This will take as long as the script takes, if you need to
 -- limit the execution time of the script also, you can use 'evaluateScriptRestricting', which
 -- also returns the used budget.
 evaluateScriptCounting
-    :: ProtocolVersion
+    :: ProtocolVersion -- ^ which protocol version to run the operation in
     -> VerboseMode     -- ^ Whether to produce log output
-    -> EvaluationContext -- ^ The cost model that should already be synced to the most recent cost-model-params coming from the current protocol
+    -> EvaluationContext -- ^ Includes the cost model to use for tallying up the execution costs
     -> SerialisedScript          -- ^ The script to evaluate
     -> [PLC.Data]          -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ExBudget)
-evaluateScriptCounting = Common.evaluateScriptCounting thisPlutusVersion
+evaluateScriptCounting = Common.evaluateScriptCounting thisLedgerLanguage
 
 -- | Evaluates a script, with a cost model and a budget that restricts how many
 -- resources it can use according to the cost model. Also returns the budget that
@@ -181,11 +171,11 @@ evaluateScriptCounting = Common.evaluateScriptCounting thisPlutusVersion
 -- Can be used to calculate budgets for scripts, but even in this case you must give
 -- a limit to guard against scripts that run for a long time or loop.
 evaluateScriptRestricting
-    :: ProtocolVersion
+    :: ProtocolVersion -- ^ which protocol version to run the operation in
     -> VerboseMode     -- ^ Whether to produce log output
-    -> EvaluationContext -- ^ The cost model that should already be synced to the most recent cost-model-params coming from the current protocol
+    -> EvaluationContext -- ^ Includes the cost model to use for tallying up the execution costs
     -> ExBudget        -- ^ The resource budget which must not be exceeded during evaluation
     -> SerialisedScript          -- ^ The script to evaluate
     -> [PLC.Data]          -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ExBudget)
-evaluateScriptRestricting = Common.evaluateScriptRestricting thisPlutusVersion
+evaluateScriptRestricting = Common.evaluateScriptRestricting thisLedgerLanguage

@@ -7,11 +7,10 @@ module PlutusCore.Compiler (
     , defaultCompilationOpts
     ) where
 
-import PlutusCore.Builtin.Meaning
 import PlutusCore.Compiler.Erase
+import PlutusCore.Compiler.Types
 import PlutusCore.Core
 import PlutusCore.Name
-import PlutusCore.Quote
 import PlutusCore.Rename
 import UntypedPlutusCore.Core qualified as UPLC
 import UntypedPlutusCore.Simplify qualified as UPLC
@@ -29,11 +28,7 @@ defaultCompilationOpts = CompilationOpts { _coSimplifyOpts = UPLC.defaultSimplif
 
 -- | Compile a PLC term to UPLC, and optimize it.
 compileTerm
-    :: (ToBuiltinMeaning uni fun
-    , MonadQuote m
-    , HasUnique name TermUnique
-    , Eq name
-    , MonadReader (CompilationOpts name a) m)
+    :: (Compiling m uni fun name, MonadReader (CompilationOpts name a) m)
     => Term tyname name uni fun a
     -> m (UPLC.Term name uni fun a)
 compileTerm t = do
@@ -44,11 +39,7 @@ compileTerm t = do
 
 -- | Compile a PLC program to UPLC, and optimize it.
 compileProgram
-    :: (ToBuiltinMeaning uni fun
-    , MonadQuote m
-    , HasUnique name TermUnique
-    , Eq name
-    , MonadReader (CompilationOpts name a) m)
+    :: (Compiling m uni fun name, MonadReader (CompilationOpts name a) m)
     => Program tyname name uni fun a
     -> m (UPLC.Program name uni fun a)
 compileProgram (Program a v t) = UPLC.Program a v <$> compileTerm t

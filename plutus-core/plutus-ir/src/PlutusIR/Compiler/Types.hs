@@ -12,22 +12,26 @@ import PlutusIR qualified as PIR
 import PlutusIR.Compiler.Provenance
 import PlutusIR.Error
 
-import Control.Monad.Except
-import Control.Monad.Reader
+import Control.Monad (when)
+import Control.Monad.Except (MonadError)
+import Control.Monad.Reader (MonadReader, local)
 
 import Control.Lens
 
 import PlutusCore qualified as PLC
+import PlutusCore.Annotation
 import PlutusCore.Builtin qualified as PLC
-import PlutusCore.InlineUtils
 import PlutusCore.MkPlc qualified as PLC
 import PlutusCore.Pretty qualified as PLC
 import PlutusCore.Quote
 import PlutusCore.StdLib.Type qualified as Types
 import PlutusCore.TypeCheck.Internal qualified as PLC
+import PlutusCore.Version qualified as PLC
 import PlutusPrelude
 
+import Control.Monad.Error.Lens (throwing)
 import Data.Text qualified as T
+import Prettyprinter (viaShow)
 
 -- | Extra flag to be passed in the TypeCheckM Reader context,
 -- to signal if the PIR expression currently being typechecked is at the top-level
@@ -48,18 +52,48 @@ instance PLC.HasKindCheckConfig (PirTCConfig uni fun) where
 instance PLC.HasTypeCheckConfig (PirTCConfig uni fun) uni fun where
     typeCheckConfig = pirConfigTCConfig
 
+-- | What style to use when encoding datatypes.
+-- Generally, 'SumsOfProducts' is superior, unless you are targeting an
+-- old Plutus Core language version.
+--
+-- See Note [Encoding of datatypes]
+data DatatypeStyle = ScottEncoding | SumsOfProducts
+    deriving stock (Show, Read, Eq)
+
+instance Pretty DatatypeStyle where
+  pretty = viaShow
+
+data DatatypeCompilationOpts = DatatypeCompilationOpts
+    { _dcoStyle :: DatatypeStyle
+    } deriving stock (Show)
+
+makeLenses ''DatatypeCompilationOpts
+
+defaultDatatypeCompilationOpts :: DatatypeCompilationOpts
+defaultDatatypeCompilationOpts = DatatypeCompilationOpts SumsOfProducts
+
 data CompilationOpts a = CompilationOpts {
-    _coOptimize                   :: Bool
-    , _coPedantic                 :: Bool
-    , _coVerbose                  :: Bool
-    , _coDebug                    :: Bool
-    , _coMaxSimplifierIterations  :: Int
+    _coOptimize                         :: Bool
+    , _coPedantic                       :: Bool
+    , _coVerbose                        :: Bool
+    , _coDebug                          :: Bool
+    , _coDatatypes                      :: DatatypeCompilationOpts
     -- Simplifier passes
-    , _coDoSimplifierUnwrapCancel :: Bool
-    , _coDoSimplifierBeta         :: Bool
-    , _coDoSimplifierInline       :: Bool
-    , _coInlineHints              :: InlineHints PLC.Name (Provenance a)
-    , _coProfile                  :: Bool
+    , _coMaxSimplifierIterations        :: Int
+    , _coDoSimplifierUnwrapCancel       :: Bool
+    , _coDoSimplifierCaseReduce         :: Bool
+    , _coDoSimplifiercommuteFnWithConst :: Bool
+    , _coDoSimplifierBeta               :: Bool
+    , _coDoSimplifierInline             :: Bool
+    , _coDoSimplifierKnownCon           :: Bool
+    , _coDoSimplifierEvaluateBuiltins   :: Bool
+    , _coDoSimplifierStrictifyBindings  :: Bool
+    , _coInlineHints                    :: InlineHints PLC.Name (Provenance a)
+    -- Profiling
+    , _coProfile                        :: Bool
+    , _coRelaxedFloatin                 :: Bool
+    -- | Whether to try and preserve the logging beahviour of the program.
+    , _coPreserveLogging                :: Bool
     } deriving stock (Show)
 
 makeLenses ''CompilationOpts
@@ -70,29 +104,44 @@ defaultCompilationOpts = CompilationOpts
   , _coPedantic = False
   , _coVerbose = False
   , _coDebug = False
+  , _coDatatypes = defaultDatatypeCompilationOpts
   , _coMaxSimplifierIterations = 12
   , _coDoSimplifierUnwrapCancel = True
+  , _coDoSimplifierCaseReduce = True
+  , _coDoSimplifiercommuteFnWithConst = True
+  , _coDoSimplifierKnownCon = True
   , _coDoSimplifierBeta = True
   , _coDoSimplifierInline = True
+  , _coDoSimplifierEvaluateBuiltins = True
+  , _coDoSimplifierStrictifyBindings = True
   , _coInlineHints = mempty
   , _coProfile = False
+  , _coRelaxedFloatin = True
+  , _coPreserveLogging = False
   }
 
 data CompilationCtx uni fun a = CompilationCtx {
-    _ccOpts              :: CompilationOpts a
-    , _ccEnclosing       :: Provenance a
+    _ccOpts               :: CompilationOpts a
+    , _ccEnclosing        :: Provenance a
     -- | Decide to either typecheck (passing a specific tcconfig) or not by passing 'Nothing'.
-    , _ccTypeCheckConfig :: Maybe (PirTCConfig uni fun)
-    , _ccBuiltinVer      :: PLC.BuiltinVersion fun
+    , _ccTypeCheckConfig  :: Maybe (PirTCConfig uni fun)
+    , _ccBuiltinVer       :: PLC.BuiltinVersion fun
+    , _ccBuiltinCostModel :: PLC.CostingPart uni fun
     }
 
 makeLenses ''CompilationCtx
 
-toDefaultCompilationCtx :: Default (PLC.BuiltinVersion fun) => PLC.TypeCheckConfig uni fun -> CompilationCtx uni fun a
+toDefaultCompilationCtx :: (Default (PLC.BuiltinVersion fun), Default (PLC.CostingPart uni fun)) => PLC.TypeCheckConfig uni fun -> CompilationCtx uni fun a
 toDefaultCompilationCtx configPlc =
     CompilationCtx defaultCompilationOpts noProvenance
         (Just $ PirTCConfig configPlc YesEscape)
         def
+        def
+
+validateOpts :: Compiling m e uni fun a => PLC.Version -> m ()
+validateOpts v = do
+  datatypes <- view (ccOpts . coDatatypes . dcoStyle)
+  when (datatypes == SumsOfProducts && v < PLC.plcVersion110) $ throwing _OptionsError $ T.pack $ "Cannot use sums-of-products to compile a program with version less than 1.10. Program version is:" ++ show v
 
 getEnclosing :: MonadReader (CompilationCtx uni fun a) m => m (Provenance a)
 getEnclosing = view ccEnclosing
@@ -112,6 +161,7 @@ runIf condition pass arg = do
 runIfOpts :: MonadReader (CompilationCtx uni fun a) m => (b -> m b) -> (b -> m b)
 runIfOpts = runIf $ view (ccOpts . coOptimize)
 
+type PLCProgram uni fun a = PLC.Program PLC.TyName PLC.Name uni fun (Provenance a)
 type PLCTerm uni fun a = PLC.Term PLC.TyName PLC.Name uni fun (Provenance a)
 type PLCType uni a = PLC.Type PLC.TyName uni (Provenance a)
 
@@ -153,10 +203,8 @@ type Compiling m e uni fun a =
     , PLC.Typecheckable uni fun
     , PLC.GEq uni
     -- Pretty printing instances
+    , PLC.PrettyUni uni
     , PLC.Pretty fun
-    , PLC.Closed uni
-    , PLC.Pretty (PLC.SomeTypeIn uni)
-    , uni `PLC.Everywhere` PLC.PrettyConst
     , PLC.Pretty a
     )
 

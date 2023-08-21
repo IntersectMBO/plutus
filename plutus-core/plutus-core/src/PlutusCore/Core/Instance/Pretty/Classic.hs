@@ -14,7 +14,6 @@ module PlutusCore.Core.Instance.Pretty.Classic () where
 
 import PlutusPrelude
 
-import PlutusCore.Core.Instance.Pretty.Common ()
 import PlutusCore.Core.Type
 import PlutusCore.Pretty.Classic
 import PlutusCore.Pretty.PrettyConst
@@ -32,7 +31,7 @@ instance Pretty ann => PrettyBy (PrettyConfigClassic configName) (Kind ann) wher
             sexp "fun" (consAnnIf config ann
                 [prettyBy config k, prettyBy config k'])
 
-instance (PrettyClassicBy configName tyname, Pretty (SomeTypeIn uni), Pretty ann) =>
+instance (PrettyClassicBy configName tyname, PrettyParens (SomeTypeIn uni), Pretty ann) =>
         PrettyBy (PrettyConfigClassic configName) (Type tyname uni ann) where
     prettyBy config = \case
         TyApp ann t t'     ->
@@ -51,16 +50,19 @@ instance (PrettyClassicBy configName tyname, Pretty (SomeTypeIn uni), Pretty ann
             sexp "all" (consAnnIf config ann
                 [prettyBy config n, prettyBy config k, prettyBy config t])
         TyBuiltin ann n    ->
-            sexp "con" (consAnnIf config ann [pretty n])
+            sexp "con" (consAnnIf config ann [prettyBy juxtRenderContext n])
         TyLam ann n k t    ->
             sexp "lam" (consAnnIf config ann
                 [prettyBy config n, prettyBy config k, prettyBy config t])
+        TySOP ann tyls    ->
+            sexp "sop" (consAnnIf config ann (fmap prettyTyl tyls))
+            where
+              prettyTyl tyl = brackets (sep (fmap (prettyBy config) tyl))
 
 instance
         ( PrettyClassicBy configName tyname
         , PrettyClassicBy configName name
-        , Pretty (SomeTypeIn uni)
-        , Closed uni, uni `Everywhere` PrettyConst
+        , PrettyUni uni
         , Pretty fun
         , Pretty ann
         ) => PrettyBy (PrettyConfigClassic configName) (Term tyname name uni fun ann) where
@@ -90,9 +92,15 @@ instance
                 [prettyBy config ty1, prettyBy config ty2, prettyBy config t])
         Unwrap ann t ->
             sexp "unwrap" (consAnnIf config ann [prettyBy config t])
+        Constr ann ty i es ->
+            sexp "constr" (consAnnIf config ann ([prettyBy config ty, pretty i ]
+                                                 ++ (fmap (prettyBy config) es)))
+        Case ann ty arg cs ->
+            sexp "case" (consAnnIf config ann ([prettyBy config ty, prettyBy config arg]
+                                               ++ (fmap (prettyBy config) cs)))
       where
-        prettyTypeOf :: Pretty (SomeTypeIn t) => Some (ValueOf t) -> Doc dann
-        prettyTypeOf (Some (ValueOf uni _ )) = pretty $ SomeTypeIn uni
+        prettyTypeOf :: Some (ValueOf uni) -> Doc dann
+        prettyTypeOf (Some (ValueOf uni _ )) = prettyBy juxtRenderContext $ SomeTypeIn uni
 
 instance (PrettyClassicBy configName (Term tyname name uni fun ann), Pretty ann) =>
         PrettyBy (PrettyConfigClassic configName) (Program tyname name uni fun ann) where

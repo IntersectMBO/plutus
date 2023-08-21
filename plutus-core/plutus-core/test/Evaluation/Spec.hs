@@ -16,12 +16,13 @@ import PlutusCore hiding (Term)
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin as PLC
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
-import PlutusCore.Generators (GenArbitraryTerm (..), GenTypedTerm (..), forAllNoShow)
+import PlutusCore.Evaluation.Machine.ExBudgetStream (ExBudgetStream (..))
+import PlutusCore.Generators.Hedgehog (GenArbitraryTerm (..), GenTypedTerm (..), forAllNoShow)
 import PlutusCore.Pretty
 import PlutusPrelude
 
 import Control.Exception
-import Control.Monad.Except
+import Control.Monad.IO.Class (liftIO)
 import Data.Ix
 import Data.Kind qualified as GHC
 import Evaluation.Machines (test_machines)
@@ -49,13 +50,14 @@ test_builtinsDon'tThrow =
     testGroup "Builtins don't throw" $
         enumerate @(BuiltinVersion DefaultFun) <&> \ver ->
             testGroup (fromString . render $ "Version: " <> pretty ver) $
-                enumerate @DefaultFun <&> \fun ->
+                let runtimes = toBuiltinsRuntime ver defaultBuiltinCostModel
+                in enumerate @DefaultFun <&> \fun ->
                     -- Perhaps using @maxBound@ (with @Enum@, @Bounded@) is indeed better than
                     -- @Default@ for BuiltinVersions
                     testPropertyNamed
                         (display fun)
                         (fromString $ display fun)
-                        (prop_builtinEvaluation ver fun defaultBuiltinCostModel gen f)
+                        (prop_builtinEvaluation runtimes fun gen f)
   where
     gen bn = Gen.choice [genArgsWellTyped def bn, genArgsArbitrary def bn]
     f bn args = \case
@@ -79,7 +81,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni AlwaysThrows where
     type CostingPart uni AlwaysThrows = ()
     data BuiltinVersion AlwaysThrows = AlwaysThrowsV1
 
-    toBuiltinMeaning _ver AlwaysThrows = makeBuiltinMeaning f mempty
+    toBuiltinMeaning _ver AlwaysThrows = makeBuiltinMeaning f $ \_ _ -> ExBudgetLast mempty
       where
         f :: Integer -> Integer
         f _ = error "This builtin function always throws an exception."
@@ -95,10 +97,11 @@ test_alwaysThrows =
     testGroup
         "Builtins throwing exceptions should cause tests to fail"
         [ testPropertyNamed (display AlwaysThrows) (fromString . display $ AlwaysThrows) $
-            prop_builtinEvaluation @_ @AlwaysThrows ver AlwaysThrows () (genArgsWellTyped ver) f
+            prop_builtinEvaluation @_ @AlwaysThrows runtimes AlwaysThrows (genArgsWellTyped ver) f
         ]
   where
     ver = AlwaysThrowsV1
+    runtimes = toBuiltinsRuntime ver ()
     f bn args = \case
         Left _ -> success
         Right _ -> do
@@ -109,11 +112,9 @@ test_alwaysThrows =
 
 prop_builtinEvaluation ::
     forall uni fun.
-    (ToBuiltinMeaning uni fun, Pretty (SomeTypeIn uni),
-        Pretty fun, Closed uni, uni `Everywhere` PrettyConst) =>
-    PLC.BuiltinVersion fun ->
+    (PrettyUni uni, Pretty fun) =>
+    BuiltinsRuntime fun (Term uni fun) ->
     fun ->
-    CostingPart uni fun ->
     -- | A function making a generator for @fun@'s arguments.
     (fun -> Gen [Term uni fun]) ->
     -- | A function that takes a builtin function, a list of arguments, and the evaluation
@@ -123,7 +124,7 @@ prop_builtinEvaluation ::
         Either SomeException (MakeKnownM (HeadSpine (Term uni fun))) ->
         PropertyT IO ()) ->
     Property
-prop_builtinEvaluation ver bn costModel mkGen f = property $ do
+prop_builtinEvaluation runtimes bn mkGen f = property $ do
     args0 <- forAllNoShow $ mkGen bn
     let
         eval ::
@@ -133,15 +134,14 @@ prop_builtinEvaluation ver bn costModel mkGen f = property $ do
         eval [] (BuiltinResult _ getX) =
             getX
         eval (arg : args) (BuiltinExpectArgument toRuntime) =
-            eval args =<< liftReadKnownM (toRuntime arg)
+            eval args (toRuntime arg)
         eval args (BuiltinExpectForce runtime) =
             eval args runtime
         eval _ _ =
             -- TODO: can we make this function run in @GenT MakeKnownM@ and generate arguments
             -- on the fly to avoid this error case?
             error $ "Wrong number of args for builtin " <> display bn <> ": " <> display args0
-        BuiltinMeaning _ _ runtimeOpts = toBuiltinMeaning ver bn
-        runtime0 = _broImmediateF runtimeOpts costModel
+        runtime0 = lookupBuiltin bn runtimes
     f bn args0 =<< liftIO (try @SomeException . evaluate $ eval args0 runtime0)
 
 genArgsWellTyped ::

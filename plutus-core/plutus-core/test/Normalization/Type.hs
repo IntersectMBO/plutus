@@ -6,7 +6,7 @@ module Normalization.Type
     ) where
 
 import PlutusCore
-import PlutusCore.Generators.AST
+import PlutusCore.Generators.Hedgehog.AST
 import PlutusCore.MkPlc
 import PlutusCore.Normalize
 
@@ -15,8 +15,8 @@ import Control.Monad.Morph (hoist)
 import Hedgehog
 import Hedgehog.Internal.Property (forAllT)
 import Test.Tasty
-import Test.Tasty.HUnit
 import Test.Tasty.Hedgehog
+import Test.Tasty.HUnit
 
 test_appAppLamLam :: IO ()
 test_appAppLamLam = do
@@ -24,7 +24,7 @@ test_appAppLamLam = do
         Normalized integer2' = runQuote $ do
             x <- freshTyName "x"
             y <- freshTyName "y"
-            normalizeType $ mkIterTyApp ()
+            normalizeType $ mkIterTyAppNoAnn
                 (TyLam () x (Type ()) (TyLam () y (Type ()) $ TyVar () y))
                 [integer2, integer2]
     integer2 @?= integer2'

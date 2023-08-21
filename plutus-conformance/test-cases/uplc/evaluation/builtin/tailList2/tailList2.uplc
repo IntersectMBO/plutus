@@ -1,1 +1,0 @@
-(program 0.0.0 [(force (builtin tailList)) (con list(integer) [ ])])

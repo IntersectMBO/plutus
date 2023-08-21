@@ -1,0 +1,16 @@
+(let
+  (nonrec)
+  (termbind
+    (strict)
+    (vardecl f (fun (con integer) (con integer)))
+    (lam y (con integer) [ [ (builtin addInteger) y ] (con integer 3) ])
+  )
+  (termbind
+    (nonstrict)
+    (vardecl x (con integer))
+    [ [ (builtin addInteger) (con integer 1) ] (con integer 2) ]
+  )
+  [ [ (builtin addInteger) [ f x ] ] [ f x ] ]
+)
+-- Both the function and the argument of the application mention `x`,
+-- so `x` cannot be floated in.

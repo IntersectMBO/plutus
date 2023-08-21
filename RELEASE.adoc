@@ -1,0 +1,132 @@
+= Plutus Release Process
+:toc: left
+:reproducible:
+:figure-caption!:
+
+== Packages
+
+The following packages are versioned and released:
+
+- `plutus-core`, which provides
+* The main library `plutus-core:plutus-core`
+* Three executables, `plutus-core:pir`, `plutus-core:plc`, `plutus-core:uplc`
+- `plutus-ledger-api`
+* The main library `plutus-ledger-api:plutus-ledger-api`
+- `plutus-tx`
+* The main library `plutus-tx:plutus-tx`
+- `plutus-tx-plugin`
+* The main library `plutus-tx-plugin:plutus-tx-plugin`
+- `prettyprinter-configurable`
+* The main library `prettyprinter-configurable:prettyprinter-configurable`
+
+== Version Scheme
+
+All above packages are versioned and released in sync.
+That is, whenever one package releases version X, so do all other packages.
+
+We follow https://pvp.haskell.org/[the PVP version scheme] for the packages, where version numbers have a `major.major.minor.patch` pattern with the following semantics:
+
+- A major release (e.g., 3.5.2.1 -> 3.6.0.0 or 4.0.0.0) may contain arbitrary changes to the API (subject to the backwards compatibility requirements described below).
+- A minor release (e.g., 3.5.2.1 -> 3.5.3.0) may contain changes such as new features, which technically can be breaking, but are unlikely to cause breakage in practice, and if it does, the fix should be straightforward (e.g., by renaming).
++
+A minor release is also allowed to change the observable behaviors of functions that users should not rely on.
+For example, if a function returns a list of things and makes no promise on the order of elements in the returned list, then a minor release may change the order.
+- A patch release (e.g., 3.5.2.1 -> 3.5.2.2) can only contain such things as simple bug fixes, performance improvements, and documentation updates.
+
+=== Version Qualifiers
+
+Version qualifiers, also known as pre-release versions, usually refer to alpha, beta, and release candidate.
+Typically, alpha and beta are pre-feature complete, while release candidates are post-feature complete.
+
+We do not tag or publish alpha or beta versions for libraries.
+Depending on an alpha or beta version of a library requires `source-repository-package`, which is quite inconvenient.
+It is also uncommon for a library to publish pre-release versions (unless it is new or a complete rewrite).
+
+We do tag release candidates, e.g., 3.5.2.1-rc1, because additional non-CI tests and checks may need to be carried out (see "Release QA Process").
+Tagging release candidates makes it easy to identify the correct commit to run these tests and checks against.
+
+For executables, we may publish alpha, beta or release candidates at our discretion.
+
+== Release Frequency
+
+We will begin by making a new major or minor release every 4 weeks, and evaluate and adjust the frequency in the future.
+Ad-hoc releases can be made upon request.
+
+We only make patch releases for version `x.y.z`, if a cardano-node release candidate depends on `x.y.z.w`, and an issue is found during the node release process that requires patching plutus.
+In all other cases, we always start a new major or minor release from master.
+
+== Release Process
+
+=== Major and Minor Releases
+
+Suppose we are releasing version `x.y.z.0`.
+
+1. Tag `x.y.z.0-rc1` on master.
+- There's no need to create a release branch at this point.
+A release branch is only needed if bugs are found in `x.y.z.0-rc1` and we need to backport a fix from master.
+- This step can be omitted if no additional tests and checks are needed in the release QA process. See "Release QA Process" below.
+2. In future it will be necessary to run the release QA process (see "Release QA Process" below) at this point, however currently it is not required for the lack of specific instructions.
+3. If no release blocking issue is found, run `./scripts/prepare-release.sh x.y.z.0 <packages>`.
+This updates versions and version bounds, and assembles the changelogs.open a PR for updating the cabal files and the changelog files.
+- `<packages>` should normally be empty, which will prepare the default packages, or can be an explicit list of packages to prepare.
+4. Review the changelogs and edit manually if needed.
+5. Open a PR for updating the cabal files and the changelog files. Example: https://github.com/input-output-hk/plutus/pull/5452.
+6. Once the PR is merged, tag the commit `x.y.z.0` using https://github.com/input-output-hk/plutus/releases/new[Github's release interface].
+7. Open a PR in the https://github.com/input-output-hk/cardano-haskell-packages[CHaP repository] for publishing the new version. Run `./scripts/add-from-github.sh "https://github.com/input-output-hk/plutus" COMMIT-SHA LIST-OF-UPDATED-PACKAGES` (see https://github.com/input-output-hk/cardano-haskell-packages#-from-github[the README on CHaP]). Example: https://github.com/input-output-hk/cardano-haskell-packages/pull/394.
+- If issues are found, create a release branch `release/x.y.z`, fix the issues on master, backport the fixes to `release/x.y.z`, tag `x.y.z.0-rc2`, and go to step 4.
+- Why not just fix the issues on master and tag `x.y.z.0-rc2` from master?
+It is desirable to minimize the amount of change between `rc1` and `rc2`, because it may reduce the tests and checks that need to be performed against `rc2`.
+For instance, if `plutus-ledger-api` is the only package changed, there is no need to re-run tests on `plutus-core` or `plutus-tx`.
+Another example is if a security audit is done on `rc1`, and the changes in `rc2` do not modify the audited code, then the audit does not need to be re-done.
+8. Once the CHaP PR has been merged, make a PR to update the version used in `cardano-ledger`. Example: https://github.com/input-output-hk/cardano-ledger/pull/3563.
+- Update the version bounds in cabal files.
+- Update the CHaP index state in `cabal.project`.
+- Update the CHaP flake input with `nix flake lock --update-input CHaP`.
+
+=== Patch Releases
+
+Suppose we are releasing version `x.y.z.w`.
+
+1. If it is the first time we are making a patch release for version `x.y.z` (i.e., `x.y.z.0` -> `x.y.z.1`), a release branch may not exist for `x.y`.
+If so, create branch `release/x.y.z` from the `x.y.z.0` tag.
+- We create release branches lazily, because we do not expect to make many patch releases.
+2. Backport the needed fixes from master to `release/x.y.z`.
+3. Tag `x.y.z.w-rc1` on the release branch.
+- This step can be omitted if no additional tests and checks are needed in the release QA process. See "Release QA Process" below.
+4. Run the release QA process. See "Release QA Process" below.
+5. If no release blocking issue is found, run `./scripts/prepare-release.sh x.y.z.w <packages>`.
+6. Open a PR for updating the cabal files and the changelog files.
+7. Once the PR is merged, tag the commit `x.y.z.w`, and open a PR in the CHaP repository for publishing the new version.
+- If issues are found, fix them on master, backport the fixes to `release/x.y.z`, and go to step 5.
+
+=== Release QA Process
+
+All applicable tests and checks that haven't been run on the release candidate should be carried out prior to tagging and publishing a release.
+- This includes all tests that can be done with only the Plutus repo, such as unit tests, property-based tests, conformance tests and nightly tests.
+- In some cases we need input from domain experts and/or security audit (e.g., when adding a cryptography builtin).
+The right group of people should be involved and sign off on the tests and checks.
+- This does not include tests that require building a new node, or integrating with other downstream projects.
+
+== Backwards Compatibility with Cardano API
+
+It is a good idea to avoid breaking the latest version of Cardano API in a new Plutus release.
+This makes it easy for downstream projects to update Plutus version without needing a new Cardano API release.
+
+For example, suppose we make some improvements to `plutus-tx-plugin` and make a new major release.
+Since all packages are released in sync, we also make a new major release for `plutus-core`.
+Although it is a major release, we should avoid making changes that is incompatible with the latest version of Cardano API.
+Otherwise, downstream projects such as Plutus Tools won't be able to use the new Plutus version and take advantage of the plugin improvements, until a new Cardano API version is published.
+
+To do so, rather than making changes to the Plutus API that breaks Cardano API (e.g., changing the type of a function), we can temporarily keep both the old Plutus API and the new Plutus API, until a new Cardano API version is released that no longer depends on the old Plutus API.
+This is not a hard rule, and does not need to be strictly adhered to if it is too much trouble for small or unclear benefits.
+
+This will not be needed once Cardano API starts to make more frequent releases.
+
+== Participation in the `cardano-node` release process
+
+Some Plutus features and changes require integration testing on devnets and testnets.
+Such tests are typically performed by the node QA team or the ecosystem collaborators.
+Test scenarios related to the Plutus changes should be reviewed and signed off by the Plutus team.
+
+As stated before, if a bug is found during the node release process that requires fixes in Plutus, we should make a patch release using the process described above, as opposed to a major or a minor one.
+That is because we want to minimize the changes to downstream, since this will occur when the Cardano node is already progressing through its release process.

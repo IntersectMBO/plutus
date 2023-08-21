@@ -54,7 +54,7 @@ churchSucc = runQuote $ do
         . lamAbs () z (TyVar () r)
         . lamAbs () f (TyFun () (TyVar () r) $ TyVar () r)
         . apply  () (var () f)
-        $ mkIterApp () (tyInst () (var () n) $ TyVar () r)
+        $ mkIterAppNoAnn (tyInst () (var () n) $ TyVar () r)
           [ var () z
           , var () f
           ]

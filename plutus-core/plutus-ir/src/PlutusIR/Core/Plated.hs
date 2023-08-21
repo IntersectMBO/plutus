@@ -26,11 +26,12 @@ module PlutusIR.Core.Plated
     , bindingIds
     , termUniques
     , termUniquesDeep
+    , varDeclSubtypes
     ) where
 
 import PlutusCore qualified as PLC
-import PlutusCore.Core.Plated (tyVarDeclSubkinds, typeSubkinds, typeSubtypes, typeSubtypesDeep, typeUniques,
-                               typeUniquesDeep, varDeclSubtypes)
+import PlutusCore.Core (tyVarDeclSubkinds, typeSubkinds, typeSubtypes, typeSubtypesDeep,
+                        typeUniques, typeUniquesDeep, varDeclSubtypes)
 import PlutusCore.Flat ()
 import PlutusCore.Name qualified as PLC
 
@@ -38,6 +39,7 @@ import PlutusIR.Core.Type
 
 import Control.Lens hiding (Strict, (<.>))
 import Data.Functor.Apply
+import Data.Functor.Bind.Class
 
 infixr 6 <^>
 
@@ -105,18 +107,6 @@ bindingIds f = \case
                     <.*> traverse1Maybe ((PLC.tyVarDeclName . PLC.theUnique) f) tvdecls
                     <.> PLC.theUnique f n
                     <.*> traverse1Maybe ((PLC.varDeclName . PLC.theUnique) f) vdecls)
-  where
-    -- | Traverse using 'Apply', but getting back the result in 'MaybeApply f' instead of in 'f'.
-    traverse1Maybe :: (Apply f, Traversable t) => (a -> f b) -> t a -> MaybeApply f (t b)
-    traverse1Maybe f' = traverse (MaybeApply . Left . f')
-
-    -- | Apply a non-empty container of functions to a possibly-empty-with-unit container of values.
-    -- Taken from: <https://github.com/ekmett/semigroupoids/issues/66#issue-271899630>
-    (<.*>) :: (Apply f) => f (a -> b) -> MaybeApply f a -> f b
-    ff <.*> MaybeApply (Left fa) = ff <.> fa
-    ff <.*> MaybeApply (Right a) = ($ a) <$> ff
-    infixl 4 <.*>
-
 
 {-# INLINE termSubkinds #-}
 -- | Get all the direct child 'Kind's of the given 'Term'.
@@ -133,6 +123,8 @@ termSubkinds f term0 = case term0 of
     Unwrap{}        -> pure term0
     Constant{}      -> pure term0
     Builtin{}       -> pure term0
+    Constr{}        -> pure term0
+    Case{}          -> pure term0
 
 {-# INLINE termSubterms #-}
 -- | Get all the direct child 'Term's of the given 'Term', including those within 'Binding's.
@@ -145,6 +137,8 @@ termSubterms f = \case
     TyInst x t ty     -> TyInst x <$> f t <*> pure ty
     IWrap x ty1 ty2 t -> IWrap x ty1 ty2 <$> f t
     Unwrap x t        -> Unwrap x <$> f t
+    Constr x ty i es  -> Constr x ty i <$> traverse f es
+    Case x ty arg cs  -> Case x ty <$> f arg <*> traverse f cs
     e@Error {}        -> pure e
     v@Var {}          -> pure v
     c@Constant {}     -> pure c
@@ -163,6 +157,8 @@ termSubtypes f = \case
     TyInst x t ty     -> TyInst x t <$> f ty
     IWrap x ty1 ty2 t -> IWrap x <$> f ty1 <*> f ty2 <*> pure t
     Error x ty        -> Error x <$> f ty
+    Constr x ty i es  -> Constr x <$> f ty <*> pure i <*> pure es
+    Case x ty arg cs  -> Case x <$> f ty <*> pure arg <*> pure cs
     t@TyAbs {}        -> pure t
     a@Apply {}        -> pure a
     u@Unwrap {}       -> pure u
@@ -197,6 +193,8 @@ termUniques f = \case
     e@Error{}         -> pure e
     i@IWrap{}         -> pure i
     u@Unwrap{}        -> pure u
+    p@Constr {}       -> pure p
+    p@Case {}         -> pure p
 
 -- | Get all the direct child 'name a's of the given 'Term' from 'Var's.
 termVars :: Traversal' (Term tyname name uni fun ann) name

@@ -1,0 +1,10 @@
+(let
+  (nonrec)
+  (termbind
+    (nonstrict)
+    (vardecl y (con integer))
+    [ [ (builtin addInteger) (con integer 1) ] (con integer 2) ]
+  )
+  (lam x (con integer) [ [ (builtin addInteger) [ [ (builtin addInteger) y ] x ] ] y ])
+)
+-- `y` should be float into the lambda, since the lambda is not on the RHS of a binding.

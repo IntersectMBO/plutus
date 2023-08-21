@@ -1,7 +1,0 @@
-(program
-  (lam
-    x
-    (con bytestring)
-    (lam y (con bytestring) [ [ (builtin appendByteString) x ] y ])
-  )
-)

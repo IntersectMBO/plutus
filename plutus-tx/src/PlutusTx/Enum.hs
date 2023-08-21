@@ -12,9 +12,15 @@ import PlutusTx.Trace
 
 -- | Class 'Enum' defines operations on sequentially ordered types.
 class Enum a where
-  -- | the successor of a value.  For numeric types, 'succ' adds 1.
+  -- | The successor of a value.  For numeric types, 'succ' adds 1.
+  --
+  -- For types that implement 'Ord', @succ x@ should be the least element
+  -- that is greater than @x@, and 'error' if there is none.
   succ :: a -> a
-  -- | the predecessor of a value.  For numeric types, 'pred' subtracts 1.
+  -- | The predecessor of a value.  For numeric types, 'pred' subtracts 1.
+  --
+  -- For types that implement 'Ord', @pred x@ should be the greatest element
+  -- that is less than @x@, and 'error' if there is none.
   pred :: a -> a
   -- | Convert from an 'Integer'.
   toEnum :: Integer -> a

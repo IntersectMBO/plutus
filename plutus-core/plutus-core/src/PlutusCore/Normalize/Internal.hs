@@ -1,19 +1,17 @@
--- editorconfig-checker-disable-file
--- | The internals of the normalizer.
-
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE PolyKinds       #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module PlutusCore.Normalize.Internal
-    ( NormalizeTypeT
-    , MonadNormalizeType
-    , runNormalizeTypeT
-    , withExtendedTypeVarEnv
-    , normalizeTypeM
-    , substNormalizeTypeM
-    , normalizeTypesInM
-    ) where
+-- | The internals of the normalizer.
+module PlutusCore.Normalize.Internal (
+  NormalizeTypeT,
+  MonadNormalizeType,
+  runNormalizeTypeT,
+  withExtendedTypeVarEnv,
+  normalizeTypeM,
+  substNormalizeTypeM,
+  normalizeTypesInM,
+) where
 
 import PlutusCore.Core
 import PlutusCore.MkPlc (mkTyBuiltinOf)
@@ -23,6 +21,7 @@ import PlutusCore.Rename
 import PlutusPrelude
 
 import Control.Lens
+import Control.Monad
 import Control.Monad.Reader
 import Control.Monad.State
 import Universe
@@ -35,14 +34,15 @@ that the global uniqueness condition is satisfied before calling ANY function fr
 The invariant is preserved. In future we will enforce the invariant.
 -}
 
--- | Mapping from variables to what they stand for (each row represents a substitution).
--- Needed for efficiency reasons, otherwise we could just use substitutions.
+{- | Mapping from variables to what they stand for (each row represents a substitution).
+Needed for efficiency reasons, otherwise we could just use substitutions.
+-}
 type TypeVarEnv tyname uni ann = UniqueMap TypeUnique (Dupable (Normalized (Type tyname uni ann)))
 
 -- | The environments that type normalization runs in.
 newtype NormalizeTypeEnv tyname uni ann = NormalizeTypeEnv
-    { _normalizeTypeEnvTypeVarEnv :: TypeVarEnv tyname uni ann
-    }
+  { _normalizeTypeEnvTypeVarEnv :: TypeVarEnv tyname uni ann
+  }
 
 makeLenses ''NormalizeTypeEnv
 
@@ -84,37 +84,44 @@ to deal with gas, and could maybe be changed now.)
 -- See Note [NormalizedTypeT].
 -- | The monad transformer that type normalization runs in.
 newtype NormalizeTypeT m tyname uni ann a = NormalizeTypeT
-    { unNormalizeTypeT :: ReaderT (NormalizeTypeEnv tyname uni ann) m a
-    } deriving newtype
-        ( Functor, Applicative, Alternative, Monad, MonadPlus
-        , MonadReader (NormalizeTypeEnv tyname uni ann), MonadState s
-        , MonadQuote
-        )
+  { unNormalizeTypeT :: ReaderT (NormalizeTypeEnv tyname uni ann) m a
+  }
+  deriving newtype
+    ( Functor
+    , Applicative
+    , Alternative
+    , Monad
+    , MonadPlus
+    , MonadReader (NormalizeTypeEnv tyname uni ann)
+    , MonadState s
+    , MonadQuote
+    )
 
 -- | The constraints that type normalization requires.
 type MonadNormalizeType uni m =
-    ( MonadQuote m     -- Type normalization must preserve global uniqueness.
-    , HasUniApply uni  -- See Note [Normalization of built-in types].
-    )
+  ( MonadQuote m -- Type normalization must preserve global uniqueness.
+  , HasUniApply uni -- See Note [Normalization of built-in types].
+  )
 
 -- | Run a 'NormalizeTypeT' computation.
 runNormalizeTypeT :: NormalizeTypeT m tyname uni ann a -> m a
 runNormalizeTypeT = flip runReaderT (NormalizeTypeEnv mempty) . unNormalizeTypeT
 
 -- | Locally extend a 'TypeVarEnv' in a 'NormalizeTypeT' computation.
-withExtendedTypeVarEnv
-    :: (HasUnique tyname TypeUnique, Monad m)
-    => tyname
-    -> Normalized (Type tyname uni ann)
-    -> NormalizeTypeT m tyname uni ann a
-    -> NormalizeTypeT m tyname uni ann a
+withExtendedTypeVarEnv ::
+  (HasUnique tyname TypeUnique, Monad m) =>
+  tyname ->
+  Normalized (Type tyname uni ann) ->
+  NormalizeTypeT m tyname uni ann a ->
+  NormalizeTypeT m tyname uni ann a
 withExtendedTypeVarEnv name =
-    local . over normalizeTypeEnvTypeVarEnv . insertByName name . dupable
+  local . over normalizeTypeEnvTypeVarEnv . insertByName name . dupable
 
 -- | Look up a @tyname@ in a 'TypeVarEnv'.
-lookupTyNameM
-    :: (HasUnique tyname TypeUnique, Monad m)
-    => tyname -> NormalizeTypeT m tyname uni ann (Maybe (Dupable (Normalized (Type tyname uni ann))))
+lookupTyNameM ::
+  (HasUnique tyname TypeUnique, Monad m) =>
+  tyname ->
+  NormalizeTypeT m tyname uni ann (Maybe (Dupable (Normalized (Type tyname uni ann))))
 lookupTyNameM name = asks $ lookupName name . _normalizeTypeEnvTypeVarEnv
 
 {- Note [Normalization]
@@ -128,8 +135,9 @@ normalization. In the variable case we look up the variable in the current envir
 found, we leave the variable untouched. If the variable is found, then what this variable stands for
 was previously added to an environment (while handling the function application case), so we pick
 this value and rename all bound variables in it to preserve the global uniqueness condition. It is
-safe to do so, because picked values cannot contain uninstantiated variables as only normalized types
-are added to environments and normalization instantiates all variables presented in an environment.
+safe to do so, because picked values cannot contain uninstantiated variables as only normalized
+types are added to environments and normalization instantiates all variables presented in an
+environment.
 
 See also Note [Normalization of built-in types].
 -}
@@ -161,45 +169,52 @@ Hence we do the opposite, which is straightforward.
 -}
 
 -- See Note [Normalization of built-in types].
--- | Normalize a built-in type by replacing each application inside the universe with regular
--- type application.
-normalizeUni :: forall k (a :: k) uni tyname. HasUniApply uni => uni (Esc a) -> Type tyname uni ()
+
+{- | Normalize a built-in type by replacing each application inside the universe with regular
+type application.
+-}
+normalizeUni :: forall k (a :: k) uni tyname. (HasUniApply uni) => uni (Esc a) -> Type tyname uni ()
 normalizeUni uni =
-    matchUniApply
-        uni
-        -- If @uni@ is not an intra-universe application, then we're done.
-        (mkTyBuiltinOf () uni)
-        -- If it is, then we turn that application into normal type application and recurse
-        -- into both the function and its argument.
-        (\uniF uniA -> TyApp () (normalizeUni uniF) $ normalizeUni uniA)
+  matchUniApply
+    uni
+    -- If @uni@ is not an intra-universe application, then we're done.
+    (mkTyBuiltinOf () uni)
+    -- If it is, then we turn that application into normal type application and recurse
+    -- into both the function and its argument.
+    (\uniF uniA -> TyApp () (normalizeUni uniF) $ normalizeUni uniA)
 
 -- See Note [Normalization].
+
 -- | Normalize a 'Type' in the 'NormalizeTypeT' monad.
-normalizeTypeM
-    :: (HasUnique tyname TypeUnique, MonadNormalizeType uni m)
-    => Type tyname uni ann -> NormalizeTypeT m tyname uni ann (Normalized (Type tyname uni ann))
+normalizeTypeM ::
+  (HasUnique tyname TypeUnique, MonadNormalizeType uni m) =>
+  Type tyname uni ann ->
+  NormalizeTypeT m tyname uni ann (Normalized (Type tyname uni ann))
 normalizeTypeM (TyForall ann name kind body) =
-    TyForall ann name kind <<$>> normalizeTypeM body
-normalizeTypeM (TyIFix ann pat arg)          =
-    TyIFix ann <<$>> normalizeTypeM pat <<*>> normalizeTypeM arg
-normalizeTypeM (TyFun ann dom cod)           =
-    TyFun ann <<$>> normalizeTypeM dom <<*>> normalizeTypeM cod
-normalizeTypeM (TyLam ann name kind body)    =
-    TyLam ann name kind <<$>> normalizeTypeM body
-normalizeTypeM (TyApp ann fun arg)           = do
-    vFun <- normalizeTypeM fun
-    vArg <- normalizeTypeM arg
-    case unNormalized vFun of
-        TyLam _ nArg _ body -> substNormalizeTypeM vArg nArg body
-        _                   -> pure $ TyApp ann <$> vFun <*> vArg
-normalizeTypeM var@(TyVar _ name)            = do
-    mayTy <- lookupTyNameM name
-    case mayTy of
-        -- A variable is always normalized.
-        Nothing -> pure $ Normalized var
-        Just ty -> liftDupable ty
+  TyForall ann name kind <<$>> normalizeTypeM body
+normalizeTypeM (TyIFix ann pat arg) =
+  TyIFix ann <<$>> normalizeTypeM pat <<*>> normalizeTypeM arg
+normalizeTypeM (TyFun ann dom cod) =
+  TyFun ann <<$>> normalizeTypeM dom <<*>> normalizeTypeM cod
+normalizeTypeM (TyLam ann name kind body) =
+  TyLam ann name kind <<$>> normalizeTypeM body
+normalizeTypeM (TyApp ann fun arg) = do
+  vFun <- normalizeTypeM fun
+  vArg <- normalizeTypeM arg
+  case unNormalized vFun of
+    TyLam _ nArg _ body -> substNormalizeTypeM vArg nArg body
+    _                   -> pure $ TyApp ann <$> vFun <*> vArg
+normalizeTypeM var@(TyVar _ name) = do
+  mayTy <- lookupTyNameM name
+  case mayTy of
+    -- A variable is always normalized.
+    Nothing -> pure $ Normalized var
+    Just ty -> liftDupable ty
 normalizeTypeM (TyBuiltin ann (SomeTypeIn uni)) =
-    pure . Normalized $ ann <$ normalizeUni uni
+  pure . Normalized $ ann <$ normalizeUni uni
+normalizeTypeM (TySOP ann tyls) = do
+  tyls' <- (traverse . traverse) (fmap unNormalized . normalizeTypeM) tyls
+  pure $ Normalized $ TySOP ann tyls'
 
 {- Note [Normalizing substitution]
 @substituteNormalizeM@ is only ever used as normalizing substitution that receives two already
@@ -210,17 +225,23 @@ normalized types. However we do not enforce this in the type signature, because
 
 -- See Note [Normalizing substitution].
 -- | Substitute a type for a variable in a type and normalize in the 'NormalizeTypeT' monad.
-substNormalizeTypeM
-    :: (HasUnique tyname TypeUnique, MonadNormalizeType uni m)
-    => Normalized (Type tyname uni ann)                                    -- ^ @ty@
-    -> tyname                                                              -- ^ @name@
-    -> Type tyname uni ann                                                 -- ^ @body@
-    -> NormalizeTypeT m tyname uni ann (Normalized (Type tyname uni ann))  -- ^ @NORM ([ty / name] body)@
+substNormalizeTypeM ::
+  (HasUnique tyname TypeUnique, MonadNormalizeType uni m) =>
+  -- | @ty@
+  Normalized (Type tyname uni ann) ->
+  -- | @name@
+  tyname ->
+  -- | @body@
+  Type tyname uni ann ->
+  -- | @NORM ([ty / name] body)@
+  NormalizeTypeT m tyname uni ann (Normalized (Type tyname uni ann))
 substNormalizeTypeM ty name = withExtendedTypeVarEnv name ty . normalizeTypeM
 
 -- | Normalize every 'Type' in a 'Term'.
-normalizeTypesInM
-    :: (HasUnique tyname TypeUnique, MonadNormalizeType uni m)
-    => Term tyname name uni fun ann -> NormalizeTypeT m tyname uni ann (Term tyname name uni fun ann)
-normalizeTypesInM = transformMOf termSubterms normalizeChildTypes where
+normalizeTypesInM ::
+  (HasUnique tyname TypeUnique, MonadNormalizeType uni m) =>
+  Term tyname name uni fun ann ->
+  NormalizeTypeT m tyname uni ann (Term tyname name uni fun ann)
+normalizeTypesInM = transformMOf termSubterms normalizeChildTypes
+  where
     normalizeChildTypes = termSubtypes (fmap unNormalized . normalizeTypeM)

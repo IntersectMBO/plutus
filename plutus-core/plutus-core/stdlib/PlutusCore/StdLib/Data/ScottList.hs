@@ -33,8 +33,6 @@ import PlutusCore.StdLib.Data.Integer
 import PlutusCore.StdLib.Data.Unit
 import PlutusCore.StdLib.Type
 
-import Universe
-
 -- | @List@ as a PLC type.
 --
 -- > fix \(list :: * -> *) (a :: *) -> all (r :: *). r -> (a -> list a -> r) -> r
@@ -94,7 +92,7 @@ cons = runQuote $ do
         . tyAbs () r (Type ())
         . lamAbs () z (TyVar () r)
         . lamAbs () f (TyFun () (TyVar () a) . TyFun () listA $ TyVar () r)
-        $ mkIterApp () (var () f)
+        $ mkIterAppNoAnn (var () f)
           [ var () x
           , var () xs
           ]
@@ -120,13 +118,13 @@ foldrList = runQuote $ do
         . tyAbs () r (Type ())
         . lamAbs () f (TyFun () (TyVar () a) . TyFun () (TyVar () r) $ TyVar () r)
         . lamAbs () z (TyVar () r)
-        . apply () (mkIterInst () fix [listA, TyVar () r])
+        . apply () (mkIterInstNoAnn fix [listA, TyVar () r])
         . lamAbs () rec (TyFun () listA $ TyVar () r)
         . lamAbs () xs listA
         . apply () (apply () (tyInst () (unwrap () (var () xs)) $ TyVar () r) $ var () z)
         . lamAbs () x (TyVar () a)
         . lamAbs () xs' listA
-        $ mkIterApp () (var () f)
+        $ mkIterAppNoAnn (var () f)
           [ var () x
           , apply () (var () rec) $ var () xs'
           ]
@@ -145,7 +143,7 @@ map = runQuote $ do
         . tyAbs () a (Type ())
         . tyAbs () b (Type ())
         . lamAbs () f (TyFun () (TyVar () a) $ TyVar () b)
-        . mkIterApp () (mkIterInst () foldrList [TyVar () a, TyApp () listTy $ TyVar () b])
+        . mkIterAppNoAnn (mkIterInstNoAnn foldrList [TyVar () a, TyApp () listTy $ TyVar () b])
         $ [   lamAbs () x (TyVar () a)
             . apply () (tyInst () cons (TyVar () b))
             . apply () (var () f)
@@ -173,15 +171,15 @@ foldList = runQuote $ do
         . tyAbs () a (Type ())
         . tyAbs () r (Type ())
         . lamAbs () f (TyFun () (TyVar () r) . TyFun () (TyVar () a) $ TyVar () r)
-        . apply () (mkIterInst () fix [TyVar () r, TyFun () listA $ TyVar () r])
+        . apply () (mkIterInstNoAnn fix [TyVar () r, TyFun () listA $ TyVar () r])
         . lamAbs () rec (TyFun () (TyVar () r) . TyFun () listA $ TyVar () r)
         . lamAbs () z (TyVar () r)
         . lamAbs () xs listA
         . apply () (apply () (tyInst () (unwrap () (var () xs)) $ TyVar () r) $ var () z)
         . lamAbs () x (TyVar () a)
         . lamAbs () xs' listA
-        . mkIterApp () (var () rec)
-        $ [ mkIterApp () (var () f) [var () z, var () x]
+        . mkIterAppNoAnn (var () rec)
+        $ [ mkIterAppNoAnn (var () f) [var () z, var () x]
           , var () xs'
           ]
 
@@ -200,9 +198,9 @@ reverse = runQuote $ do
     return
         . tyAbs () a (Type ())
         . lamAbs () xs listA
-        $ mkIterApp () (mkIterInst () foldList [vA, listA])
+        $ mkIterAppNoAnn (mkIterInstNoAnn foldList [vA, listA])
             [ lamAbs () r listA . lamAbs () x vA $
-                mkIterApp () (tyInst () cons vA) [var () x, var () r]
+                mkIterAppNoAnn (tyInst () cons vA) [var () x, var () r]
             , tyInst () nil vA
             , var () xs
             ]
@@ -219,7 +217,9 @@ reverse = runQuote $ do
 -- >         n
 enumFromTo
     :: ( TermLike term TyName Name uni DefaultFun
-       , uni `Includes` Integer, uni `Includes` (), uni `Includes` Bool
+       , uni `HasTypeAndTermLevel` Integer
+       , uni `HasTypeAndTermLevel` ()
+       , uni `HasTypeAndTermLevel` Bool
        )
     => term ()
 enumFromTo = runQuote $ do
@@ -234,12 +234,12 @@ enumFromTo = runQuote $ do
     return
         . lamAbs () n int
         . lamAbs () m int
-        . mkIterApp () (mkIterInst () fix [int, listInt])
+        . mkIterAppNoAnn (mkIterInstNoAnn fix [int, listInt])
         $ [   lamAbs () rec (TyFun () int listInt)
             . lamAbs () n' int
-            . mkIterApp () (tyInst () ifThenElse listInt)
-            $ [ mkIterApp () leqInteger [ var () n' , var () m]
-              , lamAbs () u unit $ mkIterApp () (tyInst () cons int)
+            . mkIterAppNoAnn (tyInst () ifThenElse listInt)
+            $ [ mkIterAppNoAnn leqInteger [ var () n' , var () m]
+              , lamAbs () u unit $ mkIterAppNoAnn (tyInst () cons int)
                     [ var () n'
                     ,    apply () (var () rec)
                        . apply () succInteger
@@ -253,30 +253,30 @@ enumFromTo = runQuote $ do
 -- |  'sum' as a PLC term.
 --
 -- > foldList {integer} {integer} addInteger 0
-sum :: (TermLike term TyName Name uni DefaultFun, uni `Includes` Integer) => term ()
+sum :: (TermLike term TyName Name uni DefaultFun, uni `HasTypeAndTermLevel` Integer) => term ()
 sum = runQuote $ do
     let int = mkTyBuiltin @_ @Integer ()
         add = builtin () AddInteger
     return
-        . mkIterApp () (mkIterInst () foldList [int, int])
+        . mkIterAppNoAnn (mkIterInstNoAnn foldList [int, int])
         $ [ add , mkConstant @Integer () 0]
 
 -- > foldrList {integer} {integer} 0 addInteger
-sumr :: (TermLike term TyName Name uni DefaultFun, uni `Includes` Integer) => term ()
+sumr :: (TermLike term TyName Name uni DefaultFun, uni `HasTypeAndTermLevel` Integer) => term ()
 sumr = runQuote $ do
     let int = mkTyBuiltin @_ @Integer ()
         add = builtin () AddInteger
     return
-        . mkIterApp () (mkIterInst () foldrList [int, int])
+        . mkIterAppNoAnn (mkIterInstNoAnn foldrList [int, int])
         $ [ add, mkConstant @Integer () 0 ]
 
 -- |  'product' as a PLC term.
 --
 -- > foldList {integer} {integer} multiplyInteger 1
-product :: (TermLike term TyName Name uni DefaultFun, uni `Includes` Integer) => term ()
+product :: (TermLike term TyName Name uni DefaultFun, uni `HasTypeAndTermLevel` Integer) => term ()
 product = runQuote $ do
     let int = mkTyBuiltin @_ @Integer ()
         mul = builtin () MultiplyInteger
     return
-        . mkIterApp () (mkIterInst () foldList [int, int])
+        . mkIterAppNoAnn (mkIterInstNoAnn foldList [int, int])
         $ [ mul , mkConstant @Integer () 1]

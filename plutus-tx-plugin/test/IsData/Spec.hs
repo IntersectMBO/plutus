@@ -9,8 +9,9 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:no-context #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=0 #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
 
 module IsData.Spec where
 
@@ -71,15 +72,15 @@ tests = testNested "IsData" [
     goldenUEval "int" [plc (Proxy @"int") (isDataRoundtrip (1::Integer))]
     , goldenUEval "tuple" [plc (Proxy @"tuple") (isDataRoundtrip (1::Integer, 2::Integer))]
     , goldenUEval "tupleInterop" [
-            getPlc (plc (Proxy @"tupleInterop") (\(d :: P.BuiltinData) -> case IsData.fromBuiltinData d of { Just t -> t P.== (1::Integer, 2::Integer); Nothing -> False}))
-            , UPLC.Program () (PLC.defaultVersion ()) (PLC.mkConstant () (IsData.toData (1::Integer, 2::Integer)))]
+            getPlcNoAnn (plc (Proxy @"tupleInterop") (\(d :: P.BuiltinData) -> case IsData.fromBuiltinData d of { Just t -> t P.== (1::Integer, 2::Integer); Nothing -> False}))
+            , UPLC.Program () (PLC.latestVersion) (PLC.mkConstant () (IsData.toData (1::Integer, 2::Integer)))]
     , goldenUEval "unsafeTupleInterop" [
-            getPlc (plc (Proxy @"unsafeTupleInterop") (\(d :: P.BuiltinData) -> IsData.unsafeFromBuiltinData d P.== (1::Integer, 2::Integer)))
-            , UPLC.Program () (PLC.defaultVersion ()) (PLC.mkConstant () (IsData.toData (1::Integer, 2::Integer)))]
+            getPlcNoAnn (plc (Proxy @"unsafeTupleInterop") (\(d :: P.BuiltinData) -> IsData.unsafeFromBuiltinData d P.== (1::Integer, 2::Integer)))
+            , UPLC.Program () (PLC.latestVersion) (PLC.mkConstant () (IsData.toData (1::Integer, 2::Integer)))]
     , goldenUEval "unit" [plc (Proxy @"unit") (isDataRoundtrip ())]
     , goldenUEval "unitInterop" [
-            getPlc (plc (Proxy @"unitInterop") (\(d :: P.BuiltinData) -> case IsData.fromBuiltinData d of { Just t -> t P.== (); Nothing -> False}))
-            , UPLC.Program () (PLC.defaultVersion ()) (PLC.mkConstant () (IsData.toData ()))]
+            getPlcNoAnn (plc (Proxy @"unitInterop") (\(d :: P.BuiltinData) -> case IsData.fromBuiltinData d of { Just t -> t P.== (); Nothing -> False}))
+            , UPLC.Program () (PLC.latestVersion) (PLC.mkConstant () (IsData.toData ()))]
     , goldenUEval "mono" [plc (Proxy @"mono") (isDataRoundtrip (Mono2 2))]
     , goldenUEval "poly" [plc (Proxy @"poly") (isDataRoundtrip (Poly1 (1::Integer) (2::Integer)))]
     , goldenUEval "record" [plc (Proxy @"record") (isDataRoundtrip (MyMonoRecord 1 2))]

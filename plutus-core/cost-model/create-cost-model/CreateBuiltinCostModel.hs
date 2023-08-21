@@ -8,19 +8,25 @@
 
 module CreateBuiltinCostModel where
 
+import PlutusCore.Crypto.BLS12_381.G1 qualified as G1
+import PlutusCore.Crypto.BLS12_381.G2 qualified as G2
+import PlutusCore.Crypto.BLS12_381.Pairing qualified as Pairing
+import PlutusCore.Crypto.Hash qualified as Hash
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
+import PlutusCore.Evaluation.Machine.CostStream
 import PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore.Evaluation.Machine.ExMemoryUsage
 
 import Barbies (bmap, bsequence)
 import Control.Applicative (Const (Const, getConst))
 import Control.Exception (TypeError (TypeError))
 import Control.Monad.Catch (throwM)
-import Data.ByteString.Hash qualified as PlutusHash
 import Data.ByteString.Lazy qualified as BSL (fromStrict)
 import Data.Coerce (coerce)
 import Data.Csv (FromNamedRecord, FromRecord, HasHeader (HasHeader), decode, parseNamedRecord, (.:))
 import Data.Either.Extra (maybeToEither)
 import Data.Functor.Compose (Compose (Compose))
+import Data.SatInt
 import Data.Text (Text)
 import Data.Text.Encoding qualified as T (encodeUtf8)
 import Data.Vector (Vector, find)
@@ -33,7 +39,7 @@ import Language.R.QQ (r)
 -- | Convert microseconds represented as a float to picoseconds represented as a
 -- CostingInteger.  We round up to be sure we don't underestimate anything.
 microToPico :: Double -> CostingInteger
-microToPico = ceiling . (1e6 *)
+microToPico = unsafeToSatInt . ceiling . (1e6 *)
 
 {- See CostModelGeneration.md for a description of what this does. -}
 
@@ -98,12 +104,34 @@ builtinCostModelNames = BuiltinCostModelBase
   , paramMkNilData                       = "mkNilDataModel"
   , paramMkNilPairData                   = "mkNilPairDataModel"
   , paramSerialiseData                   = "serialiseDataModel"
+  , paramBls12_381_G1_add                = "bls12_381_G1_addModel"
+  , paramBls12_381_G1_neg                = "bls12_381_G1_negModel"
+  , paramBls12_381_G1_scalarMul          = "bls12_381_G1_scalarMulModel"
+  , paramBls12_381_G1_equal              = "bls12_381_G1_equalModel"
+  , paramBls12_381_G1_compress           = "bls12_381_G1_compressModel"
+  , paramBls12_381_G1_uncompress         = "bls12_381_G1_uncompressModel"
+  , paramBls12_381_G1_hashToGroup        = "bls12_381_G1_hashToGroupModel"
+  , paramBls12_381_G2_add                = "bls12_381_G2_addModel"
+  , paramBls12_381_G2_neg                = "bls12_381_G2_negModel"
+  , paramBls12_381_G2_scalarMul          = "bls12_381_G2_scalarMulModel"
+  , paramBls12_381_G2_equal              = "bls12_381_G2_equalModel"
+  , paramBls12_381_G2_compress           = "bls12_381_G2_compressModel"
+  , paramBls12_381_G2_uncompress         = "bls12_381_G2_uncompressModel"
+  , paramBls12_381_G2_hashToGroup        = "bls12_381_G2_hashToGroupModel"
+  , paramBls12_381_millerLoop            = "bls12_381_millerLoopModel"
+  , paramBls12_381_mulMlResult           = "bls12_381_mulMlResultModel"
+  , paramBls12_381_finalVerify           = "bls12_381_finalVerifyModel"
+  , paramBlake2b_224                     = "blake2b_224Model"
+  , paramKeccak_256                      = "keccak_256Model"
   }
 
 
 -- | Loads the models from R.
 -- The "_hs" suffixes below make Haskell variables accessible inside [r| ... |]
-costModelsR :: MonadR m => FilePath -> FilePath -> m (BuiltinCostModelBase (Const (SomeSEXP (Region m))))
+costModelsR :: MonadR m =>
+  FilePath
+  -> FilePath
+  -> m (BuiltinCostModelBase (Const (SomeSEXP (Region m))))
 costModelsR bmfile rfile = do
   list <- [r|
              source(rfile_hs)
@@ -143,12 +171,12 @@ createBuiltinCostModel bmfile rfile = do
     paramLessThanByteString              <- getParams lessThanByteString        paramLessThanByteString
     paramLessThanEqualsByteString        <- getParams lessThanEqualsByteString  paramLessThanEqualsByteString
     -- Cryptography and hashes
-    paramSha2_256                        <- getParams sha2_256                        paramSha2_256
-    paramSha3_256                        <- getParams sha3_256                        paramSha3_256
-    paramBlake2b_256                     <- getParams blake2b_256                     paramBlake2b_256
-    paramVerifyEd25519Signature          <- getParams verifyEd25519Signature          paramVerifyEd25519Signature
-    paramVerifyEcdsaSecp256k1Signature   <- getParams verifyEcdsaSecp256k1Signature   paramVerifyEcdsaSecp256k1Signature
-    paramVerifySchnorrSecp256k1Signature <- getParams verifySchnorrSecp256k1Signature paramVerifySchnorrSecp256k1Signature
+    paramSha2_256                        <- getParams sha2_256                         paramSha2_256
+    paramSha3_256                        <- getParams sha3_256                         paramSha3_256
+    paramBlake2b_256                     <- getParams blake2b_256                      paramBlake2b_256
+    paramVerifyEd25519Signature          <- getParams verifyEd25519Signature           paramVerifyEd25519Signature
+    paramVerifyEcdsaSecp256k1Signature   <- getParams verifyEcdsaSecp256k1Signature    paramVerifyEcdsaSecp256k1Signature
+    paramVerifySchnorrSecp256k1Signature <- getParams verifySchnorrSecp256k1Signature  paramVerifySchnorrSecp256k1Signature
     -- Strings
     paramAppendString                    <- getParams appendString  paramAppendString
     paramEqualsString                    <- getParams equalsString  paramEqualsString
@@ -187,6 +215,27 @@ createBuiltinCostModel bmfile rfile = do
     paramMkPairData                      <- getParams mkPairData     paramMkPairData
     paramMkNilData                       <- getParams mkNilData      paramMkNilData
     paramMkNilPairData                   <- getParams mkNilPairData  paramMkNilPairData
+    -- BLS12-381
+    paramBls12_381_G1_add                <- getParams bls12_381_G1_add          paramBls12_381_G1_add
+    paramBls12_381_G1_neg                <- getParams bls12_381_G1_neg          paramBls12_381_G1_neg
+    paramBls12_381_G1_scalarMul          <- getParams bls12_381_G1_scalarMul    paramBls12_381_G1_scalarMul
+    paramBls12_381_G1_equal              <- getParams bls12_381_G1_equal        paramBls12_381_G1_equal
+    paramBls12_381_G1_compress           <- getParams bls12_381_G1_compress     paramBls12_381_G1_compress
+    paramBls12_381_G1_uncompress         <- getParams bls12_381_G1_uncompress   paramBls12_381_G1_uncompress
+    paramBls12_381_G1_hashToGroup        <- getParams bls12_381_G1_hashToGroup  paramBls12_381_G1_hashToGroup
+    paramBls12_381_G2_add                <- getParams bls12_381_G2_add          paramBls12_381_G2_add
+    paramBls12_381_G2_neg                <- getParams bls12_381_G2_neg          paramBls12_381_G2_neg
+    paramBls12_381_G2_scalarMul          <- getParams bls12_381_G2_scalarMul    paramBls12_381_G2_scalarMul
+    paramBls12_381_G2_equal              <- getParams bls12_381_G2_equal        paramBls12_381_G2_equal
+    paramBls12_381_G2_compress           <- getParams bls12_381_G2_compress     paramBls12_381_G2_compress
+    paramBls12_381_G2_uncompress         <- getParams bls12_381_G2_uncompress   paramBls12_381_G2_uncompress
+    paramBls12_381_G2_hashToGroup        <- getParams bls12_381_G2_hashToGroup  paramBls12_381_G2_hashToGroup
+    paramBls12_381_millerLoop            <- getParams bls12_381_millerLoop      paramBls12_381_millerLoop
+    paramBls12_381_mulMlResult           <- getParams bls12_381_mulMlResult     paramBls12_381_mulMlResult
+    paramBls12_381_finalVerify           <- getParams bls12_381_finalVerify     paramBls12_381_finalVerify
+
+    paramKeccak_256                      <- getParams keccak_256                paramKeccak_256
+    paramBlake2b_224                     <- getParams blake2b_224               paramBlake2b_224
 
     pure $ BuiltinCostModelBase {..}
 
@@ -220,7 +269,7 @@ findInRaw s v = maybeToEither ("Couldn't find the term " <> s <> " in " <> show 
   Data.Vector.find (\e -> linearModelRawTerm e == s) v
 
 -- t = ax+c
-unsafeReadModelFromR :: MonadR m => String -> (SomeSEXP (Region m)) -> m (CostingInteger, CostingInteger)
+unsafeReadModelFromR :: MonadR m => String -> (SomeSEXP (Region m)) -> m (Intercept, Slope)
 unsafeReadModelFromR formula rmodel = do
   j <- [r| write.csv(tidy(rmodel_hs), file=textConnection("out", "w", local=TRUE))
           paste(out, collapse="\n") |]
@@ -228,13 +277,13 @@ unsafeReadModelFromR formula rmodel = do
         model     <- Data.Csv.decode HasHeader $ BSL.fromStrict $ T.encodeUtf8 $ (fromSomeSEXP j :: Text)
         intercept <- linearModelRawEstimate <$> findInRaw "(Intercept)" model
         slope     <- linearModelRawEstimate <$> findInRaw formula model
-        pure $ (microToPico intercept, microToPico slope)
+        pure (Intercept $ microToPico intercept, Slope $ microToPico slope)
   case m of
     Left err -> throwM (TypeError err)
     Right x  -> pure x
 
 -- t = ax+by+c
-unsafeReadModelFromR2 :: MonadR m => String -> String -> (SomeSEXP (Region m)) -> m (CostingInteger, CostingInteger, CostingInteger)
+unsafeReadModelFromR2 :: MonadR m => String -> String -> (SomeSEXP (Region m)) -> m (Intercept, Slope, Slope)
 unsafeReadModelFromR2 formula1 formula2 rmodel = do
   j <- [r| write.csv(tidy(rmodel_hs), file=textConnection("out", "w", local=TRUE))
           paste(out, collapse="\n") |]
@@ -243,50 +292,53 @@ unsafeReadModelFromR2 formula1 formula2 rmodel = do
         intercept <- linearModelRawEstimate <$> findInRaw "(Intercept)" model
         slope1    <- linearModelRawEstimate <$> findInRaw formula1 model
         slope2    <- linearModelRawEstimate <$> findInRaw formula2 model
-        pure $ (microToPico intercept, microToPico slope1, microToPico slope2)
+        pure $ (Intercept $ microToPico intercept, Slope $ microToPico slope1, Slope $ microToPico slope2)
   case m of
     Left err -> throwM (TypeError err)
     Right x  -> pure x
 
 readModelAddedSizes :: MonadR m => (SomeSEXP (Region m)) -> m ModelAddedSizes
-readModelAddedSizes model = (pure . uncurry ModelAddedSizes) =<< unsafeReadModelFromR "I(x_mem + y_mem)" model
+readModelAddedSizes model = uncurry ModelAddedSizes <$> unsafeReadModelFromR "I(x_mem + y_mem)" model
 
 readModelMinSize :: MonadR m => (SomeSEXP (Region m)) -> m ModelMinSize
-readModelMinSize model = (pure . uncurry ModelMinSize) =<< unsafeReadModelFromR "pmin(x_mem, y_mem)" model
+readModelMinSize model = uncurry ModelMinSize <$> unsafeReadModelFromR "pmin(x_mem, y_mem)" model
 
 readModelMaxSize :: MonadR m => (SomeSEXP (Region m)) -> m ModelMaxSize
-readModelMaxSize model = (pure . uncurry ModelMaxSize) =<< unsafeReadModelFromR "pmax(x_mem, y_mem)" model
+readModelMaxSize model = uncurry ModelMaxSize <$> unsafeReadModelFromR "pmax(x_mem, y_mem)" model
 
 uncurry3 :: (a -> b -> c -> d) -> ((a, b, c) -> d)
 uncurry3 f ~(a,b,c) = f a b c
 
 
 readModelMultipliedSizes :: MonadR m => (SomeSEXP (Region m)) -> m ModelMultipliedSizes
-readModelMultipliedSizes model = (pure . uncurry ModelMultipliedSizes) =<< unsafeReadModelFromR "I(x_mem * y_mem)" model
+readModelMultipliedSizes model = uncurry ModelMultipliedSizes <$> unsafeReadModelFromR "I(x_mem * y_mem)" model
+
+readModelIntercept :: MonadR m => (SomeSEXP (Region m)) -> m Intercept
+readModelIntercept model = fst <$> unsafeReadModelFromR "(Intercept)" model
 
 readModelConstantCost :: MonadR m => (SomeSEXP (Region m)) -> m CostingInteger
-readModelConstantCost model = (\(i, _i) -> pure  i) =<< unsafeReadModelFromR "(Intercept)" model
+readModelConstantCost = fmap unIntercept . readModelIntercept
 
-readModelLinearInX :: MonadR m => (SomeSEXP (Region m)) -> m ModelLinearSize
-readModelLinearInX model = (\(intercept, slope) -> pure $ ModelLinearSize intercept slope) =<< unsafeReadModelFromR "x_mem" model
+readModelLinearInX :: MonadR m => (SomeSEXP (Region m)) -> m OneVariableLinearFunction
+readModelLinearInX model = uncurry OneVariableLinearFunction <$> unsafeReadModelFromR "x_mem" model
 
-readModelLinearInY :: MonadR m => (SomeSEXP (Region m)) -> m ModelLinearSize
-readModelLinearInY model = (\(intercept, slope) -> pure $ ModelLinearSize intercept slope) =<< unsafeReadModelFromR "y_mem" model
+readModelLinearInY :: MonadR m => (SomeSEXP (Region m)) -> m OneVariableLinearFunction
+readModelLinearInY model = uncurry OneVariableLinearFunction  <$> unsafeReadModelFromR "y_mem" model
+
+readModelLinearInXAndY :: MonadR m => (SomeSEXP (Region m)) -> m TwoVariableLinearFunction
+readModelLinearInXAndY model = uncurry3 TwoVariableLinearFunction <$> unsafeReadModelFromR2 "x_mem" "y_mem" model
 
 -- For models which are linear on the diagonal and constant elsewhere we currently
 -- only benchmark and model the linear part, so here we read in the model from R
 -- and supply the constant as a parameter
 readModelLinearOnDiagonal :: MonadR m => (SomeSEXP (Region m)) -> CostingInteger -> m ModelConstantOrLinear
-readModelLinearOnDiagonal model c = do
-  (intercept, slope) <- unsafeReadModelFromR "x_mem" model
-  pure $ ModelConstantOrLinear c intercept slope
+readModelLinearOnDiagonal model c = uncurry (ModelConstantOrLinear c) <$> unsafeReadModelFromR "x_mem" model
 
 boolMemModel :: ModelTwoArguments
 boolMemModel = ModelTwoArgumentsConstantCost 1
 
-
 memoryUsageAsCostingInteger :: ExMemoryUsage a => a -> CostingInteger
-memoryUsageAsCostingInteger x = coerce $ memoryUsage x
+memoryUsageAsCostingInteger = coerce . sumCostStream . flattenCostRose . memoryUsage
 
 
 ---------------- Integers ----------------
@@ -297,7 +349,7 @@ addInteger cpuModelR = do
   -- The worst case is adding e.g. `maxBound :: Int` + `maxBound :: Int`, which increases the memory usage by one.
   -- (max x y) + 1
   let memModel = ModelTwoArgumentsMaxSize $ ModelMaxSize 1 1
-  pure $ CostingFun (cpuModel) memModel
+  pure $ CostingFun cpuModel memModel
 
 subtractInteger :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
 subtractInteger cpuModelR = do
@@ -393,9 +445,9 @@ consByteString cpuModelR = do
 -}
 sliceByteString ::  MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelThreeArguments)
 sliceByteString cpuModelR = do
-  c <- readModelConstantCost cpuModelR
-  let cpuModel = ModelThreeArgumentsLinearInZ $ ModelLinearSize c 0
-  let memModel = ModelThreeArgumentsLinearInZ $ ModelLinearSize 4 0
+  c <- readModelIntercept cpuModelR
+  let cpuModel = ModelThreeArgumentsLinearInZ $ OneVariableLinearFunction c 0
+  let memModel = ModelThreeArgumentsLinearInZ $ OneVariableLinearFunction 4 0
   pure $ CostingFun cpuModel memModel
 
 lengthOfByteString ::  MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
@@ -430,20 +482,33 @@ lessThanEqualsByteString = lessThanByteString
 sha2_256 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 sha2_256 cpuModelR = do
   cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
-  let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ PlutusHash.sha2_256 "")
+  let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ Hash.sha2_256 "")
   pure $ CostingFun cpuModel memModel
 
 sha3_256 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 sha3_256 cpuModelR = do
   cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
-  let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ PlutusHash.sha3_256 "")
+  let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ Hash.sha3_256 "")
+  pure $ CostingFun cpuModel memModel
+
+blake2b_224 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+blake2b_224 cpuModelR = do
+  cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
+  let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ Hash.blake2b_224 "")
   pure $ CostingFun cpuModel memModel
 
 blake2b_256 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 blake2b_256 cpuModelR = do
   cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
-  let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ PlutusHash.blake2b_256 "")
+  let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ Hash.blake2b_256 "")
   pure $ CostingFun cpuModel memModel
+
+keccak_256 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+keccak_256 cpuModelR = do
+  cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
+  let memModel = ModelOneArgumentConstantCost (memoryUsageAsCostingInteger $ Hash.keccak_256 "")
+  pure $ CostingFun cpuModel memModel
+
 
 -- NB: the R model is based purely on the size of the second argument (since the
 -- first and third are constant size), so we have to rearrange things a bit to
@@ -471,7 +536,7 @@ verifyEd25519Signature cpuModelR = do
      code is very fast.  The Z-based cost function returns a constant cost since
      the size of the third argument is constant; we should be using a Y-based
      function instead, but that would give similar results and we're not
-     undercharging siginficantly.  To fix this we need to change the shape of
+     undercharging significantly.  To fix this we need to change the shape of
      the model from "linear_in_z" to "linear_in_y", but that's something we need
      to be careful about: see SCP-3038.
    -}
@@ -506,7 +571,7 @@ equalsString cpuModelR = do
 encodeUtf8 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 encodeUtf8 cpuModelR = do
   cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
-  let memModel = ModelOneArgumentLinearCost $ ModelLinearSize 4 2
+  let memModel = ModelOneArgumentLinearCost $ OneVariableLinearFunction 4 2
                  -- In the worst case two UTF-16 bytes encode to three UTF-8
                  -- bytes, so two output words per input word should cover that.
   pure $ CostingFun cpuModel memModel
@@ -514,7 +579,7 @@ encodeUtf8 cpuModelR = do
 decodeUtf8 :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 decodeUtf8 cpuModelR = do
   cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
-  let memModel = ModelOneArgumentLinearCost $ ModelLinearSize 4 2
+  let memModel = ModelOneArgumentLinearCost $ OneVariableLinearFunction 4 2
                  -- In the worst case one UTF-8 byte decodes to two UTF-16 bytes
   pure $ CostingFun cpuModel memModel
 
@@ -700,7 +765,7 @@ equalsData cpuModelR = do
 serialiseData :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
 serialiseData cpuModelR = do
   cpuModel <- ModelOneArgumentLinearCost <$> readModelLinearInX cpuModelR
-  let memModel = ModelOneArgumentLinearCost $ ModelLinearSize 0 2
+  let memModel = ModelOneArgumentLinearCost $ OneVariableLinearFunction 0 2
   pure $ CostingFun cpuModel memModel
 
 ---------------- Misc constructors ----------------
@@ -725,3 +790,141 @@ mkNilPairData cpuModelR = do
   let memModel = ModelOneArgumentConstantCost 32
   pure $ CostingFun cpuModel memModel
 -- () -> [] :: [(Data,Data)]
+
+
+---------------- BLS12_381 operations ----------------
+
+toMemSize :: Int -> CostingInteger
+toMemSize n = fromIntegral $ n `div` 8
+
+-- Group order is 255 bits -> 32 bytes (4 words).
+-- Field size is 381 bits  -> 48 bytes (6 words)
+-- (with three spare bits used for encoding purposes).
+
+-- Sizes below from sizePoint, compressedSizePoint, and sizePT in
+-- Crypto.EllipticCurve.BLS12_381.Internal
+
+-- In-memory G1 points take up 144 bytes (18 words).
+-- These are projective points, so we have *three* 48-byte coordinates.
+g1MemSize :: CostingInteger
+g1MemSize = toMemSize G1.memSizeBytes
+
+-- Compressed G1 points take up 48 bytes (6 words)
+g1CompressedSize :: CostingInteger
+g1CompressedSize = toMemSize G1.compressedSizeBytes
+
+-- In-memory G2 points take up 288 bytes (36 words)
+g2MemSize :: CostingInteger
+g2MemSize = toMemSize G2.memSizeBytes
+
+-- Compressed G2 points take up 96 bytes (12 words)
+g2CompressedSize :: CostingInteger
+g2CompressedSize = toMemSize G2.compressedSizeBytes
+
+-- In-memory G2 points take up 576 bytes (72 words)
+mlResultMemSize :: CostingInteger
+mlResultMemSize = toMemSize Pairing.mlResultMemSizeBytes
+
+bls12_381_G1_add :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+bls12_381_G1_add cpuModelR = do
+  cpuModel <- ModelTwoArgumentsConstantCost <$> readModelConstantCost cpuModelR
+  let memModel = ModelTwoArgumentsConstantCost g1MemSize
+  pure $ CostingFun cpuModel memModel
+
+bls12_381_G1_neg :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+bls12_381_G1_neg cpuModelR = do
+  cpuModel <- ModelOneArgumentConstantCost <$> readModelConstantCost cpuModelR
+  let memModel = ModelOneArgumentConstantCost g1MemSize
+  pure $ CostingFun cpuModel memModel
+
+bls12_381_G1_scalarMul ::  MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+bls12_381_G1_scalarMul cpuModelR = do
+  cpuModel <- ModelTwoArgumentsLinearInX <$> readModelLinearInX cpuModelR
+  let memModel = ModelTwoArgumentsConstantCost g1MemSize
+  pure $ CostingFun cpuModel memModel
+
+bls12_381_G1_equal :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+bls12_381_G1_equal cpuModelR = do
+    cpuModel <- ModelTwoArgumentsConstantCost <$> readModelConstantCost cpuModelR
+    let memModel = boolMemModel
+    pure $ CostingFun cpuModel memModel
+
+bls12_381_G1_hashToGroup :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+bls12_381_G1_hashToGroup cpuModelR = do
+    cpuModel <- ModelTwoArgumentsLinearInX <$> readModelLinearInX cpuModelR
+    let memModel = ModelTwoArgumentsConstantCost g1MemSize
+    pure $ CostingFun cpuModel memModel
+
+bls12_381_G1_compress :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+bls12_381_G1_compress cpuModelR = do
+  cpuModel <- ModelOneArgumentConstantCost <$> readModelConstantCost cpuModelR
+  let memModel = ModelOneArgumentConstantCost g1CompressedSize
+  pure $ CostingFun cpuModel memModel
+
+bls12_381_G1_uncompress :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+bls12_381_G1_uncompress cpuModelR = do
+  cpuModel <- ModelOneArgumentConstantCost <$> readModelConstantCost cpuModelR
+  let memModel = ModelOneArgumentConstantCost g1MemSize
+  pure $ CostingFun cpuModel memModel
+
+bls12_381_G2_add :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+bls12_381_G2_add cpuModelR = do
+  cpuModel <- ModelTwoArgumentsConstantCost <$> readModelConstantCost cpuModelR
+  let memModel = ModelTwoArgumentsConstantCost g2MemSize
+  pure $ CostingFun cpuModel memModel
+
+bls12_381_G2_neg :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+bls12_381_G2_neg cpuModelR = do
+  cpuModel <- ModelOneArgumentConstantCost <$> readModelConstantCost cpuModelR
+  let memModel = ModelOneArgumentConstantCost g2MemSize
+  pure $ CostingFun cpuModel memModel
+
+bls12_381_G2_scalarMul ::  MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+bls12_381_G2_scalarMul cpuModelR = do
+  cpuModel <- ModelTwoArgumentsLinearInX <$> readModelLinearInX cpuModelR
+  let memModel = ModelTwoArgumentsConstantCost g2MemSize
+  pure $ CostingFun cpuModel memModel
+
+bls12_381_G2_equal :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+bls12_381_G2_equal cpuModelR = do
+    cpuModel <- ModelTwoArgumentsConstantCost <$> readModelConstantCost cpuModelR
+    let memModel = boolMemModel
+    pure $ CostingFun cpuModel memModel
+
+bls12_381_G2_hashToGroup :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+bls12_381_G2_hashToGroup cpuModelR = do
+    cpuModel <- ModelTwoArgumentsLinearInX <$> readModelLinearInX cpuModelR
+    let memModel = ModelTwoArgumentsConstantCost g2MemSize
+    pure $ CostingFun cpuModel memModel
+
+bls12_381_G2_compress :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+bls12_381_G2_compress cpuModelR = do
+  cpuModel <- ModelOneArgumentConstantCost <$> readModelConstantCost cpuModelR
+  let memModel = ModelOneArgumentConstantCost g2CompressedSize
+  pure $ CostingFun cpuModel memModel
+
+bls12_381_G2_uncompress :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelOneArgument)
+bls12_381_G2_uncompress cpuModelR = do
+  cpuModel <- ModelOneArgumentConstantCost <$> readModelConstantCost cpuModelR
+  let memModel = ModelOneArgumentConstantCost g2MemSize
+  pure $ CostingFun cpuModel memModel
+
+bls12_381_millerLoop :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+bls12_381_millerLoop cpuModelR = do
+    cpuModel <- ModelTwoArgumentsConstantCost <$> readModelConstantCost cpuModelR
+    let memModel = ModelTwoArgumentsConstantCost mlResultMemSize
+    pure $ CostingFun cpuModel memModel
+
+bls12_381_mulMlResult :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+bls12_381_mulMlResult cpuModelR = do
+    cpuModel <- ModelTwoArgumentsConstantCost <$> readModelConstantCost cpuModelR
+    let memModel = ModelTwoArgumentsConstantCost mlResultMemSize
+    pure $ CostingFun cpuModel memModel
+
+bls12_381_finalVerify :: MonadR m => (SomeSEXP (Region m)) -> m (CostingFun ModelTwoArguments)
+bls12_381_finalVerify cpuModelR= do
+    cpuModel <- ModelTwoArgumentsConstantCost <$> readModelConstantCost cpuModelR
+    let memModel = boolMemModel
+    pure $ CostingFun cpuModel memModel
+
+

@@ -1,7 +1,8 @@
-E016: Error during PIR typechecking:
-Type mismatch at typeLet:4:5 in term
-  '(con integer 1)'.
-Expected type
-  'a',
-found type
+Error during PIR typechecking:
+Type mismatch at typeLet:4:3-4:33
+Expected a term of type
+  'a'
+But found one of type
   '(con integer)'
+Namely,
+  '(con integer 1)'

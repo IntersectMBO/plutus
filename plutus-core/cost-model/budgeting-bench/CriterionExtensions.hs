@@ -1,12 +1,11 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE LambdaCase #-}
 
 module CriterionExtensions (criterionMainWith, BenchmarkingPhase(..)) where
 
 import Control.Monad (unless)
 import Control.Monad.Trans (liftIO)
-import Criterion.IO.Printf (printError, writeCsv)
 import Criterion.Internal (runAndAnalyse, runFixedIters)
+import Criterion.IO.Printf (printError, writeCsv)
 import Criterion.Main (makeMatcher)
 import Criterion.Main.Options (MatchType (..), Mode (..), describe, versionInfo)
 import Criterion.Measurement (initializeTime)
@@ -64,7 +63,8 @@ initCsvFile phase cfg =
                  liftIO $ appendFile file $ "# Plutus Core cost model benchmark results\n"
                  liftIO $ appendFile file $ "# Started at " ++ show time ++ "\n"
                  writeCsv ("benchmark","t","t.mean.lb","t.mean.ub","t.sd","t.sd.lb", "t.sd.ub")
-              Continue -> pure ()  -- Criterion will append output to the CSV file specified in `cfg`.
+              -- Criterion will append output to the CSV file specified in `cfg`.
+              Continue -> pure ()
 
 {- | A modified version of Criterion's 'defaultMainWith' function. We want to be
    able to run different benchmarks with different time limits, but that doesn't

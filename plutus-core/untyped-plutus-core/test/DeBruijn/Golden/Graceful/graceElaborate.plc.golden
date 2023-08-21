@@ -1,3 +1,0 @@
-(Right (program
-  1.0.0 (lam i_0 [ [ [ i_1 i_0 ] i_2 ] (lam i_3 [ [ [ i_3 i_4 ] i_1 ] i_2 ]) ])
-))

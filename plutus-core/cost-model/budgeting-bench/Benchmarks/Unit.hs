@@ -3,7 +3,7 @@
 module Benchmarks.Unit (makeBenchmarks) where
 
 import PlutusCore
-import PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore.Evaluation.Machine.ExMemoryUsage
 
 import Common
 import Generators
@@ -14,7 +14,7 @@ import System.Random (StdGen)
 
 
 createChooseUnitBench
-    :: (DefaultUni `Includes` a, ExMemoryUsage a, NFData a)
+    :: (DefaultUni `HasTermLevel` a, ExMemoryUsage a, NFData a)
     => Type TyName DefaultUni ()
     -> [a]
     -> Benchmark

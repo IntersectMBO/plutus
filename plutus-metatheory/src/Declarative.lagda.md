@@ -10,31 +10,31 @@ module Declarative where
 ## Imports
 
 ```
-open import Type
-open import Type.RenamingSubstitution
-open import Type.Equality
-open import Builtin
-open import Utils hiding (TermCon)
-open import Builtin.Constant.Type
-open import Builtin.Constant.Term Ctx⋆ Kind * _⊢⋆_ con
+open import Data.Fin using (Fin)
+open import Data.Vec using (Vec;[];_∷_;lookup)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl)
 
-open import Relation.Binary.PropositionalEquality
-  hiding ([_]) renaming (subst to substEq)
-open import Agda.Builtin.Int
-open import Data.Integer renaming (_*_ to _**_)
-open import Data.Empty
-open import Data.Product hiding (_,_)
-open import Relation.Binary hiding (_⇒_)
-import Data.Nat as ℕ
-open import Data.Unit hiding (_≤_)
-open import Data.Vec hiding ([_]; take; drop)
-open import Data.List hiding ([_]; length; take; drop)
-open import Data.Product renaming (_,_ to _,,_)
-open import Data.Nat hiding (_^_; _≤_; _<_; _>_; _≥_)
-open import Data.Sum
-open import Function hiding (_∋_;typeOf)
-import Data.Bool as Bool
-open import Data.String
+open import Type using (Ctx⋆;_⊢⋆_;_∋⋆_;Φ;Ψ;A;B)
+open Ctx⋆
+open _⊢⋆_
+open _∋⋆_
+
+open import Type.RenamingSubstitution using (weaken;sub;Ren;ren;Sub;_[_];sub∅;sub∅-ren;sub∅-sub)
+open import Type.Equality using (_≡β_)
+open import Builtin using (Builtin;signature)
+open Builtin.Builtin
+
+open import Utils using (Kind;*;♯;_⇒_;K)
+open import Utils.List using (List;IList;[];_∷_)
+open import Builtin.Constant.Type using (TyCon)
+open TyCon
+
+open import Builtin.Signature using ()
+open Builtin.Signature.FromSig  (_⊢⋆_) (_⊢⋆_) (λ x → x) (`) _·_ ^ con _⇒_ Π 
+          using (sig2type;sig2type⇒;sig2typeΠ;⊢♯2TyNe♯;mkTy) public
+open import Type.BetaNBE using (nf)
+open import Algorithmic using (⟦_⟧;ty2sty)
+open import RawU using (TyTag)
 ```
 
 ## Fixity declarations
@@ -93,56 +93,34 @@ Let `x`, `y` range over variables.
 
 ## Builtin Machinery
 
-Computing a signature for a builtin. Ideally this should be done generically:
-```
-sig : Builtin → Σ Ctx⋆ λ Φ → Ctx Φ × Φ ⊢⋆ *
-sig ifThenElse = ∅ ,⋆ * ,, ∅ ,⋆ * , con bool , ` Z , ` Z ,, ` Z
-sig addInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
-sig subtractInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
-sig multiplyInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
-sig divideInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
-sig quotientInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
-sig remainderInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
-sig modInteger = ∅ ,, ∅ , con integer , con integer ,, con integer
-sig lessThanInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
-sig lessThanEqualsInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
-sig equalsInteger = ∅ ,, ∅ , con integer , con integer ,, con bool
-sig appendByteString = ∅ ,, ∅ , con bytestring , con bytestring ,, con bytestring
-sig lessThanByteString = ∅ ,, ∅ , con bytestring , con bytestring ,, con bool
-sig lessThanEqualsByteString =
-  ∅ ,, ∅ , con bytestring , con bytestring ,, con bool
-sig sha2-256 = ∅ ,, ∅ , con bytestring ,, con bytestring
-sig sha3-256 = ∅ ,, ∅ , con bytestring ,, con bytestring
-sig verifyEd25519Signature = ∅ ,, ∅ , con bytestring , con bytestring , con bytestring ,, con bool
-sig verifyEcdsaSecp256k1Signature = ∅ ,, ∅ , con bytestring , con bytestring , con bytestring ,, con bool
-sig verifySchnorrSecp256k1Signature = ∅ ,, ∅ , con bytestring , con bytestring , con bytestring ,, con bool
-sig equalsByteString = ∅ ,, ∅ , con bytestring , con bytestring ,, con bool 
-sig appendString = ∅ ,, ∅ , con string , con string ,, con string
-sig trace = ∅ ,, ∅ , con string ,, con unit
-sig _ = ∅ ,, ∅ ,, con unit -- TODO: add support for remaining builtins
-```
-
-Converting a signature to a totally unsaturated type:
-
-```
-isig2type : (Φ : Ctx⋆) → Ctx Φ → Φ ⊢⋆ * → ∅ ⊢⋆ *
-isig2type .∅ ∅ C = C
-isig2type (Φ ,⋆ J) (Γ ,⋆ J) C = isig2type Φ Γ (Π C)
-isig2type Φ        (Γ ,  A) C = isig2type Φ Γ (A ⇒ C)
-```
-
 Compute the type for a builtin:
 
 ```
 btype : Builtin → Φ ⊢⋆ *
-btype b = let Φ ,, Γ ,, C = sig b in sub (λ()) (isig2type Φ Γ C)
+btype b = sub∅ (sig2type (signature b))
 ```
 
 Two lemmas concerning renaming and substituting types of builtins:
 
 ```
-postulate btype-ren : ∀ b (ρ : Ren Φ Ψ) → btype b ≡ ren ρ (btype b)
-postulate btype-sub : ∀ b (ρ : Sub Φ Ψ) → btype b ≡ sub ρ (btype b)
+btype-ren : ∀ b (ρ : Ren Φ Ψ) → btype b ≡ ren ρ (btype b)
+btype-ren b ρ = sub∅-ren (sig2type (signature b)) ρ
+
+btype-sub : ∀ b (ρ : Sub Φ Ψ) → btype b ≡ sub ρ (btype b)
+btype-sub b ρ = sub∅-sub (sig2type (signature b)) ρ
+```
+
+The meaning of types is the meaning of its normalised type.
+We define it this way because it is easier to define the meaning of a normalised type.
+
+```
+⟦_⟧d : ∀ (A : ∅ ⊢⋆ ♯) → Set
+⟦ A ⟧d = ⟦ nf A ⟧
+```
+
+```
+ty2TyTag : ∀ (A : ∅ ⊢⋆ ♯) → TyTag
+ty2TyTag A = ty2sty (nf A) 
 ```
 
 ## Terms
@@ -153,6 +131,13 @@ application.
 
 
 ```
+mkCaseType : ∀{Φ} (A : Φ ⊢⋆ *) → List (Φ ⊢⋆ *) → Φ ⊢⋆ *
+mkCaseType A [] = A 
+mkCaseType A (x ∷ xs) = x ⇒ (mkCaseType A xs)
+
+ConstrArgs : (Γ : Ctx Φ) → List (Φ ⊢⋆ *) → Set
+data Cases (Γ : Ctx Φ) (B : Φ ⊢⋆ *) : ∀{n} → Vec (List (Φ ⊢⋆ *)) n → Set 
+
 data _⊢_ (Γ : Ctx Φ) : Φ ⊢⋆ * → Set where
 
   ` : Γ ∋ A
@@ -187,23 +172,49 @@ data _⊢_ (Γ : Ctx Φ) : Φ ⊢⋆ * → Set where
            ----------------------------------
          → Γ ⊢ A · ƛ (μ (weaken A) (` Z)) · B
 
+  constr : ∀{n}
+      → (e : Fin n)
+      → (A : Vec (List (Φ ⊢⋆ *)) n)
+      → ∀ {ts} → ts ≡ lookup A e
+      → ConstrArgs Γ ts
+        --------------------------------------
+      → Γ ⊢ SOP A
+
+  case : ∀{n}{tss : Vec _ n}{A : Φ ⊢⋆ *}
+      → (t : Γ ⊢ SOP tss)
+      → (cases : Cases Γ A tss)
+        --------------------------
+      → Γ ⊢ A  
+
   conv : A ≡β B
        → Γ ⊢ A
          -----
        → Γ ⊢ B
 
-  con : ∀ {c}
-      →  TermCon {Φ} (con c)
+  con : ∀ {A : ∅ ⊢⋆ ♯ }{B}
+      → ⟦ A ⟧d
+      → B ≡β sub∅ A
         ---------------
-      → Γ ⊢ con c
+      → Γ ⊢ con B
 
-  builtin : (b :  Builtin)
+  builtin : (b : Builtin)
             --------------
           → Γ ⊢ btype b
 
   error : (A : Φ ⊢⋆ *)
           ------------
         → Γ ⊢ A
+
+ConstrArgs Γ = IList (Γ ⊢_)
+
+data Cases Γ B where 
+   []  : Cases Γ B []
+   _∷_ : ∀{n}{AS}{ASS : Vec _ n}(
+         c : Γ ⊢ (mkCaseType B AS)) 
+       → (cs : Cases Γ B ASS)
+         --------------------- 
+       → Cases Γ B (AS ∷ ASS)
+
 ```
 
 Substituting types or contexts of term variables by propositionally

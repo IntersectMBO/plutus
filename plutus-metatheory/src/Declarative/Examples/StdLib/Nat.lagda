@@ -3,11 +3,16 @@ module Declarative.Examples.StdLib.Nat where
 \end{code}
 
 \begin{code}
-open import Utils
-open import Type
-open import Type.Equality
+open import Utils using (Kind;*)
+open import Type using (Ctx⋆;_⊢⋆_;Z;S)
+open Ctx⋆
+open _⊢⋆_
+open import Type.Equality using (_≡β_)
+open _≡β_
 import Type.RenamingSubstitution as ⋆
-open import Declarative
+open import Declarative using (Ctx;_⊢_;_∋_)
+open _⊢_
+open _∋_
 open import Declarative.Examples.StdLib.Function
 \end{code}
 

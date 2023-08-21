@@ -1,0 +1,4 @@
+-- The compressed encoding of the zero element of G1, but with an extra zero byte at the end.
+(program 0.0.0
+(con bls12_381_G1_element 0xc000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000)
+)

@@ -1,3 +1,0 @@
-(program
-  (lam x (con string) (lam y (con string) [ [ (builtin appendString) x ] y ]))
-)

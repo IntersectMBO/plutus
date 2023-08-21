@@ -46,14 +46,9 @@ represented using De Bruijn indices. Parallel renaming and
 substitution are implemented in the
 [`Type.RenamingSubstitution`](Type/RenamingSubstitution.html) module
 and they are shown to be satisfy the functor and relative monad laws
-respectively. The [`Type.Reduction`](Type/Reduction.html) module
-contains a small step reduction algorithm for types and the
-[`Type.CK`](Type/CK.html) contains a CK machine for
-types. Neither are used directly in the formalisation as computation
-on types is carried out using normalisation by evaluation
-instead. Equality of types is specified in the
+respectively. Equality of types is specified in the
 [`Type.Equality`](Type/Equality.html) module. Equality serves as a
-specification of type compuation and is used in the normalisation
+specification of type computation and is used in the normalisation
 proof.
 
 
@@ -61,10 +56,6 @@ proof.
 import Type
 import Type.RenamingSubstitution
 import Type.Equality
-import Type.ReductionS
-import Type.ReductionC
-import Type.CC
-import Type.CK
 ```
 
 ## Normal Types
@@ -91,8 +82,15 @@ types such as integers and bytestrings and operations on them.
 ```
 import Builtin
 import Builtin.Constant.Type
-import Builtin.Constant.Term
 ```
+
+The types of the built-in operations are defined by a signature.
+These types are abstract, and they can be made concrete to obtain the different
+notions of type used in the formalisation.
+
+```
+import Builtin.Signature
+``` 
 
 ## Declarative syntax
 
@@ -124,32 +122,54 @@ types
 ```
 import Algorithmic
 import Algorithmic.RenamingSubstitution
-import Algorithmic.Reduction
+--TODO : Finish proof for SOPs
+--import Algorithmic.Reduction
 import Algorithmic.ReductionEC
 
 import Algorithmic.Evaluation
 import Algorithmic.Completeness
 import Algorithmic.Soundness
 import Algorithmic.Erasure
-import Algorithmic.Erasure.RenamingSubstitution
--- import Algorithmic.Erasure.Reduction
+--TODO : Finish proof for SOPs
+--import Algorithmic.Erasure.RenamingSubstitution
 import Algorithmic.CC
 import Algorithmic.CK
-import Algorithmic.CEKV
+import Algorithmic.CEK
 
 import Algorithmic.Examples
 ```
 
+Proof for Progress and Determinism of the Reduction Semantics:
+
+```
+import Algorithmic.ReductionEC.Progress
+
+--TODO : Finish proof for SOPs
+--import Algorithmic.ReductionEC.Determinism
+```
+
+There are proofs of correspondence of the semantics of:
+ * Reduction semantics
+ * CC machine
+ * CK machine
+ * (typed) CEK machine
+
+```
+--TODO : Finish proofs for SOPs
+--import Algorithmic.BehaviouralEquivalence.ReductionvsCC
+--import Algorithmic.BehaviouralEquivalence.CCvsCK
+--import Algorithmic.BehaviouralEquivalence.CKvsCEK
+```
 ## Extrinsically typed syntax a.k.a. Well Scoped Terms
 
 Extrinsically typed terms, reduction and evaluation
 
 ```
 import Scoped
-import Scoped.RenamingSubstitution
-
-import Scoped.Extrication
-import Scoped.Extrication.RenamingSubstitution
+--TODO : Finish proof for SOPs
+--import Scoped.RenamingSubstitution
+--import Scoped.Extrication
+--import Scoped.Extrication.RenamingSubstitution
 ```
 
 ## Untyped terms
@@ -173,7 +193,7 @@ import Check
 
 ## Executable
 
-This module is is compiled to Haskell and then can be compiled by ghc
+This module is compiled to Haskell and then can be compiled by ghc
 to produce an executable.
 
 ```

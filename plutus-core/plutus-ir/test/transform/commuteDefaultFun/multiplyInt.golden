@@ -1,0 +1,4 @@
+[
+  [ (builtin multiplyInteger) (con integer 5) ]
+  [ [ (builtin addInteger) (con integer 10) ] (con integer 2) ]
+]

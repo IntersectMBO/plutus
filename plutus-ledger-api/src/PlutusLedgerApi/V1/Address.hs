@@ -12,7 +12,7 @@ module PlutusLedgerApi.V1.Address
     , pubKeyHashAddress
     , scriptHashAddress
     , toPubKeyHash
-    , toValidatorHash
+    , toScriptHash
     , stakingCredential
     ) where
 
@@ -27,8 +27,11 @@ import PlutusLedgerApi.V1.Credential (Credential (..), StakingCredential)
 import PlutusLedgerApi.V1.Crypto
 import PlutusLedgerApi.V1.Scripts
 
--- | Address with two kinds of credentials, normal and staking.
-data Address = Address{ addressCredential :: Credential, addressStakingCredential :: Maybe StakingCredential }
+-- | An address may contain two credentials, the payment credential and optionally a 'StakingCredential'.
+data Address = Address
+    { addressCredential        :: Credential -- ^ the payment credential
+    , addressStakingCredential :: Maybe StakingCredential -- ^ the staking credential
+    }
     deriving stock (Eq, Ord, Show, Generic)
     deriving anyclass (NFData)
 
@@ -54,15 +57,15 @@ toPubKeyHash :: Address -> Maybe PubKeyHash
 toPubKeyHash (Address (PubKeyCredential k) _) = Just k
 toPubKeyHash _                                = Nothing
 
-{-# INLINABLE toValidatorHash #-}
+{-# INLINABLE toScriptHash #-}
 -- | The validator hash of the address, if any
-toValidatorHash :: Address -> Maybe ValidatorHash
-toValidatorHash (Address (ScriptCredential k) _) = Just k
-toValidatorHash _                                = Nothing
+toScriptHash :: Address -> Maybe ScriptHash
+toScriptHash (Address (ScriptCredential k) _) = Just k
+toScriptHash _                                = Nothing
 
 {-# INLINABLE scriptHashAddress #-}
 -- | The address that should be used by a transaction output locked by the given validator script hash.
-scriptHashAddress :: ValidatorHash -> Address
+scriptHashAddress :: ScriptHash -> Address
 scriptHashAddress vh = Address (ScriptCredential vh) Nothing
 
 {-# INLINABLE stakingCredential #-}

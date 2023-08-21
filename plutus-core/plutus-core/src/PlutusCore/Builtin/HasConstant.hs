@@ -38,7 +38,7 @@ fromValueOf uni = fromConstant . someValueOf uni
 {-# INLINE fromValueOf #-}
 
 -- | Wrap a Haskell value (provided its type is in the universe) as a @term@.
-fromValue :: (HasConstant term, UniOf term `Includes` a) => a -> term
+fromValue :: (HasConstant term, UniOf term `HasTermLevel` a) => a -> term
 fromValue = fromValueOf knownUni
 {-# INLINE fromValue #-}
 

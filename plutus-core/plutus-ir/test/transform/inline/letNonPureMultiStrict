@@ -1,0 +1,21 @@
+{- 
+This test checks that impure bindings are not inlined by call site inlining.
+y is strict in this case.
+
+let y = trace "hello" 1
+    z = y
+    x = y -- so it looks small enough to inline
+in addInteger z (addInteger x x)
+ -}
+
+(let
+    (nonrec)
+    (termbind
+      (strict)
+      (vardecl y (con integer))
+      [ [ {(builtin trace) (con integer) } (con string "hello") ] (con integer 1) ]
+    )
+    (termbind (strict) (vardecl z (con integer)) y)
+    (termbind (strict) (vardecl x (con integer)) y)
+    [ (builtin addInteger) z [ [(builtin addInteger) z ] x ]]
+)

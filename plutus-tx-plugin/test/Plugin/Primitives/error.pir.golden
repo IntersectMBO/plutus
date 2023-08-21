@@ -1,0 +1,19 @@
+(program
+  1.1.0
+  (let
+    (nonrec)
+    (termbind
+      (strict)
+      (vardecl error (all a (type) (fun (con unit) a)))
+      (abs a (type) (lam thunk (con unit) (error a)))
+    )
+    (termbind (strict) (vardecl unitval (con unit)) (con unit ()))
+    (typebind (tyvardecl Unit (type)) (all a (type) (fun a a)))
+    (termbind
+      (nonstrict)
+      (vardecl error (all a (type) (fun Unit a)))
+      (abs a (type) (lam x Unit [ { error a } unitval ]))
+    )
+    { error (con integer) }
+  )
+)

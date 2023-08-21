@@ -14,6 +14,7 @@ module UntypedPlutusCore.Evaluation.Machine.Cek.ExBudgetMode
     , TallyingSt (..)
     , RestrictingSt (..)
     , Hashable
+    , monoidalBudgeting
     , counting
     , enormousBudget
     , tallying
@@ -27,19 +28,18 @@ import PlutusPrelude
 import UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 
 import PlutusCore.Evaluation.Machine.ExBudget
-import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 import PlutusCore.Evaluation.Machine.Exception
+import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 
-import Control.Lens (ifoldMap)
-import Control.Monad.Except
-import Data.HashMap.Monoidal as HashMap
+import Control.Lens (imap)
+import Control.Monad (when)
 import Data.Hashable (Hashable)
-import Data.List (intersperse)
+import Data.HashMap.Monoidal as HashMap
 import Data.Map.Strict qualified as Map
 import Data.Primitive.PrimArray
-import Data.STRef
 import Data.SatInt
 import Data.Semigroup.Generic
+import Data.STRef
 import Prettyprinter
 import Text.PrettyBy (IgnorePrettyConfig (..))
 
@@ -81,8 +81,8 @@ newtype CekExTally fun = CekExTally (MonoidalHashMap (ExBudgetCategory fun) ExBu
 instance (Show fun, Ord fun) => Pretty (CekExTally fun) where
     pretty (CekExTally m) =
         let om = Map.fromList $ HashMap.toList m
-        in parens $ fold (["{ "] <> (intersperse (line <> "| ") $ fmap group $
-          ifoldMap (\k v -> [(pretty k <+> "causes" <+> pretty v)]) om) <> ["}"])
+        in parens $ encloseSep "{" "}" "| " $ fmap group $
+          Map.elems $ imap (\k v -> (pretty k <+> "causes" <+> group (pretty v))) om
 
 data TallyingSt fun = TallyingSt (CekExTally fun) ExBudget
     deriving stock (Eq, Show, Generic)
@@ -98,7 +98,7 @@ instance (Show fun, Ord fun) => Pretty (TallyingSt fun) where
         ]
 
 -- | For a detailed report on what costs how much + the same overall budget that 'Counting' gives.
-tallying :: (Eq fun, Hashable fun) => ExBudgetMode (TallyingSt fun) uni fun
+tallying :: (Hashable fun) => ExBudgetMode (TallyingSt fun) uni fun
 tallying =
     monoidalBudgeting $ \key budgetToSpend ->
         TallyingSt (CekExTally $ singleton key budgetToSpend) budgetToSpend
@@ -112,7 +112,9 @@ instance Pretty RestrictingSt where
     pretty (RestrictingSt budget) = parens $ "final budget:" <+> pretty budget <> line
 
 -- | For execution, to avoid overruns.
-restricting :: forall uni fun . (PrettyUni uni fun) => ExRestrictingBudget -> ExBudgetMode RestrictingSt uni fun
+restricting
+    :: ThrowableBuiltins uni fun
+    => ExRestrictingBudget -> ExBudgetMode RestrictingSt uni fun
 restricting (ExRestrictingBudget initB@(ExBudget cpuInit memInit)) = ExBudgetMode $ do
     -- We keep the counters in a PrimArray. This is better than an STRef since it stores its contents unboxed.
     --
@@ -153,5 +155,5 @@ restricting (ExRestrictingBudget initB@(ExBudget cpuInit memInit)) = ExBudgetMod
     pure $ ExBudgetInfo spender final cumulative
 
 -- | 'restricting' instantiated at 'enormousBudget'.
-restrictingEnormous :: (PrettyUni uni fun) => ExBudgetMode RestrictingSt uni fun
+restrictingEnormous :: ThrowableBuiltins uni fun => ExBudgetMode RestrictingSt uni fun
 restrictingEnormous = restricting enormousBudget

@@ -21,8 +21,10 @@ import Universe
 
 -- | For providing a 'KnownTypeAst' instance for a built-in type it's enough for that type to
 -- satisfy 'KnownBuiltinTypeAst'.
-class    (KnownBuiltinTypeAst uni a => KnownTypeAst uni a) => ImplementedKnownTypeAst uni a
-instance (KnownBuiltinTypeAst uni a => KnownTypeAst uni a) => ImplementedKnownTypeAst uni a
+class    (forall tyname. KnownBuiltinTypeAst tyname uni a => KnownTypeAst tyname uni a) =>
+    ImplementedKnownTypeAst uni a
+instance (forall tyname. KnownBuiltinTypeAst tyname uni a => KnownTypeAst tyname uni a) =>
+    ImplementedKnownTypeAst uni a
 
 -- | For providing a 'ReadKnownIn' instance for a built-in type it's enough for that type to
 -- satisfy 'KnownBuiltinTypeIn'.

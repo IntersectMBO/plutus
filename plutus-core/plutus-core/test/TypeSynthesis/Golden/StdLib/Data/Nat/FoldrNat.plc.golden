@@ -1,0 +1,7 @@
+all r.
+  (r -> r) ->
+  r ->
+  ifix
+    (\(rec :: (* -> *) -> *) (f :: * -> *) -> f (rec f))
+    (\nat -> all r. r -> (nat -> r) -> r) ->
+  r

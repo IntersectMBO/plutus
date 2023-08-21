@@ -18,8 +18,6 @@ module PlutusLedgerApi.V1.Value(
     -- ** Currency symbols
       CurrencySymbol(..)
     , currencySymbol
-    , mpsSymbol
-    , currencyMPSHash
     , adaSymbol
     -- ** Token names
     , TokenName(..)
@@ -60,7 +58,6 @@ import Data.Text qualified as Text
 import Data.Text.Encoding qualified as E
 import GHC.Generics (Generic)
 import PlutusLedgerApi.V1.Bytes (LedgerBytes (LedgerBytes), encodeByteString)
-import PlutusLedgerApi.V1.Scripts (MintingPolicyHash (..))
 import PlutusTx qualified
 import PlutusTx.AssocMap qualified as Map
 import PlutusTx.Lift (makeLift)
@@ -77,7 +74,7 @@ A `Value` is a map from `CurrencySymbol`'s to a map from `TokenName` to an `Inte
 
 This is a simple type without any validation, __use with caution__.
 You may want to add checks for its invariants. See the
- [Shelley ledger specification](https://hydra.iohk.io/build/16861845/download/1/ledger-spec.pdf).
+ [Shelley ledger specification](https://github.com/input-output-hk/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf).
 -}
 newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: PlutusTx.BuiltinByteString }
     deriving
@@ -88,16 +85,6 @@ newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: PlutusTx.BuiltinBy
     deriving stock (Generic, Data)
     deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
     deriving anyclass (NFData)
-
-{-# INLINABLE mpsSymbol #-}
--- | The `CurrencySymbol` of a monetary policy hash
-mpsSymbol :: MintingPolicyHash -> CurrencySymbol
-mpsSymbol (MintingPolicyHash h) = CurrencySymbol h
-
-{-# INLINABLE currencyMPSHash #-}
--- | The minting policy hash of a `CurrencySymbol`.
-currencyMPSHash :: CurrencySymbol -> MintingPolicyHash
-currencyMPSHash (CurrencySymbol h) = MintingPolicyHash h
 
 {-# INLINABLE currencySymbol #-}
 -- | Creates `CurrencySymbol` from raw `ByteString`.
@@ -111,7 +98,7 @@ Forms an `AssetClass` along with a `CurrencySymbol`.
 
 This is a simple type without any validation, __use with caution__.
 You may want to add checks for its invariants. See the
- [Shelley ledger specification](https://hydra.iohk.io/build/16861845/download/1/ledger-spec.pdf).
+ [Shelley ledger specification](https://github.com/input-output-hk/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf).
 -}
 newtype TokenName = TokenName { unTokenName :: PlutusTx.BuiltinByteString }
     deriving stock (Generic, Data)
@@ -142,6 +129,10 @@ asBase16 bs = Text.concat ["0x", encodeByteString bs]
 quoted :: Text -> Text
 quoted s = Text.concat ["\"", s, "\""]
 
+{- | Turn a TokenName to a hex-encoded 'String'
+
+Compared to `show` , it will not surround the string with double-quotes.
+-}
 toString :: TokenName -> Haskell.String
 toString = Text.unpack . fromTokenName asBase16 id
 
@@ -166,6 +157,7 @@ newtype AssetClass = AssetClass { unAssetClass :: (CurrencySymbol, TokenName) }
     deriving Pretty via (PrettyShow (CurrencySymbol, TokenName))
 
 {-# INLINABLE assetClass #-}
+-- | The curried version of 'AssetClass' constructor
 assetClass :: CurrencySymbol -> TokenName -> AssetClass
 assetClass s t = AssetClass (s, t)
 

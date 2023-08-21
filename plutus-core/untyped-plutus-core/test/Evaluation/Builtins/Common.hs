@@ -3,7 +3,10 @@
 {-# LANGUAGE TypeOperators    #-}
 
 module Evaluation.Builtins.Common
-    ( typecheckAnd
+    ( unsafeEvaluateCek
+    , unsafeEvaluateCekNoEmit
+    , readKnownCek
+    , typecheckAnd
     , typecheckEvaluateCek
     , typecheckEvaluateCekNoEmit
     , typecheckReadKnownCek
@@ -14,9 +17,10 @@ import PlutusCore.Builtin
 import PlutusCore.Compiler.Erase qualified as TPLC
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
-import PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Name
+import PlutusCore.Pretty
 import PlutusCore.TypeCheck
 
 import UntypedPlutusCore qualified as UPLC
@@ -31,7 +35,8 @@ typecheckAnd
        , Closed uni, uni `Everywhere` ExMemoryUsage
        )
     => BuiltinVersion fun
-    -> (MachineParameters CekMachineCosts CekValue uni fun -> UPLC.Term Name uni fun () -> a)
+    -> (MachineParameters CekMachineCosts fun (CekValue uni fun ()) ->
+            UPLC.Term Name uni fun () -> a)
     -> CostingPart uni fun -> TPLC.Term TyName Name uni fun () -> m a
 typecheckAnd ver action costingPart term = TPLC.runQuoteT $ do
     -- here we don't use `getDefTypeCheckConfig`, to cover the
@@ -40,13 +45,13 @@ typecheckAnd ver action costingPart term = TPLC.runQuoteT $ do
     _ <- TPLC.inferType tcConfig term
     return . action runtime $ TPLC.eraseTerm term
     where
-      runtime = mkMachineParameters ver defaultUnliftingMode $
+      runtime = mkMachineParameters ver $
                    CostModel defaultCekMachineCosts costingPart
 
 -- | Type check and evaluate a term, logging enabled.
 typecheckEvaluateCek
     :: ( MonadError (TPLC.Error uni fun ()) m, TPLC.Typecheckable uni fun, GEq uni
-       , uni `Everywhere` ExMemoryUsage, PrettyUni uni fun
+       , uni `Everywhere` ExMemoryUsage, PrettyUni uni, Pretty fun
        )
     => BuiltinVersion fun
     -> CostingPart uni fun
@@ -57,7 +62,7 @@ typecheckEvaluateCek ver = typecheckAnd ver $ unsafeEvaluateCek logEmitter
 -- | Type check and evaluate a term, logging disabled.
 typecheckEvaluateCekNoEmit
     :: ( MonadError (TPLC.Error uni fun ()) m, TPLC.Typecheckable uni fun, GEq uni
-       , uni `Everywhere` ExMemoryUsage, PrettyUni uni fun
+       , uni `Everywhere` ExMemoryUsage, PrettyUni uni, Pretty fun
        )
     => BuiltinVersion fun
     -> CostingPart uni fun
@@ -68,7 +73,7 @@ typecheckEvaluateCekNoEmit ver = typecheckAnd ver unsafeEvaluateCekNoEmit
 -- | Type check and convert a Plutus Core term to a Haskell value.
 typecheckReadKnownCek
     :: ( MonadError (TPLC.Error uni fun ()) m, TPLC.Typecheckable uni fun, GEq uni
-       , uni `Everywhere` ExMemoryUsage, PrettyUni uni fun
+       , uni `Everywhere` ExMemoryUsage, PrettyUni uni, Pretty fun
        , ReadKnown (UPLC.Term Name uni fun ()) a
        )
     => BuiltinVersion fun

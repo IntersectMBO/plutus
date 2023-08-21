@@ -1,0 +1,1 @@
+(Right (sop [(con integer) (con integer) (con integer)] [(con string)]))

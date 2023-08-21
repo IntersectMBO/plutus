@@ -2,39 +2,30 @@
 \begin{code}
 module Utils where
 
-open import Relation.Binary.PropositionalEquality
-open import Function
-open import Data.Nat
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;cong;sym;trans;cong₂;subst)
+open import Function using (const;_∘_)
+open import Data.Nat using (ℕ;zero;suc;_≤‴_;_≤_;_+_)
+open _≤_
+open _≤‴_
 open import Data.Nat.Properties
+               using (+-suc;m+1+n≢m;+-cancelˡ-≡;m≢1+n+m;m+1+n≢0;+-cancelʳ-≡;+-assoc;+-comm;+-identityʳ)
 open import Relation.Binary using (Decidable)
 import Data.Integer as I
-open import Data.Vec hiding (map;_>>=_;_++_)
-open import Data.List hiding (map)
-open import Data.Sum
-open import Relation.Nullary
-open import Data.Empty
+import Data.List as L
+open import Data.Sum using (_⊎_;inj₁;inj₂)
+open import Relation.Nullary using (Dec;yes;no;¬_)
+open import Data.Empty using (⊥;⊥-elim)
+open import Data.Integer using (ℤ)
+open import Data.String using (String)
+open import Data.Bool using (Bool)
+open import Data.Maybe using (Maybe; just; nothing; maybe) 
+                           renaming (_>>=_ to mbind) public
 
--- we cannot use the standard library's Maybe as it is not set up to
--- compile the Haskell's Maybe and compile pragmas have to go in the
--- same module as defintions
+{-# FOREIGN GHC import Raw #-}
 
-data Maybe (A : Set) : Set where
-  just : A → Maybe A
-  nothing : Maybe A
-
-{-# COMPILE GHC Maybe = data Maybe (Just | Nothing) #-}
-
-maybe : {A B : Set} → (A → B) → B → Maybe A → B 
-maybe f b (just a) = f a
-maybe f b nothing  = b
-
-mbind : {A B : Set} → Maybe A → (A → Maybe B) → Maybe B
-mbind (just a) f = f a
-mbind nothing  f = nothing
-
-{-# COMPILE GHC mbind = \_ _ a f -> a >>= f #-}
-
--- the same applies to sums...
+-- we cannot use the standard library's Either as it is not set up to
+-- compile the Haskell's Either and compile pragmas have to go in the
+-- same module as definitions
 
 data Either (A B : Set) : Set where
   inj₁ : A → Either A B
@@ -42,9 +33,9 @@ data Either (A B : Set) : Set where
 
 {-# COMPILE GHC Either = data Either (Left | Right) #-}
 
-case : {A B C : Set} → Either A B → (A → C) → (B → C) → C
-case (inj₁ a) f g = f a
-case (inj₂ b) f g = g b
+either : {A B C : Set} → Either A B → (A → C) → (B → C) → C
+either (inj₁ a) f g = f a
+either (inj₂ b) f g = g b
 
 eitherBind : ∀{A B E} → Either E A → (A → Either E B) → Either E B
 eitherBind (inj₁ e) f = inj₁ e
@@ -61,253 +52,37 @@ cong₃ : {A B C D : Set} → (f : A → B → C → D)
   → f a b c ≡ f a' b' c'
 cong₃ f refl refl refl = refl
 
-_I>?_ : Decidable I._>_
-i I>? j = j I.<? i
+≡-subst-removable : ∀ {a p} {A : Set a}
+                    (P : A → Set p) {x y} (p q : x ≡ y) z →
+                    subst P p z ≡ subst P q z
+≡-subst-removable P refl refl z = refl 
+ \end{code}
 
-_I≥?_ : Decidable I._≥_
-i I≥? j = j I.≤? i
+The type `n ∔ n' ≡ m` 
+allows to take two naturals `n` and `n'` such that they sum m.
+It is helpful when one wants to do `m` things, while keeping track
+of the number of done things (`n`) and things to do (`n'`).
+\begin{code}
 
-z≤‴n : ∀ {n} → zero  ≤‴ n
-z≤‴n {n} = ≤″⇒≤‴ (≤⇒≤″ z≤n)
+data _∔_≣_ : ℕ → ℕ → ℕ → Set where
+  start : (n : ℕ) →  0 ∔ n ≣ n
+  bubble : ∀{n n' m : ℕ} → n ∔ suc n' ≣ m → suc n ∔ n' ≣ m
 
-lem¬≤ : ∀{n} → ¬ (suc n Data.Nat.≤ n)
-lem¬≤ (s≤s p) = lem¬≤ p
-
-lem≤‴ : ∀{m n}(p q : m ≤‴ n) → p ≡ q
-lem≤‴ ≤‴-refl ≤‴-refl     = refl
-lem≤‴ ≤‴-refl (≤‴-step q) = ⊥-elim (lem¬≤ (≤″⇒≤ (≤‴⇒≤″ q)))
-lem≤‴ (≤‴-step p) ≤‴-refl = ⊥-elim (lem¬≤ (≤″⇒≤ (≤‴⇒≤″ p)))
-lem≤‴ (≤‴-step p) (≤‴-step q) = cong ≤‴-step (lem≤‴ p q)
-
-+-monoʳ-≤‴ : (n₁ : ℕ) {x y : ℕ} → x ≤‴ y → n₁ + x ≤‴ n₁ + y
-+-monoʳ-≤‴ n p = ≤″⇒≤‴ (≤⇒≤″ (+-monoʳ-≤ n (≤″⇒≤ (≤‴⇒≤″ p))))
-
-data Bwd (A : Set) : Set where
-  [] : Bwd A
-  _:<_ : Bwd A → A → Bwd A
-
-infixl 5 _:<_
+unique∔ : ∀{n n' m : ℕ}(p p' : n ∔ n' ≣ m) → p ≡ p'
+unique∔ (start _) (start _) = refl
+unique∔ (bubble p) (bubble p') = cong bubble (unique∔ p p')
 
 
-bwd-length : ∀{A} → Bwd A → ℕ
-bwd-length [] = 0
-bwd-length (az :< a) = Data.Nat.suc (bwd-length az)
++2∔ : ∀(n m t : ℕ) → n + m ≡ t → n ∔ m ≣ t
++2∔ zero m .(zero + m) refl = start _
++2∔ (suc n) m t p = bubble (+2∔ n (suc m) t (trans (+-suc n m) p))
 
-_<>>_ : ∀{A} → Bwd A → List A → List A
-[] <>> as = as
-(az :< a) <>> as = az <>> (a ∷ as)
+∔2+ : ∀{n m t : ℕ} → n ∔ m ≣ t  → n + m ≡ t 
+∔2+ (start _) = refl
+∔2+ (bubble bt) = trans (sym (+-suc _ _)) (∔2+ bt)
 
-_<><_ : ∀{A} → Bwd A → List A → Bwd A
-az <>< []       = az
-az <>< (a ∷ as) = (az :< a) <>< as
-
-_:<L_ : ∀{A : Set} → List A → A → List A
-[]        :<L a = a ∷ []
-(a' ∷ as) :<L a = a' ∷ (as :<L a)
-
-data _≤L_ {A : Set} : List A → List A → Set where
- base : ∀{as} → as ≤L as
- skip : ∀{as as' a} → as ≤L as' → as ≤L (a ∷ as')
-
-[]≤L : {A : Set}(as : List A) → [] ≤L as
-[]≤L []       = base
-[]≤L (a ∷ as) = skip ([]≤L as)
-
-data _≤L'_ {A : Set} : List A → List A → Set where
- base : ∀{as} → as ≤L' as
- skip : ∀{as as' a} → (a ∷ as) ≤L' as' → as ≤L' as'
-
-data _<>>_∈_ : ∀{A} → Bwd A → List A → List A → Set where
-  start : ∀{A}(as : List A) → [] <>> as ∈ as
-  bubble : ∀{A}{a : A}{as : Bwd A}{as' as'' : List A} → as <>> (a ∷ as') ∈ as''
-    → (as :< a) <>> as' ∈ as''
-
-data _<><_∈_ : ∀{A} → Bwd A → List A → Bwd A → Set where
-  start : ∀{A}(as : Bwd A) → as <>< [] ∈ as
-  bubble : ∀{A}{a : A}{as as'' : Bwd A}{as' : List A}
-    → (as :< a) <>< as' ∈ as''
-    → as <>< (a ∷ as') ∈ as''
-
-unique<>> : ∀{A}{az : Bwd A}{as as' : List A}(p p' : az <>> as ∈ as') → p ≡ p'
-unique<>> (start _) (start _) = refl
-unique<>> (bubble p) (bubble p') = cong bubble (unique<>> p p')
-
-_<>>_∈'_ : ∀{A} → Bwd A → List A → List A → Set
-xs <>> ys ∈' zs = xs <>> ys ≡ zs
-
-open import Data.Nat.Properties using (+-suc;m+1+n≢m;+-cancelˡ-≡;m≢1+n+m;m+1+n≢0;+-cancelʳ-≡;+-assoc;+-comm)
-
-<>>-length : ∀{A}(az : Bwd A)(as : List A)
-  → Data.List.length (az <>> as) ≡ bwd-length az Data.Nat.+ Data.List.length as
-<>>-length [] as = refl
-<>>-length (az :< x) as = trans (<>>-length az (x ∷ as)) (+-suc _ _)
-
-
-
--- reasoning about the length inspired by similar proof about ++ in the stdlib
-<>>-rcancel : ∀{A}(az : Bwd A)(as : List A) → az <>> [] ≡ az <>> as → as ≡ []
-<>>-rcancel []       as p = sym p
-<>>-rcancel (az :< a) [] p = refl
-<>>-rcancel (az :< a) (a' ∷ as) p = ⊥-elim
-  (m+1+n≢m 1
-           (sym (+-cancelˡ-≡ (bwd-length az)
-                             (trans (trans (sym (<>>-length az (a ∷ [])))
-                                           (cong Data.List.length p))
-                                    (<>>-length az (a ∷ a' ∷ as))))))
-
-<>>-lcancel : ∀{A}(az : Bwd A)(as : List A) → as ≡ az <>> as → az ≡ []
-<>>-lcancel []       as p = refl
-<>>-lcancel (az :< a) as p = ⊥-elim
-  (m≢1+n+m (Data.List.length as)
-           (trans (trans (cong Data.List.length p)
-                         (<>>-length az (a ∷ as)))
-                  (+-suc (bwd-length az) (Data.List.length as))))
-
-open import Data.Product renaming (_,_ to _,,_)
-
-<>>-lcancel' : ∀{A}(az : Bwd A)(as as' : List A)
-  → as ≡ az <>> as'
-  → Data.List.length as ≡ Data.List.length as'
-  → (az ≡ []) × (as ≡ as')
-<>>-lcancel' [] as as' p q = refl ,, p
-<>>-lcancel' (az :< a) as as' p q = ⊥-elim
-  (m≢1+n+m (Data.List.length as')
-           (trans (trans (trans (sym q) (cong Data.List.length p))
-                         (<>>-length az (a ∷ as')))
-                  (+-suc (bwd-length az) (Data.List.length as'))))
-
-<>>2<>>' : ∀{A}(xs : Bwd A)(ys zs : List A) → xs <>> ys ∈ zs → xs <>> ys ∈' zs
-<>>2<>>' [] ys .ys (start .ys) = refl
-<>>2<>>' (xs :< x) ys zs (bubble p) = <>>2<>>' xs (x ∷ ys) zs p
-
-<>>'2<>> : ∀{A}(xs : Bwd A)(ys zs : List A) → xs <>> ys ∈' zs → xs <>> ys ∈ zs
-<>>'2<>> [] ys .ys refl = start ys
-<>>'2<>> (xs :< x) ys zs p = bubble (<>>'2<>> xs (x ∷ ys) zs p)
-
-_<><_∈'_ : ∀{A} → Bwd A → List A → Bwd A → Set
-xs <>< ys ∈' zs = xs <>< ys ≡ zs
-
-<><2<><' : ∀{A}(xs : Bwd A)(ys : List A)(zs : Bwd A)
-  → xs <>< ys ∈ zs → xs <>< ys ∈' zs
-<><2<><' xs [] .xs (start .xs) = refl
-<><2<><' xs (y ∷ ys) zs (bubble p) = <><2<><' (xs :< y) ys zs p
-
-<><'2<>< : ∀{A}(xs : Bwd A)(ys : List A)(zs : Bwd A)
-  → xs <>< ys ∈' zs → xs <>< ys ∈ zs
-<><'2<>< xs [] .xs refl = start xs
-<><'2<>< xs (x ∷ ys) zs p = bubble (<><'2<>< (xs :< x) ys zs p)
-
-lemma<><[] : ∀{A}(xs : Bwd A) → (xs <>< []) ≡ xs
-lemma<><[] xs = refl
-
-lemma[]<>> : ∀{A}(xs : List A) → ([] <>> xs) ≡ xs
-lemma[]<>> xs = refl
-
--- convert a list to a backward list and back again
-
-lemma<>1 : ∀{A}(xs : Bwd A)(ys : List A) → (xs <>< ys) <>> [] ≡ xs <>> ys
-lemma<>1 xs []       = refl
-lemma<>1 xs (x ∷ ys) = lemma<>1 (xs :< x) ys
-
-lemma<>2 : ∀{A}(xs : Bwd A)(ys : List A) → ([] <>< (xs <>> ys)) ≡ xs <>< ys
-lemma<>2 [] ys = refl
-lemma<>2 (xs :< x) ys = lemma<>2 xs (x ∷ ys)
-
-saturated : ∀{A}(as : List A) → ([] <>< as) <>> [] ∈ as
-saturated as = <>>'2<>> ([] <>< as) [] as (lemma<>1 [] as)
-
-lemma∷1 : ∀{A}(as as' : List A) → [] <>> as ∈ as' → as ≡ as'
-lemma∷1 as .as (start .as) = refl
-
--- these properties are needed for bappTermLem
-<>>-cancel-both : ∀{A}(az az' : Bwd A)(as : List A)
-  → az <>> (az' <>> as) ∈ (az' <>> [])
-  → az ≡ [] × as ≡ []
-<>>-cancel-both az az' [] p =
-  <>>-lcancel az (az' <>> []) (sym (<>>2<>>' az (az' <>> []) (az' <>> []) p))
-  ,,
-  refl
-<>>-cancel-both az az' (a ∷ as) p = ⊥-elim (m+1+n≢0
-  _
-  (+-cancelʳ-≡
-    _
-    0
-    (trans
-      (trans
-        (+-assoc (bwd-length az) (Data.List.length (a ∷ as)) (bwd-length az'))
-        (trans
-          (cong
-            (bwd-length az Data.Nat.+_)
-            (+-comm (Data.List.length (a ∷ as)) (bwd-length az')))
-          (trans
-            (cong
-              (bwd-length az Data.Nat.+_)
-              (sym (<>>-length az' (a ∷ as))))
-            (trans
-              (sym (<>>-length az (az' <>> (a ∷ as))))
-              (trans
-                (cong
-                  Data.List.length
-                  (<>>2<>>' az (az' <>> (a ∷ as)) (az' <>> []) p))
-                (<>>-length az' []))))))
-      (+-comm (bwd-length az') 0))))
-
-<>>-cancel-both' : ∀{A}(az az' az'' : Bwd A)(as : List A)
-  → az <>> (az' <>> as) ∈ (az'' <>> []) → bwd-length az' ≡ bwd-length az''
-  → az ≡ [] × as ≡ [] × az' ≡ az''
-<>>-cancel-both' az az' az'' [] p q
-  with <>>-lcancel' az (az'' <>> []) (az' <>> []) (sym (<>>2<>>' _ _ _ p)) (trans (<>>-length az'' []) (trans (cong (Data.Nat._+ 0) (sym q)) (sym (<>>-length az' []))))
-... | refl ,, Y = refl ,, refl ,, sym (trans (trans (sym (lemma<>2 az'' [])) (cong ([] <><_) Y)) (lemma<>2 az' []))
-<>>-cancel-both' az az' az'' (a ∷ as) p q = ⊥-elim (m+1+n≢0
-  _
-  (+-cancelʳ-≡
-    _
-    0
-    (trans
-      (trans
-        (+-assoc (bwd-length az) (Data.List.length (a ∷ as)) (bwd-length az'))
-        (trans
-          (cong
-            (bwd-length az Data.Nat.+_)
-            (+-comm (Data.List.length (a ∷ as)) (bwd-length az')))
-          (trans
-            (cong
-              (bwd-length az Data.Nat.+_)
-              (sym (<>>-length az' (a ∷ as))))
-            (trans
-              (sym (<>>-length az (az' <>> (a ∷ as))))
-              (trans
-                (cong
-                  Data.List.length
-                  (<>>2<>>' az (az' <>> (a ∷ as)) (az'' <>> []) p))
-                (trans (<>>-length az'' []) (cong (Data.Nat._+ 0) (sym q))))))))
-      (+-comm (bwd-length az') 0))))
-
-
-open import Data.Product
-
-_<L'_ : {A : Set} → List A → List A → Set
-as <L' as' = Σ _ λ a → (a ∷ as) ≤L' as'
-
-lem⊥ : ∀{A : Set}{as : List A}{a} → (a ∷ as) ≤L' [] → ⊥
-lem⊥ (skip p) = lem⊥ p
-
-lem0 : {A : Set}{a a' : A}{as as' : List A}
-  → (a ∷ as) ≤L' (a' ∷ as') → as ≤L' as'
-lem0 base     = base
-lem0 (skip p) = skip (lem0 p)
-
-lem1 : {A : Set}{a : A}{as as' : List A} → as ≤L' as' → as ≤L' (a ∷ as')
-lem1 base = skip base
-lem1 (skip p) = skip (lem1 p)
-
-≤Lto≤L' : {A : Set}{as as' : List A} → as ≤L as' → as ≤L' as'
-≤Lto≤L' base = base
-≤Lto≤L' (skip p) = lem1 (≤Lto≤L' p)
-
-[]≤L' : {A : Set}(as : List A) → [] ≤L' as
-[]≤L' as = ≤Lto≤L' ([]≤L as)
-
+alldone : ∀(n : ℕ) → n ∔ zero ≣ n
+alldone n = +2∔ n 0 n (+-identityʳ n)
 
 -- Monads
 
@@ -315,7 +90,7 @@ record Monad (F : Set → Set) : Set₁ where
   field
     return : ∀{A} → A → F A
     _>>=_   : ∀{A B} → F A → (A → F B) → F B
-    
+
   _>>_ : ∀{A B} → F A → F B → F B
   as >> bs = as >>= const bs
 
@@ -348,7 +123,9 @@ withE : {A B C : Set} → (A → B) → Either A C → Either B C
 withE f (inj₁ a) = inj₁ (f a)
 withE f (inj₂ c) = inj₂ c
 
-{-# FOREIGN GHC import Raw #-}
+dec2Either : {A : Set} → Dec A → Either (¬ A) A
+dec2Either (yes p) = inj₂ p
+dec2Either (no ¬p) = inj₁ ¬p
 
 data RuntimeError : Set where
   gasError : RuntimeError
@@ -361,12 +138,68 @@ postulate ByteString : Set
 {-# FOREIGN GHC import qualified Data.ByteString as BS #-}
 {-# COMPILE GHC ByteString = type BS.ByteString #-}
 
+
+data _×_ (A B : Set) : Set where
+ _,_ : A → B → A × B
+
+{-# FOREIGN GHC type Pair a b = (a , b) #-}
+{-# COMPILE GHC _×_ = data Pair ((,))  #-}
+
+data List (A : Set) : Set where
+  []  : List A
+  _∷_ : A → List A → List A
+
+length : ∀ {A} → List A → ℕ
+length [] = 0
+length (x ∷ xs) = suc (length xs)
+
+map : ∀{A B} → (A → B) → List A → List B
+map f [] = []
+map f (x ∷ xs) = f x ∷ map f xs
+
+toList : ∀{A} →  List A → L.List A
+toList [] = L.[]
+toList (x ∷ xs) = x L.∷ toList xs
+
+fromList : ∀{A} →  L.List A → List A
+fromList L.[] = []
+fromList (x L.∷ xs) = x ∷ fromList xs
+
+map-cong : ∀{A B : Set}{xs : L.List A}{f g : A → B}
+     → (∀ x → f x ≡ g x) 
+     → L.map f xs ≡ L.map g xs 
+map-cong {xs = L.[]} p = refl
+map-cong {xs = x L.∷ xs} p = cong₂ L._∷_ (p x) (map-cong p)
+
+infixr 5 _∷_
+
+{-# COMPILE GHC List = data [] ([] | (:)) #-}
+
+
 data DATA : Set where
+  ConstrDATA :  I.ℤ → List DATA → DATA
+  MapDATA : List (DATA × DATA) → DATA
+  ListDATA : List DATA → DATA
   iDATA : I.ℤ → DATA
   bDATA : ByteString → DATA
 
-{-# FOREIGN GHC import PlutusCore.Data #-}
-{-# COMPILE GHC DATA = data Data (I | B)   #-}
+{-# FOREIGN GHC import PlutusCore.Data as D #-}
+{-# COMPILE GHC DATA = data Data (D.Constr | D.Map | D.List | D.I | D.B)   #-}
+
+postulate eqDATA : DATA → DATA → Bool 
+{-# COMPILE GHC eqDATA = (==) #-}
+
+postulate Bls12-381-G1-Element : Set
+{-# FOREIGN GHC import qualified PlutusCore.Crypto.BLS12_381.G1 as G1 #-}
+{-# COMPILE GHC Bls12-381-G1-Element = type G1.Element #-}
+
+postulate Bls12-381-G2-Element : Set
+{-# FOREIGN GHC import qualified PlutusCore.Crypto.BLS12_381.G2 as G2 #-}
+{-# COMPILE GHC Bls12-381-G2-Element = type G2.Element #-}
+
+postulate Bls12-381-MlResult : Set
+{-# FOREIGN GHC import qualified PlutusCore.Crypto.BLS12_381.Pairing as Pairing #-}
+{-# COMPILE GHC Bls12-381-MlResult = type Pairing.MlResult #-}
 \end{code}
 
 Kinds
@@ -378,14 +211,10 @@ a kind called `#` which is used for sized integers and bytestrings.
 \begin{code}
 data Kind : Set where
   *   : Kind               -- type
+  ♯   : Kind               -- builtin
   _⇒_ : Kind → Kind → Kind -- function kind
 
-{-# FOREIGN GHC import PlutusCore                       #-}
-{-# FOREIGN GHC {-# LANGUAGE GADTs, PatternSynonyms #-} #-}
-{-# FOREIGN GHC type KIND = Kind ()                     #-}
-{-# FOREIGN GHC pattern Star    = Type ()               #-}
-{-# FOREIGN GHC pattern Arrow k j = KindArrow () k j    #-}
-{-# COMPILE GHC Kind = data KIND (Star | Arrow)         #-}
+{-# COMPILE GHC Kind = data KIND (Star | Sharp | Arrow )         #-}
 \end{code}
 
 Let `I`, `J`, `K` range over kinds:
@@ -393,30 +222,4 @@ Let `I`, `J`, `K` range over kinds:
 variable
   I J K : Kind
 \end{code}
-## Term constants
-
-Defined separetely here rather than using generic version used in the
-typed syntax.
-
-\begin{code}
-open import Data.Integer
-open import Data.String
-open import Data.Bool
-
-data TermCon : Set where
-  integer    : ℤ → TermCon
-  bytestring : ByteString → TermCon
-  string     : String → TermCon
-  bool       : Bool → TermCon
-  unit       : TermCon
-  Data       : DATA → TermCon
-
-{-# FOREIGN GHC type TermCon = Some (ValueOf DefaultUni)               #-}
-{-# FOREIGN GHC pattern TmInteger    i = Some (ValueOf DefaultUniInteger i) #-}
-{-# FOREIGN GHC pattern TmByteString b = Some (ValueOf DefaultUniByteString b) #-}
-{-# FOREIGN GHC pattern TmString     s = Some (ValueOf DefaultUniString s) #-}
-{-# FOREIGN GHC pattern TmUnit         = Some (ValueOf DefaultUniUnit ()) #-}
-{-# FOREIGN GHC pattern TmBool       b = Some (ValueOf DefaultUniBool b) #-}
-{-# FOREIGN GHC pattern TmData       d = Some (ValueOf DefaultUniData d) #-}
-{-# COMPILE GHC TermCon = data TermCon (TmInteger | TmByteString | TmString | TmBool | TmUnit | TmData) #-}
-\end{code}
+ 

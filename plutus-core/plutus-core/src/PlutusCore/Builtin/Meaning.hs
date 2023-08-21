@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE AllowAmbiguousTypes       #-}
 {-# LANGUAGE BangPatterns              #-}
 {-# LANGUAGE ConstraintKinds           #-}
@@ -27,15 +26,16 @@ import PlutusCore.Builtin.KnownTypeAst
 import PlutusCore.Builtin.Runtime
 import PlutusCore.Builtin.TypeScheme
 import PlutusCore.Core
-import PlutusCore.Evaluation.Machine.ExBudget
-import PlutusCore.Evaluation.Machine.ExMemory
+import PlutusCore.Evaluation.Machine.ExBudgetStream
+import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.Name
 
+import Control.DeepSeq
 import Data.Array
 import Data.Kind qualified as GHC
 import Data.Proxy
 import Data.Some.GADT
-import GHC.Exts (inline, oneShot)
+import GHC.Exts (inline, lazy, oneShot)
 import GHC.TypeLits
 
 -- | Turn a list of Haskell types @args@ into a functional type ending in @res@.
@@ -49,7 +49,7 @@ type family FoldArgs args res where
     FoldArgs (arg ': args) res = arg -> FoldArgs args res
 
 -- | The meaning of a built-in function consists of its type represented as a 'TypeScheme',
--- its Haskell denotation and a 'BuiltinRuntimeOptions'.
+-- its Haskell denotation and a costing function.
 --
 -- The 'TypeScheme' of a built-in function is used for example for
 --
@@ -64,7 +64,7 @@ data BuiltinMeaning val cost =
     forall args res. BuiltinMeaning
         (TypeScheme val args res)
         ~(FoldArgs args res)
-        (BuiltinRuntimeOptions val cost)
+        (cost -> BuiltinRuntime val)
 
 -- | Constraints available when defining a built-in function.
 type HasMeaningIn uni val = (Typeable val, ExMemoryUsage val, HasConstantIn uni val)
@@ -79,46 +79,56 @@ class (Typeable uni, Typeable fun, Bounded fun, Enum fun, Ix fun, Default (Built
     data BuiltinVersion fun
 
     -- | Get the 'BuiltinMeaning' of a built-in function.
-    toBuiltinMeaning :: HasMeaningIn uni val => BuiltinVersion fun -> fun -> BuiltinMeaning val (CostingPart uni fun)
+    toBuiltinMeaning :: HasMeaningIn uni val =>
+        BuiltinVersion fun -> fun -> BuiltinMeaning val (CostingPart uni fun)
 
 -- | Get the type of a built-in function.
-typeOfBuiltinFunction :: forall uni fun. ToBuiltinMeaning uni fun => BuiltinVersion fun -> fun -> Type TyName uni ()
-typeOfBuiltinFunction ver fun = case toBuiltinMeaning @_ @_ @(Term TyName Name uni fun ()) ver fun of
-    BuiltinMeaning sch _ _ -> typeSchemeToType sch
+typeOfBuiltinFunction :: forall uni fun. ToBuiltinMeaning uni fun =>
+    BuiltinVersion fun -> fun -> Type TyName uni ()
+typeOfBuiltinFunction ver fun =
+    case toBuiltinMeaning @_ @_ @(Term TyName Name uni fun ()) ver fun of
+        BuiltinMeaning sch _ _ -> typeSchemeToType sch
 
 {- Note [Versioned builtins]
-The purpose of the "versioned builtins" feature is to provide multiple, different denotations (implementations)
-for the same builtin(s).
-An example use of this feature is for "fixing" the behaviour of `ConsByteString` builtin to throw an error instead
-of overflowing its first argument.
+The purpose of the "versioned builtins" feature is to provide multiple, different denotations
+(implementations) for the same builtin(s).
+An example use of this feature is for "fixing" the behaviour of `ConsByteString` builtin to throw an
+error instead of overflowing its first argument.
 
-One denotation from each builtin is grouped into a 'BuiltinVersion'. Each Plutus Language version is linked
-to a specific 'BuiltinVersion' (done by plutus-ledger-api); e.g. plutus-v1 and plutus-v2 are linked to 'DefaultFunV1',
-whereas plutus-v3 changes the set of denotations to 'DefaultFunV2' (thus fixing 'ConsByteString').
+One denotation from each builtin is grouped into a 'BuiltinVersion'. Each Plutus Language version is
+linked to a specific 'BuiltinVersion' (done by plutus-ledger-api); e.g. plutus-v1 and plutus-v2 are
+linked to 'DefaultFunV1', whereas plutus-v3 changes the set of denotations to 'DefaultFunV2' (thus
+ fixing 'ConsByteString').
 
-Each 'BuiltinVersion' (grouping) can change the denotation of one or more builtins --- or none, but what's the point in that.
+Each 'BuiltinVersion' (grouping) can change the denotation of one or more builtins --- or none, but
+what's the point in that.
 
-This 'BuiltinVersion' is modelled as a datatype *associated* to the `fun`. This associated datatype is required to
-provide an instance of 'Default' for quality-of-life purpose; the `def`ault builtin version is expected to point to the builtin-version
-that the plutus-tx/plutus-ir compiler is currently targetting.
+This 'BuiltinVersion' is modelled as a datatype *associated* to the `fun`. This associated datatype
+is required to provide an instance of 'Default' for quality-of-life purpose; the `def`ault builtin
+version is expected to point to the builtin-version that the plutus-tx/plutus-ir compiler is
+currently targeting.
 
-Note that, (old) denotations of a 'BuiltinVersion' cannot be removed or deprecated, once published to the chain.
+Note that, (old) denotations of a 'BuiltinVersion' cannot be removed or deprecated, once published
+to the chain.
 
 The way that this feature is implemented buys us more than we currently need:
-- allows also a versioned change to a builtin's *type signature*, i.e. type of arguments/result as well as number of arguments.
+- allows also a versioned change to a builtin's *type signature*, i.e. type of arguments/result as
+well as number of arguments.
 - allows also a versioned change to a builtin's cost model parameters
 
 Besides having no need for this currently, it complicates the codebase since the typechecker
 now pointlessly wants to know the builtin-version before typechecking. To alleviate this,
 we use the 'Default.def' builtin version during typechecking / lifting. @effectfully:
-the solution to the problem would be to establish what kind of backwards compatibility we're willing to maintain and
-pull all of that into a separate data type and make it a part of BuiltinMeaning.
+the solution to the problem would be to establish what kind of backwards compatibility we're willing
+to maintain and pull all of that into a separate data type and make it a part of BuiltinMeaning.
 -}
 
 {- Note [Automatic derivation of type schemes]
 We use two type classes for automatic derivation of type/runtime schemes and runtime denotations:
 'KnownPolytype' and 'KnownMonotype'.
-The terminology is due to https://en.wikipedia.org/wiki/Hindley%E2%80%93Milner_type_system#The_Hindley%E2%80%93Milner_type_system
+The terminology is due to
+https://en.wikipedia.org/wiki/Hindley%E2%80%93Milner_type_system#The_Hindley%E2%80%93Milner_
+type_system
 
 Check out the source of "PlutusCore.Builtin.Runtime" for an explanation of what a runtime
 denotation is.
@@ -126,7 +136,7 @@ denotation is.
 'KnownPolytype' and 'KnownMonotype' are responsible for deriving polymorphic and monomorphic types,
 respectively.
 
-'KnownPolytype' turns every bound variable into a 'TypeSchemeAll'/'RuntimeSchemeAll'. We extract
+'KnownPolytype' turns every bound variable into a 'TypeSchemeAll'/'BuiltinExpectForce'. We extract
 variables from the type of the Haskell denotation using the 'ToBinds' associated type
 family. Variables are collected in the order that they appear in (i.e. just like in Haskell). For
 example, processing a type like
@@ -141,7 +151,7 @@ with 'ToBinds' results in the following list of bindings:
     '[ 'Some ('TyNameRep "b" 1), 'Some ('TyNameRep "a" 0) ]
 
 'KnownMonotype' turns every argument that the Haskell denotation of a builtin receives into a
-'TypeSchemeArrow'/'RuntimeSchemeArrow'. We extract the arguments from the type of the Haskell
+'TypeSchemeArrow'/'BuiltinExpectArgument'. We extract the arguments from the type of the Haskell
 denotation using the 'GetArgs' type family.
 
 Higher-kinded type variables are fully supported.
@@ -176,7 +186,7 @@ into a single 'BuiltinRuntime'.
 -}
 
 -- | A class that allows us to derive a monotype for a builtin.
--- We could've computed the runtime denotations ('toImmediateF' and 'toDeferredF') from the
+-- We could've computed the runtime denotation from the
 -- 'TypeScheme' and the denotation of the builtin, but not statically (due to unfolding not working
 -- for recursive functions and 'TypeScheme' being recursive, i.e. requiring the conversion function
 -- to be recursive), and so it would cause us to retain a lot of evaluation-irrelevant stuff in the
@@ -189,33 +199,23 @@ into a single 'BuiltinRuntime'.
 class KnownMonotype val args res where
     knownMonotype :: TypeScheme val args res
 
-    -- | Convert the denotation of a builtin to its runtime counterpart with immediate unlifting.
-    -- We use a tuple rather than two arguments for symmetry with 'toPolyDeferredF'. It all gets
-    -- inlined anyway.
-    toMonoImmediateF
-        :: (FoldArgs args res, FoldArgs args ExBudget)
-        -> BuiltinRuntime val
-
-    -- | Convert the denotation of a builtin to its runtime counterpart with deferred unlifting.
+    -- | Convert the denotation of a builtin to its runtime counterpart .
     -- The argument is in 'ReadKnownM', because that's what deferred unlifting amounts to:
     -- passing the action returning the builtin application around until full saturation, which is
     -- when the action actually gets run.
-    toMonoDeferredF
-        :: ReadKnownM (FoldArgs args res, FoldArgs args ExBudget)
+    toMonoF
+        :: ReadKnownM (FoldArgs args res, FoldArgs args ExBudgetStream)
         -> BuiltinRuntime val
 
 -- | Once we've run out of term-level arguments, we return a
 -- 'TypeSchemeResult'/'RuntimeSchemeResult'.
-instance (Typeable res, KnownTypeAst (UniOf val) res, MakeKnown val res) =>
+instance (Typeable res, KnownTypeAst TyName (UniOf val) res, MakeKnown val res) =>
             KnownMonotype val '[] res where
     knownMonotype = TypeSchemeResult
 
-    toMonoImmediateF (x, cost) = BuiltinResult cost $ makeKnown x
-    {-# INLINE toMonoImmediateF #-}
-
-    -- For deferred unlifting we need to lift the 'ReadKnownM' action into 'MakeKnownM',
+    -- We need to lift the 'ReadKnownM' action into 'MakeKnownM',
     -- hence 'liftReadKnownM'.
-    toMonoDeferredF =
+    toMonoF =
         either
             -- Unlifting has failed and we don't care about costing at this point, since we're about
             -- to terminate evaluation anyway, hence we put 'mempty' as the cost of the operation.
@@ -229,9 +229,9 @@ instance (Typeable res, KnownTypeAst (UniOf val) res, MakeKnown val res) =>
             -- a budgeting failure or a budgeting success with a cost and a 'MakeKnownM' computation
             -- inside, but that would slow things down a bit and the current strategy is
             -- reasonable enough.
-            (BuiltinResult mempty . MakeKnownFailure mempty)
+            (BuiltinResult (ExBudgetLast mempty) . MakeKnownFailure mempty)
             (\(x, cost) -> BuiltinResult cost $ makeKnown x)
-    {-# INLINE toMonoDeferredF #-}
+    {-# INLINE toMonoF #-}
 
 {- Note [One-shotting runtime denotations]
 In @KnownMonotype val (arg ': args) res@ we 'oneShot' the runtime denotations. Otherwise GHC creates
@@ -260,67 +260,46 @@ evaluation anyway, hence we care much more about optimizing the happy path.
 
 -- | Every term-level argument becomes a 'TypeSchemeArrow'/'RuntimeSchemeArrow'.
 instance
-        ( Typeable arg, KnownTypeAst (UniOf val) arg, MakeKnown val arg, ReadKnown val arg
+        ( Typeable arg, KnownTypeAst TyName (UniOf val) arg, MakeKnown val arg, ReadKnown val arg
         , KnownMonotype val args res
         ) => KnownMonotype val (arg ': args) res where
     knownMonotype = TypeSchemeArrow knownMonotype
 
     -- See Note [One-shotting runtime denotations].
-    -- Unlift, then recurse.
-    toMonoImmediateF (f, exF) = BuiltinExpectArgument . oneShot $ \arg -> do
-        x <- readKnown arg
-        -- See Note [Strict application in runtime denotations].
-        let !exY = exF x
-        pure $ toMonoImmediateF @val @args @res (f x, exY)
-    {-# INLINE toMonoImmediateF #-}
-
-    -- See Note [One-shotting runtime denotations].
     -- Grow the builtin application within the received action and recurse on the result.
-    toMonoDeferredF getBoth = BuiltinExpectArgument . oneShot $ \arg ->
+    toMonoF getBoth = BuiltinExpectArgument . oneShot $ \arg ->
         -- Ironically computing the unlifted value strictly is the best way of doing deferred
         -- unlifting. This means that while the resulting 'ReadKnownM' is only handled upon full
         -- saturation and any evaluation failure is only registered when the whole builtin
-        -- application is evaluated, a Haskell exception will occur the same way as with immediate
-        -- unlifting. It shouldn't matter though, because a builtin is not supposed to throw an
-        -- exception at any stage, that would be a bug regardless of how unlifting is aligned.
-        --
-        -- 'pure' signifies that no failure can occur at this point.
-        pure . toMonoDeferredF @val @args @res $! do
+        -- application is evaluated, a Haskell exception will occur immediately.
+        -- It shouldn't matter though, because a builtin is not supposed to throw an
+        -- exception at any stage, that would be a bug regardless.
+        toMonoF @val @args @res $! do
             (f, exF) <- getBoth
             x <- readKnown arg
             -- See Note [Strict application in runtime denotations].
             let !exY = exF x
             pure (f x, exY)
-    {-# INLINE toMonoDeferredF #-}
+    {-# INLINE toMonoF #-}
 
 -- | A class that allows us to derive a polytype for a builtin.
 class KnownMonotype val args res => KnownPolytype (binds :: [Some TyNameRep]) val args res where
     knownPolytype :: TypeScheme val args res
 
-    -- | Convert the denotation of a builtin to its runtime counterpart with immediate unlifting.
-    -- We use a tuple rather than two arguments for symmetry with 'toPolyDeferredF'. It all gets
-    -- inlined anyway.
-    toPolyImmediateF
-        :: (FoldArgs args res, FoldArgs args ExBudget)
-        -> BuiltinRuntime val
-
-    -- | Convert the denotation of a builtin to its runtime counterpart with deferred unlifting.
-    -- The argument is in 'ReadKnownM', because that's what deferred unlifting amounts to:
+    -- | Convert the denotation of a builtin to its runtime counterpart.
+    -- The argument is in 'ReadKnownM', because that's what we need to do:
     -- passing the action returning the builtin application around until full saturation, which is
     -- when the action actually gets run.
-    toPolyDeferredF
-        :: ReadKnownM (FoldArgs args res, FoldArgs args ExBudget)
+    toPolyF
+        :: ReadKnownM (FoldArgs args res, FoldArgs args ExBudgetStream)
         -> BuiltinRuntime val
 
 -- | Once we've run out of type-level arguments, we start handling term-level ones.
 instance KnownMonotype val args res => KnownPolytype '[] val args res where
     knownPolytype = knownMonotype
 
-    toPolyImmediateF = toMonoImmediateF @val @args @res
-    {-# INLINE toPolyImmediateF #-}
-
-    toPolyDeferredF  = toMonoDeferredF @val @args @res
-    {-# INLINE toPolyDeferredF #-}
+    toPolyF  = toMonoF @val @args @res
+    {-# INLINE toPolyF #-}
 
 -- Here we unpack an existentially packed @kind@ and constrain it afterwards!
 -- So promoted existentials are true sigmas! If we were at the term level, we'd have to pack
@@ -331,11 +310,8 @@ instance (KnownSymbol name, KnownNat uniq, KnownKind kind, KnownPolytype binds v
             KnownPolytype ('Some ('TyNameRep @kind name uniq) ': binds) val args res where
     knownPolytype = TypeSchemeAll @name @uniq @kind Proxy $ knownPolytype @binds
 
-    toPolyImmediateF = BuiltinExpectForce . toPolyImmediateF @binds @val @args @res
-    {-# INLINE toPolyImmediateF #-}
-
-    toPolyDeferredF = BuiltinExpectForce . toPolyDeferredF @binds @val @args @res
-    {-# INLINE toPolyDeferredF #-}
+    toPolyF = BuiltinExpectForce . toPolyF @binds @val @args @res
+    {-# INLINE toPolyF #-}
 
 -- | Ensure a built-in function is not nullary and throw a nice error otherwise.
 type ThrowOnBothEmpty :: [Some TyNameRep] -> [GHC.Type] -> Bool -> GHC.Type -> GHC.Constraint
@@ -370,39 +346,57 @@ class MakeBuiltinMeaning a val where
     --
     -- 1. the denotation of the builtin
     -- 2. an uninstantiated costing function
-    makeBuiltinMeaning :: a -> (cost -> FoldArgs (GetArgs a) ExBudget) -> BuiltinMeaning val cost
+    makeBuiltinMeaning
+        :: a
+        -> (cost -> FoldArgs (GetArgs a) ExBudgetStream)
+        -> BuiltinMeaning val cost
 instance
-        ( binds ~ ToBinds a, args ~ GetArgs a, a ~ FoldArgs args res
-        , ThrowOnBothEmpty binds args (IsBuiltin a) a
-        , ElaborateFromTo 0 j val a, KnownPolytype binds val args res
+        ( uni ~ UniOf val, binds ~ ToBinds uni '[] a, args ~ GetArgs a, a ~ FoldArgs args res
+        , ThrowOnBothEmpty binds args (IsBuiltin uni a) a
+        , ElaborateFromTo uni 0 j val a, KnownPolytype binds val args res
         ) => MakeBuiltinMeaning a val where
     makeBuiltinMeaning f toExF =
-        BuiltinMeaning (knownPolytype @binds @val @args @res) f $
-            BuiltinRuntimeOptions
+        BuiltinMeaning (knownPolytype @binds @val @args @res) f $ \cost ->
+            -- In order to make the 'BuiltinRuntime' of a builtin cacheable we need to tell GHC to
+            -- create a thunk for it, which we achieve by applying 'lazy' to the 'BuiltinRuntime'
+            -- here.
+            --
+            -- Those thunks however require a lot of care to be properly shared rather than
+            -- recreated every time a builtin application is evaluated, see 'toBuiltinsRuntime' for
+            -- how we sort it out.
+            lazy $ case toExF cost of
                 -- See Note [Optimizations of runCostingFun*] for why we use strict @case@.
-                { _broImmediateF =
-                    \cost -> case toExF cost of
-                        !exF -> toPolyImmediateF @binds @val @args @res (f, exF)
-                , _broDeferredF  =
-                    \cost -> case toExF cost of
-                        !exF -> toPolyDeferredF @binds @val @args @res $ pure (f, exF)
-                }
+                !exF -> toPolyF @binds @val @args @res $ pure (f, exF)
     {-# INLINE makeBuiltinMeaning #-}
 
--- | Convert a 'BuiltinMeaning' to a 'BuiltinRuntime' given an 'UnliftingMode' and a cost model.
-toBuiltinRuntime :: UnliftingMode -> cost -> BuiltinMeaning val cost -> BuiltinRuntime val
-toBuiltinRuntime unlMode cost (BuiltinMeaning _ _ runtimeOpts) =
-    fromBuiltinRuntimeOptions unlMode cost runtimeOpts
+-- | Convert a 'BuiltinMeaning' to a 'BuiltinRuntime' given a cost model.
+toBuiltinRuntime :: cost -> BuiltinMeaning val cost -> BuiltinRuntime val
+toBuiltinRuntime cost (BuiltinMeaning _ _ denot) = denot cost
 {-# INLINE toBuiltinRuntime #-}
 
 -- See Note [Inlining meanings of builtins].
 -- | Calculate runtime info for all built-in functions given denotations of builtins,
--- an 'UnliftingMode' and a cost model.
+-- and a cost model.
 toBuiltinsRuntime
     :: (cost ~ CostingPart uni fun, ToBuiltinMeaning uni fun, HasMeaningIn uni val)
-    => BuiltinVersion fun -> UnliftingMode -> cost -> BuiltinsRuntime fun val
-toBuiltinsRuntime ver unlMode cost =
-    let arr = tabulateArray $ toBuiltinRuntime unlMode cost . inline toBuiltinMeaning ver
-    in -- Force array elements to WHNF
-        foldr seq (BuiltinsRuntime arr) arr
+    => BuiltinVersion fun -> cost -> BuiltinsRuntime fun val
+toBuiltinsRuntime ver cost =
+    let runtime = BuiltinsRuntime $ toBuiltinRuntime cost . inline toBuiltinMeaning ver
+        -- This pragma is very important, removing it destroys the carefully set up optimizations of
+        -- of costing functions (see Note [Optimizations of runCostingFun*]). The reason for that is
+        -- that if @runtime@ doesn't have a pragma, then GHC sees that it's only referenced once and
+        -- inlines it below, together with this entire function (since we tell GHC to), at which
+        -- point everything's inlined and we're completely at GHC's mercy to optimize things
+        -- properly. Unfortunately, GHC doesn't want to cooperate and push 'toBuiltinRuntime' to
+        -- the inside of the inlined to 'toBuiltinMeaning' call, creating lots of 'BuiltinMeaning's
+        -- instead of 'BuiltinRuntime's with the former hiding the costing optimizations behind a
+        -- lambda binding the @cost@ variable, which renders all the optimizations useless. By
+        -- using a @NOINLINE@ pragma we tell GHC to create a separate thunk, which it can properly
+        -- optimize, because the other bazillion things don't get in the way.
+        {-# NOINLINE runtime #-}
+    in
+        -- Force each 'BuiltinRuntime' to WHNF, so that the thunk is allocated and forced at
+        -- initialization time rather than at runtime. Not that we'd lose much by not forcing all
+        -- 'BuiltinRuntime's here, but why pay even very little if there's an easy way not to pay.
+        force runtime
 {-# INLINE toBuiltinsRuntime #-}

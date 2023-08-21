@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE DeriveAnyClass         #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
@@ -19,6 +18,7 @@ module PlutusCore.Error
     , AsNormCheckError (..)
     , UniqueError (..)
     , AsUniqueError (..)
+    , ExpectedShapeOr (..)
     , TypeError (..)
     , AsTypeError (..)
     , FreeVariableError (..)
@@ -27,6 +27,7 @@ module PlutusCore.Error
     , AsError (..)
     , throwingEither
     , ShowErrorComponent (..)
+    , ApplyProgramError (..)
     ) where
 
 import PlutusPrelude
@@ -35,12 +36,13 @@ import PlutusCore.Core
 import PlutusCore.DeBruijn.Internal
 import PlutusCore.Name
 import PlutusCore.Pretty
+import Prettyprinter.Custom (sexp)
 
 import Control.Lens hiding (use)
 import Control.Monad.Error.Lens
 import Control.Monad.Except
 import Data.Text qualified as T
-import ErrorCode
+import PlutusCore.Annotation (SrcSpan)
 import Prettyprinter (hardline, hsep, indent, squotes, (<+>))
 import Text.Megaparsec as M
 import Universe
@@ -53,10 +55,10 @@ throwingEither r e = case e of
 
 -- | An error encountered during parsing.
 data ParserError
-    = UnknownBuiltinType T.Text SourcePos
-    | BuiltinTypeNotAStar T.Text SourcePos
-    | UnknownBuiltinFunction T.Text SourcePos [T.Text]
-    | InvalidBuiltinConstant T.Text T.Text SourcePos
+    = UnknownBuiltinType !T.Text !SourcePos
+    | BuiltinTypeNotAStar !T.Text !SourcePos
+    | UnknownBuiltinFunction !T.Text !SourcePos ![T.Text]
+    | InvalidBuiltinConstant !T.Text !T.Text !SourcePos
     deriving stock (Eq, Ord, Generic)
     deriving anyclass (NFData)
 
@@ -65,17 +67,27 @@ instance Show ParserError
       show = show . pretty
 
 data UniqueError ann
-    = MultiplyDefined Unique ann ann
-    | IncoherentUsage Unique ann ann
-    | FreeVariable Unique ann
+    = MultiplyDefined !Unique !ann !ann
+    | IncoherentUsage !Unique !ann !ann
+    | FreeVariable !Unique !ann
     deriving stock (Show, Eq, Generic, Functor)
     deriving anyclass (NFData)
 
+instance Exception (UniqueError SrcSpan)
+
 data NormCheckError tyname name uni fun ann
-    = BadType ann (Type tyname uni ann) T.Text
-    | BadTerm ann (Term tyname name uni fun ann) T.Text
-    deriving stock (Show, Functor, Generic)
-    deriving anyclass (NFData)
+    = BadType !ann !(Type tyname uni ann) !T.Text
+    | BadTerm !ann !(Term tyname name uni fun ann) !T.Text
+    deriving stock (Functor, Generic)
+
+deriving anyclass instance
+    (NFData tyname, NFData name, Closed uni, Everywhere uni NFData, NFData fun, NFData ann) =>
+        NFData (NormCheckError tyname name uni fun ann)
+
+deriving stock instance
+    (Show tyname, Show name, Closed uni, Everywhere uni Show, Show fun, Show ann, GShow uni) =>
+        Show (NormCheckError tyname name uni fun ann)
+
 deriving stock instance
     ( Eq (Term tyname name uni fun ann)
     , Eq (Type tyname uni ann)
@@ -83,50 +95,93 @@ deriving stock instance
     , Eq fun, Eq ann
     ) => Eq (NormCheckError tyname name uni fun ann)
 
+-- | This is needed for nice kind/type checking error messages. In some cases the type checker knows
+-- the exact type that an expression has to have for type checking to succeed (see any of
+-- 'checkTypeM' functions and its usages), which is what 'ExpectedExact' is suitable for. In other
+-- cases the type checker only cares about the shape of the inferred type, e.g. the type checker
+-- knows that the type of a function has to be @dom -> cod@ for type checking to succeed, but it
+-- doesn't yet care what @dom@ and @cod@ exactly are. Which is what 'ExpectedShape' is useful for as
+-- it allows one to specify the shape of an expected type with some existential variables in it when
+-- it's impossible to provide an exact type.
+data ExpectedShapeOr a
+    = ExpectedShape
+        !T.Text
+        -- ^ The expected shape potentially referencing existential variables.
+        ![T.Text]
+        -- ^ The list of existential variables.
+    | ExpectedExact !a
+    deriving stock (Show, Eq, Generic, Functor)
+    deriving anyclass (NFData)
+
 data TypeError term uni fun ann
-    = KindMismatch ann (Type TyName uni ()) (Kind ()) (Kind ())
-    | TypeMismatch ann
-        term
-        (Type TyName uni ())
-        -- ^ Expected type
-        (Normalized (Type TyName uni ()))
-        -- ^ Actual type
-    | TyNameMismatch ann TyName TyName
-    | NameMismatch ann Name Name
-    | FreeTypeVariableE ann TyName
-    | FreeVariableE ann Name
-    | UnknownBuiltinFunctionE ann fun
+    = KindMismatch !ann
+        !(Type TyName uni ())
+        !(ExpectedShapeOr (Kind ()))
+        -- ^ The expected type or the shape of a kind.
+        !(Kind ())
+        -- ^ The actual kind.
+    | TypeMismatch !ann
+        !term
+        !(ExpectedShapeOr (Type TyName uni ()))
+        -- ^ The expected type or the shape of a type.
+        !(Normalized (Type TyName uni ()))
+        -- ^ The actual type.
+    | TyNameMismatch !ann !TyName !TyName
+    | NameMismatch !ann !Name !Name
+    | FreeTypeVariableE !ann !TyName
+    | FreeVariableE !ann !Name
+    | UnknownBuiltinFunctionE !ann !fun
     deriving stock (Show, Eq, Generic, Functor)
     deriving anyclass (NFData)
 
 -- Make a custom data type and wrap @ParseErrorBundle@ in it so I can use @makeClassyPrisms@
 -- on @ParseErrorBundle@.
 data ParserErrorBundle
-    = ParseErrorB (ParseErrorBundle T.Text ParserError)
-    deriving stock (Show, Eq, Generic)
+    = ParseErrorB !(ParseErrorBundle T.Text ParserError)
+    deriving stock (Eq, Generic)
     deriving anyclass (NFData)
 
 instance Pretty ParserErrorBundle where
     pretty (ParseErrorB err) = pretty $ errorBundlePretty err
 
+instance Show ParserErrorBundle where
+    show (ParseErrorB peb) = errorBundlePretty peb
+
 data Error uni fun ann
-    = ParseErrorE ParserErrorBundle
-    | UniqueCoherencyErrorE (UniqueError ann)
-    | TypeErrorE (TypeError (Term TyName Name uni fun ()) uni fun ann)
-    | NormCheckErrorE (NormCheckError TyName Name uni fun ann)
-    | FreeVariableErrorE FreeVariableError
-    deriving stock (Eq, Generic, Functor)
-    deriving anyclass (NFData)
-deriving stock instance (Show fun, Show ann, Closed uni, Everywhere uni Show, GShow uni, Show ParserError) => Show (Error uni fun ann)
+    = ParseErrorE !ParserErrorBundle
+    | UniqueCoherencyErrorE !(UniqueError ann)
+    | TypeErrorE !(TypeError (Term TyName Name uni fun ()) uni fun ann)
+    | NormCheckErrorE !(NormCheckError TyName Name uni fun ann)
+    | FreeVariableErrorE !FreeVariableError
+    deriving stock (Generic, Functor)
+
+deriving stock instance
+    (Eq fun, Eq ann, Closed uni, Everywhere uni Eq, GEq uni, Eq ParserError) =>
+        Eq (Error uni fun ann)
+
+deriving anyclass instance
+    (NFData fun, NFData ann, Closed uni, Everywhere uni NFData, NFData ParserError) =>
+        NFData (Error uni fun ann)
+
+deriving stock instance
+    (Show fun, Show ann, Closed uni, Everywhere uni Show, GShow uni, Show ParserError) =>
+        Show (Error uni fun ann)
 
 instance Pretty SourcePos where
     pretty = pretty . sourcePosPretty
 
 instance Pretty ParserError where
-    pretty (UnknownBuiltinType s loc)       = "Unknown built-in type" <+> squotes (pretty s) <+> "at" <+> pretty loc
-    pretty (BuiltinTypeNotAStar ty loc)     = "Expected a type of kind star (to later parse a constant), but got:" <+> squotes (pretty ty) <+> "at" <+> pretty loc
-    pretty (UnknownBuiltinFunction s loc lBuiltin)   = "Unknown built-in function" <+> squotes (pretty s) <+> "at" <+> pretty loc <+> ". Parsable functions are " <+> pretty lBuiltin
-    pretty (InvalidBuiltinConstant c s loc) = "Invalid constant" <+> squotes (pretty c) <+> "of type" <+> squotes (pretty s) <+> "at" <+> pretty loc
+    pretty (UnknownBuiltinType s loc)       =
+        "Unknown built-in type" <+> squotes (pretty s) <+> "at" <+> pretty loc
+    pretty (BuiltinTypeNotAStar ty loc)     =
+        "Expected a type of kind star (to later parse a constant), but got:" <+>
+            squotes (pretty ty) <+> "at" <+> pretty loc
+    pretty (UnknownBuiltinFunction s loc lBuiltin)   =
+        "Unknown built-in function" <+> squotes (pretty s) <+> "at" <+> pretty loc <>
+            "." <> hardline <> "Parsable functions are " <+> pretty lBuiltin
+    pretty (InvalidBuiltinConstant c s loc) =
+        "Invalid constant" <+> squotes (pretty c) <+> "of type" <+> squotes (pretty s) <+> "at" <+>
+            pretty loc
 
 instance ShowErrorComponent ParserError where
     showErrorComponent = show . pretty
@@ -154,30 +209,49 @@ instance ( Pretty ann
         ". Term" <+> squotes (prettyBy config t) <+>
         "is not a" <+> pretty expct <> "."
 
-instance
-        ( Pretty term
-        , Pretty (SomeTypeIn uni)
-        , Closed uni, uni `Everywhere` PrettyConst
-        , Pretty fun
-        , Pretty ann
-        ) => PrettyBy PrettyConfigPlc (TypeError term uni fun ann) where
-    prettyBy config e@(KindMismatch ann ty k k')          =
-        pretty (errorCode e) <> ":" <+>
-        "Kind mismatch at" <+> pretty ann <+>
-        "in type" <+> squotes (prettyBy config ty) <>
-        ". Expected kind" <+> squotes (prettyBy config k) <+>
-        ", found kind" <+> squotes (prettyBy config k')
-    prettyBy config (TypeMismatch ann t ty ty')         =
+-- | Align a list of existential variables in a pretty way.
+--
+-- >>> :set -XOverloadedStrings
+-- >>> existentialVars []
+-- >>> existentialVars ["'a'"]
+--  for some 'a'
+-- >>> existentialVars ["'a'", "'b'"]
+--  for some 'a' and 'b'
+-- >>> existentialVars ["'a'", "'b'", "'c'"]
+--  for some 'a', 'b' and 'c'
+existentialVars :: [Doc ann] -> Doc ann
+existentialVars [] = ""
+existentialVars (x0:xs0) = " for some " <> go x0 xs0 where
+    go x []     = x
+    go x [y]    = x <> " and " <> y
+    go x (y:xs) = x <> ", " <> go y xs
+
+instance PrettyBy PrettyConfigPlc a => PrettyBy PrettyConfigPlc (ExpectedShapeOr a) where
+    prettyBy _ (ExpectedShape shape vars) =
+        squotes (sexp (pretty shape) []) <> existentialVars (map (squotes . pretty) vars)
+    prettyBy config (ExpectedExact thing) = squotes (prettyBy config thing)
+
+instance (Pretty term, PrettyUni uni, Pretty fun, Pretty ann) =>
+        PrettyBy PrettyConfigPlc (TypeError term uni fun ann) where
+    prettyBy config (KindMismatch ann ty shapeOrK k') =
+        "Kind mismatch at" <+> pretty ann <>
+        hardline <>
+        "Expected a type of kind" <> hardline <> indent 2 (prettyBy config shapeOrK) <>
+        hardline <>
+        "But found one of kind" <> hardline <> indent 2 (squotes (prettyBy config k')) <>
+        hardline <>
+        "Namely," <> hardline <> indent 2 (squotes (prettyBy config ty))
+    prettyBy config (TypeMismatch ann t shapeOrTy ty')         =
         "Type mismatch at" <+> pretty ann <>
+        hardline <>
+        "Expected a term of type" <> hardline <> indent 2 (prettyBy config shapeOrTy) <>
+        hardline <>
+        "But found one of type" <> hardline <> indent 2 (squotes (prettyBy config ty')) <>
         (if _pcpoCondensedErrors (_pcpOptions config) == CondensedErrorsYes
             then mempty
             -- TODO: we should use prettyBy here but the problem is
             -- that `instance PrettyClassic PIR.Term` whereas `instance PrettyPLC PLC.Term`
-            else " in term" <> hardline <> indent 2 (squotes (pretty t)) <> ".") <>
-        hardline <>
-        "Expected type" <> hardline <> indent 2 (squotes (prettyBy config ty)) <>
-        "," <> hardline <>
-        "found type" <> hardline <> indent 2 (squotes (prettyBy config ty'))
+            else hardline <> "Namely," <> hardline <> indent 2 (squotes (pretty t)))
     prettyBy config (FreeTypeVariableE ann name)          =
         "Free type variable at " <+> pretty ann <+> ": " <+> prettyBy config name
     prettyBy config (FreeVariableE ann name)              =
@@ -205,51 +279,13 @@ instance
         , "is attempted to be referenced"
         ]
 
-instance
-        ( Pretty (SomeTypeIn uni)
-        , Closed uni, uni `Everywhere` PrettyConst
-        , Pretty fun
-        , Pretty ann
-        ) => PrettyBy PrettyConfigPlc (Error uni fun ann) where
+instance (PrettyUni uni, Pretty fun, Pretty ann) =>
+        PrettyBy PrettyConfigPlc (Error uni fun ann) where
     prettyBy _      (ParseErrorE e)           = pretty e
     prettyBy _      (UniqueCoherencyErrorE e) = pretty e
     prettyBy config (TypeErrorE e)            = prettyBy config e
     prettyBy config (NormCheckErrorE e)       = prettyBy config e
     prettyBy _      (FreeVariableErrorE e)    = pretty e
-
-instance HasErrorCode ParserError where
-    errorCode InvalidBuiltinConstant {} = ErrorCode 10
-    errorCode UnknownBuiltinFunction {} = ErrorCode 9
-    errorCode UnknownBuiltinType {}     = ErrorCode 8
-    errorCode BuiltinTypeNotAStar {}    = ErrorCode 51
-
-instance HasErrorCode ParserErrorBundle where
-    errorCode _ = ErrorCode 52
-
-instance HasErrorCode (UniqueError _a) where
-      errorCode FreeVariable {}    = ErrorCode 21
-      errorCode IncoherentUsage {} = ErrorCode 12
-      errorCode MultiplyDefined {} = ErrorCode 11
-
-instance HasErrorCode (NormCheckError _a _b _c _d _e) where
-      errorCode BadTerm {} = ErrorCode 14
-      errorCode BadType {} = ErrorCode 13
-
-instance HasErrorCode (TypeError _a _b _c _d) where
-    errorCode FreeVariableE {}           = ErrorCode 20
-    errorCode FreeTypeVariableE {}       = ErrorCode 19
-    errorCode TypeMismatch {}            = ErrorCode 16
-    errorCode KindMismatch {}            = ErrorCode 15
-    errorCode UnknownBuiltinFunctionE {} = ErrorCode 18
-    errorCode TyNameMismatch {}          = ErrorCode 53
-    errorCode NameMismatch {}            = ErrorCode 54
-
-instance HasErrorCode (Error _a _b _c) where
-    errorCode (ParseErrorE e)           = errorCode e
-    errorCode (UniqueCoherencyErrorE e) = errorCode e
-    errorCode (TypeErrorE e)            = errorCode e
-    errorCode (NormCheckErrorE e)       = errorCode e
-    errorCode (FreeVariableErrorE e)    = errorCode e
 
 makeClassyPrisms ''ParseError
 makeClassyPrisms ''ParserErrorBundle
@@ -273,3 +309,14 @@ instance (tyname ~ TyName, name ~ Name) =>
 
 instance AsFreeVariableError (Error uni fun ann) where
     _FreeVariableError = _FreeVariableErrorE
+
+-- | Errors from `applyProgram` for PIR, PLC, UPLC.
+data ApplyProgramError =
+    MkApplyProgramError Version Version
+
+instance Show ApplyProgramError where
+    show (MkApplyProgramError v1 v2) =
+        "Cannot apply two programs together: the first program has version " <> show v1
+            <> " but the second program has version " <> show v2
+
+instance Exception ApplyProgramError

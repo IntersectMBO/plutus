@@ -17,8 +17,6 @@ import PlutusCore.StdLib.Data.Function
 import PlutusCore.StdLib.Data.Unit
 import PlutusCore.StdLib.Type
 
-import Universe
-
 {- Note [InterList]
 We encode the following in this module:
 
@@ -47,7 +45,7 @@ interListData = runQuote $ do
     b         <- freshTyName "b"
     interlist <- freshTyName "interlist"
     r         <- freshTyName "r"
-    let interlistBA = mkIterTyApp () (TyVar () interlist) [TyVar () b, TyVar () a]
+    let interlistBA = mkIterTyAppNoAnn (TyVar () interlist) [TyVar () b, TyVar () a]
     makeRecursiveType () interlist [TyVarDecl () a $ Type (), TyVarDecl () b $ Type ()]
         . TyForall () r (Type ())
         . TyFun () (TyVar () r)
@@ -62,7 +60,7 @@ interNil = runQuote $ do
     r <- freshTyName "r"
     z <- freshName "z"
     f <- freshName "f"
-    let interlistBA = mkIterTyApp () interlist [TyVar () b, TyVar () a]
+    let interlistBA = mkIterTyAppNoAnn interlist [TyVar () b, TyVar () a]
     return
         . TyAbs () a (Type ())
         . TyAbs () b (Type ())
@@ -83,7 +81,7 @@ interCons = runQuote $ do
     r  <- freshTyName "r"
     z  <- freshName "z"
     f  <- freshName "f"
-    let interlistBA = mkIterTyApp () interlist [TyVar () b, TyVar () a]
+    let interlistBA = mkIterTyAppNoAnn interlist [TyVar () b, TyVar () a]
     return
         . TyAbs () a (Type ())
         . TyAbs () b (Type ())
@@ -94,13 +92,13 @@ interCons = runQuote $ do
         . TyAbs () r (Type ())
         . LamAbs () z (TyVar () r)
         . LamAbs () f (mkIterTyFun () [TyVar () a, TyVar () b, interlistBA] $ TyVar () r)
-        $ mkIterApp () (Var () f)
+        $ mkIterAppNoAnn (Var () f)
           [ Var () x
           , Var () y
           , Var () xs
           ]
 
-foldrInterList :: uni `Includes` () => Term TyName Name uni fun ()
+foldrInterList :: uni `HasTypeAndTermLevel` () => Term TyName Name uni fun ()
 foldrInterList = runQuote $ do
     let interlist = _recursiveType interListData
     a0  <- freshTyName "a0"
@@ -119,7 +117,7 @@ foldrInterList = runQuote $ do
     xs' <- freshName "xs'"
     x'  <- freshName "x'"
     y'  <- freshName "y'"
-    let interlistOf a' b' = mkIterTyApp () interlist [TyVar () a', TyVar () b']
+    let interlistOf a' b' = mkIterTyAppNoAnn interlist [TyVar () a', TyVar () b']
         fTy a' b' = mkIterTyFun () [TyVar () a', TyVar () b', TyVar () r] $ TyVar () r
         fixTyArg2
             = TyForall () a (Type ())
@@ -127,35 +125,35 @@ foldrInterList = runQuote $ do
             . TyFun () (fTy a b)
             . TyFun () (interlistOf a b)
             $ TyVar () r
-        instedFix = mkIterInst () fix [unit, fixTyArg2]
+        instedFix = mkIterInstNoAnn fix [unit, fixTyArg2]
         unwrappedXs = TyInst () (Unwrap () (Var () xs)) $ TyVar () r
-        instedRec = mkIterInst () (Apply () (Var () rec) unitval) [TyVar () b, TyVar () a]
+        instedRec = mkIterInstNoAnn (Apply () (Var () rec) unitval) [TyVar () b, TyVar () a]
     return
         . TyAbs () a0 (Type ())
         . TyAbs () b0 (Type ())
         . TyAbs () r (Type ())
         . LamAbs () f (fTy a0 b0)
         . LamAbs () z (TyVar () r)
-        $ mkIterInst ()
-            ( mkIterApp () instedFix
+        $ mkIterInstNoAnn
+            ( mkIterAppNoAnn instedFix
                 [   LamAbs () rec (TyFun () unit fixTyArg2)
                   . LamAbs () u unit
                   . TyAbs () a (Type ())
                   . TyAbs () b (Type ())
                   . LamAbs () f' (fTy a b)
                   . LamAbs () xs (interlistOf a b)
-                  $ mkIterApp () unwrappedXs
+                  $ mkIterAppNoAnn unwrappedXs
                       [ Var () z
                       ,    LamAbs () x (TyVar () a)
                          . LamAbs () y (TyVar () b)
                          . LamAbs () xs' (interlistOf b a)
-                         $ mkIterApp () (Var () f')
+                         $ mkIterAppNoAnn (Var () f')
                              [ Var () x
                              , Var () y
-                             , mkIterApp () instedRec
+                             , mkIterAppNoAnn instedRec
                                  [    LamAbs () y' (TyVar () b)
                                     . LamAbs () x' (TyVar () a)
-                                    $ mkIterApp () (Var () f')
+                                    $ mkIterAppNoAnn (Var () f')
                                         [ Var () x'
                                         , Var () y'
                                         ]

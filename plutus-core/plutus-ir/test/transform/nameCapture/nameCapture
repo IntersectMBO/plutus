@@ -1,0 +1,54 @@
+{- This test ensures that the inliner doesn't capture variable names incorrectly. E.g.,
+
+let a = 10
+    b = a -- to avoid the unconditional inlining inlining a away
+    c = b + a 
+in
+    let x = a 
+    in
+        let a = 7 
+        in 
+            a + x + a
+
+should NOT be inlined to
+
+let a = 7 
+in 
+    a + a + a
+-}
+
+(let
+    (nonrec)
+    (termbind
+        (strict)
+        (vardecl a (con integer))
+        (con integer 10)
+    )
+    (termbind
+        (strict)
+        (vardecl b (con integer))
+        a
+    )
+    (termbind
+        (strict)
+        (vardecl c (con integer))
+        [(builtin addInteger) b a]
+    )
+    (let
+        (nonrec)
+        (termbind
+            (strict)
+            (vardecl x (con integer))
+            a
+        )
+        (let
+            (nonrec)
+            (termbind
+                (strict)
+                (vardecl a (con integer))
+                (con integer 7)
+            )
+            [(builtin addInteger) [(builtin addInteger) x a] a]
+            )
+    )
+)

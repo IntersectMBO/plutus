@@ -11,132 +11,116 @@
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 module PlutusIR.Core.Instance.Pretty.Readable
-  ( prettyPirReadable
-  ) where
+    ( prettyPirReadable
+    , PrettyPir
+    ) where
 
-import PlutusCore.Default.Universe
-import PlutusCore.Pretty.ConfigName
-import PlutusCore.Pretty.PrettyConst
-import PlutusCore.Pretty.Readable
+import PlutusCore.Pretty
 import PlutusIR.Core.Type
 import PlutusPrelude
+
+import Data.Profunctor
 import Prettyprinter
 import Prettyprinter.Custom
 
 type PrettyPir = PrettyBy (PrettyConfigReadable PrettyConfigName)
 
--- | Pretty-print something with the Pir prettyprinter settings.
+-- | Pretty-print something with the @PrettyConfigReadable@ config.
 prettyPirReadable :: PrettyPir a => a -> Doc ann
 prettyPirReadable = prettyBy prettyConfigReadable
-  -- Note, for now this is just a simple default setting. We may want to add more complicated
-  -- settings in the future.
-  where prettyConfigReadable = botPrettyConfigReadable defPrettyConfigName def
-
--- | Split an application into its (possible) head and arguments (either types or term)
-viewApp :: Term tyname name uni fun ann
-        -> Maybe (Term tyname name uni fun ann, [Either (Type tyname uni ann) (Term tyname name uni fun ann)])
-viewApp t = go t []
+  -- Using 'debugPrettyConfigName', because it's actually helpful unlike 'defPrettyConfigName'.
   where
-    go (Apply _ t s)  args = go t (Right s : args)
-    go (TyInst _ t a) args = go t (Left a : args)
-    go t args              = if null args then Nothing else Just (t, args)
+    prettyConfigReadable = botPrettyConfigReadable debugPrettyConfigName def
 
--- | Split a type abstraction into it's possible components.
-viewTyAbs :: Term tyname name uni fun ann -> Maybe ([TyVarDecl tyname ()], Term tyname name uni fun ann)
-viewTyAbs t@TyAbs{} = Just (go t)
-  where go (TyAbs _ n k b) = first ((TyVarDecl () n (void k)):) $ go b
-        go t               = ([], t)
-viewTyAbs _         = Nothing
+-- | Split an iterated 'LamAbs' (if any) into a list of variables that it binds and its body.
+viewLamAbs
+    :: Term tyname name uni fun ann
+    -> Maybe ([VarDecl tyname name uni ann], Term tyname name uni fun ann)
+viewLamAbs term0@LamAbs{} = Just $ go term0 where
+    go (LamAbs ann name ty body) = first (VarDecl ann name ty :) $ go body
+    go term                      = ([], term)
+viewLamAbs _ = Nothing
 
--- | Split a term abstraction into it's possible components.
-viewLam :: Term tyname name uni fun ann -> Maybe ([VarDecl tyname name uni ()], Term tyname name uni fun ann)
-viewLam t@LamAbs{} = Just (go t)
-  where go (LamAbs _ n t b) = first ((VarDecl () n (void t)):) $ go b
-        go t                = ([], t)
-viewLam _          = Nothing
+-- | Split an iterated 'TyAbs' (if any) into a list of variables that it binds and its body.
+viewTyAbs
+    :: Term tyname name uni fun ann -> Maybe ([TyVarDecl tyname ann], Term tyname name uni fun ann)
+viewTyAbs term0@TyAbs{} = Just $ go term0 where
+    go (TyAbs ann name kind body) = first (TyVarDecl ann name kind :) $ go body
+    go term                       = ([], term)
+viewTyAbs _ = Nothing
 
--- | Split a let into a sequence of lets and its remaining body
-viewLet :: Term tyname name uni fun ann -> Maybe ([(Recursivity, [Binding tyname name uni fun ann])], Term tyname name uni fun ann)
-viewLet t@Let{} = Just (go t)
-  where go (Let _ r bs b) = first ((r, toList bs):) $ go b
-        go t              = ([], t)
+-- | Split an iterated 'Apply'/'TyInst' (if any) into the head of the application and the spine.
+viewApp
+    :: Term tyname name uni fun ann
+    -> Maybe
+        ( Term tyname name uni fun ann
+        , [Either (Type tyname uni ann) (Term tyname name uni fun ann)]
+        )
+viewApp term0 = go term0 [] where
+    go (Apply _ fun argTerm) args = go fun $ Right argTerm : args
+    go (TyInst _ fun argTy)  args = go fun $ Left argTy : args
+    go _                     []   = Nothing
+    go fun                   args = Just (fun, args)
+
+-- | Split a 'Let' (if any) into a list of bindings and its body.
+viewLet
+    :: Term tyname name uni fun ann
+    -> Maybe ([(Recursivity, [Binding tyname name uni fun ann])], Term tyname name uni fun ann)
+viewLet term0@Let{} = Just $ go term0 where
+    go (Let _ rec binds body) = first ((rec, toList binds) :) $ go body
+    go term                   = ([], term)
 viewLet _       = Nothing
 
 type PrettyConstraints configName tyname name uni =
-  ( PrettyReadableBy configName tyname
-  , PrettyReadableBy configName name
-  , Pretty (SomeTypeIn uni)
-  , Closed uni, uni `Everywhere` PrettyConst
-  )
+    ( PrettyReadableBy configName tyname
+    , PrettyReadableBy configName name
+    , PrettyUni uni
+    )
 
 instance (PrettyConstraints configName tyname name uni, Pretty fun)
           => PrettyBy (PrettyConfigReadable configName) (Term tyname name uni fun a) where
     prettyBy = inContextM $ \case
-        Constant _ con -> unitDocM $ pretty con
+        Constant _ con -> lmap (ConstConfig . _pcrRenderContext) $ prettyM con
         Builtin _ bi   -> unitDocM $ pretty bi
-        (viewApp -> Just (fun, args)) ->
-          compoundDocM juxtFixity $ \ prettyIn ->
-            let ppArg (Left a)  = braces $ prettyIn ToTheRight botFixity a
-                ppArg (Right t) = prettyIn ToTheRight juxtFixity t
-            -- Using `align` here and gathering the arguments together helps to lay out
-            -- function applications compactly like:
-            --
-            -- foo a b c
-            --     d e f
-            --
-            -- or
-            --
-            -- foo
-            --  veryLongArg
-            --  a b c
-            --
-            in prettyIn ToTheLeft juxtFixity fun <?> align (fillSep (map ppArg args))
-        Apply{}    -> error "The impossible happened. This should be covered by the `viewApp` case above."
-        TyInst{}   -> error "The impossible happened. This should be covered by the `viewApp` case above."
+        (viewApp -> Just (fun, args)) -> iterInterAppPrettyM fun args
+        Apply {} -> error "Panic: 'Apply' is not covered by 'viewApp'"
+        TyInst {} -> error "Panic: 'TyInst' is not covered by 'viewApp'"
         Var _ name -> prettyM name
-        (viewTyAbs -> Just (args, body)) ->
-            withPrettyAt ToTheRight botFixity $ \ prettyBot -> do
-                let pBody = prettyBot body
-                pBinds <- mapM prettyM args
-                -- See comment below about laying out lambdas
-                encloseM binderFixity $ ("/\\" <> align (fillSep pBinds) <+> "->") <?> pBody
-        TyAbs{}    -> error "The impossible happened. This should be covered by the `viewTyAbs` case above."
-        (viewLam -> Just (args, body)) ->
-            -- Lay out abstraction like
-            --  \ (x : t) (y : t')
-            --    (z : t'') -> body
-            -- or
-            --  \ (x : t) (y : t')
-            --    (z : t'') ->
-            --    bigStartOfBody
-            compoundDocM binderFixity $ \prettyIn ->
-                let prettyBot x = prettyIn ToTheRight botFixity x
-                    prettyBinds = align . fillSep . map (prettyIn ToTheLeft binderFixity) $ args
-                in ("\\" <> prettyBinds <+> "->") <?> prettyBot body
-        LamAbs{}   -> error "The impossible happened. This should be covered by the `viewLam` case above."
-        Unwrap _ term          ->
-            sequenceDocM ToTheRight juxtFixity $ \prettyEl ->
-                "unwrap" <+> prettyEl term
-        IWrap _ pat arg term   ->
-            sequenceDocM ToTheRight juxtFixity $ \prettyEl ->
-                "iwrap" <+> prettyEl pat <+> prettyEl arg <+> prettyEl term
-        Error _ ty             ->
-            compoundDocM juxtFixity $ \prettyIn ->
-                "error" <+> braces (prettyIn ToTheRight botFixity ty)
+        (viewTyAbs -> Just (args, body)) -> iterTyAbsPrettyM args body
+        TyAbs {} -> error "Panic: 'TyAbs' is not covered by 'viewTyAbs'"
+        (viewLamAbs -> Just (args, body)) -> iterLamAbsPrettyM args body
+        LamAbs {} -> error "Panic: 'LamAbs' is not covered by 'viewLamAbs'"
+        Unwrap _ term -> iterAppDocM $ \_ prettyArg -> "unwrap" :| [prettyArg term]
+        IWrap _ pat arg term ->
+            iterAppDocM $ \_ prettyArg ->
+                "iwrap" :| [prettyArg pat, prettyArg arg, prettyArg term]
+        Error _ ty -> iterAppDocM $ \_ prettyArg -> "error" :| [prettyArg $ inBraces ty]
         (viewLet -> Just (lets, body)) ->
             compoundDocM binderFixity $ \prettyIn ->
                 let prettyBot x = prettyIn ToTheRight botFixity x
                     prec NonRec = ""
                     prec _      = "rec"
+                    -- nest 2 including the "let": this means that we will always break after the let,
+                    -- so that the bindings can be simply indented by 2 spaces, keeping the indent low
+                    prettyLet r binds = vsep [ nest 2 ("let" <> prec r <> line <> vcatHard (prettyBot <$> binds)), "in"]
                 -- Lay out let-bindings in a layout-sensitive way
                 --
-                -- let !x : t = a
+                -- let
+                --   !x : t = a
+                --   !y : t = b
                 -- in
-                -- let !y : t = b
-                -- in foo x y
-                in align (sep [ sep ["let" <> prec r <+> align (vcatHard (prettyBot <$> binds)), "in"]
-                              | (r, binds) <- lets ]) <+> prettyBot body
-        Let{} -> error "The impossible happened. This should be covered by the `viewLet` case above."
+                -- foo x y
+                in vsep $ [ prettyLet r binds | (r, binds) <- lets ] ++ [ prettyBot body ]
+        Let {} -> error "Panic: 'Let' is not covered by 'viewLet'"
+        Constr _ ty i es ->
+            iterAppDocM $ \_ prettyArg -> "constr" :| [prettyArg ty, prettyArg i, prettyArg es]
+        Case _ ty arg cs ->
+            iterAppDocM $ \_ prettyArg -> "case" :| [prettyArg ty, prettyArg arg, prettyArg cs]
+
+instance (PrettyConstraints configName tyname name uni, Pretty fun)
+          => PrettyBy (PrettyConfigReadable configName) (Program tyname name uni fun a) where
+  prettyBy = inContextM $ \(Program _ version term) ->
+    iterAppDocM $ \_ prettyArg -> "program" :| [pretty version, prettyArg term]
 
 instance (PrettyConstraints configName tyname name uni, Pretty fun)
           => PrettyBy (PrettyConfigReadable configName) (Binding tyname name uni fun ann) where
@@ -173,23 +157,3 @@ instance PrettyConstraints configName tyname name uni
                   "data" <+> fillSep (prettyEl tydec : map prettyEl pars) <+> "|" <+> prettyEl name <+> "where"
       withPrettyAt ToTheRight botFixity $ \prettyBot -> do
         return $ vcatHard [header, indent 2 (align . vcatHard . map prettyBot $ cs)]
-
-instance PrettyReadableBy configName tyname
-          => PrettyBy (PrettyConfigReadable configName) (TyVarDecl tyname ann) where
-  prettyBy = inContextM $ \case
-    TyVarDecl _ x k -> do
-      showKinds <- view $ prettyConfig . pcrShowKinds
-      withPrettyAt ToTheRight botFixity $ \prettyBot -> do
-        case showKinds of
-          ShowKindsYes -> encloseM binderFixity (sep [prettyBot x, "::" <+> prettyBot k])
-          ShowKindsNonType -> case k of
-            Type{} -> return $ prettyBot x
-            _      -> encloseM binderFixity (sep [prettyBot x, "::" <+> prettyBot k])
-          ShowKindsNo -> return $ prettyBot x
-
-instance PrettyConstraints configName tyname name uni
-          => PrettyBy (PrettyConfigReadable configName) (VarDecl tyname name uni ann) where
-  prettyBy = inContextM $ \case
-    VarDecl _ x t -> do
-      withPrettyAt ToTheRight botFixity $ \prettyBot -> do
-        encloseM binderFixity (sep [prettyBot x, ":" <+> prettyBot t])

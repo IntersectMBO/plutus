@@ -7,7 +7,7 @@
 {-# LANGUAGE TypeApplications      #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:no-context #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
 
 module Optimization.Spec where
 
@@ -16,8 +16,8 @@ import Test.Tasty.Extras
 import PlutusCore.Test
 import PlutusTx.Builtins qualified as PlutusTx
 import PlutusTx.Code
-import PlutusTx.TH (compile)
 import PlutusTx.Test ()
+import PlutusTx.TH (compile)
 
 -- These are tests that run with the simplifier on, and run all the way to UPLC.
 -- This can be interesting to make sure that important optimizations fire, including

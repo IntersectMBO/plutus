@@ -1,6 +1,7 @@
-Type mismatch at test:2:5 in term
-  '(con integer 0)'.
-Expected type
-  '(fun * *)',
-found type
+Type mismatch at test:2:3-2:37
+Expected a term of type
+  '(fun k l)' for some 'k' and 'l'
+But found one of type
   '(con integer)'
+Namely,
+  '(con integer 0)'

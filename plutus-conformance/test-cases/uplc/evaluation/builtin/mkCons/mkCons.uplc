@@ -1,1 +1,0 @@
-(program 0.0.0 [[(force (builtin mkCons)) (con integer 0)] (con list(integer) [ ])])

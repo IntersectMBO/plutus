@@ -3,7 +3,8 @@
 {-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin -fplugin-opt PlutusTx.Plugin:coverage-all #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations=0 #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=0 #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
 
 module Plugin.Coverage.Spec (coverage) where
 
@@ -52,11 +53,11 @@ boolQualifiedDisappears = plc (Proxy @"boolQualifiedDisappears") (\ () -> Haskel
 coverage :: TestNested
 coverage = testNested "Coverage"
   [ pure $ testGroup "Application heads and line coverage"
-         [ mkTests "noBool" noBool Set.empty [29]
-         , mkTests "boolTrueFalse" boolTrueFalse (Set.singleton "&&") [32]
-         , mkTests "boolOtherFunction" boolOtherFunction (Set.fromList ["&&", "=="]) [35, 39, 40, 41]
-         , mkTests "boolOtherFunctionSimplifiesAway" boolOtherFunctionSimplifiesAway (Set.fromList ["&&", "=="]) [47]
-         , mkTests "boolQualifiedDisappears" boolQualifiedDisappears Set.empty [50]
+         [ mkTests "noBool" noBool Set.empty [30]
+         , mkTests "boolTrueFalse" boolTrueFalse (Set.singleton "&&") [33]
+         , mkTests "boolOtherFunction" boolOtherFunction (Set.fromList ["&&", "=="]) [36, 40, 41, 42]
+         , mkTests "boolOtherFunctionSimplifiesAway" boolOtherFunctionSimplifiesAway (Set.fromList ["&&", "=="]) [48]
+         , mkTests "boolQualifiedDisappears" boolQualifiedDisappears Set.empty [51]
          ]
  , goldenPir "coverageCode" boolOtherFunction ]
 

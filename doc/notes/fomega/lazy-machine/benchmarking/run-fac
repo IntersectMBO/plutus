@@ -1,0 +1,34 @@
+#!/bin/bash
+# shellcheck disable=all
+
+plc=plc
+TIME=/usr/bin/time
+
+size=190000
+
+for machine in CK CEK L
+do
+    ofile=${machine}-times-fac
+    echo "n usr sys mem" > $ofile
+    for n in $(seq 0 5000 100000); 
+    do 
+	echo ${machine} fac $n
+	echo -n "$n " >> $ofile
+	gpp -DSIZE=$size -DARG=$n progs/Fac.plc > test.plc
+	$TIME -o $ofile -a -f "%U %S %M" $plc evaluate -f test.plc -m$machine >/dev/null 2>&1
+    done  
+done
+
+machine=Y
+ofile=Y-times-fac
+echo "n usr sys mem" > $ofile
+for n in $(seq 0 5000 100000); 
+do 
+    echo ${machine} fac $n
+    echo -n "$n " >> $ofile
+    gpp -DSIZE=$size -DARG=$n progs/FacY.plc > test.plc
+    $TIME -o $ofile -a -f "%U %S %M" $plc evaluate -f test.plc -mL >/dev/null 2>&1
+done  
+
+rm test.plc
+

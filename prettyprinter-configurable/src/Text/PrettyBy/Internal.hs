@@ -1,22 +1,20 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE AllowAmbiguousTypes        #-}
-{-# LANGUAGE ConstraintKinds            #-}
-{-# LANGUAGE DataKinds                  #-}
-{-# LANGUAGE DefaultSignatures          #-}
-{-# LANGUAGE DerivingStrategies         #-}
-{-# LANGUAGE DerivingVia                #-}
-{-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE FlexibleInstances          #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE MultiParamTypeClasses      #-}
-{-# LANGUAGE PolyKinds                  #-}
-{-# LANGUAGE RankNTypes                 #-}
-{-# LANGUAGE ScopedTypeVariables        #-}
-{-# LANGUAGE StandaloneDeriving         #-}
-{-# LANGUAGE TypeApplications           #-}
-{-# LANGUAGE TypeFamilies               #-}
-{-# LANGUAGE TypeOperators              #-}
-{-# LANGUAGE UndecidableInstances       #-}
+{-# LANGUAGE AllowAmbiguousTypes   #-}
+{-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DefaultSignatures     #-}
+{-# LANGUAGE DerivingVia           #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE PolyKinds             #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE StandaloneDeriving    #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 -- | Internal module defining the core machinery of configurable pretty-printing.
 --
@@ -58,6 +56,7 @@ import Data.Coerce
 import Data.Functor.Const
 import Data.Functor.Identity
 import Data.Int
+import Data.Kind (Type)
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Maybe
 import Data.Text qualified as Strict
@@ -125,7 +124,7 @@ class PrettyBy config a where
     -- 42
     --
     -- It's fine for the data type to have a phantom parameter as long as the data type is still a
-    -- 'Functor' (i.e. the parameter has to be of kind @*@). Then 'defaultPrettyFunctorBy' is used
+    -- 'Functor' (i.e. the parameter has to be of kind @Type@). Then 'defaultPrettyFunctorBy' is used
     -- again:
     --
     -- >>> newtype N a = N Int deriving stock (Functor) deriving newtype (Pretty)
@@ -141,16 +140,16 @@ class PrettyBy config a where
     -- >>> prettyBy () (N 42)
     -- 42
     --
-    -- Same applies to a data type with two parameters: if both the parameters are of kind @*@,
+    -- Same applies to a data type with two parameters: if both the parameters are of kind @Type@,
     -- then the data type is assumed to be a 'Bifunctor' and hence 'defaultPrettyBifunctorBy' is
-    -- used. If the right parameter is of kind @*@ and the left parameter is of any other kind,
+    -- used. If the right parameter is of kind @Type@ and the left parameter is of any other kind,
     -- then we fallback to assuming the data type is a 'Functor' and defining 'prettyBy' as
-    -- 'defaultPrettyFunctorBy'. If both the parameters are not of kind @*@, we fallback to
+    -- 'defaultPrettyFunctorBy'. If both the parameters are not of kind @Type@, we fallback to
     -- implementing 'prettyBy' in terms of 'pretty' like in the monomorphic case.
     --
     -- Note that in all those cases a 'Pretty' instance for the data type has to already exist,
     -- so that we can derive a 'PrettyBy' one in terms of it. If it doesn't exist or if your data
-    -- type is not supported (for example, if it has three or more parameters of kind @*@), then
+    -- type is not supported (for example, if it has three or more parameters of kind @Type@), then
     -- you'll need to provide the implementation manually.
     prettyBy :: config -> a -> Doc ann
     default prettyBy :: DefaultFor "prettyBy" config a => config -> a -> Doc ann
@@ -298,19 +297,19 @@ defaultPrettyBifunctorBy config a =
 -- ## Dispatching between default implementations for 'prettyBy'/'defaultPrettyBy' ##
 -- ##################################################################################
 
--- | Return the longest sequence of @*@ in the kind (right-to-left) of the head of an application.
--- (but no longer than @* -> * -> *@, because we can't support longer ones in 'DispatchDefaultFor').
-type family StarsOfHead (target :: Symbol) (a :: *) :: * where
-    StarsOfHead target ((f :: * -> * -> * -> *) a b c) = TypeError
+-- | Return the longest sequence of @Type@ in the kind (right-to-left) of the head of an application.
+-- (but no longer than @Type -> Type -> Type@, because we can't support longer ones in 'DispatchDefaultFor').
+type family StarsOfHead (target :: Symbol) (a :: Type) :: Type where
+    StarsOfHead target ((f :: Type -> Type -> Type -> Type) a b c) = TypeError
         (     'Text "Automatic derivation of ‘"':<>: 'Text target ':<>: 'Text "’"
-        ':$$: 'Text "is not possible for data types that receive three and more arguments of kind ‘*’"
+        ':$$: 'Text "is not possible for data types that receive three and more arguments of kind ‘Type’"
         )
-    StarsOfHead _      ((f :: k -> * -> * -> *) a b c) = * -> * -> *
-    StarsOfHead _      ((f :: * -> * -> *)      a b  ) = * -> * -> *
-    StarsOfHead _      ((f :: k -> * -> *)      a b  ) = * -> *
-    StarsOfHead _      ((f :: * -> *)           a    ) = * -> *
-    StarsOfHead _      ((f :: k -> *)           a    ) = *
-    StarsOfHead _      a                               = *
+    StarsOfHead _      ((f :: k -> Type -> Type -> Type) a b c) = Type -> Type -> Type
+    StarsOfHead _      ((f :: Type -> Type -> Type)      a b  ) = Type -> Type -> Type
+    StarsOfHead _      ((f :: k -> Type -> Type)      a b  ) = Type -> Type
+    StarsOfHead _      ((f :: Type -> Type)           a    ) = Type -> Type
+    StarsOfHead _      ((f :: k -> Type)           a    ) = Type
+    StarsOfHead _      a                               = Type
 
 -- | This allows us to have different default implementations for 'prettyBy' and 'defaultPrettyBy'
 -- depending on whether @a@ is a monomorphic type or a 'Functor' or a 'Bifunctor'. Read the docs of
@@ -318,17 +317,17 @@ type family StarsOfHead (target :: Symbol) (a :: *) :: * where
 class StarsOfHead target a ~ k => DispatchDefaultFor target k config a where
     dispatchDefaultFor :: config -> a -> Doc ann
 
-instance (StarsOfHead target a ~ *, Pretty a) => DispatchDefaultFor target * config a where
+instance (StarsOfHead target a ~ Type, Pretty a) => DispatchDefaultFor target Type config a where
     dispatchDefaultFor _ = pretty
 
-instance ( StarsOfHead target fa ~ (k -> *), fa ~ f a
+instance ( StarsOfHead target fa ~ (k -> Type), fa ~ f a
          , Functor f, Pretty (f (AttachPrettyConfig config a))
-         ) => DispatchDefaultFor target (k -> *) config fa where
+         ) => DispatchDefaultFor target (k -> Type) config fa where
     dispatchDefaultFor = defaultPrettyFunctorBy
 
-instance ( StarsOfHead target fab ~ (k1 -> k2 -> *), fab ~ f a b
+instance ( StarsOfHead target fab ~ (k1 -> k2 -> Type), fab ~ f a b
          , Bifunctor f, Pretty (f (AttachPrettyConfig config a) (AttachPrettyConfig config b))
-         ) => DispatchDefaultFor target (k1 -> k2 -> *) config fab where
+         ) => DispatchDefaultFor target (k1 -> k2 -> Type) config fab where
     dispatchDefaultFor = defaultPrettyBifunctorBy
 
 -- | Introducing a class just for the nice name of the method and in case the defaulting machinery
@@ -476,7 +475,7 @@ instance DefaultPrettyBy config Lazy.Text
 -- Straightforward polymorphic instances.
 
 instance PrettyBy config a => DefaultPrettyBy config (Identity a)
-instance PrettyBy config a => DefaultPrettyBy config (Const a (b :: *))
+instance PrettyBy config a => DefaultPrettyBy config (Const a (b :: Type))
 instance (PrettyBy config a, PrettyBy config b) => DefaultPrettyBy config (a, b)
 
 -- We don't have @Trifunctor@ in base, unfortunately, hence writing things out manually. Could we

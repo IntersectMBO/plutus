@@ -1,44 +1,52 @@
 \begin{code}
-{-# OPTIONS --rewriting #-}
 module Algorithmic.Reduction where
 \end{code}
 
 ## Imports
 
 \begin{code}
-open import Relation.Binary.PropositionalEquality hiding ([_]) renaming (subst to substEq)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl) renaming (subst to substEq)
 open import Agda.Builtin.String using (primStringFromList; primStringAppend; primStringEquality)
-open import Data.Empty
-open import Data.Product renaming (_,_ to _,,_)
-open import Data.Sum
-open import Function hiding (_∋_)
-open import Data.Integer using (_<?_;_+_;_-_;∣_∣;_≤?_;_≟_) renaming (_*_ to _**_)
-open import Relation.Nullary
-open import Relation.Nullary.Decidable
-open import Data.Unit hiding (_≤_; _≤?_; _≟_)
+open import Data.Product using (_×_;∃) renaming (_,_ to _,,_)
 open import Data.List as List using (List; _∷_; []; _++_)
 open import Data.Bool using (Bool;true;false)
 open import Data.Nat using (zero)
 open import Data.Unit using (tt)
-import Debug.Trace as Debug
-
-open import Utils hiding (TermCon)
-open import Type
-import Type.RenamingSubstitution as T
-open import Algorithmic.RenamingSubstitution
-open import Type.BetaNBE
-open import Type.BetaNBE.Stability
-open import Type.BetaNBE.RenamingSubstitution
-open import Type.BetaNormal
-open import Type.BetaNormal.Equality
-open import Builtin
-open import Builtin.Constant.Type Ctx⋆ (_⊢Nf⋆ *)
-open import Builtin.Constant.Term Ctx⋆ Kind * _⊢Nf⋆_ con
 open import Data.Maybe using (just;from-just)
 open import Data.String using (String)
-open import Algorithmic
-open import Algorithmic.ReductionEC hiding (_—→_;_—↠_;progress;Progress;determinism)
+
+open import Utils using (Kind;*;_⇒_;_∔_≣_;bubble;K) 
+open import Type using (Ctx⋆;∅;_,⋆_;Z;_⊢⋆_)
+open _⊢⋆_
+
+import Type.RenamingSubstitution as T
+open import Algorithmic.RenamingSubstitution using (_[_];_[_]⋆)
+open import Type.BetaNBE using (nf)
+open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;embNf;weakenNf)
+open _⊢Nf⋆_
+open _⊢Ne⋆_
+
+open import Algorithmic using (Ctx;_⊢_)
+open _⊢_
+open Ctx
+open import Algorithmic.ReductionEC using (Value;BApp;BUILTIN';_—→⋆_;EC;_[_]ᴱ;Error)
+                                    using (ruleEC;ruleErr)  -- _—→_ constructors
+open EC
+open _—→⋆_
+open import Algorithmic.ReductionEC.Progress using (step;done;error)
+
+open import Builtin using (Builtin;signature)
+open import Builtin.Signature using (Sig;sig;Args;_⊢♯;args♯;fv)
+open Sig
+
+open Builtin.Signature.FromSig _⊢Nf⋆_ _⊢Ne⋆_ ne ` _·_ ^ con _⇒_   Π 
+    using (sig2type;SigTy;sig2SigTy;sigTy2type;saturatedSigTy;convSigTy)
+open SigTy
+
+
 import Algorithmic.ReductionEC as E
+import Algorithmic.ReductionEC.Progress as EP
+import Algorithmic.ReductionEC.Determinism as ED
 \end{code}
 
 ## Intrinsically Type Preserving Reduction
@@ -94,27 +102,17 @@ data _—→V_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set wh
     → M —→V M'
     → wrap A B M —→V wrap A B M'
 
-  β-sbuiltin : ∀{A B}
+  β-builtin : ∀{A B}{tn}
       (b : Builtin)
     → (t : ∅ ⊢ A ⇒ B)
-    → ∀{az}
-    → (p : az <>> (Term ∷ []) ∈ arity b)
-    → (bt : BApp b p t) -- one left
+    → {pt : tn ∔ 0 ≣ fv (signature b)} 
+    → ∀{an} → {pa : an ∔ 1 ≣  args♯ (signature b)}
+    → {σB : SigTy pt (bubble pa) B}
+    → (bt : BApp b (A B⇒ σB) t) -- one left
     → (u : ∅ ⊢ A)
     → (vu : Value u)
       -----------------------------
-    → t · u —→V BUILTIN' b (bubble p) (BApp.step p bt vu)
-
-  β-sbuiltin⋆ : ∀{B : ∅ ,⋆ K ⊢Nf⋆ *}{C}
-      (b : Builtin)
-    → (t : ∅ ⊢ Π B)
-    → ∀{az}
-    → (p : az <>> (Type ∷ []) ∈ arity b)
-    → (bt : BApp b p t) -- one left
-    → ∀ A
-    → (q : C ≡ _)
-      -----------------------------
-    → t ·⋆ A / q —→V BUILTIN' b (bubble p) (BApp.step⋆ p bt q)
+    → t · u —→V BUILTIN' b (BApp.step bt vu)
 \end{code}
 
 \begin{code}
@@ -175,8 +173,7 @@ lem—→⋆ : ∀{A}{M M' : ∅ ⊢ A} → M —→⋆ M' → M —→V M'
 lem—→⋆ (β-ƛ v) = β-ƛ v
 lem—→⋆ (β-Λ refl) = β-Λ
 lem—→⋆ (β-wrap v refl) = β-wrap v
-lem—→⋆ (β-sbuiltin b t p bt u vu) = β-sbuiltin b t p bt u vu
-lem—→⋆ (β-sbuiltin⋆ b t p bt A q) = β-sbuiltin⋆ b t p bt A q
+lem—→⋆ (β-builtin b t bt u vu) = β-builtin b t bt u vu
 
 lemCS—→V : ∀{A}
          → ∀{B}{L L' : ∅ ⊢ B}
@@ -229,10 +226,8 @@ lemSC—→V (ξ-unwrap p) with lemSC—→V p
 lemSC—→V (ξ-wrap p) with lemSC—→V p
 ... | B ,, E ,, L ,, L' ,, refl ,, refl ,, q =
   B ,, wrap E ,, L ,, L' ,, refl ,, refl ,, q
-lemSC—→V (β-sbuiltin b t p bt u vu) =
-  _ ,, [] ,, _ ,, _ ,, refl ,, refl ,, E.β-sbuiltin b t p bt u vu
-lemSC—→V (β-sbuiltin⋆ b t p bt A q) =
-  _ ,, [] ,, _ ,, _ ,, refl ,, refl ,, E.β-sbuiltin⋆ b t p bt A q
+lemSC—→V (β-builtin b t bt u vu) =
+  _ ,, [] ,, _ ,, _ ,, refl ,, refl ,, E.β-builtin b t bt u vu
 
 lemSC—→E : ∀{A}{M : ∅ ⊢ A}
   → M —→E error A
@@ -273,10 +268,10 @@ data Progress {A : ∅ ⊢Nf⋆ *} (M : ∅ ⊢ A) : Set where
     → Progress M
 
 progress : {A : ∅ ⊢Nf⋆ *} → (M : ∅ ⊢ A) → Progress M
-progress M with E.progress M
+progress M with EP.progress M
 ... | step p = step (lemCS—→ p)
 ... | done v = done v
 ... | error e = error e
 
 determinism : ∀{A}{L N N' : ∅ ⊢ A} → L —→ N → L —→ N' → N ≡ N'
-determinism p q = E.determinism (lemSC—→ p) (lemSC—→ q)
+determinism p q = ED.determinism (lemSC—→ p) (lemSC—→ q)

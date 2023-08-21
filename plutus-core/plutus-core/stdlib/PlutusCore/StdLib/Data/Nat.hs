@@ -25,8 +25,6 @@ import PlutusCore.Quote
 import PlutusCore.StdLib.Data.Function
 import PlutusCore.StdLib.Type
 
-import Universe
-
 -- | @Nat@ as a PLC type.
 --
 -- > fix \(nat :: *) -> all r. r -> (nat -> r) -> r
@@ -96,7 +94,7 @@ foldrNat = runQuote $ do
         . tyAbs () r (Type ())
         . lamAbs () f (TyFun () (TyVar () r) (TyVar () r))
         . lamAbs () z (TyVar () r)
-        . apply () (mkIterInst () fix [nat, TyVar () r])
+        . apply () (mkIterInstNoAnn fix [nat, TyVar () r])
         . lamAbs () rec (TyFun () nat $ TyVar () r)
         . lamAbs () n nat
         . apply () (apply () (tyInst () (unwrap () (var () n)) $ TyVar () r) $ var () z)
@@ -122,13 +120,13 @@ foldNat = runQuote $ do
     return
         . tyAbs () r (Type ())
         . lamAbs () f (TyFun () (TyVar () r) (TyVar () r))
-        . apply () (mkIterInst () fix [TyVar () r, TyFun () nat $ TyVar () r])
+        . apply () (mkIterInstNoAnn fix [TyVar () r, TyFun () nat $ TyVar () r])
         . lamAbs () rec (TyFun () (TyVar () r) . TyFun () nat $ TyVar () r)
         . lamAbs () z (TyVar () r)
         . lamAbs () n nat
         . apply () (apply () (tyInst () (unwrap () (var () n)) $ TyVar () r) $ var () z)
         . lamAbs () n' nat
-        . mkIterApp () (var () rec)
+        . mkIterAppNoAnn (var () rec)
         $ [ apply () (var () f) $ var () z
           , var () n'
           ]
@@ -136,10 +134,11 @@ foldNat = runQuote $ do
 -- | Convert a @nat@ to an @integer@.
 --
 -- > foldNat {integer} (addInteger 1) 1
-natToInteger :: (TermLike term TyName Name uni DefaultFun, uni `Includes` Integer) => term ()
+natToInteger
+    :: (TermLike term TyName Name uni DefaultFun, uni `HasTypeAndTermLevel` Integer) => term ()
 natToInteger = runQuote $ do
     return $
-        mkIterApp () (tyInst () foldNat $ mkTyBuiltin @_ @Integer ())
+        mkIterAppNoAnn (tyInst () foldNat $ mkTyBuiltin @_ @Integer ())
           [ apply () (builtin () AddInteger) (mkConstant @Integer () 1)
           , mkConstant @Integer () 0
           ]

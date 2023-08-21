@@ -1,57 +1,126 @@
-name: Benchmarking
+name: Benchmark
 on:
   issue_comment:
     types: [created]
 
 jobs:
   benchmark:
-    runs-on: ubuntu-latest
-    env:
-      BUILDKITE_API_ACCESS_TOKEN: ${{ secrets.BUILDKITE_API_ACCESS_TOKEN }}
+    runs-on: [self-hosted, plutus-benchmark]
+    
+    permissions:
+      pull-requests: write
+  
+    if: | 
+      startsWith(github.event.comment.body, '/benchmark') && 
+      github.event.issue.pull_request 
+
     steps:
-       #
-       # Checkout the repository so that we can use scripts from it
-       #
       - name: Checkout
-        uses: actions/checkout@v3 
+        uses: actions/checkout@v3.3.0
 
-       #
-       # Check for '/benchmark' comments on a PR
-       #
-       # Pinning a particular commit to avoid https://github.com/Khan/pull-request-comment-trigger/issues/22
-      - uses: khan/pull-request-comment-trigger@edab8d9ba7759221187ef7120592a6fbfada0d18
-        id: find-comment
+      - name: React with Rocket 
+        uses: actions/github-script@v6
         with:
-          trigger: '/benchmark'
-          reaction: rocket
-        env:
-          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+          script: |
+            github.rest.reactions.createForIssueComment({
+              owner: context.issue.owner,
+              repo: context.issue.repo,
+              comment_id: context.payload.comment.id,
+              content: "rocket"
+            });  
 
-      #
-      # Extract the branch of that the PR the comment was added to belongs to
-      #
-      - uses: xt0rted/pull-request-comment-branch@v1
-        if: steps.find-comment.outputs.triggered == 'true'
-        id: extract-branch
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-
-      #
-      # Extract the benchmark name from the comment text
-      #
-      - uses: actions-ecosystem/action-regex-match@v2
-        if: steps.find-comment.outputs.triggered == 'true'
+      - name: Extract Benchmark Name
         id: extract-benchmark
+        uses: actions/github-script@v6
         with:
-          # The 'pull-request-comment-trigger` action alleges that you 
-          # can get the matched comment via its comment_body output, but
-          # this is a lie: https://github.com/Khan/pull-request-comment-trigger/issues/6
-          text: ${{ github.event.comment.body }}
-          regex: '^\/benchmark\s*(.*?)\s*$'
+          script: |
+            const regex = '^\/benchmark\s*(.*?)\s*$';
+            const comment = context.payload.comment.body;
+            const match = comment.match(regex)
+            if (match !== null && match.length == 2)
+              core.setOutput('benchmark', match[1]);
+            else
+              core.setFailed(`Unable to extract benchmark name from ${comment}`);
 
-      #
-      # Trigger the buildkite pipeline IF the 'benchmark' command was found
-      #
-      - run: |
-         ./scripts/trigger-buildkite-pipeline.sh ${{ steps.extract-branch.outputs.head_ref }} ${{ github.event.issue.number }} ${{ steps.extract-benchmark.outputs.group1 }}
-        if: steps.find-comment.outputs.triggered == 'true' && steps.extract-benchmark.outputs.match != ''
+      - name: Extract Comment Branch 
+        id: extract-branch
+        uses: actions/github-script@v6
+        with:
+          script: | 
+            async function isPullRequest() {
+              const result = await github.rest.issues.get({
+                owner: context.issue.owner,
+                repo: context.issue.repo,
+                issue_number: context.issue.number
+              });
+              return !!result.data.pull_request;
+            }
+
+            async function getCommentHeadRef() {
+              const query = `
+                query pullRequestDetails($repo:String!, $owner:String!, $number:Int!) {
+                  repository(name: $repo, owner: $owner) {
+                    pullRequest(number: $number) {
+                      headRef {
+                        name
+                      }
+                    }
+                  }
+                }`;
+
+              const result = await github.graphql(query, {
+                owner: context.issue.owner,
+                repo: context.issue.repo,
+                number: context.issue.number
+              });
+
+              return result.repository.pullRequest.headRef.name;
+            }
+
+            try {
+              if (!await isPullRequest()) {
+                core.setFailed("Comment is not on a pull request");
+              } else {  
+                core.setOutput("head_ref", await getCommentHeadRef());
+              }
+            } catch (error) {
+              core.setFailed(`Error: ${error}`);
+            } 
+
+      - name: Publish Link To Action Run
+        uses: actions/github-script@v6
+        with:
+          script: | 
+            async function getJobUrl() {
+              return `https://github.com/${context.issue.owner}/${context.issue.repo}/actions/runs/${context.runId}`;
+            }
+
+            await github.rest.issues.createComment({
+              owner: context.issue.owner,
+              repo: context.issue.repo,
+              issue_number: context.issue.number,
+              body: `Click [here](${await getJobUrl()}) to check the status of your benchmark.`
+            });
+
+      - name: Run
+        run: |
+          nix develop --no-warn-dirty --accept-flake-config --command bash ./scripts/ci-plutus-benchmark.sh 
+        env:
+          BENCHMARK_NAME: ${{ steps.extract-benchmark.outputs.benchmark }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          PR_BRANCH: ${{ steps.extract-branch.outputs.head_ref }}
+
+
+      - name: Publish Results
+        uses: actions/github-script@v6
+        with:
+          script: | 
+            const fs = require("fs");
+
+            await github.rest.issues.createComment({
+              owner: context.issue.owner,
+              repo: context.issue.repo,
+              issue_number: context.issue.number,
+              // bench-compare-result.log is generated by ci-plutus-benchmark.sh
+              body: fs.readFileSync("bench-compare-result.log", "utf-8").toString()
+            });

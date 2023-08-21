@@ -4,6 +4,7 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeOperators         #-}
 
 
 -- Sure GHC, I'm enabling the extension just so that you can warn me about its usages.
@@ -13,14 +14,18 @@ module Evaluation.Builtins.Definition
     ( test_definition
     ) where
 
-import PlutusCore
+import PlutusCore hiding (Constr)
 import PlutusCore.Builtin
+import PlutusCore.Compiler.Erase (eraseTerm)
 import PlutusCore.Data
 import PlutusCore.Default
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
-import PlutusCore.Generators.Interesting
+import PlutusCore.Evaluation.Machine.MachineParameters
+import PlutusCore.Generators.Hedgehog.Interesting
 import PlutusCore.MkPlc hiding (error)
+import PlutusCore.Pretty
 import PlutusPrelude
+import UntypedPlutusCore.Evaluation.Machine.Cek
 
 import PlutusCore.Examples.Builtins
 import PlutusCore.Examples.Data.Data
@@ -31,30 +36,35 @@ import PlutusCore.StdLib.Data.Integer
 import PlutusCore.StdLib.Data.List qualified as Builtin
 import PlutusCore.StdLib.Data.Pair
 import PlutusCore.StdLib.Data.ScottList qualified as Scott
+import PlutusCore.StdLib.Data.ScottUnit qualified as Scott
 import PlutusCore.StdLib.Data.Unit
 
+import Evaluation.Builtins.BLS12_381 (test_BLS12_381)
 import Evaluation.Builtins.Common
-import Evaluation.Builtins.SignatureVerification (ecdsaSecp256k1Prop, ed25519_V1Prop, ed25519_V2Prop,
-                                                  schnorrSecp256k1Prop)
+import Evaluation.Builtins.SignatureVerification (ecdsaSecp256k1Prop, ed25519_V1Prop,
+                                                  ed25519_V2Prop, schnorrSecp256k1Prop)
+
 
 import Control.Exception
-import Data.ByteString (ByteString)
+import Data.ByteString (ByteString, pack)
+import Data.DList qualified as DList
 import Data.Proxy
+import Data.String (fromString)
 import Data.Text (Text)
 import Hedgehog hiding (Opaque, Size, Var)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import Test.Tasty
-import Test.Tasty.HUnit
 import Test.Tasty.Hedgehog
+import Test.Tasty.HUnit
 
 type DefaultFunExt = Either DefaultFun ExtensionFun
 
 defaultBuiltinCostModelExt :: CostingPart DefaultUni DefaultFunExt
 defaultBuiltinCostModelExt = (defaultBuiltinCostModel, ())
 
--- | Check that 'Factorial' from the above computes to the same thing as
--- a factorial defined in PLC itself.
+-- | Check that the 'Factorial' builtin computes to the same thing as factorial defined in PLC
+-- itself.
 test_Factorial :: TestTree
 test_Factorial =
     testCase "Factorial" $ do
@@ -75,12 +85,22 @@ test_Const =
         b <- forAll Gen.bool
         let tC = mkConstant () c
             tB = mkConstant () b
-            text = toTypeAst @_ @DefaultUni @Text Proxy
-            runConst con = mkIterApp () (mkIterInst () con [text, bool]) [tC, tB]
+            text = toTypeAst @_ @_ @DefaultUni @Text Proxy
+            runConst con = mkIterAppNoAnn (mkIterInstNoAnn con [text, bool]) [tC, tB]
             lhs = typecheckReadKnownCek def defaultBuiltinCostModelExt $ runConst $ builtin () (Right Const)
             rhs = typecheckReadKnownCek def defaultBuiltinCostModelExt $ runConst $ mapFun @DefaultFun Left Plc.const
         lhs === Right (Right c)
         lhs === rhs
+
+-- | Test that forcing a builtin accepting one type argument and no term arguments makes the
+-- builtin compute properly.
+test_ForallFortyTwo :: TestTree
+test_ForallFortyTwo =
+    testCase "ForallFortyTwo" $ do
+        let term = tyInst () (builtin () ForallFortyTwo) $ mkTyBuiltin @_ @() ()
+            lhs = typecheckEvaluateCekNoEmit def () term
+            rhs = Right $ EvaluationSuccess $ mkConstant @Integer () 42
+        lhs @?= rhs
 
 -- | Test that a polymorphic built-in function doesn't subvert the CEK machine.
 -- See https://github.com/input-output-hk/plutus/issues/1882
@@ -90,9 +110,9 @@ test_Id =
         let zer = mkConstant @Integer @DefaultUni @DefaultFunExt () 0
             oneT = mkConstant @Integer @DefaultUni () 1
             oneU = mkConstant @Integer @DefaultUni () 1
-            -- id {integer -> integer} ((\(i : integer) (j : integer) -> i) 1) 0
+            -- > id {integer -> integer} ((\(i : integer) (j : integer) -> i) 1) 0
             term =
-                mkIterApp () (tyInst () (builtin () $ Right Id) (TyFun () integer integer))
+                mkIterAppNoAnn (tyInst () (builtin () $ Right Id) (TyFun () integer integer))
                     [ apply () constIntegerInteger oneT
                     , zer
                     ] where
@@ -113,11 +133,11 @@ test_IdFInteger =
         let one = mkConstant @Integer @DefaultUni () 1
             ten = mkConstant @Integer @DefaultUni () 10
             res = mkConstant @Integer @DefaultUni () 55
-            -- sum (idFInteger {list} (enumFromTo 1 10))
+            -- > sum (idFInteger {list} (enumFromTo 1 10))
             term
                 = apply () (mapFun Left Scott.sum)
                 . apply () (tyInst () (builtin () $ Right IdFInteger) Scott.listTy)
-                $ mkIterApp () (mapFun Left Scott.enumFromTo) [one, ten]
+                $ mkIterAppNoAnn (mapFun Left Scott.enumFromTo) [one, ten]
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModelExt term @?= Right (EvaluationSuccess res)
 
 test_IdList :: TestTree
@@ -130,11 +150,11 @@ test_IdList =
             one = mkConstant @Integer @DefaultUni () 1
             ten = mkConstant @Integer @DefaultUni () 10
             res = mkConstant @Integer @DefaultUni () 55
-            -- sum (idList {integer} (enumFromTo 1 10))
+            -- > sum (idList {integer} (enumFromTo 1 10))
             term
                 = apply () (mapFun Left Scott.sum)
                 . apply () (tyInst () (builtin () $ Right IdList) integer)
-                $ mkIterApp () (mapFun Left Scott.enumFromTo) [one, ten]
+                $ mkIterAppNoAnn (mapFun Left Scott.enumFromTo) [one, ten]
         tyAct @?= tyExp
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModelExt term @?= Right (EvaluationSuccess res)
 
@@ -167,12 +187,25 @@ test_IdRank2 :: TestTree
 test_IdRank2 =
     testCase "IdRank2" $ do
         let res = mkConstant @Integer @DefaultUni () 0
-            -- sum (idRank2 {list} nil {integer})
+            -- > sum (idRank2 {list} nil {integer})
             term
                 = apply () (mapFun Left Scott.sum)
                 . tyInst () (apply () (tyInst () (builtin () $ Right IdRank2) Scott.listTy) Scott.nil)
                 $ integer
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModelExt term @?= Right (EvaluationSuccess res)
+
+-- | Test that a builtin can be applied to a non-constant term.
+test_ScottToMetaUnit :: TestTree
+test_ScottToMetaUnit =
+    testCase "ScottToMetaUnit" $ do
+        let res = EvaluationSuccess $ mkConstant @() @DefaultUni () ()
+            applyTerm = apply () (builtin () ScottToMetaUnit)
+        -- @scottToMetaUnit Scott.unitval@ is well-typed and runs successfully.
+        typecheckEvaluateCekNoEmit def () (applyTerm Scott.unitval) @?= Right res
+        let runtime = mkMachineParameters def $ CostModel defaultCekMachineCosts ()
+        -- @scottToMetaUnit Scott.map@ is ill-typed, but still runs successfully, since the builtin
+        -- doesn't look at the argument.
+        unsafeEvaluateCekNoEmit runtime (eraseTerm $ applyTerm Scott.map) @?= res
 
 -- | Test that an exception thrown in the builtin application code does not get caught in the CEK
 -- machine and blows in the caller face instead. Uses a one-argument built-in function.
@@ -206,7 +239,7 @@ test_FailingPlus :: TestTree
 test_FailingPlus =
     testCase "FailingPlus" $ do
         let term =
-                mkIterApp () (builtin () $ Right FailingPlus)
+                mkIterAppNoAnn (builtin () $ Right FailingPlus)
                     [ mkConstant @Integer @DefaultUni @DefaultFunExt () 0
                     , mkConstant @Integer @DefaultUni () 1
                     ]
@@ -222,7 +255,7 @@ test_ExpensivePlus :: TestTree
 test_ExpensivePlus =
     testCase "ExpensivePlus" $ do
         let term =
-                mkIterApp () (builtin () $ Right ExpensivePlus)
+                mkIterAppNoAnn (builtin () $ Right ExpensivePlus)
                     [ mkConstant @Integer @DefaultUni @DefaultFunExt () 0
                     , mkConstant @Integer @DefaultUni () 1
                     ]
@@ -237,7 +270,7 @@ test_BuiltinList =
         let xs  = [1..10]
             res = mkConstant @Integer @DefaultUni () $ foldr (-) 0 xs
             term
-                = mkIterApp () (mkIterInst () Builtin.foldrList [integer, integer])
+                = mkIterAppNoAnn (mkIterInstNoAnn Builtin.foldrList [integer, integer])
                     [ Builtin () SubtractInteger
                     , mkConstant @Integer () 0
                     , mkConstant @[Integer] () xs
@@ -252,7 +285,7 @@ test_IdBuiltinList =
             xsTerm = mkConstant @[Integer] () [1..10]
             listOfInteger = mkTyBuiltin @_ @[Integer] ()
             term
-                = mkIterApp () (mkIterInst () (mapFun Left Builtin.foldrList) [integer, listOfInteger])
+                = mkIterAppNoAnn (mkIterInstNoAnn (mapFun Left Builtin.foldrList) [integer, listOfInteger])
                     [ tyInst () (builtin () $ Left MkCons) integer
                     , mkConstant @[Integer] () []
                     , xsTerm
@@ -263,17 +296,17 @@ test_BuiltinPair :: TestTree
 test_BuiltinPair =
     testCase "BuiltinPair" $ do
         let arg = mkConstant @(Integer, Bool) @DefaultUni () (1, False)
-            inst efun = mkIterInst () (builtin () efun) [integer, bool]
+            inst efun = mkIterInstNoAnn (builtin () efun) [integer, bool]
             swapped = apply () (inst $ Right Swap) arg
             fsted   = apply () (inst $ Left FstPair) arg
             snded   = apply () (inst $ Left SndPair) arg
-        -- Swap {integer} {bool} (1, False) ~> (False, 1)
+        -- > swap {integer} {bool} (1, False) ~> (False, 1)
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModelExt swapped @?=
             Right (EvaluationSuccess $ mkConstant @(Bool, Integer) () (False, 1))
-        -- Fst {integer} {bool} (1, False) ~> 1
+        -- > fst {integer} {bool} (1, False) ~> 1
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModelExt fsted @?=
             Right (EvaluationSuccess $ mkConstant @Integer () 1)
-        -- Snd {integer} {bool} (1, False) ~> False
+        -- > snd {integer} {bool} (1, False) ~> False
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModelExt snded @?=
             Right (EvaluationSuccess $ mkConstant @Bool () False)
 
@@ -284,17 +317,17 @@ test_SwapEls =
             res = mkConstant @Integer @DefaultUni () $
                     foldr (\p r -> r + (if snd p then -1 else 1) * fst p) 0 xs
             el = mkTyBuiltin @_ @(Integer, Bool) ()
-            instProj proj = mkIterInst () (builtin () proj) [integer, bool]
+            instProj p = mkIterInstNoAnn (builtin () p) [integer, bool]
             fun = runQuote $ do
                     p <- freshName "p"
                     r <- freshName "r"
                     return
                         . lamAbs () p el
                         . lamAbs () r integer
-                        $ mkIterApp () (builtin () AddInteger)
+                        $ mkIterAppNoAnn (builtin () AddInteger)
                             [ Var () r
-                            , mkIterApp () (builtin () MultiplyInteger)
-                                [ mkIterApp () (tyInst () (builtin () IfThenElse) integer)
+                            , mkIterAppNoAnn (builtin () MultiplyInteger)
+                                [ mkIterAppNoAnn (tyInst () (builtin () IfThenElse) integer)
                                     [ apply () (instProj SndPair) $ Var () p
                                     , mkConstant @Integer () (-1)
                                     , mkConstant @Integer () 1
@@ -303,7 +336,7 @@ test_SwapEls =
                                 ]
                             ]
             term
-                = mkIterApp () (mkIterInst () Builtin.foldrList [el, integer])
+                = mkIterAppNoAnn (mkIterInstNoAnn Builtin.foldrList [el, integer])
                     [ fun
                     , mkConstant @Integer () 0
                     , mkConstant () xs
@@ -318,7 +351,7 @@ test_IdBuiltinData =
         let dTerm :: TermLike term tyname name DefaultUni fun => term ()
             dTerm = mkConstant @Data () $ Map [(I 42, Constr 4 [List [B "abc", Constr 2 []], I 0])]
             emb = builtin () . Left
-            term = mkIterApp () ofoldrData
+            term = mkIterAppNoAnn ofoldrData
                 [ emb ConstrData
                 , emb MapData
                 , emb ListData
@@ -327,6 +360,60 @@ test_IdBuiltinData =
                 , dTerm
                 ]
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModelExt term @?= Right (EvaluationSuccess dTerm)
+
+-- | For testing how an evaluator instantiated at a particular 'ExBudgetMode' handles the
+-- 'TrackCosts' builtin.
+test_TrackCostsWith
+    :: String -> Int -> (Term TyName Name DefaultUni ExtensionFun () -> IO ()) -> TestTree
+test_TrackCostsWith cat len checkTerm =
+    testCase ("TrackCosts: " ++ cat) $ do
+        let term
+                = apply () (builtin () TrackCosts)
+                $ mkConstant @Data () (List . replicate len $ I 42)
+        checkTerm term
+
+-- | Test that individual budgets are picked up by GC while spending is still ongoing.
+test_TrackCostsRestricting :: TestTree
+test_TrackCostsRestricting =
+    let n = 30000
+    in test_TrackCostsWith "restricting" n $ \term ->
+        case typecheckReadKnownCek def () term of
+            Left err                         -> fail $ displayPlcDef err
+            Right (Left err)                 -> fail $ displayPlcDef err
+            Right (Right (res :: [Integer])) -> do
+                let expected = n `div` 10
+                    actual = length res
+                    err = concat
+                        [ "Too few elements picked up by GC\n"
+                        , "Expected at least: " ++ show expected ++ "\n"
+                        , "But got: " ++ show actual
+                        ]
+                assertBool err $ expected < actual
+
+test_TrackCostsRetaining :: TestTree
+test_TrackCostsRetaining =
+    test_TrackCostsWith "retaining" 10000 $ \term -> do
+        let -- An 'ExBudgetMode' that retains all the individual budgets by sticking them into a
+            -- 'DList'.
+            retaining = monoidalBudgeting $ const DList.singleton
+            typecheckAndRunRetainer = typecheckAnd def $ \params term' ->
+                let (getRes, budgets) = runCekNoEmit params retaining term'
+                in (getRes >>= readKnownSelf, budgets)
+        case typecheckAndRunRetainer () term of
+            Left err                                  -> fail $ displayPlcDef err
+            Right (Left err, _)                       -> fail $ displayPlcDef err
+            Right (Right (res :: [Integer]), budgets) -> do
+                -- @length budgets@ is for retaining @budgets@ for as long as possible just in case.
+                -- @3@ is just for giving us room to handle erratic GC behavior. It really should be
+                -- @1@.
+                let expected = min 3 (length budgets)
+                    actual = length res
+                    err = concat
+                        [ "Too many elements picked up by GC\n"
+                        , "Expected at most: " ++ show expected ++ "\n"
+                        , "But got: " ++ show actual
+                        ]
+                assertBool err $ expected > actual
 
 -- | Test all integer related builtins
 test_Integer :: TestTree
@@ -415,23 +502,23 @@ test_List = testCase "List" $ do
     Right (EvaluationSuccess false)  @=?  typecheckEvaluateCekNoEmit def defaultBuiltinCostModel (nullViaChooseList [1..10])
 
  where
-   evalsL :: Contains DefaultUni a => a -> DefaultFun -> Type TyName DefaultUni () -> [Term TyName Name DefaultUni DefaultFun ()]  -> Assertion
+   evalsL :: DefaultUni `HasTermLevel` a => a -> DefaultFun -> Type TyName DefaultUni () -> [Term TyName Name DefaultUni DefaultFun ()]  -> Assertion
    evalsL expectedVal b tyArg args =
-    let actualExp = mkIterApp () (tyInst () (builtin () b) tyArg) args
+    let actualExp = mkIterAppNoAnn (tyInst () (builtin () b) tyArg) args
     in  Right (EvaluationSuccess $ cons expectedVal)
         @=?
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModel actualExp
 
    failsL :: DefaultFun -> Type TyName DefaultUni () -> [Term TyName Name DefaultUni DefaultFun ()]  -> Assertion
    failsL b tyArg args =
-    let actualExp = mkIterApp () (tyInst () (builtin () b) tyArg) args
+    let actualExp = mkIterAppNoAnn (tyInst () (builtin () b) tyArg) args
     in  Right EvaluationFailure
         @=?
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModel actualExp
 
    -- the null function that utilizes the ChooseList builtin (through the caseList helper function)
    nullViaChooseList :: [Integer] -> Term TyName Name DefaultUni DefaultFun ()
-   nullViaChooseList l = mkIterApp ()
+   nullViaChooseList l = mkIterAppNoAnn
                       (tyInst () (apply () (tyInst () Builtin.caseList integer) $ cons l) bool)
                       [ -- zero
                         true
@@ -483,7 +570,7 @@ test_Data = testCase "Data" $ do
     evals @ByteString "\162\ETX@Ehello8c" SerialiseData [cons $ Map [(I 3, B ""), (B "hello", I $ -100)]]
 
     -- ChooseData
-    let actualExp = mkIterApp ()
+    let actualExp = mkIterAppNoAnn
                       (tyInst () (apply () caseData $ cons $ I 3) bool)
                       [ -- constr
                         runQuote $ do
@@ -493,7 +580,7 @@ test_Data = testCase "Data" $ do
                         -- map
                       , runQuote $ do
                               a1 <- freshName "a1"
-                              pure $ lamAbs () a1 (TyApp () Builtin.list $ mkIterTyApp () pair [dataTy,dataTy]) false
+                              pure $ lamAbs () a1 (TyApp () Builtin.list $ mkIterTyAppNoAnn pair [dataTy,dataTy]) false
                        -- list
                       , runQuote $ do
                               a1 <- freshName "a1"
@@ -542,17 +629,111 @@ test_Crypto = testCase "Crypto" $ do
     -- b2sum -l 256 hex output: 256c83b297114d201b30179f3f0ef0cace9783622da5974326b436178aeef610
     evals @ByteString "%l\131\178\151\DC1M \ESC0\ETB\159?\SO\240\202\206\151\131b-\165\151C&\180\&6\ETB\138\238\246\DLE"
         Blake2b_256 [cons @ByteString "hello world"]
+    -- independently verified by `/usr/bin/b2sum -l 224` with the hex output converted to ascii text
+    -- b2sum -l 224 hex output: 42d1854b7d69e3b57c64fcc7b4f64171b47dff43fba6ac0499ff437f
+    evals @ByteString "B\209\133K}i\227\181|d\252\199\180\246Aq\180}\255C\251\166\172\EOT\153\255C\DEL"
+        Blake2b_224 [cons @ByteString "hello world"]
+    -- independently verified by the calculator at `https://emn178.github.io/online-tools/keccak_256.html`
+    -- with the hex output converted to ascii text
+    -- hex output: 47173285a8d7341e5e972fc677286384f802f8ef42a5ec5f03bbfa254cb01fad
+    evals @ByteString "G\ETB2\133\168\215\&4\RS^\151/\198w(c\132\248\STX\248\239B\165\236_\ETX\187\250%L\176\US\173"
+        Keccak_256 [cons @ByteString "hello world"]
+    -- Tests for blake2b_224: output obtained using the b2sum program from https://github.com/BLAKE2/BLAKE2
+    evals (pack [ 0x83, 0x6c, 0xc6, 0x89, 0x31, 0xc2, 0xe4, 0xe3, 0xe8, 0x38, 0x60, 0x2e, 0xca, 0x19
+                , 0x02, 0x59, 0x1d, 0x21, 0x68, 0x37, 0xba, 0xfd, 0xdf, 0xe6, 0xf0, 0xc8, 0xcb, 0x07 ])
+        Blake2b_224 [cons $ pack []]
+    evals (pack [ 0xfe, 0x57, 0xe0, 0x22, 0x87, 0x66, 0x2c, 0xe6, 0xe2, 0x9c, 0xba, 0x02, 0xca, 0x2f
+                , 0x23, 0xc4, 0x1f, 0x20, 0x84, 0xc7, 0x95, 0x9f, 0x1c, 0xa3, 0xa5, 0x7e, 0xaf, 0x9e ])
+        Blake2b_224 [cons $ pack [ 0xfc, 0x56, 0xca, 0x9a, 0x93, 0x98, 0x2a, 0x46, 0x69, 0xcc
+                                 , 0xab, 0xa6, 0xe3, 0xd1, 0x84, 0xa1, 0x9d, 0xe4, 0xce, 0x80
+                                 , 0x0b, 0xb6, 0x43, 0xa3, 0x60, 0xc1, 0x45, 0x72, 0xae, 0xdb
+                                 , 0x22, 0x97, 0x4f, 0x0c, 0x96, 0x6b, 0x85, 0x9d, 0x91, 0xad
+                                 , 0x5d, 0x71, 0x3b, 0x7a, 0xd9, 0x99, 0x35, 0x79, 0x4d, 0x22 ]] -- 400 bits
+    -- Tests for blake2b_256: output obtained using the b2sum program from https://github.com/BLAKE2/BLAKE2
+    evals (pack [ 0x0e, 0x57, 0x51, 0xc0, 0x26, 0xe5, 0x43, 0xb2, 0xe8, 0xab, 0x2e, 0xb0, 0x60, 0x99, 0xda, 0xa1
+                , 0xd1, 0xe5, 0xdf, 0x47, 0x77, 0x8f, 0x77, 0x87, 0xfa, 0xab, 0x45, 0xcd, 0xf1, 0x2f, 0xe3, 0xa8 ])
+        Blake2b_256 [cons $ pack []]
+    evals (pack [ 0xfc, 0x63, 0xa3, 0xcd, 0xf1, 0xc9, 0xbe, 0xb0, 0x9e, 0x18, 0x98, 0x8a, 0x95, 0x7c, 0x58, 0x31
+                , 0x98, 0xc7, 0xe3, 0x0f, 0xe4, 0x8b, 0x9e, 0x80, 0x41, 0xbb, 0x90, 0x4a, 0xf8, 0x78, 0x3b, 0x5c ])
+        Blake2b_256 [cons $ pack [ 0xfc, 0x56, 0xca, 0x9a, 0x93, 0x98, 0x2a, 0x46, 0x69, 0xcc
+                                 , 0xab, 0xa6, 0xe3, 0xd1, 0x84, 0xa1, 0x9d, 0xe4, 0xce, 0x80
+                                 , 0x0b, 0xb6, 0x43, 0xa3, 0x60, 0xc1, 0x45, 0x72, 0xae, 0xdb
+                                 , 0x22, 0x97, 0x4f, 0x0c, 0x96, 0x6b, 0x85, 0x9d, 0x91, 0xad
+                                 , 0x5d, 0x71, 0x3b, 0x7a, 0xd9, 0x99, 0x35, 0x79, 0x4d, 0x22 ]] -- 400 bits
+    -- Test vectors from ShortMsgKAT_256.txt in https://keccak.team/obsolete/KeccakKAT-3.zip.
+    evals (pack [ 0xC5, 0xD2, 0x46, 0x01, 0x86, 0xF7, 0x23, 0x3C, 0x92, 0x7E, 0x7D, 0xB2, 0xDC, 0xC7, 0x03, 0xC0
+                , 0xE5, 0x00, 0xB6, 0x53, 0xCA, 0x82, 0x27, 0x3B, 0x7B, 0xFA, 0xD8, 0x04, 0x5D, 0x85, 0xA4, 0x70 ])
+        Keccak_256 [cons $ pack []]
+    evals (pack [ 0xFA, 0x46, 0x0C, 0xD5, 0x1B, 0xC6, 0x11, 0x78, 0x6D, 0x36, 0x4F, 0xCA, 0xBE, 0x39, 0x05, 0x2B
+                , 0xCD, 0x5F, 0x00, 0x9E, 0xDF, 0xA8, 0x1F, 0x47, 0x01, 0xC5, 0xB2, 0x2B, 0x72, 0x9B, 0x00, 0x16 ])
+        Keccak_256 [cons $ pack [ 0x7E, 0x15, 0xD2, 0xB9, 0xEA, 0x74, 0xCA, 0x60, 0xF6, 0x6C
+                                , 0x8D, 0xFA, 0xB3, 0x77, 0xD9, 0x19, 0x8B, 0x7B, 0x16, 0xDE
+                                , 0xB6, 0xA1, 0xBA, 0x0E, 0xA3, 0xC7, 0xEE, 0x20, 0x42, 0xF8
+                                , 0x9D, 0x37, 0x86, 0xE7, 0x79, 0xCF, 0x05, 0x3C, 0x77, 0x78
+                                , 0x5A, 0xA9, 0xE6, 0x92, 0xF8, 0x21, 0xF1, 0x4A, 0x7F, 0x51 ]]  -- 400 bits
+    -- Test vectors for sha2_256 from SHA256ShortMessage.rsp in
+    -- https://csrc.nist.gov/CSRC/media/Projects/Cryptographic-Algorithm-Validation-Program/documents/shs/shabytetestvectors.zip
+    evals (pack [ 0xe3, 0xb0, 0xc4, 0x42, 0x98, 0xfc, 0x1c, 0x14, 0x9a, 0xfb, 0xf4, 0xc8, 0x99, 0x6f, 0xb9, 0x24
+                , 0x27, 0xae, 0x41, 0xe4, 0x64, 0x9b, 0x93, 0x4c, 0xa4, 0x95, 0x99, 0x1b, 0x78, 0x52, 0xb8, 0x55 ])
+        Sha2_256 [cons $ pack []]
+    evals (pack [ 0x99, 0xdc, 0x77, 0x2e, 0x91, 0xea, 0x02, 0xd9, 0xe4, 0x21, 0xd5, 0x52, 0xd6, 0x19, 0x01, 0x01
+                , 0x6b, 0x9f, 0xd4, 0xad, 0x2d, 0xf4, 0xa8, 0x21, 0x2c, 0x1e, 0xc5, 0xba, 0x13, 0x89, 0x3a, 0xb2 ])
+        Sha2_256 [cons $ pack [ 0x3d, 0x83, 0xdf, 0x37, 0x17, 0x2c, 0x81, 0xaf, 0xd0, 0xde
+                              , 0x11, 0x51, 0x39, 0xfb, 0xf4, 0x39, 0x0c, 0x22, 0xe0, 0x98
+                              , 0xc5, 0xaf, 0x4c, 0x5a, 0xb4, 0x85, 0x24, 0x06, 0x51, 0x0b
+                              , 0xc0, 0xe6, 0xcf, 0x74, 0x17, 0x69, 0xf4, 0x44, 0x30, 0xc5
+                              , 0x27, 0x0f, 0xda, 0xe0, 0xcb, 0x84, 0x9d, 0x71, 0xcb, 0xab ]] -- 400 bits
+    -- Test vectors for sha3_256 from SHA3_256ShortMessage.rsp in
+    -- https://csrc.nist.gov/CSRC/media/Projects/Cryptographic-Algorithm-Validation-Program/documents/sha3/sha-3bytetestvectors.zip
+    evals (pack [ 0xa7, 0xff, 0xc6, 0xf8, 0xbf, 0x1e, 0xd7, 0x66, 0x51, 0xc1, 0x47, 0x56, 0xa0, 0x61, 0xd6, 0x62
+                , 0xf5, 0x80, 0xff, 0x4d, 0xe4, 0x3b, 0x49, 0xfa, 0x82, 0xd8, 0x0a, 0x4b, 0x80, 0xf8, 0x43, 0x4a ])
+        Sha3_256 [cons $ pack []]
+    evals (pack [ 0xe2, 0x18, 0x06, 0xce, 0x76, 0x6b, 0xbc, 0xe8, 0xb8, 0xd1, 0xb9, 0x9b, 0xcf, 0x16, 0x2f, 0xd1
+                , 0x54, 0xf5, 0x46, 0x92, 0x35, 0x1a, 0xec, 0x8e, 0x69, 0x14, 0xe1, 0xa6, 0x94, 0xbd, 0xa9, 0xee ])
+        Sha3_256 [cons $ pack [ 0xfc, 0x56, 0xca, 0x9a, 0x93, 0x98, 0x2a, 0x46, 0x69, 0xcc
+                              , 0xab, 0xa6, 0xe3, 0xd1, 0x84, 0xa1, 0x9d, 0xe4, 0xce, 0x80
+                              , 0x0b, 0xb6, 0x43, 0xa3, 0x60, 0xc1, 0x45, 0x72, 0xae, 0xdb
+                              , 0x22, 0x97, 0x4f, 0x0c, 0x96, 0x6b, 0x85, 0x9d, 0x91, 0xad
+                              , 0x5d, 0x71, 0x3b, 0x7a, 0xd9, 0x99, 0x35, 0x79, 0x4d, 0x22 ]] -- 400 bits
+
+-- | Test that hashes produced by a hash function contain the expected number of bits
+test_HashSize :: DefaultFun -> Integer -> TestTree
+test_HashSize hashFun expectedNumBits =
+    let testName = "HashSize " ++ show hashFun ++ " is " ++ show expectedNumBits ++ " bits"
+        propName = fromString $ "HashSize " ++ show hashFun
+    in testPropertyNamed
+       testName
+       propName
+       . property $ do
+         bs <- forAll $ Gen.bytes (Range.linear 0 1000)
+         let term = mkIterAppNoAnn (builtin () MultiplyInteger)
+                    [ cons @Integer 8
+                    , mkIterAppNoAnn (builtin () LengthOfByteString)
+                          [mkIterAppNoAnn (builtin () hashFun) [cons @ByteString bs]]
+                    ]
+         typecheckEvaluateCekNoEmit def defaultBuiltinCostModel term === Right (EvaluationSuccess (cons @Integer expectedNumBits))
+
+-- | Check that all hash functions return hashes with the correct number of bits
+test_HashSizes :: TestTree
+test_HashSizes =
+    testGroup "Hash sizes"
+        [ test_HashSize Sha2_256    256
+        , test_HashSize Sha3_256    256
+        , test_HashSize Blake2b_256 256
+        , test_HashSize Keccak_256  256
+        , test_HashSize Blake2b_224 224
+        ]
 
 -- Test all remaining builtins of the default universe
 test_Other :: TestTree
 test_Other = testCase "Other" $ do
-    let expr1 = mkIterApp () (tyInst () (builtin () ChooseUnit) bool) [unitval, true]
+    let expr1 = mkIterAppNoAnn (tyInst () (builtin () ChooseUnit) bool) [unitval, true]
     Right (EvaluationSuccess true) @=? typecheckEvaluateCekNoEmit def defaultBuiltinCostModel expr1
 
-    let expr2 = mkIterApp () (tyInst () (builtin () IfThenElse) integer) [true, cons @Integer 1, cons @Integer 0]
+    let expr2 = mkIterAppNoAnn (tyInst () (builtin () IfThenElse) integer) [true, cons @Integer 1, cons @Integer 0]
     Right (EvaluationSuccess $ cons @Integer 1) @=? typecheckEvaluateCekNoEmit def defaultBuiltinCostModel expr2
 
-    let expr3 = mkIterApp () (tyInst () (builtin () Trace) integer) [cons @Text "hello world", cons @Integer 1]
+    let expr3 = mkIterAppNoAnn (tyInst () (builtin () Trace) integer) [cons @Text "hello world", cons @Integer 1]
     Right (EvaluationSuccess $ cons @Integer 1) @=? typecheckEvaluateCekNoEmit def defaultBuiltinCostModel expr3
 
 -- | Check that 'ExtensionVersion' evaluates correctly.
@@ -572,19 +753,19 @@ test_ConsByteString =
         let asciiBangWrapped = fromIntegral @Word8 @Integer maxBound
                              + 1 -- to make word8 wraparound
                              + 33 -- the index of '!' in ascii table
-            expr1 = mkIterApp () (builtin () (Left ConsByteString :: DefaultFunExt)) [cons @Integer asciiBangWrapped, cons @ByteString "hello world"]
+            expr1 = mkIterAppNoAnn (builtin () (Left ConsByteString :: DefaultFunExt)) [cons @Integer asciiBangWrapped, cons @ByteString "hello world"]
         Right (EvaluationSuccess $ cons @ByteString "!hello world")  @=? typecheckEvaluateCekNoEmit (PairV DefaultFunV1 def) defaultBuiltinCostModelExt expr1
         Right EvaluationFailure @=? typecheckEvaluateCekNoEmit (PairV DefaultFunV2 def) defaultBuiltinCostModelExt expr1
         Right EvaluationFailure @=? typecheckEvaluateCekNoEmit def defaultBuiltinCostModelExt expr1
 
 -- shorthand
-cons :: (Contains DefaultUni a, TermLike term tyname name DefaultUni fun) => a -> term ()
+cons :: (DefaultUni `HasTermLevel` a, TermLike term tyname name DefaultUni fun) => a -> term ()
 cons = mkConstant ()
 
 -- shorthand
-evals :: Contains DefaultUni a => a -> DefaultFun -> [Term TyName Name DefaultUni DefaultFun ()]  -> Assertion
+evals :: DefaultUni `HasTermLevel` a => a -> DefaultFun -> [Term TyName Name DefaultUni DefaultFun ()]  -> Assertion
 evals expectedVal b args =
-    let actualExp = mkIterApp () (builtin () b) args
+    let actualExp = mkIterAppNoAnn (builtin () b) args
     in  Right (EvaluationSuccess $ cons expectedVal)
         @=?
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModel actualExp
@@ -592,37 +773,51 @@ evals expectedVal b args =
 -- shorthand
 fails :: DefaultFun -> [Term TyName Name DefaultUni DefaultFun ()]  -> Assertion
 fails b args =
-    let actualExp = mkIterApp () (builtin () b) args
+    let actualExp = mkIterAppNoAnn (builtin () b) args
     in  Right EvaluationFailure
         @=?
         typecheckEvaluateCekNoEmit def defaultBuiltinCostModel actualExp
 
 -- Test that the SECP256k1 builtins are behaving correctly
--- Test that the SECP256k1 builtins are behaving correctly
 test_SignatureVerification :: TestTree
 test_SignatureVerification =
   adjustOption (\x -> max x . HedgehogTestLimit . Just $ 8000) .
   testGroup "Signature verification" $ [
-                 testGroup "Ed25519 signatures (V1)" $ [
-                                testPropertyNamed "Ed25519_V1 verification behaves correctly on all inputs" "ed25519_V1_correct" . property $ ed25519_V1Prop
-                               ],
-                 testGroup "Ed25519 signatures (V2)" $ [
-                                testPropertyNamed "Ed25519_V2 verification behaves correctly on all inputs" "ed25519_V2_correct" . property $ ed25519_V2Prop
-                               ],
-                 testGroup "Signatures on the SECP256k1 curve" $ [
-                                testPropertyNamed "ECDSA verification behaves correctly on all inputs" "ecdsa_correct" . property $ ecdsaSecp256k1Prop,
-                                testPropertyNamed "Schnorr verification behaves correctly on all inputs" "schnorr_correct" . property $ schnorrSecp256k1Prop
-                               ]
+        testGroup "Ed25519 signatures (V1)"
+                      [ testPropertyNamed
+                        "Ed25519_V1 verification behaves correctly on all inputs"
+                        "ed25519_V1_correct"
+                        . property $ ed25519_V1Prop
+                      ],
+        testGroup "Ed25519 signatures (V2)"
+                      [ testPropertyNamed
+                        "Ed25519_V2 verification behaves correctly on all inputs"
+                        "ed25519_V2_correct"
+                        . property $ ed25519_V2Prop
+                      ],
+        testGroup "Signatures on the SECP256k1 curve"
+                      [ testPropertyNamed
+                        "ECDSA verification behaves correctly on all inputs"
+                        "ecdsa_correct"
+                        . property $ ecdsaSecp256k1Prop
+                      , testPropertyNamed
+                            "Schnorr verification behaves correctly on all inputs"
+                            "schnorr_correct"
+                            . property $ schnorrSecp256k1Prop
+                      ]
                 ]
+
 test_definition :: TestTree
 test_definition =
     testGroup "definition"
         [ test_Factorial
+        , test_ForallFortyTwo
         , test_Const
         , test_Id
         , test_IdFInteger
         , test_IdList
         , test_IdRank2
+        , test_ScottToMetaUnit
         , test_FailingSucc
         , test_ExpensiveSucc
         , test_FailingPlus
@@ -632,12 +827,16 @@ test_definition =
         , test_BuiltinPair
         , test_SwapEls
         , test_IdBuiltinData
+        , test_TrackCostsRestricting
+        , test_TrackCostsRetaining
         , test_Integer
         , test_String
         , test_List
         , test_Data
         , test_Crypto
+        , test_HashSizes
         , test_SignatureVerification
+        , test_BLS12_381
         , test_Other
         , test_Version
         , test_ConsByteString

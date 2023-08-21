@@ -14,7 +14,6 @@ import Control.DeepSeq
 import Control.Lens
 import GHC.Exts (inline)
 import GHC.Generics
-import GHC.Types (Type)
 import NoThunks.Class
 
 {-| We need to account for the costs of evaluator steps and also built-in function
@@ -37,13 +36,18 @@ makeLenses ''CostModel
   cost model for builtins and their denotations.  This bundles one of those
   together with the cost model for evaluator steps.  The 'term' type will be
   CekValue when we're using this with the CEK machine. -}
-data MachineParameters machinecosts term (uni :: Type -> Type) (fun :: Type) =
+data MachineParameters machinecosts fun val =
     MachineParameters {
       machineCosts    :: machinecosts
-    , builtinsRuntime :: BuiltinsRuntime fun (term uni fun)
+    , builtinsRuntime :: BuiltinsRuntime fun val
     }
     deriving stock Generic
-    deriving anyclass (NFData, NoThunks)
+    deriving anyclass (NFData)
+
+-- For some reason the generic instance gives incorrect nothunk errors,
+-- see https://github.com/input-output-hk/nothunks/issues/24
+instance (NoThunks machinecosts, Bounded fun, Enum fun) => NoThunks (MachineParameters machinecosts fun val) where
+  wNoThunks ctx (MachineParameters costs runtime) = allNoThunks [ noThunks ctx costs, noThunks ctx runtime ]
 
 {- Note [The equality constraint in mkMachineParameters]
 Discharging the @CostingPart uni fun ~ builtincosts@ constraint in 'mkMachineParameters' causes GHC
@@ -76,13 +80,12 @@ mkMachineParameters ::
     ( -- WARNING: do not discharge the equality constraint as that causes GHC to fail to inline the
       -- function at its call site, see Note [The CostingPart constraint in mkMachineParameters].
       CostingPart uni fun ~ builtincosts
-    , HasMeaningIn uni (val uni fun)
+    , HasMeaningIn uni val
     , ToBuiltinMeaning uni fun
     )
     => BuiltinVersion fun
-    -> UnliftingMode
     -> CostModel machinecosts builtincosts
-    -> MachineParameters machinecosts val uni fun
-mkMachineParameters ver unlMode (CostModel mchnCosts builtinCosts) =
-    MachineParameters mchnCosts (inline toBuiltinsRuntime ver unlMode builtinCosts)
+    -> MachineParameters machinecosts fun val
+mkMachineParameters ver (CostModel mchnCosts builtinCosts) =
+    MachineParameters mchnCosts (inline toBuiltinsRuntime ver builtinCosts)
 {-# INLINE mkMachineParameters #-}

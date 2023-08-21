@@ -3,8 +3,9 @@
 module PlutusLedgerApi.V2 (
     -- * Scripts
       SerialisedScript
-    , Script
-    , fromCompiledCode
+    , serialiseCompiledCode
+    , serialiseUPLC
+    , uncheckedDeserialiseUPLC
     -- * Validating scripts
     , assertScriptWellFormed
     -- * Running scripts
@@ -79,24 +80,12 @@ module PlutusLedgerApi.V2 (
     -- *** Association maps
     , Map
     , fromList
-    -- *** Newtypes for script/datum types and hash types
-    , Validator (..)
-    , mkValidatorScript
-    , unValidatorScript
-    , ValidatorHash (..)
-    , MintingPolicy (..)
-    , mkMintingPolicyScript
-    , unMintingPolicyScript
-    , MintingPolicyHash (..)
-    , StakeValidator (..)
-    , mkStakeValidatorScript
-    , unStakeValidatorScript
-    , StakeValidatorHash (..)
+    -- *** Newtypes and hash types
+    , ScriptHash (..)
     , Redeemer (..)
     , RedeemerHash (..)
     , Datum (..)
     , DatumHash (..)
-    , ScriptHash (..)
     -- * Data
     , Data (..)
     , BuiltinData (..)
@@ -118,10 +107,9 @@ import PlutusLedgerApi.Common as Common hiding (assertScriptWellFormed, evaluate
                                          evaluateScriptRestricting)
 import PlutusLedgerApi.Common qualified as Common (assertScriptWellFormed, evaluateScriptCounting,
                                                    evaluateScriptRestricting)
-import PlutusLedgerApi.V1 hiding (ParamName, ScriptContext (..), TxInInfo (..), TxInfo (..), TxOut (..),
-                           assertScriptWellFormed, evaluateScriptCounting, evaluateScriptRestricting,
-                           mkEvaluationContext)
-import PlutusLedgerApi.V1.Scripts (ScriptHash (..))
+import PlutusLedgerApi.V1 hiding (ParamName, ScriptContext (..), TxInInfo (..), TxInfo (..),
+                           TxOut (..), assertScriptWellFormed, evaluateScriptCounting,
+                           evaluateScriptRestricting, mkEvaluationContext)
 import PlutusLedgerApi.V2.Contexts
 import PlutusLedgerApi.V2.EvaluationContext
 import PlutusLedgerApi.V2.ParamName
@@ -130,31 +118,31 @@ import PlutusLedgerApi.V2.Tx (OutputDatum (..))
 import PlutusCore.Data qualified as PLC
 import PlutusTx.AssocMap (Map, fromList)
 
--- | An alias to the language version this module exposes at runtime.
+-- | An alias to the Plutus ledger language this module exposes at runtime.
 --  MAYBE: Use CPP '__FILE__' + some TH to automate this.
-thisPlutusVersion :: LedgerPlutusVersion
-thisPlutusVersion = PlutusV2
+thisLedgerLanguage :: PlutusLedgerLanguage
+thisLedgerLanguage = PlutusV2
 
 -- | Check if a 'Script' is "valid" according to a protocol version. At the moment this means "deserialises correctly", which in particular
 -- implies that it is (almost certainly) an encoded script and the script does not mention any builtins unavailable in the given protocol version.
 assertScriptWellFormed :: MonadError ScriptDecodeError  m
-                       => ProtocolVersion
-                       -> SerialisedScript
+                       => ProtocolVersion -- ^ which protocol version to run the operation in
+                       -> SerialisedScript -- ^ the script to check for well-formedness
                        -> m ()
-assertScriptWellFormed = Common.assertScriptWellFormed thisPlutusVersion
+assertScriptWellFormed = Common.assertScriptWellFormed thisLedgerLanguage
 
 -- | Evaluates a script, returning the minimum budget that the script would need
 -- to evaluate successfully. This will take as long as the script takes, if you need to
 -- limit the execution time of the script also, you can use 'evaluateScriptRestricting', which
 -- also returns the used budget.
 evaluateScriptCounting
-    :: ProtocolVersion
+    :: ProtocolVersion -- ^ which protocol version to run the operation in
     -> VerboseMode     -- ^ Whether to produce log output
-    -> EvaluationContext -- ^ The cost model that should already be synced to the most recent cost-model-params coming from the current protocol
+    -> EvaluationContext -- ^ Includes the cost model to use for tallying up the execution costs
     -> SerialisedScript          -- ^ The script to evaluate
     -> [PLC.Data]          -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ExBudget)
-evaluateScriptCounting = Common.evaluateScriptCounting thisPlutusVersion
+evaluateScriptCounting = Common.evaluateScriptCounting thisLedgerLanguage
 
 -- | Evaluates a script, with a cost model and a budget that restricts how many
 -- resources it can use according to the cost model. Also returns the budget that
@@ -163,11 +151,11 @@ evaluateScriptCounting = Common.evaluateScriptCounting thisPlutusVersion
 -- Can be used to calculate budgets for scripts, but even in this case you must give
 -- a limit to guard against scripts that run for a long time or loop.
 evaluateScriptRestricting
-    :: ProtocolVersion
+    :: ProtocolVersion -- ^ which protocol version to run the operation in
     -> VerboseMode     -- ^ Whether to produce log output
-    -> EvaluationContext -- ^ The cost model that should already be synced to the most recent cost-model-params coming from the current protocol
+    -> EvaluationContext -- ^ Includes the cost model to use for tallying up the execution costs
     -> ExBudget        -- ^ The resource budget which must not be exceeded during evaluation
     -> SerialisedScript          -- ^ The script to evaluate
     -> [PLC.Data]          -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ExBudget)
-evaluateScriptRestricting = Common.evaluateScriptRestricting thisPlutusVersion
+evaluateScriptRestricting = Common.evaluateScriptRestricting thisLedgerLanguage
