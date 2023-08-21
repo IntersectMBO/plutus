@@ -236,7 +236,7 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
                             -- process the args if it's a variable that's in the map
                             processedArgs <- processArgs args
                             -- consider call site inlining since it's a variable
-                            t' <- callSiteInline t varInfo processedArgs
+                            t' <- callSiteInline tm varInfo processedArgs
                             forMOf termSubterms t' processTerm
                         -- The variable maybe a *recursive* let binding, in which case it won't be
                         -- in the map, and we don't process it. ATM recursive bindings aren't
