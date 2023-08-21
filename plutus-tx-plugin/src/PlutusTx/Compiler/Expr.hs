@@ -11,7 +11,6 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE ViewPatterns          #-}
-
 {-# OPTIONS_GHC -Wno-partial-type-signatures #-}
 
 -- | Functions for compiling GHC Core expressions into Plutus Core terms.
@@ -40,6 +39,7 @@ import PlutusTx.Compiler.Utils
 import PlutusTx.Coverage
 import PlutusTx.PIRTypes
 import PlutusTx.PLCTypes (PLCType, PLCVar)
+
 -- I feel like we shouldn't need this, we only need it to spot the special String type, which is annoying
 import PlutusTx.Builtins.Class qualified as Builtins
 import PlutusTx.Trace
@@ -76,7 +76,6 @@ type system - everything is constructed via operators on base types, so we have 
 need for coercions to convert between newtypes and datatypes.
 -}
 
-
 -- Literals and primitives
 
 {- Note [Literals]
@@ -103,111 +102,120 @@ So we use a horrible hack and match on `build . unpackFoldrCString#` to "undo" t
 rule.
 -}
 
-compileLiteral
-    :: CompilingDefault uni fun m ann
-    => GHC.Literal -> m (PIRTerm uni fun)
+compileLiteral ::
+  (CompilingDefault uni fun m ann) =>
+  GHC.Literal ->
+  m (PIRTerm uni fun)
 compileLiteral = \case
-    -- Just accept any kind of number literal, we'll complain about types we don't support elsewhere
-    (GHC.LitNumber _ i) -> pure $ PIR.embed $ PLC.mkConstant annMayInline i
-    GHC.LitString _     -> throwPlain $ UnsupportedError "Literal string (maybe you need to use OverloadedStrings)"
-    GHC.LitChar _       -> throwPlain $ UnsupportedError "Literal char"
-    GHC.LitFloat _      -> throwPlain $ UnsupportedError "Literal float"
-    GHC.LitDouble _     -> throwPlain $ UnsupportedError "Literal double"
-    GHC.LitLabel {}     -> throwPlain $ UnsupportedError "Literal label"
-    GHC.LitNullAddr     -> throwPlain $ UnsupportedError "Literal null"
-    GHC.LitRubbish {}   -> throwPlain $ UnsupportedError "Literal rubbish"
+  -- Just accept any kind of number literal, we'll complain about types we don't support elsewhere
+  (GHC.LitNumber _ i) -> pure $ PIR.embed $ PLC.mkConstant annMayInline i
+  GHC.LitString _ -> throwPlain $ UnsupportedError "Literal string (maybe you need to use OverloadedStrings)"
+  GHC.LitChar _ -> throwPlain $ UnsupportedError "Literal char"
+  GHC.LitFloat _ -> throwPlain $ UnsupportedError "Literal float"
+  GHC.LitDouble _ -> throwPlain $ UnsupportedError "Literal double"
+  GHC.LitLabel{} -> throwPlain $ UnsupportedError "Literal label"
+  GHC.LitNullAddr -> throwPlain $ UnsupportedError "Literal null"
+  GHC.LitRubbish{} -> throwPlain $ UnsupportedError "Literal rubbish"
 
 -- TODO: this is annoyingly duplicated with the code 'compileExpr', but I failed to unify them since they
 -- do different things to the inner expression. This one assumes it's a literal, the other one keeps compiling
 -- through it.
+
 -- | Get the bytestring content of a string expression, if possible. Follows (Haskell) variable references!
 stringExprContent :: GHC.CoreExpr -> Maybe BS.ByteString
 stringExprContent = \case
-    GHC.Lit (GHC.LitString bs) -> Just bs
-    -- unpackCString# is just a wrapper around a literal
-    GHC.Var n `GHC.App` expr | GHC.getName n == GHC.unpackCStringName -> stringExprContent expr
-    -- See Note [unpackFoldrCString#]
-    GHC.Var build `GHC.App` _ `GHC.App` GHC.Lam _ (GHC.Var unpack `GHC.App` _ `GHC.App` expr)
-        | GHC.getName build == GHC.buildName && GHC.getName unpack == GHC.unpackCStringFoldrName -> stringExprContent expr
-    -- GHC helpfully generates an empty list for the empty string literal instead of a 'LitString'
-    GHC.Var nil `GHC.App` GHC.Type (GHC.tyConAppTyCon_maybe -> Just tc)
-        | nil == GHC.dataConWorkId GHC.nilDataCon, GHC.getName tc == GHC.charTyConName -> Just mempty
-    -- Chase variable references! GHC likes to lift string constants to variables, that is not good for us!
-    GHC.Var (GHC.maybeUnfoldingTemplate . GHC.realIdUnfolding -> Just unfolding) -> stringExprContent unfolding
-    _ -> Nothing
+  GHC.Lit (GHC.LitString bs) -> Just bs
+  -- unpackCString# is just a wrapper around a literal
+  GHC.Var n `GHC.App` expr | GHC.getName n == GHC.unpackCStringName -> stringExprContent expr
+  -- See Note [unpackFoldrCString#]
+  GHC.Var build `GHC.App` _ `GHC.App` GHC.Lam _ (GHC.Var unpack `GHC.App` _ `GHC.App` expr)
+    | GHC.getName build == GHC.buildName && GHC.getName unpack == GHC.unpackCStringFoldrName -> stringExprContent expr
+  -- GHC helpfully generates an empty list for the empty string literal instead of a 'LitString'
+  GHC.Var nil `GHC.App` GHC.Type (GHC.tyConAppTyCon_maybe -> Just tc)
+    | nil == GHC.dataConWorkId GHC.nilDataCon, GHC.getName tc == GHC.charTyConName -> Just mempty
+  -- Chase variable references! GHC likes to lift string constants to variables, that is not good for us!
+  GHC.Var (GHC.maybeUnfoldingTemplate . GHC.realIdUnfolding -> Just unfolding) -> stringExprContent unfolding
+  _ -> Nothing
 
--- | Strip off irrelevant things when we're trying to match a particular pattern in the code. Mostly ticks.
--- We only need to do this as part of a complex pattern match: if we're just compiling the expression
--- in question we will strip this off anyway.
+{- | Strip off irrelevant things when we're trying to match a particular pattern in the code. Mostly ticks.
+We only need to do this as part of a complex pattern match: if we're just compiling the expression
+in question we will strip this off anyway.
+-}
 strip :: GHC.CoreExpr -> GHC.CoreExpr
 strip = \case
-    GHC.Var n `GHC.App` GHC.Type _ `GHC.App` expr | GHC.getName n == GHC.noinlineIdName -> strip expr
-    GHC.Tick _ expr                                                                     -> strip expr
-    expr                                                                                -> expr
+  GHC.Var n `GHC.App` GHC.Type _ `GHC.App` expr | GHC.getName n == GHC.noinlineIdName -> strip expr
+  GHC.Tick _ expr                                                                     -> strip expr
+  expr                                                                                -> expr
 
 -- | Convert a reference to a data constructor, i.e. a call to it.
-compileDataConRef :: CompilingDefault uni fun m ann => GHC.DataCon -> m (PIRTerm uni fun)
-compileDataConRef dc =
-    let
-        tc = GHC.dataConTyCon dc
-    in do
-        dcs <- getDataCons tc
-        constrs <- getConstructors tc
+compileDataConRef :: (CompilingDefault uni fun m ann) => GHC.DataCon -> m (PIRTerm uni fun)
+compileDataConRef dc = do
+  dcs <- getDataCons tc
+  constrs <- getConstructors tc
 
-        -- TODO: this is inelegant
-        index <- case elemIndex dc dcs of
-            Just i  -> pure i
-            Nothing -> throwPlain $ CompilationError "Data constructor not in the type constructor's list of constructors"
+  -- TODO: this is inelegant
+  index <- case elemIndex dc dcs of
+    Just i -> pure i
+    Nothing ->
+      throwPlain $
+        CompilationError "Data constructor not in the type constructor's list of constructors"
 
-        pure $ constrs !! index
+  pure $ constrs !! index
+  where
+    tc = GHC.dataConTyCon dc
 
--- | Finds the alternative for a given data constructor in a list of alternatives. The type
--- of the overall match must also be provided.
---
--- This differs from 'GHC.findAlt' in what it does when the constructor is not matched (this can
--- happen when the match is exhaustive *in context* only, see the doc on 'GHC.Expr'). We need an
--- alternative regardless, so we make an "impossible" alternative since this case should be unreachable.
+{- | Finds the alternative for a given data constructor in a list of alternatives. The type
+of the overall match must also be provided.
+
+This differs from 'GHC.findAlt' in what it does when the constructor is not matched (this can
+happen when the match is exhaustive *in context* only, see the doc on 'GHC.Expr'). We need an
+alternative regardless, so we make an "impossible" alternative since this case should be unreachable.
+-}
 findAlt :: GHC.DataCon -> [GHC.CoreAlt] -> GHC.Type -> GHC.CoreAlt
 findAlt dc alts t = case GHC.findAlt (GHC.DataAlt dc) alts of
-    Just alt -> alt
-    Nothing  ->
-      let
+  Just alt -> alt
+  Nothing ->
+    let
 #if MIN_VERSION_ghc(9,6,0)
-        e = GHC.mkImpossibleExpr t "unreachable alternative"
+      e = GHC.mkImpossibleExpr t "unreachable alternative"
 #else
-        e = GHC.mkImpossibleExpr t
+      e = GHC.mkImpossibleExpr t
+     in
 #endif
-      in GHC.Alt GHC.DEFAULT [] e
+      GHC.Alt GHC.DEFAULT [] e
 
 -- | Make alternatives with non-delayed and delayed bodies for a given 'CoreAlt'.
-compileAlt
-    :: CompilingDefault uni fun m ann
-    => GHC.CoreAlt -- ^ The 'CoreAlt' representing the branch itself.
-    -> [GHC.Type] -- ^ The instantiated type arguments for the data constructor.
-    -> m (PIRTerm uni fun, PIRTerm uni fun) -- ^ Non-delayed and delayed
+compileAlt ::
+  (CompilingDefault uni fun m ann) =>
+  -- | The 'CoreAlt' representing the branch itself.
+  GHC.CoreAlt ->
+  -- | The instantiated type arguments for the data constructor.
+  [GHC.Type] ->
+  -- | Non-delayed and delayed
+  m (PIRTerm uni fun, PIRTerm uni fun)
 compileAlt (GHC.Alt alt vars body) instArgTys =
   traceCompilation 3 ("Creating alternative:" GHC.<+> GHC.ppr alt) $ case alt of
-    GHC.LitAlt _  -> throwPlain $ UnsupportedError "Literal case"
+    GHC.LitAlt _ -> throwPlain $ UnsupportedError "Literal case"
     -- We just package it up as a lambda bringing all the
     -- vars into scope whose body is the body of the case alternative.
     -- See Note [Iterated abstraction and application]
     -- See Note [Case expressions and laziness]
     GHC.DataAlt _ -> withVarsScoped vars $ \vars' -> do
-        b <- compileExpr body
-        delayed <- delay b
-        return (PLC.mkIterLamAbs vars' b, PLC.mkIterLamAbs vars' delayed)
-    GHC.DEFAULT   -> do
-        compiledBody <- compileExpr body
-        nonDelayed <- wrapDefaultAlt compiledBody
-        delayed <- delay compiledBody >>= wrapDefaultAlt
-        return (nonDelayed, delayed)
-    where
-        wrapDefaultAlt :: CompilingDefault uni fun m ann => PIRTerm uni fun -> m (PIRTerm uni fun)
-        wrapDefaultAlt body' = do
-            -- need to consume the args
-            argTypes <- mapM compileTypeNorm instArgTys
-            argNames <- forM [0..(length argTypes -1)] (\i -> safeFreshName $ "default_arg" <> (T.pack $ show i))
-            pure $ PIR.mkIterLamAbs (zipWith (PIR.VarDecl annMayInline) argNames argTypes) body'
+      b <- compileExpr body
+      delayed <- delay b
+      return (PLC.mkIterLamAbs vars' b, PLC.mkIterLamAbs vars' delayed)
+    GHC.DEFAULT -> do
+      compiledBody <- compileExpr body
+      nonDelayed <- wrapDefaultAlt compiledBody
+      delayed <- delay compiledBody >>= wrapDefaultAlt
+      return (nonDelayed, delayed)
+  where
+    wrapDefaultAlt :: (CompilingDefault uni fun m ann) => PIRTerm uni fun -> m (PIRTerm uni fun)
+    wrapDefaultAlt body' = do
+      -- need to consume the args
+      argTypes <- mapM compileTypeNorm instArgTys
+      argNames <- forM [0 .. (length argTypes - 1)] (\i -> safeFreshName $ "default_arg" <> (T.pack $ show i))
+      pure $ PIR.mkIterLamAbs (zipWith (PIR.VarDecl annMayInline) argNames argTypes) body'
 
 -- See Note [GHC runtime errors]
 isErrorId :: GHC.Id -> Bool
@@ -216,18 +224,18 @@ isErrorId ghcId = ghcId `elem` GHC.errorIds
 -- See Note [Uses of Eq]
 isProbablyBytestringEq :: GHC.Id -> Bool
 isProbablyBytestringEq (GHC.getName -> n)
-    | Just m <- GHC.nameModule_maybe n
-    , GHC.moduleNameString (GHC.moduleName m) == "Data.ByteString.Internal" || GHC.moduleNameString (GHC.moduleName m) == "Data.ByteString.Lazy.Internal"
-    , GHC.occNameString (GHC.nameOccName n) == "eq"
-    = True
+  | Just m <- GHC.nameModule_maybe n
+  , GHC.moduleNameString (GHC.moduleName m) == "Data.ByteString.Internal" || GHC.moduleNameString (GHC.moduleName m) == "Data.ByteString.Lazy.Internal"
+  , GHC.occNameString (GHC.nameOccName n) == "eq" =
+      True
 isProbablyBytestringEq _ = False
 
 isProbablyIntegerEq :: GHC.Id -> Bool
 isProbablyIntegerEq (GHC.getName -> n)
-    | Just m <- GHC.nameModule_maybe n
-    , GHC.moduleNameString (GHC.moduleName m) == "GHC.Num.Integer"
-    , GHC.occNameString (GHC.nameOccName n) == "integerEq"
-    = True
+  | Just m <- GHC.nameModule_maybe n
+  , GHC.moduleNameString (GHC.moduleName m) == "GHC.Num.Integer"
+  , GHC.occNameString (GHC.nameOccName n) == "integerEq" =
+      True
 isProbablyIntegerEq _ = False
 
 {- Note [GHC runtime errors]
@@ -464,71 +472,73 @@ for any variables that were freshly created by the simplifier. That's easy to fi
 ourselves before we start.
 -}
 
-hoistExpr
-    :: CompilingDefault uni fun m ann
-    => GHC.Var -> GHC.CoreExpr -> m (PIRTerm uni fun)
+hoistExpr ::
+  (CompilingDefault uni fun m ann) =>
+  GHC.Var ->
+  GHC.CoreExpr ->
+  m (PIRTerm uni fun)
 hoistExpr var t = do
-    let name = GHC.getName var
-        lexName = LexName name
-        -- If the original ID has an "always inline" pragma, then
-        -- propagate that to PIR so that the PIR inliner will deal
-        -- with it.
-        hasInlinePragma = GHC.isInlinePragma $ GHC.idInlinePragma var
-        ann = if hasInlinePragma then annAlwaysInline else annMayInline
+  let name = GHC.getName var
+      lexName = LexName name
+      -- If the original ID has an "always inline" pragma, then
+      -- propagate that to PIR so that the PIR inliner will deal
+      -- with it.
+      hasInlinePragma = GHC.isInlinePragma $ GHC.idInlinePragma var
+      ann = if hasInlinePragma then annAlwaysInline else annMayInline
+  -- See Note [Dependency tracking]
+  modifyCurDeps (Set.insert lexName)
+  maybeDef <- PIR.lookupTerm annMayInline lexName
+  let addSpan = case getVarSourceSpan var of
+        Nothing  -> id
+        Just src -> fmap . fmap . addSrcSpan $ src ^. srcSpanIso
+  case maybeDef of
+    Just term -> pure term
     -- See Note [Dependency tracking]
-    modifyCurDeps (Set.insert lexName)
-    maybeDef <- PIR.lookupTerm annMayInline lexName
-    let addSpan = case getVarSourceSpan var of
-            Nothing  -> id
-            Just src -> fmap . fmap . addSrcSpan $ src ^. srcSpanIso
-    case maybeDef of
-        Just term -> pure term
-        -- See Note [Dependency tracking]
-        Nothing -> withCurDef lexName . traceCompilation 1 ("Compiling definition of:" GHC.<+> GHC.ppr var) $ do
-            var' <- compileVarFresh ann var
-            -- See Note [Occurrences of recursive names]
-            PIR.defineTerm
-                lexName
-                (PIR.Def var' (PIR.mkVar ann var', PIR.Strict))
-                mempty
+    Nothing -> withCurDef lexName . traceCompilation 1 ("Compiling definition of:" GHC.<+> GHC.ppr var) $ do
+      var' <- compileVarFresh ann var
+      -- See Note [Occurrences of recursive names]
+      PIR.defineTerm
+        lexName
+        (PIR.Def var' (PIR.mkVar ann var', PIR.Strict))
+        mempty
 
-            t' <- maybeProfileRhs var' =<< addSpan (compileExpr t)
-            -- See Note [Non-strict let-bindings]
-            PIR.modifyTermDef lexName (const $ PIR.Def var' (t', PIR.NonStrict))
-            pure $ PIR.mkVar ann var'
+      t' <- maybeProfileRhs var' =<< addSpan (compileExpr t)
+      -- See Note [Non-strict let-bindings]
+      PIR.modifyTermDef lexName (const $ PIR.Def var' (t', PIR.NonStrict))
+      pure $ PIR.mkVar ann var'
 
-maybeProfileRhs :: CompilingDefault uni fun m ann => PLCVar uni -> PIRTerm uni fun -> m (PIRTerm uni fun)
+maybeProfileRhs :: (CompilingDefault uni fun m ann) => PLCVar uni -> PIRTerm uni fun -> m (PIRTerm uni fun)
 maybeProfileRhs var t = do
-    CompileContext {ccOpts=compileOpts} <- ask
-    let ty = PLC._varDeclType var
-        varName = PLC._varDeclName var
-        displayName = T.pack $ PP.displayPlcDef varName
-        isFunctionOrAbstraction = case ty of { PLC.TyFun{} -> True; PLC.TyForall{} -> True; _ -> False }
-    -- Trace only if profiling is on *and* the thing being defined is a function
-    if coProfile compileOpts==All && isFunctionOrAbstraction
+  CompileContext{ccOpts = compileOpts} <- ask
+  let ty = PLC._varDeclType var
+      varName = PLC._varDeclName var
+      displayName = T.pack $ PP.displayPlcDef varName
+      isFunctionOrAbstraction = case ty of PLC.TyFun{} -> True; PLC.TyForall{} -> True; _ -> False
+  -- Trace only if profiling is on *and* the thing being defined is a function
+  if coProfile compileOpts == All && isFunctionOrAbstraction
     then do
-        thunk <- PLC.freshName "thunk"
-        pure $ entryExitTracingInside thunk displayName t ty
+      thunk <- PLC.freshName "thunk"
+      pure $ entryExitTracingInside thunk displayName t ty
     else pure t
 
-mkTrace
-    :: (uni `PLC.HasTermLevel` T.Text)
-    => PLC.Type PLC.TyName uni Ann
-    -> T.Text
-    -> PIRTerm uni PLC.DefaultFun
-    -> PIRTerm uni PLC.DefaultFun
+mkTrace ::
+  (uni `PLC.HasTermLevel` T.Text) =>
+  PLC.Type PLC.TyName uni Ann ->
+  T.Text ->
+  PIRTerm uni PLC.DefaultFun ->
+  PIRTerm uni PLC.DefaultFun
 mkTrace ty str v =
-    PLC.mkIterApp
-        (PIR.TyInst annMayInline (PIR.Builtin annMayInline PLC.Trace) ty)
-        ((annMayInline,) <$> [PLC.mkConstant annMayInline str, v])
+  PLC.mkIterApp
+    (PIR.TyInst annMayInline (PIR.Builtin annMayInline PLC.Trace) ty)
+    ((annMayInline,) <$> [PLC.mkConstant annMayInline str, v])
 
 -- `mkLazyTrace ty str v` builds the term `force (trace str (delay v))` if `v` has type `ty`
-mkLazyTrace
-    :: CompilingDefault uni fun m ann
-    => PLC.Type PLC.TyName uni Ann
-    -> T.Text
-    -> PIRTerm uni PLC.DefaultFun
-    -> m (PIRTerm uni fun)
+mkLazyTrace ::
+  (CompilingDefault uni fun m ann) =>
+  PLC.Type PLC.TyName uni Ann ->
+  T.Text ->
+  PIRTerm uni PLC.DefaultFun ->
+  m (PIRTerm uni fun)
 mkLazyTrace ty str v = do
   delayedBody <- delay v
   delayedType <- delayType ty
@@ -574,57 +584,58 @@ f :: Identity (a -> a)
 f = Identity (\x -> x)
 -}
 
--- | Add entry/exit tracing inside a term's leading arguments, both term and type arguments.
--- @(/\a -> \b -> body)@ into @/\a -> \b -> entryExitTracing body@.
+{- | Add entry/exit tracing inside a term's leading arguments, both term and type arguments.
+@(/\a -> \b -> body)@ into @/\a -> \b -> entryExitTracing body@.
+-}
 entryExitTracingInside ::
-    PIR.Name
-    -> T.Text
-    -> PIRTerm PLC.DefaultUni PLC.DefaultFun
-    -> PLCType PLC.DefaultUni
-    -> PIRTerm PLC.DefaultUni PLC.DefaultFun
+  PIR.Name ->
+  T.Text ->
+  PIRTerm PLC.DefaultUni PLC.DefaultFun ->
+  PLCType PLC.DefaultUni ->
+  PIRTerm PLC.DefaultUni PLC.DefaultFun
 entryExitTracingInside lamName displayName = go mempty
-    where
-        go ::
-            Map.Map PLC.TyName (PLCType PLC.DefaultUni)
-            -> PIRTerm PLC.DefaultUni PLC.DefaultFun
-            -> PLCType PLC.DefaultUni
-            -> PIRTerm PLC.DefaultUni PLC.DefaultFun
-        go subst (LamAbs ann n t body) (PLC.TyFun _ _dom cod) =
-            -- when t = \x -> body, => \x -> entryExitTracingInside body
-            LamAbs ann n t $ go subst body cod
-        go subst (TyAbs ann tn1 k body) (PLC.TyForall _ tn2 _k ty) =
-            -- when t = /\x -> body, => /\x -> entryExitTracingInside body
-            -- See Note [Profiling polymorphic functions]
-            let subst' = Map.insert tn2 (PLC.TyVar annMayInline tn1) subst
-            in TyAbs ann tn1 k $ go subst' body ty
-        -- See Note [Term/type argument mismatches]
-        -- Even if there still look like there are arguments on the term or the type level, because we've hit
-        -- a mismatch we go ahead and insert our profiling traces here.
-        go subst e ty =
-            -- See Note [Profiling polymorphic functions]
-            let ty' = PLC.typeSubstTyNames (\tn -> Map.lookup tn subst) ty
-            in entryExitTracing lamName displayName e ty'
+  where
+    go ::
+      Map.Map PLC.TyName (PLCType PLC.DefaultUni) ->
+      PIRTerm PLC.DefaultUni PLC.DefaultFun ->
+      PLCType PLC.DefaultUni ->
+      PIRTerm PLC.DefaultUni PLC.DefaultFun
+    go subst (LamAbs ann n t body) (PLC.TyFun _ _dom cod) =
+      -- when t = \x -> body, => \x -> entryExitTracingInside body
+      LamAbs ann n t $ go subst body cod
+    go subst (TyAbs ann tn1 k body) (PLC.TyForall _ tn2 _k ty) =
+      -- when t = /\x -> body, => /\x -> entryExitTracingInside body
+      -- See Note [Profiling polymorphic functions]
+      let subst' = Map.insert tn2 (PLC.TyVar annMayInline tn1) subst
+       in TyAbs ann tn1 k $ go subst' body ty
+    -- See Note [Term/type argument mismatches]
+    -- Even if there still look like there are arguments on the term or the type level, because we've hit
+    -- a mismatch we go ahead and insert our profiling traces here.
+    go subst e ty =
+      -- See Note [Profiling polymorphic functions]
+      let ty' = PLC.typeSubstTyNames (\tn -> Map.lookup tn subst) ty
+       in entryExitTracing lamName displayName e ty'
 
 -- | Add tracing before entering and after exiting a term.
 entryExitTracing ::
-    PLC.Name
-    -> T.Text
-    -> PIRTerm PLC.DefaultUni PLC.DefaultFun
-    -> PLC.Type PLC.TyName PLC.DefaultUni Ann
-    -> PIRTerm PLC.DefaultUni PLC.DefaultFun
+  PLC.Name ->
+  T.Text ->
+  PIRTerm PLC.DefaultUni PLC.DefaultFun ->
+  PLC.Type PLC.TyName PLC.DefaultUni Ann ->
+  PIRTerm PLC.DefaultUni PLC.DefaultFun
 entryExitTracing lamName displayName e ty =
-    let defaultUnitTy = PLC.TyBuiltin annMayInline (PLC.SomeTypeIn PLC.DefaultUniUnit)
-        defaultUnit = PIR.Constant annMayInline (PLC.someValueOf PLC.DefaultUniUnit ())
-    in
-    --(trace @(() -> c) "entering f" (\() -> trace @c "exiting f" body) ())
-        PIR.Apply
-            annMayInline
-            (mkTrace
-                (PLC.TyFun annMayInline defaultUnitTy ty) -- ()-> ty
-                ("entering " <> displayName)
-                -- \() -> trace @c "exiting f" e
-                (LamAbs annMayInline lamName defaultUnitTy (mkTrace ty ("exiting "<>displayName) e)))
-            defaultUnit
+  let defaultUnitTy = PLC.TyBuiltin annMayInline (PLC.SomeTypeIn PLC.DefaultUniUnit)
+      defaultUnit = PIR.Constant annMayInline (PLC.someValueOf PLC.DefaultUniUnit ())
+   in -- (trace @(() -> c) "entering f" (\() -> trace @c "exiting f" body) ())
+      PIR.Apply
+        annMayInline
+        ( mkTrace
+            (PLC.TyFun annMayInline defaultUnitTy ty) -- ()-> ty
+            ("entering " <> displayName)
+            -- \() -> trace @c "exiting f" e
+            (LamAbs annMayInline lamName defaultUnitTy (mkTrace ty ("exiting " <> displayName) e))
+        )
+        defaultUnit
 
 -- Expressions
 
@@ -651,229 +662,235 @@ entryExitTracing lamName displayName e ty =
    with coverage turned on).
 -}
 
-compileExpr
-    :: CompilingDefault uni fun m ann
-    => GHC.CoreExpr -> m (PIRTerm uni fun)
+compileExpr ::
+  (CompilingDefault uni fun m ann) =>
+  GHC.CoreExpr ->
+  m (PIRTerm uni fun)
 compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
-    -- See Note [Scopes]
-    CompileContext {ccScope=scope,ccNameInfo=nameInfo,ccModBreaks=maybeModBreaks, ccBuiltinVer=ver} <- ask
+  -- See Note [Scopes]
+  CompileContext{ccScope = scope, ccNameInfo = nameInfo, ccModBreaks = maybeModBreaks, ccBuiltinVer = ver} <- ask
 
-    -- TODO: Maybe share this to avoid repeated lookups. Probably cheap, though.
-    (stringTyName, sbsName) <- case (Map.lookup ''Builtins.BuiltinString nameInfo, Map.lookup 'Builtins.stringToBuiltinString nameInfo) of
-        (Just t1, Just t2) -> pure (GHC.getName t1, GHC.getName t2)
-        _                  -> throwPlain $ CompilationError "No info for String builtin"
+  -- TODO: Maybe share this to avoid repeated lookups. Probably cheap, though.
+  (stringTyName, sbsName) <- case (Map.lookup ''Builtins.BuiltinString nameInfo, Map.lookup 'Builtins.stringToBuiltinString nameInfo) of
+    (Just t1, Just t2) -> pure (GHC.getName t1, GHC.getName t2)
+    _                  -> throwPlain $ CompilationError "No info for String builtin"
 
-    (bsTyName, sbbsName) <- case (Map.lookup ''Builtins.BuiltinByteString nameInfo, Map.lookup 'Builtins.stringToBuiltinByteString nameInfo) of
-        (Just t1, Just t2) -> pure (GHC.getName t1, GHC.getName t2)
-        _                  -> throwPlain $ CompilationError "No info for ByteString builtin"
+  (bsTyName, sbbsName) <- case (Map.lookup ''Builtins.BuiltinByteString nameInfo, Map.lookup 'Builtins.stringToBuiltinByteString nameInfo) of
+    (Just t1, Just t2) -> pure (GHC.getName t1, GHC.getName t2)
+    _                  -> throwPlain $ CompilationError "No info for ByteString builtin"
 
-    case e of
-        -- See Note [String literals]
-        -- IsString has only one method, so it's enough to know that it's an IsString method
-        -- to know we're looking at fromString.
-        -- We can safely commit to this match as soon as we've seen fromString - we won't accept
-        -- any applications of fromString that aren't creating literals of our builtin types.
-        (strip -> GHC.Var (GHC.idDetails -> GHC.ClassOpId cls)) `GHC.App` GHC.Type ty `GHC.App` _ `GHC.App` content
-          | GHC.getName cls == GHC.isStringClassName ->
-            case GHC.tyConAppTyCon_maybe ty of
-                Just tc -> case stringExprContent (strip content) of
-                    Just bs ->
-                        if | GHC.getName tc == bsTyName     -> pure $ PIR.Constant annMayInline $ PLC.someValue bs
-                           | GHC.getName tc == stringTyName -> case TE.decodeUtf8' bs of
-                                 Right t -> pure $ PIR.Constant annMayInline $ PLC.someValue t
-                                 Left err -> throwPlain . CompilationError $
-                                   "Text literal with invalid UTF-8 content: " <> (T.pack $ show err)
-                           | otherwise -> throwSd UnsupportedError $
-                               "Use of fromString on type other than builtin strings or bytestrings:" GHC.<+> GHC.ppr ty
-                    Nothing -> throwSd CompilationError $
-                      "Use of fromString with inscrutable content:" GHC.<+> GHC.ppr content
-                Nothing -> throwSd UnsupportedError $
-                  "Use of fromString on type other than builtin strings or bytestrings:" GHC.<+> GHC.ppr ty
-        -- 'stringToBuiltinByteString' invocation, will be wrapped in a 'noinline'
-        (strip -> GHC.Var n) `GHC.App` (strip -> stringExprContent -> Just bs) | GHC.getName n == sbbsName ->
-                pure $ PIR.Constant annMayInline $ PLC.someValue bs
-        -- 'stringToBuiltinString' invocation, will be wrapped in a 'noinline'
-        (strip -> GHC.Var n) `GHC.App` (strip -> stringExprContent -> Just bs) | GHC.getName n == sbsName ->
-                case TE.decodeUtf8' bs of
-                    Right t -> pure $ PIR.Constant annMayInline $ PLC.someValue t
-                    Left err -> throwPlain $ CompilationError $
-                      "Text literal with invalid UTF-8 content: " <> (T.pack $ show err)
+  case e of
+    -- See Note [String literals]
+    -- IsString has only one method, so it's enough to know that it's an IsString method
+    -- to know we're looking at fromString.
+    -- We can safely commit to this match as soon as we've seen fromString - we won't accept
+    -- any applications of fromString that aren't creating literals of our builtin types.
+    (strip -> GHC.Var (GHC.idDetails -> GHC.ClassOpId cls)) `GHC.App` GHC.Type ty `GHC.App` _ `GHC.App` content
+      | GHC.getName cls == GHC.isStringClassName ->
+          case GHC.tyConAppTyCon_maybe ty of
+            Just tc -> case stringExprContent (strip content) of
+              Just bs ->
+                if
+                    | GHC.getName tc == bsTyName -> pure $ PIR.Constant annMayInline $ PLC.someValue bs
+                    | GHC.getName tc == stringTyName -> case TE.decodeUtf8' bs of
+                        Right t -> pure $ PIR.Constant annMayInline $ PLC.someValue t
+                        Left err ->
+                          throwPlain . CompilationError $
+                            "Text literal with invalid UTF-8 content: " <> (T.pack $ show err)
+                    | otherwise ->
+                        throwSd UnsupportedError $
+                          "Use of fromString on type other than builtin strings or bytestrings:" GHC.<+> GHC.ppr ty
+              Nothing ->
+                throwSd CompilationError $
+                  "Use of fromString with inscrutable content:" GHC.<+> GHC.ppr content
+            Nothing ->
+              throwSd UnsupportedError $
+                "Use of fromString on type other than builtin strings or bytestrings:" GHC.<+> GHC.ppr ty
+    -- 'stringToBuiltinByteString' invocation, will be wrapped in a 'noinline'
+    (strip -> GHC.Var n) `GHC.App` (strip -> stringExprContent -> Just bs)
+      | GHC.getName n == sbbsName ->
+          pure $ PIR.Constant annMayInline $ PLC.someValue bs
+    -- 'stringToBuiltinString' invocation, will be wrapped in a 'noinline'
+    (strip -> GHC.Var n) `GHC.App` (strip -> stringExprContent -> Just bs) | GHC.getName n == sbsName ->
+      case TE.decodeUtf8' bs of
+        Right t -> pure $ PIR.Constant annMayInline $ PLC.someValue t
+        Left err ->
+          throwPlain $
+            CompilationError $
+              "Text literal with invalid UTF-8 content: " <> (T.pack $ show err)
+    -- See Note [Literals]
+    GHC.Lit lit -> compileLiteral lit
+    -- These are all wrappers around string and char literals, but keeping them allows us to give better errors
+    -- unpackCString# is just a wrapper around a literal
+    GHC.Var n `GHC.App` expr | GHC.getName n == GHC.unpackCStringName -> compileExpr expr
+    -- See Note [unpackFoldrCString#]
+    GHC.Var build `GHC.App` _ `GHC.App` GHC.Lam _ (GHC.Var unpack `GHC.App` _ `GHC.App` expr)
+      | GHC.getName build == GHC.buildName && GHC.getName unpack == GHC.unpackCStringFoldrName -> compileExpr expr
+    -- C# is just a wrapper around a literal
+    GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) `GHC.App` arg | dc == GHC.charDataCon -> compileExpr arg
+    -- constructors of 'Integer' just wrap literals
+    GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) `GHC.App` arg | GHC.dataConTyCon dc == GHC.integerTyCon -> compileExpr arg
+    -- Unboxed unit, (##).
+    GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) | dc == GHC.unboxedUnitDataCon -> pure (PIR.mkConstant annMayInline ())
+    -- Ignore the magic 'noinline' function, it's the identity but has no unfolding.
+    -- See Note [noinline hack]
+    GHC.Var n `GHC.App` GHC.Type _ `GHC.App` arg | GHC.getName n == GHC.noinlineIdName -> compileExpr arg
+    -- See note [GHC runtime errors]
+    -- <error func> <runtime rep> <overall type> <call stack> <message>
+    GHC.Var (isErrorId -> True) `GHC.App` _ `GHC.App` GHC.Type t `GHC.App` _ `GHC.App` _ ->
+      PIR.TyInst annMayInline <$> errorFunc <*> compileTypeNorm t
+    -- <error func> <runtime rep> <overall type> <message>
+    GHC.Var (isErrorId -> True) `GHC.App` _ `GHC.App` GHC.Type t `GHC.App` _ ->
+      PIR.TyInst annMayInline <$> errorFunc <*> compileTypeNorm t
+    -- <error func> <overall type> <message>
+    GHC.Var (isErrorId -> True) `GHC.App` GHC.Type t `GHC.App` _ ->
+      PIR.TyInst annMayInline <$> errorFunc <*> compileTypeNorm t
+    -- See Note [Uses of Eq]
+    GHC.Var n
+      | GHC.getName n == GHC.eqName ->
+          throwPlain $ UnsupportedError "Use of == from the Haskell Eq typeclass"
+    GHC.Var n
+      | isProbablyIntegerEq n ->
+          throwPlain $ UnsupportedError "Use of Haskell Integer equality, possibly via the Haskell Eq typeclass"
+    GHC.Var n
+      | isProbablyBytestringEq n ->
+          throwPlain $ UnsupportedError "Use of Haskell ByteString equality, possibly via the Haskell Eq typeclass"
+    -- locally bound vars
+    GHC.Var (lookupName scope . GHC.getName -> Just var) -> pure $ PIR.mkVar annMayInline var
+    -- Special kinds of id
+    GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) -> compileDataConRef dc
+    -- See Note [Unfoldings]
+    -- The "unfolding template" includes things with normal unfoldings and also dictionary functions
+    GHC.Var n@(GHC.maybeUnfoldingTemplate . GHC.realIdUnfolding -> Just unfolding) -> hoistExpr n unfolding
+    -- Class ops don't have unfoldings in general (although they do if they're for one-method classes, so we
+    -- want to check the unfoldings case first), see the GHC Note [ClassOp/DFun selection] for why. That
+    -- means we have to reconstruct the RHS ourselves, though, which is a pain.
+    GHC.Var n@(GHC.idDetails -> GHC.ClassOpId cls) -> do
+      -- This code (mostly) lifted from MkId.mkDictSelId, which makes unfoldings for those dictionary
+      -- selectors that do have them
+      let sel_names = fmap GHC.getName (GHC.classAllSelIds cls)
+      val_index <- case elemIndex (GHC.getName n) sel_names of
+        Just i  -> pure i
+        Nothing -> throwSd CompilationError $ "Id not in class method list:" GHC.<+> GHC.ppr n
+      let rhs = GHC.mkDictSelRhs cls val_index
 
-        -- See Note [Literals]
-        GHC.Lit lit -> compileLiteral lit
-        -- These are all wrappers around string and char literals, but keeping them allows us to give better errors
-        -- unpackCString# is just a wrapper around a literal
-        GHC.Var n `GHC.App` expr | GHC.getName n == GHC.unpackCStringName -> compileExpr expr
-        -- See Note [unpackFoldrCString#]
-        GHC.Var build `GHC.App` _ `GHC.App` GHC.Lam _ (GHC.Var unpack `GHC.App` _ `GHC.App` expr)
-            | GHC.getName build == GHC.buildName && GHC.getName unpack == GHC.unpackCStringFoldrName -> compileExpr expr
-        -- C# is just a wrapper around a literal
-        GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) `GHC.App` arg | dc == GHC.charDataCon -> compileExpr arg
+      hoistExpr n rhs
+    GHC.Var n -> do
+      -- Defined names, including builtin names
+      let lexName = LexName $ GHC.getName n
+      modifyCurDeps (\d -> Set.insert lexName d)
+      maybeDef <- PIR.lookupTerm annMayInline lexName
+      case maybeDef of
+        Just term -> pure term
+        Nothing ->
+          throwSd FreeVariableError $
+            "Variable"
+              GHC.<+> GHC.ppr n
+              GHC.$+$ (GHC.ppr $ GHC.idDetails n)
+              GHC.$+$ (GHC.ppr $ GHC.realIdUnfolding n)
 
-        -- constructors of 'Integer' just wrap literals
-        GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) `GHC.App` arg | GHC.dataConTyCon dc == GHC.integerTyCon -> compileExpr arg
+    -- ignoring applications to types of 'RuntimeRep' kind, see Note [Unboxed tuples]
+    l `GHC.App` GHC.Type t | GHC.isRuntimeRepKindedTy t -> compileExpr l
+    -- arg can be a type here, in which case it's a type instantiation
+    l `GHC.App` GHC.Type t -> PIR.TyInst annMayInline <$> compileExpr l <*> compileTypeNorm t
+    -- otherwise it's a normal application
+    l `GHC.App` arg -> PIR.Apply annMayInline <$> compileExpr l <*> compileExpr arg
+    -- if we're biding a type variable it's a type abstraction
+    GHC.Lam b@(GHC.isTyVar -> True) body -> mkTyAbsScoped b $ compileExpr body
+    -- otherwise it's a normal lambda
+    GHC.Lam b body -> mkLamAbsScoped b $ compileExpr body
+    GHC.Let (GHC.NonRec b rhs) body -> do
+      -- the binding is in scope for the body, but not for the arg
+      rhs' <- compileExpr rhs
+      -- See Note [Non-strict let-bindings]
+      withVarScoped b $ \v -> do
+        rhs'' <- maybeProfileRhs v rhs'
+        let binds = pure $ PIR.TermBind annMayInline PIR.NonStrict v rhs''
+        body' <- compileExpr body
+        pure $ PIR.Let annMayInline PIR.NonRec binds body'
+    GHC.Let (GHC.Rec bs) body ->
+      withVarsScoped (fmap fst bs) $ \vars -> do
+        -- the bindings are scope in both the body and the args
+        -- TODO: this is a bit inelegant matching the vars back up
+        binds <- for (zip vars bs) $ \(v, (_, rhs)) -> do
+          rhs' <- maybeProfileRhs v =<< compileExpr rhs
+          -- See Note [Non-strict let-bindings]
+          pure $ PIR.TermBind annMayInline PIR.NonStrict v rhs'
+        body' <- compileExpr body
+        pure $ PIR.mkLet annMayInline PIR.Rec binds body'
 
-        -- Unboxed unit, (##).
-        GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) | dc == GHC.unboxedUnitDataCon -> pure (PIR.mkConstant annMayInline ())
+    -- See Note [Evaluation-only cases]
+    GHC.Case scrutinee b _ [GHC.Alt _ bs body] | all (GHC.isDeadOcc . GHC.occInfo . GHC.idInfo) bs -> do
+      -- See Note [At patterns]
+      scrutinee' <- compileExpr scrutinee
+      withVarScoped b $ \v -> do
+        body' <- compileExpr body
+        -- See Note [At patterns]
+        let binds = [PIR.TermBind annMayInline PIR.Strict v scrutinee']
+        pure $ PIR.mkLet annMayInline PIR.NonRec binds body'
+    GHC.Case scrutinee b t alts -> do
+      -- See Note [At patterns]
+      scrutinee' <- compileExpr scrutinee
+      let scrutineeType = GHC.varType b
 
-        -- Ignore the magic 'noinline' function, it's the identity but has no unfolding.
-        -- See Note [noinline hack]
-        GHC.Var n `GHC.App` GHC.Type _ `GHC.App` arg | GHC.getName n == GHC.noinlineIdName -> compileExpr arg
+      -- the variable for the scrutinee is bound inside the cases, but not in the scrutinee expression itself
+      withVarScoped b $ \v -> do
+        (tc, argTys) <- case GHC.splitTyConApp_maybe scrutineeType of
+          Just (tc, argTys) -> pure (tc, argTys)
+          Nothing ->
+            throwSd UnsupportedError $
+              "Cannot case on a value of type:" GHC.<+> GHC.ppr scrutineeType
+        dcs <- getDataCons tc
 
-        -- See note [GHC runtime errors]
-        -- <error func> <runtime rep> <overall type> <call stack> <message>
-        GHC.Var (isErrorId -> True) `GHC.App` _ `GHC.App` GHC.Type t `GHC.App` _ `GHC.App` _ ->
-            PIR.TyInst annMayInline <$> errorFunc <*> compileTypeNorm t
-        -- <error func> <runtime rep> <overall type> <message>
-        GHC.Var (isErrorId -> True) `GHC.App` _ `GHC.App` GHC.Type t `GHC.App` _ ->
-            PIR.TyInst annMayInline <$> errorFunc <*> compileTypeNorm t
-        -- <error func> <overall type> <message>
-        GHC.Var (isErrorId -> True) `GHC.App` GHC.Type t `GHC.App` _ ->
-            PIR.TyInst annMayInline <$> errorFunc <*> compileTypeNorm t
+        -- it's important to instantiate the match before alts compilation
+        match <- getMatchInstantiated scrutineeType
+        let matched = PIR.Apply annMayInline match scrutinee'
 
-        -- See Note [Uses of Eq]
-        GHC.Var n | GHC.getName n == GHC.eqName ->
-            throwPlain $ UnsupportedError "Use of == from the Haskell Eq typeclass"
-        GHC.Var n | isProbablyIntegerEq n ->
-            throwPlain $ UnsupportedError "Use of Haskell Integer equality, possibly via the Haskell Eq typeclass"
-        GHC.Var n | isProbablyBytestringEq n ->
-            throwPlain $ UnsupportedError "Use of Haskell ByteString equality, possibly via the Haskell Eq typeclass"
+        -- See Note [Case expressions and laziness]
+        compiledAlts <- forM dcs $ \dc -> do
+          let alt = findAlt dc alts t
+              -- these are the instantiated type arguments, e.g. for the data constructor Just when
+              -- matching on Maybe Int it is [Int] (crucially, not [a])
+              instArgTys = GHC.scaledThing <$> GHC.dataConInstOrigArgTys dc argTys
+          (nonDelayedAlt, delayedAlt) <- compileAlt alt instArgTys
+          return (nonDelayedAlt, delayedAlt)
+        let
+          isPureAlt = compiledAlts <&> \(nonDelayed, _) -> PIR.isPure ver (const PIR.NonStrict) nonDelayed
+          lazyCase = not (and isPureAlt || length dcs == 1)
+          branches =
+            compiledAlts <&> \(nonDelayedAlt, delayedAlt) ->
+              if lazyCase then delayedAlt else nonDelayedAlt
 
-        -- locally bound vars
-        GHC.Var (lookupName scope . GHC.getName -> Just var) -> pure $ PIR.mkVar annMayInline var
+        -- See Note [Scott encoding of datatypes]
+        -- we're going to delay the body, so the scrutinee needs to be instantiated the delayed type
+        resultType <- compileTypeNorm t >>= maybeDelayType lazyCase
+        let instantiated = PIR.TyInst annMayInline matched resultType
 
-        -- Special kinds of id
-        GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) -> compileDataConRef dc
+        let applied = PIR.mkIterApp instantiated $ (annMayInline,) <$> branches
+        -- See Note [Case expressions and laziness]
+        mainCase <- maybeForce lazyCase applied
 
-        -- See Note [Unfoldings]
-        -- The "unfolding template" includes things with normal unfoldings and also dictionary functions
-        GHC.Var n@(GHC.maybeUnfoldingTemplate . GHC.realIdUnfolding -> Just unfolding) -> hoistExpr n unfolding
-        -- Class ops don't have unfoldings in general (although they do if they're for one-method classes, so we
-        -- want to check the unfoldings case first), see the GHC Note [ClassOp/DFun selection] for why. That
-        -- means we have to reconstruct the RHS ourselves, though, which is a pain.
-        GHC.Var n@(GHC.idDetails -> GHC.ClassOpId cls) -> do
-            -- This code (mostly) lifted from MkId.mkDictSelId, which makes unfoldings for those dictionary
-            -- selectors that do have them
-            let sel_names = fmap GHC.getName (GHC.classAllSelIds cls)
-            val_index <- case elemIndex (GHC.getName n) sel_names of
-                Just i  -> pure i
-                Nothing -> throwSd CompilationError $ "Id not in class method list:" GHC.<+> GHC.ppr n
-            let rhs = GHC.mkDictSelRhs cls val_index
+        -- See Note [At patterns]
+        let binds = pure $ PIR.TermBind annMayInline PIR.NonStrict v scrutinee'
+        pure $ PIR.Let annMayInline PIR.NonRec binds mainCase
 
-            hoistExpr n rhs
-        GHC.Var n -> do
-            -- Defined names, including builtin names
-            let lexName = LexName $ GHC.getName n
-            modifyCurDeps (\d -> Set.insert lexName d)
-            maybeDef <- PIR.lookupTerm annMayInline lexName
-            case maybeDef of
-                Just term -> pure term
-                Nothing -> throwSd FreeVariableError $
-                    "Variable" GHC.<+> GHC.ppr n
-                    GHC.$+$ (GHC.ppr $ GHC.idDetails n)
-                    GHC.$+$ (GHC.ppr $ GHC.realIdUnfolding n)
+    -- we can use source notes to get a better context for the inner expression
+    -- these are put in when you compile with -g
+    -- See Note [What source locations to cover]
+    GHC.Tick tick body | Just src <- getSourceSpan maybeModBreaks tick ->
+      traceCompilation 1 ("Compiling expr at:" GHC.<+> GHC.ppr src) $ do
+        CompileContext{ccOpts = coverageOpts} <- ask
+        -- See Note [Coverage annotations]
+        let anns = Set.toList $ activeCoverageTypes coverageOpts
+        compiledBody <- fmap (addSrcSpan $ src ^. srcSpanIso) <$> compileExpr body
+        foldM (coverageCompile body (GHC.exprType body) src) compiledBody anns
 
-        -- ignoring applications to types of 'RuntimeRep' kind, see Note [Unboxed tuples]
-        l `GHC.App` GHC.Type t | GHC.isRuntimeRepKindedTy t -> compileExpr l
-        -- arg can be a type here, in which case it's a type instantiation
-        l `GHC.App` GHC.Type t -> PIR.TyInst annMayInline <$> compileExpr l <*> compileTypeNorm t
-        -- otherwise it's a normal application
-        l `GHC.App` arg -> PIR.Apply annMayInline <$> compileExpr l <*> compileExpr arg
-        -- if we're biding a type variable it's a type abstraction
-        GHC.Lam b@(GHC.isTyVar -> True) body -> mkTyAbsScoped b $ compileExpr body
-        -- otherwise it's a normal lambda
-        GHC.Lam b body -> mkLamAbsScoped b $ compileExpr body
-
-        GHC.Let (GHC.NonRec b rhs) body -> do
-            -- the binding is in scope for the body, but not for the arg
-            rhs' <- compileExpr rhs
-            -- See Note [Non-strict let-bindings]
-            withVarScoped b $ \v -> do
-                rhs'' <- maybeProfileRhs v rhs'
-                let binds = pure $ PIR.TermBind annMayInline PIR.NonStrict v rhs''
-                body' <- compileExpr body
-                pure $ PIR.Let annMayInline PIR.NonRec binds body'
-        GHC.Let (GHC.Rec bs) body ->
-            withVarsScoped (fmap fst bs) $ \vars -> do
-                -- the bindings are scope in both the body and the args
-                -- TODO: this is a bit inelegant matching the vars back up
-                binds <- for (zip vars bs) $ \(v, (_, rhs)) -> do
-                    rhs' <- maybeProfileRhs v =<< compileExpr rhs
-                    -- See Note [Non-strict let-bindings]
-                    pure $ PIR.TermBind annMayInline PIR.NonStrict v rhs'
-                body' <- compileExpr body
-                pure $ PIR.mkLet annMayInline PIR.Rec binds body'
-
-        -- See Note [Evaluation-only cases]
-        GHC.Case scrutinee b _ [GHC.Alt _ bs body] | all (GHC.isDeadOcc . GHC.occInfo . GHC.idInfo) bs -> do
-            -- See Note [At patterns]
-            scrutinee' <- compileExpr scrutinee
-            withVarScoped b $ \v -> do
-                body' <- compileExpr body
-                -- See Note [At patterns]
-                let binds = [ PIR.TermBind annMayInline PIR.Strict v scrutinee' ]
-                pure $ PIR.mkLet annMayInline PIR.NonRec binds body'
-        GHC.Case scrutinee b t alts -> do
-            -- See Note [At patterns]
-            scrutinee' <- compileExpr scrutinee
-            let scrutineeType = GHC.varType b
-
-            -- the variable for the scrutinee is bound inside the cases, but not in the scrutinee expression itself
-            withVarScoped b $ \v -> do
-                (tc, argTys) <- case GHC.splitTyConApp_maybe scrutineeType of
-                    Just (tc, argTys) -> pure (tc, argTys)
-                    Nothing      -> throwSd UnsupportedError $
-                      "Cannot case on a value of type:" GHC.<+> GHC.ppr scrutineeType
-                dcs <- getDataCons tc
-
-                -- it's important to instantiate the match before alts compilation
-                match <- getMatchInstantiated scrutineeType
-                let matched = PIR.Apply annMayInline match scrutinee'
-
-                -- See Note [Case expressions and laziness]
-                compiledAlts <- forM dcs $ \dc -> do
-                    let alt = findAlt dc alts t
-                        -- these are the instantiated type arguments, e.g. for the data constructor Just when
-                        -- matching on Maybe Int it is [Int] (crucially, not [a])
-                        instArgTys = GHC.scaledThing <$> GHC.dataConInstOrigArgTys dc argTys
-                    (nonDelayedAlt, delayedAlt) <- compileAlt alt instArgTys
-                    return (nonDelayedAlt, delayedAlt)
-                let
-                    isPureAlt = compiledAlts <&> \(nonDelayed, _) -> PIR.isPure ver (const PIR.NonStrict) nonDelayed
-                    lazyCase = not (and isPureAlt || length dcs == 1)
-                    branches = compiledAlts <&> \(nonDelayedAlt, delayedAlt) ->
-                        if lazyCase then delayedAlt else nonDelayedAlt
-
-                -- See Note [Scott encoding of datatypes]
-                -- we're going to delay the body, so the scrutinee needs to be instantiated the delayed type
-                resultType <- compileTypeNorm t >>= maybeDelayType lazyCase
-                let instantiated = PIR.TyInst annMayInline matched resultType
-
-                let applied = PIR.mkIterApp instantiated $ (annMayInline,) <$> branches
-                -- See Note [Case expressions and laziness]
-                mainCase <- maybeForce lazyCase applied
-
-                -- See Note [At patterns]
-                let binds = pure $ PIR.TermBind annMayInline PIR.NonStrict v scrutinee'
-                pure $ PIR.Let annMayInline PIR.NonRec binds mainCase
-
-        -- we can use source notes to get a better context for the inner expression
-        -- these are put in when you compile with -g
-        -- See Note [What source locations to cover]
-        GHC.Tick tick body | Just src <- getSourceSpan maybeModBreaks tick ->
-            traceCompilation 1 ("Compiling expr at:" GHC.<+> GHC.ppr src) $ do
-                CompileContext {ccOpts=coverageOpts} <- ask
-                -- See Note [Coverage annotations]
-                let anns = Set.toList $ activeCoverageTypes coverageOpts
-                compiledBody <- fmap (addSrcSpan $ src ^. srcSpanIso) <$> compileExpr body
-                foldM (coverageCompile body (GHC.exprType body) src) compiledBody anns
-
-        -- ignore other annotations
-        GHC.Tick _ body -> compileExpr body
-        -- See Note [Coercions and newtypes]
-        GHC.Cast body _ -> compileExpr body
-        GHC.Type _ -> throwPlain $ UnsupportedError "Types as standalone expressions"
-        GHC.Coercion _ -> throwPlain $ UnsupportedError "Coercions as expressions"
+    -- ignore other annotations
+    GHC.Tick _ body -> compileExpr body
+    -- See Note [Coercions and newtypes]
+    GHC.Cast body _ -> compileExpr body
+    GHC.Type _ -> throwPlain $ UnsupportedError "Types as standalone expressions"
+    GHC.Coercion _ -> throwPlain $ UnsupportedError "Coercions as expressions"
 
 {- Note [What source locations to cover]
    We try to get as much coverage information as we can out of GHC. This means that
@@ -900,19 +917,20 @@ in each case, but since we operate on them in the same way, there's no problem.
 
 -- See Note [What source locations to cover]
 -- See Note [Partial type signature for getSourceSpan]
+
 -- | Do your best to try to extract a source span from a tick
 getSourceSpan :: Maybe GHC.ModBreaks -> _ -> Maybe GHC.RealSrcSpan
-getSourceSpan _ GHC.SourceNote{GHC.sourceSpan=src} = Just src
-getSourceSpan _ GHC.ProfNote{GHC.profNoteCC=cc} =
+getSourceSpan _ GHC.SourceNote{GHC.sourceSpan = src} = Just src
+getSourceSpan _ GHC.ProfNote{GHC.profNoteCC = cc} =
   case cc of
     GHC.NormalCC _ _ _ (GHC.RealSrcSpan sp _) -> Just sp
     GHC.AllCafsCC _ (GHC.RealSrcSpan sp _)    -> Just sp
     _                                         -> Nothing
-getSourceSpan mmb GHC.HpcTick{GHC.tickId=tid} = do
+getSourceSpan mmb GHC.HpcTick{GHC.tickId = tid} = do
   mb <- mmb
   let arr = GHC.modBreaks_locs mb
       range = Array.bounds arr
-  GHC.RealSrcSpan sp _ <- if Array.inRange range tid  then Just $ arr Array.! tid else Nothing
+  GHC.RealSrcSpan sp _ <- if Array.inRange range tid then Just $ arr Array.! tid else Nothing
   return sp
 getSourceSpan _ _ = Nothing
 
@@ -921,38 +939,49 @@ getVarSourceSpan = GHC.srcSpanToRealSrcSpan . GHC.nameSrcSpan . GHC.varName
 
 srcSpanIso :: Iso' GHC.RealSrcSpan SrcSpan
 srcSpanIso = iso fromGHC toGHC
-    where
-        fromGHC sp = SrcSpan
-            { srcSpanFile = GHC.unpackFS (GHC.srcSpanFile sp),
-              srcSpanSLine = GHC.srcSpanStartLine sp,
-              srcSpanSCol = GHC.srcSpanStartCol sp,
-              srcSpanELine = GHC.srcSpanEndLine sp,
-              srcSpanECol = GHC.srcSpanEndCol sp
-            }
-        toGHC sp = GHC.mkRealSrcSpan
-            (GHC.mkRealSrcLoc (fileNameFs sp) (srcSpanSLine sp) (srcSpanSCol sp))
-            (GHC.mkRealSrcLoc (fileNameFs sp) (srcSpanELine sp) (srcSpanECol sp))
-        fileNameFs = GHC.fsLit . srcSpanFile
+  where
+    fromGHC sp =
+      SrcSpan
+        { srcSpanFile = GHC.unpackFS (GHC.srcSpanFile sp)
+        , srcSpanSLine = GHC.srcSpanStartLine sp
+        , srcSpanSCol = GHC.srcSpanStartCol sp
+        , srcSpanELine = GHC.srcSpanEndLine sp
+        , srcSpanECol = GHC.srcSpanEndCol sp
+        }
+    toGHC sp =
+      GHC.mkRealSrcSpan
+        (GHC.mkRealSrcLoc (fileNameFs sp) (srcSpanSLine sp) (srcSpanSCol sp))
+        (GHC.mkRealSrcLoc (fileNameFs sp) (srcSpanELine sp) (srcSpanECol sp))
+    fileNameFs = GHC.fsLit . srcSpanFile
 
 -- | Obviously this function computes a GHC.RealSrcSpan from a CovLoc
 toCovLoc :: GHC.RealSrcSpan -> CovLoc
-toCovLoc sp = CovLoc (GHC.unpackFS $ GHC.srcSpanFile sp)
-                     (GHC.srcSpanStartLine sp)
-                     (GHC.srcSpanEndLine sp)
-                     (GHC.srcSpanStartCol sp)
-                     (GHC.srcSpanEndCol sp)
+toCovLoc sp =
+  CovLoc
+    (GHC.unpackFS $ GHC.srcSpanFile sp)
+    (GHC.srcSpanStartLine sp)
+    (GHC.srcSpanEndLine sp)
+    (GHC.srcSpanStartCol sp)
+    (GHC.srcSpanEndCol sp)
 
 -- Here be dragons:
 -- See Note [Tracking coverage and lazyness]
 -- See Note [Coverage order]
+
 -- | Annotate a term for coverage
-coverageCompile :: CompilingDefault uni fun m ann
-                => GHC.CoreExpr -- ^ The original expression
-                -> GHC.Type -- ^ The type of the expression
-                -> GHC.RealSrcSpan -- ^ The source location of this expression
-                -> PIRTerm uni fun -- ^ The current term (this is what we add coverage tracking to)
-                -> CoverageType -- ^ The type of coverage to do next
-                -> m (PIRTerm uni fun)
+coverageCompile ::
+  (CompilingDefault uni fun m ann) =>
+  -- | The original expression
+  GHC.CoreExpr ->
+  -- | The type of the expression
+  GHC.Type ->
+  -- | The source location of this expression
+  GHC.RealSrcSpan ->
+  -- | The current term (this is what we add coverage tracking to)
+  PIRTerm uni fun ->
+  -- | The type of coverage to do next
+  CoverageType ->
+  m (PIRTerm uni fun)
 coverageCompile originalExpr exprType src compiledTerm covT =
   case covT of
     -- Add a location coverage annotation to tell us "we've executed this piece of code"
@@ -971,45 +1000,50 @@ coverageCompile originalExpr exprType src compiledTerm covT =
       let tyHeadName = GHC.getName <$> GHC.tyConAppTyCon_maybe exprType
           headSymName = GHC.getName <$> findHeadSymbol originalExpr
           isTrueOrFalse = case originalExpr of
-            GHC.Var v | GHC.DataConWorkId dc <- GHC.idDetails v ->
-              GHC.getName dc `elem` [GHC.getName c | c <- [true, false]]
+            GHC.Var v
+              | GHC.DataConWorkId dc <- GHC.idDetails v ->
+                  GHC.getName dc `elem` [GHC.getName c | c <- [true, false]]
             _ -> False
 
       if tyHeadName /= Just (GHC.getName bool) || isTrueOrFalse
-      then return compiledTerm
-      -- Generate the code:
-      -- ```
-      -- traceBool "<compiledTerm was true>" "<compiledTerm was false>" compiledTerm
-      -- ```
-      else do
-        traceBoolThing <- getThing 'traceBool
-        case traceBoolThing of
-          GHC.AnId traceBoolId -> do
-            traceBoolCompiled <- compileExpr $ GHC.Var traceBoolId
-            let mkMetadata = CoverageMetadata . foldMap (Set.singleton . ApplicationHeadSymbol . GHC.getOccString)
-            fc <- addBoolCaseToCoverageIndex (toCovLoc src) False (mkMetadata headSymName)
-            tc <- addBoolCaseToCoverageIndex (toCovLoc src) True (mkMetadata headSymName)
-            pure $ PLC.mkIterApp traceBoolCompiled $ (annMayInline,) <$>
-                [ PLC.mkConstant annMayInline (T.pack . show $ tc)
-                , PLC.mkConstant annMayInline (T.pack . show $ fc)
-                , compiledTerm
-                ]
-          _ -> throwSd CompilationError $
-            "Lookup of traceBool failed. Expected to get AnId but saw: " GHC.<+> GHC.ppr traceBoolThing
-    where
-      findHeadSymbol :: GHC.CoreExpr -> Maybe GHC.Id
-      findHeadSymbol (GHC.Var n)    = Just n
-      findHeadSymbol (GHC.App t _)  = findHeadSymbol t
-      findHeadSymbol (GHC.Lam _ t)  = findHeadSymbol t
-      findHeadSymbol (GHC.Tick _ t) = findHeadSymbol t
-      findHeadSymbol (GHC.Let _ t)  = findHeadSymbol t
-      findHeadSymbol (GHC.Cast t _) = findHeadSymbol t
-      findHeadSymbol _              = Nothing
+        then return compiledTerm
+        else -- Generate the code:
+        -- ```
+        -- traceBool "<compiledTerm was true>" "<compiledTerm was false>" compiledTerm
+        -- ```
+        do
+          traceBoolThing <- getThing 'traceBool
+          case traceBoolThing of
+            GHC.AnId traceBoolId -> do
+              traceBoolCompiled <- compileExpr $ GHC.Var traceBoolId
+              let mkMetadata = CoverageMetadata . foldMap (Set.singleton . ApplicationHeadSymbol . GHC.getOccString)
+              fc <- addBoolCaseToCoverageIndex (toCovLoc src) False (mkMetadata headSymName)
+              tc <- addBoolCaseToCoverageIndex (toCovLoc src) True (mkMetadata headSymName)
+              pure $
+                PLC.mkIterApp traceBoolCompiled $
+                  (annMayInline,)
+                    <$> [ PLC.mkConstant annMayInline (T.pack . show $ tc)
+                        , PLC.mkConstant annMayInline (T.pack . show $ fc)
+                        , compiledTerm
+                        ]
+            _ ->
+              throwSd CompilationError $
+                "Lookup of traceBool failed. Expected to get AnId but saw: " GHC.<+> GHC.ppr traceBoolThing
+  where
+    findHeadSymbol :: GHC.CoreExpr -> Maybe GHC.Id
+    findHeadSymbol (GHC.Var n)    = Just n
+    findHeadSymbol (GHC.App t _)  = findHeadSymbol t
+    findHeadSymbol (GHC.Lam _ t)  = findHeadSymbol t
+    findHeadSymbol (GHC.Tick _ t) = findHeadSymbol t
+    findHeadSymbol (GHC.Let _ t)  = findHeadSymbol t
+    findHeadSymbol (GHC.Cast t _) = findHeadSymbol t
+    findHeadSymbol _              = Nothing
 
-compileExprWithDefs
-    :: CompilingDefault uni fun m ann
-    => GHC.CoreExpr -> m (PIRTerm uni fun)
+compileExprWithDefs ::
+  (CompilingDefault uni fun m ann) =>
+  GHC.CoreExpr ->
+  m (PIRTerm uni fun)
 compileExprWithDefs e = do
-    defineBuiltinTypes
-    defineBuiltinTerms
-    compileExpr e
+  defineBuiltinTypes
+  defineBuiltinTerms
+  compileExpr e
