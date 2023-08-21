@@ -180,8 +180,8 @@ findAlt dc alts t = case GHC.findAlt (GHC.DataAlt dc) alts of
       e = GHC.mkImpossibleExpr t "unreachable alternative"
 #else
       e = GHC.mkImpossibleExpr t
-     in
 #endif
+     in
       GHC.Alt GHC.DEFAULT [] e
 
 -- | Make alternatives with non-delayed and delayed bodies for a given 'CoreAlt'.
