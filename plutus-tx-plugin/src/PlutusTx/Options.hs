@@ -68,6 +68,7 @@ data PluginOptions = PluginOptions
     , -- Setting to `True` defines `trace` as `\_ a -> a` instead of the builtin version.
       -- Which effectively ignores the trace text.
       _posRemoveTrace                    :: Bool
+    , _posDumpCompilationTrace           :: Bool
     }
 
 makeLenses ''PluginOptions
@@ -239,6 +240,9 @@ pluginOptions =
         , let k = "remove-trace"
               desc = "Eliminate calls to ``trace`` from Plutus Core"
            in (k, PluginOption typeRep (setTrue k) posRemoveTrace desc [])
+        , let k = "dump-compilation-trace"
+              desc = "Dump compilation trace for debugging"
+           in (k, PluginOption typeRep (setTrue k) posDumpCompilationTrace desc [])
         ]
 
 flag :: (a -> a) -> OptionKey -> Maybe OptionValue -> Validation ParseError (a -> a)
@@ -304,6 +308,7 @@ defaultPluginOptions =
         , _posRelaxedFloatin = True
         , _posPreserveLogging = False
         , _posRemoveTrace = False
+        , _posDumpCompilationTrace = False
         }
 
 processOne ::
