@@ -87,17 +87,17 @@ binary format described in Appendix~\ref{appendix:flat-serialisation}.
 \subsection{Notes}
 \label{sec:grammar-notes}
 \paragraph{Version numbers.} The version number at the start of a program specifies
-the Plutus Core language version (Section~\ref{sec:version-numbers}) used in the
-program.  The grammar above describes Plutus Core Version 1.1.0, which will be
-deployed in a forthcoming hard fork.  Version 1.0.0 (available on Cardano since
-the Alonzo hard fork) is identical, except that \texttt{constr} and
-\texttt{case} are not included.  Version 1.0.0 is fully forward-compatible with
-version 1.1.0, so any valid version 1.0.0 program is also a valid version 1.1.0
-program.  The semantics, evaluator and serialisation formats described later in
-this document all apply to both versions, except that it is an error to use
-\texttt{constr} or \texttt{case} in any program with a version prior to 1.1.0: a
-parser, deserialiser, or evaluator should fail immediately if \texttt{constr} or
-\texttt{case} is encountered when processing such a program.
+the Plutus Core language version (see Appendix~\ref{appendix:version-numbers})
+used in the program.  The grammar above describes Plutus Core Version 1.1.0,
+which will be deployed in a forthcoming hard fork.  Version 1.0.0 (available on
+Cardano since the Alonzo hard fork) is identical, except that \texttt{constr}
+and \texttt{case} are not included.  Version 1.0.0 is fully forward-compatible
+with version 1.1.0, so any valid version 1.0.0 program is also a valid version
+1.1.0 program.  The semantics, evaluator and serialisation formats described
+later in this document all apply to both versions, except that it is an error to
+use \texttt{constr} or \texttt{case} in any program with a version prior to
+1.1.0: a parser, deserialiser, or evaluator should fail immediately if
+\texttt{constr} or \texttt{case} is encountered when processing such a program.
 
 
 \paragraph{Scoping.} For simplicity, \textbf{we assume throughout that the body of a
@@ -115,7 +115,8 @@ An application of a term $M$ to a term $N$ is represented by
 $\appU{M}{N}$. We may occasionally write
 $\appU{M}{N_1 \ldots N_k}$ or
 $\appU{M}{\repetition{N}}$ as an abbreviation for an iterated application
-$\mathtt{[}\ldots\mathtt{[[}M\;N_1\mathtt{]}\;N_2\mathtt{]}\ldots N_k\mathtt{]}$,
+$\mathtt{[}\ldots\mathtt{[[}M\;N_1\mathtt{]}\;N_2\mathtt{]}\ldots $  %% Try to avoid a bad line break
+  $N_k\mathtt{]}$,
 and tools may also use this as concrete syntax.
 
 \paragraph{Constructors and case analysis}
@@ -143,12 +144,11 @@ constants such as integers or strings; constant expressions $\con{\tn}{c}$
 represent values of the built-in types (the integer 123 or the string
 \texttt{"string"}, for example), and built-in functions are functions operating
 on these values, and possibly also general Plutus Core terms.  Precise details
-are given in Section~\ref{sec:specify-builtins}.  Each Plutus Core ledger
-language version (see~\ref{sec:version-numbers}) comes with a universe of types
-and a set of builtins, and the types and functions which have already been
-deployed to the chain (or will be in the near future) are described in
-Appendices~\ref{appendix:default-builtins-V1},
-\ref{appendix:default-builtins-V2}, and \ref{appendix:default-builtins-V3}.%
+are given in Section~\ref{sec:specify-builtins}.  See
+Appendices~\ref{appendix:version-numbers}--\ref{appendix:default-builtins-V3}
+for a description of the types and functions which have already been deployed on
+the Cardano blockchain (or will be in the near future).
+
 \nomenclature[E1]{$\Fun$}{The set of built-in functions}
 
 \paragraph{De Bruijn indices.}
