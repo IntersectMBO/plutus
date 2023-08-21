@@ -19,7 +19,7 @@
       )
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl fail (fun (con unit) [ Maybe Bool ]))
       (lam
         ds
@@ -53,7 +53,7 @@
       (builtin ifThenElse)
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl equalsInteger (fun (con integer) (fun (con integer) Bool)))
       (lam
         x
@@ -73,7 +73,7 @@
       equalsInteger
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl `&&` (fun Bool (fun Bool Bool)))
       (lam
         ds
@@ -94,7 +94,7 @@
       )
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl
         `==`
         (all
@@ -111,7 +111,7 @@
       (builtin trace)
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl traceBool (fun (con string) (fun (con string) (fun Bool Bool))))
       (lam
         trueLabel
@@ -137,7 +137,7 @@
       )
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl otherFun (fun (con integer) Bool))
       (lam
         x

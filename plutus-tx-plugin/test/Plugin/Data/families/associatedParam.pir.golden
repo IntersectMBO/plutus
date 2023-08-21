@@ -11,7 +11,7 @@
       )
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl paramId (all a (type) (fun [ Param a ] (fun a a))))
       (abs a (type) (lam ds [ Param a ] (lam x a x)))
     )

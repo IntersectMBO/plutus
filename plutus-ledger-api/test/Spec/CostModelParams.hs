@@ -36,7 +36,7 @@ tests =
     , testCase "context length" $ do
             let costValuesForTesting = Map.elems costModelParamsForTesting
             -- the `costModelParamsForTesting` reflects only the latest version V3, so this should succeed because the lengths match
-            assertBool "wrong number of arguments in V3.mkContext" $ isRight $ runExcept $ runWriterT $ V3.mkEvaluationContext costValuesForTesting
+            assertBool "wrong number of arguments in V3.mkEvaluationContext" $ isRight $ runExcept $ runWriterT $ V3.mkEvaluationContext costValuesForTesting
             -- this one should succeed because we pass more params
             assertBool "larger number of params did not warn" $ hasWarnMoreParams (length v3CostModelParamNames) (length v3CostModelParamNames+1) $
                 runExcept $ runWriterT $ V3.mkEvaluationContext $ costValuesForTesting ++ [1] -- dummy param value appended

@@ -49,6 +49,12 @@
      - If a compilation error happens and this option is turned on, the compilation error is suppressed and the original Haskell expression is replaced with a runtime-error expression.
 
 
+   * - ``dump-compilation-trace``
+     - Bool
+     - False
+     - Dump compilation trace for debugging
+
+
    * - ``dump-pir``
      - Bool
      - False
@@ -131,6 +137,12 @@
      - Bool
      - True
      - Run a simplification pass that cancels unwrap/wrap pairs
+
+
+   * - ``strictify-bindings``
+     - Bool
+     - True
+     - Run a simplification pass that makes bindings stricter
 
 
    * - ``target-version``

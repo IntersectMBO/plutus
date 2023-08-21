@@ -500,6 +500,7 @@ library plutus-ir
     PlutusIR.Transform.NonStrict
     PlutusIR.Transform.RecSplit
     PlutusIR.Transform.Rename
+    PlutusIR.Transform.StrictifyBindings
     PlutusIR.Transform.Substitute
     PlutusIR.Transform.ThunkRecursions
     PlutusIR.Transform.Unwrap

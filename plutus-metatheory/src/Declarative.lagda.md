@@ -10,6 +10,8 @@ module Declarative where
 ## Imports
 
 ```
+open import Data.Fin using (Fin)
+open import Data.Vec using (Vec;[];_∷_;lookup)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl)
 
 open import Type using (Ctx⋆;_⊢⋆_;_∋⋆_;Φ;Ψ;A;B)
@@ -23,6 +25,7 @@ open import Builtin using (Builtin;signature)
 open Builtin.Builtin
 
 open import Utils using (Kind;*;♯;_⇒_;K)
+open import Utils.List using (List;IList;[];_∷_)
 open import Builtin.Constant.Type using (TyCon)
 open TyCon
 
@@ -115,8 +118,6 @@ We define it this way because it is easier to define the meaning of a normalised
 ⟦ A ⟧d = ⟦ nf A ⟧
 ```
 
-
-
 ```
 ty2TyTag : ∀ (A : ∅ ⊢⋆ ♯) → TyTag
 ty2TyTag A = ty2sty (nf A) 
@@ -130,6 +131,13 @@ application.
 
 
 ```
+mkCaseType : ∀{Φ} (A : Φ ⊢⋆ *) → List (Φ ⊢⋆ *) → Φ ⊢⋆ *
+mkCaseType A [] = A 
+mkCaseType A (x ∷ xs) = x ⇒ (mkCaseType A xs)
+
+ConstrArgs : (Γ : Ctx Φ) → List (Φ ⊢⋆ *) → Set
+data Cases (Γ : Ctx Φ) (B : Φ ⊢⋆ *) : ∀{n} → Vec (List (Φ ⊢⋆ *)) n → Set 
+
 data _⊢_ (Γ : Ctx Φ) : Φ ⊢⋆ * → Set where
 
   ` : Γ ∋ A
@@ -164,6 +172,20 @@ data _⊢_ (Γ : Ctx Φ) : Φ ⊢⋆ * → Set where
            ----------------------------------
          → Γ ⊢ A · ƛ (μ (weaken A) (` Z)) · B
 
+  constr : ∀{n}
+      → (e : Fin n)
+      → (A : Vec (List (Φ ⊢⋆ *)) n)
+      → ∀ {ts} → ts ≡ lookup A e
+      → ConstrArgs Γ ts
+        --------------------------------------
+      → Γ ⊢ SOP A
+
+  case : ∀{n}{tss : Vec _ n}{A : Φ ⊢⋆ *}
+      → (t : Γ ⊢ SOP tss)
+      → (cases : Cases Γ A tss)
+        --------------------------
+      → Γ ⊢ A  
+
   conv : A ≡β B
        → Γ ⊢ A
          -----
@@ -182,6 +204,17 @@ data _⊢_ (Γ : Ctx Φ) : Φ ⊢⋆ * → Set where
   error : (A : Φ ⊢⋆ *)
           ------------
         → Γ ⊢ A
+
+ConstrArgs Γ = IList (Γ ⊢_)
+
+data Cases Γ B where 
+   []  : Cases Γ B []
+   _∷_ : ∀{n}{AS}{ASS : Vec _ n}(
+         c : Γ ⊢ (mkCaseType B AS)) 
+       → (cs : Cases Γ B ASS)
+         --------------------- 
+       → Cases Γ B (AS ∷ ASS)
+
 ```
 
 Substituting types or contexts of term variables by propositionally

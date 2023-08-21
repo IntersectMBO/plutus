@@ -69,7 +69,6 @@ library
   exposed-modules:
     Opts
     Raw
-    Scoped
     Untyped
 
   -- WARNING: Order is important! MAlonzo modules must be listed last.
@@ -264,6 +263,7 @@ library
     MAlonzo.Code.Untyped.RenamingSubstitution
     MAlonzo.Code.Utils
     MAlonzo.Code.Utils.Decidable
+    MAlonzo.Code.Utils.List
     MAlonzo.Code.Utils.Reflection
     MAlonzo.RTE
     MAlonzo.RTE.Float
@@ -456,6 +456,7 @@ library
     MAlonzo.Code.Untyped.RenamingSubstitution
     MAlonzo.Code.Utils
     MAlonzo.Code.Utils.Decidable
+    MAlonzo.Code.Utils.List
     MAlonzo.Code.Utils.Reflection
     MAlonzo.RTE
     MAlonzo.RTE.Float

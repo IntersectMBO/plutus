@@ -24,6 +24,7 @@ import PlutusTx.Code
 import PlutusTx.Compiler.Builtins
 import PlutusTx.Compiler.Error
 import PlutusTx.Compiler.Expr
+import PlutusTx.Compiler.Trace
 import PlutusTx.Compiler.Types
 import PlutusTx.Compiler.Utils
 import PlutusTx.Coverage
@@ -68,6 +69,7 @@ import Control.Lens
 import Control.Monad
 import Control.Monad.Except
 import Control.Monad.Reader
+import Control.Monad.State
 import Control.Monad.Writer
 import Flat (Flat, flat, unflat)
 
@@ -403,13 +405,15 @@ compileMarkedExpr locStr codeTy origE = do
             ccCurDef = Nothing,
             ccModBreaks = modBreaks,
             ccBuiltinVer = def,
-            ccBuiltinCostModel = def
+            ccBuiltinCostModel = def,
+            ccDebugTraceOn = _posDumpCompilationTrace opts
             }
+        st = CompileState 0 mempty
     -- See Note [Occurrence analysis]
     let origE' = GHC.occurAnalyseExpr origE
 
-    ((pirP,uplcP), covIdx) <- runWriterT . runQuoteT . flip runReaderT ctx $
-        withContextM 1 (sdToTxt $ "Compiling expr at" GHC.<+> GHC.text locStr) $
+    ((pirP,uplcP), covIdx) <- runWriterT . runQuoteT . flip runReaderT ctx . flip evalStateT st $
+        traceCompilation 1 ("Compiling expr at" GHC.<+> GHC.text locStr) $
             runCompiler moduleNameStr opts origE'
 
     -- serialize the PIR, PLC, and coverageindex outputs into a bytestring.
@@ -434,6 +438,7 @@ runCompiler ::
     ( uni ~ PLC.DefaultUni
     , fun ~ PLC.DefaultFun
     , MonadReader (CompileContext uni fun) m
+    , MonadState CompileState m
     , MonadWriter CoverageIndex m
     , MonadQuote m
     , MonadError (CompileError uni fun Ann) m
@@ -482,6 +487,8 @@ runCompiler moduleName opts expr = do
                     (opts ^. posDoSimplifierInline)
                  & set (PIR.ccOpts . PIR.coDoSimplifierEvaluateBuiltins)
                     (opts ^. posDoSimplifierEvaluateBuiltins)
+                 & set (PIR.ccOpts . PIR.coDoSimplifierStrictifyBindings)
+                    (opts ^. posDoSimplifierStrictifyBindings)
                  & set (PIR.ccOpts . PIR.coInlineHints)                    hints
                  & set (PIR.ccOpts . PIR.coRelaxedFloatin) (opts ^. posRelaxedFloatin)
                  & set (PIR.ccOpts . PIR.coPreserveLogging) (opts ^. posPreserveLogging)

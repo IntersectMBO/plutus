@@ -3,7 +3,7 @@ module Algorithmic.Soundness where
 
 open import Function using (_∘_)
 open import Data.Empty using (⊥)
-open import Data.List using (List;[];_∷_;map)
+open import Data.Vec using (Vec;[];_∷_)
 open import Data.Product using (_×_) renaming (_,_ to _,,_)
 open import Data.Unit using (⊤;tt)
 open import Relation.Binary.PropositionalEquality 
@@ -12,6 +12,7 @@ open import Relation.Binary.PropositionalEquality
 open Relation.Binary.PropositionalEquality.≡-Reasoning
 
 open import Utils using (Kind;*;♯;_⇒_)
+open import Utils.List using (List;[];_∷_)
 open import Type using (Ctx⋆;∅;_,⋆_;_⊢⋆_;_∋⋆_;S;Z)
 open _⊢⋆_
 
@@ -22,7 +23,7 @@ open _≡β_
 import Declarative as Dec
 import Algorithmic as Alg
 import Algorithmic.Signature as Alg
-open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;embNf;embNe;ren-embNf;weakenNf)
+open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;embNf;embNe;ren-embNf;weakenNf;embNf-VecList;embNf-List;lookup-embNf-VecList)
 open _⊢Nf⋆_
 open _⊢Ne⋆_
 
@@ -140,6 +141,27 @@ btype-lem≡β : ∀{Φ} b → Dec.btype {Φ} b ≡β embNf (Alg.btype b)
 btype-lem≡β {Φ} b rewrite btype-lem {Φ} b = soundness (Dec.btype {Φ} b)
 
 emb : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ Alg.⊢ A → embCtx Γ Dec.⊢ embNf A
+
+emb-ConstrArgs : ∀ {Φ} {Γ : Alg.Ctx Φ}
+                   {TS : List (Φ ⊢Nf⋆ *)}
+                   (cs : Alg.ConstrArgs Γ TS) →
+                 Dec.ConstrArgs (embCtx Γ) (embNf-List TS)
+emb-ConstrArgs [] = []
+emb-ConstrArgs (x ∷ cs) = (emb x) ∷ (emb-ConstrArgs cs)
+
+lema-mkCaseType : ∀{Φ}{A : Φ ⊢Nf⋆ *} AS → 
+     embNf (Alg.mkCaseType A AS) ≡ Dec.mkCaseType (embNf A) (embNf-List AS)
+lema-mkCaseType [] = refl
+lema-mkCaseType (A ∷ AS) = cong (embNf A ⇒_) (lema-mkCaseType AS) 
+
+emb-Cases : ∀ {Φ} {Γ : Alg.Ctx Φ} {A : Φ ⊢Nf⋆ *} {n}
+         {tss : Vec (List (Φ ⊢Nf⋆ *)) n}
+         (cases : Alg.Cases Γ A tss) 
+        → Dec.Cases (embCtx Γ) (embNf A) (embNf-VecList tss)
+emb-Cases Alg.[] = Dec.[]
+emb-Cases (Alg._∷_ {AS = AS} c cases) = substEq (embCtx _ Dec.⊢_) (lema-mkCaseType AS) (emb c) 
+                            Dec.∷ (emb-Cases cases)            
+
 emb (Alg.` α) = Dec.` (embVar α)
 emb (Alg.ƛ {A = A}{B} t) = Dec.ƛ (emb t)
 emb (Alg._·_ {A = A}{B} t u) = emb t Dec.· emb u
@@ -155,6 +177,8 @@ emb (Alg.unwrap {A = A}{B} t refl) =
 emb (Alg.con {A = A} t refl ) = Dec.con {A = embNf A} (substEq Alg.⟦_⟧ (sym (stability A)) t) (subNf∅-sub∅-lem _ A)
 emb (Alg.builtin b / refl) = Dec.conv (btype-lem≡β b) (Dec.builtin b)
 emb (Alg.error A) = Dec.error (embNf A)
+emb (Alg.constr e TSS refl cs) = Dec.constr e (embNf-VecList TSS) (sym (lookup-embNf-VecList e TSS)) (emb-ConstrArgs cs)
+emb (Alg.case x cases) = Dec.case (emb x) (emb-Cases cases)
 
 soundnessT : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ Alg.⊢ A → embCtx Γ Dec.⊢ embNf A
 soundnessT = emb

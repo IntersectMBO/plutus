@@ -56,6 +56,7 @@ data PluginOptions = PluginOptions
     , _posDoSimplifierBeta               :: Bool
     , _posDoSimplifierInline             :: Bool
     , _posDoSimplifierEvaluateBuiltins   :: Bool
+    , _posDoSimplifierStrictifyBindings  :: Bool
     , _posDoSimplifierRemoveDeadBindings :: Bool
     , _posProfile                        :: ProfileOpts
     , _posCoverageAll                    :: Bool
@@ -67,6 +68,7 @@ data PluginOptions = PluginOptions
     , -- Setting to `True` defines `trace` as `\_ a -> a` instead of the builtin version.
       -- Which effectively ignores the trace text.
       _posRemoveTrace                    :: Bool
+    , _posDumpCompilationTrace           :: Bool
     }
 
 makeLenses ''PluginOptions
@@ -212,6 +214,9 @@ pluginOptions =
         , let k = "simplifier-inline"
               desc = "Run a simplification pass that performs inlining"
            in (k, PluginOption typeRep (setTrue k) posDoSimplifierInline desc [])
+        , let k = "strictify-bindings"
+              desc = "Run a simplification pass that makes bindings stricter"
+           in (k, PluginOption typeRep (setTrue k) posDoSimplifierStrictifyBindings desc [])
         , let k = "simplifier-remove-dead-bindings"
               desc = "Run a simplification pass that removes dead bindings"
            in (k, PluginOption typeRep (setTrue k) posDoSimplifierRemoveDeadBindings desc [])
@@ -235,6 +240,9 @@ pluginOptions =
         , let k = "remove-trace"
               desc = "Eliminate calls to ``trace`` from Plutus Core"
            in (k, PluginOption typeRep (setTrue k) posRemoveTrace desc [])
+        , let k = "dump-compilation-trace"
+              desc = "Dump compilation trace for debugging"
+           in (k, PluginOption typeRep (setTrue k) posDumpCompilationTrace desc [])
         ]
 
 flag :: (a -> a) -> OptionKey -> Maybe OptionValue -> Validation ParseError (a -> a)
@@ -291,6 +299,7 @@ defaultPluginOptions =
         , _posDoSimplifierBeta = True
         , _posDoSimplifierInline = True
         , _posDoSimplifierEvaluateBuiltins = True
+        , _posDoSimplifierStrictifyBindings = True
         , _posDoSimplifierRemoveDeadBindings = True
         , _posProfile = None
         , _posCoverageAll = False
@@ -299,6 +308,7 @@ defaultPluginOptions =
         , _posRelaxedFloatin = True
         , _posPreserveLogging = False
         , _posRemoveTrace = False
+        , _posDumpCompilationTrace = False
         }
 
 processOne ::

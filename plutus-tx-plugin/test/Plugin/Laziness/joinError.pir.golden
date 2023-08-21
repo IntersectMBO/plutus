@@ -21,7 +21,7 @@
     (termbind (strict) (vardecl unitval (con unit)) (con unit ()))
     (termbind (nonstrict) (vardecl joinError Unit) [ { error Unit } unitval ])
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl joinError (fun Bool (fun Bool Unit)))
       (lam
         x

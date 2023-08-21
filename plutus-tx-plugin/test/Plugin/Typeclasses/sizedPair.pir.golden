@@ -16,7 +16,7 @@
       (builtin addInteger)
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl
         `$csize`
         (all
@@ -87,7 +87,7 @@
       `$csize`
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl `$csize` (fun (con integer) (con integer)))
       (lam x (con integer) x)
     )
@@ -113,7 +113,7 @@
       ]
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl
         size
         (all

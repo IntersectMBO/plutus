@@ -11,7 +11,7 @@
       )
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl
         `$fApplicativeMaybe_$c<*>`
         (all
@@ -75,12 +75,12 @@
       )
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl `$fApplicativeMaybe_$cpure` (all a (type) (fun a [ Maybe a ])))
       (abs a (type) (lam ds a [ { Just a } ds ]))
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl
         `$fFunctorMaybe_$cfmap`
         (all
@@ -172,7 +172,7 @@
       (let
         (nonrec)
         (termbind
-          (strict)
+          (nonstrict)
           (vardecl
             `$fFoldableNil_$cfoldr`
             (all
@@ -196,7 +196,7 @@
                   (let
                     (rec)
                     (termbind
-                      (strict)
+                      (nonstrict)
                       (vardecl go (fun [ List a ] b))
                       (lam
                         ds
@@ -231,7 +231,7 @@
         (let
           (rec)
           (termbind
-            (strict)
+            (nonstrict)
             (vardecl
               `$fFunctorNil_$cfmap`
               (all
@@ -285,7 +285,7 @@
           (let
             (nonrec)
             (termbind
-              (strict)
+              (nonstrict)
               (vardecl
                 `$p1Applicative`
                 (all
@@ -367,7 +367,7 @@
               )
             )
             (termbind
-              (strict)
+              (nonstrict)
               (vardecl
                 `<*>`
                 (all
@@ -437,7 +437,7 @@
               )
             )
             (termbind
-              (strict)
+              (nonstrict)
               (vardecl
                 pure
                 (all
@@ -496,7 +496,7 @@
             (let
               (rec)
               (termbind
-                (strict)
+                (nonstrict)
                 (vardecl
                   `$fTraversableNil_$ctraverse`
                   (all
@@ -713,7 +713,7 @@
                   ]
                 )
                 (termbind
-                  (strict)
+                  (nonstrict)
                   (vardecl
                     build
                     (all
@@ -744,12 +744,12 @@
                   )
                 )
                 (termbind
-                  (strict)
+                  (nonstrict)
                   (vardecl id (all a (type) (fun a a)))
                   (abs a (type) (lam x a x))
                 )
                 (termbind
-                  (strict)
+                  (nonstrict)
                   (vardecl
                     traverse
                     (all
@@ -872,7 +872,7 @@
                   )
                 )
                 (termbind
-                  (strict)
+                  (nonstrict)
                   (vardecl
                     sequence
                     (all

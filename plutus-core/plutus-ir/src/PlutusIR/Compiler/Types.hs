@@ -87,6 +87,7 @@ data CompilationOpts a = CompilationOpts {
     , _coDoSimplifierInline             :: Bool
     , _coDoSimplifierKnownCon           :: Bool
     , _coDoSimplifierEvaluateBuiltins   :: Bool
+    , _coDoSimplifierStrictifyBindings  :: Bool
     , _coInlineHints                    :: InlineHints PLC.Name (Provenance a)
     -- Profiling
     , _coProfile                        :: Bool
@@ -112,6 +113,7 @@ defaultCompilationOpts = CompilationOpts
   , _coDoSimplifierBeta = True
   , _coDoSimplifierInline = True
   , _coDoSimplifierEvaluateBuiltins = True
+  , _coDoSimplifierStrictifyBindings = True
   , _coInlineHints = mempty
   , _coProfile = False
   , _coRelaxedFloatin = True

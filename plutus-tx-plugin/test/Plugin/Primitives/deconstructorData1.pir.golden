@@ -8,7 +8,7 @@
       (builtin unIData)
     )
     (termbind
-      (strict)
+      (nonstrict)
       (vardecl unsafeDataAsI (fun (con data) (con integer)))
       (lam d (con data) [ unsafeDataAsI d ])
     )
