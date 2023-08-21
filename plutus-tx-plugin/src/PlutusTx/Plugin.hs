@@ -411,10 +411,9 @@ compileMarkedExpr locStr codeTy origE = do
         st = CompileState 0 mempty
     -- See Note [Occurrence analysis]
     let origE' = GHC.occurAnalyseExpr origE
-        msg = "Compiling expr at" GHC.<+> GHC.text locStr
 
     ((pirP,uplcP), covIdx) <- runWriterT . runQuoteT . flip runReaderT ctx . flip evalStateT st $
-        withContextM 1 (sdToTxt msg) . traceCompilation msg $
+        traceCompilation 1 ("Compiling expr at" GHC.<+> GHC.text locStr) $
             runCompiler moduleNameStr opts origE'
 
     -- serialize the PIR, PLC, and coverageindex outputs into a bytestring.

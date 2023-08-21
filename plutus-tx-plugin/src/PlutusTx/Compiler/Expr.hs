@@ -185,7 +185,8 @@ compileAlt
     => GHC.CoreAlt -- ^ The 'CoreAlt' representing the branch itself.
     -> [GHC.Type] -- ^ The instantiated type arguments for the data constructor.
     -> m (PIRTerm uni fun, PIRTerm uni fun) -- ^ Non-delayed and delayed
-compileAlt (GHC.Alt alt vars body) instArgTys = withContextM 3 (sdToTxt msg) . traceCompilation msg $ case alt of
+compileAlt (GHC.Alt alt vars body) instArgTys =
+  traceCompilation 3 ("Creating alternative:" GHC.<+> GHC.ppr alt) $ case alt of
     GHC.LitAlt _  -> throwPlain $ UnsupportedError "Literal case"
     -- We just package it up as a lambda bringing all the
     -- vars into scope whose body is the body of the case alternative.
@@ -207,8 +208,6 @@ compileAlt (GHC.Alt alt vars body) instArgTys = withContextM 3 (sdToTxt msg) . t
             argTypes <- mapM compileTypeNorm instArgTys
             argNames <- forM [0..(length argTypes -1)] (\i -> safeFreshName $ "default_arg" <> (T.pack $ show i))
             pure $ PIR.mkIterLamAbs (zipWith (PIR.VarDecl annMayInline) argNames argTypes) body'
-
-        msg = "Creating alternative:" GHC.<+> GHC.ppr alt
 
 -- See Note [GHC runtime errors]
 isErrorId :: GHC.Id -> Bool
@@ -482,11 +481,10 @@ hoistExpr var t = do
     let addSpan = case getVarSourceSpan var of
             Nothing  -> id
             Just src -> fmap . fmap . addSrcSpan $ src ^. srcSpanIso
-        msg = "Compiling definition of:" GHC.<+> GHC.ppr var
     case maybeDef of
         Just term -> pure term
         -- See Note [Dependency tracking]
-        Nothing -> withCurDef lexName . withContextM 1 (sdToTxt msg) . traceCompilation msg $ do
+        Nothing -> withCurDef lexName . traceCompilation 1 ("Compiling definition of:" GHC.<+> GHC.ppr var) $ do
             var' <- compileVarFresh ann var
             -- See Note [Occurrences of recursive names]
             PIR.defineTerm
@@ -656,7 +654,7 @@ entryExitTracing lamName displayName e ty =
 compileExpr
     :: CompilingDefault uni fun m ann
     => GHC.CoreExpr -> m (PIRTerm uni fun)
-compileExpr e = withContextM 2 (sdToTxt msg) . traceCompilation msg $ do
+compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     -- See Note [Scopes]
     CompileContext {ccScope=scope,ccNameInfo=nameInfo,ccModBreaks=maybeModBreaks, ccBuiltinVer=ver} <- ask
 
@@ -671,20 +669,26 @@ compileExpr e = withContextM 2 (sdToTxt msg) . traceCompilation msg $ do
 
     case e of
         -- See Note [String literals]
-        -- IsString has only one method, so it's enough to know that it's an IsString method to know we're looking at fromString
-        -- We can safely commit to this match as soon as we've seen fromString - we won't accept any applications of fromString that aren't creating literals
-        -- of our builtin types.
-        (strip -> GHC.Var (GHC.idDetails -> GHC.ClassOpId cls)) `GHC.App` GHC.Type ty `GHC.App` _ `GHC.App` content | GHC.getName cls == GHC.isStringClassName ->
+        -- IsString has only one method, so it's enough to know that it's an IsString method
+        -- to know we're looking at fromString.
+        -- We can safely commit to this match as soon as we've seen fromString - we won't accept
+        -- any applications of fromString that aren't creating literals of our builtin types.
+        (strip -> GHC.Var (GHC.idDetails -> GHC.ClassOpId cls)) `GHC.App` GHC.Type ty `GHC.App` _ `GHC.App` content
+          | GHC.getName cls == GHC.isStringClassName ->
             case GHC.tyConAppTyCon_maybe ty of
                 Just tc -> case stringExprContent (strip content) of
                     Just bs ->
                         if | GHC.getName tc == bsTyName     -> pure $ PIR.Constant annMayInline $ PLC.someValue bs
                            | GHC.getName tc == stringTyName -> case TE.decodeUtf8' bs of
                                  Right t -> pure $ PIR.Constant annMayInline $ PLC.someValue t
-                                 Left err -> throwPlain $ CompilationError $ "Text literal with invalid UTF-8 content: " <> (T.pack $ show err)
-                           | otherwise -> throwSd UnsupportedError $ "Use of fromString on type other than builtin strings or bytestrings:" GHC.<+> GHC.ppr ty
-                    Nothing -> throwSd CompilationError $ "Use of fromString with inscrutable content:" GHC.<+> GHC.ppr content
-                Nothing -> throwSd UnsupportedError $ "Use of fromString on type other than builtin strings or bytestrings:" GHC.<+> GHC.ppr ty
+                                 Left err -> throwPlain . CompilationError $
+                                   "Text literal with invalid UTF-8 content: " <> (T.pack $ show err)
+                           | otherwise -> throwSd UnsupportedError $
+                               "Use of fromString on type other than builtin strings or bytestrings:" GHC.<+> GHC.ppr ty
+                    Nothing -> throwSd CompilationError $
+                      "Use of fromString with inscrutable content:" GHC.<+> GHC.ppr content
+                Nothing -> throwSd UnsupportedError $
+                  "Use of fromString on type other than builtin strings or bytestrings:" GHC.<+> GHC.ppr ty
         -- 'stringToBuiltinByteString' invocation, will be wrapped in a 'noinline'
         (strip -> GHC.Var n) `GHC.App` (strip -> stringExprContent -> Just bs) | GHC.getName n == sbbsName ->
                 pure $ PIR.Constant annMayInline $ PLC.someValue bs
@@ -692,7 +696,8 @@ compileExpr e = withContextM 2 (sdToTxt msg) . traceCompilation msg $ do
         (strip -> GHC.Var n) `GHC.App` (strip -> stringExprContent -> Just bs) | GHC.getName n == sbsName ->
                 case TE.decodeUtf8' bs of
                     Right t -> pure $ PIR.Constant annMayInline $ PLC.someValue t
-                    Left err -> throwPlain $ CompilationError $ "Text literal with invalid UTF-8 content: " <> (T.pack $ show err)
+                    Left err -> throwPlain $ CompilationError $
+                      "Text literal with invalid UTF-8 content: " <> (T.pack $ show err)
 
         -- See Note [Literals]
         GHC.Lit lit -> compileLiteral lit
@@ -727,9 +732,12 @@ compileExpr e = withContextM 2 (sdToTxt msg) . traceCompilation msg $ do
             PIR.TyInst annMayInline <$> errorFunc <*> compileTypeNorm t
 
         -- See Note [Uses of Eq]
-        GHC.Var n | GHC.getName n == GHC.eqName -> throwPlain $ UnsupportedError "Use of == from the Haskell Eq typeclass"
-        GHC.Var n | isProbablyIntegerEq n -> throwPlain $ UnsupportedError "Use of Haskell Integer equality, possibly via the Haskell Eq typeclass"
-        GHC.Var n | isProbablyBytestringEq n -> throwPlain $ UnsupportedError "Use of Haskell ByteString equality, possibly via the Haskell Eq typeclass"
+        GHC.Var n | GHC.getName n == GHC.eqName ->
+            throwPlain $ UnsupportedError "Use of == from the Haskell Eq typeclass"
+        GHC.Var n | isProbablyIntegerEq n ->
+            throwPlain $ UnsupportedError "Use of Haskell Integer equality, possibly via the Haskell Eq typeclass"
+        GHC.Var n | isProbablyBytestringEq n ->
+            throwPlain $ UnsupportedError "Use of Haskell ByteString equality, possibly via the Haskell Eq typeclass"
 
         -- locally bound vars
         GHC.Var (lookupName scope . GHC.getName -> Just var) -> pure $ PIR.mkVar annMayInline var
@@ -814,7 +822,8 @@ compileExpr e = withContextM 2 (sdToTxt msg) . traceCompilation msg $ do
             withVarScoped b $ \v -> do
                 (tc, argTys) <- case GHC.splitTyConApp_maybe scrutineeType of
                     Just (tc, argTys) -> pure (tc, argTys)
-                    Nothing      -> throwSd UnsupportedError $ "Cannot case on a value of type:" GHC.<+> GHC.ppr scrutineeType
+                    Nothing      -> throwSd UnsupportedError $
+                      "Cannot case on a value of type:" GHC.<+> GHC.ppr scrutineeType
                 dcs <- getDataCons tc
 
                 -- it's important to instantiate the match before alts compilation
@@ -852,13 +861,12 @@ compileExpr e = withContextM 2 (sdToTxt msg) . traceCompilation msg $ do
         -- these are put in when you compile with -g
         -- See Note [What source locations to cover]
         GHC.Tick tick body | Just src <- getSourceSpan maybeModBreaks tick ->
-            let msg' = "Compiling expr at:" GHC.<+> GHC.ppr src
-             in withContextM 1 (sdToTxt msg') . traceCompilation msg' $ do
-                    CompileContext {ccOpts=coverageOpts} <- ask
-                    -- See Note [Coverage annotations]
-                    let anns = Set.toList $ activeCoverageTypes coverageOpts
-                    compiledBody <- fmap (addSrcSpan $ src ^. srcSpanIso) <$> compileExpr body
-                    foldM (coverageCompile body (GHC.exprType body) src) compiledBody anns
+            traceCompilation 1 ("Compiling expr at:" GHC.<+> GHC.ppr src) $ do
+                CompileContext {ccOpts=coverageOpts} <- ask
+                -- See Note [Coverage annotations]
+                let anns = Set.toList $ activeCoverageTypes coverageOpts
+                compiledBody <- fmap (addSrcSpan $ src ^. srcSpanIso) <$> compileExpr body
+                foldM (coverageCompile body (GHC.exprType body) src) compiledBody anns
 
         -- ignore other annotations
         GHC.Tick _ body -> compileExpr body
@@ -866,8 +874,6 @@ compileExpr e = withContextM 2 (sdToTxt msg) . traceCompilation msg $ do
         GHC.Cast body _ -> compileExpr body
         GHC.Type _ -> throwPlain $ UnsupportedError "Types as standalone expressions"
         GHC.Coercion _ -> throwPlain $ UnsupportedError "Coercions as expressions"
-  where
-    msg = "Compiling expr:" GHC.<+> GHC.ppr e
 
 {- Note [What source locations to cover]
    We try to get as much coverage information as we can out of GHC. This means that
@@ -988,7 +994,8 @@ coverageCompile originalExpr exprType src compiledTerm covT =
                 , PLC.mkConstant annMayInline (T.pack . show $ fc)
                 , compiledTerm
                 ]
-          _ -> throwSd CompilationError $ "Lookup of traceBool failed. Expected to get AnId but saw: " GHC.<+> GHC.ppr traceBoolThing
+          _ -> throwSd CompilationError $
+            "Lookup of traceBool failed. Expected to get AnId but saw: " GHC.<+> GHC.ppr traceBoolThing
     where
       findHeadSymbol :: GHC.CoreExpr -> Maybe GHC.Id
       findHeadSymbol (GHC.Var n)    = Just n
