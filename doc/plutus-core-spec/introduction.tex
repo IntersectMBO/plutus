@@ -19,14 +19,15 @@ untyped Plutus Core is used as a compilation target, and we will eventually
 provide a specification of the type system and semantics of Typed Plutus Core
 here as well, together with its relationship to Untyped Plutus Core.
 
-\subsection{Terminology and version numbers}
+\subsection{Version numbers and the Cardano blockchain}
 \label{sec:version-numbers}
-Once a Plutus Core script has been deployed to the blockchain, it may be
+After a Plutus Core script has been deployed to the blockchain it may be
 re-evaluated at any point in the future when the history of the chain is
 verified.  Plutus Core may evolve as time progresses, and because of this we
-have to be quite careful with versioning.  A detailed discussion of this issue
-can be found in~\cite{CIP-35}, but we reproduce two definitions here for
-convenience.
+have to be quite careful with versioning: a detailed discussion of this issue
+can be found in~\cite{CIP-35}.  There are two types of version which are
+relevant in this document:
+
 \begin{itemize}
 \item The language itself may evolve: for example some fundamental new construct
   may be added.  A \textit{Plutus Core language version} describes a version of
@@ -34,13 +35,16 @@ convenience.
   consists of three non-negative integers separated by decimal points, for
   example \texttt{1.4.2}.  Language versions are ordered lexicographically.
 \item The built-in types and functions deployed on the chain along with a
-  particular language version can change with time, and we refer to Plutus Core
-  along with a particular set of types and functions as a \textit{Plutus Core
-    ledger language version}.  These are referred to using version names like
-  ``Plutus V1,'', ``Plutus V2'', and so on.
-  \end{itemize}
- \noindent These two kinds of version are independent: all Plutus Core language
- versions must support all ledger language versions.
+  particular version of the Plutus Core language can change with time.  Plutus
+  Core scripts on the chain are equipped with a tag called a \textit{ledger
+    language version} which (among other things) determines which set of types
+  and functions are to be used during evaluation of the script.  Ledger language
+  versions have names names like ``Plutus V1'', ``Plutus V2'', and so on.  The
+  semantics of a given built-in function may be different in different ledger
+  language versions.  Each Plutus Core ledger language version is only valid
+  with a specific Plutus Core language version, but a given language version may
+  support multiple ledger language versions.
+\end{itemize}
 
 \subsection{Cardano support for different Plutus Core language and ledger language versions}
 
@@ -48,7 +52,6 @@ Cardano introduced support for Plutus Core in the Alonzo release;
 Table~\ref{table:versions} shows all releases that have introduced new language
 versions and/or new ledger language versions since then.  The features provided
 by these versions are described later in this document.
- 
 \begin{table}[H]
   \centering
     \begin{tabular}{|l|l|l|l|}
@@ -65,4 +68,23 @@ by these versions are described later in this document.
 \end{table}
    
 
+\noindent Table~\ref{table:version-dependencies} shows which ledger language
+versions are compatible with each Plutus Core language version: if an on-chain
+script specifies a combination which does not appear in this table then
+attempting to evaluate it will cause an error.
+ 
+%% See PlutusLedgerApi.Common.Versions.plcVersionsIntroducedIn
+\begin{table}[H]
+  \centering
+    \begin{tabular}{|l|l|}
+        \hline
+        \thead{Plutus Core \\ language version} & \thead{Supported ledger \\ language versions}\\
+        \hline
+        1.0.0 & V1, V2\\
+        1.0.1 & V3 \\
+        \hline
+    \end{tabular}
+    \caption{Compatibility of Plutus Core language versions and ledger language versions}
+    \label{table:version-dependencies}
+\end{table}
 
