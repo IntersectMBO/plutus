@@ -97,9 +97,9 @@ data TxCert
   | -- | Register and delegate staking credential to a Delegatee in one certificate. Noter that
     -- deposit is mandatory.
     TxCertRegDeleg V2.Credential Delegatee V2.Value
-  | -- | Register a DRep with a deposit value
+  | -- | Register a DRep with a deposit value. The optional anchor is omitted.
     TxCertRegDRep DRepCredential V2.Value
-  | -- | Update a DRep
+  | -- | Update a DRep. The optional anchor is omitted.
     TxCertUpdateDRep DRepCredential
   | -- | UnRegister a DRep with mandatory refund value
     TxCertUnRegDRep DRepCredential V2.Value
@@ -148,6 +148,7 @@ instance PlutusTx.Eq Voter where
     a PlutusTx.== a'
   _ == _ = Haskell.False
 
+-- | A vote. The optional anchor is omitted.
 data Vote
   = VoteNo
   | VoteYes
@@ -201,6 +202,7 @@ instance PlutusTx.Eq Committee where
   Committee a b == Committee a' b' =
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
 
+-- | A constitution. The optional anchor is omitted.
 newtype Constitution = Constitution
   { constitutionScript :: Haskell.Maybe V2.ScriptHash
   }
@@ -277,6 +279,7 @@ instance PlutusTx.Eq GovernanceAction where
   InfoAction == InfoAction = Haskell.True
   _ == _ = Haskell.False
 
+-- | A proposal procedure. The optional anchor is omitted.
 data ProposalProcedure = ProposalProcedure
   { ppDeposit          :: V2.Value
   , ppReturnAddr       :: V2.Credential
