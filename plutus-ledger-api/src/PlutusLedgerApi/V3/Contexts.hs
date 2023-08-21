@@ -11,7 +11,6 @@
 
 module PlutusLedgerApi.V3.Contexts where
 
-import Data.String
 import GHC.Generics (Generic)
 import Prettyprinter (nest, vsep, (<+>))
 import Prettyprinter.Extras
@@ -20,7 +19,6 @@ import PlutusLedgerApi.V2 qualified as V2
 import PlutusTx qualified
 import PlutusTx.AssocMap hiding (filter, mapMaybe)
 import PlutusTx.Prelude qualified as PlutusTx
-import PlutusTx.Show qualified as PlutusTx
 
 import Prelude qualified as Haskell
 
@@ -89,46 +87,6 @@ instance PlutusTx.Eq Delegatee where
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
   _ == _ = Haskell.False
 
-newtype AnchorDataHash = AnchorDataHash {getAnchorDataHash :: PlutusTx.BuiltinByteString}
-  deriving stock (Generic)
-  deriving newtype
-    ( Haskell.Eq
-    , PlutusTx.Eq
-    , PlutusTx.Ord
-    , PlutusTx.Show
-    , PlutusTx.ToData
-    , PlutusTx.FromData
-    , PlutusTx.UnsafeFromData
-    )
-  deriving
-    ( -- | from hex encoding
-      IsString
-    , -- | using hex encoding
-      Haskell.Show
-    , -- | using hex encoding
-      Pretty
-    )
-    via V2.LedgerBytes
-
-data Anchor = Anchor
-  { -- TODO: determine whether or not this is needed.
-    -- See https://github.com/input-output-hk/plutus/pull/5449#discussion_r1286325298
-    anchorUrl      :: PlutusTx.BuiltinByteString -- Arbitrary Url
-  , anchorDataHash :: AnchorDataHash -- Blake2b_256 of some off-chain data
-  }
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
-
-instance Pretty Anchor where
-  pretty Anchor{..} =
-    vsep
-      [ "anchorUrl:" <+> pretty anchorUrl
-      , "anchorDataHash:" <+> pretty anchorDataHash
-      ]
-
-instance PlutusTx.Eq Anchor where
-  {-# INLINEABLE (==) #-}
-  Anchor a b == Anchor a' b' = a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
-
 data TxCert
   = -- | Register staking credential with an optional deposit amount
     TxCertRegStaking V2.Credential (Haskell.Maybe V2.Value)
@@ -139,10 +97,10 @@ data TxCert
   | -- | Register and delegate staking credential to a Delegatee in one certificate. Noter that
     -- deposit is mandatory.
     TxCertRegDeleg V2.Credential Delegatee V2.Value
-  | -- | Register a DRep with mandatory deposit value and an optional Anchor
-    TxCertRegDRep DRepCredential V2.Value (Haskell.Maybe Anchor)
-  | -- | Update DRep's optional Anchor
-    TxCertUpdateDRep DRepCredential (Haskell.Maybe Anchor)
+  | -- | Register a DRep with a deposit value. The optional anchor is omitted.
+    TxCertRegDRep DRepCredential V2.Value
+  | -- | Update a DRep. The optional anchor is omitted.
+    TxCertUpdateDRep DRepCredential
   | -- | UnRegister a DRep with mandatory refund value
     TxCertUnRegDRep DRepCredential V2.Value
   | -- | Authorize a Hot credential for a specific Committee member's cold credential
@@ -161,10 +119,10 @@ instance PlutusTx.Eq TxCert where
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
   TxCertRegDeleg a b c == TxCertRegDeleg a' b' c' =
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b' PlutusTx.&& c PlutusTx.== c'
-  TxCertRegDRep a b c == TxCertRegDRep a' b' c' =
-    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b' PlutusTx.&& c PlutusTx.== c'
-  TxCertUpdateDRep a b == TxCertUpdateDRep a' b' =
+  TxCertRegDRep a b == TxCertRegDRep a' b' =
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
+  TxCertUpdateDRep a == TxCertUpdateDRep a' =
+    a PlutusTx.== a'
   TxCertUnRegDRep a b == TxCertUnRegDRep a' b' =
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
   TxCertAuthHotCommittee a b == TxCertAuthHotCommittee a' b' =
@@ -190,6 +148,7 @@ instance PlutusTx.Eq Voter where
     a PlutusTx.== a'
   _ == _ = Haskell.False
 
+-- | A vote. The optional anchor is omitted.
 data Vote
   = VoteNo
   | VoteYes
@@ -223,24 +182,6 @@ instance PlutusTx.Eq GovernanceActionId where
   GovernanceActionId a b == GovernanceActionId a' b' =
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
 
-data VotingProcedure = VotingProcedure
-  { vpVote   :: Vote
-  , vpAnchor :: Haskell.Maybe Anchor
-  }
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
-
-instance Pretty VotingProcedure where
-  pretty VotingProcedure{..} =
-    vsep
-      [ "vpVote:" <+> pretty vpVote
-      , "vpAnchor:" <+> pretty vpAnchor
-      ]
-
-instance PlutusTx.Eq VotingProcedure where
-  {-# INLINEABLE (==) #-}
-  VotingProcedure a b == VotingProcedure a' b' =
-    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
-
 data Committee = Committee
   { committeeMembers :: Map ColdCommitteeCredential Haskell.Integer
   -- ^ Committee members with epoch number when each of them expires
@@ -261,23 +202,19 @@ instance PlutusTx.Eq Committee where
   Committee a b == Committee a' b' =
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
 
-data Constitution = Constitution
-  { constitutionAnchor :: Anchor
-  , constitutionScript :: Haskell.Maybe V2.ScriptHash
+-- | A constitution. The optional anchor is omitted.
+newtype Constitution = Constitution
+  { constitutionScript :: Haskell.Maybe V2.ScriptHash
   }
-  deriving stock (Generic, Haskell.Show, Haskell.Eq)
+  deriving stock (Generic)
+  deriving newtype (Haskell.Show, Haskell.Eq)
 
 instance Pretty Constitution where
-  pretty Constitution{..} =
-    vsep
-      [ "constitutionAnchor:" <+> pretty constitutionAnchor
-      , "constitutionScript:" <+> pretty constitutionScript
-      ]
+  pretty (Constitution script) = "constitutionScript:" <+> pretty script
 
 instance PlutusTx.Eq Constitution where
   {-# INLINEABLE (==) #-}
-  Constitution a b == Constitution a' b' =
-    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
+  Constitution a == Constitution a' = a PlutusTx.== a'
 
 data ProtocolVersion = ProtocolVersion
   { pvMajor :: Haskell.Integer
@@ -297,25 +234,40 @@ instance PlutusTx.Eq ProtocolVersion where
   ProtocolVersion a b == ProtocolVersion a' b' =
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
 
+-- | A Plutus Data object containing proposed parameter changes. The Data object contains
+-- a @Map@ with one entry per changed parameter, from the parameter name to the new value.
+-- Unchanged parameters are not included.
+newtype ChangedParameters = ChangedParameters {getChangedParameters :: PlutusTx.BuiltinData}
+  deriving stock (Generic, Haskell.Show)
+  deriving newtype
+    ( Haskell.Eq
+    , Haskell.Ord
+    , PlutusTx.Eq
+    , PlutusTx.ToData
+    , PlutusTx.FromData
+    , PlutusTx.UnsafeFromData
+    , Pretty
+    )
+
 data GovernanceAction
-  = -- TODO: this is currently empty.
-    ParameterChange GovernanceActionId
+  = ParameterChange (Haskell.Maybe GovernanceActionId) ChangedParameters
   | -- | proposal to update protocol version
-    HardForkInitiation GovernanceActionId ProtocolVersion
+    HardForkInitiation (Haskell.Maybe GovernanceActionId) ProtocolVersion
   | TreasuryWithdrawals (Map V2.Credential V2.Value)
-  | NoConfidence GovernanceActionId
+  | NoConfidence (Haskell.Maybe GovernanceActionId)
   | NewCommittee
-      GovernanceActionId
+      (Haskell.Maybe GovernanceActionId)
       [ColdCommitteeCredential] -- ^ Old committee
       Committee -- ^ New Committee
-  | NewConstitution GovernanceActionId Constitution
+  | NewConstitution (Haskell.Maybe GovernanceActionId) Constitution
   | InfoAction
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
   deriving (Pretty) via (PrettyShow GovernanceAction)
 
 instance PlutusTx.Eq GovernanceAction where
   {-# INLINEABLE (==) #-}
-  ParameterChange a == ParameterChange a' = a PlutusTx.== a'
+  ParameterChange a b == ParameterChange a' b' =
+    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
   HardForkInitiation a b == HardForkInitiation a' b' =
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
   TreasuryWithdrawals a == TreasuryWithdrawals a' = a PlutusTx.== a'
@@ -327,11 +279,11 @@ instance PlutusTx.Eq GovernanceAction where
   InfoAction == InfoAction = Haskell.True
   _ == _ = Haskell.False
 
+-- | A proposal procedure. The optional anchor is omitted.
 data ProposalProcedure = ProposalProcedure
   { ppDeposit          :: V2.Value
   , ppReturnAddr       :: V2.Credential
   , ppGovernanceAction :: GovernanceAction
-  , ppAnchor           :: Anchor
   }
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
 
@@ -341,16 +293,14 @@ instance Pretty ProposalProcedure where
       [ "ppDeposit:" <+> pretty ppDeposit
       , "ppReturnAddr:" <+> pretty ppReturnAddr
       , "ppGovernanceAction:" <+> pretty ppGovernanceAction
-      , "ppAnchor:" <+> pretty ppAnchor
       ]
 
 instance PlutusTx.Eq ProposalProcedure where
   {-# INLINEABLE (==) #-}
-  ProposalProcedure a b c d == ProposalProcedure a' b' c' d' =
+  ProposalProcedure a b c == ProposalProcedure a' b' c' =
     a PlutusTx.== a'
       PlutusTx.&& b PlutusTx.== b'
       PlutusTx.&& c PlutusTx.== c'
-      PlutusTx.&& d PlutusTx.== d'
 
 data ScriptPurpose
   = Minting V2.CurrencySymbol
@@ -358,8 +308,7 @@ data ScriptPurpose
   | Rewarding V2.Credential
   | Certifying TxCert
   | Voting Voter GovernanceActionId
-  | -- TODO: this may turn out to be unused.
-    Proposing
+  | Proposing Haskell.Integer
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
   deriving (Pretty) via (PrettyShow ScriptPurpose)
 
@@ -375,7 +324,8 @@ instance PlutusTx.Eq ScriptPurpose where
     a PlutusTx.== a'
   Voting a b == Voting a' b' =
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
-  Proposing == Proposing = Haskell.True
+  Proposing a == Proposing a' =
+    a PlutusTx.== a'
   _ == _ = Haskell.False
 
 -- | TxInfo for PlutusV3
@@ -392,7 +342,7 @@ data TxInfo = TxInfo
   , txInfoRedeemers             :: Map ScriptPurpose V2.Redeemer
   , txInfoData                  :: Map V2.DatumHash V2.Datum
   , txInfoId                    :: V2.TxId
-  , txInfoVotingProcedures      :: Map Voter (Map GovernanceActionId VotingProcedure)
+  , txInfoVotes                 :: Map Voter (Map GovernanceActionId Vote)
   , txInfoProposalProcedures    :: [ProposalProcedure]
   , txInfoCurrentTreasuryAmount :: Haskell.Maybe V2.Value
   , txInfoTreasuryDonation      :: Haskell.Maybe V2.Value
@@ -414,7 +364,7 @@ instance Pretty TxInfo where
       , "Signatories:" <+> pretty txInfoSignatories
       , "Redeemers:" <+> pretty txInfoRedeemers
       , "Datums:" <+> pretty txInfoData
-      , "Voting Procedures:" <+> pretty txInfoVotingProcedures
+      , "Votes:" <+> pretty txInfoVotes
       , "Proposal Procedures:" <+> pretty txInfoProposalProcedures
       , "Current Treasury Amount:" <+> pretty txInfoCurrentTreasuryAmount
       , "Treasury Donation:" <+> pretty txInfoTreasuryDonation
@@ -482,10 +432,6 @@ PlutusTx.makeIsDataIndexed
   , ('DelegStakeVote, 2)
   ]
 
-PlutusTx.makeLift ''AnchorDataHash
-PlutusTx.makeLift ''Anchor
-PlutusTx.makeIsDataIndexed ''Anchor [('Anchor, 0)]
-
 PlutusTx.makeLift ''TxCert
 PlutusTx.makeIsDataIndexed
   ''TxCert
@@ -519,9 +465,6 @@ PlutusTx.makeIsDataIndexed
 PlutusTx.makeLift ''GovernanceActionId
 PlutusTx.makeIsDataIndexed ''GovernanceActionId [('GovernanceActionId, 0)]
 
-PlutusTx.makeLift ''VotingProcedure
-PlutusTx.makeIsDataIndexed ''VotingProcedure [('VotingProcedure, 0)]
-
 PlutusTx.makeLift ''Committee
 PlutusTx.makeIsDataIndexed ''Committee [('Committee, 0)]
 
@@ -531,6 +474,7 @@ PlutusTx.makeIsDataIndexed ''Constitution [('Constitution, 0)]
 PlutusTx.makeLift ''ProtocolVersion
 PlutusTx.makeIsDataIndexed ''ProtocolVersion [('ProtocolVersion, 0)]
 
+PlutusTx.makeLift ''ChangedParameters
 PlutusTx.makeLift ''GovernanceAction
 PlutusTx.makeIsDataIndexed
   ''GovernanceAction
