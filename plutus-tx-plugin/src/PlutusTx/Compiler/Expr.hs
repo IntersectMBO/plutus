@@ -66,7 +66,6 @@ import Data.Set qualified as Set
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as TE
 import Data.Traversable
-import GHC (DynFlags (thOnLoc))
 
 {- Note [System FC and System FW]
 Haskell uses system FC, which includes type equalities and coercions.
@@ -160,24 +159,6 @@ compileDataConRef dc =
             Nothing -> throwPlain $ CompilationError "Data constructor not in the type constructor's list of constructors"
 
         pure $ constrs !! index
-
--- | Finds the alternative for a given data constructor in a list of alternatives. The type
--- of the overall match must also be provided.
---
--- This differs from 'GHC.findAlt' in what it does when the constructor is not matched (this can
--- happen when the match is exhaustive *in context* only, see the doc on 'GHC.Expr'). We need an
--- alternative regardless, so we make an "impossible" alternative since this case should be unreachable.
-findAlt :: GHC.DataCon -> [GHC.CoreAlt] -> GHC.Type -> GHC.CoreAlt
-findAlt dc alts t = case GHC.findAlt (GHC.DataAlt dc) alts of
-    Just alt -> alt
-    Nothing  ->
-      let
-#if MIN_VERSION_ghc(9,6,0)
-        e = GHC.mkImpossibleExpr t "unreachable alternative"
-#else
-        e = GHC.mkImpossibleExpr t
-#endif
-      in GHC.Alt GHC.DEFAULT [] e
 
 -- | Make alternatives with non-delayed and delayed bodies for a given 'CoreAlt'.
 compileAlt
