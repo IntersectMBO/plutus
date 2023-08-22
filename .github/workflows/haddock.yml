@@ -28,4 +28,6 @@ jobs:
         with:
           folder: dist
           target-folder: ${{ github.ref_name }}
-          # single-commit: true
+          # We publish our haddock, which is non-trivially big. 
+          # So keeping the whole history is expensive, and anyway we don't need it.
+          single-commit: true
