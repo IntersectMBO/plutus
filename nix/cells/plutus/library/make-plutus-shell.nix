@@ -145,6 +145,7 @@ inputs.std.lib.dev.mkShell {
     # Needed to make building things work, not for commands
     pkgs.zlib
     pkgs.cacert
+    pkgs.curl
   ];
 
   devshell.startup."pre-commit-check".text = cell.packages.pre-commit-check.shellHook;
