@@ -142,7 +142,7 @@ If you use Nix, these tools are provided for you via `nix develop`, and you do *
 [WARNING]
 ====
 * We rely on forked or new versions of some system libraries.
-** You can read the https://github.com/input-output-hk/cardano-node/blob/master/doc/getting-started/install.md[Cardano node documentation] to find out how to install these.
+** You can read the https://github.com/input-output-hk/cardano-node-wiki/blob/main/docs/getting-started/install.md[Cardano node documentation] to find out how to install these.
 * You may get different versions of packages.
 ** This *shouldn't* happen, but we can't guarantee it.
 * We are not currently enabling the Nix integration for these tools, so
@@ -480,7 +480,7 @@ Long-lived feature branches with too many commits are harmful because
 3. they make it more likely that other people need to depend on your unmerged changes.
 
 It is fine to have partially implemented features or not well-tested features in master.
-You can simply not turn them on until they are ready, or guard them with conditinal flags.
+You can simply not turn them on until they are ready, or guard them with conditional flags.
 
 But this is not a hard rule and should be determined on a case-by-case basis.
 Sometimes for a small or medium-sized piece of work, you may not want to break it into multiple PRs, and wait till each PR is merged before creating the next one.
