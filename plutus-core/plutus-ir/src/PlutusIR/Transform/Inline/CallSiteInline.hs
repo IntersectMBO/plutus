@@ -113,18 +113,17 @@ applyAndBetaReduce rhs args0 = do
 callSiteInline ::
   forall tyname name uni fun ann.
   (InliningConstraints tyname name uni fun) =>
-  -- | The "head"(obtained from `Contexts.splitApplication`) of the term.
+  -- | The term, with a "head"(obtained from `Contexts.splitApplication`) that is a variable.
   Term tyname name uni fun ann ->
   -- | The `Utils.VarInfo` of the variable (the head of the term).
   VarInfo tyname name uni fun ann ->
   -- | The application context of the term, already processed.
   AppContext tyname name uni fun ann ->
   InlineM tyname name uni fun ann (Term tyname name uni fun ann)
-callSiteInline headOfTerm = go
+callSiteInline t = go
   where
     go varInfo args = do
         let
-          tm = fillAppContext headOfTerm args
           defAsInlineTerm = varRhs varInfo
           inlineTermToTerm :: InlineTerm tyname name uni fun ann
             -> Term tyname name uni fun ann
@@ -150,7 +149,7 @@ callSiteInline headOfTerm = go
           applyAndBetaReduce renamedRhs args >>= \case
             Just inlined -> do
               let -- Inline only if the size is no bigger than not inlining.
-                  sizeIsOk = termSize inlined <= termSize tm
-              pure $ if sizeIsOk then inlined else tm
-            Nothing -> pure tm
-        else pure tm
+                  sizeIsOk = termSize inlined <= termSize t
+              pure $ if sizeIsOk then inlined else t
+            Nothing -> pure t
+        else pure t
