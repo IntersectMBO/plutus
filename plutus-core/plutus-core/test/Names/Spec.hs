@@ -169,15 +169,15 @@ test_rebindCapturedVariable = testCase "rebindCapturedVariable" $ do
 
     [typeL1, typeL2] @?= [typeR1, typeR2]
 
-test_names :: TestTree
-test_names =
+test_names :: TestLimit -> TestTree
+test_names n =
     testGroup "names"
         [ test_DeBruijnInteresting
         , test_mangle
         , test_equalityRename
         , test_equalityBrokenRename
         , test_equalityNoMarkRename
-        , test_scopingGood "renaming" (genProgram @DefaultFun) BindingRemovalNotOk PrerenameNo
+        , test_scopingGood n "renaming" (genProgram @DefaultFun) BindingRemovalNotOk PrerenameNo
             rename
         , test_scopingSpoilRenamer (genProgram @DefaultFun) markNonFreshProgram renameProgramM
         , test_alphaEquality

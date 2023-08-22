@@ -325,7 +325,7 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles =
     , testsRewrite rwFiles
     , testsType typeFiles
     , testsType typeErrorFiles
-    , test_names
+    , test_names 0
     , test_Pretty
     , test_typeNormalization
     , test_typecheck

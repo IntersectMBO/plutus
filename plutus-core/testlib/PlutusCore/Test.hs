@@ -524,6 +524,7 @@ prop_scopingFor gen bindRem preren run = withTests 1000 . property $ do
 -- | Test that a pass does not break global uniqueness.
 test_scopingGood ::
   (PrettyPlc (t NameAnn), TPLC.Rename (t NameAnn), Scoping t) =>
+  TestLimit ->
   -- | The name of the pass we're about to test.
   String ->
   -- | A generator of types\/terms\/programs.
@@ -537,9 +538,9 @@ test_scopingGood ::
   -- | The runner of the pass.
   (t NameAnn -> TPLC.Quote (t NameAnn)) ->
   TestTree
-test_scopingGood pass gen bindRem preren run =
+test_scopingGood n pass gen bindRem preren run =
   testPropertyNamed (pass ++ " does not break scoping and global uniqueness") "test_scopingGood" $
-    prop_scopingFor gen bindRem preren run
+    withAtLeastTests n (prop_scopingFor gen bindRem preren run)
 
 -- | Test that a pass breaks global uniqueness.
 test_scopingBad ::

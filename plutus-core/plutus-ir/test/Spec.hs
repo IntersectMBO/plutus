@@ -43,7 +43,7 @@ tests = testGroup "plutus-ir" <$> sequence
     , recursion
     , serialization
     , errors
-    , pure names
+    , pure (names 0)
     , transform
     , types
     , typeErrors
