@@ -145,6 +145,8 @@ inputs.std.lib.dev.mkShell {
     # Needed to make building things work, not for commands
     pkgs.zlib
     pkgs.cacert
+    # Needed for the cabal CLI to download under https
+    pkgs.curl
   ];
 
   devshell.startup."pre-commit-check".text = cell.packages.pre-commit-check.shellHook;

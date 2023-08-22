@@ -373,6 +373,7 @@ trace = BI.trace
 encodeUtf8 :: BuiltinString -> BuiltinByteString
 encodeUtf8 = BI.encodeUtf8
 
+{-# INLINABLE matchList #-}
 matchList :: forall a r . BI.BuiltinList a -> r -> (a -> BI.BuiltinList a -> r) -> r
 -- For some reason, everything here needs to be non-strict, otherwise we get the
 -- following error when compiling `fromBuiltinData @Rational`: no unfolding for

@@ -137,15 +137,17 @@
                   )
                   (termbind
                     (nonstrict)
+                    (vardecl arg (con data))
+                    [ { head (con data) } args ]
+                  )
+                  (termbind
+                    (nonstrict)
                     (vardecl nilCase [ Maybe [ [ Tuple2 a ] b ] ])
                     {
                       [
                         [
                           {
-                            [
-                              { Maybe_match a }
-                              [ `$dFromData` [ { head (con data) } args ] ]
-                            ]
+                            [ { Maybe_match a } [ `$dFromData` arg ] ]
                             (all dead (type) [ Maybe [ [ Tuple2 a ] b ] ])
                           }
                           (lam
@@ -209,58 +211,6 @@
                   )
                   (termbind
                     (nonstrict)
-                    (vardecl lvl [ Maybe [ [ Tuple2 a ] b ] ])
-                    [
-                      [
-                        [
-                          [
-                            {
-                              { chooseList (con data) }
-                              (fun Unit [ Maybe [ [ Tuple2 a ] b ] ])
-                            }
-                            [ { tail (con data) } t ]
-                          ]
-                          (lam
-                            ds
-                            Unit
-                            (let
-                              (nonrec)
-                              (termbind
-                                (strict)
-                                (vardecl x [ Maybe [ [ Tuple2 a ] b ] ])
-                                nilCase
-                              )
-                              x
-                            )
-                          )
-                        ]
-                        (lam ds Unit { Nothing [ [ Tuple2 a ] b ] })
-                      ]
-                      Unit
-                    ]
-                  )
-                  (termbind
-                    (nonstrict)
-                    (vardecl lvl [ Maybe [ [ Tuple2 a ] b ] ])
-                    [
-                      [
-                        [
-                          [
-                            {
-                              { chooseList (con data) }
-                              (fun Unit [ Maybe [ [ Tuple2 a ] b ] ])
-                            }
-                            t
-                          ]
-                          (lam ds Unit { Nothing [ [ Tuple2 a ] b ] })
-                        ]
-                        (lam ds Unit lvl)
-                      ]
-                      Unit
-                    ]
-                  )
-                  (termbind
-                    (nonstrict)
                     (vardecl indexMatchCase [ Maybe [ [ Tuple2 a ] b ] ])
                     [
                       [
@@ -274,7 +224,61 @@
                           ]
                           (lam ds Unit { Nothing [ [ Tuple2 a ] b ] })
                         ]
-                        (lam ds Unit lvl)
+                        (lam
+                          ds
+                          Unit
+                          [
+                            [
+                              [
+                                [
+                                  {
+                                    { chooseList (con data) }
+                                    (fun Unit [ Maybe [ [ Tuple2 a ] b ] ])
+                                  }
+                                  t
+                                ]
+                                (lam ds Unit { Nothing [ [ Tuple2 a ] b ] })
+                              ]
+                              (lam
+                                ds
+                                Unit
+                                [
+                                  [
+                                    [
+                                      [
+                                        {
+                                          { chooseList (con data) }
+                                          (fun
+                                            Unit [ Maybe [ [ Tuple2 a ] b ] ]
+                                          )
+                                        }
+                                        [ { tail (con data) } t ]
+                                      ]
+                                      (lam
+                                        ds
+                                        Unit
+                                        (let
+                                          (nonrec)
+                                          (termbind
+                                            (strict)
+                                            (vardecl
+                                              x [ Maybe [ [ Tuple2 a ] b ] ]
+                                            )
+                                            nilCase
+                                          )
+                                          x
+                                        )
+                                      )
+                                    ]
+                                    (lam ds Unit { Nothing [ [ Tuple2 a ] b ] })
+                                  ]
+                                  Unit
+                                ]
+                              )
+                            ]
+                            Unit
+                          ]
+                        )
                       ]
                       Unit
                     ]

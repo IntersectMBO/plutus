@@ -17,8 +17,8 @@ main :: IO ()
 main = defaultMain . testGroup "Size regression tests" $ [
   testGroup "Rational" [
     testGroup "Eq" [
-      fitsInto "==" ratEq 45,
-      fitsInto "/=" ratNeq 51
+      fitsInto "==" ratEq 36,
+      fitsInto "/=" ratNeq 42
       ],
     testGroup "Ord" [
       fitsInto "compare" ratCompare 53,
@@ -30,15 +30,15 @@ main = defaultMain . testGroup "Size regression tests" $ [
       fitsInto "min" ratMin 42
       ],
     testGroup "Additive" [
-      fitsInto "+" ratPlus 104,
+      fitsInto "+" ratPlus 100,
       fitsInto "zero" ratZero 3,
-      fitsInto "-" ratMinus 104,
+      fitsInto "-" ratMinus 100,
       fitsInto "negate (specialized)" ratNegate 12
       ],
     testGroup "Multiplicative" [
-      fitsInto "*" ratTimes 94,
+      fitsInto "*" ratTimes 86,
       fitsInto "one" ratOne 6,
-      fitsInto "scale" ratScale 76
+      fitsInto "scale" ratScale 75
       ],
     testGroup "Serialization" [
       fitsInto "toBuiltinData" ratToBuiltin 24,
@@ -47,17 +47,17 @@ main = defaultMain . testGroup "Size regression tests" $ [
       ],
     testGroup "Construction" [
       fitsInto "unsafeRatio" ratMkUnsafe 119,
-      fitsInto "ratio" ratMkSafe 190,
+      fitsInto "ratio" ratMkSafe 186,
       fitsInto "fromInteger" ratFromInteger 4
       ],
     testGroup "Other" [
       fitsInto "numerator" ratNumerator 6,
       fitsInto "denominator" ratDenominator 6,
-      fitsInto "round" ratRound 309,
+      fitsInto "round" ratRound 300,
       fitsInto "truncate" ratTruncate 10,
       fitsInto "properFraction" ratProperFraction 21,
       fitsInto "recip" ratRecip 55,
-      fitsInto "abs (specialized)" ratAbs 31
+      fitsInto "abs (specialized)" ratAbs 29
       ],
     testGroup "Comparison" [
       fitsUnder "negate" ("specialized", ratNegate) ("general", genNegate),
