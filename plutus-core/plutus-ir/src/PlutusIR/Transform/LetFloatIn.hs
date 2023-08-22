@@ -14,6 +14,7 @@ import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Name qualified as PLC
 import PlutusIR
 import PlutusIR.Analysis.Usages qualified as Usages
+import PlutusIR.Contexts
 import PlutusIR.Purity
 import PlutusIR.Transform.Rename ()
 
@@ -382,11 +383,12 @@ isEssentiallyWorkFree semvar = go
       LamAbs{} -> True
       TyAbs{} -> True
       Constant{} -> True
-      x
-        | Just bapp@(BuiltinApp _ args) <- asBuiltinApp x ->
-            maybe False not (isSaturated semvar bapp)
-              && all (\case TermArg arg -> go arg; TypeArg _ -> True) args
+      (splitApplication -> (Builtin _ fun, args)) ->
+        maybe False not (isSaturated semvar fun args) && goAppCtx args
       _ -> False
+    goAppCtx AppContextEnd               = True
+    goAppCtx (TermAppContext arg _ rest) = go arg && goAppCtx rest
+    goAppCtx (TypeAppContext _ _ rest)   = goAppCtx rest
 
 {- | Given a `Term` and a `Binding`, determine whether the `Binding` can be
  placed somewhere inside the `Term`.

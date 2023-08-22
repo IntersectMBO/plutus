@@ -9,6 +9,7 @@ module Main (main) where
 
 import PlutusPrelude
 
+import AnalysisSpec
 import Check.Spec
 import GeneratorSpec
 import NamesSpec
@@ -49,6 +50,7 @@ tests = testGroup "plutus-ir" <$> sequence
     , typeErrors
     , generators 1
     , pure uniqueness
+    , evalOrder
     ]
 
 prettyprinting :: TestNested

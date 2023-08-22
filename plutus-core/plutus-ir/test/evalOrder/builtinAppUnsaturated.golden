@@ -1,0 +1,2 @@
+pure: 1
+pure: (addInteger 1)

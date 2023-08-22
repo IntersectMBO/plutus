@@ -1,0 +1,6 @@
+pure: (\(x : integer) -> x)
+pure: (\(y : integer) -> y)
+pure: a
+pure: b
+pure: (a b)
+<unknown>

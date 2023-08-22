@@ -1,0 +1,6 @@
+pure: 2
+pure: 1
+pure: (let
+  !x : integer = 2
+in
+1)

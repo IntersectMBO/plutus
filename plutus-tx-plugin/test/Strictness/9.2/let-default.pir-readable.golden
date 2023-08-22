@@ -12,6 +12,6 @@ in
   Bool_match
     (ifThenElse {Bool} (lessThanInteger m 0) True False)
     {all dead. integer}
-    (/\dead -> let !y : integer = n {integer} in addInteger (n {integer}) y)
+    (/\dead -> addInteger (n {integer}) (n {integer}))
     (/\dead -> m)
     {all dead. dead}

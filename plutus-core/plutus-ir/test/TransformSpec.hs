@@ -269,6 +269,7 @@ inline =
             , "letNonPureMultiStrict"
             , "rhs-modified"
             , "partiallyApp"
+            , "effectfulBuiltinArg"
             ]
 
 -- | Check whether a term is globally unique.

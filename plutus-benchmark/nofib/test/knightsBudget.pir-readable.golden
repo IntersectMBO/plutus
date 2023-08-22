@@ -194,6 +194,67 @@
               (/\dead -> Nil {a})
               (\(x : a) (xs : List a) ->
                  /\dead ->
+                   let
+                     !xs : List a
+                       = let
+                         !xs : List a
+                           = quickSort
+                               {a}
+                               `$dOrd`
+                               ((let
+                                    a = List a
+                                  in
+                                  \(c : a -> a -> a) (n : a) ->
+                                    letrec
+                                      !go : List a -> a
+                                        = \(ds : List a) ->
+                                            Nil_match
+                                              {a}
+                                              ds
+                                              {all dead. a}
+                                              (/\dead -> n)
+                                              (\(y : a) (ys : List a) ->
+                                                 /\dead ->
+                                                   let
+                                                     !ds : a = go ys
+                                                   in
+                                                   Bool_match
+                                                     (Ord_match
+                                                        {a}
+                                                        `$dOrd`
+                                                        {a -> a -> Bool}
+                                                        (\(v :
+                                                             (\a ->
+                                                                a -> a -> Bool)
+                                                               a)
+                                                          (v :
+                                                             a -> a -> Ordering)
+                                                          (v : a -> a -> Bool)
+                                                          (v : a -> a -> Bool)
+                                                          (v : a -> a -> Bool)
+                                                          (v : a -> a -> Bool)
+                                                          (v : a -> a -> a)
+                                                          (v : a -> a -> a) ->
+                                                           v)
+                                                        y
+                                                        x)
+                                                     {all dead. a}
+                                                     (/\dead -> c y ds)
+                                                     (/\dead -> ds)
+                                                     {all dead. dead})
+                                              {all dead. dead}
+                                    in
+                                    go xs)
+                                  (\(ds : a) (ds : List a) -> Cons {a} ds ds)
+                                  (Nil {a}))
+                       in
+                       (let
+                           b = List a
+                         in
+                         \(c : a -> b -> b) (n : b) -> c x n)
+                         (\(ds : a) (ds : List a) -> Cons {a} ds ds)
+                         xs
+                   in
                    (let
                        b = List a
                      in
@@ -264,58 +325,7 @@
                        in
                        go eta)
                      (\(ds : a) (ds : List a) -> Cons {a} ds ds)
-                     ((let
-                          b = List a
-                        in
-                        \(c : a -> b -> b) (n : b) -> c x n)
-                        (\(ds : a) (ds : List a) -> Cons {a} ds ds)
-                        (quickSort
-                           {a}
-                           `$dOrd`
-                           ((let
-                                a = List a
-                              in
-                              \(c : a -> a -> a) (n : a) ->
-                                letrec
-                                  !go : List a -> a
-                                    = \(ds : List a) ->
-                                        Nil_match
-                                          {a}
-                                          ds
-                                          {all dead. a}
-                                          (/\dead -> n)
-                                          (\(y : a) (ys : List a) ->
-                                             /\dead ->
-                                               let
-                                                 !ds : a = go ys
-                                               in
-                                               Bool_match
-                                                 (Ord_match
-                                                    {a}
-                                                    `$dOrd`
-                                                    {a -> a -> Bool}
-                                                    (\(v :
-                                                         (\a -> a -> a -> Bool)
-                                                           a)
-                                                      (v : a -> a -> Ordering)
-                                                      (v : a -> a -> Bool)
-                                                      (v : a -> a -> Bool)
-                                                      (v : a -> a -> Bool)
-                                                      (v : a -> a -> Bool)
-                                                      (v : a -> a -> a)
-                                                      (v : a -> a -> a) ->
-                                                       v)
-                                                    y
-                                                    x)
-                                                 {all dead. a}
-                                                 (/\dead -> c y ds)
-                                                 (/\dead -> ds)
-                                                 {all dead. dead})
-                                          {all dead. dead}
-                                in
-                                go xs)
-                              (\(ds : a) (ds : List a) -> Cons {a} ds ds)
-                              (Nil {a})))))
+                     xs)
               {all dead. dead}
   in
   letrec
@@ -555,11 +565,12 @@
                       (ifThenElse {Bool} (lessThanInteger x 1) False True)
                       {all dead. Bool}
                       (/\dead ->
-                         let
-                           !b : bool = lessThanEqualsInteger x ipv
-                         in
                          Bool_match
-                           (ifThenElse {Bool} b True False)
+                           (ifThenElse
+                              {Bool}
+                              (lessThanEqualsInteger x ipv)
+                              True
+                              False)
                            {all dead. Bool}
                            (/\dead ->
                               Bool_match
@@ -570,11 +581,12 @@
                                    True)
                                 {all dead. Bool}
                                 (/\dead ->
-                                   let
-                                     !b : bool = lessThanEqualsInteger y ipv
-                                   in
                                    Bool_match
-                                     (ifThenElse {Bool} b True False)
+                                     (ifThenElse
+                                        {Bool}
+                                        (lessThanEqualsInteger y ipv)
+                                        True
+                                        False)
                                      {all dead. Bool}
                                      (/\dead ->
                                         notIn
@@ -594,14 +606,10 @@
                                                     {Bool}
                                                     (\(a' : integer)
                                                       (b' : integer) ->
-                                                       let
-                                                         !b : bool
-                                                           = equalsInteger a a'
-                                                       in
                                                        Bool_match
                                                          (ifThenElse
                                                             {Bool}
-                                                            b
+                                                            (equalsInteger a a')
                                                             True
                                                             False)
                                                          {all dead. Bool}
@@ -745,11 +753,7 @@
                               a
                               {all dead. ChessSet}
                               (/\dead ->
-                                 let
-                                   !ts' : List (Tuple2 integer integer)
-                                     = error {List (Tuple2 integer integer)}
-                                 in
-                                 `$j` ts')
+                                 `$j` (error {List (Tuple2 integer integer)}))
                               (\(ds : Tuple2 integer integer)
                                 (as : List (Tuple2 integer integer)) ->
                                  /\dead ->
@@ -945,17 +949,15 @@
                                                             {integer}
                                                             y
                                                             y
-                                                      !b : bool
-                                                        = equalsInteger
-                                                            0
-                                                            (remainderInteger
-                                                               boardSize
-                                                               2)
                                                     in
                                                     Bool_match
                                                       (ifThenElse
                                                          {Bool}
-                                                         b
+                                                         (equalsInteger
+                                                            0
+                                                            (remainderInteger
+                                                               boardSize
+                                                               2))
                                                          True
                                                          False)
                                                       {all dead. ChessSet}
@@ -1101,11 +1103,12 @@
                                        ds
                                        {a}
                                        (\(y : integer) (x : ChessSet) ->
-                                          let
-                                            !b : bool = equalsInteger 1 y
-                                          in
                                           Bool_match
-                                            (ifThenElse {Bool} b True False)
+                                            (ifThenElse
+                                               {Bool}
+                                               (equalsInteger 1 y)
+                                               True
+                                               False)
                                             {all dead. a}
                                             (/\dead -> c x ds)
                                             (/\dead -> ds)
@@ -1123,10 +1126,9 @@
                                   {ChessSet}
                                   `$fFoldableNil_$cfoldr`
                                   singles
-                            !b : bool = equalsInteger 0 l
                           in
                           Bool_match
-                            (ifThenElse {Bool} b True False)
+                            (ifThenElse {Bool} (equalsInteger 0 l) True False)
                             {all dead. List ChessSet}
                             (/\dead ->
                                map
@@ -1147,29 +1149,21 @@
                                             {integer}
                                             equalsInteger
                                             (\(eta : integer) (eta : integer) ->
-                                               let
-                                                 !b : bool
-                                                   = equalsInteger eta eta
-                                               in
                                                Bool_match
                                                  (ifThenElse
                                                     {Bool}
-                                                    b
+                                                    (equalsInteger eta eta)
                                                     True
                                                     False)
                                                  {all dead. Ordering}
                                                  (/\dead -> EQ)
                                                  (/\dead ->
-                                                    let
-                                                      !b : bool
-                                                        = lessThanEqualsInteger
-                                                            eta
-                                                            eta
-                                                    in
                                                     Bool_match
                                                       (ifThenElse
                                                          {Bool}
-                                                         b
+                                                         (lessThanEqualsInteger
+                                                            eta
+                                                            eta)
                                                          True
                                                          False)
                                                       {all dead. Ordering}
@@ -1202,14 +1196,10 @@
                                                  False
                                                  True)
                                             (\(x : integer) (y : integer) ->
-                                               let
-                                                 !b : bool
-                                                   = lessThanEqualsInteger x y
-                                               in
                                                Bool_match
                                                  (ifThenElse
                                                     {Bool}
-                                                    b
+                                                    (lessThanEqualsInteger x y)
                                                     True
                                                     False)
                                                  {all dead. integer}
@@ -1217,14 +1207,10 @@
                                                  (/\dead -> x)
                                                  {all dead. dead})
                                             (\(x : integer) (y : integer) ->
-                                               let
-                                                 !b : bool
-                                                   = lessThanEqualsInteger x y
-                                               in
                                                Bool_match
                                                  (ifThenElse
                                                     {Bool}
-                                                    b
+                                                    (lessThanEqualsInteger x y)
                                                     True
                                                     False)
                                                  {all dead. integer}
@@ -1548,11 +1534,12 @@
                                                      {all dead. dead}))))
                                     (descAndNo y)))
                             (/\dead ->
-                               let
-                                 !b : bool = equalsInteger 1 l
-                               in
                                Bool_match
-                                 (ifThenElse {Bool} b True False)
+                                 (ifThenElse
+                                    {Bool}
+                                    (equalsInteger 1 l)
+                                    True
+                                    False)
                                  {all dead. List ChessSet}
                                  (/\dead -> singles)
                                  (/\dead -> Nil {ChessSet})
@@ -1618,12 +1605,12 @@
                   (ipv : integer)
                   (ipv : Maybe (Tuple2 integer integer))
                   (ipv : List (Tuple2 integer integer)) ->
-                   let
-                     !y : integer = multiplyInteger ipv ipv
-                     !b : bool = equalsInteger ipv y
-                   in
                    Bool_match
-                     (ifThenElse {Bool} b True False)
+                     (ifThenElse
+                        {Bool}
+                        (equalsInteger ipv (multiplyInteger ipv ipv))
+                        True
+                        False)
                      {all dead. Bool}
                      (/\dead ->
                         canMoveTo

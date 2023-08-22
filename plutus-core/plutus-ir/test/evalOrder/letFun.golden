@@ -1,0 +1,5 @@
+pure: (addInteger)
+pure: f
+pure: 1
+pure: (f 1)
+<unknown>
