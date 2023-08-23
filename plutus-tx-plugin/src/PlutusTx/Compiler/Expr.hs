@@ -164,26 +164,6 @@ compileDataConRef dc = do
   where
     tc = GHC.dataConTyCon dc
 
-{- | Finds the alternative for a given data constructor in a list of alternatives. The type
-of the overall match must also be provided.
-
-This differs from 'GHC.findAlt' in what it does when the constructor is not matched (this can
-happen when the match is exhaustive *in context* only, see the doc on 'GHC.Expr'). We need an
-alternative regardless, so we make an "impossible" alternative since this case should be unreachable.
--}
-findAlt :: GHC.DataCon -> [GHC.CoreAlt] -> GHC.Type -> GHC.CoreAlt
-findAlt dc alts t = case GHC.findAlt (GHC.DataAlt dc) alts of
-  Just alt -> alt
-  Nothing ->
-    let
-#if MIN_VERSION_ghc(9,6,0)
-      e = GHC.mkImpossibleExpr t "unreachable alternative"
-#else
-      e = GHC.mkImpossibleExpr t
-#endif
-     in
-      GHC.Alt GHC.DEFAULT [] e
-
 -- | Make alternatives with non-delayed and delayed bodies for a given 'CoreAlt'.
 compileAlt ::
   (CompilingDefault uni fun m ann) =>
@@ -191,9 +171,10 @@ compileAlt ::
   GHC.CoreAlt ->
   -- | The instantiated type arguments for the data constructor.
   [GHC.Type] ->
+  PIRTerm uni fun ->
   -- | Non-delayed and delayed
   m (PIRTerm uni fun, PIRTerm uni fun)
-compileAlt (GHC.Alt alt vars body) instArgTys =
+compileAlt (GHC.Alt alt vars body) instArgTys defaultBody =
   traceCompilation 3 ("Creating alternative:" GHC.<+> GHC.ppr alt) $ case alt of
     GHC.LitAlt _ -> throwPlain $ UnsupportedError "Literal case"
     -- We just package it up as a lambda bringing all the
@@ -205,7 +186,8 @@ compileAlt (GHC.Alt alt vars body) instArgTys =
       delayed <- delay b
       return (PLC.mkIterLamAbs vars' b, PLC.mkIterLamAbs vars' delayed)
     GHC.DEFAULT -> do
-      compiledBody <- compileExpr body
+      -- ignore the body in the alt, because we've got a pre-compiled one
+      let compiledBody = defaultBody
       nonDelayed <- wrapDefaultAlt compiledBody
       delayed <- delay compiledBody >>= wrapDefaultAlt
       return (nonDelayed, delayed)
@@ -846,14 +828,36 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
         match <- getMatchInstantiated scrutineeType
         let matched = PIR.Apply annMayInline match scrutinee'
 
+        let (rest, mdef) = GHC.findDefault alts
+        -- This does two things:
+        -- 1. Ensure that every set of alternatives has a DEFAULT alt (See Note [We always need DEFAULT])
+        -- 2. Compile the body of the DEFAULT alt ahead of time so it can be shared (See Note [Sharing DEFAULT bodies])
+        (alts', defCompiled) <- case mdef of
+          Just d -> do
+            defCompiled <- compileExpr d
+            pure (GHC.addDefault rest (Just d), defCompiled)
+          Nothing -> do
+#if MIN_VERSION_ghc(9,6,0)
+            let d = GHC.mkImpossibleExpr t "unreachable alternative"
+#else
+            let d = GHC.mkImpossibleExpr t
+#endif
+            defCompiled <- compileExpr d
+            pure (GHC.addDefault alts (Just d), defCompiled)
+        defName <- PLC.freshName "defaultBody"
+
         -- See Note [Case expressions and laziness]
         compiledAlts <- forM dcs $ \dc -> do
-          let alt = findAlt dc alts t
+          let alt = GHC.findAlt (GHC.DataAlt dc) alts'
               -- these are the instantiated type arguments, e.g. for the data constructor Just when
               -- matching on Maybe Int it is [Int] (crucially, not [a])
               instArgTys = GHC.scaledThing <$> GHC.dataConInstOrigArgTys dc argTys
-          (nonDelayedAlt, delayedAlt) <- compileAlt alt instArgTys
-          return (nonDelayedAlt, delayedAlt)
+          case alt of
+            Just a -> do
+              -- pass in the body to use for default alternatives, see Note [Sharing DEFAULT bodies]
+              (nonDelayedAlt, delayedAlt) <- compileAlt a instArgTys (PIR.Var annMayInline defName)
+              return (nonDelayedAlt, delayedAlt)
+            Nothing -> throwSd CompilationError $ "No alternative for:" GHC.<+> GHC.ppr dc
         let
           isPureAlt = compiledAlts <&> \(nonDelayed, _) -> PIR.isPure ver (const PIR.NonStrict) nonDelayed
           lazyCase = not (and isPureAlt || length dcs == 1)
@@ -862,17 +866,24 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
               if lazyCase then delayedAlt else nonDelayedAlt
 
         -- See Note [Scott encoding of datatypes]
-        -- we're going to delay the body, so the scrutinee needs to be instantiated the delayed type
-        resultType <- compileTypeNorm t >>= maybeDelayType lazyCase
+        -- we need this for the default case body
+        originalResultType <- compileTypeNorm t
+        -- See Note [Scott encoding of datatypes]
+        -- we're going to delay the body, so the matcher needs to be instantiated at the delayed type
+        resultType <- maybeDelayType lazyCase originalResultType
         let instantiated = PIR.TyInst annMayInline matched resultType
 
         let applied = PIR.mkIterApp instantiated $ (annMayInline,) <$> branches
         -- See Note [Case expressions and laziness]
         mainCase <- maybeForce lazyCase applied
 
-        -- See Note [At patterns]
-        let binds = pure $ PIR.TermBind annMayInline PIR.NonStrict v scrutinee'
-        pure $ PIR.Let annMayInline PIR.NonRec binds mainCase
+        let binds =
+              [ -- See Note [At patterns]
+                PIR.TermBind annMayInline PIR.NonStrict v scrutinee'
+              , -- Bind the default body, see Note [Sharing DEFAULT bodies]
+                PIR.TermBind annMayInline PIR.NonStrict (PIR.VarDecl annMayInline defName originalResultType) defCompiled
+              ]
+        pure $ PIR.mkLet annMayInline PIR.NonRec binds mainCase
 
     -- we can use source notes to get a better context for the inner expression
     -- these are put in when you compile with -g
@@ -1047,3 +1058,52 @@ compileExprWithDefs e = do
   defineBuiltinTypes
   defineBuiltinTerms
   compileExpr e
+
+{- Note [We always need DEFAULT]
+GHC can be clever and omit case alternatives sometimes, typically when the typechecker says a case
+is impossible due to GADT cleverness or similar.
+We can't do this: we always need to put in all the case alternatives. In particular, that means
+we always want a DEFAULT case to fall back on if GHC doesn't provide a specific alternative for
+a data constructor.
+The easiest way to ensure that we always have a DEFAULT case is just to put one in if it's missing.
+-}
+
+{- Note [Sharing DEFAULT bodes]
+Consider the following program:
+```
+data A = B | C | D
+f a = case a of
+  B -> 1
+  _ -> 2
+```
+How many times will the literal 2 appear in the resulting PIR program? Naively... twice!
+We need to make all the cases explicit, so that means we actually need to *duplicate*
+the default case for every alternative that needs it, i.e. we end up with something more like
+```
+f a = case a of
+  B -> 1
+  C -> 2
+  D -> 2
+```
+This should set of alarm bells: any time we duplicate things we can end up with exponential
+programs if the construct is nested. And that can happen - one example is that usage of
+pattern synonyms tends to generate code like:
+```
+f a = case pattern_synonym_func1 of
+  pat1 -> ...
+  _ -> case pattern_synonym_func2 of
+    pat2 -> ...
+    _ -> case ...
+```
+So a case expression with 8 pattern synonyms would generate 2^8 copies of the final default
+case - pretty bad!
+The solution is straightforward: share the default case. That means we produce a program more
+like:
+```
+f a = let defaultBody = 2 in case a of
+  B -> 1
+  C -> defaultBody
+  D -> defaultBody
+```
+Then the inliner can inline it as appropriate.
+-}

@@ -2,6 +2,7 @@
   1.1.0
   (let
     (nonrec)
+    (termbind (nonstrict) (vardecl defaultBody (con integer)) (con integer 1))
     (datatypebind
       (datatype
         (tyvardecl MyMonoData (type))
@@ -22,12 +23,12 @@
             (lam
               default_arg0
               (con integer)
-              (lam default_arg1 (con integer) (con integer 1))
+              (lam default_arg1 (con integer) defaultBody)
             )
           ]
           (lam i (con integer) i)
         ]
-        (lam default_arg0 (con integer) (con integer 1))
+        (lam default_arg0 (con integer) defaultBody)
       ]
     )
   )
