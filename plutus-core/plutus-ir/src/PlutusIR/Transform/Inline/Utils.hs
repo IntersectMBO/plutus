@@ -117,7 +117,7 @@ type Arity tyname name = [Param tyname name]
 data VarInfo tyname name uni fun ann = MkVarInfo
     { varStrictness :: Strictness
     , varRhs        :: InlineTerm tyname name uni fun ann
-    -- ^ its definition that has been unconditionally inlined, as an `InlineTerm`. To preserve
+    -- ^ its definition, which has been processed, as an `InlineTerm`. To preserve
     -- global uniqueness, we rename before substituting in.
     }
 -- | Is the next argument a term or a type?

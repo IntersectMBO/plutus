@@ -348,7 +348,8 @@ processSingleBinding body = \case
                     extendVarInfo
                         n
                         -- no need to rename here when we enter the rhs into the map. Renaming needs
-                        -- to be done at each call site.
+                        -- to be done at each call site, because each substituted instance has to
+                        -- have unique names
                         (MkVarInfo s (Done (dupable rhs)))
                 pure $ Just $ TermBind ann s v rhs
     (TypeBind ann v@(TyVarDecl _ n _) rhs) -> do
