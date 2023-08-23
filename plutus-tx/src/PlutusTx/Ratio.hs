@@ -10,6 +10,7 @@
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=3 #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
+{-# OPTIONS_GHC -fexpose-all-unfoldings #-}
 module PlutusTx.Ratio(
     -- * Type
     Rational

@@ -375,11 +375,7 @@ encodeUtf8 = BI.encodeUtf8
 
 {-# INLINABLE matchList #-}
 matchList :: forall a r . BI.BuiltinList a -> r -> (a -> BI.BuiltinList a -> r) -> r
--- For some reason, everything here needs to be non-strict, otherwise we get the
--- following error when compiling `fromBuiltinData @Rational`: no unfolding for
--- `$fFromDataRational_$s$fFromData(,)_$cfromBuiltinData`.
--- GHC 9.2, x86_64-linux.
-matchList ~l ~nilCase ~consCase = BI.chooseList l (const nilCase) (\(~_) -> consCase (BI.head l) (BI.tail l)) ()
+matchList l nilCase consCase = BI.chooseList l (const nilCase) (\_ -> consCase (BI.head l) (BI.tail l)) ()
 
 {-# INLINABLE chooseData #-}
 -- | Given five values for the five different constructors of 'BuiltinData', selects
@@ -458,14 +454,14 @@ matchData
     -> (Integer -> r)
     -> (BuiltinByteString -> r)
     -> r
-matchData ~d ~constrCase ~mapCase ~listCase ~iCase ~bCase =
+matchData d constrCase mapCase listCase iCase bCase =
    chooseData
    d
-   (\(~_) -> uncurry constrCase (unsafeDataAsConstr d))
-   (\(~_) -> mapCase (unsafeDataAsMap d))
-   (\(~_) -> listCase (unsafeDataAsList d))
-   (\(~_) -> iCase (unsafeDataAsI d))
-   (\(~_) -> bCase (unsafeDataAsB d))
+   (\_ -> uncurry constrCase (unsafeDataAsConstr d))
+   (\_ -> mapCase (unsafeDataAsMap d))
+   (\_ -> listCase (unsafeDataAsList d))
+   (\_ -> iCase (unsafeDataAsI d))
+   (\_ -> bCase (unsafeDataAsB d))
    ()
 
 {-# INLINABLE matchData' #-}
@@ -479,18 +475,14 @@ matchData'
     -> (Integer -> r)
     -> (BuiltinByteString -> r)
     -> r
--- For some reason, everything here needs to be non-strict, otherwise we get the
--- following error when compiling `fromBuiltinData @Rational`: no unfolding for
--- `$fFromDataRational_$s$fFromData(,)_$cfromBuiltinData`.
--- GHC 9.2, x86_64-linux.
-matchData' ~d ~constrCase ~mapCase ~listCase ~iCase ~bCase =
+matchData' d constrCase mapCase listCase iCase bCase =
    chooseData
    d
-   (\(~_) -> let ~tup = BI.unsafeDataAsConstr d in constrCase (BI.fst tup) (BI.snd tup))
-   (\(~_) -> mapCase (BI.unsafeDataAsMap d))
-   (\(~_) -> listCase (BI.unsafeDataAsList d))
-   (\(~_) -> iCase (unsafeDataAsI d))
-   (\(~_) -> bCase (unsafeDataAsB d))
+   (\_ -> let ~tup = BI.unsafeDataAsConstr d in constrCase (BI.fst tup) (BI.snd tup))
+   (\_ -> mapCase (BI.unsafeDataAsMap d))
+   (\_ -> listCase (BI.unsafeDataAsList d))
+   (\_ -> iCase (unsafeDataAsI d))
+   (\_ -> bCase (unsafeDataAsB d))
    ()
 
 -- G1 --
