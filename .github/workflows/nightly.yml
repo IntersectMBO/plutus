@@ -22,11 +22,13 @@ jobs:
       - name: plutus-core-nightly
         if: always()
         run: |
+          cd plutus-core
           nix run --no-warn-dirty --accept-flake-config \
-            .#hydraJobs.x86_64-linux.ghc92.components.tests.plutus-core.plutus-core-nightly
+            .#hydraJobs.x86_64-linux.ghc92.components.tests.plutus-core.plutus-core-test -- --hedgehog-tests 10000
 
       - name: plutus-ir-nightly
         if: always()
         run: |
+          cd plutus-core
           nix run --no-warn-dirty --accept-flake-config \
-            .#hydraJobs.x86_64-linux.ghc92.components.tests.plutus-core.plutus-ir-nightly
+            .#hydraJobs.x86_64-linux.ghc92.components.tests.plutus-core.plutus-ir-test -- --hedgehog-tests 10000
