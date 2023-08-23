@@ -113,17 +113,19 @@ applyAndBetaReduce rhs args0 = do
 callSiteInline ::
   forall tyname name uni fun ann.
   (InliningConstraints tyname name uni fun) =>
-  -- | The term, with a "head"(obtained from `Contexts.splitApplication`) that is a variable.
+  -- | The "head"(obtained from `Contexts.splitApplication`) of the term.
   Term tyname name uni fun ann ->
   -- | The `Utils.VarInfo` of the variable (the head of the term).
   VarInfo tyname name uni fun ann ->
   -- | The application context of the term, already processed.
   AppContext tyname name uni fun ann ->
   InlineM tyname name uni fun ann (Term tyname name uni fun ann)
-callSiteInline t = go
+callSiteInline headOfTerm = go
   where
     go varInfo args = do
         let
+          -- rebuild the term with arguments already processed
+          tm = fillAppContext headOfTerm args
           defAsInlineTerm = varRhs varInfo
           inlineTermToTerm :: InlineTerm tyname name uni fun ann
             -> Term tyname name uni fun ann
@@ -138,7 +140,7 @@ callSiteInline t = go
           -- every call site regardless. The work that is being duplicated is
           -- the work for the lambda.
           costIsOk = costIsAcceptable rhs
-          -- check if binding is pure to avoid duplicated effects.
+        -- check if binding is pure to avoid duplicated effects.
         -- For strict bindings we can't accidentally make any effects happen less often
         -- than it would have before, but we can make it happen more often.
         -- We could potentially do this safely in non-conservative mode.
@@ -149,7 +151,7 @@ callSiteInline t = go
           applyAndBetaReduce renamedRhs args >>= \case
             Just inlined -> do
               let -- Inline only if the size is no bigger than not inlining.
-                  sizeIsOk = termSize inlined <= termSize t
-              pure $ if sizeIsOk then inlined else t
-            Nothing -> pure t
-        else pure t
+                  sizeIsOk = termSize inlined <= termSize tm
+              pure $ if sizeIsOk then inlined else tm
+            Nothing -> pure tm -- return the term with arguments already processed
+        else pure tm

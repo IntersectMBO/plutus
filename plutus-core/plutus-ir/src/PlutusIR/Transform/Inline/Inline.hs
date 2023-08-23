@@ -216,7 +216,7 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
         -- This includes recursive let terms, we don't even consider inlining them at the moment
         t -> do
             -- See note [Processing order of call site inlining]
-            let (tm, args) = splitApplication t
+            let (hd, args) = splitApplication t
                 -- process the term args, ignore the type arguments
                 processArgs :: AppContext tyname name uni fun ann
                     -> InlineM tyname name uni fun ann (AppContext tyname name uni fun ann)
@@ -229,15 +229,14 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
                     pure $ TypeAppContext ty ann processedArgs
                 processArgs AppContextEnd = pure AppContextEnd
 
-            case tm of
+            case hd of
                 Var _ann name -> do
                     gets (lookupVarInfo name) >>= \case
                         Just varInfo -> do
                             -- process the args if it's a variable that's in the map
                             processedArgs <- processArgs args
-                            -- consider call site inlining since it's a variable
-                            t' <- callSiteInline t varInfo processedArgs
-                            forMOf termSubterms t' processTerm
+                            -- consider call site inlining since it's a variable.
+                            callSiteInline hd varInfo processedArgs
                         -- The variable maybe a *recursive* let binding, in which case it won't be
                         -- in the map, and we don't process it. ATM recursive bindings aren't
                         -- inlined.
