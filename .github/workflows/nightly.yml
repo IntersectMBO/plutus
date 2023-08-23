@@ -1,0 +1,36 @@
+name: Nightly Test Suite
+
+on:
+  schedule:
+    - cron: 0 0 * * * # daily at midnight
+  workflow_dispatch: # or manually dispatch the job
+
+jobs:
+  nightly-test-suite:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Quick Install Nix
+        uses: cachix/install-nix-action@v22
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            accept-flake-config = true
+
+      - name: plutus-core-nightly
+        if: always()
+        run: |
+          pushd plutus-core
+          nix run --no-warn-dirty --accept-flake-config \
+            .#hydraJobs.x86_64-linux.ghc92.components.tests.plutus-core.plutus-core-test -- --hedgehog-tests 10000
+          popd
+
+      - name: plutus-ir-nightly
+        if: always()
+        run: |
+          pushd plutus-core
+          nix run --no-warn-dirty --accept-flake-config \
+            .#hydraJobs.x86_64-linux.ghc92.components.tests.plutus-core.plutus-ir-test -- --hedgehog-tests 10000
+          popd
