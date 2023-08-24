@@ -3,7 +3,7 @@
 
 \subsection{Introduction}
 In this section we define a CBOR encoding for the \texttt{data} type introduced
-in Section~\ref{sec:alonzo-built-in-types}.  For ease of reference we reproduce
+in Section~\ref{sec:V1-built-in-types}.  For ease of reference we reproduce
 the definition of the Haskell \texttt{Data} type, which we may regard as the
 definition of the Plutus \texttt{data} type. Other representations are of course
 possible, but this is useful for the present discussion.
@@ -50,7 +50,7 @@ bytestring $s$ and $\cdot$ to denote the concatenation of two bytestrings, and
 also the operation of prepending or appending a byte to a bytestring. We will
 also make use of the $\divfn$ and $\modfn$ functions described in
 Note~\ref{note:integer-division-functions} in
-Appendix~\ref{appendix:default-builtins-alonzo}.%
+Appendix~\ref{appendix:default-builtins-V1}.%
 \nomenclature[Bz]{$\epsilon$}{The empty bytestring}
 
 \paragraph{Encoders and decoders.}
@@ -468,5 +468,5 @@ Note also that the encoder $\ecTag$ accepts arbitrary integer values for
 decoder $\dcTag$ only accepts tags in $\Nab{0}{2^{64}-1}$.  This
 means that some valid Plutus Core programs can be serialised but not
 deserialised, and is the reason for the recommendation in
-Section~\ref{sec:alonzo-built-in-types} that only constructor tags between 0 and
+Section~\ref{sec:V1-built-in-types} that only constructor tags between 0 and
 $2^{64}-1$ should be used.

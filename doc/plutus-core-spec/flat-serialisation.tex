@@ -306,7 +306,7 @@ $$
 
 \noindent
 where $\utfeight$ and $\unutfeight$ are the UTF8 encoding and decoding functions
-mentioned in Appendix~\ref{appendix:default-builtins-alonzo}. Recall that $\unutfeight$
+mentioned in Appendix~\ref{appendix:default-builtins-V1}. Recall that $\unutfeight$
 is partial (not all bytestrings represent valid Unicode sequences), so
 $\D_{\U^*}$ may fail if the input is invalid.
 
@@ -412,6 +412,10 @@ does not happen here, but does in some later decoders.
   \Dterm(\bits{1001} \cdot s)  &= (s', \Kase{u}{l}) &&\quad \text{if } \Dterm(s) = (s', u) &&\ \text{and}\ \Dlist_{\mathsf{term}}(s') = (s'', l)
 \end{alignat*}
 
+\paragraph{NOTE.} The decoder $\Dterm$ should fail if we are decoding a program
+with a version less than 1.1.0 and an input of the form $\bits{1000} \cdot s$ or
+$\bits{1001} \cdot s$ is encountered.
+
 \subsubsection{Built-in types}
 Constants from built-in types are essentially encoded by emitting a sequence of
 4-bit tags representing the constant's type and then emitting the encoding of
@@ -451,8 +455,8 @@ tags for the basic types together with a tag for a type application operator.
 
 \noindent We define auxiliary functions $\etype: \Uni \rightarrow \N^*$ and
 $\dtype: \N^* \rightharpoonup \N^* \times \Uni$ ($\dtype$ is partial and $\Uni$
-denotes the universe of types defined in Appendices~\ref{appendix:default-builtins-alonzo},
-\ref{appendix:default-builtins-vasil}, and~\ref{appendix:default-builtins-future}).
+denotes the universe of types defined in Appendices~\ref{appendix:default-builtins-V1},
+\ref{appendix:default-builtins-V2}, and~\ref{appendix:default-builtins-V3}).
 
 \begin{alignat*}{2}
   &\etype(\ty{integer})      &&= [0]  \\
@@ -507,12 +511,12 @@ using $\dData$ to obtain a $\ty{data}$ object.
 The $\ty{bls12\_381\_G1\_element}$ and $\ty{bls12\_381\_G2\_element}$ types are
 serialised by converting to byestrings using the $\compress_{G_1}$ and
 $\compress_{G_2}$ functions defined in
-Section~\ref{sec:future-built-in-functions}, and decoding is similarly performed
+Section~\ref{sec:V3-bls-builtins}, and decoding is similarly performed
 via bytestrings using the $\uncompress$ functions.  \textbf{We do not provide
 serialisation and deserialisation for constants of the
 $\ty{bls12\_381\_mlresult}$ type}; we have specified a tag for this type, but if
 that tag is encountered during deserialisation then deserialisation fails and
-any subsequent input is ingored.
+any subsequent input is ignored.
 
 
 \begin{alignat*}{2}
@@ -552,7 +556,7 @@ any subsequent input is ingored.
 \subsubsection{Built-in functions}
 Built-in functions are represented by seven-bit integer tags and encoded and
 decoded using $\E_7$ and $\D_7$.  The tags are specified in
-Tables~\ref{table:builtin-tags-alonzo}, \ref{table:builtin-tags-vasil}, and~\ref{table:builtin-tags-future}.  We
+Tables~\ref{table:builtin-tags-V1}, \ref{table:builtin-tags-V2}, and~\ref{table:builtin-tags-V3}.  We
 assume that there are (partial) functions $\Tag$ and $\unTag$ which convert back
 and forth between builtin names and their tags.
 
@@ -596,8 +600,8 @@ and forth between builtin names and their tags.
    \TT{decodeUtf8}               &    $\bits{0011001}$  &  25    & & & \\
 \hline
 \end{tabular}
-\caption{Tags for Alonzo builtins}
-\label{table:builtin-tags-alonzo}
+\caption{Tags for PlutusV1 builtins}
+\label{table:builtin-tags-V1}
 \end{table}
 
 \begin{table}[H]
@@ -612,8 +616,8 @@ and forth between builtin names and their tags.
  \TT{verifySchnorrSecp256k1Signature} & $\bits{0110101}$  & 53 \\
 \hline
 \end{tabular}
-\caption{Extra tags for Vasil builtins}
-\label{table:builtin-tags-vasil}
+\caption{Extra tags for PlutusV2 builtins}
+\label{table:builtin-tags-V2}
 \end{table}
 
 \begin{table}[H]
@@ -640,10 +644,12 @@ and forth between builtin names and their tags.
     \TT{bls12\_381\_millerLoop}      & $\bits{1000100}$  & 68 \\
     \TT{bls12\_381\_mulMlResult}     & $\bits{1000101}$  & 69 \\
     \TT{bls12\_381\_finalVerify}     & $\bits{1000110}$  & 70 \\
+    \TT{keccak\_256}                 & $\bits{1000111}$  & 71 \\
+    \TT{blake2b\_224}                & $\bits{1001000}$  & 72 \\
 \hline
 \end{tabular}
 \caption{Extra tags for future builtins}
-\label{table:builtin-tags-future}
+\label{table:builtin-tags-V3}
 \end{table}
 
 

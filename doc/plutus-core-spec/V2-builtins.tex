@@ -1,4 +1,4 @@
-% I tried resetting the note number from builtins-alonzo here, but that made
+% I tried resetting the note number from V1-builtins here, but that made
 % some hyperlinks wrong.  To get note numbers starting at one in each section, I
 % think we have to define a new counter every time.
 \newcounter{notenumberB}
@@ -10,48 +10,47 @@
 
 \newpage
 
-\section{Built-in Types and Functions Supported in the Vasil Release}
-\label{appendix:default-builtins-vasil}
-The Vasil release of Cardano (June 2022) extends the set of built-in functions
-slightly.
-
+\section{PlutusV2 Built-in Types and Functions}
+\label{appendix:default-builtins-V2}
+PlutusV2 became available in the Vasil release of Cardano (June 2022). It
+extends the set of built-in functions slightly.
 
 \subsection{Built-in types and type operators}
-\label{sec:vasil-built-in-types} 
-The built-in types and type operators remain unchanged from the Alonzo release
-(Appendix~\ref{sec:alonzo-built-in-types}).
+\label{sec:V2-built-in-types} 
+The built-in types and type operators remain unchanged from PlutusV1
+(Appendix~\ref{sec:V1-built-in-types}).
 
 \subsection{Built-in functions}
-\label{sec:vasil-built-in-functions}
-The Vasil release continues to support the Alonzo built-in functions (Table
-\ref{table:alonzo-built-in-functions}) and adds three new ones: these are described
-in Table~\ref{table:vasil-built-in-functions}.
+\label{sec:V2-built-in-functions}
+PlutusV2 continues to support the PlutusV1 built-in functions (Table
+\ref{table:V1-built-in-functions})
+and adds three new ones: see Table~\ref{table:V2-built-in-functions}.
 
-\setlength{\LTleft}{-8mm}  % Shift the table left a bit to centre it on the page
+\setlength{\LTleft}{-10mm}  % Shift the table left a bit to centre it on the page
 \begin{longtable}[H]{|l|p{42mm}|p{35mm}|c|c|}
     \hline
     \text{Function} & \text{Signature} & \text{Denotation} & \text{Can} & \text{Note} \\
-    & & & Fail? & \\
+    & & & fail? & \\
     \hline
     \endfirsthead
     \hline
     \text{Function} & \text{Type} & \text{Denotation} & \text{Can} & \text{Note}\\
-    & & & Fail? & \\
+    & & & fail? & \\
     \hline
     \endhead
     \hline
     \caption{Built-in Functions}
     \endfoot
     \caption[]{Built-in Functions}
-    \label{table:vasil-built-in-functions}
+    \label{table:V2-built-in-functions}
     \endlastfoot
     \TT{serialiseData}                        & $[\ty{data}] \to \ty{bytestring}$   &  $\mathcal{E}_{\mathtt{data}}$ &
       & \ref{note:serialise-data}\\
-      \TT{verifyEcdsaSecp256k1Signature}        & $[\ty{bytestring}, \ty{bytestring}, $ \text{$\;\; \ty{bytestring}] \to \ty{bool}$}
+    \TT{verifyEcdsaSecp256k1Signature}        & $[\ty{bytestring}, \ty{bytestring}, $ \text{$\;\; \ty{bytestring}] \to \ty{bool}$}
         & Verify an SECP-256k1 ECDSA signature & Yes & \ref{note:verify-ecdsa-secp256k1-signature}\\
-        \TT{verifySchnorrSecp256k1Signature}      & $[\ty{bytestring}, \ty{bytestring}, $ \text{$\;\; \ty{bytestring}] \to \ty{bool}$}
+    \TT{verifySchnorrSecp256k1Signature}      & $[\ty{bytestring}, \ty{bytestring}, $ \text{$\;\; \ty{bytestring}] \to \ty{bool}$}
           & Verify an SECP-256k1 Schnorr signature & Yes & \ref{note:verify-schnorr-secp256k1-signature}\\
-    \hline 
+\hline 
 \end{longtable}
 
 
@@ -70,7 +69,7 @@ digital signature verification \cite{ANSI-X9.62, ANSI-x9.142,
   Johnson-Menezes-Vanstone-ECDSA} over the \texttt{secp256k1}
 curve~\cite[\S2.4.1]{SECP256} and conforms to the interface described in
 Note~\ref{note:digital-signature-verification-functions} of
-Section~\ref{sec:alonzo-built-in-functions}.  The arguments must have the
+Section~\ref{sec:V1-built-in-functions}.  The arguments must have the
 following sizes:
 \begin{itemize}
 \item $\vk$: 33 bytes
@@ -103,7 +102,7 @@ The \texttt{verifySchnorrSecp256k1Signature} function performs verification of
 Schnorr signatures~\cite{Schnorr89, BIP-340} over the \texttt{secp256k1} curve
 and conforms to the interface described in
 Note~\ref{note:digital-signature-verification-functions} of
-Section~\ref{sec:alonzo-built-in-functions}.  The arguments are expected to be
+Section~\ref{sec:V1-built-in-functions}.  The arguments are expected to be
 of the forms specified in BIP-340~\cite{BIP-340} and thus should have the
 following sizes:
 \begin{itemize}

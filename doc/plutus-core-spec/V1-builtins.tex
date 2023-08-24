@@ -10,16 +10,16 @@
 \newcommand{\vk}{\textit{vk}}  %% Verification key (ie public key) for signature verification functions.
 \newpage
 
-\section{Built-in Types and Functions Supported in the Alonzo Release}
-\label{appendix:default-builtins-alonzo}
+\section{PlutusV1 Built-in Types and Functions}
+\label{appendix:default-builtins-V1}
 
 \subsection{Built-in types and type operators}
-\label{sec:alonzo-built-in-types}
-The Alonzo release of the Cardano blockchain (September 2021) supports a default
-set of built-in types and type operators defined in
-Tables~\ref{table:alonzo-built-in-types} and
-~\ref{table:alonzo-built-in-type-operators}.  We also include concrete syntax
-for these; the concrete syntax is not strictly part of the language, but may be
+\label{sec:V1-built-in-types}
+PlutusV1 became available in the Alonzo release of the Cardano blockchain
+(September 2021). It provides a default set of built-in types and type operators
+defined in Tables~\ref{table:V1-built-in-types}
+and~\ref{table:V1-built-in-type-operators}.  We also include concrete syntax for
+these; the concrete syntax is not strictly part of the language, but may be
 useful for tools working with Plutus Core.
 
 \begin{table}[H]
@@ -28,7 +28,7 @@ useful for tools working with Plutus Core.
         \hline
         Type & Denotation & Concrete Syntax\\
         \hline
-        \texttt{integer} &   $\mathbb{Z}$ & \texttt{-?[0-9]*}\\
+        \texttt{integer} &   $\mathbb{Z}$ & \texttt{-?[0-9]+}\\
         \texttt{bytestring}  & $ \B^*$, the set of sequences of bytes or 8-bit characters. & \texttt{\#([0-9A-Fa-f][0-9A-Fa-f])*}\\
         \texttt{string} & $\U^*$,  the set of sequences of Unicode characters. & See note below.\\
         \texttt{bool} & \{\texttt{true, false}\} & \texttt{True | False}\\
@@ -37,7 +37,7 @@ useful for tools working with Plutus Core.
         \hline
     \end{tabular}
     \caption{Atomic Types}
-    \label{table:alonzo-built-in-types}
+    \label{table:V1-built-in-types}
 \end{table}
 
 \begin{table}[H]
@@ -51,7 +51,7 @@ useful for tools working with Plutus Core.
         \hline
         \end{tabular}
    \caption{Type Operators}
-    \label{table:alonzo-built-in-type-operators}
+    \label{table:V1-built-in-type-operators}
 \end{table}
 
 \paragraph{Concrete syntax for strings.} Strings are represented as sequences of Unicode characters
@@ -144,10 +144,10 @@ Plutus Core itself. Both provide ways of representing structured data, but
 the former is part of a built-in type whereas the latter is part of the language
 itself.
 
-\subsection{Alonzo built-in functions}
-\label{sec:alonzo-built-in-functions}
-The default set of built-in functions for the Alonzo release is shown in
-Table~\ref{table:alonzo-built-in-functions}.  The table indicates which
+\subsection{Built-in functions}
+\label{sec:V1-built-in-functions}
+The default set of built-in functions for PlutusV1 is shown in
+Table~\ref{table:V1-built-in-functions}.  The table indicates which
 functions can fail during execution, and conditions causing failure are
 specified either in the denotation given in the table or in a relevant note.
 Recall also that a built-in function will fail if it is given an argument of the
@@ -164,12 +164,12 @@ it applies at each possible monomorphisation in an obvious way.
 \begin{longtable}[H]{|l|p{5cm}|p{5cm}|c|c|}
     \hline
     \text{Function} & \text{Signature} & \text{Denotation} & \text{Can} & \text{Note} \\
-    & & & Fail? & \\
+    & & & fail? & \\
     \hline
     \endfirsthead
     \hline
     \text{Function} & \text{Type} & \text{Denotation} & \text{Can} & \text{Note}\\
-    & & & Fail? & \\
+    & & & fail? & \\
     \hline
     \endhead
     \hline
@@ -180,7 +180,7 @@ it applies at each possible monomorphisation in an obvious way.
     % longtable.
     \endfoot
     \caption[]{Built-in Functions (continued)}
-    \label{table:alonzo-built-in-functions}
+    \label{table:V1-built-in-functions}
     \endlastfoot
     \TT{addInteger}               & $[\ty{integer}, \ty{integer}] \to \ty{integer}$   & $+$ &  & \\
     \TT{subtractInteger}          & $[\ty{integer}, \ty{integer}] \to \ty{integer}$   & $-$ &  & \\
@@ -196,7 +196,8 @@ it applies at each possible monomorphisation in an obvious way.
     \TT{appendByteString}         & $[\ty{bytestring}, \ty{bytestring}] $ \text{$\;\; \to \ty{bytestring}$}
                                            & $([c_1, \dots, c_m], [d_1, \ldots, d_n]) $ \text{$\;\; \mapsto [c_1,\ldots, c_m,d_1, \ldots, d_n]$} &  & \\
     \TT{consByteString}         & $[\ty{integer}, \ty{bytestring}] $ \text{$\;\; \to \ty{bytestring}$}
-                                          & $(c,[c_1,\ldots,c_n]) $ \text{$\;\;\mapsto [\text{mod}(c,256) ,c_1,\ldots,c_{n}]$} &  & \\
+                                          & $(c,[c_1,\ldots,c_n]) $ \text{$\;\;\mapsto [\text{mod}(c,256) ,c_1,\ldots,c_{n}]$} &
+                                          & \ref{note:consbytestring}\\
     \TT{sliceByteString}        & $[\ty{integer}, \ty{integer}, \ty{bytestring]} $  \text {$\;\; \to  \ty{bytestring}$}
                                                    &   $(s,k,[c_0,\ldots,c_n])$ \text{$\;\;\mapsto [c_{\max(s,0)},\ldots,c_{\min(s+k-1,n-1)}]$}
                                                    &  & \ref{note:slicebytestring}\\
@@ -321,6 +322,11 @@ all of these functions return the error value $\errorX$.
 %% | -41 -5 |  8  -1  |   8  -1  |
 %% -------------------------------
 
+\note{The \texttt{consByteString} function.}
+\label{note:consbytestring}
+The semantics of \texttt{consByteString} are slightly different
+from PlutusV3 onward: see Table~\ref{table:V3-misc-built-in-functions}.
+
 \note{The \texttt{sliceByteString} function.}
 \label{note:slicebytestring}
 The application \texttt{[[(builtin sliceByteString) (con integer $s$)] (con
@@ -412,8 +418,8 @@ otherwise it returns \texttt{false}.
 The \texttt{verifyEd25519Signature}
 function\footnote{\texttt{verifyEd25519Signature} was formerly called
   \texttt{verifySignature} but was renamed to avoid ambiguity when further
-  signature verification functions were introduced in the Vasil release (see
-  Section~\ref{sec:vasil-built-in-functions}).}  performs cryptographic
+  signature verification functions were introduced in PlutusV2 (see
+  Section~\ref{sec:V2-built-in-functions}).}  performs cryptographic
 signature verification using the Ed25519 scheme \cite{ches-2011-24091,
   rfc8032-EdDSA}, and conforms to the interface described in
 Note~\ref{note:digital-signature-verification-functions}.  The arguments must
