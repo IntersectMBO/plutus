@@ -33,12 +33,13 @@ relevant in this document:
 Cardano introduced support for Plutus Core in the Alonzo release;
 Table~\ref{table:versions} shows all releases that have introduced new language
 versions and/or new ledger language versions since then.  The features provided
-by the different ledger langauge versions are described in subsequent appendices.
+by the different ledger language versions are described in subsequent appendices.
+
 \begin{table}[H]
   \centering
     \begin{tabular}{|l|l|l|l|}
         \hline
-        Cardano release & Date & Language versions & Ledger language versions \\
+        \thead{Cardano release} & \thead{Date} &  \thead{Language versions} & \thead{Ledger language versions} \\
         \hline
         Alonzo & September 2021 & 1.0.0 & PlutusV1 \\
         Vasil & June 2022 & 1.0.0 & PlutusV1, PlutusV2 \\
@@ -50,23 +51,24 @@ by the different ledger langauge versions are described in subsequent appendices
 \end{table}
    
 
-\noindent Table~\ref{table:version-dependencies} shows which ledger language
-versions are compatible with each Plutus Core language version: if an on-chain
-script specifies a combination which does not appear in this table then
+\noindent Table~\ref{table:version-dependencies} shows which Plutus Core
+language versions are compatible with each ledger language version: if an
+on-chain script specifies a combination which does not appear in this table then
 attempting to evaluate it will cause an error.
  
 %% See PlutusLedgerApi.Common.Versions.plcVersionsIntroducedIn
 \begin{table}[H]
   \centering
-    \begin{tabular}{|l|l|}
+    \begin{tabular}{|c|c|}
         \hline
-        \thead{Plutus Core \\ language version} & \thead{Compatible ledger \\ language versions}\\
+        \thead{Ledger language \\version} & \thead{Compatible Plutus Core \\ language versions} \\
         \hline
-        1.0.0 & PlutusV1, PlutusV2\\
-        1.0.1 & PlutusV3 \\
+        PlutusV1 & 1.0.0 \\
+        PlutusV2 & 1.0.0 \\
+        PlutusV3 & 1.1.0 \\
         \hline
     \end{tabular}
-    \caption{Compatibility of Plutus Core language versions and ledger language versions}
+    \caption{Compatibility of ledger language versions and Plutus Core language versions}
     \label{table:version-dependencies}
 \end{table}
 
