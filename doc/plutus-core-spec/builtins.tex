@@ -58,9 +58,10 @@ is associated with some mathematical set $\denote{\tn}$, the \textit{denotation}
 of $\tn$. For example, we might have $\denote{\texttt{boolean}}=
 \{\mathsf{true}, \mathsf{false}\}$ and $\denote{\texttt{integer}} = \mathbb{Z}$
 and $\denote{\pairOf{a}{b}} = \denote{a} \times \denote{b}$.  See
-Appendix~\ref{appendix:default-builtins-V1} for a description of the
-built-in types and type operators available in Plutus V1.%
-\nomenclature[Dz1]{$\denote{T}$}{Denotation of a type $T \in \Uni$}
+Appendices~\ref{appendix:default-builtins-V1}--\ref{appendix:default-builtins-V3}
+for a description of the built-in types and type operators which are currently
+available on the Cardano blockchain.
+% \nomenclature[Dz1]{$\denote{T}$}{Denotation of a type $T \in \Uni$}
 
 For non-atomic type names $\tn = \op(\tn_1, \ldots, \tn_r)$ we would generally
 expect the denotation of $\tn$ to be obtained in some uniform way (ie,
@@ -274,8 +275,9 @@ mathematical entities occurring as members of type denotations $\denote{\tn}$
 are embedded directly as values $c$ in Plutus Core constant terms. In reality,
 tools which work with Plutus Core will need some concrete syntactic
 representation of constants; we do not specify this here, but see
-Section~\ref{sec:V1-built-in-types} for suggested syntax for the built-in
-types included in Plutus V1.
+Appendices~\ref{appendix:default-builtins-V1}--\ref{appendix:default-builtins-V3}
+for suggested syntax for the built-in types currently in use on the Cardano
+blockchain.
 
 
 

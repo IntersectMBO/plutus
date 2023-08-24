@@ -7,9 +7,9 @@
 
 \newpage
 
-\section{Plutus V3 Built-in Types and Functions}
+\section{PlutusV3 Built-in Types and Functions}
 \label{appendix:default-builtins-V3}
-Plutus V3 (not yet released on Cardano) will add support for
+PlutusV3 (not yet released on Cardano) will add support for
 \begin{itemize}
 \item The \texttt{Blake2b-224} and \texttt{Keccak-256} hash functions (Section \ref{sec:V3-misc-builtins})
 \item BLS12-381 elliptic curve pairing operations
@@ -21,7 +21,7 @@ Plutus V3 (not yet released on Cardano) will add support for
 
 \medskip
 \noindent It is expected that support for language version 1.1.0 of
-Plutus Core will become available at the same time as Plutus V3.
+Plutus Core will become available at the same time as PlutusV3.
 
 \subsection{Miscellaneous built-in functions}
 \label{sec:V3-misc-builtins}
@@ -57,9 +57,9 @@ Plutus Core will become available at the same time as Plutus V3.
 
 \note{Changed semantics for \texttt{consByteString}.}
 \label{note:consbytestring-v2}
-In Plutus V1 and Plutus V2 the first argument of \texttt{consByteString} is an
+In PlutusV1 and PlutusV2 the first argument of \texttt{consByteString} is an
 arbitrary integer which will be reduced modulo 256 before being prepended to the
-second argument.  In Plutus V3 we require that the first argument lies between 0
+second argument.  In PlutusV3 we require that the first argument lies between 0
 and 255 (inclusive): in any other case an error will occur.
 
 

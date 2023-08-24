@@ -21,7 +21,7 @@ relevant in this document:
   Core scripts on the Cardano chain are equipped with a tag called a
   \textit{ledger language version} which (among other things) determines which
   set of types and functions are to be used during evaluation of the script.
-  Ledger language versions have names names like ``Plutus V1'', ``Plutus V2'',
+  Ledger language versions have names names like ``PlutusV1'', ``PlutusV2'',
   and so on.  The semantics of a given built-in function may be different in
   different ledger language versions.  Each Plutus Core ledger language version
   is only valid with a specific Plutus Core language version, but a given
@@ -40,9 +40,9 @@ by the different ledger langauge versions are described in subsequent appendices
         \hline
         Cardano release & Date & Language versions & Ledger language versions \\
         \hline
-        Alonzo & September 2021 & 1.0.0 & V1 \\
-        Vasil & June 2022 & 1.0.0 & V1, V2 \\
-        (Forthcoming) & TBA & 1.0.0, 1.1.0 & V1, V2, V3 \\
+        Alonzo & September 2021 & 1.0.0 & PlutusV1 \\
+        Vasil & June 2022 & 1.0.0 & PlutusV1, PlutusV2 \\
+        (Forthcoming) & TBA & 1.0.0, 1.1.0 & PlutusV1, PlutusV2, PlutusV3 \\
         \hline
     \end{tabular}
     \caption{Plutus Core language versions and ledger language versions}
@@ -62,8 +62,8 @@ attempting to evaluate it will cause an error.
         \hline
         \thead{Plutus Core \\ language version} & \thead{Compatible ledger \\ language versions}\\
         \hline
-        1.0.0 & V1, V2\\
-        1.0.1 & V3 \\
+        1.0.0 & PlutusV1, PlutusV2\\
+        1.0.1 & PlutusV3 \\
         \hline
     \end{tabular}
     \caption{Compatibility of Plutus Core language versions and ledger language versions}

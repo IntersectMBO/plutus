@@ -10,12 +10,12 @@
 \newcommand{\vk}{\textit{vk}}  %% Verification key (ie public key) for signature verification functions.
 \newpage
 
-\section{Plutus V1 Built-in Types and Functions}
+\section{PlutusV1 Built-in Types and Functions}
 \label{appendix:default-builtins-V1}
 
 \subsection{Built-in types and type operators}
 \label{sec:V1-built-in-types}
-Plutus V1 became available in the Alonzo release of the Cardano blockchain
+PlutusV1 became available in the Alonzo release of the Cardano blockchain
 (September 2021). It provides a default set of built-in types and type operators
 defined in Tables~\ref{table:V1-built-in-types}
 and~\ref{table:V1-built-in-type-operators}.  We also include concrete syntax for
@@ -146,7 +146,7 @@ itself.
 
 \subsection{Built-in functions}
 \label{sec:V1-built-in-functions}
-The default set of built-in functions for Plutus V1 is shown in
+The default set of built-in functions for PlutusV1 is shown in
 Table~\ref{table:V1-built-in-functions}.  The table indicates which
 functions can fail during execution, and conditions causing failure are
 specified either in the denotation given in the table or in a relevant note.
@@ -325,7 +325,7 @@ all of these functions return the error value $\errorX$.
 \note{The \texttt{consByteString} function.}
 \label{note:consbytestring}
 The semantics of \texttt{consByteString} are slightly different
-from Plutus V3 onward: see Table~\ref{table:V3-misc-built-in-functions}.
+from PlutusV3 onward: see Table~\ref{table:V3-misc-built-in-functions}.
 
 \note{The \texttt{sliceByteString} function.}
 \label{note:slicebytestring}
@@ -418,7 +418,7 @@ otherwise it returns \texttt{false}.
 The \texttt{verifyEd25519Signature}
 function\footnote{\texttt{verifyEd25519Signature} was formerly called
   \texttt{verifySignature} but was renamed to avoid ambiguity when further
-  signature verification functions were introduced in Plutus V2 (see
+  signature verification functions were introduced in PlutusV2 (see
   Section~\ref{sec:V2-built-in-functions}).}  performs cryptographic
 signature verification using the Ed25519 scheme \cite{ches-2011-24091,
   rfc8032-EdDSA}, and conforms to the interface described in
