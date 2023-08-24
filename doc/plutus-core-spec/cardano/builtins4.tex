@@ -1,30 +1,25 @@
-\newcounter{notenumberC}
+% I tried resetting the note number from V1-builtins here, but that made
+% some hyperlinks wrong.  To get note numbers starting at one in each section, I
+% think we have to define a new counter every time.
+\newcounter{notenumberD}
 \renewcommand{\note}[1]{
   \bigskip
-  \refstepcounter{notenumberC}
-  \noindent\textbf{Note \thenotenumberC. #1}
+  \refstepcounter{notenumberD}
+  \noindent\textbf{Note \thenotenumberD. #1}
 }
 
-\newpage
-
-\section{PlutusV3 Built-in Types and Functions}
-\label{appendix:default-builtins-V3}
-PlutusV3 (not yet released on Cardano) will add support for
+\subsection{Tranche 4}
+\label{sec:default-builtins-4}
+The fourth tranch of builtins adds support for
 \begin{itemize}
-\item The \texttt{Blake2b-224} and \texttt{Keccak-256} hash functions (Section \ref{sec:V3-misc-builtins})
+\item The \texttt{Blake2b-224} and \texttt{Keccak-256} hash functions (Section \ref{sec:misc-builtins-4})
 \item BLS12-381 elliptic curve pairing operations
 (see~\cite{CIP-0381}, \cite{BLS12-381}, \cite[4.2.1]{IETF-pairing-friendly-curves}, \cite{BLST-library}).
- For clarity these are described separately in Sections~\ref{sec:V3-bls-types} and \ref{sec:V3-bls-builtins}.
+ For clarity these are described separately in Sections~\ref{sec:bls-types-4} and \ref{sec:bls-builtins-4}.
 \end{itemize}
 
-\noindent In addition there is a slight change to the semantics of \texttt{consByteString}.
-
-\medskip
-\noindent It is expected that support for language version 1.1.0 of
-Plutus Core will become available at the same time as PlutusV3.
-
-\subsection{Miscellaneous built-in functions}
-\label{sec:V3-misc-builtins}
+\subsubsection{Miscellaneous built-in functions}
+\label{sec:misc-builtins-4}
 
 \setlength{\LTleft}{-10mm} % Shift the table left a bit to centre it on the page
 \begin{longtable}[H]{|l|p{5cm}|p{55mm}|c|c|}
@@ -38,16 +33,10 @@ Plutus Core will become available at the same time as PlutusV3.
     \endfoot
 %%    \caption[]{Built-in Functions}
     \caption[]{Miscellaneous built-in Functions}
-    \label{table:V3-misc-built-in-functions}
+    \label{table:misc-built-in-functions-4}
     \endlastfoot
 %% G1
     \hline
-    \TT{consByteString}         & $[\ty{integer}, \ty{bytestring}] $ \text{$\;\; \to \ty{bytestring}$}
-                                                   & $(c,[c_1,\ldots,c_n])$ \text{$\;\;\mapsto
-                                                       \begin{cases}
-                                                          [c,c_1,\ldots,c_{n}] & \text{if $0 \leq c \leq 255$} \\
-                                                         \errorX & \text{otherwise}
-                                                       \end{cases}$} & Yes & \ref{note:consbytestring-v2}\\
     \TT{blake2b\_224} & $[\ty{bytestring}] \to \ty{bytestring}$  & \text{Hash a $\ty{bytestring}$ using}
                                                                    \TT{Blake2b-224}~\cite{IETF-Blake2}. &  & \\
     \TT{keccak\_256}  & $[\ty{bytestring}] \to \ty{bytestring}$  & \text{Hash a $\ty{bytestring}$ using}
@@ -55,24 +44,16 @@ Plutus Core will become available at the same time as PlutusV3.
     \hline
 \end{longtable}
 
-\note{Changed semantics for \texttt{consByteString}.}
-\label{note:consbytestring-v2}
-In PlutusV1 and PlutusV2 the first argument of \texttt{consByteString} is an
-arbitrary integer which will be reduced modulo 256 before being prepended to the
-second argument.  In PlutusV3 we require that the first argument lies between 0
-and 255 (inclusive): in any other case an error will occur.
-
-
-\subsection{BLS12-381 built-in types}
-\label{sec:V3-bls-types}
+\subsubsection{BLS12-381 built-in types}
+\label{sec:bls-types-4}
 
 \noindent Supporting the BLS12-381 operations involves adding three new types
 and seventeen new built-in functions.  The description of the semantics of these
 types and functions is quite complex and requires a considerable amount of
-notation, most of which is used only in Sections~\ref{sec:V3-bls-types} and~\ref{sec:V3-bls-builtins}.
+notation, most of which is used only in Sections~\ref{sec:bls-types-4} and~\ref{sec:bls-builtins-4}.
 
 \bigskip
-\noindent Table~\ref{table:V3-built-in-types} describes three new built-in
+\noindent Table~\ref{table:built-in-types-4} describes three new built-in
 types.
 
 \newcommand{\TyMlResult}{\ty{bls12\_381\_mlresult}}
@@ -93,7 +74,7 @@ types.
         \hline
     \end{tabular}
     \caption{Atomic Types}
-    \label{table:V3-built-in-types}
+    \label{table:built-in-types-4}
 \end{table}
 
 %% \paragraph{$G_1$ and $G_2$}.
@@ -159,8 +140,8 @@ $\MlResultDenotation$, the denotation of $\TyMlResult$, precisely, but it
 must be a multiplicative abelian group. See Note~\ref{note:pairing} for more on
 this.
 
-\subsection{BLS12-381 built-in functions}
-\label{sec:V3-bls-builtins}
+\subsubsection{BLS12-381 built-in functions}
+\label{sec:bls-builtins-4}
 
 \newcommand{\hash}{\mathsf{hash}}
 \newcommand{\compress}{\mathsf{compress}}
@@ -180,7 +161,7 @@ this.
     \endfoot
 %%    \caption[]{Built-in Functions}
     \caption[]{BLS12-381 built-in Functions (continued)}
-    \label{table:V3-built-in-functions}
+    \label{table:built-in-functions-4}
     \endlastfoot
 %% G1
     \TT{bls12\_381\_G1\_add}  &
