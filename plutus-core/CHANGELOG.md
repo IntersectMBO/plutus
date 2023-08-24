@@ -1,4 +1,11 @@
 
+<a id='changelog-1.11.0.0'></a>
+# 1.11.0.0 — 2023-08-24
+
+## Added
+
+- Optimization pass to strictify bindings
+
 <a id='changelog-1.10.0.0'></a>
 # 1.10.0.0 — 2023-08-02
 
