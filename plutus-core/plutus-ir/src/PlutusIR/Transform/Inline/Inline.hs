@@ -34,7 +34,7 @@ import Control.Monad.State (evalStateT, modify')
 import Algebra.Graph qualified as G
 import Control.Monad.State.Class (gets)
 import Data.Map qualified as Map
-import PlutusIR.Contexts (AppContext (..), fillAppContext, splitApplication)
+import PlutusIR.Contexts (AppContext (..), splitApplication)
 import PlutusIR.Transform.Inline.CallSiteInline (callSiteInline)
 import Witherable (Witherable (wither))
 
@@ -228,31 +228,33 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
                     processedArgs <- processArgs ctx
                     pure $ TypeAppContext ty ann processedArgs
                 processArgs AppContextEnd = pure AppContextEnd
-            processedHd <- case args of
-                -- if it's not an application, just process the subterms
-                AppContextEnd -> forMOf termSubterms hd processTerm
-                _             -> processTerm hd -- otherwise, process the head
-            -- process the args
-            processedArgs <- processArgs args
-
-            case processedHd of
-                Var _ann name -> do
-                    gets (lookupVarInfo name) >>= \case
-                        Just varInfo -> do
-                            let defAsInlineTerm = varRhs varInfo
-                                inlineTermToTerm :: InlineTerm tyname name uni fun ann
-                                    -> Term tyname name uni fun ann
-                                inlineTermToTerm (Done (Dupable var)) = var
-                                -- extract out the rhs without renaming, we only rename when we know
-                                -- there's substitution
-                                rhs = inlineTermToTerm defAsInlineTerm
-
-                            callSiteInline rhs varInfo processedArgs
-                        -- The variable maybe a *recursive* let binding, in which case it won't be
-                        -- in the map, and we don't process it. ATM recursive bindings aren't
-                        -- inlined.
-                        Nothing -> pure $ fillAppContext processedHd processedArgs
-                _ -> pure $ fillAppContext processedHd processedArgs
+            case (hd, args) of
+                -- not an application, just process the subterms
+                (_, AppContextEnd) -> forMOf termSubterms t processTerm
+                (Var{}, _) -> do
+                    processedHd <- processTerm hd -- the variable may be unconditionally inlined.
+                    case processedHd of
+                        (Var _ name) -> do
+                                -- process the args
+                                processedArgs <- processArgs args
+                                gets (lookupVarInfo name) >>= \case
+                                    Just varInfo -> do
+                                        let defAsInlineTerm = varRhs varInfo
+                                            inlineTermToTerm :: InlineTerm tyname name uni fun ann
+                                                -> Term tyname name uni fun ann
+                                            inlineTermToTerm (Done (Dupable var)) = var
+                                            -- extract out the rhs without renaming, we only rename
+                                            -- when we know there's substitution
+                                            rhs = inlineTermToTerm defAsInlineTerm
+                                        callSiteInline rhs varInfo processedArgs
+                                    -- The variable maybe a *recursive* let binding, in which case
+                                    -- it won't be in the map, and we don't process it.
+                                    -- ATM recursive bindings aren't inlined.
+                                    Nothing -> pure $ fillAppContext processedHd processedArgs
+                        -- if the processed head is not a variable (because it's inlined), just
+                        -- process the subterms
+                        _ ->  forMOf termSubterms t processTerm
+                _ ->  forMOf termSubterms t processTerm
 
 {- Note [Processing order of call site inlining]
 We have two options on how we process terms for the call site inliner:
