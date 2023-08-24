@@ -1,4 +1,22 @@
 
+<a id='changelog-1.11.0.0'></a>
+# 1.11.0.0 — 2023-08-24
+
+## Added
+
+- `ScriptContext` type for PlutusV3.
+
+## Changed
+
+- A CBOR script deserialization error now contains more descriptive (typed) errors,
+  see `DeserialiseFailureInfo`.
+
+- Updated `PlutusLedgerApi.V3.Contexts.ScriptContext`:
+  - The `Proposing` `ScriptPurpose` now takes an `Integer` argument.
+  - The `ParameterChange` `GovernanceAction` now takes a `ChangedParameters` argument.
+  - `GovernanceActionId` is made optional in `GovernanceAction`.
+  - `Anchor` is removed from `ScriptContext`.
+
 <a id='changelog-1.10.0.0'></a>
 # 1.10.0.0 — 2023-08-02
 
