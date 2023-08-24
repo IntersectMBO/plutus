@@ -157,6 +157,19 @@ data BuiltinCostModelBase f =
     -- Keccak_256, Blake2b_224
     , paramKeccak_256                      :: f ModelOneArgument
     , paramBlake2b_224                     :: f ModelOneArgument
+    -- Bitwise operations
+    , paramIntegerToByteString             :: f ModelOneArgument
+    , paramByteStringToInteger             :: f ModelOneArgument
+    , paramAndByteString                   :: f ModelTwoArguments
+    , paramIorByteString                   :: f ModelTwoArguments
+    , paramXorByteString                   :: f ModelTwoArguments
+    , paramComplementByteString            :: f ModelOneArgument
+    , paramShiftByteString                 :: f ModelTwoArguments
+    , paramRotateByteString                :: f ModelTwoArguments
+    , paramPopCountByteString              :: f ModelOneArgument
+    , paramTestBitByteString               :: f ModelTwoArguments
+    , paramWriteBitByteString              :: f ModelThreeArguments
+    , paramFindFirstSetByteString          :: f ModelOneArgument
     }
     deriving stock (Generic)
     deriving anyclass (FunctorB, TraversableB, ConstraintsB)
