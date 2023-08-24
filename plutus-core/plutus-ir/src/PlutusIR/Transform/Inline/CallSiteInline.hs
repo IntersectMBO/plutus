@@ -11,8 +11,7 @@ See note [Inlining of fully applied functions].
 module PlutusIR.Transform.Inline.CallSiteInline where
 
 import PlutusCore qualified as PLC
-import PlutusCore.Rename (liftDupable)
-import PlutusCore.Rename.Internal (Dupable (Dupable))
+import PlutusCore.Rename (rename)
 import PlutusIR.Analysis.Size (termSize)
 import PlutusIR.Contexts
 import PlutusIR.Core
@@ -109,49 +108,42 @@ applyAndBetaReduce rhs args0 = do
       safeToBetaReduce = shouldUnconditionallyInline Strict
   go rhs args0
 
--- | Consider whether to inline a term. For applications, consider whether to apply and beta reduce.
+-- | Consider inlining a variable. For applications, consider whether to apply and beta reduce.
 callSiteInline ::
   forall tyname name uni fun ann.
   (InliningConstraints tyname name uni fun) =>
-  -- | The "head"(obtained from `Contexts.splitApplication`) of the term.
+  -- | The "head"(obtained from `Contexts.splitApplication`) of the term, already processed.
   Term tyname name uni fun ann ->
   -- | The `Utils.VarInfo` of the variable (the head of the term).
   VarInfo tyname name uni fun ann ->
   -- | The application context of the term, already processed.
   AppContext tyname name uni fun ann ->
   InlineM tyname name uni fun ann (Term tyname name uni fun ann)
-callSiteInline headOfTerm = go
+callSiteInline headRhs = go
   where
     go varInfo args = do
         let
-          -- rebuild the term with arguments already processed
-          tm = fillAppContext headOfTerm args
-          defAsInlineTerm = varRhs varInfo
-          inlineTermToTerm :: InlineTerm tyname name uni fun ann
-            -> Term tyname name uni fun ann
-          inlineTermToTerm (Done (Dupable var)) = var
-          -- extract out the rhs without renaming, we only rename when we know there's
-          -- substitution
-          rhs = inlineTermToTerm defAsInlineTerm
+          -- rebuild the term with the head and the arguments already processed
+          tm = fillAppContext headRhs args
           -- The definition itself will be inlined, so we need to check that the cost
           -- of that is acceptable. Note that we do _not_ check the cost of the _body_.
           -- We would have paid that regardless.
           -- Consider e.g. `let y = \x. f x`. We pay the cost of the `f x` at
           -- every call site regardless. The work that is being duplicated is
           -- the work for the lambda.
-          costIsOk = costIsAcceptable rhs
+          costIsOk = costIsAcceptable headRhs
         -- check if binding is pure to avoid duplicated effects.
         -- For strict bindings we can't accidentally make any effects happen less often
         -- than it would have before, but we can make it happen more often.
         -- We could potentially do this safely in non-conservative mode.
-        rhsPure <- isTermBindingPure (varStrictness varInfo) rhs
+        rhsPure <- isTermBindingPure (varStrictness varInfo) headRhs
         if costIsOk && rhsPure then do
           -- rename the rhs of the variable before any substitution
-          renamedRhs <- liftDupable (let Done def = varRhs varInfo in def)
+          renamedRhs <- rename headRhs
           applyAndBetaReduce renamedRhs args >>= \case
             Just inlined -> do
               let -- Inline only if the size is no bigger than not inlining.
                   sizeIsOk = termSize inlined <= termSize tm
               pure $ if sizeIsOk then inlined else tm
-            Nothing -> pure tm -- return the term with arguments already processed
-        else pure tm
+            Nothing -> pure tm -- return the term with the head and arguments already processed
+        else pure tm -- return the term with the head and arguments already processed

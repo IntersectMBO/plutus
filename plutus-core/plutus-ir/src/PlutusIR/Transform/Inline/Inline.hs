@@ -11,6 +11,13 @@ in the paper 'Secrets of the GHC Inliner'.
 -}
 
 module PlutusIR.Transform.Inline.Inline (inline, InlineHints (..)) where
+import PlutusCore qualified as PLC
+import PlutusCore.Annotation
+import PlutusCore.Builtin qualified as PLC
+import PlutusCore.Name
+import PlutusCore.Quote
+import PlutusCore.Rename (dupable)
+import PlutusCore.Rename.Internal (Dupable (Dupable))
 import PlutusIR
 import PlutusIR.Analysis.Dependencies qualified as Deps
 import PlutusIR.Analysis.Usages qualified as Usages
@@ -18,13 +25,6 @@ import PlutusIR.MkPir (mkLet)
 import PlutusIR.Transform.Inline.Utils
 import PlutusIR.Transform.Rename ()
 import PlutusPrelude
-
-import PlutusCore qualified as PLC
-import PlutusCore.Annotation
-import PlutusCore.Builtin qualified as PLC
-import PlutusCore.Name
-import PlutusCore.Quote
-import PlutusCore.Rename (dupable)
 
 import Control.Lens (forMOf, traverseOf)
 import Control.Monad.Extra
@@ -34,7 +34,7 @@ import Control.Monad.State (evalStateT, modify')
 import Algebra.Graph qualified as G
 import Control.Monad.State.Class (gets)
 import Data.Map qualified as Map
-import PlutusIR.Contexts (AppContext (..), splitApplication)
+import PlutusIR.Contexts (AppContext (..), fillAppContext, splitApplication)
 import PlutusIR.Transform.Inline.CallSiteInline (callSiteInline)
 import Witherable (Witherable (wither))
 
@@ -228,21 +228,31 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
                     processedArgs <- processArgs ctx
                     pure $ TypeAppContext ty ann processedArgs
                 processArgs AppContextEnd = pure AppContextEnd
+            processedHd <- case args of
+                -- if it's not an application, just process the subterms
+                AppContextEnd -> forMOf termSubterms hd processTerm
+                _             -> processTerm hd -- otherwise, process the head
+            -- process the args
+            processedArgs <- processArgs args
 
-            case hd of
+            case processedHd of
                 Var _ann name -> do
                     gets (lookupVarInfo name) >>= \case
                         Just varInfo -> do
-                            -- process the args if it's a variable that's in the map
-                            processedArgs <- processArgs args
-                            -- consider call site inlining since it's a variable.
-                            callSiteInline hd varInfo processedArgs
+                            let defAsInlineTerm = varRhs varInfo
+                                inlineTermToTerm :: InlineTerm tyname name uni fun ann
+                                    -> Term tyname name uni fun ann
+                                inlineTermToTerm (Done (Dupable var)) = var
+                                -- extract out the rhs without renaming, we only rename when we know
+                                -- there's substitution
+                                rhs = inlineTermToTerm defAsInlineTerm
+
+                            callSiteInline rhs varInfo processedArgs
                         -- The variable maybe a *recursive* let binding, in which case it won't be
                         -- in the map, and we don't process it. ATM recursive bindings aren't
                         -- inlined.
-                        Nothing -> forMOf termSubterms t processTerm
-                _ -> -- Just process all the subterms
-                    forMOf termSubterms t processTerm
+                        Nothing -> pure $ fillAppContext processedHd processedArgs
+                _ -> pure $ fillAppContext processedHd processedArgs
 
 {- Note [Processing order of call site inlining]
 We have two options on how we process terms for the call site inliner:
@@ -317,9 +327,9 @@ We can see from this eg that we are not reducing as much because the arguments a
 frequently because they are applications. So if we process the arguments first, then we will be
 reducing the most in 1 pass. Thus, how we process the terms is actually the third option:
 
-First, split the term into an application context. Then, process the sub-parts of the application
-context. Finally, consider call site inlining starting with the whole term, but with arguments
-already processed.
+First, split the term into an application context. Then, process the head and arguments of the
+application context. If the head is a variable, consider call site inlining, starting with the whole
+term, but with the head (the rhs of the variable) and the arguments already processed.
 
 -}
 
