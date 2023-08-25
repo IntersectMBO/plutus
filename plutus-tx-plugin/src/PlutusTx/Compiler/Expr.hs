@@ -706,7 +706,7 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     -- unpackCString# is just a wrapper around a literal
     GHC.Var n `GHC.App` expr | GHC.getName n == GHC.unpackCStringName -> compileExpr expr
     -- Handle `integerNegate` applications like `integerNegate 123` and `integerNegate (integerNegate 123)`.
-    GHC.Var n `GHC.App` expr | GHC.getName n == GHC.integerNegateName -> compileIntegerNegate 1 expr
+    GHC.Var n `GHC.App` expr | GHC.getName n == GHC.integerNegateName -> compileIntegerNegate expr
     -- See Note [unpackFoldrCString#]
     GHC.Var build `GHC.App` _ `GHC.App` GHC.Lam _ (GHC.Var unpack `GHC.App` _ `GHC.App` expr)
       | GHC.getName build == GHC.buildName && GHC.getName unpack == GHC.unpackCStringFoldrName -> compileExpr expr
@@ -907,21 +907,19 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
 
 compileIntegerNegate ::
   (CompilingDefault uni fun m ann) =>
-  -- | Number of negates
-  Int ->
   GHC.CoreExpr ->
   m (PIRTerm uni fun)
-compileIntegerNegate k e = case e of
-  GHC.Var n `GHC.App` arg | GHC.getName n == GHC.integerNegateName -> compileIntegerNegate (k+1) arg
-  GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) `GHC.App` arg | GHC.dataConTyCon dc == GHC.integerTyCon ->
-    if even k
-      then compileExpr arg
-      else case arg of
-             GHC.Lit (GHC.LitNumber _ i) -> pure $ PIR.embed $ PLC.mkConstant annMayInline (-i)
-             _                           -> giveup
-  _ -> giveup
-  where
-    giveup = throwSd UnsupportedError $ "integerNegate applied to non-literal argument: " GHC.<+> GHC.ppr e
+compileIntegerNegate e = case e of
+  GHC.Var n `GHC.App` arg
+    | GHC.getName n == GHC.integerNegateName ->
+        -- `integerNegate (integerNegate arg)` is equivalent to `arg`
+        compileExpr arg
+  GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) `GHC.App` GHC.Lit (GHC.LitNumber _ i)
+    | GHC.dataConTyCon dc == GHC.integerTyCon ->
+        pure $ PIR.embed $ PLC.mkConstant annMayInline (-i)
+  _ ->
+    throwSd UnsupportedError $
+      "integerNegate applied to non-literal argument: " GHC.<+> GHC.ppr e
 
 {- Note [What source locations to cover]
    We try to get as much coverage information as we can out of GHC. This means that
