@@ -1046,7 +1046,11 @@ do it quite yet, even though it worked (the Plutus Tx part wasn't implemented).
 instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     type CostingPart uni DefaultFun = BuiltinCostModel
 
-    data BuiltinVersion DefaultFun = DefaultFunV1 | DefaultFunV2
+    {- | Allow different versions of builtins with different implementations, and
+       possibly different semantics.  Note that DefaultFunBV1, DefaultFunBV2
+       etc. DO NOT correspond directly to PlutusV1, PlutusV2 etc. in
+       plutus-ledger-api.  See Note [Versioned builtins]. -}
+    data BuiltinVersion DefaultFun = DefaultFunBV1 | DefaultFunBV2
         deriving stock (Enum, Bounded, Show)
 
     -- Integers
@@ -1107,7 +1111,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             costingFun = runCostingFunTwoArguments . paramConsByteString
         -- See Note [Versioned builtins]
         in case ver of
-            DefaultFunV1 -> makeBuiltinMeaning
+            DefaultFunBV1 -> makeBuiltinMeaning
                @(Integer -> BS.ByteString -> BS.ByteString)
                (\n xs -> BS.cons (fromIntegral @Integer n) xs)
                costingFun
@@ -1158,8 +1162,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     toBuiltinMeaning ver VerifyEd25519Signature =
         let verifyEd25519Signature =
                 case ver of
-                  DefaultFunV1 -> verifyEd25519Signature_V1
-                  _            -> verifyEd25519Signature_V2
+                  DefaultFunBV1 -> verifyEd25519Signature_V1
+                  _             -> verifyEd25519Signature_V2
         in makeBuiltinMeaning
            verifyEd25519Signature
            -- Benchmarks indicate that the two versions have very similar
@@ -1482,7 +1486,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     {-# INLINE toBuiltinMeaning #-}
 
 instance Default (BuiltinVersion DefaultFun) where
-    def = DefaultFunV2
+    def = DefaultFunBV2
 
 instance Pretty (BuiltinVersion DefaultFun) where
     pretty = viaShow

@@ -754,8 +754,8 @@ test_ConsByteString =
                              + 1 -- to make word8 wraparound
                              + 33 -- the index of '!' in ascii table
             expr1 = mkIterAppNoAnn (builtin () (Left ConsByteString :: DefaultFunExt)) [cons @Integer asciiBangWrapped, cons @ByteString "hello world"]
-        Right (EvaluationSuccess $ cons @ByteString "!hello world")  @=? typecheckEvaluateCekNoEmit (PairV DefaultFunV1 def) defaultBuiltinCostModelExt expr1
-        Right EvaluationFailure @=? typecheckEvaluateCekNoEmit (PairV DefaultFunV2 def) defaultBuiltinCostModelExt expr1
+        Right (EvaluationSuccess $ cons @ByteString "!hello world")  @=? typecheckEvaluateCekNoEmit (PairV DefaultFunBV1 def) defaultBuiltinCostModelExt expr1
+        Right EvaluationFailure @=? typecheckEvaluateCekNoEmit (PairV DefaultFunBV2 def) defaultBuiltinCostModelExt expr1
         Right EvaluationFailure @=? typecheckEvaluateCekNoEmit def defaultBuiltinCostModelExt expr1
 
 -- shorthand

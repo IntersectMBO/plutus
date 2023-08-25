@@ -97,7 +97,7 @@ error instead of overflowing its first argument.
 
 One denotation from each builtin is grouped into a 'BuiltinVersion'. Each Plutus Language version is
 linked to a specific 'BuiltinVersion' (done by plutus-ledger-api); e.g. plutus-v1 and plutus-v2 are
-linked to 'DefaultFunV1', whereas plutus-v3 changes the set of denotations to 'DefaultFunV2' (thus
+linked to 'DefaultFunBV1', whereas plutus-v3 changes the set of denotations to 'DefaultFunBV2' (thus
  fixing 'ConsByteString').
 
 Each 'BuiltinVersion' (grouping) can change the denotation of one or more builtins --- or none, but

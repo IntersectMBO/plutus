@@ -226,7 +226,7 @@ instance Whatever ExBudgetStream where
 instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     type CostingPart uni ExtensionFun = ()
 
-    data BuiltinVersion ExtensionFun = ExtensionFunV0 | ExtensionFunV1
+    data BuiltinVersion ExtensionFun = ExtensionFunEV0 | ExtensionFunEV1
         deriving stock (Enum, Bounded, Show)
 
     toBuiltinMeaning :: forall val. HasMeaningIn uni val
@@ -459,8 +459,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
         makeBuiltinMeaning
             @(() -> EvaluationResult Integer)
             (\(_ :: ()) -> EvaluationSuccess $ case ver of
-                    ExtensionFunV0 -> 0
-                    ExtensionFunV1 -> 1)
+                    ExtensionFunEV0 -> 0
+                    ExtensionFunEV1 -> 1)
             whatever
 
     -- We want to know if the CEK machine releases individual budgets after accounting for them and
@@ -533,4 +533,4 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
             (\_ -> unsafePerformIO . regBudgets . runCostingFunOneArgument model)
 
 instance Default (BuiltinVersion ExtensionFun) where
-    def = ExtensionFunV1
+    def = ExtensionFunEV1

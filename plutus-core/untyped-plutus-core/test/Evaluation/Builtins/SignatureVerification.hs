@@ -76,10 +76,10 @@ ed25519Prop ver = do
   runTestDataWith ver testCase id VerifyEd25519Signature
 
 ed25519_V1Prop :: PropertyT IO ()
-ed25519_V1Prop = ed25519Prop DefaultFunV1
+ed25519_V1Prop = ed25519Prop DefaultFunBV1
 
 ed25519_V2Prop :: PropertyT IO ()
-ed25519_V2Prop = ed25519Prop DefaultFunV2
+ed25519_V2Prop = ed25519Prop DefaultFunBV2
 
 -- Helpers
 

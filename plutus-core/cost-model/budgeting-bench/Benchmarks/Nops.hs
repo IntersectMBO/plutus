@@ -155,7 +155,7 @@ n >: k =
 instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFun where
     type CostingPart uni NopFun = NopCostModel
 
-    data BuiltinVersion NopFun = NopFunV1
+    data BuiltinVersion NopFun = NopFunNV1
 
     -- Built-in Bools
     toBuiltinMeaning
@@ -287,7 +287,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFun where
              (runCostingFunSixArguments . paramNop6)
 
 instance Default (BuiltinVersion NopFun) where
-    def = NopFunV1
+    def = NopFunNV1
 
 ---------------- Benchmarks ----------------
 
