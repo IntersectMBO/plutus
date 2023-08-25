@@ -1,0 +1,962 @@
+(program
+  1.1.0
+  (let
+    (nonrec)
+    (termbind (nonstrict) (vardecl v (con integer)) (con integer 1))
+    (termbind
+      (strict)
+      (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
+      (builtin addInteger)
+    )
+    (termbind
+      (nonstrict)
+      (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
+      (lam x (con integer) (lam y (con integer) [ [ addInteger x ] y ]))
+    )
+    (termbind
+      (nonstrict)
+      (vardecl
+        `$fAdditiveSemigroupInteger`
+        [ (lam a (type) (fun a (fun a a))) (con integer) ]
+      )
+      addInteger
+    )
+    (termbind
+      (nonstrict)
+      (vardecl
+        `+`
+        (all
+          a
+          (type)
+          (fun [ (lam a (type) (fun a (fun a a))) a ] (fun a (fun a a)))
+        )
+      )
+      (abs a (type) (lam v [ (lam a (type) (fun a (fun a a))) a ] v))
+    )
+    (termbind
+      (nonstrict)
+      (vardecl v (fun (con integer) (fun (con integer) (con integer))))
+      [ { `+` (con integer) } `$fAdditiveSemigroupInteger` ]
+    )
+    (let
+      (rec)
+      (datatypebind
+        (datatype
+          (tyvardecl List (fun (type) (type)))
+          (tyvardecl a (type))
+          List_match
+          (vardecl Nil [ List a ])
+          (vardecl Cons (fun a (fun [ List a ] [ List a ])))
+        )
+      )
+      (let
+        (nonrec)
+        (termbind
+          (nonstrict)
+          (vardecl
+            `$fFoldableList_$cfoldr`
+            (all
+              a
+              (type)
+              (all b (type) (fun (fun a (fun b b)) (fun b (fun [ List a ] b))))
+            )
+          )
+          (abs
+            a
+            (type)
+            (abs
+              b
+              (type)
+              (lam
+                f
+                (fun a (fun b b))
+                (lam
+                  z
+                  b
+                  (let
+                    (rec)
+                    (termbind
+                      (nonstrict)
+                      (vardecl go (fun [ List a ] b))
+                      (lam
+                        ds
+                        [ List a ]
+                        {
+                          [
+                            [
+                              { [ { List_match a } ds ] (all dead (type) b) }
+                              (abs dead (type) z)
+                            ]
+                            (lam
+                              x
+                              a
+                              (lam
+                                xs
+                                [ List a ]
+                                (abs dead (type) [ [ f x ] [ go xs ] ])
+                              )
+                            )
+                          ]
+                          (all dead (type) dead)
+                        }
+                      )
+                    )
+                    (lam eta [ List a ] [ go eta ])
+                  )
+                )
+              )
+            )
+          )
+        )
+        (let
+          (rec)
+          (termbind
+            (nonstrict)
+            (vardecl
+              `$fFunctorList_$cfmap`
+              (all
+                a
+                (type)
+                (all b (type) (fun (fun a b) (fun [ List a ] [ List b ])))
+              )
+            )
+            (abs
+              a
+              (type)
+              (abs
+                b
+                (type)
+                (lam
+                  f
+                  (fun a b)
+                  (lam
+                    l
+                    [ List a ]
+                    {
+                      [
+                        [
+                          {
+                            [ { List_match a } l ] (all dead (type) [ List b ])
+                          }
+                          (abs dead (type) { Nil b })
+                        ]
+                        (lam
+                          x
+                          a
+                          (lam
+                            xs
+                            [ List a ]
+                            (abs
+                              dead
+                              (type)
+                              [
+                                [ { Cons b } [ f x ] ]
+                                [ [ { { `$fFunctorList_$cfmap` a } b } f ] xs ]
+                              ]
+                            )
+                          )
+                        )
+                      ]
+                      (all dead (type) dead)
+                    }
+                  )
+                )
+              )
+            )
+          )
+          (let
+            (nonrec)
+            (datatypebind
+              (datatype
+                (tyvardecl Applicative (fun (fun (type) (type)) (type)))
+                (tyvardecl f (fun (type) (type)))
+                Applicative_match
+                (vardecl
+                  CConsApplicative
+                  (fun
+                    [
+                      (lam
+                        f
+                        (fun (type) (type))
+                        (all
+                          a
+                          (type)
+                          (all b (type) (fun (fun a b) (fun [ f a ] [ f b ])))
+                        )
+                      )
+                      f
+                    ]
+                    (fun
+                      (all a (type) (fun a [ f a ]))
+                      (fun
+                        (all
+                          a
+                          (type)
+                          (all
+                            b (type) (fun [ f (fun a b) ] (fun [ f a ] [ f b ]))
+                          )
+                        )
+                        [ Applicative f ]
+                      )
+                    )
+                  )
+                )
+              )
+            )
+            (termbind
+              (nonstrict)
+              (vardecl
+                `$p1Applicative`
+                (all
+                  f
+                  (fun (type) (type))
+                  (fun
+                    [ Applicative f ]
+                    [
+                      (lam
+                        f
+                        (fun (type) (type))
+                        (all
+                          a
+                          (type)
+                          (all b (type) (fun (fun a b) (fun [ f a ] [ f b ])))
+                        )
+                      )
+                      f
+                    ]
+                  )
+                )
+              )
+              (abs
+                f
+                (fun (type) (type))
+                (lam
+                  v
+                  [ Applicative f ]
+                  [
+                    {
+                      [ { Applicative_match f } v ]
+                      [
+                        (lam
+                          f
+                          (fun (type) (type))
+                          (all
+                            a
+                            (type)
+                            (all b (type) (fun (fun a b) (fun [ f a ] [ f b ])))
+                          )
+                        )
+                        f
+                      ]
+                    }
+                    (lam
+                      v
+                      [
+                        (lam
+                          f
+                          (fun (type) (type))
+                          (all
+                            a
+                            (type)
+                            (all b (type) (fun (fun a b) (fun [ f a ] [ f b ])))
+                          )
+                        )
+                        f
+                      ]
+                      (lam
+                        v
+                        (all a (type) (fun a [ f a ]))
+                        (lam
+                          v
+                          (all
+                            a
+                            (type)
+                            (all
+                              b
+                              (type)
+                              (fun [ f (fun a b) ] (fun [ f a ] [ f b ]))
+                            )
+                          )
+                          v
+                        )
+                      )
+                    )
+                  ]
+                )
+              )
+            )
+            (termbind
+              (nonstrict)
+              (vardecl
+                `<*>`
+                (all
+                  f
+                  (fun (type) (type))
+                  (fun
+                    [ Applicative f ]
+                    (all
+                      a
+                      (type)
+                      (all b (type) (fun [ f (fun a b) ] (fun [ f a ] [ f b ])))
+                    )
+                  )
+                )
+              )
+              (abs
+                f
+                (fun (type) (type))
+                (lam
+                  v
+                  [ Applicative f ]
+                  [
+                    {
+                      [ { Applicative_match f } v ]
+                      (all
+                        a
+                        (type)
+                        (all
+                          b (type) (fun [ f (fun a b) ] (fun [ f a ] [ f b ]))
+                        )
+                      )
+                    }
+                    (lam
+                      v
+                      [
+                        (lam
+                          f
+                          (fun (type) (type))
+                          (all
+                            a
+                            (type)
+                            (all b (type) (fun (fun a b) (fun [ f a ] [ f b ])))
+                          )
+                        )
+                        f
+                      ]
+                      (lam
+                        v
+                        (all a (type) (fun a [ f a ]))
+                        (lam
+                          v
+                          (all
+                            a
+                            (type)
+                            (all
+                              b
+                              (type)
+                              (fun [ f (fun a b) ] (fun [ f a ] [ f b ]))
+                            )
+                          )
+                          v
+                        )
+                      )
+                    )
+                  ]
+                )
+              )
+            )
+            (termbind
+              (nonstrict)
+              (vardecl
+                pure
+                (all
+                  f
+                  (fun (type) (type))
+                  (fun [ Applicative f ] (all a (type) (fun a [ f a ])))
+                )
+              )
+              (abs
+                f
+                (fun (type) (type))
+                (lam
+                  v
+                  [ Applicative f ]
+                  [
+                    {
+                      [ { Applicative_match f } v ]
+                      (all a (type) (fun a [ f a ]))
+                    }
+                    (lam
+                      v
+                      [
+                        (lam
+                          f
+                          (fun (type) (type))
+                          (all
+                            a
+                            (type)
+                            (all b (type) (fun (fun a b) (fun [ f a ] [ f b ])))
+                          )
+                        )
+                        f
+                      ]
+                      (lam
+                        v
+                        (all a (type) (fun a [ f a ]))
+                        (lam
+                          v
+                          (all
+                            a
+                            (type)
+                            (all
+                              b
+                              (type)
+                              (fun [ f (fun a b) ] (fun [ f a ] [ f b ]))
+                            )
+                          )
+                          v
+                        )
+                      )
+                    )
+                  ]
+                )
+              )
+            )
+            (let
+              (rec)
+              (termbind
+                (nonstrict)
+                (vardecl
+                  `$fTraversableList_$ctraverse`
+                  (all
+                    f
+                    (fun (type) (type))
+                    (all
+                      a
+                      (type)
+                      (all
+                        b
+                        (type)
+                        (fun
+                          [ Applicative f ]
+                          (fun
+                            (fun a [ f b ]) (fun [ List a ] [ f [ List b ] ])
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+                (abs
+                  f
+                  (fun (type) (type))
+                  (abs
+                    a
+                    (type)
+                    (abs
+                      b
+                      (type)
+                      (lam
+                        `$dApplicative`
+                        [ Applicative f ]
+                        (lam
+                          ds
+                          (fun a [ f b ])
+                          (lam
+                            ds
+                            [ List a ]
+                            {
+                              [
+                                [
+                                  {
+                                    [ { List_match a } ds ]
+                                    (all dead (type) [ f [ List b ] ])
+                                  }
+                                  (abs
+                                    dead
+                                    (type)
+                                    [
+                                      {
+                                        [ { pure f } `$dApplicative` ]
+                                        [ List b ]
+                                      }
+                                      { Nil b }
+                                    ]
+                                  )
+                                ]
+                                (lam
+                                  x
+                                  a
+                                  (lam
+                                    xs
+                                    [ List a ]
+                                    (abs
+                                      dead
+                                      (type)
+                                      [
+                                        [
+                                          {
+                                            {
+                                              [ { `<*>` f } `$dApplicative` ]
+                                              [ List b ]
+                                            }
+                                            [ List b ]
+                                          }
+                                          [
+                                            [
+                                              {
+                                                {
+                                                  [
+                                                    { `$p1Applicative` f }
+                                                    `$dApplicative`
+                                                  ]
+                                                  b
+                                                }
+                                                (fun [ List b ] [ List b ])
+                                              }
+                                              (lam
+                                                ds
+                                                b
+                                                (lam
+                                                  ds
+                                                  [ List b ]
+                                                  [ [ { Cons b } ds ] ds ]
+                                                )
+                                              )
+                                            ]
+                                            [ ds x ]
+                                          ]
+                                        ]
+                                        [
+                                          [
+                                            [
+                                              {
+                                                {
+                                                  {
+                                                    `$fTraversableList_$ctraverse`
+                                                    f
+                                                  }
+                                                  a
+                                                }
+                                                b
+                                              }
+                                              `$dApplicative`
+                                            ]
+                                            ds
+                                          ]
+                                          xs
+                                        ]
+                                      ]
+                                    )
+                                  )
+                                )
+                              ]
+                              (all dead (type) dead)
+                            }
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+              (let
+                (nonrec)
+                (datatypebind
+                  (datatype
+                    (tyvardecl Traversable (fun (fun (type) (type)) (type)))
+                    (tyvardecl t (fun (type) (type)))
+                    Traversable_match
+                    (vardecl
+                      CConsTraversable
+                      (fun
+                        [
+                          (lam
+                            f
+                            (fun (type) (type))
+                            (all
+                              a
+                              (type)
+                              (all
+                                b (type) (fun (fun a b) (fun [ f a ] [ f b ]))
+                              )
+                            )
+                          )
+                          t
+                        ]
+                        (fun
+                          [
+                            (lam
+                              t
+                              (fun (type) (type))
+                              (all
+                                a
+                                (type)
+                                (all
+                                  b
+                                  (type)
+                                  (fun
+                                    (fun a (fun b b)) (fun b (fun [ t a ] b))
+                                  )
+                                )
+                              )
+                            )
+                            t
+                          ]
+                          (fun
+                            (all
+                              f
+                              (fun (type) (type))
+                              (all
+                                a
+                                (type)
+                                (all
+                                  b
+                                  (type)
+                                  (fun
+                                    [ Applicative f ]
+                                    (fun
+                                      (fun a [ f b ])
+                                      (fun [ t a ] [ f [ t b ] ])
+                                    )
+                                  )
+                                )
+                              )
+                            )
+                            [ Traversable t ]
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+                (termbind
+                  (nonstrict)
+                  (vardecl `$fTraversableList` [ Traversable List ])
+                  [
+                    [
+                      [ { CConsTraversable List } `$fFunctorList_$cfmap` ]
+                      `$fFoldableList_$cfoldr`
+                    ]
+                    `$fTraversableList_$ctraverse`
+                  ]
+                )
+                (termbind
+                  (nonstrict)
+                  (vardecl
+                    build
+                    (all
+                      a
+                      (type)
+                      (fun
+                        (all b (type) (fun (fun a (fun b b)) (fun b b)))
+                        [ List a ]
+                      )
+                    )
+                  )
+                  (abs
+                    a
+                    (type)
+                    (lam
+                      g
+                      (all b (type) (fun (fun a (fun b b)) (fun b b)))
+                      [
+                        [
+                          { g [ List a ] }
+                          (lam
+                            ds a (lam ds [ List a ] [ [ { Cons a } ds ] ds ])
+                          )
+                        ]
+                        { Nil a }
+                      ]
+                    )
+                  )
+                )
+                (termbind
+                  (nonstrict)
+                  (vardecl
+                    `$fApplicativeIdentity_$c<*>`
+                    (all
+                      a
+                      (type)
+                      (all
+                        b
+                        (type)
+                        (fun
+                          [ (lam a (type) a) (fun a b) ]
+                          (fun [ (lam a (type) a) a ] [ (lam a (type) a) b ])
+                        )
+                      )
+                    )
+                  )
+                  (abs
+                    a
+                    (type)
+                    (abs
+                      b
+                      (type)
+                      (lam
+                        ds
+                        [ (lam a (type) a) (fun a b) ]
+                        (lam ds [ (lam a (type) a) a ] [ ds ds ])
+                      )
+                    )
+                  )
+                )
+                (termbind
+                  (nonstrict)
+                  (vardecl
+                    `$fApplicativeIdentity_$cpure`
+                    (all a (type) (fun a [ (lam a (type) a) a ]))
+                  )
+                  (abs a (type) (lam ds a ds))
+                )
+                (termbind
+                  (nonstrict)
+                  (vardecl
+                    `$fFunctorIdentity_$cfmap`
+                    (all
+                      a
+                      (type)
+                      (all
+                        b
+                        (type)
+                        (fun
+                          (fun a b)
+                          (fun [ (lam a (type) a) a ] [ (lam a (type) a) b ])
+                        )
+                      )
+                    )
+                  )
+                  (abs
+                    a
+                    (type)
+                    (abs
+                      b
+                      (type)
+                      (lam f (fun a b) (lam ds [ (lam a (type) a) a ] [ f ds ]))
+                    )
+                  )
+                )
+                (termbind
+                  (nonstrict)
+                  (vardecl
+                    `$fApplicativeIdentity` [ Applicative (lam a (type) a) ]
+                  )
+                  [
+                    [
+                      [
+                        { CConsApplicative (lam a (type) a) }
+                        `$fFunctorIdentity_$cfmap`
+                      ]
+                      `$fApplicativeIdentity_$cpure`
+                    ]
+                    `$fApplicativeIdentity_$c<*>`
+                  ]
+                )
+                (termbind
+                  (nonstrict)
+                  (vardecl
+                    traverse
+                    (all
+                      t
+                      (fun (type) (type))
+                      (fun
+                        [ Traversable t ]
+                        (all
+                          f
+                          (fun (type) (type))
+                          (all
+                            a
+                            (type)
+                            (all
+                              b
+                              (type)
+                              (fun
+                                [ Applicative f ]
+                                (fun
+                                  (fun a [ f b ]) (fun [ t a ] [ f [ t b ] ])
+                                )
+                              )
+                            )
+                          )
+                        )
+                      )
+                    )
+                  )
+                  (abs
+                    t
+                    (fun (type) (type))
+                    (lam
+                      v
+                      [ Traversable t ]
+                      [
+                        {
+                          [ { Traversable_match t } v ]
+                          (all
+                            f
+                            (fun (type) (type))
+                            (all
+                              a
+                              (type)
+                              (all
+                                b
+                                (type)
+                                (fun
+                                  [ Applicative f ]
+                                  (fun
+                                    (fun a [ f b ]) (fun [ t a ] [ f [ t b ] ])
+                                  )
+                                )
+                              )
+                            )
+                          )
+                        }
+                        (lam
+                          v
+                          [
+                            (lam
+                              f
+                              (fun (type) (type))
+                              (all
+                                a
+                                (type)
+                                (all
+                                  b (type) (fun (fun a b) (fun [ f a ] [ f b ]))
+                                )
+                              )
+                            )
+                            t
+                          ]
+                          (lam
+                            v
+                            [
+                              (lam
+                                t
+                                (fun (type) (type))
+                                (all
+                                  a
+                                  (type)
+                                  (all
+                                    b
+                                    (type)
+                                    (fun
+                                      (fun a (fun b b)) (fun b (fun [ t a ] b))
+                                    )
+                                  )
+                                )
+                              )
+                              t
+                            ]
+                            (lam
+                              v
+                              (all
+                                f
+                                (fun (type) (type))
+                                (all
+                                  a
+                                  (type)
+                                  (all
+                                    b
+                                    (type)
+                                    (fun
+                                      [ Applicative f ]
+                                      (fun
+                                        (fun a [ f b ])
+                                        (fun [ t a ] [ f [ t b ] ])
+                                      )
+                                    )
+                                  )
+                                )
+                              )
+                              v
+                            )
+                          )
+                        )
+                      ]
+                    )
+                  )
+                )
+                (termbind
+                  (nonstrict)
+                  (vardecl
+                    fmapDefault
+                    (all
+                      t
+                      (fun (type) (type))
+                      (all
+                        a
+                        (type)
+                        (all
+                          b
+                          (type)
+                          (fun
+                            [ Traversable t ]
+                            (fun (fun a b) (fun [ t a ] [ t b ]))
+                          )
+                        )
+                      )
+                    )
+                  )
+                  (abs
+                    t
+                    (fun (type) (type))
+                    (abs
+                      a
+                      (type)
+                      (abs
+                        b
+                        (type)
+                        (lam
+                          `$dTraversable`
+                          [ Traversable t ]
+                          [
+                            {
+                              {
+                                {
+                                  [ { traverse t } `$dTraversable` ]
+                                  (lam a (type) a)
+                                }
+                                a
+                              }
+                              b
+                            }
+                            `$fApplicativeIdentity`
+                          ]
+                        )
+                      )
+                    )
+                  )
+                )
+                [
+                  [
+                    [
+                      { { { fmapDefault List } (con integer) } (con integer) }
+                      `$fTraversableList`
+                    ]
+                    (lam v (con integer) [ [ v v ] v ])
+                  ]
+                  [
+                    { build (con integer) }
+                    (abs
+                      a
+                      (type)
+                      (lam
+                        c
+                        (fun (con integer) (fun a a))
+                        (lam
+                          n
+                          a
+                          [
+                            [ c (con integer 1) ]
+                            [
+                              [ c (con integer 2) ]
+                              [
+                                [ c (con integer 3) ]
+                                [ [ c (con integer 4) ] n ]
+                              ]
+                            ]
+                          ]
+                        )
+                      )
+                    )
+                  ]
+                ]
+              )
+            )
+          )
+        )
+      )
+    )
+  )
+)

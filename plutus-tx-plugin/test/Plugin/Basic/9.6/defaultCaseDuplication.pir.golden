@@ -1,0 +1,29 @@
+(program
+  1.1.0
+  (let
+    (nonrec)
+    (termbind (nonstrict) (vardecl defaultBody (con integer)) (con integer 2))
+    (datatypebind
+      (datatype
+        (tyvardecl A (type))  A_match (vardecl B A) (vardecl C A) (vardecl D A)
+      )
+    )
+    (lam
+      ds
+      A
+      {
+        [
+          [
+            [
+              { [ A_match ds ] (all dead (type) (con integer)) }
+              (abs dead (type) (con integer 1))
+            ]
+            (abs dead (type) defaultBody)
+          ]
+          (abs dead (type) defaultBody)
+        ]
+        (all dead (type) dead)
+      }
+    )
+  )
+)

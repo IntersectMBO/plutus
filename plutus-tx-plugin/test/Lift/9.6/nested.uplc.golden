@@ -1,0 +1,109 @@
+(program
+  1.1.0
+  [
+    [
+      (force
+        (delay
+          (lam
+            `GHC.Tuple.Prim.Tuple2_i0`
+            (lam
+              `match_GHC.Tuple.Prim.Tuple2_i0`
+              [
+                [
+                  [
+                    (force
+                      (delay
+                        (lam
+                          `GHC.Maybe.Just_i0`
+                          (lam
+                            `GHC.Maybe.Nothing_i0`
+                            (lam
+                              `match_GHC.Maybe.Maybe_i0`
+                              [
+                                [
+                                  [
+                                    (force
+                                      (delay
+                                        (lam
+                                          `Lift.Spec.NestedRecord_i0`
+                                          (lam
+                                            `match_Lift.Spec.NestedRecord_i0`
+                                            `Lift.Spec.NestedRecord_i2`
+                                          )
+                                        )
+                                      )
+                                    )
+                                    (lam arg_0_i0 (constr 0 arg_0_i1))
+                                  ]
+                                  (lam
+                                    x_i0
+                                    (delay
+                                      (lam
+                                        `case_Lift.Spec.NestedRecord_i0`
+                                        (case
+                                          x_i2 `case_Lift.Spec.NestedRecord_i1`
+                                        )
+                                      )
+                                    )
+                                  )
+                                ]
+                                [
+                                  (force `GHC.Maybe.Just_i3`)
+                                  [
+                                    [
+                                      (force (force `GHC.Tuple.Prim.Tuple2_i5`))
+                                      (con integer 1)
+                                    ]
+                                    (con integer 2)
+                                  ]
+                                ]
+                              ]
+                            )
+                          )
+                        )
+                      )
+                    )
+                    (delay (lam arg_0_i0 (constr 0 arg_0_i1)))
+                  ]
+                  (delay (constr 1))
+                ]
+                (delay
+                  (lam
+                    x_i0
+                    (delay
+                      (lam
+                        `case_GHC.Maybe.Just_i0`
+                        (lam
+                          `case_GHC.Maybe.Nothing_i0`
+                          (case
+                            x_i3
+                            `case_GHC.Maybe.Just_i2`
+                            `case_GHC.Maybe.Nothing_i1`
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              ]
+            )
+          )
+        )
+      )
+      (delay (delay (lam arg_0_i0 (lam arg_1_i0 (constr 0 arg_0_i2 arg_1_i1)))))
+    ]
+    (delay
+      (delay
+        (lam
+          x_i0
+          (delay
+            (lam
+              `case_GHC.Tuple.Prim.Tuple2_i0`
+              (case x_i2 `case_GHC.Tuple.Prim.Tuple2_i1`)
+            )
+          )
+        )
+      )
+    )
+  ]
+)

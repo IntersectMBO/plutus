@@ -68,7 +68,7 @@ isDataRoundtrip a =
     in safeRoundtrip && unsafeRoundtrip
 
 tests :: TestNested
-tests = testNested "IsData" [
+tests = testNestedGhc "IsData" [
     goldenUEval "int" [plc (Proxy @"int") (isDataRoundtrip (1::Integer))]
     , goldenUEval "tuple" [plc (Proxy @"tuple") (isDataRoundtrip (1::Integer, 2::Integer))]
     , goldenUEval "tupleInterop" [

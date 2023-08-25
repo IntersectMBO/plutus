@@ -1,0 +1,35 @@
+letrec
+  data (List :: * -> *) a | List_match where
+    Nil : List a
+    Cons : a -> List a -> List a
+in
+let
+  data (Maybe :: * -> *) a | Maybe_match where
+    Just : a -> Maybe a
+    Nothing : Maybe a
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+in
+letrec
+  !go : List integer -> Maybe integer
+    = \(ds : List integer) ->
+        List_match
+          {integer}
+          ds
+          {all dead. Maybe integer}
+          (/\dead -> Nothing {integer})
+          (\(x : integer) (xs : List integer) ->
+             /\dead ->
+               Bool_match
+                 (ifThenElse {Bool} (lessThanEqualsInteger 1 x) False True)
+                 {all dead. Maybe integer}
+                 (/\dead -> Just {integer} x)
+                 (/\dead -> go xs)
+                 {all dead. dead})
+          {all dead. dead}
+in
+let
+  !eta : List integer = Nil {integer}
+in
+go eta

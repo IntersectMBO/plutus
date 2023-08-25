@@ -1,0 +1,46 @@
+(program
+  1.1.0
+  [
+    [
+      (force
+        (force
+          [
+            [
+              (force
+                (delay
+                  (lam
+                    `GHC.Tuple.Prim.Tuple2_i0`
+                    (lam
+                      `match_GHC.Tuple.Prim.Tuple2_i0`
+                      `GHC.Tuple.Prim.Tuple2_i2`
+                    )
+                  )
+                )
+              )
+              (delay
+                (delay
+                  (lam arg_0_i0 (lam arg_1_i0 (constr 0 arg_0_i2 arg_1_i1)))
+                )
+              )
+            ]
+            (delay
+              (delay
+                (lam
+                  x_i0
+                  (delay
+                    (lam
+                      `case_GHC.Tuple.Prim.Tuple2_i0`
+                      (case x_i2 `case_GHC.Tuple.Prim.Tuple2_i1`)
+                    )
+                  )
+                )
+              )
+            )
+          ]
+        )
+      )
+      (con integer 1)
+    ]
+    (con integer 2)
+  ]
+)

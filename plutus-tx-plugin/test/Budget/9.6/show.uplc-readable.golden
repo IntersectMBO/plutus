@@ -1,0 +1,522 @@
+program
+  1.1.0
+  ((\fix1 ->
+      (\y ->
+         (\Cons ->
+            (\go ->
+               (\foldr ->
+                  (\id ->
+                     (\`$w$cshowsPrec` ->
+                        (\x ->
+                           (\s ->
+                              (\toHex ->
+                                 (\`$fEnumBool_$cenumFromTo` ->
+                                    (\go ->
+                                       (\go ->
+                                          (\concatBuiltinStrings ->
+                                             (\`$fShowInteger_$cshow` ->
+                                                (\a ->
+                                                   (\c ->
+                                                      (\d ->
+                                                         (\showsPrec ->
+                                                            (\`$fShowInteger` ->
+                                                               (\e ->
+                                                                  multiplyInteger
+                                                                    2
+                                                                    (force
+                                                                       trace
+                                                                       (concatBuiltinStrings
+                                                                          (Cons
+                                                                             "("
+                                                                             (showsPrec
+                                                                                `$fShowInteger`
+                                                                                0
+                                                                                a
+                                                                                (Cons
+                                                                                   ","
+                                                                                   (showsPrec
+                                                                                      `$fShowInteger`
+                                                                                      0
+                                                                                      a
+                                                                                      (Cons
+                                                                                         ","
+                                                                                         (showsPrec
+                                                                                            `$fShowInteger`
+                                                                                            0
+                                                                                            c
+                                                                                            (Cons
+                                                                                               ","
+                                                                                               (showsPrec
+                                                                                                  `$fShowInteger`
+                                                                                                  0
+                                                                                                  d
+                                                                                                  (Cons
+                                                                                                     ","
+                                                                                                     (showsPrec
+                                                                                                        `$fShowInteger`
+                                                                                                        0
+                                                                                                        e
+                                                                                                        (constr 1
+                                                                                                           [ ")"
+                                                                                                           , (constr 0
+                                                                                                                [  ]) ]))))))))))))
+                                                                       e))
+                                                                 (force
+                                                                    trace
+                                                                    (concatBuiltinStrings
+                                                                       ((\showElem ->
+                                                                           Cons
+                                                                             "["
+                                                                             (showElem
+                                                                                a
+                                                                                (force
+                                                                                   (force
+                                                                                      (foldr
+                                                                                         (delay
+                                                                                            (\x ->
+                                                                                               x))))
+                                                                                   (\a
+                                                                                     acc
+                                                                                     x ->
+                                                                                      Cons
+                                                                                        ","
+                                                                                        (showElem
+                                                                                           a
+                                                                                           (acc
+                                                                                              x)))
+                                                                                   id
+                                                                                   (constr 1
+                                                                                      [ a
+                                                                                      , (constr 1
+                                                                                           [ c
+                                                                                           , (constr 1
+                                                                                                [ d
+                                                                                                , (constr 0
+                                                                                                     [  ]) ]) ]) ])
+                                                                                   (constr 1
+                                                                                      [ "]"
+                                                                                      , (constr 0
+                                                                                           [  ]) ]))))
+                                                                          (showsPrec
+                                                                             `$fShowInteger`
+                                                                             0)))
+                                                                    d))
+                                                              (constr 0
+                                                                 [ (\p
+                                                                     n ->
+                                                                      `$w$cshowsPrec`
+                                                                        n)
+                                                                 , `$fShowInteger_$cshow` ]))
+                                                           (\v ->
+                                                              case
+                                                                v
+                                                                [(\v v -> v)]))
+                                                        (force
+                                                           trace
+                                                           (force
+                                                              ifThenElse
+                                                              (lessThanEqualsInteger
+                                                                 c
+                                                                 0)
+                                                              "False"
+                                                              "True")
+                                                           c))
+                                                     (force
+                                                        trace
+                                                        (concatBuiltinStrings
+                                                           (force
+                                                              (force
+                                                                 (foldr
+                                                                    (delay
+                                                                       (\x ->
+                                                                          x))))
+                                                              (\i
+                                                                acc
+                                                                x ->
+                                                                 toHex
+                                                                   (divideInteger
+                                                                      (indexByteString
+                                                                         s
+                                                                         i)
+                                                                      16)
+                                                                   (toHex
+                                                                      (modInteger
+                                                                         (indexByteString
+                                                                            s
+                                                                            i)
+                                                                         16)
+                                                                      (acc x)))
+                                                              id
+                                                              (`$fEnumBool_$cenumFromTo`
+                                                                 0
+                                                                 (subtractInteger
+                                                                    (lengthOfByteString
+                                                                       s)
+                                                                    1))
+                                                              (constr 0 [])))
+                                                        a))
+                                                  (force trace
+                                                     (`$fShowInteger_$cshow` x)
+                                                     x))
+                                               (\x ->
+                                                  concatBuiltinStrings
+                                                    (`$w$cshowsPrec`
+                                                       x
+                                                       (constr 0 []))))
+                                            (fix1
+                                               (\concatBuiltinStrings
+                                                 ds ->
+                                                  case
+                                                    ds
+                                                    [ ""
+                                                    , (\x
+                                                        ds ->
+                                                         force
+                                                           (case
+                                                              ds
+                                                              [ (delay x)
+                                                              , (\ipv
+                                                                  ipv ->
+                                                                   delay
+                                                                     ((\ds ->
+                                                                         appendString
+                                                                           (case
+                                                                              (force
+                                                                                 ds)
+                                                                              [ (\ys
+                                                                                  zs ->
+                                                                                   concatBuiltinStrings
+                                                                                     ys) ])
+                                                                           (case
+                                                                              (force
+                                                                                 ds)
+                                                                              [ (\ys
+                                                                                  zs ->
+                                                                                   concatBuiltinStrings
+                                                                                     zs) ]))
+                                                                        (delay
+                                                                           ((\n ->
+                                                                               case
+                                                                                 (force
+                                                                                    (force
+                                                                                       ifThenElse
+                                                                                       (lessThanEqualsInteger
+                                                                                          n
+                                                                                          0)
+                                                                                       (delay
+                                                                                          (constr 0
+                                                                                             [ (constr 0
+                                                                                                  [  ])
+                                                                                             , ds ]))
+                                                                                       (delay
+                                                                                          (case
+                                                                                             (force
+                                                                                                (go
+                                                                                                   (delay
+                                                                                                      (\x ->
+                                                                                                         x)))
+                                                                                                n
+                                                                                                ds)
+                                                                                             [ (\ipv
+                                                                                                 ipv ->
+                                                                                                  constr 0
+                                                                                                    [ ipv
+                                                                                                    , ipv ]) ]))))
+                                                                                 [ (\ww
+                                                                                     ww ->
+                                                                                      constr 0
+                                                                                        [ ww
+                                                                                        , ww ]) ])
+                                                                              (divideInteger
+                                                                                 (go
+                                                                                    ds
+                                                                                    0)
+                                                                                 2))))) ])) ])))
+                                         (fix1
+                                            (\go ds ->
+                                               force
+                                                 (case
+                                                    ds
+                                                    [ (delay id)
+                                                    , (\x xs ->
+                                                         delay
+                                                           (\b ->
+                                                              go
+                                                                xs
+                                                                (addInteger
+                                                                   1
+                                                                   b))) ]))))
+                                      (fix1
+                                         (\go
+                                           arg ->
+                                            delay
+                                              (\ds
+                                                ds ->
+                                                 force
+                                                   (case
+                                                      ds
+                                                      [ (delay
+                                                           (constr 0
+                                                              [ (constr 0 [])
+                                                              , (constr 0
+                                                                   []) ]))
+                                                      , (\y
+                                                          ys ->
+                                                           delay
+                                                             (force
+                                                                (force
+                                                                   ifThenElse
+                                                                   (equalsInteger
+                                                                      1
+                                                                      ds)
+                                                                   (delay
+                                                                      (constr 0
+                                                                         [ (constr 1
+                                                                              [ y
+                                                                              , (constr 0
+                                                                                   [  ]) ])
+                                                                         , ys ]))
+                                                                   (delay
+                                                                      (case
+                                                                         (force
+                                                                            (go
+                                                                               (delay
+                                                                                  (\x ->
+                                                                                     x)))
+                                                                            (subtractInteger
+                                                                               ds
+                                                                               1)
+                                                                            ys)
+                                                                         [ (\zs
+                                                                             ws ->
+                                                                              constr 0
+                                                                                [ (constr 1
+                                                                                     [ y
+                                                                                     , zs ])
+                                                                                , ws ]) ]))))) ])))))
+                                   (fix1
+                                      (\`$fEnumBool_$cenumFromTo` x y ->
+                                         force
+                                           (force ifThenElse
+                                              (lessThanEqualsInteger x y)
+                                              (delay
+                                                 (Cons
+                                                    x
+                                                    (`$fEnumBool_$cenumFromTo`
+                                                       (addInteger 1 x)
+                                                       y)))
+                                              (delay (constr 0 []))))))
+                                (\x ->
+                                   force
+                                     (force
+                                        ifThenElse
+                                        (lessThanEqualsInteger x 9)
+                                        (delay (`$w$cshowsPrec` x))
+                                        (delay
+                                           (force
+                                              (force
+                                                 ifThenElse
+                                                 (equalsInteger 10 x)
+                                                 (delay
+                                                    (\ds -> constr 1 ["a", ds]))
+                                                 (delay
+                                                    (force
+                                                       (force
+                                                          ifThenElse
+                                                          (equalsInteger 11 x)
+                                                          (delay
+                                                             (\ds ->
+                                                                constr 1
+                                                                  ["b", ds]))
+                                                          (delay
+                                                             (force
+                                                                (force
+                                                                   ifThenElse
+                                                                   (equalsInteger
+                                                                      12
+                                                                      x)
+                                                                   (delay
+                                                                      (\ds ->
+                                                                         constr 1
+                                                                           [ "c"
+                                                                           , ds ]))
+                                                                   (delay
+                                                                      (force
+                                                                         (force
+                                                                            ifThenElse
+                                                                            (equalsInteger
+                                                                               13
+                                                                               x)
+                                                                            (delay
+                                                                               (\ds ->
+                                                                                  constr 1
+                                                                                    [ "d"
+                                                                                    , ds ]))
+                                                                            (delay
+                                                                               (force
+                                                                                  (force
+                                                                                     ifThenElse
+                                                                                     (equalsInteger
+                                                                                        14
+                                                                                        x)
+                                                                                     (delay
+                                                                                        (\ds ->
+                                                                                           constr 1
+                                                                                             [ "e"
+                                                                                             , ds ]))
+                                                                                     (delay
+                                                                                        (force
+                                                                                           ifThenElse
+                                                                                           (equalsInteger
+                                                                                              15
+                                                                                              x)
+                                                                                           (\ds ->
+                                                                                              constr 1
+                                                                                                [ "f"
+                                                                                                , ds ])
+                                                                                           (\ds ->
+                                                                                              constr 1
+                                                                                                [ "<invalid byte>"
+                                                                                                , ds ])))))))))))))))))))))
+                             #5468697320697320616e206578616d706c65)
+                          -1234567890)
+                       (fix1
+                          (\`$w$cshowsPrec`
+                            n ->
+                             force
+                               (force
+                                  ifThenElse
+                                  (lessThanInteger n 0)
+                                  (delay
+                                     (\x ->
+                                        Cons
+                                          "-"
+                                          (`$w$cshowsPrec`
+                                             (subtractInteger 0 n)
+                                             x)))
+                                  (delay
+                                     (force
+                                        (force (foldr (delay (\x -> x))))
+                                        (\digit
+                                          acc
+                                          x ->
+                                           Cons
+                                             (force
+                                                (force
+                                                   ifThenElse
+                                                   (equalsInteger 0 digit)
+                                                   (delay "0")
+                                                   (delay
+                                                      (force
+                                                         (force
+                                                            ifThenElse
+                                                            (equalsInteger
+                                                               1
+                                                               digit)
+                                                            (delay "1")
+                                                            (delay
+                                                               (force
+                                                                  (force
+                                                                     ifThenElse
+                                                                     (equalsInteger
+                                                                        2
+                                                                        digit)
+                                                                     (delay "2")
+                                                                     (delay
+                                                                        (force
+                                                                           (force
+                                                                              ifThenElse
+                                                                              (equalsInteger
+                                                                                 3
+                                                                                 digit)
+                                                                              (delay
+                                                                                 "3")
+                                                                              (delay
+                                                                                 (force
+                                                                                    (force
+                                                                                       ifThenElse
+                                                                                       (equalsInteger
+                                                                                          4
+                                                                                          digit)
+                                                                                       (delay
+                                                                                          "4")
+                                                                                       (delay
+                                                                                          (force
+                                                                                             (force
+                                                                                                ifThenElse
+                                                                                                (equalsInteger
+                                                                                                   5
+                                                                                                   digit)
+                                                                                                (delay
+                                                                                                   "5")
+                                                                                                (delay
+                                                                                                   (force
+                                                                                                      (force
+                                                                                                         ifThenElse
+                                                                                                         (equalsInteger
+                                                                                                            6
+                                                                                                            digit)
+                                                                                                         (delay
+                                                                                                            "6")
+                                                                                                         (delay
+                                                                                                            (force
+                                                                                                               (force
+                                                                                                                  ifThenElse
+                                                                                                                  (equalsInteger
+                                                                                                                     7
+                                                                                                                     digit)
+                                                                                                                  (delay
+                                                                                                                     "7")
+                                                                                                                  (delay
+                                                                                                                     (force
+                                                                                                                        (force
+                                                                                                                           ifThenElse
+                                                                                                                           (equalsInteger
+                                                                                                                              8
+                                                                                                                              digit)
+                                                                                                                           (delay
+                                                                                                                              "8")
+                                                                                                                           (delay
+                                                                                                                              (force
+                                                                                                                                 ifThenElse
+                                                                                                                                 (equalsInteger
+                                                                                                                                    9
+                                                                                                                                    digit)
+                                                                                                                                 "9"
+                                                                                                                                 "<invalid digit>"))))))))))))))))))))))))))))
+                                             (acc x))
+                                        id
+                                        (go (constr 0 []) n)))))))
+                    (\x -> x))
+                 (fix1
+                    (\foldr arg ->
+                       delay
+                         (delay
+                            (\f acc l ->
+                               force
+                                 (case
+                                    l
+                                    [ (delay acc)
+                                    , (\x xs ->
+                                         delay
+                                           (f
+                                              x
+                                              (force
+                                                 (force
+                                                    (foldr (delay (\x -> x))))
+                                                 f
+                                                 acc
+                                                 xs))) ]))))))
+              (fix1
+                 (\go acc n ->
+                    force
+                      (force ifThenElse
+                         (equalsInteger 0 (quotientInteger n y))
+                         (delay (constr 1 [(remainderInteger n y), acc]))
+                         (delay
+                            (go
+                               (constr 1 [(remainderInteger n y), acc])
+                               (quotientInteger n y)))))))
+           (\arg_0 arg_1 -> constr 1 [arg_0, arg_1]))
+        10)
+     (\f -> (\s -> s s) (\s x -> f (s s) x)))

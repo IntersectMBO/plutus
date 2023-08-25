@@ -1,0 +1,17 @@
+(program
+  1.1.0
+  (let
+    (nonrec)
+    (datatypebind
+      (datatype
+        (tyvardecl MyMonoData (type))
+
+        MyMonoData_match
+        (vardecl Mono (fun (con integer) (fun (con integer) MyMonoData)))
+        (vardecl Mono (fun (con integer) MyMonoData))
+        (vardecl Mono (fun (con integer) MyMonoData))
+      )
+    )
+    (lam ds (con integer) (lam ds (con integer) [ [ Mono ds ] ds ]))
+  )
+)
