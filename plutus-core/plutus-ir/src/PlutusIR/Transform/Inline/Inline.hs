@@ -234,7 +234,7 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
                 (Var{}, _) -> do
                     processedHd <- processTerm hd -- the variable may be unconditionally inlined.
                     case processedHd of
-                        (Var _ name) -> do
+                        (Var _ name) -> do -- if it didn't get unconditionally inlined
                                 -- process the args
                                 processedArgs <- processArgs args
                                 gets (lookupVarInfo name) >>= \case
@@ -246,7 +246,7 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
                                             -- extract out the rhs without renaming, we only rename
                                             -- when we know there's substitution
                                             rhs = inlineTermToTerm defAsInlineTerm
-                                        callSiteInline rhs varInfo processedArgs
+                                        callSiteInline processedHd rhs varInfo processedArgs
                                     -- The variable maybe a *recursive* let binding, in which case
                                     -- it won't be in the map, and we don't process it.
                                     -- ATM recursive bindings aren't inlined.

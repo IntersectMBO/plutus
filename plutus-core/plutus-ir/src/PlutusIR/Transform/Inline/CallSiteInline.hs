@@ -112,19 +112,21 @@ applyAndBetaReduce rhs args0 = do
 callSiteInline ::
   forall tyname name uni fun ann.
   (InliningConstraints tyname name uni fun) =>
-  -- | The "head"(obtained from `Contexts.splitApplication`) of the term, already processed.
+  -- | The "head"(obtained from `Contexts.splitApplication`) of the term.
+  Term tyname name uni fun ann ->
+  -- | The Rhs of the "head" of the term, already processed.
   Term tyname name uni fun ann ->
   -- | The `Utils.VarInfo` of the variable (the head of the term).
   VarInfo tyname name uni fun ann ->
   -- | The application context of the term, already processed.
   AppContext tyname name uni fun ann ->
   InlineM tyname name uni fun ann (Term tyname name uni fun ann)
-callSiteInline headRhs = go
+callSiteInline hd headRhs = go
   where
     go varInfo args = do
         let
           -- rebuild the term with the head and the arguments already processed
-          tm = fillAppContext headRhs args
+          tm = fillAppContext hd args
           -- The definition itself will be inlined, so we need to check that the cost
           -- of that is acceptable. Note that we do _not_ check the cost of the _body_.
           -- We would have paid that regardless.
