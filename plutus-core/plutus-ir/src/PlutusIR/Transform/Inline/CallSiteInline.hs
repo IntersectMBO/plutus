@@ -112,7 +112,7 @@ applyAndBetaReduce rhs args0 = do
 callSiteInline ::
   forall tyname name uni fun ann.
   (InliningConstraints tyname name uni fun) =>
-  -- | The "head"(obtained from `Contexts.splitApplication`) of the term.
+  -- | The term.
   Term tyname name uni fun ann ->
   -- | The Rhs of the "head" of the term, already processed.
   Term tyname name uni fun ann ->
@@ -120,13 +120,11 @@ callSiteInline ::
   VarInfo tyname name uni fun ann ->
   -- | The application context of the term, already processed.
   AppContext tyname name uni fun ann ->
-  InlineM tyname name uni fun ann (Term tyname name uni fun ann)
-callSiteInline hd headRhs = go
+  InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
+callSiteInline t headRhs = go
   where
     go varInfo args = do
         let
-          -- rebuild the term with the head and the arguments already processed
-          tm = fillAppContext hd args
           -- The definition itself will be inlined, so we need to check that the cost
           -- of that is acceptable. Note that we do _not_ check the cost of the _body_.
           -- We would have paid that regardless.
@@ -145,7 +143,7 @@ callSiteInline hd headRhs = go
           applyAndBetaReduce renamedRhs args >>= \case
             Just inlined -> do
               let -- Inline only if the size is no bigger than not inlining.
-                  sizeIsOk = termSize inlined <= termSize tm
-              pure $ if sizeIsOk then inlined else tm
-            Nothing -> pure tm -- return the term with the head and arguments already processed
-        else pure tm -- return the term with the head and arguments already processed
+                  sizeIsOk = termSize inlined <= termSize t
+              pure $ if sizeIsOk then Just inlined else Nothing
+            Nothing -> pure Nothing
+        else pure Nothing

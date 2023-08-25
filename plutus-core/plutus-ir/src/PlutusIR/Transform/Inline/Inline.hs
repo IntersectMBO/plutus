@@ -234,7 +234,8 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
                 (Var{}, _) -> do
                     processedHd <- processTerm hd -- the variable may be unconditionally inlined.
                     case processedHd of
-                        (Var _ name) -> do -- if it didn't get unconditionally inlined
+                        -- if it didn't get unconditionally inlined/got inlined to another variable
+                        (Var _ name) -> do
                                 gets (lookupVarInfo name) >>= \case
                                     Just varInfo -> do
                                         let defAsInlineTerm = varRhs varInfo
@@ -246,7 +247,14 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
                                             rhs = inlineTermToTerm defAsInlineTerm
                                         -- process the args
                                         processedArgs <- processArgs args
-                                        callSiteInline processedHd rhs varInfo processedArgs
+                                        maybeInlined <- callSiteInline t rhs varInfo processedArgs
+                                        case maybeInlined of
+                                            -- we either discovered that it's not safe to beta
+                                            -- reduce, or we did inline
+                                            Just inlined -> pure inlined
+                                            -- we didn't inline at the call site, just process the
+                                            -- subterms
+                                            Nothing      -> forMOf termSubterms t processTerm
                                     -- The variable maybe a *recursive* let binding, in which case
                                     -- it won't be in the map, and we don't process it.
                                     -- ATM recursive bindings aren't inlined.
