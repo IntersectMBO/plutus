@@ -705,6 +705,8 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     -- These are all wrappers around string and char literals, but keeping them allows us to give better errors
     -- unpackCString# is just a wrapper around a literal
     GHC.Var n `GHC.App` expr | GHC.getName n == GHC.unpackCStringName -> compileExpr expr
+    -- Handle `integerNegate` applications like `integerNegate 123` and `integerNegate (integerNegate 123)`.
+    GHC.Var n `GHC.App` expr | GHC.getName n == GHC.integerNegateName -> compileIntegerNegate 1 expr
     -- See Note [unpackFoldrCString#]
     GHC.Var build `GHC.App` _ `GHC.App` GHC.Lam _ (GHC.Var unpack `GHC.App` _ `GHC.App` expr)
       | GHC.getName build == GHC.buildName && GHC.getName unpack == GHC.unpackCStringFoldrName -> compileExpr expr
@@ -902,6 +904,24 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     GHC.Cast body _ -> compileExpr body
     GHC.Type _ -> throwPlain $ UnsupportedError "Types as standalone expressions"
     GHC.Coercion _ -> throwPlain $ UnsupportedError "Coercions as expressions"
+
+compileIntegerNegate ::
+  (CompilingDefault uni fun m ann) =>
+  -- | Number of negates
+  Int ->
+  GHC.CoreExpr ->
+  m (PIRTerm uni fun)
+compileIntegerNegate k e = case e of
+  GHC.Var n `GHC.App` arg | GHC.getName n == GHC.integerNegateName -> compileIntegerNegate (k+1) arg
+  GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) `GHC.App` arg | GHC.dataConTyCon dc == GHC.integerTyCon ->
+    if even k
+      then compileExpr arg
+      else case arg of
+             GHC.Lit (GHC.LitNumber _ i) -> pure $ PIR.embed $ PLC.mkConstant annMayInline (-i)
+             _                           -> giveup
+  _ -> giveup
+  where
+    giveup = throwSd UnsupportedError $ "integerNegate applied to non-literal argument: " GHC.<+> GHC.ppr e
 
 {- Note [What source locations to cover]
    We try to get as much coverage information as we can out of GHC. This means that

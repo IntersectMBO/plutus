@@ -13,6 +13,7 @@ module Plugin.Primitives.Spec where
 
 import Test.Tasty.Extras
 
+import IntegerLiteral.NoStrict qualified
 import PlutusCore.Test
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code
@@ -73,6 +74,7 @@ primitives = testNested "Primitives" [
   , goldenPir "deconstructorData2" deconstructData2
   , goldenUEval "deconstructData2" [ toUPlc deconstructData2, toUPlc constructData2 ]
   , goldenUEval "deconstructData3" [ toUPlc deconstructData3, toUPlc constructData3 ]
+  , goldenPir "integerLiterals-NoStrict" IntegerLiteral.NoStrict.integerLiterals
   ]
 
 string :: CompiledCode Builtins.BuiltinString

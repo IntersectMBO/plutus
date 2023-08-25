@@ -1,0 +1,35 @@
+(program
+  1.1.0
+  (lam
+    x
+    (con integer)
+    [
+      [ (builtin addInteger) (con integer 24680135792468013579) ]
+      [
+        [ (builtin addInteger) (con integer -99887766554433221100) ]
+        [
+          [ (builtin addInteger) (con integer 98765432109876543210) ]
+          [
+            [ (builtin addInteger) (con integer -654) ]
+            [
+              [ (builtin addInteger) (con integer 456) ]
+              [
+                [ (builtin addInteger) (con integer 13579246801357924680) ]
+                [
+                  [ (builtin addInteger) (con integer -11223344556677889900) ]
+                  [
+                    [ (builtin addInteger) (con integer 12345678901234567890) ]
+                    [
+                      [ (builtin addInteger) (con integer -321) ]
+                      [ [ (builtin multiplyInteger) (con integer 123) ] x ]
+                    ]
+                  ]
+                ]
+              ]
+            ]
+          ]
+        ]
+      ]
+    ]
+  )
+)
