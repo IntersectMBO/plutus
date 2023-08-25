@@ -8,6 +8,7 @@ import Evaluation.Builtins.Common
 
 import PlutusCore qualified as PLC
 import PlutusCore.Default qualified as PLC
+import PlutusCore.Default.Builtins qualified as Builtins (def)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModel)
 import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn)
 import UntypedPlutusCore qualified as UPLC
@@ -32,7 +33,7 @@ data CekResult =
 
 evalTerm :: PlcTerm -> CekResult
 evalTerm term =
-    case typecheckEvaluateCekNoEmit PLC.def defaultBuiltinCostModel term
+    case typecheckEvaluateCekNoEmit Builtins.def defaultBuiltinCostModel term
     of Left e -> TypeCheckError e
        Right x  ->
            case x of
