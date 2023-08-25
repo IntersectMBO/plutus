@@ -250,7 +250,7 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
                                     -- The variable maybe a *recursive* let binding, in which case
                                     -- it won't be in the map, and we don't process it.
                                     -- ATM recursive bindings aren't inlined.
-                                    Nothing -> pure $ fillAppContext processedHd processedArgs
+                                    Nothing -> forMOf termSubterms t processTerm
                         -- if the processed head is not a variable (because it's inlined), just
                         -- process the subterms
                         _ ->  forMOf termSubterms t processTerm
