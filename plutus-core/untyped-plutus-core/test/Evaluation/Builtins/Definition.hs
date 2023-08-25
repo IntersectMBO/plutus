@@ -742,7 +742,7 @@ test_Version :: TestTree
 test_Version =
     testCase "Version" $ do
         let expr1 = apply () (builtin () $ Right ExtensionVersion) unitval
-        Right (EvaluationSuccess $ cons @Integer 0) @=? typecheckEvaluateCekNoEmit (PairV @DefaultFun def ExtensionFunV0) defaultBuiltinCostModelExt expr1
+        Right (EvaluationSuccess $ cons @Integer 0) @=? typecheckEvaluateCekNoEmit (PairV @DefaultFun def ExtensionFunEV0) defaultBuiltinCostModelExt expr1
         Right (EvaluationSuccess $ cons @Integer 1) @=? typecheckEvaluateCekNoEmit (PairV @DefaultFun def def) defaultBuiltinCostModelExt expr1
 
 -- | Check that 'ConsByteString' wraps around for plutus' builtin-version == 1, and fails in plutus's builtin-versions >=2.
