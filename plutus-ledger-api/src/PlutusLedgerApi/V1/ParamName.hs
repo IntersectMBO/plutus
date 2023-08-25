@@ -181,6 +181,7 @@ data ParamName =
   | VerifyEd25519Signature'cpu'arguments'intercept
   | VerifyEd25519Signature'cpu'arguments'slope
   | VerifyEd25519Signature'memory'arguments
-    deriving stock (Eq, Ord, Enum, Ix, Bounded, Generic)
+    -- NB: Show.show != IsParamName.showParamName
+    deriving stock (Eq, Show, Ord, Enum, Ix, Bounded, Generic)
     deriving IsParamName via (GenericParamName ParamName)
 

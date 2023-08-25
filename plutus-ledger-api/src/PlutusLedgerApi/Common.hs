@@ -45,8 +45,7 @@ module PlutusLedgerApi.Common
     , CostModelParams
     , toCostModelParams
     , assertWellFormedCostModelParams
-    , IsParamName
-    , showParamName
+    , IsParamName (showParamName, readParamName)
     , GenericParamName
     , CostModelApplyError (..)
     , CostModelApplyWarn (..)
