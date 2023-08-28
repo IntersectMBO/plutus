@@ -128,6 +128,8 @@ test-suite plutus-tx-tests
     Budget.Spec
     IntegerLiterals.NoStrict.NegativeLiterals.Spec
     IntegerLiterals.NoStrict.NoNegativeLiterals.Spec
+    IntegerLiterals.Strict.NegativeLiterals.Spec
+    IntegerLiterals.Strict.NoNegativeLiterals.Spec
     IsData.Spec
     Lib
     Lift.Spec
