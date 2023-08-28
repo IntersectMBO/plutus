@@ -37,7 +37,6 @@ import UntypedPlutusCore.Core qualified as UPLC
 import UntypedPlutusCore.Core.Plated
 import UntypedPlutusCore.Core.Type
 import UntypedPlutusCore.MkUPlc
-import UntypedPlutusCore.Rename ()
 import UntypedPlutusCore.Size
 import UntypedPlutusCore.Subst
 
@@ -46,6 +45,7 @@ import Control.Monad.Extra
 import Control.Monad.Reader
 import Control.Monad.State
 import Data.Foldable
+import UntypedPlutusCore.Rename (Rename (rename))
 import Witherable (wither)
 
 {- Note [Differences from PIR inliner]
@@ -225,23 +225,37 @@ processTerm =
 
     t -> do
       -- See note [Processing order of call site inlining]
-      let (tm, args) = UPLC.splitApplication t
-      case tm of
-          Var _ann name -> do
-              gets (lookupVarInfo name) >>= \case
-                  Just varInfo -> do
-                      -- process the args if the head is a variable that's in the map
-                      processedArgs <- forM (fmap snd args) processTerm
-                      -- consider call site inlining since it's a variable
-                      t' <- callSiteInline t varInfo (zip (fmap fst args) processedArgs)
-                      forMOf termSubterms t' processTerm
-                  -- The variable maybe a *recursive* let binding, in which case it won't be
-                  -- in the map, and we don't process it. ATM recursive bindings aren't
-                  -- inlined.
-                  Nothing -> forMOf termSubterms t processTerm
-          _ -> -- Just process all the subterms
-              forMOf termSubterms t processTerm
- where
+          let (hd, args) = UPLC.splitApplication t
+          case args of
+              -- not really an application, so hd is the term itself. Processing it will loop.
+              [] -> forMOf termSubterms t processTerm
+              _ -> do
+                  hd' <- processTerm hd
+                  processedArgs <- forM (fmap snd args) processTerm
+                  let
+                    processedArgsWithAnn = zip (fmap fst args) processedArgs
+                    reconstructed = mkIterApp hd' processedArgsWithAnn
+                  case hd' of
+                      Var _ name -> do
+                          gets (lookupVarInfo name) >>= \case
+                              Just varInfo -> do
+                                let
+                                  defAsInlineTerm = varInfo ^. varRhs
+                                  inlineTermToTerm :: InlineTerm name uni fun ann
+                                    -> Term name uni fun ann
+                                  inlineTermToTerm (Done (Dupable var)) = var
+                                  -- extract out the rhs without renaming, we only rename when we
+                                  -- know there's substitution
+                                  rhs = inlineTermToTerm defAsInlineTerm
+                                maybeInlined <-
+                                    callSiteInline
+                                        (termSize reconstructed)
+                                        rhs
+                                        processedArgsWithAnn
+                                pure $ fromMaybe reconstructed maybeInlined
+                              Nothing -> pure reconstructed
+                      _ -> pure reconstructed
+  where
     -- See Note [Renaming strategy]
     substName :: name -> InlineM name uni fun a (Maybe (Term name uni fun a))
     substName name = gets (lookupTerm name) >>= traverse renameTerm
@@ -467,7 +481,7 @@ applyAndBetaReduce rhs args0 = do
         [(a, Term name uni fun a)] ->
         InlineM name uni fun a (Maybe (Term name uni fun a))
       go acc args = case (acc, args) of
-        (LamAbs _ann n tm, (_, arg) : args') -> do
+        (LamAbs _ann n tm, (_, arg) : processedArgs) -> do
           safe <- safeToBetaReduce n arg acc
           if safe
             then do
@@ -475,7 +489,7 @@ applyAndBetaReduce rhs args0 = do
                 termSubstNamesM
                   (\name -> if name == n then Just <$> PLC.rename arg else pure Nothing)
                   tm
-              go acc' args'
+              go acc' processedArgs
             -- if it is not safe to beta reduce, just return the processed application
             else pure . Just $ mkIterApp acc args
         -- no more lambda abstraction, just return the processed application
@@ -492,55 +506,47 @@ applyAndBetaReduce rhs args0 = do
       safeToBetaReduce = shouldUnconditionallyInline
   go rhs args0
 
-{- | This works in the same way as `PlutusIR.Transform.Inline.CallSiteInline.inlineSaturatedApp`.
+{- | This works in the same way as `PlutusIR.Transform.Inline.CallSiteInline.callSiteInline`.
 See Note [Inlining and beta reduction of functions].
 -}
-inlineSaturatedApp ::
+callSiteInline ::
   forall name uni fun a.
   (InliningConstraints name uni fun) =>
-  -- | The term, with a "head"(obtained from `Core.splitApplication`) that is a variable.
+  -- | The term size if it were not inlined.
+  Size ->
+  -- | The Rhs of the "head" of the term, already processed.
   Term name uni fun a ->
-    -- | The `VarInfo` of the variable (the head of the term).
-  VarInfo name uni fun a ->
   -- | The application context of the term, already processed.
   [(a, Term name uni fun a)] ->
-  InlineM name uni fun a (Term name uni fun a)
-callSiteInline t = go
+  InlineM name uni fun a (Maybe (Term name uni fun a))
+callSiteInline processedTSize headRhs = go
   where
-    go :: VarInfo name uni fun a ->
-      [(a, Term name uni fun a)] ->
-      InlineM name uni fun a (Term name uni fun a)
-    go varRhsInfo args = do
-        let
-          defAsInlineTerm = varRhsInfo ^. varRhs
-          inlineTermToTerm :: InlineTerm name uni fun ann
-            -> Term name uni fun ann
-          inlineTermToTerm (Done (Dupable var)) = var
-          -- extract out the rhs without renaming, we only rename when we know there's
-          -- substitution
-          rhs = inlineTermToTerm defAsInlineTerm
-          -- The definition itself will be inlined, so we need to check that the cost
-          -- of that is acceptable. Note that we do _not_ check the cost of the _body_.
-          -- We would have paid that regardless.
-          -- Consider e.g. `let y = \x. f x`. We pay the cost of the `f x` at
-          -- every call site regardless. The work that is being duplicated is
-          -- the work for the lambda.
-          costIsOk = costIsAcceptable rhs
-          -- check if binding is pure to avoid duplicated effects.
+    go :: [(a, Term name uni fun a)] ->
+      InlineM name uni fun a (Maybe (Term name uni fun a))
+    go args =
+      do
+        -- The definition itself will be inlined, so we need to check that the cost
+        -- of that is acceptable. Note that we do _not_ check the cost of the _body_.
+        -- We would have paid that regardless.
+        -- Consider e.g. `let y = \x. f x`. We pay the cost of the `f x` at
+        -- every call site regardless. The work that is being duplicated is
+        -- the work for the lambda.
+        let costIsOk = costIsAcceptable headRhs
+        -- check if binding is pure to avoid duplicated effects.
         -- For strict bindings we can't accidentally make any effects happen less often
         -- than it would have before, but we can make it happen more often.
         -- We could potentially do this safely in non-conservative mode.
-        rhsPure <- checkPurity rhs
+        rhsPure <- checkPurity headRhs
         if costIsOk && rhsPure then do
           -- rename the rhs of the variable before any substitution
-          renamedRhs <- liftDupable (let Done varDef = varRhsInfo ^. varRhs in varDef)
+          renamedRhs <- rename headRhs
           applyAndBetaReduce renamedRhs args >>= \case
             Just inlined -> do
               let -- Inline only if the size is no bigger than not inlining.
-                  sizeIsOk = termSize inlined <= termSize t
-              pure $ if sizeIsOk then inlined else t
-            Nothing -> pure t
-        else pure t
+                  sizeIsOk = termSize inlined <= processedTSize
+              pure $ if sizeIsOk then Just inlined else Nothing
+            Nothing -> pure Nothing
+        else pure Nothing
 
 {- Note [delayAndVarIsPure]
 
