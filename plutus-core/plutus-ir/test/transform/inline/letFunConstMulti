@@ -1,11 +1,8 @@
 {-
 Multiple occurrences of the const function:
 The const function should not be inlined by the unconditional inlining optimization.
-The second constFun should be inlined by the callsite inliner.
-The first constFun is not inlined because inlining increases the `termSize` or number of nodes:
-`[ constFun [ (lam y (con integer) (con integer 3)) (con integer 5) ] ]` vs
-`[ lam z (con integer) lam k (con integer) z 
-[ (lam y (con integer) (con integer 3)) (con integer 5) ] ]`.
+Both constFun should be inlined by the callsite inliner.
+
  
 let 
   constFun :: Integer -> Integer -> Integer

@@ -249,8 +249,6 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
                                         processedArgs <- processArgs args
                                         maybeInlined <- callSiteInline t rhs varInfo processedArgs
                                         case maybeInlined of
-                                            -- we either discovered that it's not safe to beta
-                                            -- reduce, or we did inline
                                             Just inlined -> pure inlined
                                             -- we didn't inline at the call site, just process the
                                             -- subterms
