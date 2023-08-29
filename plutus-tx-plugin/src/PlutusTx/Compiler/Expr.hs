@@ -712,8 +712,14 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
       | GHC.getName build == GHC.buildName && GHC.getName unpack == GHC.unpackCStringFoldrName -> compileExpr expr
     -- C# is just a wrapper around a literal
     GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) `GHC.App` arg | dc == GHC.charDataCon -> compileExpr arg
-    -- constructors of 'Integer' just wrap literals
-    GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) `GHC.App` arg | GHC.dataConTyCon dc == GHC.integerTyCon -> compileExpr arg
+    -- Handle constructors of 'Integer'
+    GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) `GHC.App` arg | GHC.dataConTyCon dc == GHC.integerTyCon -> do
+      i <- compileExpr arg
+      if GHC.dataConName dc == GHC.integerINDataConName
+        then do
+          negateTerm <- lookupIntegerNegate
+          pure $ PIR.mkIterApp negateTerm [(annMayInline, i)]
+        else pure i
     -- Unboxed unit, (##).
     GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) | dc == GHC.unboxedUnitDataCon -> pure (PIR.mkConstant annMayInline ())
     -- Ignore the magic 'noinline' function, it's the identity but has no unfolding.
@@ -1060,8 +1066,9 @@ coverageCompile originalExpr exprType src compiledTerm covT =
 defineIntegerNegate :: (CompilingDefault PLC.DefaultUni fun m ann) => m ()
 defineIntegerNegate = do
   ghcId <- GHC.tyThingId <$> getThing 'GHC.Num.Integer.integerNegate
+  -- Always inline `integerNegate`.
+  var <- compileVarFresh annAlwaysInline ghcId
   let ann = annMayInline
-  var <- compileVarFresh ann ghcId
   x <- safeFreshName "x"
   let
     -- body = 0 - x
@@ -1074,6 +1081,14 @@ defineIntegerNegate = do
           ]
     def = PIR.Def var (body, PIR.Strict)
   PIR.defineTerm (LexName GHC.integerNegateName) def mempty
+
+lookupIntegerNegate :: (Compiling uni fun m ann) => m (PIRTerm uni fun)
+lookupIntegerNegate = do
+  ghcName <- GHC.getName <$> getThing 'GHC.Num.Integer.integerNegate
+  PIR.lookupTerm annMayInline (LexName ghcName) >>= \case
+    Just t -> pure t
+    Nothing -> throwPlain $
+      CompilationError "Cannot find the definition of integerNegate. Please file a bug report."
 
 compileExprWithDefs ::
   (CompilingDefault uni fun m ann) =>

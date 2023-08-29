@@ -126,7 +126,8 @@ test-suite plutus-tx-tests
   main-is:        Spec.hs
   other-modules:
     Budget.Spec
-    IntegerLiterals.NoStrict.Spec
+    IntegerLiterals.NoStrict.NegativeLiterals.Spec
+    IntegerLiterals.NoStrict.NoNegativeLiterals.Spec
     IsData.Spec
     Lib
     Lift.Spec
@@ -156,7 +157,6 @@ test-suite plutus-tx-tests
     , base                                            >=4.9   && <5
     , containers
     , deepseq
-    , filepath
     , flat                                            ^>=0.6
     , hedgehog
     , lens

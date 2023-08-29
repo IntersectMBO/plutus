@@ -1,7 +1,9 @@
+-- editorconfig-checker-disable-file
 module Main (main) where
 
 import Budget.Spec qualified as Budget
-import IntegerLiterals.NoStrict.Spec qualified as IntegerLiterals.NoStrict
+import IntegerLiterals.NoStrict.NegativeLiterals.Spec qualified as IntegerLiterals.NoStrict.NegativeLiterals
+import IntegerLiterals.NoStrict.NoNegativeLiterals.Spec qualified as IntegerLiterals.NoStrict.NoNegativeLiterals
 import IsData.Spec qualified as IsData
 import Lift.Spec qualified as Lift
 import Optimization.Spec qualified as Optimization
@@ -17,14 +19,17 @@ main :: IO ()
 main = defaultMain $ runTestNestedIn ["test"] tests
 
 tests :: TestNested
-tests = testGroup "tests" <$> sequence [
-    Plugin.tests
-  , IntegerLiterals.NoStrict.tests
-  , IsData.tests
-  , Lift.tests
-  , TH.tests
-  , Lib.tests
-  , Budget.tests
-  , Optimization.tests
-  , Strictness.tests
-  ]
+tests =
+  testGroup "tests"
+    <$> sequence
+      [ Plugin.tests
+      , IntegerLiterals.NoStrict.NegativeLiterals.tests
+      , IntegerLiterals.NoStrict.NoNegativeLiterals.tests
+      , IsData.tests
+      , Lift.tests
+      , TH.tests
+      , Lib.tests
+      , Budget.tests
+      , Optimization.tests
+      , Strictness.tests
+      ]

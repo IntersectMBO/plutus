@@ -2,17 +2,20 @@
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NegativeLiterals      #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
 
+{-# LANGUAGE NegativeLiterals      #-}
 {-# LANGUAGE NoStrict              #-}
 
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
 
-module IntegerLiterals.NoStrict.Spec where
+-- | This module tests that integer literals are handled correctly, when @Strict@ is off
+-- and @NegativeLiterals@ is on. These two extensions affect the Core we get. When
+-- @NegativeLiterals@ is on, we can get @IN@ for negative integers.
+module IntegerLiterals.NoStrict.NegativeLiterals.Spec where
 
 import PlutusTx.Code
 import PlutusTx.Prelude qualified as PlutusTx
@@ -21,11 +24,9 @@ import PlutusTx.TH (compile)
 
 import Test.Tasty.Extras
 
-import System.FilePath ((</>))
-
 tests :: TestNested
-tests = testNestedGhc ("IntegerLiterals" </> "NoStrict") [
-    goldenPir "integerLiterals-NoStrict" integerLiterals
+tests = testNestedGhc "IntegerLiterals"
+  [ goldenPir "integerLiterals-NoStrict-NegativeLiterals" integerLiterals
   ]
 
 integerLiterals :: CompiledCode (Integer -> Integer)
