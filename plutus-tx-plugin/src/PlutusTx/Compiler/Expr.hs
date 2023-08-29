@@ -715,6 +715,7 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     -- Handle constructors of 'Integer'
     GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) `GHC.App` arg | GHC.dataConTyCon dc == GHC.integerTyCon -> do
       i <- compileExpr arg
+      -- IN is a negative integer!
       if GHC.dataConName dc == GHC.integerINDataConName
         then do
           negateTerm <- lookupIntegerNegate
