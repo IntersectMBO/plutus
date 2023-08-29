@@ -129,10 +129,6 @@ library testlib-internal
 test-suite plutus-tx-tests
   import:         lang, ghc-version-support
 
-  -- test output changes after 9.2, bad for golden tests
-  if impl(ghc >=9.3)
-    buildable: False
-
   if flag(use-ghc-stub)
     buildable: False
 

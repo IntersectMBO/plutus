@@ -1,0 +1,91 @@
+% I tried resetting the note number from V1-builtins here, but that made
+% some hyperlinks wrong.  To get note numbers starting at one in each section, I
+% think we have to define a new counter every time.
+\newcounter{notenumberC}
+\renewcommand{\note}[1]{
+  \bigskip
+  \refstepcounter{notenumberC}
+  \noindent\textbf{Note \thenotenumberC. #1}
+}
+
+\subsection{Batch 3}
+\label{sec:default-builtins-3}
+
+\subsubsection{Built-in functions}
+\label{sec:built-in-functions-3}
+The third batch of builtin operations is defined in Table~\ref{table:built-in-functions-3}.
+
+\setlength{\LTleft}{-10mm}  % Shift the table left a bit to centre it on the page
+\begin{longtable}[H]{|l|p{42mm}|p{35mm}|c|c|}
+    \hline
+    \text{Function} & \text{Signature} & \text{Denotation} & \text{Can} & \text{Note} \\
+    & & & fail? & \\
+    \hline
+    \endfirsthead
+    \hline
+    \text{Function} & \text{Type} & \text{Denotation} & \text{Can} & \text{Note}\\
+    & & & fail? & \\
+    \hline
+    \endhead
+    \hline
+    \caption{Built-in Functions}
+    \endfoot
+    \caption[]{Built-in Functions}
+    \label{table:built-in-functions-3}
+    \endlastfoot
+    \TT{verifyEcdsaSecp256k1Signature}        & $[\ty{bytestring}, \ty{bytestring}, $ \text{$\;\; \ty{bytestring}] \to \ty{bool}$}
+        & Verify an SECP-256k1 ECDSA signature & Yes & \ref{note:verify-ecdsa-secp256k1-signature}\\
+    \TT{verifySchnorrSecp256k1Signature}      & $[\ty{bytestring}, \ty{bytestring}, $ \text{$\;\; \ty{bytestring}] \to \ty{bool}$}
+          & Verify an SECP-256k1 Schnorr signature & Yes & \ref{note:verify-schnorr-secp256k1-signature}\\
+\hline
+\end{longtable}
+
+
+\note{Secp256k1 ECDSA Signature verification.}
+\label{note:verify-ecdsa-secp256k1-signature}
+The \texttt{verifyEcdsaSecp256k1Signature} function performs elliptic curve
+digital signature verification \cite{ANSI-X9.62, ANSI-x9.142,
+  Johnson-Menezes-Vanstone-ECDSA} over the \texttt{secp256k1}
+curve~\cite[\S2.4.1]{SECP256} and conforms to the interface described in
+Note~\ref{note:digital-signature-verification-functions} of
+Section~\ref{sec:built-in-functions-1}.  The arguments must have the
+following sizes:
+\begin{itemize}
+\item $\vk$: 33 bytes
+\item $m$: 32 bytes
+\item $s$: 64 bytes.
+\end{itemize}
+The public key $\vk$ is expected to be in the 33-byte compressed form described
+in~\cite{Bitcoin-ECDSA}.  Moreover, the ECDSA scheme admits two distinct valid
+signatures for a given message and private key, and  we follow the restriction
+imposed by Bitcoin (see~\cite{BIP-146},
+\texttt{LOW\_S}) and \textbf{only accept the smaller signature};
+\texttt{verifyEcdsa\-Secp\-256k1Signature} will return \texttt{false} if the larger
+one is supplied.
+
+% For more on the lower signature business, see
+%    https://github.com/input-output-hk/plutus/pull/4591#issuecomment-1120797931
+% and
+%    https://github.com/input-output-hk/plutus/pull/4591#issuecomment-1121684776
+% The C code that performs the check in the bitcoin implementation is at
+%   https://github.com/bitcoin-core/secp256k1/blob/485f608fa9e28f132f127df97136617645effe81/src/secp256k1.c#L400
+% and
+%   https://github.com/bitcoin-core/secp256k1/blob/485f608fa9e28f132f127df97136617645effe81/src/scalar_low_impl.h#L85
+%
+% Schnorr signatures do something substantially different for ECDSA and I don't think
+% the question of multiple signatures arises for verifySchnorrSecp256k1Signature.
+
+\note{Secp256k1 Schnorr Signature verification.}
+\label{note:verify-schnorr-secp256k1-signature}
+The \texttt{verifySchnorrSecp256k1Signature} function performs verification of
+Schnorr signatures~\cite{Schnorr89, BIP-340} over the \texttt{secp256k1} curve
+and conforms to the interface described in
+Note~\ref{note:digital-signature-verification-functions} of
+Section~\ref{sec:built-in-functions-1}.  The arguments are expected to be
+of the forms specified in BIP-340~\cite{BIP-340} and thus should have the
+following sizes:
+\begin{itemize}
+\item $\vk$: 32 bytes
+\item $m$: unrestricted
+\item $s$: 64 bytes.
+\end{itemize}

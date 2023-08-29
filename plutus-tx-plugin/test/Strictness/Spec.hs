@@ -18,7 +18,7 @@ import PlutusTx.TH (compile)
 
 tests :: TestNested
 tests =
-  testNested
+  testNestedGhc
     "Strictness"
     [ goldenEvalCekCatch "lambda-default" $ [lambdaDefault `unsafeApplyCode` bot]
     , goldenPirReadable "lambda-default" lambdaDefault

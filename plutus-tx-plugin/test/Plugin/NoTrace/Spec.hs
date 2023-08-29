@@ -22,7 +22,7 @@ import PlutusTx.Prelude qualified as P
 import PlutusTx.Test
 
 noTrace :: TestNested
-noTrace = testNested "NoTrace"
+noTrace = testNestedGhc "NoTrace"
   [ goldenPir "trace" trace
   , goldenPir "traceComplex" traceComplex
   , goldenEvalCekLog "traceDirect" [traceDirect]

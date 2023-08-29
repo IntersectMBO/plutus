@@ -1,0 +1,21 @@
+(program
+  1.1.0
+  (let
+    (nonrec)
+    (termbind
+      (strict)
+      (vardecl
+        divideInteger (fun (con integer) (fun (con integer) (con integer)))
+      )
+      (builtin divideInteger)
+    )
+    (termbind
+      (nonstrict)
+      (vardecl
+        divideInteger (fun (con integer) (fun (con integer) (con integer)))
+      )
+      (lam x (con integer) (lam y (con integer) [ [ divideInteger x ] y ]))
+    )
+    divideInteger
+  )
+)

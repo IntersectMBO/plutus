@@ -1,0 +1,34 @@
+(program
+  1.1.0
+  [
+    [
+      [
+        [
+          (force
+            (delay
+              (lam
+                `Plugin.Data.Spec.MyMonoRecord_i0`
+                (lam
+                  `match_Plugin.Data.Spec.MyMonoRecord_i0`
+                  `Plugin.Data.Spec.MyMonoRecord_i2`
+                )
+              )
+            )
+          )
+          (lam arg_0_i0 (lam arg_1_i0 (constr 0 arg_0_i2 arg_1_i1)))
+        ]
+        (lam
+          x_i0
+          (delay
+            (lam
+              `case_Plugin.Data.Spec.MyMonoRecord_i0`
+              (case x_i2 `case_Plugin.Data.Spec.MyMonoRecord_i1`)
+            )
+          )
+        )
+      ]
+      (con integer 1)
+    ]
+    (con integer 2)
+  ]
+)

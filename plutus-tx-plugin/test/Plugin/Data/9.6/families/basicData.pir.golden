@@ -1,0 +1,22 @@
+(program
+  1.1.0
+  (let
+    (nonrec)
+    (datatypebind
+      (datatype
+        (tyvardecl `R:BasicDataBool` (type))
+
+        RConsBasicDataBool_match
+        (vardecl Inst (fun (con integer) `R:BasicDataBool`))
+      )
+    )
+    (lam
+      ds
+      `R:BasicDataBool`
+      [
+        { [ RConsBasicDataBool_match ds ] (con integer) }
+        (lam i (con integer) i)
+      ]
+    )
+  )
+)

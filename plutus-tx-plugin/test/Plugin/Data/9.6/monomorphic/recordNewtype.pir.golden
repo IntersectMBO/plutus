@@ -1,0 +1,19 @@
+(program
+  1.1.0
+  (let
+    (nonrec)
+    (datatypebind
+      (datatype
+        (tyvardecl RecordNewtype (type))
+
+        RecordNewtype_match
+        (vardecl RecordNewtype (fun (con integer) RecordNewtype))
+      )
+    )
+    (lam
+      ds
+      RecordNewtype
+      [ { [ RecordNewtype_match ds ] (con integer) } (lam ds (con integer) ds) ]
+    )
+  )
+)

@@ -1,0 +1,50 @@
+(program
+  1.1.0
+  (let
+    (nonrec)
+    (termbind
+      (nonstrict)
+      (vardecl defaultBody (con integer))
+      { (abs e (type) (error e)) (con integer) }
+    )
+    (datatypebind
+      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+    )
+    (termbind
+      (nonstrict)
+      (vardecl defaultBody (con integer))
+      [
+        { [ Unit_match { (abs e (type) (error e)) Unit } ] (con integer) }
+        defaultBody
+      ]
+    )
+    (datatypebind
+      (datatype
+        (tyvardecl MyMonoData (type))
+
+        MyMonoData_match
+        (vardecl Mono (fun (con integer) (fun (con integer) MyMonoData)))
+        (vardecl Mono (fun (con integer) MyMonoData))
+        (vardecl Mono (fun (con integer) MyMonoData))
+      )
+    )
+    (lam
+      ds
+      MyMonoData
+      [
+        [
+          [
+            { [ MyMonoData_match ds ] (con integer) }
+            (lam
+              default_arg0
+              (con integer)
+              (lam default_arg1 (con integer) defaultBody)
+            )
+          ]
+          (lam a (con integer) a)
+        ]
+        (lam default_arg0 (con integer) defaultBody)
+      ]
+    )
+  )
+)

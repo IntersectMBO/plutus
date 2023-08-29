@@ -1,0 +1,127 @@
+\section{Protocol versions}
+The Cardano blockchain controls the introduction of features through the use of \emph{protocol versions}, a field in the protocol parameters.
+The major protocol version is used to indicate when forwards-incompatible changes (i.e. those that allow blocks that were not previously allowed) are made to the rules of the chain.
+This is a hard fork of the chain.
+
+The protocol version is part of the history of the chain, as are all protocol parameters.
+That means that all blocks are associated with the protocol version from when they were created, so that they can be interpreted correctly.
+
+In summary, conditioning on the protocol version is the main way in which we can introduce changes in behaviour.
+
+Table~\ref{table:protocol-versions} lists the protocol versions that are relevant to the use of Plutus Core on Cardano.
+
+\begin{table}[H]
+  \centering
+    \begin{tabular}{|c|l|l|}
+        \hline
+        \thead{Protocol version} & \thead{Codename} & \thead{Date} \\
+        \hline
+        5.0 & Alonzo & September 2021 \\
+        7.0 & Vasil & June 2022 \\
+        8.0 & Valentine & February 2023 \\
+        9.0 & Conway & Upcoming \\
+        \hline
+    \end{tabular}
+    \caption{Protocol versions}
+    \label{table:protocol-versions}
+\end{table}
+
+\section{Ledger languages}
+
+The Cardano ledger uses Plutus Core as the programming language for \emph{scripts}.
+The ledger in fact supports multiple different interpretations for scripts, and so each script is tagged with a \emph{ledger language} that tells the ledger how to interpret it.
+Since the ledger must always be able to evaluate old scripts and get the same answer, the ledger language must pin down everything about how the script is evaluated, including:
+
+\begin{enumerate}
+  \item How to interpret the script itself (e.g. as a Plutus Core program, what versions of the Plutus Core language are allowable)
+  \item Other configuration the script may need in order to run (e.g. the set of builtin types and functions and their interpretations, cost model parameters)
+  \item How the script is invoked (e.g. after having certain arguments passed to it)
+\end{enumerate}
+
+There are currently three ``Plutus'' ledger languages (i.e. ledger languages whose underlying programming language is Plutus Core) in use on Cardano:\footnote{
+  Note that ledger languages are completely distinct from the point of view of the ledger, the ``V1''/``V2'' naming is suggestive of the fact that these two ledger languages are related, but in the implementation they are completely independent.
+}
+\begin{enumerate}
+  \item \LL{PlutusV1}
+  \item \LL{PlutusV2}
+  \item \LL{PlutusV3} (forthcoming)
+\end{enumerate}
+
+\noindent Table~\ref{table:ll-introduction} shows when each Plutus ledger language was introduced.
+Ledger languages remain available permanently after they have been introduced.
+
+\begin{table}[H]
+  \centering
+    \begin{tabular}{|c|c|}
+        \hline
+        \thead{Protocol version} & \thead{Ledger language introduced} \\
+        \hline
+        5.0 & \LL{PlutusV1} \\
+        7.0 & \LL{PlutusV2} \\
+        9.0 & \LL{PlutusV3} \\
+        \hline
+    \end{tabular}
+    \caption{Introduction of Plutus ledger languages}
+    \label{table:ll-introduction}
+\end{table}
+
+\noindent Ledger languages can evolve over time.
+We can make backwards-compatible changes when the major protocol version changes, but backwards-incompatible changes can only be introduced by creating a whole new ledger language.\footnote{
+  See~\cite{CIP-35} for more details on how the process of evolution works.
+}
+This means that to fully explain the behaviour of a ledger language we may need to also index by the protocol version.
+
+The following tables show how Plutus ledger languages determine:
+\begin{itemize}
+  \item Which Plutus Core language versions are allowable (Table~\ref{table:lv-introduction})
+  \item Which built-in functions and types are available (Table~\ref{table:b-introduction}, given in terms of batches, see Section~\ref{sec:builtin-batches})
+  \item How to interpret the built-in functions and types (Table~\ref{table:bs-introduction}, given in terms of built-in semantics variants, see Section~\ref{sec:builtin-semantics-variants})
+\end{itemize}
+
+Currently, once we add a feature for any given protocol version/ledger language, we also make it available for all subsequent protocol versions/ledger languages.
+For example, Batch 2 of builtins was introduced in \LL{PlutusV2} at protool version 7.0, so it is also available in \LL{PlutusV2} at protocol versions after 7.0, and \LL{PlutusV3} at protocol versions after 9.0 (when \LL{PlutusV3} itself is first introduced).
+Hence the tables are simplified to only show when something is \emph{introduced}.
+
+\begin{table}[H]
+  \centering
+    \begin{tabular}{|c|c|c|}
+        \hline
+        \thead{Ledger language} & \thead{Protocol version} & \thead{Plutus Core language version introduced} \\
+        \hline
+        \LL{PlutusV1} & 5.0 & 1.0.0 \\
+        \LL{PlutusV3} & 9.0 & 1.1.0 \\
+        \hline
+    \end{tabular}
+    \caption{Introduction of Plutus Core language versions}
+    \label{table:lv-introduction}
+\end{table}
+
+\begin{table}[H]
+  \centering
+    \begin{tabular}{|c|c|c|}
+        \hline
+        \thead{Ledger language} & \thead{Protocol version} & \thead{Built-in functions and types introduced} \\
+        \hline
+        \LL{PlutusV1} & 5.0 & Batch 1 \\
+        \LL{PlutusV2} & 7.0 & Batch 2 \\
+        \LL{PlutusV2} & 8.0 & Batch 3 \\
+        \LL{PlutusV3} & 9.0 & Batch 4 \\
+        \hline
+    \end{tabular}
+    \caption{Introduction of built-in functions and types}
+    \label{table:b-introduction}
+\end{table}
+
+\begin{table}[H]
+  \centering
+    \begin{tabular}{|c|c|c|}
+        \hline
+        \thead{Ledger language} & \thead{Built-in semantics variant used} \\
+        \hline
+        \LL{PlutusV1} & Built-in semantics 1 \\
+        \LL{PlutusV3} & Built-in semantics 2 \\
+        \hline
+    \end{tabular}
+    \caption{Selection of built-in semantics variant}
+    \label{table:bs-introduction}
+\end{table}

@@ -1,0 +1,51 @@
+(program
+  1.1.0
+  (let
+    (nonrec)
+    (datatypebind
+      (datatype
+        (tyvardecl Tuple2 (fun (type) (fun (type) (type))))
+        (tyvardecl a (type)) (tyvardecl b (type))
+        Tuple2_match
+        (vardecl Tuple2 (fun a (fun b [ [ Tuple2 a ] b ])))
+      )
+    )
+    (datatypebind
+      (datatype
+        (tyvardecl T (type))
+
+        T_match
+        (vardecl MkT (fun [ [ Tuple2 (con integer) ] (con integer) ] T))
+      )
+    )
+    (termbind
+      (nonstrict)
+      (vardecl `$WMkT` (fun [ [ Tuple2 (con integer) ] (con integer) ] T))
+      (lam
+        conrep
+        [ [ Tuple2 (con integer) ] (con integer) ]
+        (let
+          (nonrec)
+          (termbind
+            (strict)
+            (vardecl conrep [ [ Tuple2 (con integer) ] (con integer) ])
+            conrep
+          )
+          [ MkT conrep ]
+        )
+      )
+    )
+    (termbind
+      (nonstrict)
+      (vardecl mkT (fun [ [ Tuple2 (con integer) ] (con integer) ] T))
+      (lam ds [ [ Tuple2 (con integer) ] (con integer) ] [ `$WMkT` ds ])
+    )
+    [
+      mkT
+      [
+        [ { { Tuple2 (con integer) } (con integer) } (con integer 2) ]
+        (con integer 1)
+      ]
+    ]
+  )
+)

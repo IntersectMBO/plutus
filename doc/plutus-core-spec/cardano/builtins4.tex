@@ -1,0 +1,456 @@
+% I tried resetting the note number from V1-builtins here, but that made
+% some hyperlinks wrong.  To get note numbers starting at one in each section, I
+% think we have to define a new counter every time.
+\newcounter{notenumberD}
+\renewcommand{\note}[1]{
+  \bigskip
+  \refstepcounter{notenumberD}
+  \noindent\textbf{Note \thenotenumberD. #1}
+}
+
+\subsection{Batch 4}
+\label{sec:default-builtins-4}
+The fourth batch of builtins adds support for
+\begin{itemize}
+\item The \texttt{Blake2b-224} and \texttt{Keccak-256} hash functions (Section \ref{sec:misc-builtins-4})
+\item BLS12-381 elliptic curve pairing operations
+(see~\cite{CIP-0381}, \cite{BLS12-381}, \cite[4.2.1]{IETF-pairing-friendly-curves}, \cite{BLST-library}).
+ For clarity these are described separately in Sections~\ref{sec:bls-types-4} and \ref{sec:bls-builtins-4}.
+\end{itemize}
+
+\subsubsection{Miscellaneous built-in functions}
+\label{sec:misc-builtins-4}
+
+\setlength{\LTleft}{-10mm} % Shift the table left a bit to centre it on the page
+\begin{longtable}[H]{|l|p{5cm}|p{55mm}|c|c|}
+    \hline \text{Function} & \text{Signature} & \text{Denotation} & \text{Can}
+    & \text{Note} \\ & & & fail?
+    & \\ \hline \endfirsthead \hline \text{Function} & \text{Type}
+    % This caption goes on every page of the table except the last.  Ideally it
+    % would appear only on the first page and all the rest would say
+    % (continued). Unfortunately it doesn't seem to be easy to do that in a
+    % longtable.
+    \endfoot
+%%    \caption[]{Built-in Functions}
+    \caption[]{Miscellaneous built-in Functions}
+    \label{table:misc-built-in-functions-4}
+    \endlastfoot
+%% G1
+    \hline
+    \TT{blake2b\_224} & $[\ty{bytestring}] \to \ty{bytestring}$  & \text{Hash a $\ty{bytestring}$ using}
+                                                                   \TT{Blake2b-224}~\cite{IETF-Blake2}. &  & \\
+    \TT{keccak\_256}  & $[\ty{bytestring}] \to \ty{bytestring}$  & \text{Hash a $\ty{bytestring}$ using}
+                                                                   \TT{Keccak-256}~\cite{KeccakRef3}. &  & \\
+    \hline
+\end{longtable}
+
+\subsubsection{BLS12-381 built-in types}
+\label{sec:bls-types-4}
+
+\noindent Supporting the BLS12-381 operations involves adding three new types
+and seventeen new built-in functions.  The description of the semantics of these
+types and functions is quite complex and requires a considerable amount of
+notation, most of which is used only in Sections~\ref{sec:bls-types-4} and~\ref{sec:bls-builtins-4}.
+
+\bigskip
+\noindent Table~\ref{table:built-in-types-4} describes three new built-in
+types.
+
+\newcommand{\TyMlResult}{\ty{bls12\_381\_mlresult}}
+\newcommand{\MlResultDenotation}{H}
+\newcommand{\Fq}{\mathbb{F}_q}
+\newcommand{\Fqq}{\mathbb{F}_{q^2}}
+\newcommand{\FF}{\mathbb{F}_{q^{12}}}
+
+\begin{table}[H]
+  \centering
+    \begin{tabular}{|l|p{2cm}|l|}
+        \hline
+        Type & Denotation & Concrete Syntax\\
+        \hline
+        $\ty{bls12\_381\_G1\_element}$ &   $G_1$ & \texttt{0x[0-9A-Fa-f]\{96\}} \text{(see Note~\ref{note:bls-syntax})}\\
+        $\ty{bls12\_381\_G2\_element}$ &   $G_2$ & \texttt{0x[0-9A-Fa-f]\{192\}} \text{(see Note~\ref{note:bls-syntax})}\\
+        $\TyMlResult$    &   $\MlResultDenotation$  &  None (see Note~\ref{note:bls-syntax})\\
+        \hline
+    \end{tabular}
+    \caption{Atomic Types}
+    \label{table:built-in-types-4}
+\end{table}
+
+%% \paragraph{$G_1$ and $G_2$}.
+\noindent Here $G_1$ and  $G_2$ are both additive cyclic groups of prime order $r$, where 
+$$
+r = \mathtt{0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001}.
+$$
+        
+\paragraph{The fields $\Fq$ and $\Fqq$.}
+\noindent To define the groups $G_1$ and $G_2$ we need the finite field $\Fq$ where
+\begin{align*}
+q = \mathtt{0x}&\mathtt{1a0111ea397fe69a4b1ba7b6434bacd764774b84f38512bf}\\
+              &\mathtt{6730d2a0f6b0f6241eabfffeb153ffffb9feffffffffaaab}
+\end{align*}
+
+\noindent which is a 381-bit prime. The field $\Fq$ is isomorphic to $\Z_q$,
+the ring of integers modulo $q$, and hence there is a natural epimorphism from
+$\Z$ to $\Fq$ which we denote by $n \mapsto \bar{n}$.  Given $x \in \Fq$, we
+denote by $\tilde{x}$ the smallest non-negative integer $n$ with $\bar{n} = x$.
+We sometimes use literal integers to represent elements of $\Fq$ in the obvious
+way.
+
+We also make use of the field $\Fqq = \Fq[X]/(X^2+1)$; we may regard $\Fqq$ as
+the set $\{a+bu: a,b \in \Fq\}$ where $u^2=-1$.
+
+It is convenient to say that an element $a$ of $\Fq$ is \textit{larger} than
+another element $b$ (and $b$ is \textit{smaller} than $a$) if $\tilde{a}
+> \tilde{b}$ in $\Z$.  We extend this terminology to $\Fqq$ by saying that
+$a+bu$ is larger than $c+du$ if either $b$ is larger than $d$ or $b=d$ and $a$
+is larger than $c$.
+
+
+\paragraph{The groups $G_1$ and $G_2$.}
+\noindent There are elliptic curves $E_1$ defined over $\Fq$:
+$$
+E_1: Y^2 = X^3 + 4
+$$
+
+\noindent and $E_2$ defined over $\Fqq$:
+$$
+E_2: Y^2 = X^3 + 4(u+1).
+$$
+
+\noindent $E_1(\Fq)$ and  $E_2(\Fqq)$  are abelian groups under the
+usual elliptic curve addition operations as described
+in~\cite[III.2]{Silverman-Arithmetic-EC} or~\cite[2.1]{Costello-pairings}.
+$G_1$ is a subgroup of $E_1(\Fq)$ and $G_2$ is a subgroup of $E_2(\Fqq)$;
+explicit generators for $G_1$ and $G_2$ are given
+in~\cite[4.2.1]{IETF-pairing-friendly-curves}.  We denote the identity element
+(the point at infinity) in $G_1$ by $\mathcal{O}_{G_1}$ and that in $G_2$ by
+$\mathcal{O}_{G_2}$.  Given an integer $n$ and a group element $a$ in $G_1$ or
+$G_2$, the scalar multiple $na$ is defined as usual to be $a + \cdots + a$ ($n$
+times) if $n>0$ and $-a + \cdots + -a$ ($-n$ times) if $n<0$; $0a$ is the
+identity element of the group.
+
+\paragraph{The \texttt{bls12\_381\_MlResult} type.}
+\noindent Values of the \texttt{bls12\_381\_MlResult} type are completely
+opaque and can only be obtained as a result of \texttt{bls12\_381\_millerLoop}
+or by multiplying two existing elements of type \texttt{bls12\_381\_MlResult}.
+We provide neither a serialisation format nor a concrete syntax for values of
+this type: they exist only ephemerally during computation.  We do not specify
+$\MlResultDenotation$, the denotation of $\TyMlResult$, precisely, but it
+must be a multiplicative abelian group. See Note~\ref{note:pairing} for more on
+this.
+
+\subsubsection{BLS12-381 built-in functions}
+\label{sec:bls-builtins-4}
+
+\newcommand{\hash}{\mathsf{hash}}
+\newcommand{\compress}{\mathsf{compress}}
+\newcommand{\uncompress}{\mathsf{uncompress}}
+
+\setlength{\LTleft}{-4mm} % Shift the table left a bit to centre it on the page
+\begin{longtable}[H]{|l|p{5cm}|p{25mm}|c|c|}
+    \hline \text{Function} & \text{Signature} & \text{Denotation} & \text{Can}
+    & \text{Note} \\ & & & fail?
+    & \\ \hline \endfirsthead \hline \text{Function} & \text{Type}
+    & \text{Denotation} & \text{Can} & \text{Note}\\ & & & fail?
+    & \\ \hline \endhead \hline \caption{BLS12-381 built-in Functions}
+    % This caption goes on every page of the table except the last.  Ideally it
+    % would appear only on the first page and all the rest would say
+    % (continued). Unfortunately it doesn't seem to be easy to do that in a
+    % longtable.
+    \endfoot
+%%    \caption[]{Built-in Functions}
+    \caption[]{BLS12-381 built-in Functions (continued)}
+    \label{table:built-in-functions-4}
+    \endlastfoot
+%% G1
+    \TT{bls12\_381\_G1\_add}  &
+    $[ \ty{bls12\_381\_G1\_element}$,
+      \text{\; $\ty{bls12\_381\_G1\_element} ]$}
+      \text{\: $ \to \ty{bls12\_381\_G1\_element}$} & $(a,b) \mapsto a+b$  &  No & \\
+    \TT{bls12\_381\_G1\_neg}  &
+      $ [ \ty{bls12\_381\_G1\_element} ]$  \text{\;\; $\to \ty{bls12\_381\_G1\_element}$} & $a \mapsto -a$  & No & \\
+    \TT{bls12\_381\_G1\_scalarMul}  &
+    $[ \ty{integer}$,
+      \text{\; $\ty{bls12\_381\_G1\_element} ]$}
+      \text{\: $ \to \ty{bls12\_381\_G1\_element}$} & $(n,a) \mapsto na$ &  No & \\
+    \TT{bls12\_381\_G1\_equal}  &
+    $[ \ty{bls12\_381\_G1\_element}$,
+      \text{\; $\ty{bls12\_381\_G1\_element} ]$}
+      \text{\: $ \to \ty{bool}$} & $=$ &  No & \\
+    \TT{bls12\_381\_G1\_hashToGroup}  &
+    $[ \ty{bytestring}, \ty{bytestring}]$
+      \text{\: $ \to \ty{bls12\_381\_G1\_element}$} & $\hash_{G_1}$ &  Yes & \ref{note:hashing-into-group}\\
+    \TT{bls12\_381\_G1\_compress}  &
+    $[\ty{bls12\_381\_G1\_element}]$
+      \text{\: $ \to \ty{bytestring}$} & $\compress_{G_1}$  &  No & \ref{note:group-compression}\\
+    \TT{bls12\_381\_G1\_uncompress}  &
+    $[ \ty{bytestring}]$
+      \text{\: $ \to \ty{bls12\_381\_G1\_element}$} & $\uncompress_{G_1}$  &  Yes & \ref{note:group-uncompression}\\
+    \hline 
+%% G2
+    \TT{bls12\_381\_G2\_add}  &
+    $[ \ty{bls12\_381\_G2\_element}$,
+      \text{\; $\ty{bls12\_381\_G2\_element} ]$}
+      \text{\: $ \to \ty{bls12\_381\_G2\_element}$} & $(a,b) \mapsto a+b$ &  No & \\
+    \TT{bls12\_381\_G2\_neg}  &
+      $ [ \ty{bls12\_381\_G2\_element} ]$  \text{\;\; $\to \ty{bls12\_381\_G2\_element}$} & $a \mapsto -a$  & No & \\
+    \TT{bls12\_381\_G2\_scalarMul}  &
+    $[ \ty{integer}$,
+      \text{\; $\ty{bls12\_381\_G2\_element} ]$}
+      \text{\: $ \to \ty{bls12\_381\_G2\_element}$} & $(n,a) \mapsto na$ &  No & \\
+    \TT{bls12\_381\_G2\_equal}  &
+    $[ \ty{bls12\_381\_G2\_element}$,
+      \text{\; $\ty{bls12\_381\_G2\_element} ]$}
+      \text{\: $ \to \ty{bool}$} & $=$ &  No & \\
+    \TT{bls12\_381\_G2\_hashToGroup}  &
+    $[ \ty{bytestring}, \ty{bytestring}]$
+      \text{\: $ \to \ty{bls12\_381\_G2\_element}$} & $\hash_{G_2}$  &  Yes & \ref{note:hashing-into-group}\\
+    \TT{bls12\_381\_G2\_compress}  &
+    $[\ty{bls12\_381\_G2\_element}]$
+      \text{\: $ \to \ty{bytestring}$} & $\compress_{G_2}$  &  No & \ref{note:group-compression}\\
+    \TT{bls12\_381\_G2\_uncompress}  &
+    $[ \ty{bytestring}]$
+      \text{\: $ \to \ty{bls12\_381\_G2\_element}$} & $\uncompress_{G_2}$  &  Yes & \ref{note:group-uncompression}\\
+    \hline 
+    \TT{bls12\_381\_millerLoop}  &
+    $[ \ty{bls12\_381\_G1\_element}$,
+      \text{\; $\ty{bls12\_381\_G2\_element} ]$}
+    \text{\: $ \to \TyMlResult$} & $e$ &  No & \ref{note:pairing}\\
+    \TT{bls12\_381\_mulMlResult}  &
+    $[ \TyMlResult$,
+    \text{\; $\TyMlResult]$}
+    \text{\: $\to \TyMlResult$} & $(a,b) \mapsto ab$ & No & \ref{note:pairing}\\
+    \TT{bls12\_381\_finalVerify}  &
+    $[ \TyMlResult$,
+    \text{\; $\TyMlResult] \to \ty{bool}$} & $\phi$ & No & \ref{note:pairing}\\
+    \hline
+\end{longtable}
+
+
+\note{Hashing into $G_1$ and $G_2$.}
+\label{note:hashing-into-group}
+The denotations $\hash_{G_1}$ and $\hash_{G_2}$
+of \texttt{bls12\_381\_G1\_hashToGroup} and
+\texttt{bls12\_381\_G2\_hashToGroup} both take an arbitrary bytestring $b$ (the
+\textit{message}) and a (possibly empty) bytestring of length at most 255 known as a \textit{domain
+separation tag} (DST)~\cite[2.2.5]{IETF-hash-to-curve} and hash them to obtain a
+point in $G_1$ or $G_2$ respectively.  The details of the hashing process are
+described in~\cite{IETF-hash-to-curve} (see specifically Section 8.8), except
+that
+\textbf{we do not support DSTs of length greater than 255}: an attempt to use a
+longer DST directly will cause an error.  If a longer DST is required then it
+should be hashed to obtain a short DST as described
+in~\cite[5.3.3]{IETF-hash-to-curve}, and then this should be supplied as the
+second argument to the appropriate \texttt{hashToGroup} function.
+
+%% Some hashing
+%% implementations also allow a third argument (an ``augmentation string''), but we
+%% do not support this since the same effect can be obtained by appending
+%% (prepending?) the augmentation string to the message before hashing.
+
+\newcommand{\ymin}{y_{\text{min}}}
+\newcommand{\ymax}{y_{\text{max}}}
+
+\note{Compression for elements of $G_1$ and $G_2$.} 
+\label{note:group-compression}
+Points in $G_1$ and $G_2$ are encoded as bytestrings in a ``compressed'' format
+where only the $x$-coordinate of a point is encoded and some metadata is used to
+indicate which of two possible $y$-coordinates the point has.  The encoding
+format is based on the Zcash encoding for BLS12-381 points:
+see~\cite{Zcash-serialisation} or~\cite[``Serialization'']{BLST-library}
+or~\cite[Appendices C and D]{IETF-pairing-friendly-curves}.  In detail,
+
+\begin{itemize}
+
+\item Given an element $x$ of $\Fq$, $\tilde{x}$ can be written as a 381-bit
+binary number: $\tilde{x} = \sum_{i=0}^{380}b_i2^i$ with $b_i \in \{0,1\}$.  We
+define $\mathsf{bits}(x)$ to be the bitstring $b_{380}\cdots b_0$.
+
+\item A non-identity element of $G_1$ can be written in the form $(x,y)$ with $x,y\in\Fq$.
+Not every element $x$ of $\Fq$ is the $x$-coordinate of a point in $G_1$, but
+those which are in fact occur as the $x$-coordinate of two distinct points in
+$G_1$ whose $y$-coordinates are the negatives of each other.  A similar
+statement is true for $\Fqq$ and $G_2$.  In both cases we denote the smaller of
+the possible $y$-coordinates by $\ymin(x)$ and the larger by $\ymax(x)$.
+
+\item For $(x,y) \in G_1\backslash \mathcal{O}_{G_1}$ we define
+$$
+\compress_{G_1} (x,y) = \begin{cases}
+\mathsf{1}\mathsf{0}\mathsf{0}\cdot\mathsf{bits}(x) & \text{if $y=\ymin(x)$}\\
+\mathsf{1}\mathsf{0}\mathsf{1}\cdot\mathsf{bits}(x) & \text{if $y=\ymax(x)$}\\
+\end{cases}
+$$
+\item We encode the identity element of $G_1$ using
+$$
+\compress_{G_1}(\mathcal{O}_{G_1}) = \mathsf{1}\mathsf{1}\mathsf{0}\cdot\mathsf{0}^{381},
+$$
+\noindent where $\mathsf{0}^{381}$ denotes a string of 381 $\mathsf{0}$ bits.
+\end{itemize}
+\noindent Thus in all cases the encoding of an element of $G_1$ requires exactly 384 bits,
+or 48 bytes.
+
+\medskip 
+
+\noindent 
+\begin{itemize}
+\item Similarly, every non-identity element of $G_2$ can be written
+in the form $(x,y)$ with $x,y \in \Fqq$.  We define
+
+$$
+\compress_{G_2} (a+bu,y) = \begin{cases}
+\mathsf{1}\mathsf{0}\mathsf{0}\cdot\mathsf{bits}(b)\cdot\mathsf{0}\mathsf{0}\mathsf{0}\cdot\mathsf{bits}(a)
+& \text{if $y=\ymin(a+bu)$}\\
+\mathsf{1}\mathsf{0}\mathsf{1}\cdot\mathsf{bits}(b)\cdot\mathsf{0}\mathsf{0}\mathsf{0}\cdot\mathsf{bits}(a) &
+ \text{if $y=\ymax(a+bu)$}\\
+\end{cases}
+$$
+
+\item The identity element of $G_2$ is encoded using
+$$
+\compress_{G_2}(\mathcal{O}_{G_2}) = \mathsf{1}\mathsf{1}\mathsf{0}\cdot\mathsf{0}^{765}.
+$$
+
+\end{itemize}
+\noindent The encoding of an element of $G_2$ requires exactly 768 bits, or 96 bytes.
+
+Note that in all cases the most significant bit of a compressed point is 1.  In
+the Zcash serialisation scheme this indicates that the point is compressed;
+Zcash also supports a serialisation format where both the $x$- and
+$y$-coordinates of a point are encoded, and in that case the leading bit of the
+encoded point is 0.  We do not support this format.
+
+\note{Uncompression for elements of $G_1$ and $G_2$.} 
+\label{note:group-uncompression}
+There are two (partial) ``uncompression'' functions $\uncompress_{G_1}$ and
+$\uncompress_{G_2}$ which convert bytestrings into group elements; these are
+obtained by inverting the process described in
+Note~\ref{note:group-compression}.
+
+\paragraph{Uncompression for $G_1$ elements.}  Given a bytestring $b$, it is checked that
+$b$ contains exactly 48 bytes.  If not, then $\uncompress_{G_1}(b) = \errorX$ (ie,
+uncompression fails).  If the length is equal to 48 bytes, write $b$ as a
+sequence of bits: $b = b_{383} \cdots b_0$.
+\begin{itemize}
+\item If $b_{383} \neq 1$, then $\uncompress_{G_1}(b) = \errorX$.
+\item If $b_{383} = b_{382} = 1$ then
+$\uncompress_{G_1}(b) =
+\begin{cases}
+\mathcal{O}_{G_1} & \text{if $b_{381} = b_{380} = \cdots = b_0 = 0$}\\
+\errorX & \text{otherwise}.
+\end{cases}$
+\item If $b_{383}=1$ and $b_{382}=0$, let $c=\sum_{i=0}^{380}b_i2^i \in \N$.
+\begin{itemize}
+\item If $c \geq q$, $\uncompress_{G_1}(b) = \errorX$.
+\item Otherwise, let $x = \bar{c} \in \Fq$ and let $z = x^3+4$. If $z$ is not a
+square in $\Fq$, then $\uncompress_{G_1}(b) = \errorX$.
+\item If $z$ is a square then let
+$y=\begin{cases}
+\ymin(x) & \text{if $b_{381}=0$}\\
+\ymax(x) & \text{if $b_{381}=1$}.
+\end{cases}$
+\item Then $\uncompress_{G_1}(b) = \begin{cases}
+(x,y) & \text{if $(x,y) \in G_1$}\\
+\errorX & \text{otherwise}.
+\end{cases}$
+\end{itemize}
+\end{itemize}
+
+
+\paragraph{Uncompression for $G_2$ elements.}  Given a bytestring $b$, it is checked that
+$b$ contains exactly 96 bytes.  If not, then $\uncompress_{G_2}(b) = \errorX$ (ie,
+uncompression fails).  If the length is equal to 96 bytes, write $b$ as a
+sequence of bits: $b = b_{767} \cdots b_0$.
+\begin{itemize}
+\item If $b_{767} \neq 1$, then $\uncompress_{G_2}(b) = \errorX$.
+\item If $b_{767} = b_{766} = 1$ then $\uncompress_{G_2}(b) =
+\begin{cases}
+\mathcal{O}_{G_2} & \text{if $b_{765} = b_{764} = \cdots = b_0 = 0$}\\
+\errorX & \text{otherwise}.
+\end{cases}$
+\item If $b_{767}=1$ and $b_{766} = 0$, let $c=\sum_{i=0}^{383}b_i2^i$ and $d=\sum_{i=384}^{764}b_i2^{i-384} \in \N$.
+\begin{itemize}
+\item If $c \geq q$ or $d \geq q$, $\uncompress_{G_2}(b) = \errorX$.
+\item Otherwise, let $x = \bar{c}+\bar{d}u \in \Fqq$ and let $z = x^3+4(u+1)$.
+If $z$ is not a square in $\Fqq$, then $\uncompress_{G_2}(b) = \errorX$.
+\item If $z$ is a square then let
+$y=\begin{cases}
+\ymin(x) & \text{if $b_{765}=0$}\\
+\ymax(x) & \text{if $b_{765}=1$}.
+\end{cases}$
+\item Then $\uncompress_{G_2}(b) = \begin{cases}
+(x,y) & \text{if $(x,y) \in G_2$}\\
+\errorX & \text{otherwise}.
+\end{cases}$
+\end{itemize}
+\end{itemize}
+
+
+\note{Concrete syntax for BLS12-381 types.}
+\label{note:bls-syntax}
+Concrete syntax for the $\ty{bls12\_381\_G1\_element}$ and
+$\ty{bls12\_381\_G2\_element}$ types is provided via the compression and
+decompression functions defined in Notes~\ref{note:group-compression}
+and~\ref{note:group-uncompression}.  Specifically, a value of type
+$\ty{bls12\_381\_G1\_element}$ is denoted by a term of the form \texttt{(con
+bls12\_381\_G1\_element 0x...)} where \texttt{...}  consists of 96 hexadecimal
+digits representing the 48-byte compressed form of the relevant point.
+Similarly, a value of type $\ty{bls12\_381\_G2\_element}$ is denoted by a term
+of the form \texttt{(con bls12\_381\_G2\_element 0x...)}  where \texttt{...}
+consists of 192 hexadecimal digits representing the 96-byte compressed form of
+the relevant point.
+
+No syntax is provided for values of type $\ty{bls12\_381\_mlresult}$. It is not
+possible to parse such values, and they will appear as \texttt{(con
+bls12\_381\_mlresult <opaque>)} if output by a program.
+
+
+\note{Pairing operations.}
+\label{note:pairing}
+For efficiency reasons we split the pairing process into two parts:
+the \texttt{bls12\_381\_millerLoop} and \texttt{bls12\_381\_finalVerify}
+functions.  We assume that we have
+\begin{itemize}
+\item An intermediate multiplicative abelian group $H$.
+\item A function (not necessarily itself a pairing) $e: G_1 \times
+G_2 \rightarrow \MlResultDenotation$.
+\item A cyclic group $\mu_r$ of order $r$.
+\item An epimorphism $\psi: \MlResultDenotation \rightarrow \mu_r$ of groups such
+that $\psi \circ e: G_1 \times G_2 \rightarrow \mu_r$ is a (nondegenerate,
+bilinear) pairing.
+\end{itemize}
+
+\noindent Given these ingredients, we define
+\begin{itemize}
+\item $\denote{\TyMlResult} = \MlResultDenotation$.
+\item $\denote{\mathtt{bls12\_381\_mulMlResult}} =$
+the group multiplication operation in $\MlResultDenotation$.
+\item $\denote{\mathtt{bls12\_381\_millerLoop}} = e$.
+\item $\denote{\mathtt{bls12\_381\_finalVerify}} = \phi$,
+where
+$$
+\phi(a,b) = \begin{cases}
+               \mathtt{true} & \text{if $\psi(ab^{-1}) = 1_{\mu_r}$} \\
+               \mathtt{false} & \text{otherwise.}
+            \end{cases}
+$$
+\end{itemize}
+
+\medskip
+\noindent
+We do not mandate specific choices for $\MlResultDenotation, \mu_r, e$, and $\phi$, but a
+plausible choice would be
+\begin{itemize}
+\item $\MlResultDenotation = \FF^*$.
+\item $e$ is the Miller loop associated with the optimal Ate pairing
+for $E_1$ and $E_2$~\cite{Vercauteren}.
+\item $\mu_r = \{x \in \FF^*: x^r=1\}$, the group of $r$th roots of unity in $\FF^*$.
+(There are $r$ distinct $r$th roots of unity in $\FF^*$ because the embedding
+degree of $E_1$ and $E_2$ with respect to $r$ is 12 (see~\cite[4.1]{Costello-pairings}).)
+\item $\psi(x) = x^{\frac{q-1}{r}}$.
+\end{itemize}
+
+\noindent The functions \texttt{bls12\_381\_millerLoop} and (especially)
+\texttt{bls12\_381\_finalVerify} are expected
+to be expensive, so their use should be kept to a minimum.  Fortunately most
+current use cases do not require many uses of these functions.
