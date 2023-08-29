@@ -1,6 +1,7 @@
 module Main (main) where
 
 import Budget.Spec qualified as Budget
+import IntegerLiterals.NoStrict.Spec qualified as IntegerLiterals.NoStrict
 import IsData.Spec qualified as IsData
 import Lift.Spec qualified as Lift
 import Optimization.Spec qualified as Optimization
@@ -18,6 +19,7 @@ main = defaultMain $ runTestNestedIn ["test"] tests
 tests :: TestNested
 tests = testGroup "tests" <$> sequence [
     Plugin.tests
+  , IntegerLiterals.NoStrict.tests
   , IsData.tests
   , Lift.tests
   , TH.tests

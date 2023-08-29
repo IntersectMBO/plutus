@@ -1055,6 +1055,8 @@ coverageCompile originalExpr exprType src compiledTerm covT =
     findHeadSymbol (GHC.Cast t _) = findHeadSymbol t
     findHeadSymbol _              = Nothing
 
+-- | We cannot compile the unfolding of `GHC.Num.Integer.integerNegate`, so we directly
+-- define a PIR term for it: @integerNegate = \x -> 0 - x@.
 defineIntegerNegate :: (CompilingDefault PLC.DefaultUni fun m ann) => m ()
 defineIntegerNegate = do
   ghcId <- GHC.tyThingId <$> getThing 'GHC.Num.Integer.integerNegate
@@ -1062,7 +1064,7 @@ defineIntegerNegate = do
   var <- compileVarFresh ann ghcId
   x <- safeFreshName "x"
   let
-    -- integerNegate = \x -> 0 - x
+    -- body = 0 - x
     body =
       PIR.LamAbs ann x (PIR.mkTyBuiltin @_ @Integer @PLC.DefaultUni ann) $
         PIR.mkIterApp
