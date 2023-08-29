@@ -113,11 +113,9 @@ applyAndBetaReduce rhs args0 = do
               (\n -> if n == param then Just <$> PLC.rename arg else pure Nothing)
               (getFnBody acc) -- drop the beta reduced type lambda
           go acc' arity' args'
-        -- term/type argument mismatch, don't inline
-        (TermParam _:_, TypeAppContext{}) -> pure Nothing
-        (TypeParam _:_, TermAppContext{}) -> pure Nothing
-        -- no more arguments to apply, just apply what we have
-        (_, AppContextEnd) -> pure $ Just acc
+        -- term/type argument mismatch, or no more argument, don't inline
+        (TermParam _:_, _) -> pure Nothing
+        (TypeParam _:_, _) -> pure Nothing
 
       -- Is it safe to turn `(\a -> body) arg` into `body [a := arg]`?
       -- The criteria is the same as the criteria for inlining `a` in
