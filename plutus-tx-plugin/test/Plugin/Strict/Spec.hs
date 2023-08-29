@@ -23,7 +23,7 @@ import PlutusTx.Test
 import Data.Proxy
 
 strict :: TestNested
-strict = testNested "Strict" [
+strict = testNestedGhc "Strict" [
     goldenPir "strictAdd" strictAdd
   , goldenPir "strictAppend" strictAppend
   , goldenPir "strictAppend2" strictAppend2
@@ -102,4 +102,3 @@ issue4645Example =
 
       !valid = x P.== t
    in valid
-

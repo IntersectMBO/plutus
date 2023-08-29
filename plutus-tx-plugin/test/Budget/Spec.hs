@@ -25,7 +25,7 @@ import PlutusTx.Test (goldenBudget, goldenPirReadable, goldenUPlcReadable)
 import PlutusTx.TH (compile)
 
 tests :: TestNested
-tests = testNested "Budget" [
+tests = testNestedGhc "Budget" [
     goldenBudget "sum" compiledSum
   , goldenUPlcReadable "sum" compiledSum
   , goldenPirReadable "sum" compiledSum

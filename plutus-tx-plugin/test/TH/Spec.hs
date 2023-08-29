@@ -40,7 +40,7 @@ someData :: (BuiltinData, BuiltinData, BuiltinData)
 someData = (toBuiltinData (One 1), toBuiltinData Two, toBuiltinData (Three ()))
 
 tests :: TestNested
-tests = testNested "TH" [
+tests = testNestedGhc "TH" [
     goldenPir "simple" simple
     , goldenPir "power" powerPlc
     , goldenPir "and" andPlc

@@ -25,7 +25,7 @@ import Data.Proxy
 
 
 basic :: TestNested
-basic = testNested "Basic" [
+basic = testNestedGhc "Basic" [
     goldenPir "monoId" monoId
   , goldenPir "monoK" monoK
   , goldenPir "letFun" letFun

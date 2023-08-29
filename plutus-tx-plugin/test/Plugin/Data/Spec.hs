@@ -30,7 +30,7 @@ import PlutusTx.Test
 import Data.Proxy
 
 datat :: TestNested
-datat = testNested "Data" [
+datat = testNestedGhc "Data" [
     monoData
   , polyData
   , newtypes

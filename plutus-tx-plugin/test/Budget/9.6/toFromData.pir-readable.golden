@@ -1,0 +1,236 @@
+let
+  data Unit | Unit_match where
+    Unit : Unit
+  data (Tuple3 :: * -> * -> * -> *) a b c | Tuple3_match where
+    Tuple3 : a -> b -> c -> Tuple3 a b c
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+  data (Either :: * -> * -> *) a b | Either_match where
+    Left : a -> Either a b
+    Right : b -> Either a b
+  data (Maybe :: * -> *) a | Maybe_match where
+    Just : a -> Maybe a
+    Nothing : Maybe a
+  !reconstructCaseError : string = "PT1"
+  !unitval : unit = ()
+in
+(let
+    b = Maybe (Tuple3 Bool integer Bool)
+  in
+  \(`$dUnsafeFromData` : (\a -> data -> a) integer)
+   (`$dUnsafeFromData` : (\a -> data -> a) b)
+   (d : data) ->
+    let
+      !tup : pair integer (list data) = unConstrData d
+      !index : integer = fstPair {integer} {list data} tup
+    in
+    ifThenElse
+      {unit -> Either integer b}
+      (equalsInteger 1 index)
+      (\(ds : unit) ->
+         let
+           !arg : data = headList {data} (sndPair {integer} {list data} tup)
+         in
+         Right {integer} {b} (`$dUnsafeFromData` arg))
+      (\(ds : unit) ->
+         ifThenElse
+           {unit -> Either integer b}
+           (equalsInteger 0 index)
+           (\(ds : unit) ->
+              let
+                !arg : data
+                  = headList {data} (sndPair {integer} {list data} tup)
+              in
+              Left {integer} {b} (`$dUnsafeFromData` arg))
+           (\(ds : unit) ->
+              let
+                !thunk : unit
+                  = let
+                    !wild : Unit = trace {Unit} reconstructCaseError Unit
+                  in
+                  unitval
+              in
+              error {Either integer b})
+           unitval)
+      unitval)
+  unIData
+  ((let
+       a = Tuple3 Bool integer Bool
+     in
+     \(`$dUnsafeFromData` : (\a -> data -> a) a) (d : data) ->
+       let
+         !tup : pair integer (list data) = unConstrData d
+         !index : integer = fstPair {integer} {list data} tup
+       in
+       ifThenElse
+         {unit -> Maybe a}
+         (equalsInteger 0 index)
+         (\(ds : unit) ->
+            let
+              !arg : data = headList {data} (sndPair {integer} {list data} tup)
+            in
+            Just {a} (`$dUnsafeFromData` arg))
+         (\(ds : unit) ->
+            ifThenElse
+              {unit -> Maybe a}
+              (equalsInteger 1 index)
+              (\(ds : unit) -> Nothing {a})
+              (\(ds : unit) ->
+                 let
+                   !thunk : unit
+                     = let
+                       !wild : Unit = trace {Unit} reconstructCaseError Unit
+                     in
+                     unitval
+                 in
+                 error {Maybe a})
+              unitval)
+         unitval)
+     (\(d : data) ->
+        let
+          !tup : pair integer (list data) = unConstrData d
+        in
+        ifThenElse
+          {unit -> Tuple3 Bool integer Bool}
+          (equalsInteger 0 (fstPair {integer} {list data} tup))
+          (\(ds : unit) ->
+             let
+               !t : list data = sndPair {integer} {list data} tup
+               !arg : data = headList {data} t
+               !t : list data = tailList {data} t
+               !arg : data = headList {data} t
+               !arg : data = headList {data} (tailList {data} t)
+             in
+             Tuple3
+               {Bool}
+               {integer}
+               {Bool}
+               (let
+                 !index : integer
+                   = fstPair {integer} {list data} (unConstrData arg)
+               in
+               ifThenElse
+                 {unit -> Bool}
+                 (equalsInteger 1 index)
+                 (\(ds : unit) -> True)
+                 (\(ds : unit) ->
+                    ifThenElse
+                      {unit -> Bool}
+                      (equalsInteger 0 index)
+                      (\(ds : unit) -> False)
+                      (\(ds : unit) ->
+                         let
+                           !thunk : unit
+                             = let
+                               !wild : Unit
+                                 = trace {Unit} reconstructCaseError Unit
+                             in
+                             unitval
+                         in
+                         error {Bool})
+                      unitval)
+                 unitval)
+               (unIData arg)
+               (let
+                 !index : integer
+                   = fstPair {integer} {list data} (unConstrData arg)
+               in
+               ifThenElse
+                 {unit -> Bool}
+                 (equalsInteger 1 index)
+                 (\(ds : unit) -> True)
+                 (\(ds : unit) ->
+                    ifThenElse
+                      {unit -> Bool}
+                      (equalsInteger 0 index)
+                      (\(ds : unit) -> False)
+                      (\(ds : unit) ->
+                         let
+                           !thunk : unit
+                             = let
+                               !wild : Unit
+                                 = trace {Unit} reconstructCaseError Unit
+                             in
+                             unitval
+                         in
+                         error {Bool})
+                      unitval)
+                 unitval))
+          (\(ds : unit) ->
+             let
+               !thunk : unit
+                 = let
+                   !wild : Unit = trace {Unit} reconstructCaseError Unit
+                 in
+                 unitval
+             in
+             error {Tuple3 Bool integer Bool})
+          unitval))
+  ((let
+       b = Maybe (Tuple3 Bool integer Bool)
+     in
+     \(`$dToData` : (\a -> a -> data) integer)
+      (`$dToData` : (\a -> a -> data) b)
+      (ds : Either integer b) ->
+       Either_match
+         {integer}
+         {b}
+         ds
+         {data}
+         (\(arg : integer) ->
+            constrData 0 (mkCons {data} (`$dToData` arg) (mkNilData unitval)))
+         (\(arg : b) ->
+            constrData 1 (mkCons {data} (`$dToData` arg) (mkNilData unitval))))
+     (\(i : integer) -> iData i)
+     ((let
+          a = Tuple3 Bool integer Bool
+        in
+        \(`$dToData` : (\a -> a -> data) a) (ds : Maybe a) ->
+          Maybe_match
+            {a}
+            ds
+            {all dead. data}
+            (\(arg : a) ->
+               /\dead ->
+                 constrData
+                   0
+                   (mkCons {data} (`$dToData` arg) (mkNilData unitval)))
+            (/\dead -> constrData 1 (mkNilData unitval))
+            {all dead. dead})
+        (\(ds : Tuple3 Bool integer Bool) ->
+           Tuple3_match
+             {Bool}
+             {integer}
+             {Bool}
+             ds
+             {data}
+             (\(ww : Bool) (ww : integer) (ww : Bool) ->
+                constrData
+                  0
+                  (mkCons
+                     {data}
+                     (Bool_match
+                        ww
+                        {all dead. data}
+                        (/\dead -> constrData 1 (mkNilData unitval))
+                        (/\dead -> constrData 0 (mkNilData unitval))
+                        {all dead. dead})
+                     (mkCons
+                        {data}
+                        (iData ww)
+                        (mkCons
+                           {data}
+                           (Bool_match
+                              ww
+                              {all dead. data}
+                              (/\dead -> constrData 1 (mkNilData unitval))
+                              (/\dead -> constrData 0 (mkNilData unitval))
+                              {all dead. dead})
+                           (mkNilData unitval)))))))
+     (Right
+        {integer}
+        {Maybe (Tuple3 Bool integer Bool)}
+        (Just
+           {Tuple3 Bool integer Bool}
+           (Tuple3 {Bool} {integer} {Bool} True 1 False))))

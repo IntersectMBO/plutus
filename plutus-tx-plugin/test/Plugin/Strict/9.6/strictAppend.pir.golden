@@ -1,0 +1,8 @@
+(program
+  1.1.0
+  (lam
+    x
+    (con bytestring)
+    (lam y (con bytestring) [ [ (builtin appendByteString) x ] y ])
+  )
+)
