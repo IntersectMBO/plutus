@@ -1061,7 +1061,7 @@ coverageCompile originalExpr exprType src compiledTerm covT =
     findHeadSymbol (GHC.Cast t _) = findHeadSymbol t
     findHeadSymbol _              = Nothing
 
--- | We cannot compile the unfolding of `GHC.Num.Integer.integerNegate`, so we directly
+-- | We cannot compile the unfolding of `GHC.Num.Integer.integerNegate`, which is important because GHC inserts calls to it when it sees negations, even negations of literals (unless NegativeLiterals is on, which it usually isn't). So we directly
 -- define a PIR term for it: @integerNegate = \x -> 0 - x@.
 defineIntegerNegate :: (CompilingDefault PLC.DefaultUni fun m ann) => m ()
 defineIntegerNegate = do
