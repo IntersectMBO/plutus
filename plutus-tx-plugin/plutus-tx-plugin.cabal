@@ -126,6 +126,8 @@ test-suite plutus-tx-tests
   main-is:        Spec.hs
   other-modules:
     Budget.Spec
+    IntegerLiterals.NoStrict.NegativeLiterals.Spec
+    IntegerLiterals.NoStrict.NoNegativeLiterals.Spec
     IsData.Spec
     Lib
     Lift.Spec

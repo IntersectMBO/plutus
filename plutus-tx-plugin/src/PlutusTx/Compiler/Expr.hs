@@ -8,6 +8,7 @@
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# LANGUAGE TemplateHaskellQuotes #-}
 {-# LANGUAGE TupleSections         #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE ViewPatterns          #-}
@@ -67,6 +68,7 @@ import Data.Set qualified as Set
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as TE
 import Data.Traversable
+import GHC.Num.Integer qualified
 
 {- Note [System FC and System FW]
 Haskell uses system FC, which includes type equalities and coercions.
@@ -710,8 +712,15 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
       | GHC.getName build == GHC.buildName && GHC.getName unpack == GHC.unpackCStringFoldrName -> compileExpr expr
     -- C# is just a wrapper around a literal
     GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) `GHC.App` arg | dc == GHC.charDataCon -> compileExpr arg
-    -- constructors of 'Integer' just wrap literals
-    GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) `GHC.App` arg | GHC.dataConTyCon dc == GHC.integerTyCon -> compileExpr arg
+    -- Handle constructors of 'Integer'
+    GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) `GHC.App` arg | GHC.dataConTyCon dc == GHC.integerTyCon -> do
+      i <- compileExpr arg
+      -- IN is a negative integer!
+      if GHC.dataConName dc == GHC.integerINDataConName
+        then do
+          negateTerm <- lookupIntegerNegate
+          pure $ PIR.mkIterApp negateTerm [(annMayInline, i)]
+        else pure i
     -- Unboxed unit, (##).
     GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) | dc == GHC.unboxedUnitDataCon -> pure (PIR.mkConstant annMayInline ())
     -- Ignore the magic 'noinline' function, it's the identity but has no unfolding.
@@ -741,9 +750,6 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     GHC.Var (lookupName scope . GHC.getName -> Just var) -> pure $ PIR.mkVar annMayInline var
     -- Special kinds of id
     GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) -> compileDataConRef dc
-    -- See Note [Unfoldings]
-    -- The "unfolding template" includes things with normal unfoldings and also dictionary functions
-    GHC.Var n@(GHC.maybeUnfoldingTemplate . GHC.realIdUnfolding -> Just unfolding) -> hoistExpr n unfolding
     -- Class ops don't have unfoldings in general (although they do if they're for one-method classes, so we
     -- want to check the unfoldings case first), see the GHC Note [ClassOp/DFun selection] for why. That
     -- means we have to reconstruct the RHS ourselves, though, which is a pain.
@@ -765,11 +771,17 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
       case maybeDef of
         Just term -> pure term
         Nothing ->
-          throwSd FreeVariableError $
-            "Variable"
-              GHC.<+> GHC.ppr n
-              GHC.$+$ (GHC.ppr $ GHC.idDetails n)
-              GHC.$+$ (GHC.ppr $ GHC.realIdUnfolding n)
+          -- No other cases apply; compile the unfolding of the var
+          case GHC.maybeUnfoldingTemplate (GHC.realIdUnfolding n) of
+            -- See Note [Unfoldings]
+            -- The "unfolding template" includes things with normal unfoldings and also dictionary functions
+            Just unfolding -> hoistExpr n unfolding
+            Nothing ->
+              throwSd FreeVariableError $
+                "Variable"
+                  GHC.<+> GHC.ppr n
+                  GHC.$+$ (GHC.ppr $ GHC.idDetails n)
+                  GHC.$+$ (GHC.ppr $ GHC.realIdUnfolding n)
 
     -- ignoring applications to types of 'RuntimeRep' kind, see Note [Unboxed tuples]
     l `GHC.App` GHC.Type t | GHC.isRuntimeRepKindedTy t -> compileExpr l
@@ -1050,6 +1062,41 @@ coverageCompile originalExpr exprType src compiledTerm covT =
     findHeadSymbol (GHC.Cast t _) = findHeadSymbol t
     findHeadSymbol _              = Nothing
 
+-- | We cannot compile the unfolding of `GHC.Num.Integer.integerNegate`, which is
+-- important because GHC inserts calls to it when it sees negations, even negations
+-- of literals (unless NegativeLiterals is on, which it usually isn't). So we directly
+-- define a PIR term for it: @integerNegate = \x -> 0 - x@.
+defineIntegerNegate :: (CompilingDefault PLC.DefaultUni fun m ann) => m ()
+defineIntegerNegate = do
+  ghcId <- GHC.tyThingId <$> getThing 'GHC.Num.Integer.integerNegate
+  -- Always inline `integerNegate`.
+  -- `let integerNegate = \x -> 0 - x in integerNegate 1 + integerNegate 2`
+  -- is much more expensive than `(-1) + (-2)`. The inliner cannot currently
+  -- make this transformation without `annAlwaysInline`, because it is not aware
+  -- of constant folding.
+  var <- compileVarFresh annAlwaysInline ghcId
+  let ann = annMayInline
+  x <- safeFreshName "x"
+  let
+    -- body = 0 - x
+    body =
+      PIR.LamAbs ann x (PIR.mkTyBuiltin @_ @Integer @PLC.DefaultUni ann) $
+        PIR.mkIterApp
+          (PIR.Builtin ann PLC.SubtractInteger)
+          [ (ann, PIR.mkConstant @Integer ann 0)
+          , (ann, PIR.Var ann x)
+          ]
+    def = PIR.Def var (body, PIR.Strict)
+  PIR.defineTerm (LexName GHC.integerNegateName) def mempty
+
+lookupIntegerNegate :: (Compiling uni fun m ann) => m (PIRTerm uni fun)
+lookupIntegerNegate = do
+  ghcName <- GHC.getName <$> getThing 'GHC.Num.Integer.integerNegate
+  PIR.lookupTerm annMayInline (LexName ghcName) >>= \case
+    Just t -> pure t
+    Nothing -> throwPlain $
+      CompilationError "Cannot find the definition of integerNegate. Please file a bug report."
+
 compileExprWithDefs ::
   (CompilingDefault uni fun m ann) =>
   GHC.CoreExpr ->
@@ -1057,6 +1104,7 @@ compileExprWithDefs ::
 compileExprWithDefs e = do
   defineBuiltinTypes
   defineBuiltinTerms
+  defineIntegerNegate
   compileExpr e
 
 {- Note [We always need DEFAULT]
