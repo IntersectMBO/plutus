@@ -9,12 +9,12 @@
 \newcommand{\unutfeight}{\mathsf{utf8}^{-1}}
 \newcommand{\vk}{\textit{vk}}  %% Verification key (ie public key) for signature verification functions.
 
-\subsection{Tranche 1}
+\subsection{Batch 1}
 \label{sec:default-builtins-1}
 
 \subsubsection{Built-in types and type operators}
 \label{sec:built-in-types-1}
-The first tranche of builtin types and type operators is defined in Tables~\ref{table:built-in-types-1}
+The first batch of builtin types and type operators is defined in Tables~\ref{table:built-in-types-1}
 and~\ref{table:built-in-type-operators-1}.  We also include concrete syntax for
 these; the concrete syntax is not strictly part of the language, but may be
 useful for tools working with Plutus Core.
@@ -143,7 +143,7 @@ itself.
 
 \subsubsection{Built-in functions}
 \label{sec:built-in-functions-1}
-The first tranche of built-in functions is shown in
+The first batch of built-in functions is shown in
 Table~\ref{table:built-in-functions-1}.  The table indicates which
 functions can fail during execution, and conditions causing failure are
 specified either in the denotation given in the table or in a relevant note.
@@ -158,7 +158,7 @@ have given a single denotation for each of them with an implicit assumption that
 it applies at each possible monomorphisation in an obvious way.
 
 \setlength{\LTleft}{-18mm} % Shift the table left a bit to centre it on the page
-\begin{longtable}[H]{|l|p{5cm}|p{5cm}|c|c|}
+\begin{longtable}[H]{|l|p{5cm}|p{5.5cm}|c|c|}
     \hline
     \text{Function} & \text{Signature} & \text{Denotation} & \text{Can} & \text{Note} \\
     & & & fail? & \\
@@ -192,9 +192,15 @@ it applies at each possible monomorphisation in an obvious way.
     %% Some of the signatures look like $ ... $ \text{\;\; $ ... $} to allow a break with some indentation afterwards
     \TT{appendByteString}         & $[\ty{bytestring}, \ty{bytestring}] $ \text{$\;\; \to \ty{bytestring}$}
                                            & $([c_1, \dots, c_m], [d_1, \ldots, d_n]) $ \text{$\;\; \mapsto [c_1,\ldots, c_m,d_1, \ldots, d_n]$} &  & \\
-    \TT{consByteString}         & $[\ty{integer}, \ty{bytestring}] $ \text{$\;\; \to \ty{bytestring}$}
+    \TT{consByteString} (Variant 1) & $[\ty{integer}, \ty{bytestring}] $ \text{$\;\; \to \ty{bytestring}$}
                                           & $(c,[c_1,\ldots,c_n]) $ \text{$\;\;\mapsto [\text{mod}(c,256) ,c_1,\ldots,c_{n}]$} &
                                           & \ref{note:consbytestring}\\
+    \TT{consByteString} (Variant 2) & $[\ty{integer}, \ty{bytestring}] $ \text{$\;\; \to \ty{bytestring}$}
+                                          & $(c,[c_1,\ldots,c_n])$ \text{$\;\;\mapsto
+                                                       \begin{cases}
+                                                          [c,c_1,\ldots,c_{n}] & \text{if $0 \leq c \leq 255$} \\
+                                                         \errorX & \text{otherwise}
+                                                       \end{cases}$} & Yes & \ref{note:consbytestring}\\
     \TT{sliceByteString}        & $[\ty{integer}, \ty{integer}, \ty{bytestring]} $  \text {$\;\; \to  \ty{bytestring}$}
                                                    &   $(s,k,[c_0,\ldots,c_n])$ \text{$\;\;\mapsto [c_{\max(s,0)},\ldots,c_{\min(s+k-1,n-1)}]$}
                                                    &  & \ref{note:slicebytestring}\\
@@ -326,7 +332,6 @@ arbitrary integer which will be reduced modulo 256 before being prepended to the
 second argument.  In built-in semantics 2 we require that the first argument lies between 0
 and 255 (inclusive): in any other case an error will occur.
 
-
 \note{The \texttt{sliceByteString} function.}
 \label{note:slicebytestring}
 The application \texttt{[[(builtin sliceByteString) (con integer $s$)] (con
@@ -337,7 +342,6 @@ substring starting with the second, and so on.  This function always succeeds,
 even if the arguments are out of range: if $b=[c_0, \ldots, c_{n-1}]$ then the
   application above returns the substring $[c_i, \ldots, c_j]$ where
   $i=\max(s,0)$ and $j=\min(s+k-1, n-1)$; if $j<i$ then the empty string is returned.
-  
 
 \note{Comparisons of bytestrings.}
 \label{note:bytestring-comparison}
