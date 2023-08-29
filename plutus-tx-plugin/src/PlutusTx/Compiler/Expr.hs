@@ -1062,12 +1062,18 @@ coverageCompile originalExpr exprType src compiledTerm covT =
     findHeadSymbol (GHC.Cast t _) = findHeadSymbol t
     findHeadSymbol _              = Nothing
 
--- | We cannot compile the unfolding of `GHC.Num.Integer.integerNegate`, which is important because GHC inserts calls to it when it sees negations, even negations of literals (unless NegativeLiterals is on, which it usually isn't). So we directly
+-- | We cannot compile the unfolding of `GHC.Num.Integer.integerNegate`, which is
+-- important because GHC inserts calls to it when it sees negations, even negations
+-- of literals (unless NegativeLiterals is on, which it usually isn't). So we directly
 -- define a PIR term for it: @integerNegate = \x -> 0 - x@.
 defineIntegerNegate :: (CompilingDefault PLC.DefaultUni fun m ann) => m ()
 defineIntegerNegate = do
   ghcId <- GHC.tyThingId <$> getThing 'GHC.Num.Integer.integerNegate
   -- Always inline `integerNegate`.
+  -- `let integerNegate = \x -> 0 - x in integerNegate 1 + integerNegate 2`
+  -- is much more expensive than `(-1) + (-2)`. The inliner cannot currently
+  -- make this transformation without `annAlwaysInline`, because it is not aware
+  -- of constant folding.
   var <- compileVarFresh annAlwaysInline ghcId
   let ann = annMayInline
   x <- safeFreshName "x"
