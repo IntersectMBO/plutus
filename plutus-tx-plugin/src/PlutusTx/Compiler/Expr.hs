@@ -8,6 +8,7 @@
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# LANGUAGE TemplateHaskellQuotes #-}
 {-# LANGUAGE TupleSections         #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE ViewPatterns          #-}
@@ -67,6 +68,7 @@ import Data.Set qualified as Set
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as TE
 import Data.Traversable
+import GHC.Num.Integer qualified
 
 {- Note [System FC and System FW]
 Haskell uses system FC, which includes type equalities and coercions.
@@ -705,8 +707,6 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     -- These are all wrappers around string and char literals, but keeping them allows us to give better errors
     -- unpackCString# is just a wrapper around a literal
     GHC.Var n `GHC.App` expr | GHC.getName n == GHC.unpackCStringName -> compileExpr expr
-    -- Handle `integerNegate` applications like `integerNegate 123` and `integerNegate (integerNegate 123)`.
-    GHC.Var n `GHC.App` expr | GHC.getName n == GHC.integerNegateName -> compileIntegerNegate expr
     -- See Note [unpackFoldrCString#]
     GHC.Var build `GHC.App` _ `GHC.App` GHC.Lam _ (GHC.Var unpack `GHC.App` _ `GHC.App` expr)
       | GHC.getName build == GHC.buildName && GHC.getName unpack == GHC.unpackCStringFoldrName -> compileExpr expr
@@ -743,9 +743,6 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     GHC.Var (lookupName scope . GHC.getName -> Just var) -> pure $ PIR.mkVar annMayInline var
     -- Special kinds of id
     GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) -> compileDataConRef dc
-    -- See Note [Unfoldings]
-    -- The "unfolding template" includes things with normal unfoldings and also dictionary functions
-    GHC.Var n@(GHC.maybeUnfoldingTemplate . GHC.realIdUnfolding -> Just unfolding) -> hoistExpr n unfolding
     -- Class ops don't have unfoldings in general (although they do if they're for one-method classes, so we
     -- want to check the unfoldings case first), see the GHC Note [ClassOp/DFun selection] for why. That
     -- means we have to reconstruct the RHS ourselves, though, which is a pain.
@@ -767,11 +764,17 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
       case maybeDef of
         Just term -> pure term
         Nothing ->
-          throwSd FreeVariableError $
-            "Variable"
-              GHC.<+> GHC.ppr n
-              GHC.$+$ (GHC.ppr $ GHC.idDetails n)
-              GHC.$+$ (GHC.ppr $ GHC.realIdUnfolding n)
+          -- No other cases apply; compile the unfolding of the var
+          case GHC.maybeUnfoldingTemplate (GHC.realIdUnfolding n) of
+            -- See Note [Unfoldings]
+            -- The "unfolding template" includes things with normal unfoldings and also dictionary functions
+            Just unfolding -> hoistExpr n unfolding
+            Nothing ->
+              throwSd FreeVariableError $
+                "Variable"
+                  GHC.<+> GHC.ppr n
+                  GHC.$+$ (GHC.ppr $ GHC.idDetails n)
+                  GHC.$+$ (GHC.ppr $ GHC.realIdUnfolding n)
 
     -- ignoring applications to types of 'RuntimeRep' kind, see Note [Unboxed tuples]
     l `GHC.App` GHC.Type t | GHC.isRuntimeRepKindedTy t -> compileExpr l
@@ -904,22 +907,6 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     GHC.Cast body _ -> compileExpr body
     GHC.Type _ -> throwPlain $ UnsupportedError "Types as standalone expressions"
     GHC.Coercion _ -> throwPlain $ UnsupportedError "Coercions as expressions"
-
-compileIntegerNegate ::
-  (CompilingDefault uni fun m ann) =>
-  GHC.CoreExpr ->
-  m (PIRTerm uni fun)
-compileIntegerNegate e = case e of
-  GHC.Var n `GHC.App` arg
-    | GHC.getName n == GHC.integerNegateName ->
-        -- `integerNegate (integerNegate arg)` is equivalent to `arg`
-        compileExpr arg
-  GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) `GHC.App` GHC.Lit (GHC.LitNumber _ i)
-    | GHC.dataConTyCon dc == GHC.integerTyCon ->
-        pure $ PIR.embed $ PLC.mkConstant annMayInline (-i)
-  _ ->
-    throwSd UnsupportedError $
-      "integerNegate applied to non-literal argument: " GHC.<+> GHC.ppr e
 
 {- Note [What source locations to cover]
    We try to get as much coverage information as we can out of GHC. This means that
@@ -1068,6 +1055,24 @@ coverageCompile originalExpr exprType src compiledTerm covT =
     findHeadSymbol (GHC.Cast t _) = findHeadSymbol t
     findHeadSymbol _              = Nothing
 
+defineIntegerNegate :: (CompilingDefault PLC.DefaultUni fun m ann) => m ()
+defineIntegerNegate = do
+  ghcId <- GHC.tyThingId <$> getThing 'GHC.Num.Integer.integerNegate
+  let ann = annMayInline
+  var <- compileVarFresh ann ghcId
+  x <- safeFreshName "x"
+  let
+    -- integerNegate = \x -> 0 - x
+    body =
+      PIR.LamAbs ann x (PIR.mkTyBuiltin @_ @Integer @PLC.DefaultUni ann) $
+        PIR.mkIterApp
+          (PIR.Builtin ann PLC.SubtractInteger)
+          [ (ann, PIR.mkConstant @Integer ann 0)
+          , (ann, PIR.Var ann x)
+          ]
+    def = PIR.Def var (body, PIR.Strict)
+  PIR.defineTerm (LexName GHC.integerNegateName) def mempty
+
 compileExprWithDefs ::
   (CompilingDefault uni fun m ann) =>
   GHC.CoreExpr ->
@@ -1075,6 +1080,7 @@ compileExprWithDefs ::
 compileExprWithDefs e = do
   defineBuiltinTypes
   defineBuiltinTerms
+  defineIntegerNegate
   compileExpr e
 
 {- Note [We always need DEFAULT]
