@@ -40,7 +40,7 @@ withVarScoped v k = do
     var <- compileVarFresh annMayInline v
     local (\c -> c {ccScope=pushName ghcName var (ccScope c)}) (k var)
 
--- | Like `withVarScoped`, but takes a `PIRType`, and use it for the type
+-- | Like `withVarScoped`, but takes a `PIRType`, and uses it for the type
 -- of the compiled `GHC.Var`.
 withVarTyScoped ::
     CompilingDefault uni fun m ann =>

@@ -59,9 +59,9 @@ integerLiterals =
         ||]
     )
 
-{- Note [Running PIR and UPLC Simplifiers in Integer literals Tests]
+{- Note [Running PIR and UPLC Simplifiers in Integer Literal Tests]
 
-The Integer literals Tests run the PIR and UPLC simplifiers, because (1) we want to verify that
+The Integer literal tests run the PIR and UPLC simplifiers, because (1) we want to verify that
 integerNegate is compiled away; (2) it is easier to tell from the optimized PIR whether or not
 the signs of the numbers are correct, which is ultimately what we care about.
 -}
