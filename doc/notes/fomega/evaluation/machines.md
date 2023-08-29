@@ -14,7 +14,7 @@ Clear implementation of the K machine (with environments, so, I suppose, it shou
 Implementations of the Krivine and the SECD machines.
 
 ## [Programming Languages and Lambda Calculi (2006), Matthias Felleisen, Matthew Flatt](http://ecee.colorado.edu/ecen5533/fall11/reading/pllc.pdf)
-Comprehensive descriptions of various machines including the CK and CEK ones, but somewhat hard to read. Also describes what the problems with the CEK machine are. Namely, unused subsitutions consume large amount of space. Other machines of no apparent relevance are considered.
+Comprehensive descriptions of various machines including the CK and CEK ones, but somewhat hard to read. Also describes what the problems with the CEK machine are. Namely, unused substitutions consume large amount of space. Other machines of no apparent relevance are considered.
 
 ## [Abstract machines for programming language implementation (1999), Stephan Diehla, Pieter Hartel, Peter Sestoft](http://www.inf.ed.ac.uk/teaching/courses/lsi/diehl_abstract_machines.pdf)
 Extensive and shallow overview of abstract machines.
@@ -23,7 +23,7 @@ Extensive and shallow overview of abstract machines.
 Clear definitions of CK, CEK (except this one contains a very unfortunate typo in the `appR-λ` case, see the K machine from "call-by-name, call-by-value and abstract machines (2012)" for the correct version of this clause), CESK, etc machines. That CESK machine relies on garbage collection in order to clean up redundant substitutions (the problem with the CEK machine described above). I wonder whether it would make sense to just know which variables are where used in the style of [Everybody's Got To Be Somewhere](https://github.com/pigworker/EGTBS/blob/master/EGTBS.pdf) or something, so we can deterministically prune environments.
 
 ## [Implementing functional languages with abstract machines (2015), Hayo Thielecke](https://www.cs.bham.ac.uk/~hxt/2015/compilers/compiling-functional.pdf)
-A historical overview and a very clear implementation of the CEK machine that differs from the common one (or maybe this is the common one, I don't know, it just differs). Has a very elaborted example. Do not see whether this implementation is better, worse or what.
+A historical overview and a very clear implementation of the CEK machine that differs from the common one (or maybe this is the common one, I don't know, it just differs). Has a very elaborated example. Do not see whether this implementation is better, worse or what.
 
 ## [Distilling Abstract Machines (2014), Accattoli et al](https://lipn.univ-paris13.fr/~mazza/papers/DistillingAbstractMachines-ICFP2014.pdf)
 Formal analysis of various machines. Invariants that for each machine hold are explicitly specified. Doesn't seem terribly useful for us.
@@ -115,7 +115,7 @@ would complicate things for us. Also, graph reduction is not so easy to implemen
 [Olivier Danvy](https://www.yale-nus.edu.sg/about/faculty/olivier-danvy/) 
 and his collaborators have done some very interesting work on abstract machines.  In particular,
 he has a technique for automatically deriving abstract machines from
-evaluators (essentially the CPS transformation followed by defunctionalisation),and he's able to use this to obtain things like the SECD and CEK machines in a 
+evaluators (essentially the CPS transformation followed by defunctionalisation), and he's able to use this to obtain things like the SECD and CEK machines in a 
 principled way, rather than just producing them out of thin air.  I don't know if this is directly relevant to what we're doing, but it's 
 very instructive.  
 
