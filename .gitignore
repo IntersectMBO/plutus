@@ -15,6 +15,9 @@
 *.gls
 *.glsdefs
 *.ist
+*.ilg
+*.nlo
+*.nls
 *.out
 *.toc
 *.bcf

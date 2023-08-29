@@ -79,6 +79,8 @@
 \usepackage[disable]{todonotes}
 % \usepackage{todonotes}
 
+\setcounter{tocdepth}{3}
+\setcounter{secnumdepth}{3}
 
 \newcommand{\kwxm}[1]{\smallskip\todo[inline,color=yellow!72,author=kwxm,caption={}]{#1}\smallskip}
 \renewcommand{\roman}[1]{\smallskip\todo[inline,color=green,author=effectfully,caption={}]{#1}\smallskip}
@@ -450,5 +452,4 @@
 \newcommand{\Tag}{\mathsf{tag}}  %% \renewcommand{\tag} gave odd results inside alignat*
 \newcommand{\unTag}{\mathsf{tag}^{-1}}
 
-
-  
+\newcommand{\LL}[1]{\texttt{#1}}
