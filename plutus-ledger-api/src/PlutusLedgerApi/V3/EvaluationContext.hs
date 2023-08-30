@@ -1,4 +1,3 @@
-{-# LANGUAGE DerivingVia      #-}
 {-# LANGUAGE TypeApplications #-}
 module PlutusLedgerApi.V3.EvaluationContext
     ( EvaluationContext
