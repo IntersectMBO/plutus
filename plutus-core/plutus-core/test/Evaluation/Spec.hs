@@ -79,7 +79,7 @@ instance Pretty AlwaysThrows where
 
 instance uni ~ DefaultUni => ToBuiltinMeaning uni AlwaysThrows where
     type CostingPart uni AlwaysThrows = ()
-    data BuiltinSemanticsVariant AlwaysThrows = AlwaysThrowsV1
+    data BuiltinSemanticsVariant AlwaysThrows = AlwaysThrowsSemanticsVariant1
 
     toBuiltinMeaning _semvar AlwaysThrows = makeBuiltinMeaning f $ \_ _ -> ExBudgetLast mempty
       where
