@@ -116,9 +116,7 @@ testOrd :: Property
 testOrd = Hedgehog.property $ do
     let gen = Gen.integral (Range.linear (-10000) 100000)
         -- Ratio must have non-zero denominator or else an ArithException will be thrown.
-        gen' =
-          Gen.choice
-            [Gen.integral (Range.linear (-10000) (-1)), Gen.integral (Range.linear 1 100000)]
+        gen' = Gen.filter (/= 0) gen
     n1 <- Hedgehog.forAll $ (%) <$> gen <*> gen'
     n2 <- Hedgehog.forAll $ (%) <$> gen <*> gen'
     ghcResult <- tryHard $ n1 <= n2
