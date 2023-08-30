@@ -16,10 +16,7 @@
 -- and @NegativeLiterals@ is on. These two extensions affect the Core we get. When
 -- @NegativeLiterals@ is on, we can get @IN@ for negative integers.
 --
--- This module runs the PIR and UPLC simplifiers, because (1) we want to verify that
--- `integerNegate` is compiled away; (2) it is easier to tell from the optimized PIR
--- whether or not the signs of the numbers are correct, which is ultimately what we
--- care about.
+-- See Note [Running PIR and UPLC Simplifiers in Integer literals Tests].
 module IntegerLiterals.NoStrict.NegativeLiterals.Spec where
 
 import PlutusTx.Code
@@ -61,3 +58,10 @@ integerLiterals =
                 PlutusTx.+ bigDoubleNegLazy
         ||]
     )
+
+{- Note [Running PIR and UPLC Simplifiers in Integer Literal Tests]
+
+The Integer literal tests run the PIR and UPLC simplifiers, because (1) we want to verify that
+integerNegate is compiled away; (2) it is easier to tell from the optimized PIR whether or not
+the signs of the numbers are correct, which is ultimately what we care about.
+-}

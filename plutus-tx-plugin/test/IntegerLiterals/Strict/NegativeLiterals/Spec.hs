@@ -2,22 +2,22 @@
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NegativeLiterals      #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
 
-{-# LANGUAGE NoNegativeLiterals    #-}
-{-# LANGUAGE NoStrict              #-}
+{-# LANGUAGE NegativeLiterals      #-}
+{-# LANGUAGE Strict                #-}
 
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
 
--- | This module tests that integer literals are handled correctly, when both @Strict@
--- and @NegativeLiterals@ are off. These two extensions affect the Core we get.
+-- | This module tests that integer literals are handled correctly, when @Strict@ is off
+-- and @NegativeLiterals@ is on. These two extensions affect the Core we get. When
+-- @NegativeLiterals@ is on, we can get @IN@ for negative integers.
 --
 -- See Note [Running PIR and UPLC Simplifiers in Integer literals Tests].
-module IntegerLiterals.NoStrict.NoNegativeLiterals.Spec where
+module IntegerLiterals.Strict.NegativeLiterals.Spec where
 
 import PlutusTx.Code
 import PlutusTx.Prelude qualified as PlutusTx
@@ -28,7 +28,7 @@ import Test.Tasty.Extras
 
 tests :: TestNested
 tests = testNestedGhc "IntegerLiterals"
-  [ goldenPir "integerLiterals-NoStrict-NoNegativeLiterals" integerLiterals
+  [ goldenPir "integerLiterals-Strict-NegativeLiterals" integerLiterals
   ]
 
 integerLiterals :: CompiledCode (Integer -> Integer)
