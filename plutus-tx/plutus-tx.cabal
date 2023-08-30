@@ -118,6 +118,7 @@ library
 
   default-extensions: Strict
   ghc-options:
+    -fexpose-all-unfoldings -fno-specialise -fno-spec-constr
     -fno-strictness -fno-unbox-strict-fields
     -fno-unbox-small-strict-fields
 
