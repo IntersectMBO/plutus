@@ -17,7 +17,6 @@ import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Name
 import PlutusCore.Quote
 import PlutusCore.Rename (dupable)
-import PlutusCore.Rename.Internal (Dupable (Dupable))
 import PlutusIR
 import PlutusIR.Analysis.Dependencies qualified as Deps
 import PlutusIR.Analysis.Usages qualified as Usages
@@ -229,8 +228,6 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
                     pure $ TypeAppContext ty ann processedArgs
                 processArgs AppContextEnd = pure AppContextEnd
             case (hd, args) of
-                -- not an application, just process the subterms
-                (_, AppContextEnd) -> forMOf termSubterms t processTerm
                 (Var{}, _) -> do
                     processedHd <- processTerm hd -- the variable may be unconditionally inlined.
                     case processedHd of
@@ -238,16 +235,9 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
                         (Var _ name) -> do
                                 gets (lookupVarInfo name) >>= \case
                                     Just varInfo -> do
-                                        let defAsInlineTerm = varRhs varInfo
-                                            inlineTermToTerm :: InlineTerm tyname name uni fun ann
-                                                -> Term tyname name uni fun ann
-                                            inlineTermToTerm (Done (Dupable var)) = var
-                                            -- extract out the rhs without renaming, we only rename
-                                            -- when we know there's substitution
-                                            rhs = inlineTermToTerm defAsInlineTerm
                                         -- process the args
                                         processedArgs <- processArgs args
-                                        maybeInlined <- callSiteInline t rhs varInfo processedArgs
+                                        maybeInlined <- callSiteInline t varInfo processedArgs
                                         case maybeInlined of
                                             Just inlined -> pure inlined
                                             -- we didn't inline at the call site, just process the

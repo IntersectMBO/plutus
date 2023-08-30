@@ -12,6 +12,7 @@ module PlutusIR.Transform.Inline.CallSiteInline where
 
 import PlutusCore qualified as PLC
 import PlutusCore.Rename (rename)
+import PlutusCore.Rename.Internal (Dupable (Dupable))
 import PlutusIR.Analysis.Size (termSize)
 import PlutusIR.Contexts
 import PlutusIR.Core
@@ -69,7 +70,7 @@ applyAndBetaReduce rhs args0 = do
         AppContext tyname name uni fun ann ->
         InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
       go acc args = case (acc, args) of
-        (LamAbs _ann n _ty tm, appCtx@(TermAppContext arg _ args')) -> do
+        (LamAbs _ann n _ty tm, TermAppContext arg _ args') -> do
           safe <- safeToBetaReduce n arg acc
           if safe -- we only do substitution if it is safe to beta reduce
             then do
@@ -81,7 +82,7 @@ applyAndBetaReduce rhs args0 = do
                   tm -- drop the beta reduced term lambda
               go acc' args'
             -- if it is not safe to beta reduce, just return the processed application
-            else pure . Just $ fillAppContext acc appCtx
+            else pure . Just $ fillAppContext acc args
         (TyAbs _ann n _kd tm, TypeAppContext arg _ args') -> do
           acc' <-
             termSubstTyNamesM -- substitute the type param with the arg
@@ -92,7 +93,7 @@ applyAndBetaReduce rhs args0 = do
         (LamAbs{}, TypeAppContext{}) -> pure Nothing
         (TyAbs{}, TermAppContext{}) -> pure Nothing
         -- no more lambda abstraction, just return the processed application
-        (_, appCtx) -> pure . Just $ fillAppContext acc appCtx
+        (_, _) -> pure . Just $ fillAppContext acc args
 
       -- Is it safe to turn `(\a -> body) arg` into `body [a := arg]`?
       -- The criteria is the same as the criteria for inlining `a` in
@@ -114,17 +115,22 @@ callSiteInline ::
   (InliningConstraints tyname name uni fun) =>
   -- | The term.
   Term tyname name uni fun ann ->
-  -- | The Rhs of the "head" of the term, already processed.
-  Term tyname name uni fun ann ->
   -- | The `Utils.VarInfo` of the variable (the head of the term).
   VarInfo tyname name uni fun ann ->
   -- | The application context of the term, already processed.
   AppContext tyname name uni fun ann ->
   InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
-callSiteInline t headRhs = go
+callSiteInline t = go
   where
     go varInfo args = do
         let
+          defAsInlineTerm = varRhs varInfo
+          inlineTermToTerm :: InlineTerm tyname name uni fun ann
+              -> Term tyname name uni fun ann
+          inlineTermToTerm (Done (Dupable var)) = var
+          -- extract out the rhs without renaming, we only rename
+          -- when we know there's substitution
+          headRhs = inlineTermToTerm defAsInlineTerm
           -- The definition itself will be inlined, so we need to check that the cost
           -- of that is acceptable. Note that we do _not_ check the cost of the _body_.
           -- We would have paid that regardless.
