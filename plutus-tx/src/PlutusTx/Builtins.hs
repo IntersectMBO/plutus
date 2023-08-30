@@ -1,6 +1,4 @@
 -- editorconfig-checker-disable-file
-{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 
 -- | Primitive names and functions for working with Plutus Core builtins.
 module PlutusTx.Builtins (
