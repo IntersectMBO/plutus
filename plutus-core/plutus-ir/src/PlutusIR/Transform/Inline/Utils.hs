@@ -63,7 +63,7 @@ data InlineInfo name fun ann = InlineInfo
     , _iiHints                   :: InlineHints name ann
     -- ^ have we explicitly been told to inline?
     , _iiBuiltinSemanticsVariant :: PLC.BuiltinSemanticsVariant fun
-    -- ^ the builtin version.
+    -- ^ the semantics variant.
     }
 makeLenses ''InlineInfo
 
