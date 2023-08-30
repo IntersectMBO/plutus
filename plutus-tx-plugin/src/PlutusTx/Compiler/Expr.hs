@@ -799,36 +799,31 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     GHC.Lam b@(GHC.isTyVar -> True) body -> mkTyAbsScoped b $ compileExpr body
     -- otherwise it's a normal lambda
     GHC.Lam b body -> mkLamAbsScoped b $ compileExpr body
-    -- Handle the following case:
-    --
-    -- ```PlutusTx
-    -- let !x = 12345678901234567890
-    -- in PlutusTx.equalsInteger x y
-    -- ```
-    --
-    -- ```GHC Core
-    -- let {
-    --   x_sfhW :: ByteArray#
-    --   x_sfhW = 12345678901234567890 } in
-    -- equalsInteger (IP x_sfhW) y_X0
-    -- ```
-    --
-    -- What we do here is ignoring the `ByteArray#, and pretending that `12345678901234567890`
-    -- is an Integer.
-    GHC.Let (GHC.NonRec b rhs@(GHC.Lit (GHC.LitNumber{}))) body
-      | GHC.eqType (GHC.varType b) GHC.byteArrayPrimTy -> do
-        rhs' <- compileExpr rhs
-        let integerTy = PIR.mkTyBuiltin @_ @Integer @PLC.DefaultUni annMayInline
-        withVarTyScoped b integerTy $ \v -> do
-          rhs'' <- maybeProfileRhs v rhs'
-          let binds = pure $ PIR.TermBind annMayInline PIR.NonStrict v rhs''
-          body' <- compileExpr body
-          pure $ PIR.Let annMayInline PIR.NonRec binds body'
     GHC.Let (GHC.NonRec b rhs) body -> do
       -- the binding is in scope for the body, but not for the arg
       rhs' <- compileExpr rhs
+      ty <- case rhs of
+        GHC.Lit (GHC.LitNumber{}) | GHC.eqType (GHC.varType b) GHC.byteArrayPrimTy ->
+          -- Handle the following case:
+          --
+          -- ```PlutusTx
+          -- let !x = 12345678901234567890
+          -- in PlutusTx.equalsInteger x y
+          -- ```
+          --
+          -- ```GHC Core
+          -- let {
+          --   x_sfhW :: ByteArray#
+          --   x_sfhW = 12345678901234567890 } in
+          -- equalsInteger (IP x_sfhW) y_X0
+          -- ```
+          --
+          -- What we do here is ignoring the `ByteArray#`, and pretending that
+          --`12345678901234567890` is an Integer.
+          pure $ PIR.mkTyBuiltin @_ @Integer @PLC.DefaultUni annMayInline
+        _ -> compileTypeNorm $ GHC.varType b
       -- See Note [Non-strict let-bindings]
-      withVarScoped b $ \v -> do
+      withVarTyScoped b ty $ \v -> do
         rhs'' <- maybeProfileRhs v rhs'
         let binds = pure $ PIR.TermBind annMayInline PIR.NonStrict v rhs''
         body' <- compileExpr body
