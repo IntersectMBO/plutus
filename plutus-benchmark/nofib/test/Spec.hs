@@ -48,6 +48,8 @@ testClausify = testGroup "clausify"
                , testCase "formula5" $ mkClausifyTest Clausify.F5
                , Tx.fitsInto "formula1 (size)" (Clausify.mkClausifyCode Clausify.F1) 1713
                , runTestNested $
+                  Tx.goldenPirReadable "formulaBudget" $ Clausify.mkClausifyCode Clausify.F1
+               , runTestNested $
                   Tx.goldenBudget "formulaBudget" $ Clausify.mkClausifyCode Clausify.F1
                ]
 
@@ -66,6 +68,7 @@ testKnights = testGroup "knights"  -- Odd sizes call "error" because there are n
               , testCase "depth 100, 6x6" $ mkKnightsTest 100 6
               , testCase "depth 100, 8x8" $ mkKnightsTest 100 8
               , Tx.fitsInto "depth 10, 4x4 (size)" (Knights.mkKnightsCode 10 4) 2136
+              , runTestNested $ Tx.goldenPirReadable "knightsBudget" $ Knights.mkKnightsCode 10 4
               , runTestNested $ Tx.goldenBudget "knightsBudget" $ Knights.mkKnightsCode 10 4
               ]
 
