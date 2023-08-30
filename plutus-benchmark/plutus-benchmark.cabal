@@ -420,7 +420,7 @@ test-suite bls12-381-costs-test
   import:         lang
 
   -- test output changes after 9.2, bad for golden tests
-  if impl(ghc >=9.3)
+  if (impl(ghc <9.0) || impl(ghc >=9.3))
     buildable: False
 
   type:           exitcode-stdio-1.0
