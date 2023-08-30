@@ -1,0 +1,30 @@
+(program
+  1.1.0
+  (lam
+    ds_i0
+    (lam
+      ds_i0
+      (force
+        (case
+          ds_i2
+          (lam
+            x'_i0
+            (delay
+              (force
+                (case
+                  ds_i2
+                  (lam
+                    y'_i0
+                    (delay (constr 0 [ [ (builtin addInteger) x'_i2 ] y'_i1 ]))
+                  )
+                  (delay (constr 1))
+                )
+              )
+            )
+          )
+          (delay (constr 1))
+        )
+      )
+    )
+  )
+)

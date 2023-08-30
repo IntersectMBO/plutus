@@ -1,4 +1,4 @@
-\section{Serialising Plutus Core Terms and Programs Using the \texttt{flat} Format}
+\chapter{Serialising Plutus Core Terms and Programs Using the \texttt{flat} Format}
 \label{appendix:flat-serialisation}
 We use the \texttt{flat} format \cite{flat} to serialise Plutus Core
 terms, and we regard this format as being the definitive concrete representation
@@ -25,7 +25,7 @@ by about 35\% (without using compression).
 
 
 
-\subsection{Encoding and decoding}
+\section{Encoding and decoding}
 Let $\Bits = \{\bits{0},\bits{1}\}^*$, the set of all finite sequences of
 bits.  For brevity we write a sequence of bits in the form $b_{n-1} \cdots b_0$
 instead of $[b_{n-1}, \ldots, b_0]$: thus $\bits{011001}$ instead of $[\bits{0},
@@ -76,7 +76,7 @@ composed, and these are often introduced by a condition of the form ``if
 $\D_X(s) = x$''.  Conditions like this should be read as implicitly saying that
 if the decoder $\D_X$ fails then the whole decoding process fails.
 
-\subsubsection{Padding}
+\subsection{Padding}
 The encoding functions mentioned above produce sequences of \textit{bits}, but
 we sometimes need sequences of \textit{bytes}.  To this end we introduce a
 functions $\pad: \Bits \rightarrow \Bits$ which adds a sequence of $\bits{0}$s
@@ -111,9 +111,9 @@ $$
 \noindent This can fail if the padding is not of the expected form or if the input is
 the empty sequence $\epsilon$.
 
-\subsection{Basic \texttt{flat} encodings}
+\section{Basic \texttt{flat} encodings}
 \label{sec:basic-flat-encodings}
-\subsubsection{Fixed-width natural numbers}
+\subsection{Fixed-width natural numbers}
 We often wish to encode and decode natural numbers which fit into some fixed
 number of bits, and we do this simply by encoding them as their binary expansion
 (most significant bit first), adding leading zeros if necessary.  More precisely
@@ -139,7 +139,7 @@ families of encoders $\E_1, \E_2, \E_3, \ldots$ and and decoders $\D_1, \D_2,
 \D_3\ldots$.
 
 
-\subsubsection{Lists}
+\subsection{Lists}
 Suppose that we have a set $X$ for which we have defined an encoder $\E_X$ and a
 decoder $\D_X$; we define an encoder $\Elist_X$ which encodes lists of elements
 of $X$ by emitting the encodings of the elements of the list, each preceded by a
@@ -155,7 +155,7 @@ $\bits{1}$ bit, then emitting a $\bits{0}$ bit to mark the end of the list.
 \Dlist_X(\bits{1} \cdot s) &= (s'', x \cdot l) \quad \text{if $D_X(s) = (s', x)$ and $\Dlist_X(s') = (s'', l).$}
 \end{align*}
 
-\subsubsection{Natural numbers}
+\subsection{Natural numbers}
 We encode natural numbers by splitting their binary representations into
 sequences of 7-bit blocks, then emitting these as a list with the \textbf{least
   significant block first}:
@@ -169,7 +169,7 @@ $$
 \D_{\N}(s) = (s', \sum_{i=0}^{n-1}k_i2^{7i}) \quad \text{if $\Dlist_7(s) = (s', [k_0, \ldots, k_{n-1}])$}.
 $$
 
-\subsubsection{Integers}
+\subsection{Integers}
 Signed integers are encoded by converting them to natural numbers using the
 zigzag encoding ($0 \mapsto 0, -1 \mapsto 1, 1 \mapsto 2, -2 \mapsto 3, 2
 \mapsto 4, \ldots$) and then encoding the result using $\E_{\N}$:
@@ -189,7 +189,7 @@ $$
 \end{cases} \quad\text{if $\D_{\N}(s) = (s', n)$}.
 $$
 
-\subsubsection{Bytestrings}  Bytestrings are encoded by dividing them into
+\subsection{Bytestrings}  Bytestrings are encoded by dividing them into
 nonempty blocks of up to 255 bytes and emitting each block in sequence.  Each
 block is preceded by a single unsigned byte containing its length, and the end
 of the encoding is marked by a zero-length block (so the empty bytestring is
@@ -289,7 +289,7 @@ $$
 \D_{\B^*} (s) = \D_{C^*}(\unpad(s)).
 $$
 
-\subsubsection{Strings}
+\subsection{Strings}
 We have defined values of the \texttt{string} type to be sequences of Unicode
 characters.  As mentioned earlier we do not specify any particular internal
 representation of Unicode characters, but for serialisation we use the UTF-8
@@ -306,14 +306,14 @@ $$
 
 \noindent
 where $\utfeight$ and $\unutfeight$ are the UTF8 encoding and decoding functions
-mentioned in Appendix~\ref{appendix:default-builtins-alonzo}. Recall that $\unutfeight$
+mentioned in Section~\ref{sec:default-builtins-1}. Recall that $\unutfeight$
 is partial (not all bytestrings represent valid Unicode sequences), so
 $\D_{\U^*}$ may fail if the input is invalid.
 
 
-\subsection{Encoding and decoding Plutus Core}
+\section{Encoding and decoding Plutus Core}
 
-\subsubsection{Programs}
+\subsection{Programs}
 A program is encoded by encoding the three components of the version number in
 sequence then encoding the body, and possibly adding some padding to ensure that
 the total number of bits in the output is a multiple of 8 (and hence the output
@@ -340,7 +340,7 @@ $$
 
 \noindent 
 
-\subsubsection{Terms}
+\subsection{Terms}
 Plutus Core terms are encoded by emitting a 4-bit tag identifying the type of
 the term (see Table~\ref{table:term-tags}; recall that \texttt{[]} denotes
 application) then emitting the encodings for any subterms.  We currently only
@@ -412,7 +412,11 @@ does not happen here, but does in some later decoders.
   \Dterm(\bits{1001} \cdot s)  &= (s', \Kase{u}{l}) &&\quad \text{if } \Dterm(s) = (s', u) &&\ \text{and}\ \Dlist_{\mathsf{term}}(s') = (s'', l)
 \end{alignat*}
 
-\subsubsection{Built-in types}
+\paragraph{NOTE.} The decoder $\Dterm$ should fail if we are decoding a program
+with a version less than 1.1.0 and an input of the form $\bits{1000} \cdot s$ or
+$\bits{1001} \cdot s$ is encountered.
+
+\subsection{Built-in types}
 Constants from built-in types are essentially encoded by emitting a sequence of
 4-bit tags representing the constant's type and then emitting the encoding of
 the constant itself.  However the encoding of types is somewhat complex because
@@ -451,8 +455,8 @@ tags for the basic types together with a tag for a type application operator.
 
 \noindent We define auxiliary functions $\etype: \Uni \rightarrow \N^*$ and
 $\dtype: \N^* \rightharpoonup \N^* \times \Uni$ ($\dtype$ is partial and $\Uni$
-denotes the universe of types defined in Appendices~\ref{appendix:default-builtins-alonzo},
-\ref{appendix:default-builtins-vasil}, and~\ref{appendix:default-builtins-future}).
+denotes the universe of types defined in Sections~\ref{sec:default-builtins-1},
+\ref{sec:default-builtins-2}, and~\ref{sec:default-builtins-3}).
 
 \begin{alignat*}{2}
   &\etype(\ty{integer})      &&= [0]  \\
@@ -492,7 +496,7 @@ $$
 \Dtype(s) = (s', t) \quad \text{if $\Dlist_4(s) = (s', l)$ and $\dtype(l) = ([], t)$}.
 $$
 
-\subsubsection{Constants}
+\subsection{Constants}
 Values of built-in types can mostly be encoded quite simply by using encoders
 already defined.  Note that the unit value \texttt{(con unit ())} does not have
 an explicit encoding: the type has only one possible value, so there is no need
@@ -507,12 +511,12 @@ using $\dData$ to obtain a $\ty{data}$ object.
 The $\ty{bls12\_381\_G1\_element}$ and $\ty{bls12\_381\_G2\_element}$ types are
 serialised by converting to byestrings using the $\compress_{G_1}$ and
 $\compress_{G_2}$ functions defined in
-Section~\ref{sec:future-built-in-functions}, and decoding is similarly performed
+Section~\ref{sec:bls-builtins-4}, and decoding is similarly performed
 via bytestrings using the $\uncompress$ functions.  \textbf{We do not provide
 serialisation and deserialisation for constants of the
 $\ty{bls12\_381\_mlresult}$ type}; we have specified a tag for this type, but if
 that tag is encountered during deserialisation then deserialisation fails and
-any subsequent input is ingored.
+any subsequent input is ignored.
 
 
 \begin{alignat*}{2}
@@ -549,10 +553,10 @@ any subsequent input is ingored.
   & \dConstant{\ty{bls12\_381\_G2\_element}}(s)  &&= (s',e) && \text{if $\D_{\B^*}(s) = (s',b)$ and $\uncompress_{G_2}(b)=e$}.
 \end{alignat*}
 
-\subsubsection{Built-in functions}
+\subsection{Built-in functions}
 Built-in functions are represented by seven-bit integer tags and encoded and
 decoded using $\E_7$ and $\D_7$.  The tags are specified in
-Tables~\ref{table:builtin-tags-alonzo}, \ref{table:builtin-tags-vasil}, and~\ref{table:builtin-tags-future}.  We
+Tables~\ref{table:builtin-tags-V1}, \ref{table:builtin-tags-V2}, and~\ref{table:builtin-tags-V3}.  We
 assume that there are (partial) functions $\Tag$ and $\unTag$ which convert back
 and forth between builtin names and their tags.
 
@@ -596,8 +600,8 @@ and forth between builtin names and their tags.
    \TT{decodeUtf8}               &    $\bits{0011001}$  &  25    & & & \\
 \hline
 \end{tabular}
-\caption{Tags for Alonzo builtins}
-\label{table:builtin-tags-alonzo}
+\caption{Tags for PlutusV1 builtins}
+\label{table:builtin-tags-V1}
 \end{table}
 
 \begin{table}[H]
@@ -612,8 +616,8 @@ and forth between builtin names and their tags.
  \TT{verifySchnorrSecp256k1Signature} & $\bits{0110101}$  & 53 \\
 \hline
 \end{tabular}
-\caption{Extra tags for Vasil builtins}
-\label{table:builtin-tags-vasil}
+\caption{Extra tags for PlutusV2 builtins}
+\label{table:builtin-tags-V2}
 \end{table}
 
 \begin{table}[H]
@@ -640,15 +644,17 @@ and forth between builtin names and their tags.
     \TT{bls12\_381\_millerLoop}      & $\bits{1000100}$  & 68 \\
     \TT{bls12\_381\_mulMlResult}     & $\bits{1000101}$  & 69 \\
     \TT{bls12\_381\_finalVerify}     & $\bits{1000110}$  & 70 \\
+    \TT{keccak\_256}                 & $\bits{1000111}$  & 71 \\
+    \TT{blake2b\_224}                & $\bits{1001000}$  & 72 \\
 \hline
 \end{tabular}
 \caption{Extra tags for future builtins}
-\label{table:builtin-tags-future}
+\label{table:builtin-tags-V3}
 \end{table}
 
 
 
-\subsubsection{Variable names}
+\subsection{Variable names}
 Variable names are encoded and decoded using the $\Ename$ and $\Dname$
 functions, and variables bound in \texttt{lam} expressions are encoded and
 decoded by the $\Ebinder$ and $\Dbinder$ functions.  
@@ -687,16 +693,16 @@ on the method used to represent variable names it may also be necessary to check
 during deserialisation the more general requirement that variables are
 well-scoped, but this problem will not arise if de Bruijn indices are used.
 
-\subsection{Cardano-specific serialisation issues}
+\section{Cardano-specific serialisation issues}
 \label{sec:cardano-issues}
-\subsubsection{Scope checking}
+\subsection{Scope checking}
 To execute a Plutus Core program on the blockchain it will be necessary to
 deserialise it to some in-memory representation, and during or immediately after
 deserialisation it should be checked that the body of the program is a closed
 term (see the requirement in Section~\ref{sec:grammar-notes}); if this is not
 the case then evaluation should fail immediately.
 
-\subsubsection{CBOR wrapping}
+\subsection{CBOR wrapping}
 Plutus Core programs are not stored on the Cardano chain directly as
 \texttt{flat} bytestrings; for consistency with other objects used on the chain,
 the \texttt{flat} bytestrings are in fact wrapped in a CBOR encoding.  This
@@ -708,7 +714,7 @@ confusion.
 %% exactly 64 bytes long: then the data would be interrupted by 0x40 ('@') every
 %% 64 bytes.
 
-\subsection{Example}
+\section{Example}
 Consider the program
 \begin{verbatim}
 (program 5.0.2

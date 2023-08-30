@@ -5,7 +5,7 @@ BIB=${DOC}.bib
 
 FIGS=./figures
 
-SRC = *.tex ${BIB} # ${FIGS}/*.tex 
+SRC = *.tex cardano/*.tex ${BIB} # ${FIGS}/*.tex 
 
 
 LATEX = pdflatex -halt-on-error -shell-escape # To get pstricks to work with PDF

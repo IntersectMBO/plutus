@@ -26,7 +26,7 @@ import PlutusTx.Test
 import Data.Proxy
 
 typeclasses :: TestNested
-typeclasses = testNested "Typeclasses" [
+typeclasses = testNestedGhc "Typeclasses" [
     goldenPir "sizedBasic" sizedBasic
     , goldenPir "sizedPair" sizedPair
     , goldenPir "multiFunction" multiFunction

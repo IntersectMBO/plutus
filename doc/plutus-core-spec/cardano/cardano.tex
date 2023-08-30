@@ -1,0 +1,37 @@
+\chapter{Plutus Core on Cardano}
+\input{cardano/versions.tex}
+\section{Built-in types and functions}
+\label{sec:cardano-builtins}
+\paragraph{Built-in batches.}
+\label{sec:builtin-batches}
+
+The built-in types and functions are defined in batches corresponding to how they were added to ledger languages.
+These batches are given in the following sections.
+
+\paragraph{Built-in semantics variants.}
+\label{sec:builtin-semantics-variants}
+
+In rare cases we can make a mistake or need to change the actual behaviour of a built-in function.
+To handle this we define a series of built-in semantics variants, which indicate which behaviour should be used.
+A fix will typically be deployed by defining a new semantics variant, and then using that variant for future ledger languages (but not existing ones, since this is usually a backwards-incompatible change).
+
+Changes are listed alongside the original definition of the built-in function in its original batch, and are indexed in the following table.
+
+\begin{table}[H]
+  \centering
+    \begin{tabular}{|l|l|l|}
+        \hline
+        \thead{Built-in semantics variant} & \thead{Changes from previous semantics} \\
+        \hline
+        Built-in semantics 1 & None \\
+        Built-in semantics 2 & \TT{consByteString} (See~\ref{note:consbytestring}) \\
+        \hline
+    \end{tabular}
+    \caption{Built-in semantics variants}
+    \label{table:bs-variants}
+\end{table}
+
+\input{cardano/builtins1.tex}
+\input{cardano/builtins2.tex}
+\input{cardano/builtins3.tex}
+\input{cardano/builtins4.tex}

@@ -1,4 +1,4 @@
-\section{Interpretation of Built-in Types and Functions}
+\section{Interpretation of built-in types and functions}
 \label{sec:specify-builtins}
 As mentioned above, Plutus Core is generic over a universe $\Uni$ of types and
 a set $\Fun$ of built-in functions.  As the terminology suggests, built-in
@@ -57,11 +57,12 @@ these names are given by \textit{denotations}. Each built-in type $\tn \in \Uni$
 is associated with some mathematical set $\denote{\tn}$, the \textit{denotation}
 of $\tn$. For example, we might have $\denote{\texttt{boolean}}=
 \{\mathsf{true}, \mathsf{false}\}$ and $\denote{\texttt{integer}} = \mathbb{Z}$
-and $\denote{\pairOf{a}{b}} = \denote{a} \times \denote{b}$.  See
-Appendix~\ref{appendix:default-builtins-alonzo} for a description of the
-built-in types and type operators available in the Alonzo release of Plutus
-Core.%
-\nomenclature[Dz1]{$\denote{T}$}{Denotation of a type $T \in \Uni$}
+and $\denote{\pairOf{a}{b}} = \denote{a} \times \denote{b}$.
+
+See Section~\ref{sec:cardano-builtins}
+for a description of the types and functions which have already been deployed on
+the Cardano blockchain (or will be in the near future).
+% \nomenclature[Dz1]{$\denote{T}$}{Denotation of a type $T \in \Uni$}
 
 For non-atomic type names $\tn = \op(\tn_1, \ldots, \tn_r)$ we would generally
 expect the denotation of $\tn$ to be obtained in some uniform way (ie,
@@ -275,10 +276,9 @@ mathematical entities occurring as members of type denotations $\denote{\tn}$
 are embedded directly as values $c$ in Plutus Core constant terms. In reality,
 tools which work with Plutus Core will need some concrete syntactic
 representation of constants; we do not specify this here, but see
-Section~\ref{sec:alonzo-built-in-types} for suggested syntax for the built-in
-types included in the Alonzo release.
-
-
+Section~\ref{sec:cardano-builtins}
+for suggested syntax for the built-in types currently in use on the Cardano
+blockchain.
 
 \subsubsection{Signatures and denotations of built-in functions}
 \label{sec:signatures}

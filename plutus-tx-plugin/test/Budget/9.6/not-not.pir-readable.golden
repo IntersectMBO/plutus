@@ -1,0 +1,25 @@
+(let
+    data Bool | Bool_match where
+      True : Bool
+      False : Bool
+  in
+  \(x : integer) ->
+    let
+      !a : Bool
+        = let
+          !a : Bool = ifThenElse {Bool} (lessThanInteger 0 x) True False
+        in
+        Bool_match
+          a
+          {all dead. Bool}
+          (/\dead -> False)
+          (/\dead -> True)
+          {all dead. dead}
+    in
+    Bool_match
+      a
+      {all dead. Bool}
+      (/\dead -> False)
+      (/\dead -> True)
+      {all dead. dead})
+  1

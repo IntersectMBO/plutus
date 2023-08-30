@@ -1,0 +1,42 @@
+(program
+  1.1.0
+  [
+    [
+      [
+        (force
+          (delay
+            (lam
+              `GHC.Types.Nil_i0`
+              (lam
+                `GHC.Types.Cons_i0`
+                (lam
+                  `match_GHC.Types.List_i0`
+                  [
+                    [ (force `GHC.Types.Cons_i2`) (con integer 1) ]
+                    (force `GHC.Types.Nil_i3`)
+                  ]
+                )
+              )
+            )
+          )
+        )
+        (delay (constr 0))
+      ]
+      (delay (lam arg_0_i0 (lam arg_1_i0 (constr 1 arg_0_i2 arg_1_i1))))
+    ]
+    (delay
+      (lam
+        x_i0
+        (delay
+          (lam
+            `case_GHC.Types.Nil_i0`
+            (lam
+              `case_GHC.Types.Cons_i0`
+              (case x_i3 `case_GHC.Types.Nil_i2` `case_GHC.Types.Cons_i1`)
+            )
+          )
+        )
+      )
+    )
+  ]
+)

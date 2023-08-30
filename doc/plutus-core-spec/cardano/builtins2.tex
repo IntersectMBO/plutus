@@ -1,0 +1,46 @@
+% I tried resetting the note number from V1-builtins here, but that made
+% some hyperlinks wrong.  To get note numbers starting at one in each section, I
+% think we have to define a new counter every time.
+\newcounter{notenumberB}
+\renewcommand{\note}[1]{
+  \bigskip
+  \refstepcounter{notenumberB}
+  \noindent\textbf{Note \thenotenumberB. #1}
+}
+
+\subsection{Batch 2}
+\label{sec:default-builtins-2}
+
+\subsubsection{Built-in functions}
+\label{sec:built-in-functions-2}
+The second batch of builtin operations is defined in Table~\ref{table:built-in-functions-2}.
+
+\setlength{\LTleft}{20mm}  % Shift the table right a bit to centre it on the page
+\begin{longtable}[H]{|l|l|l|c|c|}
+    \hline
+    \text{Function} & \text{Signature} & \text{Denotation} & \text{Can} & \text{Note} \\
+    & & & fail? & \\
+    \hline
+    \endfirsthead
+    \hline
+    \text{Function} & \text{Type} & \text{Denotation} & \text{Can} & \text{Note}\\
+    & & & fail? & \\
+    \hline
+    \endhead
+    \hline
+    \caption{Built-in Functions}
+    \endfoot
+    \caption[]{Built-in Functions}
+    \label{table:built-in-functions-2}
+    \endlastfoot
+    \TT{serialiseData}                        & $[\ty{data}] \to \ty{bytestring}$   &  $\mathcal{E}_{\mathtt{data}}$ &
+      & \ref{note:serialise-data}\\
+\hline
+\end{longtable}
+
+\note{Serialising $\ty{data}$ objects.}
+\label{note:serialise-data}
+The \texttt{serialiseData} function takes a $\ty{data}$ object and converts it
+into a bytestring using a CBOR encoding.  A full specification of the encoding
+(including the definition of $\mathcal{E}_{\mathtt{data}}$) is provided in
+Appendix~\ref{appendix:data-cbor-encoding}.

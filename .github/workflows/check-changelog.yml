@@ -11,7 +11,7 @@ jobs:
 
       - name: Find Changed Files in changelog.d
         id: changed-files
-        uses: tj-actions/changed-files@v37
+        uses: tj-actions/changed-files@v38
         with:
           files: '**/changelog.d/**'
 

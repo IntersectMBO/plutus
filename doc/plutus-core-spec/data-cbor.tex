@@ -1,9 +1,9 @@
-\section{Serialising \texttt{data} Objects Using the CBOR Format}
+\chapter{Serialising \texttt{data} Objects Using the CBOR Format}
 \label{appendix:data-cbor-encoding}
 
-\subsection{Introduction}
+\section{Introduction}
 In this section we define a CBOR encoding for the \texttt{data} type introduced
-in Section~\ref{sec:alonzo-built-in-types}.  For ease of reference we reproduce
+in Section~\ref{sec:built-in-types-1}.  For ease of reference we reproduce
 the definition of the Haskell \texttt{Data} type, which we may regard as the
 definition of the Plutus \texttt{data} type. Other representations are of course
 possible, but this is useful for the present discussion.
@@ -38,7 +38,7 @@ the CBOR standard~\cite{rfc8949-CBOR}, but with some refinements. Specifically
   \end{itemize}
 
 
-\subsection{Notation}
+\section{Notation}
 We introduce some extra notation for use here and in
 Appendix~\ref{appendix:flat-serialisation}.
 
@@ -50,7 +50,7 @@ bytestring $s$ and $\cdot$ to denote the concatenation of two bytestrings, and
 also the operation of prepending or appending a byte to a bytestring. We will
 also make use of the $\divfn$ and $\modfn$ functions described in
 Note~\ref{note:integer-division-functions} in
-Appendix~\ref{appendix:default-builtins-alonzo}.%
+Section~\ref{sec:default-builtins-1}.%
 \nomenclature[Bz]{$\epsilon$}{The empty bytestring}
 
 \paragraph{Encoders and decoders.}
@@ -85,7 +85,7 @@ any other decoder which invokes it, so any failure when attempting to decode a
 particular data item in a bytestring will cause the entire decoding process to
 fail (immediately).
 
-\subsection{The CBOR format}
+\section{The CBOR format}
 A CBOR-encoded item consists of a bytestring beginning with a \textit{head}
 which occupies 1,2,3,5, or 9 bytes.  Depending on the contents of the head, some
 sequence of bytes following it may also contribute to the encoded item. The
@@ -97,7 +97,7 @@ integer or the size of a list of encoded items.  Encodings of complex objects
 may occupy the bytes following the head, and these will typically contain
 further encoded items.
 
-\subsection{Encoding and decoding the heads of CBOR items}
+\section{Encoding and decoding the heads of CBOR items}
 For $i \in \N$ we define a function $\byte_i: \N \rightarrow \B$ which returns
 the $i$-th byte of an integer, with the 0-th byte being the least significant:
 $$
@@ -180,7 +180,7 @@ with indefinite heads for a given major type:
 corresponds to the break byte and for $m \in \{0,1,6\}$ the value is not well
 formed: see~\cite[3.2.4]{rfc8949-CBOR}.
 
-\subsection{Encoding and decoding bytestrings}
+\section{Encoding and decoding bytestrings}
 The standard CBOR encoding of bytestrings encodes a bytestring as either a
 definite-length sequence of bytes (the length being given in the head) or as an
 indefinite-length sequence of definite-length ``chunks'' (see~\cite[\S\S3.1 and
@@ -268,7 +268,7 @@ output of $\eBS$ but will reject bytestring encodings containing any blocks
 greater than 64 bytes long, even if they are valid bytestring encodings
 according to the CBOR specification.
 
-\subsection{Encoding and decoding integers}
+\section{Encoding and decoding integers}
 As with bytestrings we use a specialised encoding scheme for integers which
 prohibits encodings with overly-long sequences of arbitrary data.  We encode
 integers in $\Nab{-2^{64}}{2^{64}-1}$ as normal (see ~\cite[\S
@@ -328,7 +328,7 @@ $$
 
 
 
-\subsection{Encoding and decoding \texttt{data}}
+\section{Encoding and decoding \texttt{data}}
 \label{sec:encoding-data}
 \newcommand\eData{\e_{\mathtt{data}}}
 \newcommand\eDataStar{\e_{\mathtt{data^*}}}
@@ -468,5 +468,5 @@ Note also that the encoder $\ecTag$ accepts arbitrary integer values for
 decoder $\dcTag$ only accepts tags in $\Nab{0}{2^{64}-1}$.  This
 means that some valid Plutus Core programs can be serialised but not
 deserialised, and is the reason for the recommendation in
-Section~\ref{sec:alonzo-built-in-types} that only constructor tags between 0 and
+Section~\ref{sec:built-in-types-1} that only constructor tags between 0 and
 $2^{64}-1$ should be used.

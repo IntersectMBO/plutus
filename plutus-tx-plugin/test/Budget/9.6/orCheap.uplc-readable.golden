@@ -1,0 +1,39 @@
+program
+  1.1.0
+  ((\s ->
+      s s)
+     (\s x ->
+        (\or ->
+           force
+             (case
+                x
+                [ (delay (constr 1 []))
+                , (\x xs ->
+                     delay
+                       (force
+                          (case
+                             x
+                             [(delay (constr 0 [])), (delay (or xs))]))) ]))
+          (s s))
+     (constr 1
+        [ (constr 0 [])
+        , (constr 1
+             [ (constr 1 [])
+             , (constr 1
+                  [ (constr 1 [])
+                  , (constr 1
+                       [ (constr 1 [])
+                       , (constr 1
+                            [ (constr 1 [])
+                            , (constr 1
+                                 [ (constr 1 [])
+                                 , (constr 1
+                                      [ (constr 1 [])
+                                      , (constr 1
+                                           [ (constr 1 [])
+                                           , (constr 1
+                                                [ (constr 1 [])
+                                                , (constr 1
+                                                     [ (constr 1 [])
+                                                     , (constr 0
+                                                          [  ]) ]) ]) ]) ]) ]) ]) ]) ]) ]) ]))

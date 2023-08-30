@@ -33,7 +33,7 @@ import GHC.Num.Integer
 {- HLINT ignore -}
 
 errors :: TestNested
-errors = testNested "Errors" [
+errors = testNestedGhc "Errors" [
     goldenUPlcCatch "machInt" machInt
     -- FIXME: This fails differently in nix, possibly due to slightly different optimization settings
     -- , goldenPlcCatch "negativeInt" negativeInt

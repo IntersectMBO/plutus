@@ -23,7 +23,7 @@ import PlutusTx.TH (compile)
 -- This can be interesting to make sure that important optimizations fire, including
 -- ones that run on UPLC.
 tests :: TestNested
-tests = testNested "Optimization" [
+tests = testNestedGhc "Optimization" [
    goldenUPlc "maybeFun" maybeFun ]
 
 -- The point of this test is to check that matchers get eliminated unconditionally

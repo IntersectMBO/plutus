@@ -3,6 +3,7 @@ module Test.Tasty.Extras
     , runTestNestedIn
     , runTestNested
     , testNested
+    , testNestedGhc
     , goldenVsText
     , goldenVsTextM
     , goldenVsDoc
@@ -19,7 +20,9 @@ import Control.Monad.Reader
 import Data.ByteString.Lazy qualified as BSL
 import Data.Text (Text)
 import Data.Text.Encoding (encodeUtf8)
+import Data.Version
 import System.FilePath ((</>))
+import System.Info
 import Test.Tasty
 import Test.Tasty.Golden
 
@@ -38,6 +41,12 @@ runTestNested = runTestNestedIn []
 testNested :: String -> [TestNested] -> TestNested
 testNested folderName =
     local (++ [folderName]) . fmap (testGroup folderName) . sequence
+
+-- | Like `testNested` but adds a subdirectory corresponding to the GHC version being used.
+testNestedGhc :: String -> [TestNested] -> TestNested
+testNestedGhc folderName = testNested (folderName </> ghcVer)
+  where
+    ghcVer = showVersion compilerVersion
 
 -- | Check the contents of a file against a 'Text'.
 goldenVsText :: TestName -> FilePath -> Text -> TestTree

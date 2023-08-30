@@ -1,4 +1,4 @@
-This directory containts a draft of a version of the Plutus Core specification
+This directory contains a draft of a version of the Plutus Core specification
 updated so that the language is parametric over a collection of built-in types
 and functions.  It also updates the specification to reflect the fact that
 built-in functions can now be partially applied.  Click

@@ -20,7 +20,7 @@ import Hedgehog (MonadGen, Property)
 import Hedgehog qualified
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import PlutusCore.Test (TestNested, goldenUEval, testNested)
+import PlutusCore.Test (TestNested, goldenUEval, testNestedGhc)
 import PlutusTx.Test (goldenPir)
 import Test.Tasty (TestName)
 import Test.Tasty.Hedgehog (testPropertyNamed)
@@ -46,7 +46,7 @@ roundPlc = plc (Proxy @"roundPlc") Ratio.round
 
 tests :: TestNested
 tests =
-  testNested "StdLib"
+  testNestedGhc "StdLib"
     [ goldenUEval "ratioInterop" [ getPlcNoAnn roundPlc, snd (Lift.liftProgramDef (Ratio.fromGHC 3.75)) ]
     , testRatioProperty "round" Ratio.round round
     , testRatioProperty "truncate" Ratio.truncate truncate

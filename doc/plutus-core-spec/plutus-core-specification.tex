@@ -1,7 +1,7 @@
-\documentclass[a4paper]{article}
+\documentclass[a4paper]{report}
 
 \title{Formal Specification of\\the Plutus Core Language}
-\date{11th August 2023}
+\date{August 2024}
 \author{Plutus Core Team}
 
 \input{header.tex}
@@ -34,21 +34,21 @@
   BNF-style notation, set-theoretic notation, and type theory, and that could
   maybe be rationalised a bit.}
 
+% We are using Title Case for Chapters, and Sentence Case for everything below that
+\chapter{Preliminaries}
 \input{introduction.tex}
 \input{notation.tex}
+\chapter{Untyped Plutus Core}
 \input{untyped-grammar.tex}
 \input{builtins.tex}
 \input{untyped-reduction.tex}  % Also inputs untyped-values.tex
 \input{untyped-cek-machine.tex}
-\section{Cost Accounting for Untyped Plutus Core}
+\section{Cost accounting for Untyped Plutus Core}
 To follow.
-\section{Typed Plutus Core}
+\chapter{Typed Plutus Core}
 To follow.
-
+\input{cardano/cardano.tex}
 \begin{appendices}
-\input{builtins-alonzo.tex}
-\input{builtins-vasil.tex}
-\input{builtins-future.tex}
 \input{formal-verification.tex}
 \input{data-cbor.tex}
 \input{flat-serialisation.tex}
