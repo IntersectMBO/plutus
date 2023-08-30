@@ -42,6 +42,8 @@ testCheckSc1 = testGroup "checkScriptContext1"
     , testCase "fails on 5" . assertFailed $
         compiledCodeToTerm $ mkCheckScriptContext1Code (mkScriptContext 5)
     , Tx.fitsInto "checkScriptContext1 (size)" (mkCheckScriptContext1Code (mkScriptContext 1)) 3544
+    , runTestNested $ Tx.goldenPirReadable "checkScriptContext1" $
+        mkCheckScriptContext1Code (mkScriptContext 1)
     , runTestNested $ Tx.goldenBudget "checkScriptContext1-4" $
         mkCheckScriptContext1Code (mkScriptContext 4)
     , runTestNested $ Tx.goldenBudget "checkScriptContext1-20" $
@@ -55,6 +57,8 @@ testCheckSc2 = testGroup "checkScriptContext2"
     , testCase "succeed on 5" . assertSucceeded $
           compiledCodeToTerm $ mkCheckScriptContext2Code (mkScriptContext 5)
     , Tx.fitsInto "checkScriptContext2 (size)" (mkCheckScriptContext2Code (mkScriptContext 1)) 3475
+    , runTestNested $ Tx.goldenPirReadable "checkScriptContext2" $
+          mkCheckScriptContext2Code (mkScriptContext 1)
     , runTestNested $ Tx.goldenBudget "checkScriptContext2-4" $
           mkCheckScriptContext2Code (mkScriptContext 4)
     , runTestNested $ Tx.goldenBudget "checkScriptContext2-20" $

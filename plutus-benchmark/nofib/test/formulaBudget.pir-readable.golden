@@ -1,0 +1,929 @@
+(let
+    data Unit | Unit_match where
+      Unit : Unit
+    data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
+      Tuple2 : a -> b -> Tuple2 a b
+  in
+  letrec
+    data (List :: * -> *) a | Nil_match where
+      Nil : List a
+      Cons : a -> List a -> List a
+  in
+  let
+    !fail : unit -> Tuple2 (List integer) (List integer)
+      = \(ds : unit) ->
+          Unit_match
+            (error {Unit})
+            {Tuple2 (List integer) (List integer)}
+            (error {Tuple2 (List integer) (List integer)})
+    ~defaultBody : Tuple2 (List integer) (List integer) = fail ()
+    ~defaultBody : Tuple2 (List integer) (List integer) = fail ()
+    data Ordering | Ordering_match where
+      EQ : Ordering
+      GT : Ordering
+      LT : Ordering
+    data Bool | Bool_match where
+      True : Bool
+      False : Bool
+    data (Ord :: * -> *) a | Ord_match where
+      CConsOrd :
+        (\a -> a -> a -> Bool) a ->
+        (a -> a -> Ordering) ->
+        (a -> a -> Bool) ->
+        (a -> a -> Bool) ->
+        (a -> a -> Bool) ->
+        (a -> a -> Bool) ->
+        (a -> a -> a) ->
+        (a -> a -> a) ->
+        Ord a
+    !equalsInteger : integer -> integer -> Bool
+      = \(x : integer) (y : integer) ->
+          ifThenElse {Bool} (equalsInteger x y) True False
+    ~`$fOrdInteger` : Ord integer
+      = CConsOrd
+          {integer}
+          equalsInteger
+          (\(eta : integer) (eta : integer) ->
+             Bool_match
+               (ifThenElse {Bool} (equalsInteger eta eta) True False)
+               {all dead. Ordering}
+               (/\dead -> EQ)
+               (/\dead ->
+                  Bool_match
+                    (ifThenElse
+                       {Bool}
+                       (lessThanEqualsInteger eta eta)
+                       True
+                       False)
+                    {all dead. Ordering}
+                    (/\dead -> LT)
+                    (/\dead -> GT)
+                    {all dead. dead})
+               {all dead. dead})
+          (\(x : integer) (y : integer) ->
+             ifThenElse {Bool} (lessThanInteger x y) True False)
+          (\(x : integer) (y : integer) ->
+             ifThenElse {Bool} (lessThanEqualsInteger x y) True False)
+          (\(x : integer) (y : integer) ->
+             ifThenElse {Bool} (lessThanEqualsInteger x y) False True)
+          (\(x : integer) (y : integer) ->
+             ifThenElse {Bool} (lessThanInteger x y) False True)
+          (\(x : integer) (y : integer) ->
+             Bool_match
+               (ifThenElse {Bool} (lessThanEqualsInteger x y) True False)
+               {all dead. integer}
+               (/\dead -> y)
+               (/\dead -> x)
+               {all dead. dead})
+          (\(x : integer) (y : integer) ->
+             Bool_match
+               (ifThenElse {Bool} (lessThanEqualsInteger x y) True False)
+               {all dead. integer}
+               (/\dead -> x)
+               (/\dead -> y)
+               {all dead. dead})
+  in
+  letrec
+    data Formula | Formula_match where
+      Con : Formula -> Formula -> Formula
+      Dis : Formula -> Formula -> Formula
+      Eqv : Formula -> Formula -> Formula
+      Imp : Formula -> Formula -> Formula
+      Not : Formula -> Formula
+      Sym : integer -> Formula
+  in
+  letrec
+    !insert : all t. Ord t -> t -> List t -> List t
+      = /\t ->
+          \(`$dOrd` : Ord t) (x : t) (ds : List t) ->
+            Nil_match
+              {t}
+              ds
+              {all dead. List t}
+              (/\dead ->
+                 (let
+                     a = List t
+                   in
+                   \(c : t -> a -> a) (n : a) -> c x n)
+                   (\(ds : t) (ds : List t) -> Cons {t} ds ds)
+                   (Nil {t}))
+              (\(y : t) (ys : List t) ->
+                 /\dead ->
+                   Bool_match
+                     (Ord_match
+                        {t}
+                        `$dOrd`
+                        {t -> t -> Bool}
+                        (\(v : (\a -> a -> a -> Bool) t)
+                          (v : t -> t -> Ordering)
+                          (v : t -> t -> Bool)
+                          (v : t -> t -> Bool)
+                          (v : t -> t -> Bool)
+                          (v : t -> t -> Bool)
+                          (v : t -> t -> t)
+                          (v : t -> t -> t) ->
+                           v)
+                        x
+                        y)
+                     {all dead. List t}
+                     (/\dead -> Cons {t} x ds)
+                     (/\dead ->
+                        Bool_match
+                          (Ord_match
+                             {t}
+                             `$dOrd`
+                             {t -> t -> Bool}
+                             (\(v : (\a -> a -> a -> Bool) t)
+                               (v : t -> t -> Ordering)
+                               (v : t -> t -> Bool)
+                               (v : t -> t -> Bool)
+                               (v : t -> t -> Bool)
+                               (v : t -> t -> Bool)
+                               (v : t -> t -> t)
+                               (v : t -> t -> t) ->
+                                v)
+                             x
+                             y)
+                          {all dead. List t}
+                          (/\dead -> Cons {t} y (insert {t} `$dOrd` x ys))
+                          (/\dead -> ds)
+                          {all dead. dead})
+                     {all dead. dead})
+              {all dead. dead}
+  in
+  letrec
+    !clause' :
+       Formula ->
+       Tuple2 (List integer) (List integer) ->
+       Tuple2 (List integer) (List integer)
+      = \(ds : Formula) (x : Tuple2 (List integer) (List integer)) ->
+          Formula_match
+            ds
+            {Tuple2 (List integer) (List integer)}
+            (\(default_arg0 : Formula) (default_arg1 : Formula) -> defaultBody)
+            (\(p : Formula) (q : Formula) -> clause' p (clause' q x))
+            (\(default_arg0 : Formula) (default_arg1 : Formula) -> defaultBody)
+            (\(default_arg0 : Formula) (default_arg1 : Formula) -> defaultBody)
+            (\(ds : Formula) ->
+               Formula_match
+                 ds
+                 {Tuple2 (List integer) (List integer)}
+                 (\(default_arg0 : Formula) (default_arg1 : Formula) ->
+                    defaultBody)
+                 (\(default_arg0 : Formula) (default_arg1 : Formula) ->
+                    defaultBody)
+                 (\(default_arg0 : Formula) (default_arg1 : Formula) ->
+                    defaultBody)
+                 (\(default_arg0 : Formula) (default_arg1 : Formula) ->
+                    defaultBody)
+                 (\(default_arg0 : Formula) -> defaultBody)
+                 (\(s : integer) ->
+                    Tuple2_match
+                      {List integer}
+                      {List integer}
+                      x
+                      {Tuple2 (List integer) (List integer)}
+                      (\(c : List integer) (a : List integer) ->
+                         Tuple2
+                           {List integer}
+                           {List integer}
+                           c
+                           (insert {integer} `$fOrdInteger` s a))))
+            (\(s : integer) ->
+               Tuple2_match
+                 {List integer}
+                 {List integer}
+                 x
+                 {Tuple2 (List integer) (List integer)}
+                 (\(c : List integer) (a : List integer) ->
+                    Tuple2
+                      {List integer}
+                      {List integer}
+                      (insert {integer} `$fOrdInteger` s c)
+                      a))
+  in
+  let
+    !`$p1Ord` : all a. Ord a -> (\a -> a -> a -> Bool) a
+      = /\a ->
+          \(v : Ord a) ->
+            Ord_match
+              {a}
+              v
+              {(\a -> a -> a -> Bool) a}
+              (\(v : (\a -> a -> a -> Bool) a)
+                (v : a -> a -> Ordering)
+                (v : a -> a -> Bool)
+                (v : a -> a -> Bool)
+                (v : a -> a -> Bool)
+                (v : a -> a -> Bool)
+                (v : a -> a -> a)
+                (v : a -> a -> a) ->
+                 v)
+    !compare : all a. Ord a -> a -> a -> Ordering
+      = /\a ->
+          \(v : Ord a) ->
+            Ord_match
+              {a}
+              v
+              {a -> a -> Ordering}
+              (\(v : (\a -> a -> a -> Bool) a)
+                (v : a -> a -> Ordering)
+                (v : a -> a -> Bool)
+                (v : a -> a -> Bool)
+                (v : a -> a -> Bool)
+                (v : a -> a -> Bool)
+                (v : a -> a -> a)
+                (v : a -> a -> a) ->
+                 v)
+  in
+  letrec
+    !`$fOrdNil_$ccompare` : all a. Ord a -> List a -> List a -> Ordering
+      = /\a ->
+          \(`$dOrd` : Ord a) (ds : List a) (ds : List a) ->
+            Nil_match
+              {a}
+              ds
+              {all dead. Ordering}
+              (/\dead ->
+                 Nil_match
+                   {a}
+                   ds
+                   {all dead. Ordering}
+                   (/\dead -> EQ)
+                   (\(ds : a) (ds : List a) -> /\dead -> LT)
+                   {all dead. dead})
+              (\(ds : a) (ds : List a) ->
+                 /\dead ->
+                   Nil_match
+                     {a}
+                     ds
+                     {all dead. Ordering}
+                     (/\dead -> GT)
+                     (\(y : a) ->
+                        let
+                          ~defaultBody : Ordering = compare {a} `$dOrd` ds y
+                        in
+                        \(ys : List a) ->
+                          /\dead ->
+                            Ordering_match
+                              (compare {a} `$dOrd` ds y)
+                              {all dead. Ordering}
+                              (/\dead -> `$fOrdNil_$ccompare` {a} `$dOrd` ds ys)
+                              (/\dead -> defaultBody)
+                              (/\dead -> defaultBody)
+                              {all dead. dead})
+                     {all dead. dead})
+              {all dead. dead}
+  in
+  letrec
+    !`$fEqNil_$c==` :
+       all a. (\a -> a -> a -> Bool) a -> List a -> List a -> Bool
+      = /\a ->
+          \(`$dEq` : (\a -> a -> a -> Bool) a) (eta : List a) (eta : List a) ->
+            Nil_match
+              {a}
+              eta
+              {all dead. Bool}
+              (/\dead ->
+                 Nil_match
+                   {a}
+                   eta
+                   {all dead. Bool}
+                   (/\dead -> True)
+                   (\(ipv : a) (ipv : List a) -> /\dead -> False)
+                   {all dead. dead})
+              (\(x : a) (xs : List a) ->
+                 /\dead ->
+                   Nil_match
+                     {a}
+                     eta
+                     {all dead. Bool}
+                     (/\dead -> False)
+                     (\(y : a) (ys : List a) ->
+                        /\dead ->
+                          Bool_match
+                            (`$dEq` x y)
+                            {all dead. Bool}
+                            (/\dead -> `$fEqNil_$c==` {a} `$dEq` xs ys)
+                            (/\dead -> False)
+                            {all dead. dead})
+                     {all dead. dead})
+              {all dead. dead}
+  in
+  let
+    ~`$dOrd` : Ord (List integer)
+      = let
+        !v : Ord integer = `$fOrdInteger`
+      in
+      CConsOrd
+        {List integer}
+        (\(eta : List integer) (eta : List integer) ->
+           `$fEqNil_$c==` {integer} (`$p1Ord` {integer} v) eta eta)
+        (`$fOrdNil_$ccompare` {integer} v)
+        (\(x : List integer) (y : List integer) ->
+           Ordering_match
+             (`$fOrdNil_$ccompare` {integer} v x y)
+             {all dead. Bool}
+             (/\dead -> False)
+             (/\dead -> False)
+             (/\dead -> True)
+             {all dead. dead})
+        (\(x : List integer) (y : List integer) ->
+           Ordering_match
+             (`$fOrdNil_$ccompare` {integer} v x y)
+             {all dead. Bool}
+             (/\dead -> True)
+             (/\dead -> False)
+             (/\dead -> True)
+             {all dead. dead})
+        (\(x : List integer) (y : List integer) ->
+           Ordering_match
+             (`$fOrdNil_$ccompare` {integer} v x y)
+             {all dead. Bool}
+             (/\dead -> False)
+             (/\dead -> True)
+             (/\dead -> False)
+             {all dead. dead})
+        (\(x : List integer) (y : List integer) ->
+           Ordering_match
+             (`$fOrdNil_$ccompare` {integer} v x y)
+             {all dead. Bool}
+             (/\dead -> True)
+             (/\dead -> True)
+             (/\dead -> False)
+             {all dead. dead})
+        (\(x : List integer) (y : List integer) ->
+           Ordering_match
+             (`$fOrdNil_$ccompare` {integer} v x y)
+             {all dead. List integer}
+             (/\dead -> y)
+             (/\dead -> x)
+             (/\dead -> y)
+             {all dead. dead})
+        (\(x : List integer) (y : List integer) ->
+           Ordering_match
+             (`$fOrdNil_$ccompare` {integer} v x y)
+             {all dead. List integer}
+             (/\dead -> x)
+             (/\dead -> y)
+             (/\dead -> x)
+             {all dead. dead})
+  in
+  letrec
+    !go : List Formula -> List (Tuple2 (List integer) (List integer))
+      = \(ds : List Formula) ->
+          Nil_match
+            {Formula}
+            ds
+            {all dead. List (Tuple2 (List integer) (List integer))}
+            (/\dead -> Nil {Tuple2 (List integer) (List integer)})
+            (\(x : Formula) ->
+               let
+                 ~cp : Tuple2 (List integer) (List integer)
+                   = clause'
+                       x
+                       (Tuple2
+                          {List integer}
+                          {List integer}
+                          (Nil {integer})
+                          (Nil {integer}))
+               in
+               \(xs : List Formula) ->
+                 /\dead ->
+                   Bool_match
+                     (let
+                       !ds : Tuple2 (List integer) (List integer) = cp
+                     in
+                     Tuple2_match
+                       {List integer}
+                       {List integer}
+                       ds
+                       {Bool}
+                       (\(c : List integer) (a : List integer) ->
+                          Bool_match
+                            (`$fEqNil_$c==`
+                               {integer}
+                               equalsInteger
+                               ((let
+                                    a = List integer
+                                  in
+                                  \(c : integer -> a -> a) (n : a) ->
+                                    letrec
+                                      !go : List integer -> a
+                                        = \(ds : List integer) ->
+                                            Nil_match
+                                              {integer}
+                                              ds
+                                              {all dead. a}
+                                              (/\dead -> n)
+                                              (\(y : integer) ->
+                                                 letrec
+                                                   !go : List integer -> Bool
+                                                     = \(ds : List integer) ->
+                                                         Nil_match
+                                                           {integer}
+                                                           ds
+                                                           {all dead. Bool}
+                                                           (/\dead -> False)
+                                                           (\(x : integer)
+                                                             (xs :
+                                                                List integer) ->
+                                                              /\dead ->
+                                                                Bool_match
+                                                                  (equalsInteger
+                                                                     y
+                                                                     x)
+                                                                  {all dead.
+                                                                     Bool}
+                                                                  (/\dead ->
+                                                                     True)
+                                                                  (/\dead ->
+                                                                     go xs)
+                                                                  {all dead.
+                                                                     dead})
+                                                           {all dead. dead}
+                                                 in
+                                                 \(ys : List integer) ->
+                                                   /\dead ->
+                                                     let
+                                                       !ds : a = go ys
+                                                     in
+                                                     Bool_match
+                                                       (go a)
+                                                       {all dead. a}
+                                                       (/\dead -> c y ds)
+                                                       (/\dead -> ds)
+                                                       {all dead. dead})
+                                              {all dead. dead}
+                                    in
+                                    go c)
+                                  (\(ds : integer) (ds : List integer) ->
+                                     Cons {integer} ds ds)
+                                  (Nil {integer}))
+                               (Nil {integer}))
+                            {all dead. Bool}
+                            (/\dead -> False)
+                            (/\dead -> True)
+                            {all dead. dead}))
+                     {all dead. List (Tuple2 (List integer) (List integer))}
+                     (/\dead -> go xs)
+                     (/\dead ->
+                        insert
+                          {Tuple2 (List integer) (List integer)}
+                          ((let
+                               a = List integer
+                             in
+                             /\b ->
+                               \(v : Ord a) (v : Ord b) ->
+                                 CConsOrd
+                                   {Tuple2 a b}
+                                   (\(eta : Tuple2 a b) (eta : Tuple2 a b) ->
+                                      Tuple2_match
+                                        {a}
+                                        {b}
+                                        eta
+                                        {Bool}
+                                        (\(a : a) (b : b) ->
+                                           Tuple2_match
+                                             {a}
+                                             {b}
+                                             eta
+                                             {Bool}
+                                             (\(a' : a) (b' : b) ->
+                                                Bool_match
+                                                  (`$p1Ord` {a} v a a')
+                                                  {all dead. Bool}
+                                                  (/\dead ->
+                                                     `$p1Ord` {b} v b b')
+                                                  (/\dead -> False)
+                                                  {all dead. dead})))
+                                   (\(ds : Tuple2 a b) (ds : Tuple2 a b) ->
+                                      Tuple2_match
+                                        {a}
+                                        {b}
+                                        ds
+                                        {Ordering}
+                                        (\(a : a) (b : b) ->
+                                           Tuple2_match
+                                             {a}
+                                             {b}
+                                             ds
+                                             {Ordering}
+                                             (\(a' : a) ->
+                                                let
+                                                  ~defaultBody : Ordering
+                                                    = compare {a} v a a'
+                                                in
+                                                \(b' : b) ->
+                                                  Ordering_match
+                                                    (compare {a} v a a')
+                                                    {all dead. Ordering}
+                                                    (/\dead ->
+                                                       compare {b} v b b')
+                                                    (/\dead -> defaultBody)
+                                                    (/\dead -> defaultBody)
+                                                    {all dead. dead})))
+                                   (\(w : Tuple2 a b) (w : Tuple2 a b) ->
+                                      Tuple2_match
+                                        {a}
+                                        {b}
+                                        w
+                                        {Bool}
+                                        (\(ww : a) (ww : b) ->
+                                           Tuple2_match
+                                             {a}
+                                             {b}
+                                             w
+                                             {Bool}
+                                             (\(ww : a) (ww : b) ->
+                                                Ordering_match
+                                                  (compare {a} v ww ww)
+                                                  {all dead. Bool}
+                                                  (/\dead ->
+                                                     Ordering_match
+                                                       (compare {b} v ww ww)
+                                                       {all dead. Bool}
+                                                       (/\dead -> False)
+                                                       (/\dead -> False)
+                                                       (/\dead -> True)
+                                                       {all dead. dead})
+                                                  (/\dead -> False)
+                                                  (/\dead -> True)
+                                                  {all dead. dead})))
+                                   (\(w : Tuple2 a b) (w : Tuple2 a b) ->
+                                      Tuple2_match
+                                        {a}
+                                        {b}
+                                        w
+                                        {Bool}
+                                        (\(ww : a) (ww : b) ->
+                                           Tuple2_match
+                                             {a}
+                                             {b}
+                                             w
+                                             {Bool}
+                                             (\(ww : a) (ww : b) ->
+                                                Ordering_match
+                                                  (compare {a} v ww ww)
+                                                  {all dead. Bool}
+                                                  (/\dead ->
+                                                     Ordering_match
+                                                       (compare {b} v ww ww)
+                                                       {all dead. Bool}
+                                                       (/\dead -> True)
+                                                       (/\dead -> False)
+                                                       (/\dead -> True)
+                                                       {all dead. dead})
+                                                  (/\dead -> False)
+                                                  (/\dead -> True)
+                                                  {all dead. dead})))
+                                   (\(w : Tuple2 a b) (w : Tuple2 a b) ->
+                                      Tuple2_match
+                                        {a}
+                                        {b}
+                                        w
+                                        {Bool}
+                                        (\(ww : a) (ww : b) ->
+                                           Tuple2_match
+                                             {a}
+                                             {b}
+                                             w
+                                             {Bool}
+                                             (\(ww : a) (ww : b) ->
+                                                Ordering_match
+                                                  (compare {a} v ww ww)
+                                                  {all dead. Bool}
+                                                  (/\dead ->
+                                                     Ordering_match
+                                                       (compare {b} v ww ww)
+                                                       {all dead. Bool}
+                                                       (/\dead -> False)
+                                                       (/\dead -> True)
+                                                       (/\dead -> False)
+                                                       {all dead. dead})
+                                                  (/\dead -> True)
+                                                  (/\dead -> False)
+                                                  {all dead. dead})))
+                                   (\(w : Tuple2 a b) (w : Tuple2 a b) ->
+                                      Tuple2_match
+                                        {a}
+                                        {b}
+                                        w
+                                        {Bool}
+                                        (\(ww : a) (ww : b) ->
+                                           Tuple2_match
+                                             {a}
+                                             {b}
+                                             w
+                                             {Bool}
+                                             (\(ww : a) (ww : b) ->
+                                                Ordering_match
+                                                  (compare {a} v ww ww)
+                                                  {all dead. Bool}
+                                                  (/\dead ->
+                                                     Ordering_match
+                                                       (compare {b} v ww ww)
+                                                       {all dead. Bool}
+                                                       (/\dead -> True)
+                                                       (/\dead -> True)
+                                                       (/\dead -> False)
+                                                       {all dead. dead})
+                                                  (/\dead -> True)
+                                                  (/\dead -> False)
+                                                  {all dead. dead})))
+                                   (\(w : Tuple2 a b) (w : Tuple2 a b) ->
+                                      Tuple2_match
+                                        {a}
+                                        {b}
+                                        w
+                                        {Tuple2 a b}
+                                        (\(ww : a) (ww : b) ->
+                                           Tuple2_match
+                                             {a}
+                                             {b}
+                                             w
+                                             {Tuple2 a b}
+                                             (\(ww : a) (ww : b) ->
+                                                let
+                                                  ~defaultBody : Tuple2 a b
+                                                    = Tuple2 {a} {b} ww ww
+                                                in
+                                                Ordering_match
+                                                  (compare {a} v ww ww)
+                                                  {all dead. Tuple2 a b}
+                                                  (/\dead ->
+                                                     Ordering_match
+                                                       (compare {b} v ww ww)
+                                                       {all dead. Tuple2 a b}
+                                                       (/\dead -> defaultBody)
+                                                       (/\dead ->
+                                                          Tuple2 {a} {b} ww ww)
+                                                       (/\dead -> defaultBody)
+                                                       {all dead. dead})
+                                                  (/\dead ->
+                                                     Tuple2 {a} {b} ww ww)
+                                                  (/\dead ->
+                                                     Tuple2 {a} {b} ww ww)
+                                                  {all dead. dead})))
+                                   (\(w : Tuple2 a b) (w : Tuple2 a b) ->
+                                      Tuple2_match
+                                        {a}
+                                        {b}
+                                        w
+                                        {Tuple2 a b}
+                                        (\(ww : a) (ww : b) ->
+                                           let
+                                             ~defaultBody : Tuple2 a b
+                                               = Tuple2 {a} {b} ww ww
+                                           in
+                                           Tuple2_match
+                                             {a}
+                                             {b}
+                                             w
+                                             {Tuple2 a b}
+                                             (\(ww : a) (ww : b) ->
+                                                Ordering_match
+                                                  (compare {a} v ww ww)
+                                                  {all dead. Tuple2 a b}
+                                                  (/\dead ->
+                                                     Ordering_match
+                                                       (compare {b} v ww ww)
+                                                       {all dead. Tuple2 a b}
+                                                       (/\dead -> defaultBody)
+                                                       (/\dead ->
+                                                          Tuple2 {a} {b} ww ww)
+                                                       (/\dead -> defaultBody)
+                                                       {all dead. dead})
+                                                  (/\dead ->
+                                                     Tuple2 {a} {b} ww ww)
+                                                  (/\dead ->
+                                                     Tuple2 {a} {b} ww ww)
+                                                  {all dead. dead}))))
+                             {List integer}
+                             `$dOrd`
+                             `$dOrd`)
+                          cp
+                          (go xs))
+                     {all dead. dead})
+            {all dead. dead}
+  in
+  letrec
+    !split' : Formula -> List Formula -> List Formula
+      = \(ds : Formula) (a : List Formula) ->
+          let
+            ~defaultBody : List Formula = Cons {Formula} ds a
+          in
+          Formula_match
+            ds
+            {List Formula}
+            (\(p : Formula) (q : Formula) -> split' p (split' q a))
+            (\(default_arg0 : Formula) (default_arg1 : Formula) -> defaultBody)
+            (\(default_arg0 : Formula) (default_arg1 : Formula) -> defaultBody)
+            (\(default_arg0 : Formula) (default_arg1 : Formula) -> defaultBody)
+            (\(default_arg0 : Formula) -> defaultBody)
+            (\(default_arg0 : integer) -> defaultBody)
+  in
+  letrec
+    !disin : Formula -> Formula
+      = \(ds : Formula) ->
+          Formula_match
+            ds
+            {Formula}
+            (\(p : Formula) (q : Formula) -> Con (disin p) (disin q))
+            (\(p : Formula) ->
+               let
+                 ~dp : Formula = disin p
+               in
+               \(ds : Formula) ->
+                 let
+                   ~dq : Formula = disin ds
+                   ~defaultBody : Formula
+                     = Bool_match
+                         (Bool_match
+                            (Formula_match
+                               dp
+                               {Bool}
+                               (\(ds : Formula) (ds : Formula) -> True)
+                               (\(default_arg0 : Formula)
+                                 (default_arg1 : Formula) ->
+                                  False)
+                               (\(default_arg0 : Formula)
+                                 (default_arg1 : Formula) ->
+                                  False)
+                               (\(default_arg0 : Formula)
+                                 (default_arg1 : Formula) ->
+                                  False)
+                               (\(default_arg0 : Formula) -> False)
+                               (\(default_arg0 : integer) -> False))
+                            {all dead. Bool}
+                            (/\dead -> True)
+                            (/\dead ->
+                               Formula_match
+                                 dq
+                                 {Bool}
+                                 (\(ds : Formula) (ds : Formula) -> True)
+                                 (\(default_arg0 : Formula)
+                                   (default_arg1 : Formula) ->
+                                    False)
+                                 (\(default_arg0 : Formula)
+                                   (default_arg1 : Formula) ->
+                                    False)
+                                 (\(default_arg0 : Formula)
+                                   (default_arg1 : Formula) ->
+                                    False)
+                                 (\(default_arg0 : Formula) -> False)
+                                 (\(default_arg0 : integer) -> False))
+                            {all dead. dead})
+                         {all dead. Formula}
+                         (/\dead -> disin (Dis dp dq))
+                         (/\dead -> Dis dp dq)
+                         {all dead. dead}
+                   ~defaultBody : Formula
+                     = Formula_match
+                         p
+                         {Formula}
+                         (\(p : Formula) (q : Formula) ->
+                            Con (disin (Dis p ds)) (disin (Dis q ds)))
+                         (\(default_arg0 : Formula) (default_arg1 : Formula) ->
+                            defaultBody)
+                         (\(default_arg0 : Formula) (default_arg1 : Formula) ->
+                            defaultBody)
+                         (\(default_arg0 : Formula) (default_arg1 : Formula) ->
+                            defaultBody)
+                         (\(default_arg0 : Formula) -> defaultBody)
+                         (\(default_arg0 : integer) -> defaultBody)
+                 in
+                 Formula_match
+                   ds
+                   {Formula}
+                   (\(q : Formula) (r : Formula) ->
+                      Con (disin (Dis p q)) (disin (Dis p r)))
+                   (\(default_arg0 : Formula) (default_arg1 : Formula) ->
+                      defaultBody)
+                   (\(default_arg0 : Formula) (default_arg1 : Formula) ->
+                      defaultBody)
+                   (\(default_arg0 : Formula) (default_arg1 : Formula) ->
+                      defaultBody)
+                   (\(default_arg0 : Formula) -> defaultBody)
+                   (\(default_arg0 : integer) -> defaultBody))
+            (\(default_arg0 : Formula) (default_arg1 : Formula) -> ds)
+            (\(default_arg0 : Formula) (default_arg1 : Formula) -> ds)
+            (\(default_arg0 : Formula) -> ds)
+            (\(default_arg0 : integer) -> ds)
+  in
+  letrec
+    !elim : Formula -> Formula
+      = \(ds : Formula) ->
+          Formula_match
+            ds
+            {Formula}
+            (\(p : Formula) (q : Formula) -> Con (elim p) (elim q))
+            (\(p : Formula) (q : Formula) -> Dis (elim p) (elim q))
+            (\(f : Formula) (f' : Formula) ->
+               Con (elim (Imp f f')) (elim (Imp f' f)))
+            (\(p : Formula) (q : Formula) -> Dis (Not (elim p)) (elim q))
+            (\(p : Formula) -> Not (elim p))
+            (\(s : integer) -> Sym s)
+  in
+  let
+    data StaticFormula | StaticFormula_match where
+      F : StaticFormula
+      F : StaticFormula
+      F : StaticFormula
+      F : StaticFormula
+      F : StaticFormula
+      F : StaticFormula
+      F : StaticFormula
+  in
+  letrec
+    !negin : Formula -> Formula
+      = \(ds : Formula) ->
+          Formula_match
+            ds
+            {Formula}
+            (\(p : Formula) (q : Formula) -> Con (negin p) (negin q))
+            (\(p : Formula) (q : Formula) -> Dis (negin p) (negin q))
+            (\(default_arg0 : Formula) (default_arg1 : Formula) -> ds)
+            (\(default_arg0 : Formula) (default_arg1 : Formula) -> ds)
+            (\(ds : Formula) ->
+               Formula_match
+                 ds
+                 {Formula}
+                 (\(p : Formula) (q : Formula) ->
+                    Dis (negin (Not p)) (negin (Not q)))
+                 (\(p : Formula) (q : Formula) ->
+                    Con (negin (Not p)) (negin (Not q)))
+                 (\(default_arg0 : Formula) (default_arg1 : Formula) -> ds)
+                 (\(default_arg0 : Formula) (default_arg1 : Formula) -> ds)
+                 (\(p : Formula) -> negin p)
+                 (\(default_arg0 : integer) -> ds))
+            (\(default_arg0 : integer) -> ds)
+  in
+  \(x : StaticFormula) ->
+    let
+      !a : List Formula
+        = let
+          !p : Formula
+            = disin
+                (negin
+                   (elim
+                      (StaticFormula_match
+                         x
+                         {all dead. Formula}
+                         (/\dead ->
+                            Eqv
+                              (Eqv (Sym 1) (Sym 1))
+                              (Eqv (Eqv (Sym 1) (Sym 1)) (Eqv (Sym 1) (Sym 1))))
+                         (/\dead ->
+                            Eqv
+                              (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
+                              (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1))))
+                         (/\dead ->
+                            Eqv
+                              (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
+                              (Eqv (Eqv (Sym 1) (Sym 1)) (Eqv (Sym 1) (Sym 1))))
+                         (/\dead ->
+                            Eqv
+                              (Eqv (Sym 1) (Eqv (Sym 2) (Sym 3)))
+                              (Eqv (Eqv (Sym 4) (Sym 5)) (Eqv (Sym 6) (Sym 7))))
+                         (/\dead ->
+                            Eqv
+                              (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
+                              (Eqv
+                                 (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
+                                 (Eqv (Sym 1) (Sym 1))))
+                         (/\dead ->
+                            Eqv
+                              (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
+                              (Eqv
+                                 (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
+                                 (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))))
+                         (/\dead ->
+                            Eqv
+                              (Eqv (Sym 1) (Eqv (Sym 2) (Sym 3)))
+                              (Eqv
+                                 (Eqv (Sym 4) (Eqv (Sym 5) (Sym 6)))
+                                 (Eqv (Sym 7) (Eqv (Sym 8) (Sym 9)))))
+                         {all dead. dead})))
+        in
+        split' p (Nil {Formula})
+    in
+    go a)
+  (let
+    data `PlutusBenchmark.NoFib.Clausify.StaticFormula` | `match_PlutusBenchmark.NoFib.Clausify.StaticFormula` where
+      `PlutusBenchmark.NoFib.Clausify.F1` :
+        `PlutusBenchmark.NoFib.Clausify.StaticFormula`
+      `PlutusBenchmark.NoFib.Clausify.F2` :
+        `PlutusBenchmark.NoFib.Clausify.StaticFormula`
+      `PlutusBenchmark.NoFib.Clausify.F3` :
+        `PlutusBenchmark.NoFib.Clausify.StaticFormula`
+      `PlutusBenchmark.NoFib.Clausify.F4` :
+        `PlutusBenchmark.NoFib.Clausify.StaticFormula`
+      `PlutusBenchmark.NoFib.Clausify.F5` :
+        `PlutusBenchmark.NoFib.Clausify.StaticFormula`
+      `PlutusBenchmark.NoFib.Clausify.F6` :
+        `PlutusBenchmark.NoFib.Clausify.StaticFormula`
+      `PlutusBenchmark.NoFib.Clausify.F7` :
+        `PlutusBenchmark.NoFib.Clausify.StaticFormula`
+  in
+  `PlutusBenchmark.NoFib.Clausify.F1`)
