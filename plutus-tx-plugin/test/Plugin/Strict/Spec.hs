@@ -33,6 +33,10 @@ strict = testNestedGhc "Strict" [
   , goldenPirReadable "strictList" strictList
   , goldenPirReadable "strictData" strictData
   , goldenPirReadable "issue4645" issue4645
+  -- TODO: the Cek log of this test case is currently incorrect as it doesn't preserve
+  -- the order of logging, which it should do given the `conservative-optimisation` flag.
+  -- Both GHC and ourselves are culprits in this instance, see
+  -- https://github.com/input-output-hk/plutus/pull/5371#discussion_r1285087508
   , goldenEvalCekLog "issue4645" [ issue4645 ]
   ]
 
