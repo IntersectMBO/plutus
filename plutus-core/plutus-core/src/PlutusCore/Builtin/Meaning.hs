@@ -103,7 +103,8 @@ typeOfBuiltinFunction semvar fun =
     case toBuiltinMeaning @_ @_ @(Term TyName Name uni fun ()) semvar fun of
         BuiltinMeaning sch _ _ -> typeSchemeToType sch
 
-{- Note [Builtin semantics variants] The purpose of the "builtin semantics
+{- Note [Builtin semantics variants] 
+The purpose of the "builtin semantics
 variant" feature is to provide multiple, different denotations (implementations)
 for the same builtin(s).  An example use of this feature is for "fixing" the
 behaviour of `ConsByteString` builtin to throw an error instead of overflowing
