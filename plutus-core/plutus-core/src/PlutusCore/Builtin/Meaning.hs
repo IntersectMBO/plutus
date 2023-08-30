@@ -103,19 +103,17 @@ typeOfBuiltinFunction semvar fun =
     case toBuiltinMeaning @_ @_ @(Term TyName Name uni fun ()) semvar fun of
         BuiltinMeaning sch _ _ -> typeSchemeToType sch
 
-{- Note [Builtin semantics variants] 
-The purpose of the "builtin semantics
-variant" feature is to provide multiple, different denotations (implementations)
-for the same builtin(s).  An example use of this feature is for "fixing" the
-behaviour of `ConsByteString` builtin to throw an error instead of overflowing
-its first argument.
+{- Note [Builtin semantics variants]
+The purpose of the "builtin semantics variant" feature is to provide multiple,
+different denotations (implementations) for the same builtin(s).  An example use
+of this feature is for "fixing" the behaviour of `ConsByteString` builtin to
+throw an error instead of overflowing its first argument.
 
-One denotation from each builtin is grouped into a
-'BuiltinSemanticsVariant'. Each Plutus Language version is linked to a specific
-'BuiltinSemanticsVariant' (done by plutus-ledger-api); e.g. plutus-v1 and
-plutus-v2 are linked to 'DefaultFunSemanticsVariant1', whereas plutus-v3 changes
-the set of denotations to 'DefaultFunSemanticsVariant2' (thus fixing
-'ConsByteString').
+One denotation from each builtin is grouped into a 'BuiltinSemanticsVariant'.
+Each Plutus Language version is linked to a specific 'BuiltinSemanticsVariant'
+(done by plutus-ledger-api); e.g. plutus-v1 and plutus-v2 are linked to
+'DefaultFunSemanticsVariant1', whereas plutus-v3 changes the set of denotations
+to 'DefaultFunSemanticsVariant2' (thus fixing 'ConsByteString').
 
 Each 'BuiltinSemanticsVariant' (grouping) can change the denotation of one or
 more builtins --- or none, but what's the point in that?
