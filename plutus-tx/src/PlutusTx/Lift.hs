@@ -197,14 +197,14 @@ typeCheckAgainst p (PLC.Program _ v plcTerm) = do
         ty <- Lift.typeRep p
         pure $ TyInst () PLC.idFun ty
     let applied = Apply () idFun term
-    -- Here we use a 'Default' builtin version, because the typechecker needs
-    -- to be handed a builtin version (implementation detail).
-    -- See Note [Versioned builtins]
+    -- Here we use a 'Default' builtin semantics variant, because the
+    -- typechecker needs to be handed a builtin semantics variant (implementation detail).
+    -- See Note [Builtin semantics variants]
     tcConfig <- PLC.getDefTypeCheckConfig (Original ())
-    -- The PIR compiler *pointfully* needs a builtin version, but in this instance of only "lifting"
-    -- it is safe to default to any builtin version, since the 'Lift'
-    -- is impervious to builtins and will not generate code containing builtins.
-    -- See Note [Versioned builtins]
+    -- The PIR compiler *pointfully* needs a builtin semantics variant, but in
+    -- this instance of only "lifting" it is safe to default to any builtin
+    -- semantics variant, since the 'Lift' is impervious to builtins and will
+    -- not generate code containing builtins.  See Note [Builtin semantics variants]
     compiled <- flip runReaderT (toDefaultCompilationCtx tcConfig) $ compileProgram (Program () v applied)
     -- PLC errors are parameterized over PLC.Terms, whereas PIR errors over PIR.Terms and as such, these prism errors cannot be unified.
     -- We instead run the ExceptT, collect any PLC error and explicitly lift into a PIR error by wrapping with PIR._PLCError

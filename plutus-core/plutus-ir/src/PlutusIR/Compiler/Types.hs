@@ -121,17 +121,20 @@ defaultCompilationOpts = CompilationOpts
   }
 
 data CompilationCtx uni fun a = CompilationCtx {
-    _ccOpts               :: CompilationOpts a
-    , _ccEnclosing        :: Provenance a
+    _ccOpts                      :: CompilationOpts a
+    , _ccEnclosing               :: Provenance a
     -- | Decide to either typecheck (passing a specific tcconfig) or not by passing 'Nothing'.
-    , _ccTypeCheckConfig  :: Maybe (PirTCConfig uni fun)
-    , _ccBuiltinVer       :: PLC.BuiltinVersion fun
-    , _ccBuiltinCostModel :: PLC.CostingPart uni fun
+    , _ccTypeCheckConfig         :: Maybe (PirTCConfig uni fun)
+    , _ccBuiltinSemanticsVariant :: PLC.BuiltinSemanticsVariant fun
+    , _ccBuiltinCostModel        :: PLC.CostingPart uni fun
     }
 
 makeLenses ''CompilationCtx
 
-toDefaultCompilationCtx :: (Default (PLC.BuiltinVersion fun), Default (PLC.CostingPart uni fun)) => PLC.TypeCheckConfig uni fun -> CompilationCtx uni fun a
+toDefaultCompilationCtx
+    :: (Default (PLC.BuiltinSemanticsVariant fun), Default (PLC.CostingPart uni fun))
+    => PLC.TypeCheckConfig uni fun
+    -> CompilationCtx uni fun a
 toDefaultCompilationCtx configPlc =
     CompilationCtx defaultCompilationOpts noProvenance
         (Just $ PirTCConfig configPlc YesEscape)

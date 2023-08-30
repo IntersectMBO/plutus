@@ -110,19 +110,27 @@ nonStrictify = \case
     TermBind x _ d rhs -> TermBind x NonStrict d rhs
     b                  -> b
 
-mkStrictifyingBinding :: ToBuiltinMeaning uni fun => BuiltinVersion fun -> Binding tyname name uni fun a -> Maybe (Binding tyname name uni fun a)
-mkStrictifyingBinding ver = \case
+mkStrictifyingBinding
+    :: ToBuiltinMeaning uni fun
+    => BuiltinSemanticsVariant fun
+    -> Binding tyname name uni fun a
+    -> Maybe (Binding tyname name uni fun a)
+mkStrictifyingBinding semvar = \case
     -- Only need to strictify if the previous binding was not definitely pure
     -- Also, we're reusing the same variable here, see Note [Thunking recursions]
-    TermBind x _ d rhs | not (isPure ver (const NonStrict) rhs) -> Just $ TermBind x Strict d (mkVar x d)
+    TermBind x _ d rhs | not (isPure semvar (const NonStrict) rhs) -> Just $ TermBind x Strict d (mkVar x d)
     _                                                           -> Nothing
 
-thunkRecursionsStep :: ToBuiltinMeaning uni fun => BuiltinVersion fun -> Term tyname name uni fun a -> Term tyname name uni fun a
-thunkRecursionsStep ver (Let a Rec bs t) =
+thunkRecursionsStep
+    :: ToBuiltinMeaning uni fun
+    => BuiltinSemanticsVariant fun
+    -> Term tyname name uni fun a
+    -> Term tyname name uni fun a
+thunkRecursionsStep semvar (Let a Rec bs t) =
     -- See Note [Thunking recursions]
     let (toThunk, noThunk) = partition strictNonFunctionBinding bs
         newBindings = fmap nonStrictify toThunk ++ noThunk
-        strictifiers = mapMaybe (mkStrictifyingBinding ver) toThunk
+        strictifiers = mapMaybe (mkStrictifyingBinding semvar) toThunk
     in mkLet a Rec newBindings $ mkLet a NonRec strictifiers t
 thunkRecursionsStep _ t = t
 
@@ -130,5 +138,9 @@ thunkRecursionsStep _ t = t
 -- so we can compile them.
 --
 -- Note: this pass breaks global uniqueness!
-thunkRecursions :: ToBuiltinMeaning uni fun => BuiltinVersion fun -> Term tyname name uni fun a -> Term tyname name uni fun a
+thunkRecursions
+    :: ToBuiltinMeaning uni fun
+    => BuiltinSemanticsVariant fun
+    -> Term tyname name uni fun a
+    -> Term tyname name uni fun a
 thunkRecursions = transformOf termSubterms . thunkRecursionsStep

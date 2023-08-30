@@ -47,11 +47,11 @@ saturatesScheme (TermArg _ : _) TypeSchemeAll{}          = Nothing
 isSaturated
     :: forall tyname name uni fun a
     . ToBuiltinMeaning uni fun
-    => BuiltinVersion fun
+    => BuiltinSemanticsVariant fun
     -> BuiltinApp tyname name uni fun a
     -> Maybe Bool
-isSaturated ver (BuiltinApp fun args) =
-    case toBuiltinMeaning @uni @fun @(Term TyName Name uni fun ()) ver fun of
+isSaturated semvar (BuiltinApp fun args) =
+    case toBuiltinMeaning @uni @fun @(Term TyName Name uni fun ()) semvar fun of
         BuiltinMeaning sch _ _ -> saturatesScheme args sch
 
 -- | View a 'Term' as a 'BuiltinApp' if possible.
@@ -82,11 +82,11 @@ must be *conservative* (i.e. if you don't know, it's non-strict).
 -- things that can't be returned from the machine (as they'd be ill-scoped).
 isPure ::
     ToBuiltinMeaning uni fun =>
-    BuiltinVersion fun ->
+    BuiltinSemanticsVariant fun ->
     (name -> Strictness) ->
     Term tyname name uni fun a ->
     Bool
-isPure ver varStrictness = go
+isPure semvar varStrictness = go
     where
         go = \case
             -- See Note [Purity, strictness, and variables]
@@ -116,7 +116,7 @@ isPure ver varStrictness = go
 
             x | Just bapp@(BuiltinApp _ args) <- asBuiltinApp x ->
                 -- Pure only if we can tell that the builtin application is not saturated
-                maybe False not (isSaturated ver bapp)
+                maybe False not (isSaturated semvar bapp)
                 &&
                 -- But all the arguments need to also be effect-free, since they will be evaluated
                 -- when we evaluate the application.

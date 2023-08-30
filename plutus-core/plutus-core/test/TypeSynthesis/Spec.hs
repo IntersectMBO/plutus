@@ -37,19 +37,21 @@ kindcheck ty = do
 
 typecheck
     :: (uni ~ DefaultUni, MonadError (Error uni fun ()) m, ToBuiltinMeaning uni fun)
-    => BuiltinVersion fun -> Term TyName Name uni fun () -> m (Normalized (Type TyName uni ()))
-typecheck ver term = runQuoteT $ do
-    tcConfig <- TypeCheckConfig defKindCheckConfig <$> builtinMeaningsToTypes ver ()
+    => BuiltinSemanticsVariant fun
+    -> Term TyName Name uni fun ()
+    -> m (Normalized (Type TyName uni ()))
+typecheck semvar term = runQuoteT $ do
+    tcConfig <- TypeCheckConfig defKindCheckConfig <$> builtinMeaningsToTypes semvar ()
     inferType tcConfig term
 
 -- | Assert a term is ill-typed.
 assertIllTyped
     :: HasCallStack
-    => BuiltinVersion DefaultFun
+    => BuiltinSemanticsVariant DefaultFun
     -> Term TyName Name DefaultUni DefaultFun ()
     -> (Error DefaultUni DefaultFun () -> Bool)
     -> Assertion
-assertIllTyped ver term isExpected = case runExcept . runQuoteT $ typecheck ver term of
+assertIllTyped semvar term isExpected = case runExcept . runQuoteT $ typecheck semvar term of
     Right _  -> assertFailure $ "Expected ill-typed but got well-typed: " ++ display term
     Left err -> do
         unless (isExpected err) $
@@ -61,15 +63,15 @@ nestedGoldenVsErrorOrThing name =
 
 foldAssertWell
     :: (ToBuiltinMeaning DefaultUni fun, Pretty fun)
-    => BuiltinVersion fun
+    => BuiltinSemanticsVariant fun
     -> PlcFolderContents DefaultUni fun
     -> TestTree
-foldAssertWell ver
+foldAssertWell semvar
     = runTestNestedIn ["plutus-core", "test", "TypeSynthesis"]
     . testNested "Golden"
     . foldPlcFolderContents testNested
         (\name -> nestedGoldenVsErrorOrThing name . kindcheck)
-        (\name -> nestedGoldenVsErrorOrThing name . typecheck ver)
+        (\name -> nestedGoldenVsErrorOrThing name . typecheck semvar)
 
 test_typecheckAvailable :: TestTree
 test_typecheckAvailable =
@@ -127,15 +129,17 @@ test_typecheckIllTyped =
 
 test_typecheckAllFun
     :: forall fun. (ToBuiltinMeaning DefaultUni fun, Show fun)
-    => String -> BuiltinVersion fun -> TestTree
-test_typecheckAllFun name ver
+    => String
+    -> BuiltinSemanticsVariant fun
+    -> TestTree
+test_typecheckAllFun name semvar
     = runTestNestedIn ["plutus-core", "test", "TypeSynthesis", "Golden"]
     . testNested name
     . map testFun
     $ enumerate @fun
   where
     testFun fun =
-        nestedGoldenVsErrorOrThing (show fun) . kindcheck $ typeOfBuiltinFunction ver fun
+        nestedGoldenVsErrorOrThing (show fun) . kindcheck $ typeOfBuiltinFunction semvar fun
 
 test_typecheckDefaultFuns :: TestTree
 test_typecheckDefaultFuns =

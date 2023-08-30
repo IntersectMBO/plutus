@@ -737,7 +737,7 @@ test_Other = testCase "Other" $ do
     Right (EvaluationSuccess $ cons @Integer 1) @=? typecheckEvaluateCekNoEmit def defaultBuiltinCostModel expr3
 
 -- | Check that 'ExtensionVersion' evaluates correctly.
--- See Note [Versioned builtins]
+-- See Note [Builtin semantics variants]
 test_Version :: TestTree
 test_Version =
     testCase "Version" $ do
@@ -746,7 +746,7 @@ test_Version =
         Right (EvaluationSuccess $ cons @Integer 1) @=? typecheckEvaluateCekNoEmit (PairV @DefaultFun def def) defaultBuiltinCostModelExt expr1
 
 -- | Check that 'ConsByteString' wraps around for plutus' builtin-version == 1, and fails in plutus's builtin-versions >=2.
--- See Note [Versioned builtins]
+-- See Note [Builtin semantics variants]
 test_ConsByteString :: TestTree
 test_ConsByteString =
     testCase "ConsVersion" $ do

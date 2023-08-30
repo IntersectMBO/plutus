@@ -47,8 +47,8 @@ we can use to represent it in the graph.
 data Node = Variable PLC.Unique | Root deriving stock (Show, Eq, Ord)
 
 data DepCtx fun = DepCtx
-  { _depNode       :: Node
-  , _depBuiltinVer :: PLC.BuiltinVersion fun
+  { _depNode                    :: Node
+  , _depBuiltinSemanticsVariant :: PLC.BuiltinSemanticsVariant fun
   }
 makeLenses ''DepCtx
 
@@ -80,10 +80,10 @@ runTermDeps ::
   , PLC.HasUnique name PLC.TermUnique
   , PLC.ToBuiltinMeaning uni fun
   ) =>
-  PLC.BuiltinVersion fun ->
+  PLC.BuiltinSemanticsVariant fun ->
   Term tyname name uni fun a ->
   (g, StrictnessMap)
-runTermDeps ver = flip runState mempty . flip runReaderT (DepCtx Root ver) . termDeps
+runTermDeps semvar = flip runState mempty . flip runReaderT (DepCtx Root semvar) . termDeps
 
 -- | Record some dependencies on the current node.
 currentDependsOn ::
@@ -166,12 +166,12 @@ bindingDeps b = case b of
     vDeps <- varDeclDeps d
     tDeps <- withCurrent n $ termDeps rhs
 
-    ver <- view depBuiltinVer
+    semvar <- view depBuiltinSemanticsVariant
     -- See Note [Strict term bindings and dependencies]
     strictnessFun <- varStrictnessFun
     evalDeps <- case strictness of
-      Strict | not (isPure ver strictnessFun rhs) -> currentDependsOn [n ^. PLC.theUnique]
-      _                                           -> pure G.empty
+      Strict | not (isPure semvar strictnessFun rhs) -> currentDependsOn [n ^. PLC.theUnique]
+      _                                              -> pure G.empty
 
     pure $ G.overlays [vDeps, tDeps, evalDeps]
   TypeBind _ d@(TyVarDecl _ n _) rhs -> do

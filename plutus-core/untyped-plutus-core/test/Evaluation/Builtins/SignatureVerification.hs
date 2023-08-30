@@ -37,7 +37,7 @@ import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import PlutusCore (DefaultFun (VerifyEcdsaSecp256k1Signature, VerifyEd25519Signature, VerifySchnorrSecp256k1Signature),
                    EvaluationResult (EvaluationFailure, EvaluationSuccess))
-import PlutusCore.Default as Plutus (BuiltinVersion (..))
+import PlutusCore.Default as Plutus (BuiltinSemanticsVariant (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 
 import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn)
@@ -65,15 +65,15 @@ schnorrSecp256k1Prop = do
   cover 18 "happy path" . is (_Shouldn'tError . _AllGood) $ testCase
   runTestDataWith def testCase id VerifySchnorrSecp256k1Signature
 
-ed25519Prop :: BuiltinVersion DefaultFun -> PropertyT IO ()
-ed25519Prop ver = do
+ed25519Prop :: BuiltinSemanticsVariant DefaultFun -> PropertyT IO ()
+ed25519Prop semvar = do
   testCase <- forAllWith ppShow genEd25519Case
   cover 18 "malformed verification key" . is (_ShouldError . _BadVerKey) $ testCase
   cover 18 "malformed signature" . is (_ShouldError . _BadSignature) $ testCase
   cover 18 "mismatch of signing key and verification key" . is (_Shouldn'tError . _WrongVerKey) $ testCase
   cover 18 "mismatch of message and signature" . is (_Shouldn'tError . _WrongSignature) $ testCase
   cover 18 "happy path" . is (_Shouldn'tError . _AllGood) $ testCase
-  runTestDataWith ver testCase id VerifyEd25519Signature
+  runTestDataWith semvar testCase id VerifyEd25519Signature
 
 ed25519_V1Prop :: PropertyT IO ()
 ed25519_V1Prop = ed25519Prop DefaultFunBV1
@@ -85,19 +85,19 @@ ed25519_V2Prop = ed25519Prop DefaultFunBV2
 
 runTestDataWith :: forall (a :: Type) (msg :: Type) .
   (DSIGNAlgorithm a) =>
-  BuiltinVersion DefaultFun ->
+  BuiltinSemanticsVariant DefaultFun ->
   Case a msg ->
   (msg -> ByteString) ->
   DefaultFun ->
   PropertyT IO ()
-runTestDataWith ver testData f op = do
+runTestDataWith semvar testData f op = do
   let (vk, msg, sig) = getCaseData f testData
   let actualExp = mkIterAppNoAnn (builtin () op) [
         mkConstant @ByteString () vk,
         mkConstant @ByteString () msg,
         mkConstant @ByteString () sig
         ]
-  let result = typecheckEvaluateCek ver defaultBuiltinCostModel actualExp
+  let result = typecheckEvaluateCek semvar defaultBuiltinCostModel actualExp
   case result of
     Left x -> annotateShow x >> failure
     Right (res, logs) -> do

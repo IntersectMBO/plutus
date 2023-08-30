@@ -650,7 +650,7 @@ compileExpr ::
   m (PIRTerm uni fun)
 compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
   -- See Note [Scopes]
-  CompileContext{ccScope = scope, ccNameInfo = nameInfo, ccModBreaks = maybeModBreaks, ccBuiltinVer = ver} <- ask
+  CompileContext{ccScope = scope, ccNameInfo = nameInfo, ccModBreaks = maybeModBreaks, ccBuiltinSemanticsVariant = semvar} <- ask
 
   -- TODO: Maybe share this to avoid repeated lookups. Probably cheap, though.
   (stringTyName, sbsName) <- case (Map.lookup ''Builtins.BuiltinString nameInfo, Map.lookup 'Builtins.stringToBuiltinString nameInfo) of
@@ -859,7 +859,7 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
               return (nonDelayedAlt, delayedAlt)
             Nothing -> throwSd CompilationError $ "No alternative for:" GHC.<+> GHC.ppr dc
         let
-          isPureAlt = compiledAlts <&> \(nonDelayed, _) -> PIR.isPure ver (const PIR.NonStrict) nonDelayed
+          isPureAlt = compiledAlts <&> \(nonDelayed, _) -> PIR.isPure semvar (const PIR.NonStrict) nonDelayed
           lazyCase = not (and isPureAlt || length dcs == 1)
           branches =
             compiledAlts <&> \(nonDelayedAlt, delayedAlt) ->

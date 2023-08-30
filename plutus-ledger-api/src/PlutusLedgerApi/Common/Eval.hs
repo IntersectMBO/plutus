@@ -127,9 +127,13 @@ See Note [Inlining meanings of builtins].
 IMPORTANT: The evaluation context of every Plutus version must be recreated upon a protocol update
 with the updated cost model parameters.
 -}
-mkDynEvaluationContext :: MonadError CostModelApplyError m => BuiltinVersion DefaultFun -> Plutus.CostModelParams -> m EvaluationContext
-mkDynEvaluationContext ver newCMP =
-    EvaluationContext <$> mkMachineParametersFor ver newCMP
+mkDynEvaluationContext
+    :: MonadError CostModelApplyError m
+    => BuiltinSemanticsVariant DefaultFun
+    -> Plutus.CostModelParams
+    -> m EvaluationContext
+mkDynEvaluationContext semvar newCMP =
+    EvaluationContext <$> mkMachineParametersFor semvar newCMP
 
 -- FIXME: remove this function
 assertWellFormedCostModelParams :: MonadError CostModelApplyError m => Plutus.CostModelParams -> m ()

@@ -143,8 +143,8 @@ data TestFailure
 renderTestFailure :: TestFailure -> String
 renderTestFailure = \case
     InvalidResult err -> display err
-    MissingCostParametersFor ver -> [fmt|
-        Missing cost parameters for {show ver}.
+    MissingCostParametersFor lang -> [fmt|
+        Missing cost parameters for {show lang}.
         Report this as a bug against the script dumper in plutus-apps.
     |]
 

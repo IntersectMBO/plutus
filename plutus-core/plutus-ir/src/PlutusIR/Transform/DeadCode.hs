@@ -32,25 +32,25 @@ import Witherable (Witherable (wither))
 removeDeadBindings
     :: (PLC.HasUnique name PLC.TermUnique,
        PLC.ToBuiltinMeaning uni fun, PLC.MonadQuote m)
-    => PLC.BuiltinVersion fun
+    => PLC.BuiltinSemanticsVariant fun
     -> Term TyName name uni fun a
     -> m (Term TyName name uni fun a)
-removeDeadBindings ver t = do
+removeDeadBindings semvar t = do
     tRen <- PLC.rename t
-    liftQuote $ runReaderT (transformMOf termSubterms processTerm tRen) (calculateLiveness ver tRen)
+    liftQuote $ runReaderT (transformMOf termSubterms processTerm tRen) (calculateLiveness semvar tRen)
 
 type Liveness = Set.Set Deps.Node
 
 calculateLiveness
     :: (PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique,
        PLC.ToBuiltinMeaning uni fun)
-    => PLC.BuiltinVersion fun
+    => PLC.BuiltinSemanticsVariant fun
     -> Term tyname name uni fun a
     -> Liveness
-calculateLiveness ver t =
+calculateLiveness semvar t =
     let
         depGraph :: G.Graph Deps.Node
-        depGraph = fst $ Deps.runTermDeps ver t
+        depGraph = fst $ Deps.runTermDeps semvar t
     in Set.fromList $ T.reachable depGraph Deps.Root
 
 live :: (MonadReader Liveness m, PLC.HasUnique n unique) => n -> m Bool
