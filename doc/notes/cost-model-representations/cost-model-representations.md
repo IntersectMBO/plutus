@@ -158,7 +158,7 @@ various versions used in Cardano.
 The ledger interacts with the Plutus Core evaluator using functions defined in
 [plutus-ledger-api](https://github.com/input-output-hk/plutus/tree/master/plutus-ledger-api).
 The provides functions
-[evaluateScriptCounting](https://github.com/input-output-hk/cardano-ledger/blob/330b42db03fec425ad72c98cb6931f979e59941b/eras/alonzo/impl/src/Cardano/Ledger/Alonzo/Scripts.hs#L330)
+[evaluateScriptCounting](https://github.com/input-output-hk/plutus/blob/e773e58ea0e4a8088fed0ea5f934a7c413caa5b3/plutus-ledger-api/src/PlutusLedgerApi/V1.hs#L158)
 and
 [evaluateScriptRestricting](https://github.com/input-output-hk/plutus/blob/e773e58ea0e4a8088fed0ea5f934a7c413caa5b3/plutus-ledger-api/src/PlutusLedgerApi/V1.hs#L173)
 (there are PlutusV2 and PlutusV3 versions of these too) to run scripts on the
