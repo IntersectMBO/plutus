@@ -136,10 +136,11 @@ thisLedgerLanguage = PlutusV3
 
 -- | Check if a 'Script' is "valid" according to a protocol version. At the moment this means "deserialises correctly", which in particular
 -- implies that it is (almost certainly) an encoded script and the script does not mention any builtins unavailable in the given protocol version.
-assertScriptWellFormed :: MonadError ScriptDecodeError m
-                       => Common.ProtocolVersion -- ^ which protocol version to run the operation in
-                       -> SerialisedScript -- ^ the script to check for well-formedness
-                       -> m ()
+assertScriptWellFormed
+    :: MonadError ScriptDecodeError m
+    => Common.ProtocolVersion -- ^ which protocol version to run the operation in
+    -> SerialisedScript -- ^ the script to check for well-formedness
+    -> m ()
 assertScriptWellFormed = Common.assertScriptWellFormed thisLedgerLanguage
 
 -- | Evaluates a script, returning the minimum budget that the script would need
@@ -147,11 +148,11 @@ assertScriptWellFormed = Common.assertScriptWellFormed thisLedgerLanguage
 -- limit the execution time of the script also, you can use 'evaluateScriptRestricting', which
 -- also returns the used budget.
 evaluateScriptCounting
-    :: Common.ProtocolVersion -- ^ which protocol version to run the operation in
-    -> VerboseMode     -- ^ Whether to produce log output
-    -> EvaluationContext -- ^ Includes the cost model to use for tallying up the execution costs
-    -> SerialisedScript          -- ^ The script to evaluate
-    -> [PLC.Data]          -- ^ The arguments to the script
+    :: Common.ProtocolVersion -- ^ Which protocol version to run the operation in
+    -> VerboseMode            -- ^ Whether to produce log output
+    -> EvaluationContext      -- ^ Includes the cost model to use for tallying up the execution costs
+    -> SerialisedScript       -- ^ The script to evaluate
+    -> [PLC.Data]             -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ExBudget)
 evaluateScriptCounting = Common.evaluateScriptCounting thisLedgerLanguage
 
@@ -162,11 +163,11 @@ evaluateScriptCounting = Common.evaluateScriptCounting thisLedgerLanguage
 -- Can be used to calculate budgets for scripts, but even in this case you must give
 -- a limit to guard against scripts that run for a long time or loop.
 evaluateScriptRestricting
-    :: Common.ProtocolVersion -- ^ which protocol version to run the operation in
-    -> VerboseMode     -- ^ Whether to produce log output
-    -> EvaluationContext -- ^ Includes the cost model to use for tallying up the execution costs
-    -> ExBudget        -- ^ The resource budget which must not be exceeded during evaluation
-    -> SerialisedScript          -- ^ The script to evaluate
-    -> [PLC.Data]          -- ^ The arguments to the script
+    :: Common.ProtocolVersion -- ^ Which protocol version to run the operation in
+    -> VerboseMode            -- ^ Whether to produce log output
+    -> EvaluationContext      -- ^ Includes the cost model to use for tallying up the execution costs
+    -> ExBudget               -- ^ The resource budget which must not be exceeded during evaluation
+    -> SerialisedScript       -- ^ The script to evaluate
+    -> [PLC.Data]             -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ExBudget)
 evaluateScriptRestricting = Common.evaluateScriptRestricting thisLedgerLanguage

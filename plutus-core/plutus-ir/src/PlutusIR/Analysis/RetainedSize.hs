@@ -175,12 +175,12 @@ hasSizeIn (DirectionRetentionMap ss) (Variable (PLC.Unique i)) = i `IntMap.membe
 -- | Compute the retention map of a term.
 termRetentionMap
     :: (HasUnique tyname TypeUnique, HasUnique name TermUnique, ToBuiltinMeaning uni fun)
-    => PLC.BuiltinVersion fun
+    => PLC.BuiltinSemanticsVariant fun
     -> Term tyname name uni fun ann
     -> IntMap Size
-termRetentionMap ver term = depsRetentionMap sizeInfo deps where
+termRetentionMap semvar term = depsRetentionMap sizeInfo deps where
     sizeInfo = toDirectionRetentionMap term
-    deps = C.induce (hasSizeIn sizeInfo) $ fst $ runTermDeps ver term
+    deps = C.induce (hasSizeIn sizeInfo) $ fst $ runTermDeps semvar term
 
 -- | Apply a function to the annotation of each part of every 'Binding' in a term.
 reannotateBindings
@@ -217,12 +217,12 @@ reannotateBindings f = goTerm where
 -- | Annotate each part of every 'Binding' in a term with the size that it retains.
 annotateWithRetainedSize
     :: (HasUnique name TermUnique, HasUnique tyname TypeUnique, ToBuiltinMeaning uni fun)
-    => PLC.BuiltinVersion fun
+    => PLC.BuiltinSemanticsVariant fun
     -> Term tyname name uni fun ann
     -> Term tyname name uni fun RetainedSize
 -- @reannotateBindings@ only processes annotations "associated with" a unique, so it can't change
 -- the type. Therefore we need to set all the bindings to an appropriate type beforehand.
-annotateWithRetainedSize ver term = reannotateBindings (upd . unUnique) $ NotARetainer <$ term where
-    retentionMap = termRetentionMap ver term
+annotateWithRetainedSize semvar term = reannotateBindings (upd . unUnique) $ NotARetainer <$ term where
+    retentionMap = termRetentionMap semvar term
     -- If a binding is not in the retention map, then it's still a retainer, just retains zero size.
     upd i _ = Retains $ IntMap.findWithDefault (Size 0) i retentionMap

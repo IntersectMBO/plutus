@@ -1,4 +1,3 @@
-{-# LANGUAGE DerivingVia      #-}
 {-# LANGUAGE TypeApplications #-}
 module PlutusLedgerApi.V3.EvaluationContext
     ( EvaluationContext
@@ -12,7 +11,7 @@ module PlutusLedgerApi.V3.EvaluationContext
 import PlutusLedgerApi.Common
 import PlutusLedgerApi.V3.ParamName as V3
 
-import PlutusCore.Default as Plutus (BuiltinVersion (DefaultFunV2))
+import PlutusCore.Default as Plutus (BuiltinSemanticsVariant (DefaultFunSemanticsVariant2))
 
 import Control.Monad
 import Control.Monad.Except
@@ -31,4 +30,4 @@ mkEvaluationContext :: (MonadError CostModelApplyError m, MonadWriter [CostModel
                     -> m EvaluationContext
 mkEvaluationContext = tagWithParamNames @V3.ParamName
                     >=> pure . toCostModelParams
-                    >=> mkDynEvaluationContext Plutus.DefaultFunV2
+                    >=> mkDynEvaluationContext Plutus.DefaultFunSemanticsVariant2

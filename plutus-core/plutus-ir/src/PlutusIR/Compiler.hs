@@ -39,7 +39,7 @@ module PlutusIR.Compiler (
     ccOpts,
     ccEnclosing,
     ccTypeCheckConfig,
-    ccBuiltinVer,
+    ccBuiltinSemanticsVariant,
     ccBuiltinCostModel,
     PirTCConfig(..),
     AllowEscape(..),
@@ -120,19 +120,19 @@ availablePasses =
     , Pass "beta"                 (onOption coDoSimplifierBeta)               (pure . Beta.beta)
     , Pass "strictify bindings"   (onOption coDoSimplifierStrictifyBindings)  (\t ->
                                                                                  do
-                                                                                   ver <- view ccBuiltinVer
-                                                                                   pure $ StrictifyBindings.strictifyBindings ver t
+                                                                                  semvar <- view ccBuiltinSemanticsVariant
+                                                                                  pure $ StrictifyBindings.strictifyBindings semvar t
                                                                               )
     , Pass "evaluate builtins"    (onOption coDoSimplifierEvaluateBuiltins)   (\t -> do
-                                                                                  ver <- view ccBuiltinVer
+                                                                                  semvar <- view ccBuiltinSemanticsVariant
                                                                                   costModel <- view ccBuiltinCostModel
                                                                                   preserveLogging <- view (ccOpts . coPreserveLogging)
-                                                                                  pure $ EvaluateBuiltins.evaluateBuiltins preserveLogging ver costModel t
+                                                                                  pure $ EvaluateBuiltins.evaluateBuiltins preserveLogging semvar costModel t
                                                                               )
     , Pass "inline"               (onOption coDoSimplifierInline)             (\t -> do
                                                                                   hints <- view (ccOpts . coInlineHints)
-                                                                                  ver <- view ccBuiltinVer
-                                                                                  Inline.inline hints ver t
+                                                                                  semvar <- view ccBuiltinSemanticsVariant
+                                                                                  Inline.inline hints semvar t
                                                                               )
     , Pass "commuteFnWithConst" (onOption coDoSimplifiercommuteFnWithConst) (pure . CommuteFnWithConst.commuteFnWithConst)
     ]
@@ -172,8 +172,8 @@ floatOut
     => Term TyName Name uni fun b
     -> m (Term TyName Name uni fun b)
 floatOut t = do
-    ver <- view ccBuiltinVer
-    runIfOpts (pure . LetMerge.letMerge . RecSplit.recSplit . LetFloatOut.floatTerm ver) t
+    semvar <- view ccBuiltinSemanticsVariant
+    runIfOpts (pure . LetMerge.letMerge . RecSplit.recSplit . LetFloatOut.floatTerm semvar) t
 
 -- | Perform floating in/merging of lets in a 'Term'.
 floatIn
@@ -181,9 +181,9 @@ floatIn
     => Term TyName Name uni fun b
     -> m (Term TyName Name uni fun b)
 floatIn t = do
-    ver <- view ccBuiltinVer
+    semvar <- view ccBuiltinSemanticsVariant
     relaxed <- view (ccOpts . coRelaxedFloatin)
-    runIfOpts (fmap LetMerge.letMerge . LetFloatIn.floatTerm ver relaxed) t
+    runIfOpts (fmap LetMerge.letMerge . LetFloatIn.floatTerm semvar relaxed) t
 
 -- | Typecheck a PIR Term iff the context demands it.
 -- Note: assumes globally unique names
@@ -200,8 +200,11 @@ check arg =
          -- the typechecker requires global uniqueness, so rename here
         typeCheckTerm =<< PLC.rename arg
 
-withVer :: MonadReader (CompilationCtx uni fun a) m => (PLC.BuiltinVersion fun -> m t) -> m t
-withVer = (view ccBuiltinVer >>=)
+withSemanticsVariant
+    :: MonadReader (CompilationCtx uni fun a) m
+    => (PLC.BuiltinSemanticsVariant fun -> m t)
+    -> m t
+withSemanticsVariant = (view ccBuiltinSemanticsVariant >>=)
 
 -- | The 1st half of the PIR compiler pipeline up to floating/merging the lets.
 -- We stop momentarily here to give a chance to the tx-plugin
@@ -217,7 +220,7 @@ compileToReadable (Program a v t) =
         >=> PLC.rename
         >=> through typeCheckTerm
         >=> (<$ logVerbose "  !!! removeDeadBindings")
-        >=> (withVer . flip DeadCode.removeDeadBindings)
+        >=> (withSemanticsVariant . flip DeadCode.removeDeadBindings)
         >=> (<$ logVerbose "  !!! simplifyTerm")
         >=> simplifyTerm
         >=> (<$ logVerbose "  !!! floatOut")
@@ -238,7 +241,7 @@ compileReadableToPlc (Program a v t) =
         >=> NonStrict.compileNonStrictBindings False
         >=> through check
         >=> (<$ logVerbose "  !!! thunkRecursions")
-        >=> (withVer . fmap pure . flip ThunkRec.thunkRecursions)
+        >=> (withSemanticsVariant . fmap pure . flip ThunkRec.thunkRecursions)
         -- Thunking recursions breaks global uniqueness
         >=> PLC.rename
         >=> through check
@@ -256,7 +259,7 @@ compileReadableToPlc (Program a v t) =
         -- We introduce some non-recursive let bindings while eliminating recursive let-bindings, so we
         -- can eliminate any of them which are unused here.
         >=> (<$ logVerbose "  !!! removeDeadBindings")
-        >=> (withVer . flip DeadCode.removeDeadBindings)
+        >=> (withSemanticsVariant . flip DeadCode.removeDeadBindings)
         >=> through check
         >=> (<$ logVerbose "  !!! simplifyTerm")
         >=> simplifyTerm

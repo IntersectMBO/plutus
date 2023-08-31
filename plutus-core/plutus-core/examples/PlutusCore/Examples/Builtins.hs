@@ -143,21 +143,22 @@ data ExtensionFun
 instance Pretty ExtensionFun where pretty = viaShow
 
 instance (ToBuiltinMeaning uni fun1, ToBuiltinMeaning uni fun2
-         , Default (BuiltinVersion fun1), Default (BuiltinVersion fun2)
+         , Default (BuiltinSemanticsVariant fun1), Default (BuiltinSemanticsVariant fun2)
          ) => ToBuiltinMeaning uni (Either fun1 fun2) where
 
     type CostingPart uni (Either fun1 fun2) = (CostingPart uni fun1, CostingPart uni fun2)
 
-    data BuiltinVersion (Either fun1 fun2) = PairV (BuiltinVersion fun1) (BuiltinVersion fun2)
-    toBuiltinMeaning (PairV verL _) (Left  fun) = case toBuiltinMeaning verL fun of
+    data BuiltinSemanticsVariant (Either fun1 fun2) =
+        PairV (BuiltinSemanticsVariant fun1) (BuiltinSemanticsVariant fun2)
+    toBuiltinMeaning (PairV semvarL _) (Left  fun) = case toBuiltinMeaning semvarL fun of
         BuiltinMeaning tySch toF denot ->
             BuiltinMeaning tySch toF (denot . fst)
-    toBuiltinMeaning (PairV _ verR) (Right fun) = case toBuiltinMeaning verR fun of
+    toBuiltinMeaning (PairV _ semvarR) (Right fun) = case toBuiltinMeaning semvarR fun of
         BuiltinMeaning tySch toF denot ->
             BuiltinMeaning tySch toF (denot . snd)
 
-instance (Default (BuiltinVersion fun1), Default (BuiltinVersion fun2))
-         => Default (BuiltinVersion (Either fun1 fun2)) where
+instance (Default (BuiltinSemanticsVariant fun1), Default (BuiltinSemanticsVariant fun2))
+         => Default (BuiltinSemanticsVariant (Either fun1 fun2)) where
     def = PairV def def
 
 -- | Normally @forall@ in the type of a Haskell function gets detected and instantiated
@@ -226,20 +227,22 @@ instance Whatever ExBudgetStream where
 instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
     type CostingPart uni ExtensionFun = ()
 
-    data BuiltinVersion ExtensionFun = ExtensionFunV0 | ExtensionFunV1
+    data BuiltinSemanticsVariant ExtensionFun =
+              ExtensionFunSemanticsVariant0
+            | ExtensionFunSemanticsVariant1
         deriving stock (Enum, Bounded, Show)
 
     toBuiltinMeaning :: forall val. HasMeaningIn uni val
-                     => BuiltinVersion ExtensionFun
+                     => BuiltinSemanticsVariant ExtensionFun
                      -> ExtensionFun
                      -> BuiltinMeaning val ()
 
-    toBuiltinMeaning _ver Factorial =
+    toBuiltinMeaning _semvar Factorial =
         makeBuiltinMeaning
             (\(n :: Integer) -> product [1..n])
             whatever
 
-    toBuiltinMeaning _ver ForallFortyTwo =
+    toBuiltinMeaning _semvar ForallFortyTwo =
         makeBuiltinMeaning
             forallFortyTwo
             whatever
@@ -247,27 +250,27 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
         forallFortyTwo :: MetaForall ('TyNameRep @GHC.Type "a" 0) Integer
         forallFortyTwo = MetaForall 42
 
-    toBuiltinMeaning _ver SumInteger =
+    toBuiltinMeaning _semvar SumInteger =
         makeBuiltinMeaning
             (sum :: [Integer] -> Integer)
             whatever
 
-    toBuiltinMeaning _ver Const =
+    toBuiltinMeaning _semvar Const =
         makeBuiltinMeaning
             const
             whatever
 
-    toBuiltinMeaning _ver Id =
+    toBuiltinMeaning _semvar Id =
         makeBuiltinMeaning
             Prelude.id
             whatever
 
-    toBuiltinMeaning _ver IdAssumeBool =
+    toBuiltinMeaning _semvar IdAssumeBool =
         makeBuiltinMeaning
             (Prelude.id :: Opaque val Bool -> Opaque val Bool)
             whatever
 
-    toBuiltinMeaning _ver IdAssumeCheckBool =
+    toBuiltinMeaning _semvar IdAssumeCheckBool =
         makeBuiltinMeaning
             idAssumeCheckBoolPlc
             whatever
@@ -278,7 +281,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
                 Right (Some (ValueOf DefaultUniBool b)) -> EvaluationSuccess b
                 _                                       -> EvaluationFailure
 
-    toBuiltinMeaning _ver IdSomeConstantBool =
+    toBuiltinMeaning _semvar IdSomeConstantBool =
         makeBuiltinMeaning
             idSomeConstantBoolPlc
             whatever
@@ -288,7 +291,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
             SomeConstant (Some (ValueOf DefaultUniBool b)) -> EvaluationSuccess b
             _                                              -> EvaluationFailure
 
-    toBuiltinMeaning _ver IdIntegerAsBool =
+    toBuiltinMeaning _semvar IdIntegerAsBool =
         makeBuiltinMeaning
             idIntegerAsBool
             whatever
@@ -298,24 +301,24 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
             con@(SomeConstant (Some (ValueOf DefaultUniBool _))) -> EvaluationSuccess con
             _                                                    -> EvaluationFailure
 
-    toBuiltinMeaning _ver IdFInteger =
+    toBuiltinMeaning _semvar IdFInteger =
         makeBuiltinMeaning
             (Prelude.id :: fi ~ Opaque val (f `TyAppRep` Integer) => fi -> fi)
             whatever
 
-    toBuiltinMeaning _ver IdList =
+    toBuiltinMeaning _semvar IdList =
         makeBuiltinMeaning
             (Prelude.id :: la ~ Opaque val (PlcListRep a) => la -> la)
             whatever
 
-    toBuiltinMeaning _ver IdRank2 =
+    toBuiltinMeaning _semvar IdRank2 =
         makeBuiltinMeaning
             (Prelude.id
                 :: afa ~ Opaque val (TyForallRep @GHC.Type a (TyVarRep f `TyAppRep` TyVarRep a))
                 => afa -> afa)
             whatever
 
-    toBuiltinMeaning _ver ScottToMetaUnit =
+    toBuiltinMeaning _semvar ScottToMetaUnit =
         makeBuiltinMeaning
             ((\_ -> ())
                 -- @(->)@ switches from the Rep context to the Type one. We could make @(->)@
@@ -327,31 +330,31 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
                 => Opaque val (TyForallRep a (oa -> oa)) -> ())
             whatever
 
-    toBuiltinMeaning _ver FailingSucc =
+    toBuiltinMeaning _semvar FailingSucc =
         makeBuiltinMeaning
             @(Integer -> Integer)
             (\_ -> throw BuiltinErrorCall)
             whatever
 
-    toBuiltinMeaning _ver ExpensiveSucc =
+    toBuiltinMeaning _semvar ExpensiveSucc =
         makeBuiltinMeaning
             @(Integer -> Integer)
             (\_ -> throw BuiltinErrorCall)
             (\_ _ -> ExBudgetLast $ unExRestrictingBudget enormousBudget)
 
-    toBuiltinMeaning _ver FailingPlus =
+    toBuiltinMeaning _semvar FailingPlus =
         makeBuiltinMeaning
             @(Integer -> Integer -> Integer)
             (\_ _ -> throw BuiltinErrorCall)
             whatever
 
-    toBuiltinMeaning _ver ExpensivePlus =
+    toBuiltinMeaning _semvar ExpensivePlus =
         makeBuiltinMeaning
             @(Integer -> Integer -> Integer)
             (\_ _ -> throw BuiltinErrorCall)
             (\_ _ _ -> ExBudgetLast $ unExRestrictingBudget enormousBudget)
 
-    toBuiltinMeaning _ver IsConstant =
+    toBuiltinMeaning _semvar IsConstant =
         makeBuiltinMeaning
             isConstantPlc
             whatever
@@ -360,7 +363,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
         isConstantPlc :: Opaque val a -> Bool
         isConstantPlc = isRight . asConstant
 
-    toBuiltinMeaning _ver UnsafeCoerce =
+    toBuiltinMeaning _semvar UnsafeCoerce =
         makeBuiltinMeaning
             unsafeCoercePlc
             whatever
@@ -369,7 +372,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
         unsafeCoercePlc :: Opaque val a -> Opaque val b
         unsafeCoercePlc = Opaque . unOpaque
 
-    toBuiltinMeaning _ver UnsafeCoerceEl =
+    toBuiltinMeaning _semvar UnsafeCoerceEl =
         makeBuiltinMeaning
             unsafeCoerceElPlc
             whatever
@@ -381,22 +384,22 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
             DefaultUniList _ <- pure uniList
             pure $ fromValueOf uniList xs
 
-    toBuiltinMeaning _ver Undefined =
+    toBuiltinMeaning _semvar Undefined =
         makeBuiltinMeaning
             undefined
             whatever
 
-    toBuiltinMeaning _ver Absurd =
+    toBuiltinMeaning _semvar Absurd =
         makeBuiltinMeaning
             absurd
             whatever
 
-    toBuiltinMeaning _ver ErrorPrime =
+    toBuiltinMeaning _semvar ErrorPrime =
         makeBuiltinMeaning
             EvaluationFailure
             whatever
 
-    toBuiltinMeaning _ver Comma =
+    toBuiltinMeaning _semvar Comma =
         makeBuiltinMeaning
             commaPlc
             whatever
@@ -408,7 +411,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
         commaPlc (SomeConstant (Some (ValueOf uniA x))) (SomeConstant (Some (ValueOf uniB y))) =
             fromValueOf (DefaultUniPair uniA uniB) (x, y)
 
-    toBuiltinMeaning _ver BiconstPair =
+    toBuiltinMeaning _semvar BiconstPair =
         makeBuiltinMeaning
             biconstPairPlc
             whatever
@@ -427,7 +430,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
                 Just Refl <- pure $ uniB `geq` uniB'
                 pure $ fromValueOf uniPairAB (x, y)
 
-    toBuiltinMeaning _ver Swap =
+    toBuiltinMeaning _semvar Swap =
         makeBuiltinMeaning
             swapPlc
             whatever
@@ -439,7 +442,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
             DefaultUniPair uniA uniB <- pure uniPairAB
             pure $ fromValueOf (DefaultUniPair uniB uniA) (snd p, fst p)
 
-    toBuiltinMeaning _ver SwapEls =
+    toBuiltinMeaning _semvar SwapEls =
         makeBuiltinMeaning
             swapElsPlc
             whatever
@@ -454,13 +457,13 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
             pure . fromValueOf uniList' $ map swap xs
 
     -- A dummy builtin to reflect the builtin-version of the 'ExtensionFun'.
-    -- See Note [Versioned builtins]
-    toBuiltinMeaning ver ExtensionVersion =
+    -- See Note [Builtin semantics variants]
+    toBuiltinMeaning semvar ExtensionVersion =
         makeBuiltinMeaning
             @(() -> EvaluationResult Integer)
-            (\(_ :: ()) -> EvaluationSuccess $ case ver of
-                    ExtensionFunV0 -> 0
-                    ExtensionFunV1 -> 1)
+            (\(_ :: ()) -> EvaluationSuccess $ case semvar of
+                    ExtensionFunSemanticsVariant0 -> 0
+                    ExtensionFunSemanticsVariant1 -> 1)
             whatever
 
     -- We want to know if the CEK machine releases individual budgets after accounting for them and
@@ -532,5 +535,5 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni ExtensionFun where
             (\_ -> unsafePerformIO $ reverse <$> readMVar numsOfGcedVar)
             (\_ -> unsafePerformIO . regBudgets . runCostingFunOneArgument model)
 
-instance Default (BuiltinVersion ExtensionFun) where
-    def = ExtensionFunV1
+instance Default (BuiltinSemanticsVariant ExtensionFun) where
+    def = ExtensionFunSemanticsVariant1

@@ -56,14 +56,14 @@ type InliningConstraints tyname name uni fun =
 --
 -- See [Inlining and global uniqueness] for caveats about this information.
 data InlineInfo name fun ann = InlineInfo
-    { _iiStrictnessMap :: Deps.StrictnessMap
+    { _iiStrictnessMap           :: Deps.StrictnessMap
     -- ^ Is it strict? Only needed for PIR, not UPLC
-    , _iiUsages        :: Usages.Usages
+    , _iiUsages                  :: Usages.Usages
     -- ^ how many times is it used?
-    , _iiHints         :: InlineHints name ann
+    , _iiHints                   :: InlineHints name ann
     -- ^ have we explicitly been told to inline?
-    , _iiBuiltinVer    :: PLC.BuiltinVersion fun
-    -- ^ the builtin version.
+    , _iiBuiltinSemanticsVariant :: PLC.BuiltinSemanticsVariant fun
+    -- ^ the semantics variant.
     }
 makeLenses ''InlineInfo
 
@@ -252,9 +252,9 @@ checkPurity
     => Term tyname name uni fun ann -> InlineM tyname name uni fun ann Bool
 checkPurity t = do
     strctMap <- view iiStrictnessMap
-    builtinVer <- view iiBuiltinVer
+    builtinSemVar <- view iiBuiltinSemanticsVariant
     let strictnessFun n' = Map.findWithDefault NonStrict (n' ^. theUnique) strctMap
-    pure $ isPure builtinVer strictnessFun t
+    pure $ isPure builtinSemVar strictnessFun t
 
 -- | Checks if a binding is pure, i.e. will evaluating it have effects
 isTermBindingPure :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun

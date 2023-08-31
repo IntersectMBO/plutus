@@ -39,12 +39,13 @@ as we did have cases where sticking 'inline' on something that already had @INLI
 inlining).
 -}
 
-mkMachineParametersFor :: (MonadError CostModelApplyError m)
-                       => BuiltinVersion DefaultFun
-                       -> CostModelParams
-                       -> m DefaultMachineParameters
-mkMachineParametersFor ver newCMP =
-    inline mkMachineParameters ver <$>
+mkMachineParametersFor
+    :: (MonadError CostModelApplyError m)
+    => BuiltinSemanticsVariant DefaultFun
+    -> CostModelParams
+    -> m DefaultMachineParameters
+mkMachineParametersFor semvar newCMP =
+    inline mkMachineParameters semvar <$>
         applyCostModelParams defaultCekCostModel newCMP
 -- Not marking this function with @INLINE@, since at this point everything we wanted to be inlined
 -- is inlined and there's zero reason to duplicate thousands and thousands of lines of Core down

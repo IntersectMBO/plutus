@@ -15,7 +15,7 @@ import PlutusBenchmark.NaturalSort
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Data qualified as PLC
-import PlutusCore.Default qualified as PLC (BuiltinVersion (DefaultFunV1))
+import PlutusCore.Default qualified as PLC (BuiltinSemanticsVariant (DefaultFunSemanticsVariant1))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusLedgerApi.Common (PlutusLedgerLanguage (PlutusV1), evaluateTerm,
                                ledgerLanguageIntroducedIn, mkDynEvaluationContext)
@@ -139,7 +139,7 @@ mkEvalCtx :: EvaluationContext
 mkEvalCtx =
     case PLC.defaultCostModelParams of
         -- The validation benchmarks were all created from PlutusV1 scripts
-        Just p -> case mkDynEvaluationContext PLC.DefaultFunV1 p of
+        Just p -> case mkDynEvaluationContext PLC.DefaultFunSemanticsVariant1 p of
             Right ec -> ec
             Left err -> error $ show err
         Nothing -> error "Couldn't get cost model params"

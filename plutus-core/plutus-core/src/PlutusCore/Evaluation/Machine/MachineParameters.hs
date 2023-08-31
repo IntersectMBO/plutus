@@ -83,9 +83,9 @@ mkMachineParameters ::
     , HasMeaningIn uni val
     , ToBuiltinMeaning uni fun
     )
-    => BuiltinVersion fun
+    => BuiltinSemanticsVariant fun
     -> CostModel machinecosts builtincosts
     -> MachineParameters machinecosts fun val
-mkMachineParameters ver (CostModel mchnCosts builtinCosts) =
-    MachineParameters mchnCosts (inline toBuiltinsRuntime ver builtinCosts)
+mkMachineParameters semvar (CostModel mchnCosts builtinCosts) =
+    MachineParameters mchnCosts (inline toBuiltinsRuntime semvar builtinCosts)
 {-# INLINE mkMachineParameters #-}
