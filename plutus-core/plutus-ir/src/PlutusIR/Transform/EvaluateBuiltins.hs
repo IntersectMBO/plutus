@@ -23,11 +23,11 @@ evaluateBuiltins
   , Typeable name)
   => Bool
   -- ^ Whether to be conservative and try to retain logging behaviour.
-  -> BuiltinVersion fun
+  -> BuiltinSemanticsVariant fun
   -> CostingPart uni fun
   -> Term tyname name uni fun a
   -> Term tyname name uni fun a
-evaluateBuiltins conservative ver costModel = transformOf termSubterms processTerm
+evaluateBuiltins conservative semvar costModel = transformOf termSubterms processTerm
   where
     -- Nothing means "leave the original term as it was"
     eval
@@ -60,7 +60,7 @@ evaluateBuiltins conservative ver costModel = transformOf termSubterms processTe
     processTerm :: Term tyname name uni fun a -> Term tyname name uni fun a
     -- See Note [Context splitting in a recursive pass]
     processTerm t@(splitApplication -> (Builtin x bn, argCtx)) =
-      let runtime = toBuiltinRuntime costModel (toBuiltinMeaning ver bn)
+      let runtime = toBuiltinRuntime costModel (toBuiltinMeaning semvar bn)
       in case eval runtime argCtx of
            -- Builtin evaluation gives us a fresh term with no annotation.
            -- Use the annotation of the builtin node, arbitrarily. This is slightly

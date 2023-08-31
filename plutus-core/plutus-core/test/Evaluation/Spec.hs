@@ -48,12 +48,12 @@ type Term uni fun = PLC.Term TyName Name uni fun ()
 test_builtinsDon'tThrow :: TestTree
 test_builtinsDon'tThrow =
     testGroup "Builtins don't throw" $
-        enumerate @(BuiltinVersion DefaultFun) <&> \ver ->
-            testGroup (fromString . render $ "Version: " <> pretty ver) $
-                let runtimes = toBuiltinsRuntime ver defaultBuiltinCostModel
+        enumerate @(BuiltinSemanticsVariant DefaultFun) <&> \semvar ->
+            testGroup (fromString . render $ "Version: " <> pretty semvar) $
+                let runtimes = toBuiltinsRuntime semvar defaultBuiltinCostModel
                 in enumerate @DefaultFun <&> \fun ->
                     -- Perhaps using @maxBound@ (with @Enum@, @Bounded@) is indeed better than
-                    -- @Default@ for BuiltinVersions
+                    -- @Default@ for BuiltinSemanticsVariants
                     testPropertyNamed
                         (display fun)
                         (fromString $ display fun)
@@ -79,15 +79,15 @@ instance Pretty AlwaysThrows where
 
 instance uni ~ DefaultUni => ToBuiltinMeaning uni AlwaysThrows where
     type CostingPart uni AlwaysThrows = ()
-    data BuiltinVersion AlwaysThrows = AlwaysThrowsV1
+    data BuiltinSemanticsVariant AlwaysThrows = AlwaysThrowsSemanticsVariant1
 
-    toBuiltinMeaning _ver AlwaysThrows = makeBuiltinMeaning f $ \_ _ -> ExBudgetLast mempty
+    toBuiltinMeaning _semvar AlwaysThrows = makeBuiltinMeaning f $ \_ _ -> ExBudgetLast mempty
       where
         f :: Integer -> Integer
         f _ = error "This builtin function always throws an exception."
 
-instance Default (BuiltinVersion AlwaysThrows) where
-    def = AlwaysThrowsV1
+instance Default (BuiltinSemanticsVariant AlwaysThrows) where
+    def = AlwaysThrowsSemanticsVariant1
 
 {- | This test verifies that if evaluating a builtin function actually throws an exception,
  we'd get a `Left` value, which would cause `test_builtinsDon'tThrow` to fail.
@@ -97,11 +97,11 @@ test_alwaysThrows =
     testGroup
         "Builtins throwing exceptions should cause tests to fail"
         [ testPropertyNamed (display AlwaysThrows) (fromString . display $ AlwaysThrows) $
-            prop_builtinEvaluation @_ @AlwaysThrows runtimes AlwaysThrows (genArgsWellTyped ver) f
+            prop_builtinEvaluation @_ @AlwaysThrows runtimes AlwaysThrows (genArgsWellTyped semvar) f
         ]
   where
-    ver = AlwaysThrowsV1
-    runtimes = toBuiltinsRuntime ver ()
+    semvar = AlwaysThrowsSemanticsVariant1
+    runtimes = toBuiltinsRuntime semvar ()
     f bn args = \case
         Left _ -> success
         Right _ -> do
@@ -141,29 +141,29 @@ prop_builtinEvaluation runtimes bn mkGen f = property $ do
 genArgsWellTyped ::
     forall uni fun.
     (GenTypedTerm uni, ToBuiltinMeaning uni fun)
-    => PLC.BuiltinVersion fun
+    => PLC.BuiltinSemanticsVariant fun
     -> fun
     -> Gen [Term uni fun]
-genArgsWellTyped ver = genArgs ver genTypedTerm
+genArgsWellTyped semvar = genArgs semvar genTypedTerm
 
 -- | Generate arbitrary (most likely ill-typed) Term arguments to a builtin function.
 genArgsArbitrary ::
     forall uni fun.
     (GenArbitraryTerm uni, ToBuiltinMeaning uni fun)
-    => PLC.BuiltinVersion fun
+    => PLC.BuiltinSemanticsVariant fun
     -> fun ->
     Gen [Term uni fun]
-genArgsArbitrary ver = genArgs ver (\_ -> genArbitraryTerm @uni)
+genArgsArbitrary semvar = genArgs semvar (\_ -> genArbitraryTerm @uni)
 
 -- | Generate value arguments to a builtin function based on its `TypeScheme`.
 genArgs ::
     forall uni fun.
     ToBuiltinMeaning uni fun
-    => PLC.BuiltinVersion fun
+    => PLC.BuiltinSemanticsVariant fun
     -> (forall (a :: GHC.Type). TypeRep a -> Gen (Term uni fun))
     -> fun
     -> Gen [Term uni fun]
-genArgs ver genArg bn = sequenceA $ case meaning of
+genArgs semvar genArg bn = sequenceA $ case meaning of
     BuiltinMeaning tySch _ _ -> go tySch
       where
         go :: forall args res. TypeScheme (Term uni fun) args res -> [Gen (Term uni fun)]
@@ -173,7 +173,7 @@ genArgs ver genArg bn = sequenceA $ case meaning of
             TypeSchemeAll _ sch -> go sch
   where
     meaning :: BuiltinMeaning (Term uni fun) (CostingPart uni fun)
-    meaning = toBuiltinMeaning ver bn
+    meaning = toBuiltinMeaning semvar bn
 
 type family Head a where
     Head (x ': xs) = x

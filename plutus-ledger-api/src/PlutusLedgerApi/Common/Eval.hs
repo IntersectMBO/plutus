@@ -119,7 +119,7 @@ newtype EvaluationContext = EvaluationContext
     deriving stock Generic
     deriving anyclass (NFData, NoThunks)
 
-{-|  Create an 'EvaluationContext' for a given plutus-builtins' version.
+{-|  Create an 'EvaluationContext' for a given builtin semantics variant.
 
 The input is a `Map` of `Text`s to cost integer values (aka `Plutus.CostModelParams`, `Alonzo.CostModel`)
 See Note [Inlining meanings of builtins].
@@ -127,9 +127,13 @@ See Note [Inlining meanings of builtins].
 IMPORTANT: The evaluation context of every Plutus version must be recreated upon a protocol update
 with the updated cost model parameters.
 -}
-mkDynEvaluationContext :: MonadError CostModelApplyError m => BuiltinVersion DefaultFun -> Plutus.CostModelParams -> m EvaluationContext
-mkDynEvaluationContext ver newCMP =
-    EvaluationContext <$> mkMachineParametersFor ver newCMP
+mkDynEvaluationContext
+    :: MonadError CostModelApplyError m
+    => BuiltinSemanticsVariant DefaultFun
+    -> Plutus.CostModelParams
+    -> m EvaluationContext
+mkDynEvaluationContext semvar newCMP =
+    EvaluationContext <$> mkMachineParametersFor semvar newCMP
 
 -- FIXME: remove this function
 assertWellFormedCostModelParams :: MonadError CostModelApplyError m => Plutus.CostModelParams -> m ()
@@ -170,12 +174,12 @@ Note: Parameterized over the 'LedgerPlutusVersion' since
 -}
 evaluateScriptRestricting
     :: PlutusLedgerLanguage -- ^ The Plutus ledger language of the script under execution.
-    -> ProtocolVersion -- ^ Which protocol version to run the operation in
-    -> VerboseMode     -- ^ Whether to produce log output
-    -> EvaluationContext -- ^ Includes the cost model to use for tallying up the execution costs
-    -> ExBudget        -- ^ The resource budget which must not be exceeded during evaluation
-    -> SerialisedScript          -- ^ The script to evaluate
-    -> [Plutus.Data]          -- ^ The arguments to the script
+    -> ProtocolVersion      -- ^ Which protocol version to run the operation in
+    -> VerboseMode          -- ^ Whether to produce log output
+    -> EvaluationContext    -- ^ Includes the cost model to use for tallying up the execution costs
+    -> ExBudget             -- ^ The resource budget which must not be exceeded during evaluation
+    -> SerialisedScript     -- ^ The script to evaluate
+    -> [Plutus.Data]        -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ExBudget)
 evaluateScriptRestricting lv pv verbose ectx budget p args = swap $ runWriter @LogOutput $ runExceptT $ do
     appliedTerm <- mkTermToEvaluate lv pv p args
@@ -194,11 +198,11 @@ Note: Parameterized over the ledger-plutus-version since the builtins allowed (d
 -}
 evaluateScriptCounting
     :: PlutusLedgerLanguage -- ^ The Plutus ledger language of the script under execution.
-    -> ProtocolVersion -- ^ Which protocol version to run the operation in
-    -> VerboseMode     -- ^ Whether to produce log output
-    -> EvaluationContext -- ^ Includes the cost model to use for tallying up the execution costs
-    -> SerialisedScript          -- ^ The script to evaluate
-    -> [Plutus.Data]          -- ^ The arguments to the script
+    -> ProtocolVersion      -- ^ Which protocol version to run the operation in
+    -> VerboseMode          -- ^ Whether to produce log output
+    -> EvaluationContext    -- ^ Includes the cost model to use for tallying up the execution costs
+    -> SerialisedScript     -- ^ The script to evaluate
+    -> [Plutus.Data]        -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ExBudget)
 evaluateScriptCounting lv pv verbose ectx p args = swap $ runWriter @LogOutput $ runExceptT $ do
     appliedTerm <- mkTermToEvaluate lv pv p args

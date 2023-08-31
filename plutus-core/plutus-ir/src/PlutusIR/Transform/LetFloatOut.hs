@@ -152,10 +152,10 @@ representativeBindingUnique =
 type Scope = M.Map PLC.Unique Pos
 
 -- | The first pass has a reader context of current depth, and (term&type)variables in scope.
-data MarkCtx fun = MarkCtx {
-    _markCtxDepth     :: Depth
-    , _markCtxScope   :: Scope
-    , _markBuiltinVer :: PLC.BuiltinVersion fun
+data MarkCtx fun = MarkCtx
+    { _markCtxDepth                :: Depth
+    , _markCtxScope                :: Scope
+    , _markBuiltinSemanticsVariant :: PLC.BuiltinSemanticsVariant fun
     }
 makeLenses ''MarkCtx
 
@@ -196,10 +196,10 @@ type FloatTable tyname name uni fun a = MM.MonoidalMap Pos (NE.NonEmpty (Binding
 -- | The 1st pass of marking floatable lets
 mark :: forall tyname name uni fun a.
       (Ord tyname, Ord name, PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique, PLC.ToBuiltinMeaning uni fun)
-     => PLC.BuiltinVersion fun
+     => PLC.BuiltinSemanticsVariant fun
      -> Term tyname name uni fun a
      -> Marks
-mark ver = snd . runWriter . flip runReaderT (MarkCtx topDepth mempty ver) . go
+mark semvar = snd . runWriter . flip runReaderT (MarkCtx topDepth mempty semvar) . go
   where
     go :: Term tyname name uni fun a -> ReaderT (MarkCtx fun) (Writer Marks) ()
     go = breakNonRec >>> \case
@@ -394,9 +394,9 @@ floatTerm :: (PLC.ToBuiltinMeaning uni fun,
             PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique,
             Ord tyname, Ord name, Semigroup a
             )
-          => PLC.BuiltinVersion fun -> Term tyname name uni fun a -> Term tyname name uni fun a
-floatTerm ver t =
-    mark ver t
+          => PLC.BuiltinSemanticsVariant fun -> Term tyname name uni fun a -> Term tyname name uni fun a
+floatTerm semvar t =
+    mark semvar t
     & flip removeLets t
     & uncurry floatBackLets
 
@@ -412,10 +412,10 @@ withDepth = local . over markCtxDepth
 withLam :: (r ~ MarkCtx fun, MonadReader r m, PLC.HasUnique name unique)
         => name
         -> m a -> m a
-withLam (view PLC.theUnique -> u) = local $ \ (MarkCtx d scope ver) ->
+withLam (view PLC.theUnique -> u) = local $ \ (MarkCtx d scope semvar) ->
     let d' = d+1
         pos' = Pos d' u LamBody
-    in MarkCtx d' (M.insert u pos' scope) ver
+    in MarkCtx d' (M.insert u pos' scope) semvar
 
 withBs :: (r ~ MarkCtx fun, MonadReader r m, PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique)
        => NE.NonEmpty (Binding tyname name uni fun a3)
@@ -432,8 +432,8 @@ ifRec r f a = case r of
 
 floatable :: (MonadReader (MarkCtx fun) m , PLC.ToBuiltinMeaning uni fun) => BindingGrp tyname name uni fun a -> m Bool
 floatable (BindingGrp _ _ bs) = do
-    ver <- view markBuiltinVer
-    pure $ all (hasNoEffects ver) bs
+    semvar <- view markBuiltinSemanticsVariant
+    pure $ all (hasNoEffects semvar) bs
            &&
            -- See Note [Floating type-lets]
            none isTypeBind bs
@@ -443,14 +443,17 @@ See Note [Purity, strictness, and variables]
 An extreme alternative implementation is to treat *all strict* bindings as unfloatable, e.g.:
 `hasNoEffects = \case {TermBind _ Strict _  _ -> False; _ -> True}`
 -}
-hasNoEffects :: PLC.ToBuiltinMeaning uni fun => PLC.BuiltinVersion fun -> Binding tyname name uni fun a -> Bool
-hasNoEffects ver = \case
+hasNoEffects
+    :: PLC.ToBuiltinMeaning uni fun
+    => PLC.BuiltinSemanticsVariant fun
+    -> Binding tyname name uni fun a -> Bool
+hasNoEffects semvar = \case
     TypeBind{}               -> True
     DatatypeBind{}           -> True
     TermBind _ NonStrict _ _ -> True
     -- have to check for purity
     -- TODO: We could maybe do better here, but not worth it at the moment
-    TermBind _ Strict _ t    -> isPure ver (const NonStrict) t
+    TermBind _ Strict _ t    -> isPure semvar (const NonStrict) t
 
 isTypeBind :: Binding tyname name uni fun a -> Bool
 isTypeBind = \case TypeBind{} -> True; _ -> False

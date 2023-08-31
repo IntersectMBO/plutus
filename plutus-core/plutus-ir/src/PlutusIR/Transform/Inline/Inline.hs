@@ -161,15 +161,15 @@ inline
     :: forall tyname name uni fun ann m
     . ExternalConstraints tyname name uni fun m
     => InlineHints name ann
-    -> PLC.BuiltinVersion fun
+    -> PLC.BuiltinSemanticsVariant fun
     -> Term tyname name uni fun ann
     -> m (Term tyname name uni fun ann)
-inline hints ver t = let
+inline hints semvar t = let
         inlineInfo :: InlineInfo name fun ann
-        inlineInfo = InlineInfo (snd deps) usgs hints ver
+        inlineInfo = InlineInfo (snd deps) usgs hints semvar
         -- We actually just want the variable strictness information here!
         deps :: (G.Graph Deps.Node, Map.Map PLC.Unique Strictness)
-        deps = Deps.runTermDeps ver t
+        deps = Deps.runTermDeps semvar t
         usgs :: Usages.Usages
         usgs = Usages.termUsages t
     in liftQuote $ flip evalStateT mempty $ flip runReaderT inlineInfo $ processTerm t
