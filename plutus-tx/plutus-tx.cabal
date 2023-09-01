@@ -117,10 +117,12 @@ library
     , transformers
 
   default-extensions: Strict
+
+  -- See Note [-fno-full-laziness in Plutus Tx]
   ghc-options:
     -fexpose-all-unfoldings -fno-specialise -fno-spec-constr
     -fno-strictness -fno-unbox-strict-fields
-    -fno-unbox-small-strict-fields
+    -fno-unbox-small-strict-fields -fno-full-laziness
 
 library plutus-tx-testlib
   import:          lang

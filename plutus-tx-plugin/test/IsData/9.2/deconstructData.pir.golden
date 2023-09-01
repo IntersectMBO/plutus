@@ -131,17 +131,6 @@
                       (nonrec)
                       (termbind (strict) (vardecl d (con data)) d)
                       (termbind
-                        (nonstrict)
-                        (vardecl
-                          tup
-                          [
-                            [ (con pair) (con integer) ]
-                            [ (con list) (con data) ]
-                          ]
-                        )
-                        [ unsafeDataAsConstr d ]
-                      )
-                      (termbind
                         (strict)
                         (vardecl
                           constrCase
@@ -184,25 +173,39 @@
                                   (lam
                                     ds
                                     Unit
-                                    [
+                                    (let
+                                      (nonrec)
+                                      (termbind
+                                        (strict)
+                                        (vardecl
+                                          tup
+                                          [
+                                            [ (con pair) (con integer) ]
+                                            [ (con list) (con data) ]
+                                          ]
+                                        )
+                                        [ unsafeDataAsConstr d ]
+                                      )
                                       [
-                                        constrCase
+                                        [
+                                          constrCase
+                                          [
+                                            {
+                                              { fst (con integer) }
+                                              [ (con list) (con data) ]
+                                            }
+                                            tup
+                                          ]
+                                        ]
                                         [
                                           {
-                                            { fst (con integer) }
+                                            { snd (con integer) }
                                             [ (con list) (con data) ]
                                           }
                                           tup
                                         ]
                                       ]
-                                      [
-                                        {
-                                          { snd (con integer) }
-                                          [ (con list) (con data) ]
-                                        }
-                                        tup
-                                      ]
-                                    ]
+                                    )
                                   )
                                 ]
                                 (lam ds Unit [ mapCase [ unsafeDataAsMap d ] ])

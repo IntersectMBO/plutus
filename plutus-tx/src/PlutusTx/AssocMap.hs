@@ -90,7 +90,7 @@ instance (FromData k, FromData v) => FromData (Map k v) where
               l
               (const (pure []))
               ( \_ ->
-                  let ~tup = BI.head l
+                  let tup = BI.head l
                    in liftA2
                         (:)
                         (liftA2 (,) (fromBuiltinData $ BI.fst tup) (fromBuiltinData $ BI.snd tup))
@@ -101,8 +101,7 @@ instance (FromData k, FromData v) => FromData (Map k v) where
 instance (UnsafeFromData k, UnsafeFromData v) => UnsafeFromData (Map k v) where
   -- The `~` here enables `BI.unsafeDataAsMap d` to be inlined, which reduces costs slightly.
   -- Without the `~`, the inliner would consider it not effect safe to inline.
-  -- The other `~`s in this module are there for the same reason.
-  -- We can remove all the `~`s once we make the inliner smart enough to inline them.
+  -- We can remove the `~` once we make the inliner smart enough to inline them.
   -- See https://github.com/input-output-hk/plutus/pull/5371#discussion_r1297833685
   unsafeFromBuiltinData d = let ~es = BI.unsafeDataAsMap d in Map $ mapFromBuiltin es
     where
@@ -116,7 +115,7 @@ instance (UnsafeFromData k, UnsafeFromData v) => UnsafeFromData (Map k v) where
               l
               (const [])
               ( \_ ->
-                  let ~tup = BI.head l
+                  let tup = BI.head l
                    in (unsafeFromBuiltinData $ BI.fst tup, unsafeFromBuiltinData $ BI.snd tup)
                         : go (BI.tail l)
               )

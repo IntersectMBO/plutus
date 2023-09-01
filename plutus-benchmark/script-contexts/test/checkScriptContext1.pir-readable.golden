@@ -317,15 +317,15 @@
             letrec
               !go : list (pair data data) -> List (Tuple2 k v)
                 = \(l : list (pair data data)) ->
-                    let
-                      ~tup : pair data data = headList {pair data data} l
-                    in
                     chooseList
                       {pair data data}
                       {Unit -> List (Tuple2 k v)}
                       l
                       (\(ds : Unit) -> Nil {Tuple2 k v})
                       (\(ds : Unit) ->
+                         let
+                           !tup : pair data data = headList {pair data data} l
+                         in
                          Cons
                            {Tuple2 k v}
                            (Tuple2

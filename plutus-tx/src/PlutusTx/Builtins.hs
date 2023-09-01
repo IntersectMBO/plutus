@@ -476,7 +476,7 @@ matchData'
 matchData' d constrCase mapCase listCase iCase bCase =
    chooseData
    d
-   (\_ -> let ~tup = BI.unsafeDataAsConstr d in constrCase (BI.fst tup) (BI.snd tup))
+   (\_ -> let tup = BI.unsafeDataAsConstr d in constrCase (BI.fst tup) (BI.snd tup))
    (\_ -> mapCase (BI.unsafeDataAsMap d))
    (\_ -> listCase (BI.unsafeDataAsList d))
    (\_ -> iCase (unsafeDataAsI d))

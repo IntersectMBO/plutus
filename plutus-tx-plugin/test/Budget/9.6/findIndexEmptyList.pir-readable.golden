@@ -29,4 +29,7 @@ letrec
                  {all dead. dead})
           {all dead. dead}
 in
-go 0 (Nil {integer})
+let
+  !eta : List integer = Nil {integer}
+in
+go 0 eta

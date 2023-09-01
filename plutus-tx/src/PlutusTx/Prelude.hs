@@ -229,3 +229,32 @@ takeByteString n bs = Builtins.sliceByteString 0 (toBuiltin n) bs
 -- | Returns the suffix of a 'ByteString' after n elements.
 dropByteString :: Integer -> BuiltinByteString -> BuiltinByteString
 dropByteString n bs = Builtins.sliceByteString (toBuiltin n) (Builtins.lengthOfByteString bs - n) bs
+
+{- Note [-fno-full-laziness in Plutus Tx]
+GHC's full-laziness optimization moves computations inside a lambda that don't depend on
+the lambda-bound variable out of the lambda, in order to avoid repeating the computations
+unnecessarily. For Plutus Tx, this is not only not useful but is harmful.
+
+It is not useful because we do not use lazy evaluation for Plutus Tx, so a non-strict
+binding is evaluated exactly the same number of times, whether or not it is inside
+a lambda.
+
+It can be harmful because it can turn
+
+```
+\unused -> case x_lazy of x_evaluated -> ...x_evaluated...
+```
+
+into
+
+```
+let y = ...x_lazy...
+ in \unused -> case x_lazy of _ -> y
+```
+
+These two expressions are equivalent in Haskell. In Plutus Tx, howver, the first one
+evaluates `x_lazy` once, and then uses `x_evaluated` subsequently. The second one,
+on the other hand, evaluates `x_lazy` but discards the result, and may evaluate
+`x_lazy` again when evaluating `y`! We therefore must turn off full laziness in
+Plutus Tx code.
+-}
