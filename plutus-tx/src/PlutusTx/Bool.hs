@@ -39,11 +39,27 @@ not :: Bool -> Bool
 not a = if a then False else True
 
 {- Note [Lazy patterns on function parameters]
-Lazy patterns (~) on function parameters don't do anything if the function isn't inlined.
+In theory, Lazy patterns (~) on function parameters shouldn't make any difference.
 This is because function applications in Plutus Tx are strict, so when passing an argument
 to a function, the argument will be evaluated immediately, regardless of whether the
 corresponding function parameter is lazy or strict. Specifically, both `f !x = body` and
-`f ~x = body` in Plutus Tx are compiled into `let f = \x -> body` in PIR.
+`f ~x = body` in Plutus Tx are compiled into `let f = \x -> body` in PIR:
+
+```
+f ~x = body
+---> (GHC Core)
+f x = body
+---> (PIR)
+f = \x -> body
+
+f !x = body
+---> (GHC Core)
+f x = case x@x of { _ -> body }
+---> (PIR)
+f = \x -> let !x = x in body
+---> (PIR inliner)
+f = \x -> body
+```
 
 It doesn't matter whether or not the function is inlined by the PIR inliner, since the PIR
 inliner does not change the semantics of the program.
@@ -59,6 +75,11 @@ Plutus Tx is a strict language.
 Therefore, lazy patterns should generally be avoided, since its semantics depend on
 what the GHC inliner does. That said, we can use it in some cases to our advantage,
 such as in `(&&)` and `(||)`. These logical operators would be much less useful if
-they can't short-circuit. By using a lazy pattern on the second parameter, we can achieve
-the desired effect, namely, the second parameter is only evaluated if needed.
+they can't short-circuit. Using a lazy pattern on the second parameter helps achieve
+the desirable effect, namely, the second parameter is only evaluated if needed, although
+this is currently not guaranteed, since `(&&)` and `(||)` are not necessarily
+unconditionally inlined by GHC. To guarantee that the second parameter is only evaluated
+when needed, we can potentially use a particular source annotation to tell the PIR
+inliner to inline and beta-reduce a function, which would achieve the same effect as if
+it is unconditionally inlined by GHC. This is yet to be implemented.
 -}
