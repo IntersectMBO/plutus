@@ -35,13 +35,11 @@ common lang
 
   -- See Plutus Tx readme for why we need the following flags:
   -- -fobject-code -fno-ignore-interface-pragmas and -fno-omit-interface-pragmas
-  -- See Note [-fno-full-laziness in Plutus Tx]
   ghc-options:
     -Wall -Wnoncanonical-monad-instances -Wincomplete-uni-patterns
     -Wincomplete-record-updates -Wredundant-constraints -Widentities
     -Wunused-packages -Wmissing-deriving-strategies -fobject-code
     -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
-    -fno-full-laziness
 
 common ghc-version-support
   -- See the section on GHC versions in CONTRIBUTING
@@ -177,9 +175,10 @@ test-suite plutus-tx-tests
   default-extensions: Strict
 
   -- NOTE: -g makes the plugin give better errors
+  -- See Note [-fno-full-laziness in Plutus Tx]
   ghc-options:
     -g -fno-strictness -fno-unbox-strict-fields
-    -fno-unbox-small-strict-fields
+    -fno-unbox-small-strict-fields -fno-full-laziness
 
 test-suite size
   import:             lang, ghc-version-support
@@ -200,6 +199,8 @@ test-suite size
     , tasty
 
   default-extensions: Strict
+
+  -- See Note [-fno-full-laziness in Plutus Tx]
   ghc-options:
     -fno-strictness -fno-unbox-strict-fields
-    -fno-unbox-small-strict-fields
+    -fno-unbox-small-strict-fields -fno-full-laziness
