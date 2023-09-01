@@ -1,0 +1,22 @@
+let
+  data (Example :: * -> *) a | Example_match where
+    EInt : integer -> Example a
+    ETwo : a -> a -> Example a
+  ~`$bERec` : all a. a -> a -> Example a
+    = /\a -> \(hello : a) (world : a) -> ETwo {a} hello world
+  ~`$mERec` : all r a. Example a -> (a -> a -> r) -> (unit -> r) -> r
+    = /\r a ->
+        \(scrut : Example a) (cont : a -> a -> r) (fail : unit -> r) ->
+          Example_match
+            {a}
+            scrut
+            {r}
+            (\(ipv : integer) -> fail ())
+            (\(hello : a) (world : a) -> cont hello world)
+in
+`$mERec`
+  {string}
+  {string}
+  (`$bERec` {string} "wot" "yo")
+  (\(ds : string) (ds : string) -> ds)
+  (\(void : unit) -> "no")

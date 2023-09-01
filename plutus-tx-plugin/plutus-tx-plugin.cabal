@@ -142,6 +142,7 @@ test-suite plutus-tx-tests
     Plugin.Lib
     Plugin.NoTrace.Spec
     Plugin.Optimization.Spec
+    Plugin.Patterns.Spec
     Plugin.Primitives.Spec
     Plugin.Profiling.Spec
     Plugin.Spec
