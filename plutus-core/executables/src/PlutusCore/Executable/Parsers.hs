@@ -4,6 +4,7 @@
 
 module PlutusCore.Executable.Parsers where
 
+import PlutusCore.Default (BuiltinSemanticsVariant (..), DefaultFun)
 import PlutusCore.Executable.Types
 
 import Options.Applicative
@@ -159,6 +160,32 @@ exampleSingle = ExampleSingle <$> exampleName
 exampleOpts :: Parser ExampleOptions
 exampleOpts = ExampleOptions <$> exampleMode
 
+builtinSemanticsVariantReader :: String -> Maybe (BuiltinSemanticsVariant DefaultFun)
+builtinSemanticsVariantReader =
+    \case
+     "1" -> Just DefaultFunSemanticsVariant1
+     "2" -> Just DefaultFunSemanticsVariant2
+     _   -> Nothing
+
+-- This is used to make the help message show you what you actually need to type.
+showBuiltinSemanticsVariant :: BuiltinSemanticsVariant DefaultFun -> String
+showBuiltinSemanticsVariant =
+    \case
+     DefaultFunSemanticsVariant1 -> "1"
+     DefaultFunSemanticsVariant2 -> "2"
+
+builtinSemanticsVariant :: Parser (BuiltinSemanticsVariant DefaultFun)
+builtinSemanticsVariant = option (maybeReader builtinSemanticsVariantReader)
+  (  long "builtin-semantics-variant"
+  <> short 'B'
+  <> metavar "VARIANT"
+  <> value DefaultFunSemanticsVariant2
+  <> showDefaultWith showBuiltinSemanticsVariant
+  <> help
+    ("Builtin semantics variant: 1 -> DefaultFunSemanticsVariant1, "
+     <> "2 -> DefaultFunSemanticsVariant2"
+    )
+  )
 
 -- Specialised parsers for PIR, which only supports ASTs over the Textual and
 -- Named types.
@@ -191,6 +218,8 @@ pPirOutputFormat = option (maybeReader pirFormatReader)
   <> value TextualPir
   <> showDefault
   <> help ("Output format: " ++ pirFormatHelp))
+
+-- Which language: PLC or UPLC?
 
 languageReader :: String -> Maybe Language
 languageReader =

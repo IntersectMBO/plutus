@@ -4,7 +4,8 @@
 {-# LANGUAGE TypeFamilies    #-}
 
 module PlutusCore.Evaluation.Machine.ExBudgetingDefaults
-    ( defaultBuiltinsRuntime
+    ( defaultBuiltinsRuntimeForSemanticsVariant
+    , defaultBuiltinsRuntime
     , defaultCekCostModel
     , defaultCekMachineCosts
     , defaultCekParameters
@@ -90,7 +91,16 @@ unitCekParameters =
     noinline mkMachineParameters def $
         CostModel unitCekMachineCosts unitCostBuiltinCostModel
 
-defaultBuiltinsRuntime :: HasMeaningIn DefaultUni term => BuiltinsRuntime DefaultFun term
+defaultBuiltinsRuntimeForSemanticsVariant
+    :: HasMeaningIn DefaultUni term
+    => BuiltinSemanticsVariant DefaultFun
+    -> BuiltinsRuntime DefaultFun term
+-- See Note [noinline for saving on ticks].
+defaultBuiltinsRuntimeForSemanticsVariant semvar = noinline toBuiltinsRuntime semvar defaultBuiltinCostModel
+
+defaultBuiltinsRuntime
+    :: HasMeaningIn DefaultUni term
+    => BuiltinsRuntime DefaultFun term
 -- See Note [noinline for saving on ticks].
 defaultBuiltinsRuntime = noinline toBuiltinsRuntime def defaultBuiltinCostModel
 

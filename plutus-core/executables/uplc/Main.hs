@@ -12,6 +12,7 @@ module Main (main) where
 import PlutusCore qualified as PLC
 import PlutusCore.Annotation
 import PlutusCore.Data
+import PlutusCore.Default (BuiltinSemanticsVariant (..))
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
@@ -20,6 +21,7 @@ import PlutusCore.Executable.Parsers
 import PlutusCore.MkPlc (mkConstant)
 import PlutusPrelude
 
+import PlutusCore.Evaluation.Machine.MachineParameters
 import UntypedPlutusCore.Evaluation.Machine.Cek
 import UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver qualified as D
 import UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal qualified as D
@@ -60,7 +62,16 @@ data SomeBudgetMode =
         SomeBudgetMode (Cek.ExBudgetMode cost PLC.DefaultUni PLC.DefaultFun)
 
 data EvalOptions =
-    EvalOptions Input Format PrintMode BudgetMode TraceMode Output TimingMode CekModel
+    EvalOptions
+      Input
+      Format
+      PrintMode
+      BudgetMode
+      TraceMode
+      Output
+      TimingMode
+      CekModel
+      (BuiltinSemanticsVariant PLC.DefaultFun)
 
 data DbgOptions =
     DbgOptions Input Format CekModel
@@ -90,9 +101,16 @@ cekmodel =
 
 evalOpts :: Parser EvalOptions
 evalOpts =
-  EvalOptions <$>
-    input <*> inputformat <*>
-        printmode <*> budgetmode <*> tracemode <*> output <*> timingmode <*> cekmodel
+  EvalOptions
+  <$> input
+  <*> inputformat
+  <*> printmode
+  <*> budgetmode
+  <*> tracemode
+  <*> output
+  <*> timingmode
+  <*> cekmodel
+  <*> builtinSemanticsVariant
 
 dbgOpts :: Parser DbgOptions
 dbgOpts =
@@ -254,13 +272,14 @@ runApplyToData (ApplyOptions inputfiles ifmt outp ofmt mode) =
 ---------------- Evaluation ----------------
 
 runEval :: EvalOptions -> IO ()
-runEval (EvalOptions inp ifmt printMode budgetMode traceMode outputMode timingMode cekModel) = do
+runEval (EvalOptions inp ifmt printMode budgetMode traceMode
+                     outputMode timingMode cekModel semvar) = do
     prog <- readProgram ifmt inp
     let term = void $ prog ^. UPLC.progTerm
         !_ = rnf term
         cekparams = case cekModel of
                     -- AST nodes are charged according to the default cost model
-                    Default -> PLC.defaultCekParameters
+                    Default -> mkMachineParameters semvar PLC.defaultCekCostModel
                     -- AST nodes are charged one unit each, so we can see how many times each node
                     -- type is encountered.  This is useful for calibrating the budgeting code
                     Unit    -> PLC.unitCekParameters
