@@ -129,7 +129,7 @@ benchWith act = do
 
     mkScriptBM :: FilePath -> FilePath -> Benchmark
     mkScriptBM dir file =
-        env (BS.readFile $ dir </> file) $ \scriptBS ->
+        env (BS.readFile $ dir </> file) $ \(~scriptBS) ->
             bench (dropExtension file) $ act file scriptBS
 
 -- | Create the evaluation context for the benchmarks. This doesn't exactly match how it's done
@@ -168,4 +168,3 @@ peelDataArguments = go []
             Left _  -> (t, acc)
             Right d -> go (d:acc) t'
         go acc t = (t, acc)
-
