@@ -40,10 +40,14 @@ common lang
     ImportQualifiedPost
     ScopedTypeVariables
     StandaloneDeriving
+    Strict
 
+  -- See Note [-fno-full-laziness in Plutus Tx]
   ghc-options:
     -fno-specialise -fno-spec-constr -fno-ignore-interface-pragmas
-    -fno-omit-interface-pragmas
+    -fno-omit-interface-pragmas -fno-strictness
+    -fno-unbox-strict-fields -fno-unbox-small-strict-fields
+    -fno-full-laziness
 
   ghc-options:
     -Wall -Wnoncanonical-monad-instances -Wincomplete-uni-patterns
@@ -417,7 +421,8 @@ executable bls12-381-costs
 test-suite bls12-381-costs-test
   import:         lang
 
-  if impl(ghc <9.0)
+  -- test output changes after 9.2, bad for golden tests
+  if (impl(ghc <9.0) || impl(ghc >=9.3))
     buildable: False
 
   type:           exitcode-stdio-1.0

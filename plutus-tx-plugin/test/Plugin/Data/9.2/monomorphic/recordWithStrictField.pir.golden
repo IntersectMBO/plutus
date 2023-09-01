@@ -2,14 +2,7 @@
   1.1.0
   (let
     (nonrec)
-    (datatypebind
-      (datatype
-        (tyvardecl RecordNewtype (type))
-
-        RecordNewtype_match
-        (vardecl RecordNewtype (fun (con integer) RecordNewtype))
-      )
-    )
+    (typebind (tyvardecl RecordNewtype (type)) (all a (type) (fun a a)))
     (typebind (tyvardecl MyMonoRecord (type)) (all a (type) (fun a a)))
     (datatypebind
       (datatype
@@ -18,7 +11,7 @@
         RecordWithStrictField_match
         (vardecl
           RecordWithStrictField
-          (fun MyMonoRecord (fun (con integer) RecordWithStrictField))
+          (fun MyMonoRecord (fun RecordNewtype RecordWithStrictField))
         )
       )
     )
@@ -30,10 +23,18 @@
         RecordWithStrictField
         [
           { [ RecordWithStrictField_match ds ] RecordNewtype }
-          (lam ds MyMonoRecord (lam dt (con integer) [ RecordNewtype dt ]))
+          (lam ds MyMonoRecord (lam ds RecordNewtype ds))
         ]
       )
     )
-    strictField
+    (lam
+      ds
+      RecordWithStrictField
+      (let
+        (nonrec)
+        (termbind (strict) (vardecl ds RecordWithStrictField) ds)
+        [ strictField ds ]
+      )
+    )
   )
 )

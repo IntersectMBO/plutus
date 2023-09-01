@@ -14,12 +14,17 @@
     (lam
       ds
       [ List (con integer) ]
-      [
+      (let
+        (nonrec)
+        (termbind (strict) (vardecl ds [ List (con integer) ]) ds)
         [
-          { [ { List_match (con integer) } ds ] (con integer) } (con integer 0)
+          [
+            { [ { List_match (con integer) } ds ] (con integer) }
+            (con integer 0)
+          ]
+          (lam x (con integer) (lam ds [ List (con integer) ] x))
         ]
-        (lam x (con integer) (lam ds [ List (con integer) ] x))
-      ]
+      )
     )
   )
 )

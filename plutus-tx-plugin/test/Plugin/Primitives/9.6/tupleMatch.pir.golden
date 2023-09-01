@@ -17,7 +17,7 @@
         {
           [ { { Tuple2_match (con integer) } (con integer) } ds ] (con integer)
         }
-        (lam a (con integer) (lam ds (con integer) a))
+        (lam ipv (con integer) (lam ipv (con integer) ipv))
       ]
     )
   )

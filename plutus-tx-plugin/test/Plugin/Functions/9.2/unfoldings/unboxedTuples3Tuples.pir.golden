@@ -43,7 +43,20 @@
     (termbind
       (nonstrict)
       (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
-      (lam x (con integer) (lam y (con integer) [ [ addInteger x ] y ]))
+      (lam
+        x
+        (con integer)
+        (lam
+          y
+          (con integer)
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl x (con integer)) x)
+            (termbind (strict) (vardecl y (con integer)) y)
+            [ [ addInteger x ] y ]
+          )
+        )
+      )
     )
     (termbind
       (nonstrict)
@@ -278,15 +291,29 @@
     (lam
       x
       (con integer)
-      [
-        unboxedTuples3Tuple
+      (let
+        (nonrec)
+        (termbind (strict) (vardecl x (con integer)) x)
         [
+          unboxedTuples3Tuple
           [
             [
-              {
+              [
                 {
                   {
-                    UTuple3
+                    {
+                      UTuple3
+                      [
+                        [
+                          [
+                            [ [ UTuple5 (con integer) ] (con integer) ]
+                            (con integer)
+                          ]
+                          (con integer)
+                        ]
+                        (con integer)
+                      ]
+                    }
                     [
                       [
                         [
@@ -312,13 +339,29 @@
                 [
                   [
                     [
-                      [ [ UTuple5 (con integer) ] (con integer) ] (con integer)
+                      [
+                        [
+                          {
+                            {
+                              {
+                                { { UTuple5 (con integer) } (con integer) }
+                                (con integer)
+                              }
+                              (con integer)
+                            }
+                            (con integer)
+                          }
+                          x
+                        ]
+                        x
+                      ]
+                      x
                     ]
-                    (con integer)
+                    x
                   ]
-                  (con integer)
+                  x
                 ]
-              }
+              ]
               [
                 [
                   [
@@ -371,33 +414,8 @@
               x
             ]
           ]
-          [
-            [
-              [
-                [
-                  [
-                    {
-                      {
-                        {
-                          { { UTuple5 (con integer) } (con integer) }
-                          (con integer)
-                        }
-                        (con integer)
-                      }
-                      (con integer)
-                    }
-                    x
-                  ]
-                  x
-                ]
-                x
-              ]
-              x
-            ]
-            x
-          ]
         ]
-      ]
+      )
     )
   )
 )

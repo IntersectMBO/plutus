@@ -22,42 +22,42 @@ main = defaultMain . testGroup "Size regression tests" $ [
       ],
     testGroup "Ord" [
       fitsInto "compare" ratCompare 53,
-      fitsInto "<=" ratLe 30,
-      fitsInto ">=" ratGe 30,
-      fitsInto "<" ratLt 30,
-      fitsInto ">" ratGt 30,
-      fitsInto "max" ratMax 36,
-      fitsInto "min" ratMin 36
+      fitsInto "<=" ratLe 36,
+      fitsInto ">=" ratGe 36,
+      fitsInto "<" ratLt 36,
+      fitsInto ">" ratGt 36,
+      fitsInto "max" ratMax 42,
+      fitsInto "min" ratMin 42
       ],
     testGroup "Additive" [
-      fitsInto "+" ratPlus 104,
+      fitsInto "+" ratPlus 100,
       fitsInto "zero" ratZero 3,
-      fitsInto "-" ratMinus 104,
+      fitsInto "-" ratMinus 100,
       fitsInto "negate (specialized)" ratNegate 12
       ],
     testGroup "Multiplicative" [
-      fitsInto "*" ratTimes 94,
+      fitsInto "*" ratTimes 86,
       fitsInto "one" ratOne 6,
-      fitsInto "scale" ratScale 76
+      fitsInto "scale" ratScale 75
       ],
     testGroup "Serialization" [
       fitsInto "toBuiltinData" ratToBuiltin 24,
-      fitsInto "fromBuiltinData" ratFromBuiltin 305,
-      fitsInto "unsafeFromBuiltinData" ratUnsafeFromBuiltin 181
+      fitsInto "fromBuiltinData" ratFromBuiltin 372,
+      fitsInto "unsafeFromBuiltinData" ratUnsafeFromBuiltin 183
       ],
     testGroup "Construction" [
-      fitsInto "unsafeRatio" ratMkUnsafe 117,
-      fitsInto "ratio" ratMkSafe 190,
+      fitsInto "unsafeRatio" ratMkUnsafe 119,
+      fitsInto "ratio" ratMkSafe 186,
       fitsInto "fromInteger" ratFromInteger 4
       ],
     testGroup "Other" [
       fitsInto "numerator" ratNumerator 6,
       fitsInto "denominator" ratDenominator 6,
-      fitsInto "round" ratRound 278,
+      fitsInto "round" ratRound 300,
       fitsInto "truncate" ratTruncate 10,
       fitsInto "properFraction" ratProperFraction 21,
-      fitsInto "recip" ratRecip 52,
-      fitsInto "abs (specialized)" ratAbs 31
+      fitsInto "recip" ratRecip 55,
+      fitsInto "abs (specialized)" ratAbs 29
       ],
     testGroup "Comparison" [
       fitsUnder "negate" ("specialized", ratNegate) ("general", genNegate),

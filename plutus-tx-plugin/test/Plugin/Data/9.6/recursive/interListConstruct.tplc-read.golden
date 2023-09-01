@@ -1,62 +1,86 @@
 program
   1.1.0
-  ((/\(InterList_i0 :: * -> * -> *) ->
-      \(InterCons_i0 :
-          all a_i0 b_i0.
-            a_i2 -> b_i1 -> InterList_i4 b_i1 a_i2 -> InterList_i4 a_i2 b_i1)
-       (InterNil_i0 : all a_i0 b_i0. InterList_i5 a_i2 b_i1)
-       (InterList_match_i0 :
-          all a_i0 b_i0.
-            InterList_i6 a_i2 b_i1 ->
-            (all out_InterList_i0.
-               (a_i3 -> b_i2 -> InterList_i7 b_i2 a_i3 -> out_InterList_i1) ->
-               out_InterList_i1 ->
-               out_InterList_i1)) ->
-        (/\Bool_i0 ->
-           \(True_i0 : Bool_i2)
-            (False_i0 : Bool_i3)
-            (Bool_match_i0 :
-               Bool_i4 ->
-               (all out_Bool_i0. out_Bool_i1 -> out_Bool_i1 -> out_Bool_i1)) ->
-             InterCons_i7
-               {integer}
-               {Bool_i4}
-               0
-               False_i2
-               (InterCons_i7
-                  {Bool_i4}
+  ((/\Bool_i0 ->
+      \(True_i0 : Bool_i2)
+       (False_i0 : Bool_i3)
+       (Bool_match_i0 :
+          Bool_i4 ->
+          (all out_Bool_i0. out_Bool_i1 -> out_Bool_i1 -> out_Bool_i1)) ->
+        (/\(InterList_i0 :: * -> * -> *) ->
+           \(InterCons_i0 :
+               all a_i0 b_i0.
+                 a_i2 ->
+                 b_i1 ->
+                 InterList_i4 b_i1 a_i2 ->
+                 InterList_i4 a_i2 b_i1)
+            (InterNil_i0 : all a_i0 b_i0. InterList_i5 a_i2 b_i1)
+            (InterList_match_i0 :
+               all a_i0 b_i0.
+                 InterList_i6 a_i2 b_i1 ->
+                 (all out_InterList_i0.
+                    (a_i3 ->
+                     b_i2 ->
+                     InterList_i7 b_i2 a_i3 ->
+                     out_InterList_i1) ->
+                    out_InterList_i1 ->
+                    out_InterList_i1)) ->
+             (\(`$WInterCons_i0` :
+                  all a_i0 b_i0.
+                    a_i2 ->
+                    b_i1 ->
+                    InterList_i7 b_i1 a_i2 ->
+                    InterList_i7 a_i2 b_i1) ->
+                `$WInterCons_i1`
                   {integer}
-                  False_i2
-                  -1
-                  (InterCons_i7
+                  {Bool_i9}
+                  0
+                  False_i7
+                  (`$WInterCons_i1`
+                     {Bool_i9}
                      {integer}
-                     {Bool_i4}
-                     42
-                     True_i3
-                     (InterNil_i6 {Bool_i4} {integer}))))
-          {sop [] []}
-          (constr (sop [] []) 0 [])
-          (constr (sop [] []) 1 [])
-          (\(x_i0 : sop [] []) ->
-             /\out_Bool_i0 ->
-               \(case_True_i0 : out_Bool_i2) (case_False_i0 : out_Bool_i3) ->
-                 case out_Bool_i3 x_i4 [case_True_i2, case_False_i1]))
-     {\a_i0 b_i0 ->
-        ifix
-          (\(rec_i0 :: ((* -> * -> *) -> *) -> *)
-            (spine_i0 :: (* -> * -> *) -> *) ->
-             spine_i1
-               ((\(InterList_i0 :: * -> * -> *) a_i0 b_i0 ->
-                   sop [a_i2, b_i1, (InterList_i3 b_i1 a_i2)] [])
-                  (\a_i0 b_i0 ->
-                     rec_i4 (\(dat_i0 :: * -> * -> *) -> dat_i1 a_i3 b_i2))))
-          (\(dat_i0 :: * -> * -> *) -> dat_i1 a_i3 b_i2)}
-     (/\a_i0 b_i0 ->
-        \(arg_0_i0 : a_i3)
-         (arg_1_i0 : b_i3)
-         (arg_2_i0 :
-            (\a_i0 b_i0 ->
-               ifix
+                     False_i7
+                     -1
+                     (`$WInterCons_i1`
+                        {integer}
+                        {Bool_i9}
+                        42
+                        True_i8
+                        (InterNil_i3 {Bool_i9} {integer}))))
+               (/\a_i0 b_i0 ->
+                  \(conrep_i0 : a_i3)
+                   (conrep_i0 : b_i3)
+                   (conrep_i0 : InterList_i9 b_i4 a_i5) ->
+                    InterCons_i8 {a_i5} {b_i4} conrep_i3 conrep_i2 conrep_i1))
+          {\a_i0 b_i0 ->
+             ifix
+               (\(rec_i0 :: ((* -> * -> *) -> *) -> *)
+                 (spine_i0 :: (* -> * -> *) -> *) ->
+                  spine_i1
+                    ((\(InterList_i0 :: * -> * -> *) a_i0 b_i0 ->
+                        sop [a_i2, b_i1, (InterList_i3 b_i1 a_i2)] [])
+                       (\a_i0 b_i0 ->
+                          rec_i4
+                            (\(dat_i0 :: * -> * -> *) -> dat_i1 a_i3 b_i2))))
+               (\(dat_i0 :: * -> * -> *) -> dat_i1 a_i3 b_i2)}
+          (/\a_i0 b_i0 ->
+             \(arg_0_i0 : a_i3)
+              (arg_1_i0 : b_i3)
+              (arg_2_i0 :
+                 (\a_i0 b_i0 ->
+                    ifix
+                      (\(rec_i0 :: ((* -> * -> *) -> *) -> *)
+                        (spine_i0 :: (* -> * -> *) -> *) ->
+                         spine_i1
+                           ((\(InterList_i0 :: * -> * -> *) a_i0 b_i0 ->
+                               sop [a_i2, b_i1, (InterList_i3 b_i1 a_i2)] [])
+                              (\a_i0 b_i0 ->
+                                 rec_i4
+                                   (\(dat_i0 :: * -> * -> *) ->
+                                      dat_i1 a_i3 b_i2))))
+                      (\(dat_i0 :: * -> * -> *) -> dat_i1 a_i3 b_i2))
+                   b_i4
+                   a_i5) ->
+               iwrap
                  (\(rec_i0 :: ((* -> * -> *) -> *) -> *)
                    (spine_i0 :: (* -> * -> *) -> *) ->
                     spine_i1
@@ -65,23 +89,87 @@ program
                          (\a_i0 b_i0 ->
                             rec_i4
                               (\(dat_i0 :: * -> * -> *) -> dat_i1 a_i3 b_i2))))
-                 (\(dat_i0 :: * -> * -> *) -> dat_i1 a_i3 b_i2))
-              b_i4
-              a_i5) ->
-          iwrap
-            (\(rec_i0 :: ((* -> * -> *) -> *) -> *)
-              (spine_i0 :: (* -> * -> *) -> *) ->
-               spine_i1
-                 ((\(InterList_i0 :: * -> * -> *) a_i0 b_i0 ->
-                     sop [a_i2, b_i1, (InterList_i3 b_i1 a_i2)] [])
-                    (\a_i0 b_i0 ->
-                       rec_i4 (\(dat_i0 :: * -> * -> *) -> dat_i1 a_i3 b_i2))))
-            (\(dat_i0 :: * -> * -> *) -> dat_i1 a_i6 b_i5)
-            (constr
-               (sop
-                  [ a_i5
-                  , b_i4
-                  , ((\a_i0 b_i0 ->
+                 (\(dat_i0 :: * -> * -> *) -> dat_i1 a_i6 b_i5)
+                 (constr
+                    (sop
+                       [ a_i5
+                       , b_i4
+                       , ((\a_i0 b_i0 ->
+                             ifix
+                               (\(rec_i0 :: ((* -> * -> *) -> *) -> *)
+                                 (spine_i0 :: (* -> * -> *) -> *) ->
+                                  spine_i1
+                                    ((\(InterList_i0 :: * -> * -> *)
+                                       a_i0
+                                       b_i0 ->
+                                        sop
+                                          [a_i2, b_i1, (InterList_i3 b_i1 a_i2)]
+                                          [])
+                                       (\a_i0 b_i0 ->
+                                          rec_i4
+                                            (\(dat_i0 :: * -> * -> *) ->
+                                               dat_i1 a_i3 b_i2))))
+                               (\(dat_i0 :: * -> * -> *) -> dat_i1 a_i3 b_i2))
+                            b_i4
+                            a_i5) ]
+                       [])
+                    0
+                    [arg_0_i3, arg_1_i2, arg_2_i1]))
+          (/\a_i0 b_i0 ->
+             iwrap
+               (\(rec_i0 :: ((* -> * -> *) -> *) -> *)
+                 (spine_i0 :: (* -> * -> *) -> *) ->
+                  spine_i1
+                    ((\(InterList_i0 :: * -> * -> *) a_i0 b_i0 ->
+                        sop [a_i2, b_i1, (InterList_i3 b_i1 a_i2)] [])
+                       (\a_i0 b_i0 ->
+                          rec_i4
+                            (\(dat_i0 :: * -> * -> *) -> dat_i1 a_i3 b_i2))))
+               (\(dat_i0 :: * -> * -> *) -> dat_i1 a_i3 b_i2)
+               (constr
+                  (sop
+                     [ a_i2
+                     , b_i1
+                     , ((\a_i0 b_i0 ->
+                           ifix
+                             (\(rec_i0 :: ((* -> * -> *) -> *) -> *)
+                               (spine_i0 :: (* -> * -> *) -> *) ->
+                                spine_i1
+                                  ((\(InterList_i0 :: * -> * -> *) a_i0 b_i0 ->
+                                      sop
+                                        [a_i2, b_i1, (InterList_i3 b_i1 a_i2)]
+                                        [])
+                                     (\a_i0 b_i0 ->
+                                        rec_i4
+                                          (\(dat_i0 :: * -> * -> *) ->
+                                             dat_i1 a_i3 b_i2))))
+                             (\(dat_i0 :: * -> * -> *) -> dat_i1 a_i3 b_i2))
+                          b_i1
+                          a_i2) ]
+                     [])
+                  1
+                  []))
+          (/\a_i0 b_i0 ->
+             \(x_i0 :
+                 (\a_i0 b_i0 ->
+                    ifix
+                      (\(rec_i0 :: ((* -> * -> *) -> *) -> *)
+                        (spine_i0 :: (* -> * -> *) -> *) ->
+                         spine_i1
+                           ((\(InterList_i0 :: * -> * -> *) a_i0 b_i0 ->
+                               sop [a_i2, b_i1, (InterList_i3 b_i1 a_i2)] [])
+                              (\a_i0 b_i0 ->
+                                 rec_i4
+                                   (\(dat_i0 :: * -> * -> *) ->
+                                      dat_i1 a_i3 b_i2))))
+                      (\(dat_i0 :: * -> * -> *) -> dat_i1 a_i3 b_i2))
+                   a_i3
+                   b_i2) ->
+               /\out_InterList_i0 ->
+                 \(case_InterCons_i0 :
+                     a_i5 ->
+                     b_i4 ->
+                     (\a_i0 b_i0 ->
                         ifix
                           (\(rec_i0 :: ((* -> * -> *) -> *) -> *)
                             (spine_i0 :: (* -> * -> *) -> *) ->
@@ -96,77 +184,17 @@ program
                                           dat_i1 a_i3 b_i2))))
                           (\(dat_i0 :: * -> * -> *) -> dat_i1 a_i3 b_i2))
                        b_i4
-                       a_i5) ]
-                  [])
-               0
-               [arg_0_i3, arg_1_i2, arg_2_i1]))
-     (/\a_i0 b_i0 ->
-        iwrap
-          (\(rec_i0 :: ((* -> * -> *) -> *) -> *)
-            (spine_i0 :: (* -> * -> *) -> *) ->
-             spine_i1
-               ((\(InterList_i0 :: * -> * -> *) a_i0 b_i0 ->
-                   sop [a_i2, b_i1, (InterList_i3 b_i1 a_i2)] [])
-                  (\a_i0 b_i0 ->
-                     rec_i4 (\(dat_i0 :: * -> * -> *) -> dat_i1 a_i3 b_i2))))
-          (\(dat_i0 :: * -> * -> *) -> dat_i1 a_i3 b_i2)
-          (constr
-             (sop
-                [ a_i2
-                , b_i1
-                , ((\a_i0 b_i0 ->
-                      ifix
-                        (\(rec_i0 :: ((* -> * -> *) -> *) -> *)
-                          (spine_i0 :: (* -> * -> *) -> *) ->
-                           spine_i1
-                             ((\(InterList_i0 :: * -> * -> *) a_i0 b_i0 ->
-                                 sop [a_i2, b_i1, (InterList_i3 b_i1 a_i2)] [])
-                                (\a_i0 b_i0 ->
-                                   rec_i4
-                                     (\(dat_i0 :: * -> * -> *) ->
-                                        dat_i1 a_i3 b_i2))))
-                        (\(dat_i0 :: * -> * -> *) -> dat_i1 a_i3 b_i2))
-                     b_i1
-                     a_i2) ]
-                [])
-             1
-             []))
-     (/\a_i0 b_i0 ->
-        \(x_i0 :
-            (\a_i0 b_i0 ->
-               ifix
-                 (\(rec_i0 :: ((* -> * -> *) -> *) -> *)
-                   (spine_i0 :: (* -> * -> *) -> *) ->
-                    spine_i1
-                      ((\(InterList_i0 :: * -> * -> *) a_i0 b_i0 ->
-                          sop [a_i2, b_i1, (InterList_i3 b_i1 a_i2)] [])
-                         (\a_i0 b_i0 ->
-                            rec_i4
-                              (\(dat_i0 :: * -> * -> *) -> dat_i1 a_i3 b_i2))))
-                 (\(dat_i0 :: * -> * -> *) -> dat_i1 a_i3 b_i2))
-              a_i3
-              b_i2) ->
-          /\out_InterList_i0 ->
-            \(case_InterCons_i0 :
-                a_i5 ->
-                b_i4 ->
-                (\a_i0 b_i0 ->
-                   ifix
-                     (\(rec_i0 :: ((* -> * -> *) -> *) -> *)
-                       (spine_i0 :: (* -> * -> *) -> *) ->
-                        spine_i1
-                          ((\(InterList_i0 :: * -> * -> *) a_i0 b_i0 ->
-                              sop [a_i2, b_i1, (InterList_i3 b_i1 a_i2)] [])
-                             (\a_i0 b_i0 ->
-                                rec_i4
-                                  (\(dat_i0 :: * -> * -> *) ->
-                                     dat_i1 a_i3 b_i2))))
-                     (\(dat_i0 :: * -> * -> *) -> dat_i1 a_i3 b_i2))
-                  b_i4
-                  a_i5 ->
-                out_InterList_i2)
-             (case_InterNil_i0 : out_InterList_i3) ->
-              case
-                out_InterList_i3
-                (unwrap x_i4)
-                [case_InterCons_i2, case_InterNil_i1]))
+                       a_i5 ->
+                     out_InterList_i2)
+                  (case_InterNil_i0 : out_InterList_i3) ->
+                   case
+                     out_InterList_i3
+                     (unwrap x_i4)
+                     [case_InterCons_i2, case_InterNil_i1]))
+     {sop [] []}
+     (constr (sop [] []) 0 [])
+     (constr (sop [] []) 1 [])
+     (\(x_i0 : sop [] []) ->
+        /\out_Bool_i0 ->
+          \(case_True_i0 : out_Bool_i2) (case_False_i0 : out_Bool_i3) ->
+            case out_Bool_i3 x_i4 [case_True_i2, case_False_i1]))

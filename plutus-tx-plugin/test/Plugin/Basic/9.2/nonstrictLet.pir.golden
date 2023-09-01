@@ -10,7 +10,20 @@
     (termbind
       (nonstrict)
       (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
-      (lam x (con integer) (lam y (con integer) [ [ addInteger x ] y ]))
+      (lam
+        x
+        (con integer)
+        (lam
+          y
+          (con integer)
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl x (con integer)) x)
+            (termbind (strict) (vardecl y (con integer)) y)
+            [ [ addInteger x ] y ]
+          )
+        )
+      )
     )
     (lam
       ds
@@ -20,9 +33,9 @@
         (con integer)
         (let
           (nonrec)
-          (termbind
-            (nonstrict) (vardecl z (con integer)) [ [ addInteger ds ] ds ]
-          )
+          (termbind (strict) (vardecl ds (con integer)) ds)
+          (termbind (strict) (vardecl ds (con integer)) ds)
+          (termbind (strict) (vardecl z (con integer)) [ [ addInteger ds ] ds ])
           [ [ addInteger z ] z ]
         )
       )

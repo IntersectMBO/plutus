@@ -14,16 +14,24 @@
     (lam
       ds
       [ [ MyPolyData (con integer) ] (con integer) ]
-      [
+      (let
+        (nonrec)
+        (termbind
+          (strict)
+          (vardecl ds [ [ MyPolyData (con integer) ] (con integer) ])
+          ds
+        )
         [
-          {
-            [ { { MyPolyData_match (con integer) } (con integer) } ds ]
-            (con integer)
-          }
-          (lam ipv (con integer) (lam ipv (con integer) (con integer 1)))
+          [
+            {
+              [ { { MyPolyData_match (con integer) } (con integer) } ds ]
+              (con integer)
+            }
+            (lam ipv (con integer) (lam ipv (con integer) (con integer 1)))
+          ]
+          (lam i (con integer) i)
         ]
-        (lam i (con integer) i)
-      ]
+      )
     )
   )
 )

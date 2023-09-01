@@ -12,6 +12,24 @@
         (vardecl Mono (fun (con integer) MyMonoData))
       )
     )
-    (lam ds (con integer) (lam ds (con integer) [ [ Mono ds ] ds ]))
+    (termbind
+      (nonstrict)
+      (vardecl `$WMono` (fun (con integer) (fun (con integer) MyMonoData)))
+      (lam
+        conrep
+        (con integer)
+        (lam
+          conrep
+          (con integer)
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl conrep (con integer)) conrep)
+            (termbind (strict) (vardecl conrep (con integer)) conrep)
+            [ [ Mono conrep ] conrep ]
+          )
+        )
+      )
+    )
+    (lam ds (con integer) (lam ds (con integer) [ [ `$WMono` ds ] ds ]))
   )
 )

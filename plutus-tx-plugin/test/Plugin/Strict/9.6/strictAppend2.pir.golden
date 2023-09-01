@@ -1,8 +1,0 @@
-(program
-  1.1.0
-  (lam
-    ds
-    (con bytestring)
-    (lam ds (con bytestring) [ [ (builtin appendByteString) ds ] ds ])
-  )
-)

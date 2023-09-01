@@ -30,7 +30,12 @@
                     { (builtin trace) (con integer) }
                     (con string "exiting addInteger")
                   ]
-                  [ [ addInteger x ] y ]
+                  (let
+                    (nonrec)
+                    (termbind (strict) (vardecl x (con integer)) x)
+                    (termbind (strict) (vardecl y (con integer)) y)
+                    [ [ addInteger x ] y ]
+                  )
                 ]
               )
             ]
@@ -80,10 +85,15 @@
                     { (builtin trace) Bool }
                     (con string "exiting equalsInteger")
                   ]
-                  [
-                    [ [ { ifThenElse Bool } [ [ equalsInteger x ] y ] ] True ]
-                    False
-                  ]
+                  (let
+                    (nonrec)
+                    (termbind (strict) (vardecl x (con integer)) x)
+                    (termbind (strict) (vardecl y (con integer)) y)
+                    (termbind
+                      (strict) (vardecl b (con bool)) [ [ equalsInteger x ] y ]
+                    )
+                    [ [ [ { ifThenElse Bool } b ] True ] False ]
+                  )
                 ]
               )
             ]
@@ -124,7 +134,12 @@
                     { (builtin trace) (con integer) }
                     (con string "exiting subtractInteger")
                   ]
-                  [ [ subtractInteger x ] y ]
+                  (let
+                    (nonrec)
+                    (termbind (strict) (vardecl x (con integer)) x)
+                    (termbind (strict) (vardecl y (con integer)) y)
+                    [ [ subtractInteger x ] y ]
+                  )
                 ]
               )
             ]
@@ -154,53 +169,60 @@
                   [
                     { (builtin trace) (con integer) } (con string "exiting fib")
                   ]
-                  {
-                    [
+                  (let
+                    (nonrec)
+                    (termbind (strict) (vardecl n (con integer)) n)
+                    {
                       [
-                        {
-                          [ Bool_match [ [ equalsInteger n ] (con integer 0) ] ]
-                          (all dead (type) (con integer))
-                        }
-                        (abs dead (type) (con integer 0))
-                      ]
-                      (abs
-                        dead
-                        (type)
-                        {
-                          [
+                        [
+                          {
                             [
-                              {
-                                [
-                                  Bool_match
-                                  [ [ equalsInteger n ] (con integer 1) ]
-                                ]
-                                (all dead (type) (con integer))
-                              }
-                              (abs dead (type) (con integer 1))
+                              Bool_match [ [ equalsInteger n ] (con integer 0) ]
                             ]
-                            (abs
-                              dead
-                              (type)
+                            (all dead (type) (con integer))
+                          }
+                          (abs dead (type) (con integer 0))
+                        ]
+                        (abs
+                          dead
+                          (type)
+                          {
+                            [
                               [
+                                {
+                                  [
+                                    Bool_match
+                                    [ [ equalsInteger n ] (con integer 1) ]
+                                  ]
+                                  (all dead (type) (con integer))
+                                }
+                                (abs dead (type) (con integer 1))
+                              ]
+                              (abs
+                                dead
+                                (type)
                                 [
-                                  addInteger
+                                  [
+                                    addInteger
+                                    [
+                                      fib
+                                      [ [ subtractInteger n ] (con integer 1) ]
+                                    ]
+                                  ]
                                   [
                                     fib
-                                    [ [ subtractInteger n ] (con integer 1) ]
+                                    [ [ subtractInteger n ] (con integer 2) ]
                                   ]
                                 ]
-                                [
-                                  fib [ [ subtractInteger n ] (con integer 2) ]
-                                ]
-                              ]
-                            )
-                          ]
-                          (all dead (type) dead)
-                        }
-                      )
-                    ]
-                    (all dead (type) dead)
-                  }
+                              )
+                            ]
+                            (all dead (type) dead)
+                          }
+                        )
+                      ]
+                      (all dead (type) dead)
+                    }
+                  )
                 ]
               )
             ]

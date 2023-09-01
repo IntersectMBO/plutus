@@ -26,21 +26,24 @@ letrec
                  {all dead. dead})
           {all dead. dead}
 in
-or
-  ((let
-       a = List Bool
-     in
-     \(c : Bool -> a -> a) (n : a) ->
-       c
-         True
-         (c
-            False
+let
+  !ls : List Bool
+    = (let
+          a = List Bool
+        in
+        \(c : Bool -> a -> a) (n : a) ->
+          c
+            True
             (c
                False
                (c
                   False
                   (c
                      False
-                     (c False (c False (c False (c False (c False n))))))))))
-     (\(ds : Bool) (ds : List Bool) -> Cons {Bool} ds ds)
-     (Nil {Bool}))
+                     (c
+                        False
+                        (c False (c False (c False (c False (c False n))))))))))
+        (\(ds : Bool) (ds : List Bool) -> Cons {Bool} ds ds)
+        (Nil {Bool})
+in
+or ls

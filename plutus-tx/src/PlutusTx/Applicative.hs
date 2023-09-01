@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module PlutusTx.Applicative where
 
 import Control.Applicative (Const (..))

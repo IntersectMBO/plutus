@@ -20,15 +20,21 @@
       (lam
         ds
         [ B (con integer) ]
-        [
+        (let
+          (nonrec)
+          (termbind (strict) (vardecl ds [ B (con integer) ]) ds)
           [
-            { [ { B_match (con integer) } ds ] (con integer) }
-            (lam a (con integer) a)
+            [
+              { [ { B_match (con integer) } ds ] (con integer) }
+              (lam a (con integer) a)
+            ]
+            (lam
+              ds
+              [ B [ [ Tuple2 (con integer) ] (con integer) ] ]
+              (con integer 2)
+            )
           ]
-          (lam
-            ds [ B [ [ Tuple2 (con integer) ] (con integer) ] ] (con integer 2)
-          )
-        ]
+        )
       )
     )
   )

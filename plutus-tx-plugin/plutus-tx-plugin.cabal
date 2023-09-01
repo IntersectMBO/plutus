@@ -116,14 +116,14 @@ executable gen-plugin-opts-doc
   default-language: Haskell2010
 
 test-suite plutus-tx-tests
-  import:         lang, ghc-version-support
+  import:             lang, ghc-version-support
 
   if flag(use-ghc-stub)
     buildable: False
 
-  type:           exitcode-stdio-1.0
-  hs-source-dirs: test
-  main-is:        Spec.hs
+  type:               exitcode-stdio-1.0
+  hs-source-dirs:     test
+  main-is:            Spec.hs
   other-modules:
     Budget.Spec
     IntegerLiterals.NoStrict.NegativeLiterals.Spec
@@ -172,20 +172,35 @@ test-suite plutus-tx-tests
     , template-haskell
     , text
 
+  default-extensions: Strict
+
   -- NOTE: -g makes the plugin give better errors
-  ghc-options:    -g
+  -- See Note [-fno-full-laziness in Plutus Tx]
+  ghc-options:
+    -g -fno-strictness -fno-unbox-strict-fields
+    -fno-unbox-small-strict-fields -fno-full-laziness
 
 test-suite size
-  import:         lang, ghc-version-support
+  import:             lang, ghc-version-support
+
+  if impl(ghc <9.0)
+    buildable: False
 
   -- needs plutus-tx-plugin but it looks unused
-  ghc-options:    -Wno-unused-packages
-  type:           exitcode-stdio-1.0
-  main-is:        Main.hs
-  hs-source-dirs: test/size
+  ghc-options:        -Wno-unused-packages
+  type:               exitcode-stdio-1.0
+  main-is:            Main.hs
+  hs-source-dirs:     test/size
   build-depends:
     , base                                      >=4.9   && <5.0
     , plutus-tx-plugin                          ^>=1.11
     , plutus-tx:{plutus-tx, plutus-tx-testlib}  ^>=1.11
     , tagged
     , tasty
+
+  default-extensions: Strict
+
+  -- See Note [-fno-full-laziness in Plutus Tx]
+  ghc-options:
+    -fno-strictness -fno-unbox-strict-fields
+    -fno-unbox-small-strict-fields -fno-full-laziness

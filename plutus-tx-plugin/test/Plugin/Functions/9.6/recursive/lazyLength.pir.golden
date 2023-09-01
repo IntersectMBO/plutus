@@ -25,7 +25,20 @@
         (vardecl
           addInteger (fun (con integer) (fun (con integer) (con integer)))
         )
-        (lam x (con integer) (lam y (con integer) [ [ addInteger x ] y ]))
+        (lam
+          x
+          (con integer)
+          (lam
+            y
+            (con integer)
+            (let
+              (nonrec)
+              (termbind (strict) (vardecl x (con integer)) x)
+              (termbind (strict) (vardecl y (con integer)) y)
+              [ [ addInteger x ] y ]
+            )
+          )
+        )
       )
       (termbind
         (nonstrict)
@@ -44,35 +57,49 @@
                 (lam
                   ds
                   [ List a ]
-                  {
-                    [
+                  (let
+                    (nonrec)
+                    (termbind (strict) (vardecl acc (con integer)) acc)
+                    {
                       [
-                        {
-                          [ { List_match a } ds ]
-                          (all dead (type) (con integer))
-                        }
-                        (abs dead (type) acc)
-                      ]
-                      (lam
-                        ds
-                        a
+                        [
+                          {
+                            [ { List_match a } ds ]
+                            (all dead (type) (con integer))
+                          }
+                          (abs dead (type) acc)
+                        ]
                         (lam
-                          tl
-                          [ List a ]
-                          (abs
-                            dead
-                            (type)
-                            [ [ go [ [ addInteger acc ] (con integer 1) ] ] tl ]
+                          ds
+                          a
+                          (lam
+                            tl
+                            [ List a ]
+                            (abs
+                              dead
+                              (type)
+                              [
+                                [ go [ [ addInteger acc ] (con integer 1) ] ] tl
+                              ]
+                            )
                           )
                         )
-                      )
-                    ]
-                    (all dead (type) dead)
-                  }
+                      ]
+                      (all dead (type) dead)
+                    }
+                  )
                 )
               )
             )
-            (lam l [ List a ] [ [ go (con integer 0) ] l ])
+            (lam
+              l
+              [ List a ]
+              (let
+                (nonrec)
+                (termbind (strict) (vardecl l [ List a ]) l)
+                [ [ go (con integer 0) ] l ]
+              )
+            )
           )
         )
       )

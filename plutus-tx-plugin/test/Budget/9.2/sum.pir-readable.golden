@@ -6,6 +6,14 @@ in
 let
   data (AdditiveMonoid :: * -> *) a | AdditiveMonoid_match where
     CConsAdditiveMonoid : (\a -> a -> a -> a) a -> a -> AdditiveMonoid a
+  !ls : List integer
+    = (let
+          a = List integer
+        in
+        \(c : integer -> a -> a) (n : a) ->
+          c 1 (c 2 (c 3 (c 4 (c 5 (c 6 (c 7 (c 8 (c 9 (c 10 n))))))))))
+        (\(ds : integer) (ds : List integer) -> Cons {integer} ds ds)
+        (Nil {integer})
 in
 (let
     !`$dAdditiveMonoid` : AdditiveMonoid integer
@@ -38,10 +46,4 @@ in
             {all dead. dead}
   in
   \(eta : List integer) -> go eta)
-  ((let
-       a = List integer
-     in
-     \(c : integer -> a -> a) (n : a) ->
-       c 1 (c 2 (c 3 (c 4 (c 5 (c 6 (c 7 (c 8 (c 9 (c 10 n))))))))))
-     (\(ds : integer) (ds : List integer) -> Cons {integer} ds ds)
-     (Nil {integer}))
+  ls

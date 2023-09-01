@@ -90,7 +90,15 @@
         (lam
           y
           (con integer)
-          [ [ [ { ifThenElse Bool } [ [ lessThanInteger x ] y ] ] True ] False ]
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl x (con integer)) x)
+            (termbind (strict) (vardecl y (con integer)) y)
+            (termbind
+              (strict) (vardecl b (con bool)) [ [ lessThanInteger x ] y ]
+            )
+            [ [ [ { ifThenElse Bool } b ] True ] False ]
+          )
         )
       )
     )
@@ -125,13 +133,17 @@
           (lam
             p
             p
-            [
-              [ `&&` [ [ [ { likesAnimal p } `$dPersonLike` ] p ] Cat ] ]
+            (let
+              (nonrec)
+              (termbind (strict) (vardecl p p) p)
               [
-                [ lessThanInteger [ [ { age p } `$dPersonLike` ] p ] ]
-                (con integer 30)
+                [ `&&` [ [ [ { likesAnimal p } `$dPersonLike` ] p ] Cat ] ]
+                [
+                  [ lessThanInteger [ [ { age p } `$dPersonLike` ] p ] ]
+                  (con integer 30)
+                ]
               ]
-            ]
+            )
           )
         )
       )
@@ -196,6 +208,14 @@
       (vardecl `$fPersonLikePerson` [ PersonLike Person ])
       [ [ { CConsPersonLike Person } `$cage` ] `$clikesAnimal` ]
     )
-    (lam ds Person [ [ { predicate Person } `$fPersonLikePerson` ] ds ])
+    (lam
+      ds
+      Person
+      (let
+        (nonrec)
+        (termbind (strict) (vardecl ds Person) ds)
+        [ [ { predicate Person } `$fPersonLikePerson` ] ds ]
+      )
+    )
   )
 )

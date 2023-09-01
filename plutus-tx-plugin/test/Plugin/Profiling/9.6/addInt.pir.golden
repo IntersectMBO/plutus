@@ -30,7 +30,12 @@
                     { (builtin trace) (con integer) }
                     (con string "exiting addInteger")
                   ]
-                  [ [ addInteger x ] y ]
+                  (let
+                    (nonrec)
+                    (termbind (strict) (vardecl x (con integer)) x)
+                    (termbind (strict) (vardecl y (con integer)) y)
+                    [ [ addInteger x ] y ]
+                  )
                 ]
               )
             ]
@@ -42,34 +47,37 @@
     (termbind
       (nonstrict)
       (vardecl addInt (fun (con integer) (fun (con integer) (con integer))))
-      [
+      (lam
+        x
+        (con integer)
         [
           [
-            {
-              (builtin trace)
-              (fun
-                (con unit) (fun (con integer) (fun (con integer) (con integer)))
-              )
-            }
-            (con string "entering addInt")
-          ]
-          (lam
-            thunk
-            (con unit)
             [
-              [
-                {
-                  (builtin trace)
-                  (fun (con integer) (fun (con integer) (con integer)))
-                }
-                (con string "exiting addInt")
-              ]
-              addInteger
+              {
+                (builtin trace)
+                (fun (con unit) (fun (con integer) (con integer)))
+              }
+              (con string "entering addInt")
             ]
-          )
+            (lam
+              thunk
+              (con unit)
+              [
+                [
+                  { (builtin trace) (fun (con integer) (con integer)) }
+                  (con string "exiting addInt")
+                ]
+                (let
+                  (nonrec)
+                  (termbind (strict) (vardecl x (con integer)) x)
+                  [ addInteger x ]
+                )
+              ]
+            )
+          ]
+          (con unit ())
         ]
-        (con unit ())
-      ]
+      )
     )
     addInt
   )

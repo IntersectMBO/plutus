@@ -24,11 +24,7 @@
                  (\(ds : unit) -> False)
                  (\(ds : unit) ->
                     let
-                      !thunk : unit
-                        = let
-                          !wild : Unit = trace {Unit} reconstructCaseError Unit
-                        in
-                        unitval
+                      !x : Unit = trace {Unit} reconstructCaseError Unit
                     in
                     error {Bool})
                  unitval)
@@ -66,12 +62,7 @@
                         (\(ds : unit) -> NegInf {a})
                         (\(ds : unit) ->
                            let
-                             !thunk : unit
-                               = let
-                                 !wild : Unit
-                                   = trace {Unit} reconstructCaseError Unit
-                               in
-                               unitval
+                             !x : Unit = trace {Unit} reconstructCaseError Unit
                            in
                            error {Extended a})
                         unitval)
@@ -89,11 +80,7 @@
                unBData (headList {data} (sndPair {integer} {list data} tup)))
             (\(ds : unit) ->
                let
-                 !thunk : unit
-                   = let
-                     !wild : Unit = trace {Unit} reconstructCaseError Unit
-                   in
-                   unitval
+                 !x : Unit = trace {Unit} reconstructCaseError Unit
                in
                error {bytestring})
             unitval
@@ -119,11 +106,7 @@
                  (unIData arg))
             (\(ds : unit) ->
                let
-                 !thunk : unit
-                   = let
-                     !wild : Unit = trace {Unit} reconstructCaseError Unit
-                   in
-                   unitval
+                 !x : Unit = trace {Unit} reconstructCaseError Unit
                in
                error {GovernanceActionId})
             unitval
@@ -148,11 +131,7 @@
                  (unIData arg))
             (\(ds : unit) ->
                let
-                 !thunk : unit
-                   = let
-                     !wild : Unit = trace {Unit} reconstructCaseError Unit
-                   in
-                   unitval
+                 !x : Unit = trace {Unit} reconstructCaseError Unit
                in
                error {TxOutRef})
             unitval
@@ -186,11 +165,7 @@
                     PubKeyCredential (unBData arg))
                  (\(ds : unit) ->
                     let
-                      !thunk : unit
-                        = let
-                          !wild : Unit = trace {Unit} reconstructCaseError Unit
-                        in
-                        unitval
+                      !x : Unit = trace {Unit} reconstructCaseError Unit
                     in
                     error {Credential})
                  unitval)
@@ -230,12 +205,7 @@
                               arg))
                       (\(ds : unit) ->
                          let
-                           !thunk : unit
-                             = let
-                               !wild : Unit
-                                 = trace {Unit} reconstructCaseError Unit
-                             in
-                             unitval
+                           !x : Unit = trace {Unit} reconstructCaseError Unit
                          in
                          error {DRep})
                       unitval)
@@ -288,12 +258,7 @@
                          DelegStake (unBData arg))
                       (\(ds : unit) ->
                          let
-                           !thunk : unit
-                             = let
-                               !wild : Unit
-                                 = trace {Unit} reconstructCaseError Unit
-                             in
-                             unitval
+                           !x : Unit = trace {Unit} reconstructCaseError Unit
                          in
                          error {Delegatee})
                       unitval)
@@ -326,12 +291,7 @@
                    (\(ds : unit) -> Nothing {a})
                    (\(ds : unit) ->
                       let
-                        !thunk : unit
-                          = let
-                            !wild : Unit
-                              = trace {Unit} reconstructCaseError Unit
-                          in
-                          unitval
+                        !x : Unit = trace {Unit} reconstructCaseError Unit
                       in
                       error {Maybe a})
                    unitval)
@@ -357,47 +317,49 @@
             letrec
               !go : list (pair data data) -> List (Tuple2 k v)
                 = \(l : list (pair data data)) ->
-                    let
-                      ~tup : pair data data = headList {pair data data} l
-                    in
                     chooseList
                       {pair data data}
                       {Unit -> List (Tuple2 k v)}
                       l
                       (\(ds : Unit) -> Nil {Tuple2 k v})
                       (\(ds : Unit) ->
+                         let
+                           !tup : pair data data = headList {pair data data} l
+                         in
                          Cons
                            {Tuple2 k v}
                            (Tuple2
                               {k}
                               {v}
-                              (`$dUnsafeFromData` (fstPair {data} {data} tup))
-                              (`$dUnsafeFromData` (sndPair {data} {data} tup)))
+                              (let
+                                !a : data = fstPair {data} {data} tup
+                              in
+                              `$dUnsafeFromData` a)
+                              (let
+                                !a : data = sndPair {data} {data} tup
+                              in
+                              `$dUnsafeFromData` a))
                            (go (tailList {pair data data} l)))
                       Unit
             in
             \(d : data) -> go (unMapData d)
-    !`$fUnsafeFromDataValue` :
+    ~`$fUnsafeFromDataValue` :
        data -> (\k v -> List (Tuple2 k v)) bytestring integer
-      = \(eta : data) ->
-          `$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
-            {bytestring}
-            {integer}
-            unBData
-            unIData
-            eta
-    !`$fUnsafeFromDataValue` :
+      = `$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
+          {bytestring}
+          {integer}
+          unBData
+          unIData
+    ~`$fUnsafeFromDataValue` :
        data ->
        (\k v -> List (Tuple2 k v))
          bytestring
          ((\k v -> List (Tuple2 k v)) bytestring integer)
-      = \(eta : data) ->
-          `$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
-            {bytestring}
-            {(\k v -> List (Tuple2 k v)) bytestring integer}
-            unBData
-            `$fUnsafeFromDataValue`
-            eta
+      = `$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
+          {bytestring}
+          {(\k v -> List (Tuple2 k v)) bytestring integer}
+          unBData
+          `$fUnsafeFromDataValue`
     data TxCert | TxCert_match where
       TxCertAuthHotCommittee : Credential -> Credential -> TxCert
       TxCertDelegStaking : Credential -> Delegatee -> TxCert
@@ -644,17 +606,12 @@
                                                             arg))
                                                     (\(ds : unit) ->
                                                        let
-                                                         !thunk :
-                                                            unit
-                                                           = let
-                                                             !wild :
-                                                                Unit
-                                                               = trace
-                                                                   {Unit}
-                                                                   reconstructCaseError
-                                                                   Unit
-                                                           in
-                                                           unitval
+                                                         !x :
+                                                            Unit
+                                                           = trace
+                                                               {Unit}
+                                                               reconstructCaseError
+                                                               Unit
                                                        in
                                                        error {TxCert})
                                                     unitval)
@@ -713,12 +670,7 @@
                               arg))
                       (\(ds : unit) ->
                          let
-                           !thunk : unit
-                             = let
-                               !wild : Unit
-                                 = trace {Unit} reconstructCaseError Unit
-                             in
-                             unitval
+                           !x : Unit = trace {Unit} reconstructCaseError Unit
                          in
                          error {Voter})
                       unitval)
@@ -821,15 +773,11 @@
                                         Minting (unBData arg))
                                      (\(ds : unit) ->
                                         let
-                                          !thunk : unit
-                                            = let
-                                              !wild : Unit
-                                                = trace
-                                                    {Unit}
-                                                    reconstructCaseError
-                                                    Unit
-                                            in
-                                            unitval
+                                          !x : Unit
+                                            = trace
+                                                {Unit}
+                                                reconstructCaseError
+                                                Unit
                                         in
                                         error {ScriptPurpose})
                                      unitval)
@@ -935,15 +883,11 @@
                                              arg))
                                      (\(ds : unit) ->
                                         let
-                                          !thunk : unit
-                                            = let
-                                              !wild : Unit
-                                                = trace
-                                                    {Unit}
-                                                    reconstructCaseError
-                                                    Unit
-                                            in
-                                            unitval
+                                          !x : Unit
+                                            = trace
+                                                {Unit}
+                                                reconstructCaseError
+                                                Unit
                                         in
                                         error {StakingCredential})
                                      unitval)
@@ -951,12 +895,7 @@
                            arg))
                    (\(ds : unit) ->
                       let
-                        !thunk : unit
-                          = let
-                            !wild : Unit
-                              = trace {Unit} reconstructCaseError Unit
-                          in
-                          unitval
+                        !x : Unit = trace {Unit} reconstructCaseError Unit
                       in
                       error {Address})
                    unitval)
@@ -998,12 +937,8 @@
                              (\(ds : unit) -> NoOutputDatum)
                              (\(ds : unit) ->
                                 let
-                                  !thunk : unit
-                                    = let
-                                      !wild : Unit
-                                        = trace {Unit} reconstructCaseError Unit
-                                    in
-                                    unitval
+                                  !x : Unit
+                                    = trace {Unit} reconstructCaseError Unit
                                 in
                                 error {OutputDatum})
                              unitval)
@@ -1015,11 +950,7 @@
                     arg))
             (\(ds : unit) ->
                let
-                 !thunk : unit
-                   = let
-                     !wild : Unit = trace {Unit} reconstructCaseError Unit
-                   in
-                   unitval
+                 !x : Unit = trace {Unit} reconstructCaseError Unit
                in
                error {TxOut})
             unitval
@@ -1044,11 +975,7 @@
                  (`$fUnsafeFromDataTxOut_$cunsafeFromBuiltinData` arg))
             (\(ds : unit) ->
                let
-                 !thunk : unit
-                   = let
-                     !wild : Unit = trace {Unit} reconstructCaseError Unit
-                   in
-                   unitval
+                 !x : Unit = trace {Unit} reconstructCaseError Unit
                in
                error {TxInInfo})
             unitval
@@ -1155,12 +1082,11 @@
   letrec
     !euclid : integer -> integer -> integer
       = \(x : integer) (y : integer) ->
+          let
+            !b : bool = equalsInteger y `$fAdditiveMonoidInteger_$czero`
+          in
           Bool_match
-            (ifThenElse
-               {Bool}
-               (equalsInteger y `$fAdditiveMonoidInteger_$czero`)
-               True
-               False)
+            (ifThenElse {Bool} b True False)
             {all dead. integer}
             (/\dead -> x)
             (/\dead -> euclid y (modInteger x y))
@@ -1170,30 +1096,30 @@
     !unsafeRatio : integer -> integer -> Rational
       = \(n : integer) (d : integer) ->
           let
-            ~gcd' : integer = euclid n d
+            !b : bool = equalsInteger d `$fAdditiveMonoidInteger_$czero`
           in
           Bool_match
-            (ifThenElse
-               {Bool}
-               (equalsInteger d `$fAdditiveMonoidInteger_$czero`)
-               True
-               False)
+            (ifThenElse {Bool} b True False)
             {all dead. Rational}
             (/\dead -> error {Rational})
             (/\dead ->
+               let
+                 !b : bool = lessThanInteger d `$fAdditiveMonoidInteger_$czero`
+               in
                Bool_match
-                 (ifThenElse
-                    {Bool}
-                    (lessThanInteger d `$fAdditiveMonoidInteger_$czero`)
-                    True
-                    False)
+                 (ifThenElse {Bool} b True False)
                  {all dead. Rational}
                  (/\dead ->
                     unsafeRatio
                       (subtractInteger `$fAdditiveMonoidInteger_$czero` n)
                       (subtractInteger `$fAdditiveMonoidInteger_$czero` d))
                  (/\dead ->
-                    Rational (quotientInteger n gcd') (quotientInteger d gcd'))
+                    let
+                      !gcd' : integer = euclid n d
+                      !dt : integer = quotientInteger n gcd'
+                      !dt : integer = quotientInteger d gcd'
+                    in
+                    Rational dt dt)
                  {all dead. dead})
             {all dead. dead}
   in
@@ -1330,15 +1256,8 @@
                                        arg))
                                (\(ds : unit) ->
                                   let
-                                    !thunk : unit
-                                      = let
-                                        !wild : Unit
-                                          = trace
-                                              {Unit}
-                                              reconstructCaseError
-                                              Unit
-                                      in
-                                      unitval
+                                    !x : Unit
+                                      = trace {Unit} reconstructCaseError Unit
                                   in
                                   error {LowerBound integer})
                                unitval)
@@ -1369,26 +1288,14 @@
                                        arg))
                                (\(ds : unit) ->
                                   let
-                                    !thunk : unit
-                                      = let
-                                        !wild : Unit
-                                          = trace
-                                              {Unit}
-                                              reconstructCaseError
-                                              Unit
-                                      in
-                                      unitval
+                                    !x : Unit
+                                      = trace {Unit} reconstructCaseError Unit
                                   in
                                   error {UpperBound integer})
                                unitval))
                         (\(ds : unit) ->
                            let
-                             !thunk : unit
-                               = let
-                                 !wild : Unit
-                                   = trace {Unit} reconstructCaseError Unit
-                               in
-                               unitval
+                             !x : Unit = trace {Unit} reconstructCaseError Unit
                            in
                            error {Interval integer})
                         unitval)
@@ -1441,15 +1348,11 @@
                                            (\(ds : unit) -> VoteNo)
                                            (\(ds : unit) ->
                                               let
-                                                !thunk : unit
-                                                  = let
-                                                    !wild : Unit
-                                                      = trace
-                                                          {Unit}
-                                                          reconstructCaseError
-                                                          Unit
-                                                  in
-                                                  unitval
+                                                !x : Unit
+                                                  = trace
+                                                      {Unit}
+                                                      reconstructCaseError
+                                                      Unit
                                               in
                                               error {Vote})
                                            unitval)
@@ -1548,17 +1451,11 @@
                                                       arg)
                                                  (\(ds : unit) ->
                                                     let
-                                                      !thunk :
-                                                         unit
-                                                        = let
-                                                          !wild :
-                                                             Unit
-                                                            = trace
-                                                                {Unit}
-                                                                reconstructCaseError
-                                                                Unit
-                                                        in
-                                                        unitval
+                                                      !x : Unit
+                                                        = trace
+                                                            {Unit}
+                                                            reconstructCaseError
+                                                            Unit
                                                     in
                                                     error {Maybe bytestring})
                                                  unitval))
@@ -1686,17 +1583,12 @@
                                                                         arg))
                                                                 (\(ds : unit) ->
                                                                    let
-                                                                     !thunk :
-                                                                        unit
-                                                                       = let
-                                                                         !wild :
-                                                                            Unit
-                                                                           = trace
-                                                                               {Unit}
-                                                                               reconstructCaseError
-                                                                               Unit
-                                                                       in
-                                                                       unitval
+                                                                     !x :
+                                                                        Unit
+                                                                       = trace
+                                                                           {Unit}
+                                                                           reconstructCaseError
+                                                                           Unit
                                                                    in
                                                                    error
                                                                      {Tuple2
@@ -1711,17 +1603,12 @@
                                                                    b)))
                                                       (\(ds : unit) ->
                                                          let
-                                                           !thunk :
-                                                              unit
-                                                             = let
-                                                               !wild :
-                                                                  Unit
-                                                                 = trace
-                                                                     {Unit}
-                                                                     reconstructCaseError
-                                                                     Unit
-                                                             in
-                                                             unitval
+                                                           !x :
+                                                              Unit
+                                                             = trace
+                                                                 {Unit}
+                                                                 reconstructCaseError
+                                                                 Unit
                                                          in
                                                          error {Committee})
                                                       unitval))
@@ -1864,17 +1751,12 @@
                                                                      (\(ds :
                                                                           unit) ->
                                                                         let
-                                                                          !thunk :
-                                                                             unit
-                                                                            = let
-                                                                              !wild :
-                                                                                 Unit
-                                                                                = trace
-                                                                                    {Unit}
-                                                                                    reconstructCaseError
-                                                                                    Unit
-                                                                            in
-                                                                            unitval
+                                                                          !x :
+                                                                             Unit
+                                                                            = trace
+                                                                                {Unit}
+                                                                                reconstructCaseError
+                                                                                Unit
                                                                         in
                                                                         error
                                                                           {ProtocolVersion})
@@ -1919,17 +1801,12 @@
                                                                    (\(ds :
                                                                         unit) ->
                                                                       let
-                                                                        !thunk :
-                                                                           unit
-                                                                          = let
-                                                                            !wild :
-                                                                               Unit
-                                                                              = trace
-                                                                                  {Unit}
-                                                                                  reconstructCaseError
-                                                                                  Unit
-                                                                          in
-                                                                          unitval
+                                                                        !x :
+                                                                           Unit
+                                                                          = trace
+                                                                              {Unit}
+                                                                              reconstructCaseError
+                                                                              Unit
                                                                       in
                                                                       error
                                                                         {GovernanceAction})
@@ -1942,15 +1819,8 @@
                                      unitval))
                               (\(ds : unit) ->
                                  let
-                                   !thunk : unit
-                                     = let
-                                       !wild : Unit
-                                         = trace
-                                             {Unit}
-                                             reconstructCaseError
-                                             Unit
-                                     in
-                                     unitval
+                                   !x : Unit
+                                     = trace {Unit} reconstructCaseError Unit
                                  in
                                  error {ProposalProcedure})
                               unitval)
@@ -1969,22 +1839,14 @@
                          arg))
                  (\(ds : unit) ->
                     let
-                      !thunk : unit
-                        = let
-                          !wild : Unit = trace {Unit} reconstructCaseError Unit
-                        in
-                        unitval
+                      !x : Unit = trace {Unit} reconstructCaseError Unit
                     in
                     error {TxInfo})
                  unitval)
                (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData` arg))
           (\(ds : unit) ->
              let
-               !thunk : unit
-                 = let
-                   !wild : Unit = trace {Unit} reconstructCaseError Unit
-                 in
-                 unitval
+               !x : Unit = trace {Unit} reconstructCaseError Unit
              in
              error {ScriptContext})
           unitval

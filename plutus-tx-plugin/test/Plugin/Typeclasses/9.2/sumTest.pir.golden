@@ -15,7 +15,20 @@
     (termbind
       (nonstrict)
       (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
-      (lam x (con integer) (lam y (con integer) [ [ addInteger x ] y ]))
+      (lam
+        x
+        (con integer)
+        (lam
+          y
+          (con integer)
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl x (con integer)) x)
+            (termbind (strict) (vardecl y (con integer)) y)
+            [ [ addInteger x ] y ]
+          )
+        )
+      )
     )
     (datatypebind
       (datatype
@@ -73,35 +86,44 @@
                 (lam
                   z
                   b
-                  (let
-                    (rec)
-                    (termbind
-                      (nonstrict)
-                      (vardecl go (fun [ List a ] b))
-                      (lam
-                        ds
-                        [ List a ]
-                        {
-                          [
-                            [
-                              { [ { Nil_match a } ds ] (all dead (type) b) }
-                              (abs dead (type) z)
-                            ]
-                            (lam
-                              x
-                              a
-                              (lam
-                                xs
-                                [ List a ]
-                                (abs dead (type) [ [ f x ] [ go xs ] ])
-                              )
-                            )
-                          ]
-                          (all dead (type) dead)
-                        }
+                  (lam
+                    eta
+                    [ List a ]
+                    (let
+                      (nonrec)
+                      (termbind (strict) (vardecl f (fun a (fun b b))) f)
+                      (termbind (strict) (vardecl z b) z)
+                      (let
+                        (rec)
+                        (termbind
+                          (nonstrict)
+                          (vardecl go (fun [ List a ] b))
+                          (lam
+                            ds
+                            [ List a ]
+                            {
+                              [
+                                [
+                                  { [ { Nil_match a } ds ] (all dead (type) b) }
+                                  (abs dead (type) z)
+                                ]
+                                (lam
+                                  x
+                                  a
+                                  (lam
+                                    xs
+                                    [ List a ]
+                                    (abs dead (type) [ [ f x ] [ go xs ] ])
+                                  )
+                                )
+                              ]
+                              (all dead (type) dead)
+                            }
+                          )
+                        )
+                        [ go eta ]
                       )
                     )
-                    (lam eta [ List a ] [ go eta ])
                   )
                 )
               )

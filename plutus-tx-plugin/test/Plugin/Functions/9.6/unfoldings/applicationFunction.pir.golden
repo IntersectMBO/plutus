@@ -10,17 +10,59 @@
     (termbind
       (nonstrict)
       (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
-      (lam x (con integer) (lam y (con integer) [ [ addInteger x ] y ]))
+      (lam
+        x
+        (con integer)
+        (lam
+          y
+          (con integer)
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl x (con integer)) x)
+            (termbind (strict) (vardecl y (con integer)) y)
+            [ [ addInteger x ] y ]
+          )
+        )
+      )
     )
     (termbind
       (nonstrict)
       (vardecl myDollar (all a (type) (all b (type) (fun (fun a b) (fun a b)))))
-      (abs a (type) (abs b (type) (lam f (fun a b) (lam a a [ f a ]))))
+      (abs
+        a
+        (type)
+        (abs
+          b
+          (type)
+          (lam
+            f
+            (fun a b)
+            (lam
+              a
+              a
+              (let
+                (nonrec)
+                (termbind (strict) (vardecl f (fun a b)) f)
+                (termbind (strict) (vardecl a a) a)
+                [ f a ]
+              )
+            )
+          )
+        )
+      )
     )
     [
       [
         { { myDollar (con integer) } (con integer) }
-        (lam x (con integer) [ [ addInteger (con integer 1) ] x ])
+        (lam
+          x
+          (con integer)
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl x (con integer)) x)
+            [ [ addInteger (con integer 1) ] x ]
+          )
+        )
       ]
       (con integer 1)
     ]

@@ -1,6 +1,4 @@
 -- editorconfig-checker-disable-file
-{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 
 -- | Primitive names and functions for working with Plutus Core builtins.
 module PlutusTx.Builtins (
@@ -373,6 +371,7 @@ trace = BI.trace
 encodeUtf8 :: BuiltinString -> BuiltinByteString
 encodeUtf8 = BI.encodeUtf8
 
+{-# INLINABLE matchList #-}
 matchList :: forall a r . BI.BuiltinList a -> r -> (a -> BI.BuiltinList a -> r) -> r
 matchList l nilCase consCase = BI.chooseList l (const nilCase) (\_ -> consCase (BI.head l) (BI.tail l)) ()
 

@@ -10,7 +10,20 @@
     (termbind
       (nonstrict)
       (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
-      (lam x (con integer) (lam y (con integer) [ [ addInteger x ] y ]))
+      (lam
+        x
+        (con integer)
+        (lam
+          y
+          (con integer)
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl x (con integer)) x)
+            (termbind (strict) (vardecl y (con integer)) y)
+            [ [ addInteger x ] y ]
+          )
+        )
+      )
     )
     (let
       (rec)
@@ -75,31 +88,37 @@
                   (lam
                     l
                     [ List a ]
-                    {
-                      [
+                    (let
+                      (nonrec)
+                      (termbind (strict) (vardecl f (fun a b)) f)
+                      {
                         [
-                          { [ { Nil_match a } l ] (all dead (type) [ List b ]) }
-                          (abs dead (type) { Nil b })
-                        ]
-                        (lam
-                          x
-                          a
+                          [
+                            {
+                              [ { Nil_match a } l ] (all dead (type) [ List b ])
+                            }
+                            (abs dead (type) { Nil b })
+                          ]
                           (lam
-                            xs
-                            [ List a ]
-                            (abs
-                              dead
-                              (type)
-                              [
-                                [ { Cons b } [ f x ] ]
-                                [ [ { { mapDirect a } b } f ] xs ]
-                              ]
+                            x
+                            a
+                            (lam
+                              xs
+                              [ List a ]
+                              (abs
+                                dead
+                                (type)
+                                [
+                                  [ { Cons b } [ f x ] ]
+                                  [ [ { { mapDirect a } b } f ] xs ]
+                                ]
+                              )
                             )
                           )
-                        )
-                      ]
-                      (all dead (type) dead)
-                    }
+                        ]
+                        (all dead (type) dead)
+                      }
+                    )
                   )
                 )
               )

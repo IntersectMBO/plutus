@@ -24,6 +24,10 @@
         ]
       )
     )
-    mrA
+    (lam
+      ds
+      MyMonoRecord
+      (let (nonrec) (termbind (strict) (vardecl ds MyMonoRecord) ds) [ mrA ds ])
+    )
   )
 )

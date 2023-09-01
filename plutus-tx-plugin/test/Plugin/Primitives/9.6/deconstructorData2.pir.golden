@@ -43,10 +43,14 @@
               (lam
                 ds
                 [ [ Tuple2 c ] a ]
-                [
-                  { [ { { Tuple2_match c } a } ds ] [ [ Tuple2 c ] b ] }
-                  (lam c c (lam a a [ [ { { Tuple2 c } b } c ] [ f a ] ]))
-                ]
+                (let
+                  (nonrec)
+                  (termbind (strict) (vardecl f (fun a b)) f)
+                  [
+                    { [ { { Tuple2_match c } a } ds ] [ [ Tuple2 c ] b ] }
+                    (lam c c (lam a a [ [ { { Tuple2 c } b } c ] [ f a ] ]))
+                  ]
+                )
               )
             )
           )
@@ -109,31 +113,37 @@
                 (lam
                   l
                   [ List a ]
-                  {
-                    [
+                  (let
+                    (nonrec)
+                    (termbind (strict) (vardecl f (fun a b)) f)
+                    {
                       [
-                        { [ { List_match a } l ] (all dead (type) [ List b ]) }
-                        (abs dead (type) { Nil b })
-                      ]
-                      (lam
-                        x
-                        a
+                        [
+                          {
+                            [ { List_match a } l ] (all dead (type) [ List b ])
+                          }
+                          (abs dead (type) { Nil b })
+                        ]
                         (lam
-                          xs
-                          [ List a ]
-                          (abs
-                            dead
-                            (type)
-                            [
-                              [ { Cons b } [ f x ] ]
-                              [ [ { { `$fFunctorList_$cfmap` a } b } f ] xs ]
-                            ]
+                          x
+                          a
+                          (lam
+                            xs
+                            [ List a ]
+                            (abs
+                              dead
+                              (type)
+                              [
+                                [ { Cons b } [ f x ] ]
+                                [ [ { { `$fFunctorList_$cfmap` a } b } f ] xs ]
+                              ]
+                            )
                           )
                         )
-                      )
-                    ]
-                    (all dead (type) dead)
-                  }
+                      ]
+                      (all dead (type) dead)
+                    }
+                  )
                 )
               )
             )
@@ -240,13 +250,6 @@
           (termbind
             (strict)
             (vardecl
-              fst (all a (type) (all b (type) (fun [ [ (con pair) a ] b ] a)))
-            )
-            (builtin fstPair)
-          )
-          (termbind
-            (strict)
-            (vardecl
               chooseList
               (all
                 a (type) (all b (type) (fun [ (con list) a ] (fun b (fun b b))))
@@ -267,153 +270,217 @@
             (builtin tailList)
           )
           (termbind (strict) (vardecl unitval (con unit)) (con unit ()))
-          (let
-            (rec)
-            (termbind
-              (nonstrict)
-              (vardecl go (fun [ (con list) (con data) ] [ List (con data) ]))
-              (lam
-                l
-                [ (con list) (con data) ]
-                [
-                  [
-                    [
-                      [
-                        {
-                          { chooseList (con data) }
-                          (fun (con unit) [ List (con data) ])
-                        }
-                        l
-                      ]
-                      (lam ds (con unit) { Nil (con data) })
-                    ]
-                    (lam
-                      ds
-                      (con unit)
-                      [
-                        [ { Cons (con data) } [ { head (con data) } l ] ]
-                        [ go [ { tail (con data) } l ] ]
-                      ]
-                    )
-                  ]
-                  unitval
-                ]
+          (termbind
+            (nonstrict)
+            (vardecl
+              `$fFromBuiltinBuiltinListList_$cfromBuiltin`
+              (all
+                arep
+                (type)
+                (all
+                  a
+                  (type)
+                  (fun
+                    [ [ (lam arep (type) (lam a (type) (fun arep a))) arep ] a ]
+                    (fun [ (con list) arep ] [ List a ])
+                  )
+                )
               )
             )
-            (let
-              (nonrec)
-              (termbind
-                (strict)
-                (vardecl
-                  snd
-                  (all a (type) (all b (type) (fun [ [ (con pair) a ] b ] b)))
-                )
-                (builtin sndPair)
-              )
-              (termbind
-                (strict)
-                (vardecl
-                  unsafeDataAsConstr
-                  (fun
-                    (con data)
-                    [ [ (con pair) (con integer) ] [ (con list) (con data) ] ]
-                  )
-                )
-                (builtin unConstrData)
-              )
-              (termbind
-                (nonstrict)
-                (vardecl
-                  unsafeDataAsConstr
-                  (fun
-                    (con data) [ [ Tuple2 (con integer) ] [ List (con data) ] ]
-                  )
-                )
+            (abs
+              arep
+              (type)
+              (abs
+                a
+                (type)
                 (lam
-                  d
-                  (con data)
+                  `$dFromBuiltin`
+                  [ [ (lam arep (type) (lam a (type) (fun arep a))) arep ] a ]
+                  (let
+                    (rec)
+                    (termbind
+                      (nonstrict)
+                      (vardecl go (fun [ (con list) arep ] [ List a ]))
+                      (lam
+                        l
+                        [ (con list) arep ]
+                        (let
+                          (nonrec)
+                          (termbind (strict) (vardecl l [ (con list) arep ]) l)
+                          [
+                            [
+                              [
+                                [
+                                  {
+                                    { chooseList arep }
+                                    (fun (con unit) [ List a ])
+                                  }
+                                  l
+                                ]
+                                (lam ds (con unit) { Nil a })
+                              ]
+                              (lam
+                                ds
+                                (con unit)
+                                [
+                                  [
+                                    { Cons a }
+                                    [ `$dFromBuiltin` [ { head arep } l ] ]
+                                  ]
+                                  [ go [ { tail arep } l ] ]
+                                ]
+                              )
+                            ]
+                            unitval
+                          ]
+                        )
+                      )
+                    )
+                    (lam eta [ (con list) arep ] [ go eta ])
+                  )
+                )
+              )
+            )
+          )
+          (termbind
+            (strict)
+            (vardecl
+              fst (all a (type) (all b (type) (fun [ [ (con pair) a ] b ] a)))
+            )
+            (builtin fstPair)
+          )
+          (termbind
+            (nonstrict)
+            (vardecl id (all a (type) (fun a a)))
+            (abs a (type) (lam x a x))
+          )
+          (termbind
+            (strict)
+            (vardecl
+              snd (all a (type) (all b (type) (fun [ [ (con pair) a ] b ] b)))
+            )
+            (builtin sndPair)
+          )
+          (termbind
+            (strict)
+            (vardecl
+              unsafeDataAsConstr
+              (fun
+                (con data)
+                [ [ (con pair) (con integer) ] [ (con list) (con data) ] ]
+              )
+            )
+            (builtin unConstrData)
+          )
+          (termbind
+            (nonstrict)
+            (vardecl
+              unsafeDataAsConstr
+              (fun (con data) [ [ Tuple2 (con integer) ] [ List (con data) ] ])
+            )
+            (lam
+              d
+              (con data)
+              (let
+                (nonrec)
+                (termbind (strict) (vardecl d (con data)) d)
+                (termbind
+                  (strict)
+                  (vardecl
+                    p [ [ (con pair) (con integer) ] [ (con list) (con data) ] ]
+                  )
+                  [ unsafeDataAsConstr d ]
+                )
+                [
+                  [
+                    { { Tuple2 (con integer) } [ List (con data) ] }
+                    [ { { fst (con integer) } [ (con list) (con data) ] } p ]
+                  ]
                   (let
                     (nonrec)
                     (termbind
-                      (nonstrict)
-                      (vardecl
-                        p
-                        [
-                          [ (con pair) (con integer) ] [ (con list) (con data) ]
-                        ]
-                      )
-                      [ unsafeDataAsConstr d ]
+                      (strict)
+                      (vardecl a [ (con list) (con data) ])
+                      [ { { snd (con integer) } [ (con list) (con data) ] } p ]
                     )
                     [
                       [
-                        { { Tuple2 (con integer) } [ List (con data) ] }
-                        [
-                          { { fst (con integer) } [ (con list) (con data) ] } p
-                        ]
+                        {
+                          {
+                            `$fFromBuiltinBuiltinListList_$cfromBuiltin`
+                            (con data)
+                          }
+                          (con data)
+                        }
+                        { id (con data) }
                       ]
-                      [
-                        go
-                        [
-                          { { snd (con integer) } [ (con list) (con data) ] } p
-                        ]
-                      ]
+                      a
                     ]
                   )
-                )
+                ]
               )
-              (termbind
-                (strict)
-                (vardecl unsafeDataAsI (fun (con data) (con integer)))
-                (builtin unIData)
+            )
+          )
+          (termbind
+            (strict)
+            (vardecl unsafeDataAsI (fun (con data) (con integer)))
+            (builtin unIData)
+          )
+          (termbind
+            (nonstrict)
+            (vardecl unsafeDataAsI (fun (con data) (con integer)))
+            (lam
+              d
+              (con data)
+              (let
+                (nonrec)
+                (termbind (strict) (vardecl d (con data)) d)
+                [ unsafeDataAsI d ]
               )
-              (termbind
-                (nonstrict)
-                (vardecl unsafeDataAsI (fun (con data) (con integer)))
-                (lam d (con data) [ unsafeDataAsI d ])
-              )
-              (lam
-                ds
-                (con data)
+            )
+          )
+          (lam
+            ds
+            (con data)
+            (let
+              (nonrec)
+              (termbind (strict) (vardecl ds (con data)) ds)
+              [
                 [
                   [
                     [
-                      [
-                        {
-                          {
-                            {
-                              `.`
-                              (fun [ List (con data) ] [ List (con integer) ])
-                            }
-                            (fun
-                              [ [ Tuple2 (con integer) ] [ List (con data) ] ]
-                              [
-                                [ Tuple2 (con integer) ] [ List (con integer) ]
-                              ]
-                            )
-                          }
-                          (fun (con data) (con integer))
-                        }
-                        {
-                          {
-                            [
-                              { fmap [ Tuple2 (con integer) ] }
-                              { `$fFunctorTuple2` (con integer) }
-                            ]
-                            [ List (con data) ]
-                          }
-                          [ List (con integer) ]
-                        }
-                      ]
                       {
-                        { [ { fmap List } `$fFunctorList` ] (con data) }
-                        (con integer)
+                        {
+                          {
+                            `.` (fun [ List (con data) ] [ List (con integer) ])
+                          }
+                          (fun
+                            [ [ Tuple2 (con integer) ] [ List (con data) ] ]
+                            [ [ Tuple2 (con integer) ] [ List (con integer) ] ]
+                          )
+                        }
+                        (fun (con data) (con integer))
+                      }
+                      {
+                        {
+                          [
+                            { fmap [ Tuple2 (con integer) ] }
+                            { `$fFunctorTuple2` (con integer) }
+                          ]
+                          [ List (con data) ]
+                        }
+                        [ List (con integer) ]
                       }
                     ]
-                    unsafeDataAsI
+                    {
+                      { [ { fmap List } `$fFunctorList` ] (con data) }
+                      (con integer)
+                    }
                   ]
-                  [ unsafeDataAsConstr ds ]
+                  unsafeDataAsI
                 ]
-              )
+                [ unsafeDataAsConstr ds ]
+              ]
             )
           )
         )

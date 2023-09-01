@@ -300,8 +300,9 @@ mkConstructorType dc =
 
 ghcStrictnessNote :: GHC.SDoc
 ghcStrictnessNote =
-  "Note: GHC can generate these unexpectedly,"
-    GHC.<+> "you may need '-fno-strictness', '-fno-specialise', or '-fno-spec-constr'"
+  "Note: GHC can generate these unexpectedly, you may need"
+    GHC.<+> "'-fno-strictness', '-fno-specialise', '-fno-spec-constr',"
+    GHC.<+> "'-fno-unbox-strict-fields', or '-fno-unbox-small-strict-fields'."
 
 -- | Get the constructors of the given 'TyCon' as PLC terms.
 getConstructors :: (CompilingDefault uni fun m ann) => GHC.TyCon -> m [PIRTerm uni fun]

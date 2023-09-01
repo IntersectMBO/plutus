@@ -10,7 +10,20 @@
     (termbind
       (nonstrict)
       (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
-      (lam x (con integer) (lam y (con integer) [ [ addInteger x ] y ]))
+      (lam
+        x
+        (con integer)
+        (lam
+          y
+          (con integer)
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl x (con integer)) x)
+            (termbind (strict) (vardecl y (con integer)) y)
+            [ [ addInteger x ] y ]
+          )
+        )
+      )
     )
     (datatypebind
       (datatype
@@ -39,7 +52,13 @@
         (lam
           y
           (con integer)
-          [ [ [ { ifThenElse Bool } [ [ equalsInteger x ] y ] ] True ] False ]
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl x (con integer)) x)
+            (termbind (strict) (vardecl y (con integer)) y)
+            (termbind (strict) (vardecl b (con bool)) [ [ equalsInteger x ] y ])
+            [ [ [ { ifThenElse Bool } b ] True ] False ]
+          )
         )
       )
     )
@@ -55,7 +74,20 @@
       (vardecl
         subtractInteger (fun (con integer) (fun (con integer) (con integer)))
       )
-      (lam x (con integer) (lam y (con integer) [ [ subtractInteger x ] y ]))
+      (lam
+        x
+        (con integer)
+        (lam
+          y
+          (con integer)
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl x (con integer)) x)
+            (termbind (strict) (vardecl y (con integer)) y)
+            [ [ subtractInteger x ] y ]
+          )
+        )
+      )
     )
     (let
       (rec)
@@ -65,45 +97,49 @@
         (lam
           n
           (con integer)
-          {
-            [
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl n (con integer)) n)
+            {
               [
-                {
-                  [ Bool_match [ [ equalsInteger n ] (con integer 0) ] ]
-                  (all dead (type) (con integer))
-                }
-                (abs dead (type) (con integer 0))
-              ]
-              (abs
-                dead
-                (type)
-                {
-                  [
+                [
+                  {
+                    [ Bool_match [ [ equalsInteger n ] (con integer 0) ] ]
+                    (all dead (type) (con integer))
+                  }
+                  (abs dead (type) (con integer 0))
+                ]
+                (abs
+                  dead
+                  (type)
+                  {
                     [
-                      {
-                        [ Bool_match [ [ equalsInteger n ] (con integer 1) ] ]
-                        (all dead (type) (con integer))
-                      }
-                      (abs dead (type) (con integer 1))
-                    ]
-                    (abs
-                      dead
-                      (type)
                       [
-                        [
-                          addInteger
-                          [ fib [ [ subtractInteger n ] (con integer 1) ] ]
-                        ]
-                        [ fib [ [ subtractInteger n ] (con integer 2) ] ]
+                        {
+                          [ Bool_match [ [ equalsInteger n ] (con integer 1) ] ]
+                          (all dead (type) (con integer))
+                        }
+                        (abs dead (type) (con integer 1))
                       ]
-                    )
-                  ]
-                  (all dead (type) dead)
-                }
-              )
-            ]
-            (all dead (type) dead)
-          }
+                      (abs
+                        dead
+                        (type)
+                        [
+                          [
+                            addInteger
+                            [ fib [ [ subtractInteger n ] (con integer 1) ] ]
+                          ]
+                          [ fib [ [ subtractInteger n ] (con integer 2) ] ]
+                        ]
+                      )
+                    ]
+                    (all dead (type) dead)
+                  }
+                )
+              ]
+              (all dead (type) dead)
+            }
+          )
         )
       )
       fib

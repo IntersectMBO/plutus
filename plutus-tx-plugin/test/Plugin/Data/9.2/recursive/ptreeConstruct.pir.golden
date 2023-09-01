@@ -21,37 +21,76 @@
           (vardecl Two (fun [ B [ [ Tuple2 a ] a ] ] [ B a ]))
         )
       )
-      [
-        { Two (con integer) }
+      (let
+        (nonrec)
+        (termbind
+          (nonstrict)
+          (vardecl `$WOne` (all a (type) (fun a [ B a ])))
+          (abs
+            a
+            (type)
+            (lam
+              dt
+              a
+              (let
+                (nonrec) (termbind (strict) (vardecl dt a) dt) [ { One a } dt ]
+              )
+            )
+          )
+        )
+        (termbind
+          (nonstrict)
+          (vardecl
+            `$WTwo` (all a (type) (fun [ B [ [ Tuple2 a ] a ] ] [ B a ]))
+          )
+          (abs
+            a
+            (type)
+            (lam
+              dt
+              [ B [ [ Tuple2 a ] a ] ]
+              (let
+                (nonrec)
+                (termbind (strict) (vardecl dt [ B [ [ Tuple2 a ] a ] ]) dt)
+                [ { Two a } dt ]
+              )
+            )
+          )
+        )
         [
-          { Two [ [ Tuple2 (con integer) ] (con integer) ] }
+          { `$WTwo` (con integer) }
           [
-            {
-              One
-              [
-                [ Tuple2 [ [ Tuple2 (con integer) ] (con integer) ] ]
-                [ [ Tuple2 (con integer) ] (con integer) ]
-              ]
-            }
+            { `$WTwo` [ [ Tuple2 (con integer) ] (con integer) ] }
             [
-              [
-                {
-                  { Tuple2 [ [ Tuple2 (con integer) ] (con integer) ] }
-                  [ [ Tuple2 (con integer) ] (con integer) ]
-                }
+              {
+                `$WOne`
                 [
-                  [ { { Tuple2 (con integer) } (con integer) } (con integer 1) ]
-                  (con integer 2)
+                  [ Tuple2 [ [ Tuple2 (con integer) ] (con integer) ] ]
+                  [ [ Tuple2 (con integer) ] (con integer) ]
                 ]
-              ]
+              }
               [
-                [ { { Tuple2 (con integer) } (con integer) } (con integer 3) ]
-                (con integer 4)
+                [
+                  {
+                    { Tuple2 [ [ Tuple2 (con integer) ] (con integer) ] }
+                    [ [ Tuple2 (con integer) ] (con integer) ]
+                  }
+                  [
+                    [
+                      { { Tuple2 (con integer) } (con integer) } (con integer 1)
+                    ]
+                    (con integer 2)
+                  ]
+                ]
+                [
+                  [ { { Tuple2 (con integer) } (con integer) } (con integer 3) ]
+                  (con integer 4)
+                ]
               ]
             ]
           ]
         ]
-      ]
+      )
     )
   )
 )

@@ -26,7 +26,20 @@
     (termbind
       (nonstrict)
       (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
-      (lam x (con integer) (lam y (con integer) [ [ addInteger x ] y ]))
+      (lam
+        x
+        (con integer)
+        (lam
+          y
+          (con integer)
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl x (con integer)) x)
+            (termbind (strict) (vardecl y (con integer)) y)
+            [ [ addInteger x ] y ]
+          )
+        )
+      )
     )
     (termbind
       (nonstrict)
@@ -85,25 +98,31 @@
     (lam
       x
       (con integer)
-      [
-        unboxedTuple
+      (let
+        (nonrec)
+        (termbind (strict) (vardecl x (con integer)) x)
         [
+          unboxedTuple
           [
             [
               [
-                {
-                  { { { UTuple4 (con integer) } (con integer) } (con integer) }
-                  (con integer)
-                }
+                [
+                  {
+                    {
+                      { { UTuple4 (con integer) } (con integer) } (con integer)
+                    }
+                    (con integer)
+                  }
+                  x
+                ]
                 x
               ]
               x
             ]
             x
           ]
-          x
         ]
-      ]
+      )
     )
   )
 )

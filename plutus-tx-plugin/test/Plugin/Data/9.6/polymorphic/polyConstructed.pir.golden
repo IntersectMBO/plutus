@@ -11,8 +11,37 @@
         (vardecl Poly (fun a [ [ MyPolyData a ] b ]))
       )
     )
+    (termbind
+      (nonstrict)
+      (vardecl
+        `$WPoly`
+        (all a (type) (all b (type) (fun a (fun b [ [ MyPolyData a ] b ]))))
+      )
+      (abs
+        a
+        (type)
+        (abs
+          b
+          (type)
+          (lam
+            conrep
+            a
+            (lam
+              conrep
+              b
+              (let
+                (nonrec)
+                (termbind (strict) (vardecl conrep a) conrep)
+                (termbind (strict) (vardecl conrep b) conrep)
+                [ [ { { Poly a } b } conrep ] conrep ]
+              )
+            )
+          )
+        )
+      )
+    )
     [
-      [ { { Poly (con integer) } (con integer) } (con integer 1) ]
+      [ { { `$WPoly` (con integer) } (con integer) } (con integer 1) ]
       (con integer 2)
     ]
   )

@@ -13,7 +13,9 @@
     (lam
       ds
       RecordNewtype
-      [ { [ RecordNewtype_match ds ] (con integer) } (lam ds (con integer) ds) ]
+      [
+        { [ RecordNewtype_match ds ] (con integer) } (lam ipv (con integer) ipv)
+      ]
     )
   )
 )

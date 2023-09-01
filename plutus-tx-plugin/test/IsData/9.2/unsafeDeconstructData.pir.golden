@@ -98,18 +98,16 @@
             (termbind
               (nonstrict)
               (vardecl x [ [ Tuple2 a ] b ])
-              [
-                { error [ [ Tuple2 a ] b ] }
-                (let
-                  (nonrec)
-                  (termbind
-                    (strict)
-                    (vardecl wild Unit)
-                    [ [ { trace Unit } reconstructCaseError ] Unit ]
-                  )
-                  unitval
+              (let
+                (nonrec)
+                (termbind
+                  (strict) (vardecl str (con string)) reconstructCaseError
                 )
-              ]
+                (termbind
+                  (strict) (vardecl x Unit) [ [ { trace Unit } str ] Unit ]
+                )
+                [ { error [ [ Tuple2 a ] b ] } unitval ]
+              )
             )
             (lam
               `$dUnsafeFromData`
@@ -122,6 +120,7 @@
                   (con data)
                   (let
                     (nonrec)
+                    (termbind (strict) (vardecl d (con data)) d)
                     (termbind
                       (strict)
                       (vardecl
@@ -274,18 +273,16 @@
           (termbind
             (nonstrict)
             (vardecl x [ Maybe a ])
-            [
-              { error [ Maybe a ] }
-              (let
-                (nonrec)
-                (termbind
-                  (strict)
-                  (vardecl wild Unit)
-                  [ [ { trace Unit } reconstructCaseError ] Unit ]
-                )
-                unitval
+            (let
+              (nonrec)
+              (termbind
+                (strict) (vardecl str (con string)) reconstructCaseError
               )
-            ]
+              (termbind
+                (strict) (vardecl x Unit) [ [ { trace Unit } str ] Unit ]
+              )
+              [ { error [ Maybe a ] } unitval ]
+            )
           )
           (lam
             `$dUnsafeFromData`
@@ -295,6 +292,7 @@
               (con data)
               (let
                 (nonrec)
+                (termbind (strict) (vardecl d (con data)) d)
                 (termbind
                   (strict)
                   (vardecl
@@ -408,16 +406,20 @@
     (lam
       ds
       (con data)
-      [
+      (let
+        (nonrec)
+        (termbind (strict) (vardecl ds (con data)) ds)
         [
-          {
-            unsafeFromBuiltinData
-            [ Maybe [ [ Tuple2 (con integer) ] (con integer) ] ]
-          }
-          `$dUnsafeFromData`
+          [
+            {
+              unsafeFromBuiltinData
+              [ Maybe [ [ Tuple2 (con integer) ] (con integer) ] ]
+            }
+            `$dUnsafeFromData`
+          ]
+          ds
         ]
-        ds
-      ]
+      )
     )
   )
 )

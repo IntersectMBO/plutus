@@ -13,13 +13,17 @@
     (lam
       ds
       [ (lam a (type) [ Maybe a ]) (con integer) ]
-      [
+      (let
+        (nonrec)
+        (termbind (strict) (vardecl nt [ Maybe (con integer) ]) ds)
         [
-          { [ { Maybe_match (con integer) } ds ] (con integer) }
-          (lam i (con integer) i)
+          [
+            { [ { Maybe_match (con integer) } nt ] (con integer) }
+            (lam i (con integer) i)
+          ]
+          (con integer 1)
         ]
-        (con integer 1)
-      ]
+      )
     )
   )
 )

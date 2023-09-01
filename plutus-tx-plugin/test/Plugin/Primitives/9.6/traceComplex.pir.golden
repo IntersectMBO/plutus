@@ -38,32 +38,32 @@
         (lam
           str
           (con string)
-          [
-            { error a }
-            (let
-              (nonrec)
-              (termbind
-                (strict) (vardecl wild Unit) [ [ { trace Unit } str ] Unit ]
-              )
-              unitval
-            )
-          ]
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl str (con string)) str)
+            (termbind (strict) (vardecl x Unit) [ [ { trace Unit } str ] Unit ])
+            [ { error a } unitval ]
+          )
         )
       )
     )
     (lam
       ds
       Bool
-      {
-        [
+      (let
+        (nonrec)
+        (termbind (strict) (vardecl ds Bool) ds)
+        {
           [
-            { [ Bool_match ds ] (all dead (type) Unit) }
-            (abs dead (type) [ [ { trace Unit } (con string "yes") ] Unit ])
+            [
+              { [ Bool_match ds ] (all dead (type) Unit) }
+              (abs dead (type) [ [ { trace Unit } (con string "yes") ] Unit ])
+            ]
+            (abs dead (type) [ { traceError Unit } (con string "no") ])
           ]
-          (abs dead (type) [ { traceError Unit } (con string "no") ])
-        ]
-        (all dead (type) dead)
-      }
+          (all dead (type) dead)
+        }
+      )
     )
   )
 )

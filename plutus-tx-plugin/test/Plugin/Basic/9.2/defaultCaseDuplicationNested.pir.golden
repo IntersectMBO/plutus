@@ -16,6 +16,8 @@
         A
         (let
           (nonrec)
+          (termbind (strict) (vardecl ds A) ds)
+          (termbind (strict) (vardecl ds A) ds)
           (termbind
             (nonstrict)
             (vardecl defaultBody (con integer))

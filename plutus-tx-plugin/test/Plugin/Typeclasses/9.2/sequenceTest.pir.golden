@@ -99,16 +99,20 @@
             (lam
               ds
               [ Maybe a ]
-              {
-                [
+              (let
+                (nonrec)
+                (termbind (strict) (vardecl f (fun a b)) f)
+                {
                   [
-                    { [ { Maybe_match a } ds ] (all dead (type) [ Maybe b ]) }
-                    (lam a a (abs dead (type) [ { Just b } [ f a ] ]))
+                    [
+                      { [ { Maybe_match a } ds ] (all dead (type) [ Maybe b ]) }
+                      (lam a a (abs dead (type) [ { Just b } [ f a ] ]))
+                    ]
+                    (abs dead (type) { Nothing b })
                   ]
-                  (abs dead (type) { Nothing b })
-                ]
-                (all dead (type) dead)
-              }
+                  (all dead (type) dead)
+                }
+              )
             )
           )
         )
@@ -193,35 +197,44 @@
                 (lam
                   z
                   b
-                  (let
-                    (rec)
-                    (termbind
-                      (nonstrict)
-                      (vardecl go (fun [ List a ] b))
-                      (lam
-                        ds
-                        [ List a ]
-                        {
-                          [
-                            [
-                              { [ { Nil_match a } ds ] (all dead (type) b) }
-                              (abs dead (type) z)
-                            ]
-                            (lam
-                              x
-                              a
-                              (lam
-                                xs
-                                [ List a ]
-                                (abs dead (type) [ [ f x ] [ go xs ] ])
-                              )
-                            )
-                          ]
-                          (all dead (type) dead)
-                        }
+                  (lam
+                    eta
+                    [ List a ]
+                    (let
+                      (nonrec)
+                      (termbind (strict) (vardecl f (fun a (fun b b))) f)
+                      (termbind (strict) (vardecl z b) z)
+                      (let
+                        (rec)
+                        (termbind
+                          (nonstrict)
+                          (vardecl go (fun [ List a ] b))
+                          (lam
+                            ds
+                            [ List a ]
+                            {
+                              [
+                                [
+                                  { [ { Nil_match a } ds ] (all dead (type) b) }
+                                  (abs dead (type) z)
+                                ]
+                                (lam
+                                  x
+                                  a
+                                  (lam
+                                    xs
+                                    [ List a ]
+                                    (abs dead (type) [ [ f x ] [ go xs ] ])
+                                  )
+                                )
+                              ]
+                              (all dead (type) dead)
+                            }
+                          )
+                        )
+                        [ go eta ]
                       )
                     )
-                    (lam eta [ List a ] [ go eta ])
                   )
                 )
               )
@@ -252,31 +265,37 @@
                   (lam
                     l
                     [ List a ]
-                    {
-                      [
+                    (let
+                      (nonrec)
+                      (termbind (strict) (vardecl f (fun a b)) f)
+                      {
                         [
-                          { [ { Nil_match a } l ] (all dead (type) [ List b ]) }
-                          (abs dead (type) { Nil b })
-                        ]
-                        (lam
-                          x
-                          a
+                          [
+                            {
+                              [ { Nil_match a } l ] (all dead (type) [ List b ])
+                            }
+                            (abs dead (type) { Nil b })
+                          ]
                           (lam
-                            xs
-                            [ List a ]
-                            (abs
-                              dead
-                              (type)
-                              [
-                                [ { Cons b } [ f x ] ]
-                                [ [ { { `$fFunctorNil_$cfmap` a } b } f ] xs ]
-                              ]
+                            x
+                            a
+                            (lam
+                              xs
+                              [ List a ]
+                              (abs
+                                dead
+                                (type)
+                                [
+                                  [ { Cons b } [ f x ] ]
+                                  [ [ { { `$fFunctorNil_$cfmap` a } b } f ] xs ]
+                                ]
+                              )
                             )
                           )
-                        )
-                      ]
-                      (all dead (type) dead)
-                    }
+                        ]
+                        (all dead (type) dead)
+                      }
+                    )
                   )
                 )
               )
@@ -536,94 +555,110 @@
                           (lam
                             ds
                             [ List a ]
-                            {
-                              [
+                            (let
+                              (nonrec)
+                              (termbind
+                                (strict) (vardecl ds (fun a [ f b ])) ds
+                              )
+                              {
                                 [
-                                  {
-                                    [ { Nil_match a } ds ]
-                                    (all dead (type) [ f [ List b ] ])
-                                  }
-                                  (abs
-                                    dead
-                                    (type)
-                                    [
-                                      {
-                                        [ { pure f } `$dApplicative` ]
-                                        [ List b ]
-                                      }
-                                      { Nil b }
-                                    ]
-                                  )
-                                ]
-                                (lam
-                                  x
-                                  a
-                                  (lam
-                                    xs
-                                    [ List a ]
+                                  [
+                                    {
+                                      [ { Nil_match a } ds ]
+                                      (all dead (type) [ f [ List b ] ])
+                                    }
                                     (abs
                                       dead
                                       (type)
                                       [
-                                        [
-                                          {
-                                            {
-                                              [ { `<*>` f } `$dApplicative` ]
-                                              [ List b ]
-                                            }
-                                            [ List b ]
-                                          }
+                                        {
+                                          [ { pure f } `$dApplicative` ]
+                                          [ List b ]
+                                        }
+                                        { Nil b }
+                                      ]
+                                    )
+                                  ]
+                                  (lam
+                                    x
+                                    a
+                                    (lam
+                                      xs
+                                      [ List a ]
+                                      (abs
+                                        dead
+                                        (type)
+                                        (let
+                                          (nonrec)
+                                          (termbind
+                                            (strict)
+                                            (vardecl x [ f b ])
+                                            [ ds x ]
+                                          )
                                           [
                                             [
                                               {
                                                 {
                                                   [
-                                                    { `$p1Applicative` f }
-                                                    `$dApplicative`
+                                                    { `<*>` f } `$dApplicative`
                                                   ]
-                                                  b
-                                                }
-                                                (fun [ List b ] [ List b ])
-                                              }
-                                              (lam
-                                                ds
-                                                b
-                                                (lam
-                                                  ds
                                                   [ List b ]
-                                                  [ [ { Cons b } ds ] ds ]
-                                                )
-                                              )
-                                            ]
-                                            [ ds x ]
-                                          ]
-                                        ]
-                                        [
-                                          [
-                                            [
-                                              {
-                                                {
-                                                  {
-                                                    `$fTraversableNil_$ctraverse`
-                                                    f
-                                                  }
-                                                  a
                                                 }
-                                                b
+                                                [ List b ]
                                               }
-                                              `$dApplicative`
+                                              [
+                                                [
+                                                  {
+                                                    {
+                                                      [
+                                                        { `$p1Applicative` f }
+                                                        `$dApplicative`
+                                                      ]
+                                                      b
+                                                    }
+                                                    (fun [ List b ] [ List b ])
+                                                  }
+                                                  (lam
+                                                    ds
+                                                    b
+                                                    (lam
+                                                      ds
+                                                      [ List b ]
+                                                      [ [ { Cons b } ds ] ds ]
+                                                    )
+                                                  )
+                                                ]
+                                                x
+                                              ]
                                             ]
-                                            ds
+                                            [
+                                              [
+                                                [
+                                                  {
+                                                    {
+                                                      {
+                                                        `$fTraversableNil_$ctraverse`
+                                                        f
+                                                      }
+                                                      a
+                                                    }
+                                                    b
+                                                  }
+                                                  `$dApplicative`
+                                                ]
+                                                ds
+                                              ]
+                                              xs
+                                            ]
                                           ]
-                                          xs
-                                        ]
-                                      ]
+                                        )
+                                      )
                                     )
                                   )
-                                )
-                              ]
-                              (all dead (type) dead)
-                            }
+                                ]
+                                (all dead (type) dead)
+                              }
+                            )
                           )
                         )
                       )

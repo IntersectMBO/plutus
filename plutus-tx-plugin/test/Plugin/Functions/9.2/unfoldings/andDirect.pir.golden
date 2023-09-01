@@ -16,32 +16,40 @@
       (lam
         ds
         Bool
-        (lam
-          ds
-          Bool
-          {
-            [
-              [
-                { [ Bool_match ds ] (all dead (type) Bool) }
-                (abs dead (type) False)
-              ]
-              (abs
-                dead
-                (type)
-                {
+        (let
+          (nonrec)
+          (termbind (strict) (vardecl ds Bool) ds)
+          (lam
+            ds
+            Bool
+            (let
+              (nonrec)
+              (termbind (strict) (vardecl ds Bool) ds)
+              {
+                [
                   [
-                    [
-                      { [ Bool_match ds ] (all dead (type) Bool) }
-                      (abs dead (type) False)
-                    ]
-                    (abs dead (type) True)
+                    { [ Bool_match ds ] (all dead (type) Bool) }
+                    (abs dead (type) False)
                   ]
-                  (all dead (type) dead)
-                }
-              )
-            ]
-            (all dead (type) dead)
-          }
+                  (abs
+                    dead
+                    (type)
+                    {
+                      [
+                        [
+                          { [ Bool_match ds ] (all dead (type) Bool) }
+                          (abs dead (type) False)
+                        ]
+                        (abs dead (type) True)
+                      ]
+                      (all dead (type) dead)
+                    }
+                  )
+                ]
+                (all dead (type) dead)
+              }
+            )
+          )
         )
       )
     )
@@ -51,10 +59,20 @@
       (lam
         ds
         Bool
-        (lam
-          ds
-          Bool
-          [ [ nandDirect [ [ nandDirect ds ] ds ] ] [ [ nandDirect ds ] ds ] ]
+        (let
+          (nonrec)
+          (termbind (strict) (vardecl ds Bool) ds)
+          (lam
+            ds
+            Bool
+            (let
+              (nonrec)
+              (termbind (strict) (vardecl ds Bool) ds)
+              [
+                [ nandDirect [ [ nandDirect ds ] ds ] ] [ [ nandDirect ds ] ds ]
+              ]
+            )
+          )
         )
       )
     )

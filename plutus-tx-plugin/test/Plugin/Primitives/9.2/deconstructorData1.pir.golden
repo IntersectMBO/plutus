@@ -10,8 +10,24 @@
     (termbind
       (nonstrict)
       (vardecl unsafeDataAsI (fun (con data) (con integer)))
-      (lam d (con data) [ unsafeDataAsI d ])
+      (lam
+        d
+        (con data)
+        (let
+          (nonrec)
+          (termbind (strict) (vardecl d (con data)) d)
+          [ unsafeDataAsI d ]
+        )
+      )
     )
-    unsafeDataAsI
+    (lam
+      ds
+      (con data)
+      (let
+        (nonrec)
+        (termbind (strict) (vardecl ds (con data)) ds)
+        [ unsafeDataAsI ds ]
+      )
+    )
   )
 )

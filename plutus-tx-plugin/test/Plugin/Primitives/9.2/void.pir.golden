@@ -13,6 +13,14 @@
     (termbind
       (nonstrict) (vardecl fail (fun (con unit) Bool)) (lam ds (con unit) False)
     )
+    (datatypebind
+      (datatype
+        (tyvardecl Tuple2 (fun (type) (fun (type) (type))))
+        (tyvardecl a (type)) (tyvardecl b (type))
+        Tuple2_match
+        (vardecl Tuple2 (fun a (fun b [ [ Tuple2 a ] b ])))
+      )
+    )
     (termbind
       (strict)
       (vardecl equalsInteger (fun (con integer) (fun (con integer) (con bool))))
@@ -32,7 +40,13 @@
         (lam
           y
           (con integer)
-          [ [ [ { ifThenElse Bool } [ [ equalsInteger x ] y ] ] True ] False ]
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl x (con integer)) x)
+            (termbind (strict) (vardecl y (con integer)) y)
+            (termbind (strict) (vardecl b (con bool)) [ [ equalsInteger x ] y ])
+            [ [ [ { ifThenElse Bool } b ] True ] False ]
+          )
         )
       )
     )
@@ -42,35 +56,52 @@
       (lam
         ds
         (con integer)
-        {
+        (let
+          (nonrec)
+          (termbind (strict) (vardecl ds (con integer)) ds)
+          (termbind (strict) (vardecl ds (con integer)) ds)
+          (termbind (strict) (vardecl x' Bool) [ [ equalsInteger ds ] ds ])
+          (termbind (strict) (vardecl y' Bool) [ [ equalsInteger ds ] ds ])
+          (termbind
+            (nonstrict)
+            (vardecl ds [ [ Tuple2 Bool ] Bool ])
+            [ [ { { Tuple2 Bool } Bool } x' ] y' ]
+          )
           [
-            [
-              {
-                [ Bool_match [ [ equalsInteger ds ] ds ] ]
-                (all dead (type) Bool)
-              }
-              (abs
-                dead
-                (type)
+            { [ { { Tuple2_match Bool } Bool } ds ] Bool }
+            (lam
+              ds
+              Bool
+              (lam
+                ds
+                Bool
                 {
                   [
                     [
-                      {
-                        [ Bool_match [ [ equalsInteger ds ] ds ] ]
-                        (all dead (type) Bool)
-                      }
-                      (abs dead (type) True)
+                      { [ Bool_match ds ] (all dead (type) Bool) }
+                      (abs
+                        dead
+                        (type)
+                        {
+                          [
+                            [
+                              { [ Bool_match ds ] (all dead (type) Bool) }
+                              (abs dead (type) True)
+                            ]
+                            (abs dead (type) [ fail (con unit ()) ])
+                          ]
+                          (all dead (type) dead)
+                        }
+                      )
                     ]
                     (abs dead (type) [ fail (con unit ()) ])
                   ]
                   (all dead (type) dead)
                 }
               )
-            ]
-            (abs dead (type) [ fail (con unit ()) ])
+            )
           ]
-          (all dead (type) dead)
-        }
+        )
       )
     )
   )

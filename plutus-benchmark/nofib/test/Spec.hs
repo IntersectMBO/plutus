@@ -46,7 +46,7 @@ testClausify = testGroup "clausify"
                , testCase "formula3" $ mkClausifyTest Clausify.F3
                , testCase "formula4" $ mkClausifyTest Clausify.F4
                , testCase "formula5" $ mkClausifyTest Clausify.F5
-               , Tx.fitsInto "formula1 (size)" (Clausify.mkClausifyCode Clausify.F1) 1703
+               , Tx.fitsInto "formula1 (size)" (Clausify.mkClausifyCode Clausify.F1) 1713
                , runTestNested $
                   Tx.goldenPirReadable "formulaBudget" $ Clausify.mkClausifyCode Clausify.F1
                , runTestNested $
@@ -67,7 +67,7 @@ testKnights = testGroup "knights"  -- Odd sizes call "error" because there are n
               , testCase "depth 100, 4x4" $ mkKnightsTest 100 4
               , testCase "depth 100, 6x6" $ mkKnightsTest 100 6
               , testCase "depth 100, 8x8" $ mkKnightsTest 100 8
-              , Tx.fitsInto "depth 10, 4x4 (size)" (Knights.mkKnightsCode 10 4) 2615
+              , Tx.fitsInto "depth 10, 4x4 (size)" (Knights.mkKnightsCode 10 4) 2136
               , runTestNested $ Tx.goldenPirReadable "knightsBudget" $ Knights.mkKnightsCode 10 4
               , runTestNested $ Tx.goldenBudget "knightsBudget" $ Knights.mkKnightsCode 10 4
               ]
@@ -98,7 +98,7 @@ testQueens = testGroup "queens"
                , runTestNested    $ Tx.goldenBudget "queens5budget" $
                   Queens.mkQueensCode 5 Queens.Bt
                ]
-             , Tx.fitsInto "Bt (size)" (Queens.mkQueensCode 5 Queens.Bt) 1972
+             , Tx.fitsInto "Bt (size)" (Queens.mkQueensCode 5 Queens.Bt) 1980
              ]
 
 ---------------- Primes ----------------

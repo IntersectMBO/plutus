@@ -15,6 +15,14 @@
       (vardecl trace (all a (type) (fun (con string) (fun a a))))
       trace
     )
-    (lam ds (con string) [ [ { trace Unit } ds ] Unit ])
+    (lam
+      ds
+      (con string)
+      (let
+        (nonrec)
+        (termbind (strict) (vardecl ds (con string)) ds)
+        [ [ { trace Unit } ds ] Unit ]
+      )
+    )
   )
 )

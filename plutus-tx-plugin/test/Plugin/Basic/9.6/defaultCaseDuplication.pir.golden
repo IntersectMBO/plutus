@@ -11,19 +11,23 @@
     (lam
       ds
       A
-      {
-        [
+      (let
+        (nonrec)
+        (termbind (strict) (vardecl ds A) ds)
+        {
           [
             [
-              { [ A_match ds ] (all dead (type) (con integer)) }
-              (abs dead (type) (con integer 1))
+              [
+                { [ A_match ds ] (all dead (type) (con integer)) }
+                (abs dead (type) (con integer 1))
+              ]
+              (abs dead (type) defaultBody)
             ]
             (abs dead (type) defaultBody)
           ]
-          (abs dead (type) defaultBody)
-        ]
-        (all dead (type) dead)
-      }
+          (all dead (type) dead)
+        }
+      )
     )
   )
 )

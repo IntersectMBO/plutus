@@ -4,6 +4,7 @@
 {-# LANGUAGE KindSignatures     #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TypeApplications   #-}
+
 -- This ensures that we don't put *anything* about these functions into the interface
 -- file, otherwise GHC can be clever about the ones that are always error, even though
 -- they're NOINLINE!
@@ -95,7 +96,7 @@ BOOL
 -}
 
 -- See Note [Opaque builtin types]
-data BuiltinBool = BuiltinBool Bool deriving stock Data
+data BuiltinBool = BuiltinBool ~Bool deriving stock Data
 
 {-# NOINLINE true #-}
 true :: BuiltinBool
@@ -114,7 +115,7 @@ UNIT
 -}
 
 -- See Note [Opaque builtin types]
-data BuiltinUnit = BuiltinUnit () deriving stock Data
+data BuiltinUnit = BuiltinUnit ~() deriving stock Data
 
 {-# NOINLINE unitval #-}
 unitval :: BuiltinUnit
@@ -179,7 +180,7 @@ BYTESTRING
 
 -- See Note [Opaque builtin types]
 -- | An opaque type representing Plutus Core ByteStrings.
-data BuiltinByteString = BuiltinByteString BS.ByteString deriving stock Data
+data BuiltinByteString = BuiltinByteString ~BS.ByteString deriving stock Data
 
 instance Haskell.Show BuiltinByteString where
     show (BuiltinByteString bs) = show bs
@@ -311,7 +312,7 @@ STRING
 -}
 
 -- See Note [Opaque builtin types]
-data BuiltinString = BuiltinString Text deriving stock Data
+data BuiltinString = BuiltinString ~Text deriving stock Data
 
 instance Haskell.Show BuiltinString where
     show (BuiltinString t) = show t
@@ -345,7 +346,7 @@ PAIR
 -}
 
 -- See Note [Opaque builtin types]
-data BuiltinPair a b = BuiltinPair (a, b) deriving stock Data
+data BuiltinPair a b = BuiltinPair ~(a, b) deriving stock Data
 
 instance (Haskell.Show a, Haskell.Show b) => Haskell.Show (BuiltinPair a b) where
     show (BuiltinPair p) = show p
@@ -371,7 +372,7 @@ LIST
 -}
 
 -- See Note [Opaque builtin types]
-data BuiltinList a = BuiltinList [a] deriving stock Data
+data BuiltinList a = BuiltinList ~[a] deriving stock Data
 
 instance Haskell.Show a => Haskell.Show (BuiltinList a) where
     show (BuiltinList l) = show l

@@ -45,11 +45,7 @@ in
               Left {integer} {b} (`$dUnsafeFromData` arg))
            (\(ds : unit) ->
               let
-                !thunk : unit
-                  = let
-                    !wild : Unit = trace {Unit} reconstructCaseError Unit
-                  in
-                  unitval
+                !x : Unit = trace {Unit} reconstructCaseError Unit
               in
               error {Either integer b})
            unitval)
@@ -78,11 +74,7 @@ in
               (\(ds : unit) -> Nothing {a})
               (\(ds : unit) ->
                  let
-                   !thunk : unit
-                     = let
-                       !wild : Unit = trace {Unit} reconstructCaseError Unit
-                     in
-                     unitval
+                   !x : Unit = trace {Unit} reconstructCaseError Unit
                  in
                  error {Maybe a})
               unitval)
@@ -121,12 +113,7 @@ in
                       (\(ds : unit) -> False)
                       (\(ds : unit) ->
                          let
-                           !thunk : unit
-                             = let
-                               !wild : Unit
-                                 = trace {Unit} reconstructCaseError Unit
-                             in
-                             unitval
+                           !x : Unit = trace {Unit} reconstructCaseError Unit
                          in
                          error {Bool})
                       unitval)
@@ -147,23 +134,14 @@ in
                       (\(ds : unit) -> False)
                       (\(ds : unit) ->
                          let
-                           !thunk : unit
-                             = let
-                               !wild : Unit
-                                 = trace {Unit} reconstructCaseError Unit
-                             in
-                             unitval
+                           !x : Unit = trace {Unit} reconstructCaseError Unit
                          in
                          error {Bool})
                       unitval)
                  unitval))
           (\(ds : unit) ->
              let
-               !thunk : unit
-                 = let
-                   !wild : Unit = trace {Unit} reconstructCaseError Unit
-                 in
-                 unitval
+               !x : Unit = trace {Unit} reconstructCaseError Unit
              in
              error {Tuple3 Bool integer Bool})
           unitval))
@@ -198,31 +176,31 @@ in
                    (mkCons {data} (`$dToData` arg) (mkNilData unitval)))
             (/\dead -> constrData 1 (mkNilData unitval))
             {all dead. dead})
-        (\(w : Tuple3 Bool integer Bool) ->
+        (\(ds : Tuple3 Bool integer Bool) ->
            Tuple3_match
              {Bool}
              {integer}
              {Bool}
-             w
+             ds
              {data}
-             (\(ww : Bool) (ww : integer) (ww : Bool) ->
+             (\(arg : Bool) (arg : integer) (arg : Bool) ->
                 constrData
                   0
                   (mkCons
                      {data}
                      (Bool_match
-                        ww
+                        arg
                         {all dead. data}
                         (/\dead -> constrData 1 (mkNilData unitval))
                         (/\dead -> constrData 0 (mkNilData unitval))
                         {all dead. dead})
                      (mkCons
                         {data}
-                        (iData ww)
+                        (iData arg)
                         (mkCons
                            {data}
                            (Bool_match
-                              ww
+                              arg
                               {all dead. data}
                               (/\dead -> constrData 1 (mkNilData unitval))
                               (/\dead -> constrData 0 (mkNilData unitval))

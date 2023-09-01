@@ -17,7 +17,7 @@
       MyMonoRecord
       [
         { [ MyMonoRecord_match ds ] (con integer) }
-        (lam i (con integer) (lam ds (con integer) i))
+        (lam ipv (con integer) (lam ipv (con integer) ipv))
       ]
     )
   )

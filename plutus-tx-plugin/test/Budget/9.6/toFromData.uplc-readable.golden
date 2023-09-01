@@ -50,15 +50,13 @@ program
                                                                                      constr 1
                                                                                        [  ])
                                                                                   (\ds ->
-                                                                                     (\thunk ->
+                                                                                     (\x ->
                                                                                         error)
-                                                                                       ((\wild ->
-                                                                                           unitval)
-                                                                                          (force
-                                                                                             trace
-                                                                                             reconstructCaseError
-                                                                                             (constr 0
-                                                                                                [  ]))))
+                                                                                       (force
+                                                                                          trace
+                                                                                          reconstructCaseError
+                                                                                          (constr 0
+                                                                                             [  ])))
                                                                                   unitval)
                                                                              unitval)
                                                                           (force
@@ -88,15 +86,13 @@ program
                                                                                 constr 1
                                                                                   [  ])
                                                                              (\ds ->
-                                                                                (\thunk ->
+                                                                                (\x ->
                                                                                    error)
-                                                                                  ((\wild ->
-                                                                                      unitval)
-                                                                                     (force
-                                                                                        trace
-                                                                                        reconstructCaseError
-                                                                                        (constr 0
-                                                                                           [  ]))))
+                                                                                  (force
+                                                                                     trace
+                                                                                     reconstructCaseError
+                                                                                     (constr 0
+                                                                                        [  ])))
                                                                              unitval)
                                                                         unitval)
                                                                      (force
@@ -113,11 +109,10 @@ program
                                                       (force headList t))
                                                    (force (force sndPair) tup))
                                               (\ds ->
-                                                 (\thunk -> error)
-                                                   ((\wild -> unitval)
-                                                      (force trace
-                                                         reconstructCaseError
-                                                         (constr 0 []))))
+                                                 (\x -> error)
+                                                   (force trace
+                                                      reconstructCaseError
+                                                      (constr 0 [])))
                                               unitval)
                                            (unConstrData
                                               (force headList
@@ -128,11 +123,10 @@ program
                                       (equalsInteger 1 index)
                                       (\ds -> constr 1 [])
                                       (\ds ->
-                                         (\thunk -> error)
-                                           ((\wild -> unitval)
-                                              (force trace
-                                                 reconstructCaseError
-                                                 (constr 0 []))))
+                                         (\x -> error)
+                                           (force trace
+                                              reconstructCaseError
+                                              (constr 0 [])))
                                       unitval)
                                  unitval)
                               (force (force fstPair) tup))
@@ -146,9 +140,8 @@ program
                            [ (unIData
                                 (force headList (force (force sndPair) tup))) ])
                       (\ds ->
-                         (\thunk -> error)
-                           ((\wild -> unitval)
-                              (force trace reconstructCaseError (constr 0 []))))
+                         (\x -> error)
+                           (force trace reconstructCaseError (constr 0 [])))
                       unitval)
                  unitval)
               (force (force fstPair) tup))

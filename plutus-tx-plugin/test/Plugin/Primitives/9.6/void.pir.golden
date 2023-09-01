@@ -32,7 +32,13 @@
         (lam
           y
           (con integer)
-          [ [ [ { ifThenElse Bool } [ [ equalsInteger x ] y ] ] True ] False ]
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl x (con integer)) x)
+            (termbind (strict) (vardecl y (con integer)) y)
+            (termbind (strict) (vardecl b (con bool)) [ [ equalsInteger x ] y ])
+            [ [ [ { ifThenElse Bool } b ] True ] False ]
+          )
         )
       )
     )
@@ -42,35 +48,36 @@
       (lam
         ds
         (con integer)
-        {
-          [
+        (let
+          (nonrec)
+          (termbind (strict) (vardecl ds (con integer)) ds)
+          (termbind (strict) (vardecl ds (con integer)) ds)
+          (termbind (strict) (vardecl x' Bool) [ [ equalsInteger ds ] ds ])
+          (termbind (strict) (vardecl y' Bool) [ [ equalsInteger ds ] ds ])
+          {
             [
-              {
-                [ Bool_match [ [ equalsInteger ds ] ds ] ]
-                (all dead (type) Bool)
-              }
-              (abs
-                dead
-                (type)
-                {
-                  [
+              [
+                { [ Bool_match x' ] (all dead (type) Bool) }
+                (abs
+                  dead
+                  (type)
+                  {
                     [
-                      {
-                        [ Bool_match [ [ equalsInteger ds ] ds ] ]
-                        (all dead (type) Bool)
-                      }
-                      (abs dead (type) True)
+                      [
+                        { [ Bool_match y' ] (all dead (type) Bool) }
+                        (abs dead (type) True)
+                      ]
+                      (abs dead (type) [ fail (con unit ()) ])
                     ]
-                    (abs dead (type) [ fail (con unit ()) ])
-                  ]
-                  (all dead (type) dead)
-                }
-              )
+                    (all dead (type) dead)
+                  }
+                )
+              ]
+              (abs dead (type) [ fail (con unit ()) ])
             ]
-            (abs dead (type) [ fail (con unit ()) ])
-          ]
-          (all dead (type) dead)
-        }
+            (all dead (type) dead)
+          }
+        )
       )
     )
   )

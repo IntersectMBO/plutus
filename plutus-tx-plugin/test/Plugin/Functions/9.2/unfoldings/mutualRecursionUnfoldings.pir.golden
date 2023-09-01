@@ -35,35 +35,32 @@
         (lam
           n
           (con integer)
-          {
-            [
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl n (con integer)) n)
+            (termbind
+              (strict)
+              (vardecl b (con bool))
+              [ [ equalsInteger n ] (con integer 0) ]
+            )
+            {
               [
-                {
-                  [
-                    Bool_match
-                    [
-                      [
-                        [
-                          { ifThenElse Bool }
-                          [ [ equalsInteger n ] (con integer 0) ]
-                        ]
-                        True
-                      ]
-                      False
-                    ]
-                  ]
-                  (all dead (type) Bool)
-                }
-                (abs dead (type) True)
+                [
+                  {
+                    [ Bool_match [ [ [ { ifThenElse Bool } b ] True ] False ] ]
+                    (all dead (type) Bool)
+                  }
+                  (abs dead (type) True)
+                ]
+                (abs
+                  dead
+                  (type)
+                  [ oddDirect [ [ subtractInteger n ] (con integer 1) ] ]
+                )
               ]
-              (abs
-                dead
-                (type)
-                [ oddDirect [ [ subtractInteger n ] (con integer 1) ] ]
-              )
-            ]
-            (all dead (type) dead)
-          }
+              (all dead (type) dead)
+            }
+          )
         )
       )
       (termbind
@@ -72,35 +69,32 @@
         (lam
           n
           (con integer)
-          {
-            [
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl n (con integer)) n)
+            (termbind
+              (strict)
+              (vardecl b (con bool))
+              [ [ equalsInteger n ] (con integer 0) ]
+            )
+            {
               [
-                {
-                  [
-                    Bool_match
-                    [
-                      [
-                        [
-                          { ifThenElse Bool }
-                          [ [ equalsInteger n ] (con integer 0) ]
-                        ]
-                        True
-                      ]
-                      False
-                    ]
-                  ]
-                  (all dead (type) Bool)
-                }
-                (abs dead (type) False)
+                [
+                  {
+                    [ Bool_match [ [ [ { ifThenElse Bool } b ] True ] False ] ]
+                    (all dead (type) Bool)
+                  }
+                  (abs dead (type) False)
+                ]
+                (abs
+                  dead
+                  (type)
+                  [ evenDirect [ [ subtractInteger n ] (con integer 1) ] ]
+                )
               ]
-              (abs
-                dead
-                (type)
-                [ evenDirect [ [ subtractInteger n ] (con integer 1) ] ]
-              )
-            ]
-            (all dead (type) dead)
-          }
+              (all dead (type) dead)
+            }
+          )
         )
       )
       [ evenDirect (con integer 4) ]

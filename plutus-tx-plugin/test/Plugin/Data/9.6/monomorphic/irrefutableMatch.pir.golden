@@ -31,20 +31,24 @@
     (lam
       ds
       MyMonoData
-      [
+      (let
+        (nonrec)
+        (termbind (strict) (vardecl ds MyMonoData) ds)
         [
           [
-            { [ MyMonoData_match ds ] (con integer) }
-            (lam
-              default_arg0
-              (con integer)
-              (lam default_arg1 (con integer) defaultBody)
-            )
+            [
+              { [ MyMonoData_match ds ] (con integer) }
+              (lam
+                default_arg0
+                (con integer)
+                (lam default_arg1 (con integer) defaultBody)
+              )
+            ]
+            (lam a (con integer) a)
           ]
-          (lam a (con integer) a)
+          (lam default_arg0 (con integer) defaultBody)
         ]
-        (lam default_arg0 (con integer) defaultBody)
-      ]
+      )
     )
   )
 )

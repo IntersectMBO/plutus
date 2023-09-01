@@ -13,9 +13,14 @@
     (lam
       ds
       Bool
-      [
-        [ { [ Bool_match ds ] (con integer) } (con integer 1) ] (con integer 2)
-      ]
+      (let
+        (nonrec)
+        (termbind (strict) (vardecl ds Bool) ds)
+        [
+          [ { [ Bool_match ds ] (con integer) } (con integer 1) ]
+          (con integer 2)
+        ]
+      )
     )
   )
 )

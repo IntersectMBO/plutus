@@ -12,11 +12,29 @@
     )
     (termbind
       (nonstrict)
+      (vardecl `$WParam` (all a (type) (fun a [ Param a ])))
+      (abs
+        a
+        (type)
+        (lam
+          dt
+          a
+          (let
+            (nonrec) (termbind (strict) (vardecl dt a) dt) [ { Param a } dt ]
+          )
+        )
+      )
+    )
+    (termbind
+      (nonstrict)
       (vardecl paramId (all a (type) (fun [ Param a ] (fun a a))))
       (abs a (type) (lam ds [ Param a ] (lam x a x)))
     )
     [
-      [ { paramId (con integer) } [ { Param (con integer) } (con integer 1) ] ]
+      [
+        { paramId (con integer) }
+        [ { `$WParam` (con integer) } (con integer 1) ]
+      ]
       (con integer 1)
     ]
   )
