@@ -42,11 +42,12 @@ common lang
     StandaloneDeriving
     Strict
 
+  -- See Note [-fno-full-laziness in Plutus Tx]
   ghc-options:
     -fno-specialise -fno-spec-constr -fno-ignore-interface-pragmas
     -fno-omit-interface-pragmas -fno-strictness
     -fno-unbox-strict-fields -fno-unbox-small-strict-fields
-    -fforce-recomp
+    -fno-full-laziness
 
   ghc-options:
     -Wall -Wnoncanonical-monad-instances -Wincomplete-uni-patterns

@@ -3,6 +3,9 @@
   (let
     (nonrec)
     (datatypebind
+      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
+    )
+    (datatypebind
       (datatype
         (tyvardecl Bool (type))
 
@@ -10,16 +13,12 @@
         (vardecl True Bool) (vardecl False Bool)
       )
     )
-    (datatypebind
-      (datatype (tyvardecl Unit (type))  Unit_match (vardecl Unit Unit))
-    )
     (termbind
       (strict)
       (vardecl error (all a (type) (fun (con unit) a)))
       (abs a (type) (lam thunk (con unit) (error a)))
     )
     (termbind (strict) (vardecl unitval (con unit)) (con unit ()))
-    (termbind (nonstrict) (vardecl joinError Unit) [ { error Unit } unitval ])
     (termbind
       (nonstrict)
       (vardecl joinError (fun Bool (fun Bool Unit)))
@@ -44,7 +43,7 @@
                       [
                         [
                           { [ Bool_match y ] (all dead (type) Unit) }
-                          (abs dead (type) joinError)
+                          (abs dead (type) [ { error Unit } unitval ])
                         ]
                         (abs dead (type) Unit)
                       ]
