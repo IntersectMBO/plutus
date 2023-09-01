@@ -29,6 +29,7 @@ ${DOC}.pdf: ${SRC} ${BIB}
         # ^ Putting this later seems to get page references out of sync.
 	${LATEX}  ${DOC}
 	${LATEX}  ${DOC}
+	${LATEX}  ${DOC}
 
 figs:
 	cd ${FIGS} && ${MAKE}
