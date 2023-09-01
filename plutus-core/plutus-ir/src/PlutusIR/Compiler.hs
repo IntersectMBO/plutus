@@ -114,27 +114,27 @@ applyPass pass = runIf (_shouldRun pass) $ through check <=< \term -> do
 
 availablePasses :: [Pass uni fun]
 availablePasses =
-    [ Pass "unwrap cancel"        (onOption coDoSimplifierUnwrapCancel)       (pure . Unwrap.unwrapCancel)
-    , Pass "case reduce"          (onOption coDoSimplifierCaseReduce)         (pure . CaseReduce.caseReduce)
-    , Pass "known constructor"    (onOption coDoSimplifierKnownCon)           KnownCon.knownCon
-    , Pass "beta"                 (onOption coDoSimplifierBeta)               (pure . Beta.beta)
-    , Pass "strictify bindings"   (onOption coDoSimplifierStrictifyBindings)  (\t ->
-                                                                                 do
-                                                                                  semvar <- view ccBuiltinSemanticsVariant
-                                                                                  pure $ StrictifyBindings.strictifyBindings semvar t
-                                                                              )
-    , Pass "evaluate builtins"    (onOption coDoSimplifierEvaluateBuiltins)   (\t -> do
-                                                                                  semvar <- view ccBuiltinSemanticsVariant
-                                                                                  costModel <- view ccBuiltinCostModel
-                                                                                  preserveLogging <- view (ccOpts . coPreserveLogging)
-                                                                                  pure $ EvaluateBuiltins.evaluateBuiltins preserveLogging semvar costModel t
-                                                                              )
-    , Pass "inline"               (onOption coDoSimplifierInline)             (\t -> do
+    -- [ Pass "unwrap cancel"        (onOption coDoSimplifierUnwrapCancel)       (pure . Unwrap.unwrapCancel)
+    -- , Pass "case reduce"          (onOption coDoSimplifierCaseReduce)         (pure . CaseReduce.caseReduce)
+    -- , Pass "known constructor"    (onOption coDoSimplifierKnownCon)           KnownCon.knownCon
+    -- , Pass "beta"                 (onOption coDoSimplifierBeta)               (pure . Beta.beta)
+    -- , Pass "strictify bindings"   (onOption coDoSimplifierStrictifyBindings)  (\t ->
+    --                                                                              do
+    --                                                                               semvar <- view ccBuiltinSemanticsVariant
+    --                                                                               pure $ StrictifyBindings.strictifyBindings semvar t
+    --                                                                           )
+    -- , Pass "evaluate builtins"    (onOption coDoSimplifierEvaluateBuiltins)   (\t -> do
+    --                                                                               semvar <- view ccBuiltinSemanticsVariant
+    --                                                                               costModel <- view ccBuiltinCostModel
+    --                                                                               preserveLogging <- view (ccOpts . coPreserveLogging)
+    --                                                                               pure $ EvaluateBuiltins.evaluateBuiltins preserveLogging semvar costModel t
+    --                                                                           )
+    [ Pass "inline"               (onOption coDoSimplifierInline)             (\t -> do
                                                                                   hints <- view (ccOpts . coInlineHints)
                                                                                   semvar <- view ccBuiltinSemanticsVariant
                                                                                   Inline.inline hints semvar t
                                                                               )
-    , Pass "commuteFnWithConst" (onOption coDoSimplifiercommuteFnWithConst) (pure . CommuteFnWithConst.commuteFnWithConst)
+    -- , Pass "commuteFnWithConst" (onOption coDoSimplifiercommuteFnWithConst) (pure . CommuteFnWithConst.commuteFnWithConst)
     ]
 
 -- | Actual simplifier
@@ -234,10 +234,10 @@ compileToReadable (Program a v t) =
 compileReadableToPlc :: (Compiling m e uni fun a, b ~ Provenance a) => Program TyName Name uni fun b -> m (PLCProgram uni fun a)
 compileReadableToPlc (Program a v t) =
   let pipeline =
-        (<$ logVerbose "  !!! floatIn")
-        >=> floatIn
-        >=> through check
-        >=> (<$ logVerbose "  !!! compileNonStrictBindings")
+        -- (<$ logVerbose "  !!! floatIn")
+        -- >=> floatIn
+        -- >=> through check
+        (<$ logVerbose "  !!! compileNonStrictBindings")
         >=> NonStrict.compileNonStrictBindings False
         >=> through check
         >=> (<$ logVerbose "  !!! thunkRecursions")
