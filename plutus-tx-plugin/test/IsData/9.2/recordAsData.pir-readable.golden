@@ -1,0 +1,74 @@
+let
+  !mkI : integer -> data = iData
+  ~`$fToDataInteger_$ctoBuiltinData` : integer -> data
+    = \(i : integer) -> let !i : integer = i in mkI i
+  ~`$fToDataInteger` : (\a -> a -> data) integer
+    = `$fToDataInteger_$ctoBuiltinData`
+in
+letrec
+  data (List :: * -> *) a | Nil_match where
+    Nil : List a
+    Cons : a -> List a -> List a
+in
+let
+  ~build : all a. (all b. (a -> b -> b) -> b -> b) -> List a
+    = /\a ->
+        \(g : all b. (a -> b -> b) -> b -> b) ->
+          g {List a} (\(ds : a) (ds : List a) -> Cons {a} ds ds) (Nil {a})
+  !mkCons : all a. a -> list a -> list a = mkCons
+  !mkNilData : unit -> list data = mkNilData
+  !unitval : unit = ()
+in
+letrec
+  ~`$fToBuiltinNilBuiltinList0_$ctoBuiltin` : List data -> list data
+    = \(ds : List data) ->
+        Nil_match
+          {data}
+          ds
+          {all dead. list data}
+          (/\dead -> mkNilData unitval)
+          (\(d : data) (ds : List data) ->
+             /\dead ->
+               mkCons {data} d (`$fToBuiltinNilBuiltinList0_$ctoBuiltin` ds))
+          {all dead. dead}
+in
+let
+  !mkConstr : integer -> list data -> data = constrData
+  ~mkConstr : integer -> List data -> data
+    = \(i : integer) (args : List data) ->
+        let
+          !i : integer = i
+          !args : List data = args
+        in
+        mkConstr i (`$fToBuiltinNilBuiltinList0_$ctoBuiltin` args)
+  ~toBuiltinData : all a. (\a -> a -> data) a -> a -> data
+    = /\a -> \(v : (\a -> a -> data) a) -> v
+  ~`$bRecordConstructor` :
+     all a.
+       (\a -> a -> data) a ->
+       (\a -> data -> a) a ->
+       a ->
+       integer ->
+       (\a -> data) a
+    = /\a ->
+        \(`$dToData` : (\a -> a -> data) a)
+         (`$dUnsafeFromData` : (\a -> data -> a) a)
+         (x_ : a)
+         (y_ : integer) ->
+          let
+            !x_ : a = x_
+            !y_ : integer = y_
+          in
+          mkConstr
+            0
+            (build
+               {data}
+               (/\a ->
+                  \(c : data -> a -> a) (n : a) ->
+                    c
+                      (toBuiltinData {a} `$dToData` x_)
+                      (c (toBuiltinData {integer} `$fToDataInteger` y_) n)))
+  !unsafeDataAsI : data -> integer = unIData
+  ~`$fUnsafeFromDataInteger` : (\a -> data -> a) integer = unsafeDataAsI
+in
+`$bRecordConstructor` {integer} `$fToDataInteger` `$fUnsafeFromDataInteger` 1 2

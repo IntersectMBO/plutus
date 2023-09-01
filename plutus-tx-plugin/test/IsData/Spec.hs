@@ -3,9 +3,11 @@
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE PatternSynonyms       #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE ViewPatterns          #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
@@ -20,6 +22,7 @@ import Test.Tasty.Extras
 import Plugin.Data.Spec
 
 import PlutusCore.Test
+import PlutusTx.AsData qualified as AsData
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code
 import PlutusTx.IsData qualified as IsData
@@ -67,6 +70,23 @@ isDataRoundtrip a =
         unsafeRoundtrip = IsData.unsafeFromBuiltinData d P.== a
     in safeRoundtrip && unsafeRoundtrip
 
+AsData.asData [d|
+  data SecretlyData = FirstC () | SecondC Integer
+  |]
+
+AsData.asData [d|
+  data RecordConstructor a = RecordConstructor { x :: a, y :: Integer }
+  |]
+
+matchAsData :: CompiledCode (SecretlyData -> Maybe Integer)
+matchAsData = plc (Proxy @"matchAsData") (
+  \(d :: SecretlyData) -> case d of
+    FirstC _  -> Nothing
+    SecondC i -> Just i)
+
+recordAsData :: CompiledCode (RecordConstructor Integer)
+recordAsData = plc (Proxy @"recordAsData") (RecordConstructor 1 2)
+
 tests :: TestNested
 tests = testNestedGhc "IsData" [
     goldenUEval "int" [plc (Proxy @"int") (isDataRoundtrip (1::Integer))]
@@ -89,4 +109,7 @@ tests = testNestedGhc "IsData" [
     , goldenUEval "bytestring" [plc (Proxy @"bytestring") (isDataRoundtrip (WrappedBS Builtins.emptyByteString))]
     , goldenPir "deconstructData" deconstructData
     , goldenPir "unsafeDeconstructData" unsafeDeconstructData
+    , goldenPirReadable "matchAsData" matchAsData
+    , goldenUEval "matchAsDataE" [toUPlc $ matchAsData, toUPlc $ plc (Proxy @"test") (SecondC 3)]
+    , goldenPirReadable "recordAsData" recordAsData
   ]
