@@ -19,7 +19,7 @@ import PlutusIR.Core
 import PlutusIR.Transform.Inline.Utils
 import PlutusIR.Transform.Substitute
 
-{- Note [Inlining and beta reduction of fully applied functions]
+{- Note [Inlining and beta reduction of functions]
 
 We inline if its cost and size are acceptable.
 
@@ -51,6 +51,15 @@ abstraction is already a value). This may not be the case if the arity is zero.
 For effect-safety, we require: (1) the RHS be pure, i.e., evaluating it is guaranteed to
 not have side effects; (2) all arguments be pure, since otherwise it is unsafe to
 perform beta reduction.
+
+Note that PR#5426 introduced some improvements but also regressions in a couple of script context
+tests:
+- "checkScriptContext1 (size)" 3544 → 3580
+- "checkScriptContext2 (size)" 3475 → 3511
+The regressions were caused by the inliner's interaction with other passes. It seems other passes
+aren't able to do as much with this version of the inliner.
+When other passes are turned off, we can see there is no regression from the inliner alone.
+See https://github.com/input-output-hk/plutus/pull/5426#issuecomment-1703102688
 -}
 
 {- | Apply the RHS of the given variable to the given arguments, and beta-reduce
