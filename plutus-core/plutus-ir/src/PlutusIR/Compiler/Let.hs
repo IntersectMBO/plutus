@@ -23,6 +23,7 @@ import Control.Lens hiding (Strict)
 import Data.Foldable
 import Data.List.NonEmpty hiding (partition, reverse)
 import Data.List.NonEmpty qualified as NE
+import PlutusCore.Pretty (display)
 
 {- Note [Extra definitions while compiling let-bindings]
 The let-compiling passes can generate some additional definitions, so we use the
@@ -63,7 +64,12 @@ compileRecBindings kind body bs =
       case NE.head singleGroup of
          TermBind {} -> compileRecTermBindings kind body singleGroup
          DatatypeBind {} ->  lift $ compileRecDataBindings kind body singleGroup
-         TypeBind {} -> lift $ getEnclosing >>= \p -> throwing _Error $ CompilationError p "Type bindings cannot appear in recursive let, use datatypebind instead"
+         tb@TypeBind {} ->
+            lift $ getEnclosing >>= \p -> throwing _Error $
+                CompilationError p
+                    ("Type bindings cannot appear in recursive let, use datatypebind instead"
+                    <> "The type binding is \n "
+                    <> display tb)
     -- only one single group should appear, we do not allow mixing of bind styles
     _ -> lift $ getEnclosing >>= \p -> throwing _Error $ CompilationError p "Mixed term/type/data bindings in recursive let"
   where
