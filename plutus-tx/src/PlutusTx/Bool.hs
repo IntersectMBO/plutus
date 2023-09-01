@@ -49,7 +49,7 @@ It doesn't matter whether or not the function is inlined by the PIR inliner, sin
 inliner does not change the semantics of the program.
 
 However, it *does* make a difference if the function is unconditionally inlined by GHC.
-Consider the Plutus Tx code `let f !x = t in f arg`. Here `arg` will be immediately when
+Consider the Plutus Tx code `let f !x = t in f arg`. Here `arg` will be immediately evaluated before
 being passed to `f` (as it should). But now consider `let f ~x = t in f arg`. Here GHC
 may unconditionally inline `f`, leading to `t [x := arg]` (recognize that the GHC inliner
 also performs beta reduction, in addition to replacing `f` with its definition), where `arg`
