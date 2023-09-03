@@ -1,4 +1,4 @@
-{ nix, inputs, pkgs, ... }:
+{ inputs, repoRoot, pkgs, ... }:
 
 let
 
@@ -7,7 +7,7 @@ let
   plutus-metatheory-agda-html = pkgs.stdenv.mkDerivation {
     name = "plutus-metatheory-doc";
     src = inputs.self + /plutus-metatheory;
-    buildInputs = [ nix.plutus.agda-with-stdlib ];
+    buildInputs = [ repoRoot.nix.agda-with-stdlib ];
     buildPhase = ''
       mkdir "$out"
       agda --html --html-highlight=auto --html-dir="$out" "src/index.lagda.md"

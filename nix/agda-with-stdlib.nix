@@ -1,8 +1,11 @@
-{ nix, pkgs, ... }:
+{ inputs, repoRoot, pkgs, ... }:
 
-# Need a newer version for 2.6.2 compatibility
 let
-  stdlib = nix.plutus.agda-packages.standard-library.overrideAttrs (oldAtts: rec {
+
+  pkgs = inputs.nixpkgs; 
+
+  # Need a newer version for 2.6.2 compatibility
+  stdlib = repoRoot.nix.agda-packages.standard-library.overrideAttrs (oldAtts: rec {
 
     version = "1.7";
 
@@ -27,4 +30,4 @@ let
 
 in
 
-nix.plutus.agda-packages.agda.withPackages [ stdlib ]
+repoRoot.nix.agda-packages.agda.withPackages [ stdlib ]

@@ -12,6 +12,7 @@
     inherit inputs;
     repoRoot = ./.;
     systems = [ "x86_64-darwin" "x86_64-linux" "aarch64-darwin" ];
+    modules = [ ./nix/outputs.nix ];
   };
 
   nixConfig = {

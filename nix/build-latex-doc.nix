@@ -1,8 +1,8 @@
-{ nix, l, ... }:
+{ repoRoot, pkgs, lib, ... }:
 
 { name, description, src, texFiles ? null, withAgda ? false, agdaFile ? "" }:
 
-nix.plutus.build-latex {
+repoRoot.nix.build-latex {
 
   inherit name;
   inherit description;
@@ -11,12 +11,12 @@ nix.plutus.build-latex {
   # A typical good filter for latex sources.
   # This also includes files for cases where agda sources are being compiled.
   src =
-    l.sourceFilesBySuffices src
+    lib.sourceFilesBySuffices src
       [ ".tex" ".bib" ".cls" ".bst" ".pdf" ".png" ".agda" ".agda-lib" ".lagda" ];
 
 
-  buildInputs = l.optionals withAgda [
-    nix.plutus.agda-with-stdlib
+  buildInputs = lib.optionals withAgda [
+    repoRoot.nix.agda-with-stdlib
   ];
 
 
@@ -35,12 +35,12 @@ nix.plutus.build-latex {
   };
 
 
-  preBuild = l.optionalString withAgda ''
+  preBuild = lib.optionalString withAgda ''
     agda --latex ${agdaFile} --latex-dir .
   '';
 
 
-  meta = with l; {
+  meta = with lib; {
     inherit description;
     license = licenses.asl20;
   };

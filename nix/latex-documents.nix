@@ -1,8 +1,8 @@
-{ nix, inputs, pkgs, l, ... }:
+{ inputs, repoRoot, pkgs, lib, ... }:
 
 let
 
-  latex-docs = l.flip l.mapAttrValues nix.plutus.build-latex-doc {
+  latex-documents = lib.flip lib.mapAttrValues nix.plutus.build-latex-doc {
 
     cost-model-notes = {
       name = "cost-model-notes";
@@ -96,7 +96,7 @@ let
           zip -r $out/compiler.zip .
         '';
     in
-    nix.plutus.build-latex {
+    repoRoot.nix.build-latex {
       name = "unraveling-recursion-paper";
 
       texFiles = [ "unraveling-recursion.tex" ];
@@ -118,11 +118,11 @@ let
       };
 
       buildInputs = [
-        nix.plutus.agda-with-stdlib
+        repoRoot.nix.agda-with-stdlib
         pkgs.zip
       ];
 
-      src = l.sourceFilesBySuffices
+      src = lib.sourceFilesBySuffices
         (inputs.self + /doc/papers/unraveling-recursion)
         [ ".tex" ".bib" ".agda" ".lagda" ".cls" ".bst" ".pdf" ];
 
@@ -143,4 +143,4 @@ let
 
 in
 
-latex-docs // { inherit unraveling-recursion-paper; }
+latex-documents // { inherit unraveling-recursion-paper; }

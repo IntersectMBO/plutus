@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 
 # Build a latex derivation using latexmk.
 { texFiles ? [ ]

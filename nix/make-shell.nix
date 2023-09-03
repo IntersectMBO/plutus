@@ -1,16 +1,18 @@
 # This file is part of the IOGX template and is documented at the link below:
 # https://www.github.com/input-output-hk/iogx#34-nixshellnix
 
-{ nix, pkgs, ... }:
+{ repoRoot, pkgs, ... }:
+
+ghc: 
 
 {
   name = "plutus";
 
   packages = [
-    nix.plutus.agda-with-stdlib
+    repoRoot.nix.agda-with-stdlib
 
     # R environment
-    nix.plutus.r-with-packages
+    repoRoot.nix.r-with-packages
     pkgs.R
 
     # Misc useful stuff, could make these commands but there's a lot already
@@ -28,4 +30,16 @@
     pkgs.zlib
     pkgs.cacert
   ];
+
+  haskellCompiler = ghc;
+
+  preCommit = {
+    stylish-haskell.enable = true;
+    cabal-fmt.enable = true;
+    shellcheck.enable = true;
+    editorconfig-checker.enable = true;
+    nixpkgs-fmt.enable = true;
+    png-optimization.enable = true;
+    hlint.enable = false;
+  };
 }
