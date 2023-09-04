@@ -25,6 +25,7 @@ module PlutusLedgerApi.V3 (
     , Committee (..)
     , Constitution (..)
     , GovernanceAction (..)
+    , ChangedParameters (..)
     , ProposalProcedure (..)
     -- ** Protocol version
     , ProtocolVersion (..)

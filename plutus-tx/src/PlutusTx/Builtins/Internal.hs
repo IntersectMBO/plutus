@@ -28,6 +28,7 @@ import Data.Hashable (Hashable (..))
 import Data.Kind (Type)
 import Data.Text as Text (Text, empty)
 import Data.Text.Encoding as Text (decodeUtf8, encodeUtf8)
+import GHC.Generics
 import PlutusCore.Builtin.Emitter (Emitter (Emitter))
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
@@ -40,7 +41,6 @@ import PlutusCore.Evaluation.Result (EvaluationResult (EvaluationFailure, Evalua
 import PlutusCore.Pretty (Pretty (..))
 import PlutusTx.Utils (mustBeReplaced)
 import Prettyprinter (viaShow)
-
 
 {-
 We do not use qualified import because the whole module contains off-chain code
@@ -429,7 +429,8 @@ that you want to be representable on-chain.
 For off-chain usage, there are conversion functions 'builtinDataToData' and
 'dataToBuiltinData', but note that these will not work on-chain.
 -}
-data BuiltinData = BuiltinData PLC.Data deriving stock Data
+data BuiltinData = BuiltinData PLC.Data
+    deriving stock (Data, Generic)
 
 instance Haskell.Show BuiltinData where
     show (BuiltinData d) = show d
