@@ -49,6 +49,7 @@ import PlutusTx.Builtins qualified as Builtins
 
 import Control.Monad (guard)
 import Data.Aeson (FromJSON (parseJSON), ToJSON (toJSON), object, withObject, (.:))
+import GHC.Generics
 import GHC.Real qualified as Ratio
 import Prelude (Ord (..), Show, (*))
 import Prelude qualified as Haskell
@@ -58,7 +59,8 @@ import Prettyprinter (Pretty (..), (<+>))
 data Rational = Rational Integer Integer
   deriving stock (
     Haskell.Eq,
-    Show
+    Show,
+    Generic
     )
 
 instance Pretty Rational where
