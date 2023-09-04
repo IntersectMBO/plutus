@@ -1,4 +1,11 @@
 
+<a id='changelog-1.12.0.0'></a>
+# 1.12.0.0 — 2023-09-01
+
+## Changed
+
+- The `Strict` extension is now on by default in all of Plutus Tx.
+
 <a id='changelog-1.10.0.0'></a>
 # 1.10.0.0 — 2023-08-02
 
