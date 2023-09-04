@@ -1,1 +1,2 @@
-Error during compilation: Type bindings cannot appear in recursive let, use datatypebind instead((recursive) let binding; from recursiveTypeBind:1:1-11:1)
+Error during compilation: Type bindings cannot appear in recursive let, use datatypebind insteadThe type binding is 
+ (typebind (tyvardecl unit (type)) (all a (type) (fun unit unit)))((recursive) let binding; from recursiveTypeBind:1:1-11:1)
