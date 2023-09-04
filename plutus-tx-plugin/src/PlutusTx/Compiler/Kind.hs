@@ -26,10 +26,9 @@ compileKind k = traceCompilation 2 ("Compiling kind:" GHC.<+> GHC.ppr k) $ case 
 #else
         (_m, i, o)     -> PLC.KindArrow () <$> compileKind i <*> compileKind o
 #endif
-    -- We match on the forall type with 'RuntimeRep' type variable
-    -- to handle '(#, #)' kind and catch 'TYPE rep' with 'classifiesTypeWithValues'
-    -- to match it to a type, see Note [Unboxed tuples]
+    -- Ignore type binders for runtime rep variables, see Note [Runtime reps]
     (GHC.splitForAllTyCoVar_maybe -> Just (tvar, ty)) | (GHC.isRuntimeRepTy . GHC.varType) tvar -> compileKind ty
+    -- Interpret 'TYPE rep' as 'TYPE LiftedRep', for any rep, see Note [Runtime reps]
 #if MIN_VERSION_ghc(9,6,0)
     (GHC.isTypeLikeKind -> True) -> pure $ PLC.Type ()
 #else

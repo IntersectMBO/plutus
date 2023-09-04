@@ -385,49 +385,27 @@ the plugin compilation mode, so we have a special function that's not a builtin 
 just get turned into a function in PLC).
 -}
 
-{- Note [Unboxed tuples]
-This note describes the support of unboxed tuples which are different from boxed tuples.
-The difference between boxed and unboxed types is available in GHC manual
-https://downloads.haskell.org/ghc/latest/docs/html/users_guide/exts/primitives.html#unboxed-type-kinds
+{- Note [Runtime reps]
+GHC has the notion of `RuntimeRep`. The kind of types is actually `TYPE rep`, where rep is of kind
+`RuntimeRep`. Thus normal types have kind `TYPE LiftedRep`, and unlifted and unboxed types have
+various other fancy kinds.
 
-Boxed tuples have kind '* -> * -> *' and can be compiled as normal datatypes. But unboxed tuples
-involve types which are not of kind `*`, and moreover are *polymorphic* in their runtime representation. This requires extra work on all levels: kind, type and term.
+We don't have different runtime representations. But we can make the observation that for things
+which say they should have a different runtime representation... we can just represent them as
+normal lifted types. In particular, this lets us represent unboxed tuples as normal tuples, which
+is helpful, since GHC will often produce these when it transforms the program.
 
-For example, the kind of '(# a , b #)' is
-```
-forall k0 k1 . TYPE k0 -> TYPE k1 -> TYPE ('GHC.Types.TupleRep '[k0, k1])
-```
-where 'a' and 'b' are some types and `[k0, k1]` are type variables standing for runtime representations.
+That gives us a strategy for `RuntimeRep`
+- Compile `TYPE rep` as `Type`, regardless of what `rep` is
+- Ignore binders that bind types of kind `RuntimeRep`, assuming that those will only ever be used
+  in a `Type rep` where we are going to ignore the rep anyway.
+    - Note that binders for types of kind runtime rep binders can appear in both types and kinds!
+- Ignore applications to types of kind `RuntimeRep`, since we're ignoring the binders.
 
-Suppose that 'a = b = Integer', a boxed type, then the kind of '(# Integer, Integer #)' is
-```
-TYPE 'GHC.Types.LiftedRep -> TYPE 'GHC.Types.LiftedRep -> TYPE ('GHC.Types.TupleRep '[ 'GHC.Types.LiftedRep, 'GHC.Types.LiftedRep])
-```
-
-As Plutus has no different runtime representations, the overall strategy is consider `Type rep` to always be `Type LiftedRep`, which becomes `Type` on the Plutus side.
-
-To do this, we do the following:
-
-1. 'compileKind' uses 'splitForAllTy_maybe' to match on the forall type with 'RuntimeRep' type variable
-that surrounds unboxed tuple, ignores it by calling 'compileKind' on the inner type:
-
-```
-compileKind( forall k0 k1 .TYPE k0 -> TYPE k1 -> TYPE ('GHC.Types.TupleRep '[k0, k1]) )
-~> compileKind( TYPE k0 -> TYPE k1 -> TYPE ('GHC.Types.TupleRep '[k0, k1]) )
-```
-
-And then uses `classifiesTypeWithValues` to match `TYPE rep` to PLC Type.
-
-2. We ignore 'RuntimeRep' type arguments:
-- using 'dropRuntimeRepArgs' in 'compileType' and 'getMatchInstantiated'
-to handle the initial runtime rep arguments in a 'TyCon' application  of `(#,#)';
-
-- using 'dropRuntimeRepVars' in 'compileTyCon' to ignore 'RuntimeRep' type variables
-and to compile the kind of '(#,#)' properly.
-
-3. 'compileExpr' uses 'isRuntimeRepKindedTy' to match on type application and to ignore
-'RuntimeRep' type arguments.
-
+Doing this thoroughly means also ignoring them in types, type constructors, and data constructors,
+which is a bit more involved, see e.g.
+- 'dropRuntimeRepVars' in 'compileTyCon' to ignore 'RuntimeRep' type variables
+- 'dropRuntimeRepArgs' in 'compileType' and 'getMatchInstantiated'
 -}
 
 {- Note [Dependency tracking]
@@ -789,14 +767,20 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
                   GHC.$+$ (GHC.ppr $ GHC.idDetails n)
                   GHC.$+$ (GHC.ppr $ GHC.realIdUnfolding n)
 
-    -- ignoring applications to types of 'RuntimeRep' kind, see Note [Unboxed tuples]
-    l `GHC.App` GHC.Type t | GHC.isRuntimeRepKindedTy t -> compileExpr l
     -- arg can be a type here, in which case it's a type instantiation
-    l `GHC.App` GHC.Type t -> PIR.TyInst annMayInline <$> compileExpr l <*> compileTypeNorm t
+    l `GHC.App` GHC.Type t ->
+      -- Ignore applications to types of 'RuntimeRep' kind, see Note [Runtime reps]
+      if GHC.isRuntimeRepKindedTy t
+      then compileExpr l
+      else PIR.TyInst annMayInline <$> compileExpr l <*> compileTypeNorm t
     -- otherwise it's a normal application
     l `GHC.App` arg -> PIR.Apply annMayInline <$> compileExpr l <*> compileExpr arg
     -- if we're biding a type variable it's a type abstraction
-    GHC.Lam b@(GHC.isTyVar -> True) body -> mkTyAbsScoped b $ compileExpr body
+    GHC.Lam b@(GHC.isTyVar -> True) body ->
+      -- Ignore type binders for runtime rep variables, see Note [Runtime reps]
+      if GHC.isRuntimeRepTy $ GHC.varType b
+      then compileExpr body
+      else mkTyAbsScoped b $ compileExpr body
     -- otherwise it's a normal lambda
     GHC.Lam b body -> mkLamAbsScoped b $ compileExpr body
     GHC.Let (GHC.NonRec b rhs) body -> do

@@ -102,14 +102,18 @@ compileType t = traceCompilation 2 ("Compiling type:" GHC.<+> GHC.ppr t) $ do
 #else
       (_m, i, o)     -> PIR.TyFun annMayInline <$> compileType i <*> compileType o
 #endif
-    -- ignoring 'RuntimeRep' type arguments, see Note [Unboxed tuples]
     (GHC.splitTyConApp_maybe -> Just (tc, ts)) ->
       PIR.mkIterTyApp
         <$> compileTyCon tc
+        -- Ignore 'RuntimeRep' type arguments to type constructors, see Note [Runtime reps]
         <*> (traverse (fmap (annMayInline,) . compileType) (GHC.dropRuntimeRepArgs ts))
     (GHC.splitAppTy_maybe -> Just (t1, t2)) ->
       PIR.TyApp annMayInline <$> compileType t1 <*> compileType t2
-    (GHC.splitForAllTyCoVar_maybe -> Just (tv, tpe)) -> mkTyForallScoped tv (compileType tpe)
+    (GHC.splitForAllTyCoVar_maybe -> Just (tv, tpe)) ->
+      -- Ignore type binders for runtime rep variables, see Note [Runtime reps]
+      if (GHC.isRuntimeRepTy . GHC.varType) tv
+      then compileType tpe
+      else mkTyForallScoped tv (compileType tpe)
     -- I think it's safe to ignore the coercion here
     (GHC.splitCastTy_maybe -> Just (tpe, _)) -> compileType tpe
     _ -> throwSd UnsupportedError $ "Type" GHC.<+> GHC.ppr t

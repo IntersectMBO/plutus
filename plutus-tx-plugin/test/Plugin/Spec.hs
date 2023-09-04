@@ -11,6 +11,7 @@ import Plugin.Functions.Spec
 import Plugin.Laziness.Spec
 import Plugin.NoTrace.Spec
 import Plugin.Optimization.Spec
+import Plugin.Patterns.Spec
 import Plugin.Primitives.Spec
 import Plugin.Profiling.Spec
 import Plugin.Strict.Spec
@@ -31,4 +32,5 @@ tests = testNested "Plugin" [
   , strict
   , profiling
   , coverage
+  , patterns
   ]
