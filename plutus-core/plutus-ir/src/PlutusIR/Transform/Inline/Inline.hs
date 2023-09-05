@@ -33,6 +33,7 @@ import Control.Monad.State (evalStateT, modify')
 import Algebra.Graph qualified as G
 import Control.Monad.State.Class (gets)
 import Data.Map qualified as Map
+import PlutusIR.Analysis.Size (termSize)
 import PlutusIR.Contexts (AppContext (..), splitApplication)
 import PlutusIR.Transform.Inline.CallSiteInline (callSiteInline)
 import Witherable (Witherable (wither))
@@ -237,7 +238,11 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
                                     Just varInfo -> do
                                         -- process the args
                                         processedArgs <- processArgs args
-                                        maybeInlined <- callSiteInline t varInfo processedArgs
+                                        processedT <- forMOf termSubterms t processTerm
+                                        maybeInlined <-
+                                            callSiteInline
+                                                (termSize processedT) varInfo processedArgs
+
                                         case maybeInlined of
                                             Just inlined -> pure inlined
                                             -- we didn't inline at the call site, just process the
