@@ -95,7 +95,9 @@ testQuotRem = Hedgehog.property $ do
 testReduce :: Property
 testReduce = Hedgehog.property $ do
     let gen = Gen.integral (Range.linear (-10000) 100000)
-    (n1, n2) <- Hedgehog.forAll $ (,) <$> gen <*> gen
+        -- Ratio must have non-zero denominator or else an ArithException will be thrown.
+        gen' = Gen.filter (/= 0) gen
+    (n1, n2) <- Hedgehog.forAll $ (,) <$> gen <*> gen'
     ghcResult <- tryHard $ reduce n1 n2
     plutusResult <- tryHard $ Ratio.toGHC $ Ratio.reduce n1 n2
     Hedgehog.annotateShow ghcResult
