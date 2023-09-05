@@ -108,12 +108,12 @@ asDataFor dec = do
       dataConstraints t = [TH.ConT ''ToData `TH.AppT` t, TH.ConT ''UnsafeFromData `TH.AppT` t]
       ixLit = TH.IntegerL (fromIntegral conIx)
       -- (==) i -> True
-      ixMatchPat = TH.ViewP (TH.VarE '(PlutusTx.==) `TH.AppE` TH.LitE ixLit) (TH.ConP 'True [] [])
+      ixMatchPat = TH.ViewP (TH.VarE '(PlutusTx.==) `TH.AppE` TH.LitE ixLit) (ConP' 'True [])
       -- [unsafeFromBuiltinData -> arg1, ...]
       extractArgPats = (flip fmap) (zip fields extractFieldNames) $ \(ty, n) ->
         TH.ViewP (TH.VarE 'unsafeFromBuiltinData `TH.AppTypeE` ty) (TH.VarP n)
       -- unsafeDataAsConstr -> ((==) i -> True, [unsafeFromBuiltinData -> arg1, ...])
-      pat = TH.ConP cname [] [TH.ViewP (TH.VarE 'Builtins.unsafeDataAsConstr) (TH.TupP [ixMatchPat, TH.ListP extractArgPats])]
+      pat = ConP' cname [TH.ViewP (TH.VarE 'Builtins.unsafeDataAsConstr) (TH.TupP [ixMatchPat, TH.ListP extractArgPats])]
       -- [toBuiltinData arg1, ...]
       createArgExprs = (flip fmap) (zip fields createFieldNames) $ \(ty, n) ->
         TH.VarE 'toBuiltinData `TH.AppTypeE` ty `TH.AppE` (TH.VarE n)
@@ -138,3 +138,11 @@ asDataFor dec = do
   -- A complete pragma, to top it off
   let compl = TH.PragmaD (TH.CompleteP (fmap TH.constructorName cons) Nothing)
   pure $ ntD : compl : concat pats
+
+-- compat for different signature of ConP in old TH
+pattern ConP' :: TH.Name -> [TH.Pat] -> TH.Pat
+#if MIN_VERSION_template_haskell(2,18,0)
+pattern ConP' name pats = TH.ConP name [] pats
+#else
+pattern ConP' name pats = TH.ConP name pats
+#endif
