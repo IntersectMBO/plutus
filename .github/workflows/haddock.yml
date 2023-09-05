@@ -11,7 +11,7 @@ jobs:
     environment:
       name: github-pages
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: nixbuild/nix-quick-install-action@v25
         with:
           # 2.14.1 seems to have issues, see https://github.com/nixbuild/nix-quick-install-action/issues/29
