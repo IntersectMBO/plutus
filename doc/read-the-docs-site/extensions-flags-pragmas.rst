@@ -1,3 +1,5 @@
+.. _extensions_flags_pragmas:
+
 GHC Extensions, Flags and Pragmas
 =================================
 
