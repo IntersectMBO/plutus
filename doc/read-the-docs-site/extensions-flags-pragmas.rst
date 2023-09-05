@@ -75,7 +75,7 @@ The most reliable solution, however, is to simply turn these optimizations off.
 Another option is to bump ``-funfolding-creation-threshold`` to make it more likely for GHC to retain unfoldings for functions without the ``INLINEABLE`` pragma.
 ``-fexpose-all-unfoldings`` should be used as a last resort.
 
-There's also the ``INLINE`` pragma, which does more than the ``INLINEABLE`` in that the ``INLINE`` pragma forces the Plutus IR optimizer to inline the function.
+There's also the ``INLINE`` pragma, which does more than ``INLINEABLE`` in that the ``INLINE`` pragma forces the Plutus IR optimizer to inline the function.
 This is not currently useful, and should be avoided.
 In the future, we plan to make the ``INLINE`` pragma part of the mechanism for making certain functions non-strict in their arguments.
 This is not yet implemented.
