@@ -34,7 +34,7 @@ import Algebra.Graph qualified as G
 import Control.Monad.State.Class (gets)
 import Data.Map qualified as Map
 import PlutusIR.Analysis.Size (termSize)
-import PlutusIR.Contexts (AppContext (..), splitApplication)
+import PlutusIR.Contexts (AppContext (..), fillAppContext, splitApplication)
 import PlutusIR.Transform.Inline.CallSiteInline (callSiteInline)
 import Witherable (Witherable (wither))
 
@@ -217,48 +217,37 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
         t -> do
             -- See note [Processing order of call site inlining]
             let (hd, args) = splitApplication t
-                -- process the term args, ignore the type arguments
-                processArgs :: AppContext tyname name uni fun ann
-                    -> InlineM tyname name uni fun ann (AppContext tyname name uni fun ann)
+                processArgs ::
+                    AppContext tyname name uni fun ann ->
+                    InlineM tyname name uni fun ann (AppContext tyname name uni fun ann)
                 processArgs (TermAppContext arg ann ctx) = do
                     processedArg <- processTerm arg
                     processedArgs <- processArgs ctx
                     pure $ TermAppContext processedArg ann processedArgs
                 processArgs (TypeAppContext ty ann ctx) = do
                     processedArgs <- processArgs ctx
-                    pure $ TypeAppContext ty ann processedArgs
+                    ty' <- applyTypeSubstitution ty
+                    pure $ TypeAppContext ty' ann processedArgs
                 processArgs AppContextEnd = pure AppContextEnd
-            case (hd, args) of
-                (Var{}, _) -> do
-                    processedHd <- processTerm hd -- the variable may be unconditionally inlined.
-                    case processedHd of
-                        -- if it didn't get unconditionally inlined/got inlined to another variable
-                        (Var _ name) -> do
-                                gets (lookupVarInfo name) >>= \case
-                                    Just varInfo -> do
-                                        -- process the args
-                                        processedArgs <- processArgs args
-                                        -- we need to process the term so that we can find out the
-                                        -- size of the term if we don't inline it, and we use this
-                                        -- to decide whether we inline at the callsite.
-                                        processedT <- forMOf termSubterms t processTerm
-                                        maybeInlined <-
-                                            callSiteInline
-                                                (termSize processedT) varInfo processedArgs
-
-                                        case maybeInlined of
-                                            Just inlined -> pure inlined
-                                            -- we didn't inline at the call site, just process the
-                                            -- subterms
-                                            Nothing      -> forMOf termSubterms t processTerm
-                                    -- The variable maybe a *recursive* let binding, in which case
-                                    -- it won't be in the map, and we don't process it.
-                                    -- ATM recursive bindings aren't inlined.
-                                    Nothing -> forMOf termSubterms t processTerm
-                        -- if the processed head is not a variable (because it's inlined), just
-                        -- process the subterms
-                        _ ->  forMOf termSubterms t processTerm
-                _ ->  forMOf termSubterms t processTerm
+            case args of
+                -- not really an application, so hd is the term itself. Processing it will loop.
+                AppContextEnd -> forMOf termSubterms t processTerm
+                _ -> do
+                    hd' <- processTerm hd
+                    args' <- processArgs args
+                    let reconstructed = fillAppContext hd' args'
+                    case hd' of
+                        Var _ name -> do
+                            gets (lookupVarInfo name) >>= \case
+                                Just varInfo -> do
+                                    maybeInlined <-
+                                        callSiteInline
+                                            (termSize reconstructed)
+                                            varInfo
+                                            args'
+                                    pure $ fromMaybe reconstructed maybeInlined
+                                Nothing -> pure reconstructed
+                        _ -> pure reconstructed
 
 {- Note [Processing order of call site inlining]
 We have two options on how we process terms for the call site inliner:
