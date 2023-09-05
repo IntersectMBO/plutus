@@ -238,6 +238,9 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
                                     Just varInfo -> do
                                         -- process the args
                                         processedArgs <- processArgs args
+                                        -- we need to process the term so that we can find out the
+                                        -- size of the term if we don't inline it, and we use this
+                                        -- to decide whether we inline at the callsite.
                                         processedT <- forMOf termSubterms t processTerm
                                         maybeInlined <-
                                             callSiteInline
