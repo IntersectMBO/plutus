@@ -483,7 +483,7 @@ fullyApplyAndBetaReduce info args0 = do
   go rhsBody (info ^. varBinders) args0
 
 {- | This works in the same way as `PlutusIR.Transform.Inline.CallSiteInline.inlineSaturatedApp`.
-See Note [Inlining and beta reduction of fully applied functions].
+See Note [Inlining and beta reduction of functions].
 -}
 inlineSaturatedApp ::
   forall name uni fun a.

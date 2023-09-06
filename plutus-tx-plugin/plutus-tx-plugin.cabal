@@ -121,6 +121,10 @@ test-suite plutus-tx-tests
   if flag(use-ghc-stub)
     buildable: False
 
+  -- test output changes after 9.2, bad for golden tests
+  if impl(ghc >=9.3)
+    buildable: False
+
   type:               exitcode-stdio-1.0
   hs-source-dirs:     test
   main-is:            Spec.hs

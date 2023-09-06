@@ -1,8 +1,7 @@
 {- 
 This tests that type application is counted properly.
 idFun occurs more than once so it should not get inlined by the unconditional inlining
-optimization. However, it is fully applied so it should get inlined by the optimization that inlines
-fully applied functions.
+optimization. However, it should get inlined by the callsite inliner.
 
 let 
   idFun :: forall a . a -> a

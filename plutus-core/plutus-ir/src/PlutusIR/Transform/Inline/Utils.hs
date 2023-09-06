@@ -116,13 +116,9 @@ type Arity tyname name = [Param tyname name]
 -- | Info attached to a let-binding needed for call site inlining.
 data VarInfo tyname name uni fun ann = MkVarInfo
     { varStrictness :: Strictness
-    , varRhs        :: Term tyname name uni fun ann
-    -- ^ its definition that has been unconditionally inlined.
-    , varArity      :: Arity tyname name
-    -- ^ its arity, storing to avoid repeated calculations.
-    , varRhsBody    :: InlineTerm tyname name uni fun ann
-    -- ^ the body of the function, for checking `acceptable` or not. Storing this to avoid repeated
-    -- calculations.
+    , varRhs        :: InlineTerm tyname name uni fun ann
+    -- ^ its definition, which has been processed, as an `InlineTerm`. To preserve
+    -- global uniqueness, we rename before substituting in.
     }
 -- | Is the next argument a term or a type?
 data Param tyname name =
@@ -320,8 +316,6 @@ There are two easy cases:
 After that it gets more difficult. As soon as we're inlining things that are not variable-sized
 and are used more than once, we are at risk of doing more work or making things bigger.
 
-There are a few things we could do to do this in a more principled way, such as call-site inlining
-based on whether a function is fully applied.
 -}
 
 -- See Note [Inlining criteria]

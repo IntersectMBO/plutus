@@ -1,7 +1,9 @@
 {- 
 The unconditional inlining optimization should inline g because it only occurs once.
-idFun is in the body and g's binding. Because it occurs more than once, and it's not fully applied,
-it should not be inlined.
+
+idFun is in the body and g's binding. Because it occurs more than once, it doesn't get inlined by
+the unconditional inliner. 
+However, inlining idFun increases the size so it doesn't get inlined. 
 
 let 
   idFun :: Integer -> Integer

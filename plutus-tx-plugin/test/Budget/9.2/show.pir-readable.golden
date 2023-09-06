@@ -35,9 +35,6 @@ letrec
             (\(x : a) (xs : List a) -> /\dead -> f x (foldr {a} {b} f acc xs))
             {all dead. dead}
 in
-let
-  !id : all a. a -> a = /\a -> \(x : a) -> x
-in
 letrec
   !`$fShowBuiltinByteString_$cshowsPrec` :
      integer -> integer -> List string -> List string
@@ -184,7 +181,7 @@ letrec
                            {all dead. dead})
                       {all dead. dead})
                     (acc eta))
-               (id {List string})
+               (\(x : List string) -> x)
                (go (Nil {integer}) n))
           {all dead. dead}
 in
@@ -340,33 +337,31 @@ letrec
                       (let
                         !n : integer
                           = divideInteger
-                              (let
-                                !eta : List string = ds
-                              in
-                              (let
-                                  b = integer -> integer
-                                in
-                                \(f : string -> b -> b) (z : b) ->
-                                  letrec
-                                    !go : List string -> b
-                                      = \(ds : List string) ->
-                                          Nil_match
-                                            {string}
-                                            ds
-                                            {all dead. b}
-                                            (/\dead -> z)
-                                            (\(x : string) (xs : List string) ->
-                                               /\dead -> f x (go xs))
-                                            {all dead. dead}
-                                  in
-                                  \(eta : List string) -> go eta)
-                                (\(a : string)
-                                  (g : integer -> integer)
-                                  (b : integer) ->
-                                   g (addInteger 1 b))
-                                (id {integer})
-                                eta
-                                0)
+                              ((let
+                                   b = integer -> integer
+                                 in
+                                 \(f : string -> b -> b) (z : b) ->
+                                   letrec
+                                     !go : List string -> b
+                                       = \(ds : List string) ->
+                                           Nil_match
+                                             {string}
+                                             ds
+                                             {all dead. b}
+                                             (/\dead -> z)
+                                             (\(x : string)
+                                               (xs : List string) ->
+                                                /\dead -> f x (go xs))
+                                             {all dead. dead}
+                                   in
+                                   \(eta : List string) -> go eta)
+                                 (\(a : string)
+                                   (g : integer -> integer)
+                                   (b : integer) ->
+                                    g (addInteger 1 b))
+                                 (\(x : integer) -> x)
+                                 ds
+                                 0)
                               2
                         !xs : List string = ds
                         !b : bool = lessThanEqualsInteger n 0
@@ -436,7 +431,7 @@ let
                        in
                        f (g eta))
                      (acc eta))
-                (id {List string})
+                (\(x : List string) -> x)
                 (`$fEnumBool_$cenumFromTo` 0 (subtractInteger len 1)))
               (Nil {string})))
         a
@@ -484,7 +479,7 @@ let
                             (acc : List string -> List string)
                             (eta : List string) ->
                              Cons {string} "," (showElem a (acc eta)))
-                          (id {List string})
+                          (\(x : List string) -> x)
                           xs
                           (Cons {string} "]" eta)))))
              (Nil {string})))

@@ -1,0 +1,45 @@
+{- Here f occurs more than once so it is not inlined unconditionally.
+But it should be inlined by the callsite inliner because \d -> e is smaller than f a b c 
+
+let f = \a b c d -> e in f a b c
+
+-}
+
+(let
+  (nonrec)
+  (termbind
+    (strict)
+    (vardecl
+      f
+      (fun (con integer)
+        (fun (con integer)
+          (fun (con integer)
+            (fun (con integer) (con integer)
+            )
+          )
+        )
+      )
+    )
+    (lam a (con integer)
+      (lam b (con integer)
+        (lam c (con integer)
+          (lam d (con integer) (con integer 5)
+          ) 
+        )
+      )
+    )
+  )
+  (let
+  (nonrec)
+  (termbind
+    (strict)
+    (vardecl
+      g
+      (con integer)
+    )
+      [f (con integer 1) (con integer 2) (con integer 3) (con integer 4)]
+  )
+  [f (con integer 1) (con integer 2) (con integer 3)]
+  )
+)
+    
