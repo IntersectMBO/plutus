@@ -40,12 +40,11 @@ GHC has a variety of optimization flags, many of which are on by default.
 Although Plutus Tx is, syntactically, a subset of Haskell, it has different semantics and a different evaluation strategy (Haskell: non-strict semantics, call by need; Plutus Tx: strict semantics, call by value).
 As a result, some GHC optimizations are not helpful for Plutus Tx programs, and can even be harmful, in the sense that it can make Plutus Tx programs less efficient, or fail to be compiled.
 An example is the full laziness optimization, controlled by GHC flag ``-ffull-laziness``, which floats let bindings out of lambdas whenever possible.
-Since Untyped Plutus Core does not employ lazy evaluation, the full laziness optimization is never beneficial, and can sometimes make a Plutus Tx program more expensive.
+Since Untyped Plutus Core does not employ lazy evaluation, the full laziness optimization is usually not beneficial, and can sometimes make a Plutus Tx program more expensive.
 Conversely, some GHC features must be turned on in order to ensure Plutus Tx programs are compiled successfully.
 
 All Plutus Tx modules should use the following GHC flags: ::
 
-  -fplugin PlutusTx.Plugin
   -fno-ignore-interface-pragmas
   -fno-omit-interface-pragmas
   -fno-full-laziness
@@ -55,9 +54,17 @@ All Plutus Tx modules should use the following GHC flags: ::
   -fno-unbox-strict-fields
   -fno-unbox-small-strict-fields
 
-``-fplugin PlutusTx.Plugin`` enables the Plutus Tx compiler.
 ``-fno-ignore-interface-pragmas`` and ``-fno-omit-interface-pragmas`` ensure unfoldings of Plutus Tx functions are available.
-The rest are GHC optimizations that are bad for Plutus Tx, and should thus be turned off.
+The rest are GHC optimizations that are generally bad for Plutus Tx, and should thus be turned off.
+
+These flags can be specified either in a Haskell module, e.g.: ::
+
+  {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
+
+or in a build file. E.g., if your project is built using Cabal, you can add the flags to the ``.cabal`` files, like so:
+
+  ghc-options:
+    -fno-ignore-interface-pragmas
 
 Note that this section only covers GHC flags, not Plutus Tx compiler flags.
 Information about the latter can be found in :ref:`plutus_tx_options`.
@@ -76,8 +83,3 @@ Therefore, ``INLINEABLE`` is preferred over ``-fexpose-all-unfoldings`` even tho
 The most reliable solution, however, is to simply turn these optimizations off.
 Another option is to bump ``-funfolding-creation-threshold`` to make it more likely for GHC to retain unfoldings for functions without the ``INLINEABLE`` pragma.
 ``-fexpose-all-unfoldings`` should be used as a last resort.
-
-There's also the ``INLINE`` pragma, which does more than ``INLINEABLE`` in that the ``INLINE`` pragma forces the Plutus IR optimizer to inline the function.
-This is not currently useful, and should be avoided.
-In the future, we plan to make the ``INLINE`` pragma part of the mechanism for making certain functions non-strict in their arguments.
-This is not yet implemented.
