@@ -1,0 +1,243 @@
+let
+  data Unit | Unit_match where
+    Unit : Unit
+  !mkConstr : integer -> list data -> data = constrData
+  !mkNilData : unit -> list data = mkNilData
+  !unitval : unit = ()
+  ~`$fToDataUnit_$ctoBuiltinData` : Unit -> data
+    = \(ds : Unit) -> mkConstr 0 (mkNilData unitval)
+  ~`$fToDataUnit` : (\a -> a -> data) Unit = `$fToDataUnit_$ctoBuiltinData`
+in
+letrec
+  data (List :: * -> *) a | List_match where
+    Nil : List a
+    Cons : a -> List a -> List a
+in
+let
+  ~build : all a. (all b. (a -> b -> b) -> b -> b) -> List a
+    = /\a ->
+        \(g : all b. (a -> b -> b) -> b -> b) ->
+          g {List a} (\(ds : a) (ds : List a) -> Cons {a} ds ds) (Nil {a})
+  !mkCons : all a. a -> list a -> list a = mkCons
+in
+letrec
+  ~`$fToBuiltinListBuiltinList0_$ctoBuiltin` : List data -> list data
+    = \(ds : List data) ->
+        List_match
+          {data}
+          ds
+          {all dead. list data}
+          (/\dead -> mkNilData unitval)
+          (\(d : data) (ds : List data) ->
+             /\dead ->
+               mkCons {data} d (`$fToBuiltinListBuiltinList0_$ctoBuiltin` ds))
+          {all dead. dead}
+in
+let
+  ~mkConstr : integer -> List data -> data
+    = \(i : integer) (args : List data) ->
+        let
+          !i : integer = i
+          !args : List data = args
+        in
+        mkConstr i (`$fToBuiltinListBuiltinList0_$ctoBuiltin` args)
+  ~toBuiltinData : all a. (\a -> a -> data) a -> a -> data
+    = /\a -> \(v : (\a -> a -> data) a) -> v
+  ~`$bFirstC` : Unit -> data
+    = \(arg0_ : Unit) ->
+        let
+          !arg0_ : Unit = arg0_
+        in
+        mkConstr
+          0
+          (build
+             {data}
+             (/\a ->
+                \(c : data -> a -> a) (n : a) ->
+                  c (toBuiltinData {Unit} `$fToDataUnit` arg0_) n))
+  ~fail : unit -> data = \(ds : unit) -> `$bFirstC` Unit
+  !mkI : integer -> data = iData
+  ~`$fToDataInteger_$ctoBuiltinData` : integer -> data
+    = \(i : integer) -> let !i : integer = i in mkI i
+  ~`$fToDataInteger` : (\a -> a -> data) integer
+    = `$fToDataInteger_$ctoBuiltinData`
+  ~`$bSecondC` : integer -> data
+    = \(arg0_ : integer) ->
+        let
+          !arg0_ : integer = arg0_
+        in
+        mkConstr
+          1
+          (build
+             {data}
+             (/\a ->
+                \(c : data -> a -> a) (n : a) ->
+                  c (toBuiltinData {integer} `$fToDataInteger` arg0_) n))
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+  !equalsInteger : integer -> integer -> bool = equalsInteger
+  !ifThenElse : all a. bool -> a -> a -> a = ifThenElse
+  ~equalsInteger : integer -> integer -> Bool
+    = \(x : integer) (y : integer) ->
+        let
+          !x : integer = x
+          !y : integer = y
+          !b : bool = equalsInteger x y
+        in
+        ifThenElse {Bool} b True False
+  ~`$fEqInteger` : (\a -> a -> a -> Bool) integer = equalsInteger
+  !unsafeDataAsI : data -> integer = unIData
+  ~`$fUnsafeFromDataInteger` : (\a -> data -> a) integer = unsafeDataAsI
+  ~`==` : all a. (\a -> a -> a -> Bool) a -> a -> a -> Bool
+    = /\a -> \(v : (\a -> a -> a -> Bool) a) -> v
+  !chooseList : all a b. list a -> b -> b -> b = chooseList
+  !head : all a. list a -> a = headList
+  !tail : all a. list a -> list a = tailList
+  ~`$fFromBuiltinBuiltinListList_$cfromBuiltin` :
+     all arep a. (\arep a -> arep -> a) arep a -> list arep -> List a
+    = /\arep a ->
+        \(`$dFromBuiltin` : (\arep a -> arep -> a) arep a) ->
+          letrec
+            ~go : list arep -> List a
+              = \(l : list arep) ->
+                  let
+                    !l : list arep = l
+                  in
+                  chooseList
+                    {arep}
+                    {unit -> List a}
+                    l
+                    (\(ds : unit) -> Nil {a})
+                    (\(ds : unit) ->
+                       Cons
+                         {a}
+                         (`$dFromBuiltin` (head {arep} l))
+                         (go (tail {arep} l)))
+                    unitval
+          in
+          \(eta : list arep) -> go eta
+  data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
+    Tuple2 : a -> b -> Tuple2 a b
+  !fst : all a b. pair a b -> a = fstPair
+  ~id : all a. a -> a = /\a -> \(x : a) -> x
+  !snd : all a b. pair a b -> b = sndPair
+  !unsafeDataAsConstr : data -> pair integer (list data) = unConstrData
+  ~unsafeDataAsConstr : data -> Tuple2 integer (List data)
+    = \(d : data) ->
+        let
+          !d : data = d
+          !p : pair integer (list data) = unsafeDataAsConstr d
+        in
+        Tuple2
+          {integer}
+          {List data}
+          (fst {integer} {list data} p)
+          (let
+            !a : list data = snd {integer} {list data} p
+          in
+          `$fFromBuiltinBuiltinListList_$cfromBuiltin`
+            {data}
+            {data}
+            (id {data})
+            a)
+  ~unsafeFromBuiltinData : all a. (\a -> data -> a) a -> data -> a
+    = /\a -> \(v : (\a -> data -> a) a) -> v
+  ~`$mRecordConstructor` :
+     all r a.
+       (\a -> a -> data) a ->
+       (\a -> data -> a) a ->
+       (\a -> data) a ->
+       (a -> integer -> r) ->
+       (unit -> r) ->
+       r
+    = /\r a ->
+        \(`$dToData` : (\a -> a -> data) a)
+         (`$dUnsafeFromData` : (\a -> data -> a) a)
+         (scrut : (\a -> data) a)
+         (cont : a -> integer -> r)
+         (fail : unit -> r) ->
+          let
+            !nt : data = scrut
+            !cont : a -> integer -> r = cont
+            !fail : unit -> r = fail
+            ~fail : unit -> r = \(ds : unit) -> fail ()
+          in
+          Tuple2_match
+            {integer}
+            {List data}
+            (unsafeDataAsConstr nt)
+            {r}
+            (\(ds : integer) (ds : List data) ->
+               Bool_match
+                 (`==` {integer} `$fEqInteger` 0 ds)
+                 {all dead. r}
+                 (/\dead ->
+                    List_match
+                      {data}
+                      ds
+                      {all dead. r}
+                      (/\dead -> fail ())
+                      (\(ds : data) (ds : List data) ->
+                         /\dead ->
+                           List_match
+                             {data}
+                             ds
+                             {all dead. r}
+                             (/\dead -> fail ())
+                             (\(ds : data) (ds : List data) ->
+                                /\dead ->
+                                  List_match
+                                    {data}
+                                    ds
+                                    {all dead. r}
+                                    (/\dead ->
+                                       cont
+                                         (unsafeFromBuiltinData
+                                            {a}
+                                            `$dUnsafeFromData`
+                                            ds)
+                                         (unsafeFromBuiltinData
+                                            {integer}
+                                            `$fUnsafeFromDataInteger`
+                                            ds))
+                                    (\(ipv : data) (ipv : List data) ->
+                                       /\dead -> fail ())
+                                    {all dead. dead})
+                             {all dead. dead})
+                      {all dead. dead})
+                 (/\dead -> fail ())
+                 {all dead. dead})
+  !addInteger : integer -> integer -> integer = addInteger
+  ~addInteger : integer -> integer -> integer
+    = \(x : integer) (y : integer) ->
+        let
+          !x : integer = x
+          !y : integer = y
+        in
+        addInteger x y
+in
+\(ds : (\a -> data) integer) ->
+  let
+    !nt : data = ds
+  in
+  `$mRecordConstructor`
+    {data}
+    {integer}
+    `$fToDataInteger`
+    `$fUnsafeFromDataInteger`
+    nt
+    (\(a : integer) (b : integer) ->
+       Bool_match
+         (`==` {integer} `$fEqInteger` a 3)
+         {all dead. data}
+         (/\dead ->
+            Bool_match
+              (`==` {integer} `$fEqInteger` b 4)
+              {all dead. data}
+              (/\dead -> `$bSecondC` (addInteger a b))
+              (/\dead -> fail ())
+              {all dead. dead})
+         (/\dead -> fail ())
+         {all dead. dead})
+    (\(void : unit) -> fail ())

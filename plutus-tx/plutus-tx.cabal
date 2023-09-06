@@ -47,6 +47,7 @@ library
   exposed-modules:
     PlutusTx
     PlutusTx.Applicative
+    PlutusTx.AsData
     PlutusTx.AssocMap
     PlutusTx.Base
     PlutusTx.Bool
