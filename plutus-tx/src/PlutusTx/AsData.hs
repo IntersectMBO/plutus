@@ -102,7 +102,7 @@ asDataFor dec = do
       TH.RecordConstructor _ -> pure $ TH.RecordPatSyn extractFieldNames
       TH.InfixConstructor    -> case extractFieldNames of
         [f1,f2] -> pure $ TH.InfixPatSyn f1 f2
-        _ -> fail "asData: infix data constructor with other than two fields"
+        _       -> fail "asData: infix data constructor with other than two fields"
     let
       dataConstraints t = [TH.ConT ''ToData `TH.AppT` t, TH.ConT ''UnsafeFromData `TH.AppT` t]
       ixLit = TH.IntegerL (fromIntegral conIx)

@@ -1,13 +1,13 @@
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE PatternSynonyms       #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE PatternSynonyms #-}
-{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE ViewPatterns          #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
@@ -16,15 +16,14 @@ module Optimization.Spec where
 
 import Test.Tasty.Extras
 
+import Data.Proxy
 import PlutusCore.Test
+import PlutusTx.AsData qualified as AsData
 import PlutusTx.Builtins qualified as PlutusTx
 import PlutusTx.Code
+import PlutusTx.Plugin (plc)
 import PlutusTx.Test
 import PlutusTx.TH (compile)
-import PlutusTx.Prelude qualified as P
-import PlutusTx.AsData qualified as AsData
-import Data.Proxy
-import PlutusTx.Plugin (plc)
 
 AsData.asData [d|
   data MaybeD a = JustD a | NothingD
