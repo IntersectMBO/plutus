@@ -17,7 +17,7 @@ Plutus Tx modules should use the ``Strict`` extension: ::
 
 Unlike in Haskell, function applications in Plutus Tx are strict.
 In other words, when evaluating ``(\x -> 42) (3 + 4)`` the expression ``3 + 4`` is evaluated first, before evaluating the function body (``42``), even though ``x`` is not used in the function body.
-The ``Strict`` extension ensures that let bindings are also (by default) strict, for instance, evaluating
+The ``Strict`` extension ensures that let bindings and patterns are also (by default) strict, for instance, evaluating
 ``let x = 3 + 4 in 42`` evaluates ``3 + 4`` first, even though ``x`` is not used.
 
 Bang patterns and lazy patterns can be used to explicitly specify whether a let binding is strict or non-strict, as in ``let !x = 3 + 4 in 42`` (strict) and ``let ~x = 3 + 4 in 42`` (non-strict).
