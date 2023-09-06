@@ -41,7 +41,13 @@ in the current version of Plutus Core are stored in the file
 [`builtinCostModel.json`](https://github.com/input-output-hk/plutus/blob/master/plutus-core/cost-model/data/builtinCostModel.json)
 and values for the machine steps are stored in
 [`cekMachineCosts.json`](https://github.com/input-output-hk/plutus/blob/master/plutus-core/cost-model/data/cekMachineCosts.json
-) (both in `plutus-core/cost-model/data`).
+) (both in `plutus-core/cost-model/data`). Note that these are not necessarily
+the values in use on the chain at any given time.  The definitive values used
+for calculating on-chain costs are protocol parameters which are part of the
+state of the chain: in practice these will usually have been obtained from the
+contents of the JSON files at some point in the past, but we do not guarantee
+this.  See [below](#evaluating-scripts-on-the-chain) for more details of how the
+on-chain cost model parameters are passed to the Plutus Core evaluator.
 
 For example, the costing functions for `lessThanEqualsByteString` are
 represented by the following entry, which says that the CPU cost of comparing
@@ -93,8 +99,13 @@ and this is bundled together with the builtin costs in [defaultCekCostModel](htt
 type [CostModel CekMachineCosts BuiltinCostModel](https://github.com/input-output-hk/plutus/blob/e773e58ea0e4a8088fed0ea5f934a7c413caa5b3/plutus-core/plutus-core/src/PlutusCore/Evaluation/Machine/MachineParameters.hs#L28)).
 
 #### Flattened cost model entries
-The cost model is sometimes flattened into a list of pairs of (key, value)
-entries or a map from keys to values containing entries like
+
+The hierarchical structure described above is a natural representation for use
+within `PlutusCore`, but for interoperating with other sources of cost model
+parameters (the ledger, for example) it is sometimes more convenient to use a
+flattened representation consisting of a list of pairs of (key, value) entries
+or a map from keys to values containing entries like
+
 ```
 ("lessThanEqualsByteString-cpu-arguments-intercept", 197145)
 ("lessThanEqualsByteString-cpu-arguments-slope", 156)
@@ -122,10 +133,11 @@ See also the Notes at the top of
 The [MachineParameters](https://github.com/input-output-hk/plutus/blob/e773e58ea0e4a8088fed0ea5f934a7c413caa5b3/plutus-core/plutus-core/src/PlutusCore/Evaluation/Machine/MachineParameters.hs#L39) type bundles together a cost model and the denotations of
 the builtins, and this is used by the machinery which evaluates builtins to both
 evaluate a call to a builtin and cost it.  It's generic over a type `fun` which
-describes the built-in functions.  Usually the `MachineParameters` object that we
-use is `defaultCekParameters`, where `fun` is
+describes the built-in functions.  For testing,  the `MachineParameters` object
+that we use is `defaultCekParameters`, where `fun` is
 [DefaultFun](https://github.com/input-output-hk/plutus/blob/b321575d9266b3358b9e728d064fc0bee4f355d7/plutus-core/plutus-core/src/PlutusCore/Default/Builtins.hs#L53),
-the big list that includes all of the functions in all versions
+the big list that includes all of the functions in all versions; `defaultCekParameters` is built from
+the contents of the JSON files described [earlier](#serialised-representation).
 
 The function
 [mkMachineParametersFor](https://github.com/input-output-hk/plutus/blob/e773e58ea0e4a8088fed0ea5f934a7c413caa5b3/plutus-core/plutus-core/src/PlutusCore/Evaluation/Machine/MachineParameters/Default.hs#L42)
@@ -198,7 +210,6 @@ resulting being used by `evaluateScriptCounting` and `evaluateScriptRestricting`
 
 The cost model parameters are stored on the chain as protocol parameters, which
 in principle can be updated at almost any time.
-
 
 When a script is evaluated on the chain, the cost model parameters (for the
 Plutus ledger version associated with the script) in the current protocol

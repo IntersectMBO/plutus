@@ -71,10 +71,11 @@ instance (GIsParamName a, GIsParamName b) => GIsParamName ((:+:) a b) where
     gshowParamName (L1 x) = gshowParamName x
     gshowParamName (R1 x) = gshowParamName x
 
--- | Given an ordered list of parameter values, tag them with their parameter names.
--- If the passed parameter values are more than expected: the function will ignore the extraneous values at the tail of the list,
--- if the passed values are less than expected: the function will throw an error; for more information,
--- see Note [Cost model parameters from the ledger's point of view]
+-- | Given an ordered list of parameter values, tag them with their parameter
+-- names.  If the passed parameter values are more than expected: the function
+-- will ignore the extraneous values at the tail of the list, if the passed
+-- values are less than expected: the function will throw an error; for more
+-- information, see Note [Cost model parameters from the ledger's point of view]
 tagWithParamNames :: forall k m. (Enum k, Bounded k,
                             MonadError CostModelApplyError m,
                             -- OPTIMIZE: MonadWriter.CPS is probably better than MonadWriter.Strict but needs mtl>=2.3
