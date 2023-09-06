@@ -1,0 +1,94 @@
+let
+  data Unit | Unit_match where
+    Unit : Unit
+  !fail : unit -> integer
+    = \(void : unit) -> Unit_match (error {Unit}) {integer} (error {integer})
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+in
+letrec
+  data (List :: * -> *) a | Nil_match where
+    Nil : List a
+    Cons : a -> List a -> List a
+in
+letrec
+  !go : list data -> List data
+    = \(l : list data) ->
+        chooseList
+          {data}
+          {unit -> List data}
+          l
+          (\(ds : unit) -> Nil {data})
+          (\(ds : unit) ->
+             Cons {data} (headList {data} l) (go (tailList {data} l)))
+          ()
+in
+let
+  data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
+    Tuple2 : a -> b -> Tuple2 a b
+  !unsafeDataAsConstr : data -> Tuple2 integer (List data)
+    = \(d : data) ->
+        let
+          !p : pair integer (list data) = unConstrData d
+        in
+        Tuple2
+          {integer}
+          {List data}
+          (fstPair {integer} {list data} p)
+          (let
+            !eta : list data = sndPair {integer} {list data} p
+          in
+          go eta)
+in
+\(ds : (\a -> data) integer) ->
+  let
+    !fail : unit -> integer
+      = \(void : unit) ->
+          Tuple2_match
+            {integer}
+            {List data}
+            (unsafeDataAsConstr ds)
+            {integer}
+            (\(ds : integer) (ds : List data) ->
+               Bool_match
+                 (ifThenElse {Bool} (equalsInteger 1 ds) True False)
+                 {all dead. integer}
+                 (/\dead ->
+                    Nil_match
+                      {data}
+                      ds
+                      {all dead. integer}
+                      (/\dead -> 1)
+                      (\(ipv : data) (ipv : List data) -> /\dead -> fail ())
+                      {all dead. dead})
+                 (/\dead -> fail ())
+                 {all dead. dead})
+  in
+  Tuple2_match
+    {integer}
+    {List data}
+    (unsafeDataAsConstr ds)
+    {integer}
+    (\(ds : integer) (ds : List data) ->
+       Bool_match
+         (ifThenElse {Bool} (equalsInteger 0 ds) True False)
+         {all dead. integer}
+         (/\dead ->
+            Nil_match
+              {data}
+              ds
+              {all dead. integer}
+              (/\dead -> fail ())
+              (\(ds : data) (ds : List data) ->
+                 /\dead ->
+                   Nil_match
+                     {data}
+                     ds
+                     {all dead. integer}
+                     (/\dead -> unIData ds)
+                     (\(ipv : data) (ipv : List data) -> /\dead -> fail ())
+                     {all dead. dead})
+              {all dead. dead})
+         (/\dead -> fail ())
+         {all dead. dead})

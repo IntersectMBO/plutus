@@ -36,8 +36,7 @@ also been defined with 'asData', and so have trivial conversions to/from 'Builti
 (or have very cheap conversions, like 'Integer' and 'ByteString').
 But it can be very expensive otherwise, so take care.
 
-Instances for 'ToData', 'FromData', and 'UnsafeFromBuiltinData' are automatically
-derived. Other instances can be derived using standalone deriving, and should mostly
+Instances can be derived using standalone deriving, and should mostly
 use the newtype strategy (e.g. in order to benefit from the fast 'Eq' instance for
 the underlying 'BuiltinData').
 
@@ -86,9 +85,7 @@ asDataFor dec = do
   -- The newtype declaration
   let ntD =
         let con = TH.NormalC cname [(TH.Bang TH.NoSourceUnpackedness TH.NoSourceStrictness, TH.ConT ''BuiltinData)]
-            ntDeriv ctx = TH.DerivClause (Just TH.NewtypeStrategy) ctx
-            deriv = ntDeriv [TH.ConT ''ToData, TH.ConT ''FromData, TH.ConT ''UnsafeFromData]
-        in TH.NewtypeD [] name tTypeVars Nothing con [deriv]
+        in TH.NewtypeD [] name tTypeVars Nothing con []
 
   -- The pattern synonyms, one for each constructor
   pats <- ifor cons $ \conIx (TH.ConstructorInfo{TH.constructorName=conName, TH.constructorFields=fields, TH.constructorVariant=cVariant}) -> do
@@ -103,7 +100,9 @@ asDataFor dec = do
     patSynArgs <- case cVariant of
       TH.NormalConstructor   -> pure $ TH.PrefixPatSyn extractFieldNames
       TH.RecordConstructor _ -> pure $ TH.RecordPatSyn extractFieldNames
-      TH.InfixConstructor    -> fail "asData: Can't handle infix data constructors"
+      TH.InfixConstructor    -> case extractFieldNames of
+        [f1,f2] -> pure $ TH.InfixPatSyn f1 f2
+        _ -> fail "asData: infix data constructor with other than two fields"
     let
       dataConstraints t = [TH.ConT ''ToData `TH.AppT` t, TH.ConT ''UnsafeFromData `TH.AppT` t]
       ixLit = TH.IntegerL (fromIntegral conIx)

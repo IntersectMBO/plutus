@@ -5,6 +5,9 @@
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE PatternSynonyms #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
@@ -16,15 +19,25 @@ import Test.Tasty.Extras
 import PlutusCore.Test
 import PlutusTx.Builtins qualified as PlutusTx
 import PlutusTx.Code
-import PlutusTx.Test ()
+import PlutusTx.Test
 import PlutusTx.TH (compile)
+import PlutusTx.Prelude qualified as P
+import PlutusTx.AsData qualified as AsData
+import Data.Proxy
+import PlutusTx.Plugin (plc)
 
--- These are tests that run with the simplifier on, and run all the way to UPLC.
+AsData.asData [d|
+  data MaybeD a = JustD a | NothingD
+  |]
+
+-- These are tests that run with the simplifier on, and some run all the way to UPLC.
 -- This can be interesting to make sure that important optimizations fire, including
 -- ones that run on UPLC.
 tests :: TestNested
 tests = testNestedGhc "Optimization" [
-   goldenUPlc "maybeFun" maybeFun ]
+   goldenUPlc "maybeFun" maybeFun
+   , goldenPirReadable "matchAsData" matchAsData
+   ]
 
 -- The point of this test is to check that matchers get eliminated unconditionally
 -- even if they're used more than once.
@@ -37,3 +50,10 @@ maybeFun = $$(compile
                  Nothing -> Nothing
             Nothing -> Nothing
    ||])
+
+-- Features a nested field which is also defined with AsData
+matchAsData :: CompiledCode (MaybeD Integer -> Integer)
+matchAsData = plc (Proxy @"matchAsData") (
+  \case
+    JustD a  -> a
+    NothingD -> 1)

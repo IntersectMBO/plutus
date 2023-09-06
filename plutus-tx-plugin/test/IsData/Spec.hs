@@ -5,6 +5,7 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE PatternSynonyms       #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE StandaloneDeriving   #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE ViewPatterns          #-}
@@ -14,6 +15,7 @@
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
+{-# LANGUAGE LambdaCase #-}
 
 module IsData.Spec where
 
@@ -73,19 +75,42 @@ isDataRoundtrip a =
 AsData.asData [d|
   data SecretlyData = FirstC () | SecondC Integer
   |]
+deriving newtype instance P.Eq SecretlyData
+deriving newtype instance IsData.FromData SecretlyData
+deriving newtype instance IsData.UnsafeFromData SecretlyData
+deriving newtype instance IsData.ToData SecretlyData
 
 AsData.asData [d|
   data RecordConstructor a = RecordConstructor { x :: a, y :: Integer }
   |]
 
-matchAsData :: CompiledCode (SecretlyData -> Maybe Integer)
+AsData.asData [d|
+  data MaybeD a = JustD a | NothingD
+  |]
+
+-- Features a nested field which is also defined with AsData
+matchAsData :: CompiledCode (MaybeD SecretlyData -> SecretlyData)
 matchAsData = plc (Proxy @"matchAsData") (
-  \(d :: SecretlyData) -> case d of
-    FirstC _  -> Nothing
-    SecondC i -> Just i)
+  \case
+    JustD a  -> a
+    NothingD -> FirstC ())
 
 recordAsData :: CompiledCode (RecordConstructor Integer)
 recordAsData = plc (Proxy @"recordAsData") (RecordConstructor 1 2)
+
+dataToData :: CompiledCode (RecordConstructor Integer -> SecretlyData)
+dataToData = plc (Proxy @"dataToData")
+  (\case
+      RecordConstructor a b | a P.== 3, b P.== 4 -> SecondC (Builtins.addInteger a b)
+      _ -> FirstC ()
+  )
+
+-- Should ultimately use equalsData
+equalityAsData :: CompiledCode (SecretlyData -> SecretlyData -> Bool)
+equalityAsData = plc (Proxy @"equalityAsData") (\x y -> x P.== y)
+
+fieldAccessor :: CompiledCode (RecordConstructor Integer -> Integer)
+fieldAccessor = plc (Proxy @"fieldAccessor") (\r -> x r)
 
 tests :: TestNested
 tests = testNestedGhc "IsData" [
@@ -112,4 +137,7 @@ tests = testNestedGhc "IsData" [
     , goldenPirReadable "matchAsData" matchAsData
     , goldenUEval "matchAsDataE" [toUPlc $ matchAsData, toUPlc $ plc (Proxy @"test") (SecondC 3)]
     , goldenPirReadable "recordAsData" recordAsData
+    , goldenPirReadable "dataToData" dataToData
+    , goldenPirReadable "equalityAsData" equalityAsData
+    , goldenPirReadable "fieldAccessor" fieldAccessor
   ]
