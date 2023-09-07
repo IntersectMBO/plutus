@@ -10,6 +10,8 @@ jobs:
 
     runs-on: [self-hosted, plutus-benchmark]
 
+    timeout-minutes: 14400
+
     steps:
       - uses: actions/checkout@v4
       - uses: cachix/install-nix-action@v23
@@ -26,4 +28,3 @@ jobs:
           name: results
           path: results.csv
           if-no-files-found: error
-
