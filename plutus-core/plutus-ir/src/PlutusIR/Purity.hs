@@ -92,7 +92,6 @@ instance PrettyBy config (Term tyname name uni fun a)
   => PrettyBy config (EvalOrder tyname name uni fun a) where
   prettyBy config eo = vsep $ fmap (prettyBy config) (unEvalOrder eo)
 
--- This is still super inefficient, lots of list concatenation here
 instance Semigroup (EvalOrder tyname name uni fun a) where
   -- If we have discovered that we don't know where we're going, then no point recording after that
   EvalOrder l@(_ Seq.:|> Unknown) <> EvalOrder _ = EvalOrder l
