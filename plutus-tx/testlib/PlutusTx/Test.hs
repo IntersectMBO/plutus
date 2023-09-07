@@ -9,7 +9,7 @@
 
 module PlutusTx.Test (
   -- * Size tests
-  fitsInto,
+  goldenSize,
   fitsUnder,
 
   -- * Compilation testing
@@ -26,7 +26,8 @@ module PlutusTx.Test (
   goldenEvalCekLog,
 
   -- * Budget testing
-  goldenBudget,
+  goldenBudget
+
 ) where
 
 import Prelude
@@ -57,32 +58,18 @@ import PlutusTx.Code (CompiledCode, CompiledCodeIn, getPir, getPirNoAnn, getPlcN
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
--- Size testing for Tasty
+-- `PlutusCore.Size` testing (golden tests)
 
-fitsInto ::
-  forall (a :: Type).
-  (Typeable a) =>
+goldenSize :: (PLC.Closed uni, Flat fun, PLC.Everywhere uni Flat) =>
+  -- | The name of the test
   String ->
-  CompiledCode a ->
-  Integer ->
-  TestTree
-fitsInto name cc = singleTest name . SizeTest cc
+  -- | The input for checking the size
+  CompiledCodeIn uni fun a ->
+  TestNested
+goldenSize name value =
+  nestedGoldenVsDoc name ".uplc-size" (pretty $ sizePlc value)
 
-data SizeTest (a :: Type) = SizeTest (CompiledCode a) Integer
-
-instance (Typeable a) => IsTest (SizeTest a) where
-  run _ (SizeTest cc limit) _ = do
-    let estimate = sizePlc cc
-    let diff = limit - estimate
-    pure $ case signum diff of
-      (-1) ->
-        testFailed $
-          "Actual size: " <> show estimate <> ", exceeded limit by " <> (show . abs $ diff)
-      0 -> testPassed $ "Actual size: " <> show estimate
-      _ ->
-        testPassed $
-          "Actual size: " <> show estimate <> ", remaining headroom: " <> show diff
-  testOptions = Tagged []
+-- `PlutusCore.Size` comparison tests
 
 fitsUnder ::
   forall (a :: Type).
