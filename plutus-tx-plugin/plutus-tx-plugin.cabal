@@ -197,9 +197,10 @@ test-suite size
   main-is:            Main.hs
   hs-source-dirs:     test/size
   build-depends:
-    , base                                      >=4.9   && <5.0
-    , plutus-tx-plugin                          ^>=1.12
-    , plutus-tx:{plutus-tx, plutus-tx-testlib}  ^>=1.12
+    , base                                            >=4.9   && <5.0
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.12
+    , plutus-tx-plugin                                ^>=1.12
+    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.12
     , tagged
     , tasty
 
