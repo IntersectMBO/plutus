@@ -7,6 +7,7 @@ module Main (main) where
 import PlutusCore qualified as PLC
 import PlutusCore.Compiler.Erase qualified as PLC (eraseProgram)
 import PlutusCore.Data
+import PlutusCore.Default (BuiltinSemanticsVariant (..))
 import PlutusCore.Evaluation.Machine.Ck qualified as Ck
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Executable.Common
@@ -29,7 +30,13 @@ plcInfoCommand :: ParserInfo Command
 plcInfoCommand = plutus plcHelpText
 
 data TypecheckOptions = TypecheckOptions Input Format
-data EvalOptions      = EvalOptions Input Format PrintMode TimingMode
+data EvalOptions =
+    EvalOptions
+      Input
+      Format
+      PrintMode
+      TimingMode
+      (BuiltinSemanticsVariant PLC.DefaultFun)
 data EraseOptions     = EraseOptions Input Format Output Format PrintMode
 
 
@@ -56,7 +63,7 @@ eraseOpts = EraseOptions <$> input <*> inputformat <*> output <*> outputformat <
 
 evalOpts :: Parser EvalOptions
 evalOpts =
-  EvalOptions <$> input <*> inputformat <*> printmode <*> timingmode
+  EvalOptions <$> input <*> inputformat <*> printmode <*> timingmode <*> builtinSemanticsVariant
 
 plutus ::
   -- | The @helpText@
@@ -179,9 +186,9 @@ runOptimisations (OptimiseOptions inp ifmt outp ofmt mode) = do
 ---------------- Evaluation ----------------
 
 runEval :: EvalOptions -> IO ()
-runEval (EvalOptions inp ifmt printMode timingMode) = do
+runEval (EvalOptions inp ifmt printMode timingMode semvar) = do
   prog <- readProgram ifmt inp
-  let evaluate = Ck.evaluateCkNoEmit PLC.defaultBuiltinsRuntime
+  let evaluate = Ck.evaluateCkNoEmit (PLC.defaultBuiltinsRuntimeForSemanticsVariant semvar)
       term = void $ prog ^. PLC.progTerm
       !_ = rnf term
       -- Force evaluation of body to ensure that we're not timing parsing/deserialisation.
