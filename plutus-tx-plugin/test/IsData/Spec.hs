@@ -75,11 +75,8 @@ isDataRoundtrip a =
 
 AsData.asData [d|
   data SecretlyData = FirstC () | SecondC Integer
+     deriving newtype (P.Eq, IsData.FromData, IsData.UnsafeFromData, IsData.ToData)
   |]
-deriving newtype instance P.Eq SecretlyData
-deriving newtype instance IsData.FromData SecretlyData
-deriving newtype instance IsData.UnsafeFromData SecretlyData
-deriving newtype instance IsData.ToData SecretlyData
 
 AsData.asData [d|
   data RecordConstructor a = RecordConstructor { x :: a, y :: Integer }
