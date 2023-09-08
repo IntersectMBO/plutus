@@ -28,7 +28,7 @@ let
     };
 
     sha256map = {
-      "https://github.com/tweag/HaskellR"."411d15fe5027494123e326c838955eff1c8e7ec8" = "0jax08z81xbfs3xz7zkk7x83cmr487iglifmxri205mf5bcj8ycj"; # editorconfig-checker-disable-line
+      "https://github.com/tweag/HaskellR"."411d15fe5027494123e326c838955eff1c8e7ec8" = "0jax08z81xbfs3xz7zkk7x83cmr487iglifmxri205mf5bcj8ycj";
     };
 
     inputMap = { "https://input-output-hk.github.io/cardano-haskell-packages" = inputs.CHaP; };
@@ -37,7 +37,7 @@ let
     # Configuration settings needed for cabal configure to work when cross compiling.
     # We can't use `modules` for these as `modules` are only applied
     # after cabal has been configured.
-    cabalProjectLocal = lib.optionalString (pkgs.stdenv.hostPlatform != pkgs.stdenv.buildPlatform) # editorconfig-checker-disable-line
+    cabalProjectLocal = lib.optionalString (pkgs.stdenv.hostPlatform != pkgs.stdenv.buildPlatform)
       ''
         -- When cross compiling we don't have a `ghc` package, so use
         -- the `plutus-ghc-stub` package instead.
@@ -91,10 +91,10 @@ let
           # I can't figure out a way to apply this as a blanket change for all the
           # components in the package, oh well
           plutus-metatheory.components.library.build-tools = [ repoRoot.nix.agda-with-stdlib ];
-          plutus-metatheory.components.exes.plc-agda.build-tools = [ repoRoot.nix.agda-with-stdlib ]; # editorconfig-checker-disable-line
-          plutus-metatheory.components.tests.test1.build-tools = [ repoRoot.nix.agda-with-stdlib ]; # editorconfig-checker-disable-line
-          plutus-metatheory.components.tests.test2.build-tools = [ repoRoot.nix.agda-with-stdlib ]; # editorconfig-checker-disable-line
-          plutus-metatheory.components.tests.test3.build-tools = [ repoRoot.nix.agda-with-stdlib ]; # editorconfig-checker-disable-line
+          plutus-metatheory.components.exes.plc-agda.build-tools = [ repoRoot.nix.agda-with-stdlib ];
+          plutus-metatheory.components.tests.test1.build-tools = [ repoRoot.nix.agda-with-stdlib ];
+          plutus-metatheory.components.tests.test2.build-tools = [ repoRoot.nix.agda-with-stdlib ];
+          plutus-metatheory.components.tests.test3.build-tools = [ repoRoot.nix.agda-with-stdlib ];
 
           plutus-core.components.benchmarks.update-cost-model = {
             build-tools = [ repoRoot.nix.r-with-packages ];
