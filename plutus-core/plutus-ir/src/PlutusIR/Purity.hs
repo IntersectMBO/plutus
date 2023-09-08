@@ -23,9 +23,9 @@ import PlutusCore.Pretty
 import PlutusIR
 import PlutusIR.Contexts
 
+import Data.DList qualified as DList
 import Data.Foldable
 import Data.List.NonEmpty qualified as NE
-import Data.Sequence qualified as Seq
 import Prettyprinter
 
 saturatesScheme :: AppContext tyname name uni fun a -> TypeScheme val args res -> Maybe Bool
@@ -74,31 +74,28 @@ instance PrettyBy config (Term tyname name uni fun a)
   prettyBy _ Unknown               = "<unknown>"
   prettyBy config (EvalTerm eff t) = pretty eff <> ":" <+> prettyBy config t
 
--- We use a Seq here because we want
--- 1. Efficient concatenation for the semigroup instance
--- 2. Quick access to the end of the sequence to check for 'Unknown'
--- We could maybe do this even more efficiently, but Seq should get the job done.
+-- We use a DList here for efficient and lazy concatenation
 -- | The order in which terms get evaluated, along with their purities.
-newtype EvalOrder tyname name uni fun a = EvalOrder (Seq.Seq (EvalTerm tyname name uni fun a))
+newtype EvalOrder tyname name uni fun a = EvalOrder (DList.DList (EvalTerm tyname name uni fun a))
+  deriving newtype (Semigroup, Monoid)
 
 -- | Get the evaluation order as a list of 'EvalTerm's.
 unEvalOrder :: EvalOrder tyname name uni fun a -> [EvalTerm tyname name uni fun a]
-unEvalOrder (EvalOrder ts) = toList ts
+unEvalOrder (EvalOrder ts) =
+  -- This is where we avoid traversing the whole program beyond the first Unknown,
+  -- since DList is lazy and we convert to a lazy list and then filter it.
+  takeWhileInclusive (\case { Unknown -> False; _ -> True })
+  $ DList.toList ts
+  where
+    takeWhileInclusive :: (a -> Bool) -> [a] -> [a]
+    takeWhileInclusive p = foldr (\x ys -> if p x then x:ys else [x]) []
 
 evalThis :: EvalTerm tyname name uni fun a -> EvalOrder tyname name uni fun a
-evalThis tm = EvalOrder (Seq.singleton tm)
+evalThis tm = EvalOrder (DList.singleton tm)
 
 instance PrettyBy config (Term tyname name uni fun a)
   => PrettyBy config (EvalOrder tyname name uni fun a) where
   prettyBy config eo = vsep $ fmap (prettyBy config) (unEvalOrder eo)
-
-instance Semigroup (EvalOrder tyname name uni fun a) where
-  -- If we have discovered that we don't know where we're going, then no point recording after that
-  EvalOrder l@(_ Seq.:|> Unknown) <> EvalOrder _ = EvalOrder l
-  EvalOrder l <> EvalOrder r                     = EvalOrder (l <> r)
-
-instance Monoid (EvalOrder tyname name uni fun a) where
-  mempty = EvalOrder mempty
 
 {- | Given a term, return the order in which it and its sub-terms will be evaluated.
 
