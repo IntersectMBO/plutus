@@ -70,7 +70,7 @@ instance Pretty WorkFreedom where
   pretty MaybeWork = "maybe work?"
   pretty WorkFree  = "work-free"
 
--- | Either the "next" term to be evaluated, along with its 'Purity',
+-- | Either the "next" term to be evaluated, along with its 'Purity' and 'WorkFreedom',
 -- or we don't know what comes next.
 data EvalTerm tyname name uni fun a =
   Unknown
@@ -86,7 +86,10 @@ instance PrettyBy config (Term tyname name uni fun a)
 newtype EvalOrder tyname name uni fun a = EvalOrder (DList.DList (EvalTerm tyname name uni fun a))
   deriving newtype (Semigroup, Monoid)
 
--- | Get the evaluation order as a list of 'EvalTerm's.
+-- | Get the evaluation order as a list of 'EvalTerm's. Either terminates in a single
+-- 'Unknown', which means that we got to a point where evaluation continues but we don't
+-- know where; or terminates normally, in which case we actually got to the end of the
+-- evaluation order for the term.
 unEvalOrder :: EvalOrder tyname name uni fun a -> [EvalTerm tyname name uni fun a]
 unEvalOrder (EvalOrder ts) =
   -- This is where we avoid traversing the whole program beyond the first Unknown,
@@ -263,6 +266,11 @@ isPure semvar varStrictness t =
       -- We don't know what will happen, so be conservative
       Unknown                  -> False
 
+{-| Is the given term 'work-free'?
+
+Note: The definition of 'work-free' is a little unclear, but the idea is that
+evaluating this term should do very a trivial amount of work.
+-}
 isWorkFree ::
     ToBuiltinMeaning uni fun =>
     BuiltinSemanticsVariant fun ->
