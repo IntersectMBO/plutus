@@ -299,6 +299,10 @@ saying that no effects change if:
 
 For non-strict bindings, the effects already happened at the use site, so it's fine to inline it
 unconditionally.
+
+TODO: if we are not in conservative optimization mode and we're allowed to move/duplicate
+effects, then we could relax these criteria (e.g. say that the binding must be evaluted
+*somewhere*, but not necessarily before any other effects), but we don't currently.
 -}
 
 nameUsedAtMostOnce :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
@@ -316,6 +320,7 @@ effectSafe :: forall tyname name uni fun ann. InliningConstraints tyname name un
     -> Bool -- ^ is it pure?
     -> InlineM tyname name uni fun ann Bool
 effectSafe body Strict n purity = do
+  -- See Note [Inlining and purity]
   immediatelyEvaluated <- isFirstVarBeforeEffects n body
   pure $ purity || immediatelyEvaluated
 effectSafe _ NonStrict _ _ = pure True
