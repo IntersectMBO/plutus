@@ -1,19 +1,33 @@
-# This file is part of the IOGX template and is documented at the link below:
-# https://www.github.com/input-output-hk/iogx#31-flakenix
-
 {
   description = "Plutus Core";
 
+
   inputs = {
-    iogx.url = "github:input-output-hk/iogx";
+    iogx = {
+      url = "github:input-output-hk/iogx";
+      inputs.hackage.follows = "hackage";
+      inputs.CHaP.follows = "CHaP";
+    };
+
+    hackage = {
+      url = "github:input-output-hk/hackage.nix";
+      flake = false;
+    };
+
+    CHaP = {
+      url = "github:input-output-hk/cardano-haskell-packages?ref=repo";
+      flake = false;
+    };
   };
+
 
   outputs = inputs: inputs.iogx.lib.mkFlake {
     inherit inputs;
     repoRoot = ./.;
     systems = [ "x86_64-darwin" "x86_64-linux" "aarch64-darwin" ];
-    modules = [ ./nix/outputs.nix ];
+    outputs = ./nix/outputs.nix;
   };
+
 
   nixConfig = {
     extra-substituters = [

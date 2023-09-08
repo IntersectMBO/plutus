@@ -1,9 +1,6 @@
-{ inputs, repoRoot, pkgs, ... }:
+{ repoRoot, inputs, pkgs, ... }:
 
 let
-
-  pkgs = inputs.nixpkgs; 
-
   # Need a newer version for 2.6.2 compatibility
   stdlib = repoRoot.nix.agda-packages.standard-library.overrideAttrs (oldAtts: rec {
 

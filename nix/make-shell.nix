@@ -1,12 +1,10 @@
-# This file is part of the IOGX template and is documented at the link below:
-# https://www.github.com/input-output-hk/iogx#34-nixshellnix
-
 { repoRoot, pkgs, ... }:
 
-ghc: 
+cabalProject:
 
 {
   name = "plutus";
+
 
   packages = [
     repoRoot.nix.agda-with-stdlib
@@ -31,7 +29,6 @@ ghc:
     pkgs.cacert
   ];
 
-  haskellCompiler = ghc;
 
   preCommit = {
     stylish-haskell.enable = true;
@@ -39,7 +36,10 @@ ghc:
     shellcheck.enable = true;
     editorconfig-checker.enable = true;
     nixpkgs-fmt.enable = true;
-    png-optimization.enable = true;
+    optipng.enable = true;
     hlint.enable = false;
   };
+
+
+  tools.haskellCompiler = cabalProject.args.compiler-nix-name;
 }

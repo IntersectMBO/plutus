@@ -1,4 +1,4 @@
-{ inputs, repoRoot, pkgs, lib, ... }:
+{ repoRoot, inputs, pkgs, lib, ... }:
 
 let
 
