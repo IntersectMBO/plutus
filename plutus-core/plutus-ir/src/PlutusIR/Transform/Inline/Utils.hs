@@ -265,11 +265,11 @@ isFirstVarBeforeEffects n t = do
     pure $ go (unEvalOrder (termEvaluationOrder builtinSemVar strictnessFun t))
     where
       -- Found the variable we're looking for!
-      go ((EvalTerm _ (Var _ n')):_) | n == n' = True
+      go ((EvalTerm _ _ (Var _ n')):_) | n == n' = True
       -- Found a pure term, ignore it and continue
-      go ((EvalTerm Pure _):rest) = go rest
+      go ((EvalTerm Pure _ _):rest) = go rest
       -- Found a possibly impure term, our variable is definitely not first
-      go ((EvalTerm MaybeImpure _):_) = False
+      go ((EvalTerm MaybeImpure _ _):_) = False
       -- Don't know, be conservative
       go (Unknown:_) = False
       go [] = False

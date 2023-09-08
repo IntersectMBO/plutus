@@ -1,6 +1,6 @@
-pure: 2
-pure: 1
-pure: (let
+pure work-free: 2
+pure work-free: 1
+pure maybe work?: (let
   !x : integer = 2
 in
 1)

@@ -11,6 +11,7 @@
 module PlutusIR.Purity
     ( isPure
     , isSaturated
+    , isWorkFree
     , EvalOrder
     , unEvalOrder
     , EvalTerm (..)
@@ -24,7 +25,6 @@ import PlutusIR
 import PlutusIR.Contexts
 
 import Data.DList qualified as DList
-import Data.Foldable
 import Data.List.NonEmpty qualified as NE
 import Prettyprinter
 
@@ -63,16 +63,23 @@ instance Pretty Purity where
   pretty MaybeImpure = "impure?"
   pretty Pure        = "pure"
 
+-- | Is this term essentially work-free? Either yes, or maybe not.
+data WorkFreedom = MaybeWork | WorkFree
+
+instance Pretty WorkFreedom where
+  pretty MaybeWork = "maybe work?"
+  pretty WorkFree  = "work-free"
+
 -- | Either the "next" term to be evaluated, along with its 'Purity',
 -- or we don't know what comes next.
 data EvalTerm tyname name uni fun a =
   Unknown
-  | EvalTerm Purity (Term tyname name uni fun a)
+  | EvalTerm Purity WorkFreedom (Term tyname name uni fun a)
 
 instance PrettyBy config (Term tyname name uni fun a)
   => PrettyBy config (EvalTerm tyname name uni fun a) where
-  prettyBy _ Unknown               = "<unknown>"
-  prettyBy config (EvalTerm eff t) = pretty eff <> ":" <+> prettyBy config t
+  prettyBy _ Unknown                    = "<unknown>"
+  prettyBy config (EvalTerm eff work t) = pretty eff <+> pretty work <> ":" <+> prettyBy config t
 
 -- We use a DList here for efficient and lazy concatenation
 -- | The order in which terms get evaluated, along with their purities.
@@ -119,9 +126,12 @@ termEvaluationOrder semvar varStrictness = goTerm
       goTerm :: Term tyname name uni fun a -> EvalOrder tyname name uni fun a
       goTerm = \case
         t@(Let _ NonRec bs b) ->
-          goBindings (NE.toList bs) -- first the bindings, in order
-          <> goTerm b -- then the body
-          <> evalThis (EvalTerm Pure t) -- then the whole term
+          -- first the bindings, in order
+          goBindings (NE.toList bs)
+          -- then the body
+          <> goTerm b
+          -- then the whole term, which will lead to applications (so work)
+          <> evalThis (EvalTerm Pure MaybeWork t)
         (Let _ Rec _ _)   ->
           -- Hard to know what gets evaluated first in a recursive let-binding,
           -- just give up
@@ -133,45 +143,63 @@ termEvaluationOrder semvar varStrictness = goTerm
         -- here. But there's not much point: beta reduction will immediately
         -- turn those into let-bindings, which we do see through already.
         t@(Apply _ fun arg)    ->
-          goTerm fun -- first the function
-          <> goTerm arg -- then the arg
-          <> evalThis (EvalTerm Pure t) -- then the whole term
-          <> evalThis Unknown -- then we go to the unknown function body
+          -- first the function
+          goTerm fun
+          -- then the arg
+          <> goTerm arg
+          -- then the whole term, which means environment manipulation, so work
+          <> evalThis (EvalTerm Pure MaybeWork t)
+          -- then we go to the unknown function body
+          <> evalThis Unknown
         t@(TyInst _ ta _)        ->
-          goTerm ta -- first the type abstraction
-          <> evalThis (EvalTerm Pure t) -- then the whole term
-          <> evalThis Unknown -- then we go to the unknown body of the type abstraction
+          -- first the type abstraction
+          goTerm ta
+          -- then the whole term, which will mean forcing, so work
+          <> evalThis (EvalTerm Pure MaybeWork t)
+          -- then we go to the unknown body of the type abstraction
+          <> evalThis Unknown
 
         t@(IWrap _ _ _ b)       ->
-          goTerm b -- first the body
-          <> evalThis (EvalTerm Pure t) -- then the whole term
+          -- first the body
+          goTerm b
+          <> evalThis (EvalTerm Pure WorkFree t)
         t@(Unwrap _ b)          ->
-          goTerm b -- first the body
-          <> evalThis (EvalTerm Pure t) -- then the whole term
+          -- first the body
+          goTerm b
+          -- then the whole term, but this is erased so it is work-free
+          <> evalThis (EvalTerm Pure WorkFree t)
         t@(Constr _ _ _ ts)     ->
-          foldMap goTerm ts -- first the arguments, in left-to-right order
-          <> evalThis (EvalTerm Pure t) -- then the whole term
+          -- first the arguments, in left-to-right order
+          foldMap goTerm ts
+          -- then the whole term, which means constructing the value, so work
+          <> evalThis (EvalTerm Pure MaybeWork t)
         t@(Case _ _ scrut _)    ->
-          goTerm scrut -- first the scrutinee
-          <> evalThis (EvalTerm Pure t) -- then the whole term
-          <> evalThis Unknown -- then we go to an unknown scrutinee
+          -- first the scrutinee
+          goTerm scrut
+          -- then the whole term, which means finding the case so work
+          <> evalThis (EvalTerm Pure MaybeWork t)
+          -- then we go to an unknown scrutinee
+          <> evalThis Unknown
 
         -- Leaf terms
         t@(Var _ name)      ->
           -- See Note [Purity, strictness, and variables]
           let purity = case varStrictness name of { Strict -> Pure; NonStrict -> MaybeImpure}
-          in evalThis (EvalTerm purity t)
+          -- looking up the variable is work
+          in evalThis (EvalTerm purity MaybeWork t)
         t@Error{}           ->
-          evalThis (EvalTerm MaybeImpure t) -- definitely effectful!
-          <> evalThis Unknown -- program terminates
+          -- definitely effectful! but not relevant from a work perspective
+          evalThis (EvalTerm MaybeImpure WorkFree t)
+          -- program terminates
+          <> evalThis Unknown
         t@Builtin{}         ->
-          evalThis (EvalTerm Pure t)
+          evalThis (EvalTerm Pure WorkFree t)
         t@TyAbs{}           ->
-          evalThis (EvalTerm Pure t)
+          evalThis (EvalTerm Pure WorkFree t)
         t@LamAbs{}          ->
-          evalThis (EvalTerm Pure t)
+          evalThis (EvalTerm Pure WorkFree t)
         t@Constant{}        ->
-          evalThis (EvalTerm Pure t)
+          evalThis (EvalTerm Pure WorkFree t)
 
       goBindings ::
         [Binding tyname name uni fun a] ->
@@ -193,11 +221,14 @@ termEvaluationOrder semvar varStrictness = goTerm
           reconstructed = fillAppContext (Builtin a hd) args
           evalEffect = case saturated of
             -- If it's saturated, we might have an effect here
-            Just True  -> evalThis (EvalTerm MaybeImpure reconstructed)
-            -- If it's unsaturated, we definitely don't
-            Just False -> evalThis (EvalTerm Pure reconstructed)
+            Just True  -> evalThis (EvalTerm MaybeImpure MaybeWork reconstructed)
+            -- TODO: previous definition of work-free included this, it's slightly
+            -- unclear if we should do since we do update partial builtin meanings
+            -- etc.
+            -- If it's unsaturated, we definitely don't, and don't do any work
+            Just False -> evalThis (EvalTerm Pure WorkFree reconstructed)
             -- Don't know, be conservative
-            Nothing    -> evalThis (EvalTerm MaybeImpure reconstructed)
+            Nothing    -> evalThis (EvalTerm MaybeImpure MaybeWork reconstructed)
         in goAppCtx args <> evalEffect
 
       goAppCtx :: AppContext tyname name uni fun a -> EvalOrder tyname name uni fun a
@@ -226,9 +257,31 @@ isPure semvar varStrictness t =
     go [] = True
     go (et:rest) = case et of
       -- Might be an effect here!
-      EvalTerm MaybeImpure _ -> False
+      EvalTerm MaybeImpure _ _ -> False
       -- This term is fine, what about the rest?
-      EvalTerm Pure _        -> go rest
+      EvalTerm Pure _ _        -> go rest
+      -- We don't know what will happen, so be conservative
+      Unknown                  -> False
+
+isWorkFree ::
+    ToBuiltinMeaning uni fun =>
+    BuiltinSemanticsVariant fun ->
+    (name -> Strictness) ->
+    Term tyname name uni fun a ->
+    Bool
+isWorkFree semvar varStrictness t =
+  -- to work out if the term is pure, we see if we can look through
+  -- the whole evaluation order without hitting something that might be
+  -- effectful
+  go $ unEvalOrder (termEvaluationOrder semvar varStrictness t)
+  where
+    go :: [EvalTerm tyname name uni fun a] -> Bool
+    go [] = True
+    go (et:rest) = case et of
+      -- Might be an effect here!
+      EvalTerm _ MaybeWork _ -> False
+      -- This term is fine, what about the rest?
+      EvalTerm _ WorkFree _  -> go rest
       -- We don't know what will happen, so be conservative
       Unknown                -> False
 
