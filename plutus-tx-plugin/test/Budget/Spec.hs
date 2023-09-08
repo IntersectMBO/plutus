@@ -19,6 +19,7 @@ import PlutusTx.Builtins qualified as PlutusTx
 import PlutusTx.Code
 import PlutusTx.IsData qualified as PlutusTx
 import PlutusTx.Lift (liftCodeDef)
+import PlutusTx.List qualified as List
 import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Show qualified as PlutusTx
 import PlutusTx.Test (goldenBudget, goldenPirReadable, goldenUPlcReadable)
@@ -113,6 +114,30 @@ tests = testNestedGhc "Budget" [
   , goldenBudget "notElemExpensive" compiledNotElemExpensive
   , goldenUPlcReadable "notElemExpensive" compiledNotElemExpensive
   , goldenPirReadable "notElemExpensive" compiledNotElemExpensive
+
+  , goldenBudget "sumL" compiledSumL
+  , goldenUPlcReadable "sumL" compiledSumL
+  , goldenPirReadable "sumL" compiledSumL
+
+  , goldenBudget "sumR" compiledSumR
+  , goldenUPlcReadable "sumR" compiledSumR
+  , goldenPirReadable "sumR" compiledSumR
+
+  , goldenBudget "constAccL" compiledConstAccL
+  , goldenUPlcReadable "constAccL" compiledConstAccL
+  , goldenPirReadable "constAccL" compiledConstAccL
+
+  , goldenBudget "constAccR" compiledConstAccR
+  , goldenUPlcReadable "constAccR" compiledConstAccR
+  , goldenPirReadable "constAccR" compiledConstAccR
+
+  , goldenBudget "constElL" compiledConstElL
+  , goldenUPlcReadable "constElL" compiledConstElL
+  , goldenPirReadable "constElL" compiledConstElL
+
+  , goldenBudget "constElR" compiledConstElR
+  , goldenUPlcReadable "constElR" compiledConstElR
+  , goldenPirReadable "constElR" compiledConstElR
 
   , goldenBudget "null" compiledNull
   , goldenUPlcReadable "null" compiledNull
@@ -274,6 +299,42 @@ compiledNotElemExpensive :: CompiledCode Bool
 compiledNotElemExpensive = $$(compile [||
       let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
        in PlutusTx.notElem 0 ls ||])
+
+-- | Left-fold a list with a function summing its arguments.
+compiledSumL :: CompiledCode Integer
+compiledSumL = $$(compile [||
+      let ls = PlutusTx.enumFromTo 1 1000 :: [Integer]
+       in List.foldl (PlutusTx.+) 0 ls ||])
+
+-- | Right-fold a list with a function summing its arguments.
+compiledSumR :: CompiledCode Integer
+compiledSumR = $$(compile [||
+      let ls = PlutusTx.enumFromTo 1 1000 :: [Integer]
+       in List.foldr (PlutusTx.+) 0 ls ||])
+
+-- | Left-fold a list with a function returning the accumulator.
+compiledConstAccL :: CompiledCode Integer
+compiledConstAccL = $$(compile [||
+      let ls = PlutusTx.replicate 1000 (1 :: Integer)
+       in List.foldl (\acc _ -> acc) 42 ls ||])
+
+-- | Right-fold a list with a function returning the accumulator.
+compiledConstAccR :: CompiledCode Integer
+compiledConstAccR = $$(compile [||
+      let ls = PlutusTx.replicate 1000 (1 :: Integer)
+       in List.foldr (\_ acc -> acc) 42 ls ||])
+
+-- | Left-fold a list with a function returning a list element, the result is the last element.
+compiledConstElL :: CompiledCode Integer
+compiledConstElL = $$(compile [||
+      let ls = PlutusTx.replicate 1000 (1 :: Integer)
+       in List.foldl (\_ el -> el) 42 ls ||])
+
+-- | Right-fold a list with a function returning a list element, the result is the first element.
+compiledConstElR :: CompiledCode Integer
+compiledConstElR = $$(compile [||
+      let ls = PlutusTx.replicate 1000 (1 :: Integer)
+       in List.foldr (\el _ -> el) 42 ls ||])
 
 compiledNull :: CompiledCode Bool
 compiledNull = $$(compile [||

@@ -18,6 +18,7 @@ module PlutusTx.List (
     findIndices,
     findIndex,
     foldr,
+    foldl,
     reverse,
     zip,
     (++),
@@ -31,6 +32,7 @@ module PlutusTx.List (
     nubBy,
     zipWith,
     dropWhile,
+    replicate,
     partition,
     sort,
     sortBy,
@@ -123,9 +125,20 @@ find f = go
 --   10
 --
 foldr :: (a -> b -> b) -> b -> [a] -> b
-foldr f acc l = case l of
-    []   -> acc
-    x:xs -> f x (foldr f acc xs)
+foldr f acc = go where
+    go []     = acc
+    go (x:xs) = f x (go xs)
+
+{-# INLINABLE foldl #-}
+-- | Plutus Tx velsion of 'Data.List.foldl'.
+--
+--   >>> foldl (\s i -> s + i) 0 [1, 2, 3, 4]
+--   10
+--
+foldl :: (b -> a -> b) -> b -> [a] -> b
+foldl f = go where
+    go acc []     = acc
+    go acc (x:xs) = go (f acc x) xs
 
 {-# INLINABLE (++) #-}
 -- | Plutus Tx version of '(Data.List.++)'.
@@ -283,6 +296,14 @@ dropWhile _ []          =  []
 dropWhile p xs@(x:xs')
     | p x       =  dropWhile p xs'
     | otherwise =  xs
+
+{-# INLINABLE replicate #-}
+-- | Plutus Tx version of 'Data.List.replicate'.
+replicate :: Integer -> a -> [a]
+replicate n0 _ | n0 < 0 = []
+replicate n0 x          = go n0 where
+    go n | n == 0 = []
+    go n          = x : go (Builtins.subtractInteger n 1)
 
 {-# INLINABLE partition #-}
 -- | Plutus Tx version of 'Data.List.partition'.
