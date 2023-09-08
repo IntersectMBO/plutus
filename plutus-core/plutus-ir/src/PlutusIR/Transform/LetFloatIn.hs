@@ -14,7 +14,6 @@ import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Name qualified as PLC
 import PlutusIR
 import PlutusIR.Analysis.Usages qualified as Usages
-import PlutusIR.Contexts
 import PlutusIR.Purity
 import PlutusIR.Transform.Rename ()
 

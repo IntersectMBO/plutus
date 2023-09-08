@@ -14,14 +14,6 @@ data AppContext tyname name uni fun ann =
   | TypeAppContext (Type tyname uni ann) ann (AppContext tyname name uni fun ann)
   | AppContextEnd
 
-splitApplicationNE :: Term tyname name uni fun ann
-  -> Maybe (Term tyname name uni fun ann, AppContext tyname name uni fun ann)
-splitApplicationNE tm =
-  let (hd, args) = splitApplication tm
-  in case args of
-    AppContextEnd -> Nothing
-    _             -> Just (hd, args)
-
 {- | Takes a term and views it as a head plus an 'AppContext', e.g.
 
 @
