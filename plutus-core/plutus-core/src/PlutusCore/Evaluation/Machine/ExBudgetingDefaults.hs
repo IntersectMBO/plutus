@@ -67,6 +67,15 @@ defaultCekMachineCosts :: CekMachineCosts
 defaultCekMachineCosts =
   $$(readJSONFromFile DFP.cekMachineCostsFile)
 
+{-| The default cost model, including both builtin costs and machine step costs.
+    Note that this is not necessarily the cost model in use on the chain at any
+    given time.  The definitive values used for calculating on-chain costs are
+    protocol parameters which are part of the state of the chain; in practice
+    these will usually have been obtained from the contents of the JSON files at
+    some point in the past, but we do not guarantee this.  During on-chain
+    evaluation the ledger passes a cost model to the Plutus Core evaluator using
+    the `mkEvaluationContext` functions in PlutusLedgerApi.
+-}
 defaultCekCostModel :: CostModel CekMachineCosts BuiltinCostModel
 defaultCekCostModel = CostModel defaultCekMachineCosts defaultBuiltinCostModel
 --- defaultCekMachineCosts is CekMachineCosts
