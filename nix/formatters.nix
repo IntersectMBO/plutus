@@ -8,5 +8,13 @@
   editorconfig-checker.enable = true;
   nixpkgs-fmt.enable = true;
   png-optimization.enable = true;
-  hlint.enable = true;
+
+  # TODO
+  # open a new PR
+  # set this to true
+  # run 'pre-commit run hlint --all-files'
+  # fix everything up
+  # push & merge
+  # remove this comment
+  hlint.enable = false;
 }

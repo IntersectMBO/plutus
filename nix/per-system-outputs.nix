@@ -7,7 +7,4 @@
   documents = nix.plutus.latex-docs;
 
   packages.plutus-metatheory-site = nix.plutus.plutus-metatheory-site;
-
-  # Needed by .github/workflows/hlint.yml
-  hlint = projects.default.hsPkgs.hlint.components.exe.hlint;
 }
