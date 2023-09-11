@@ -18,26 +18,26 @@ main :: IO ()
 main = defaultMain . testGroup "Size regression tests" $ [
   testGroup "Rational" [
     testGroup "Eq" [
-      runTestNested $ goldenSize "==" ratEq,
-      runTestNested $ goldenSize "Not=" ratNeq
+      runTestNested $ goldenSize "equal" ratEq,
+      runTestNested $ goldenSize "not-equal" ratNeq
       ],
     testGroup "Ord" [
       runTestNested $ goldenSize "compare" ratCompare,
-      runTestNested $ goldenSize "<=" ratLe,
-      runTestNested $ goldenSize ">=" ratGe,
-      runTestNested $ goldenSize "<" ratLt,
-      runTestNested $ goldenSize ">" ratGt,
+      runTestNested $ goldenSize "less-than-equal" ratLe,
+      runTestNested $ goldenSize "greater-than-equal" ratGe,
+      runTestNested $ goldenSize "less-than" ratLt,
+      runTestNested $ goldenSize "greater-than" ratGt,
       runTestNested $ goldenSize "max" ratMax,
       runTestNested $ goldenSize "min" ratMin
       ],
     testGroup "Additive" [
-      runTestNested $ goldenSize "+" ratPlus,
+      runTestNested $ goldenSize "plus" ratPlus,
       runTestNested $ goldenSize "zero" ratZero,
-      runTestNested $ goldenSize "-" ratMinus,
+      runTestNested $ goldenSize "minus" ratMinus,
       runTestNested $ goldenSize "negate (specialized)" ratNegate
       ],
     testGroup "Multiplicative" [
-      runTestNested $ goldenSize "*" ratTimes,
+      runTestNested $ goldenSize "times" ratTimes,
       runTestNested $ goldenSize "one" ratOne,
       runTestNested $ goldenSize "scale" ratScale
       ],
@@ -58,7 +58,7 @@ main = defaultMain . testGroup "Size regression tests" $ [
       runTestNested $ goldenSize "truncate" ratTruncate,
       runTestNested $ goldenSize "properFraction" ratProperFraction,
       runTestNested $ goldenSize "recip" ratRecip,
-      runTestNested $ goldenSize "abs (specialized)" ratAbs
+      runTestNested $ goldenSize "abs-specialized" ratAbs
       ],
     testGroup "Comparison" [
       fitsUnder "negate" ("specialized", ratNegate) ("general", genNegate),
