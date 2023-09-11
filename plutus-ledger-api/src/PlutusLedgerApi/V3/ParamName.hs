@@ -238,6 +238,5 @@ data ParamName =
   | Blake2b_224'cpu'arguments'intercept
   | Blake2b_224'cpu'arguments'slope
   | Blake2b_224'memory'arguments
-    -- NB: Show.show != IsParamName.showParamName
-    deriving stock (Eq, Show, Ord, Enum, Ix, Bounded, Generic)
+    deriving stock (Eq, Ord, Enum, Ix, Bounded, Generic)
     deriving IsParamName via (GenericParamName ParamName)

@@ -1,3 +1,3 @@
 ### Changed
 
-- CekMachineCosts changed to Barbies-style, like BuiltinCostModel
+- CekMachineCosts changed to use the "higher-kinded data" pattern, like BuiltinCostModel

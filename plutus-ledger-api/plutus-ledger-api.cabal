@@ -108,13 +108,15 @@ library plutus-ledger-api-testlib
   visibility:      public
   hs-source-dirs:  testlib
   exposed-modules:
-    PlutusLedgerApi.Test.EvaluationContext
+    PlutusLedgerApi.Test.Common.EvaluationContext
     PlutusLedgerApi.Test.EvaluationEvent
     PlutusLedgerApi.Test.Examples
     PlutusLedgerApi.Test.Scripts
+    PlutusLedgerApi.Test.V1.EvaluationContext
+    PlutusLedgerApi.Test.V2.EvaluationContext
+    PlutusLedgerApi.Test.V3.EvaluationContext
 
   build-depends:
-    , aeson
     , barbies
     , base               >=4.9      && <5
     , base64-bytestring

@@ -32,12 +32,12 @@ A valid parameter name has to be enumeration, bounded, ordered, and
 prettyprintable to a \"lower-Kebab\" string.
 -}
 class (Enum a, Bounded a) => IsParamName a where
-   -- | Take the raw textual form for a given typed-by-plutus-version cost model parameter
+   -- | Produce the raw textual form for a given typed-by-plutus-version cost model parameter
    -- Any implementation *must be* an injective function.
-   -- The 'GIsParamName' generic implementation guarantees injection.
+   -- The 'GIsParamName' generic implementation guarantees injectivity.
    showParamName :: a -> Text.Text
 
-   -- default implementation that reverts the showParamName implementation (not very efficient)
+   -- | default implementation that inverts the showParamName operation (not very efficient)
    readParamName :: Text.Text -> Maybe a
    readParamName str = List.lookup str $ fmap (\p -> (showParamName p, p)) $ enumerate @a
 

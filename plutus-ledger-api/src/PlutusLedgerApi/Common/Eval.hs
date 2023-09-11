@@ -220,5 +220,5 @@ failure, like the other such checks that we have. For now we keep it as it is, b
 try to move it later.
 -}
 
--- MAYBE: send it upstream to nothunks?
+-- TODO: Remove after https://github.com/input-output-hk/nothunks/pull/34
 deriving anyclass instance NoThunks a => NoThunks (Identity a)

@@ -2,8 +2,8 @@
 module Main where
 
 import PlutusLedgerApi.Common.Versions
-import PlutusLedgerApi.Test.EvaluationContext
 import PlutusLedgerApi.Test.Examples
+import PlutusLedgerApi.Test.V1.EvaluationContext qualified as V1
 import PlutusLedgerApi.V1 as V1
 import PlutusPrelude
 import Spec.CBOR.DeserialiseFailureInfo qualified
@@ -23,7 +23,7 @@ main :: IO ()
 main = defaultMain tests
 
 v1_evalCtxForTesting :: EvaluationContext
-v1_evalCtxForTesting = fst $ unsafeFromRight $ runWriterT $ V1.mkEvaluationContext (fmap snd v1_costModelParamsForTesting)
+v1_evalCtxForTesting = fst $ unsafeFromRight $ runWriterT $ V1.mkEvaluationContext (fmap snd V1.costModelParamsForTesting)
 
 alwaysTrue :: TestTree
 alwaysTrue = testCase "always true script returns true" $
