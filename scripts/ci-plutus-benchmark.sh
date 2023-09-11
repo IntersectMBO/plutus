@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # This script runs the given benchmark and compares the results against origin/master.
 #
 # USAGE: 
@@ -48,17 +50,17 @@ echo "[ci-plutus-benchmark]: Clearing caches with cabal clean ..."
 cabal clean
 
 echo "[ci-plutus-benchmark]: Running benchmark for PR branch at $PR_BRANCH_REF ..."
-2>&1 cabal bench $BENCHMARK_NAME | tee bench-PR.log
+2>&1 cabal bench "$BENCHMARK_NAME" | tee bench-PR.log
 
 echo "[ci-plutus-benchmark]: Switching branches ..."
-git checkout master
+git checkout "$(git merge-base HEAD origin/master)"
 BASE_BRANCH_REF=$(git rev-parse --short HEAD)
 
 echo "[ci-plutus-benchmark]: Clearing caches with cabal clean ..."
 cabal clean
 
 echo "[ci-plutus-benchmark]: Running benchmark for base branch at $BASE_BRANCH_REF ..."
-2>&1 cabal bench $BENCHMARK_NAME | tee bench-base.log 
+2>&1 cabal bench "$BENCHMARK_NAME" | tee bench-base.log 
 git checkout "$PR_BRANCH_REF"  # .. so we use the most recent version of the comparison script
 
 echo "[ci-plutus-benchmark]: Comparing results ..."
