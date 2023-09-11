@@ -7,17 +7,19 @@ program
               (force
                  ((\n ->
                      force ifThenElse
-                       (lessThanInteger n 0)
+                       (lessThanEqualsInteger n 0)
                        (delay (constr 0 []))
                        (delay (go n)))
                     1000)))
            (fix1
               (\go n ->
-                 force
-                   (force ifThenElse
-                      (equalsInteger 0 n)
-                      (delay (constr 0 []))
-                      (delay (constr 1 [1, (go (subtractInteger n 1))]))))))
+                 constr 1
+                   [ 1
+                   , (force
+                        (force ifThenElse
+                           (equalsInteger 1 n)
+                           (delay (constr 0 []))
+                           (delay (go (subtractInteger n 1))))) ])))
         (fix1
            (\go acc ds ->
               force (case ds [(delay acc), (\x xs -> delay (go acc xs))]))))

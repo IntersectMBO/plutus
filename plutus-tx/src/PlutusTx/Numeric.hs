@@ -23,6 +23,7 @@ module PlutusTx.Numeric (
   abs,
   ) where
 
+import Data.Coerce (coerce)
 import Data.Semigroup (Product (Product), Sum (Sum))
 import PlutusTx.Bool (Bool (False, True), (&&), (||))
 import PlutusTx.Builtins (Integer, addInteger, divideInteger, modInteger, multiplyInteger,
@@ -55,7 +56,7 @@ newtype Additive a = Additive a
 
 instance Semigroup a => AdditiveSemigroup (Additive a) where
     {-# INLINABLE (+) #-}
-    Additive x + Additive y = Additive (x <> y)
+    (+) = coerce ((<>) :: a -> a -> a)
 
 instance Monoid a => AdditiveMonoid (Additive a) where
     {-# INLINABLE zero #-}
@@ -63,7 +64,7 @@ instance Monoid a => AdditiveMonoid (Additive a) where
 
 instance Group a => AdditiveGroup (Additive a) where
     {-# INLINABLE (-) #-}
-    Additive x - Additive y = Additive (x `gsub` y)
+    (-) = coerce (gsub :: a -> a -> a)
 
 -- | A 'Semigroup' that it is sensible to describe using multiplication.
 class MultiplicativeSemigroup a where
@@ -81,7 +82,7 @@ newtype Multiplicative a = Multiplicative a
 
 instance Semigroup a => MultiplicativeSemigroup (Multiplicative a) where
     {-# INLINABLE (*) #-}
-    Multiplicative x * Multiplicative y = Multiplicative (x <> y)
+    (*) = coerce ((<>) :: a -> a -> a)
 
 instance Monoid a => MultiplicativeMonoid (Multiplicative a) where
     {-# INLINABLE one #-}
@@ -134,7 +135,7 @@ class (Ring s, AdditiveGroup v) => Module s v | v -> s where
 
 instance AdditiveSemigroup a => Semigroup (Sum a) where
     {-# INLINABLE (<>) #-}
-    Sum a1 <> Sum a2 = Sum (a1 + a2)
+    (<>) = coerce ((+) :: a -> a -> a)
 
 instance AdditiveMonoid a => Monoid (Sum a) where
     {-# INLINABLE mempty #-}
@@ -142,7 +143,7 @@ instance AdditiveMonoid a => Monoid (Sum a) where
 
 instance MultiplicativeSemigroup a => Semigroup (Product a) where
     {-# INLINABLE (<>) #-}
-    Product a1 <> Product a2 = Product (a1 * a2)
+    (<>) = coerce ((*) :: a -> a -> a)
 
 instance MultiplicativeMonoid a => Monoid (Product a) where
     {-# INLINABLE mempty #-}

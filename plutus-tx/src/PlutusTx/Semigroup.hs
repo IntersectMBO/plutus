@@ -1,6 +1,8 @@
+{-# LANGUAGE InstanceSigs #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module PlutusTx.Semigroup (Semigroup (..), Max (..), Min (..)) where
 
+import Data.Coerce (coerce)
 import Data.Monoid (First (..))
 import Data.Semigroup (Dual (..), Endo (..))
 import PlutusTx.Base
@@ -57,7 +59,7 @@ instance Semigroup a => Semigroup (Dual a) where
 
 instance Semigroup (Endo a) where
     {-# INLINABLE (<>) #-}
-    Endo f1 <> Endo f2 = Endo (f1 . f2)
+    (<>) = coerce ((.) :: (a -> a) -> (a -> a) -> a -> a)
 
 instance Semigroup (First a) where
     {-# INLINABLE (<>) #-}
@@ -68,18 +70,18 @@ newtype Max a = Max { getMax :: a }
 
 instance Functor Max where
     {-# INLINABLE fmap #-}
-    fmap f (Max a) = Max (f a)
+    fmap = coerce
 
 instance Ord a => Semigroup (Max a) where
     {-# INLINABLE (<>) #-}
-    (Max a1) <> (Max a2) = Max (max a1 a2)
+    (<>) = coerce (max :: a -> a -> a)
 
 newtype Min a = Min { getMin :: a }
 
 instance Functor Min where
     {-# INLINABLE fmap #-}
-    fmap f (Min a) = Min (f a)
+    fmap = coerce
 
 instance Ord a => Semigroup (Min a) where
     {-# INLINABLE (<>) #-}
-    (Min a1) <> (Min a2) = Min (min a1 a2)
+    (<>) = coerce (min :: a -> a -> a)

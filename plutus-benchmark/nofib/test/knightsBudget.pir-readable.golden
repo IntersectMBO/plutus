@@ -1,19 +1,58 @@
-(letrec
+(let
+    data (Maybe :: * -> *) a | Maybe_match where
+      Just : a -> Maybe a
+      Nothing : Maybe a
+    data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
+      Tuple2 : a -> b -> Tuple2 a b
+  in
+  letrec
     data (List :: * -> *) a | Nil_match where
       Nil : List a
       Cons : a -> List a -> List a
   in
+  let
+    data ChessSet | ChessSet_match where
+      Board :
+        integer ->
+        integer ->
+        Maybe (Tuple2 integer integer) ->
+        List (Tuple2 integer integer) ->
+        ChessSet
+  in
   letrec
-    !foldr : all a b. (a -> b -> b) -> b -> List a -> b
-      = /\a b ->
-          \(f : a -> b -> b) (acc : b) (l : List a) ->
-            Nil_match
-              {a}
-              l
-              {all dead. b}
-              (/\dead -> acc)
-              (\(x : a) (xs : List a) -> /\dead -> f x (foldr {a} {b} f acc xs))
-              {all dead. dead}
+    !go : List (Tuple2 integer ChessSet) -> List ChessSet
+      = \(ds : List (Tuple2 integer ChessSet)) ->
+          Nil_match
+            {Tuple2 integer ChessSet}
+            ds
+            {all dead. List ChessSet}
+            (/\dead -> Nil {ChessSet})
+            (\(x : Tuple2 integer ChessSet)
+              (xs : List (Tuple2 integer ChessSet)) ->
+               /\dead ->
+                 Cons
+                   {ChessSet}
+                   (Tuple2_match
+                      {integer}
+                      {ChessSet}
+                      x
+                      {ChessSet}
+                      (\(ds : integer) (b : ChessSet) -> b))
+                   (go xs))
+            {all dead. dead}
+  in
+  letrec
+    !go : List (Tuple2 integer ChessSet) -> List (Tuple2 integer ChessSet)
+      = \(ds : List (Tuple2 integer ChessSet)) ->
+          Nil_match
+            {Tuple2 integer ChessSet}
+            ds
+            {all dead. List (Tuple2 integer ChessSet)}
+            (/\dead -> Nil {Tuple2 integer ChessSet})
+            (\(x : Tuple2 integer ChessSet)
+              (xs : List (Tuple2 integer ChessSet)) ->
+               /\dead -> Cons {Tuple2 integer ChessSet} x (go xs))
+            {all dead. dead}
   in
   let
     data Bool | Bool_match where
@@ -108,12 +147,19 @@
                                      (\(ds : a) (t : List a) -> /\dead -> t)
                                      {all dead. dead}
                              in
-                             foldr
-                               {a}
-                               {List a}
-                               (\(ds : a) (ds : List a) -> Cons {a} ds ds)
-                               q
-                               list)
+                             letrec
+                               !go : List a -> List a
+                                 = \(ds : List a) ->
+                                     Nil_match
+                                       {a}
+                                       ds
+                                       {all dead. List a}
+                                       (/\dead -> q)
+                                       (\(x : a) (xs : List a) ->
+                                          /\dead -> Cons {a} x (go xs))
+                                       {all dead. dead}
+                             in
+                             go list)
                              growFn
                              finFn)
                         {all dead. dead})
@@ -168,18 +214,6 @@
                 (v : a -> a -> a)
                 (v : a -> a -> a) ->
                  v)
-    data (Maybe :: * -> *) a | Maybe_match where
-      Just : a -> Maybe a
-      Nothing : Maybe a
-    data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
-      Tuple2 : a -> b -> Tuple2 a b
-    data ChessSet | ChessSet_match where
-      Board :
-        integer ->
-        integer ->
-        Maybe (Tuple2 integer integer) ->
-        List (Tuple2 integer integer) ->
-        ChessSet
     !`$fEqChessSet_$c==` : ChessSet -> ChessSet -> Bool
       = \(ds : ChessSet) (ds : ChessSet) -> True
   in
@@ -379,21 +413,6 @@
                    = Cons {Tuple2 integer integer} t ts
                in
                Board s dt f dt)
-  in
-  letrec
-    !map : all a b. (a -> b) -> List a -> List b
-      = /\a b ->
-          \(f : a -> b) (l : List a) ->
-            Nil_match
-              {a}
-              l
-              {all dead. List b}
-              (/\dead -> Nil {b})
-              (\(x : a) (xs : List a) ->
-                 /\dead -> Cons {b} (f x) (map {a} {b} f xs))
-              {all dead. dead}
-  in
-  let
     !length :
        all (t :: * -> *) a.
          (\(t :: * -> *) -> all a b. (a -> b -> b) -> b -> t a -> b) t ->
@@ -401,15 +420,11 @@
          integer
       = /\(t :: * -> *) a ->
           \(`$dFoldable` :
-              (\(t :: * -> *) -> all a b. (a -> b -> b) -> b -> t a -> b) t)
-           (eta : t a) ->
+              (\(t :: * -> *) -> all a b. (a -> b -> b) -> b -> t a -> b) t) ->
             `$dFoldable`
               {a}
-              {integer -> integer}
-              (\(a : a) (g : integer -> integer) (b : integer) ->
-                 g (addInteger 1 b))
-              (\(x : integer) -> x)
-              eta
+              {integer}
+              (\(ds : a) (acc : integer) -> addInteger 1 acc)
               0
     data Direction | Direction_match where
       DL : Direction
@@ -810,26 +825,47 @@
                            (ipv : integer)
                            (ipv : Maybe (Tuple2 integer integer))
                            (ipv : List (Tuple2 integer integer)) ->
-                            map
-                              {Direction}
-                              {ChessSet}
-                              (\(dir : Direction) ->
-                                 addPiece
-                                   (move
-                                      dir
-                                      (Nil_match
-                                         {Tuple2 integer integer}
-                                         ipv
-                                         {all dead. Tuple2 integer integer}
-                                         (/\dead ->
-                                            error {Tuple2 integer integer})
-                                         (\(t : Tuple2 integer integer)
-                                           (ds :
-                                              List (Tuple2 integer integer)) ->
-                                            /\dead -> t)
-                                         {all dead. dead}))
-                                   board)
-                              (possibleMoves board))
+                            letrec
+                              !go : List Direction -> List ChessSet
+                                = \(ds : List Direction) ->
+                                    Nil_match
+                                      {Direction}
+                                      ds
+                                      {all dead. List ChessSet}
+                                      (/\dead -> Nil {ChessSet})
+                                      (\(x : Direction) (xs : List Direction) ->
+                                         /\dead ->
+                                           Cons
+                                             {ChessSet}
+                                             (addPiece
+                                                (move
+                                                   x
+                                                   (Nil_match
+                                                      {Tuple2 integer integer}
+                                                      ipv
+                                                      {all dead.
+                                                         Tuple2 integer integer}
+                                                      (/\dead ->
+                                                         error
+                                                           {Tuple2
+                                                              integer
+                                                              integer})
+                                                      (\(t :
+                                                           Tuple2
+                                                             integer
+                                                             integer)
+                                                        (ds :
+                                                           List
+                                                             (Tuple2
+                                                                integer
+                                                                integer)) ->
+                                                         /\dead -> t)
+                                                      {all dead. dead}))
+                                                board)
+                                             (go xs))
+                                      {all dead. dead}
+                            in
+                            go (possibleMoves board))
                  in
                  go eta)
   in
@@ -1045,14 +1081,7 @@
             (repl numStarts (subtractInteger 1 numStarts))
             l
       in
-      foldr
-        {Tuple2 integer ChessSet}
-        {List (Tuple2 integer ChessSet)}
-        (\(ds : Tuple2 integer ChessSet)
-          (ds : List (Tuple2 integer ChessSet)) ->
-           Cons {Tuple2 integer ChessSet} ds ds)
-        (Nil {Tuple2 integer ChessSet})
-        list)
+      go list)
       (\(ds : Tuple2 integer ChessSet) ->
          Tuple2_match
            {integer}
@@ -1131,16 +1160,7 @@
                             (ifThenElse {Bool} (equalsInteger 0 l) True False)
                             {all dead. List ChessSet}
                             (/\dead ->
-                               map
-                                 {Tuple2 integer ChessSet}
-                                 {ChessSet}
-                                 (\(ds : Tuple2 integer ChessSet) ->
-                                    Tuple2_match
-                                      {integer}
-                                      {ChessSet}
-                                      ds
-                                      {ChessSet}
-                                      (\(ds : integer) (b : ChessSet) -> b))
+                               go
                                  (quickSort
                                     {Tuple2 integer ChessSet}
                                     (let

@@ -62,10 +62,13 @@ null = \case
 --   >>> map (\i -> i + 1) [1, 2, 3]
 --   [2,3,4]
 --
-map :: (a -> b) -> [a] -> [b]
-map f l = case l of
-    []   -> []
-    x:xs -> f x : map f xs
+map :: forall a b. (a -> b) -> [a] -> [b]
+map f = go
+  where
+    go :: [a] -> [b]
+    go = \case
+        []   -> []
+        x:xs -> f x : go xs
 
 {-# INLINABLE and #-}
 -- | Returns the conjunction of a list of Bools.
@@ -83,18 +86,20 @@ or = \case
 
 {-# INLINABLE any #-}
 -- | Determines whether any element of the structure satisfies the predicate.
-any :: (a -> Bool) -> [a] -> Bool
+any :: forall a. (a -> Bool) -> [a] -> Bool
 any f = go
   where
+    go :: [a] -> Bool
     go = \case
         []     -> False
         x : xs -> if f x then True else go xs
 
 {-# INLINABLE all #-}
 -- | Determines whether all elements of the list satisfy the predicate.
-all :: (a -> Bool) -> [a] -> Bool
+all :: forall a. (a -> Bool) -> [a] -> Bool
 all f = go
   where
+    go :: [a] -> Bool
     go = \case
         []     -> True
         x : xs -> if f x then go xs else False
@@ -111,9 +116,10 @@ notElem a = not . elem a
 
 {-# INLINABLE find #-}
 -- | Returns the leftmost element matching the predicate, or `Nothing` if there's no such element.
-find :: (a -> Bool) -> [a] -> Maybe a
+find :: forall a. (a -> Bool) -> [a] -> Maybe a
 find f = go
   where
+    go :: [a] -> Maybe a
     go = \case
         []     -> Nothing
         x : xs -> if f x then Just x else go xs
@@ -124,10 +130,13 @@ find f = go
 --   >>> foldr (\i s -> s + i) 0 [1, 2, 3, 4]
 --   10
 --
-foldr :: (a -> b -> b) -> b -> [a] -> b
-foldr f acc = go where
-    go []     = acc
-    go (x:xs) = f x (go xs)
+foldr :: forall a b. (a -> b -> b) -> b -> [a] -> b
+foldr f acc = go
+  where
+    go :: [a] -> b
+    go = \case
+        []   -> acc
+        x:xs -> f x (go xs)
 
 {-# INLINABLE foldl #-}
 -- | Plutus Tx velsion of 'Data.List.foldl'.
@@ -135,10 +144,13 @@ foldr f acc = go where
 --   >>> foldl (\s i -> s + i) 0 [1, 2, 3, 4]
 --   10
 --
-foldl :: (b -> a -> b) -> b -> [a] -> b
-foldl f = go where
-    go acc []     = acc
-    go acc (x:xs) = go (f acc x) xs
+foldl :: forall a b. (b -> a -> b) -> b -> [a] -> b
+foldl f = go
+  where
+    go :: b -> [a] -> b
+    go acc = \case
+        []   -> acc
+        x:xs -> go (f acc x) xs
 
 {-# INLINABLE (++) #-}
 -- | Plutus Tx version of '(Data.List.++)'.
@@ -196,12 +208,16 @@ findIndex f = go 0
 --   12
 --
 infixl 9 !!
-(!!) :: [a] -> Integer -> a
-_        !! n | n < 0 = traceError negativeIndexError
-[]       !! _ = traceError indexTooLargeError
-(x : xs) !! i = if Builtins.equalsInteger i 0
-    then x
-    else xs !! Builtins.subtractInteger i 1
+(!!) :: forall a. [a] -> Integer -> a
+_   !! n0 | n0 < 0 = traceError negativeIndexError
+xs0 !! n0 = go n0 xs0
+  where
+    go :: Integer -> [a] -> a
+    go _ []       = traceError indexTooLargeError
+    go n (x : xs) =
+        if Builtins.equalsInteger n 0
+            then x
+            else go (Builtins.subtractInteger n 1) xs
 
 {-# INLINABLE reverse #-}
 -- | Plutus Tx version of 'Data.List.reverse'.
@@ -233,17 +249,25 @@ tail []     =  traceError tailEmptyListError
 
 {-# INLINABLE take #-}
 -- | Plutus Tx version of 'Data.List.take'.
-take :: Integer -> [a] -> [a]
-take n _      | n <= 0 =  []
-take _ []              =  []
-take n (x:xs)          =  x : take (Builtins.subtractInteger n 1) xs
+take :: forall a. Integer -> [a] -> [a]
+take n0 _   | n0 <= 0 = []
+take n0 xs0 = go n0 xs0
+  where
+    go :: Integer -> [a] -> [a]
+    go _ []       = []
+    go n (x : xs) =
+        x : if n == 1 then [] else go (Builtins.subtractInteger n 1) xs
 
 {-# INLINABLE drop #-}
 -- | Plutus Tx version of 'Data.List.drop'.
-drop :: Integer -> [a] -> [a]
-drop n xs     | n <= 0 = xs
-drop _ []              = []
-drop n (_:xs)          = drop (Builtins.subtractInteger n 1) xs
+drop :: forall a. Integer -> [a] -> [a]
+drop n0 xs0 | n0 <= 0 = xs0
+drop n0 xs0 = go n0 xs0
+  where
+    go :: Integer -> [a] -> [a]
+    go _ []       = []
+    go n (_ : xs) =
+        if n == 1 then xs else go (Builtins.subtractInteger n 1) xs
 
 {-# INLINABLE splitAt #-}
 -- | Plutus Tx version of 'Data.List.splitAt'.
@@ -262,13 +286,16 @@ splitAt n xs
 {-# INLINABLE nub #-}
 -- | Plutus Tx version of 'Data.List.nub'.
 nub :: (Eq a) => [a] -> [a]
-nub =  nubBy (==)
+nub = nubBy (==)
 
 {-# INLINABLE elemBy #-}
 -- | Plutus Tx version of 'Data.List.elemBy'.
-elemBy :: (a -> a -> Bool) -> a -> [a] -> Bool
-elemBy _  _ []     =  False
-elemBy eq y (x:xs) =  x `eq` y || elemBy eq y xs
+elemBy :: forall a. (a -> a -> Bool) -> a -> [a] -> Bool
+elemBy eq y = go
+  where
+    go :: [a] -> Bool
+    go []     = False
+    go (x:xs) =  x `eq` y || go xs
 
 {-# INLINABLE nubBy #-}
 -- | Plutus Tx version of 'Data.List.nubBy'.
@@ -282,28 +309,33 @@ nubBy eq l = nubBy' l []
 
 {-# INLINABLE zipWith #-}
 -- | Plutus Tx version of 'Data.List.zipWith'.
-zipWith :: (a -> b -> c) -> [a] -> [b] -> [c]
+zipWith :: forall a b c. (a -> b -> c) -> [a] -> [b] -> [c]
 zipWith f = go
   where
+    go :: [a] -> [b] -> [c]
     go [] _          = []
     go _ []          = []
     go (x:xs) (y:ys) = f x y : go xs ys
 
 {-# INLINABLE dropWhile #-}
 -- | Plutus Tx version of 'Data.List.dropWhile'.
-dropWhile :: (a -> Bool) -> [a] -> [a]
-dropWhile _ []          =  []
-dropWhile p xs@(x:xs')
-    | p x       =  dropWhile p xs'
-    | otherwise =  xs
+dropWhile :: forall a. (a -> Bool) -> [a] -> [a]
+dropWhile p = go
+  where
+    go :: [a] -> [a]
+    go []          =  []
+    go xs@(x:xs')
+        | p x       = go xs'
+        | otherwise = xs
 
 {-# INLINABLE replicate #-}
 -- | Plutus Tx version of 'Data.List.replicate'.
-replicate :: Integer -> a -> [a]
-replicate n0 _ | n0 < 0 = []
-replicate n0 x          = go n0 where
-    go n | n == 0 = []
-    go n          = x : go (Builtins.subtractInteger n 1)
+replicate :: forall a. Integer -> a -> [a]
+replicate n0 _ | n0 <= 0 = []
+replicate n0 x           = go n0
+  where
+    go :: Integer -> [a]
+    go n = x : if n == 1 then [] else go (Builtins.subtractInteger n 1)
 
 {-# INLINABLE partition #-}
 -- | Plutus Tx version of 'Data.List.partition'.

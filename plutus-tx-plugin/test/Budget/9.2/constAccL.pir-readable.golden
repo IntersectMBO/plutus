@@ -22,18 +22,21 @@ in
 letrec
   !go : integer -> List integer
     = \(n : integer) ->
-        Bool_match
-          (ifThenElse {Bool} (equalsInteger 0 n) True False)
-          {all dead. List integer}
-          (/\dead -> Nil {integer})
-          (/\dead -> Cons {integer} 1 (go (subtractInteger n 1)))
-          {all dead. dead}
+        Cons
+          {integer}
+          1
+          (Bool_match
+             (ifThenElse {Bool} (equalsInteger 1 n) True False)
+             {all dead. List integer}
+             (/\dead -> Nil {integer})
+             (/\dead -> go (subtractInteger n 1))
+             {all dead. dead})
 in
 let
   !n : integer = 1000
   !ls : List integer
     = Bool_match
-        (ifThenElse {Bool} (lessThanInteger n 0) True False)
+        (ifThenElse {Bool} (lessThanEqualsInteger n 0) True False)
         {all dead. List integer}
         (/\dead -> Nil {integer})
         (/\dead -> go n)

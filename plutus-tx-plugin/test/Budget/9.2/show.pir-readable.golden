@@ -297,6 +297,17 @@ letrec
             {all dead. dead}
 in
 letrec
+  !go : List string -> integer
+    = \(ds : List string) ->
+        Nil_match
+          {string}
+          ds
+          {all dead. integer}
+          (/\dead -> 0)
+          (\(x : string) (xs : List string) -> /\dead -> addInteger 1 (go xs))
+          {all dead. dead}
+in
+letrec
   !concatBuiltinStrings : List string -> string
     = \(ds : List string) ->
         Nil_match
@@ -324,30 +335,7 @@ letrec
                               (let
                                 !eta : List string = ds
                               in
-                              (let
-                                  b = integer -> integer
-                                in
-                                \(f : string -> b -> b) (z : b) ->
-                                  letrec
-                                    !go : List string -> b
-                                      = \(ds : List string) ->
-                                          Nil_match
-                                            {string}
-                                            ds
-                                            {all dead. b}
-                                            (/\dead -> z)
-                                            (\(x : string) (xs : List string) ->
-                                               /\dead -> f x (go xs))
-                                            {all dead. dead}
-                                  in
-                                  \(eta : List string) -> go eta)
-                                (\(a : string)
-                                  (g : integer -> integer)
-                                  (b : integer) ->
-                                   g (addInteger 1 b))
-                                (\(x : integer) -> x)
-                                eta
-                                0)
+                              go eta)
                               2
                         !xs : List string = ds
                       in
