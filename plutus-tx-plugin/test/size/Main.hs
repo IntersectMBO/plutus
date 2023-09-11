@@ -34,7 +34,7 @@ main = defaultMain . testGroup "Size regression tests" $ [
       runTestNested $ goldenSize "plus" ratPlus,
       runTestNested $ goldenSize "zero" ratZero,
       runTestNested $ goldenSize "minus" ratMinus,
-      runTestNested $ goldenSize "negate (specialized)" ratNegate
+      runTestNested $ goldenSize "negate-specialized" ratNegate
       ],
     testGroup "Multiplicative" [
       runTestNested $ goldenSize "times" ratTimes,
