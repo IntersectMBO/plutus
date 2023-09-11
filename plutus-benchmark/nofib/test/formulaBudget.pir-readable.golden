@@ -44,19 +44,17 @@
           {integer}
           equalsInteger
           (\(eta : integer) (eta : integer) ->
-             let
-               !b : bool = equalsInteger eta eta
-             in
              Bool_match
-               (ifThenElse {Bool} b True False)
+               (ifThenElse {Bool} (equalsInteger eta eta) True False)
                {all dead. Ordering}
                (/\dead -> EQ)
                (/\dead ->
-                  let
-                    !b : bool = lessThanEqualsInteger eta eta
-                  in
                   Bool_match
-                    (ifThenElse {Bool} b True False)
+                    (ifThenElse
+                       {Bool}
+                       (lessThanEqualsInteger eta eta)
+                       True
+                       False)
                     {all dead. Ordering}
                     (/\dead -> LT)
                     (/\dead -> GT)
@@ -71,21 +69,15 @@
           (\(x : integer) (y : integer) ->
              ifThenElse {Bool} (lessThanInteger x y) False True)
           (\(x : integer) (y : integer) ->
-             let
-               !b : bool = lessThanEqualsInteger x y
-             in
              Bool_match
-               (ifThenElse {Bool} b True False)
+               (ifThenElse {Bool} (lessThanEqualsInteger x y) True False)
                {all dead. integer}
                (/\dead -> y)
                (/\dead -> x)
                {all dead. dead})
           (\(x : integer) (y : integer) ->
-             let
-               !b : bool = lessThanEqualsInteger x y
-             in
              Bool_match
-               (ifThenElse {Bool} b True False)
+               (ifThenElse {Bool} (lessThanEqualsInteger x y) True False)
                {all dead. integer}
                (/\dead -> x)
                (/\dead -> y)
@@ -745,10 +737,9 @@
             {Formula}
             (\(p : Formula) (q : Formula) ->
                let
-                 !dt : Formula = disin p
                  !dt : Formula = disin q
                in
-               Con dt dt)
+               Con (disin p) dt)
             (\(p : Formula) (ds : Formula) ->
                let
                  ~defaultBody : Formula
@@ -802,10 +793,9 @@
                        {Formula}
                        (\(p : Formula) (q : Formula) ->
                           let
-                            !dt : Formula = disin (Dis p ds)
                             !dt : Formula = disin (Dis q ds)
                           in
-                          Con dt dt)
+                          Con (disin (Dis p ds)) dt)
                        (\(default_arg0 : Formula) (default_arg1 : Formula) ->
                           defaultBody)
                        (\(default_arg0 : Formula) (default_arg1 : Formula) ->
@@ -820,10 +810,9 @@
                  {Formula}
                  (\(q : Formula) (r : Formula) ->
                     let
-                      !dt : Formula = disin (Dis p q)
                       !dt : Formula = disin (Dis p r)
                     in
-                    Con dt dt)
+                    Con (disin (Dis p q)) dt)
                  (\(default_arg0 : Formula) (default_arg1 : Formula) ->
                     defaultBody)
                  (\(default_arg0 : Formula) (default_arg1 : Formula) ->
@@ -845,29 +834,25 @@
             {Formula}
             (\(p : Formula) (q : Formula) ->
                let
-                 !dt : Formula = elim p
                  !dt : Formula = elim q
                in
-               Con dt dt)
+               Con (elim p) dt)
             (\(p : Formula) (q : Formula) ->
                let
-                 !dt : Formula = elim p
                  !dt : Formula = elim q
                in
-               Dis dt dt)
+               Dis (elim p) dt)
             (\(f : Formula) (f' : Formula) ->
                let
-                 !dt : Formula = elim (Imp f f')
                  !dt : Formula = elim (Imp f' f)
                in
-               Con dt dt)
+               Con (elim (Imp f f')) dt)
             (\(p : Formula) (q : Formula) ->
                let
-                 !dt : Formula = let !dt : Formula = elim p in Not dt
                  !dt : Formula = elim q
                in
-               Dis dt dt)
-            (\(p : Formula) -> let !dt : Formula = elim p in Not dt)
+               Dis (Not (elim p)) dt)
+            (\(p : Formula) -> Not (elim p))
             (\(s : integer) -> Sym s)
   in
   letrec
@@ -878,16 +863,14 @@
             {Formula}
             (\(p : Formula) (q : Formula) ->
                let
-                 !dt : Formula = negin p
                  !dt : Formula = negin q
                in
-               Con dt dt)
+               Con (negin p) dt)
             (\(p : Formula) (q : Formula) ->
                let
-                 !dt : Formula = negin p
                  !dt : Formula = negin q
                in
-               Dis dt dt)
+               Dis (negin p) dt)
             (\(default_arg0 : Formula) (default_arg1 : Formula) -> ds)
             (\(default_arg0 : Formula) (default_arg1 : Formula) -> ds)
             (\(ds : Formula) ->
@@ -896,16 +879,14 @@
                  {Formula}
                  (\(p : Formula) (q : Formula) ->
                     let
-                      !dt : Formula = negin (Not p)
                       !dt : Formula = negin (Not q)
                     in
-                    Dis dt dt)
+                    Dis (negin (Not p)) dt)
                  (\(p : Formula) (q : Formula) ->
                     let
-                      !dt : Formula = negin (Not p)
                       !dt : Formula = negin (Not q)
                     in
-                    Con dt dt)
+                    Con (negin (Not p)) dt)
                  (\(default_arg0 : Formula) (default_arg1 : Formula) -> ds)
                  (\(default_arg0 : Formula) (default_arg1 : Formula) -> ds)
                  (\(p : Formula) -> negin p)
@@ -914,246 +895,216 @@
   in
   \(eta : StaticFormula) ->
     let
-      !eta : Formula
-        = StaticFormula_match
-            eta
-            {all dead. Formula}
-            (/\dead ->
-               let
-                 !dt : Formula
-                   = let
-                     !dt : Formula = Sym 1
-                     !dt : Formula = Sym 1
-                   in
-                   Eqv dt dt
-                 !dt : Formula
-                   = let
-                     !dt : Formula
-                       = let
-                         !dt : Formula = Sym 1
-                         !dt : Formula = Sym 1
-                       in
-                       Eqv dt dt
-                     !dt : Formula
-                       = let
-                         !dt : Formula = Sym 1
-                         !dt : Formula = Sym 1
-                       in
-                       Eqv dt dt
-                   in
-                   Eqv dt dt
-               in
-               Eqv dt dt)
-            (/\dead ->
-               let
-                 !dt : Formula
-                   = let
-                     !dt : Formula = Sym 1
-                     !dt : Formula
-                       = let
-                         !dt : Formula = Sym 1
-                         !dt : Formula = Sym 1
-                       in
-                       Eqv dt dt
-                   in
-                   Eqv dt dt
-                 !dt : Formula
-                   = let
-                     !dt : Formula = Sym 1
-                     !dt : Formula
-                       = let
-                         !dt : Formula = Sym 1
-                         !dt : Formula = Sym 1
-                       in
-                       Eqv dt dt
-                   in
-                   Eqv dt dt
-               in
-               Eqv dt dt)
-            (/\dead ->
-               let
-                 !dt : Formula
-                   = let
-                     !dt : Formula = Sym 1
-                     !dt : Formula
-                       = let
-                         !dt : Formula = Sym 1
-                         !dt : Formula = Sym 1
-                       in
-                       Eqv dt dt
-                   in
-                   Eqv dt dt
-                 !dt : Formula
-                   = let
-                     !dt : Formula
-                       = let
-                         !dt : Formula = Sym 1
-                         !dt : Formula = Sym 1
-                       in
-                       Eqv dt dt
-                     !dt : Formula
-                       = let
-                         !dt : Formula = Sym 1
-                         !dt : Formula = Sym 1
-                       in
-                       Eqv dt dt
-                   in
-                   Eqv dt dt
-               in
-               Eqv dt dt)
-            (/\dead ->
-               let
-                 !dt : Formula
-                   = let
-                     !dt : Formula = Sym 1
-                     !dt : Formula
-                       = let
-                         !dt : Formula = Sym 2
-                         !dt : Formula = Sym 3
-                       in
-                       Eqv dt dt
-                   in
-                   Eqv dt dt
-                 !dt : Formula
-                   = let
-                     !dt : Formula
-                       = let
-                         !dt : Formula = Sym 4
-                         !dt : Formula = Sym 5
-                       in
-                       Eqv dt dt
-                     !dt : Formula
-                       = let
-                         !dt : Formula = Sym 6
-                         !dt : Formula = Sym 7
-                       in
-                       Eqv dt dt
-                   in
-                   Eqv dt dt
-               in
-               Eqv dt dt)
-            (/\dead ->
-               let
-                 !dt : Formula
-                   = let
-                     !dt : Formula = Sym 1
-                     !dt : Formula
-                       = let
-                         !dt : Formula = Sym 1
-                         !dt : Formula = Sym 1
-                       in
-                       Eqv dt dt
-                   in
-                   Eqv dt dt
-                 !dt : Formula
-                   = let
-                     !dt : Formula
-                       = let
-                         !dt : Formula = Sym 1
-                         !dt : Formula
-                           = let
-                             !dt : Formula = Sym 1
-                             !dt : Formula = Sym 1
-                           in
-                           Eqv dt dt
-                       in
-                       Eqv dt dt
-                     !dt : Formula
-                       = let
-                         !dt : Formula = Sym 1
-                         !dt : Formula = Sym 1
-                       in
-                       Eqv dt dt
-                   in
-                   Eqv dt dt
-               in
-               Eqv dt dt)
-            (/\dead ->
-               let
-                 !dt : Formula
-                   = let
-                     !dt : Formula = Sym 1
-                     !dt : Formula
-                       = let
-                         !dt : Formula = Sym 1
-                         !dt : Formula = Sym 1
-                       in
-                       Eqv dt dt
-                   in
-                   Eqv dt dt
-                 !dt : Formula
-                   = let
-                     !dt : Formula
-                       = let
-                         !dt : Formula = Sym 1
-                         !dt : Formula
-                           = let
-                             !dt : Formula = Sym 1
-                             !dt : Formula = Sym 1
-                           in
-                           Eqv dt dt
-                       in
-                       Eqv dt dt
-                     !dt : Formula
-                       = let
-                         !dt : Formula = Sym 1
-                         !dt : Formula
-                           = let
-                             !dt : Formula = Sym 1
-                             !dt : Formula = Sym 1
-                           in
-                           Eqv dt dt
-                       in
-                       Eqv dt dt
-                   in
-                   Eqv dt dt
-               in
-               Eqv dt dt)
-            (/\dead ->
-               let
-                 !dt : Formula
-                   = let
-                     !dt : Formula = Sym 1
-                     !dt : Formula
-                       = let
-                         !dt : Formula = Sym 2
-                         !dt : Formula = Sym 3
-                       in
-                       Eqv dt dt
-                   in
-                   Eqv dt dt
-                 !dt : Formula
-                   = let
-                     !dt : Formula
-                       = let
-                         !dt : Formula = Sym 4
-                         !dt : Formula
-                           = let
-                             !dt : Formula = Sym 5
-                             !dt : Formula = Sym 6
-                           in
-                           Eqv dt dt
-                       in
-                       Eqv dt dt
-                     !dt : Formula
-                       = let
-                         !dt : Formula = Sym 7
-                         !dt : Formula
-                           = let
-                             !dt : Formula = Sym 8
-                             !dt : Formula = Sym 9
-                           in
-                           Eqv dt dt
-                       in
-                       Eqv dt dt
-                   in
-                   Eqv dt dt
-               in
-               Eqv dt dt)
-            {all dead. dead}
       !a : List Formula
         = let
-          !p : Formula = disin (negin (elim eta))
+          !p : Formula
+            = disin
+                (negin
+                   (elim
+                      (StaticFormula_match
+                         eta
+                         {all dead. Formula}
+                         (/\dead ->
+                            let
+                              !dt : Formula
+                                = let
+                                  !dt : Formula
+                                    = let
+                                      !dt : Formula = Sym 1
+                                    in
+                                    Eqv (Sym 1) dt
+                                in
+                                Eqv
+                                  (let
+                                    !dt : Formula = Sym 1
+                                  in
+                                  Eqv (Sym 1) dt)
+                                  dt
+                            in
+                            Eqv
+                              (let
+                                !dt : Formula = Sym 1
+                              in
+                              Eqv (Sym 1) dt)
+                              dt)
+                         (/\dead ->
+                            let
+                              !dt : Formula
+                                = let
+                                  !dt : Formula
+                                    = let
+                                      !dt : Formula = Sym 1
+                                    in
+                                    Eqv (Sym 1) dt
+                                in
+                                Eqv (Sym 1) dt
+                            in
+                            Eqv
+                              (let
+                                !dt : Formula
+                                  = let
+                                    !dt : Formula = Sym 1
+                                  in
+                                  Eqv (Sym 1) dt
+                              in
+                              Eqv (Sym 1) dt)
+                              dt)
+                         (/\dead ->
+                            let
+                              !dt : Formula
+                                = let
+                                  !dt : Formula
+                                    = let
+                                      !dt : Formula = Sym 1
+                                    in
+                                    Eqv (Sym 1) dt
+                                in
+                                Eqv
+                                  (let
+                                    !dt : Formula = Sym 1
+                                  in
+                                  Eqv (Sym 1) dt)
+                                  dt
+                            in
+                            Eqv
+                              (let
+                                !dt : Formula
+                                  = let
+                                    !dt : Formula = Sym 1
+                                  in
+                                  Eqv (Sym 1) dt
+                              in
+                              Eqv (Sym 1) dt)
+                              dt)
+                         (/\dead ->
+                            let
+                              !dt : Formula
+                                = let
+                                  !dt : Formula
+                                    = let
+                                      !dt : Formula = Sym 7
+                                    in
+                                    Eqv (Sym 6) dt
+                                in
+                                Eqv
+                                  (let
+                                    !dt : Formula = Sym 5
+                                  in
+                                  Eqv (Sym 4) dt)
+                                  dt
+                            in
+                            Eqv
+                              (let
+                                !dt : Formula
+                                  = let
+                                    !dt : Formula = Sym 3
+                                  in
+                                  Eqv (Sym 2) dt
+                              in
+                              Eqv (Sym 1) dt)
+                              dt)
+                         (/\dead ->
+                            let
+                              !dt : Formula
+                                = let
+                                  !dt : Formula
+                                    = let
+                                      !dt : Formula = Sym 1
+                                    in
+                                    Eqv (Sym 1) dt
+                                in
+                                Eqv
+                                  (let
+                                    !dt : Formula
+                                      = let
+                                        !dt : Formula = Sym 1
+                                      in
+                                      Eqv (Sym 1) dt
+                                  in
+                                  Eqv (Sym 1) dt)
+                                  dt
+                            in
+                            Eqv
+                              (let
+                                !dt : Formula
+                                  = let
+                                    !dt : Formula = Sym 1
+                                  in
+                                  Eqv (Sym 1) dt
+                              in
+                              Eqv (Sym 1) dt)
+                              dt)
+                         (/\dead ->
+                            let
+                              !dt : Formula
+                                = let
+                                  !dt : Formula
+                                    = let
+                                      !dt : Formula
+                                        = let
+                                          !dt : Formula = Sym 1
+                                        in
+                                        Eqv (Sym 1) dt
+                                    in
+                                    Eqv (Sym 1) dt
+                                in
+                                Eqv
+                                  (let
+                                    !dt : Formula
+                                      = let
+                                        !dt : Formula = Sym 1
+                                      in
+                                      Eqv (Sym 1) dt
+                                  in
+                                  Eqv (Sym 1) dt)
+                                  dt
+                            in
+                            Eqv
+                              (let
+                                !dt : Formula
+                                  = let
+                                    !dt : Formula = Sym 1
+                                  in
+                                  Eqv (Sym 1) dt
+                              in
+                              Eqv (Sym 1) dt)
+                              dt)
+                         (/\dead ->
+                            let
+                              !dt : Formula
+                                = let
+                                  !dt : Formula
+                                    = let
+                                      !dt : Formula
+                                        = let
+                                          !dt : Formula = Sym 9
+                                        in
+                                        Eqv (Sym 8) dt
+                                    in
+                                    Eqv (Sym 7) dt
+                                in
+                                Eqv
+                                  (let
+                                    !dt : Formula
+                                      = let
+                                        !dt : Formula = Sym 6
+                                      in
+                                      Eqv (Sym 5) dt
+                                  in
+                                  Eqv (Sym 4) dt)
+                                  dt
+                            in
+                            Eqv
+                              (let
+                                !dt : Formula
+                                  = let
+                                    !dt : Formula = Sym 3
+                                  in
+                                  Eqv (Sym 2) dt
+                              in
+                              Eqv (Sym 1) dt)
+                              dt)
+                         {all dead. dead})))
         in
         split' p (Nil {Formula})
     in

@@ -1,0 +1,6 @@
+pure work-free: (\(x : integer) -> x)
+pure work-free: (\(y : integer) -> y)
+pure maybe work?: a
+pure maybe work?: b
+pure maybe work?: (a b)
+<unknown>

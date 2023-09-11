@@ -463,6 +463,7 @@ library plutus-ir
   visibility:      public
   exposed-modules:
     PlutusIR
+    PlutusIR.Analysis.Dependencies
     PlutusIR.Analysis.RetainedSize
     PlutusIR.Check.Uniques
     PlutusIR.Compiler
@@ -510,7 +511,6 @@ library plutus-ir
   hs-source-dirs:  plutus-ir/src
   other-modules:
     PlutusIR.Analysis.Definitions
-    PlutusIR.Analysis.Dependencies
     PlutusIR.Analysis.Size
     PlutusIR.Analysis.Usages
     PlutusIR.Compiler.Error
@@ -524,6 +524,7 @@ library plutus-ir
     , algebraic-graphs     >=0.7
     , base                 >=4.9     && <5
     , containers
+    , dlist
     , dom-lt
     , extra
     , flat                 ^>=0.6
@@ -557,6 +558,7 @@ test-suite plutus-ir-test
   main-is:        Spec.hs
   hs-source-dirs: plutus-ir/test
   other-modules:
+    AnalysisSpec
     Check.Spec
     GeneratorSpec
     GeneratorSpec.Builtin
@@ -569,6 +571,7 @@ test-suite plutus-ir-test
     TypeSpec
 
   build-depends:
+    , algebraic-graphs
     , base                                                       >=4.9   && <5
     , containers
     , flat                                                       ^>=0.6

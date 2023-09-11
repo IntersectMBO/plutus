@@ -37,9 +37,9 @@ let
           {List data}
           (fstPair {integer} {list data} p)
           (let
-            !eta : list data = sndPair {integer} {list data} p
+            !a : list data = sndPair {integer} {list data} p
           in
-          go eta)
+          go a)
 in
 \(ds : (\a -> data) integer) ->
   let

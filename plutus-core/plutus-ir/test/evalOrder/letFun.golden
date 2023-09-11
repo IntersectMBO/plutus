@@ -1,0 +1,5 @@
+pure work-free: (addInteger)
+pure maybe work?: f
+pure work-free: 1
+pure maybe work?: (f 1)
+<unknown>

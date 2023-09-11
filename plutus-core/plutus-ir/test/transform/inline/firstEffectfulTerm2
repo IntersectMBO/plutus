@@ -1,17 +1,19 @@
 -- `a` should not be inlined since it changes the semantics of the program.
+-- However, `b` _can_ be inlined: `a` is already evaluated by then, and after
+-- that `b` is the first variable to be evaluated.
 (let
   (nonrec)
   (termbind
     (strict)
     (vardecl a (fun (con integer) (con integer)))
-    { error (fun (con integer) (con integer)) }
+    (error (fun (con integer) (con integer)) )
   )
   (let
     (nonrec)
     (termbind
       (strict)
       (vardecl b (con integer))
-      [ (lam x (con integer) x) { error (con integer) } ]
+      [ (lam x (con integer) x) (error (con integer)) ]
     )
     [ a b ]
   )

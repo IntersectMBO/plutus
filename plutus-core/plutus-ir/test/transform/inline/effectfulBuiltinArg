@@ -1,0 +1,12 @@
+-- x should not be inlined, because the `trace "msg1"` call comes before
+-- the use of x, so it is not evaluated first
+(let
+  (nonrec)
+  (termbind
+    (strict)
+    (vardecl x (con integer))
+    [ (builtin trace) (con string "msg2") (con integer 1) ]
+  )
+  [ {(builtin ifThenElse) (con integer) }  [ (builtin equalsInteger) [(builtin trace) (con string "msg1") (con integer 0)] x] (con integer 9) (con integer 10) ]
+)
+

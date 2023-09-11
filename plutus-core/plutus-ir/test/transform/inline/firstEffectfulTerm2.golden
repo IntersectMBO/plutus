@@ -3,15 +3,7 @@
   (termbind
     (strict)
     (vardecl a (fun (con integer) (con integer)))
-    { error (fun (con integer) (con integer)) }
+    (error (fun (con integer) (con integer)))
   )
-  (let
-    (nonrec)
-    (termbind
-      (strict)
-      (vardecl b (con integer))
-      [ (lam x (con integer) x) { error (con integer) } ]
-    )
-    [ a b ]
-  )
+  [ a [ (lam x (con integer) x) (error (con integer)) ] ]
 )

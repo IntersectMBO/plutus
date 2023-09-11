@@ -24,14 +24,6 @@
                     )
                   )
                   [
-                    (lam
-                      stupidZero_i0
-                      (fun Nat_i5 Nat_i5)
-                      [
-                        (lam three_i0 Nat_i6 [ stupidZero_i2 three_i1 ])
-                        [ Suc_i3 [ Suc_i3 [ Suc_i3 Zero_i4 ] ] ]
-                      ]
-                    )
                     [
                       (lam
                         s_i0
@@ -94,6 +86,7 @@
                         )
                       )
                     ]
+                    [ Suc_i2 [ Suc_i2 [ Suc_i2 Zero_i3 ] ] ]
                   ]
                 )
               )

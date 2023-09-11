@@ -148,21 +148,17 @@
             {unit -> Credential}
             (equalsInteger 1 index)
             (\(ds : unit) ->
-               let
-                 !arg : data
-                   = headList {data} (sndPair {integer} {list data} tup)
-               in
-               ScriptCredential (unBData arg))
+               ScriptCredential
+                 (unBData
+                    (headList {data} (sndPair {integer} {list data} tup))))
             (\(ds : unit) ->
                ifThenElse
                  {unit -> Credential}
                  (equalsInteger 0 index)
                  (\(ds : unit) ->
-                    let
-                      !arg : data
-                        = headList {data} (sndPair {integer} {list data} tup)
-                    in
-                    PubKeyCredential (unBData arg))
+                    PubKeyCredential
+                      (unBData
+                         (headList {data} (sndPair {integer} {list data} tup))))
                  (\(ds : unit) ->
                     let
                       !x : Unit = trace {Unit} reconstructCaseError Unit
@@ -194,15 +190,11 @@
                       {unit -> DRep}
                       (equalsInteger 0 index)
                       (\(ds : unit) ->
-                         let
-                           !arg : data
-                             = headList
-                                 {data}
-                                 (sndPair {integer} {list data} tup)
-                         in
                          DRep
                            (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                              arg))
+                              (headList
+                                 {data}
+                                 (sndPair {integer} {list data} tup))))
                       (\(ds : unit) ->
                          let
                            !x : Unit = trace {Unit} reconstructCaseError Unit
@@ -238,24 +230,19 @@
                  {unit -> Delegatee}
                  (equalsInteger 1 index)
                  (\(ds : unit) ->
-                    let
-                      !arg : data
-                        = headList {data} (sndPair {integer} {list data} tup)
-                    in
                     DelegVote
-                      (`$fUnsafeFromDataDRep_$cunsafeFromBuiltinData` arg))
+                      (`$fUnsafeFromDataDRep_$cunsafeFromBuiltinData`
+                         (headList {data} (sndPair {integer} {list data} tup))))
                  (\(ds : unit) ->
                     ifThenElse
                       {unit -> Delegatee}
                       (equalsInteger 0 index)
                       (\(ds : unit) ->
-                         let
-                           !arg : data
-                             = headList
+                         DelegStake
+                           (unBData
+                              (headList
                                  {data}
-                                 (sndPair {integer} {list data} tup)
-                         in
-                         DelegStake (unBData arg))
+                                 (sndPair {integer} {list data} tup))))
                       (\(ds : unit) ->
                          let
                            !x : Unit = trace {Unit} reconstructCaseError Unit
@@ -331,14 +318,8 @@
                            (Tuple2
                               {k}
                               {v}
-                              (let
-                                !a : data = fstPair {data} {data} tup
-                              in
-                              `$dUnsafeFromData` a)
-                              (let
-                                !a : data = sndPair {data} {data} tup
-                              in
-                              `$dUnsafeFromData` a))
+                              (`$dUnsafeFromData` (fstPair {data} {data} tup))
+                              (`$dUnsafeFromData` (sndPair {data} {data} tup)))
                            (go (tailList {pair data data} l)))
                       Unit
             in
@@ -409,12 +390,9 @@
             {unit -> TxCert}
             (equalsInteger 8 index)
             (\(ds : unit) ->
-               let
-                 !arg : data
-                   = headList {data} (sndPair {integer} {list data} tup)
-               in
                TxCertResignColdCommittee
-                 (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData` arg))
+                 (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
+                    (headList {data} (sndPair {integer} {list data} tup))))
             (\(ds : unit) ->
                ifThenElse
                  {unit -> TxCert}
@@ -453,15 +431,11 @@
                            {unit -> TxCert}
                            (equalsInteger 5 index)
                            (\(ds : unit) ->
-                              let
-                                !arg : data
-                                  = headList
-                                      {data}
-                                      (sndPair {integer} {list data} tup)
-                              in
                               TxCertUpdateDRep
                                 (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                                   arg))
+                                   (headList
+                                      {data}
+                                      (sndPair {integer} {list data} tup))))
                            (\(ds : unit) ->
                               ifThenElse
                                 {unit -> TxCert}
@@ -637,37 +611,27 @@
             {unit -> Voter}
             (equalsInteger 2 index)
             (\(ds : unit) ->
-               let
-                 !arg : data
-                   = headList {data} (sndPair {integer} {list data} tup)
-               in
-               StakePoolVoter (unBData arg))
+               StakePoolVoter
+                 (unBData
+                    (headList {data} (sndPair {integer} {list data} tup))))
             (\(ds : unit) ->
                ifThenElse
                  {unit -> Voter}
                  (equalsInteger 1 index)
                  (\(ds : unit) ->
-                    let
-                      !arg : data
-                        = headList {data} (sndPair {integer} {list data} tup)
-                    in
                     DRepVoter
                       (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                         arg))
+                         (headList {data} (sndPair {integer} {list data} tup))))
                  (\(ds : unit) ->
                     ifThenElse
                       {unit -> Voter}
                       (equalsInteger 0 index)
                       (\(ds : unit) ->
-                         let
-                           !arg : data
-                             = headList
-                                 {data}
-                                 (sndPair {integer} {list data} tup)
-                         in
                          CommitteeVoter
                            (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                              arg))
+                              (headList
+                                 {data}
+                                 (sndPair {integer} {list data} tup))))
                       (\(ds : unit) ->
                          let
                            !x : Unit = trace {Unit} reconstructCaseError Unit
@@ -694,11 +658,9 @@
             {unit -> ScriptPurpose}
             (equalsInteger 5 index)
             (\(ds : unit) ->
-               let
-                 !arg : data
-                   = headList {data} (sndPair {integer} {list data} tup)
-               in
-               Proposing (unIData arg))
+               Proposing
+                 (unIData
+                    (headList {data} (sndPair {integer} {list data} tup))))
             (\(ds : unit) ->
                ifThenElse
                  {unit -> ScriptPurpose}
@@ -719,58 +681,47 @@
                       {unit -> ScriptPurpose}
                       (equalsInteger 3 index)
                       (\(ds : unit) ->
-                         let
-                           !arg : data
-                             = headList
-                                 {data}
-                                 (sndPair {integer} {list data} tup)
-                         in
                          Certifying
                            (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
-                              arg))
+                              (headList
+                                 {data}
+                                 (sndPair {integer} {list data} tup))))
                       (\(ds : unit) ->
                          ifThenElse
                            {unit -> ScriptPurpose}
                            (equalsInteger 2 index)
                            (\(ds : unit) ->
-                              let
-                                !arg : data
-                                  = headList
-                                      {data}
-                                      (sndPair {integer} {list data} tup)
-                              in
                               Rewarding
                                 (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                                   arg))
+                                   (headList
+                                      {data}
+                                      (sndPair {integer} {list data} tup))))
                            (\(ds : unit) ->
                               ifThenElse
                                 {unit -> ScriptPurpose}
                                 (equalsInteger 1 index)
                                 (\(ds : unit) ->
-                                   let
-                                     !arg : data
-                                       = headList
-                                           {data}
-                                           (sndPair {integer} {list data} tup)
-                                   in
                                    Spending
                                      (`$fUnsafeFromDataTxOutRef_$cunsafeFromBuiltinData`
-                                        arg))
+                                        (headList
+                                           {data}
+                                           (sndPair
+                                              {integer}
+                                              {list data}
+                                              tup))))
                                 (\(ds : unit) ->
                                    ifThenElse
                                      {unit -> ScriptPurpose}
                                      (equalsInteger 0 index)
                                      (\(ds : unit) ->
-                                        let
-                                          !arg : data
-                                            = headList
+                                        Minting
+                                          (unBData
+                                             (headList
                                                 {data}
                                                 (sndPair
                                                    {integer}
                                                    {list data}
-                                                   tup)
-                                        in
-                                        Minting (unBData arg))
+                                                   tup))))
                                      (\(ds : unit) ->
                                         let
                                           !x : Unit
@@ -869,18 +820,14 @@
                                      {unit -> StakingCredential}
                                      (equalsInteger 0 index)
                                      (\(ds : unit) ->
-                                        let
-                                          !arg : data
-                                            = headList
+                                        StakingHash
+                                          (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
+                                             (headList
                                                 {data}
                                                 (sndPair
                                                    {integer}
                                                    {list data}
-                                                   tup)
-                                        in
-                                        StakingHash
-                                          (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                                             arg))
+                                                   tup))))
                                      (\(ds : unit) ->
                                         let
                                           !x : Unit
@@ -913,23 +860,18 @@
                    {unit -> OutputDatum}
                    (equalsInteger 2 index)
                    (\(ds : unit) ->
-                      let
-                        !arg : data
-                          = headList {data} (sndPair {integer} {list data} tup)
-                      in
-                      OutputDatum arg)
+                      OutputDatum
+                        (headList {data} (sndPair {integer} {list data} tup)))
                    (\(ds : unit) ->
                       ifThenElse
                         {unit -> OutputDatum}
                         (equalsInteger 1 index)
                         (\(ds : unit) ->
-                           let
-                             !arg : data
-                               = headList
+                           OutputDatumHash
+                             (unBData
+                                (headList
                                    {data}
-                                   (sndPair {integer} {list data} tup)
-                           in
-                           OutputDatumHash (unBData arg))
+                                   (sndPair {integer} {list data} tup))))
                         (\(ds : unit) ->
                            ifThenElse
                              {unit -> OutputDatum}
@@ -1082,11 +1024,12 @@
   letrec
     !euclid : integer -> integer -> integer
       = \(x : integer) (y : integer) ->
-          let
-            !b : bool = equalsInteger y `$fAdditiveMonoidInteger_$czero`
-          in
           Bool_match
-            (ifThenElse {Bool} b True False)
+            (ifThenElse
+               {Bool}
+               (equalsInteger y `$fAdditiveMonoidInteger_$czero`)
+               True
+               False)
             {all dead. integer}
             (/\dead -> x)
             (/\dead -> euclid y (modInteger x y))
@@ -1095,19 +1038,21 @@
   letrec
     !unsafeRatio : integer -> integer -> Rational
       = \(n : integer) (d : integer) ->
-          let
-            !b : bool = equalsInteger d `$fAdditiveMonoidInteger_$czero`
-          in
           Bool_match
-            (ifThenElse {Bool} b True False)
+            (ifThenElse
+               {Bool}
+               (equalsInteger d `$fAdditiveMonoidInteger_$czero`)
+               True
+               False)
             {all dead. Rational}
             (/\dead -> error {Rational})
             (/\dead ->
-               let
-                 !b : bool = lessThanInteger d `$fAdditiveMonoidInteger_$czero`
-               in
                Bool_match
-                 (ifThenElse {Bool} b True False)
+                 (ifThenElse
+                    {Bool}
+                    (lessThanInteger d `$fAdditiveMonoidInteger_$czero`)
+                    True
+                    False)
                  {all dead. Rational}
                  (/\dead ->
                     unsafeRatio
@@ -1116,10 +1061,9 @@
                  (/\dead ->
                     let
                       !gcd' : integer = euclid n d
-                      !dt : integer = quotientInteger n gcd'
                       !dt : integer = quotientInteger d gcd'
                     in
-                    Rational dt dt)
+                    Rational (quotientInteger n gcd') dt)
                  {all dead. dead})
             {all dead. dead}
   in

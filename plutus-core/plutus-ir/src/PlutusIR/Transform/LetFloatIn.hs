@@ -360,33 +360,13 @@ floatable
     -> Binding tyname name uni fun a
     -> Bool
 floatable semvar = \case
-  TermBind _a Strict _var rhs     -> isEssentiallyWorkFree semvar rhs
+  -- See Note [Float-in] #1
+  TermBind _a Strict _var rhs     -> isWorkFree semvar (const NonStrict) rhs
   TermBind _a NonStrict _var _rhs -> True
   -- See Note [Float-in] #2
   TypeBind{}                      -> True
   -- See Note [Float-in] #2
   DatatypeBind{}                  -> True
-
-{- | Whether evaluating a given `Term` is pure and essentially work-free
- (barring the CEK machine overhead).
-
- See Note [Float-in] #1
--}
-isEssentiallyWorkFree
-   :: (PLC.ToBuiltinMeaning uni fun)
-   => PLC.BuiltinSemanticsVariant fun
-   -> Term tyname name uni fun a -> Bool
-isEssentiallyWorkFree semvar = go
-  where
-    go = \case
-      LamAbs{} -> True
-      TyAbs{} -> True
-      Constant{} -> True
-      x
-        | Just bapp@(BuiltinApp _ args) <- asBuiltinApp x ->
-            maybe False not (isSaturated semvar bapp)
-              && all (\case TermArg arg -> go arg; TypeArg _ -> True) args
-      _ -> False
 
 {- | Given a `Term` and a `Binding`, determine whether the `Binding` can be
  placed somewhere inside the `Term`.

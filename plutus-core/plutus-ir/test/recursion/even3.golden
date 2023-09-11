@@ -72,11 +72,7 @@
                                               odd_i0
                                               (fun Nat_i7 Bool_i11)
                                               [
-                                                (lam
-                                                  three_i0
-                                                  Nat_i8
-                                                  [ even_i3 three_i1 ]
-                                                )
+                                                even_i2
                                                 [
                                                   Suc_i5
                                                   [ Suc_i5 [ Suc_i5 Zero_i6 ] ]

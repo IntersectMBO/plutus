@@ -18,7 +18,7 @@ import PlutusCore.Subst (typeSubstTyNamesM)
 import PlutusIR
 import PlutusIR.Analysis.Dependencies qualified as Deps
 import PlutusIR.Analysis.Usages qualified as Usages
-import PlutusIR.Purity (FirstEffectfulTerm (..), firstEffectfulTerm, isPure)
+import PlutusIR.Purity (EvalTerm (..), Purity (..), isPure, termEvaluationOrder, unEvalOrder)
 import PlutusIR.Transform.Rename ()
 import PlutusPrelude
 
@@ -252,6 +252,29 @@ checkPurity t = do
     let strictnessFun n' = Map.findWithDefault NonStrict (n' ^. theUnique) strctMap
     pure $ isPure builtinSemVar strictnessFun t
 
+isFirstVarBeforeEffects
+    :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
+    => name -> Term tyname name uni fun ann -> InlineM tyname name uni fun ann Bool
+isFirstVarBeforeEffects n t = do
+    strctMap <- view iiStrictnessMap
+    builtinSemVar <- view iiBuiltinSemanticsVariant
+    let strictnessFun n' = Map.findWithDefault NonStrict (n' ^. theUnique) strctMap
+    -- This can in the worst case traverse a lot of the term, which could lead to us
+    -- doing ~quadratic work as we process the program. However in practice most terms
+    -- have a relatively short evaluation order before we hit Unknown, so it's not too bad.
+    pure $ go (unEvalOrder (termEvaluationOrder builtinSemVar strictnessFun t))
+    where
+      -- Found the variable we're looking for!
+      go ((EvalTerm _ _ (Var _ n')):_) | n == n' = True
+      -- Found a pure term, ignore it and continue
+      go ((EvalTerm Pure _ _):rest) = go rest
+      -- Found a possibly impure term, our variable is definitely not first
+      go ((EvalTerm MaybeImpure _ _):_) = False
+      -- Don't know, be conservative
+      go (Unknown:_) = False
+      go [] = False
+
+
 -- | Checks if a binding is pure, i.e. will evaluating it have effects
 isTermBindingPure :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
     => Strictness
@@ -276,6 +299,10 @@ saying that no effects change if:
 
 For non-strict bindings, the effects already happened at the use site, so it's fine to inline it
 unconditionally.
+
+TODO: if we are not in conservative optimization mode and we're allowed to move/duplicate
+effects, then we could relax these criteria (e.g. say that the binding must be evaluted
+*somewhere*, but not necessarily before any other effects), but we don't currently.
 -}
 
 nameUsedAtMostOnce :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
@@ -292,16 +319,11 @@ effectSafe :: forall tyname name uni fun ann. InliningConstraints tyname name un
     -> name
     -> Bool -- ^ is it pure?
     -> InlineM tyname name uni fun ann Bool
-effectSafe body s n purity = do
-    -- This can in the worst case traverse a lot of the term, which could lead to us
-    -- doing ~quadratic work as we process the program. However in practice most term
-    -- types will make it give up, so it's not too bad.
-    let immediatelyEvaluated = case firstEffectfulTerm body of
-            Just (EffectfulTerm (Var _ n')) -> n == n'
-            _                               -> False
-    pure $ case s of
-        Strict    -> purity || immediatelyEvaluated
-        NonStrict -> True
+effectSafe body Strict n purity = do
+  -- See Note [Inlining and purity]
+  immediatelyEvaluated <- isFirstVarBeforeEffects n body
+  pure $ purity || immediatelyEvaluated
+effectSafe _ NonStrict _ _ = pure True
 
 {- Note [Inlining criteria]
 What gets inlined? Our goals are simple:

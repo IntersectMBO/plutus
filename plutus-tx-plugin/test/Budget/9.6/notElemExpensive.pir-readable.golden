@@ -27,7 +27,7 @@ letrec
           {all dead. dead}
 in
 let
-  !x : List integer
+  !ls : List integer
     = (let
           a = List integer
         in
@@ -36,4 +36,4 @@ let
         (\(ds : integer) (ds : List integer) -> Cons {integer} ds ds)
         (Nil {integer})
 in
-go x
+go ls

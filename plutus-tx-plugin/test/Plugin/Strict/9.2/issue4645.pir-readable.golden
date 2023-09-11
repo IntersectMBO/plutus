@@ -16,8 +16,7 @@ Tuple2_match
   (trace {Tuple2 integer integer} "zz" z)
   {Bool}
   (\(zz : integer) (ds : integer) ->
-     ifThenElse
-       {Bool}
-       (equalsInteger (trace {integer} "x" 0) (trace {integer} "t" zz))
-       True
-       False)
+     let
+       !t : integer = trace {integer} "t" zz
+     in
+     ifThenElse {Bool} (equalsInteger (trace {integer} "x" 0) t) True False)

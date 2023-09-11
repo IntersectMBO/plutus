@@ -14,6 +14,78 @@ let
     Nothing : Maybe a
   !reconstructCaseError : string = "PT1"
   !unitval : unit = ()
+  !d : data
+    = (let
+          b = Maybe (Tuple3 Bool integer Bool)
+        in
+        \(`$dToData` : (\a -> a -> data) integer)
+         (`$dToData` : (\a -> a -> data) b)
+         (ds : Either integer b) ->
+          Either_match
+            {integer}
+            {b}
+            ds
+            {data}
+            (\(arg : integer) ->
+               constrData
+                 0
+                 (mkCons {data} (`$dToData` arg) (mkNilData unitval)))
+            (\(arg : b) ->
+               constrData
+                 1
+                 (mkCons {data} (`$dToData` arg) (mkNilData unitval))))
+        (\(i : integer) -> iData i)
+        ((let
+             a = Tuple3 Bool integer Bool
+           in
+           \(`$dToData` : (\a -> a -> data) a) (ds : Maybe a) ->
+             Maybe_match
+               {a}
+               ds
+               {all dead. data}
+               (\(arg : a) ->
+                  /\dead ->
+                    constrData
+                      0
+                      (mkCons {data} (`$dToData` arg) (mkNilData unitval)))
+               (/\dead -> constrData 1 (mkNilData unitval))
+               {all dead. dead})
+           (\(ds : Tuple3 Bool integer Bool) ->
+              Tuple3_match
+                {Bool}
+                {integer}
+                {Bool}
+                ds
+                {data}
+                (\(arg : Bool) (arg : integer) (arg : Bool) ->
+                   constrData
+                     0
+                     (mkCons
+                        {data}
+                        (Bool_match
+                           arg
+                           {all dead. data}
+                           (/\dead -> constrData 1 (mkNilData unitval))
+                           (/\dead -> constrData 0 (mkNilData unitval))
+                           {all dead. dead})
+                        (mkCons
+                           {data}
+                           (iData arg)
+                           (mkCons
+                              {data}
+                              (Bool_match
+                                 arg
+                                 {all dead. data}
+                                 (/\dead -> constrData 1 (mkNilData unitval))
+                                 (/\dead -> constrData 0 (mkNilData unitval))
+                                 {all dead. dead})
+                              (mkNilData unitval)))))))
+        (Right
+           {integer}
+           {Maybe (Tuple3 Bool integer Bool)}
+           (Just
+              {Tuple3 Bool integer Bool}
+              (Tuple3 {Bool} {integer} {Bool} True 1 False)))
 in
 (let
     b = Maybe (Tuple3 Bool integer Bool)
@@ -145,70 +217,4 @@ in
              in
              error {Tuple3 Bool integer Bool})
           unitval))
-  ((let
-       b = Maybe (Tuple3 Bool integer Bool)
-     in
-     \(`$dToData` : (\a -> a -> data) integer)
-      (`$dToData` : (\a -> a -> data) b)
-      (ds : Either integer b) ->
-       Either_match
-         {integer}
-         {b}
-         ds
-         {data}
-         (\(arg : integer) ->
-            constrData 0 (mkCons {data} (`$dToData` arg) (mkNilData unitval)))
-         (\(arg : b) ->
-            constrData 1 (mkCons {data} (`$dToData` arg) (mkNilData unitval))))
-     (\(i : integer) -> iData i)
-     ((let
-          a = Tuple3 Bool integer Bool
-        in
-        \(`$dToData` : (\a -> a -> data) a) (ds : Maybe a) ->
-          Maybe_match
-            {a}
-            ds
-            {all dead. data}
-            (\(arg : a) ->
-               /\dead ->
-                 constrData
-                   0
-                   (mkCons {data} (`$dToData` arg) (mkNilData unitval)))
-            (/\dead -> constrData 1 (mkNilData unitval))
-            {all dead. dead})
-        (\(ds : Tuple3 Bool integer Bool) ->
-           Tuple3_match
-             {Bool}
-             {integer}
-             {Bool}
-             ds
-             {data}
-             (\(arg : Bool) (arg : integer) (arg : Bool) ->
-                constrData
-                  0
-                  (mkCons
-                     {data}
-                     (Bool_match
-                        arg
-                        {all dead. data}
-                        (/\dead -> constrData 1 (mkNilData unitval))
-                        (/\dead -> constrData 0 (mkNilData unitval))
-                        {all dead. dead})
-                     (mkCons
-                        {data}
-                        (iData arg)
-                        (mkCons
-                           {data}
-                           (Bool_match
-                              arg
-                              {all dead. data}
-                              (/\dead -> constrData 1 (mkNilData unitval))
-                              (/\dead -> constrData 0 (mkNilData unitval))
-                              {all dead. dead})
-                           (mkNilData unitval)))))))
-     (Right
-        {integer}
-        {Maybe (Tuple3 Bool integer Bool)}
-        (Just
-           {Tuple3 Bool integer Bool}
-           (Tuple3 {Bool} {integer} {Bool} True 1 False))))
+  d

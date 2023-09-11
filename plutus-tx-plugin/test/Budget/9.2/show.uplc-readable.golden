@@ -127,19 +127,15 @@ program
                                                              eta ->
                                                               (\x
                                                                 eta ->
-                                                                 (\f ->
-                                                                    (\g ->
-                                                                       f
-                                                                         (g
-                                                                            eta))
-                                                                      (toHex
-                                                                         (modInteger
-                                                                            x
-                                                                            16)))
+                                                                 toHex
+                                                                   (divideInteger
+                                                                      x
+                                                                      16)
                                                                    (toHex
-                                                                      (divideInteger
+                                                                      (modInteger
                                                                          x
-                                                                         16)))
+                                                                         16)
+                                                                      eta))
                                                                 (indexByteString
                                                                    s
                                                                    i)

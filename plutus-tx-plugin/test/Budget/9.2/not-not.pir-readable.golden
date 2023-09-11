@@ -4,20 +4,13 @@
       False : Bool
   in
   \(x : integer) ->
-    let
-      !a : Bool
-        = let
-          !a : Bool = ifThenElse {Bool} (lessThanInteger 0 x) True False
-        in
-        Bool_match
-          a
-          {all dead. Bool}
-          (/\dead -> False)
-          (/\dead -> True)
-          {all dead. dead}
-    in
     Bool_match
-      a
+      (Bool_match
+         (ifThenElse {Bool} (lessThanInteger 0 x) True False)
+         {all dead. Bool}
+         (/\dead -> False)
+         (/\dead -> True)
+         {all dead. dead})
       {all dead. Bool}
       (/\dead -> False)
       (/\dead -> True)

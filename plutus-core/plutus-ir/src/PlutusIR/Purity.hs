@@ -1,68 +1,297 @@
-{-# LANGUAGE GADTs               #-}
-{-# LANGUAGE LambdaCase          #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE ViewPatterns          #-}
 
 module PlutusIR.Purity
     ( isPure
-    , FirstEffectfulTerm (..)
-    , firstEffectfulTerm
-    , asBuiltinApp
     , isSaturated
-    , BuiltinApp (..)
-    , Arg (..)
+    , isWorkFree
+    , EvalOrder
+    , unEvalOrder
+    , EvalTerm (..)
+    , Purity (..)
+    , termEvaluationOrder
     ) where
 
 import PlutusCore.Builtin
+import PlutusCore.Pretty
 import PlutusIR
+import PlutusIR.Contexts
 
-import Control.Applicative ((<|>))
-import Data.Foldable (asum)
+import Data.DList qualified as DList
 import Data.List.NonEmpty qualified as NE
+import Prettyprinter
 
--- | An argument taken by a builtin: could be a term of a type.
-data Arg tyname name uni fun a = TypeArg (Type tyname uni a) | TermArg (Term tyname name uni fun a)
-
--- | A (not necessarily saturated) builtin application,
--- consisting of the builtin and the arguments it has been applied to.
-data BuiltinApp tyname name uni fun a = BuiltinApp fun [Arg tyname name uni fun a]
-
-saturatesScheme ::  [Arg tyname name uni fun a] -> TypeScheme val args res -> Maybe Bool
+saturatesScheme :: AppContext tyname name uni fun a -> TypeScheme val args res -> Maybe Bool
 -- We've passed enough arguments that the builtin will reduce.
 -- Note that this also accepts over-applied builtins.
-saturatesScheme _ TypeSchemeResult{}                     = Just True
+saturatesScheme _ TypeSchemeResult{}                            = Just True
 -- Consume one argument
-saturatesScheme (TermArg _ : args) (TypeSchemeArrow sch) = saturatesScheme args sch
-saturatesScheme (TypeArg _ : args) (TypeSchemeAll _ sch) = saturatesScheme args sch
+saturatesScheme (TermAppContext _ _ args) (TypeSchemeArrow sch) = saturatesScheme args sch
+saturatesScheme (TypeAppContext _ _ args) (TypeSchemeAll _ sch) = saturatesScheme args sch
 -- Under-applied, not saturated
-saturatesScheme [] TypeSchemeArrow{}                     = Just False
-saturatesScheme [] TypeSchemeAll{}                       = Just False
+saturatesScheme AppContextEnd TypeSchemeArrow{}                 = Just False
+saturatesScheme AppContextEnd TypeSchemeAll{}                   = Just False
 -- These cases are only possible in case we have an ill-typed builtin application,
 -- so we can't give an answer.
-saturatesScheme (TypeArg _ : _) TypeSchemeArrow{}        = Nothing
-saturatesScheme (TermArg _ : _) TypeSchemeAll{}          = Nothing
+saturatesScheme TypeAppContext{} TypeSchemeArrow{}              = Nothing
+saturatesScheme TermAppContext{} TypeSchemeAll{}                = Nothing
 
--- | Is the given 'BuiltinApp' saturated?
--- Returns 'Nothing' if something is badly wrong and we can't tell.
+-- | Is the given application saturated?
+-- Returns 'Nothing' if we can't tell.
 isSaturated
     :: forall tyname name uni fun a
     . ToBuiltinMeaning uni fun
     => BuiltinSemanticsVariant fun
-    -> BuiltinApp tyname name uni fun a
+    -> fun
+    -> AppContext tyname name uni fun a
     -> Maybe Bool
-isSaturated semvar (BuiltinApp fun args) =
+isSaturated semvar fun args =
     case toBuiltinMeaning @uni @fun @(Term TyName Name uni fun ()) semvar fun of
         BuiltinMeaning sch _ _ -> saturatesScheme args sch
 
--- | View a 'Term' as a 'BuiltinApp' if possible.
-asBuiltinApp :: Term tyname name uni fun a -> Maybe (BuiltinApp tyname name uni fun a)
-asBuiltinApp = go []
+-- | Is this pure? Either yes, or maybe not.
+data Purity = MaybeImpure | Pure
+
+instance Pretty Purity where
+  pretty MaybeImpure = "impure?"
+  pretty Pure        = "pure"
+
+-- | Is this term essentially work-free? Either yes, or maybe not.
+data WorkFreedom = MaybeWork | WorkFree
+
+instance Pretty WorkFreedom where
+  pretty MaybeWork = "maybe work?"
+  pretty WorkFree  = "work-free"
+
+-- | Either the "next" term to be evaluated, along with its 'Purity' and 'WorkFreedom',
+-- or we don't know what comes next.
+data EvalTerm tyname name uni fun a =
+  Unknown
+  | EvalTerm Purity WorkFreedom (Term tyname name uni fun a)
+
+instance PrettyBy config (Term tyname name uni fun a)
+  => PrettyBy config (EvalTerm tyname name uni fun a) where
+  prettyBy _ Unknown                    = "<unknown>"
+  prettyBy config (EvalTerm eff work t) = pretty eff <+> pretty work <> ":" <+> prettyBy config t
+
+-- We use a DList here for efficient and lazy concatenation
+-- | The order in which terms get evaluated, along with their purities.
+newtype EvalOrder tyname name uni fun a = EvalOrder (DList.DList (EvalTerm tyname name uni fun a))
+  deriving newtype (Semigroup, Monoid)
+
+-- | Get the evaluation order as a list of 'EvalTerm's. Either terminates in a single
+-- 'Unknown', which means that we got to a point where evaluation continues but we don't
+-- know where; or terminates normally, in which case we actually got to the end of the
+-- evaluation order for the term.
+unEvalOrder :: EvalOrder tyname name uni fun a -> [EvalTerm tyname name uni fun a]
+unEvalOrder (EvalOrder ts) =
+  -- This is where we avoid traversing the whole program beyond the first Unknown,
+  -- since DList is lazy and we convert to a lazy list and then filter it.
+  takeWhileInclusive (\case { Unknown -> False; _ -> True })
+  $ DList.toList ts
+  where
+    takeWhileInclusive :: (a -> Bool) -> [a] -> [a]
+    takeWhileInclusive p = foldr (\x ys -> if p x then x:ys else [x]) []
+
+evalThis :: EvalTerm tyname name uni fun a -> EvalOrder tyname name uni fun a
+evalThis tm = EvalOrder (DList.singleton tm)
+
+instance PrettyBy config (Term tyname name uni fun a)
+  => PrettyBy config (EvalOrder tyname name uni fun a) where
+  prettyBy config eo = vsep $ fmap (prettyBy config) (unEvalOrder eo)
+
+{- | Given a term, return the order in which it and its sub-terms will be evaluated.
+
+This aims to be a sound under-approximation: if we don't know, we just say 'Unknown'.
+Typically there will be a sequence of terms that we do know, which will terminate
+in 'Unknown' once we do something like call a function.
+
+This makes some assumptions about the evaluator, in particular about the order in
+which we evaluate sub-terms, but these match the current evaluator and we are not
+planning on changing it.
+-}
+termEvaluationOrder
+  :: forall tyname name uni fun a
+  . ToBuiltinMeaning uni fun
+  => BuiltinSemanticsVariant fun
+  -> (name -> Strictness)
+  -> Term tyname name uni fun a
+  -> EvalOrder tyname name uni fun a
+termEvaluationOrder semvar varStrictness = goTerm
     where
-        go argsSoFar = \case
-            Apply _ t arg  -> go (TermArg arg:argsSoFar) t
-            TyInst _ t arg -> go (TypeArg arg:argsSoFar) t
-            Builtin _ b    -> Just $ BuiltinApp b argsSoFar
-            _              -> Nothing
+      goTerm :: Term tyname name uni fun a -> EvalOrder tyname name uni fun a
+      goTerm = \case
+        t@(Let _ NonRec bs b) ->
+          -- first the bindings, in order
+          goBindings (NE.toList bs)
+          -- then the body
+          <> goTerm b
+          -- then the whole term, which will lead to applications (so work)
+          <> evalThis (EvalTerm Pure MaybeWork t)
+        (Let _ Rec _ _)   ->
+          -- Hard to know what gets evaluated first in a recursive let-binding,
+          -- just give up
+          evalThis Unknown
+
+        -- If we can view as a builtin application, then handle that specially
+        (splitApplication -> (Builtin a fun, args)) -> goBuiltinApp a fun args
+        -- We could handle functions and type abstractions with *known* bodies
+        -- here. But there's not much point: beta reduction will immediately
+        -- turn those into let-bindings, which we do see through already.
+        t@(Apply _ fun arg)    ->
+          -- first the function
+          goTerm fun
+          -- then the arg
+          <> goTerm arg
+          -- then the whole term, which means environment manipulation, so work
+          <> evalThis (EvalTerm Pure MaybeWork t)
+          -- then we go to the unknown function body
+          <> evalThis Unknown
+        t@(TyInst _ ta _)        ->
+          -- first the type abstraction
+          goTerm ta
+          -- then the whole term, which will mean forcing, so work
+          <> evalThis (EvalTerm Pure MaybeWork t)
+          -- then we go to the unknown body of the type abstraction
+          <> evalThis Unknown
+
+        t@(IWrap _ _ _ b)       ->
+          -- first the body
+          goTerm b
+          <> evalThis (EvalTerm Pure WorkFree t)
+        t@(Unwrap _ b)          ->
+          -- first the body
+          goTerm b
+          -- then the whole term, but this is erased so it is work-free
+          <> evalThis (EvalTerm Pure WorkFree t)
+        t@(Constr _ _ _ ts)     ->
+          -- first the arguments, in left-to-right order
+          foldMap goTerm ts
+          -- then the whole term, which means constructing the value, so work
+          <> evalThis (EvalTerm Pure MaybeWork t)
+        t@(Case _ _ scrut _)    ->
+          -- first the scrutinee
+          goTerm scrut
+          -- then the whole term, which means finding the case so work
+          <> evalThis (EvalTerm Pure MaybeWork t)
+          -- then we go to an unknown scrutinee
+          <> evalThis Unknown
+
+        -- Leaf terms
+        t@(Var _ name)      ->
+          -- See Note [Purity, strictness, and variables]
+          let purity = case varStrictness name of { Strict -> Pure; NonStrict -> MaybeImpure}
+          -- looking up the variable is work
+          in evalThis (EvalTerm purity MaybeWork t)
+        t@Error{}           ->
+          -- definitely effectful! but not relevant from a work perspective
+          evalThis (EvalTerm MaybeImpure WorkFree t)
+          -- program terminates
+          <> evalThis Unknown
+        t@Builtin{}         ->
+          evalThis (EvalTerm Pure WorkFree t)
+        t@TyAbs{}           ->
+          evalThis (EvalTerm Pure WorkFree t)
+        t@LamAbs{}          ->
+          evalThis (EvalTerm Pure WorkFree t)
+        t@Constant{}        ->
+          evalThis (EvalTerm Pure WorkFree t)
+
+      goBindings ::
+        [Binding tyname name uni fun a] ->
+        EvalOrder tyname name uni fun a
+      goBindings [] = mempty
+      goBindings (b:bs) = case b of
+        -- Only strict term bindings get evaluated at this point
+        TermBind _ Strict _ rhs -> goTerm rhs
+        _                       -> goBindings bs
+
+      goBuiltinApp
+        :: a
+        -> fun
+        -> AppContext tyname name uni fun a
+        -> EvalOrder tyname name uni fun a
+      goBuiltinApp a hd args =
+        let
+          saturated = isSaturated semvar hd args
+          reconstructed = fillAppContext (Builtin a hd) args
+          evalEffect = case saturated of
+            -- If it's saturated, we might have an effect here
+            Just True  -> evalThis (EvalTerm MaybeImpure MaybeWork reconstructed)
+            -- TODO: previous definition of work-free included this, it's slightly
+            -- unclear if we should do since we do update partial builtin meanings
+            -- etc.
+            -- If it's unsaturated, we definitely don't, and don't do any work
+            Just False -> evalThis (EvalTerm Pure WorkFree reconstructed)
+            -- Don't know, be conservative
+            Nothing    -> evalThis (EvalTerm MaybeImpure MaybeWork reconstructed)
+        in goAppCtx args <> evalEffect
+
+      goAppCtx :: AppContext tyname name uni fun a -> EvalOrder tyname name uni fun a
+      goAppCtx = \case
+        AppContextEnd           -> mempty
+        TermAppContext t _ rest -> goTerm t <> goAppCtx rest
+        TypeAppContext _ _ rest -> goAppCtx rest
+
+-- | Will evaluating this term have side effects (looping or error)?
+-- This is slightly wider than the definition of a value, as
+-- it includes applications that are known to be pure, as well as
+-- things that can't be returned from the machine (as they'd be ill-scoped).
+isPure ::
+    ToBuiltinMeaning uni fun =>
+    BuiltinSemanticsVariant fun ->
+    (name -> Strictness) ->
+    Term tyname name uni fun a ->
+    Bool
+isPure semvar varStrictness t =
+  -- to work out if the term is pure, we see if we can look through
+  -- the whole evaluation order without hitting something that might be
+  -- effectful
+  go $ unEvalOrder (termEvaluationOrder semvar varStrictness t)
+  where
+    go :: [EvalTerm tyname name uni fun a] -> Bool
+    go [] = True
+    go (et:rest) = case et of
+      -- Might be an effect here!
+      EvalTerm MaybeImpure _ _ -> False
+      -- This term is fine, what about the rest?
+      EvalTerm Pure _ _        -> go rest
+      -- We don't know what will happen, so be conservative
+      Unknown                  -> False
+
+{-| Is the given term 'work-free'?
+
+Note: The definition of 'work-free' is a little unclear, but the idea is that
+evaluating this term should do very a trivial amount of work.
+-}
+isWorkFree ::
+    ToBuiltinMeaning uni fun =>
+    BuiltinSemanticsVariant fun ->
+    (name -> Strictness) ->
+    Term tyname name uni fun a ->
+    Bool
+isWorkFree semvar varStrictness t =
+  -- to work out if the term is pure, we see if we can look through
+  -- the whole evaluation order without hitting something that might be
+  -- effectful
+  go $ unEvalOrder (termEvaluationOrder semvar varStrictness t)
+  where
+    go :: [EvalTerm tyname name uni fun a] -> Bool
+    go [] = True
+    go (et:rest) = case et of
+      -- Might be an effect here!
+      EvalTerm _ MaybeWork _ -> False
+      -- This term is fine, what about the rest?
+      EvalTerm _ WorkFree _  -> go rest
+      -- We don't know what will happen, so be conservative
+      Unknown                -> False
 
 {- Note [Purity, strictness, and variables]
 Variables in PLC won't have effects: they can have something else substituted for them,
@@ -75,106 +304,3 @@ So we need to take this into account in our purity calculation.
 We require the user to tell us which variables are strict, this
 must be *conservative* (i.e. if you don't know, it's non-strict).
 -}
-
--- | Will evaluating this term have side effects (looping or error)?
--- This is slightly wider than the definition of a value, as
--- it includes applications that are known to be pure, as well as
--- things that can't be returned from the machine (as they'd be ill-scoped).
-isPure ::
-    ToBuiltinMeaning uni fun =>
-    BuiltinSemanticsVariant fun ->
-    (name -> Strictness) ->
-    Term tyname name uni fun a ->
-    Bool
-isPure semvar varStrictness = go
-    where
-        go = \case
-            -- See Note [Purity, strictness, and variables]
-            Var _ n -> case varStrictness n of
-                Strict    -> True
-                NonStrict -> False
-            -- These are syntactically values that won't reduce further
-            LamAbs {} -> True
-            TyAbs {} -> True
-            Constant {} -> True
-            IWrap _ _ _ t -> go t
-            Unwrap _ t -> go t
-            -- A non-recursive `Let` is pure if all bindings are pure and the body is pure.
-            -- A recursive `Let` may loop, so we consider it non-pure.
-            Let _ NonRec bs t -> all isPureBinding bs && go t
-            Let _ Rec _ _ -> False
-            -- A constructor is pure if all of its elements are pure
-            Constr _ _ _ es -> all go es
-            -- A case will compute the case branch, which could do anything
-            Case {} -> False
-
-            -- Applications or instantiations can do work
-            Apply {} -> False
-            TyInst {} -> False
-            -- Error is obviously not pure
-            Error {} -> False
-
-            x | Just bapp@(BuiltinApp _ args) <- asBuiltinApp x ->
-                -- Pure only if we can tell that the builtin application is not saturated
-                maybe False not (isSaturated semvar bapp)
-                &&
-                -- But all the arguments need to also be effect-free, since they will be evaluated
-                -- when we evaluate the application.
-                all (\case { TermArg arg -> go arg; TypeArg _ -> True }) args
-
-            -- Pure builtin applications are handled above, this is just a fall through
-            -- for completeness
-            Builtin {} -> False
-
-        isPureBinding = \case
-            TermBind _ Strict _ rhs -> go rhs
-            _                       -> True
-
--- | Isomorphic to @Maybe (Term tyname name uni fun a)@. Used to represent the first
--- subterm which will be evaluated in a term and which could have an effect.
-data FirstEffectfulTerm tyname name uni fun a
-  = EffectfulTerm (Term tyname name uni fun a)
-  -- | `Uncertain` indicates that we don't know for sure.
-  | Uncertain
-
-{- |
-Try to identify the first sub term which will be evaluated in the given term and
-which could have an effect. 'Nothing' indicates that there's no term to evaluate.
--}
-firstEffectfulTerm ::
-  forall tyname name uni fun a.
-  Term tyname name uni fun a ->
-  Maybe (FirstEffectfulTerm tyname name uni fun a)
-firstEffectfulTerm = goTerm
-    where
-      goTerm :: Term tyname name uni fun a -> Maybe (FirstEffectfulTerm tyname name uni fun a)
-      goTerm = \case
-        Let _ NonRec bs b -> goBindings (NE.toList bs) <|> goTerm b
-
-        Apply _ fun args  -> goTerm fun <|> goTerm args
-        TyInst _ t _      -> goTerm t
-        IWrap _ _ _ t     -> goTerm t
-        Unwrap _ t        -> goTerm t
-        Constr _ _ _ []   -> Nothing
-        Constr _ _ _ ts   -> asum $ goTerm <$> ts
-        Case _ _ t _      -> goTerm t
-
-        t@Var{}           -> Just (EffectfulTerm t)
-        t@Error{}         -> Just (EffectfulTerm t)
-        Builtin{}         -> Nothing
-
-        -- Hard to know what gets evaluated first in a recursive let-binding,
-        -- just give up and return `Uncertain`.
-        (Let _ Rec _ _)   -> Just Uncertain
-        TyAbs{}           -> Nothing
-        LamAbs{}          -> Nothing
-        Constant{}        -> Nothing
-
-      goBindings ::
-        [Binding tyname name uni fun a] ->
-        Maybe (FirstEffectfulTerm tyname name uni fun a)
-      goBindings [] = Nothing
-      goBindings (b:bs) = case b of
-        -- Only strict term bindings can cause effects
-        TermBind _ Strict _ rhs -> goTerm rhs
-        _                       -> goBindings bs
