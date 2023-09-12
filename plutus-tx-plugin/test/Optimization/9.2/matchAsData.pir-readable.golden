@@ -8,7 +8,7 @@ let
     False : Bool
 in
 letrec
-  data (List :: * -> *) a | Nil_match where
+  data (List :: * -> *) a | List_match where
     Nil : List a
     Cons : a -> List a -> List a
 in
@@ -55,7 +55,7 @@ in
                  (ifThenElse {Bool} (equalsInteger 1 ds) True False)
                  {all dead. integer}
                  (/\dead ->
-                    Nil_match
+                    List_match
                       {data}
                       ds
                       {all dead. integer}
@@ -75,14 +75,14 @@ in
          (ifThenElse {Bool} (equalsInteger 0 ds) True False)
          {all dead. integer}
          (/\dead ->
-            Nil_match
+            List_match
               {data}
               ds
               {all dead. integer}
               (/\dead -> fail ())
               (\(ds : data) (ds : List data) ->
                  /\dead ->
-                   Nil_match
+                   List_match
                      {data}
                      ds
                      {all dead. integer}

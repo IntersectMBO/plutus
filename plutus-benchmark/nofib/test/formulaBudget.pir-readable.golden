@@ -5,7 +5,7 @@
       Tuple2 : a -> b -> Tuple2 a b
   in
   letrec
-    data (List :: * -> *) a | Nil_match where
+    data (List :: * -> *) a | List_match where
       Nil : List a
       Cons : a -> List a -> List a
   in
@@ -96,7 +96,7 @@
     !insert : all t. Ord t -> t -> List t -> List t
       = /\t ->
           \(`$dOrd` : Ord t) (x : t) (ds : List t) ->
-            Nil_match
+            List_match
               {t}
               ds
               {all dead. List t}
@@ -240,12 +240,12 @@
     !`$fOrdNil_$ccompare` : all a. Ord a -> List a -> List a -> Ordering
       = /\a ->
           \(`$dOrd` : Ord a) (ds : List a) (ds : List a) ->
-            Nil_match
+            List_match
               {a}
               ds
               {all dead. Ordering}
               (/\dead ->
-                 Nil_match
+                 List_match
                    {a}
                    ds
                    {all dead. Ordering}
@@ -254,7 +254,7 @@
                    {all dead. dead})
               (\(ds : a) (ds : List a) ->
                  /\dead ->
-                   Nil_match
+                   List_match
                      {a}
                      ds
                      {all dead. Ordering}
@@ -280,12 +280,12 @@
        all a. (\a -> a -> a -> Bool) a -> List a -> List a -> Bool
       = /\a ->
           \(`$dEq` : (\a -> a -> a -> Bool) a) (eta : List a) (eta : List a) ->
-            Nil_match
+            List_match
               {a}
               eta
               {all dead. Bool}
               (/\dead ->
-                 Nil_match
+                 List_match
                    {a}
                    eta
                    {all dead. Bool}
@@ -294,7 +294,7 @@
                    {all dead. dead})
               (\(x : a) (xs : List a) ->
                  /\dead ->
-                   Nil_match
+                   List_match
                      {a}
                      eta
                      {all dead. Bool}
@@ -373,7 +373,7 @@
     !go :
        List Formula -> List (Tuple2 (List integer) (List integer))
       = \(ds : List Formula) ->
-          Nil_match
+          List_match
             {Formula}
             ds
             {all dead. List (Tuple2 (List integer) (List integer))}
@@ -412,7 +412,7 @@
                                      !go :
                                         List integer -> a
                                        = \(ds : List integer) ->
-                                           Nil_match
+                                           List_match
                                              {integer}
                                              ds
                                              {all dead. a}
@@ -422,7 +422,7 @@
                                                   !go :
                                                      List integer -> Bool
                                                     = \(ds : List integer) ->
-                                                        Nil_match
+                                                        List_match
                                                           {integer}
                                                           ds
                                                           {all dead. Bool}

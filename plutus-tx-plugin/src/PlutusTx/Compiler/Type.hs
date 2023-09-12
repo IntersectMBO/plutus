@@ -175,7 +175,10 @@ compileTyCon tc
               pure alias
             Nothing -> do
               dcs <- getDataCons tc
-              matchName <- PLC.mapNameString (<> "_match") <$> (compileNameFresh $ GHC.getName tc)
+              matchName <-
+                PLC.unTyName
+                  . PLC.mapTyNameString (<> "_match")
+                  <$> compileTyNameFresh (GHC.getName tc)
 
               -- See Note [Occurrences of recursive names]
               let fakeDatatype = PIR.Datatype annMayInline tvd [] matchName []
