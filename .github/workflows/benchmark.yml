@@ -34,7 +34,7 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const regex = '^\/benchmark\s*(.*?)\s*$';
+            const regex = /^\/benchmark\s*(.*?)\s*$/;
             const comment = context.payload.comment.body;
             const match = comment.match(regex)
             if (match !== null && match.length == 2)
