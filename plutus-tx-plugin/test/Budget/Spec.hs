@@ -316,26 +316,31 @@ compiledNotElemExpensive = $$(compile [||
       let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
        in PlutusTx.notElem 0 ls ||])
 
+-- | Check @0 <= 0@ a thousand times using @all@ that inlines.
 compiledLte0 :: CompiledCode Bool
 compiledLte0 = $$(compile [||
       let ls = PlutusTx.replicate 1000 0 :: [Integer]
        in List.all (PlutusTx.<= 0) ls ||])
 
+-- | Check @0 >= 0@ a thousand times using @all@ that inlines.
 compiledGte0 :: CompiledCode Bool
 compiledGte0 = $$(compile [||
       let ls = PlutusTx.replicate 1000 0 :: [Integer]
        in List.all (PlutusTx.>= 0) ls ||])
 
 {-# INLINABLE recursiveAll #-}
+-- | A version of @all@ that doesn't inline due to being recursive.
 recursiveAll :: forall a. (a -> Bool) -> [a] -> Bool
 recursiveAll _ []     = True
 recursiveAll f (x:xs) = if f x then recursiveAll f xs else False
 
+-- | Check @0 <= 0@ a thousand times using @all@ that doesn't inline.
 compiledRecursiveLte0 :: CompiledCode Bool
 compiledRecursiveLte0 = $$(compile [||
       let ls = PlutusTx.replicate 1000 0 :: [Integer]
        in recursiveAll (PlutusTx.<= 0) ls ||])
 
+-- | Check @0 >= 0@ a thousand times using @all@ that doesn't inline.
 compiledRecursiveGte0 :: CompiledCode Bool
 compiledRecursiveGte0 = $$(compile [||
       let ls = PlutusTx.replicate 1000 0 :: [Integer]
