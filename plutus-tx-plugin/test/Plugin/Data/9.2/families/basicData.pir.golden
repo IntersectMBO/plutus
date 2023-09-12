@@ -6,7 +6,7 @@
       (datatype
         (tyvardecl `R:BasicDataBool` (type))
 
-        RConsBasicDataBool_match
+        `R:BasicDataBool_match`
         (vardecl Inst (fun (con integer) `R:BasicDataBool`))
       )
     )
@@ -17,7 +17,7 @@
         (nonrec)
         (termbind (strict) (vardecl nt `R:BasicDataBool`) ds)
         [
-          { [ RConsBasicDataBool_match nt ] (con integer) }
+          { [ `R:BasicDataBool_match` nt ] (con integer) }
           (lam i (con integer) i)
         ]
       )

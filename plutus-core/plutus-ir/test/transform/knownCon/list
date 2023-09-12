@@ -4,7 +4,7 @@
     (datatype
       (tyvardecl List (fun (type) (type)))
       (tyvardecl a (type))
-      Nil_match
+      List_match
       (vardecl Nil [ List a ])
       (vardecl Cons (fun a (fun [ List a ] [ List a ])))
     )
@@ -14,7 +14,7 @@
       [
         {
           [
-            { Nil_match (con integer) }
+            { List_match (con integer) }
             [ [ { Cons (con integer) } (con integer 1) ] { Nil (con integer) } ]
           ]
           (all dead (type) (con integer))

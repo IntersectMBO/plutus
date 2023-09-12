@@ -28,7 +28,7 @@ let
   !unitval : unit = ()
 in
 letrec
-  data (List :: * -> *) a | Nil_match where
+  data (List :: * -> *) a | List_match where
     Nil : List a
     Cons : a -> List a -> List a
 in
@@ -112,21 +112,21 @@ let
                  (`==` {integer} `$fEqInteger` 0 ds)
                  {all dead. r}
                  (/\dead ->
-                    Nil_match
+                    List_match
                       {data}
                       ds
                       {all dead. r}
                       (/\dead -> fail ())
                       (\(ds : data) (ds : List data) ->
                          /\dead ->
-                           Nil_match
+                           List_match
                              {data}
                              ds
                              {all dead. r}
                              (/\dead -> fail ())
                              (\(ds : data) (ds : List data) ->
                                 /\dead ->
-                                  Nil_match
+                                  List_match
                                     {data}
                                     ds
                                     {all dead. r}

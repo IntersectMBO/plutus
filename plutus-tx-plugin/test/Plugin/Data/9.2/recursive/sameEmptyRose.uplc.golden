@@ -19,7 +19,7 @@
                           (lam
                             Cons_i0
                             (lam
-                              Nil_match_i0
+                              List_match_i0
                               [
                                 [
                                   (force
@@ -281,7 +281,7 @@
                                                                                 (force
                                                                                   [
                                                                                     (force
-                                                                                      Nil_match_i11
+                                                                                      List_match_i11
                                                                                     )
                                                                                     ds_i2
                                                                                   ]

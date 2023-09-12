@@ -84,7 +84,7 @@
         (datatype
           (tyvardecl List (fun (type) (type)))
           (tyvardecl a (type))
-          Nil_match
+          List_match
           (vardecl Nil [ List a ])
           (vardecl Cons (fun a (fun [ List a ] [ List a ])))
         )
@@ -119,7 +119,9 @@
                     {
                       [
                         [
-                          { [ { Nil_match a } l ] (all dead (type) [ List b ]) }
+                          {
+                            [ { List_match a } l ] (all dead (type) [ List b ])
+                          }
                           (abs dead (type) { Nil b })
                         ]
                         (lam

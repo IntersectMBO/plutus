@@ -1,5 +1,5 @@
 letrec
-  data (List :: * -> *) a | Nil_match where
+  data (List :: * -> *) a | List_match where
     Nil : List a
     Cons : a -> List a -> List a
 in
@@ -37,7 +37,7 @@ in
   letrec
     !go : List integer -> integer
       = \(ds : List integer) ->
-          Nil_match
+          List_match
             {integer}
             ds
             {all dead. integer}
