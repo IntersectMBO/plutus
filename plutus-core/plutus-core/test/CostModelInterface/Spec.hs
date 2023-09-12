@@ -49,16 +49,17 @@ type CekCostModel = CostModel CekMachineCosts BuiltinCostModel
 -- Just for testing
 randomCekCosts :: CekMachineCosts
 randomCekCosts =
-    CekMachineCosts { cekStartupCost = ExBudget 2342 234321
-                    , cekVarCost     = ExBudget 12312 56545
-                    , cekConstCost   = ExBudget 23490290838 2323423
-                    , cekLamCost     = ExBudget 0 712127381
-                    , cekDelayCost   = ExBudget 999 7777
-                    , cekForceCost   = ExBudget 1028234 0
-                    , cekApplyCost   = ExBudget 324628348 8273
-                    , cekBuiltinCost = ExBudget 4 4
-                    , cekConstrCost  = ExBudget 8 100000
-                    , cekCaseCost    = ExBudget 3324234 555
+    CekMachineCostsBase
+                    { cekStartupCost = pure $ ExBudget 2342 234321
+                    , cekVarCost     = pure $ ExBudget 12312 56545
+                    , cekConstCost   = pure $ ExBudget 23490290838 2323423
+                    , cekLamCost     = pure $ ExBudget 0 712127381
+                    , cekDelayCost   = pure $ ExBudget 999 7777
+                    , cekForceCost   = pure $ ExBudget 1028234 0
+                    , cekApplyCost   = pure $ ExBudget 324628348 8273
+                    , cekBuiltinCost = pure $ ExBudget 4 4
+                    , cekConstrCost  = pure $ ExBudget 8 100000
+                    , cekCaseCost    = pure $ ExBudget 3324234 555
                     }
 
 cekVarCostCpuKey :: Text.Text

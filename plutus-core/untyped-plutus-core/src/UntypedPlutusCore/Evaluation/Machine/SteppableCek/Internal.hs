@@ -50,7 +50,8 @@ import PlutusCore.Evaluation.Result
 import PlutusPrelude
 import Universe
 import UntypedPlutusCore.Core
-import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts (..))
+import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts,
+                                                                 CekMachineCostsBase (..))
 import UntypedPlutusCore.Evaluation.Machine.Cek.Internal hiding (Context (..), runCekDeBruijn,
                                                           transferArgStack)
 import UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
@@ -278,7 +279,7 @@ runCekDeBruijn
     -> (Either (CekEvaluationException NamedDeBruijn uni fun) (NTerm uni fun ()), cost, [Text])
 runCekDeBruijn params mode emitMode term =
     runCekM params mode emitMode $ do
-        spendBudgetCek BStartup (cekStartupCost ?cekCosts)
+        spendBudgetCek BStartup $ runIdentity $ cekStartupCost ?cekCosts
         enterComputeCek NoFrame Env.empty term
 
 -- See Note [Compilation peculiarities].
@@ -401,7 +402,7 @@ tryError :: MonadError e m => m a -> m (Either e a)
 tryError a = (Right <$> a) `catchError` (pure . Left)
 
 cekStepCost :: CekMachineCosts -> StepKind -> ExBudget
-cekStepCost costs = \case
+cekStepCost costs = runIdentity . \case
     BConst   -> cekConstCost costs
     BVar     -> cekVarCost costs
     BLamAbs  -> cekLamCost costs
