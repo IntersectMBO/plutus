@@ -5,7 +5,7 @@ let
     False : Bool
 in
 letrec
-  data (List :: * -> *) a | Nil_match where
+  data (List :: * -> *) a | List_match where
     Nil : List a
     Cons : a -> List a -> List a
 in
@@ -26,7 +26,7 @@ letrec
   !go :
      List integer -> List string -> List string
     = \(ds : List integer) ->
-        Nil_match
+        List_match
           {integer}
           ds
           {all dead. List string -> List string}
@@ -223,7 +223,7 @@ in
 letrec
   !go : List integer -> List string -> List string
     = \(ds : List integer) ->
-        Nil_match
+        List_match
           {integer}
           ds
           {all dead. List string -> List string}
@@ -264,7 +264,7 @@ letrec
   !go : all a. integer -> List a -> Tuple2 (List a) (List a)
     = /\a ->
         \(ds : integer) (ds : List a) ->
-          Nil_match
+          List_match
             {a}
             ds
             {all dead. Tuple2 (List a) (List a)}
@@ -299,7 +299,7 @@ in
 letrec
   !go : List string -> integer
     = \(ds : List string) ->
-        Nil_match
+        List_match
           {string}
           ds
           {all dead. integer}
@@ -310,7 +310,7 @@ in
 letrec
   !concatBuiltinStrings : List string -> string
     = \(ds : List string) ->
-        Nil_match
+        List_match
           {string}
           ds
           {string}
@@ -319,7 +319,7 @@ letrec
              let
                ~ds : List string = Cons {string} x ds
              in
-             Nil_match
+             List_match
                {string}
                ds
                {all dead. string}
@@ -423,7 +423,7 @@ let
              letrec
                !go : List integer -> List string -> List string
                  = \(ds : List integer) ->
-                     Nil_match
+                     List_match
                        {integer}
                        ds
                        {all dead. List string -> List string}
@@ -437,7 +437,7 @@ let
                               Cons {string} "," (showElem x (acc eta)))
                        {all dead. dead}
              in
-             Nil_match
+             List_match
                {integer}
                x
                {List string -> List string}

@@ -2,9 +2,10 @@
 module Main where
 
 import PlutusLedgerApi.Common.Versions
-import PlutusLedgerApi.Test.EvaluationContext (evalCtxForTesting)
 import PlutusLedgerApi.Test.Examples
-import PlutusLedgerApi.V1
+import PlutusLedgerApi.Test.V1.EvaluationContext qualified as V1
+import PlutusLedgerApi.V1 as V1
+import PlutusPrelude
 import Spec.CBOR.DeserialiseFailureInfo qualified
 import Spec.CostModelParams qualified
 import Spec.Eval qualified
@@ -16,38 +17,39 @@ import Test.Tasty
 import Test.Tasty.HUnit
 import Test.Tasty.QuickCheck
 
-import Control.Monad (void)
-import Data.Either
-import Data.Word (Word8)
+import Control.Monad.Writer
 
 main :: IO ()
 main = defaultMain tests
 
+v1_evalCtxForTesting :: EvaluationContext
+v1_evalCtxForTesting = fst $ unsafeFromRight $ runWriterT $ V1.mkEvaluationContext (fmap snd V1.costModelParamsForTesting)
+
 alwaysTrue :: TestTree
 alwaysTrue = testCase "always true script returns true" $
-    let (_, res) = evaluateScriptCounting alonzoPV Quiet evalCtxForTesting (alwaysSucceedingNAryFunction 2) [I 1, I 2]
+    let (_, res) = evaluateScriptCounting alonzoPV Quiet v1_evalCtxForTesting (alwaysSucceedingNAryFunction 2) [I 1, I 2]
     in assertBool "succeeds" (isRight res)
 
 alwaysFalse :: TestTree
 alwaysFalse = testCase "always false script returns false" $
-    let (_, res) = evaluateScriptCounting alonzoPV Quiet evalCtxForTesting (alwaysFailingNAryFunction 2) [I 1, I 2]
+    let (_, res) = evaluateScriptCounting alonzoPV Quiet v1_evalCtxForTesting (alwaysFailingNAryFunction 2) [I 1, I 2]
     in assertBool "fails" (isLeft res)
 
 unavailableBuiltins :: TestTree
 unavailableBuiltins = testCase "builtins are unavailable before Alonzo" $
-    let (_, res) = evaluateScriptCounting maryPV Quiet evalCtxForTesting summingFunction []
+    let (_, res) = evaluateScriptCounting maryPV Quiet v1_evalCtxForTesting summingFunction []
     in assertBool "fails" (isLeft res)
 
 availableBuiltins :: TestTree
 availableBuiltins = testCase "builtins are available after Alonzo" $
-    let (_, res) = evaluateScriptCounting alonzoPV Quiet evalCtxForTesting summingFunction []
+    let (_, res) = evaluateScriptCounting alonzoPV Quiet v1_evalCtxForTesting summingFunction []
     in assertBool "succeeds" (isRight res)
 
 saltedFunction :: TestTree
 saltedFunction =
     let evaluate f f' args =
-            ( evaluateScriptCounting alonzoPV Quiet evalCtxForTesting f args
-            , evaluateScriptCounting alonzoPV Quiet evalCtxForTesting f' args
+            ( evaluateScriptCounting alonzoPV Quiet v1_evalCtxForTesting f args
+            , evaluateScriptCounting alonzoPV Quiet v1_evalCtxForTesting f' args
             )
     in testGroup "salted function"
     [ testProperty "saturated" $ \(n :: Word8) salt fWhich ->

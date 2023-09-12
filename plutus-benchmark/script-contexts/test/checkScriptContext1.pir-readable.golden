@@ -18,7 +18,7 @@
       Tuple2 : a -> b -> Tuple2 a b
   in
   letrec
-    data (List :: * -> *) a | Nil_match where
+    data (List :: * -> *) a | List_match where
       Nil : List a
       Cons : a -> List a -> List a
   in
@@ -36,7 +36,7 @@
   letrec
     !go : List TxOut -> integer
       = \(ds : List TxOut) ->
-          Nil_match
+          List_match
             {TxOut}
             ds
             {all dead. integer}

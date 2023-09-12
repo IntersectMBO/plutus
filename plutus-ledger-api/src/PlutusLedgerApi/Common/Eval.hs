@@ -4,6 +4,7 @@
 {-# LANGUAGE StrictData        #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeApplications  #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 
 module PlutusLedgerApi.Common.Eval
     ( EvaluationError (..)
@@ -218,3 +219,6 @@ But this is really far too strict: we can check when deserializing, so it can be
 failure, like the other such checks that we have. For now we keep it as it is, but we may
 try to move it later.
 -}
+
+-- TODO: Remove after https://github.com/input-output-hk/nothunks/pull/34
+deriving anyclass instance NoThunks a => NoThunks (Identity a)

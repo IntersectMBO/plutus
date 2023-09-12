@@ -81,7 +81,8 @@ import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 
-import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts (..))
+import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts,
+                                                                 CekMachineCostsBase (..))
 import UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
 
 import Control.Lens ((^?))
@@ -93,6 +94,7 @@ import Control.Monad.Primitive (PrimMonad (..))
 import Control.Monad.ST
 import Control.Monad.ST.Unsafe
 import Data.DList qualified as DList
+import Data.Functor.Identity
 import Data.Hashable (Hashable)
 import Data.Kind qualified as GHC
 import Data.List.Extras (wix)
@@ -181,7 +183,7 @@ data StepKind
     deriving anyclass (NFData, Hashable)
 
 cekStepCost :: CekMachineCosts -> StepKind -> ExBudget
-cekStepCost costs = \case
+cekStepCost costs = runIdentity . \case
     BConst   -> cekConstCost costs
     BVar     -> cekVarCost costs
     BLamAbs  -> cekLamCost costs
@@ -877,7 +879,7 @@ runCekDeBruijn
     -> (Either (CekEvaluationException NamedDeBruijn uni fun) (NTerm uni fun ()), cost, [Text])
 runCekDeBruijn params mode emitMode term =
     runCekM params mode emitMode $ do
-        spendBudgetCek BStartup (cekStartupCost ?cekCosts)
+        spendBudgetCek BStartup $ runIdentity $ cekStartupCost ?cekCosts
         enterComputeCek NoFrame Env.empty term
 
 {- Note [Accumulators for terms]

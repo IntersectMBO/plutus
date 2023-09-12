@@ -6,7 +6,7 @@ let
     = `$fToDataInteger_$ctoBuiltinData`
 in
 letrec
-  data (List :: * -> *) a | Nil_match where
+  data (List :: * -> *) a | List_match where
     Nil : List a
     Cons : a -> List a -> List a
 in
@@ -22,7 +22,7 @@ in
 letrec
   ~`$fToBuiltinNilBuiltinList0_$ctoBuiltin` : List data -> list data
     = \(ds : List data) ->
-        Nil_match
+        List_match
           {data}
           ds
           {all dead. list data}

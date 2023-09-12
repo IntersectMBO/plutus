@@ -92,7 +92,6 @@ library
     , cborg
     , containers
     , deepseq
-    , extra
     , flat               ^>=0.6
     , lens
     , mtl
@@ -109,15 +108,20 @@ library plutus-ledger-api-testlib
   visibility:      public
   hs-source-dirs:  testlib
   exposed-modules:
-    PlutusLedgerApi.Test.EvaluationContext
+    PlutusLedgerApi.Test.Common.EvaluationContext
     PlutusLedgerApi.Test.EvaluationEvent
     PlutusLedgerApi.Test.Examples
     PlutusLedgerApi.Test.Scripts
+    PlutusLedgerApi.Test.V1.EvaluationContext
+    PlutusLedgerApi.Test.V2.EvaluationContext
+    PlutusLedgerApi.Test.V3.EvaluationContext
 
   build-depends:
+    , barbies
     , base               >=4.9      && <5
     , base64-bytestring
     , bytestring
+    , containers
     , plutus-core        ^>=1.12
     , plutus-ledger-api  ^>=1.12
     , plutus-tx          ^>=1.12
@@ -155,7 +159,6 @@ test-suite plutus-ledger-api-test
     , tasty-hedgehog
     , tasty-hunit
     , tasty-quickcheck
-    , text
 
 -- This is a nightly test, so it is an executable instead of test-suite to avoid
 -- running this in CI.

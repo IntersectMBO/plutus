@@ -9,13 +9,15 @@ import PlutusCore.MkPlc
 import PlutusCore.StdLib.Data.Unit
 import PlutusCore.Version as PLC
 import PlutusLedgerApi.Common.Versions
-import PlutusLedgerApi.Test.EvaluationContext (evalCtxForTesting)
-import PlutusLedgerApi.V1 as V1
+import PlutusLedgerApi.Test.V1.EvaluationContext qualified as V1
+import PlutusLedgerApi.V1 qualified as V1
+import PlutusPrelude
 import UntypedPlutusCore as UPLC
 import UntypedPlutusCore.Test.DeBruijn.Bad
 import UntypedPlutusCore.Test.DeBruijn.Good
 
-import Data.Either
+
+import Control.Monad.Writer
 import Test.Tasty
 import Test.Tasty.HUnit
 
@@ -38,8 +40,9 @@ testAPI = "v1-api" `testWith` evalAPI vasilPV
 evalAPI :: ProtocolVersion -> T -> Bool
 evalAPI pv t =
     -- handcraft a serialised script
-    let s :: SerialisedScript = serialiseUPLC $ Program () PLC.plcVersion100 t
-    in isRight $ snd $ V1.evaluateScriptRestricting pv Quiet evalCtxForTesting (unExRestrictingBudget enormousBudget) s []
+    let s :: V1.SerialisedScript = V1.serialiseUPLC $ Program () PLC.plcVersion100 t
+        ec :: V1.EvaluationContext = fst $ unsafeFromRight $ runWriterT $ V1.mkEvaluationContext $ fmap snd V1.costModelParamsForTesting
+    in isRight $ snd $ V1.evaluateScriptRestricting pv V1.Quiet ec (unExRestrictingBudget enormousBudget) s []
 
 {-| Test a given eval function against the expected results.
 These tests are modified from untyped-plutus-core-test:Evaluation.FreeVars

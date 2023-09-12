@@ -16,12 +16,12 @@ import PlutusCore.Evaluation.Machine.CostModelInterface
 
 import Control.Monad.Except
 import Control.Monad.Writer.Strict
-import Data.Bifunctor
 import Data.Char (toLower)
-import Data.List.Extra
-import Data.Map as Map
+import Data.List as List (lookup)
+import Data.Map qualified as Map
 import Data.Text qualified as Text
 import GHC.Generics
+import PlutusPrelude
 
 {-| A parameter name for different plutus versions.
 
@@ -31,21 +31,26 @@ an instance of 'ParamName' out of it.
 A valid parameter name has to be enumeration, bounded, ordered, and
 prettyprintable to a \"lower-Kebab\" string.
 -}
-class IsParamName a where
-   -- | Take the raw textual form for a given typed-by-plutus-version cost model parameter
+class (Enum a, Bounded a) => IsParamName a where
+   -- | Produce the raw textual form for a given typed-by-plutus-version cost model parameter
    -- Any implementation *must be* an injective function.
-   -- The 'GIsParamName' generic implementation guarantees injection.
-   showParamName :: a -> String
+   -- The 'GIsParamName' generic implementation guarantees injectivity.
+   showParamName :: a -> Text.Text
+
+   -- | default implementation that inverts the showParamName operation (not very efficient)
+   readParamName :: Text.Text -> Maybe a
+   readParamName str = List.lookup str $ fmap (\p -> (showParamName p, p)) $ enumerate @a
 
 -- | A Generic wrapper for use with deriving via
 newtype GenericParamName a = GenericParamName a
+    deriving newtype (Enum, Bounded)
 
-instance (Generic a, GIsParamName (Rep a)) => IsParamName (GenericParamName a) where
+instance (Enum (GenericParamName a), Bounded (GenericParamName a), Generic a, GIsParamName (Rep a)) => IsParamName (GenericParamName a) where
    showParamName (GenericParamName a) = gshowParamName $ from a
 
 -- | A datatype-generic class to prettyprint 'sums of nullary constructors' in lower-kebab syntax.
 class GIsParamName f where
-    gshowParamName :: f p -> String
+    gshowParamName :: f p -> Text.Text
 
 instance (GIsParamName a) => GIsParamName (M1 D i a) where
     gshowParamName (M1 x) = gshowParamName x
@@ -57,7 +62,7 @@ The character <_> cannot be used as a delimiter because it may be part of the bu
 -}
 
 instance Constructor i => GIsParamName (M1 C i U1) where
-    gshowParamName = lowerKebab . conName
+    gshowParamName = Text.pack . lowerKebab . conName
       where
         lowerKebab :: String -> String
         lowerKebab (h:t) = toLower h : fmap maybeKebab t
@@ -100,5 +105,5 @@ tagWithParamNames ledgerParams =
 
 -- | Untags the plutus version from the typed cost model parameters and returns their raw textual form
 -- (internally used by CostModelInterface).
-toCostModelParams :: IsParamName k => [(k, Integer)] -> CostModelParams
-toCostModelParams = Map.fromList . fmap (first $ Text.pack . showParamName)
+toCostModelParams :: IsParamName p => [(p, Integer)] -> CostModelParams
+toCostModelParams = Map.fromList . fmap (first showParamName)

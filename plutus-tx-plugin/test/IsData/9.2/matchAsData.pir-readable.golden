@@ -10,7 +10,7 @@ let
   ~`$fToDataUnit` : (\a -> a -> data) Unit = `$fToDataUnit_$ctoBuiltinData`
 in
 letrec
-  data (List :: * -> *) a | Nil_match where
+  data (List :: * -> *) a | List_match where
     Nil : List a
     Cons : a -> List a -> List a
 in
@@ -24,7 +24,7 @@ in
 letrec
   ~`$fToBuiltinNilBuiltinList0_$ctoBuiltin` : List data -> list data
     = \(ds : List data) ->
-        Nil_match
+        List_match
           {data}
           ds
           {all dead. list data}
@@ -165,14 +165,14 @@ let
                  (`==` {integer} `$fEqInteger` 0 ds)
                  {all dead. r}
                  (/\dead ->
-                    Nil_match
+                    List_match
                       {data}
                       ds
                       {all dead. r}
                       (/\dead -> fail ())
                       (\(ds : data) (ds : List data) ->
                          /\dead ->
-                           Nil_match
+                           List_match
                              {data}
                              ds
                              {all dead. r}
@@ -207,7 +207,7 @@ let
                  (`==` {integer} `$fEqInteger` 1 ds)
                  {all dead. r}
                  (/\dead ->
-                    Nil_match
+                    List_match
                       {data}
                       ds
                       {all dead. r}

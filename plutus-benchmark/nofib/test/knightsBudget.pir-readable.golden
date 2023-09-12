@@ -6,7 +6,7 @@
       Tuple2 : a -> b -> Tuple2 a b
   in
   letrec
-    data (List :: * -> *) a | Nil_match where
+    data (List :: * -> *) a | List_match where
       Nil : List a
       Cons : a -> List a -> List a
   in
@@ -22,7 +22,7 @@
   letrec
     !go : List (Tuple2 integer ChessSet) -> List ChessSet
       = \(ds : List (Tuple2 integer ChessSet)) ->
-          Nil_match
+          List_match
             {Tuple2 integer ChessSet}
             ds
             {all dead. List ChessSet}
@@ -44,7 +44,7 @@
   letrec
     !go : List (Tuple2 integer ChessSet) -> List (Tuple2 integer ChessSet)
       = \(ds : List (Tuple2 integer ChessSet)) ->
-          Nil_match
+          List_match
             {Tuple2 integer ChessSet}
             ds
             {all dead. List (Tuple2 integer ChessSet)}
@@ -80,7 +80,7 @@
               (/\dead -> Nil {a})
               (/\dead ->
                  Bool_match
-                   (Nil_match
+                   (List_match
                       {a}
                       q
                       {all dead. Bool}
@@ -92,7 +92,7 @@
                    (/\dead ->
                       Bool_match
                         (finFn
-                           (Nil_match
+                           (List_match
                               {a}
                               q
                               {all dead. a}
@@ -103,7 +103,7 @@
                         (/\dead ->
                            Cons
                              {a}
-                             (Nil_match
+                             (List_match
                                 {a}
                                 q
                                 {all dead. a}
@@ -114,7 +114,7 @@
                                 {a}
                                 `$dEq`
                                 (subtractInteger depth 1)
-                                (Nil_match
+                                (List_match
                                    {a}
                                    q
                                    {all dead. List a}
@@ -131,7 +131,7 @@
                              (let
                                !list : List a
                                  = growFn
-                                     (Nil_match
+                                     (List_match
                                         {a}
                                         q
                                         {all dead. a}
@@ -139,7 +139,7 @@
                                         (\(h : a) (ds : List a) -> /\dead -> h)
                                         {all dead. dead})
                                !q : List a
-                                 = Nil_match
+                                 = List_match
                                      {a}
                                      q
                                      {all dead. List a}
@@ -150,7 +150,7 @@
                              letrec
                                !go : List a -> List a
                                  = \(ds : List a) ->
-                                     Nil_match
+                                     List_match
                                        {a}
                                        ds
                                        {all dead. List a}
@@ -221,7 +221,7 @@
     !quickSort : all a. Ord a -> List a -> List a
       = /\a ->
           \(`$dOrd` : Ord a) (ds : List a) ->
-            Nil_match
+            List_match
               {a}
               ds
               {all dead. List a}
@@ -242,7 +242,7 @@
                                     letrec
                                       !go : List a -> a
                                         = \(ds : List a) ->
-                                            Nil_match
+                                            List_match
                                               {a}
                                               ds
                                               {all dead. a}
@@ -296,7 +296,7 @@
                        letrec
                          !go : List a -> b
                            = \(ds : List a) ->
-                               Nil_match
+                               List_match
                                  {a}
                                  ds
                                  {all dead. b}
@@ -317,7 +317,7 @@
                                     letrec
                                       !go : List a -> a
                                         = \(ds : List a) ->
-                                            Nil_match
+                                            List_match
                                               {a}
                                               ds
                                               {all dead. a}
@@ -382,7 +382,7 @@
             letrec
               !go : List a -> b
                 = \(ds : List a) ->
-                    Nil_match
+                    List_match
                       {a}
                       ds
                       {all dead. b}
@@ -538,7 +538,7 @@
     !notIn : all a. (\a -> a -> a -> Bool) a -> a -> List a -> Bool
       = /\a ->
           \(`$dEq` : (\a -> a -> a -> Bool) a) (ds : a) (ds : List a) ->
-            Nil_match
+            List_match
               {a}
               ds
               {all dead. Bool}
@@ -655,7 +655,7 @@
                              (canMoveTo
                                 (move
                                    ds
-                                   (Nil_match
+                                   (List_match
                                       {Tuple2 integer integer}
                                       ipv
                                       {all dead. Tuple2 integer integer}
@@ -692,19 +692,19 @@
                        letrec
                          !rev : List a -> List a -> Maybe a
                            = \(ds : List a) (a : List a) ->
-                               Nil_match
+                               List_match
                                  {a}
                                  ds
                                  {all dead. Maybe a}
                                  (/\dead ->
-                                    Nil_match
+                                    List_match
                                       {a}
                                       a
                                       {all dead. Maybe a}
                                       (/\dead -> error {Maybe a})
                                       (\(ds : a) (ds : List a) ->
                                          /\dead ->
-                                           Nil_match
+                                           List_match
                                              {a}
                                              ds
                                              {all dead. Maybe a}
@@ -733,7 +733,7 @@
                     ChessSet
                    = \(ds : List (Tuple2 integer integer))
                       (a : List (Tuple2 integer integer)) ->
-                       Nil_match
+                       List_match
                          {Tuple2 integer integer}
                          ds
                          {all dead. ChessSet}
@@ -751,12 +751,12 @@
                     ChessSet
                    = \(ds : List (Tuple2 integer integer))
                       (a : List (Tuple2 integer integer)) ->
-                       Nil_match
+                       List_match
                          {Tuple2 integer integer}
                          ds
                          {all dead. ChessSet}
                          (/\dead ->
-                            Nil_match
+                            List_match
                               {Tuple2 integer integer}
                               a
                               {all dead. ChessSet}
@@ -786,7 +786,7 @@
                  letrec
                    !go : List ChessSet -> a
                      = \(ds : List ChessSet) ->
-                         Nil_match
+                         List_match
                            {ChessSet}
                            ds
                            {all dead. a}
@@ -821,7 +821,7 @@
                             letrec
                               !go : List Direction -> List ChessSet
                                 = \(ds : List Direction) ->
-                                    Nil_match
+                                    List_match
                                       {Direction}
                                       ds
                                       {all dead. List ChessSet}
@@ -833,7 +833,7 @@
                                              (addPiece
                                                 (move
                                                    x
-                                                   (Nil_match
+                                                   (List_match
                                                       {Tuple2 integer integer}
                                                       ipv
                                                       {all dead.
@@ -866,14 +866,14 @@
     !zip : all a b. List a -> List b -> List (Tuple2 a b)
       = /\a b ->
           \(ds : List a) (_bs : List b) ->
-            Nil_match
+            List_match
               {a}
               ds
               {all dead. List (Tuple2 a b)}
               (/\dead -> Nil {Tuple2 a b})
               (\(ipv : a) (ipv : List a) ->
                  /\dead ->
-                   Nil_match
+                   List_match
                      {b}
                      _bs
                      {all dead. List (Tuple2 a b)}
@@ -926,7 +926,7 @@
                       !go :
                          List integer -> a
                         = \(ds : List integer) ->
-                            Nil_match
+                            List_match
                               {integer}
                               ds
                               {all dead. a}
@@ -941,7 +941,7 @@
                                      !go :
                                         List integer -> a
                                        = \(ds : List integer) ->
-                                           Nil_match
+                                           List_match
                                              {integer}
                                              ds
                                              {all dead. a}
@@ -1084,7 +1084,7 @@
                 letrec
                   !go : List ChessSet -> List (Tuple2 integer ChessSet)
                     = \(ds : List ChessSet) ->
-                        Nil_match
+                        List_match
                           {ChessSet}
                           ds
                           {all dead. List (Tuple2 integer ChessSet)}
@@ -1119,7 +1119,7 @@
                                       letrec
                                         !go : List a -> b
                                           = \(ds : List a) ->
-                                              Nil_match
+                                              List_match
                                                 {a}
                                                 ds
                                                 {all dead. b}
