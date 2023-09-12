@@ -42,22 +42,6 @@
             {all dead. dead}
   in
   letrec
-    !zipConst : integer -> List ChessSet -> List (Tuple2 integer ChessSet)
-      = \(ds : integer) (ds : List ChessSet) ->
-          Nil_match
-            {ChessSet}
-            ds
-            {all dead. List (Tuple2 integer ChessSet)}
-            (/\dead -> Nil {Tuple2 integer ChessSet})
-            (\(b : ChessSet) (bs : List ChessSet) ->
-               /\dead ->
-                 Cons
-                   {Tuple2 integer ChessSet}
-                   (Tuple2 {integer} {ChessSet} ds b)
-                   (zipConst ds bs))
-            {all dead. dead}
-  in
-  letrec
     !go : List (Tuple2 integer ChessSet) -> List (Tuple2 integer ChessSet)
       = \(ds : List (Tuple2 integer ChessSet)) ->
           Nil_match
@@ -392,18 +376,6 @@
                     {all dead. dead}
           in
           go a
-  in
-  letrec
-    !repl : integer -> integer -> List integer
-      = \(n : integer) (a : integer) ->
-          Bool_match
-            (ifThenElse {Bool} (equalsInteger 0 n) True False)
-            {all dead. List integer}
-            (/\dead -> Nil {integer})
-            (/\dead -> Cons {integer} a (repl (subtractInteger n 1) a))
-            {all dead. dead}
-  in
-  let
     !`$fFoldableNil_$cfoldr` : all a b. (a -> b -> b) -> b -> List a -> b
       = /\a b ->
           \(f : a -> b -> b) (z : b) ->
@@ -1082,7 +1054,20 @@
           zip
             {integer}
             {ChessSet}
-            (repl numStarts (subtractInteger 1 numStarts))
+            (let
+              !x : integer = subtractInteger 1 numStarts
+            in
+            letrec
+              !go : integer -> List integer
+                = \(n : integer) ->
+                    Bool_match
+                      (ifThenElse {Bool} (lessThanEqualsInteger n 0) True False)
+                      {all dead. List integer}
+                      (/\dead -> Nil {integer})
+                      (/\dead -> Cons {integer} x (go (subtractInteger n 1)))
+                      {all dead. dead}
+            in
+            go numStarts)
             l
       in
       go list)
@@ -1093,8 +1078,26 @@
            ds
            {List (Tuple2 integer ChessSet)}
            (\(x : integer) (y : ChessSet) ->
-              zipConst
-                (addInteger 1 x)
+              (let
+                  !a : integer = addInteger 1 x
+                in
+                letrec
+                  !go : List ChessSet -> List (Tuple2 integer ChessSet)
+                    = \(ds : List ChessSet) ->
+                        Nil_match
+                          {ChessSet}
+                          ds
+                          {all dead. List (Tuple2 integer ChessSet)}
+                          (/\dead -> Nil {Tuple2 integer ChessSet})
+                          (\(x : ChessSet) (xs : List ChessSet) ->
+                             /\dead ->
+                               Cons
+                                 {Tuple2 integer ChessSet}
+                                 (Tuple2 {integer} {ChessSet} a x)
+                                 (go xs))
+                          {all dead. dead}
+                in
+                \(eta : List ChessSet) -> go eta)
                 (ChessSet_match
                    y
                    {List ChessSet}

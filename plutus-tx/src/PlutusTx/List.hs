@@ -249,25 +249,17 @@ tail []     =  traceError tailEmptyListError
 
 {-# INLINABLE take #-}
 -- | Plutus Tx version of 'Data.List.take'.
-take :: forall a. Integer -> [a] -> [a]
-take n0 _   | n0 <= 0 = []
-take n0 xs0 = go n0 xs0
-  where
-    go :: Integer -> [a] -> [a]
-    go _ []       = []
-    go n (x : xs) =
-        x : if n == 1 then [] else go (Builtins.subtractInteger n 1) xs
+take :: Integer -> [a] -> [a]
+take n _      | n <= 0 =  []
+take _ []              =  []
+take n (x:xs)          =  x : take (Builtins.subtractInteger n 1) xs
 
 {-# INLINABLE drop #-}
 -- | Plutus Tx version of 'Data.List.drop'.
-drop :: forall a. Integer -> [a] -> [a]
-drop n0 xs0 | n0 <= 0 = xs0
-drop n0 xs0 = go n0 xs0
-  where
-    go :: Integer -> [a] -> [a]
-    go _ []       = []
-    go n (_ : xs) =
-        if n == 1 then xs else go (Builtins.subtractInteger n 1) xs
+drop :: Integer -> [a] -> [a]
+drop n xs     | n <= 0 = xs
+drop _ []              = []
+drop n (_:xs)          = drop (Builtins.subtractInteger n 1) xs
 
 {-# INLINABLE splitAt #-}
 -- | Plutus Tx version of 'Data.List.splitAt'.
@@ -331,11 +323,9 @@ dropWhile p = go
 {-# INLINABLE replicate #-}
 -- | Plutus Tx version of 'Data.List.replicate'.
 replicate :: forall a. Integer -> a -> [a]
-replicate n0 _ | n0 <= 0 = []
-replicate n0 x           = go n0
-  where
-    go :: Integer -> [a]
-    go n = x : if n == 1 then [] else go (Builtins.subtractInteger n 1)
+replicate n0 x = go n0 where
+    go n | n <= 0 = []
+    go n          = x : go (Builtins.subtractInteger n 1)
 
 {-# INLINABLE partition #-}
 -- | Plutus Tx version of 'Data.List.partition'.
