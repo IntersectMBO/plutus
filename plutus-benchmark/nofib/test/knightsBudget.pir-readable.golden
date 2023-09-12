@@ -42,6 +42,22 @@
             {all dead. dead}
   in
   letrec
+    !zipConst : integer -> List ChessSet -> List (Tuple2 integer ChessSet)
+      = \(ds : integer) (ds : List ChessSet) ->
+          Nil_match
+            {ChessSet}
+            ds
+            {all dead. List (Tuple2 integer ChessSet)}
+            (/\dead -> Nil {Tuple2 integer ChessSet})
+            (\(b : ChessSet) (bs : List ChessSet) ->
+               /\dead ->
+                 Cons
+                   {Tuple2 integer ChessSet}
+                   (Tuple2 {integer} {ChessSet} ds b)
+                   (zipConst ds bs))
+            {all dead. dead}
+  in
+  letrec
     !go : List (Tuple2 integer ChessSet) -> List (Tuple2 integer ChessSet)
       = \(ds : List (Tuple2 integer ChessSet)) ->
           Nil_match
@@ -362,15 +378,20 @@
                      xs)
               {all dead. dead}
   in
-  letrec
+  let
     !interval : integer -> integer -> List integer
       = \(a : integer) (b : integer) ->
-          Bool_match
-            (ifThenElse {Bool} (lessThanEqualsInteger a b) False True)
-            {all dead. List integer}
-            (/\dead -> Nil {integer})
-            (/\dead -> Cons {integer} a (interval (addInteger 1 a) b))
-            {all dead. dead}
+          letrec
+            !go : integer -> List integer
+              = \(a : integer) ->
+                  Bool_match
+                    (ifThenElse {Bool} (lessThanEqualsInteger a b) False True)
+                    {all dead. List integer}
+                    (/\dead -> Nil {integer})
+                    (/\dead -> Cons {integer} a (go (addInteger 1 a)))
+                    {all dead. dead}
+          in
+          go a
   in
   letrec
     !repl : integer -> integer -> List integer
@@ -894,23 +915,6 @@
                      {all dead. dead})
               {all dead. dead}
   in
-  letrec
-    !zipConst : all a b. a -> List b -> List (Tuple2 a b)
-      = /\a b ->
-          \(ds : a) (ds : List b) ->
-            Nil_match
-              {b}
-              ds
-              {all dead. List (Tuple2 a b)}
-              (/\dead -> Nil {Tuple2 a b})
-              (\(b : b) (bs : List b) ->
-                 /\dead ->
-                   Cons
-                     {Tuple2 a b}
-                     (Tuple2 {a} {b} ds b)
-                     (zipConst {a} {b} ds bs))
-              {all dead. dead}
-  in
   \(depth : integer)
    (boardSize : integer) ->
     depthSearch
@@ -1090,8 +1094,6 @@
            {List (Tuple2 integer ChessSet)}
            (\(x : integer) (y : ChessSet) ->
               zipConst
-                {integer}
-                {ChessSet}
                 (addInteger 1 x)
                 (ChessSet_match
                    y

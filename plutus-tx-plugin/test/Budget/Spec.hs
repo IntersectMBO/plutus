@@ -115,6 +115,22 @@ tests = testNestedGhc "Budget" [
   , goldenUPlcReadable "notElemExpensive" compiledNotElemExpensive
   , goldenPirReadable "notElemExpensive" compiledNotElemExpensive
 
+  , goldenBudget "lte0" compiledLte0
+  , goldenUPlcReadable "lte0" compiledLte0
+  , goldenPirReadable "lte0" compiledLte0
+
+  , goldenBudget "gte0" compiledGte0
+  , goldenUPlcReadable "gte0" compiledGte0
+  , goldenPirReadable "gte0" compiledGte0
+
+  , goldenBudget "recursiveLte0" compiledRecursiveLte0
+  , goldenUPlcReadable "recursiveLte0" compiledRecursiveLte0
+  , goldenPirReadable "recursiveLte0" compiledRecursiveLte0
+
+  , goldenBudget "recursiveGte0" compiledRecursiveGte0
+  , goldenUPlcReadable "recursiveGte0" compiledRecursiveGte0
+  , goldenPirReadable "recursiveGte0" compiledRecursiveGte0
+
   , goldenBudget "sumL" compiledSumL
   , goldenUPlcReadable "sumL" compiledSumL
   , goldenPirReadable "sumL" compiledSumL
@@ -299,6 +315,31 @@ compiledNotElemExpensive :: CompiledCode Bool
 compiledNotElemExpensive = $$(compile [||
       let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
        in PlutusTx.notElem 0 ls ||])
+
+compiledLte0 :: CompiledCode Bool
+compiledLte0 = $$(compile [||
+      let ls = PlutusTx.replicate 1000 0 :: [Integer]
+       in List.all (PlutusTx.<= 0) ls ||])
+
+compiledGte0 :: CompiledCode Bool
+compiledGte0 = $$(compile [||
+      let ls = PlutusTx.replicate 1000 0 :: [Integer]
+       in List.all (PlutusTx.>= 0) ls ||])
+
+{-# INLINABLE recursiveAll #-}
+recursiveAll :: forall a. (a -> Bool) -> [a] -> Bool
+recursiveAll _ []     = True
+recursiveAll f (x:xs) = if f x then recursiveAll f xs else False
+
+compiledRecursiveLte0 :: CompiledCode Bool
+compiledRecursiveLte0 = $$(compile [||
+      let ls = PlutusTx.replicate 1000 0 :: [Integer]
+       in recursiveAll (PlutusTx.<= 0) ls ||])
+
+compiledRecursiveGte0 :: CompiledCode Bool
+compiledRecursiveGte0 = $$(compile [||
+      let ls = PlutusTx.replicate 1000 0 :: [Integer]
+       in recursiveAll (PlutusTx.>= 0) ls ||])
 
 -- | Left-fold a list with a function summing its arguments.
 compiledSumL :: CompiledCode Integer
