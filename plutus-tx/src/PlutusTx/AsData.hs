@@ -36,21 +36,22 @@ also been defined with 'asData', and so have trivial conversions to/from 'Builti
 (or have very cheap conversions, like 'Integer' and 'ByteString').
 But it can be very expensive otherwise, so take care.
 
-Instances can be derived using standalone deriving, and should mostly
-use the newtype strategy (e.g. in order to benefit from the fast 'Eq' instance for
-the underlying 'BuiltinData').
+Deriving clauses are transferred from the quoted declaration to the generated newtype
+declaration. Note that you may therefore need to do strange things like use
+@deriving newtype@ on a data declaration.
 
 Example:
 @
     $(asData
       [d|
         data Example a = Ex1 Integer | Ex2 a a
+          deriving newtype (Eq)
       |]
 @
 becomes
 @
     newtype Example a = Example BuiltinData
-      deriving newtype (ToData, FromData, UnsafeFromBuiltinData)
+      deriving newtype (Eq)
 
     pattern Ex1 :: (ToData a, UnsafeFromData a) => Integer -> Example a
     pattern Ex1 i = Example (unsafeDataAsConstr -> ((==) 0 -> True, [unsafeFromBuiltinData -> i]))
@@ -71,10 +72,10 @@ asData decQ = do
 
 asDataFor :: TH.Dec -> TH.Q [TH.Dec]
 asDataFor dec = do
-  -- th-abstraction doesn't include deriving clauses, so we have to handle that hereth-abstraction doesn't include deriving clauses, so we have to handle that here
-  case dec of
-    TH.DataD _ _ _ _ _ deriv | not (null deriv) -> fail "asData: can't handle deriving clauses"
-    _                                           -> pure ()
+  -- th-abstraction doesn't include deriving clauses, so we have to handle that here
+  let derivs = case dec of
+        TH.DataD _ _ _ _ _ deriv -> deriv
+        _                        -> []
 
   di@(TH.DatatypeInfo{TH.datatypeVariant=dVariant, TH.datatypeCons=cons, TH.datatypeName=name, TH.datatypeVars=tTypeVars}) <- TH.normalizeDec dec
 
@@ -85,7 +86,7 @@ asDataFor dec = do
   -- The newtype declaration
   let ntD =
         let con = TH.NormalC cname [(TH.Bang TH.NoSourceUnpackedness TH.NoSourceStrictness, TH.ConT ''BuiltinData)]
-        in TH.NewtypeD [] name tTypeVars Nothing con []
+        in TH.NewtypeD [] name tTypeVars Nothing con derivs
 
   -- The pattern synonyms, one for each constructor
   pats <- ifor cons $ \conIx (TH.ConstructorInfo{TH.constructorName=conName, TH.constructorFields=fields, TH.constructorVariant=cVariant}) -> do
