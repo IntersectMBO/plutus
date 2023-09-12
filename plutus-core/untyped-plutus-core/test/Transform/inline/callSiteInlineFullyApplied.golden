@@ -1,0 +1,1 @@
+[ (lam f (con integer 6)) (lam a (lam b (lam c (lam d (con integer 6))))) ]

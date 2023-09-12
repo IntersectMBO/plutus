@@ -1,4 +1,5 @@
 -- editorconfig-checker-disable-file
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
 
@@ -16,6 +17,15 @@ import Data.Text.Encoding (encodeUtf8)
 import Test.Tasty
 import Test.Tasty.Golden
 
+import Control.Monad.Error (MonadError)
+import PlutusCore.Error (UniqueError)
+import PlutusIR.Test (asIfThrown, goldenPirM, rethrow)
+import Test.Tasty.Extras (TestNested, runTestNested, runTestNestedIn, testNested)
+import UntypedPlutusCore.Check.Uniques (UniqueError (..))
+import UntypedPlutusCore.Check.Uniques qualified as Uniques
+import UntypedPlutusCore.Parser (term)
+import UntypedPlutusCore.Rename qualified as UPLC
+import UntypedPlutusCore.Transform.Inline (inline)
 basic :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 basic = Force () $ Delay () $ mkConstant @Integer () 1
 
@@ -240,6 +250,37 @@ goldenVsSimplified name =
     -- Just run one iteration, to see what that does
     . simplifyTerm (defaultSimplifyOpts & soMaxSimplifierIterations .~ 1)
 
+checkUniques :: (Ord a, MonadError (UniqueError a) m)
+  => Term Name uni fun a -> m ()
+-- the renamer will fix incoherency between *bound* variables, but it ignores free
+-- variables, so we can still get incoherent usage errors, ignore them for now
+checkUniques =
+  Uniques.checkTerm
+      (\case { FreeVariable{} -> False; IncoherentUsage {} -> False; _ -> True})
+
+-- | Tests of the inliner, include global uniqueness test.
+inliner :: TestNested
+inliner =
+    let goldenInlineUnique :: Term Name PLC.DefaultUni PLC.DefaultFun PLC.SrcSpan ->
+            IO (Term Name PLC.DefaultUni PLC.DefaultFun PLC.SrcSpan)
+        goldenInlineUnique uplc =
+            rethrow . asIfThrown @(UniqueError PLC.SrcSpan) $ do
+                let uplcInlined = runQuote $ do
+                        renamed <- UPLC.rename uplc
+                        inline mempty renamed
+                -- Make sure the inlined term is globally unique.
+                _ <- checkUniques uplcInlined
+                pure uplcInlined
+    in
+    testNested "inline" $
+        map
+            (goldenPirM goldenInlineUnique term)
+            [ "callSiteInlineLarger"
+            , "callSiteInlinePartiallyApplied"
+            , "callSiteInlineFullyApplied"
+            ]
+
+
 test_simplify :: TestTree
 test_simplify =
   testGroup
@@ -265,4 +306,5 @@ test_simplify =
     , goldenVsSimplified "inlineImpure3" inlineImpure3
     , goldenVsSimplified "inlineImpure4" inlineImpure4
     , goldenVsSimplified "multiApp" multiApp
+    , runTestNestedIn ["untyped-plutus-core/test/Transform"] inliner
     ]

@@ -1,0 +1,25 @@
+{- Here f occurs more than once so it is not inlined unconditionally.
+But it should be inlined by the callsite inliner because \d -> 6 is smaller than f 2 3 4
+
+
+let
+ f = \a b c d -> 6
+ g = f 
+ in f 2 3 4
+
+In UPLC:
+
+(\f -> (\g -> f 2 3 4) f ) (\a b c d -> 6)
+
+-}
+
+[
+  (lam f [(lam g [f (con integer 2) (con integer 3) (con integer 4)]) f])
+  (lam
+    a
+    (lam
+      b
+      (lam c (lam d (con integer 6)))
+    )
+  )
+]
