@@ -120,7 +120,7 @@ makeBuiltinMeaning
     -> BuiltinMeaning val cost
 ```
 
-It takes two arguments: a Haskell implementation of the builtin, which we call a denotation, and a costing function of the builtin -- and creates an entire `BuiltinMeaning` out of these two. `a` is the type of the denotation and it's so general, because we support a wide range of Haskell functions, however `a` is still constrained, it's just that we omitted the constraints for clarity.
+It takes two arguments: a Haskell implementation of the builtin, which we call a denotation, and a costing function for the builtin -- and creates an entire `BuiltinMeaning` out of these two. `a` is the type of the denotation and it's so general because we support a wide range of Haskell functions, however `a` is still constrained, it's just that we omitted the constraints for clarity.
 
 Here's some real example of constructing a `BuiltinMeaning` out of its denotation and its costing function:
 
@@ -154,9 +154,9 @@ data BuiltinMeaning val cost =
         (cost -> BuiltinRuntime val)
 ```
 
-As the docs say, `TypeScheme` is used primarily for type checking and testing. It's defined in `Builtin.TypeScheme` together with a function converting a `TypeScheme` to a `Type`.
+As the comment says, `TypeScheme` is used primarily for type checking and testing. It's defined in `Builtin.TypeScheme` together with a function converting a `TypeScheme` to a `Type`.
 
-`FoldArgs args res`, the type of the second field, is what we turn the general type of the denotation into (originally, just `a`) by separating the list of types of arguments (`args`) from the type of the result (`res`). We do it for convenience, in a lot of places argument types are handled very differently than the result type, so it's natural to separate them explicitly. `FoldArgs` then recreates the original type of the built-in function by folding the list of arguments with `(->)`, e.g.
+`FoldArgs args res`, the type of the second field, is what we turn the general type of the denotation (originally, just `a`) into by separating the list of types of arguments (`args`) from the type of the result (`res`). We do it for convenience, in a lot of places argument types are handled very differently than the result type, so it's natural to separate them explicitly. `FoldArgs` then recreates the original type of the built-in function by folding the list of arguments with `(->)`, e.g.
 
 ```haskell
 FoldArgs [(), Bool] Integer
@@ -202,7 +202,7 @@ Let's break it down:
 2. `TypeSchemeArrow` stores the type of an argument of the builtin, also in the form of a `KnownTypeAst` constraint, and the rest of the type scheme. A builtin having a `TypeSchemeArrow` in its `TypeScheme` at a specific position means that this is where the builtin expects a term argument of a certain Haskell/Plutus type.
 3. Similarly a `TypeSchemeAll` expresses "the builtin takes a type argument at this position". Which means that the Plutus type of the builtin has an `all (x :: kind)` quantifier at this position. Hence we store the textual name of the type variable (`text`), its unique-within-the-type-signature-of-the-builtin index (`uniq`) and the kind of the variable (`kind`) inside of the `TypeSchemeAll`, as well as the rest of the type scheme. `Proxy` is just to give convenient access to the Haskell type variables storing the information about the Plutus type variable. Instead of using Haskell type variables, we could've demoted all the information to the term level and store `Text`, `Unique` and `Kind` directly (as opposed to providing access to them through the constraints), but we didn't want to hardcode Plutus-specific `Kind` in there and it doesn't matter anyway. The reason why we end up having that information at the type level in the first place is that we get it from the Haskell type of the denotation, which lives at the type level. The reason why we get it from there is that it saves us from typing it manually, which is error-prone and way too laborious.
 
-Here's a concrete example of how a `TypeScheme` for `DivideInteger` might look like if we were to construct it directly for a particular type of evaluator's value (each evaluator defines its own type of value, in our example it's `CekValue`):
+Here's a concrete example of what a `TypeScheme` for `DivideInteger` might look like if we were to construct it directly for a particular type of evaluator's value (each evaluator defines its own type of value, in our example it's `CekValue`):
 
 ```haskell
 divideIntegerTypeScheme ::
@@ -215,7 +215,7 @@ divideIntegerTypeScheme = TypeSchemeArrow $ TypeSchemeArrow TypeSchemeResult
 
 `DivideInteger` takes two `Integer` arguments, hence `'[Integer, Integer]` at the type level and two `TypeSchemeArrow`s at the term level.
 
-In the actual code we don't construct type schemes for specific types of values as that would be a lot of duplicate code and instead we just carry some constraints around specifying what the type of value needs to satisfy in order for it to be usable within a `TypeScheme`. In general, we really try and don't duplicate code and instead use ad hoc polymorphism, which we optimize heavily when it matters.
+In the actual code we don't construct type schemes for specific types of values as that would be a lot of duplicate code: instead we just carry some constraints around specifying what the type of value needs to satisfy in order for it to be usable within a `TypeScheme`. In general, we really try not to duplicate code and instead use ad hoc polymorphism, which we optimize heavily when it matters.
 
 In order to infer the type of a built-in function, we convert its `TypeScheme` to the Plutus type:
 
