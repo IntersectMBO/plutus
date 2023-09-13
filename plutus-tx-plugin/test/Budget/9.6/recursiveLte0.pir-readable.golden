@@ -1,0 +1,46 @@
+let
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+in
+letrec
+  data (List :: * -> *) a | List_match where
+    Nil : List a
+    Cons : a -> List a -> List a
+in
+letrec
+  !go : integer -> List integer
+    = \(n : integer) ->
+        Bool_match
+          (ifThenElse {Bool} (lessThanEqualsInteger n 0) True False)
+          {all dead. List integer}
+          (/\dead -> Nil {integer})
+          (/\dead -> Cons {integer} 0 (go (subtractInteger n 1)))
+          {all dead. dead}
+in
+letrec
+  !recursiveAll : all a. (a -> Bool) -> List a -> Bool
+    = /\a ->
+        \(ds : a -> Bool) (ds : List a) ->
+          List_match
+            {a}
+            ds
+            {all dead. Bool}
+            (/\dead -> True)
+            (\(x : a) (xs : List a) ->
+               /\dead ->
+                 Bool_match
+                   (ds x)
+                   {all dead. Bool}
+                   (/\dead -> recursiveAll {a} ds xs)
+                   (/\dead -> False)
+                   {all dead. dead})
+            {all dead. dead}
+in
+let
+  !ls : List integer = go 1000
+in
+recursiveAll
+  {integer}
+  (\(v : integer) -> ifThenElse {Bool} (lessThanEqualsInteger v 0) True False)
+  ls

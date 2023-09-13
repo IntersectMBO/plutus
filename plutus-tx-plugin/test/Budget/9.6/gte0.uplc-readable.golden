@@ -1,0 +1,25 @@
+program
+  1.1.0
+  ((\fix1 ->
+      fix1
+        (\go ds ->
+           force
+             (case
+                ds
+                [ (delay (constr 0 []))
+                , (\x xs ->
+                     delay
+                       (force
+                          (force ifThenElse
+                             (lessThanInteger x 0)
+                             (delay (constr 1 []))
+                             (delay (go xs))))) ]))
+        (fix1
+           (\go n ->
+              force
+                (force ifThenElse
+                   (lessThanEqualsInteger n 0)
+                   (delay (constr 0 []))
+                   (delay (constr 1 [0, (go (subtractInteger n 1))]))))
+           1000))
+     (\f -> (\s -> s s) (\s x -> f (s s) x)))
