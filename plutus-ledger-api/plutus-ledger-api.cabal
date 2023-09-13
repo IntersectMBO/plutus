@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-ledger-api
-version:         1.9.0.0
+version:         1.9.1.0
 license:         Apache-2.0
 license-files:
   LICENSE
