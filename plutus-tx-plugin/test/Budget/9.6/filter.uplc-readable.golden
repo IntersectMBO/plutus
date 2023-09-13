@@ -1,34 +1,23 @@
 program
   1.1.0
-  (force
-     (force
-        ((\s -> s s)
-           (\s x ->
-              (\foldr ->
-                 delay
-                   (delay
-                      (\f acc l ->
-                         force
-                           (case
-                              l
-                              [ (delay acc)
-                              , (\x xs ->
-                                   delay
-                                     (f
-                                        x
-                                        (force (force (foldr (delay (\x -> x))))
-                                           f
-                                           acc
-                                           xs))) ]))))
-                (s s))
-           (delay (\x -> x))))
-     (\e xs ->
-        force
-          (force ifThenElse
-             (equalsInteger 0 (modInteger e 2))
-             (delay (constr 1 [e, xs]))
-             (delay xs)))
-     (constr 0 [])
+  ((\s ->
+      s s)
+     (\s x ->
+        (\go ->
+           force
+             (case
+                x
+                [ (delay (constr 0 []))
+                , (\x xs ->
+                     delay
+                       ((\xs ->
+                           force
+                             (force ifThenElse
+                                (equalsInteger 0 (modInteger x 2))
+                                (delay (constr 1 [x, xs]))
+                                (delay xs)))
+                          (go xs))) ]))
+          (s s))
      (constr 1
         [ 1
         , (constr 1

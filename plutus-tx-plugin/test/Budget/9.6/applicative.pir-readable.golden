@@ -8,20 +8,14 @@ let
     = (let
           b = integer -> integer
         in
-        \(`$dFunctor` :
-            (\(f :: * -> *) -> all a b. (a -> b) -> f a -> f b) Maybe)
-         (f : integer -> b)
-         (fa : Maybe integer) ->
-          `$dFunctor` {integer} {b} f fa)
-        (/\a b ->
-           \(f : a -> b) (ds : Maybe a) ->
-             Maybe_match
-               {a}
-               ds
-               {all dead. Maybe b}
-               (\(a : a) -> /\dead -> Just {b} (f a))
-               (/\dead -> Nothing {b})
-               {all dead. dead})
+        \(f : integer -> b) (ds : Maybe integer) ->
+          Maybe_match
+            {integer}
+            ds
+            {all dead. Maybe b}
+            (\(a : integer) -> /\dead -> Just {b} (f a))
+            (/\dead -> Nothing {b})
+            {all dead. dead})
         (\(x : integer) (y : integer) -> addInteger x y)
         x
 in
