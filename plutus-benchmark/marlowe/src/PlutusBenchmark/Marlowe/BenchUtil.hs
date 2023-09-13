@@ -287,9 +287,14 @@ executeBenchmark serialisedValidator Benchmark{..} =
   case evaluationContext of
    Left message -> Left message
    Right ec ->
-    Right
-      $ evaluateScriptCounting (ProtocolVersion 8 0) Verbose ec serialisedValidator
-        [bDatum, bRedeemer, toData bScriptContext]
+    case deserialiseScript pv serialisedValidator of
+      Left err -> Left (show err)
+      Right validator ->
+        Right
+          $ evaluateScriptCounting pv Verbose ec validator
+              [bDatum, bRedeemer, toData bScriptContext]
+  where
+    pv = ProtocolVersion 8 0
 
 
 -- | The execution context for benchmarking.

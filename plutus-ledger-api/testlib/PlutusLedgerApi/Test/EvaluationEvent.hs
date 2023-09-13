@@ -115,6 +115,7 @@ data UnexpectedEvaluationResult
         [Integer]
         -- ^ Cost parameters
         EvaluationError
+    | DecodeError ScriptDecodeError
     deriving stock (Show)
 
 instance Pretty UnexpectedEvaluationResult where
@@ -134,6 +135,13 @@ instance Pretty UnexpectedEvaluationResult where
                     , pretty ev
                     , "Cost parameters:" <+> pretty params
                     , "Evaluation error:" <+> pretty err
+                    ]
+        DecodeError err ->
+            nest 2 $
+                vsep
+                    [ "ScriptDecodeError"
+                    , viaShow err
+                    , "This should never happen at phase 2!"
                     ]
 
 data TestFailure
@@ -163,25 +171,31 @@ checkEvaluationEvent ::
     Maybe UnexpectedEvaluationResult
 checkEvaluationEvent ctx params ev = case ev of
     PlutusV1Event ScriptEvaluationData{..} expected ->
-        let (_, actual) =
-                V1.evaluateScriptRestricting
-                    dataProtocolVersion
-                    V1.Quiet
-                    ctx
-                    dataBudget
-                    dataScript
-                    dataInputs
-         in verify expected actual
+        case deserialiseScript PlutusV1 dataProtocolVersion dataScript of
+            Right script ->
+                let (_, actual) =
+                        V1.evaluateScriptRestricting
+                            dataProtocolVersion
+                            V1.Quiet
+                            ctx
+                            dataBudget
+                            script
+                            dataInputs
+                 in verify expected actual
+            Left err -> Just (DecodeError err)
     PlutusV2Event ScriptEvaluationData{..} expected ->
-        let (_, actual) =
-                V2.evaluateScriptRestricting
-                    dataProtocolVersion
-                    V2.Quiet
-                    ctx
-                    dataBudget
-                    dataScript
-                    dataInputs
-         in verify expected actual
+        case deserialiseScript PlutusV2 dataProtocolVersion dataScript of
+            Right script ->
+                let (_, actual) =
+                        V2.evaluateScriptRestricting
+                            dataProtocolVersion
+                            V2.Quiet
+                            ctx
+                            dataBudget
+                            script
+                            dataInputs
+                 in verify expected actual
+            Left err -> Just (DecodeError err)
   where
     verify ScriptEvaluationSuccess (Left err) =
         Just $ UnexpectedEvaluationFailure ev params err

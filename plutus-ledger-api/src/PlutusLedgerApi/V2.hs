@@ -3,11 +3,13 @@
 module PlutusLedgerApi.V2 (
     -- * Scripts
       SerialisedScript
+    , ScriptForEvaluation
+    , serialisedScript
+    , deserialisedScript
     , serialiseCompiledCode
     , serialiseUPLC
+    , deserialiseScript
     , uncheckedDeserialiseUPLC
-    -- * Validating scripts
-    , assertScriptWellFormed
     -- * Running scripts
     , evaluateScriptRestricting
     , evaluateScriptCounting
@@ -101,14 +103,12 @@ module PlutusLedgerApi.V2 (
     , ScriptDecodeError (..)
     ) where
 
-import Control.Monad.Except (MonadError)
-
-import PlutusLedgerApi.Common as Common hiding (assertScriptWellFormed, evaluateScriptCounting,
+import PlutusLedgerApi.Common as Common hiding (deserialiseScript, evaluateScriptCounting,
                                          evaluateScriptRestricting)
-import PlutusLedgerApi.Common qualified as Common (assertScriptWellFormed, evaluateScriptCounting,
+import PlutusLedgerApi.Common qualified as Common (deserialiseScript, evaluateScriptCounting,
                                                    evaluateScriptRestricting)
 import PlutusLedgerApi.V1 hiding (ParamName, ScriptContext (..), TxInInfo (..), TxInfo (..),
-                           TxOut (..), assertScriptWellFormed, evaluateScriptCounting,
+                           TxOut (..), deserialiseScript, evaluateScriptCounting,
                            evaluateScriptRestricting, mkEvaluationContext)
 import PlutusLedgerApi.V2.Contexts
 import PlutusLedgerApi.V2.EvaluationContext
@@ -118,19 +118,26 @@ import PlutusLedgerApi.V2.Tx (OutputDatum (..))
 import PlutusCore.Data qualified as PLC
 import PlutusTx.AssocMap (Map, fromList)
 
+import Control.Monad.Except (MonadError)
+
 -- | An alias to the Plutus ledger language this module exposes at runtime.
 --  MAYBE: Use CPP '__FILE__' + some TH to automate this.
 thisLedgerLanguage :: PlutusLedgerLanguage
 thisLedgerLanguage = PlutusV2
 
--- | Check if a 'Script' is "valid" according to a protocol version. At the moment this means "deserialises correctly", which in particular
--- implies that it is (almost certainly) an encoded script and the script does not mention any builtins unavailable in the given protocol version.
-assertScriptWellFormed
-    :: MonadError ScriptDecodeError  m
-    => ProtocolVersion -- ^ which protocol version to run the operation in
-    -> SerialisedScript -- ^ the script to check for well-formedness
-    -> m ()
-assertScriptWellFormed = Common.assertScriptWellFormed thisLedgerLanguage
+{- | The deserialization from a serialised script into a `ScriptForEvaluation`,
+ready to be evaluated on-chain.
+Called inside phase-1 validation (i.e., deserialisation error is a phase-1 error).
+-}
+deserialiseScript ::
+  forall m.
+  (MonadError ScriptDecodeError m) =>
+  -- | which protocol version the script was submitted in.
+  ProtocolVersion ->
+  -- | the script to deserialise.
+  SerialisedScript ->
+  m ScriptForEvaluation
+deserialiseScript = Common.deserialiseScript thisLedgerLanguage
 
 -- | Evaluates a script, returning the minimum budget that the script would need
 -- to evaluate successfully. This will take as long as the script takes, if you need to
@@ -140,7 +147,7 @@ evaluateScriptCounting
     :: ProtocolVersion   -- ^ Which protocol version to run the operation in
     -> VerboseMode       -- ^ Whether to produce log output
     -> EvaluationContext -- ^ Includes the cost model to use for tallying up the execution costs
-    -> SerialisedScript  -- ^ The script to evaluate
+    -> ScriptForEvaluation -- ^ The script to evaluate
     -> [PLC.Data]        -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ExBudget)
 evaluateScriptCounting = Common.evaluateScriptCounting thisLedgerLanguage
@@ -156,7 +163,7 @@ evaluateScriptRestricting
     -> VerboseMode       -- ^ Whether to produce log output
     -> EvaluationContext -- ^ Includes the cost model to use for tallying up the execution costs
     -> ExBudget          -- ^ The resource budget which must not be exceeded during evaluation
-    -> SerialisedScript  -- ^ The script to evaluate
+    -> ScriptForEvaluation -- ^ The script to evaluate
     -> [PLC.Data]        -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ExBudget)
 evaluateScriptRestricting = Common.evaluateScriptRestricting thisLedgerLanguage

@@ -7,13 +7,15 @@ module PlutusLedgerApi.Common.SerialisedScript
     , serialiseUPLC
     , uncheckedDeserialiseUPLC
     , scriptCBORDecoder
-    , ScriptForExecution (..)
+    , ScriptNamedDeBruijn (..)
+    , ScriptForEvaluation -- Do not export data constructor
     , ScriptDecodeError (..)
     , AsScriptDecodeError (..)
     , DeserialiseFailureInfo (..)
     , DeserialiseFailureReason (..)
-    , fromSerialisedScript
-    , assertScriptWellFormed
+    , deserialiseScript
+    , serialisedScript
+    , deserialisedScript
     ) where
 
 import PlutusCore
@@ -31,7 +33,7 @@ import Codec.Serialise
 import Control.Arrow ((>>>))
 import Control.Exception
 import Control.Lens
-import Control.Monad (unless, void, when)
+import Control.Monad (unless, when)
 import Control.Monad.Error.Lens
 import Control.Monad.Except (MonadError)
 import Data.ByteString.Lazy as BSL (ByteString, fromStrict, toStrict)
@@ -113,14 +115,25 @@ uncheckedDeserialiseUPLC = unSerialiseViaFlat . deserialise . BSL.fromStrict . f
   where
     unSerialiseViaFlat (SerialiseViaFlat (UPLC.UnrestrictedProgram a)) = a
 
--- | A variant of `Script` with a specialized decoder.
-newtype ScriptForExecution = ScriptForExecution (UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ())
+-- | A script with named de-bruijn indices.
+newtype ScriptNamedDeBruijn = ScriptNamedDeBruijn (UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ())
+
+-- | A Plutus script ready to be evaluated on-chain, via @evaluateScriptRestricting@.
+data ScriptForEvaluation = UnsafeScriptForEvaluation SerialisedScript ScriptNamedDeBruijn
+
+-- | Get a `SerialisedScript` from a `ScriptForEvaluation`. /O(1)/.
+serialisedScript :: ScriptForEvaluation -> SerialisedScript
+serialisedScript (UnsafeScriptForEvaluation s _) = s
+
+-- | Get a `ScriptNamedDeBruijn` from a `ScriptForEvaluation`. /O(1)/.
+deserialisedScript :: ScriptForEvaluation -> ScriptNamedDeBruijn
+deserialisedScript (UnsafeScriptForEvaluation _ s) = s
 
 {-| This decoder decodes the names directly into `NamedDeBruijn`s rather than `DeBruijn`s.
 This is needed because the CEK machine expects `NameDeBruijn`s, but there are obviously no names in the serialised form of a `Script`.
 Rather than traversing the term and inserting fake names after deserialising, this lets us do at the same time as deserialising.
 -}
-scriptCBORDecoder :: PlutusLedgerLanguage -> ProtocolVersion -> CBOR.Decoder s ScriptForExecution
+scriptCBORDecoder :: PlutusLedgerLanguage -> ProtocolVersion -> CBOR.Decoder s ScriptNamedDeBruijn
 scriptCBORDecoder lv pv =
     -- See Note [New builtins and protocol versions]
     let availableBuiltins = builtinsAvailableIn lv pv
@@ -133,48 +146,33 @@ scriptCBORDecoder lv pv =
         (p :: UPLC.Program UPLC.FakeNamedDeBruijn DefaultUni DefaultFun ()) <- decodeViaFlat flatDecoder
         pure $ coerce p
 
--- | The deserialization from a serialised script to a Script (for execution).
--- Called inside phase-1 validation (assertScriptWellFormed) and inside phase-2's `mkTermToEvaluate`
-fromSerialisedScript :: forall e m. (AsScriptDecodeError e, MonadError e m)
+-- | The deserialization from a serialised script into a `ScriptForEvaluation`,
+-- ready to be evaluated on-chain.
+-- Called inside phase-1 validation (i.e., deserialisation error is a phase-1 error).
+deserialiseScript :: forall m. (MonadError ScriptDecodeError m)
                      => PlutusLedgerLanguage -- ^ the Plutus ledger language of the script.
                      -> ProtocolVersion -- ^ which protocol version the script was submitted in.
                      -> SerialisedScript -- ^ the script to deserialise.
-                     -> m ScriptForExecution
-fromSerialisedScript lv currentPv sScript = do
+                     -> m ScriptForEvaluation
+deserialiseScript ll pv sScript = do
     -- check that the ledger language version is available
-    let llIntroPv = ledgerLanguageIntroducedIn lv
-    unless (llIntroPv <= currentPv)  $
-        throwing _ScriptDecodeError $ LedgerLanguageNotAvailableError lv llIntroPv currentPv
+    let llIntroPv = ledgerLanguageIntroducedIn ll
+    unless (llIntroPv <= pv)  $
+        throwing _ScriptDecodeError $ LedgerLanguageNotAvailableError ll llIntroPv pv
 
-    (remderBS, script@(ScriptForExecution (UPLC.Program{}))) <- deserialiseSScript sScript
-    when (lv /= PlutusV1 && lv /= PlutusV2 && remderBS /= mempty) $
+    (remderBS, dScript@(ScriptNamedDeBruijn (UPLC.Program{}))) <- deserialiseSScript sScript
+    when (ll /= PlutusV1 && ll /= PlutusV2 && remderBS /= mempty) $
         throwing _ScriptDecodeError $ RemainderError remderBS
 
-    pure script
+    pure $ UnsafeScriptForEvaluation sScript dScript
   where
-    deserialiseSScript :: SerialisedScript -> m (BSL.ByteString, ScriptForExecution)
+    deserialiseSScript :: SerialisedScript -> m (BSL.ByteString, ScriptNamedDeBruijn)
     deserialiseSScript = fromShort
                        >>> fromStrict
-                       >>> CBOR.deserialiseFromBytes (scriptCBORDecoder lv currentPv)
+                       >>> CBOR.deserialiseFromBytes (scriptCBORDecoder ll pv)
                        -- lift the underlying cbor error to our custom error
                        >>> either (throwing _ScriptDecodeError . toScripDecodeError) pure
 
     -- turn a cborg failure to our own error type
     toScripDecodeError :: CBOR.DeserialiseFailure -> ScriptDecodeError
     toScripDecodeError = CBORDeserialiseError . CBOR.Extras.readDeserialiseFailureInfo
-
-
-{-| Check if a 'Script' is "valid" according to a protocol version. At the moment this means "deserialises correctly", which in particular
-implies that it is (almost certainly) an encoded script and the script does not mention any builtins unavailable in the given protocol version.
-
-Note: Parameterized over the ledger-plutus-version since the builtins allowed (during decoding) differs.
--}
-assertScriptWellFormed :: MonadError ScriptDecodeError m
-                       => PlutusLedgerLanguage -- ^ the ledger Plutus version of the script.
-                       -> ProtocolVersion -- ^ the current protocol version of the network
-                       -> SerialisedScript -- ^ the script to check for well-formedness
-                       -> m ()
-assertScriptWellFormed lv pv =
-    -- We opt to throw away the ScriptExecution result. for not "leaking" the actual Script through the API.
-    void
-    . fromSerialisedScript lv pv

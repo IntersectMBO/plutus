@@ -9,6 +9,7 @@ import Control.DeepSeq (force)
 import Control.Exception
 import Criterion
 import Data.ByteString as BS
+import Data.Functor
 
 {-|
 for each data/*.flat validation script, it benchmarks
@@ -38,5 +39,5 @@ main = benchWith mkDecBM
                 force (serialiseUPLC $ UPLC.Program () v unsaturated)
 
             -- Deserialize using 'FakeNamedDeBruijn' to get the fake names added
-        in whnf (either throw id . assertScriptWellFormed (ProtocolVersion 6 0)
+        in whnf (either throw id . void . deserialiseScript (ProtocolVersion 6 0)
                 ) benchScript

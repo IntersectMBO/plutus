@@ -25,7 +25,8 @@ main = do
     evalCtx <- evaluate $ force mkEvalCtx
     let mkFullBM :: FilePath -> BS.ByteString -> Benchmarkable
         mkFullBM file bsFlat =
-            let UPLC.Program () ver body = unsafeUnflat file bsFlat
+            let pv = ProtocolVersion 6 0
+                UPLC.Program () ver body = unsafeUnflat file bsFlat
                 -- We make some effort to mimic what happens on-chain, including the provision of
                 -- the script arguments. However, the inputs we have are *fully applied*. So we try
                 -- and reverse that by stripping off the arguments here. Conveniently, we know that
@@ -36,14 +37,14 @@ main = do
                 !benchScript = force . serialiseUPLC $ UPLC.Program () ver term
                 eval script =
                     either (error . show) (\_ -> ()) . snd $ evaluateScriptRestricting
-                        (ProtocolVersion 6 0)
+                        pv
                         -- no logs
                         Quiet
                         evalCtx
                         -- uses restricting(enormous) instead of counting to include the periodic
                         -- budget-overspent check
                         (unExRestrictingBudget enormousBudget)
-                        script
+                        (either (error . show) id $ deserialiseScript pv script)
                         args
             in whnf eval benchScript
     benchWith mkFullBM
