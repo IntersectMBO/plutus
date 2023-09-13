@@ -142,7 +142,7 @@ import PlutusTx.Foldable as Foldable
 import PlutusTx.Functor as Functor
 import PlutusTx.IsData
 import PlutusTx.Lattice as Lattice
-import PlutusTx.List as List hiding (foldr)
+import PlutusTx.List as List hiding (foldl, foldr)
 import PlutusTx.Maybe as Maybe
 import PlutusTx.Monoid as Monoid
 import PlutusTx.Numeric as Numeric

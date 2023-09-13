@@ -1,9 +1,12 @@
+{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE LambdaCase   #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module PlutusTx.Functor (Functor(..), (<$>), (<$)) where
 
 import Control.Applicative (Const (..))
 import Data.Functor.Identity (Identity (..))
 
+import Data.Coerce (coerce)
 import PlutusTx.Base
 import PlutusTx.Either (Either (..))
 import Prelude (Maybe (..))
@@ -22,19 +25,20 @@ infixl 4 <$>
 -- | Plutus Tx version of '(Data.Functor.<$>)'.
 {-# INLINABLE (<$>) #-}
 (<$>) :: Functor f => (a -> b) -> f a -> f b
-(<$>) f fa = fmap f fa
+(<$>) = fmap
 
 infixl 4 <$
 {-# INLINABLE (<$) #-}
 -- | Plutus Tx version of '(Data.Functor.<$)'.
 (<$) :: Functor f => a -> f b -> f a
-(<$) a fb = fmap (const a) fb
+(<$) a = fmap (const a)
 
 instance Functor [] where
     {-# INLINABLE fmap #-}
-    fmap f l = case l of
+    fmap f = go where
+        go = \case
             []   -> []
-            x:xs -> f x : fmap f xs
+            x:xs -> f x : go xs
 
 instance Functor Maybe where
     {-# INLINABLE fmap #-}
@@ -52,8 +56,9 @@ instance Functor ((,) c) where
 
 instance Functor Identity where
     {-# INLINABLE fmap #-}
-    fmap f (Identity a) = Identity (f a)
+    fmap :: forall a b. (a -> b) -> Identity a -> Identity b
+    fmap = coerce (id :: (a -> b) -> a -> b)
 
 instance Functor (Const m) where
     {-# INLINABLE fmap #-}
-    fmap _ (Const c) = Const c
+    fmap _ = coerce (id :: m -> m)
