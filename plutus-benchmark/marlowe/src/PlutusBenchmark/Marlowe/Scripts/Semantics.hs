@@ -317,7 +317,7 @@ mkMarloweValidator
         $ checkScriptOutput (==) ownAddress hsh ocValue getContinuingOutput
 
     getContinuingOutput :: TxOut
-    getContinuingOutput = case filter (\TxOut{txOutAddress} -> ownAddress == txOutAddress) allOutputs of
+    ~getContinuingOutput = case filter (\TxOut{txOutAddress} -> ownAddress == txOutAddress) allOutputs of
         [out] -> out
         _     -> traceError "o" -- No continuation or multiple Marlowe contract outputs is forbidden.
 
