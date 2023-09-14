@@ -5,7 +5,7 @@
 module Main where
 import Criterion.Main (Benchmark, Benchmarkable, bench, bgroup, defaultMainWith)
 
-import PlutusBenchmark.Common (benchTermCek, getConfig)
+import PlutusBenchmark.Common (benchProgramCek, getConfig)
 import PlutusBenchmark.Marlowe.BenchUtil (benchmarkToUPLC, rolePayoutBenchmarks,
                                           semanticsBenchmarks)
 import PlutusBenchmark.Marlowe.Scripts.RolePayout (rolePayoutValidator)
@@ -18,7 +18,7 @@ mkBenchmarkable :: CompiledCode a -> M.Benchmark -> (String, Benchmarkable)
 mkBenchmarkable validator bm@M.Benchmark{..} =
   let benchName = show $ txInfoId $ scriptContextTxInfo bScriptContext
   in
-    (benchName, benchTermCek $ benchmarkToUPLC validator bm )
+    (benchName, benchProgramCek $ benchmarkToUPLC validator bm )
 
 main :: IO ()
 main = do
