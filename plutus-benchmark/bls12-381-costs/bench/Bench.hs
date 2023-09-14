@@ -7,34 +7,30 @@ module Main where
 import Criterion.Main
 
 import PlutusBenchmark.BLS12_381.Scripts
-import PlutusBenchmark.Common (benchTermCek)
+import PlutusBenchmark.Common (benchProgramCek)
 import PlutusTx.Prelude qualified as Tx
-import UntypedPlutusCore qualified as UPLC
 
 import Data.ByteString qualified as BS (empty)
-
-benchProgCek :: UPLC.Program UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ()  -> Benchmarkable
-benchProgCek (UPLC.Program _ _ t) = benchTermCek t
 
 benchHashAndAddG1 :: Integer -> Benchmark
 benchHashAndAddG1 n =
     let prog = mkHashAndAddG1Script (listOfSizedByteStrings n 4)
-    in bench (show n) $ benchProgCek prog
+    in bench (show n) $ benchProgramCek prog
 
 benchHashAndAddG2 :: Integer -> Benchmark
 benchHashAndAddG2 n =
     let prog = mkHashAndAddG2Script (listOfSizedByteStrings n 4)
-    in bench (show n) $ benchProgCek prog
+    in bench (show n) $ benchProgramCek prog
 
 benchUncompressAndAddG1 :: Integer -> Benchmark
 benchUncompressAndAddG1 n =
     let prog = mkUncompressAndAddG1Script (listOfSizedByteStrings n 4)
-    in bench (show n) $ benchProgCek prog
+    in bench (show n) $ benchProgramCek prog
 
 benchUncompressAndAddG2 :: Integer -> Benchmark
 benchUncompressAndAddG2 n =
     let prog = mkUncompressAndAddG2Script (listOfSizedByteStrings n 4)
-    in bench (show n) $ benchProgCek prog
+    in bench (show n) $ benchProgramCek prog
 
 benchPairing :: Benchmark
 benchPairing =
@@ -46,35 +42,35 @@ benchPairing =
               q1 = Tx.bls12_381_G1_hashToGroup (Tx.toBuiltin b3) emptyDst
               q2 = Tx.bls12_381_G2_hashToGroup (Tx.toBuiltin b4) emptyDst
               prog = mkPairingScript p1 p2 q1 q2
-          in bench "pairing" $ benchProgCek prog
+          in bench "pairing" $ benchProgramCek prog
       _ -> error "Unexpected list returned by listOfSizedByteStrings"
 
 benchGroth16Verify :: Benchmark
-benchGroth16Verify = bench "groth16Verify" $ benchProgCek mkGroth16VerifyScript
+benchGroth16Verify = bench "groth16Verify" $ benchProgramCek mkGroth16VerifyScript
 
 benchSimpleVerify :: Benchmark
-benchSimpleVerify = bench "simpleVerify" $ benchProgCek mkVerifyBlsSimplePolicy
+benchSimpleVerify = bench "simpleVerify" $ benchProgramCek mkVerifyBlsSimplePolicy
 
 benchVrf :: Benchmark
-benchVrf = bench "vrf" $ benchProgCek mkVrfBlsPolicy
+benchVrf = bench "vrf" $ benchProgramCek mkVrfBlsPolicy
 
 benchG1Verify :: Benchmark
-benchG1Verify = bench "g1Verify" $ benchProgCek mkG1VerifyPolicy
+benchG1Verify = bench "g1Verify" $ benchProgramCek mkG1VerifyPolicy
 
 benchG2Verify :: Benchmark
-benchG2Verify = bench "g2Verify" $ benchProgCek mkG2VerifyPolicy
+benchG2Verify = bench "g2Verify" $ benchProgramCek mkG2VerifyPolicy
 
 aggregateSigSingleKey :: Benchmark
-aggregateSigSingleKey = bench "aggregateSignatureSingleKey" $ benchProgCek mkAggregateSingleKeyG1Policy
+aggregateSigSingleKey = bench "aggregateSignatureSingleKey" $ benchProgramCek mkAggregateSingleKeyG1Policy
 
 aggregateSigMultiKey :: Benchmark
-aggregateSigMultiKey = bench "aggregateSignatureMultiKey" $ benchProgCek mkAggregateMultiKeyG2Policy
+aggregateSigMultiKey = bench "aggregateSignatureMultiKey" $ benchProgramCek mkAggregateMultiKeyG2Policy
 
 schnorrG1Verify :: Benchmark
-schnorrG1Verify = bench "schnorrVerifyG1" $ benchProgCek mkSchnorrG1VerifyPolicy
+schnorrG1Verify = bench "schnorrVerifyG1" $ benchProgramCek mkSchnorrG1VerifyPolicy
 
 schnorrG2Verify :: Benchmark
-schnorrG2Verify = bench "schnorrVerifyG2" $ benchProgCek mkSchnorrG2VerifyPolicy
+schnorrG2Verify = bench "schnorrVerifyG2" $ benchProgramCek mkSchnorrG2VerifyPolicy
 
 main :: IO ()
 main = do

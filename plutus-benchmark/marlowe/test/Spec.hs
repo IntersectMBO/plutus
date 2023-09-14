@@ -3,7 +3,6 @@
 
 module Main (main) where
 
-import Data.List qualified as List
 import Test.Tasty
 import Test.Tasty.Extras
 
