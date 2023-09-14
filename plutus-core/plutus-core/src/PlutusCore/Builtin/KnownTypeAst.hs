@@ -209,7 +209,7 @@ class KnownTypeAst tyname uni x where
     type ToBinds uni (acc :: [GADT.Some TyNameRep]) x :: [GADT.Some TyNameRep]
     type ToBinds uni acc x = ToBinds uni acc (ElaborateBuiltin uni x)
 
-    -- | The type representing @a@ used on the PLC side.
+    -- | Return the Plutus counterpart of the @x@ type.
     toTypeAst :: proxy x -> Type tyname uni ()
     default toTypeAst
         :: KnownTypeAst tyname uni (ElaborateBuiltin uni x) => proxy x -> Type tyname uni ()

@@ -54,8 +54,8 @@ on readability of the Core output.
 
 -- We have these 'Typeable' constraints here just for the generators tests. It's fine since
 -- 'TypeScheme' is not used for evaluation and so we can shove into 'TypeScheme' whatever we want.
--- | Type schemes of primitive operations.
--- @as@ is a list of types of arguments, @r@ is the resulting type.
+-- | The type of type schemes of built-in functions.
+-- @args@ is a list of types of arguments, @res@ is the resulting type.
 -- E.g. @Text -> Bool -> Integer@ is encoded as @TypeScheme val [Text, Bool] Integer@.
 data TypeScheme val (args :: [GHC.Type]) res where
     TypeSchemeResult
@@ -66,8 +66,6 @@ data TypeScheme val (args :: [GHC.Type]) res where
         => TypeScheme val args res -> TypeScheme val (arg ': args) res
     TypeSchemeAll
         :: (KnownSymbol text, KnownNat uniq, KnownKind kind)
-           -- Here we require the user to manually provide the unique of a type variable.
-           -- That's nothing but silly, but I do not see what else we can do with the current design.
         => Proxy '(text, uniq, kind)
         -> TypeScheme val args res
         -> TypeScheme val args res
@@ -76,7 +74,6 @@ argProxy :: TypeScheme val (arg ': args) res -> Proxy arg
 argProxy _ = Proxy
 
 -- | Convert a 'TypeScheme' to the corresponding 'Type'.
--- Basically, a map from the PHOAS representation to the FOAS one.
 typeSchemeToType :: TypeScheme val args res -> Type TyName (UniOf val) ()
 typeSchemeToType sch@TypeSchemeResult       = toTypeAst sch
 typeSchemeToType sch@(TypeSchemeArrow schB) =
