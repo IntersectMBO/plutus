@@ -122,7 +122,7 @@ renderExcess tData mData diff =
 -- Budget testing
 
 goldenBudget :: TestName -> CompiledCode a -> TestNested
-goldenBudget name compiledCode = goldenUplcBudget name (UPLC._progTerm (getPlcNoAnn compiledCode))
+goldenBudget name compiledCode = goldenUPlcBudget name [compiledCode]
 
 -- Compilation testing
 

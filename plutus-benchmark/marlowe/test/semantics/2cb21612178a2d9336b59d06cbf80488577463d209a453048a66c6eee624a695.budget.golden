@@ -1,2 +1,2 @@
-({cpu: 383436881
-| mem: 1302464})
+An error has occurred:  User error:
+The machine terminated because of an error, either from a built-in function or from an explicit use of 'error'.
