@@ -68,7 +68,7 @@ plcVersion110 = Version 1 1 0
 
 -- | The latest version of Plutus Core supported by this library.
 latestVersion :: Version
-latestVersion = plcVersion110
+latestVersion = plcVersion100
 
 -- | The set of versions that are "known", i.e. that have been released
 -- and have actual differences associated with them.
