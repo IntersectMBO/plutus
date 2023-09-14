@@ -97,7 +97,7 @@ And that's it, you'll get everything else automatically, including general tests
 
 `Default.Builtins` contains extensive documentation on how to add a built-in function, what is allowed and what should be avoided, make sure to read everything if you want to add a built-in function.
 
-In practice, adding new builtins is more complicated than that, because some of the tests and Plutus Tx definitions need to be amended/created manually, see [this](https://github.com/input-output-hk/plutus/commit/173dce5ee85cb8038563dd39299abb550ea13b88) commit for an example. This is on top of costing requiring a lot of manual labor.
+In practice, adding new builtins is more complicated than that, because some of the tests and Plutus Tx definitions need to be amended/created manually, see [this](https://github.com/input-output-hk/plutus/commit/173dce5ee85cb8038563dd39299abb550ea13b88) commit for an example. This is on top of costing requiring a lot of manual labor (see [this](https://github.com/input-output-hk/plutus/blob/a52315036763a03b2b1d281ca7876ceaf47a5fbd/plutus-core/cost-model/CostModelGeneration.md) document for details).
 
 ### Builtin meanings
 
@@ -111,7 +111,7 @@ toBuiltinMeaning
     -> BuiltinMeaning val (CostingPart uni fun)
 ```
 
-i.e. in order to construct a `BuiltinMeaning` one needs not only a built-in function, but also a semantics variant (a "version") of the set of built-in functions. You can read more about versioning of builtins and everything else in [CIP-35](https://cips.cardano.org/cips/cip35).
+i.e. in order to construct a `BuiltinMeaning` one needs not only a built-in function, but also a semantics variant (a "version") of the set of built-in functions. You can read more about versioning of builtins and everything else in [CIP-35](https://cips.cardano.org/cips/cip35) and in Chapter 4 of the Plutus Core [specification](https://ci.iog.io/build/834321/download/1/plutus-core-specification.pdf).
 
 We do not construct `BuiltinMeaning`s manually, because that would be extremely laborious. Instead, we use an auxiliary function that does the heavy lifting for us. Here's its type signature with a few lines of constraints omitted for clarity:
 
@@ -122,7 +122,7 @@ makeBuiltinMeaning
     -> BuiltinMeaning val cost
 ```
 
-It takes two arguments: a Haskell implementation of the builtin, which we call a denotation, and a costing function for the builtin -- and creates an entire `BuiltinMeaning` out of these two. `a` is the type of the denotation and it's so general because we support a wide range of Haskell functions, however `a` is still constrained, it's just that we omitted the constraints for clarity.
+It takes two arguments (a Haskell implementation of the builtin, which we call a denotation, and a costing function for the builtin) and creates an entire `BuiltinMeaning` out of these two. `a` is the type of the denotation and it's so general because we support a wide range of Haskell functions, however `a` is still constrained, it's just that we omitted the constraints for clarity.
 
 Here's some real example of constructing a `BuiltinMeaning` out of its denotation and its costing function:
 
@@ -158,7 +158,7 @@ data BuiltinMeaning val cost =
 
 As the comment says, `TypeScheme` is used primarily for type checking and testing. It's defined in `Builtin.TypeScheme` together with a function converting a `TypeScheme` to a `Type`.
 
-`FoldArgs args res`, the type of the second field, is what we turn the general type of the denotation (originally, just `a`) into by separating the list of types of arguments (`args`) from the type of the result (`res`). We do it for convenience, in a lot of places argument types are handled very differently than the result type, so it's natural to separate them explicitly. `FoldArgs` then recreates the original type of the built-in function by folding the list of arguments with `(->)`, e.g.
+`FoldArgs args res`, the type of the second field, is what we turn the general type of the denotation (originally, just `a`) into by separating the list of types of arguments (`args`) from the type of the result (`res`). We separate those for convenience, in a lot of places argument types are handled very differently than the result type, so it's natural to separate them explicitly. `FoldArgs` then recreates the original type of the built-in function by folding the list of arguments with `(->)`, e.g.
 
 ```haskell
 FoldArgs [(), Bool] Integer
@@ -172,7 +172,7 @@ evaluates to
 
 It's also more convenient to store the type of the built-in function in this refined form, because we occasionally want to apply builtins to a bunch of arguments in a type-safe way in tests and if we stored the type of each builtin as some arbitrary `a` rather than the refined `FoldArgs args res`, we wouldn't be able to do that.
 
-Note that the denotation, i.e. the second field of `BuiltinMeaning`, does not participate in script evaluation in any way, for that we have the third field of type `cost -> BuiltinRuntime val`, which, given a cost model, provides the runtime denotation of a builtin, i.e. the thing that actually gets evaluated at runtime. We will discuss runtime denotations in great detail below, but let's take a detour and see how built-in functions are type checked.
+Note that neither the `TypeScheme` nor the denotation participate in script evaluation in any way, for that we have the third field of type `cost -> BuiltinRuntime val`, which, given a cost model, provides the runtime denotation of a builtin, i.e. the thing that actually gets evaluated at runtime. We will discuss runtime denotations in great detail below, but let's take a detour and see how built-in functions are type checked.
 
 ### Type checking built-in functions
 
@@ -284,6 +284,8 @@ The elaborator is an extremely convoluted piece of type-level code, which is why
 `PlutusCore.Builtin.Debug` provides more examples of custom type errors.
 
 ### Runtime denotations
+
+Runtime denotations are the only part of `BuiltinMeaning` that we use for builtin evaluation (tests aside).
 
 Here's how the type of runtime denotations is defined:
 
