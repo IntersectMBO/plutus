@@ -130,8 +130,8 @@ tests = testNestedGhc "IsData" [
     , goldenUEval "list" [plc (Proxy @"list") (isDataRoundtrip ([1]::[Integer]))]
     , goldenUEval "nested" [plc (Proxy @"nested") (isDataRoundtrip (NestedRecord (Just (1, 2))))]
     , goldenUEval "bytestring" [plc (Proxy @"bytestring") (isDataRoundtrip (WrappedBS Builtins.emptyByteString))]
-    , goldenPir "deconstructData" deconstructData
-    , goldenPir "unsafeDeconstructData" unsafeDeconstructData
+    , goldenPirReadable "deconstructData" deconstructData
+    , goldenPirReadable "unsafeDeconstructData" unsafeDeconstructData
     , goldenPirReadable "matchAsData" matchAsData
     , goldenUEval "matchAsDataE" [toUPlc $ matchAsData, toUPlc $ plc (Proxy @"test") (SecondC 3)]
     , goldenPirReadable "recordAsData" recordAsData

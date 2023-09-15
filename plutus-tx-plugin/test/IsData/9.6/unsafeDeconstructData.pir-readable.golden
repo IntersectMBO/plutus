@@ -1,0 +1,114 @@
+let
+  data Unit | Unit_match where
+    Unit : Unit
+  !error : all a. unit -> a = /\a -> \(thunk : unit) -> error {a}
+  ~reconstructCaseError : string = "PT1"
+  !trace : all a. string -> a -> a = trace
+  !unitval : unit = ()
+  ~fallthrough : all a. a
+    = /\a ->
+        let
+          !str : string = reconstructCaseError
+          !x : Unit = trace {Unit} str Unit
+        in
+        error {a} unitval
+  data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
+    Tuple2 : a -> b -> Tuple2 a b
+  !equalsInteger : integer -> integer -> bool = equalsInteger
+  !fst : all a b. pair a b -> a = fstPair
+  !head : all a. list a -> a = headList
+  !ifThenElse : all a. bool -> a -> a -> a = ifThenElse
+  !snd : all a b. pair a b -> b = sndPair
+  !tail : all a. list a -> list a = tailList
+  !unsafeDataAsConstr : data -> pair integer (list data) = unConstrData
+  ~`$fUnsafeFromDataTuple2_$cunsafeFromBuiltinData` :
+     all a b. (\a -> data -> a) a -> (\a -> data -> a) b -> data -> Tuple2 a b
+    = /\a b ->
+        \(`$dUnsafeFromData` : (\a -> data -> a) a)
+         (`$dUnsafeFromData` : (\a -> data -> a) b)
+         (d : data) ->
+          let
+            !d : data = d
+            !tup : pair integer (list data) = unsafeDataAsConstr d
+            ~indexMatchCase : Tuple2 a b
+              = let
+                !t : list data = snd {integer} {list data} tup
+                !arg : data = head {data} t
+                !t : list data = tail {data} t
+                !arg : data = head {data} t
+              in
+              Tuple2 {a} {b} (`$dUnsafeFromData` arg) (`$dUnsafeFromData` arg)
+            !index : integer = fst {integer} {list data} tup
+          in
+          ifThenElse
+            {unit -> Tuple2 a b}
+            (equalsInteger index 0)
+            (\(ds : unit) -> indexMatchCase)
+            (\(ds : unit) -> fallthrough {Tuple2 a b})
+            unitval
+  ~`$fUnsafeFromDataTuple2` :
+     all a b.
+       (\a -> data -> a) a ->
+       (\a -> data -> a) b ->
+       (\a -> data -> a) (Tuple2 a b)
+    = `$fUnsafeFromDataTuple2_$cunsafeFromBuiltinData`
+  !unsafeDataAsI : data -> integer = unIData
+  ~`$fUnsafeFromDataInteger` : (\a -> data -> a) integer = unsafeDataAsI
+  ~`$dUnsafeFromData` : (\a -> data -> a) (Tuple2 integer integer)
+    = `$fUnsafeFromDataTuple2`
+        {integer}
+        {integer}
+        `$fUnsafeFromDataInteger`
+        `$fUnsafeFromDataInteger`
+  ~fallthrough : all a. a
+    = /\a ->
+        let
+          !str : string = reconstructCaseError
+          !x : Unit = trace {Unit} str Unit
+        in
+        error {a} unitval
+  data (Maybe :: * -> *) a | Maybe_match where
+    Just : a -> Maybe a
+    Nothing : Maybe a
+  ~`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData` :
+     all a. (\a -> data -> a) a -> data -> Maybe a
+    = /\a ->
+        \(`$dUnsafeFromData` : (\a -> data -> a) a) (d : data) ->
+          let
+            !d : data = d
+            !tup : pair integer (list data) = unsafeDataAsConstr d
+            ~indexMatchCase : Maybe a
+              = let
+                !t : list data = snd {integer} {list data} tup
+                !arg : data = head {data} t
+              in
+              Just {a} (`$dUnsafeFromData` arg)
+            !index : integer = fst {integer} {list data} tup
+            ~fallthrough : all a. Maybe a
+              = /\a ->
+                  ifThenElse
+                    {unit -> Maybe a}
+                    (equalsInteger index 1)
+                    (\(ds : unit) -> Nothing {a})
+                    (\(ds : unit) -> fallthrough {Maybe a})
+                    unitval
+          in
+          ifThenElse
+            {unit -> Maybe a}
+            (equalsInteger index 0)
+            (\(ds : unit) -> indexMatchCase)
+            (\(ds : unit) -> fallthrough {a})
+            unitval
+  ~`$fUnsafeFromDataMaybe` :
+     all a. (\a -> data -> a) a -> (\a -> data -> a) (Maybe a)
+    = `$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
+  ~`$dUnsafeFromData` : (\a -> data -> a) (Maybe (Tuple2 integer integer))
+    = `$fUnsafeFromDataMaybe` {Tuple2 integer integer} `$dUnsafeFromData`
+  ~unsafeFromBuiltinData : all a. (\a -> data -> a) a -> data -> a
+    = /\a -> \(v : (\a -> data -> a) a) -> v
+in
+\(ds : data) ->
+  let
+    !ds : data = ds
+  in
+  unsafeFromBuiltinData {Maybe (Tuple2 integer integer)} `$dUnsafeFromData` ds

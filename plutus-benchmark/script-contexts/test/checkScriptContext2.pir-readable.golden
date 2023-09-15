@@ -166,6 +166,49 @@
                     error {Credential})
                  unitval)
             unitval
+    data Voter | Voter_match where
+      CommitteeVoter : Credential -> Voter
+      DRepVoter : Credential -> Voter
+      StakePoolVoter : bytestring -> Voter
+    !`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData` : data -> Voter
+      = \(d : data) ->
+          let
+            !tup : pair integer (list data) = unConstrData d
+            !index : integer = fstPair {integer} {list data} tup
+          in
+          ifThenElse
+            {unit -> Voter}
+            (equalsInteger 2 index)
+            (\(ds : unit) ->
+               StakePoolVoter
+                 (unBData
+                    (headList {data} (sndPair {integer} {list data} tup))))
+            (\(ds : unit) ->
+               ifThenElse
+                 {unit -> Voter}
+                 (equalsInteger 1 index)
+                 (\(ds : unit) ->
+                    DRepVoter
+                      (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
+                         (headList {data} (sndPair {integer} {list data} tup))))
+                 (\(ds : unit) ->
+                    ifThenElse
+                      {unit -> Voter}
+                      (equalsInteger 0 index)
+                      (\(ds : unit) ->
+                         CommitteeVoter
+                           (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
+                              (headList
+                                 {data}
+                                 (sndPair {integer} {list data} tup))))
+                      (\(ds : unit) ->
+                         let
+                           !x : Unit = trace {Unit} reconstructCaseError Unit
+                         in
+                         error {Voter})
+                      unitval)
+                 unitval)
+            unitval
     data DRep | DRep_match where
       DRep : Credential -> DRep
       DRepAlwaysAbstain : DRep
@@ -594,49 +637,6 @@
                                      unitval)
                                 unitval)
                            unitval)
-                      unitval)
-                 unitval)
-            unitval
-    data Voter | Voter_match where
-      CommitteeVoter : Credential -> Voter
-      DRepVoter : Credential -> Voter
-      StakePoolVoter : bytestring -> Voter
-    !`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData` : data -> Voter
-      = \(d : data) ->
-          let
-            !tup : pair integer (list data) = unConstrData d
-            !index : integer = fstPair {integer} {list data} tup
-          in
-          ifThenElse
-            {unit -> Voter}
-            (equalsInteger 2 index)
-            (\(ds : unit) ->
-               StakePoolVoter
-                 (unBData
-                    (headList {data} (sndPair {integer} {list data} tup))))
-            (\(ds : unit) ->
-               ifThenElse
-                 {unit -> Voter}
-                 (equalsInteger 1 index)
-                 (\(ds : unit) ->
-                    DRepVoter
-                      (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                         (headList {data} (sndPair {integer} {list data} tup))))
-                 (\(ds : unit) ->
-                    ifThenElse
-                      {unit -> Voter}
-                      (equalsInteger 0 index)
-                      (\(ds : unit) ->
-                         CommitteeVoter
-                           (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                              (headList
-                                 {data}
-                                 (sndPair {integer} {list data} tup))))
-                      (\(ds : unit) ->
-                         let
-                           !x : Unit = trace {Unit} reconstructCaseError Unit
-                         in
-                         error {Voter})
                       unitval)
                  unitval)
             unitval
