@@ -43,7 +43,7 @@ instance Pretty ScriptEvaluationResult where
  parameters, as these are tracked separately.
 -}
 data ScriptEvaluationData = ScriptEvaluationData
-    { dataProtocolVersion :: ProtocolVersion
+    { dataProtocolVersion :: MajorProtocolVersion
     , dataBudget          :: ExBudget
     , dataScript          :: SerialisedScript
     , dataInputs          :: [PLC.Data]
@@ -54,7 +54,7 @@ data ScriptEvaluationData = ScriptEvaluationData
 instance Pretty ScriptEvaluationData where
     pretty ScriptEvaluationData{..} =
         vsep
-            [ "protocol version:" <+> pretty dataProtocolVersion
+            [ "major protocol version:" <+> pretty dataProtocolVersion
             , "budget: " <+> pretty dataBudget
             , "script: " <+> pretty (Text.decodeLatin1 . Base64.encode $ BS.fromShort dataScript)
             , "data: " <+> nest 2 (vsep $ pretty <$> dataInputs)

@@ -36,7 +36,7 @@ main = do
                 !benchScript = force . serialiseUPLC $ UPLC.Program () ver term
                 eval script =
                     either (error . show) (\_ -> ()) . snd $ evaluateScriptRestricting
-                        (ProtocolVersion 6 0)
+                        (MajorProtocolVersion 6)
                         -- no logs
                         Quiet
                         evalCtx

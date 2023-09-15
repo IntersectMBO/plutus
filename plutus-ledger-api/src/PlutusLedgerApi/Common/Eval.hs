@@ -90,7 +90,7 @@ Given a 'SerialisedScript':
 mkTermToEvaluate
     :: (MonadError EvaluationError m)
     => PlutusLedgerLanguage -- ^ the Plutus ledger language of the script under execution.
-    -> ProtocolVersion -- ^ which protocol version to run the operation in
+    -> MajorProtocolVersion -- ^ which protocol version to run the operation in
     -> SerialisedScript -- ^ the script to evaluate in serialised form
     -> [Plutus.Data] -- ^ the arguments that the script's underlying term will be applied to
     -> m (UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ())
@@ -107,7 +107,7 @@ mkTermToEvaluate lv pv bs args = do
     -- make sure that term is closed, i.e. well-scoped
     through (liftEither . first DeBruijnError . UPLC.checkScope) appliedT
 
-toMachineParameters :: ProtocolVersion -> EvaluationContext -> DefaultMachineParameters
+toMachineParameters :: MajorProtocolVersion -> EvaluationContext -> DefaultMachineParameters
 toMachineParameters _ = machineParameters
 
 {-| An opaque type that contains all the static parameters that the evaluator needs to evaluate a
@@ -144,7 +144,7 @@ assertWellFormedCostModelParams = void . Plutus.applyCostModelParams Plutus.defa
 -- on-chain evaluator.
 evaluateTerm
     :: UPLC.ExBudgetMode cost DefaultUni DefaultFun
-    -> ProtocolVersion
+    -> MajorProtocolVersion
     -> VerboseMode
     -> EvaluationContext
     -> UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ()
@@ -175,7 +175,7 @@ Note: Parameterized over the 'LedgerPlutusVersion' since
 -}
 evaluateScriptRestricting
     :: PlutusLedgerLanguage -- ^ The Plutus ledger language of the script under execution.
-    -> ProtocolVersion      -- ^ Which protocol version to run the operation in
+    -> MajorProtocolVersion -- ^ Which major protocol version to run the operation in
     -> VerboseMode          -- ^ Whether to produce log output
     -> EvaluationContext    -- ^ Includes the cost model to use for tallying up the execution costs
     -> ExBudget             -- ^ The resource budget which must not be exceeded during evaluation
@@ -199,7 +199,7 @@ Note: Parameterized over the ledger-plutus-version since the builtins allowed (d
 -}
 evaluateScriptCounting
     :: PlutusLedgerLanguage -- ^ The Plutus ledger language of the script under execution.
-    -> ProtocolVersion      -- ^ Which protocol version to run the operation in
+    -> MajorProtocolVersion -- ^ Which major protocol version to run the operation in
     -> VerboseMode          -- ^ Whether to produce log output
     -> EvaluationContext    -- ^ Includes the cost model to use for tallying up the execution costs
     -> SerialisedScript     -- ^ The script to evaluate

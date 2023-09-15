@@ -288,7 +288,7 @@ executeBenchmark serialisedValidator Benchmark{..} =
    Left message -> Left message
    Right ec ->
     Right
-      $ evaluateScriptCounting (ProtocolVersion 8 0) Verbose ec serialisedValidator
+      $ evaluateScriptCounting (MajorProtocolVersion 8) Verbose ec serialisedValidator
         [bDatum, bRedeemer, toData bScriptContext]
 
 

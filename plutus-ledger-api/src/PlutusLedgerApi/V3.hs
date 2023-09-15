@@ -28,7 +28,7 @@ module PlutusLedgerApi.V3 (
     , ChangedParameters (..)
     , ProposalProcedure (..)
     -- ** Protocol version
-    , ProtocolVersion (..)
+    , MajorProtocolVersion (..)
     -- ** Verbose mode and log output
     , VerboseMode (..)
     , LogOutput
@@ -117,10 +117,9 @@ module PlutusLedgerApi.V3 (
 
 import Control.Monad.Except (MonadError)
 
-import PlutusLedgerApi.Common as Common hiding (ProtocolVersion (..), assertScriptWellFormed,
-                                         evaluateScriptCounting, evaluateScriptRestricting)
-import PlutusLedgerApi.Common qualified as Common (ProtocolVersion (..), assertScriptWellFormed,
-                                                   evaluateScriptCounting,
+import PlutusLedgerApi.Common as Common hiding (assertScriptWellFormed, evaluateScriptCounting,
+                                         evaluateScriptRestricting)
+import PlutusLedgerApi.Common qualified as Common (assertScriptWellFormed, evaluateScriptCounting,
                                                    evaluateScriptRestricting)
 import PlutusLedgerApi.V2 qualified as V2 hiding (ScriptContext (..), ScriptPurpose (..),
                                            TxInfo (..))
@@ -139,7 +138,7 @@ thisLedgerLanguage = PlutusV3
 -- implies that it is (almost certainly) an encoded script and the script does not mention any builtins unavailable in the given protocol version.
 assertScriptWellFormed
     :: MonadError ScriptDecodeError m
-    => Common.ProtocolVersion -- ^ which protocol version to run the operation in
+    => MajorProtocolVersion -- ^ which protocol version to run the operation in
     -> SerialisedScript -- ^ the script to check for well-formedness
     -> m ()
 assertScriptWellFormed = Common.assertScriptWellFormed thisLedgerLanguage
@@ -149,7 +148,7 @@ assertScriptWellFormed = Common.assertScriptWellFormed thisLedgerLanguage
 -- limit the execution time of the script also, you can use 'evaluateScriptRestricting', which
 -- also returns the used budget.
 evaluateScriptCounting
-    :: Common.ProtocolVersion -- ^ Which protocol version to run the operation in
+    :: MajorProtocolVersion -- ^ Which protocol version to run the operation in
     -> VerboseMode            -- ^ Whether to produce log output
     -> EvaluationContext      -- ^ Includes the cost model to use for tallying up the execution costs
     -> SerialisedScript       -- ^ The script to evaluate
@@ -164,7 +163,7 @@ evaluateScriptCounting = Common.evaluateScriptCounting thisLedgerLanguage
 -- Can be used to calculate budgets for scripts, but even in this case you must give
 -- a limit to guard against scripts that run for a long time or loop.
 evaluateScriptRestricting
-    :: Common.ProtocolVersion -- ^ Which protocol version to run the operation in
+    :: MajorProtocolVersion -- ^ Which protocol version to run the operation in
     -> VerboseMode            -- ^ Whether to produce log output
     -> EvaluationContext      -- ^ Includes the cost model to use for tallying up the execution costs
     -> ExBudget               -- ^ The resource budget which must not be exceeded during evaluation
