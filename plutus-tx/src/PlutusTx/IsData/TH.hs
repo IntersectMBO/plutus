@@ -58,7 +58,8 @@ reconstructCase (TH.ConstructorInfo{TH.constructorName=name, TH.constructorField
                 -- See Note [indexMatchCase and fallthrough]
                 let $(TH.tildeP $ TH.varP indexMatchCaseName) = $(handleList argNames argsExpr)
                     $(TH.tildeP $ TH.varP fallthroughName) = $kont
-                in BI.ifThenElse ($ixExpr `BI.equalsInteger` (index :: Integer)) (const $(TH.varE indexMatchCaseName)) (const $(TH.varE fallthroughName)) BI.unitval
+                -- can't use const since that evaluates its arguments first!
+                in BI.ifThenElse ($ixExpr `BI.equalsInteger` (index :: Integer)) (\_ -> $(TH.varE indexMatchCaseName)) (\_ -> $(TH.varE fallthroughName)) BI.unitval
             |]
     body
 
@@ -110,7 +111,8 @@ unsafeReconstructCase (TH.ConstructorInfo{TH.constructorName=name, TH.constructo
                 -- See Note [indexMatchCase and fallthrough]
                 let $(TH.tildeP $ TH.varP indexMatchCaseName) = $(handleList argNames argsExpr)
                     $(TH.tildeP $ TH.varP fallthroughName) = $kont
-                in BI.ifThenElse ($ixExpr `BI.equalsInteger` (index :: Integer)) (const $(TH.varE indexMatchCaseName)) (const $(TH.varE fallthroughName)) BI.unitval
+                -- can't use const since that evaluates its arguments first!
+                in BI.ifThenElse ($ixExpr `BI.equalsInteger` (index :: Integer)) (\_ -> $(TH.varE indexMatchCaseName)) (\_ -> $(TH.varE fallthroughName)) BI.unitval
             |]
     body
 

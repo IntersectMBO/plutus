@@ -94,7 +94,7 @@ let
                let
                  !index : integer = index
                  !args : list data = args
-                 ~x : Maybe (Tuple2 a b)
+                 ~indexMatchCase : Maybe (Tuple2 a b)
                    = chooseList
                        {data}
                        {Unit -> Maybe (Tuple2 a b)}
@@ -150,7 +150,7 @@ let
                ifThenElse
                  {unit -> Maybe (Tuple2 a b)}
                  (equalsInteger index 0)
-                 (\(ds : unit) -> x)
+                 (\(ds : unit) -> indexMatchCase)
                  (\(ds : unit) -> Nothing {Tuple2 a b})
                  unitval)
             (\(ds : list (pair data data)) -> Nothing {Tuple2 a b})
