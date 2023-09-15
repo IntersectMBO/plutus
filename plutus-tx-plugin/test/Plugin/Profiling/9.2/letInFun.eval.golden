@@ -1,10 +1,11 @@
-[ entering f
-, entering addInteger
-, exiting addInteger
-, exiting f
-, entering f
-, entering addInteger
-, exiting addInteger
-, exiting f
-, entering addInteger
-, exiting addInteger ]
+( (con integer 7)
+, [ entering f
+  , entering addInteger
+  , exiting addInteger
+  , exiting f
+  , entering f
+  , entering addInteger
+  , exiting addInteger
+  , exiting f
+  , entering addInteger
+  , exiting addInteger ] )

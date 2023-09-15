@@ -27,7 +27,7 @@ import PlutusTx.Test
 import PlutusTx.TH (compile)
 
 AsData.asData [d|
-  data MaybeD a = JustD a | NothingD
+  data MaybeD a = JustD a a | NothingD
   |]
 
 -- These are tests that run with the simplifier on, and some run all the way to UPLC.
@@ -56,7 +56,7 @@ maybeFun = $$(compile
 matchAsData :: CompiledCode (MaybeD Integer -> Integer)
 matchAsData = plc (Proxy @"matchAsData") (
   \case
-    JustD a  -> a
+    JustD a _ -> a
     NothingD -> 1)
 
 unsafeDeconstructData :: CompiledCode (Builtins.BuiltinData -> Maybe (Integer, Integer))

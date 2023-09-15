@@ -44,8 +44,8 @@ common lang
 
   -- See Note [-fno-full-laziness in Plutus Tx]
   ghc-options:
-    -fno-specialise -fno-spec-constr -fno-ignore-interface-pragmas
-    -fno-omit-interface-pragmas -fno-strictness
+    -fno-specialise -fno-spec-constr -fno-strictness
+    -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
     -fno-unbox-strict-fields -fno-unbox-small-strict-fields
     -fno-full-laziness
 

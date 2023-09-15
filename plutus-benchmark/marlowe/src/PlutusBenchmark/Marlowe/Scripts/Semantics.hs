@@ -23,11 +23,11 @@
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE ViewPatterns          #-}
 
-{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:target-version=1.0.0 #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:target-version=1.0.0 #-}
 
 module PlutusBenchmark.Marlowe.Scripts.Semantics
   ( -- * Types
@@ -51,14 +51,7 @@ import PlutusBenchmark.Marlowe.Core.V1.Semantics as Semantics (MarloweData (..),
                                                                TransactionInput (TransactionInput, txInputs, txInterval),
                                                                TransactionOutput (Error, TransactionOutput, txOutContract, txOutPayments, txOutState),
                                                                computeTransaction, totalBalance)
-import PlutusBenchmark.Marlowe.Core.V1.Semantics.Types as Semantics (ChoiceId (ChoiceId),
-                                                                     Contract (Close), Input (..),
-                                                                     InputContent (..),
-                                                                     IntervalError (IntervalInPastError, InvalidInterval),
-                                                                     Party (..),
-                                                                     Payee (Account, Party),
-                                                                     State (..), Token (Token),
-                                                                     getInputContent)
+import PlutusBenchmark.Marlowe.Core.V1.Semantics.Types
 import PlutusBenchmark.Marlowe.Scripts.RolePayout (rolePayoutValidatorHash)
 import PlutusLedgerApi.V2 (Credential (..), Datum (Datum), DatumHash (DatumHash), Extended (..),
                            Interval (..), LowerBound (..), POSIXTime (..), POSIXTimeRange,
@@ -76,9 +69,9 @@ import PlutusTx.Prelude as PlutusTxPrelude (AdditiveGroup ((-)), AdditiveMonoid 
                                             AdditiveSemigroup ((+)), Bool (..), BuiltinByteString,
                                             BuiltinData, BuiltinString, Enum (fromEnum), Eq (..),
                                             Functor (fmap), Integer, Maybe (..), Ord ((>)),
-                                            Semigroup ((<>)), all, any, check, elem, error, filter,
-                                            find, foldMap, id, null, otherwise, snd, toBuiltin, ($),
-                                            (&&), (.), (/=), (||))
+                                            Semigroup ((<>)), all, any, check, elem, filter, find,
+                                            foldMap, null, otherwise, snd, toBuiltin, ($), (&&),
+                                            (.), (/=), (||))
 
 import Cardano.Crypto.Hash qualified as Hash
 import Data.ByteString qualified as BS
@@ -89,18 +82,8 @@ import PlutusLedgerApi.V1.Value qualified as Val
 import PlutusLedgerApi.V2 qualified as Ledger (Address (Address))
 import PlutusTx qualified
 import PlutusTx.AssocMap qualified as AssocMap
+import PlutusTx.Trace (traceError, traceIfFalse)
 import Prelude qualified as Haskell
-
-
--- Suppress traces, in order to save bytes.
-
-{-# INLINABLE traceError #-}
-traceError :: BuiltinString -> a
-traceError _ = error ()
-
-{-# INLINABLE traceIfFalse #-}
-traceIfFalse :: BuiltinString -> a -> a
-traceIfFalse _ = id
 
 
 -- | Input to a Marlowe transaction.
