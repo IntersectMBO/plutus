@@ -1,4 +1,22 @@
 
+<a id='changelog-1.13.0.0'></a>
+# 1.13.0.0 — 2023-09-15
+
+## Added
+
+- A `-B`/`--builtin-semantics-variant` option for the `plc` and `uplc` commands to allow the user to select which variant of the builtin semantics to use.
+
+## Changed
+
+- CekMachineCosts changed to use the "higher-kinded data" pattern, like BuiltinCostModel
+
+## Fixed
+
+- The PIR callsite inliner no longer requires that the function is fully applied for inlining.
+
+- Fixed bugs in the inliner relating to inlining terms that are
+  immediately evaluated.
+
 <a id='changelog-1.11.0.0'></a>
 # 1.11.0.0 — 2023-08-24
 

@@ -1,4 +1,12 @@
 
+<a id='changelog-1.13.0.0'></a>
+# 1.13.0.0 — 2023-09-15
+
+## Added
+
+- Better support for `RuntimeRep`-polymorphic code. In particular, this means we can
+  now handle the code that GHC generates for pattern synonyms.
+
 <a id='changelog-1.11.0.0'></a>
 # 1.11.0.0 — 2023-08-24
 
