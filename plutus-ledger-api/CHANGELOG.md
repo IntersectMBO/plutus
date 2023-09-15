@@ -1,4 +1,27 @@
 
+<a id='changelog-1.13.0.0'></a>
+# 1.13.0.0 — 2023-09-15
+
+## Removed
+
+- `evalCtxForTesting` in testlib: use instead `V*.mkEvaluationContext` with `V*.costModelParamsForTesting`
+
+## Added
+
+- Exported `ChangedParameters` in V3.
+
+- costModelParamsForTesting for all plutus versions (PlutusV1,PlutusV2,PlutusV3)
+- A `readParamName` method counterpart of the existing `showParamName`
+
+## Changed
+
+- `showParamName` method now operates on Text instead of previous String
+
+## Fixed
+
+- costModelParamsForTesting are now returned in the expected ledger order,
+instead of alphabetical order
+
 <a id='changelog-1.11.0.0'></a>
 # 1.11.0.0 — 2023-08-24
 
