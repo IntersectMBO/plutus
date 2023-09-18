@@ -26,6 +26,7 @@ import Algebra.Graph.ToGraph qualified as T
 import Data.List.NonEmpty qualified as NE
 import PlutusCore.Quote (MonadQuote, freshTyName, liftQuote)
 import PlutusCore.StdLib.Data.ScottUnit qualified as Unit
+import PlutusIR.Analysis.VarInfo
 import Witherable (Witherable (wither))
 
 -- | Remove all the dead let bindings in a term.
@@ -37,7 +38,8 @@ removeDeadBindings
     -> m (Term TyName name uni fun a)
 removeDeadBindings semvar t = do
     tRen <- PLC.rename t
-    liftQuote $ runReaderT (transformMOf termSubterms processTerm tRen) (calculateLiveness semvar tRen)
+    let vinfo = termVarInfo tRen
+    liftQuote $ runReaderT (transformMOf termSubterms processTerm tRen) (calculateLiveness semvar vinfo tRen)
 
 type Liveness = Set.Set Deps.Node
 
@@ -45,12 +47,13 @@ calculateLiveness
     :: (PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique,
        PLC.ToBuiltinMeaning uni fun)
     => PLC.BuiltinSemanticsVariant fun
+    -> VarsInfo tyname name
     -> Term tyname name uni fun a
     -> Liveness
-calculateLiveness semvar t =
+calculateLiveness semvar vinfo t =
     let
         depGraph :: G.Graph Deps.Node
-        depGraph = fst $ Deps.runTermDeps semvar t
+        depGraph = Deps.runTermDeps semvar vinfo t
     in Set.fromList $ T.reachable depGraph Deps.Root
 
 live :: (MonadReader Liveness m, PLC.HasUnique n unique) => n -> m Bool

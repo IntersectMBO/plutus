@@ -9,6 +9,7 @@ import Control.Lens (transformOf)
 import Data.List.NonEmpty (partition)
 import Data.Maybe (mapMaybe)
 import PlutusCore.Builtin
+import PlutusCore.Name qualified as PLC
 import PlutusIR
 import PlutusIR.MkPir (mkLet, mkVar)
 import PlutusIR.Purity (isPure)
@@ -111,18 +112,18 @@ nonStrictify = \case
     b                  -> b
 
 mkStrictifyingBinding
-    :: ToBuiltinMeaning uni fun
+    :: (ToBuiltinMeaning uni fun, PLC.HasUnique name PLC.TermUnique)
     => BuiltinSemanticsVariant fun
     -> Binding tyname name uni fun a
     -> Maybe (Binding tyname name uni fun a)
 mkStrictifyingBinding semvar = \case
     -- Only need to strictify if the previous binding was not definitely pure
     -- Also, we're reusing the same variable here, see Note [Thunking recursions]
-    TermBind x _ d rhs | not (isPure semvar (const NonStrict) rhs) -> Just $ TermBind x Strict d (mkVar x d)
-    _                                                           -> Nothing
+    TermBind x _ d rhs | not (isPure semvar mempty rhs) -> Just $ TermBind x Strict d (mkVar x d)
+    _                                                   -> Nothing
 
 thunkRecursionsStep
-    :: ToBuiltinMeaning uni fun
+    :: (ToBuiltinMeaning uni fun, PLC.HasUnique name PLC.TermUnique)
     => BuiltinSemanticsVariant fun
     -> Term tyname name uni fun a
     -> Term tyname name uni fun a
@@ -139,7 +140,7 @@ thunkRecursionsStep _ t = t
 --
 -- Note: this pass breaks global uniqueness!
 thunkRecursions
-    :: ToBuiltinMeaning uni fun
+    :: (ToBuiltinMeaning uni fun, PLC.HasUnique name PLC.TermUnique)
     => BuiltinSemanticsVariant fun
     -> Term tyname name uni fun a
     -> Term tyname name uni fun a

@@ -355,13 +355,13 @@ noUniq = fmap (,mempty)
 
 -- See Note [Float-in] #1
 floatable
-    :: (PLC.ToBuiltinMeaning uni fun)
+    :: (PLC.ToBuiltinMeaning uni fun, PLC.HasUnique name PLC.TermUnique)
     => PLC.BuiltinSemanticsVariant fun
     -> Binding tyname name uni fun a
     -> Bool
 floatable semvar = \case
   -- See Note [Float-in] #1
-  TermBind _a Strict _var rhs     -> isWorkFree semvar (const NonStrict) rhs
+  TermBind _a Strict _var rhs     -> isWorkFree semvar mempty rhs
   TermBind _a NonStrict _var _rhs -> True
   -- See Note [Float-in] #2
   TypeBind{}                      -> True

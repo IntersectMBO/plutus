@@ -22,6 +22,9 @@ module PlutusCore.Core.Type
     , fromPatFuncKind
     , argsFunKind
     , Type (..)
+    , funTySections
+    , funTyArgs
+    , funResultType
     , Term (..)
     , Program (..)
     , HasTermLevel
@@ -62,6 +65,7 @@ import PlutusCore.Version as Export
 import Control.Lens
 import Data.Hashable
 import Data.Kind qualified as GHC
+import Data.List.NonEmpty qualified as NE
 import Data.Word
 import Instances.TH.Lift ()
 import Language.Haskell.TH.Lift
@@ -104,6 +108,26 @@ data Type tyname uni ann
     | TySOP ann [[Type tyname uni ann]] -- ^ Sum-of-products type
     deriving stock (Show, Functor, Generic)
     deriving anyclass (NFData)
+
+-- | Get recursively all the domains and codomains of a type.
+-- @funTySections (A->B->C) = [A, B, C]@
+-- @funTySections (X) = [X]@
+funTySections :: Type tyname uni a -> NE.NonEmpty (Type tyname uni a)
+funTySections = \case
+    TyFun _ t1 t2 -> t1 NE.<| funTySections t2
+    t             -> pure t
+
+-- | Get the argument types of a function type.
+-- @funTyArgs (A->B->C) = [A, B]@
+funTyArgs :: Type tyname uni a ->  [Type tyname uni a]
+funTyArgs = NE.init . funTySections
+
+-- | Get the result type of a function.
+-- If not a function, then is the same as `id`
+-- @funResultType (A->B->C) = C@
+-- @funResultType (X) = X@
+funResultType :: Type tyname uni a ->  Type tyname uni a
+funResultType = NE.last . funTySections
 
 data Term tyname name uni fun ann
     = Var ann name -- ^ a named variable

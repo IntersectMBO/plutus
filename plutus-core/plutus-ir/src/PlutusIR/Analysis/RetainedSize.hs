@@ -26,6 +26,7 @@ import Data.Graph.Dom (domTree)
 import Data.IntMap.Strict (IntMap)
 import Data.IntMap.Strict qualified as IntMap
 import Data.Tree
+import PlutusIR.Analysis.VarInfo
 
 {- Note [Retained size analysis]
 WARNING: everything in this module assumes global uniqueness of variables.
@@ -176,11 +177,12 @@ hasSizeIn (DirectionRetentionMap ss) (Variable (PLC.Unique i)) = i `IntMap.membe
 termRetentionMap
     :: (HasUnique tyname TypeUnique, HasUnique name TermUnique, ToBuiltinMeaning uni fun)
     => PLC.BuiltinSemanticsVariant fun
+    -> VarsInfo tyname name
     -> Term tyname name uni fun ann
     -> IntMap Size
-termRetentionMap semvar term = depsRetentionMap sizeInfo deps where
+termRetentionMap semvar vinfo term = depsRetentionMap sizeInfo deps where
     sizeInfo = toDirectionRetentionMap term
-    deps = C.induce (hasSizeIn sizeInfo) $ fst $ runTermDeps semvar term
+    deps = C.induce (hasSizeIn sizeInfo) $ runTermDeps semvar vinfo term
 
 -- | Apply a function to the annotation of each part of every 'Binding' in a term.
 reannotateBindings
@@ -223,6 +225,7 @@ annotateWithRetainedSize
 -- @reannotateBindings@ only processes annotations "associated with" a unique, so it can't change
 -- the type. Therefore we need to set all the bindings to an appropriate type beforehand.
 annotateWithRetainedSize semvar term = reannotateBindings (upd . unUnique) $ NotARetainer <$ term where
-    retentionMap = termRetentionMap semvar term
+    retentionMap = termRetentionMap semvar vinfo term
+    vinfo = termVarInfo term
     -- If a binding is not in the retention map, then it's still a retainer, just retains zero size.
     upd i _ = Retains $ IntMap.findWithDefault (Size 0) i retentionMap

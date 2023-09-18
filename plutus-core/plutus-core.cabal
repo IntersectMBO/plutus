@@ -465,6 +465,7 @@ library plutus-ir
     PlutusIR
     PlutusIR.Analysis.Dependencies
     PlutusIR.Analysis.RetainedSize
+    PlutusIR.Analysis.VarInfo
     PlutusIR.Check.Uniques
     PlutusIR.Compiler
     PlutusIR.Compiler.Datatype
@@ -571,7 +572,6 @@ test-suite plutus-ir-test
     TypeSpec
 
   build-depends:
-    , algebraic-graphs
     , base                                                       >=4.9   && <5
     , containers
     , flat                                                       ^>=0.6

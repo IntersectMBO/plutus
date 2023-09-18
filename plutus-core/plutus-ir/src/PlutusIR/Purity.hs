@@ -26,6 +26,8 @@ import PlutusIR.Contexts
 
 import Data.DList qualified as DList
 import Data.List.NonEmpty qualified as NE
+import PlutusCore.Name qualified as PLC
+import PlutusIR.Analysis.VarInfo
 import Prettyprinter
 
 saturatesScheme :: AppContext tyname name uni fun a -> TypeScheme val args res -> Maybe Bool
@@ -119,12 +121,12 @@ planning on changing it.
 -}
 termEvaluationOrder
   :: forall tyname name uni fun a
-  . ToBuiltinMeaning uni fun
+  . (ToBuiltinMeaning uni fun, PLC.HasUnique name PLC.TermUnique)
   => BuiltinSemanticsVariant fun
-  -> (name -> Strictness)
+  -> VarsInfo tyname name
   -> Term tyname name uni fun a
   -> EvalOrder tyname name uni fun a
-termEvaluationOrder semvar varStrictness = goTerm
+termEvaluationOrder semvar vinfo = goTerm
     where
       goTerm :: Term tyname name uni fun a -> EvalOrder tyname name uni fun a
       goTerm = \case
@@ -187,7 +189,10 @@ termEvaluationOrder semvar varStrictness = goTerm
         -- Leaf terms
         t@(Var _ name)      ->
           -- See Note [Purity, strictness, and variables]
-          let purity = case varStrictness name of { Strict -> Pure; NonStrict -> MaybeImpure}
+          let purity = case varInfoStrictness <$> lookupVarInfo name vinfo of
+                Just Strict    -> Pure
+                Just NonStrict -> MaybeImpure
+                _              -> MaybeImpure
           -- looking up the variable is work
           in evalThis (EvalTerm purity MaybeWork t)
         t@Error{}           ->
@@ -245,16 +250,16 @@ termEvaluationOrder semvar varStrictness = goTerm
 -- it includes applications that are known to be pure, as well as
 -- things that can't be returned from the machine (as they'd be ill-scoped).
 isPure ::
-    ToBuiltinMeaning uni fun =>
+    (ToBuiltinMeaning uni fun, PLC.HasUnique name PLC.TermUnique) =>
     BuiltinSemanticsVariant fun ->
-    (name -> Strictness) ->
+    VarsInfo tyname name ->
     Term tyname name uni fun a ->
     Bool
-isPure semvar varStrictness t =
+isPure semvar vinfo t =
   -- to work out if the term is pure, we see if we can look through
   -- the whole evaluation order without hitting something that might be
   -- effectful
-  go $ unEvalOrder (termEvaluationOrder semvar varStrictness t)
+  go $ unEvalOrder (termEvaluationOrder semvar vinfo t)
   where
     go :: [EvalTerm tyname name uni fun a] -> Bool
     go [] = True
@@ -272,16 +277,16 @@ Note: The definition of 'work-free' is a little unclear, but the idea is that
 evaluating this term should do very a trivial amount of work.
 -}
 isWorkFree ::
-    ToBuiltinMeaning uni fun =>
+    (ToBuiltinMeaning uni fun, PLC.HasUnique name PLC.TermUnique) =>
     BuiltinSemanticsVariant fun ->
-    (name -> Strictness) ->
+    VarsInfo tyname name ->
     Term tyname name uni fun a ->
     Bool
-isWorkFree semvar varStrictness t =
+isWorkFree semvar vinfo t =
   -- to work out if the term is pure, we see if we can look through
   -- the whole evaluation order without hitting something that might be
   -- effectful
-  go $ unEvalOrder (termEvaluationOrder semvar varStrictness t)
+  go $ unEvalOrder (termEvaluationOrder semvar vinfo t)
   where
     go :: [EvalTerm tyname name uni fun a] -> Bool
     go [] = True

@@ -278,7 +278,7 @@ defineBuiltinTerm ann name term = do
     var <- compileVarFresh ann ghcId
     semvar <- asks ccBuiltinSemanticsVariant
     -- See Note [Builtin terms and values]
-    let strictness = if PIR.isPure semvar (const PIR.NonStrict) term then PIR.Strict else PIR.NonStrict
+    let strictness = if PIR.isPure semvar mempty term then PIR.Strict else PIR.NonStrict
         def = PIR.Def var (term, strictness)
     PIR.defineTerm (LexName $ GHC.getName ghcId) def mempty
 

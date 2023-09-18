@@ -430,7 +430,10 @@ ifRec r f a = case r of
     Rec    -> f a
     NonRec -> a
 
-floatable :: (MonadReader (MarkCtx fun) m , PLC.ToBuiltinMeaning uni fun) => BindingGrp tyname name uni fun a -> m Bool
+floatable
+  :: (MonadReader (MarkCtx fun) m, PLC.ToBuiltinMeaning uni fun, PLC.HasUnique name PLC.TermUnique)
+  => BindingGrp tyname name uni fun a
+  -> m Bool
 floatable (BindingGrp _ _ bs) = do
     semvar <- view markBuiltinSemanticsVariant
     pure $ all (hasNoEffects semvar) bs
@@ -444,7 +447,7 @@ An extreme alternative implementation is to treat *all strict* bindings as unflo
 `hasNoEffects = \case {TermBind _ Strict _  _ -> False; _ -> True}`
 -}
 hasNoEffects
-    :: PLC.ToBuiltinMeaning uni fun
+    :: (PLC.ToBuiltinMeaning uni fun, PLC.HasUnique name PLC.TermUnique)
     => PLC.BuiltinSemanticsVariant fun
     -> Binding tyname name uni fun a -> Bool
 hasNoEffects semvar = \case
@@ -453,7 +456,7 @@ hasNoEffects semvar = \case
     TermBind _ NonStrict _ _ -> True
     -- have to check for purity
     -- TODO: We could maybe do better here, but not worth it at the moment
-    TermBind _ Strict _ t    -> isPure semvar (const NonStrict) t
+    TermBind _ Strict _ t    -> isPure semvar mempty t
 
 isTypeBind :: Binding tyname name uni fun a -> Bool
 isTypeBind = \case TypeBind{} -> True; _ -> False

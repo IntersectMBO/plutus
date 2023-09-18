@@ -881,7 +881,7 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
               return (nonDelayedAlt, delayedAlt)
             Nothing -> throwSd CompilationError $ "No alternative for:" GHC.<+> GHC.ppr dc
         let
-          isPureAlt = compiledAlts <&> \(nonDelayed, _) -> PIR.isPure semvar (const PIR.NonStrict) nonDelayed
+          isPureAlt = compiledAlts <&> \(nonDelayed, _) -> PIR.isPure semvar mempty nonDelayed
           lazyCase = not (and isPureAlt || length dcs == 1)
           branches =
             compiledAlts <&> \(nonDelayedAlt, delayedAlt) ->
