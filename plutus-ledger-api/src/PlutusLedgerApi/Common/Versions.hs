@@ -74,13 +74,13 @@ data PlutusLedgerLanguage =
 instance Pretty PlutusLedgerLanguage where
     pretty = viaShow
 
-{-| A map indicating which builtin functions were introduced in which 'ProtocolVersion'.
+{-| A map indicating which builtin functions were introduced in which 'MajorProtocolVersion'.
 Each builtin function should appear at most once.
 
 This __must__ be updated when new builtins are added.
 See Note [New builtins/language versions and protocol versions]
 -}
-builtinsIntroducedIn :: Map.Map (PlutusLedgerLanguage, ProtocolVersion) (Set.Set DefaultFun)
+builtinsIntroducedIn :: Map.Map (PlutusLedgerLanguage, MajorProtocolVersion) (Set.Set DefaultFun)
 builtinsIntroducedIn = Map.fromList [
   ((PlutusV1, alonzoPV), Set.fromList [
           AddInteger, SubtractInteger, MultiplyInteger, DivideInteger, QuotientInteger, RemainderInteger, ModInteger, EqualsInteger, LessThanInteger, LessThanEqualsInteger,
@@ -114,12 +114,12 @@ builtinsIntroducedIn = Map.fromList [
   ]
 
 {-| A map indicating which Plutus Core versions were introduced in which
-'ProtocolVersion' and 'PlutusLedgerLanguage'. Each version should appear at most once.
+'MajorProtocolVersion' and 'PlutusLedgerLanguage'. Each version should appear at most once.
 
 This __must__ be updated when new versions are added.
 See Note [New builtins/language versions and protocol versions]
 -}
-plcVersionsIntroducedIn :: Map.Map (PlutusLedgerLanguage, ProtocolVersion) (Set.Set Version)
+plcVersionsIntroducedIn :: Map.Map (PlutusLedgerLanguage, MajorProtocolVersion) (Set.Set Version)
 plcVersionsIntroducedIn = Map.fromList [
   ((PlutusV1, alonzoPV), Set.fromList [ plcVersion100 ]),
   ((PlutusV3, conwayPV), Set.fromList [ plcVersion110 ])
@@ -127,17 +127,17 @@ plcVersionsIntroducedIn = Map.fromList [
 
 {-| Query the protocol version that a specific Plutus ledger language was first introduced in.
 -}
-ledgerLanguageIntroducedIn :: PlutusLedgerLanguage -> ProtocolVersion
+ledgerLanguageIntroducedIn :: PlutusLedgerLanguage -> MajorProtocolVersion
 ledgerLanguageIntroducedIn = \case
     PlutusV1 -> alonzoPV
     PlutusV2 -> vasilPV
     PlutusV3 -> conwayPV
 
-{-| Which Plutus language versions are available in the given 'ProtocolVersion'?
+{-| Which Plutus language versions are available in the given 'MajorProtocolVersion'?
 
 See Note [New builtins/language versions and protocol versions]
 -}
-ledgerLanguagesAvailableIn :: ProtocolVersion -> Set.Set PlutusLedgerLanguage
+ledgerLanguagesAvailableIn :: MajorProtocolVersion -> Set.Set PlutusLedgerLanguage
 ledgerLanguagesAvailableIn searchPv =
     foldMap ledgerVersionToSet enumerate
   where
@@ -148,29 +148,29 @@ ledgerLanguagesAvailableIn searchPv =
         | otherwise = mempty
 
 {-| Which Plutus Core language versions are available in the given 'PlutusLedgerLanguage'
-and 'ProtocolVersion'?
+and 'MajorProtocolVersion'?
 
 See Note [New builtins/language versions and protocol versions]
 -}
-plcVersionsAvailableIn :: PlutusLedgerLanguage -> ProtocolVersion -> Set.Set Version
+plcVersionsAvailableIn :: PlutusLedgerLanguage -> MajorProtocolVersion -> Set.Set Version
 plcVersionsAvailableIn thisLv thisPv = fold $ Map.elems $
     Map.takeWhileAntitone plcVersionAvailableIn plcVersionsIntroducedIn
     where
-      plcVersionAvailableIn :: (PlutusLedgerLanguage, ProtocolVersion) -> Bool
+      plcVersionAvailableIn :: (PlutusLedgerLanguage, MajorProtocolVersion) -> Bool
       plcVersionAvailableIn (introducedInLv,introducedInPv) =
           -- both should be satisfied
           introducedInLv <= thisLv && introducedInPv <= thisPv
 
 {-| Which builtin functions are available in the given given 'PlutusLedgerLanguage'
-and 'ProtocolVersion'?
+and 'MajorProtocolVersion'?
 
 See Note [New builtins/language versions and protocol versions]
 -}
-builtinsAvailableIn :: PlutusLedgerLanguage -> ProtocolVersion -> Set.Set DefaultFun
+builtinsAvailableIn :: PlutusLedgerLanguage -> MajorProtocolVersion -> Set.Set DefaultFun
 builtinsAvailableIn thisLv thisPv = fold $ Map.elems $
     Map.takeWhileAntitone builtinAvailableIn builtinsIntroducedIn
     where
-      builtinAvailableIn :: (PlutusLedgerLanguage, ProtocolVersion) -> Bool
+      builtinAvailableIn :: (PlutusLedgerLanguage, MajorProtocolVersion) -> Bool
       builtinAvailableIn (introducedInLv,introducedInPv) =
           -- both should be satisfied
           introducedInLv <= thisLv && introducedInPv <= thisPv

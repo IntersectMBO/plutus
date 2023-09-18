@@ -43,8 +43,8 @@ testLedgerLanguages = testGroup "ledger languages"
         \pvA pvB -> pvA < pvB ==> ledgerLanguagesAvailableIn pvA `Set.isSubsetOf` ledgerLanguagesAvailableIn pvB
     ]
   where
-    prop_notBeforeButAfter :: (ProtocolVersion -> SerialisedScript -> Except ScriptDecodeError b)
-                           -> ProtocolVersion -> ProtocolVersion -> Bool
+    prop_notBeforeButAfter :: (MajorProtocolVersion -> SerialisedScript -> Except ScriptDecodeError b)
+                           -> MajorProtocolVersion -> MajorProtocolVersion -> Bool
     prop_notBeforeButAfter phase1Func expectedPv genPv =
         -- run phase 1 on an example script
         let resPhase1 = runExcept $ phase1Func genPv errorScript
@@ -57,9 +57,7 @@ testLedgerLanguages = testGroup "ledger languages"
            -- generated an eq or gt the expected protocol version
            else isRight resPhase1
 
-
-instance Arbitrary ProtocolVersion where
-    arbitrary = ProtocolVersion <$> arbitrary <*> arbitrary
+deriving newtype instance Arbitrary MajorProtocolVersion
 
 testBuiltinVersions :: TestTree
 testBuiltinVersions = testGroup "builtins"

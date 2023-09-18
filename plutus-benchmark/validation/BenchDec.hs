@@ -38,5 +38,5 @@ main = benchWith mkDecBM
                 force (serialiseUPLC $ UPLC.Program () v unsaturated)
 
             -- Deserialize using 'FakeNamedDeBruijn' to get the fake names added
-        in whnf (either throw id . assertScriptWellFormed (ProtocolVersion 6 0)
+        in whnf (either throw id . assertScriptWellFormed (MajorProtocolVersion 6)
                 ) benchScript
