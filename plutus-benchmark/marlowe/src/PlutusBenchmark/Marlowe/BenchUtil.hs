@@ -70,8 +70,8 @@ benchmarkToUPLC
   -> M.Benchmark
   -- ^ `PlutusBenchmark.Marlowe.Types.Benchmark`, benchmarking type used by the executable,
   -- it includes benchmarking results along with script info.
-  -> UPLC.Term NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
-  -- A named DeBruijn term, for turning to `Benchmarkable`.
+  -> UPLC.Program NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
+  -- ^ A named DeBruijn program, for turning to `Benchmarkable`.
 benchmarkToUPLC validator M.Benchmark{..} =
   let
     wrap = UPLC.Program () (UPLC.Version 1 0 0)
@@ -82,7 +82,7 @@ benchmarkToUPLC validator M.Benchmark{..} =
     appliedProg = foldl1 (unsafeFromEither .* applyProgram)
         $ void prog : [datum, redeemer, context]
   in
-    UPLC._progTerm appliedProg
+    appliedProg
 
 -- | Read all of the benchmarking cases for a particular validator.
 readBenchmarks
@@ -287,14 +287,12 @@ executeBenchmark serialisedValidator Benchmark{..} =
   case evaluationContext of
    Left message -> Left message
    Right ec ->
-    case deserialiseScript pv serialisedValidator of
+    case deserialiseScript futurePV serialisedValidator of
       Left err -> Left (show err)
       Right validator ->
         Right
-          $ evaluateScriptCounting pv Verbose ec validator
+          $ evaluateScriptCounting futurePV Verbose ec validator
               [bDatum, bRedeemer, toData bScriptContext]
-  where
-    pv = ProtocolVersion 8 0
 
 
 -- | The execution context for benchmarking.

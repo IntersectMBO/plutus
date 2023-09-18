@@ -39,7 +39,7 @@ Notably, this goes via serialising and deserialising the program, so we can see 
 testAPI :: TestTree
 testAPI = "v1-api" `testWith` evalAPI vasilPV
 
-evalAPI :: ProtocolVersion -> T -> Bool
+evalAPI :: MajorProtocolVersion -> T -> Bool
 evalAPI pv t =
     -- handcraft a serialised script
     let ss :: V1.SerialisedScript = V1.serialiseUPLC $ Program () PLC.plcVersion100 t

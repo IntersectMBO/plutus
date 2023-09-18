@@ -28,7 +28,7 @@ module PlutusCore.Test (
   goldenTEvalCatch,
   goldenUEvalCatch,
   goldenUEvalProfile,
-  goldenUplcBudget,
+  goldenUPlcBudget,
   initialSrcSpan,
   topSrcSpan,
   NoMarkRenameT (..),
@@ -62,6 +62,7 @@ import PlutusCore.Annotation
 import PlutusCore.Check.Scoping
 import PlutusCore.DeBruijn
 import PlutusCore.Evaluation.Machine.Ck qualified as TPLC
+import PlutusCore.Evaluation.Machine.ExBudget qualified as TPLC
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as TPLC
 import PlutusCore.Pretty
 import PlutusCore.Rename.Monad qualified as TPLC
@@ -87,7 +88,6 @@ import Hedgehog.Internal.Property
 import Hedgehog.Internal.Region
 import Hedgehog.Internal.Report
 import Hedgehog.Internal.Runner
-import System.FilePath.Posix ((</>))
 
 -- | Map the 'TestLimit' of a 'Property' with a given function.
 mapTestLimit :: (TestLimit -> TestLimit) -> Property -> Property
@@ -193,6 +193,21 @@ runUPlc values = do
   let (UPLC.Program _ _ t) = foldl1 (unsafeFromRight .* UPLC.applyProgram) ps
   liftEither . first toException . TPLC.extractEvaluationResult $
     UPLC.evaluateCekNoEmit TPLC.defaultCekParameters t
+
+runUPlcBudget ::
+  (ToUPlc a TPLC.DefaultUni UPLC.DefaultFun) =>
+  [a] ->
+  ExceptT
+    SomeException
+    IO
+    (UPLC.Term UPLC.Name TPLC.DefaultUni UPLC.DefaultFun (), TPLC.ExBudget)
+runUPlcBudget values = do
+  ps <- traverse toUPlc values
+  let (UPLC.Program _ _ t) = foldl1 (unsafeFromRight .* UPLC.applyProgram) ps
+  let (result, UPLC.CountingSt budget) =
+        UPLC.runCekNoEmit TPLC.defaultCekParameters UPLC.counting t
+  res <- fromRightM (throwError . SomeException) result
+  pure (res, budget)
 
 -- For golden tests of profiling.
 runUPlcProfile ::
@@ -343,24 +358,13 @@ goldenUEvalProfile name values =
   nestedGoldenVsDocM name ".ueval-profile" $
     pretty . view _2 <$> (rethrow $ runUPlcProfile values)
 
--- Budget testing
-
-goldenUplcBudget ::
-  TestName
-  -> UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
+goldenUPlcBudget ::
+  (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun)
+  => String
+  -> [a]
   -> TestNested
-goldenUplcBudget name uplcTerm = do
-  let uplcTm = TPLC.runQuote $
-          runExceptT @UPLC.FreeVariableError $ UPLC.unDeBruijnTerm uplcTerm
-  path <- ask
-  let measureBudget tm =
-        let (_, UPLC.CountingSt budget) =
-                UPLC.runCekNoEmit TPLC.defaultCekParameters UPLC.counting tm
-        in budget
-      filename = foldr (</>) (name ++ ".budget.golden") path
-  case uplcTm of
-    Left err -> pure $ goldenVsDoc name filename (pretty err)
-    Right tm -> pure $ goldenVsDoc name filename (pretty (measureBudget tm))
+goldenUPlcBudget name values =
+  nestedGoldenVsDocM name ".budget" $ ppCatch $ view _2 <$> runUPlcBudget values
 
 -- | A made-up `SrcSpan` for testing.
 initialSrcSpan :: FilePath -> SrcSpan

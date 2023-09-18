@@ -11,6 +11,7 @@ module PlutusBenchmark.Common
     , compiledCodeToTerm
     , haskellValueToTerm
     , benchTermCek
+    , benchProgramCek
     , unsafeRunTermCek
     , runTermCek
     , cekResultMatchesHaskellValue
@@ -65,6 +66,7 @@ getConfig limit = do
               }
 
 type Term = UPLC.Term PLC.NamedDeBruijn DefaultUni DefaultFun ()
+type Program = UPLC.Program PLC.NamedDeBruijn DefaultUni DefaultFun ()
 
 {- | Given a DeBruijn-named term, give every variable the name "v".  If we later
    call unDeBruijn, that will rename the variables to things like "v123", where
@@ -102,6 +104,11 @@ haskellValueToTerm = compiledCodeToTerm . Tx.liftCodeDef
 {- | Convert a de-Bruijn-named UPLC term to a Benchmark -}
 benchTermCek :: Term -> Benchmarkable
 benchTermCek term =
+    nf (unsafeRunTermCek) $! term -- Or whnf?
+
+{- | Convert a de-Bruijn-named UPLC term to a Benchmark -}
+benchProgramCek :: Program -> Benchmarkable
+benchProgramCek (UPLC.Program _ _ term) =
     nf (unsafeRunTermCek) $! term -- Or whnf?
 
 {- | Just run a term to obtain an `EvaluationResult` (used for tests etc.) -}

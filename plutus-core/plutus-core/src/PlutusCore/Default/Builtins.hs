@@ -234,7 +234,7 @@ comment: https://github.com/input-output-hk/plutus/issues/4306#issuecomment-1003
 In order to add a new built-in function one needs to add a constructor to 'DefaultFun' and handle
 it within the @ToBuiltinMeaning uni DefaultFun@ instance like this:
 
-    toBuiltinMeaning <semanticsVariant> <Name> =
+    toBuiltinMeaning semvar <Name> =
         makeBuiltinMeaning
             <denotation>
             <costingFunction>
@@ -245,6 +245,10 @@ to a golden file automatically (consult @git status@). 'toBuiltinMeaning' also t
 'BuiltinSemanticsVariant' argument which allows a particular builtin name to have multiple
 associated denotations (see Note [Builtin semantics variants]), but for simplicity we assume in
 the examplesbelow that all names have a single meaning.
+
+See Note [Builtin semantics variants] for how @semvar@ enables us to customize the behavior of a
+built-in function. For the purpose of these docs we're going to ignore that and use @_@ instead of
+@semvar@.
 
 Below we will enumerate what kind of denotations are accepted by 'makeBuiltinMeaning' without
 touching any costing stuff.
@@ -447,7 +451,8 @@ variable. What a type variable gets instantiated to depends on where it appears.
 type of an argument is a single type variable, it gets instantiated to @Opaque val VarN@ where
 @VarN@ is pseudocode for "a Haskell type representing a Plutus type variable with 'Unique' N"
 For the purpose of this explanation it doesn't matter what @VarN@ actually is and the representation
-is subject to change anyway. 'Opaque' however is more fundamental and so we need to talk about it.
+is subject to change anyway (see Note [Implementation of polymorphic built-in functions] if you want
+to know the details). 'Opaque' however is more fundamental and so we need to talk about it.
 Here's how it's defined:
 
     newtype Opaque val (rep :: GHC.Type) = Opaque
@@ -958,9 +963,12 @@ we don't add complex built-in types too often.
 
 It is not however clear if we can't get more performance gains by defining matchers directly as
 higher-order built-in functions compared to forbidding them. Particularly since if higher-order
-built-in functions were allowed, we could define not only matches, but also folds and keep recursion
-on the Haskell side for conversions from 'Data', which can potentially have a huge positive impact
-on performance.
+built-in functions were allowed, we could define not only matchers, but also folds and keep
+recursion on the Haskell side for conversions from 'Data', which can potentially have a huge
+positive impact on performance.
+
+See https://github.com/input-output-hk/plutus/pull/5486 for how higher-order builtins would look
+like.
 
 Read Note [Representable built-in functions over polymorphic built-in types] next.
 -}
@@ -1117,6 +1125,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         let costingFun
                 :: ExMemoryUsage a => BuiltinCostModel -> a -> BS.ByteString -> ExBudgetStream
             costingFun = runCostingFunTwoArguments . paramConsByteString
+            {-# INLINE costingFun #-}
         -- See Note [Builtin semantics variants]
         in case semvar of
             DefaultFunSemanticsVariant1 -> makeBuiltinMeaning
@@ -1141,8 +1150,10 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunOneArgument . paramLengthOfByteString)
     toBuiltinMeaning _semvar IndexByteString =
         makeBuiltinMeaning
-            (\xs n -> if n >= 0 && n < BS.length xs then EvaluationSuccess $ toInteger $ BS.index xs n else EvaluationFailure)
-            -- TODO: fix the mess above with `indexMaybe` from `ghc>=9.2,bytestring >= 0.11.0.0`.
+            -- TODO: fix this mess with @indexMaybe@ from @bytestring >= 0.11.0.0@.
+            (\xs n -> do
+                guard $ n >= 0 && n < BS.length xs
+                EvaluationSuccess $ BS.index xs n)
             (runCostingFunTwoArguments . paramIndexByteString)
     toBuiltinMeaning _semvar EqualsByteString =
         makeBuiltinMeaning

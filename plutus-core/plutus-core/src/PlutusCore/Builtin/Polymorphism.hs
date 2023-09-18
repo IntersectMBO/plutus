@@ -164,8 +164,11 @@ deriving newtype instance (Everywhere uni ExMemoryUsage, Closed uni)
 type instance UniOf (SomeConstant uni rep) = uni
 
 instance HasConstant (SomeConstant uni rep) where
-    asConstant   = coerceArg pure
+    asConstant = coerceArg pure
+    {-# INLINE asConstant #-}
+
     fromConstant = coerce
+    {-# INLINE fromConstant #-}
 
 -- | Representation of a type variable: its name and unique and an implicit kind.
 data TyNameRep (kind :: GHC.Type) = TyNameRep Symbol Nat

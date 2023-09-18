@@ -13,7 +13,7 @@ import UntypedPlutusCore qualified as UPLC
 
 uplcToScriptForEvaluation ::
   PlutusLedgerLanguage ->
-  ProtocolVersion ->
+  MajorProtocolVersion ->
   UPLC.Program UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun () ->
   Either ScriptDecodeError ScriptForEvaluation
 uplcToScriptForEvaluation ll pv = deserialiseScript ll pv . serialiseUPLC

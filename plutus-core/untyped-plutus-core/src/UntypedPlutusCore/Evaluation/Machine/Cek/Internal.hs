@@ -551,8 +551,10 @@ type instance UniOf (CekValue uni fun ann) = uni
 instance HasConstant (CekValue uni fun ann) where
     asConstant (VCon val) = pure val
     asConstant _          = throwNotAConstant
+    {-# INLINE asConstant #-}
 
     fromConstant = VCon
+    {-# INLINE fromConstant #-}
 
 {-|
 The context in which the machine operates.

@@ -1,6 +1,7 @@
 {-# LANGUAGE BangPatterns #-}
 module Main where
 
+import PlutusLedgerApi.Common.Versions
 import PlutusLedgerApi.V1
 import UntypedPlutusCore qualified as UPLC
 
@@ -39,5 +40,5 @@ main = benchWith mkDecBM
                 force (serialiseUPLC $ UPLC.Program () v unsaturated)
 
             -- Deserialize using 'FakeNamedDeBruijn' to get the fake names added
-        in whnf (either throw id . void . deserialiseScript (ProtocolVersion 6 0)
+        in whnf (either throw id . void . deserialiseScript futurePV
                 ) benchScript
