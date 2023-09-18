@@ -141,7 +141,7 @@ newtype ScriptNamedDeBruijn
   deriving anyclass (NFData)
 
 -- | A Plutus script ready to be evaluated on-chain, via @evaluateScriptRestricting@.
-data ScriptForEvaluation = UnsafeScriptForEvaluation SerialisedScript ScriptNamedDeBruijn
+data ScriptForEvaluation = UnsafeScriptForEvaluation !SerialisedScript !ScriptNamedDeBruijn
   deriving stock (Eq, Show, Generic)
   deriving anyclass (NFData)
 
