@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveAnyClass  #-}
+{-# LANGUAGE DerivingVia     #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module PlutusLedgerApi.Common.SerialisedScript (
@@ -32,6 +33,7 @@ import Codec.CBOR.Extras as CBOR.Extras
 import Codec.CBOR.Read qualified as CBOR
 import Codec.Serialise
 import Control.Arrow ((>>>))
+import Control.DeepSeq (NFData)
 import Control.Exception
 import Control.Lens
 import Control.Monad (unless, when)
@@ -41,6 +43,8 @@ import Data.ByteString.Lazy as BSL (ByteString, fromStrict, toStrict)
 import Data.ByteString.Short
 import Data.Coerce
 import Data.Set as Set
+import GHC.Generics
+import NoThunks.Class
 import Prettyprinter
 
 -- | An error that occurred during script deserialization.
@@ -133,9 +137,15 @@ uncheckedDeserialiseUPLC = unSerialiseViaFlat . deserialise . BSL.fromStrict . f
 -- | A script with named de-bruijn indices.
 newtype ScriptNamedDeBruijn
   = ScriptNamedDeBruijn (UPLC.Program UPLC.NamedDeBruijn DefaultUni DefaultFun ())
+  deriving stock (Eq, Show, Generic)
+  deriving anyclass (NFData)
 
 -- | A Plutus script ready to be evaluated on-chain, via @evaluateScriptRestricting@.
 data ScriptForEvaluation = UnsafeScriptForEvaluation SerialisedScript ScriptNamedDeBruijn
+  deriving stock (Eq, Show, Generic)
+  deriving anyclass (NFData)
+
+deriving via OnlyCheckWhnf ScriptForEvaluation instance NoThunks ScriptForEvaluation
 
 -- | Get a `SerialisedScript` from a `ScriptForEvaluation`. /O(1)/.
 serialisedScript :: ScriptForEvaluation -> SerialisedScript
