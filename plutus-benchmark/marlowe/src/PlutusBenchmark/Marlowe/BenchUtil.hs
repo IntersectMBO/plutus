@@ -55,12 +55,13 @@ import PlutusCore.Executable.Common (writeProgram)
 import PlutusCore.Executable.Types (AstNameType (NamedDeBruijn), Format (Flat), Output (FileOutput),
                                     PrintMode (Readable), UplcProg)
 import PlutusCore.MkPlc (mkConstant)
+import PlutusLedgerApi.Common.Versions
 import PlutusLedgerApi.V2
 import PlutusPrelude ((.*))
 import PlutusTx.Code (CompiledCode, getPlc)
 import System.Directory (listDirectory)
 import System.FilePath ((<.>), (</>))
-import UntypedPlutusCore (NamedDeBruijn, Program (..), Version (..), applyProgram)
+import UntypedPlutusCore (NamedDeBruijn, Program (..), applyProgram)
 import UntypedPlutusCore.Core.Type qualified as UPLC
 
 -- | Turn a `PlutusBenchmark.Marlowe.Types.Benchmark` to a UPLC program.
@@ -287,9 +288,12 @@ executeBenchmark serialisedValidator Benchmark{..} =
   case evaluationContext of
    Left message -> Left message
    Right ec ->
-    Right
-      $ evaluateScriptCounting (MajorProtocolVersion 8) Verbose ec serialisedValidator
-        [bDatum, bRedeemer, toData bScriptContext]
+    case deserialiseScript futurePV serialisedValidator of
+      Left err -> Left (show err)
+      Right validator ->
+        Right
+          $ evaluateScriptCounting futurePV Verbose ec validator
+              [bDatum, bRedeemer, toData bScriptContext]
 
 
 -- | The execution context for benchmarking.

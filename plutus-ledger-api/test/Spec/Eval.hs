@@ -1,6 +1,7 @@
 -- editorconfig-checker-disable-file
 -- TODO: merge this module to Versions.hs ?
-{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies     #-}
 module Spec.Eval (tests) where
 
 import PlutusCore.Default
@@ -8,6 +9,7 @@ import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.MkPlc
 import PlutusCore.StdLib.Data.Unit
 import PlutusCore.Version as PLC
+import PlutusLedgerApi.Common
 import PlutusLedgerApi.Common.Versions
 import PlutusLedgerApi.Test.V1.EvaluationContext qualified as V1
 import PlutusLedgerApi.V1 qualified as V1
@@ -40,7 +42,8 @@ testAPI = "v1-api" `testWith` evalAPI vasilPV
 evalAPI :: MajorProtocolVersion -> T -> Bool
 evalAPI pv t =
     -- handcraft a serialised script
-    let s :: V1.SerialisedScript = V1.serialiseUPLC $ Program () PLC.plcVersion100 t
+    let ss :: V1.SerialisedScript = V1.serialiseUPLC $ Program () PLC.plcVersion100 t
+        s :: V1.ScriptForEvaluation = either (Prelude.error . show) id $ deserialiseScript PlutusV1 pv ss
         ec :: V1.EvaluationContext = fst $ unsafeFromRight $ runWriterT $ V1.mkEvaluationContext $ fmap snd V1.costModelParamsForTesting
     in isRight $ snd $ V1.evaluateScriptRestricting pv V1.Quiet ec (unExRestrictingBudget enormousBudget) s []
 

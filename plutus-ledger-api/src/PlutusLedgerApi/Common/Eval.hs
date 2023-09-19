@@ -80,29 +80,27 @@ type LogOutput = [Text.Text]
 
 {-| Shared helper for the evaluation functions: 'evaluateScriptCounting' and 'evaluateScriptRestricting',
 
-Given a 'SerialisedScript':
+Given a 'ScriptForEvaluation':
 
-1) deserialises to a plutus 'Term' and checks its ast version
-2) applies the term to a list of 'Data' arguments (e.g. Datum, Redeemer, `ScriptContext`)
-3) checks that the applied-term is well-scoped
-4) returns the applied-term
+1) applies the term to a list of 'Data' arguments (e.g. Datum, Redeemer, `ScriptContext`)
+2) checks that the applied-term is well-scoped
+3) returns the applied-term
 -}
 mkTermToEvaluate
     :: (MonadError EvaluationError m)
     => PlutusLedgerLanguage -- ^ the Plutus ledger language of the script under execution.
-    -> MajorProtocolVersion -- ^ which protocol version to run the operation in
-    -> SerialisedScript -- ^ the script to evaluate in serialised form
+    -> MajorProtocolVersion -- ^ which major protocol version to run the operation in
+    -> ScriptForEvaluation -- ^ the script to evaluate
     -> [Plutus.Data] -- ^ the arguments that the script's underlying term will be applied to
     -> m (UPLC.Term UPLC.NamedDeBruijn DefaultUni DefaultFun ())
-mkTermToEvaluate lv pv bs args = do
-    -- It decodes the program through the optimized ScriptForExecution. See `ScriptForExecution`.
-    ScriptForExecution (UPLC.Program _ v t) <- fromSerialisedScript lv pv bs
-    let termArgs = fmap (UPLC.mkConstant ()) args
+mkTermToEvaluate ll pv script args = do
+    let ScriptNamedDeBruijn (UPLC.Program _ v t) = deserialisedScript script
+        termArgs = fmap (UPLC.mkConstant ()) args
         appliedT = UPLC.mkIterAppNoAnn t termArgs
 
     -- check that the Plutus Core language version is available
     -- See Note [Checking the Plutus Core language version]
-    unless (v `Set.member` plcVersionsAvailableIn lv pv) $ throwing _ScriptDecodeError $ PlutusCoreLanguageNotAvailableError v pv
+    unless (v `Set.member` plcVersionsAvailableIn ll pv) $ throwing _ScriptDecodeError $ PlutusCoreLanguageNotAvailableError v pv
 
     -- make sure that term is closed, i.e. well-scoped
     through (liftEither . first DeBruijnError . UPLC.checkScope) appliedT
@@ -179,11 +177,11 @@ evaluateScriptRestricting
     -> VerboseMode          -- ^ Whether to produce log output
     -> EvaluationContext    -- ^ Includes the cost model to use for tallying up the execution costs
     -> ExBudget             -- ^ The resource budget which must not be exceeded during evaluation
-    -> SerialisedScript     -- ^ The script to evaluate
+    -> ScriptForEvaluation  -- ^ The script to evaluate
     -> [Plutus.Data]        -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ExBudget)
-evaluateScriptRestricting lv pv verbose ectx budget p args = swap $ runWriter @LogOutput $ runExceptT $ do
-    appliedTerm <- mkTermToEvaluate lv pv p args
+evaluateScriptRestricting ll pv verbose ectx budget p args = swap $ runWriter @LogOutput $ runExceptT $ do
+    appliedTerm <- mkTermToEvaluate ll pv p args
     let (res, UPLC.RestrictingSt (ExRestrictingBudget final), logs) =
             evaluateTerm (UPLC.restricting $ ExRestrictingBudget budget) pv verbose ectx appliedTerm
     tell logs
@@ -202,11 +200,11 @@ evaluateScriptCounting
     -> MajorProtocolVersion -- ^ Which major protocol version to run the operation in
     -> VerboseMode          -- ^ Whether to produce log output
     -> EvaluationContext    -- ^ Includes the cost model to use for tallying up the execution costs
-    -> SerialisedScript     -- ^ The script to evaluate
+    -> ScriptForEvaluation  -- ^ The script to evaluate
     -> [Plutus.Data]        -- ^ The arguments to the script
     -> (LogOutput, Either EvaluationError ExBudget)
-evaluateScriptCounting lv pv verbose ectx p args = swap $ runWriter @LogOutput $ runExceptT $ do
-    appliedTerm <- mkTermToEvaluate lv pv p args
+evaluateScriptCounting ll pv verbose ectx p args = swap $ runWriter @LogOutput $ runExceptT $ do
+    appliedTerm <- mkTermToEvaluate ll pv p args
     let (res, UPLC.CountingSt final, logs) =
             evaluateTerm UPLC.counting pv verbose ectx appliedTerm
     tell logs

@@ -27,30 +27,34 @@ v1_evalCtxForTesting = fst $ unsafeFromRight $ runWriterT $ V1.mkEvaluationConte
 
 alwaysTrue :: TestTree
 alwaysTrue = testCase "always true script returns true" $
-    let (_, res) = evaluateScriptCounting alonzoPV Quiet v1_evalCtxForTesting (alwaysSucceedingNAryFunction 2) [I 1, I 2]
+    let script = either (error . show) id $ V1.deserialiseScript alonzoPV (alwaysSucceedingNAryFunction 2)
+        (_, res) = evaluateScriptCounting alonzoPV Quiet v1_evalCtxForTesting script [I 1, I 2]
     in assertBool "succeeds" (isRight res)
 
 alwaysFalse :: TestTree
 alwaysFalse = testCase "always false script returns false" $
-    let (_, res) = evaluateScriptCounting alonzoPV Quiet v1_evalCtxForTesting (alwaysFailingNAryFunction 2) [I 1, I 2]
+    let script = either (error . show) id $ V1.deserialiseScript alonzoPV (alwaysFailingNAryFunction 2)
+        (_, res) = evaluateScriptCounting alonzoPV Quiet v1_evalCtxForTesting script [I 1, I 2]
     in assertBool "fails" (isLeft res)
 
 unavailableBuiltins :: TestTree
 unavailableBuiltins = testCase "builtins are unavailable before Alonzo" $
-    let (_, res) = evaluateScriptCounting maryPV Quiet v1_evalCtxForTesting summingFunction []
+    let res = V1.deserialiseScript maryPV summingFunction
     in assertBool "fails" (isLeft res)
 
 availableBuiltins :: TestTree
 availableBuiltins = testCase "builtins are available after Alonzo" $
-    let (_, res) = evaluateScriptCounting alonzoPV Quiet v1_evalCtxForTesting summingFunction []
+    let res = V1.deserialiseScript alonzoPV summingFunction
     in assertBool "succeeds" (isRight res)
 
 saltedFunction :: TestTree
 saltedFunction =
-    let evaluate f f' args =
-            ( evaluateScriptCounting alonzoPV Quiet v1_evalCtxForTesting f args
-            , evaluateScriptCounting alonzoPV Quiet v1_evalCtxForTesting f' args
-            )
+    let evaluate ss ss' args =
+            let s = either (error . show) id $ V1.deserialiseScript alonzoPV ss
+                s' = either (error . show) id $ V1.deserialiseScript alonzoPV ss'
+             in ( evaluateScriptCounting alonzoPV Quiet v1_evalCtxForTesting s args
+                , evaluateScriptCounting alonzoPV Quiet v1_evalCtxForTesting s' args
+                )
     in testGroup "salted function"
     [ testProperty "saturated" $ \(n :: Word8) salt fWhich ->
         let f = (if fWhich then alwaysSucceedingNAryFunction else alwaysFailingNAryFunction) $ fromInteger $ toInteger n
