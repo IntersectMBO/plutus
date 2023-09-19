@@ -145,6 +145,8 @@ data ScriptForEvaluation = UnsafeScriptForEvaluation !SerialisedScript !ScriptNa
   deriving stock (Eq, Show, Generic)
   deriving anyclass (NFData)
 
+-- Only check WHNF for NoThunks, since the only way to obtain a ScriptForEvaluation
+-- is `deserialiseScript`.
 deriving via OnlyCheckWhnf ScriptForEvaluation instance NoThunks ScriptForEvaluation
 
 -- | Get a `SerialisedScript` from a `ScriptForEvaluation`. /O(1)/.
