@@ -26,8 +26,9 @@ module PlutusTx.Test (
   goldenEvalCekLog,
 
   -- * Budget testing
-  goldenBudget
+  goldenBudget,
 
+  goldenTests
 ) where
 
 import Prelude
@@ -227,3 +228,12 @@ runPlcCekTrace values = do
         UPLC.runCek PLC.defaultCekParameters UPLC.tallying UPLC.logEmitter (p ^. UPLC.progTerm)
   res <- fromRightM (throwError . SomeException) result
   pure (logOut, tally, res)
+
+-- | A group of golden tests including UPLC size and UPLC and PIR readable.
+goldenTests :: String -> CompiledCode a -> [TestTree]
+goldenTests testName code =
+  [
+  runTestNested $ goldenSize testName code,
+  runTestNested $ goldenUPlcReadable testName code,
+  runTestNested $ goldenPirReadable testName code
+  ]

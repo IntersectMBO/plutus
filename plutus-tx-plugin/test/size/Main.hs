@@ -12,54 +12,56 @@ import PlutusTx.Test
 import PlutusTx.TH (compile)
 import Prelude
 import Test.Tasty (defaultMain, testGroup)
-import Test.Tasty.Extras (runTestNested)
 
 main :: IO ()
 main = defaultMain . testGroup "Size regression tests" $ [
   testGroup "Rational" [
-    testGroup "Eq" [
-      runTestNested $ goldenSize "equal" ratEq,
-      runTestNested $ goldenSize "not-equal" ratNeq
-      ],
-    testGroup "Ord" [
-      runTestNested $ goldenSize "compare" ratCompare,
-      runTestNested $ goldenSize "less-than-equal" ratLe,
-      runTestNested $ goldenSize "greater-than-equal" ratGe,
-      runTestNested $ goldenSize "less-than" ratLt,
-      runTestNested $ goldenSize "greater-than" ratGt,
-      runTestNested $ goldenSize "max" ratMax,
-      runTestNested $ goldenSize "min" ratMin
-      ],
-    testGroup "Additive" [
-      runTestNested $ goldenSize "plus" ratPlus,
-      runTestNested $ goldenSize "zero" ratZero,
-      runTestNested $ goldenSize "minus" ratMinus,
-      runTestNested $ goldenSize "negate-specialized" ratNegate
-      ],
-    testGroup "Multiplicative" [
-      runTestNested $ goldenSize "times" ratTimes,
-      runTestNested $ goldenSize "one" ratOne,
-      runTestNested $ goldenSize "scale" ratScale
-      ],
-    testGroup "Serialization" [
-      runTestNested $ goldenSize "toBuiltinData" ratToBuiltin,
-      runTestNested $ goldenSize "fromBuiltinData" ratFromBuiltin,
-      runTestNested $ goldenSize "unsafeFromBuiltinData" ratUnsafeFromBuiltin
-      ],
-    testGroup "Construction" [
-      runTestNested $ goldenSize "unsafeRatio" ratMkUnsafe,
-      runTestNested $ goldenSize "ratio" ratMkSafe,
-      runTestNested $ goldenSize "fromInteger" ratFromInteger
-      ],
-    testGroup "Other" [
-      runTestNested $ goldenSize "numerator" ratNumerator,
-      runTestNested $ goldenSize "denominator" ratDenominator,
-      runTestNested $ goldenSize "round" ratRound,
-      runTestNested $ goldenSize "truncate" ratTruncate,
-      runTestNested $ goldenSize "properFraction" ratProperFraction,
-      runTestNested $ goldenSize "recip" ratRecip,
-      runTestNested $ goldenSize "abs-specialized" ratAbs
-      ],
+    testGroup "Eq" (concat [
+      goldenTests "equal" ratEq,
+      goldenTests "not-equal" ratNeq
+      ]),
+    testGroup "Ord" (concat [
+      goldenTests "compare" ratCompare,
+      goldenTests "compare" ratCompare,
+      goldenTests "compare" ratCompare,
+
+      goldenTests "less-than-equal" ratLe,
+      goldenTests "greater-than-equal" ratGe,
+      goldenTests "less-than" ratLt,
+      goldenTests "greater-than" ratGt,
+      goldenTests "max" ratMax,
+      goldenTests "min" ratMin
+      ]),
+    testGroup "Additive" (concat [
+      goldenTests "plus" ratPlus,
+      goldenTests "zero" ratZero,
+      goldenTests "minus" ratMinus,
+      goldenTests "negate-specialized" ratNegate
+      ]),
+    testGroup "Multiplicative" (concat [
+      goldenTests "times" ratTimes,
+      goldenTests "one" ratOne,
+      goldenTests "scale" ratScale
+      ]),
+    testGroup "Serialization" (concat [
+      goldenTests "toBuiltinData" ratToBuiltin,
+      goldenTests "fromBuiltinData" ratFromBuiltin,
+      goldenTests "unsafeFromBuiltinData" ratUnsafeFromBuiltin
+      ]),
+    testGroup "Construction" (concat [
+      goldenTests "unsafeRatio" ratMkUnsafe,
+      goldenTests "ratio" ratMkSafe,
+      goldenTests "fromInteger" ratFromInteger
+      ]),
+    testGroup "Other" (concat [
+      goldenTests "numerator" ratNumerator,
+      goldenTests "denominator" ratDenominator,
+      goldenTests "round" ratRound,
+      goldenTests "truncate" ratTruncate,
+      goldenTests "properFraction" ratProperFraction,
+      goldenTests "recip" ratRecip,
+      goldenTests "abs-specialized" ratAbs
+      ]),
     testGroup "Comparison" [
       fitsUnder "negate" ("specialized", ratNegate) ("general", genNegate),
       fitsUnder "abs" ("specialized", ratAbs) ("general", genAbs),
