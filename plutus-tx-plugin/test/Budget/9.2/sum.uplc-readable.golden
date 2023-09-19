@@ -1,18 +1,27 @@
 program
   1.1.0
-  ((\`$dAdditiveMonoid` ->
-      (\f ->
-         (\z ->
-            (\go eta -> go eta)
-              ((\s -> s s)
-                 (\s x ->
-                    (\go ->
-                       force
-                         (case x [(delay z), (\x xs -> delay (f x (go xs)))]))
-                      (s s))))
-           (case `$dAdditiveMonoid` [(\v v -> v)]))
-        (case `$dAdditiveMonoid` [(\v v -> v)]))
-     (constr 0 [(\x y -> addInteger x y), 0])
+  ((\CConsAdditiveMonoid AdditiveMonoid_match ->
+      (\`$dAdditiveMonoid` ->
+         (\f ->
+            (\z ->
+               (\go eta -> go eta)
+                 ((\s -> s s)
+                    (\s x ->
+                       (\go ->
+                          force
+                            (case
+                               x
+                               [(delay z), (\x xs -> delay (f x (go xs)))]))
+                         (s s))))
+              (force (force AdditiveMonoid_match `$dAdditiveMonoid`)
+                 (\v v -> v)))
+           (force (force AdditiveMonoid_match `$dAdditiveMonoid`) (\v v -> v)))
+        (CConsAdditiveMonoid (\x y -> addInteger x y) 0))
+     (\arg_0 arg_1 -> constr 0 [arg_0, arg_1])
+     (delay
+        (\x ->
+           delay
+             (\case_CConsAdditiveMonoid -> case x [case_CConsAdditiveMonoid])))
      (constr 1
         [ 1
         , (constr 1

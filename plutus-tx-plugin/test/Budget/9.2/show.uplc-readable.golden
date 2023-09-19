@@ -479,11 +479,8 @@ program
                        force
                          (force ifThenElse
                             (equalsInteger 0 x)
-                            (delay (constr 1 [(remainderInteger n y), acc]))
-                            (delay
-                               (go
-                                  (constr 1 [(remainderInteger n y), acc])
-                                  x))))
+                            (delay (Cons (remainderInteger n y) acc))
+                            (delay (go (Cons (remainderInteger n y) acc) x))))
                       (quotientInteger n y))))
            (\arg_0 arg_1 -> constr 1 [arg_0, arg_1]))
         10)
