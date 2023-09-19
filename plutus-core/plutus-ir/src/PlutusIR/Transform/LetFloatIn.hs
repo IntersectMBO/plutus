@@ -26,6 +26,7 @@ import Data.List.NonEmpty.Extra (NonEmpty (..))
 import Data.List.NonEmpty.Extra qualified as NonEmpty
 import Data.Set (Set)
 import Data.Set qualified as Set
+import PlutusIR.Analysis.Builtins
 
 {- Note [Float-in]
 
@@ -185,7 +186,7 @@ floatTerm ::
   , PLC.ToBuiltinMeaning uni fun
   , PLC.MonadQuote m
   ) =>
-  PLC.BuiltinSemanticsVariant fun ->
+  BuiltinsInfo uni fun ->
   -- | Whether to float-in more aggressively. See Note [Float-in] #6
   Bool ->
   Term tyname name uni fun a ->
@@ -356,7 +357,7 @@ noUniq = fmap (,mempty)
 -- See Note [Float-in] #1
 floatable
     :: (PLC.ToBuiltinMeaning uni fun, PLC.HasUnique name PLC.TermUnique)
-    => PLC.BuiltinSemanticsVariant fun
+    => BuiltinsInfo uni fun
     -> Binding tyname name uni fun a
     -> Bool
 floatable semvar = \case
@@ -380,7 +381,7 @@ floatInBinding ::
   , PLC.HasUnique tyname PLC.TypeUnique
   , PLC.ToBuiltinMeaning uni fun
   ) =>
-  PLC.BuiltinSemanticsVariant fun ->
+  BuiltinsInfo uni fun ->
   -- | Annotation to be attached to the constructed `Let`.
   a ->
   Binding tyname name uni fun (a, Uniques) ->

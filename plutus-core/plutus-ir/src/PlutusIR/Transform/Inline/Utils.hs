@@ -27,6 +27,7 @@ import Control.Monad.Reader
 import Control.Monad.State
 
 import Data.Semigroup.Generic (GenericSemigroupMonoid (..))
+import PlutusIR.Analysis.Builtins
 import PlutusIR.Analysis.VarInfo qualified as VarInfo
 
 -- General infra:
@@ -53,14 +54,14 @@ type InliningConstraints tyname name uni fun =
 -- pre-computed information about the program.
 --
 -- See [Inlining and global uniqueness] for caveats about this information.
-data InlineInfo tyname name fun ann = InlineInfo
-    { _iiVarInfo                 :: VarInfo.VarsInfo tyname name
+data InlineInfo tyname name uni fun ann = InlineInfo
+    { _iiVarInfo      :: VarInfo.VarsInfo tyname name
     -- ^ Is it strict? Only needed for PIR, not UPLC
-    , _iiUsages                  :: Usages.Usages
+    , _iiUsages       :: Usages.Usages
     -- ^ how many times is it used?
-    , _iiHints                   :: InlineHints name ann
+    , _iiHints        :: InlineHints name ann
     -- ^ have we explicitly been told to inline?
-    , _iiBuiltinSemanticsVariant :: PLC.BuiltinSemanticsVariant fun
+    , _iiBuiltinsInfo :: BuiltinsInfo uni fun
     -- ^ the semantics variant.
     }
 makeLenses ''InlineInfo
@@ -69,7 +70,9 @@ makeLenses ''InlineInfo
 -- (determined from profiling)
 -- | The monad the inliner runs in.
 type InlineM tyname name uni fun ann =
-    ReaderT (InlineInfo tyname name fun ann) (StateT (InlinerState tyname name uni fun ann) Quote)
+    ReaderT
+      (InlineInfo tyname name uni fun ann)
+      (StateT (InlinerState tyname name uni fun ann) Quote)
 -- For unconditional inlining:
 
 -- | Substitution range, 'SubstRng' in the paper but no 'Susp' case.
@@ -225,19 +228,19 @@ checkPurity
     => Term tyname name uni fun ann -> InlineM tyname name uni fun ann Bool
 checkPurity t = do
     varInfo <- view iiVarInfo
-    builtinSemVar <- view iiBuiltinSemanticsVariant
-    pure $ isPure builtinSemVar varInfo t
+    binfo <- view iiBuiltinsInfo
+    pure $ isPure binfo varInfo t
 
 isFirstVarBeforeEffects
     :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
     => name -> Term tyname name uni fun ann -> InlineM tyname name uni fun ann Bool
 isFirstVarBeforeEffects n t = do
     varInfo <- view iiVarInfo
-    builtinSemVar <- view iiBuiltinSemanticsVariant
+    binfo <- view iiBuiltinsInfo
     -- This can in the worst case traverse a lot of the term, which could lead to us
     -- doing ~quadratic work as we process the program. However in practice most terms
     -- have a relatively short evaluation order before we hit Unknown, so it's not too bad.
-    pure $ go (unEvalOrder (termEvaluationOrder builtinSemVar varInfo t))
+    pure $ go (unEvalOrder (termEvaluationOrder binfo varInfo t))
     where
       -- Found the variable we're looking for!
       go ((EvalTerm _ _ (Var _ n')):_) | n == n' = True

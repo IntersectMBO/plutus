@@ -16,6 +16,7 @@ import PlutusTx.Compiler.Error
 import PlutusTx.Coverage
 import PlutusTx.PLCTypes
 
+import PlutusIR.Analysis.Builtins qualified as PIR
 import PlutusIR.Compiler.Definitions
 
 import PlutusCore.Annotation
@@ -49,17 +50,17 @@ data CompileOptions = CompileOptions {
     }
 
 data CompileContext uni fun = CompileContext {
-    ccOpts                    :: CompileOptions,
-    ccFlags                   :: GHC.DynFlags,
-    ccFamInstEnvs             :: GHC.FamInstEnvs,
-    ccNameInfo                :: NameInfo,
-    ccScope                   :: Scope uni,
-    ccBlackholed              :: Set.Set GHC.Name,
-    ccCurDef                  :: Maybe LexName,
-    ccModBreaks               :: Maybe GHC.ModBreaks,
-    ccBuiltinSemanticsVariant :: PLC.BuiltinSemanticsVariant fun,
-    ccBuiltinCostModel        :: PLC.CostingPart uni fun,
-    ccDebugTraceOn            :: Bool
+    ccOpts             :: CompileOptions,
+    ccFlags            :: GHC.DynFlags,
+    ccFamInstEnvs      :: GHC.FamInstEnvs,
+    ccNameInfo         :: NameInfo,
+    ccScope            :: Scope uni,
+    ccBlackholed       :: Set.Set GHC.Name,
+    ccCurDef           :: Maybe LexName,
+    ccModBreaks        :: Maybe GHC.ModBreaks,
+    ccBuiltinsInfo     :: PIR.BuiltinsInfo uni fun,
+    ccBuiltinCostModel :: PLC.CostingPart uni fun,
+    ccDebugTraceOn     :: Bool
     }
 
 data CompileState = CompileState

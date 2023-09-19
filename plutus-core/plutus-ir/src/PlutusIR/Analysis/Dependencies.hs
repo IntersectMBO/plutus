@@ -31,6 +31,7 @@ import Data.Set qualified as Set
 
 import Data.List.NonEmpty qualified as NE
 
+import PlutusIR.Analysis.Builtins
 import PlutusIR.Analysis.VarInfo
 
 {- | A node in a dependency graph. Either a specific 'PLC.Unique', or a specific
@@ -40,10 +41,10 @@ we can use to represent it in the graph.
 -}
 data Node = Variable PLC.Unique | Root deriving stock (Show, Eq, Ord)
 
-data DepCtx tyname name fun = DepCtx
-  { _depNode                    :: Node
-  , _depBuiltinSemanticsVariant :: PLC.BuiltinSemanticsVariant fun
-  , _depVarInfo                 :: VarsInfo tyname name
+data DepCtx tyname name uni fun = DepCtx
+  { _depNode         :: Node
+  , _depBuiltinsInfo :: BuiltinsInfo uni fun
+  , _depVarInfo      :: VarsInfo tyname name
   }
 makeLenses ''DepCtx
 
@@ -68,15 +69,15 @@ runTermDeps ::
   , PLC.HasUnique name PLC.TermUnique
   , PLC.ToBuiltinMeaning uni fun
   ) =>
-  PLC.BuiltinSemanticsVariant fun ->
+  BuiltinsInfo uni fun ->
   VarsInfo tyname name ->
   Term tyname name uni fun a ->
   g
-runTermDeps semvar vinfo t = flip runReader (DepCtx Root semvar vinfo) $ termDeps t
+runTermDeps binfo vinfo t = flip runReader (DepCtx Root binfo vinfo) $ termDeps t
 
 -- | Record some dependencies on the current node.
 currentDependsOn ::
-  (DepGraph g, MonadReader (DepCtx tyname name fun) m) =>
+  (DepGraph g, MonadReader (DepCtx tyname name uni fun) m) =>
   [PLC.Unique] ->
   m g
 currentDependsOn us = do
@@ -85,7 +86,7 @@ currentDependsOn us = do
 
 -- | Process the given action with the given name as the current node.
 withCurrent ::
-  (MonadReader (DepCtx tyname name fun) m, PLC.HasUnique n u) =>
+  (MonadReader (DepCtx tyname name uni fun) m, PLC.HasUnique n u) =>
   n ->
   m g ->
   m g
@@ -142,7 +143,7 @@ so that this is visible to the dependency analysis.
 
 bindingDeps ::
   ( DepGraph g
-  , MonadReader (DepCtx tyname name fun) m
+  , MonadReader (DepCtx tyname name uni fun) m
   , PLC.HasUnique tyname PLC.TypeUnique
   , PLC.HasUnique name PLC.TermUnique
   , PLC.ToBuiltinMeaning uni fun
@@ -154,12 +155,12 @@ bindingDeps b = case b of
     vDeps <- varDeclDeps d
     tDeps <- withCurrent n $ termDeps rhs
 
-    semvar <- view depBuiltinSemanticsVariant
+    binfo <- view depBuiltinsInfo
     -- See Note [Strict term bindings and dependencies]
     vinfo <- view depVarInfo
     evalDeps <- case strictness of
-      Strict | not (isPure semvar vinfo rhs) -> currentDependsOn [n ^. PLC.theUnique]
-      _                                      -> pure G.empty
+      Strict | not (isPure binfo vinfo rhs) -> currentDependsOn [n ^. PLC.theUnique]
+      _                                     -> pure G.empty
 
     pure $ G.overlays [vDeps, tDeps, evalDeps]
   TypeBind _ d@(TyVarDecl _ n _) rhs -> do
@@ -191,7 +192,7 @@ bindingDeps b = case b of
 
 varDeclDeps ::
   ( DepGraph g
-  , MonadReader (DepCtx tyname name fun) m
+  , MonadReader (DepCtx tyname name uni fun) m
   , PLC.HasUnique tyname PLC.TypeUnique
   , PLC.HasUnique name PLC.TermUnique
   ) =>
@@ -201,7 +202,7 @@ varDeclDeps (VarDecl _ n ty) = withCurrent n $ typeDeps ty
 
 -- Here for completeness, but doesn't do much
 tyVarDeclDeps ::
-  (G.Graph g, MonadReader (DepCtx tyname name fun) m) =>
+  (G.Graph g, MonadReader (DepCtx tyname name uni fun) m) =>
   TyVarDecl tyname a ->
   m g
 tyVarDeclDeps _ = pure G.empty
@@ -211,7 +212,7 @@ term itself depends on (usually 'Root' if it is the real term you are interested
 -}
 termDeps ::
   ( DepGraph g
-  , MonadReader (DepCtx tyname name fun) m
+  , MonadReader (DepCtx tyname name uni fun) m
   , PLC.HasUnique tyname PLC.TypeUnique
   , PLC.HasUnique name PLC.TermUnique
   , PLC.ToBuiltinMeaning uni fun
@@ -233,7 +234,7 @@ termDeps = \case
 the type itself depends on (usually 'Root' if it is the real type you are interested in).
 -}
 typeDeps ::
-  (DepGraph g, MonadReader (DepCtx tyname name fun) m, PLC.HasUnique tyname PLC.TypeUnique) =>
+  (DepGraph g, MonadReader (DepCtx tyname name uni fun) m, PLC.HasUnique tyname PLC.TypeUnique) =>
   Type tyname uni a ->
   m g
 typeDeps ty =

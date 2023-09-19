@@ -12,7 +12,6 @@ in the paper 'Secrets of the GHC Inliner'.
 
 module PlutusIR.Transform.Inline.Inline (inline, InlineHints (..)) where
 import PlutusCore.Annotation
-import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Name
 import PlutusCore.Quote
 import PlutusCore.Rename (dupable)
@@ -29,6 +28,7 @@ import Control.Monad.Reader (runReaderT)
 import Control.Monad.State (evalStateT, modify')
 
 import Control.Monad.State.Class (gets)
+import PlutusIR.Analysis.Builtins
 import PlutusIR.Analysis.Size (termSize)
 import PlutusIR.Analysis.VarInfo qualified as VarInfo
 import PlutusIR.Contexts (AppContext (..), fillAppContext, splitApplication)
@@ -160,12 +160,12 @@ inline
     :: forall tyname name uni fun ann m
     . ExternalConstraints tyname name uni fun m
     => InlineHints name ann
-    -> PLC.BuiltinSemanticsVariant fun
+    -> BuiltinsInfo uni fun
     -> Term tyname name uni fun ann
     -> m (Term tyname name uni fun ann)
-inline hints semvar t = let
-        inlineInfo :: InlineInfo tyname name fun ann
-        inlineInfo = InlineInfo vinfo usgs hints semvar
+inline hints binfo t = let
+        inlineInfo :: InlineInfo tyname name uni fun ann
+        inlineInfo = InlineInfo vinfo usgs hints binfo
         vinfo = VarInfo.termVarInfo t
         usgs :: Usages.Usages
         usgs = Usages.termUsages t

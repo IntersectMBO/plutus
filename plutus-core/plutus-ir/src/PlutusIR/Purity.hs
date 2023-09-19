@@ -24,9 +24,11 @@ import PlutusCore.Pretty
 import PlutusIR
 import PlutusIR.Contexts
 
+import Control.Lens hiding (Strict)
 import Data.DList qualified as DList
 import Data.List.NonEmpty qualified as NE
 import PlutusCore.Name qualified as PLC
+import PlutusIR.Analysis.Builtins
 import PlutusIR.Analysis.VarInfo
 import Prettyprinter
 
@@ -50,12 +52,13 @@ saturatesScheme TermAppContext{} TypeSchemeAll{}                = Nothing
 isSaturated
     :: forall tyname name uni fun a
     . ToBuiltinMeaning uni fun
-    => BuiltinSemanticsVariant fun
+    => BuiltinsInfo uni fun
     -> fun
     -> AppContext tyname name uni fun a
     -> Maybe Bool
-isSaturated semvar fun args =
-    case toBuiltinMeaning @uni @fun @(Term TyName Name uni fun ()) semvar fun of
+isSaturated binfo fun args =
+  let semvar = binfo ^. biSemanticsVariant
+  in case toBuiltinMeaning @uni @fun @(Term TyName Name uni fun ()) semvar fun of
         BuiltinMeaning sch _ _ -> saturatesScheme args sch
 
 -- | Is this pure? Either yes, or maybe not.
@@ -122,11 +125,11 @@ planning on changing it.
 termEvaluationOrder
   :: forall tyname name uni fun a
   . (ToBuiltinMeaning uni fun, PLC.HasUnique name PLC.TermUnique)
-  => BuiltinSemanticsVariant fun
+  => BuiltinsInfo uni fun
   -> VarsInfo tyname name
   -> Term tyname name uni fun a
   -> EvalOrder tyname name uni fun a
-termEvaluationOrder semvar vinfo = goTerm
+termEvaluationOrder binfo vinfo = goTerm
     where
       goTerm :: Term tyname name uni fun a -> EvalOrder tyname name uni fun a
       goTerm = \case
@@ -225,7 +228,7 @@ termEvaluationOrder semvar vinfo = goTerm
         -> EvalOrder tyname name uni fun a
       goBuiltinApp a hd args =
         let
-          saturated = isSaturated semvar hd args
+          saturated = isSaturated binfo hd args
           reconstructed = fillAppContext (Builtin a hd) args
           evalEffect = case saturated of
             -- If it's saturated, we might have an effect here
@@ -251,15 +254,15 @@ termEvaluationOrder semvar vinfo = goTerm
 -- things that can't be returned from the machine (as they'd be ill-scoped).
 isPure ::
     (ToBuiltinMeaning uni fun, PLC.HasUnique name PLC.TermUnique) =>
-    BuiltinSemanticsVariant fun ->
+    BuiltinsInfo uni fun ->
     VarsInfo tyname name ->
     Term tyname name uni fun a ->
     Bool
-isPure semvar vinfo t =
+isPure binfo vinfo t =
   -- to work out if the term is pure, we see if we can look through
   -- the whole evaluation order without hitting something that might be
   -- effectful
-  go $ unEvalOrder (termEvaluationOrder semvar vinfo t)
+  go $ unEvalOrder (termEvaluationOrder binfo vinfo t)
   where
     go :: [EvalTerm tyname name uni fun a] -> Bool
     go [] = True
@@ -278,15 +281,15 @@ evaluating this term should do very a trivial amount of work.
 -}
 isWorkFree ::
     (ToBuiltinMeaning uni fun, PLC.HasUnique name PLC.TermUnique) =>
-    BuiltinSemanticsVariant fun ->
+    BuiltinsInfo uni fun ->
     VarsInfo tyname name ->
     Term tyname name uni fun a ->
     Bool
-isWorkFree semvar vinfo t =
+isWorkFree binfo vinfo t =
   -- to work out if the term is pure, we see if we can look through
   -- the whole evaluation order without hitting something that might be
   -- effectful
-  go $ unEvalOrder (termEvaluationOrder semvar vinfo t)
+  go $ unEvalOrder (termEvaluationOrder binfo vinfo t)
   where
     go :: [EvalTerm tyname name uni fun a] -> Bool
     go [] = True

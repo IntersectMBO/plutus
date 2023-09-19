@@ -463,6 +463,7 @@ library plutus-ir
   visibility:      public
   exposed-modules:
     PlutusIR
+    PlutusIR.Analysis.Builtins
     PlutusIR.Analysis.Dependencies
     PlutusIR.Analysis.RetainedSize
     PlutusIR.Analysis.VarInfo

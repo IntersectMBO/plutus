@@ -11,6 +11,7 @@ import Data.Maybe (mapMaybe)
 import PlutusCore.Builtin
 import PlutusCore.Name qualified as PLC
 import PlutusIR
+import PlutusIR.Analysis.Builtins
 import PlutusIR.MkPir (mkLet, mkVar)
 import PlutusIR.Purity (isPure)
 
@@ -113,25 +114,25 @@ nonStrictify = \case
 
 mkStrictifyingBinding
     :: (ToBuiltinMeaning uni fun, PLC.HasUnique name PLC.TermUnique)
-    => BuiltinSemanticsVariant fun
+    => BuiltinsInfo uni fun
     -> Binding tyname name uni fun a
     -> Maybe (Binding tyname name uni fun a)
-mkStrictifyingBinding semvar = \case
+mkStrictifyingBinding binfo = \case
     -- Only need to strictify if the previous binding was not definitely pure
     -- Also, we're reusing the same variable here, see Note [Thunking recursions]
-    TermBind x _ d rhs | not (isPure semvar mempty rhs) -> Just $ TermBind x Strict d (mkVar x d)
-    _                                                   -> Nothing
+    TermBind x _ d rhs | not (isPure binfo mempty rhs) -> Just $ TermBind x Strict d (mkVar x d)
+    _                                                  -> Nothing
 
 thunkRecursionsStep
     :: (ToBuiltinMeaning uni fun, PLC.HasUnique name PLC.TermUnique)
-    => BuiltinSemanticsVariant fun
+    => BuiltinsInfo uni fun
     -> Term tyname name uni fun a
     -> Term tyname name uni fun a
-thunkRecursionsStep semvar (Let a Rec bs t) =
+thunkRecursionsStep binfo (Let a Rec bs t) =
     -- See Note [Thunking recursions]
     let (toThunk, noThunk) = partition strictNonFunctionBinding bs
         newBindings = fmap nonStrictify toThunk ++ noThunk
-        strictifiers = mapMaybe (mkStrictifyingBinding semvar) toThunk
+        strictifiers = mapMaybe (mkStrictifyingBinding binfo) toThunk
     in mkLet a Rec newBindings $ mkLet a NonRec strictifiers t
 thunkRecursionsStep _ t = t
 
@@ -141,7 +142,7 @@ thunkRecursionsStep _ t = t
 -- Note: this pass breaks global uniqueness!
 thunkRecursions
     :: (ToBuiltinMeaning uni fun, PLC.HasUnique name PLC.TermUnique)
-    => BuiltinSemanticsVariant fun
+    => BuiltinsInfo uni fun
     -> Term tyname name uni fun a
     -> Term tyname name uni fun a
 thunkRecursions = transformOf termSubterms . thunkRecursionsStep
