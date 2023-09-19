@@ -55,12 +55,13 @@ import PlutusCore.Executable.Common (writeProgram)
 import PlutusCore.Executable.Types (AstNameType (NamedDeBruijn), Format (Flat), Output (FileOutput),
                                     PrintMode (Readable), UplcProg)
 import PlutusCore.MkPlc (mkConstant)
+import PlutusLedgerApi.Common.Versions
 import PlutusLedgerApi.V2
 import PlutusPrelude ((.*))
 import PlutusTx.Code (CompiledCode, getPlc)
 import System.Directory (listDirectory)
 import System.FilePath ((<.>), (</>))
-import UntypedPlutusCore (NamedDeBruijn, Program (..), Version (..), applyProgram)
+import UntypedPlutusCore (NamedDeBruijn, Program (..), applyProgram)
 import UntypedPlutusCore.Core.Type qualified as UPLC
 
 -- | Turn a `PlutusBenchmark.Marlowe.Types.Benchmark` to a UPLC program.
