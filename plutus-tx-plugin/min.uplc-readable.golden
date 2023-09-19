@@ -1,0 +1,18 @@
+program
+  1.1.0
+  (\x y ->
+     force
+       (case
+          (case
+             x
+             [ (\n d ->
+                  case
+                    y
+                    [ (\n' d' ->
+                         force ifThenElse
+                           (lessThanEqualsInteger
+                              (multiplyInteger n d')
+                              (multiplyInteger n' d))
+                           (constr 0 [])
+                           (constr 1 [])) ]) ])
+          [(delay x), (delay y)]))

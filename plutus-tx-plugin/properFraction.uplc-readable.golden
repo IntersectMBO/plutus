@@ -1,0 +1,8 @@
+program
+  1.1.0
+  (\ds ->
+     case
+       ds
+       [ (\n d ->
+            (\arg_1 -> constr 0 [(quotientInteger n d), arg_1])
+              (constr 0 [(remainderInteger n d), d])) ])

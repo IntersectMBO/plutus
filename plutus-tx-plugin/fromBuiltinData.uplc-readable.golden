@@ -1,0 +1,166 @@
+program
+  1.1.0
+  ((\fix1 ->
+      (\`$fAdditiveMonoidInteger_$czero` ->
+         (\matchData' ->
+            (\`$fFromDataInteger_$cfromBuiltinData` ->
+               (\euclid ->
+                  (\unsafeRatio
+                    eta ->
+                     force
+                       (case
+                          (matchData'
+                             eta
+                             (\index
+                               args ->
+                                force
+                                  ifThenElse
+                                  (equalsInteger 0 index)
+                                  (\ds ->
+                                     force
+                                       (force chooseList)
+                                       args
+                                       (\ds -> constr 1 [])
+                                       (\ds ->
+                                          (\arg ->
+                                             (\t ->
+                                                force
+                                                  (force chooseList)
+                                                  t
+                                                  (\ds -> constr 1 [])
+                                                  (\ds ->
+                                                     (\arg ->
+                                                        (\l nilCase ->
+                                                           force
+                                                             (force chooseList)
+                                                             l
+                                                             (\ds -> nilCase)
+                                                             (\ds ->
+                                                                (\ds ds ->
+                                                                   constr 1 [])
+                                                                  (force
+                                                                     headList
+                                                                     l)
+                                                                  (force
+                                                                     tailList
+                                                                     l))
+                                                             (constr 0 []))
+                                                          (force tailList t)
+                                                          (force
+                                                             (case
+                                                                (`$fFromDataInteger_$cfromBuiltinData`
+                                                                   arg)
+                                                                [ (\ipv ->
+                                                                     delay
+                                                                       (force
+                                                                          (case
+                                                                             (`$fFromDataInteger_$cfromBuiltinData`
+                                                                                arg)
+                                                                             [ (\ipv ->
+                                                                                  delay
+                                                                                    (constr 0
+                                                                                       [ (constr 0
+                                                                                            [ ipv
+                                                                                            , ipv ]) ]))
+                                                                             , (delay
+                                                                                  (constr 1
+                                                                                     [  ])) ])))
+                                                                , (delay
+                                                                     ((\ds ->
+                                                                         constr 1
+                                                                           [])
+                                                                        (`$fFromDataInteger_$cfromBuiltinData`
+                                                                           arg))) ])))
+                                                       (force headList t))
+                                                  (constr 0 []))
+                                               (force tailList args))
+                                            (force headList args))
+                                       (constr 0 []))
+                                  (\ds -> constr 1 [])
+                                  ())
+                             (\ds -> constr 1 [])
+                             (\ds -> constr 1 [])
+                             (\ds -> constr 1 [])
+                             (\ds -> constr 1 []))
+                          [ (\x ->
+                               delay
+                                 (case
+                                    x
+                                    [ (\n
+                                        d ->
+                                         force
+                                           (force
+                                              ifThenElse
+                                              (equalsInteger
+                                                 d
+                                                 `$fAdditiveMonoidInteger_$czero`)
+                                              (delay (constr 1 []))
+                                              (delay
+                                                 (constr 0
+                                                    [(unsafeRatio n d)])))) ]))
+                          , (delay (constr 1 [])) ]))
+                    (fix1
+                       (\unsafeRatio
+                         n
+                         d ->
+                          force
+                            (force
+                               ifThenElse
+                               (equalsInteger
+                                  d
+                                  `$fAdditiveMonoidInteger_$czero`)
+                               (delay error)
+                               (delay
+                                  (force
+                                     (force
+                                        ifThenElse
+                                        (lessThanInteger
+                                           d
+                                           `$fAdditiveMonoidInteger_$czero`)
+                                        (delay
+                                           (unsafeRatio
+                                              (subtractInteger
+                                                 `$fAdditiveMonoidInteger_$czero`
+                                                 n)
+                                              (subtractInteger
+                                                 `$fAdditiveMonoidInteger_$czero`
+                                                 d)))
+                                        (delay
+                                           ((\gcd' ->
+                                               (\dt ->
+                                                  constr 0
+                                                    [ (quotientInteger n gcd')
+                                                    , dt ])
+                                                 (quotientInteger d gcd'))
+                                              (euclid n d))))))))))
+                 (fix1
+                    (\euclid x y ->
+                       force
+                         (force ifThenElse
+                            (equalsInteger y `$fAdditiveMonoidInteger_$czero`)
+                            (delay x)
+                            (delay (euclid y (modInteger x y)))))))
+              (\d ->
+                 matchData'
+                   d
+                   (\ds ds -> constr 1 [])
+                   (\ds -> constr 1 [])
+                   (\ds -> constr 1 [])
+                   (\i -> constr 0 [i])
+                   (\ds -> constr 1 [])))
+           (\d constrCase mapCase listCase iCase bCase ->
+              force chooseData
+                d
+                (\ds ->
+                   (\tup ->
+                      constrCase
+                        (force (force fstPair) tup)
+                        (force (force sndPair) tup))
+                     (unConstrData d))
+                (\ds -> mapCase (unMapData d))
+                (\ds -> listCase (unListData d))
+                (\ds -> iCase (unIData d))
+                (\ds -> bCase (unBData d))
+                (constr 0 [])))
+        0)
+     (\f -> (\s -> s s) (\s x -> f (s s) x)))

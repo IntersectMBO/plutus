@@ -1,0 +1,55 @@
+let
+  data Rational | Rational_match where
+    Rational : integer -> integer -> Rational
+  !`$fAdditiveMonoidInteger_$czero` : integer = 0
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+in
+letrec
+  !euclid : integer -> integer -> integer
+    = \(x : integer) (y : integer) ->
+        Bool_match
+          (ifThenElse
+             {Bool}
+             (equalsInteger y `$fAdditiveMonoidInteger_$czero`)
+             True
+             False)
+          {all dead. integer}
+          (/\dead -> x)
+          (/\dead -> euclid y (modInteger x y))
+          {all dead. dead}
+in
+letrec
+  !unsafeRatio : integer -> integer -> Rational
+    = \(n : integer) (d : integer) ->
+        Bool_match
+          (ifThenElse
+             {Bool}
+             (equalsInteger d `$fAdditiveMonoidInteger_$czero`)
+             True
+             False)
+          {all dead. Rational}
+          (/\dead -> error {Rational})
+          (/\dead ->
+             Bool_match
+               (ifThenElse
+                  {Bool}
+                  (lessThanInteger d `$fAdditiveMonoidInteger_$czero`)
+                  True
+                  False)
+               {all dead. Rational}
+               (/\dead ->
+                  unsafeRatio
+                    (subtractInteger `$fAdditiveMonoidInteger_$czero` n)
+                    (subtractInteger `$fAdditiveMonoidInteger_$czero` d))
+               (/\dead ->
+                  let
+                    !gcd' : integer = euclid n d
+                    !dt : integer = quotientInteger d gcd'
+                  in
+                  Rational (quotientInteger n gcd') dt)
+               {all dead. dead})
+          {all dead. dead}
+in
+unsafeRatio

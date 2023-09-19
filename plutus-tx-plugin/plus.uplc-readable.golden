@@ -1,0 +1,29 @@
+program
+  1.1.0
+  ((\euclid ds ds ->
+      case
+        ds
+        [ (\n d ->
+             case
+               ds
+               [ (\n' d' ->
+                    (\newDen ->
+                       (\newNum ->
+                          (\gcd' ->
+                             (\dt ->
+                                constr 0 [(quotientInteger newNum gcd'), dt])
+                               (quotientInteger newDen gcd'))
+                            (euclid newNum newDen))
+                         (addInteger
+                            (multiplyInteger n d')
+                            (multiplyInteger n' d)))
+                      (multiplyInteger d d')) ]) ])
+     ((\s -> s s)
+        (\s x ->
+           (\euclid y ->
+              force
+                (force ifThenElse
+                   (equalsInteger 0 y)
+                   (delay x)
+                   (delay (euclid y (modInteger x y)))))
+             (s s))))

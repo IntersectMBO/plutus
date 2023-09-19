@@ -1,0 +1,145 @@
+program
+  1.1.0
+  ((\`$fAdditiveMonoidInteger_$czero` ->
+      (\euclid
+        x ->
+         case
+           x
+           [ (\ipv
+               ipv ->
+                force
+                  ((\ds ->
+                      (\`$fOrdRational0_$c<` ->
+                         (\`$fMultiplicativeMonoidInteger_$cone` ->
+                            (\`$j` ->
+                               case
+                                 (`$fOrdRational0_$c<`
+                                    ds
+                                    (constr 0
+                                       [ `$fAdditiveMonoidInteger_$czero`
+                                       , `$fMultiplicativeMonoidInteger_$cone` ]))
+                                 [ (delay
+                                      (`$j`
+                                         (subtractInteger
+                                            (quotientInteger ipv ipv)
+                                            `$fMultiplicativeMonoidInteger_$cone`)))
+                                 , (delay
+                                      (`$j`
+                                         (addInteger
+                                            (quotientInteger ipv ipv)
+                                            `$fMultiplicativeMonoidInteger_$cone`))) ])
+                              (\m ->
+                                 (\flag ->
+                                    force
+                                      (case
+                                         (`$fOrdRational0_$c<`
+                                            flag
+                                            (constr 0
+                                               [ `$fAdditiveMonoidInteger_$czero`
+                                               , `$fMultiplicativeMonoidInteger_$cone` ]))
+                                         [ (delay (quotientInteger ipv ipv))
+                                         , (delay
+                                              (force
+                                                 (case
+                                                    (case
+                                                       flag
+                                                       [ (\n
+                                                           d ->
+                                                            force
+                                                              (force
+                                                                 ifThenElse
+                                                                 (equalsInteger
+                                                                    n
+                                                                    `$fAdditiveMonoidInteger_$czero`)
+                                                                 (delay
+                                                                    (force
+                                                                       ifThenElse
+                                                                       (equalsInteger
+                                                                          d
+                                                                          `$fMultiplicativeMonoidInteger_$cone`)
+                                                                       (constr 0
+                                                                          [])
+                                                                       (constr 1
+                                                                          [])))
+                                                                 (delay
+                                                                    (constr 1
+                                                                       [])))) ])
+                                                    [ (delay
+                                                         ((\x ->
+                                                             force
+                                                               (force
+                                                                  ifThenElse
+                                                                  (equalsInteger
+                                                                     (modInteger
+                                                                        x
+                                                                        2)
+                                                                     `$fAdditiveMonoidInteger_$czero`)
+                                                                  (delay x)
+                                                                  (delay m)))
+                                                            (quotientInteger
+                                                               ipv
+                                                               ipv)))
+                                                    , (delay m) ]))) ]))
+                                   (case
+                                      (case
+                                         ds
+                                         [ (\n
+                                             d ->
+                                              force
+                                                (force
+                                                   ifThenElse
+                                                   (lessThanInteger
+                                                      n
+                                                      `$fAdditiveMonoidInteger_$czero`)
+                                                   (delay
+                                                      (constr 0
+                                                         [ (subtractInteger
+                                                              `$fAdditiveMonoidInteger_$czero`
+                                                              n)
+                                                         , d ]))
+                                                   (delay ds))) ])
+                                      [ (\n d ->
+                                           (\d' ->
+                                              (\newDen ->
+                                                 (\newNum ->
+                                                    (\gcd' ->
+                                                       (\dt ->
+                                                          constr 0
+                                                            [ (quotientInteger
+                                                                 newNum
+                                                                 gcd')
+                                                            , dt ])
+                                                         (quotientInteger
+                                                            newDen
+                                                            gcd'))
+                                                      (euclid newNum newDen))
+                                                   (subtractInteger
+                                                      (multiplyInteger n d')
+                                                      (multiplyInteger 1 d)))
+                                                (multiplyInteger d d'))
+                                             2) ])))
+                           1)
+                        (\ds ds ->
+                           case
+                             ds
+                             [ (\n d ->
+                                  case
+                                    ds
+                                    [ (\n' d' ->
+                                         force ifThenElse
+                                           (lessThanInteger
+                                              (multiplyInteger n d')
+                                              (multiplyInteger n' d))
+                                           (constr 0 [])
+                                           (constr 1 [])) ]) ]))
+                     (constr 0 [(remainderInteger ipv ipv), ipv]))) ])
+        ((\s -> s s)
+           (\s x ->
+              (\euclid y ->
+                 force
+                   (force ifThenElse
+                      (equalsInteger y `$fAdditiveMonoidInteger_$czero`)
+                      (delay x)
+                      (delay (euclid y (modInteger x y)))))
+                (s s))))
+     0)

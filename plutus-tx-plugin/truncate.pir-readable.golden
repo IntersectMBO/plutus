@@ -1,0 +1,9 @@
+let
+  data Rational | Rational_match where
+    Rational : integer -> integer -> Rational
+in
+\(ds : Rational) ->
+  Rational_match
+    ds
+    {integer}
+    (\(n : integer) (d : integer) -> quotientInteger n d)

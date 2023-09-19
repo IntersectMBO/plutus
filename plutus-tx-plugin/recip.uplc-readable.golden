@@ -1,0 +1,29 @@
+program
+  1.1.0
+  (\ds ->
+     case
+       ds
+       [ (\n d ->
+            force
+              ((\`$fAdditiveMonoidInteger_$czero` ->
+                  force ifThenElse
+                    (equalsInteger n `$fAdditiveMonoidInteger_$czero`)
+                    (delay error)
+                    (delay
+                       (force
+                          (force ifThenElse
+                             (lessThanInteger
+                                n
+                                `$fAdditiveMonoidInteger_$czero`)
+                             (delay
+                                ((\dt ->
+                                    constr 0
+                                      [ (subtractInteger
+                                           `$fAdditiveMonoidInteger_$czero`
+                                           d)
+                                      , dt ])
+                                   (subtractInteger
+                                      `$fAdditiveMonoidInteger_$czero`
+                                      n)))
+                             (delay (constr 0 [d, n]))))))
+                 0)) ])

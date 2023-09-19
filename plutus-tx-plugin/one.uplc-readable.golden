@@ -1,0 +1,7 @@
+program
+  1.1.0
+  ((\`$fMultiplicativeMonoidInteger_$cone` ->
+      constr 0
+        [ `$fMultiplicativeMonoidInteger_$cone`
+        , `$fMultiplicativeMonoidInteger_$cone` ])
+     1)

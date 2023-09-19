@@ -1,0 +1,5 @@
+let
+  data Rational | Rational_match where
+    Rational : integer -> integer -> Rational
+in
+\(num : integer) -> Rational num 1

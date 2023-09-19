@@ -1,0 +1,16 @@
+let
+  data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
+    Tuple2 : a -> b -> Tuple2 a b
+  data Rational | Rational_match where
+    Rational : integer -> integer -> Rational
+in
+\(ds : Rational) ->
+  Rational_match
+    ds
+    {Tuple2 integer Rational}
+    (\(n : integer) (d : integer) ->
+       Tuple2
+         {integer}
+         {Rational}
+         (quotientInteger n d)
+         (Rational (remainderInteger n d) d))

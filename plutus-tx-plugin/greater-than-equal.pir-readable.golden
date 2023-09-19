@@ -1,0 +1,21 @@
+let
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+  data Rational | Rational_match where
+    Rational : integer -> integer -> Rational
+in
+\(ds : Rational) (ds : Rational) ->
+  Rational_match
+    ds
+    {Bool}
+    (\(n : integer) (d : integer) ->
+       Rational_match
+         ds
+         {Bool}
+         (\(n' : integer) (d' : integer) ->
+            ifThenElse
+              {Bool}
+              (lessThanInteger (multiplyInteger n d') (multiplyInteger n' d))
+              False
+              True))

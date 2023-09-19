@@ -1,0 +1,40 @@
+let
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+  data Ordering | Ordering_match where
+    EQ : Ordering
+    GT : Ordering
+    LT : Ordering
+  data Rational | Rational_match where
+    Rational : integer -> integer -> Rational
+in
+\(ds : Rational) (ds : Rational) ->
+  Rational_match
+    ds
+    {Ordering}
+    (\(n : integer) (d : integer) ->
+       Rational_match
+         ds
+         {Ordering}
+         (\(n' : integer) (d' : integer) ->
+            let
+              !eta : integer = multiplyInteger n d'
+              !eta : integer = multiplyInteger n' d
+            in
+            Bool_match
+              (ifThenElse {Bool} (equalsInteger eta eta) True False)
+              {all dead. Ordering}
+              (/\dead -> EQ)
+              (/\dead ->
+                 Bool_match
+                   (ifThenElse
+                      {Bool}
+                      (lessThanEqualsInteger eta eta)
+                      True
+                      False)
+                   {all dead. Ordering}
+                   (/\dead -> LT)
+                   (/\dead -> GT)
+                   {all dead. dead})
+              {all dead. dead}))

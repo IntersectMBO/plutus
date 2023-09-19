@@ -1,0 +1,9 @@
+program
+  1.1.0
+  (\eta ->
+     case
+       eta
+       [ (\n d ->
+            constrData
+              0
+              (force mkCons (iData n) (force mkCons (iData d) []))) ])

@@ -1,0 +1,69 @@
+program
+  1.1.0
+  ((\fix1 ->
+      (\`$fAdditiveMonoidInteger_$czero` ->
+         (\euclid ->
+            (\unsafeRatio n d ->
+               force
+                 (force ifThenElse
+                    (equalsInteger d `$fAdditiveMonoidInteger_$czero`)
+                    (delay (constr 1 []))
+                    (delay
+                       (force
+                          (force ifThenElse
+                             (lessThanInteger
+                                d
+                                `$fAdditiveMonoidInteger_$czero`)
+                             (delay
+                                (constr 0
+                                   [ (unsafeRatio
+                                        (subtractInteger
+                                           `$fAdditiveMonoidInteger_$czero`
+                                           n)
+                                        (subtractInteger
+                                           `$fAdditiveMonoidInteger_$czero`
+                                           d)) ]))
+                             (delay
+                                ((\gcd' ->
+                                    (\a ->
+                                       constr 0
+                                         [ (constr 0
+                                              [(quotientInteger n gcd'), a]) ])
+                                      (quotientInteger d gcd'))
+                                   (euclid n d))))))))
+              (fix1
+                 (\unsafeRatio n d ->
+                    force
+                      (force ifThenElse
+                         (equalsInteger d `$fAdditiveMonoidInteger_$czero`)
+                         (delay error)
+                         (delay
+                            (force
+                               (force ifThenElse
+                                  (lessThanInteger
+                                     d
+                                     `$fAdditiveMonoidInteger_$czero`)
+                                  (delay
+                                     (unsafeRatio
+                                        (subtractInteger
+                                           `$fAdditiveMonoidInteger_$czero`
+                                           n)
+                                        (subtractInteger
+                                           `$fAdditiveMonoidInteger_$czero`
+                                           d)))
+                                  (delay
+                                     ((\gcd' ->
+                                         (\dt ->
+                                            constr 0
+                                              [(quotientInteger n gcd'), dt])
+                                           (quotientInteger d gcd'))
+                                        (euclid n d))))))))))
+           (fix1
+              (\euclid x y ->
+                 force
+                   (force ifThenElse
+                      (equalsInteger y `$fAdditiveMonoidInteger_$czero`)
+                      (delay x)
+                      (delay (euclid y (modInteger x y)))))))
+        0)
+     (\f -> (\s -> s s) (\s x -> f (s s) x)))

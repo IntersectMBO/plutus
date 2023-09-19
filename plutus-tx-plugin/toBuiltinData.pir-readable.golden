@@ -1,0 +1,10 @@
+let
+  data Rational | Rational_match where
+    Rational : integer -> integer -> Rational
+in
+\(eta : Rational) ->
+  Rational_match
+    eta
+    {data}
+    (\(n : integer) (d : integer) ->
+       constrData 0 (mkCons {data} (iData n) (mkCons {data} (iData d) [])))

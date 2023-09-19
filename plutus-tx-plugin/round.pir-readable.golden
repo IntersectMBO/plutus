@@ -1,0 +1,163 @@
+let
+  !`$fAdditiveMonoidInteger_$czero` : integer = 0
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+in
+letrec
+  !euclid : integer -> integer -> integer
+    = \(x : integer) (y : integer) ->
+        Bool_match
+          (ifThenElse
+             {Bool}
+             (equalsInteger y `$fAdditiveMonoidInteger_$czero`)
+             True
+             False)
+          {all dead. integer}
+          (/\dead -> x)
+          (/\dead -> euclid y (modInteger x y))
+          {all dead. dead}
+in
+let
+  !`$fMultiplicativeMonoidInteger_$cone` : integer = 1
+  data Rational | Rational_match where
+    Rational : integer -> integer -> Rational
+  ~`$fAdditiveMonoidRational_$czero` : Rational
+    = Rational
+        `$fAdditiveMonoidInteger_$czero`
+        `$fMultiplicativeMonoidInteger_$cone`
+  !`$fOrdRational0_$c<` : Rational -> Rational -> Bool
+    = \(ds : Rational) (ds : Rational) ->
+        Rational_match
+          ds
+          {Bool}
+          (\(n : integer) (d : integer) ->
+             Rational_match
+               ds
+               {Bool}
+               (\(n' : integer) (d' : integer) ->
+                  ifThenElse
+                    {Bool}
+                    (lessThanInteger
+                       (multiplyInteger n d')
+                       (multiplyInteger n' d))
+                    True
+                    False))
+in
+\(x : Rational) ->
+  Rational_match
+    x
+    {integer}
+    (\(ipv : integer) (ipv : integer) ->
+       let
+         ~ds : Rational = Rational (remainderInteger ipv ipv) ipv
+         ~ds : integer = quotientInteger ipv ipv
+         !`$j` : integer -> integer
+           = \(m : integer) ->
+               let
+                 !flag : Rational
+                   = let
+                     !ds : Rational = Rational 1 2
+                   in
+                   Rational_match
+                     (let
+                       !rat : Rational = ds
+                     in
+                     Rational_match
+                       rat
+                       {Rational}
+                       (\(n : integer) (d : integer) ->
+                          Bool_match
+                            (ifThenElse
+                               {Bool}
+                               (lessThanInteger
+                                  n
+                                  `$fAdditiveMonoidInteger_$czero`)
+                               True
+                               False)
+                            {all dead. Rational}
+                            (/\dead ->
+                               Rational
+                                 (subtractInteger
+                                    `$fAdditiveMonoidInteger_$czero`
+                                    n)
+                                 d)
+                            (/\dead -> rat)
+                            {all dead. dead}))
+                     {Rational}
+                     (\(n : integer) (d : integer) ->
+                        Rational_match
+                          ds
+                          {Rational}
+                          (\(n' : integer) (d' : integer) ->
+                             let
+                               !newDen : integer = multiplyInteger d d'
+                               !newNum : integer
+                                 = subtractInteger
+                                     (multiplyInteger n d')
+                                     (multiplyInteger n' d)
+                               !gcd' : integer = euclid newNum newDen
+                               !dt : integer = quotientInteger newDen gcd'
+                             in
+                             Rational (quotientInteger newNum gcd') dt))
+               in
+               Bool_match
+                 (`$fOrdRational0_$c<` flag `$fAdditiveMonoidRational_$czero`)
+                 {all dead. integer}
+                 (/\dead -> ds)
+                 (/\dead ->
+                    Bool_match
+                      (let
+                        !ds : Rational = `$fAdditiveMonoidRational_$czero`
+                      in
+                      Rational_match
+                        flag
+                        {Bool}
+                        (\(n : integer) (d : integer) ->
+                           Rational_match
+                             ds
+                             {Bool}
+                             (\(n' : integer) (d' : integer) ->
+                                Bool_match
+                                  (ifThenElse
+                                     {Bool}
+                                     (equalsInteger n n')
+                                     True
+                                     False)
+                                  {all dead. Bool}
+                                  (/\dead ->
+                                     ifThenElse
+                                       {Bool}
+                                       (equalsInteger d d')
+                                       True
+                                       False)
+                                  (/\dead -> False)
+                                  {all dead. dead})))
+                      {all dead. integer}
+                      (/\dead ->
+                         let
+                           !x : integer = ds
+                         in
+                         Bool_match
+                           (ifThenElse
+                              {Bool}
+                              (equalsInteger
+                                 (modInteger x 2)
+                                 `$fAdditiveMonoidInteger_$czero`)
+                              True
+                              False)
+                           {all dead. integer}
+                           (/\dead -> x)
+                           (/\dead -> m)
+                           {all dead. dead})
+                      (/\dead -> m)
+                      {all dead. dead})
+                 {all dead. dead}
+       in
+       Bool_match
+         (`$fOrdRational0_$c<` ds `$fAdditiveMonoidRational_$czero`)
+         {all dead. integer}
+         (/\dead ->
+            `$j` (subtractInteger ds `$fMultiplicativeMonoidInteger_$cone`))
+         (/\dead -> `$j` (addInteger ds `$fMultiplicativeMonoidInteger_$cone`))
+         {all dead. dead})

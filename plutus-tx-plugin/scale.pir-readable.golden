@@ -1,0 +1,28 @@
+let
+  data Rational | Rational_match where
+    Rational : integer -> integer -> Rational
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+in
+letrec
+  !euclid : integer -> integer -> integer
+    = \(x : integer) (y : integer) ->
+        Bool_match
+          (ifThenElse {Bool} (equalsInteger 0 y) True False)
+          {all dead. integer}
+          (/\dead -> x)
+          (/\dead -> euclid y (modInteger x y))
+          {all dead. dead}
+in
+\(i : integer) (ds : Rational) ->
+  Rational_match
+    ds
+    {Rational}
+    (\(n : integer) (d : integer) ->
+       let
+         !newNum : integer = multiplyInteger i n
+         !gcd' : integer = euclid newNum d
+         !dt : integer = quotientInteger d gcd'
+       in
+       Rational (quotientInteger newNum gcd') dt)

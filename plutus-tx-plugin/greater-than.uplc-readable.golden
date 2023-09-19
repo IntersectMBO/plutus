@@ -1,0 +1,15 @@
+program
+  1.1.0
+  (\ds ds ->
+     case
+       ds
+       [ (\n d ->
+            case
+              ds
+              [ (\n' d' ->
+                   force ifThenElse
+                     (lessThanEqualsInteger
+                        (multiplyInteger n d')
+                        (multiplyInteger n' d))
+                     (constr 1 [])
+                     (constr 0 [])) ]) ])

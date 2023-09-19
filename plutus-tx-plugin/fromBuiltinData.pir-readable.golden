@@ -1,0 +1,209 @@
+let
+  data (Maybe :: * -> *) a | Maybe_match where
+    Just : a -> Maybe a
+    Nothing : Maybe a
+  data Unit | Unit_match where
+    Unit : Unit
+  !matchData' :
+     all r.
+       data ->
+       (integer -> list data -> r) ->
+       (list (pair data data) -> r) ->
+       (list data -> r) ->
+       (integer -> r) ->
+       (bytestring -> r) ->
+       r
+    = /\r ->
+        \(d : data)
+         (constrCase : integer -> list data -> r)
+         (mapCase : list (pair data data) -> r)
+         (listCase : list data -> r)
+         (iCase : integer -> r)
+         (bCase : bytestring -> r) ->
+          chooseData
+            {Unit -> r}
+            d
+            (\(ds : Unit) ->
+               let
+                 !tup : pair integer (list data) = unConstrData d
+               in
+               constrCase
+                 (fstPair {integer} {list data} tup)
+                 (sndPair {integer} {list data} tup))
+            (\(ds : Unit) -> mapCase (unMapData d))
+            (\(ds : Unit) -> listCase (unListData d))
+            (\(ds : Unit) -> iCase (unIData d))
+            (\(ds : Unit) -> bCase (unBData d))
+            Unit
+  !`$fFromDataInteger_$cfromBuiltinData` : data -> Maybe integer
+    = \(d : data) ->
+        matchData'
+          {Maybe integer}
+          d
+          (\(ds : integer) (ds : list data) -> Nothing {integer})
+          (\(ds : list (pair data data)) -> Nothing {integer})
+          (\(ds : list data) -> Nothing {integer})
+          (\(i : integer) -> Just {integer} i)
+          (\(ds : bytestring) -> Nothing {integer})
+  data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
+    Tuple2 : a -> b -> Tuple2 a b
+  data Rational | Rational_match where
+    Rational : integer -> integer -> Rational
+  !`$fAdditiveMonoidInteger_$czero` : integer = 0
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+in
+letrec
+  !euclid : integer -> integer -> integer
+    = \(x : integer) (y : integer) ->
+        Bool_match
+          (ifThenElse
+             {Bool}
+             (equalsInteger y `$fAdditiveMonoidInteger_$czero`)
+             True
+             False)
+          {all dead. integer}
+          (/\dead -> x)
+          (/\dead -> euclid y (modInteger x y))
+          {all dead. dead}
+in
+letrec
+  !unsafeRatio : integer -> integer -> Rational
+    = \(n : integer) (d : integer) ->
+        Bool_match
+          (ifThenElse
+             {Bool}
+             (equalsInteger d `$fAdditiveMonoidInteger_$czero`)
+             True
+             False)
+          {all dead. Rational}
+          (/\dead -> error {Rational})
+          (/\dead ->
+             Bool_match
+               (ifThenElse
+                  {Bool}
+                  (lessThanInteger d `$fAdditiveMonoidInteger_$czero`)
+                  True
+                  False)
+               {all dead. Rational}
+               (/\dead ->
+                  unsafeRatio
+                    (subtractInteger `$fAdditiveMonoidInteger_$czero` n)
+                    (subtractInteger `$fAdditiveMonoidInteger_$czero` d))
+               (/\dead ->
+                  let
+                    !gcd' : integer = euclid n d
+                    !dt : integer = quotientInteger d gcd'
+                  in
+                  Rational (quotientInteger n gcd') dt)
+               {all dead. dead})
+          {all dead. dead}
+in
+\(eta : data) ->
+  Maybe_match
+    {Tuple2 integer integer}
+    (matchData'
+       {Maybe (Tuple2 integer integer)}
+       eta
+       (\(index : integer) (args : list data) ->
+          ifThenElse
+            {unit -> Maybe (Tuple2 integer integer)}
+            (equalsInteger 0 index)
+            (\(ds : unit) ->
+               chooseList
+                 {data}
+                 {Unit -> Maybe (Tuple2 integer integer)}
+                 args
+                 (\(ds : Unit) -> Nothing {Tuple2 integer integer})
+                 (\(ds : Unit) ->
+                    let
+                      !arg : data = headList {data} args
+                      !t : list data = tailList {data} args
+                    in
+                    chooseList
+                      {data}
+                      {Unit -> Maybe (Tuple2 integer integer)}
+                      t
+                      (\(ds : Unit) -> Nothing {Tuple2 integer integer})
+                      (\(ds : Unit) ->
+                         let
+                           !arg : data = headList {data} t
+                         in
+                         (let
+                             r = Maybe (Tuple2 integer integer)
+                           in
+                           \(l : list data)
+                            (nilCase : r)
+                            (consCase : data -> list data -> r) ->
+                             chooseList
+                               {data}
+                               {Unit -> r}
+                               l
+                               (\(ds : Unit) -> nilCase)
+                               (\(ds : Unit) ->
+                                  consCase
+                                    (headList {data} l)
+                                    (tailList {data} l))
+                               Unit)
+                           (tailList {data} t)
+                           (Maybe_match
+                              {integer}
+                              (`$fFromDataInteger_$cfromBuiltinData` arg)
+                              {all dead. Maybe (Tuple2 integer integer)}
+                              (\(ipv : integer) ->
+                                 /\dead ->
+                                   Maybe_match
+                                     {integer}
+                                     (`$fFromDataInteger_$cfromBuiltinData` arg)
+                                     {all dead. Maybe (Tuple2 integer integer)}
+                                     (\(ipv : integer) ->
+                                        /\dead ->
+                                          Just
+                                            {Tuple2 integer integer}
+                                            (Tuple2
+                                               {integer}
+                                               {integer}
+                                               ipv
+                                               ipv))
+                                     (/\dead ->
+                                        Nothing {Tuple2 integer integer})
+                                     {all dead. dead})
+                              (/\dead ->
+                                 let
+                                   !ds : Maybe integer
+                                     = `$fFromDataInteger_$cfromBuiltinData` arg
+                                 in
+                                 Nothing {Tuple2 integer integer})
+                              {all dead. dead})
+                           (\(ds : data) (ds : list data) ->
+                              Nothing {Tuple2 integer integer}))
+                      Unit)
+                 Unit)
+            (\(ds : unit) -> Nothing {Tuple2 integer integer})
+            ())
+       (\(ds : list (pair data data)) -> Nothing {Tuple2 integer integer})
+       (\(ds : list data) -> Nothing {Tuple2 integer integer})
+       (\(ds : integer) -> Nothing {Tuple2 integer integer})
+       (\(ds : bytestring) -> Nothing {Tuple2 integer integer}))
+    {all dead. Maybe Rational}
+    (\(x : Tuple2 integer integer) ->
+       /\dead ->
+         Tuple2_match
+           {integer}
+           {integer}
+           x
+           {Maybe Rational}
+           (\(n : integer) (d : integer) ->
+              Bool_match
+                (ifThenElse
+                   {Bool}
+                   (equalsInteger d `$fAdditiveMonoidInteger_$czero`)
+                   True
+                   False)
+                {all dead. Maybe Rational}
+                (/\dead -> Nothing {Rational})
+                (/\dead -> Just {Rational} (unsafeRatio n d))
+                {all dead. dead}))
+    (/\dead -> Nothing {Rational})
+    {all dead. dead}

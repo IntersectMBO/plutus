@@ -1,0 +1,16 @@
+program
+  1.1.0
+  (\rat ->
+     case
+       rat
+       [ (\n d ->
+            force
+              ((\`$fAdditiveMonoidInteger_$czero` ->
+                  force ifThenElse
+                    (lessThanInteger n `$fAdditiveMonoidInteger_$czero`)
+                    (delay
+                       (constr 0
+                          [ (subtractInteger `$fAdditiveMonoidInteger_$czero` n)
+                          , d ]))
+                    (delay rat))
+                 0)) ])

@@ -1,0 +1,79 @@
+let
+  data Unit | Unit_match where
+    Unit : Unit
+  data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
+    Tuple2 : a -> b -> Tuple2 a b
+  data Rational | Rational_match where
+    Rational : integer -> integer -> Rational
+  !`$fAdditiveMonoidInteger_$czero` : integer = 0
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+in
+letrec
+  !euclid : integer -> integer -> integer
+    = \(x : integer) (y : integer) ->
+        Bool_match
+          (ifThenElse
+             {Bool}
+             (equalsInteger y `$fAdditiveMonoidInteger_$czero`)
+             True
+             False)
+          {all dead. integer}
+          (/\dead -> x)
+          (/\dead -> euclid y (modInteger x y))
+          {all dead. dead}
+in
+letrec
+  !unsafeRatio : integer -> integer -> Rational
+    = \(n : integer) (d : integer) ->
+        Bool_match
+          (ifThenElse
+             {Bool}
+             (equalsInteger d `$fAdditiveMonoidInteger_$czero`)
+             True
+             False)
+          {all dead. Rational}
+          (/\dead -> error {Rational})
+          (/\dead ->
+             Bool_match
+               (ifThenElse
+                  {Bool}
+                  (lessThanInteger d `$fAdditiveMonoidInteger_$czero`)
+                  True
+                  False)
+               {all dead. Rational}
+               (/\dead ->
+                  unsafeRatio
+                    (subtractInteger `$fAdditiveMonoidInteger_$czero` n)
+                    (subtractInteger `$fAdditiveMonoidInteger_$czero` d))
+               (/\dead ->
+                  let
+                    !gcd' : integer = euclid n d
+                    !dt : integer = quotientInteger d gcd'
+                  in
+                  Rational (quotientInteger n gcd') dt)
+               {all dead. dead})
+          {all dead. dead}
+in
+\(eta : data) ->
+  Tuple2_match
+    {integer}
+    {integer}
+    (let
+      !tup : pair integer (list data) = unConstrData eta
+    in
+    ifThenElse
+      {unit -> Tuple2 integer integer}
+      (equalsInteger 0 (fstPair {integer} {list data} tup))
+      (\(ds : unit) ->
+         let
+           !t : list data = sndPair {integer} {list data} tup
+           !arg : data = headList {data} t
+           !arg : data = headList {data} (tailList {data} t)
+         in
+         Tuple2 {integer} {integer} (unIData arg) (unIData arg))
+      (\(ds : unit) -> error {Tuple2 integer integer})
+      ())
+    {Rational}
+    (\(a : integer) (b : integer) -> unsafeRatio a b)

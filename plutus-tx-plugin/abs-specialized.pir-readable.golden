@@ -1,0 +1,24 @@
+let
+  !`$fAdditiveMonoidInteger_$czero` : integer = 0
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+  data Rational | Rational_match where
+    Rational : integer -> integer -> Rational
+in
+\(rat : Rational) ->
+  Rational_match
+    rat
+    {Rational}
+    (\(n : integer) (d : integer) ->
+       Bool_match
+         (ifThenElse
+            {Bool}
+            (lessThanInteger n `$fAdditiveMonoidInteger_$czero`)
+            True
+            False)
+         {all dead. Rational}
+         (/\dead ->
+            Rational (subtractInteger `$fAdditiveMonoidInteger_$czero` n) d)
+         (/\dead -> rat)
+         {all dead. dead})

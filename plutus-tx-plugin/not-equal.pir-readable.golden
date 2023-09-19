@@ -1,0 +1,27 @@
+let
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+  data Rational | Rational_match where
+    Rational : integer -> integer -> Rational
+in
+\(x : Rational) (y : Rational) ->
+  Bool_match
+    (Rational_match
+       x
+       {Bool}
+       (\(n : integer) (d : integer) ->
+          Rational_match
+            y
+            {Bool}
+            (\(n' : integer) (d' : integer) ->
+               Bool_match
+                 (ifThenElse {Bool} (equalsInteger n n') True False)
+                 {all dead. Bool}
+                 (/\dead -> ifThenElse {Bool} (equalsInteger d d') True False)
+                 (/\dead -> False)
+                 {all dead. dead})))
+    {all dead. Bool}
+    (/\dead -> False)
+    (/\dead -> True)
+    {all dead. dead}

@@ -1,0 +1,8 @@
+let
+  !`$fMultiplicativeMonoidInteger_$cone` : integer = 1
+  data Rational | Rational_match where
+    Rational : integer -> integer -> Rational
+in
+Rational
+  `$fMultiplicativeMonoidInteger_$cone`
+  `$fMultiplicativeMonoidInteger_$cone`
