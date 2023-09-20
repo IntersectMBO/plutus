@@ -420,4 +420,5 @@ strictifyBindings =
             [ "pure1"
             , "impure1"
             , "unused"
+            , "conapp"
             ]
