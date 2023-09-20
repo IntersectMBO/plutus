@@ -147,13 +147,13 @@ letrec
           {all dead. List string -> List string}
           (/\dead ->
              \(eta : List string) ->
-               let
-                 !g : List string -> List string
-                   = `$fShowBuiltinByteString_$cshowsPrec`
-                       p
-                       (subtractInteger 0 n)
-               in
-               Cons {string} "-" (g eta))
+               Cons
+                 {string}
+                 "-"
+                 (`$fShowBuiltinByteString_$cshowsPrec`
+                    p
+                    (subtractInteger 0 n)
+                    eta))
           (/\dead -> go (go (Nil {integer}) n))
           {all dead. dead}
 in
@@ -355,7 +355,7 @@ let
   data (Show :: * -> *) a | Show_match where
     CConsShow :
       (integer -> a -> List string -> List string) -> (a -> string) -> Show a
-  ~`$fShowInteger` : Show integer
+  !`$fShowInteger` : Show integer
     = CConsShow
         {integer}
         `$fShowBuiltinByteString_$cshowsPrec`
@@ -396,7 +396,6 @@ let
     = trace
         {integer}
         (let
-          !`$dShow` : Show integer = `$fShowInteger`
           !x : List integer
             = (let
                   a = List integer
@@ -408,7 +407,7 @@ let
         concatBuiltinStrings
           ((let
                !showElem : integer -> List string -> List string
-                 = showsPrec {integer} `$dShow` 0
+                 = showsPrec {integer} `$fShowInteger` 0
              in
              letrec
                !go : List integer -> List string -> List string
@@ -444,72 +443,49 @@ multiplyInteger
   2
   (trace
      {integer}
-     (let
-       !`$dShow` : Show integer = `$fShowInteger`
-       !`$dShow` : Show integer = `$fShowInteger`
-       !`$dShow` : Show integer = `$fShowInteger`
-       !`$dShow` : Show integer = `$fShowInteger`
-       !x : Tuple5 integer integer integer integer integer
-         = Tuple5 {integer} {integer} {integer} {integer} {integer} a a c d e
-     in
-     concatBuiltinStrings
-       ((let
-            !`$dShow` : Show integer = `$fShowInteger`
-          in
-          Tuple5_match
-            {integer}
-            {integer}
-            {integer}
-            {integer}
-            {integer}
-            x
-            {List string -> List string}
-            (\(ipv : integer)
-              (ipv : integer)
-              (ipv : integer)
-              (ipv : integer)
-              (ipv : integer)
-              (x : List string) ->
-               Cons
+     (concatBuiltinStrings
+        (Cons
+           {string}
+           "("
+           (showsPrec
+              {integer}
+              `$fShowInteger`
+              0
+              a
+              (Cons
                  {string}
-                 "("
+                 ","
                  (showsPrec
                     {integer}
-                    `$dShow`
+                    `$fShowInteger`
                     0
-                    ipv
+                    a
                     (Cons
                        {string}
                        ","
                        (showsPrec
                           {integer}
-                          `$dShow`
+                          `$fShowInteger`
                           0
-                          ipv
+                          c
                           (Cons
                              {string}
                              ","
                              (showsPrec
                                 {integer}
-                                `$dShow`
+                                `$fShowInteger`
                                 0
-                                ipv
+                                d
                                 (Cons
                                    {string}
                                    ","
                                    (showsPrec
                                       {integer}
-                                      `$dShow`
+                                      `$fShowInteger`
                                       0
-                                      ipv
+                                      e
                                       (Cons
                                          {string}
-                                         ","
-                                         (showsPrec
-                                            {integer}
-                                            `$dShow`
-                                            0
-                                            ipv
-                                            (Cons {string} ")" x))))))))))))
-          (Nil {string})))
+                                         ")"
+                                         (Nil {string})))))))))))))
      e)

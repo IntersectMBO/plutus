@@ -100,37 +100,41 @@
             (lam
               p
               (fun a Bool)
-              (lam
-                l
-                [ List a ]
-                (let
-                  (nonrec)
-                  (termbind (strict) (vardecl p (fun a Bool)) p)
-                  (termbind (strict) (vardecl l [ List a ]) l)
-                  {
-                    [
+              (let
+                (nonrec)
+                (termbind (strict) (vardecl p (fun a Bool)) p)
+                (lam
+                  l
+                  [ List a ]
+                  (let
+                    (nonrec)
+                    (termbind (strict) (vardecl l [ List a ]) l)
+                    {
                       [
-                        { [ { List_match a } l ] (all dead (type) Bool) }
-                        (abs dead (type) True)
-                      ]
-                      (lam
-                        h
-                        a
+                        [
+                          { [ { List_match a } l ] (all dead (type) Bool) }
+                          (abs dead (type) True)
+                        ]
                         (lam
-                          t
-                          [ List a ]
-                          (abs
-                            dead
-                            (type)
-                            [
-                              [ andDirect [ p h ] ] [ [ { allDirect a } p ] t ]
-                            ]
+                          h
+                          a
+                          (lam
+                            t
+                            [ List a ]
+                            (abs
+                              dead
+                              (type)
+                              [
+                                [ andDirect [ p h ] ]
+                                [ [ { allDirect a } p ] t ]
+                              ]
+                            )
                           )
                         )
-                      )
-                    ]
-                    (all dead (type) dead)
-                  }
+                      ]
+                      (all dead (type) dead)
+                    }
+                  )
                 )
               )
             )
@@ -188,17 +192,22 @@
             (lam
               x
               (con integer)
-              (lam
-                y
-                (con integer)
-                (let
-                  (nonrec)
-                  (termbind (strict) (vardecl x (con integer)) x)
-                  (termbind (strict) (vardecl y (con integer)) y)
-                  (termbind
-                    (strict) (vardecl b (con bool)) [ [ lessThanInteger x ] y ]
+              (let
+                (nonrec)
+                (termbind (strict) (vardecl x (con integer)) x)
+                (lam
+                  y
+                  (con integer)
+                  (let
+                    (nonrec)
+                    (termbind (strict) (vardecl y (con integer)) y)
+                    (termbind
+                      (strict)
+                      (vardecl b (con bool))
+                      [ [ lessThanInteger x ] y ]
+                    )
+                    [ [ [ { ifThenElse Bool } b ] True ] False ]
                   )
-                  [ [ [ { ifThenElse Bool } b ] True ] False ]
                 )
               )
             )

@@ -11,22 +11,38 @@
     (lam
       ds
       A
-      (lam
-        ds
-        A
-        (let
-          (nonrec)
-          (termbind (strict) (vardecl ds A) ds)
-          (termbind (strict) (vardecl ds A) ds)
-          (termbind
-            (nonstrict)
-            (vardecl defaultBody (con integer))
+      (let
+        (nonrec)
+        (termbind (strict) (vardecl ds A) ds)
+        (lam
+          ds
+          A
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl ds A) ds)
+            (termbind
+              (nonstrict)
+              (vardecl defaultBody (con integer))
+              {
+                [
+                  [
+                    [
+                      { [ A_match ds ] (all dead (type) (con integer)) }
+                      (abs dead (type) (con integer 2))
+                    ]
+                    (abs dead (type) defaultBody)
+                  ]
+                  (abs dead (type) defaultBody)
+                ]
+                (all dead (type) dead)
+              }
+            )
             {
               [
                 [
                   [
                     { [ A_match ds ] (all dead (type) (con integer)) }
-                    (abs dead (type) (con integer 2))
+                    (abs dead (type) (con integer 1))
                   ]
                   (abs dead (type) defaultBody)
                 ]
@@ -35,19 +51,6 @@
               (all dead (type) dead)
             }
           )
-          {
-            [
-              [
-                [
-                  { [ A_match ds ] (all dead (type) (con integer)) }
-                  (abs dead (type) (con integer 1))
-                ]
-                (abs dead (type) defaultBody)
-              ]
-              (abs dead (type) defaultBody)
-            ]
-            (all dead (type) dead)
-          }
         )
       )
     )

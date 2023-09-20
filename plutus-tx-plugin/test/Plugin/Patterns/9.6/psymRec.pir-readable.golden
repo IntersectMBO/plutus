@@ -4,34 +4,38 @@ let
     ETwo : a -> a -> Example a
   ~`$WETwo` : all a. a -> a -> Example a
     = /\a ->
-        \(conrep : a) (conrep : a) ->
+        \(conrep : a) ->
           let
             !conrep : a = conrep
-            !conrep : a = conrep
           in
-          ETwo {a} conrep conrep
+          \(conrep : a) -> let !conrep : a = conrep in ETwo {a} conrep conrep
   ~`$bERec` : all a. a -> a -> Example a
     = /\a ->
-        \(hello : a) (world : a) ->
+        \(hello : a) ->
           let
             !hello : a = hello
-            !world : a = world
           in
-          `$WETwo` {a} hello world
+          \(world : a) -> let !world : a = world in `$WETwo` {a} hello world
   ~`$mERec` : all r a. Example a -> (a -> a -> r) -> (unit -> r) -> r
     = /\r a ->
-        \(scrut : Example a) (cont : a -> a -> r) (fail : unit -> r) ->
+        \(scrut : Example a) ->
           let
             !scrut : Example a = scrut
-            !cont : a -> a -> r = cont
-            !fail : unit -> r = fail
           in
-          Example_match
-            {a}
-            scrut
-            {r}
-            (\(ipv : integer) -> fail ())
-            (\(hello : a) (world : a) -> cont hello world)
+          \(cont : a -> a -> r) ->
+            let
+              !cont : a -> a -> r = cont
+            in
+            \(fail : unit -> r) ->
+              let
+                !fail : unit -> r = fail
+              in
+              Example_match
+                {a}
+                scrut
+                {r}
+                (\(ipv : integer) -> fail ())
+                (\(hello : a) (world : a) -> cont hello world)
   !r : Example string = `$bERec` {string} "wot" "yo"
 in
 `$mERec`

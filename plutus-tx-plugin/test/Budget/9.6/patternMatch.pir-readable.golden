@@ -2,21 +2,5 @@ let
   data (Maybe :: * -> *) a | Maybe_match where
     Just : a -> Maybe a
     Nothing : Maybe a
-  !x : Maybe integer = Just {integer} 1
-  !y : Maybe integer = Just {integer} 2
 in
-Maybe_match
-  {integer}
-  x
-  {all dead. Maybe integer}
-  (\(x' : integer) ->
-     /\dead ->
-       Maybe_match
-         {integer}
-         y
-         {all dead. Maybe integer}
-         (\(y' : integer) -> /\dead -> Just {integer} (addInteger x' y'))
-         (/\dead -> Nothing {integer})
-         {all dead. dead})
-  (/\dead -> Nothing {integer})
-  {all dead. dead}
+Just {integer} 3

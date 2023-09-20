@@ -18,14 +18,17 @@
       (lam
         x
         (con integer)
-        (lam
-          y
-          (con integer)
-          (let
-            (nonrec)
-            (termbind (strict) (vardecl x (con integer)) x)
-            (termbind (strict) (vardecl y (con integer)) y)
-            [ [ addInteger x ] y ]
+        (let
+          (nonrec)
+          (termbind (strict) (vardecl x (con integer)) x)
+          (lam
+            y
+            (con integer)
+            (let
+              (nonrec)
+              (termbind (strict) (vardecl y (con integer)) y)
+              [ [ addInteger x ] y ]
+            )
           )
         )
       )
@@ -83,15 +86,14 @@
               (lam
                 f
                 (fun a (fun b b))
-                (lam
-                  z
-                  b
+                (let
+                  (nonrec)
+                  (termbind (strict) (vardecl f (fun a (fun b b))) f)
                   (lam
-                    eta
-                    [ List a ]
+                    z
+                    b
                     (let
                       (nonrec)
-                      (termbind (strict) (vardecl f (fun a (fun b b))) f)
                       (termbind (strict) (vardecl z b) z)
                       (let
                         (rec)
@@ -123,7 +125,7 @@
                             }
                           )
                         )
-                        [ go eta ]
+                        (lam eta [ List a ] [ go eta ])
                       )
                     )
                   )

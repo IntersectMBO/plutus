@@ -22,10 +22,10 @@ in
         {unit -> Maybe a}
         (equalsInteger 0 index)
         (\(ds : unit) ->
-           let
-             !arg : data = headList {data} (sndPair {integer} {list data} tup)
-           in
-           Just {a} (`$dUnsafeFromData` arg))
+           Just
+             {a}
+             (`$dUnsafeFromData`
+                (headList {data} (sndPair {integer} {list data} tup))))
         (\(ds : unit) ->
            ifThenElse
              {unit -> Maybe a}

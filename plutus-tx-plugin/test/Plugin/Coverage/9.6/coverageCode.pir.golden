@@ -77,15 +77,20 @@
       (lam
         x
         (con integer)
-        (lam
-          y
-          (con integer)
-          (let
-            (nonrec)
-            (termbind (strict) (vardecl x (con integer)) x)
-            (termbind (strict) (vardecl y (con integer)) y)
-            (termbind (strict) (vardecl b (con bool)) [ [ equalsInteger x ] y ])
-            [ [ [ { ifThenElse Bool } b ] True ] False ]
+        (let
+          (nonrec)
+          (termbind (strict) (vardecl x (con integer)) x)
+          (lam
+            y
+            (con integer)
+            (let
+              (nonrec)
+              (termbind (strict) (vardecl y (con integer)) y)
+              (termbind
+                (strict) (vardecl b (con bool)) [ [ equalsInteger x ] y ]
+              )
+              [ [ [ { ifThenElse Bool } b ] True ] False ]
+            )
           )
         )
       )
@@ -141,26 +146,29 @@
       (lam
         trueLabel
         (con string)
-        (lam
-          falseLabel
-          (con string)
+        (let
+          (nonrec)
+          (termbind (strict) (vardecl trueLabel (con string)) trueLabel)
           (lam
-            c
-            Bool
+            falseLabel
+            (con string)
             (let
               (nonrec)
-              (termbind (strict) (vardecl trueLabel (con string)) trueLabel)
               (termbind (strict) (vardecl falseLabel (con string)) falseLabel)
-              {
-                [
+              (lam
+                c
+                Bool
+                {
                   [
-                    { [ Bool_match c ] (all dead (type) Bool) }
-                    (abs dead (type) [ [ { trace Bool } trueLabel ] True ])
+                    [
+                      { [ Bool_match c ] (all dead (type) Bool) }
+                      (abs dead (type) [ [ { trace Bool } trueLabel ] True ])
+                    ]
+                    (abs dead (type) [ [ { trace Bool } falseLabel ] False ])
                   ]
-                  (abs dead (type) [ [ { trace Bool } falseLabel ] False ])
-                ]
-                (all dead (type) dead)
-              }
+                  (all dead (type) dead)
+                }
+              )
             )
           )
         )
@@ -172,35 +180,35 @@
       (lam
         x
         (con integer)
-        [
+        (let
+          (nonrec)
+          (termbind (strict) (vardecl x (con integer)) x)
           [
             [
-              traceBool
-              (con
-                string
-                "CoverBool (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 45, _covLocEndLine = 45, _covLocStartCol = 1, _covLocEndCol = 32}) True"
-              )
-            ]
-            (con
-              string
-              "CoverBool (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 45, _covLocEndLine = 45, _covLocStartCol = 1, _covLocEndCol = 32}) False"
-            )
-          ]
-          {
-            [
               [
-                { (builtin trace) (all dead (type) Bool) }
+                traceBool
                 (con
                   string
-                  "CoverLocation (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 45, _covLocEndLine = 45, _covLocStartCol = 1, _covLocEndCol = 32})"
+                  "CoverBool (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 45, _covLocEndLine = 45, _covLocStartCol = 1, _covLocEndCol = 32}) True"
                 )
               ]
-              (abs
-                dead
-                (type)
-                (let
-                  (nonrec)
-                  (termbind (strict) (vardecl x (con integer)) x)
+              (con
+                string
+                "CoverBool (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 45, _covLocEndLine = 45, _covLocStartCol = 1, _covLocEndCol = 32}) False"
+              )
+            ]
+            {
+              [
+                [
+                  { (builtin trace) (all dead (type) Bool) }
+                  (con
+                    string
+                    "CoverLocation (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 45, _covLocEndLine = 45, _covLocStartCol = 1, _covLocEndCol = 32})"
+                  )
+                ]
+                (abs
+                  dead
+                  (type)
                   [
                     [
                       [
@@ -323,43 +331,43 @@
                     }
                   ]
                 )
-              )
-            ]
-            (all dead (type) dead)
-          }
-        ]
+              ]
+              (all dead (type) dead)
+            }
+          ]
+        )
       )
     )
     (lam
       x
       [ Maybe (con integer) ]
-      {
-        [
+      (let
+        (nonrec)
+        (termbind (strict) (vardecl x [ Maybe (con integer) ]) x)
+        {
           [
-            { (builtin trace) (all dead (type) [ Maybe Bool ]) }
-            (con
-              string
-              "CoverLocation (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 36, _covLocEndLine = 36, _covLocStartCol = 54, _covLocEndCol = 57})"
-            )
-          ]
-          (abs
-            dead
-            (type)
-            {
-              [
+            [
+              { (builtin trace) (all dead (type) [ Maybe Bool ]) }
+              (con
+                string
+                "CoverLocation (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 36, _covLocEndLine = 36, _covLocStartCol = 54, _covLocEndCol = 57})"
+              )
+            ]
+            (abs
+              dead
+              (type)
+              {
                 [
-                  { (builtin trace) (all dead (type) [ Maybe Bool ]) }
-                  (con
-                    string
-                    "CoverLocation (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 40, _covLocEndLine = 42, _covLocStartCol = 1, _covLocEndCol = 33})"
-                  )
-                ]
-                (abs
-                  dead
-                  (type)
-                  (let
-                    (nonrec)
-                    (termbind (strict) (vardecl x [ Maybe (con integer) ]) x)
+                  [
+                    { (builtin trace) (all dead (type) [ Maybe Bool ]) }
+                    (con
+                      string
+                      "CoverLocation (CovLoc {_covLocFile = \"test/Plugin/Coverage/Spec.hs\", _covLocStartLine = 40, _covLocEndLine = 42, _covLocStartCol = 1, _covLocEndCol = 33})"
+                    )
+                  ]
+                  (abs
+                    dead
+                    (type)
                     {
                       [
                         [
@@ -517,14 +525,14 @@
                       (all dead (type) dead)
                     }
                   )
-                )
-              ]
-              (all dead (type) dead)
-            }
-          )
-        ]
-        (all dead (type) dead)
-      }
+                ]
+                (all dead (type) dead)
+              }
+            )
+          ]
+          (all dead (type) dead)
+        }
+      )
     )
   )
 )

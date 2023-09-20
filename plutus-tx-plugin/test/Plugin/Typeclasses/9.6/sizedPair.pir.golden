@@ -140,17 +140,20 @@
     (lam
       ds
       (con integer)
-      (lam
-        ds
-        (con integer)
-        (let
-          (nonrec)
-          (termbind (strict) (vardecl ds (con integer)) ds)
-          (termbind (strict) (vardecl ds (con integer)) ds)
-          [
-            [ { size [ [ Tuple2 (con integer) ] (con integer) ] } `$dSized` ]
-            [ [ { { Tuple2 (con integer) } (con integer) } ds ] ds ]
-          ]
+      (let
+        (nonrec)
+        (termbind (strict) (vardecl ds (con integer)) ds)
+        (lam
+          ds
+          (con integer)
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl ds (con integer)) ds)
+            [
+              [ { size [ [ Tuple2 (con integer) ] (con integer) ] } `$dSized` ]
+              [ [ { { Tuple2 (con integer) } (con integer) } ds ] ds ]
+            ]
+          )
         )
       )
     )
