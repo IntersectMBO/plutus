@@ -101,20 +101,21 @@ in
       {unit -> Either integer b}
       (equalsInteger 1 index)
       (\(ds : unit) ->
-         let
-           !arg : data = headList {data} (sndPair {integer} {list data} tup)
-         in
-         Right {integer} {b} (`$dUnsafeFromData` arg))
+         Right
+           {integer}
+           {b}
+           (`$dUnsafeFromData`
+              (headList {data} (sndPair {integer} {list data} tup))))
       (\(ds : unit) ->
          ifThenElse
            {unit -> Either integer b}
            (equalsInteger 0 index)
            (\(ds : unit) ->
-              let
-                !arg : data
-                  = headList {data} (sndPair {integer} {list data} tup)
-              in
-              Left {integer} {b} (`$dUnsafeFromData` arg))
+              Left
+                {integer}
+                {b}
+                (`$dUnsafeFromData`
+                   (headList {data} (sndPair {integer} {list data} tup))))
            (\(ds : unit) ->
               let
                 !x : Unit = trace {Unit} reconstructCaseError Unit
@@ -135,10 +136,10 @@ in
          {unit -> Maybe a}
          (equalsInteger 0 index)
          (\(ds : unit) ->
-            let
-              !arg : data = headList {data} (sndPair {integer} {list data} tup)
-            in
-            Just {a} (`$dUnsafeFromData` arg))
+            Just
+              {a}
+              (`$dUnsafeFromData`
+                 (headList {data} (sndPair {integer} {list data} tup))))
          (\(ds : unit) ->
             ifThenElse
               {unit -> Maybe a}

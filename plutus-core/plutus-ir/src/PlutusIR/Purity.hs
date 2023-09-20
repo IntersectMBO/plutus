@@ -147,6 +147,20 @@ termEvaluationOrder binfo vinfo = goTerm
 
         -- If we can view as a builtin application, then handle that specially
         (splitApplication -> (Builtin a fun, args)) -> goBuiltinApp a fun args
+        -- If we can view as a constructor application, then handle that specially.
+        -- Constructor applications are always pure: if under-applied they don't
+        -- reduce; if fully-applied they are pure; if over-applied it's going to be
+        -- a type error since they never return a function. So we can ignore the arity
+        -- in this case!
+        (splitApplication -> (h@(Var _ n), args))
+          | Just (DatatypeConstructor{}) <- lookupVarInfo n vinfo ->
+            evalThis (EvalTerm Pure MaybeWork h)
+            <>
+            goAppCtx args
+            -- No Unknown: we go to a known pure place, but we can't show it,
+            -- so we just skip it here. This has the effect of making constructor
+            -- applications pure
+
         -- We could handle functions and type abstractions with *known* bodies
         -- here. But there's not much point: beta reduction will immediately
         -- turn those into let-bindings, which we do see through already.

@@ -39,7 +39,7 @@
     !equalsInteger : integer -> integer -> Bool
       = \(x : integer) (y : integer) ->
           ifThenElse {Bool} (equalsInteger x y) True False
-    ~`$fOrdInteger` : Ord integer
+    !`$fOrdInteger` : Ord integer
       = CConsOrd
           {integer}
           equalsInteger
@@ -312,62 +312,63 @@
   in
   let
     ~`$dOrd` : Ord (List integer)
-      = let
-        !v : Ord integer = `$fOrdInteger`
-      in
-      CConsOrd
-        {List integer}
-        (\(eta : List integer) (eta : List integer) ->
-           `$fEqNil_$c==` {integer} (`$p1Ord` {integer} v) eta eta)
-        (`$fOrdNil_$ccompare` {integer} v)
-        (\(x : List integer) (y : List integer) ->
-           Ordering_match
-             (`$fOrdNil_$ccompare` {integer} v x y)
-             {all dead. Bool}
-             (/\dead -> False)
-             (/\dead -> False)
-             (/\dead -> True)
-             {all dead. dead})
-        (\(x : List integer) (y : List integer) ->
-           Ordering_match
-             (`$fOrdNil_$ccompare` {integer} v x y)
-             {all dead. Bool}
-             (/\dead -> True)
-             (/\dead -> False)
-             (/\dead -> True)
-             {all dead. dead})
-        (\(x : List integer) (y : List integer) ->
-           Ordering_match
-             (`$fOrdNil_$ccompare` {integer} v x y)
-             {all dead. Bool}
-             (/\dead -> False)
-             (/\dead -> True)
-             (/\dead -> False)
-             {all dead. dead})
-        (\(x : List integer) (y : List integer) ->
-           Ordering_match
-             (`$fOrdNil_$ccompare` {integer} v x y)
-             {all dead. Bool}
-             (/\dead -> True)
-             (/\dead -> True)
-             (/\dead -> False)
-             {all dead. dead})
-        (\(x : List integer) (y : List integer) ->
-           Ordering_match
-             (`$fOrdNil_$ccompare` {integer} v x y)
-             {all dead. List integer}
-             (/\dead -> y)
-             (/\dead -> x)
-             (/\dead -> y)
-             {all dead. dead})
-        (\(x : List integer) (y : List integer) ->
-           Ordering_match
-             (`$fOrdNil_$ccompare` {integer} v x y)
-             {all dead. List integer}
-             (/\dead -> x)
-             (/\dead -> y)
-             (/\dead -> x)
-             {all dead. dead})
+      = CConsOrd
+          {List integer}
+          (\(eta : List integer) (eta : List integer) ->
+             `$fEqNil_$c==`
+               {integer}
+               (`$p1Ord` {integer} `$fOrdInteger`)
+               eta
+               eta)
+          (`$fOrdNil_$ccompare` {integer} `$fOrdInteger`)
+          (\(x : List integer) (y : List integer) ->
+             Ordering_match
+               (`$fOrdNil_$ccompare` {integer} `$fOrdInteger` x y)
+               {all dead. Bool}
+               (/\dead -> False)
+               (/\dead -> False)
+               (/\dead -> True)
+               {all dead. dead})
+          (\(x : List integer) (y : List integer) ->
+             Ordering_match
+               (`$fOrdNil_$ccompare` {integer} `$fOrdInteger` x y)
+               {all dead. Bool}
+               (/\dead -> True)
+               (/\dead -> False)
+               (/\dead -> True)
+               {all dead. dead})
+          (\(x : List integer) (y : List integer) ->
+             Ordering_match
+               (`$fOrdNil_$ccompare` {integer} `$fOrdInteger` x y)
+               {all dead. Bool}
+               (/\dead -> False)
+               (/\dead -> True)
+               (/\dead -> False)
+               {all dead. dead})
+          (\(x : List integer) (y : List integer) ->
+             Ordering_match
+               (`$fOrdNil_$ccompare` {integer} `$fOrdInteger` x y)
+               {all dead. Bool}
+               (/\dead -> True)
+               (/\dead -> True)
+               (/\dead -> False)
+               {all dead. dead})
+          (\(x : List integer) (y : List integer) ->
+             Ordering_match
+               (`$fOrdNil_$ccompare` {integer} `$fOrdInteger` x y)
+               {all dead. List integer}
+               (/\dead -> y)
+               (/\dead -> x)
+               (/\dead -> y)
+               {all dead. dead})
+          (\(x : List integer) (y : List integer) ->
+             Ordering_match
+               (`$fOrdNil_$ccompare` {integer} `$fOrdInteger` x y)
+               {all dead. List integer}
+               (/\dead -> x)
+               (/\dead -> y)
+               (/\dead -> x)
+               {all dead. dead})
   in
   letrec
     !go :
@@ -707,7 +708,7 @@
     !split' : Formula -> List Formula -> List Formula
       = \(ds : Formula) (a : List Formula) ->
           let
-            ~defaultBody : List Formula = Cons {Formula} ds a
+            !defaultBody : List Formula = Cons {Formula} ds a
           in
           Formula_match
             ds
@@ -735,11 +736,7 @@
           Formula_match
             ds
             {Formula}
-            (\(p : Formula) (q : Formula) ->
-               let
-                 !dt : Formula = disin q
-               in
-               Con (disin p) dt)
+            (\(p : Formula) (q : Formula) -> Con (disin p) (disin q))
             (\(p : Formula) (ds : Formula) ->
                let
                  ~defaultBody : Formula
@@ -792,10 +789,7 @@
                        p
                        {Formula}
                        (\(p : Formula) (q : Formula) ->
-                          let
-                            !dt : Formula = disin (Dis q ds)
-                          in
-                          Con (disin (Dis p ds)) dt)
+                          Con (disin (Dis p ds)) (disin (Dis q ds)))
                        (\(default_arg0 : Formula) (default_arg1 : Formula) ->
                           defaultBody)
                        (\(default_arg0 : Formula) (default_arg1 : Formula) ->
@@ -809,10 +803,7 @@
                  ds
                  {Formula}
                  (\(q : Formula) (r : Formula) ->
-                    let
-                      !dt : Formula = disin (Dis p r)
-                    in
-                    Con (disin (Dis p q)) dt)
+                    Con (disin (Dis p q)) (disin (Dis p r)))
                  (\(default_arg0 : Formula) (default_arg1 : Formula) ->
                     defaultBody)
                  (\(default_arg0 : Formula) (default_arg1 : Formula) ->
@@ -832,26 +823,11 @@
           Formula_match
             ds
             {Formula}
-            (\(p : Formula) (q : Formula) ->
-               let
-                 !dt : Formula = elim q
-               in
-               Con (elim p) dt)
-            (\(p : Formula) (q : Formula) ->
-               let
-                 !dt : Formula = elim q
-               in
-               Dis (elim p) dt)
+            (\(p : Formula) (q : Formula) -> Con (elim p) (elim q))
+            (\(p : Formula) (q : Formula) -> Dis (elim p) (elim q))
             (\(f : Formula) (f' : Formula) ->
-               let
-                 !dt : Formula = elim (Imp f' f)
-               in
-               Con (elim (Imp f f')) dt)
-            (\(p : Formula) (q : Formula) ->
-               let
-                 !dt : Formula = elim q
-               in
-               Dis (Not (elim p)) dt)
+               Con (elim (Imp f f')) (elim (Imp f' f)))
+            (\(p : Formula) (q : Formula) -> Dis (Not (elim p)) (elim q))
             (\(p : Formula) -> Not (elim p))
             (\(s : integer) -> Sym s)
   in
@@ -861,16 +837,8 @@
           Formula_match
             ds
             {Formula}
-            (\(p : Formula) (q : Formula) ->
-               let
-                 !dt : Formula = negin q
-               in
-               Con (negin p) dt)
-            (\(p : Formula) (q : Formula) ->
-               let
-                 !dt : Formula = negin q
-               in
-               Dis (negin p) dt)
+            (\(p : Formula) (q : Formula) -> Con (negin p) (negin q))
+            (\(p : Formula) (q : Formula) -> Dis (negin p) (negin q))
             (\(default_arg0 : Formula) (default_arg1 : Formula) -> ds)
             (\(default_arg0 : Formula) (default_arg1 : Formula) -> ds)
             (\(ds : Formula) ->
@@ -878,15 +846,9 @@
                  ds
                  {Formula}
                  (\(p : Formula) (q : Formula) ->
-                    let
-                      !dt : Formula = negin (Not q)
-                    in
-                    Dis (negin (Not p)) dt)
+                    Dis (negin (Not p)) (negin (Not q)))
                  (\(p : Formula) (q : Formula) ->
-                    let
-                      !dt : Formula = negin (Not q)
-                    in
-                    Con (negin (Not p)) dt)
+                    Con (negin (Not p)) (negin (Not q)))
                  (\(default_arg0 : Formula) (default_arg1 : Formula) -> ds)
                  (\(default_arg0 : Formula) (default_arg1 : Formula) -> ds)
                  (\(p : Formula) -> negin p)
@@ -905,205 +867,39 @@
                          eta
                          {all dead. Formula}
                          (/\dead ->
-                            let
-                              !dt : Formula
-                                = let
-                                  !dt : Formula
-                                    = let
-                                      !dt : Formula = Sym 1
-                                    in
-                                    Eqv (Sym 1) dt
-                                in
-                                Eqv
-                                  (let
-                                    !dt : Formula = Sym 1
-                                  in
-                                  Eqv (Sym 1) dt)
-                                  dt
-                            in
                             Eqv
-                              (let
-                                !dt : Formula = Sym 1
-                              in
-                              Eqv (Sym 1) dt)
-                              dt)
+                              (Eqv (Sym 1) (Sym 1))
+                              (Eqv (Eqv (Sym 1) (Sym 1)) (Eqv (Sym 1) (Sym 1))))
                          (/\dead ->
-                            let
-                              !dt : Formula
-                                = let
-                                  !dt : Formula
-                                    = let
-                                      !dt : Formula = Sym 1
-                                    in
-                                    Eqv (Sym 1) dt
-                                in
-                                Eqv (Sym 1) dt
-                            in
                             Eqv
-                              (let
-                                !dt : Formula
-                                  = let
-                                    !dt : Formula = Sym 1
-                                  in
-                                  Eqv (Sym 1) dt
-                              in
-                              Eqv (Sym 1) dt)
-                              dt)
+                              (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
+                              (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1))))
                          (/\dead ->
-                            let
-                              !dt : Formula
-                                = let
-                                  !dt : Formula
-                                    = let
-                                      !dt : Formula = Sym 1
-                                    in
-                                    Eqv (Sym 1) dt
-                                in
-                                Eqv
-                                  (let
-                                    !dt : Formula = Sym 1
-                                  in
-                                  Eqv (Sym 1) dt)
-                                  dt
-                            in
                             Eqv
-                              (let
-                                !dt : Formula
-                                  = let
-                                    !dt : Formula = Sym 1
-                                  in
-                                  Eqv (Sym 1) dt
-                              in
-                              Eqv (Sym 1) dt)
-                              dt)
+                              (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
+                              (Eqv (Eqv (Sym 1) (Sym 1)) (Eqv (Sym 1) (Sym 1))))
                          (/\dead ->
-                            let
-                              !dt : Formula
-                                = let
-                                  !dt : Formula
-                                    = let
-                                      !dt : Formula = Sym 7
-                                    in
-                                    Eqv (Sym 6) dt
-                                in
-                                Eqv
-                                  (let
-                                    !dt : Formula = Sym 5
-                                  in
-                                  Eqv (Sym 4) dt)
-                                  dt
-                            in
                             Eqv
-                              (let
-                                !dt : Formula
-                                  = let
-                                    !dt : Formula = Sym 3
-                                  in
-                                  Eqv (Sym 2) dt
-                              in
-                              Eqv (Sym 1) dt)
-                              dt)
+                              (Eqv (Sym 1) (Eqv (Sym 2) (Sym 3)))
+                              (Eqv (Eqv (Sym 4) (Sym 5)) (Eqv (Sym 6) (Sym 7))))
                          (/\dead ->
-                            let
-                              !dt : Formula
-                                = let
-                                  !dt : Formula
-                                    = let
-                                      !dt : Formula = Sym 1
-                                    in
-                                    Eqv (Sym 1) dt
-                                in
-                                Eqv
-                                  (let
-                                    !dt : Formula
-                                      = let
-                                        !dt : Formula = Sym 1
-                                      in
-                                      Eqv (Sym 1) dt
-                                  in
-                                  Eqv (Sym 1) dt)
-                                  dt
-                            in
                             Eqv
-                              (let
-                                !dt : Formula
-                                  = let
-                                    !dt : Formula = Sym 1
-                                  in
-                                  Eqv (Sym 1) dt
-                              in
-                              Eqv (Sym 1) dt)
-                              dt)
+                              (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
+                              (Eqv
+                                 (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
+                                 (Eqv (Sym 1) (Sym 1))))
                          (/\dead ->
-                            let
-                              !dt : Formula
-                                = let
-                                  !dt : Formula
-                                    = let
-                                      !dt : Formula
-                                        = let
-                                          !dt : Formula = Sym 1
-                                        in
-                                        Eqv (Sym 1) dt
-                                    in
-                                    Eqv (Sym 1) dt
-                                in
-                                Eqv
-                                  (let
-                                    !dt : Formula
-                                      = let
-                                        !dt : Formula = Sym 1
-                                      in
-                                      Eqv (Sym 1) dt
-                                  in
-                                  Eqv (Sym 1) dt)
-                                  dt
-                            in
                             Eqv
-                              (let
-                                !dt : Formula
-                                  = let
-                                    !dt : Formula = Sym 1
-                                  in
-                                  Eqv (Sym 1) dt
-                              in
-                              Eqv (Sym 1) dt)
-                              dt)
+                              (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
+                              (Eqv
+                                 (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))
+                                 (Eqv (Sym 1) (Eqv (Sym 1) (Sym 1)))))
                          (/\dead ->
-                            let
-                              !dt : Formula
-                                = let
-                                  !dt : Formula
-                                    = let
-                                      !dt : Formula
-                                        = let
-                                          !dt : Formula = Sym 9
-                                        in
-                                        Eqv (Sym 8) dt
-                                    in
-                                    Eqv (Sym 7) dt
-                                in
-                                Eqv
-                                  (let
-                                    !dt : Formula
-                                      = let
-                                        !dt : Formula = Sym 6
-                                      in
-                                      Eqv (Sym 5) dt
-                                  in
-                                  Eqv (Sym 4) dt)
-                                  dt
-                            in
                             Eqv
-                              (let
-                                !dt : Formula
-                                  = let
-                                    !dt : Formula = Sym 3
-                                  in
-                                  Eqv (Sym 2) dt
-                              in
-                              Eqv (Sym 1) dt)
-                              dt)
+                              (Eqv (Sym 1) (Eqv (Sym 2) (Sym 3)))
+                              (Eqv
+                                 (Eqv (Sym 4) (Eqv (Sym 5) (Sym 6)))
+                                 (Eqv (Sym 7) (Eqv (Sym 8) (Sym 9)))))
                          {all dead. dead})))
         in
         split' p (Nil {Formula})

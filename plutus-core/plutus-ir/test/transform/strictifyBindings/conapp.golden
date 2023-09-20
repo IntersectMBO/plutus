@@ -12,7 +12,7 @@
   (let
     (nonrec)
     (termbind
-      (nonstrict)
+      (strict)
       (vardecl x [ List (con integer) ])
       [ [ { Cons (con integer) } (con integer 1) ] { Nil (con integer) } ]
     )

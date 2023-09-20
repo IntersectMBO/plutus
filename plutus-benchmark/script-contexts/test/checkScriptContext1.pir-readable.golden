@@ -96,11 +96,12 @@
                    {unit -> Extended a}
                    (equalsInteger 1 index)
                    (\(ds : unit) ->
-                      let
-                        !arg : data
-                          = headList {data} (sndPair {integer} {list data} tup)
-                      in
-                      Finite {a} (`$dUnsafeFromData` arg))
+                      Finite
+                        {a}
+                        (`$dUnsafeFromData`
+                           (headList
+                              {data}
+                              (sndPair {integer} {list data} tup))))
                    (\(ds : unit) ->
                       ifThenElse
                         {unit -> Extended a}
@@ -349,11 +350,10 @@
               {unit -> Maybe a}
               (equalsInteger 0 index)
               (\(ds : unit) ->
-                 let
-                   !arg : data
-                     = headList {data} (sndPair {integer} {list data} tup)
-                 in
-                 Just {a} (`$dUnsafeFromData` arg))
+                 Just
+                   {a}
+                   (`$dUnsafeFromData`
+                      (headList {data} (sndPair {integer} {list data} tup))))
               (\(ds : unit) ->
                  ifThenElse
                    {unit -> Maybe a}
@@ -1074,9 +1074,8 @@
                  (/\dead ->
                     let
                       !gcd' : integer = euclid n d
-                      !dt : integer = quotientInteger d gcd'
                     in
-                    Rational (quotientInteger n gcd') dt)
+                    Rational (quotientInteger n gcd') (quotientInteger d gcd'))
                  {all dead. dead})
             {all dead. dead}
   in
