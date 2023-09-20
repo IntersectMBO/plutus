@@ -5,22 +5,24 @@ let
   !equalsData : data -> data -> bool = equalsData
   !ifThenElse : all a. bool -> a -> a -> a = ifThenElse
   ~equalsData : data -> data -> Bool
-    = \(d : data) (d : data) ->
+    = \(d : data) ->
         let
           !d : data = d
-          !d : data = d
-          !b : bool = equalsData d d
         in
-        ifThenElse {Bool} b True False
+        \(d : data) ->
+          let
+            !d : data = d
+            !b : bool = equalsData d d
+          in
+          ifThenElse {Bool} b True False
   ~`$fEqBuiltinData` : (\a -> a -> a -> Bool) data = equalsData
   ~`==` : all a. (\a -> a -> a -> Bool) a -> a -> a -> Bool
     = /\a -> \(v : (\a -> a -> a -> Bool) a) -> v
   ~`$c==` : data -> data -> Bool = `==` {data} `$fEqBuiltinData`
   ~`$fEqSecretlyData` : (\a -> a -> a -> Bool) data = `$c==`
 in
-\(x : data) (y : data) ->
+\(x : data) ->
   let
     !nt : data = x
-    !nt : data = y
   in
-  `==` {data} `$fEqSecretlyData` nt nt
+  \(y : data) -> let !nt : data = y in `==` {data} `$fEqSecretlyData` nt nt

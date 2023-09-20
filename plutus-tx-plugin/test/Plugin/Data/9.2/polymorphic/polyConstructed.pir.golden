@@ -26,14 +26,17 @@
           (lam
             dt
             a
-            (lam
-              dt
-              b
-              (let
-                (nonrec)
-                (termbind (strict) (vardecl dt a) dt)
-                (termbind (strict) (vardecl dt b) dt)
-                [ [ { { Poly a } b } dt ] dt ]
+            (let
+              (nonrec)
+              (termbind (strict) (vardecl dt a) dt)
+              (lam
+                dt
+                b
+                (let
+                  (nonrec)
+                  (termbind (strict) (vardecl dt b) dt)
+                  [ [ { { Poly a } b } dt ] dt ]
+                )
               )
             )
           )

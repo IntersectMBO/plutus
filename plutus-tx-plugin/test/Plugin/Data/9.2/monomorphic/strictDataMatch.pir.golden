@@ -19,14 +19,17 @@
         (lam
           dt
           a
-          (lam
-            dt
-            a
-            (let
-              (nonrec)
-              (termbind (strict) (vardecl dt a) dt)
-              (termbind (strict) (vardecl dt a) dt)
-              [ [ { StrictTy a } dt ] dt ]
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl dt a) dt)
+            (lam
+              dt
+              a
+              (let
+                (nonrec)
+                (termbind (strict) (vardecl dt a) dt)
+                [ [ { StrictTy a } dt ] dt ]
+              )
             )
           )
         )

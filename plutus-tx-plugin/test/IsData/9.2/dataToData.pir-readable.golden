@@ -44,13 +44,16 @@ let
   !equalsInteger : integer -> integer -> bool = equalsInteger
   !ifThenElse : all a. bool -> a -> a -> a = ifThenElse
   ~equalsInteger : integer -> integer -> Bool
-    = \(x : integer) (y : integer) ->
+    = \(x : integer) ->
         let
           !x : integer = x
-          !y : integer = y
-          !b : bool = equalsInteger x y
         in
-        ifThenElse {Bool} b True False
+        \(y : integer) ->
+          let
+            !y : integer = y
+            !b : bool = equalsInteger x y
+          in
+          ifThenElse {Bool} b True False
   ~`$fEqInteger` : (\a -> a -> a -> Bool) integer = equalsInteger
   !unsafeDataAsI : data -> integer = unIData
   ~`$fUnsafeFromDataInteger` : (\a -> data -> a) integer = unsafeDataAsI
@@ -90,46 +93,49 @@ let
     = /\r a ->
         \(`$dToData` : (\a -> a -> data) a)
          (`$dUnsafeFromData` : (\a -> data -> a) a)
-         (scrut : (\a -> data) a)
-         (cont : a -> integer -> r)
-         (fail : unit -> r) ->
+         (scrut : (\a -> data) a) ->
           let
             !nt : data = scrut
-            !cont : a -> integer -> r = cont
-            !fail : unit -> r = fail
           in
-          Tuple2_match
-            {integer}
-            {list data}
-            (pairToPair {integer} {list data} (unsafeDataAsConstr nt))
-            {r}
-            (\(ds : integer) (ds : list data) ->
-               Bool_match
-                 (`==` {integer} `$fEqInteger` 0 ds)
-                 {all dead. r}
-                 (/\dead ->
-                    Tuple2_match
-                      {data}
-                      {list data}
-                      (unsafeUncons {data} ds)
-                      {r}
-                      (\(ds : data) (ds : list data) ->
-                         cont
-                           (unsafeFromBuiltinData {a} `$dUnsafeFromData` ds)
-                           (unsafeFromBuiltinData
-                              {integer}
-                              `$fUnsafeFromDataInteger`
-                              (head {data} ds))))
-                 (/\dead -> fail ())
-                 {all dead. dead})
+          \(cont : a -> integer -> r) ->
+            let
+              !cont : a -> integer -> r = cont
+            in
+            \(fail : unit -> r) ->
+              let
+                !fail : unit -> r = fail
+              in
+              Tuple2_match
+                {integer}
+                {list data}
+                (pairToPair {integer} {list data} (unsafeDataAsConstr nt))
+                {r}
+                (\(ds : integer) (ds : list data) ->
+                   Bool_match
+                     (`==` {integer} `$fEqInteger` 0 ds)
+                     {all dead. r}
+                     (/\dead ->
+                        Tuple2_match
+                          {data}
+                          {list data}
+                          (unsafeUncons {data} ds)
+                          {r}
+                          (\(ds : data) (ds : list data) ->
+                             cont
+                               (unsafeFromBuiltinData {a} `$dUnsafeFromData` ds)
+                               (unsafeFromBuiltinData
+                                  {integer}
+                                  `$fUnsafeFromDataInteger`
+                                  (head {data} ds))))
+                     (/\dead -> fail ())
+                     {all dead. dead})
   !addInteger : integer -> integer -> integer = addInteger
   ~addInteger : integer -> integer -> integer
-    = \(x : integer) (y : integer) ->
+    = \(x : integer) ->
         let
           !x : integer = x
-          !y : integer = y
         in
-        addInteger x y
+        \(y : integer) -> let !y : integer = y in addInteger x y
 in
 \(ds : (\a -> data) integer) ->
   let

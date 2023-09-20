@@ -44,54 +44,61 @@
       (lam
         eta
         (con integer)
-        (lam
-          eta
-          (con integer)
-          (let
-            (nonrec)
-            (termbind (strict) (vardecl x (con integer)) eta)
-            (termbind (strict) (vardecl y (con integer)) eta)
-            (termbind (strict) (vardecl b (con bool)) [ [ equalsInteger x ] y ])
-            {
-              [
+        (let
+          (nonrec)
+          (termbind (strict) (vardecl x (con integer)) eta)
+          (lam
+            eta
+            (con integer)
+            (let
+              (nonrec)
+              (termbind (strict) (vardecl y (con integer)) eta)
+              (termbind
+                (strict) (vardecl b (con bool)) [ [ equalsInteger x ] y ]
+              )
+              {
                 [
-                  {
-                    [ Bool_match [ [ [ { ifThenElse Bool } b ] True ] False ] ]
-                    (all dead (type) Ordering)
-                  }
-                  (abs dead (type) EQ)
-                ]
-                (abs
-                  dead
-                  (type)
-                  (let
-                    (nonrec)
-                    (termbind
-                      (strict)
-                      (vardecl b (con bool))
-                      [ [ lessThanEqualsInteger x ] y ]
-                    )
+                  [
                     {
                       [
-                        [
-                          {
-                            [
-                              Bool_match
-                              [ [ [ { ifThenElse Bool } b ] True ] False ]
-                            ]
-                            (all dead (type) Ordering)
-                          }
-                          (abs dead (type) LT)
-                        ]
-                        (abs dead (type) GT)
+                        Bool_match [ [ [ { ifThenElse Bool } b ] True ] False ]
                       ]
-                      (all dead (type) dead)
+                      (all dead (type) Ordering)
                     }
+                    (abs dead (type) EQ)
+                  ]
+                  (abs
+                    dead
+                    (type)
+                    (let
+                      (nonrec)
+                      (termbind
+                        (strict)
+                        (vardecl b (con bool))
+                        [ [ lessThanEqualsInteger x ] y ]
+                      )
+                      {
+                        [
+                          [
+                            {
+                              [
+                                Bool_match
+                                [ [ [ { ifThenElse Bool } b ] True ] False ]
+                              ]
+                              (all dead (type) Ordering)
+                            }
+                            (abs dead (type) LT)
+                          ]
+                          (abs dead (type) GT)
+                        ]
+                        (all dead (type) dead)
+                      }
+                    )
                   )
-                )
-              ]
-              (all dead (type) dead)
-            }
+                ]
+                (all dead (type) dead)
+              }
+            )
           )
         )
       )
@@ -105,29 +112,36 @@
       (lam
         x
         (con integer)
-        (lam
-          y
-          (con integer)
-          (let
-            (nonrec)
-            (termbind (strict) (vardecl x (con integer)) x)
-            (termbind (strict) (vardecl y (con integer)) y)
-            (termbind
-              (strict) (vardecl b (con bool)) [ [ lessThanEqualsInteger x ] y ]
-            )
-            {
-              [
+        (let
+          (nonrec)
+          (termbind (strict) (vardecl x (con integer)) x)
+          (lam
+            y
+            (con integer)
+            (let
+              (nonrec)
+              (termbind (strict) (vardecl y (con integer)) y)
+              (termbind
+                (strict)
+                (vardecl b (con bool))
+                [ [ lessThanEqualsInteger x ] y ]
+              )
+              {
                 [
-                  {
-                    [ Bool_match [ [ [ { ifThenElse Bool } b ] True ] False ] ]
-                    (all dead (type) (con integer))
-                  }
-                  (abs dead (type) y)
+                  [
+                    {
+                      [
+                        Bool_match [ [ [ { ifThenElse Bool } b ] True ] False ]
+                      ]
+                      (all dead (type) (con integer))
+                    }
+                    (abs dead (type) y)
+                  ]
+                  (abs dead (type) x)
                 ]
-                (abs dead (type) x)
-              ]
-              (all dead (type) dead)
-            }
+                (all dead (type) dead)
+              }
+            )
           )
         )
       )
@@ -141,29 +155,36 @@
       (lam
         x
         (con integer)
-        (lam
-          y
-          (con integer)
-          (let
-            (nonrec)
-            (termbind (strict) (vardecl x (con integer)) x)
-            (termbind (strict) (vardecl y (con integer)) y)
-            (termbind
-              (strict) (vardecl b (con bool)) [ [ lessThanEqualsInteger x ] y ]
-            )
-            {
-              [
+        (let
+          (nonrec)
+          (termbind (strict) (vardecl x (con integer)) x)
+          (lam
+            y
+            (con integer)
+            (let
+              (nonrec)
+              (termbind (strict) (vardecl y (con integer)) y)
+              (termbind
+                (strict)
+                (vardecl b (con bool))
+                [ [ lessThanEqualsInteger x ] y ]
+              )
+              {
                 [
-                  {
-                    [ Bool_match [ [ [ { ifThenElse Bool } b ] True ] False ] ]
-                    (all dead (type) (con integer))
-                  }
-                  (abs dead (type) x)
+                  [
+                    {
+                      [
+                        Bool_match [ [ [ { ifThenElse Bool } b ] True ] False ]
+                      ]
+                      (all dead (type) (con integer))
+                    }
+                    (abs dead (type) x)
+                  ]
+                  (abs dead (type) y)
                 ]
-                (abs dead (type) y)
-              ]
-              (all dead (type) dead)
-            }
+                (all dead (type) dead)
+              }
+            )
           )
         )
       )
@@ -174,15 +195,20 @@
       (lam
         x
         (con integer)
-        (lam
-          y
-          (con integer)
-          (let
-            (nonrec)
-            (termbind (strict) (vardecl x (con integer)) x)
-            (termbind (strict) (vardecl y (con integer)) y)
-            (termbind (strict) (vardecl b (con bool)) [ [ equalsInteger x ] y ])
-            [ [ [ { ifThenElse Bool } b ] True ] False ]
+        (let
+          (nonrec)
+          (termbind (strict) (vardecl x (con integer)) x)
+          (lam
+            y
+            (con integer)
+            (let
+              (nonrec)
+              (termbind (strict) (vardecl y (con integer)) y)
+              (termbind
+                (strict) (vardecl b (con bool)) [ [ equalsInteger x ] y ]
+              )
+              [ [ [ { ifThenElse Bool } b ] True ] False ]
+            )
           )
         )
       )
@@ -202,16 +228,20 @@
       (lam
         x
         (con integer)
-        (lam
-          y
-          (con integer)
-          (let
-            (nonrec)
-            (termbind (strict) (vardecl x (con integer)) x)
-            (termbind (strict) (vardecl y (con integer)) y)
-            [
-              [ [ { ifThenElse Bool } [ [ lessThanInteger x ] y ] ] False ] True
-            ]
+        (let
+          (nonrec)
+          (termbind (strict) (vardecl x (con integer)) x)
+          (lam
+            y
+            (con integer)
+            (let
+              (nonrec)
+              (termbind (strict) (vardecl y (con integer)) y)
+              [
+                [ [ { ifThenElse Bool } [ [ lessThanInteger x ] y ] ] False ]
+                True
+              ]
+            )
           )
         )
       )
@@ -222,19 +252,23 @@
       (lam
         x
         (con integer)
-        (lam
-          y
-          (con integer)
-          (let
-            (nonrec)
-            (termbind (strict) (vardecl x (con integer)) x)
-            (termbind (strict) (vardecl y (con integer)) y)
-            [
+        (let
+          (nonrec)
+          (termbind (strict) (vardecl x (con integer)) x)
+          (lam
+            y
+            (con integer)
+            (let
+              (nonrec)
+              (termbind (strict) (vardecl y (con integer)) y)
               [
-                [ { ifThenElse Bool } [ [ lessThanEqualsInteger x ] y ] ] False
+                [
+                  [ { ifThenElse Bool } [ [ lessThanEqualsInteger x ] y ] ]
+                  False
+                ]
+                True
               ]
-              True
-            ]
+            )
           )
         )
       )
@@ -247,17 +281,22 @@
       (lam
         x
         (con integer)
-        (lam
-          y
-          (con integer)
-          (let
-            (nonrec)
-            (termbind (strict) (vardecl x (con integer)) x)
-            (termbind (strict) (vardecl y (con integer)) y)
-            (termbind
-              (strict) (vardecl b (con bool)) [ [ lessThanEqualsInteger x ] y ]
+        (let
+          (nonrec)
+          (termbind (strict) (vardecl x (con integer)) x)
+          (lam
+            y
+            (con integer)
+            (let
+              (nonrec)
+              (termbind (strict) (vardecl y (con integer)) y)
+              (termbind
+                (strict)
+                (vardecl b (con bool))
+                [ [ lessThanEqualsInteger x ] y ]
+              )
+              [ [ [ { ifThenElse Bool } b ] True ] False ]
             )
-            [ [ [ { ifThenElse Bool } b ] True ] False ]
           )
         )
       )
@@ -268,17 +307,20 @@
       (lam
         x
         (con integer)
-        (lam
-          y
-          (con integer)
-          (let
-            (nonrec)
-            (termbind (strict) (vardecl x (con integer)) x)
-            (termbind (strict) (vardecl y (con integer)) y)
-            (termbind
-              (strict) (vardecl b (con bool)) [ [ lessThanInteger x ] y ]
+        (let
+          (nonrec)
+          (termbind (strict) (vardecl x (con integer)) x)
+          (lam
+            y
+            (con integer)
+            (let
+              (nonrec)
+              (termbind (strict) (vardecl y (con integer)) y)
+              (termbind
+                (strict) (vardecl b (con bool)) [ [ lessThanInteger x ] y ]
+              )
+              [ [ [ { ifThenElse Bool } b ] True ] False ]
             )
-            [ [ [ { ifThenElse Bool } b ] True ] False ]
           )
         )
       )
@@ -392,31 +434,35 @@
           (lam
             a
             a
-            (lam
-              b
-              a
-              (let
-                (nonrec)
-                (termbind (strict) (vardecl a a) a)
-                (termbind (strict) (vardecl b a) b)
-                {
-                  [
+            (let
+              (nonrec)
+              (termbind (strict) (vardecl a a) a)
+              (lam
+                b
+                a
+                (let
+                  (nonrec)
+                  (termbind (strict) (vardecl b a) b)
+                  {
                     [
                       [
-                        {
-                          [
-                            Ordering_match [ [ [ { compare a } `$dOrd` ] a ] b ]
-                          ]
-                          (all dead (type) Ordering)
-                        }
-                        (abs dead (type) EQ)
+                        [
+                          {
+                            [
+                              Ordering_match
+                              [ [ [ { compare a } `$dOrd` ] a ] b ]
+                            ]
+                            (all dead (type) Ordering)
+                          }
+                          (abs dead (type) EQ)
+                        ]
+                        (abs dead (type) LT)
                       ]
-                      (abs dead (type) LT)
+                      (abs dead (type) GT)
                     ]
-                    (abs dead (type) GT)
-                  ]
-                  (all dead (type) dead)
-                }
+                    (all dead (type) dead)
+                  }
+                )
               )
             )
           )

@@ -20,21 +20,23 @@ let
     = /\a ->
         \(`$dToData` : (\a -> a -> data) a)
          (`$dUnsafeFromData` : (\a -> data -> a) a)
-         (x_ : a)
-         (y_ : integer) ->
+         (x_ : a) ->
           let
             !x_ : a = x_
-            !y_ : integer = y_
           in
-          mkConstr
-            0
-            (mkCons
-               {data}
-               (toBuiltinData {a} `$dToData` x_)
-               (mkCons
-                  {data}
-                  (toBuiltinData {integer} `$fToDataInteger` y_)
-                  (mkNilData unitval)))
+          \(y_ : integer) ->
+            let
+              !y_ : integer = y_
+            in
+            mkConstr
+              0
+              (mkCons
+                 {data}
+                 (toBuiltinData {a} `$dToData` x_)
+                 (mkCons
+                    {data}
+                    (toBuiltinData {integer} `$fToDataInteger` y_)
+                    (mkNilData unitval)))
   !unsafeDataAsI : data -> integer = unIData
   ~`$fUnsafeFromDataInteger` : (\a -> data -> a) integer = unsafeDataAsI
 in

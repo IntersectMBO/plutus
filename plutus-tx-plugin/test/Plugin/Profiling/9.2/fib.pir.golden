@@ -13,34 +13,37 @@
       (lam
         x
         (con integer)
-        (lam
-          y
-          (con integer)
-          [
-            [
+        (let
+          (nonrec)
+          (termbind (strict) (vardecl x (con integer)) x)
+          (lam
+            y
+            (con integer)
+            (let
+              (nonrec)
+              (termbind (strict) (vardecl y (con integer)) y)
               [
-                { (builtin trace) (fun (con unit) (con integer)) }
-                (con string "entering addInteger")
-              ]
-              (lam
-                thunk
-                (con unit)
                 [
                   [
-                    { (builtin trace) (con integer) }
-                    (con string "exiting addInteger")
+                    { (builtin trace) (fun (con unit) (con integer)) }
+                    (con string "entering addInteger")
                   ]
-                  (let
-                    (nonrec)
-                    (termbind (strict) (vardecl x (con integer)) x)
-                    (termbind (strict) (vardecl y (con integer)) y)
-                    [ [ addInteger x ] y ]
+                  (lam
+                    thunk
+                    (con unit)
+                    [
+                      [
+                        { (builtin trace) (con integer) }
+                        (con string "exiting addInteger")
+                      ]
+                      [ [ addInteger x ] y ]
+                    ]
                   )
                 ]
-              )
-            ]
-            (con unit ())
-          ]
+                (con unit ())
+              ]
+            )
+          )
         )
       )
     )
@@ -68,37 +71,45 @@
       (lam
         x
         (con integer)
-        (lam
-          y
-          (con integer)
-          [
-            [
+        (let
+          (nonrec)
+          (termbind (strict) (vardecl x (con integer)) x)
+          (lam
+            y
+            (con integer)
+            (let
+              (nonrec)
+              (termbind (strict) (vardecl y (con integer)) y)
               [
-                { (builtin trace) (fun (con unit) Bool) }
-                (con string "entering equalsInteger")
-              ]
-              (lam
-                thunk
-                (con unit)
                 [
                   [
-                    { (builtin trace) Bool }
-                    (con string "exiting equalsInteger")
+                    { (builtin trace) (fun (con unit) Bool) }
+                    (con string "entering equalsInteger")
                   ]
-                  (let
-                    (nonrec)
-                    (termbind (strict) (vardecl x (con integer)) x)
-                    (termbind (strict) (vardecl y (con integer)) y)
-                    (termbind
-                      (strict) (vardecl b (con bool)) [ [ equalsInteger x ] y ]
-                    )
-                    [ [ [ { ifThenElse Bool } b ] True ] False ]
+                  (lam
+                    thunk
+                    (con unit)
+                    [
+                      [
+                        { (builtin trace) Bool }
+                        (con string "exiting equalsInteger")
+                      ]
+                      (let
+                        (nonrec)
+                        (termbind
+                          (strict)
+                          (vardecl b (con bool))
+                          [ [ equalsInteger x ] y ]
+                        )
+                        [ [ [ { ifThenElse Bool } b ] True ] False ]
+                      )
+                    ]
                   )
                 ]
-              )
-            ]
-            (con unit ())
-          ]
+                (con unit ())
+              ]
+            )
+          )
         )
       )
     )
@@ -117,34 +128,37 @@
       (lam
         x
         (con integer)
-        (lam
-          y
-          (con integer)
-          [
-            [
+        (let
+          (nonrec)
+          (termbind (strict) (vardecl x (con integer)) x)
+          (lam
+            y
+            (con integer)
+            (let
+              (nonrec)
+              (termbind (strict) (vardecl y (con integer)) y)
               [
-                { (builtin trace) (fun (con unit) (con integer)) }
-                (con string "entering subtractInteger")
-              ]
-              (lam
-                thunk
-                (con unit)
                 [
                   [
-                    { (builtin trace) (con integer) }
-                    (con string "exiting subtractInteger")
+                    { (builtin trace) (fun (con unit) (con integer)) }
+                    (con string "entering subtractInteger")
                   ]
-                  (let
-                    (nonrec)
-                    (termbind (strict) (vardecl x (con integer)) x)
-                    (termbind (strict) (vardecl y (con integer)) y)
-                    [ [ subtractInteger x ] y ]
+                  (lam
+                    thunk
+                    (con unit)
+                    [
+                      [
+                        { (builtin trace) (con integer) }
+                        (con string "exiting subtractInteger")
+                      ]
+                      [ [ subtractInteger x ] y ]
+                    ]
                   )
                 ]
-              )
-            ]
-            (con unit ())
-          ]
+                (con unit ())
+              ]
+            )
+          )
         )
       )
     )
@@ -156,22 +170,23 @@
         (lam
           n
           (con integer)
-          [
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl n (con integer)) n)
             [
               [
-                { (builtin trace) (fun (con unit) (con integer)) }
-                (con string "entering fib")
-              ]
-              (lam
-                thunk
-                (con unit)
                 [
+                  { (builtin trace) (fun (con unit) (con integer)) }
+                  (con string "entering fib")
+                ]
+                (lam
+                  thunk
+                  (con unit)
                   [
-                    { (builtin trace) (con integer) } (con string "exiting fib")
-                  ]
-                  (let
-                    (nonrec)
-                    (termbind (strict) (vardecl n (con integer)) n)
+                    [
+                      { (builtin trace) (con integer) }
+                      (con string "exiting fib")
+                    ]
                     {
                       [
                         [
@@ -222,12 +237,12 @@
                       ]
                       (all dead (type) dead)
                     }
-                  )
-                ]
-              )
+                  ]
+                )
+              ]
+              (con unit ())
             ]
-            (con unit ())
-          ]
+          )
         )
       )
       fib

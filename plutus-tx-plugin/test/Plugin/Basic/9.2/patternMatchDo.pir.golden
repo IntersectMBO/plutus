@@ -71,14 +71,17 @@
       (lam
         x
         (con integer)
-        (lam
-          y
-          (con integer)
-          (let
-            (nonrec)
-            (termbind (strict) (vardecl x (con integer)) x)
-            (termbind (strict) (vardecl y (con integer)) y)
-            [ [ addInteger x ] y ]
+        (let
+          (nonrec)
+          (termbind (strict) (vardecl x (con integer)) x)
+          (lam
+            y
+            (con integer)
+            (let
+              (nonrec)
+              (termbind (strict) (vardecl y (con integer)) y)
+              [ [ addInteger x ] y ]
+            )
           )
         )
       )
@@ -86,65 +89,70 @@
     (lam
       ds
       [ Maybe [ [ Tuple2 (con integer) ] (con integer) ] ]
-      (lam
-        ds
-        [ Maybe (con integer) ]
-        (let
-          (nonrec)
-          (termbind
-            (strict)
-            (vardecl ds [ Maybe [ [ Tuple2 (con integer) ] (con integer) ] ])
-            ds
-          )
-          (termbind (strict) (vardecl ds [ Maybe (con integer) ]) ds)
-          [
+      (let
+        (nonrec)
+        (termbind
+          (strict)
+          (vardecl ds [ Maybe [ [ Tuple2 (con integer) ] (con integer) ] ])
+          ds
+        )
+        (lam
+          ds
+          [ Maybe (con integer) ]
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl ds [ Maybe (con integer) ]) ds)
             [
-              {
-                {
-                  `$fMonadMaybe_$c>>=`
-                  [ [ Tuple2 (con integer) ] (con integer) ]
-                }
-                (con integer)
-              }
-              ds
-            ]
-            (lam
-              ds
-              [ [ Tuple2 (con integer) ] (con integer) ]
               [
                 {
-                  [ { { Tuple2_match (con integer) } (con integer) } ds ]
-                  [ Maybe (con integer) ]
-                }
-                (lam
-                  x
+                  {
+                    `$fMonadMaybe_$c>>=`
+                    [ [ Tuple2 (con integer) ] (con integer) ]
+                  }
                   (con integer)
+                }
+                ds
+              ]
+              (lam
+                ds
+                [ [ Tuple2 (con integer) ] (con integer) ]
+                [
+                  {
+                    [ { { Tuple2_match (con integer) } (con integer) } ds ]
+                    [ Maybe (con integer) ]
+                  }
                   (lam
                     x
                     (con integer)
-                    [
+                    (lam
+                      x
+                      (con integer)
                       [
-                        { { `$fMonadMaybe_$c>>=` (con integer) } (con integer) }
-                        ds
-                      ]
-                      (lam
-                        y'
-                        (con integer)
-                        (let
-                          (nonrec)
-                          (termbind (strict) (vardecl y' (con integer)) y')
-                          [
-                            { `$fApplicativeMaybe_$cpure` (con integer) }
-                            [ [ addInteger [ [ addInteger x ] x ] ] y' ]
-                          ]
+                        [
+                          {
+                            { `$fMonadMaybe_$c>>=` (con integer) } (con integer)
+                          }
+                          ds
+                        ]
+                        (lam
+                          y'
+                          (con integer)
+                          (let
+                            (nonrec)
+                            (termbind (strict) (vardecl y' (con integer)) y')
+                            [
+                              { `$fApplicativeMaybe_$cpure` (con integer) }
+                              [ [ addInteger [ [ addInteger x ] x ] ] y' ]
+                            ]
+                          )
                         )
-                      )
-                    ]
+                      ]
+                    )
                   )
-                )
-              ]
-            )
-          ]
+                ]
+              )
+            ]
+          )
         )
       )
     )

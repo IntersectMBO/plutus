@@ -100,12 +100,12 @@
             (lam
               p
               (fun a Bool)
-              (lam
-                l
-                [ List a ]
-                (let
-                  (nonrec)
-                  (termbind (strict) (vardecl p (fun a Bool)) p)
+              (let
+                (nonrec)
+                (termbind (strict) (vardecl p (fun a Bool)) p)
+                (lam
+                  l
+                  [ List a ]
                   {
                     [
                       [
@@ -187,17 +187,22 @@
             (lam
               x
               (con integer)
-              (lam
-                y
-                (con integer)
-                (let
-                  (nonrec)
-                  (termbind (strict) (vardecl x (con integer)) x)
-                  (termbind (strict) (vardecl y (con integer)) y)
-                  (termbind
-                    (strict) (vardecl b (con bool)) [ [ lessThanInteger x ] y ]
+              (let
+                (nonrec)
+                (termbind (strict) (vardecl x (con integer)) x)
+                (lam
+                  y
+                  (con integer)
+                  (let
+                    (nonrec)
+                    (termbind (strict) (vardecl y (con integer)) y)
+                    (termbind
+                      (strict)
+                      (vardecl b (con bool))
+                      [ [ lessThanInteger x ] y ]
+                    )
+                    [ [ [ { ifThenElse Bool } b ] True ] False ]
                   )
-                  [ [ [ { ifThenElse Bool } b ] True ] False ]
                 )
               )
             )

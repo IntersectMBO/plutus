@@ -74,56 +74,60 @@
         { no-src-span }
         x
         (con { no-src-span } integer)
-        (lam
+        (let
           { no-src-span }
-          y
-          (con { no-src-span } integer)
-          (let
+          (nonrec)
+          (termbind
             { no-src-span }
-            (nonrec)
-            (termbind
+            (strict)
+            (vardecl { no-src-span } x (con { no-src-span } integer))
+            { no-src-span } x
+          )
+          (lam
+            { no-src-span }
+            y
+            (con { no-src-span } integer)
+            (let
               { no-src-span }
-              (strict)
-              (vardecl { no-src-span } x (con { no-src-span } integer))
-              { no-src-span } x
-            )
-            (termbind
-              { no-src-span }
-              (strict)
-              (vardecl { no-src-span } y (con { no-src-span } integer))
-              { no-src-span } y
-            )
-            (termbind
-              { no-src-span }
-              (strict)
-              (vardecl { no-src-span } b (con { no-src-span } bool))
-              [
+              (nonrec)
+              (termbind
                 { no-src-span }
-                [
-                  { no-src-span }
-                  { no-src-span } equalsInteger
-                  { no-src-span } x
-                ]
+                (strict)
+                (vardecl { no-src-span } y (con { no-src-span } integer))
                 { no-src-span } y
-              ]
-            )
-            [
-              { no-src-span }
+              )
+              (termbind
+                { no-src-span }
+                (strict)
+                (vardecl { no-src-span } b (con { no-src-span } bool))
+                [
+                  { no-src-span }
+                  [
+                    { no-src-span }
+                    { no-src-span } equalsInteger
+                    { no-src-span } x
+                  ]
+                  { no-src-span } y
+                ]
+              )
               [
                 { no-src-span }
                 [
                   { no-src-span }
-                  {
+                  [
                     { no-src-span }
-                    { no-src-span } ifThenElse
-                    { no-src-span } Bool
-                  }
-                  { no-src-span } b
+                    {
+                      { no-src-span }
+                      { no-src-span } ifThenElse
+                      { no-src-span } Bool
+                    }
+                    { no-src-span } b
+                  ]
+                  { no-src-span } True
                 ]
-                { no-src-span } True
+                { no-src-span } False
               ]
-              { no-src-span } False
-            ]
+            )
           )
         )
       )
@@ -132,45 +136,49 @@
       { no-src-span }
       ds
       (con { no-src-span } integer)
-      (lam
-        { no-src-span }
-        ds
-        (con { no-src-span } integer)
-        (let
+      (let
+        { test/Plugin/Debug/Spec.hs:38:9-38:87 }
+        (nonrec)
+        (termbind
           { test/Plugin/Debug/Spec.hs:38:9-38:87 }
-          (nonrec)
-          (termbind
+          (strict)
+          (vardecl
             { test/Plugin/Debug/Spec.hs:38:9-38:87 }
-            (strict)
-            (vardecl
-              { test/Plugin/Debug/Spec.hs:38:9-38:87 }
-              ds
-              (con { test/Plugin/Debug/Spec.hs:38:9-38:87 } integer)
-            )
-            { test/Plugin/Debug/Spec.hs:38:9-38:87 } ds
+            ds
+            (con { test/Plugin/Debug/Spec.hs:38:9-38:87 } integer)
           )
-          (termbind
+          { test/Plugin/Debug/Spec.hs:38:9-38:87 } ds
+        )
+        (lam
+          { no-src-span }
+          ds
+          (con { no-src-span } integer)
+          (let
             { test/Plugin/Debug/Spec.hs:38:9-38:87 }
-            (strict)
-            (vardecl
+            (nonrec)
+            (termbind
               { test/Plugin/Debug/Spec.hs:38:9-38:87 }
-              ds
-              (con { test/Plugin/Debug/Spec.hs:38:9-38:87 } integer)
+              (strict)
+              (vardecl
+                { test/Plugin/Debug/Spec.hs:38:9-38:87 }
+                ds
+                (con { test/Plugin/Debug/Spec.hs:38:9-38:87 } integer)
+              )
+              { test/Plugin/Debug/Spec.hs:38:9-38:87 } ds
             )
-            { test/Plugin/Debug/Spec.hs:38:9-38:87 } ds
-          )
-          [
-            { test/Plugin/Debug/Spec.hs:38:9-38:87, test/Plugin/Debug/Spec.hs:38:44-38:86, test/Plugin/Debug/Spec.hs:38:54-38:79 }
             [
               { test/Plugin/Debug/Spec.hs:38:9-38:87, test/Plugin/Debug/Spec.hs:38:44-38:86, test/Plugin/Debug/Spec.hs:38:54-38:79 }
-              { test/Plugin/Debug/Spec.hs:38:9-38:87, test/Plugin/Debug/Spec.hs:38:44-38:86, test/Plugin/Debug/Spec.hs:38:54-38:79 }
-              equalsInteger
-              { test/Plugin/Debug/Spec.hs:38:9-38:87, test/Plugin/Debug/Spec.hs:38:44-38:86, test/Plugin/Debug/Spec.hs:38:54-38:79, test/Plugin/Debug/Spec.hs:38:77-38:77 }
+              [
+                { test/Plugin/Debug/Spec.hs:38:9-38:87, test/Plugin/Debug/Spec.hs:38:44-38:86, test/Plugin/Debug/Spec.hs:38:54-38:79 }
+                { test/Plugin/Debug/Spec.hs:38:9-38:87, test/Plugin/Debug/Spec.hs:38:44-38:86, test/Plugin/Debug/Spec.hs:38:54-38:79 }
+                equalsInteger
+                { test/Plugin/Debug/Spec.hs:38:9-38:87, test/Plugin/Debug/Spec.hs:38:44-38:86, test/Plugin/Debug/Spec.hs:38:54-38:79, test/Plugin/Debug/Spec.hs:38:77-38:77 }
+                ds
+              ]
+              { test/Plugin/Debug/Spec.hs:38:9-38:87, test/Plugin/Debug/Spec.hs:38:44-38:86, test/Plugin/Debug/Spec.hs:38:54-38:79, test/Plugin/Debug/Spec.hs:38:79-38:79 }
               ds
             ]
-            { test/Plugin/Debug/Spec.hs:38:9-38:87, test/Plugin/Debug/Spec.hs:38:44-38:86, test/Plugin/Debug/Spec.hs:38:54-38:79, test/Plugin/Debug/Spec.hs:38:79-38:79 }
-            ds
-          ]
+          )
         )
       )
     )

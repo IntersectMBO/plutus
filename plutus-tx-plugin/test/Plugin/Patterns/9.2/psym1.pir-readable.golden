@@ -4,32 +4,44 @@ let
     ETwo : a -> a -> Example a
   ~`$mEInt'` : all r a. Example a -> (integer -> r) -> (unit -> r) -> r
     = /\r a ->
-        \(scrut : Example a) (cont : integer -> r) (fail : unit -> r) ->
+        \(scrut : Example a) ->
           let
             !scrut : Example a = scrut
-            !cont : integer -> r = cont
-            !fail : unit -> r = fail
           in
-          Example_match
-            {a}
-            scrut
-            {r}
-            (\(i : integer) -> cont i)
-            (\(ipv : a) (ipv : a) -> fail ())
+          \(cont : integer -> r) ->
+            let
+              !cont : integer -> r = cont
+            in
+            \(fail : unit -> r) ->
+              let
+                !fail : unit -> r = fail
+              in
+              Example_match
+                {a}
+                scrut
+                {r}
+                (\(i : integer) -> cont i)
+                (\(ipv : a) (ipv : a) -> fail ())
   ~`$mETwo` : all r a. Example a -> (a -> r) -> (unit -> r) -> r
     = /\r a ->
-        \(scrut : Example a) (cont : a -> r) (fail : unit -> r) ->
+        \(scrut : Example a) ->
           let
             !scrut : Example a = scrut
-            !cont : a -> r = cont
-            !fail : unit -> r = fail
           in
-          Example_match
-            {a}
-            scrut
-            {r}
-            (\(ipv : integer) -> fail ())
-            (\(a : a) (b : a) -> cont b)
+          \(cont : a -> r) ->
+            let
+              !cont : a -> r = cont
+            in
+            \(fail : unit -> r) ->
+              let
+                !fail : unit -> r = fail
+              in
+              Example_match
+                {a}
+                scrut
+                {r}
+                (\(ipv : integer) -> fail ())
+                (\(a : a) (b : a) -> cont b)
 in
 \(ds : Example string) ->
   let
