@@ -3,7 +3,13 @@
 {-# LANGUAGE CPP             #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE ViewPatterns    #-}
-module PlutusTx.IsData.TH (unstableMakeIsData, makeIsDataIndexed, mkConstrCreateExpr, mkUnsafeConstrMatchPattern) where
+module PlutusTx.IsData.TH (
+    unstableMakeIsData
+  , makeIsDataIndexed
+  , mkConstrCreateExpr
+  , mkUnsafeConstrMatchPattern
+  , mkConstrPartsMatchPattern
+  , mkUnsafeConstrPartsMatchPattern) where
 
 import Data.Foldable
 import Data.Traversable
