@@ -1,11 +1,11 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE BangPatterns          #-}
-{-# LANGUAGE CPP                   #-}
-{-# LANGUAGE DerivingStrategies    #-}
-{-# LANGUAGE PatternSynonyms       #-}
-{-# LANGUAGE TemplateHaskellQuotes #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE ViewPatterns          #-}
+{-# LANGUAGE BangPatterns       #-}
+{-# LANGUAGE CPP                #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE PatternSynonyms    #-}
+{-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE TypeApplications   #-}
+{-# LANGUAGE ViewPatterns       #-}
 module PlutusTx.AsData (asData, asDataFor) where
 
 import Control.Lens (ifor)
