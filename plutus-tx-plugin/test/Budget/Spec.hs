@@ -1,12 +1,15 @@
 {-# LANGUAGE BangPatterns          #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NegativeLiterals      #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE PatternSynonyms       #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE ViewPatterns          #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
@@ -15,15 +18,21 @@ module Budget.Spec where
 
 import Test.Tasty.Extras
 
+import PlutusTx.AsData qualified as AsData
 import PlutusTx.Builtins qualified as PlutusTx
 import PlutusTx.Code
-import PlutusTx.IsData qualified as PlutusTx
-import PlutusTx.Lift (liftCodeDef)
+import PlutusTx.IsData qualified as IsData
+import PlutusTx.Lift (liftCodeDef, makeLift)
 import PlutusTx.List qualified as List
 import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Show qualified as PlutusTx
 import PlutusTx.Test (goldenBudget, goldenPirReadable, goldenUPlcReadable)
 import PlutusTx.TH (compile)
+
+AsData.asData [d|
+  data MaybeD a = JustD a | NothingD
+  |]
+makeLift ''MaybeD
 
 tests :: TestNested
 tests = testNestedGhc "Budget" [
@@ -188,6 +197,7 @@ tests = testNestedGhc "Budget" [
   , goldenBudget "ifThenElse2" compiledIfThenElse2
   , goldenUPlcReadable "ifThenElse2" compiledIfThenElse2
   , goldenPirReadable "ifThenElse2" compiledIfThenElse2
+  , goldenBudget "matchAsDataE" matchAsData
   ]
 
 compiledSum :: CompiledCode Integer
@@ -393,8 +403,8 @@ compiledToFromData = $$(compile [||
        v :: Either Integer (Maybe (Bool, Integer, Bool))
        v = Right (Just (True, 1, False))
        d :: PlutusTx.BuiltinData
-       d = PlutusTx.toBuiltinData v
-      in PlutusTx.unsafeFromBuiltinData d ||])
+       d = IsData.toBuiltinData v
+      in IsData.unsafeFromBuiltinData d ||])
 
 doExample :: Maybe Integer -> Maybe Integer -> Maybe Integer
 doExample x y = do
@@ -497,3 +507,10 @@ compiledNotNot =
         ||]
     )
     `PlutusTx.Code.unsafeApplyCode` liftCodeDef 1
+
+matchAsData :: CompiledCode Integer
+matchAsData = $$(compile [||
+  \case
+    JustD a  -> a
+    NothingD -> 1 ||])
+    `PlutusTx.Code.unsafeApplyCode` liftCodeDef (JustD 1)

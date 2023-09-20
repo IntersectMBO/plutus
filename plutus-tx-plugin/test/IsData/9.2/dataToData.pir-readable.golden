@@ -7,40 +7,7 @@ let
   ~`$fToDataUnit_$ctoBuiltinData` : Unit -> data
     = \(ds : Unit) -> mkConstr 0 (mkNilData unitval)
   ~`$fToDataUnit` : (\a -> a -> data) Unit = `$fToDataUnit_$ctoBuiltinData`
-in
-letrec
-  data (List :: * -> *) a | List_match where
-    Nil : List a
-    Cons : a -> List a -> List a
-in
-let
-  ~build : all a. (all b. (a -> b -> b) -> b -> b) -> List a
-    = /\a ->
-        \(g : all b. (a -> b -> b) -> b -> b) ->
-          g {List a} (\(ds : a) (ds : List a) -> Cons {a} ds ds) (Nil {a})
   !mkCons : all a. a -> list a -> list a = mkCons
-in
-letrec
-  ~`$fToBuiltinNilBuiltinList0_$ctoBuiltin` : List data -> list data
-    = \(ds : List data) ->
-        List_match
-          {data}
-          ds
-          {all dead. list data}
-          (/\dead -> mkNilData unitval)
-          (\(d : data) (ds : List data) ->
-             /\dead ->
-               mkCons {data} d (`$fToBuiltinNilBuiltinList0_$ctoBuiltin` ds))
-          {all dead. dead}
-in
-let
-  ~mkConstr : integer -> List data -> data
-    = \(i : integer) (args : List data) ->
-        let
-          !i : integer = i
-          !args : List data = args
-        in
-        mkConstr i (`$fToBuiltinNilBuiltinList0_$ctoBuiltin` args)
   ~toBuiltinData : all a. (\a -> a -> data) a -> a -> data
     = /\a -> \(v : (\a -> a -> data) a) -> v
   ~`$bFirstC` : Unit -> data
@@ -50,11 +17,10 @@ let
         in
         mkConstr
           0
-          (build
+          (mkCons
              {data}
-             (/\a ->
-                \(c : data -> a -> a) (n : a) ->
-                  c (toBuiltinData {Unit} `$fToDataUnit` arg0_) n))
+             (toBuiltinData {Unit} `$fToDataUnit` arg0_)
+             (mkNilData unitval))
   ~fail : unit -> data = \(ds : unit) -> `$bFirstC` Unit
   !mkI : integer -> data = iData
   ~`$fToDataInteger_$ctoBuiltinData` : integer -> data
@@ -68,11 +34,10 @@ let
         in
         mkConstr
           1
-          (build
+          (mkCons
              {data}
-             (/\a ->
-                \(c : data -> a -> a) (n : a) ->
-                  c (toBuiltinData {integer} `$fToDataInteger` arg0_) n))
+             (toBuiltinData {integer} `$fToDataInteger` arg0_)
+             (mkNilData unitval))
   data Bool | Bool_match where
     True : Bool
     False : Bool
@@ -91,58 +56,29 @@ let
   ~`$fUnsafeFromDataInteger` : (\a -> data -> a) integer = unsafeDataAsI
   ~`==` : all a. (\a -> a -> a -> Bool) a -> a -> a -> Bool
     = /\a -> \(v : (\a -> a -> a -> Bool) a) -> v
-  !chooseList : all a b. list a -> b -> b -> b = chooseList
-  !head : all a. list a -> a = headList
-  !tail : all a. list a -> list a = tailList
-  ~`$fFromBuiltinBuiltinListNil_$cfromBuiltin` :
-     all arep a. (\arep a -> arep -> a) arep a -> list arep -> List a
-    = /\arep a ->
-        \(`$dFromBuiltin` : (\arep a -> arep -> a) arep a) ->
-          letrec
-            ~go : list arep -> List a
-              = \(l : list arep) ->
-                  let
-                    !l : list arep = l
-                  in
-                  chooseList
-                    {arep}
-                    {unit -> List a}
-                    l
-                    (\(ds : unit) -> Nil {a})
-                    (\(ds : unit) ->
-                       Cons
-                         {a}
-                         (`$dFromBuiltin` (head {arep} l))
-                         (go (tail {arep} l)))
-                    unitval
-          in
-          \(eta : list arep) -> go eta
+  !fst : all a b. pair a b -> a = fstPair
+  !snd : all a b. pair a b -> b = sndPair
   data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
     Tuple2 : a -> b -> Tuple2 a b
-  !fst : all a b. pair a b -> a = fstPair
-  ~id : all a. a -> a = /\a -> \(x : a) -> x
-  !snd : all a b. pair a b -> b = sndPair
-  !unsafeDataAsConstr : data -> pair integer (list data) = unConstrData
-  ~unsafeDataAsConstr : data -> Tuple2 integer (List data)
-    = \(d : data) ->
-        let
-          !d : data = d
-          !p : pair integer (list data) = unsafeDataAsConstr d
-        in
-        Tuple2
-          {integer}
-          {List data}
-          (fst {integer} {list data} p)
-          (let
-            !a : list data = snd {integer} {list data} p
+  ~pairToPair : all a b. pair a b -> Tuple2 a b
+    = /\a b ->
+        \(tup : pair a b) ->
+          let
+            !tup : pair a b = tup
           in
-          `$fFromBuiltinBuiltinListNil_$cfromBuiltin`
-            {data}
-            {data}
-            (id {data})
-            a)
+          Tuple2 {a} {b} (fst {a} {b} tup) (snd {a} {b} tup)
+  !unsafeDataAsConstr : data -> pair integer (list data) = unConstrData
   ~unsafeFromBuiltinData : all a. (\a -> data -> a) a -> data -> a
     = /\a -> \(v : (\a -> data -> a) a) -> v
+  !head : all a. list a -> a = headList
+  !tail : all a. list a -> list a = tailList
+  ~unsafeUncons : all a. list a -> Tuple2 a (list a)
+    = /\a ->
+        \(l : list a) ->
+          let
+            !l : list a = l
+          in
+          Tuple2 {a} {list a} (head {a} l) (tail {a} l)
   ~`$mRecordConstructor` :
      all r a.
        (\a -> a -> data) a ->
@@ -161,51 +97,29 @@ let
             !nt : data = scrut
             !cont : a -> integer -> r = cont
             !fail : unit -> r = fail
-            ~fail : unit -> r = \(ds : unit) -> fail ()
           in
           Tuple2_match
             {integer}
-            {List data}
-            (unsafeDataAsConstr nt)
+            {list data}
+            (pairToPair {integer} {list data} (unsafeDataAsConstr nt))
             {r}
-            (\(ds : integer) (ds : List data) ->
+            (\(ds : integer) (ds : list data) ->
                Bool_match
                  (`==` {integer} `$fEqInteger` 0 ds)
                  {all dead. r}
                  (/\dead ->
-                    List_match
+                    Tuple2_match
                       {data}
-                      ds
-                      {all dead. r}
-                      (/\dead -> fail ())
-                      (\(ds : data) (ds : List data) ->
-                         /\dead ->
-                           List_match
-                             {data}
-                             ds
-                             {all dead. r}
-                             (/\dead -> fail ())
-                             (\(ds : data) (ds : List data) ->
-                                /\dead ->
-                                  List_match
-                                    {data}
-                                    ds
-                                    {all dead. r}
-                                    (/\dead ->
-                                       cont
-                                         (unsafeFromBuiltinData
-                                            {a}
-                                            `$dUnsafeFromData`
-                                            ds)
-                                         (unsafeFromBuiltinData
-                                            {integer}
-                                            `$fUnsafeFromDataInteger`
-                                            ds))
-                                    (\(ipv : data) (ipv : List data) ->
-                                       /\dead -> fail ())
-                                    {all dead. dead})
-                             {all dead. dead})
-                      {all dead. dead})
+                      {list data}
+                      (unsafeUncons {data} ds)
+                      {r}
+                      (\(ds : data) (ds : list data) ->
+                         cont
+                           (unsafeFromBuiltinData {a} `$dUnsafeFromData` ds)
+                           (unsafeFromBuiltinData
+                              {integer}
+                              `$fUnsafeFromDataInteger`
+                              (head {data} ds))))
                  (/\dead -> fail ())
                  {all dead. dead})
   !addInteger : integer -> integer -> integer = addInteger

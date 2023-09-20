@@ -1,11 +1,11 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE BangPatterns          #-}
-{-# LANGUAGE CPP                   #-}
-{-# LANGUAGE DerivingStrategies    #-}
-{-# LANGUAGE PatternSynonyms       #-}
-{-# LANGUAGE TemplateHaskellQuotes #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE ViewPatterns          #-}
+{-# LANGUAGE BangPatterns       #-}
+{-# LANGUAGE CPP                #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE PatternSynonyms    #-}
+{-# LANGUAGE TemplateHaskell    #-}
+{-# LANGUAGE TypeApplications   #-}
+{-# LANGUAGE ViewPatterns       #-}
 module PlutusTx.AsData (asData, asDataFor) where
 
 import Control.Lens (ifor)
@@ -17,10 +17,9 @@ import Language.Haskell.TH qualified as TH
 import Language.Haskell.TH.Datatype qualified as TH
 import Language.Haskell.TH.Datatype.TyVarBndr qualified as TH
 
-import PlutusTx.Eq qualified as PlutusTx
-
 import PlutusTx.Builtins as Builtins
 import PlutusTx.IsData.Class
+import PlutusTx.IsData.TH (mkConstrCreateExpr, mkUnsafeConstrMatchPattern)
 
 import Prelude
 
@@ -54,11 +53,11 @@ becomes
       deriving newtype (Eq)
 
     pattern Ex1 :: (ToData a, UnsafeFromData a) => Integer -> Example a
-    pattern Ex1 i = Example (unsafeDataAsConstr -> ((==) 0 -> True, [unsafeFromBuiltinData -> i]))
+    pattern Ex1 i <- Example (unsafeDataAsConstr -> ((==) 0 -> True, [unsafeFromBuiltinData -> i]))
       where Ex1 i = Example (mkConstr 0 [toBuiltinData i])
 
     pattern Ex2 :: (ToData a, UnsafeFromData a) => a -> a -> Example a
-    pattern Ex2 a1 a2 = Example (unsafeDataAsConstr -> ((==) 1 -> True, [unsafeFromBuiltinData -> a1, unsafeFromBuiltinData -> a2]))
+    pattern Ex2 a1 a2 <- Example (unsafeDataAsConstr -> ((==) 1 -> True, [unsafeFromBuiltinData -> a1, unsafeFromBuiltinData -> a2]))
       where Ex2 a1 a2 = Example (mkConstr 1 [toBuiltinData a1, toBuiltinData a2])
 
     {-# COMPLETE Ex1, Ex2 #-}
@@ -99,50 +98,32 @@ asDataFor dec = do
     let extractFieldNames = fieldNames
     createFieldNames <- for fieldNames (TH.newName . show)
     patSynArgs <- case cVariant of
-      TH.NormalConstructor   -> pure $ TH.PrefixPatSyn extractFieldNames
-      TH.RecordConstructor _ -> pure $ TH.RecordPatSyn extractFieldNames
+      TH.NormalConstructor   -> pure $ TH.prefixPatSyn extractFieldNames
+      TH.RecordConstructor _ -> pure $ TH.recordPatSyn extractFieldNames
       TH.InfixConstructor    -> case extractFieldNames of
-        [f1,f2] -> pure $ TH.InfixPatSyn f1 f2
+        [f1,f2] -> pure $ TH.infixPatSyn f1 f2
         _       -> fail "asData: infix data constructor with other than two fields"
     let
-      dataConstraints t = [TH.ConT ''ToData `TH.AppT` t, TH.ConT ''UnsafeFromData `TH.AppT` t]
-      ixLit = TH.IntegerL (fromIntegral conIx)
-      -- (==) i -> True
-      ixMatchPat = TH.ViewP (TH.VarE '(PlutusTx.==) `TH.AppE` TH.LitE ixLit) (ConP' 'True [])
-      -- [unsafeFromBuiltinData -> arg1, ...]
-      extractArgPats = (flip fmap) (zip fields extractFieldNames) $ \(ty, n) ->
-        TH.ViewP (TH.VarE 'unsafeFromBuiltinData `TH.AppTypeE` ty) (TH.VarP n)
-      -- unsafeDataAsConstr -> ((==) i -> True, [unsafeFromBuiltinData -> arg1, ...])
-      pat = ConP' cname [TH.ViewP (TH.VarE 'Builtins.unsafeDataAsConstr) (TH.TupP [ixMatchPat, TH.ListP extractArgPats])]
-      -- [toBuiltinData arg1, ...]
-      createArgExprs = (flip fmap) (zip fields createFieldNames) $ \(ty, n) ->
-        TH.VarE 'toBuiltinData `TH.AppTypeE` ty `TH.AppE` (TH.VarE n)
-      -- mkConstr i [toBuiltinData arg1, ...]
-      createExpr = TH.ConE cname `TH.AppE` (TH.VarE 'Builtins.mkConstr `TH.AppE` TH.LitE ixLit `TH.AppE` TH.ListE createArgExprs)
-      -- arg1 ... = mkConstr i [toBuiltinData arg1, ...]
-      clause = TH.Clause (fmap TH.VarP createFieldNames) (TH.NormalB createExpr) []
 
+      pat = TH.conP cname [mkUnsafeConstrMatchPattern (fromIntegral conIx) extractFieldNames]
+
+      createExpr = [| $(TH.conE cname) $(mkConstrCreateExpr (fromIntegral conIx) createFieldNames) |]
+      clause = TH.clause (fmap TH.varP createFieldNames) (TH.normalB createExpr) []
+      patSynD = TH.patSynD conName patSynArgs (TH.explBidir [clause]) pat
+
+    let
+      dataConstraints t = [TH.ConT ''ToData `TH.AppT` t, TH.ConT ''UnsafeFromData `TH.AppT` t]
       ctxFor vars = concatMap (dataConstraints . TH.VarT . TH.tvName) vars
       -- Try and be a little clever and only add constraints on the variables
       -- used in the arguments
       varsInArgs = TH.freeVariablesWellScoped fields
       ctxForArgs = ctxFor varsInArgs
-
       conTy = foldr (\ty acc -> TH.ArrowT `TH.AppT` ty `TH.AppT` acc) (TH.datatypeType di) fields
       allFreeVars = TH.freeVariablesWellScoped [conTy]
       fullTy = TH.ForallT (TH.changeTVFlags TH.SpecifiedSpec allFreeVars) ctxForArgs conTy
-    let
-      patSynSigD = TH.PatSynSigD conName fullTy
-      patSynD = TH.PatSynD conName patSynArgs (TH.ExplBidir [clause]) pat
-    pure [patSynSigD, patSynD]
+      patSynSigD = pure $ TH.PatSynSigD conName fullTy
+
+    sequence [patSynSigD, patSynD]
   -- A complete pragma, to top it off
   let compl = TH.PragmaD (TH.CompleteP (fmap TH.constructorName cons) Nothing)
   pure $ ntD : compl : concat pats
-
--- compat for different signature of ConP in old TH
-pattern ConP' :: TH.Name -> [TH.Pat] -> TH.Pat
-#if MIN_VERSION_template_haskell(2,18,0)
-pattern ConP' name pats = TH.ConP name [] pats
-#else
-pattern ConP' name pats = TH.ConP name pats
-#endif
