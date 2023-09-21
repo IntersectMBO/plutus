@@ -3,6 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 module PlutusTx.List (
+    uncons,
     null,
     map,
     and,
@@ -20,10 +21,14 @@ module PlutusTx.List (
     foldr,
     foldl,
     reverse,
+    concat,
+    concatMap,
     zip,
+    unzip,
     (++),
     (!!),
     head,
+    last,
     tail,
     take,
     drop,
@@ -48,6 +53,13 @@ import PlutusTx.Trace (traceError)
 import Prelude (Maybe (..), (.))
 
 {- HLINT ignore -}
+
+{-# INLINABLE uncons #-}
+-- | Plutus Tx version of 'Data.List.uncons'.
+uncons :: [a] -> Maybe (a, [a])
+uncons = \case
+    []   -> Nothing
+    x:xs -> Just (x, xs)
 
 {-# INLINABLE null #-}
 -- | Test whether a list is empty.
@@ -162,6 +174,19 @@ infixr 5 ++
 (++) :: [a] -> [a] -> [a]
 (++) l r = foldr (:) r l
 
+{-# INLINABLE concat #-}
+-- | Plutus Tx version of 'Data.List.concat'.
+--
+--   >>> concat [[1, 2], [3], [4, 5]]
+--   [1,2,3,4,5]
+concat :: [[a]] -> [a]
+concat = foldr (++) []
+
+{-# INLINABLE concatMap #-}
+-- | Plutus Tx version of 'Data.List.concatMap'.
+concatMap :: (a -> [b]) -> [a] -> [b]
+concatMap f = foldr (\x ys -> f x ++ ys) []
+
 {-# INLINABLE filter #-}
 -- | Plutus Tx version of 'Data.List.filter'.
 --
@@ -235,11 +260,25 @@ zip []     _bs    = []
 zip _as    []     = []
 zip (a:as) (b:bs) = (a,b) : zip as bs
 
+{-# INLINABLE unzip #-}
+-- | Plutus Tx version of 'Data.List.unzip'.
+unzip :: [(a,b)] -> ([a], [b])
+unzip []             = ([], [])
+unzip ((x, y) : xys) = case unzip xys of
+    (xs, ys) -> (x : xs, y : ys)
+
 {-# INLINABLE head #-}
 -- | Plutus Tx version of 'Data.List.head'.
 head :: [a] -> a
 head []      = traceError headEmptyListError
 head (x : _) = x
+
+{-# INLINABLE last #-}
+-- | Plutus Tx version of 'Data.List.last'.
+last :: [a] -> a
+last [x]    =  x
+last (_:xs) =  last xs
+last []     =  traceError lastEmptyListError
 
 {-# INLINABLE tail #-}
 -- | Plutus Tx version of 'Data.List.tail'.

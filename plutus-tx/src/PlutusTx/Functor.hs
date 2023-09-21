@@ -1,7 +1,7 @@
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE LambdaCase   #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-module PlutusTx.Functor (Functor(..), (<$>), (<$)) where
+module PlutusTx.Functor (Functor(..), (<$>), (<&>), (<$)) where
 
 import Control.Applicative (Const (..))
 import Data.Functor.Identity (Identity (..))
@@ -26,6 +26,12 @@ infixl 4 <$>
 {-# INLINABLE (<$>) #-}
 (<$>) :: Functor f => (a -> b) -> f a -> f b
 (<$>) = fmap
+
+infixl 1 <&>
+-- | Plutus Tx version of '(Data.Functor.<&>)'.
+{-# INLINABLE (<&>) #-}
+(<&>) :: Functor f => f a -> (a -> b) -> f b
+as <&> f = f <$> as
 
 infixl 4 <$
 {-# INLINABLE (<$) #-}
