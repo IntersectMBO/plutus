@@ -218,17 +218,17 @@ processTerm =
     v@(Var _ n) -> fromMaybe v <$> substName n
 
     -- See Note [Differences from PIR inliner] 3
-    (extractApps -> Just (bs, t)) -> do
-      bs' <- wither (processSingleBinding t) bs
-      t' <- processTerm t
-      pure $ restoreApps bs' t'
+    tm@(UPLC.splitApplication -> (hd, args)) -> do
 
-    t -> do
-      -- See note [Processing order of call site inlining]
-          let (hd, args) = UPLC.splitApplication t
-          case args of
+      case extractApps tm of
+          Just (bs, t) -> do
+            bs' <- wither (processSingleBinding t) bs
+            t' <- processTerm t
+            pure $ restoreApps bs' t'
+          Nothing -> do
+            case args of
               -- not really an application, so hd is the term itself. Processing it will loop.
-              [] -> forMOf termSubterms t processTerm
+              [] -> forMOf termSubterms tm processTerm
               _ -> do
                   hd' <- processTerm hd
                   processedArgs <- forM (fmap snd args) processTerm
