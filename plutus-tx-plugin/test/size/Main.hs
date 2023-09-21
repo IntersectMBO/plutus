@@ -11,8 +11,11 @@ import PlutusTx.Ratio qualified as PlutusRatio
 import PlutusTx.Test
 import PlutusTx.TH (compile)
 import Prelude
-import Test.Tasty (defaultMain, testGroup)
-import Test.Tasty.Extras (runTestNested)
+import Test.Tasty (TestTree, defaultMain, testGroup)
+import Test.Tasty.Extras (TestNested, runTestNestedIn)
+
+runTestNested :: TestNested -> TestTree
+runTestNested = runTestNestedIn ["test", "size"]
 
 main :: IO ()
 main = defaultMain . testGroup "Size regression tests" $ [
