@@ -2,69 +2,69 @@
 
 let
 
-  latex-documents = lib.flip lib.mapAttrValues nix.plutus.build-latex-doc {
+  latex-documents = {
 
-    cost-model-notes = {
+    cost-model-notes = nix.plutus.build-latex-doc {
       name = "cost-model-notes";
       src = inputs.self + /doc/notes/cost-model-notes;
       description = "Notes on cost models";
       texFiles = [ "cost-model-notes.tex" ];
     };
 
-    eutxo-paper = {
+    eutxo-paper = nix.plutus.build-latex-doc {
       name = "eutxo-paper";
       description = "eutxo";
       src = inputs.self + /doc/papers/eutxo;
       texFiles = [ "eutxo.tex" ];
     };
 
-    eutxoma-paper = {
+    eutxoma-paper = nix.plutus.build-latex-doc {
       name = "eutxoma-paper";
       description = "eutxoma";
       src = inputs.self + /doc/papers/eutxoma;
       texFiles = [ "eutxoma.tex" ];
     };
 
-    extended-utxo-spec = {
+    extended-utxo-spec = nix.plutus.build-latex-doc {
       name = "extended-utxo-spec";
       src = inputs.self + /doc/extended-utxo-spec;
       description = "Extended UTXO specification";
     };
 
-    lazy-machine-notes = {
+    lazy-machine-notes = nix.plutus.build-latex-doc {
       name = "lazy-machine-notes";
       src = inputs.self + /doc/notes/fomega/lazy-machine;
       texFiles = [ "lazy-plutus-core.tex" ];
       description = "lazy machine discussion";
     };
 
-    multi-currency-notes = {
+    multi-currency-notes = nix.plutus.build-latex-doc {
       name = "multi-currency-notes";
       src = inputs.self + /doc/notes/multi-currency;
       description = "Multi-currency paper";
     };
 
-    plutus-core-spec-old = {
+    plutus-core-spec-old = nix.plutus.build-latex-doc {
       name = "plutus-core-spec-old";
       description = "Plutus core specification (old version)";
       src = inputs.self + /doc/plutus-core-spec-old;
     };
 
-    plutus-core-spec = {
+    plutus-core-spec = nix.plutus.build-latex-doc {
       name = "plutus-core-spec";
       description = "Plutus core specification";
       src = inputs.self + /doc/plutus-core-spec;
       texFiles = [ "plutus-core-specification.tex" ];
     };
 
-    plutus-report = {
+    plutus-report = nix.plutus.build-latex-doc {
       name = "plutus-report";
       description = "plutus report";
       src = inputs.self + /doc/plutus-report;
       texFiles = [ "plutus.tex" ];
     };
 
-    system-f-in-agda-paper = {
+    system-f-in-agda-paper = nix.plutus.build-latex-doc {
       name = "system-f-in-agda-paper";
       src = inputs.self + /doc/papers/system-f-in-agda;
       description = "system-f in agda";
@@ -73,7 +73,7 @@ let
       agdaFile = "paper.lagda";
     };
 
-    utxoma-paper = {
+    utxoma-paper = nix.plutus.build-latex-doc {
       name = "utxoma-paper";
       description = "utxoma";
       src = inputs.self + /doc/papers/utxoma;

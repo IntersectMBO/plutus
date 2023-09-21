@@ -7,6 +7,8 @@
       url = "github:input-output-hk/iogx";
       inputs.hackage.follows = "hackage";
       inputs.CHaP.follows = "CHaP";
+      inputs.haskell-nix.follows = "haskell-nix";
+      inputs.nixpkgs.follows = "haskell-nix/nixpkgs-2305";
     };
 
     hackage = {
@@ -18,6 +20,10 @@
       url = "github:input-output-hk/cardano-haskell-packages?ref=repo";
       flake = false;
     };
+
+    haskell-nix = {
+      url = "github:input-output-hk/haskell.nix/2159062154595d3ffc682e954189e635d1a1953f";
+    };
   };
 
 
@@ -25,7 +31,7 @@
     inherit inputs;
     repoRoot = ./.;
     systems = [ "x86_64-darwin" "x86_64-linux" "aarch64-darwin" ];
-    outputs = ./nix/outputs.nix;
+    outputs = import ./nix/outputs.nix;
   };
 
 

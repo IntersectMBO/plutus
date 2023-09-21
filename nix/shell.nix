@@ -30,6 +30,27 @@ cabalProject:
   ];
 
 
+  scripts.assemble-changelog = {
+    description = "Assembles the changelog for PACKAGE at VERSION";
+    exec = repoRoot.scripts.assemble-changelog;
+    group = "changelog";
+  };
+
+
+  scripts.prepare-release = {
+    description = "Prepares to release PACKAGEs at VERSION";
+    exec = repoRoot.scripts.prepare-release;
+    group = "changelog";
+  };
+
+
+  scripts.update-version = {
+    description = "Updates the version for PACKAGE to VERSION";
+    exec = repoRoot.scripts.update-version;
+    group = "changelog";
+  };
+
+
   preCommit = {
     stylish-haskell.enable = true;
     cabal-fmt.enable = true;

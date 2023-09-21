@@ -7,7 +7,7 @@ let
 
     name = "plutus";
 
-    compiler-nix-name = lib.mkDefault "ghc927";
+    compiler-nix-name = lib.mkDefault "ghc92";
 
     src = ../.;
 
@@ -21,14 +21,10 @@ let
     };
 
     flake.variants = {
-      ghc927 = { }; # Alias for the default project
-      ghc927-profiled.modules = [{ enableProfiling = true; }];
-      ghc8107.compiler-nix-name = "ghc8107";
-      ghc962.compiler-nix-name = "ghc962";
-    };
-
-    sha256map = {
-      "https://github.com/tweag/HaskellR"."411d15fe5027494123e326c838955eff1c8e7ec8" = "0jax08z81xbfs3xz7zkk7x83cmr487iglifmxri205mf5bcj8ycj";
+      ghc92 = { }; # Alias for the default project
+      ghc92-profiled.modules = [{ enableProfiling = true; }];
+      ghc810.compiler-nix-name = "ghc810";
+      ghc96.compiler-nix-name = "ghc96";
     };
 
     inputMap = { "https://input-output-hk.github.io/cardano-haskell-packages" = inputs.CHaP; };
@@ -135,10 +131,10 @@ let
   };
 
 
-  project = lib.iogx.mkHaskellProject {
+  project = lib.iogx.mkProject {
     inherit cabalProjectArgs;
     readTheDocs.siteFolder = "doc/read-the-docs-site";
-    shellFor = repoRoot.nix.make-shell;
+    shellArgsForProjectVariant = repoRoot.nix.shell;
     combinedHaddock = {
       enable = true;
       prologue = ''

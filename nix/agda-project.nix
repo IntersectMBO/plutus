@@ -1,11 +1,11 @@
-{ pkgs, lib, ... }:
+{ inputs, pkgs, lib, ... }:
 
 pkgs.haskell-nix.hackage-project {
   name = "Agda";
 
   version = "2.6.2.2";
 
-  compiler-nix-name = "ghc927";
+  compiler-nix-name = inputs.self.cabalProject.args.compiler-nix-name;
 
   cabalProjectLocal = ''
     extra-packages: ieee754, filemanip
