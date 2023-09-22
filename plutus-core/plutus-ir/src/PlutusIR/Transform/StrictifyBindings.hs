@@ -11,23 +11,32 @@ import PlutusIR
 import PlutusIR.Purity
 
 import Control.Lens (transformOf)
+import PlutusCore.Name qualified as PLC
+import PlutusIR.Analysis.Builtins
+import PlutusIR.Analysis.VarInfo
 
 strictifyBindingsStep
-    :: (ToBuiltinMeaning uni fun)
-    => BuiltinSemanticsVariant fun
+    :: (ToBuiltinMeaning uni fun, PLC.HasUnique name PLC.TermUnique)
+    => BuiltinsInfo uni fun
+    -> VarsInfo tyname name
     -> Term tyname name uni fun a
     -> Term tyname name uni fun a
-strictifyBindingsStep semvar = \case
+strictifyBindingsStep binfo vinfo = \case
     Let a s bs t -> Let a s (fmap strictifyBinding bs) t
       where
         strictifyBinding (TermBind x NonStrict vd rhs)
-          | isPure semvar (const NonStrict) rhs = TermBind x Strict vd rhs
+          | isPure binfo vinfo rhs = TermBind x Strict vd rhs
         strictifyBinding b = b
     t                                    -> t
 
 strictifyBindings
-    :: (ToBuiltinMeaning uni fun)
-    => BuiltinSemanticsVariant fun
+    :: (ToBuiltinMeaning uni fun, PLC.HasUnique name PLC.TermUnique
+    , PLC.HasUnique tyname PLC.TypeUnique)
+    => BuiltinsInfo uni fun
     -> Term tyname name uni fun a
     -> Term tyname name uni fun a
-strictifyBindings semvar = transformOf termSubterms (strictifyBindingsStep semvar)
+strictifyBindings binfo term =
+  transformOf
+    termSubterms
+    (strictifyBindingsStep binfo (termVarInfo term))
+    term

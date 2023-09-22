@@ -32,15 +32,14 @@
             (lam
               f
               (fun a (fun b b))
-              (lam
-                z
-                b
+              (let
+                (nonrec)
+                (termbind (strict) (vardecl f (fun a (fun b b))) f)
                 (lam
-                  eta
-                  [ List a ]
+                  z
+                  b
                   (let
                     (nonrec)
-                    (termbind (strict) (vardecl f (fun a (fun b b))) f)
                     (termbind (strict) (vardecl z b) z)
                     (let
                       (rec)
@@ -70,7 +69,7 @@
                           }
                         )
                       )
-                      [ go eta ]
+                      (lam eta [ List a ] [ go eta ])
                     )
                   )
                 )
@@ -190,74 +189,84 @@
                       (lam
                         c
                         (fun a (fun b b))
-                        (lam
-                          n
-                          b
-                          (let
-                            (nonrec)
-                            (termbind (strict) (vardecl c (fun a (fun b b))) c)
-                            (termbind (strict) (vardecl n b) n)
-                            [
+                        (let
+                          (nonrec)
+                          (termbind (strict) (vardecl c (fun a (fun b b))) c)
+                          (lam
+                            n
+                            b
+                            (let
+                              (nonrec)
+                              (termbind (strict) (vardecl n b) n)
                               [
                                 [
-                                  { { `$dFoldable` [ List a ] } b }
-                                  (lam
-                                    x
-                                    [ List a ]
+                                  [
+                                    { { `$dFoldable` [ List a ] } b }
                                     (lam
-                                      y
-                                      b
+                                      x
+                                      [ List a ]
                                       (let
                                         (nonrec)
                                         (termbind
                                           (strict) (vardecl x [ List a ]) x
                                         )
-                                        (termbind (strict) (vardecl y b) y)
-                                        (let
-                                          (rec)
-                                          (termbind
-                                            (nonstrict)
-                                            (vardecl go (fun [ List a ] b))
-                                            (lam
-                                              ds
-                                              [ List a ]
-                                              {
-                                                [
-                                                  [
-                                                    {
-                                                      [ { List_match a } ds ]
-                                                      (all dead (type) b)
-                                                    }
-                                                    (abs dead (type) y)
-                                                  ]
-                                                  (lam
-                                                    x
-                                                    a
-                                                    (lam
-                                                      xs
-                                                      [ List a ]
-                                                      (abs
-                                                        dead
-                                                        (type)
-                                                        [ [ c x ] [ go xs ] ]
+                                        (lam
+                                          y
+                                          b
+                                          (let
+                                            (nonrec)
+                                            (termbind (strict) (vardecl y b) y)
+                                            (let
+                                              (rec)
+                                              (termbind
+                                                (nonstrict)
+                                                (vardecl go (fun [ List a ] b))
+                                                (lam
+                                                  ds
+                                                  [ List a ]
+                                                  {
+                                                    [
+                                                      [
+                                                        {
+                                                          [
+                                                            { List_match a } ds
+                                                          ]
+                                                          (all dead (type) b)
+                                                        }
+                                                        (abs dead (type) y)
+                                                      ]
+                                                      (lam
+                                                        x
+                                                        a
+                                                        (lam
+                                                          xs
+                                                          [ List a ]
+                                                          (abs
+                                                            dead
+                                                            (type)
+                                                            [
+                                                              [ c x ] [ go xs ]
+                                                            ]
+                                                          )
+                                                        )
                                                       )
-                                                    )
-                                                  )
-                                                ]
-                                                (all dead (type) dead)
-                                              }
+                                                    ]
+                                                    (all dead (type) dead)
+                                                  }
+                                                )
+                                              )
+                                              [ go x ]
                                             )
                                           )
-                                          [ go x ]
                                         )
                                       )
                                     )
-                                  )
+                                  ]
+                                  n
                                 ]
-                                n
+                                xs
                               ]
-                              xs
-                            ]
+                            )
                           )
                         )
                       )

@@ -16,6 +16,7 @@ import PlutusCore.Executable.Parsers
 import PlutusCore.Quote (runQuoteT)
 import PlutusIR as PIR
 import PlutusIR.Analysis.RetainedSize qualified as PIR
+import PlutusIR.Analysis.VarInfo
 import PlutusIR.Compiler qualified as PIR
 import PlutusIR.Core.Instance.Pretty ()
 import PlutusIR.Core.Plated
@@ -239,7 +240,7 @@ loadPirAndAnalyse (AnalyseOptions inp ifmt outp) = do
         nameTable = IM.fromList [(coerce $ _nameUnique n , _nameText n) | n <- names]
 
         -- build the retentionMap
-        retentionMap = PIR.termRetentionMap def term
+        retentionMap = PIR.termRetentionMap def (termVarInfo term) term
         -- sort the map by decreasing retained size
         sortedRetained = sortOn (negate . snd) $ IM.assocs retentionMap
 

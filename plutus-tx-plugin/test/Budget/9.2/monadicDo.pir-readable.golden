@@ -12,20 +12,14 @@ let
             (\(x : a) -> /\dead -> k x)
             (/\dead -> Nothing {b})
             {all dead. dead}
-  !x : Maybe integer = Just {integer} 1
-  !y : Maybe integer = Just {integer} 2
 in
 `$fMonadMaybe_$c>>=`
   {integer}
   {integer}
-  x
+  (Just {integer} 1)
   (\(x' : integer) ->
      `$fMonadMaybe_$c>>=`
        {integer}
        {integer}
-       y
-       (\(y' : integer) ->
-          let
-            !ds : integer = addInteger x' y'
-          in
-          Just {integer} ds))
+       (Just {integer} 2)
+       (\(y' : integer) -> Just {integer} (addInteger x' y')))

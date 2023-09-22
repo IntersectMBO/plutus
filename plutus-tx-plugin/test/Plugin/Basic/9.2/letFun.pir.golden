@@ -26,15 +26,20 @@
       (lam
         x
         (con integer)
-        (lam
-          y
-          (con integer)
-          (let
-            (nonrec)
-            (termbind (strict) (vardecl x (con integer)) x)
-            (termbind (strict) (vardecl y (con integer)) y)
-            (termbind (strict) (vardecl b (con bool)) [ [ equalsInteger x ] y ])
-            [ [ [ { ifThenElse Bool } b ] True ] False ]
+        (let
+          (nonrec)
+          (termbind (strict) (vardecl x (con integer)) x)
+          (lam
+            y
+            (con integer)
+            (let
+              (nonrec)
+              (termbind (strict) (vardecl y (con integer)) y)
+              (termbind
+                (strict) (vardecl b (con bool)) [ [ equalsInteger x ] y ]
+              )
+              [ [ [ { ifThenElse Bool } b ] True ] False ]
+            )
           )
         )
       )
@@ -42,14 +47,17 @@
     (lam
       ds
       (con integer)
-      (lam
-        ds
-        (con integer)
-        (let
-          (nonrec)
-          (termbind (strict) (vardecl ds (con integer)) ds)
-          (termbind (strict) (vardecl ds (con integer)) ds)
-          [ [ equalsInteger ds ] ds ]
+      (let
+        (nonrec)
+        (termbind (strict) (vardecl ds (con integer)) ds)
+        (lam
+          ds
+          (con integer)
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl ds (con integer)) ds)
+            [ [ equalsInteger ds ] ds ]
+          )
         )
       )
     )

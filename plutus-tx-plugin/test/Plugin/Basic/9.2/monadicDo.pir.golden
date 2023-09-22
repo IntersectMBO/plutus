@@ -63,14 +63,17 @@
       (lam
         x
         (con integer)
-        (lam
-          y
-          (con integer)
-          (let
-            (nonrec)
-            (termbind (strict) (vardecl x (con integer)) x)
-            (termbind (strict) (vardecl y (con integer)) y)
-            [ [ addInteger x ] y ]
+        (let
+          (nonrec)
+          (termbind (strict) (vardecl x (con integer)) x)
+          (lam
+            y
+            (con integer)
+            (let
+              (nonrec)
+              (termbind (strict) (vardecl y (con integer)) y)
+              [ [ addInteger x ] y ]
+            )
           )
         )
       )
@@ -78,41 +81,45 @@
     (lam
       ds
       [ Maybe (con integer) ]
-      (lam
-        ds
-        [ Maybe (con integer) ]
-        (let
-          (nonrec)
-          (termbind (strict) (vardecl ds [ Maybe (con integer) ]) ds)
-          (termbind (strict) (vardecl ds [ Maybe (con integer) ]) ds)
-          [
-            [ { { `$fMonadMaybe_$c>>=` (con integer) } (con integer) } ds ]
-            (lam
-              x'
-              (con integer)
-              (let
-                (nonrec)
-                (termbind (strict) (vardecl x' (con integer)) x')
-                [
+      (let
+        (nonrec)
+        (termbind (strict) (vardecl ds [ Maybe (con integer) ]) ds)
+        (lam
+          ds
+          [ Maybe (con integer) ]
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl ds [ Maybe (con integer) ]) ds)
+            [
+              [ { { `$fMonadMaybe_$c>>=` (con integer) } (con integer) } ds ]
+              (lam
+                x'
+                (con integer)
+                (let
+                  (nonrec)
+                  (termbind (strict) (vardecl x' (con integer)) x')
                   [
-                    { { `$fMonadMaybe_$c>>=` (con integer) } (con integer) } ds
-                  ]
-                  (lam
-                    y'
-                    (con integer)
-                    (let
-                      (nonrec)
-                      (termbind (strict) (vardecl y' (con integer)) y')
-                      [
-                        { `$fApplicativeMaybe_$cpure` (con integer) }
-                        [ [ addInteger x' ] y' ]
-                      ]
+                    [
+                      { { `$fMonadMaybe_$c>>=` (con integer) } (con integer) }
+                      ds
+                    ]
+                    (lam
+                      y'
+                      (con integer)
+                      (let
+                        (nonrec)
+                        (termbind (strict) (vardecl y' (con integer)) y')
+                        [
+                          { `$fApplicativeMaybe_$cpure` (con integer) }
+                          [ [ addInteger x' ] y' ]
+                        ]
+                      )
                     )
-                  )
-                ]
+                  ]
+                )
               )
-            )
-          ]
+            ]
+          )
         )
       )
     )

@@ -270,9 +270,9 @@
                                                                 (delay
                                                                   (lam
                                                                     ds_i0
-                                                                    (lam
-                                                                      ds_i0
-                                                                      [
+                                                                    [
+                                                                      (lam
+                                                                        ds_i0
                                                                         (lam
                                                                           ds_i0
                                                                           (force
@@ -283,7 +283,7 @@
                                                                                     (force
                                                                                       List_match_i11
                                                                                     )
-                                                                                    ds_i2
+                                                                                    ds_i1
                                                                                   ]
                                                                                 )
                                                                                 (delay
@@ -303,7 +303,7 @@
                                                                                           Cons_i14
                                                                                         )
                                                                                         [
-                                                                                          ds_i3
+                                                                                          ds_i4
                                                                                           x_i2
                                                                                         ]
                                                                                       ]
@@ -320,7 +320,7 @@
                                                                                               )
                                                                                             ]
                                                                                           )
-                                                                                          ds_i3
+                                                                                          ds_i4
                                                                                         ]
                                                                                         xs_i1
                                                                                       ]
@@ -331,9 +331,9 @@
                                                                             ]
                                                                           )
                                                                         )
-                                                                        ds_i2
-                                                                      ]
-                                                                    )
+                                                                      )
+                                                                      ds_i1
+                                                                    ]
                                                                   )
                                                                 )
                                                               )

@@ -4,16 +4,11 @@ module AnalysisSpec where
 
 import Test.Tasty.Extras
 
-import Algebra.Graph qualified as G
-import Control.Lens
-import Data.Map qualified as Map
 import PlutusCore qualified as PLC
-import PlutusCore.Name qualified as PLC
 import PlutusCore.Pretty (prettyPlcReadableDef)
 import PlutusCore.Quote
 import PlutusIR
-import PlutusIR.Analysis.Dependencies
-import PlutusIR.Analysis.Dependencies qualified as Deps
+import PlutusIR.Analysis.VarInfo
 import PlutusIR.Parser
 import PlutusIR.Purity
 import PlutusIR.Test
@@ -24,13 +19,13 @@ import Test.Tasty.HUnit
 computeEvalOrder
   :: Term TyName Name PLC.DefaultUni PLC.DefaultFun a
   -> EvalOrder TyName Name PLC.DefaultUni PLC.DefaultFun a
-computeEvalOrder tm =
-  let
-    semvar = def
-    varStrictMap = snd $ runTermDeps @(G.Graph Deps.Node) semvar tm
-    variableStrictness :: Name -> Strictness
-    variableStrictness n = Map.findWithDefault NonStrict (n ^. PLC.theUnique) varStrictMap
-  in termEvaluationOrder semvar variableStrictness tm
+computeEvalOrder tm = termEvaluationOrder def (termVarInfo tm) tm
+
+-- Avoids traversing the term to compute the var info
+computeEvalOrderCoarse
+  :: Term TyName Name PLC.DefaultUni PLC.DefaultFun a
+  -> EvalOrder TyName Name PLC.DefaultUni PLC.DefaultFun a
+computeEvalOrderCoarse = termEvaluationOrder def mempty
 
 goldenEvalOrder :: String -> TestNested
 goldenEvalOrder = goldenPirDoc (prettyPlcReadableDef . computeEvalOrder) pTerm
@@ -51,5 +46,5 @@ evalOrder = testNested "evalOrder"
   , goldenEvalOrder "builtinAppSaturated"
   , goldenEvalOrder "pureLet"
   , goldenEvalOrder "nestedLets1"
-  , pure $ testCase "evalOrderLazy" $ 4 @=? length (unEvalOrder $ computeEvalOrder dangerTerm)
+  , pure $ testCase "evalOrderLazy" $ 4 @=? length (unEvalOrder $ computeEvalOrderCoarse dangerTerm)
   ]

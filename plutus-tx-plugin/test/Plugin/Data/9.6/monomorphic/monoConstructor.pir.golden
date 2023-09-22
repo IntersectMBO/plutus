@@ -18,14 +18,17 @@
       (lam
         conrep
         (con integer)
-        (lam
-          conrep
-          (con integer)
-          (let
-            (nonrec)
-            (termbind (strict) (vardecl conrep (con integer)) conrep)
-            (termbind (strict) (vardecl conrep (con integer)) conrep)
-            [ [ Mono conrep ] conrep ]
+        (let
+          (nonrec)
+          (termbind (strict) (vardecl conrep (con integer)) conrep)
+          (lam
+            conrep
+            (con integer)
+            (let
+              (nonrec)
+              (termbind (strict) (vardecl conrep (con integer)) conrep)
+              [ [ Mono conrep ] conrep ]
+            )
           )
         )
       )

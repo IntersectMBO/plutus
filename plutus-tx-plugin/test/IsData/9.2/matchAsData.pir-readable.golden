@@ -42,13 +42,16 @@ let
   !equalsInteger : integer -> integer -> bool = equalsInteger
   !ifThenElse : all a. bool -> a -> a -> a = ifThenElse
   ~equalsInteger : integer -> integer -> Bool
-    = \(x : integer) (y : integer) ->
+    = \(x : integer) ->
         let
           !x : integer = x
-          !y : integer = y
-          !b : bool = equalsInteger x y
         in
-        ifThenElse {Bool} b True False
+        \(y : integer) ->
+          let
+            !y : integer = y
+            !b : bool = equalsInteger x y
+          in
+          ifThenElse {Bool} b True False
   ~`$fEqInteger` : (\a -> a -> a -> Bool) integer = equalsInteger
   ~`==` : all a. (\a -> a -> a -> Bool) a -> a -> a -> Bool
     = /\a -> \(v : (\a -> a -> a -> Bool) a) -> v
@@ -76,51 +79,61 @@ let
     = /\r a ->
         \(`$dToData` : (\a -> a -> data) a)
          (`$dUnsafeFromData` : (\a -> data -> a) a)
-         (scrut : (\a -> data) a)
-         (cont : a -> r)
-         (fail : unit -> r) ->
+         (scrut : (\a -> data) a) ->
           let
             !nt : data = scrut
-            !cont : a -> r = cont
-            !fail : unit -> r = fail
           in
-          Tuple2_match
-            {integer}
-            {list data}
-            (pairToPair {integer} {list data} (unsafeDataAsConstr nt))
-            {r}
-            (\(ds : integer) (ds : list data) ->
-               Bool_match
-                 (`==` {integer} `$fEqInteger` 0 ds)
-                 {all dead. r}
-                 (/\dead ->
-                    cont
-                      (unsafeFromBuiltinData
-                         {a}
-                         `$dUnsafeFromData`
-                         (head {data} ds)))
-                 (/\dead -> fail ())
-                 {all dead. dead})
+          \(cont : a -> r) ->
+            let
+              !cont : a -> r = cont
+            in
+            \(fail : unit -> r) ->
+              let
+                !fail : unit -> r = fail
+              in
+              Tuple2_match
+                {integer}
+                {list data}
+                (pairToPair {integer} {list data} (unsafeDataAsConstr nt))
+                {r}
+                (\(ds : integer) (ds : list data) ->
+                   Bool_match
+                     (`==` {integer} `$fEqInteger` 0 ds)
+                     {all dead. r}
+                     (/\dead ->
+                        cont
+                          (unsafeFromBuiltinData
+                             {a}
+                             `$dUnsafeFromData`
+                             (head {data} ds)))
+                     (/\dead -> fail ())
+                     {all dead. dead})
   ~`$mNothingD` : all r a. (\a -> data) a -> (unit -> r) -> (unit -> r) -> r
     = /\r a ->
-        \(scrut : (\a -> data) a) (cont : unit -> r) (fail : unit -> r) ->
+        \(scrut : (\a -> data) a) ->
           let
             !nt : data = scrut
-            !cont : unit -> r = cont
-            !fail : unit -> r = fail
           in
-          Tuple2_match
-            {integer}
-            {list data}
-            (pairToPair {integer} {list data} (unsafeDataAsConstr nt))
-            {r}
-            (\(ds : integer) (ds : list data) ->
-               Bool_match
-                 (`==` {integer} `$fEqInteger` 1 ds)
-                 {all dead. r}
-                 (/\dead -> cont ())
-                 (/\dead -> fail ())
-                 {all dead. dead})
+          \(cont : unit -> r) ->
+            let
+              !cont : unit -> r = cont
+            in
+            \(fail : unit -> r) ->
+              let
+                !fail : unit -> r = fail
+              in
+              Tuple2_match
+                {integer}
+                {list data}
+                (pairToPair {integer} {list data} (unsafeDataAsConstr nt))
+                {r}
+                (\(ds : integer) (ds : list data) ->
+                   Bool_match
+                     (`==` {integer} `$fEqInteger` 1 ds)
+                     {all dead. r}
+                     (/\dead -> cont ())
+                     (/\dead -> fail ())
+                     {all dead. dead})
 in
 \(ds : (\a -> data) data) ->
   let

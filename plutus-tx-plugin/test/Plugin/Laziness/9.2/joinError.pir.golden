@@ -25,36 +25,39 @@
       (lam
         x
         Bool
-        (lam
-          y
-          Bool
-          (let
-            (nonrec)
-            (termbind (strict) (vardecl x Bool) x)
-            (termbind (strict) (vardecl y Bool) y)
-            {
-              [
+        (let
+          (nonrec)
+          (termbind (strict) (vardecl x Bool) x)
+          (lam
+            y
+            Bool
+            (let
+              (nonrec)
+              (termbind (strict) (vardecl y Bool) y)
+              {
                 [
-                  { [ Bool_match x ] (all dead (type) Unit) }
-                  (abs
-                    dead
-                    (type)
-                    {
-                      [
+                  [
+                    { [ Bool_match x ] (all dead (type) Unit) }
+                    (abs
+                      dead
+                      (type)
+                      {
                         [
-                          { [ Bool_match y ] (all dead (type) Unit) }
-                          (abs dead (type) [ { error Unit } unitval ])
+                          [
+                            { [ Bool_match y ] (all dead (type) Unit) }
+                            (abs dead (type) [ { error Unit } unitval ])
+                          ]
+                          (abs dead (type) Unit)
                         ]
-                        (abs dead (type) Unit)
-                      ]
-                      (all dead (type) dead)
-                    }
-                  )
+                        (all dead (type) dead)
+                      }
+                    )
+                  ]
+                  (abs dead (type) Unit)
                 ]
-                (abs dead (type) Unit)
-              ]
-              (all dead (type) dead)
-            }
+                (all dead (type) dead)
+              }
+            )
           )
         )
       )

@@ -117,7 +117,7 @@ callSiteInline ::
   -- | The term size if it were not inlined.
   Size ->
   -- | The `Utils.VarInfo` of the variable (the head of the term).
-  VarInfo tyname name uni fun ann ->
+  InlineVarInfo tyname name uni fun ann ->
   -- | The application context of the term, already processed.
   AppContext tyname name uni fun ann ->
   InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))

@@ -28,14 +28,17 @@
         (lam
           x
           (con integer)
-          (lam
-            y
-            (con integer)
-            (let
-              (nonrec)
-              (termbind (strict) (vardecl x (con integer)) x)
-              (termbind (strict) (vardecl y (con integer)) y)
-              [ [ addInteger x ] y ]
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl x (con integer)) x)
+            (lam
+              y
+              (con integer)
+              (let
+                (nonrec)
+                (termbind (strict) (vardecl y (con integer)) y)
+                [ [ addInteger x ] y ]
+              )
             )
           )
         )
@@ -54,12 +57,12 @@
               (lam
                 acc
                 (con integer)
-                (lam
-                  ds
-                  [ List a ]
-                  (let
-                    (nonrec)
-                    (termbind (strict) (vardecl acc (con integer)) acc)
+                (let
+                  (nonrec)
+                  (termbind (strict) (vardecl acc (con integer)) acc)
+                  (lam
+                    ds
+                    [ List a ]
                     {
                       [
                         [

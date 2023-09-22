@@ -19,14 +19,17 @@
         (lam
           conrep
           a
-          (lam
-            conrep
-            a
-            (let
-              (nonrec)
-              (termbind (strict) (vardecl conrep a) conrep)
-              (termbind (strict) (vardecl conrep a) conrep)
-              [ [ { StrictTy a } conrep ] conrep ]
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl conrep a) conrep)
+            (lam
+              conrep
+              a
+              (let
+                (nonrec)
+                (termbind (strict) (vardecl conrep a) conrep)
+                [ [ { StrictTy a } conrep ] conrep ]
+              )
             )
           )
         )

@@ -26,14 +26,17 @@
           (lam
             conrep
             a
-            (lam
-              conrep
-              b
-              (let
-                (nonrec)
-                (termbind (strict) (vardecl conrep a) conrep)
-                (termbind (strict) (vardecl conrep b) conrep)
-                [ [ { { Poly a } b } conrep ] conrep ]
+            (let
+              (nonrec)
+              (termbind (strict) (vardecl conrep a) conrep)
+              (lam
+                conrep
+                b
+                (let
+                  (nonrec)
+                  (termbind (strict) (vardecl conrep b) conrep)
+                  [ [ { { Poly a } b } conrep ] conrep ]
+                )
               )
             )
           )

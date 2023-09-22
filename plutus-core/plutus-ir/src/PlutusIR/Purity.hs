@@ -24,8 +24,12 @@ import PlutusCore.Pretty
 import PlutusIR
 import PlutusIR.Contexts
 
+import Control.Lens hiding (Strict)
 import Data.DList qualified as DList
 import Data.List.NonEmpty qualified as NE
+import PlutusCore.Name qualified as PLC
+import PlutusIR.Analysis.Builtins
+import PlutusIR.Analysis.VarInfo
 import Prettyprinter
 
 saturatesScheme :: AppContext tyname name uni fun a -> TypeScheme val args res -> Maybe Bool
@@ -48,12 +52,13 @@ saturatesScheme TermAppContext{} TypeSchemeAll{}                = Nothing
 isSaturated
     :: forall tyname name uni fun a
     . ToBuiltinMeaning uni fun
-    => BuiltinSemanticsVariant fun
+    => BuiltinsInfo uni fun
     -> fun
     -> AppContext tyname name uni fun a
     -> Maybe Bool
-isSaturated semvar fun args =
-    case toBuiltinMeaning @uni @fun @(Term TyName Name uni fun ()) semvar fun of
+isSaturated binfo fun args =
+  let semvar = binfo ^. biSemanticsVariant
+  in case toBuiltinMeaning @uni @fun @(Term TyName Name uni fun ()) semvar fun of
         BuiltinMeaning sch _ _ -> saturatesScheme args sch
 
 -- | Is this pure? Either yes, or maybe not.
@@ -119,12 +124,12 @@ planning on changing it.
 -}
 termEvaluationOrder
   :: forall tyname name uni fun a
-  . ToBuiltinMeaning uni fun
-  => BuiltinSemanticsVariant fun
-  -> (name -> Strictness)
+  . (ToBuiltinMeaning uni fun, PLC.HasUnique name PLC.TermUnique)
+  => BuiltinsInfo uni fun
+  -> VarsInfo tyname name
   -> Term tyname name uni fun a
   -> EvalOrder tyname name uni fun a
-termEvaluationOrder semvar varStrictness = goTerm
+termEvaluationOrder binfo vinfo = goTerm
     where
       goTerm :: Term tyname name uni fun a -> EvalOrder tyname name uni fun a
       goTerm = \case
@@ -142,6 +147,22 @@ termEvaluationOrder semvar varStrictness = goTerm
 
         -- If we can view as a builtin application, then handle that specially
         (splitApplication -> (Builtin a fun, args)) -> goBuiltinApp a fun args
+        -- If we can view as a constructor application, then handle that specially.
+        -- Constructor applications are always pure: if under-applied they don't
+        -- reduce; if fully-applied they are pure; if over-applied it's going to be
+        -- a type error since they never return a function. So we can ignore the arity
+        -- in this case!
+        t@(splitApplication -> (h@(Var _ n), args))
+          | Just (DatatypeConstructor{}) <- lookupVarInfo n vinfo ->
+            evalThis (EvalTerm Pure MaybeWork h)
+            <>
+            goAppCtx args
+            <>
+            evalThis (EvalTerm Pure MaybeWork t)
+            -- No Unknown: we go to a known pure place, but we can't show it,
+            -- so we just skip it here. This has the effect of making constructor
+            -- applications pure
+
         -- We could handle functions and type abstractions with *known* bodies
         -- here. But there's not much point: beta reduction will immediately
         -- turn those into let-bindings, which we do see through already.
@@ -187,7 +208,10 @@ termEvaluationOrder semvar varStrictness = goTerm
         -- Leaf terms
         t@(Var _ name)      ->
           -- See Note [Purity, strictness, and variables]
-          let purity = case varStrictness name of { Strict -> Pure; NonStrict -> MaybeImpure}
+          let purity = case varInfoStrictness <$> lookupVarInfo name vinfo of
+                Just Strict    -> Pure
+                Just NonStrict -> MaybeImpure
+                _              -> MaybeImpure
           -- looking up the variable is work
           in evalThis (EvalTerm purity MaybeWork t)
         t@Error{}           ->
@@ -220,7 +244,7 @@ termEvaluationOrder semvar varStrictness = goTerm
         -> EvalOrder tyname name uni fun a
       goBuiltinApp a hd args =
         let
-          saturated = isSaturated semvar hd args
+          saturated = isSaturated binfo hd args
           reconstructed = fillAppContext (Builtin a hd) args
           evalEffect = case saturated of
             -- If it's saturated, we might have an effect here
@@ -245,16 +269,16 @@ termEvaluationOrder semvar varStrictness = goTerm
 -- it includes applications that are known to be pure, as well as
 -- things that can't be returned from the machine (as they'd be ill-scoped).
 isPure ::
-    ToBuiltinMeaning uni fun =>
-    BuiltinSemanticsVariant fun ->
-    (name -> Strictness) ->
+    (ToBuiltinMeaning uni fun, PLC.HasUnique name PLC.TermUnique) =>
+    BuiltinsInfo uni fun ->
+    VarsInfo tyname name ->
     Term tyname name uni fun a ->
     Bool
-isPure semvar varStrictness t =
+isPure binfo vinfo t =
   -- to work out if the term is pure, we see if we can look through
   -- the whole evaluation order without hitting something that might be
   -- effectful
-  go $ unEvalOrder (termEvaluationOrder semvar varStrictness t)
+  go $ unEvalOrder (termEvaluationOrder binfo vinfo t)
   where
     go :: [EvalTerm tyname name uni fun a] -> Bool
     go [] = True
@@ -272,16 +296,16 @@ Note: The definition of 'work-free' is a little unclear, but the idea is that
 evaluating this term should do very a trivial amount of work.
 -}
 isWorkFree ::
-    ToBuiltinMeaning uni fun =>
-    BuiltinSemanticsVariant fun ->
-    (name -> Strictness) ->
+    (ToBuiltinMeaning uni fun, PLC.HasUnique name PLC.TermUnique) =>
+    BuiltinsInfo uni fun ->
+    VarsInfo tyname name ->
     Term tyname name uni fun a ->
     Bool
-isWorkFree semvar varStrictness t =
+isWorkFree binfo vinfo t =
   -- to work out if the term is pure, we see if we can look through
   -- the whole evaluation order without hitting something that might be
   -- effectful
-  go $ unEvalOrder (termEvaluationOrder semvar varStrictness t)
+  go $ unEvalOrder (termEvaluationOrder binfo vinfo t)
   where
     go :: [EvalTerm tyname name uni fun a] -> Bool
     go [] = True

@@ -18,14 +18,17 @@
       (lam
         dt
         (con integer)
-        (lam
-          dt
-          (con integer)
-          (let
-            (nonrec)
-            (termbind (strict) (vardecl dt (con integer)) dt)
-            (termbind (strict) (vardecl dt (con integer)) dt)
-            [ [ Mono dt ] dt ]
+        (let
+          (nonrec)
+          (termbind (strict) (vardecl dt (con integer)) dt)
+          (lam
+            dt
+            (con integer)
+            (let
+              (nonrec)
+              (termbind (strict) (vardecl dt (con integer)) dt)
+              [ [ Mono dt ] dt ]
+            )
           )
         )
       )

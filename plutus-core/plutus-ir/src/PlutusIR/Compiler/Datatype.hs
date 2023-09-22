@@ -9,8 +9,6 @@ module PlutusIR.Compiler.Datatype
     ( compileDatatype
     , compileDatatypeDefs
     , compileRecDatatypes
-    , funTyArgs
-    , funResultType
     , mkDatatypeValueType
     , mkDestructorTy
     , mkScottTy
@@ -27,6 +25,7 @@ import PlutusIR.Error
 import PlutusIR.MkPir qualified as PIR
 import PlutusIR.Transform.Substitute
 
+import PlutusCore.Core qualified as PLC
 import PlutusCore.MkPlc qualified as PLC
 import PlutusCore.Quote
 import PlutusCore.StdLib.Type qualified as Types
@@ -62,32 +61,12 @@ Future solutions:
 -- | Given the type of a constructor, get the type of the "case" type with the given result type.
 -- @constructorCaseType R (A->Maybe A) = (A -> R)@
 constructorCaseType :: a -> Type tyname uni a -> VarDecl tyname name uni a -> Type tyname uni a
-constructorCaseType ann resultType vd = PLC.mkIterTyFun ann (funTyArgs (_varDeclType vd)) resultType
-
--- | Get recursively all the domains and codomains of a type.
--- @funTySections (A->B->C) = [A, B, C]@
--- @funTySections (X) = [X]@
-funTySections :: Type tyname uni a -> NE.NonEmpty (Type tyname uni a)
-funTySections = \case
-    TyFun _ t1 t2 -> t1 NE.<| funTySections t2
-    t             -> pure t
-
--- | Get the argument types of a function type.
--- @funTyArgs (A->B->C) = [A, B]@
-funTyArgs :: Type tyname uni a ->  [Type tyname uni a]
-funTyArgs = NE.init . funTySections
-
--- | Get the result type of a function.
--- If not a function, then is the same as `id`
--- @funResultType (A->B->C) = C@
--- @funResultType (X) = X@
-funResultType :: Type tyname uni a ->  Type tyname uni a
-funResultType = NE.last . funTySections
+constructorCaseType ann resultType vd = PLC.mkIterTyFun ann (PLC.funTyArgs (_varDeclType vd)) resultType
 
 -- | Given the type of a constructor, get its argument types.
 -- @constructorArgTypes (A->Maybe A) = [A]
 constructorArgTypes :: VarDecl tyname name uni a -> [Type tyname uni a]
-constructorArgTypes = funTyArgs . _varDeclType
+constructorArgTypes = PLC.funTyArgs . _varDeclType
 
 -- | "Unveil" a datatype definition in a type, by replacing uses of the name as a type variable with the concrete definition.
 unveilDatatype :: Eq tyname => Type tyname uni a -> Datatype tyname name uni a -> Type tyname uni a -> Type tyname uni a

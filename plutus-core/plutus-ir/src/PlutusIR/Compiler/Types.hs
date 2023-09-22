@@ -31,6 +31,7 @@ import PlutusPrelude
 
 import Control.Monad.Error.Lens (throwing)
 import Data.Text qualified as T
+import PlutusIR.Analysis.Builtins
 import Prettyprinter (viaShow)
 
 -- | Extra flag to be passed in the TypeCheckM Reader context,
@@ -121,12 +122,12 @@ defaultCompilationOpts = CompilationOpts
   }
 
 data CompilationCtx uni fun a = CompilationCtx {
-    _ccOpts                      :: CompilationOpts a
-    , _ccEnclosing               :: Provenance a
+    _ccOpts               :: CompilationOpts a
+    , _ccEnclosing        :: Provenance a
     -- | Decide to either typecheck (passing a specific tcconfig) or not by passing 'Nothing'.
-    , _ccTypeCheckConfig         :: Maybe (PirTCConfig uni fun)
-    , _ccBuiltinSemanticsVariant :: PLC.BuiltinSemanticsVariant fun
-    , _ccBuiltinCostModel        :: PLC.CostingPart uni fun
+    , _ccTypeCheckConfig  :: Maybe (PirTCConfig uni fun)
+    , _ccBuiltinsInfo     :: BuiltinsInfo uni fun
+    , _ccBuiltinCostModel :: PLC.CostingPart uni fun
     }
 
 makeLenses ''CompilationCtx

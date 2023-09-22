@@ -15,11 +15,11 @@ program
                                        (\go ->
                                           (\concatBuiltinStrings ->
                                              (\`$fShowInteger_$cshow` ->
-                                                (\a ->
-                                                   (\c ->
-                                                      (\d ->
-                                                         (\showsPrec ->
-                                                            (\`$fShowInteger` ->
+                                                (\`$fShowInteger` ->
+                                                   (\a ->
+                                                      (\c ->
+                                                         (\d ->
+                                                            (\showsPrec ->
                                                                (\e ->
                                                                   multiplyInteger
                                                                     2
@@ -111,40 +111,42 @@ program
                                                                           (constr 0
                                                                              [  ])))
                                                                     d))
-                                                              (constr 0
-                                                                 [ `$fShowBuiltinByteString_$cshowsPrec`
-                                                                 , `$fShowInteger_$cshow` ]))
-                                                           (\v ->
-                                                              case
-                                                                v
-                                                                [(\v v -> v)]))
+                                                              (\v ->
+                                                                 case
+                                                                   v
+                                                                   [ (\v v ->
+                                                                        v) ]))
+                                                           (force
+                                                              trace
+                                                              (force
+                                                                 ifThenElse
+                                                                 (lessThanEqualsInteger
+                                                                    c
+                                                                    0)
+                                                                 "False"
+                                                                 "True")
+                                                              c))
                                                         (force
                                                            trace
-                                                           (force
-                                                              ifThenElse
-                                                              (lessThanEqualsInteger
-                                                                 c
-                                                                 0)
-                                                              "False"
-                                                              "True")
-                                                           c))
-                                                     (force
-                                                        trace
-                                                        (concatBuiltinStrings
-                                                           ((\len ->
-                                                               go
-                                                                 (`$fEnumBool_$cenumFromTo`
-                                                                    0
-                                                                    (subtractInteger
-                                                                       len
-                                                                       1)))
-                                                              (lengthOfByteString
-                                                                 s)
-                                                              (constr 0 [])))
-                                                        a))
-                                                  (force trace
-                                                     (`$fShowInteger_$cshow` x)
-                                                     x))
+                                                           (concatBuiltinStrings
+                                                              ((\len ->
+                                                                  go
+                                                                    (`$fEnumBool_$cenumFromTo`
+                                                                       0
+                                                                       (subtractInteger
+                                                                          len
+                                                                          1)))
+                                                                 (lengthOfByteString
+                                                                    s)
+                                                                 (constr 0 [])))
+                                                           a))
+                                                     (force trace
+                                                        (`$fShowInteger_$cshow`
+                                                           x)
+                                                        x))
+                                                  (constr 0
+                                                     [ `$fShowBuiltinByteString_$cshowsPrec`
+                                                     , `$fShowInteger_$cshow` ]))
                                                (\x ->
                                                   concatBuiltinStrings
                                                     (`$fShowBuiltinByteString_$cshowsPrec`
@@ -159,16 +161,16 @@ program
                                                     [ ""
                                                     , (\x
                                                         ds ->
-                                                         force
-                                                           (case
-                                                              ds
-                                                              [ (delay x)
-                                                              , (\ipv
-                                                                  ipv ->
-                                                                   delay
-                                                                     (case
-                                                                        ((\ds ->
-                                                                            (\n ->
+                                                         (\ds ->
+                                                            force
+                                                              (case
+                                                                 ds
+                                                                 [ (delay x)
+                                                                 , (\ipv
+                                                                     ipv ->
+                                                                      delay
+                                                                        (case
+                                                                           ((\n ->
                                                                                force
                                                                                  (force
                                                                                     ifThenElse
@@ -192,16 +194,15 @@ program
                                                                                  (go
                                                                                     ds)
                                                                                  2))
-                                                                           (constr 1
-                                                                              [ x
-                                                                              , ds ]))
-                                                                        [ (\ipv
-                                                                            ipv ->
-                                                                             appendString
-                                                                               (concatBuiltinStrings
-                                                                                  ipv)
-                                                                               (concatBuiltinStrings
-                                                                                  ipv)) ])) ])) ])))
+                                                                           [ (\ipv
+                                                                               ipv ->
+                                                                                appendString
+                                                                                  (concatBuiltinStrings
+                                                                                     ipv)
+                                                                                  (concatBuiltinStrings
+                                                                                     ipv)) ])) ]))
+                                                           (constr 1
+                                                              [x, ds])) ])))
                                          (fix1
                                             (\go ds ->
                                                force
@@ -372,10 +373,12 @@ program
                                (lessThanInteger n 0)
                                (delay
                                   (\eta ->
-                                     (\g -> Cons "-" (g eta))
+                                     Cons
+                                       "-"
                                        (`$fShowBuiltinByteString_$cshowsPrec`
                                           p
-                                          (subtractInteger 0 n))))
+                                          (subtractInteger 0 n)
+                                          eta)))
                                (delay (go (go (constr 0 []) n)))))))
                  (fix1
                     (\go

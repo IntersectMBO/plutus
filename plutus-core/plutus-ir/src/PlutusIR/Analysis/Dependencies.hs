@@ -12,7 +12,6 @@ from the program without also removing A.
 module PlutusIR.Analysis.Dependencies (
   Node (..),
   DepGraph,
-  StrictnessMap,
   runTermDeps,
 ) where
 
@@ -26,18 +25,14 @@ import PlutusIR.Purity
 
 import Control.Lens hiding (Strict)
 import Control.Monad.Reader
-import Control.Monad.State
 
 import Algebra.Graph.Class qualified as G
-import Data.Map qualified as Map
 import Data.Set qualified as Set
 
 import Data.List.NonEmpty qualified as NE
 
-import Data.Foldable
-
-type StrictnessMap = Map.Map PLC.Unique Strictness
-type DepState = StrictnessMap
+import PlutusIR.Analysis.Builtins
+import PlutusIR.Analysis.VarInfo
 
 {- | A node in a dependency graph. Either a specific 'PLC.Unique', or a specific
 node indicating the root of the graph. We need the root node because when computing the
@@ -46,9 +41,10 @@ we can use to represent it in the graph.
 -}
 data Node = Variable PLC.Unique | Root deriving stock (Show, Eq, Ord)
 
-data DepCtx fun = DepCtx
-  { _depNode                    :: Node
-  , _depBuiltinSemanticsVariant :: PLC.BuiltinSemanticsVariant fun
+data DepCtx tyname name uni fun = DepCtx
+  { _depNode         :: Node
+  , _depBuiltinsInfo :: BuiltinsInfo uni fun
+  , _depVarInfo      :: VarsInfo tyname name
   }
 makeLenses ''DepCtx
 
@@ -56,13 +52,6 @@ makeLenses ''DepCtx
 it), whose vertices are 'Node's.
 -}
 type DepGraph g = (G.Graph g, G.Vertex g ~ Node)
-
-varStrictnessFun ::
-  (MonadState DepState m, PLC.HasUnique name u) =>
-  m (name -> Strictness)
-varStrictnessFun = do
-  strictnessMap <- get
-  pure $ \n' -> Map.findWithDefault NonStrict (n' ^. PLC.theUnique) strictnessMap
 
 {- | Compute the dependency graph of a 'Term'. The 'Root' node will correspond to the term itself.
 
@@ -80,14 +69,15 @@ runTermDeps ::
   , PLC.HasUnique name PLC.TermUnique
   , PLC.ToBuiltinMeaning uni fun
   ) =>
-  PLC.BuiltinSemanticsVariant fun ->
+  BuiltinsInfo uni fun ->
+  VarsInfo tyname name ->
   Term tyname name uni fun a ->
-  (g, StrictnessMap)
-runTermDeps semvar = flip runState mempty . flip runReaderT (DepCtx Root semvar) . termDeps
+  g
+runTermDeps binfo vinfo t = flip runReader (DepCtx Root binfo vinfo) $ termDeps t
 
 -- | Record some dependencies on the current node.
 currentDependsOn ::
-  (DepGraph g, MonadReader (DepCtx fun) m) =>
+  (DepGraph g, MonadReader (DepCtx tyname name uni fun) m) =>
   [PLC.Unique] ->
   m g
 currentDependsOn us = do
@@ -96,7 +86,7 @@ currentDependsOn us = do
 
 -- | Process the given action with the given name as the current node.
 withCurrent ::
-  (MonadReader (DepCtx fun) m, PLC.HasUnique n u) =>
+  (MonadReader (DepCtx tyname name uni fun) m, PLC.HasUnique n u) =>
   n ->
   m g ->
   m g
@@ -153,8 +143,7 @@ so that this is visible to the dependency analysis.
 
 bindingDeps ::
   ( DepGraph g
-  , MonadReader (DepCtx fun) m
-  , MonadState DepState m
+  , MonadReader (DepCtx tyname name uni fun) m
   , PLC.HasUnique tyname PLC.TypeUnique
   , PLC.HasUnique name PLC.TermUnique
   , PLC.ToBuiltinMeaning uni fun
@@ -166,12 +155,12 @@ bindingDeps b = case b of
     vDeps <- varDeclDeps d
     tDeps <- withCurrent n $ termDeps rhs
 
-    semvar <- view depBuiltinSemanticsVariant
+    binfo <- view depBuiltinsInfo
     -- See Note [Strict term bindings and dependencies]
-    strictnessFun <- varStrictnessFun
+    vinfo <- view depVarInfo
     evalDeps <- case strictness of
-      Strict | not (isPure semvar strictnessFun rhs) -> currentDependsOn [n ^. PLC.theUnique]
-      _                                              -> pure G.empty
+      Strict | not (isPure binfo vinfo rhs) -> currentDependsOn [n ^. PLC.theUnique]
+      _                                     -> pure G.empty
 
     pure $ G.overlays [vDeps, tDeps, evalDeps]
   TypeBind _ d@(TyVarDecl _ n _) rhs -> do
@@ -201,21 +190,9 @@ bindingDeps b = case b of
     let nonDatatypeClique = G.clique (fmap Variable tus)
     pure $ G.overlays $ [vDeps] ++ tvDeps ++ cstrDeps ++ [destrDeps] ++ [nonDatatypeClique]
 
-bindingStrictness ::
-  (MonadState DepState m, PLC.HasUnique name PLC.TermUnique) =>
-  Binding tyname name uni fun a ->
-  m ()
-bindingStrictness b = case b of
-  TermBind _ strictness (VarDecl _ n _) _ -> modify (Map.insert (n ^. PLC.theUnique) strictness)
-  TypeBind{} -> pure ()
-  DatatypeBind _ (Datatype _ _ _ destr constrs) -> do
-    -- Constructors and destructor are bound strictly
-    for_ constrs $ \(VarDecl _ n _) -> modify (Map.insert (n ^. PLC.theUnique) Strict)
-    modify (Map.insert (destr ^. PLC.theUnique) Strict)
-
 varDeclDeps ::
   ( DepGraph g
-  , MonadReader (DepCtx fun) m
+  , MonadReader (DepCtx tyname name uni fun) m
   , PLC.HasUnique tyname PLC.TypeUnique
   , PLC.HasUnique name PLC.TermUnique
   ) =>
@@ -225,7 +202,7 @@ varDeclDeps (VarDecl _ n ty) = withCurrent n $ typeDeps ty
 
 -- Here for completeness, but doesn't do much
 tyVarDeclDeps ::
-  (G.Graph g, MonadReader (DepCtx fun) m) =>
+  (G.Graph g, MonadReader (DepCtx tyname name uni fun) m) =>
   TyVarDecl tyname a ->
   m g
 tyVarDeclDeps _ = pure G.empty
@@ -235,8 +212,7 @@ term itself depends on (usually 'Root' if it is the real term you are interested
 -}
 termDeps ::
   ( DepGraph g
-  , MonadReader (DepCtx fun) m
-  , MonadState DepState m
+  , MonadReader (DepCtx tyname name uni fun) m
   , PLC.HasUnique tyname PLC.TypeUnique
   , PLC.HasUnique name PLC.TermUnique
   , PLC.ToBuiltinMeaning uni fun
@@ -245,19 +221,10 @@ termDeps ::
   m g
 termDeps = \case
   Let _ _ bs t -> do
-    -- Need to do this before processing the RHSs of the bindings, as recursive bindings
-    -- may need to know about the strictnesses of other variables.
-    traverse_ bindingStrictness bs
     bGraphs <- traverse bindingDeps bs
     bodyGraph <- termDeps t
     pure . G.overlays . NE.toList $ bodyGraph NE.<| bGraphs
   Var _ n -> currentDependsOn [n ^. PLC.theUnique]
-  LamAbs _ n ty t -> do
-    -- Record that lambda-bound variables are strict
-    modify (Map.insert (n ^. PLC.theUnique) Strict)
-    tds <- termDeps t
-    tyds <- typeDeps ty
-    pure $ G.overlays [tds, tyds]
   x -> do
     tds <- traverse termDeps (x ^.. termSubterms)
     tyds <- traverse typeDeps (x ^.. termSubtypes)
@@ -267,7 +234,7 @@ termDeps = \case
 the type itself depends on (usually 'Root' if it is the real type you are interested in).
 -}
 typeDeps ::
-  (DepGraph g, MonadReader (DepCtx fun) m, PLC.HasUnique tyname PLC.TypeUnique) =>
+  (DepGraph g, MonadReader (DepCtx tyname name uni fun) m, PLC.HasUnique tyname PLC.TypeUnique) =>
   Type tyname uni a ->
   m g
 typeDeps ty =

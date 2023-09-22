@@ -16,7 +16,6 @@ import PlutusCore.Quote
 import PlutusCore.Rename
 import PlutusCore.Subst (typeSubstTyNamesM)
 import PlutusIR
-import PlutusIR.Analysis.Dependencies qualified as Deps
 import PlutusIR.Analysis.Usages qualified as Usages
 import PlutusIR.Purity (EvalTerm (..), Purity (..), isPure, termEvaluationOrder, unEvalOrder)
 import PlutusIR.Transform.Rename ()
@@ -27,9 +26,9 @@ import Control.Monad.Extra
 import Control.Monad.Reader
 import Control.Monad.State
 
-import Data.Map qualified as Map
 import Data.Semigroup.Generic (GenericSemigroupMonoid (..))
-import Prettyprinter (viaShow)
+import PlutusIR.Analysis.Builtins
+import PlutusIR.Analysis.VarInfo qualified as VarInfo
 
 -- General infra:
 
@@ -55,14 +54,14 @@ type InliningConstraints tyname name uni fun =
 -- pre-computed information about the program.
 --
 -- See [Inlining and global uniqueness] for caveats about this information.
-data InlineInfo name fun ann = InlineInfo
-    { _iiStrictnessMap           :: Deps.StrictnessMap
+data InlineInfo tyname name uni fun ann = InlineInfo
+    { _iiVarInfo      :: VarInfo.VarsInfo tyname name
     -- ^ Is it strict? Only needed for PIR, not UPLC
-    , _iiUsages                  :: Usages.Usages
+    , _iiUsages       :: Usages.Usages
     -- ^ how many times is it used?
-    , _iiHints                   :: InlineHints name ann
+    , _iiHints        :: InlineHints name ann
     -- ^ have we explicitly been told to inline?
-    , _iiBuiltinSemanticsVariant :: PLC.BuiltinSemanticsVariant fun
+    , _iiBuiltinsInfo :: BuiltinsInfo uni fun
     -- ^ the semantics variant.
     }
 makeLenses ''InlineInfo
@@ -71,7 +70,9 @@ makeLenses ''InlineInfo
 -- (determined from profiling)
 -- | The monad the inliner runs in.
 type InlineM tyname name uni fun ann =
-    ReaderT (InlineInfo name fun ann) (StateT (InlinerState tyname name uni fun ann) Quote)
+    ReaderT
+      (InlineInfo tyname name uni fun ann)
+      (StateT (InlinerState tyname name uni fun ann) Quote)
 -- For unconditional inlining:
 
 -- | Substitution range, 'SubstRng' in the paper but no 'Susp' case.
@@ -96,37 +97,16 @@ newtype TypeSubst tyname uni ann =
 -- | A mapping including all non-recursive in scope variables.
 newtype NonRecInScopeSet tyname name uni fun ann =
     NonRecInScopeSet
-        { _unNonRecInScopeSet :: UniqueMap TermUnique (VarInfo tyname name uni fun ann)}
+        { _unNonRecInScopeSet :: UniqueMap TermUnique (InlineVarInfo tyname name uni fun ann)}
     deriving newtype (Semigroup, Monoid)
 
-{-|
-The (syntactic) arity of a term. That is, a record of the arguments that the
-term expects before it may do some work. Since we have both type and lambda
-abstractions, this is not a simple argument count, but rather a list of values
-indicating whether the next argument should be a term or a type.
-
-Note that this is the syntactic arity, i.e. it just corresponds to the number of
-syntactic lambda and type abstractions on the outside of the term. It is thus
-an under-approximation of how many arguments the term may need.
-e.g. consider the term @let id = \x -> x in id@: the variable @id@ has syntactic
-arity @[]@, but does in fact need an argument before it does any work.
--}
-type Arity tyname name = [Param tyname name]
-
 -- | Info attached to a let-binding needed for call site inlining.
-data VarInfo tyname name uni fun ann = MkVarInfo
+data InlineVarInfo tyname name uni fun ann = MkVarInfo
     { varStrictness :: Strictness
     , varRhs        :: InlineTerm tyname name uni fun ann
     -- ^ its definition, which has been processed, as an `InlineTerm`. To preserve
     -- global uniqueness, we rename before substituting in.
     }
--- | Is the next argument a term or a type?
-data Param tyname name =
-    TermParam name | TypeParam tyname
-    deriving stock (Show)
-
-instance (Show tyname, Show name) => Pretty (Param tyname name) where
-  pretty = viaShow
 
 -- | Inliner context for both unconditional inlining and call site inlining.
 -- It includes substitution for both terms and types, which is similar to 'Subst' in the paper.
@@ -190,14 +170,14 @@ lookupVarInfo
     :: (HasUnique name TermUnique)
     => name -- ^ The name of the variable.
     -> InlinerState tyname name uni fun ann
-    -> Maybe (VarInfo tyname name uni fun ann)
+    -> Maybe (InlineVarInfo tyname name uni fun ann)
 lookupVarInfo n s = lookupName n $ s ^. nonRecInScopeSet . unNonRecInScopeSet
 
 -- | Insert a variable into the substitution.
 extendVarInfo
     :: (HasUnique name TermUnique)
     => name -- ^ The name of the variable.
-    -> VarInfo tyname name uni fun ann -- ^ The variable's info.
+    -> InlineVarInfo tyname name uni fun ann -- ^ The variable's info.
     -> InlinerState tyname name uni fun ann
     -> InlinerState tyname name uni fun ann
 extendVarInfo n info s = s & nonRecInScopeSet . unNonRecInScopeSet %~ insertByName n info
@@ -247,22 +227,20 @@ checkPurity
     :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
     => Term tyname name uni fun ann -> InlineM tyname name uni fun ann Bool
 checkPurity t = do
-    strctMap <- view iiStrictnessMap
-    builtinSemVar <- view iiBuiltinSemanticsVariant
-    let strictnessFun n' = Map.findWithDefault NonStrict (n' ^. theUnique) strctMap
-    pure $ isPure builtinSemVar strictnessFun t
+    varInfo <- view iiVarInfo
+    binfo <- view iiBuiltinsInfo
+    pure $ isPure binfo varInfo t
 
 isFirstVarBeforeEffects
     :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
     => name -> Term tyname name uni fun ann -> InlineM tyname name uni fun ann Bool
 isFirstVarBeforeEffects n t = do
-    strctMap <- view iiStrictnessMap
-    builtinSemVar <- view iiBuiltinSemanticsVariant
-    let strictnessFun n' = Map.findWithDefault NonStrict (n' ^. theUnique) strctMap
+    varInfo <- view iiVarInfo
+    binfo <- view iiBuiltinsInfo
     -- This can in the worst case traverse a lot of the term, which could lead to us
     -- doing ~quadratic work as we process the program. However in practice most terms
     -- have a relatively short evaluation order before we hit Unknown, so it's not too bad.
-    pure $ go (unEvalOrder (termEvaluationOrder builtinSemVar strictnessFun t))
+    pure $ go (unEvalOrder (termEvaluationOrder binfo varInfo t))
     where
       -- Found the variable we're looking for!
       go ((EvalTerm _ _ (Var _ n')):_) | n == n' = True

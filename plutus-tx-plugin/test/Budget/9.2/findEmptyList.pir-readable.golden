@@ -31,7 +31,4 @@ letrec
                  {all dead. dead})
           {all dead. dead}
 in
-let
-  !eta : List integer = Nil {integer}
-in
-go eta
+go (Nil {integer})
