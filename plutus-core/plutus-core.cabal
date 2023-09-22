@@ -481,6 +481,7 @@ library plutus-ir
     PlutusIR.Compiler.Definitions
     PlutusIR.Compiler.Names
     PlutusIR.Compiler.Provenance
+    PlutusIR.Compiler.Types
     PlutusIR.Contexts
     PlutusIR.Core
     PlutusIR.Core.Instance
@@ -528,7 +529,6 @@ library plutus-ir
     PlutusIR.Compiler.Let
     PlutusIR.Compiler.Lower
     PlutusIR.Compiler.Recursion
-    PlutusIR.Compiler.Types
     PlutusIR.Normalize
 
   build-depends:
