@@ -8,6 +8,22 @@ let
   plutus-project = cell.library.make-plutus-project { inherit compiler-nix-name; };
 
   plutus-devshell = haskell-nix.haskellLib.devshellFor plutus-project.shell;
+
+  # We need some environment variables from the various ocaml and coq pacakges
+  # that the certifier code needs.
+  # Devshell doesn't run setup hooks from other packages, so just extract
+  # the correct values of the environment variables from the haskell.nix
+  # shell and use those.
+  certEnv = pkgs.runCommand "cert-env"
+    {
+      nativeBuildInputs = plutus-project.shell.nativeBuildInputs;
+      buildInputs = plutus-project.shell.buildInputs;
+    } ''
+    echo "export COQPATH=$COQPATH" >> $out
+    echo "export OCAMLPATH=$OCAMLPATH" >> $out
+    echo "export CAML_LD_LIBRARY_PATH=$CAML_LD_LIBRARY_PATH" >> $out
+    echo "export OCAMLFIND_DESTDIR=$OCAMLFIND_DESTDIR" >> $out
+  '';
 in
 
 inputs.std.lib.dev.mkShell {
@@ -150,6 +166,7 @@ inputs.std.lib.dev.mkShell {
   ];
 
   devshell.startup."pre-commit-check".text = cell.packages.pre-commit-check.shellHook;
+  devshell.startup."cert-env".text = builtins.readFile "${certEnv}";
 
   env = [
     # This is no longer set automatically as of more recent `haskell.nix` revisions,

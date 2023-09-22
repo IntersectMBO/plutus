@@ -34,7 +34,7 @@ let
 
       inputMap = { "https://input-output-hk.github.io/cardano-haskell-packages" = inputs.CHaP; };
       sha256map = {
-        "https://github.com/tweag/HaskellR"."411d15fe5027494123e326c838955eff1c8e7ec8" = "0jax08z81xbfs3xz7zkk7x83cmr487iglifmxri205mf5bcj8ycj"; # editorconfig-checker-disable-line
+        "https://github.com/michaelpj/plutus-cert"."42bf559c7317239753a752cb13bbc74c494de4a0" = "19qm0mdzl7b8y6l9vy7ih0m323xqwk46brwzqhqikzahh6iahc4j"; # editorconfig-checker-disable-line
       };
 
       # TODO: move this into the cabal.project using the new conditional support?
@@ -114,6 +114,22 @@ let
             plutus-core.components.benchmarks.cost-model-test = {
               build-tools = [ cell.library.r-with-packages ];
             };
+            plutus-cert.components.library.build-tools =
+              let
+                ocamlPkgs = pkgs.ocaml-ng.ocamlPackages_4_10;
+                coqPkgs = pkgs.coqPackages_8_13;
+              in
+              with ocamlPkgs; with coqPkgs; [
+                pkgs.perl
+                ocaml
+                ocamlbuild
+                findlib
+                coq
+                mathcomp
+                coq-ext-lib
+                ssreflect
+                equations
+              ];
           };
         })
 

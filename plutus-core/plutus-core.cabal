@@ -42,6 +42,11 @@ flag with-inline-r
   manual:      True
   default:     False
 
+flag with-cert
+  description: Enable build of packages that use `plutus-cert`.
+  manual:      True
+  default:     False
+
 common lang
   default-language:   Haskell2010
   default-extensions:
@@ -704,6 +709,27 @@ library plutus-core-testlib
     , tasty-hedgehog
     , tasty-hunit
     , text
+
+-- This wraps up the use of the certifier library
+-- so we can present a consistent inteface whether we
+-- are building with it or not. If we aren't building 
+-- with it, we present a conservative stub implementation 
+-- that just always says everything is fine.
+library plutus-ir-cert
+  import:           lang
+
+  if flag(with-cert)
+    hs-source-dirs: plutus-ir/cert
+    build-depends:  plutus-cert
+
+  else
+    hs-source-dirs: plutus-ir/cert-stub
+
+  default-language: Haskell2010
+  exposed-modules:  PlutusIR.Certifier
+  build-depends:
+    , base
+    , plutus-core:{plutus-core, plutus-ir}
 
 ----------------------------------------------
 -- debugger
