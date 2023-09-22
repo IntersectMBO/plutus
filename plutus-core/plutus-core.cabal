@@ -559,6 +559,7 @@ test-suite plutus-ir-test
   hs-source-dirs: plutus-ir/test
   other-modules:
     AnalysisSpec
+    Certifier.Glue
     Check.Spec
     GeneratorSpec
     GeneratorSpec.Builtin
@@ -579,6 +580,7 @@ test-suite plutus-ir-test
     , hedgehog
     , lens
     , mtl
+    , plutus-cert
     , plutus-core:{plutus-core, plutus-core-testlib, plutus-ir}  ^>=1.13
     , QuickCheck
     , serialise

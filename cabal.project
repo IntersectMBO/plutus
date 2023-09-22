@@ -28,6 +28,7 @@ packages: doc/read-the-docs-site
           plutus-tx-plugin
           prettyprinter-configurable
           stubs/plutus-ghc-stub
+          plutus-core/plutus-cert
 
 -- We never, ever, want this.
 write-ghc-environment-files: never

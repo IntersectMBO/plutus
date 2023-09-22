@@ -1,0 +1,3 @@
+[submodule "plutus-core/plutus-cert"]
+	path = plutus-core/plutus-cert
+	url = git@github.com:jaccokrijnen/plutus-cert.git
