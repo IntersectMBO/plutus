@@ -17,6 +17,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # We need at least one commit before master to compare against
+          fetch-depth: 5
 
       - name: React with Rocket 
         uses: actions/github-script@v6
