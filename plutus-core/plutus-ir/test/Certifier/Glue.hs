@@ -1,7 +1,5 @@
-{-# LANGUAGE FlexibleInstances   #-}
-{-# LANGUAGE GADTs               #-}
-{-# LANGUAGE IncoherentInstances #-}
-{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE GADTs      #-}
+{-# LANGUAGE LambdaCase #-}
 
 -- | Interface to automatically extracted code from plutus-cert (Coq):
 -- - Conversion functions for PIR's AST to the representation in Coq.
