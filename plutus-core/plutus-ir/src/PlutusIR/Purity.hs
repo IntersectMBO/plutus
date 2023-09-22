@@ -152,11 +152,13 @@ termEvaluationOrder binfo vinfo = goTerm
         -- reduce; if fully-applied they are pure; if over-applied it's going to be
         -- a type error since they never return a function. So we can ignore the arity
         -- in this case!
-        (splitApplication -> (h@(Var _ n), args))
+        t@(splitApplication -> (h@(Var _ n), args))
           | Just (DatatypeConstructor{}) <- lookupVarInfo n vinfo ->
             evalThis (EvalTerm Pure MaybeWork h)
             <>
             goAppCtx args
+            <>
+            evalThis (EvalTerm Pure MaybeWork t)
             -- No Unknown: we go to a known pure place, but we can't show it,
             -- so we just skip it here. This has the effect of making constructor
             -- applications pure

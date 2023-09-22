@@ -9,6 +9,7 @@ import PlutusCore.Name qualified as PLC
 import PlutusIR.Core
 import Prettyprinter
 
+-- | Information about variables and type variables in the program.
 data VarsInfo tyname name = VarsInfo
   { termVarInfoMap :: PLC.UniqueMap PLC.TermUnique (VarInfo tyname name)
   , typeVarInfoMap :: PLC.UniqueMap PLC.TypeUnique (TyVarInfo tyname name)
@@ -20,6 +21,7 @@ instance Semigroup (VarsInfo tyname name) where
 instance Monoid (VarsInfo tyname name) where
   mempty = VarsInfo mempty mempty
 
+-- | Lookup the 'VarInfo' for a 'name'.
 lookupVarInfo ::
   (PLC.HasUnique name PLC.TermUnique)
   => name
@@ -27,6 +29,7 @@ lookupVarInfo ::
   -> Maybe (VarInfo tyname name)
 lookupVarInfo name (VarsInfo vim _) = PLC.lookupName name vim
 
+-- | Lookup the 'TyVarInfo' for a 'tyname'.
 lookupTyVarInfo ::
   (PLC.HasUnique tyname PLC.TypeUnique)
   => tyname
@@ -34,14 +37,24 @@ lookupTyVarInfo ::
   -> Maybe (TyVarInfo tyname name)
 lookupTyVarInfo name (VarsInfo _ vim) = PLC.lookupName name vim
 
+-- | Information about a type variable in the program.
 data TyVarInfo tyname name =
-  NormalTyVar {}
-  | DatatypeTyVar { dtNumTyVars :: Int, dtConstructors :: [name] }
+  -- | A normal type variable, which could be anything.
+  NormalTyVar
+  -- | A type variable corresponding to a datatype.
+  -- Tells us the number of type variables and the constructors.
+  | DatatypeTyVar Int [name]
 
 data VarInfo tyname name =
-  NormalVar { varStrictness :: Strictness, varArity :: Maybe Arity }
-  | DatatypeConstructor { dcArity :: Arity , dcParentTyname :: tyname }
-  | DatatypeMatcher { dmArity :: Arity , dmParentTyname :: tyname }
+  -- | A normal term variable, which could be anything.
+  -- Tells us if it is strictly evaluated, and possibly its arity.
+  NormalVar Strictness (Maybe Arity)
+  -- | A term variable corresponding to a datatype constructor.
+  -- Tells us the arity and the name of the datatype that owns it.
+  | DatatypeConstructor Arity tyname
+  -- | A term variable corresponding to a datatype matcher.
+  -- Tells us the arity and the name of the datatype that owns it.
+  | DatatypeMatcher Arity tyname
 
 -- | Is the next argument a term or a type?
 data Param =
@@ -67,15 +80,15 @@ type Arity = [Param]
 
 varInfoStrictness :: VarInfo tyname name -> Strictness
 varInfoStrictness = \case
-  NormalVar { varStrictness } -> varStrictness
-  DatatypeConstructor{}       -> Strict
-  DatatypeMatcher{}           -> Strict
+  NormalVar s _         -> s
+  DatatypeConstructor{} -> Strict
+  DatatypeMatcher{}     -> Strict
 
 varInfoArity :: VarInfo tyname name -> Maybe Arity
 varInfoArity = \case
-  NormalVar { varArity }          -> varArity
-  DatatypeConstructor { dcArity } -> Just dcArity
-  DatatypeMatcher { dmArity}      -> Just dmArity
+  NormalVar _ a           -> a
+  DatatypeConstructor a _ -> Just a
+  DatatypeMatcher a _     -> Just a
 
 termVarInfo ::
   (PLC.HasUnique name PLC.TermUnique

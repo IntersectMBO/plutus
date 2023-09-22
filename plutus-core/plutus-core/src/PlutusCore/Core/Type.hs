@@ -22,9 +22,9 @@ module PlutusCore.Core.Type
     , fromPatFuncKind
     , argsFunKind
     , Type (..)
-    , funTySections
+    , splitFunTyParts
     , funTyArgs
-    , funResultType
+    , funTyResultType
     , Term (..)
     , Program (..)
     , HasTermLevel
@@ -110,24 +110,24 @@ data Type tyname uni ann
     deriving anyclass (NFData)
 
 -- | Get recursively all the domains and codomains of a type.
--- @funTySections (A->B->C) = [A, B, C]@
--- @funTySections (X) = [X]@
-funTySections :: Type tyname uni a -> NE.NonEmpty (Type tyname uni a)
-funTySections = \case
-    TyFun _ t1 t2 -> t1 NE.<| funTySections t2
+-- @splitFunTyParts (A->B->C) = [A, B, C]@
+-- @splitFunTyParts (X) = [X]@
+splitFunTyParts :: Type tyname uni a -> NE.NonEmpty (Type tyname uni a)
+splitFunTyParts = \case
+    TyFun _ t1 t2 -> t1 NE.<| splitFunTyParts t2
     t             -> pure t
 
 -- | Get the argument types of a function type.
 -- @funTyArgs (A->B->C) = [A, B]@
 funTyArgs :: Type tyname uni a ->  [Type tyname uni a]
-funTyArgs = NE.init . funTySections
+funTyArgs = NE.init . splitFunTyParts
 
 -- | Get the result type of a function.
 -- If not a function, then is the same as `id`
 -- @funResultType (A->B->C) = C@
 -- @funResultType (X) = X@
-funResultType :: Type tyname uni a ->  Type tyname uni a
-funResultType = NE.last . funTySections
+funTyResultType :: Type tyname uni a ->  Type tyname uni a
+funTyResultType = NE.last . splitFunTyParts
 
 data Term tyname name uni fun ann
     = Var ann name -- ^ a named variable
