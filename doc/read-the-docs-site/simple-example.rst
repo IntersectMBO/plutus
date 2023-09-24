@@ -1,20 +1,22 @@
+.. _simple_example:
+
 Simple example
 ===================
 
-Plutus script for an auction smart contract 
+Plutus script for an auction smart contract
 -------------------------------------------------
 
 Overview
 ~~~~~~~~~~~~
 
-This example presents Plutus Tx code being written for a smart contract that controls the auction of an asset, which can be executed on the Cardano blockchain. In a sense, the smart contract is acting as the auctioneer in that it enforces certain rules and requirements in order for the auction to occur successfully. 
+This example presents Plutus Tx code being written for a smart contract that controls the auction of an asset, which can be executed on the Cardano blockchain. In a sense, the smart contract is acting as the auctioneer in that it enforces certain rules and requirements in order for the auction to occur successfully.
 
 Plutus Tx is a high-level language for writing the validation logic of the contract, the logic that determines whether a transaction is allowed to spend a UTXO.
 Plutus Tx is not a new language, but rather a subset of Haskell, and it is compiled into Plutus Core, a low-level language based on higher-order polymorphic lambda calculus.
 Plutus Core is the code that runs on-chain, i.e., by every node validating the transaction, using an interpreter known as the CEK machine.
 A Plutus Core program included in a Cardano transaction is often referred to as Plutus script or Plutus validator.
 
-To develop and deploy a smart contract, you would also need off-chain code for building transactions, submitting transactions, deploying smart contracts, querying for available UTXOs on the chain and so on. 
+To develop and deploy a smart contract, you would also need off-chain code for building transactions, submitting transactions, deploying smart contracts, querying for available UTXOs on the chain and so on.
 You may also want a front-end interface for your smart contract for better user experiences.
 In this example, we are not covering the front-end and back-end aspects of the off-chain part of smart contracts.
 
@@ -28,7 +30,7 @@ The effect of a transaction is to consume inputs and produce new outputs.
 
 UTXO (unspent transaction output) is the ledger model used by some blockchains, including bitcoin.
 A UTXO is produced by a transaction, is immutable, and can only be spent once by another transaction.
-In the original UTXO model, a UTXO contains a wallet address and a value (e.g., some amount of Ada and/or other tokens). 
+In the original UTXO model, a UTXO contains a wallet address and a value (e.g., some amount of Ada and/or other tokens).
 Inside a transaction, a UTXO is uniquely identified by the wallet address.
 It can be spent by a transaction if the transaction is signed by the private key of the wallet address.
 
@@ -48,10 +50,10 @@ When the transaction is submitted, if some UTXOs it tries to spend have already 
 If all input UTXOs still exist, and the Plutus script is invoked, the on-chain behavior would be exactly identical to the off-chain behavior.
 This could not be achieved if transaction inputs were mutable, such as is the case in Ethereum's account-based model.
 
-See also: 
+See also:
 
-   * `Plutus scripts <https://docs.cardano.org/plutus/plutus-scripts>`_ for further reading about scripts, and 
-   * `Understanding the Extended UTXO model <https://docs.cardano.org/learn/eutxo-explainer>`_ 
+   * `Plutus scripts <https://docs.cardano.org/plutus/plutus-scripts>`_ for further reading about scripts, and
+   * `Understanding the Extended UTXO model <https://docs.cardano.org/learn/eutxo-explainer>`_
 
 Auction properties
 ----------------------
@@ -288,7 +290,7 @@ Alternatives to Plutus Tx
 -----------------------------
 
 There are languages other than Plutus Tx that can be compiled into Plutus Core.
-We list some of them here for reference. However, we are not endorsing them; we are not representing their qualities nor their state of development regarding their production-readiness. 
+We list some of them here for reference. However, we are not endorsing them; we are not representing their qualities nor their state of development regarding their production-readiness.
 
 * `Aiken <https://github.com/txpipe/aiken/>`_
 * `Hebi <https://github.com/OpShin/hebi>`_
@@ -305,8 +307,8 @@ Since the main purpose of this example is to introduce Plutus Tx and Plutus Core
 
 In addition to the on-chain code, one typically needs the accompanying off-chain code and services to perform tasks like building transactions, submitting transactions, deploying smart contracts, querying for available UTXOs on the chain, etc.
 
-A full suite of solutions is `in development <https://plutus-apps.readthedocs.io/en/latest/plutus/explanations/plutus-tools-component-descriptions.html>`_. 
-See the `plutus-apps <https://github.com/input-output-hk/plutus-apps>`_ repo and its accompanying `Plutus tools SDK user guide <https://plutus-apps.readthedocs.io/en/latest/>`_ for more details. 
+A full suite of solutions is `in development <https://plutus-apps.readthedocs.io/en/latest/plutus/explanations/plutus-tools-component-descriptions.html>`_.
+See the `plutus-apps <https://github.com/input-output-hk/plutus-apps>`_ repo and its accompanying `Plutus tools SDK user guide <https://plutus-apps.readthedocs.io/en/latest/>`_ for more details.
 
 Some other alternatives include `cardano-transaction-lib <https://github.com/Plutonomicon/cardano-transaction-lib>`_ and `lucid <https://github.com/spacebudz/lucid>`_.
 All these are based on the `Cardano API <https://github.com/input-output-hk/cardano-node/tree/master/cardano-api>`_, a low-level API that provides the capability to do the off-chain work with a local running node.

@@ -39,6 +39,7 @@ for writing Haskell code that can be compiled to Plutus Core.
 
    explanations/index
    simple-example
+   quick-start
    extensions-flags-pragmas
    tutorials/index
    howtos/index
