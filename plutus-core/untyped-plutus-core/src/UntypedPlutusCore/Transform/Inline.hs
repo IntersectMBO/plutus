@@ -36,6 +36,7 @@ import UntypedPlutusCore.Core qualified as UPLC
 import UntypedPlutusCore.Core.Plated
 import UntypedPlutusCore.Core.Type
 import UntypedPlutusCore.MkUPlc
+import UntypedPlutusCore.Purity
 import UntypedPlutusCore.Rename ()
 import UntypedPlutusCore.Size
 import UntypedPlutusCore.Subst
@@ -44,7 +45,6 @@ import Control.Lens hiding (Strict)
 import Control.Monad.Extra
 import Control.Monad.Reader
 import Control.Monad.State
-import Data.Foldable
 import Witherable (wither)
 
 {- Note [Differences from PIR inliner]
@@ -326,6 +326,25 @@ nameUsedAtMostOnce n = do
   -- 'inlining' terms used 0 times is a cheap way to remove dead code while we're here
   pure $ Usages.getUsageCount n usgs <= 1
 
+isFirstVarBeforeEffects
+    :: forall name uni fun ann. InliningConstraints name uni fun
+    => name -> Term name uni fun ann -> InlineM name uni fun ann Bool
+isFirstVarBeforeEffects n t = do
+    -- This can in the worst case traverse a lot of the term, which could lead to us
+    -- doing ~quadratic work as we process the program. However in practice most terms
+    -- have a relatively short evaluation order before we hit Unknown, so it's not too bad.
+    pure $ go (unEvalOrder (termEvaluationOrder t))
+    where
+      -- Found the variable we're looking for!
+      go ((EvalTerm _ _ (Var _ n')):_) | n == n' = True
+      -- Found a pure term, ignore it and continue
+      go ((EvalTerm Pure _ _):rest) = go rest
+      -- Found a possibly impure term, our variable is definitely not first
+      go ((EvalTerm MaybeImpure _ _):_) = False
+      -- Don't know, be conservative
+      go (Unknown:_) = False
+      go [] = False
+
 effectSafe ::
   forall name uni fun a.
   (InliningConstraints name uni fun) =>
@@ -335,12 +354,7 @@ effectSafe ::
   Bool ->
   InlineM name uni fun a Bool
 effectSafe body n purity = do
-  -- This can in the worst case traverse a lot of the term, which could lead to us
-  -- doing ~quadratic work as we process the program. However in practice most term
-  -- types will make it give up, so it's not too bad.
-  let immediatelyEvaluated = case firstEffectfulTerm body of
-        Just (Var _ n') -> n == n'
-        _               -> False
+  immediatelyEvaluated <- isFirstVarBeforeEffects n body
   pure $ purity || immediatelyEvaluated
 
 {- | Should we inline? Should only inline things that won't duplicate work or code.
@@ -350,26 +364,6 @@ acceptable :: Term name uni fun a -> InlineM name uni fun a Bool
 acceptable t =
   -- See Note [Inlining criteria]
   pure $ costIsAcceptable t && sizeIsAcceptable t
-
-{- |
-Try to identify the first sub term which will be evaluated in the given term and
-which could have an effect. 'Nothing' indicates that there's no term to evaluate.
--}
-firstEffectfulTerm :: Term name uni fun a -> Maybe (Term name uni fun a)
-firstEffectfulTerm = goTerm
-  where
-    goTerm = \case
-      Apply _ fun args -> goTerm fun <|> goTerm args
-      Force _ t        -> goTerm t
-      Constr _ _ []    -> Nothing
-      Constr _ _ ts    -> asum $ goTerm <$> ts
-      Case _ t _       -> goTerm t
-      t@Var{}          -> Just t
-      t@Error{}        -> Just t
-      Builtin{}        -> Nothing
-      LamAbs{}         -> Nothing
-      Constant{}       -> Nothing
-      Delay{}          -> Nothing
 
 {- | Is the cost increase (in terms of evaluation work) of inlining a variable whose RHS is
 the given term acceptable?
@@ -418,31 +412,6 @@ sizeIsAcceptable = \case
   Apply{} -> False
   Force _ t -> sizeIsAcceptable t
   Delay _ t -> sizeIsAcceptable t
-
-isPure :: Term name uni fun a -> Bool
-isPure = go True
-  where
-    -- See Note [delayAndVarIsPure]
-    go delayAndVarIsPure = \case
-      Var{}                         -> delayAndVarIsPure
-      -- These are syntactically values that won't reduce further
-      LamAbs{}                      -> True
-      Constant{}                    -> True
-      Delay _ body                  -> delayAndVarIsPure || go delayAndVarIsPure body
-      -- This case is not needed in PIR's `isPure`, because PIR's beta-reduction pass
-      -- turns terms like this into `Let` bindings.
-      Apply _ (LamAbs _ _ body) arg -> go True arg && go delayAndVarIsPure body
-      -- Applications can do work
-      Apply{}                       -> False
-      Force _ body                  -> go False body
-      -- A constructor is pure if all of its elements are pure
-      Constr _ _ es                 -> all (go True) es
-      -- A case will compute the case branch, which could do anything
-      Case{}                        -> False
-      -- Error is obviously not pure
-      Error{}                       -> False
-      -- See Note [Differences from PIR inliner] 5
-      Builtin{}                     -> True
 
 -- | Fully apply and beta reduce.
 fullyApplyAndBetaReduce ::
@@ -509,33 +478,3 @@ inlineSaturatedApp t
               pure $ if sizeIsOk && costIsOk && rhsPure then fullyApplied else t
   | otherwise = pure t
 
-{- Note [delayAndVarIsPure]
-
-To determine whether a `Term` is pure, we recurse into the `Term`. If we do not descend
-into a `Force` node, then a `Var` node and a `Delay` node is always pure
-(see Note [Purity, strictness, and variables] for why `Var` nodes are pure).
-
-Once we descend into the body of a `Force` node, however, `Var` and `Delay` nodes can
-no longer be considered unconditionally pure, because the following terms are impure:
-
-```
-force (delay impure)
-force (force (delay (delay impure)))
-force x  -- because `x` may expand into an delayed impure `Term`
-force (force (delay x))
-```
-
-This is the purpose of the `delayAndVarIsPure` flag, which is set to `False` when
-descending into the body of `Force`.
-
-This can potentially be improved, e.g., it would consider the following pure terms
-as impure:
-
-```
-force (delay (delay impure))
-force (delay x)
-```
-
-However, since we can rely on `forceDelayCancel` to cancel adjacent `force` and `delay`
-nodes, we do not need to be too clever here.
--}

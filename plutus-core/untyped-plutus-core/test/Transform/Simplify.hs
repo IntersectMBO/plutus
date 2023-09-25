@@ -147,9 +147,9 @@ inlinePure3 = mkInlinePurityTest $ do
       (LamAbs () x $ LamAbs () y $ Apply () (Var () x) (Var () x))
       (mkConstant @Integer () 1)
 
-{- | @force ([(\x -> delay (\y -> [x x])) (delay ([error (con integer 1)]))])@ is pure.
-
-The @error@ is not evaluated when evaluating this term.
+{- | @force ([(\x -> delay (\y -> [x x])) (delay ([error (con integer 1)]))])@ is pure,
+but it is very tricky to see so. It requires us to match up a force and a
+delay through several steps of intervening computation.
 -}
 inlinePure4 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 inlinePure4 = mkInlinePurityTest $ do
