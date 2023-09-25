@@ -6,7 +6,7 @@ Quick Start
 This guide gets you started on setting up the dev environment for a simple Cardano smart contract, with the on-chain validator written in Plutus Tx.
 There are several other options for writing on-chain validators, such as `Aiken <https://aiken-lang.org/>`_ and `OpShin <https://github.com/OpShin/opshin>`_, and you can refer to their respective documentation for how to use them.
 
-If you have any questions regarding this guide, open an issue `here <https://github.com/input-output-hk/plutus/issues>`_.
+If you have any questions regarding this guide, open an issue in the `Plutus issue tracker <https://github.com/input-output-hk/plutus/issues>`_.
 
 Writing the On-Chain Validator
 -----------------------------------------------------------------
