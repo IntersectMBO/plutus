@@ -154,11 +154,11 @@ representativeBindingUnique =
 type Scope = M.Map PLC.Unique Pos
 
 -- | The first pass has a reader context of current depth, and (term&type)variables in scope.
-data MarkCtx tyname name uni fun = MarkCtx
+data MarkCtx tyname name uni fun a = MarkCtx
     { _markCtxDepth     :: Depth
     , _markCtxScope     :: Scope
     , _markBuiltinsInfo :: BuiltinsInfo uni fun
-    , _markVarsInfo     :: VarsInfo tyname name
+    , _markVarsInfo     :: VarsInfo tyname name uni a
     }
 makeLenses ''MarkCtx
 
@@ -204,7 +204,7 @@ mark :: forall tyname name uni fun a.
      -> Marks
 mark binfo tm = snd $ runWriter $ flip runReaderT (MarkCtx topDepth mempty binfo (termVarInfo tm)) $ go tm
   where
-    go :: Term tyname name uni fun a -> ReaderT (MarkCtx tyname name uni fun) (Writer Marks) ()
+    go :: Term tyname name uni fun a -> ReaderT (MarkCtx tyname name uni fun a) (Writer Marks) ()
     go = breakNonRec >>> \case
         -- lam/Lam are treated the same.
         LamAbs _ n _ tBody  -> withLam n $ go tBody
@@ -408,11 +408,11 @@ floatTerm binfo t =
 maxPos :: M.Map k Pos -> Pos
 maxPos = foldr max topPos
 
-withDepth :: (r ~ MarkCtx tyname name uni fun, MonadReader r m)
+withDepth :: (r ~ MarkCtx tyname name uni fun a2, MonadReader r m)
           => (Depth -> Depth) -> m a -> m a
 withDepth = local . over markCtxDepth
 
-withLam :: (r ~ MarkCtx tyname name uni fun, MonadReader r m, PLC.HasUnique name unique)
+withLam :: (r ~ MarkCtx tyname name uni fun a2, MonadReader r m, PLC.HasUnique name unique)
         => name
         -> m a -> m a
 withLam (view PLC.theUnique -> u) = local $ \ (MarkCtx d scope binfo vinfo) ->
@@ -420,7 +420,7 @@ withLam (view PLC.theUnique -> u) = local $ \ (MarkCtx d scope binfo vinfo) ->
         pos' = Pos d' u LamBody
     in MarkCtx d' (M.insert u pos' scope) binfo vinfo
 
-withAbs :: (r ~ MarkCtx tyname name uni fun, MonadReader r m, PLC.HasUnique tyname unique)
+withAbs :: (r ~ MarkCtx tyname name uni fun a2, MonadReader r m, PLC.HasUnique tyname unique)
         => tyname
         -> m a -> m a
 withAbs (view PLC.theUnique -> u) = local $ \ (MarkCtx d scope binfo vinfo) ->
@@ -428,7 +428,7 @@ withAbs (view PLC.theUnique -> u) = local $ \ (MarkCtx d scope binfo vinfo) ->
         pos' = Pos d' u LamBody
     in MarkCtx d' (M.insert u pos' scope) binfo vinfo
 
-withBs :: (r ~ MarkCtx tyname name uni fun, MonadReader r m, PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique)
+withBs :: (r ~ MarkCtx tyname name uni fun a2, MonadReader r m, PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique)
        => NE.NonEmpty (Binding tyname name uni fun a3)
        -> Pos
        -> m a -> m a
@@ -442,7 +442,7 @@ ifRec r f a = case r of
     NonRec -> a
 
 floatable
-  :: (MonadReader (MarkCtx tyname name uni fun) m, PLC.ToBuiltinMeaning uni fun, PLC.HasUnique name PLC.TermUnique)
+  :: (MonadReader (MarkCtx tyname name uni fun a) m, PLC.ToBuiltinMeaning uni fun, PLC.HasUnique name PLC.TermUnique)
   => BindingGrp tyname name uni fun a
   -> m Bool
 floatable (BindingGrp _ _ bs) = do
@@ -461,7 +461,7 @@ An extreme alternative implementation is to treat *all strict* bindings as unflo
 hasNoEffects
     :: (PLC.ToBuiltinMeaning uni fun, PLC.HasUnique name PLC.TermUnique)
     => BuiltinsInfo uni fun
-    -> VarsInfo tyname name
+    -> VarsInfo tyname name uni a
     -> Binding tyname name uni fun a -> Bool
 hasNoEffects binfo vinfo = \case
     TypeBind{}               -> True

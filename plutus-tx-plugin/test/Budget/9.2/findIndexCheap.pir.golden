@@ -8,11 +8,6 @@ letrec
     Nil : List a
     Cons : a -> List a -> List a
 in
-let
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
-in
 letrec
   !go : integer -> List integer -> Maybe integer
     = \(i : integer) (ds : List integer) ->
@@ -23,15 +18,18 @@ letrec
           (/\dead -> Nothing {integer})
           (\(x : integer) (xs : List integer) ->
              /\dead ->
-               Bool_match
-                 (ifThenElse {Bool} (lessThanEqualsInteger 10 x) False True)
+               ifThenElse
                  {all dead. Maybe integer}
-                 (/\dead -> Just {integer} i)
+                 (lessThanEqualsInteger 10 x)
                  (/\dead -> go (addInteger 1 i) xs)
+                 (/\dead -> Just {integer} i)
                  {all dead. dead})
           {all dead. dead}
 in
 let
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
   !ls : List integer
     = (let
           a = List integer

@@ -41,10 +41,10 @@ we can use to represent it in the graph.
 -}
 data Node = Variable PLC.Unique | Root deriving stock (Show, Eq, Ord)
 
-data DepCtx tyname name uni fun = DepCtx
+data DepCtx tyname name uni fun a = DepCtx
   { _depNode         :: Node
   , _depBuiltinsInfo :: BuiltinsInfo uni fun
-  , _depVarInfo      :: VarsInfo tyname name
+  , _depVarInfo      :: VarsInfo tyname name uni a
   }
 makeLenses ''DepCtx
 
@@ -70,14 +70,14 @@ runTermDeps ::
   , PLC.ToBuiltinMeaning uni fun
   ) =>
   BuiltinsInfo uni fun ->
-  VarsInfo tyname name ->
+  VarsInfo tyname name uni a ->
   Term tyname name uni fun a ->
   g
 runTermDeps binfo vinfo t = flip runReader (DepCtx Root binfo vinfo) $ termDeps t
 
 -- | Record some dependencies on the current node.
 currentDependsOn ::
-  (DepGraph g, MonadReader (DepCtx tyname name uni fun) m) =>
+  (DepGraph g, MonadReader (DepCtx tyname name uni fun a) m) =>
   [PLC.Unique] ->
   m g
 currentDependsOn us = do
@@ -86,7 +86,7 @@ currentDependsOn us = do
 
 -- | Process the given action with the given name as the current node.
 withCurrent ::
-  (MonadReader (DepCtx tyname name uni fun) m, PLC.HasUnique n u) =>
+  (MonadReader (DepCtx tyname name uni fun a) m, PLC.HasUnique n u) =>
   n ->
   m g ->
   m g
@@ -143,7 +143,7 @@ so that this is visible to the dependency analysis.
 
 bindingDeps ::
   ( DepGraph g
-  , MonadReader (DepCtx tyname name uni fun) m
+  , MonadReader (DepCtx tyname name uni fun a) m
   , PLC.HasUnique tyname PLC.TypeUnique
   , PLC.HasUnique name PLC.TermUnique
   , PLC.ToBuiltinMeaning uni fun
@@ -192,7 +192,7 @@ bindingDeps b = case b of
 
 varDeclDeps ::
   ( DepGraph g
-  , MonadReader (DepCtx tyname name uni fun) m
+  , MonadReader (DepCtx tyname name uni fun a) m
   , PLC.HasUnique tyname PLC.TypeUnique
   , PLC.HasUnique name PLC.TermUnique
   ) =>
@@ -202,7 +202,7 @@ varDeclDeps (VarDecl _ n ty) = withCurrent n $ typeDeps ty
 
 -- Here for completeness, but doesn't do much
 tyVarDeclDeps ::
-  (G.Graph g, MonadReader (DepCtx tyname name uni fun) m) =>
+  (G.Graph g, MonadReader (DepCtx tyname name uni fun a) m) =>
   TyVarDecl tyname a ->
   m g
 tyVarDeclDeps _ = pure G.empty
@@ -212,7 +212,7 @@ term itself depends on (usually 'Root' if it is the real term you are interested
 -}
 termDeps ::
   ( DepGraph g
-  , MonadReader (DepCtx tyname name uni fun) m
+  , MonadReader (DepCtx tyname name uni fun a) m
   , PLC.HasUnique tyname PLC.TypeUnique
   , PLC.HasUnique name PLC.TermUnique
   , PLC.ToBuiltinMeaning uni fun
@@ -234,7 +234,7 @@ termDeps = \case
 the type itself depends on (usually 'Root' if it is the real type you are interested in).
 -}
 typeDeps ::
-  (DepGraph g, MonadReader (DepCtx tyname name uni fun) m, PLC.HasUnique tyname PLC.TypeUnique) =>
+  (DepGraph g, MonadReader (DepCtx tyname name uni fun a) m, PLC.HasUnique tyname PLC.TypeUnique) =>
   Type tyname uni a ->
   m g
 typeDeps ty =

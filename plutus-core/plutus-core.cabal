@@ -82,6 +82,7 @@ library
     PlutusCore
     PlutusCore.Analysis.Definitions
     PlutusCore.Annotation
+    PlutusCore.Arity
     PlutusCore.Builtin
     PlutusCore.Builtin.Debug
     PlutusCore.Builtin.Elaborate
@@ -496,6 +497,7 @@ library plutus-ir
     PlutusIR.Purity
     PlutusIR.Subst
     PlutusIR.Transform.Beta
+    PlutusIR.Transform.CaseOfCase
     PlutusIR.Transform.CaseReduce
     PlutusIR.Transform.CommuteFnWithConst
     PlutusIR.Transform.DeadCode
@@ -582,6 +584,7 @@ test-suite plutus-ir-test
     PlutusIR.Purity.Tests
     PlutusIR.Scoping.Tests
     PlutusIR.Transform.Beta.Tests
+    PlutusIR.Transform.CaseOfCase.Tests
     PlutusIR.Transform.CommuteFnWithConst.Tests
     PlutusIR.Transform.DeadCode.Tests
     PlutusIR.Transform.EvaluateBuiltins.Tests

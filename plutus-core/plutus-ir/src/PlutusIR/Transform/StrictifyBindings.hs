@@ -18,7 +18,7 @@ import PlutusIR.Analysis.VarInfo
 strictifyBindingsStep
     :: (ToBuiltinMeaning uni fun, PLC.HasUnique name PLC.TermUnique)
     => BuiltinsInfo uni fun
-    -> VarsInfo tyname name
+    -> VarsInfo tyname name uni a
     -> Term tyname name uni fun a
     -> Term tyname name uni fun a
 strictifyBindingsStep binfo vinfo = \case
