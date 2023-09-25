@@ -31,6 +31,8 @@
 
   r-overlay = import ./r-overlay.nix block;
 
+  coq-overlay = import ./coq-overlay.nix block;
+
   ghc-compiler-nix-name = import ./ghc-compiler-nix-name.nix block;
 
   haskell-language-server-project = import ./haskell-language-server-project.nix block;

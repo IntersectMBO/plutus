@@ -21,6 +21,7 @@ let
       inputs.haskell-nix.overlay
       inputs.iohk-nix.overlays.crypto
       cell.library.r-overlay
+      cell.library.coq-overlay
     ];
 
   };
