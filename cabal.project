@@ -41,7 +41,19 @@ benchmarks: true
 test-show-details: direct
 
 package plutus-core
-  flags: +with-inline-r +with-cert
+  flags: +with-inline-r 
+
+-- Needs a newer base so won't work on 8.10
+if impl(ghc > 9.0)
+  package plutus-core
+    flags: +with-cert
+else
+  -- This is a bit silly: although we won't use plutus-cert in this case, cabal
+  -- stil considers it a "local" project and tries to solve for it. So we hack
+  -- around the dependency issue so that cabal is happy, which is fine since it
+  -- won't actually build it.
+  allow-older: plutus-cert:base
+
 
 -- See the note on nix/pkgs/default.nix:agdaPackages for why this is here.
 -- (NOTE this will change to ieee754 in newer versions of nixpkgs).
@@ -62,4 +74,4 @@ constraints:
 source-repository-package
   type: git
   location: https://github.com/michaelpj/plutus-cert
-  tag: 42bf559c7317239753a752cb13bbc74c494de4a0
+  tag: e814b9171398cbdfecdc6823067156a7e9fc76a3

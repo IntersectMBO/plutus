@@ -34,7 +34,7 @@ let
 
       inputMap = { "https://input-output-hk.github.io/cardano-haskell-packages" = inputs.CHaP; };
       sha256map = {
-        "https://github.com/michaelpj/plutus-cert"."42bf559c7317239753a752cb13bbc74c494de4a0" = "19qm0mdzl7b8y6l9vy7ih0m323xqwk46brwzqhqikzahh6iahc4j"; # editorconfig-checker-disable-line
+        "https://github.com/michaelpj/plutus-cert"."e814b9171398cbdfecdc6823067156a7e9fc76a3" = "0srqvx0b819b5crrbsa9hz2fnr50ahqizvvm0wdmyq2bbpk2rka7"; # editorconfig-checker-disable-line
       };
 
       # TODO: move this into the cabal.project using the new conditional support?
