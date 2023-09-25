@@ -273,7 +273,6 @@ library
     , data-default-class
     , deepseq
     , dependent-sum               >=0.7.1.0
-    , dependent-sum-template
     , deriving-aeson              >=0.2.3
     , deriving-compat
     , dlist
@@ -314,6 +313,15 @@ library
     , transformers
     , unordered-containers
     , witherable
+
+  -- See https://github.com/obsidiansystems/dependent-sum-template/issues/5
+  -- New version doesn't work with GHC 9.2 and 9.4, so just use the old
+  -- version
+  if impl(ghc >9.6)
+    build-depends: dependent-sum-template >=0.2
+
+  else
+    build-depends: dependent-sum-template <0.1.2
 
   if impl(ghc <9.0)
     build-depends: integer-gmp
