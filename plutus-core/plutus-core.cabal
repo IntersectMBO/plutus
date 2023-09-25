@@ -181,6 +181,7 @@ library
     UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal
     UntypedPlutusCore.MkUPlc
     UntypedPlutusCore.Parser
+    UntypedPlutusCore.Purity
     UntypedPlutusCore.Rename
 
   other-modules:
@@ -379,6 +380,7 @@ test-suite untyped-plutus-core-test
   hs-source-dirs: untyped-plutus-core/test
   ghc-options:    -O2 -threaded -rtsopts -with-rtsopts=-N
   other-modules:
+    Analysis.Spec
     DeBruijn.FlatNatWord
     DeBruijn.Scope
     DeBruijn.Spec

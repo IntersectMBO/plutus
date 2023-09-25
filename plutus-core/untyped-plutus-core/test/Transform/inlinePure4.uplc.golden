@@ -1,9 +1,9 @@
-(lam
-  b_5
+[
+  (lam a_4 (lam b_5 a_4))
   (force
     [
-      (lam x_8 (delay (lam y_9 [ x_8 x_8 ])))
+      (lam x_6 (delay (lam y_7 [ x_6 x_6 ])))
       (delay [ (error) (con integer 1) ])
     ]
   )
-)
+]

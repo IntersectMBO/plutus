@@ -10,8 +10,8 @@ program
                 (force ifThenElse
                    (lessThanEqualsInteger x y)
                    (delay
-                      ((\arg_1 -> constr 1 [x, arg_1])
-                         (`$fEnumBool_$cenumFromTo` (addInteger 1 x) y)))
+                      (constr 1
+                         [x, (`$fEnumBool_$cenumFromTo` (addInteger 1 x) y)]))
                    (delay (constr 0 []))))
            1
            1000))
