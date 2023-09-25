@@ -5,7 +5,7 @@ pkgs.haskell-nix.hackage-project {
 
   version = "2.6.2.2";
 
-  compiler-nix-name = inputs.self.cabalProject.args.compiler-nix-name;
+  compiler-nix-name = "ghc928";
 
   cabalProjectLocal = ''
     extra-packages: ieee754, filemanip

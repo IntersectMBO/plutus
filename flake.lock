@@ -3,11 +3,11 @@
     "CHaP": {
       "flake": false,
       "locked": {
-        "lastModified": 1695133639,
-        "narHash": "sha256-euFXcmcTf8JBosYmufLLWS0yMAJNV2t05X13sGvr7L8=",
+        "lastModified": 1695632320,
+        "narHash": "sha256-+KR74QXr1uey9nPYh8kq9ya5GHFUqYlCu9sIzjLLTYk=",
         "owner": "input-output-hk",
         "repo": "cardano-haskell-packages",
-        "rev": "4f7df9c0bcf64493175fab87ba73ec6cf7c3ac79",
+        "rev": "548cfc4c7b0b5fc82f5f7fcad273ddf24c21026a",
         "type": "github"
       },
       "original": {
@@ -280,11 +280,11 @@
     "hackage": {
       "flake": false,
       "locked": {
-        "lastModified": 1695082986,
-        "narHash": "sha256-155gWeN81QVLB7VfP0/G1Os3kWHaRvo/Jyc64Hkh35o=",
+        "lastModified": 1695601381,
+        "narHash": "sha256-1Y04TPAozG9UyILAZz8WojwHvYTDMfLTbgfOs+IMRVw=",
         "owner": "input-output-hk",
         "repo": "hackage.nix",
-        "rev": "0da89d4d6e34c13ceda3c4b912e73dd0d2ecfcf7",
+        "rev": "bb79b70206e2550d71830c983a7fd5f6b1c908c4",
         "type": "github"
       },
       "original": {
@@ -350,7 +350,6 @@
       "original": {
         "owner": "input-output-hk",
         "repo": "haskell.nix",
-        "rev": "2159062154595d3ffc682e954189e635d1a1953f",
         "type": "github"
       }
     },
@@ -449,8 +448,8 @@
         "sphinxcontrib-haddock": "sphinxcontrib-haddock"
       },
       "locked": {
-        "lastModified": 1695048566,
-        "narHash": "sha256-8X+Zp8BSQszods1T5o1gjZSUvxoaKpEFtlQ2v28PbCU=",
+        "lastModified": 1695236155,
+        "narHash": "sha256-sneebz0FmoxaO0AYXEUMZCKLrFk8K4x70obCV0PiooU=",
         "type": "git",
         "url": "file:///Users/zeme/Repos/iogx"
       },

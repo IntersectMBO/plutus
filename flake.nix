@@ -22,7 +22,7 @@
     };
 
     haskell-nix = {
-      url = "github:input-output-hk/haskell.nix/2159062154595d3ffc682e954189e635d1a1953f";
+      url = "github:input-output-hk/haskell.nix";
     };
   };
 

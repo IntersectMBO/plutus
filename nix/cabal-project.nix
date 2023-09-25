@@ -7,7 +7,7 @@ let
 
     name = "plutus";
 
-    compiler-nix-name = lib.mkDefault "ghc92";
+    compiler-nix-name = lib.mkDefault "ghc928";
 
     src = ../.;
 
@@ -21,10 +21,10 @@ let
     };
 
     flake.variants = {
-      ghc92 = { }; # Alias for the default project
-      ghc92-profiled.modules = [{ enableProfiling = true; }];
-      ghc810.compiler-nix-name = "ghc810";
-      ghc96.compiler-nix-name = "ghc96";
+      # ghc92 = { }; # Alias for the default project
+      # ghc92-profiled.modules = [{ enableProfiling = true; }];
+      # ghc810.compiler-nix-name = "ghc810";
+      # ghc96.compiler-nix-name = "ghc96";
     };
 
     inputMap = { "https://input-output-hk.github.io/cardano-haskell-packages" = inputs.CHaP; };
