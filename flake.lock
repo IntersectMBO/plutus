@@ -293,22 +293,6 @@
         "type": "github"
       }
     },
-    "hackage_2": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1688171355,
-        "narHash": "sha256-tkfcXzYDfL1ABJKId1OS/uxihkaDp9PTYjd9i22Pt6M=",
-        "owner": "input-output-hk",
-        "repo": "hackage.nix",
-        "rev": "79762108804a5fca60f2936a7901bf368f0f845a",
-        "type": "github"
-      },
-      "original": {
-        "owner": "input-output-hk",
-        "repo": "hackage.nix",
-        "type": "github"
-      }
-    },
     "haskell-nix": {
       "inputs": {
         "HTTP": "HTTP",
@@ -319,7 +303,9 @@
         "flake-compat": "flake-compat",
         "flake-utils": "flake-utils",
         "ghc-8.6.5-iohk": "ghc-8.6.5-iohk",
-        "hackage": "hackage_2",
+        "hackage": [
+          "hackage"
+        ],
         "hls-1.10": "hls-1.10",
         "hls-2.0": "hls-2.0",
         "hpc-coveralls": "hpc-coveralls",
@@ -448,13 +434,16 @@
         "sphinxcontrib-haddock": "sphinxcontrib-haddock"
       },
       "locked": {
-        "lastModified": 1695236155,
-        "narHash": "sha256-sneebz0FmoxaO0AYXEUMZCKLrFk8K4x70obCV0PiooU=",
-        "type": "git",
-        "url": "file:///Users/zeme/Repos/iogx"
+        "lastModified": 1695645943,
+        "narHash": "sha256-NREOoimQ4QpJm0yD/fnEzduXRe1M6iiDr6zUTVXdgOE=",
+        "owner": "input-output-hk",
+        "repo": "iogx",
+        "rev": "9d6340765e3513943e87f5a30f67b4525d0c3e6c",
+        "type": "github"
       },
       "original": {
         "owner": "input-output-hk",
+        "ref": "v4",
         "repo": "iogx",
         "type": "github"
       }

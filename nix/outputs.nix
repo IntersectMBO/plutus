@@ -13,33 +13,36 @@ in
 [
   {
     inherit cabalProject;
-  }
-  {
-    devShells.default = cabalProject.iogx.devShell;
+
+    devShells.default = ghc92.iogx.devShell;
     devShells.profiled = ghc92-profiled.iogx.devShell;
     devShells.ghc92 = ghc92.iogx.devShell;
     devShells.ghc810 = ghc810.iogx.devShell;
     devShells.ghc96 = ghc96.iogx.devShell;
-  }
-  {
-    latex-documents = repoRoot.nix.latex-documents;
 
-    packages.plutus-metatheory-site = repoRoot.nix.plutus-metatheory-site;
-    packages.pre-commit-check = ghc92.pre-commit-check;
-    packages.read-the-docs-site = ghc92.read-the-docs-site;
+    packages = ghc92.iogx.packages;
+    apps = ghc92.iogx.apps;
+    checks = ghc92.iogx.checks;
+
+    latex-documents = repoRoot.nix.latex-documents;
   }
+
   {
-    hydraJobs.required = lib.iogx.mkHydraRequiredJob;
+    packages.plutus-metatheory-site = repoRoot.nix.plutus-metatheory-site;
+    packages.pre-commit-check = ghc92.iogx.pre-commit-check;
+    packages.read-the-docs-site = ghc92.iogx.read-the-docs-site;
   }
+
   (lib.optionalAttrs (system == "x86_64-linux" || system == "x86_64-darwin")
     {
-      hydraJobs.plutus-metatheory-site = repoRoot.nix.plutus-metatheory-site;
-      hydraJobs.pre-commit-check = ghc92.iogx.pre-commit-check;
+      hydraJobs.plutus-metatheory-site = inputs.self.packages.plutus-metatheory-site;
+      hydraJobs.pre-commit-check = inputs.self.packages.pre-commit-check;
 
       hydraJobs.ghc810 = ghc810.iogx.hydraJobs;
       hydraJobs.ghc92 = ghc92.iogx.hydraJobs;
       hydraJobs.ghc96 = ghc96.iogx.hydraJobs;
     })
+
   (lib.optionalAttrs (system == "x86_64-linux")
     {
       hydraJobs.latex-documents = inputs.self.latex-documents;
@@ -49,6 +52,7 @@ in
       hydraJobs.mingwW64.ghc92 = ghc92.projectCross.mingwW64.iogx.hydraJobs;
       hydraJobs.mingwW64.ghc96 = ghc96.projectCross.mingwW64.iogx.hydraJobs;
     })
+
   (lib.optionalAttrs (system == "aarch64-darwin")
     {
       # Plausibly if things build on x86 darwin then they'll build on aarch darwin.
