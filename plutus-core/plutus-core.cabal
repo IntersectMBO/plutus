@@ -317,7 +317,7 @@ library
   -- See https://github.com/obsidiansystems/dependent-sum-template/issues/5
   -- New version doesn't work with GHC 9.2 and 9.4, so just use the old
   -- version
-  if impl(ghc >9.6)
+  if impl(ghc >9.5)
     build-depends: dependent-sum-template >=0.2
 
   else
