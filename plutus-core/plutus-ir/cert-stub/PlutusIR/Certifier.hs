@@ -9,9 +9,6 @@ module PlutusIR.Certifier (is_dead_code, is_unique) where
 import PlutusCore qualified as P
 import PlutusIR qualified as PIR
 
-import Data.Char
-import Data.List.NonEmpty
-
 type Term a = PIR.Term P.TyName P.Name P.DefaultUni P.DefaultFun a
 
 -- | Check if only pure let bindings were eliminated

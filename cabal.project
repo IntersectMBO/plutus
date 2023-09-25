@@ -43,8 +43,9 @@ test-show-details: direct
 package plutus-core
   flags: +with-inline-r 
 
--- Needs a newer base so won't work on 8.10
-if impl(ghc > 9.0)
+-- Needs a newer base so won't work on 8.10, various dependencies of coq don't work
+-- when cross building for windows
+if impl(ghc > 9.0) && !os(windows)
   package plutus-core
     flags: +with-cert
 else
