@@ -115,6 +115,10 @@ let
               build-tools = [ cell.library.r-with-packages ];
             };
             plutus-cert.components.library.build-tools =
+              # Needs to build both itself and its bundled deps.
+              # This needs both coq and ocaml packages, and only
+              # works with particular versions. Fortunately
+              # they're in nixpkgs.
               let
                 ocamlPkgs = pkgs.ocaml-ng.ocamlPackages_4_10;
                 coqPkgs = pkgs.coqPackages_8_13;
