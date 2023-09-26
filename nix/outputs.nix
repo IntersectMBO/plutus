@@ -33,8 +33,6 @@ in
     packages.plutus-metatheory-site = repoRoot.nix.plutus-metatheory-site;
     packages.pre-commit-check = ghc92.pre-commit-check;
     packages.read-the-docs-site = ghc92.read-the-docs-site;
-
-    packages.static-pir = ghc92.projectCross.musl64.hsPkgs.plutus-core.components.exes.pir;
   }
 
   (lib.optionalAttrs (system == "x86_64-linux" || system == "x86_64-darwin")
@@ -55,6 +53,8 @@ in
       hydraJobs.mingwW64.ghc810 = cabalProject.projectVariants.ghc810.projectCross.mingwW64.iogx.hydraJobs; # editorconfig-checker-disable-line
       hydraJobs.mingwW64.ghc92 = cabalProject.projectVariants.ghc92.projectCross.mingwW64.iogx.hydraJobs; # editorconfig-checker-disable-line
       hydraJobs.mingwW64.ghc96 = cabalProject.projectVariants.ghc96.projectCross.mingwW64.iogx.hydraJobs; # editorconfig-checker-disable-line
+
+      hydraJobs.musl64.ghc92.pir = cabalProject.projectVariants.ghc92.projectCross.musl64.hsPkgs.plutus-core.components.exes.pir; # editorconfig-checker-disable-line
     })
 
   (lib.optionalAttrs (system == "aarch64-darwin")
