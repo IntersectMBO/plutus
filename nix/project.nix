@@ -101,7 +101,7 @@ let
           };
         };
       }
-      (lib.mkIf (config.compiler-nix-name != "ghc8107") {
+      (lib.mkIf (config.compiler-nix-name != "ghc810") {
         packages = {
           # -Werror for CI
           # Only enable on the newer compilers. We don't care about warnings on the old ones,
