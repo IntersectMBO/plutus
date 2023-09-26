@@ -57,8 +57,8 @@ let
           # Needs agda
           plutus-metatheory.package.buildable = false;
           # These need R
-          plutus-core.components.benchmarks.cost-model-test.buildable = false; # lib.mkForce false;
-          plutus-core.components.exes.generate-cost-modelib.buildable = false; # lib.mkForce false;
+          plutus-core.components.benchmarks.cost-model-test.buildable = lib.mkForce false;
+          plutus-core.components.exes.generate-cost-modelib.buildable = lib.mkForce false;
           # This contains support for doing testing, so we're not interested in cross-compiling it
           plutus-conformance.package.buildable = false;
         };
