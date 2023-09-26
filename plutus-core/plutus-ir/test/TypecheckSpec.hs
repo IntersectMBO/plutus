@@ -2,13 +2,14 @@
 module TypecheckSpec where
 
 
-import Data.Functor (void)
+import Control.Monad.Reader
 import PlutusCore.Default
 import PlutusCore.Generators.QuickCheck.Utils
+import PlutusCore.Quote
+import PlutusCore.TypeCheck qualified as PLC
 import PlutusIR.Compiler
 import PlutusIR.Compiler.Provenance (original)
 import PlutusIR.Core
-import PlutusIR.Error
 import PlutusIR.Generators.QuickCheck.GenerateTerms
 import PlutusIR.TypeCheck
 import Test.QuickCheck
@@ -31,16 +32,16 @@ tyCheck ::
   -> Either (Error DefaultUni DefaultFun ()) ()
 tyCheck tm = do
   config <- getDefTypeCheckConfig ()
-  inferredType <- inferType config tm
-  case simplifyTerm (original tm) of
+  plcConfig <- PLC.getDefTypeCheckConfig ()
+  inferredType <- runQuoteT $ inferType config tm
+  case runReaderT (runQuoteT (simplifyTerm (original tm))) (toDefaultCompilationCtx plcConfig) of
     Left err -> Left $ void err
     Right simplified ->
-      checkType config () (void simplified) inferredType
+      runQuoteT $ checkType config () (void simplified) inferredType
 
 prop_typecheck :: Property
 prop_typecheck =
   forAllDoc "ty,tm" genTypeAndTerm_ (const []) $ \ (_ty, tm) -> do
-    -- tyCheck tm
   case tyCheck tm of
     Left err -> Left $ show err
     Right () -> Right ()
