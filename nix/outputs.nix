@@ -56,6 +56,9 @@ in
       # TODO temporary workaround, remove in next commit.
 
       hydraJobs.musl64.ghc92.pir = ghc92-cross.musl64.hsPkgs.plutus-core.components.exes.pir;
+      hydraJobs.musl64.ghc92.plc = ghc92-cross.musl64.hsPkgs.plutus-core.components.exes.plc;
+      hydraJobs.musl64.ghc92.uplc = ghc92-cross.musl64.hsPkgs.plutus-core.components.exes.uplc;
+      hydraJobs.musl64.ghc92.debugger = ghc92-cross.musl64.hsPkgs.plutus-core.components.exes.debugger; # editorconfig-checker-disable-line
     })
 
   (lib.optionalAttrs (system == "aarch64-darwin")
