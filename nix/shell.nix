@@ -60,7 +60,4 @@ cabalProject:
     optipng.enable = true;
     hlint.enable = false;
   };
-
-
-  tools.haskellCompiler = cabalProject.args.compiler-nix-name;
 }

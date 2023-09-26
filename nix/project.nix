@@ -131,7 +131,7 @@ let
   };
 
 
-  project = lib.iogx.mkProject {
+  project = lib.iogx.mkHaskellProject {
     inherit cabalProjectArgs;
     readTheDocs.siteFolder = "doc/read-the-docs-site";
     shellArgsForProjectVariant = repoRoot.nix.shell;
