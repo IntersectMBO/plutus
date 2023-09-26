@@ -50,9 +50,9 @@ in
       hydraJobs.read-the-docs-site = ghc92.read-the-docs-site;
       hydraJobs.pre-commit-check = ghc92.pre-commit-check;
 
-      hydraJobs.mingwW64.ghc810 = cabalProject.projectVariants.ghc810.projectCross.mingwW64.iogx.hydraJobs; # editorconfig-checker-disable-line
-      hydraJobs.mingwW64.ghc92 = cabalProject.projectVariants.ghc92.projectCross.mingwW64.iogx.hydraJobs; # editorconfig-checker-disable-line
-      hydraJobs.mingwW64.ghc96 = cabalProject.projectVariants.ghc96.projectCross.mingwW64.iogx.hydraJobs; # editorconfig-checker-disable-line
+      hydraJobs.mingwW64.ghc810 = cabalProject.projectVariants.ghc810.projectCross.mingwW64.flake'.hydraJobs; # editorconfig-checker-disable-line
+      hydraJobs.mingwW64.ghc92 = cabalProject.projectVariants.ghc92.projectCross.mingwW64.flake'.hydraJobs; # editorconfig-checker-disable-line
+      hydraJobs.mingwW64.ghc96 = cabalProject.projectVariants.ghc96.projectCross.mingwW64.flake'.hydraJobs; # editorconfig-checker-disable-line
 
       hydraJobs.musl64.ghc92.pir = cabalProject.projectVariants.ghc92.projectCross.musl64.hsPkgs.plutus-core.components.exes.pir; # editorconfig-checker-disable-line
     })
