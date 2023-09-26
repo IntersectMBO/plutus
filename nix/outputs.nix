@@ -51,7 +51,7 @@ in
       hydraJobs.read-the-docs-site = ghc92.read-the-docs-site;
       hydraJobs.pre-commit-check = ghc92.pre-commit-check;
 
-      hydraJobs.mingwW64.ghc92 = ghc92-cross.mingwW64.flake'.hydraJobs;
+      hydraJobs.mingwW64.ghc92 = ghc92-cross.mingwW64.iogx.hydraJobs;
       hydraJobs.musl64.ghc92.pir = ghc92-cross.musl64.hsPkgs.plutus-core.components.exes.pir;
     })
 
