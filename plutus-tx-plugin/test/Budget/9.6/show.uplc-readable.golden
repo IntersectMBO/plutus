@@ -180,10 +180,7 @@ program
                                                                                     , ds ]))
                                                                               (delay
                                                                                  (force
-                                                                                    (go
-                                                                                       (delay
-                                                                                          (\x ->
-                                                                                             x)))
+                                                                                    go
                                                                                     n
                                                                                     ds))))
                                                                         (divideInteger
@@ -254,7 +251,8 @@ program
                                                                              [ (constr 1
                                                                                   [ y
                                                                                   , zs ])
-                                                                             , ws ]) ]))))) ])))))
+                                                                             , ws ]) ]))))) ])))
+                                      (delay (\x -> x))))
                                 (fix1
                                    (\`$fEnumBool_$cenumFromTo` x y ->
                                       force

@@ -4,7 +4,7 @@ program
       (\go ->
          (\recursiveAll ->
             (\ls ->
-               force (recursiveAll (delay (\x -> x)))
+               force recursiveAll
                  (\v ->
                     force ifThenElse
                       (lessThanInteger v 0)
@@ -30,7 +30,8 @@ program
                                                 (recursiveAll (delay (\x -> x)))
                                                 ds
                                                 xs))
-                                        , (delay (constr 1 [])) ]))) ])))))
+                                        , (delay (constr 1 [])) ]))) ])))
+              (delay (\x -> x))))
         (fix1
            (\go n ->
               force
