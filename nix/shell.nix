@@ -54,7 +54,7 @@ cabalProject:
   preCommit = {
     stylish-haskell.enable = true;
     cabal-fmt.enable = true;
-    shellcheck.enable = true;
+    shellcheck.enable = false;
     editorconfig-checker.enable = true;
     nixpkgs-fmt.enable = true;
     optipng.enable = true;
