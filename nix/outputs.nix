@@ -5,6 +5,7 @@ let
 
   ghc810 = cabalProject.projectVariants.ghc810.iogx;
   ghc92 = cabalProject.projectVariants.ghc92.iogx;
+  ghc92-cross = cabalProject.projectVariants.ghc92.projectCross;
   ghc92-profiled = cabalProject.projectVariants.ghc92-profiled.iogx;
   ghc96 = cabalProject.projectVariants.ghc96.iogx;
 
@@ -50,9 +51,8 @@ in
       hydraJobs.read-the-docs-site = ghc92.read-the-docs-site;
       hydraJobs.pre-commit-check = ghc92.pre-commit-check;
 
-      hydraJobs.mingwW64.ghc92 = cabalProject.projectVariants.ghc92.projectCross.mingwW64.flake'.hydraJobs; # editorconfig-checker-disable-line
-
-      hydraJobs.musl64.ghc92.pir = cabalProject.projectVariants.ghc92.projectCross.musl64.hsPkgs.plutus-core.components.exes.pir; # editorconfig-checker-disable-line
+      hydraJobs.mingwW64.ghc92 = ghc92-cross.mingwW64.flake'.hydraJobs;
+      hydraJobs.musl64.ghc92.pir = ghc92-cross.musl64.hsPkgs.plutus-core.components.exes.pir;
     })
 
   (lib.optionalAttrs (system == "aarch64-darwin")
