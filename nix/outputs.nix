@@ -36,7 +36,6 @@ in
   (lib.optionalAttrs (system == "x86_64-linux" || system == "x86_64-darwin")
     {
       hydraJobs.plutus-metatheory-site = repoRoot.nix.plutus-metatheory-site;
-      hydraJobs.pre-commit-check = ghc92.pre-commit-check;
 
       hydraJobs.ghc810 = ghc810.hydraJobs;
       hydraJobs.ghc92 = ghc92.hydraJobs;
@@ -47,6 +46,7 @@ in
     {
       hydraJobs.latex-documents = repoRoot.nix.latex-documents;
       hydraJobs.read-the-docs-site = ghc92.read-the-docs-site;
+      hydraJobs.pre-commit-check = ghc92.pre-commit-check;
 
       hydraJobs.mingwW64.ghc810 = ghc810.projectCross.mingwW64.hydraJobs;
       hydraJobs.mingwW64.ghc92 = ghc92.projectCross.mingwW64.hydraJobs;
