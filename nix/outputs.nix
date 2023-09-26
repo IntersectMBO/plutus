@@ -51,7 +51,10 @@ in
       hydraJobs.read-the-docs-site = ghc92.read-the-docs-site;
       hydraJobs.pre-commit-check = ghc92.pre-commit-check;
 
-      hydraJobs.mingwW64.ghc92 = ghc92-cross.mingwW64.iogx.hydraJobs;
+      hydraJobs.mingwW64.ghc92 =
+        removeAttrs ghc92-cross.mingwW64.iogx.hydraJobs [ "devShell" "devShells" ];
+      # TODO temporary workaround, remove in next commit.
+
       hydraJobs.musl64.ghc92.pir = ghc92-cross.musl64.hsPkgs.plutus-core.components.exes.pir;
     })
 
