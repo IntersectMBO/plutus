@@ -14,9 +14,9 @@ repository cardano-haskell-packages
 -- update either of these.
 index-state:
   -- Bump both the following dates if you need newer packages from Hackage
-  , hackage.haskell.org 2023-08-09T00:00:00Z
+  , hackage.haskell.org 2023-09-26T22:43:52Z
   -- Bump this if you need newer packages from CHaP
-  , cardano-haskell-packages 2023-08-09T00:00:00Z
+  , cardano-haskell-packages 2023-09-26T01:42:03Z
 
 packages: doc/read-the-docs-site
           plutus-benchmark
@@ -46,14 +46,3 @@ package plutus-core
 -- See the note on nix/pkgs/default.nix:agdaPackages for why this is here.
 -- (NOTE this will change to ieee754 in newer versions of nixpkgs).
 extra-packages: ieee, filemanip
-
-constraints: 
-  -- We need turtle > 1.6 to support GHC 9.6. But that version now allows
-  -- some broken situations: https://github.com/Gabriella439/turtle/pull/446#issuecomment-1637628373
-  -- We are forced into an old version of ansi-wl-pprint because of inline-c (dep of inline-r), which
-  -- doesn't support the new one.
-  -- So for now we just force old versions of optparse-applicative and ansi-wl-pprint.
-  -- This is fine for CHaP, since we don't publish plutus-metatheory and the flag for inline-r
-  -- is off by default.
-  optparse-applicative < 0.18
-  , ansi-wl-pprint < 1.0
