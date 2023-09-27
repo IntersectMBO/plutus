@@ -69,8 +69,12 @@ thunkRecursions =
         map
             (goldenPir (ThunkRec.thunkRecursions def) pTerm)
             [ "listFold"
+            , "listFoldTrace"
             , "monoMap"
             , "errorBinding"
+            , "mutuallyRecursiveValues"
+            , "preserveEffectOrder"
+            , "preserveStrictness"
             ]
 
 nonStrict :: TestNested
