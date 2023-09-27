@@ -12,7 +12,7 @@ import PlutusBenchmark.Marlowe.Scripts.RolePayout (rolePayoutValidator)
 import PlutusBenchmark.Marlowe.Scripts.Semantics (marloweValidator)
 import PlutusBenchmark.Marlowe.Types qualified as M
 import PlutusCore.Default (DefaultFun, DefaultUni)
-import PlutusCore.Test (goldenUPlcBudget)
+import PlutusCore.Test (goldenUEvalBudget)
 import PlutusLedgerApi.V2 (scriptContextTxInfo, txInfoId)
 import PlutusTx.Code (CompiledCode)
 import UntypedPlutusCore (NamedDeBruijn)
@@ -40,8 +40,8 @@ main = do
       allTests =
         testGroup "plutus-benchmark Marlowe tests"
             [ runTestNestedIn ["marlowe", "test"] $ testNested "semantics" $
-                map (uncurry goldenUPlcBudget . mkBudgetTest marloweValidator) semanticsMBench
+                map (uncurry goldenUEvalBudget . mkBudgetTest marloweValidator) semanticsMBench
             , runTestNestedIn ["marlowe", "test"] $ testNested "role-payout" $
-                map (uncurry goldenUPlcBudget . mkBudgetTest rolePayoutValidator) rolePayoutMBench
+                map (uncurry goldenUEvalBudget . mkBudgetTest rolePayoutValidator) rolePayoutMBench
             ]
   defaultMain allTests

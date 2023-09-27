@@ -19,8 +19,8 @@ import Data.Proxy
 
 optimization :: TestNested
 optimization = testNestedGhc "Optimization" [
-    goldenUPlcCatch "alwaysSucceeds" alwaysSucceeds
-  , goldenUPlcCatch "alwaysFails" alwaysFails
+    goldenUPlc "alwaysSucceeds" alwaysSucceeds
+  , goldenUPlc "alwaysFails" alwaysFails
   ]
 
 alwaysSucceeds :: CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> ())

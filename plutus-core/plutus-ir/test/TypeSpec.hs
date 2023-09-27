@@ -44,7 +44,7 @@ types = testNested "types"
 
 typeErrors :: TestNested
 typeErrors = testNested "type-errors"
-    $ map (goldenTypeFromPirCatch topSrcSpan pTerm)
+    $ map (goldenTypeFromPir topSrcSpan pTerm)
     [ "wrongDataConstrReturnType"
     , "nonSelfRecursive"
     , "typeLet"

@@ -30,7 +30,7 @@ import PlutusCore.Name
 import PlutusCore.Pretty
 import PlutusCore.Pretty qualified as PLC
 import PlutusCore.Quote (runQuoteT)
-import PlutusCore.Test hiding (ppCatch, ppThrow)
+import PlutusCore.Test hiding (ppCatch)
 import PlutusIR as PIR
 import PlutusIR.Compiler as PIR
 import PlutusIR.Parser (Parser, parse)
@@ -120,6 +120,10 @@ withGoldenFileM name op = do
   where
     currentDir = joinPath <$> ask
 
+-- TODO: deduplicate with the PlutusuCore one
+ppCatch :: (PrettyPlc a) => ExceptT SomeException IO a -> IO T.Text
+ppCatch value = render <$> (either (pretty . show) prettyPlcClassicDebug <$> runExceptT value)
+
 goldenPir :: (Pretty b) => (a -> b) -> Parser a -> String -> TestNested
 goldenPir op = goldenPirM (return . op)
 
@@ -156,18 +160,12 @@ goldenPirDocM op parser name = withGoldenFileM name parseOrError
        in either (return . display) (fmap (renderStrict . layoutPretty defaultLayoutOptions) . op)
             . parseTxt
 
-ppThrow :: (PrettyPlc a) => ExceptT SomeException IO a -> IO T.Text
-ppThrow = fmap render . rethrow . fmap prettyPlcClassicDebug
-
-ppCatch :: (PrettyPlc a) => ExceptT SomeException IO a -> IO T.Text
-ppCatch value = render <$> (either (pretty . show) prettyPlcClassicDebug <$> runExceptT value)
-
 goldenPlcFromPir ::
   (ToTPlc a PLC.DefaultUni PLC.DefaultFun) =>
   Parser a ->
   String ->
   TestNested
-goldenPlcFromPir = goldenPirM $ \ast -> ppThrow $ do
+goldenPlcFromPir = goldenPirM $ \ast -> ppCatch $ do
   p <- toTPlc ast
   withExceptT @_ @PLC.FreeVariableError toException $ traverseOf PLC.progTerm PLC.deBruijnTerm p
 
@@ -176,7 +174,7 @@ goldenPlcFromPirScott ::
   Parser prog ->
   String ->
   TestNested
-goldenPlcFromPirScott = goldenPirM $ \ast -> ppThrow $ do
+goldenPlcFromPirScott = goldenPirM $ \ast -> ppCatch $ do
   p <-
     asIfThrown
       . fmap void
@@ -189,23 +187,14 @@ goldenNamedUPlcFromPir ::
   Parser a ->
   String ->
   TestNested
-goldenNamedUPlcFromPir = goldenPirM $ ppThrow . toUPlc
-
-goldenPlcFromPirCatch ::
-  (ToTPlc a PLC.DefaultUni PLC.DefaultFun) =>
-  Parser a ->
-  String ->
-  TestNested
-goldenPlcFromPirCatch = goldenPirM $ \ast -> ppCatch $ do
-  p <- toTPlc ast
-  withExceptT @_ @PLC.FreeVariableError toException $ traverseOf PLC.progTerm PLC.deBruijnTerm p
+goldenNamedUPlcFromPir = goldenPirM $ ppCatch . toUPlc
 
 goldenEvalPir ::
   (ToUPlc a PLC.DefaultUni PLC.DefaultFun) =>
   Parser a ->
   String ->
   TestNested
-goldenEvalPir = goldenPirM (\ast -> ppThrow $ runUPlc [ast])
+goldenEvalPir = goldenPirM (\ast -> ppCatch $ runUPlc [ast])
 
 goldenTypeFromPir ::
   forall a.
@@ -215,20 +204,6 @@ goldenTypeFromPir ::
   String ->
   TestNested
 goldenTypeFromPir x =
-  goldenPirM $ \ast -> ppThrow $
-    withExceptT (toException :: PIR.Error PLC.DefaultUni PLC.DefaultFun a -> SomeException) $
-      runQuoteT $ do
-        tcConfig <- getDefTypeCheckConfig x
-        inferType tcConfig ast
-
-goldenTypeFromPirCatch ::
-  forall a.
-  (Pretty a, Typeable a) =>
-  a ->
-  Parser (Term TyName Name PLC.DefaultUni PLC.DefaultFun a) ->
-  String ->
-  TestNested
-goldenTypeFromPirCatch x =
   goldenPirM $ \ast -> ppCatch $
     withExceptT (toException :: PIR.Error PLC.DefaultUni PLC.DefaultFun a -> SomeException) $
       runQuoteT $ do

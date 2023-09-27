@@ -39,7 +39,7 @@ basic = testNestedGhc "Basic" [
   , goldenUEval "ifOptEval" [ifOpt]
   , goldenPir "monadicDo" monadicDo
   , goldenPir "patternMatchDo" patternMatchDo
-  , goldenUPlcCatch "patternMatchFailure" patternMatchFailure
+  , goldenUPlc "patternMatchFailure" patternMatchFailure
   , goldenPir "defaultCaseDuplication" defaultCaseDuplication
   , goldenPir "defaultCaseDuplicationNested" defaultCaseDuplicationNested
   ]
