@@ -41,7 +41,20 @@ benchmarks: true
 test-show-details: direct
 
 package plutus-core
-  flags: +with-inline-r
+  flags: +with-inline-r 
+
+-- Needs a newer base so won't work on 8.10, various dependencies of coq don't work
+-- when cross building for windows
+if impl(ghc > 9.0) && !os(windows)
+  package plutus-core
+    flags: +with-cert
+else
+  -- This is a bit silly: although we won't use plutus-cert in this case, cabal
+  -- stil considers it a "local" project and tries to solve for it. So we hack
+  -- around the dependency issue so that cabal is happy, which is fine since it
+  -- won't actually build it.
+  allow-older: plutus-cert:base
+
 
 -- See the note on nix/pkgs/default.nix:agdaPackages for why this is here.
 -- (NOTE this will change to ieee754 in newer versions of nixpkgs).
@@ -57,3 +70,9 @@ constraints:
   -- is off by default.
   optparse-applicative < 0.18
   , ansi-wl-pprint < 1.0
+
+-- TODO: point back to Jacco's repo when the PR is merged
+source-repository-package
+  type: git
+  location: https://github.com/jaccokrijnen/plutus-cert
+  tag: e814b9171398cbdfecdc6823067156a7e9fc76a3
