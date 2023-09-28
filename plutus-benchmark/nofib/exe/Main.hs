@@ -14,11 +14,12 @@ import Data.ByteString qualified as BS
 import Data.Char (isSpace)
 import Data.Foldable (traverse_)
 import Data.SatInt
+import Data.String (fromString)
 import Flat qualified
 import Options.Applicative as Opt hiding (action)
+import Prettyprinter (Doc, indent, line, vsep)
 import System.Exit (exitFailure)
 import System.IO
-import Text.PrettyPrint.ANSI.Leijen (Doc, indent, line, string, text, vsep)
 import Text.Printf (printf)
 
 import PlutusBenchmark.Common (toAnonDeBruijnTerm)
@@ -216,24 +217,24 @@ description = "This program provides operations on a number of Plutus programs "
               ++ "or compiled into Plutus Core and run on the CEK machine.  "
               ++ "Compiled programs can also be output in a number of formats."
 
-knownProgs :: [Doc]
-knownProgs = map text ["clausify", "knights", "lastpiece", "prime", "primetest", "queens"]
+knownProgs :: [Doc ann ]
+knownProgs = map fromString ["clausify", "knights", "lastpiece", "prime", "primetest", "queens"]
 
 -- Extra information about the available programs.  We need a Doc because if you
 -- just make it a string it removes newlines and other formatting.  There's some
 -- manual formatting in here because the text doesn't wrap as expected, presumably
 -- due to what optparse-applicative is doing internally.
-footerInfo :: Doc
-footerInfo = text "Most commands take the name of a program and a (possbily empty) list of arguments."
+footerInfo :: Doc ann
+footerInfo = fromString "Most commands take the name of a program and a (possbily empty) list of arguments."
            <> line <> line
-           <> text "The available programs are: "
+           <> fromString "The available programs are: "
            <> line
            <> indent 2 (vsep knownProgs)
            <> line <> line
-           <> string ("See 'nofib-exe run <programe-name> --help' for information about the arguments\n"
+           <> fromString ("See 'nofib-exe run <programe-name> --help' for information about the arguments\n"
                    ++ "for a particular program.")
            <> line <> line
-           <> string ("The 'dump' commands construct a Plutus Core term applying the program to its\n"
+           <> fromString ("The 'dump' commands construct a Plutus Core term applying the program to its\n"
                    ++ "arguments and prints the result to the terminal in the specified format.\n"
                    ++ "You'll probably want to redirect the output to a file.")
 

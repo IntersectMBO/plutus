@@ -64,7 +64,7 @@ executable test-utils
   other-modules:
   build-depends:
     , base                  >=4.9   && <5
-    , optparse-applicative
+    , optparse-applicative  >=0.18
     , plutus-conformance
     , plutus-core           ^>=1.13
     , plutus-metatheory

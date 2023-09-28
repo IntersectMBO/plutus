@@ -119,7 +119,6 @@ executable nofib-exe
   main-is:        Main.hs
   hs-source-dirs: nofib/exe
   build-depends:
-    , ansi-wl-pprint
     , base                     >=4.9   && <5
     , bytestring
     , flat                     ^>=0.6
@@ -129,6 +128,7 @@ executable nofib-exe
     , plutus-benchmark-common
     , plutus-core              ^>=1.13
     , plutus-tx                ^>=1.13
+    , prettyprinter
     , transformers
 
 benchmark nofib
