@@ -22,10 +22,10 @@ import PlutusIR.Transform.Inline.Inline
 import PlutusIR.Transform.StrictifyBindings
 import PlutusIR.Transform.Unwrap (unwrapCancel)
 import PlutusIR.TypeCheck
-import PlutusPrelude (def)
+import PlutusPrelude (def, ($>))
 import Test.QuickCheck (Property, withMaxSuccess)
 import Test.Tasty (testGroup)
-import Test.Tasty.ExpectedFailure
+import Test.Tasty.ExpectedFailure (expectFail)
 import Test.Tasty.Extras (TestNested)
 import Test.Tasty.QuickCheck (testProperty)
 
@@ -105,9 +105,9 @@ prop_typecheck_simplify =
             runReaderT
               (runQuoteT (simplifyTerm (original renamed))) (toDefaultCompilationCtx plcConfig)
       case simplified of
-        Left err -> Left $ void err
+        Left err -> Left $ err $> ()
         Right simplifiedSuccess ->
-          runQuoteT $ checkType config () (void simplifiedSuccess) inferredType
+          runQuoteT $ checkType config () (simplifiedSuccess $> ()) inferredType
 
 -- | Check that a term has the same type before and after a
 -- `PlutusIR.Transform.StrictifyBindings` pass.
@@ -132,5 +132,5 @@ prop_typecheck_inline biVariant =
       renamed <- runQuoteT $ rename tm
       inferredType <- runQuoteT $ inferType config renamed
       inlined <- runQuoteT $ inline mempty (BuiltinsInfo biVariant) (original renamed)
-      runQuoteT $ checkType config () (void inlined) inferredType
+      runQuoteT $ checkType config () (inlined $> ()) inferredType
 
