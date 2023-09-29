@@ -1,0 +1,11 @@
+(let
+  (rec)
+  (termbind (nonstrict) (vardecl x (con integer)) (con integer 1))
+  (termbind (nonstrict) (vardecl y (con integer)) (con integer 2))
+  (let
+    (nonrec)
+    (termbind (strict) (vardecl x (con integer)) x)
+    (termbind (strict) (vardecl y (con integer)) y)
+    (con integer 1)
+  )
+)

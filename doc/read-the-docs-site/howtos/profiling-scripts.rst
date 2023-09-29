@@ -60,3 +60,5 @@ The ``traceToStacks`` executable turns the logs into a format that ``flamegraph.
 Since ``flamegraph.pl`` can only handle one metric at a time, ``traceToStacks`` has a ``--column`` argument to select the other column if you want to get a memory flamegraph.
 
 You can then view the resulting SVGs in a viewer of your choice, e.g. a web browser.
+
+Alternatively, there are other, more powerful, tools that understand the format produced by ``traceToStacks``, such as `speedscope <https://www.speedscope.app/>`_.
