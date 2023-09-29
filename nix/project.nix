@@ -1,30 +1,35 @@
 # editorconfig-checker-disable-file 
 
-{ repoRoot, inputs, lib, ... }:
+{ repoRoot, inputs, lib, pkgs, ... }:
 
 let
-  cabalProjectArgs = { config, pkgs, ... }: {
+  cabalProject = pkgs.haskell-nix.cabalProject' ({ config, pkgs, ... }: {
 
     name = "plutus";
 
+    # We need the mkDefault here since compiler-nix-name will be overridden 
+    # in the flake variants.
     compiler-nix-name = lib.mkDefault "ghc92";
 
     src = ../.;
 
-    # We would expect R to be pulled in automatically as it's a dependency of
-    # plutus-core, but it appears it is not, so we need to be explicit about
-    # the dependency on R here. Adding it as a buildInput will ensure it's
-    # added to the pkg-config env var.
     shell = {
       withHoogle = false;
+      # We would expect R to be pulled in automatically as it's a dependency of
+      # plutus-core, but it appears it is not, so we need to be explicit about
+      # the dependency on R here. Adding it as a buildInput will ensure it's
+      # added to the pkg-config env var.
       buildInputs = [ pkgs.R ];
     };
 
     flake.variants = {
       ghc92 = { }; # Alias for the default project
-      ghc92-profiled.modules = [{ enableProfiling = true; }];
       ghc810.compiler-nix-name = "ghc810";
       ghc96.compiler-nix-name = "ghc96";
+      ghc92-profiled.modules = [{
+        enableProfiling = true;
+        enableLibraryProfiling = true;
+      }];
     };
 
     inputMap = { "https://input-output-hk.github.io/cardano-haskell-packages" = inputs.CHaP; };
@@ -133,13 +138,16 @@ let
         };
       })
     ];
-  };
+  });
 
 
   project = lib.iogx.mkHaskellProject {
-    inherit cabalProjectArgs;
-    readTheDocs.siteFolder = "doc/read-the-docs-site";
-    shellArgsForProjectVariant = repoRoot.nix.shell;
+    haskellDotNixProject = cabalProject;
+    shellArgs = repoRoot.nix.shell;
+    readTheDocs = {
+      enable = true;
+      siteFolder = "doc/read-the-docs-site";
+    };
     combinedHaddock = {
       enable = true;
       prologue = ''

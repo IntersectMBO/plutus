@@ -1,19 +1,20 @@
 { repoRoot, inputs, pkgs, lib, system, ... }:
 
 let
-  cabalProject = repoRoot.nix.project;
+  project = repoRoot.nix.project;
 
-  ghc810 = cabalProject.projectVariants.ghc810.iogx;
-  ghc92 = cabalProject.projectVariants.ghc92.iogx;
-  ghc92-cross = cabalProject.projectVariants.ghc92.projectCross;
-  ghc92-profiled = cabalProject.projectVariants.ghc92-profiled.iogx;
-  ghc96 = cabalProject.projectVariants.ghc96.iogx;
+  ghc92 = project.variants.ghc92;
+  ghc92-mingwW64 = project.variants.ghc92.cross.mingwW64;
+  ghc92-musl64 = project.variants.ghc92.cross.musl64;
+  ghc92-profiled = project.variants.ghc92-profiled;
+  ghc96 = project.variants.ghc96;
+  ghc810 = project.variants.ghc810;
 
 in
 
 [
   {
-    inherit cabalProject;
+    inherit (project) cabalProject;
 
     devShells.default = ghc92.devShell;
     devShells.profiled = ghc92-profiled.devShell;
@@ -51,14 +52,12 @@ in
       hydraJobs.read-the-docs-site = ghc92.read-the-docs-site;
       hydraJobs.pre-commit-check = ghc92.pre-commit-check;
 
-      hydraJobs.mingwW64.ghc92 =
-        removeAttrs ghc92-cross.mingwW64.iogx.hydraJobs [ "devShell" "devShells" ];
-      # TODO temporary workaround, remove in next commit.
+      hydraJobs.mingwW64.ghc92 = ghc92-mingwW64.hydraJobs;
 
-      hydraJobs.musl64.ghc92.pir = ghc92-cross.musl64.hsPkgs.plutus-core.components.exes.pir;
-      hydraJobs.musl64.ghc92.plc = ghc92-cross.musl64.hsPkgs.plutus-core.components.exes.plc;
-      hydraJobs.musl64.ghc92.uplc = ghc92-cross.musl64.hsPkgs.plutus-core.components.exes.uplc;
-      hydraJobs.musl64.ghc92.debugger = ghc92-cross.musl64.hsPkgs.plutus-core.components.exes.debugger; # editorconfig-checker-disable-line
+      hydraJobs.musl64.ghc92.pir = ghc92-musl64.cabalProject.hsPkgs.plutus-core.components.exes.pir;
+      hydraJobs.musl64.ghc92.plc = ghc92-musl64.cabalProject.hsPkgs.plutus-core.components.exes.plc;
+      hydraJobs.musl64.ghc92.uplc = ghc92-musl64.cabalProject.hsPkgs.plutus-core.components.exes.uplc; # editorconfig-checker-disable-line
+      hydraJobs.musl64.ghc92.debugger = ghc92-musl64.cabalProject.hsPkgs.plutus-core.components.exes.debugger; # editorconfig-checker-disable-line
     })
 
   (lib.optionalAttrs (system == "aarch64-darwin")
@@ -80,5 +79,3 @@ in
       hydraJobs.ghc96.plan-nix = ghc96.hydraJobs.plan-nix;
     })
 ]
-
-
