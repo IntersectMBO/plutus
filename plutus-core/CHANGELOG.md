@@ -1,4 +1,15 @@
 
+<a id='changelog-1.14.0.0'></a>
+# 1.14.0.0 — 2023-09-28
+
+## Added
+
+- Optimizer now considers constructor applications to be pure
+
+## Changed
+
+- The ThunkRecursions transformation preserves now the effect order & strictness
+
 <a id='changelog-1.13.0.0'></a>
 # 1.13.0.0 — 2023-09-15
 
