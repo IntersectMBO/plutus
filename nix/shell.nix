@@ -1,6 +1,6 @@
 { repoRoot, pkgs, ... }:
 
-cabalProject:
+_cabalProject:
 
 {
   name = "plutus";
