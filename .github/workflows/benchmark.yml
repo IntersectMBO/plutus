@@ -20,6 +20,8 @@ jobs:
         with:
           # We need at least one commit before master to compare against
           fetch-depth: 5
+          # And we want to prevent `git reset --hard HEAD` before fetching
+          clean: false
 
       - name: React with Rocket 
         uses: actions/github-script@v6
