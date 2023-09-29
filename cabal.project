@@ -41,20 +41,20 @@ benchmarks: true
 test-show-details: direct
 
 package plutus-core
-  flags: +with-inline-r 
+  flags: +with-inline-r +with-cert
 
 -- Needs a newer base so won't work on 8.10, various dependencies of coq don't work
 -- when cross building for windows
-if impl(ghc > 9.0) && !os(windows)
+if impl(ghc < 9.0) || os(windows)
+  -- Note: we enable this and then disable it conditionally, rather than enabling
+  -- it conditionally, to abvoid https://github.com/haskell/cabal/issues/9293
   package plutus-core
-    flags: +with-cert
-else
+    flags: -with-cert
   -- This is a bit silly: although we won't use plutus-cert in this case, cabal
   -- stil considers it a "local" project and tries to solve for it. So we hack
   -- around the dependency issue so that cabal is happy, which is fine since it
   -- won't actually build it.
   allow-older: plutus-cert:base
-
 
 -- See the note on nix/pkgs/default.nix:agdaPackages for why this is here.
 -- (NOTE this will change to ieee754 in newer versions of nixpkgs).
