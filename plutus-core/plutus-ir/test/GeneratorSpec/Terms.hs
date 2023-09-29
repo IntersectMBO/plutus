@@ -48,12 +48,15 @@ instance Eq (Term TyName Name DefaultUni DefaultFun ()) where
 
 -- * Core properties for PIR generators
 
+prop_genTypeCorrect :: Property
+prop_genTypeCorrect = p_genTypeCorrect False
+
 -- | Test that our generators only result in well-typed terms.
 -- Note, the counterexamples from this property are not shrunk (see why below).
 -- See Note [Debugging generators that don't generate well-typed/kinded terms/types]
 -- and the utility properties below when this property fails.
-prop_genTypeCorrect :: Bool -> Property
-prop_genTypeCorrect debug = do
+p_genTypeCorrect :: Bool -> Property
+p_genTypeCorrect debug = withMaxSuccess 10000 $ do
   -- Note, we don't shrink this term here because a precondition of shrinking is that
   -- the term we are shrinking is well-typed. If it is not, the counterexample we get
   -- from shrinking will be nonsene.
@@ -63,7 +66,7 @@ prop_genTypeCorrect debug = do
 -- | Test that when we generate a fully applied term we end up
 -- with a well-typed term.
 prop_genWellTypedFullyApplied :: Property
-prop_genWellTypedFullyApplied =
+prop_genWellTypedFullyApplied = withMaxSuccess 1000 $
   forAllDoc "ty, tm" genTypeAndTerm_ shrinkClosedTypedTerm $ \ (ty, tm) ->
   -- No shrinking here because if `genFullyApplied` is wrong then the shrinking
   -- will be wrong too. See `prop_genTypeCorrect`.
@@ -72,7 +75,7 @@ prop_genWellTypedFullyApplied =
 
 -- | Test that shrinking a well-typed term results in a well-typed term
 prop_shrinkTermSound :: Property
-prop_shrinkTermSound =
+prop_shrinkTermSound = withMaxSuccess 10 $
   forAllDoc "ty,tm"   genTypeAndTerm_ shrinkClosedTypedTerm $ \ (ty, tm) ->
   let shrinks = shrinkClosedTypedTerm (ty, tm) in
   -- While we generate well-typed terms we still need this check here for
@@ -96,7 +99,7 @@ prop_shrinkTermSound =
 
 -- | Test that `findInstantiation` results in a well-typed instantiation.
 prop_findInstantiation :: Property
-prop_findInstantiation =
+prop_findInstantiation = withMaxSuccess 10000 $
   forAllDoc "ctx"    genCtx                          (const [])        $ \ ctx0 ->
   forAllDoc "ty"     (genTypeWithCtx ctx0 $ Type ()) (shrinkType ctx0) $ \ ty0 ->
   forAllDoc "target" (genTypeWithCtx ctx0 $ Type ()) (shrinkType ctx0) $ \ target ->
@@ -127,7 +130,7 @@ prop_findInstantiation =
 
 -- | Check what's in the leaves of the generated data
 prop_stats_leaves :: Property
-prop_stats_leaves =
+prop_stats_leaves = withMaxSuccess 10 $
   -- No shrinking here because we are only collecting stats
   forAllDoc "_,tm" genTypeAndTerm_ (const []) $ \ (_, tm) ->
   tabulate "leaves" (map (filter isAlpha . show . prettyPirReadable) $ leaves tm) $ property True
@@ -145,7 +148,7 @@ prop_stats_leaves =
 
 -- | Check the ratio of duplicate shrinks
 prop_stats_numShrink :: Property
-prop_stats_numShrink =
+prop_stats_numShrink = withMaxSuccess 10 $
   -- No shrinking here because we are only collecting stats
   forAllDoc "ty,tm" genTypeAndTerm_ (const []) $ \ (ty, tm) ->
   let shrinks = map snd $ shrinkClosedTypedTerm (ty, tm)
@@ -157,7 +160,7 @@ prop_stats_numShrink =
 
 -- | Specific test that `inhabitType` returns well-typed things
 prop_inhabited :: Property
-prop_inhabited =
+prop_inhabited = withMaxSuccess 3000 $
   -- No shrinking here because if the generator
   -- generates nonsense shrinking will be nonsense.
   forAllDoc "ty,tm" (genInhab mempty) (const []) $ \ (ty, tm) -> typeCheckTerm tm ty
@@ -174,7 +177,7 @@ prop_inhabited =
 
 -- | Check that there are no one-step shrink loops
 prop_noTermShrinkLoops :: Property
-prop_noTermShrinkLoops =
+prop_noTermShrinkLoops = withMaxSuccess 10 $
   -- Note that we need to remove x from the shrinks of x here because
   -- a counterexample to this property is otherwise guaranteed to
   -- go into a shrink loop.

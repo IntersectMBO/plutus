@@ -4,7 +4,7 @@
 
 -- | This module contains tests that ensure the definition analysis is correct. We may consider
 -- renaming this module, along with the corresponding PLC module to better reflect the scope.
-module Check.Spec (uniqueness) where
+module Check.Spec where
 
 
 import Control.Monad.Except (MonadError, runExcept)
@@ -16,23 +16,16 @@ import PlutusCore.Name (Unique (..))
 import PlutusCore.Quote (freshTyName, runQuoteT)
 import PlutusIR.Check.Uniques qualified as Uniques
 import PlutusIR.Core.Type
-import Test.Tasty (TestTree, testGroup)
+import Test.Tasty (TestTree)
 import Test.Tasty.HUnit (testCase, (@?=))
-
-uniqueness :: TestTree
-uniqueness = testGroup "uniqueness"
-    [shadowed
-    , multiplyDefined
-    , shadowedInLet
-    ]
 
 data Tag = Tag Int | Ignore deriving stock (Show, Eq, Ord)
 
 checkTermUniques :: (Ord a, MonadError (UniqueError a) m) => Term TyName Name uni fun a -> m ()
 checkTermUniques = Uniques.checkTerm (\case MultiplyDefined{} -> True; _ -> False)
 
-shadowed :: TestTree
-shadowed =
+test_shadowed :: TestTree
+test_shadowed =
     let
         u = Unique (-1)
         checked = runExcept $ runQuoteT $ do
@@ -46,8 +39,8 @@ shadowed =
         assertion = checked @?= Left (MultiplyDefined u (Tag 1) (Tag 2))
     in testCase "shadowed" assertion
 
-multiplyDefined :: TestTree
-multiplyDefined =
+test_multiplyDefined :: TestTree
+test_multiplyDefined =
     let
         u = Unique (-1)
         checked = runExcept $ runQuoteT $ do
@@ -61,8 +54,8 @@ multiplyDefined =
         assertion = checked @?= Left (MultiplyDefined u (Tag 1) (Tag 2))
     in testCase "multiplyDefined" assertion
 
-shadowedInLet :: TestTree
-shadowedInLet =
+test_shadowedInLet :: TestTree
+test_shadowedInLet =
     let
         u = Unique (-1)
         checked = runExcept $ runQuoteT $ do

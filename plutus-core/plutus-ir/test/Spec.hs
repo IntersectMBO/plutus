@@ -5,17 +5,11 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE UndecidableInstances  #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
-module Main (main) where
+module Spec where
 
 import PlutusPrelude
 
-import AnalysisSpec
-import Check.Spec
-import GeneratorSpec
-import NamesSpec
-import ParserSpec
-import TransformSpec
-import TypeSpec
+import TransformSpec ()
 
 import PlutusCore qualified as PLC
 import PlutusIR
@@ -28,29 +22,18 @@ import Test.Tasty.Extras
 
 import Flat (flat, unflat)
 
-main :: IO ()
-main = defaultMain $ runTestNestedIn ["plutus-ir/test"] tests
-
 pTermAsProg :: Parser (Program TyName Name PLC.DefaultUni PLC.DefaultFun PLC.SrcSpan)
 pTermAsProg = fmap (Program mempty PLC.latestVersion) pTerm
 
-tests :: TestNested
-tests = testGroup "plutus-ir" <$> sequence
+test_misc :: TestTree
+test_misc = runTestNestedIn ["plutus-ir/test"] $ testGroup "plutus-ir" <$> sequence
     [ prettyprinting
     , prettyprintingReadable
-    , parsing
     , lets
     , datatypes
     , recursion
     , serialization
     , errors
-    , pure names
-    , transform
-    , types
-    , typeErrors
-    , generators 1
-    , pure uniqueness
-    , evalOrder
     ]
 
 prettyprinting :: TestNested

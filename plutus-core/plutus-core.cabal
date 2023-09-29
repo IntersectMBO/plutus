@@ -557,28 +557,29 @@ library plutus-ir
     build-depends: integer-gmp
 
 test-suite plutus-ir-test
-  import:         lang
+  import:             lang
 
   -- needs linux 'diff' available
   if os(windows)
     buildable: False
 
-  type:           exitcode-stdio-1.0
-  main-is:        Spec.hs
-  hs-source-dirs: plutus-ir/test
+  type:               exitcode-stdio-1.0
+  main-is:            Driver.hs
+  hs-source-dirs:     plutus-ir/test
   other-modules:
     AnalysisSpec
     Check.Spec
-    GeneratorSpec
     GeneratorSpec.Builtin
     GeneratorSpec.Substitution
     GeneratorSpec.Terms
     GeneratorSpec.Types
     NamesSpec
     ParserSpec
+    Spec
     TransformSpec
     TypeSpec
 
+  build-tool-depends: tasty-discover:tasty-discover
   build-depends:
     , base                                                       >=4.9   && <5
     , containers

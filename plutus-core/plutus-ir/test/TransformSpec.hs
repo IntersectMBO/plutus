@@ -4,8 +4,9 @@
 {-# LANGUAGE TypeApplications      #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module TransformSpec (transform) where
+module TransformSpec where
 
+import Test.Tasty
 import Test.Tasty.Extras
 
 import PlutusCore.Quote
@@ -39,6 +40,9 @@ import PlutusIR.Transform.StrictifyBindings qualified as StrictifyBindings
 import PlutusIR.Transform.ThunkRecursions qualified as ThunkRec
 import PlutusIR.Transform.Unwrap qualified as Unwrap
 import PlutusIR.TypeCheck as TC
+
+test_transform :: TestTree
+test_transform = runTestNestedIn ["plutus-ir/test"] transform
 
 transform :: TestNested
 transform =

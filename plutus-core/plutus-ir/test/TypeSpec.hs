@@ -1,10 +1,14 @@
 module TypeSpec where
 
+import Test.Tasty
 import Test.Tasty.Extras
 
 import PlutusIR.Parser
 import PlutusIR.Test
 import PlutusIR.Transform.Rename ()
+
+test_types :: TestTree
+test_types = runTestNestedIn ["plutus-ir/test"] types
 
 types :: TestNested
 types = testNested "types"
@@ -41,6 +45,9 @@ types = testNested "types"
   , "typeLet"
   , "typeLetRec"
   ]
+
+test_typeErrors :: TestTree
+test_typeErrors = runTestNestedIn ["plutus-ir/test"] typeErrors
 
 typeErrors :: TestNested
 typeErrors = testNested "type-errors"

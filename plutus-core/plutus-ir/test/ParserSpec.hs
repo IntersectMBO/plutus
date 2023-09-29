@@ -4,7 +4,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 -- | Tests for PIR parser.
-module ParserSpec (parsing) where
+module ParserSpec where
 
 import PlutusPrelude
 
@@ -24,7 +24,6 @@ import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 
 import Test.Tasty
-import Test.Tasty.Extras
 import Test.Tasty.Hedgehog
 
 newtype PrettyProg = PrettyProg { prog :: Program TyName Name PLC.DefaultUni PLC.DefaultFun SrcSpan }
@@ -123,8 +122,8 @@ propIgnores splice = property $ do
         parse2 = displayProgram <$> (parseProg $ T.pack scrambled)
     parse1 === parse2
 
-parsing :: TestNested
-parsing = return $ testGroup "parsing"
+test_parsing :: TestTree
+test_parsing = testGroup "parsing"
     [ testPropertyNamed "parser round-trip" "propRoundTrip" propRoundTrip
     , testPropertyNamed "parser ignores whitespace" "propIgnores whitespace" (propIgnores whitespace)
     , testPropertyNamed "parser ignores comments" "propIgnores comments" (propIgnores comment)

@@ -14,6 +14,7 @@ import PlutusIR.Purity
 import PlutusIR.Test
 import PlutusIR.Transform.Rename ()
 import PlutusPrelude (def)
+import Test.Tasty
 import Test.Tasty.HUnit
 
 computeEvalOrder
@@ -39,8 +40,8 @@ dangerTerm = runQuote $ do
   m <- freshName "m"
   pure $ Apply () (Apply () (Var () n) (Var () m)) undefined
 
-evalOrder :: TestNested
-evalOrder = testNested "evalOrder"
+test_evalOrder :: TestTree
+test_evalOrder = runTestNestedIn ["plutus-ir/test"] $ testNested "evalOrder"
   [ goldenEvalOrder "letFun"
   , goldenEvalOrder "builtinAppUnsaturated"
   , goldenEvalOrder "builtinAppSaturated"
