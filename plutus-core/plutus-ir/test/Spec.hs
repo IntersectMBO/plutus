@@ -89,8 +89,8 @@ datatypes :: TestNested
 datatypes = testNested "datatypes"
     [ goldenPlcFromPir pTermAsProg "maybe"
     , goldenPlcFromPir pTermAsProg "listMatch"
-    , goldenPlcFromPirCatch pTermAsProg "idleAll"
-    , goldenPlcFromPirCatch pTermAsProg "some"
+    , goldenPlcFromPir pTermAsProg "idleAll"
+    , goldenPlcFromPir pTermAsProg "some"
     , goldenEvalPir pTermAsProg "listMatchEval"
     , goldenTypeFromPir topSrcSpan pTerm "dataEscape"
     , testNested "scott"
@@ -126,6 +126,6 @@ roundTripPirTerm = decodeOrError . unflat . flat . void
 
 errors :: TestNested
 errors = testNested "errors"
-    [ goldenPlcFromPirCatch pTermAsProg "mutuallyRecursiveTypes"
-    , goldenPlcFromPirCatch pTermAsProg "recursiveTypeBind"
+    [ goldenPlcFromPir pTermAsProg "mutuallyRecursiveTypes"
+    , goldenPlcFromPir pTermAsProg "recursiveTypeBind"
     ]

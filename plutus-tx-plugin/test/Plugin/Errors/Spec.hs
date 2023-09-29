@@ -34,17 +34,17 @@ import GHC.Num.Integer
 
 errors :: TestNested
 errors = testNestedGhc "Errors" [
-    goldenUPlcCatch "machInt" machInt
+    goldenUPlc "machInt" machInt
     -- FIXME: This fails differently in nix, possibly due to slightly different optimization settings
-    -- , goldenPlcCatch "negativeInt" negativeInt
-    , goldenUPlcCatch "caseInt" caseInt
-    , goldenUPlcCatch "stringLiteral" stringLiteral
-    , goldenUPlcCatch "recursiveNewtype" recursiveNewtype
-    , goldenUPlcCatch "mutualRecursionUnfoldingsLocal" mutualRecursionUnfoldingsLocal
-    , goldenUPlcCatch "literalCaseInt" literalCaseInt
-    , goldenUPlcCatch "literalCaseBs" literalCaseBs
-    , goldenUPlcCatch "literalAppendBs" literalAppendBs
-    , goldenUPlcCatch "literalCaseOther" literalCaseOther
+    -- , goldenPlc "negativeInt" negativeInt
+    , goldenUPlc "caseInt" caseInt
+    , goldenUPlc "stringLiteral" stringLiteral
+    , goldenUPlc "recursiveNewtype" recursiveNewtype
+    , goldenUPlc "mutualRecursionUnfoldingsLocal" mutualRecursionUnfoldingsLocal
+    , goldenUPlc "literalCaseInt" literalCaseInt
+    , goldenUPlc "literalCaseBs" literalCaseBs
+    , goldenUPlc "literalAppendBs" literalAppendBs
+    , goldenUPlc "literalCaseOther" literalCaseOther
   ]
 
 machInt :: CompiledCode Int
