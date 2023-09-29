@@ -1,6 +1,27 @@
 { repoRoot, pkgs, ... }:
 
-_cabalProject:
+cabalProject:
+
+let
+
+  # We need some environment variables from the various ocaml and coq pacakges
+  # that the certifier code needs.
+  # Devshell doesn't run setup hooks from other packages, so just extract
+  # the correct values of the environment variables from the haskell.nix
+  # shell and use those.
+  certEnv = pkgs.runCommand "cert-env"
+    {
+      nativeBuildInputs = cabalProject.shell.nativeBuildInputs;
+      buildInputs = cabalProject.shell.buildInputs;
+    }
+    ''
+      echo "export COQPATH=$COQPATH" >> $out
+      echo "export OCAMLPATH=$OCAMLPATH" >> $out
+      echo "export CAML_LD_LIBRARY_PATH=$CAML_LD_LIBRARY_PATH" >> $out
+      echo "export OCAMLFIND_DESTDIR=$OCAMLFIND_DESTDIR" >> $out
+    '';
+
+in
 
 {
   name = "plutus";
@@ -50,6 +71,9 @@ _cabalProject:
     group = "changelog";
   };
 
+  shellHook = ''
+    ${builtins.readFile certEnv}
+  '';
 
   preCommit = {
     stylish-haskell.enable = true;

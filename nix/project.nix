@@ -34,6 +34,10 @@ let
 
     inputMap = { "https://input-output-hk.github.io/cardano-haskell-packages" = inputs.CHaP; };
 
+    sha256map = {
+      "https://github.com/jaccokrijnen/plutus-cert"."e814b9171398cbdfecdc6823067156a7e9fc76a3" = "0srqvx0b819b5crrbsa9hz2fnr50ahqizvvm0wdmyq2bbpk2rka7"; # editorconfig-checker-disable-line
+    };
+
     # TODO: move this into the cabalib.project using the new conditional support?
     # Configuration settings needed for cabal configure to work when cross compiling.
     # We can't use `modules` for these as `modules` are only applied
@@ -108,6 +112,27 @@ let
           plutus-core.components.benchmarks.cost-model-test = {
             build-tools = [ repoRoot.nix.r-with-packages ];
           };
+
+          plutus-cert.components.library.build-tools =
+            # Needs to build both itself and its bundled deps.
+            # This needs both coq and ocaml packages, and only
+            # works with particular versions. Fortunately
+            # they're in nixpkgs.
+            let
+              ocamlPkgs = pkgs.ocaml-ng.ocamlPackages_4_10;
+              coqPkgs = pkgs.coqPackages_8_13;
+            in
+            with ocamlPkgs; with coqPkgs; [
+              pkgs.perl
+              ocaml
+              ocamlbuild
+              findlib
+              coq
+              mathcomp
+              coq-ext-lib
+              ssreflect
+              equations
+            ];
         };
       }
 
