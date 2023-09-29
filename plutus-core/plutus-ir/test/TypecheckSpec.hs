@@ -7,6 +7,7 @@ import Control.Monad.Reader
 import PlutusCore.Default
 import PlutusCore.Generators.QuickCheck.Utils
 import PlutusCore.Quote
+import PlutusCore.Rename
 import PlutusCore.TypeCheck qualified as PLC
 import PlutusIR.Analysis.Builtins
 import PlutusIR.Compiler
@@ -29,39 +30,40 @@ import Test.Tasty.Extras (TestNested)
 import Test.Tasty.QuickCheck (testProperty)
 
 -- | Typechecking property tests for all PIR compiler passes.
--- The argument allows the caller to scale the number of tests.
--- The default for the argument is @1@.
-typecheck_test ::
-  Int -> TestNested
-typecheck_test factor = return $ testGroup "typechecking"
+typecheck_test :: TestNested
+typecheck_test = return $ testGroup "typechecking"
   [
   -- pure passes
     testProperty "unwrap pass" $
-      withMaxSuccess (factor*3000) (prop_typecheck_pure unwrapCancel)
+      withMaxSuccess 3000 (prop_typecheck_pure unwrapCancel)
   , testProperty "caseReduce pass" $
-      withMaxSuccess (factor*3000) (prop_typecheck_pure caseReduce)
+      withMaxSuccess 3000 (prop_typecheck_pure caseReduce)
   , testProperty "beta pass" $
-      withMaxSuccess (factor*3000) (prop_typecheck_pure beta)
+      withMaxSuccess 3000 (prop_typecheck_pure beta)
   , testProperty "commuteFnWithConst pass" $
-      withMaxSuccess (factor*3000) (prop_typecheck_pure commuteFnWithConst)
+      withMaxSuccess 3000 (prop_typecheck_pure commuteFnWithConst)
+  , testProperty "strictifyBindings (Builtin Variant 1) pass" $
+      withMaxSuccess 3000 (prop_typecheck_strictifyBindings DefaultFunSemanticsVariant1)
+  , testProperty "strictifyBindings (Builtin Variant 2) pass" $
+      withMaxSuccess 3000 (prop_typecheck_strictifyBindings DefaultFunSemanticsVariant2)
+  , testProperty "evaluateBuiltins (Builtin Variant 1) pass" $
+      withMaxSuccess 3000 (prop_typecheck_evaluateBuiltins DefaultFunSemanticsVariant1)
+  , testProperty "evaluateBuiltins (Builtin Variant 2) pass" $
+      withMaxSuccess 3000 (prop_typecheck_evaluateBuiltins DefaultFunSemanticsVariant2)
+
   -- non-pure passes
+
   -- FIXME
   , expectFail $ testProperty "the whole simplifier pass" $
-      withMaxSuccess (factor*3000) prop_typecheck
-  , testProperty "strictifyBindings (Builtin Variant 1) pass" $
-      withMaxSuccess (factor*3000) (prop_typecheck_strictifyBindings DefaultFunSemanticsVariant1)
-  , testProperty "strictifyBindings (Builtin Variant 2) pass" $
-  withMaxSuccess (factor*3000) (prop_typecheck_strictifyBindings DefaultFunSemanticsVariant2)
-  , testProperty "evaluateBuiltins (Builtin Variant1) pass" $
-  withMaxSuccess (factor*3000) (prop_typecheck_evaluateBuiltins DefaultFunSemanticsVariant1)
-  , testProperty "evaluateBuiltins (Builtin Variant2) pass" $
-  withMaxSuccess (factor*3000) (prop_typecheck_evaluateBuiltins DefaultFunSemanticsVariant2)
+      withMaxSuccess 3000 prop_typecheck_simplify
+
   -- FIXME
   , expectFail $ testProperty "inline (Builtin Variant1) pass" $
-  withMaxSuccess (factor*3000) (prop_typecheck_inline DefaultFunSemanticsVariant1)
+  withMaxSuccess 3000 (prop_typecheck_inline DefaultFunSemanticsVariant1)
+
   -- FIXME
   , expectFail $ testProperty "inline (Builtin Variant2) pass" $
-  withMaxSuccess (factor*3000) (prop_typecheck_inline DefaultFunSemanticsVariant2)
+  withMaxSuccess 3000 (prop_typecheck_inline DefaultFunSemanticsVariant2)
   ]
 
 -- Convert Either Error () to Either String () to match with the Testable (Either String ())
@@ -72,70 +74,63 @@ convertToEitherString = \case
   Left err -> Left $ show err
   Right () -> Right ()
 
--- | Typechecking a term after one of the pure passes.
-tyCheckPure ::
-  -- | The pure simplification pass.
-  (Term TyName Name DefaultUni DefaultFun () -> Term TyName Name DefaultUni DefaultFun ())
-  -> Term TyName Name DefaultUni DefaultFun ()
-  -> Either (Error DefaultUni DefaultFun ()) ()
-tyCheckPure pass tm = do
-  config <- getDefTypeCheckConfig ()
-  inferredType <- runQuoteT $ inferType config tm
-  runQuoteT $ checkType config () (pass tm) inferredType
-
+-- | Check that a term has the same type before and after one of the pure passes.
 prop_typecheck_pure ::
+  -- | The pure simplification pass.
   (Term TyName Name DefaultUni DefaultFun ()
   -> Term TyName Name DefaultUni DefaultFun ())
   -> Property
 prop_typecheck_pure pass =
   -- generate type and term in debug mode for easier debugging
-  forAllDoc "ty,tm" genTypeAndTermDebug_ (const []) $ \ (_ty, tm) -> do
-  convertToEitherString $ tyCheckPure pass tm
+  forAllDoc "ty,tm" genTypeAndTermDebug_ (const []) $ \ (_ty, tm) ->
+    convertToEitherString $ do
+      config <- getDefTypeCheckConfig ()
+      -- the generated term may not have globally unique names
+      renamed <- runQuoteT $ rename tm
+      inferredType <- runQuoteT $ inferType config renamed
+      runQuoteT $ checkType config () (pass renamed) inferredType
 
--- | Typechecking a term after a `PlutusIR.Compiler.simplifyTerm` pass.
-prop_typecheck :: Property
-prop_typecheck =
+-- | Check that a term has the same type before and after the `PlutusIR.Compiler.simplifyTerm` pass.
+prop_typecheck_simplify :: Property
+prop_typecheck_simplify =
   -- generate type and term in debug mode for easier debugging
   forAllDoc "ty,tm" genTypeAndTermDebug_ (const []) $ \ (_ty, tm) ->
     convertToEitherString $ do
-    config <- getDefTypeCheckConfig ()
-    plcConfig <- PLC.getDefTypeCheckConfig ()
-    inferredType <- runQuoteT $ inferType config tm
-    case runReaderT (runQuoteT (simplifyTerm (original tm))) (toDefaultCompilationCtx plcConfig) of
-      Left err -> Left $ void err
-      Right simplified ->
-        runQuoteT $ checkType config () (void simplified) inferredType
+      config <- getDefTypeCheckConfig ()
+      plcConfig <- PLC.getDefTypeCheckConfig ()
+      -- the generated term may not have globally unique names
+      renamed <- runQuoteT $ rename tm
+      inferredType <- runQuoteT $ inferType config renamed
+      let simplified =
+            runReaderT
+              (runQuoteT (simplifyTerm (original renamed))) (toDefaultCompilationCtx plcConfig)
+      case simplified of
+        Left err -> Left $ void err
+        Right simplifiedSuccess ->
+          runQuoteT $ checkType config () (void simplifiedSuccess) inferredType
 
--- | Typechecking a term after a `PlutusIR.Transform.StrictifyBindings` pass.
+-- | Check that a term has the same type before and after a
+-- `PlutusIR.Transform.StrictifyBindings` pass.
 prop_typecheck_strictifyBindings :: BuiltinSemanticsVariant DefaultFun -> Property
 prop_typecheck_strictifyBindings biVariant =
-  -- generate type and term in debug mode for easier debugging
-  forAllDoc "ty,tm" genTypeAndTermDebug_ (const []) $ \ (_ty, tm) ->
-    convertToEitherString $ do
-    config <- getDefTypeCheckConfig ()
-    inferredType <- runQuoteT $ inferType config tm
-    let strictified = strictifyBindings (BuiltinsInfo biVariant) (original tm)
-    runQuoteT $ checkType config () (void strictified) inferredType
+  prop_typecheck_pure (strictifyBindings (BuiltinsInfo biVariant))
 
--- | Typechecking a term after a `PlutusIR.Transform.EvaluateBuiltins` pass.
+-- | Check that a term has the same type before and after a `PlutusIR.Transform.EvaluateBuiltins`
+-- pass.
 prop_typecheck_evaluateBuiltins :: BuiltinSemanticsVariant DefaultFun -> Property
 prop_typecheck_evaluateBuiltins biVariant =
-  -- generate type and term in debug mode for easier debugging
-  forAllDoc "ty,tm" genTypeAndTermDebug_ (const []) $ \ (_ty, tm) ->
-    convertToEitherString $ do
-    config <- getDefTypeCheckConfig ()
-    inferredType <- runQuoteT $ inferType config tm
-    let evaluated = evaluateBuiltins True (BuiltinsInfo biVariant) def (original tm)
-    runQuoteT $ checkType config () (void evaluated) inferredType
+  prop_typecheck_pure (evaluateBuiltins True (BuiltinsInfo biVariant) def)
 
--- | Typechecking a term after a `PlutusIR.Transform.Inline` pass.
+-- | Check that a term has the same type before and after a `PlutusIR.Transform.Inline` pass.
 prop_typecheck_inline :: BuiltinSemanticsVariant DefaultFun -> Property
 prop_typecheck_inline biVariant =
   -- generate type and term in debug mode for easier debugging
   forAllDoc "ty,tm" genTypeAndTermDebug_ (const []) $ \ (_ty, tm) ->
     convertToEitherString $ do
-    config <- getDefTypeCheckConfig ()
-    inferredType <- runQuoteT $ inferType config tm
-    inlined <- runQuoteT $ inline mempty (BuiltinsInfo biVariant) (original tm)
-    runQuoteT $ checkType config () (void inlined) inferredType
+      config <- getDefTypeCheckConfig ()
+      -- the generated term may not have globally unique names
+      renamed <- runQuoteT $ rename tm
+      inferredType <- runQuoteT $ inferType config renamed
+      inlined <- runQuoteT $ inline mempty (BuiltinsInfo biVariant) (original renamed)
+      runQuoteT $ checkType config () (void inlined) inferredType
 
