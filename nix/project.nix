@@ -167,7 +167,7 @@ let
 
 
   project = lib.iogx.mkHaskellProject {
-    haskellDotNixProject = cabalProject;
+    inherit cabalProject;
     shellArgs = repoRoot.nix.shell;
     readTheDocs = {
       enable = true;
