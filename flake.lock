@@ -428,7 +428,7 @@
         "iohk-nix": "iohk-nix",
         "nixpkgs": [
           "haskell-nix",
-          "nixpkgs-2305"
+          "nixpkgs"
         ],
         "pre-commit-hooks-nix": "pre-commit-hooks-nix",
         "sphinxcontrib-haddock": "sphinxcontrib-haddock"
