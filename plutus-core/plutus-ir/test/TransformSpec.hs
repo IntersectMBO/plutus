@@ -18,27 +18,11 @@ import PlutusPrelude
 
 import Control.Monad.Except
 import PlutusIR.Analysis.RetainedSize qualified as RetainedSize
-import PlutusIR.Check.Uniques as Uniques
 import PlutusIR.Core.Instance.Pretty.Readable
 import PlutusIR.Core.Type
-import PlutusIR.Error as PIR
 import PlutusIR.Parser
 import PlutusIR.Test
-import PlutusIR.Transform.Beta qualified as Beta
-import PlutusIR.Transform.CommuteFnWithConst qualified as CommuteFnWithConst
-import PlutusIR.Transform.DeadCode qualified as DeadCode
-import PlutusIR.Transform.EvaluateBuiltins qualified as EvaluateBuiltins
-import PlutusIR.Transform.Inline.Inline qualified as Inline
-import PlutusIR.Transform.KnownCon qualified as KnownCon
-import PlutusIR.Transform.LetFloatIn qualified as LetFloatIn
-import PlutusIR.Transform.LetFloatOut qualified as LetFloatOut
-import PlutusIR.Transform.LetMerge qualified as LetMerge
-import PlutusIR.Transform.NonStrict qualified as NonStrict
-import PlutusIR.Transform.RecSplit qualified as RecSplit
 import PlutusIR.Transform.Rename ()
-import PlutusIR.Transform.StrictifyBindings qualified as StrictifyBindings
-import PlutusIR.Transform.Unwrap qualified as Unwrap
-import PlutusIR.TypeCheck as TC
 
 test_transform :: TestTree
 test_transform = runTestNestedIn ["plutus-ir/test"] transform
@@ -48,7 +32,6 @@ transform =
     testNested
         "transform"
         [ retainedSize
-        , rename
         ]
 
 instance Semigroup PLC.SrcSpan where
@@ -90,17 +73,4 @@ retainedSize =
             . RetainedSize.annotateWithRetainedSize def
             . runQuote
             . PLC.rename
-
-rename :: TestNested
-rename =
-    testNested "rename" $
-        map
-            (goldenPir (PLC.AttachPrettyConfig debugConfig . runQuote . PLC.rename) pTerm)
-            [ "allShadowedDataNonRec"
-            , "allShadowedDataRec"
-            , "paramShadowedDataNonRec"
-            , "paramShadowedDataRec"
-            ]
-  where
-    debugConfig = PLC.PrettyConfigClassic PLC.debugPrettyConfigName False
 
