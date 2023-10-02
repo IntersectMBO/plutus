@@ -1,4 +1,4 @@
-module TypeSpec where
+module PlutusIR.TypeCheck.Tests where
 
 import Test.Tasty
 import Test.Tasty.Extras
@@ -8,10 +8,8 @@ import PlutusIR.Test
 import PlutusIR.Transform.Rename ()
 
 test_types :: TestTree
-test_types = runTestNestedIn ["plutus-ir/test"] types
-
-types :: TestNested
-types = testNested "types"
+test_types = runTestNestedIn ["plutus-ir/test/PlutusIR"] $
+  testNested "TypeCheck"
     $ map (goldenTypeFromPir topSrcSpan pTerm)
   [ "letInLet"
   ,"listMatch"
@@ -44,15 +42,8 @@ types = testNested "types"
   ,"sameNameDifferentEnv"
   , "typeLet"
   , "typeLetRec"
+  -- errrors
+  , "wrongDataConstrReturnType"
+  , "nonSelfRecursive"
+  , "typeLetWrong"
   ]
-
-test_typeErrors :: TestTree
-test_typeErrors = runTestNestedIn ["plutus-ir/test"] typeErrors
-
-typeErrors :: TestNested
-typeErrors = testNested "type-errors"
-    $ map (goldenTypeFromPir topSrcSpan pTerm)
-    [ "wrongDataConstrReturnType"
-    , "nonSelfRecursive"
-    , "typeLet"
-    ]

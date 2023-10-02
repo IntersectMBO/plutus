@@ -590,8 +590,8 @@ test-suite plutus-ir-test
     PlutusIR.Transform.StrictifyBindings.Tests
     PlutusIR.Transform.ThunkRecursions.Tests
     PlutusIR.Transform.Unwrap.Tests
+    PlutusIR.TypeCheck.Tests
     Spec
-    TypeSpec
 
   build-tool-depends: tasty-discover:tasty-discover
   build-depends:
