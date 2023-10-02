@@ -4,7 +4,7 @@
 
 -- | This module contains tests that ensure the definition analysis is correct. We may consider
 -- renaming this module, along with the corresponding PLC module to better reflect the scope.
-module Check.Spec where
+module PlutusIR.Check.Uniques.Tests where
 
 
 import Control.Monad.Except (MonadError, runExcept)

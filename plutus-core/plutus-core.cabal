@@ -567,13 +567,13 @@ test-suite plutus-ir-test
   main-is:            Driver.hs
   hs-source-dirs:     plutus-ir/test
   other-modules:
-    Check.Spec
     GeneratorSpec.Builtin
     GeneratorSpec.Substitution
     GeneratorSpec.Terms
     GeneratorSpec.Types
     NamesSpec
     PlutusIR.Analysis.RetainedSize.Tests
+    PlutusIR.Check.Uniques.Tests
     PlutusIR.Parser.Tests
     PlutusIR.Purity.Tests
     PlutusIR.Transform.Beta.Tests
