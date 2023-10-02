@@ -49,7 +49,6 @@ transform =
         "transform"
         [ retainedSize
         , rename
-        , evaluateBuiltins
         , commuteDefaultFun
         , strictifyBindings
         ]
@@ -106,20 +105,6 @@ rename =
             ]
   where
     debugConfig = PLC.PrettyConfigClassic PLC.debugPrettyConfigName False
-
-evaluateBuiltins :: TestNested
-evaluateBuiltins =
-    testNested "evaluateBuiltins" $
-        map
-            (goldenPir (EvaluateBuiltins.evaluateBuiltins True def def) pTerm)
-            [ "addInteger"
-            , "ifThenElse"
-            , "trace"
-            , "failingBuiltin"
-            , "nonConstantArg"
-            , "overApplication"
-            , "underApplication"
-            ]
 
 commuteDefaultFun :: TestNested
 commuteDefaultFun =
