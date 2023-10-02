@@ -12,7 +12,7 @@
     };
 
     hackage = {
-      url = "github:input-output-hk/hackage.nix";
+      url = "github:input-output-hk/hackage.nix/ad01b49b5be1112aed7ad135bf667b7b92169ce1";
       flake = false;
     };
 
@@ -22,7 +22,7 @@
     };
 
     haskell-nix = {
-      url = "github:input-output-hk/haskell.nix";
+      url = "github:input-output-hk/haskell.nix/9be017fdfbd2b290f1df4385ccd0fc22f549c1f2";
       inputs.hackage.follows = "hackage";
     };
   };
