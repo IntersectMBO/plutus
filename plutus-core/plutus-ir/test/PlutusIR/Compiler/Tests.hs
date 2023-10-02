@@ -4,7 +4,6 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE UndecidableInstances  #-}
-{-# OPTIONS_GHC -Wno-orphans #-}
 module PlutusIR.Compiler.Tests where
 
 import PlutusCore qualified as PLC
@@ -14,12 +13,6 @@ import PlutusIR.Test
 
 import Test.Tasty
 import Test.Tasty.Extras
-
-instance Semigroup PLC.SrcSpan where
-    sp1 <> _ = sp1
-
-instance Monoid PLC.SrcSpan where
-    mempty = initialSrcSpan ""
 
 pTermAsProg :: Parser (Program TyName Name PLC.DefaultUni PLC.DefaultFun PLC.SrcSpan)
 pTermAsProg = fmap (Program mempty PLC.latestVersion) pTerm

@@ -1,6 +1,4 @@
 {-# LANGUAGE TypeApplications #-}
-
-{-# OPTIONS_GHC -Wno-orphans #-}
 module PlutusIR.Transform.LetFloatOut.Tests where
 
 import Test.Tasty
@@ -65,9 +63,3 @@ test_letFloatOut = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
         _ <- runQuoteT . flip inferType (() <$ pirFloated) =<< TC.getDefTypeCheckConfig ()
         -- letmerge is not necessary for floating, but is a nice visual transformation
         pure $ LetMerge.letMerge pirFloated
-
-instance Semigroup PLC.SrcSpan where
-    sp1 <> _ = sp1
-
-instance Monoid PLC.SrcSpan where
-    mempty = initialSrcSpan ""
