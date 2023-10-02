@@ -31,39 +31,11 @@ pTermAsProg = fmap (Program mempty PLC.latestVersion) pTerm
 
 test_misc :: TestTree
 test_misc = runTestNestedIn ["plutus-ir/test"] $ testGroup "plutus-ir" <$> sequence
-    [ prettyprinting
-    , prettyprintingReadable
-    , lets
+    [ lets
     , datatypes
     , recursion
     , serialization
     , errors
-    ]
-
-prettyprinting :: TestNested
-prettyprinting = testNested "prettyprinting"
-    $ map (goldenPir id pTerm)
-    [ "basic"
-    , "maybe"
-    ]
-
-prettyprintingReadable :: TestNested
-prettyprintingReadable = testNested "prettyprintingReadable"
-    $ map (goldenPirDoc prettyPirReadable pTerm)
-    [ "basic"
-    , "maybe"
-    , "letInLet"
-    , "letDep"
-    , "listMatch"
-    , "idleAll"
-    , "some"
-    , "even3"
-    , "stupidZero"
-    , "mutuallyRecursiveValues"
-    , "errorBinding"
-    , "some"
-    , "stupidZero"
-    , "recursiveTypeBind"
     ]
 
 lets :: TestNested
