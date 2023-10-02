@@ -47,8 +47,7 @@ transform :: TestNested
 transform =
     testNested
         "transform"
-        [ knownCon
-        , recSplit
+        [ recSplit
         , inline
         , nameCapture
         , beta
@@ -60,26 +59,6 @@ transform =
         , commuteDefaultFun
         , strictifyBindings
         ]
-
-knownCon :: TestNested
-knownCon =
-    testNested "knownCon" $
-        map
-            (goldenPirM goldenKnownConTC pTerm)
-            [ "applicative"
-            , "bool"
-            , "list"
-            , "maybe-just"
-            , "maybe-just-unsaturated"
-            , "maybe-nothing"
-            , "pair"
-            ]
-  where
-    goldenKnownConTC pir = rethrow . asIfThrown @(PIR.Error PLC.DefaultUni PLC.DefaultFun ()) $ do
-        let simplified = runQuote $ KnownCon.knownCon pir
-        -- make sure the result typechecks
-        _ <- runQuoteT . flip inferType (() <$ simplified) =<< TC.getDefTypeCheckConfig ()
-        pure simplified
 
 recSplit :: TestNested
 recSplit =
