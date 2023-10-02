@@ -47,8 +47,7 @@ transform :: TestNested
 transform =
     testNested
         "transform"
-        [ recSplit
-        , inline
+        [ inline
         , nameCapture
         , beta
         , unwrapCancel
@@ -59,19 +58,6 @@ transform =
         , commuteDefaultFun
         , strictifyBindings
         ]
-
-recSplit :: TestNested
-recSplit =
-    testNested "recSplit" $
-        map
-            (goldenPir (RecSplit.recSplit . runQuote . PLC.rename) pTerm)
-            [ "truenonrec"
-            , "mutuallyRecursiveTypes"
-            , "mutuallyRecursiveValues"
-            , "selfrecursive"
-            , "small"
-            , "big"
-            ]
 
 instance Semigroup PLC.SrcSpan where
     sp1 <> _ = sp1
