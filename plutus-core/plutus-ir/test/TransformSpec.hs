@@ -47,8 +47,7 @@ transform :: TestNested
 transform =
     testNested
         "transform"
-        [ beta
-        , unwrapCancel
+        [ unwrapCancel
         , deadCode
         , retainedSize
         , rename
@@ -62,18 +61,6 @@ instance Semigroup PLC.SrcSpan where
 
 instance Monoid PLC.SrcSpan where
     mempty = initialSrcSpan ""
-
-beta :: TestNested
-beta =
-    testNested "beta" $
-        map
-            (goldenPir (Beta.beta . runQuote . PLC.rename) pTerm)
-            [ "lamapp"
-            , "lamapp2"
-            , "absapp"
-            , "multiapp"
-            , "multilet"
-            ]
 
 unwrapCancel :: TestNested
 unwrapCancel =

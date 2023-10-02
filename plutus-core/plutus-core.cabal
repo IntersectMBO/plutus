@@ -575,6 +575,7 @@ test-suite plutus-ir-test
     GeneratorSpec.Types
     NamesSpec
     ParserSpec
+    PlutusIR.Transform.Beta.Tests
     PlutusIR.Transform.Inline.Tests
     PlutusIR.Transform.KnownCon.Tests
     PlutusIR.Transform.LetFloatIn.Tests
