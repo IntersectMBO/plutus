@@ -47,8 +47,7 @@ transform :: TestNested
 transform =
     testNested
         "transform"
-        [ nonStrict
-        , letFloatOut
+        [ letFloatOut
         , letFloatInConservative
         , letFloatInRelaxed
         , knownCon
@@ -64,14 +63,6 @@ transform =
         , commuteDefaultFun
         , strictifyBindings
         ]
-
-nonStrict :: TestNested
-nonStrict =
-    testNested "nonStrict" $
-        map
-            (goldenPir (runQuote . NonStrict.compileNonStrictBindings False) pTerm)
-            [ "nonStrict1"
-            ]
 
 letFloatOut :: TestNested
 letFloatOut =
