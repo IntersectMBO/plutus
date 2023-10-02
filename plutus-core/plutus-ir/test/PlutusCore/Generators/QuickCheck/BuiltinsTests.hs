@@ -1,5 +1,5 @@
 
-module GeneratorSpec.Builtin where
+module PlutusCore.Generators.QuickCheck.BuiltinsTests where
 
 import PlutusCore.Data
 import PlutusCore.Generators.QuickCheck

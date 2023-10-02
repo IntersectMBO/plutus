@@ -1,5 +1,5 @@
 -- editorconfig-checker-disable-file
-module GeneratorSpec.Substitution where
+module PlutusCore.Generators.QuickCheck.SubstitutionTests where
 
 import PlutusCore.Generators.QuickCheck
 

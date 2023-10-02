@@ -1,6 +1,6 @@
 {-# LANGUAGE TupleSections #-}
 
-module GeneratorSpec.Types where
+module PlutusCore.Generators.QuickCheck.TypesTests where
 
 import PlutusCore.Generators.QuickCheck
 

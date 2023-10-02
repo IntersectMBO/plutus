@@ -5,7 +5,7 @@
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module GeneratorSpec.Terms where
+module PlutusIR.Generators.QuickCheck.Tests where
 
 import PlutusCore.Generators.QuickCheck
 import PlutusIR.Generators.QuickCheck
