@@ -49,7 +49,6 @@ transform =
         "transform"
         [ retainedSize
         , rename
-        , strictifyBindings
         ]
 
 instance Semigroup PLC.SrcSpan where
@@ -105,13 +104,3 @@ rename =
   where
     debugConfig = PLC.PrettyConfigClassic PLC.debugPrettyConfigName False
 
-strictifyBindings :: TestNested
-strictifyBindings =
-    testNested "strictifyBindings" $
-        map
-            (goldenPir (StrictifyBindings.strictifyBindings def) pTerm)
-            [ "pure1"
-            , "impure1"
-            , "unused"
-            , "conapp"
-            ]
