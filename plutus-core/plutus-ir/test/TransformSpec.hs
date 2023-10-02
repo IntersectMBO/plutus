@@ -47,8 +47,7 @@ transform :: TestNested
 transform =
     testNested
         "transform"
-        [ unwrapCancel
-        , deadCode
+        [ deadCode
         , retainedSize
         , rename
         , evaluateBuiltins
@@ -61,16 +60,6 @@ instance Semigroup PLC.SrcSpan where
 
 instance Monoid PLC.SrcSpan where
     mempty = initialSrcSpan ""
-
-unwrapCancel :: TestNested
-unwrapCancel =
-    testNested "unwrapCancel" $
-        map
-            (goldenPir Unwrap.unwrapCancel pTerm)
-            -- Note: these examples don't typecheck, but we don't care
-            [ "unwrapWrap"
-            , "wrapUnwrap"
-            ]
 
 deadCode :: TestNested
 deadCode =

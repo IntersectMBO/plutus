@@ -583,6 +583,7 @@ test-suite plutus-ir-test
     PlutusIR.Transform.NonStrict.Tests
     PlutusIR.Transform.RecSplit.Tests
     PlutusIR.Transform.ThunkRecursions.Tests
+    PlutusIR.Transform.Unwrap.Tests
     Spec
     TransformSpec
     TypeSpec
