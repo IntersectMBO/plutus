@@ -9,8 +9,6 @@ module Spec where
 
 import PlutusPrelude
 
-import TransformSpec ()
-
 import PlutusCore qualified as PLC
 import PlutusIR
 import PlutusIR.Core.Instance.Pretty.Readable
@@ -21,6 +19,12 @@ import Test.Tasty
 import Test.Tasty.Extras
 
 import Flat (flat, unflat)
+
+instance Semigroup PLC.SrcSpan where
+    sp1 <> _ = sp1
+
+instance Monoid PLC.SrcSpan where
+    mempty = initialSrcSpan ""
 
 pTermAsProg :: Parser (Program TyName Name PLC.DefaultUni PLC.DefaultFun PLC.SrcSpan)
 pTermAsProg = fmap (Program mempty PLC.latestVersion) pTerm
