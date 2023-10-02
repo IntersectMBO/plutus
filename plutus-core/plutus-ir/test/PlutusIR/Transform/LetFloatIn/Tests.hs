@@ -5,6 +5,7 @@ import Test.Tasty
 import Test.Tasty.Extras
 
 import PlutusCore qualified as PLC
+import PlutusCore.Name
 import PlutusCore.Quote
 import PlutusIR.Error as PIR
 import PlutusIR.Parser

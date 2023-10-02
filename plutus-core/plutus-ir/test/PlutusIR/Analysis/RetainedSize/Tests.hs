@@ -3,6 +3,7 @@ module PlutusIR.Analysis.RetainedSize.Tests where
 import Test.Tasty
 import Test.Tasty.Extras
 
+import PlutusCore.Name
 import PlutusCore.Pretty qualified as PLC
 import PlutusCore.Quote
 import PlutusCore.Rename qualified as PLC
