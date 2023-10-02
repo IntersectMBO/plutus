@@ -479,6 +479,7 @@ library plutus-ir
     PlutusIR.Compiler
     PlutusIR.Compiler.Datatype
     PlutusIR.Compiler.Definitions
+    PlutusIR.Compiler.Let
     PlutusIR.Compiler.Names
     PlutusIR.Compiler.Provenance
     PlutusIR.Compiler.Types
@@ -526,7 +527,6 @@ library plutus-ir
     PlutusIR.Analysis.Size
     PlutusIR.Analysis.Usages
     PlutusIR.Compiler.Error
-    PlutusIR.Compiler.Let
     PlutusIR.Compiler.Lower
     PlutusIR.Compiler.Recursion
     PlutusIR.Normalize

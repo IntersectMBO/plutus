@@ -11,6 +11,7 @@ import PlutusCore.Rename
 import PlutusCore.TypeCheck qualified as PLC
 import PlutusIR.Analysis.Builtins
 import PlutusIR.Compiler
+import PlutusIR.Compiler.Let
 import PlutusIR.Compiler.Provenance (original)
 import PlutusIR.Core
 import PlutusIR.Generators.QuickCheck.GenerateTerms
@@ -66,8 +67,24 @@ typecheck_test = return $ testGroup "typechecking"
   , expectFail $ testProperty "inline (Builtin Variant2) pass" $
   withMaxSuccess 3000 (prop_typecheck_inline DefaultFunSemanticsVariant2)
 
+  -- FIXME
   , expectFail $ testProperty "floatTerm pass" $
       withMaxSuccess 3000 prop_typecheck_floatTerm
+
+  -- FIXME
+  , expectFail $ testProperty "compileLets pass (recursive terms)" $
+      withMaxSuccess 3000 prop_typecheck_compileLets_RecTerms
+
+  -- FIXME
+  , expectFail $ testProperty "compileLets pass (non-recursive terms)" $
+      withMaxSuccess 3000 prop_typecheck_compileLets_NonRecTerms
+
+  , testProperty "compileLets pass (types)" $
+      withMaxSuccess 3000 prop_typecheck_compileLets_Types
+
+  -- FIXME
+  , expectFail $ testProperty "compileLets pass (data types)" $
+      withMaxSuccess 3000 prop_typecheck_compileLets_DataTypes
   ]
 
 -- Convert Either Error () to Either String () to match with the Testable (Either String ())
@@ -93,25 +110,6 @@ prop_typecheck_pure pass =
       renamed <- runQuoteT $ rename tm
       inferredType <- runQuoteT $ inferType config renamed
       runQuoteT $ checkType config () (pass renamed) inferredType
-
--- | Check that a term has the same type before and after the `PlutusIR.Compiler.simplifyTerm` pass.
-prop_typecheck_simplify :: Property
-prop_typecheck_simplify =
-  -- generate type and term in debug mode for easier debugging
-  forAllDoc "ty,tm" genTypeAndTermDebug_ (const []) $ \ (_ty, tm) ->
-    convertToEitherString $ do
-      config <- getDefTypeCheckConfig ()
-      plcConfig <- PLC.getDefTypeCheckConfig ()
-      -- the generated term may not have globally unique names
-      renamed <- runQuoteT $ rename tm
-      inferredType <- runQuoteT $ inferType config renamed
-      let simplified =
-            runReaderT
-              (runQuoteT (simplifyTerm (original renamed))) (toDefaultCompilationCtx plcConfig)
-      case simplified of
-        Left err -> Left $ err $> ()
-        Right simplifiedSuccess ->
-          runQuoteT $ checkType config () (simplifiedSuccess $> ()) inferredType
 
 -- | Check that a term has the same type before and after a
 -- `PlutusIR.Transform.StrictifyBindings` pass.
@@ -152,3 +150,57 @@ prop_typecheck_inline biVariant =
 prop_typecheck_floatTerm :: Property
 prop_typecheck_floatTerm =
   prop_typecheck_non_pure $ floatTerm def True
+
+-- | Check that a term has the same type before and after the `PlutusIR.Compiler.simplifyTerm` pass.
+prop_typecheck_simplify :: Property
+prop_typecheck_simplify = prop_typecheck_extra_constraint simplifyTerm
+
+prop_typecheck_extra_constraint ::
+  (Term TyName Name DefaultUni DefaultFun (Provenance ())
+  -> QuoteT
+      (ReaderT
+         (CompilationCtx DefaultUni DefaultFun c)
+         (Either (Error DefaultUni DefaultFun b)))
+      (Term TyName Name DefaultUni DefaultFun a))
+  -> Property
+prop_typecheck_extra_constraint pass =
+  -- generate type and term in debug mode for easier debugging
+  forAllDoc "ty,tm" genTypeAndTermDebug_ (const []) $ \ (_ty, tm) ->
+    convertToEitherString $ do
+      config <- getDefTypeCheckConfig ()
+      plcConfig <- PLC.getDefTypeCheckConfig ()
+      -- the generated term may not have globally unique names
+      renamed <- runQuoteT $ rename tm
+      inferredType <- runQuoteT $ inferType config renamed
+      let processed =
+            runReaderT
+              (runQuoteT (pass (original renamed))) (toDefaultCompilationCtx plcConfig)
+      case processed of
+        Left err -> Left $ err $> ()
+        Right processSuccess ->
+          runQuoteT $ checkType config () (processSuccess $> ()) inferredType
+
+
+-- | Check that a term has the same type before and after a
+-- `PlutusIR.Compiler.Let.compileLets` (recursive terms) pass.
+prop_typecheck_compileLets_RecTerms :: Property
+prop_typecheck_compileLets_RecTerms =
+  prop_typecheck_extra_constraint (compileLets RecTerms)
+
+-- | Check that a term has the same type before and after a
+-- `PlutusIR.Compiler.Let.compileLets` (non-recursive terms) pass.
+prop_typecheck_compileLets_NonRecTerms :: Property
+prop_typecheck_compileLets_NonRecTerms =
+  prop_typecheck_extra_constraint (compileLets NonRecTerms)
+
+-- | Check that a term has the same type before and after a
+-- `PlutusIR.Compiler.Let.compileLets` (types) pass.
+prop_typecheck_compileLets_Types :: Property
+prop_typecheck_compileLets_Types =
+  prop_typecheck_extra_constraint (compileLets Types)
+
+-- | Check that a term has the same type before and after a
+-- `PlutusIR.Compiler.Let.compileLets` (data types) pass.
+prop_typecheck_compileLets_DataTypes :: Property
+prop_typecheck_compileLets_DataTypes =
+  prop_typecheck_extra_constraint (compileLets DataTypes)
