@@ -47,9 +47,7 @@ transform :: TestNested
 transform =
     testNested
         "transform"
-        [ inline
-        , nameCapture
-        , beta
+        [ beta
         , unwrapCancel
         , deadCode
         , retainedSize
@@ -64,88 +62,6 @@ instance Semigroup PLC.SrcSpan where
 
 instance Monoid PLC.SrcSpan where
     mempty = initialSrcSpan ""
-
--- | Tests of the inliner, include global uniqueness test.
-inline :: TestNested
-inline =
-    let goldenInlineUnique :: Term TyName Name PLC.DefaultUni PLC.DefaultFun PLC.SrcSpan ->
-            IO (Term TyName Name PLC.DefaultUni PLC.DefaultFun PLC.SrcSpan)
-        goldenInlineUnique pir =
-            rethrow . asIfThrown @(UniqueError PLC.SrcSpan) $ do
-                let pirInlined = runQuote $ do
-                        renamed <- PLC.rename pir
-                        Inline.inline mempty def renamed
-                -- Make sure the inlined term is globally unique.
-                _ <- checkUniques pirInlined
-                pure pirInlined
-    in
-    testNested "inline" $
-        map
-            (goldenPirM goldenInlineUnique pTerm)
-            [ "var"
-            , "builtin"
-            , "callsite-non-trivial-body"
-            , "constant"
-            , "transitive"
-            , "tyvar"
-            , "single"
-            , "immediateVar"
-            , "immediateApp"
-            , "firstEffectfulTerm1"
-            , "firstEffectfulTerm2"
-            -- these tests are all let bindings of functions
-            , "letFunConstInt" -- const fn fully applied (integer)
-            , "letFunConstBool" -- const fn fully applied (bool)
-            , "letFunConstMulti" -- multiple occurrences of a let binding of the const fn.
-            , "letFunInFun" -- fully applied fn inside another let, single occurrence.
-            , "letFunInFunMulti" -- fully applied fn inside another let, multiple occurrences.
-            -- similar to "letFunInFunMulti" but all fns are fully applied.
-            , "letTypeAppMulti"
-            -- singe occurrence of a polymorphic id function that is fully applied
-            , "letTypeApp"
-            , "letTypeApp2" -- multiple occurrences of a function with type application
-            -- multiple occurrences of a polymorphic id function that IS fully applied
-            , "letTypeAppMultiSat"
-            -- multiple occurrences of a polymorphic id function that is NOT fully applied
-            , "letTypeAppMultiNotSat"
-            , "letApp" -- single occurrence of a function application in rhs
-            -- multiple occurrences of a function application in rhs with not acceptable body
-            , "letAppMultiNotAcceptable"
-            , "letOverApp" -- over-application of a function, single occurrence
-            , "letOverAppMulti" -- multiple occurrences of an over-application of a function
-            -- multiple occurrences of an over-application of a function with type arguments
-            , "letOverAppType"
-            , "letNonPure" -- multiple occurrences of a non-pure binding
-            , "letNonPureMulti"
-            , "letNonPureMultiStrict"
-            , "rhs-modified"
-            , "partiallyApp"
-            , "effectfulBuiltinArg"
-            ]
-
--- | Check whether a term is globally unique.
-checkUniques :: (Ord a, MonadError (UniqueError a) m) => Term TyName Name uni fun a -> m ()
-checkUniques =
-    Uniques.checkTerm (\case { MultiplyDefined{} -> True; _ -> False})
-
--- | Tests that the inliner doesn't incorrectly capture variable names.
-nameCapture :: TestNested
-nameCapture =
-    let goldenNameCapture :: Term TyName Name PLC.DefaultUni PLC.DefaultFun PLC.SrcSpan ->
-            IO String
-        goldenNameCapture pir =
-            rethrow . asIfThrown @(UniqueError PLC.SrcSpan) $ do
-                let pirInlined = runQuote $ do
-                        renamed <- PLC.rename pir
-                        Inline.inline mempty def renamed
-                -- Make sure the inlined term is globally unique.
-                _ <- checkUniques pirInlined
-                pure . render $ prettyPirReadable pirInlined
-    in
-    testNested "nameCapture" $
-        map
-            (goldenPirMUnique goldenNameCapture pTerm)
-            [ "nameCapture"]
 
 beta :: TestNested
 beta =
