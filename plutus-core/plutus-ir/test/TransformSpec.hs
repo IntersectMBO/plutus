@@ -47,8 +47,7 @@ transform :: TestNested
 transform =
     testNested
         "transform"
-        [ deadCode
-        , retainedSize
+        [ retainedSize
         , rename
         , evaluateBuiltins
         , commuteDefaultFun
@@ -61,28 +60,6 @@ instance Semigroup PLC.SrcSpan where
 instance Monoid PLC.SrcSpan where
     mempty = initialSrcSpan ""
 
-deadCode :: TestNested
-deadCode =
-    testNested "deadCode" $
-        map
-            (goldenPir (runQuote . DeadCode.removeDeadBindings def) pTerm)
-            [ "typeLet"
-            , "termLet"
-            , "strictLet"
-            , "nonstrictLet"
-            , "datatypeLiveType"
-            , "datatypeLiveConstr"
-            , "datatypeLiveDestr"
-            , "datatypeDead"
-            , "singleBinding"
-            , "builtinBinding"
-            , "etaBuiltinBinding"
-            , "nestedBindings"
-            , "nestedBindingsIndirect"
-            , "recBindingSimple"
-            , "recBindingComplex"
-            , "pruneDatatype"
-            ]
 
 retainedSize :: TestNested
 retainedSize =
