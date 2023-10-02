@@ -37,7 +37,6 @@ import PlutusIR.Transform.NonStrict qualified as NonStrict
 import PlutusIR.Transform.RecSplit qualified as RecSplit
 import PlutusIR.Transform.Rename ()
 import PlutusIR.Transform.StrictifyBindings qualified as StrictifyBindings
-import PlutusIR.Transform.ThunkRecursions qualified as ThunkRec
 import PlutusIR.Transform.Unwrap qualified as Unwrap
 import PlutusIR.TypeCheck as TC
 
@@ -48,8 +47,7 @@ transform :: TestNested
 transform =
     testNested
         "transform"
-        [ thunkRecursions
-        , nonStrict
+        [ nonStrict
         , letFloatOut
         , letFloatInConservative
         , letFloatInRelaxed
@@ -66,20 +64,6 @@ transform =
         , commuteDefaultFun
         , strictifyBindings
         ]
-
-thunkRecursions :: TestNested
-thunkRecursions =
-    testNested "thunkRecursions" $
-        map
-            (goldenPir (ThunkRec.thunkRecursions def) pTerm)
-            [ "listFold"
-            , "listFoldTrace"
-            , "monoMap"
-            , "errorBinding"
-            , "mutuallyRecursiveValues"
-            , "preserveEffectOrder"
-            , "preserveStrictness"
-            ]
 
 nonStrict :: TestNested
 nonStrict =
