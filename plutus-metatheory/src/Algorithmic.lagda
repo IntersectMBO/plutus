@@ -318,7 +318,9 @@ constr-cong :  ∀{Γ : Ctx Φ}{n}{i : Fin n}{A : Vec (List (Φ ⊢Nf⋆ *)) n}{
             → (p : ts ≡ lookup A i)
             → {cs : ConstrArgs Γ ts}
             → {cs' : ConstrArgs Γ (lookup A i)}
-            → (q : cs' ≡ subst (IList (Γ ⊢_)) (sym p) cs)
-            → constr i A refl cs' ≡ constr i A (sym p) cs
+            → (q : cs' ≡ subst (IList (Γ ⊢_)) p cs)
+            → constr i A refl cs' ≡ constr i A p cs
 constr-cong refl refl = refl            
+
+
 \end{code}   

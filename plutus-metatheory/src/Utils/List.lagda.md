@@ -145,6 +145,11 @@ lemma<>I2 : ∀{A}{B : A → Set}{xs : Bwd A}{ys : List A}(ixs : IBwd B xs)(iys 
 lemma<>I2 [] iys = refl
 lemma<>I2 (ixs :< ix) iys = lemma<>I2 ixs (ix ∷ iys)
 
+lemma<>I2' : ∀{A}{B : A → Set}{xs : Bwd A}{ys : List A}(ixs : IBwd B xs)(iys : IList B ys) 
+                  → ([] <><I (ixs <>>I iys)) ≡ subst (IBwd B) (sym (lemma<>2 xs ys)) (ixs <><I iys)
+lemma<>I2' [] iys = refl
+lemma<>I2' (ixs :< ix) iys = lemma<>I2' ixs (ix ∷ iys)
+
 IBwd2IList' : ∀{A}{B : A → Set}{bs}{ts} → (bs ≡ [] <>< ts) → IBwd B bs → IList B ts
 IBwd2IList' {ts = ts} p tbs = subst (IList _) (trans (cong (_<>> []) p) (lemma<>1 [] ts)) (tbs <>>I [])
 
@@ -211,17 +216,45 @@ data IIList {A : Set}{B : A → Set}(C : ∀{a : A}(b : B a) → Set) : ∀{is} 
   [] : IIList C []
   _∷_ : ∀{a as}{i : B a}{is : IList B as} → C i → IIList C is → IIList C (i ∷ is)
 
+
 data IIBwd {A : Set}{B : A → Set}(C : ∀{a : A}→ B a → Set) : ∀{is} → IBwd B is → Set where
   [] : IIBwd C []
   _:<_ : ∀{a as}{i : B a}{is : IBwd B as} → IIBwd C is → C i → IIBwd C (is :< i)
 
+-- Split an IIList
+splitI : ∀{A : Set}{bs}{ts : List A}{B : A → Set}{C : ∀{a : A}(b : B a) → Set} 
+           (ibs : IBwd B bs)(its : IList B ts)
+        → IIList C (ibs <>>I its) → IIBwd C ibs × IIList C its
+splitI [] its xs = [] , xs
+splitI (ibs :< x) its xs with splitI ibs (x ∷ its) xs 
+... | ls , (y ∷ rs) = (ls :< y) , rs
 
+-- Split an IIBwd
 bsplitI : ∀{A : Set}{bs}{ts : List A}{B : A → Set}{C : ∀{a : A}(b : B a) → Set} 
            (ibs : IBwd B bs)(its : IList B ts)
         → IIBwd C (ibs <><I its) → IIBwd C ibs × IIList C its
 bsplitI ibs [] vs = vs , []
 bsplitI ibs (x ∷ its) vs with bsplitI (ibs :< x) its vs 
 ... | ls :< x , rs = ls , (x ∷ rs)
+
+-- project from an IIList
+proj-IIList : ∀{A : Set}{B : A → Set}{C : ∀{a : A}(b : B a) → Set} 
+              {a} (b : B a) {BS}{FS} 
+              (bs : IBwd B BS) (fs : IList B FS)
+             → IIList C (bs <>>I (b ∷ fs))
+             → C b
+proj-IIList b bs fs xs with splitI bs (b ∷ fs) xs
+... | _ , (Cb ∷ _) = Cb
+
+-- project from an IIBwd
+proj-IIBwd : ∀{A : Set}{B : A → Set}{C : ∀{a : A}(b : B a) → Set} 
+              {a} (b : B a) {BS}{FS} 
+              (bs : IBwd B BS) (fs : IList B FS)
+             → IIBwd C (bs <><I (b ∷ fs))
+             → C b
+proj-IIBwd b bs fs xs with bsplitI bs (b ∷ fs) xs
+... | _ , (Cb ∷ _) = Cb
+
 ```
  
  Index for IIList zippers
@@ -273,6 +306,13 @@ lem-≣I-<>>2' {ibs = ibs :< x} refl refl = bubble (lem-≣I-<>>2' refl refl)
 
 done-≣I-<>> : ∀{A : Set}{B : A → Set}{tot : List A}(itot : IList B tot) → (itot ≣I ([] <><I itot) <>> []) done-≣-<>>
 done-≣I-<>> itot = lem-≣I-<>>2 (lemma<>1 [] _) (sym (lemma<>I1 [] itot))
+
+
+lem-<><I-subst :  ∀{A : Set}{B : A → Set}{tot tot' : List A}{itot : IList B tot}
+      → (p : tot ≡ tot')
+      → ([] <><I subst (IList B) p itot) ≡ subst (IBwd B) (cong ([] <><_) p) ([] <><I itot)
+lem-<><I-subst refl = refl
+
 ```
 
 

@@ -137,7 +137,9 @@ progress (constr i TSS refl cs)  with progress-focus cs start []
                            refl)
 ... | step Vs (ruleErr E refl) cs {idx} x = 
              step (ruleErr (constr i TSS refl {idx} Vs cs E) 
-                    (constr-cong (lem-≣-<>> idx) (lem-≣I-<>>1' x))
+                    (constr-cong (trans (sym (lem-≣-<>> idx)) refl) 
+                                 (trans (lem-≣I-<>>1' x) 
+                                        (≡-subst-removable (IList (_⊢_ ∅)) (sym (lem-≣-<>> idx)) (trans (sym (lem-≣-<>> idx)) refl) _))) 
                   )
 progress (case M cases)  with progress M 
 ... | step (ruleEC E p refl refl) = step (ruleEC (case cases E) p refl refl)
