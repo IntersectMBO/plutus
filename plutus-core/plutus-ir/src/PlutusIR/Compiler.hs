@@ -45,7 +45,8 @@ module PlutusIR.Compiler (
     PirTCConfig(..),
     AllowEscape(..),
     toDefaultCompilationCtx,
-    simplifyTerm) where
+    simplifyTerm
+    ) where
 
 import PlutusIR
 

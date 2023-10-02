@@ -19,6 +19,7 @@ import PlutusIR.Transform.CaseReduce (caseReduce)
 import PlutusIR.Transform.CommuteFnWithConst (commuteFnWithConst)
 import PlutusIR.Transform.EvaluateBuiltins (evaluateBuiltins)
 import PlutusIR.Transform.Inline.Inline
+import PlutusIR.Transform.LetFloatIn (floatTerm)
 import PlutusIR.Transform.StrictifyBindings
 import PlutusIR.Transform.Unwrap (unwrapCancel)
 import PlutusIR.TypeCheck
@@ -64,6 +65,9 @@ typecheck_test = return $ testGroup "typechecking"
   -- FIXME
   , expectFail $ testProperty "inline (Builtin Variant2) pass" $
   withMaxSuccess 3000 (prop_typecheck_inline DefaultFunSemanticsVariant2)
+
+  , expectFail $ testProperty "floatTerm pass" $
+      withMaxSuccess 3000 prop_typecheck_floatTerm
   ]
 
 -- Convert Either Error () to Either String () to match with the Testable (Either String ())
@@ -121,9 +125,13 @@ prop_typecheck_evaluateBuiltins :: BuiltinSemanticsVariant DefaultFun -> Propert
 prop_typecheck_evaluateBuiltins biVariant =
   prop_typecheck_pure (evaluateBuiltins True (BuiltinsInfo biVariant) def)
 
--- | Check that a term has the same type before and after a `PlutusIR.Transform.Inline` pass.
-prop_typecheck_inline :: BuiltinSemanticsVariant DefaultFun -> Property
-prop_typecheck_inline biVariant =
+-- | Check that a term has the same type before and after a non-pure pass.
+prop_typecheck_non_pure :: (Term TyName Name DefaultUni DefaultFun (Provenance ())
+  -> QuoteT
+      (Either (Error DefaultUni DefaultFun ()))
+      (Term TyName Name DefaultUni DefaultFun a))
+  -> Property
+prop_typecheck_non_pure pass =
   -- generate type and term in debug mode for easier debugging
   forAllDoc "ty,tm" genTypeAndTermDebug_ (const []) $ \ (_ty, tm) ->
     convertToEitherString $ do
@@ -131,6 +139,16 @@ prop_typecheck_inline biVariant =
       -- the generated term may not have globally unique names
       renamed <- runQuoteT $ rename tm
       inferredType <- runQuoteT $ inferType config renamed
-      inlined <- runQuoteT $ inline mempty (BuiltinsInfo biVariant) (original renamed)
-      runQuoteT $ checkType config () (inlined $> ()) inferredType
+      processed <- runQuoteT $ pass (original renamed)
+      runQuoteT $ checkType config () (processed $> ()) inferredType
 
+-- | Check that a term has the same type before and after a `PlutusIR.Transform.Inline` pass.
+prop_typecheck_inline :: BuiltinSemanticsVariant DefaultFun -> Property
+prop_typecheck_inline biVariant =
+  prop_typecheck_non_pure (inline mempty (BuiltinsInfo biVariant))
+
+-- | Check that a term has the same type before and after a
+-- `PlutusIR.Transform.LetFloatIn.floatTerm` pass.
+prop_typecheck_floatTerm :: Property
+prop_typecheck_floatTerm =
+  prop_typecheck_non_pure $ floatTerm def True
