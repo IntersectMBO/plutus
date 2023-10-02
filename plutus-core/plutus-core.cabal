@@ -571,11 +571,11 @@ test-suite plutus-ir-test
     GeneratorSpec.Substitution
     GeneratorSpec.Terms
     GeneratorSpec.Types
-    NamesSpec
     PlutusIR.Analysis.RetainedSize.Tests
     PlutusIR.Check.Uniques.Tests
     PlutusIR.Parser.Tests
     PlutusIR.Purity.Tests
+    PlutusIR.Scoping.Tests
     PlutusIR.Transform.Beta.Tests
     PlutusIR.Transform.CommuteFnWithConst.Tests
     PlutusIR.Transform.DeadCode.Tests

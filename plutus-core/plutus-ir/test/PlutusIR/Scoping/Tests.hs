@@ -1,5 +1,5 @@
 -- editorconfig-checker-disable-file
-module NamesSpec where
+module PlutusIR.Scoping.Tests where
 
 import PlutusPrelude
 
