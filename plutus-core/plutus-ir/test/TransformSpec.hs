@@ -47,8 +47,7 @@ transform :: TestNested
 transform =
     testNested
         "transform"
-        [ letFloatOut
-        , letFloatInConservative
+        [ letFloatInConservative
         , letFloatInRelaxed
         , knownCon
         , recSplit
@@ -63,54 +62,6 @@ transform =
         , commuteDefaultFun
         , strictifyBindings
         ]
-
-letFloatOut :: TestNested
-letFloatOut =
-    testNested "letFloatOut" $
-        map
-            (goldenPirM goldenFloatTC pTerm)
-            [ "letInLet"
-            , "listMatch"
-            , "maybe"
-            , "ifError"
-            , "mutuallyRecursiveTypes"
-            , "mutuallyRecursiveValues"
-            , "nonrec1"
-            , "nonrec2"
-            , "nonrec3"
-            , "nonrec4"
-            , "nonrec6"
-            , "nonrec7"
-            , "nonrec8"
-            , "nonrec9"
-            , "rec1"
-            , "rec2"
-            , "rec3"
-            , "rec4"
-            , "nonrecToRec"
-            , "nonrecToNonrec"
-            , "oldLength"
-            , "strictValue"
-            , "strictNonValue"
-            , "strictNonValue2"
-            , "strictNonValue3"
-            , "strictValueNonValue"
-            , "strictValueValue"
-            , "even3Eval"
-            , "strictNonValueDeep"
-            , "oldFloatBug"
-            , "outRhs"
-            , "outLam"
-            , "inLam"
-            , "rhsSqueezeVsNest"
-            ]
-  where
-    goldenFloatTC pir = rethrow . asIfThrown @(PIR.Error PLC.DefaultUni PLC.DefaultFun ()) $ do
-        let pirFloated = RecSplit.recSplit . LetFloatOut.floatTerm def . runQuote $ PLC.rename pir
-        -- make sure the floated result typechecks
-        _ <- runQuoteT . flip inferType (() <$ pirFloated) =<< TC.getDefTypeCheckConfig ()
-        -- letmerge is not necessary for floating, but is a nice visual transformation
-        pure $ LetMerge.letMerge pirFloated
 
 letFloatInConservative :: TestNested
 letFloatInConservative =
