@@ -573,6 +573,7 @@ test-suite plutus-ir-test
     GeneratorSpec.Types
     PlutusIR.Analysis.RetainedSize.Tests
     PlutusIR.Check.Uniques.Tests
+    PlutusIR.Compiler.Tests
     PlutusIR.Core.Tests
     PlutusIR.Parser.Tests
     PlutusIR.Purity.Tests
@@ -592,7 +593,6 @@ test-suite plutus-ir-test
     PlutusIR.Transform.ThunkRecursions.Tests
     PlutusIR.Transform.Unwrap.Tests
     PlutusIR.TypeCheck.Tests
-    Spec
 
   build-tool-depends: tasty-discover:tasty-discover
   build-depends:

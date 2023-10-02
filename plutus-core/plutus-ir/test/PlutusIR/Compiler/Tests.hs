@@ -5,20 +5,15 @@
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE UndecidableInstances  #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
-module Spec where
-
-import PlutusPrelude
+module PlutusIR.Compiler.Tests where
 
 import PlutusCore qualified as PLC
 import PlutusIR
-import PlutusIR.Core.Instance.Pretty.Readable
 import PlutusIR.Parser (Parser, pTerm)
 import PlutusIR.Test
 
 import Test.Tasty
 import Test.Tasty.Extras
-
-import Flat (flat, unflat)
 
 instance Semigroup PLC.SrcSpan where
     sp1 <> _ = sp1
@@ -29,12 +24,11 @@ instance Monoid PLC.SrcSpan where
 pTermAsProg :: Parser (Program TyName Name PLC.DefaultUni PLC.DefaultFun PLC.SrcSpan)
 pTermAsProg = fmap (Program mempty PLC.latestVersion) pTerm
 
-test_misc :: TestTree
-test_misc = runTestNestedIn ["plutus-ir/test"] $ testGroup "plutus-ir" <$> sequence
+test_compiler :: TestTree
+test_compiler = runTestNestedIn ["plutus-ir/test/PlutusIR"] $ testNested "Compiler"
     [ lets
     , datatypes
     , recursion
-    , serialization
     , errors
     ]
 
@@ -67,21 +61,6 @@ recursion = testNested "recursion"
     , goldenPlcFromPir pTermAsProg "mutuallyRecursiveValues"
     , goldenEvalPir pTermAsProg "errorBinding"
     ]
-
-serialization :: TestNested
-serialization = testNested "serialization"
-    $ map (goldenPir roundTripPirTerm pTerm)
-    [ "serializeBasic"
-    , "serializeMaybePirTerm"
-    , "serializeEvenOdd"
-    , "serializeListMatch"
-    ]
-
-roundTripPirTerm :: Term TyName Name PLC.DefaultUni PLC.DefaultFun a -> Term TyName Name PLC.DefaultUni PLC.DefaultFun ()
-roundTripPirTerm = decodeOrError . unflat . flat . void
-  where
-    decodeOrError (Right tm) = tm
-    decodeOrError (Left err) = error (show err)
 
 errors :: TestNested
 errors = testNested "errors"
