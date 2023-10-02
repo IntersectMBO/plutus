@@ -576,6 +576,7 @@ test-suite plutus-ir-test
     NamesSpec
     ParserSpec
     PlutusIR.Transform.Beta.Tests
+    PlutusIR.Transform.CommuteFnWithConst.Tests
     PlutusIR.Transform.DeadCode.Tests
     PlutusIR.Transform.EvaluateBuiltins.Tests
     PlutusIR.Transform.Inline.Tests

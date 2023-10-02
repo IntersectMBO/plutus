@@ -49,7 +49,6 @@ transform =
         "transform"
         [ retainedSize
         , rename
-        , commuteDefaultFun
         , strictifyBindings
         ]
 
@@ -105,17 +104,6 @@ rename =
             ]
   where
     debugConfig = PLC.PrettyConfigClassic PLC.debugPrettyConfigName False
-
-commuteDefaultFun :: TestNested
-commuteDefaultFun =
-    testNested "commuteDefaultFun" $
-    map
-        (goldenPir CommuteFnWithConst.commuteDefaultFun pTerm)
-        [ "equalsInt" -- this tests that the function works on equalInteger
-        , "divideInt" -- this tests that the function excludes not commutative functions
-        , "multiplyInt" -- this tests that the function works on multiplyInteger
-        , "let" -- this tests that it works in the subterms
-        ]
 
 strictifyBindings :: TestNested
 strictifyBindings =
