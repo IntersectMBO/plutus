@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications  #-}
-module AnalysisSpec where
+module PlutusIR.Purity.Tests where
 
 import Test.Tasty.Extras
 
@@ -41,7 +41,7 @@ dangerTerm = runQuote $ do
   pure $ Apply () (Apply () (Var () n) (Var () m)) undefined
 
 test_evalOrder :: TestTree
-test_evalOrder = runTestNestedIn ["plutus-ir/test"] $ testNested "evalOrder"
+test_evalOrder = runTestNestedIn ["plutus-ir/test/PlutusIR"] $ testNested "Purity"
   [ goldenEvalOrder "letFun"
   , goldenEvalOrder "builtinAppUnsaturated"
   , goldenEvalOrder "builtinAppSaturated"
