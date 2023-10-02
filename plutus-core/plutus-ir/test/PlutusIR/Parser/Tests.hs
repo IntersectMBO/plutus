@@ -4,7 +4,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 -- | Tests for PIR parser.
-module ParserSpec where
+module PlutusIR.Parser.Tests where
 
 import PlutusPrelude
 

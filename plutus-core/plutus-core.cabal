@@ -573,8 +573,8 @@ test-suite plutus-ir-test
     GeneratorSpec.Terms
     GeneratorSpec.Types
     NamesSpec
-    ParserSpec
     PlutusIR.Analysis.RetainedSize.Tests
+    PlutusIR.Parser.Tests
     PlutusIR.Purity.Tests
     PlutusIR.Transform.Beta.Tests
     PlutusIR.Transform.CommuteFnWithConst.Tests
