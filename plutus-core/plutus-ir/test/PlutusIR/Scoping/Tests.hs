@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 module PlutusIR.Scoping.Tests where
 
 import PlutusPrelude
@@ -48,7 +47,11 @@ test_names = testGroup "names"
       -- which would perform marking too).
       T.test_scopingBad "inlining" genTerm T.BindingRemovalOk T.PrerenameYes $
         Inline.inline mempty def
-    , T.test_scopingGood "match-against-known-constructor" genTerm T.BindingRemovalNotOk T.PrerenameNo $
+    , T.test_scopingGood
+        "match-against-known-constructor"
+        genTerm
+        T.BindingRemovalNotOk
+        T.PrerenameNo $
         knownCon
     , T.test_scopingGood "floating bindings inwards" genTerm T.BindingRemovalNotOk T.PrerenameNo $
         In.floatTerm def True
@@ -57,9 +60,17 @@ test_names = testGroup "names"
     , T.test_scopingGood "merging lets" genTerm T.BindingRemovalNotOk T.PrerenameYes $
         pure . letMerge
     , -- The pass breaks global uniqueness, but it's not clear whether this is by design or not.
-      T.test_scopingBad "compilation of non-strict bindings" genTerm T.BindingRemovalOk T.PrerenameYes $
+      T.test_scopingBad
+        "compilation of non-strict bindings"
+        genTerm
+        T.BindingRemovalOk
+        T.PrerenameYes $
         compileNonStrictBindings True
-    , T.test_scopingGood "match-against-known-constructor" genTerm T.BindingRemovalNotOk T.PrerenameYes $
+    , T.test_scopingGood
+        "match-against-known-constructor"
+        genTerm
+        T.BindingRemovalNotOk
+        T.PrerenameYes $
         pure . recSplit
     , T.test_scopingGood "renaming" genProgram T.BindingRemovalNotOk T.PrerenameNo $
         rename
