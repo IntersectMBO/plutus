@@ -6,6 +6,7 @@
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE TypeApplications   #-}
+{-# LANGUAGE ViewPatterns       #-}
 
 {-# OPTIONS_GHC -Wno-orphans #-}
 -- Prevent unboxing, which the plugin can't deal with
@@ -63,6 +64,8 @@ import PlutusTx.AssocMap qualified as Map
 import PlutusTx.Lift (makeLift)
 import PlutusTx.Ord qualified as Ord
 import PlutusTx.Prelude as PlutusTx hiding (sort)
+import PlutusTx.SortedMap (SortedMap)
+import PlutusTx.SortedMap qualified as SortedMap
 import PlutusTx.These (These (..))
 import Prettyprinter (Pretty, (<>))
 import Prettyprinter.Extras (PrettyShow (PrettyShow))
@@ -190,6 +193,30 @@ newtype Value = Value { getValue :: Map.Map CurrencySymbol (Map.Map TokenName In
 
 instance Haskell.Eq Value where
     (==) = eq
+
+{-# INLINEABLE sortSumMaps #-}
+sortSumMaps :: Ord k => [Map.Map k Integer] -> SortedMap k Integer
+sortSumMaps = SortedMap.sortFoldMaps (+) (+) id
+
+{-# INLINEABLE eq #-}
+eq :: Value -> Value -> Bool
+eq (Value (Map.toList -> currs1)) (Value (Map.toList -> currs2)) =
+    case SortedMap.matchKVs structEqMap currs1 currs2 of
+        SortedMap.MatchSuccess                 -> True
+        SortedMap.MatchFailure currs1' currs2' ->
+            SortedMap.pointwiseEqWith (all $ Map.all (== 0)) eqMaps currs1' currs2'
+  where
+    structEqMap :: Map.Map TokenName Integer -> Map.Map TokenName Integer -> Bool
+    structEqMap (Map.toList -> tokens1) (Map.toList -> tokens2) =
+        SortedMap.pointwiseEqWith
+            (== 0)
+            (==)
+            (SortedMap.UnsafeSortedMap tokens1)
+            (SortedMap.UnsafeSortedMap tokens2)
+
+    eqMaps :: [Map.Map TokenName Integer] -> [Map.Map TokenName Integer] -> Bool
+    eqMaps maps1 maps2 =
+        SortedMap.pointwiseEqWith (== 0) (==) (sortSumMaps maps1) (sortSumMaps maps2)
 
 instance Eq Value where
     {-# INLINABLE (==) #-}
@@ -322,12 +349,6 @@ checkBinRel f l r =
             That b    -> f 0 b
             These a b -> f a b
     in checkPred unThese l r
-
-{-# INLINABLE eq #-}
--- | Check whether one 'Value' is equal to another. See 'Value' for an explanation of how operations on 'Value's work.
-eq :: Value -> Value -> Bool
--- If both are zero then checkBinRel will be vacuously true, but this is fine.
-eq = checkBinRel (==)
 
 {-# INLINABLE geq #-}
 -- | Check whether one 'Value' is greater than or equal to another. See 'Value' for an explanation of how operations on 'Value's work.
