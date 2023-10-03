@@ -43,7 +43,7 @@ singleton k v = UnsafeSortedMap [(k, [v])]
 insertOneWith
     :: forall k v w. Ord k
     => (v -> w -> w) -> (v -> w) -> k -> v -> SortedMap k w -> SortedMap k w
-insertOneWith op inj k0 v0 = UnsafeSortedMap . go . unSortedMap where
+insertOneWith ~op ~inj ~k0 ~v0 = UnsafeSortedMap . go . unSortedMap where
     go :: [(k, w)] -> [(k, w)]
     go []                  = [(k0, inj v0)]
     go kws@((k, w) : kws') = case k0 `compare` k of
@@ -58,7 +58,7 @@ insertOne = insertOneWith (:) (: [])
 -- TODO: proper mergesort
 {-# INLINE fromListWith #-}
 fromListWith :: forall k v w. Ord k => (v -> w -> w) -> (v -> w) -> [(k, v)] -> SortedMap k w
-fromListWith act inj = go where
+fromListWith ~act ~inj = go where
     go :: [(k, v)] -> SortedMap k w
     go []             = UnsafeSortedMap []
     go ((k, v) : kvs) = insertOneWith act inj k v $ go kvs
@@ -71,7 +71,7 @@ fromList = fromListWith (:) (: [])
 mergeWith
     :: forall k v. Ord k
     => (v -> v -> v) -> SortedMap k v -> SortedMap k v -> SortedMap k v
-mergeWith op (UnsafeSortedMap kvs1_0) (UnsafeSortedMap kvs2_0) =
+mergeWith ~op ~(UnsafeSortedMap kvs1_0) ~(UnsafeSortedMap kvs2_0) =
     UnsafeSortedMap $ go kvs1_0 kvs2_0
   where
     go :: [(k, v)] -> [(k, v)] -> [(k, v)]
@@ -84,30 +84,31 @@ mergeWith op (UnsafeSortedMap kvs1_0) (UnsafeSortedMap kvs2_0) =
 
 data MatchResult a
     = MatchSuccess
-    | MatchFailure a a
+    | MatchUnclear a a
+    | MatchFailure
 
-{-# INLINABLE matchKVs #-}
+{-# INLINE matchKVs #-}
 matchKVs
     :: forall k v. Ord k
     => (v -> v -> Bool) -> [(k, v)] -> [(k, v)] -> MatchResult (SortedMap k [v])
-matchKVs structEqV = go where
+matchKVs ~structEqV = go where
     go :: [(k, v)] -> [(k, v)] -> MatchResult (SortedMap k [v])
     go []                      []                      = MatchSuccess
-    go []                      kvs2                    = MatchFailure empty (fromList kvs2)
-    go kvs1                    []                      = MatchFailure (fromList kvs1) empty
+    go []                      kvs2                    = MatchUnclear empty (fromList kvs2)
+    go kvs1                    []                      = MatchUnclear (fromList kvs1) empty
     go kvs1@((k1, v1) : kvs1') kvs2@((k2, v2) : kvs2')
         | k1 == k2 = case go kvs1' kvs2' of
             MatchSuccess -> if structEqV v1 v2
                 then MatchSuccess
                 else MatchFailure
-                    (singleton k1 v1)
-                    (singleton k1 v2)
-            MatchFailure kvs1'' kvs2'' ->
-                MatchFailure
+            MatchUnclear kvs1'' kvs2'' ->
+                MatchUnclear
                     (insertOne k1 v1 kvs1'')
                     (insertOne k1 v2 kvs2'')
+            MatchFailure ->
+                MatchFailure
         | otherwise =
-            MatchFailure
+            MatchUnclear
                 (fromList kvs1)
                 (fromList kvs2)
 
@@ -115,7 +116,7 @@ matchKVs structEqV = go where
 pointwiseEqWith
     :: forall k v. Eq k
     => (v -> Bool) -> (v -> v -> Bool) -> SortedMap k v -> SortedMap k v -> Bool
-pointwiseEqWith is0 eqV (UnsafeSortedMap kvs01) (UnsafeSortedMap kvs02) = go kvs01 kvs02 where
+pointwiseEqWith ~is0 ~eqV ~(UnsafeSortedMap kvs01) ~(UnsafeSortedMap kvs02) = go kvs01 kvs02 where
     go :: [(k, v)] -> [(k, v)] -> Bool
     go []                []                = True
     go []                kvs2              = all (is0 . snd) kvs2
@@ -131,7 +132,7 @@ pointwiseEqWith is0 eqV (UnsafeSortedMap kvs01) (UnsafeSortedMap kvs02) = go kvs
 sortFoldMaps
     :: forall k v w. Ord k
     => (w -> w -> w) -> (v -> w -> w) -> (v -> w) -> [Map.Map k v] -> SortedMap k w
-sortFoldMaps op act inj = go where
+sortFoldMaps ~op ~act ~inj = go where
     go :: [Map.Map k v] -> SortedMap k w
     go []                           = empty
     go ((Map.toList -> kvs) : maps) = mergeWith op (fromListWith act inj kvs) (go maps)

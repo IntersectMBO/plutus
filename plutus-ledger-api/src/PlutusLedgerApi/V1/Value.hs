@@ -203,7 +203,8 @@ eq :: Value -> Value -> Bool
 eq (Value (Map.toList -> currs1)) (Value (Map.toList -> currs2)) =
     case SortedMap.matchKVs structEqMap currs1 currs2 of
         SortedMap.MatchSuccess                 -> True
-        SortedMap.MatchFailure currs1' currs2' ->
+        SortedMap.MatchFailure                 -> False
+        SortedMap.MatchUnclear currs1' currs2' ->
             SortedMap.pointwiseEqWith (all $ Map.all (== 0)) eqMaps currs1' currs2'
   where
     structEqMap :: Map.Map TokenName Integer -> Map.Map TokenName Integer -> Bool
