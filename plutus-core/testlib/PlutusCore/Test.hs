@@ -7,6 +7,8 @@
 {-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE UndecidableInstances   #-}
 
+{-# OPTIONS_GHC -Wno-orphans #-}
+
 module PlutusCore.Test (
   checkFails,
   ToTPlc (..),
@@ -378,6 +380,15 @@ initialSrcSpan fp = SrcSpan fp 1 1 1 2
 
 topSrcSpan :: SrcSpan
 topSrcSpan = initialSrcSpan "top"
+
+-- Some things require annotations to have these instances.
+-- Normally in the compiler we use Provenance, which adds them, but
+-- we add slightly sketchy instances for SrcSpan here for convenience
+instance Semigroup TPLC.SrcSpan where
+    sp1 <> _ = sp1
+
+instance Monoid TPLC.SrcSpan where
+    mempty = initialSrcSpan ""
 
 -- See Note [Marking].
 
