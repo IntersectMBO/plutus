@@ -17,6 +17,10 @@ import PlutusIR.Transform.Rename ()
 import PlutusIR.TypeCheck as TC
 import PlutusPrelude
 
+import PlutusIR.Properties.Typecheck (pure_typecheck_prop)
+import Test.QuickCheck.Property (Property, withMaxSuccess)
+import Test.Tasty.QuickCheck (testProperty)
+
 test_letFloatOut :: TestTree
 test_letFloatOut = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
     testNested "LetFloatOut" $
@@ -64,3 +68,13 @@ test_letFloatOut = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
         _ <- runQuoteT . flip inferType (() <$ pirFloated) =<< TC.getDefTypeCheckConfig ()
         -- letmerge is not necessary for floating, but is a nice visual transformation
         pure $ LetMerge.letMerge pirFloated
+
+-- | Check that a term typechecks after a
+-- `PlutusIR.Transform.LetFloatOut.floatTerm` pass.
+prop_typecheck_floatTerm :: Property
+prop_typecheck_floatTerm =
+  pure_typecheck_prop $ LetFloatOut.floatTerm def
+
+test_typecheck :: TestTree
+test_typecheck = testProperty "typechecking" $
+      withMaxSuccess 3000 prop_typecheck_floatTerm

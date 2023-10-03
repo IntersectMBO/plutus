@@ -7,6 +7,10 @@ import PlutusIR.Parser
 import PlutusIR.Test
 import PlutusIR.Transform.Unwrap qualified as Unwrap
 
+import PlutusIR.Properties.Typecheck
+import Test.QuickCheck.Property (withMaxSuccess)
+import Test.Tasty.QuickCheck (testProperty)
+
 test_unwrap :: TestTree
 test_unwrap = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
     testNested "Unwrap" $
@@ -16,3 +20,7 @@ test_unwrap = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
             [ "unwrapWrap"
             , "wrapUnwrap"
             ]
+
+test_typecheck :: TestTree
+test_typecheck = testProperty "typechecking" $
+    withMaxSuccess 3000 (pure_typecheck_prop Unwrap.unwrapCancel)

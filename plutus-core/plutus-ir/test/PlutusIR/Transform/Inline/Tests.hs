@@ -2,19 +2,24 @@
 {-# LANGUAGE TypeApplications #-}
 module PlutusIR.Transform.Inline.Tests where
 
-import Test.Tasty
 import Test.Tasty.Extras
 
 import Control.Monad.Except
 import PlutusCore qualified as PLC
+import PlutusCore.Default.Builtins
 import PlutusCore.Quote
 import PlutusIR
+import PlutusIR.Analysis.Builtins
 import PlutusIR.Check.Uniques qualified as Uniques
 import PlutusIR.Core.Instance.Pretty.Readable
 import PlutusIR.Parser
+import PlutusIR.Properties.Typecheck
 import PlutusIR.Test
-import PlutusIR.Transform.Inline.Inline qualified as Inline
+import PlutusIR.Transform.Inline.Inline
 import PlutusPrelude
+import Test.QuickCheck.Property (Property, withMaxSuccess)
+import Test.Tasty (TestTree, testGroup)
+import Test.Tasty.QuickCheck (testProperty)
 
 -- | Tests of the inliner, include global uniqueness test.
 test_inline :: TestTree
@@ -25,7 +30,7 @@ test_inline = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
             rethrow . asIfThrown @(PLC.UniqueError PLC.SrcSpan) $ do
                 let pirInlined = runQuote $ do
                         renamed <- PLC.rename pir
-                        Inline.inline mempty def renamed
+                        inline mempty def renamed
                 -- Make sure the inlined term is globally unique.
                 _ <- checkUniques pirInlined
                 pure pirInlined
@@ -83,7 +88,7 @@ test_nameCapture = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
             rethrow . asIfThrown @(PLC.UniqueError PLC.SrcSpan) $ do
                 let pirInlined = runQuote $ do
                         renamed <- PLC.rename pir
-                        Inline.inline mempty def renamed
+                        inline mempty def renamed
                 -- Make sure the inlined term is globally unique.
                 _ <- checkUniques pirInlined
                 pure . render $ prettyPirReadable pirInlined
@@ -97,3 +102,17 @@ test_nameCapture = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
 checkUniques :: (Ord a, MonadError (PLC.UniqueError a) m) => Term TyName Name uni fun a -> m ()
 checkUniques =
     Uniques.checkTerm (\case { Uniques.MultiplyDefined{} -> True; _ -> False})
+
+-- | Check that a term typechecks after a `PlutusIR.Transform.Inline` pass.
+prop_typecheck_inline :: BuiltinSemanticsVariant DefaultFun -> Property
+prop_typecheck_inline biVariant =
+  non_pure_typecheck_prop (inline mempty (BuiltinsInfo biVariant))
+
+test_typecheck :: TestTree
+test_typecheck = testGroup "typechecking"
+  [ testProperty "Builtin Variant1" $
+  withMaxSuccess 3000 (prop_typecheck_inline DefaultFunSemanticsVariant1)
+
+  , testProperty "Builtin Variant2" $
+  withMaxSuccess 3000 (prop_typecheck_inline DefaultFunSemanticsVariant2)
+  ]

@@ -107,6 +107,7 @@ library
     PlutusCore.DeBruijn
     PlutusCore.DeBruijn.Internal
     PlutusCore.Default
+    PlutusCore.Default.Builtins
     PlutusCore.Error
     PlutusCore.Evaluation.Machine.BuiltinCostModel
     PlutusCore.Evaluation.Machine.Ck
@@ -214,7 +215,6 @@ library
     PlutusCore.Core.Plated
     PlutusCore.Core.Type
     PlutusCore.Crypto.Utils
-    PlutusCore.Default.Builtins
     PlutusCore.Default.Universe
     PlutusCore.Eq
     PlutusCore.Parser.Builtin
@@ -702,6 +702,7 @@ library plutus-core-testlib
     PlutusIR.Generators.QuickCheck.Common
     PlutusIR.Generators.QuickCheck.GenerateTerms
     PlutusIR.Generators.QuickCheck.ShrinkTerms
+    PlutusIR.Properties.Typecheck
     PlutusIR.Test
     Test.Tasty.Extras
     UntypedPlutusCore.Test.DeBruijn.Bad
@@ -731,6 +732,7 @@ library plutus-core-testlib
     , Stream
     , tagged
     , tasty
+    , tasty-expected-failure
     , tasty-golden
     , tasty-hedgehog
     , tasty-hunit
