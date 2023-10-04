@@ -12,7 +12,6 @@ module UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver
     -- | Reexport some functions for convenience
     , mkCekTrans
     , CekTrans
-    , tryError
     , F.MonadFree
     , F.iterM
     , F.iterTM

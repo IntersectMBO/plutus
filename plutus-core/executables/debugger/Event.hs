@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                   #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -5,6 +6,7 @@
 -- | Handler of debugger events.
 module Event where
 
+import Data.Foldable (for_)
 import PlutusCore.Annotation
 import PlutusCore.Pretty qualified as PLC
 import Types
@@ -15,20 +17,28 @@ import Brick.Focus qualified as B
 import Brick.Main qualified as B
 import Brick.Types qualified as B
 import Brick.Widgets.Edit qualified as BE
+-- ghc 9.6 has this in base
+#if __GLASGOW_HASKELL__ < 906
+import Control.Applicative (liftA2)
+#endif
 import Control.Arrow ((>>>))
 import Control.Concurrent.MVar
+import Control.Monad.Catch
 import Control.Monad.State
 import Data.Coerce
 import Data.Set as S
+import Data.Text.IO qualified as Text
 import Data.Text.Zipper
 import Graphics.Vty qualified as Vty
 import Lens.Micro
 import Prettyprinter
+import System.FilePath
 
 handleDebuggerEvent :: MVar (D.Cmd Breakpoints)
+                    -> Maybe FilePath
                     -> B.BrickEvent ResourceName CustomBrickEvent
                     -> B.EventM ResourceName DebuggerState ()
-handleDebuggerEvent driverMailbox bev@(B.VtyEvent ev) = do
+handleDebuggerEvent driverMailbox _ bev@(B.VtyEvent ev) = do
     focusRing <- gets (^. dsFocusRing)
     let handleEditorEvent = case B.focusGetCurrent focusRing of
             Just EditorUplc ->
@@ -74,8 +84,8 @@ handleDebuggerEvent driverMailbox bev@(B.VtyEvent ev) = do
             -- This disables editing the text, making the editors read-only.
             pure ()
         _ -> handleEditorEvent
-handleDebuggerEvent _ (B.AppEvent (UpdateClientEvent budgetData cekState)) = do
-    let uplcHighlight :: Maybe HighlightSpan = do
+handleDebuggerEvent _ hsDir (B.AppEvent (UpdateClientEvent budgetData cekState)) = do
+    let muplcHighlight :: Maybe HighlightSpan = do
             uplcSpan <- uplcAnn <$> cekStateAnn cekState
             pure HighlightSpan
                 { _hcSLoc = B.Location (srcSpanSLine uplcSpan, srcSpanSCol uplcSpan),
@@ -84,23 +94,48 @@ handleDebuggerEvent _ (B.AppEvent (UpdateClientEvent budgetData cekState)) = do
                   -- is the line break, hence the `- 1`.
                   _hcELoc = Just $ B.Location (srcSpanELine uplcSpan, srcSpanECol uplcSpan - 1)
                 }
-    let sourceHighlight :: Maybe HighlightSpan = do
+
+
+    let msourceSrcSpan :: Maybe SrcSpan = do
             txSpans <- txAnn <$> cekStateAnn cekState
             -- FIXME: use some/all spans for highlighting, not just the first one
+            -- because now we arbitrary selected the first (in-order) srcsspan
             firstTxSpan <- S.lookupMin $ coerce txSpans
-            -- TODO: the HS_FILE supplied from the command line gets highlighted
-            -- The highlighting will not make sense or even break if the user provides
-            -- wrong HS_FILE or if the UPLC originated from multiple HS modules.
+            pure firstTxSpan
+
+    let msourceHighlight :: Maybe HighlightSpan = do
+            sourceSrcSpan <- msourceSrcSpan
             pure HighlightSpan
-                { _hcSLoc = B.Location (srcSpanSLine firstTxSpan, srcSpanSCol firstTxSpan),
+                { _hcSLoc = B.Location ( srcSpanSLine sourceSrcSpan
+                                       , srcSpanSCol sourceSrcSpan
+                                       ),
                   -- GHC's SrcSpan's ending column is one larger than the last character's column.
                   -- See: ghc/compiler/GHC/Types/SrcLoc.hs#L728
-                  _hcELoc = Just $ B.Location (srcSpanELine firstTxSpan, srcSpanECol firstTxSpan -1)
+                  _hcELoc = Just $ B.Location ( srcSpanELine sourceSrcSpan
+                                              , srcSpanECol sourceSrcSpan -1
+                                              )
                 }
+    -- the current sourcespan may have jumped to another hs file, update the text of the editor
+    for_ (liftA2 (</>) hsDir $ srcSpanFile <$> msourceSrcSpan) $ \file -> do
+         res <- liftIO $ Text.readFile file
+         -- putting modify directly in here has the upside (or downside) that
+         -- it keeps the old tx shown in the tx panel when we the jumped tx-sourcespan is empty
+         modify' $ \ st -> st & dsSourceEditor .~
+                  (BE.editorText
+                    EditorSource
+                    Nothing <$> Just res)
+      `catchAll` \ e ->
+         modify' $ appendToLogsEditor ("DEBUGGER ERROR:" <+> viaShow e)
+
+
     modify' $ \st ->
-      st & set dsUplcHighlight uplcHighlight
-         & set dsSourceHighlight sourceHighlight
+      st & set dsUplcHighlight muplcHighlight
+         & set dsSourceHighlight msourceHighlight
          & set dsBudgetData budgetData
+         -- & dsSourceEditor .~
+         --      (BE.editorText
+         --          EditorSource
+         --          Nothing <$> msourceText)
          & case cekState of
             Computing{} ->
                -- Clear the return value editor.
@@ -122,16 +157,22 @@ handleDebuggerEvent _ (B.AppEvent (UpdateClientEvent budgetData cekState)) = do
                     Nothing
                     (PLC.render $ vcat ["Evaluation Finished. Result:", line, PLC.prettyPlcDef t])
             Starting{} -> id
-handleDebuggerEvent _ (B.AppEvent (ErrorEvent budgetData e)) =
+handleDebuggerEvent _ _ (B.AppEvent (ErrorEvent budgetData e)) =
     modify' $ \st ->
       -- Note that in case of an out-of-budget error (i.e. `CekOutOfExError`),
       -- the updated budgets (spent&remaining) here do not match the actual budgets
       -- on the chain: the difference is that on the chain, a budget may become zero (exhausted)
       -- but is not allowed to become negative.
       st & set dsBudgetData budgetData
-         & dsLogsEditor %~ BE.applyEdit
+         & appendToLogsEditor ("Error happened:" <+> PLC.prettyPlcDef e)
+
+handleDebuggerEvent _ _ _ = pure ()
+
+appendToLogsEditor :: Doc ann -> DebuggerState -> DebuggerState
+appendToLogsEditor msg =
+    dsLogsEditor %~ BE.applyEdit
            (gotoEOF >>>
-            insertMany (PLC.render $ "Error happened:" <+> PLC.prettyPlcDef e) >>>
+            insertMany (PLC.render msg) >>>
             breakLine
            )
-handleDebuggerEvent _ _ = pure ()
+

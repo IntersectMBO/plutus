@@ -3,6 +3,7 @@
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StrictData          #-}
 {-# LANGUAGE TypeApplications    #-}
@@ -25,6 +26,7 @@ import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Executable.Common
 import PlutusCore.Executable.Parsers
 import PlutusCore.Pretty qualified as PLC
+import PlutusPrelude (tryError)
 import UntypedPlutusCore as UPLC
 import UntypedPlutusCore.Core.Zip
 import UntypedPlutusCore.Evaluation.Machine.Cek
@@ -49,7 +51,6 @@ import Control.Monad.ST (RealWorld)
 import Data.Coerce
 import Data.Maybe
 import Data.Text (Text)
-import Data.Text.IO qualified as Text
 import Data.Traversable
 import GHC.IO (stToIO)
 import Graphics.Vty qualified as Vty
@@ -80,26 +81,27 @@ debuggerAttrMap =
         , (menuAttr, Vty.withStyle (Vty.white `B.on` darkGreen) Vty.bold)
         , (highlightAttr, Vty.blue `B.on` Vty.white)
         ]
-
-darkGreen :: Vty.Color
-darkGreen = Vty.rgbColor @Int 0 100 0
+  where
+    darkGreen :: Vty.Color
+    darkGreen = Vty.rgbColor @Int 0 100 0
 
 data Options = Options
-    { optUplcInput       :: Input
-    , optUplcInputFormat :: Format
-    , optHsPath          :: Maybe FilePath
-    , optBudgetLim       :: Maybe ExBudget
+    { optUplcInput       :: Input -- ^ uplc file or stdin input
+    , optUplcInputFormat :: Format -- ^ textual or flat format of uplc input
+    , optHsDir           :: Maybe FilePath -- ^ directory to look under for Plutus Tx files
+    , optBudgetLim       :: Maybe ExBudget -- ^ budget limit
     }
 
 parseOptions :: OA.Parser Options
 parseOptions = do
     optUplcInput <- input
     optUplcInputFormat <- inputformat
-    optHsPath <- OA.optional $ OA.strOption $
+    optHsDir <- OA.optional $ OA.strOption $
                    mconcat
-                      [ OA.metavar "HS_FILE"
-                      , OA.long "hs-file"
-                      , OA.help "HS File"
+                      [ OA.metavar "HS_DIR"
+                      , OA.long "hs-dir"
+                      , OA.help $ "Directory to look under for Plutus Tx source files."
+                                <> "If not specified, it will not use source Plutus Tx highlighting"
                       ]
     -- Having cpu mem as separate options complicates budget modes (counting vs restricting);
     -- instead opt for having both present (cpu,mem) or both missing.
@@ -109,22 +111,20 @@ parseOptions = do
                       , OA.long "budget"
                       , OA.help "Limit the execution budget, given in terms of CPU,MEMORY"
                       ]
-    pure Options{optUplcInput, optUplcInputFormat, optHsPath, optBudgetLim}
+    pure Options{optUplcInput, optUplcInputFormat, optHsDir, optBudgetLim}
   where
       budgetReader = OA.maybeReader $ MP.parseMaybe @() budgetParser
       budgetParser = ExBudget <$> MP.decimal <* MP.char ',' <*> MP.decimal
 
 main :: IO ()
 main = do
-    Options{optUplcInput, optUplcInputFormat, optHsPath, optBudgetLim} <-
+    Options{..} <-
         OA.execParser $
             OA.info
                 (parseOptions OA.<**> OA.helper)
                 (OA.fullDesc <> OA.header "Plutus Core Debugger")
 
     (uplcText, uplcDAnn) <- getProgramWithText optUplcInputFormat optUplcInput
-
-    hsText <- traverse Text.readFile optHsPath
 
     -- The communication "channels" at debugger-driver and at brick
     driverMailbox <- newEmptyMVar @(D.Cmd Breakpoints)
@@ -136,7 +136,7 @@ main = do
             B.App
                 { B.appDraw = drawDebugger
                 , B.appChooseCursor = B.showFirstCursor
-                , B.appHandleEvent = handleDebuggerEvent driverMailbox
+                , B.appHandleEvent = handleDebuggerEvent driverMailbox optHsDir
                 , B.appStartEvent = pure ()
                 , B.appAttrMap = const debuggerAttrMap
                 }
@@ -146,17 +146,13 @@ main = do
                 , _dsFocusRing =
                     B.focusRing $ catMaybes
                         [ Just EditorUplc
-                        , EditorSource <$ optHsPath
+                        , EditorSource <$ optHsDir
                         , Just EditorReturnValue
                         , Just EditorLogs
                         ]
                 , _dsUplcEditor = BE.editorText EditorUplc Nothing uplcText
                 , _dsUplcHighlight = Nothing
-                , _dsSourceEditor =
-                    BE.editorText
-                        EditorSource
-                        Nothing <$>
-                        hsText
+                , _dsSourceEditor = Nothing
                 , _dsSourceHighlight = Nothing
                 , _dsReturnValueEditor =
                     BE.editorText
@@ -229,7 +225,7 @@ driverThread driverMailbox brickMailbox prog mbudget = do
                -> IO ()
         handle (cekTrans, exBudgetInfo) = \case
           D.StepF prevState k  -> do
-              stepRes <- liftCek $ D.tryError $ cekTrans prevState
+              stepRes <- liftCek $ tryError $ cekTrans prevState
               -- if error then handle it, otherwise "kontinue"
               case stepRes of
                   Left e         -> handleError exBudgetInfo e

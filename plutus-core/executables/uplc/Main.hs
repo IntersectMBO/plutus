@@ -356,7 +356,7 @@ handleDbg cekTrans = \case
         -- Note that we first turn Cek to IO and then `liftIO` it to InputT; the alternative of
         -- directly using MonadTrans.lift needs MonadCatch+MonadMask instances for CekM, i.e. messy
         -- also liftIO would be unnecessary if haskeline.InputT worked with `primitive`
-        eNewState <- liftIO $ D.liftCek $ D.tryError $ cekTrans prevState
+        eNewState <- liftIO $ D.liftCek $ tryError $ cekTrans prevState
         case eNewState of
             Right newState -> k newState
             Left e         -> Repl.outputStrLn $ show e

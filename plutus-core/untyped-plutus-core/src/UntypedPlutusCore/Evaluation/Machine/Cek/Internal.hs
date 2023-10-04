@@ -596,12 +596,6 @@ transferArgStack :: ArgStack uni fun ann -> Context uni fun ann -> Context uni f
 transferArgStack EmptyStack c           = c
 transferArgStack (ConsStack arg rest) c = transferArgStack rest (FrameAwaitFunValue arg c)
 
--- | A 'MonadError' version of 'try'.
---
--- TODO: remove when we switch to mtl>=2.3
-tryError :: MonadError e m => m a -> m (Either e a)
-tryError a = (Right <$> a) `catchError` (pure . Left)
-
 runCekM
     :: forall a cost uni fun ann
     . ThrowableBuiltins uni fun
