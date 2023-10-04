@@ -178,6 +178,15 @@ haskellEqValue value1 value2 = toMap value1 Haskell.== toMap value2 where
         . Haskell.map (Haskell.fmap $ Map.fromListWith (Haskell.+))
         . valueToLists
 
+-- | Check whether all currencies and tokens within each of the currencies occur uniquely.
+allDistinct :: Value -> Bool
+allDistinct
+    = Haskell.and
+    . Map.fromListWith (\_ _ -> False)
+    . Haskell.map (Haskell.fmap $
+        Haskell.and . Map.fromListWith (\_ _ -> False) . Haskell.map (Haskell.fmap $ \_ -> True))
+    . valueToLists
+
 -- | Return all the pairs of elements of the given list.
 --
 -- > (x, y) `elem` pairs xs ==> fromJust (x `elemIndex` xs) <= fromJust (y `elemIndex` xs)
@@ -202,7 +211,7 @@ test_EqCurrencyList name currencyLists =
             -- We need the 'allDistinct' checks, because duplicated
             -- currencies/tokens-within-the-same-currency result in undefined behavior when
             -- checking 'Value's for equality.
-            in if eqResAct /= eqResExp
+            in if allDistinct value1 && allDistinct value2 && eqResAct /= eqResExp
                 then Haskell.error $ Haskell.intercalate "\n"
                     [ "Error when checking equality of"
                     , "  " Haskell.++ Haskell.show value1

@@ -105,9 +105,17 @@ matchKVs ~is0 ~structEqV = go where
             else MatchFailure
     go kvs1@((k1, v1) : kvs1') kvs2@((k2, v2) : kvs2')
         | k1 == k2 =
-            if structEqV v1 v2
-                then go kvs1' kvs2'
-                else MatchUnclear (fromList kvs1) (fromList kvs2)
+            case go kvs1' kvs2' of
+                MatchSuccess ->
+                    if structEqV v1 v2
+                        then MatchSuccess
+                        else MatchFailure
+                MatchUnclear kvs1'' kvs2'' ->
+                    if structEqV v1 v2
+                        then MatchUnclear kvs1'' kvs2''
+                        else MatchFailure
+                MatchFailure ->
+                    MatchFailure
         | is0 v1 =
             if is0 v2
                 then go kvs1' kvs2'
