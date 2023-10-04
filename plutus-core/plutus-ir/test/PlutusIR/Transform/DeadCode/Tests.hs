@@ -3,17 +3,21 @@ module PlutusIR.Transform.DeadCode.Tests where
 import Test.Tasty
 import Test.Tasty.Extras
 
+import PlutusCore.Default
 import PlutusCore.Quote
+import PlutusIR.Analysis.Builtins
 import PlutusIR.Parser
+import PlutusIR.Properties.Typecheck
 import PlutusIR.Test
-import PlutusIR.Transform.DeadCode qualified as DeadCode
+import PlutusIR.Transform.DeadCode
 import PlutusPrelude
+import Test.Tasty.QuickCheck
 
 test_deadCode :: TestTree
 test_deadCode = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
     testNested "DeadCode" $
         map
-            (goldenPir (runQuote . DeadCode.removeDeadBindings def) pTerm)
+            (goldenPir (runQuote . removeDeadBindings def) pTerm)
             [ "typeLet"
             , "termLet"
             , "strictLet"
@@ -31,3 +35,14 @@ test_deadCode = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
             , "recBindingComplex"
             , "pruneDatatype"
             ]
+
+test_typecheck :: TestTree
+test_typecheck = testGroup "typechecking"
+  [ testProperty "Builtin Variant1" $
+  withMaxSuccess 3000
+  (non_pure_typecheck_prop (removeDeadBindings (BuiltinsInfo DefaultFunSemanticsVariant1)))
+
+  , testProperty "Builtin Variant2" $
+  withMaxSuccess 3000
+  (non_pure_typecheck_prop (removeDeadBindings (BuiltinsInfo DefaultFunSemanticsVariant2)))
+  ]
