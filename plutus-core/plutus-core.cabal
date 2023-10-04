@@ -572,7 +572,10 @@ test-suite plutus-ir-test
     PlutusCore.Generators.QuickCheck.TypesTests
     PlutusIR.Analysis.RetainedSize.Tests
     PlutusIR.Check.Uniques.Tests
-    PlutusIR.Compiler.Tests
+    PlutusIR.Compiler.Datatype.Test
+    PlutusIR.Compiler.Error.Test
+    PlutusIR.Compiler.Let.Test
+    PlutusIR.Compiler.Recursion.Test
     PlutusIR.Core.Tests
     PlutusIR.Generators.QuickCheck.Tests
     PlutusIR.Parser.Tests
