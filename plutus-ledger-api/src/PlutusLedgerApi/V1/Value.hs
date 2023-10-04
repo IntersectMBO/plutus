@@ -201,7 +201,7 @@ sortSumMaps = SortedMap.sortFoldMaps (+) (+) id
 {-# INLINEABLE eq #-}
 eq :: Value -> Value -> Bool
 eq (Value (Map.toList -> currs1)) (Value (Map.toList -> currs2)) =
-    case SortedMap.matchKVs structEqMap currs1 currs2 of
+    case SortedMap.matchKVs (Map.all (== 0)) structEqMap currs1 currs2 of
         SortedMap.MatchSuccess                 -> True
         SortedMap.MatchFailure                 -> False
         SortedMap.MatchUnclear currs1' currs2' ->
