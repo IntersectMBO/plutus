@@ -7,8 +7,10 @@ import PlutusCore.Pretty qualified as PLC
 import PlutusCore.Quote
 import PlutusCore.Rename qualified as PLC
 import PlutusIR.Parser
+import PlutusIR.Properties.Typecheck
 import PlutusIR.Test
 import PlutusIR.Transform.Rename ()
+import Test.Tasty.QuickCheck
 
 test_rename :: TestTree
 test_rename = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
@@ -23,3 +25,6 @@ test_rename = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
   where
     debugConfig = PLC.PrettyConfigClassic PLC.debugPrettyConfigName False
 
+test_typecheck :: TestTree
+test_typecheck = testProperty "typechecking" $
+  withMaxSuccess 3000 (non_pure_typecheck_prop PLC.rename)

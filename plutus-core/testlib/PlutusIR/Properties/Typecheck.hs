@@ -87,11 +87,7 @@ non_pure_typecheck_prop pass =
       _ <- runQuoteT $ inferType config (processed $> ())
       pure ()
 
-
--- | Check that a term typechecks after the `PlutusIR.Compiler.simplifyTerm` pass.
-prop_typecheck_simplify :: Property
-prop_typecheck_simplify = extra_constraint_typecheck_prop simplifyTerm
-
+-- | Check that a term typechecks after a non-pure pass that require extra constraints.
 extra_constraint_typecheck_prop ::
   (Term TyName Name DefaultUni DefaultFun (Provenance ())
   -> QuoteT
