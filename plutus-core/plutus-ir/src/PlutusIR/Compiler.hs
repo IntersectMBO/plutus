@@ -44,7 +44,8 @@ module PlutusIR.Compiler (
     ccBuiltinCostModel,
     PirTCConfig(..),
     AllowEscape(..),
-    toDefaultCompilationCtx
+    toDefaultCompilationCtx,
+    simplifyTerm
     ) where
 
 import PlutusIR
