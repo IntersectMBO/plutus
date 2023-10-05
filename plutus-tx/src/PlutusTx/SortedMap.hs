@@ -13,6 +13,7 @@ module PlutusTx.SortedMap
     , insertOne
     , fromListWith
     , fromList
+    , fromListUnique
     , mergeWith
     , MatchResult (..)
     , matchKVs
@@ -63,6 +64,11 @@ fromListWith ~act ~inj = go where
     go []             = UnsafeSortedMap []
     go ((k, v) : kvs) = insertOneWith act inj k v $ go kvs
 
+{-# INLINE fromListUnique #-}
+fromListUnique :: Ord k => [(k, v)] -> SortedMap k v
+fromListUnique = fromListWith const id
+-- fromListUnique = UnsafeSortedMap . sortBy (\(x, _) (y, _) -> x `compare` y)
+
 {-# INLINABLE fromList #-}
 fromList :: Ord k => [(k, v)] -> SortedMap k [v]
 fromList = fromListWith (:) (: [])
@@ -82,17 +88,17 @@ mergeWith ~op ~(UnsafeSortedMap kvs1_0) ~(UnsafeSortedMap kvs2_0) =
         EQ -> (k1, op v1 v2) : go kvs1' kvs2'
         GT -> (k2, v2) : go kvs1 kvs2'
 
-data MatchResult a
+data MatchResult k v
     = MatchSuccess
-    | MatchUnclear a a
+    | MatchUnclear [(v, v)] [(k, v)] [(k, v)]
     | MatchFailure
 
 {-# INLINE matchKVs #-}
 matchKVs
     :: forall k v. Ord k
-    => (v -> Bool) -> (v -> v -> Bool) -> [(k, v)] -> [(k, v)] -> MatchResult (SortedMap k [v])
+    => (v -> Bool) -> (v -> v -> Bool) -> [(k, v)] -> [(k, v)] -> MatchResult k v
 matchKVs ~is0 ~structEqV = go where
-    go :: [(k, v)] -> [(k, v)] -> MatchResult (SortedMap k [v])
+    go :: [(k, v)] -> [(k, v)] -> MatchResult k v
     go [] [] =
         MatchSuccess
     go [] kvs2 =
@@ -110,10 +116,8 @@ matchKVs ~is0 ~structEqV = go where
                     if structEqV v1 v2
                         then MatchSuccess
                         else MatchFailure
-                MatchUnclear kvs1'' kvs2'' ->
-                    if structEqV v1 v2
-                        then MatchUnclear kvs1'' kvs2''
-                        else MatchFailure
+                MatchUnclear vvs kvs1'' kvs2'' ->
+                    MatchUnclear ((v1, v2) : vvs) kvs1'' kvs2''
                 MatchFailure ->
                     MatchFailure
         | is0 v1 =
@@ -122,7 +126,7 @@ matchKVs ~is0 ~structEqV = go where
                 else go kvs1' kvs2
         | is0 v2 = go kvs1 kvs2'
         | otherwise =
-            MatchUnclear (fromList kvs1) (fromList kvs2)
+            MatchUnclear [] kvs1 kvs2
 
 {-# INLINE pointwiseEqWith #-}
 pointwiseEqWith

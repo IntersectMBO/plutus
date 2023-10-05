@@ -202,10 +202,16 @@ sortSumMaps = SortedMap.sortFoldMaps (+) (+) id
 eq :: Value -> Value -> Bool
 eq (Value (Map.toList -> currs1)) (Value (Map.toList -> currs2)) =
     case SortedMap.matchKVs (Map.all (== 0)) structEqMap currs1 currs2 of
-        SortedMap.MatchSuccess                 -> True
-        SortedMap.MatchFailure                 -> False
-        SortedMap.MatchUnclear currs1' currs2' ->
-            SortedMap.pointwiseEqWith (all $ Map.all (== 0)) eqMaps currs1' currs2'
+        SortedMap.MatchSuccess                          -> True
+        SortedMap.MatchFailure                          -> False
+        SortedMap.MatchUnclear valPairs currs1' currs2' ->
+            if SortedMap.pointwiseEqWith
+                    (all $ Map.all (== 0))
+                    eqMaps
+                    (SortedMap.fromList currs1')
+                    (SortedMap.fromList currs2')
+                then all (uncurry (==)) valPairs
+                else False
   where
     structEqMap :: Map.Map TokenName Integer -> Map.Map TokenName Integer -> Bool
     structEqMap (Map.toList -> tokens1) (Map.toList -> tokens2) =
