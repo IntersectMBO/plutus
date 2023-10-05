@@ -109,7 +109,7 @@ any f = go
 {-# INLINE all #-}
 -- | Determines whether all elements of the list satisfy the predicate.
 all :: forall a. (a -> Bool) -> [a] -> Bool
-all ~f = go
+all f = go
   where
     go :: [a] -> Bool
     go = \case
