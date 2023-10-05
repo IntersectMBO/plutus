@@ -18,12 +18,10 @@ module PlutusTx.SortedMap
     , MatchResult (..)
     , matchKVs
     , pointwiseEqWith
-    , sortFoldMaps
     ) where
 
 import Prelude qualified as Haskell
 
-import PlutusTx.AssocMap qualified as Map
 import PlutusTx.Base
 import PlutusTx.Ord
 import PlutusTx.Prelude
@@ -47,10 +45,11 @@ insertOneWith
 insertOneWith ~op ~inj ~k0 ~v0 = UnsafeSortedMap . go . unSortedMap where
     go :: [(k, w)] -> [(k, w)]
     go []                  = [(k0, inj v0)]
-    go kws@((k, w) : kws') = case k0 `compare` k of
-        LT -> (k0, inj v0) : kws
-        EQ -> (k0, op v0 w) : kws'
-        GT -> (k, w) : go kws'
+    go kws@((k, w) : kws') =
+        case k0 `compare` k of
+            LT -> (k0, inj v0) : kws
+            EQ -> (k0, op v0 w) : kws'
+            GT -> (k, w) : go kws'
 
 {-# INLINABLE insertOne #-}
 insertOne :: Ord k => k -> v -> SortedMap k [v] -> SortedMap k [v]
@@ -67,7 +66,6 @@ fromListWith ~act ~inj = go where
 {-# INLINE fromListUnique #-}
 fromListUnique :: Ord k => [(k, v)] -> SortedMap k v
 fromListUnique = fromListWith const id
--- fromListUnique = UnsafeSortedMap . sortBy (\(x, _) (y, _) -> x `compare` y)
 
 {-# INLINABLE fromList #-}
 fromList :: Ord k => [(k, v)] -> SortedMap k [v]
@@ -83,10 +81,11 @@ mergeWith ~op ~(UnsafeSortedMap kvs1_0) ~(UnsafeSortedMap kvs2_0) =
     go :: [(k, v)] -> [(k, v)] -> [(k, v)]
     go []                      kvs2                    = kvs2
     go kvs1                    []                      = kvs1
-    go kvs1@((k1, v1) : kvs1') kvs2@((k2, v2) : kvs2') = case k1 `compare` k2 of
-        LT -> (k1, v1) : go kvs1' kvs2
-        EQ -> (k1, op v1 v2) : go kvs1' kvs2'
-        GT -> (k2, v2) : go kvs1 kvs2'
+    go kvs1@((k1, v1) : kvs1') kvs2@((k2, v2) : kvs2') =
+        case k1 `compare` k2 of
+            LT -> (k1, v1) : go kvs1' kvs2
+            EQ -> (k1, op v1 v2) : go kvs1' kvs2'
+            GT -> (k2, v2) : go kvs1 kvs2'
 
 data MatchResult k v
     = MatchSuccess
@@ -143,12 +142,3 @@ pointwiseEqWith ~is0 ~eqV ~(UnsafeSortedMap kvs01) ~(UnsafeSortedMap kvs02) = go
                 then eqV v1 v2
                 else False
             else False
-
-{-# INLINE sortFoldMaps #-}
-sortFoldMaps
-    :: forall k v w. Ord k
-    => (w -> w -> w) -> (v -> w -> w) -> (v -> w) -> [Map.Map k v] -> SortedMap k w
-sortFoldMaps ~op ~act ~inj = go where
-    go :: [Map.Map k v] -> SortedMap k w
-    go []                           = empty
-    go ((Map.toList -> kvs) : maps) = mergeWith op (fromListWith act inj kvs) (go maps)
