@@ -43,8 +43,8 @@ data ProtocolVersion = ProtocolVersion
     { pvMajor :: Int -- ^ the major component
     , pvMinor :: Int -- ^ the minor component
     }
-  deriving stock (Show, Eq, Generic)
-  deriving anyclass Serialise
+    deriving stock (Show, Eq, Generic)
+    deriving anyclass Serialise
 
 data ScriptEvaluationData2 = ScriptEvaluationData2
     { dataProtocolVersion2 :: ProtocolVersion
