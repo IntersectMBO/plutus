@@ -585,6 +585,7 @@ test-suite plutus-ir-test
     PlutusIR.Scoping.Tests
     PlutusIR.Transform.Beta.Tests
     PlutusIR.Transform.CaseOfCase.Tests
+    PlutusIR.Transform.CaseReduce.Test
     PlutusIR.Transform.CommuteFnWithConst.Tests
     PlutusIR.Transform.DeadCode.Tests
     PlutusIR.Transform.EvaluateBuiltins.Tests
