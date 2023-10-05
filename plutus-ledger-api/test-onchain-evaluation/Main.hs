@@ -1,9 +1,7 @@
-{-# LANGUAGE DeriveAnyClass    #-}
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes       #-}
-{-# LANGUAGE TupleSections     #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE DeriveAnyClass   #-}
+{-# LANGUAGE LambdaCase       #-}
+{-# LANGUAGE TupleSections    #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Main (main) where
 
