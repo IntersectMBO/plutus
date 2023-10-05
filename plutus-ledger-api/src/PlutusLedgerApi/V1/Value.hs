@@ -64,7 +64,6 @@ import PlutusTx.AssocMap qualified as Map
 import PlutusTx.Lift (makeLift)
 import PlutusTx.Ord qualified as Ord
 import PlutusTx.Prelude as PlutusTx hiding (sort)
-import PlutusTx.SortedMap (SortedMap)
 import PlutusTx.SortedMap qualified as SortedMap
 import PlutusTx.These (These (..))
 import Prettyprinter (Pretty, (<>))
@@ -194,10 +193,6 @@ newtype Value = Value { getValue :: Map.Map CurrencySymbol (Map.Map TokenName In
 instance Haskell.Eq Value where
     (==) = eq
 
-{-# INLINEABLE sortSumMaps #-}
-sortSumMaps :: Ord k => [Map.Map k Integer] -> SortedMap k Integer
-sortSumMaps = SortedMap.sortFoldMaps (+) (+) id
-
 {-# INLINEABLE eq #-}
 eq :: Value -> Value -> Bool
 eq (Value (Map.toList -> currs1)) (Value (Map.toList -> currs2)) =
@@ -206,10 +201,10 @@ eq (Value (Map.toList -> currs1)) (Value (Map.toList -> currs2)) =
         SortedMap.MatchFailure                          -> False
         SortedMap.MatchUnclear valPairs currs1' currs2' ->
             if SortedMap.pointwiseEqWith
-                    (all $ Map.all (== 0))
-                    eqMaps
-                    (SortedMap.fromList currs1')
-                    (SortedMap.fromList currs2')
+                    (Map.all (== 0))
+                    eqMap
+                    (SortedMap.fromListUnique currs1')
+                    (SortedMap.fromListUnique currs2')
                 then all (uncurry (==)) valPairs
                 else False
   where
@@ -221,9 +216,13 @@ eq (Value (Map.toList -> currs1)) (Value (Map.toList -> currs2)) =
             (SortedMap.UnsafeSortedMap tokens1)
             (SortedMap.UnsafeSortedMap tokens2)
 
-    eqMaps :: [Map.Map TokenName Integer] -> [Map.Map TokenName Integer] -> Bool
-    eqMaps maps1 maps2 =
-        SortedMap.pointwiseEqWith (== 0) (==) (sortSumMaps maps1) (sortSumMaps maps2)
+    eqMap :: Map.Map TokenName Integer -> Map.Map TokenName Integer -> Bool
+    eqMap (Map.toList -> tokens1) (Map.toList -> tokens2) =
+        SortedMap.pointwiseEqWith
+            (== 0)
+            (==)
+            (SortedMap.fromListUnique tokens1)
+            (SortedMap.fromListUnique tokens2)
 
 instance Eq Value where
     {-# INLINABLE (==) #-}
