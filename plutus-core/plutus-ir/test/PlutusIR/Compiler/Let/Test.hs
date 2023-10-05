@@ -18,41 +18,41 @@ test_lets = runTestNestedIn ["plutus-ir/test/PlutusIR/Compiler"] $ testNested "L
 
 -- | Check that a term typechecks after a
 -- `PlutusIR.Compiler.Let.compileLets` (recursive terms) pass.
-prop_typecheck_compileLets_RecTerms :: Property
-prop_typecheck_compileLets_RecTerms =
+typecheck_compileLets_RecTerms_prop :: Property
+typecheck_compileLets_RecTerms_prop =
   extra_constraint_typecheck_prop (compileLets RecTerms)
 
 -- | Check that a term typechecks after a
 -- `PlutusIR.Compiler.Let.compileLets` (non-recursive terms) pass.
-prop_typecheck_compileLets_NonRecTerms :: Property
-prop_typecheck_compileLets_NonRecTerms =
+typecheck_compileLets_NonRecTerms_prop :: Property
+typecheck_compileLets_NonRecTerms_prop =
   extra_constraint_typecheck_prop (compileLets NonRecTerms)
 
 -- | Check that a term typechecks after a
 -- `PlutusIR.Compiler.Let.compileLets` (types) pass.
-prop_typecheck_compileLets_Types :: Property
-prop_typecheck_compileLets_Types =
+typecheck_compileLets_Types_prop :: Property
+typecheck_compileLets_Types_prop =
   extra_constraint_typecheck_prop (compileLets Types)
 
 -- | Check that a term typechecks after a
 -- `PlutusIR.Compiler.Let.compileLets` (data types) pass.
-prop_typecheck_compileLets_DataTypes :: Property
-prop_typecheck_compileLets_DataTypes =
+typecheck_compileLets_DataTypes_prop :: Property
+typecheck_compileLets_DataTypes_prop =
   extra_constraint_typecheck_prop (compileLets DataTypes)
 
 test_typecheck :: TestTree
 test_typecheck = testGroup "typechecking"
   [ -- FIXME
     expectFail $ testProperty "compileLets pass (recursive terms)" $
-      withMaxSuccess 3000 prop_typecheck_compileLets_RecTerms
+      withMaxSuccess 3000 typecheck_compileLets_RecTerms_prop
 
   , testProperty "compileLets pass (non-recursive terms)" $
-      withMaxSuccess 3000 prop_typecheck_compileLets_NonRecTerms
+      withMaxSuccess 3000 typecheck_compileLets_NonRecTerms_prop
 
   , testProperty "compileLets pass (types)" $
-      withMaxSuccess 3000 prop_typecheck_compileLets_Types
+      withMaxSuccess 3000 typecheck_compileLets_Types_prop
 
   -- FIXME
   , expectFail $ testProperty "compileLets pass (data types)" $
-      withMaxSuccess 3000 prop_typecheck_compileLets_DataTypes
+      withMaxSuccess 3000 typecheck_compileLets_DataTypes_prop
   ]

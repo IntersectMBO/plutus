@@ -71,10 +71,10 @@ test_letFloatOut = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
 
 -- | Check that a term typechecks after a
 -- `PlutusIR.Transform.LetFloatOut.floatTerm` pass.
-prop_typecheck_floatTerm :: Property
-prop_typecheck_floatTerm =
+typecheck_floatTerm_prop :: Property
+typecheck_floatTerm_prop =
   pure_typecheck_prop $ LetFloatOut.floatTerm def
 
 test_typecheck :: TestTree
 test_typecheck = testProperty "typechecking" $
-      withMaxSuccess 3000 prop_typecheck_floatTerm
+      withMaxSuccess 3000 typecheck_floatTerm_prop

@@ -104,15 +104,15 @@ checkUniques =
     Uniques.checkTerm (\case { Uniques.MultiplyDefined{} -> True; _ -> False})
 
 -- | Check that a term typechecks after a `PlutusIR.Transform.Inline` pass.
-prop_typecheck_inline :: BuiltinSemanticsVariant DefaultFun -> Property
-prop_typecheck_inline biVariant =
+typecheck_inline_prop :: BuiltinSemanticsVariant DefaultFun -> Property
+typecheck_inline_prop biVariant =
   non_pure_typecheck_prop (inline mempty (BuiltinsInfo biVariant))
 
 test_typecheck :: TestTree
 test_typecheck = testGroup "typechecking"
   [ testProperty "Builtin Variant1" $
-  withMaxSuccess 3000 (prop_typecheck_inline DefaultFunSemanticsVariant1)
+  withMaxSuccess 3000 (typecheck_inline_prop DefaultFunSemanticsVariant1)
 
   , testProperty "Builtin Variant2" $
-  withMaxSuccess 3000 (prop_typecheck_inline DefaultFunSemanticsVariant2)
+  withMaxSuccess 3000 (typecheck_inline_prop DefaultFunSemanticsVariant2)
   ]

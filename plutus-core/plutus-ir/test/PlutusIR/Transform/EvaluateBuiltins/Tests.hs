@@ -29,14 +29,14 @@ test_evaluateBuiltins = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
 
 -- | Check that a term typechecks after a `PlutusIR.Transform.EvaluateBuiltins`
 -- pass.
-prop_typecheck_evaluateBuiltins :: BuiltinSemanticsVariant DefaultFun -> Property
-prop_typecheck_evaluateBuiltins biVariant =
+typecheck_evaluateBuiltins_prop :: BuiltinSemanticsVariant DefaultFun -> Property
+typecheck_evaluateBuiltins_prop biVariant =
   pure_typecheck_prop (evaluateBuiltins True (BuiltinsInfo biVariant) def)
 
 test_typecheck :: TestTree
 test_typecheck = testGroup "typechecking"
   [ testProperty "Builtin Variant 1" $
-      withMaxSuccess 3000 (prop_typecheck_evaluateBuiltins DefaultFunSemanticsVariant1)
+      withMaxSuccess 3000 (typecheck_evaluateBuiltins_prop DefaultFunSemanticsVariant1)
   , testProperty "Builtin Variant 2" $
-      withMaxSuccess 3000 (prop_typecheck_evaluateBuiltins DefaultFunSemanticsVariant2)
+      withMaxSuccess 3000 (typecheck_evaluateBuiltins_prop DefaultFunSemanticsVariant2)
   ]

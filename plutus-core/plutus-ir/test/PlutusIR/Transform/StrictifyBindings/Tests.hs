@@ -26,14 +26,14 @@ test_strictifyBindings = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
 
 -- | Check that a term typechecks after a
 -- `PlutusIR.Transform.StrictifyBindings` pass.
-prop_typecheck_strictifyBindings :: BuiltinSemanticsVariant DefaultFun -> Property
-prop_typecheck_strictifyBindings biVariant =
+typecheck_strictifyBindings_prop :: BuiltinSemanticsVariant DefaultFun -> Property
+typecheck_strictifyBindings_prop biVariant =
   pure_typecheck_prop (strictifyBindings (BuiltinsInfo biVariant))
 
 test_typecheck :: TestTree
 test_typecheck = testGroup "typechecking"
   [ testProperty "Builtin Variant 1" $
-      withMaxSuccess 3000 (prop_typecheck_strictifyBindings DefaultFunSemanticsVariant1)
+      withMaxSuccess 3000 (typecheck_strictifyBindings_prop DefaultFunSemanticsVariant1)
   , testProperty "Builtin Variant 2" $
-      withMaxSuccess 3000 (prop_typecheck_strictifyBindings DefaultFunSemanticsVariant2)
+      withMaxSuccess 3000 (typecheck_strictifyBindings_prop DefaultFunSemanticsVariant2)
   ]

@@ -19,29 +19,14 @@ import PlutusCore.Generators.QuickCheck.Utils
 import PlutusCore.Quote
 import PlutusCore.Rename
 import PlutusCore.TypeCheck qualified as PLC
-import PlutusIR.Analysis.Builtins
 import PlutusIR.Compiler
-import PlutusIR.Compiler.Let
 import PlutusIR.Compiler.Provenance (original)
 import PlutusIR.Core
 import PlutusIR.Generators.QuickCheck.GenerateTerms
-import PlutusIR.Transform.Inline.Inline
 import PlutusIR.TypeCheck
 import PlutusPrelude (($>))
 import Test.QuickCheck (Property, elements)
 import Test.QuickCheck.Arbitrary
-
-
--- typecheck_test :: TestNested
--- typecheck_test = return $ testGroup "typechecking"
---   [
---   -- pure passes
---   , testProperty "caseReduce pass" $
---       withMaxSuccess 3000 (pure_typecheck_prop caseReduce)
-
---   , testProperty "the whole simplifier pass" $
---       withMaxSuccess 3000 prop_typecheck_simplify
-
 
 instance Arbitrary (BuiltinSemanticsVariant DefaultFun) where
     arbitrary = elements [DefaultFunSemanticsVariant1, DefaultFunSemanticsVariant2]
@@ -87,7 +72,7 @@ non_pure_typecheck_prop pass =
       _ <- runQuoteT $ inferType config (processed $> ())
       pure ()
 
--- | Check that a term typechecks after a non-pure pass that require extra constraints.
+-- | Check that a term typechecks after a non-pure pass that requires extra constraints.
 extra_constraint_typecheck_prop ::
   (Term TyName Name DefaultUni DefaultFun (Provenance ())
   -> QuoteT
