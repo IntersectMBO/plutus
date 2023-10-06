@@ -1,4 +1,4 @@
-module PlutusIR.Transform.CaseReduce.Test where
+module PlutusIR.Transform.CaseReduce.Tests where
 
 import PlutusIR.Transform.CaseReduce
 

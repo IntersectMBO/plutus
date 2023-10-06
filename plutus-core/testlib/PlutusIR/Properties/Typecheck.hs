@@ -46,8 +46,7 @@ pure_typecheck_prop ::
   -> Term TyName Name DefaultUni DefaultFun ())
   -> Property
 pure_typecheck_prop pass =
-  -- generate type and term in debug mode for easier debugging
-  forAllDoc "ty,tm" genTypeAndTermDebug_ (const []) $ \ (_ty, tm) ->
+  forAllDoc "ty,tm" genTypeAndTerm_ (const []) $ \ (_ty, tm) ->
     convertToEitherString $ do
       config <- getDefTypeCheckConfig ()
       -- the generated term may not have globally unique names
@@ -62,8 +61,7 @@ non_pure_typecheck_prop :: (Term TyName Name DefaultUni DefaultFun (Provenance (
       (Term TyName Name DefaultUni DefaultFun a))
   -> Property
 non_pure_typecheck_prop pass =
-  -- generate type and term in debug mode for easier debugging
-  forAllDoc "ty,tm" genTypeAndTermDebug_ (const []) $ \ (_ty, tm) ->
+  forAllDoc "ty,tm" genTypeAndTerm_ (const []) $ \ (_ty, tm) ->
     convertToEitherString $ do
       config <- getDefTypeCheckConfig ()
       -- the generated term may not have globally unique names
@@ -82,8 +80,7 @@ extra_constraint_typecheck_prop ::
       (Term TyName Name DefaultUni DefaultFun a))
   -> Property
 extra_constraint_typecheck_prop pass =
-  -- generate type and term in debug mode for easier debugging
-  forAllDoc "ty,tm" genTypeAndTermDebug_ (const []) $ \ (_ty, tm) ->
+  forAllDoc "ty,tm" genTypeAndTerm_ (const []) $ \ (_ty, tm) ->
     convertToEitherString $ do
       config <- getDefTypeCheckConfig ()
       plcConfig <- PLC.getDefTypeCheckConfig ()
