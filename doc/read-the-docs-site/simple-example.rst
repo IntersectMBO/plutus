@@ -18,7 +18,7 @@ A Plutus Core program included in a Cardano transaction is often referred to as 
 
 To develop and deploy a smart contract, you would also need off-chain code for building transactions, submitting transactions, deploying smart contracts, querying for available UTXOs on the chain and so on.
 You may also want a front-end interface for your smart contract for better user experiences.
-In this example, we are not covering the front-end and back-end aspects of the off-chain part of smart contracts.
+In this example, we are not covering these aspects.
 
 Before we get to the Plutus Tx code, let's briefly go over some basic concepts, including UTXO, EUTXO, datum, redeemer and script context.
 
@@ -30,7 +30,7 @@ The effect of a transaction is to consume inputs and produce new outputs.
 
 UTXO (unspent transaction output) is the ledger model used by some blockchains, including bitcoin.
 A UTXO is produced by a transaction, is immutable, and can only be spent once by another transaction.
-In the original UTXO model, a UTXO contains a wallet address and a value (e.g., some amount of Ada and/or other tokens).
+In the original UTXO model, a UTXO contains a wallet address and a value (e.g., some amount of one or more currencies/tokens).
 Inside a transaction, a UTXO is uniquely identified by the wallet address.
 It can be spent by a transaction if the transaction is signed by the private key of the wallet address.
 

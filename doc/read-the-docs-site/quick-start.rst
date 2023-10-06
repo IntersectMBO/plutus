@@ -50,7 +50,7 @@ Then, add the following to your ``cabal.project``: ::
   packages:
     ./plutus-quickstart.cabal
 
-Finally, add the aformentioned packages in the ``build-depends`` field in ``plutus-quickstart.cabal``: ::
+Finally, declare the dependencies in the ``build-depends`` field in ``plutus-quickstart.cabal``: ::
 
   build-depends:
     , base
@@ -77,10 +77,10 @@ Then, Add the following in ``plutus-quickstart.cabal``: ::
 Note that ``AuctionValidator.hs`` imports ``ScriptContext`` from ``PlutusLedgerApi.V2``, which means that the script created from it will be a PlutusV2 script.
 PlutusV2 only supports Plutus Core v1.0.0 (currently the highest and default version is v1.1.0), which is why the ``target-version=1.0.0`` flag is needed.
 
-Finally, write the ``main`` function in ``Main.hs``, which does two things:
+Next, write the ``main`` function in ``Main.hs``, which does two things:
 
 * Instantiate the validator by providing the ``AuctionParams`` of a specific auction
-* Serialise the validator from ``AuctionValidator.hs`` and write it to a file.
+* Serialise the instantiated validator and write it to a file
 
 Here is what ``Main.hs`` may look like:
 
@@ -89,7 +89,7 @@ Here is what ``Main.hs`` may look like:
    :end-before: BLOCK2
 
 Replace ``apSeller`` with the seller's `PubKeyHash <https://input-output-hk.github.io/plutus/master/plutus-ledger-api/html/PlutusLedgerApi-V2.html#t:PubKeyHash>`_, which can be generated using Cardano CLI, Cardano API or an off-chain library for Cardano.
-Replace ``apEndTime`` with your desired `PosixTime <https://input-output-hk.github.io/plutus/master/plutus-ledger-api/html/PlutusLedgerApi-V2.html#t:POSIXTime>`_.
+Replace ``apEndTime`` with your desired `POSIXTime <https://input-output-hk.github.io/plutus/master/plutus-ledger-api/html/PlutusLedgerApi-V2.html#t:POSIXTime>`_.
 
 Now, build it: ::
 
@@ -129,7 +129,7 @@ Interfacing between Plutus Tx and Off-Chain Frameworks
 At this time, interfacing between Plutus Tx and most off-chain frameworks (especially non-Haskell ones) isn't very well supported.
 What this means is that you may run into inconveniences like these:
 
-* The compiled valiator obtained via ``dump-uplc`` is a ``flat`` file, but some off-chain frameworks expect a Hex string, which must be obtained by first encoding the data in the ``flat`` file using CBOR, then Hex encode the CBOR data.
+* An off-chain framework may expect serialised validators to be in a format different than that produced by Plutus Tx.
 * The redeemer type is defined in Haskell (e.g., ``AuctionRedeemer`` in ``AuctionValidator.hs``), but needs to be redefined in another language when using a non-Haksell off-chain framework.
   For instance, when using Lucid, you'll need to define an object in JavaScript corresponding to ``AuctionRedeemer`` in order to construct your redeemer.
 
