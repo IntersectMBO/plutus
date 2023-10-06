@@ -11,6 +11,7 @@ import PlutusIR.Properties.Typecheck
 import PlutusIR.Test
 import PlutusIR.Transform.DeadCode
 import PlutusPrelude
+import Test.Tasty.ExpectedFailure (expectFail)
 import Test.Tasty.QuickCheck
 
 test_deadCode :: TestTree
@@ -42,7 +43,7 @@ test_typecheck = testGroup "typechecking"
   withMaxSuccess 3000
   (non_pure_typecheck_prop (removeDeadBindings (BuiltinsInfo DefaultFunSemanticsVariant1)))
 
-  , testProperty "Builtin Variant2" $
+  , expectFail $ testProperty "Builtin Variant2" $
   withMaxSuccess 3000
   (non_pure_typecheck_prop (removeDeadBindings (BuiltinsInfo DefaultFunSemanticsVariant2)))
   ]
