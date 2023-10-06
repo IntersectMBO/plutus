@@ -9,7 +9,7 @@ Plutus script for an auction smart contract
 Overview
 ~~~~~~~~~~~~
 
-This example presents Plutus Tx code being written for a smart contract that controls the auction of an asset, which can be executed on the Cardano blockchain. In a sense, the smart contract is acting as the auctioneer in that it enforces certain rules and requirements in order for the auction to occur successfully.
+This example presents Plutus Tx code for a smart contract that controls the auction of an asset, which can be executed on the Cardano blockchain. In a sense, the smart contract is acting as the auctioneer in that it enforces certain rules and requirements in order for the auction to occur successfully.
 
 Plutus Tx is a high-level language for writing the validation logic of the contract, the logic that determines whether a transaction is allowed to spend a UTXO.
 Plutus Tx is not a new language, but rather a subset of Haskell, and it is compiled into Plutus Core, a low-level language based on higher-order polymorphic lambda calculus.
