@@ -40,10 +40,10 @@ test_deadCode = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
 test_typecheck :: TestTree
 test_typecheck = testGroup "typechecking"
   [ testProperty "Builtin Variant1" $
-  withMaxSuccess 3000
+  withMaxSuccess 5000
   (non_pure_typecheck_prop (removeDeadBindings (BuiltinsInfo DefaultFunSemanticsVariant1)))
 
   , expectFail $ testProperty "Builtin Variant2" $
-  withMaxSuccess 3000
+  withMaxSuccess 5000
   (non_pure_typecheck_prop (removeDeadBindings (BuiltinsInfo DefaultFunSemanticsVariant2)))
   ]
