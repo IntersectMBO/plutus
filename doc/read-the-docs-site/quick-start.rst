@@ -105,7 +105,7 @@ Once you have the validator, you can proceed with deploying and interacting with
 To do so, you'll need the ability to perform operations like the following:
 
 * Generating key pairs
-* Quering available UTXOs that satisfy certain criteria and can be used as the input of a transaction
+* Querying available UTXOs that satisfy certain criteria and can be used as the input of a transaction
 * Building transactions and calculating transaction fees
 * Signing and submitting transactions
 
