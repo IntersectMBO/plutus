@@ -6,7 +6,7 @@ module Algorithmic.Evaluation where
 
 \begin{code}
 open import Data.Nat using (ℕ;zero;suc)
-
+open import Relation.Binary.PropositionalEquality using (refl)
 open import Utils using (*;Either;inj₁;RuntimeError;return)
 open RuntimeError
 
@@ -14,8 +14,8 @@ open import Type using (∅)
 open import Type.BetaNormal using (_⊢Nf⋆_)
 open import Algorithmic using (_⊢_;∅)
 open _⊢_
-open import Algorithmic.ReductionEC using (Value;Error;_—↠_;_—→_)
-open import Algorithmic.ReductionEC.Progress using  (Progress;done;error;progress;step)
+open import Algorithmic.ReductionEC using (Value;Error;_—↠_;_—→_;E-error)
+open import Algorithmic.ReductionEC.Progress using  (Progress;done;progress;step)
 open _—↠_
 \end{code}
 
@@ -74,9 +74,9 @@ evalProg : ∀{A : ∅ ⊢Nf⋆ *} → Gas → {t : ∅ ⊢ A} → Progress t �
 eval (gas zero) M = steps refl—↠ out-of-gas
 eval (gas (suc n)) M = evalProg (gas n) (progress M)
 
+evalProg g (step {N = .(error _)} (_—→_.ruleErr Algorithmic.ReductionEC.[] refl)) = steps refl—↠ (error E-error)
 evalProg g (step {N = t'} p)  = eval—→ p (eval g t')
 evalProg g (done VM) = steps refl—↠ (done _ VM)
-evalProg g (error e) = steps refl—↠ (error e)
 
 stepper : {A : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → ℕ → Either RuntimeError (∅ ⊢ A)
 stepper {A} t n with eval (gas n) t
@@ -85,3 +85,4 @@ stepper {A} t n with eval (gas n) t
 ... | steps x (error _)   = return (error A)
 
 \end{code}
+ 

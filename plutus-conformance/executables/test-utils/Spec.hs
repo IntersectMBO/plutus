@@ -11,10 +11,11 @@ module Main (
 
 import Control.Monad.Trans.Except
 import Data.Foldable (for_)
+import Data.String (fromString)
 import Data.Text.IO qualified as T
 import MAlonzo.Code.Main (runUAgda)
 import Options.Applicative
-import Options.Applicative.Help.Pretty (Doc, string)
+import Options.Applicative.Help.Pretty (Doc)
 import PlutusConformance.Common
 import PlutusCore.Error (Error (..), ParserErrorBundle (ParseErrorB))
 import PlutusCore.Pretty (Pretty (pretty), Render (render))
@@ -92,7 +93,7 @@ args =
 
 helpText :: Doc
 helpText =
-    string $
+    fromString $
         unlines
             [ "This program adds test outputs to specified inputs."
             , "To run the program, input the following 3 arguments:"

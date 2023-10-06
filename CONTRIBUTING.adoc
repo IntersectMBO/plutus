@@ -295,6 +295,22 @@ You can access them like this: `nix develop .#plutus-shell-810`.
 
 Note that HLS in particular won't work in the non-primary dev shell as it will still be built with the primary GHC version, but other tooling should work fine.
 
+=== Per-version testing
+
+As far as we know, given an exact GHC compiler version
+the GHC compiler will generate the same (reproducible) GHC-Core, from any Haskell code, running under any platform (linux/osx/windows/etc).
+
+However, when comparing the GHC-Core output coming from different GHC versions, this might not still hold.
+Because the PlutusTx language heavily relies on GHC-Core, any (slight) GHC-Core differences will change the resulting plutus core (and its archetypes, plutus ir and typed plutus core).
+Since our (test) code must be reproducible with multiple GHC versions (see xref:plugin-support[Plugin Support]) _at the same time_ in the repository,
+we keep multiple test output directories (containg golden plutus files), one for each GHC version that the plugin supports.
+
+To test and/or regenerate test golden test output, one has to run _for each_  GHC version supported by the plugin:
+
+```
+nix develop ".#plutus-shell-$GHC_MAJOR_VERSION" --command cabal test plutus-tx-plugin --test-options=--accept
+```
+
 == Working conventions
 
 === Style guide

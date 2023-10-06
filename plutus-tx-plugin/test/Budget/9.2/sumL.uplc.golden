@@ -1,0 +1,25 @@
+program
+  1.1.0
+  ((\fix1 ->
+      (\go ->
+         (\ls -> go 0 ls)
+           (fix1
+              (\`$fEnumBool_$cenumFromTo` x y ->
+                 force
+                   (force ifThenElse
+                      (lessThanEqualsInteger x y)
+                      (delay
+                         (constr 1
+                            [ x
+                            , (`$fEnumBool_$cenumFromTo` (addInteger 1 x) y) ]))
+                      (delay (constr 0 []))))
+              1
+              1000))
+        (fix1
+           (\go acc ds ->
+              force
+                (case
+                   ds
+                   [ (delay acc)
+                   , (\x xs -> delay (go (addInteger acc x) xs)) ]))))
+     (\f -> (\s -> s s) (\s x -> f (s s) x)))
