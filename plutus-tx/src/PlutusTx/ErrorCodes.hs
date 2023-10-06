@@ -39,6 +39,7 @@ allErrorCodes = Map.fromList [ ("PT1", "TH Generation of Indexed Data Error")
                              , ("PT17", "PlutusTx.Enum.Ordering.pred: bad argument")
                              , ("PT18", "PlutusTx.Enum.Ordering.toEnum: bad argument")
                              , ("PT19", "PlutusTx.List.last: empty list")
+                             , ("PT20", "PlutusTx.SortedMap: duplicate elements")
                              ]
 
 -- | The error happens in TH generation of indexed data
@@ -135,3 +136,8 @@ toEnumOrderingBadArgumentError = "PT18"
 {-# INLINABLE lastEmptyListError #-}
 lastEmptyListError :: Builtins.BuiltinString
 lastEmptyListError = "PT19"
+
+-- | PlutusTx.SortedMap.unsafeInsertOneUnique: duplicate elements
+{-# INLINABLE duplicateElements #-}
+duplicateElements :: Builtins.BuiltinString
+duplicateElements = "PT20"

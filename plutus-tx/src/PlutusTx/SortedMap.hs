@@ -9,15 +9,8 @@ module PlutusTx.SortedMap
     ( SortedMap (..)
     , empty
     , singleton
-    , insertOneWith
-    , insertOne
-    , fromListWith
-    , fromList
-    , fromListUnique
-    , mergeWith
-    , MatchResult (..)
-    , matchKVs
-    , pointwiseEqWith
+    , unsafeFromListUnique
+    , eqWith
     ) where
 
 import Prelude qualified as Haskell
@@ -26,6 +19,10 @@ import PlutusTx.Base
 import PlutusTx.Ord
 import PlutusTx.Prelude
 
+import Data.Coerce (coerce)
+
+-- | A map from @k@ to @v@ backed by a list that is supposed to be sorted from lowest to highest
+-- @k@s with no key duplicated.
 newtype SortedMap k v = UnsafeSortedMap
     { unSortedMap :: [(k, v)]
     } deriving stock (Haskell.Show)
@@ -38,100 +35,35 @@ empty = UnsafeSortedMap []
 singleton :: k -> v -> SortedMap k [v]
 singleton ~k ~v = UnsafeSortedMap [(k, [v])]
 
-{-# INLINE insertOneWith #-}
-insertOneWith
-    :: forall k v w. Ord k
-    => (v -> w -> w) -> (v -> w) -> k -> v -> SortedMap k w -> SortedMap k w
-insertOneWith ~op ~inj ~k0 ~v0 = UnsafeSortedMap . go . unSortedMap where
-    go :: [(k, w)] -> [(k, w)]
-    go []                  = [(k0, inj v0)]
-    go kws@((k, w) : kws') =
+{-# INLINE unsafeInsertOneUnique #-}
+-- | Insert a key-value pair into the 'SortedMap' assuming the key isn't already in the map (if it
+-- is, the function throws).
+unsafeInsertOneUnique :: forall k v. Ord k => k -> v -> SortedMap k v -> SortedMap k v
+unsafeInsertOneUnique ~k0 ~v0 = coerce go where
+    go :: [(k, v)] -> [(k, v)]
+    go []                  = [(k0, v0)]
+    go kvs@((k, v) : kvs') =
         case k0 `compare` k of
-            LT -> (k0, inj v0) : kws
-            EQ -> (k0, op v0 w) : kws'
-            GT -> (k, w) : go kws'
+            LT -> (k0, v0) : kvs
+            -- TODO: make this @traceError duplicateElements@.
+            EQ -> (k, v0) : kvs'
+            GT -> (k, v) : go kvs'
 
-{-# INLINABLE insertOne #-}
-insertOne :: Ord k => k -> v -> SortedMap k [v] -> SortedMap k [v]
-insertOne = insertOneWith (:) (: [])
-
--- TODO: proper mergesort
-{-# INLINE fromListWith #-}
-fromListWith :: forall k v w. Ord k => (v -> w -> w) -> (v -> w) -> [(k, v)] -> SortedMap k w
-fromListWith ~act ~inj = go where
-    go :: [(k, v)] -> SortedMap k w
+{-# INLINE unsafeFromListUnique #-}
+-- | Turn a list into a 'SortedMap' assuming all of its keys are unique (if they are not, the
+-- function throws).
+unsafeFromListUnique :: forall k v. Ord k => [(k, v)] -> SortedMap k v
+unsafeFromListUnique = go where
+    go :: [(k, v)] -> SortedMap k v
     go []             = UnsafeSortedMap []
-    go ((k, v) : kvs) = insertOneWith act inj k v $ go kvs
+    go ((k, v) : kvs) = unsafeInsertOneUnique k v $ go kvs
 
-{-# INLINE fromListUnique #-}
-fromListUnique :: Ord k => [(k, v)] -> SortedMap k v
-fromListUnique = fromListWith const id
-
-{-# INLINABLE fromList #-}
-fromList :: Ord k => [(k, v)] -> SortedMap k [v]
-fromList = fromListWith (:) (: [])
-
-{-# INLINE mergeWith #-}
-mergeWith
-    :: forall k v. Ord k
-    => (v -> v -> v) -> SortedMap k v -> SortedMap k v -> SortedMap k v
-mergeWith ~op ~(UnsafeSortedMap kvs1_0) ~(UnsafeSortedMap kvs2_0) =
-    UnsafeSortedMap $ go kvs1_0 kvs2_0
-  where
-    go :: [(k, v)] -> [(k, v)] -> [(k, v)]
-    go []                      kvs2                    = kvs2
-    go kvs1                    []                      = kvs1
-    go kvs1@((k1, v1) : kvs1') kvs2@((k2, v2) : kvs2') =
-        case k1 `compare` k2 of
-            LT -> (k1, v1) : go kvs1' kvs2
-            EQ -> (k1, op v1 v2) : go kvs1' kvs2'
-            GT -> (k2, v2) : go kvs1 kvs2'
-
-data MatchResult k v
-    = MatchSuccess
-    | MatchUnclear [(v, v)] [(k, v)] [(k, v)]
-    | MatchFailure
-
-{-# INLINE matchKVs #-}
-matchKVs
-    :: forall k v. Ord k
-    => (v -> Bool) -> (v -> v -> Bool) -> [(k, v)] -> [(k, v)] -> MatchResult k v
-matchKVs ~is0 ~structEqV = go where
-    go :: [(k, v)] -> [(k, v)] -> MatchResult k v
-    go [] [] =
-        MatchSuccess
-    go [] kvs2 =
-        if all (is0 . snd) kvs2
-            then MatchSuccess
-            else MatchFailure
-    go kvs1 [] =
-        if all (is0 . snd) kvs1
-            then MatchSuccess
-            else MatchFailure
-    go kvs1@((k1, v1) : kvs1') kvs2@((k2, v2) : kvs2')
-        | k1 == k2 =
-            case go kvs1' kvs2' of
-                MatchSuccess ->
-                    if structEqV v1 v2
-                        then MatchSuccess
-                        else MatchFailure
-                MatchUnclear vvs kvs1'' kvs2'' ->
-                    MatchUnclear ((v1, v2) : vvs) kvs1'' kvs2''
-                MatchFailure ->
-                    MatchFailure
-        | is0 v1 =
-            if is0 v2
-                then go kvs1' kvs2'
-                else go kvs1' kvs2
-        | is0 v2 = go kvs1 kvs2'
-        | otherwise =
-            MatchUnclear [] kvs1 kvs2
-
-{-# INLINE pointwiseEqWith #-}
-pointwiseEqWith
+{-# INLINE eqWith #-}
+-- | Check equality of 'SortedMap's by matching the underlying lists pointwise.
+eqWith
     :: forall k v. Eq k
     => (v -> Bool) -> (v -> v -> Bool) -> SortedMap k v -> SortedMap k v -> Bool
-pointwiseEqWith ~is0 ~eqV ~(UnsafeSortedMap kvs01) ~(UnsafeSortedMap kvs02) = go kvs01 kvs02 where
+eqWith ~is0 ~eqV = coerce go where
     go :: [(k, v)] -> [(k, v)] -> Bool
     go []                []                = True
     go []                kvs2              = all (is0 . snd) kvs2
