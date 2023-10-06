@@ -787,6 +787,7 @@ executable debugger
     , plutus-core           ^>=1.14
     , plutus-core-execlib   ^>=1.14
     , prettyprinter
+    , primitive
     , text
     , text-zipper
     , vty

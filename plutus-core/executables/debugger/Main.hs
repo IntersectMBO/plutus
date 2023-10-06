@@ -47,8 +47,10 @@ import Brick.Widgets.Edit qualified as BE
 import Control.Concurrent
 import Control.Monad (void)
 import Control.Monad.Except (runExcept)
+import Control.Monad.Primitive (unsafeIOToPrim)
 import Control.Monad.ST (RealWorld)
 import Data.Coerce
+import Data.Foldable
 import Data.Maybe
 import Data.Text (Text)
 import Data.Traversable
@@ -203,9 +205,12 @@ driverThread driverMailbox brickMailbox prog mbudget = do
     let exBudgetMode = case mbudget of
             Just budgetLimit -> coerceMode $ restricting $ ExRestrictingBudget budgetLimit
             _                -> coerceMode counting
-    -- TODO: implement emitter
     -- nilSlippage is important so as to get correct live up-to-date budget
-    cekTransWithBudgetRead <- mkCekTrans PLC.defaultCekParameters exBudgetMode noEmitter nilSlippage
+    cekTransWithBudgetRead <- mkCekTrans
+                                 PLC.defaultCekParameters
+                                 exBudgetMode
+                                 brickEmitter
+                                 nilSlippage
     D.iterM (handle cekTransWithBudgetRead) $ D.runDriverT ndterm
 
     where
@@ -231,7 +236,7 @@ driverThread driverMailbox brickMailbox prog mbudget = do
                   Left e         -> handleError exBudgetInfo e
                   Right newState -> k newState
           D.InputF k           -> handleInput >>= k
-          D.LogF text k        -> handleLog text >> k
+          D.DriverLogF text k        -> handleLog text >> k
           D.UpdateClientF ds k -> handleUpdate exBudgetInfo ds >> k
 
         handleInput = takeMVar driverMailbox
@@ -242,16 +247,22 @@ driverThread driverMailbox brickMailbox prog mbudget = do
 
         handleError exBudgetInfo e = do
             bd <- readBudgetData exBudgetInfo
-            B.writeBChan brickMailbox $ ErrorEvent bd e
+            B.writeBChan brickMailbox $ CekErrorEvent bd e
             -- no kontinuation in case of error, the driver thread exits
             -- FIXME: decide what should happen after the error occurs
             -- e.g. a user dialog to (r)estart the thread with a button
 
-        handleLog = B.writeBChan brickMailbox . LogEvent
+        handleLog = B.writeBChan brickMailbox . DriverLogEvent
 
         readBudgetData :: ExBudgetInfo ExBudget uni fun RealWorld -> IO BudgetData
         readBudgetData (ExBudgetInfo _ final cumulative) =
             stToIO (BudgetData <$> cumulative <*> (for mbudget $ const final))
+
+        brickEmitter :: EmitterMode uni fun
+        brickEmitter = EmitterMode $ \_ -> do
+            -- the simplest solution relies on unsafeIOToPrim (here, unsafeIOToST)
+            let emitter logs = for_ logs (unsafeIOToPrim . B.writeBChan brickMailbox . CekEmitEvent)
+            pure $ CekEmitterInfo emitter (pure mempty)
 
 -- | Read uplc code in a given format
 --
@@ -274,7 +285,10 @@ getProgramWithText fmt inp =
             -- so we can have artificial SourceSpans in annotations
             progWithTxSpans <- loadASTfromFlat @UplcProg @PLC.SrcSpans flatMode inp
             -- annotations are not pprinted by default, no need to `void`
-            let progTextPretty = PLC.displayPlcDef progWithTxSpans
+            -- Here it is NECESSARY to use Debug pprint-mode to avoid any name-clashing
+            -- (after re-parsing and) upon using term zipping function (aka pzip).
+            -- Alternatively, use parseScoped in place of parseProgram.
+            let progTextPretty = PLC.displayPlcDebug progWithTxSpans
 
             -- the parsed prog with uplc.srcspan
             progWithUplcSpan <- either (fail . show @ParserErrorBundle) pure $ runExcept $

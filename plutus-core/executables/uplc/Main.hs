@@ -363,7 +363,7 @@ handleDbg cekTrans = \case
                              -- no kontinuation, so it acts like exitSuccess
                              -- FIXME: decide what should happen after the error occurs
     D.InputF k           -> handleInput >>= k
-    D.LogF text k        -> handleLog text >> k
+    D.DriverLogF text k        -> handleLog text >> k
     D.UpdateClientF ds k -> handleUpdate ds >> k
   where
     handleInput = do
@@ -378,7 +378,7 @@ handleDbg cekTrans = \case
             -- otherwise retry
             _        -> handleInput
     handleUpdate s = Repl.outputStrLn $ show $ "Updated state:" <+> pretty s
-    handleLog = Repl.outputStrLn
+    handleLog = Repl.outputStrLn . T.unpack
 
 ----------------- Print examples -----------------------
 runUplcPrintExample ::

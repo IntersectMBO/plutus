@@ -2,6 +2,7 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE GADTs                  #-}
 {-# LANGUAGE LambdaCase             #-}
+{-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE TypeOperators          #-}
 module UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver
     ( Breakpointable (..)
@@ -27,6 +28,7 @@ import Control.Monad (void)
 import Control.Monad.Reader (MonadReader, ask, local, runReaderT)
 import Control.Monad.Trans.Free as F
 import Data.Function
+import Data.Text
 
 {- Note [Stepping the driver]
 
@@ -69,8 +71,8 @@ data Cmd bps
 data DebugF uni fun ann bps a
    -- | Await for the client (e.g. TUI) to tell what to do next (Cmd).
   = InputF (Cmd bps -> a)
-    -- | A generator of logging messages of the driver
-  | LogF String a
+    -- | The debug driver wants to log something
+  | DriverLogF Text a
     -- | An enumeratee of Driver State (generator+iteratee):
     -- Yield a state before doing a step, then await for a state to resume after the step.
     -- See Note [Stepping the driver].
@@ -139,7 +141,7 @@ driver = inputF >>= \case
 multiStepUntil :: Driving m uni fun ann bp
                => (CekState uni fun ann -> Bool) -> m ()
 multiStepUntil cond = do
-    logF "Driver is going to do a single step"
+    driverLogF "Driver is going to do a single step"
     newState <- stepF =<< ask
     case newState of
         Terminating{} ->
@@ -158,8 +160,8 @@ multiStepUntil cond = do
 -- Being in 'Driving' monad here is too constraining, but it does not matter.
 inputF :: Driving m uni fun ann bps => m (Cmd bps)
 inputF = liftF $ InputF id
-logF :: Driving m uni fun ann bps => String -> m ()
-logF text = liftF $ LogF text ()
+driverLogF :: Driving m uni fun ann bps => Text -> m ()
+driverLogF text = liftF $ DriverLogF text ()
 updateClientF :: Driving m uni fun ann bps => CekState uni fun ann -> m ()
 updateClientF dState = liftF $ UpdateClientF dState ()
 stepF :: Driving m uni fun ann bps => CekState uni fun ann -> m (CekState uni fun ann)

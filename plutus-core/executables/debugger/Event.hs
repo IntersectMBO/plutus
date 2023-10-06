@@ -157,7 +157,7 @@ handleDebuggerEvent _ hsDir (B.AppEvent (UpdateClientEvent budgetData cekState))
                     Nothing
                     (PLC.render $ vcat ["Evaluation Finished. Result:", line, PLC.prettyPlcDef t])
             Starting{} -> id
-handleDebuggerEvent _ _ (B.AppEvent (ErrorEvent budgetData e)) =
+handleDebuggerEvent _ _ (B.AppEvent (CekErrorEvent budgetData e)) =
     modify' $ \st ->
       -- Note that in case of an out-of-budget error (i.e. `CekOutOfExError`),
       -- the updated budgets (spent&remaining) here do not match the actual budgets
@@ -165,7 +165,10 @@ handleDebuggerEvent _ _ (B.AppEvent (ErrorEvent budgetData e)) =
       -- but is not allowed to become negative.
       st & set dsBudgetData budgetData
          & appendToLogsEditor ("Error happened:" <+> PLC.prettyPlcDef e)
-
+handleDebuggerEvent _ _ (B.AppEvent (DriverLogEvent t)) =
+    modify' $ appendToLogsEditor ("Driver logged:" <+> pretty t)
+handleDebuggerEvent _ _ (B.AppEvent (CekEmitEvent t)) =
+    modify' $ appendToLogsEditor ("CEK emitted:" <+> pretty t)
 handleDebuggerEvent _ _ _ = pure ()
 
 appendToLogsEditor :: Doc ann -> DebuggerState -> DebuggerState
@@ -175,4 +178,3 @@ appendToLogsEditor msg =
             insertMany (PLC.render msg) >>>
             breakLine
            )
-
