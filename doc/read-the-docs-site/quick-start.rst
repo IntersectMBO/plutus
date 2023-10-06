@@ -121,7 +121,7 @@ Refer to their respective documentation for more details about how to use them.
 
 A good way to quickly deploy and test a smart contract is to do it on a public testnet, such as Preview.
 Generate a key pair, go to the `faucet <https://docs.cardano.org/cardano-testnet/tools/faucet/>`_ for the testnet you are using to request some funds, submit a transaction to lock the funds in your smart contract validator script, and off you go to have all the fun with it.
-Read :ref:`simple_example`, section *Life cycle of the auction smart contract*, if you need to understand how one can submit transactions to interact with the auction smart contract.
+Read :ref:`simple_example`, section *Life cycle of the auction smart contract* if you need to understand how one can submit transactions to interact with the auction smart contract.
 
 Interfacing between Plutus Tx and Off-Chain Frameworks
 -----------------------------------------------------------------
