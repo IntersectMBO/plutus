@@ -133,4 +133,4 @@ What this means is that you may run into inconveniences like these:
 * The redeemer type is defined in Haskell (e.g., ``AuctionRedeemer`` in ``AuctionValidator.hs``), but needs to be redefined in another language when using a non-Haksell off-chain framework.
   For instance, when using Lucid, you'll need to define an object in JavaScript corresponding to ``AuctionRedeemer`` in order to construct your redeemer.
 
-These inconveniences will be addressed once Plutus contract blueprint, as outlined in `CIP-0057 <https://developers.cardano.org/docs/governance/cardano-improvement-proposals/cip-0057/>`_, is adopted and implemented by us as well as the off-chain frameworks.
+These inconveniences will be addressed once Plutus contract blueprints, as outlined in `CIP-0057 <https://developers.cardano.org/docs/governance/cardano-improvement-proposals/cip-0057/>`_, are adopted and implemented by us as well as the off-chain frameworks.
