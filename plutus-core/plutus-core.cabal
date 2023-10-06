@@ -776,6 +776,8 @@ executable debugger
     , base                  >=4.9   && <5
     , brick
     , containers
+    , exceptions
+    , filepath
     , megaparsec
     , microlens
     , microlens-th          ^>=0.4
@@ -785,6 +787,7 @@ executable debugger
     , plutus-core           ^>=1.14
     , plutus-core-execlib   ^>=1.14
     , prettyprinter
+    , primitive
     , text
     , text-zipper
     , vty

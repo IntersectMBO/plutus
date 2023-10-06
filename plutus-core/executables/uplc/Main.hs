@@ -356,14 +356,14 @@ handleDbg cekTrans = \case
         -- Note that we first turn Cek to IO and then `liftIO` it to InputT; the alternative of
         -- directly using MonadTrans.lift needs MonadCatch+MonadMask instances for CekM, i.e. messy
         -- also liftIO would be unnecessary if haskeline.InputT worked with `primitive`
-        eNewState <- liftIO $ D.liftCek $ D.tryError $ cekTrans prevState
+        eNewState <- liftIO $ D.liftCek $ tryError $ cekTrans prevState
         case eNewState of
             Right newState -> k newState
             Left e         -> Repl.outputStrLn $ show e
                              -- no kontinuation, so it acts like exitSuccess
                              -- FIXME: decide what should happen after the error occurs
     D.InputF k           -> handleInput >>= k
-    D.LogF text k        -> handleLog text >> k
+    D.DriverLogF text k        -> handleLog text >> k
     D.UpdateClientF ds k -> handleUpdate ds >> k
   where
     handleInput = do
@@ -378,7 +378,7 @@ handleDbg cekTrans = \case
             -- otherwise retry
             _        -> handleInput
     handleUpdate s = Repl.outputStrLn $ show $ "Updated state:" <+> pretty s
-    handleLog = Repl.outputStrLn
+    handleLog = Repl.outputStrLn . T.unpack
 
 ----------------- Print examples -----------------------
 runUplcPrintExample ::
