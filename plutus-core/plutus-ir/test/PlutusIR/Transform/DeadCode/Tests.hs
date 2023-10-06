@@ -43,7 +43,8 @@ test_typecheck = testGroup "typechecking"
   withMaxSuccess 5000
   (non_pure_typecheck_prop (removeDeadBindings (BuiltinsInfo DefaultFunSemanticsVariant1)))
 
+  -- FIXME this test mostly pass, but sometimes fail. Test many times to make it fail consistently.
   , expectFail $ testProperty "Builtin Variant2" $
-  withMaxSuccess 5000
+  withMaxSuccess 10000
   (non_pure_typecheck_prop (removeDeadBindings (BuiltinsInfo DefaultFunSemanticsVariant2)))
   ]
