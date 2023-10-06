@@ -1,12 +1,23 @@
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE ImportQualifiedPost   #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE Strict                #-}
+{-# LANGUAGE TemplateHaskell       #-}
 
+{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
+{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
+{-# OPTIONS_GHC -fno-full-laziness #-}
+{-# OPTIONS_GHC -fno-spec-constr #-}
+{-# OPTIONS_GHC -fno-specialise #-}
+{-# OPTIONS_GHC -fno-strictness #-}
+{-# OPTIONS_GHC -fno-unbox-strict-fields #-}
+{-# OPTIONS_GHC -fno-unbox-small-strict-fields #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:target-version=1.0.0 #-}
 
 module AuctionValidator where
 
-import PlutusCore.Default qualified as PLC
 import PlutusCore.Version (plcVersion100)
 import PlutusLedgerApi.V1 (POSIXTime, PubKeyHash, Value, adaSymbol, adaToken, singleton)
 import PlutusLedgerApi.V1.Address (pubKeyHashAddress)
@@ -15,13 +26,8 @@ import PlutusLedgerApi.V2 (Datum (..), OutputDatum (..), ScriptContext (..), TxI
                            TxOut (..), from, to)
 import PlutusLedgerApi.V2.Contexts (getContinuingOutputs)
 import PlutusTx
-import PlutusTx.Bool
-import PlutusTx.Builtins
-import PlutusTx.Lift
-import PlutusTx.Maybe
 import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Show qualified as PlutusTx
-import Prelude qualified as Haskell
 
 -- BLOCK1
 data AuctionParams = AuctionParams
