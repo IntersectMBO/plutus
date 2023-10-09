@@ -362,21 +362,24 @@ modelFun <- function(path) {
             filter.and.check.nonempty (fname) %>%
             discard.upper.outliers () %>%
             discard.overhead ()
-        lm(t ~ 1, filtered)
+        m <- lm(t ~ 1, filtered)
+        return (m)
     }
 
    linearInX <- function (fname) {
         filtered <- data %>%
             filter.and.check.nonempty (fname) %>%
             discard.overhead ()
-        lm(t ~ x_mem, filtered)
+        m <- lm(t ~ x_mem, filtered)
+        return(m)
    }
 
    linearInY <- function (fname) {
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             discard.overhead ()
-        lm(t ~ y_mem, filtered)
+        m <- lm(t ~ y_mem, filtered)
+        return(m)
    }
 
 
