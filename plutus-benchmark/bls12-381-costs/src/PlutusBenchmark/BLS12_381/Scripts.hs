@@ -722,6 +722,12 @@ aggregateMultiKeyG2Script message pubKeys aggregateSignature bs16Null dst = do
       calcAggregatedPubkey :: BuiltinBLS12_381_G2_Element -> Integer -> BuiltinBLS12_381_G2_Element
       calcAggregatedPubkey pk ds = ds `Tx.bls12_381_G2_scalarMul` pk
 
+      -- PlutusTx.Prelude has no last
+      last :: [a] -> a
+      last []     = traceError "last: needs at least two elements"
+      last [x]    = x
+      last (_:xs) = last xs
+
 {- An alternative implementation of calcAggregatedPubkeys which uses a different
 -- means of scalar exponentiation. It results in a slightly smaller script using less CPU but
 -- considerably more memory, so the overall cost is a greater.

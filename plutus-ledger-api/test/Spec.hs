@@ -11,7 +11,6 @@ import Spec.CostModelParams qualified
 import Spec.Eval qualified
 import Spec.Interval qualified
 import Spec.NoThunks qualified
-import Spec.Value qualified
 import Spec.Versions qualified
 
 import Test.Tasty
@@ -105,5 +104,4 @@ tests = testGroup "plutus-ledger-api" [
     , Spec.CostModelParams.tests
     , Spec.NoThunks.tests
     , Spec.CBOR.DeserialiseFailureInfo.tests
-    , Spec.Value.test_EqValue
     ]

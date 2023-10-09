@@ -9,7 +9,6 @@ import PlutusTx.Base
 import PlutusTx.Bool (Bool)
 import PlutusTx.Either (Either (..))
 import PlutusTx.Functor
-import PlutusTx.List qualified as List
 import PlutusTx.Maybe (Maybe (..))
 import PlutusTx.Monoid (Monoid (..), mappend)
 
@@ -60,12 +59,6 @@ instance Applicative (Either a) where
     {-# INLINABLE (<*>) #-}
     Left  e <*> _ = Left e
     Right f <*> r = fmap f r
-
-instance Applicative [] where
-    {-# INLINABLE pure #-}
-    pure x = [x]
-    {-# INLINABLE (<*>) #-}
-    fs <*> xs = List.concatMap (\f -> List.map f xs) fs
 
 instance Applicative Identity where
     {-# INLINABLE pure #-}

@@ -141,7 +141,6 @@ test-suite plutus-ledger-api-test
     Spec.Eval
     Spec.Interval
     Spec.NoThunks
-    Spec.Value
     Spec.Versions
 
   build-depends:
@@ -155,9 +154,7 @@ test-suite plutus-ledger-api-test
     , nothunks
     , plutus-core:{plutus-core, plutus-core-testlib}                    ^>=1.14
     , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.14
-    , plutus-tx-plugin                                                  ^>=1.14
-    , plutus-tx:{plutus-tx, plutus-tx-testlib}                          ^>=1.14
-    , prettyprinter
+    , plutus-tx:plutus-tx-testlib                                       ^>=1.14
     , tasty
     , tasty-hedgehog
     , tasty-hunit

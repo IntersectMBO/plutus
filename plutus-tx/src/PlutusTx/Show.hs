@@ -7,7 +7,6 @@
 module PlutusTx.Show (
     Show (..),
     ShowS,
-    toDigits,
     showString,
     showSpace,
     showCommaSpace,
