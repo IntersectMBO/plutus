@@ -65,10 +65,12 @@ eqWith
     => (v -> Bool) -> (v -> v -> Bool) -> SortedMap k v -> SortedMap k v -> Bool
 eqWith ~is0 ~eqV = coerce go where
     go :: [(k, v)] -> [(k, v)] -> Bool
-    go []                []                = True
-    go []                kvs2              = all (is0 . snd) kvs2
-    go kvs1              []                = all (is0 . snd) kvs1
+    go [] []   = True
+    go [] kvs2 = all (is0 . snd) kvs2  -- If one of the lists is empty then all elements in the
+    go kvs1 [] = all (is0 . snd) kvs1  -- other list need to be zero for lists to be equal.
     go ((k1, v1) : kvs1) ((k2, v2) : kvs2) =
+        -- As with 'matchKVs' we check equality of all the keys first and only then check equality
+        -- of values.
         if k1 == k2
             then if go kvs1 kvs2
                 then eqV v1 v2

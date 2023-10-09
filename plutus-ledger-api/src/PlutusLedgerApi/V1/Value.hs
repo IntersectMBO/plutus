@@ -437,6 +437,10 @@ matchKVs ~is0 ~structEqV = go where
         | otherwise = MatchPartial [] kvs1 kvs2
 
 {-# INLINEABLE eq #-}
+-- | Check equality of two 'Value's. Does not assume orderness of lists within 'Value' or lack of
+-- empty values (such as a token whose quantity is zero or a currencies that has a bunch of such
+-- tokens or no tokens at all), but does assume that no currencies or tokens within a single
+-- currency have multiple entries.
 eq :: Value -> Value -> Bool
 eq (Value (Map.toList -> currs1)) (Value (Map.toList -> currs2)) =
     -- Check structural equality of the lists first.
