@@ -206,6 +206,20 @@ adjustModel <- function (m, fname) {
     return (m)
 }
 
+adjustModels <- function(models) {
+    ## Given a list of named models, apply `adjustModel` to each entry to
+    ## ensure that all of the model coefficients are positive.  This is applied
+    ## to the entire list of models before returning them to the outside world.
+    adjustEntry <- function(name) {
+        adjustModel(models[[name]], sub("Model", "", name))
+    }
+    models2 <- lapply(names(models), adjustEntry)
+    names(models2) <- names(models)
+    # Can we just mutate the entries of `models` in place, leaving the names untouched?
+    return(models2)
+}
+
+
 ## Benchmark results for some functions involving Data exhibit a fan shape where
 ## all the data points lie above the x-axis but below some sloping straight line
 ## (this is because Data is heterogeneous but we only have a single size
@@ -324,7 +338,8 @@ modelFun <- function(path) {
         args.overhead <- overhead[arity(fname)]
         mean.time <- mean(frame$t)
         if (mean.time > args.overhead) {
-            mutate(frame,across(c("t", "t.mean.lb", "t.mean.ub"), function(x) { x - args.overhead }))
+            f <- mutate(frame,across(c("t", "t.mean.lb", "t.mean.ub"), function(x) { x - args.overhead }))
+            return(f)
         }
         else {
             ## Sometimes the total time taken to run a builtin is less than the
@@ -337,7 +352,8 @@ modelFun <- function(path) {
 
             cat (sprintf ("* NOTE: mean time for %s was less than overhead (%.3f ms < %.3f ms): adjusted time set to %.1f ns\n",
                           fname, mean.time, args.overhead, default*1000));
-            mutate(frame,across(c("t", "t.mean.lb", "t.mean.ub"), function(x) { default }))
+            f <- mutate(frame,across(c("t", "t.mean.lb", "t.mean.ub"), function(x) { default }))
+            return(f)
         }
     }
 
@@ -346,24 +362,21 @@ modelFun <- function(path) {
             filter.and.check.nonempty (fname) %>%
             discard.upper.outliers () %>%
             discard.overhead ()
-        m <- lm(t ~ 1, filtered)
-        adjustModel(m,fname)
+        lm(t ~ 1, filtered)
     }
 
    linearInX <- function (fname) {
         filtered <- data %>%
             filter.and.check.nonempty (fname) %>%
             discard.overhead ()
-        m <- lm(t ~ x_mem, filtered)
-        adjustModel(m,fname)
+        lm(t ~ x_mem, filtered)
    }
 
    linearInY <- function (fname) {
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             discard.overhead ()
-        m <- lm(t ~ y_mem, filtered)
-        adjustModel(m,fname)
+        lm(t ~ y_mem, filtered)
    }
 
 
@@ -374,8 +387,7 @@ modelFun <- function(path) {
         filtered <- data %>%
             filter.and.check.nonempty (fname)  %>%
             discard.overhead ()
-        m <- lm(t ~ pmax(x_mem, y_mem), filtered)
-        adjustModel(m, fname)
+        lm(t ~ pmax(x_mem, y_mem), filtered)
     }
 
     subtractIntegerModel <- addIntegerModel
@@ -386,8 +398,7 @@ modelFun <- function(path) {
             filter.and.check.nonempty(fname)  %>%
             filter(x_mem > 0 & y_mem > 0) %>%
             discard.overhead ()
-        m <- lm(t ~ I(x_mem + y_mem), filtered)
-        adjustModel(m, fname)
+        lm(t ~ I(x_mem + y_mem), filtered)
     }
     ## We do want I(x+y) here ^: the cost is linear, but symmetric.
 
@@ -405,8 +416,7 @@ modelFun <- function(path) {
             filter(x_mem > 0 & y_mem > 0) %>%
             filter (x_mem > y_mem) %>%
             discard.overhead ()
-        m <- lm(t ~ I(x_mem * y_mem), filtered)
-        adjustModel(m,fname)
+        lm(t ~ I(x_mem * y_mem), filtered)
     }
 
     quotientIntegerModel  <- divideIntegerModel
@@ -420,8 +430,7 @@ modelFun <- function(path) {
             filter(x_mem == y_mem) %>%
             filter (x_mem > 0) %>%
             discard.overhead ()
-        m <- lm(t ~ pmin(x_mem, y_mem), filtered)
-        adjustModel(m,fname)
+        lm(t ~ pmin(x_mem, y_mem), filtered)
     }
 
     lessThanIntegerModel <- {
@@ -431,8 +440,7 @@ modelFun <- function(path) {
             filter(x_mem == y_mem) %>%
             filter (x_mem > 0) %>%
             discard.overhead ()
-        m <- lm(t ~ pmin(x_mem, y_mem), filtered)
-        adjustModel(m,fname)
+        lm(t ~ pmin(x_mem, y_mem), filtered)
     }
 
     lessThanEqualsIntegerModel <- {
@@ -442,8 +450,7 @@ modelFun <- function(path) {
             filter(x_mem == y_mem) %>%
             filter (x_mem > 0) %>%
             discard.overhead ()
-        m <- lm(t ~ pmin(x_mem, y_mem), filtered)
-        adjustModel(m,fname)
+        lm(t ~ pmin(x_mem, y_mem), filtered)
     }
 
 
@@ -455,8 +462,7 @@ modelFun <- function(path) {
             filter.and.check.nonempty(fname) %>%
             filter(x_mem > 0 & y_mem > 0) %>%
             discard.overhead ()
-        m <- lm(t ~ I(x_mem + y_mem), filtered)
-        adjustModel(m,fname)
+        lm(t ~ I(x_mem + y_mem), filtered)
     }
     ## Note that this is symmetrical in the arguments: a new bytestring is
     ## created and the contents of both arguments are copied into it.
@@ -478,8 +484,7 @@ modelFun <- function(path) {
             filter.and.check.nonempty(fname) %>%
             filter(x_mem == y_mem) %>%
             discard.overhead ()
-        m <- lm(t ~ x_mem, filtered)
-        adjustModel(m,fname)
+        lm(t ~ x_mem, filtered)
     }
 
     lessThanByteStringModel <- {
@@ -487,8 +492,7 @@ modelFun <- function(path) {
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             discard.overhead ()
-        m <- lm(t ~ pmin(x_mem, y_mem), filtered)
-        adjustModel(m,fname)
+        lm(t ~ pmin(x_mem, y_mem), filtered)
     }
 
     lessThanEqualsByteStringModel <- lessThanByteStringModel  ## Check this!
@@ -501,7 +505,7 @@ modelFun <- function(path) {
     blake2b_224Model <- linearInX ("Blake2b_224")
     blake2b_256Model <- linearInX ("Blake2b_256")
     keccak_256Model  <- linearInX ("Keccak_256")
-    
+
     ###### Signature verification #####
 
     ## VerifyEd25519Signature in fact takes three arguments, but the first and
@@ -526,8 +530,7 @@ modelFun <- function(path) {
             filter.and.check.nonempty(fname) %>%
             filter(x_mem > 0 & y_mem > 0)    %>%
             discard.overhead ()
-        m <- lm(t ~ I(x_mem + y_mem), filtered)  ## Both strings are copied in full
-        adjustModel(m,fname)
+        lm(t ~ I(x_mem + y_mem), filtered)  ## Both strings are copied in full
     }
 
     equalsStringModel <- {
@@ -536,8 +539,7 @@ modelFun <- function(path) {
             filter.and.check.nonempty(fname) %>%
             filter(x_mem == y_mem) %>%
             discard.overhead ()
-        m <- lm(t ~ x_mem, filtered)
-        adjustModel(m,fname)
+        lm(t ~ x_mem, filtered)
     }
 
     decodeUtf8Model <- linearInX ("DecodeUtf8")
@@ -606,22 +608,21 @@ modelFun <- function(path) {
         if (!identical(filtered$x_mem, filtered$y_mem))
             cat(sprintf ("* WARNING: x_mem and y_mem differ in %s: inferred model may be inaccurate\n", fname))
         m <- fit.fan(filtered)
-        v <- m$coefficients
+        v <- coefficients(m)
         names(v) <- c("(Intercept)", "pmin(x_mem, y_mem)")
         ## ^ Make it look like what the Haskell code's expecting. The space after the comma is important.
         m2 <- lm(t ~ pmin(x_mem, y_mem), filtered) # A model with the structure expected by CreateBuiltinCostModel.
         m2$coefficients <- v
         ## ^ The rest of the data in the model now becomes nonsensical, but we don't use it.
         ## FIXME: do something better.
-        adjustModel(m2,fname)
+        m2
     }
 
     ## Data serialisation times are also non-uniform (as for equalsData).
     serialiseDataModel <- {
         fname <- "SerialiseData"
         filtered <- data %>% filter.and.check.nonempty(fname)
-        m <- fit.fan(filtered)
-        adjustModel(m,fname)
+        fit.fan(filtered)
     }
 
 
@@ -651,7 +652,7 @@ modelFun <- function(path) {
     bls12_381_mulMlResultModel       <- constantModel ("Bls12_381_mulMlResult")
     bls12_381_finalVerifyModel       <- constantModel ("Bls12_381_finalVerify")
 
-    list(
+    models <- list (
         addIntegerModel                      = addIntegerModel,
         subtractIntegerModel                 = subtractIntegerModel,
         multiplyIntegerModel                 = multiplyIntegerModel,
@@ -726,4 +727,6 @@ modelFun <- function(path) {
         bls12_381_mulMlResultModel           = bls12_381_mulMlResultModel,
         bls12_381_finalVerifyModel           = bls12_381_finalVerifyModel
     )
+
+    return(adjustModels(models))
 }
