@@ -26,14 +26,13 @@ import Control.Monad.Reader as Reader
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Compiler qualified as PLC
-import PlutusCore.Name
 import PlutusCore.Pretty
 import PlutusCore.Pretty qualified as PLC
 import PlutusCore.Quote (runQuoteT)
 import PlutusCore.Test hiding (ppCatch)
 import PlutusIR as PIR
 import PlutusIR.Compiler as PIR
-import PlutusIR.Parser (Parser, parse)
+import PlutusIR.Parser (Parser, pTerm, parse)
 import PlutusIR.TypeCheck
 import System.FilePath (joinPath, (</>))
 
@@ -55,7 +54,7 @@ instance
   , Ord a
   , Default (PLC.CostingPart uni fun)
   ) =>
-  ToTPlc (PIR.Program TyName Name uni fun a) uni fun
+  ToTPlc (PIR.Program PIR.TyName PIR.Name uni fun a) uni fun
   where
   toTPlc = asIfThrown . fmap void . compileWithOpts id
 
@@ -69,11 +68,14 @@ instance
   , Ord a
   , Default (PLC.CostingPart uni fun)
   ) =>
-  ToUPlc (PIR.Program TyName Name uni fun a) uni fun
+  ToUPlc (PIR.Program PIR.TyName PIR.Name uni fun a) uni fun
   where
   toUPlc t = do
     p' <- toTPlc t
     pure $ PLC.runQuote $ flip runReaderT PLC.defaultCompilationOpts $ PLC.compileProgram p'
+
+pTermAsProg :: Parser (PIR.Program PIR.TyName PIR.Name PLC.DefaultUni PLC.DefaultFun PLC.SrcSpan)
+pTermAsProg = fmap (PIR.Program mempty PLC.latestVersion) pTerm
 
 {- | Adapt an computation that keeps its errors in an 'Except' into one that looks as if
 it caught them in 'IO'.
@@ -94,10 +96,10 @@ compileWithOpts ::
   , Default (PLC.CostingPart uni fun)
   ) =>
   (CompilationCtx uni fun a -> CompilationCtx uni fun a) ->
-  Program TyName Name uni fun a ->
+  PIR.Program PIR.TyName PIR.Name uni fun a ->
   Except
     (PIR.Error uni fun (PIR.Provenance a))
-    (PLC.Program TyName Name uni fun (PIR.Provenance a))
+    (PLC.Program PIR.TyName PIR.Name uni fun (PIR.Provenance a))
 compileWithOpts optsMod pir = do
   tcConfig <- PLC.getDefTypeCheckConfig noProvenance
   let pirCtx = optsMod (toDefaultCompilationCtx tcConfig)
@@ -170,7 +172,8 @@ goldenPlcFromPir = goldenPirM $ \ast -> ppCatch $ do
   withExceptT @_ @PLC.FreeVariableError toException $ traverseOf PLC.progTerm PLC.deBruijnTerm p
 
 goldenPlcFromPirScott ::
-  (Ord a, Typeable a, Pretty a, prog ~ PIR.Program TyName Name PLC.DefaultUni PLC.DefaultFun a) =>
+  (Ord a, Typeable a, Pretty a
+  , prog ~ PIR.Program PIR.TyName PIR.Name PLC.DefaultUni PLC.DefaultFun a) =>
   Parser prog ->
   String ->
   TestNested
@@ -200,7 +203,7 @@ goldenTypeFromPir ::
   forall a.
   (Pretty a, Typeable a) =>
   a ->
-  Parser (Term TyName Name PLC.DefaultUni PLC.DefaultFun a) ->
+  Parser (Term PIR.TyName PIR.Name PLC.DefaultUni PLC.DefaultFun a) ->
   String ->
   TestNested
 goldenTypeFromPir x =

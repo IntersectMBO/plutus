@@ -12,6 +12,7 @@ module Evaluation.Debug
 
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Pretty
+import PlutusPrelude
 import UntypedPlutusCore
 import UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver
 import UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal
@@ -20,6 +21,7 @@ import Control.Monad.Reader
 import Control.Monad.ST
 import Control.Monad.Writer
 import Data.ByteString.Lazy.Char8 qualified as BS
+import Data.Text qualified as T
 import Data.Void
 import Prettyprinter
 import Test.Tasty
@@ -84,7 +86,7 @@ handle cekTrans = \case
                                 <+> "NewState is Error:" <+> viaShow e]
                      -- no kontinuation, exit
     InputF k          -> handleInput k
-    LogF text k       -> handleLog text >> k
+    DriverLogF text k       -> handleLog (T.unpack text) >> k
     UpdateClientF _ k -> k -- ignore
   where
     handleInput :: (Cmd Breakpoints -> m ()) -> m ()

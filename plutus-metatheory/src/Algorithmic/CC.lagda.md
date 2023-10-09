@@ -51,9 +51,6 @@ dissect (wrap E) with dissect E
 dissect (unwrap E / refl) with dissect E
 ... | inj₁ refl           = inj₂ (_ ,, [] ,, unwrap-)
 ... | inj₂ (C ,, E' ,, F) = inj₂ (C ,, unwrap E' / refl ,, F)
-dissect (E l·v V) with dissect E 
-... | inj₁ refl           = inj₂ (_ ,, ([] ,, (-·v V)))
-... | inj₂ (C ,, E' ,, F) = inj₂ (_ ,, ((E' l·v V) ,, F))
 dissect (constr i TSS p {tidx} vs ts E) with dissect E 
 ... | inj₁ refl           = inj₂ (_ ,, ([] ,, (constr- i TSS p {tidx} vs ts)))
 ... | inj₂ (C ,, E' ,, F) = inj₂ (_ ,, ((constr i TSS p {tidx} vs ts E') ,, F))
@@ -64,7 +61,6 @@ dissect (case cs E)  with dissect E
 compEC : ∀{A B C} → EC A B → EC B C → EC A C
 compEC [] E' = E'
 compEC (E  l· M') E' = compEC E E' l· M'
-compEC (E l·v V) E' = (compEC E E') l·v V
 compEC (VM ·r E) E' = VM ·r compEC E E'
 compEC (E ·⋆ A / refl) E' = compEC E E' ·⋆ A / refl
 compEC (wrap E) E' = wrap (compEC E E')
@@ -74,7 +70,7 @@ compEC (case cs E) E' = case cs (compEC E E')
 
 extEC : ∀{A B C}(E : EC A B)(F : Frame B C) → EC A C
 extEC [] (-· M') = [] l· M'
-extEC [] (-·v V) = [] l·v V
+extEC [] (-·v V) = [] l· deval V
 extEC [] (VM ·-) = VM ·r []
 extEC [] (-·⋆ A) = [] ·⋆ A / refl
 extEC [] wrap- = wrap []
@@ -82,7 +78,6 @@ extEC [] unwrap- = unwrap [] / refl
 extEC [] (constr- i TSS p {tidx} vs ts) = constr i TSS p {tidx} vs ts []
 extEC [] (case- cs) = case cs []
 extEC (E l· M') F = extEC E F l· M'
-extEC (E l·v V) F = extEC E F l·v V
 extEC (VM ·r E) F = VM ·r extEC E F
 extEC (E ·⋆ A / refl) F = extEC E F ·⋆ A / refl
 extEC (wrap E) F = wrap (extEC E F)

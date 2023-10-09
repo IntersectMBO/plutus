@@ -7,6 +7,8 @@
 {-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE UndecidableInstances   #-}
 
+{-# OPTIONS_GHC -Wno-orphans #-}
+
 module PlutusCore.Test (
   checkFails,
   ToTPlc (..),
@@ -27,6 +29,7 @@ module PlutusCore.Test (
   goldenUEvalLogs,
   goldenUEvalProfile,
   goldenUEvalBudget,
+  goldenSize,
   initialSrcSpan,
   topSrcSpan,
   NoMarkRenameT (..),
@@ -372,12 +375,30 @@ goldenUEvalBudget ::
 goldenUEvalBudget name values =
   nestedGoldenVsDocM name ".eval" $ ppCatch $ runUPlcBudget values
 
+goldenSize ::
+  (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun) =>
+  String ->
+  a ->
+  TestNested
+goldenSize name value =
+  nestedGoldenVsDocM name ".size" $
+    pure . pretty . UPLC.programSize =<< rethrow (toUPlc value)
+
 -- | A made-up `SrcSpan` for testing.
 initialSrcSpan :: FilePath -> SrcSpan
 initialSrcSpan fp = SrcSpan fp 1 1 1 2
 
 topSrcSpan :: SrcSpan
 topSrcSpan = initialSrcSpan "top"
+
+-- Some things require annotations to have these instances.
+-- Normally in the compiler we use Provenance, which adds them, but
+-- we add slightly sketchy instances for SrcSpan here for convenience
+instance Semigroup TPLC.SrcSpan where
+    sp1 <> _ = sp1
+
+instance Monoid TPLC.SrcSpan where
+    mempty = initialSrcSpan ""
 
 -- See Note [Marking].
 

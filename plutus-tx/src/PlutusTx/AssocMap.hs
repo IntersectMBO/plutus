@@ -19,6 +19,7 @@ module PlutusTx.AssocMap (
   empty,
   null,
   fromList,
+  fromListSafe,
   toList,
   keys,
   elems,
@@ -36,9 +37,8 @@ module PlutusTx.AssocMap (
   mapThese,
 ) where
 
-import Control.DeepSeq (NFData)
-import Data.Data
-import GHC.Generics (Generic)
+import Prelude qualified as Haskell
+
 import PlutusTx.Builtins qualified as P
 import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.IsData
@@ -46,7 +46,10 @@ import PlutusTx.Lift (makeLift)
 import PlutusTx.Prelude hiding (all, filter, mapMaybe, null, toList)
 import PlutusTx.Prelude qualified as P
 import PlutusTx.These
-import Prelude qualified as Haskell
+
+import Control.DeepSeq (NFData)
+import Data.Data
+import GHC.Generics (Generic)
 import Prettyprinter (Pretty (..))
 
 {- HLINT ignore "Use newtype instead of data" -}
@@ -150,6 +153,10 @@ instance (Pretty k, Pretty v) => Pretty (Map k v) where
 fromList :: [(k, v)] -> Map k v
 fromList = Map
 
+{-# INLINEABLE fromListSafe #-}
+fromListSafe :: Eq k => [(k, v)] -> Map k v
+fromListSafe = foldr (uncurry insert) empty
+
 {-# INLINEABLE toList #-}
 toList :: Map k v -> [(k, v)]
 toList (Map l) = l
@@ -167,7 +174,6 @@ lookup c (Map xs) =
     go xs
 
 {-# INLINEABLE member #-}
-
 -- | Is the key a member of the map?
 member :: forall k v. (Eq k) => k -> Map k v -> Bool
 member k m = isJust (lookup k m)

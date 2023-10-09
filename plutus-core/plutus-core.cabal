@@ -557,28 +557,47 @@ library plutus-ir
     build-depends: integer-gmp
 
 test-suite plutus-ir-test
-  import:         lang
+  import:             lang
 
   -- needs linux 'diff' available
   if os(windows)
     buildable: False
 
-  type:           exitcode-stdio-1.0
-  main-is:        Spec.hs
-  hs-source-dirs: plutus-ir/test
+  type:               exitcode-stdio-1.0
+  main-is:            Driver.hs
+  hs-source-dirs:     plutus-ir/test
   other-modules:
-    AnalysisSpec
-    Check.Spec
-    GeneratorSpec
-    GeneratorSpec.Builtin
-    GeneratorSpec.Substitution
-    GeneratorSpec.Terms
-    GeneratorSpec.Types
-    NamesSpec
-    ParserSpec
-    TransformSpec
-    TypeSpec
+    PlutusCore.Generators.QuickCheck.BuiltinsTests
+    PlutusCore.Generators.QuickCheck.SubstitutionTests
+    PlutusCore.Generators.QuickCheck.TypesTests
+    PlutusIR.Analysis.RetainedSize.Tests
+    PlutusIR.Check.Uniques.Tests
+    PlutusIR.Compiler.Datatype.Test
+    PlutusIR.Compiler.Error.Test
+    PlutusIR.Compiler.Let.Test
+    PlutusIR.Compiler.Recursion.Test
+    PlutusIR.Core.Tests
+    PlutusIR.Generators.QuickCheck.Tests
+    PlutusIR.Parser.Tests
+    PlutusIR.Purity.Tests
+    PlutusIR.Scoping.Tests
+    PlutusIR.Transform.Beta.Tests
+    PlutusIR.Transform.CommuteFnWithConst.Tests
+    PlutusIR.Transform.DeadCode.Tests
+    PlutusIR.Transform.EvaluateBuiltins.Tests
+    PlutusIR.Transform.Inline.Tests
+    PlutusIR.Transform.KnownCon.Tests
+    PlutusIR.Transform.LetFloatIn.Tests
+    PlutusIR.Transform.LetFloatOut.Tests
+    PlutusIR.Transform.NonStrict.Tests
+    PlutusIR.Transform.RecSplit.Tests
+    PlutusIR.Transform.Rename.Tests
+    PlutusIR.Transform.StrictifyBindings.Tests
+    PlutusIR.Transform.ThunkRecursions.Tests
+    PlutusIR.Transform.Unwrap.Tests
+    PlutusIR.TypeCheck.Tests
 
+  build-tool-depends: tasty-discover:tasty-discover
   build-depends:
     , base                                                       >=4.9   && <5
     , containers
@@ -757,6 +776,8 @@ executable debugger
     , base                  >=4.9   && <5
     , brick
     , containers
+    , exceptions
+    , filepath
     , megaparsec
     , microlens
     , microlens-th          ^>=0.4
@@ -766,6 +787,7 @@ executable debugger
     , plutus-core           ^>=1.14
     , plutus-core-execlib   ^>=1.14
     , prettyprinter
+    , primitive
     , text
     , text-zipper
     , vty

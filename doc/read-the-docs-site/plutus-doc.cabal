@@ -50,7 +50,7 @@ common lang
   if flag(defer-plugin-errors)
 
 common ghc-version-support
-  -- See the section on GHC versions in CONTRIBUTING 
+  -- See the section on GHC versions in CONTRIBUTING
   if impl(ghc <9.2)
     buildable: False
 
@@ -85,6 +85,29 @@ executable doc-doctests
     , serialise
     , template-haskell   >=2.13.0.0
     , text
+
+  if !(impl(ghcjs) || os(ghcjs))
+    build-depends: plutus-tx-plugin
+
+executable quick-start
+  import:             lang, ghc-version-support
+
+  if (impl(ghcjs) || os(windows))
+    buildable: False
+
+  hs-source-dirs:     tutorials
+  main-is:            QuickStart.hs
+  build-tool-depends: doctest:doctest
+  other-modules:      AuctionValidator
+  build-depends:
+    , aeson
+    , base               >=4.9   && <5
+    , base16-bytestring
+    , bytestring
+    , plutus-core        ^>=1.14
+    , plutus-ledger-api  ^>=1.14
+    , plutus-tx          ^>=1.14
+    , plutus-tx-plugin   ^>=1.14
 
   if !(impl(ghcjs) || os(ghcjs))
     build-depends: plutus-tx-plugin

@@ -32,7 +32,6 @@ module UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal
     , runCekDeBruijn
     , computeCek
     , returnCek
-    , tryError
     , mkCekTrans
     , CekTrans
     , nilSlippage
@@ -58,7 +57,6 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
 
 import Control.Lens hiding (Context)
 import Control.Monad
-import Control.Monad.Except (MonadError, catchError)
 import Data.List.Extras (wix)
 import Data.Proxy
 import Data.RandomAccessList.Class qualified as Env
@@ -394,12 +392,6 @@ lenContext = go 0
 -- * Duplicated functions from Cek.Internal module
 -- FIXME: share these functions with Cek.Internal
 -- preliminary testing shows that sharing slows down original cek
-
--- | A 'MonadError' version of 'try'.
---
--- TODO: remove when we switch to mtl>=2.3
-tryError :: MonadError e m => m a -> m (Either e a)
-tryError a = (Right <$> a) `catchError` (pure . Left)
 
 cekStepCost :: CekMachineCosts -> StepKind -> ExBudget
 cekStepCost costs = runIdentity . \case

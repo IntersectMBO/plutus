@@ -68,9 +68,15 @@ lemma<>1 : ∀{A}(xs : Bwd A)(ys : List A) → (xs <>< ys) <>> [] ≡ xs <>> ys
 lemma<>1 xs []       = refl
 lemma<>1 xs (x ∷ ys) = lemma<>1 (xs :< x) ys
 
+lemma<>1' : ∀{A}(xs : Bwd A)(ys : List A) → xs ≡ [] <>< ys → xs <>> [] ≡ ys
+lemma<>1' xs ys refl = lemma<>1 [] ys
+
 lemma<>2 : ∀{A}(xs : Bwd A)(ys : List A) → ([] <>< (xs <>> ys)) ≡ xs <>< ys
 lemma<>2 [] ys = refl
 lemma<>2 (xs :< x) ys = lemma<>2 xs (x ∷ ys)
+
+lemma<>2' : ∀{A}(xs : Bwd A)(ys : List A) → xs <>> [] ≡ ys → [] <>< ys ≡ xs
+lemma<>2' xs ys refl = lemma<>2 xs []
 
 lemma-<>>-++ : ∀{A : Set} bs (as as' : List A) →  bs <>> (as ++ as') ≡ (bs <>> as) ++ as'
 lemma-<>>-++ [] as as' = refl
@@ -138,8 +144,8 @@ lemma<>I2 : ∀{A}{B : A → Set}{xs : Bwd A}{ys : List A}(ixs : IBwd B xs)(iys 
 lemma<>I2 [] iys = refl
 lemma<>I2 (ixs :< ix) iys = lemma<>I2 ixs (ix ∷ iys)
 
-IBwd2IList : ∀{A}{B : A → Set}{bs}{ts} → (bs ≡ [] <>< ts) → IBwd B bs → IList B ts
-IBwd2IList {ts = ts} p tbs = subst (IList _) (trans (cong (_<>> []) p) (lemma<>1 [] ts)) (tbs <>>I [])
+IBwd2IList : ∀{A}{B : A → Set}{bs}{ts} → (bs <>> [] ≡ ts) → IBwd B bs → IList B ts
+IBwd2IList p tbs = subst (IList _) p (tbs <>>I [])
 ```
 
 ## A type for Zipper indexes
@@ -196,14 +202,6 @@ data _≣I_<>>_ {A : Set}{B : A → Set}{tot}(itot : IList B tot) :
          → (itot ≣I ibs <>> (it ∷ ils)) idx
            ------------------------------------------
          → (itot ≣I (ibs :< it) <>> ils) (bubble idx)
-
-getIdx≡I : ∀{A : Set}{B : A → Set}{tot}{itot : IList B tot}{bs ts}
-                                      → {ibs : IBwd B bs}
-                                      → {ils : IList B ts}
-                                      → {idx : tot ≣ bs <>> ts}
-                                      → (itot ≣I ibs <>> ils) idx
-                                      → tot ≣ bs <>> ts
-getIdx≡I {idx = idx} _ = idx
 
 lem-≣I-<>>1 : ∀{A : Set}{B : A → Set}{tot : List A}{itot : IList B tot}{bs} 
                                 {ibs : IBwd B bs}{ls}{ils : IList B ls}  

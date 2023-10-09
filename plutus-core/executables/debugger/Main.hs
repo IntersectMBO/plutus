@@ -3,6 +3,7 @@
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NamedFieldPuns      #-}
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StrictData          #-}
 {-# LANGUAGE TypeApplications    #-}
@@ -25,6 +26,7 @@ import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Executable.Common
 import PlutusCore.Executable.Parsers
 import PlutusCore.Pretty qualified as PLC
+import PlutusPrelude (tryError)
 import UntypedPlutusCore as UPLC
 import UntypedPlutusCore.Core.Zip
 import UntypedPlutusCore.Evaluation.Machine.Cek
@@ -45,11 +47,12 @@ import Brick.Widgets.Edit qualified as BE
 import Control.Concurrent
 import Control.Monad (void)
 import Control.Monad.Except (runExcept)
+import Control.Monad.Primitive (unsafeIOToPrim)
 import Control.Monad.ST (RealWorld)
 import Data.Coerce
+import Data.Foldable
 import Data.Maybe
 import Data.Text (Text)
-import Data.Text.IO qualified as Text
 import Data.Traversable
 import GHC.IO (stToIO)
 import Graphics.Vty qualified as Vty
@@ -80,26 +83,27 @@ debuggerAttrMap =
         , (menuAttr, Vty.withStyle (Vty.white `B.on` darkGreen) Vty.bold)
         , (highlightAttr, Vty.blue `B.on` Vty.white)
         ]
-
-darkGreen :: Vty.Color
-darkGreen = Vty.rgbColor @Int 0 100 0
+  where
+    darkGreen :: Vty.Color
+    darkGreen = Vty.rgbColor @Int 0 100 0
 
 data Options = Options
-    { optUplcInput       :: Input
-    , optUplcInputFormat :: Format
-    , optHsPath          :: Maybe FilePath
-    , optBudgetLim       :: Maybe ExBudget
+    { optUplcInput       :: Input -- ^ uplc file or stdin input
+    , optUplcInputFormat :: Format -- ^ textual or flat format of uplc input
+    , optHsDir           :: Maybe FilePath -- ^ directory to look under for Plutus Tx files
+    , optBudgetLim       :: Maybe ExBudget -- ^ budget limit
     }
 
 parseOptions :: OA.Parser Options
 parseOptions = do
     optUplcInput <- input
     optUplcInputFormat <- inputformat
-    optHsPath <- OA.optional $ OA.strOption $
+    optHsDir <- OA.optional $ OA.strOption $
                    mconcat
-                      [ OA.metavar "HS_FILE"
-                      , OA.long "hs-file"
-                      , OA.help "HS File"
+                      [ OA.metavar "HS_DIR"
+                      , OA.long "hs-dir"
+                      , OA.help $ "Directory to look under for Plutus Tx source files."
+                                <> "If not specified, it will not use source Plutus Tx highlighting"
                       ]
     -- Having cpu mem as separate options complicates budget modes (counting vs restricting);
     -- instead opt for having both present (cpu,mem) or both missing.
@@ -109,22 +113,20 @@ parseOptions = do
                       , OA.long "budget"
                       , OA.help "Limit the execution budget, given in terms of CPU,MEMORY"
                       ]
-    pure Options{optUplcInput, optUplcInputFormat, optHsPath, optBudgetLim}
+    pure Options{optUplcInput, optUplcInputFormat, optHsDir, optBudgetLim}
   where
       budgetReader = OA.maybeReader $ MP.parseMaybe @() budgetParser
       budgetParser = ExBudget <$> MP.decimal <* MP.char ',' <*> MP.decimal
 
 main :: IO ()
 main = do
-    Options{optUplcInput, optUplcInputFormat, optHsPath, optBudgetLim} <-
+    Options{..} <-
         OA.execParser $
             OA.info
                 (parseOptions OA.<**> OA.helper)
                 (OA.fullDesc <> OA.header "Plutus Core Debugger")
 
     (uplcText, uplcDAnn) <- getProgramWithText optUplcInputFormat optUplcInput
-
-    hsText <- traverse Text.readFile optHsPath
 
     -- The communication "channels" at debugger-driver and at brick
     driverMailbox <- newEmptyMVar @(D.Cmd Breakpoints)
@@ -136,7 +138,7 @@ main = do
             B.App
                 { B.appDraw = drawDebugger
                 , B.appChooseCursor = B.showFirstCursor
-                , B.appHandleEvent = handleDebuggerEvent driverMailbox
+                , B.appHandleEvent = handleDebuggerEvent driverMailbox optHsDir
                 , B.appStartEvent = pure ()
                 , B.appAttrMap = const debuggerAttrMap
                 }
@@ -146,17 +148,13 @@ main = do
                 , _dsFocusRing =
                     B.focusRing $ catMaybes
                         [ Just EditorUplc
-                        , EditorSource <$ optHsPath
+                        , EditorSource <$ optHsDir
                         , Just EditorReturnValue
                         , Just EditorLogs
                         ]
                 , _dsUplcEditor = BE.editorText EditorUplc Nothing uplcText
                 , _dsUplcHighlight = Nothing
-                , _dsSourceEditor =
-                    BE.editorText
-                        EditorSource
-                        Nothing <$>
-                        hsText
+                , _dsSourceEditor = Nothing
                 , _dsSourceHighlight = Nothing
                 , _dsReturnValueEditor =
                     BE.editorText
@@ -207,9 +205,12 @@ driverThread driverMailbox brickMailbox prog mbudget = do
     let exBudgetMode = case mbudget of
             Just budgetLimit -> coerceMode $ restricting $ ExRestrictingBudget budgetLimit
             _                -> coerceMode counting
-    -- TODO: implement emitter
     -- nilSlippage is important so as to get correct live up-to-date budget
-    cekTransWithBudgetRead <- mkCekTrans PLC.defaultCekParameters exBudgetMode noEmitter nilSlippage
+    cekTransWithBudgetRead <- mkCekTrans
+                                 PLC.defaultCekParameters
+                                 exBudgetMode
+                                 brickEmitter
+                                 nilSlippage
     D.iterM (handle cekTransWithBudgetRead) $ D.runDriverT ndterm
 
     where
@@ -229,13 +230,13 @@ driverThread driverMailbox brickMailbox prog mbudget = do
                -> IO ()
         handle (cekTrans, exBudgetInfo) = \case
           D.StepF prevState k  -> do
-              stepRes <- liftCek $ D.tryError $ cekTrans prevState
+              stepRes <- liftCek $ tryError $ cekTrans prevState
               -- if error then handle it, otherwise "kontinue"
               case stepRes of
                   Left e         -> handleError exBudgetInfo e
                   Right newState -> k newState
           D.InputF k           -> handleInput >>= k
-          D.LogF text k        -> handleLog text >> k
+          D.DriverLogF text k        -> handleLog text >> k
           D.UpdateClientF ds k -> handleUpdate exBudgetInfo ds >> k
 
         handleInput = takeMVar driverMailbox
@@ -246,16 +247,22 @@ driverThread driverMailbox brickMailbox prog mbudget = do
 
         handleError exBudgetInfo e = do
             bd <- readBudgetData exBudgetInfo
-            B.writeBChan brickMailbox $ ErrorEvent bd e
+            B.writeBChan brickMailbox $ CekErrorEvent bd e
             -- no kontinuation in case of error, the driver thread exits
             -- FIXME: decide what should happen after the error occurs
             -- e.g. a user dialog to (r)estart the thread with a button
 
-        handleLog = B.writeBChan brickMailbox . LogEvent
+        handleLog = B.writeBChan brickMailbox . DriverLogEvent
 
         readBudgetData :: ExBudgetInfo ExBudget uni fun RealWorld -> IO BudgetData
         readBudgetData (ExBudgetInfo _ final cumulative) =
             stToIO (BudgetData <$> cumulative <*> (for mbudget $ const final))
+
+        brickEmitter :: EmitterMode uni fun
+        brickEmitter = EmitterMode $ \_ -> do
+            -- the simplest solution relies on unsafeIOToPrim (here, unsafeIOToST)
+            let emitter logs = for_ logs (unsafeIOToPrim . B.writeBChan brickMailbox . CekEmitEvent)
+            pure $ CekEmitterInfo emitter (pure mempty)
 
 -- | Read uplc code in a given format
 --
@@ -278,7 +285,10 @@ getProgramWithText fmt inp =
             -- so we can have artificial SourceSpans in annotations
             progWithTxSpans <- loadASTfromFlat @UplcProg @PLC.SrcSpans flatMode inp
             -- annotations are not pprinted by default, no need to `void`
-            let progTextPretty = PLC.displayPlcDef progWithTxSpans
+            -- Here it is NECESSARY to use Debug pprint-mode to avoid any name-clashing
+            -- (after re-parsing and) upon using term zipping function (aka pzip).
+            -- Alternatively, use parseScoped in place of parseProgram.
+            let progTextPretty = PLC.displayPlcDebug progWithTxSpans
 
             -- the parsed prog with uplc.srcspan
             progWithUplcSpan <- either (fail . show @ParserErrorBundle) pure $ runExcept $

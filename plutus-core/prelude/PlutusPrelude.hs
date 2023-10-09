@@ -93,6 +93,7 @@ module PlutusPrelude
     -- * Lists
     , zipExact
     , unsafeFromRight
+    , tryError
     ) where
 
 import Control.Applicative
@@ -101,7 +102,8 @@ import Control.Composition ((.*))
 import Control.DeepSeq (NFData)
 import Control.Exception (Exception, throw)
 import Control.Lens (Fold, Lens', ala, lens, over, set, view, (%~), (&), (.~), (<&>), (^.))
-import Control.Monad (guard, join, void, (<=<), (>=>))
+import Control.Monad
+import Control.Monad.Except (MonadError, catchError)
 import Control.Monad.Reader (MonadReader, ask)
 import Data.Array (Array, Ix, listArray)
 import Data.Bifunctor (first, second)
@@ -248,3 +250,10 @@ unsafeFromRight (Left e)  = error $ show e
 -- | function recursively applied N times
 timesA :: Natural -> (a -> a) -> a -> a
 timesA = ala Endo . stimes
+
+-- | A 'MonadError' version of 'try'.
+--
+-- TODO: remove when we switch to mtl>=2.3
+{-# INLINE tryError #-}
+tryError :: MonadError e m => m a -> m (Either e a)
+tryError a = (Right <$> a) `catchError` (pure . Left)
