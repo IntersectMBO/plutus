@@ -183,8 +183,6 @@ test-suite plutus-ledger-api-plugin-test
     , plutus-tx-plugin                                ^>=1.14
     , prettyprinter
     , tasty
-    , tasty-hunit
-    , tasty-quickcheck
 
 -- This is a nightly test, so it is an executable instead of test-suite to avoid
 -- running this in CI.
