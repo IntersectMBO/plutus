@@ -29,6 +29,7 @@ module PlutusCore.Test (
   goldenUEvalLogs,
   goldenUEvalProfile,
   goldenUEvalBudget,
+  goldenSize,
   initialSrcSpan,
   topSrcSpan,
   NoMarkRenameT (..),
@@ -373,6 +374,15 @@ goldenUEvalBudget ::
   -> TestNested
 goldenUEvalBudget name values =
   nestedGoldenVsDocM name ".eval" $ ppCatch $ runUPlcBudget values
+
+goldenSize ::
+  (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun) =>
+  String ->
+  a ->
+  TestNested
+goldenSize name value =
+  nestedGoldenVsDocM name ".size" $
+    pure . pretty . UPLC.programSize =<< rethrow (toUPlc value)
 
 -- | A made-up `SrcSpan` for testing.
 initialSrcSpan :: FilePath -> SrcSpan

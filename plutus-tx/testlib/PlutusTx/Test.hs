@@ -58,17 +58,6 @@ import PlutusTx.Code (CompiledCode, CompiledCodeIn, getPir, getPirNoAnn, getPlcN
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
--- `PlutusCore.Size` testing (golden tests)
-
-goldenSize :: (PLC.Closed uni, Flat fun, PLC.Everywhere uni Flat) =>
-  -- | The name of the test
-  String ->
-  -- | The input for checking the size
-  CompiledCodeIn uni fun a ->
-  TestNested
-goldenSize name value =
-  nestedGoldenVsDoc name ".size" (pretty $ sizePlc value)
-
 -- `PlutusCore.Size` comparison tests
 
 fitsUnder ::
