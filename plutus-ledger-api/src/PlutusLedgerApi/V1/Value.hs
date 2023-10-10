@@ -463,7 +463,7 @@ eq (Value (Map.toList -> currs1)) (Value (Map.toList -> currs2)) =
                 then
                     -- Check equality of values that come from the common key prefix of the original
                     -- lists.
-                    all (uncurry (==)) valPairs
+                    all (uncurry (eqMapVia SortedMap.unsafeFromListUnique)) valPairs
                 else False
   where
     -- Check equality of two @Map@s given a function converting a list to a 'SortedMap' (two options

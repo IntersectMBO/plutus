@@ -27,13 +27,13 @@ newtype SortedMap k v = UnsafeSortedMap
     { unSortedMap :: [(k, v)]
     } deriving stock (Haskell.Show)
 
-{-# INLINABLE empty #-}
+{-# INLINEABLE empty #-}
 empty :: SortedMap k v
 empty = UnsafeSortedMap []
 
-{-# INLINE singleton #-}
+{-# INLINEABLE singleton #-}
 singleton :: k -> v -> SortedMap k [v]
-singleton ~k ~v = UnsafeSortedMap [(k, [v])]
+singleton k v = UnsafeSortedMap [(k, [v])]
 
 {-# INLINE unsafeInsertOneUnique #-}
 -- | Insert a key-value pair into the 'SortedMap' assuming the key isn't already in the map (if it
