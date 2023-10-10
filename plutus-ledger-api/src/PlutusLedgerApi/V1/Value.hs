@@ -393,6 +393,11 @@ the values, because
    some of the values first, a slight reordering of elements in the list could cause significant
    performance changes (e.g. if a larger value moves to the beginning of the list)
 
+For these reasons we decided not to pick the winner (@valueEqualsValue4@) from
+    https://github.com/input-output-hk/plutus/issues/5135#issuecomment-1459327829
+despite the fact that in some cases it performs much better than our solution (while performing
+substantially worse in others).
+
 If the result is 'MatchSuccess', then the two lists are equal.
 If the result is 'MatchFailure', then the two lists are not equal (pointwise at least).
 If the result is @MatchPartial vvs kvs1' kvs2'@, then the two lists have the same keys in the
