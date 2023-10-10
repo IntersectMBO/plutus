@@ -22,7 +22,7 @@ import PlutusBenchmark.NoFib.Queens qualified as Queens
 
 import PlutusCore.Default
 import PlutusTx qualified as Tx
-import PlutusTx.Test qualified as Tx
+import PlutusTx.Tests qualified as Tx
 
 runTestNested :: TestNested -> TestTree
 runTestNested = runTestNestedIn ["nofib", "test"]

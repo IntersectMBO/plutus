@@ -7,7 +7,7 @@
 {-# LANGUAGE UndecidableInstances  #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module PlutusTx.Test (
+module PlutusTx.Tests (
   -- * Size tests
   goldenSize,
   fitsUnder,
@@ -50,9 +50,9 @@ import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Pretty
 import PlutusCore.Pretty qualified as PLC
-import PlutusCore.Test
+import PlutusCore.Tests
 import PlutusIR.Core.Type (progTerm)
-import PlutusIR.Test ()
+import PlutusIR.Tests ()
 import PlutusPrelude
 import PlutusTx.Code (CompiledCode, CompiledCodeIn, getPir, getPirNoAnn, getPlcNoAnn, sizePlc)
 import UntypedPlutusCore qualified as UPLC

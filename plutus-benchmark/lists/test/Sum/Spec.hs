@@ -10,7 +10,7 @@ import PlutusBenchmark.Common (Term, cekResultMatchesHaskellValue)
 import PlutusBenchmark.Lists.Sum.Compiled qualified as Compiled
 import PlutusBenchmark.Lists.Sum.HandWritten qualified as HandWritten
 
-import PlutusTx.Test qualified as Tx
+import PlutusTx.Tests qualified as Tx
 
 -- | Check that the various summation functions all give the same result as 'sum'
 

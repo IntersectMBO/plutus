@@ -20,7 +20,7 @@ module IntegerLiterals.Strict.NoNegativeLiterals.Spec where
 
 import PlutusTx.Code
 import PlutusTx.Prelude qualified as PlutusTx
-import PlutusTx.Test
+import PlutusTx.Tests
 import PlutusTx.TH (compile)
 
 import Test.Tasty.Extras

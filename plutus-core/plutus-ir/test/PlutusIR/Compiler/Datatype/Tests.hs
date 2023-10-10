@@ -1,7 +1,7 @@
-module PlutusIR.Compiler.Datatype.Test where
+module PlutusIR.Compiler.Datatype.Tests where
 
 import PlutusIR.Parser (pTerm)
-import PlutusIR.Test
+import PlutusIR.Tests
 
 import Test.Tasty
 import Test.Tasty.Extras

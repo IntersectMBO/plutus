@@ -13,7 +13,7 @@ import PlutusBenchmark.ScriptContexts
 
 import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
-import PlutusTx.Test qualified as Tx
+import PlutusTx.Tests qualified as Tx
 
 runTestNested :: TestNested -> TestTree
 runTestNested = runTestNestedIn ["script-contexts", "test"]

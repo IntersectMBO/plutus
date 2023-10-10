@@ -21,7 +21,7 @@ import PlutusIR.Transform.Unwrap
 
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Rename
-import PlutusCore.Test qualified as T
+import PlutusCore.Tests qualified as T
 
 import Test.Tasty
 

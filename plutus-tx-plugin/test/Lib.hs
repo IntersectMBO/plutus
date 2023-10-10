@@ -20,10 +20,10 @@ import Test.Tasty.Extras
 
 import PlutusPrelude
 
-import PlutusCore.Test
+import PlutusCore.Tests
 
 import PlutusTx.Code
-import PlutusTx.Test ()
+import PlutusTx.Tests ()
 
 import PlutusCore qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC

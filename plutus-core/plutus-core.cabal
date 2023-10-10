@@ -574,10 +574,10 @@ test-suite plutus-ir-test
     PlutusCore.Generators.QuickCheck.TypesTests
     PlutusIR.Analysis.RetainedSize.Tests
     PlutusIR.Check.Uniques.Tests
-    PlutusIR.Compiler.Datatype.Test
-    PlutusIR.Compiler.Error.Test
-    PlutusIR.Compiler.Let.Test
-    PlutusIR.Compiler.Recursion.Test
+    PlutusIR.Compiler.Datatype.Tests
+    PlutusIR.Compiler.Error.Tests
+    PlutusIR.Compiler.Let.Tests
+    PlutusIR.Compiler.Recursion.Tests
     PlutusIR.Core.Tests
     PlutusIR.Generators.QuickCheck.Tests
     PlutusIR.Parser.Tests
@@ -679,7 +679,7 @@ library plutus-core-testlib
     PlutusCore.Generators.Hedgehog.Denotation
     PlutusCore.Generators.Hedgehog.Entity
     PlutusCore.Generators.Hedgehog.Interesting
-    PlutusCore.Generators.Hedgehog.Test
+    PlutusCore.Generators.Hedgehog.Tests
     PlutusCore.Generators.Hedgehog.TypedBuiltinGen
     PlutusCore.Generators.Hedgehog.TypeEvalCheck
     PlutusCore.Generators.Hedgehog.Utils
@@ -697,7 +697,7 @@ library plutus-core-testlib
     PlutusCore.Generators.QuickCheck.Substitutions
     PlutusCore.Generators.QuickCheck.Unification
     PlutusCore.Generators.QuickCheck.Utils
-    PlutusCore.Test
+    PlutusCore.Tests
     PlutusIR.Generators.AST
     PlutusIR.Generators.QuickCheck
     PlutusIR.Generators.QuickCheck.Common

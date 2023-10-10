@@ -30,7 +30,7 @@ import PlutusCore.Generators.Hedgehog.AST as AST
 import PlutusCore.Generators.NEAT.Spec qualified as NEAT
 import PlutusCore.MkPlc
 import PlutusCore.Pretty
-import PlutusCore.Test
+import PlutusCore.Tests
 
 import Control.Monad.Except
 import Data.ByteString.Lazy qualified as BSL

@@ -15,11 +15,11 @@ import Test.Tasty.Extras
 
 import Plugin.Lib
 
-import PlutusCore.Test
+import PlutusCore.Tests
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code
 import PlutusTx.Plugin
-import PlutusTx.Test
+import PlutusTx.Tests
 
 import Data.Proxy
 

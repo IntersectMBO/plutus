@@ -7,8 +7,8 @@
 {-# LANGUAGE UndecidableInstances  #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module PlutusIR.Test (
-  module PlutusIR.Test,
+module PlutusIR.Tests (
+  module PlutusIR.Tests,
   initialSrcSpan,
   topSrcSpan,
   rethrow,
@@ -29,7 +29,7 @@ import PlutusCore.Compiler qualified as PLC
 import PlutusCore.Pretty
 import PlutusCore.Pretty qualified as PLC
 import PlutusCore.Quote (runQuoteT)
-import PlutusCore.Test hiding (ppCatch)
+import PlutusCore.Tests hiding (ppCatch)
 import PlutusIR as PIR
 import PlutusIR.Compiler as PIR
 import PlutusIR.Parser (Parser, pTerm, parse)

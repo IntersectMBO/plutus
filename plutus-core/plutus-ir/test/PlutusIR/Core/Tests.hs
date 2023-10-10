@@ -4,7 +4,7 @@ import PlutusCore qualified as PLC
 import PlutusIR
 import PlutusIR.Core.Instance.Pretty.Readable
 import PlutusIR.Parser (pTerm)
-import PlutusIR.Test
+import PlutusIR.Tests
 
 import Test.Tasty
 import Test.Tasty.Extras

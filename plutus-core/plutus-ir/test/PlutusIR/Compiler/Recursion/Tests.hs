@@ -1,6 +1,6 @@
-module PlutusIR.Compiler.Recursion.Test where
+module PlutusIR.Compiler.Recursion.Tests where
 
-import PlutusIR.Test
+import PlutusIR.Tests
 
 import Test.Tasty
 import Test.Tasty.Extras

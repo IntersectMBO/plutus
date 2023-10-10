@@ -8,7 +8,7 @@ import PlutusTx.Code (CompiledCode)
 import PlutusTx.IsData.Class (fromBuiltinData, toBuiltinData, unsafeFromBuiltinData)
 import PlutusTx.Prelude qualified as Plutus
 import PlutusTx.Ratio qualified as PlutusRatio
-import PlutusTx.Test
+import PlutusTx.Tests
 import PlutusTx.TH (compile)
 import Prelude
 import Test.Tasty (TestTree, defaultMain, testGroup)

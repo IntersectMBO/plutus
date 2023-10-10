@@ -9,7 +9,7 @@ import PlutusCore.Name
 import PlutusCore.Quote
 import PlutusIR.Error as PIR
 import PlutusIR.Parser
-import PlutusIR.Test
+import PlutusIR.Tests
 import PlutusIR.Transform.LetFloatOut qualified as LetFloatOut
 import PlutusIR.Transform.LetMerge qualified as LetMerge
 import PlutusIR.Transform.RecSplit qualified as RecSplit

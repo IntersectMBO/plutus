@@ -24,14 +24,14 @@ import Test.Tasty.Extras
 
 import Plugin.Data.Spec
 
-import PlutusCore.Test
+import PlutusCore.Tests
 import PlutusTx.AsData qualified as AsData
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code
 import PlutusTx.IsData qualified as IsData
 import PlutusTx.Plugin
 import PlutusTx.Prelude qualified as P
-import PlutusTx.Test
+import PlutusTx.Tests
 
 import PlutusCore qualified as PLC
 import PlutusCore.MkPlc qualified as PLC

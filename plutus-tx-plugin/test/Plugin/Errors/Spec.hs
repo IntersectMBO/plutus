@@ -16,11 +16,11 @@ module Plugin.Errors.Spec where
 
 import Test.Tasty.Extras
 
-import PlutusCore.Test
+import PlutusCore.Tests
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code
 import PlutusTx.Plugin
-import PlutusTx.Test ()
+import PlutusTx.Tests ()
 
 import Data.Proxy
 import Data.String

@@ -17,13 +17,13 @@ module Optimization.Spec where
 import Test.Tasty.Extras
 
 import Data.Proxy
-import PlutusCore.Test
+import PlutusCore.Tests
 import PlutusTx.AsData qualified as AsData
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code
 import PlutusTx.IsData qualified as IsData
 import PlutusTx.Plugin (plc)
-import PlutusTx.Test
+import PlutusTx.Tests
 import PlutusTx.TH (compile)
 
 AsData.asData [d|

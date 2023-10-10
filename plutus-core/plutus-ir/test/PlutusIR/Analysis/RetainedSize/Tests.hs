@@ -9,7 +9,7 @@ import PlutusCore.Quote
 import PlutusCore.Rename qualified as PLC
 import PlutusIR.Analysis.RetainedSize qualified as RetainedSize
 import PlutusIR.Parser
-import PlutusIR.Test
+import PlutusIR.Tests
 import PlutusPrelude
 
 test_retainedSize :: TestTree

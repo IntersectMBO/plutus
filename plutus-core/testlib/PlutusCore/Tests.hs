@@ -9,7 +9,7 @@
 
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module PlutusCore.Test (
+module PlutusCore.Tests (
   checkFails,
   ToTPlc (..),
   ToUPlc (..),

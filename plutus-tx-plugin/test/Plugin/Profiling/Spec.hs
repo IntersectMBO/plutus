@@ -17,11 +17,11 @@ module Plugin.Profiling.Spec where
 
 import Test.Tasty.Extras
 
-import PlutusCore.Test (ToUPlc (toUPlc), goldenUEvalLogs)
+import PlutusCore.Tests (ToUPlc (toUPlc), goldenUEvalLogs)
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code (CompiledCode)
 import PlutusTx.Plugin (plc)
-import PlutusTx.Test (goldenPir)
+import PlutusTx.Tests (goldenPir)
 
 import Data.Functor.Identity
 import Data.Proxy (Proxy (Proxy))
