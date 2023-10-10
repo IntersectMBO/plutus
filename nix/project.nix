@@ -1,6 +1,6 @@
 # editorconfig-checker-disable-file 
 
-{ repoRoot, inputs, lib, ... }:
+{ repoRoot, inputs, lib, pkgs, system }:
 
 let
   cabalProject = pkgs.haskell-nix.cabalProject' ({ config, pkgs, ... }:
