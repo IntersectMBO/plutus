@@ -10,15 +10,15 @@
       inputs.CHaP.follows = "CHaP";
       inputs.haskell-nix.follows = "haskell-nix";
       inputs.nixpkgs.follows = "nixpkgs";
-      inputs.iohk-nix.follows = "iohk-nix";
+      # inputs.iohk-nix.follows = "iohk-nix";
     };
 
     nixpkgs.follows = "haskell-nix/nixpkgs";
 
-    iohk-nix = {
-      url = "github:input-output-hk/iohk-nix/86421fdd89b3af43fa716ccd07638f96c6ecd1e4";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    # iohk-nix = {
+    #   url = "github:input-output-hk/iohk-nix/86421fdd89b3af43fa716ccd07638f96c6ecd1e4";
+    #   inputs.nixpkgs.follows = "nixpkgs";
+    # };
 
     hackage = {
       url = "github:input-output-hk/hackage.nix/9f795d4cd8ed75cad1d6c4f78757cb60aba78794";
