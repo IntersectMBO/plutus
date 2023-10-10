@@ -40,7 +40,7 @@ test_deadCode = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
 test_typecheck :: TestTree
 test_typecheck = testGroup "typechecking"
   [ testProperty "Builtin Variant1" $
-  withMaxSuccess 5000
+  withMaxSuccess 10000
   (nonPureTypecheckProp (removeDeadBindings (BuiltinsInfo DefaultFunSemanticsVariant1)))
 
   -- FIXME this test mostly pass, but sometimes fail. Test many times to make it fail consistently.
