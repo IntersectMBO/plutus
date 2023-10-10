@@ -3,26 +3,35 @@
 
 
   inputs = {
+
     iogx = {
       url = "github:input-output-hk/iogx?ref=v4";
       inputs.hackage.follows = "hackage";
       inputs.CHaP.follows = "CHaP";
       inputs.haskell-nix.follows = "haskell-nix";
-      inputs.nixpkgs.follows = "haskell-nix/nixpkgs";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.iohk-nix.follows = "iohk-nix";
+    };
+
+    nixpkgs.follows = "haskell-nix/nixpkgs";
+
+    iohk-nix = {
+      url = "github:input-output-hk/iohk-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     hackage = {
-      url = "github:input-output-hk/hackage.nix/ad01b49b5be1112aed7ad135bf667b7b92169ce1";
+      url = "github:input-output-hk/hackage.nix";
       flake = false;
     };
 
     CHaP = {
-      url = "github:input-output-hk/cardano-haskell-packages?ref=repo";
+      url = "github:input-output-hk/cardano-haskell-packages";
       flake = false;
     };
 
     haskell-nix = {
-      url = "github:input-output-hk/haskell.nix/9be017fdfbd2b290f1df4385ccd0fc22f549c1f2";
+      url = "github:input-output-hk/haskell.nix";
       inputs.hackage.follows = "hackage";
     };
   };
