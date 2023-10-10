@@ -9,7 +9,6 @@
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TupleSections         #-}
 {-# LANGUAGE UndecidableInstances  #-}
-
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 
 -- | A map represented as an "association list" of key-value pairs.

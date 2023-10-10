@@ -106,7 +106,7 @@ any f = go
         []     -> False
         x : xs -> if f x then True else go xs
 
-{-# INLINE all #-}
+{-# INLINE all #-}  -- Improves some of the budget tests.
 -- | Determines whether all elements of the list satisfy the predicate.
 all :: forall a. (a -> Bool) -> [a] -> Bool
 all f = go
