@@ -31,7 +31,7 @@ test_evaluateBuiltins = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
 -- pass.
 typecheck_evaluateBuiltins_prop :: BuiltinSemanticsVariant DefaultFun -> Property
 typecheck_evaluateBuiltins_prop biVariant =
-  pure_typecheck_prop (evaluateBuiltins True (BuiltinsInfo biVariant) def)
+  pureTypecheckProp (evaluateBuiltins True (BuiltinsInfo biVariant) def)
 
 test_typecheck :: TestTree
 test_typecheck = testGroup "typechecking"

@@ -23,4 +23,4 @@ test_unwrap = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
 
 test_typecheck :: TestTree
 test_typecheck = testProperty "typechecking" $
-    withMaxSuccess 3000 (pure_typecheck_prop Unwrap.unwrapCancel)
+    withMaxSuccess 3000 (pureTypecheckProp Unwrap.unwrapCancel)

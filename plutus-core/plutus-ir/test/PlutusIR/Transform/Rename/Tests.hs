@@ -27,4 +27,4 @@ test_rename = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
 
 test_typecheck :: TestTree
 test_typecheck = testProperty "typechecking" $
-  withMaxSuccess 3000 (non_pure_typecheck_prop PLC.rename)
+  withMaxSuccess 3000 (nonPureTypecheckProp PLC.rename)

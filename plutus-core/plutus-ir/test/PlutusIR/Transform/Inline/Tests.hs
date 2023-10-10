@@ -106,7 +106,7 @@ checkUniques =
 -- | Check that a term typechecks after a `PlutusIR.Transform.Inline` pass.
 typecheck_inline_prop :: BuiltinSemanticsVariant DefaultFun -> Property
 typecheck_inline_prop biVariant =
-  non_pure_typecheck_prop (inline mempty (BuiltinsInfo biVariant))
+  nonPureTypecheckProp (inline mempty (BuiltinsInfo biVariant))
 
 test_typecheck :: TestTree
 test_typecheck = testGroup "typechecking"

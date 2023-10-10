@@ -20,25 +20,25 @@ test_lets = runTestNestedIn ["plutus-ir/test/PlutusIR/Compiler"] $ testNested "L
 -- `PlutusIR.Compiler.Let.compileLets` (recursive terms) pass.
 typecheck_compileLets_RecTerms_prop :: Property
 typecheck_compileLets_RecTerms_prop =
-  extra_constraint_typecheck_prop (compileLets RecTerms)
+  extraConstraintTypecheckProp (compileLets RecTerms)
 
 -- | Check that a term typechecks after a
 -- `PlutusIR.Compiler.Let.compileLets` (non-recursive terms) pass.
 typecheck_compileLets_NonRecTerms_prop :: Property
 typecheck_compileLets_NonRecTerms_prop =
-  extra_constraint_typecheck_prop (compileLets NonRecTerms)
+  extraConstraintTypecheckProp (compileLets NonRecTerms)
 
 -- | Check that a term typechecks after a
 -- `PlutusIR.Compiler.Let.compileLets` (types) pass.
 typecheck_compileLets_Types_prop :: Property
 typecheck_compileLets_Types_prop =
-  extra_constraint_typecheck_prop (compileLets Types)
+  extraConstraintTypecheckProp (compileLets Types)
 
 -- | Check that a term typechecks after a
 -- `PlutusIR.Compiler.Let.compileLets` (data types) pass.
 typecheck_compileLets_DataTypes_prop :: Property
 typecheck_compileLets_DataTypes_prop =
-  extra_constraint_typecheck_prop (compileLets DataTypes)
+  extraConstraintTypecheckProp (compileLets DataTypes)
 
 test_typecheck :: TestTree
 test_typecheck = testGroup "typechecking"

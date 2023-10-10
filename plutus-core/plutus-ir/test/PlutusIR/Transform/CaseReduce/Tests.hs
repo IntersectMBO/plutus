@@ -9,4 +9,4 @@ import Test.Tasty.QuickCheck (testProperty)
 
 test_typecheck :: TestTree
 test_typecheck = testProperty "typechecking" $
-      withMaxSuccess 3000 (pure_typecheck_prop caseReduce)
+      withMaxSuccess 3000 (pureTypecheckProp caseReduce)

@@ -26,4 +26,4 @@ test_recSplit = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
 
 test_typecheck :: TestTree
 test_typecheck = testProperty "typechecking" $
-  withMaxSuccess 3000 (pure_typecheck_prop recSplit)
+  withMaxSuccess 3000 (pureTypecheckProp recSplit)

@@ -20,7 +20,7 @@ import PlutusPrelude
 import PlutusCore.Builtin
 import PlutusCore.Default
 import PlutusIR.Analysis.Builtins
-import PlutusIR.Properties.Typecheck (pure_typecheck_prop)
+import PlutusIR.Properties.Typecheck (pureTypecheckProp)
 import Test.QuickCheck.Property (Property, withMaxSuccess)
 import Test.Tasty.QuickCheck (testProperty)
 
@@ -76,7 +76,7 @@ test_letFloatOut = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
 -- `PlutusIR.Transform.LetFloatOut.floatTerm` pass.
 typecheck_floatTerm_prop :: BuiltinSemanticsVariant PLC.DefaultFun -> Property
 typecheck_floatTerm_prop biVariant =
-  pure_typecheck_prop $ LetFloatOut.floatTerm (BuiltinsInfo biVariant)
+  pureTypecheckProp $ LetFloatOut.floatTerm (BuiltinsInfo biVariant)
 
 test_typecheck :: TestTree
 test_typecheck = testGroup "typechecking"

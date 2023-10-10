@@ -74,7 +74,7 @@ test_letFloatInRelaxed = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform/Let
 typecheck_floatTerm_prop ::
   BuiltinSemanticsVariant PLC.DefaultFun -> Bool -> Property
 typecheck_floatTerm_prop biVariant bool =
-  non_pure_typecheck_prop $ LetFloatIn.floatTerm (BuiltinsInfo biVariant) bool
+  nonPureTypecheckProp $ LetFloatIn.floatTerm (BuiltinsInfo biVariant) bool
 
 test_typecheck :: TestTree
 test_typecheck = testGroup "typechecking"

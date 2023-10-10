@@ -40,12 +40,12 @@ convertToEitherString = \case
   Right () -> Right ()
 
 -- | Check that a term typechecks after one of the pure passes.
-pure_typecheck_prop ::
+pureTypecheckProp ::
   -- | The pure simplification pass.
   (Term TyName Name DefaultUni DefaultFun ()
   -> Term TyName Name DefaultUni DefaultFun ())
   -> Property
-pure_typecheck_prop pass =
+pureTypecheckProp pass =
   forAllDoc "ty,tm" genTypeAndTerm_ (const []) $ \ (_ty, tm) ->
     convertToEitherString $ do
       config <- getDefTypeCheckConfig ()
@@ -55,12 +55,12 @@ pure_typecheck_prop pass =
       pure ()
 
 -- | Check that a term typechecks after a non-pure pass.
-non_pure_typecheck_prop :: (Term TyName Name DefaultUni DefaultFun (Provenance ())
+nonPureTypecheckProp :: (Term TyName Name DefaultUni DefaultFun (Provenance ())
   -> QuoteT
       (Either (Error DefaultUni DefaultFun ()))
       (Term TyName Name DefaultUni DefaultFun a))
   -> Property
-non_pure_typecheck_prop pass =
+nonPureTypecheckProp pass =
   forAllDoc "ty,tm" genTypeAndTerm_ (const []) $ \ (_ty, tm) ->
     convertToEitherString $ do
       config <- getDefTypeCheckConfig ()
@@ -71,7 +71,7 @@ non_pure_typecheck_prop pass =
       pure ()
 
 -- | Check that a term typechecks after a non-pure pass that requires extra constraints.
-extra_constraint_typecheck_prop ::
+extraConstraintTypecheckProp ::
   (Term TyName Name DefaultUni DefaultFun (Provenance ())
   -> QuoteT
       (ReaderT
@@ -79,7 +79,7 @@ extra_constraint_typecheck_prop ::
          (Either (Error DefaultUni DefaultFun b)))
       (Term TyName Name DefaultUni DefaultFun a))
   -> Property
-extra_constraint_typecheck_prop pass =
+extraConstraintTypecheckProp pass =
   forAllDoc "ty,tm" genTypeAndTerm_ (const []) $ \ (_ty, tm) ->
     convertToEitherString $ do
       config <- getDefTypeCheckConfig ()

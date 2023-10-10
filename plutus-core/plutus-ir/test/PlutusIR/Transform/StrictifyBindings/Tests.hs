@@ -6,7 +6,7 @@ import Test.Tasty.Extras
 import PlutusCore.Default.Builtins
 import PlutusIR.Analysis.Builtins
 import PlutusIR.Parser
-import PlutusIR.Properties.Typecheck (pure_typecheck_prop)
+import PlutusIR.Properties.Typecheck (pureTypecheckProp)
 import PlutusIR.Test
 import PlutusIR.Transform.StrictifyBindings
 import PlutusPrelude
@@ -28,7 +28,7 @@ test_strictifyBindings = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
 -- `PlutusIR.Transform.StrictifyBindings` pass.
 typecheck_strictifyBindings_prop :: BuiltinSemanticsVariant DefaultFun -> Property
 typecheck_strictifyBindings_prop biVariant =
-  pure_typecheck_prop (strictifyBindings (BuiltinsInfo biVariant))
+  pureTypecheckProp (strictifyBindings (BuiltinsInfo biVariant))
 
 test_typecheck :: TestTree
 test_typecheck = testGroup "typechecking"
