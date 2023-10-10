@@ -20,7 +20,6 @@ import PlutusCore.Quote
 import PlutusCore.Rename
 import PlutusCore.TypeCheck qualified as PLC
 import PlutusIR.Compiler
-import PlutusIR.Compiler.Provenance (original)
 import PlutusIR.Core
 import PlutusIR.Generators.QuickCheck.GenerateTerms
 import PlutusIR.TypeCheck
@@ -49,9 +48,10 @@ pureTypecheckProp pass =
   forAllDoc "ty,tm" genTypeAndTerm_ (const []) $ \ (_ty, tm) ->
     convertToEitherString $ do
       config <- getDefTypeCheckConfig ()
-      -- the generated term may not have globally unique names
-      renamed <- runQuoteT $ rename tm
-      _ <- runQuoteT $ inferType config (pass renamed)
+      _ <- runQuoteT $ do
+        -- the generated term may not have globally unique names
+        renamed <- rename tm
+        inferType config (pass renamed)
       pure ()
 
 -- | Check that a term typechecks after a non-pure pass.
@@ -64,10 +64,10 @@ nonPureTypecheckProp pass =
   forAllDoc "ty,tm" genTypeAndTerm_ (const []) $ \ (_ty, tm) ->
     convertToEitherString $ do
       config <- getDefTypeCheckConfig ()
-      -- the generated term may not have globally unique names
-      renamed <- runQuoteT $ rename tm
-      processed <- runQuoteT $ pass (original renamed)
-      _ <- runQuoteT $ inferType config (processed $> ())
+      _ <- runQuoteT $ do
+        -- the generated term may not have globally unique names
+        processed <- pass =<< rename (Original () <$ tm)
+        inferType config (processed $> ())
       pure ()
 
 -- | Check that a term typechecks after a non-pure pass that requires extra constraints.
@@ -84,14 +84,14 @@ extraConstraintTypecheckProp pass =
     convertToEitherString $ do
       config <- getDefTypeCheckConfig ()
       plcConfig <- PLC.getDefTypeCheckConfig ()
-      renamed <- runQuoteT $ rename tm
       let processed =
-            runReaderT
-              (runQuoteT (pass (original renamed))) (toDefaultCompilationCtx plcConfig)
+            flip runReaderT (toDefaultCompilationCtx plcConfig) $
+              runQuoteT $ pass =<< rename (Original () <$ tm)
       case processed of
         Left err -> Left $ err $> ()
         Right processSuccess -> do
-          -- need to rename because some passes don't preserve global uniqueness
-          renamedProcessed <- runQuoteT $ rename processSuccess
-          _ <- runQuoteT $ inferType config (renamedProcessed $> ())
+          _ <- runQuoteT $ do
+            -- need to rename because some passes don't preserve global uniqueness
+            renamedProcessed <- rename processSuccess
+            inferType config (renamedProcessed $> ())
           pure ()
