@@ -445,8 +445,8 @@ eq :: Value -> Value -> Bool
 eq (Value (Map.toList -> currs1)) (Value (Map.toList -> currs2)) =
     -- Check structural equality of the lists first.
     case matchKVs (Map.all (== 0)) (eqMapVia SortedMap.UnsafeSortedMap) currs1 currs2 of
-        MatchSuccess                          -> True
-        MatchFailure                          -> False
+        MatchSuccess -> True
+        MatchFailure -> False
         -- If the lists aren't structurally equal, then convert the remaining parts to 'SortedMap's
         -- (by sorting first) and check structural equality of the now sorted lists.
         MatchPartial valPairs currs1' currs2' ->

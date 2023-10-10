@@ -58,6 +58,7 @@ unsafeFromListUnique = go where
     go []             = UnsafeSortedMap []
     go ((k, v) : kvs) = unsafeInsertOneUnique k v $ go kvs
 
+-- The pragma trades a bit size for potentially plenty of budget.
 {-# INLINE eqWith #-}
 -- | Check equality of 'SortedMap's by matching the underlying lists pointwise.
 eqWith
