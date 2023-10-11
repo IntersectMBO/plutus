@@ -370,36 +370,36 @@ data MatchResult k v
     | MatchPartial [(v, v)] [(k, v)] [(k, v)]
     | MatchFailure
 
-{-# INLINE insertUnique #-}
+{-# INLINE unsafeInsertUnique #-}
 -- | Insert a key-value pair into the __sorted__ list assuming the key isn't already in the map (the
 -- invariants are not checked).
-insertUnique :: forall k v. Ord k => k -> v -> [(k, v)] -> [(k, v)]
-insertUnique k0 v0 = coerce go where
+unsafeInsertUnique :: forall k v. Ord k => k -> v -> [(k, v)] -> [(k, v)]
+unsafeInsertUnique k0 v0 = coerce go where
     go :: [(k, v)] -> [(k, v)]
     go []                  = [(k0, v0)]
     go kvs@((k, v) : kvs') =
         case k0 `compare` k of
             LT -> (k0, v0) : kvs
-            -- TODO: make this @traceError duplicateElements@.
+            -- TODO: make this @traceError duplicateKeys@.
             EQ -> (k, v0) : kvs'
             GT -> (k, v) : go kvs'
 
-{-# INLINE insertionSortUnique #-}
+{-# INLINEABLE unsafeInsertionSortUnique #-}
 -- | Sort a list assuming all of its keys are unique (the invariant is not checked).
-insertionSortUnique :: forall k v. Ord k => [(k, v)] -> [(k, v)]
-insertionSortUnique = go where
-    go :: [(k, v)] -> [(k, v)]
-    go []             = []
-    go ((k, v) : kvs) = insertUnique k v $ go kvs
+unsafeInsertionSortUnique :: forall k v. Ord k => [(k, v)] -> [(k, v)]
+unsafeInsertionSortUnique = foldr (uncurry unsafeInsertUnique) []
 
--- The pragma trades a bit of size for potentially plenty of budget.
-{-# INLINE eqKVs #-}
--- | Check equality of lists by matching them pointwise.
+-- The pragma trades potentially plenty of budget for a sizeable amount of size.
+{-# INLINEABLE eqKVs #-}
+{- | Take a function checking whether a value is zero\/empty, a function checking /semantic/
+equality of two values and two key-value lists and return the result of matching the lists
+pointwisely.
+-}
 eqKVs :: forall k v. Eq k => (v -> Bool) -> (v -> v -> Bool) -> [(k, v)] -> [(k, v)] -> Bool
 eqKVs is0 eqV = coerce go where
     go :: [(k, v)] -> [(k, v)] -> Bool
     go [] []   = True
-    go [] kvs2 = all (is0 . snd) kvs2  -- If one of the lists is empty then all elements in the
+    go [] kvs2 = all (is0 . snd) kvs2  -- If one of the lists is empty then all values in the
     go kvs1 [] = all (is0 . snd) kvs1  -- other list need to be zero for lists to be equal.
     go kvs1@((k1, v1) : kvs1') kvs2@((k2, v2) : kvs2')
         -- As with 'matchKVs' we check equality of all the keys first and only then check equality
@@ -410,6 +410,7 @@ eqKVs is0 eqV = coerce go where
         | is0 v2 = go kvs1 kvs2'
         | otherwise = False
 
+-- The pragma trades a negligible amount of size for a substantial performance boost.
 {-# INLINE matchKVs #-}
 {- | Take a function checking whether a value is zero\/empty, a function checking /structural/
 equality of two values and two key-value lists and return the result of matching the lists
@@ -430,7 +431,7 @@ the values, because
 2. values can be maps and as such checking their equality may be very expensive, it makes sense to
    check equality of keys first
 3. checking equality of keys makes for a less surprising user experience. If we were to process
-   some of the values first, a slight reordering of elements in the list could cause significant
+   some of the values first, a slight reordering of elements of the list could cause significant
    performance changes (e.g. if a larger value moves to the beginning of the list)
 
 For these reasons we decided not to pick the winner (@valueEqualsValue4@) from
@@ -497,13 +498,13 @@ eq (Value (Map.toList -> currs1)) (Value (Map.toList -> currs2)) =
         MatchPartial valPairs currs1' currs2' ->
             if eqKVs
                     (Map.all (== 0))
-                    (eqMapVia insertionSortUnique)
-                    (insertionSortUnique currs1')
-                    (insertionSortUnique currs2')
+                    (eqMapVia unsafeInsertionSortUnique)
+                    (unsafeInsertionSortUnique currs1')
+                    (unsafeInsertionSortUnique currs2')
                 then
                     -- Check equality of values that come from the common key prefix of the original
                     -- lists.
-                    all (uncurry (eqMapVia insertionSortUnique)) valPairs
+                    all (uncurry (eqMapVia unsafeInsertionSortUnique)) valPairs
                 else False
   where
     -- Check equality of two @Map@s given a function transforming a list of tokens (two options for
@@ -513,8 +514,8 @@ eq (Value (Map.toList -> currs1)) (Value (Map.toList -> currs2)) =
         -> Map.Map TokenName Integer
         -> Map.Map TokenName Integer
         -> Bool
-    eqMapVia sortTokens (Map.toList -> tokens1) (Map.toList -> tokens2) =
-        eqKVs (== 0) (==) (sortTokens tokens1) (sortTokens tokens2)
+    eqMapVia f (Map.toList -> tokens1) (Map.toList -> tokens2) =
+        eqKVs (== 0) (==) (f tokens1) (f tokens2)
 
 makeLift ''CurrencySymbol
 makeLift ''TokenName
