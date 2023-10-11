@@ -52,7 +52,7 @@ in
       hydraJobs.read-the-docs-site = ghc92.read-the-docs-site;
       hydraJobs.pre-commit-check = ghc92.pre-commit-check;
 
-      hydraJobs.mingwW64.ghc92 = ghc92-mingwW64.hydraJobs;
+      #hydraJobs.mingwW64.ghc92 = ghc92-mingwW64.hydraJobs;
 
       hydraJobs.musl64.ghc92.pir = ghc92-musl64.cabalProject.hsPkgs.plutus-core.components.exes.pir;
       hydraJobs.musl64.ghc92.plc = ghc92-musl64.cabalProject.hsPkgs.plutus-core.components.exes.plc;
