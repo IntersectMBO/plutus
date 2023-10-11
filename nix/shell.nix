@@ -74,9 +74,9 @@ in
     group = "changelog";
   };
 
-  shellHook = ''
-    ${builtins.readFile certEnv}
-  '';
+  # shellHook = ''
+  #   ${builtins.readFile certEnv}
+  # '';
 
   preCommit = {
     stylish-haskell.enable = true;
