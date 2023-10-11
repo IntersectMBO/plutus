@@ -922,4 +922,4 @@
       `PlutusBenchmark.NoFib.Clausify.F7` :
         `PlutusBenchmark.NoFib.Clausify.StaticFormula`
   in
-  `PlutusBenchmark.NoFib.Clausify.F1`)
+  `PlutusBenchmark.NoFib.Clausify.F5`)
