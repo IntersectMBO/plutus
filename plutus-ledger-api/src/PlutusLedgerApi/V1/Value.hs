@@ -484,20 +484,20 @@ matchKVs is0 structEqV = go where
 
 {-# INLINEABLE eq #-}
 -- | Check equality of two 'Value's. Does not assume orderness of lists within 'Value' or lack of
--- empty values (such as a token whose quantity is zero or a currencies that has a bunch of such
+-- empty values (such as a token whose quantity is zero or a currency that has a bunch of such
 -- tokens or no tokens at all), but does assume that no currencies or tokens within a single
 -- currency have multiple entries.
 eq :: Value -> Value -> Bool
 eq (Value (Map.toList -> currs1)) (Value (Map.toList -> currs2)) =
     -- Check structural equality of the lists first.
-    case matchKVs (Map.all (== 0)) (eqMapVia id) currs1 currs2 of
+    case matchKVs (Map.all (0 ==)) (eqMapVia id) currs1 currs2 of
         MatchSuccess -> True
         MatchFailure -> False
         -- If the lists aren't structurally equal, then sort them and check structural equality of
         -- the now sorted lists.
         MatchPartial valPairs currs1' currs2' ->
             if eqKVs
-                    (Map.all (== 0))
+                    (Map.all (0 ==))
                     (eqMapVia unsafeInsertionSortUnique)
                     (unsafeInsertionSortUnique currs1')
                     (unsafeInsertionSortUnique currs2')
@@ -515,7 +515,7 @@ eq (Value (Map.toList -> currs1)) (Value (Map.toList -> currs2)) =
         -> Map.Map TokenName Integer
         -> Bool
     eqMapVia f (Map.toList -> tokens1) (Map.toList -> tokens2) =
-        eqKVs (== 0) (==) (f tokens1) (f tokens2)
+        eqKVs (0 ==) (==) (f tokens1) (f tokens2)
 
 makeLift ''CurrencySymbol
 makeLift ''TokenName
