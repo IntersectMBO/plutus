@@ -18,8 +18,7 @@ import PlutusIR.Test
 import PlutusIR.Transform.Inline.Inline
 import PlutusPrelude
 import Test.QuickCheck.Property (Property, withMaxSuccess)
-import Test.Tasty (TestTree, testGroup)
-import Test.Tasty.QuickCheck (testProperty)
+import Test.Tasty (TestTree)
 
 -- | Tests of the inliner, include global uniqueness test.
 test_inline :: TestTree
@@ -104,15 +103,6 @@ checkUniques =
     Uniques.checkTerm (\case { Uniques.MultiplyDefined{} -> True; _ -> False})
 
 -- | Check that a term typechecks after a `PlutusIR.Transform.Inline` pass.
-typecheck_inline_prop :: BuiltinSemanticsVariant DefaultFun -> Property
-typecheck_inline_prop biVariant =
-  nonPureTypecheckProp (inline mempty (BuiltinsInfo biVariant))
-
-test_typecheck :: TestTree
-test_typecheck = testGroup "typechecking"
-  [ testProperty "Builtin Variant1" $
-  withMaxSuccess 3000 (typecheck_inline_prop DefaultFunSemanticsVariant1)
-
-  , testProperty "Builtin Variant2" $
-  withMaxSuccess 3000 (typecheck_inline_prop DefaultFunSemanticsVariant2)
-  ]
+prop_TypecheckInline :: BuiltinSemanticsVariant DefaultFun -> Property
+prop_TypecheckInline biVariant =
+  withMaxSuccess 20000 $ nonPureTypecheckProp $ inline mempty (BuiltinsInfo biVariant)

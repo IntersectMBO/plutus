@@ -17,11 +17,9 @@ import PlutusIR.TypeCheck as TC
 import PlutusPrelude
 
 import PlutusCore.Builtin
-import PlutusCore.Default
 import PlutusIR.Analysis.Builtins
 import PlutusIR.Properties.Typecheck
 import Test.QuickCheck.Property (Property, withMaxSuccess)
-import Test.Tasty.QuickCheck (testProperty)
 
 test_letFloatInConservative :: TestTree
 test_letFloatInConservative = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform/LetFloatIn"] $
@@ -71,19 +69,8 @@ test_letFloatInRelaxed = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform/Let
 
 -- | Check that a term typechecks after a
 -- `PlutusIR.Transform.LetFloatIn.floatTerm` pass.
-typecheck_floatTerm_prop ::
+prop_TypecheckFloatTerm ::
   BuiltinSemanticsVariant PLC.DefaultFun -> Bool -> Property
-typecheck_floatTerm_prop biVariant bool =
-  nonPureTypecheckProp $ LetFloatIn.floatTerm (BuiltinsInfo biVariant) bool
-
-test_typecheck :: TestTree
-test_typecheck = testGroup "typechecking"
-  [ testProperty "Builtin Variant 1, conservative" $
-      withMaxSuccess 3000 $ typecheck_floatTerm_prop DefaultFunSemanticsVariant1 True
-  , testProperty "Builtin Variant 1, relaxed" $
-      withMaxSuccess 3000 $ typecheck_floatTerm_prop DefaultFunSemanticsVariant1 False
-  , testProperty "Builtin Variant 2, conservative" $
-      withMaxSuccess 3000 $ typecheck_floatTerm_prop DefaultFunSemanticsVariant2 True
-  , testProperty "Builtin Variant 2, relaxed" $
-      withMaxSuccess 3000 $ typecheck_floatTerm_prop DefaultFunSemanticsVariant2 False
-  ]
+prop_TypecheckFloatTerm biVariant conservative =
+  withMaxSuccess 40000 $
+    nonPureTypecheckProp $ LetFloatIn.floatTerm (BuiltinsInfo biVariant) conservative

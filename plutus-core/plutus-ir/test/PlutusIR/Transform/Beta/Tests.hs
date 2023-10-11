@@ -8,15 +8,14 @@ import PlutusCore.Quote
 import PlutusIR.Parser
 import PlutusIR.Properties.Typecheck
 import PlutusIR.Test
-import PlutusIR.Transform.Beta qualified as Beta
-import Test.QuickCheck.Property (withMaxSuccess)
-import Test.Tasty.QuickCheck (testProperty)
+import PlutusIR.Transform.Beta
+import Test.QuickCheck.Property (Property, withMaxSuccess)
 
 test_beta :: TestTree
 test_beta = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
     testNested "Beta" $
         map
-            (goldenPir (Beta.beta . runQuote . PLC.rename) pTerm)
+            (goldenPir (beta . runQuote . PLC.rename) pTerm)
             [ "lamapp"
             , "lamapp2"
             , "absapp"
@@ -24,6 +23,6 @@ test_beta = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
             , "multilet"
             ]
 
-test_typecheck :: TestTree
-test_typecheck = testProperty "typechecking" $
-    withMaxSuccess 3000 (pureTypecheckProp Beta.beta)
+-- | Check that a term typechecks after a `PlutusIR.Transform.Beta.beta` pass.
+prop_TypecheckBeta :: Property
+prop_TypecheckBeta = withMaxSuccess 3000 (pureTypecheckProp beta)

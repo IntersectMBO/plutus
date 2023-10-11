@@ -11,7 +11,6 @@ import PlutusIR.Properties.Typecheck
 import PlutusIR.Test
 import PlutusIR.Transform.DeadCode
 import PlutusPrelude
-import Test.Tasty.ExpectedFailure (expectFail)
 import Test.Tasty.QuickCheck
 
 test_deadCode :: TestTree
@@ -37,14 +36,9 @@ test_deadCode = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
             , "pruneDatatype"
             ]
 
-test_typecheck :: TestTree
-test_typecheck = testGroup "typechecking"
-  [ testProperty "Builtin Variant1" $
-  withMaxSuccess 10000
-  (nonPureTypecheckProp (removeDeadBindings (BuiltinsInfo DefaultFunSemanticsVariant1)))
-
-  -- FIXME this test mostly pass, but sometimes fail. Test many times to make it fail consistently.
-  , expectFail $ testProperty "Builtin Variant2" $
-  withMaxSuccess 10000
-  (nonPureTypecheckProp (removeDeadBindings (BuiltinsInfo DefaultFunSemanticsVariant2)))
-  ]
+-- FIXME
+-- | Check that a term typechecks after a `PlutusIR.Transform.DeadCode.removeDeadBindings` pass.
+prop_TypecheckRemoveDeadBindings :: BuiltinSemanticsVariant DefaultFun -> Property
+prop_TypecheckRemoveDeadBindings biVariant =
+  expectFailure $
+    withMaxSuccess 50000 $ nonPureTypecheckProp $ removeDeadBindings $ BuiltinsInfo biVariant

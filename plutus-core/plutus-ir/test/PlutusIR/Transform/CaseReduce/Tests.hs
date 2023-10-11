@@ -3,10 +3,9 @@ module PlutusIR.Transform.CaseReduce.Tests where
 import PlutusIR.Transform.CaseReduce
 
 import PlutusIR.Properties.Typecheck
-import Test.QuickCheck.Property (withMaxSuccess)
-import Test.Tasty (TestTree)
-import Test.Tasty.QuickCheck (testProperty)
+import Test.QuickCheck.Property (Property, withMaxSuccess)
 
-test_typecheck :: TestTree
-test_typecheck = testProperty "typechecking" $
+-- | Check that a term typechecks after a `PlutusIR.Transform.CaseReduce.caseReduce` pass.
+prop_TypecheckCaseReduce :: Property
+prop_TypecheckCaseReduce =
       withMaxSuccess 3000 (pureTypecheckProp caseReduce)

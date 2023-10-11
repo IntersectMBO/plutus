@@ -25,6 +25,7 @@ test_rename = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
   where
     debugConfig = PLC.PrettyConfigClassic PLC.debugPrettyConfigName False
 
-test_typecheck :: TestTree
-test_typecheck = testProperty "typechecking" $
-  withMaxSuccess 3000 (nonPureTypecheckProp PLC.rename)
+-- | Check that a term typechecks after a `PlutusIR.Transform.Rename.rename` pass.
+prop_TypecheckRename :: Property
+prop_TypecheckRename =
+  withMaxSuccess 5000 (nonPureTypecheckProp PLC.rename)

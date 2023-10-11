@@ -8,8 +8,7 @@ import PlutusIR.Test
 import PlutusIR.Transform.CommuteFnWithConst
 
 import PlutusIR.Properties.Typecheck
-import Test.QuickCheck.Property (withMaxSuccess)
-import Test.Tasty.QuickCheck (testProperty)
+import Test.QuickCheck.Property (Property, withMaxSuccess)
 
 test_commuteDefaultFun :: TestTree
 test_commuteDefaultFun = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
@@ -22,6 +21,8 @@ test_commuteDefaultFun = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
         , "let" -- this tests that it works in the subterms
         ]
 
-test_typecheck :: TestTree
-test_typecheck = testProperty "typechecking" $
+-- | Check that a term typechecks after a `PlutusIR.Transform.CommuteFnWithConst.commuteFnWithConst`
+-- pass.
+prop_TypecheckCommuteFnWithConst :: Property
+prop_TypecheckCommuteFnWithConst =
       withMaxSuccess 3000 (pureTypecheckProp commuteFnWithConst)
