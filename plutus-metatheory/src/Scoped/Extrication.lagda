@@ -15,7 +15,7 @@ open import Relation.Binary.PropositionalEquality as Eq using (refl;subst)
 open import Utils as U using (Kind;*)
 open import Utils.List using ([];_∷_)
 
-open import RawU using (TmCon;tmCon;TyTag) 
+open import RawU using (TmCon;tmCon;TyTag)
 open import Builtin.Signature using (_⊢♯) 
 open import Builtin.Constant.Type
 

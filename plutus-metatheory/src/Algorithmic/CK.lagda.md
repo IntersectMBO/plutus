@@ -32,7 +32,7 @@ open _⊢_
 open import Algorithmic.Signature using (_[_]SigTy)
 open import Algorithmic.RenamingSubstitution using (_[_];_[_]⋆)
 open import Algorithmic.ReductionEC using (Frame;Value;deval;ival;BUILTIN';V-I;VList;[];_[_]ᶠ) 
-                                    renaming (step to app;step⋆ to app⋆)                            
+                                    renaming (step to app;step⋆ to app⋆)
 open Frame
 open Value
 

@@ -113,7 +113,6 @@ import Declarative.Examples.StdLib.Function
 import Declarative.Examples.StdLib.ChurchNat
 import Declarative.Examples.StdLib.Nat
 ```
- 
 ## Algorithmic syntax
 
 Terms, reduction and evaluation where terms are indexed by normal
@@ -163,10 +162,10 @@ There are proofs of correspondence of the semantics of:
 Extrinsically typed terms, reduction and evaluation
 
 ```
-import Scoped
-import Scoped.RenamingSubstitution
-import Scoped.Extrication
-import Scoped.Extrication.RenamingSubstitution
+--TODO : Finish proof for SOPs
+--import Scoped.RenamingSubstitution
+--import Scoped.Extrication
+--import Scoped.Extrication.RenamingSubstitution
 ```
 
 ## Untyped terms

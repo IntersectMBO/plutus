@@ -233,7 +233,7 @@ data EC : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
     → EC X C
   constr : ∀{n VS H TS C} 
           → (i : Fin n) 
-          → (TSS : Vec (List (∅ ⊢Nf⋆ *)) n)  
+          → (TSS : Vec _ n)  
           → ∀ {XS} → (XS ≡ Vec.lookup TSS i)
           → {tidx : XS ≣ VS <>> (H ∷ TS)} 
           → {tvs : IBwd (∅ ⊢_) VS} → VList tvs → ConstrArgs ∅ TS
@@ -244,9 +244,9 @@ data EC : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
 -- Plugging of evaluation contexts
 _[_]ᴱ : ∀{A B : ∅ ⊢Nf⋆ *} → EC B A → ∅ ⊢ A → ∅ ⊢ B
 []       [ L ]ᴱ = L
-(E l· B ) [ L ]ᴱ = E [ L ]ᴱ · B
+(E l· B) [ L ]ᴱ = E [ L ]ᴱ · B
 (V ·r E) [ L ]ᴱ = deval V · E [ L ]ᴱ
-(E ·⋆ A / q) [ L ]ᴱ = (E [ L ]ᴱ) ·⋆ A / q
+(E ·⋆ A / q) [ L ]ᴱ = E [ L ]ᴱ ·⋆ A / q
 (wrap   E) [ L ]ᴱ = wrap _ _ (E [ L ]ᴱ)
 (unwrap E / q) [ L ]ᴱ = unwrap (E [ L ]ᴱ) q
 constr i TSS p {idx} {tvs} vs ts E [ L ]ᴱ = constr i TSS (trans (sym (lem-≣-<>> idx)) p) (tvs <>>I (E [ L ]ᴱ ∷ ts))
