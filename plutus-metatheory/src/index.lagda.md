@@ -143,9 +143,7 @@ Proof for Progress and Determinism of the Reduction Semantics:
 
 ```
 import Algorithmic.ReductionEC.Progress
-
---TODO : Finish proof for SOPs
---import Algorithmic.ReductionEC.Determinism
+import Algorithmic.ReductionEC.Determinism
 ```
 
 There are proofs of correspondence of the semantics of:

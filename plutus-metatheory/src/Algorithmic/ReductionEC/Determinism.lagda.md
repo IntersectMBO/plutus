@@ -9,9 +9,10 @@ open import Data.Fin using (Fin)
 open import Data.Empty using (⊥;⊥-elim)
 open import Data.Vec as Vec using (lookup)
 open import Data.Product using (Σ;_×_;∃) renaming (_,_ to _,,_)
+open import Data.List.Properties using (∷-injective)
 open import Relation.Nullary using (¬_;yes;no)
 open import Relation.Binary.PropositionalEquality 
-                    using (_≡_;refl;sym;trans;cong;cong₂;subst-subst)  
+                    using (_≡_;refl;sym;trans;cong;cong₂;subst-subst;subst-injective)  
                     renaming (subst to substEq)
 open import Relation.Binary.HeterogeneousEquality 
         using (_≅_;refl;≅-to-≡) 
@@ -275,66 +276,6 @@ determinism⋆ (β-case e TSS refl {ts} vs refl cases) (β-case e' TSS' refl {ts
    with inj-IBwd2IList {ts = ts'}{ts} (lemma<>1 [] (lookup TSS e)) q 
 ... | refl = refl 
 
-
--- data ECFactorise : ∀{A}(M : ∅ ⊢ A) → Set where 
---   factorised : ∀{A B : ∅ ⊢Nf⋆ *}{M : ∅ ⊢ A}
---               → (E : EC A B) 
---               → (L : ∅ ⊢ B)
---               → M ≡ E [ L ]ᴱ
---               → ECFactorise M 
---   evaluated : ∀{A}{M : ∅ ⊢ A} → Value M → ECFactorise M 
-
--- data ECFactorise-List : ∀{XS} → (Ms : IList (∅ ⊢_) XS) → Set where 
---   factorised-list : ∀{VS H TS C} 
---                   → ∀ {XS : List (∅ ⊢Nf⋆ *)}
---                   → {tidx : XS ≣ VS <>> (H ∷ TS)} 
---                   → {tvs : IBwd (∅ ⊢_) VS} 
---                   → {Ms : IList (∅ ⊢_) XS}
---                   → VList tvs 
---                   → EC H C 
---                   → ∅ ⊢ C 
---                   → IList (∅ ⊢_) TS
---                   → ECFactorise-List Ms
---   evaluated-list : ∀{XS} → {Ms : IList (∅ ⊢_) XS}
---                   → IIList Value Ms
---                   → ECFactorise-List Ms
-
--- findEC : ∀{A}(M : ∅ ⊢ A) → ECFactorise M
-
--- findEC-List : ∀{XS} → (Ms : IList (∅ ⊢_) XS) 
---             → ECFactorise-List Ms  
--- findEC-List Ms = {!   !}
-
--- findEC (ƛ M) = evaluated (V-ƛ M)
--- findEC (M · N) with findEC M 
--- ... | factorised E L refl = factorised (E l· N) L refl
--- ... | evaluated V with findEC N 
--- ... | factorised E L refl = factorised (V ·r E) L refl
--- ... | evaluated _ = factorised [] (M · N) refl
--- findEC (Λ M) = evaluated (V-Λ M) 
--- findEC (M ·⋆ A / x) with findEC M 
--- ... | factorised E L refl = factorised (E ·⋆ A / x) L refl
--- ... | evaluated V = factorised [] (M ·⋆ A / x) refl
--- findEC (wrap A B M) with findEC M 
--- ... | factorised E L refl = factorised (wrap E) L refl
--- ... | evaluated V = evaluated (V-wrap V)
--- findEC (unwrap M x) with findEC M 
--- ... | factorised E L refl = factorised (unwrap E / x) L refl
--- ... | evaluated V = factorised [] (unwrap M x) refl
--- findEC (constr i A refl cs) with findEC-List cs 
--- ... | factorised-list vs E L cs = factorised (constr i A {!  !} vs cs E) L {!   !}
--- ... | evaluated-list VS = evaluated (V-constr i A refl {!   !} {! VS  !} {!   !})
--- findEC (case M cases) with findEC M 
--- ... | factorised E L refl = factorised (case cases E) L refl
--- ... | evaluated V = factorised [] (case M cases) refl
--- findEC (con c refl) = evaluated (V-con c)
--- findEC (builtin b / refl) = evaluated (ival b)
--- findEC (error _) = factorised [] (error _) refl
-
--- reduction-step-coincidence : ∀{A}{M N : ∅ ⊢ A} → M —→ N → 
---                       → findEC M ≡ factorised E L p
-                       
-
 data Redex {A : ∅ ⊢Nf⋆ *} : ∅ ⊢ A → Set where
   β   : {L N : ∅ ⊢ A} → L —→⋆ N → Redex L
   err : Redex (error A)
@@ -510,26 +451,45 @@ constr-helper : ∀ {BS : Bwd (∅ ⊢Nf⋆ *)}
           → Value w
 constr-helper ibs w ils vs refl refl = proj-IIBwd w ibs ils vs
 
-Uconstr1 : ∀ {n} {i : Fin n} {A : Vec.Vec (List (∅ ⊢Nf⋆ *)) n}
-             {cs : ConstrArgs ∅ (lookup A i)} {bs} {ibs : IBwd (_⊢_ ∅) bs}
-             {vs : VList ibs} {A = A₁} {B} {E : EC A₁ B} {L : ∅ ⊢ B}
-             (¬VM : Value (E [ L ]ᴱ) → ⊥) {p : Redex L}
-             (U
-              : ∀ {B'} (E' : EC A₁ B') {L' : ∅ ⊢ B'} →
-                (E [ L ]ᴱ) ≡ (E' [ L' ]ᴱ) →
-                Redex L' →
-                ∃ (λ p₁ → substEq (EC A₁) p₁ E ≡ E' × substEq (_⊢_ ∅) p₁ L ≡ L'))
-             {ls} {cs = cs' : ConstrArgs ∅ ls}
-             {idx : lookup A i ≣ bs <>> (A₁ ∷ ls)}
-             {x : (cs ≣I ibs <>> ((E [ L ]ᴱ) ∷ cs')) idx} {B'}
-             (E' : EC (SOP A) B') {L' : ∅ ⊢ B'}
-             (p' : constr i A refl cs ≡ (E' [ L' ]ᴱ)) (q' : Redex L') →
-           ∃
-           (λ p₁ →
-              substEq (EC (SOP A)) p₁ (constr i A refl {idx} {_} vs cs' E) ≡ E' ×
-              substEq (_⊢_ ∅) p₁ L ≡ L')
-Uconstr1 _ _ [] () (β (β-ƛ x))
-Uconstr1 {A = A₁} {cs = cs'} {A = A₂} ¬VM U {cs = cs''} (constr i _ refl vs ts E') p' q' = {! constr-cong  !}
+subst-helper : ∀{a p} {A : Set a}(P : A → Set p) 
+                  {a x y : A} (a≡x : a ≡ x) (a≡y : a ≡ y) {p : P x}{q : P y} 
+                → substEq P (sym a≡x) p ≡ substEq P (sym a≡y) q 
+                 → Σ (x ≡ y) λ eq → substEq P eq p ≡ q
+subst-helper P refl refl refl = refl ,, refl 
+
+Uconstr : ∀ {n} {A : Vec.Vec (List (∅ ⊢Nf⋆ *)) n} →
+          -- First
+          ∀ {i : Fin n} {tot : ConstrArgs ∅ (lookup A i)} 
+            {B}  {bs} {H} {ls} 
+            {ibs : IBwd (_⊢_ ∅) bs}
+          → (vs : IIBwd Value ibs) 
+          → (cs : IList (_⊢_ ∅) ls)
+          → (idx : lookup A i ≣ bs <>> (H ∷ ls)) 
+          → (E : EC H B) (L : ∅ ⊢ B) 
+          → Redex L
+          → tot ≡ substEq (IList (_⊢_ ∅)) (sym (lem-≣-<>> idx)) (ibs <>>I ((E [ L ]ᴱ) ∷ cs)) 
+          -- Second
+       → ∀  {i' : Fin n}
+            {B'} {VS} {H'} {TS} 
+            {tvs : IBwd (_⊢_ ∅) VS}
+          → (vs' : IIBwd Value tvs) 
+          → (cs' : ConstrArgs ∅ TS)
+          → (idx' :  lookup A i' ≣ VS <>> (H' ∷ TS))    
+          → (E' : EC H' B') (L' : ∅ ⊢ B')
+        → _≡_ {_}{∅ ⊢ SOP A} (constr i A refl tot) (constr i' A refl (substEq (IList (_⊢_ ∅)) ((sym (lem-≣-<>> idx'))) (tvs <>>I ((E' [ L' ]ᴱ) ∷ cs'))))
+        → Redex L'
+        → (∀ {B''} (E'' : EC H B'') {L' = L'' : ∅ ⊢ B''} →
+            (E [ L ]ᴱ) ≡ (E'' [ L'' ]ᴱ) 
+             →   Redex L'' 
+             →  Σ (B ≡ B'') (λ p → substEq (EC H) p E ≡ E'' × substEq (_⊢_ ∅) p L ≡ L''))
+        → Σ (B ≡ B') (λ p → substEq (EC (SOP A)) p (constr i A refl {idx} {_} vs cs E) ≡  (constr i' A refl {idx'} vs' cs' E') × (substEq _ p L ≡ L'))
+Uconstr {tot = tot} vs cs idx E L r p vs' cs' idx' E' L' refl r' U with subst-helper (IList (∅ ⊢_)) (lem-≣-<>> idx') (lem-≣-<>> idx) p
+... | x ,, y with equalbyPredicateI tot Value (lem-≣-<>> idx) (lem-≣-<>> idx') p refl vs vs' (λ V → valredex (lemVE _ E V) r) (λ V' → valredex (lemVE _ E' V') r') 
+... | refl ,, refl ,, refl ,, refl with uniqueVal-List vs vs' | unique-≣-<>> idx idx'
+Uconstr {ibs = ibs} vs cs idx E L r p .vs cs' idx' E' L' refl r' U 
+  | refl ,, y | refl ,, refl ,, refl ,, refl | refl | refl with ∷-injectiveI refl (<>>I-cancelˡ ibs ((E' [ L' ]ᴱ) ∷ cs') ((E [ L ]ᴱ) ∷ cs) y)
+... | pel ,, refl with U E' (sym pel) r' 
+... | refl ,, refl ,, refl = refl ,, refl ,, refl
 
 ----------
 -- Lemma inspired by Lemma 5.1 (Chapter 5) of Semantics Engineering with PLT Redex
@@ -557,7 +517,6 @@ rlemma51! (M · N) with rlemma51! M
         λ { [] refl (β (β-ƛ VN)) → ⊥-elim (¬VM (V-ƛ _))
           ; [] refl (β (β-builtin b .M bt .N vu)) → ⊥-elim (¬VM (V-I⇒ b bt))
           ; (E' l· N') refl r → let X ,, Y ,, Y' = U E' refl r in X ,,  trans ( subst-l· E N X)  (cong (_l· N) Y)  ,, Y'
---          ; (E' l·v VN) refl rx → let X ,, Y ,, Y' = U E' refl rx in X ,, {!   !} --X ,, ((trans (subst-l·v E VN X) (cong (_l·v VN) Y)) ,, Y')
           ; (VM ·r E') refl rx → ⊥-elim (¬VM VM)}
 ... | done VM with rlemma51! N
 ... | step ¬VN E p q U = step
@@ -568,7 +527,6 @@ rlemma51! (M · N) with rlemma51! M
         λ { [] refl (β (β-ƛ VN)) → ⊥-elim (¬VN VN)
           ; [] refl (β (β-builtin b .M bt .N VN)) → ⊥-elim (¬VN VN)
           ; (E' l· N') refl q → ⊥-elim (valredex (lemVE _ _ VM) q)
---          ; (E' l·v VN) refl q → ⊥-elim (valredex (lemVE _ _ VM) q)
           ; (VM' ·r E') refl q → let X ,, X'' ,, X''' = U E' refl q in
                 X
                 ,,
@@ -584,7 +542,6 @@ rlemma51! (.(ƛ M) · N) | done (V-ƛ M) | done VN = step
   λ { [] refl (β (β-ƛ x)) → refl ,, refl ,, refl
     ; (E' l· N') p q → let X ,, Y ,, Y' = proj· p in
       ⊥-elim (valredex (lemVE _ E' (substEq Value Y (substƛVal X))) q)
---    ; (E' l·v VN') p q → let X ,, Y ,, Y' = proj· p in ⊥-elim (valredex (lemVE _ E' (substEq Value Y (substƛVal X))) q)
     ; (VM' ·r E') refl q → ⊥-elim (valredex (lemVE _ E' VN) q)}
 rlemma51! (M · N) | done (V-I⇒ b {am = 0} x) | done VN = step
   (λ V → valred V (β-builtin b M x N VN))
@@ -624,7 +581,7 @@ rlemma51! (unwrap M x) with rlemma51! M
   refl
   λ E p' q' → Uunwrap2 VM x E p' q'
 rlemma51! (con c refl) = done (V-con c)
-rlemma51! (constr i A refl cs) with rlemma51-List cs start [] 
+rlemma51! (constr i A refl tot) with rlemma51-List tot start [] 
 ... | done {bs}{ibs}{idx = idx} x vs = done 
           (V-constr i 
                     A 
@@ -633,28 +590,33 @@ rlemma51! (constr i A refl cs) with rlemma51-List cs start []
                     vs 
                     (trans (≡-subst-removable (IList (_⊢_ ∅)) _ _ (ibs <>>I [])) 
                            (sym (lem-≣I-<>>1' x))))
-... | step {bs = bs}{ibs} vs ¬VM E {L} p refl U {ls} cs' {idx} x = step 
+... | step {bs = bs}{ibs} vs ¬VM E {L} r refl U {ls} cs {idx} x = step 
           (λ {(V-constr .i .A .refl refl {ts} vs' x') → 
                 ¬VM (constr-helper ibs 
                                    (E [ L ]ᴱ) 
-                                   cs' 
+                                   cs 
                                    (substEq VList (IBwd<>IList (lemma<>1 [] (lookup A i)) {ts} x') vs')
                                   (trans (cong ([] <><_) (lem-≣-<>> idx)) (lemma<>2 bs (_ ∷ ls))) 
                                   (trans (trans (trans
                                      (trans (trans 
                                          (subst-subst (lemma<>2' ([] <>< lookup A i) (lookup A i) (lemma<>1 [] (lookup A i))) 
                                               {(trans (cong ([] <><_) (lem-≣-<>> idx)) (lemma<>2 bs (_ ∷ ls)))}) 
-                                         (≡-subst-removable (IBwd (∅ ⊢_)) _ _ ([] <><I cs))) 
+                                         (≡-subst-removable (IBwd (∅ ⊢_)) _ _ ([] <><I tot))) 
                                          (sym (subst-subst (cong (_<><_ []) (lem-≣-<>> idx)) {lemma<>2 bs (_ ∷ ls) }  ))) 
                                          (cong (substEq (IBwd (_⊢_ ∅)) (lemma<>2 bs (_ ∷ ls))) (sym (lem-<><I-subst(lem-≣-<>> idx))))) 
                                          (cong (substEq (IBwd (_⊢_ ∅)) (lemma<>2 bs (_ ∷ ls))) (cong ([] <><I_) (lem-≣I-<>>1 x)))) 
-                                         (lemma<>I2 ibs ((E [ L ]ᴱ) ∷ cs'))))  }) 
-          (constr i A refl { idx } vs cs' E) 
-          p 
-          (constr-cong (trans (sym (lem-≣-<>> idx)) refl) (trans (lem-≣I-<>>1' x) (≡-subst-removable (IList (_⊢_ ∅)) _ _ (ibs <>>I ((E [ _ ]ᴱ) ∷ cs')))))
-          λ E p' q' → {! Uconstr1 E p' q'  !}
-          -- λ {[] refl (β ())
-          --  ; (constr i .A refl vs cs E') p' q' → {! Uconstr vs cs E' p' q'  !}}
+                                         (lemma<>I2 ibs ((E [ L ]ᴱ) ∷ cs))))  }) 
+          (constr i A refl { idx } vs cs E) 
+          r 
+          (constr-cong (trans (sym (lem-≣-<>> idx)) refl) (trans (lem-≣I-<>>1' x) (≡-subst-removable (IList (_⊢_ ∅)) _ _ (ibs <>>I ((E [ _ ]ᴱ) ∷ cs)))))
+          λ { [] refl (β ())
+            ; (constr i' .A refl {idx'} {tvs} vs' cs' E') {L'} p' r' →
+                  Uconstr vs cs idx E L r (lem-≣I-<>>1' x) 
+                                  vs' cs' idx' E' L' (trans p' 
+                                                            (sym (constr-cong (trans (sym (lem-≣-<>> idx')) refl) 
+                                                            (≡-subst-removable (IList (_⊢_ ∅)) (sym (lem-≣-<>> idx')) (trans (sym (lem-≣-<>> idx')) refl) _)))) 
+                                  r' U 
+            }
 rlemma51! (case M cs) with rlemma51! M  
 ... | step ¬VM E p q U = step (λ V → ¬VM (lemVE _ (EC.case cs []) V)) 
                               (EC.case cs E) 
@@ -722,4 +684,4 @@ determinism {L = L} (ruleErr E' p) (ruleErr E'' q) | step ¬VL E err r' U with U
 ... | refl ,, refl ,, refl | refl ,, refl ,, refl = refl
 -- -}
 ```  
-   
+    
