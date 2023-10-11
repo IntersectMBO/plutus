@@ -28,7 +28,7 @@
 
     CHaP = {
       # 4c55186c53103fee3e3973d70a9ce8a3a55a8486
-      url = "github:input-output-hk/cardano-haskell-packages"; # editorconfig-checker-disable-line
+      url = "github:input-output-hk/cardano-haskell-packages?ref=repo"; # editorconfig-checker-disable-line
       flake = false;
     };
 

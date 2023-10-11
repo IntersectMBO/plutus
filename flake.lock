@@ -13,7 +13,7 @@
       "original": {
         "owner": "input-output-hk",
         "repo": "cardano-haskell-packages",
-        "rev": "4c55186c53103fee3e3973d70a9ce8a3a55a8486",
+        "ref": "repo",
         "type": "github"
       }
     },
@@ -311,7 +311,6 @@
       "original": {
         "owner": "input-output-hk",
         "repo": "hackage.nix",
-        "rev": "ad01b49b5be1112aed7ad135bf667b7b92169ce1",
         "type": "github"
       }
     },
@@ -360,7 +359,6 @@
       "original": {
         "owner": "input-output-hk",
         "repo": "haskell.nix",
-        "rev": "9be017fdfbd2b290f1df4385ccd0fc22f549c1f2",
         "type": "github"
       }
     },
