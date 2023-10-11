@@ -6,6 +6,7 @@
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE TypeApplications   #-}
+{-# LANGUAGE ViewPatterns       #-}
 
 {-# OPTIONS_GHC -Wno-orphans #-}
 -- Prevent unboxing, which the plugin can't deal with
@@ -14,7 +15,7 @@
 {-# OPTIONS_GHC -fno-specialise #-}
 
 -- | Functions for working with 'Value'.
-module PlutusLedgerApi.V1.Value(
+module PlutusLedgerApi.V1.Value (
     -- ** Currency symbols
       CurrencySymbol(..)
     , currencySymbol
@@ -51,6 +52,7 @@ import Prelude qualified as Haskell
 
 import Control.DeepSeq (NFData)
 import Data.ByteString qualified as BS
+import Data.Coerce (coerce)
 import Data.Data (Data)
 import Data.String (IsString (fromString))
 import Data.Text (Text)
@@ -323,12 +325,6 @@ checkBinRel f l r =
             These a b -> f a b
     in checkPred unThese l r
 
-{-# INLINABLE eq #-}
--- | Check whether one 'Value' is equal to another. See 'Value' for an explanation of how operations on 'Value's work.
-eq :: Value -> Value -> Bool
--- If both are zero then checkBinRel will be vacuously true, but this is fine.
-eq = checkBinRel (==)
-
 {-# INLINABLE geq #-}
 -- | Check whether one 'Value' is greater than or equal to another. See 'Value' for an explanation of how operations on 'Value's work.
 geq :: Value -> Value -> Bool
@@ -367,6 +363,163 @@ split (Value mp) = (negate (Value neg), Value pos) where
   splitIntl :: Map.Map TokenName Integer -> These (Map.Map TokenName Integer) (Map.Map TokenName Integer)
   splitIntl mp' = These l r where
     (l, r) = Map.mapThese (\i -> if i <= 0 then This i else That i) mp'
+
+-- | The type of values that 'matchKVs' returns. See its Haddock for details.
+data MatchResult k v
+    = MatchSuccess
+    | MatchPartial [(v, v)] [(k, v)] [(k, v)]
+    | MatchFailure
+
+{-# INLINE unsafeInsertUnique #-}
+-- | Insert a key-value pair into the __sorted__ list assuming the key isn't already in the map (the
+-- invariants are not checked).
+unsafeInsertUnique :: forall k v. Ord k => k -> v -> [(k, v)] -> [(k, v)]
+unsafeInsertUnique k0 v0 = coerce go where
+    go :: [(k, v)] -> [(k, v)]
+    go []                  = [(k0, v0)]
+    go kvs@((k, v) : kvs') =
+        case k0 `compare` k of
+            LT -> (k0, v0) : kvs
+            -- TODO: make this @traceError duplicateKeys@.
+            EQ -> (k, v0) : kvs'
+            GT -> (k, v) : go kvs'
+
+{-# INLINEABLE unsafeInsertionSortUnique #-}
+-- | Sort a list assuming all of its keys are unique (the invariant is not checked).
+unsafeInsertionSortUnique :: forall k v. Ord k => [(k, v)] -> [(k, v)]
+unsafeInsertionSortUnique = foldr (uncurry unsafeInsertUnique) []
+
+-- The pragma trades a negligible amount of size for a substantial performance boost.
+{-# INLINE matchKVs #-}
+{- | Take a function checking whether a value is zero\/empty, a function checking /structural/
+equality of two values and two key-value lists and return the result of matching the lists
+pointwisely and exactly.
+
+This function performs a fast-and-loose equality checking in a linear fashion and either returns a
+conclusive result or pieces required to complete equality checking in a non-linear fashion without
+replicating the already performed work. This way checking equality of two structurally equal values
+is as cheap as it gets and checking equality of other kinds of values has reasonable cost as little
+work is duplicated.
+
+The rule of thumb is that we always check equality of all keys before checking equality of any of
+the values, because
+
+1. checking equality of two keys before checking equality of their values is necessary anyway and
+   doing that for all keys before starting to check equality of values is a simple rule allowing us
+   to communicate to the user how they should align their 'Value's to optimize equality checks
+2. values can be maps and as such checking their equality may be very expensive, it makes sense to
+   check equality of keys first
+3. checking equality of keys makes for a less surprising user experience. If we were to process
+   some of the values first, a slight reordering of elements of the list could cause significant
+   performance changes (e.g. if a larger value moves to the beginning of the list)
+
+For these reasons we decided not to pick the winner (@valueEqualsValue4@) from
+    https://github.com/input-output-hk/plutus/issues/5135#issuecomment-1459327829
+despite the fact that in some cases it performs much better than our solution (while performing
+substantially worse in others).
+
+If the result is 'MatchSuccess', then the two lists are equal.
+If the result is 'MatchFailure', then the two lists are not equal (pointwise at least).
+If the result is @MatchPartial vvs kvs1' kvs2'@, then the two lists have the same keys in the
+  beginning (@length vvs@ of them), but diverge at some point. @vvs@ contains values associated with
+  the matching keys (the first component of each tuple comes from the first list, the second
+  component of each tuple comes from the second list). @kvs1'@ and @kvs2'@ are the first and the
+  second list with their prefixes (those that have matching keys) stripped.
+-}
+matchKVs
+    :: forall k v. Ord k
+    => (v -> Bool) -> (v -> v -> Bool) -> [(k, v)] -> [(k, v)] -> MatchResult k v
+matchKVs is0 structEqV = go where
+    go :: [(k, v)] -> [(k, v)] -> MatchResult k v
+    -- Spines match, hence it's a 'MatchSuccess' so far.
+    go [] [] = MatchSuccess
+    -- One spine is longer than the other one, but this still can be a 'MatchSuccess' if the
+    -- non-empty lists only consists of empty values.
+    go [] kvs2 = if all (is0 . snd) kvs2 then MatchSuccess else MatchFailure
+    -- Symmetric to the previous case.
+    go kvs1 [] = if all (is0 . snd) kvs1 then MatchSuccess else MatchFailure
+    -- Both spines are non-empty.
+    go kvs1@((k1, v1) : kvs1') kvs2@((k2, v2) : kvs2')
+        -- If keys are equal
+        | k1 == k2 =
+            -- then continue checking equality of spines.
+            case go kvs1' kvs2' of
+                -- If spines are equal, then we can proceed to checking equality of values as by
+                -- this point we've ensured that the keys in the lists match exactly.
+                MatchSuccess -> if structEqV v1 v2 then MatchSuccess else MatchFailure
+                -- If there was a key mismatch down the line, then we cons the values associated
+                -- with @k1@ and @k2@ onto @vvs@ to check their equality after we ensure that keys
+                -- from @kvs1''@ are a permutation of those from @kvs2''@.
+                MatchPartial vvs kvs1'' kvs2'' -> MatchPartial ((v1, v2) : vvs) kvs1'' kvs2''
+                -- A failure stays a failure.
+                MatchFailure -> MatchFailure
+        -- If the keys aren't equal, then maybe the first value is empty, in which case we throw it
+        -- out and proceed.
+        | is0 v1 = go kvs1' kvs2
+        -- Or if the second one is empty, then we throw that one and proceed.
+        | is0 v2 = go kvs1 kvs2'
+        -- Otherwise the keys in the lists have diverged and we return the remaining parts.
+        | otherwise = MatchPartial [] kvs1 kvs2
+
+-- The pragma trades potentially plenty of budget for a sizeable amount of size.
+{-# INLINEABLE eqKVs #-}
+{- | Take a function checking whether a value is zero\/empty, a function checking /semantic/
+equality of two values and two key-value lists and return the result of matching the lists
+pointwisely.
+
+This function is very similar to 'matchKVs', but since it checks actual semantic equality of the
+given lists, it doesn't need all the 'MatchResult' logic and hence we can return a 'Bool', which
+results in better performance than reusing 'matchKVs'.
+-}
+eqKVs :: forall k v. Eq k => (v -> Bool) -> (v -> v -> Bool) -> [(k, v)] -> [(k, v)] -> Bool
+eqKVs is0 eqV = coerce go where
+    go :: [(k, v)] -> [(k, v)] -> Bool
+    go [] []   = True
+    go [] kvs2 = all (is0 . snd) kvs2  -- If one of the lists is empty then all values in the
+    go kvs1 [] = all (is0 . snd) kvs1  -- other list need to be zero for lists to be equal.
+    go kvs1@((k1, v1) : kvs1') kvs2@((k2, v2) : kvs2')
+        -- As with 'matchKVs' we check equality of all the keys first and only then check equality
+        -- of values.
+        | k1 == k2 = if go kvs1' kvs2' then eqV v1 v2 else False
+        | is0 v1 = go kvs1' kvs2
+        -- Or if the second one is empty, then we throw that one and proceed.
+        | is0 v2 = go kvs1 kvs2'
+        | otherwise = False
+
+{-# INLINEABLE eq #-}
+-- | Check equality of two 'Value's. Does not assume orderness of lists within 'Value' or lack of
+-- empty values (such as a token whose quantity is zero or a currency that has a bunch of such
+-- tokens or no tokens at all), but does assume that no currencies or tokens within a single
+-- currency have multiple entries.
+eq :: Value -> Value -> Bool
+eq (Value (Map.toList -> currs1)) (Value (Map.toList -> currs2)) =
+    -- Check structural equality of the lists first.
+    case matchKVs (Map.all (0 ==)) (eqMapVia id) currs1 currs2 of
+        MatchSuccess -> True
+        MatchFailure -> False
+        -- If the lists aren't structurally equal, then sort them and check structural equality of
+        -- the now sorted lists.
+        MatchPartial valPairs currs1' currs2' ->
+            if eqKVs
+                    (Map.all (0 ==))
+                    (eqMapVia unsafeInsertionSortUnique)
+                    (unsafeInsertionSortUnique currs1')
+                    (unsafeInsertionSortUnique currs2')
+                then
+                    -- Check equality of values that come from the common key prefix of the original
+                    -- lists.
+                    all (uncurry (eqMapVia unsafeInsertionSortUnique)) valPairs
+                else False
+  where
+    -- Check equality of two @Map@s given a function transforming a list of tokens (two options for
+    -- the latter are the identity function to check structural equality or a sorting function).
+    eqMapVia
+        :: ([(TokenName, Integer)] -> [(TokenName, Integer)])
+        -> Map.Map TokenName Integer
+        -> Map.Map TokenName Integer
+        -> Bool
+    eqMapVia f (Map.toList -> tokens1) (Map.toList -> tokens2) =
+        eqKVs (0 ==) (==) (f tokens1) (f tokens2)
 
 makeLift ''CurrencySymbol
 makeLift ''TokenName
