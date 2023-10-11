@@ -4,7 +4,7 @@ import Test.Tasty
 import Test.Tasty.Extras
 
 import PlutusIR.Parser
-import PlutusIR.Tests
+import PlutusIR.Test
 import PlutusIR.Transform.Rename ()
 
 test_types :: TestTree

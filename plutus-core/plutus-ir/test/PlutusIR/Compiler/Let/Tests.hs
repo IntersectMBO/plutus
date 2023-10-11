@@ -1,6 +1,6 @@
 module PlutusIR.Compiler.Let.Tests where
 
-import PlutusIR.Tests
+import PlutusIR.Test
 
 import PlutusIR.Compiler.Let
 import PlutusIR.Properties.Typecheck

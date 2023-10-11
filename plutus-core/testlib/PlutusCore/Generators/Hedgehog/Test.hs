@@ -3,7 +3,7 @@
 {-# LANGUAGE TypeFamilies  #-}
 {-# LANGUAGE TypeOperators #-}
 
-module PlutusCore.Generators.Hedgehog.Tests
+module PlutusCore.Generators.Hedgehog.Test
     ( TypeEvalCheckError (..)
     , TypeEvalCheckResult (..)
     , TypeEvalCheckM

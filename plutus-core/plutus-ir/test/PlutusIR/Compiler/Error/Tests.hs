@@ -1,6 +1,6 @@
 module PlutusIR.Compiler.Error.Tests where
 
-import PlutusIR.Tests
+import PlutusIR.Test
 
 import Test.Tasty
 import Test.Tasty.Extras

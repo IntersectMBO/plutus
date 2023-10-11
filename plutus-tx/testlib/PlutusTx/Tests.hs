@@ -50,9 +50,9 @@ import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Pretty
 import PlutusCore.Pretty qualified as PLC
-import PlutusCore.Tests
+import PlutusCore.Test
 import PlutusIR.Core.Type (progTerm)
-import PlutusIR.Tests ()
+import PlutusIR.Test ()
 import PlutusPrelude
 import PlutusTx.Code (CompiledCode, CompiledCodeIn, getPir, getPirNoAnn, getPlcNoAnn, sizePlc)
 import UntypedPlutusCore qualified as UPLC

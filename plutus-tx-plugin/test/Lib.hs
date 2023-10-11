@@ -20,7 +20,7 @@ import Test.Tasty.Extras
 
 import PlutusPrelude
 
-import PlutusCore.Tests
+import PlutusCore.Test
 
 import PlutusTx.Code
 import PlutusTx.Tests ()

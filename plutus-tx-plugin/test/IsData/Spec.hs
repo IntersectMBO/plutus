@@ -24,7 +24,7 @@ import Test.Tasty.Extras
 
 import Plugin.Data.Spec
 
-import PlutusCore.Tests
+import PlutusCore.Test
 import PlutusTx.AsData qualified as AsData
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code

@@ -11,7 +11,7 @@ import PlutusIR
 import PlutusIR.Analysis.VarInfo
 import PlutusIR.Parser
 import PlutusIR.Purity
-import PlutusIR.Tests
+import PlutusIR.Test
 import PlutusIR.Transform.Rename ()
 import PlutusPrelude (def)
 import Test.Tasty

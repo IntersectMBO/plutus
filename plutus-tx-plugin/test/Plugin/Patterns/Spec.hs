@@ -19,7 +19,7 @@ module Plugin.Patterns.Spec where
 
 import Test.Tasty.Extras
 
-import PlutusCore.Tests ()
+import PlutusCore.Test ()
 import PlutusTx.Code
 import PlutusTx.Plugin
 import PlutusTx.Prelude as P

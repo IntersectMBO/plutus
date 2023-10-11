@@ -5,7 +5,7 @@ import Test.Tasty.Extras
 
 import PlutusCore.Quote
 import PlutusIR.Parser
-import PlutusIR.Tests
+import PlutusIR.Test
 import PlutusIR.Transform.NonStrict qualified as NonStrict
 import PlutusIR.Transform.Rename ()
 

@@ -17,7 +17,7 @@ module Optimization.Spec where
 import Test.Tasty.Extras
 
 import Data.Proxy
-import PlutusCore.Tests
+import PlutusCore.Test
 import PlutusTx.AsData qualified as AsData
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code

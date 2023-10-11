@@ -8,7 +8,7 @@
 
 module Names.Spec where
 
-import PlutusCore.Tests
+import PlutusCore.Test
 
 import PlutusCore
 import PlutusCore.Mark

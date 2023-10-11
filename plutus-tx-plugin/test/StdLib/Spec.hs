@@ -20,7 +20,7 @@ import Hedgehog (MonadGen, Property)
 import Hedgehog qualified
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import PlutusCore.Tests (TestNested, goldenUEval, testNestedGhc)
+import PlutusCore.Test (TestNested, goldenUEval, testNestedGhc)
 import PlutusTx.Tests (goldenPir)
 import Test.Tasty (TestName)
 import Test.Tasty.Hedgehog (testPropertyNamed)

@@ -17,7 +17,7 @@ module Plugin.Profiling.Spec where
 
 import Test.Tasty.Extras
 
-import PlutusCore.Tests (ToUPlc (toUPlc), goldenUEvalLogs)
+import PlutusCore.Test (ToUPlc (toUPlc), goldenUEvalLogs)
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code (CompiledCode)
 import PlutusTx.Plugin (plc)

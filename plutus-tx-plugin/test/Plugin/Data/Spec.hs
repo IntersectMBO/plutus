@@ -19,7 +19,7 @@ module Plugin.Data.Spec where
 
 import Test.Tasty.Extras
 
-import PlutusCore.Tests
+import PlutusCore.Test
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code
 import PlutusTx.Plugin

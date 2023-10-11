@@ -12,7 +12,7 @@ import PlutusBenchmark.Marlowe.Scripts.RolePayout (rolePayoutValidator)
 import PlutusBenchmark.Marlowe.Scripts.Semantics (marloweValidator)
 import PlutusBenchmark.Marlowe.Types qualified as M
 import PlutusCore.Default (DefaultFun, DefaultUni)
-import PlutusCore.Tests (goldenSize, goldenUEvalBudget)
+import PlutusCore.Test (goldenSize, goldenUEvalBudget)
 import PlutusLedgerApi.V2 (scriptContextTxInfo, txInfoId)
 import PlutusTx.Code (CompiledCode)
 import PlutusTx.Tests ()
