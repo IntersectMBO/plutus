@@ -324,4 +324,3 @@ constr-cong :  ∀{Γ : Ctx Φ}{n}{i : Fin n}{A : Vec (List (Φ ⊢Nf⋆ *)) n}{
             → constr i A refl cs' ≡ constr i A p cs
 constr-cong refl refl = refl
 \end{code}
-
