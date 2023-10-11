@@ -21,17 +21,17 @@
     # };
 
     hackage = {
-      url = "github:input-output-hk/hackage.nix/9f795d4cd8ed75cad1d6c4f78757cb60aba78794";
+      url = "github:input-output-hk/hackage.nix/ad01b49b5be1112aed7ad135bf667b7b92169ce1";
       flake = false;
     };
 
     CHaP = {
-      url = "github:input-output-hk/cardano-haskell-packages/7b77f33895e91f0221ee0ea5a1c6145b907097ef"; # editorconfig-checker-disable-line
+      url = "github:input-output-hk/cardano-haskell-packages/4c55186c53103fee3e3973d70a9ce8a3a55a8486"; # editorconfig-checker-disable-line
       flake = false;
     };
 
     haskell-nix = {
-      url = "github:input-output-hk/haskell.nix/f7b7060b4f1f750395a37820e097c06f83b12c23";
+      url = "github:input-output-hk/haskell.nix/9be017fdfbd2b290f1df4385ccd0fc22f549c1f2";
       inputs.hackage.follows = "hackage";
     };
   };
