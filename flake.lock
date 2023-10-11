@@ -12,8 +12,8 @@
       },
       "original": {
         "owner": "input-output-hk",
-        "repo": "cardano-haskell-packages",
         "ref": "repo",
+        "repo": "cardano-haskell-packages",
         "type": "github"
       }
     },
@@ -122,11 +122,11 @@
         "flake-utils": "flake-utils"
       },
       "locked": {
-        "lastModified": 1689933391,
-        "narHash": "sha256-jUuy2OzmxegEn0KT3u1uf87eGGA33+of9HodIqS3PLY=",
+        "lastModified": 1696584097,
+        "narHash": "sha256-a9Hhqf/Fi0FkjRTcQr3pYDhrO9A9tdOkaeVgD23Cdrk=",
         "owner": "justinwoo",
         "repo": "easy-purescript-nix",
-        "rev": "5dcea83eecb56241ed72e3631d47e87bb11e45b9",
+        "rev": "d5fe5f4b210a0e4bac42ae0c159596a49c5eb016",
         "type": "github"
       },
       "original": {
@@ -473,11 +473,11 @@
         "sphinxcontrib-haddock": "sphinxcontrib-haddock"
       },
       "locked": {
-        "lastModified": 1696931450,
-        "narHash": "sha256-gRqrflIw6r9GunK7YTm0JjHa7KilTHdIrzqnS0dFv30=",
+        "lastModified": 1697019369,
+        "narHash": "sha256-Rg/nw7TkuqaYurAhKM93qZ6GR/GdTItdLiKK/u+NQ10=",
         "owner": "input-output-hk",
         "repo": "iogx",
-        "rev": "0702243373fc0b95e56063ffd4da3816f07327e6",
+        "rev": "27170346e1fb7651542768bff740cda1603165c8",
         "type": "github"
       },
       "original": {
@@ -498,11 +498,11 @@
         "sodium": "sodium"
       },
       "locked": {
-        "lastModified": 1691469905,
-        "narHash": "sha256-TV0p1dFGYAMl1dLJEfe/tNFjxvV2H7VgHU1I43q+b84=",
+        "lastModified": 1696471795,
+        "narHash": "sha256-aNNvjUtCGXaXSp5M/HSj1SOeLjqLyTRWYbIHqAEeUp0=",
         "owner": "input-output-hk",
         "repo": "iohk-nix",
-        "rev": "2f3760f135616ebc477d3ed74eba9b63c22f83a0",
+        "rev": "91f16fa8acb58b312f94977715c630d8bf77e33e",
         "type": "github"
       },
       "original": {
@@ -767,11 +767,11 @@
         "nixpkgs-stable": "nixpkgs-stable"
       },
       "locked": {
-        "lastModified": 1695576016,
-        "narHash": "sha256-71KxwRhTfVuh7kNrg3/edNjYVg9DCyKZl2QIKbhRggg=",
+        "lastModified": 1696846637,
+        "narHash": "sha256-0hv4kbXxci2+pxhuXlVgftj/Jq79VSmtAyvfabCCtYk=",
         "owner": "cachix",
         "repo": "pre-commit-hooks.nix",
-        "rev": "cb770e93516a1609652fa8e945a0f310e98f10c0",
+        "rev": "42e1b6095ef80a51f79595d9951eb38e91c4e6ca",
         "type": "github"
       },
       "original": {
