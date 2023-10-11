@@ -389,27 +389,6 @@ unsafeInsertUnique k0 v0 = coerce go where
 unsafeInsertionSortUnique :: forall k v. Ord k => [(k, v)] -> [(k, v)]
 unsafeInsertionSortUnique = foldr (uncurry unsafeInsertUnique) []
 
--- The pragma trades potentially plenty of budget for a sizeable amount of size.
-{-# INLINEABLE eqKVs #-}
-{- | Take a function checking whether a value is zero\/empty, a function checking /semantic/
-equality of two values and two key-value lists and return the result of matching the lists
-pointwisely.
--}
-eqKVs :: forall k v. Eq k => (v -> Bool) -> (v -> v -> Bool) -> [(k, v)] -> [(k, v)] -> Bool
-eqKVs is0 eqV = coerce go where
-    go :: [(k, v)] -> [(k, v)] -> Bool
-    go [] []   = True
-    go [] kvs2 = all (is0 . snd) kvs2  -- If one of the lists is empty then all values in the
-    go kvs1 [] = all (is0 . snd) kvs1  -- other list need to be zero for lists to be equal.
-    go kvs1@((k1, v1) : kvs1') kvs2@((k2, v2) : kvs2')
-        -- As with 'matchKVs' we check equality of all the keys first and only then check equality
-        -- of values.
-        | k1 == k2 = if go kvs1' kvs2' then eqV v1 v2 else False
-        | is0 v1 = go kvs1' kvs2
-        -- Or if the second one is empty, then we throw that one and proceed.
-        | is0 v2 = go kvs1 kvs2'
-        | otherwise = False
-
 -- The pragma trades a negligible amount of size for a substantial performance boost.
 {-# INLINE matchKVs #-}
 {- | Take a function checking whether a value is zero\/empty, a function checking /structural/
@@ -481,6 +460,31 @@ matchKVs is0 structEqV = go where
         | is0 v2 = go kvs1 kvs2'
         -- Otherwise the keys in the lists have diverged and we return the remaining parts.
         | otherwise = MatchPartial [] kvs1 kvs2
+
+-- The pragma trades potentially plenty of budget for a sizeable amount of size.
+{-# INLINEABLE eqKVs #-}
+{- | Take a function checking whether a value is zero\/empty, a function checking /semantic/
+equality of two values and two key-value lists and return the result of matching the lists
+pointwisely.
+
+This function is very similar to 'matchKVs', but since it checks actual semantic equality of the
+given lists, it doesn't need all the 'MatchResult' logic and hence we can return a 'Bool', which
+results in better performance than reusing 'matchKVs'.
+-}
+eqKVs :: forall k v. Eq k => (v -> Bool) -> (v -> v -> Bool) -> [(k, v)] -> [(k, v)] -> Bool
+eqKVs is0 eqV = coerce go where
+    go :: [(k, v)] -> [(k, v)] -> Bool
+    go [] []   = True
+    go [] kvs2 = all (is0 . snd) kvs2  -- If one of the lists is empty then all values in the
+    go kvs1 [] = all (is0 . snd) kvs1  -- other list need to be zero for lists to be equal.
+    go kvs1@((k1, v1) : kvs1') kvs2@((k2, v2) : kvs2')
+        -- As with 'matchKVs' we check equality of all the keys first and only then check equality
+        -- of values.
+        | k1 == k2 = if go kvs1' kvs2' then eqV v1 v2 else False
+        | is0 v1 = go kvs1' kvs2
+        -- Or if the second one is empty, then we throw that one and proceed.
+        | is0 v2 = go kvs1 kvs2'
+        | otherwise = False
 
 {-# INLINEABLE eq #-}
 -- | Check equality of two 'Value's. Does not assume orderness of lists within 'Value' or lack of
