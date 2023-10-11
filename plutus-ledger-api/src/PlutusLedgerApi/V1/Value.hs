@@ -374,7 +374,7 @@ data MatchResult k v
 -- | Insert a key-value pair into the __sorted__ list assuming the key isn't already in the map (the
 -- invariants are not checked).
 insertUnique :: forall k v. Ord k => k -> v -> [(k, v)] -> [(k, v)]
-insertUnique ~k0 ~v0 = coerce go where
+insertUnique k0 v0 = coerce go where
     go :: [(k, v)] -> [(k, v)]
     go []                  = [(k0, v0)]
     go kvs@((k, v) : kvs') =
@@ -396,7 +396,7 @@ insertionSortUnique = go where
 {-# INLINE eqKVs #-}
 -- | Check equality of lists by matching them pointwise.
 eqKVs :: forall k v. Eq k => (v -> Bool) -> (v -> v -> Bool) -> [(k, v)] -> [(k, v)] -> Bool
-eqKVs ~is0 ~eqV = coerce go where
+eqKVs is0 eqV = coerce go where
     go :: [(k, v)] -> [(k, v)] -> Bool
     go [] []   = True
     go [] kvs2 = all (is0 . snd) kvs2  -- If one of the lists is empty then all elements in the
