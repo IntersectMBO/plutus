@@ -15,7 +15,7 @@
 {-# OPTIONS_GHC -fno-specialise #-}
 
 -- | Functions for working with 'Value'.
-module PlutusLedgerApi.V1.Value(
+module PlutusLedgerApi.V1.Value (
     -- ** Currency symbols
       CurrencySymbol(..)
     , currencySymbol
@@ -52,6 +52,7 @@ import Prelude qualified as Haskell
 
 import Control.DeepSeq (NFData)
 import Data.ByteString qualified as BS
+import Data.Coerce (coerce)
 import Data.Data (Data)
 import Data.String (IsString (fromString))
 import Data.Text (Text)
@@ -64,7 +65,6 @@ import PlutusTx.AssocMap qualified as Map
 import PlutusTx.Lift (makeLift)
 import PlutusTx.Ord qualified as Ord
 import PlutusTx.Prelude as PlutusTx hiding (sort)
-import PlutusTx.SortedMap qualified as SortedMap
 import PlutusTx.These (These (..))
 import Prettyprinter (Pretty, (<>))
 import Prettyprinter.Extras (PrettyShow (PrettyShow))
@@ -370,6 +370,46 @@ data MatchResult k v
     | MatchPartial [(v, v)] [(k, v)] [(k, v)]
     | MatchFailure
 
+{-# INLINE insertUnique #-}
+-- | Insert a key-value pair into the __sorted__ list assuming the key isn't already in the map (the
+-- invariants are not checked).
+insertUnique :: forall k v. Ord k => k -> v -> [(k, v)] -> [(k, v)]
+insertUnique ~k0 ~v0 = coerce go where
+    go :: [(k, v)] -> [(k, v)]
+    go []                  = [(k0, v0)]
+    go kvs@((k, v) : kvs') =
+        case k0 `compare` k of
+            LT -> (k0, v0) : kvs
+            -- TODO: make this @traceError duplicateElements@.
+            EQ -> (k, v0) : kvs'
+            GT -> (k, v) : go kvs'
+
+{-# INLINE insertionSortUnique #-}
+-- | Sort a list assuming all of its keys are unique (the invariant is not checked).
+insertionSortUnique :: forall k v. Ord k => [(k, v)] -> [(k, v)]
+insertionSortUnique = go where
+    go :: [(k, v)] -> [(k, v)]
+    go []             = []
+    go ((k, v) : kvs) = insertUnique k v $ go kvs
+
+-- The pragma trades a bit of size for potentially plenty of budget.
+{-# INLINE eqKVs #-}
+-- | Check equality of lists by matching them pointwise.
+eqKVs :: forall k v. Eq k => (v -> Bool) -> (v -> v -> Bool) -> [(k, v)] -> [(k, v)] -> Bool
+eqKVs ~is0 ~eqV = coerce go where
+    go :: [(k, v)] -> [(k, v)] -> Bool
+    go [] []   = True
+    go [] kvs2 = all (is0 . snd) kvs2  -- If one of the lists is empty then all elements in the
+    go kvs1 [] = all (is0 . snd) kvs1  -- other list need to be zero for lists to be equal.
+    go kvs1@((k1, v1) : kvs1') kvs2@((k2, v2) : kvs2')
+        -- As with 'matchKVs' we check equality of all the keys first and only then check equality
+        -- of values.
+        | k1 == k2 = if go kvs1' kvs2' then eqV v1 v2 else False
+        | is0 v1 = go kvs1' kvs2
+        -- Or if the second one is empty, then we throw that one and proceed.
+        | is0 v2 = go kvs1 kvs2'
+        | otherwise = False
+
 {-# INLINE matchKVs #-}
 {- | Take a function checking whether a value is zero\/empty, a function checking /structural/
 equality of two values and two key-value lists and return the result of matching the lists
@@ -409,7 +449,7 @@ If the result is @MatchPartial vvs kvs1' kvs2'@, then the two lists have the sam
 matchKVs
     :: forall k v. Ord k
     => (v -> Bool) -> (v -> v -> Bool) -> [(k, v)] -> [(k, v)] -> MatchResult k v
-matchKVs ~is0 ~structEqV = go where
+matchKVs is0 structEqV = go where
     go :: [(k, v)] -> [(k, v)] -> MatchResult k v
     -- Spines match, hence it's a 'MatchSuccess' so far.
     go [] [] = MatchSuccess
@@ -449,32 +489,32 @@ matchKVs ~is0 ~structEqV = go where
 eq :: Value -> Value -> Bool
 eq (Value (Map.toList -> currs1)) (Value (Map.toList -> currs2)) =
     -- Check structural equality of the lists first.
-    case matchKVs (Map.all (== 0)) (eqMapVia SortedMap.UnsafeSortedMap) currs1 currs2 of
+    case matchKVs (Map.all (== 0)) (eqMapVia id) currs1 currs2 of
         MatchSuccess -> True
         MatchFailure -> False
-        -- If the lists aren't structurally equal, then convert the remaining parts to 'SortedMap's
-        -- (by sorting first) and check structural equality of the now sorted lists.
+        -- If the lists aren't structurally equal, then sort them and check structural equality of
+        -- the now sorted lists.
         MatchPartial valPairs currs1' currs2' ->
-            if SortedMap.eqWith
+            if eqKVs
                     (Map.all (== 0))
-                    (eqMapVia SortedMap.unsafeFromListUnique)
-                    (SortedMap.unsafeFromListUnique currs1')
-                    (SortedMap.unsafeFromListUnique currs2')
+                    (eqMapVia insertionSortUnique)
+                    (insertionSortUnique currs1')
+                    (insertionSortUnique currs2')
                 then
                     -- Check equality of values that come from the common key prefix of the original
                     -- lists.
-                    all (uncurry (eqMapVia SortedMap.unsafeFromListUnique)) valPairs
+                    all (uncurry (eqMapVia insertionSortUnique)) valPairs
                 else False
   where
-    -- Check equality of two @Map@s given a function converting a list to a 'SortedMap' (two options
-    -- are embedding the list directly to check structural equality or sorting the list first).
+    -- Check equality of two @Map@s given a function transforming a list of tokens (two options for
+    -- the latter are the identity function to check structural equality or a sorting function).
     eqMapVia
-        :: ([(TokenName, Integer)] -> SortedMap.SortedMap TokenName Integer)
+        :: ([(TokenName, Integer)] -> [(TokenName, Integer)])
         -> Map.Map TokenName Integer
         -> Map.Map TokenName Integer
         -> Bool
-    eqMapVia asSortedMap (Map.toList -> tokens1) (Map.toList -> tokens2) =
-        SortedMap.eqWith (== 0) (==) (asSortedMap tokens1) (asSortedMap tokens2)
+    eqMapVia sortTokens (Map.toList -> tokens1) (Map.toList -> tokens2) =
+        eqKVs (== 0) (==) (sortTokens tokens1) (sortTokens tokens2)
 
 makeLift ''CurrencySymbol
 makeLift ''TokenName

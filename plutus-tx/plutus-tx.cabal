@@ -79,7 +79,6 @@ library
     PlutusTx.Semigroup
     PlutusTx.Show
     PlutusTx.Show.TH
-    PlutusTx.SortedMap
     PlutusTx.Sqrt
     PlutusTx.TH
     PlutusTx.These
