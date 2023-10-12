@@ -12,6 +12,11 @@ import PlutusBenchmark.Lists.Sum.HandWritten qualified as HandWritten
 
 import PlutusTx.Test qualified as Tx
 
+-- Run a collection of golden tests with results stored in folders named
+-- according to the GHC version.
+versionedTestGroup :: String -> [TestNested] -> TestTree
+versionedTestGroup s = runTestNested . testNestedGhc ("lists/test/" ++ s)
+
 -- | Check that the various summation functions all give the same result as 'sum'
 
 prop_sum :: ([Integer] -> Term) -> [Integer] -> Property
@@ -32,7 +37,7 @@ tests =
       , testProperty "Compiled left fold (built-in lists)"     $ prop_sum Compiled.mkSumLeftBuiltinTerm
       , testProperty "Compiled left fold (data lists)"         $ prop_sum Compiled.mkSumLeftDataTerm
       ]
-    , runTestNestedIn ["lists", "test"] $ testNested "Sum"
+    , versionedTestGroup "Sum"
       [ Tx.goldenBudget "right-fold-scott"    $ Compiled.mkSumRightScottCode input
       , Tx.goldenBudget "right-fold-built-in" $ Compiled.mkSumRightBuiltinCode input
       , Tx.goldenBudget "right-fold-data"     $ Compiled.mkSumRightDataCode input
