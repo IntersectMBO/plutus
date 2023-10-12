@@ -41,8 +41,8 @@ test_deadCode = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
 -- | Check that a term typechecks after a `PlutusIR.Transform.DeadCode.removeDeadBindings` pass.
 typecheckRemoveDeadBindingsProp :: BuiltinSemanticsVariant DefaultFun -> Property
 typecheckRemoveDeadBindingsProp biVariant =
-  withMaxSuccess 50000 $ nonPureTypecheckProp $ removeDeadBindings $ BuiltinsInfo biVariant
-
+  withMaxSuccess 50000 $ nonPureTypecheckProp $ removeDeadBindings $
+    BuiltinsInfo biVariant defaultUniMatcherLike
 test_TypecheckRemoveDeadBindings :: TestTree
 test_TypecheckRemoveDeadBindings =
   ignoreTest $ testProperty "typechecking" typecheckRemoveDeadBindingsProp

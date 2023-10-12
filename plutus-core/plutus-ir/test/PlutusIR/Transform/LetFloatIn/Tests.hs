@@ -73,4 +73,5 @@ prop_TypecheckFloatTerm ::
   BuiltinSemanticsVariant PLC.DefaultFun -> Bool -> Property
 prop_TypecheckFloatTerm biVariant conservative =
   withMaxSuccess 40000 $
-    nonPureTypecheckProp $ LetFloatIn.floatTerm (BuiltinsInfo biVariant) conservative
+    nonPureTypecheckProp $
+      LetFloatIn.floatTerm (BuiltinsInfo biVariant defaultUniMatcherLike) conservative

@@ -74,4 +74,5 @@ test_letFloatOut = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
 -- `PlutusIR.Transform.LetFloatOut.floatTerm` pass.
 prop_TypecheckFloatTerm :: BuiltinSemanticsVariant PLC.DefaultFun -> Property
 prop_TypecheckFloatTerm biVariant =
-  withMaxSuccess 20000 $ pureTypecheckProp $ LetFloatOut.floatTerm (BuiltinsInfo biVariant)
+  withMaxSuccess 20000 $ pureTypecheckProp $
+    LetFloatOut.floatTerm (BuiltinsInfo biVariant defaultUniMatcherLike)

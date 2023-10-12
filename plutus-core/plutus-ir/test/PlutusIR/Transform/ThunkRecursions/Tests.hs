@@ -31,4 +31,5 @@ test_thunkRecursions = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
 -- | Check that a term typechecks after a `PlutusIR.Transform.ThunkRecursions.thunkRecursions` pass.
 prop_TypecheckThunkRecursions :: BuiltinSemanticsVariant DefaultFun -> Property
 prop_TypecheckThunkRecursions biVariant =
-  withMaxSuccess 5000 $ pureTypecheckProp $ thunkRecursions $ BuiltinsInfo biVariant
+  withMaxSuccess 5000 $ pureTypecheckProp $
+    thunkRecursions $ BuiltinsInfo biVariant defaultUniMatcherLike
