@@ -18,7 +18,6 @@ module PlutusBenchmark.Common
     , TestSize (..)
     , printHeader
     , printSizeStatistics
-    , makeVersionedFilePath
     , goldenVsTextualOutput
     , checkGoldenFileExists
     )
@@ -41,12 +40,10 @@ import Criterion.Types (Config (..))
 import Data.ByteString qualified as BS
 import Data.SatInt (fromSatInt)
 import Data.Text (Text)
-import Data.Version (showVersion)
 import Flat qualified
 import GHC.IO.Encoding (setLocaleEncoding)
 import System.Directory
 import System.FilePath
-import System.Info
 import System.IO
 import System.IO.Temp
 import Test.Tasty
@@ -202,12 +199,6 @@ printSizeStatistics h n script = do
 
 
 ---------------- Golden tests for tabular output ----------------
-
-makeVersionedFilePath :: [FilePath] -> [FilePath] -> FilePath
-makeVersionedFilePath left right =
-    joinPath left </> ghcVer </> joinPath right
-        where ghcVer = showVersion compilerVersion
-
 
 {- | Run a program which produces textual output and compare the results with a
    golden file.  This is intended for tests which produce a lot of formatted

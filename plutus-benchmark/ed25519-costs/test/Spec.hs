@@ -1,7 +1,9 @@
 module Main where
 
-import PlutusBenchmark.Common (checkGoldenFileExists, goldenVsTextualOutput, makeVersionedFilePath)
+import PlutusBenchmark.Common (checkGoldenFileExists, goldenVsTextualOutput)
 import PlutusBenchmark.Ed25519.Common (runTests)
+
+import Test.Tasty.Extras (makeVersionedFilePath)
 
 outputFile :: FilePath
 outputFile = "ed25519-costs.txt"

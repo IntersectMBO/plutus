@@ -1,7 +1,9 @@
 module Main where
 
 import PlutusBenchmark.BLS12_381.RunTests (runTests)
-import PlutusBenchmark.Common (checkGoldenFileExists, goldenVsTextualOutput, makeVersionedFilePath)
+import PlutusBenchmark.Common (checkGoldenFileExists, goldenVsTextualOutput)
+
+import Test.Tasty.Extras (makeVersionedFilePath)
 
 outputFile :: FilePath
 outputFile = "bls12-381-costs.txt"

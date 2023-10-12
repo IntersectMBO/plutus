@@ -4,6 +4,8 @@ module Test.Tasty.Extras
     , runTestNested
     , testNested
     , testNestedGhc
+    , runTestGroupNestedGhcIn
+    , runTestGroupNestedGhc
     , goldenVsText
     , goldenVsTextM
     , goldenVsDoc
@@ -12,6 +14,7 @@ module Test.Tasty.Extras
     , nestedGoldenVsTextM
     , nestedGoldenVsDoc
     , nestedGoldenVsDocM
+    , makeVersionedFilePath
     ) where
 
 import PlutusPrelude
@@ -21,16 +24,25 @@ import Data.ByteString.Lazy qualified as BSL
 import Data.Text (Text)
 import Data.Text.Encoding (encodeUtf8)
 import Data.Version
-import System.FilePath ((</>))
+import System.FilePath (joinPath, (</>))
 import System.Info
 import Test.Tasty
 import Test.Tasty.Golden
 
+ghcVersion :: String
+ghcVersion = showVersion compilerVersion
+
+-- Given two lists of FilePaths, concatenate the members of the first list
+-- together, append the GHC version number, then append the concatenation of the
+-- members of the second list.
+makeVersionedFilePath :: [FilePath] -> [FilePath] -> FilePath
+makeVersionedFilePath left right = joinPath left </> ghcVersion </> joinPath right
+
 -- | A 'TestTree' of tests under some name prefix.
-type TestNested = Reader [String] TestTree
+type TestNested = Reader [FilePath] TestTree
 
 -- | Run a 'TestTree' of tests with a given name prefix.
-runTestNestedIn :: [String] -> TestNested -> TestTree
+runTestNestedIn :: [FilePath] -> TestNested -> TestTree
 runTestNestedIn path test = runReader test path
 
 -- | Run a 'TestTree' of tests with an empty prefix.
@@ -38,15 +50,21 @@ runTestNested :: TestNested -> TestTree
 runTestNested = runTestNestedIn []
 
 -- | Descend into a name prefix.
-testNested :: String -> [TestNested] -> TestNested
+testNested :: FilePath -> [TestNested] -> TestNested
 testNested folderName =
     local (++ [folderName]) . fmap (testGroup folderName) . sequence
 
 -- | Like `testNested` but adds a subdirectory corresponding to the GHC version being used.
-testNestedGhc :: String -> [TestNested] -> TestNested
-testNestedGhc folderName = testNested (folderName </> ghcVer)
-  where
-    ghcVer = showVersion compilerVersion
+testNestedGhc :: FilePath -> [TestNested] -> TestNested
+testNestedGhc folderName = testNested (folderName </> ghcVersion)
+
+-- Create a TestTree which runs in the directory 'path/<ghc-version>/dir'
+runTestGroupNestedGhcIn :: [FilePath] -> FilePath -> [TestNested] -> TestTree
+runTestGroupNestedGhcIn path dir = runTestNested . testNestedGhc (joinPath path </> dir)
+
+-- Create a TestTree which runs in the directory 'path/<ghc-version>
+runTestGroupNestedGhc :: [FilePath] -> [TestNested] -> TestTree
+runTestGroupNestedGhc path = runTestGroupNestedGhcIn path []
 
 -- | Check the contents of a file against a 'Text'.
 goldenVsText :: TestName -> FilePath -> Text -> TestTree

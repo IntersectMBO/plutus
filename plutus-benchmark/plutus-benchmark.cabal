@@ -357,14 +357,14 @@ test-suite ed25519-costs-test
   main-is:        Spec.hs
   other-modules:  PlutusBenchmark.Ed25519.Common
   build-depends:
-    , base                     >=4.9   && <5
+    , base                                            >=4.9   && <5
     , bytestring
     , cardano-crypto-class
     , hedgehog
     , plutus-benchmark-common
-    , plutus-core              ^>=1.14
-    , plutus-tx                ^>=1.14
-    , plutus-tx-plugin         ^>=1.14
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.14
+    , plutus-tx                                       ^>=1.14
+    , plutus-tx-plugin                                ^>=1.14
 
 ---------------- BLS12-381 experiments ----------------
 
@@ -424,9 +424,10 @@ test-suite bls12-381-costs-test
   main-is:        Spec.hs
   hs-source-dirs: bls12-381-costs/test
   build-depends:
-    , base                     >=4.9 && <5
+    , base                             >=4.9   && <5
     , bls12-381lib-internal
     , plutus-benchmark-common
+    , plutus-core:plutus-core-testlib  ^>=1.14
 
 -- Run benchmarks for various scripts involving BLS12-381 operations
 benchmark bls12-381-benchmarks
