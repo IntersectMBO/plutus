@@ -157,11 +157,6 @@ benchmark nofib-hs
 
 test-suite plutus-benchmark-nofib-tests
   import:         lang, ghc-version-support
-
-  -- test output changes after 9.2, bad for golden tests
-  if impl(ghc >=9.3)
-    buildable: False
-
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
   hs-source-dirs: nofib/test
