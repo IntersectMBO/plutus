@@ -6,14 +6,16 @@ import Test.Tasty.Extras
 import PlutusCore qualified as PLC
 import PlutusCore.Quote
 import PlutusIR.Parser
+import PlutusIR.Properties.Typecheck
 import PlutusIR.Test
-import PlutusIR.Transform.RecSplit qualified as RecSplit
+import PlutusIR.Transform.RecSplit
+import Test.Tasty.QuickCheck
 
 test_recSplit :: TestTree
 test_recSplit = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
     testNested "RecSplit" $
         map
-            (goldenPir (RecSplit.recSplit . runQuote . PLC.rename) pTerm)
+            (goldenPir (recSplit . runQuote . PLC.rename) pTerm)
             [ "truenonrec"
             , "mutuallyRecursiveTypes"
             , "mutuallyRecursiveValues"
@@ -21,3 +23,8 @@ test_recSplit = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
             , "small"
             , "big"
             ]
+
+-- | Check that a term typechecks after a `PlutusIR.Transform.RecSplit.recSplit` pass.
+prop_TypecheckRecSplit :: Property
+prop_TypecheckRecSplit =
+  withMaxSuccess 3000 (pureTypecheckProp recSplit)

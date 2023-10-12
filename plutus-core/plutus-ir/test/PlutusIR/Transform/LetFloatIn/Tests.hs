@@ -16,6 +16,11 @@ import PlutusIR.Transform.Rename ()
 import PlutusIR.TypeCheck as TC
 import PlutusPrelude
 
+import PlutusCore.Builtin
+import PlutusIR.Analysis.Builtins
+import PlutusIR.Properties.Typecheck
+import Test.QuickCheck.Property (Property, withMaxSuccess)
+
 test_letFloatInConservative :: TestTree
 test_letFloatInConservative = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform/LetFloatIn"] $
     testNested "conservative" $
@@ -61,3 +66,12 @@ test_letFloatInRelaxed = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform/Let
         _ <- runQuoteT . flip inferType (() <$ pirFloated) =<< TC.getDefTypeCheckConfig ()
         -- letmerge is not necessary for floating, but is a nice visual transformation
         pure $ LetMerge.letMerge pirFloated
+
+-- | Check that a term typechecks after a
+-- `PlutusIR.Transform.LetFloatIn.floatTerm` pass.
+prop_TypecheckFloatTerm ::
+  BuiltinSemanticsVariant PLC.DefaultFun -> Bool -> Property
+prop_TypecheckFloatTerm biVariant conservative =
+  withMaxSuccess 40000 $
+    nonPureTypecheckProp $
+      LetFloatIn.floatTerm (BuiltinsInfo biVariant defaultUniMatcherLike) conservative
