@@ -1,0 +1,38 @@
+(let
+  (nonrec)
+  (datatypebind
+    (datatype
+      (tyvardecl Bool (type))
+      match_Bool
+      (vardecl True Bool) (vardecl False Bool)
+    )
+  )
+  (datatypebind
+    (datatype
+      (tyvardecl Maybe (fun (type) (type)))
+      (tyvardecl a (type))
+      match_Maybe
+      (vardecl Nothing [Maybe a]) (vardecl Just (fun a [Maybe a]))
+    )
+  )
+  (lam x [Maybe (con integer)]
+    [
+      {
+        [
+          match_Bool
+          [
+            {
+              [{match_Maybe (con integer)} x]
+              Bool
+            }
+            False
+            (lam i (con integer) True)
+          ]
+        ]
+        (con integer)
+      }
+      (con integer 1)
+      (con integer 0)
+    ]
+  )
+)

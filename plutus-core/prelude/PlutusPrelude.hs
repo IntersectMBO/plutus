@@ -92,6 +92,8 @@ module PlutusPrelude
     , Default (def)
     -- * Lists
     , zipExact
+    , allSame
+    , distinct
     , unsafeFromRight
     , tryError
     ) where
@@ -257,3 +259,10 @@ timesA = ala Endo . stimes
 {-# INLINE tryError #-}
 tryError :: MonadError e m => m a -> m (Either e a)
 tryError a = (Right <$> a) `catchError` (pure . Left)
+
+allSame :: Eq a => [a] -> Bool
+allSame []     = True
+allSame (x:xs) = all (x ==) xs
+
+distinct :: Eq a => [a] -> Bool
+distinct = not . allSame

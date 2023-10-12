@@ -126,7 +126,7 @@ termEvaluationOrder
   :: forall tyname name uni fun a
   . (ToBuiltinMeaning uni fun, PLC.HasUnique name PLC.TermUnique)
   => BuiltinsInfo uni fun
-  -> VarsInfo tyname name
+  -> VarsInfo tyname name uni a
   -> Term tyname name uni fun a
   -> EvalOrder tyname name uni fun a
 termEvaluationOrder binfo vinfo = goTerm
@@ -244,18 +244,19 @@ termEvaluationOrder binfo vinfo = goTerm
         -> EvalOrder tyname name uni fun a
       goBuiltinApp a hd args =
         let
-          saturated = isSaturated binfo hd args
+          saturated = saturates args (builtinArityInfo binfo hd)
           reconstructed = fillAppContext (Builtin a hd) args
           evalEffect = case saturated of
-            -- If it's saturated, we might have an effect here
-            Just True  -> evalThis (EvalTerm MaybeImpure MaybeWork reconstructed)
+            -- If it's saturated or oversaturated, we might have an effect here
+            Just Saturated      -> evalThis (EvalTerm MaybeImpure MaybeWork reconstructed)
+            Just Oversaturated  -> evalThis (EvalTerm MaybeImpure MaybeWork reconstructed)
             -- TODO: previous definition of work-free included this, it's slightly
             -- unclear if we should do since we do update partial builtin meanings
             -- etc.
             -- If it's unsaturated, we definitely don't, and don't do any work
-            Just False -> evalThis (EvalTerm Pure WorkFree reconstructed)
+            Just Undersaturated -> evalThis (EvalTerm Pure WorkFree reconstructed)
             -- Don't know, be conservative
-            Nothing    -> evalThis (EvalTerm MaybeImpure MaybeWork reconstructed)
+            Nothing             -> evalThis (EvalTerm MaybeImpure MaybeWork reconstructed)
         in goAppCtx args <> evalEffect
 
       goAppCtx :: AppContext tyname name uni fun a -> EvalOrder tyname name uni fun a
@@ -271,7 +272,7 @@ termEvaluationOrder binfo vinfo = goTerm
 isPure ::
     (ToBuiltinMeaning uni fun, PLC.HasUnique name PLC.TermUnique) =>
     BuiltinsInfo uni fun ->
-    VarsInfo tyname name ->
+    VarsInfo tyname name uni a ->
     Term tyname name uni fun a ->
     Bool
 isPure binfo vinfo t =
@@ -298,7 +299,7 @@ evaluating this term should do very a trivial amount of work.
 isWorkFree ::
     (ToBuiltinMeaning uni fun, PLC.HasUnique name PLC.TermUnique) =>
     BuiltinsInfo uni fun ->
-    VarsInfo tyname name ->
+    VarsInfo tyname name uni a ->
     Term tyname name uni fun a ->
     Bool
 isWorkFree binfo vinfo t =
