@@ -113,20 +113,23 @@ library plutus-ledger-api-testlib
     PlutusLedgerApi.Test.Examples
     PlutusLedgerApi.Test.Scripts
     PlutusLedgerApi.Test.V1.EvaluationContext
+    PlutusLedgerApi.Test.V1.Value
     PlutusLedgerApi.Test.V2.EvaluationContext
     PlutusLedgerApi.Test.V3.EvaluationContext
 
   build-depends:
     , barbies
-    , base               >=4.9      && <5
+    , base                                            >=4.9      && <5
+    , base16-bytestring
     , base64-bytestring
     , bytestring
     , containers
-    , plutus-core        ^>=1.14
-    , plutus-ledger-api  ^>=1.14
-    , plutus-tx          ^>=1.14
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.14
+    , plutus-ledger-api                               ^>=1.14
+    , plutus-tx                                       ^>=1.14
     , prettyprinter
-    , PyF                >=0.11.1.0
+    , PyF                                             >=0.11.1.0
+    , QuickCheck
     , serialise
     , text
 
@@ -141,6 +144,7 @@ test-suite plutus-ledger-api-test
     Spec.Eval
     Spec.Interval
     Spec.NoThunks
+    Spec.V1.Value
     Spec.Versions
 
   build-depends:
@@ -150,11 +154,13 @@ test-suite plutus-ledger-api-test
     , containers
     , extra
     , hedgehog
+    , lens
     , mtl
     , nothunks
     , plutus-core:{plutus-core, plutus-core-testlib}                    ^>=1.14
     , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.14
-    , plutus-tx:plutus-tx-testlib                                       ^>=1.14
+    , plutus-tx:{plutus-tx, plutus-tx-testlib}                          ^>=1.14
+    , QuickCheck
     , tasty
     , tasty-hedgehog
     , tasty-hunit
@@ -182,6 +188,7 @@ test-suite plutus-ledger-api-plugin-test
     , plutus-tx                                       ^>=1.14
     , plutus-tx-plugin                                ^>=1.14
     , prettyprinter
+    , QuickCheck
     , tasty
 
 -- This is a nightly test, so it is an executable instead of test-suite to avoid
