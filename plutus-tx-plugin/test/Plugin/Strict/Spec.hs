@@ -18,7 +18,7 @@ import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Code
 import PlutusTx.Plugin
 import PlutusTx.Prelude qualified as P
-import PlutusTx.Tests
+import PlutusTx.Test
 
 import Data.Proxy
 

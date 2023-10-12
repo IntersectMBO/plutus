@@ -26,7 +26,7 @@ import PlutusTx.Lift (liftCodeDef, makeLift)
 import PlutusTx.List qualified as List
 import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Show qualified as PlutusTx
-import PlutusTx.Tests (goldenBudget, goldenPirReadable, goldenUPlcReadable)
+import PlutusTx.Test (goldenBudget, goldenPirReadable, goldenUPlcReadable)
 import PlutusTx.TH (compile)
 
 AsData.asData [d|

@@ -134,7 +134,7 @@ library plutus-tx-testlib
     Hedgehog.Laws.Eq
     Hedgehog.Laws.Lattice
     Hedgehog.Laws.Ord
-    PlutusTx.Tests
+    PlutusTx.Test
 
   build-depends:
     , base                                                       >=4.9   && <5

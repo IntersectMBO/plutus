@@ -23,7 +23,7 @@ import PlutusPrelude
 import PlutusCore.Test
 
 import PlutusTx.Code
-import PlutusTx.Tests ()
+import PlutusTx.Test ()
 
 import PlutusCore qualified as PLC
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC

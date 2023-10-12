@@ -19,7 +19,7 @@ import PlutusTx
 import PlutusTx.Builtins qualified as B
 import PlutusTx.Plugin
 import PlutusTx.Prelude qualified as P
-import PlutusTx.Tests
+import PlutusTx.Test
 
 noTrace :: TestNested
 noTrace = testNestedGhc "NoTrace"

@@ -679,7 +679,7 @@ library plutus-core-testlib
     PlutusCore.Generators.Hedgehog.Denotation
     PlutusCore.Generators.Hedgehog.Entity
     PlutusCore.Generators.Hedgehog.Interesting
-    PlutusCore.Generators.Hedgehog.Tests
+    PlutusCore.Generators.Hedgehog.Test
     PlutusCore.Generators.Hedgehog.TypedBuiltinGen
     PlutusCore.Generators.Hedgehog.TypeEvalCheck
     PlutusCore.Generators.Hedgehog.Utils
@@ -697,7 +697,7 @@ library plutus-core-testlib
     PlutusCore.Generators.QuickCheck.Substitutions
     PlutusCore.Generators.QuickCheck.Unification
     PlutusCore.Generators.QuickCheck.Utils
-    PlutusCore.Tests
+    PlutusCore.Test
     PlutusIR.Generators.AST
     PlutusIR.Generators.QuickCheck
     PlutusIR.Generators.QuickCheck.Common

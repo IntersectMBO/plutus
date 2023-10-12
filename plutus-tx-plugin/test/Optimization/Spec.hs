@@ -23,7 +23,7 @@ import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code
 import PlutusTx.IsData qualified as IsData
 import PlutusTx.Plugin (plc)
-import PlutusTx.Tests
+import PlutusTx.Test
 import PlutusTx.TH (compile)
 
 AsData.asData [d|

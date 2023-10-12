@@ -19,7 +19,7 @@ import PlutusCore.Test
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code
 import PlutusTx.Plugin
-import PlutusTx.Tests
+import PlutusTx.Test
 
 import Data.Proxy
 

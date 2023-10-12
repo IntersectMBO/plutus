@@ -15,7 +15,7 @@ import PlutusCore.Default (DefaultFun, DefaultUni)
 import PlutusCore.Test (goldenSize, goldenUEvalBudget)
 import PlutusLedgerApi.V2 (scriptContextTxInfo, txInfoId)
 import PlutusTx.Code (CompiledCode)
-import PlutusTx.Tests ()
+import PlutusTx.Test ()
 import UntypedPlutusCore (NamedDeBruijn)
 import UntypedPlutusCore.Core.Type qualified as UPLC
 

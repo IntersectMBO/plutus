@@ -21,7 +21,7 @@ import PlutusCore.Test (ToUPlc (toUPlc), goldenUEvalLogs)
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code (CompiledCode)
 import PlutusTx.Plugin (plc)
-import PlutusTx.Tests (goldenPir)
+import PlutusTx.Test (goldenPir)
 
 import Data.Functor.Identity
 import Data.Proxy (Proxy (Proxy))

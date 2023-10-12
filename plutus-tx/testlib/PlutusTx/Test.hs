@@ -7,7 +7,7 @@
 {-# LANGUAGE UndecidableInstances  #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module PlutusTx.Tests (
+module PlutusTx.Test (
   -- * Size tests
   goldenSize,
   fitsUnder,

@@ -19,7 +19,7 @@ import PlutusTx.Code
 import PlutusTx.Coverage
 import PlutusTx.Plugin
 import PlutusTx.Prelude qualified as P
-import PlutusTx.Tests
+import PlutusTx.Test
 import Prelude as Haskell
 
 import Test.Tasty

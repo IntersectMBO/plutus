@@ -17,7 +17,7 @@ import PlutusCore.Test
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code
 import PlutusTx.Lift qualified as Lift
-import PlutusTx.Tests ()
+import PlutusTx.Test ()
 
 Lift.makeLift ''MyMonoData
 Lift.makeLift ''MyMonoRecord

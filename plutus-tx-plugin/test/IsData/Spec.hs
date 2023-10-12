@@ -31,7 +31,7 @@ import PlutusTx.Code
 import PlutusTx.IsData qualified as IsData
 import PlutusTx.Plugin
 import PlutusTx.Prelude qualified as P
-import PlutusTx.Tests
+import PlutusTx.Test
 
 import PlutusCore qualified as PLC
 import PlutusCore.MkPlc qualified as PLC

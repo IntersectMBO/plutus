@@ -23,7 +23,7 @@ import PlutusCore.Test ()
 import PlutusTx.Code
 import PlutusTx.Plugin
 import PlutusTx.Prelude as P
-import PlutusTx.Tests
+import PlutusTx.Test
 
 import Data.Proxy
 

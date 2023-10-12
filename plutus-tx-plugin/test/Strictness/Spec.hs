@@ -13,7 +13,7 @@ import Test.Tasty.Extras
 import PlutusTx qualified as Tx
 import PlutusTx.Code
 import PlutusTx.Prelude qualified as PlutusTx
-import PlutusTx.Tests
+import PlutusTx.Test
 import PlutusTx.TH (compile)
 
 tests :: TestNested
