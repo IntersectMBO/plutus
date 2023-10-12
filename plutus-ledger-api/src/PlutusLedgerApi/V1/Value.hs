@@ -14,8 +14,8 @@
 {-# OPTIONS_GHC -fno-spec-constr #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fexpose-all-unfoldings #-}
--- We need -fexpose-all-unfoldings to compile the Marlowe validator with
--- GHC 9.6.2.
+-- We need -fexpose-all-unfoldings to compile the Marlowe validator
+-- with GHC 9.6.2.
 -- TODO. Look into this more closely: see PLT-7976.
 
 -- | Functions for working with 'Value'.
