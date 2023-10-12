@@ -1024,13 +1024,9 @@
   letrec
     !euclid : integer -> integer -> integer
       = \(x : integer) (y : integer) ->
-          Bool_match
-            (ifThenElse
-               {Bool}
-               (equalsInteger y `$fAdditiveMonoidInteger_$czero`)
-               True
-               False)
+          ifThenElse
             {all dead. integer}
+            (equalsInteger y `$fAdditiveMonoidInteger_$czero`)
             (/\dead -> x)
             (/\dead -> euclid y (modInteger x y))
             {all dead. dead}
@@ -1038,22 +1034,14 @@
   letrec
     !unsafeRatio : integer -> integer -> Rational
       = \(n : integer) (d : integer) ->
-          Bool_match
-            (ifThenElse
-               {Bool}
-               (equalsInteger d `$fAdditiveMonoidInteger_$czero`)
-               True
-               False)
+          ifThenElse
             {all dead. Rational}
+            (equalsInteger d `$fAdditiveMonoidInteger_$czero`)
             (/\dead -> error {Rational})
             (/\dead ->
-               Bool_match
-                 (ifThenElse
-                    {Bool}
-                    (lessThanInteger d `$fAdditiveMonoidInteger_$czero`)
-                    True
-                    False)
+               ifThenElse
                  {all dead. Rational}
+                 (lessThanInteger d `$fAdditiveMonoidInteger_$czero`)
                  (/\dead ->
                     unsafeRatio
                       (subtractInteger `$fAdditiveMonoidInteger_$czero` n)
