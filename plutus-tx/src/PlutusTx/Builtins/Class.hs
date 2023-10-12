@@ -1,10 +1,8 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE FlexibleInstances        #-}
-{-# LANGUAGE FunctionalDependencies   #-}
-{-# LANGUAGE MultiParamTypeClasses    #-}
-{-# LANGUAGE StandaloneKindSignatures #-}
-{-# LANGUAGE TypeFamilies             #-}
-{-# LANGUAGE UndecidableInstances     #-}
+{-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE TypeFamilies           #-}
+{-# LANGUAGE UndecidableInstances   #-}
 
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -fno-specialise #-}
@@ -27,12 +25,14 @@ import PlutusTx.Bool (Bool (..))
 import PlutusTx.Integer (Integer)
 import Prelude qualified as Haskell (String)
 
+-- See Note [Builtin types and their Haskell versions]
 {-|
 A class witnessing the ability to convert from the builtin representation to the Haskell representation.
 -}
 class FromBuiltin arep a | arep -> a where
     fromBuiltin :: arep -> a
 
+-- See Note [Builtin types and their Haskell versions]
 {-|
 A class witnessing the ability to convert from the Haskell representation to the builtin representation.
 -}
@@ -165,6 +165,28 @@ instance ToBuiltin BLS12_381.Pairing.MlResult BuiltinBLS12_381_MlResult where
     {-# INLINABLE toBuiltin #-}
     toBuiltin = BuiltinBLS12_381_MlResult
 
+{- Note [Builtin types and their Haskell versions]
+Consider the bulitin pair type. In Plutus Tx, we have an (opaque) type for
+this. It's opaque because you can't actually pattern match on it, instead you can
+only in fact use the specific functions that are available as builtins.
+
+We _also_ have the normal Haskell pair type. This is very different: you can
+pattern match on it, and you can use whatever user-defined functions you like on it.
+
+Users would really like to use the latter, and not the former. So we often want
+to _wrap_ our builtin functions with little adapters that convert between the
+"opaque builtin" "version" of a type and the "normal Haskell" "version" of a type.
+
+This is what the ToBuiltin and FromBuiltin classes do. They let us write wrappers
+for builtins relatively consistently by just calling toBuiltin on their arguments
+and fromBuiltin on the result. They shouldn't really be used otherwise.
+
+To keep the consistency we define dummy instances that are just the identity function
+for types that don't have a separate "normall Haskell" version. For example:
+integer. Integer in Plutus Tx user code _is_ the opaque builtin type, we don't
+expose a different one. Essentially: if it's a datatype then there's a substantive
+conversion.
+-}
 
 {- Note [Fundeps versus type families in To/FromBuiltin]
 We could use a type family here to get the builtin representation of a type. After all, it's
