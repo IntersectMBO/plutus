@@ -19,6 +19,11 @@ import PlutusTx.Test ()
 import UntypedPlutusCore (NamedDeBruijn)
 import UntypedPlutusCore.Core.Type qualified as UPLC
 
+-- Run a collection of golden tests with results stored in folders named
+-- according to the GHC version.
+versionedTestGroup :: String -> [TestNested] -> TestTree
+versionedTestGroup s = runTestNested . testNestedGhc ("marlowe/test/" ++ s)
+
 mkBudgetTest ::
     CompiledCode a
     -> M.Benchmark
@@ -40,13 +45,13 @@ main = do
   let allTests :: TestTree
       allTests =
         testGroup "plutus-benchmark Marlowe tests"
-            [ runTestNestedIn ["marlowe", "test"] $ testNested "semantics" $
+            [ versionedTestGroup "semantics" $
                 goldenSize "semantics" marloweValidator
                   : [ goldenUEvalBudget name [value]
                     | bench <- semanticsMBench
                     , let (name, value) = mkBudgetTest marloweValidator bench
                     ]
-            , runTestNestedIn ["marlowe", "test"] $ testNested "role-payout" $
+            , versionedTestGroup "role-payout" $
                 goldenSize "role-payout" rolePayoutValidator
                   : [ goldenUEvalBudget name [value]
                     | bench <- rolePayoutMBench
