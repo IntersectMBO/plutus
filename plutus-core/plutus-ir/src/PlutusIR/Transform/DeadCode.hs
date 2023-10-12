@@ -48,7 +48,7 @@ calculateLiveness
     :: (PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique,
        PLC.ToBuiltinMeaning uni fun)
     => BuiltinsInfo uni fun
-    -> VarsInfo tyname name
+    -> VarsInfo tyname name uni a
     -> Term tyname name uni fun a
     -> Liveness
 calculateLiveness binfo vinfo t =

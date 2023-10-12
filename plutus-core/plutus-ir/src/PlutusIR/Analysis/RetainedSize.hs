@@ -178,7 +178,7 @@ hasSizeIn (DirectionRetentionMap ss) (Variable (PLC.Unique i)) = i `IntMap.membe
 termRetentionMap
     :: (HasUnique tyname TypeUnique, HasUnique name TermUnique, ToBuiltinMeaning uni fun)
     => BuiltinsInfo uni fun
-    -> VarsInfo tyname name
+    -> VarsInfo tyname name uni ann
     -> Term tyname name uni fun ann
     -> IntMap Size
 termRetentionMap binfo vinfo term = depsRetentionMap sizeInfo deps where

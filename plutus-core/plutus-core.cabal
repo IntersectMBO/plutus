@@ -82,6 +82,7 @@ library
     PlutusCore
     PlutusCore.Analysis.Definitions
     PlutusCore.Annotation
+    PlutusCore.Arity
     PlutusCore.Builtin
     PlutusCore.Builtin.Debug
     PlutusCore.Builtin.Elaborate
@@ -106,6 +107,7 @@ library
     PlutusCore.DeBruijn
     PlutusCore.DeBruijn.Internal
     PlutusCore.Default
+    PlutusCore.Default.Builtins
     PlutusCore.Error
     PlutusCore.Evaluation.Machine.BuiltinCostModel
     PlutusCore.Evaluation.Machine.Ck
@@ -213,7 +215,6 @@ library
     PlutusCore.Core.Plated
     PlutusCore.Core.Type
     PlutusCore.Crypto.Utils
-    PlutusCore.Default.Builtins
     PlutusCore.Default.Universe
     PlutusCore.Eq
     PlutusCore.Parser.Builtin
@@ -478,8 +479,10 @@ library plutus-ir
     PlutusIR.Compiler
     PlutusIR.Compiler.Datatype
     PlutusIR.Compiler.Definitions
+    PlutusIR.Compiler.Let
     PlutusIR.Compiler.Names
     PlutusIR.Compiler.Provenance
+    PlutusIR.Compiler.Types
     PlutusIR.Contexts
     PlutusIR.Core
     PlutusIR.Core.Instance
@@ -496,6 +499,7 @@ library plutus-ir
     PlutusIR.Purity
     PlutusIR.Subst
     PlutusIR.Transform.Beta
+    PlutusIR.Transform.CaseOfCase
     PlutusIR.Transform.CaseReduce
     PlutusIR.Transform.CommuteFnWithConst
     PlutusIR.Transform.DeadCode
@@ -523,10 +527,8 @@ library plutus-ir
     PlutusIR.Analysis.Size
     PlutusIR.Analysis.Usages
     PlutusIR.Compiler.Error
-    PlutusIR.Compiler.Let
     PlutusIR.Compiler.Lower
     PlutusIR.Compiler.Recursion
-    PlutusIR.Compiler.Types
     PlutusIR.Normalize
 
   build-depends:
@@ -582,6 +584,8 @@ test-suite plutus-ir-test
     PlutusIR.Purity.Tests
     PlutusIR.Scoping.Tests
     PlutusIR.Transform.Beta.Tests
+    PlutusIR.Transform.CaseOfCase.Tests
+    PlutusIR.Transform.CaseReduce.Tests
     PlutusIR.Transform.CommuteFnWithConst.Tests
     PlutusIR.Transform.DeadCode.Tests
     PlutusIR.Transform.EvaluateBuiltins.Tests
@@ -610,6 +614,7 @@ test-suite plutus-ir-test
     , QuickCheck
     , serialise
     , tasty
+    , tasty-expected-failure
     , tasty-hedgehog
     , tasty-hunit
     , tasty-quickcheck
@@ -698,6 +703,7 @@ library plutus-core-testlib
     PlutusIR.Generators.QuickCheck.Common
     PlutusIR.Generators.QuickCheck.GenerateTerms
     PlutusIR.Generators.QuickCheck.ShrinkTerms
+    PlutusIR.Properties.Typecheck
     PlutusIR.Test
     Test.Tasty.Extras
     UntypedPlutusCore.Test.DeBruijn.Bad
