@@ -11,6 +11,14 @@ import Control.Lens
 import Test.Tasty
 import Test.Tasty.QuickCheck
 
+infix 4 <=>
+(<=>) :: (Eq a, Show a) => a -> a -> Property
+x <=> y = x === y .&&. y === x
+
+infix 4 </>
+(</>) :: (Eq a, Show a) => a -> a -> Property
+x </> y = x =/= y .&&. y =/= x
+
 scaleTestsBy :: Testable prop => Int -> prop -> Property
 scaleTestsBy factor = withMaxSuccess (100 * factor) . mapSize (* factor)
 
@@ -41,22 +49,22 @@ test_Monoid :: TestTree
 test_Monoid = testProperty "Monoid" . scaleTestsBy 5 $ \value1 ->
     if isZero value1
         then conjoin
-            [ value1 === mempty
-            , forAll arbitrary $ \value2 -> value1 <> value2 === value2
+            [ value1 <=> mempty
+            , forAll arbitrary $ \value2 -> value1 <> value2 <=> value2
             ]
         else conjoin
-            [ value1 =/= mempty
-            , value1 <> value1 === Numeric.scale 2 value1
+            [ value1 </> mempty
+            , value1 <> value1 <=> Numeric.scale 2 value1
             , forAll arbitrary $ \value2 ->
                 if isZero value2
-                    then value1 <> value2 === value1
+                    then value1 <> value2 <=> value1
                     else conjoin
-                        [ value1 <> value2 =/= value1
-                        , value1 <> value2 =/= value2
-                        , value1 <> value2 === value2 <> value1
+                        [ value1 <> value2 </> value1
+                        , value1 <> value2 </> value2
+                        , value1 <> value2 <=> value2 <> value1
                         , forAll arbitrary $ \value3 ->
                             not (isZero value3) ==>
-                                (value1 <> value2) <> value3 === value1 <> (value2 <> value3)
+                                (value1 <> value2) <> value3 <=> value1 <> (value2 <> value3)
                         ]
             ]
 
@@ -69,14 +77,14 @@ test_updateSome = testProperty "updateSome" . scaleTestsBy 15 $ \value ->
 test_unordered :: TestTree
 test_unordered = testProperty "unordered" . scaleTestsBy 10 $ \value1 ->
     conjoin
-        [ onLists value1 shuffle $ \value1' -> value1 === value1'
-        , onLists value1 (mapMany $ traverse shuffle) $ \value1' -> value1 === value1'
+        [ onLists value1 shuffle $ \value1' -> value1 <=> value1'
+        , onLists value1 (mapMany $ traverse shuffle) $ \value1' -> value1 <=> value1'
         ]
 
 test_split :: TestTree
 test_split = testProperty "split" . scaleTestsBy 7 $ \value ->
     let (valueL, valueR) = split value
-    in Numeric.negate valueL <> valueR === value
+    in Numeric.negate valueL <> valueR <=> value
 
 test_Value :: TestTree
 test_Value = testGroup "Value"
