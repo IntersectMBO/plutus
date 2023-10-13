@@ -160,7 +160,6 @@ test-suite plutus-ledger-api-test
     , plutus-core:{plutus-core, plutus-core-testlib}                    ^>=1.14
     , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.14
     , plutus-tx:{plutus-tx, plutus-tx-testlib}                          ^>=1.14
-    , QuickCheck
     , tasty
     , tasty-hedgehog
     , tasty-hunit

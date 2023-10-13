@@ -8,9 +8,11 @@ import PlutusLedgerApi.V1.Value
 import PlutusTx.Numeric qualified as Numeric
 
 import Control.Lens
-import Test.QuickCheck
 import Test.Tasty
 import Test.Tasty.QuickCheck
+
+scaleTestsBy :: Testable prop => Int -> prop -> Property
+scaleTestsBy factor = withMaxSuccess (100 * factor) . mapSize (* factor)
 
 mapMany :: (a -> Gen a) -> [a] -> Gen [a]
 mapMany f = traverse $ \x -> do
@@ -21,7 +23,8 @@ mapSome :: Eq a => (a -> Gen a) -> [a] -> Gen [a]
 mapSome f xs = do
     i <- choose (0, length xs - 1)
     xs' <- mapMany f xs
-    ix i (\x -> if x == xs !! i then f x else pure x) xs'
+    let xi = xs !! i
+    ix i (\x -> if x == xi then f x else pure x) xs'
 
 updateInteger :: Integer -> Gen Integer
 updateInteger i = arbitrary `suchThat` (/= i)
@@ -35,7 +38,7 @@ onLists
 onLists value f = forAll (fmap listsToValue . f $ valueToLists value)
 
 test_Monoid :: TestTree
-test_Monoid = testProperty "Monoid" . withMaxSuccess 500 . mapSize (* 5) $ \value1 ->
+test_Monoid = testProperty "Monoid" . scaleTestsBy 5 $ \value1 ->
     if isZero value1
         then conjoin
             [ value1 === mempty
@@ -58,20 +61,20 @@ test_Monoid = testProperty "Monoid" . withMaxSuccess 500 . mapSize (* 5) $ \valu
             ]
 
 test_updateSome :: TestTree
-test_updateSome = testProperty "updateSome" . withMaxSuccess 1000 . mapSize (* 10) $ \value ->
+test_updateSome = testProperty "updateSome" . scaleTestsBy 15 $ \value ->
     any (any $ not . null) (valueToLists value) ==>
         onLists value (mapSome . traverse . mapSome $ traverse updateInteger)
             (\value' -> value =/= value')
 
 test_unordered :: TestTree
-test_unordered = testProperty "unordered" . withMaxSuccess 500 . mapSize (* 5) $ \value1 ->
+test_unordered = testProperty "unordered" . scaleTestsBy 10 $ \value1 ->
     conjoin
         [ onLists value1 shuffle $ \value1' -> value1 === value1'
         , onLists value1 (mapMany $ traverse shuffle) $ \value1' -> value1 === value1'
         ]
 
 test_split :: TestTree
-test_split = testProperty "split" . withMaxSuccess 500 . mapSize (* 5) $ \value ->
+test_split = testProperty "split" . scaleTestsBy 7 $ \value ->
     let (valueL, valueR) = split value
     in Numeric.negate valueL <> valueR === value
 

@@ -14,47 +14,44 @@
 {-# OPTIONS_GHC -fno-spec-constr #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 
-module PlutusLedgerApi.V1.Value where
-
 -- | Functions for working with 'Value'.
--- module PlutusLedgerApi.V1.Value (
---     -- ** Currency symbols
---       CurrencySymbol(..)
---     , currencySymbol
---     , adaSymbol
---     -- ** Token names
---     , TokenName(..)
---     , tokenName
---     , toString
---     , adaToken
---     -- * Asset classes
---     , AssetClass(..)
---     , assetClass
---     , assetClassValue
---     , assetClassValueOf
---     -- ** Value
---     , Value(..)
---     , singleton
---     , valueOf
---     , scale
---     , symbols
---       -- * Partial order operations
---     , geq
---     , gt
---     , leq
---     , lt
---       -- * Etc.
---     , isZero
---     , split
---     , unionWith
---     , flattenValue
---     ) where
+module PlutusLedgerApi.V1.Value (
+    -- ** Currency symbols
+      CurrencySymbol(..)
+    , currencySymbol
+    , adaSymbol
+    -- ** Token names
+    , TokenName(..)
+    , tokenName
+    , toString
+    , adaToken
+    -- * Asset classes
+    , AssetClass(..)
+    , assetClass
+    , assetClassValue
+    , assetClassValueOf
+    -- ** Value
+    , Value(..)
+    , singleton
+    , valueOf
+    , scale
+    , symbols
+      -- * Partial order operations
+    , geq
+    , gt
+    , leq
+    , lt
+      -- * Etc.
+    , isZero
+    , split
+    , unionWith
+    , flattenValue
+    ) where
 
 import Prelude qualified as Haskell
 
 import Control.DeepSeq (NFData)
 import Data.ByteString qualified as BS
-import Data.Coerce (coerce)
 import Data.Data (Data)
 import Data.String (IsString (fromString))
 import Data.Text (Text)
