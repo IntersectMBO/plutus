@@ -129,8 +129,7 @@ import Algorithmic.Evaluation
 import Algorithmic.Completeness
 import Algorithmic.Soundness
 import Algorithmic.Erasure
---TODO : Finish proof for SOPs
---import Algorithmic.Erasure.RenamingSubstitution
+import Algorithmic.Erasure.RenamingSubstitution
 import Algorithmic.CC
 import Algorithmic.CK
 import Algorithmic.CEK
@@ -162,10 +161,10 @@ There are proofs of correspondence of the semantics of:
 Extrinsically typed terms, reduction and evaluation
 
 ```
---TODO : Finish proof for SOPs
---import Scoped.RenamingSubstitution
---import Scoped.Extrication
---import Scoped.Extrication.RenamingSubstitution
+import Scoped
+import Scoped.RenamingSubstitution
+import Scoped.Extrication
+import Scoped.Extrication.RenamingSubstitution
 ```
 
 ## Untyped terms

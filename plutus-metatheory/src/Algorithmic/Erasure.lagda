@@ -194,6 +194,10 @@ lem-erase' {Γ = Γ} p t = trans
   (sym (lem-subst (erase t) (lem≡Ctx {Γ = Γ} refl)))
   (lem-erase refl p t)
 
+lem-erase'' : ∀{Φ Γ}{A A' : Φ ⊢Nf⋆ *}(q : A ≡ A')(t : Γ A.⊢ A)
+  → erase t  ≡ erase (subst (Γ A.⊢_) q t)
+lem-erase'' refl t = refl  
+
 same : ∀{Φ Γ}{A : Φ ⊢⋆ *}(t : Γ D.⊢ A)
   → D.erase t ≡ subst _⊢ (lenLemma Γ) (erase (nfType t)) 
 
