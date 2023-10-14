@@ -1203,7 +1203,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
           https://github.com/bitcoin/bips/blob/master/bip-0146.mediawiki#LOW_S
 
-       and the implementation of secp256k1_ecdsa_semvarify in
+       and the implementation of secp256k1_ecdsa_verify in
 
           https://github.com/bitcoin-core/secp256k1.
      -}
