@@ -8,6 +8,7 @@
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE TypeOperators          #-}
 {-# LANGUAGE UndecidableInstances   #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 module PlutusIR.Error
     ( Error (..)
     , PLC.AsTypeError (..)
@@ -22,7 +23,7 @@ import PlutusCore qualified as PLC
 import PlutusCore.Pretty qualified as PLC
 import PlutusIR qualified as PIR
 import PlutusPrelude
-
+import PlutusIR.Compiler.Provenance ( Provenance )
 import Control.Lens
 import Data.Text qualified as T
 import Prettyprinter as PP
@@ -84,3 +85,9 @@ instance (PLC.PrettyUni uni, Pretty fun, Pretty ann) =>
         PLCError e           -> PP.vsep [ "Error from the PLC compiler:", PLC.prettyBy config e ]
         PLCTypeError e       -> PP.vsep ["Error during PIR typechecking:" , PLC.prettyBy config e ]
         PIRTypeError e       -> PP.vsep ["Error during PIR typechecking:" , PLC.prettyBy config e ]
+
+-- needed for property tests that test that the PIR passes preserve evaluation behaviour.
+instance PLC.AsTypeError String (PIR.Term PIR.TyName PIR.Name PLC.DefaultUni PLC.DefaultFun ()) PLC.DefaultUni PLC.DefaultFun (Provenance ()) where
+instance (AsTypeErrorExt String PLC.DefaultUni (Provenance ())) where
+instance AsError String PLC.DefaultUni PLC.DefaultFun (Provenance ()) where
+    -- _Error = _

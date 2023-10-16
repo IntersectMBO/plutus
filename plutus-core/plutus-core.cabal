@@ -95,6 +95,8 @@ library
     PlutusCore.Compiler.Erase
     PlutusCore.Compiler.Types
     PlutusCore.Core
+    PlutusCore.Core.Instance.Eq
+    PlutusCore.Core.Type
     PlutusCore.Crypto.BLS12_381.Error
     PlutusCore.Crypto.BLS12_381.G1
     PlutusCore.Crypto.BLS12_381.G2
@@ -205,7 +207,6 @@ library
     PlutusCore.Builtin.TestKnown
     PlutusCore.Builtin.TypeScheme
     PlutusCore.Core.Instance
-    PlutusCore.Core.Instance.Eq
     PlutusCore.Core.Instance.Pretty
     PlutusCore.Core.Instance.Pretty.Classic
     PlutusCore.Core.Instance.Pretty.Default
@@ -213,7 +214,6 @@ library
     PlutusCore.Core.Instance.Pretty.Readable
     PlutusCore.Core.Instance.Scoping
     PlutusCore.Core.Plated
-    PlutusCore.Core.Type
     PlutusCore.Crypto.Utils
     PlutusCore.Default.Universe
     PlutusCore.Eq
@@ -480,6 +480,7 @@ library plutus-ir
     PlutusIR.Compiler.Datatype
     PlutusIR.Compiler.Definitions
     PlutusIR.Compiler.Let
+    PlutusIR.Compiler.Lower
     PlutusIR.Compiler.Names
     PlutusIR.Compiler.Provenance
     PlutusIR.Compiler.Types
@@ -527,7 +528,6 @@ library plutus-ir
     PlutusIR.Analysis.Size
     PlutusIR.Analysis.Usages
     PlutusIR.Compiler.Error
-    PlutusIR.Compiler.Lower
     PlutusIR.Compiler.Recursion
     PlutusIR.Normalize
 
@@ -703,6 +703,8 @@ library plutus-core-testlib
     PlutusIR.Generators.QuickCheck.Common
     PlutusIR.Generators.QuickCheck.GenerateTerms
     PlutusIR.Generators.QuickCheck.ShrinkTerms
+    PlutusIR.Properties.Common
+    PlutusIR.Properties.Evaluation
     PlutusIR.Properties.Typecheck
     PlutusIR.Test
     Test.Tasty.Extras

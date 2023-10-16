@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 -- | 'Eq' instances for core data types.
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
@@ -10,7 +9,7 @@
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module PlutusCore.Core.Instance.Eq () where
+module PlutusCore.Core.Instance.Eq (eqTermM, EqRenameOf) where
 
 import PlutusPrelude
 
@@ -36,7 +35,8 @@ instance
 -- b) We do not do equality "modulo starting index". E.g. `LamAbs 0 (Var 0) /= LamAbs 1 (Var 1)`.
 -- c) We do not do equality ""modulo annotations".
 -- Note that we ignore the name part in case of the nameddebruijn
--- If a user wants to ignore annotations he must prior do `void <$> term`, to throw away any annotations.
+-- If a user wants to ignore annotations he must prior do `void <$> term`, to throw away any
+-- annotations.
 deriving stock instance
    (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq ann) =>
    Eq (Term NamedTyDeBruijn NamedDeBruijn uni fun ann)

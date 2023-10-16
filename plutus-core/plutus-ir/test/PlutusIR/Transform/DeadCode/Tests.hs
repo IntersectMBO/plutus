@@ -7,6 +7,7 @@ import PlutusCore.Default
 import PlutusCore.Quote
 import PlutusIR.Analysis.Builtins
 import PlutusIR.Parser
+import PlutusIR.Properties.Evaluation
 import PlutusIR.Properties.Typecheck
 import PlutusIR.Test
 import PlutusIR.Transform.DeadCode
@@ -46,3 +47,8 @@ typecheckRemoveDeadBindingsProp biVariant =
 test_TypecheckRemoveDeadBindings :: TestTree
 test_TypecheckRemoveDeadBindings =
   ignoreTest $ testProperty "typechecking" typecheckRemoveDeadBindingsProp
+
+prop_Evaluation :: BuiltinSemanticsVariant DefaultFun -> Property
+prop_Evaluation biVariant =
+  withMaxSuccess 50000 $ nonPureEvaluationProp $ removeDeadBindings $
+    BuiltinsInfo biVariant defaultUniMatcherLike
