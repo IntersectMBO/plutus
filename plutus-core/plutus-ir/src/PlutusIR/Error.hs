@@ -32,7 +32,7 @@ data TypeErrorExt uni ann =
          !ann
          -- the expected constructor's type
          !(PLC.Type PLC.TyName uni ann)
-    deriving stock (Show, Eq, Generic)
+    deriving stock (Show, Eq, Generic, Functor)
     deriving anyclass (NFData)
 makeClassyPrisms ''TypeErrorExt
 
@@ -42,6 +42,7 @@ data Error uni fun a = CompilationError !a !T.Text -- ^ A generic compilation er
                      | PLCError !(PLC.Error uni fun a) -- ^ An error from running some PLC function, lifted into this error type for convenience.
                      | PLCTypeError !(PLC.TypeError (PIR.Term PIR.TyName PIR.Name uni fun ()) uni fun a)
                      | PIRTypeError !(TypeErrorExt uni a)
+                     deriving stock (Functor)
 makeClassyPrisms ''Error
 
 instance PLC.AsTypeError (Error uni fun a) (PIR.Term PIR.TyName PIR.Name uni fun ()) uni fun a where

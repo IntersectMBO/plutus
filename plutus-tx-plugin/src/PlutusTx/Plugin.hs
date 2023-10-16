@@ -79,6 +79,7 @@ import Data.Either.Validation
 import Data.Map qualified as Map
 import Data.Set qualified as Set
 import GHC.Num.Integer qualified
+import PlutusIR.Analysis.Builtins
 import PlutusIR.Compiler.Provenance (noProvenance, original)
 import Prettyprinter qualified as PP
 import System.IO (openTempFile)
@@ -406,7 +407,7 @@ compileMarkedExpr locStr codeTy origE = do
             ccBlackholed = mempty,
             ccCurDef = Nothing,
             ccModBreaks = modBreaks,
-            ccBuiltinsInfo = def,
+            ccBuiltinsInfo = (def & biMatcherLike .~ defaultUniMatcherLike),
             ccBuiltinCostModel = def,
             ccDebugTraceOn = _posDumpCompilationTrace opts
             }
@@ -493,6 +494,8 @@ runCompiler moduleName opts expr = do
                     (opts ^. posDoSimplifierStrictifyBindings)
                  & set (PIR.ccOpts . PIR.coInlineHints)                    hints
                  & set (PIR.ccOpts . PIR.coRelaxedFloatin) (opts ^. posRelaxedFloatin)
+                 & set (PIR.ccOpts . PIR.coCaseOfCaseConservative)
+                    (opts ^. posCaseOfCaseConservative)
                  & set (PIR.ccOpts . PIR.coPreserveLogging) (opts ^. posPreserveLogging)
                  -- We could make this configurable with an option, but:
                  -- 1. The only other choice you can make is new version + Scott encoding, and
@@ -502,7 +505,7 @@ runCompiler moduleName opts expr = do
                     (if plcVersion < PLC.plcVersion110
                         then PIR.ScottEncoding else PIR.SumsOfProducts)
                  -- TODO: ensure the same as the one used in the plugin
-                 & set PIR.ccBuiltinsInfo def
+                 & set PIR.ccBuiltinsInfo (def & biMatcherLike .~ defaultUniMatcherLike)
                  & set PIR.ccBuiltinCostModel def
         plcOpts = PLC.defaultCompilationOpts
             & set (PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations)

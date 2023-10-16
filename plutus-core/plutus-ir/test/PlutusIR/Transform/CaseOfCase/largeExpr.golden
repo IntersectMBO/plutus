@@ -1,0 +1,45 @@
+(let
+  (nonrec)
+  (datatypebind
+    (datatype
+      (tyvardecl Bool (type))
+
+      match_Bool
+      (vardecl True Bool) (vardecl False Bool)
+    )
+  )
+  (datatypebind
+    (datatype
+      (tyvardecl Maybe (fun (type) (type)))
+      (tyvardecl a (type))
+      match_Maybe
+      (vardecl Nothing [ Maybe a ]) (vardecl Just (fun a [ Maybe a ]))
+    )
+  )
+  (lam
+    x
+    [ Maybe (con integer) ]
+    (let
+      (nonrec)
+      (termbind
+        (strict)
+        (vardecl k_caseOfCase (fun Bool (con integer)))
+        (lam
+          scrutinee
+          Bool
+          [
+            [ { [ match_Bool scrutinee ] (con integer) } (con integer 1) ]
+            (con integer 0)
+          ]
+        )
+      )
+      [
+        [
+          { [ { match_Maybe (con integer) } x ] (con integer) }
+          [ k_caseOfCase [ (lam b Bool b) False ] ]
+        ]
+        (lam i (con integer) [ k_caseOfCase True ])
+      ]
+    )
+  )
+)

@@ -246,7 +246,7 @@ xs0 !! n0 = go n0 xs0
             then x
             else go (Builtins.subtractInteger n 1) xs
 
-{-# INLINEABLE appendR #-}
+{-# INLINABLE appendR #-}
 -- | Cons each element of the first list to the second one in reverse order (i.e. the last element
 -- of the first list is the head of the result).
 --
@@ -254,9 +254,11 @@ xs0 !! n0 = go n0 xs0
 --
 -- >>> appendR "abc" "de"
 -- "cbade"
-appendR :: [a] -> [a] -> [a]
-appendR []     ys = ys
-appendR (x:xs) ys = appendR xs (x:ys)
+appendR :: forall a. [a] -> [a] -> [a]
+appendR = rev where
+    rev :: [a] -> [a] -> [a]
+    rev []     a = a
+    rev (x:xs) a = rev xs (x:a)
 
 {-# INLINABLE reverse #-}
 -- | Plutus Tx version of 'Data.List.reverse'.

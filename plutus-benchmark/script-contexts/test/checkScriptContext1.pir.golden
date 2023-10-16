@@ -1037,13 +1037,9 @@
   letrec
     !euclid : integer -> integer -> integer
       = \(x : integer) (y : integer) ->
-          Bool_match
-            (ifThenElse
-               {Bool}
-               (equalsInteger y `$fAdditiveMonoidInteger_$czero`)
-               True
-               False)
+          ifThenElse
             {all dead. integer}
+            (equalsInteger y `$fAdditiveMonoidInteger_$czero`)
             (/\dead -> x)
             (/\dead -> euclid y (modInteger x y))
             {all dead. dead}
@@ -1051,22 +1047,14 @@
   letrec
     !unsafeRatio : integer -> integer -> Rational
       = \(n : integer) (d : integer) ->
-          Bool_match
-            (ifThenElse
-               {Bool}
-               (equalsInteger d `$fAdditiveMonoidInteger_$czero`)
-               True
-               False)
+          ifThenElse
             {all dead. Rational}
+            (equalsInteger d `$fAdditiveMonoidInteger_$czero`)
             (/\dead -> error {Rational})
             (/\dead ->
-               Bool_match
-                 (ifThenElse
-                    {Bool}
-                    (lessThanInteger d `$fAdditiveMonoidInteger_$czero`)
-                    True
-                    False)
+               ifThenElse
                  {all dead. Rational}
+                 (lessThanInteger d `$fAdditiveMonoidInteger_$czero`)
                  (/\dead ->
                     unsafeRatio
                       (subtractInteger `$fAdditiveMonoidInteger_$czero` n)
@@ -1794,69 +1782,63 @@
         unitval)
       {Unit}
       (\(txi : TxInfo) (ds : ScriptPurpose) ->
-         Bool_match
-           (ifThenElse
-              {Bool}
-              (equalsInteger
-                 0
-                 (modInteger
-                    (let
-                      !eta : List TxOut
-                        = TxInfo_match
-                            txi
-                            {List TxOut}
-                            (\(ds : List TxInInfo)
-                              (ds : List TxInInfo)
-                              (ds : List TxOut)
-                              (ds :
-                                 (\k v -> List (Tuple2 k v))
-                                   bytestring
-                                   ((\k v -> List (Tuple2 k v))
-                                      bytestring
-                                      integer))
-                              (ds :
-                                 (\k v -> List (Tuple2 k v))
-                                   bytestring
-                                   ((\k v -> List (Tuple2 k v))
-                                      bytestring
-                                      integer))
-                              (ds : List TxCert)
-                              (ds :
-                                 (\k v -> List (Tuple2 k v)) Credential integer)
-                              (ds : Interval integer)
-                              (ds : List bytestring)
-                              (ds :
-                                 (\k v -> List (Tuple2 k v)) ScriptPurpose data)
-                              (ds : (\k v -> List (Tuple2 k v)) bytestring data)
-                              (ds : bytestring)
-                              (ds :
-                                 (\k v -> List (Tuple2 k v))
-                                   Voter
-                                   ((\k v -> List (Tuple2 k v))
-                                      GovernanceActionId
-                                      Vote))
-                              (ds : List ProposalProcedure)
-                              (ds :
-                                 Maybe
-                                   ((\k v -> List (Tuple2 k v))
-                                      bytestring
-                                      ((\k v -> List (Tuple2 k v))
-                                         bytestring
-                                         integer)))
-                              (ds :
-                                 Maybe
-                                   ((\k v -> List (Tuple2 k v))
-                                      bytestring
-                                      ((\k v -> List (Tuple2 k v))
-                                         bytestring
-                                         integer))) ->
-                               ds)
-                    in
-                    go eta)
-                    2))
-              True
-              False)
+         ifThenElse
            {all dead. Unit}
+           (equalsInteger
+              0
+              (modInteger
+                 (let
+                   !eta : List TxOut
+                     = TxInfo_match
+                         txi
+                         {List TxOut}
+                         (\(ds : List TxInInfo)
+                           (ds : List TxInInfo)
+                           (ds : List TxOut)
+                           (ds :
+                              (\k v -> List (Tuple2 k v))
+                                bytestring
+                                ((\k v -> List (Tuple2 k v))
+                                   bytestring
+                                   integer))
+                           (ds :
+                              (\k v -> List (Tuple2 k v))
+                                bytestring
+                                ((\k v -> List (Tuple2 k v))
+                                   bytestring
+                                   integer))
+                           (ds : List TxCert)
+                           (ds : (\k v -> List (Tuple2 k v)) Credential integer)
+                           (ds : Interval integer)
+                           (ds : List bytestring)
+                           (ds : (\k v -> List (Tuple2 k v)) ScriptPurpose data)
+                           (ds : (\k v -> List (Tuple2 k v)) bytestring data)
+                           (ds : bytestring)
+                           (ds :
+                              (\k v -> List (Tuple2 k v))
+                                Voter
+                                ((\k v -> List (Tuple2 k v))
+                                   GovernanceActionId
+                                   Vote))
+                           (ds : List ProposalProcedure)
+                           (ds :
+                              Maybe
+                                ((\k v -> List (Tuple2 k v))
+                                   bytestring
+                                   ((\k v -> List (Tuple2 k v))
+                                      bytestring
+                                      integer)))
+                           (ds :
+                              Maybe
+                                ((\k v -> List (Tuple2 k v))
+                                   bytestring
+                                   ((\k v -> List (Tuple2 k v))
+                                      bytestring
+                                      integer))) ->
+                            ds)
+                 in
+                 go eta)
+                 2))
            (/\dead -> Unit)
            (/\dead -> error {Unit})
            {all dead. dead}))

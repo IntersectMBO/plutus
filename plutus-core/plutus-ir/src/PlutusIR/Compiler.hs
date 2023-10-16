@@ -30,6 +30,7 @@ module PlutusIR.Compiler (
     coInlineHints,
     coProfile,
     coRelaxedFloatin,
+    coCaseOfCaseConservative,
     coPreserveLogging,
     coDatatypes,
     dcoStyle,
@@ -44,7 +45,8 @@ module PlutusIR.Compiler (
     PirTCConfig(..),
     AllowEscape(..),
     toDefaultCompilationCtx,
-    simplifyTerm) where
+    simplifyTerm
+    ) where
 
 import PlutusIR
 
@@ -54,6 +56,7 @@ import PlutusIR.Compiler.Provenance
 import PlutusIR.Compiler.Types
 import PlutusIR.Error
 import PlutusIR.Transform.Beta qualified as Beta
+import PlutusIR.Transform.CaseOfCase qualified as CaseOfCase
 import PlutusIR.Transform.CaseReduce qualified as CaseReduce
 import PlutusIR.Transform.CommuteFnWithConst qualified as CommuteFnWithConst
 import PlutusIR.Transform.DeadCode qualified as DeadCode
@@ -116,10 +119,13 @@ availablePasses :: [Pass uni fun]
 availablePasses =
     [ Pass "unwrap cancel"        (onOption coDoSimplifierUnwrapCancel)       (pure . Unwrap.unwrapCancel)
     , Pass "case reduce"          (onOption coDoSimplifierCaseReduce)         (pure . CaseReduce.caseReduce)
+    , Pass "case of case"         (onOption coDoSimplifierCaseOfCase)         (\t -> do
+                                                                                  binfo <- view ccBuiltinsInfo
+                                                                                  conservative <- view (ccOpts . coCaseOfCaseConservative)
+                                                                                  CaseOfCase.caseOfCase binfo conservative noProvenance t)
     , Pass "known constructor"    (onOption coDoSimplifierKnownCon)           KnownCon.knownCon
     , Pass "beta"                 (onOption coDoSimplifierBeta)               (pure . Beta.beta)
-    , Pass "strictify bindings"   (onOption coDoSimplifierStrictifyBindings)  (\t ->
-                                                                                 do
+    , Pass "strictify bindings"   (onOption coDoSimplifierStrictifyBindings)  (\t -> do
                                                                                   binfo <- view ccBuiltinsInfo
                                                                                   pure $ StrictifyBindings.strictifyBindings binfo t
                                                                               )
