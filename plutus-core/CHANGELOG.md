@@ -1,4 +1,20 @@
 
+<a id='changelog-1.15.0'></a>
+# 1.15.0 — 2023-10-16
+
+## Added
+
+- The Plutus IR optimizer now performs case-of-case.
+
+- Typechecking property tests for all PIR compiler passes.
+
+- The debugger will now track and show traces, live as they are emitted by the CEK machine
+
+## Changed
+
+- Instead of a single `--hs-file`, the debugger now accepts an `--hs-dir DIR` option
+to look for (multiple) source PlutusTx modules
+
 <a id='changelog-1.14.0.0'></a>
 # 1.14.0.0 — 2023-09-28
 
