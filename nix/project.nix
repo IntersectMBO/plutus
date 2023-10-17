@@ -33,7 +33,7 @@ let
         }];
       };
 
-      inputMap = { "https://input-output-hk.github.io/cardano-haskell-packages" = inputs.CHaP; };
+      inputMap = { "https://input-output-hk.github.io/cardano-haskell-packages" = inputs.iogx.inputs.CHaP; };
 
       sha256map = {
         "https://github.com/jaccokrijnen/plutus-cert"."e814b9171398cbdfecdc6823067156a7e9fc76a3" = "0srqvx0b819b5crrbsa9hz2fnr50ahqizvvm0wdmyq2bbpk2rka7"; # editorconfig-checker-disable-line
