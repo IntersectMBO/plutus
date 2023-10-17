@@ -10,9 +10,16 @@
       inputs.CHaP.follows = "CHaP";
       inputs.haskell-nix.follows = "haskell-nix";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.iohk-nix.follows = "iohk-nix";
     };
 
     nixpkgs.follows = "haskell-nix/nixpkgs";
+
+    iohk-nix = {
+      # original 86421fdd89b3af43fa716ccd07638f96c6ecd1e4
+      url = "github:input-output-hk/iohk-nix/e32040e84180b3c27c0f13587025f6a17a4da520";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     hackage = {
       # ad01b49b5be1112aed7ad135bf667b7b92169ce1
@@ -22,7 +29,7 @@
 
     CHaP = {
       # 4c55186c53103fee3e3973d70a9ce8a3a55a8486
-      url = "github:input-output-hk/cardano-haskell-packages?ref=repo";
+      url = "github:input-output-hk/cardano-haskell-packages?ref=repo"; # editorconfig-checker-disable-line
       flake = false;
     };
 
