@@ -23,14 +23,12 @@ jobs:
         if: always()
         run: |
           pushd plutus-core
-          nix run --no-warn-dirty --accept-flake-config \
-            .#hydraJobs.x86_64-linux.ghc92.components.tests.plutus-core.plutus-core-test -- --hedgehog-tests 10000
+          nix run --no-warn-dirty --accept-flake-config .#plutus-core-test -- --hedgehog-tests 10000
           popd
 
       - name: plutus-ir-nightly
         if: always()
         run: |
           pushd plutus-core
-          nix run --no-warn-dirty --accept-flake-config \
-            .#hydraJobs.x86_64-linux.ghc92.components.tests.plutus-core.plutus-ir-test -- --hedgehog-tests 10000
+          nix run --no-warn-dirty --accept-flake-config .#plutus-ir-test -- --hedgehog-tests 10000
           popd
