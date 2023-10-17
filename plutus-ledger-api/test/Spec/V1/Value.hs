@@ -11,22 +11,30 @@ import Control.Lens
 import Test.Tasty
 import Test.Tasty.QuickCheck
 
-infix 4 <=>
+infix 4 <=>, </>
+
+-- | Ensure that @x@ equals @y@ and vice versa. The latter part is needed to ensure that @(==)@ is
+-- symmetric for the specific type.
 (<=>) :: (Eq a, Show a) => a -> a -> Property
 x <=> y = x === y .&&. y === x
 
-infix 4 </>
+-- | Ensure that @x@ doesn't equal @y@ and vice versa. The latter part is needed to ensure that
+-- @(/=)@ is symmetric for the specific type.
 (</>) :: (Eq a, Show a) => a -> a -> Property
 x </> y = x =/= y .&&. y =/= x
 
 scaleTestsBy :: Testable prop => Int -> prop -> Property
 scaleTestsBy factor = withMaxSuccess (100 * factor) . mapSize (* factor)
 
+-- | Apply a function to an arbitrary number of elements of the given list. The elements are chosen
+-- at random.
 mapMany :: (a -> Gen a) -> [a] -> Gen [a]
 mapMany f = traverse $ \x -> do
     b <- arbitrary
     if b then f x else pure x
 
+-- | Apply a function to an arbitrary non-zero number of elements of the given list. The elements
+-- are chosen at random.
 mapSome :: Eq a => (a -> Gen a) -> [a] -> Gen [a]
 mapSome f xs = do
     i <- choose (0, length xs - 1)
@@ -34,6 +42,7 @@ mapSome f xs = do
     let xi = xs !! i
     ix i (\x -> if x == xi then f x else pure x) xs'
 
+-- | Generate an 'Integer' that is not equal to the given one.
 updateInteger :: Integer -> Gen Integer
 updateInteger i = arbitrary `suchThat` (/= i)
 
@@ -45,6 +54,8 @@ onLists
     -> Property
 onLists value f = forAll (fmap listsToValue . f $ valueToLists value)
 
+-- | Test that the 'Monoid' instance of 'Value' is law-abiding and that merging two non-zero values
+-- creates a value that isn't equal to any of the original ones.
 test_Monoid :: TestTree
 test_Monoid = testProperty "Monoid" . scaleTestsBy 5 $ \value1 ->
     if isZero value1
@@ -68,14 +79,17 @@ test_Monoid = testProperty "Monoid" . scaleTestsBy 5 $ \value1 ->
                         ]
             ]
 
+-- | Test that changing the values of some of the 'TokenName's creates a different 'Value'.
 test_updateSome :: TestTree
 test_updateSome = testProperty "updateSome" . scaleTestsBy 15 $ \value ->
     any (any $ not . null) (valueToLists value) ==>
         onLists value (mapSome . traverse . mapSome $ traverse updateInteger)
-            (\value' -> value =/= value')
+            (\value' -> value </> value')
 
-test_unordered :: TestTree
-test_unordered = testProperty "unordered" . scaleTestsBy 10 $ \value1 ->
+-- | Test that shuffling 'CurrencySymbol's or 'TokenName's creates a 'Value' that is equal to the
+-- original one.
+test_shuffle :: TestTree
+test_shuffle = testProperty "shuffle" . scaleTestsBy 10 $ \value1 ->
     conjoin
         [ onLists value1 shuffle $ \value1' -> value1 <=> value1'
         , onLists value1 (mapMany $ traverse shuffle) $ \value1' -> value1 <=> value1'
@@ -90,6 +104,6 @@ test_Value :: TestTree
 test_Value = testGroup "Value"
     [ test_Monoid
     , test_updateSome
-    , test_unordered
+    , test_shuffle
     , test_split
     ]
