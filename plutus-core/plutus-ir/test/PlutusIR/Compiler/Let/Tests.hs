@@ -1,4 +1,4 @@
-module PlutusIR.Compiler.Let.Test where
+module PlutusIR.Compiler.Let.Tests where
 
 import PlutusIR.Test
 

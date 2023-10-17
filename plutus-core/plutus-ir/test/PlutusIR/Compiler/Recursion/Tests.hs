@@ -1,4 +1,4 @@
-module PlutusIR.Compiler.Recursion.Test where
+module PlutusIR.Compiler.Recursion.Tests where
 
 import PlutusIR.Test
 

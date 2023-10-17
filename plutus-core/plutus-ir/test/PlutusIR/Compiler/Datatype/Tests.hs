@@ -1,4 +1,4 @@
-module PlutusIR.Compiler.Datatype.Test where
+module PlutusIR.Compiler.Datatype.Tests where
 
 import PlutusIR.Parser (pTerm)
 import PlutusIR.Test
