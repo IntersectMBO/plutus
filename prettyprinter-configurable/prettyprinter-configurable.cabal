@@ -1,6 +1,6 @@
 cabal-version:      2.4
 name:               prettyprinter-configurable
-version:            1.15.0
+version:            1.15.0.0
 
 -- synopsis:
 -- description:
