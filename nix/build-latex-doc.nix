@@ -1,22 +1,24 @@
-{ inputs, cell }:
-
-let
-  inherit (cell.library) pkgs;
-in
+{ repoRoot, inputs, pkgs, system, lib }:
 
 { name, description, src, texFiles ? null, withAgda ? false, agdaFile ? "" }:
 
-cell.library.build-latex {
+repoRoot.nix.build-latex {
 
   inherit name;
   inherit description;
   inherit texFiles;
 
-  src = cell.library.filter-latex-sources src;
+  # A typical good filter for latex sources.
+  # This also includes files for cases where agda sources are being compiled.
+  src =
+    lib.sourceFilesBySuffices src
+      [ ".tex" ".bib" ".cls" ".bst" ".pdf" ".png" ".agda" ".agda-lib" ".lagda" ];
 
-  buildInputs = pkgs.lib.optionals withAgda [
-    cell.packages.agda-with-stdlib
+
+  buildInputs = lib.optionals withAgda [
+    repoRoot.nix.agda-with-stdlib
   ];
+
 
   texInputs = {
     inherit (pkgs.texlive)
@@ -32,11 +34,13 @@ cell.library.build-latex {
       scheme-small;
   };
 
-  preBuild = pkgs.lib.optionalString withAgda ''
+
+  preBuild = lib.optionalString withAgda ''
     agda --latex ${agdaFile} --latex-dir .
   '';
 
-  meta = with pkgs.lib; {
+
+  meta = with lib; {
     inherit description;
     license = licenses.asl20;
   };

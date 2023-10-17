@@ -1,8 +1,6 @@
-{ inputs, cell }:
+{ repoRoot, inputs, pkgs, system, lib }:
 
 let
-  inherit (cell.library) pkgs;
-
   artifacts = pkgs.runCommand
     "FIR-compiler"
     {
@@ -15,8 +13,7 @@ let
       zip -r $out/compiler.zip .
     '';
 in
-
-cell.library.build-latex {
+repoRoot.nix.build-latex {
   name = "unraveling-recursion-paper";
 
   texFiles = [ "unraveling-recursion.tex" ];
@@ -38,12 +35,11 @@ cell.library.build-latex {
   };
 
   buildInputs = [
-    cell.packages.agda-with-stdlib
-
+    repoRoot.nix.agda-with-stdlib
     pkgs.zip
   ];
 
-  src = pkgs.lib.sourceFilesBySuffices
+  src = lib.sourceFilesBySuffices
     (inputs.self + /doc/papers/unraveling-recursion)
     [ ".tex" ".bib" ".agda" ".lagda" ".cls" ".bst" ".pdf" ];
 

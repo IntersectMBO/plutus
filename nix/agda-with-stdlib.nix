@@ -1,12 +1,12 @@
-{ inputs, cell }:
+{ repoRoot, inputs, pkgs, system, lib }:
 
-# Need a newer version for 2.6.2 compatibility
 let
-  stdlib = cell.library.agda-packages.standard-library.overrideAttrs (oldAtts: rec {
+  # Need a newer version for 2.6.2 compatibility
+  stdlib = repoRoot.nix.agda-packages.standard-library.overrideAttrs (oldAtts: rec {
 
     version = "1.7";
 
-    src = cell.library.pkgs.fetchFromGitHub {
+    src = pkgs.fetchFromGitHub {
       repo = "agda-stdlib";
       owner = "agda";
       rev = "v${version}";
@@ -27,4 +27,4 @@ let
 
 in
 
-cell.library.agda-packages.agda.withPackages [ stdlib ]
+repoRoot.nix.agda-packages.agda.withPackages [ stdlib ]

@@ -1,8 +1,4 @@
-{ inputs, cell }:
-
-let
-  inherit (cell.library) pkgs;
-in
+{ repoRoot, inputs, pkgs, system, lib }:
 
 pkgs.rWrapper.override {
   packages = [

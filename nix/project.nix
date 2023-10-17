@@ -1,67 +1,70 @@
-{ inputs, cell }:
+# editorconfig-checker-disable-file 
 
-{ compiler-nix-name ? cell.library.ghc-compiler-nix-name }:
+{ repoRoot, inputs, pkgs, system, lib }:
 
 let
-  project = cell.library.haskell-nix.cabalProject' ({ pkgs, lib, ... }:
-    let isCrossCompiling = pkgs.stdenv.hostPlatform != pkgs.stdenv.buildPlatform;
-    in
+  cabalProject = pkgs.haskell-nix.cabalProject' ({ config, pkgs, ... }:
+    let isCrossCompiling = pkgs.stdenv.hostPlatform != pkgs.stdenv.buildPlatform; in
     {
+      name = "plutus";
 
-      inherit compiler-nix-name;
+      # We need the mkDefault here since compiler-nix-name will be overridden 
+      # in the flake variants.
+      compiler-nix-name = lib.mkDefault "ghc92";
 
-      # This is incredibly difficult to get right, almost everything goes wrong,
-      # see https://github.com/input-output-hk/haskell.nix/issues/496
-      src = cell.library.haskell-nix.haskellLib.cleanSourceWith {
-
-        src = inputs.self.outPath;
-
-        # Otherwise this depends on the name in the parent directory, which reduces caching, and is
-        # particularly bad on Hercules, see https://github.com/hercules-ci/support/issues/40
-        name = "plutus";
-      };
+      src = ../.;
 
       shell = {
-        # We don't currently use this.
         withHoogle = false;
-
         # We would expect R to be pulled in automatically as it's a dependency of
         # plutus-core, but it appears it is not, so we need to be explicit about
-        # the dependency on R here.  Adding it as a buildInput will ensure it's
+        # the dependency on R here. Adding it as a buildInput will ensure it's
         # added to the pkg-config env var.
         buildInputs = [ pkgs.R ];
       };
 
-      inputMap = { "https://input-output-hk.github.io/cardano-haskell-packages" = inputs.CHaP; };
-      sha256map = {
-        "https://github.com/jaccokrijnen/plutus-cert"."e814b9171398cbdfecdc6823067156a7e9fc76a3" = "0srqvx0b819b5crrbsa9hz2fnr50ahqizvvm0wdmyq2bbpk2rka7"; # editorconfig-checker-disable-line
+      flake.variants = {
+        ghc92 = { }; # Alias for the default project
+        ghc810.compiler-nix-name = "ghc810";
+        ghc96.compiler-nix-name = "ghc96";
+        ghc92-profiled.modules = [{
+          enableProfiling = true;
+          enableLibraryProfiling = true;
+        }];
       };
 
-      # TODO: move this into the cabal.project using the new conditional support?
+      inputMap = { "https://input-output-hk.github.io/cardano-haskell-packages" = inputs.iogx.inputs.CHaP; };
+
+      sha256map = {
+        "https://github.com/jaccokrijnen/plutus-cert"."e814b9171398cbdfecdc6823067156a7e9fc76a3" = "0srqvx0b819b5crrbsa9hz2fnr50ahqizvvm0wdmyq2bbpk2rka7";
+      };
+
+      # TODO: move this into the cabalib.project using the new conditional support?
       # Configuration settings needed for cabal configure to work when cross compiling.
       # We can't use `modules` for these as `modules` are only applied
       # after cabal has been configured.
-      cabalProjectLocal = lib.optionalString isCrossCompiling ''
-        -- When cross compiling we don't have a `ghc` package, so use
-        -- the `plutus-ghc-stub` package instead.
-        package plutus-tx-plugin
-          flags: +use-ghc-stub
+      cabalProjectLocal = lib.optionalString isCrossCompiling
+        ''
+          -- When cross compiling we don't have a `ghc` package, so use
+          -- the `plutus-ghc-stub` package instead.
+          package plutus-tx-plugin
+            flags: +use-ghc-stub
 
-        -- Exclude tests that use `doctest`.  They will not work for
-        -- cross compilation and `cabal` will not be able to make a plan.
-        package prettyprinter-configurable
-          tests: False
-      '';
+          -- Exclude tests that use `doctest`.  They will not work for
+          -- cross compilation and `cabal` will not be able to make a plan.
+          package prettyprinter-configurable
+            tests: False
+        '';
 
       modules = [
 
-        # Cross compiling
-        ({ pkgs, ... }: lib.mkIf isCrossCompiling {
+        # Cross Compiling 
+        (lib.mkIf isCrossCompiling {
           packages = {
             # Things that need plutus-tx-plugin
             plutus-benchmark.package.buildable = false;
             plutus-tx-plugin.package.buildable = false;
-            plutus-ledger-api.components.tests.plutus-ledger-api-plugin-test.buildable = lib.mkForce false; # editorconfig-checker-disable-line
+            plutus-ledger-api.components.tests.plutus-ledger-api-plugin-test.buildable = lib.mkForce false;
             # Needs agda
             plutus-metatheory.package.buildable = false;
             # These need R
@@ -72,8 +75,8 @@ let
           };
         })
 
-        # Common
-        ({ pkgs, config, ... }: {
+        # Common 
+        {
           packages = {
             # Packages we just don't want docs for
             plutus-benchmark.doHaddock = false;
@@ -91,10 +94,10 @@ let
             # I'm slightly surprised this works, hooray for laziness!
             plutus-metatheory.components.tests.test1.preCheck =
               let
-                cmp = project.hsPkgs.plutus-metatheory.components.tests.test1;
+                cmp = config.hsPkgs.plutus-metatheory.components.tests.test1;
                 deps = cmp.executableToolDepends;
               in
-              ''PATH=${lib.makeBinPath deps }:$PATH'';
+              ''PATH=${lib.makeBinPath deps}:$PATH'';
 
             # FIXME: Somehow this is broken even with setting the path up as above
             plutus-metatheory.components.tests.test2.doCheck = false;
@@ -102,19 +105,20 @@ let
             # plutus-metatheory needs agda with the stdlib around for the custom setup
             # I can't figure out a way to apply this as a blanket change for all the
             # components in the package, oh well
-            plutus-metatheory.components.library.build-tools = [ cell.packages.agda-with-stdlib ];
-            plutus-metatheory.components.exes.plc-agda.build-tools = [ cell.packages.agda-with-stdlib ]; # editorconfig-checker-disable-line
-            plutus-metatheory.components.tests.test1.build-tools = [ cell.packages.agda-with-stdlib ]; # editorconfig-checker-disable-line
-            plutus-metatheory.components.tests.test2.build-tools = [ cell.packages.agda-with-stdlib ]; # editorconfig-checker-disable-line
-            plutus-metatheory.components.tests.test3.build-tools = [ cell.packages.agda-with-stdlib ]; # editorconfig-checker-disable-line
+            plutus-metatheory.components.library.build-tools = [ repoRoot.nix.agda-with-stdlib ];
+            plutus-metatheory.components.exes.plc-agda.build-tools = [ repoRoot.nix.agda-with-stdlib ];
+            plutus-metatheory.components.tests.test1.build-tools = [ repoRoot.nix.agda-with-stdlib ];
+            plutus-metatheory.components.tests.test2.build-tools = [ repoRoot.nix.agda-with-stdlib ];
+            plutus-metatheory.components.tests.test3.build-tools = [ repoRoot.nix.agda-with-stdlib ];
 
             plutus-core.components.benchmarks.update-cost-model = {
-              build-tools = [ cell.library.r-with-packages ];
+              build-tools = [ repoRoot.nix.r-with-packages ];
             };
 
             plutus-core.components.benchmarks.cost-model-test = {
-              build-tools = [ cell.library.r-with-packages ];
+              build-tools = [ repoRoot.nix.r-with-packages ];
             };
+
             plutus-cert.components.library.build-tools =
               # Needs to build both itself and its bundled deps.
               # This needs both coq and ocaml packages, and only
@@ -136,18 +140,18 @@ let
                 equations
               ];
           };
-        })
+        }
 
         # -Werror for CI
         # Only enable on the newer compilers. We don't care about warnings on the old ones,
         # and sometimes it's hard to be warning free on all compilers, e.g. the unused
-        # packages warning is bad in 8.10
-        # (https://gitlab.haskell.org/ghc/ghc/-/merge_requests/6130)
-        (lib.mkIf (compiler-nix-name != "ghc810") {
+        # packages warning is bad in 8.10.7
+        # (https://gitlab.haskellib.org/ghc/ghc/-/merge_requests/6130)
+        (lib.mkIf (config.compiler-nix-name != "ghc8107") {
           packages = {
+
             # Werror everything.
             # This is a pain, see https://github.com/input-output-hk/haskell.nix/issues/519
-
             plutus-benchmark.ghcOptions = [ "-Werror" ];
             plutus-conformance.ghcOptions = [ "-Werror" ];
             plutus-core.ghcOptions = [ "-Werror" ];
@@ -164,9 +168,32 @@ let
             prettyprinter-configurable.ghcOptions = [ "-Werror" ];
           };
         })
-
       ];
     });
-in
-project
 
+
+  project = lib.iogx.mkHaskellProject {
+    inherit cabalProject;
+    shellArgs = repoRoot.nix.shell;
+    readTheDocs = {
+      enable = true;
+      siteFolder = "doc/read-the-docs-site";
+    };
+    combinedHaddock = {
+      enable = true;
+      prologue = ''
+        = Combined documentation for all the public Plutus libraries
+
+        == Handy module entrypoints
+
+          * "PlutusTx": Compiling Haskell to PLC (Plutus Core; on-chain code).
+          * "PlutusTx.Prelude": Haskell prelude replacement compatible with PLC.
+          * "PlutusCore": Programming language in which scripts on the Cardano blockchain are written.
+          * "UntypedPlutusCore": On-chain Plutus code.
+      '';
+    };
+  };
+
+in
+
+project

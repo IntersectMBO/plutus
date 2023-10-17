@@ -1,21 +1,23 @@
-{ inputs, cell }:
+{ repoRoot, inputs, pkgs, system, lib }:
 
 let
+
   # Doing this in two derivations so the call to agda is cached, since
   # that's very slow. Makes it easier to iterate on the site build.
-  plutus-metatheory-agda-html = cell.library.pkgs.stdenv.mkDerivation {
+  plutus-metatheory-agda-html = pkgs.stdenv.mkDerivation {
     name = "plutus-metatheory-doc";
     src = inputs.self + /plutus-metatheory;
-    buildInputs = [ cell.packages.agda-with-stdlib ];
+    buildInputs = [ repoRoot.nix.agda-with-stdlib ];
     buildPhase = ''
       mkdir "$out"
       agda --html --html-highlight=auto --html-dir="$out" "src/index.lagda.md"
     '';
     dontInstall = true;
   };
-  plutus-metatheory-site = cell.library.pkgs.runCommand "plutus-metatheory-site"
+
+  plutus-metatheory-site = pkgs.runCommand "plutus-metatheory-site"
     {
-      buildInputs = [ cell.library.pkgs.jekyll ];
+      buildInputs = [ pkgs.jekyll ];
     }
     ''
       mkdir "$out"
@@ -26,4 +28,5 @@ let
         -d "$out"
     '';
 in
+
 plutus-metatheory-site

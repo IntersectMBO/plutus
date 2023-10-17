@@ -1,8 +1,4 @@
-{ inputs, cell }:
-
-let
-  inherit (cell.library) pkgs;
-in
+{ repoRoot, inputs, pkgs, system, lib }:
 
 # Build a latex derivation using latexmk.
 { texFiles ? [ ]
@@ -13,6 +9,7 @@ in
 , # Additional build inputs
   ...
 }@attrs:
+
 let
   tex = pkgs.texlive.combine (texInputs // { inherit (pkgs.texlive) latexmk; });
 
@@ -21,6 +18,7 @@ let
 
   buildDir = ".nix-build";
 in
+
 pkgs.stdenv.mkDerivation (filteredAttrs // {
 
   buildInputs = [ tex ] ++ buildInputs;

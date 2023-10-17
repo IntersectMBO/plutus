@@ -36,7 +36,7 @@ else
    git checkout "$PR_BRANCH"
 fi
 
-PR_BRANCH_REF=$(git rev-parse --short HEAD)
+PR_BRANCH_REF="$(git rev-parse --short HEAD)"
 
 echo "[ci-plutus-benchmark]: Processing benchmark comparison for benchmark '$BENCHMARK_NAME' on PR $PR_NUMBER"
 

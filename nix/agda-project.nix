@@ -1,16 +1,15 @@
-{ inputs, cell }:
+{ repoRoot, inputs, pkgs, system, lib }:
 
-let
-  inherit (cell) library;
-  inherit (library) pkgs;
-in
-
-library.haskell-nix.hackage-project {
+pkgs.haskell-nix.hackage-project {
   name = "Agda";
 
   version = "2.6.2.2";
 
-  compiler-nix-name = library.ghc-compiler-nix-name;
+  compiler-nix-name = "ghc92";
+
+  cabalProjectLocal = ''
+    extra-packages: ieee754, filemanip
+  '';
 
   modules = [{
     # Agda is a huge pain. They have a special custom setup that compiles the
@@ -23,8 +22,8 @@ library.haskell-nix.hackage-project {
     # - turn off the custom setup
     # - manually compile the executable (fortunately it has no extra
     # dependencies!) and do the compilation at the end of the library derivation.
-    packages.Agda.package.buildType = pkgs.lib.mkForce "Simple";
-    packages.Agda.components.library.enableSeparateDataOutput = pkgs.lib.mkForce true;
+    packages.Agda.package.buildType = lib.mkForce "Simple";
+    packages.Agda.components.library.enableSeparateDataOutput = lib.mkForce true;
     packages.Agda.components.library.postInstall = ''
       # Compile the executable using the package DB we've just made, which contains
       # the main Agda library

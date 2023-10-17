@@ -21,7 +21,7 @@ jobs:
             accept-flake-config = true
       - name: Build haddock site
         run: |
-          nix build .#combined-plutus-haddock
+          nix build .#combined-haddock
           mkdir dist
           cp -RL ./result/share/doc/* ./dist/
       - uses: JamesIves/github-pages-deploy-action@v4
