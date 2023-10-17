@@ -187,7 +187,6 @@ test-suite plutus-ledger-api-plugin-test
     , plutus-tx                                       ^>=1.15
     , plutus-tx-plugin                                ^>=1.15
     , prettyprinter
-    , QuickCheck
     , tasty
 
 -- This is a nightly test, so it is an executable instead of test-suite to avoid
