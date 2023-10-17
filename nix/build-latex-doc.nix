@@ -1,4 +1,4 @@
-{ repoRoot, pkgs, lib, ... }:
+{ repoRoot, inputs, pkgs, system, lib }:
 
 { name, description, src, texFiles ? null, withAgda ? false, agdaFile ? "" }:
 

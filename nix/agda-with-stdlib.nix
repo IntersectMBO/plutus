@@ -1,4 +1,4 @@
-{ repoRoot, inputs, pkgs, ... }:
+{ repoRoot, inputs, pkgs, system, lib }:
 
 let
   # Need a newer version for 2.6.2 compatibility

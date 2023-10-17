@@ -1,4 +1,4 @@
-{ pkgs, lib, ... }:
+{ repoRoot, inputs, pkgs, system, lib }:
 
 # Build a latex derivation using latexmk.
 { texFiles ? [ ]

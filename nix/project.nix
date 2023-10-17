@@ -1,6 +1,6 @@
 # editorconfig-checker-disable-file 
 
-{ repoRoot, inputs, lib, pkgs, system }:
+{ repoRoot, inputs, pkgs, system, lib }:
 
 let
   cabalProject = pkgs.haskell-nix.cabalProject' ({ config, pkgs, ... }:
@@ -36,7 +36,7 @@ let
       inputMap = { "https://input-output-hk.github.io/cardano-haskell-packages" = inputs.iogx.inputs.CHaP; };
 
       sha256map = {
-        "https://github.com/jaccokrijnen/plutus-cert"."e814b9171398cbdfecdc6823067156a7e9fc76a3" = "0srqvx0b819b5crrbsa9hz2fnr50ahqizvvm0wdmyq2bbpk2rka7"; # editorconfig-checker-disable-line
+        "https://github.com/jaccokrijnen/plutus-cert"."e814b9171398cbdfecdc6823067156a7e9fc76a3" = "0srqvx0b819b5crrbsa9hz2fnr50ahqizvvm0wdmyq2bbpk2rka7";
       };
 
       # TODO: move this into the cabalib.project using the new conditional support?
@@ -64,7 +64,7 @@ let
             # Things that need plutus-tx-plugin
             plutus-benchmark.package.buildable = false;
             plutus-tx-plugin.package.buildable = false;
-            plutus-ledger-api.components.tests.plutus-ledger-api-plugin-test.buildable = lib.mkForce false; # editorconfig-checker-disable-line
+            plutus-ledger-api.components.tests.plutus-ledger-api-plugin-test.buildable = lib.mkForce false;
             # Needs agda
             plutus-metatheory.package.buildable = false;
             # These need R

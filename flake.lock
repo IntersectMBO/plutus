@@ -465,9 +465,7 @@
         "haskell-nix": [
           "haskell-nix"
         ],
-        "iohk-nix": [
-          "iohk-nix"
-        ],
+        "iohk-nix": "iohk-nix",
         "nixpkgs": [
           "nixpkgs"
         ],
@@ -475,16 +473,15 @@
         "sphinxcontrib-haddock": "sphinxcontrib-haddock"
       },
       "locked": {
-        "lastModified": 1697459086,
-        "narHash": "sha256-nZhqFHxL0L5ODAaTtfOsf3EWLkJQXOIpCsDfoFtr6ZM=",
+        "lastModified": 1697543235,
+        "narHash": "sha256-C9nSQ6MJLEwGiYLdCvM/HU7XV8fyEg0YoxyEK7hlBNc=",
         "owner": "input-output-hk",
         "repo": "iogx",
-        "rev": "5c71f6ad5038b6a91430bd94fbd7afd362bc3f21",
+        "rev": "c203f5a8757b83e06f5c8feb9f3667290d4d08e8",
         "type": "github"
       },
       "original": {
         "owner": "input-output-hk",
-        "ref": "v4",
         "repo": "iogx",
         "type": "github"
       }
@@ -493,6 +490,7 @@
       "inputs": {
         "blst": "blst",
         "nixpkgs": [
+          "iogx",
           "nixpkgs"
         ],
         "secp256k1": "secp256k1",
@@ -509,7 +507,6 @@
       "original": {
         "owner": "input-output-hk",
         "repo": "iohk-nix",
-        "rev": "e32040e84180b3c27c0f13587025f6a17a4da520",
         "type": "github"
       }
     },
@@ -788,7 +785,6 @@
         "hackage": "hackage",
         "haskell-nix": "haskell-nix",
         "iogx": "iogx",
-        "iohk-nix": "iohk-nix",
         "nixpkgs": [
           "haskell-nix",
           "nixpkgs"

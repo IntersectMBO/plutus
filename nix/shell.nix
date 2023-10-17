@@ -1,4 +1,4 @@
-{ repoRoot, pkgs, ... }:
+{ repoRoot, inputs, pkgs, system, lib }:
 
 cabalProject:
 

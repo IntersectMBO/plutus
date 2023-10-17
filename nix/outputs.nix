@@ -1,4 +1,4 @@
-{ repoRoot, inputs, pkgs, lib, system, ... }:
+{ repoRoot, inputs, pkgs, system, lib }:
 
 let
   project = repoRoot.nix.project;

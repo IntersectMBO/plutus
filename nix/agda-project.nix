@@ -1,4 +1,4 @@
-{ inputs, pkgs, lib, ... }:
+{ repoRoot, inputs, pkgs, system, lib }:
 
 pkgs.haskell-nix.hackage-project {
   name = "Agda";
