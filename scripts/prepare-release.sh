@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 usage () {
   echo "$(basename $0) VERSION [PACKAGE...]
   Prepares to release PACKAGEs at VERSION. If no PACKAGEs are provided,

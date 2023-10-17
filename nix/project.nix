@@ -64,6 +64,7 @@ let
             # Things that need plutus-tx-plugin
             plutus-benchmark.package.buildable = false;
             plutus-tx-plugin.package.buildable = false;
+            plutus-ledger-api.components.tests.plutus-ledger-api-plugin-test.buildable = lib.mkForce false; # editorconfig-checker-disable-line
             # Needs agda
             plutus-metatheory.package.buildable = false;
             # These need R

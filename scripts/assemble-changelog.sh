@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 usage () {
   echo "$(basename $0) PACKAGE VERSION
   Assembles the changelog for PACKAGE at VERSION."
