@@ -4,6 +4,7 @@ module Test.Tasty.Extras
     , runTestNested
     , testNested
     , testNestedGhc
+    , runTestGroupNestedGhc
     , goldenVsText
     , goldenVsTextM
     , goldenVsDoc
@@ -12,6 +13,7 @@ module Test.Tasty.Extras
     , nestedGoldenVsTextM
     , nestedGoldenVsDoc
     , nestedGoldenVsDocM
+    , makeVersionedFilePath
     ) where
 
 import PlutusPrelude
@@ -21,32 +23,58 @@ import Data.ByteString.Lazy qualified as BSL
 import Data.Text (Text)
 import Data.Text.Encoding (encodeUtf8)
 import Data.Version
-import System.FilePath ((</>))
+import System.FilePath (joinPath, (</>))
 import System.Info
 import Test.Tasty
 import Test.Tasty.Golden
 
--- | A 'TestTree' of tests under some name prefix.
-type TestNested = Reader [String] TestTree
 
--- | Run a 'TestTree' of tests with a given name prefix.
-runTestNestedIn :: [String] -> TestNested -> TestTree
+-- | We use the GHC version number to create directories with names like `9.2`
+-- and `9.6` containing golden files whose contents depend on the GHC version.
+-- For consistency all such directories should be leaves in the directory
+-- hierarchy: for example, it is preferable to have golden files in
+-- "semantics/9.2/" instead of "9.2/semantics/".
+ghcVersion :: String
+ghcVersion = showVersion compilerVersion
+
+{- Note [OS-independent paths].  Some of the functions here take arguments of the
+   form [FilePath].  The intention is that the members of the list should be
+   simple directory names containing no OS-dependent separators (eg ["dir",
+   "subdir"], but not ["dir/subdir"]).  The components of the path will be
+   concatenated with appropriate separators by means of `joinPath`.
+-}
+
+-- | Given a lists of FilePaths and a filename, concatenate the members of the
+-- list together, append the GHC version number, then append the filename.  We
+-- use this to create GHC-version-dependent golden files.
+makeVersionedFilePath :: [FilePath] -> FilePath -> FilePath
+makeVersionedFilePath path file = joinPath path </> ghcVersion </> file
+
+-- | A 'TestTree' of tests under some name prefix.
+type TestNested = Reader [FilePath] TestTree
+
+-- | Run a 'TestTree' of tests with a given name prefix.  This doesn't actually
+-- run the tests: instead it runs a computation in the Reader monad.
+runTestNestedIn :: [FilePath] -> TestNested -> TestTree
 runTestNestedIn path test = runReader test path
 
--- | Run a 'TestTree' of tests with an empty prefix.
+-- | Run a 'TestTree' of tests with an empty prefix.  This doesn't actually run
+-- the tests: instead it runs a computation in the Reader monad.
 runTestNested :: TestNested -> TestTree
 runTestNested = runTestNestedIn []
 
 -- | Descend into a name prefix.
-testNested :: String -> [TestNested] -> TestNested
+testNested :: FilePath -> [TestNested] -> TestNested
 testNested folderName =
     local (++ [folderName]) . fmap (testGroup folderName) . sequence
 
 -- | Like `testNested` but adds a subdirectory corresponding to the GHC version being used.
-testNestedGhc :: String -> [TestNested] -> TestNested
-testNestedGhc folderName = testNested (folderName </> ghcVer)
-  where
-    ghcVer = showVersion compilerVersion
+testNestedGhc :: FilePath -> [TestNested] -> TestNested
+testNestedGhc folderName = testNested (folderName </> ghcVersion)
+
+-- Create a TestTree which runs in the directory 'path/<ghc-version>
+runTestGroupNestedGhc :: [FilePath] -> [TestNested] -> TestTree
+runTestGroupNestedGhc path = runTestNested . testNestedGhc (joinPath path)
 
 -- | Check the contents of a file against a 'Text'.
 goldenVsText :: TestName -> FilePath -> Text -> TestTree

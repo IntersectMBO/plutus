@@ -14,7 +14,7 @@ import PlutusIR.Transform.KnownCon qualified as KnownCon
 import PlutusIR.TypeCheck as TC
 
 test_knownCon :: TestTree
-test_knownCon = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
+test_knownCon = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
     testNested "KnownCon" $
         map
             (goldenPirM goldenKnownConTC pTerm)

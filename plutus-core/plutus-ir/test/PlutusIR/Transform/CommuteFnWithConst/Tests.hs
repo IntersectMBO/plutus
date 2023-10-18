@@ -11,7 +11,7 @@ import PlutusIR.Properties.Typecheck
 import Test.QuickCheck.Property (Property, withMaxSuccess)
 
 test_commuteDefaultFun :: TestTree
-test_commuteDefaultFun = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
+test_commuteDefaultFun = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
     testNested "CommuteFnWithConst" $
     map
         (goldenPir commuteDefaultFun pTerm)

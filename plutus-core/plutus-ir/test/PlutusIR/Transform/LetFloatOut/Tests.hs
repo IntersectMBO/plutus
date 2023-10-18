@@ -23,7 +23,7 @@ import PlutusIR.Properties.Typecheck (pureTypecheckProp)
 import Test.QuickCheck.Property (Property, withMaxSuccess)
 
 test_letFloatOut :: TestTree
-test_letFloatOut = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
+test_letFloatOut = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
     testNested "LetFloatOut" $
         map
             (goldenPirM goldenFloatTC pTerm)

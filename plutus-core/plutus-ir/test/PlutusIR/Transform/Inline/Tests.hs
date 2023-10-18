@@ -22,7 +22,7 @@ import Test.Tasty (TestTree)
 
 -- | Tests of the inliner, include global uniqueness test.
 test_inline :: TestTree
-test_inline = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
+test_inline = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
     let goldenInlineUnique :: Term TyName Name PLC.DefaultUni PLC.DefaultFun PLC.SrcSpan ->
             IO (Term TyName Name PLC.DefaultUni PLC.DefaultFun PLC.SrcSpan)
         goldenInlineUnique pir =
@@ -80,7 +80,7 @@ test_inline = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
 
 -- | Tests that the inliner doesn't incorrectly capture variable names.
 test_nameCapture :: TestTree
-test_nameCapture = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
+test_nameCapture = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
     let goldenNameCapture :: Term TyName Name PLC.DefaultUni PLC.DefaultFun PLC.SrcSpan ->
             IO String
         goldenNameCapture pir =

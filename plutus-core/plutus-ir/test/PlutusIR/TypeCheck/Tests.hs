@@ -8,7 +8,7 @@ import PlutusIR.Test
 import PlutusIR.Transform.Rename ()
 
 test_types :: TestTree
-test_types = runTestNestedIn ["plutus-ir/test/PlutusIR"] $
+test_types = runTestNestedIn ["plutus-ir", "test", "PlutusIR"] $
   testNested "TypeCheck"
     $ map (goldenTypeFromPir topSrcSpan pTerm)
   [ "letInLet"

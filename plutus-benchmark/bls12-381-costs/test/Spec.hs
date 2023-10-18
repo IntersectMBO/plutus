@@ -3,11 +3,13 @@ module Main where
 import PlutusBenchmark.BLS12_381.RunTests (runTests)
 import PlutusBenchmark.Common (checkGoldenFileExists, goldenVsTextualOutput)
 
-outputFile :: String
+import Test.Tasty.Extras (makeVersionedFilePath)
+
+outputFile :: FilePath
 outputFile = "bls12-381-costs.txt"
 
 goldenFile :: FilePath
-goldenFile = "bls12-381-costs/test/bls12-381-costs.golden"
+goldenFile = makeVersionedFilePath ["bls12-381-costs", "test"] "bls12-381-costs.golden"
 
 main :: IO ()
 main = do

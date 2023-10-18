@@ -15,7 +15,7 @@ import Test.Tasty.ExpectedFailure (ignoreTest)
 import Test.Tasty.QuickCheck
 
 test_deadCode :: TestTree
-test_deadCode = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
+test_deadCode = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
     testNested "DeadCode" $
         map
             (goldenPir (runQuote . removeDeadBindings def) pTerm)

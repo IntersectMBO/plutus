@@ -208,7 +208,7 @@ printSizeStatistics h n script = do
 goldenVsTextualOutput
     :: TestName          -- The name of the test.
     -> FilePath          -- The path to the golden file.
-    -> String            -- The name of the results file (may be extended to make it unique).
+    -> FilePath          -- The name of the results file (may be extended to make it unique).
     -> (Handle -> IO a)  -- A function which runs tests and writes output to the given handle.
     -> IO ()
 goldenVsTextualOutput testName goldenFile filename runTest =  do

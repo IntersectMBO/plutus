@@ -16,7 +16,7 @@ import PlutusIR.TypeCheck as TC
 import PlutusPrelude
 
 test_caseOfCase :: TestTree
-test_caseOfCase = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
+test_caseOfCase = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
     testNested "CaseOfCase" $
         map
             (goldenPirM goldenCoCTC pTerm)
