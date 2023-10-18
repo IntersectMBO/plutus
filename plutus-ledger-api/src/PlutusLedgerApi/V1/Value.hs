@@ -399,27 +399,38 @@ in the other, since in that case computing equality of values was expensive and 
    pressing
 -}
 unordEqWith :: forall k v. Eq k => (v -> Bool) -> (v -> v -> Bool) -> [(k, v)] -> [(k, v)] -> Bool
-unordEqWith is0 eqV = goL where
-    goL :: [(k, v)] -> [(k, v)] -> Bool
-    goL []                 kvsR                             = all (is0 . snd) kvsR
-    goL kvsL               []                               = all (is0 . snd) kvsL
-    goL ((kL, vL) : kvsL') kvsR0@(kvR0@(kR0, vR0) : kvsR0')
+unordEqWith is0 eqV = goBoth where
+    -- Recurse on the spines of both the lists simultaneously.
+    goBoth :: [(k, v)] -> [(k, v)] -> Bool
+    -- One spine is longer than the other one, but this still can result in a succeeding equality
+    -- check if the non-empty list only contains zero values.
+    goBoth []                 kvsR                             = all (is0 . snd) kvsR
+    -- Symmetric to the previous case.
+    goBoth kvsL               []                               = all (is0 . snd) kvsL
+    -- Both spines are non-empty.
+    goBoth ((kL, vL) : kvsL') kvsR0@(kvR0@(kR0, vR0) : kvsR0')
         -- We could've avoided having this clause if we always searched for the right key-value pair
-        -- using @goR@, however the sheer act of invoking that function, passing an empty list to it
-        -- as an accumulator and calling 'appendR' afterwards affects performance quite a bit,
+        -- using @goRight@, however the sheer act of invoking that function, passing an empty list
+        -- to it as an accumulator and calling 'appendR' afterwards affects performance quite a bit,
         -- considering that all of that happens for every single element of the left list. Hence we
         -- handle the special case of lists being equal pointwise (or at least their prefixes being
         -- equal pointwise) with a bit of additional logic to get some easy performance gains.
-        | kL == kR0  = if vL `eqV` vR0 then goL kvsL' kvsR0' else False
-        | is0 vL     = goL kvsL' kvsR0
-        | otherwise  = goR [kvR0 | not $ is0 vR0] kvsR0'
+        | kL == kR0  = if vL `eqV` vR0 then goBoth kvsL' kvsR0' else False
+        | is0 vL     = goBoth kvsL' kvsR0
+        | otherwise  = goRight [kvR0 | not $ is0 vR0] kvsR0'
         where
-            goR :: [(k, v)] -> [(k, v)] -> Bool
-            goR _   []                     = False
-            goR acc (kvR@(kR, vR) : kvsR')
-                | is0 vR    = goR acc kvsR'
-                | kL == kR  = if vL `eqV` vR then goL kvsL' (appendR acc kvsR') else False
-                | otherwise = goR (kvR : acc) kvsR'
+            -- Recurse on the spine of the right list looking for a key-value pair whose key matches
+            -- @kL@, i.e. the first key in the remaining part of the left list. The accumulator
+            -- contains (in reverse order) all elements of the right list processed so far whose
+            -- keys are not equal to @kL@ and values are non-zero.
+            goRight :: [(k, v)] -> [(k, v)] -> Bool
+            goRight _   []                     = False
+            goRight acc (kvR@(kR, vR) : kvsR')
+                | is0 vR    = goRight acc kvsR'
+                -- @appendR@ recreates @kvsR0'@ with @(kR, vR)@ removed, since that pair
+                -- equals @(kL, vL)@ from the left list, hence we throw both of them away.
+                | kL == kR  = if vL `eqV` vR then goBoth kvsL' $ appendR acc kvsR' else False
+                | otherwise = goRight (kvR : acc) kvsR'
 
 {-# INLINABLE eqMapWith #-}
 -- | Check equality of two 'Map's given a function checking whether a value is zero and a function
