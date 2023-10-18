@@ -59,9 +59,14 @@ tests =
     , goldenPir "errorTrace" errorTrace
     ]
 
--- | Evaluate (deeply, to get through tuples) a value, throwing away any exception and just representing it as 'Nothing'.
+-- We really should use something like "Control.Exception.Enclosed" here and in other similar
+-- places.
+-- | Evaluate (deeply, to get through tuples) a value, throwing away any exception and just
+-- representing it as 'Nothing'.
 tryHard :: (MonadIO m, NFData a) => a -> m (Maybe a)
-tryHard a = reoption <$> (liftIO $ try @SomeException $ evaluate $ force a)
+-- We have @Strict@ enabled, hence without the tilda this function evaluates @a@ before evaluating
+-- the body, i.e. outside of the call to 'try', defeating the whole purpose.
+tryHard ~a = reoption <$> (liftIO $ try @SomeException $ evaluate $ force a)
 
 testRatioProperty :: (Show a, Eq a) => TestName -> (Ratio.Rational -> a) -> (Rational -> a) -> TestNested
 testRatioProperty nm plutusFunc ghcFunc = pure $ testPropertyNamed nm (fromString nm) $ Hedgehog.property $ do
@@ -74,7 +79,8 @@ testRatioProperty nm plutusFunc ghcFunc = pure $ testPropertyNamed nm (fromStrin
 
 testDivMod :: Property
 testDivMod = Hedgehog.property $ do
-    let gen = Gen.integral (Range.linear (-10000) 100000)
+    -- Generating zeroes often enough to trigger any potential bugs related to handling of zeroes.
+    let gen = Gen.frequency [(1, pure 0), (10, Gen.integral (Range.linear (-10000) 100000))]
     (n1, n2) <- Hedgehog.forAll $ (,) <$> gen <*> gen
     ghcResult <- tryHard $ divMod n1 n2
     plutusResult <- tryHard $ PlutusTx.divMod n1 n2
@@ -84,7 +90,8 @@ testDivMod = Hedgehog.property $ do
 
 testQuotRem :: Property
 testQuotRem = Hedgehog.property $ do
-    let gen = Gen.integral (Range.linear (-10000) 100000)
+    -- Generating zeroes often enough to trigger any potential bugs related to handling of zeroes.
+    let gen = Gen.frequency [(1, pure 0), (10, Gen.integral (Range.linear (-10000) 100000))]
     (n1, n2) <- Hedgehog.forAll $ (,) <$> gen <*> gen
     ghcResult <- tryHard $ quotRem n1 n2
     plutusResult <- tryHard $ PlutusTx.quotRem n1 n2
