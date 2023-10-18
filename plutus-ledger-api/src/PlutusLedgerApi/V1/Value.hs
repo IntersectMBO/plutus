@@ -387,7 +387,8 @@ We check equality of values of two key-value pairs right after ensuring that the
 disadvantageous if the values are big and there's a key that is present in one of the lists but not
 in the other, since in that case computing equality of values was expensive and pointless. However
 
-1. we don't really know whether this can be a common situation
+1. we've checked and on the chain 'Value's very rarely contain 'CurrencySymbol's with more than 3
+   'TokenName's associated with them, so we optimize for the most common use case
 2. computing equality of values before ensuring equality of all the keys certainly does help when we
    check equality of 'TokenName'-value pairs, since the value of a 'TokenName' is an 'Integer' and
    @(==) :: Integer -> Integer -> Bool@ is generally much faster than repeatedly searching for keys
