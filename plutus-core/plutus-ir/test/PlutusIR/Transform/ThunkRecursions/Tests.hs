@@ -15,7 +15,7 @@ import PlutusPrelude
 import Test.QuickCheck.Property (Property, withMaxSuccess)
 
 test_thunkRecursions :: TestTree
-test_thunkRecursions = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
+test_thunkRecursions = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
     testNested "ThunkRecursions" $
         map
             (goldenPir (thunkRecursions def) pTerm)

@@ -13,7 +13,7 @@ import Data.Functor
 import Flat
 
 test_prettyprinting :: TestTree
-test_prettyprinting = runTestNestedIn ["plutus-ir/test/PlutusIR/Core"] $
+test_prettyprinting = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Core"] $
     testNested "prettyprinting"
     $ map (goldenPir id pTerm)
     [ "basic"
@@ -21,7 +21,7 @@ test_prettyprinting = runTestNestedIn ["plutus-ir/test/PlutusIR/Core"] $
     ]
 
 test_prettyprintingReadable :: TestTree
-test_prettyprintingReadable = runTestNestedIn ["plutus-ir/test/PlutusIR/Core"] $
+test_prettyprintingReadable = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Core"] $
     testNested "prettyprintingReadable"
     $ map (goldenPirDoc prettyPirReadable pTerm)
     [ "basic"
@@ -41,7 +41,7 @@ test_prettyprintingReadable = runTestNestedIn ["plutus-ir/test/PlutusIR/Core"] $
     ]
 
 test_serialization :: TestTree
-test_serialization = runTestNestedIn ["plutus-ir/test/PlutusIR/Core"] $
+test_serialization = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Core"] $
     testNested "serialization"
     $ map (goldenPir roundTripPirTerm pTerm)
     [ "serializeBasic"

@@ -12,7 +12,7 @@ import PlutusIR.Transform.Beta
 import Test.QuickCheck.Property (Property, withMaxSuccess)
 
 test_beta :: TestTree
-test_beta = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
+test_beta = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
     testNested "Beta" $
         map
             (goldenPir (beta . runQuote . PLC.rename) pTerm)

@@ -11,7 +11,7 @@ import Test.Tasty.Extras
 import Test.Tasty.QuickCheck
 
 test_lets :: TestTree
-test_lets = runTestNestedIn ["plutus-ir/test/PlutusIR/Compiler"] $ testNested "Let"
+test_lets = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Compiler"] $ testNested "Let"
     [ goldenPlcFromPir pTermAsProg "letInLet"
     , goldenPlcFromPir pTermAsProg "letDep"
     ]

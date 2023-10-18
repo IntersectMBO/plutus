@@ -9,7 +9,7 @@ outputFile :: FilePath
 outputFile = "bls12-381-costs.txt"
 
 goldenFile :: FilePath
-goldenFile = makeVersionedFilePath ["bls12-381-costs", "test"] ["bls12-381-costs.golden"]
+goldenFile = makeVersionedFilePath ["bls12-381-costs", "test"] "bls12-381-costs.golden"
 
 main :: IO ()
 main = do
