@@ -28,6 +28,12 @@ import System.Info
 import Test.Tasty
 import Test.Tasty.Golden
 
+
+-- | We use the GHC version number to create directories with names like `9.2`
+-- and `9.6` containing golden files whose contents depend on the GHC version.
+-- For consistency all such directories should be leaves in the directory
+-- hierarchy: for example, it is preferable to have golden files in
+-- "semantics/9.2/" instead of "9.2/semantics/".
 ghcVersion :: String
 ghcVersion = showVersion compilerVersion
 
@@ -38,8 +44,9 @@ ghcVersion = showVersion compilerVersion
    concatenated with appropriate separators by means of `joinPath`.
 -}
 
--- Given a lists of FilePaths and a filename, concatenate the members of the
--- list together, append the GHC version number, then append the filename.
+-- | Given a lists of FilePaths and a filename, concatenate the members of the
+-- list together, append the GHC version number, then append the filename.  We
+-- use this to create GHC-version-dependent golden files.
 makeVersionedFilePath :: [FilePath] -> FilePath -> FilePath
 makeVersionedFilePath path file = joinPath path </> ghcVersion </> file
 
