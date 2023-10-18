@@ -121,8 +121,7 @@ types
 ```
 import Algorithmic
 import Algorithmic.RenamingSubstitution
---TODO : Finish proof for SOPs
---import Algorithmic.Reduction
+import Algorithmic.Reduction
 import Algorithmic.ReductionEC
 
 import Algorithmic.Evaluation

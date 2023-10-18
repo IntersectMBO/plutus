@@ -327,4 +327,12 @@ constr-cong :  ∀{Γ : Ctx Φ}{n}{i : Fin n}{Tss : Vec (List (Φ ⊢Nf⋆ *)) n
             → (q : cs' ≡ subst (IList (Γ ⊢_)) p cs)
             → constr i Tss refl cs' ≡ constr i Tss p cs
 constr-cong refl refl = refl
+
+constr-cong' :  ∀{Γ : Ctx Φ}{n}{i : Fin n}{A : Vec (List (Φ ⊢Nf⋆ *)) n}{ts}{ts'} 
+            → (p : ts ≡ lookup A i)(p' : ts' ≡ lookup A i)
+            → {cs : ConstrArgs Γ ts}
+            → {cs' : ConstrArgs Γ ts'}
+            → (q : subst (IList (Γ ⊢_)) p' cs' ≡ subst (IList (Γ ⊢_)) p cs)
+            → constr i A p' cs' ≡ constr i A p cs
+constr-cong' refl refl refl = refl
 \end{code}
