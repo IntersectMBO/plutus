@@ -5,7 +5,7 @@ on:
 
 jobs:
   benchmark:
-    runs-on: [self-hosted, plutus-benchmark]
+    runs-on: ubuntu-latest
     
     permissions:
       pull-requests: write
@@ -107,7 +107,8 @@ jobs:
 
       - name: Run
         run: |
-          nix develop --no-warn-dirty --accept-flake-config --command bash ./scripts/ci-plutus-benchmark.sh 
+          #nix develop --no-warn-dirty --accept-flake-config --command bash ./scripts/ci-plutus-benchmark.sh 
+          bash ./scripts/ci-plutus-benchmark.sh 
         env:
           BENCHMARK_NAME: ${{ steps.extract-benchmark.outputs.benchmark }}
           PR_NUMBER: ${{ github.event.issue.number }}
