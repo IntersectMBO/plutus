@@ -26,6 +26,7 @@ in
 {
   name = "plutus";
 
+  welcomeMessage = "🤟 \\033[1;34mWelcome to Plutus\\033[0m 🤟";
 
   packages = [
     repoRoot.nix.agda-with-stdlib
