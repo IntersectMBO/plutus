@@ -429,7 +429,7 @@ unordEqWith is0 eqV = goBoth where
                 | is0 vR    = goRight acc kvsR'
                 -- @appendR@ recreates @kvsR0'@ with @(kR, vR)@ removed, since that pair
                 -- equals @(kL, vL)@ from the left list, hence we throw both of them away.
-                | kL == kR  = if vL `eqV` vR then goBoth kvsL' $ appendR acc kvsR' else False
+                | kL == kR  = if vL `eqV` vR then goBoth kvsL' (appendR acc kvsR') else False
                 | otherwise = goRight (kvR : acc) kvsR'
 
 {-# INLINABLE eqMapWith #-}
