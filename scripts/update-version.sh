@@ -33,5 +33,6 @@ sed -i "s/\(^version:\s*\).*/\1$VERSION/" "./$PACKAGE/$PACKAGE.cabal"
 # - ", plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.0"
 #
 # and updates the version bounds to "^>={major version}"
+# The ?* pattern prevents 'find' from attempting to modify ".cabal" (no basename).
 echo "Updating version bounds on $PACKAGE to '^>=$major_version'"
-find . -name "*.cabal" -exec sed -i "s/\(, $PACKAGE[^^]*\).*/\1 ^>=$major_version/" {} \;
+find . -name "?*.cabal" -exec sed -i "s/\(, $PACKAGE[^^]*\).*/\1 ^>=$major_version/" {} \;

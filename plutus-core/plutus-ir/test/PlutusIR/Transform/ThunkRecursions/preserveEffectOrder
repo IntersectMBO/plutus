@@ -1,0 +1,6 @@
+-- Demonstrating the preservation of effect order during the thunkRecursions transform.
+(let (rec)
+  (termbind (strict) (vardecl x (con integer)) (error (con integer)))
+  (termbind (strict) (vardecl y (fun (con integer) (con integer))) [ { (builtin trace) (fun (con integer) (con integer)) } (con string "SHOULD NOT BE PRINTED") (lam z (con integer) z)])
+  (con integer 1)
+)

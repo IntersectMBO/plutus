@@ -87,12 +87,14 @@ data CompilationOpts a = CompilationOpts {
     , _coDoSimplifierBeta               :: Bool
     , _coDoSimplifierInline             :: Bool
     , _coDoSimplifierKnownCon           :: Bool
+    , _coDoSimplifierCaseOfCase         :: Bool
     , _coDoSimplifierEvaluateBuiltins   :: Bool
     , _coDoSimplifierStrictifyBindings  :: Bool
     , _coInlineHints                    :: InlineHints PLC.Name (Provenance a)
     -- Profiling
     , _coProfile                        :: Bool
     , _coRelaxedFloatin                 :: Bool
+    , _coCaseOfCaseConservative         :: Bool
     -- | Whether to try and preserve the logging beahviour of the program.
     , _coPreserveLogging                :: Bool
     } deriving stock (Show)
@@ -111,6 +113,7 @@ defaultCompilationOpts = CompilationOpts
   , _coDoSimplifierCaseReduce = True
   , _coDoSimplifiercommuteFnWithConst = True
   , _coDoSimplifierKnownCon = True
+  , _coDoSimplifierCaseOfCase = True
   , _coDoSimplifierBeta = True
   , _coDoSimplifierInline = True
   , _coDoSimplifierEvaluateBuiltins = True
@@ -118,6 +121,7 @@ defaultCompilationOpts = CompilationOpts
   , _coInlineHints = mempty
   , _coProfile = False
   , _coRelaxedFloatin = True
+  , _coCaseOfCaseConservative = True
   , _coPreserveLogging = False
   }
 
@@ -133,7 +137,7 @@ data CompilationCtx uni fun a = CompilationCtx {
 makeLenses ''CompilationCtx
 
 toDefaultCompilationCtx
-    :: (Default (PLC.BuiltinSemanticsVariant fun), Default (PLC.CostingPart uni fun))
+    :: (Ord fun, Default (PLC.BuiltinSemanticsVariant fun), Default (PLC.CostingPart uni fun))
     => PLC.TypeCheckConfig uni fun
     -> CompilationCtx uni fun a
 toDefaultCompilationCtx configPlc =

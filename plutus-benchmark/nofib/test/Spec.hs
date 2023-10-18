@@ -46,13 +46,11 @@ testClausify = testGroup "clausify"
                , testCase "formula3" $ mkClausifyTest Clausify.F3
                , testCase "formula4" $ mkClausifyTest Clausify.F4
                , testCase "formula5" $ mkClausifyTest Clausify.F5
-               , runTestNested $
-                  Tx.goldenSize "formula1" (Clausify.mkClausifyCode Clausify.F1)
-               , runTestNested $
-                  Tx.goldenPirReadable "formulaBudget" $ Clausify.mkClausifyCode Clausify.F1
-               , runTestNested $
-                  Tx.goldenBudget "formulaBudget" $ Clausify.mkClausifyCode Clausify.F1
+               , runTestNested $ Tx.goldenPirReadable "clausify-F5" formula5example
+               , runTestNested $ Tx.goldenSize "clausify-F5" formula5example
+               , runTestNested $ Tx.goldenBudget "clausify-F5" formula5example
                ]
+    where formula5example = Clausify.mkClausifyCode Clausify.F5
 
 ---------------- Knights ----------------
 
@@ -68,10 +66,11 @@ testKnights = testGroup "knights"  -- Odd sizes call "error" because there are n
               , testCase "depth 100, 4x4" $ mkKnightsTest 100 4
               , testCase "depth 100, 6x6" $ mkKnightsTest 100 6
               , testCase "depth 100, 8x8" $ mkKnightsTest 100 8
-              , runTestNested $ Tx.goldenSize "depth10-4x4" (Knights.mkKnightsCode 10 4)
-              , runTestNested $ Tx.goldenPirReadable "knightsBudget" $ Knights.mkKnightsCode 10 4
-              , runTestNested $ Tx.goldenBudget "knightsBudget" $ Knights.mkKnightsCode 10 4
+              , runTestNested $ Tx.goldenPirReadable "knights10-4x4" knightsExample
+              , runTestNested $ Tx.goldenSize "knights10-4x4" knightsExample
+              , runTestNested $ Tx.goldenBudget "knights10-4x4" knightsExample
               ]
+    where knightsExample = Knights.mkKnightsCode 10 4
 
 ---------------- Queens ----------------
 
@@ -87,8 +86,9 @@ testQueens = testGroup "queens"
                , testCase "Bjbt1" $ mkQueensTest 4 Queens.Bjbt1
                , testCase "Bjbt2" $ mkQueensTest 4 Queens.Bjbt2
                , testCase "Fc"    $ mkQueensTest 4 Queens.Fc
-               , runTestNested    $
-                  Tx.goldenBudget "queens4budget" $ Queens.mkQueensCode 4 Queens.Bt
+               , runTestNested    $ Tx.goldenPirReadable "queens4-bt" queens4btExample
+               , runTestNested    $ Tx.goldenSize "queens4-bt" queens4btExample
+               , runTestNested    $ Tx.goldenBudget "queens4-bt" queens4btExample
                ]
              , testGroup "5x5"
                [ testCase "Bt"    $ mkQueensTest 5 Queens.Bt
@@ -96,11 +96,13 @@ testQueens = testGroup "queens"
                , testCase "Bjbt1" $ mkQueensTest 5 Queens.Bjbt1
                , testCase "Bjbt2" $ mkQueensTest 5 Queens.Bjbt2
                , testCase "Fc"    $ mkQueensTest 5 Queens.Fc
-               , runTestNested    $ Tx.goldenBudget "queens5budget" $
-                  Queens.mkQueensCode 5 Queens.Bt
+               , runTestNested    $ Tx.goldenPirReadable "queens5-fc" queens5fcExample
+               , runTestNested    $ Tx.goldenSize "queens5-fc" queens5fcExample
+               , runTestNested    $ Tx.goldenBudget "queens5-fc" queens5fcExample
                ]
-             , runTestNested $ Tx.goldenSize "Bt" (Queens.mkQueensCode 5 Queens.Bt)
              ]
+    where queens4btExample = Queens.mkQueensCode 4 Queens.Bt
+          queens5fcExample = Queens.mkQueensCode 5 Queens.Fc
 
 ---------------- Primes ----------------
 

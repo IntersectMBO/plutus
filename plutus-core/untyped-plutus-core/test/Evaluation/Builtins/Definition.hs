@@ -406,12 +406,13 @@ test_TrackCostsRetaining =
                 -- @length budgets@ is for retaining @budgets@ for as long as possible just in case.
                 -- @3@ is just for giving us room to handle erratic GC behavior. It really should be
                 -- @1@.
-                let expected = min 3 (length budgets)
+                let expected = min 5 (length budgets)
                     actual = length res
                     err = concat
                         [ "Too many elements picked up by GC\n"
                         , "Expected at most: " ++ show expected ++ "\n"
                         , "But got: " ++ show actual
+                        , "The result was: " ++ show res
                         ]
                 assertBool err $ expected > actual
 

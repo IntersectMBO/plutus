@@ -55,7 +55,7 @@ type InliningConstraints tyname name uni fun =
 --
 -- See [Inlining and global uniqueness] for caveats about this information.
 data InlineInfo tyname name uni fun ann = InlineInfo
-    { _iiVarInfo      :: VarInfo.VarsInfo tyname name
+    { _iiVarInfo      :: VarInfo.VarsInfo tyname name uni ann
     -- ^ Is it strict? Only needed for PIR, not UPLC
     , _iiUsages       :: Usages.Usages
     -- ^ how many times is it used?

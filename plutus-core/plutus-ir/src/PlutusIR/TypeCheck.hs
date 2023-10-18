@@ -30,7 +30,7 @@ import Control.Monad ((>=>))
 The PIR typechecker is an extension  of the PLC typechecker; whereas the PLC typechecker
 works on PLC terms, the PIR typechecker works on the PIR terms. A PIR term
 can be thought of as a superset of the PLC term language: it adds the `LetRec` and
-`LetNonRec` syntactic constructs. Because of ths, the PIR typechecker simply extends the
+`LetNonRec` syntactic constructs. Because of this, the PIR typechecker simply extends the
 PLC typechecker by adding checks for these two let constructs of PIR.
 
 Since we already have a PIR->PLC compiler, some would say that it would suffice to first

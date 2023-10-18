@@ -1,0 +1,8 @@
+Error during PIR typechecking:
+Type mismatch at typeLetWrong:4:3-4:33
+Expected a term of type
+  'a'
+But found one of type
+  '(con integer)'
+Namely,
+  '(con integer 1)'

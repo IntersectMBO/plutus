@@ -19,7 +19,6 @@ module Plugin.Data.Spec where
 
 import Test.Tasty.Extras
 
-import PlutusCore.Pretty qualified as PLC
 import PlutusCore.Test
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code
@@ -249,11 +248,7 @@ recursiveTypes = testNested "recursive" [
     , goldenUEval "ptreeFirstEval" [ toUPlc ptreeFirst, toUPlc ptreeConstruct ]
     , goldenUEval "sameEmptyRoseEval" [ toUPlc sameEmptyRose, toUPlc emptyRoseConstruct ]
     , goldenUPlc "sameEmptyRose" sameEmptyRose
-    , goldenTPlcWith
-        ".tplc-read"
-        (ppThrow . fmap PLC.AsReadable)
-        "interListConstruct"
-        interListConstruct
+    , goldenTPlcReadable "interListConstruct" interListConstruct
     , goldenUEval "processInterListEval" [ toUPlc processInterList, toUPlc interListConstruct ]
   ]
 
@@ -358,7 +353,7 @@ typeFamilies = testNested "families" [
     , goldenPir "associated" associated
     , goldenPir "associatedParam" associatedParam
     , goldenPir "basicData" basicData
-    , goldenUPlcCatch "irreducible" irreducible
+    , goldenUPlc "irreducible" irreducible
   ]
 
 type family BasicClosed a where

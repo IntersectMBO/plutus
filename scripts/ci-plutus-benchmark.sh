@@ -36,7 +36,13 @@ else
    git checkout "$PR_BRANCH"
 fi
 
-PR_BRANCH_REF=$(git rev-parse --short HEAD)
+PR_BRANCH_REF="$(git rev-parse --short HEAD)"
+
+if [ -z "$(git merge-base HEAD origin/master)" ]; then
+    echo "The command 'git merge-base HEAD origin/master' returned an empty string."
+    echo "You probably need to 'git rebase --origin master' from your branch first."
+    exit 1
+fi
 
 echo "[ci-plutus-benchmark]: Processing benchmark comparison for benchmark '$BENCHMARK_NAME' on PR $PR_NUMBER"
 

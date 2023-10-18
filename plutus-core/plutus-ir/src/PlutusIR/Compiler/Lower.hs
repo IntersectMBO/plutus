@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE FlexibleContexts  #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -16,7 +15,8 @@ import Control.Monad.Error.Lens
 -- translating the constructors across.
 lowerTerm :: Compiling m e uni fun a => PIRTerm uni fun a -> m (PLCTerm uni fun a)
 lowerTerm = \case
-    Let x _ _ _      -> throwing _Error $ CompilationError x "Let bindings should have been eliminated before lowering"
+    Let x _ _ _      -> throwing _Error $
+        CompilationError x "Let bindings should have been eliminated before lowering"
     Var x n          -> pure $ PLC.Var x n
     TyAbs x n k t    -> PLC.TyAbs x n k <$> lowerTerm t
     LamAbs x n ty t  -> PLC.LamAbs x n ty <$> lowerTerm t

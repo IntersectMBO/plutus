@@ -198,7 +198,7 @@ floatTerm binfo relaxed t0 = do
   where
     floatTermInner ::
       Usages.Usages ->
-      VarsInfo tyname name ->
+      VarsInfo tyname name uni a ->
       Term tyname name uni fun a ->
       Term tyname name uni fun (a, Uniques)
     floatTermInner usgs vinfo = go
@@ -360,7 +360,7 @@ noUniq = fmap (,mempty)
 floatable
     :: (PLC.ToBuiltinMeaning uni fun, PLC.HasUnique name PLC.TermUnique)
     => BuiltinsInfo uni fun
-    -> VarsInfo tyname name
+    -> VarsInfo tyname name uni a
     -> Binding tyname name uni fun a
     -> Bool
 floatable binfo vinfo = \case
@@ -385,14 +385,14 @@ floatInBinding ::
   , PLC.ToBuiltinMeaning uni fun
   ) =>
   BuiltinsInfo uni fun ->
-  VarsInfo tyname name ->
+  VarsInfo tyname name uni a ->
   -- | Annotation to be attached to the constructed `Let`.
   a ->
   Binding tyname name uni fun (a, Uniques) ->
   Term tyname name uni fun (a, Uniques) ->
   Reader FloatInContext (Term tyname name uni fun (a, Uniques))
 floatInBinding binfo vinfo letAnn = \b ->
-  if floatable binfo vinfo b
+  if floatable binfo vinfo (fmap fst b)
     then go b
     else \body ->
       let us = termUniqs body <> bindingUniqs b

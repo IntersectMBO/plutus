@@ -53,21 +53,21 @@ processTerm ::
     (Eq name
     , PLC.HasUnique name PLC.TermUnique
     , PLC.HasUnique tyname PLC.TypeUnique) =>
-    VarsInfo tyname name ->
+    VarsInfo tyname name uni a ->
     Term tyname name uni fun a ->
     Term tyname name uni fun a
 processTerm vinfo t
     | (Var _ n, args) <- splitApplication t
-    , Just (DatatypeMatcher _ parentName) <- lookupVarInfo n vinfo
-    , Just (DatatypeTyVar numTyVars constructors ) <- lookupTyVarInfo parentName vinfo
+    , Just (DatatypeMatcher parentName) <- lookupVarInfo n vinfo
+    , Just (DatatypeTyVar (Datatype _ _ tvs _ constructors) ) <- lookupTyVarInfo parentName vinfo
     , (TermAppContext scrut _ (TypeAppContext _resTy _ branchArgs)) <-
         -- The datatype may have some type arguments, we
         -- aren't interested in them, so we drop them.
-        dropAppContext numTyVars args
+        dropAppContext (length tvs) args
     , -- The scrutinee is itself an application
       (Var _ con, conArgs) <- splitApplication scrut
     , -- ... of one of the constructors from the same datatype as the destructor
-      Just i <- List.findIndex (== con) constructors
+      Just i <- List.findIndex (== con) (fmap _varDeclName constructors)
     , -- ... and there is a  branch for that constructor in the destructor application
       (TermAppContext branch _ _) <- dropAppContext i branchArgs
     , -- This condition ensures the destructor is fully-applied
@@ -79,5 +79,5 @@ processTerm vinfo t
             -- The arguments to the selected branch consists of the arguments
             -- to the constructor, without the leading type arguments - e.g.,
             -- if the scrutinee is `Just {integer} 1`, we only need the `1`).
-            (dropAppContext numTyVars conArgs)
+            (dropAppContext (length tvs) conArgs)
     | otherwise = t

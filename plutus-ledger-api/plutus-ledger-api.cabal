@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-ledger-api
-version:         1.13.0.0
+version:         1.15.0.0
 license:         Apache-2.0
 license-files:
   LICENSE
@@ -96,8 +96,8 @@ library
     , lens
     , mtl
     , nothunks
-    , plutus-core        ^>=1.13
-    , plutus-tx          ^>=1.13
+    , plutus-core        ^>=1.15
+    , plutus-tx          ^>=1.15
     , prettyprinter
     , serialise
     , tagged
@@ -122,9 +122,9 @@ library plutus-ledger-api-testlib
     , base64-bytestring
     , bytestring
     , containers
-    , plutus-core        ^>=1.13
-    , plutus-ledger-api  ^>=1.13
-    , plutus-tx          ^>=1.13
+    , plutus-core        ^>=1.15
+    , plutus-ledger-api  ^>=1.15
+    , plutus-tx          ^>=1.15
     , prettyprinter
     , PyF                >=0.11.1.0
     , serialise
@@ -152,13 +152,37 @@ test-suite plutus-ledger-api-test
     , hedgehog
     , mtl
     , nothunks
-    , plutus-core:{plutus-core, plutus-core-testlib}                    ^>=1.13
-    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.13
-    , plutus-tx:plutus-tx-testlib                                       ^>=1.13
+    , plutus-core:{plutus-core, plutus-core-testlib}                    ^>=1.15
+    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.15
+    , plutus-tx:plutus-tx-testlib                                       ^>=1.15
     , tasty
     , tasty-hedgehog
     , tasty-hunit
     , tasty-quickcheck
+
+-- A suite for tests that use the Plutus Tx plugin. We don't merge those into
+-- @plutus-ledger-api-test@, because @plutus-ledger-api@ has to be buildable for older versions of
+-- GHC (a requirement imposed by @cardano-node@) and while its tests don't have to, we don't want to
+-- give up on all @plutus-ledger-api@ tests for older versions of GHC.
+test-suite plutus-ledger-api-plugin-test
+  import:         lang
+
+  if impl(ghc <9.0)
+    buildable: False
+
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  hs-source-dirs: test-plugin
+  other-modules:  Spec.Value
+  build-depends:
+    , base                                            >=4.9   && <5
+    , containers
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.15
+    , plutus-ledger-api                               ^>=1.15
+    , plutus-tx                                       ^>=1.15
+    , plutus-tx-plugin                                ^>=1.15
+    , prettyprinter
+    , tasty
 
 -- This is a nightly test, so it is an executable instead of test-suite to avoid
 -- running this in CI.
@@ -173,8 +197,8 @@ executable evaluation-test
     , extra
     , filepath
     , mtl
-    , plutus-core                                                       ^>=1.13
-    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.13
+    , plutus-core                                                       ^>=1.15
+    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.15
     , serialise
     , tasty
     , tasty-hunit
