@@ -15,7 +15,7 @@ open import Utils using (Kind;*)
 open import Type using (Ctx⋆;_,⋆_;_∋⋆_;Z;S)
 open import Algorithmic using (Ctx;_⊢_)
 open Ctx
-import Algorithmic.RenamingSubstitution as AS
+import Algorithmic.RenamingSubstitution as As
 import Type.RenamingSubstitution as T
 open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;renNf;renNe)
 open _⊢Nf⋆_
@@ -168,8 +168,8 @@ extricateRen {Γ = Γ , A}  {Δ} ρ⋆ ρ (S x) = extricateRen ρ⋆ (ρ ∘ S) 
 
 postulate
   lem[] : ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *}(N : Γ , A ⊢ B)(W : Γ ⊢ A)
-    → extricate N SS.[ extricate W ] ≡ extricate (N AS.[ W ])
+    → extricate N SS.[ extricate W ] ≡ extricate (N As.[ W ])
 
   lem[]⋆ : ∀{Φ Γ K}{B : Φ ,⋆ K ⊢Nf⋆ *}(N : Γ ,⋆ K ⊢ B)(A : Φ ⊢Nf⋆ K)
-    → extricate N SS.[ extricateNf⋆ A ]⋆ ≡ extricate (N AS.[ A ]⋆)
+    → extricate N SS.[ extricateNf⋆ A ]⋆ ≡ extricate (N As.[ A ]⋆)
 \end{code}

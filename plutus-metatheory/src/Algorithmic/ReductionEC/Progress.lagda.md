@@ -114,22 +114,22 @@ progress (unwrap M refl) with progress M
 progress (con c refl)      = done (V-con c)
 progress (builtin b / refl ) = done (ival b)
 progress (error A)    = step (ruleErr [] refl)
-progress (constr i TSS refl cs)  with progress-focus cs start []
+progress (constr i Tss refl cs)  with progress-focus cs start []
 ... | done {bs}{ibs}{idx = idx} x Vs = done (V-constr i 
-                                                     TSS 
+                                                     Tss 
                                                      refl 
                                                      (trans (sym (lemma<>2 bs [])) (cong ([] <><_) (sym (lem-≣-<>> idx)))) 
                                                      Vs 
                                                      (trans (≡-subst-removable (IList (_⊢_ ∅)) _ _ (ibs <>>I [])) (sym (lem-≣I-<>>1' x))))
 ... | step Vs (ruleEC E p refl refl) cs {idx} x = 
-                     step (ruleEC (constr i TSS refl {idx} Vs cs E) 
+                     step (ruleEC (constr i Tss refl {idx} Vs cs E) 
                            p 
                            (constr-cong (trans (sym (lem-≣-<>> idx)) refl) 
                                          (trans (lem-≣I-<>>1' x) 
                                                 (≡-subst-removable (IList (_⊢_ ∅)) (sym (lem-≣-<>> idx)) (trans (sym (lem-≣-<>> idx)) refl) _)))
                            refl)
 ... | step Vs (ruleErr E refl) cs {idx} x = 
-             step (ruleErr (constr i TSS refl {idx} Vs cs E) 
+             step (ruleErr (constr i Tss refl {idx} Vs cs E) 
                     (constr-cong (trans (sym (lem-≣-<>> idx)) refl) 
                                  (trans (lem-≣I-<>>1' x) 
                                         (≡-subst-removable (IList (_⊢_ ∅)) (sym (lem-≣-<>> idx)) (trans (sym (lem-≣-<>> idx)) refl) _))) 
@@ -137,6 +137,6 @@ progress (constr i TSS refl cs)  with progress-focus cs start []
 progress (case M cases)  with progress M 
 ... | step (ruleEC E p refl refl) = step (ruleEC (case cases E) p refl refl)
 ... | step (ruleErr E refl) = step (ruleErr (case cases E) refl)
-... | done (V-constr e TSS refl refl vs refl) = step (ruleEC [] (β-case e TSS refl vs refl cases) refl refl)
+... | done (V-constr e Tss refl refl vs refl) = step (ruleEC [] (β-case e Tss refl vs refl cases) refl refl)
 
  

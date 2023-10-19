@@ -142,12 +142,12 @@ eval (A · B)   η = eval A η ·V eval B η
 eval (μ A B)   η = μ (reify (eval A η)) (reify (eval B η))
 eval (^ x)     η = reflect (^ x)
 eval (con c)   η = con (eval c η)
-eval (SOP xss) η = SOP (eval-VecList xss η)
+eval (SOP Tss) η = SOP (eval-VecList Tss η)
 
 eval-List [] η = []
 eval-List (x ∷ xs) η = eval x η ∷ eval-List xs η
 eval-VecList [] η = []
-eval-VecList (xs ∷ xss) η = eval-List xs η ∷ eval-VecList xss η
+eval-VecList (Ts ∷ Tss) η = eval-List Ts η ∷ eval-VecList Tss η
 \end{code}
 
 Identity environment
@@ -166,7 +166,7 @@ nf : ∀{Φ K} → Φ ⊢⋆ K → Φ ⊢Nf⋆ K
 nf t = reify (eval t (idEnv _))
 
 nf-VecList :  ∀{Φ K n} → Vec (List (Φ ⊢⋆ K)) n → Vec (List (Φ ⊢Nf⋆ K)) n
-nf-VecList tss =  vmap (map reify) (eval-VecList tss (idEnv _))
+nf-VecList Tss =  vmap (map reify) (eval-VecList Tss (idEnv _))
 \end{code}
 
 Some properties relating uses of lookup on VecList-functions with List-functions
@@ -181,10 +181,10 @@ module _ where
   
   lookup-eval-VecList : ∀ {Φ Ψ n}
               → (e : Fin n)
-              → (A : Vec (List (Ψ ⊢⋆ *)) n)
+              → (Tss : Vec (List (Ψ ⊢⋆ *)) n)
               → (η : Env Ψ Φ)
                 --------------------------------------------
-              → lookup (eval-VecList A η) e ≡ eval-List (lookup A e) η
-  lookup-eval-VecList zero (x ∷ A) η = refl
-  lookup-eval-VecList (suc e) (_ ∷ A) η = lookup-eval-VecList e A η
+              → lookup (eval-VecList Tss η) e ≡ eval-List (lookup Tss e) η
+  lookup-eval-VecList zero (_ ∷ _) η = refl
+  lookup-eval-VecList (suc e) (_ ∷ Tss) η = lookup-eval-VecList e Tss η
 \end{code}

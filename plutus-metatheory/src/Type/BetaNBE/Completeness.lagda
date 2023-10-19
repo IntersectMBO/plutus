@@ -433,12 +433,12 @@ ren-eval-List :
   eval-List (ren-List ρ ts) η ≡ eval-List ts (η' ∘ ρ)
 
 ren-eval-VecList : ∀{n}
-  (tss : Vec (List (Θ ⊢⋆ *)) n)
+  (Tss : Vec (List (Θ ⊢⋆ *)) n)
   {η η' : ∀{J} → Ψ ∋⋆ J → Val Φ J}
   (p : EnvCR η η')
   (ρ : Ren Θ Ψ) → 
   --------------------------------------------------------------
-  eval-VecList (ren-VecList ρ tss) η ≡ eval-VecList tss (η' ∘ ρ)
+  eval-VecList (ren-VecList ρ Tss) η ≡ eval-VecList Tss (η' ∘ ρ)
 
 ren-eval (` x) p ρ = p (ρ x)
 ren-eval (Π B) p ρ =
@@ -501,12 +501,12 @@ sub-eval-List :
   eval-List (sub-List σ ts) η ≡ eval-List ts (λ x → eval (σ x) η')
 
 sub-eval-VecList : ∀{n}
-  (tss : Vec (List (Θ ⊢⋆ *)) n)
+  (Tss : Vec (List (Θ ⊢⋆ *)) n)
   {η η' : ∀{J} → Ψ ∋⋆ J → Val Φ J}
   (p : EnvCR η η')
   (σ : Sub Θ Ψ) →
   ---------------------------------------------------------------------------
-  eval-VecList (sub-VecList σ tss) η ≡ eval-VecList tss (λ x → eval (σ x) η')
+  eval-VecList (sub-VecList σ Tss) η ≡ eval-VecList Tss (λ x → eval (σ x) η')
 
 sub-eval (` x)     p σ = idext p (σ x)
 sub-eval (Π B)     p σ = cong Π (trans
@@ -572,10 +572,10 @@ fund-List : ∀{η η' : Env Φ Ψ}
      → eval-List ts η ≡ eval-List ts' η'
 fund-VecList : ∀{η η' : Env Φ Ψ}{n}
      → EnvCR η η'
-     → {tss tss' : Vec (List (Φ ⊢⋆ *)) n}
-     → tss ⟨[≡]⟩β tss'
+     → {Tss Tss' : Vec (List (Φ ⊢⋆ *)) n}
+     → Tss ⟨[≡]⟩β Tss'
        ----------------------------------------
-     → eval-VecList tss η ≡ eval-VecList tss' η'
+     → eval-VecList Tss η ≡ eval-VecList Tss' η'
 fund p (refl≡β A)          = idext p A
 fund p (sym≡β q)           = symCR (fund (symCR ∘ p) q)
 fund p (trans≡β q r)       = transCR (fund (reflCR ∘ p) q) (fund p r)

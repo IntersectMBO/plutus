@@ -81,26 +81,26 @@ ren : (ρ⋆ : ⋆.Ren Φ Ψ)
 
 ren-ConstrArgs : ∀ {Φ} {Ψ} {Γ : Ctx Φ} {Δ : Ctx Ψ} (ρ⋆ : ⋆.Ren Φ Ψ)
                    (ρ : Ren Γ Δ ρ⋆)
-                   {TS : List (Φ ⊢⋆ *)}
-                   (cs : Dec.ConstrArgs Γ TS) →
-                 Dec.ConstrArgs Δ (⋆.ren-List ρ⋆ TS)
+                   {Ts : List (Φ ⊢⋆ *)}
+                   (cs : Dec.ConstrArgs Γ Ts) →
+                 Dec.ConstrArgs Δ (⋆.ren-List ρ⋆ Ts)
 ren-ConstrArgs ρ⋆ ρ [] = []
 ren-ConstrArgs ρ⋆ ρ (c ∷ cs) = (ren ρ⋆ ρ c) ∷ (ren-ConstrArgs ρ⋆ ρ cs)
 
 lem-ren-mkCaseType : ∀ {Φ} {Ψ} {Γ : Ctx Φ} {Δ : Ctx Ψ}
                            (ρ⋆ : ⋆.Ren Φ Ψ) (ρ : Ren Γ Δ ρ⋆)
                            {A : Φ ⊢⋆ *}
-                           (AS : List (Φ ⊢⋆ *))
-          → ⋆.ren ρ⋆ (Dec.mkCaseType A AS) ≡ Dec.mkCaseType (⋆.ren ρ⋆ A) (⋆.ren-List ρ⋆ AS)
+                           (As : List (Φ ⊢⋆ *))
+          → ⋆.ren ρ⋆ (Dec.mkCaseType A As) ≡ Dec.mkCaseType (⋆.ren ρ⋆ A) (⋆.ren-List ρ⋆ As)
 lem-ren-mkCaseType ρ⋆ ρ [] = refl
-lem-ren-mkCaseType ρ⋆ ρ (A ∷ AS) = cong (⋆.ren _ _ ⇒_) (lem-ren-mkCaseType ρ⋆ ρ AS)
+lem-ren-mkCaseType ρ⋆ ρ (A ∷ As) = cong (⋆.ren _ _ ⇒_) (lem-ren-mkCaseType ρ⋆ ρ As)
 
 ren-Cases : ∀ {Φ} {Ψ} {Γ : Ctx Φ} {Δ : Ctx Ψ} (ρ⋆ : ⋆.Ren Φ Ψ)
-              (ρ : Ren Γ Δ ρ⋆) {A : Φ ⊢⋆ *} {n} {tss : Vec (List (Φ ⊢⋆ *)) n}
-              (cases : Dec.Cases Γ A tss) →
-              Dec.Cases Δ (⋆.ren ρ⋆ A) (⋆.ren-VecList ρ⋆ tss)
+              (ρ : Ren Γ Δ ρ⋆) {A : Φ ⊢⋆ *} {n} {Tss : Vec (List (Φ ⊢⋆ *)) n}
+              (cases : Dec.Cases Γ A Tss) →
+              Dec.Cases Δ (⋆.ren ρ⋆ A) (⋆.ren-VecList ρ⋆ Tss)
 ren-Cases ρ⋆ ρ Dec.[] = Dec.[]
-ren-Cases ρ⋆ ρ (Dec._∷_ {AS = AS} c cs) = subst (_ ⊢_) (lem-ren-mkCaseType  ρ⋆ ρ AS) (ren ρ⋆ ρ c) 
+ren-Cases ρ⋆ ρ (Dec._∷_ {Ts = As} c cs) = subst (_ ⊢_) (lem-ren-mkCaseType  ρ⋆ ρ As) (ren ρ⋆ ρ c) 
                                         Dec.∷ (ren-Cases ρ⋆ ρ cs)
 
 ren _ ρ (` x) = ` (ρ x)
@@ -115,7 +115,7 @@ ren _ ρ (conv p L) = conv (ren≡β _ p) (ren _ ρ L)
 ren ρ⋆ ρ (con {A} cn p) = con {A = A} cn (trans≡β (ren≡β ρ⋆ p) (≡2β (sym (⋆.sub∅-ren A ρ⋆))))
 ren ρ⋆ _ (builtin b) = conv⊢ refl (btype-ren b ρ⋆) (builtin b)
 ren _ _ (error A) = error (⋆.ren _ A)
-ren ρ⋆ ρ (constr e TSS refl cs) = constr e (⋆.ren-VecList ρ⋆ TSS) (sym (⋆.lookup-ren-VecList ρ⋆ e TSS)) (ren-ConstrArgs ρ⋆ ρ cs)
+ren ρ⋆ ρ (constr e Tss refl cs) = constr e (⋆.ren-VecList ρ⋆ Tss) (sym (⋆.lookup-ren-VecList ρ⋆ e Tss)) (ren-ConstrArgs ρ⋆ ρ cs)
 ren ρ⋆ ρ (case L cases) = case (ren ρ⋆ ρ L) (ren-Cases ρ⋆ ρ cases)
 ```
 
@@ -186,25 +186,25 @@ sub : (σ⋆ : ⋆.Sub Φ Ψ)
 
 sub-ConstrArgs : ∀ {Φ} {Ψ} {Γ : Ctx Φ} {Δ : Ctx Ψ} (σ⋆ : ⋆.Sub Φ Ψ)
                    (σ : Sub Γ Δ σ⋆)
-                   {TS : List (Φ ⊢⋆ *)}
-                   (cs : Dec.ConstrArgs Γ TS) →
-                 Dec.ConstrArgs Δ (⋆.sub-List σ⋆ TS)
+                   {Ts : List (Φ ⊢⋆ *)}
+                   (cs : Dec.ConstrArgs Γ Ts) →
+                 Dec.ConstrArgs Δ (⋆.sub-List σ⋆ Ts)
 sub-ConstrArgs σ⋆ σ [] = []
 sub-ConstrArgs σ⋆ σ (c ∷ cs) = (sub σ⋆ σ c) ∷ (sub-ConstrArgs σ⋆ σ cs)
 
 lem-sub-mkCaseType : ∀ {Φ} {Ψ} {Γ : Ctx Φ} {Δ : Ctx Ψ}
                               (σ⋆ : ⋆.Sub Φ Ψ) (σ : Sub Γ Δ σ⋆) {A : Φ ⊢⋆ *}
-                              (AS : List (Φ ⊢⋆ *))
-      → ⋆.sub σ⋆ (Dec.mkCaseType A AS) ≡ Dec.mkCaseType (⋆.sub σ⋆ A) (⋆.sub-List σ⋆ AS)
+                              (As : List (Φ ⊢⋆ *))
+      → ⋆.sub σ⋆ (Dec.mkCaseType A As) ≡ Dec.mkCaseType (⋆.sub σ⋆ A) (⋆.sub-List σ⋆ As)
 lem-sub-mkCaseType σ⋆ σ [] = refl
-lem-sub-mkCaseType σ⋆ σ (A ∷ AS) = cong (⋆.sub σ⋆ A ⇒_) (lem-sub-mkCaseType σ⋆ σ AS)
+lem-sub-mkCaseType σ⋆ σ (A ∷ As) = cong (⋆.sub σ⋆ A ⇒_) (lem-sub-mkCaseType σ⋆ σ As)
 
 sub-Cases : ∀ {Φ} {Ψ} {Γ : Ctx Φ} {Δ : Ctx Ψ} (σ⋆ : ⋆.Sub Φ Ψ)
-              (σ : Sub Γ Δ σ⋆) {A : Φ ⊢⋆ *} {n} {tss : Vec (List (Φ ⊢⋆ *)) n}
-              (cases : Dec.Cases Γ A tss) →
-            Dec.Cases Δ (⋆.sub σ⋆ A) (⋆.sub-VecList σ⋆ tss)
+              (σ : Sub Γ Δ σ⋆) {A : Φ ⊢⋆ *} {n} {Tss : Vec (List (Φ ⊢⋆ *)) n}
+              (cases : Dec.Cases Γ A Tss) →
+            Dec.Cases Δ (⋆.sub σ⋆ A) (⋆.sub-VecList σ⋆ Tss)
 sub-Cases σ⋆ σ Dec.[] = Dec.[]
-sub-Cases σ⋆ σ (Dec._∷_ {AS = AS} c cases) = subst (_ ⊢_) (lem-sub-mkCaseType σ⋆ σ AS) (sub σ⋆ σ c) 
+sub-Cases σ⋆ σ (Dec._∷_ {Ts = As} c cases) = subst (_ ⊢_) (lem-sub-mkCaseType σ⋆ σ As) (sub σ⋆ σ c) 
                                  Dec.∷ (sub-Cases σ⋆ σ cases) 
 
 
@@ -221,7 +221,7 @@ sub _  σ (conv p L)   = conv (sub≡β _ p) (sub _ σ L)
 sub σ⋆ _ (con {A} cn p) = con {A = A} cn (trans≡β (sub≡β σ⋆ p) (≡2β (sym (⋆.sub∅-sub A σ⋆))))
 sub _  _ (builtin b)  = conv⊢ refl (btype-sub b _) (builtin b)
 sub _  _ (error A)    = error (⋆.sub _ A)
-sub σ⋆ σ (constr e TSS refl cs) = constr e (⋆.sub-VecList σ⋆ TSS) (sym (⋆.lookup-sub-VecList σ⋆ e TSS)) (sub-ConstrArgs σ⋆ σ cs)
+sub σ⋆ σ (constr e Tss refl cs) = constr e (⋆.sub-VecList σ⋆ Tss) (sym (⋆.lookup-sub-VecList σ⋆ e Tss)) (sub-ConstrArgs σ⋆ σ cs)
 sub σ⋆ σ (case L cases) = case (sub σ⋆ σ L) (sub-Cases σ⋆ σ  cases)
 ```
 

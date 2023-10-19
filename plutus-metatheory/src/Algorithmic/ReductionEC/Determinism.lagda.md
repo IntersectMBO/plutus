@@ -69,7 +69,7 @@ conv∔≣a refl pa = conv∔≣ pa refl
 
 uniqueVal : ∀{A}(M : ∅ ⊢ A)(v v' : Value M) → v ≡ v'
 
-uniqueVal-List : ∀{AS : Bwd (∅ ⊢Nf⋆ *)}{cs : IBwd (∅ ⊢_) AS} → (vs vs' : VList cs) → vs ≡ vs'
+uniqueVal-List : ∀{As : Bwd (∅ ⊢Nf⋆ *)}{cs : IBwd (∅ ⊢_) As} → (vs vs' : VList cs) → vs ≡ vs'
 uniqueVal-List [] [] = refl
 uniqueVal-List (vs :< x) (vs' :< x') = cong₂ _:<_ (uniqueVal-List vs vs') (uniqueVal _ x x')
 
@@ -113,10 +113,10 @@ uniqueVal M (V-I⇒ b {σB = s} x) (V-I⇒ b' {σB = s'} x') with uniqueBApp' M 
 uniqueVal M (V-IΠ b {σA = s} x) (V-IΠ b' {σA = s'} x') with uniqueBApp' M x x'
 ... | refl ,, refl ,, refl ,, refl ,, refl ,, refl ,, refl with uniqueSigTy s s'
 ... | refl = cong (V-IΠ b) (uniqueBApp M x x')
-uniqueVal _ (V-constr e A refl refl {ts} vs refl) (V-constr .e .A .refl refl {ts'} vs₁ q) 
-        with inj-IBwd2IList {ts = ts'}{ts} (lemma<>1 [] (lookup A e)) q 
-uniqueVal _ (V-constr e A .refl refl {ts} vs refl) (V-constr _ _ .refl refl {.ts} vs₁ refl) | refl =
-     cong (λ vs → V-constr e A refl refl vs refl) (uniqueVal-List vs vs₁)
+uniqueVal _ (V-constr e Tss refl refl {ts} vs refl) (V-constr .e .Tss .refl refl {ts'} vs₁ q) 
+        with inj-IBwd2IList {ts = ts'}{ts} (lemma<>1 [] (lookup Tss e)) q 
+uniqueVal _ (V-constr e Tss .refl refl {ts} vs refl) (V-constr _ _ .refl refl {.ts} vs₁ refl) | refl =
+     cong (λ vs → V-constr e Tss refl refl vs refl) (uniqueVal-List vs vs₁)
 ```
 
 ```
@@ -163,12 +163,12 @@ lemVβ⋆ : ∀{K}{A : ∅ ⊢Nf⋆ K}{B}{M : ∅ ,⋆ K ⊢ B}{C}{p : C ≡ B [
 lemVβ⋆ (V-I⇒ b q) = lemBAppβ⋆ q
 lemVβ⋆ (V-IΠ b q) = lemBAppβ⋆ q
 
-VE-constr-lemma : ∀ {VS} {H} {TS}
-                    {tvs : IBwd (_⊢_ ∅) VS}
+VE-constr-lemma : ∀ {Vs} {H} {Ts}
+                    {tvs : IBwd (_⊢_ ∅) Vs}
                     {M : ∅ ⊢ H}
-                    (ts : Algorithmic.ConstrArgs ∅ TS)
+                    (ts : Algorithmic.ConstrArgs ∅ Ts)
                     {ZS}
-                    (p : ZS ≡ (VS <>< (H ∷ TS)))
+                    (p : ZS ≡ (Vs <>< (H ∷ Ts)))
                     {zs : IBwd (∅ ⊢_) ZS} 
                     (q : substEq (IBwd (∅ ⊢_)) p zs ≡ (tvs <><I (M ∷ ts)))
                     (vs : VList zs)
@@ -184,11 +184,11 @@ lemVE M (EC₁ ·⋆ A / x) (V-IΠ b (step⋆ x₁ .x)) = lemVE _ EC₁ (V-I b x
 lemVE M (wrap EC₁) (V-wrap V) = lemVE _ EC₁ V
 lemVE M (unwrap EC₁ / x) (V-I⇒ b ())
 lemVE M (unwrap EC₁ / x) (V-IΠ b ())
-lemVE M (constr {VS = VS}{H}{TS} i A refl {tidx} {tvs} vs ts E) (V-constr _ _ _ refl {zs} vs' x) = 
+lemVE M (constr {Vs = Vs}{H}{Ts} i A refl {tidx} {tvs} vs ts E) (V-constr _ _ _ refl {zs} vs' x) = 
        lemVE M E (proj-IIBwd (E [ M ]ᴱ) tvs ts
-                             (VE-constr-lemma ts (lemma<>2 VS (H ∷ TS)) 
-                                         (trans (cong (substEq (IBwd (_⊢_ ∅)) (lemma<>2 VS (H ∷ TS))) 
-                                        (trans (IBwd<>IList (lemma<>1 [] (VS <>> (H ∷ TS))) x) 
+                             (VE-constr-lemma ts (lemma<>2 Vs (H ∷ Ts)) 
+                                         (trans (cong (substEq (IBwd (_⊢_ ∅)) (lemma<>2 Vs (H ∷ Ts))) 
+                                        (trans (IBwd<>IList (lemma<>1 [] (Vs <>> (H ∷ Ts))) x) 
                                           ((≡-subst-removable (IBwd (_⊢_ ∅)) _ refl  ([] <><I (tvs <>>I ((E [ M ]ᴱ) ∷ ts))))))) 
                                          (lemma<>I2 tvs ((E [ M ]ᴱ) ∷ ts))) vs'))
 lemVE M (EC.case cs E) (V-I⇒ b ())
@@ -223,10 +223,10 @@ proj· : ∀{A A' B}{t : ∅ ⊢ A ⇒ B}{t' : ∅ ⊢ A' ⇒ B}{u : ∅ ⊢ A}{
 proj· refl = refl ,, refl ,, refl
 
 subst-case : ∀ {B} {A} {B'} {n}
-               {TSS = tss : Vec.Vec (List (∅ ⊢Nf⋆ *)) n}
-               (cs : Algorithmic.Cases ∅ A tss) (E : EC (SOP tss) B)
+               {Tss = Tss : Vec.Vec (List (∅ ⊢Nf⋆ *)) n}
+               (cs : Algorithmic.Cases ∅ A Tss) (E : EC (SOP Tss) B)
                (X : B ≡ B') →
-             substEq (EC A) X (case cs E) ≡ case cs (substEq (EC (SOP tss)) X E)
+             substEq (EC A) X (case cs E) ≡ case cs (substEq (EC (SOP Tss)) X E)
 subst-case cs E refl = refl
 
 valred : ∀{A}{L N : ∅ ⊢ A} → Value L → L —→⋆ N → ⊥
@@ -272,8 +272,8 @@ determinism⋆ (β-Λ refl) (β-Λ refl) = refl
 determinism⋆ (β-wrap _ refl) (β-wrap _ refl) = refl
 determinism⋆ (β-builtin b t bt u vu) (β-builtin b' .t bt' .u vu') =
   BUILTIN-eq _  (step bt vu) (step bt' vu')
-determinism⋆ (β-case e TSS refl {ts} vs refl cases) (β-case e' TSS' refl {ts'} vs' q cases') 
-   with inj-IBwd2IList {ts = ts'}{ts} (lemma<>1 [] (lookup TSS e)) q 
+determinism⋆ (β-case e Tss refl {ts} vs refl cases) (β-case e' Tss' refl {ts'} vs' q cases') 
+   with inj-IBwd2IList {ts = ts'}{ts} (lemma<>1 [] (lookup Tss e)) q 
 ... | refl = refl 
 
 data Redex {A : ∅ ⊢Nf⋆ *} : ∅ ⊢ A → Set where
@@ -428,25 +428,25 @@ Uunwrap2 VM eq [] refl q = refl ,, refl ,, refl
 Uunwrap2 VM eq (unwrap E / x) p q with lem-unwrap p
 ... | refl ,, refl ,, refl ,, X4 = ⊥-elim (valredex (lemVE _ E (substEq Value (≅-to-≡ X4) (V-wrap VM))) q)
 
-Ucase2 : ∀ {n} {TSS : Vec.Vec (List (∅ ⊢Nf⋆ *)) n}
-           {M  : (∅ ⊢ SOP TSS)} {A}
-           {cs : Algorithmic.Cases ∅ A TSS} 
+Ucase2 : ∀ {n} {Tss : Vec.Vec (List (∅ ⊢Nf⋆ *)) n}
+           {M  : (∅ ⊢ SOP Tss)} {A}
+           {cs : Algorithmic.Cases ∅ A Tss} 
            (VM : Value M)
-           {B'} {n'}{TSS' : Vec.Vec (List (∅ ⊢Nf⋆ *)) n'} {L' : ∅ ⊢ B'}
-       → (cs' : Algorithmic.Cases ∅ A TSS') 
-       → (E' : EC (SOP TSS') B') 
+           {B'} {n'}{Tss' : Vec.Vec (List (∅ ⊢Nf⋆ *)) n'} {L' : ∅ ⊢ B'}
+       → (cs' : Algorithmic.Cases ∅ A Tss') 
+       → (E' : EC (SOP Tss') B') 
        → _⊢_.case M cs ≡ _⊢_.case (E' [ L' ]ᴱ) cs' 
        → Redex L' 
        → Σ (A ≡ B') (λ p → Σ (substEq (EC A) p [] ≡ case cs' E') (λ x → substEq (_⊢_ ∅) p (case M cs) ≡ L'))
 Ucase2 VM cs' E' refl r = ⊥-elim (valredex (lemVE _ E' VM) r)
 
-constr-helper : ∀ {BS : Bwd (∅ ⊢Nf⋆ *)}
+constr-helper : ∀ {Bs : Bwd (∅ ⊢Nf⋆ *)}
                   {bs} (ibs : IBwd (_⊢_ ∅) bs)
                   {A} (w : ∅ ⊢ A) 
                   {ls} (ils : ConstrArgs ∅ ls)
-                  {ts : IBwd (_⊢_ ∅) BS} 
+                  {ts : IBwd (_⊢_ ∅) Bs} 
           → (vs : IIBwd Value ts)
-          → (p : BS ≡ bs <>< (A ∷ ls)) 
+          → (p : Bs ≡ bs <>< (A ∷ ls)) 
           → (q : substEq (IBwd (_⊢_ ∅)) p ts ≡ ibs <><I (w ∷ ils))
           → Value w
 constr-helper ibs w ils vs refl refl = proj-IIBwd w ibs ils vs
@@ -457,32 +457,32 @@ subst-helper : ∀{a p} {A : Set a}(P : A → Set p)
                  → Σ (x ≡ y) λ eq → substEq P eq p ≡ q
 subst-helper P refl refl refl = refl ,, refl 
 
-Uconstr : ∀ {n} {A : Vec.Vec (List (∅ ⊢Nf⋆ *)) n} →
+Uconstr : ∀ {n} {Tss : Vec.Vec (List (∅ ⊢Nf⋆ *)) n} →
           -- First
-          ∀ {i : Fin n} {tot : ConstrArgs ∅ (lookup A i)} 
+          ∀ {i : Fin n} {tot : ConstrArgs ∅ (lookup Tss i)} 
             {B}  {bs} {H} {ls} 
             {ibs : IBwd (_⊢_ ∅) bs}
           → (vs : IIBwd Value ibs) 
           → (cs : IList (_⊢_ ∅) ls)
-          → (idx : lookup A i ≣ bs <>> (H ∷ ls)) 
+          → (idx : lookup Tss i ≣ bs <>> (H ∷ ls)) 
           → (E : EC H B) (L : ∅ ⊢ B) 
           → Redex L
           → tot ≡ substEq (IList (_⊢_ ∅)) (sym (lem-≣-<>> idx)) (ibs <>>I ((E [ L ]ᴱ) ∷ cs)) 
           -- Second
        → ∀  {i' : Fin n}
-            {B'} {VS} {H'} {TS} 
-            {tvs : IBwd (_⊢_ ∅) VS}
+            {B'} {Vs} {H'} {Ts} 
+            {tvs : IBwd (_⊢_ ∅) Vs}
           → (vs' : IIBwd Value tvs) 
-          → (cs' : ConstrArgs ∅ TS)
-          → (idx' :  lookup A i' ≣ VS <>> (H' ∷ TS))    
+          → (cs' : ConstrArgs ∅ Ts)
+          → (idx' :  lookup Tss i' ≣ Vs <>> (H' ∷ Ts))    
           → (E' : EC H' B') (L' : ∅ ⊢ B')
-        → _≡_ {_}{∅ ⊢ SOP A} (constr i A refl tot) (constr i' A refl (substEq (IList (_⊢_ ∅)) ((sym (lem-≣-<>> idx'))) (tvs <>>I ((E' [ L' ]ᴱ) ∷ cs'))))
+        → _≡_ {_}{∅ ⊢ SOP Tss} (constr i Tss refl tot) (constr i' Tss refl (substEq (IList (_⊢_ ∅)) ((sym (lem-≣-<>> idx'))) (tvs <>>I ((E' [ L' ]ᴱ) ∷ cs'))))
         → Redex L'
         → (∀ {B''} (E'' : EC H B'') {L' = L'' : ∅ ⊢ B''} →
             (E [ L ]ᴱ) ≡ (E'' [ L'' ]ᴱ) 
              →   Redex L'' 
              →  Σ (B ≡ B'') (λ p → substEq (EC H) p E ≡ E'' × substEq (_⊢_ ∅) p L ≡ L''))
-        → Σ (B ≡ B') (λ p → substEq (EC (SOP A)) p (constr i A refl {idx} {_} vs cs E) ≡  (constr i' A refl {idx'} vs' cs' E') × (substEq _ p L ≡ L'))
+        → Σ (B ≡ B') (λ p → substEq (EC (SOP Tss)) p (constr i Tss refl {idx} {_} vs cs E) ≡  (constr i' Tss refl {idx'} vs' cs' E') × (substEq _ p L ≡ L'))
 Uconstr {tot = tot} vs cs idx E L r p vs' cs' idx' E' L' refl r' U with subst-helper (IList (∅ ⊢_)) (lem-≣-<>> idx') (lem-≣-<>> idx) p
 ... | x ,, y with equalbyPredicateI tot Value (lem-≣-<>> idx) (lem-≣-<>> idx') p refl vs vs' (λ V → valredex (lemVE _ E V) r) (λ V' → valredex (lemVE _ E' V') r') 
 ... | refl ,, refl ,, refl ,, refl with uniqueVal-List vs vs' | unique-≣-<>> idx idx'
@@ -581,36 +581,36 @@ rlemma51! (unwrap M x) with rlemma51! M
   refl
   λ E p' q' → Uunwrap2 VM x E p' q'
 rlemma51! (con c refl) = done (V-con c)
-rlemma51! (constr i A refl tot) with rlemma51-List tot start [] 
+rlemma51! (constr i Tss refl tot) with rlemma51-List tot start [] 
 ... | done {bs}{ibs}{idx = idx} x vs = done 
           (V-constr i 
-                    A 
+                    Tss 
                     refl 
                     (sym (lemma<>2' _ _ (sym (lem-≣-<>> idx))))
                     vs 
                     (trans (≡-subst-removable (IList (_⊢_ ∅)) _ _ (ibs <>>I [])) 
                            (sym (lem-≣I-<>>1' x))))
 ... | step {bs = bs}{ibs} vs ¬VM E {L} r refl U {ls} cs {idx} x = step 
-          (λ {(V-constr .i .A .refl refl {ts} vs' x') → 
+          (λ {(V-constr .i .Tss .refl refl {ts} vs' x') → 
                 ¬VM (constr-helper ibs 
                                    (E [ L ]ᴱ) 
                                    cs 
-                                   (substEq VList (IBwd<>IList (lemma<>1 [] (lookup A i)) {ts} x') vs')
+                                   (substEq VList (IBwd<>IList (lemma<>1 [] (lookup Tss i)) {ts} x') vs')
                                   (trans (cong ([] <><_) (lem-≣-<>> idx)) (lemma<>2 bs (_ ∷ ls))) 
                                   (trans (trans (trans
                                      (trans (trans 
-                                         (subst-subst (lemma<>2' ([] <>< lookup A i) (lookup A i) (lemma<>1 [] (lookup A i))) 
+                                         (subst-subst (lemma<>2' ([] <>< lookup Tss i) (lookup Tss i) (lemma<>1 [] (lookup Tss i))) 
                                               {(trans (cong ([] <><_) (lem-≣-<>> idx)) (lemma<>2 bs (_ ∷ ls)))}) 
                                          (≡-subst-removable (IBwd (∅ ⊢_)) _ _ ([] <><I tot))) 
                                          (sym (subst-subst (cong (_<><_ []) (lem-≣-<>> idx)) {lemma<>2 bs (_ ∷ ls) }  ))) 
                                          (cong (substEq (IBwd (_⊢_ ∅)) (lemma<>2 bs (_ ∷ ls))) (sym (lem-<><I-subst(lem-≣-<>> idx))))) 
                                          (cong (substEq (IBwd (_⊢_ ∅)) (lemma<>2 bs (_ ∷ ls))) (cong ([] <><I_) (lem-≣I-<>>1 x)))) 
                                          (lemma<>I2 ibs ((E [ L ]ᴱ) ∷ cs))))  }) 
-          (constr i A refl { idx } vs cs E) 
+          (constr i Tss refl { idx } vs cs E) 
           r 
           (constr-cong (trans (sym (lem-≣-<>> idx)) refl) (trans (lem-≣I-<>>1' x) (≡-subst-removable (IList (_⊢_ ∅)) _ _ (ibs <>>I ((E [ _ ]ᴱ) ∷ cs)))))
           λ { [] refl (β ())
-            ; (constr i' .A refl {idx'} {tvs} vs' cs' E') {L'} p' r' →
+            ; (constr i' .Tss refl {idx'} {tvs} vs' cs' E') {L'} p' r' →
                   Uconstr vs cs idx E L r (lem-≣I-<>>1' x) 
                                   vs' cs' idx' E' L' (trans p' 
                                                             (sym (constr-cong (trans (sym (lem-≣-<>> idx')) refl) 
@@ -625,10 +625,10 @@ rlemma51! (case M cs) with rlemma51! M
                               λ { [] refl (β (β-case e _ q vs x .cs)) → ⊥-elim (¬VM (V-constr e _ refl q vs x))
                                 ; (case x E') refl q' → let X ,, Y ,, Y' = U E' refl q' 
                                                         in X ,, (trans (subst-case cs E X) (cong (case cs) Y)) ,, Y'}
-... | done VM@(V-constr e A refl refl vs x) = 
-      step (λ V → valred V (β-case e A refl vs x cs)) 
+... | done VM@(V-constr e Tss refl refl vs x) = 
+      step (λ V → valred V (β-case e Tss refl vs x cs)) 
           [] 
-          (β (β-case e A refl vs x cs)) 
+          (β (β-case e Tss refl vs x cs)) 
           refl 
           λ { [] refl r → refl ,, refl ,, refl
             ; (EC.case cs' E') p r → Ucase2 VM cs' E' p r} 

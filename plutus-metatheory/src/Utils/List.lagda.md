@@ -143,10 +143,10 @@ as :<I a = as ++I (a ∷ [])
 
 -- Injectivity of cons
 ∷-injectiveI : ∀ {A : Set}{B : A → Set}{t : A}{ts ts' : List A}
-    {X Y : B t}{XS : IList B ts}{YS : IList B ts'}
+    {X Y : B t}{Xs : IList B ts}{Ys : IList B ts'}
     → (p : t ∷ ts' ≡ t ∷ ts)
-    → _≡_ {_} {IList B (t ∷ ts)} (X ∷ XS)  (subst (IList B) p (Y ∷ YS))
-    → X ≡ Y × XS ≡ subst (IList B) (proj₂ (∷-injective p)) YS 
+    → _≡_ {_} {IList B (t ∷ ts)} (X ∷ Xs)  (subst (IList B) p (Y ∷ Ys))
+    → X ≡ Y × Xs ≡ subst (IList B) (proj₂ (∷-injective p)) Ys 
 ∷-injectiveI refl refl = refl , refl
 ```
 
@@ -208,9 +208,9 @@ bsplit bs [] vs = vs , []
 bsplit bs (x ∷ ts) vs with bsplit (bs :< x) ts vs 
 ... | ls :< x , rs = ls , (x ∷ rs)
 
-inj-IBwd2IList : ∀{A}{B : A → Set}{BS}{AS : List A}{ts ts' : IBwd B BS}
-           → (p : BS <>> [] ≡ AS)
-           → IBwd2IList {ts = AS} p ts ≡ IBwd2IList p ts'
+inj-IBwd2IList : ∀{A}{B : A → Set}{Bs}{As : List A}{ts ts' : IBwd B Bs}
+           → (p : Bs <>> [] ≡ As)
+           → IBwd2IList {ts = As} p ts ≡ IBwd2IList p ts'
            → ts ≡ ts'
 inj-IBwd2IList refl q = trans (trans (sym (lemma<>I2 _ [])) (cong (IList2IBwd (lemma<>2' _ _ refl)) q)) (lemma<>I2 _ [])
 ```
@@ -293,8 +293,8 @@ bsplitI ibs (x ∷ its) vs with bsplitI (ibs :< x) its vs
 
 -- project from an IIList
 proj-IIList : ∀{A : Set}{B : A → Set}{C : ∀{a : A}(b : B a) → Set} 
-              {a} (b : B a) {BS}{FS} 
-              (bs : IBwd B BS) (fs : IList B FS)
+              {a} (b : B a) {Bs}{Fs} 
+              (bs : IBwd B Bs) (fs : IList B Fs)
              → IIList C (bs <>>I (b ∷ fs))
              → C b
 proj-IIList b bs fs xs with splitI bs (b ∷ fs) xs
@@ -302,8 +302,8 @@ proj-IIList b bs fs xs with splitI bs (b ∷ fs) xs
 
 -- project from an IIBwd
 proj-IIBwd : ∀{A : Set}{B : A → Set}{C : ∀{a : A}(b : B a) → Set} 
-              {a} (b : B a) {BS}{FS} 
-              (bs : IBwd B BS) (fs : IList B FS)
+              {a} (b : B a) {Bs}{Fs} 
+              (bs : IBwd B Bs) (fs : IList B Fs)
              → IIBwd C (bs <><I (b ∷ fs))
              → C b
 proj-IIBwd b bs fs xs with bsplitI bs (b ∷ fs) xs
@@ -394,12 +394,12 @@ Cancellation law for <>>I
 ... | refl = refl
 
 ```
-We may have that BS <>>I (H :: FS) ≡ BS' <>>I (H' :: FS'). 
-We cannot conclude that BS ≡ BS', H ≡ H' and FS ≡ FS', because the focus
+We may have that Bs <>>I (H :: Fs) ≡ Bs' <>>I (H' :: Fs'). 
+We cannot conclude that Bs ≡ Bs', H ≡ H' and Fs ≡ Fs', because the focus
 could be at different places of the same indexed list.
-However, if there is a predicate P such that P holds for every element of BS and BS', 
+However, if there is a predicate P such that P holds for every element of Bs and Bs', 
 but ¬(P H) and ¬(P H'), then this determines where the focus is and we may conclude that
-BS ≡ BS', H ≡ H' and FS ≡ FS'.
+Bs ≡ Bs', H ≡ H' and Fs ≡ Fs'.
 
 ```
 equalbyPredicate++ : ∀{A : Set}
@@ -443,22 +443,22 @@ equalbyPredicate P {bs} {bs'} {fs} {fs'} {tot} {h} {h'} p p' ps ps' ¬Ph ¬Ph' =
 
 equalbyPredicate++I : ∀{A : Set}{B : A → Set}{bs bs' : List A}{fs fs'}{tot}
                     (TOT : IList B tot)
-                    {BS : IList B bs}{BS' : IList B bs'}
-                    {FS : IList B fs}{FS' : IList B fs'}
+                    {Bs : IList B bs}{Bs' : IList B bs'}
+                    {Fs : IList B fs}{Fs' : IList B fs'}
                     {h h' : A}
                     {H : B h}{H' : B h'}
                   → (P : {a : A} → B a → Set)
                   → (p : tot ≡ bs ++ (h ∷ fs)) 
                   → (p' : tot ≡ bs' ++ (h' ∷ fs'))
-                  → (q : TOT ≡ subst (IList B) (sym p) (BS ++I (H ∷ FS)))
-                  → (q' : TOT ≡ subst (IList B) (sym p') (BS' ++I (H' ∷ FS')))
-                  → (ps : IIList P BS)
-                  → (ps' : IIList P BS')
+                  → (q : TOT ≡ subst (IList B) (sym p) (Bs ++I (H ∷ Fs)))
+                  → (q' : TOT ≡ subst (IList B) (sym p') (Bs' ++I (H' ∷ Fs')))
+                  → (ps : IIList P Bs)
+                  → (ps' : IIList P Bs')
                   → (¬PH : ¬(P H))
                   → (¬PH' : ¬(P H'))
                   → Σ (bs ≡ bs') (λ { refl → 
                     Σ (h ≡ h')   (λ { refl → 
-                    Σ (fs ≡ fs') (λ { refl → BS ≡ BS' }) }) })
+                    Σ (fs ≡ fs') (λ { refl → Bs ≡ Bs' }) }) })
 equalbyPredicate++I TOT P p p' q q' [] [] ¬PH ¬PH' with ∷-injective (trans (sym p) p') 
 ... | refl , refl = refl , (refl , (refl , refl))
 equalbyPredicate++I TOT P refl refl refl refl [] (x ∷ ps') ¬PH ¬PH' = ⊥-elim (¬PH x)
@@ -472,37 +472,37 @@ equalbyPredicate++I TOT P refl p' refl q' (x ∷ ps) (x₁ ∷ ps') ¬PH ¬PH' w
 
 equalbyPredicateI : ∀{A : Set}{B : A → Set}{bs bs' : Bwd A}{fs fs'}{tot}
                     (TOT : IList B tot)
-                    {BS : IBwd B bs}{BS' : IBwd B bs'}
-                    {FS : IList B fs}{FS' : IList B fs'}
+                    {Bs : IBwd B bs}{Bs' : IBwd B bs'}
+                    {Fs : IList B fs}{Fs' : IList B fs'}
                     {h h' : A}
                     {H : B h}{H' : B h'}
                   → (P : {a : A} → B a → Set)
                   → (p : tot ≡ bs <>> (h ∷ fs)) 
                   → (p' : tot ≡ bs' <>> (h' ∷ fs'))
-                  → (q : TOT ≡ subst (IList B) (sym p) (BS <>>I (H ∷ FS)))
-                  → (q' : TOT ≡ subst (IList B) (sym p') (BS' <>>I (H' ∷ FS')))
-                  → (ps : IIBwd P BS)
-                  → (ps' : IIBwd P BS')
+                  → (q : TOT ≡ subst (IList B) (sym p) (Bs <>>I (H ∷ Fs)))
+                  → (q' : TOT ≡ subst (IList B) (sym p') (Bs' <>>I (H' ∷ Fs')))
+                  → (ps : IIBwd P Bs)
+                  → (ps' : IIBwd P Bs')
                   → (¬PH : ¬(P H))
                   → (¬PH' : ¬(P H'))
                   → Σ (bs ≡ bs') (λ { refl → 
                     Σ (h ≡ h')   (λ { refl → 
-                    Σ (fs ≡ fs') (λ { refl → BS ≡ BS' }) }) }) 
-equalbyPredicateI {bs = bs}{bs'}{fs}{fs'}{tot} TOT {BS} {BS'} {FS} {FS'} {h} {h'} {H} {H'} P refl p' refl q' ps ps' ¬PH ¬PH' with
+                    Σ (fs ≡ fs') (λ { refl → Bs ≡ Bs' }) }) }) 
+equalbyPredicateI {bs = bs}{bs'}{fs}{fs'}{tot} TOT {Bs} {Bs'} {Fs} {Fs'} {h} {h'} {H} {H'} P refl p' refl q' ps ps' ¬PH ¬PH' with
      equalbyPredicate++I TOT 
                P 
                (lemma-<>>-++ bs [] (h ∷ fs))
                (trans p' (lemma-<>>-++ bs' [] (h' ∷ fs'))) 
-               ((lemma-<>>I-++I BS [] (H ∷ FS)))
+               ((lemma-<>>I-++I Bs [] (H ∷ Fs)))
                (trans q' 
-                (trans (cong (subst (IList _) (sym p')) (lemma-<>>I-++I BS' [] (H' ∷ FS'))) 
-                 (trans (subst-subst {P = IList _} (sym (lemma-<>>-++ bs' [] (h' ∷ fs'))) {sym p'} {(BS' <>>I []) ++I (H' ∷ FS')}) 
+                (trans (cong (subst (IList _) (sym p')) (lemma-<>>I-++I Bs' [] (H' ∷ Fs'))) 
+                 (trans (subst-subst {P = IList _} (sym (lemma-<>>-++ bs' [] (h' ∷ fs'))) {sym p'} {(Bs' <>>I []) ++I (H' ∷ Fs')}) 
                          (≡-subst-removable (IList _) (trans (sym (lemma-<>>-++ bs' [] (h' ∷ fs'))) (sym p')) (sym (trans p' (lemma-<>>-++ bs' [] (h' ∷ fs')))) _)))) 
                (IIBwd2IIList refl refl ps) 
                (IIBwd2IIList refl refl ps') 
                ¬PH 
                ¬PH'  
 ... | pbs , snd with <>>[]-cancelʳ bs bs' pbs 
-equalbyPredicateI TOT {BS} {BS'} P p p' q q' ps ps' ¬PH ¬PH' 
-     | refl , refl , refl , pBS | refl with <>>I[]-cancelʳ BS BS' pBS 
+equalbyPredicateI TOT {Bs} {Bs'} P p p' q q' ps ps' ¬PH ¬PH' 
+     | refl , refl , refl , pBs | refl with <>>I[]-cancelʳ Bs Bs' pBs 
 ... | refl = refl , refl , refl , refl
