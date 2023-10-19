@@ -13,7 +13,7 @@ import PlutusPrelude
 import Test.QuickCheck.Property (Property, withMaxSuccess)
 
 test_evaluateBuiltins :: TestTree
-test_evaluateBuiltins = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
+test_evaluateBuiltins = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
     testNested "EvaluateBuiltins" $
         map
             (goldenPir (evaluateBuiltins True def def) pTerm)

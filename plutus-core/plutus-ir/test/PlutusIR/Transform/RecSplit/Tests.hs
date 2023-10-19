@@ -12,7 +12,7 @@ import PlutusIR.Transform.RecSplit
 import Test.Tasty.QuickCheck
 
 test_recSplit :: TestTree
-test_recSplit = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
+test_recSplit = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
     testNested "RecSplit" $
         map
             (goldenPir (recSplit . runQuote . PLC.rename) pTerm)
