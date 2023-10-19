@@ -51,13 +51,13 @@ extricateVar⋆ (S α) = suc (extricateVar⋆ α)
 extricateNf⋆ : ∀{Γ K}(A : Γ ⊢Nf⋆ K) → ScopedTy (len⋆ Γ)
 extricateNe⋆ : ∀{Γ K}(A : Γ ⊢Ne⋆ K) → ScopedTy (len⋆ Γ)
 
-extricateNf⋆-List :  ∀{Γ K}(AS : List (Γ ⊢Nf⋆ K)) → U.List (ScopedTy (len⋆ Γ))
+extricateNf⋆-List :  ∀{Γ K}(As : List (Γ ⊢Nf⋆ K)) → U.List (ScopedTy (len⋆ Γ))
 extricateNf⋆-List [] = U.[]
-extricateNf⋆-List (A ∷ AS) = extricateNf⋆ A U.∷ extricateNf⋆-List AS
+extricateNf⋆-List (A ∷ As) = extricateNf⋆ A U.∷ extricateNf⋆-List As
 
-extricateNf⋆-VecList :  ∀{Γ K n}(TSS : Vec (List (Γ ⊢Nf⋆ K)) n) → U.List (U.List (ScopedTy (len⋆ Γ)))
+extricateNf⋆-VecList :  ∀{Γ K n}(Tss : Vec (List (Γ ⊢Nf⋆ K)) n) → U.List (U.List (ScopedTy (len⋆ Γ)))
 extricateNf⋆-VecList [] = U.[]
-extricateNf⋆-VecList (TS ∷ TSS) = (extricateNf⋆-List TS) U.∷ (extricateNf⋆-VecList TSS)
+extricateNf⋆-VecList (Ts ∷ Tss) = (extricateNf⋆-List Ts) U.∷ (extricateNf⋆-VecList Tss)
 
 -- intrinsically typed terms should also carry user chosen names as
 -- instructions to the pretty printer
@@ -68,7 +68,7 @@ extricateNf⋆ (ƛ {K = K} A) = ƛ K (extricateNf⋆ A)
 extricateNf⋆ (ne n)        = extricateNe⋆ n
 extricateNf⋆ (con (ne x))  = extricateNe⋆ x
 extricateNf⋆ (μ A B)       = μ (extricateNf⋆ A) (extricateNf⋆ B)
-extricateNf⋆ (SOP x)       = SOP (extricateNf⋆-VecList x)
+extricateNf⋆ (SOP Tss)       = SOP (extricateNf⋆-VecList Tss)
 
 extricateNe⋆ (` α)    = ` (extricateVar⋆ α)
 extricateNe⋆ (n · n') = extricateNe⋆ n · extricateNf⋆ n'
@@ -100,13 +100,13 @@ extricateSub {Γ}{Δ ,⋆ K} σ =
 
 extricate : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ ⊢ A → ScopedTm (len Γ)
 
-extricate-ConstrArgs : ∀{Φ Γ}{AS : List (Φ ⊢Nf⋆ *)} → ConstrArgs Γ AS → U.List (ScopedTm (len Γ))
+extricate-ConstrArgs : ∀{Φ Γ}{As : List (Φ ⊢Nf⋆ *)} → ConstrArgs Γ As → U.List (ScopedTm (len Γ))
 extricate-ConstrArgs [] = U.[]
 extricate-ConstrArgs (c ∷ cs) = extricate c U.∷ extricate-ConstrArgs cs
 
 extricate-Cases : ∀ {Φ} {Γ : Ctx Φ} {A : Φ ⊢Nf⋆ *} {n}
-                 {tss : Vec (List (Φ ⊢Nf⋆ *)) n} 
-                 (cases : Cases Γ A tss) 
+                 {Tss : Vec (List (Φ ⊢Nf⋆ *)) n} 
+                 (cases : Cases Γ A Tss) 
                 → U.List (ScopedTm (len Γ))
 extricate-Cases [] = U.[]
 extricate-Cases (c ∷ cs) = (extricate c) U.∷ (extricate-Cases cs)                
@@ -120,7 +120,7 @@ extricate {Φ}{Γ} (wrap pat arg t) = wrap (extricateNf⋆ pat) (extricateNf⋆ 
 extricate (unwrap t refl)         = unwrap (extricate t)
 extricate (con {A = A} c p)       = con (tmCon (ty2sty A) (subst ⟦_⟧ (ty≅sty₁ A) c))
 extricate (builtin b / refl)      = builtin b
-extricate (constr e A refl x)     = constr (extricateNf⋆ (SOP A)) (toℕ e) (extricate-ConstrArgs x)
+extricate (constr e Tss refl x)     = constr (extricateNf⋆ (SOP Tss)) (toℕ e) (extricate-ConstrArgs x)
 extricate (case {A = A} x cases)  = case (extricateNf⋆ A) (extricate x) (extricate-Cases cases)
 extricate {Φ}{Γ} (error A)        = error (extricateNf⋆ A)
 \end{code}

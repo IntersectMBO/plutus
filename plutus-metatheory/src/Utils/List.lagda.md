@@ -10,10 +10,14 @@ backwards lists, indexed lists, and lists indexed over indexed lists.
 
 ```
 open import Data.Nat using (ℕ;zero;suc)
-open import Data.List using (List;[];_∷_;_++_;map;foldr;length) public
-open import Data.List.Properties using (foldr-++)
-open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;cong;trans;subst)
-open import Data.Empty using (⊥) 
+open import Data.List using (List;[];_∷_;_++_;map;foldr;length;head) public
+open import Data.List.Properties using (foldr-++;++-cancelʳ;∷-injective)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;cong;trans;subst;subst-subst)
+open import Data.Empty using (⊥;⊥-elim) 
+open import Data.Product using (Σ;_×_;_,_;proj₂)
+open import Relation.Nullary using (¬_)
+
+open import Utils using (≡-subst-removable)
 ```
 
 ## Backward Lists
@@ -89,6 +93,28 @@ lemma-bwd-foldr f e (bs :< b) = trans (trans ((cong (foldr f e) (lemma-<>>-++ bs
                                       (lemma-bwd-foldr f (f b e) bs)
 ```
 
+Some cancellation lemmas
+
+```
+<><-cancelʳ : ∀{A : Set} (bs bs' : Bwd A) xs → bs <>< xs ≡ bs' <>< xs → bs ≡ bs'
+<><-cancelʳ bs bs' [] p = p
+<><-cancelʳ bs bs' (x ∷ xs) p with <><-cancelʳ (bs :< x) (bs' :< x) xs p  
+... | refl = refl
+
+<>>[]-cancelʳ : ∀{A : Set} (bs bs' : Bwd A) → bs <>> [] ≡ bs' <>> [] → bs ≡ bs' 
+<>>[]-cancelʳ bs bs' p = trans (sym (lemma<>2' bs (bs' <>> []) p)) (lemma<>2 bs' [])
+
+<>>-cancelʳ : ∀{A : Set} (bs bs' : Bwd A) xs → bs <>> xs ≡ bs' <>> xs → bs ≡ bs' 
+<>>-cancelʳ bs bs' xs p = <>>[]-cancelʳ bs bs' 
+        (++-cancelʳ (bs <>> []) (bs' <>> []) (trans (sym (lemma-<>>-++ bs [] xs)) 
+                                             (trans p (lemma-<>>-++ bs' [] xs))))
+ 
+<>>-cancelˡ : ∀{A : Set} (bs : Bwd A) xs xs' → bs <>> xs ≡ bs <>> xs' → xs ≡ xs'
+<>>-cancelˡ [] xs xs' p = p
+<>>-cancelˡ (bs :< x) xs xs' p with <>>-cancelˡ bs (x ∷ xs) (x ∷ xs') p 
+... | refl = refl
+```
+
 ## Indexed Lists
 
 Indexed lists `IList` are lists of elements of an indexed set.
@@ -114,6 +140,14 @@ iGetIdx {ts = ts} ils = ts
 -- snoc for Indexed Lists.
 _:<I_ : ∀{A : Set}{B : A → Set}{t}{ts : List A} → IList B ts → B t → IList B (ts :<L t) 
 as :<I a = as ++I (a ∷ [])
+
+-- Injectivity of cons
+∷-injectiveI : ∀ {A : Set}{B : A → Set}{t : A}{ts ts' : List A}
+    {X Y : B t}{Xs : IList B ts}{Ys : IList B ts'}
+    → (p : t ∷ ts' ≡ t ∷ ts)
+    → _≡_ {_} {IList B (t ∷ ts)} (X ∷ Xs)  (subst (IList B) p (Y ∷ Ys))
+    → X ≡ Y × Xs ≡ subst (IList B) (proj₂ (∷-injective p)) Ys 
+∷-injectiveI refl refl = refl , refl
 ```
 
 ## Backwards Indexed Lists
@@ -144,8 +178,41 @@ lemma<>I2 : ∀{A}{B : A → Set}{xs : Bwd A}{ys : List A}(ixs : IBwd B xs)(iys 
 lemma<>I2 [] iys = refl
 lemma<>I2 (ixs :< ix) iys = lemma<>I2 ixs (ix ∷ iys)
 
+lemma<>I2' : ∀{A}{B : A → Set}{xs : Bwd A}{ys : List A}(ixs : IBwd B xs)(iys : IList B ys) 
+                  → ([] <><I (ixs <>>I iys)) ≡ subst (IBwd B) (sym (lemma<>2 xs ys)) (ixs <><I iys)
+lemma<>I2' [] iys = refl
+lemma<>I2' (ixs :< ix) iys = lemma<>I2' ixs (ix ∷ iys)
+
+IBwd2IList' : ∀{A}{B : A → Set}{bs}{ts} → (bs ≡ [] <>< ts) → IBwd B bs → IList B ts
+IBwd2IList' {ts = ts} p tbs = subst (IList _) (trans (cong (_<>> []) p) (lemma<>1 [] ts)) (tbs <>>I [])
+
 IBwd2IList : ∀{A}{B : A → Set}{bs}{ts} → (bs <>> [] ≡ ts) → IBwd B bs → IList B ts
 IBwd2IList p tbs = subst (IList _) p (tbs <>>I [])
+
+IList2IBwd : ∀{A}{B : A → Set}{ts}{bs} → ([] <>< ts ≡ bs) → IList B ts → IBwd B bs
+IList2IBwd {ts = ts} p tbs = subst (IBwd _) p ([] <><I tbs)
+
+IBwd<>IList : ∀{A}{B : A → Set}{bs}{ts} → (p : bs <>> [] ≡ ts) → {ibs : IBwd B bs}
+            → {its : IList B ts} 
+            → IBwd2IList p ibs ≡ its 
+            → ibs ≡ IList2IBwd (lemma<>2' _ _ p) its
+IBwd<>IList refl {ibs} refl rewrite lemma<>I2 ibs [] = refl
+
+split :  ∀{A : Set} bs (ts : List A){B : A → Set} → IList B (bs <>> ts) → IBwd B bs × IList B ts
+split [] ts vs = [] , vs
+split (bs :< x) ts vs with split bs (x ∷ ts) vs 
+... | ls , (x ∷ rs) = ls :< x , rs
+
+bsplit : ∀{A : Set} bs (ts : List A){B : A → Set} → IBwd B (bs <>< ts) → IBwd B bs × IList B ts
+bsplit bs [] vs = vs , []
+bsplit bs (x ∷ ts) vs with bsplit (bs :< x) ts vs 
+... | ls :< x , rs = ls , (x ∷ rs)
+
+inj-IBwd2IList : ∀{A}{B : A → Set}{Bs}{As : List A}{ts ts' : IBwd B Bs}
+           → (p : Bs <>> [] ≡ As)
+           → IBwd2IList {ts = As} p ts ≡ IBwd2IList p ts'
+           → ts ≡ ts'
+inj-IBwd2IList refl q = trans (trans (sym (lemma<>I2 _ [])) (cong (IList2IBwd (lemma<>2' _ _ refl)) q)) (lemma<>I2 _ [])
 ```
 
 ## A type for Zipper indexes
@@ -160,7 +227,6 @@ data _≣_<>>_ {A : Set} : (as : List A) → Bwd A → List A → Set where
            ---------------------------
          → as ≣ (vs :< t) <>> ts 
 
-
 lem-≣-<>> : ∀{A : Set}{tot vs}{ts : List A} → tot ≣ vs <>> ts → tot ≡ vs <>> ts
 lem-≣-<>> start = refl
 lem-≣-<>> (bubble x) = lem-≣-<>> x
@@ -174,6 +240,11 @@ done-≣-<>> = lem-≣-<>>' (sym (lemma<>1 [] _))
 
 no-empty-≣-<>> : ∀{A : Set}{vs}{h : A}{ts} → [] ≣ vs <>> (h ∷ ts) → ⊥
 no-empty-≣-<>> (bubble r) = no-empty-≣-<>> r
+
+unique-≣-<>> : ∀{A : Set}{tot vs}{ts : List A}(p q : tot ≣ vs <>> ts) → p ≡ q 
+unique-≣-<>> start start = refl
+unique-≣-<>> (bubble p) (bubble q) with unique-≣-<>> p q
+... | refl = refl
 ```
 
 ## Lists indexed by an indexed list 
@@ -183,9 +254,61 @@ data IIList {A : Set}{B : A → Set}(C : ∀{a : A}(b : B a) → Set) : ∀{is} 
   [] : IIList C []
   _∷_ : ∀{a as}{i : B a}{is : IList B as} → C i → IIList C is → IIList C (i ∷ is)
 
+
 data IIBwd {A : Set}{B : A → Set}(C : ∀{a : A}→ B a → Set) : ∀{is} → IBwd B is → Set where
   [] : IIBwd C []
   _:<_ : ∀{a as}{i : B a}{is : IBwd B as} → IIBwd C is → C i → IIBwd C (is :< i)
+
+-- Chip for double indexed lists
+_<>>II_ :  ∀{A : Set}{B : A → Set}{C : ∀{a : A}(b : B a) → Set}{bs : Bwd A}{ts : List A} 
+        {ibs : IBwd B bs}{its : IList B ts} 
+      → IIBwd C ibs → IIList C its → IIList C (ibs <>>I its)
+[] <>>II tls = tls
+(tbs :< x) <>>II tls = tbs <>>II (x ∷ tls)
+
+-- Convert an IIBwd into an IIList
+IIBwd2IIList : ∀{A}{B : A → Set}{C : ∀{a : A}(b : B a) → Set}{bs}{ts : List A} 
+               {ibs : IBwd B bs}{its : IList B ts} 
+             → (p : bs <>> [] ≡ ts) 
+             → (q : subst (IList B) p (ibs <>>I []) ≡  its) 
+             → IIBwd C ibs 
+             → IIList C its
+IIBwd2IIList refl refl tbs = tbs <>>II []
+
+-- Split an IIList
+splitI : ∀{A : Set}{bs}{ts : List A}{B : A → Set}{C : ∀{a : A}(b : B a) → Set} 
+           (ibs : IBwd B bs)(its : IList B ts)
+        → IIList C (ibs <>>I its) → IIBwd C ibs × IIList C its
+splitI [] its xs = [] , xs
+splitI (ibs :< x) its xs with splitI ibs (x ∷ its) xs 
+... | ls , (y ∷ rs) = (ls :< y) , rs
+
+-- Split an IIBwd
+bsplitI : ∀{A : Set}{bs}{ts : List A}{B : A → Set}{C : ∀{a : A}(b : B a) → Set} 
+           (ibs : IBwd B bs)(its : IList B ts)
+        → IIBwd C (ibs <><I its) → IIBwd C ibs × IIList C its
+bsplitI ibs [] vs = vs , []
+bsplitI ibs (x ∷ its) vs with bsplitI (ibs :< x) its vs 
+... | ls :< x , rs = ls , (x ∷ rs)
+
+-- project from an IIList
+proj-IIList : ∀{A : Set}{B : A → Set}{C : ∀{a : A}(b : B a) → Set} 
+              {a} (b : B a) {Bs}{Fs} 
+              (bs : IBwd B Bs) (fs : IList B Fs)
+             → IIList C (bs <>>I (b ∷ fs))
+             → C b
+proj-IIList b bs fs xs with splitI bs (b ∷ fs) xs
+... | _ , (Cb ∷ _) = Cb
+
+-- project from an IIBwd
+proj-IIBwd : ∀{A : Set}{B : A → Set}{C : ∀{a : A}(b : B a) → Set} 
+              {a} (b : B a) {Bs}{Fs} 
+              (bs : IBwd B Bs) (fs : IList B Fs)
+             → IIBwd C (bs <><I (b ∷ fs))
+             → C b
+proj-IIBwd b bs fs xs with bsplitI bs (b ∷ fs) xs
+... | _ , (Cb ∷ _) = Cb
+
 ```
  
  Index for IIList zippers
@@ -237,7 +360,149 @@ lem-≣I-<>>2' {ibs = ibs :< x} refl refl = bubble (lem-≣I-<>>2' refl refl)
 
 done-≣I-<>> : ∀{A : Set}{B : A → Set}{tot : List A}(itot : IList B tot) → (itot ≣I ([] <><I itot) <>> []) done-≣-<>>
 done-≣I-<>> itot = lem-≣I-<>>2 (lemma<>1 [] _) (sym (lemma<>I1 [] itot))
+
+lemma<>I3 : ∀{A}{B : A → Set}{bs : Bwd A}
+          → (ibs : IBwd B bs)(iys : IList B (bs <>> []))
+          → ibs <>>I [] ≡ iys → subst (IBwd B) (lemma<>2 bs []) ([] <><I iys) ≡ ibs
+lemma<>I3 xs ys refl = lemma<>I2 xs []
+
+lem-<><I-subst :  ∀{A : Set}{B : A → Set}{tot tot' : List A}{itot : IList B tot}
+      → (p : tot ≡ tot')
+      → ([] <><I subst (IList B) p itot) ≡ subst (IBwd B) (cong ([] <><_) p) ([] <><I itot)
+lem-<><I-subst refl = refl
+
+lemma-<>>I-++I : ∀{A : Set}{B : A → Set}{bs}{as as' : List A} 
+        → (ibs : IBwd B bs)(ias : IList B as)(ias' : IList B as')
+        →  ibs <>>I (ias ++I ias') ≡  subst (IList B) (sym (lemma-<>>-++ bs as as')) ((ibs <>>I ias) ++I ias')
+lemma-<>>I-++I [] ias ias' = refl
+lemma-<>>I-++I (ibs :< x) ias ias' = lemma-<>>I-++I ibs (x ∷ ias) ias'        
 ```
 
+Cancellation law for <>>I
 
-    
+```
+<>>I[]-cancelʳ : ∀{A : Set}{B : A → Set}{bs : Bwd A}(ibs ibs' : IBwd B bs)
+               → ibs <>>I [] ≡ ibs' <>>I [] → ibs ≡ ibs' 
+<>>I[]-cancelʳ ibs ibs' p = trans (sym (lemma<>I3 ibs (ibs' <>>I []) p)) (lemma<>I2 ibs' []) 
+
+<>>I-cancelˡ : ∀{A : Set}{B : A → Set}{bs : Bwd A}{xs}
+                (ibs : IBwd B bs)
+              → (ixs ixs' : IList B xs)
+              → ibs <>>I ixs ≡ ibs <>>I ixs' → ixs ≡ ixs' 
+<>>I-cancelˡ [] ixs ixs' p = p
+<>>I-cancelˡ (ibs :< x) ixs ixs' p with <>>I-cancelˡ ibs (x ∷ ixs) (x ∷ ixs') p
+... | refl = refl
+
+```
+We may have that Bs <>>I (H :: Fs) ≡ Bs' <>>I (H' :: Fs'). 
+We cannot conclude that Bs ≡ Bs', H ≡ H' and Fs ≡ Fs', because the focus
+could be at different places of the same indexed list.
+However, if there is a predicate P such that P holds for every element of Bs and Bs', 
+but ¬(P H) and ¬(P H'), then this determines where the focus is and we may conclude that
+Bs ≡ Bs', H ≡ H' and Fs ≡ Fs'.
+
+```
+equalbyPredicate++ : ∀{A : Set}
+                    (P : A → Set) 
+                    {bs bs' : List A}{fs fs'}
+                    {tot : List A}
+                    {h h' : A}
+                  → (p : tot ≡ bs ++ (h ∷ fs)) 
+                  → (p' : tot ≡ bs' ++ (h' ∷ fs'))
+                  → (IList P bs)
+                  → (IList P bs')
+                  → (¬Ph : ¬(P h))
+                  → (¬Ph' : ¬(P h'))
+                  → bs ≡ bs'
+equalbyPredicate++ P p p' [] [] ¬Ph ¬Ph' = refl
+equalbyPredicate++ P refl refl [] (x ∷ ps') ¬Ph ¬Ph' = ⊥-elim (¬Ph x)
+equalbyPredicate++ P refl refl (x ∷ ps) [] ¬Ph ¬Ph' = ⊥-elim (¬Ph' x)
+equalbyPredicate++ P {a ∷ as} refl p' (x ∷ ps) (x₁ ∷ ps') ¬Ph ¬Ph' with ∷-injective p' 
+... | refl , q = cong (a ∷_) (equalbyPredicate++ P {as} refl q ps ps' ¬Ph ¬Ph')
+
+
+equalbyPredicate : ∀{A : Set}
+                    (P : A → Set) 
+                    {bs bs' : Bwd A}{fs fs'}{tot}
+                    {h h' : A}
+                  → (p : tot ≡ bs <>> (h ∷ fs)) 
+                  → (p' : tot ≡ bs' <>> (h' ∷ fs'))
+                  → (IBwd P bs)
+                  → (IBwd P bs')
+                  → (¬Ph : ¬(P h))
+                  → (¬Ph' : ¬(P h'))
+                  → bs ≡ bs'
+equalbyPredicate P {bs} {bs'} {fs} {fs'} {tot} {h} {h'} p p' ps ps' ¬Ph ¬Ph' =
+    <>>[]-cancelʳ _ _ (equalbyPredicate++ P 
+                      (trans p (lemma-<>>-++ bs [] (h ∷ fs)))
+                      (trans p' (lemma-<>>-++ bs' [] (h' ∷ fs'))) 
+                      (IBwd2IList refl ps)
+                      (IBwd2IList refl ps')
+                      ¬Ph 
+                      ¬Ph')
+
+equalbyPredicate++I : ∀{A : Set}{B : A → Set}{bs bs' : List A}{fs fs'}{tot}
+                    (TOT : IList B tot)
+                    {Bs : IList B bs}{Bs' : IList B bs'}
+                    {Fs : IList B fs}{Fs' : IList B fs'}
+                    {h h' : A}
+                    {H : B h}{H' : B h'}
+                  → (P : {a : A} → B a → Set)
+                  → (p : tot ≡ bs ++ (h ∷ fs)) 
+                  → (p' : tot ≡ bs' ++ (h' ∷ fs'))
+                  → (q : TOT ≡ subst (IList B) (sym p) (Bs ++I (H ∷ Fs)))
+                  → (q' : TOT ≡ subst (IList B) (sym p') (Bs' ++I (H' ∷ Fs')))
+                  → (ps : IIList P Bs)
+                  → (ps' : IIList P Bs')
+                  → (¬PH : ¬(P H))
+                  → (¬PH' : ¬(P H'))
+                  → Σ (bs ≡ bs') (λ { refl → 
+                    Σ (h ≡ h')   (λ { refl → 
+                    Σ (fs ≡ fs') (λ { refl → Bs ≡ Bs' }) }) })
+equalbyPredicate++I TOT P p p' q q' [] [] ¬PH ¬PH' with ∷-injective (trans (sym p) p') 
+... | refl , refl = refl , (refl , (refl , refl))
+equalbyPredicate++I TOT P refl refl refl refl [] (x ∷ ps') ¬PH ¬PH' = ⊥-elim (¬PH x)
+equalbyPredicate++I TOT P refl refl refl refl (x ∷ ps) [] ¬PH ¬PH' = ⊥-elim (¬PH' x)
+equalbyPredicate++I TOT P refl p' refl q' (x ∷ ps) (x₁ ∷ ps') ¬PH ¬PH' with ∷-injective p' 
+... | refl , pt with ∷-injectiveI (sym p') q' 
+... | refl , qt with equalbyPredicate++I _ P refl pt refl 
+                                       (trans qt (≡-subst-removable (IList _) (proj₂ (∷-injective (sym p'))) (sym pt) _))
+                                        ps ps' ¬PH ¬PH' 
+... | refl , refl , refl , refl = refl , (refl , (refl , refl))
+
+equalbyPredicateI : ∀{A : Set}{B : A → Set}{bs bs' : Bwd A}{fs fs'}{tot}
+                    (TOT : IList B tot)
+                    {Bs : IBwd B bs}{Bs' : IBwd B bs'}
+                    {Fs : IList B fs}{Fs' : IList B fs'}
+                    {h h' : A}
+                    {H : B h}{H' : B h'}
+                  → (P : {a : A} → B a → Set)
+                  → (p : tot ≡ bs <>> (h ∷ fs)) 
+                  → (p' : tot ≡ bs' <>> (h' ∷ fs'))
+                  → (q : TOT ≡ subst (IList B) (sym p) (Bs <>>I (H ∷ Fs)))
+                  → (q' : TOT ≡ subst (IList B) (sym p') (Bs' <>>I (H' ∷ Fs')))
+                  → (ps : IIBwd P Bs)
+                  → (ps' : IIBwd P Bs')
+                  → (¬PH : ¬(P H))
+                  → (¬PH' : ¬(P H'))
+                  → Σ (bs ≡ bs') (λ { refl → 
+                    Σ (h ≡ h')   (λ { refl → 
+                    Σ (fs ≡ fs') (λ { refl → Bs ≡ Bs' }) }) }) 
+equalbyPredicateI {bs = bs}{bs'}{fs}{fs'}{tot} TOT {Bs} {Bs'} {Fs} {Fs'} {h} {h'} {H} {H'} P refl p' refl q' ps ps' ¬PH ¬PH' with
+     equalbyPredicate++I TOT 
+               P 
+               (lemma-<>>-++ bs [] (h ∷ fs))
+               (trans p' (lemma-<>>-++ bs' [] (h' ∷ fs'))) 
+               ((lemma-<>>I-++I Bs [] (H ∷ Fs)))
+               (trans q' 
+                (trans (cong (subst (IList _) (sym p')) (lemma-<>>I-++I Bs' [] (H' ∷ Fs'))) 
+                 (trans (subst-subst {P = IList _} (sym (lemma-<>>-++ bs' [] (h' ∷ fs'))) {sym p'} {(Bs' <>>I []) ++I (H' ∷ Fs')}) 
+                         (≡-subst-removable (IList _) (trans (sym (lemma-<>>-++ bs' [] (h' ∷ fs'))) (sym p')) (sym (trans p' (lemma-<>>-++ bs' [] (h' ∷ fs')))) _)))) 
+               (IIBwd2IIList refl refl ps) 
+               (IIBwd2IIList refl refl ps') 
+               ¬PH 
+               ¬PH'  
+... | pbs , snd with <>>[]-cancelʳ bs bs' pbs 
+equalbyPredicateI TOT {Bs} {Bs'} P p p' q q' ps ps' ¬PH ¬PH' 
+     | refl , refl , refl , pBs | refl with <>>I[]-cancelʳ Bs Bs' pBs 
+... | refl = refl , refl , refl , refl
