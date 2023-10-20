@@ -42,6 +42,7 @@ module PlutusIR.Compiler (
     ccTypeCheckConfig,
     ccBuiltinsInfo,
     ccBuiltinCostModel,
+    check,
     PirTCConfig(..),
     AllowEscape(..),
     toDefaultCompilationCtx,

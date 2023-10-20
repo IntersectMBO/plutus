@@ -9,6 +9,7 @@
 {-# LANGUAGE TypeOperators          #-}
 {-# LANGUAGE UndecidableInstances   #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
+{-# LANGUAGE InstanceSigs           #-}
 module PlutusIR.Error
     ( Error (..)
     , PLC.AsTypeError (..)
@@ -61,7 +62,7 @@ instance PLC.AsFreeVariableError (Error uni fun a) where
 instance (PLC.PrettyUni uni, Pretty ann) =>
         PrettyBy PLC.PrettyConfigPlc (TypeErrorExt uni ann) where
     prettyBy config (MalformedDataConstrResType ann expType) =
-        vsep ["The result-type of a dataconstructor is malformed at location" <+> PP.pretty ann
+        vsep ["The result-type of a data constructor is malformed at location" <+> PP.pretty ann
              , "The expected result-type is:" <+> prettyBy config expType]
 
 -- show via pretty, for printing as SomeExceptions
@@ -88,6 +89,13 @@ instance (PLC.PrettyUni uni, Pretty fun, Pretty ann) =>
 
 -- needed for property tests that test that the PIR passes preserve evaluation behaviour.
 instance PLC.AsTypeError String (PIR.Term PIR.TyName PIR.Name PLC.DefaultUni PLC.DefaultFun ()) PLC.DefaultUni PLC.DefaultFun (Provenance ()) where
+  _TypeError = prism show $ \e ->
+        Left e
 instance (AsTypeErrorExt String PLC.DefaultUni (Provenance ())) where
+  _TypeErrorExt = prism show $ \e ->
+        Left e
 instance AsError String PLC.DefaultUni PLC.DefaultFun (Provenance ()) where
-    -- _Error = _
+  _Error :: Prism' String (Error PLC.DefaultUni PLC.DefaultFun (Provenance ()))
+  _Error =
+    prism show $ \e ->
+        Left e

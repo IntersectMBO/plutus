@@ -39,10 +39,11 @@ import PlutusCore.Rename
 import PlutusCore.Rename.Monad
 import PlutusCore.TypeCheck qualified as PLC
 import PlutusIR.Compiler
+import PlutusIR.Compiler.Let qualified as Let
 import PlutusIR.Compiler.Lower
 import PlutusIR.Core
 import PlutusIR.Generators.QuickCheck.GenerateTerms
-import PlutusPrelude (($>))
+import PlutusPrelude (through, ($>))
 import Test.QuickCheck (Property)
 
 -- Convert the Either from the evaluation to Either String () to match with the
@@ -76,7 +77,7 @@ evalPurePass pass biVariant pirTm = do
 evalNoPass :: BuiltinSemanticsVariant DefaultFun
   -> Term TyName Name DefaultUni DefaultFun (Provenance ()) ->
   Either String (PLC.Term TyName Name DefaultUni DefaultFun ())
-evalNoPass = evalPurePass id
+evalNoPass = evalNonPurePass (\t -> pure t)
 
 -- | Evaluate a PIR term after a pure compiler pass.
 evalNonPurePass ::
@@ -88,10 +89,30 @@ evalNonPurePass ::
   -> Term TyName Name DefaultUni DefaultFun b
   -> Either String (PLC.Term TyName Name DefaultUni DefaultFun ())
 evalNonPurePass pass biVariant pirTm = do
-  -- let plcConfig = first display $ PLC.getDefTypeCheckConfig ()
   plcConfig <- PLC.getDefTypeCheckConfig (Original ())
+  let pipeline =
+        pass
+        >=> rename -- some pass may not preserve global uniqueness
+        >=> Let.compileLets Let.DataTypes -- compile away let terms so that `lowerTerm` will work
+        >=> through check -- typecheck and rename
+        >=> Let.compileLets Let.RecTerms
+        >=> through check
+        >=> Let.compileLets Let.Types
+        >=> through check
+        >=> Let.compileLets Let.NonRecTerms
+        >=> through check
+        -- need to repeat this to remove all let bindings
+        >=> Let.compileLets Let.DataTypes
+        >=> through check
+        >=> Let.compileLets Let.RecTerms
+        >=> through check
+        >=> Let.compileLets Let.Types
+        >=> through check
+        >=> Let.compileLets Let.NonRecTerms
+        >=> through check
+        >=> lowerTerm
   lowered <- flip runReaderT (toDefaultCompilationCtx plcConfig) $
-    runQuoteT $ lowerTerm =<< pass (Original () <$ pirTm)
+    runQuoteT $ pipeline (Original () <$ pirTm)
   convertToEitherString $
     evaluateCkNoEmit (defaultBuiltinsRuntimeForSemanticsVariant biVariant) (lowered $> ())
 
@@ -149,28 +170,3 @@ nonPureEvaluationProp pass biVariant =
         "Evaluation behaviour not preserved. Before the pass, the term evaluates to \n"
         <> display evaluatedNoPass <> "\n but after the pass it evaluates to \n"
         <> display evaluatedAfterPass
-
--- | Check that a non-pure pass that requires extra constraints preserves evaluation behaviour.
--- extraConstraintTypecheckProp ::
---   (Term TyName Name DefaultUni DefaultFun (Provenance ())
---   -> QuoteT
---       (ReaderT
---          (CompilationCtx DefaultUni DefaultFun c)
---          (Either (Error DefaultUni DefaultFun b)))
---       (Term TyName Name DefaultUni DefaultFun a))
---   -> Property
--- extraConstraintTypecheckProp pass =
---   forAllDoc "ty,tm" genTypeAndTerm_ (const []) $ \ (_ty, tm) -> do
---     config <- getDefTypeCheckConfig ()
---     plcConfig <- PLC.getDefTypeCheckConfig ()
---     let processed =
---           flip runReaderT (toDefaultCompilationCtx plcConfig) $
---             runQuoteT $ pass =<< rename (Original () <$ tm)
---     case processed of
---       Left err -> Left $ err $> ()
---       Right processSuccess -> do
---         _ <- runQuoteT $ do
---           -- need to rename because some passes don't preserve global uniqueness
---           renamedProcessed <- rename processSuccess
---           inferType config (renamedProcessed $> ())
---         pure ()
