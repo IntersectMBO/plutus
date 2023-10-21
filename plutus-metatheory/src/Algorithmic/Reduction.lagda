@@ -75,22 +75,22 @@ data _—→V_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set wh
       -----------------
     → L ·⋆ A / refl —→V L' ·⋆ A / refl
 
-  ξ-constr : ∀ {A : ∅ ⊢Nf⋆ *}{VS}{TS}{L L' : ∅ ⊢ A}{n}
+  ξ-constr : ∀ {A : ∅ ⊢Nf⋆ *}{Vs}{Ts}{L L' : ∅ ⊢ A}{n}
     → (i : Fin n)
-    → {TSS : Vec (List (∅ ⊢Nf⋆ *)) n}
-    → ∀ {XS} → (q : XS ≡ Vec.lookup TSS i)
-    → (tidx : XS ≣ VS <>> (A ∷ TS))
-    → {tvs : IBwd (∅ ⊢_) VS} 
-    → (vs : VList tvs) → (cs : ConstrArgs ∅ TS)
-    → (p : VS <>> (A ∷ TS) ≡  Vec.lookup TSS i)
+    → {Tss : Vec (List (∅ ⊢Nf⋆ *)) n}
+    → ∀ {Xs} → (q : Xs ≡ Vec.lookup Tss i)
+    → (tidx : Xs ≣ Vs <>> (A ∷ Ts))
+    → {tvs : IBwd (∅ ⊢_) Vs} 
+    → (vs : VList tvs) → (cs : ConstrArgs ∅ Ts)
+    → (p : Vs <>> (A ∷ Ts) ≡  Vec.lookup Tss i)
     → L —→V L'
       -----------------
-    → constr i TSS p (tvs <>>I (L ∷ cs)) —→V constr i TSS p (tvs <>>I (L' ∷ cs))
+    → constr i Tss p (tvs <>>I (L ∷ cs)) —→V constr i Tss p (tvs <>>I (L' ∷ cs))
 
   ξ-case : ∀ {A : ∅ ⊢Nf⋆ *}{n}
-     → {TSS : Vec (List (∅ ⊢Nf⋆ *)) n} 
-     → {L L' : ∅ ⊢ SOP TSS}
-     → {cases : Cases ∅ A TSS}
+     → {Tss : Vec (List (∅ ⊢Nf⋆ *)) n} 
+     → {L L' : ∅ ⊢ SOP Tss}
+     → {cases : Cases ∅ A Tss}
      → L —→V L'
        ----------------------- 
      → case L cases —→V case L' cases  
@@ -139,13 +139,13 @@ data _—→V_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set wh
 
   β-case : ∀{n}{A : ∅ ⊢Nf⋆ *}
     → (e : Fin n)
-    → (TSS : Vec (List (∅ ⊢Nf⋆ *)) n)
-    → ∀{YS} → (q : YS ≡ [] <>< Vec.lookup TSS e)
+    → (Tss : Vec (List (∅ ⊢Nf⋆ *)) n)
+    → ∀{YS} → (q : YS ≡ [] <>< Vec.lookup Tss e)
     → {ts : IBwd (∅ ⊢_) YS}
     → (vs : VList ts)
-    → ∀ {ts' : IList (∅ ⊢_) (Vec.lookup TSS e)} → (IBwd2IList (lemma<>1' _ _ q) ts ≡ ts')
-    → (cases : Cases ∅ A TSS)
-    → case (constr e TSS refl ts') cases —→V applyCase (lookupCase e cases) ts'
+    → ∀ {ts' : IList (∅ ⊢_) (Vec.lookup Tss e)} → (IBwd2IList (lemma<>1' _ _ q) ts ≡ ts')
+    → (cases : Cases ∅ A Tss)
+    → case (constr e Tss refl ts') cases —→V applyCase (lookupCase e cases) ts'
 \end{code}
 
 \begin{code}
@@ -177,22 +177,22 @@ data _—→E_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set wh
   E-top : {A : ∅ ⊢Nf⋆ *} → error A —→E error A
   E-constr : ∀ {A : ∅ ⊢Nf⋆ *}{L : ∅ ⊢ A}{n}
     → (e : Fin n)
-    → (TSS : Vec (List (∅ ⊢Nf⋆ *)) n)
-    → {VS : Bwd _} 
-    → {vs : IBwd (∅ ⊢_) VS}
+    → (Tss : Vec (List (∅ ⊢Nf⋆ *)) n)
+    → {Bs : Bwd _} 
+    → {vs : IBwd (∅ ⊢_) Bs}
     → (Vs : VList vs)
-    → {TS : List _}
-    → (cs : ConstrArgs ∅ TS)
-    → {tidx : Vec.lookup TSS e ≣ VS <>> (A ∷ TS)}
-    → (p : VS <>> (A ∷ TS) ≡ Vec.lookup TSS e)
+    → {Ts : List _}
+    → (cs : ConstrArgs ∅ Ts)
+    → {tidx : lookup Tss e ≣ Bs <>> (A ∷ Ts)}
+    → (p : Bs <>> (A ∷ Ts) ≡ lookup Tss e)
     → L —→E error _
       -----------------
-    → constr e TSS p (vs <>>I (L ∷ cs)) —→E error _
+    → constr e Tss p (vs <>>I (L ∷ cs)) —→E error _
 
   E-case : ∀ {A : ∅ ⊢Nf⋆ *}{n}
-     → {TSS : Vec (List (∅ ⊢Nf⋆ *)) n} 
-     → {L : ∅ ⊢ SOP TSS}
-     → {cases : Cases ∅ A TSS}
+     → {Tss : Vec (List (∅ ⊢Nf⋆ *)) n} 
+     → {L : ∅ ⊢ SOP Tss}
+     → {cases : Cases ∅ A Tss}
      → L —→E error _
        ----------------------- 
      → case L cases —→E error _
@@ -253,7 +253,7 @@ lemCS—→E (V ·r E) = E-·₂ V (lemCS—→E E)
 lemCS—→E (E ·⋆ A / refl) = E-·⋆ (lemCS—→E E)
 lemCS—→E (wrap E) = E-wrap (lemCS—→E E)
 lemCS—→E (unwrap E / refl) = E-unwrap (lemCS—→E E)
-lemCS—→E (constr i TSS refl {tidx} vs cs E) = E-constr i TSS vs cs {tidx} (trans (sym (lem-≣-<>> tidx)) refl) (lemCS—→E E)
+lemCS—→E (constr i Tss refl {tidx} vs cs E) = E-constr i Tss vs cs {tidx} (trans (sym (lem-≣-<>> tidx)) refl) (lemCS—→E E)
 lemCS—→E (case cs E) = E-case (lemCS—→E E)
 
 lemCS—→ : ∀{A}{M M' : ∅ ⊢ A} → M E.—→ M' → M —→ M'
@@ -277,8 +277,8 @@ lemSC—→V (ξ-·₂ v p) with lemSC—→V p
 lemSC—→V (ξ-·⋆ p) with lemSC—→V p
 ... | B ,, E ,, L ,, L' ,, refl ,, refl ,, q =
   B ,, E ·⋆ _ / refl ,, L ,, L' ,, refl ,, refl ,, q
-lemSC—→V (ξ-constr i {TSS} refl tidx vs cs q' p)  with lemSC—→V p
-... | B ,, E ,, L ,, L' ,, refl ,, refl ,, p' = B ,, constr i TSS refl { tidx } vs cs E ,, L ,, L' ,, 
+lemSC—→V (ξ-constr i {Tss} refl tidx vs cs q' p)  with lemSC—→V p
+... | B ,, E ,, L ,, L' ,, refl ,, refl ,, p' = B ,, constr i Tss refl { tidx } vs cs E ,, L ,, L' ,, 
     constr-cong' (trans (sym (lem-≣-<>> tidx)) refl) q' (≡-subst-removable (IList ( ∅ ⊢_)) q' ((trans (sym (lem-≣-<>> tidx)) refl)) _) ,, 
     constr-cong' (trans (sym (lem-≣-<>> tidx)) refl) q' (≡-subst-removable (IList ( ∅ ⊢_)) q' ((trans (sym (lem-≣-<>> tidx)) refl)) _) ,, p'
 lemSC—→V (ξ-case p) with lemSC—→V p  
@@ -312,11 +312,11 @@ lemSC—→E (E-unwrap p) with lemSC—→E p
 lemSC—→E (E-wrap p) with lemSC—→E p
 ... | B ,, E ,, refl = B ,, wrap E ,, refl
 lemSC—→E E-top = _ ,, [] ,, refl
-lemSC—→E (E-constr {A} i TSS {VS} {vs} Vs {TS} cs {tidx} q p) with lemSC—→E p 
-... | B ,, E ,, refl = B ,, constr i TSS q {tidx = lemma-≣-<>>-refl _ _} Vs cs E ,, 
-     constr-cong' (trans (sym (lem-≣-<>> (lemma-≣-<>>-refl VS (A ∷ TS)))) q) 
+lemSC—→E (E-constr {A} i Tss {Bs} {vs} Vs {Ts} cs {tidx} q p) with lemSC—→E p 
+... | B ,, E ,, refl = B ,, constr i Tss q {tidx = lemma-≣-<>>-refl _ _} Vs cs E ,, 
+     constr-cong' (trans (sym (lem-≣-<>> (lemma-≣-<>>-refl Bs (A ∷ Ts)))) q) 
                   q 
-                  (≡-subst-removable (IList (∅ ⊢_)) q (trans (sym (lem-≣-<>> (lemma-≣-<>>-refl VS (A ∷ TS)))) q) ((vs <>>I ((E [ error B ]ᴱ) ∷ cs))))
+                  (≡-subst-removable (IList (∅ ⊢_)) q (trans (sym (lem-≣-<>> (lemma-≣-<>>-refl Bs (A ∷ Ts)))) q) ((vs <>>I ((E [ error B ]ᴱ) ∷ cs))))
 lemSC—→E (E-case p) with lemSC—→E p 
 ... | B ,, E ,, refl = B ,, case _ E ,, refl
 
