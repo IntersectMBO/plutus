@@ -100,8 +100,7 @@ events2toEvents :: ScriptEvaluationEvents2 -> ScriptEvaluationEvents
 events2toEvents (ScriptEvaluationEvents2 cpV1 cpV2 evs) =
     ScriptEvaluationEvents cpV1 cpV2 (fmap event2toEvent evs)
 
--- Back to business as usual
-
+-- Transaction analysis
 
 -- Minting policy: redeemer, context
 -- Validator: datum, redeemer, context
@@ -154,6 +153,48 @@ stringOfPurpose = \case
     V1.Certifying _ -> "Certifying"
 
 
+-- Analyse values in ScriptContext
+
+shapeOfValue :: V1.Value  -> String
+shapeOfValue (V1.Value m) =
+    let l = M.toList m
+    in printf "[%d: %s]" (length l) (intercalate "," (fmap (printf "%d" . length . M.toList . snd) l))
+
+analyseValue :: V1.Value -> IO ()
+analyseValue v = do
+  putStr $ shapeOfValue v
+  putStr $ printf "\n"
+
+analyseOutputsV1 :: [V1.TxOut] -> IO ()
+analyseOutputsV1 l = do
+    putStr $ printf " %d " (length l)
+    putStrLn $ intercalate ", " (fmap (shapeOfValue . V1.txOutValue) l)
+
+analyseTxInfoV1 :: V1.TxInfo -> IO ()
+analyseTxInfoV1 i = do
+  putStr "Fee:     "
+  analyseValue $ V1.txInfoFee i
+  putStr "Mint:    "
+  analyseValue $ V1.txInfoMint i
+--  putStrLn $ show $ V1.txInfoMint i
+  putStr "Outputs: "
+  analyseOutputsV1 $ V1.txInfoOutputs i
+
+analyseOutputsV2 :: [V2.TxOut] -> IO ()
+analyseOutputsV2 l = do
+    putStr $ printf " %d " (length l)
+    putStrLn $ intercalate ", " (fmap (shapeOfValue . V2.txOutValue ) l)
+
+analyseTxInfoV2 :: V2.TxInfo -> IO ()
+analyseTxInfoV2 i = do
+  putStr "Fee:     "
+  analyseValue $ V2.txInfoFee i
+  putStr "Mint:    "
+  analyseValue $ V2.txInfoMint i
+--  putStrLn $ show $ V2.txInfoMint i
+  putStr "Outputs: "
+  analyseOutputsV2 $ V2.txInfoOutputs i
+
 analyseScriptContext ::
     EvaluationContext ->
     -- | Cost parameters
@@ -188,46 +229,7 @@ analyseScriptContext _ctx _params ev = case ev of
                          pure Nothing
 
 
-analyseTxInfoV1 :: V1.TxInfo -> IO ()
-analyseTxInfoV1 i = do
-  putStr "Fee:     "
-  analyseValue $ V1.txInfoFee i
-  putStr "Mint:    "
-  analyseValue $ V1.txInfoMint i
---  putStrLn $ show $ V1.txInfoMint i
-  -- We don't look at the inputs here: they're all outputs of previous transactions
-  putStr "Outputs: "
-  analyseOutputsV1 $ V1.txInfoOutputs i
-
-analyseOutputsV1 :: [V1.TxOut] -> IO ()
-analyseOutputsV1 l = do
-    putStr $ printf " %d " (length l)
-    putStrLn $ intercalate ", " (fmap (shapeOfValue . V1.txOutValue) l)
-
-analyseTxInfoV2 :: V2.TxInfo -> IO ()
-analyseTxInfoV2 i = do
-  putStr "Fee:     "
-  analyseValue $ V2.txInfoFee i
-  putStr "Mint:    "
-  analyseValue $ V2.txInfoMint i
---  putStrLn $ show $ V2.txInfoMint i
-  putStr "Outputs: "
-  analyseOutputsV2 $ V2.txInfoOutputs i
-
-analyseOutputsV2 :: [V2.TxOut] -> IO ()
-analyseOutputsV2 l = do
-    putStr $ printf " %d " (length l)
-    putStrLn $ intercalate ", " (fmap (shapeOfValue . V2.txOutValue ) l)
-
-shapeOfValue :: V1.Value  -> String
-shapeOfValue (V1.Value m) =
-    let l = M.toList m
-    in printf "[%d: %s]" (length l) (intercalate "," (fmap (printf "%d" . length . M.toList . snd) l))
-
-analyseValue :: V1.Value -> IO ()
-analyseValue v = do
-  putStr $ shapeOfValue v
-  putStr $ printf "\n"
+-- Redeemer analysis
 
 
 -- | Test cases from a single event dump file

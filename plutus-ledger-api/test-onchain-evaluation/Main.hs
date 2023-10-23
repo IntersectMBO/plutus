@@ -98,9 +98,9 @@ testOneFile eventFile = testCase (takeBaseName eventFile) $ do
         (Right ctxV1, Right ctxV2) -> do
             errs <-
                 fmap catMaybes $
-                    mapConcurrently
-                        (evaluate . runSingleEvent ctxV1 ctxV2)
-                        (toList (eventsEvents events))
+                    mapM
+                    (evaluate . runSingleEvent ctxV1 ctxV2)
+                    (toList (eventsEvents events))
             whenJust (nonEmpty errs) $ assertFailure . renderTestFailures
         (Left err, _) -> assertFailure $ display err
         (_, Left err) -> assertFailure $ display err
