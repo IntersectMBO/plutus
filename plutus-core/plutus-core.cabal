@@ -365,7 +365,6 @@ test-suite plutus-core-test
     , mtl
     , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.15
     , prettyprinter
-    , QuickCheck
     , serialise
     , tasty
     , tasty-golden
