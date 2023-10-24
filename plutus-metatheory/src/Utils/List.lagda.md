@@ -245,6 +245,10 @@ unique-≣-<>> : ∀{A : Set}{tot vs}{ts : List A}(p q : tot ≣ vs <>> ts) → 
 unique-≣-<>> start start = refl
 unique-≣-<>> (bubble p) (bubble q) with unique-≣-<>> p q
 ... | refl = refl
+
+lemma-≣-<>>-refl : ∀{A}(xs : Bwd A)(ys : List A) → (xs <>> ys) ≣ xs <>> ys 
+lemma-≣-<>>-refl [] ys = start
+lemma-≣-<>>-refl (xs :< x) ys = bubble (lemma-≣-<>>-refl xs (x ∷ ys))
 ```
 
 ## Lists indexed by an indexed list 
