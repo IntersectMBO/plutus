@@ -93,7 +93,7 @@ data Value where
        → {σB : SigTy (bubble pt) pa B}
        → BApp b (Π B) (sucΠ σB)
        → Value (Π B)
-  V-constr : ∀{n}(e : Fin n) A {ts} (vs : VList ts) → ts ≡ [] <>< Vec.lookup A e → Value (SOP A)
+  V-constr : ∀{n}(e : Fin n) Tss {ts} (vs : VList ts) → ts ≡ [] <>< Vec.lookup Tss e → Value (SOP Tss)
 
 data BApp b where
   base : BApp b (sig2type (signature b)) (sig2SigTy (signature b))
@@ -172,7 +172,7 @@ dischargeStack-aux : ∀{A B C} → (s : VList A) → IList (∅ ⊢_) B → A <
 dischargeStack-aux [] a refl = a
 dischargeStack-aux (s :< x) a refl = dischargeStack-aux s (discharge x ∷ a) refl
 
-dischargeStack : ∀{TS} → IBwd Value ([] <>< TS) → IList (_⊢_ ∅) TS
+dischargeStack : ∀{Ts} → IBwd Value ([] <>< Ts) → IList (_⊢_ ∅) Ts
 dischargeStack bs = dischargeStack-aux bs [] (lemma<>1 [] _)
 
 discharge (V-ƛ M ρ)  = ƛ (dischargeBody M ρ)
@@ -181,7 +181,7 @@ discharge (V-wrap V) = wrap _ _ (discharge V)
 discharge (V-con c)  = con c refl
 discharge (V-I⇒ b bt) = dischargeB bt
 discharge (V-IΠ b bt) = dischargeB bt 
-discharge (V-constr i A s refl) = constr i A refl (dischargeStack s) 
+discharge (V-constr i Tss s refl) = constr i Tss refl (dischargeStack s) 
 ```
 
 ## Builtin Semantics
@@ -357,14 +357,14 @@ data Frame : (T : ∅ ⊢Nf⋆ *) → (H : ∅ ⊢Nf⋆ *) → Set where
   unwrap- : ∀{K}{A : ∅ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *}{B : ∅ ⊢Nf⋆ K}
     → Frame (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B))
             (μ A B)
-  constr- : ∀{Γ n VS H TS} 
+  constr- : ∀{Γ n Vs H Ts} 
           → (i : Fin n) 
-          → (TSS : Vec _ n) 
+          → (Tss : Vec _ n) 
           → Env Γ 
-          → ∀{XS} → (XS ≡ Vec.lookup TSS i)
-          → {tidx : XS ≣ VS <>> (H ∷ TS)} → VList VS → ConstrArgs Γ TS
-          → Frame (SOP TSS) H
-  case- : ∀{Γ A n}{TSS : Vec _ n} → (ρ : Env Γ) → Cases Γ A TSS → Frame A (SOP TSS)
+          → ∀{Xs} → (Xs ≡ Vec.lookup Tss i)
+          → {tidx : Xs ≣ Vs <>> (H ∷ Ts)} → VList Vs → ConstrArgs Γ Ts
+          → Frame (SOP Tss) H
+  case- : ∀{Γ A n}{Tss : Vec _ n} → (ρ : Env Γ) → Cases Γ A Tss → Frame A (SOP Tss)
 
 data Stack (T : ∅ ⊢Nf⋆ *) : (H : ∅ ⊢Nf⋆ *) → Set where
   ε   : Stack T T
@@ -379,7 +379,7 @@ data State (T : ∅ ⊢Nf⋆ *) : Set where
 ival : ∀(b : Builtin) → Value (btype b)
 ival b = V-I b base 
 
-pushValueFrames : ∀{T H BS XS} → Stack T H → VList BS → XS ≡ bwdMkCaseType BS H → Stack T XS
+pushValueFrames : ∀{T H Bs Xs} → Stack T H → VList Bs → Xs ≡ bwdMkCaseType Bs H → Stack T Xs
 pushValueFrames s [] refl = s
 pushValueFrames s (vs :< v) refl = pushValueFrames (s , -·v v) vs refl
 
@@ -394,9 +394,9 @@ step (s ; ρ ▻ unwrap L refl) = (s , unwrap-) ; ρ ▻ L
 step (s ; ρ ▻ con c refl) = s ◅ V-con c
 step (s ; ρ ▻ (builtin b / refl)) = s ◅ ival b
 step (s ; ρ ▻ error A) = ◆ A
-step (s ; ρ ▻ constr e A refl as) with Vec.lookup A e in eq 
-step (s ; ρ ▻ constr e A refl []) | []  = s ◅ V-constr e A [] (cong ([] <><_) (sym eq))
-step (_;_▻_ {Γ} s ρ (constr e A refl (_∷_ {xty} {xsty} x xs))) | _ ∷ _ = (s , constr- e A ρ (sym eq) {start} [] xs) ; ρ ▻ x
+step (s ; ρ ▻ constr e Tss refl as) with Vec.lookup Tss e in eq 
+step (s ; ρ ▻ constr e Tss refl []) | []  = s ◅ V-constr e Tss [] (cong ([] <><_) (sym eq))
+step (_;_▻_ {Γ} s ρ (constr e Tss refl (_∷_ {xty} {xsty} x xs))) | _ ∷ _ = (s , constr- e Tss ρ (sym eq) {start} [] xs) ; ρ ▻ x
 step (s ; ρ ▻ case t ts) = (s , case- ρ ts) ; ρ ▻ t
 step (ε ◅ V) = □ V
 step ((s , -· M ρ') ◅ V) = (s , V ·-) ; ρ' ▻ M
@@ -408,14 +408,14 @@ step ((s , -·⋆ A) ◅ V-Λ M ρ) = s ; ρ ▻ (M [ A ]⋆)
 step ((s , -·⋆ A) ◅ V-IΠ b {σB = σ} bapp) = s ◅ V-I b (_$$_ bapp refl {σ [ A ]SigTy})
 step ((s , wrap-) ◅ V) = s ◅ V-wrap V
 step ((s , unwrap-) ◅ V-wrap V) = s ◅ V
-step ((s , constr- i TSS ρ refl {tidx} vs ts) ◅ v) 
-    with Vec.lookup TSS i in eq
+step ((s , constr- i Tss ρ refl {tidx} vs ts) ◅ v) 
+    with Vec.lookup Tss i in eq
 ... | [] with no-empty-≣-<>> tidx
 ... | ()
-step ((s , constr- i TSS ρ refl {r} vs []) ◅ v) | A ∷ AS  = s ◅ V-constr i TSS (vs :< v) 
+step ((s , constr- i Tss ρ refl {r} vs []) ◅ v) | A ∷ As  = s ◅ V-constr i Tss (vs :< v) 
                  (sym (trans (cong ([] <><_) (trans eq (lem-≣-<>> r))) (lemma<>2 _ (_ ∷ []))))
-step ((s , constr- i TSS ρ refl {r} vs (t ∷ ts)) ◅ v) | A ∷ AS = (s , constr- i TSS ρ (sym eq) {bubble r} (vs :< v) ts) ; ρ ▻ t 
-step {t} ((s , case- ρ cases) ◅ V-constr e TSS vs refl) = pushValueFrames s vs (lemma-bwdfwdfunction' (Vec.lookup TSS e)) ; ρ ▻ (lookupCase e cases) 
+step ((s , constr- i Tss ρ refl {r} vs (t ∷ ts)) ◅ v) | A ∷ As = (s , constr- i Tss ρ (sym eq) {bubble r} (vs :< v) ts) ; ρ ▻ t 
+step {t} ((s , case- ρ cases) ◅ V-constr e Tss vs refl) = pushValueFrames s vs (lemma-bwdfwdfunction' (Vec.lookup Tss e)) ; ρ ▻ (lookupCase e cases) 
 step (□ V) = □ V
 step (◆ A) = ◆ A
 

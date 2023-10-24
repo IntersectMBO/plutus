@@ -66,7 +66,7 @@ closeState (◆ A)             = error _
 discharge : ∀{A : ∅ ⊢Nf⋆ *}{t : ∅ ⊢ A} → Value t → ∅ ⊢ A
 discharge {t = t} _ = t
 
-pushValueFrames : ∀{T H BS XS} → Stack T H → {xs : IBwd (∅ ⊢_) BS} → VList xs → XS ≡ bwdMkCaseType BS H → Stack T XS
+pushValueFrames : ∀{T H Bs Xs} → Stack T H → {xs : IBwd (∅ ⊢_) Bs} → VList xs → Xs ≡ bwdMkCaseType Bs H → Stack T Xs
 pushValueFrames s [] refl = s
 pushValueFrames s (vs :< v) refl = pushValueFrames (s , -·v v) vs refl
 
@@ -78,9 +78,9 @@ step (s ▻ (L ·⋆ A / refl))                    = (s , -·⋆ A) ▻ L
 step (s ▻ wrap A B L)                         = (s , wrap-) ▻ L
 step (s ▻ unwrap L refl)                      = (s , unwrap-) ▻ L
 step (s ▻ con cn refl)                        = s ◅ V-con cn
-step (s ▻ constr e A refl xs) with Vec.lookup A e in eq 
-step (s ▻ constr e TSS refl []) | []          = s ◅ V-constr e TSS (sym eq) refl [] refl
-step (s ▻ constr e TSS refl (x ∷ xs)) | _ ∷ _ = (s , constr- e TSS (sym eq) {tidx = start} [] xs) ▻ x
+step (s ▻ constr e Tss refl xs) with Vec.lookup Tss e in eq 
+step (s ▻ constr e Tss refl []) | []          = s ◅ V-constr e Tss (sym eq) refl [] refl
+step (s ▻ constr e Tss refl (x ∷ xs)) | _ ∷ _ = (s , constr- e Tss (sym eq) {tidx = start} [] xs) ▻ x
 step (s ▻ case t ts)                          = (s , case- ts) ▻ t
 step (s ▻ error A)                            = ◆ A
 step (ε ◅ V)                                  = □ V
@@ -90,19 +90,19 @@ step ((s , (V-ƛ t ·-)) ◅ V)                   = s ▻ (t [ discharge V ])
 step ((s , (-·⋆ A)) ◅ V-Λ t)                  = s ▻ (t [ A ]⋆)
 step ((s , wrap-) ◅ V)                        = s ◅ (V-wrap V)
 step ((s , unwrap-) ◅ V-wrap V)               = s ▻ deval V
-step ((s , constr- i TSS refl {tidx} vs ts) ◅ v) with Vec.lookup TSS i in eq 
+step ((s , constr- i Tss refl {tidx} vs ts) ◅ v) with Vec.lookup Tss i in eq 
 ... | []   with no-empty-≣-<>> tidx 
 ...      | () 
-step ((s , constr- {n} {VS} {H} i TSS refl {tidx}{tvs} vs []) ◅ v) | _ ∷ _  = s ◅  
-   V-constr i TSS
+step ((s , constr- {n} {Vs} {H} i Tss refl {tidx}{tvs} vs []) ◅ v) | _ ∷ _  = s ◅  
+   V-constr i Tss
             (sym eq) 
-            (trans (sym (lemma<>2 VS (H ∷ []))) (sym (cong ([] <><_) (lem-≣-<>> tidx))))
+            (trans (sym (lemma<>2 Vs (H ∷ []))) (sym (cong ([] <><_) (lem-≣-<>> tidx))))
             {tvs :< deval v} 
             (vs :< v)
             refl
-step ((s , constr- i TSS refl {r} vs (t ∷ ts)) ◅ v) | _ ∷ _ = 
-      (s , constr- i TSS (sym eq) {bubble r} (vs :< v) ts) ▻ t
-step ((s , case- cs) ◅ V-constr e TSS refl refl vs x) = pushValueFrames s vs (lemma-bwdfwdfunction' (Vec.lookup TSS e)) ▻ lookupCase e cs
+step ((s , constr- i Tss refl {r} vs (t ∷ ts)) ◅ v) | _ ∷ _ = 
+      (s , constr- i Tss (sym eq) {bubble r} (vs :< v) ts) ▻ t
+step ((s , case- cs) ◅ V-constr e Tss refl refl vs x) = pushValueFrames s vs (lemma-bwdfwdfunction' (Vec.lookup Tss e)) ▻ lookupCase e cs
 step (s ▻ (builtin b / refl))                 = s ◅ ival b
 step ((s , (V-I⇒ b {am = 0}     bt ·-)) ◅ vu) = s ▻ BUILTIN' b (app bt vu)
 step ((s , (V-I⇒ b {am = suc _} bt ·-)) ◅ vu) = s ◅ V-I b (app bt vu)

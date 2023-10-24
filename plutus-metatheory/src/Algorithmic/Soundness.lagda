@@ -143,23 +143,23 @@ btype-lem≡β {Φ} b rewrite btype-lem {Φ} b = soundness (Dec.btype {Φ} b)
 emb : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ Alg.⊢ A → embCtx Γ Dec.⊢ embNf A
 
 emb-ConstrArgs : ∀ {Φ} {Γ : Alg.Ctx Φ}
-                   {TS : List (Φ ⊢Nf⋆ *)}
-                   (cs : Alg.ConstrArgs Γ TS) →
-                 Dec.ConstrArgs (embCtx Γ) (embNf-List TS)
+                   {Ts : List (Φ ⊢Nf⋆ *)}
+                   (cs : Alg.ConstrArgs Γ Ts) →
+                 Dec.ConstrArgs (embCtx Γ) (embNf-List Ts)
 emb-ConstrArgs [] = []
 emb-ConstrArgs (x ∷ cs) = (emb x) ∷ (emb-ConstrArgs cs)
 
-lema-mkCaseType : ∀{Φ}{A : Φ ⊢Nf⋆ *} AS → 
-     embNf (Alg.mkCaseType A AS) ≡ Dec.mkCaseType (embNf A) (embNf-List AS)
+lema-mkCaseType : ∀{Φ}{A : Φ ⊢Nf⋆ *} As → 
+     embNf (Alg.mkCaseType A As) ≡ Dec.mkCaseType (embNf A) (embNf-List As)
 lema-mkCaseType [] = refl
-lema-mkCaseType (A ∷ AS) = cong (embNf A ⇒_) (lema-mkCaseType AS) 
+lema-mkCaseType (A ∷ As) = cong (embNf A ⇒_) (lema-mkCaseType As) 
 
 emb-Cases : ∀ {Φ} {Γ : Alg.Ctx Φ} {A : Φ ⊢Nf⋆ *} {n}
-         {tss : Vec (List (Φ ⊢Nf⋆ *)) n}
-         (cases : Alg.Cases Γ A tss) 
-        → Dec.Cases (embCtx Γ) (embNf A) (embNf-VecList tss)
+         {Tss : Vec (List (Φ ⊢Nf⋆ *)) n}
+         (cases : Alg.Cases Γ A Tss) 
+        → Dec.Cases (embCtx Γ) (embNf A) (embNf-VecList Tss)
 emb-Cases Alg.[] = Dec.[]
-emb-Cases (Alg._∷_ {AS = AS} c cases) = substEq (embCtx _ Dec.⊢_) (lema-mkCaseType AS) (emb c) 
+emb-Cases (Alg._∷_ {Ts = Ts} c cases) = substEq (embCtx _ Dec.⊢_) (lema-mkCaseType Ts) (emb c) 
                             Dec.∷ (emb-Cases cases)            
 
 emb (Alg.` α) = Dec.` (embVar α)
@@ -177,7 +177,7 @@ emb (Alg.unwrap {A = A}{B} t refl) =
 emb (Alg.con {A = A} t refl ) = Dec.con {A = embNf A} (substEq Alg.⟦_⟧ (sym (stability A)) t) (subNf∅-sub∅-lem _ A)
 emb (Alg.builtin b / refl) = Dec.conv (btype-lem≡β b) (Dec.builtin b)
 emb (Alg.error A) = Dec.error (embNf A)
-emb (Alg.constr e TSS refl cs) = Dec.constr e (embNf-VecList TSS) (sym (lookup-embNf-VecList e TSS)) (emb-ConstrArgs cs)
+emb (Alg.constr e Tss refl cs) = Dec.constr e (embNf-VecList Tss) (sym (lookup-embNf-VecList e Tss)) (emb-ConstrArgs cs)
 emb (Alg.case x cases) = Dec.case (emb x) (emb-Cases cases)
 
 soundnessT : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ Alg.⊢ A → embCtx Γ Dec.⊢ embNf A
