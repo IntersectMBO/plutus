@@ -7,24 +7,26 @@ erasure commutes with renaming/substitution
 \begin{code}
 open import Data.Nat using (ℕ)
 open import Data.Fin using (Fin;zero;suc)
+open import Data.Vec using (Vec;[];_∷_)
 open import Data.Product using (Σ;proj₁;proj₂) renaming (_,_ to _,,_)
 open import Function using (_∘_)
 open import Relation.Binary.PropositionalEquality as Eq using (_≡_;refl;sym;trans;cong;cong₂)
 
 open import Utils using (Kind;*)
+open import Utils.List using (List;[];_∷_)
 open import Type using (Ctx⋆;_,⋆_;_∋⋆_;Z;S)
 open import Algorithmic using (Ctx;_⊢_)
 open Ctx
 import Algorithmic.RenamingSubstitution as As
 import Type.RenamingSubstitution as T
-open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;renNf;renNe)
+open import Type.BetaNormal using (_⊢Nf⋆_;_⊢Ne⋆_;renNf;renNe;renNf-VecList;renNf-List)
 open _⊢Nf⋆_
 open _⊢Ne⋆_
 open import Type.BetaNBE.RenamingSubstitution using (extsNf)
 open import Scoped using (ScopedTy)
 open ScopedTy
-open import Scoped.Extrication using (len⋆;extricateVar⋆;extricateNf⋆;extricateNe⋆;extricate)
-open import Scoped.RenamingSubstitution as SS using (Ren⋆;lift⋆;ren⋆;ren⋆-cong;Sub⋆;slift⋆)
+open import Scoped.Extrication using (len⋆;extricateVar⋆;extricateNf⋆;extricateNe⋆;extricate;extricateNf⋆-VecList;extricateNf⋆-List)
+open import Scoped.RenamingSubstitution as SS using (Ren⋆;lift⋆;ren⋆;ren⋆-cong;Sub⋆;slift⋆;ren⋆-List;ren⋆-ListList)
 import Builtin.Constant.Type as AC
 import Builtin.Constant.Type as SC
 
@@ -85,6 +87,20 @@ ren-extricateNe⋆ ρ⋆ (A · B) =
   cong₂ _·_ (ren-extricateNe⋆ ρ⋆ A) (ren-extricateNf⋆ ρ⋆ B)
 ren-extricateNe⋆ ρ⋆ (^ x) = refl
 
+ren-extricateNf⋆-List :  ∀{Γ Δ J}
+  → (ρ⋆ : ∀ {J} → Γ ∋⋆ J → Δ ∋⋆ J)
+  → (xs : List (Γ ⊢Nf⋆ J)) 
+  → ren⋆-List (extricateRenNf⋆ ρ⋆) (extricateNf⋆-List xs) ≡ extricateNf⋆-List (renNf-List ρ⋆ xs)
+ren-extricateNf⋆-List ρ⋆ [] = refl
+ren-extricateNf⋆-List ρ⋆ (x ∷ xs) = cong₂ Utils._∷_ (ren-extricateNf⋆ ρ⋆ x) (ren-extricateNf⋆-List ρ⋆ xs)
+
+ren-extricateNf⋆-ListList :  ∀{Γ Δ J}{n}
+  → (ρ⋆ : ∀ {J} → Γ ∋⋆ J → Δ ∋⋆ J)
+  → (A : Vec (List (Γ ⊢Nf⋆ J)) n)
+  → ren⋆-ListList (extricateRenNf⋆ ρ⋆) (extricateNf⋆-VecList A) ≡ extricateNf⋆-VecList (renNf-VecList ρ⋆ A)
+ren-extricateNf⋆-ListList ρ⋆ [] = refl
+ren-extricateNf⋆-ListList ρ⋆ (xs ∷ xss) = cong₂ Utils._∷_ (ren-extricateNf⋆-List ρ⋆ xs) (ren-extricateNf⋆-ListList ρ⋆ xss)
+
 ren-extricateNf⋆ ρ⋆ (Π A)  =
   cong (Π _)
        (trans (ren⋆-cong (lift⋆-ext ρ⋆) (extricateNf⋆ A))
@@ -98,6 +114,7 @@ ren-extricateNf⋆ ρ⋆ (ne A)   = ren-extricateNe⋆ ρ⋆ A
 ren-extricateNf⋆ ρ⋆ (con (ne x)) =  ren-extricateNe⋆ ρ⋆ x
 ren-extricateNf⋆ ρ⋆ (μ A B)  =
   cong₂ μ (ren-extricateNf⋆ ρ⋆ A) (ren-extricateNf⋆ ρ⋆ B)
+ren-extricateNf⋆ ρ⋆ (SOP xss) = cong SOP (ren-extricateNf⋆-ListList ρ⋆ xss)
 
 extricateSubNf⋆ : ∀{Γ Δ}(σ⋆ : ∀ {J} → Γ ∋⋆ J → Δ ⊢Nf⋆ J) 
   → Sub⋆ (len⋆ Γ) (len⋆ Δ)
