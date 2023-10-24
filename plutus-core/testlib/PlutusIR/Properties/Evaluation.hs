@@ -39,11 +39,10 @@ import PlutusCore.Rename
 import PlutusCore.Rename.Monad
 import PlutusCore.TypeCheck qualified as PLC
 import PlutusIR.Compiler
-import PlutusIR.Compiler.Let qualified as Let
 import PlutusIR.Compiler.Lower
 import PlutusIR.Core
 import PlutusIR.Generators.QuickCheck.GenerateTerms
-import PlutusPrelude (through, ($>))
+import PlutusPrelude (($>))
 import Test.QuickCheck (Property)
 
 -- Convert the Either from the evaluation to Either String () to match with the
@@ -93,23 +92,6 @@ evalNonPurePass pass biVariant pirTm = do
   let pipeline =
         pass
         >=> rename -- some pass may not preserve global uniqueness
-        >=> Let.compileLets Let.DataTypes -- compile away let terms so that `lowerTerm` will work
-        >=> through check -- typecheck and rename
-        >=> Let.compileLets Let.RecTerms
-        >=> through check
-        >=> Let.compileLets Let.Types
-        >=> through check
-        >=> Let.compileLets Let.NonRecTerms
-        >=> through check
-        -- need to repeat this to remove all let bindings
-        >=> Let.compileLets Let.DataTypes
-        >=> through check
-        >=> Let.compileLets Let.RecTerms
-        >=> through check
-        >=> Let.compileLets Let.Types
-        >=> through check
-        >=> Let.compileLets Let.NonRecTerms
-        >=> through check
         >=> lowerTerm
   lowered <- flip runReaderT (toDefaultCompilationCtx plcConfig) $
     runQuoteT $ pipeline (Original () <$ pirTm)

@@ -20,13 +20,13 @@ module PlutusIR.Error
     , PLC.Normalized (..)
     ) where
 
+import Control.Lens
+import Data.Text qualified as T
 import PlutusCore qualified as PLC
 import PlutusCore.Pretty qualified as PLC
 import PlutusIR qualified as PIR
+import PlutusIR.Compiler.Provenance (Provenance)
 import PlutusPrelude
-import PlutusIR.Compiler.Provenance ( Provenance )
-import Control.Lens
-import Data.Text qualified as T
 import Prettyprinter as PP
 
 data TypeErrorExt uni ann =
@@ -95,7 +95,6 @@ instance (AsTypeErrorExt String PLC.DefaultUni (Provenance ())) where
   _TypeErrorExt = prism show $ \e ->
         Left e
 instance AsError String PLC.DefaultUni PLC.DefaultFun (Provenance ()) where
-  _Error :: Prism' String (Error PLC.DefaultUni PLC.DefaultFun (Provenance ()))
   _Error =
     prism show $ \e ->
         Left e
