@@ -342,6 +342,7 @@ test-suite plutus-core-test
     CostModelInterface.Spec
     Evaluation.Machines
     Evaluation.Spec
+    Generators.QuickCheck.Utils
     Names.Spec
     Normalization.Check
     Normalization.Type
@@ -364,11 +365,13 @@ test-suite plutus-core-test
     , mtl
     , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.15
     , prettyprinter
+    , QuickCheck
     , serialise
     , tasty
     , tasty-golden
     , tasty-hedgehog
     , tasty-hunit
+    , tasty-quickcheck
     , template-haskell
     , text
     , th-lift-instances

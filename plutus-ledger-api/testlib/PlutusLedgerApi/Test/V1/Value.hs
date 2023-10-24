@@ -84,7 +84,7 @@ instance Arbitrary Value where
     arbitrary = do
         -- Generate values for all of the 'TokenName's in the final 'Value' and split them into a
         -- list of lists.
-        faceValues <- fmap (map getNonEmpty) . multiSplit . map unFaceValue =<< arbitrary
+        faceValues <- multiSplit 0.2 . map unFaceValue =<< arbitrary
         -- Generate 'TokenName's and 'CurrencySymbol's.
         currencies <- uniqueNames CurrencySymbol =<< traverse (uniqueNames TokenName) faceValues
         pure $ listsToValue currencies

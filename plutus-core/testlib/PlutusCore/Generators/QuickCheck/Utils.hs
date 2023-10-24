@@ -14,6 +14,8 @@ import PlutusIR.Compiler.Datatype
 import PlutusIR.Core.Instance.Pretty.Readable
 import PlutusIR.Subst
 
+import Control.Monad
+import Data.Bifunctor
 import Data.Coerce (coerce)
 import Data.Kind qualified as GHC
 import Data.List (sort)
@@ -205,10 +207,10 @@ toChunks (n : ns) xs = chunk : toChunks ns xs' where
     (chunk, xs') = splitAt n xs
 
 -- | Split a list into chunks at random. Concatenating the resulting lists gives back the original
--- one.
-multiSplit :: [a] -> Gen [NonEmptyList a]
-multiSplit [] = pure []
-multiSplit xs = do
+-- one. Doesn't generate empty chunks.
+multiSplit1 :: [a] -> Gen [NonEmptyList a]
+multiSplit1 [] = pure []
+multiSplit1 xs = do
     let len = length xs
     -- Pick a number of chunks.
     chunkNum <- frequency . map (fmap pure) $ toChunkFrequencies len
@@ -218,3 +220,90 @@ multiSplit xs = do
     let chunkLens = zipWith (-) breakpoints (0 : breakpoints)
     -- Chop the argument into chunks according to the list of chunk lengths.
     pure . coerce $ toChunks chunkLens xs
+
+-- | Return the left and the right halves of the given list. The first argument controls whether
+-- the middle element of a list having an odd length goes into the left half or the right one.
+--
+-- >>> halve True [1 :: Int]
+-- ([1],[])
+-- >>> halve True [1, 2 :: Int]
+-- ([1],[2])
+-- >>> halve True [1, 2, 3 :: Int]
+-- ([1,2],[3])
+-- >>> halve False [1 :: Int]
+-- ([],[1])
+-- >>> halve False [1, 2 :: Int]
+-- ([1],[2])
+-- >>> halve False [1, 2, 3 :: Int]
+-- ([1],[2,3])
+halve :: Bool -> [a] -> ([a], [a])
+halve isOddToLeft xs0 = go xs0 xs0 where
+    go (_ : _ : xsFast) (x : xsSlow)               = first (x :) $ go xsFast xsSlow
+    go [_]              (x : xsSlow) | isOddToLeft = ([x], xsSlow)
+    go _                xsSlow                     = ([], xsSlow)
+
+-- | Insert a value into a list an arbitrary number of times. The first argument controls whether
+-- to allow inserting at the beginning of the list, the second argument is the probability of
+-- inserting an element at the end of the list.
+insertManyPreferRight :: forall a. Bool -> Double -> a -> [a] -> Gen [a]
+insertManyPreferRight keepPrefix lastProb y xs0 = go keepPrefix initWeight xs0 where
+    -- The weight of the "insert @y@ operation" operation at the beginning of the list.
+    initWeight = 10
+    -- How more likely we're to insert an element when moving one element forward in the list.
+    -- Should we make it dependent on the length of the list? Maybe it's fine.
+    scaling = 1.1
+    -- The weight of the "insert @y@ operation" operation at the end of the list.
+    topWeight = scaling ** fromIntegral (length xs0) * initWeight
+    -- The weight of the "do nothing" operation.
+    noopWeight = floor $ topWeight * (1 / lastProb - 1)
+
+    go :: Bool -> Double -> [a] -> Gen [a]
+    go keep weight xs = do
+        doCons <- frequency [(floor weight, pure True), (noopWeight, pure False)]
+        if doCons
+            -- If we don't want to insert elements into the head of the list, then we simply ignore
+            -- the generated one and carry on. Ugly, but works.
+            then ([y | keep] ++) <$> go keep weight xs
+            else case xs of
+                []      -> pure []
+                x : xs' -> (x :) <$> go True (weight * scaling) xs'
+
+-- | Insert a value into a list an arbitrary number of times. The first argument controls whether
+-- to allow inserting at the end of the list, the second argument is the probability of
+-- inserting an element at the beginning of the list.
+insertManyPreferLeft :: Bool -> Double -> a -> [a] -> Gen [a]
+insertManyPreferLeft keepSuffix headProb y =
+    fmap reverse . insertManyPreferRight keepSuffix headProb y . reverse
+
+-- | Insert a value into a list an arbitrary number of times. The first argument is the probability
+-- of inserting an element at an end of the list (i.e. either the beginning or the end, not
+-- combined). See 'multiSplit' for what this function allows us to do.
+insertManyPreferEnds :: Double -> a -> [a] -> Gen [a]
+-- Cut the list in half, insert into the left half skewing generation towards the beginning, insert
+-- into the right half skewing generation towards the end, then append the results of those two
+-- operations, so that we get a list where additional elements are more likely to occur close to
+-- the sides.
+insertManyPreferEnds endProb y xs = do
+    -- In order not to get skewed results we sometimes put the middle element of the list into its
+    -- first half and sometimes into its second half.
+    isOddToLeft <- arbitrary
+    let (xsL, xsR) = halve isOddToLeft xs
+    -- If the list has even length, then it was cut into two halves of equal length meaning one slot
+    -- for to put an element in appears twice: at the end of the left half and at the beginning of
+    -- the right one. Hence in order to avoid skeweness we don't put anything into this slot at the
+    -- end of the left half.
+    -- Maybe we do want to skew generation to favor the middle of the list like we do for its ends,
+    -- but then we need to do that intentionally and systematically, not randomly and a little bit.
+    xsL' <- insertManyPreferLeft (length xsL /= length xsR) endProb y xsL
+    xsR' <- insertManyPreferRight True endProb y xsR
+    pure $ xsL' ++ xsR'
+
+-- | Split a list into chunks at random. Concatenating the resulting lists gives back the original
+-- one. Generates empty chunks. The first argument is the probability of generating at least one
+-- empty chunk as the first element of the resulting list. It is also the probability of generating
+-- an empty chunk as the last element of the resulting list. The probability of generating empty
+-- chunks decreases as we go from either of the ends of the resulting list (this is so that we are
+-- more likely to hit a corner case related to handling elements at the beginning or the end of a
+-- list).
+multiSplit :: Double -> [a] -> Gen [[a]]
+multiSplit endProb = multiSplit1 >=> insertManyPreferEnds endProb [] . coerce

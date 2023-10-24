@@ -81,8 +81,9 @@ test_Monoid = testProperty "Monoid" . scaleTestsBy 5 $ \value1 ->
 
 -- | Test that changing the values of some of the 'TokenName's creates a different 'Value'.
 test_updateSome :: TestTree
-test_updateSome = testProperty "updateSome" . scaleTestsBy 15 $ \value ->
-    any (any $ not . null) (valueToLists value) ==>
+test_updateSome = testProperty "updateSome" . scaleTestsBy 10 $ \value ->
+    let lists = valueToLists value
+    in not (null lists || any (any null) lists) ==>
         onLists value (mapSome . traverse . mapSome $ traverse updateInteger)
             (\value' -> value </> value')
 
