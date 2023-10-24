@@ -8,6 +8,7 @@ import PlutusLedgerApi.V1.Value
 import PlutusTx.Numeric qualified as Numeric
 
 import Control.Lens
+import Data.List (sort)
 import Test.Tasty
 import Test.Tasty.QuickCheck
 
@@ -46,11 +47,12 @@ mapSome f xs = do
 updateInteger :: Integer -> Gen Integer
 updateInteger i = arbitrary `suchThat` (/= i)
 
--- | Generate new 'TokenName's such that the resulting list is not equal to the given one.
+-- | Generate new 'TokenName's such that the resulting list, being sorted, is not equal to the given
+-- one, being sorted as well.
 freshenTokenNames :: [(TokenName, Integer)] -> Gen [(TokenName, Integer)]
 freshenTokenNames tokens =
     uniqueNames TokenName (map snd tokens) `suchThat` \tokens' ->
-        filter ((/= 0) . snd) tokens /= filter ((/= 0) . snd) tokens'
+        sort (filter ((/= 0) . snd) tokens) /= sort (filter ((/= 0) . snd) tokens')
 
 onLists
     :: Value
