@@ -20,7 +20,7 @@ module PlutusTx.List (
     findIndex,
     foldr,
     foldl,
-    appendR,
+    revAppend,
     reverse,
     concat,
     concatMap,
@@ -246,16 +246,16 @@ xs0 !! n0 = go n0 xs0
             then x
             else go (Builtins.subtractInteger n 1) xs
 
-{-# INLINABLE appendR #-}
+{-# INLINABLE revAppend #-}
 -- | Cons each element of the first list to the second one in reverse order (i.e. the last element
 -- of the first list is the head of the result).
 --
--- > appendR xs ys === reverse xs ++ ys
+-- > revAppend xs ys === reverse xs ++ ys
 --
--- >>> appendR "abc" "de"
+-- >>> revAppend "abc" "de"
 -- "cbade"
-appendR :: forall a. [a] -> [a] -> [a]
-appendR = rev where
+revAppend :: forall a. [a] -> [a] -> [a]
+revAppend = rev where
     rev :: [a] -> [a] -> [a]
     rev []     a = a
     rev (x:xs) a = rev xs (x:a)
@@ -263,7 +263,7 @@ appendR = rev where
 {-# INLINABLE reverse #-}
 -- | Plutus Tx version of 'Data.List.reverse'.
 reverse :: [a] -> [a]
-reverse l = appendR l []
+reverse l = revAppend l []
 
 {-# INLINABLE zip #-}
 -- | Plutus Tx version of 'Data.List.zip'.

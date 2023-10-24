@@ -296,6 +296,8 @@ unionWith f ls rs =
 
 {-# INLINABLE flattenValue #-}
 -- | Convert a 'Value' to a simple list, keeping only the non-zero amounts.
+-- Note that the result isn't sorted, meaning @v1 == v2@ doesn't generally imply
+-- @flattenValue v1 == flattenValue v2@.
 flattenValue :: Value -> [(CurrencySymbol, TokenName, Integer)]
 flattenValue v = goOuter [] (Map.toList $ getValue v)
   where
@@ -416,10 +418,11 @@ unordEqWith is0 eqV = goBoth where
     goBoth ((kL, vL) : kvsL') kvsR0@(kvR0@(kR0, vR0) : kvsR0')
         -- We could've avoided having this clause if we always searched for the right key-value pair
         -- using @goRight@, however the sheer act of invoking that function, passing an empty list
-        -- to it as an accumulator and calling 'appendR' afterwards affects performance quite a bit,
-        -- considering that all of that happens for every single element of the left list. Hence we
-        -- handle the special case of lists being equal pointwise (or at least their prefixes being
-        -- equal pointwise) with a bit of additional logic to get some easy performance gains.
+        -- to it as an accumulator and calling 'revAppend' afterwards affects performance quite a
+        -- bit, considering that all of that happens for every single element of the left list.
+        -- Hence we handle the special case of lists being equal pointwise (or at least their
+        -- prefixes being equal pointwise) with a bit of additional logic to get some easy
+        -- performance gains.
         | kL == kR0  = if vL `eqV` vR0 then goBoth kvsL' kvsR0' else False
         | is0 vL     = goBoth kvsL' kvsR0
         | otherwise  = goRight [kvR0 | not $ is0 vR0] kvsR0'
@@ -432,9 +435,9 @@ unordEqWith is0 eqV = goBoth where
             goRight _   []                     = False
             goRight acc (kvR@(kR, vR) : kvsR')
                 | is0 vR    = goRight acc kvsR'
-                -- @appendR@ recreates @kvsR0'@ with @(kR, vR)@ removed, since that pair
+                -- @revAppend@ recreates @kvsR0'@ with @(kR, vR)@ removed, since that pair
                 -- equals @(kL, vL)@ from the left list, hence we throw both of them away.
-                | kL == kR  = if vL `eqV` vR then goBoth kvsL' (appendR acc kvsR') else False
+                | kL == kR  = if vL `eqV` vR then goBoth kvsL' (revAppend acc kvsR') else False
                 | otherwise = goRight (kvR : acc) kvsR'
 
 {-# INLINABLE eqMapWith #-}

@@ -37,14 +37,20 @@ mapMany f = traverse $ \x -> do
 -- are chosen at random.
 mapSome :: Eq a => (a -> Gen a) -> [a] -> Gen [a]
 mapSome f xs = do
-    i <- choose (0, length xs - 1)
     xs' <- mapMany f xs
+    i <- choose (0, length xs - 1)
     let xi = xs !! i
     ix i (\x -> if x == xi then f x else pure x) xs'
 
 -- | Generate an 'Integer' that is not equal to the given one.
 updateInteger :: Integer -> Gen Integer
 updateInteger i = arbitrary `suchThat` (/= i)
+
+-- | Generate new 'TokenName's such that the resulting list is not equal to the given one.
+freshenTokenNames :: [(TokenName, Integer)] -> Gen [(TokenName, Integer)]
+freshenTokenNames tokens =
+    uniqueNames TokenName (map snd tokens) `suchThat` \tokens' ->
+        filter ((/= 0) . snd) tokens /= filter ((/= 0) . snd) tokens'
 
 onLists
     :: Value
@@ -54,18 +60,18 @@ onLists
     -> Property
 onLists value f = forAll (fmap listsToValue . f $ valueToLists value)
 
--- | Test that the 'Monoid' instance of 'Value' is law-abiding and that merging two non-zero values
--- creates a value that isn't equal to any of the original ones.
-test_Monoid :: TestTree
-test_Monoid = testProperty "Monoid" . scaleTestsBy 5 $ \value1 ->
-    if isZero value1
+-- | Test various laws for operations over 'Value'.
+test_laws :: TestTree
+test_laws = testProperty "laws" . scaleTestsBy 5 $ \value1 -> conjoin
+    [ value1 <> value1 <=> Numeric.scale 2 value1
+    , value1 <> Numeric.negate value1 <=> mempty
+    , if isZero value1
         then conjoin
             [ value1 <=> mempty
             , forAll arbitrary $ \value2 -> value1 <> value2 <=> value2
             ]
         else conjoin
             [ value1 </> mempty
-            , value1 <> value1 <=> Numeric.scale 2 value1
             , forAll arbitrary $ \value2 ->
                 if isZero value2
                     then value1 <> value2 <=> value1
@@ -78,13 +84,26 @@ test_Monoid = testProperty "Monoid" . scaleTestsBy 5 $ \value1 ->
                                 (value1 <> value2) <> value3 <=> value1 <> (value2 <> value3)
                         ]
             ]
+    ]
+
+-- | Test that changing the values of some of the values of 'TokenName's creates a different
+-- 'Value'.
+test_updateSomeTokenValues :: TestTree
+test_updateSomeTokenValues = testProperty "updateSomeTokenValues" . scaleTestsBy 15 $ \prevalue ->
+    let lists = filter (not . null . snd) $ valueToLists prevalue
+        value = listsToValue lists
+    in not (null lists) ==>
+        onLists value (mapSome . traverse . mapSome $ traverse updateInteger)
+            (\value' -> value </> value')
 
 -- | Test that changing the values of some of the 'TokenName's creates a different 'Value'.
-test_updateSome :: TestTree
-test_updateSome = testProperty "updateSome" . scaleTestsBy 10 $ \value ->
-    let lists = valueToLists value
-    in not (null lists || any (any null) lists) ==>
-        onLists value (mapSome . traverse . mapSome $ traverse updateInteger)
+test_updateSomeTokenNames :: TestTree
+test_updateSomeTokenNames = testProperty "updateSomeTokenNames" . scaleTestsBy 15 $ \prevalue ->
+    let lists = filter (not . null . snd) . map (fmap . filter $ (/= 0) . snd) $
+            valueToLists prevalue
+        value = listsToValue lists
+    in not (null lists) ==>
+        onLists value (mapSome $ traverse freshenTokenNames)
             (\value' -> value </> value')
 
 -- | Test that shuffling 'CurrencySymbol's or 'TokenName's creates a 'Value' that is equal to the
@@ -103,8 +122,9 @@ test_split = testProperty "split" . scaleTestsBy 7 $ \value ->
 
 test_Value :: TestTree
 test_Value = testGroup "Value"
-    [ test_Monoid
-    , test_updateSome
+    [ test_laws
+    , test_updateSomeTokenValues
+    , test_updateSomeTokenNames
     , test_shuffle
     , test_split
     ]
