@@ -15,8 +15,10 @@
 
 module Main (main) where
 
-import PlutusCore.Data qualified as PLC
-import PlutusCore.Pretty
+import PlutusCore.Data (Data (..))
+import PlutusCore.Evaluation.Machine.CostStream (sumCostStream)
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage, flattenCostRose, memoryUsage)
+import PlutusCore.Pretty (display)
 import PlutusLedgerApi.Common
 import PlutusLedgerApi.Test.EvaluationEvent
 import PlutusLedgerApi.V1 qualified as V1
@@ -36,15 +38,16 @@ import Data.ByteString qualified as BS
 import Data.List (intercalate)
 import Data.List.NonEmpty (NonEmpty, nonEmpty, toList)
 import Data.Maybe (catMaybes)
+import Data.SatInt (fromSatInt)
 import GHC.Exts (Int (I#), quotInt#)
 import GHC.Generics (Generic)
-import GHC.Integer
+import GHC.Integer ()
 import GHC.Integer.Logarithms
 import System.Directory.Extra (listFiles)
 import System.Environment (getEnv)
 import System.FilePath (isExtensionOf, takeBaseName)
 import System.IO (hFlush, stdout)
-import System.IO.Unsafe
+import System.IO.Unsafe ()
 import Text.Printf (printf)
 
 import Debug.Trace
@@ -73,7 +76,7 @@ data ScriptEvaluationData2 = ScriptEvaluationData2
     { dataProtocolVersion2 :: ProtocolVersion
     , dataBudget2          :: ExBudget
     , dataScript2          :: SerialisedScript
-    , dataInputs2          :: [PLC.Data]
+    , dataInputs2          :: [Data]
     }
     deriving stock (Show, Generic)
     deriving anyclass (Serialise)
@@ -237,47 +240,60 @@ analyseScriptContext _ctx _params ev = case ev of
 -- Redeemer analysis
 
 data DataInfo = DataInfo
-    { numB         :: Integer
-    , numI         :: Integer
-    , numMap       :: Integer
-    , numConstr    :: Integer
-    , numList      :: Integer
-    , totalBlength :: Integer
-    , maxBlength   :: Integer
-    , totalIlength :: Integer
-    , maxIlength   :: Integer
-    , numNodes     :: Integer
-    , depth        :: Integer
+    { memUsage       :: Integer
+    , numNodes       :: Integer
+    , depth          :: Integer
+    , numINodes      :: Integer
+    , maxIsize       :: Integer  -- Maximum memoryUsage of integers in I nodes
+    , totalIsize     :: Integer  -- Total memoryUsage of integers in I nodes
+    , numBnodes      :: Integer
+    , maxBsize       :: Integer  -- Maximum memoryUsage of bytestrings in B nodes
+    , totalBsize     :: Integer  -- Total memoryUsage of bytestrings in B nodes
+    , numListNodes   :: Integer
+    , numConstrNodes :: Integer
+    , numMapNodes    :: Integer
     } deriving stock (Show)
+
+memU :: ExMemoryUsage a => a -> Integer
+memU = fromSatInt . sumCostStream . flattenCostRose . memoryUsage
+
+printDataHeader :: IO ()
+printDataHeader =
+    printf "memUsage numNodes depth numI maxIsize totalIsize numB maxBsize totalBsize numL numC numM\n"
 
 printDataInfo :: DataInfo -> IO ()
 printDataInfo DataInfo{..} =
-    printf "%4d %4d %4d %4d %4d %4d %4d %4d %4d %4d %4d\n"
-           numB numI numMap numConstr numList totalBlength maxBlength totalIlength maxIlength numNodes depth
+    printf "%4d %4d %4d    %4d %4d %4d    %4d %4d %4d    %4d %4d %4d\n"
+           memUsage numNodes depth
+           numINodes maxIsize totalIsize
+           numBnodes maxBsize totalBsize
+           numListNodes numConstrNodes numMapNodes
 
-byteSizeOfInteger :: Integer -> Integer
-byteSizeOfInteger 0 = 1
-byteSizeOfInteger i = fromIntegral $ I# (integerLog2# (abs i) `quotInt#` integerToInt 8) + 1
+printDataInfoFor :: Data -> IO ()
+printDataInfoFor = printDataInfo <$> getDataInfo
 
+-- foldr :: Foldable t => (a -> b -> b) -> b -> t a -> b
 
 getDataInfo :: Data -> DataInfo
-getDataInfo x =
-    let (nb', ni', nm', nc', nl', tb', mb', ti', mi') = go (0, 0, 0, 0, 0, 0, 0, 0, 0) x
-        go i@(nb,ni,nm,nc,nl,tb,mb,ti,mi) d =
-            case d of
-              Constr _ l -> foldl go (nb,ni,nm,nc+1,nl,tb,mb,ti,mi) l
-              List l     -> foldl go (nb,ni,nm,nc,nl+1,tb,mb,ti,mi) l
-              Map l      -> i
-              I n        -> (nb,ni+1,nm,nc,nl,tb,mb,ti+s,max mi s) where s = byteSizeOfInteger n
-              B b        -> (nb+1,ni,nm,nc,nl,tb+s,max mb s,ti,mi) where s = fromIntegral $ BS.length b
+getDataInfo d =
+    let (nI, mI, tI, nB, mB, tB, nL, nC, nM) = go d (0, 0, 0, 0, 0, 0, 0, 0, 0)
+        go x (ni, mi, ti, nb, mb, tb, nl, nc, nm) =
+            case x of
+              I n        -> (ni+1, max mi s, ti+s, nb, mb, tb, nl, nc, nm) where s = memU n
+              B b        -> (ni, mi, ti, nb+1, max mb s, tb+s, nl, nc, nm) where s = memU b
+              List l     -> foldr go (ni, mi, ti, nb, mb, tb, nl+1, nc, nm) l
+              Constr _ l -> foldr go (ni, mi, ti, nb, mb, tb, nl, nc+1, nm) l
+              Map l      -> let (a,b) = unzip l
+                            in foldr go (foldr go (ni, mi, ti, nb, mb, tb, nl, nc, nm+1) a) b
         getDepth = \case
-              Constr _ l -> 1 + depthList l
-              List l     -> 1 + depthList l
-              Map l      -> let (a,b) = unzip l in 1 + max (depthList a) (depthList b)
               I n        -> 1
               B b        -> 1
-        depthList = foldl (\n d -> max n (getDepth d)) 0
-    in DataInfo nb' ni' nm' nc' nl' tb' mb' ti' mi' (nb'+ni'+nm'+nc'+nl') (getDepth x)
+              List l     -> 1 + depthList l
+              Constr _ l -> 1 + depthList l
+              Map l      -> let (a,b) = unzip l
+                            in 1 + max (depthList a) (depthList b)
+        depthList = foldl (\n a -> max n (getDepth a)) 0
+    in DataInfo (memU d) (nI+nB+nL+nC+nM) (getDepth d) nI mI tI nB mB tB nL nC nM
 
 
 analyseRedeemer
@@ -289,36 +305,32 @@ analyseRedeemer _ctx _params ev = do
   case ev of
       PlutusV1Event ScriptEvaluationData{..} _expected ->
           case dataInputs of
-            [_d, r,_c] -> analyseRedeemer' r
-            [r,_c]     -> analyseRedeemer' r
+            [_d, r,_c] -> printDataInfoFor r
+            [r,_c]     -> printDataInfoFor r
             _          -> putStrLn "Unexpected script arguments"
       PlutusV2Event ScriptEvaluationData{..} _expected ->
           case dataInputs of
-            [_d, r,_c] -> analyseRedeemer' r
-            [r,_c]     -> analyseRedeemer' r
+            [_d, r,_c] -> printDataInfoFor r
+            [r,_c]     -> printDataInfoFor r
             _          -> putStrLn "Unexpected script arguments"
-    where
-      analyseRedeemer' = printDataInfo <$> getDataInfo
 
-analyseDatums
+analyseDatum
     :: EvaluationContext
     -> [Integer]
     -> ScriptEvaluationEvent
     -> IO ()
-analyseDatums _ctx _params ev = do
+analyseDatum _ctx _params ev = do
   case ev of
       PlutusV1Event ScriptEvaluationData{..} _expected ->
           case dataInputs of
-            [d, _r,_c] -> analyseDatums' d
+            [d, _r,_c] -> printDataInfoFor d
             [_r,_c]    -> pure ()
             _          -> putStrLn "Unexpected script arguments"
       PlutusV2Event ScriptEvaluationData{..} _expected ->
           case dataInputs of
-            [_d, r,_c] -> analyseDatums' r
+            [_d, r,_c] -> printDataInfoFor r
             [_r,_c]    -> pure ()
             _          -> putStrLn "Unexpected script arguments"
-    where
-      analyseDatums' = printDataInfo <$> getDataInfo
 
 
 -- | Test cases from a single event dump file
@@ -365,4 +377,5 @@ main :: IO ()
 main = do
     dir <- getEnv "EVENT_DUMP_DIR"
     eventFiles <- filter ("event" `isExtensionOf`) <$> listFiles dir
-    mapM_ (analyseOneFile analyseDatums) eventFiles
+    printDataHeader
+    mapM_ (analyseOneFile analyseRedeemer) eventFiles
