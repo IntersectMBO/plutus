@@ -1,7 +1,9 @@
 -- editorconfig-checker-disable-file
 
+{-# LANGUAGE BangPatterns     #-}
 {-# LANGUAGE DeriveAnyClass   #-}
 {-# LANGUAGE LambdaCase       #-}
+{-# LANGUAGE MagicHash        #-}
 {-# LANGUAGE RecordWildCards  #-}
 {-# LANGUAGE TupleSections    #-}
 {-# LANGUAGE TypeApplications #-}
@@ -30,16 +32,22 @@ import Control.Concurrent.Async (mapConcurrently)
 import Control.Exception (evaluate)
 import Control.Monad.Extra (whenJust)
 import Control.Monad.Writer.Strict
+import Data.ByteString qualified as BS
 import Data.List (intercalate)
 import Data.List.NonEmpty (NonEmpty, nonEmpty, toList)
 import Data.Maybe (catMaybes)
+import GHC.Exts (Int (I#), quotInt#)
 import GHC.Generics (Generic)
+import GHC.Integer
+import GHC.Integer.Logarithms
 import System.Directory.Extra (listFiles)
 import System.Environment (getEnv)
 import System.FilePath (isExtensionOf, takeBaseName)
 import System.IO (hFlush, stdout)
 import System.IO.Unsafe
 import Text.Printf (printf)
+
+import Debug.Trace
 
 {- The ScriptEvaluationData type used to contain a ProtocolVersion but now
  contains only a MajorProtocolVersion.  The program which dumps the mainnet
@@ -167,8 +175,8 @@ analyseValue v = do
 
 analyseOutputsV1 :: [V1.TxOut] -> IO ()
 analyseOutputsV1 l = do
-    putStr $ printf " %d " (length l)
-    putStrLn $ intercalate ", " (fmap (shapeOfValue . V1.txOutValue) l)
+  putStr $ printf " %d " (length l)
+  putStrLn $ intercalate ", " (fmap (shapeOfValue . V1.txOutValue) l)
 
 analyseTxInfoV1 :: V1.TxInfo -> IO ()
 analyseTxInfoV1 i = do
@@ -195,59 +203,141 @@ analyseTxInfoV2 i = do
   putStr "Outputs: "
   analyseOutputsV2 $ V2.txInfoOutputs i
 
-analyseScriptContext ::
-    EvaluationContext ->
-    -- | Cost parameters
-    [Integer] ->
-    ScriptEvaluationEvent ->
-    IO (Maybe UnexpectedEvaluationResult)
+analyseScriptContext
+    :: EvaluationContext
+    -> [Integer]  -- Cost parameters
+    -> ScriptEvaluationEvent
+    -> IO ()
 analyseScriptContext _ctx _params ev = case ev of
     PlutusV1Event ScriptEvaluationData{..} _expected ->
         case dataInputs of
         [_,_,c] -> analyseCtxV1 c
         [_,c]   -> analyseCtxV1 c
-        _       -> pure Nothing
+        _       -> pure ()
     PlutusV2Event ScriptEvaluationData{..} _expected ->
         case dataInputs of
         [_,_,c] -> analyseCtxV2 c
         [_,c]   -> analyseCtxV2 c
-        _       -> pure Nothing
+        _       -> pure ()
     where
     analyseCtxV1 c = case V1.fromData @V1.ScriptContext c of
-                       Nothing -> pure Nothing -- pure . Just . DecodeError $ LedgerLanguageNotAvailableError
+                       Nothing -> pure ()
                        Just p -> do
                          putStrLn "----------------"
                          putStrLn $ stringOfPurpose $ V1.scriptContextPurpose p
                          analyseTxInfoV1 $ V1.scriptContextTxInfo p
-                         pure Nothing
     analyseCtxV2 c = case V2.fromData @V2.ScriptContext c of
-                       Nothing -> pure Nothing -- pure . Just . DecodeError $ LedgerLanguageNotAvailableError
+                       Nothing -> pure ()
                        Just p -> do
                          putStrLn "----------------"
                          putStrLn $ stringOfPurpose $ V2.scriptContextPurpose p
                          analyseTxInfoV2 $ V2.scriptContextTxInfo p
-                         pure Nothing
 
 
 -- Redeemer analysis
 
+data DataInfo = DataInfo
+    { numB         :: Integer
+    , numI         :: Integer
+    , numMap       :: Integer
+    , numConstr    :: Integer
+    , numList      :: Integer
+    , totalBlength :: Integer
+    , maxBlength   :: Integer
+    , totalIlength :: Integer
+    , maxIlength   :: Integer
+    , numNodes     :: Integer
+    , depth        :: Integer
+    } deriving stock (Show)
+
+printDataInfo :: DataInfo -> IO ()
+printDataInfo DataInfo{..} =
+    printf "%4d %4d %4d %4d %4d %4d %4d %4d %4d %4d %4d\n"
+           numB numI numMap numConstr numList totalBlength maxBlength totalIlength maxIlength numNodes depth
+
+byteSizeOfInteger :: Integer -> Integer
+byteSizeOfInteger 0 = 1
+byteSizeOfInteger i = fromIntegral $ I# (integerLog2# (abs i) `quotInt#` integerToInt 8) + 1
+
+
+getDataInfo :: Data -> DataInfo
+getDataInfo x =
+    let (nb', ni', nm', nc', nl', tb', mb', ti', mi') = go (0, 0, 0, 0, 0, 0, 0, 0, 0) x
+        go i@(nb,ni,nm,nc,nl,tb,mb,ti,mi) d =
+            case d of
+              Constr _ l -> foldl go (nb,ni,nm,nc+1,nl,tb,mb,ti,mi) l
+              List l     -> foldl go (nb,ni,nm,nc,nl+1,tb,mb,ti,mi) l
+              Map l      -> i
+              I n        -> (nb,ni+1,nm,nc,nl,tb,mb,ti+s,max mi s) where s = byteSizeOfInteger n
+              B b        -> (nb+1,ni,nm,nc,nl,tb+s,max mb s,ti,mi) where s = fromIntegral $ BS.length b
+        getDepth = \case
+              Constr _ l -> 1 + depthList l
+              List l     -> 1 + depthList l
+              Map l      -> let (a,b) = unzip l in 1 + max (depthList a) (depthList b)
+              I n        -> 1
+              B b        -> 1
+        depthList = foldl (\n d -> max n (getDepth d)) 0
+    in DataInfo nb' ni' nm' nc' nl' tb' mb' ti' mi' (nb'+ni'+nm'+nc'+nl') (getDepth x)
+
+
+analyseRedeemer
+    :: EvaluationContext
+    -> [Integer]
+    -> ScriptEvaluationEvent
+    -> IO ()
+analyseRedeemer _ctx _params ev = do
+  case ev of
+      PlutusV1Event ScriptEvaluationData{..} _expected ->
+          case dataInputs of
+            [_d, r,_c] -> analyseRedeemer' r
+            [r,_c]     -> analyseRedeemer' r
+            _          -> putStrLn "Unexpected script arguments"
+      PlutusV2Event ScriptEvaluationData{..} _expected ->
+          case dataInputs of
+            [_d, r,_c] -> analyseRedeemer' r
+            [r,_c]     -> analyseRedeemer' r
+            _          -> putStrLn "Unexpected script arguments"
+    where
+      analyseRedeemer' = printDataInfo <$> getDataInfo
+
+analyseDatums
+    :: EvaluationContext
+    -> [Integer]
+    -> ScriptEvaluationEvent
+    -> IO ()
+analyseDatums _ctx _params ev = do
+  case ev of
+      PlutusV1Event ScriptEvaluationData{..} _expected ->
+          case dataInputs of
+            [d, _r,_c] -> analyseDatums' d
+            [_r,_c]    -> pure ()
+            _          -> putStrLn "Unexpected script arguments"
+      PlutusV2Event ScriptEvaluationData{..} _expected ->
+          case dataInputs of
+            [_d, r,_c] -> analyseDatums' r
+            [_r,_c]    -> pure ()
+            _          -> putStrLn "Unexpected script arguments"
+    where
+      analyseDatums' = printDataInfo <$> getDataInfo
+
 
 -- | Test cases from a single event dump file
-analyseOneFile :: FilePath -> IO ()
-analyseOneFile eventFile = do
+analyseOneFile
+    ::
+      ( EvaluationContext
+      -> [Integer]
+      -> ScriptEvaluationEvent
+      -> IO ()
+      )
+    -> FilePath
+    -> IO ()
+analyseOneFile analyse eventFile = do
   events <- events2toEvents <$> readFileDeserialise @ScriptEvaluationEvents2 eventFile
-
   case ( mkContext V1.mkEvaluationContext (eventsCostParamsV1 events)
        , mkContext V2.mkEvaluationContext (eventsCostParamsV2 events)
        ) of
     (Right ctxV1, Right ctxV2) ->
-        do
-          errs <-
-              fmap catMaybes $
-              mapM
-              (evaluate . runSingleEvent ctxV1 ctxV2)
-              (toList (eventsEvents events))
-          whenJust (nonEmpty errs) $ error . renderTestFailures
+        mapM_ (runSingleEvent ctxV1 ctxV2) (toList (eventsEvents events))
     (Left err, _) -> error $ display err
     (_, Left err) -> error $ display err
   where
@@ -259,20 +349,20 @@ analyseOneFile eventFile = do
         :: Maybe (EvaluationContext, [Integer])
         -> Maybe (EvaluationContext, [Integer])
         -> ScriptEvaluationEvent
-        -> Maybe TestFailure
+        -> IO ()
     runSingleEvent ctxV1 ctxV2 event =
         case event of
-            PlutusV1Event{} -> case ctxV1 of
-                                 Just (ctx, params) ->
-                                            InvalidResult <$> (unsafePerformIO $ analyseScriptContext ctx params event)
-                                 Nothing            -> Just $ MissingCostParametersFor PlutusV1
-            PlutusV2Event{} -> case ctxV2 of
-                                 Just (ctx, params) ->
-                                            InvalidResult <$> (unsafePerformIO $ analyseScriptContext ctx params event)
-                                 Nothing            -> Just $ MissingCostParametersFor PlutusV2
+          PlutusV1Event{} ->
+              case ctxV1 of
+                Just (ctx, params) -> analyse ctx params event >> hFlush stdout
+                Nothing            -> putStrLn "*** ctxV1 missing ***" >> hFlush stdout
+          PlutusV2Event{} ->
+              case ctxV2 of
+                Just (ctx, params) -> analyse ctx params event >> hFlush stdout
+                Nothing            -> putStrLn "*** ctxV2 missing ***" >> hFlush stdout
 
 main :: IO ()
 main = do
     dir <- getEnv "EVENT_DUMP_DIR"
     eventFiles <- filter ("event" `isExtensionOf`) <$> listFiles dir
-    mapM_ analyseOneFile eventFiles
+    mapM_ (analyseOneFile analyseDatums) eventFiles

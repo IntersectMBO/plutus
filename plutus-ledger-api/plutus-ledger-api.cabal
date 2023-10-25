@@ -214,6 +214,7 @@ executable analyse-scripts
   build-depends:
     , async
     , base                                                              >=4.9   && <5
+    , bytestring
     , extra
     , filepath
     , mtl
@@ -221,7 +222,5 @@ executable analyse-scripts
     , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.15
     , plutus-tx                                                         ^>=1.15
     , serialise
-    , tasty
-    , tasty-hunit
 
   default-language: Haskell2010
