@@ -217,6 +217,7 @@ executable analyse-scripts
     , bytestring
     , extra
     , filepath
+    , lens
     , mtl
     , plutus-core                                                       ^>=1.15
     , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.15

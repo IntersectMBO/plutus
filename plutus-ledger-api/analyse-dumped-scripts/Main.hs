@@ -5,6 +5,7 @@
 {-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE MagicHash        #-}
 {-# LANGUAGE RecordWildCards  #-}
+{-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE TupleSections    #-}
 {-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}
@@ -15,7 +16,8 @@
 
 -- TODO: restore warnings once this is finalised.
 
-module Main (main) where
+-- module Main (main) where
+module Main where
 
 import PlutusCore.Data as Data (Data (..))
 import PlutusCore.Default (DefaultUni (DefaultUniData), Some (..), ValueOf (..))
@@ -36,6 +38,7 @@ import PlutusTx.AssocMap qualified as M
 import Codec.Serialise (Serialise, readFileDeserialise)
 import Control.Concurrent.Async (mapConcurrently)
 import Control.Exception (evaluate)
+import Control.Lens hiding (List)
 import Control.Monad.Extra (whenJust)
 import Control.Monad.Writer.Strict
 import Data.ByteString qualified as BS
@@ -206,22 +209,26 @@ analyseScriptContext _ctx _params ev = case ev of
 -- Statistics about a Data object
 
 data DataInfo = DataInfo
-    { memUsage       :: Integer
-    , numNodes       :: Integer
-    , depth          :: Integer
-    , numINodes      :: Integer
-    , maxIsize       :: Integer  -- Maximum memoryUsage of integers in I nodes
-    , totalIsize     :: Integer  -- Total memoryUsage of integers in I nodes
-    , numBnodes      :: Integer
-    , maxBsize       :: Integer  -- Maximum memoryUsage of bytestrings in B nodes
-    , totalBsize     :: Integer  -- Total memoryUsage of bytestrings in B nodes
-    , numListNodes   :: Integer
-    , maxListLen     :: Integer
-    , numConstrNodes :: Integer
-    , maxConstrLen   :: Integer
-    , numMapNodes    :: Integer
-    , maxMapLen      :: Integer
+    { _memUsage   :: Integer
+    , _numNodes   :: Integer
+    , _depth      :: Integer
+    , _numInodes  :: Integer
+    , _maxIsize   :: Integer  -- Maximum memoryUsage of integers in I nodes
+    , _totalIsize :: Integer  -- Total memoryUsage of integers in I nodes
+    , _numBnodes  :: Integer
+    , _maxBsize   :: Integer  -- Maximum memoryUsage of bytestrings in B nodes
+    , _totalBsize :: Integer  -- Total memoryUsage of bytestrings in B nodes
+    , _numLnodes  :: Integer
+    , _maxLlen    :: Integer  -- Maximum list length
+    , _numCnodes  :: Integer
+    , _maxClen    :: Integer  -- Maximum number of constructor arguments
+    , _numMnodes  :: Integer
+    , _maxMlen    :: Integer  -- Maximum map length
     } deriving stock (Show)
+makeLenses ''DataInfo
+
+emptyInfo :: DataInfo
+emptyInfo = DataInfo 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 
 -- Memory usage as an Integer (in units of 64 bits / 8 bytes)
 memU :: ExMemoryUsage a => a -> Integer
@@ -230,17 +237,17 @@ memU = fromSatInt . sumCostStream . flattenCostRose . memoryUsage
 -- Header (useful for R)
 printDataHeader :: IO ()
 printDataHeader =
-    printf "memUsage numNodes depth numI maxIsize totalIsize numB maxBsize totalBsize numL numC numM\n"
+    printf "memUsage numNodes depth numI maxIsize totalIsize numB maxBsize totalBsize numL maxL numC maxC numM maxM\n"
 
 printDataInfo :: DataInfo -> IO ()
 printDataInfo DataInfo{..} =
     printf "%4d %4d %4d    %4d %4d %4d    %4d %4d %4d    %4d %4d   %4d %4d    %4d %4d\n"
-           memUsage numNodes depth
-           numINodes maxIsize totalIsize
-           numBnodes maxBsize totalBsize
-           numListNodes maxListLen
-           numConstrNodes maxConstrLen
-           numMapNodes maxMapLen
+           _memUsage _numNodes _depth
+           _numInodes _maxIsize _totalIsize
+           _numBnodes _maxBsize _totalBsize
+           _numLnodes _maxLlen
+           _numCnodes _maxClen
+           _numMnodes _maxMlen
 
 printDataInfoFor :: Data -> IO ()
 printDataInfoFor = printDataInfo <$> getDataInfo
@@ -248,18 +255,16 @@ printDataInfoFor = printDataInfo <$> getDataInfo
 -- Traverse a Data object collecting information
 getDataInfo :: Data -> DataInfo
 getDataInfo d =
-    let ilen = fromIntegral . length
-        (nI, mI, tI, nB, mB, tB, nL, mL, nC, mC, nM, mM) = go d (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-        -- It's very easy to update the wrong thing here!
-        go x (ni, mi, ti, nb, mb, tb, nl, ml, nc, mc, nm, mm) =
+    let ilen = fromIntegral . length :: [a] -> Integer
+        info = go d emptyInfo
+        go x i =
             case x of
-              I n             -> (ni+1, max mi s, ti+s, nb, mb, tb, nl, ml, nc, mc, nm, mm) where s = memU n
-              B b             -> (ni, mi, ti, nb+1, max mb s, tb+s, nl, ml, nc, mc, nm, mm) where s = memU b
-              List l          -> foldr go (ni, mi, ti, nb, mb, tb, nl+1, ml', nc, mc, nm, mm) l where ml' = max ml (ilen l)
-              Data.Constr _ l -> foldr go (ni, mi, ti, nb, mb, tb, nl, ml, nc+1, mc', nm, mm) l where mc' = max mc (ilen l)
-              Map l           -> let (a,b) = unzip l
-                                 in foldr go (foldr go (ni, mi, ti, nb, mb, tb, nl, ml, nc, mc, nm+1, mm') a) b
-                                     where mm' = max mm (ilen l)
+              I n             -> i & numInodes +~ 1 & maxIsize %~ max s & totalIsize %~ (+s) where s = memU n
+              B b             -> i & numBnodes +~ 1 & maxBsize %~ max s & totalBsize %~ (+s) where s = memU b
+              List l          -> foldr go i' l where i' = i & numLnodes +~ 1 & maxLlen %~ max (ilen l)
+              Data.Constr _ l -> foldr go i' l where i' = i & numCnodes %~ (+1) & maxClen %~ max (ilen l)
+              Map l           -> foldr go (foldr go i' a) b where i' = i & numMnodes +~ 1 & maxMlen %~ max (ilen l)
+                                                                  (a,b) = unzip l
         getDepth = \case
               I n             -> 1
               B b             -> 1
@@ -268,7 +273,8 @@ getDataInfo d =
               Map l           -> let (a,b) = unzip l
                                  in 1 + max (depthList a) (depthList b)
         depthList = foldl (\n a -> max n (getDepth a)) 0
-    in DataInfo (memU d) (nI+nB+nL+nC+nM) (getDepth d) nI mI tI nB mB tB nL mL nC mC nM mM
+        totalNodes = sum $ info ^.. (numInodes <> numBnodes <> numLnodes <> numCnodes <> numMnodes)
+    in info & memUsage .~ memU d & numNodes .~ totalNodes & depth .~ getDepth d
 
 
 -- Analyse a redeemer (as a Data object) from a script evaluation event
@@ -398,3 +404,4 @@ main =
                     Just analyser -> analyser dir
                     Nothing       -> printf "Unknown analysis: %s\n" name >> usage
            _ -> usage
+
