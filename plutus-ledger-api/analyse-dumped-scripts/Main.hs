@@ -250,6 +250,7 @@ getDataInfo :: Data -> DataInfo
 getDataInfo d =
     let ilen = fromIntegral . length
         (nI, mI, tI, nB, mB, tB, nL, mL, nC, mC, nM, mM) = go d (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+        -- It's very easy to update the wrong thing here!
         go x (ni, mi, ti, nb, mb, tb, nl, ml, nc, mc, nm, mm) =
             case x of
               I n             -> (ni+1, max mi s, ti+s, nb, mb, tb, nl, ml, nc, mc, nm, mm) where s = memU n
