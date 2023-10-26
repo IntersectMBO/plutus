@@ -48,6 +48,9 @@ test_TypecheckRemoveDeadBindings :: TestTree
 test_TypecheckRemoveDeadBindings =
   ignoreTest $ testProperty "typechecking" typecheckRemoveDeadBindingsProp
 
+-- FIXME test currently failing with an error from `lowerTerm`. The term generator should only be
+-- generating builtin types but it's currently generating let terms.
+-- | Check that the `removeDeadBinding` pass preserves evaluation behaviour.
 prop_Evaluation :: BuiltinSemanticsVariant DefaultFun -> Property
 prop_Evaluation biVariant =
   withMaxSuccess 50000 $ nonPureEvaluationProp $ removeDeadBindings $
