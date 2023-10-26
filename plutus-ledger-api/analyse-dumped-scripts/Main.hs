@@ -1,23 +1,15 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE BangPatterns     #-}
 {-# LANGUAGE DeriveAnyClass   #-}
 {-# LANGUAGE GADTs            #-}
 {-# LANGUAGE LambdaCase       #-}
-{-# LANGUAGE MagicHash        #-}
 {-# LANGUAGE RecordWildCards  #-}
 {-# LANGUAGE TemplateHaskell  #-}
 {-# LANGUAGE TupleSections    #-}
 {-# LANGUAGE TypeApplications #-}
-{-# OPTIONS_GHC -fno-warn-unused-imports #-}
-{-# OPTIONS_GHC -fno-warn-unused-matches #-}
-{-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 
 -- | Various analyses of events in mainnet script dumps
 
--- TODO: restore warnings once this is finalised.
-
--- module Main (main) where
-module Main where
+module Main (main) where
 
 import PlutusCore.Data as Data (Data (..))
 import PlutusCore.Default (DefaultUni (DefaultUniData), Some (..), ValueOf (..))
@@ -28,36 +20,20 @@ import PlutusLedgerApi.Common
 import PlutusLedgerApi.Test.EvaluationEvent
 import PlutusLedgerApi.V1 qualified as V1
 import PlutusLedgerApi.V2 qualified as V2
+import PlutusTx.AssocMap qualified as M
 import UntypedPlutusCore as UPLC
 
-import PlutusLedgerApi.Common (ScriptNamedDeBruijn (..))
-import PlutusLedgerApi.V1.Contexts qualified as V1
-import PlutusLedgerApi.V2.Contexts qualified as V2
-import PlutusTx.AssocMap qualified as M
-
 import Codec.Serialise (Serialise, readFileDeserialise)
-import Control.Concurrent.Async (mapConcurrently)
-import Control.Exception (evaluate)
 import Control.Lens hiding (List)
-import Control.Monad.Extra (whenJust)
 import Control.Monad.Writer.Strict
-import Data.ByteString qualified as BS
 import Data.List (intercalate)
-import Data.List.NonEmpty (NonEmpty, nonEmpty, toList)
-import Data.Maybe (catMaybes)
+import Data.List.NonEmpty (NonEmpty, toList)
 import Data.SatInt (fromSatInt)
-import GHC.Exts (Int (I#), quotInt#)
 import GHC.Generics (Generic)
-import GHC.Integer ()
-import GHC.Integer.Logarithms
 import System.Directory.Extra (listFiles)
-import System.Environment (getArgs, getEnv, getProgName)
-import System.FilePath (isExtensionOf, takeBaseName)
-import System.IO (hFlush, stdout)
-import System.IO.Unsafe ()
+import System.Environment (getArgs, getProgName)
+import System.FilePath (isExtensionOf)
 import Text.Printf (printf)
-
-import Debug.Trace
 
 {- The ScriptEvaluationData type used to contain a ProtocolVersion but now
  contains only a MajorProtocolVersion.  The program which dumps the mainnet
@@ -266,8 +242,8 @@ getDataInfo d =
               Map l           -> let (a,b) = unzip l
                                  in foldr go (foldr go i' a) b where i' = i & numMnodes +~ 1 & maxMlen %~ max (ilen l)
         getDepth = \case
-              I n             -> 1
-              B b             -> 1
+              I _             -> 1
+              B _             -> 1
               List l          -> 1 + depthList l
               Data.Constr _ l -> 1 + depthList l
               Map l           -> let (a,b) = unzip l
@@ -370,12 +346,12 @@ analyseOneFile analyse eventFile = do
         case event of
           PlutusV1Event{} ->
               case ctxV1 of
-                Just (ctx, params) -> analyse ctx params event >> hFlush stdout
-                Nothing            -> putStrLn "*** ctxV1 missing ***" >> hFlush stdout
+                Just (ctx, params) -> analyse ctx params event
+                Nothing            -> putStrLn "*** ctxV1 missing ***"
           PlutusV2Event{} ->
               case ctxV2 of
-                Just (ctx, params) -> analyse ctx params event >> hFlush stdout
-                Nothing            -> putStrLn "*** ctxV2 missing ***" >> hFlush stdout
+                Just (ctx, params) -> analyse ctx params event
+                Nothing            -> putStrLn "*** ctxV2 missing ***"
 
 main :: IO ()
 main =
