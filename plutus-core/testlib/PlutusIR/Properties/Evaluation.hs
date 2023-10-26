@@ -72,11 +72,19 @@ evalPurePass pass biVariant pirTm = do
   convertToEitherString $
     evaluateCkNoEmit (defaultBuiltinsRuntimeForSemanticsVariant biVariant) (lowered $> ())
 
--- | Evaluate a PIR term that is lowered to a PLC term without any PIR pass.
-evalNoPass :: BuiltinSemanticsVariant DefaultFun
+-- | Evaluate a PIR term that is lowered to a PLC term without any PIR pass. For comparison with a
+-- non-pure pass.
+evalNoPassNonPure :: BuiltinSemanticsVariant DefaultFun
   -> Term TyName Name DefaultUni DefaultFun (Provenance ()) ->
   Either String (PLC.Term TyName Name DefaultUni DefaultFun ())
-evalNoPass = evalNonPurePass (\t -> pure t)
+evalNoPassNonPure = evalNonPurePass (\t -> pure t)
+
+-- | Evaluate a PIR term that is lowered to a PLC term without any PIR pass. For comparison with a
+-- pure pass.
+evalNoPassPure :: BuiltinSemanticsVariant DefaultFun
+  -> Term TyName Name DefaultUni DefaultFun (Provenance ()) ->
+  Either String (PLC.Term TyName Name DefaultUni DefaultFun ())
+evalNoPassPure = evalPurePass id
 
 -- | Evaluate a PIR term after a pure compiler pass.
 evalNonPurePass ::
@@ -118,7 +126,7 @@ pureEvaluationProp pass biVariant =
   forAllDoc "ty,tm" genBuiltInTypeKind (const []) $ \tm -> do
     -- the generated term may not have globally unique names
     renamed <- runQuoteT $ rename tm
-    evaluatedNoPass <- evalNoPass biVariant (Original () <$ renamed)
+    evaluatedNoPass <- evalNoPassPure biVariant (Original () <$ renamed)
     evaluatedAfterPass <-
       evalPurePass pass biVariant (Original () <$ renamed)
     let isEq = runRenameT $ PLC.eqTermM evaluatedNoPass evaluatedAfterPass
@@ -142,7 +150,7 @@ nonPureEvaluationProp pass biVariant =
   forAllDoc "ty,tm" genBuiltInTypeKind (const []) $ \tm -> do
     -- the generated term may not have globally unique names
     renamed <- runQuoteT $ rename tm
-    evaluatedNoPass <- evalNoPass biVariant (Original () <$ renamed)
+    evaluatedNoPass <- evalNoPassNonPure biVariant (Original () <$ renamed)
     evaluatedAfterPass <-
       evalNonPurePass pass biVariant (Original () <$ renamed)
     let isEq = runRenameT $ PLC.eqTermM evaluatedNoPass evaluatedAfterPass
