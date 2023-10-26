@@ -255,16 +255,16 @@ printDataInfoFor = printDataInfo <$> getDataInfo
 -- Traverse a Data object collecting information
 getDataInfo :: Data -> DataInfo
 getDataInfo d =
-    let ilen = fromIntegral . length :: [a] -> Integer
+    let ilen = fromIntegral . length
         info = go d emptyInfo
         go x i =
             case x of
-              I n             -> i & numInodes +~ 1 & maxIsize %~ max s & totalIsize %~ (+s) where s = memU n
-              B b             -> i & numBnodes +~ 1 & maxBsize %~ max s & totalBsize %~ (+s) where s = memU b
+              I n             -> i & numInodes +~ 1 & maxIsize %~ max s & totalIsize +~ s where s = memU n
+              B b             -> i & numBnodes +~ 1 & maxBsize %~ max s & totalBsize +~ s where s = memU b
               List l          -> foldr go i' l where i' = i & numLnodes +~ 1 & maxLlen %~ max (ilen l)
               Data.Constr _ l -> foldr go i' l where i' = i & numCnodes %~ (+1) & maxClen %~ max (ilen l)
-              Map l           -> foldr go (foldr go i' a) b where i' = i & numMnodes +~ 1 & maxMlen %~ max (ilen l)
-                                                                  (a,b) = unzip l
+              Map l           -> let (a,b) = unzip l
+                                 in foldr go (foldr go i' a) b where i' = i & numMnodes +~ 1 & maxMlen %~ max (ilen l)
         getDepth = \case
               I n             -> 1
               B b             -> 1
