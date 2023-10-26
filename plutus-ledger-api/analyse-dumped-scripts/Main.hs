@@ -1,7 +1,7 @@
 -- editorconfig-checker-disable-file
-
 {-# LANGUAGE BangPatterns     #-}
 {-# LANGUAGE DeriveAnyClass   #-}
+{-# LANGUAGE GADTs            #-}
 {-# LANGUAGE LambdaCase       #-}
 {-# LANGUAGE MagicHash        #-}
 {-# LANGUAGE RecordWildCards  #-}
@@ -11,11 +11,14 @@
 {-# OPTIONS_GHC -fno-warn-unused-matches #-}
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 
+-- | Various analyses of events in mainnet script dumps
+
 -- TODO: restore warnings once this is finalised.
 
 module Main (main) where
 
-import PlutusCore.Data (Data (..))
+import PlutusCore.Data as Data (Data (..))
+import PlutusCore.Default (DefaultUni (DefaultUniData), Some (..), ValueOf (..))
 import PlutusCore.Evaluation.Machine.CostStream (sumCostStream)
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage, flattenCostRose, memoryUsage)
 import PlutusCore.Pretty (display)
@@ -23,10 +26,11 @@ import PlutusLedgerApi.Common
 import PlutusLedgerApi.Test.EvaluationEvent
 import PlutusLedgerApi.V1 qualified as V1
 import PlutusLedgerApi.V2 qualified as V2
+import UntypedPlutusCore as UPLC
 
+import PlutusLedgerApi.Common (ScriptNamedDeBruijn (..))
 import PlutusLedgerApi.V1.Contexts qualified as V1
 import PlutusLedgerApi.V2.Contexts qualified as V2
-
 import PlutusTx.AssocMap qualified as M
 
 import Codec.Serialise (Serialise, readFileDeserialise)
@@ -44,7 +48,7 @@ import GHC.Generics (Generic)
 import GHC.Integer ()
 import GHC.Integer.Logarithms
 import System.Directory.Extra (listFiles)
-import System.Environment (getEnv)
+import System.Environment (getArgs, getEnv, getProgName)
 import System.FilePath (isExtensionOf, takeBaseName)
 import System.IO (hFlush, stdout)
 import System.IO.Unsafe ()
@@ -111,50 +115,15 @@ events2toEvents :: ScriptEvaluationEvents2 -> ScriptEvaluationEvents
 events2toEvents (ScriptEvaluationEvents2 cpV1 cpV2 evs) =
     ScriptEvaluationEvents cpV1 cpV2 (fmap event2toEvent evs)
 
--- Transaction analysis
 
--- Minting policy: redeemer, context
--- Validator: datum, redeemer, context
+-- | The type of a generic analysis function
+type EventAnalyser
+    =  EvaluationContext
+    -> [Integer]  -- cost parameters
+    -> ScriptEvaluationEvent
+    -> IO ()
 
-analyseEvaluationEvent ::
-    EvaluationContext ->
-    -- | Cost parameters
-    [Integer] ->
-    ScriptEvaluationEvent ->
-    IO (Maybe UnexpectedEvaluationResult)
-analyseEvaluationEvent ctx params ev = case ev of
-    PlutusV1Event ScriptEvaluationData{..} expected ->
-        case deserialiseScript PlutusV1 dataProtocolVersion dataScript of
-            Right script ->
-                let (_, actual) =
-                        V1.evaluateScriptRestricting
-                            dataProtocolVersion
-                            V1.Quiet
-                            ctx
-                            dataBudget
-                            script
-                            dataInputs
-                 in verify expected actual
-            Left err -> pure $ Just (DecodeError err)
-    PlutusV2Event ScriptEvaluationData{..} expected ->
-        case deserialiseScript PlutusV2 dataProtocolVersion dataScript of
-            Right script ->
-                let (_, actual) =
-                        V2.evaluateScriptRestricting
-                            dataProtocolVersion
-                            V2.Quiet
-                            ctx
-                            dataBudget
-                            script
-                            dataInputs
-                 in verify expected actual
-            Left err -> pure $ Just (DecodeError err)
-  where
-    verify ScriptEvaluationSuccess (Left err) =
-        pure $ Just $ UnexpectedEvaluationFailure ev params err
-    verify ScriptEvaluationFailure (Right budget) =
-        pure $ Just $ UnexpectedEvaluationSuccess ev params budget
-    verify _ _ = pure Nothing
+-- Analyse values in ScriptContext
 
 stringOfPurpose :: V1.ScriptPurpose -> String
 stringOfPurpose = \case
@@ -162,9 +131,6 @@ stringOfPurpose = \case
     V1.Spending   _ -> "Spending"
     V1.Rewarding  _ -> "Rewarding"
     V1.Certifying _ -> "Certifying"
-
-
--- Analyse values in ScriptContext
 
 shapeOfValue :: V1.Value  -> String
 shapeOfValue (V1.Value m) =
@@ -206,11 +172,10 @@ analyseTxInfoV2 i = do
   putStr "Outputs: "
   analyseOutputsV2 $ V2.txInfoOutputs i
 
-analyseScriptContext
-    :: EvaluationContext
-    -> [Integer]  -- Cost parameters
-    -> ScriptEvaluationEvent
-    -> IO ()
+-- Minting policy arguments: redeemer, context
+-- Validator arguments: datum, redeemer, context
+
+analyseScriptContext :: EventAnalyser
 analyseScriptContext _ctx _params ev = case ev of
     PlutusV1Event ScriptEvaluationData{..} _expected ->
         case dataInputs of
@@ -236,8 +201,9 @@ analyseScriptContext _ctx _params ev = case ev of
                          putStrLn $ stringOfPurpose $ V2.scriptContextPurpose p
                          analyseTxInfoV2 $ V2.scriptContextTxInfo p
 
+-- Data object analysis
 
--- Redeemer analysis
+-- Statistics about a Data object
 
 data DataInfo = DataInfo
     { memUsage       :: Integer
@@ -250,57 +216,62 @@ data DataInfo = DataInfo
     , maxBsize       :: Integer  -- Maximum memoryUsage of bytestrings in B nodes
     , totalBsize     :: Integer  -- Total memoryUsage of bytestrings in B nodes
     , numListNodes   :: Integer
+    , maxListLen     :: Integer
     , numConstrNodes :: Integer
+    , maxConstrLen   :: Integer
     , numMapNodes    :: Integer
+    , maxMapLen      :: Integer
     } deriving stock (Show)
 
+-- Memory usage as an Integer (in units of 64 bits / 8 bytes)
 memU :: ExMemoryUsage a => a -> Integer
 memU = fromSatInt . sumCostStream . flattenCostRose . memoryUsage
 
+-- Header (useful for R)
 printDataHeader :: IO ()
 printDataHeader =
     printf "memUsage numNodes depth numI maxIsize totalIsize numB maxBsize totalBsize numL numC numM\n"
 
 printDataInfo :: DataInfo -> IO ()
 printDataInfo DataInfo{..} =
-    printf "%4d %4d %4d    %4d %4d %4d    %4d %4d %4d    %4d %4d %4d\n"
+    printf "%4d %4d %4d    %4d %4d %4d    %4d %4d %4d    %4d %4d   %4d %4d    %4d %4d\n"
            memUsage numNodes depth
            numINodes maxIsize totalIsize
            numBnodes maxBsize totalBsize
-           numListNodes numConstrNodes numMapNodes
+           numListNodes maxListLen
+           numConstrNodes maxConstrLen
+           numMapNodes maxMapLen
 
 printDataInfoFor :: Data -> IO ()
 printDataInfoFor = printDataInfo <$> getDataInfo
 
--- foldr :: Foldable t => (a -> b -> b) -> b -> t a -> b
-
+-- Traverse a Data object collecting information
 getDataInfo :: Data -> DataInfo
 getDataInfo d =
-    let (nI, mI, tI, nB, mB, tB, nL, nC, nM) = go d (0, 0, 0, 0, 0, 0, 0, 0, 0)
-        go x (ni, mi, ti, nb, mb, tb, nl, nc, nm) =
+    let ilen = fromIntegral . length
+        (nI, mI, tI, nB, mB, tB, nL, mL, nC, mC, nM, mM) = go d (0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+        go x (ni, mi, ti, nb, mb, tb, nl, ml, nc, mc, nm, mm) =
             case x of
-              I n        -> (ni+1, max mi s, ti+s, nb, mb, tb, nl, nc, nm) where s = memU n
-              B b        -> (ni, mi, ti, nb+1, max mb s, tb+s, nl, nc, nm) where s = memU b
-              List l     -> foldr go (ni, mi, ti, nb, mb, tb, nl+1, nc, nm) l
-              Constr _ l -> foldr go (ni, mi, ti, nb, mb, tb, nl, nc+1, nm) l
-              Map l      -> let (a,b) = unzip l
-                            in foldr go (foldr go (ni, mi, ti, nb, mb, tb, nl, nc, nm+1) a) b
+              I n             -> (ni+1, max mi s, ti+s, nb, mb, tb, nl, ml, nc, mc, nm, mm) where s = memU n
+              B b             -> (ni, mi, ti, nb+1, max mb s, tb+s, nl, ml, nc, mc, nm, mm) where s = memU b
+              List l          -> foldr go (ni, mi, ti, nb, mb, tb, nl+1, ml', nc, mc, nm, mm) l where ml' = max ml (ilen l)
+              Data.Constr _ l -> foldr go (ni, mi, ti, nb, mb, tb, nl, ml, nc+1, mc', nm, mm) l where mc' = max mc (ilen l)
+              Map l           -> let (a,b) = unzip l
+                                 in foldr go (foldr go (ni, mi, ti, nb, mb, tb, nl, ml, nc, mc, nm+1, mm') a) b
+                                     where mm' = max mm (ilen l)
         getDepth = \case
-              I n        -> 1
-              B b        -> 1
-              List l     -> 1 + depthList l
-              Constr _ l -> 1 + depthList l
-              Map l      -> let (a,b) = unzip l
-                            in 1 + max (depthList a) (depthList b)
+              I n             -> 1
+              B b             -> 1
+              List l          -> 1 + depthList l
+              Data.Constr _ l -> 1 + depthList l
+              Map l           -> let (a,b) = unzip l
+                                 in 1 + max (depthList a) (depthList b)
         depthList = foldl (\n a -> max n (getDepth a)) 0
-    in DataInfo (memU d) (nI+nB+nL+nC+nM) (getDepth d) nI mI tI nB mB tB nL nC nM
+    in DataInfo (memU d) (nI+nB+nL+nC+nM) (getDepth d) nI mI tI nB mB tB nL mL nC mC nM mM
 
 
-analyseRedeemer
-    :: EvaluationContext
-    -> [Integer]
-    -> ScriptEvaluationEvent
-    -> IO ()
+-- Analyse a redeemer (as a Data object) from a script evaluation event
+analyseRedeemer :: EventAnalyser
 analyseRedeemer _ctx _params ev = do
   case ev of
       PlutusV1Event ScriptEvaluationData{..} _expected ->
@@ -314,11 +285,8 @@ analyseRedeemer _ctx _params ev = do
             [r,_c]     -> printDataInfoFor r
             _          -> putStrLn "Unexpected script arguments"
 
-analyseDatum
-    :: EvaluationContext
-    -> [Integer]
-    -> ScriptEvaluationEvent
-    -> IO ()
+-- Analyse a datum (as a Data object) from a script evaluation event
+analyseDatum :: EventAnalyser
 analyseDatum _ctx _params ev = do
   case ev of
       PlutusV1Event ScriptEvaluationData{..} _expected ->
@@ -332,15 +300,44 @@ analyseDatum _ctx _params ev = do
             [_r,_c]    -> pure ()
             _          -> putStrLn "Unexpected script arguments"
 
+-- Extract the script from an evaluation event and apply some analysis function
+analyseUnappliedScript
+    :: (Term NamedDeBruijn DefaultUni DefaultFun () -> IO ())
+    -> EventAnalyser
+analyseUnappliedScript analyse _ctx _params ev = do
+  case ev of
+      PlutusV1Event ScriptEvaluationData{..} _expected ->
+          go $ deserialiseScript PlutusV1 dataProtocolVersion dataScript
+      PlutusV2Event ScriptEvaluationData{..} _expected ->
+          go $ deserialiseScript PlutusV2 dataProtocolVersion dataScript
+    where go = \case
+               Left err -> putStrLn $ show err
+               Right s ->
+                   let ScriptNamedDeBruijn (Program _ _ t) = deserialisedScript s
+                   in analyse t
 
--- | Test cases from a single event dump file
+-- Print statistics about Data objects in a Term
+analyseTermDataObjects :: Term NamedDeBruijn DefaultUni DefaultFun () -> IO ()
+analyseTermDataObjects = go
+    where go =
+              \case
+               Var _ _            -> pure ()
+               LamAbs _ _ t       -> go t
+               Apply _ t1 t2      -> go t1 >> go t2
+               Force _ t          -> go t
+               Delay _ t          -> go t
+               Constant _ c       ->
+                   case c of
+                     Some (ValueOf DefaultUniData d) -> printDataInfoFor d
+                     _                               -> pure ()
+               Builtin _ _        -> pure ()
+               Error _            -> pure ()
+               UPLC.Constr _ _ ts -> mapM_ go ts
+               Case _ t1 t2       -> go t1 >> mapM_ go t2
+
+-- | Run some analysis function over the events from a single event dump file
 analyseOneFile
-    ::
-      ( EvaluationContext
-      -> [Integer]
-      -> ScriptEvaluationEvent
-      -> IO ()
-      )
+    :: EventAnalyser
     -> FilePath
     -> IO ()
 analyseOneFile analyse eventFile = do
@@ -374,8 +371,29 @@ analyseOneFile analyse eventFile = do
                 Nothing            -> putStrLn "*** ctxV2 missing ***" >> hFlush stdout
 
 main :: IO ()
-main = do
-    dir <- getEnv "EVENT_DUMP_DIR"
-    eventFiles <- filter ("event" `isExtensionOf`) <$> listFiles dir
-    printDataHeader
-    mapM_ (analyseOneFile analyseRedeemer) eventFiles
+main =
+    let analyses =
+            [ ("values",     doAnalysis analyseScriptContext)
+            , ("redeemers",  printDataHeader `andthen` analyseRedeemer)
+            , ("datums",     printDataHeader `andthen` analyseDatum)
+            , ("scriptData", printDataHeader `andthen` analyseUnappliedScript analyseTermDataObjects)
+            ]
+        andthen :: IO a -> EventAnalyser -> FilePath -> IO () -- m x -> p -> q -> m ()
+        (f `andthen` g) x = f >> doAnalysis g x
+--      f `andthen` g  = \x -> (f >> doAnalysis g x)
+        doAnalysis :: EventAnalyser -> FilePath -> IO ()  -- p -> q -> m ()
+        doAnalysis analyser dir =
+                     filter ("event" `isExtensionOf`) <$> listFiles dir >>= \case
+                                []         -> printf "No event files in %s\n" dir
+                                eventFiles -> mapM_ (analyseOneFile analyser) eventFiles
+        usage = do
+          getProgName >>= printf "Usage: %s <dir> <analysis>\n"
+          printf "Avaliable analyses:\n"
+          mapM_ (printf "   %s\n") (fmap fst analyses)
+
+    in getArgs >>= \case
+           [dir, name] ->
+               case lookup name analyses of
+                    Just analyser -> analyser dir
+                    Nothing       -> printf "Unknown analysis: %s\n" name >> usage
+           _ -> usage

@@ -10,6 +10,7 @@ module PlutusLedgerApi.Common
     , deserialiseScript
     , uncheckedDeserialiseUPLC
     , ScriptDecodeError (..)
+    , ScriptNamedDeBruijn (..)
 
       -- * Script evaluation
     , evaluateScriptCounting
