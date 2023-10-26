@@ -404,6 +404,9 @@ in the other, since in that case computing equality of values was expensive and 
    this resource is quite scarce as the size of a program growing beyond what's acceptable by the
    network can be a real deal breaker, while general performance concerns don't seem to be as
    pressing
+
+The algorithm we use here is very similar, if not identical, to @valueEqualsValue4@ from
+https://github.com/input-output-hk/plutus/issues/5135
 -}
 unordEqWith :: forall k v. Eq k => (v -> Bool) -> (v -> v -> Bool) -> [(k, v)] -> [(k, v)] -> Bool
 unordEqWith is0 eqV = goBoth where
