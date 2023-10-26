@@ -33,7 +33,8 @@ import GHC.Generics (Generic)
 import System.Directory.Extra (listFiles)
 import System.Environment (getArgs, getProgName)
 import System.FilePath (isExtensionOf)
-import Text.Printf (printf)
+import System.IO (stderr)
+import Text.Printf (hPrintf, printf)
 
 {- The ScriptEvaluationData type used to contain a ProtocolVersion but now
  contains only a MajorProtocolVersion.  The program which dumps the mainnet
@@ -370,9 +371,9 @@ main =
                                 []         -> printf "No event files in %s\n" dir
                                 eventFiles -> mapM_ (analyseOneFile analyser) eventFiles
         usage = do
-          getProgName >>= printf "Usage: %s <dir> <analysis>\n"
-          printf "Avaliable analyses:\n"
-          mapM_ (printf "   %s\n") (fmap fst analyses)
+          getProgName >>= hPrintf stderr "Usage: %s <dir> <analysis>\n"
+          hPrintf stderr"Avaliable analyses:\n"
+          mapM_ (hPrintf stderr "   %s\n") (fmap fst analyses)
 
     in getArgs >>= \case
            [dir, name] ->
