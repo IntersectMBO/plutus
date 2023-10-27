@@ -20,6 +20,7 @@ module PlutusTx.List (
     findIndex,
     foldr,
     foldl,
+    revAppend,
     reverse,
     concat,
     concatMap,
@@ -106,6 +107,7 @@ any f = go
         []     -> False
         x : xs -> if f x then True else go xs
 
+-- The pragma improves some of the budget tests.
 {-# INLINABLE all #-}
 -- | Determines whether all elements of the list satisfy the predicate.
 all :: forall a. (a -> Bool) -> [a] -> Bool
@@ -244,14 +246,24 @@ xs0 !! n0 = go n0 xs0
             then x
             else go (Builtins.subtractInteger n 1) xs
 
-{-# INLINABLE reverse #-}
--- | Plutus Tx version of 'Data.List.reverse'.
-reverse :: [a] -> [a]
-reverse l = rev l []
-  where
+{-# INLINABLE revAppend #-}
+-- | Cons each element of the first list to the second one in reverse order (i.e. the last element
+-- of the first list is the head of the result).
+--
+-- > revAppend xs ys === reverse xs ++ ys
+--
+-- >>> revAppend "abc" "de"
+-- "cbade"
+revAppend :: forall a. [a] -> [a] -> [a]
+revAppend = rev where
+    rev :: [a] -> [a] -> [a]
     rev []     a = a
     rev (x:xs) a = rev xs (x:a)
 
+{-# INLINABLE reverse #-}
+-- | Plutus Tx version of 'Data.List.reverse'.
+reverse :: [a] -> [a]
+reverse l = revAppend l []
 
 {-# INLINABLE zip #-}
 -- | Plutus Tx version of 'Data.List.zip'.

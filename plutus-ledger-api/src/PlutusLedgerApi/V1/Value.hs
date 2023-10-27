@@ -6,6 +6,7 @@
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE TypeApplications   #-}
+{-# LANGUAGE ViewPatterns       #-}
 
 {-# OPTIONS_GHC -Wno-orphans #-}
 -- Prevent unboxing, which the plugin can't deal with
@@ -18,7 +19,7 @@
 -- TODO. Look into this more closely: see PLT-7976.
 
 -- | Functions for working with 'Value'.
-module PlutusLedgerApi.V1.Value(
+module PlutusLedgerApi.V1.Value (
     -- ** Currency symbols
       CurrencySymbol(..)
     , currencySymbol
@@ -165,6 +166,13 @@ newtype AssetClass = AssetClass { unAssetClass :: (CurrencySymbol, TokenName) }
 assetClass :: CurrencySymbol -> TokenName -> AssetClass
 assetClass s t = AssetClass (s, t)
 
+{- Note [Value vs value]
+We call two completely different things "values": the 'Value' type and a value within a key-value
+pair. To distinguish between the two we write the former with a capital "V" and enclosed in single
+quotes and we write the latter with a lower case "v" and without the quotes, i.e. 'Value' vs value.
+-}
+
+-- See Note [Value vs value].
 {- | The 'Value' type represents a collection of amounts of different currencies.
 We can think of 'Value' as a vector space whose dimensions are currencies.
 To create a value of 'Value', we need to specify a currency. This can be done
@@ -287,7 +295,9 @@ unionWith f ls rs =
     in Value (fmap (fmap unThese) combined)
 
 {-# INLINABLE flattenValue #-}
--- | Convert a value to a simple list, keeping only the non-zero amounts.
+-- | Convert a 'Value' to a simple list, keeping only the non-zero amounts.
+-- Note that the result isn't sorted, meaning @v1 == v2@ doesn't generally imply
+-- @flattenValue v1 == flattenValue v2@.
 flattenValue :: Value -> [(CurrencySymbol, TokenName, Integer)]
 flattenValue v = goOuter [] (Map.toList $ getValue v)
   where
@@ -327,20 +337,16 @@ checkBinRel f l r =
             These a b -> f a b
     in checkPred unThese l r
 
-{-# INLINABLE eq #-}
--- | Check whether one 'Value' is equal to another. See 'Value' for an explanation of how operations on 'Value's work.
-eq :: Value -> Value -> Bool
--- If both are zero then checkBinRel will be vacuously true, but this is fine.
-eq = checkBinRel (==)
-
 {-# INLINABLE geq #-}
--- | Check whether one 'Value' is greater than or equal to another. See 'Value' for an explanation of how operations on 'Value's work.
+-- | Check whether one 'Value' is greater than or equal to another. See 'Value' for an explanation
+-- of how operations on 'Value's work.
 geq :: Value -> Value -> Bool
 -- If both are zero then checkBinRel will be vacuously true, but this is fine.
 geq = checkBinRel (>=)
 
 {-# INLINABLE leq #-}
--- | Check whether one 'Value' is less than or equal to another. See 'Value' for an explanation of how operations on 'Value's work.
+-- | Check whether one 'Value' is less than or equal to another. See 'Value' for an explanation of
+-- how operations on 'Value's work.
 leq :: Value -> Value -> Bool
 -- If both are zero then checkBinRel will be vacuously true, but this is fine.
 leq = checkBinRel (<=)
@@ -357,8 +363,8 @@ gt l r = geq l r && not (eq l r)
 lt :: Value -> Value -> Bool
 lt l r = leq l r && not (eq l r)
 
--- | Split a value into its positive and negative parts. The first element of
---   the tuple contains the negative parts of the value, the second element
+-- | Split a 'Value' into its positive and negative parts. The first element of
+--   the tuple contains the negative parts of the 'Value', the second element
 --   contains the positive parts.
 --
 --   @negate (fst (split a)) `plus` (snd (split a)) == a@
@@ -371,6 +377,86 @@ split (Value mp) = (negate (Value neg), Value pos) where
   splitIntl :: Map.Map TokenName Integer -> These (Map.Map TokenName Integer) (Map.Map TokenName Integer)
   splitIntl mp' = These l r where
     (l, r) = Map.mapThese (\i -> if i <= 0 then This i else That i) mp'
+
+{-# INLINABLE unordEqWith #-}
+{- | Check equality of two lists given a function checking whether a 'Value' is zero and a function
+checking equality of values.
+
+This function recurses on both the lists in parallel and checks whether the key-value pairs are
+equal pointwise. If there is a mismatch, then it tries to find the left key-value pair in the right
+list. If that succeeds then the pair is removed from both the lists and recursion proceeds pointwise
+as before until there's another mismatch. If at some point a key-value pair from the left list is
+not found in the right one, then the function returns 'False'. If the left list is exhausted, but
+the right one still has some non-zero elements, the function returns 'False' as well.
+
+We check equality of values of two key-value pairs right after ensuring that the keys match. This is
+disadvantageous if the values are big and there's a key that is present in one of the lists but not
+in the other, since in that case computing equality of values was expensive and pointless. However
+
+1. we've checked and on the chain 'Value's very rarely contain 'CurrencySymbol's with more than 3
+   'TokenName's associated with them, so we optimize for the most common use case
+2. computing equality of values before ensuring equality of all the keys certainly does help when we
+   check equality of 'TokenName'-value pairs, since the value of a 'TokenName' is an 'Integer' and
+   @(==) :: Integer -> Integer -> Bool@ is generally much faster than repeatedly searching for keys
+   in a list
+3. having some clever logic for computing equality of values right away in some cases, but not in
+   others would not only complicate the algorithm, but also increase the size of the function and
+   this resource is quite scarce as the size of a program growing beyond what's acceptable by the
+   network can be a real deal breaker, while general performance concerns don't seem to be as
+   pressing
+
+The algorithm we use here is very similar, if not identical, to @valueEqualsValue4@ from
+https://github.com/input-output-hk/plutus/issues/5135
+-}
+unordEqWith :: forall k v. Eq k => (v -> Bool) -> (v -> v -> Bool) -> [(k, v)] -> [(k, v)] -> Bool
+unordEqWith is0 eqV = goBoth where
+    -- Recurse on the spines of both the lists simultaneously.
+    goBoth :: [(k, v)] -> [(k, v)] -> Bool
+    -- One spine is longer than the other one, but this still can result in a succeeding equality
+    -- check if the non-empty list only contains zero values.
+    goBoth []                 kvsR                             = all (is0 . snd) kvsR
+    -- Symmetric to the previous case.
+    goBoth kvsL               []                               = all (is0 . snd) kvsL
+    -- Both spines are non-empty.
+    goBoth ((kL, vL) : kvsL') kvsR0@(kvR0@(kR0, vR0) : kvsR0')
+        -- We could've avoided having this clause if we always searched for the right key-value pair
+        -- using @goRight@, however the sheer act of invoking that function, passing an empty list
+        -- to it as an accumulator and calling 'revAppend' afterwards affects performance quite a
+        -- bit, considering that all of that happens for every single element of the left list.
+        -- Hence we handle the special case of lists being equal pointwise (or at least their
+        -- prefixes being equal pointwise) with a bit of additional logic to get some easy
+        -- performance gains.
+        | kL == kR0  = if vL `eqV` vR0 then goBoth kvsL' kvsR0' else False
+        | is0 vL     = goBoth kvsL' kvsR0
+        | otherwise  = goRight [kvR0 | not $ is0 vR0] kvsR0'
+        where
+            -- Recurse on the spine of the right list looking for a key-value pair whose key matches
+            -- @kL@, i.e. the first key in the remaining part of the left list. The accumulator
+            -- contains (in reverse order) all elements of the right list processed so far whose
+            -- keys are not equal to @kL@ and values are non-zero.
+            goRight :: [(k, v)] -> [(k, v)] -> Bool
+            goRight _   []                     = False
+            goRight acc (kvR@(kR, vR) : kvsR')
+                | is0 vR    = goRight acc kvsR'
+                -- @revAppend@ recreates @kvsR0'@ with @(kR, vR)@ removed, since that pair
+                -- equals @(kL, vL)@ from the left list, hence we throw both of them away.
+                | kL == kR  = if vL `eqV` vR then goBoth kvsL' (revAppend acc kvsR') else False
+                | otherwise = goRight (kvR : acc) kvsR'
+
+{-# INLINABLE eqMapWith #-}
+-- | Check equality of two 'Map's given a function checking whether a value is zero and a function
+-- checking equality of values.
+eqMapWith ::
+    forall k v. Eq k => (v -> Bool) -> (v -> v -> Bool) -> Map.Map k v -> Map.Map k v -> Bool
+eqMapWith is0 eqV (Map.toList -> xs1) (Map.toList -> xs2) = unordEqWith is0 eqV xs1 xs2
+
+{-# INLINABLE eq #-}
+-- | Check equality of two 'Value's. Does not assume orderness of lists within a 'Value' or a lack
+-- of empty values (such as a token whose quantity is zero or a currency that has a bunch of such
+-- tokens or no tokens at all), but does assume that no currencies or tokens within a single
+-- currency have multiple entries.
+eq :: Value -> Value -> Bool
+eq (Value currs1) (Value currs2) = eqMapWith (Map.all (0 ==)) (eqMapWith (0 ==) (==)) currs1 currs2
 
 makeLift ''CurrencySymbol
 makeLift ''TokenName
