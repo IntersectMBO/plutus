@@ -310,10 +310,10 @@ main =
     in getArgs >>= \case
            [dir, name] ->
                case lookup name analyses of
+                    Nothing       -> printf "Unknown analysis: %s\n" name >> usage
                     Just analysis ->
                         filter ("event" `isExtensionOf`) <$> listFiles dir >>= \case
                                    []         -> printf "No event files in %s\n" dir
                                    eventFiles -> analysis eventFiles
-                    Nothing       -> printf "Unknown analysis: %s\n" name >> usage
            _ -> usage
 
