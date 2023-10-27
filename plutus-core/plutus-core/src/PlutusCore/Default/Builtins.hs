@@ -1180,13 +1180,11 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         makeBuiltinMeaning
             Hash.blake2b_256
             (runCostingFunOneArgument . paramBlake2b_256)
-    toBuiltinMeaning _semvar VerifyEd25519Signature =
-        let verifyEd25519Signature a b c =
-                let r1 = verifyEd25519Signature_V1 a b c
-                    r2 = verifyEd25519Signature_V2 a b c
-                in if runEmitter r1 == runEmitter r2
-                   then r1
-                   else error $ "Verification mismatch: " ++ (show a) ++ ", "  ++ (show b) ++ ", " ++ (show c)
+    toBuiltinMeaning semvar VerifyEd25519Signature =
+        let verifyEd25519Signature =
+                case semvar of
+                  DefaultFunSemanticsVariant1 -> verifyEd25519Signature_V1
+                  DefaultFunSemanticsVariant2 -> verifyEd25519Signature_V2
         in makeBuiltinMeaning
            verifyEd25519Signature
            -- Benchmarks indicate that the two variants have very similar

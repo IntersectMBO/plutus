@@ -184,10 +184,11 @@ test-suite plutus-ledger-api-plugin-test
     , prettyprinter
     , tasty
 
-executable evaluation-test
+executable test-onchain-evaluation
   import:           lang
   main-is:          Main.hs
-  hs-source-dirs:   test-onchain-evaluation
+  other-modules:    LoadScriptEvents
+  hs-source-dirs:   exe/test-onchain-evaluation exe/common
   ghc-options:      -threaded -rtsopts -with-rtsopts=-N
   build-depends:
     , async
@@ -206,10 +207,11 @@ executable evaluation-test
 
 -- This is a nightly test, so it is an executable instead of test-suite to avoid
 -- running this in CI.
-executable analyse-scripts
+executable analyse-script-events
   import:           lang
   main-is:          Main.hs
-  hs-source-dirs:   analyse-dumped-scripts
+  other-modules:    LoadScriptEvents
+  hs-source-dirs:   exe/analyse-script-events exe/common
   ghc-options:      -threaded -rtsopts -with-rtsopts=-N
   build-depends:
     , base                                                              >=4.9   && <5
