@@ -293,10 +293,10 @@ analyseOneFile analyse eventFile = do
 main :: IO ()
 main =
     let analyses =
-            [ ("values",     doAnalysis analyseScriptContext)
-            , ("redeemers",  printDataHeader `thenDoAnalysis` analyseRedeemer)
-            , ("datums",     printDataHeader `thenDoAnalysis` analyseDatum)
-            , ("scriptData", printDataHeader `thenDoAnalysis` analyseUnappliedScript analyseTermDataObjects)
+            [ ("values",      doAnalysis analyseScriptContext)
+            , ("redeemers" ,  printDataHeader `thenDoAnalysis` analyseRedeemer)
+            , ("datums",      printDataHeader `thenDoAnalysis` analyseDatum)
+            , ("script-data", printDataHeader `thenDoAnalysis` analyseUnappliedScript analyseTermDataObjects)
             ]
 
         doAnalysis analyser = mapM_ (analyseOneFile analyser)
