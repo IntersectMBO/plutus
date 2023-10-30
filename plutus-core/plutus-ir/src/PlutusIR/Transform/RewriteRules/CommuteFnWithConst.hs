@@ -1,6 +1,6 @@
-{-# LANGUAGE GADTs            #-}
-{-# LANGUAGE LambdaCase       #-}
-{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE GADTs         #-}
+{-# LANGUAGE LambdaCase    #-}
+{-# LANGUAGE TypeOperators #-}
 
 {- | Commute such that constants are the first arguments. Consider:
 
@@ -28,63 +28,52 @@ might expect that `equalsInteger` is the one that will benefit the most.
 Plutonomy only commutes `EqualsInteger` in their `commEquals`.
 -}
 
-module PlutusIR.Transform.CommuteFnWithConst
-  (commuteFnWithConst
-  , commuteDefaultFun)
-  where
+module PlutusIR.Transform.RewriteRules.CommuteFnWithConst
+    ( commuteFnWithConst
+    ) where
 
-import Control.Lens (over)
-import Data.Typeable (Typeable, eqT)
 import PlutusCore.Default
-import PlutusIR.Core.Plated (termSubterms)
 import PlutusIR.Core.Type (Term (Apply, Builtin, Constant))
 
 isConstant :: Term tyname name uni fun a -> Bool
-isConstant Constant{} = True
-isConstant _          = False
+isConstant = \case
+    Constant{} -> True
+    _          -> False
 
-commuteDefaultFun ::
-    forall tyname name uni a.
-    Term tyname name uni DefaultFun a ->
-    Term tyname name uni DefaultFun a
-commuteDefaultFun = over termSubterms commuteDefaultFun . localCommute
-  where
-    localCommute tm@(Apply ann (Apply ann1 (Builtin annB fun) x) y@Constant{})
-      | isCommutative fun && not (isConstant x) =
-          Apply ann (Apply ann1 (Builtin annB fun) y) x
-      | otherwise                   = tm
-    localCommute tm = tm
-
-commuteFnWithConst :: forall tyname name uni fun a. Typeable fun =>
-    Term tyname name uni fun a -> Term tyname name uni fun a
-commuteFnWithConst = case eqT @fun @DefaultFun of
-    Just Refl -> commuteDefaultFun
-    Nothing   -> id
+commuteFnWithConst :: (t ~ Term tyname name uni DefaultFun a) => t -> t
+commuteFnWithConst = \case
+    Apply ann1 (Apply ann2 (Builtin ann3 fun) arg1) arg2
+        | isCommutative fun
+        , not (isConstant arg1)
+        , isConstant arg2
+        -> Apply ann1 (Apply ann2 (Builtin ann3 fun) arg2) arg1
+    t -> t
 
 -- | Returns whether a `DefaultFun` is commutative. Not using
 -- catchall to make sure that this function catches newly added `DefaultFun`.
 isCommutative :: DefaultFun -> Bool
 isCommutative = \case
   AddInteger                      -> True
-  SubtractInteger                 -> False
   MultiplyInteger                 -> True
+  EqualsInteger                   -> True
+  EqualsByteString                -> True
+  EqualsString                    -> True
+  EqualsData                      -> True
+  -- verbose laid down, to revisit this function if a new builtin is added
+  SubtractInteger                 -> False
   DivideInteger                   -> False
   QuotientInteger                 -> False
   RemainderInteger                -> False
   ModInteger                      -> False
-  EqualsInteger                   -> True
   LessThanInteger                 -> False
   LessThanEqualsInteger           -> False
-    -- Bytestrings
   AppendByteString                -> False
   ConsByteString                  -> False
   SliceByteString                 -> False
   LengthOfByteString              -> False
   IndexByteString                 -> False
-  EqualsByteString                -> True
   LessThanByteString              -> False
   LessThanEqualsByteString        -> False
-    -- Cryptography and hashes
   Sha2_256                        -> False
   Sha3_256                        -> False
   Blake2b_224                     -> False
@@ -110,27 +99,19 @@ isCommutative = \case
   Bls12_381_millerLoop            -> False
   Bls12_381_mulMlResult           -> False
   Bls12_381_finalVerify           -> False
-    -- Strings
   AppendString                    -> False
-  EqualsString                    -> True
   EncodeUtf8                      -> False
   DecodeUtf8                      -> False
-    -- Bool
   IfThenElse                      -> False
-    -- Unit
   ChooseUnit                      -> False
-    -- Tracing
   Trace                           -> False
-    -- Pairs
   FstPair                         -> False
   SndPair                         -> False
-    -- Lists
   ChooseList                      -> False
   MkCons                          -> False
   HeadList                        -> False
   TailList                        -> False
   NullList                        -> False
-    -- Data
   ChooseData                      -> False
   ConstrData                      -> False
   MapData                         -> False
@@ -142,7 +123,6 @@ isCommutative = \case
   UnListData                      -> False
   UnIData                         -> False
   UnBData                         -> False
-  EqualsData                      -> True
   SerialiseData                   -> False
   MkPairData                      -> False
   MkNilData                       -> False

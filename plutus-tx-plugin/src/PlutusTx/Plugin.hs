@@ -81,6 +81,7 @@ import Data.Set qualified as Set
 import GHC.Num.Integer qualified
 import PlutusIR.Analysis.Builtins
 import PlutusIR.Compiler.Provenance (noProvenance, original)
+import PlutusIR.Transform.RewriteRules
 import Prettyprinter qualified as PP
 import System.IO (openTempFile)
 import System.IO.Unsafe (unsafePerformIO)
@@ -407,9 +408,10 @@ compileMarkedExpr locStr codeTy origE = do
             ccBlackholed = mempty,
             ccCurDef = Nothing,
             ccModBreaks = modBreaks,
-            ccBuiltinsInfo = (def & biMatcherLike .~ defaultUniMatcherLike),
+            ccBuiltinsInfo = def,
             ccBuiltinCostModel = def,
-            ccDebugTraceOn = _posDumpCompilationTrace opts
+            ccDebugTraceOn = _posDumpCompilationTrace opts,
+            ccRewriteRules = def
             }
         st = CompileState 0 mempty
     -- See Note [Occurrence analysis]
@@ -505,7 +507,7 @@ runCompiler moduleName opts expr = do
                     (if plcVersion < PLC.plcVersion110
                         then PIR.ScottEncoding else PIR.SumsOfProducts)
                  -- TODO: ensure the same as the one used in the plugin
-                 & set PIR.ccBuiltinsInfo (def & biMatcherLike .~ defaultUniMatcherLike)
+                 & set PIR.ccBuiltinsInfo def
                  & set PIR.ccBuiltinCostModel def
         plcOpts = PLC.defaultCompilationOpts
             & set (PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations)

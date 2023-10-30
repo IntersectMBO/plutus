@@ -6,7 +6,6 @@ import PlutusIR.Generators.AST
 import PlutusIR.Mark
 import PlutusIR.Transform.Beta
 import PlutusIR.Transform.CaseReduce
-import PlutusIR.Transform.CommuteFnWithConst
 import PlutusIR.Transform.DeadCode
 import PlutusIR.Transform.EvaluateBuiltins
 import PlutusIR.Transform.Inline.Inline qualified as Inline
@@ -16,6 +15,7 @@ import PlutusIR.Transform.LetMerge
 import PlutusIR.Transform.NonStrict
 import PlutusIR.Transform.RecSplit
 import PlutusIR.Transform.Rename
+import PlutusIR.Transform.RewriteRules.CommuteFnWithConst
 import PlutusIR.Transform.ThunkRecursions
 import PlutusIR.Transform.Unwrap
 
@@ -32,8 +32,8 @@ test_names = testGroup "names"
         pure . beta
     , T.test_scopingGood "case-of-known-constructor" genTerm T.BindingRemovalNotOk T.PrerenameYes $
         pure . caseReduce
-    , T.test_scopingGood "'commuteDefaultFun'" genTerm T.BindingRemovalNotOk T.PrerenameYes $
-        pure . commuteDefaultFun
+    , T.test_scopingGood "commuteFnWithConst" genTerm T.BindingRemovalNotOk T.PrerenameYes $
+        pure . commuteFnWithConst
     , -- We say that it's fine to remove bindings, because they never actually get removed,
       -- because the scope checking machinery doesn't create unused bindings, every binding
       -- gets referenced at some point at least once (usually very close to the binding site).

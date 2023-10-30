@@ -503,7 +503,6 @@ library plutus-ir
     PlutusIR.Transform.Beta
     PlutusIR.Transform.CaseOfCase
     PlutusIR.Transform.CaseReduce
-    PlutusIR.Transform.CommuteFnWithConst
     PlutusIR.Transform.DeadCode
     PlutusIR.Transform.EvaluateBuiltins
     PlutusIR.Transform.Inline.CallSiteInline
@@ -516,6 +515,8 @@ library plutus-ir
     PlutusIR.Transform.NonStrict
     PlutusIR.Transform.RecSplit
     PlutusIR.Transform.Rename
+    PlutusIR.Transform.RewriteRules
+    PlutusIR.Transform.RewriteRules.CommuteFnWithConst
     PlutusIR.Transform.StrictifyBindings
     PlutusIR.Transform.Substitute
     PlutusIR.Transform.ThunkRecursions
@@ -588,7 +589,6 @@ test-suite plutus-ir-test
     PlutusIR.Transform.Beta.Tests
     PlutusIR.Transform.CaseOfCase.Tests
     PlutusIR.Transform.CaseReduce.Tests
-    PlutusIR.Transform.CommuteFnWithConst.Tests
     PlutusIR.Transform.DeadCode.Tests
     PlutusIR.Transform.EvaluateBuiltins.Tests
     PlutusIR.Transform.Inline.Tests
@@ -598,6 +598,7 @@ test-suite plutus-ir-test
     PlutusIR.Transform.NonStrict.Tests
     PlutusIR.Transform.RecSplit.Tests
     PlutusIR.Transform.Rename.Tests
+    PlutusIR.Transform.RewriteRules.Tests
     PlutusIR.Transform.StrictifyBindings.Tests
     PlutusIR.Transform.ThunkRecursions.Tests
     PlutusIR.Transform.Unwrap.Tests
@@ -607,6 +608,7 @@ test-suite plutus-ir-test
   build-depends:
     , base                                                       >=4.9   && <5
     , containers
+    , data-default-class
     , flat                                                       ^>=0.6
     , hashable
     , hedgehog

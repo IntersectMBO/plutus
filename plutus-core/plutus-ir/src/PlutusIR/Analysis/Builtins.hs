@@ -1,22 +1,22 @@
-{-# LANGUAGE GADTs            #-}
-{-# LANGUAGE KindSignatures   #-}
-{-# LANGUAGE RankNTypes       #-}
-{-# LANGUAGE TemplateHaskell  #-}
-{-# LANGUAGE TypeApplications #-}
-module PlutusIR.Analysis.Builtins (
-  BuiltinMatcherLike (..),
-  bmlSplitMatchContext,
-  bmlBranchArities,
-  defaultUniMatcherLike,
-
-  BuiltinsInfo (..),
-  biSemanticsVariant,
-  biMatcherLike,
-
-  builtinArityInfo,
-
-  asBuiltinDatatypeMatch,
-  builtinDatatypeMatchBranchArities) where
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GADTs             #-}
+{-# LANGUAGE KindSignatures    #-}
+{-# LANGUAGE PatternSynonyms   #-}
+{-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeApplications  #-}
+module PlutusIR.Analysis.Builtins
+    ( BuiltinMatcherLike (..)
+    , bmlSplitMatchContext
+    , bmlBranchArities
+    , defaultUniMatcherLike
+    , BuiltinsInfo (..)
+    , biSemanticsVariant
+    , biMatcherLike
+    , builtinArityInfo
+    , asBuiltinDatatypeMatch
+    , builtinDatatypeMatchBranchArities
+    ) where
 
 import Control.Lens hiding (parts)
 import Data.Functor (void)
@@ -44,11 +44,13 @@ data BuiltinsInfo (uni :: Type -> Type) fun = BuiltinsInfo
   { _biSemanticsVariant :: PLC.BuiltinSemanticsVariant fun
   , _biMatcherLike      :: Map.Map fun (BuiltinMatcherLike uni fun)
   }
-
 makeLenses ''BuiltinsInfo
 
-instance (Ord fun, Default (BuiltinSemanticsVariant fun)) => Default (BuiltinsInfo uni fun) where
-  def = BuiltinsInfo def mempty
+instance Default (BuiltinsInfo DefaultUni DefaultFun) where
+  def = BuiltinsInfo
+        { _biSemanticsVariant = def
+        , _biMatcherLike = defaultUniMatcherLike
+        }
 
 -- | Get the arity of a builtin function from the 'PLC.BuiltinInfo'.
 builtinArityInfo

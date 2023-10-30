@@ -106,4 +106,4 @@ checkUniques =
 prop_TypecheckInline :: BuiltinSemanticsVariant DefaultFun -> Property
 prop_TypecheckInline biVariant =
   withMaxSuccess 20000 $ nonPureTypecheckProp $
-    inline mempty (BuiltinsInfo biVariant defaultUniMatcherLike)
+    inline mempty (def {_biSemanticsVariant = biVariant})

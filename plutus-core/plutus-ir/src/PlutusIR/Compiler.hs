@@ -27,6 +27,7 @@ module PlutusIR.Compiler (
     coDoSimplifierInline,
     coDoSimplifierEvaluateBuiltins,
     coDoSimplifierStrictifyBindings,
+    coDoSimplifierRewrite,
     coInlineHints,
     coProfile,
     coRelaxedFloatin,
@@ -58,7 +59,6 @@ import PlutusIR.Error
 import PlutusIR.Transform.Beta qualified as Beta
 import PlutusIR.Transform.CaseOfCase qualified as CaseOfCase
 import PlutusIR.Transform.CaseReduce qualified as CaseReduce
-import PlutusIR.Transform.CommuteFnWithConst qualified as CommuteFnWithConst
 import PlutusIR.Transform.DeadCode qualified as DeadCode
 import PlutusIR.Transform.EvaluateBuiltins qualified as EvaluateBuiltins
 import PlutusIR.Transform.Inline.Inline qualified as Inline
@@ -69,6 +69,7 @@ import PlutusIR.Transform.LetMerge qualified as LetMerge
 import PlutusIR.Transform.NonStrict qualified as NonStrict
 import PlutusIR.Transform.RecSplit qualified as RecSplit
 import PlutusIR.Transform.Rename ()
+import PlutusIR.Transform.RewriteRules qualified as RewriteRules
 import PlutusIR.Transform.StrictifyBindings qualified as StrictifyBindings
 import PlutusIR.Transform.ThunkRecursions qualified as ThunkRec
 import PlutusIR.Transform.Unwrap qualified as Unwrap
@@ -140,7 +141,9 @@ availablePasses =
                                                                                   binfo <- view ccBuiltinsInfo
                                                                                   Inline.inline hints binfo t
                                                                               )
-    , Pass "commuteFnWithConst" (onOption coDoSimplifiercommuteFnWithConst) (pure . CommuteFnWithConst.commuteFnWithConst)
+    , Pass "rewrite rules" (onOption coDoSimplifierRewrite) (\ t -> do
+                                                                    rules <- view ccRewriteRules
+                                                                    RewriteRules.rewriteWith rules t)
     ]
 
 -- | Actual simplifier
@@ -150,11 +153,12 @@ simplify
 simplify = foldl' (>=>) pure (map applyPass availablePasses)
 
 -- | Perform some simplification of a 'Term'.
+--
+-- NOTE: simplifyTerm requires at least 1 prior dead code elimination pass
 simplifyTerm
   :: forall m e uni fun a b. (Compiling m e uni fun a, b ~ Provenance a)
   => Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
 simplifyTerm = runIfOpts simplify'
-    -- NOTE: we need at least one pass of dead code elimination
     where
         simplify' :: Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
         simplify' t = do
