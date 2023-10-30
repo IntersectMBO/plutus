@@ -32,4 +32,4 @@ test_thunkRecursions = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transf
 prop_TypecheckThunkRecursions :: BuiltinSemanticsVariant DefaultFun -> Property
 prop_TypecheckThunkRecursions biVariant =
   withMaxSuccess 5000 $ pureTypecheckProp $
-    thunkRecursions $ BuiltinsInfo biVariant defaultUniMatcherLike
+    thunkRecursions $ def {_biSemanticsVariant = biVariant}

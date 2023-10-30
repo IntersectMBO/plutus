@@ -51,8 +51,10 @@ import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Pretty
 import PlutusCore.Pretty qualified as PLC
 import PlutusCore.Test
+import PlutusIR.Analysis.Builtins as PIR
 import PlutusIR.Core.Type (progTerm)
 import PlutusIR.Test ()
+import PlutusIR.Transform.RewriteRules as PIR
 import PlutusPrelude
 import PlutusTx.Code (CompiledCode, CompiledCodeIn, getPir, getPirNoAnn, getPlcNoAnn, sizePlc)
 import UntypedPlutusCore qualified as UPLC
@@ -181,6 +183,8 @@ instance
   , uni `PLC.Everywhere` Flat
   , Flat fun
   , Default (PLC.CostingPart uni fun)
+  , Default (PIR.BuiltinsInfo uni fun)
+  , Default (PIR.RewriteRules uni fun)
   ) =>
   ToTPlc (CompiledCodeIn uni fun a) uni fun
   where

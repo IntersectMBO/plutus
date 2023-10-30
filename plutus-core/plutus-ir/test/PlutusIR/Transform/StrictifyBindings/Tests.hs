@@ -28,4 +28,4 @@ test_strictifyBindings = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Tran
 prop_TypecheckStrictifyBindings :: BuiltinSemanticsVariant DefaultFun -> Property
 prop_TypecheckStrictifyBindings biVariant =
   withMaxSuccess 5000 $
-    pureTypecheckProp (strictifyBindings (BuiltinsInfo biVariant defaultUniMatcherLike))
+    pureTypecheckProp (strictifyBindings (def {_biSemanticsVariant = biVariant}))

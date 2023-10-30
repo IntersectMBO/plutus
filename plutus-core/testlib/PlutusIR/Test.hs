@@ -31,8 +31,10 @@ import PlutusCore.Pretty qualified as PLC
 import PlutusCore.Quote (runQuoteT)
 import PlutusCore.Test hiding (ppCatch)
 import PlutusIR as PIR
+import PlutusIR.Analysis.Builtins
 import PlutusIR.Compiler as PIR
 import PlutusIR.Parser (Parser, pTerm, parse)
+import PlutusIR.Transform.RewriteRules
 import PlutusIR.TypeCheck
 import System.FilePath (joinPath, (</>))
 
@@ -53,6 +55,8 @@ instance
   , Typeable a
   , Ord a
   , Default (PLC.CostingPart uni fun)
+  , Default (BuiltinsInfo uni fun)
+  , Default (RewriteRules uni fun)
   ) =>
   ToTPlc (PIR.Program PIR.TyName PIR.Name uni fun a) uni fun
   where
@@ -67,6 +71,8 @@ instance
   , Typeable a
   , Ord a
   , Default (PLC.CostingPart uni fun)
+  , Default (BuiltinsInfo uni fun)
+  , Default (RewriteRules uni fun)
   ) =>
   ToUPlc (PIR.Program PIR.TyName PIR.Name uni fun a) uni fun
   where
@@ -93,7 +99,9 @@ compileWithOpts ::
   , PLC.PrettyUni uni
   , PLC.Pretty fun
   , PLC.Pretty a
+  , Default (BuiltinsInfo uni fun)
   , Default (PLC.CostingPart uni fun)
+  , Default (RewriteRules uni fun)
   ) =>
   (CompilationCtx uni fun a -> CompilationCtx uni fun a) ->
   PIR.Program PIR.TyName PIR.Name uni fun a ->

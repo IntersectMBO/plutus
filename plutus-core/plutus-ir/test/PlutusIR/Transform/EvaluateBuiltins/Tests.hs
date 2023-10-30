@@ -33,5 +33,5 @@ prop_TypecheckEvaluateBuiltins ::
 prop_TypecheckEvaluateBuiltins conservative biVariant =
   withMaxSuccess 40000 $
     pureTypecheckProp $
-        evaluateBuiltins conservative (BuiltinsInfo biVariant defaultUniMatcherLike) def
+        evaluateBuiltins conservative (def {_biSemanticsVariant = biVariant}) def
 

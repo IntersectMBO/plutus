@@ -76,4 +76,4 @@ prop_TypecheckFloatTerm ::
 prop_TypecheckFloatTerm biVariant conservative =
   withMaxSuccess 40000 $
     nonPureTypecheckProp $
-      LetFloatIn.floatTerm (BuiltinsInfo biVariant defaultUniMatcherLike) conservative
+      LetFloatIn.floatTerm (def {_biSemanticsVariant = biVariant}) conservative
