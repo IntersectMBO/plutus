@@ -18,6 +18,7 @@ module PlutusCore.Test (
   rethrow,
   runTPlc,
   runUPlc,
+  runUPlcLogs,
   ppCatch,
   ppCatchReadable,
   goldenTPlc,
@@ -59,6 +60,7 @@ import PlutusCore.Generators.Hedgehog.Utils
 import PlutusCore qualified as TPLC
 import PlutusCore.Annotation
 import PlutusCore.Check.Scoping
+import PlutusCore.Compiler qualified as TPLC
 import PlutusCore.DeBruijn
 import PlutusCore.Evaluation.Machine.Ck qualified as TPLC
 import PlutusCore.Evaluation.Machine.ExBudget qualified as TPLC
@@ -145,6 +147,13 @@ instance (ToUPlc a uni fun) => ToUPlc (ExceptT SomeException IO a) uni fun where
 
 instance ToUPlc (UPLC.Program TPLC.Name uni fun ()) uni fun where
   toUPlc = pure
+
+instance
+    ( TPLC.Typecheckable uni fun
+    )
+    => ToUPlc (TPLC.Program TPLC.TyName UPLC.Name uni fun ()) uni fun where
+    toUPlc =
+        pure . TPLC.runQuote . flip runReaderT TPLC.defaultCompilationOpts . TPLC.compileProgram
 
 instance ToUPlc (UPLC.Program UPLC.NamedDeBruijn uni fun ()) uni fun where
   toUPlc p =

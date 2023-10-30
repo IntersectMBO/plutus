@@ -15,14 +15,19 @@ import PlutusCore.Quote
 import PlutusIR as PIR
 import PlutusIR.Analysis.VarInfo
 import PlutusIR.Transform.RewriteRules.CommuteFnWithConst
+import PlutusIR.Transform.RewriteRules.UnConstrConstrData
 import PlutusPrelude
 
 import Control.Lens
 
 
--- | Rewrite a `Term` using the given `RewriteRules` (similar to functions of Term -> Term)
--- Normally the rewrite rules are configured at entrypoint time of the compiler.
-rewriteWith :: ( Semigroup a, t ~ Term tyname name uni fun a
+{- | Rewrite a `Term` using the given `RewriteRules` (similar to functions of Term -> Term)
+Normally the rewrite rules are configured at entrypoint time of the compiler.
+
+It goes without saying that the supplied rewrite rules must be type-preserving.
+MAYBE: enforce this with a `through typeCheckTerm`?
+-}
+rewriteWith :: ( Monoid a, t ~ Term tyname Name uni fun a
               , HasUniques t
               , MonadQuote m
               )
@@ -39,19 +44,19 @@ rewriteWith (RewriteRules rules) t =
 
 -- | A bundle of composed `RewriteRules`, to be passed at entrypoint of the compiler.
 newtype RewriteRules uni fun = RewriteRules {
-    unRewriteRules :: forall tyname name m a
-                   . (MonadQuote m, Semigroup a)
-                   => VarsInfo tyname name uni a
-                   -> PIR.Term tyname name uni fun a
-                   -> m (PIR.Term tyname name uni fun a)
+    unRewriteRules :: forall tyname m a
+                   . (MonadQuote m, Monoid a)
+                   => VarsInfo tyname Name uni a
+                   -> PIR.Term tyname Name uni fun a
+                   -> m (PIR.Term tyname Name uni fun a)
     }
 
 -- | The rules for the Default Universe/Builtin.
 defaultUniRewriteRules :: RewriteRules DefaultUni DefaultFun
-defaultUniRewriteRules = RewriteRules $ \ _vinfo ->
+defaultUniRewriteRules = RewriteRules $ \ vinfo ->
         -- The rules are composed from left to right.
         pure . commuteFnWithConst
-        -- e.g. >=> a follow-up rewrite rule
+        >=> unConstrConstrData def vinfo
 
 instance Default (RewriteRules DefaultUni DefaultFun) where
   def = defaultUniRewriteRules
