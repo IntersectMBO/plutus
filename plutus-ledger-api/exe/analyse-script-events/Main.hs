@@ -43,12 +43,14 @@ type EventAnalyser
 
 -- Analyse values in ScriptContext
 
+-- Script purpose: same for V1 and V2, but will change in V3
 stringOfPurpose :: V1.ScriptPurpose -> String
 stringOfPurpose = \case
-    V1.Minting    _ -> "Minting"
-    V1.Spending   _ -> "Spending"
-    V1.Rewarding  _ -> "Rewarding"
-    V1.Certifying _ -> "Certifying"
+    V1.Minting    _ -> "Minting"      -- Script arguments are [redeemer, context]
+    V1.Spending   _ -> "Spending"     -- Script arguments are [datum, redeemer, context]
+    V1.Rewarding  _ -> "Rewarding"    -- Script arguments are [datum, redeemer, context]???
+    V1.Certifying _ -> "Certifying"   -- Script arguments are [datum, redeemer, context]???
+
 
 shapeOfValue :: V1.Value  -> String
 shapeOfValue (V1.Value m) =
@@ -109,13 +111,13 @@ analyseScriptContext _ctx _params ev = case ev of
         _       -> pure ()
     where
     analyseCtxV1 c = case V1.fromData @V1.ScriptContext c of
-                       Nothing -> pure ()
+                       Nothing -> error "Failed to decode V1 ScriptContext"
                        Just p -> do
                          putStrLn "----------------"
                          putStrLn $ stringOfPurpose $ V1.scriptContextPurpose p
                          analyseTxInfoV1 $ V1.scriptContextTxInfo p
     analyseCtxV2 c = case V2.fromData @V2.ScriptContext c of
-                       Nothing -> pure ()
+                       Nothing -> error "Failed to decode V2 ScriptContext"
                        Just p -> do
                          putStrLn "----------------"
                          putStrLn $ stringOfPurpose $ V2.scriptContextPurpose p

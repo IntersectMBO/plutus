@@ -1,7 +1,7 @@
 ## `Value` objects involved in mainnet script events
 
 We ran the `values` analysis (see [README.md](./README.md) on all mainnet script
-events up to mid-October 2024 (event file beginning `0000000105908766`;
+events up to mid-October 2023 (event file beginning `0000000105908766`;
 21,832,781 script events in total).
 
 
@@ -67,7 +67,7 @@ at the end of the shape.  The table below shows the frequencies of token counts
 of values appearing in transaction outputs.  The second column gives the token
 count and the first the number of times a `Value` with that token count appears.
 Again there are a total of 101206333 `Value`s.  As with currency symbols, the
-figures are dominated by `Value`s with small token counts: 
+figures are dominated by `Value`s with small token counts:
 
 ```
   37136006   1
