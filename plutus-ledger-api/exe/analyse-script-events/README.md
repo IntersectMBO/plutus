@@ -102,7 +102,7 @@ A `Value` consists of a map from currency identifiers to quantities of the
 relevant currency, each quantity consisting of a map from token names to a
 (positive or negative) integral number saying how many of the relevant tokens
 the `Value` contains.  The output describes the "shape" of `Values` using lists
-of the form `[5: 1,7,2,0,-1]`, as seen above: this describes a value involving
+of the form `[5: 1,7,2,0,3]`, as seen above: this describes a value involving
 five currency symbols, with the first involving one token, the second involving
 seven, and so on.  The actual quantities of the individual tokens are not
 printed.  The first entry in a `Value` is typically an amount of Ada, which has
