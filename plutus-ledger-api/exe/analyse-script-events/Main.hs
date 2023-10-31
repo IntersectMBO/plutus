@@ -61,6 +61,7 @@ analyseValue v = do
   printf "\n"
 
 analyseOutputsV1 :: [V1.TxOut] -> IO ()
+analyseOutputsV1 [] = pure ()
 analyseOutputsV1 l = do
   putStr $ printf " %d " (length l)
   putStrLn $ intercalate ", " (fmap (shapeOfValue . V1.txOutValue) l)
@@ -71,10 +72,12 @@ analyseTxInfoV1 i = do
   analyseValue $ V1.txInfoFee i
   putStr "Mint:    "
   analyseValue $ V1.txInfoMint i
-  putStr "Outputs: "
-  analyseOutputsV1 $ V1.txInfoOutputs i
+  case V1.txInfoOutputs i of
+    [] -> pure () -- A line with no outputs can be hard to post-process
+    l  -> putStr "Outputs: " >> analyseOutputsV1 l
 
 analyseOutputsV2 :: [V2.TxOut] -> IO ()
+analyseOutputsV2 [] = pure ()
 analyseOutputsV2 l = do
     putStr $ printf " %d " (length l)
     putStrLn $ intercalate ", " (fmap (shapeOfValue . V2.txOutValue ) l)
@@ -85,8 +88,9 @@ analyseTxInfoV2 i = do
   analyseValue $ V2.txInfoFee i
   putStr "Mint:    "
   analyseValue $ V2.txInfoMint i
-  putStr "Outputs: "
-  analyseOutputsV2 $ V2.txInfoOutputs i
+  case V2.txInfoOutputs i of
+    [] -> pure ()
+    l  ->  putStr "Outputs: " >> analyseOutputsV2 l
 
 -- Minting policy arguments: redeemer, context
 -- Validator arguments: datum, redeemer, context
