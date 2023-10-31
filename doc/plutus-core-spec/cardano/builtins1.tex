@@ -52,7 +52,10 @@ useful for tools working with Plutus Core.
 \end{table}
 
 \paragraph{Concrete syntax for strings.} Strings are represented as sequences of Unicode characters
-enclosed in double quotes, and may include standard escape sequences.
+enclosed in double quotes, and may include standard escape sequences.  Surrogate
+characters in the range \texttt{U+D800}--\texttt{U+DFFF} are replaced with the
+Unicode replacement character \texttt{U+FFFD}.
+
 
 \paragraph{Concrete syntax for higher-order types.} Types such as $\listOf{\ty{integer}}$
 and $\pairOf{\ty{bool}}{\ty{string)}}$ are represented by application at the
