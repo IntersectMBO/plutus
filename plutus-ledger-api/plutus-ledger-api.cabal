@@ -205,7 +205,6 @@ executable test-onchain-evaluation
     , mtl
     , plutus-core                                                       ^>=1.15
     , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.15
-    , plutus-tx                                                         ^>=1.15
     , serialise
     , tasty
     , tasty-hunit
