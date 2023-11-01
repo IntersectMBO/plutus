@@ -18,6 +18,7 @@ import PlutusTx.PLCTypes
 
 import PlutusIR.Analysis.Builtins qualified as PIR
 import PlutusIR.Compiler.Definitions
+import PlutusIR.Transform.RewriteRules qualified as PIR
 
 import PlutusCore.Annotation
 import PlutusCore.Builtin qualified as PLC
@@ -60,7 +61,8 @@ data CompileContext uni fun = CompileContext {
     ccModBreaks        :: Maybe GHC.ModBreaks,
     ccBuiltinsInfo     :: PIR.BuiltinsInfo uni fun,
     ccBuiltinCostModel :: PLC.CostingPart uni fun,
-    ccDebugTraceOn     :: Bool
+    ccDebugTraceOn     :: Bool,
+    ccRewriteRules     :: PIR.RewriteRules uni fun
     }
 
 data CompileState = CompileState

@@ -14,8 +14,9 @@ import PlutusPrelude
 import Test.Tasty.ExpectedFailure (ignoreTest)
 import Test.Tasty.QuickCheck
 
+
 test_deadCode :: TestTree
-test_deadCode = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
+test_deadCode = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
     testNested "DeadCode" $
         map
             (goldenPir (runQuote . removeDeadBindings def) pTerm)
@@ -42,7 +43,7 @@ test_deadCode = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
 typecheckRemoveDeadBindingsProp :: BuiltinSemanticsVariant DefaultFun -> Property
 typecheckRemoveDeadBindingsProp biVariant =
   withMaxSuccess 50000 $ nonPureTypecheckProp $ removeDeadBindings $
-    BuiltinsInfo biVariant defaultUniMatcherLike
+     def {_biSemanticsVariant = biVariant}
 test_TypecheckRemoveDeadBindings :: TestTree
 test_TypecheckRemoveDeadBindings =
   ignoreTest $ testProperty "typechecking" typecheckRemoveDeadBindingsProp

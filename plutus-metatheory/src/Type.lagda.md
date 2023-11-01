@@ -124,6 +124,7 @@ data _⊢⋆_ where
         ------
       → Φ ⊢⋆ *
   
+   -- Sum of Products
   SOP : ∀{n} → 
         Vec (List (Φ ⊢⋆ *)) n 
         ----------------------

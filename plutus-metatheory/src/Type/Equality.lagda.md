@@ -92,10 +92,10 @@ data _≡β_ : Φ ⊢⋆ J → Φ ⊢⋆ J → Set where
           -----------
         → con c ≡β con c'
   
-  SOP≡β : ∀{n}{xss xss' : Vec (List (Φ ⊢⋆ *)) n}
-        → xss ⟨[≡]⟩β xss'
+  SOP≡β : ∀{n}{Tss Tss' : Vec (List (Φ ⊢⋆ *)) n}
+        → Tss ⟨[≡]⟩β Tss'
          ---------------
-        → SOP xss ≡β SOP xss'
+        → SOP Tss ≡β SOP Tss'
   -- computation rule
 
   β≡β : (B : Φ ,⋆ J ⊢⋆ K)
@@ -106,20 +106,20 @@ data _≡β_ : Φ ⊢⋆ J → Φ ⊢⋆ J → Set where
 data _[≡]β_ where 
   nil[≡]β : _[≡]β_ {Φ} [] []
 
-  cons[≡]β : ∀{A A' : Φ ⊢⋆ *}{AS AS' : List (Φ ⊢⋆ *)}
+  cons[≡]β : ∀{A A' : Φ ⊢⋆ *}{As As' : List (Φ ⊢⋆ *)}
            → A ≡β A'
-           → AS [≡]β AS'
+           → As [≡]β As'
              ----------------
-           → (A ∷ AS) [≡]β (A' ∷ AS')
+           → (A ∷ As) [≡]β (A' ∷ As')
 
 data _⟨[≡]⟩β_ where 
   nil⟨[≡]⟩β : _⟨[≡]⟩β_ {Φ} [] []
 
-  cons⟨[≡]⟩β : ∀{n}{AS AS' : List (Φ ⊢⋆ *)}{ASS ASS' : Vec (List (Φ ⊢⋆ *)) n}
-           → AS [≡]β AS'
-           → ASS ⟨[≡]⟩β ASS'
+  cons⟨[≡]⟩β : ∀{n}{As As' : List (Φ ⊢⋆ *)}{Tss Tss' : Vec (List (Φ ⊢⋆ *)) n}
+           → As [≡]β As'
+           → Tss ⟨[≡]⟩β Tss'
              ----------------
-           → (AS ∷ ASS) ⟨[≡]⟩β (AS' ∷ ASS')
+           → (As ∷ Tss) ⟨[≡]⟩β (As' ∷ Tss')
 ```
 
 ```
@@ -134,14 +134,14 @@ ren≡β : (ρ : Ren Φ Ψ)
       → A ≡β B
         ------------------
       → ren ρ A ≡β ren ρ B
-ren≡β-List : ∀{AS BS}(ρ : Ren Φ Ψ)
-      → AS [≡]β BS
+ren≡β-List : ∀{As Bs}(ρ : Ren Φ Ψ)
+      → As [≡]β Bs
         ------------------
-      → ren-List ρ AS [≡]β ren-List ρ BS
-ren≡β-VecList : ∀{n}{ASS BSS : Vec (List (Φ ⊢⋆ *)) n}(ρ : Ren Φ Ψ)
-      → ASS ⟨[≡]⟩β BSS
+      → ren-List ρ As [≡]β ren-List ρ Bs
+ren≡β-VecList : ∀{n}{Tss Bss : Vec (List (Φ ⊢⋆ *)) n}(ρ : Ren Φ Ψ)
+      → Tss ⟨[≡]⟩β Bss
         ------------------
-      → ren-VecList ρ ASS ⟨[≡]⟩β ren-VecList ρ BSS
+      → ren-VecList ρ Tss ⟨[≡]⟩β ren-VecList ρ Bss
 
 ren≡β ρ (refl≡β A)    = refl≡β (ren ρ A)
 ren≡β ρ (sym≡β p)     = sym≡β (ren≡β ρ p)
@@ -172,15 +172,15 @@ sub≡β : (σ : Sub Φ Ψ)
       → A ≡β B
         ------------------
       → sub σ A ≡β sub σ B
-sub≡β-List : ∀{AS BS}(σ : Sub Φ Ψ)
-      → AS [≡]β BS
+sub≡β-List : ∀{As Bs}(σ : Sub Φ Ψ)
+      → As [≡]β Bs
         ------------------
-      → sub-List σ AS [≡]β sub-List σ BS
+      → sub-List σ As [≡]β sub-List σ Bs
 
-sub≡β-VecList : ∀{n}{ASS BSS : Vec (List (Φ ⊢⋆ *)) n}(σ : Sub Φ Ψ)
-      → ASS ⟨[≡]⟩β BSS
+sub≡β-VecList : ∀{n}{Tss Bss : Vec (List (Φ ⊢⋆ *)) n}(σ : Sub Φ Ψ)
+      → Tss ⟨[≡]⟩β Bss
         ------------------
-      → sub-VecList σ ASS ⟨[≡]⟩β sub-VecList σ BSS
+      → sub-VecList σ Tss ⟨[≡]⟩β sub-VecList σ Bss
   
 sub≡β σ (refl≡β A)    = refl≡β (sub σ A)
 sub≡β σ (sym≡β p)     = sym≡β (sub≡β σ p)

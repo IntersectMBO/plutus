@@ -22,7 +22,8 @@ import PlutusIR.Properties.Typecheck
 import Test.QuickCheck.Property (Property, withMaxSuccess)
 
 test_letFloatInConservative :: TestTree
-test_letFloatInConservative = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform/LetFloatIn"] $
+test_letFloatInConservative =
+    runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform", "LetFloatIn"] $
     testNested "conservative" $
         map
             (goldenPirM goldenFloatTC pTerm)
@@ -38,7 +39,8 @@ test_letFloatInConservative = runTestNestedIn ["plutus-ir/test/PlutusIR/Transfor
         pure $ LetMerge.letMerge pirFloated
 
 test_letFloatInRelaxed :: TestTree
-test_letFloatInRelaxed = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform/LetFloatIn"] $
+test_letFloatInRelaxed =
+    runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform", "LetFloatIn"] $
     testNested "relaxed" $
         map
             (goldenPirM goldenFloatTC pTerm)
@@ -74,4 +76,4 @@ prop_TypecheckFloatTerm ::
 prop_TypecheckFloatTerm biVariant conservative =
   withMaxSuccess 40000 $
     nonPureTypecheckProp $
-      LetFloatIn.floatTerm (BuiltinsInfo biVariant defaultUniMatcherLike) conservative
+      LetFloatIn.floatTerm (def {_biSemanticsVariant = biVariant}) conservative

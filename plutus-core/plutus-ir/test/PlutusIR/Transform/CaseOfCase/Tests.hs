@@ -4,6 +4,7 @@ module PlutusIR.Transform.CaseOfCase.Tests where
 import Test.Tasty
 import Test.Tasty.Extras
 
+import Control.Lens
 import PlutusCore qualified as PLC
 import PlutusCore.Name
 import PlutusCore.Quote
@@ -16,7 +17,7 @@ import PlutusIR.TypeCheck as TC
 import PlutusPrelude
 
 test_caseOfCase :: TestTree
-test_caseOfCase = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
+test_caseOfCase = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
     testNested "CaseOfCase" $
         map
             (goldenPirM goldenCoCTC pTerm)
@@ -26,9 +27,9 @@ test_caseOfCase = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
             , "exponential"
             ]
     where
-      binfo = def & biMatcherLike .~ defaultUniMatcherLike
+      binfo = def & set' biMatcherLike defaultUniMatcherLike
       goldenCoCTC t = rethrow . asIfThrown @(PIR.Error PLC.DefaultUni PLC.DefaultFun ()) $ do
         let newT = runQuote $ CaseOfCase.caseOfCase binfo True mempty t
         -- make sure the floated result typechecks
         _ <- runQuoteT . flip inferType (() <$ newT) =<< TC.getDefTypeCheckConfig ()
-        pure $ newT
+        pure newT

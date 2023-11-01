@@ -73,15 +73,15 @@ eraseTC A t = tmCon (A.ty2sty A) (subst ⟦_⟧ (ty≅sty₁ A) t)
 erase : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ ⊢ A → len Γ ⊢
 
 erase-ConstrArgs : ∀ {Φ} {Γ : Ctx Φ}
-               {TS : List (Φ ⊢Nf⋆ *)}
-               (cs : ConstrArgs Γ TS) 
+               {Ts : List (Φ ⊢Nf⋆ *)}
+               (cs : ConstrArgs Γ Ts) 
           → List (len Γ ⊢)
 erase-ConstrArgs [] = []
 erase-ConstrArgs (c ∷ cs) = (erase c) ∷ (erase-ConstrArgs cs)
 
 erase-Cases : ∀ {Φ} {Γ : Ctx Φ} {A : Φ ⊢Nf⋆ *} {n}
-                {tss : Vec (List (Φ ⊢Nf⋆ *)) n}
-                (cs : Cases Γ A tss) →
+                {Tss : Vec (List (Φ ⊢Nf⋆ *)) n}
+                (cs : Cases Γ A Tss) →
               List (len Γ ⊢)
 erase-Cases [] = []
 erase-Cases (c ∷ cs) = (erase c) ∷ (erase-Cases cs) 
@@ -96,7 +96,7 @@ erase (unwrap t refl)        = erase t
 erase (con {A = A} t p)      = con (eraseTC A t)
 erase (builtin b / refl)     = builtin b
 erase (error A)              = error
-erase (constr e TSS p cs)    = constr (toℕ e) (erase-ConstrArgs cs)
+erase (constr e Tss p cs)    = constr (toℕ e) (erase-ConstrArgs cs)
 erase (case t cases)         = case (erase t) (erase-Cases cases)
 \end{code}
 
@@ -194,15 +194,19 @@ lem-erase' {Γ = Γ} p t = trans
   (sym (lem-subst (erase t) (lem≡Ctx {Γ = Γ} refl)))
   (lem-erase refl p t)
 
+lem-erase'' : ∀{Φ Γ}{A A' : Φ ⊢Nf⋆ *}(q : A ≡ A')(t : Γ A.⊢ A)
+  → erase t  ≡ erase (subst (Γ A.⊢_) q t)
+lem-erase'' refl t = refl  
+
 same : ∀{Φ Γ}{A : Φ ⊢⋆ *}(t : Γ D.⊢ A)
   → D.erase t ≡ subst _⊢ (lenLemma Γ) (erase (nfType t)) 
 
 +cancel : ∀{m m' n n'} → m + n ≡ m' + n' → m ≡ m' → n ≡ n'
 +cancel p refl = +-cancelˡ-≡ _ p
 
-same-ConstrArgs : ∀{Φ}{Γ : D.Ctx Φ}{TS : List (Φ ⊢⋆ *)} 
+same-ConstrArgs : ∀{Φ}{Γ : D.Ctx Φ}{Ts : List (Φ ⊢⋆ *)} 
             
-                   (xs : D.ConstrArgs Γ TS)
+                   (xs : D.ConstrArgs Γ Ts)
    → D.erase-ConstrArgs xs ≡ map (subst _⊢ (lenLemma Γ)) (erase-ConstrArgs (nfType-ConstrArgs xs))
 same-ConstrArgs {Γ = Γ} [] = refl
 same-ConstrArgs {Γ = Γ} (x ∷ xs) = cong₂ _∷_ (same x) (same-ConstrArgs xs) 
@@ -214,13 +218,13 @@ same-mkCaseType : ∀ {Φ} {Γ : Ctx Φ} {A B : Φ ⊢Nf⋆ *}
 same-mkCaseType c refl = refl
 
 same-Cases : ∀ {Φ} {Γ : D.Ctx Φ} {A : Φ ⊢⋆ *} {n}
-               {tss : Vec (List (Φ ⊢⋆ *)) n}
-               (cases : D.Cases Γ A tss) →
+               {Tss : Vec (List (Φ ⊢⋆ *)) n}
+               (cases : D.Cases Γ A Tss) →
              D.erase-Cases cases ≡
              map (subst _⊢ (lenLemma Γ)) (erase-Cases (nfType-Cases cases))
 same-Cases D.[] = refl
-same-Cases {Γ = Γ}(D._∷_ {AS = AS} c cs) = cong₂ _∷_ (trans (same c) 
-                                                (cong (subst _⊢ (lenLemma Γ)) (same-mkCaseType (nfType c) (lemma-mkCaseType AS))))
+same-Cases {Γ = Γ}(D._∷_ {Ts = As} c cs) = cong₂ _∷_ (trans (same c) 
+                                                (cong (subst _⊢ (lenLemma Γ)) (same-mkCaseType (nfType c) (lemma-mkCaseType As))))
                                          (same-Cases cs)
 
 same {Γ = Γ}(D.` x) =
@@ -258,7 +262,7 @@ same {Γ = Γ} (D.builtin b) = trans
   (lembuiltin b (lenLemma Γ)) (cong (subst _⊢ (lenLemma Γ))
   (lem-erase refl (btype-lem b) (builtin b / refl)))
 same {Γ = Γ} (D.error A) = lemerror (lenLemma Γ)
-same {Γ = Γ} (D.constr e TSS refl xs) rewrite lemConstr (toℕ e) (erase-ConstrArgs (nfType-ConstrArgs xs)) (lenLemma Γ)  
+same {Γ = Γ} (D.constr e Tss refl xs) rewrite lemConstr (toℕ e) (erase-ConstrArgs (nfType-ConstrArgs xs)) (lenLemma Γ)  
                 = cong (constr (toℕ e)) (same-ConstrArgs xs)
 same {Γ = Γ} (D.case t cases) rewrite lemCase (erase (nfType t)) (erase-Cases (Algorithmic.Completeness.nfType-Cases cases)) (lenLemma Γ)
      = cong₂ case (same t) (same-Cases cases)
@@ -291,8 +295,8 @@ same' : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}(x : Γ A.⊢ A)
   →  erase x ≡ subst _⊢ (same'Len Γ) (D.erase (emb x))
 
 same'ConstrArgs : ∀ {Φ} {Γ : Ctx Φ} 
-                    {TS : List (Φ ⊢Nf⋆ *)}
-                    (xs : ConstrArgs Γ TS)
+                    {Ts : List (Φ ⊢Nf⋆ *)}
+                    (xs : ConstrArgs Γ Ts)
     → erase-ConstrArgs xs ≡  map (subst _⊢ (same'Len Γ))
                                  (D.erase-ConstrArgs (emb-ConstrArgs xs))
 same'ConstrArgs [] = refl
@@ -305,14 +309,14 @@ same-subst : ∀ {Φ} {Γ : D.Ctx Φ} {A B : Φ ⊢⋆ *}
 same-subst c refl = refl
 
 same'Case : ∀ {Φ} {Γ : Ctx Φ} {A : Φ ⊢Nf⋆ *} {n}
-              {tss : Vec (List (Φ ⊢Nf⋆ *)) n}
-              (cases : Cases Γ A tss) 
+              {Tss : Vec (List (Φ ⊢Nf⋆ *)) n}
+              (cases : Cases Γ A Tss) 
       → erase-Cases cases ≡ map (subst _⊢ (same'Len Γ)) 
                                 (D.erase-Cases (Algorithmic.Soundness.emb-Cases cases))
 same'Case [] = refl
-same'Case {Γ = Γ} (_∷_ {AS = AS} c cases) = 
+same'Case {Γ = Γ} (_∷_ {Ts = As} c cases) = 
     cong₂ _∷_ (trans (same' c) 
-                     (cong (subst _⊢ (same'Len Γ)) (same-subst (emb c) (lema-mkCaseType AS)))) 
+                     (cong (subst _⊢ (same'Len Γ)) (same-subst (emb c) (lema-mkCaseType As)))) 
               (same'Case cases)
 same' {Γ = Γ} (` x) =
   trans (cong ` (same'Var x)) (lemVar (same'Len Γ) (D.eraseVar (embVar x)))
@@ -334,7 +338,7 @@ same' {Γ = Γ} (con {A = A} tcn refl) = trans (cong con (same'TC {Γ = Γ} A tc
   (lemcon' (same'Len Γ) (D.eraseTC (embNf A) (subst ⟦_⟧ (sym (stability A)) tcn)))
 same' {Γ = Γ} (builtin b / refl) = lembuiltin b (same'Len Γ)
 same' {Γ = Γ} (error A) = lemerror (same'Len Γ)
-same' {Γ = Γ} (constr e TSS {ts} refl xs) rewrite lemConstr (toℕ e) (D.erase-ConstrArgs (Algorithmic.Soundness.emb-ConstrArgs xs)) (same'Len Γ)
+same' {Γ = Γ} (constr e Tss {ts} refl xs) rewrite lemConstr (toℕ e) (D.erase-ConstrArgs (Algorithmic.Soundness.emb-ConstrArgs xs)) (same'Len Γ)
             = cong (constr (toℕ e)) (same'ConstrArgs xs) 
 same' {Γ = Γ}(case t cases) rewrite lemCase (D.erase (emb t)) (D.erase-Cases (Algorithmic.Soundness.emb-Cases cases)) (same'Len Γ)
      = cong₂ case (same' t) (same'Case cases)

@@ -114,12 +114,12 @@ renNf ρ (ƛ B)     = ƛ (renNf (ext ρ) B)
 renNf ρ (ne A)    = ne (renNe ρ A)
 renNf ρ (con c)   = con (renNf ρ c)
 renNf ρ (μ A B)   = μ (renNf ρ A) (renNf ρ B)
-renNf ρ (SOP xss) = SOP (renNf-VecList ρ xss)
+renNf ρ (SOP Tss) = SOP (renNf-VecList ρ Tss)
 
 renNf-List ρ [] = []
 renNf-List ρ (x ∷ xs) = renNf ρ x ∷ renNf-List ρ xs
 renNf-VecList ρ [] = []
-renNf-VecList ρ (xs ∷ xss) = renNf-List ρ xs ∷ renNf-VecList ρ xss
+renNf-VecList ρ (Ts ∷ Tss) = renNf-List ρ Ts ∷ renNf-VecList ρ Tss
 
 renNe ρ (` x)   = ` (ρ x)
 renNe ρ (A · x) = renNe ρ A · renNf ρ x
@@ -147,7 +147,7 @@ embNf (ƛ B)     = ƛ (embNf B)
 embNf (ne B)    = embNe B
 embNf (con c)   = con (embNf c )
 embNf (μ A B)   = μ (embNf A) (embNf B)
-embNf (SOP xss) = SOP (embNf-VecList xss)
+embNf (SOP Tss) = SOP (embNf-VecList Tss)
 
 embNe (` x)   = ` x
 embNe (A · B) = embNe A · embNf B
@@ -156,7 +156,7 @@ embNe (^ x)   = ^ x
 embNf-List [] = []
 embNf-List (x ∷ xs) = embNf x ∷ embNf-List xs
 embNf-VecList [] = []
-embNf-VecList (xs ∷ xss) = embNf-List xs ∷ embNf-VecList xss
+embNf-VecList (Ts ∷ Tss) = embNf-List Ts ∷ embNf-VecList Tss
 
 \end{code}
 
@@ -211,18 +211,18 @@ module _ where
   lookup-renNf-VecList : ∀ {Φ Ψ n}
               → (ρ⋆ : Ren Φ Ψ)
               → (e : Fin n)
-              → (A : Vec (List (Φ ⊢Nf⋆ *)) n)
+              → (Tss : Vec (List (Φ ⊢Nf⋆ *)) n)
                 --------------------------------------------
-              → lookup (renNf-VecList ρ⋆ A) e ≡ renNf-List ρ⋆ (lookup A e)
-  lookup-renNf-VecList ρ⋆ zero (x ∷ A) = refl
-  lookup-renNf-VecList ρ⋆ (suc e) (_ ∷ A) = lookup-renNf-VecList ρ⋆ e A
+              → lookup (renNf-VecList ρ⋆ Tss) e ≡ renNf-List ρ⋆ (lookup Tss e)
+  lookup-renNf-VecList ρ⋆ zero (_ ∷ _) = refl
+  lookup-renNf-VecList ρ⋆ (suc e) (_ ∷ Tss) = lookup-renNf-VecList ρ⋆ e Tss
 
   lookup-embNf-VecList : ∀ {n}
               → (e : Fin n)
-              → (A : Vec (List (Φ ⊢Nf⋆ *)) n)
+              → (Tss : Vec (List (Φ ⊢Nf⋆ *)) n)
                 --------------------------------------------
-              → lookup (embNf-VecList A) e ≡ embNf-List (lookup A e)
-  lookup-embNf-VecList zero (x ∷ A) = refl
-  lookup-embNf-VecList (suc e) (x ∷ A) = lookup-embNf-VecList e A
+              → lookup (embNf-VecList Tss) e ≡ embNf-List (lookup Tss e)
+  lookup-embNf-VecList zero (_ ∷ _) = refl
+  lookup-embNf-VecList (suc e) (_ ∷ Tss) = lookup-embNf-VecList e Tss
 \end{code}
 

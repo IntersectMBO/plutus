@@ -23,7 +23,7 @@ import PlutusIR.Properties.Typecheck (pureTypecheckProp)
 import Test.QuickCheck.Property (Property, withMaxSuccess)
 
 test_letFloatOut :: TestTree
-test_letFloatOut = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
+test_letFloatOut = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
     testNested "LetFloatOut" $
         map
             (goldenPirM goldenFloatTC pTerm)
@@ -75,4 +75,4 @@ test_letFloatOut = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
 prop_TypecheckFloatTerm :: BuiltinSemanticsVariant PLC.DefaultFun -> Property
 prop_TypecheckFloatTerm biVariant =
   withMaxSuccess 20000 $ pureTypecheckProp $
-    LetFloatOut.floatTerm (BuiltinsInfo biVariant defaultUniMatcherLike)
+    LetFloatOut.floatTerm (def { _biSemanticsVariant = biVariant})

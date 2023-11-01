@@ -240,27 +240,30 @@ data _⊢_ (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
     → Γ ⊢ C
 
   constr : ∀{n}
-      → (i : Fin n)                   -- The tag
+      → (i : Fin n)                     -- The tag
 
-      → (A : Vec (List (Φ ⊢Nf⋆ *)) n) -- The sum of products. We make it a Vector
-                                      -- of lists, so that the tag is statically correct.
+      → (Tss : Vec (List (Φ ⊢Nf⋆ *)) n) -- The types of the sum of products. 
+                                        -- We make it a Vector of lists, so that 
+                                        -- the tag is statically correct.
+                                        -- We use the name `Tss` as it stands for a 
+                                        -- a container of containers of types.
       
-      → ∀ {ts} → ts ≡ lookup A i      -- The reason to define it like this, rather than
-      → ConstrArgs Γ ts               -- simply ConstrArgs Γ (lookup A e) 
-                                      -- is so that it is easier to construct terms (avoids using subst)
-                                      -- as often the result of a function will not match definitionally
-                                      -- with (lookup A e) but only propositionally.
+      → ∀ {ts} → ts ≡ lookup Tss i      -- The reason to define it like this, rather than
+      → ConstrArgs Γ ts                 -- simply ConstrArgs Γ (lookup Tss i) is so that it 
+                                        -- is easier to construct terms (helps to avoid the use of subst)
+                                        -- as often the result of a function will not match definitionally
+                                        -- with (lookup Tss i) but only propositionally.
         --------------------------------------
-      → Γ ⊢ SOP A
+      → Γ ⊢ SOP Tss
 
-  case : ∀{n}{tss : Vec _ n}{A : Φ ⊢Nf⋆ *}
-      → (t : Γ ⊢ SOP tss)
-      → (cases : Cases Γ A tss)
+  case : ∀{n}{Tss : Vec _ n}{A : Φ ⊢Nf⋆ *}
+      → (t : Γ ⊢ SOP Tss)               -- The term we case on
+      → (cases : Cases Γ A Tss)
         --------------------------
-      → Γ ⊢ A  
+      → Γ ⊢ A
 
   con : ∀{A : ∅ ⊢Nf⋆ ♯}{B}
-    → ⟦ A ⟧ 
+    → ⟦ A ⟧
     → B ≡ subNf∅ A
       ---------------------
     → Γ ⊢ con B
@@ -276,17 +279,18 @@ data _⊢_ (Γ : Ctx Φ) : Φ ⊢Nf⋆ * → Set where
       --------------
     → Γ ⊢ A
 
+-- The type of arguments to a `constr` constructor
 ConstrArgs Γ = IList (Γ ⊢_)
 
 -- Cases is indexed by a vector 
 -- so it can't be an IList
 data Cases Γ B where 
    []  : Cases Γ B []
-   _∷_ : ∀{n}{AS}{ASS : Vec _ n}(
-         c : Γ ⊢ (mkCaseType B AS)) 
-       → (cs : Cases Γ B ASS)
+   _∷_ : ∀{n}{Ts}{Tss : Vec _ n}(
+         c : Γ ⊢ (mkCaseType B Ts)) 
+       → (cs : Cases Γ B Tss)
          --------------------- 
-       → Cases Γ B (AS ∷ ASS) 
+       → Cases Γ B (Ts ∷ Tss) 
 \end{code}
 
 Utility functions
@@ -306,21 +310,29 @@ conv⊢ : ∀ {Γ Γ'}{A A' : Φ ⊢Nf⋆ *}
  → Γ' ⊢ A'
 conv⊢ refl refl t = t
 
-lookupCase : ∀{n Φ}{Γ : Ctx Φ}{B}{TSS : Vec _ n} → (i : Fin n) → Cases Γ B TSS → Γ ⊢ mkCaseType B (Vec.lookup TSS i)
+lookupCase : ∀{n Φ}{Γ : Ctx Φ}{A}{Tss : Vec _ n} → (i : Fin n) → Cases Γ A Tss → Γ ⊢ mkCaseType A (Vec.lookup Tss i)
 lookupCase Fin.zero (c ∷ cs) = c
 lookupCase (Fin.suc i) (c ∷ cs) = lookupCase i cs
 
 bwdMkCaseType : ∀{Φ} → Bwd (Φ ⊢Nf⋆ *) → (A : Φ ⊢Nf⋆ *) → Φ ⊢Nf⋆ *
 bwdMkCaseType bs A = bwd-foldr _⇒_ A bs
 
-lemma-bwdfwdfunction' : ∀{Φ} {B : Φ ⊢Nf⋆ *} TS → mkCaseType B TS ≡ bwdMkCaseType ([] <>< TS) B
-lemma-bwdfwdfunction' {B = B} TS = trans (cong (mkCaseType B) (sym (lemma<>1 [] TS))) (lemma-bwd-foldr _⇒_ B ([] <>< TS))         
+lemma-bwdfwdfunction' : ∀{Φ} {B : Φ ⊢Nf⋆ *} Ts → mkCaseType B Ts ≡ bwdMkCaseType ([] <>< Ts) B
+lemma-bwdfwdfunction' {B = B} Ts = trans (cong (mkCaseType B) (sym (lemma<>1 [] Ts))) (lemma-bwd-foldr _⇒_ B ([] <>< Ts))         
 
-constr-cong :  ∀{Γ : Ctx Φ}{n}{i : Fin n}{A : Vec (List (Φ ⊢Nf⋆ *)) n}{ts} 
-            → (p : ts ≡ lookup A i)
+constr-cong :  ∀{Γ : Ctx Φ}{n}{i : Fin n}{Tss : Vec (List (Φ ⊢Nf⋆ *)) n}{ts} 
+            → (p : ts ≡ lookup Tss i)
             → {cs : ConstrArgs Γ ts}
-            → {cs' : ConstrArgs Γ (lookup A i)}
+            → {cs' : ConstrArgs Γ (lookup Tss i)}
             → (q : cs' ≡ subst (IList (Γ ⊢_)) p cs)
-            → constr i A refl cs' ≡ constr i A p cs
+            → constr i Tss refl cs' ≡ constr i Tss p cs
 constr-cong refl refl = refl
+
+constr-cong' :  ∀{Γ : Ctx Φ}{n}{i : Fin n}{A : Vec (List (Φ ⊢Nf⋆ *)) n}{ts}{ts'} 
+            → (p : ts ≡ lookup A i)(p' : ts' ≡ lookup A i)
+            → {cs : ConstrArgs Γ ts}
+            → {cs' : ConstrArgs Γ ts'}
+            → (q : subst (IList (Γ ⊢_)) p' cs' ≡ subst (IList (Γ ⊢_)) p cs)
+            → constr i A p' cs' ≡ constr i A p cs
+constr-cong' refl refl refl = refl
 \end{code}

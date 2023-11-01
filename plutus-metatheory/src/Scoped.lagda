@@ -142,7 +142,7 @@ shifterTy w (ƛ K A)   = ƛ K (shifterTy (T w) A)
 shifterTy w (A · B)   = shifterTy w A · shifterTy w B
 shifterTy w (con c)   = con c
 shifterTy w (μ A B)   = μ (shifterTy w A) (shifterTy w B)
-shifterTy w (SOP tss) = SOP (shifterTyListList w tss)
+shifterTy w (SOP Tss) = SOP (shifterTyListList w Tss)
 
 shifterTyList w [] = []
 shifterTyList w (x ∷ xs) = shifterTy w x ∷ shifterTyList w xs
@@ -181,7 +181,7 @@ unshifterTy w (ƛ K A)   = ƛ K (unshifterTy (T w) A)
 unshifterTy w (A · B)   = unshifterTy w A · unshifterTy w B
 unshifterTy w (con c)   = con c
 unshifterTy w (μ A B)   = μ (unshifterTy w A) (unshifterTy w B)
-unshifterTy w (SOP tss) = SOP (unshifterTyListList w tss)
+unshifterTy w (SOP Tss) = SOP (unshifterTyListList w Tss)
 
 unshifterTyList w [] = []
 unshifterTyList w (x ∷ xs) = unshifterTy w x ∷ unshifterTyList w xs
@@ -289,14 +289,14 @@ scopeCheckTy (SOP xss) = do
 scopeCheckTyList [] = return []
 scopeCheckTyList (x ∷ xs) = do 
       A  ← scopeCheckTy x 
-      AS ← scopeCheckTyList xs
-      return (A ∷ AS)
+      As ← scopeCheckTyList xs
+      return (A ∷ As)
 
 scopeCheckTyListList [] = return []
 scopeCheckTyListList (xs ∷ xss) = do 
-      AS  ← scopeCheckTyList xs 
-      ASS ← scopeCheckTyListList xss
-      return (AS ∷ ASS)
+      Ts  ← scopeCheckTyList xs 
+      Tss ← scopeCheckTyListList xss
+      return (Ts ∷ Tss)
 
 scopeCheckTm : ∀{n}{w : Weirdℕ n} → RawTm → Either ScopeError (ScopedTm w)
 scopeCheckTmList : ∀{n}{w : Weirdℕ n} → List RawTm → Either ScopeError (List (ScopedTm w))
@@ -355,7 +355,7 @@ extricateScopeTy (con (atomic x)) = con (atomic x)
 extricateScopeTy (con list) = con list
 extricateScopeTy (con pair) = con pair
 extricateScopeTy (μ A B)    = μ (extricateScopeTy A) (extricateScopeTy B)
-extricateScopeTy (SOP tss)  = SOP (extricateScopeTyListList tss)
+extricateScopeTy (SOP Tss)  = SOP (extricateScopeTyListList Tss)
 
 extricateScopeTyList [] = []
 extricateScopeTyList (x ∷ xs) = extricateScopeTy x ∷ extricateScopeTyList xs

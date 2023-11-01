@@ -121,13 +121,13 @@ ren-cong : (∀ {J}(α : Φ ∋⋆ J) → ρ α ≡ ρ' α)
            --------------------------------
          → ren ρ A ≡ ren ρ' A
 ren-cong-List : (∀ {J}(α : Φ ∋⋆ J) → ρ α ≡ ρ' α)
-         → ∀{K}(AS : List (Φ ⊢⋆ K))
+         → ∀{K}(As : List (Φ ⊢⋆ K))
            --------------------------------
-         → ren-List ρ AS ≡ ren-List ρ' AS
+         → ren-List ρ As ≡ ren-List ρ' As
 ren-cong-VecList : (∀ {J}(α : Φ ∋⋆ J) → ρ α ≡ ρ' α)
-         → ∀{n K}(ASS : Vec (List (Φ ⊢⋆ K)) n)
+         → ∀{n K}(Tss : Vec (List (Φ ⊢⋆ K)) n)
            --------------------------------
-         → ren-VecList ρ ASS ≡ ren-VecList ρ' ASS
+         → ren-VecList ρ Tss ≡ ren-VecList ρ' Tss
 
 ren-cong p (` α)   = cong ` (p α)
 ren-cong p (Π A)   = cong Π (ren-cong (ext-cong p) A)
@@ -152,13 +152,13 @@ ren-id : (A : Φ ⊢⋆ J)
          ------------
        → ren id A ≡ A
 ren-id-List : 
-         (AS : List (Φ ⊢⋆ J))
+         (As : List (Φ ⊢⋆ J))
          --------------------
-       → ren-List id AS ≡ AS       
+       → ren-List id As ≡ As       
 ren-id-VecList : ∀{n}
-         (ASS : Vec (List (Φ ⊢⋆ J)) n)
+         (Tss : Vec (List (Φ ⊢⋆ J)) n)
          --------------------
-       → ren-VecList id ASS ≡ ASS  
+       → ren-VecList id Tss ≡ Tss  
 
 ren-id (` α)     = refl
 ren-id (Π A)     = cong Π (trans (ren-cong ext-id A) (ren-id A))
@@ -192,12 +192,12 @@ Second functor law for `ren`
 ren-comp : ∀{J}(A : Φ ⊢⋆ J)
            ---------------------------------
          → ren (ρ ∘ ρ') A ≡ ren ρ (ren ρ' A)
-ren-comp-List : ∀{J}(AS : List (Φ ⊢⋆ J))
+ren-comp-List : ∀{J}(As : List (Φ ⊢⋆ J))
            ---------------------------------
-         → ren-List (ρ ∘ ρ') AS ≡ ren-List ρ (ren-List ρ' AS)
-ren-comp-VecList : ∀{n J}(ASS : Vec (List (Φ ⊢⋆ J)) n)
+         → ren-List (ρ ∘ ρ') As ≡ ren-List ρ (ren-List ρ' As)
+ren-comp-VecList : ∀{n J}(Tss : Vec (List (Φ ⊢⋆ J)) n)
            -------------------------------------------
-         → ren-VecList (ρ ∘ ρ') ASS ≡ ren-VecList ρ (ren-VecList ρ' ASS)
+         → ren-VecList (ρ ∘ ρ') Tss ≡ ren-VecList ρ (ren-VecList ρ' Tss)
 ren-comp (` x)   = refl
 ren-comp (Π A)   = cong Π (trans (ren-cong ext-comp A) (ren-comp A))
 ren-comp (A ⇒ B) = cong₂ _⇒_ (ren-comp A) (ren-comp B)
@@ -321,13 +321,13 @@ sub-cong : (∀ {J}(α : Φ ∋⋆ J) → σ α ≡ σ' α)
            --------------------------------
          → sub σ A ≡ sub σ' A
 sub-cong-List : (∀ {J}(α : Φ ∋⋆ J) → σ α ≡ σ' α)
-         → ∀{K}(AS : List (Φ ⊢⋆ K))
+         → ∀{K}(As : List (Φ ⊢⋆ K))
            --------------------------------
-         → sub-List σ AS ≡ sub-List σ' AS
+         → sub-List σ As ≡ sub-List σ' As
 sub-cong-VecList : (∀ {J}(α : Φ ∋⋆ J) → σ α ≡ σ' α)
-         → ∀{n K}(ASS : Vec (List (Φ ⊢⋆ K)) n)
+         → ∀{n K}(Tss : Vec (List (Φ ⊢⋆ K)) n)
            --------------------------------
-         → sub-VecList σ ASS ≡ sub-VecList σ' ASS
+         → sub-VecList σ Tss ≡ sub-VecList σ' Tss
 
 sub-cong p (` α)   = p α
 sub-cong p (Π A)   = cong Π (sub-cong (exts-cong p) A)
@@ -352,13 +352,13 @@ sub-id : (A : Φ ⊢⋆ J)
          ------------
        → sub ` A ≡ A
 sub-id-List : 
-         (AS : List (Φ ⊢⋆ J))
+         (As : List (Φ ⊢⋆ J))
          --------------------
-       → sub-List ` AS ≡ AS
+       → sub-List ` As ≡ As
 sub-id-VecList : ∀{n} 
-         (ASS : Vec (List (Φ ⊢⋆ J)) n)
+         (Tss : Vec (List (Φ ⊢⋆ J)) n)
          --------------------
-       → sub-VecList ` ASS ≡ ASS
+       → sub-VecList ` Tss ≡ Tss
 
 sub-id (` α)      = refl
 sub-id (Π A)      = cong Π (trans (sub-cong exts-id A) (sub-id A))
@@ -393,14 +393,14 @@ sub-ren : ∀{J}(A : Φ ⊢⋆ J)
           -------------------------------
         → sub (σ ∘ ρ) A ≡ sub σ (ren ρ A)
 sub-ren-List :  ∀{J}
-          (AS : List (Φ ⊢⋆ J))
+          (As : List (Φ ⊢⋆ J))
           -------------------------------
-        → sub-List (σ ∘ ρ) AS ≡ sub-List σ (ren-List ρ AS)
+        → sub-List (σ ∘ ρ) As ≡ sub-List σ (ren-List ρ As)
 
 sub-ren-VecList :  ∀{n J} →
-          (ASS : Vec (List (Φ ⊢⋆ J)) n)
+          (Tss : Vec (List (Φ ⊢⋆ J)) n)
           -------------------------------
-        → sub-VecList (σ ∘ ρ) ASS ≡ sub-VecList σ (ren-VecList ρ ASS)
+        → sub-VecList (σ ∘ ρ) Tss ≡ sub-VecList σ (ren-VecList ρ Tss)
 
 sub-ren (` α)     = refl
 sub-ren (Π A)     = cong Π (trans (sub-cong exts-ext A) (sub-ren A))
@@ -435,14 +435,14 @@ ren-sub : ∀{J}(A : Φ ⊢⋆ J)
           -----------------------------------
         → sub (ren ρ ∘ σ) A ≡ ren ρ (sub σ A)
 ren-sub-List : ∀ {J}
-          (AS : List (Φ ⊢⋆ J))
+          (As : List (Φ ⊢⋆ J))
           ---------------------------------------------------------------
-        → sub-List (ren ρ ∘ σ) AS ≡ ren-List ρ (sub-List σ AS)
+        → sub-List (ren ρ ∘ σ) As ≡ ren-List ρ (sub-List σ As)
 
 ren-sub-VecList : ∀ {n J}
-          (ASS : Vec (List (Φ ⊢⋆ J)) n)
+          (Tss : Vec (List (Φ ⊢⋆ J)) n)
           ---------------------------------------------------------------
-        → sub-VecList (ren ρ ∘ σ) ASS ≡ ren-VecList ρ (sub-VecList σ ASS)
+        → sub-VecList (ren ρ ∘ σ) Tss ≡ ren-VecList ρ (sub-VecList σ Tss)
 
 
 ren-sub (` α)     = refl
@@ -479,14 +479,14 @@ sub-comp : ∀{J}(A : Φ ⊢⋆ J)
            -------------------------------------
          → sub (sub σ ∘ σ') A ≡ sub σ (sub σ' A)
 sub-com-List : ∀ {J} 
-                (AS : List (Φ ⊢⋆ J))
+                (As : List (Φ ⊢⋆ J))
                 ------------------------------------------------------------------     
-              → sub-List (sub σ ∘ σ') AS ≡ sub-List σ (sub-List σ' AS)
+              → sub-List (sub σ ∘ σ') As ≡ sub-List σ (sub-List σ' As)
 
 sub-com-VecList : ∀ {n J} 
-                (ASS : Vec (List (Φ ⊢⋆ J)) n) 
+                (Tss : Vec (List (Φ ⊢⋆ J)) n) 
                 ------------------------------------------------------------------     
-              → sub-VecList (sub σ ∘ σ') ASS ≡ sub-VecList σ (sub-VecList σ' ASS)
+              → sub-VecList (sub σ ∘ σ') Tss ≡ sub-VecList σ (sub-VecList σ' Tss)
 
 
 sub-comp (` x)      = refl
@@ -605,18 +605,18 @@ Some properties relating uses of lookup on VecList-functions with List-functions
 lookup-ren-VecList : ∀ {n}
               → (ρ : Ren Φ Ψ)
               → (e : Fin n)
-              → (A : Vec (List (Φ ⊢⋆ *)) n)
+              → (Tss : Vec (List (Φ ⊢⋆ *)) n)
                 --------------------------------------------
-              → lookup (ren-VecList ρ A) e ≡ ren-List ρ (lookup A e)
-lookup-ren-VecList ρ zero (x ∷ A) = refl
-lookup-ren-VecList ρ (suc e) (_ ∷ A) = lookup-ren-VecList ρ e A
+              → lookup (ren-VecList ρ Tss) e ≡ ren-List ρ (lookup Tss e)
+lookup-ren-VecList ρ zero (_ ∷ _) = refl
+lookup-ren-VecList ρ (suc e) (_ ∷ Tss) = lookup-ren-VecList ρ e Tss
 
 lookup-sub-VecList : ∀ {n}
               → (σ : Sub Φ Ψ)
               → (e : Fin n)
-              → (A : Vec (List (Φ ⊢⋆ *)) n)
+              → (Tss : Vec (List (Φ ⊢⋆ *)) n)
                 --------------------------------------------
-              → lookup (sub-VecList σ A) e ≡ sub-List σ (lookup A e)
-lookup-sub-VecList σ zero (x ∷ A) = refl
-lookup-sub-VecList σ (suc e) (_ ∷ A) = lookup-sub-VecList σ e A
+              → lookup (sub-VecList σ Tss) e ≡ sub-List σ (lookup Tss e)
+lookup-sub-VecList σ zero (_ ∷ _) = refl
+lookup-sub-VecList σ (suc e) (_ ∷ Tss) = lookup-sub-VecList σ e Tss
 ```

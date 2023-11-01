@@ -15,7 +15,7 @@ import PlutusPrelude
 import Test.QuickCheck.Property (Property, withMaxSuccess)
 
 test_thunkRecursions :: TestTree
-test_thunkRecursions = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
+test_thunkRecursions = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
     testNested "ThunkRecursions" $
         map
             (goldenPir (thunkRecursions def) pTerm)
@@ -32,4 +32,4 @@ test_thunkRecursions = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
 prop_TypecheckThunkRecursions :: BuiltinSemanticsVariant DefaultFun -> Property
 prop_TypecheckThunkRecursions biVariant =
   withMaxSuccess 5000 $ pureTypecheckProp $
-    thunkRecursions $ BuiltinsInfo biVariant defaultUniMatcherLike
+    thunkRecursions $ def {_biSemanticsVariant = biVariant}

@@ -81,7 +81,7 @@ data TypeError : Set where
   notMu : ∀{Φ}(A : Φ ⊢Nf⋆ *) → (∀{K}(A' : Φ ⊢Nf⋆ _)(B : Φ ⊢Nf⋆ K) → ¬ (A ≡ μ A' B))
     → TypeError
   notFunType : ∀{Φ}(A : Φ ⊢Nf⋆ *) → ((A' B : Φ ⊢Nf⋆ *) → ¬ (A ≡ A' ⇒ B)) → TypeError
-  notSOP : ∀{Φ}(A : Φ ⊢Nf⋆ *) → (∀{n}(A' : Vec (List (Φ ⊢Nf⋆ *)) n) → ¬ (A ≡ SOP A')) → TypeError
+  notSOP : ∀{Φ}(A : Φ ⊢Nf⋆ *) → (∀{n}(Tss : Vec (List (Φ ⊢Nf⋆ *)) n) → ¬ (A ≡ SOP Tss)) → TypeError
   IndexOutOfBounds : ∀{i n} → ¬(i < n) → TypeError
   TooManyConstrArgs : TypeError
   TooFewConstrArgs : TypeError
@@ -170,23 +170,23 @@ isMu (SOP x ,, _) = inj₁ (notMu (SOP x) (λ _ _ ()))
 
 isSOPType :  ∀{Φ}
        → (Φ ⊢Nf⋆ *) 
-       → Either TypeError (Σ ℕ (λ n → Vec (List (Φ ⊢Nf⋆ *)) n ))
+       → Either TypeError (Σ ℕ (Vec (List (Φ ⊢Nf⋆ *))))
 isSOPType (Π A) = inj₁ (notSOP (Π A) (λ _ ()))
 isSOPType (A ⇒ B) = inj₁ (notSOP (A ⇒ B) (λ _ ()))
 isSOPType (ne A) = inj₁ (notSOP (ne A) (λ _ ()))
 isSOPType (con c) = inj₁ (notSOP (con c) (λ _ ()))
 isSOPType (μ A B) = inj₁ (notSOP (μ A B) (λ _ ()))
-isSOPType (SOP {n = n} TSS) = return (n ,, TSS)
+isSOPType (SOP {n = n} Tss) = return (n ,, Tss)
 
 isSOP  : ∀{Φ Γ}
        → Σ (Φ ⊢Nf⋆ *) (Γ ⊢_)
-       → Either TypeError (Σ ℕ λ n → Σ (Vec (List (Φ ⊢Nf⋆ *)) n) λ TSS → Γ ⊢ SOP TSS) 
+       → Either TypeError (Σ ℕ λ n → Σ (Vec (List (Φ ⊢Nf⋆ *)) n) λ Tss → Γ ⊢ SOP Tss) 
 isSOP (Π A ,, _) = inj₁ (notSOP (Π A) (λ _ ()))
 isSOP ((A ⇒ B) ,, _) = inj₁ (notSOP (A ⇒ B) (λ _ ()))
 isSOP (ne A ,, _) = inj₁ (notSOP (ne A) (λ _ ()))
 isSOP (con c ,, _) = inj₁ (notSOP (con c) (λ _ ()))
 isSOP (μ A B ,, x) = inj₁ (notSOP (μ A B) (λ _ ()))
-isSOP (SOP {n = n} TSS ,, x) = return (n ,, (TSS ,, x))
+isSOP (SOP {n = n} Tss ,, x) = return (n ,, (Tss ,, x))
 
 chkIdx : ∀ (i n : ℕ) → Either TypeError (Fin n)
 chkIdx i n with i <? n 
@@ -238,15 +238,15 @@ inferKind-List : ∀ Φ (xs : U.List (ScopedTy (len⋆ Φ))) → Either TypeErro
 inferKind-List Φ U.[] = return []
 inferKind-List Φ (x U.∷ xs) = do 
             A  ← checkKind Φ x * 
-            AS ← inferKind-List Φ xs 
-            return (A ∷ AS)
+            As ← inferKind-List Φ xs 
+            return (A ∷ As)
 
 inferKind-VecList : ∀ Φ (xss : U.List (U.List (ScopedTy (len⋆ Φ)))) → Either TypeError (Vec (List (Φ ⊢Nf⋆ *)) (U.length xss))
 inferKind-VecList Φ U.[] = return []
 inferKind-VecList Φ (xs U.∷ xss) = do 
-              AS ← inferKind-List Φ xs 
-              ASS ← (inferKind-VecList Φ xss)
-              return (AS ∷ ASS)
+              Ts ← inferKind-List Φ xs 
+              Tss ← (inferKind-VecList Φ xss)
+              return (Ts ∷ Tss)
 
 checkKind-aux : ∀{Φ} → (Σ Kind (Φ ⊢Nf⋆_)) → ∀ K → Either TypeError (Φ ⊢Nf⋆ K)
 checkKind-aux (* ,, A)        * = return A
@@ -297,8 +297,8 @@ inferKind Φ (μ A B) = do
           B ← checkKind Φ B K
           return (* ,, μ A B)
 inferKind Φ (SOP x) = do 
-              xss ← inferKind-VecList Φ x  
-              return (* ,, SOP xss)
+              Tss ← inferKind-VecList Φ x  
+              return (* ,, SOP Tss)
 ```
 
 Some examples to check that everything is working as expected
@@ -480,27 +480,27 @@ checkType Γ L A = do
   
 checkConstrArgs-List : ∀{Φ}(Γ : Ctx Φ) 
                → U.List (ScopedTm (len Γ)) 
-               → (AS : List (Φ ⊢Nf⋆ *))
-               → Either TypeError (ConstrArgs Γ AS)
+               → (As : List (Φ ⊢Nf⋆ *))
+               → Either TypeError (ConstrArgs Γ As)
 checkConstrArgs-List Γ U.[] [] = return []
-checkConstrArgs-List Γ U.[] (A ∷ AS) = inj₁ TooFewConstrArgs
+checkConstrArgs-List Γ U.[] (A ∷ As) = inj₁ TooFewConstrArgs
 checkConstrArgs-List Γ (c U.∷ cs) [] = inj₁ TooManyConstrArgs
-checkConstrArgs-List Γ (c U.∷ cs) (A ∷ AS) = do 
+checkConstrArgs-List Γ (c U.∷ cs) (A ∷ As) = do 
          t ← checkType Γ c A 
-         ts ← checkConstrArgs-List Γ cs AS
+         ts ← checkConstrArgs-List Γ cs As
          return (t ∷ ts)
 
 checkCases-List : ∀{Φ}(Γ : Ctx Φ) 
                → (B : Φ ⊢Nf⋆ *)
                → U.List (ScopedTm (len Γ)) 
-               → ∀{n}(TSS : Vec (List (Φ ⊢Nf⋆ *)) n)
-               → Either TypeError (Cases Γ B TSS)
+               → ∀{n}(Tss : Vec (List (Φ ⊢Nf⋆ *)) n)
+               → Either TypeError (Cases Γ B Tss)
 checkCases-List Γ B U.[] [] = return []
-checkCases-List Γ B U.[] (TS ∷ TSS) = inj₁ TooFewCases
-checkCases-List Γ B (c U.∷ cs) [] = inj₁ TooManyCases
-checkCases-List Γ B (c U.∷ cs) (TS ∷ TSS) = do 
-           x ← checkType Γ c (mkCaseType B TS)
-           xs ← checkCases-List Γ B cs TSS
+checkCases-List Γ B U.[] (_ ∷ _) = inj₁ TooFewCases
+checkCases-List Γ B (_ U.∷ _) [] = inj₁ TooManyCases
+checkCases-List Γ B (c U.∷ cs) (Ts ∷ Tss) = do 
+           x ← checkType Γ c (mkCaseType B Ts)
+           xs ← checkCases-List Γ B cs Tss
            return (x ∷ xs)               
 
 inferType Γ (` x) = do
@@ -542,19 +542,19 @@ inferType Γ (unwrap L) = do
   K ,, A ,, B ,, L ← isMu TL
   return (nf (embNf A · ƛ (μ (embNf (weakenNf A)) (` Z)) · embNf B) ,, unwrap L refl)
 inferType Γ (constr A i cs) = do
-         -- A is of kind * with type SOP TSS
+         -- A is of kind * with type SOP Tss
          B ← checkKind _ A *
-         (n ,, TSS) ← isSOPType B
+         (n ,, Tss) ← isSOPType B
          -- i < length cs
          e ← chkIdx i n
-         -- cs has type Vec.lookup TSS e           
-         L ← checkConstrArgs-List Γ cs (Vec.lookup TSS e)
-         return ((SOP TSS) ,, (constr e TSS refl L)) 
+         -- cs has type Vec.lookup Tss e           
+         L ← checkConstrArgs-List Γ cs (Vec.lookup Tss e)
+         return ((SOP Tss) ,, (constr e Tss refl L)) 
 inferType Γ (case A x cs) = do 
              B ← checkKind _ A *
              -- check x is of SOP type
              L ← inferType Γ x
-             (n ,, TSS ,, t) ← isSOP L
-             cases ← checkCases-List Γ B cs TSS
+             (n ,, Tss ,, t) ← isSOP L
+             cases ← checkCases-List Γ B cs Tss
              return (B ,, case t cases)
 ```

@@ -38,7 +38,7 @@ data RawTy where
   _·_ : RawTy → RawTy → RawTy
   con : RawTyCon → RawTy
   μ   : RawTy → RawTy → RawTy
-  SOP : (tss : List (List RawTy)) → RawTy
+  SOP : (Tss : List (List RawTy)) → RawTy
 
 {-# COMPILE GHC RawTy = data RType (RTyVar | RTyFun | RTyPi | RTyLambda | RTyApp | RTyCon | RTyMu | RTySOP) #-}
 
@@ -97,7 +97,7 @@ decRTy (ƛ K A) (ƛ K' A')    = decRKi K K' ∧ decRTy A A'
 decRTy (A · B) (A' · B')    = decRTy A A' ∧ decRTy B B'
 decRTy (con c) (con c')     = decRTyCon c c'
 decRTy (μ A B) (μ A' B')    = decRTy A A' ∧ decRTy B B'
-decRTy (SOP tss) (SOP tss') = decRTyListList tss tss'
+decRTy (SOP Tss) (SOP Tss') = decRTyListList Tss Tss'
 decRTy _ _ = false
 
 decRTyList [] [] = true
@@ -147,7 +147,7 @@ rawTyPrinter (ƛ K A)   = "(ƛ" ++ "kind" ++ rawTyPrinter A ++ ")"
 rawTyPrinter (A · B)   = "(" ++ rawTyPrinter A ++ "·" ++ rawTyPrinter B ++ ")"
 rawTyPrinter (con c)   = "(con)"
 rawTyPrinter (μ A B)   = "(μ" ++ rawTyPrinter A ++ rawTyPrinter B ++ ")"
-rawTyPrinter (SOP xss) =  addBrackets (rawTyListListPrinter xss)
+rawTyPrinter (SOP Tss) =  addBrackets (rawTyListListPrinter Tss)
 
 rawTyListPrinter [] = ""
 rawTyListPrinter (x ∷ []) = rawTyPrinter x
