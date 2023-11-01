@@ -12,8 +12,8 @@ are too small to effect the overall conclusions).
 There are some tables of frequencies later in the document.  Note that some of
 these show exact frequencies (eg, how many objects have a particular depth) but
 that others (those mentioning `<=` in the rightmost column) show cumulative
-frequencies (eg, what proportion of a dataset has size _less than_ the number in
-the first column).
+frequencies (eg, what proportion of a dataset has size _no greater than_ the
+number in the first column).
 
 Recall that these analyses record the following quantities:
 
