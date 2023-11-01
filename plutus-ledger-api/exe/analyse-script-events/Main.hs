@@ -6,7 +6,10 @@
 {-# LANGUAGE TupleSections    #-}
 {-# LANGUAGE TypeApplications #-}
 
--- | Various analyses of events in mainnet script dumps
+-- | Various analyses of events in mainnet script dumps.
+-- This only deals with PlutusV1 and PlutusV2 script events because
+-- PlutusLedgerApi.Test.EvaluationEvent (and hence the scriptdump job) doesn't
+-- know about anything else yet.
 
 module Main (main) where
 
@@ -43,14 +46,20 @@ type EventAnalyser
 
 -- Analyse values in ScriptContext
 
--- Script purpose: same for V1 and V2, but will change in V3
-stringOfPurpose :: V1.ScriptPurpose -> String
-stringOfPurpose = \case
-    V1.Minting    _ -> "Minting"      -- Script arguments are [redeemer, context]
-    V1.Spending   _ -> "Spending"     -- Script arguments are [datum, redeemer, context]
-    V1.Rewarding  _ -> "Rewarding"    -- Script arguments are [datum, redeemer, context]???
-    V1.Certifying _ -> "Certifying"   -- Script arguments are [datum, redeemer, context]???
+-- Script purpose: same for V1 and V2, but changes in V3
+stringOfPurposeV1 :: V1.ScriptPurpose -> String
+stringOfPurposeV1 = \case
+    V1.Minting    _ -> "V1 Minting"      -- Script arguments are [redeemer, context]
+    V1.Spending   _ -> "V1 Spending"     -- Script arguments are [datum, redeemer, context]
+    V1.Rewarding  _ -> "V1 Rewarding"    -- Script arguments are [datum, redeemer, context]
+    V1.Certifying _ -> "V1 Certifying"   -- Script arguments are [redeemer, context]?
 
+stringOfPurposeV2 :: V2.ScriptPurpose -> String
+stringOfPurposeV2 = \case
+    V2.Minting    _ -> "V2 Minting"
+    V2.Spending   _ -> "V2 Spending"
+    V2.Rewarding  _ -> "V2 Rewarding"
+    V2.Certifying _ -> "V2 Certifying"
 
 shapeOfValue :: V1.Value  -> String
 shapeOfValue (V1.Value m) =
@@ -62,12 +71,6 @@ analyseValue v = do
   putStr $ shapeOfValue v
   printf "\n"
 
-analyseOutputsV1 :: [V1.TxOut] -> IO ()
-analyseOutputsV1 [] = pure ()
-analyseOutputsV1 l = do
-  putStr $ printf " %d " (length l)
-  putStrLn $ intercalate ", " (fmap (shapeOfValue . V1.txOutValue) l)
-
 analyseTxInfoV1 :: V1.TxInfo -> IO ()
 analyseTxInfoV1 i = do
   putStr "Fee:     "
@@ -75,14 +78,10 @@ analyseTxInfoV1 i = do
   putStr "Mint:    "
   analyseValue $ V1.txInfoMint i
   case V1.txInfoOutputs i of
-    [] -> pure () -- A line with no outputs can be hard to post-process
-    l  -> putStr "Outputs: " >> analyseOutputsV1 l
-
-analyseOutputsV2 :: [V2.TxOut] -> IO ()
-analyseOutputsV2 [] = pure ()
-analyseOutputsV2 l = do
-    putStr $ printf " %d " (length l)
-    putStrLn $ intercalate ", " (fmap (shapeOfValue . V2.txOutValue ) l)
+    [] -> putStrLn "No outputs"
+    l  -> do
+      putStr $ printf "Outputs %d " (length l)
+      putStrLn $ intercalate ", " (fmap (shapeOfValue . V1.txOutValue) l)
 
 analyseTxInfoV2 :: V2.TxInfo -> IO ()
 analyseTxInfoV2 i = do
@@ -91,11 +90,10 @@ analyseTxInfoV2 i = do
   putStr "Mint:    "
   analyseValue $ V2.txInfoMint i
   case V2.txInfoOutputs i of
-    [] -> pure ()
-    l  ->  putStr "Outputs: " >> analyseOutputsV2 l
-
--- Minting policy arguments: redeemer, context
--- Validator arguments: datum, redeemer, context
+    [] -> putStrLn "No outputs"
+    l  -> do
+      putStr $ printf "Outputs %d " (length l)
+      putStrLn $ intercalate ", " (fmap (shapeOfValue . V2.txOutValue) l)
 
 analyseScriptContext :: EventAnalyser
 analyseScriptContext _ctx _params ev = case ev of
@@ -103,24 +101,24 @@ analyseScriptContext _ctx _params ev = case ev of
         case dataInputs of
         [_,_,c] -> analyseCtxV1 c
         [_,c]   -> analyseCtxV1 c
-        _       -> pure ()
+        l       -> error $ printf "Unexpected number of V1 script arguments: %d" (length l)
     PlutusV2Event ScriptEvaluationData{..} _expected ->
         case dataInputs of
         [_,_,c] -> analyseCtxV2 c
         [_,c]   -> analyseCtxV2 c
-        _       -> pure ()
+        l       -> error $ printf "Unexpected number of V2 script arguments: %d" (length l)
     where
     analyseCtxV1 c = case V1.fromData @V1.ScriptContext c of
                        Nothing -> error "Failed to decode V1 ScriptContext"
                        Just p -> do
                          putStrLn "----------------"
-                         putStrLn $ stringOfPurpose $ V1.scriptContextPurpose p
+                         putStrLn $ stringOfPurposeV1 $ V1.scriptContextPurpose p
                          analyseTxInfoV1 $ V1.scriptContextTxInfo p
     analyseCtxV2 c = case V2.fromData @V2.ScriptContext c of
                        Nothing -> error "Failed to decode V2 ScriptContext"
                        Just p -> do
                          putStrLn "----------------"
-                         putStrLn $ stringOfPurpose $ V2.scriptContextPurpose p
+                         putStrLn $ stringOfPurposeV2 $ V2.scriptContextPurpose p
                          analyseTxInfoV2 $ V2.scriptContextTxInfo p
 
 -- Data object analysis

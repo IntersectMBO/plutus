@@ -86,12 +86,12 @@ entry for every transaction.
 
 ```
 ----------------
-Spending
+V1 Spending
 Fee:     [1: 1]
 Mint:    [1: 1]
 Outputs:  2 [1: 1], [2: 1,1] [5: 1,7,2,0,3]
 ----------------
-Minting
+V1 Minting
 Fee:     [1: 1]
 Mint:    [2: 1,2]
 Outputs:  2 [1: 1], [3: 1,1,2]
