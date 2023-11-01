@@ -1,6 +1,6 @@
 ## `Value` objects involved in mainnet script events
 
-We ran the `values` analysis (see [README.md](./README.md) on all mainnet script
+We ran the `values` analysis (see [README.md](./README.md)) on all mainnet script
 events up to mid-October 2023 (event file beginning `0000000105908766`;
 21,832,781 script events in total).
 
