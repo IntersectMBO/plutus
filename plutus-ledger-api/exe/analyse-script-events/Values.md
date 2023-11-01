@@ -105,9 +105,9 @@ figures are dominated by `Value`s with small token counts:
 `Value`s with a token count of five or less appear 99,305,302 times (98.12% of
 the total number of `Value`s).  The maximum token count is 548, and only 137643
 `Value`s (0.13%) have a token count greater than 100.  It is difficult to
-quntify precisely, but it seems that it is very rare to have a `Value` which has
-a large number of currency symbols each with a large number of different token
-names.  For example, for almost all `Value`s with more than 100 currency
+quantify precisely, but it seems that it is very rare to have a `Value` which
+has a large number of currency symbols each with a large number of different
+token names.  For example, for almost all `Value`s with more than 100 currency
 symbols, typically at least 90% the currency symbols have only a single
 associated token name, and there will be a maximum of two or three currency
 symbols whose number of token names is in double figures.

@@ -1,7 +1,7 @@
 ## Analysis of `Data` objects
 
 We ran the `redeemers`, `datums`, and `script-data` analyses (see
-[README.md](./README.md) on all mainnet script events up to mid-October 2023
+[README.md](./README.md)) on all mainnet script events up to mid-October 2023
 (event file beginning `0000000105908766`; 21,832,781 script events in total).
 The data involved 21,832,783 redeemers, 20,925,099 datum objects, and 16,736,891
 `Data` objects in scripts. (There may be some small discrepancies in these
@@ -37,17 +37,17 @@ Recall that these analyses record the following quantities:
 
 ### `memoryUsage` of `Data` objects
 
-The `memoryUsage` figure is of interest because the cost of some important
-operations on `Data` depends on it. The maximum `memoryUsage` of a redeemer in
+The `memoryUsage` figure is of interest because the costs of some important
+operations on `Data` depend on it. The maximum `memoryUsage` of a redeemer in
 our dataset was 1588, the maximum for a datum was 1083, and the maximum for a
 `Data` object in a script was 1099.  The table below shows the number of objects
-in each dataset whose `memoryUsage` is less than the number in the first column
-(and note that the numbres in the first column are not linearly distributed).
-There are some rounding errors here: for example, in the first column there are
-only 4709 objects (of over 21 million) with `memoryUsage` greater than 150, and
-610 objects with `memoryUsage` greater than 400.  It is clear that for redeemers
-and script data objects the `memoryUsage` is typically less than about 50 and
-for datum objects it is typically less than about 200.
+in each dataset whose `memoryUsage` is less than or equal to the number in the
+first column (and note that the numbers in the first column are not linearly
+distributed).  There are some rounding errors here: for example, in the first
+column there are only 4709 objects (of over 21 million) with `memoryUsage`
+greater than 150, and 610 objects with `memoryUsage` greater than 400.  It is
+clear that for redeemers and script data objects the `memoryUsage` is typically
+less than about 50 and for datum objects it is typically less than about 200.
 
 
 | mem <= |   Redeemer   |   Datum   | Script Data |
@@ -85,7 +85,7 @@ for datum objects it is typically less than about 200.
 The maximum depth of a redeemer object was 10, of a datum was 12, and of a
 script `Data` object was 7.  The precise distribution of depths is shown below.
 Again there are some rounding errors: for example, there is only one datum
-object of depth greater than 10 and 803 of depth greater than 8.
+object of depth greater than 10 and there only 803 of depth greater than 8.
 
  | depth  |   Redeemer   |  Datum    | Script Data |
  |:------:|:------------:|:---------:|:-----------:|
@@ -110,7 +110,7 @@ redeemers and script data objects are typically very small: only 12475 redeemers
 have more than 9 nodes. and only 4175 data objects have more than 23 nodes.  The
 distribution for datums is slightly more interesting, as shown below (these are
 cumulative frequencies: the second column shows the number of datums with
-at most n nodes, n being the number in the first column).
+at most `n` nodes, `n` being the number in the first column).
 
 | nodes <= |   Datum  |
 |:--------:|:--------:|
@@ -142,7 +142,7 @@ objects.
 
 Nodes of type `B` contain `ByteString` values. Again, redeemers and script
 `Data` objects are not very interesting: 85% of redeemers contain no `B` nodes
-at all and only 20810 (0.1%) contain more than 2 `B` nodes; the maximum number
+at all and only 20810 (0.1%) contain more than two `B` nodes; the maximum number
 of `B` nodes is 97, and the maximum `memoryUsage` (in 8-byte words) of a
 bytestring in a `B` node is 18. The maximum total `memoryUsage` of bystestrings
 (`totalBsize`) in a `B` node is 388.
@@ -233,12 +233,12 @@ datums, as shown by the table below
 | 22   |    6.03%  |
 | 23   |    0.00%  |
 
-Only five datums (of almost 21 million) contain more than 22 `Constr` nodes, but
-for some reason there are 1260972 datums with exacly 22.
+Only five datum objects (of almost 21 million) contain more than 22 `Constr`
+nodes, but for some reason there are 1,260,972 datums with exactly 22.
 
 ## Conclusions
 
-It seems that in general `Data` objects on the chain are quite small and
-simple, especially redeemers and `Data` objects embedded in scripts.  Datums
-tend to be larger and more complex, and it might be worth trying to understand
-why this is.
+It seems that in general `Data` objects on the chain are quite small and simple,
+especially redeemers and `Data` objects embedded in scripts.  Datum objects tend
+to be larger and more complex, and it might be worth trying to understand why
+this is.
