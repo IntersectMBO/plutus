@@ -49,10 +49,10 @@ type EventAnalyser
 -- Script purpose: this is the same for V1 and V2, but changes in V3
 stringOfPurposeV1 :: V1.ScriptPurpose -> String
 stringOfPurposeV1 = \case
-    V1.Minting    _ -> "V1 Minting"      -- Script arguments are [redeemer, context]
+    V1.Minting    _ -> "V1 Minting"      -- Script arguments appear to be [redeemer, context]
     V1.Spending   _ -> "V1 Spending"     -- Script arguments are [datum, redeemer, context]
     V1.Rewarding  _ -> "V1 Rewarding"    -- Script arguments are [datum, redeemer, context]
-    V1.Certifying _ -> "V1 Certifying"   -- Script arguments are [redeemer, context]?
+    V1.Certifying _ -> "V1 Certifying"   -- Script arguments appear to be [redeemer, context]
 
 stringOfPurposeV2 :: V2.ScriptPurpose -> String
 stringOfPurposeV2 = \case
@@ -78,7 +78,7 @@ analyseTxInfoV1 i = do
   putStr "Mint:    "
   analyseValue $ V1.txInfoMint i
   case V1.txInfoOutputs i of
-    [] -> putStrLn "No outputs"
+    [] -> putStrLn "No outputs"   -- This happens in 0000000046344292-*.event
     l  -> do
       putStr $ printf "Outputs %d " (length l)
       putStrLn $ intercalate ", " (fmap (shapeOfValue . V1.txOutValue) l)
@@ -221,12 +221,12 @@ analyseRedeemer _ctx _params ev = do
           case dataInputs of
             [_d, r,_c] -> printDataInfoFor r
             [r,_c]     -> printDataInfoFor r
-            _          -> putStrLn "Unexpected script arguments"
+            l          -> printf "* Unexpected number of V1 script arguments: %d" (length l)
       PlutusV2Event ScriptEvaluationData{..} _expected ->
           case dataInputs of
             [_d, r,_c] -> printDataInfoFor r
             [r,_c]     -> printDataInfoFor r
-            _          -> putStrLn "Unexpected script arguments"
+            l          ->  printf "* Unexpected number of V1 script arguments: %d" (length l)
 
 -- Analyse a datum (as a Data object) from a script evaluation event
 analyseDatum :: EventAnalyser
@@ -236,12 +236,12 @@ analyseDatum _ctx _params ev = do
           case dataInputs of
             [d, _r,_c] -> printDataInfoFor d
             [_r,_c]    -> pure ()
-            _          -> putStrLn "Unexpected script arguments"
+            l          -> printf "* Unexpected number of V2 script arguments: %d" (length l)
       PlutusV2Event ScriptEvaluationData{..} _expected ->
           case dataInputs of
             [_d, r,_c] -> printDataInfoFor r
             [_r,_c]    -> pure ()
-            _          -> putStrLn "Unexpected script arguments"
+            l          -> printf "* Unexpected number of V2 script arguments: %d" (length l)
 
 -- Extract the script from an evaluation event and apply some analysis function
 analyseUnappliedScript
