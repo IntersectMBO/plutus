@@ -46,7 +46,7 @@ type EventAnalyser
 
 -- Analyse values in ScriptContext
 
--- Script purpose: same for V1 and V2, but changes in V3
+-- Script purpose: this is the same for V1 and V2, but changes in V3
 stringOfPurposeV1 :: V1.ScriptPurpose -> String
 stringOfPurposeV1 = \case
     V1.Minting    _ -> "V1 Minting"      -- Script arguments are [redeemer, context]
