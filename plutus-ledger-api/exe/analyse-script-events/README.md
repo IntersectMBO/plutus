@@ -110,7 +110,7 @@ a single currency symbol with only one token: all `Fee` values are of this form,
 for example.
 
 The output can be analysed as required.  For example, the shell script below
-will produce a list of all the shapes of values ordered by frequency.  An
+will produce a list of all the shapes of values ordered by frequency.  A
 discussion of the `Value` objects appearing in script outputs up to mid-October
 2023 can be found in [Values.md](./Values.md).
 
