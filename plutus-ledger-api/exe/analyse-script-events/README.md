@@ -12,9 +12,9 @@ dump consists of a number of `.bz2` files with names like
 ```
 
 The first part of the name specifies the slot containing the first script event
-in the file; the number of events per file is not fixed, but later files
-typically contain about 50,000 events.  The files contain scripts which have
-been run on the chain, together with their inputs encoded using the
+in the file; the number of events per file is not fixed, but the more recent
+files typically contain about 50,000 events.  The files contain scripts which
+have been run on the chain, together with their inputs encoded using the
 [Data](https://github.com/input-output-hk/plutus/blob/master/plutus-core/plutus-core/src/PlutusCore/Data.hs)
 type. For standard validation scripts the inputs consist of datum, redeemer, and
 script context; for minting policies the inputs are a redeemer and script
@@ -22,12 +22,12 @@ context.
 
 To run an analysis type
 ```
-cabal run analyse-script-events <dir> <analysis.
+cabal run analyse-script-events <dir> <analysis>.
 ```
 
 The `dir` argument specifies the path to a directory containing uncompressed
 `.event` files (possibly the full set, or perhaps just a subset).  It may take
-several hours for the analysis to complete, depending on the complexity of the
+several hours for the analysis to complete depending on the complexity of the
 analysis and the number of files to be analysed.
 
 There are currently four analyses available:
@@ -80,7 +80,7 @@ A discussion of the `Data` objects involved in transactions up to mid-October
 
 ### `Value` analysis
 
-The `value` analysis prints out information about `Value` objects (ie, amounts
+The `values` analysis prints out information about `Value` objects (ie, amounts
 of currencies) involved in transactions.  Its output looks like this, with one
 entry for every transaction.
 
