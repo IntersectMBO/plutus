@@ -108,23 +108,42 @@ analyseScriptContext _ctx _params ev = case ev of
         [_,c]   -> analyseCtxV2 c
         l       -> error $ printf "Unexpected number of V2 script arguments: %d" (length l)
     where
-    analyseCtxV1 c = case V1.fromData @V1.ScriptContext c of
-                       Nothing -> error "Failed to decode V1 ScriptContext"
-                       Just p -> do
-                         putStrLn "----------------"
-                         putStrLn $ stringOfPurposeV1 $ V1.scriptContextPurpose p
-                         analyseTxInfoV1 $ V1.scriptContextTxInfo p
-    analyseCtxV2 c = case V2.fromData @V2.ScriptContext c of
-                       Nothing -> error "Failed to decode V2 ScriptContext"
-                       Just p -> do
-                         putStrLn "----------------"
-                         putStrLn $ stringOfPurposeV2 $ V2.scriptContextPurpose p
-                         analyseTxInfoV2 $ V2.scriptContextTxInfo p
+    analyseCtxV1 c =
+        case V1.fromData @V1.ScriptContext c of
+          Just p -> printV1info p
+          Nothing -> do -- This  happens: there are V1 events in 0000000103367139-*.event with a V2 context
+            putStrLn "\n* Failed to decode V1 ScriptContext for V1 event: trying V2"
+            case V2.fromData @V2.ScriptContext c of
+              Nothing -> putStrLn "* Failed to decode V2 ScriptContext for V1 event: giving up\n"
+              Just p ->
+                  do putStrLn "* Successfully decoded V2 ScriptContext for V1 event"
+                     printV2info p
+
+    analyseCtxV2 c =
+        case V2.fromData @V2.ScriptContext c of
+          Just p -> printV2info p
+          Nothing -> do
+            putStrLn "\n* Failed to decode V2 ScriptContext for V2 event: trying V1"
+            case V1.fromData @V1.ScriptContext c of
+              Nothing -> putStrLn "* Failed to decode V1 ScriptContext for V2 event: giving up\n"
+              Just p ->
+                  do putStrLn "* Successfully decoded V1 ScriptContext for V2 event"
+                     printV1info p
+
+    printV1info p = do
+      putStrLn "----------------"
+      putStrLn $ stringOfPurposeV1 $ V1.scriptContextPurpose p
+      analyseTxInfoV1 $ V1.scriptContextTxInfo p
+
+    printV2info p = do
+      putStrLn "----------------"
+      putStrLn $ stringOfPurposeV2 $ V2.scriptContextPurpose p
+      analyseTxInfoV2 $ V2.scriptContextTxInfo p
+
 
 -- Data object analysis
 
 -- Statistics about a Data object
-
 data DataInfo = DataInfo
     { _memUsage   :: Integer
     , _numNodes   :: Integer
