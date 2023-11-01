@@ -111,7 +111,8 @@ analyseScriptContext _ctx _params ev = case ev of
     analyseCtxV1 c =
         case V1.fromData @V1.ScriptContext c of
           Just p -> printV1info p
-          Nothing -> do -- This  happens: there are V1 events in 0000000103367139-*.event with a V2 context
+          Nothing -> do
+            -- This really happens: there are V1 events in 0000000103367139-*.event with a V2 context
             putStrLn "\n* Failed to decode V1 ScriptContext for V1 event: trying V2"
             case V2.fromData @V2.ScriptContext c of
               Nothing -> putStrLn "* Failed to decode V2 ScriptContext for V1 event: giving up\n"
