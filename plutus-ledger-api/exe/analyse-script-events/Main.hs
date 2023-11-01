@@ -49,9 +49,9 @@ type EventAnalyser
 -- Script purpose: this is the same for V1 and V2, but changes in V3
 stringOfPurposeV1 :: V1.ScriptPurpose -> String
 stringOfPurposeV1 = \case
-    V1.Minting    _ -> "V1 Minting"      -- Script arguments appear to be [redeemer, context]
+    V1.Minting    _ -> "V1 Minting"      -- Script arguments are [redeemer, context]
     V1.Spending   _ -> "V1 Spending"     -- Script arguments are [datum, redeemer, context]
-    V1.Rewarding  _ -> "V1 Rewarding"    -- Script arguments are [datum, redeemer, context]
+    V1.Rewarding  _ -> "V1 Rewarding"    -- Script arguments appear to be [redeemer, context]
     V1.Certifying _ -> "V1 Certifying"   -- Script arguments appear to be [redeemer, context]
 
 stringOfPurposeV2 :: V2.ScriptPurpose -> String
