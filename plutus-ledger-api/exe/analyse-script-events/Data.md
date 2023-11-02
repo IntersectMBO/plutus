@@ -87,8 +87,8 @@ a while ago: see the comments for
 there used inputs of size up to 80,000, which is considerably larger than the
 200 units we're likely to see in practice.  For an object of size 200, the CPU
 cost of `equalsData` according to the current cost model is 1,073,158 ExCPU
-(0.01% of the maximum 10,000,000,000, and about 77 Lovelace); for
-`serialiseData` the cost is 79,693,724 ExCPU (0.7% of the maximum, and about
+(0.01% of the maximum 10,000,000,000 and about 77 Lovelace); for
+`serialiseData` the cost is 79,693,724 ExCPU (0.7% of the maximum and about
 5,746 Lovelace).  The memory cost of `equalsData` is 1 ExMem (effectively zero)
 and the memory cost of `serialiseData` on an object of size 200 is 400 ExMem
 (0.0028% of the maximum 14,000,000 and about 11 Lovelace).  This suggests that
