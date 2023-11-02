@@ -280,7 +280,6 @@ library
     , data-default-class
     , deepseq
     , dependent-sum               >=0.7.1.0
-    , dependent-sum-template      <0.1.2
     , deriving-aeson              >=0.2.3
     , deriving-compat
     , dlist
