@@ -1,0 +1,53 @@
+let
+  data Unit | Unit_match where
+    Unit : Unit
+  data (Tuple4 :: * -> * -> * -> * -> *) a b c d | Tuple4_match where
+    Tuple4 : a -> b -> c -> d -> Tuple4 a b c d
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+  !addInteger : integer -> integer -> integer
+    = \(x : integer) (y : integer) -> addInteger x y
+in
+\(d : data) ->
+  Tuple4_match
+    {integer}
+    {integer}
+    {integer}
+    {integer}
+    ((let
+         r = Tuple4 integer integer integer integer
+       in
+       \(scrut : data)
+        (cont : integer -> integer -> integer -> integer -> r)
+        (fail : unit -> r) ->
+         let
+           !tup : pair integer (list data) = unConstrData scrut
+         in
+         ifThenElse
+           {all dead. r}
+           (equalsInteger 0 (fstPair {integer} {list data} tup))
+           (/\dead ->
+              let
+                !l : list data = sndPair {integer} {list data} tup
+                !l : list data = tailList {data} l
+                !l : list data = tailList {data} l
+              in
+              cont
+                (unIData (headList {data} l))
+                (unIData (headList {data} l))
+                (unIData (headList {data} l))
+                (unIData (headList {data} (tailList {data} l))))
+           (/\dead -> fail ())
+           {all dead. dead})
+       d
+       (\(x : integer) (y : integer) (z : integer) (w : integer) ->
+          Tuple4 {integer} {integer} {integer} {integer} x y z w)
+       (\(void : unit) ->
+          Unit_match
+            (error {Unit})
+            {Tuple4 integer integer integer integer}
+            (error {Tuple4 integer integer integer integer})))
+    {integer}
+    (\(ipv : integer) (ipv : integer) (ipv : integer) (ipv : integer) ->
+       addInteger (addInteger (addInteger ipv ipv) ipv) ipv)
