@@ -228,6 +228,20 @@ isProbablyIntegerEq (GHC.getName -> n)
       True
 isProbablyIntegerEq _ = False
 
+-- | Check for literal ranges like [1..9].  This is only "probably" because the
+-- source could contain an explicit use of enumFromTo etc.
+isProbablyRange :: GHC.Id -> Bool
+isProbablyRange (GHC.getName -> n)
+    | Just m <- GHC.nameModule_maybe n
+    , GHC.moduleNameString (GHC.moduleName m) == "GHC.Enum" =
+        (  name == "$fEnumInteger_$cenumFromTo"      -- [1..100]
+        || name == "$fEnumInteger_$cenumFromThenTo"  -- [1,3..100]
+        || name == "$fEnumInteger_$cenumFrom"        -- [1..]
+        || name == "$fEnumInteger_$cenumFromThen"    -- [1,3..]
+        ) where name = GHC.occNameString (GHC.nameOccName n)
+      -- Still doesn't work for Bool, for example: [False ..] gives a complaint about GHC.Enum.$fEnumBool_go
+isProbablyRange _ = False
+
 {- Note [GHC runtime errors]
 GHC has a number of runtime errors for things like pattern matching failures and so on.
 
@@ -730,6 +744,12 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     GHC.Var n
       | isProbablyBytestringEq n ->
           throwPlain $ UnsupportedError "Use of Haskell ByteString equality, possibly via the Haskell Eq typeclass"
+    GHC.Var n
+      -- Try to produce a sensible error message if a range like [1..9] is encountered.  This works
+      -- by looking for occurrences of GHC.Enum.enumFromTo and similar functions; the same error
+      -- occurs if these functions are used explicitly.
+      | isProbablyRange n ->
+          throwPlain $ UnsupportedError "Literal ranges are not supported: please use PlutusTx.enumFromTo or PlutusTx.enumFromThenTo"
     -- locally bound vars
     GHC.Var (lookupName scope . GHC.getName -> Just var) -> pure $ PIR.mkVar annMayInline var
     -- Special kinds of id
