@@ -14,6 +14,8 @@
 {-# LANGUAGE ViewPatterns          #-}
 {-# OPTIONS_GHC -Wno-partial-type-signatures #-}
 
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
+
 -- | Functions for compiling GHC Core expressions into Plutus Core terms.
 module PlutusTx.Compiler.Expr (compileExpr, compileExprWithDefs, compileDataConRef) where
 
@@ -234,12 +236,13 @@ isProbablyRange :: GHC.Id -> Bool
 isProbablyRange (GHC.getName -> n)
     | Just m <- GHC.nameModule_maybe n
     , GHC.moduleNameString (GHC.moduleName m) == "GHC.Enum" =
-        "$fEnum" `isPrefixOf` methodName &&
-        (  "_$cenumFromTo"     `isSuffixOf` methodName  -- [1..100]
-        || "_$cenumFromThenTo" `isSuffixOf` methodName  -- [1,3..100]
-        || "_$cenumFrom"       `isSuffixOf` methodName  -- [1..]
-        || "_$cenumFromThen"   `isSuffixOf` methodName  -- [1,3..]
-        )
+        ("$fEnum" `isPrefixOf` methodName &&
+         (  "_$cenumFromTo"     `isSuffixOf` methodName  -- [1..100]
+         || "_$cenumFromThenTo" `isSuffixOf` methodName  -- [1,3..100]
+         || "_$cenumFrom"       `isSuffixOf` methodName  -- [1..]
+         || "_$cenumFromThen"   `isSuffixOf` methodName  -- [1,3..]
+         )
+        ) || "enumDeltaToInteger" `isPrefixOf` methodName  -- These are introduced by rewrite rules in GHC.Enum.
         where methodName = GHC.occNameString (GHC.nameOccName n)
 isProbablyRange _ = False
 
