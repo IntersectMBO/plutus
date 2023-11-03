@@ -286,6 +286,7 @@ enumFromThenToTests = testGroup "enumFromTo"
   , testCase "enumFromThenTo True  False True  == [True]"        $ enumFromThenTo True  False True       @?=  [True]
   , testCase "enumFromThenTo True  True  False == []"            $ enumFromThenTo True  True  False      @?=  []
   , testCase "enumFromThenTo True  True  True  == [True*]"       $ enumFromThenTo True  True  True       @?=* True
+  , testCase "enumFromThenTo () () () == [()*]"                  $ enumFromThenTo () () ()               @?=* ()
   ]
     where l @?=* x =
               case l of
