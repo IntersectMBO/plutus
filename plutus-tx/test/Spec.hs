@@ -263,32 +263,32 @@ enumFromToTests = testGroup "enumFromTo"
   ]
 
 enumFromThenToTests :: TestTree
-enumFromThenToTests = testGroup "enumFromTo"
-  [ testCase "enumFromThenTo 1 2 100  == [1..100]"               $ enumFromThenTo @Integer 1 2 100       @?=  [1..100]
-  , testCase "enumFromThenTo 1 2 100  == [1,2..100]"             $ enumFromThenTo @Integer 1 2 100       @?=  [1,2..100]
-  , testCase "enumFromThenTo 100 99 1 == [100,99..1]"            $ enumFromThenTo @Integer 100 99 1      @?=  [100,99..1]
-  , testCase "enumFromThenTo 100 17 (-700) == [100. 17..(-700)]" $ enumFromThenTo @Integer 100 17 (-700) @?=  [100,17..(-700)]
-  , testCase "enumFromThenTo 0 5 99   == [0,5..99]"              $ enumFromThenTo @Integer 0 5 99        @?=  [0,5..99]
-  , testCase "enumFromThenTo 0 5 100  == [0,5..100]"             $ enumFromThenTo @Integer 0 5 100       @?=  [0,5..100]
-  , testCase "enumFromThenTo 0 5 101  == [0,5..101]"             $ enumFromThenTo @Integer 0 5 101       @?=  [0,5..101]
-  , testCase "enumFromThenTo 100 95 0 == [100,95..0]"            $ enumFromThenTo @Integer 100 95 0      @?=  [100,95..0]
-  , testCase "enumFromThenTo 100 95 (-9) == [100,95..(-9)]"      $ enumFromThenTo @Integer 100 95 (-9)   @?=  [100,95..(-9)]
-  , testCase "enumFromThenTo 100 95 (-10) == [100,95..(-10)]"    $ enumFromThenTo @Integer 100 95 (-10)  @?=  [100,95..(-10)]
-  , testCase "enumFromThenTo 100 95 (-11) == [100,95..(-11)]"    $ enumFromThenTo @Integer 100 95 (-11)  @?=  [100,95..(-11)]
-  , testCase "enumFromThenTo 42 42 41 == []"                     $ enumFromThenTo @Integer 42 42 41      @?=  []
-  , testCase "enumFromThenTo 42 42 42 == [42*]"                  $ enumFromThenTo @Integer 42 42 42      @?=* 42
-  , testCase "enumFromThenTo 42 42 43 == [42*]"                  $ enumFromThenTo @Integer 42 42 43      @?=* 42
-  , testCase "enumFromThenTo False False False == [False*]"      $ enumFromThenTo False False False      @?=* False
-  , testCase "enumFromThenTo False False True  == [False*]"      $ enumFromThenTo False False True       @?=* False
-  , testCase "enumFromThenTo False True  False == [False]"       $ enumFromThenTo False True  False      @?=  [False]
-  , testCase "enumFromThenTo False True  True  == [False, True]" $ enumFromThenTo False True  True       @?=  [False, True]
-  , testCase "enumFromThenTo True  False False == [True, False]" $ enumFromThenTo True  False False      @?=  [True, False]
-  , testCase "enumFromThenTo True  False True  == [True]"        $ enumFromThenTo True  False True       @?=  [True]
-  , testCase "enumFromThenTo True  True  False == []"            $ enumFromThenTo True  True  False      @?=  []
-  , testCase "enumFromThenTo True  True  True  == [True*]"       $ enumFromThenTo True  True  True       @?=* True
-  , testCase "enumFromThenTo () () () == [()*]"                  $ enumFromThenTo () () ()               @?=* ()
+enumFromThenToTests = testGroup "enumFromThenTo"
+  [ testCase "enumFromThenTo 1 2 100  == [1..100]"              $ enumFromThenTo @Integer 1 2 100       @?=  [1..100]
+  , testCase "enumFromThenTo 1 2 100  == [1,2..100]"            $ enumFromThenTo @Integer 1 2 100       @?=  [1,2..100]
+  , testCase "enumFromThenTo 100 99 1 == [100,99..1]"           $ enumFromThenTo @Integer 100 99 1      @?=  [100,99..1]
+  , testCase "enumFromThenTo 100 17 (-700) == [100,17..(-700)]" $ enumFromThenTo @Integer 100 17 (-700) @?=  [100,17..(-700)]
+  , testCase "enumFromThenTo 0 5 99   == [0,5..99]"             $ enumFromThenTo @Integer 0 5 99        @?=  [0,5..99]
+  , testCase "enumFromThenTo 0 5 100  == [0,5..100]"            $ enumFromThenTo @Integer 0 5 100       @?=  [0,5..100]
+  , testCase "enumFromThenTo 0 5 101  == [0,5..101]"            $ enumFromThenTo @Integer 0 5 101       @?=  [0,5..101]
+  , testCase "enumFromThenTo 100 95 0 == [100,95..0]"           $ enumFromThenTo @Integer 100 95 0      @?=  [100,95..0]
+  , testCase "enumFromThenTo 100 95 (-9) == [100,95..(-9)]"     $ enumFromThenTo @Integer 100 95 (-9)   @?=  [100,95..(-9)]
+  , testCase "enumFromThenTo 100 95 (-10) == [100,95..(-10)]"   $ enumFromThenTo @Integer 100 95 (-10)  @?=  [100,95..(-10)]
+  , testCase "enumFromThenTo 100 95 (-11) == [100,95..(-11)]"   $ enumFromThenTo @Integer 100 95 (-11)  @?=  [100,95..(-11)]
+  , testCase "enumFromThenTo 42 42 41 == []"                    $ enumFromThenTo @Integer 42 42 41      @?=  []
+  , testCase "enumFromThenTo 42 42 42 == [42*]"                 $ enumFromThenTo @Integer 42 42 42      @?=* 42
+  , testCase "enumFromThenTo 42 42 43 == [42*]"                 $ enumFromThenTo @Integer 42 42 43      @?=* 42
+  , testCase "enumFromThenTo False False False == [False*]"     $ enumFromThenTo False False False      @?=* False
+  , testCase "enumFromThenTo False False True  == [False*]"     $ enumFromThenTo False False True       @?=* False
+  , testCase "enumFromThenTo False True  False == [False]"      $ enumFromThenTo False True  False      @?=  [False]
+  , testCase "enumFromThenTo False True  True  == [False,True]" $ enumFromThenTo False True  True       @?=  [False,True]
+  , testCase "enumFromThenTo True  False False == [True,False]" $ enumFromThenTo True  False False      @?=  [True,False]
+  , testCase "enumFromThenTo True  False True  == [True]"       $ enumFromThenTo True  False True       @?=  [True]
+  , testCase "enumFromThenTo True  True  False == []"           $ enumFromThenTo True  True  False      @?=  []
+  , testCase "enumFromThenTo True  True  True  == [True*]"      $ enumFromThenTo True  True  True       @?=* True
+  , testCase "enumFromThenTo () () () == [()*]"                 $ enumFromThenTo () () ()               @?=* ()
   ]
-    where l @?=* x =
+    where l @?=* x =  -- Check (approximately) that l is an infinite list of x's
               case l of
                 [] -> assertBool (expected ++ "\n but output is empty") isInfiniteListOfXs
                 _  -> assertBool (expected ++ "\n but output begins with " ++ (show $ take 5 l)) isInfiniteListOfXs
