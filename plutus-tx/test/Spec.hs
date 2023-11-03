@@ -10,6 +10,7 @@ import Codec.Serialise qualified as Serialise
 import Control.Exception (ErrorCall, catch)
 import Data.ByteString qualified as BS
 import Data.Either (isLeft)
+import Data.List (isPrefixOf)
 import Data.Word (Word64)
 import Hedgehog (MonadGen, Property, PropertyT, annotateShow, assert, forAll, property, tripping)
 import Hedgehog.Gen qualified as Gen
@@ -27,7 +28,7 @@ import Show.Spec qualified
 import Test.Tasty (TestTree, defaultMain, testGroup)
 import Test.Tasty.Extras (runTestNestedIn)
 import Test.Tasty.Hedgehog (testPropertyNamed)
-import Test.Tasty.HUnit (Assertion, testCase, (@?=))
+import Test.Tasty.HUnit (Assertion, assertBool, testCase, (@?=))
 
 main :: IO ()
 main = defaultMain tests
@@ -252,7 +253,7 @@ dropByteStringTests = testGroup "dropByteString"
 
 enumTests :: TestTree
 enumTests = testGroup "Enum"
-  [ enumFromToTests ]
+  [ enumFromToTests, enumFromThenToTests ]
 
 enumFromToTests :: TestTree
 enumFromToTests = testGroup "enumFromTo"
@@ -260,3 +261,34 @@ enumFromToTests = testGroup "enumFromTo"
   , testCase "enumFromTo 2 (-2) == []" $ enumFromTo @Integer 2 (-2) @?= []
   , testCase "enumFromTo 42 42 == [42]" $ enumFromTo @Integer 42 42 @?= [42]
   ]
+
+enumFromThenToTests :: TestTree
+enumFromThenToTests = testGroup "enumFromTo"
+  [ testCase "enumFromThenTo 1 2 100  == [1..100]"               $ enumFromThenTo @Integer 1 2 100       @?= [1..100]
+  , testCase "enumFromThenTo 1 2 100  == [1,2..100]"             $ enumFromThenTo @Integer 1 2 100       @?= [1,2..100]
+  , testCase "enumFromThenTo 100 99 1 == [100,99..1]"            $ enumFromThenTo @Integer 100 99 1      @?= [100,99..1]
+  , testCase "enumFromThenTo 100 17 (-700) == [100. 17..(-700)]" $ enumFromThenTo @Integer 100 17 (-700) @?= [100,17..(-700)]
+  , testCase "enumFromThenTo 0 5 99   == [0,5..99]"              $ enumFromThenTo @Integer 0 5 99        @?= [0,5..99]
+  , testCase "enumFromThenTo 0 5 100  == [0,5..100]"             $ enumFromThenTo @Integer 0 5 100       @?= [0,5..100]
+  , testCase "enumFromThenTo 0 5 101  == [0,5..101]"             $ enumFromThenTo @Integer 0 5 101       @?= [0,5..101]
+  , testCase "enumFromThenTo 100 95 0 == [100,95..0]"            $ enumFromThenTo @Integer 100 95 0      @?= [100,95..0]
+  , testCase "enumFromThenTo 100 95 (-9) == [100,95..(-9)]"      $ enumFromThenTo @Integer 100 95 (-9)   @?= [100,95..(-9)]
+  , testCase "enumFromThenTo 100 95 (-10) == [100,95..(-10)]"    $ enumFromThenTo @Integer 100 95 (-10)  @?= [100,95..(-10)]
+  , testCase "enumFromThenTo 100 95 (-11) == [100,95..(-11)]"    $ enumFromThenTo @Integer 100 95 (-11)  @?= [100,95..(-11)]
+  , testCase "enumFromThenTo 42 42 41 == []"                     $ enumFromThenTo @Integer 42 42 41      @?= []
+  , testCase "enumFromThenTo 42 42 42 == [42..]"                 $ enumFromThenTo @Integer 42 42 42      @>> 42
+  , testCase "enumFromThenTo 42 42 43 == [42..]"                 $ enumFromThenTo @Integer 42 42 43      @>> 42
+  , testCase "enumFromThenTo False False False == [False ..]"    $ enumFromThenTo False False False      @>> False
+  , testCase "enumFromThenTo False False True  == [False ..]"    $ enumFromThenTo False False True       @>> False
+  , testCase "enumFromThenTo False True  False == [False]"       $ enumFromThenTo False True  False      @?= [False]
+  , testCase "enumFromThenTo False True  True  == [False, True]" $ enumFromThenTo False True  True       @?= [False, True]
+  , testCase "enumFromThenTo True  False False == [True, False]" $ enumFromThenTo True  False False      @?= [True, False]
+  , testCase "enumFromThenTo True  False True  == [True]"        $ enumFromThenTo True  False True       @?= [True]
+  , testCase "enumFromThenTo True  True  False == []"            $ enumFromThenTo True  True  False      @?= []
+  , testCase "enumFromThenTo True  True  True  == [True ..]"     $ enumFromThenTo True  True  True       @>> True
+  , testCase "enumFromThenTo () () () == [() ..]"                $ enumFromThenTo () () ()               @>> ()
+  ]
+  where l @>> x =  -- Check (approximately) that l == [x,x,x,...]
+            case l of
+              []  -> assertBool "Output is empty" $ (replicate 1000 x) `isPrefixOf` l
+              y:_ -> assertBool ("Output started with " ++ show y) $ (replicate 1000 x) `isPrefixOf` l
