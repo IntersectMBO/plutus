@@ -71,17 +71,21 @@ analyseValue v = do
   putStr $ shapeOfValue v
   printf "\n"
 
+analyseOutputs :: [a] -> (a -> V1.Value) -> IO ()  -- Luckily V1.Value is the same as V2.Value
+analyseOutputs outputs getValue =
+  case outputs of
+    [] -> putStrLn "No outputs"   -- This happens in 0000000046344292-*.event
+    l  -> do
+      putStr $ printf "Outputs %d " (length l)
+      putStrLn $ intercalate ", " (fmap (shapeOfValue . getValue) l)
+
 analyseTxInfoV1 :: V1.TxInfo -> IO ()
 analyseTxInfoV1 i = do
   putStr "Fee:     "
   analyseValue $ V1.txInfoFee i
   putStr "Mint:    "
   analyseValue $ V1.txInfoMint i
-  case V1.txInfoOutputs i of
-    [] -> putStrLn "No outputs"   -- This happens in 0000000046344292-*.event
-    l  -> do
-      putStr $ printf "Outputs %d " (length l)
-      putStrLn $ intercalate ", " (fmap (shapeOfValue . V1.txOutValue) l)
+  analyseOutputs (V1.txInfoOutputs i) V1.txOutValue
 
 analyseTxInfoV2 :: V2.TxInfo -> IO ()
 analyseTxInfoV2 i = do
@@ -89,11 +93,7 @@ analyseTxInfoV2 i = do
   analyseValue $ V2.txInfoFee i
   putStr "Mint:    "
   analyseValue $ V2.txInfoMint i
-  case V2.txInfoOutputs i of
-    [] -> putStrLn "No outputs"
-    l  -> do
-      putStr $ printf "Outputs %d " (length l)
-      putStrLn $ intercalate ", " (fmap (shapeOfValue . V2.txOutValue) l)
+  analyseOutputs (V2.txInfoOutputs i) V2.txOutValue
 
 analyseScriptContext :: EventAnalyser
 analyseScriptContext _ctx _params ev = case ev of

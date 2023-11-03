@@ -7,7 +7,7 @@ The data involved 21,832,783 redeemers, 20,925,099 datum objects, and 16,736,891
 `Data` objects in scripts. (There may be some small discrepancies in these
 numbers compared with other experiments due to the treatment of some anomalous
 scripts that were encountered during the course of experimentation, but these
-are too small to effect the overall conclusions).
+are too small to affect the overall conclusions).
 
 There are some tables of frequencies later in the document.  Note that some of
 these show exact frequencies (eg, how many objects have a particular depth) but
@@ -161,7 +161,7 @@ Nodes of type `B` contain `ByteString` values. Again, redeemers and script
 `Data` objects are not very interesting: 85% of redeemers contain no `B` nodes
 at all and only 20810 (0.1%) contain more than two `B` nodes; the maximum number
 of `B` nodes is 97, and the maximum `memoryUsage` (in 8-byte words) of a
-bytestring in a `B` node is 18. The maximum total `memoryUsage` of bystestrings
+bytestring in a `B` node is 18. The maximum total `memoryUsage` of bytestrings
 (`totalBsize`) in a `B` node is 388.
 
 

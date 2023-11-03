@@ -5,12 +5,12 @@ events up to mid-October 2023 (event file beginning `0000000105908766`;
 21,832,781 script events in total).
 
 
-Revall that a `Value` consists of a map from currency identifiers to quantities
+Recall that a `Value` consists of a map from currency identifiers to quantities
 of the relevant currency, each quantity consisting of a map from token names to
 a (positive or negative) integral number saying how many of the relevant tokens
 the `Value` contains.  As in [README.md](./README.md), we describe `Value` objects
 by their "shape", symbols of the form `[5: 1,7,2,0,3]` where the first number
-is the number of currency symbols invloved in the map and the following vector
+is the number of currency symbols involved in the map and the following vector
 of numbers gives the number of `TokenName`s for each currency symbol.
 
 ### `Value`s appearing in transaction outputs
