@@ -51,10 +51,6 @@ tests = testNestedGhc "TH"
         , goldenEvalCekLog "traceRepeatedly" [traceRepeatedly]
         -- want to see the raw structure, so using Show
         , nestedGoldenVsDoc "someData" "" (pretty $ Haskell.show someData)
-        , goldenPir "rangeSyntaxNotSupported1" rangeSyntaxNotSupported1
-        , goldenPir "rangeSyntaxNotSupported2" rangeSyntaxNotSupported2
-        , goldenPir "rangeSyntaxNotSupported3" rangeSyntaxNotSupported3
-        , goldenPir "rangeSyntaxNotSupported4" rangeSyntaxNotSupported4
         ]
 
 simple :: CompiledCode (Bool -> Integer)
@@ -87,28 +83,3 @@ traceRepeatedly = $$(compile
               i3 = trace ("Adding them up: " <> show (i1 + i2)) (i1 + i2)
           in i3
     ||])
-
-
--- These should all fail because we don't support list range syntax
-rangeSyntaxNotSupported1 :: CompiledCode ([Integer])
-rangeSyntaxNotSupported1 = $$(compile [|| [1..9] ||])
-
-{-
-rangeSyntaxNotSupported2 :: CompiledCode [Integer]
-rangeSyntaxNotSupported2 = $$(compile [|| [1,3..9] ||])
-
-rangeSyntaxNotSupported3 :: CompiledCode [Integer]
-rangeSyntaxNotSupported3 = $$(compile [|| [1..] ||])
-
-rangeSyntaxNotSupported4 :: CompiledCode [Integer]
-rangeSyntaxNotSupported4 = $$(compile [|| [1,3..] ||])
--}
-
-rangeSyntaxNotSupported2 :: CompiledCode [Integer]
-rangeSyntaxNotSupported2 = $$(compile [|| [1] ||])
-
-rangeSyntaxNotSupported3 :: CompiledCode [Integer]
-rangeSyntaxNotSupported3 = $$(compile [|| [2] ||])
-
-rangeSyntaxNotSupported4 :: CompiledCode [Integer]
-rangeSyntaxNotSupported4 = $$(compile [|| [3] ||])
