@@ -68,7 +68,7 @@ import Control.Monad
 import Control.Monad.Reader (ask)
 import Data.Array qualified as Array
 import Data.ByteString qualified as BS
-import Data.List (elemIndex)
+import Data.List (elemIndex, isPrefixOf, isSuffixOf)
 import Data.Map qualified as Map
 import Data.Set qualified as Set
 import Data.Text qualified as T
@@ -234,12 +234,13 @@ isProbablyRange :: GHC.Id -> Bool
 isProbablyRange (GHC.getName -> n)
     | Just m <- GHC.nameModule_maybe n
     , GHC.moduleNameString (GHC.moduleName m) == "GHC.Enum" =
-        (  name == "$fEnumInteger_$cenumFromTo"      -- [1..100]
-        || name == "$fEnumInteger_$cenumFromThenTo"  -- [1,3..100]
-        || name == "$fEnumInteger_$cenumFrom"        -- [1..]
-        || name == "$fEnumInteger_$cenumFromThen"    -- [1,3..]
-        ) where name = GHC.occNameString (GHC.nameOccName n)
-      -- Still doesn't work for Bool, for example: [False ..] gives a complaint about GHC.Enum.$fEnumBool_go
+        "$fEnum" `isPrefixOf` methodName &&
+        (  "_$cenumFromTo"     `isSuffixOf` methodName  -- [1..100]
+        || "_$cenumFromThenTo" `isSuffixOf` methodName  -- [1,3..100]
+        || "_$cenumFrom"       `isSuffixOf` methodName  -- [1..]
+        || "_$cenumFromThen"   `isSuffixOf` methodName  -- [1,3..]
+        )
+        where methodName = GHC.occNameString (GHC.nameOccName n)
 isProbablyRange _ = False
 
 {- Note [GHC runtime errors]
