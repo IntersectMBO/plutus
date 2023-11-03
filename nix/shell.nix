@@ -45,6 +45,7 @@ in
     pkgs.act
     pkgs.bzip2
     pkgs.gawk
+    pkgs.scriv
 
     # Needed to make building things work, not for commands
     pkgs.zlib
