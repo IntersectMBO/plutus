@@ -47,12 +47,12 @@ package plutus-core
 -- when cross building for windows
 if impl(ghc < 9.0) || os(windows)
   -- Note: we enable this and then disable it conditionally, rather than enabling
-  -- it conditionally, to abvoid https://github.com/haskell/cabal/issues/9293
+  -- it conditionally, to avoid https://github.com/haskell/cabal/issues/9293
   package plutus-core
     flags: -with-cert
-  -- This is a bit silly: although we won't use plutus-cert in this case, cabal
-  -- stil considers it a "local" project and tries to solve for it. So we hack
-  -- around the dependency issue so that cabal is happy, which is fine since it
+  -- This is a bit silly. Although we won't use plutus-cert in this case, cabal
+  -- still considers it a "local" project and tries to solve for it so we hack
+  -- around the dependency issue, keeping cabal happy, which is fine since it
   -- won't actually build it.
   allow-older: plutus-cert:base
 
