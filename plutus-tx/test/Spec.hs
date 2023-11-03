@@ -288,7 +288,9 @@ enumFromThenToTests = testGroup "enumFromTo"
   , testCase "enumFromThenTo True  True  True  == [True ..]"     $ enumFromThenTo True  True  True       @>> True
   , testCase "enumFromThenTo () () () == [() ..]"                $ enumFromThenTo () () ()               @>> ()
   ]
-  where l @>> x =  -- Check (approximately) that l == [x,x,x,...]
-            case l of
-              []  -> assertBool "Output is empty" $ (replicate 1000 x) `isPrefixOf` l
-              y:_ -> assertBool ("Output started with " ++ show y) $ (replicate 1000 x) `isPrefixOf` l
+    -- Check (approximately) that l == [x,x,x,...]
+    where l @>> x =
+              case l of
+                [] -> assertBool "Output is empty" isInfiniteListOfXs
+                _  -> assertBool ("Output begins with " ++ (show $ take 5 l)) isInfiniteListOfXs
+              where isInfiniteListOfXs = (replicate 1000 x) `isPrefixOf` l
