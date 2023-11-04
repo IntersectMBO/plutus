@@ -180,8 +180,6 @@ instance GEq DefaultUni where
         geqRec = geqStep
         {-# NOINLINE geqRec #-}
 
-deriveGCompare ''DefaultUni
-
 -- | For pleasing the coverage checker.
 noMoreTypeFunctions :: DefaultUni (Esc (f :: a -> b -> c -> d)) -> any
 noMoreTypeFunctions (f `DefaultUniApply` _) = noMoreTypeFunctions f

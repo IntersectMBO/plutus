@@ -45,8 +45,6 @@ module Universe.Core
     , gshow
     , GEq (..)
     , defaultEq
-    , deriveGEq
-    , deriveGCompare
     , (:~:)(..)
     -- strictly we don't use this, but this is here
     -- partially so we have a dependency on dependent-sum
@@ -60,7 +58,6 @@ import Control.Monad
 import Control.Monad.Trans.State.Strict
 import Data.Dependent.Sum
 import Data.GADT.Compare
-import Data.GADT.Compare.TH
 import Data.GADT.DeepSeq
 import Data.GADT.Show
 import Data.Kind
