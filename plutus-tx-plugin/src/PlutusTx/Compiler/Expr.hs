@@ -242,9 +242,9 @@ isProbablyFiniteRange (GHC.getName -> n)
          )
         )
         || "enumDeltaToInteger" `isPrefixOf` methodName
-        -- ^ These are introduced by rewrite rules for Integer ranges in
-        -- GHC.Enum. There are also rules for Char, Word, and Int, but those
-        -- types aren't supported in Plutus Core.
+        -- ^ These are introduced by inlining for Integer ranges in
+        -- GHC.Enum. This also happens for Char, Word, and Int, but those types
+        -- aren't supported in Plutus Core.
         where methodName = GHC.occNameString (GHC.nameOccName n)
 isProbablyFiniteRange _ = False
 
@@ -257,7 +257,7 @@ isProbablyInfiniteRange (GHC.getName -> n)
          || "_$cenumFromThen" `isSuffixOf` methodName  -- [1,3..]
          )
         )
-        || "enumDeltaInteger" `isPrefixOf` methodName  -- Introduced by rewrite rules
+        || "enumDeltaInteger" `isPrefixOf` methodName  -- Introduced by inlining
         where methodName = GHC.occNameString (GHC.nameOccName n)
 isProbablyInfiniteRange _ = False
 
