@@ -290,14 +290,14 @@ enumFromThenToTests = testGroup "enumFromThenTo"
   , testCase "enumFromThenTo () () () == [()*]"                 $ enumFromThenTo () () ()               @?=* [(),()..()]
   ]
     {- Check (approximately) that two possibly infinite lists are equal.  We can get infinite
-       lists from `enumFromTo`, both legitimately and because of mis-implmentation.  If we
-       just use @?= then (a) it won't terminate if we give it two equal infinite lists,
-       and (b) if it fails and one of the lists is infinite then it'll try to generate an
-       infinite error message, again leading to non-termination.  To deal with this, if an
-       argument has more than 1000 elements then we assume it's infinite and just include
-       an initial segment in any error message.  The only infinite lists that
-       enumFromThenTo can generate are of the form [x,x,x,...], so this is definitely a
-       safe strategy in this context.
+       lists from `enumFromThenTo`, both legitimately and because of implementation errors
+       (which are exactly what we're testing for here).  If we just use @?= then (a) it
+       won't terminate if we give it two equal infinite lists, and (b) if it fails and one
+       of the lists is infinite then it'll try to generate an infinite error message,
+       again leading to non-termination.  To deal with this, if an argument has more than
+       1000 elements then we assume it's infinite and just include an initial segment in
+       any error message.  The only infinite lists that enumFromThenTo can generate are of
+       the form [x,x,x,...], so this is definitely a safe strategy in this context.
      -}
     where l1 @?=* l2 =
               case (possiblyInfinite l1, possiblyInfinite l2) of
