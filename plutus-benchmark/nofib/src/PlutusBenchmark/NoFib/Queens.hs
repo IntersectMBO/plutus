@@ -424,7 +424,7 @@ bm csp = mapTree fst . lookupCache csp . cacheChecks csp (emptyTable csp)
 
 {-# INLINABLE emptyTable #-}
 emptyTable :: CSP -> Table
-emptyTable CSP{vars=vars,vals=vals} = []:[[Unknown | m <- interval 1 vals] | n <- interval 1 vars]
+emptyTable CSP{vars=vars,vals=vals} = []:[[Unknown | m <- [1..vals] ] | n <- interval 1 vars]
 
 {-# INLINABLE cacheChecks #-}
 cacheChecks :: CSP -> Table -> Transform State (State, Table)

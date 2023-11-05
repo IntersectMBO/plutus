@@ -26,11 +26,11 @@ class Enum a where
   toEnum :: Integer -> a
   -- | Convert to an 'Integer'.
   fromEnum :: a -> Integer
-  -- | Construct a list from the given range (corresponds to [a..b]
+  -- | Construct a list from the given range (corresponds to [a..b]).
   enumFromTo :: a -> a -> [a]
   -- | Construct a list from the given range (corresponds to [a,b..c]).  This
   -- has the same semantics as the Haskell version,so if a==b and c>=b then you
-  -- get an infinite list, which you probably don't want.
+  -- get an infinite list, which you probably don't want in Plutus Core.
   enumFromThenTo :: a -> a -> a -> [a]
 
 instance Enum Integer where
