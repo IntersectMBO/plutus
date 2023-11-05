@@ -206,3 +206,12 @@ test-suite size
   ghc-options:
     -fno-strictness -fno-unbox-strict-fields
     -fno-unbox-small-strict-fields -fno-full-laziness
+
+executable range-test
+  import:         lang
+  main-is:        tmp/Main.hs
+  hs-source-dirs: test
+  build-depends:
+    , base              >=4.9   && <5
+    , plutus-tx         ^>=1.15
+    , plutus-tx-plugin  ^>=1.15

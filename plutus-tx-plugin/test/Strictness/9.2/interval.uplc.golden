@@ -1,7 +1,0 @@
-program
-  1.1.0
-  ((\sumList ds -> sumList (constr 1 [1, (constr 0 [])]))
-     ((\s -> s s)
-        (\s x ->
-           (\sumList -> case x [0, (\x xs -> addInteger x (sumList xs))])
-             (s s))))
