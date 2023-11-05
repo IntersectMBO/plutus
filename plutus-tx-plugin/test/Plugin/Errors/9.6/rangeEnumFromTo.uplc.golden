@@ -1,0 +1,1 @@
+Error: Unsupported feature: Literal ranges are not supported: please use PlutusTx.Enum.enumFromTo or PlutusTx.Enum.enumFromThenTo
