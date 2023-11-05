@@ -310,10 +310,11 @@ To test and/or regenerate test golden test output, one has to run _for each_  GH
 ```
 nix develop ".#ghc<version>" --command cabal test plutus-tx-plugin --test-options=--accept
 ```
-where `<version>` is the GHC major version with the decimal points removed(eg
+
+where `<version>` is the GHC major version with the decimal points removed (eg
 `92` or `96`), so the full command will be `nix develop .#ghc96 ...` or
-something similar.  You can also just type `nix develop .#ghc<version>` to
-get a nix shell with the appropriate version of GHC.
+something similar.  You can also just type `nix develop .#ghc<version>` to get a
+nix shell with the appropriate version of GHC.
 
 == Working conventions
 
