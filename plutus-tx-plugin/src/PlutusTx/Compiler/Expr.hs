@@ -14,8 +14,6 @@
 {-# LANGUAGE ViewPatterns          #-}
 {-# OPTIONS_GHC -Wno-partial-type-signatures #-}
 
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
-
 -- | Functions for compiling GHC Core expressions into Plutus Core terms.
 module PlutusTx.Compiler.Expr (compileExpr, compileExprWithDefs, compileDataConRef) where
 
@@ -232,8 +230,8 @@ isProbablyIntegerEq _ = False
 
 -- | Check for literal ranges like [1..9].  This is only "probably" because the
 -- source could contain an explicit use of enumFromTo etc.
-isProbablyFiniteRange :: GHC.Id -> Bool
-isProbablyFiniteRange (GHC.getName -> n)
+isProbablyBoundedRange :: GHC.Id -> Bool
+isProbablyBoundedRange (GHC.getName -> n)
     | Just m <- GHC.nameModule_maybe n
     , GHC.moduleNameString (GHC.moduleName m) == "GHC.Enum" =
         ("$fEnum" `isPrefixOf` methodName &&
@@ -246,10 +244,10 @@ isProbablyFiniteRange (GHC.getName -> n)
         -- GHC.Enum. This also happens for Char, Word, and Int, but those types
         -- aren't supported in Plutus Core.
         where methodName = GHC.occNameString (GHC.nameOccName n)
-isProbablyFiniteRange _ = False
+isProbablyBoundedRange _ = False
 
-isProbablyInfiniteRange :: GHC.Id -> Bool
-isProbablyInfiniteRange (GHC.getName -> n)
+isProbablyUnboundedRange :: GHC.Id -> Bool
+isProbablyUnboundedRange (GHC.getName -> n)
     | Just m <- GHC.nameModule_maybe n
     , GHC.moduleNameString (GHC.moduleName m) == "GHC.Enum" =
         ("$fEnum" `isPrefixOf` methodName &&
@@ -259,7 +257,7 @@ isProbablyInfiniteRange (GHC.getName -> n)
         )
         || "enumDeltaInteger" `isPrefixOf` methodName  -- Introduced by inlining
         where methodName = GHC.occNameString (GHC.nameOccName n)
-isProbablyInfiniteRange _ = False
+isProbablyUnboundedRange _ = False
 
 
 {- Note [GHC runtime errors]
@@ -768,11 +766,11 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
       -- Try to produce a sensible error message if a range like [1..9] is encountered.  This works
       -- by looking for occurrences of GHC.Enum.enumFromTo and similar functions; the same error
       -- occurs if these functions are used explicitly.
-      | isProbablyFiniteRange n ->
+      | isProbablyBoundedRange n ->
           throwPlain $ UnsupportedError "Literal ranges are not supported: please use PlutusTx.Enum.enumFromTo or PlutusTx.Enum.enumFromThenTo"
     -- Throw an error if we find an infinite range like [1..]
     GHC.Var n
-      | isProbablyInfiniteRange n ->
+      | isProbablyUnboundedRange n ->
           throwPlain $ UnsupportedError "Infinite ranges are not supported"
     -- locally bound vars
     GHC.Var (lookupName scope . GHC.getName -> Just var) -> pure $ PIR.mkVar annMayInline var
