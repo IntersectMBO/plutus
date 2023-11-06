@@ -52,19 +52,19 @@ instance Enum Integer where
     | otherwise = x : enumFromTo (succ x) lim
 
   {-# INLINABLE enumFromThenTo #-}
-  enumFromThenTo x y lim = enumDeltaToInteger x (subtractInteger y x)
-      where enumDeltaToInteger x0 delta =
-                if delta >= 0
-                then up_list x0
-                else dn_list x0
-                where up_list x1 =
-                          if x1 > lim
-                          then []
-                          else x1 : up_list (addInteger x1 delta)
-                      dn_list x1 =
-                          if x1 < lim
-                          then []
-                          else x1 : dn_list (addInteger x1 delta)
+  enumFromThenTo x y lim =
+      if delta >= 0
+      then up_list x
+      else dn_list x
+          where delta = subtractInteger y x
+                up_list x1 =
+                    if x1 > lim
+                    then []
+                    else x1 : up_list (addInteger x1 delta)
+                dn_list x1 =
+                    if x1 < lim
+                    then []
+                    else x1 : dn_list (addInteger x1 delta)
 
 instance Enum () where
   {-# INLINABLE succ #-}
