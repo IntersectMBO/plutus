@@ -53,7 +53,13 @@ hexByte = do
 conBS :: Parser ByteString
 conBS = lexeme . fmap pack $ char '#' *> many hexByte
 
--- | Parser for string constants. They are wrapped in double quotes.
+{- | Parser for string constants (wrapped in double quotes).  Note that
+ Data.Text.pack "performs replacement on invalid scalar values", which means
+ that Unicode surrogate code points (corresponding to integers in the range
+ 0xD800-0xDFFF) are converted to the Unicode replacement character U+FFFD
+ (decimal 65533).  Thus `(con string "X\xD800Z")` parses to a `Text` object
+ whose second character is U+FFFD.
+-}
 conText :: Parser T.Text
 conText = lexeme . fmap T.pack $ char '\"' *> manyTill Lex.charLiteral (char '\"')
 
