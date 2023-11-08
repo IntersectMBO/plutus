@@ -6,11 +6,11 @@ Run `nix develop` to enter a development shell with `sphinx-build` and `sphinx-a
 
 The following commands are also available:
 
-- `autobuild-docs`          
+- `develop-rtd-site`          
   Start a development server with live reload on `http://localhost:8000`
-- `build-docs`             
+- `build-rtd-site`             
   Build the docs locally in `_build/index.html`
-- `serve-docs`   
+- `serve-rtd-site`   
   Build the full site with nix (including Haddock) and serve it on `http://localhost:8002`
 
 The doc site from main is built automatically and hosted [here](https://plutus.readthedocs.io/en/latest).
