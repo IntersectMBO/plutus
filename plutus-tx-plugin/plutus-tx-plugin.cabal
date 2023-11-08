@@ -125,6 +125,8 @@ test-suite plutus-tx-tests
   hs-source-dirs:     test
   main-is:            Spec.hs
   other-modules:
+    AsData.Budget.Spec
+    AsData.Budget.Types
     Budget.Spec
     IntegerLiterals.NoStrict.NegativeLiterals.Spec
     IntegerLiterals.NoStrict.NoNegativeLiterals.Spec
@@ -160,6 +162,7 @@ test-suite plutus-tx-tests
     , base                                            >=4.9   && <5
     , containers
     , deepseq
+    , filepath
     , flat                                            ^>=0.6
     , hedgehog
     , lens
