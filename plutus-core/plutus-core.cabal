@@ -800,7 +800,8 @@ executable debugger
     , primitive
     , text
     , text-zipper
-    , vty
+    , vty                   ^>=6
+    , vty-crossplatform     ^>=0.2
 
 ----------------------------------------------
 -- profiling
