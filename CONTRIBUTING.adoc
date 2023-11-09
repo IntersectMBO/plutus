@@ -14,7 +14,7 @@ If you _really_ cannot use Nix and still want to contribute to Plutus then xref:
 
 === Installing and setting up Nix
 
-For instructions on how to install and configure nix (including how to enable access to our binary caches), refer to [this document](https://github.com/input-output-hk/iogx/blob/main/doc/nix-setup-guide.md). 
+For instructions on how to install and configure nix (including how to enable access to our binary caches), refer to link:https://github.com/input-output-hk/iogx/blob/main/doc/nix-setup-guide.md[this document]. 
 
 If you already have nix installed and setup, you may enter the development shell by running `nix develop`.
 
