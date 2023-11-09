@@ -4,6 +4,7 @@
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE LambdaCase             #-}
+{-# LANGUAGE OverloadedStrings      #-}
 {-# LANGUAGE PolyKinds              #-}
 {-# LANGUAGE TupleSections          #-}
 {-# LANGUAGE TypeApplications       #-}
@@ -52,6 +53,7 @@ module PlutusCore.MkPlc
     , mkIterTyApp
     , mkIterTyAppNoAnn
     , mkIterKindArrow
+    , mkFreshTermLet
     ) where
 
 import PlutusPrelude
@@ -59,6 +61,8 @@ import Prelude hiding (error)
 
 import PlutusCore.Builtin
 import PlutusCore.Core
+import PlutusCore.Name
+import PlutusCore.Quote
 
 import Data.Word
 import Universe
@@ -317,3 +321,16 @@ mkIterKindArrow
     -> Kind ann
     -> Kind ann
 mkIterKindArrow ann kinds target = foldr (KindArrow ann) target kinds
+
+{- | A helper to create a single, fresh strict binding; It returns the fresh bound `Var`iable and
+a function `Term -> Term`, expecting an "in-Term" to form a let-expression.
+-}
+mkFreshTermLet :: (MonadQuote m, TermLike t tyname Name uni fun, Monoid a)
+               => Type tyname uni a -- ^ the type of binding
+               -> t a -- ^ the term bound to the fresh variable
+               -> m (t a, t a -> t a) -- ^ the fresh Var and a function that takes an "in" term to construct the Let
+mkFreshTermLet aT a = do
+    -- I wish this was less constrained to Name
+    genName <- freshName "generated"
+    pure (var mempty genName, termLet mempty (Def (VarDecl mempty genName aT) a))
+

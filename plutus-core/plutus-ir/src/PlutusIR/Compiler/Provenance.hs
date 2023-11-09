@@ -37,6 +37,9 @@ instance Ord a => Semigroup (Provenance a) where
             MultipleSources ps -> ps
             other              -> S.singleton other
 
+instance Ord a => Monoid (Provenance a) where
+    mempty = noProvenance
+
 -- workaround, use a smart constructor to replace the older NoProvenance data constructor
 noProvenance :: Provenance a
 noProvenance = MultipleSources S.empty

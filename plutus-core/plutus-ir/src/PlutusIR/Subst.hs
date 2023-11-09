@@ -129,6 +129,7 @@ funRes f = \case
   TyFun a dom cod -> TyFun a dom <$> funRes f cod
   t               -> f t
 
+-- TODO: these could be Traversals
 -- | Get all the term variables in a term.
 vTerm :: Fold (Term tyname name uni fun ann) name
 vTerm = termSubtermsDeep . termVars

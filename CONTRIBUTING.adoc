@@ -308,8 +308,13 @@ we keep multiple test output directories (containg golden plutus files), one for
 To test and/or regenerate test golden test output, one has to run _for each_  GHC version supported by the plugin:
 
 ```
-nix develop ".#plutus-shell-$GHC_MAJOR_VERSION" --command cabal test plutus-tx-plugin --test-options=--accept
+nix develop ".#ghc<version>" --command cabal test plutus-tx-plugin --test-options=--accept
 ```
+
+where `<version>` is the GHC major version with the decimal points removed (eg
+`92` or `96`), so the full command will be `nix develop .#ghc96 ...` or
+something similar.  You can also just type `nix develop .#ghc<version>` to get a
+nix shell with the appropriate version of GHC.
 
 == Working conventions
 

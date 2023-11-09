@@ -52,7 +52,7 @@ This could not be achieved if transaction inputs were mutable, such as is the ca
 
 See also:
 
-   * `Plutus scripts <https://docs.cardano.org/plutus/plutus-scripts>`_ for further reading about scripts, and
+   * `Plutus scripts <https://docs.cardano.org/smart-contracts/plutus/plutus-scripts/>`_ for further reading about scripts, and
    * `Understanding the Extended UTXO model <https://docs.cardano.org/learn/eutxo-explainer>`_
 
 Auction properties

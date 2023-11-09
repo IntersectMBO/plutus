@@ -280,7 +280,6 @@ library
     , data-default-class
     , deepseq
     , dependent-sum               >=0.7.1.0
-    , dependent-sum-template      <0.1.2
     , deriving-aeson              >=0.2.3
     , deriving-compat
     , dlist
@@ -533,6 +532,8 @@ library plutus-ir
     PlutusIR.Compiler.Lower
     PlutusIR.Compiler.Recursion
     PlutusIR.Normalize
+    PlutusIR.Transform.RewriteRules.Common
+    PlutusIR.Transform.RewriteRules.UnConstrConstrData
 
   build-depends:
     , algebraic-graphs     >=0.7
@@ -608,7 +609,6 @@ test-suite plutus-ir-test
   build-depends:
     , base                                                       >=4.9   && <5
     , containers
-    , data-default-class
     , flat                                                       ^>=0.6
     , hashable
     , hedgehog
