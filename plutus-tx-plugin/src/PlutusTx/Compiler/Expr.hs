@@ -228,8 +228,8 @@ isProbablyIntegerEq (GHC.getName -> n)
       True
 isProbablyIntegerEq _ = False
 
--- | Check for literal ranges like [1..9].  This is only "probably" because the
--- source could contain an explicit use of enumFromTo etc.
+-- | Check for literal ranges like [1..9] and [1, 5..101].  This will also
+-- return `True` if there's an explicit use of `enumFromTo` or similar.
 isProbablyBoundedRange :: GHC.Id -> Bool
 isProbablyBoundedRange (GHC.getName -> n)
     | Just m <- GHC.nameModule_maybe n
@@ -246,6 +246,8 @@ isProbablyBoundedRange (GHC.getName -> n)
         where methodName = GHC.occNameString (GHC.nameOccName n)
 isProbablyBoundedRange _ = False
 
+-- | Check for literal ranges like [1..] and [1, 5..].  This will also return
+-- `True` if there's an explicit use of `enumFrom` or similar.
 isProbablyUnboundedRange :: GHC.Id -> Bool
 isProbablyUnboundedRange (GHC.getName -> n)
     | Just m <- GHC.nameModule_maybe n
