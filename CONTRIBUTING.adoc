@@ -14,13 +14,9 @@ If you _really_ cannot use Nix and still want to contribute to Plutus then xref:
 
 === Installing and setting up Nix
 
-The nix code is based on a template from the the 
-[IOGX flake](https://github.com/input-output-hk/iogx). 
+For instructions on how to install and configure nix (including how to enable access to our binary caches), refer to [this document](https://github.com/input-output-hk/iogx/blob/main/doc/nix-setup-guide.md). 
 
-For instructions on how to install and configure nix (including how to enable 
-access to our binary caches), and how keep the flake inputs up to date, refer to 
-[this section](https://github.com/input-output-hk/iogx/blob/main/doc/api.md#flakenix)
-of the IOGX manual.
+If you already have nix installed and setup, you may enter the development shell by running `nix develop`.
 
 === Note on pre-commit hooks
 
