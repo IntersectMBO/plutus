@@ -299,7 +299,7 @@ library
     , monoidal-containers
     , mtl
     , multiset
-    , nothunks                    >=0.1.1
+    , nothunks                    ^>=0.1.5
     , parser-combinators          >=0.4.0
     , prettyprinter               >=1.1.0.1
     , prettyprinter-configurable  ^>=1.15
@@ -800,7 +800,8 @@ executable debugger
     , primitive
     , text
     , text-zipper
-    , vty
+    , vty                   ^>=6
+    , vty-crossplatform     ^>=0.2
 
 ----------------------------------------------
 -- profiling
