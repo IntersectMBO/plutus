@@ -31,7 +31,7 @@ import PlutusCore.Quote
 import PlutusIR.MkPir
 import PlutusTx.Builtins
 import PlutusTx.Builtins.Class (FromBuiltin)
-import PlutusTx.Builtins.Internal (BuiltinList)
+import PlutusTx.Builtins.Internal (BuiltinBool, BuiltinList, BuiltinPair, BuiltinUnit)
 
 import Language.Haskell.TH qualified as TH hiding (newName)
 
@@ -115,7 +115,7 @@ instance Typeable uni (->) where
 -- Primitives
 
 typeRepBuiltin
-    :: forall (a :: GHC.Type) uni fun. uni `PLC.HasTypeLevel` a
+    :: forall k (a :: k) uni fun. uni `PLC.HasTypeLevel` a
     => Proxy a -> RTCompile uni fun (Type TyName uni ())
 typeRepBuiltin (_ :: Proxy a) = pure $ mkTyBuiltin @_ @a ()
 
@@ -153,7 +153,7 @@ instance uni `PLC.HasTermLevel` Data => Lift uni BuiltinData where
 
 -- See Note [Lift and Typeable instances for builtins]
 instance uni `PLC.HasTypeLevel` BS.ByteString => Typeable uni BuiltinByteString where
-    typeRep _proxyPByteString = typeRepBuiltin (Proxy @BS.ByteString)
+    typeRep _proxyByteString = typeRepBuiltin (Proxy @BS.ByteString)
 
 -- See Note [Lift and Typeable instances for builtins]
 instance uni `PLC.HasTermLevel` BS.ByteString => Lift uni BuiltinByteString where
@@ -161,14 +161,41 @@ instance uni `PLC.HasTermLevel` BS.ByteString => Lift uni BuiltinByteString wher
 
 -- See Note [Lift and Typeable instances for builtins]
 instance uni `PLC.HasTypeLevel` T.Text => Typeable uni BuiltinString where
-    typeRep _proxyPByteString = typeRepBuiltin (Proxy @T.Text)
+    typeRep _proxyByteString = typeRepBuiltin (Proxy @T.Text)
 
 -- See Note [Lift and Typeable instances for builtins]
 instance uni `PLC.HasTermLevel` T.Text => Lift uni BuiltinString where
     lift = liftBuiltin . fromBuiltin
 
 -- See Note [Lift and Typeable instances for builtins]
+instance uni `PLC.HasTypeLevel` () => Typeable uni BuiltinUnit where
+    typeRep _proxyUnit = typeRepBuiltin (Proxy @())
+
+-- See Note [Lift and Typeable instances for builtins]
+instance uni `PLC.HasTermLevel` () => Lift uni BuiltinUnit where
+    lift = liftBuiltin . fromBuiltin
+
+-- See Note [Lift and Typeable instances for builtins]
+instance uni `PLC.HasTypeLevel` Bool => Typeable uni BuiltinBool where
+    typeRep _proxyBool = typeRepBuiltin (Proxy @Bool)
+
+-- See Note [Lift and Typeable instances for builtins]
+instance uni `PLC.HasTermLevel` Bool => Lift uni BuiltinBool where
+    lift = liftBuiltin . fromBuiltin
+
+-- See Note [Lift and Typeable instances for builtins]
+instance uni `PLC.HasTypeLevel` [] => Typeable uni BuiltinList where
+    typeRep _proxyBuiltinList = typeRepBuiltin (Proxy @[])
+
+-- See Note [Lift and Typeable instances for builtins]
 instance (FromBuiltin arep a, uni `PLC.HasTermLevel` [a]) => Lift uni (BuiltinList arep) where
+    lift = liftBuiltin . fromBuiltin
+
+instance uni `PLC.HasTypeLevel` (,) => Typeable uni BuiltinPair where
+    typeRep _proxyBuiltinPair = typeRepBuiltin (Proxy @(,))
+
+instance (FromBuiltin arep a, FromBuiltin brep b, uni `PLC.HasTermLevel` (a, b)) =>
+        Lift uni (BuiltinPair arep brep) where
     lift = liftBuiltin . fromBuiltin
 
 -- See Note [Lift and Typeable instances for builtins]
