@@ -223,9 +223,9 @@ executable analyse-script-events
     , filepath
     , lens
     , mtl
-    , plutus-core                                                       ^>=1.15
-    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.15
-    , plutus-tx                                                         ^>=1.15
+    , plutus-core                                                       ^>=1.16
+    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.16
+    , plutus-tx                                                         ^>=1.16
     , serialise
 
   default-language: Haskell2010
