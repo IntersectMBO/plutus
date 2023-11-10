@@ -1,11 +1,4 @@
 
-<a id='changelog-1.16.0.0'></a>
-# 1.16.0.0 — 2023-11-10
-
-## Changed
-
-- Optimized equality checking of `Value`s in [#5593](https://github.com/input-output-hk/plutus/pull/5593)
-
 <a id='changelog-1.14.0.0'></a>
 # 1.14.0.0 — 2023-09-28
 
