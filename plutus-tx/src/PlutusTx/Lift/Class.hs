@@ -144,10 +144,6 @@ instance uni `PLC.HasTypeLevel` BS.ByteString => Typeable uni BS.ByteString wher
     typeRep = typeRepBuiltin
 
 -- See Note [Lift and Typeable instances for builtins]
-instance uni `PLC.HasTermLevel` BS.ByteString => Lift uni BS.ByteString where
-    lift = liftBuiltin
-
--- See Note [Lift and Typeable instances for builtins]
 instance uni `PLC.HasTypeLevel` Data => Typeable uni BuiltinData where
     typeRep _ = typeRepBuiltin (Proxy @Data)
 
