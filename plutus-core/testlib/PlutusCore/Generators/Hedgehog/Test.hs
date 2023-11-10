@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 -- | This module defines functions useful for testing.
 
 {-# LANGUAGE TypeFamilies  #-}
@@ -47,12 +46,14 @@ getSampleTermValue
     -> IO (TermOf (Term TyName Name uni fun ()) (EvaluationResult (Term TyName Name uni fun ())))
 getSampleTermValue genTerm = Gen.sample $ unsafeTypeEvalCheck <$> genTerm
 
--- | Generate a program using a given generator and check that it's well-typed and evaluates correctly.
+-- | Generate a program using a given generator and check that it's well-typed and evaluates
+-- correctly.
 getSampleProgramAndValue
     :: ( uni ~ DefaultUni, fun ~ DefaultFun
        , KnownTypeAst TyName uni a, MakeKnown (Term TyName Name uni fun ()) a
        )
-    => TermGen a -> IO (Program TyName Name uni fun (), EvaluationResult (Term TyName Name uni fun ()))
+    => TermGen a
+    -> IO (Program TyName Name uni fun (), EvaluationResult (Term TyName Name uni fun ()))
 getSampleProgramAndValue genTerm =
     getSampleTermValue genTerm <&> \(TermOf term result) ->
         (Program () latestVersion term, result)
@@ -97,7 +98,9 @@ propEvaluate
        , PrettyPlc internal
        )
     => (Term TyName Name uni fun () ->
-           Either (EvaluationException user internal (Term TyName Name uni fun ())) (Term TyName Name uni fun ()))
+           Either
+            (EvaluationException user internal (Term TyName Name uni fun ()))
+            (Term TyName Name uni fun ()))
        -- ^ An evaluator.
     -> TermGen a  -- ^ A term/value generator.
     -> Property

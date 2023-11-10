@@ -1,4 +1,4 @@
-\section{The Grammar of Plutus Core}
+\section{The grammar of Plutus Core}
 \label{sec:untyped-plc-grammar}
 This section presents the grammar of Plutus Core in a Lisp-like form.  This is
 intended as a specification of the abstract syntax of the language; it may also
@@ -86,27 +86,45 @@ binary format described in Appendix~\ref{appendix:flat-serialisation}.
 
 \subsection{Notes}
 \label{sec:grammar-notes}
+\paragraph{Version numbers.} The version number at the start of a program specifies
+the Plutus Core language version used in the program.
+
+A \textit{Plutus Core language version} describes a version of
+the basic language with a particular set of features. A language version
+consists of three non-negative integers separated by decimal points, for
+example \texttt{1.4.2}. Language versions are ordered lexicographically.
+
+The grammar above describes Plutus Core version 1.1.0. Version 1.0.0
+is identical, except that \texttt{constr}
+and \texttt{case} are not included.  Version 1.0.0 is fully forward-compatible
+with version 1.1.0, so any valid version 1.0.0 program is also a valid version
+1.1.0 program.  The semantics, evaluator and serialisation formats described
+later in this document all apply to both versions, except that it is an error to
+use \texttt{constr} or \texttt{case} in any program with a version prior to
+1.1.0: a parser, deserialiser, or evaluator should fail immediately if
+\texttt{constr} or \texttt{case} is encountered when processing such a program.
+
 \paragraph{Scoping.} For simplicity, \textbf{we assume throughout that the body of a
-Plutus Core program is a closed term}, ie, that it contains no free
-variables.  Thus \texttt{(program 1.0.0 (lam x x))} is a valid program but
-\texttt{(program 1.0.0 (lam x y))} is not, since the variable \texttt{y} is
-free. This condition should be checked before execution of any program
-commences, and the program should be rejected if its body is not closed.  The
-assumption implies that any variable $x$ occurring in the body of a program must
-be bound by an occurrence of \texttt{lam} in some enclosing term; in this case,
-we always assume that $x$ refers to the \textit{most recent} (ie, innermost)
-such binding.
+Plutus Core program is a closed term}, ie, that it contains no free variables.
+Thus \texttt{(program 1.0.0 (lam x x))} is a valid program but \texttt{(program
+  1.0.0 (lam x y))} is not, since the variable \texttt{y} is free. This
+condition should be checked before execution of any program commences, and the
+program should be rejected if its body is not closed.  The assumption implies
+that any variable $x$ occurring in the body of a program must be bound by an
+occurrence of \texttt{lam} in some enclosing term; in this case, we always
+assume that $x$ refers to the \textit{most recent} (ie, innermost) such binding.
 
 \paragraph{Iterated applications.}
 An application of a term $M$ to a term $N$ is represented by
 $\appU{M}{N}$. We may occasionally write
 $\appU{M}{N_1 \ldots N_k}$ or
 $\appU{M}{\repetition{N}}$ as an abbreviation for an iterated application
-$\mathtt{[}\ldots\mathtt{[[}M\;N_1\mathtt{]}\;N_2\mathtt{]}\ldots N_k\mathtt{]}$,
+$\mathtt{[}\ldots\mathtt{[[}M\;N_1\mathtt{]}\;N_2\mathtt{]}\ldots $  %% Try to avoid a bad line break
+  $N_k\mathtt{]}$,
 and tools may also use this as concrete syntax.
 
 \paragraph{Constructors and case analysis}
-Plutus Core suports creating structured data using $\keyword{constr}$ and deconstructing
+Plutus Core supports creating structured data using $\keyword{constr}$ and deconstructing
 it using $\keyword{case}$. Both of these terms are unusual in that they have (possibly
 empty) lists of children: $\keyword{constr}$ has the (0-based) \emph{tag} and then a list of arguments;
 $\keyword{case}$ has a scrutinee and then a list of case branches. Their behaviour is mostly
@@ -123,18 +141,19 @@ about overflow. So we limit them to 64 bits, although this is currently only enf
 the binary format (Appendix~\ref{appendix:flat-serialisation}).
 
 \paragraph{Built-in types and functions.} The language is parameterised by a set $\Uni$ of
-\textit{built-in types} (we sometimes refer to $\Uni$ as the
-\textit{universe}) and a set $\Fun$ of \textit{built-in functions}
-(\textit{builtins} for short), both of which are sets of Names.
-Briefly, the built-in types represent sets of constants such as
-integers or strings; constant expressions $\con{\tn}{c}$ represent
-values of the built-in types (the integer 123 or the string
-\texttt{"string"}, for example), and built-in functions are functions
-operating on these values, and possibly also general Plutus Core
-terms.  Precise details are given in
-Section~\ref{sec:specify-builtins}.  Plutus Core comes with a default
-universe and a default set of builtins, which are described in
-Appendix~\ref{appendix:default-builtins-alonzo}.%
+\textit{built-in types} (we sometimes refer to $\Uni$ as the \textit{universe})
+and a set $\Fun$ of \textit{built-in functions} (\textit{builtins} for short),
+both of which are sets of Names.  Briefly, the built-in types represent sets of
+constants such as integers or strings; constant expressions $\con{\tn}{c}$
+represent values of the built-in types (the integer 123 or the string
+\texttt{"string"}, for example), and built-in functions are functions operating
+on these values, and possibly also general Plutus Core terms.  Precise details
+are given in Section~\ref{sec:specify-builtins}.
+
+See Section~\ref{sec:cardano-builtins}
+for a description of the types and functions which have already been deployed on
+the Cardano blockchain (or will be in the near future).
+
 \nomenclature[E1]{$\Fun$}{The set of built-in functions}
 
 \paragraph{De Bruijn indices.}

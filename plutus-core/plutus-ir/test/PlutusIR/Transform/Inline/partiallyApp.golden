@@ -1,0 +1,25 @@
+(let
+  (nonrec)
+  (termbind
+    (strict)
+    (vardecl
+      f
+      (fun
+        (con integer)
+        (fun
+          (con integer) (fun (con integer) (fun (con integer) (con integer)))
+        )
+      )
+    )
+    (lam
+      a
+      (con integer)
+      (lam
+        b
+        (con integer)
+        (lam c (con integer) (lam d (con integer) (con integer 5)))
+      )
+    )
+  )
+  (lam d (con integer) (con integer 5))
+)

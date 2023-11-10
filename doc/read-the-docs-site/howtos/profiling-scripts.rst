@@ -14,14 +14,16 @@ Profiling requires compiling your script differently so that it will emit inform
 
 .. note:: As with profiling in other languages, this additional instrumentation can affect how your program is optimized, so its behaviour may not be identical to the non-profiled version.
 
-To do this, you need to give an option to the Plutus Tx plugin in the source file where your script is compiled.
+To do this, you need to give a couple of options to the Plutus Tx plugin in the source file where your script is compiled.
 
 .. code-block:: haskell
 
    {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:profile-all #-}
+   {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:conservative-optimisation #-}
 
 This instructs the plugin to insert profiling instrumentation for all functions.
 In the future there may be the option to profile a more targeted set of functions.
+It also makes sure that any inserted profiling instrumentation code would not be optimized away during PlutusTx compilation.
 
 Acquiring an executable script
 ------------------------------
@@ -58,3 +60,5 @@ The ``traceToStacks`` executable turns the logs into a format that ``flamegraph.
 Since ``flamegraph.pl`` can only handle one metric at a time, ``traceToStacks`` has a ``--column`` argument to select the other column if you want to get a memory flamegraph.
 
 You can then view the resulting SVGs in a viewer of your choice, e.g. a web browser.
+
+Alternatively, there are other, more powerful, tools that understand the format produced by ``traceToStacks``, such as `speedscope <https://www.speedscope.app/>`_.

@@ -1,0 +1,92 @@
+(program
+  1.1.0
+  (let
+    (nonrec)
+    (datatypebind
+      (datatype
+        (tyvardecl Bool (type))
+
+        Bool_match
+        (vardecl True Bool) (vardecl False Bool)
+      )
+    )
+    (termbind
+      (nonstrict) (vardecl fail (fun (con unit) Bool)) (lam ds (con unit) False)
+    )
+    (termbind
+      (strict)
+      (vardecl equalsInteger (fun (con integer) (fun (con integer) (con bool))))
+      (builtin equalsInteger)
+    )
+    (termbind
+      (strict)
+      (vardecl ifThenElse (all a (type) (fun (con bool) (fun a (fun a a)))))
+      (builtin ifThenElse)
+    )
+    (termbind
+      (nonstrict)
+      (vardecl equalsInteger (fun (con integer) (fun (con integer) Bool)))
+      (lam
+        x
+        (con integer)
+        (let
+          (nonrec)
+          (termbind (strict) (vardecl x (con integer)) x)
+          (lam
+            y
+            (con integer)
+            (let
+              (nonrec)
+              (termbind (strict) (vardecl y (con integer)) y)
+              (termbind
+                (strict) (vardecl b (con bool)) [ [ equalsInteger x ] y ]
+              )
+              [ [ [ { ifThenElse Bool } b ] True ] False ]
+            )
+          )
+        )
+      )
+    )
+    (lam
+      ds
+      (con integer)
+      (let
+        (nonrec)
+        (termbind (strict) (vardecl ds (con integer)) ds)
+        (lam
+          ds
+          (con integer)
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl ds (con integer)) ds)
+            (termbind (strict) (vardecl x' Bool) [ [ equalsInteger ds ] ds ])
+            (termbind (strict) (vardecl y' Bool) [ [ equalsInteger ds ] ds ])
+            {
+              [
+                [
+                  { [ Bool_match x' ] (all dead (type) Bool) }
+                  (abs
+                    dead
+                    (type)
+                    {
+                      [
+                        [
+                          { [ Bool_match y' ] (all dead (type) Bool) }
+                          (abs dead (type) True)
+                        ]
+                        (abs dead (type) [ fail (con unit ()) ])
+                      ]
+                      (all dead (type) dead)
+                    }
+                  )
+                ]
+                (abs dead (type) [ fail (con unit ()) ])
+              ]
+              (all dead (type) dead)
+            }
+          )
+        )
+      )
+    )
+  )
+)

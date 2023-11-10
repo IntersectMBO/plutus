@@ -1,12 +1,17 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE PatternSynonyms       #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE StandaloneDeriving    #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE ViewPatterns          #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
+{-# OPTIONS_GHC -Wno-name-shadowing #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=0 #-}
@@ -20,6 +25,7 @@ import Test.Tasty.Extras
 import Plugin.Data.Spec
 
 import PlutusCore.Test
+import PlutusTx.AsData qualified as AsData
 import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code
 import PlutusTx.IsData qualified as IsData
@@ -67,8 +73,45 @@ isDataRoundtrip a =
         unsafeRoundtrip = IsData.unsafeFromBuiltinData d P.== a
     in safeRoundtrip && unsafeRoundtrip
 
+AsData.asData [d|
+  data SecretlyData = FirstC () | SecondC Integer
+     deriving newtype (P.Eq, IsData.FromData, IsData.UnsafeFromData, IsData.ToData)
+  |]
+
+AsData.asData [d|
+  data RecordConstructor a = RecordConstructor { x :: a, y :: Integer }
+  |]
+
+AsData.asData [d|
+  data MaybeD a = JustD a | NothingD
+  |]
+
+-- Features a nested field which is also defined with AsData
+matchAsData :: CompiledCode (MaybeD SecretlyData -> SecretlyData)
+matchAsData = plc (Proxy @"matchAsData") (
+  \case
+    JustD a  -> a
+    NothingD -> FirstC ())
+
+recordAsData :: CompiledCode (RecordConstructor Integer)
+recordAsData = plc (Proxy @"recordAsData") (RecordConstructor 1 2)
+
+dataToData :: CompiledCode (RecordConstructor Integer -> SecretlyData)
+dataToData = plc (Proxy @"dataToData")
+  (\case
+      RecordConstructor a b | a P.== 3, b P.== 4 -> SecondC (Builtins.addInteger a b)
+      _                                          -> FirstC ()
+  )
+
+-- Should ultimately use equalsData
+equalityAsData :: CompiledCode (SecretlyData -> SecretlyData -> Bool)
+equalityAsData = plc (Proxy @"equalityAsData") (\x y -> x P.== y)
+
+fieldAccessor :: CompiledCode (RecordConstructor Integer -> Integer)
+fieldAccessor = plc (Proxy @"fieldAccessor") (\r -> x r)
+
 tests :: TestNested
-tests = testNested "IsData" [
+tests = testNestedGhc "IsData" [
     goldenUEval "int" [plc (Proxy @"int") (isDataRoundtrip (1::Integer))]
     , goldenUEval "tuple" [plc (Proxy @"tuple") (isDataRoundtrip (1::Integer, 2::Integer))]
     , goldenUEval "tupleInterop" [
@@ -87,6 +130,12 @@ tests = testNested "IsData" [
     , goldenUEval "list" [plc (Proxy @"list") (isDataRoundtrip ([1]::[Integer]))]
     , goldenUEval "nested" [plc (Proxy @"nested") (isDataRoundtrip (NestedRecord (Just (1, 2))))]
     , goldenUEval "bytestring" [plc (Proxy @"bytestring") (isDataRoundtrip (WrappedBS Builtins.emptyByteString))]
-    , goldenPir "deconstructData" deconstructData
-    , goldenPir "unsafeDeconstructData" unsafeDeconstructData
+    , goldenPirReadable "deconstructData" deconstructData
+    , goldenPirReadable "unsafeDeconstructData" unsafeDeconstructData
+    , goldenPirReadable "matchAsData" matchAsData
+    , goldenUEval "matchAsDataE" [toUPlc $ matchAsData, toUPlc $ plc (Proxy @"test") (SecondC 3)]
+    , goldenPirReadable "recordAsData" recordAsData
+    , goldenPirReadable "dataToData" dataToData
+    , goldenPirReadable "equalityAsData" equalityAsData
+    , goldenPirReadable "fieldAccessor" fieldAccessor
   ]

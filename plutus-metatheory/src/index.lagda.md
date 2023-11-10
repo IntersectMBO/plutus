@@ -113,7 +113,6 @@ import Declarative.Examples.StdLib.Function
 import Declarative.Examples.StdLib.ChurchNat
 import Declarative.Examples.StdLib.Nat
 ```
-
 ## Algorithmic syntax
 
 Terms, reduction and evaluation where terms are indexed by normal
@@ -122,16 +121,14 @@ types
 ```
 import Algorithmic
 import Algorithmic.RenamingSubstitution
---TODO : Finish proof for SOPs
---import Algorithmic.Reduction
+import Algorithmic.Reduction
 import Algorithmic.ReductionEC
 
 import Algorithmic.Evaluation
 import Algorithmic.Completeness
 import Algorithmic.Soundness
 import Algorithmic.Erasure
---TODO : Finish proof for SOPs
---import Algorithmic.Erasure.RenamingSubstitution
+import Algorithmic.Erasure.RenamingSubstitution
 import Algorithmic.CC
 import Algorithmic.CK
 import Algorithmic.CEK
@@ -143,9 +140,7 @@ Proof for Progress and Determinism of the Reduction Semantics:
 
 ```
 import Algorithmic.ReductionEC.Progress
-
---TODO : Finish proof for SOPs
---import Algorithmic.ReductionEC.Determinism
+import Algorithmic.ReductionEC.Determinism
 ```
 
 There are proofs of correspondence of the semantics of:
@@ -166,10 +161,9 @@ Extrinsically typed terms, reduction and evaluation
 
 ```
 import Scoped
---TODO : Finish proof for SOPs
---import Scoped.RenamingSubstitution
---import Scoped.Extrication
---import Scoped.Extrication.RenamingSubstitution
+import Scoped.RenamingSubstitution
+import Scoped.Extrication
+import Scoped.Extrication.RenamingSubstitution
 ```
 
 ## Untyped terms

@@ -26,6 +26,8 @@ import Data.List.NonEmpty.Extra (NonEmpty (..))
 import Data.List.NonEmpty.Extra qualified as NonEmpty
 import Data.Set (Set)
 import Data.Set qualified as Set
+import PlutusIR.Analysis.Builtins
+import PlutusIR.Analysis.VarInfo
 
 {- Note [Float-in]
 
@@ -185,20 +187,21 @@ floatTerm ::
   , PLC.ToBuiltinMeaning uni fun
   , PLC.MonadQuote m
   ) =>
-  PLC.BuiltinVersion fun ->
+  BuiltinsInfo uni fun ->
   -- | Whether to float-in more aggressively. See Note [Float-in] #6
   Bool ->
   Term tyname name uni fun a ->
   m (Term tyname name uni fun a)
-floatTerm ver relaxed t0 = do
+floatTerm binfo relaxed t0 = do
   t1 <- PLC.rename t0
-  pure . fmap fst $ floatTermInner (Usages.termUsages t1) t1
+  pure . fmap fst $ floatTermInner (Usages.termUsages t1) (termVarInfo t1) t1
   where
     floatTermInner ::
       Usages.Usages ->
+      VarsInfo tyname name uni a ->
       Term tyname name uni fun a ->
       Term tyname name uni fun (a, Uniques)
-    floatTermInner usgs = go
+    floatTermInner usgs vinfo = go
       where
         -- Float bindings in the given `Term` inwards, and annotate each term with the set of
         -- `Unique`s of used variables in the `Term`.
@@ -242,7 +245,7 @@ floatTerm ver relaxed t0 = do
                 -- e.g. let x = 1; y = x in ... y ...
                 -- we want to float y in first otherwise it will block us from floating in x
                 runReader
-                  (foldrM (floatInBinding ver a) body bs)
+                  (foldrM (floatInBinding binfo vinfo a) body bs)
                   (FloatInContext False usgs relaxed)
           Let a Rec bs0 body0 ->
             -- Currently we don't move recursive bindings, so we simply descend into the body.
@@ -354,37 +357,20 @@ noUniq :: (Functor f) => f a -> f (a, Uniques)
 noUniq = fmap (,mempty)
 
 -- See Note [Float-in] #1
-floatable ::
-  (PLC.ToBuiltinMeaning uni fun) =>
-  PLC.BuiltinVersion fun ->
-  Binding tyname name uni fun a ->
-  Bool
-floatable ver = \case
-  TermBind _a Strict _var rhs     -> isEssentiallyWorkFree ver rhs
+floatable
+    :: (PLC.ToBuiltinMeaning uni fun, PLC.HasUnique name PLC.TermUnique)
+    => BuiltinsInfo uni fun
+    -> VarsInfo tyname name uni a
+    -> Binding tyname name uni fun a
+    -> Bool
+floatable binfo vinfo = \case
+  -- See Note [Float-in] #1
+  TermBind _a Strict _var rhs     -> isWorkFree binfo vinfo rhs
   TermBind _a NonStrict _var _rhs -> True
   -- See Note [Float-in] #2
   TypeBind{}                      -> True
   -- See Note [Float-in] #2
   DatatypeBind{}                  -> True
-
-{- | Whether evaluating a given `Term` is pure and essentially work-free
- (barring the CEK machine overhead).
-
- See Note [Float-in] #1
--}
-isEssentiallyWorkFree ::
-  (PLC.ToBuiltinMeaning uni fun) => PLC.BuiltinVersion fun -> Term tyname name uni fun a -> Bool
-isEssentiallyWorkFree ver = go
-  where
-    go = \case
-      LamAbs{} -> True
-      TyAbs{} -> True
-      Constant{} -> True
-      x
-        | Just bapp@(BuiltinApp _ args) <- asBuiltinApp x ->
-            maybe False not (isSaturated ver bapp)
-              && all (\case TermArg arg -> go arg; TypeArg _ -> True) args
-      _ -> False
 
 {- | Given a `Term` and a `Binding`, determine whether the `Binding` can be
  placed somewhere inside the `Term`.
@@ -398,14 +384,15 @@ floatInBinding ::
   , PLC.HasUnique tyname PLC.TypeUnique
   , PLC.ToBuiltinMeaning uni fun
   ) =>
-  PLC.BuiltinVersion fun ->
+  BuiltinsInfo uni fun ->
+  VarsInfo tyname name uni a ->
   -- | Annotation to be attached to the constructed `Let`.
   a ->
   Binding tyname name uni fun (a, Uniques) ->
   Term tyname name uni fun (a, Uniques) ->
   Reader FloatInContext (Term tyname name uni fun (a, Uniques))
-floatInBinding ver letAnn = \b ->
-  if floatable ver b
+floatInBinding binfo vinfo letAnn = \b ->
+  if floatable binfo vinfo (fmap fst b)
     then go b
     else \body ->
       let us = termUniqs body <> bindingUniqs b

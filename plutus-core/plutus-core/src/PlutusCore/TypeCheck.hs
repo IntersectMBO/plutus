@@ -53,10 +53,12 @@ defKindCheckConfig = KindCheckConfig DetectNameMismatches
 -- corresponding 'Type' for each built-in function.
 builtinMeaningsToTypes
     :: (MonadKindCheck err term uni fun ann m, Typecheckable uni fun)
-    => BuiltinVersion fun -> ann -> m (BuiltinTypes uni fun)
-builtinMeaningsToTypes ver ann =
+    => BuiltinSemanticsVariant fun
+    -> ann
+    -> m (BuiltinTypes uni fun)
+builtinMeaningsToTypes semvar ann =
     runQuoteT . fmap BuiltinTypes . sequence . tabulateArray $ \fun -> do
-        let ty = typeOfBuiltinFunction ver fun
+        let ty = typeOfBuiltinFunction semvar fun
         _ <- inferKind defKindCheckConfig $ ann <$ ty
         dupable <$> normalizeType ty
 

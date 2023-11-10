@@ -15,11 +15,11 @@ module PlutusCore.Evaluation.Machine.CostModelInterface
     )
 where
 
-import PlutusCore.Evaluation.Machine.BuiltinCostModel ()
 import PlutusCore.Evaluation.Machine.MachineParameters (CostModel (..))
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts,
                                                                  cekMachineCostsPrefix)
 
+import Control.DeepSeq (NFData)
 import Control.Exception
 import Control.Monad.Except
 import Data.Aeson
@@ -29,6 +29,8 @@ import Data.HashMap.Strict qualified as HM
 import Data.Map qualified as Map
 import Data.Map.Merge.Lazy qualified as Map
 import Data.Text qualified as Text
+import GHC.Generics (Generic)
+import NoThunks.Class
 import Prettyprinter
 
 {- Note [Cost model parameters]
@@ -170,8 +172,8 @@ data CostModelApplyError =
       -- ^ internal error when we are transforming the applied params from json with given jsonstring error (should not happen)
     | CMTooFewParamsError { cmTooFewExpected :: !Int, cmTooFewActual :: !Int }
       -- ^ See Note [Cost model parameters from the ledger's point of view]
-    deriving stock (Eq, Show, Data)
-    deriving anyclass Exception
+    deriving stock (Eq, Show, Generic, Data)
+    deriving anyclass (Exception, NFData, NoThunks)
 
 -- | A non-fatal warning when trying to create a cost given some plain costmodel parameters.
 data CostModelApplyWarn =

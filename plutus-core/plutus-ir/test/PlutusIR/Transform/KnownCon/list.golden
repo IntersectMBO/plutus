@@ -1,0 +1,30 @@
+(let
+  (rec)
+  (datatypebind
+    (datatype
+      (tyvardecl List (fun (type) (type)))
+      (tyvardecl a (type))
+      List_match
+      (vardecl Nil [ List a ])
+      (vardecl Cons (fun a (fun [ List a ] [ List a ])))
+    )
+  )
+  {
+    [
+      [
+        (lam
+          a
+          (con integer)
+          (lam
+            as
+            [ List (con integer) ]
+            (abs dead (type) [ [ (builtin addInteger) (con integer 2) ] a ])
+          )
+        )
+        (con integer 1)
+      ]
+      { Nil (con integer) }
+    ]
+    (all dead (type) dead)
+  }
+)

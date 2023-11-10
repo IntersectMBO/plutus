@@ -4,7 +4,8 @@
 {-# LANGUAGE TypeFamilies    #-}
 
 module PlutusCore.Evaluation.Machine.ExBudgetingDefaults
-    ( defaultBuiltinsRuntime
+    ( defaultBuiltinsRuntimeForSemanticsVariant
+    , defaultBuiltinsRuntime
     , defaultCekCostModel
     , defaultCekMachineCosts
     , defaultCekParameters
@@ -66,9 +67,17 @@ defaultCekMachineCosts :: CekMachineCosts
 defaultCekMachineCosts =
   $$(readJSONFromFile DFP.cekMachineCostsFile)
 
+{-| The default cost model, including both builtin costs and machine step costs.
+    Note that this is not necessarily the cost model in use on the chain at any
+    given time.  The definitive values used for calculating on-chain costs are
+    protocol parameters which are part of the state of the chain; in practice
+    these will usually have been obtained from the contents of the JSON files at
+    some point in the past, but we do not guarantee this.  During on-chain
+    evaluation the ledger passes a cost model to the Plutus Core evaluator using
+    the `mkEvaluationContext` functions in PlutusLedgerApi.
+-}
 defaultCekCostModel :: CostModel CekMachineCosts BuiltinCostModel
 defaultCekCostModel = CostModel defaultCekMachineCosts defaultBuiltinCostModel
---- defaultCekMachineCosts is CekMachineCosts
 
 -- | The default cost model data.  This is exposed to the ledger, so let's not
 -- confuse anybody by mentioning the CEK machine
@@ -90,7 +99,16 @@ unitCekParameters =
     noinline mkMachineParameters def $
         CostModel unitCekMachineCosts unitCostBuiltinCostModel
 
-defaultBuiltinsRuntime :: HasMeaningIn DefaultUni term => BuiltinsRuntime DefaultFun term
+defaultBuiltinsRuntimeForSemanticsVariant
+    :: HasMeaningIn DefaultUni term
+    => BuiltinSemanticsVariant DefaultFun
+    -> BuiltinsRuntime DefaultFun term
+-- See Note [noinline for saving on ticks].
+defaultBuiltinsRuntimeForSemanticsVariant semvar = noinline toBuiltinsRuntime semvar defaultBuiltinCostModel
+
+defaultBuiltinsRuntime
+    :: HasMeaningIn DefaultUni term
+    => BuiltinsRuntime DefaultFun term
 -- See Note [noinline for saving on ticks].
 defaultBuiltinsRuntime = noinline toBuiltinsRuntime def defaultBuiltinCostModel
 

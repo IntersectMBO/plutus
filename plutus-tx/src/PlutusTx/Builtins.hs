@@ -1,6 +1,4 @@
 -- editorconfig-checker-disable-file
-{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
-{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 
 -- | Primitive names and functions for working with Plutus Core builtins.
 module PlutusTx.Builtins (
@@ -67,8 +65,14 @@ module PlutusTx.Builtins (
                          , emptyString
                          , equalsString
                          , encodeUtf8
+                         -- * Pairs
+                         , pairToPair
                          -- * Lists
                          , matchList
+                         , BI.head
+                         , BI.tail
+                         , uncons
+                         , unsafeUncons
                          -- * Tracing
                          , trace
                          -- * BLS12_381
@@ -101,6 +105,7 @@ module PlutusTx.Builtins (
                          , toBuiltin
                          ) where
 
+import Data.Maybe
 import PlutusTx.Base (const, uncurry)
 import PlutusTx.Bool (Bool (..))
 import PlutusTx.Builtins.Class
@@ -373,8 +378,24 @@ trace = BI.trace
 encodeUtf8 :: BuiltinString -> BuiltinByteString
 encodeUtf8 = BI.encodeUtf8
 
+{-# INLINABLE matchList #-}
 matchList :: forall a r . BI.BuiltinList a -> r -> (a -> BI.BuiltinList a -> r) -> r
 matchList l nilCase consCase = BI.chooseList l (const nilCase) (\_ -> consCase (BI.head l) (BI.tail l)) ()
+
+{-# INLINE uncons #-}
+-- | Uncons a builtin list, failing if the list is empty, useful in patterns.
+uncons :: BI.BuiltinList a -> Maybe (a, BI.BuiltinList a)
+uncons l = matchList l Nothing (\h t -> Just (h, t))
+
+{-# INLINE unsafeUncons #-}
+-- | Uncons a builtin list, failing if the list is empty, useful in patterns.
+unsafeUncons :: BI.BuiltinList a -> (a, BI.BuiltinList a)
+unsafeUncons l = (BI.head l, BI.tail l)
+
+{-# INLINE pairToPair #-}
+-- | Turn a builtin pair into a normal pair, useful in patterns.
+pairToPair :: BI.BuiltinPair a b -> (a, b)
+pairToPair tup = (BI.fst tup, BI.snd tup)
 
 {-# INLINABLE chooseData #-}
 -- | Given five values for the five different constructors of 'BuiltinData', selects

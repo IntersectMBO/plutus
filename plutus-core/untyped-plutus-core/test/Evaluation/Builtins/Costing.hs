@@ -13,9 +13,9 @@ import PlutusCore.Evaluation.Machine.ExBudgetStream
 import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.Generators.QuickCheck.Builtin ()
+import PlutusCore.Generators.QuickCheck.Utils
 
 import Data.Bifunctor
-import Data.Coerce
 import Data.Int
 import Data.List
 import Data.Maybe
@@ -333,15 +333,6 @@ test_flattenCostRoseIsLinear = testGroup "flattenCostRose is linear"
     , test_flattenCostRoseIsLinearForSierpinskiRose 14
     ]
 
--- | Generate a list of the given length, all arguments of which are distinct. Takes O(n^2) time.
-uniqueVectorOf :: Eq a => Int -> Gen a -> Gen [a]
-uniqueVectorOf i0 genX = go [] i0 where
-    go acc i
-        | i <= 0    = pure acc
-        | otherwise = do
-              x <- genX `suchThat` (`notElem` acc)
-              go (x : acc) (i - 1)
-
 {- Note [Generating a CostRose]
 We use an overly pedantic approach for generating 'CostRose's. The idea is simple: generate a list
 of costs, chop it into chunks and turn each of those into its own 'CostRose' recursively, then
@@ -356,96 +347,13 @@ size-driven and minor tweaks in size handling at any step can result in major ch
 generation strategy such as exponential growth of the generated objects.
 -}
 
--- | Up to what length a list is considered \"short\".
-smallLength :: Int
-smallLength = 6
-
--- | Calculate the maximum number of chunks to split a list of the given list into.
-toMaxChunkNumber :: Int -> Int
-toMaxChunkNumber len
-    -- For short lists we take the maximum number of chunks to be the length of the list,
-    -- i.e. the maximum number of chunks grows at a maximum speed for short lists.
-    | len <= smallLength              = len
-    -- For longer lists the maximum number of chunks grows slower. We don't really want to split a
-    -- 50-element list into each of 1..50 number of chunks.
-    | len <= smallLength ^ (2 :: Int) = smallLength + len `div` smallLength
-    -- For long lists it grows even slower.
-    | otherwise                       = smallLength + round @Double (sqrt $ fromIntegral len)
-
--- | Calculate the number of ways to divide a list of length @len@ into @chunkNum@ chunks.
--- Equals to @C(len - 1, chunksNum - 1)@.
-toChunkNumber :: Int -> Int -> Int
-toChunkNumber len chunkNum =
-    product [len - 1, len - 2 .. len - chunkNum + 1] `div`
-        product [chunkNum - 1, chunkNum - 2 .. 2]
-
--- | Return a list of pairs, each of which consists of
---
--- 1. the frequency at which a chunk length needs to be picked by the generation machinery
--- 2. the chunk length itself
---
--- >>> toChunkFrequencies 5
--- [(1,1),(4,2),(6,3),(4,4),(1,5)]
--- >>> toChunkFrequencies 10
--- [(3,1),(6,2),(9,3),(12,4),(15,5),(18,6),(21,7)]
--- >>> toChunkFrequencies 50
--- [(3,1),(4,2),(5,3),(6,4),(7,5),(8,6),(9,7),(10,8),(11,9),(12,10),(13,11),(14,12),(15,13)]
-toChunkFrequencies :: Int -> [(Int, Int)]
-toChunkFrequencies len
-    -- For short lists we calculate exact chunk numbers and use those as frequencies in order to get
-    -- uniform distribution of list lengths (which does not lead to uniform distribution of lengths
-    -- of subtrees, since subtrees with small total count of elements get generated much more often
-    -- than those with a big total count of elements, particularly because the latter contain the
-    -- former).
-    | len <= smallLength = map (\num -> (toChunkNumber len num, num)) chunks
-    | otherwise          =
-        let -- The probability of "splitting" a list into a single sublist (i.e. simply 'pure') is
-            -- about 3%.
-            singleElemProb = 3
-            -- Computing @delta@ in order for each subsequent chunk length to get picked a bit more
-            -- likely, so that we generate longer forests more often when we can. For not-too-long
-            -- lists the frequencies add up to roughly 100. For long lists the sum of frequencies
-            -- can be significantly greater than 100 making the chance of generating a single
-            -- sublist less than 3%.
-            deltaN = chunkMax * (chunkMax - 1) `div` 2
-            delta  = max 1 $ (100 - chunkMax * singleElemProb) `div` deltaN
-        in zip (iterate (+ delta) singleElemProb) chunks
-    where
-        chunkMax = toMaxChunkNumber len
-        chunks = [1 .. chunkMax]
-
--- | Split the given list in chunks. The length of each chunk, apart from the final one, is taken
--- from the first argument.
---
--- >>> toChunks [3, 1] "abcdef"
--- ["abc","d","ef"]
-toChunks :: [Int] -> [a] -> [[a]]
-toChunks []       xs = [xs]
-toChunks (n : ns) xs = chunk : toChunks ns xs' where
-    (chunk, xs') = splitAt n xs
-
--- | Split a list into chunks at random. Concatenating the resulting lists gives back the original
--- one.
-multiSplit :: [a] -> Gen [NonEmptyList a]
-multiSplit [] = pure []
-multiSplit xs = do
-    let len = length xs
-    -- Pick a number of chunks.
-    chunkNum <- frequency . map (fmap pure) $ toChunkFrequencies len
-    -- Pick a list of breakpoints.
-    breakpoints <- sort <$> uniqueVectorOf (chunkNum - 1) (choose (1, len - 1))
-    -- Turn the list of breakpoints into a list of chunk lengths.
-    let chunkLens = zipWith (-) breakpoints (0 : breakpoints)
-    -- Chop the argument into chunks according to the list of chunk lengths.
-    pure . coerce $ toChunks chunkLens xs
-
 -- See Note [Generating a CostRose].
 -- | Generate a 'CostRose' from the given list by splitting the list into sublists and generating
 -- a 'CostRose' for each of them recursively.
 genCostRose :: NonEmptyList SatInt -> Gen CostRose
 genCostRose (NonEmpty [])             = error "Panic: an empty non-empty list"
 genCostRose (NonEmpty (cost : costs)) =
-    CostRose cost <$> (traverse genCostRose =<< multiSplit costs)
+    CostRose cost <$> (traverse genCostRose =<< multiSplit1 costs)
 
 fromCostRose :: CostRose -> NonEmptyList SatInt
 fromCostRose (CostRose cost costs) =
@@ -460,23 +368,6 @@ instance Arbitrary CostRose where
         -- Shrinking the recursive part first.
         (costs', cost') <- shrink (costs, cost)
         pure $ CostRose cost' costs'
-
--- | Show the distribution of lists generated by 'multiSplit' for a list of the given length.
-test_multiSplitDistributionAt :: Int -> TestTree
-test_multiSplitDistributionAt n =
-    testProperty ("for a list of length " ++ show n) $
-        withMaxSuccess 10000 . forAll (multiSplit $ replicate n ()) $ \aSplit ->
-            label (show $ map length aSplit) True
-
-test_multiSplitDistribution :: TestTree
-test_multiSplitDistribution =
-    testGroup ("distribution of values generated by multiSplit") $
-        [ test_multiSplitDistributionAt 1
-        , test_multiSplitDistributionAt 2
-        , test_multiSplitDistributionAt 3
-        , test_multiSplitDistributionAt 4
-        , test_multiSplitDistributionAt 5
-        ]
 
 -- | Return the lengths of all the forests in a 'CostRose'.
 collectListLengths :: CostRose -> [Int]
@@ -561,7 +452,6 @@ test_costing = testGroup "costing"
     , test_minCostStreamHandlesBottom
     , test_zipCostStreamHandlesBottom
     , test_flattenCostRoseIsLinear
-    , test_multiSplitDistribution
     , test_CostRoseListLengthsDistribution
     , test_genCostRoseSound
     , test_flattenCostRoseSound

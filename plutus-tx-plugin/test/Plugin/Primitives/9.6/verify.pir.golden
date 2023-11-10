@@ -1,0 +1,96 @@
+(program
+  1.1.0
+  (let
+    (nonrec)
+    (datatypebind
+      (datatype
+        (tyvardecl Bool (type))
+
+        Bool_match
+        (vardecl True Bool) (vardecl False Bool)
+      )
+    )
+    (termbind
+      (strict)
+      (vardecl ifThenElse (all a (type) (fun (con bool) (fun a (fun a a)))))
+      (builtin ifThenElse)
+    )
+    (termbind
+      (strict)
+      (vardecl
+        verifyEd25519Signature
+        (fun
+          (con bytestring)
+          (fun (con bytestring) (fun (con bytestring) (con bool)))
+        )
+      )
+      (builtin verifyEd25519Signature)
+    )
+    (termbind
+      (nonstrict)
+      (vardecl
+        verifyEd25519Signature
+        (fun
+          (con bytestring) (fun (con bytestring) (fun (con bytestring) Bool))
+        )
+      )
+      (lam
+        pubKey
+        (con bytestring)
+        (let
+          (nonrec)
+          (termbind (strict) (vardecl pubKey (con bytestring)) pubKey)
+          (lam
+            message
+            (con bytestring)
+            (let
+              (nonrec)
+              (termbind (strict) (vardecl message (con bytestring)) message)
+              (lam
+                signature
+                (con bytestring)
+                (let
+                  (nonrec)
+                  (termbind
+                    (strict) (vardecl signature (con bytestring)) signature
+                  )
+                  (termbind
+                    (strict)
+                    (vardecl b (con bool))
+                    [ [ [ verifyEd25519Signature pubKey ] message ] signature ]
+                  )
+                  [ [ [ { ifThenElse Bool } b ] True ] False ]
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+    (lam
+      ds
+      (con bytestring)
+      (let
+        (nonrec)
+        (termbind (strict) (vardecl ds (con bytestring)) ds)
+        (lam
+          ds
+          (con bytestring)
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl ds (con bytestring)) ds)
+            (lam
+              ds
+              (con bytestring)
+              (let
+                (nonrec)
+                (termbind (strict) (vardecl ds (con bytestring)) ds)
+                [ [ [ verifyEd25519Signature ds ] ds ] ds ]
+              )
+            )
+          )
+        )
+      )
+    )
+  )
+)

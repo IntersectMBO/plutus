@@ -43,7 +43,7 @@ instance Pretty ScriptEvaluationResult where
  parameters, as these are tracked separately.
 -}
 data ScriptEvaluationData = ScriptEvaluationData
-    { dataProtocolVersion :: ProtocolVersion
+    { dataProtocolVersion :: MajorProtocolVersion
     , dataBudget          :: ExBudget
     , dataScript          :: SerialisedScript
     , dataInputs          :: [PLC.Data]
@@ -54,7 +54,7 @@ data ScriptEvaluationData = ScriptEvaluationData
 instance Pretty ScriptEvaluationData where
     pretty ScriptEvaluationData{..} =
         vsep
-            [ "protocol version:" <+> pretty dataProtocolVersion
+            [ "major protocol version:" <+> pretty dataProtocolVersion
             , "budget: " <+> pretty dataBudget
             , "script: " <+> pretty (Text.decodeLatin1 . Base64.encode $ BS.fromShort dataScript)
             , "data: " <+> nest 2 (vsep $ pretty <$> dataInputs)
@@ -115,6 +115,7 @@ data UnexpectedEvaluationResult
         [Integer]
         -- ^ Cost parameters
         EvaluationError
+    | DecodeError ScriptDecodeError
     deriving stock (Show)
 
 instance Pretty UnexpectedEvaluationResult where
@@ -135,6 +136,13 @@ instance Pretty UnexpectedEvaluationResult where
                     , "Cost parameters:" <+> pretty params
                     , "Evaluation error:" <+> pretty err
                     ]
+        DecodeError err ->
+            nest 2 $
+                vsep
+                    [ "ScriptDecodeError"
+                    , viaShow err
+                    , "This should never happen at phase 2!"
+                    ]
 
 data TestFailure
     = InvalidResult UnexpectedEvaluationResult
@@ -143,8 +151,8 @@ data TestFailure
 renderTestFailure :: TestFailure -> String
 renderTestFailure = \case
     InvalidResult err -> display err
-    MissingCostParametersFor ver -> [fmt|
-        Missing cost parameters for {show ver}.
+    MissingCostParametersFor lang -> [fmt|
+        Missing cost parameters for {show lang}.
         Report this as a bug against the script dumper in plutus-apps.
     |]
 
@@ -163,25 +171,31 @@ checkEvaluationEvent ::
     Maybe UnexpectedEvaluationResult
 checkEvaluationEvent ctx params ev = case ev of
     PlutusV1Event ScriptEvaluationData{..} expected ->
-        let (_, actual) =
-                V1.evaluateScriptRestricting
-                    dataProtocolVersion
-                    V1.Quiet
-                    ctx
-                    dataBudget
-                    dataScript
-                    dataInputs
-         in verify expected actual
+        case deserialiseScript PlutusV1 dataProtocolVersion dataScript of
+            Right script ->
+                let (_, actual) =
+                        V1.evaluateScriptRestricting
+                            dataProtocolVersion
+                            V1.Quiet
+                            ctx
+                            dataBudget
+                            script
+                            dataInputs
+                 in verify expected actual
+            Left err -> Just (DecodeError err)
     PlutusV2Event ScriptEvaluationData{..} expected ->
-        let (_, actual) =
-                V2.evaluateScriptRestricting
-                    dataProtocolVersion
-                    V2.Quiet
-                    ctx
-                    dataBudget
-                    dataScript
-                    dataInputs
-         in verify expected actual
+        case deserialiseScript PlutusV2 dataProtocolVersion dataScript of
+            Right script ->
+                let (_, actual) =
+                        V2.evaluateScriptRestricting
+                            dataProtocolVersion
+                            V2.Quiet
+                            ctx
+                            dataBudget
+                            script
+                            dataInputs
+                 in verify expected actual
+            Left err -> Just (DecodeError err)
   where
     verify ScriptEvaluationSuccess (Left err) =
         Just $ UnexpectedEvaluationFailure ev params err

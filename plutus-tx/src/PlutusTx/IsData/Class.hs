@@ -1,6 +1,8 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE DataKinds            #-}
+{-# LANGUAGE EmptyCase            #-}
 {-# LANGUAGE KindSignatures       #-}
+{-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE TypeApplications     #-}
@@ -133,7 +135,7 @@ instance UnsafeFromData a => UnsafeFromData [a] where
 
 instance ToData Void where
     {-# INLINABLE toBuiltinData #-}
-    toBuiltinData v = absurd v
+    toBuiltinData = \case {}
 instance FromData Void where
     {-# INLINABLE fromBuiltinData #-}
     fromBuiltinData _ = Nothing

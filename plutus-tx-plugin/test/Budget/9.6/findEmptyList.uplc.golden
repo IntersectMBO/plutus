@@ -1,0 +1,18 @@
+program
+  1.1.0
+  ((\s -> s s)
+     (\s x ->
+        (\go ->
+           force
+             (case
+                x
+                [ (delay (constr 1 []))
+                , (\x xs ->
+                     delay
+                       (force
+                          (force ifThenElse
+                             (lessThanEqualsInteger 1 x)
+                             (delay (go xs))
+                             (delay (constr 0 [x]))))) ]))
+          (s s))
+     (constr 0 []))

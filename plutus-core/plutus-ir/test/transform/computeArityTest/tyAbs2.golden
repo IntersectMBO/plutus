@@ -1,5 +1,0 @@
-( [ TypeParam (TyName {unTyName = Name {_nameText = "a", _nameUnique = Unique {unUnique = 4}}})
-  , TypeParam (TyName {unTyName = Name {_nameText = "b", _nameUnique = Unique {unUnique = 5}}})
-  , TermParam (Name {_nameText = "x", _nameUnique = Unique {unUnique = 6}})
-  , TermParam (Name {_nameText = "y", _nameUnique = Unique {unUnique = 7}}) ]
-, y )

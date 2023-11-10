@@ -1,0 +1,70 @@
+(program
+  1.1.0
+  (let
+    (nonrec)
+    (termbind
+      (strict)
+      (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
+      (builtin addInteger)
+    )
+    (termbind
+      (nonstrict)
+      (vardecl addInteger (fun (con integer) (fun (con integer) (con integer))))
+      (lam
+        x
+        (con integer)
+        (let
+          (nonrec)
+          (termbind (strict) (vardecl x (con integer)) x)
+          (lam
+            y
+            (con integer)
+            (let
+              (nonrec)
+              (termbind (strict) (vardecl y (con integer)) y)
+              [ [ addInteger x ] y ]
+            )
+          )
+        )
+      )
+    )
+    (termbind
+      (nonstrict)
+      (vardecl myDollar (all a (type) (all b (type) (fun (fun a b) (fun a b)))))
+      (abs
+        a
+        (type)
+        (abs
+          b
+          (type)
+          (lam
+            f
+            (fun a b)
+            (let
+              (nonrec)
+              (termbind (strict) (vardecl f (fun a b)) f)
+              (lam
+                a a (let (nonrec) (termbind (strict) (vardecl a a) a) [ f a ])
+              )
+            )
+          )
+        )
+      )
+    )
+    [
+      [
+        { { myDollar (con integer) } (con integer) }
+        (lam
+          x
+          (con integer)
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl x (con integer)) x)
+            [ [ addInteger (con integer 1) ] x ]
+          )
+        )
+      ]
+      (con integer 1)
+    ]
+  )
+)

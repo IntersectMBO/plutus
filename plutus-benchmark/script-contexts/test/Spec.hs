@@ -5,7 +5,7 @@ module Main (main) where
 import Data.Text qualified as Text
 
 import Test.Tasty
-import Test.Tasty.Extras (TestNested, runTestNestedIn)
+import Test.Tasty.Extras (TestNested, runTestGroupNestedGhc)
 import Test.Tasty.HUnit
 
 import PlutusBenchmark.Common (Term, compiledCodeToTerm, runTermCek, unsafeRunTermCek)
@@ -15,8 +15,10 @@ import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 import PlutusTx.Test qualified as Tx
 
-runTestNested :: TestNested -> TestTree
-runTestNested = runTestNestedIn ["script-contexts", "test"]
+-- Make a set of golden tests with results stored in subdirectories determined
+-- by the GHC version.
+testGroupGhc :: [TestNested] -> TestTree
+testGroupGhc = runTestGroupNestedGhc ["script-contexts", "test"]
 
 assertSucceeded :: Term -> Assertion
 assertSucceeded t =
@@ -41,11 +43,15 @@ testCheckSc1 = testGroup "checkScriptContext1"
         compiledCodeToTerm $ mkCheckScriptContext1Code (mkScriptContext 4)
     , testCase "fails on 5" . assertFailed $
         compiledCodeToTerm $ mkCheckScriptContext1Code (mkScriptContext 5)
-    , Tx.fitsInto "checkScriptContext1 (size)" (mkCheckScriptContext1Code (mkScriptContext 1)) 3721
-    , runTestNested $ Tx.goldenBudget "checkScriptContext1-4" $
-        mkCheckScriptContext1Code (mkScriptContext 4)
-    , runTestNested $ Tx.goldenBudget "checkScriptContext1-20" $
-        mkCheckScriptContext1Code (mkScriptContext 20)
+    , testGroupGhc [ Tx.goldenSize "checkScriptContext1" $
+                        mkCheckScriptContext1Code (mkScriptContext 1)
+                   , Tx.goldenPirReadable "checkScriptContext1" $
+                        mkCheckScriptContext1Code (mkScriptContext 1)
+                   , Tx.goldenBudget "checkScriptContext1-4" $
+                        mkCheckScriptContext1Code (mkScriptContext 4)
+                   , Tx.goldenBudget "checkScriptContext1-20" $
+                        mkCheckScriptContext1Code (mkScriptContext 20)
+          ]
     ]
 
 testCheckSc2 :: TestTree
@@ -54,21 +60,26 @@ testCheckSc2 = testGroup "checkScriptContext2"
           compiledCodeToTerm $ mkCheckScriptContext2Code (mkScriptContext 4)
     , testCase "succeed on 5" . assertSucceeded $
           compiledCodeToTerm $ mkCheckScriptContext2Code (mkScriptContext 5)
-    , Tx.fitsInto "checkScriptContext2 (size)" (mkCheckScriptContext2Code (mkScriptContext 1)) 3652
-    , runTestNested $ Tx.goldenBudget "checkScriptContext2-4" $
-          mkCheckScriptContext2Code (mkScriptContext 4)
-    , runTestNested $ Tx.goldenBudget "checkScriptContext2-20" $
-          mkCheckScriptContext2Code (mkScriptContext 20)
+    , testGroupGhc [ Tx.goldenSize "checkScriptContext2" $
+                        mkCheckScriptContext2Code (mkScriptContext 1)
+                   , Tx.goldenPirReadable "checkScriptContext2" $
+                        mkCheckScriptContext2Code (mkScriptContext 1)
+                   , Tx.goldenBudget "checkScriptContext2-4" $
+                        mkCheckScriptContext2Code (mkScriptContext 4)
+                   , Tx.goldenBudget "checkScriptContext2-20" $
+                        mkCheckScriptContext2Code (mkScriptContext 20)
+                   ]
     ]
 
 testCheckScEquality :: TestTree
 testCheckScEquality = testGroup "checkScriptContextEquality"
-    [ runTestNested $ Tx.goldenBudget "checkScriptContexEqualityData-20" $
-          mkScriptContextEqualityDataCode (mkScriptContext 20)
-    , runTestNested $ Tx.goldenBudget "checkScriptContextEqualityTerm-20" $
-          mkScriptContextEqualityTermCode (mkScriptContext 20)
-    , runTestNested $ Tx.goldenBudget "checkScriptContextEqualityOverhead-20" $
-          mkScriptContextEqualityOverheadCode (mkScriptContext 20)
+    [ testGroupGhc [ Tx.goldenBudget "checkScriptContexEqualityData-20" $
+                        mkScriptContextEqualityDataCode (mkScriptContext 20)
+                   , Tx.goldenBudget "checkScriptContextEqualityTerm-20" $
+                        mkScriptContextEqualityTermCode (mkScriptContext 20)
+                   , Tx.goldenBudget "checkScriptContextEqualityOverhead-20" $
+                        mkScriptContextEqualityOverheadCode (mkScriptContext 20)
+                   ]
     ]
 
 allTests :: TestTree

@@ -4,6 +4,7 @@ module Main where
 
 import GHC.IO.Encoding (setLocaleEncoding, utf8)
 
+import Analysis.Spec (evalOrder)
 import DeBruijn.Spec (test_debruijn)
 import Evaluation.Builtins (test_builtins)
 import Evaluation.Debug (test_debug)
@@ -33,4 +34,5 @@ main = do
     , test_debug
     , test_flat
     , schnorrVerifyRegressions
+    , evalOrder
     ]

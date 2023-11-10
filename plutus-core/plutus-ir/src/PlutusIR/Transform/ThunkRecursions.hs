@@ -5,13 +5,16 @@
 -- compilable to PLC. See Note [Thunking recursions] for details.
 module PlutusIR.Transform.ThunkRecursions (thunkRecursions) where
 
-import Control.Lens (transformOf)
-import Data.List.NonEmpty (partition)
-import Data.Maybe (mapMaybe)
 import PlutusCore.Builtin
+import PlutusCore.Name qualified as PLC
 import PlutusIR
+import PlutusIR.Analysis.Builtins
+import PlutusIR.Analysis.VarInfo
 import PlutusIR.MkPir (mkLet, mkVar)
-import PlutusIR.Purity (isPure)
+import PlutusIR.Purity
+
+import Control.Lens hiding (Strict)
+import Data.List.NonEmpty qualified as NE
 
 {- Note [Thunking recursions]
 Our fixpoint combinators in Plutus Core know how to handle mutually recursive values
@@ -90,45 +93,76 @@ becomes
 To do this without having to do lots of substitutions, we use the same identifier for the
 recursive binding and the adapter binding, so this pass destroys global uniqueness.
 
-At the moment we only do this for bindings whose RHS is potentially impure, although in
-principle it could be an improvement in other cases because it would allow using the faster
-strict binding in the body. Unclear.
+To make sure the effects order does not change, we must also apply this
+transformation to all sibling bindings which are effectful, although they aren't problematic.
+We place all strict adapters (for both problematic and non problematic bindings)
+in their original ordering to preserve the order of effects.
+
+We could, while keeping the thunkification in place, skip the strictification for those
+problematic, pure-strict bindings. These would essentially safely alter their original strictness.
+We opt not to, because it is not clear if it would be a benefit (this pass is not supposed to do
+any kind of strictness analysis).
 -}
 
-isFunctionType :: Type tyname uni a -> Bool
-isFunctionType = \case
+isTyFun :: Type tyname uni a -> Bool
+isTyFun = \case
     TyFun {} -> True
     _        -> False
 
-strictNonFunctionBinding :: Binding tyname name uni fun a -> Bool
-strictNonFunctionBinding = \case
-    TermBind _ Strict (VarDecl _ _ ty) _ | not $ isFunctionType ty -> True
-    _                                                              -> False
-
-nonStrictify :: Binding tyname name uni fun a -> Binding tyname name uni fun a
-nonStrictify = \case
+nonStrictifyB :: Binding tyname name uni fun a -> Binding tyname name uni fun a
+nonStrictifyB = \case
     TermBind x _ d rhs -> TermBind x NonStrict d rhs
     b                  -> b
 
-mkStrictifyingBinding :: ToBuiltinMeaning uni fun => BuiltinVersion fun -> Binding tyname name uni fun a -> Maybe (Binding tyname name uni fun a)
-mkStrictifyingBinding ver = \case
-    -- Only need to strictify if the previous binding was not definitely pure
-    -- Also, we're reusing the same variable here, see Note [Thunking recursions]
-    TermBind x _ d rhs | not (isPure ver (const NonStrict) rhs) -> Just $ TermBind x Strict d (mkVar x d)
-    _                                                           -> Nothing
+-- Out of a binding `(vardecl x = rhs)`, make a "strictifier" binding: `(strict vardecl x = x)`
+mkStrictifierB :: Binding tyname name uni fun a -> Binding tyname name uni fun a
+mkStrictifierB = \case
+    TermBind x _ d _ -> TermBind x Strict d (mkVar x d)
+    b                -> b
 
-thunkRecursionsStep :: ToBuiltinMeaning uni fun => BuiltinVersion fun -> Term tyname name uni fun a -> Term tyname name uni fun a
-thunkRecursionsStep ver (Let a Rec bs t) =
+thunkRecursionsStep
+    :: forall tyname name uni fun a
+    . (ToBuiltinMeaning uni fun, PLC.HasUnique name PLC.TermUnique)
+    => BuiltinsInfo uni fun
+    -> VarsInfo tyname name uni a
+    -> Term tyname name uni fun a
+    -> Term tyname name uni fun a
+thunkRecursionsStep binfo vinfo = \case
+ -- only apply the transformation if there is at least 1 problematic binding in a letrec group
+  Let a Rec bs t | any isProblematic bs ->
     -- See Note [Thunking recursions]
-    let (toThunk, noThunk) = partition strictNonFunctionBinding bs
-        newBindings = fmap nonStrictify toThunk ++ noThunk
-        strictifiers = mapMaybe (mkStrictifyingBinding ver) toThunk
-    in mkLet a Rec newBindings $ mkLet a NonRec strictifiers t
-thunkRecursionsStep _ t = t
+    let (toNonStrictify, rest) = NE.partition needsNonStrictify bs
+        -- MAYBE: use some prism/traversal to keep the original arrangement of the let group
+        -- this is not a semantic problem, but just a stylistic/debugging issue where the original
+        -- let-group will have reordered the (lazified) bindings
+        editedLet = mkLet a Rec $ fmap nonStrictifyB toNonStrictify ++ rest
+        -- We insert strictifiers for all previously thunkified
+        strictifiers = mkStrictifierB <$> toNonStrictify
+        extraLet = mkLet a NonRec strictifiers
+    in editedLet $ extraLet t
+  t -> t
+  where
+    isStrictEffectful :: Binding tyname name uni fun a -> Bool
+    isStrictEffectful = \case
+        TermBind _ Strict _ rhs -> not $ isPure binfo vinfo rhs
+        _                       -> False
+
+    needsNonStrictify :: Binding tyname name uni fun a -> Bool
+    needsNonStrictify b = isProblematic b || isStrictEffectful b
+
+-- | The problematic bindings are those that are strict and their type is not a TyFun
+isProblematic :: Binding tyname name uni fun a -> Bool
+isProblematic = \case
+    TermBind _ Strict (VarDecl _ _ ty) _ -> not $ isTyFun ty
+    _                                    -> False
 
 -- | Thunk recursions to turn recusive values of non-function type into recursive values of function type,
 -- so we can compile them.
 --
 -- Note: this pass breaks global uniqueness!
-thunkRecursions :: ToBuiltinMeaning uni fun => BuiltinVersion fun -> Term tyname name uni fun a -> Term tyname name uni fun a
-thunkRecursions = transformOf termSubterms . thunkRecursionsStep
+thunkRecursions
+    :: (ToBuiltinMeaning uni fun, PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique)
+    => BuiltinsInfo uni fun
+    -> Term tyname name uni fun a
+    -> Term tyname name uni fun a
+thunkRecursions binfo t = transformOf termSubterms (thunkRecursionsStep binfo (termVarInfo t)) t

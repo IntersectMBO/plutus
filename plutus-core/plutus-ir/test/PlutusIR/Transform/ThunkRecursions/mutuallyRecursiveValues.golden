@@ -1,0 +1,15 @@
+(let
+  (rec)
+  (termbind (nonstrict) (vardecl x (all a (type) (fun a a))) y)
+  (termbind
+    (nonstrict)
+    (vardecl y (all a (type) (fun a a)))
+    (abs a (type) (lam z a [ { x a } z ]))
+  )
+  (let
+    (nonrec)
+    (termbind (strict) (vardecl x (all a (type) (fun a a))) x)
+    (termbind (strict) (vardecl y (all a (type) (fun a a))) y)
+    x
+  )
+)

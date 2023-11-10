@@ -1,0 +1,89 @@
+{-
+let f :: (Integer -> Integer) -> (Integer -> Integer -> Integer) -> Integer -> Integer
+    f unused a b = a b (1 + 2 + 3 + 4)
+ in f (\unused -> 5) (+) 6 + f (\unused -> 7 + 8 + 9 + 10) (+) 11
+
+Only the second occurrence of f should be
+inlined, because inlining the first occurrence increases the program size:
+size ((+) 6 (1 + 2 + 3 + 4)) > size (f (\unused -> 5) (+) 6)
+-}
+
+(let
+  (nonrec)
+  (termbind
+    (strict)
+    (vardecl
+      f
+      (fun
+        (fun (con integer) (con integer))
+        (fun
+          (fun (con integer) (fun (con integer) (con integer)))
+          (fun (con integer) (con integer))
+        )
+      )
+    )
+    (lam
+      unused
+      (fun (con integer) (con integer))
+      (lam
+        a
+        (fun (con integer) (fun (con integer) (con integer)))
+        (lam
+          b
+          (con integer)
+          [
+            [ a b ]
+            [
+              [
+                (builtin addInteger)
+                [
+                  [
+                    (builtin addInteger)
+                    [ [ (builtin addInteger) (con integer 1) ] (con integer 2) ]
+                  ]
+                  (con integer 3)
+                ]
+              ]
+              (con integer 4)
+            ]
+          ]
+        )
+      )
+    )
+  )
+  [
+    [
+      (builtin addInteger)
+      [
+        [ [ f (lam unused (con integer) (con integer 5)) ] (builtin addInteger) ]
+        (con integer 6)
+      ]
+    ]
+    [
+      [
+        [
+          f
+          (lam
+            unused
+            (con integer)
+            [
+              [
+                (builtin addInteger)
+                [
+                  [
+                    (builtin addInteger)
+                    [ [ (builtin addInteger) (con integer 7) ] (con integer 8) ]
+                  ]
+                  (con integer 9)
+                ]
+              ]
+              (con integer 10)
+            ]
+          )
+        ]
+        (builtin addInteger)
+      ]
+      (con integer 11)
+    ]
+  ]
+)

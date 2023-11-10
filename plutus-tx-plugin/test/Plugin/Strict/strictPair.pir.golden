@@ -1,8 +1,0 @@
-(program
-  1.1.0
-  (lam
-    p
-    [ [ (con pair) (con integer) ] (con integer) ]
-    [ { { (builtin fstPair) (con integer) } (con integer) } p ]
-  )
-)

@@ -2,7 +2,14 @@
 {-# LANGUAGE BangPatterns    #-}
 {-# LANGUAGE CPP             #-}
 {-# LANGUAGE TemplateHaskell #-}
-module PlutusTx.IsData.TH (unstableMakeIsData, makeIsDataIndexed) where
+{-# LANGUAGE ViewPatterns    #-}
+module PlutusTx.IsData.TH (
+    unstableMakeIsData
+  , makeIsDataIndexed
+  , mkConstrCreateExpr
+  , mkUnsafeConstrMatchPattern
+  , mkConstrPartsMatchPattern
+  , mkUnsafeConstrPartsMatchPattern) where
 
 import Data.Foldable
 import Data.Traversable
@@ -15,18 +22,66 @@ import PlutusTx.Applicative qualified as PlutusTx
 
 import PlutusTx.Builtins as Builtins
 import PlutusTx.Builtins.Internal qualified as BI
+import PlutusTx.Eq as PlutusTx
 import PlutusTx.IsData.Class
 import PlutusTx.Trace (traceError)
 
 -- We do not use qualified import because the whole module contains off-chain code
 import Prelude as Haskell
 
+mkConstrCreateExpr :: Integer -> [TH.Name] -> TH.ExpQ
+mkConstrCreateExpr conIx createFieldNames =
+  let
+    createArgsExpr :: TH.ExpQ
+    createArgsExpr = foldr
+      (\v e -> [| BI.mkCons (toBuiltinData $(TH.varE v)) $e |])
+      [| BI.mkNilData BI.unitval |]
+      createFieldNames
+    createExpr = [| BI.mkConstr conIx $createArgsExpr |]
+  in createExpr
+
+mkConstrPartsMatchPattern :: Integer -> [TH.Name] -> TH.PatQ
+mkConstrPartsMatchPattern conIx extractFieldNames =
+  let
+    -- (==) i -> True
+    ixMatchPat = [p| ((PlutusTx.==) conIx -> True) |]
+    -- [unsafeFromBuiltinData -> arg1, ...]
+    extractArgPats = (flip fmap) extractFieldNames $ \n ->
+      [p| (fromBuiltinData -> Just $(TH.varP n)) |]
+    extractArgsPat = go extractArgPats
+      where
+        go []     = [p| _ |]
+        go [x]    = [p| (BI.head -> $x) |]
+        go (x:xs) = [p| (Builtins.uncons -> Just ($x, $(go xs))) |]
+    pat = [p| ($ixMatchPat, $extractArgsPat) |]
+  in pat
+
+-- TODO: safe match for the whole thing? not needed atm
+
+mkUnsafeConstrMatchPattern :: Integer -> [TH.Name] -> TH.PatQ
+mkUnsafeConstrMatchPattern conIx extractFieldNames = [p| (BI.unsafeDataAsConstr -> (Builtins.pairToPair -> $(mkUnsafeConstrPartsMatchPattern conIx extractFieldNames))) |]
+
+mkUnsafeConstrPartsMatchPattern :: Integer -> [TH.Name] -> TH.PatQ
+mkUnsafeConstrPartsMatchPattern conIx extractFieldNames =
+  let
+    -- (==) i -> True
+    ixMatchPat = [p| ((PlutusTx.==) conIx -> True) |]
+    -- [unsafeFromBuiltinData -> arg1, ...]
+    extractArgPats = (flip fmap) extractFieldNames $ \n ->
+      [p| (unsafeFromBuiltinData -> $(TH.varP n)) |]
+    extractArgsPat = go extractArgPats
+      where
+        go []     = [p| _ |]
+        go [x]    = [p| (BI.head -> $x) |]
+        go (x:xs) = [p| (Builtins.unsafeUncons -> ($x, $(go xs))) |]
+    pat = [p| ($ixMatchPat, $extractArgsPat) |]
+  in pat
+
 toDataClause :: (TH.ConstructorInfo, Int) -> TH.Q TH.Clause
 toDataClause (TH.ConstructorInfo{TH.constructorName=name, TH.constructorFields=argTys}, index) = do
     argNames <- for argTys $ \_ -> TH.newName "arg"
-    let argsList = foldr (\v e -> [| BI.mkCons (toBuiltinData $(TH.varE v)) $e |]) [| BI.mkNilData BI.unitval |] argNames
-    let app = [| BI.mkConstr index $argsList |]
-    TH.clause [TH.conP name (fmap TH.varP argNames)] (TH.normalB app) []
+    let create = mkConstrCreateExpr (fromIntegral index) argNames
+    TH.clause [TH.conP name (fmap TH.varP argNames)] (TH.normalB create) []
 
 toDataClauses :: [(TH.ConstructorInfo, Int)] -> [TH.Q TH.Clause]
 toDataClauses indexedCons = toDataClause <$> indexedCons
@@ -58,7 +113,8 @@ reconstructCase (TH.ConstructorInfo{TH.constructorName=name, TH.constructorField
                 -- See Note [indexMatchCase and fallthrough]
                 let $(TH.tildeP $ TH.varP indexMatchCaseName) = $(handleList argNames argsExpr)
                     $(TH.tildeP $ TH.varP fallthroughName) = $kont
-                in BI.ifThenElse ($ixExpr `BI.equalsInteger` (index :: Integer)) (const $(TH.varE indexMatchCaseName)) (const $(TH.varE fallthroughName)) BI.unitval
+                -- can't use const since that evaluates its arguments first!
+                in BI.ifThenElse ($ixExpr `BI.equalsInteger` (index :: Integer)) (\_ -> $(TH.varE indexMatchCaseName)) (\_ -> $(TH.varE fallthroughName)) BI.unitval
             |]
     body
 
@@ -110,7 +166,8 @@ unsafeReconstructCase (TH.ConstructorInfo{TH.constructorName=name, TH.constructo
                 -- See Note [indexMatchCase and fallthrough]
                 let $(TH.tildeP $ TH.varP indexMatchCaseName) = $(handleList argNames argsExpr)
                     $(TH.tildeP $ TH.varP fallthroughName) = $kont
-                in BI.ifThenElse ($ixExpr `BI.equalsInteger` (index :: Integer)) (const $(TH.varE indexMatchCaseName)) (const $(TH.varE fallthroughName)) BI.unitval
+                -- can't use const since that evaluates its arguments first!
+                in BI.ifThenElse ($ixExpr `BI.equalsInteger` (index :: Integer)) (\_ -> $(TH.varE indexMatchCaseName)) (\_ -> $(TH.varE fallthroughName)) BI.unitval
             |]
     body
 

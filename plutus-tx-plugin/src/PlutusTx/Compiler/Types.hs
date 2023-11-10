@@ -16,7 +16,9 @@ import PlutusTx.Compiler.Error
 import PlutusTx.Coverage
 import PlutusTx.PLCTypes
 
+import PlutusIR.Analysis.Builtins qualified as PIR
 import PlutusIR.Compiler.Definitions
+import PlutusIR.Transform.RewriteRules qualified as PIR
 
 import PlutusCore.Annotation
 import PlutusCore.Builtin qualified as PLC
@@ -29,6 +31,7 @@ import GHC.Plugins qualified as GHC
 
 import Control.Monad.Except
 import Control.Monad.Reader
+import Control.Monad.State
 import Control.Monad.Writer
 
 import Data.Map qualified as Map
@@ -56,8 +59,19 @@ data CompileContext uni fun = CompileContext {
     ccBlackholed       :: Set.Set GHC.Name,
     ccCurDef           :: Maybe LexName,
     ccModBreaks        :: Maybe GHC.ModBreaks,
-    ccBuiltinVer       :: PLC.BuiltinVersion fun,
-    ccBuiltinCostModel :: PLC.CostingPart uni fun
+    ccBuiltinsInfo     :: PIR.BuiltinsInfo uni fun,
+    ccBuiltinCostModel :: PLC.CostingPart uni fun,
+    ccDebugTraceOn     :: Bool,
+    ccRewriteRules     :: PIR.RewriteRules uni fun
+    }
+
+data CompileState = CompileState
+    { -- | The ID of the next step to be taken by the PlutusTx compiler.
+      -- This is used when generating debug traces.
+      csNextStep      :: Int
+      -- | The IDs of the previous steps taken by the PlutusTx compiler leading up to
+      -- the current point. This is used when generating debug traces.
+    , csPreviousSteps :: [Int]
     }
 
 -- | Verbosity level of the Plutus Tx compiler.
@@ -179,6 +193,7 @@ type Compiling uni fun m ann =
     ( MonadError (CompileError uni fun ann) m
     , MonadQuote m
     , MonadReader (CompileContext uni fun) m
+    , MonadState CompileState m
     , MonadDefs LexName uni fun Ann m
     , MonadWriter CoverageIndex m
     )

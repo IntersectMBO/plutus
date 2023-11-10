@@ -23,17 +23,22 @@ import PlutusTx.Test
 import Data.Proxy
 
 strict :: TestNested
-strict = testNested "Strict" [
-    goldenPir "strictAdd" strictAdd
-  , goldenPir "strictAppend" strictAppend
-  , goldenPir "strictAppend2" strictAppend2
-  , goldenPir "strictAppendString" strictAppendString
-  , goldenPir "strictITE" strictITE
-  , goldenPir "strictPair" strictPair
-  , goldenPir "strictList" strictList
-  , goldenPir "strictData" strictData
-  , goldenPir "issue4645" issue4645
-  , goldenEvalCekLog "issue4645Eval" [ issue4645 ]
+strict = testNestedGhc "Strict" [
+    goldenPirReadable "strictAdd" strictAdd
+  , goldenPirReadable "strictAppend" strictAppend
+  , goldenPirReadable "strictAppend2" strictAppend2
+  , goldenPirReadable "strictAppendString" strictAppendString
+  , goldenPirReadable "strictITE" strictITE
+  , goldenPirReadable "strictPair" strictPair
+  , goldenPirReadable "strictList" strictList
+  , goldenPirReadable "strictData" strictData
+  , goldenPirReadable "issue4645" issue4645
+  -- TODO: the Cek log of this test case is currently unexpected and doesn't match
+  -- what the user would expect. Originally, both GHC and ourselves are culprits
+  -- in this instance (see
+  -- https://github.com/input-output-hk/plutus/pull/5371#discussion_r1285087508),
+  -- however we have now fixed the bug on our side so it's just GHC being annoying.
+  , goldenEvalCekLog "issue4645" [ issue4645 ]
   ]
 
 strictAdd :: CompiledCode (Integer -> Integer -> Integer)
@@ -102,4 +107,3 @@ issue4645Example =
 
       !valid = x P.== t
    in valid
-

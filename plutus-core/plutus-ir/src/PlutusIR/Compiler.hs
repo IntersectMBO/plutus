@@ -16,7 +16,7 @@ module PlutusIR.Compiler (
     Provenance (..),
     DatatypeComponent (..),
     noProvenance,
-    CompilationOpts,
+    CompilationOpts (..),
     coOptimize,
     coPedantic,
     coVerbose,
@@ -27,9 +27,12 @@ module PlutusIR.Compiler (
     coDoSimplifierInline,
     coDoSimplifierEvaluateBuiltins,
     coDoSimplifierStrictifyBindings,
+    coDoSimplifierRewrite,
+    coDoSimplifierKnownCon,
     coInlineHints,
     coProfile,
     coRelaxedFloatin,
+    coCaseOfCaseConservative,
     coPreserveLogging,
     coDatatypes,
     dcoStyle,
@@ -39,12 +42,13 @@ module PlutusIR.Compiler (
     ccOpts,
     ccEnclosing,
     ccTypeCheckConfig,
-    ccBuiltinVer,
+    ccBuiltinsInfo,
     ccBuiltinCostModel,
     PirTCConfig(..),
     AllowEscape(..),
     toDefaultCompilationCtx,
-    simplifyTerm) where
+    simplifyTerm
+    ) where
 
 import PlutusIR
 
@@ -54,8 +58,8 @@ import PlutusIR.Compiler.Provenance
 import PlutusIR.Compiler.Types
 import PlutusIR.Error
 import PlutusIR.Transform.Beta qualified as Beta
+import PlutusIR.Transform.CaseOfCase qualified as CaseOfCase
 import PlutusIR.Transform.CaseReduce qualified as CaseReduce
-import PlutusIR.Transform.CommuteFnWithConst qualified as CommuteFnWithConst
 import PlutusIR.Transform.DeadCode qualified as DeadCode
 import PlutusIR.Transform.EvaluateBuiltins qualified as EvaluateBuiltins
 import PlutusIR.Transform.Inline.Inline qualified as Inline
@@ -66,19 +70,20 @@ import PlutusIR.Transform.LetMerge qualified as LetMerge
 import PlutusIR.Transform.NonStrict qualified as NonStrict
 import PlutusIR.Transform.RecSplit qualified as RecSplit
 import PlutusIR.Transform.Rename ()
+import PlutusIR.Transform.RewriteRules qualified as RewriteRules
 import PlutusIR.Transform.StrictifyBindings qualified as StrictifyBindings
 import PlutusIR.Transform.ThunkRecursions qualified as ThunkRec
 import PlutusIR.Transform.Unwrap qualified as Unwrap
 import PlutusIR.TypeCheck.Internal
 
 import PlutusCore qualified as PLC
-import PlutusCore.Builtin qualified as PLC
 
 import Control.Lens
 import Control.Monad
 import Control.Monad.Extra (orM, whenM)
 import Control.Monad.Reader
 import Debug.Trace (traceM)
+import PlutusIR.Analysis.Builtins
 import PlutusPrelude
 
 -- Simplifier passes
@@ -116,25 +121,30 @@ availablePasses :: [Pass uni fun]
 availablePasses =
     [ Pass "unwrap cancel"        (onOption coDoSimplifierUnwrapCancel)       (pure . Unwrap.unwrapCancel)
     , Pass "case reduce"          (onOption coDoSimplifierCaseReduce)         (pure . CaseReduce.caseReduce)
+    , Pass "case of case"         (onOption coDoSimplifierCaseOfCase)         (\t -> do
+                                                                                  binfo <- view ccBuiltinsInfo
+                                                                                  conservative <- view (ccOpts . coCaseOfCaseConservative)
+                                                                                  CaseOfCase.caseOfCase binfo conservative noProvenance t)
     , Pass "known constructor"    (onOption coDoSimplifierKnownCon)           KnownCon.knownCon
     , Pass "beta"                 (onOption coDoSimplifierBeta)               (pure . Beta.beta)
-    , Pass "strictify bindings"   (onOption coDoSimplifierStrictifyBindings)  (\t ->
-                                                                                 do
-                                                                                   ver <- view ccBuiltinVer
-                                                                                   pure $ StrictifyBindings.strictifyBindings ver t
+    , Pass "strictify bindings"   (onOption coDoSimplifierStrictifyBindings)  (\t -> do
+                                                                                  binfo <- view ccBuiltinsInfo
+                                                                                  pure $ StrictifyBindings.strictifyBindings binfo t
                                                                               )
     , Pass "evaluate builtins"    (onOption coDoSimplifierEvaluateBuiltins)   (\t -> do
-                                                                                  ver <- view ccBuiltinVer
+                                                                                  binfo <- view ccBuiltinsInfo
                                                                                   costModel <- view ccBuiltinCostModel
                                                                                   preserveLogging <- view (ccOpts . coPreserveLogging)
-                                                                                  pure $ EvaluateBuiltins.evaluateBuiltins preserveLogging ver costModel t
+                                                                                  pure $ EvaluateBuiltins.evaluateBuiltins preserveLogging binfo costModel t
                                                                               )
     , Pass "inline"               (onOption coDoSimplifierInline)             (\t -> do
                                                                                   hints <- view (ccOpts . coInlineHints)
-                                                                                  ver <- view ccBuiltinVer
-                                                                                  Inline.inline hints ver t
+                                                                                  binfo <- view ccBuiltinsInfo
+                                                                                  Inline.inline hints binfo t
                                                                               )
-    , Pass "commuteFnWithConst" (onOption coDoSimplifiercommuteFnWithConst) (pure . CommuteFnWithConst.commuteFnWithConst)
+    , Pass "rewrite rules" (onOption coDoSimplifierRewrite) (\ t -> do
+                                                                    rules <- view ccRewriteRules
+                                                                    RewriteRules.rewriteWith rules t)
     ]
 
 -- | Actual simplifier
@@ -144,11 +154,12 @@ simplify
 simplify = foldl' (>=>) pure (map applyPass availablePasses)
 
 -- | Perform some simplification of a 'Term'.
+--
+-- NOTE: simplifyTerm requires at least 1 prior dead code elimination pass
 simplifyTerm
   :: forall m e uni fun a b. (Compiling m e uni fun a, b ~ Provenance a)
   => Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
 simplifyTerm = runIfOpts simplify'
-    -- NOTE: we need at least one pass of dead code elimination
     where
         simplify' :: Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
         simplify' t = do
@@ -172,8 +183,8 @@ floatOut
     => Term TyName Name uni fun b
     -> m (Term TyName Name uni fun b)
 floatOut t = do
-    ver <- view ccBuiltinVer
-    runIfOpts (pure . LetMerge.letMerge . RecSplit.recSplit . LetFloatOut.floatTerm ver) t
+    binfo <- view ccBuiltinsInfo
+    runIfOpts (pure . LetMerge.letMerge . RecSplit.recSplit . LetFloatOut.floatTerm binfo) t
 
 -- | Perform floating in/merging of lets in a 'Term'.
 floatIn
@@ -181,9 +192,9 @@ floatIn
     => Term TyName Name uni fun b
     -> m (Term TyName Name uni fun b)
 floatIn t = do
-    ver <- view ccBuiltinVer
+    binfo <- view ccBuiltinsInfo
     relaxed <- view (ccOpts . coRelaxedFloatin)
-    runIfOpts (fmap LetMerge.letMerge . LetFloatIn.floatTerm ver relaxed) t
+    runIfOpts (fmap LetMerge.letMerge . LetFloatIn.floatTerm binfo relaxed) t
 
 -- | Typecheck a PIR Term iff the context demands it.
 -- Note: assumes globally unique names
@@ -200,8 +211,11 @@ check arg =
          -- the typechecker requires global uniqueness, so rename here
         typeCheckTerm =<< PLC.rename arg
 
-withVer :: MonadReader (CompilationCtx uni fun a) m => (PLC.BuiltinVersion fun -> m t) -> m t
-withVer = (view ccBuiltinVer >>=)
+withBuiltinsInfo
+    :: MonadReader (CompilationCtx uni fun a) m
+    => (BuiltinsInfo uni fun -> m t)
+    -> m t
+withBuiltinsInfo = (view ccBuiltinsInfo >>=)
 
 -- | The 1st half of the PIR compiler pipeline up to floating/merging the lets.
 -- We stop momentarily here to give a chance to the tx-plugin
@@ -217,7 +231,7 @@ compileToReadable (Program a v t) =
         >=> PLC.rename
         >=> through typeCheckTerm
         >=> (<$ logVerbose "  !!! removeDeadBindings")
-        >=> (withVer . flip DeadCode.removeDeadBindings)
+        >=> (withBuiltinsInfo . flip DeadCode.removeDeadBindings)
         >=> (<$ logVerbose "  !!! simplifyTerm")
         >=> simplifyTerm
         >=> (<$ logVerbose "  !!! floatOut")
@@ -238,7 +252,7 @@ compileReadableToPlc (Program a v t) =
         >=> NonStrict.compileNonStrictBindings False
         >=> through check
         >=> (<$ logVerbose "  !!! thunkRecursions")
-        >=> (withVer . fmap pure . flip ThunkRec.thunkRecursions)
+        >=> (withBuiltinsInfo . fmap pure . flip ThunkRec.thunkRecursions)
         -- Thunking recursions breaks global uniqueness
         >=> PLC.rename
         >=> through check
@@ -256,7 +270,7 @@ compileReadableToPlc (Program a v t) =
         -- We introduce some non-recursive let bindings while eliminating recursive let-bindings, so we
         -- can eliminate any of them which are unused here.
         >=> (<$ logVerbose "  !!! removeDeadBindings")
-        >=> (withVer . flip DeadCode.removeDeadBindings)
+        >=> (withBuiltinsInfo . flip DeadCode.removeDeadBindings)
         >=> through check
         >=> (<$ logVerbose "  !!! simplifyTerm")
         >=> simplifyTerm

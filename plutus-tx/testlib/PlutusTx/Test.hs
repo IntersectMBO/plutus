@@ -9,7 +9,7 @@
 
 module PlutusTx.Test (
   -- * Size tests
-  fitsInto,
+  goldenSize,
   fitsUnder,
 
   -- * Compilation testing
@@ -26,7 +26,8 @@ module PlutusTx.Test (
   goldenEvalCekLog,
 
   -- * Budget testing
-  goldenBudget,
+  goldenBudget
+
 ) where
 
 import Prelude
@@ -50,39 +51,16 @@ import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Pretty
 import PlutusCore.Pretty qualified as PLC
 import PlutusCore.Test
+import PlutusIR.Analysis.Builtins as PIR
 import PlutusIR.Core.Type (progTerm)
 import PlutusIR.Test ()
+import PlutusIR.Transform.RewriteRules as PIR
 import PlutusPrelude
 import PlutusTx.Code (CompiledCode, CompiledCodeIn, getPir, getPirNoAnn, getPlcNoAnn, sizePlc)
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
--- Size testing for Tasty
-
-fitsInto ::
-  forall (a :: Type).
-  (Typeable a) =>
-  String ->
-  CompiledCode a ->
-  Integer ->
-  TestTree
-fitsInto name cc = singleTest name . SizeTest cc
-
-data SizeTest (a :: Type) = SizeTest (CompiledCode a) Integer
-
-instance (Typeable a) => IsTest (SizeTest a) where
-  run _ (SizeTest cc limit) _ = do
-    let estimate = sizePlc cc
-    let diff = limit - estimate
-    pure $ case signum diff of
-      (-1) ->
-        testFailed $
-          "Actual size: " <> show estimate <> ", exceeded limit by " <> (show . abs $ diff)
-      0 -> testPassed $ "Actual size: " <> show estimate
-      _ ->
-        testPassed $
-          "Actual size: " <> show estimate <> ", remaining headroom: " <> show diff
-  testOptions = Tagged []
+-- `PlutusCore.Size` comparison tests
 
 fitsUnder ::
   forall (a :: Type).
@@ -135,7 +113,7 @@ renderExcess tData mData diff =
 -- Budget testing
 
 goldenBudget :: TestName -> CompiledCode a -> TestNested
-goldenBudget name compiledCode = goldenUplcBudget name (UPLC._progTerm (getPlcNoAnn compiledCode))
+goldenBudget name compiledCode = goldenUEvalBudget name [compiledCode]
 
 -- Compilation testing
 
@@ -153,7 +131,7 @@ goldenPirReadable ::
   CompiledCodeIn uni fun a ->
   TestNested
 goldenPirReadable name value =
-  nestedGoldenVsDoc name ".pir-readable"
+  nestedGoldenVsDoc name ".pir"
     . maybe "PIR not found in CompiledCode" (pretty . AsReadable . view progTerm)
     $ getPirNoAnn value
 
@@ -174,16 +152,16 @@ goldenPirBy config name value =
 -- TODO: rationalize with the functions exported from PlcTestUtils
 goldenEvalCek :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun) => String -> [a] -> TestNested
 goldenEvalCek name values =
-  nestedGoldenVsDocM name ".eval-cek" $ prettyPlcClassicDebug <$> (rethrow $ runPlcCek values)
+  nestedGoldenVsDocM name ".eval" $ prettyPlcClassicDebug <$> (rethrow $ runPlcCek values)
 
 goldenEvalCekCatch :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun) => String -> [a] -> TestNested
 goldenEvalCekCatch name values =
-  nestedGoldenVsDocM name ".eval-cek-catch" $
+  nestedGoldenVsDocM name ".eval" $
     either (pretty . show) prettyPlcClassicDebug <$> runExceptT (runPlcCek values)
 
 goldenEvalCekLog :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun) => String -> [a] -> TestNested
 goldenEvalCekLog name values =
-  nestedGoldenVsDocM name ".eval-cek-log" $ pretty . view _1 <$> (rethrow $ runPlcCekTrace values)
+  nestedGoldenVsDocM name ".eval" $ pretty . view _1 <$> (rethrow $ runPlcCekTrace values)
 
 -- Helpers
 
@@ -205,6 +183,8 @@ instance
   , uni `PLC.Everywhere` Flat
   , Flat fun
   , Default (PLC.CostingPart uni fun)
+  , Default (PIR.BuiltinsInfo uni fun)
+  , Default (PIR.RewriteRules uni fun)
   ) =>
   ToTPlc (CompiledCodeIn uni fun a) uni fun
   where

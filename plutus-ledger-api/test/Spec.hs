@@ -2,53 +2,60 @@
 module Main where
 
 import PlutusLedgerApi.Common.Versions
-import PlutusLedgerApi.Test.EvaluationContext (evalCtxForTesting)
 import PlutusLedgerApi.Test.Examples
-import PlutusLedgerApi.V1
+import PlutusLedgerApi.Test.V1.EvaluationContext qualified as V1
+import PlutusLedgerApi.V1 as V1
+import PlutusPrelude
 import Spec.CBOR.DeserialiseFailureInfo qualified
 import Spec.CostModelParams qualified
 import Spec.Eval qualified
 import Spec.Interval qualified
 import Spec.NoThunks qualified
+import Spec.V1.Value qualified as Value
 import Spec.Versions qualified
 
 import Test.Tasty
 import Test.Tasty.HUnit
 import Test.Tasty.QuickCheck
 
-import Control.Monad (void)
-import Data.Either
-import Data.Word (Word8)
+import Control.Monad.Writer
 
 main :: IO ()
 main = defaultMain tests
 
+v1_evalCtxForTesting :: EvaluationContext
+v1_evalCtxForTesting = fst $ unsafeFromRight $ runWriterT $ V1.mkEvaluationContext (fmap snd V1.costModelParamsForTesting)
+
 alwaysTrue :: TestTree
 alwaysTrue = testCase "always true script returns true" $
-    let (_, res) = evaluateScriptCounting alonzoPV Quiet evalCtxForTesting (alwaysSucceedingNAryFunction 2) [I 1, I 2]
+    let script = either (error . show) id $ V1.deserialiseScript alonzoPV (alwaysSucceedingNAryFunction 2)
+        (_, res) = evaluateScriptCounting alonzoPV Quiet v1_evalCtxForTesting script [I 1, I 2]
     in assertBool "succeeds" (isRight res)
 
 alwaysFalse :: TestTree
 alwaysFalse = testCase "always false script returns false" $
-    let (_, res) = evaluateScriptCounting alonzoPV Quiet evalCtxForTesting (alwaysFailingNAryFunction 2) [I 1, I 2]
+    let script = either (error . show) id $ V1.deserialiseScript alonzoPV (alwaysFailingNAryFunction 2)
+        (_, res) = evaluateScriptCounting alonzoPV Quiet v1_evalCtxForTesting script [I 1, I 2]
     in assertBool "fails" (isLeft res)
 
 unavailableBuiltins :: TestTree
 unavailableBuiltins = testCase "builtins are unavailable before Alonzo" $
-    let (_, res) = evaluateScriptCounting maryPV Quiet evalCtxForTesting summingFunction []
+    let res = V1.deserialiseScript maryPV summingFunction
     in assertBool "fails" (isLeft res)
 
 availableBuiltins :: TestTree
 availableBuiltins = testCase "builtins are available after Alonzo" $
-    let (_, res) = evaluateScriptCounting alonzoPV Quiet evalCtxForTesting summingFunction []
+    let res = V1.deserialiseScript alonzoPV summingFunction
     in assertBool "succeeds" (isRight res)
 
 saltedFunction :: TestTree
 saltedFunction =
-    let evaluate f f' args =
-            ( evaluateScriptCounting alonzoPV Quiet evalCtxForTesting f args
-            , evaluateScriptCounting alonzoPV Quiet evalCtxForTesting f' args
-            )
+    let evaluate ss ss' args =
+            let s = either (error . show) id $ V1.deserialiseScript alonzoPV ss
+                s' = either (error . show) id $ V1.deserialiseScript alonzoPV ss'
+             in ( evaluateScriptCounting alonzoPV Quiet v1_evalCtxForTesting s args
+                , evaluateScriptCounting alonzoPV Quiet v1_evalCtxForTesting s' args
+                )
     in testGroup "salted function"
     [ testProperty "saturated" $ \(n :: Word8) salt fWhich ->
         let f = (if fWhich then alwaysSucceedingNAryFunction else alwaysFailingNAryFunction) $ fromInteger $ toInteger n
@@ -98,4 +105,5 @@ tests = testGroup "plutus-ledger-api" [
     , Spec.CostModelParams.tests
     , Spec.NoThunks.tests
     , Spec.CBOR.DeserialiseFailureInfo.tests
+    , Value.test_Value
     ]

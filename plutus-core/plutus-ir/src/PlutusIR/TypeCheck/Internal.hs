@@ -34,6 +34,7 @@ import PlutusIR.MkPir qualified as PIR
 import PlutusIR.Transform.Rename ()
 
 import PlutusCore (toPatFuncKind, tyVarDeclName, typeAnn)
+import PlutusCore.Core qualified as PLC
 import PlutusCore.Error as PLC
 import PlutusCore.MkPlc (mkIterTyFun)
 -- we mirror inferTypeM, checkTypeM of plc-tc and extend it for plutus-ir terms
@@ -404,7 +405,7 @@ checkTypeFromBinding recurs = \case
        checkConRes ty =
            -- We earlier checked that datacons' type is *-kinded (using checkKindBinding), but this is not enough:
            -- we must also check that its result type is EXACTLY `[[TypeCon tyarg1] ... tyargn]` (ignoring annotations)
-           when (void (funResultType ty) /= void appliedTyCon) .
+           when (void (PLC.funTyResultType ty) /= void appliedTyCon) .
                throwing _TypeErrorExt $ MalformedDataConstrResType ann appliedTyCon
 
        -- if nonrec binding, make sure that type-constructor is not part of the data-constructor's argument types.
@@ -415,7 +416,7 @@ checkTypeFromBinding recurs = \case
                -- now we make sure that dataconstructor is not self-recursive, i.e. funargs don't contain tycon
                withTyVarDecls tyargs $ -- tycon not in scope here
                       -- OPTIMIZE: we use inferKind for scope-checking, but a simple ADT-traversal would suffice
-                      for_ (funTyArgs ty) inferKindM
+                      for_ (PLC.funTyArgs ty) inferKindM
 
 -- | Check that the in-Term's inferred type of a Let has kind *.
 -- Skip this check at the top-level, to allow top-level types to escape; see Note [PIR vs Paper Escaping Types Difference].

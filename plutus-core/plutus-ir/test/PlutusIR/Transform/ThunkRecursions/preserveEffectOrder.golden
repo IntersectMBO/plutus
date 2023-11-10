@@ -1,0 +1,21 @@
+(let
+  (rec)
+  (termbind (nonstrict) (vardecl x (con integer)) (error (con integer)))
+  (termbind
+    (nonstrict)
+    (vardecl y (fun (con integer) (con integer)))
+    [
+      [
+        { (builtin trace) (fun (con integer) (con integer)) }
+        (con string "SHOULD NOT BE PRINTED")
+      ]
+      (lam z (con integer) z)
+    ]
+  )
+  (let
+    (nonrec)
+    (termbind (strict) (vardecl x (con integer)) x)
+    (termbind (strict) (vardecl y (fun (con integer) (con integer))) y)
+    (con integer 1)
+  )
+)

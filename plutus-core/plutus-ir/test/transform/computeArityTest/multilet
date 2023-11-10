@@ -1,1 +1,0 @@
-[ (lam x (con integer) [ (lam y (con integer) [ (lam z (con integer) [ y x z ]) (con integer 3) ] ) (con integer 2) ]) (con integer 1)]

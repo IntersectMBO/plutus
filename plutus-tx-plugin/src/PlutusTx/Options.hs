@@ -63,11 +63,13 @@ data PluginOptions = PluginOptions
     , _posCoverageLocation               :: Bool
     , _posCoverageBoolean                :: Bool
     , _posRelaxedFloatin                 :: Bool
+    , _posCaseOfCaseConservative         :: Bool
     -- | Whether to try and retain the logging behaviour of the program.
     , _posPreserveLogging                :: Bool
     , -- Setting to `True` defines `trace` as `\_ a -> a` instead of the builtin version.
       -- Which effectively ignores the trace text.
       _posRemoveTrace                    :: Bool
+    , _posDumpCompilationTrace           :: Bool
     }
 
 makeLenses ''PluginOptions
@@ -162,8 +164,10 @@ pluginOptions =
                     -- similarly, it implies preserving logging
                     [ Implication (== True) posRelaxedFloatin False
                     , Implication (== True) posPreserveLogging True
+                    , Implication (== True) posCaseOfCaseConservative True
                     , Implication (== False) posRelaxedFloatin True
                     , Implication (== False) posPreserveLogging False
+                    , Implication (== False) posCaseOfCaseConservative False
                     ]
               )
         , let k = "context-level"
@@ -239,6 +243,9 @@ pluginOptions =
         , let k = "remove-trace"
               desc = "Eliminate calls to ``trace`` from Plutus Core"
            in (k, PluginOption typeRep (setTrue k) posRemoveTrace desc [])
+        , let k = "dump-compilation-trace"
+              desc = "Dump compilation trace for debugging"
+           in (k, PluginOption typeRep (setTrue k) posDumpCompilationTrace desc [])
         ]
 
 flag :: (a -> a) -> OptionKey -> Maybe OptionValue -> Validation ParseError (a -> a)
@@ -302,8 +309,10 @@ defaultPluginOptions =
         , _posCoverageLocation = False
         , _posCoverageBoolean = False
         , _posRelaxedFloatin = True
+        , _posCaseOfCaseConservative = False
         , _posPreserveLogging = False
         , _posRemoveTrace = False
+        , _posDumpCompilationTrace = False
         }
 
 processOne ::

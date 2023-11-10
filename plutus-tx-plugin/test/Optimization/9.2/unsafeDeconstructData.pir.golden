@@ -1,0 +1,61 @@
+let
+  data Unit | Unit_match where
+    Unit : Unit
+  data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
+    Tuple2 : a -> b -> Tuple2 a b
+  data (Maybe :: * -> *) a | Maybe_match where
+    Just : a -> Maybe a
+    Nothing : Maybe a
+  !reconstructCaseError : string = "PT1"
+  !unitval : unit = ()
+in
+\(ds : data) ->
+  (let
+      a = Tuple2 integer integer
+    in
+    \(`$dUnsafeFromData` : (\a -> data -> a) a) (d : data) ->
+      let
+        !tup : pair integer (list data) = unConstrData d
+        !index : integer = fstPair {integer} {list data} tup
+      in
+      ifThenElse
+        {unit -> Maybe a}
+        (equalsInteger 0 index)
+        (\(ds : unit) ->
+           Just
+             {a}
+             (`$dUnsafeFromData`
+                (headList {data} (sndPair {integer} {list data} tup))))
+        (\(ds : unit) ->
+           ifThenElse
+             {unit -> Maybe a}
+             (equalsInteger 1 index)
+             (\(ds : unit) -> Nothing {a})
+             (\(ds : unit) ->
+                let
+                  !x : Unit = trace {Unit} reconstructCaseError Unit
+                in
+                error {Maybe a})
+             unitval)
+        unitval)
+    (\(d : data) ->
+       let
+         !tup : pair integer (list data) = unConstrData d
+       in
+       ifThenElse
+         {unit -> Tuple2 integer integer}
+         (equalsInteger 0 (fstPair {integer} {list data} tup))
+         (\(ds : unit) ->
+            let
+              !t : list data = sndPair {integer} {list data} tup
+              !arg : data = headList {data} t
+              !arg : data = headList {data} (tailList {data} t)
+            in
+            Tuple2 {integer} {integer} (unIData arg) (unIData arg))
+         (\(ds : unit) ->
+            let
+              !x : Unit = trace {Unit} reconstructCaseError Unit
+            in
+            error {Tuple2 integer integer})
+         unitval)
+    ds

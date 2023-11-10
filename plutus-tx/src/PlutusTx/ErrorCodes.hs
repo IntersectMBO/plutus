@@ -38,6 +38,7 @@ allErrorCodes = Map.fromList [ ("PT1", "TH Generation of Indexed Data Error")
                              , ("PT16", "PlutusTx.Enum.Ordering.succ: bad argument")
                              , ("PT17", "PlutusTx.Enum.Ordering.pred: bad argument")
                              , ("PT18", "PlutusTx.Enum.Ordering.toEnum: bad argument")
+                             , ("PT19", "PlutusTx.List.last: empty list")
                              ]
 
 -- | The error happens in TH generation of indexed data
@@ -129,3 +130,8 @@ predOrderingBadArgumentError = "PT17"
 {-# INLINABLE toEnumOrderingBadArgumentError #-}
 toEnumOrderingBadArgumentError :: Builtins.BuiltinString
 toEnumOrderingBadArgumentError = "PT18"
+
+-- | PlutusTx.List.last: empty list
+{-# INLINABLE lastEmptyListError #-}
+lastEmptyListError :: Builtins.BuiltinString
+lastEmptyListError = "PT19"

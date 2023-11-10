@@ -1,4 +1,26 @@
 
+<a id='changelog-1.13.0.0'></a>
+# 1.13.0.0 — 2023-09-15
+
+## Added
+
+- `asData`, a TH function for creating datatype declarations
+  that are backed by `Data`, which can be much faster in some
+  circumstances.
+
+- Generic instances for Rational and BuiltinData.
+
+## Fixed
+
+- Fixed a strictness issue in generated `IsData` instaces when using `-O0` in Plutus Tx.
+
+<a id='changelog-1.12.0.0'></a>
+# 1.12.0.0 — 2023-09-01
+
+## Changed
+
+- The `Strict` extension is now on by default in all of Plutus Tx.
+
 <a id='changelog-1.10.0.0'></a>
 # 1.10.0.0 — 2023-08-02
 

@@ -439,7 +439,6 @@ postulate
 {-# FOREIGN GHC {-# LANGUAGE TypeApplications #-} #-}
 {-# FOREIGN GHC import Control.Composition ((.*)) #-}
 {-# FOREIGN GHC import qualified Data.ByteString as BS #-}
-{-# FOREIGN GHC import qualified Data.ByteArray as B #-}
 {-# FOREIGN GHC import Debug.Trace (trace) #-}
 {-# FOREIGN GHC import PlutusCore.Crypto.Hash as Hash #-}
 {-# FOREIGN GHC import Data.Text.Encoding #-}
@@ -465,9 +464,9 @@ postulate
 
 {-# COMPILE GHC TRACE = \_ s -> trace (Text.unpack s) #-}
 {-# COMPILE GHC concat = BS.append #-}
-{-# COMPILE GHC SHA2-256 = B.convert . Hash.sha2_256 #-}
-{-# COMPILE GHC SHA3-256 = B.convert . Hash.sha3_256 #-}
-{-# COMPILE GHC BLAKE2B-256 = B.convert . Hash.blake2b_256 #-}
+{-# COMPILE GHC SHA2-256 = Hash.sha2_256 #-}
+{-# COMPILE GHC SHA3-256 = Hash.sha3_256 #-}
+{-# COMPILE GHC BLAKE2B-256 = Hash.blake2b_256 #-}
 {-# COMPILE GHC equals = (==) #-}
 {-# COMPILE GHC B< = (<) #-}
 {-# COMPILE GHC B<= = (<=) #-}
@@ -518,8 +517,8 @@ postulate
 {-# COMPILE GHC BLS12-381-mulMlResult = Pairing.mulMlResult #-}
 {-# COMPILE GHC BLS12-381-finalVerify = Pairing.finalVerify #-}
 
-{-# COMPILE GHC KECCAK-256 = B.convert . Hash.keccak_256 #-}
-{-# COMPILE GHC BLAKE2B-224 = B.convert . Hash.blake2b_224 #-}
+{-# COMPILE GHC KECCAK-256 = Hash.keccak_256 #-}
+{-# COMPILE GHC BLAKE2B-224 = Hash.blake2b_224 #-}
 
 -- no binding needed for appendStr
 -- no binding needed for traceStr

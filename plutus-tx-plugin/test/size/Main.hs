@@ -11,53 +11,57 @@ import PlutusTx.Ratio qualified as PlutusRatio
 import PlutusTx.Test
 import PlutusTx.TH (compile)
 import Prelude
-import Test.Tasty (defaultMain, testGroup)
+import Test.Tasty (TestTree, defaultMain, testGroup)
+import Test.Tasty.Extras (TestNested, runTestNestedIn)
+
+runTestNested :: TestNested -> TestTree
+runTestNested = runTestNestedIn ["test", "size"]
 
 main :: IO ()
 main = defaultMain . testGroup "Size regression tests" $ [
   testGroup "Rational" [
     testGroup "Eq" [
-      fitsInto "==" ratEq 36,
-      fitsInto "/=" ratNeq 42
+      runTestNested $ goldenSize "equal" ratEq,
+      runTestNested $ goldenSize "not-equal" ratNeq
       ],
     testGroup "Ord" [
-      fitsInto "compare" ratCompare 53,
-      fitsInto "<=" ratLe 30,
-      fitsInto ">=" ratGe 30,
-      fitsInto "<" ratLt 30,
-      fitsInto ">" ratGt 30,
-      fitsInto "max" ratMax 36,
-      fitsInto "min" ratMin 36
+      runTestNested $ goldenSize "compare" ratCompare,
+      runTestNested $ goldenSize "less-than-equal" ratLe,
+      runTestNested $ goldenSize "greater-than-equal" ratGe,
+      runTestNested $ goldenSize "less-than" ratLt,
+      runTestNested $ goldenSize "greater-than" ratGt,
+      runTestNested $ goldenSize "max" ratMax,
+      runTestNested $ goldenSize "min" ratMin
       ],
     testGroup "Additive" [
-      fitsInto "+" ratPlus 104,
-      fitsInto "zero" ratZero 3,
-      fitsInto "-" ratMinus 104,
-      fitsInto "negate (specialized)" ratNegate 12
+      runTestNested $ goldenSize "plus" ratPlus,
+      runTestNested $ goldenSize "zero" ratZero,
+      runTestNested $ goldenSize "minus" ratMinus,
+      runTestNested $ goldenSize "negate-specialized" ratNegate
       ],
     testGroup "Multiplicative" [
-      fitsInto "*" ratTimes 94,
-      fitsInto "one" ratOne 6,
-      fitsInto "scale" ratScale 76
+      runTestNested $ goldenSize "times" ratTimes,
+      runTestNested $ goldenSize "one" ratOne,
+      runTestNested $ goldenSize "scale" ratScale
       ],
     testGroup "Serialization" [
-      fitsInto "toBuiltinData" ratToBuiltin 24,
-      fitsInto "fromBuiltinData" ratFromBuiltin 305,
-      fitsInto "unsafeFromBuiltinData" ratUnsafeFromBuiltin 181
+      runTestNested $ goldenSize "toBuiltinData" ratToBuiltin,
+      runTestNested $ goldenSize "fromBuiltinData" ratFromBuiltin,
+      runTestNested $ goldenSize "unsafeFromBuiltinData" ratUnsafeFromBuiltin
       ],
     testGroup "Construction" [
-      fitsInto "unsafeRatio" ratMkUnsafe 117,
-      fitsInto "ratio" ratMkSafe 190,
-      fitsInto "fromInteger" ratFromInteger 4
+      runTestNested $ goldenSize "unsafeRatio" ratMkUnsafe,
+      runTestNested $ goldenSize "ratio" ratMkSafe,
+      runTestNested $ goldenSize "fromInteger" ratFromInteger
       ],
     testGroup "Other" [
-      fitsInto "numerator" ratNumerator 6,
-      fitsInto "denominator" ratDenominator 6,
-      fitsInto "round" ratRound 278,
-      fitsInto "truncate" ratTruncate 10,
-      fitsInto "properFraction" ratProperFraction 21,
-      fitsInto "recip" ratRecip 52,
-      fitsInto "abs (specialized)" ratAbs 31
+      runTestNested $ goldenSize "numerator" ratNumerator,
+      runTestNested $ goldenSize "denominator" ratDenominator,
+      runTestNested $ goldenSize "round" ratRound,
+      runTestNested $ goldenSize "truncate" ratTruncate,
+      runTestNested $ goldenSize "properFraction" ratProperFraction,
+      runTestNested $ goldenSize "recip" ratRecip,
+      runTestNested $ goldenSize "abs-specialized" ratAbs
       ],
     testGroup "Comparison" [
       fitsUnder "negate" ("specialized", ratNegate) ("general", genNegate),

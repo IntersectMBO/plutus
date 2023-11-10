@@ -1,3 +1,0 @@
--- type abstraction of a type kind and an arrow kind
-
-(abs a (type) (abs b (fun (type) (type)) (lam x a (lam y b [y x]))))

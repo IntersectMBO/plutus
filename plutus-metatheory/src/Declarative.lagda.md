@@ -174,15 +174,15 @@ data _⊢_ (Γ : Ctx Φ) : Φ ⊢⋆ * → Set where
 
   constr : ∀{n}
       → (e : Fin n)
-      → (A : Vec (List (Φ ⊢⋆ *)) n)
-      → ∀ {ts} → ts ≡ lookup A e
+      → (Tss : Vec (List (Φ ⊢⋆ *)) n)
+      → ∀ {ts} → ts ≡ lookup Tss e
       → ConstrArgs Γ ts
         --------------------------------------
-      → Γ ⊢ SOP A
+      → Γ ⊢ SOP Tss
 
-  case : ∀{n}{tss : Vec _ n}{A : Φ ⊢⋆ *}
-      → (t : Γ ⊢ SOP tss)
-      → (cases : Cases Γ A tss)
+  case : ∀{n}{Tss : Vec _ n}{A : Φ ⊢⋆ *}
+      → (t : Γ ⊢ SOP Tss)
+      → (cases : Cases Γ A Tss)
         --------------------------
       → Γ ⊢ A  
 
@@ -209,11 +209,11 @@ ConstrArgs Γ = IList (Γ ⊢_)
 
 data Cases Γ B where 
    []  : Cases Γ B []
-   _∷_ : ∀{n}{AS}{ASS : Vec _ n}(
-         c : Γ ⊢ (mkCaseType B AS)) 
-       → (cs : Cases Γ B ASS)
+   _∷_ : ∀{n}{Ts}{Tss : Vec _ n}(
+         c : Γ ⊢ (mkCaseType B Ts)) 
+       → (cs : Cases Γ B Tss)
          --------------------- 
-       → Cases Γ B (AS ∷ ASS)
+       → Cases Γ B (Ts ∷ Tss)
 
 ```
 

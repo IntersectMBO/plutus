@@ -2,6 +2,7 @@
 module Main where
 
 import PlutusCore.Evaluation.Machine.ExBudget
+import PlutusLedgerApi.Common.Versions
 import PlutusLedgerApi.V1
 import UntypedPlutusCore qualified as UPLC
 
@@ -36,14 +37,14 @@ main = do
                 !benchScript = force . serialiseUPLC $ UPLC.Program () ver term
                 eval script =
                     either (error . show) (\_ -> ()) . snd $ evaluateScriptRestricting
-                        (ProtocolVersion 6 0)
+                        futurePV
                         -- no logs
                         Quiet
                         evalCtx
                         -- uses restricting(enormous) instead of counting to include the periodic
                         -- budget-overspent check
                         (unExRestrictingBudget enormousBudget)
-                        script
+                        (either (error . show) id $ deserialiseScript futurePV script)
                         args
             in whnf eval benchScript
     benchWith mkFullBM

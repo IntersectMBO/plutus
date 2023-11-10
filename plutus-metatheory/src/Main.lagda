@@ -11,7 +11,6 @@ open import Agda.Builtin.Int using (pos)
 open import Data.Integer.Show using (show)
 open import Data.Product using (Σ) renaming (_,_ to _,,_)
 open import Data.Bool using (Bool)
-open import Data.Vec using (Vec;[];_∷_)
 open import Data.List using (List)
 open import Data.Empty using (⊥) 
 

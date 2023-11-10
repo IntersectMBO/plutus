@@ -15,6 +15,7 @@ import CBOR.DataStability qualified
 import Check.Spec qualified as Check
 import CostModelInterface.Spec
 import Evaluation.Spec (test_evaluation)
+import Generators.QuickCheck.Utils (test_utils)
 import Names.Spec
 import Normalization.Check
 import Normalization.Type
@@ -336,4 +337,5 @@ allTests plcFiles rwFiles typeFiles typeErrorFiles =
     , Check.tests
     , NEAT.tests
     , Parser.tests
+    , test_utils
     ]

@@ -1,0 +1,7 @@
+pure work-free: (\n -> n 1 1)
+pure work-free: (addInteger)
+pure maybe work?: ((\n -> n 1 1) addInteger)
+pure work-free: n
+pure work-free: 1
+pure maybe work?: (n 1)
+<unknown>

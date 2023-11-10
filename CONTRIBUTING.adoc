@@ -142,7 +142,7 @@ If you use Nix, these tools are provided for you via `nix develop`, and you do *
 [WARNING]
 ====
 * We rely on forked or new versions of some system libraries.
-** You can read the https://github.com/input-output-hk/cardano-node/blob/master/doc/getting-started/install.md[Cardano node documentation] to find out how to install these.
+** You can read the https://github.com/input-output-hk/cardano-node-wiki/blob/main/docs/getting-started/install.md[Cardano node documentation] to find out how to install these.
 * You may get different versions of packages.
 ** This *shouldn't* happen, but we can't guarantee it.
 * We are not currently enabling the Nix integration for these tools, so
@@ -294,6 +294,27 @@ We have a dev shell for each supported GHC version which you can use if you need
 You can access them like this: `nix develop .#plutus-shell-810`.
 
 Note that HLS in particular won't work in the non-primary dev shell as it will still be built with the primary GHC version, but other tooling should work fine.
+
+=== Per-version testing
+
+As far as we know, given an exact GHC compiler version
+the GHC compiler will generate the same (reproducible) GHC-Core, from any Haskell code, running under any platform (linux/osx/windows/etc).
+
+However, when comparing the GHC-Core output coming from different GHC versions, this might not still hold.
+Because the PlutusTx language heavily relies on GHC-Core, any (slight) GHC-Core differences will change the resulting plutus core (and its archetypes, plutus ir and typed plutus core).
+Since our (test) code must be reproducible with multiple GHC versions (see xref:plugin-support[Plugin Support]) _at the same time_ in the repository,
+we keep multiple test output directories (containg golden plutus files), one for each GHC version that the plugin supports.
+
+To test and/or regenerate test golden test output, one has to run _for each_  GHC version supported by the plugin:
+
+```
+nix develop ".#ghc<version>" --command cabal test plutus-tx-plugin --test-options=--accept
+```
+
+where `<version>` is the GHC major version with the decimal points removed (eg
+`92` or `96`), so the full command will be `nix develop .#ghc96 ...` or
+something similar.  You can also just type `nix develop .#ghc<version>` to get a
+nix shell with the appropriate version of GHC.
 
 == Working conventions
 
@@ -480,7 +501,7 @@ Long-lived feature branches with too many commits are harmful because
 3. they make it more likely that other people need to depend on your unmerged changes.
 
 It is fine to have partially implemented features or not well-tested features in master.
-You can simply not turn them on until they are ready, or guard them with conditinal flags.
+You can simply not turn them on until they are ready, or guard them with conditional flags.
 
 But this is not a hard rule and should be determined on a case-by-case basis.
 Sometimes for a small or medium-sized piece of work, you may not want to break it into multiple PRs, and wait till each PR is merged before creating the next one.

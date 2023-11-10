@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-ledger-api
-version:         1.10.0.0
+version:         1.15.0.0
 license:         Apache-2.0
 license-files:
   LICENSE
@@ -44,6 +44,7 @@ common lang
     -Wincomplete-record-updates -Wredundant-constraints -Widentities
     -Wunused-packages -Wmissing-deriving-strategies -fobject-code
     -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
+    -fno-strictness
 
 library
   import:           lang
@@ -91,13 +92,12 @@ library
     , cborg
     , containers
     , deepseq
-    , extra
     , flat               ^>=0.6
     , lens
     , mtl
     , nothunks
-    , plutus-core        ^>=1.10
-    , plutus-tx          ^>=1.10
+    , plutus-core        ^>=1.15
+    , plutus-tx          ^>=1.15
     , prettyprinter
     , serialise
     , tagged
@@ -108,20 +108,28 @@ library plutus-ledger-api-testlib
   visibility:      public
   hs-source-dirs:  testlib
   exposed-modules:
-    PlutusLedgerApi.Test.EvaluationContext
+    PlutusLedgerApi.Test.Common.EvaluationContext
     PlutusLedgerApi.Test.EvaluationEvent
     PlutusLedgerApi.Test.Examples
     PlutusLedgerApi.Test.Scripts
+    PlutusLedgerApi.Test.V1.EvaluationContext
+    PlutusLedgerApi.Test.V1.Value
+    PlutusLedgerApi.Test.V2.EvaluationContext
+    PlutusLedgerApi.Test.V3.EvaluationContext
 
   build-depends:
-    , base               >=4.9      && <5
+    , barbies
+    , base                                            >=4.9      && <5
+    , base16-bytestring
     , base64-bytestring
     , bytestring
-    , plutus-core        ^>=1.10
-    , plutus-ledger-api  ^>=1.10
-    , plutus-tx          ^>=1.10
+    , containers
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.15
+    , plutus-ledger-api                               ^>=1.15
+    , plutus-tx                                       ^>=1.15
     , prettyprinter
-    , PyF                >=0.11.1.0
+    , PyF                                             >=0.11.1.0
+    , QuickCheck
     , serialise
     , text
 
@@ -136,6 +144,7 @@ test-suite plutus-ledger-api-test
     Spec.Eval
     Spec.Interval
     Spec.NoThunks
+    Spec.V1.Value
     Spec.Versions
 
   build-depends:
@@ -145,16 +154,40 @@ test-suite plutus-ledger-api-test
     , containers
     , extra
     , hedgehog
+    , lens
     , mtl
     , nothunks
-    , plutus-core:{plutus-core, plutus-core-testlib}                    ^>=1.10
-    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.10
-    , plutus-tx:plutus-tx-testlib                                       ^>=1.10
+    , plutus-core:{plutus-core, plutus-core-testlib}                    ^>=1.15
+    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.15
+    , plutus-tx:{plutus-tx, plutus-tx-testlib}                          ^>=1.15
     , tasty
     , tasty-hedgehog
     , tasty-hunit
     , tasty-quickcheck
-    , text
+
+-- A suite for tests that use the Plutus Tx plugin. We don't merge those into
+-- @plutus-ledger-api-test@, because @plutus-ledger-api@ has to be buildable for older versions of
+-- GHC (a requirement imposed by @cardano-node@) and while its tests don't have to, we don't want to
+-- give up on all @plutus-ledger-api@ tests for older versions of GHC.
+test-suite plutus-ledger-api-plugin-test
+  import:         lang
+
+  if impl(ghc <9.0)
+    buildable: False
+
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  hs-source-dirs: test-plugin
+  other-modules:  Spec.Value
+  build-depends:
+    , base                                            >=4.9   && <5
+    , containers
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.15
+    , plutus-ledger-api                               ^>=1.15
+    , plutus-tx                                       ^>=1.15
+    , plutus-tx-plugin                                ^>=1.15
+    , prettyprinter
+    , tasty
 
 -- This is a nightly test, so it is an executable instead of test-suite to avoid
 -- running this in CI.
@@ -169,8 +202,8 @@ executable evaluation-test
     , extra
     , filepath
     , mtl
-    , plutus-core                                                       ^>=1.10
-    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.10
+    , plutus-core                                                       ^>=1.15
+    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.15
     , serialise
     , tasty
     , tasty-hunit

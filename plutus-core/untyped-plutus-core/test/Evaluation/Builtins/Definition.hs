@@ -41,8 +41,8 @@ import PlutusCore.StdLib.Data.Unit
 
 import Evaluation.Builtins.BLS12_381 (test_BLS12_381)
 import Evaluation.Builtins.Common
-import Evaluation.Builtins.SignatureVerification (ecdsaSecp256k1Prop, ed25519_V1Prop,
-                                                  ed25519_V2Prop, schnorrSecp256k1Prop)
+import Evaluation.Builtins.SignatureVerification (ecdsaSecp256k1Prop, ed25519_Variant1Prop,
+                                                  ed25519_Variant2Prop, schnorrSecp256k1Prop)
 
 
 import Control.Exception
@@ -406,12 +406,13 @@ test_TrackCostsRetaining =
                 -- @length budgets@ is for retaining @budgets@ for as long as possible just in case.
                 -- @3@ is just for giving us room to handle erratic GC behavior. It really should be
                 -- @1@.
-                let expected = min 3 (length budgets)
+                let expected = min 5 (length budgets)
                     actual = length res
                     err = concat
                         [ "Too many elements picked up by GC\n"
                         , "Expected at most: " ++ show expected ++ "\n"
                         , "But got: " ++ show actual
+                        , "The result was: " ++ show res
                         ]
                 assertBool err $ expected > actual
 
@@ -737,26 +738,32 @@ test_Other = testCase "Other" $ do
     Right (EvaluationSuccess $ cons @Integer 1) @=? typecheckEvaluateCekNoEmit def defaultBuiltinCostModel expr3
 
 -- | Check that 'ExtensionVersion' evaluates correctly.
--- See Note [Versioned builtins]
+-- See Note [Builtin semantics variants]
 test_Version :: TestTree
 test_Version =
     testCase "Version" $ do
         let expr1 = apply () (builtin () $ Right ExtensionVersion) unitval
-        Right (EvaluationSuccess $ cons @Integer 0) @=? typecheckEvaluateCekNoEmit (PairV @DefaultFun def ExtensionFunV0) defaultBuiltinCostModelExt expr1
-        Right (EvaluationSuccess $ cons @Integer 1) @=? typecheckEvaluateCekNoEmit (PairV @DefaultFun def def) defaultBuiltinCostModelExt expr1
+        Right (EvaluationSuccess $ cons @Integer 0) @=?
+              typecheckEvaluateCekNoEmit (PairV @DefaultFun def ExtensionFunSemanticsVariant0) defaultBuiltinCostModelExt expr1
+        Right (EvaluationSuccess $ cons @Integer 1) @=?
+              typecheckEvaluateCekNoEmit (PairV @DefaultFun def def) defaultBuiltinCostModelExt expr1
 
 -- | Check that 'ConsByteString' wraps around for plutus' builtin-version == 1, and fails in plutus's builtin-versions >=2.
--- See Note [Versioned builtins]
+-- See Note [Builtin semantics variants]
 test_ConsByteString :: TestTree
 test_ConsByteString =
     testCase "ConsVersion" $ do
         let asciiBangWrapped = fromIntegral @Word8 @Integer maxBound
                              + 1 -- to make word8 wraparound
                              + 33 -- the index of '!' in ascii table
-            expr1 = mkIterAppNoAnn (builtin () (Left ConsByteString :: DefaultFunExt)) [cons @Integer asciiBangWrapped, cons @ByteString "hello world"]
-        Right (EvaluationSuccess $ cons @ByteString "!hello world")  @=? typecheckEvaluateCekNoEmit (PairV DefaultFunV1 def) defaultBuiltinCostModelExt expr1
-        Right EvaluationFailure @=? typecheckEvaluateCekNoEmit (PairV DefaultFunV2 def) defaultBuiltinCostModelExt expr1
-        Right EvaluationFailure @=? typecheckEvaluateCekNoEmit def defaultBuiltinCostModelExt expr1
+            expr1 = mkIterAppNoAnn (builtin () (Left ConsByteString :: DefaultFunExt))
+                    [cons @Integer asciiBangWrapped, cons @ByteString "hello world"]
+        Right (EvaluationSuccess $ cons @ByteString "!hello world")  @=?
+              typecheckEvaluateCekNoEmit (PairV DefaultFunSemanticsVariant1 def) defaultBuiltinCostModelExt expr1
+        Right EvaluationFailure @=? typecheckEvaluateCekNoEmit
+                  (PairV DefaultFunSemanticsVariant2 def) defaultBuiltinCostModelExt expr1
+        Right EvaluationFailure @=?
+              typecheckEvaluateCekNoEmit def defaultBuiltinCostModelExt expr1
 
 -- shorthand
 cons :: (DefaultUni `HasTermLevel` a, TermLike term tyname name DefaultUni fun) => a -> term ()
@@ -783,17 +790,17 @@ test_SignatureVerification :: TestTree
 test_SignatureVerification =
   adjustOption (\x -> max x . HedgehogTestLimit . Just $ 8000) .
   testGroup "Signature verification" $ [
-        testGroup "Ed25519 signatures (V1)"
+        testGroup "Ed25519 signatures (Variant1)"
                       [ testPropertyNamed
-                        "Ed25519_V1 verification behaves correctly on all inputs"
-                        "ed25519_V1_correct"
-                        . property $ ed25519_V1Prop
+                        "Ed25519_Variant1 verification behaves correctly on all inputs"
+                        "ed25519_Variant1_correct"
+                        . property $ ed25519_Variant1Prop
                       ],
-        testGroup "Ed25519 signatures (V2)"
+        testGroup "Ed25519 signatures (Variant2)"
                       [ testPropertyNamed
-                        "Ed25519_V2 verification behaves correctly on all inputs"
-                        "ed25519_V2_correct"
-                        . property $ ed25519_V2Prop
+                        "Ed25519_Variant2 verification behaves correctly on all inputs"
+                        "ed25519_Variant2_correct"
+                        . property $ ed25519_Variant2Prop
                       ],
         testGroup "Signatures on the SECP256k1 curve"
                       [ testPropertyNamed

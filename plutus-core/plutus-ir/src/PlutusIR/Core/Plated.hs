@@ -27,9 +27,11 @@ module PlutusIR.Core.Plated
     , termUniques
     , termUniquesDeep
     , varDeclSubtypes
+    , underBinders
     ) where
 
 import PlutusCore qualified as PLC
+import PlutusCore.Arity
 import PlutusCore.Core (tyVarDeclSubkinds, typeSubkinds, typeSubtypes, typeSubtypesDeep,
                         typeUniques, typeUniquesDeep, varDeclSubtypes)
 import PlutusCore.Flat ()
@@ -225,3 +227,11 @@ bindingTyNames f = \case
    TypeBind a d ty   -> TypeBind a <$> PLC.tyVarDeclName f d <*> pure ty
    DatatypeBind a1 d -> DatatypeBind a1 <$> datatypeTyNames f d
    b@TermBind{}      -> pure b
+
+-- | Focus on the term under the binders corresponding to the given arity.
+-- e.g. for arity @[TermParam, TermParam]@ and term @\x y -> t@ it focusses on @t@.
+underBinders :: Arity -> Traversal' (Term tyname name uni fun a) (Term tyname name uni fun a)
+underBinders [] f t                                = f t
+underBinders (TermParam:arity) f (LamAbs a n ty t) = LamAbs a n ty <$> underBinders arity f t
+underBinders (TypeParam:arity) f (TyAbs a ty k t)  = TyAbs a ty k <$> underBinders arity f t
+underBinders _ _ t                                 = pure t

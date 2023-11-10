@@ -1,4 +1,67 @@
 
+<a id='changelog-1.14.0.0'></a>
+# 1.14.0.0 — 2023-09-28
+
+## Added
+
+- Added a new data type `PlutusLedgerApi.Common.SerialisedScript.ScriptForEvaluation`,
+  containing a serialised script and a deserialised script.
+
+## Changed
+
+- Renamed `PlutusLedgerApi.Common.SerialisedScript.ScriptForExecution` to
+  `PlutusLedgerApi.Common.SerialisedScript.ScriptNamedDeBruijn`.
+- Added a function `PlutusLedgerApi.Common.SerialisedScript.deserialiseScript`,
+  which converts a `SerialisedScript` into a `ScriptForEvaluation`.
+- Removed `PlutusLedgerApi.Common.SerialisedScript.fromSerialisedScript` and
+  `PlutusLedgerApi.Common.SerialisedScript.assertScriptWellFormed`.
+
+- Changed `PlutusLedgerApi.Common.ProtocolVersions.ProtocolVersion` to
+  `PlutusLedgerApi.Common.ProtocolVersions.MajorProtocolVersion`. The ledger can only
+  provide the major component of the protocol version (not the minor component), and
+  Plutus should only care about the major component anyway.
+
+<a id='changelog-1.13.0.0'></a>
+# 1.13.0.0 — 2023-09-15
+
+## Removed
+
+- `evalCtxForTesting` in testlib: use instead `V*.mkEvaluationContext` with `V*.costModelParamsForTesting`
+
+## Added
+
+- Exported `ChangedParameters` in V3.
+
+- costModelParamsForTesting for all plutus versions (PlutusV1,PlutusV2,PlutusV3)
+- A `readParamName` method counterpart of the existing `showParamName`
+
+## Changed
+
+- `showParamName` method now operates on Text instead of previous String
+
+## Fixed
+
+- costModelParamsForTesting are now returned in the expected ledger order,
+instead of alphabetical order
+
+<a id='changelog-1.11.0.0'></a>
+# 1.11.0.0 — 2023-08-24
+
+## Added
+
+- `ScriptContext` type for PlutusV3.
+
+## Changed
+
+- A CBOR script deserialization error now contains more descriptive (typed) errors,
+  see `DeserialiseFailureInfo`.
+
+- Updated `PlutusLedgerApi.V3.Contexts.ScriptContext`:
+  - The `Proposing` `ScriptPurpose` now takes an `Integer` argument.
+  - The `ParameterChange` `GovernanceAction` now takes a `ChangedParameters` argument.
+  - `GovernanceActionId` is made optional in `GovernanceAction`.
+  - `Anchor` is removed from `ScriptContext`.
+
 <a id='changelog-1.10.0.0'></a>
 # 1.10.0.0 — 2023-08-02
 

@@ -55,12 +55,13 @@ import PlutusCore.Executable.Common (writeProgram)
 import PlutusCore.Executable.Types (AstNameType (NamedDeBruijn), Format (Flat), Output (FileOutput),
                                     PrintMode (Readable), UplcProg)
 import PlutusCore.MkPlc (mkConstant)
+import PlutusLedgerApi.Common.Versions
 import PlutusLedgerApi.V2
 import PlutusPrelude ((.*))
 import PlutusTx.Code (CompiledCode, getPlc)
 import System.Directory (listDirectory)
 import System.FilePath ((<.>), (</>))
-import UntypedPlutusCore (NamedDeBruijn, Program (..), Version (..), applyProgram)
+import UntypedPlutusCore (NamedDeBruijn, Program (..), applyProgram)
 import UntypedPlutusCore.Core.Type qualified as UPLC
 
 -- | Turn a `PlutusBenchmark.Marlowe.Types.Benchmark` to a UPLC program.
@@ -70,8 +71,8 @@ benchmarkToUPLC
   -> M.Benchmark
   -- ^ `PlutusBenchmark.Marlowe.Types.Benchmark`, benchmarking type used by the executable,
   -- it includes benchmarking results along with script info.
-  -> UPLC.Term NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
-  -- A named DeBruijn term, for turning to `Benchmarkable`.
+  -> UPLC.Program NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
+  -- ^ A named DeBruijn program, for turning to `Benchmarkable`.
 benchmarkToUPLC validator M.Benchmark{..} =
   let
     wrap = UPLC.Program () (UPLC.Version 1 0 0)
@@ -82,7 +83,7 @@ benchmarkToUPLC validator M.Benchmark{..} =
     appliedProg = foldl1 (unsafeFromEither .* applyProgram)
         $ void prog : [datum, redeemer, context]
   in
-    UPLC._progTerm appliedProg
+    appliedProg
 
 -- | Read all of the benchmarking cases for a particular validator.
 readBenchmarks
@@ -287,9 +288,12 @@ executeBenchmark serialisedValidator Benchmark{..} =
   case evaluationContext of
    Left message -> Left message
    Right ec ->
-    Right
-      $ evaluateScriptCounting (ProtocolVersion 8 0) Verbose ec serialisedValidator
-        [bDatum, bRedeemer, toData bScriptContext]
+    case deserialiseScript futurePV serialisedValidator of
+      Left err -> Left (show err)
+      Right validator ->
+        Right
+          $ evaluateScriptCounting futurePV Verbose ec validator
+              [bDatum, bRedeemer, toData bScriptContext]
 
 
 -- | The execution context for benchmarking.

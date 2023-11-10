@@ -69,7 +69,7 @@ de Bruijn indices.  This turns out to be surprisingly effective.
 ### Results
 
 The experiments here were all carried out on (unapplied) validator
-scripts from the the Plutus [use
+scripts from the Plutus [use
 cases](https://github.com/input-output-hk/plutus/tree/master/plutus-use-cases)
 in the Plutus repository.  Plutus Core ASTs were obtained from Haskell
 source using the PlutusTx compiler infrastructure and then serialised
@@ -191,7 +191,7 @@ code.
 
 I'm not sure how easy it would be to evaluate code which uses de
 Bruijn indices, but this is arguably irrelevant: one could use the de
-Bruijn version of a program as a transporation format and convert back
+Bruijn version of a program as a transportation format and convert back
 to the original identifier scheme on the chain (although this would
 obviously incur an extra cost, as would compression and
 decompression).  Another problem with these transformations is that

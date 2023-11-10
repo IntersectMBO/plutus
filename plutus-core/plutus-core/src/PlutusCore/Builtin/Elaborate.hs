@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 -- GHC doesn't like the definition of 'TrySpecializeAsVar'.
 {-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
 
@@ -25,9 +26,6 @@ import Data.Type.Bool
 import Data.Type.Equality
 import GHC.TypeLits
 
--- The 'TryUnify' gadget explained in detail in
--- https://github.com/effectfully/sketches/tree/master/poly-type-of-saga/part1-try-unify
-
 -- | Check if two values of different kinds are in fact the same value (with the same kind).
 -- A heterogeneous version of @Type.Equality.(==)@.
 type (===) :: forall a b. a -> b -> Bool
@@ -35,6 +33,9 @@ type family x === y where
     x === x = 'True
     x === y = 'False
 
+-- Explained in detail in https://github.com/effectfully-ou/sketches/tree/cbf3ee9d11e0e3d4fc397ce7bf419418224122e2/poly-type-of-saga/part1-try-unify
+-- | Unify two values if possible, otherwise leave them alone. Useful for instantiating type
+-- variables.
 type TryUnify :: forall a b. Bool -> a -> b -> GHC.Constraint
 class same ~ (x === y) => TryUnify same x y
 instance (x === y) ~ 'False => TryUnify 'False x y
@@ -232,6 +233,8 @@ type HandleHoles uni i j val x =
     -- detection of stuck type families works.
     HandleHolesGo uni i j val (ThrowOnStuckList (UnknownTypeError val x) (ToHoles uni x))
 
+-- Check out the following for a detailed explanation of the idea (after learning about 'TryUnify'):
+-- https://github.com/effectfully-ou/sketches/tree/cbf3ee9d11e0e3d4fc397ce7bf419418224122e2/poly-type-of-saga/part2-enumerate-type-vars
 -- | Specialize each Haskell type variable in @a@ as a type representing a PLC type variable.
 -- @i@ is a fresh id and @j@ is a final one as in 'TrySpecializeAsVar', but since 'HandleHole' can
 -- specialize multiple variables, @j@ can be equal to @i + n@ for any @n@ (including @0@).

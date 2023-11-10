@@ -1,0 +1,34 @@
+{- 
+The unconditional inlining optimization should inline g because it only occurs once.
+
+idFun is in the body and g's binding. Because it occurs more than once, it doesn't get inlined by
+the unconditional inliner. 
+However, inlining idFun increases the size so it doesn't get inlined. 
+
+let 
+  idFun :: Integer -> Integer
+  idFun x = x
+  g :: (Integer -> Integer) -> (Integer -> Integer)
+  g y = idFun
+in g idFun
+ -}
+
+(let
+    (nonrec)
+    (termbind
+      (strict)
+      (vardecl idFun (fun (con integer) (con integer)))
+      (lam x (con integer) x)
+    )
+    (termbind
+      (strict)
+      (vardecl
+        g
+        (fun
+          (fun (con integer) (con integer)) (fun (con integer) (con integer))
+        )
+      )
+      (lam y (fun (con integer) (con integer)) idFun)
+    )
+    [ g idFun ]
+)

@@ -119,11 +119,6 @@ unicl a = foldr unicl' [] a
 while :: (t -> Bool) -> (t -> t) -> t -> t
 while p f x = if p x then while p f (f x) else x
 
-{-# INLINABLE replicate #-}
-replicate :: Integer -> a -> [a]
-replicate n a = if n <= 0 then []
-                else a:(replicate (n-1) a)
-
 {-# INLINABLE formula1 #-}
 formula1 :: Formula  -- % (a = a) = (a = a) = (a = a)
 formula1 = Eqv (Eqv (Sym 1) (Sym 1))

@@ -24,6 +24,7 @@ import PlutusTx.Code
 import PlutusTx.Compiler.Builtins
 import PlutusTx.Compiler.Error
 import PlutusTx.Compiler.Expr
+import PlutusTx.Compiler.Trace
 import PlutusTx.Compiler.Types
 import PlutusTx.Compiler.Utils
 import PlutusTx.Coverage
@@ -68,6 +69,7 @@ import Control.Lens
 import Control.Monad
 import Control.Monad.Except
 import Control.Monad.Reader
+import Control.Monad.State
 import Control.Monad.Writer
 import Flat (Flat, flat, unflat)
 
@@ -76,7 +78,10 @@ import Data.ByteString.Unsafe qualified as BSUnsafe
 import Data.Either.Validation
 import Data.Map qualified as Map
 import Data.Set qualified as Set
+import GHC.Num.Integer qualified
+import PlutusIR.Analysis.Builtins
 import PlutusIR.Compiler.Provenance (noProvenance, original)
+import PlutusIR.Transform.RewriteRules
 import Prettyprinter qualified as PP
 import System.IO (openTempFile)
 import System.IO.Unsafe (unsafePerformIO)
@@ -384,7 +389,8 @@ compileMarkedExpr locStr codeTy origE = do
     let moduleNameStr =
             GHC.showSDocForUser flags GHC.emptyUnitState GHC.alwaysQualify (GHC.ppr moduleName)
     -- We need to do this out here, since it has to run in CoreM
-    nameInfo <- makePrimitiveNameInfo $ builtinNames ++ [''Bool, 'False, 'True, 'traceBool]
+    nameInfo <- makePrimitiveNameInfo $
+        builtinNames ++ [''Bool, 'False, 'True, 'traceBool, 'GHC.Num.Integer.integerNegate]
     modBreaks <- asks pcModuleModBreaks
     let coverage = CoverageOpts . Set.fromList $
                    [ l | _posCoverageAll opts, l <- [minBound .. maxBound]]
@@ -402,14 +408,17 @@ compileMarkedExpr locStr codeTy origE = do
             ccBlackholed = mempty,
             ccCurDef = Nothing,
             ccModBreaks = modBreaks,
-            ccBuiltinVer = def,
-            ccBuiltinCostModel = def
+            ccBuiltinsInfo = def,
+            ccBuiltinCostModel = def,
+            ccDebugTraceOn = _posDumpCompilationTrace opts,
+            ccRewriteRules = def
             }
+        st = CompileState 0 mempty
     -- See Note [Occurrence analysis]
     let origE' = GHC.occurAnalyseExpr origE
 
-    ((pirP,uplcP), covIdx) <- runWriterT . runQuoteT . flip runReaderT ctx $
-        withContextM 1 (sdToTxt $ "Compiling expr at" GHC.<+> GHC.text locStr) $
+    ((pirP,uplcP), covIdx) <- runWriterT . runQuoteT . flip runReaderT ctx . flip evalStateT st $
+        traceCompilation 1 ("Compiling expr at" GHC.<+> GHC.text locStr) $
             runCompiler moduleNameStr opts origE'
 
     -- serialize the PIR, PLC, and coverageindex outputs into a bytestring.
@@ -434,6 +443,7 @@ runCompiler ::
     ( uni ~ PLC.DefaultUni
     , fun ~ PLC.DefaultFun
     , MonadReader (CompileContext uni fun) m
+    , MonadState CompileState m
     , MonadWriter CoverageIndex m
     , MonadQuote m
     , MonadError (CompileError uni fun Ann) m
@@ -486,6 +496,8 @@ runCompiler moduleName opts expr = do
                     (opts ^. posDoSimplifierStrictifyBindings)
                  & set (PIR.ccOpts . PIR.coInlineHints)                    hints
                  & set (PIR.ccOpts . PIR.coRelaxedFloatin) (opts ^. posRelaxedFloatin)
+                 & set (PIR.ccOpts . PIR.coCaseOfCaseConservative)
+                    (opts ^. posCaseOfCaseConservative)
                  & set (PIR.ccOpts . PIR.coPreserveLogging) (opts ^. posPreserveLogging)
                  -- We could make this configurable with an option, but:
                  -- 1. The only other choice you can make is new version + Scott encoding, and
@@ -495,7 +507,7 @@ runCompiler moduleName opts expr = do
                     (if plcVersion < PLC.plcVersion110
                         then PIR.ScottEncoding else PIR.SumsOfProducts)
                  -- TODO: ensure the same as the one used in the plugin
-                 & set PIR.ccBuiltinVer def
+                 & set PIR.ccBuiltinsInfo def
                  & set PIR.ccBuiltinCostModel def
         plcOpts = PLC.defaultCompilationOpts
             & set (PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations)

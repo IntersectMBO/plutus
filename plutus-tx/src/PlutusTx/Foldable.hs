@@ -95,7 +95,7 @@ toList t = build (\ c n -> foldr c n t)
 -- | Plutus Tx version of 'Data.Foldable.length'.
 {-# INLINABLE length #-}
 length :: Foldable t => t a -> Integer
-length = foldl (\c _ -> c + 1) 0
+length = foldr (\_ acc -> acc + 1) 0
 
 -- | Plutus Tx version of 'Data.Foldable.sum'.
 {-# INLINEABLE sum #-}

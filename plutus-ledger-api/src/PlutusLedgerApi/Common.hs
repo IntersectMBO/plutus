@@ -2,11 +2,14 @@
 module PlutusLedgerApi.Common
     ( -- * Script (de)serialization
       SerialisedScript
+    , ScriptForEvaluation
+    , serialisedScript
+    , deserialisedScript
     , serialiseCompiledCode
     , serialiseUPLC
+    , deserialiseScript
     , uncheckedDeserialiseUPLC
     , ScriptDecodeError (..)
-    , assertScriptWellFormed
 
       -- * Script evaluation
     , evaluateScriptCounting
@@ -23,7 +26,7 @@ module PlutusLedgerApi.Common
       {-| The network's behaviour (and plutus's by extension) can change via /hard forks/,
       which directly correspond to major-number protocol version bumps.
       -}
-    , ProtocolVersion (..)
+    , MajorProtocolVersion (..)
     , PlutusLedgerLanguage (..)
     , Version (..)
     , builtinsIntroducedIn
@@ -45,8 +48,7 @@ module PlutusLedgerApi.Common
     , CostModelParams
     , toCostModelParams
     , assertWellFormedCostModelParams
-    , IsParamName
-    , showParamName
+    , IsParamName (showParamName, readParamName)
     , GenericParamName
     , CostModelApplyError (..)
     , CostModelApplyWarn (..)

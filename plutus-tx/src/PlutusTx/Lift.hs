@@ -26,10 +26,12 @@ import PlutusTx.Lift.TH (LiftError (..), makeLift, makeTypeable)
 
 import PlutusIR
 import PlutusIR qualified as PIR
+import PlutusIR.Analysis.Builtins as PIR
 import PlutusIR.Compiler
 import PlutusIR.Compiler.Definitions
 import PlutusIR.Error qualified as PIR
 import PlutusIR.MkPir qualified as PIR
+import PlutusIR.Transform.RewriteRules as PIR
 
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
@@ -63,6 +65,8 @@ safeLift
        , PLC.Typecheckable uni fun
        , PrettyUni uni, Pretty fun
        , Default (PLC.CostingPart uni fun)
+       , Default (PIR.BuiltinsInfo uni fun)
+       , Default (PIR.RewriteRules uni fun)
        )
     => PLC.Version -> a -> m (PIR.Term PLC.TyName PLC.Name uni fun (), UPLC.Term UPLC.NamedDeBruijn uni fun ())
 safeLift v x = do
@@ -91,6 +95,8 @@ safeLiftProgram
        , PLC.Typecheckable uni fun
        , PrettyUni uni, Pretty fun
        , Default (PLC.CostingPart uni fun)
+       , Default (PIR.BuiltinsInfo uni fun)
+       , Default (PIR.RewriteRules uni fun)
        )
     => PLC.Version -> a -> m (PIR.Program PLC.TyName PLC.Name uni fun (), UPLC.Program UPLC.NamedDeBruijn uni fun ())
 safeLiftProgram v x = bimap (PIR.Program () v) (UPLC.Program () v) <$> safeLift v x
@@ -104,6 +110,8 @@ safeLiftCode
        , PLC.Typecheckable uni fun
        , PrettyUni uni, Pretty fun
        , Default (PLC.CostingPart uni fun)
+       , Default (PIR.BuiltinsInfo uni fun)
+       , Default (PIR.RewriteRules uni fun)
        )
     => PLC.Version -> a -> m (CompiledCodeIn uni fun a)
 safeLiftCode v =
@@ -126,6 +134,8 @@ unsafely ma = runQuote $ do
 lift
     :: ( Lift.Lift uni a, ThrowableBuiltins uni fun, PLC.Typecheckable uni fun, PLC.GEq uni
        , Default (PLC.CostingPart uni fun)
+       , Default (PIR.BuiltinsInfo uni fun)
+       , Default (PIR.RewriteRules uni fun)
        )
     => PLC.Version -> a -> (PIR.Term PLC.TyName PLC.Name uni fun (), UPLC.Term UPLC.NamedDeBruijn uni fun ())
 lift v a = unsafely $ safeLift v a
@@ -134,6 +144,8 @@ lift v a = unsafely $ safeLift v a
 liftProgram
     :: ( Lift.Lift uni a, ThrowableBuiltins uni fun, PLC.Typecheckable uni fun, PLC.GEq uni
        , Default (PLC.CostingPart uni fun)
+       , Default (PIR.BuiltinsInfo uni fun)
+       , Default (PIR.RewriteRules uni fun)
        )
     => PLC.Version -> a -> (PIR.Program PLC.TyName PLC.Name uni fun (), UPLC.Program UPLC.NamedDeBruijn uni fun ())
 liftProgram v x = unsafely $ safeLiftProgram v x
@@ -148,6 +160,8 @@ liftProgramDef = liftProgram PLC.latestVersion
 liftCode
     :: ( Lift.Lift uni a, PLC.GEq uni, ThrowableBuiltins uni fun, PLC.Typecheckable uni fun
        , Default (PLC.CostingPart uni fun)
+       , Default (PIR.BuiltinsInfo uni fun)
+       , Default (PIR.RewriteRules uni fun)
        )
     => PLC.Version -> a -> CompiledCodeIn uni fun a
 liftCode v x = unsafely $ safeLiftCode v x
@@ -156,6 +170,8 @@ liftCode v x = unsafely $ safeLiftCode v x
 liftCodeDef
     :: ( Lift.Lift uni a, PLC.GEq uni, ThrowableBuiltins uni fun, PLC.Typecheckable uni fun
        , Default (PLC.CostingPart uni fun)
+       , Default (PIR.BuiltinsInfo uni fun)
+       , Default (PIR.RewriteRules uni fun)
        )
     => a -> CompiledCodeIn uni fun a
 liftCodeDef = liftCode PLC.latestVersion
@@ -184,6 +200,8 @@ typeCheckAgainst
        , PLC.Typecheckable uni fun
        , PrettyUni uni, Pretty fun
        , Default (PLC.CostingPart uni fun)
+       , Default (PIR.BuiltinsInfo uni fun)
+       , Default (PIR.RewriteRules uni fun)
        )
     => Proxy a
     -> PLC.Program PLC.TyName PLC.Name uni fun ()
@@ -197,14 +215,14 @@ typeCheckAgainst p (PLC.Program _ v plcTerm) = do
         ty <- Lift.typeRep p
         pure $ TyInst () PLC.idFun ty
     let applied = Apply () idFun term
-    -- Here we use a 'Default' builtin version, because the typechecker needs
-    -- to be handed a builtin version (implementation detail).
-    -- See Note [Versioned builtins]
+    -- Here we use a 'Default' builtin semantics variant, because the
+    -- typechecker needs to be handed a builtin semantics variant (implementation detail).
+    -- See Note [Builtin semantics variants]
     tcConfig <- PLC.getDefTypeCheckConfig (Original ())
-    -- The PIR compiler *pointfully* needs a builtin version, but in this instance of only "lifting"
-    -- it is safe to default to any builtin version, since the 'Lift'
-    -- is impervious to builtins and will not generate code containing builtins.
-    -- See Note [Versioned builtins]
+    -- The PIR compiler *pointfully* needs a builtin semantics variant, but in
+    -- this instance of only "lifting" it is safe to default to any builtin
+    -- semantics variant, since the 'Lift' is impervious to builtins and will
+    -- not generate code containing builtins.  See Note [Builtin semantics variants]
     compiled <- flip runReaderT (toDefaultCompilationCtx tcConfig) $ compileProgram (Program () v applied)
     -- PLC errors are parameterized over PLC.Terms, whereas PIR errors over PIR.Terms and as such, these prism errors cannot be unified.
     -- We instead run the ExceptT, collect any PLC error and explicitly lift into a PIR error by wrapping with PIR._PLCError
@@ -226,6 +244,8 @@ typeCode
        , PLC.Typecheckable uni fun
        , PrettyUni uni, Pretty fun
        , Default (PLC.CostingPart uni fun)
+       , Default (PIR.BuiltinsInfo uni fun)
+       , Default (PIR.RewriteRules uni fun)
        )
     => Proxy a
     -> PLC.Program PLC.TyName PLC.Name uni fun ()

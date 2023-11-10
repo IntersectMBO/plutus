@@ -12,9 +12,8 @@ import PlutusCore.Evaluation.Machine.ExBudgetStream
 import Control.DeepSeq
 import NoThunks.Class
 
--- | A 'BuiltinRuntime' represents a possibly partial builtin application.
--- We get an initial 'BuiltinRuntime' representing an empty builtin application (i.e. just the
--- builtin with no arguments) by instantiating.
+-- | A 'BuiltinRuntime' represents a possibly partial builtin application, including an empty
+-- builtin application (i.e. just the builtin with no arguments).
 --
 -- Applying or type-instantiating a builtin peels off the corresponding constructor from its
 -- 'BuiltinRuntime'.

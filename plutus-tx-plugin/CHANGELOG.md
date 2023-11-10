@@ -1,4 +1,25 @@
 
+<a id='changelog-1.13.0.0'></a>
+# 1.13.0.0 — 2023-09-15
+
+## Added
+
+- Better support for `RuntimeRep`-polymorphic code. In particular, this means we can
+  now handle the code that GHC generates for pattern synonyms.
+
+<a id='changelog-1.11.0.0'></a>
+# 1.11.0.0 — 2023-08-24
+
+## Added
+
+- Add a new PlutusTx compiler option, `dump-compilation-trace`. It can be used to dump
+  the full trace of compiling GHC `CoreExpr`s into PIR `Term`s for debugging.
+
+## Fixed
+
+- The plugin could generate exponentially large code from nested pattern matches with many default cases.
+  This could happen when using pattern synonyms. This no longer happens.
+
 <a id='changelog-1.8.0.0'></a>
 # 1.8.0.0 — 2023-06-22
 

@@ -15,6 +15,9 @@
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE ViewPatterns          #-}
+-- It is complex to mix TH with polymorphisms. Core lint can sometimes catch problems
+-- caused by using polymorphisms the wrong way, e.g., accidentally using impredicative types.
+{-# OPTIONS_GHC -dcore-lint #-}
 module PlutusTx.Lift.TH (
     makeTypeable
     , makeLift
@@ -106,9 +109,27 @@ for different variants of this impredicative type. Which is annoying, but does w
 -}
 
 -- See Note [Impredicative function universe wrappers]
-newtype CompileType = CompileType { unCompileType :: forall fun . RTCompile PLC.DefaultUni fun (Type TyName PLC.DefaultUni ()) }
-newtype CompileTypeScope = CompileTypeScope { unCompileTypeScope :: forall fun . RTCompileScope PLC.DefaultUni fun (Type TyName PLC.DefaultUni ()) }
-newtype CompileDeclFun = CompileDeclFun { unCompileDeclFun :: forall fun . Type TyName PLC.DefaultUni () -> RTCompileScope PLC.DefaultUni fun (VarDecl TyName Name PLC.DefaultUni ()) }
+newtype CompileTerm = CompileTerm
+  { unCompileTerm ::
+      forall fun.
+      RTCompile PLC.DefaultUni fun (Term TyName Name PLC.DefaultUni fun ())
+  }
+newtype CompileType = CompileType
+  { unCompileType ::
+      forall fun.
+      RTCompile PLC.DefaultUni fun (Type TyName PLC.DefaultUni ())
+  }
+newtype CompileTypeScope = CompileTypeScope
+  { unCompileTypeScope ::
+      forall fun.
+      RTCompileScope PLC.DefaultUni fun (Type TyName PLC.DefaultUni ())
+  }
+newtype CompileDeclFun = CompileDeclFun
+  { unCompileDeclFun ::
+      forall fun.
+      Type TyName PLC.DefaultUni () ->
+      RTCompileScope PLC.DefaultUni fun (VarDecl TyName Name PLC.DefaultUni ())
+  }
 
 {- Note [Type variables]
 We handle types in almost exactly the same way when we are constructing Typeable
@@ -427,8 +448,8 @@ compileConstructorClause dt@TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeV
     -- `lift arg` for each arg we bind in the pattern. We need the `unsafeTExpCoerce` since this will
     -- necessarily involve types we don't know now: the types of each argument. However, since we
     -- know the type of `lift arg` we can get back into typed land quickly.
-    let liftExprs :: [TH.TExpQ (RTCompile PLC.DefaultUni fun (Term TyName Name PLC.DefaultUni fun ()))]
-        liftExprs = fmap (\pn -> TH.unsafeTExpCoerce $ TH.varE 'lift `TH.appE` TH.varE pn) patNames
+    let liftExprs :: [TH.TExpQ CompileTerm]
+        liftExprs = fmap (\pn -> TH.unsafeTExpCoerce $ [| CompileTerm $(TH.varE 'lift `TH.appE` TH.varE pn) |]) patNames
 
     rhsExpr <- if isNewtype dt
             then case liftExprs of
@@ -439,17 +460,17 @@ compileConstructorClause dt@TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeV
                     -- We bind all the splices with explicit signatures to ensure we
                     -- get type errors as soon as possible, and to aid debugging.
                     let
-                        liftExprs' :: forall fun . [RTCompile PLC.DefaultUni fun (Term TyName Name PLC.DefaultUni fun ())]
+                        liftExprs' :: [CompileTerm]
                         liftExprs' = $$(TH.liftSplice $ tyListE liftExprs)
                         -- We need the `unsafeTExpCoerce` since this will necessarily involve
                         -- types we don't know now: the type which this instance is for (which
                         -- appears in the proxy argument). However, since we know the type of
                         -- `typeRep` we can get back into typed land quickly.
-                        trep :: forall fun . RTCompile PLC.DefaultUni fun (Type TyName PLC.DefaultUni ())
-                        trep = $$(TH.unsafeSpliceCoerce [| typeRep (Proxy :: Proxy $(TH.conT tyName)) |])
-                    in do
+                        trep :: CompileType
+                        trep = $$(TH.unsafeSpliceCoerce [| CompileType (typeRep (Proxy :: Proxy $(TH.conT tyName))) |])
+                    in CompileTerm $ do
                         -- force creation of datatype
-                        _ <- trep
+                        _ <- unCompileType trep
 
                         -- get the right constructor
                         maybeConstructors <- lookupConstructors () tyName
@@ -458,7 +479,7 @@ compileConstructorClause dt@TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeV
                             Just cs -> pure cs
                         let constr = constrs !! index
 
-                        lifts :: [Term TyName Name PLC.DefaultUni fun ()] <- sequence liftExprs'
+                        lifts :: [Term TyName Name PLC.DefaultUni fun ()] <- sequence (unCompileTerm <$> liftExprs')
                         -- The 'fun' that is referenced here is the 'fun' that we bind the line above.
                         -- If it was forall-bound instead, 'typeExprs\'' wouldn't type check,
                         -- because 'Type' does not determine 'fun' (unlike 'Term' in 'liftExprs\''
@@ -470,7 +491,7 @@ compileConstructorClause dt@TH.DatatypeInfo{TH.datatypeName=tyName, TH.datatypeV
 
                         pure $ mkIterAppNoAnn (mkIterInstNoAnn constr types) lifts
                   ||]
-    pure $ TH.clause [pat] (TH.normalB $ TH.unTypeQ rhsExpr) []
+    pure $ TH.clause [pat] (TH.normalB $ [| unCompileTerm $(TH.unTypeQ rhsExpr) |]) []
 
 makeLift :: TH.Name -> TH.Q [TH.Dec]
 makeLift name = do

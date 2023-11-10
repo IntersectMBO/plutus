@@ -51,9 +51,11 @@ data CustomBrickEvent =
     UpdateClientEvent BudgetData (CekState DefaultUni DefaultFun DAnn)
     -- ^ the driver passes a new cek state to the brick client
     -- this should mean that the brick client should update its tui
-  | LogEvent String
+  | DriverLogEvent Text
     -- ^ the driver logged some text, the brick client can decide to show it in the tui
-  | ErrorEvent BudgetData (CekEvaluationException NamedDeBruijn DefaultUni DefaultFun)
+  | CekEmitEvent Text
+    -- ^ the underlying cek machine emitted some text (using a trace or other builtin)
+  | CekErrorEvent BudgetData (CekEvaluationException NamedDeBruijn DefaultUni DefaultFun)
     -- ^ the underlying cek machine errored (either by call to Error, builtin or type failure)
 
 data KeyBindingsMode = KeyBindingsShown | KeyBindingsHidden

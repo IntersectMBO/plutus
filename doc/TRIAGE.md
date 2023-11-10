@@ -35,7 +35,7 @@ If the person serving the triage role reaches out to you, please provide all the
 
 The process described in this section and every section below is intended for the person serving the triage role (whether voluntarily or by duty). The process is meant to provide guidance and outline best practices -- not prescribe any rigid patterns that must be followed meticulously. Always use your best judgement and if something reasonable doesn't fit the process, consider amending the process.
 
-Remember to be nice and helpful to people you interact with: answer questions, provide additional context, explain why things are the way they are and how and why we're are going (not) to change them with regards to the given issue.
+Remember to be nice and helpful to people you interact with: answer questions, provide additional context, explain why things are the way they are and how and why we are going (not) to change them with regards to the given issue.
 
 In a lot of cases the participants are going to be disappointed with our product, since a place for reporting issues naturally skews towards negative feedback, and that disappointment may be very visible. Don't take it personally, chances are, there's indeed an annoying technical issue and the reporter has been struggling with it for a while before deciding to report it, which isn't a particularly entertaining thing to do either. Reporting issues can generally be a draining and thankless process and we don't want to hold up to this expectation. We want people reporting issues to feel welcome, even if they eagerly criticize our work.
 

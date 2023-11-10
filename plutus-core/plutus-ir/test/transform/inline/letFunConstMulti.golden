@@ -1,9 +1,0 @@
-(let
-  (nonrec)
-  (termbind
-    (strict)
-    (vardecl constFun (fun (con integer) (fun (con integer) (con integer))))
-    (lam x (con integer) (lam y (con integer) x))
-  )
-  [ constFun (con integer 3) ]
-)

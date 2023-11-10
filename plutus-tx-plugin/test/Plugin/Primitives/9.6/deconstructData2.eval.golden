@@ -1,0 +1,5 @@
+(constr
+  0
+  (con integer 1)
+  (constr 1 (con integer 2) (constr 1 (con integer 3) (constr 0)))
+)

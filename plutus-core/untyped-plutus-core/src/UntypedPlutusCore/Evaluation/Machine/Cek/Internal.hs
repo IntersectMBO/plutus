@@ -81,7 +81,8 @@ import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 
-import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts (..))
+import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts,
+                                                                 CekMachineCostsBase (..))
 import UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
 
 import Control.Lens ((^?))
@@ -93,6 +94,7 @@ import Control.Monad.Primitive (PrimMonad (..))
 import Control.Monad.ST
 import Control.Monad.ST.Unsafe
 import Data.DList qualified as DList
+import Data.Functor.Identity
 import Data.Hashable (Hashable)
 import Data.Kind qualified as GHC
 import Data.List.Extras (wix)
@@ -181,7 +183,7 @@ data StepKind
     deriving anyclass (NFData, Hashable)
 
 cekStepCost :: CekMachineCosts -> StepKind -> ExBudget
-cekStepCost costs = \case
+cekStepCost costs = runIdentity . \case
     BConst   -> cekConstCost costs
     BVar     -> cekVarCost costs
     BLamAbs  -> cekLamCost costs
@@ -549,8 +551,10 @@ type instance UniOf (CekValue uni fun ann) = uni
 instance HasConstant (CekValue uni fun ann) where
     asConstant (VCon val) = pure val
     asConstant _          = throwNotAConstant
+    {-# INLINE asConstant #-}
 
     fromConstant = VCon
+    {-# INLINE fromConstant #-}
 
 {-|
 The context in which the machine operates.
@@ -591,12 +595,6 @@ instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (CekValue
 transferArgStack :: ArgStack uni fun ann -> Context uni fun ann -> Context uni fun ann
 transferArgStack EmptyStack c           = c
 transferArgStack (ConsStack arg rest) c = transferArgStack rest (FrameAwaitFunValue arg c)
-
--- | A 'MonadError' version of 'try'.
---
--- TODO: remove when we switch to mtl>=2.3
-tryError :: MonadError e m => m a -> m (Either e a)
-tryError a = (Right <$> a) `catchError` (pure . Left)
 
 runCekM
     :: forall a cost uni fun ann
@@ -887,7 +885,7 @@ runCekDeBruijn
     -> (Either (CekEvaluationException NamedDeBruijn uni fun) (NTerm uni fun ()), cost, [Text])
 runCekDeBruijn params mode emitMode term =
     runCekM params mode emitMode $ do
-        spendBudgetCek BStartup (cekStartupCost ?cekCosts)
+        spendBudgetCek BStartup $ runIdentity $ cekStartupCost ?cekCosts
         enterComputeCek NoFrame Env.empty term
 
 {- Note [Accumulators for terms]

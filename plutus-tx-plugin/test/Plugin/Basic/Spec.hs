@@ -25,7 +25,7 @@ import Data.Proxy
 
 
 basic :: TestNested
-basic = testNested "Basic" [
+basic = testNestedGhc "Basic" [
     goldenPir "monoId" monoId
   , goldenPir "monoK" monoK
   , goldenPir "letFun" letFun
@@ -39,7 +39,9 @@ basic = testNested "Basic" [
   , goldenUEval "ifOptEval" [ifOpt]
   , goldenPir "monadicDo" monadicDo
   , goldenPir "patternMatchDo" patternMatchDo
-  , goldenUPlcCatch "patternMatchFailure" patternMatchFailure
+  , goldenUPlc "patternMatchFailure" patternMatchFailure
+  , goldenPir "defaultCaseDuplication" defaultCaseDuplication
+  , goldenPir "defaultCaseDuplicationNested" defaultCaseDuplicationNested
   ]
 
 monoId :: CompiledCode (Integer -> Integer)
@@ -93,3 +95,20 @@ patternMatchFailure = plc (Proxy @"patternMatchFailure") (\(x :: Maybe (Maybe In
     Just x' <- x
     y' <- y
     P.pure (x' `Builtins.addInteger` y'))
+
+data A = B | C | D
+
+-- We don't want to duplicate the RHS of the default case
+defaultCaseDuplication :: CompiledCode (A -> Integer)
+defaultCaseDuplication = plc (Proxy @"defaultCaseDuplication") (\(x :: A) -> case x of
+  B -> 1
+  _ -> 2)
+
+-- If we do duplicate the RHS of default cases, then here we will end up with
+-- 4 copies of the literal 3, showing how this can become exponential
+defaultCaseDuplicationNested :: CompiledCode (A -> A -> Integer)
+defaultCaseDuplicationNested = plc (Proxy @"defaultCaseDuplicationNested") (\(x :: A) (y :: A) -> case x of
+  B -> 1
+  _ -> case y of
+    B -> 2
+    _ -> 3)

@@ -22,8 +22,7 @@ import Prelude qualified as Haskell
 
 {-# INLINABLE zipConst #-}
 zipConst :: a -> [b] -> [(a,b)]
-zipConst _ []     = []
-zipConst a (b:bs) = (a,b) : zipConst a bs
+zipConst a = map ((,) a)
 
 {-# INLINABLE grow #-}
 grow :: (Integer,ChessSet) -> [(Integer,ChessSet)]
@@ -35,16 +34,8 @@ isFinished (_,y) = tourFinished y
 
 {-# INLINABLE interval #-}
 interval :: Integer -> Integer -> [Integer]
-interval a b =
-    if a > b then []
-    else a:(interval (a+1) b)
-
-
-{-# INLINABLE repl #-}
-repl :: Integer -> Integer -> [Integer]
-repl n a =
-    if n == 0 then []
-    else a:(repl (n-1) a)
+interval a0 b = go a0 where
+    go a = if a > b then [] else a : go (a + 1)
 
 -- % Original version used infinite lists.
 {-# INLINABLE mkStarts #-}
@@ -52,7 +43,7 @@ mkStarts :: Integer -> [(Integer, ChessSet)]
 mkStarts sze =
     let l = [startTour (x,y) sze | x <- interval 1 sze, y <- interval 1 sze]
         numStarts = Tx.length l  -- = sze*sze
-    in Tx.zip (repl numStarts (1-numStarts)) l
+    in Tx.zip (replicate numStarts (1-numStarts)) l
 
 {-# INLINABLE root #-}
 root :: Integer -> Queue (Integer, ChessSet)

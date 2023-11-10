@@ -165,7 +165,7 @@ I've considered a number of ways to fix this.
    or supplied as an argument to another function.  This doesn't
    fit in with the way that stack frames are used.
 
-   In more detail, suppose we were to add add a frame `(builtin bn
+   In more detail, suppose we were to add a frame `(builtin bn
    count args)` which accumulates arguments and decrements the
    counter every time a new argument is supplied.  If the application
    is saturated then when we get the final argument we can apply the builtin,
@@ -235,7 +235,7 @@ I've considered a number of ways to fix this.
    CK machine to use a variant of the method used in the original CEK
    machine.  Whenever we see an application `[M N]` where `M` isn't a
    lambda, we call `termAsPrimIterApp` to check if it's of the correct
-   form, and if it is we look up the the arity of the function and
+   form, and if it is we look up the arity of the function and
    compare it with the number of arguments; if they match, we hand the
    application off to the CAM.  This is a bit more efficient than the
    earlier method because we only call the CAM once, but it still

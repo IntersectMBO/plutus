@@ -5,7 +5,7 @@ BIB=${DOC}.bib
 
 FIGS=./figures
 
-SRC = *.tex ${BIB} # ${FIGS}/*.tex 
+SRC = *.tex cardano/*.tex ${BIB} # ${FIGS}/*.tex 
 
 
 LATEX = pdflatex -halt-on-error -shell-escape # To get pstricks to work with PDF
@@ -27,6 +27,7 @@ ${DOC}.pdf: ${SRC} ${BIB}
 	${LATEX}  ${DOC}   # to make sure the (cross)references are correct
 	${MAKEINDEX} ${DOC}.nlo -s nomencl.ist -o ${DOC}.nls
         # ^ Putting this later seems to get page references out of sync.
+	${LATEX}  ${DOC}
 	${LATEX}  ${DOC}
 	${LATEX}  ${DOC}
 

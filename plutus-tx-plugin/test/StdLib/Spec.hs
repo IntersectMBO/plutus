@@ -20,7 +20,7 @@ import Hedgehog (MonadGen, Property)
 import Hedgehog qualified
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import PlutusCore.Test (TestNested, goldenUEval, testNested)
+import PlutusCore.Test (TestNested, goldenUEval, testNestedGhc)
 import PlutusTx.Test (goldenPir)
 import Test.Tasty (TestName)
 import Test.Tasty.Hedgehog (testPropertyNamed)
@@ -46,7 +46,7 @@ roundPlc = plc (Proxy @"roundPlc") Ratio.round
 
 tests :: TestNested
 tests =
-  testNested "StdLib"
+  testNestedGhc "StdLib"
     [ goldenUEval "ratioInterop" [ getPlcNoAnn roundPlc, snd (Lift.liftProgramDef (Ratio.fromGHC 3.75)) ]
     , testRatioProperty "round" Ratio.round round
     , testRatioProperty "truncate" Ratio.truncate truncate
@@ -59,9 +59,14 @@ tests =
     , goldenPir "errorTrace" errorTrace
     ]
 
--- | Evaluate (deeply, to get through tuples) a value, throwing away any exception and just representing it as 'Nothing'.
+-- We really should use something like "Control.Exception.Enclosed" here and in other similar
+-- places.
+-- | Evaluate (deeply, to get through tuples) a value, throwing away any exception and just
+-- representing it as 'Nothing'.
 tryHard :: (MonadIO m, NFData a) => a -> m (Maybe a)
-tryHard a = reoption <$> (liftIO $ try @SomeException $ evaluate $ force a)
+-- We have @Strict@ enabled, hence without the tilda this function evaluates @a@ before evaluating
+-- the body, i.e. outside of the call to 'try', defeating the whole purpose.
+tryHard ~a = reoption <$> (liftIO $ try @SomeException $ evaluate $ force a)
 
 testRatioProperty :: (Show a, Eq a) => TestName -> (Ratio.Rational -> a) -> (Rational -> a) -> TestNested
 testRatioProperty nm plutusFunc ghcFunc = pure $ testPropertyNamed nm (fromString nm) $ Hedgehog.property $ do
@@ -74,7 +79,8 @@ testRatioProperty nm plutusFunc ghcFunc = pure $ testPropertyNamed nm (fromStrin
 
 testDivMod :: Property
 testDivMod = Hedgehog.property $ do
-    let gen = Gen.integral (Range.linear (-10000) 100000)
+    -- Generating zeroes often enough to trigger any potential bugs related to handling of zeroes.
+    let gen = Gen.frequency [(1, pure 0), (10, Gen.integral (Range.linear (-10000) 100000))]
     (n1, n2) <- Hedgehog.forAll $ (,) <$> gen <*> gen
     ghcResult <- tryHard $ divMod n1 n2
     plutusResult <- tryHard $ PlutusTx.divMod n1 n2
@@ -84,7 +90,8 @@ testDivMod = Hedgehog.property $ do
 
 testQuotRem :: Property
 testQuotRem = Hedgehog.property $ do
-    let gen = Gen.integral (Range.linear (-10000) 100000)
+    -- Generating zeroes often enough to trigger any potential bugs related to handling of zeroes.
+    let gen = Gen.frequency [(1, pure 0), (10, Gen.integral (Range.linear (-10000) 100000))]
     (n1, n2) <- Hedgehog.forAll $ (,) <$> gen <*> gen
     ghcResult <- tryHard $ quotRem n1 n2
     plutusResult <- tryHard $ PlutusTx.quotRem n1 n2
@@ -95,7 +102,9 @@ testQuotRem = Hedgehog.property $ do
 testReduce :: Property
 testReduce = Hedgehog.property $ do
     let gen = Gen.integral (Range.linear (-10000) 100000)
-    (n1, n2) <- Hedgehog.forAll $ (,) <$> gen <*> gen
+        -- Ratio must have non-zero denominator or else an ArithException will be thrown.
+        gen' = Gen.filter (/= 0) gen
+    (n1, n2) <- Hedgehog.forAll $ (,) <$> gen <*> gen'
     ghcResult <- tryHard $ reduce n1 n2
     plutusResult <- tryHard $ Ratio.toGHC $ Ratio.reduce n1 n2
     Hedgehog.annotateShow ghcResult
@@ -115,8 +124,10 @@ testReduce = Hedgehog.property $ do
 testOrd :: Property
 testOrd = Hedgehog.property $ do
     let gen = Gen.integral (Range.linear (-10000) 100000)
-    n1 <- Hedgehog.forAll $ (%) <$> gen <*> gen
-    n2 <- Hedgehog.forAll $ (%) <$> gen <*> gen
+        -- Ratio must have non-zero denominator or else an ArithException will be thrown.
+        gen' = Gen.filter (/= 0) gen
+    n1 <- Hedgehog.forAll $ (%) <$> gen <*> gen'
+    n2 <- Hedgehog.forAll $ (%) <$> gen <*> gen'
     ghcResult <- tryHard $ n1 <= n2
     plutusResult <- tryHard $ (PlutusTx.<=) (Ratio.fromGHC n1) (Ratio.fromGHC n2)
     Hedgehog.annotateShow ghcResult

@@ -1,12 +1,15 @@
 {-# LANGUAGE BangPatterns          #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NegativeLiterals      #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE PatternSynonyms       #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE ViewPatterns          #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
@@ -15,17 +18,24 @@ module Budget.Spec where
 
 import Test.Tasty.Extras
 
+import PlutusTx.AsData qualified as AsData
 import PlutusTx.Builtins qualified as PlutusTx
 import PlutusTx.Code
-import PlutusTx.IsData qualified as PlutusTx
-import PlutusTx.Lift (liftCodeDef)
+import PlutusTx.IsData qualified as IsData
+import PlutusTx.Lift (liftCodeDef, makeLift)
+import PlutusTx.List qualified as List
 import PlutusTx.Prelude qualified as PlutusTx
 import PlutusTx.Show qualified as PlutusTx
 import PlutusTx.Test (goldenBudget, goldenPirReadable, goldenUPlcReadable)
 import PlutusTx.TH (compile)
 
+AsData.asData [d|
+  data MaybeD a = JustD a | NothingD
+  |]
+makeLift ''MaybeD
+
 tests :: TestNested
-tests = testNested "Budget" [
+tests = testNestedGhc "Budget" [
     goldenBudget "sum" compiledSum
   , goldenUPlcReadable "sum" compiledSum
   , goldenPirReadable "sum" compiledSum
@@ -114,6 +124,46 @@ tests = testNested "Budget" [
   , goldenUPlcReadable "notElemExpensive" compiledNotElemExpensive
   , goldenPirReadable "notElemExpensive" compiledNotElemExpensive
 
+  , goldenBudget "lte0" compiledLte0
+  , goldenUPlcReadable "lte0" compiledLte0
+  , goldenPirReadable "lte0" compiledLte0
+
+  , goldenBudget "gte0" compiledGte0
+  , goldenUPlcReadable "gte0" compiledGte0
+  , goldenPirReadable "gte0" compiledGte0
+
+  , goldenBudget "recursiveLte0" compiledRecursiveLte0
+  , goldenUPlcReadable "recursiveLte0" compiledRecursiveLte0
+  , goldenPirReadable "recursiveLte0" compiledRecursiveLte0
+
+  , goldenBudget "recursiveGte0" compiledRecursiveGte0
+  , goldenUPlcReadable "recursiveGte0" compiledRecursiveGte0
+  , goldenPirReadable "recursiveGte0" compiledRecursiveGte0
+
+  , goldenBudget "sumL" compiledSumL
+  , goldenUPlcReadable "sumL" compiledSumL
+  , goldenPirReadable "sumL" compiledSumL
+
+  , goldenBudget "sumR" compiledSumR
+  , goldenUPlcReadable "sumR" compiledSumR
+  , goldenPirReadable "sumR" compiledSumR
+
+  , goldenBudget "constAccL" compiledConstAccL
+  , goldenUPlcReadable "constAccL" compiledConstAccL
+  , goldenPirReadable "constAccL" compiledConstAccL
+
+  , goldenBudget "constAccR" compiledConstAccR
+  , goldenUPlcReadable "constAccR" compiledConstAccR
+  , goldenPirReadable "constAccR" compiledConstAccR
+
+  , goldenBudget "constElL" compiledConstElL
+  , goldenUPlcReadable "constElL" compiledConstElL
+  , goldenPirReadable "constElL" compiledConstElL
+
+  , goldenBudget "constElR" compiledConstElR
+  , goldenUPlcReadable "constElR" compiledConstElR
+  , goldenPirReadable "constElR" compiledConstElR
+
   , goldenBudget "null" compiledNull
   , goldenUPlcReadable "null" compiledNull
   , goldenPirReadable "null" compiledNull
@@ -147,6 +197,7 @@ tests = testNested "Budget" [
   , goldenBudget "ifThenElse2" compiledIfThenElse2
   , goldenUPlcReadable "ifThenElse2" compiledIfThenElse2
   , goldenPirReadable "ifThenElse2" compiledIfThenElse2
+  , goldenBudget "matchAsDataE" matchAsData
   ]
 
 compiledSum :: CompiledCode Integer
@@ -275,6 +326,72 @@ compiledNotElemExpensive = $$(compile [||
       let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
        in PlutusTx.notElem 0 ls ||])
 
+-- | Check @0 <= 0@ a thousand times using @all@ that inlines.
+compiledLte0 :: CompiledCode Bool
+compiledLte0 = $$(compile [||
+      let ls = PlutusTx.replicate 1000 0 :: [Integer]
+       in List.all (PlutusTx.<= 0) ls ||])
+
+-- | Check @0 >= 0@ a thousand times using @all@ that inlines.
+compiledGte0 :: CompiledCode Bool
+compiledGte0 = $$(compile [||
+      let ls = PlutusTx.replicate 1000 0 :: [Integer]
+       in List.all (PlutusTx.>= 0) ls ||])
+
+{-# INLINABLE recursiveAll #-}
+-- | A version of @all@ that doesn't inline due to being recursive.
+recursiveAll :: forall a. (a -> Bool) -> [a] -> Bool
+recursiveAll _ []     = True
+recursiveAll f (x:xs) = if f x then recursiveAll f xs else False
+
+-- | Check @0 <= 0@ a thousand times using @all@ that doesn't inline.
+compiledRecursiveLte0 :: CompiledCode Bool
+compiledRecursiveLte0 = $$(compile [||
+      let ls = PlutusTx.replicate 1000 0 :: [Integer]
+       in recursiveAll (PlutusTx.<= 0) ls ||])
+
+-- | Check @0 >= 0@ a thousand times using @all@ that doesn't inline.
+compiledRecursiveGte0 :: CompiledCode Bool
+compiledRecursiveGte0 = $$(compile [||
+      let ls = PlutusTx.replicate 1000 0 :: [Integer]
+       in recursiveAll (PlutusTx.>= 0) ls ||])
+
+-- | Left-fold a list with a function summing its arguments.
+compiledSumL :: CompiledCode Integer
+compiledSumL = $$(compile [||
+      let ls = PlutusTx.enumFromTo 1 1000 :: [Integer]
+       in List.foldl (PlutusTx.+) 0 ls ||])
+
+-- | Right-fold a list with a function summing its arguments.
+compiledSumR :: CompiledCode Integer
+compiledSumR = $$(compile [||
+      let ls = PlutusTx.enumFromTo 1 1000 :: [Integer]
+       in List.foldr (PlutusTx.+) 0 ls ||])
+
+-- | Left-fold a list with a function returning the accumulator.
+compiledConstAccL :: CompiledCode Integer
+compiledConstAccL = $$(compile [||
+      let ls = PlutusTx.replicate 1000 (1 :: Integer)
+       in List.foldl (\acc _ -> acc) 42 ls ||])
+
+-- | Right-fold a list with a function returning the accumulator.
+compiledConstAccR :: CompiledCode Integer
+compiledConstAccR = $$(compile [||
+      let ls = PlutusTx.replicate 1000 (1 :: Integer)
+       in List.foldr (\_ acc -> acc) 42 ls ||])
+
+-- | Left-fold a list with a function returning a list element, the result is the last element.
+compiledConstElL :: CompiledCode Integer
+compiledConstElL = $$(compile [||
+      let ls = PlutusTx.replicate 1000 (1 :: Integer)
+       in List.foldl (\_ el -> el) 42 ls ||])
+
+-- | Right-fold a list with a function returning a list element, the result is the first element.
+compiledConstElR :: CompiledCode Integer
+compiledConstElR = $$(compile [||
+      let ls = PlutusTx.replicate 1000 (1 :: Integer)
+       in List.foldr (\el _ -> el) 42 ls ||])
+
 compiledNull :: CompiledCode Bool
 compiledNull = $$(compile [||
       let ls = [1,2,3,4,5,6,7,8,9,10] :: [Integer]
@@ -286,8 +403,8 @@ compiledToFromData = $$(compile [||
        v :: Either Integer (Maybe (Bool, Integer, Bool))
        v = Right (Just (True, 1, False))
        d :: PlutusTx.BuiltinData
-       d = PlutusTx.toBuiltinData v
-      in PlutusTx.unsafeFromBuiltinData d ||])
+       d = IsData.toBuiltinData v
+      in IsData.unsafeFromBuiltinData d ||])
 
 doExample :: Maybe Integer -> Maybe Integer -> Maybe Integer
 doExample x y = do
@@ -390,3 +507,10 @@ compiledNotNot =
         ||]
     )
     `PlutusTx.Code.unsafeApplyCode` liftCodeDef 1
+
+matchAsData :: CompiledCode Integer
+matchAsData = $$(compile [||
+  \case
+    JustD a  -> a
+    NothingD -> 1 ||])
+    `PlutusTx.Code.unsafeApplyCode` liftCodeDef (JustD 1)

@@ -1,0 +1,112 @@
+(program
+  1.1.0
+  (let
+    (rec)
+    (datatypebind
+      (datatype
+        (tyvardecl List (fun (type) (type)))
+        (tyvardecl a (type))
+        List_match
+        (vardecl Nil [ List a ])
+        (vardecl Cons (fun a (fun [ List a ] [ List a ])))
+      )
+    )
+    (let
+      (nonrec)
+      (termbind
+        (strict)
+        (vardecl
+          addInteger (fun (con integer) (fun (con integer) (con integer)))
+        )
+        (builtin addInteger)
+      )
+      (termbind
+        (nonstrict)
+        (vardecl
+          addInteger (fun (con integer) (fun (con integer) (con integer)))
+        )
+        (lam
+          x
+          (con integer)
+          (let
+            (nonrec)
+            (termbind (strict) (vardecl x (con integer)) x)
+            (lam
+              y
+              (con integer)
+              (let
+                (nonrec)
+                (termbind (strict) (vardecl y (con integer)) y)
+                [ [ addInteger x ] y ]
+              )
+            )
+          )
+        )
+      )
+      (termbind
+        (nonstrict)
+        (vardecl lengthLazy (all a (type) (fun [ List a ] (con integer))))
+        (abs
+          a
+          (type)
+          (let
+            (rec)
+            (termbind
+              (nonstrict)
+              (vardecl go (fun (con integer) (fun [ List a ] (con integer))))
+              (lam
+                acc
+                (con integer)
+                (let
+                  (nonrec)
+                  (termbind (strict) (vardecl acc (con integer)) acc)
+                  (lam
+                    ds
+                    [ List a ]
+                    {
+                      [
+                        [
+                          {
+                            [ { List_match a } ds ]
+                            (all dead (type) (con integer))
+                          }
+                          (abs dead (type) acc)
+                        ]
+                        (lam
+                          ds
+                          a
+                          (lam
+                            tl
+                            [ List a ]
+                            (abs
+                              dead
+                              (type)
+                              [
+                                [ go [ [ addInteger acc ] (con integer 1) ] ] tl
+                              ]
+                            )
+                          )
+                        )
+                      ]
+                      (all dead (type) dead)
+                    }
+                  )
+                )
+              )
+            )
+            (lam
+              l
+              [ List a ]
+              (let
+                (nonrec)
+                (termbind (strict) (vardecl l [ List a ]) l)
+                [ [ go (con integer 0) ] l ]
+              )
+            )
+          )
+        )
+      )
+      { lengthLazy (con integer) }
+    )
+  )
+)

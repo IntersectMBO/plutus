@@ -1,0 +1,42 @@
+program
+  1.1.0
+  ((\fix1 ->
+      (\go ->
+         (\recursiveAll ->
+            (\ls ->
+               force recursiveAll
+                 (\v ->
+                    force ifThenElse
+                      (lessThanEqualsInteger v 0)
+                      (constr 0 [])
+                      (constr 1 []))
+                 ls)
+              (go 1000))
+           (fix1
+              (\recursiveAll arg ->
+                 delay
+                   (\ds ds ->
+                      force
+                        (case
+                           ds
+                           [ (delay (constr 0 []))
+                           , (\x xs ->
+                                delay
+                                  (force
+                                     (case
+                                        (ds x)
+                                        [ (delay
+                                             (force
+                                                (recursiveAll (delay (\x -> x)))
+                                                ds
+                                                xs))
+                                        , (delay (constr 1 [])) ]))) ])))
+              (delay (\x -> x))))
+        (fix1
+           (\go n ->
+              force
+                (force ifThenElse
+                   (lessThanEqualsInteger n 0)
+                   (delay (constr 0 []))
+                   (delay (constr 1 [0, (go (subtractInteger n 1))]))))))
+     (\f -> (\s -> s s) (\s x -> f (s s) x)))

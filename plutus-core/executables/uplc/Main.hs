@@ -12,6 +12,7 @@ module Main (main) where
 import PlutusCore qualified as PLC
 import PlutusCore.Annotation
 import PlutusCore.Data
+import PlutusCore.Default (BuiltinSemanticsVariant (..))
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
 import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
@@ -20,6 +21,7 @@ import PlutusCore.Executable.Parsers
 import PlutusCore.MkPlc (mkConstant)
 import PlutusPrelude
 
+import PlutusCore.Evaluation.Machine.MachineParameters
 import UntypedPlutusCore.Evaluation.Machine.Cek
 import UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver qualified as D
 import UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal qualified as D
@@ -60,7 +62,16 @@ data SomeBudgetMode =
         SomeBudgetMode (Cek.ExBudgetMode cost PLC.DefaultUni PLC.DefaultFun)
 
 data EvalOptions =
-    EvalOptions Input Format PrintMode BudgetMode TraceMode Output TimingMode CekModel
+    EvalOptions
+      Input
+      Format
+      PrintMode
+      BudgetMode
+      TraceMode
+      Output
+      TimingMode
+      CekModel
+      (BuiltinSemanticsVariant PLC.DefaultFun)
 
 data DbgOptions =
     DbgOptions Input Format CekModel
@@ -90,9 +101,16 @@ cekmodel =
 
 evalOpts :: Parser EvalOptions
 evalOpts =
-  EvalOptions <$>
-    input <*> inputformat <*>
-        printmode <*> budgetmode <*> tracemode <*> output <*> timingmode <*> cekmodel
+  EvalOptions
+  <$> input
+  <*> inputformat
+  <*> printmode
+  <*> budgetmode
+  <*> tracemode
+  <*> output
+  <*> timingmode
+  <*> cekmodel
+  <*> builtinSemanticsVariant
 
 dbgOpts :: Parser DbgOptions
 dbgOpts =
@@ -254,13 +272,14 @@ runApplyToData (ApplyOptions inputfiles ifmt outp ofmt mode) =
 ---------------- Evaluation ----------------
 
 runEval :: EvalOptions -> IO ()
-runEval (EvalOptions inp ifmt printMode budgetMode traceMode outputMode timingMode cekModel) = do
+runEval (EvalOptions inp ifmt printMode budgetMode traceMode
+                     outputMode timingMode cekModel semvar) = do
     prog <- readProgram ifmt inp
     let term = void $ prog ^. UPLC.progTerm
         !_ = rnf term
         cekparams = case cekModel of
                     -- AST nodes are charged according to the default cost model
-                    Default -> PLC.defaultCekParameters
+                    Default -> mkMachineParameters semvar PLC.defaultCekCostModel
                     -- AST nodes are charged one unit each, so we can see how many times each node
                     -- type is encountered.  This is useful for calibrating the budgeting code
                     Unit    -> PLC.unitCekParameters
@@ -337,14 +356,14 @@ handleDbg cekTrans = \case
         -- Note that we first turn Cek to IO and then `liftIO` it to InputT; the alternative of
         -- directly using MonadTrans.lift needs MonadCatch+MonadMask instances for CekM, i.e. messy
         -- also liftIO would be unnecessary if haskeline.InputT worked with `primitive`
-        eNewState <- liftIO $ D.liftCek $ D.tryError $ cekTrans prevState
+        eNewState <- liftIO $ D.liftCek $ tryError $ cekTrans prevState
         case eNewState of
             Right newState -> k newState
             Left e         -> Repl.outputStrLn $ show e
                              -- no kontinuation, so it acts like exitSuccess
                              -- FIXME: decide what should happen after the error occurs
     D.InputF k           -> handleInput >>= k
-    D.LogF text k        -> handleLog text >> k
+    D.DriverLogF text k        -> handleLog text >> k
     D.UpdateClientF ds k -> handleUpdate ds >> k
   where
     handleInput = do
@@ -359,7 +378,7 @@ handleDbg cekTrans = \case
             -- otherwise retry
             _        -> handleInput
     handleUpdate s = Repl.outputStrLn $ show $ "Updated state:" <+> pretty s
-    handleLog = Repl.outputStrLn
+    handleLog = Repl.outputStrLn . T.unpack
 
 ----------------- Print examples -----------------------
 runUplcPrintExample ::

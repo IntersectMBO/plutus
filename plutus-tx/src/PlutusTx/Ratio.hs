@@ -7,9 +7,8 @@
 {-# LANGUAGE MultiWayIf            #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TemplateHaskell       #-}
-{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=3 #-}
-{-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
+
 module PlutusTx.Ratio(
     -- * Type
     Rational
@@ -50,6 +49,7 @@ import PlutusTx.Builtins qualified as Builtins
 
 import Control.Monad (guard)
 import Data.Aeson (FromJSON (parseJSON), ToJSON (toJSON), object, withObject, (.:))
+import GHC.Generics
 import GHC.Real qualified as Ratio
 import Prelude (Ord (..), Show, (*))
 import Prelude qualified as Haskell
@@ -59,7 +59,8 @@ import Prettyprinter (Pretty (..), (<+>))
 data Rational = Rational Integer Integer
   deriving stock (
     Haskell.Eq,
-    Show
+    Show,
+    Generic
     )
 
 instance Pretty Rational where

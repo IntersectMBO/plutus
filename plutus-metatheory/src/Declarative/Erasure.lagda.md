@@ -67,15 +67,15 @@ erase-Sub : ∀{Φ Ψ}{Γ : Ctx Φ}{Δ : Ctx Ψ}(σ⋆ : T.Sub Φ Ψ)
   → D.Sub Γ Δ σ⋆ → U.Sub (len Γ) (len Δ) 
 
 erase-ConstrArgs : ∀ {Φ} {Γ : Ctx Φ}
-               {TS : List (Φ ⊢⋆ *)}
-               (cs : Dec.ConstrArgs Γ TS) 
+               {Ts : List (Φ ⊢⋆ *)}
+               (cs : Dec.ConstrArgs Γ Ts) 
           → List (len Γ ⊢)
 erase-ConstrArgs [] = []
 erase-ConstrArgs (c ∷ cs) = (erase c) ∷ (erase-ConstrArgs cs)
 
 erase-Cases : ∀ {Φ} {Γ : Ctx Φ} {A : Φ ⊢⋆ *} {n}
-                {tss : Vec (List (Φ ⊢⋆ *)) n}
-                (cs : Dec.Cases Γ A tss) →
+                {Tss : Vec (List (Φ ⊢⋆ *)) n}
+                (cs : Dec.Cases Γ A Tss) →
               List (len Γ ⊢)
 erase-Cases Dec.[] = []
 erase-Cases (c Dec.∷ cs) = (erase c) ∷ (erase-Cases cs) 
@@ -91,7 +91,7 @@ erase (conv p t)      = erase t
 erase (con {A = A} t _) = con (eraseTC A t)
 erase (builtin b)     = builtin b
 erase (error A)       = error
-erase (constr e TSS p cs) = constr (toℕ e) (erase-ConstrArgs cs) 
+erase (constr e Tss p cs) = constr (toℕ e) (erase-ConstrArgs cs) 
 erase (case t cases)  = case (erase t) (erase-Cases cases)
 
 backVar⋆ : ∀{Φ}(Γ : Ctx Φ) → len Γ → Φ ⊢⋆ *

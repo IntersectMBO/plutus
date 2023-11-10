@@ -1,2 +1,0 @@
-Error: Unsupported feature: Cannot case on a value on type: GHC.Num.Integer.Integer
-       Note: GHC can generate these unexpectedly, you may need '-fno-strictness', '-fno-specialise', or '-fno-spec-constr'

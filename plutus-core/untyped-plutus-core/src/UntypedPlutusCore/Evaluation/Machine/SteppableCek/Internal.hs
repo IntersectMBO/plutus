@@ -32,7 +32,6 @@ module UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal
     , runCekDeBruijn
     , computeCek
     , returnCek
-    , tryError
     , mkCekTrans
     , CekTrans
     , nilSlippage
@@ -50,14 +49,14 @@ import PlutusCore.Evaluation.Result
 import PlutusPrelude
 import Universe
 import UntypedPlutusCore.Core
-import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts (..))
+import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts,
+                                                                 CekMachineCostsBase (..))
 import UntypedPlutusCore.Evaluation.Machine.Cek.Internal hiding (Context (..), runCekDeBruijn,
                                                           transferArgStack)
 import UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
 
 import Control.Lens hiding (Context)
 import Control.Monad
-import Control.Monad.Except (MonadError, catchError)
 import Data.List.Extras (wix)
 import Data.Proxy
 import Data.RandomAccessList.Class qualified as Env
@@ -278,7 +277,7 @@ runCekDeBruijn
     -> (Either (CekEvaluationException NamedDeBruijn uni fun) (NTerm uni fun ()), cost, [Text])
 runCekDeBruijn params mode emitMode term =
     runCekM params mode emitMode $ do
-        spendBudgetCek BStartup (cekStartupCost ?cekCosts)
+        spendBudgetCek BStartup $ runIdentity $ cekStartupCost ?cekCosts
         enterComputeCek NoFrame Env.empty term
 
 -- See Note [Compilation peculiarities].
@@ -394,14 +393,8 @@ lenContext = go 0
 -- FIXME: share these functions with Cek.Internal
 -- preliminary testing shows that sharing slows down original cek
 
--- | A 'MonadError' version of 'try'.
---
--- TODO: remove when we switch to mtl>=2.3
-tryError :: MonadError e m => m a -> m (Either e a)
-tryError a = (Right <$> a) `catchError` (pure . Left)
-
 cekStepCost :: CekMachineCosts -> StepKind -> ExBudget
-cekStepCost costs = \case
+cekStepCost costs = runIdentity . \case
     BConst   -> cekConstCost costs
     BVar     -> cekVarCost costs
     BLamAbs  -> cekLamCost costs
