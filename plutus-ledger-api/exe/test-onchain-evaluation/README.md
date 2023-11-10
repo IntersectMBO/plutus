@@ -56,7 +56,7 @@ s3 sync s3://plutus/mainnet-script-dump/ $HOME/mainnet-script-dump-downloaded
 Then unzip all `.bz2` files, and run the following in the nix shell of plutus:
 
 ```
-EVENT_DUMP_DIR=$HOME/mainnet-script-dump-downloaded cabal run plutus-ledger-api:evaluation-test -- --num-threads=1
+EVENT_DUMP_DIR=$HOME/mainnet-script-dump-downloaded cabal run plutus-ledger-api:test-onchain-evaluation -- --num-threads=1
 ```
 
 Adjust `EVENT_DUMP_DIR` as appropriate.
