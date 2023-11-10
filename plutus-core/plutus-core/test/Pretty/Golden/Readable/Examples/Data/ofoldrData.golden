@@ -26,22 +26,7 @@
     {data}
     {data}
     (\(rec : data -> data) (d : data) ->
-       (\(d : data) ->
-          /\r ->
-            \(fConstr : integer -> list data -> r)
-             (fMap : list (pair data data) -> r)
-             (fList : list data -> r)
-             (fI : integer -> r)
-             (fB : bytestring -> r) ->
-              (Left caseData)
-                {unit -> r}
-                d
-                (\(i : integer) (ds : list data) (u : unit) -> fConstr i ds)
-                (\(es : list (pair data data)) (u : unit) -> fMap es)
-                (\(ds : list data) (u : unit) -> fList ds)
-                (\(i : integer) (u : unit) -> fI i)
-                (\(b : bytestring) (u : unit) -> fB b)
-                ())
+       (\(d : data) -> /\r -> (Left caseData) {r} d)
          d
          {data}
          (\(i : integer) (ds : list data) ->
