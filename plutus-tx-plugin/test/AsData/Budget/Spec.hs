@@ -10,7 +10,7 @@
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE ViewPatterns          #-}
-{-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
+
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 

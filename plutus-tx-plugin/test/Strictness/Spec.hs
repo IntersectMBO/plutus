@@ -4,7 +4,6 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE Strict              #-}
 {-# LANGUAGE TemplateHaskell     #-}
-{-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
 
 module Strictness.Spec where
 

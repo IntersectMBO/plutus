@@ -11,8 +11,6 @@
 {-# LANGUAGE NoNegativeLiterals    #-}
 {-# LANGUAGE NoStrict              #-}
 
-{-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
-
 -- | This module tests that integer literals are handled correctly, when both @Strict@
 -- and @NegativeLiterals@ are off. These two extensions affect the Core we get.
 --
