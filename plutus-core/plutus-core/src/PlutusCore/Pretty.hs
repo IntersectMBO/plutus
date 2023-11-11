@@ -56,6 +56,7 @@ module PlutusCore.Pretty
     , PrettyReadableBy
     , PrettyReadable
     , AsReadable (..)
+    , AsReadableWithUniques (..)
     , Parened (..)
     , inBraces
     , topPrettyConfigReadable

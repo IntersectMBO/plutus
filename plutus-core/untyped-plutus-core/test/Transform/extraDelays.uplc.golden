@@ -1,1 +1,1 @@
-(delay (con integer 1))
+delay 1

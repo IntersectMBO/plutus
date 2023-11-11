@@ -1,4 +1,1 @@
-[
-  (lam a_2 [ [ (builtin addInteger) (force a_2) ] (force a_2) ])
-  (delay (con integer 1))
-]
+(\a_2 -> addInteger (force a_2) (force a_2)) (delay 1)

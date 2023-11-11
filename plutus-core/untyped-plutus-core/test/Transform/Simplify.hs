@@ -227,11 +227,16 @@ multiApp = runQuote $ do
   pure app
 
 -- TODO Fix duplication with other golden tests, quite annoying
-goldenVsPretty :: (PrettyPlc a) => String -> String -> a -> TestTree
+goldenVsPretty ::
+  (PrettyBy (PrettyConfigReadable PrettyConfigName) a) =>
+  String ->
+  String ->
+  a ->
+  TestTree
 goldenVsPretty extn name value =
   goldenVsString name ("untyped-plutus-core/test/Transform/" ++ name ++ extn) $
-    pure . BSL.fromStrict . encodeUtf8 . render $
-      prettyPlcClassicDebug value
+    pure . BSL.fromStrict . encodeUtf8 . render . pretty $
+      AsReadableWithUniques value
 
 goldenVsSimplified :: String -> Term Name PLC.DefaultUni PLC.DefaultFun () -> TestTree
 goldenVsSimplified name =
