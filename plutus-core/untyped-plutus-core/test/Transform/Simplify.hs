@@ -192,6 +192,15 @@ inlineImpure4 =
   mkInlinePurityTest $
     Force () . Force () . Force () . Delay () . Delay () . Var () <$> freshName "a"
 
+{- | @(\x -> error x) (force ifThenElse)@.
+@x@ should be inlined since @force ifThenElse@ is pure.
+-}
+inline1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+inline1 = runQuote $ do
+  x <- freshName "x"
+  let xRhs = Force () (Builtin () PLC.IfThenElse)
+  pure $ Apply () (LamAbs () x (Apply () (Error ()) (Var () x))) xRhs
+
 {- | @(\a -> f (a 0 1) (a 2)) (\x y -> g x y)@
 
 The first occurrence of `a` should be inlined because doing so does not increase
@@ -264,5 +273,6 @@ test_simplify =
     , goldenVsSimplified "inlineImpure2" inlineImpure2
     , goldenVsSimplified "inlineImpure3" inlineImpure3
     , goldenVsSimplified "inlineImpure4" inlineImpure4
+    , goldenVsSimplified "inline1" inline1
     , goldenVsSimplified "multiApp" multiApp
     ]

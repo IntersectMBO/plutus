@@ -108,13 +108,19 @@ termEvaluationOrder = goTerm
         t@(Force _ dterm)        ->
           -- first delayed term
           goTerm dterm
-          -- then the whole term, which will mean forcing, so work
-          <> evalThis (EvalTerm Pure MaybeWork t)
+          <> evalThis (EvalTerm Pure workFreedom t)
           <> dest
           where
+            workFreedom = case dterm of
+              -- Forcing a builtin is workfree
+              Builtin{} -> WorkFree
+              -- Forcing a delayed term may not be workfree
+              _         -> MaybeWork
             dest = case dterm of
               -- known delayed term
               (Delay _ body) -> goTerm body
+              -- known builtin
+              bn@Builtin{}   -> goTerm bn
               -- unknown delayed term
               _              -> evalThis Unknown
 
