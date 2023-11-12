@@ -201,6 +201,15 @@ inline1 = runQuote $ do
   let xRhs = Force () (Builtin () PLC.IfThenElse)
   pure $ Apply () (LamAbs () x (Apply () (Error ()) (Var () x))) xRhs
 
+{- | @(\x -> error x) (force force (fstPair))@.
+@x@ should be inlined since @force force (fstPair)@ is pure.
+-}
+inline2 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+inline2 = runQuote $ do
+  x <- freshName "x"
+  let xRhs = Force () (Force () (Builtin () PLC.FstPair))
+  pure $ Apply () (LamAbs () x (Apply () (Error ()) (Var () x))) xRhs
+
 {- | @(\a -> f (a 0 1) (a 2)) (\x y -> g x y)@
 
 The first occurrence of `a` should be inlined because doing so does not increase
@@ -274,5 +283,6 @@ test_simplify =
     , goldenVsSimplified "inlineImpure3" inlineImpure3
     , goldenVsSimplified "inlineImpure4" inlineImpure4
     , goldenVsSimplified "inline1" inline1
+    , goldenVsSimplified "inline2" inline2
     , goldenVsSimplified "multiApp" multiApp
     ]

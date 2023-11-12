@@ -17,6 +17,7 @@ module UntypedPlutusCore.Purity
     ) where
 
 import PlutusCore.Pretty
+import UntypedPlutusCore.Core
 import UntypedPlutusCore.Core.Type
 
 import Data.DList qualified as DList
@@ -111,7 +112,7 @@ termEvaluationOrder = goTerm
           <> evalThis (EvalTerm Pure workFreedom t)
           <> dest
           where
-            workFreedom = case dterm of
+            workFreedom = case dtermInner of
               -- Forcing a builtin is workfree
               Builtin{} -> WorkFree
               -- Forcing a delayed term may not be workfree
@@ -119,10 +120,12 @@ termEvaluationOrder = goTerm
             dest = case dterm of
               -- known delayed term
               (Delay _ body) -> goTerm body
-              -- known builtin
-              bn@Builtin{}   -> goTerm bn
-              -- unknown delayed term
-              _              -> evalThis Unknown
+              _ -> case dtermInner of
+                -- known builtin. It is already accounted for in `goTerm dterm`, hence `mempty`.
+                Builtin{} -> mempty
+                -- unknown delayed term
+                _         -> evalThis Unknown
+            dtermInner = fst (splitForces dterm)
 
         t@(Constr _ _ ts)     ->
           -- first the arguments, in left-to-right order
