@@ -57,6 +57,7 @@ import Control.Monad.Reader
 import Control.Monad.State
 
 import Data.Bimap qualified as BM
+import Data.Hashable
 import Data.Map qualified as M
 import Data.Text qualified as T
 import Data.Word
@@ -102,7 +103,7 @@ the Num and write `DeBruijn (Index -1)`. This can be revisited when we implement
 -}
 newtype Index = Index Word64
   deriving stock (Generic)
-  deriving newtype (Show, Num, Enum, Real, Integral, Eq, Ord, Pretty, NFData, Read)
+  deriving newtype (Show, Num, Enum, Real, Integral, Eq, Ord, Hashable, Pretty, NFData, Read)
 
 -- | The LamAbs index (for debruijn indices) and the starting level of DeBruijn monad
 deBruijnInitIndex :: Index
@@ -113,7 +114,7 @@ deBruijnInitIndex = 0
 -- | A term name as a de Bruijn index.
 data NamedDeBruijn = NamedDeBruijn {ndbnString :: !T.Text, ndbnIndex :: !Index}
   deriving stock (Show, Generic, Read)
-  deriving anyclass (NFData)
+  deriving anyclass (Hashable, NFData)
 
 {-| A wrapper around `NamedDeBruijn` that *must* hold the invariant of name=`fakeName`.
 
@@ -123,7 +124,7 @@ but injection `ND->FND` is unsafe, thus they are not isomorphic.
 See NOTE: [Why newtype FakeNamedDeBruijn]
 -}
 newtype FakeNamedDeBruijn = FakeNamedDeBruijn { unFakeNamedDeBruijn :: NamedDeBruijn }
-  deriving newtype (Show, Eq, NFData, PrettyBy config)
+  deriving newtype (Show, Eq, Hashable, NFData, PrettyBy config)
 
 toFake :: DeBruijn -> FakeNamedDeBruijn
 toFake (DeBruijn ix) = FakeNamedDeBruijn $ NamedDeBruijn fakeName ix
@@ -142,7 +143,7 @@ instance Eq NamedDeBruijn where
 -- | A term name as a de Bruijn index, without the name string.
 newtype DeBruijn = DeBruijn {dbnIndex :: Index}
   deriving stock (Show, Generic, Eq)
-  deriving newtype (NFData)
+  deriving newtype (Hashable, NFData)
 
 -- | A type name as a de Bruijn index.
 newtype NamedTyDeBruijn = NamedTyDeBruijn NamedDeBruijn
