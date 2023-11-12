@@ -100,28 +100,6 @@ deriving via
   instance
     (PrettyDefaultBy config (AsReadable a)) => PrettyBy config (AsReadable a)
 
-newtype AsReadableWithUniques a = AsReadableWithUniques
-  { unAsReadableWithUniques :: a
-  }
-
-instance
-  (HasPrettyConfigName config, PrettyReadable a) =>
-  DefaultPrettyBy config (AsReadableWithUniques a)
-  where
-  defaultPrettyBy config (AsReadableWithUniques x) =
-    prettyBy (botPrettyConfigReadable (toPrettyConfigName config) def) x
-
-instance (PrettyReadable a) => Show (AsReadableWithUniques a) where
-  show = displayBy $ Sole debugPrettyConfigName
-
-instance (PrettyReadable a) => Pretty (AsReadableWithUniques a) where
-  pretty = viaShow
-
-deriving via
-  PrettyCommon (AsReadableWithUniques a)
-  instance
-    (PrettyDefaultBy config (AsReadableWithUniques a)) => PrettyBy config (AsReadableWithUniques a)
-
 -- | A value of type @a@ to render in parens using the readable pretty-printer.
 data Parened a = Parened
     { parenOpening :: String
