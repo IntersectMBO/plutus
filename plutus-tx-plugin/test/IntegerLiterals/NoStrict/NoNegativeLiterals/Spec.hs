@@ -1,15 +1,9 @@
-{-# LANGUAGE BangPatterns          #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NegativeLiterals      #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE BangPatterns       #-}
+{-# LANGUAGE DataKinds          #-}
+{-# LANGUAGE TemplateHaskell    #-}
 
-{-# LANGUAGE NoNegativeLiterals    #-}
-{-# LANGUAGE NoStrict              #-}
+{-# LANGUAGE NoNegativeLiterals #-}
+{-# LANGUAGE NoStrict           #-}
 
 -- | This module tests that integer literals are handled correctly, when both @Strict@
 -- and @NegativeLiterals@ are off. These two extensions affect the Core we get.

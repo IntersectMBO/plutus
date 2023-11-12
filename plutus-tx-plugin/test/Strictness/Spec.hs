@@ -1,9 +1,7 @@
-{-# LANGUAGE BangPatterns        #-}
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE Strict              #-}
-{-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE BangPatterns    #-}
+{-# LANGUAGE DataKinds       #-}
+{-# LANGUAGE Strict          #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Strictness.Spec where
 
