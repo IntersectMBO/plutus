@@ -18,7 +18,6 @@ module UntypedPlutusCore.Purity
 
 import PlutusCore.Pretty
 import UntypedPlutusCore.Core
-import UntypedPlutusCore.Core.Type
 
 import Data.DList qualified as DList
 import Prettyprinter
