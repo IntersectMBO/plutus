@@ -201,8 +201,8 @@ inline1 = runQuote $ do
   let xRhs = Force () (Builtin () PLC.IfThenElse)
   pure $ Apply () (LamAbs () x (Apply () (Error ()) (Var () x))) xRhs
 
-{- | @(\x -> error x) (force force (fstPair))@.
-@x@ should be inlined since @force force (fstPair)@ is pure.
+{- | @(\x -> error x) (force (force fstPair))@.
+@x@ should be inlined since @force (force fstPair)@ is pure.
 -}
 inline2 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 inline2 = runQuote $ do
