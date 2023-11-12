@@ -5,7 +5,7 @@
 {-# LANGUAGE NegativeLiterals #-}
 {-# LANGUAGE NoStrict         #-}
 
--- | This module tests that integer literals are handled correctly, when @Strict@ is off
+-- | This module tests that integer literals are handled correctly when @Strict@ is off
 -- and @NegativeLiterals@ is on. These two extensions affect the Core we get. When
 -- @NegativeLiterals@ is on, we can get @IN@ for negative integers.
 --
