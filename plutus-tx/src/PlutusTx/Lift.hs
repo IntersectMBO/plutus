@@ -72,16 +72,13 @@ safeLift
 safeLift v x = do
     pir <- liftQuote $ runDefT () $ Lift.lift x
     tcConfig <- PLC.getDefTypeCheckConfig $ Original ()
-    -- NOTE:  Disabling simplifier, as it takes a lot of time during runtime
     let ccConfig = toDefaultCompilationCtx tcConfig
-          & set (ccOpts . coMaxSimplifierIterations) 0
           -- This is a bit awkward as it makes the choice not configurable by the user. But it's already
           -- prety annoying passing in the version. We may eventually need to bite the bullet and provide a version
           -- that takes all the compilation options and everything.
           & set (ccOpts . coDatatypes . dcoStyle) (if v >= PLC.plcVersion110 then SumsOfProducts else ScottEncoding)
-        ucOpts = PLC.defaultCompilationOpts & PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations .~ 0
     plc <- flip runReaderT ccConfig $ compileProgram (Program () v pir)
-    uplc <- flip runReaderT ucOpts $ PLC.compileProgram plc
+    uplc <- flip runReaderT PLC.defaultCompilationOpts $ PLC.compileProgram plc
     (UPLC.Program _ _ db) <- traverseOf UPLC.progTerm UPLC.deBruijnTerm uplc
     pure $ (void pir, void db)
 
