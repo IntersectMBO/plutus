@@ -28,6 +28,7 @@ import Text.PrettyBy (PrettyBy)
 import Control.DeepSeq (NFData, rnf, rwhnf)
 import Data.ByteString (ByteString, length)
 import Data.Coerce (coerce)
+import Data.Hashable
 import Data.Proxy (Proxy (..))
 import Flat
 import Prettyprinter
@@ -50,6 +51,9 @@ instance Flat Element where
     size = size . compress
 instance NFData Element where
     rnf (Element x) = rwhnf x  -- Just to be on the safe side.
+
+instance Hashable Element where
+    hashWithSalt salt = hashWithSalt salt . compress
 
 -- | Add two G2 group elements
 {-# INLINE add #-}

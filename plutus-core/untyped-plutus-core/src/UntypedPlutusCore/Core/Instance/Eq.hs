@@ -1,6 +1,7 @@
 -- editorconfig-checker-disable-file
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
+{-# LANGUAGE ConstraintKinds      #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -19,10 +20,22 @@ import PlutusCore.Rename.Monad
 import Universe
 
 import Data.Foldable (for_)
+import Data.Hashable
 
 instance (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq ann) =>
             Eq (Term Name uni fun ann) where
     term1 == term2 = runEqRename $ eqTermM term1 term2
+
+type HashableTermConstraints uni fun ann =
+  ( GEq uni
+  , Closed uni
+  , uni `Everywhere` Eq
+  , uni `Everywhere` Hashable
+  , Hashable ann
+  , Hashable fun
+  )
+
+instance HashableTermConstraints uni fun ann => Hashable (Term Name uni fun ann)
 
 -- Simple Structural Equality of a `Term NamedDeBruijn`. This implies three things:
 -- a) We ignore the name part of the nameddebruijn
@@ -33,13 +46,19 @@ deriving stock instance
    (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq ann) =>
    Eq (Term NamedDeBruijn uni fun ann)
 
+instance HashableTermConstraints uni fun ann => Hashable (Term NamedDeBruijn uni fun ann)
+
 deriving stock instance
    (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq ann) =>
    Eq (Term FakeNamedDeBruijn uni fun ann)
 
+instance HashableTermConstraints uni fun ann => Hashable (Term FakeNamedDeBruijn uni fun ann)
+
 deriving stock instance
    (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq ann) =>
    Eq (Term DeBruijn uni fun ann)
+
+instance HashableTermConstraints uni fun ann => Hashable (Term DeBruijn uni fun ann)
 
 deriving stock instance (GEq uni, Closed uni, uni `Everywhere` Eq, Eq fun, Eq ann,
                   Eq (Term name uni fun ann)
