@@ -21,6 +21,7 @@ import Text.PrettyBy (PrettyBy, prettyBy)
 
 import Control.DeepSeq (NFData, rnf)
 import Data.Coerce (coerce)
+import Data.Hashable
 import Flat
 import Prettyprinter
 
@@ -48,6 +49,9 @@ instance Flat MlResult where
     size _ = id
 instance NFData MlResult where
     rnf _ = ()
+
+instance Hashable MlResult where
+    hashWithSalt salt = const salt
 
 millerLoop :: G1.Element -> G2.Element -> MlResult
 millerLoop = coerce BlstBindings.millerLoop
