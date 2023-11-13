@@ -1,18 +1,11 @@
-{-# LANGUAGE BangPatterns          #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE BangPatterns     #-}
+{-# LANGUAGE DataKinds        #-}
+{-# LANGUAGE TemplateHaskell  #-}
 
-{-# LANGUAGE NegativeLiterals      #-}
-{-# LANGUAGE NoStrict              #-}
+{-# LANGUAGE NegativeLiterals #-}
+{-# LANGUAGE NoStrict         #-}
 
-{-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
-
--- | This module tests that integer literals are handled correctly, when @Strict@ is off
+-- | This module tests that integer literals are handled correctly when @Strict@ is off
 -- and @NegativeLiterals@ is on. These two extensions affect the Core we get. When
 -- @NegativeLiterals@ is on, we can get @IN@ for negative integers.
 --
