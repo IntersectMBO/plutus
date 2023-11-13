@@ -27,7 +27,6 @@ module PlutusCore
     , GShow (..)
     , show
     , GEq (..)
-    , deriveGEq
     , HasUniApply (..)
     , checkStar
     , withApplicable

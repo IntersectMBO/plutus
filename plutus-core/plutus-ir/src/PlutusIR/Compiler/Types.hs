@@ -104,7 +104,7 @@ makeLenses ''CompilationOpts
 
 defaultCompilationOpts :: CompilationOpts a
 defaultCompilationOpts = CompilationOpts
-  { _coOptimize = True
+  { _coOptimize = True -- synonymous with max-simplifier-iterations=0
   , _coPedantic = False
   , _coVerbose = False
   , _coDebug = False

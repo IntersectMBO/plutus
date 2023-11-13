@@ -73,7 +73,7 @@ testCheckSc2 = testGroup "checkScriptContext2"
 
 testCheckScEquality :: TestTree
 testCheckScEquality = testGroup "checkScriptContextEquality"
-    [ testGroupGhc [ Tx.goldenBudget "checkScriptContexEqualityData-20" $
+    [ testGroupGhc [ Tx.goldenBudget "checkScriptContextEqualityData-20" $
                         mkScriptContextEqualityDataCode (mkScriptContext 20)
                    , Tx.goldenBudget "checkScriptContextEqualityTerm-20" $
                         mkScriptContextEqualityTermCode (mkScriptContext 20)
