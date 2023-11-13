@@ -28,8 +28,10 @@ import PlutusTx.AssocMap qualified as M
 import UntypedPlutusCore as UPLC
 
 import Control.Lens hiding (List)
+import Control.Monad.Primitive (PrimState)
 import Control.Monad.Writer.Strict
-import Data.List (intercalate)
+import Data.List (find, intercalate)
+import Data.Primitive.PrimArray qualified as P
 import Data.SatInt (fromSatInt)
 import System.Directory.Extra (listFiles)
 import System.Environment (getArgs, getProgName)
@@ -244,22 +246,6 @@ analyseDatum _ctx _params ev = do
             [_r,_c]    -> pure ()
             l          -> printf "* Unexpected number of V2 script arguments: %d" (length l)
 
--- Extract the script from an evaluation event and apply some analysis function
-analyseUnappliedScript
-    :: (Term NamedDeBruijn DefaultUni DefaultFun () -> IO ())
-    -> EventAnalyser
-analyseUnappliedScript analyse _ctx _params ev = do
-  case ev of
-      PlutusV1Event ScriptEvaluationData{..} _expected ->
-          go $ deserialiseScript PlutusV1 dataProtocolVersion dataScript
-      PlutusV2Event ScriptEvaluationData{..} _expected ->
-          go $ deserialiseScript PlutusV2 dataProtocolVersion dataScript
-    where go = \case
-               Left err -> putStrLn $ show err
-               Right s ->
-                   let ScriptNamedDeBruijn (Program _ _ t) = deserialisedScript s
-                   in analyse t
-
 -- Print statistics about Data objects in a Term
 analyseTermDataObjects :: Term NamedDeBruijn DefaultUni DefaultFun () -> IO ()
 analyseTermDataObjects = go
@@ -278,6 +264,59 @@ analyseTermDataObjects = go
                Error _            -> pure ()
                UPLC.Constr _ _ ts -> mapM_ go ts
                Case _ t1 t2       -> go t1 >> mapM_ go t2
+
+
+-- Counting builtins
+
+type BuiltinCounts = P.MutablePrimArray (PrimState IO) Int
+
+incrCount :: BuiltinCounts -> Int -> IO ()
+incrCount counts b = do
+  c <- P.readPrimArray counts b
+  P.writePrimArray counts b (c+1)
+
+countBuiltinsInTerm :: BuiltinCounts -> Term NamedDeBruijn DefaultUni DefaultFun () -> IO ()
+countBuiltinsInTerm counts = go
+    where go = \case
+               Var _ _            -> pure ()
+               LamAbs _ _ t       -> go t
+               Apply _ t1 t2      -> go t1 >> go t2
+               Force _ t          -> go t
+               Delay _ t          -> go t
+               Constant _ _       -> pure ()
+               Builtin _ b        -> incrCount counts (fromEnum b)
+               Error _            -> pure ()
+               UPLC.Constr _ _ ts -> mapM_ go ts
+               Case _ t1 t2       -> go t1 >> mapM_ go t2
+
+-- The other analyses just print out results as they proceed.  It's a little
+-- more complicated here because we have to accumulate the results and print
+-- them out at the end.
+countBuiltins :: [FilePath] -> IO ()
+countBuiltins eventFiles = do
+  let numBuiltins = fromEnum (maxBound :: DefaultFun) - fromEnum (minBound :: DefaultFun) + 1
+  counts <- P.newPrimArray numBuiltins
+  P.setPrimArray counts 0 numBuiltins 0
+  mapM_ (analyseOneFile (analyseUnappliedScript (countBuiltinsInTerm counts))) eventFiles
+  finalCounts <- P.freezePrimArray counts 0 numBuiltins
+  P.itraversePrimArray_ printEntry finalCounts
+    where printEntry i c = printf "%-35s %d\n" (show (toEnum i :: DefaultFun)) c
+
+-- Extract the script from an evaluation event and apply some analysis function
+analyseUnappliedScript
+    :: (Term NamedDeBruijn DefaultUni DefaultFun () -> IO ())
+    -> EventAnalyser
+analyseUnappliedScript analyse _ctx _params ev = do
+  case ev of
+      PlutusV1Event ScriptEvaluationData{..} _expected ->
+          go $ deserialiseScript PlutusV1 dataProtocolVersion dataScript
+      PlutusV2Event ScriptEvaluationData{..} _expected ->
+          go $ deserialiseScript PlutusV2 dataProtocolVersion dataScript
+    where go = \case
+               Left err -> putStrLn $ show err
+               Right s ->
+                   let ScriptNamedDeBruijn (Program _ _ t) = deserialisedScript s
+                   in analyse t
 
 -- | Run some analysis function over the events from a single event dump file
 analyseOneFile
@@ -317,10 +356,26 @@ analyseOneFile analyse eventFile = do
 main :: IO ()
 main =
     let analyses =
-            [ ("values",      doAnalysis analyseScriptContext)
-            , ("redeemers" ,  printDataHeader `thenDoAnalysis` analyseRedeemer)
-            , ("datums",      printDataHeader `thenDoAnalysis` analyseDatum)
-            , ("script-data", printDataHeader `thenDoAnalysis` analyseUnappliedScript analyseTermDataObjects)
+            [ ( "values"
+              , "analyse shapes of Values"
+              , doAnalysis analyseScriptContext
+              )
+            , ( "redeemers"
+               , "print statistics about redeemer Data objects"
+               , printDataHeader `thenDoAnalysis` analyseRedeemer
+              )
+            , ( "datums"
+              , "print statistics about datum Data objects"
+              , printDataHeader `thenDoAnalysis` analyseDatum
+              )
+            , ( "script-data"
+              , "print statistics about Data objects in validator scripts"
+              , printDataHeader `thenDoAnalysis` analyseUnappliedScript analyseTermDataObjects
+              )
+            , ( "count-builtins"
+              , "count the total number of times each builtin is mentioned in validator scripts"
+              , countBuiltins
+              )
             ]
 
         doAnalysis analyser = mapM_ (analyseOneFile analyser)
@@ -328,16 +383,16 @@ main =
 
         usage = do
           getProgName >>= hPrintf stderr "Usage: %s <dir> <analysis>\n"
-          hPrintf stderr"Avaliable analyses:\n"
-          mapM_ (hPrintf stderr "   %s\n") (fmap fst analyses)
+          hPrintf stderr "Avaliable analyses:\n"
+          mapM_ printDescription analyses
+              where printDescription (n,h,_) = hPrintf stderr "   %-16s: %s\n" n h
 
     in getArgs >>= \case
            [dir, name] ->
-               case lookup name analyses of
+               case find (\(n,_,_) -> n == name) analyses of
                     Nothing       -> printf "Unknown analysis: %s\n" name >> usage
-                    Just analysis ->
+                    Just (_,_,analysis) ->
                         filter ("event" `isExtensionOf`) <$> listFiles dir >>= \case
                                    []         -> printf "No event files in %s\n" dir
                                    eventFiles -> analysis eventFiles
            _ -> usage
-
