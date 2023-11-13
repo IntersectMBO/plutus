@@ -60,6 +60,7 @@ import Data.Dependent.Sum
 import Data.GADT.Compare
 import Data.GADT.DeepSeq
 import Data.GADT.Show
+import Data.Hashable
 import Data.Kind
 import Data.Proxy
 import Data.Some.Newtype
@@ -793,3 +794,15 @@ instance Closed uni => NFData (SomeTypeIn uni) where
 
 instance (Closed uni, uni `Everywhere` NFData) => NFData (ValueOf uni a) where
     rnf = grnf
+
+instance (Closed uni, GEq uni) => Hashable (SomeTypeIn uni) where
+    hashWithSalt salt (SomeTypeIn uni) = hashWithSalt salt $ encodeUni uni
+
+instance (Closed uni, GEq uni, uni `Everywhere` Eq, uni `Everywhere` Hashable) =>
+        Hashable (ValueOf uni a) where
+    hashWithSalt salt (ValueOf uni x) =
+        bring (Proxy @Hashable) uni $ hashWithSalt salt (SomeTypeIn uni, x)
+
+instance (Closed uni, GEq uni, uni `Everywhere` Eq, uni `Everywhere` Hashable) =>
+        Hashable (Some (ValueOf uni)) where
+    hashWithSalt salt (Some s) = hashWithSalt salt s
