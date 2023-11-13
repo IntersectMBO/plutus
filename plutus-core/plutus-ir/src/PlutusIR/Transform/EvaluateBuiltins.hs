@@ -37,18 +37,19 @@ evaluateBuiltins conservative binfo costModel = transformOf termSubterms process
       -> Maybe (Term tyname name uni fun ())
     eval (BuiltinResult _ getX) AppContextEnd =
         case getX of
-            MakeKnownSuccess _v           -> Just undefined
+            MakeKnownSuccess (HeadSpine f xs) -> Just $ foldl (Apply ()) f xs
             -- Evaluates successfully, but does logging. If we're being conservative
             -- then we should leave these in, so we don't remove people's logging!
             -- Otherwise `trace "hello" x` is a prime candidate for evaluation!
-            MakeKnownSuccessWithLogs _ _v -> if conservative then Nothing else Just undefined
+            MakeKnownSuccessWithLogs _ (HeadSpine f xs) ->
+                if conservative then Nothing else Just $ foldl (Apply ()) f xs
             -- Evaluation failure. This can mean that the evaluation legitimately
             -- failed (e.g. `divideInteger 1 0`), or that it failed because the
             -- argument terms are not currently in the right form (because they're
             -- not evaluated, we're in the middle of a term here!). Since we can't
             -- distinguish these, we have to assume it's the latter case and just leave
             -- things alone.
-            MakeKnownFailure{}            -> Nothing
+            MakeKnownFailure{} -> Nothing
     eval (BuiltinExpectArgument toRuntime) (TermAppContext arg _ ctx) =
         -- Builtin evaluation does not work with annotations, so we have to throw
         -- the argument annotation away here

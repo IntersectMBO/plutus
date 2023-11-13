@@ -6,17 +6,7 @@ let
     Just : a -> Maybe a
     Nothing : Maybe a
   !ifThenElse : all a. bool -> a -> a -> a = ifThenElse
-  !chooseData : all a. data -> a -> a -> a -> a -> a -> a = chooseData
-  !fst : all a b. pair a b -> a = fstPair
-  data Unit | Unit_match where
-    Unit : Unit
-  !snd : all a b. pair a b -> b = sndPair
-  !unsafeDataAsB : data -> bytestring = unBData
-  !unsafeDataAsConstr : data -> pair integer (list data) = unConstrData
-  !unsafeDataAsI : data -> integer = unIData
-  !unsafeDataAsList : data -> list data = unListData
-  !unsafeDataAsMap : data -> list (pair data data) = unMapData
-  ~matchData' :
+  !matchData' :
      all r.
        data ->
        (integer -> list data -> r) ->
@@ -25,47 +15,9 @@ let
        (integer -> r) ->
        (bytestring -> r) ->
        r
-    = /\r ->
-        \(d : data) ->
-          let
-            !d : data = d
-          in
-          \(constrCase : integer -> list data -> r) ->
-            let
-              !constrCase : integer -> list data -> r = constrCase
-            in
-            \(mapCase : list (pair data data) -> r) ->
-              let
-                !mapCase : list (pair data data) -> r = mapCase
-              in
-              \(listCase : list data -> r) ->
-                let
-                  !listCase : list data -> r = listCase
-                in
-                \(iCase : integer -> r) ->
-                  let
-                    !iCase : integer -> r = iCase
-                  in
-                  \(bCase : bytestring -> r) ->
-                    let
-                      !bCase : bytestring -> r = bCase
-                    in
-                    chooseData
-                      {Unit -> r}
-                      d
-                      (\(ds : Unit) ->
-                         let
-                           !tup : pair integer (list data)
-                             = unsafeDataAsConstr d
-                         in
-                         constrCase
-                           (fst {integer} {list data} tup)
-                           (snd {integer} {list data} tup))
-                      (\(ds : Unit) -> mapCase (unsafeDataAsMap d))
-                      (\(ds : Unit) -> listCase (unsafeDataAsList d))
-                      (\(ds : Unit) -> iCase (unsafeDataAsI d))
-                      (\(ds : Unit) -> bCase (unsafeDataAsB d))
-                      Unit
+    = caseData
+  data Unit | Unit_match where
+    Unit : Unit
   !chooseList : all a b. list a -> b -> b -> b = chooseList
   !head : all a. list a -> a = headList
   !tail : all a. list a -> list a = tailList

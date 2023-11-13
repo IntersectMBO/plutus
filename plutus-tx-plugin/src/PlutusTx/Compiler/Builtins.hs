@@ -231,6 +231,7 @@ builtinNames = [
 
     , ''Builtins.BuiltinData
     , 'Builtins.chooseData
+    , 'Builtins.matchData'
     , 'Builtins.equalsData
     , 'Builtins.serialiseData
     , 'Builtins.mkConstr
@@ -387,6 +388,7 @@ defineBuiltinTerms = do
 
     -- Data
     defineBuiltinTerm annMayInline 'Builtins.chooseData         $ mkBuiltin PLC.ChooseData
+    defineBuiltinTerm annMayInline 'Builtins.matchData'         $ mkBuiltin PLC.CaseData
     defineBuiltinTerm annMayInline 'Builtins.equalsData         $ mkBuiltin PLC.EqualsData
     defineBuiltinTerm annMayInline 'Builtins.mkConstr           $ mkBuiltin PLC.ConstrData
     defineBuiltinTerm annMayInline 'Builtins.mkMap              $ mkBuiltin PLC.MapData
