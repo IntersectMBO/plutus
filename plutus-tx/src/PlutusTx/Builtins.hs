@@ -106,7 +106,6 @@ module PlutusTx.Builtins (
                          ) where
 
 import Data.Maybe
-import PlutusTx.Base (const)
 import PlutusTx.Bool (Bool (..))
 import PlutusTx.Builtins.Class
 import PlutusTx.Builtins.Internal (BuiltinBLS12_381_G1_Element (..),
@@ -380,7 +379,7 @@ encodeUtf8 = BI.encodeUtf8
 
 {-# INLINABLE matchList #-}
 matchList :: forall a r . BI.BuiltinList a -> r -> (a -> BI.BuiltinList a -> r) -> r
-matchList l nilCase consCase = BI.chooseList l (const nilCase) (\_ -> consCase (BI.head l) (BI.tail l)) ()
+matchList l nilCase consCase = BI.matchList l (\_ -> nilCase) (\x xs _ -> consCase x xs) ()
 
 {-# INLINE uncons #-}
 -- | Uncons a builtin list, failing if the list is empty, useful in patterns.

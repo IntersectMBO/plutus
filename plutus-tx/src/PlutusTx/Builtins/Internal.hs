@@ -401,6 +401,11 @@ chooseList :: BuiltinList a -> b -> b-> b
 chooseList (BuiltinList [])    b1 _ = b1
 chooseList (BuiltinList (_:_)) _ b2 = b2
 
+{-# NOINLINE matchList #-}
+matchList :: forall a r . BuiltinList a -> r -> (a -> BuiltinList a -> r) -> r
+matchList (BuiltinList [])       nilCase _        = nilCase
+matchList (BuiltinList (x : xs)) _       consCase = consCase x (BuiltinList xs)
+
 {-# NOINLINE mkNilData #-}
 mkNilData :: BuiltinUnit -> BuiltinList BuiltinData
 mkNilData _ = BuiltinList []
