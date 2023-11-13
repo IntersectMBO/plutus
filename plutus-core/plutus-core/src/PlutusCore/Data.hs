@@ -22,6 +22,7 @@ import Data.ByteString qualified as BS
 import Data.ByteString.Base64 qualified as Base64
 import Data.ByteString.Lazy qualified as BSL
 import Data.Data qualified
+import Data.Hashable
 import Data.Text.Encoding qualified as Text
 import Data.Word (Word64, Word8)
 import GHC.Generics
@@ -44,7 +45,7 @@ data Data =
     | I Integer
     | B BS.ByteString
     deriving stock (Show, Eq, Ord, Generic, Data.Data.Data)
-    deriving anyclass (NFData, NoThunks)
+    deriving anyclass (Hashable, NFData, NoThunks)
 
 instance Pretty Data where
     pretty = \case
