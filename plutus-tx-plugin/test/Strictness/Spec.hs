@@ -1,10 +1,7 @@
-{-# LANGUAGE BangPatterns        #-}
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE Strict              #-}
-{-# LANGUAGE TemplateHaskell     #-}
-{-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
+{-# LANGUAGE BangPatterns    #-}
+{-# LANGUAGE DataKinds       #-}
+{-# LANGUAGE Strict          #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Strictness.Spec where
 

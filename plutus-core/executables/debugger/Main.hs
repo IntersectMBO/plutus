@@ -56,6 +56,7 @@ import Data.Text (Text)
 import Data.Traversable
 import GHC.IO (stToIO)
 import Graphics.Vty qualified as Vty
+import Graphics.Vty.CrossPlatform qualified as Vty
 import Lens.Micro
 import Options.Applicative qualified as OA
 import Text.Megaparsec as MP

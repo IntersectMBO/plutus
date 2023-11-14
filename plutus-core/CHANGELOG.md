@@ -1,4 +1,19 @@
 
+<a id='changelog-1.16.0.0'></a>
+# 1.16.0.0 — 2023-11-10
+
+## Removed
+
+- A `GCompare` instance for `DefaultUni` in #5609.
+
+## Added
+
+- A new pass in the simplifier that rewrites PIR terms given user-provided rules.
+  It behaves similar to GHC's RULES, but for the PIR language.
+  By default, a pre-defined set of rules are applied when the PIR simplifier is enabled.
+
+- A PIR rewrite rule for optimizing ""(unconstr . constrdata)"
+
 <a id='changelog-1.15.0'></a>
 # 1.15.0 — 2023-10-16
 

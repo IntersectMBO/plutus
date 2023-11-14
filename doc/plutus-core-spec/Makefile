@@ -46,4 +46,3 @@ clean2: clean
 
 v: ${PDF}
 	${PDFVIEWER} ${PDF} 2>/dev/null &
-

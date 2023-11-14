@@ -43,7 +43,8 @@ module PlutusLedgerApi.V3 (
   ExBudget (..),
   V2.ExCPU (..),
   V2.ExMemory (..),
-  V2.SatInt,
+  V2.SatInt (V2.unSatInt),
+  V2.fromSatInt,
 
   -- ** Cost model
   EvaluationContext,

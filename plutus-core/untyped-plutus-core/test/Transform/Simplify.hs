@@ -231,7 +231,7 @@ goldenVsPretty :: (PrettyPlc a) => String -> String -> a -> TestTree
 goldenVsPretty extn name value =
   goldenVsString name ("untyped-plutus-core/test/Transform/" ++ name ++ extn) $
     pure . BSL.fromStrict . encodeUtf8 . render $
-      prettyPlcClassicDebug value
+      prettyPlcReadableDebug value
 
 goldenVsSimplified :: String -> Term Name PLC.DefaultUni PLC.DefaultFun () -> TestTree
 goldenVsSimplified name =

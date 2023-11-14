@@ -1,19 +1,11 @@
-{-# LANGUAGE BangPatterns          #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NegativeLiterals      #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE BangPatterns       #-}
+{-# LANGUAGE DataKinds          #-}
+{-# LANGUAGE TemplateHaskell    #-}
 
-{-# LANGUAGE NoNegativeLiterals    #-}
-{-# LANGUAGE NoStrict              #-}
+{-# LANGUAGE NoNegativeLiterals #-}
+{-# LANGUAGE NoStrict           #-}
 
-{-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
-
--- | This module tests that integer literals are handled correctly, when both @Strict@
+-- | This module tests that integer literals are handled correctly when both @Strict@
 -- and @NegativeLiterals@ are off. These two extensions affect the Core we get.
 --
 -- See Note [Running PIR and UPLC Simplifiers in Integer literals Tests].
