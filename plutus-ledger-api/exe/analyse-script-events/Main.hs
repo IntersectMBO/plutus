@@ -298,7 +298,7 @@ countBuiltins eventFiles = do
   mapM_ (analyseOneFile (analyseUnappliedScript (countBuiltinsInTerm counts))) eventFiles
   finalCounts <- P.freezePrimArray counts 0 numBuiltins
   P.itraversePrimArray_ printEntry finalCounts
-    where printEntry i c = printf "%-35s %d\n" (show (toEnum i :: DefaultFun)) c
+    where printEntry i c = printf "%-35s %12d\n" (show (toEnum i :: DefaultFun)) c
 
 -- Extract the script from an evaluation event and apply some analysis function
 analyseUnappliedScript
