@@ -13,7 +13,7 @@ jobs:
     if: contains(fromJson('["cancelled", "failure"]'), github.event.workflow_job.status)
     steps:
       - name: Prepare Slack Message
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         id: prepare-slack-message
         with:
           script: | 
