@@ -270,11 +270,6 @@ analyseTermDataObjects = go
 
 type BuiltinCounts = P.MutablePrimArray (PrimState IO) Int
 
-incrCount :: BuiltinCounts -> Int -> IO ()
-incrCount counts b = do
-  c <- P.readPrimArray counts b
-  P.writePrimArray counts b (c+1)
-
 countBuiltinsInTerm :: BuiltinCounts -> Term NamedDeBruijn DefaultUni DefaultFun () -> IO ()
 countBuiltinsInTerm counts = go
     where go = \case
@@ -284,10 +279,13 @@ countBuiltinsInTerm counts = go
                Force _ t          -> go t
                Delay _ t          -> go t
                Constant _ _       -> pure ()
-               Builtin _ b        -> incrCount counts (fromEnum b)
+               Builtin _ b        -> incrCount $ fromEnum b
                Error _            -> pure ()
                UPLC.Constr _ _ ts -> mapM_ go ts
                Case _ t1 t2       -> go t1 >> mapM_ go t2
+          incrCount i = do
+            c <- P.readPrimArray counts i
+            P.writePrimArray counts i (c+1)
 
 -- The other analyses just print out results as they proceed.  It's a little
 -- more complicated here because we have to accumulate the results and print
@@ -295,7 +293,7 @@ countBuiltinsInTerm counts = go
 countBuiltins :: [FilePath] -> IO ()
 countBuiltins eventFiles = do
   let numBuiltins = fromEnum (maxBound :: DefaultFun) - fromEnum (minBound :: DefaultFun) + 1
-  counts <- P.newPrimArray numBuiltins
+  counts :: BuiltinCounts <- P.newPrimArray numBuiltins
   P.setPrimArray counts 0 numBuiltins 0
   mapM_ (analyseOneFile (analyseUnappliedScript (countBuiltinsInTerm counts))) eventFiles
   finalCounts <- P.freezePrimArray counts 0 numBuiltins
@@ -373,7 +371,7 @@ main =
               , printDataHeader `thenDoAnalysis` analyseUnappliedScript analyseTermDataObjects
               )
             , ( "count-builtins"
-              , "count the total number of times each builtin is mentioned in validator scripts"
+              , "count the total number of occurrences of each builtin in validator scripts"
               , countBuiltins
               )
             ]
