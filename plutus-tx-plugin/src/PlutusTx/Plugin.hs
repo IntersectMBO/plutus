@@ -512,6 +512,10 @@ runCompiler moduleName opts expr = do
         plcOpts = PLC.defaultCompilationOpts
             & set (PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations)
                 (opts ^. posMaxSimplifierIterationsUPlc)
+            & set (PLC.coSimplifyOpts . UPLC.soMaxCseIterations)
+                (opts ^. posMaxCseIterations)
+            & set (PLC.coSimplifyOpts . UPLC.soConservativeOpts)
+                (opts ^. posConservativeOpts)
             & set (PLC.coSimplifyOpts . UPLC.soInlineHints) hints
 
     -- GHC.Core -> Pir translation.

@@ -1,0 +1,12 @@
+(\x_2 y_3 ->
+   (\cse_4 ->
+      (\cse_5 ->
+         addInteger
+           cse_5
+           (case
+              y_4
+              [ (addInteger cse_5 (addInteger 3 x_5))
+              , (addInteger cse_4 (addInteger 3 x_5))
+              , (addInteger 4 x_5) ]))
+        (addInteger 1 cse_4))
+     (addInteger 2 x_2))

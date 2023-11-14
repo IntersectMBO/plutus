@@ -226,6 +226,35 @@ multiApp = runQuote $ do
       app = mkIterAppNoAnn lam [mkConstant @Integer () 1, mkConstant @Integer () 2, mkConstant @Integer () 3]
   pure app
 
+-- | This is the first example in Note [CSE].
+cse1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+cse1 = runQuote $ do
+  x <- freshName "x"
+  y <- freshName "y"
+  let plus a b = mkIterApp (Builtin () PLC.AddInteger) [((), a), ((), b)]
+      body = plus onePlusTwoPlusX caseExpr
+      con = mkConstant @Integer ()
+      twoPlusX = plus (con 2) (Var () x)
+      onePlusTwoPlusX = plus (con 1) twoPlusX
+      threePlusX = plus (con 3) (Var () x)
+      fourPlusX = plus (con 4) (Var () x)
+      branch1 = plus onePlusTwoPlusX threePlusX
+      branch2 = plus twoPlusX threePlusX
+      branch3 = fourPlusX
+      caseExpr = Case () (Var () y) [branch1, branch2, branch3]
+  pure $ LamAbs () x (LamAbs () y body)
+
+-- | This is the second example in Note [CSE].
+cse2 :: Term Name DefaultUni DefaultFun ()
+cse2 = Force () (Force () body)
+  where
+    plus a b = mkIterApp (Builtin () PLC.AddInteger) [((), a), ((), b)]
+    con = mkConstant @Integer ()
+    body = mkIterApp (Builtin () PLC.IfThenElse) [((), cond), ((), true), ((), false)]
+    cond = Apply () (Apply () (Builtin () PLC.LessThanInteger) (con 0)) (con 0)
+    true = Delay () (plus (plus (con 1) (con 2)) (plus (con 1) (con 2)))
+    false = Delay () (plus (con 1) (con 2))
+
 -- TODO Fix duplication with other golden tests, quite annoying
 goldenVsPretty :: (PrettyPlc a) => String -> String -> a -> TestTree
 goldenVsPretty extn name value =
@@ -237,8 +266,23 @@ goldenVsSimplified :: String -> Term Name PLC.DefaultUni PLC.DefaultFun () -> Te
 goldenVsSimplified name =
   goldenVsPretty ".uplc.golden" name
     . PLC.runQuote
-    -- Just run one iteration, to see what that does
-    . simplifyTerm (defaultSimplifyOpts & soMaxSimplifierIterations .~ 1)
+    . simplifyTerm
+      ( defaultSimplifyOpts
+          -- Just run one iteration, to see what that does
+          & soMaxSimplifierIterations .~ 1
+          & soMaxCseIterations .~ 0
+      )
+
+goldenVsCse :: String -> Term Name PLC.DefaultUni PLC.DefaultFun () -> TestTree
+goldenVsCse name =
+  goldenVsPretty ".uplc.golden" name
+    . PLC.runQuote
+    . simplifyTerm
+      ( defaultSimplifyOpts
+          -- Just run one iteration, to see what that does
+          & soMaxSimplifierIterations .~ 0
+          & soMaxCseIterations .~ 1
+      )
 
 test_simplify :: TestTree
 test_simplify =
@@ -265,4 +309,6 @@ test_simplify =
     , goldenVsSimplified "inlineImpure3" inlineImpure3
     , goldenVsSimplified "inlineImpure4" inlineImpure4
     , goldenVsSimplified "multiApp" multiApp
+    , goldenVsCse "cse1" cse1
+    , goldenVsCse "cse2" cse2
     ]

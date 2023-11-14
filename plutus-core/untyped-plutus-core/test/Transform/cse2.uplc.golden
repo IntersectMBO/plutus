@@ -1,0 +1,6 @@
+(force
+   (force
+      (ifThenElse
+         (lessThanInteger 0 0)
+         (delay ((\cse_1 -> addInteger cse_1 cse_1) (addInteger 1 2)))
+         (delay (addInteger 1 2)))))

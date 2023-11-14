@@ -1,0 +1,34 @@
+program
+  1.1.0
+  (\d ->
+     (\ds ->
+        (\addInteger ->
+           addInteger
+             (addInteger
+                (addInteger
+                   (case ds [(\x y z w -> x)])
+                   (case ds [(\x y z w -> y)]))
+                (case ds [(\x y z w -> z)])))
+          (\x y -> addInteger x y)
+          (case ds [(\x y z w -> w)]))
+       ((\tup ->
+           force
+             (force ifThenElse
+                (equalsInteger 0 (force (force fstPair) tup))
+                (delay
+                   ((\l ->
+                       (\l ->
+                          (\l ->
+                             (\z w ->
+                                constr 0
+                                  [ (unIData (force headList l))
+                                  , (unIData (force headList l))
+                                  , z
+                                  , w ])
+                               (unIData (force headList l))
+                               (unIData (force headList (force tailList l))))
+                            (force tailList l))
+                         (force tailList l))
+                      (force (force sndPair) tup)))
+                (delay error)))
+          (unConstrData d)))

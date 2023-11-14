@@ -47,7 +47,7 @@ common lang
     -fno-specialise -fno-spec-constr -fno-ignore-interface-pragmas
     -fno-omit-interface-pragmas -fno-strictness
     -fno-unbox-strict-fields -fno-unbox-small-strict-fields
-    -fno-full-laziness
+    -fno-full-laziness -fforce-recomp
 
   ghc-options:
     -Wall -Wnoncanonical-monad-instances -Wincomplete-uni-patterns

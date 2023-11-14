@@ -4,5 +4,5 @@ program
      force
        (force ifThenElse
           (lessThanInteger m 0)
-          (delay ((\n -> addInteger (force n) (force n)) (delay (error m))))
+          (delay ((\cse -> addInteger cse cse) (error m)))
           (delay m)))

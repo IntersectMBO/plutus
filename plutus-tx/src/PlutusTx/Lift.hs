@@ -50,6 +50,7 @@ import Control.Monad.Except (ExceptT, MonadError, liftEither, runExceptT)
 import Control.Monad.Reader (runReaderT)
 import Data.Bifunctor
 import Data.Default.Class
+import Data.Hashable
 import Data.Proxy
 
 -- We do not use qualified import because the whole module contains off-chain code
@@ -67,6 +68,7 @@ safeLift
        , Default (PLC.CostingPart uni fun)
        , Default (PIR.BuiltinsInfo uni fun)
        , Default (PIR.RewriteRules uni fun)
+       , Hashable fun
        )
     => PLC.Version -> a -> m (PIR.Term PLC.TyName PLC.Name uni fun (), UPLC.Term UPLC.NamedDeBruijn uni fun ())
 safeLift v x = do
@@ -79,7 +81,9 @@ safeLift v x = do
           -- prety annoying passing in the version. We may eventually need to bite the bullet and provide a version
           -- that takes all the compilation options and everything.
           & set (ccOpts . coDatatypes . dcoStyle) (if v >= PLC.plcVersion110 then SumsOfProducts else ScottEncoding)
-        ucOpts = PLC.defaultCompilationOpts & PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations .~ 0
+        ucOpts = PLC.defaultCompilationOpts
+          & PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations .~ 0
+          & PLC.coSimplifyOpts . UPLC.soMaxCseIterations .~ 0
     plc <- flip runReaderT ccConfig $ compileProgram (Program () v pir)
     uplc <- flip runReaderT ucOpts $ PLC.compileProgram plc
     (UPLC.Program _ _ db) <- traverseOf UPLC.progTerm UPLC.deBruijnTerm uplc
@@ -97,6 +101,7 @@ safeLiftProgram
        , Default (PLC.CostingPart uni fun)
        , Default (PIR.BuiltinsInfo uni fun)
        , Default (PIR.RewriteRules uni fun)
+       , Hashable fun
        )
     => PLC.Version -> a -> m (PIR.Program PLC.TyName PLC.Name uni fun (), UPLC.Program UPLC.NamedDeBruijn uni fun ())
 safeLiftProgram v x = bimap (PIR.Program () v) (UPLC.Program () v) <$> safeLift v x
@@ -112,6 +117,7 @@ safeLiftCode
        , Default (PLC.CostingPart uni fun)
        , Default (PIR.BuiltinsInfo uni fun)
        , Default (PIR.RewriteRules uni fun)
+       , Hashable fun
        )
     => PLC.Version -> a -> m (CompiledCodeIn uni fun a)
 safeLiftCode v =
@@ -136,6 +142,7 @@ lift
        , Default (PLC.CostingPart uni fun)
        , Default (PIR.BuiltinsInfo uni fun)
        , Default (PIR.RewriteRules uni fun)
+       , Hashable fun
        )
     => PLC.Version -> a -> (PIR.Term PLC.TyName PLC.Name uni fun (), UPLC.Term UPLC.NamedDeBruijn uni fun ())
 lift v a = unsafely $ safeLift v a
@@ -146,6 +153,7 @@ liftProgram
        , Default (PLC.CostingPart uni fun)
        , Default (PIR.BuiltinsInfo uni fun)
        , Default (PIR.RewriteRules uni fun)
+       , Hashable fun
        )
     => PLC.Version -> a -> (PIR.Program PLC.TyName PLC.Name uni fun (), UPLC.Program UPLC.NamedDeBruijn uni fun ())
 liftProgram v x = unsafely $ safeLiftProgram v x
@@ -162,6 +170,7 @@ liftCode
        , Default (PLC.CostingPart uni fun)
        , Default (PIR.BuiltinsInfo uni fun)
        , Default (PIR.RewriteRules uni fun)
+       , Hashable fun
        )
     => PLC.Version -> a -> CompiledCodeIn uni fun a
 liftCode v x = unsafely $ safeLiftCode v x
@@ -172,6 +181,7 @@ liftCodeDef
        , Default (PLC.CostingPart uni fun)
        , Default (PIR.BuiltinsInfo uni fun)
        , Default (PIR.RewriteRules uni fun)
+       , Hashable fun
        )
     => a -> CompiledCodeIn uni fun a
 liftCodeDef = liftCode PLC.latestVersion
@@ -246,6 +256,7 @@ typeCode
        , Default (PLC.CostingPart uni fun)
        , Default (PIR.BuiltinsInfo uni fun)
        , Default (PIR.RewriteRules uni fun)
+       , Hashable fun
        )
     => Proxy a
     -> PLC.Program PLC.TyName PLC.Name uni fun ()

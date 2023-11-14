@@ -1,0 +1,31 @@
+program
+  1.1.0
+  (\d ->
+     (\cse ->
+        (\x ->
+           (\y ->
+              (\z ->
+                 (\w -> addInteger (addInteger (addInteger x y) z) w)
+                   (cse (\ds ds ds ds -> ds) (\void -> error)))
+                (cse (\ds ds ds ds -> ds) (\void -> error)))
+             (cse (\ds ds ds ds -> ds) (\void -> error)))
+          (cse (\ds ds ds ds -> ds) (\void -> error)))
+       (\cont fail ->
+          (\tup ->
+             force
+               (force ifThenElse
+                  (equalsInteger 0 (force (force fstPair) tup))
+                  (delay
+                     ((\l ->
+                         (\l ->
+                            (\l ->
+                               cont
+                                 (unIData (force headList l))
+                                 (unIData (force headList l))
+                                 (unIData (force headList l))
+                                 (unIData (force headList (force tailList l))))
+                              (force tailList l))
+                           (force tailList l))
+                        (force (force sndPair) tup)))
+                  (delay (fail ()))))
+            (unConstrData d)))

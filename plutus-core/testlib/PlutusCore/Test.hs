@@ -74,6 +74,7 @@ import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State
 import Data.Either.Extras
+import Data.Hashable
 import Data.Text (Text)
 import Hedgehog
 import Prettyprinter qualified as PP
@@ -150,6 +151,7 @@ instance ToUPlc (UPLC.Program TPLC.Name uni fun ()) uni fun where
 
 instance
     ( TPLC.Typecheckable uni fun
+    , Hashable fun
     )
     => ToUPlc (TPLC.Program TPLC.TyName UPLC.Name uni fun ()) uni fun where
     toUPlc =
