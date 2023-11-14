@@ -37,6 +37,7 @@
 {-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE RecordWildCards       #-}
 {-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE ViewPatterns          #-}
 
 {-# OPTIONS_GHC -fno-specialise #-}  -- A big hammer, but it helps.
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}

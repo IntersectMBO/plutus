@@ -5,6 +5,7 @@
 {-# LANGUAGE TypeApplications    #-}
 {-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE TypeOperators       #-}
+{-# LANGUAGE ViewPatterns        #-}
 
 {- | Check how many Ed25519 signature verifications we can perform within the
    limits specified in the protocol parameters.
