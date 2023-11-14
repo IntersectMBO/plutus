@@ -166,7 +166,7 @@ instance ToBuiltin BLS12_381.Pairing.MlResult BuiltinBLS12_381_MlResult where
     toBuiltin = BuiltinBLS12_381_MlResult
 
 {- Note [Builtin types and their Haskell versions]
-Consider the bulitin pair type. In Plutus Tx, we have an (opaque) type for
+Consider the builtin pair type. In Plutus Tx, we have an (opaque) type for
 this. It's opaque because you can't actually pattern match on it, instead you can
 only in fact use the specific functions that are available as builtins.
 
@@ -198,7 +198,7 @@ have an irreducible type application on a type variable. So fundeps are much nic
 -}
 
 {- Note [Strict conversions to/from unit]
-Converting to/from unit *should* be straightforward: just ``const ()`.`
+Converting to/from unit *should* be straightforward: just `const ()`.
 *But* GHC is very good at optimizing this, and we sometimes use unit
 where side effects matter, e.g. as the result of `trace`. So GHC will
 tend to turn `fromBuiltin (trace s)` into `()`, which is wrong.
