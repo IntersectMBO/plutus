@@ -1,0 +1,31 @@
+program
+  1.1.0
+  (\d ->
+     (\`$mInts` ->
+        (\x ->
+           (\y ->
+              (\z ->
+                 (\w -> addInteger (addInteger (addInteger x y) z) w)
+                   (`$mInts` d (\ds ds ds ds -> ds) (\void -> error)))
+                (`$mInts` d (\ds ds ds ds -> ds) (\void -> error)))
+             (`$mInts` d (\ds ds ds ds -> ds) (\void -> error)))
+          (`$mInts` d (\ds ds ds ds -> ds) (\void -> error)))
+       (\scrut cont fail ->
+          (\tup ->
+             force
+               (force ifThenElse
+                  (equalsInteger 0 (force (force fstPair) tup))
+                  (delay
+                     ((\l ->
+                         (\l ->
+                            (\l ->
+                               cont
+                                 (unIData (force headList l))
+                                 (unIData (force headList l))
+                                 (unIData (force headList l))
+                                 (unIData (force headList (force tailList l))))
+                              (force tailList l))
+                           (force tailList l))
+                        (force (force sndPair) tup)))
+                  (delay (fail ()))))
+            (unConstrData scrut)))

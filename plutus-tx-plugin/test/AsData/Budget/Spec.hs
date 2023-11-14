@@ -14,7 +14,7 @@ import PlutusTx.Builtins qualified as PlutusTx
 import PlutusTx.Code
 import PlutusTx.IsData qualified as PlutusTx
 import PlutusTx.Lift (liftCodeDef)
-import PlutusTx.Test (goldenBudget, goldenEvalCekCatch, goldenPirReadable)
+import PlutusTx.Test (goldenBudget, goldenEvalCekCatch, goldenPirReadable, goldenUPlcReadable)
 import PlutusTx.TH (compile)
 
 import AsData.Budget.Types
@@ -24,14 +24,21 @@ tests =
   testNestedGhc
     ("AsData" </> "Budget")
     [ goldenPirReadable "onlyUseFirstField" onlyUseFirstField
+    , goldenUPlcReadable "onlyUseFirstField" onlyUseFirstField
     , goldenEvalCekCatch "onlyUseFirstField" $ [onlyUseFirstField `unsafeApplyCode` inp]
     , goldenBudget "onlyUseFirstField-budget" (onlyUseFirstField `unsafeApplyCode` inp)
     , goldenPirReadable "patternMatching" patternMatching
+    , goldenUPlcReadable "patternMatching" patternMatching
     , goldenEvalCekCatch "patternMatching" $ [patternMatching `unsafeApplyCode` inp]
     , goldenBudget "patternMatching-budget" (patternMatching `unsafeApplyCode` inp)
     , goldenPirReadable "recordFields" recordFields
+    , goldenUPlcReadable "recordFields" recordFields
     , goldenEvalCekCatch "recordFields" $ [recordFields `unsafeApplyCode` inp]
     , goldenBudget "recordFields-budget" (recordFields `unsafeApplyCode` inp)
+    , goldenPirReadable "recordFields-manual" recordFieldsManual
+    , goldenUPlcReadable "recordFields-manual" recordFieldsManual
+    , goldenEvalCekCatch "recordFields-manual" $ [recordFieldsManual `unsafeApplyCode` inp]
+    , goldenBudget "recordFields-budget-manual" (recordFieldsManual `unsafeApplyCode` inp)
     ]
 
 -- A function that only accesses the first field of `Ints`.
@@ -66,6 +73,20 @@ recordFields =
               y = int2 ints
               z = int3 ints
               w = int4 ints
+           in x `PlutusTx.addInteger` y `PlutusTx.addInteger` z `PlutusTx.addInteger` w
+        ||]
+    )
+
+recordFieldsManual :: CompiledCode (PlutusTx.BuiltinData -> Integer)
+recordFieldsManual =
+  $$( compile
+        [||
+        \d ->
+          let ints = PlutusTx.unsafeFromBuiltinData d
+              x = int1Manual ints
+              y = int2Manual ints
+              z = int3Manual ints
+              w = int4Manual ints
            in x `PlutusTx.addInteger` y `PlutusTx.addInteger` z `PlutusTx.addInteger` w
         ||]
     )
