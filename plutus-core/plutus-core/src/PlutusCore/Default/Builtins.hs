@@ -1674,7 +1674,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     toBuiltinMeaning _semvar Bls12_381_G1_uncompress =
         let bls12_381_G1_uncompressDenotation
                 :: BS.ByteString -> Emitter (EvaluationResult BLS12_381.G1.Element)
-            bls12_381_G1_uncompressDenotation = (eitherToEmitter . BLS12_381.G1.uncompress)
+            bls12_381_G1_uncompressDenotation = eitherToEmitter . BLS12_381.G1.uncompress
             {-# INLINE bls12_381_G1_uncompressDenotation #-}
         in makeBuiltinMeaning
             bls12_381_G1_uncompressDenotation
@@ -1683,7 +1683,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     toBuiltinMeaning _semvar Bls12_381_G1_hashToGroup =
         let bls12_381_G1_hashToGroupDenotation
                 :: BS.ByteString -> BS.ByteString -> Emitter (EvaluationResult BLS12_381.G1.Element)
-            bls12_381_G1_hashToGroupDenotation = (eitherToEmitter .* BLS12_381.G1.hashToGroup)
+            bls12_381_G1_hashToGroupDenotation = eitherToEmitter .* BLS12_381.G1.hashToGroup
             {-# INLINE bls12_381_G1_hashToGroupDenotation #-}
         in makeBuiltinMeaning
             bls12_381_G1_hashToGroupDenotation
