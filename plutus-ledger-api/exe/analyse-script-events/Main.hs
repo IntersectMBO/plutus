@@ -242,7 +242,7 @@ analyseDatum _ctx _params ev = do
             l          -> printf "* Unexpected number of V2 script arguments: %d" (length l)
       PlutusV2Event ScriptEvaluationData{..} _expected ->
           case dataInputs of
-            [_d, r,_c] -> printDataInfoFor r
+            [d, _r,_c] -> printDataInfoFor d
             [_r,_c]    -> pure ()
             l          -> printf "* Unexpected number of V2 script arguments: %d" (length l)
 
