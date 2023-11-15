@@ -30,12 +30,12 @@ The `dir` argument specifies the path to a directory containing uncompressed
 several hours for the analysis to complete depending on the complexity of the
 analysis and the number of files to be analysed.
 
-There are currently four analyses available:
+There are currently five analyses available:
 * `datums`: analyse the structure of `Data` objects containing transaction datums
 * `redeemers`: analyse the structure of `Data` objects containing redeemers
 * `script-data`: analyse the structure of `Data` objects occurring inside scripts
 * `values`: analyse the shape of `Value` objects occurring in script contexts
-
+* `count-builtins` : count the total number of occurrences of each builtin in validator scripts
 
 ### `Data` object analyses
 
@@ -131,4 +131,10 @@ sort -nrs | sed 's/\[ /\[/'
 rm osort.tmp
 ```
 
+### Builtin analysis
+
+The `count-builtins` analysis simply traverses the AST of each validator script
+and accumulates the total number of times each built-in function appears,
+printing out a table of frequencies once every validatorhas been processed.  See
+[Builtins.md](./Builtins.md) for an example.
 
