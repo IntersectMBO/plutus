@@ -229,7 +229,7 @@ analyseRedeemer _ctx _params ev = do
           case dataInputs of
             [_d, r,_c] -> printDataInfoFor r
             [r,_c]     -> printDataInfoFor r
-            l          ->  printf "* Unexpected number of V1 script arguments: %d" (length l)
+            l          ->  printf "* Unexpected number of V2 script arguments: %d" (length l)
 
 -- Analyse a datum (as a Data object) from a script evaluation event
 analyseDatum :: EventAnalyser
@@ -239,7 +239,7 @@ analyseDatum _ctx _params ev = do
           case dataInputs of
             [d, _r,_c] -> printDataInfoFor d
             [_r,_c]    -> pure ()
-            l          -> printf "* Unexpected number of V2 script arguments: %d" (length l)
+            l          -> printf "* Unexpected number of V1 script arguments: %d" (length l)
       PlutusV2Event ScriptEvaluationData{..} _expected ->
           case dataInputs of
             [d, _r,_c] -> printDataInfoFor d
