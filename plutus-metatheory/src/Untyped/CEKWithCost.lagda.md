@@ -104,14 +104,14 @@ stepC ((s , (V-I⇒ b {am = suc _} bapp ·-)) ◅ v) = return (s ◅ V-I b (app 
 stepC (□ v)               = return (□ v)
 stepC ◆                   = return ◆
 
-stepCperC : ℕ → (s : State) → CekM (Either RuntimeError State)
-stepCperC 0       s = return (inj₁ gasError)
-stepCperC (suc n) s = do
+stepperC : ℕ → (s : State) → CekM (Either RuntimeError State)
+stepperC 0       s = return (inj₁ gasError)
+stepperC (suc n) s = do
        s' ← stepC s 
        go s'
     where
        go : (t : State) → CekM (Either RuntimeError State)
        go (□ v) = return (inj₂ (□ v))
        go ◆     = return (inj₂ ◆)
-       go s'    = stepCperC n s'
+       go s'    = stepperC n s'
 ```
