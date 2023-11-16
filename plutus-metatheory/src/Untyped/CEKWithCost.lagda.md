@@ -1,6 +1,8 @@
-```
-{-# OPTIONS --type-in-type #-}
+# CEK Machine with costs
 
+This module implements a CEK machine for UPLC which computes costs.
+
+```
 open import Cost
 
 module Untyped.CEKWithCost {Budget : Set}(machineParameters : MachineParameters Budget) where
@@ -28,30 +30,32 @@ We instantiate a Writer Monad with the operations from the machine parameters
 
 ```
 open MachineParameters machineParameters renaming (ε to e)
-open Utils.WriterMonad e _∙_ 
+open Utils.WriterMonad e _∙_
 
 CekM : Set → Set
-CekM = Writer Budget 
+CekM = Writer Budget
 
 spend : StepKind → CekM ⊤
 spend st = tell (cekMachineCost st)
-
 ```
 
 ## Step with costs
 
+Function `step` performs a single step in the CEK machine.
+
 ```
 stepC : State → CekM State
-stepC (s ; ρ ▻ ` x)               = do 
+-- computeCEK in the Haskell implementation
+stepC (s ; ρ ▻ ` x)               = do
     spend BVar
     return (s ◅ lookup ρ x)
-stepC (s ; ρ ▻ ƛ t)               = do 
+stepC (s ; ρ ▻ ƛ t)               = do
     spend BLamAbs
     return (s ◅ V-ƛ ρ t)
-stepC (s ; ρ ▻ (t · u))           = do 
+stepC (s ; ρ ▻ (t · u))           = do
     spend BApply
     return ((s , -· ρ u) ; ρ ▻ t)
-stepC (s ; ρ ▻ force t)           = do 
+stepC (s ; ρ ▻ force t)           = do
     spend BForce
     return ((s , force-) ; ρ ▻ t)
 stepC (s ; ρ ▻ delay t)           = do 
@@ -74,6 +78,7 @@ stepC (s ; ρ ▻ builtin b)         = do
     return (s ◅ ival b)
 stepC (s ; ρ ▻ error)             = return ◆
 
+-- return∁EK in the Haskell implementation
 stepC (ε ◅ v)                               = return (□ v)
 stepC ((s , -· ρ u) ◅ v)                    = return ((s , (v ·-)) ; ρ ▻ u)
 stepC ((s , -·v v) ◅ vf)                    = return ((s , vf ·-) ◅ v)
@@ -83,7 +88,9 @@ stepC ((s , (V-delay _ _ ·-)) ◅ v)          = return ◆ -- delay in function
 stepC ((s , (V-IΠ b bapp ·-)) ◅ v)          = return ◆ -- delayed builtin in function position
 stepC ((s , (V-constr i vs ·-)) ◅ v)        = return ◆ -- SOP in function position
 stepC ((s , force-) ◅ V-IΠ b bapp)          = return (s ◅ V-I b (app⋆ bapp))
-stepC ((s , force-) ◅ V-delay ρ t)          = stepC (s ; ρ ▻ t)
+stepC ((s , force-) ◅ V-delay ρ t)          = stepC (s ; ρ ▻ t) -- this recursive call could be inlined
+                                                                -- in order to make evident that this is a single step 
+                                                                -- but this would make the definition much longer.
 stepC ((s , force-) ◅ V-ƛ _ _)              = return ◆ -- lambda in delay position
 stepC ((s , force-) ◅ V-con _ _)            = return ◆ -- constant in delay position
 stepC ((s , force-) ◅ V-I⇒ b bapp)          = return ◆ -- function in delay position
@@ -95,11 +102,12 @@ stepC ((s , case- ρ ts) ◅ V-ƛ _ _)          = return ◆ -- case of lambda
 stepC ((s , case- ρ ts) ◅ V-con _ _)        = return ◆ -- case of constant
 stepC ((s , case- ρ ts) ◅ V-delay _ _)      = return ◆ -- case of delay
 stepC ((s , case- ρ ts) ◅ V-I⇒ _ _)         = return ◆ -- case of builtin value
-stepC ((s , case- ρ ts) ◅ V-IΠ _ _)         = return ◆ -- case of delqyed builtin
-stepC ((s , (V-I⇒ b {am = 0} bapp ·-)) ◅ v) = do 
-          -- spend cost of executing builtin function
+stepC ((s , case- ρ ts) ◅ V-IΠ _ _)         = return ◆ -- case of delayed builtin
+stepC ((s , (V-I⇒ b {am = 0} bapp ·-)) ◅ v) = do --fully applied builtin function
+          -- TODO: spend cost of executing builtin function
           return (s ; [] ▻ BUILTIN' b (app bapp v))
-stepC ((s , (V-I⇒ b {am = suc _} bapp ·-)) ◅ v) = return (s ◅ V-I b (app bapp v))
+stepC ((s , (V-I⇒ b {am = suc _} bapp ·-)) ◅ v) =  --partially applied builtin function
+          return (s ◅ V-I b (app bapp v))
 
 stepC (□ v)               = return (□ v)
 stepC ◆                   = return ◆
