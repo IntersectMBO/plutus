@@ -131,7 +131,7 @@ dec2Either (no ¬p) = inj₁ ¬p
 -- writer monad
 
 record Writer (M : Set)(A : Set) : Set where
-   constructor _⊕_
+   constructor _,_
    field
      wrvalue : A 
      accum : M
@@ -141,11 +141,11 @@ module WriterMonad {M : Set}(e : M)(_∙_ : M → M → M)
 
   instance 
     WriterMonad : Monad (Writer M)
-    Monad.return WriterMonad x = x ⊕ e
-    (WriterMonad Monad.>>= (x ⊕ w)) f = let (y ⊕ w') = f x in y ⊕ (w ∙ w')
+    Monad.return WriterMonad x = x , e
+    (WriterMonad Monad.>>= (x , w)) f = let (y , w') = f x in y , (w ∙ w')
 
   tell : (w : M) → Writer M ⊤ 
-  tell w = _ ⊕ w
+  tell w = _ , w
 
 ---------------------
 data RuntimeError : Set where
