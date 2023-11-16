@@ -9,6 +9,7 @@
 -- file, otherwise GHC can be clever about the ones that are always error, even though
 -- they're NOINLINE!
 {-# OPTIONS_GHC -O0 #-}
+
 -- | This module contains the special Haskell names that are used to map to builtin types or functions
 -- in Plutus Core.
 --
@@ -429,7 +430,7 @@ that you want to be representable on-chain.
 For off-chain usage, there are conversion functions 'builtinDataToData' and
 'dataToBuiltinData', but note that these will not work on-chain.
 -}
-data BuiltinData = BuiltinData PLC.Data
+data BuiltinData = BuiltinData ~PLC.Data
     deriving stock (Data, Generic)
 
 instance Haskell.Show BuiltinData where
@@ -543,7 +544,7 @@ here rather than in the Plutus Core code.
 
 ---------------- G1 ----------------
 
-data BuiltinBLS12_381_G1_Element = BuiltinBLS12_381_G1_Element BLS12_381.G1.Element
+data BuiltinBLS12_381_G1_Element = BuiltinBLS12_381_G1_Element ~BLS12_381.G1.Element
 
 instance Haskell.Show BuiltinBLS12_381_G1_Element where
     show (BuiltinBLS12_381_G1_Element a) = show a
@@ -598,7 +599,7 @@ bls12_381_G1_generator = BuiltinBLS12_381_G1_Element BLS12_381.G1.generator
 
 ---------------- G2 ----------------
 
-data BuiltinBLS12_381_G2_Element = BuiltinBLS12_381_G2_Element BLS12_381.G2.Element
+data BuiltinBLS12_381_G2_Element = BuiltinBLS12_381_G2_Element ~BLS12_381.G2.Element
 
 instance Haskell.Show BuiltinBLS12_381_G2_Element where
     show (BuiltinBLS12_381_G2_Element a) = show a
@@ -653,7 +654,7 @@ bls12_381_G2_generator = BuiltinBLS12_381_G2_Element BLS12_381.G2.generator
 
 ---------------- Pairing ----------------
 
-data BuiltinBLS12_381_MlResult = BuiltinBLS12_381_MlResult BLS12_381.Pairing.MlResult
+data BuiltinBLS12_381_MlResult = BuiltinBLS12_381_MlResult ~BLS12_381.Pairing.MlResult
 
 instance Haskell.Show BuiltinBLS12_381_MlResult where
     show (BuiltinBLS12_381_MlResult a) = show a
