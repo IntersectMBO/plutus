@@ -769,13 +769,13 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
       -- by looking for occurrences of GHC.Enum.enumFromTo and similar functions; the same error
       -- occurs if these functions are used explicitly.
       | isProbablyBoundedRange n ->
-          throwPlain $ UnsupportedError ("Use of enumFromTo or enumFromThenTo, possibly via range syntax\n."
-                                         ++ "Please use PlutusTx.Enum.enumFromTo or PlutusTx.Enum.enumFromThenTo instead.")
+          throwPlain $ UnsupportedError $ T.pack ("Use of enumFromTo or enumFromThenTo, possibly via range syntax. " ++
+                                                  "Please use PlutusTx.Enum.enumFromTo or PlutusTx.Enum.enumFromThenTo instead.")
     -- Throw an error if we find an infinite range like [1..]
     GHC.Var n
       | isProbablyUnboundedRange n ->
-          throwPlain $ UnsupportedError ("Use of enumFrom or enumFromThen, possibly via range syntax\n."
-                                         ++ "Unbounded ranges are not supported.")
+          throwPlain $ UnsupportedError $ T.pack ("Use of enumFrom or enumFromThen, possibly via range syntax. " ++
+                                                  "Unbounded ranges are not supported.")
     -- locally bound vars
     GHC.Var (lookupName scope . GHC.getName -> Just var) -> pure $ PIR.mkVar annMayInline var
     -- Special kinds of id
