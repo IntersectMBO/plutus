@@ -1,1 +1,1 @@
-Error: Unsupported feature: Infinite ranges are not supported
+Error: Unsupported feature: Use of enumFrom or enumFromThen, possibly via range syntax. Unbounded ranges are not supported.
