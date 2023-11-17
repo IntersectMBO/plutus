@@ -4,43 +4,73 @@ program
      (\cse ->
         (\cse ->
            (\cse ->
-              (\x ->
+              (\cse ->
                  (\cse ->
-                    (\y ->
-                       (\cse ->
-                          (\z ->
-                             (\w ->
-                                addInteger (addInteger (addInteger x y) z) w)
-                               ((\d ->
-                                   force
-                                     (force ifThenElse
-                                        (equalsInteger 0 cse)
-                                        (delay (unIData d))
-                                        (delay error)))
-                                  (force headList (force tailList cse))))
-                            ((\d ->
-                                force
-                                  (force ifThenElse
-                                     (equalsInteger 0 cse)
-                                     (delay (unIData d))
-                                     (delay error)))
-                               (force headList cse)))
-                         (force tailList cse))
+                    (\cse ->
+                       (\lessThanInteger ->
+                          (\addInteger ->
+                             (\cse ->
+                                (\cse ->
+                                   addInteger
+                                     (addInteger
+                                        (addInteger
+                                           (addInteger (addInteger cse cse) cse)
+                                           cse)
+                                        (force
+                                           (case
+                                              (lessThanInteger
+                                                 (addInteger cse cse)
+                                                 (addInteger cse cse))
+                                              [ (delay (addInteger cse cse))
+                                              , (delay
+                                                   (addInteger cse cse)) ])))
+                                     (force
+                                        (case
+                                           (lessThanInteger (cse cse) (cse cse))
+                                           [ (delay (cse cse))
+                                           , (delay (cse cse)) ])))
+                                  (addInteger cse))
+                               (addInteger cse))
+                            (\x y -> addInteger x y))
+                         (\x y ->
+                            force ifThenElse
+                              (lessThanInteger x y)
+                              (constr 0 [])
+                              (constr 1 [])))
                       ((\d ->
                           force
                             (force ifThenElse
                                (equalsInteger 0 cse)
                                (delay (unIData d))
                                (delay error)))
-                         (force headList cse)))
-                   (force tailList cse))
+                         (force headList
+                            (force tailList
+                               (force tailList
+                                  (force tailList
+                                     (force (force sndPair) cse)))))))
+                   ((\d ->
+                       force
+                         (force ifThenElse
+                            (equalsInteger 0 cse)
+                            (delay (unIData d))
+                            (delay error)))
+                      (force headList
+                         (force tailList
+                            (force tailList (force (force sndPair) cse))))))
                 ((\d ->
                     force
                       (force ifThenElse
                          (equalsInteger 0 cse)
                          (delay (unIData d))
                          (delay error)))
-                   (force headList cse)))
-             (force (force sndPair) cse))
+                   (force headList
+                      (force tailList (force (force sndPair) cse)))))
+             ((\d ->
+                 force
+                   (force ifThenElse
+                      (equalsInteger 0 cse)
+                      (delay (unIData d))
+                      (delay error)))
+                (force headList (force (force sndPair) cse))))
           (force (force fstPair) cse))
        (unConstrData d))

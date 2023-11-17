@@ -1,7 +1,50 @@
 program
   1.1.0
   (\d ->
-     case
+     (\cse ->
+        (\lessThanInteger ->
+           (\addInteger ->
+              (\cse ->
+                 (\cse ->
+                    (\cse ->
+                       (\cse ->
+                          (\cse ->
+                             (\cse ->
+                                (\cse ->
+                                   (\cse ->
+                                      addInteger
+                                        (addInteger
+                                           (addInteger
+                                              (addInteger (cse cse) cse)
+                                              cse)
+                                           (force
+                                              (case
+                                                 (lessThanInteger
+                                                    (cse cse)
+                                                    (cse cse))
+                                                 [ (delay (cse cse))
+                                                 , (delay (cse cse)) ])))
+                                        (force
+                                           (case
+                                              (lessThanInteger
+                                                 (cse cse)
+                                                 (cse cse))
+                                              [ (delay (cse cse))
+                                              , (delay (cse cse)) ])))
+                                     (addInteger cse))
+                                  (addInteger cse))
+                               (addInteger cse))
+                            (addInteger cse))
+                         (case cse [(\x y z w -> w)]))
+                      (case cse [(\x y z w -> x)]))
+                   (case cse [(\x y z w -> y)]))
+                (case cse [(\x y z w -> z)]))
+             (\x y -> addInteger x y))
+          (\x y ->
+             force ifThenElse
+               (lessThanInteger x y)
+               (constr 0 [])
+               (constr 1 [])))
        ((\tup ->
            force
              (force ifThenElse
@@ -22,6 +65,4 @@ program
                          (force tailList l))
                       (force (force sndPair) tup)))
                 (delay (case error [error]))))
-          (unConstrData d))
-       [ (\ipv ipv ipv ipv ->
-            addInteger (addInteger (addInteger ipv ipv) ipv) ipv) ])
+          (unConstrData d)))

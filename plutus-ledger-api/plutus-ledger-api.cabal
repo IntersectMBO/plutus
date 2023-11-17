@@ -226,6 +226,7 @@ executable analyse-script-events
     , plutus-core                                                       ^>=1.16
     , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.16
     , plutus-tx                                                         ^>=1.16
+    , primitive
     , serialise
 
   default-language: Haskell2010

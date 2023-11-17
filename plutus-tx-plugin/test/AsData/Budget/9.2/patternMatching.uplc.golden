@@ -1,16 +1,50 @@
 program
   1.1.0
   (\d ->
-     (\ds ->
-        (\addInteger ->
-           addInteger
-             (addInteger
-                (addInteger
-                   (case ds [(\x y z w -> x)])
-                   (case ds [(\x y z w -> y)]))
-                (case ds [(\x y z w -> z)])))
-          (\x y -> addInteger x y)
-          (case ds [(\x y z w -> w)]))
+     (\cse ->
+        (\lessThanInteger ->
+           (\addInteger ->
+              (\cse ->
+                 (\cse ->
+                    (\cse ->
+                       (\cse ->
+                          (\cse ->
+                             (\cse ->
+                                (\cse ->
+                                   (\cse ->
+                                      addInteger
+                                        (addInteger
+                                           (addInteger
+                                              (addInteger (cse cse) cse)
+                                              cse)
+                                           (force
+                                              (case
+                                                 (lessThanInteger
+                                                    (cse cse)
+                                                    (cse cse))
+                                                 [ (delay (cse cse))
+                                                 , (delay (cse cse)) ])))
+                                        (force
+                                           (case
+                                              (lessThanInteger
+                                                 (cse cse)
+                                                 (cse cse))
+                                              [ (delay (cse cse))
+                                              , (delay (cse cse)) ])))
+                                     (addInteger cse))
+                                  (addInteger cse))
+                               (addInteger cse))
+                            (addInteger cse))
+                         (case cse [(\x y z w -> x)]))
+                      (case cse [(\x y z w -> z)]))
+                   (case cse [(\x y z w -> w)]))
+                (case cse [(\x y z w -> y)]))
+             (\x y -> addInteger x y))
+          (\x y ->
+             force ifThenElse
+               (lessThanInteger x y)
+               (constr 0 [])
+               (constr 1 [])))
        ((\tup ->
            force
              (force ifThenElse

@@ -1,6 +1,5 @@
 {-# LANGUAGE DataKinds       #-}
 {-# LANGUAGE TemplateHaskell #-}
-
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 
@@ -57,12 +56,25 @@ patternMatching =
         [||
         \d ->
           let (Ints x y z w) = PlutusTx.unsafeFromBuiltinData d
-           in x `PlutusTx.addInteger` y `PlutusTx.addInteger` z `PlutusTx.addInteger` w
+           in x
+                `PlutusTx.addInteger` y
+                `PlutusTx.addInteger` z
+                `PlutusTx.addInteger` w
+                `PlutusTx.addInteger` ( if PlutusTx.lessThanInteger
+                                          (y `PlutusTx.addInteger` z)
+                                          (x `PlutusTx.addInteger` w)
+                                          then x `PlutusTx.addInteger` z
+                                          else y `PlutusTx.addInteger` w
+                                      )
+                `PlutusTx.addInteger` ( if PlutusTx.lessThanInteger
+                                          (z `PlutusTx.addInteger` y)
+                                          (w `PlutusTx.addInteger` x)
+                                          then z `PlutusTx.addInteger` x
+                                          else w `PlutusTx.addInteger` y
+                                      )
         ||]
     )
 
--- TODO: this does the same thing as `patternMatching`, but is much more expensive,
--- since there's no sharing between the code that accesses different fields.
 recordFields :: CompiledCode (PlutusTx.BuiltinData -> Integer)
 recordFields =
   $$( compile
@@ -73,10 +85,31 @@ recordFields =
               y = int2 ints
               z = int3 ints
               w = int4 ints
-           in x `PlutusTx.addInteger` y `PlutusTx.addInteger` z `PlutusTx.addInteger` w
+           in x
+                `PlutusTx.addInteger` y
+                `PlutusTx.addInteger` z
+                `PlutusTx.addInteger` w
+                `PlutusTx.addInteger` ( if PlutusTx.lessThanInteger
+                                          (y `PlutusTx.addInteger` z)
+                                          (x `PlutusTx.addInteger` w)
+                                          then x `PlutusTx.addInteger` z
+                                          else y `PlutusTx.addInteger` w
+                                      )
+                `PlutusTx.addInteger` ( if PlutusTx.lessThanInteger
+                                          (int3 ints `PlutusTx.addInteger` int2 ints)
+                                          (int4 ints `PlutusTx.addInteger` int1 ints)
+                                          then
+                                            int3 ints
+                                              `PlutusTx.addInteger` int1 ints
+                                          else
+                                            int4 ints
+                                              `PlutusTx.addInteger` int2 ints
+                                      )
         ||]
     )
 
+-- This is much more efficient than `recordFields` since the manually written
+-- field accessors are more CSE-friendly.
 recordFieldsManual :: CompiledCode (PlutusTx.BuiltinData -> Integer)
 recordFieldsManual =
   $$( compile
@@ -87,7 +120,26 @@ recordFieldsManual =
               y = int2Manual ints
               z = int3Manual ints
               w = int4Manual ints
-           in x `PlutusTx.addInteger` y `PlutusTx.addInteger` z `PlutusTx.addInteger` w
+           in x
+                `PlutusTx.addInteger` y
+                `PlutusTx.addInteger` z
+                `PlutusTx.addInteger` w
+                `PlutusTx.addInteger` ( if PlutusTx.lessThanInteger
+                                          (y `PlutusTx.addInteger` z)
+                                          (x `PlutusTx.addInteger` w)
+                                          then x `PlutusTx.addInteger` z
+                                          else y `PlutusTx.addInteger` w
+                                      )
+                `PlutusTx.addInteger` ( if PlutusTx.lessThanInteger
+                                          (int3Manual ints `PlutusTx.addInteger` int2Manual ints)
+                                          (int4Manual ints `PlutusTx.addInteger` int1Manual ints)
+                                          then
+                                            int3Manual ints
+                                              `PlutusTx.addInteger` int1Manual ints
+                                          else
+                                            int4Manual ints
+                                              `PlutusTx.addInteger` int2Manual ints
+                                      )
         ||]
     )
 
