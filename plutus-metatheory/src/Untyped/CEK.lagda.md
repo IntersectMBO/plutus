@@ -17,7 +17,6 @@ open import Data.Empty using (⊥)
 open import Agda.Builtin.String using (primStringAppend; primStringEquality)
 open import Relation.Nullary using (yes;no)
 open import Relation.Binary.PropositionalEquality using (refl;sym;trans;cong)
-open import Data.Nat using (ℕ;suc)
 open import Data.List using (List;[];_∷_)
 open import Data.Product using (_,_)
 
@@ -557,7 +556,6 @@ step ((s , (V-I⇒ b {am = suc _} bapp ·-)) ◅ v) = s ◅ V-I b (app bapp v)
 step (□ v)               = □ v
 step ◆                   = ◆
 
-open import Function
 stepper : ℕ → (t : State) → Either RuntimeError State
 stepper 0       s = inj₁ gasError
 stepper (suc n) s with step s
