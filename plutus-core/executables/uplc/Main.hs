@@ -305,7 +305,7 @@ runEval (EvalOptions inp ifmt printMode budgetMode traceMode
                                 _   -> error "Timing evaluations returned inconsistent results"
                 handleResults t (res, budget, logs) = do
                     case res of
-                        Left err -> hPrint stderr err >> exitFailure
+                        Left err -> hPrint stderr err
                         Right v  -> writeToFileOrStd outputMode (show (getPrintMethod printMode v))
                     case budgetMode of
                         Silent    -> pure ()
@@ -313,6 +313,9 @@ runEval (EvalOptions inp ifmt printMode budgetMode traceMode
                     case traceMode of
                         None -> pure ()
                         _    -> writeToFileOrStd outputMode (T.unpack (T.intercalate "\n" logs))
+                    case res of
+                        Left _ -> exitFailure
+                        Right _  -> pure ()
 
 ---------------- Debugging ----------------
 
