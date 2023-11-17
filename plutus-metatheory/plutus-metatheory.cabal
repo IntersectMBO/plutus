@@ -125,6 +125,7 @@ library
     MAlonzo.Code.Category.Functor
     MAlonzo.Code.Category.Monad.Indexed
     MAlonzo.Code.Check
+    MAlonzo.Code.Cost
     MAlonzo.Code.Data.Bool.Base
     MAlonzo.Code.Data.Bool.Properties
     MAlonzo.Code.Data.Char.Properties
@@ -260,6 +261,7 @@ library
     MAlonzo.Code.Type.RenamingSubstitution
     MAlonzo.Code.Untyped
     MAlonzo.Code.Untyped.CEK
+    MAlonzo.Code.Untyped.CEKWithCost
     MAlonzo.Code.Untyped.RenamingSubstitution
     MAlonzo.Code.Utils
     MAlonzo.Code.Utils.Decidable
@@ -319,6 +321,7 @@ library
     MAlonzo.Code.Category.Functor
     MAlonzo.Code.Category.Monad.Indexed
     MAlonzo.Code.Check
+    MAlonzo.Code.Cost
     MAlonzo.Code.Data.Bool.Base
     MAlonzo.Code.Data.Bool.Properties
     MAlonzo.Code.Data.Char.Properties
@@ -453,6 +456,7 @@ library
     MAlonzo.Code.Type.RenamingSubstitution
     MAlonzo.Code.Untyped
     MAlonzo.Code.Untyped.CEK
+    MAlonzo.Code.Untyped.CEKWithCost
     MAlonzo.Code.Untyped.RenamingSubstitution
     MAlonzo.Code.Utils
     MAlonzo.Code.Utils.Decidable

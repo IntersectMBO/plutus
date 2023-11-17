@@ -7,6 +7,7 @@ open import Agda.Builtin.Unit using (⊤;tt)
 open import Function using (_$_;_∘_)
 open import Data.String using (String;_++_)
 open import Agda.Builtin.Nat
+open import Data.Nat.Show using () renaming (show to showℕ)
 open import Agda.Builtin.Int using (pos)
 open import Data.Integer.Show using (show)
 open import Data.Product using (Σ) renaming (_,_ to _,,_)
@@ -21,6 +22,8 @@ open TypeError -- Bring all TypeError constructors in scope.
 open import Scoped.Extrication using (extricateNf⋆;extricate)
 open import Type.BetaNormal using (_⊢Nf⋆_)
 import Untyped as U using (_⊢;scopeCheckU0;extricateU0;decUTm)
+import Untyped.CEKWithCost as U using (stepperC)
+open import Cost using (defaultMachineParameters;mkExBudget)
 import RawU as U using (Untyped)
 
 open import Untyped.CEK as U using (stepper;Stack;ε;Env;[];State)
@@ -29,7 +32,7 @@ open U.State
 open import Raw using (RawTm;RawTy;rawPrinter;rawTyPrinter;decRTy;decRTm)
 open import Scoped using (FreeVariableError;ScopeError;freeVariableError;extricateScopeTy;ScopedTm;Weirdℕ;scopeCheckTm;shifter;unshifter;extricateScope;unshifterTy;scopeCheckTy;shifterTy)
 open Weirdℕ -- Bring Weirdℕ constructors in scope
-open import Utils using (Either;inj₁;inj₂;withE;Kind;*;Maybe;nothing;just;Monad;RuntimeError;dec2Either)
+open import Utils using (Either;inj₁;inj₂;withE;Kind;*;Maybe;nothing;just;Monad;RuntimeError;dec2Either;_,_)
 open RuntimeError
 open Monad {{...}}
 
@@ -192,6 +195,12 @@ postulate
 {-# FOREIGN GHC import qualified Untyped as U #-}
 {-# COMPILE GHC prettyPrintUTm = display @T.Text . U.uconv 0 #-}
 
+data BudgetMode : Set where 
+  Silent   : BudgetMode
+  Counting : BudgetMode
+  Tallying : BudgetMode
+
+{-# COMPILE GHC BudgetMode = data BudgetMode (Silent | Counting | Tallying) #-}
 
 data EvalMode : Set where
   U TL TCK TCEK : EvalMode
@@ -269,8 +278,8 @@ checkError : ∀{A} → ∅ ⊢ A → Either ERROR (∅ ⊢ A )
 checkError (error _) = inj₁ (runtimeError userError)
 checkError t         = return t
 
-executePLC : EvalMode → ScopedTm Z → Either ERROR String
-executePLC U t = do
+executePLC : EvalMode → BudgetMode → ScopedTm Z → Either ERROR String
+executePLC U budgetmode t = do
   (A ,, t) ← withE (λ e → typeError (uglyTypeError e)) $ typeCheckPLC t
   □ V ← withE runtimeError $ U.stepper maxsteps (ε ; [] ▻ erase t)
     where ◆  → inj₁ (runtimeError userError)
@@ -280,34 +289,45 @@ just t' ← withE runtimeError $ U.stepper maxsteps (ε ; [] ▻ erase t)
     where nothing → inj₁ (runtimeError userError)
     -}
   return $ prettyPrintUTm (U.extricateU0 (U.discharge V))
-executePLC TL t = do
+executePLC TL _ t = do
   (A ,, t) ← withE (λ e → typeError (uglyTypeError e)) $ typeCheckPLC t
   t' ← (withE runtimeError $ L.stepper t maxsteps) >>= checkError
   return (prettyPrintTm (unshifter Z (extricateScope (extricate t'))))
-executePLC TCK t = do
+executePLC TCK _ t = do
   (A ,, t) ← withE (λ e → typeError (uglyTypeError e)) $ typeCheckPLC t
   □ {t = t} v ← withE runtimeError $ Algorithmic.CK.stepper maxsteps (ε ▻ t)
     where ◆ _  → inj₁ (runtimeError userError)
           _    → inj₁ (runtimeError gasError)
   return (prettyPrintTm (unshifter Z (extricateScope (extricate t))))
-executePLC TCEK t = do
+executePLC TCEK _ t = do
   (A ,, t) ← withE (λ e → typeError (uglyTypeError e)) $ typeCheckPLC t
   □ V ← withE runtimeError $ Algorithmic.CEK.stepper maxsteps (ε ; [] ▻ t)
     where ◆ _  → inj₁ (runtimeError userError)
           _    → inj₁ (runtimeError gasError)
   return (prettyPrintTm (unshifter Z (extricateScope (extricate (Algorithmic.CEK.discharge V)))))
 
-executeUPLC : ⊥ U.⊢ → Either ERROR String
-executeUPLC t = do
+executeUPLC : BudgetMode → ⊥ U.⊢ → Either ERROR String
+executeUPLC Silent t = do
   □ V ← withE runtimeError $ U.stepper maxsteps (ε ; [] ▻ t)
     where ◆  → inj₁ (runtimeError userError)
-          _    → inj₁ (runtimeError gasError)
+          _  → inj₁ (runtimeError gasError)
   return $ prettyPrintUTm (U.extricateU0 (U.discharge V))
+executeUPLC Counting t = 
+    let (ev , mkExBudget cpu mem) = U.stepperC defaultMachineParameters maxsteps (ε ; [] ▻ t)
+     in do
+  □ V ← withE runtimeError ev
+    where ◆  → inj₁ (runtimeError userError)
+          _  → inj₁ (runtimeError gasError)
+  return (   prettyPrintUTm (U.extricateU0 (U.discharge V)) 
+          ++ "\nCPU budget:    " ++ showℕ cpu
+          ++ "\nMemory budget: " ++ showℕ mem
+         )
+executeUPLC Tallying t = return ("Tallying mode not implemented")
 
-evalProgramNU : ProgramNU → Either ERROR String
-evalProgramNU namedprog = do
+evalProgramNU : BudgetMode → ProgramNU → Either ERROR String
+evalProgramNU bm namedprog = do
   t ← parseUPLC namedprog
-  executeUPLC t
+  executeUPLC bm t
 
 evalProgramN : EvalMode → ProgramN → Either ERROR String
 evalProgramN m namedprog = do
@@ -326,7 +346,7 @@ evalProgramN m namedprog = do
           "unconved: " ++ prettyPrintTm unshiftedprog ++ "\n")
    -}
    t ← parsePLC namedprog
-   executePLC m t
+   executePLC m Silent t
 
 typeCheckProgramN : ProgramN → Either ERROR String
 typeCheckProgramN namedprog = do
@@ -391,7 +411,7 @@ alphaU plc1 plc2 | _ | _ = Bool.false
 -- More Opt Stuff
 
 data EvalOptions : Set where
-  EvalOpts : Input → Format → EvalMode → EvalOptions
+  EvalOpts : Input → Format → EvalMode → BudgetMode → EvalOptions
 
 {-# COMPILE GHC EvalOptions = data EvalOptions (EvalOpts) #-}
 
@@ -410,16 +430,16 @@ postulate execP : IO Command
 
 {-# COMPILE GHC execP = execP #-}
 
-evalInput : EvalMode → Format → Input → IO (Either ERROR String)
-evalInput U fmt inp = fmap evalProgramNU (parseU fmt inp)
-evalInput m fmt inp = fmap (evalProgramN m) (parse fmt inp)
+evalInput : EvalMode → BudgetMode → Format → Input → IO (Either ERROR String)
+evalInput U bm fmt inp = fmap (evalProgramNU bm) (parseU fmt inp)
+evalInput m _ fmt inp  = fmap (evalProgramN m) (parse fmt inp)
 
 tcInput : Format → Input → IO (Either ERROR String)
 tcInput fmt inp = fmap typeCheckProgramN (parse fmt inp)
 
 main' : Command → IO ⊤
-main' (Eval (EvalOpts inp fmt m)) = do
-  inj₂ s ← evalInput m fmt inp
+main' (Eval (EvalOpts inp fmt m bm)) = do
+  inj₂ s ← evalInput m bm fmt inp
     where
     inj₁ e → putStrLn (reportError e) >> exitFailure
   putStrLn s >> exitSuccess
