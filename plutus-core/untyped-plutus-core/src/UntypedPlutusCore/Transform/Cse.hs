@@ -22,6 +22,7 @@ import Data.Hashable
 import Data.HashMap.Strict (HashMap)
 import Data.HashMap.Strict qualified as Map
 import Data.List.Extra
+import Data.Ord
 import Data.Traversable
 
 {- Note [CSE]
@@ -58,7 +59,9 @@ arity information as described above.
 
 In the second pass, we assign a unique ID to each `LamAbs`, `Delay`, and each `Case` branch.
 Then, we annotate each subterm with a path, consisting of IDs encountered from the root
-to that subterm (not including itself).
+to that subterm (not including itself). The reason to do this is because `LamAbs`, `Delay`,
+and `Case` branches represent places where computation stops, i.e., subexpressions are not
+immediately evaluated, and may not be evaluated at all.
 
 In the above example, the ID of `\x` is 0, the ID of `\y` is 1, and the IDs of the
 three case branches are 2, 3, 4 (the actual numbers don't matter, as long as they are unique).
@@ -173,7 +176,8 @@ With this example in mind, one may be tempted to make CSE part of the simplifier
 run it along with the rest of the simplifier. That is, however, a bad idea. CSE does the reverse
 of inlining; inlining tends to expose more optimization opportunities, and conversely, CSE
 tends to destroy optimization opportunities. Running CSE on a not-fully-optimized program
-may cause many optimization opportunities to be permanently lost.
+may cause many optimization opportunities to be permanently lost. Give it a try if you want
+to see how bad it is!
 
 Therefore, this is what we do: first run the simplifier iterations. Then, run the CSE iterations,
 interleaving with the simplifier. For example, suppose max-simplifier-iterations-uplc=12, and
@@ -209,7 +213,7 @@ cse t = mkCseTerm commonSubexprs annotated
     commonSubexprs =
       -- Processed the common subexpressions in descending order of `termSize`.
       -- See Note [CSE].
-      sortOn (negate . termSize)
+      sortOn (Down . termSize)
         . fmap fst
         -- A subexpression is common if the count is greater than 1.
         . filter ((> 1) . snd)
@@ -334,7 +338,7 @@ combinePaths t path = Map.fromListWith (\(x, y) (_, y') -> (x, y + y')) . go . M
       -- The new path is a descendent-or-self of an existing path.
       -- Increment the count for the existing path. There can only be one such
       -- existing path, so we don't need to recurse here.
-      | path' `isSuffixOf` path = (path', (t', cnt + 1)) : paths
+      | path' `isAncestorOrSelf` path = (path', (t', cnt + 1)) : paths
       | otherwise = (path', (t', cnt)) : go paths
 
 mkCseTerm ::
@@ -345,7 +349,7 @@ mkCseTerm ::
   Term Name uni fun (Path, ann) ->
   m (Term Name uni fun ann)
 mkCseTerm ts t = do
-  cs <- sortOn (negate . termSize . ccTerm) <$> traverse mkCseCandidate ts
+  cs <- traverse mkCseCandidate ts
   pure . fmap snd $ foldl' (flip applyCse) t cs
 
 applyCse ::
