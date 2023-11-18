@@ -140,8 +140,6 @@ asDataFor dec = do
 
   -- The pattern synonyms, one for each constructor
   pats <- ifor cons $ \conIx (TH.ConstructorInfo{TH.constructorName=conName, TH.constructorFields=fields, TH.constructorVariant=cVariant}) -> do
-    -- If we have a record constructor, we need to reuse the names for the
-    -- matching part of the pattern synonym
     fieldNames <- ifor fields $ \fieldIx _ -> TH.newName $ "arg" ++ show fieldIx
     createFieldNames <- for fieldNames (TH.newName . show)
     patSynArgs <- case cVariant of
