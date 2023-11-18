@@ -7,7 +7,6 @@ open import Agda.Builtin.Unit using (⊤;tt)
 open import Function using (_$_;_∘_)
 open import Data.String using (String;_++_)
 open import Agda.Builtin.Nat
-open import Data.Nat.Show using () renaming (show to showℕ)
 open import Agda.Builtin.Int using (pos)
 open import Data.Integer.Show using (show)
 open import Data.Product using (Σ) renaming (_,_ to _,,_)
@@ -23,7 +22,7 @@ open import Scoped.Extrication using (extricateNf⋆;extricate)
 open import Type.BetaNormal using (_⊢Nf⋆_)
 import Untyped as U using (_⊢;scopeCheckU0;extricateU0;decUTm)
 import Untyped.CEKWithCost as U using (stepperC)
-open import Cost using (defaultMachineParameters;mkExBudget)
+open import Cost using (defaultMachineParameters;tallyingMachineParameters;countingReport;tallyingReport)
 import RawU as U using (Untyped)
 
 open import Untyped.CEK as U using (stepper;Stack;ε;Env;[];State)
@@ -306,23 +305,26 @@ executePLC TCEK _ t = do
           _    → inj₁ (runtimeError gasError)
   return (prettyPrintTm (unshifter Z (extricateScope (extricate (Algorithmic.CEK.discharge V)))))
 
+
+showUPLCResult : U.State → Either ERROR String
+showUPLCResult (□ V) = return $ prettyPrintUTm (U.extricateU0 (U.discharge V))
+showUPLCResult ◆     = inj₁ (runtimeError userError)
+showUPLCResult _     = inj₁ (runtimeError gasError)
+
 executeUPLC : BudgetMode → ⊥ U.⊢ → Either ERROR String
-executeUPLC Silent t = do
-  □ V ← withE runtimeError $ U.stepper maxsteps (ε ; [] ▻ t)
-    where ◆  → inj₁ (runtimeError userError)
-          _  → inj₁ (runtimeError gasError)
-  return $ prettyPrintUTm (U.extricateU0 (U.discharge V))
+executeUPLC Silent t = (withE runtimeError $ U.stepper maxsteps (ε ; [] ▻ t)) >>= showUPLCResult
 executeUPLC Counting t = 
-    let (ev , mkExBudget cpu mem) = U.stepperC defaultMachineParameters maxsteps (ε ; [] ▻ t)
+    let (ev , exBudget) = U.stepperC defaultMachineParameters maxsteps (ε ; [] ▻ t)
+    in do 
+     x ← withE runtimeError ev
+     r ← showUPLCResult x
+     return (r ++  countingReport exBudget)     
+executeUPLC Tallying t = 
+     let (ev , tallying) = U.stepperC tallyingMachineParameters maxsteps (ε ; [] ▻ t)
      in do
-  □ V ← withE runtimeError ev
-    where ◆  → inj₁ (runtimeError userError)
-          _  → inj₁ (runtimeError gasError)
-  return (   prettyPrintUTm (U.extricateU0 (U.discharge V)) 
-          ++ "\nCPU budget:    " ++ showℕ cpu
-          ++ "\nMemory budget: " ++ showℕ mem
-         )
-executeUPLC Tallying t = return ("Tallying mode not implemented")
+      x ← withE runtimeError ev
+      r ← showUPLCResult x
+      return (r ++ tallyingReport tallying)
 
 evalProgramNU : BudgetMode → ProgramNU → Either ERROR String
 evalProgramNU bm namedprog = do

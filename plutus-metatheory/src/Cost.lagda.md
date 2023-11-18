@@ -15,7 +15,9 @@ module Cost where
 ```
 open import Data.Nat using (ℕ;_+_)
 open import Data.Nat.Properties using (+-assoc;+-identityʳ)
+open import Data.Nat.Show using () renaming (show to showℕ)
 open import Data.Product using (_×_;_,_)
+open import Data.String using (String;_++_)
 open import Algebra using (IsMonoid)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;trans;isEquivalence;cong₂)
 ``` 
@@ -112,5 +114,79 @@ defaultMachineParameters = record {
   ; _∙_ = _∙€_
   ; costMonoid = isMonoidExBudget
  } 
+
+countingReport : ExBudget → String 
+countingReport (mkExBudget cpu mem) = "\nCPU budget:    " ++ showℕ cpu ++ "\nMemory budget: " ++ showℕ mem
 ```
  
+ ## Tallying budget 
+
+ ```
+record TallyingBudget : Set where
+  constructor mkTB
+  field
+   #Const   : ℕ
+   #Var     : ℕ
+   #LamAbs  : ℕ
+   #Apply   : ℕ
+   #Delay   : ℕ
+   #Force   : ℕ
+   #Builtin : ℕ
+   #Constr  : ℕ 
+   #Case    : ℕ
+   budget   : ExBudget
+
+--unit of TallyingBudget 
+εT : TallyingBudget
+εT = mkTB 0 0 0 0 0 0 0 0 0 ε€
+
+-- adding TallyingBudgets
+_∙T_ : TallyingBudget → TallyingBudget → TallyingBudget
+mkTB a b c d e f g h i budget ∙T mkTB z y x w v u t s r budget' = 
+   mkTB (a + z) (b + y) (c + x) (d + w) (e + v) (f + u) (g + t) (h + s) (i + r) (budget ∙€ budget')
+
+postulate TallyingBudget-assoc : Algebra.Associative _≡_ _∙T_
+postulate Tallying-budget-identityʳ : Algebra.RightIdentity _≡_ εT _∙T_
+
+isMonoidTallyingBudget : IsMonoid _≡_ _∙T_ εT
+isMonoidTallyingBudget = record { 
+       isSemigroup = record { 
+           isMagma = record { isEquivalence = isEquivalence ; ∙-cong = λ {refl refl → refl }} 
+           ; assoc = TallyingBudget-assoc } 
+     ; identity = (λ x → refl) , Tallying-budget-identityʳ }
+  
+tallyingCekMachineCost : StepKind → TallyingBudget
+tallyingCekMachineCost BConst = record εT { #Const = 1 ; budget = defaultCekMachineCost BConst}
+tallyingCekMachineCost BVar = record εT { #Var = 1 ; budget = defaultCekMachineCost BVar}
+tallyingCekMachineCost BLamAbs = record εT { #LamAbs = 1 ; budget = defaultCekMachineCost BLamAbs}
+tallyingCekMachineCost BApply = record εT { #Apply = 1 ; budget = defaultCekMachineCost BApply}
+tallyingCekMachineCost BDelay = record εT { #Delay = 1 ; budget = defaultCekMachineCost BDelay}
+tallyingCekMachineCost BForce = record εT { #Force = 1 ; budget = defaultCekMachineCost BForce}
+tallyingCekMachineCost BBuiltin = record εT { #Builtin = 1 ; budget = defaultCekMachineCost BBuiltin}
+tallyingCekMachineCost BConstr = record εT { #Constr = 1 ; budget = defaultCekMachineCost BConstr}
+tallyingCekMachineCost BCase = record εT { #Case = 1 ; budget = defaultCekMachineCost BCase}
+
+tallyingMachineParameters : MachineParameters TallyingBudget
+tallyingMachineParameters = record { 
+        startupCost = record εT { budget = defaultCekStartupCost }
+      ; cekMachineCost = tallyingCekMachineCost
+      ; ε = εT
+      ; _∙_ = _∙T_
+      ; costMonoid = isMonoidTallyingBudget
+      } 
+
+tallyingReport : TallyingBudget → String
+tallyingReport (mkTB #Const #Var #LamAbs #Apply #Delay #Force #Builtin #Constr #Case budget) 
+  =    countingReport budget ++ "\n\n"
+    ++ "Const\t" ++ showℕ #Const ++ "\n"
+    ++ "Var\t" ++ showℕ #Var ++ "\n"
+    ++ "LamAbs\t" ++ showℕ #LamAbs ++ "\n"
+    ++ "Apply\t" ++ showℕ #Apply ++ "\n"
+    ++ "Delay\t" ++ showℕ #Delay ++ "\n"
+    ++ "Force\t" ++ showℕ #Force ++ "\n"
+    ++ "Builtin\t" ++ showℕ #Builtin ++ "\n"
+    ++ "Constr\t" ++ showℕ #Constr ++ "\n"
+    ++ "Case\t" ++ showℕ #Case ++ "\n"
+    ++ "\n"
+
+ ```
