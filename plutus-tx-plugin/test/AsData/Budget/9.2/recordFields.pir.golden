@@ -1,63 +1,73 @@
 let
   !addInteger : integer -> integer -> integer
     = \(x : integer) (y : integer) -> addInteger x y
-  !`$mInts` :
-     all r.
-       data ->
-       (integer -> integer -> integer -> integer -> r) ->
-       (unit -> r) ->
-       r
-    = /\r ->
-        \(scrut : data)
-         (cont : integer -> integer -> integer -> integer -> r)
-         (fail : unit -> r) ->
-          let
-            !tup : pair integer (list data) = unConstrData scrut
-          in
-          ifThenElse
-            {all dead. r}
-            (equalsInteger 0 (fstPair {integer} {list data} tup))
-            (/\dead ->
-               let
-                 !l : list data = sndPair {integer} {list data} tup
-                 !l : list data = tailList {data} l
-                 !l : list data = tailList {data} l
-               in
-               cont
-                 (unIData (headList {data} l))
-                 (unIData (headList {data} l))
-                 (unIData (headList {data} l))
-                 (unIData (headList {data} (tailList {data} l))))
-            (/\dead -> fail ())
-            {all dead. dead}
   !int : data -> integer
     = \(ds : data) ->
-        `$mInts`
-          {integer}
-          ds
-          (\(ds : integer) (ds : integer) (ds : integer) (ds : integer) -> ds)
-          (\(void : unit) -> error {integer})
+        let
+          !tup : pair integer (list data) = unConstrData ds
+          !idx : integer = fstPair {integer} {list data} tup
+          !d : data = headList {data} (sndPair {integer} {list data} tup)
+        in
+        ifThenElse
+          {all dead. integer}
+          (equalsInteger 0 idx)
+          (/\dead -> unIData d)
+          (/\dead -> error {integer})
+          {all dead. dead}
   !int : data -> integer
     = \(ds : data) ->
-        `$mInts`
-          {integer}
-          ds
-          (\(ds : integer) (ds : integer) (ds : integer) (ds : integer) -> ds)
-          (\(void : unit) -> error {integer})
+        let
+          !tup : pair integer (list data) = unConstrData ds
+          !idx : integer = fstPair {integer} {list data} tup
+          !d : data
+            = headList
+                {data}
+                (tailList {data} (sndPair {integer} {list data} tup))
+        in
+        ifThenElse
+          {all dead. integer}
+          (equalsInteger 0 idx)
+          (/\dead -> unIData d)
+          (/\dead -> error {integer})
+          {all dead. dead}
   !int : data -> integer
     = \(ds : data) ->
-        `$mInts`
-          {integer}
-          ds
-          (\(ds : integer) (ds : integer) (ds : integer) (ds : integer) -> ds)
-          (\(void : unit) -> error {integer})
+        let
+          !tup : pair integer (list data) = unConstrData ds
+          !idx : integer = fstPair {integer} {list data} tup
+          !d : data
+            = headList
+                {data}
+                (tailList
+                   {data}
+                   (tailList {data} (sndPair {integer} {list data} tup)))
+        in
+        ifThenElse
+          {all dead. integer}
+          (equalsInteger 0 idx)
+          (/\dead -> unIData d)
+          (/\dead -> error {integer})
+          {all dead. dead}
   !int : data -> integer
     = \(ds : data) ->
-        `$mInts`
-          {integer}
-          ds
-          (\(ds : integer) (ds : integer) (ds : integer) (ds : integer) -> ds)
-          (\(void : unit) -> error {integer})
+        let
+          !tup : pair integer (list data) = unConstrData ds
+          !idx : integer = fstPair {integer} {list data} tup
+          !d : data
+            = headList
+                {data}
+                (tailList
+                   {data}
+                   (tailList
+                      {data}
+                      (tailList {data} (sndPair {integer} {list data} tup))))
+        in
+        ifThenElse
+          {all dead. integer}
+          (equalsInteger 0 idx)
+          (/\dead -> unIData d)
+          (/\dead -> error {integer})
+          {all dead. dead}
   data Bool | Bool_match where
     True : Bool
     False : Bool

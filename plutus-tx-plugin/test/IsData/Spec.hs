@@ -82,6 +82,13 @@ AsData.asData [d|
   data RecordConstructor a = RecordConstructor { x :: a, y :: Integer }
   |]
 
+AsData.asData
+  [d|
+    data RecordSum a b
+      = RecordSum1 {rs1 :: a, rs2 :: Integer}
+      | RecordSum2 {rs3 :: Integer, rs4 :: b}
+    |]
+
 AsData.asData [d|
   data MaybeD a = JustD a | NothingD
   |]
@@ -110,6 +117,21 @@ equalityAsData = plc (Proxy @"equalityAsData") (\x y -> x P.== y)
 fieldAccessor :: CompiledCode (RecordConstructor Integer -> Integer)
 fieldAccessor = plc (Proxy @"fieldAccessor") (\r -> x r)
 
+recordSum ::
+  CompiledCode
+    (RecordSum SecretlyData SecretlyData -> Integer)
+recordSum =
+  plc
+    (Proxy @"recordSum")
+    ( \rs -> case rs of
+        RecordSum1{} -> case rs1 rs of
+          FirstC _  -> rs2 rs
+          SecondC n -> Builtins.addInteger n (rs2 rs)
+        RecordSum2{} -> case rs4 rs of
+          FirstC _  -> rs3 rs
+          SecondC n -> Builtins.addInteger (rs3 rs) n
+    )
+
 tests :: TestNested
 tests = testNestedGhc "IsData" [
     goldenUEval "int" [plc (Proxy @"int") (isDataRoundtrip (1::Integer))]
@@ -134,6 +156,10 @@ tests = testNestedGhc "IsData" [
     , goldenPirReadable "unsafeDeconstructData" unsafeDeconstructData
     , goldenPirReadable "matchAsData" matchAsData
     , goldenUEval "matchAsDataE" [toUPlc $ matchAsData, toUPlc $ plc (Proxy @"test") (SecondC 3)]
+    , goldenUEval "recordSum1" [toUPlc $ recordSum, toUPlc $ plc (Proxy @"test") (RecordSum1 (FirstC ()) 100 :: RecordSum SecretlyData SecretlyData)]
+    , goldenUEval "recordSum2" [toUPlc $ recordSum, toUPlc $ plc (Proxy @"test") (RecordSum1 (SecondC 47) 100 :: RecordSum SecretlyData SecretlyData)]
+    , goldenUEval "recordSum3" [toUPlc $ recordSum, toUPlc $ plc (Proxy @"test") (RecordSum2 100 (FirstC ()) :: RecordSum SecretlyData SecretlyData)]
+    , goldenUEval "recordSum4" [toUPlc $ recordSum, toUPlc $ plc (Proxy @"test") (RecordSum2 100 (SecondC 47) :: RecordSum SecretlyData SecretlyData)]
     , goldenPirReadable "recordAsData" recordAsData
     , goldenPirReadable "dataToData" dataToData
     , goldenPirReadable "equalityAsData" equalityAsData

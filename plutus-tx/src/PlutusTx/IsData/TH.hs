@@ -39,12 +39,12 @@ mkConstrCreateExpr conIx createFieldNames =
   in createExpr
 
 mkConstrPartsMatchPattern :: Integer -> [TH.Name] -> TH.PatQ
-mkConstrPartsMatchPattern conIx extractFieldNames =
+mkConstrPartsMatchPattern conIx fieldNames =
   let
     -- (==) i -> True
     ixMatchPat = [p| ((PlutusTx.==) (conIx :: Integer) -> True) |]
     -- [unsafeFromBuiltinData -> arg1, ...]
-    extractArgPats = (flip fmap) extractFieldNames $ \n ->
+    extractArgPats = (flip fmap) fieldNames $ \n ->
       [p| (fromBuiltinData -> Just $(TH.varP n)) |]
     extractArgsPat = go extractArgPats
       where
@@ -57,15 +57,15 @@ mkConstrPartsMatchPattern conIx extractFieldNames =
 -- TODO: safe match for the whole thing? not needed atm
 
 mkUnsafeConstrMatchPattern :: Integer -> [TH.Name] -> TH.PatQ
-mkUnsafeConstrMatchPattern conIx extractFieldNames = [p| (BI.unsafeDataAsConstr -> (Builtins.pairToPair -> $(mkUnsafeConstrPartsMatchPattern conIx extractFieldNames))) |]
+mkUnsafeConstrMatchPattern conIx fieldNames = [p| (BI.unsafeDataAsConstr -> (Builtins.pairToPair -> $(mkUnsafeConstrPartsMatchPattern conIx fieldNames))) |]
 
 mkUnsafeConstrPartsMatchPattern :: Integer -> [TH.Name] -> TH.PatQ
-mkUnsafeConstrPartsMatchPattern conIx extractFieldNames =
+mkUnsafeConstrPartsMatchPattern conIx fieldNames =
   let
     -- (==) i -> True
     ixMatchPat = [p| ((PlutusTx.==) (conIx :: Integer) -> True) |]
     -- [unsafeFromBuiltinData -> arg1, ...]
-    extractArgPats = (flip fmap) extractFieldNames $ \n ->
+    extractArgPats = (flip fmap) fieldNames $ \n ->
       [p| (unsafeFromBuiltinData -> $(TH.varP n)) |]
     extractArgsPat = go extractArgPats
       where

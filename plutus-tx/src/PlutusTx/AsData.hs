@@ -2,6 +2,7 @@
 {-# LANGUAGE BangPatterns       #-}
 {-# LANGUAGE CPP                #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE PatternSynonyms    #-}
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE TypeApplications   #-}
@@ -18,8 +19,10 @@ import Language.Haskell.TH.Datatype qualified as TH
 import Language.Haskell.TH.Datatype.TyVarBndr qualified as TH
 
 import PlutusTx.Builtins as Builtins
+import PlutusTx.Builtins.Internal as BI
 import PlutusTx.IsData.Class
 import PlutusTx.IsData.TH (mkConstrCreateExpr, mkUnsafeConstrMatchPattern)
+import PlutusTx.Prelude qualified as PlutusTx
 
 import Prelude
 
@@ -87,25 +90,71 @@ asDataFor dec = do
         let con = TH.NormalC cname [(TH.Bang TH.NoSourceUnpackedness TH.NoSourceStrictness, TH.ConT ''BuiltinData)]
         in TH.NewtypeD [] name tTypeVars Nothing con derivs
 
+  -- Generate field accessor functions, if applicable. This is more efficient than the
+  -- field accessors obtained from record pattern synonyms (`RecordPatSyn`).
+  fieldAccessors <- ifor cons $ \conIx (TH.ConstructorInfo{TH.constructorFields = fields, TH.constructorVariant = cVariant}) ->
+    case cVariant of
+      TH.RecordConstructor fieldNames ->
+        ifor (fields `zip` fieldNames) $ \fieldIx (fieldTy, fieldName) -> do
+          inp <- TH.newName "inp"
+          tup <- TH.newName "tup"
+          i <- TH.newName "idx"
+          d <- TH.newName "d"
+          ds <- TH.newName "ds"
+          let body :: TH.Q TH.Exp
+              body =
+                [|
+                  let $(TH.bangP $ TH.varP tup) = BI.unsafeDataAsConstr $(TH.varE inp)
+                      $(TH.bangP $ TH.varP i) = BI.fst $(TH.varE tup)
+                      $(TH.bangP $ TH.varP ds) = BI.snd $(TH.varE tup)
+                      $(TH.bangP $ TH.varP d) =
+                        BI.head
+                          $(foldr (.) id (replicate fieldIx (\e -> [|BI.tail $e|])) (TH.varE ds))
+                   in if $(TH.varE i) PlutusTx.== conIx
+                        then unsafeFromBuiltinData $(TH.varE d)
+                        else Builtins.error ()
+                  |]
+              fieldClause :: TH.Q TH.Clause
+              fieldClause = TH.clause [TH.conP cname [TH.varP inp]] (TH.normalB body) mempty
+              fieldAccessorCtx :: TH.Q TH.Cxt
+              fieldAccessorCtx =
+                sequenceA $
+                  TH.appT (TH.conT ''UnsafeFromData) . TH.varT . TH.tvName
+                    <$> TH.freeVariablesWellScoped [fieldTy]
+              fieldAccessorTy :: TH.Q TH.Type
+              fieldAccessorTy =
+                TH.forallT
+                  (TH.changeTVFlags TH.SpecifiedSpec tTypeVars)
+                  fieldAccessorCtx
+                  [t|
+                    $(foldl' (\acc -> TH.appT acc . TH.varT . TH.tvName) (TH.conT name) tTypeVars) ->
+                    $(pure fieldTy)
+                    |]
+              inlinable = TH.PragmaD (TH.InlineP fieldName TH.Inlinable TH.FunLike TH.AllPhases)
+          sequenceA
+            [ TH.sigD fieldName fieldAccessorTy
+            , TH.funD fieldName [fieldClause]
+            , pure inlinable
+            ]
+      _ -> pure mempty
+
   -- The pattern synonyms, one for each constructor
   pats <- ifor cons $ \conIx (TH.ConstructorInfo{TH.constructorName=conName, TH.constructorFields=fields, TH.constructorVariant=cVariant}) -> do
     -- If we have a record constructor, we need to reuse the names for the
     -- matching part of the pattern synonym
-    fieldNames <- case cVariant of
-      TH.RecordConstructor names -> pure names
-      -- otherwise whatever
-      _                          -> ifor fields $ \fieldIx _ -> TH.newName $ "arg" ++ show fieldIx
-    let extractFieldNames = fieldNames
+    fieldNames <- ifor fields $ \fieldIx _ -> TH.newName $ "arg" ++ show fieldIx
     createFieldNames <- for fieldNames (TH.newName . show)
     patSynArgs <- case cVariant of
-      TH.NormalConstructor   -> pure $ TH.prefixPatSyn extractFieldNames
-      TH.RecordConstructor _ -> pure $ TH.recordPatSyn extractFieldNames
-      TH.InfixConstructor    -> case extractFieldNames of
+      TH.NormalConstructor   -> pure $ TH.prefixPatSyn fieldNames
+      -- Since field accessors are generated separately, here we use `PrefixPatSyn`
+      -- rather than `RecordPatSyn`.
+      TH.RecordConstructor _ -> pure $ TH.prefixPatSyn fieldNames
+      TH.InfixConstructor    -> case fieldNames of
         [f1,f2] -> pure $ TH.infixPatSyn f1 f2
         _       -> fail "asData: infix data constructor with other than two fields"
     let
 
-      pat = TH.conP cname [mkUnsafeConstrMatchPattern (fromIntegral conIx) extractFieldNames]
+      pat = TH.conP cname [mkUnsafeConstrMatchPattern (fromIntegral conIx) fieldNames]
 
       createExpr = [| $(TH.conE cname) $(mkConstrCreateExpr (fromIntegral conIx) createFieldNames) |]
       clause = TH.clause (fmap TH.varP createFieldNames) (TH.normalB createExpr) []
@@ -123,7 +172,7 @@ asDataFor dec = do
       fullTy = TH.ForallT (TH.changeTVFlags TH.SpecifiedSpec allFreeVars) ctxForArgs conTy
       patSynSigD = pure $ TH.PatSynSigD conName fullTy
 
-    sequence [patSynSigD, patSynD]
+    sequenceA [patSynSigD, patSynD]
   -- A complete pragma, to top it off
   let compl = TH.PragmaD (TH.CompleteP (fmap TH.constructorName cons) Nothing)
-  pure $ ntD : compl : concat pats
+  pure $ [ntD] <> concat (concat fieldAccessors) <> [compl] <> concat pats

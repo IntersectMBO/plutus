@@ -27,8 +27,7 @@ AsData.asData
       deriving newtype (PlutusTx.Eq, PlutusTx.FromData, PlutusTx.UnsafeFromData, PlutusTx.ToData)
     |]
 
--- | This is a manually implemented `AsData`, with field accessors that are
--- more friendly to CSE. We should generate field accessors like these in TH.
+-- | This is a manually implemented `AsData`, to compare with the TH version.
 newtype IntsManual = IntsManual PlutusTx.BuiltinData
   deriving newtype
     ( PlutusTx.Eq

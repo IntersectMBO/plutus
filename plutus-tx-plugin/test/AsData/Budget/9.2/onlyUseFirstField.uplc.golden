@@ -2,21 +2,13 @@ program
   1.1.0
   (\d ->
      (\tup ->
-        force
-          (force ifThenElse
-             (equalsInteger 0 (force (force fstPair) tup))
-             (delay
-                ((\l ->
-                    (\l ->
-                       (\l ->
-                          (\ds ->
-                             (\ds ->
-                                (\ds -> unIData (force headList l))
-                                  (unIData (force headList (force tailList l))))
-                               (unIData (force headList l)))
-                            (unIData (force headList l)))
-                         (force tailList l))
-                      (force tailList l))
-                   (force (force sndPair) tup)))
-             (delay error)))
+        (\idx ->
+           (\d ->
+              force
+                (force ifThenElse
+                   (equalsInteger 0 idx)
+                   (delay (unIData d))
+                   (delay error)))
+             (force headList (force (force sndPair) tup)))
+          (force (force fstPair) tup))
        (unConstrData d))

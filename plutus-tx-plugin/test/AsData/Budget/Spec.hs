@@ -108,8 +108,6 @@ recordFields =
         ||]
     )
 
--- This is much more efficient than `recordFields` since the manually written
--- field accessors are more CSE-friendly.
 recordFieldsManual :: CompiledCode (PlutusTx.BuiltinData -> Integer)
 recordFieldsManual =
   $$( compile
