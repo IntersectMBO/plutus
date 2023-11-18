@@ -137,9 +137,6 @@ V-I b {tm = suc tm} bt = V-IΠ b bt
 
 {-
 The BUILTIN function provides the semantics of builtin functions.
-
-WARNING: This untyped BUILTIN function implements all builtin functions, but not all of them have been tested.
-This WARNING will be removed once the tests are done.
 -}
 
 BUILTIN : ∀ b → BApp b (alldone (fv (signature b))) (alldone (args♯ (signature b))) → Either RuntimeError Value
@@ -491,17 +488,15 @@ BUILTIN blake2b-224 = λ
   ; _ -> inj₁ userError
   }
 
-
+-- BUILTIN : ∀ b → BApp b (alldone (fv (signature b))) (alldone (args♯ (signature b))) → Either RuntimeError Value
 BUILTIN' : ∀ b
   → ∀{tn} → {pt : tn ∔ 0 ≣ fv (signature b)}
   → ∀{an} → {pa : an ∔ 0 ≣ args♯ (signature b)}
   → BApp b pt pa
-  → ⊥ ⊢
+  → Either RuntimeError Value
 BUILTIN' b {pt = pt} {pa = pa} bt with trans (sym (+-identityʳ _)) (∔2+ pt) | trans (sym (+-identityʳ _)) (∔2+ pa)
 ... | refl | refl with unique∔ pt (alldone (fv (signature b))) | unique∔ pa (alldone (args♯ (signature b)))
-... | refl | refl with BUILTIN b bt
-... | inj₁ _ = error
-... | inj₂ V = discharge V
+... | refl | refl =  BUILTIN b bt
 
 ival : Builtin → Value
 ival b = V-I b base
@@ -550,7 +545,7 @@ step ((s , case- ρ ts) ◅ V-con _ _)        = ◆ -- case of constant
 step ((s , case- ρ ts) ◅ V-delay _ _)      = ◆ -- case of delay
 step ((s , case- ρ ts) ◅ V-I⇒ _ _)         = ◆ -- case of builtin value
 step ((s , case- ρ ts) ◅ V-IΠ _ _)         = ◆ -- case of delqyed builtin
-step ((s , (V-I⇒ b {am = 0} bapp ·-)) ◅ v) = s ; [] ▻ BUILTIN' b (app bapp v)
+step ((s , (V-I⇒ b {am = 0} bapp ·-)) ◅ v) = either (BUILTIN' b (app bapp v)) (λ _ → ◆) (s ◅_)
 step ((s , (V-I⇒ b {am = suc _} bapp ·-)) ◅ v) = s ◅ V-I b (app bapp v)
 
 step (□ v)               = □ v

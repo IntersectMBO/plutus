@@ -19,7 +19,7 @@ open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym)
 
 open import Untyped using (_⊢)
 open _⊢
-open import Utils using (Writer;_>>_;_>>=_;return;maybe;Either;inj₁;inj₂;RuntimeError;gasError)
+open import Utils using (Writer;_>>_;_>>=_;return;maybe;Either;inj₁;inj₂;RuntimeError;gasError;either)
 open Writer
 open import RawU using (tmCon)
 
@@ -108,9 +108,10 @@ stepC ((s , case- ρ ts) ◅ V-con _ _)        = return ◆ -- case of constant
 stepC ((s , case- ρ ts) ◅ V-delay _ _)      = return ◆ -- case of delay
 stepC ((s , case- ρ ts) ◅ V-I⇒ _ _)         = return ◆ -- case of builtin value
 stepC ((s , case- ρ ts) ◅ V-IΠ _ _)         = return ◆ -- case of delayed builtin
-stepC ((s , (V-I⇒ b {am = 0} bapp ·-)) ◅ v) = do --fully applied builtin function
-          -- TODO: spend cost of executing builtin function
-          return (s ; [] ▻ BUILTIN' b (app bapp v))
+stepC ((s , (V-I⇒ b {am = 0} bapp ·-)) ◅ v) = --fully applied builtin function
+          either (BUILTIN' b (app bapp v)) (λ _ → return ◆) (λ V → do 
+              -- TODO: spend cost of executing builtin function
+              return (s ◅ V))
 stepC ((s , (V-I⇒ b {am = suc _} bapp ·-)) ◅ v) =  --partially applied builtin function
           return (s ◅ V-I b (app bapp v))
 
@@ -158,7 +159,9 @@ cekStepEquivalence ((s , (V-ƛ _ _ ·-)) ◅ _) = refl
 cekStepEquivalence ((s , (V-con _ _ ·-)) ◅ _) = refl
 cekStepEquivalence ((s , (V-delay _ _ ·-)) ◅ _) = refl
 cekStepEquivalence ((s , (V-constr _ _ ·-)) ◅ _) = refl
-cekStepEquivalence ((s , (V-I⇒ _ {am = zero} _ ·-)) ◅ _) = refl
+cekStepEquivalence ((s , (V-I⇒ b {am = zero} x ·-)) ◅ V) with BUILTIN' b (app x V)
+... | inj₁ _ = refl
+... | inj₂ _ = refl
 cekStepEquivalence ((s , (V-I⇒ _ {am = suc _} _ ·-)) ◅ _) = refl
 cekStepEquivalence ((s , (V-IΠ _ _ ·-)) ◅ _) = refl
 cekStepEquivalence ((s , force-) ◅ V-ƛ _ _) = refl
