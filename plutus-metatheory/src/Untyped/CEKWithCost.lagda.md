@@ -15,10 +15,12 @@ open import Data.Unit using (⊤;tt)
 open import Data.Nat using (ℕ;zero;suc)
 open import Data.List using (List;[];_∷_)
 open import Data.Product using (_,_)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym)
 
 open import Untyped using (_⊢)
 open _⊢
 open import Utils using (Writer;_>>_;_>>=_;return;maybe;Either;inj₁;inj₂;RuntimeError;gasError)
+open Writer
 open import RawU using (tmCon)
 
 open import Untyped.CEK
@@ -37,6 +39,9 @@ CekM = Writer Budget
 
 spend : StepKind → CekM ⊤
 spend st = tell (cekMachineCost st)
+
+spendStartupCost : CekM ⊤
+spendStartupCost = tell startupCost
 ```
 
 ## Step with costs
@@ -112,14 +117,72 @@ stepC ((s , (V-I⇒ b {am = suc _} bapp ·-)) ◅ v) =  --partially applied buil
 stepC (□ v)               = return (□ v)
 stepC ◆                   = return ◆
 
-stepperC : ℕ → (s : State) → CekM (Either RuntimeError State)
-stepperC 0       s = return (inj₁ gasError)
-stepperC (suc n) s = do
+
+
+stepperC-internal : ℕ → (s : State) → CekM (Either RuntimeError State)
+stepperC-internal 0       s = return (inj₁ gasError)
+stepperC-internal (suc n) s = do
        s' ← stepC s 
        go s'
     where
        go : (t : State) → CekM (Either RuntimeError State)
        go (□ v) = return (inj₂ (□ v))
        go ◆     = return (inj₂ ◆)
-       go s'    = stepperC n s'
+       go s'    = stepperC-internal n s'
+
+stepperC : ℕ → (s : State) → CekM (Either RuntimeError State)
+stepperC n s = do 
+       spendStartupCost 
+       stepperC-internal n s
+```
+
+## Proof of equivalence between CEK machine with and without costs
+
+```
+cekStepEquivalence : ∀ (s : State) → step s ≡ wrvalue (stepC s) 
+cekStepEquivalence (s ; ρ ▻ ` _) = refl
+cekStepEquivalence (s ; ρ ▻ ƛ _) = refl
+cekStepEquivalence (s ; ρ ▻ (_ · _)) = refl
+cekStepEquivalence (s ; ρ ▻ force _) = refl
+cekStepEquivalence (s ; ρ ▻ delay _) = refl
+cekStepEquivalence (s ; ρ ▻ con (tmCon _ _)) = refl
+cekStepEquivalence (s ; ρ ▻ constr _ []) = refl
+cekStepEquivalence (s ; ρ ▻ constr _ (_ ∷ _)) = refl
+cekStepEquivalence (s ; ρ ▻ case _ _) = refl
+cekStepEquivalence (s ; ρ ▻ builtin _) = refl
+cekStepEquivalence (s ; ρ ▻ error) = refl
+cekStepEquivalence (ε ◅ _) = refl
+cekStepEquivalence ((s , -· _ _) ◅ _) = refl
+cekStepEquivalence ((s , -·v _) ◅ _) = refl
+cekStepEquivalence ((s , (V-ƛ _ _ ·-)) ◅ _) = refl
+cekStepEquivalence ((s , (V-con _ _ ·-)) ◅ _) = refl
+cekStepEquivalence ((s , (V-delay _ _ ·-)) ◅ _) = refl
+cekStepEquivalence ((s , (V-constr _ _ ·-)) ◅ _) = refl
+cekStepEquivalence ((s , (V-I⇒ _ {am = zero} _ ·-)) ◅ _) = refl
+cekStepEquivalence ((s , (V-I⇒ _ {am = suc _} _ ·-)) ◅ _) = refl
+cekStepEquivalence ((s , (V-IΠ _ _ ·-)) ◅ _) = refl
+cekStepEquivalence ((s , force-) ◅ V-ƛ _ _) = refl
+cekStepEquivalence ((s , force-) ◅ V-con _ _) = refl
+cekStepEquivalence ((s , force-) ◅ V-delay ρ x) = cekStepEquivalence (s ; ρ ▻ x)
+cekStepEquivalence ((s , force-) ◅ V-constr _ _) = refl
+cekStepEquivalence ((s , force-) ◅ V-I⇒ _ _) = refl
+cekStepEquivalence ((s , force-) ◅ V-IΠ _ _) = refl
+cekStepEquivalence ((s , constr- _ _ _ []) ◅ _) = refl
+cekStepEquivalence ((s , constr- _ _ _ (_ ∷ _)) ◅ _) = refl
+cekStepEquivalence ((s , case- _ _) ◅ V-ƛ _ _) = refl
+cekStepEquivalence ((s , case- _ _) ◅ V-con _ _) = refl
+cekStepEquivalence ((s , case- _ _) ◅ V-delay _ _) = refl
+cekStepEquivalence ((s , case- _ _) ◅ V-constr _ _) = refl
+cekStepEquivalence ((s , case- _ _) ◅ V-I⇒ _ _) = refl
+cekStepEquivalence ((s , case- _ _) ◅ V-IΠ _ _) = refl
+cekStepEquivalence (□ _) = refl
+cekStepEquivalence ◆ = refl
+
+cekStepperEquivalence : ∀ n s → stepper n s ≡ wrvalue (stepperC n s) 
+cekStepperEquivalence zero s = refl 
+cekStepperEquivalence (suc n) s rewrite sym (cekStepEquivalence s) with step s 
+... | s ; ρ ▻ t = cekStepperEquivalence n (s ; ρ ▻ t)
+... | s ◅ v = cekStepperEquivalence n  (s ◅ v)
+... | □ x = refl
+... | ◆ = refl
 ```
