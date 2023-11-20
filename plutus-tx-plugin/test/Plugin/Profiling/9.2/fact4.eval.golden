@@ -1,37 +1,36 @@
-( (con integer 24)
-, [ entering fact
-  , entering equalsInteger
-  , exiting equalsInteger
-  , entering subtractInteger
-  , exiting subtractInteger
-  , entering fact
-  , entering equalsInteger
-  , exiting equalsInteger
-  , entering subtractInteger
-  , exiting subtractInteger
-  , entering fact
-  , entering equalsInteger
-  , exiting equalsInteger
-  , entering subtractInteger
-  , exiting subtractInteger
-  , entering fact
-  , entering equalsInteger
-  , exiting equalsInteger
-  , entering subtractInteger
-  , exiting subtractInteger
-  , entering fact
-  , entering equalsInteger
-  , exiting equalsInteger
-  , exiting fact
-  , entering multiplyInteger
-  , exiting multiplyInteger
-  , exiting fact
-  , entering multiplyInteger
-  , exiting multiplyInteger
-  , exiting fact
-  , entering multiplyInteger
-  , exiting multiplyInteger
-  , exiting fact
-  , entering multiplyInteger
-  , exiting multiplyInteger
-  , exiting fact ] )
+[ entering fact
+, entering equalsInteger
+, exiting equalsInteger
+, entering subtractInteger
+, exiting subtractInteger
+, entering fact
+, entering equalsInteger
+, exiting equalsInteger
+, entering subtractInteger
+, exiting subtractInteger
+, entering fact
+, entering equalsInteger
+, exiting equalsInteger
+, entering subtractInteger
+, exiting subtractInteger
+, entering fact
+, entering equalsInteger
+, exiting equalsInteger
+, entering subtractInteger
+, exiting subtractInteger
+, entering fact
+, entering equalsInteger
+, exiting equalsInteger
+, exiting fact
+, entering multiplyInteger
+, exiting multiplyInteger
+, exiting fact
+, entering multiplyInteger
+, exiting multiplyInteger
+, exiting fact
+, entering multiplyInteger
+, exiting multiplyInteger
+, exiting fact
+, entering multiplyInteger
+, exiting multiplyInteger
+, exiting fact ]

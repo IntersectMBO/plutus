@@ -1,13 +1,12 @@
-( (con integer 2)
-, [ entering useTypeclass
-  , entering methodA
-  , exiting methodA
-  , entering addInteger
-  , exiting addInteger
-  , entering methodB
-  , exiting methodB
-  , entering subtractInteger
-  , exiting subtractInteger
-  , entering addInteger
-  , exiting addInteger
-  , exiting useTypeclass ] )
+[ entering useTypeclass
+, entering methodA
+, exiting methodA
+, entering addInteger
+, exiting addInteger
+, entering methodB
+, exiting methodB
+, entering subtractInteger
+, exiting subtractInteger
+, entering addInteger
+, exiting addInteger
+, exiting useTypeclass ]

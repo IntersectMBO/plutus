@@ -1,13 +1,12 @@
-( (con integer 35)
-, [ entering f
-  , entering addInteger
-  , exiting addInteger
-  , exiting f
-  , entering f
-  , entering addInteger
-  , exiting addInteger
-  , exiting f
-  , entering addInteger
-  , exiting addInteger
-  , entering multiplyInteger
-  , exiting multiplyInteger ] )
+[ entering f
+, entering addInteger
+, exiting addInteger
+, exiting f
+, entering f
+, entering addInteger
+, exiting addInteger
+, exiting f
+, entering addInteger
+, exiting addInteger
+, entering multiplyInteger
+, exiting multiplyInteger ]

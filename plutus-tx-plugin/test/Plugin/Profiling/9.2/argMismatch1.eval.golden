@@ -1,7 +1,6 @@
-( (con integer 1)
-, [ entering runIdentity
-  , exiting runIdentity
-  , entering newtypeFunction
-  , exiting newtypeFunction
-  , entering runIdentity
-  , exiting runIdentity ] )
+[ entering runIdentity
+, exiting runIdentity
+, entering newtypeFunction
+, exiting newtypeFunction
+, entering runIdentity
+, exiting runIdentity ]

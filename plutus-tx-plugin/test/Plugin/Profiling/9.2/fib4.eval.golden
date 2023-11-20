@@ -1,75 +1,74 @@
-( (con integer 3)
-, [ entering fib
-  , entering equalsInteger
-  , exiting equalsInteger
-  , entering equalsInteger
-  , exiting equalsInteger
-  , entering subtractInteger
-  , exiting subtractInteger
-  , entering fib
-  , entering equalsInteger
-  , exiting equalsInteger
-  , entering equalsInteger
-  , exiting equalsInteger
-  , entering subtractInteger
-  , exiting subtractInteger
-  , entering fib
-  , entering equalsInteger
-  , exiting equalsInteger
-  , entering equalsInteger
-  , exiting equalsInteger
-  , entering subtractInteger
-  , exiting subtractInteger
-  , entering fib
-  , entering equalsInteger
-  , exiting equalsInteger
-  , entering equalsInteger
-  , exiting equalsInteger
-  , exiting fib
-  , entering subtractInteger
-  , exiting subtractInteger
-  , entering fib
-  , entering equalsInteger
-  , exiting equalsInteger
-  , exiting fib
-  , entering addInteger
-  , exiting addInteger
-  , exiting fib
-  , entering subtractInteger
-  , exiting subtractInteger
-  , entering fib
-  , entering equalsInteger
-  , exiting equalsInteger
-  , entering equalsInteger
-  , exiting equalsInteger
-  , exiting fib
-  , entering addInteger
-  , exiting addInteger
-  , exiting fib
-  , entering subtractInteger
-  , exiting subtractInteger
-  , entering fib
-  , entering equalsInteger
-  , exiting equalsInteger
-  , entering equalsInteger
-  , exiting equalsInteger
-  , entering subtractInteger
-  , exiting subtractInteger
-  , entering fib
-  , entering equalsInteger
-  , exiting equalsInteger
-  , entering equalsInteger
-  , exiting equalsInteger
-  , exiting fib
-  , entering subtractInteger
-  , exiting subtractInteger
-  , entering fib
-  , entering equalsInteger
-  , exiting equalsInteger
-  , exiting fib
-  , entering addInteger
-  , exiting addInteger
-  , exiting fib
-  , entering addInteger
-  , exiting addInteger
-  , exiting fib ] )
+[ entering fib
+, entering equalsInteger
+, exiting equalsInteger
+, entering equalsInteger
+, exiting equalsInteger
+, entering subtractInteger
+, exiting subtractInteger
+, entering fib
+, entering equalsInteger
+, exiting equalsInteger
+, entering equalsInteger
+, exiting equalsInteger
+, entering subtractInteger
+, exiting subtractInteger
+, entering fib
+, entering equalsInteger
+, exiting equalsInteger
+, entering equalsInteger
+, exiting equalsInteger
+, entering subtractInteger
+, exiting subtractInteger
+, entering fib
+, entering equalsInteger
+, exiting equalsInteger
+, entering equalsInteger
+, exiting equalsInteger
+, exiting fib
+, entering subtractInteger
+, exiting subtractInteger
+, entering fib
+, entering equalsInteger
+, exiting equalsInteger
+, exiting fib
+, entering addInteger
+, exiting addInteger
+, exiting fib
+, entering subtractInteger
+, exiting subtractInteger
+, entering fib
+, entering equalsInteger
+, exiting equalsInteger
+, entering equalsInteger
+, exiting equalsInteger
+, exiting fib
+, entering addInteger
+, exiting addInteger
+, exiting fib
+, entering subtractInteger
+, exiting subtractInteger
+, entering fib
+, entering equalsInteger
+, exiting equalsInteger
+, entering equalsInteger
+, exiting equalsInteger
+, entering subtractInteger
+, exiting subtractInteger
+, entering fib
+, entering equalsInteger
+, exiting equalsInteger
+, entering equalsInteger
+, exiting equalsInteger
+, exiting fib
+, entering subtractInteger
+, exiting subtractInteger
+, entering fib
+, entering equalsInteger
+, exiting equalsInteger
+, exiting fib
+, entering addInteger
+, exiting addInteger
+, exiting fib
+, entering addInteger
+, exiting addInteger
+, exiting fib ]
