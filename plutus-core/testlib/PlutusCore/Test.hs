@@ -289,7 +289,7 @@ runUPlcProfile' ::
 runUPlcProfile' values = do
   ps <- traverse toUPlc values
   let (UPLC.Program _ _ t) = foldl1 (unsafeFromRight .* UPLC.applyProgram) ps
-      (res, UPLC.CountingSt budget, logs) =
+      (res, UPLC.CountingSt _, logs) =
         UPLC.runCek TPLC.defaultCekParameters UPLC.counting UPLC.logWithBudgetEmitter t
   case res of
     Left err -> throwError (SomeException $ err)

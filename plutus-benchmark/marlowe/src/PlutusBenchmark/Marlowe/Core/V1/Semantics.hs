@@ -99,7 +99,6 @@ module PlutusBenchmark.Marlowe.Core.V1.Semantics
   , totalBalance
   ) where
 
-
 import Data.Data (Data)
 import GHC.Generics (Generic)
 import PlutusBenchmark.Marlowe.Core.V1.Semantics.Types
@@ -117,7 +116,6 @@ import PlutusLedgerApi.V2 qualified as Val
 import PlutusTx.AssocMap qualified as Map
 import PlutusTx.Builtins qualified as Builtins
 import Prelude qualified as Haskell
-
 
 
 {-| Payment occurs during 'Pay' contract evaluation, and
