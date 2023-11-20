@@ -43,7 +43,7 @@ common lang
 
 common ghc-version-support
   -- See the section on GHC versions in CONTRIBUTING
-  if impl(ghc <9.2)
+  if impl(ghc <9.6)
     buildable: False
 
 flag use-ghc-stub
@@ -187,9 +187,6 @@ test-suite plutus-tx-plugin-tests
 
 test-suite size
   import:             lang, ghc-version-support
-
-  if impl(ghc <9.0)
-    buildable: False
 
   -- needs plutus-tx-plugin but it looks unused
   ghc-options:        -Wno-unused-packages

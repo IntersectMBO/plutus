@@ -172,7 +172,7 @@ test-suite plutus-ledger-api-test
 test-suite plutus-ledger-api-plugin-test
   import:         lang
 
-  if impl(ghc <9.0)
+  if impl(ghc <9.6)
     buildable: False
 
   type:           exitcode-stdio-1.0

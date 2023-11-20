@@ -4,13 +4,13 @@ let
   # Need a newer version for 2.6.2 compatibility
   stdlib = repoRoot.nix.agda-packages.standard-library.overrideAttrs (oldAtts: rec {
 
-    version = "1.7";
+    version = "1.7.3";
 
     src = pkgs.fetchFromGitHub {
       repo = "agda-stdlib";
       owner = "agda";
       rev = "v${version}";
-      sha256 = "14h3jprm6924g9576v25axn9v6xnip354hvpzlcqsc5qqyj7zzjs";
+      sha256 = "sha256-vtL6VPvTXhl/mepulUm8SYyTjnGsqno4RHDmTIy22Xg=";
     };
     # This is preConfigure is copied from more recent nixpkgs that also
     # uses version 1.7 of standard-library. Old nixpkgs (that used 1.4)

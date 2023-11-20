@@ -10,7 +10,7 @@ let
 
       # We need the mkDefault here since compiler-nix-name will be overridden 
       # in the flake variants.
-      compiler-nix-name = lib.mkDefault "ghc92";
+      compiler-nix-name = lib.mkDefault "ghc96";
 
       src = ../.;
 
@@ -24,13 +24,12 @@ let
       };
 
       flake.variants = {
-        ghc92 = { }; # Alias for the default project
-        ghc810.compiler-nix-name = "ghc810";
-        ghc96.compiler-nix-name = "ghc96";
-        ghc92-profiled.modules = [{
+        ghc96 = { }; # Alias for the default project
+        ghc96-profiled.modules = [{
           enableProfiling = true;
           enableLibraryProfiling = true;
         }];
+        ghc810.compiler-nix-name = "ghc810";
       };
 
       inputMap = { "https://input-output-hk.github.io/cardano-haskell-packages" = inputs.iogx.inputs.CHaP; };
