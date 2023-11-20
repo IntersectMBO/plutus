@@ -313,7 +313,8 @@ We use `stylish-haskell` for Haskell code formatting, and `cabal-fmt` for cabal 
 They are run automatically as pre-commit hooks, but CI will run them again and expect that to be a no-op, so if you somehow don’t apply them your PR will not go green.
 
 To run `stylish-haskell` or `cabal-fmt` manually over your tree, type `pre-commit run stylish-haskell` or `pre-commit run cabal-fmt` respectively.
-They are provided by the `nix develop` environment.
+
+This will only consider changed files. To run over all files, pass the `--all` flag to `pre-commit`.
 
 === Code linting
 
