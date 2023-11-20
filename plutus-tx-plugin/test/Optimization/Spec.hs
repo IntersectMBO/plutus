@@ -57,7 +57,7 @@ matchAsData :: CompiledCode (MaybeD Integer -> Integer)
 matchAsData = plc (Proxy @"matchAsData") (
   \case
     JustD a _ -> a
-    NothingD -> 1)
+    NothingD  -> 1)
 
 unsafeDeconstructData :: CompiledCode (Builtins.BuiltinData -> Maybe (Integer, Integer))
 unsafeDeconstructData = plc (Proxy @"deconstructData")
