@@ -85,7 +85,13 @@ asDataFor dec = do
   -- The newtype declaration
   let ntD =
         let con = TH.NormalC cname [(TH.Bang TH.NoSourceUnpackedness TH.NoSourceStrictness, TH.ConT ''BuiltinData)]
-        in TH.NewtypeD [] name tTypeVars Nothing con derivs
+        in TH.NewtypeD [] name
+#if ! MIN_VERSION_template_haskell(2,23,0)
+            (TH.changeTVFlags TH.BndrReq tTypeVars)
+#else
+            tTypeVars
+#endif
+            Nothing con derivs
 
   -- The pattern synonyms, one for each constructor
   pats <- ifor cons $ \conIx (TH.ConstructorInfo{TH.constructorName=conName, TH.constructorFields=fields, TH.constructorVariant=cVariant}) -> do
