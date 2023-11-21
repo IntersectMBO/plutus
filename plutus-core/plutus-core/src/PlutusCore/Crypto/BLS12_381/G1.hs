@@ -11,6 +11,8 @@ module PlutusCore.Crypto.BLS12_381.G1
     , hashToGroup
     , compress
     , uncompress
+    , serialise
+    , deserialise
     , zero
     , generator
     , memSizeBytes
@@ -97,6 +99,10 @@ scalarMul = coerce $ flip BlstBindings.blsMult
 compress :: Element -> ByteString
 compress = coerce BlstBindings.blsCompress
 
+{-# INLINE serialise #-}
+serialise :: Element -> ByteString
+serialise = coerce BlstBindings.blsSerialize
+
 {- | Uncompress a bytestring to get a G1 point.  This will fail if any of the
    following are true.
      * The bytestring is not exactly 48 bytes long.
@@ -109,6 +115,11 @@ compress = coerce BlstBindings.blsCompress
 {-# INLINE uncompress #-}
 uncompress :: ByteString -> Either BlstBindings.BLSTError Element
 uncompress = coerce BlstBindings.blsUncompress
+
+{-# INLINE deserialise #-}
+deserialise :: ByteString -> Either BlstBindings.BLSTError Element
+deserialise = coerce BlstBindings.blsDeserialize
+
 
 {- | Note [Hashing and Domain Separation Tags].  The hashToGroup functions take a
    bytestring and hash it to obtain an element in the relevant group, as
