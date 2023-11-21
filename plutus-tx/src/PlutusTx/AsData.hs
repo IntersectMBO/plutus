@@ -86,7 +86,7 @@ asDataFor dec = do
   let ntD =
         let con = TH.NormalC cname [(TH.Bang TH.NoSourceUnpackedness TH.NoSourceStrictness, TH.ConT ''BuiltinData)]
         in TH.NewtypeD [] name
-#if ! MIN_VERSION_template_haskell(2,23,0)
+#if !MIN_VERSION_template_haskell(2,21,0)
             (TH.changeTVFlags TH.BndrReq tTypeVars)
 #else
             tTypeVars
