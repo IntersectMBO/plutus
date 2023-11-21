@@ -34,6 +34,7 @@ import GHC.Tc.Utils.TcType qualified as GHC
 #endif
 
 import PlutusTx.Builtins qualified as Builtins
+import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Compiler.Binders
 import PlutusTx.Compiler.Builtins
 import PlutusTx.Compiler.Error
@@ -52,6 +53,7 @@ import PlutusTx.Builtins.Class qualified as Builtins
 import PlutusTx.Trace
 
 import PlutusIR qualified as PIR
+import PlutusIR.Analysis.Builtins
 import PlutusIR.Compiler.Definitions qualified as PIR
 import PlutusIR.Compiler.Names (safeFreshName)
 import PlutusIR.Core.Type (Term (..))
@@ -63,18 +65,22 @@ import PlutusCore.MkPlc qualified as PLC
 import PlutusCore.Pretty qualified as PP
 import PlutusCore.Subst qualified as PLC
 
-import Control.Lens hiding (index, strict)
+import Control.Lens hiding (index, strict, transform)
 import Control.Monad
 import Control.Monad.Reader (ask)
 import Data.Array qualified as Array
 import Data.ByteString qualified as BS
+import Data.Generics.Uniplate.Data (transform, universeBi)
 import Data.List (elemIndex)
 import Data.Map qualified as Map
+import Data.Maybe
 import Data.Set qualified as Set
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as TE
 import Data.Traversable
+import Data.Tuple.Extra
 import GHC.Num.Integer qualified
+import Language.Haskell.TH qualified as TH
 
 {- Note [System FC and System FW]
 Haskell uses system FC, which includes type equalities and coercions.
@@ -823,22 +829,91 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
         body' <- compileExpr body
         pure $ PIR.mkLet annMayInline PIR.Rec binds body'
 
+    GHC.Case scrutinee b t alts ->
+      compileCase (const . GHC.isDeadOcc . GHC.occInfo . GHC.idInfo) True binfo scrutinee b t alts
+
+    -- we can use source notes to get a better context for the inner expression
+    -- these are put in when you compile with -g
+    -- See Note [What source locations to cover]
+    GHC.Tick tick body | Just src <- getSourceSpan maybeModBreaks tick ->
+      traceCompilation 1 ("Compiling expr at:" GHC.<+> GHC.ppr src) $ do
+        CompileContext{ccOpts = coverageOpts} <- ask
+        -- See Note [Coverage annotations]
+        let anns = Set.toList $ activeCoverageTypes coverageOpts
+        compiledBody <- fmap (addSrcSpan $ src ^. srcSpanIso) <$> compileExpr body
+        foldM (coverageCompile body (GHC.exprType body) src) compiledBody anns
+
+    -- ignore other annotations
+    GHC.Tick _ body -> compileExpr body
+    -- See Note [Coercions and newtypes]
+    GHC.Cast body _ -> compileExpr body
+    GHC.Type _ -> throwPlain $ UnsupportedError "Types as standalone expressions"
+    GHC.Coercion _ -> throwPlain $ UnsupportedError "Coercions as expressions"
+
+compileCase ::
+  (CompilingDefault uni fun m ann) =>
+  -- | Whether the variable is dead in the expr
+  (GHC.Var -> GHC.CoreExpr -> Bool) ->
+  -- | Whether we should try to rewrite opaque constructor applications
+  Bool ->
+  BuiltinsInfo uni fun ->
+  GHC.CoreExpr ->
+  GHC.Var ->
+  GHC.Type ->
+  [GHC.CoreAlt] ->
+  m (PIRTerm uni fun)
+compileCase isDead rewriteOpaque binfo scrutinee binder t alts = case alts of
+  [GHC.Alt con bs body]
     -- See Note [Evaluation-only cases]
-    GHC.Case scrutinee b _ [GHC.Alt _ bs body] | all (GHC.isDeadOcc . GHC.occInfo . GHC.idInfo) bs -> do
+    | all (`isDead` body) bs -> do
       -- See Note [At patterns]
       scrutinee' <- compileExpr scrutinee
-      withVarScoped b $ \v -> do
+      withVarScoped binder $ \v -> do
         body' <- compileExpr body
         -- See Note [At patterns]
         let binds = [PIR.TermBind annMayInline PIR.Strict v scrutinee']
         pure $ PIR.mkLet annMayInline PIR.NonRec binds body'
-    GHC.Case scrutinee b t alts -> do
+    | rewriteOpaque
+    , GHC.DataAlt dataCon <- con
+    , let dataConName = GHC.dataConName dataCon
+    , let dataConModule = GHC.moduleNameString . GHC.moduleName <$> GHC.nameModule_maybe dataConName
+    , let dataConBase = GHC.occNameString (GHC.nameOccName dataConName)
+    , (dataConModule, dataConBase) `elem` opaqueTypes -> do
+        -- Attempt to rewrite opaque constructors, since opaque constructors cannot be compiled.
+        -- For example, this rewrites
+
+        -- ```
+        -- case scrut of b {BuiltinList xs} -> ...BuiltinList @BuiltinData xs...
+        -- ```
+        --
+        -- into
+        --
+        -- ```
+        -- case scrut of b {BuiltinList xs} -> ...b...
+        -- ```
+        --
+        -- after which `xs` is hopefully dead, and we can then compile it using the
+        -- `all (`isDead` body) bs` branch of `compileCase`.
+        let f (GHC.collectArgs -> (GHC.Var (GHC.isDataConId_maybe -> Just dataCon'), args0))
+              | dataCon == dataCon'
+              -- Discard type arguments
+              , let args = mapMaybe (\case GHC.Var v -> Just v; _ -> Nothing) args0
+              , length bs == length args
+              , all (uncurry (==)) (bs `zip` args) =
+                GHC.Var binder
+            f other = other
+            -- This time we can no longer use `GHC.isDeadOcc`. Instead we check manually.
+            isDead' b = not . any (== b) . universeBi
+        -- If some binders are still alive, we have to give up (rather than trying to rewrite
+        -- opaque constructor applications again, which will loop), hence `False`.
+        compileCase isDead' False binfo scrutinee binder t [GHC.Alt con bs (transform f body)]
+  _ -> do
       -- See Note [At patterns]
       scrutinee' <- compileExpr scrutinee
-      let scrutineeType = GHC.varType b
+      let scrutineeType = GHC.varType binder
 
       -- the variable for the scrutinee is bound inside the cases, but not in the scrutinee expression itself
-      withVarScoped b $ \v -> do
+      withVarScoped binder $ \v -> do
         (tc, argTys) <- case GHC.splitTyConApp_maybe scrutineeType of
           Just (tc, argTys) -> pure (tc, argTys)
           Nothing ->
@@ -906,24 +981,6 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
                 PIR.TermBind annMayInline PIR.NonStrict (PIR.VarDecl annMayInline defName originalResultType) defCompiled
               ]
         pure $ PIR.mkLet annMayInline PIR.NonRec binds mainCase
-
-    -- we can use source notes to get a better context for the inner expression
-    -- these are put in when you compile with -g
-    -- See Note [What source locations to cover]
-    GHC.Tick tick body | Just src <- getSourceSpan maybeModBreaks tick ->
-      traceCompilation 1 ("Compiling expr at:" GHC.<+> GHC.ppr src) $ do
-        CompileContext{ccOpts = coverageOpts} <- ask
-        -- See Note [Coverage annotations]
-        let anns = Set.toList $ activeCoverageTypes coverageOpts
-        compiledBody <- fmap (addSrcSpan $ src ^. srcSpanIso) <$> compileExpr body
-        foldM (coverageCompile body (GHC.exprType body) src) compiledBody anns
-
-    -- ignore other annotations
-    GHC.Tick _ body -> compileExpr body
-    -- See Note [Coercions and newtypes]
-    GHC.Cast body _ -> compileExpr body
-    GHC.Type _ -> throwPlain $ UnsupportedError "Types as standalone expressions"
-    GHC.Coercion _ -> throwPlain $ UnsupportedError "Coercions as expressions"
 
 {- Note [What source locations to cover]
    We try to get as much coverage information as we can out of GHC. This means that
@@ -1165,3 +1222,18 @@ f a = let defaultBody = 2 in case a of
 ```
 Then the inliner can inline it as appropriate.
 -}
+
+opaqueTypes :: [(Maybe String, String)]
+opaqueTypes =
+  (TH.nameModule &&& TH.nameBase)
+    <$> [ 'BI.BuiltinBool
+        , 'BI.BuiltinUnit
+        , 'BI.BuiltinByteString
+        , 'BI.BuiltinString
+        , 'BI.BuiltinPair
+        , 'BI.BuiltinList
+        , 'BI.BuiltinData
+        , 'BI.BuiltinBLS12_381_G1_Element
+        , 'BI.BuiltinBLS12_381_G2_Element
+        , 'BI.BuiltinBLS12_381_MlResult
+        ]

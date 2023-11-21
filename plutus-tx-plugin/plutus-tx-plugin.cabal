@@ -89,6 +89,7 @@ library
     , PyF                                   >=0.11.1.0
     , template-haskell
     , text
+    , uniplate
 
   if flag(use-ghc-stub)
     build-depends: plutus-ghc-stub
