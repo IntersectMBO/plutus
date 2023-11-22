@@ -72,6 +72,8 @@ let
             # This contains support for doing testing, so we're not interested in cross-compiling it
             plutus-conformance.package.buildable = false;
           };
+          # can't rebuild lib:ghc when cross-compiling
+          reinstallableLibGhc = false;
         })
 
         # Common 
