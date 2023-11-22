@@ -84,6 +84,7 @@ library
     PlutusCore.Annotation
     PlutusCore.Arity
     PlutusCore.Builtin
+    PlutusCore.Builtin.Convert
     PlutusCore.Builtin.Debug
     PlutusCore.Builtin.Elaborate
     PlutusCore.Builtin.Emitter
@@ -270,6 +271,7 @@ library
     , base64-bytestring
     , bimap
     , bytestring
+    , bytestring-strict-builder
     , cardano-crypto
     , cardano-crypto-class        ^>=2.1.2
     , cassava
