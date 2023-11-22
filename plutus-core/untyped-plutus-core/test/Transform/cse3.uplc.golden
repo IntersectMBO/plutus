@@ -1,0 +1,6 @@
+(\x_4 ->
+   (\cse_5 ->
+      f_3
+        (addInteger 1 (addInteger cse_5 cse_5))
+        (addInteger 2 (addInteger cse_5 cse_5)))
+     (addInteger 0 x_4))

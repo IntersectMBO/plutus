@@ -255,6 +255,25 @@ cse2 = Force () (Force () body)
     true = Delay () (plus (plus (con 1) (con 2)) (plus (con 1) (con 2)))
     false = Delay () (plus (con 1) (con 2))
 
+-- | This is the third example in Note [CSE].
+cse3 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+cse3 = runQuote $ do
+  x <- freshName "x"
+  y <- freshName "y"
+  z <- freshName "z"
+  f <- freshName "f"
+  let plus a b = mkIterApp (Builtin () PLC.AddInteger) [((), a), ((), b)]
+      con = mkConstant @Integer ()
+      arg1 =
+        mkIterApp
+          (LamAbs () y (plus (con 1) (plus (Var () y) (Var () y))))
+          [((), plus (con 0) (Var () x))]
+      arg2 =
+        mkIterApp
+          (LamAbs () z (plus (con 2) (plus (Var () z) (Var () z))))
+          [((), plus (con 0) (Var () x))]
+  pure $ LamAbs () x (mkIterApp (Var () f) [((), arg1), ((), arg2)])
+
 -- TODO Fix duplication with other golden tests, quite annoying
 goldenVsPretty :: (PrettyPlc a) => String -> String -> a -> TestTree
 goldenVsPretty extn name value =
@@ -311,4 +330,5 @@ test_simplify =
     , goldenVsSimplified "multiApp" multiApp
     , goldenVsCse "cse1" cse1
     , goldenVsCse "cse2" cse2
+    , goldenVsCse "cse3" cse3
     ]
