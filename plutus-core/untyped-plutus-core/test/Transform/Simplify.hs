@@ -274,6 +274,18 @@ cse3 = runQuote $ do
           [((), plus (con 0) (Var () x))]
   pure $ LamAbs () x (mkIterApp (Var () f) [((), arg1), ((), arg2)])
 
+--  ((1+2) + (3+4) + ...)
+--  +
+--  ((1+2) + (3+4) + ...)
+cseExpensive :: Term Name DefaultUni DefaultFun ()
+cseExpensive = plus arg arg'
+  where
+    plus a b = mkIterApp (Builtin () PLC.AddInteger) [((), a), ((), b)]
+    con = mkConstant @Integer ()
+    mkArg = foldl1 plus . fmap (\i -> plus (con (2*i)) (con (2*i+1)))
+    arg = mkArg [0 .. 200]
+    arg' = mkArg [0 .. 200]
+
 -- TODO Fix duplication with other golden tests, quite annoying
 goldenVsPretty :: (PrettyPlc a) => String -> String -> a -> TestTree
 goldenVsPretty extn name value =
@@ -331,4 +343,5 @@ test_simplify =
     , goldenVsCse "cse1" cse1
     , goldenVsCse "cse2" cse2
     , goldenVsCse "cse3" cse3
+    , goldenVsCse "cseExpensive" cseExpensive
     ]
