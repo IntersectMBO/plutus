@@ -744,8 +744,8 @@ library plutus-core-testlib
 
 -- This wraps up the use of the certifier library
 -- so we can present a consistent inteface whether we
--- are building with it or not. If we aren't building 
--- with it, we present a conservative stub implementation 
+-- are building with it or not. If we aren't building
+-- with it, we present a conservative stub implementation
 -- that just always says everything is fine.
 library plutus-ir-cert
   import:           lang

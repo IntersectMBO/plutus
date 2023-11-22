@@ -34,7 +34,6 @@ import GHC.Tc.Utils.TcType qualified as GHC
 #endif
 
 import PlutusTx.Builtins qualified as Builtins
-import PlutusTx.Builtins.Internal qualified as BI
 import PlutusTx.Compiler.Binders
 import PlutusTx.Compiler.Builtins
 import PlutusTx.Compiler.Error
@@ -78,9 +77,7 @@ import Data.Set qualified as Set
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as TE
 import Data.Traversable
-import Data.Tuple.Extra
 import GHC.Num.Integer qualified
-import Language.Haskell.TH qualified as TH
 
 {- Note [System FC and System FW]
 Haskell uses system FC, which includes type equalities and coercions.
@@ -854,7 +851,7 @@ compileCase ::
   (CompilingDefault uni fun m ann) =>
   -- | Whether the variable is dead in the expr
   (GHC.Var -> GHC.CoreExpr -> Bool) ->
-  -- | Whether we should try to rewrite opaque constructor applications
+  -- | Whether we should try to rewrite unnecessary constructor applications
   Bool ->
   BuiltinsInfo uni fun ->
   GHC.CoreExpr ->
@@ -862,7 +859,7 @@ compileCase ::
   GHC.Type ->
   [GHC.CoreAlt] ->
   m (PIRTerm uni fun)
-compileCase isDead rewriteOpaque binfo scrutinee binder t alts = case alts of
+compileCase isDead rewriteConApps binfo scrutinee binder t alts = case alts of
   [GHC.Alt con bs body]
     -- See Note [Evaluation-only cases]
     | all (`isDead` body) bs -> do
@@ -873,13 +870,10 @@ compileCase isDead rewriteOpaque binfo scrutinee binder t alts = case alts of
         -- See Note [At patterns]
         let binds = [PIR.TermBind annMayInline PIR.Strict v scrutinee']
         pure $ PIR.mkLet annMayInline PIR.NonRec binds body'
-    | rewriteOpaque
-    , GHC.DataAlt dataCon <- con
-    , let dataConName = GHC.dataConName dataCon
-    , let dataConModule = GHC.moduleNameString . GHC.moduleName <$> GHC.nameModule_maybe dataConName
-    , let dataConBase = GHC.occNameString (GHC.nameOccName dataConName)
-    , (dataConModule, dataConBase) `elem` opaqueTypes -> do
-        -- Attempt to rewrite opaque constructor applications, since opaque constructors cannot be compiled.
+    | rewriteConApps
+    , GHC.DataAlt dataCon <- con -> do
+        -- Attempt to rewrite constructor applications, since sometimes they cannot be
+        -- compiled (e.g., opaque constructors).
         -- For example, this rewrites
 
         -- ```
@@ -899,13 +893,13 @@ compileCase isDead rewriteOpaque binfo scrutinee binder t alts = case alts of
               -- Discard type arguments
               , let args = mapMaybe (\case GHC.Var v -> Just v; _ -> Nothing) args0
               , length bs == length args
-              , all (zipWith (==) bs args) =
+              , and (zipWith (==) bs args) =
                 GHC.Var binder
             f other = other
             -- This time we can no longer use `GHC.isDeadOcc`. Instead we check manually.
             isDead' b = not . any (== b) . universeBi
         -- If some binders are still alive, we have to give up (rather than trying to rewrite
-        -- opaque constructor applications again, which will loop), hence `False`.
+        -- constructor applications again, which will loop), hence `False`.
         compileCase isDead' False binfo scrutinee binder t [GHC.Alt con bs (transform f body)]
   _ -> do
       -- See Note [At patterns]
@@ -1222,18 +1216,3 @@ f a = let defaultBody = 2 in case a of
 ```
 Then the inliner can inline it as appropriate.
 -}
-
-opaqueTypes :: [(Maybe String, String)]
-opaqueTypes =
-  (TH.nameModule &&& TH.nameBase)
-    <$> [ 'BI.BuiltinBool
-        , 'BI.BuiltinUnit
-        , 'BI.BuiltinByteString
-        , 'BI.BuiltinString
-        , 'BI.BuiltinPair
-        , 'BI.BuiltinList
-        , 'BI.BuiltinData
-        , 'BI.BuiltinBLS12_381_G1_Element
-        , 'BI.BuiltinBLS12_381_G2_Element
-        , 'BI.BuiltinBLS12_381_MlResult
-        ]
