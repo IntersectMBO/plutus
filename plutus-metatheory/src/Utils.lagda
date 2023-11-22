@@ -20,6 +20,7 @@ open import Data.String using (String)
 open import Data.Bool using (Bool)
 open import Data.Maybe using (Maybe; just; nothing; maybe) 
                            renaming (_>>=_ to mbind) public
+open import Data.Unit using (⊤)
 
 {-# FOREIGN GHC import Raw #-}
 
@@ -127,6 +128,26 @@ dec2Either : {A : Set} → Dec A → Either (¬ A) A
 dec2Either (yes p) = inj₂ p
 dec2Either (no ¬p) = inj₁ ¬p
 
+-- writer monad
+
+record Writer (M : Set)(A : Set) : Set where
+   constructor _,_
+   field
+     wrvalue : A 
+     accum : M
+
+module WriterMonad {M : Set}(e : M)(_∙_ : M → M → M)
+    where
+
+  instance 
+    WriterMonad : Monad (Writer M)
+    Monad.return WriterMonad x = x , e
+    (WriterMonad Monad.>>= (x , w)) f = let (y , w') = f x in y , (w ∙ w')
+
+  tell : (w : M) → Writer M ⊤ 
+  tell w = _ , w
+
+---------------------
 data RuntimeError : Set where
   gasError : RuntimeError
   userError : RuntimeError

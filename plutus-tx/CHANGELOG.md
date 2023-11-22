@@ -1,4 +1,12 @@
 
+<a id='changelog-1.17.0.0'></a>
+# 1.17.0.0 — 2023-11-22
+
+## Changed
+
+- Generated instances for `IsData` now have more efficient codegen, but
+  require `ViewPatterns`.
+
 <a id='changelog-1.13.0.0'></a>
 # 1.13.0.0 — 2023-09-15
 

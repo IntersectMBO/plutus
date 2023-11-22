@@ -1,4 +1,11 @@
 
+<a id='changelog-1.17.0.0'></a>
+# 1.17.0.0 — 2023-11-22
+
+## Added
+
+- Exposed `unSatInt` and `fromSatInt` from `plutus-ledger-api`. Added `NFData` and `NoThunks` for `CostModelApplyError`.
+
 <a id='changelog-1.16.0.0'></a>
 # 1.16.0.0 — 2023-11-10
 
