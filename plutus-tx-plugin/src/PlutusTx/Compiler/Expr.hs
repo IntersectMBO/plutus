@@ -879,7 +879,7 @@ compileCase isDead rewriteOpaque binfo scrutinee binder t alts = case alts of
     , let dataConModule = GHC.moduleNameString . GHC.moduleName <$> GHC.nameModule_maybe dataConName
     , let dataConBase = GHC.occNameString (GHC.nameOccName dataConName)
     , (dataConModule, dataConBase) `elem` opaqueTypes -> do
-        -- Attempt to rewrite opaque constructors, since opaque constructors cannot be compiled.
+        -- Attempt to rewrite opaque constructor applications, since opaque constructors cannot be compiled.
         -- For example, this rewrites
 
         -- ```
