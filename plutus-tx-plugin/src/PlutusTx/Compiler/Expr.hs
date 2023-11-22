@@ -899,7 +899,7 @@ compileCase isDead rewriteOpaque binfo scrutinee binder t alts = case alts of
               -- Discard type arguments
               , let args = mapMaybe (\case GHC.Var v -> Just v; _ -> Nothing) args0
               , length bs == length args
-              , all (uncurry (==)) (bs `zip` args) =
+              , all (zipWith (==) bs args) =
                 GHC.Var binder
             f other = other
             -- This time we can no longer use `GHC.isDeadOcc`. Instead we check manually.
