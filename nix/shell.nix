@@ -4,6 +4,9 @@ cabalProject:
 
 let
 
+  compiler-nix-name = cabalProject.args.compiler-nix-name;
+  isGhc98 = lib.hasPrefix "ghc98" compiler-nix-name;
+
   # We need some environment variables from the various ocaml and coq pacakges
   # that the certifier code needs.
   # Devshell doesn't run setup hooks from other packages, so just extract
@@ -55,6 +58,15 @@ in
     pkgs.curl
   ];
 
+  tools = lib.mkIf isGhc98 {
+    # Current HLS doesn't build on 9.8, see https://github.com/input-output-hk/iogx/issues/25
+    # This other stuff all depends on HLS.
+    haskell-language-server-wrapper = lib.mkForce null;
+    haskell-language-server = lib.mkForce null;
+    cabal-install = lib.mkForce null;
+    stylish-haskell = lib.mkForce null;
+    hlint = lib.mkForce null;
+  };
 
   scripts.assemble-changelog = {
     description = "Assembles the changelog for PACKAGE at VERSION";
@@ -81,7 +93,9 @@ in
   '';
 
   preCommit = {
-    stylish-haskell.enable = true;
+    # can't do stylish-haskell pre-commit if we don't
+    # have stylish-haskell
+    stylish-haskell.enable = !isGhc98;
     cabal-fmt.enable = true;
     shellcheck.enable = false;
     editorconfig-checker.enable = true;
