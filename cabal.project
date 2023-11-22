@@ -86,6 +86,16 @@ if impl(ghc >= 9.8)
     -- https://github.com/typeclasses/hex-text/pull/8
     , hex-text:*
 
+    -- https://github.com/tweag/HaskellR/pull/420
+    , inline-r:singletons-th
+    , inline-r:aeson
+    , inline-r:text
+    , inline-r:template-haskell
+    , inline-r:deepseq
+    , inline-r:bytestring
+    , inline-r:containers
+    , inline-r:primitive
+
   constraints:
     , brick >= 1.10
     , th-abstraction >= 0.6.0.0
