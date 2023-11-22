@@ -1,4 +1,11 @@
 
+<a id='changelog-1.17.0.0'></a>
+# 1.17.0.0 — 2023-11-22
+
+## Added
+
+- `Hashable` instances for `Data`, UPLC `Term` and related types.
+
 <a id='changelog-1.16.0.0'></a>
 # 1.16.0.0 — 2023-11-10
 
