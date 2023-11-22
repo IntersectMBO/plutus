@@ -181,11 +181,17 @@ This is what the ToBuiltin and FromBuiltin classes do. They let us write wrapper
 for builtins relatively consistently by just calling toBuiltin on their arguments
 and fromBuiltin on the result. They shouldn't really be used otherwise.
 
-To keep the consistency we define dummy instances that are just the identity function
-for types that don't have a separate "normall Haskell" version. For example:
-integer. Integer in Plutus Tx user code _is_ the opaque builtin type, we don't
-expose a different one. Essentially: if it's a datatype then there's a substantive
-conversion.
+Ideally, we would not have instances for types which don't have a different
+Haskell representation type, such as Integer. Integer in Plutus Tx user code _is_ the
+opaque builtin type, we don't expose a different one. So there's no conversion to
+do. However, this interacts badly with the instances for polymorphic builtin types, which
+also convert the type _inside_ them. (This is necessary to avoid doing multiple
+traversals of the type, e.g. we don't want to turn a builtin list into a Haskell
+list, and then traverse it again to conver the contents). Then we _need_ instances
+for all builtin types, even if they don't quite make sense.
+
+Possibly this indicates that these type classes are a bit too 'ad-hoc' and we should
+get rid of them.
 -}
 
 {- Note [Fundeps versus type families in To/FromBuiltin]
