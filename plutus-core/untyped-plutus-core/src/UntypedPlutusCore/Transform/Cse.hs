@@ -24,6 +24,7 @@ import Data.HashMap.Strict qualified as Map
 import Data.List.Extra
 import Data.Ord
 import Data.Traversable
+import Data.Tuple.Extra
 
 {- Note [CSE]
 
@@ -214,10 +215,11 @@ cse t = mkCseTerm commonSubexprs annotated
       -- Processed the common subexpressions in descending order of `termSize`.
       -- See Note [CSE].
       sortOn (Down . termSize)
-        . fmap fst
+        . fmap snd3
         -- A subexpression is common if the count is greater than 1.
-        . filter ((> 1) . snd)
-        . (Map.elems <=< Map.elems)
+        . filter ((> 1) . thd3)
+        . join
+        . Map.elems
         $ countOccs (calcBuiltinArity t) annotated
 
 -- | The first pass. See Note [CSE].
@@ -278,13 +280,13 @@ countOccs ::
   -- | Here, the value of the inner map not only contains the count, but also contains
   -- the annotated term, corresponding to the term that is the key of the outer map.
   -- The annotated terms need to be recorded since they will be used for substitution.
-  HashMap (Term name uni fun ()) (HashMap Path (Term name uni fun (Path, ann), Int))
+  HashMap (Term name uni fun ()) [(Path, Term name uni fun (Path, ann), Int)]
 countOccs arityInfo = foldrOf termSubtermsDeep addToMap Map.empty
   where
     addToMap ::
       Term name uni fun (Path, ann) ->
-      HashMap (Term name uni fun ()) (HashMap Path (Term name uni fun (Path, ann), Int)) ->
-      HashMap (Term name uni fun ()) (HashMap Path (Term name uni fun (Path, ann), Int))
+      HashMap (Term name uni fun ()) [(Path, Term name uni fun (Path, ann), Int)] ->
+      HashMap (Term name uni fun ()) [(Path, Term name uni fun (Path, ann), Int)]
     addToMap t0
       -- We don't consider work-free terms for CSE, because doing so may or may not
       -- have a size benefit, but certainly doesn't have any cost benefit (the cost
@@ -297,7 +299,7 @@ countOccs arityInfo = foldrOf termSubtermsDeep addToMap Map.empty
       | otherwise =
           Map.alter
             ( \case
-                Nothing    -> Just $ Map.singleton path (t0, 1)
+                Nothing    -> Just $ [(path, t0, 1)]
                 Just paths -> Just $ combinePaths t0 path paths
             )
             t
@@ -321,25 +323,26 @@ combinePaths ::
   forall name uni fun ann.
   Term name uni fun (Path, ann) ->
   Path ->
-  HashMap Path (Term name uni fun (Path, ann), Int) ->
-  HashMap Path (Term name uni fun (Path, ann), Int)
-combinePaths t path = Map.fromListWith (\(x, y) (_, y') -> (x, y + y')) . go . Map.toList
+  [(Path, Term name uni fun (Path, ann), Int)] ->
+  [(Path, Term name uni fun (Path, ann), Int)]
+combinePaths t path = go 1
   where
     go ::
-      [(Path, (Term name uni fun (Path, ann), Int))] ->
-      [(Path, (Term name uni fun (Path, ann), Int))]
+      Int ->
+      [(Path, Term name uni fun (Path, ann), Int)] ->
+      [(Path, Term name uni fun (Path, ann), Int)]
     -- The new path is not a descendent-or-self of any existing path.
-    go [] = [(path, (t, 1))]
-    go ((path', (t', cnt)) : paths)
+    go acc [] = [(path, t, acc)]
+    go acc ((path', t', cnt) : paths)
       -- The new path is an ancestor-or-self of an existing path.
       -- Take over all counts of the existing path, remove the existing path,
       -- and continue.
-      | path `isAncestorOrSelf` path' = (path, (t, cnt)) : go paths
+      | path `isAncestorOrSelf` path' = go (acc + cnt) paths
       -- The new path is a descendent-or-self of an existing path.
       -- Increment the count for the existing path. There can only be one such
       -- existing path, so we don't need to recurse here.
-      | path' `isAncestorOrSelf` path = (path', (t', cnt + 1)) : paths
-      | otherwise = (path', (t', cnt)) : go paths
+      | path' `isAncestorOrSelf` path = (path', t', cnt + 1) : paths
+      | otherwise = (path', t', cnt) : go acc paths
 
 mkCseTerm ::
   forall uni fun ann m.
