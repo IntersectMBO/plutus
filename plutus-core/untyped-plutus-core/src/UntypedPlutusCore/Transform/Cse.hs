@@ -361,12 +361,12 @@ applyCse ::
   CseCandidate uni fun ann ->
   Term Name uni fun (Path, ann) ->
   Term Name uni fun (Path, ann)
-applyCse c = mkLamApp . transformOf termSubterms subst
+applyCse c = mkLamApp . transformOf termSubterms substCseVarForTerm
   where
     candidatePath = fst (termAnn (ccAnnotatedTerm c))
 
-    subst :: Term Name uni fun (Path, ann) -> Term Name uni fun (Path, ann)
-    subst t =
+    substCseVarForTerm :: Term Name uni fun (Path, ann) -> Term Name uni fun (Path, ann)
+    substCseVarForTerm t =
       if currTerm == ccTerm c && candidatePath `isAncestorOrSelf` currPath
         then Var (termAnn t) (ccFreshName c)
         else t
