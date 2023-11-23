@@ -3,6 +3,7 @@
 {-# LANGUAGE TypeApplications  #-}
 
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+{-# OPTIONS_GHC -Wno-x-partial #-}
 
 module Evaluation.Builtins.Costing where
 

@@ -4,6 +4,7 @@
 {-# LANGUAGE UndecidableInstances  #-}
 
 {-# OPTIONS_GHC -Wno-orphans #-}
+{-# OPTIONS_GHC -Wno-x-partial #-}
 
 module PlutusCore.Generators.QuickCheck.GenTm
   ( module PlutusCore.Generators.QuickCheck.GenTm

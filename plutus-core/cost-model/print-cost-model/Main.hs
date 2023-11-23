@@ -1,6 +1,6 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
-
+{-# OPTIONS_GHC -Wno-x-partial #-}
 
 {- | A program to parse a JSON representation of costing functions for Plutus Core
    builtins and print it in readable form. -}

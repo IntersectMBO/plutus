@@ -8,6 +8,8 @@
 {-# LANGUAGE TypeFamilies        #-}
 {-# LANGUAGE ViewPatterns        #-}
 
+{-# OPTIONS_GHC -Wno-x-partial #-}
+
 module PlutusCore.Executable.Common
     ( module PlutusCore.Executable.Types
     , PrintBudgetState
