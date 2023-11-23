@@ -3,7 +3,7 @@
 This module implements a CEK machine for UPLC which computes costs.
 
 ```
-open import Cost
+open import Cost using (MachineParameters)
 
 module Untyped.CEKWithCost {Budget : Set}(machineParameters : MachineParameters Budget) where
 ```
@@ -11,6 +11,9 @@ module Untyped.CEKWithCost {Budget : Set}(machineParameters : MachineParameters 
 ## Imports
 
 ```
+open import Cost using (StepKind;ExBudgetCategory)
+open StepKind
+open ExBudgetCategory
 open import Data.Unit using (⊤;tt)
 open import Data.Nat using (ℕ;zero;suc)
 open import Data.List using (List;[];_∷_)
@@ -38,7 +41,7 @@ CekM : Set → Set
 CekM = Writer Budget
 
 spend : StepKind → CekM ⊤
-spend st = tell (cekMachineCost st)
+spend st = tell (cekMachineCost (BStep st))
 
 spendStartupCost : CekM ⊤
 spendStartupCost = tell startupCost
@@ -117,8 +120,6 @@ stepC ((s , (V-I⇒ b {am = suc _} bapp ·-)) ◅ v) =  --partially applied buil
 
 stepC (□ v)               = return (□ v)
 stepC ◆                   = return ◆
-
-
 
 stepperC-internal : ℕ → (s : State) → CekM (Either RuntimeError State)
 stepperC-internal 0       s = return (inj₁ gasError)

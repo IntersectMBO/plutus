@@ -128,7 +128,9 @@ library
     MAlonzo.Code.Cost
     MAlonzo.Code.Data.Bool.Base
     MAlonzo.Code.Data.Bool.Properties
+    MAlonzo.Code.Data.Char.Base
     MAlonzo.Code.Data.Char.Properties
+    MAlonzo.Code.Data.DifferenceList
     MAlonzo.Code.Data.Digit
     MAlonzo.Code.Data.Empty
     MAlonzo.Code.Data.Empty.Irrelevant
@@ -166,6 +168,7 @@ library
     MAlonzo.Code.Data.List.Relation.Unary.Any.Properties
     MAlonzo.Code.Data.Maybe.Base
     MAlonzo.Code.Data.Maybe.Categorical
+    MAlonzo.Code.Data.Maybe.Properties
     MAlonzo.Code.Data.Maybe.Relation.Unary.All
     MAlonzo.Code.Data.Maybe.Relation.Unary.Any
     MAlonzo.Code.Data.Nat.Base
@@ -179,16 +182,25 @@ library
     MAlonzo.Code.Data.Product.Function.Dependent.Propositional
     MAlonzo.Code.Data.Product.Function.NonDependent.Propositional
     MAlonzo.Code.Data.Product.Function.NonDependent.Setoid
+    MAlonzo.Code.Data.Product.Nary.NonDependent
     MAlonzo.Code.Data.Product.Properties
     MAlonzo.Code.Data.Product.Relation.Binary.Pointwise.NonDependent
     MAlonzo.Code.Data.Sign.Base
+    MAlonzo.Code.Data.String
     MAlonzo.Code.Data.String.Base
     MAlonzo.Code.Data.String.Properties
     MAlonzo.Code.Data.Sum.Base
+    MAlonzo.Code.Data.Sum.Categorical.Left
     MAlonzo.Code.Data.Sum.Function.Propositional
     MAlonzo.Code.Data.Sum.Function.Setoid
     MAlonzo.Code.Data.Sum.Relation.Binary.Pointwise
     MAlonzo.Code.Data.These.Base
+    MAlonzo.Code.Data.Tree.AVL
+    MAlonzo.Code.Data.Tree.AVL.Height
+    MAlonzo.Code.Data.Tree.AVL.Indexed
+    MAlonzo.Code.Data.Tree.AVL.Key
+    MAlonzo.Code.Data.Tree.AVL.Map
+    MAlonzo.Code.Data.Tree.AVL.Value
     MAlonzo.Code.Data.Vec.Base
     MAlonzo.Code.Data.Vec.Bounded.Base
     MAlonzo.Code.Declarative
@@ -204,6 +216,7 @@ library
     MAlonzo.Code.Function.LeftInverse
     MAlonzo.Code.Function.Metric.Nat.Bundles
     MAlonzo.Code.Function.Metric.Structures
+    MAlonzo.Code.Function.Nary.NonDependent.Base
     MAlonzo.Code.Function.Related
     MAlonzo.Code.Function.Related.TypeIsomorphisms
     MAlonzo.Code.Function.Structures
@@ -217,6 +230,13 @@ library
     MAlonzo.Code.RawU
     MAlonzo.Code.Relation.Binary.Bundles
     MAlonzo.Code.Relation.Binary.Consequences
+    MAlonzo.Code.Relation.Binary.Construct.Add.Extrema.Equality
+    MAlonzo.Code.Relation.Binary.Construct.Add.Extrema.Strict
+    MAlonzo.Code.Relation.Binary.Construct.Add.Infimum.NonStrict
+    MAlonzo.Code.Relation.Binary.Construct.Add.Infimum.Strict
+    MAlonzo.Code.Relation.Binary.Construct.Add.Point.Equality
+    MAlonzo.Code.Relation.Binary.Construct.Add.Supremum.NonStrict
+    MAlonzo.Code.Relation.Binary.Construct.Add.Supremum.Strict
     MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive
     MAlonzo.Code.Relation.Binary.Construct.Closure.Reflexive.Properties
     MAlonzo.Code.Relation.Binary.Construct.Converse
@@ -251,6 +271,11 @@ library
     MAlonzo.Code.Relation.Unary.Properties
     MAlonzo.Code.Scoped
     MAlonzo.Code.Scoped.Extrication
+    MAlonzo.Code.Strict
+    MAlonzo.Code.Text.Format
+    MAlonzo.Code.Text.Format.Generic
+    MAlonzo.Code.Text.Printf
+    MAlonzo.Code.Text.Printf.Generic
     MAlonzo.Code.Type
     MAlonzo.Code.Type.BetaNBE
     MAlonzo.Code.Type.BetaNBE.Completeness
@@ -385,6 +410,7 @@ library
     MAlonzo.Code.Data.Sum.Function.Setoid
     MAlonzo.Code.Data.Sum.Relation.Binary.Pointwise
     MAlonzo.Code.Data.These.Base
+    MAlonzo.Code.Data.Tree.AVL.Map
     MAlonzo.Code.Data.Vec.Base
     MAlonzo.Code.Data.Vec.Bounded.Base
     MAlonzo.Code.Declarative
@@ -407,6 +433,31 @@ library
     MAlonzo.Code.Induction.WellFounded
     MAlonzo.Code.IO.Primitive
     MAlonzo.Code.Level
+    MAlonzo.Code.Agda.Builtin.Strict
+    MAlonzo.Code.Data.Char.Base
+    MAlonzo.Code.Data.DifferenceList
+    MAlonzo.Code.Data.Maybe.Properties
+    MAlonzo.Code.Data.Product.Nary.NonDependent
+    MAlonzo.Code.Data.String
+    MAlonzo.Code.Data.Sum.Categorical.Left
+    MAlonzo.Code.Data.Tree.AVL
+    MAlonzo.Code.Data.Tree.AVL.Height
+    MAlonzo.Code.Data.Tree.AVL.Indexed
+    MAlonzo.Code.Data.Tree.AVL.Key
+    MAlonzo.Code.Data.Tree.AVL.Value
+    MAlonzo.Code.Function.Nary.NonDependent.Base
+    MAlonzo.Code.Relation.Binary.Construct.Add.Extrema.Equality
+    MAlonzo.Code.Relation.Binary.Construct.Add.Extrema.Strict
+    MAlonzo.Code.Relation.Binary.Construct.Add.Infimum.NonStrict
+    MAlonzo.Code.Relation.Binary.Construct.Add.Infimum.Strict
+    MAlonzo.Code.Relation.Binary.Construct.Add.Point.Equality
+    MAlonzo.Code.Relation.Binary.Construct.Add.Supremum.NonStrict
+    MAlonzo.Code.Relation.Binary.Construct.Add.Supremum.Strict
+    MAlonzo.Code.Strict
+    MAlonzo.Code.Text.Format
+    MAlonzo.Code.Text.Format.Generic
+    MAlonzo.Code.Text.Printf
+    MAlonzo.Code.Text.Printf.Generic
     MAlonzo.Code.Main
     MAlonzo.Code.Raw
     MAlonzo.Code.RawU

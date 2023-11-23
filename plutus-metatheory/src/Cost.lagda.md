@@ -13,13 +13,27 @@ module Cost where
 ## Imports
 
 ```
+open import Function using (_∘_)
+open import Data.Bool
+open import Data.List using (List;foldr)
 open import Data.Nat using (ℕ;_+_)
+open import Data.Float using (Float;fromℕ;_÷_;_*_;_≤ᵇ_;e^_)
 open import Data.Nat.Properties using (+-assoc;+-identityʳ)
 open import Data.Nat.Show using () renaming (show to showℕ)
+open import Data.Maybe using (Maybe;just;nothing)
 open import Data.Product using (_×_;_,_)
 open import Data.String using (String;_++_)
 open import Algebra using (IsMonoid)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;trans;isEquivalence;cong₂)
+
+open import Utils.Reflection using (defDec;defShow;defListConstructors)
+
+open import Relation.Binary using (StrictTotalOrder)
+open import Data.Char using (_≈ᵇ_)
+open import Data.String
+open import Data.String.Properties using (<-strictTotalOrder-≈)
+open import Data.Tree.AVL.Map <-strictTotalOrder-≈ using (Map;empty;unionWith;singleton) renaming (lookup to lookupAVL)
+open import Builtin using (Builtin;showBuiltin;builtinList)
 ``` 
 
 ## Execution Budget
@@ -78,6 +92,28 @@ data StepKind : Set where
       BCase : StepKind
 ```
 
+We define a show function for StepKinds
+
+```
+showStepKind : StepKind → String 
+unquoteDef showStepKind = defShow (quote StepKind) showStepKind 
+```
+
+and a list of constructors names
+
+``` 
+stepKindList : List StepKind
+unquoteDef stepKindList = defListConstructors (quote StepKind) stepKindList 
+``` 
+
+
+```
+data ExBudgetCategory : Set where
+    BStep       : StepKind → ExBudgetCategory
+    BBuiltinApp : Builtin → ExBudgetCategory  -- Cost of evaluating a fully applied builtin function
+    BStartup    : ExBudgetCategory
+```
+
 ## Machine Parameters
 
 The CEK machine is parameterised by the following machine parameters.
@@ -86,10 +122,19 @@ The CEK machine is parameterised by the following machine parameters.
 record MachineParameters (A : Set) : Set where
     field 
       startupCost : A 
-      cekMachineCost : StepKind → A
+      cekMachineCost : ExBudgetCategory → A
       ε : A
       _∙_ : A → A → A
       costMonoid : IsMonoid _≡_ _∙_ ε
+```
+
+## Builtin Cost Model 
+
+TODO
+
+```
+builtinCost : Builtin → ExBudget
+builtinCost _ = ε€ --TODO implement builtin costs
 ```
 
 ## Default Machine Parameters
@@ -100,16 +145,25 @@ TODO : For now we will define fixed costs. Later, we should implement getting th
 Probably, we will do this by reusing Haskell code.
  
 ```
+
+
 defaultCekMachineCost : StepKind → ExBudget
 defaultCekMachineCost s = mkExBudget 23000 100
 
 defaultCekStartupCost : ExBudget 
 defaultCekStartupCost = mkExBudget 100 100
 
+ 
+exBudgetCategoryCost : ExBudgetCategory → ExBudget 
+exBudgetCategoryCost (BStep x) = defaultCekMachineCost x
+exBudgetCategoryCost (BBuiltinApp b) = builtinCost b
+exBudgetCategoryCost BStartup = defaultCekStartupCost
+
+
 defaultMachineParameters : MachineParameters ExBudget
 defaultMachineParameters = record {
     startupCost = defaultCekStartupCost 
-  ; cekMachineCost = defaultCekMachineCost
+  ; cekMachineCost = exBudgetCategoryCost 
   ; ε = ε€
   ; _∙_ = _∙€_
   ; costMonoid = isMonoidExBudget
@@ -121,29 +175,51 @@ countingReport (mkExBudget cpu mem) = "\nCPU budget:    " ++ showℕ cpu ++ "\nM
  
  ## Tallying budget 
 
- ```
-record TallyingBudget : Set where
-  constructor mkTB
-  field
-   #Const   : ℕ
-   #Var     : ℕ
-   #LamAbs  : ℕ
-   #Apply   : ℕ
-   #Delay   : ℕ
-   #Force   : ℕ
-   #Builtin : ℕ
-   #Constr  : ℕ 
-   #Case    : ℕ
-   budget   : ExBudget
+
+We need a map from `ExBudgetCategory` into `ExBudget`. 
+It's not the most efficient, but the simplest thing to do is to transform `ExBudgetCategory` into a string.
+
+```
+mkKeyFromExBudgetCategory : ExBudgetCategory → String 
+mkKeyFromExBudgetCategory (BStep x) = "0" ++ showStepKind x
+mkKeyFromExBudgetCategory (BBuiltinApp x) = "1"++ showBuiltin x
+mkKeyFromExBudgetCategory BStartup = "2"
+
+TallyingBudget : Set 
+TallyingBudget = Map ExBudget × ExBudget
+
+lookup : Map ExBudget → ExBudgetCategory → ExBudget
+lookup m k with lookupAVL (mkKeyFromExBudgetCategory k) m 
+... | just x = x
+... | nothing = ε€
+```
+
+
+```
+-- record TallyingBudget : Set where
+--   constructor mkTB
+--   field
+--    #Const   : ℕ
+--    #Var     : ℕ
+--    #LamAbs  : ℕ
+--    #Apply   : ℕ
+--    #Delay   : ℕ
+--    #Force   : ℕ
+--    #Builtin : ℕ
+--    #Constr  : ℕ 
+--    #Case    : ℕ
+--    budget   : ExBudget
 
 --unit of TallyingBudget 
 εT : TallyingBudget
-εT = mkTB 0 0 0 0 0 0 0 0 0 ε€
+εT = empty , ε€
 
 -- adding TallyingBudgets
 _∙T_ : TallyingBudget → TallyingBudget → TallyingBudget
-mkTB a b c d e f g h i budget ∙T mkTB z y x w v u t s r budget' = 
-   mkTB (a + z) (b + y) (c + x) (d + w) (e + v) (f + u) (g + t) (h + s) (i + r) (budget ∙€ budget')
+(m , x) ∙T (n , y) = unionWith u m n , x ∙€ y
+   where u : ExBudget → Maybe (ExBudget) → ExBudget
+         u x (just y) = x ∙€ y
+         u x nothing = x
 
 postulate TallyingBudget-assoc : Algebra.Associative _≡_ _∙T_
 postulate Tallying-budget-identityʳ : Algebra.RightIdentity _≡_ εT _∙T_
@@ -154,39 +230,101 @@ isMonoidTallyingBudget = record {
            isMagma = record { isEquivalence = isEquivalence ; ∙-cong = λ {refl refl → refl }} 
            ; assoc = TallyingBudget-assoc } 
      ; identity = (λ x → refl) , Tallying-budget-identityʳ }
-  
-tallyingCekMachineCost : StepKind → TallyingBudget
-tallyingCekMachineCost BConst = record εT { #Const = 1 ; budget = defaultCekMachineCost BConst}
-tallyingCekMachineCost BVar = record εT { #Var = 1 ; budget = defaultCekMachineCost BVar}
-tallyingCekMachineCost BLamAbs = record εT { #LamAbs = 1 ; budget = defaultCekMachineCost BLamAbs}
-tallyingCekMachineCost BApply = record εT { #Apply = 1 ; budget = defaultCekMachineCost BApply}
-tallyingCekMachineCost BDelay = record εT { #Delay = 1 ; budget = defaultCekMachineCost BDelay}
-tallyingCekMachineCost BForce = record εT { #Force = 1 ; budget = defaultCekMachineCost BForce}
-tallyingCekMachineCost BBuiltin = record εT { #Builtin = 1 ; budget = defaultCekMachineCost BBuiltin}
-tallyingCekMachineCost BConstr = record εT { #Constr = 1 ; budget = defaultCekMachineCost BConstr}
-tallyingCekMachineCost BCase = record εT { #Case = 1 ; budget = defaultCekMachineCost BCase}
+
+
+tallyingCekMachineCost : ExBudgetCategory → TallyingBudget
+tallyingCekMachineCost k = let spent = exBudgetCategoryCost k in singleton (mkKeyFromExBudgetCategory k) spent , spent
 
 tallyingMachineParameters : MachineParameters TallyingBudget
 tallyingMachineParameters = record { 
-        startupCost = record εT { budget = defaultCekStartupCost }
+        startupCost = tallyingCekMachineCost BStartup 
       ; cekMachineCost = tallyingCekMachineCost
       ; ε = εT
       ; _∙_ = _∙T_
       ; costMonoid = isMonoidTallyingBudget
       } 
 
-tallyingReport : TallyingBudget → String
-tallyingReport (mkTB #Const #Var #LamAbs #Apply #Delay #Force #Builtin #Constr #Case budget) 
-  =    countingReport budget ++ "\n\n"
-    ++ "Const\t" ++ showℕ #Const ++ "\n"
-    ++ "Var\t" ++ showℕ #Var ++ "\n"
-    ++ "LamAbs\t" ++ showℕ #LamAbs ++ "\n"
-    ++ "Apply\t" ++ showℕ #Apply ++ "\n"
-    ++ "Delay\t" ++ showℕ #Delay ++ "\n"
-    ++ "Force\t" ++ showℕ #Force ++ "\n"
-    ++ "Builtin\t" ++ showℕ #Builtin ++ "\n"
-    ++ "Constr\t" ++ showℕ #Constr ++ "\n"
-    ++ "Case\t" ++ showℕ #Case ++ "\n"
-    ++ "\n"
+open import Text.Printf
 
- ```
+budgetToString : ExBudget → String 
+budgetToString (mkExBudget cpu mem) = printf "%u  %u" cpu mem
+
+printStepCost : StepKind → ExBudget → String
+printStepCost sk budget = showStepKind sk ++ "  " ++ budgetToString budget ++ "\n"
+
+printStepReport : Map ExBudget → String 
+printStepReport mp = foldr (λ s xs → printStepCost s (lookup mp (BStep s)) ++ xs) "" stepKindList -- stepKindList
+
+printBuiltinCost : Builtin → ExBudget → String 
+printBuiltinCost b budget = showBuiltin b ++ "  " ++ budgetToString budget ++ "\n"
+
+printBuiltinReport : Map ExBudget → String 
+printBuiltinReport mp = foldr (λ b xs → printBuiltinCost b (lookup mp (BBuiltinApp b)) ++ xs) "" builtinList
+
+formatTimePicoseconds : Float → String
+formatTimePicoseconds t = if 1e12 ≤ᵇ t then  (printf "%f s" (t ÷ 1e12)) else
+                          if 1e9 ≤ᵇ t then  (printf "%f ms" (t ÷ 1e9)) else
+                          if 1e6 ≤ᵇ t then  (printf "%f μs" (t ÷ 1e6)) else
+                          if 1e3 ≤ᵇ t then  (printf "%f ns" (t ÷ 1e3)) else
+                           printf "%f ps" t
+
+tallyingReport : TallyingBudget → String
+tallyingReport (mp , budget) =  
+       printStepReport mp ++ "\n"
+    ++ "\n"
+    ++ "startup    " ++ budgetToString budget ++ "\n"
+    ++ "compute    " ++ budgetToString totalComputeCost ++ "\n"
+    -- ++ "AST nodes  " ++ ++ "\n"
+    ++ "\n\n"
+    ++ printBuiltinReport mp 
+    ++ "\n" 
+    ++ "Total builtin costs:   " ++ budgetToString totalBuiltinCosts ++ "\n"
+    ++ printf "Time spent executing builtins:  %f%%\n" (fromℕ 100 * (getCPU totalBuiltinCosts) ÷ (getCPU budget)) ++ "\n"
+    ++ "\n"
+    ++ "Total budget spent:    " ++ budgetToString budget ++ "\n"
+    ++  "Predicted execution time: " ++ formatTimePicoseconds (getCPU budget)
+  where 
+    totalComputeCost totalBuiltinCosts : ExBudget 
+    totalComputeCost = foldr (λ x acc → (lookup mp (BStep x)) ∙€ acc) ε€ stepKindList
+    totalBuiltinCosts = foldr _∙€_ ε€ (Data.List.map (lookup mp ∘ BBuiltinApp) builtinList)
+    getCPU : ExBudget → Float
+    getCPU n = fromℕ (ExCPU n)
+
+ ``` 
+    putStrLn $ "AST nodes  " ++ printf "%15d" (UPLC.unSize $ UPLC.termSize term)
+                putStrLn ""
+                traverse_
+                    ( \(b, cost) ->
+                        putStrLn $ printf "%-22s %s" (show b) (budgetToString cost :: String)
+                    )
+                    builtinsAndCosts
+                putStrLn ""
+                putStrLn $ "Total builtin costs:   " ++ budgetToString totalBuiltinCosts
+                printf "Time spent executing builtins:  %4.2f%%\n"
+                        (100 * (ExCPU totalBuiltinCosts) / (ExCPU totalCost))
+                putStrLn ""
+                putStrLn $ "Total budget spent:    " ++ printf (budgetToString totalCost)
+                putStrLn $ "Predicted execution time: "
+                             ++ (formatTimePicoseconds $ getCPU totalCost)
+  where
+    getSpent k =
+        case H.lookup k costs of
+            Just v  -> v
+            Nothing -> ExBudget 0 0
+    totalComputeCost =
+        -- For unitCekCosts this will be the total number of compute steps
+        foldMap (getSpent . Cek.BStep) allStepKinds
+    budgetToString (ExBudget (ExCPU cpu) (ExMemory mem)) =
+        case model of
+            -- Not %d: doesn't work when CostingInteger is SatInt.
+            Default -> printf "%15s  %15s" (show cpu) (show mem) :: String
+            -- Memory usage figures are meaningless in this case
+            Unit    -> printf "%15s" (show cpu) :: String
+    printStepCost constr =
+        printf "%-10s %20s\n" (tail $ show constr) (budgetToString . getSpent $ Cek.BStep constr)
+    getBuiltinCost l e = case e of (Cek.BBuiltinApp b, cost) -> (b, cost) : l; _ -> l
+    builtinsAndCosts = List.foldl getBuiltinCost [] (H.toList costs)
+    totalBuiltinCosts = mconcat (map snd builtinsAndCosts)
+    getCPU b = let ExCPU b' = exBudgetCPU b in fromSatInt b' :: Double
+    totalCost = getSpent Cek.BStartup <> totalComputeCost <> totalBuiltinCosts :: ExBudget
+ 
