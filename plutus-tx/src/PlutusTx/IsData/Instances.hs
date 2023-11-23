@@ -2,8 +2,10 @@
 {-# LANGUAGE KindSignatures    #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE ViewPatterns      #-}
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
+
 module PlutusTx.IsData.Instances where
 
 import PlutusTx.Bool (Bool (..))

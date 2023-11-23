@@ -1,6 +1,4 @@
 let
-  data Unit | Unit_match where
-    Unit : Unit
   data (Tuple3 :: * -> * -> * -> *) a b c | Tuple3_match where
     Tuple3 : a -> b -> c -> Tuple3 a b c
   data Bool | Bool_match where
@@ -13,6 +11,11 @@ let
     Just : a -> Maybe a
     Nothing : Maybe a
   !reconstructCaseError : string = "PT1"
+  data Unit | Unit_match where
+    Unit : Unit
+  !traceError : all a. string -> a
+    = /\a ->
+        \(str : string) -> let !x : Unit = trace {Unit} str Unit in error {a}
   !unitval : unit = ()
   !d : data
     = (let
@@ -96,33 +99,21 @@ in
     let
       !tup : pair integer (list data) = unConstrData d
       !index : integer = fstPair {integer} {list data} tup
+      !args : list data = sndPair {integer} {list data} tup
     in
     ifThenElse
-      {unit -> Either integer b}
-      (equalsInteger 1 index)
-      (\(ds : unit) ->
-         Right
-           {integer}
-           {b}
-           (`$dUnsafeFromData`
-              (headList {data} (sndPair {integer} {list data} tup))))
-      (\(ds : unit) ->
+      {all dead. Either integer b}
+      (equalsInteger 0 index)
+      (/\dead -> Left {integer} {b} (`$dUnsafeFromData` (headList {data} args)))
+      (/\dead ->
          ifThenElse
-           {unit -> Either integer b}
-           (equalsInteger 0 index)
-           (\(ds : unit) ->
-              Left
-                {integer}
-                {b}
-                (`$dUnsafeFromData`
-                   (headList {data} (sndPair {integer} {list data} tup))))
-           (\(ds : unit) ->
-              let
-                !x : Unit = trace {Unit} reconstructCaseError Unit
-              in
-              error {Either integer b})
-           unitval)
-      unitval)
+           {all dead. Either integer b}
+           (equalsInteger 1 index)
+           (/\dead ->
+              Right {integer} {b} (`$dUnsafeFromData` (headList {data} args)))
+           (/\dead -> traceError {Either integer b} reconstructCaseError)
+           {all dead. dead})
+      {all dead. dead})
   unIData
   ((let
        a = Tuple3 Bool integer Bool
@@ -131,91 +122,74 @@ in
        let
          !tup : pair integer (list data) = unConstrData d
          !index : integer = fstPair {integer} {list data} tup
+         !args : list data = sndPair {integer} {list data} tup
        in
        ifThenElse
-         {unit -> Maybe a}
-         (equalsInteger 0 index)
-         (\(ds : unit) ->
-            Just
-              {a}
-              (`$dUnsafeFromData`
-                 (headList {data} (sndPair {integer} {list data} tup))))
-         (\(ds : unit) ->
+         {all dead. Maybe a}
+         (equalsInteger 1 index)
+         (/\dead -> Nothing {a})
+         (/\dead ->
             ifThenElse
-              {unit -> Maybe a}
-              (equalsInteger 1 index)
-              (\(ds : unit) -> Nothing {a})
-              (\(ds : unit) ->
-                 let
-                   !x : Unit = trace {Unit} reconstructCaseError Unit
-                 in
-                 error {Maybe a})
-              unitval)
-         unitval)
+              {all dead. Maybe a}
+              (equalsInteger 0 index)
+              (/\dead -> Just {a} (`$dUnsafeFromData` (headList {data} args)))
+              (/\dead -> traceError {Maybe a} reconstructCaseError)
+              {all dead. dead})
+         {all dead. dead})
      (\(d : data) ->
         let
           !tup : pair integer (list data) = unConstrData d
+          !index : integer = fstPair {integer} {list data} tup
+          !args : list data = sndPair {integer} {list data} tup
         in
         ifThenElse
-          {unit -> Tuple3 Bool integer Bool}
-          (equalsInteger 0 (fstPair {integer} {list data} tup))
-          (\(ds : unit) ->
+          {all dead. Tuple3 Bool integer Bool}
+          (equalsInteger 0 index)
+          (/\dead ->
              let
-               !t : list data = sndPair {integer} {list data} tup
-               !arg : data = headList {data} t
-               !t : list data = tailList {data} t
-               !arg : data = headList {data} t
-               !arg : data = headList {data} (tailList {data} t)
+               !l : list data = tailList {data} args
              in
              Tuple3
                {Bool}
                {integer}
                {Bool}
                (let
-                 !index : integer
-                   = fstPair {integer} {list data} (unConstrData arg)
+                 !tup : pair integer (list data)
+                   = unConstrData (headList {data} args)
+                 !index : integer = fstPair {integer} {list data} tup
+                 !args : list data = sndPair {integer} {list data} tup
                in
                ifThenElse
-                 {unit -> Bool}
-                 (equalsInteger 1 index)
-                 (\(ds : unit) -> True)
-                 (\(ds : unit) ->
+                 {all dead. Bool}
+                 (equalsInteger 0 index)
+                 (/\dead -> False)
+                 (/\dead ->
                     ifThenElse
-                      {unit -> Bool}
-                      (equalsInteger 0 index)
-                      (\(ds : unit) -> False)
-                      (\(ds : unit) ->
-                         let
-                           !x : Unit = trace {Unit} reconstructCaseError Unit
-                         in
-                         error {Bool})
-                      unitval)
-                 unitval)
-               (unIData arg)
+                      {all dead. Bool}
+                      (equalsInteger 1 index)
+                      (/\dead -> True)
+                      (/\dead -> traceError {Bool} reconstructCaseError)
+                      {all dead. dead})
+                 {all dead. dead})
+               (unIData (headList {data} l))
                (let
-                 !index : integer
-                   = fstPair {integer} {list data} (unConstrData arg)
+                 !tup : pair integer (list data)
+                   = unConstrData (headList {data} (tailList {data} l))
+                 !index : integer = fstPair {integer} {list data} tup
+                 !args : list data = sndPair {integer} {list data} tup
                in
                ifThenElse
-                 {unit -> Bool}
-                 (equalsInteger 1 index)
-                 (\(ds : unit) -> True)
-                 (\(ds : unit) ->
+                 {all dead. Bool}
+                 (equalsInteger 0 index)
+                 (/\dead -> False)
+                 (/\dead ->
                     ifThenElse
-                      {unit -> Bool}
-                      (equalsInteger 0 index)
-                      (\(ds : unit) -> False)
-                      (\(ds : unit) ->
-                         let
-                           !x : Unit = trace {Unit} reconstructCaseError Unit
-                         in
-                         error {Bool})
-                      unitval)
-                 unitval))
-          (\(ds : unit) ->
-             let
-               !x : Unit = trace {Unit} reconstructCaseError Unit
-             in
-             error {Tuple3 Bool integer Bool})
-          unitval))
+                      {all dead. Bool}
+                      (equalsInteger 1 index)
+                      (/\dead -> True)
+                      (/\dead -> traceError {Bool} reconstructCaseError)
+                      {all dead. dead})
+                 {all dead. dead}))
+          (/\dead -> traceError {Tuple3 Bool integer Bool} reconstructCaseError)
+          {all dead. dead}))
   d

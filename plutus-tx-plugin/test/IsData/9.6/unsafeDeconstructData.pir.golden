@@ -1,25 +1,29 @@
 let
-  data Unit | Unit_match where
-    Unit : Unit
-  !error : all a. unit -> a = /\a -> \(thunk : unit) -> error {a}
-  ~reconstructCaseError : string = "PT1"
-  !trace : all a. string -> a -> a = trace
-  !unitval : unit = ()
-  ~fallthrough : all a. a
-    = /\a ->
-        let
-          !str : string = reconstructCaseError
-          !x : Unit = trace {Unit} str Unit
-        in
-        error {a} unitval
   data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
     Tuple2 : a -> b -> Tuple2 a b
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
   !equalsInteger : integer -> integer -> bool = equalsInteger
   !fst : all a b. pair a b -> a = fstPair
   !head : all a. list a -> a = headList
   !ifThenElse : all a. bool -> a -> a -> a = ifThenElse
+  ~reconstructCaseError : string = "PT1"
   !snd : all a b. pair a b -> b = sndPair
   !tail : all a. list a -> list a = tailList
+  data Unit | Unit_match where
+    Unit : Unit
+  !error : all a. unit -> a = /\a -> \(thunk : unit) -> error {a}
+  !trace : all a. string -> a -> a = trace
+  !unitval : unit = ()
+  ~traceError : all a. string -> a
+    = /\a ->
+        \(str : string) ->
+          let
+            !str : string = str
+            !x : Unit = trace {Unit} str Unit
+          in
+          error {a} unitval
   !unsafeDataAsConstr : data -> pair integer (list data) = unConstrData
   ~`$fUnsafeFromDataTuple2_$cunsafeFromBuiltinData` :
      all a b. (\a -> data -> a) a -> (\a -> data -> a) b -> data -> Tuple2 a b
@@ -30,22 +34,21 @@ let
           let
             !d : data = d
             !tup : pair integer (list data) = unsafeDataAsConstr d
-            ~indexMatchCase : Tuple2 a b
-              = let
-                !t : list data = snd {integer} {list data} tup
-                !arg : data = head {data} t
-                !t : list data = tail {data} t
-                !arg : data = head {data} t
-              in
-              Tuple2 {a} {b} (`$dUnsafeFromData` arg) (`$dUnsafeFromData` arg)
             !index : integer = fst {integer} {list data} tup
+            !args : list data = snd {integer} {list data} tup
+            !b : bool = equalsInteger 0 index
           in
-          ifThenElse
-            {unit -> Tuple2 a b}
-            (equalsInteger index 0)
-            (\(ds : unit) -> indexMatchCase)
-            (\(ds : unit) -> fallthrough {Tuple2 a b})
-            unitval
+          Bool_match
+            (ifThenElse {Bool} b True False)
+            {all dead. Tuple2 a b}
+            (/\dead ->
+               Tuple2
+                 {a}
+                 {b}
+                 (`$dUnsafeFromData` (head {data} args))
+                 (`$dUnsafeFromData` (head {data} (tail {data} args))))
+            (/\dead -> traceError {Tuple2 a b} reconstructCaseError)
+            {all dead. dead}
   ~`$fUnsafeFromDataTuple2` :
      all a b.
        (\a -> data -> a) a ->
@@ -60,13 +63,6 @@ let
         {integer}
         `$fUnsafeFromDataInteger`
         `$fUnsafeFromDataInteger`
-  ~fallthrough : all a. a
-    = /\a ->
-        let
-          !str : string = reconstructCaseError
-          !x : Unit = trace {Unit} str Unit
-        in
-        error {a} unitval
   data (Maybe :: * -> *) a | Maybe_match where
     Just : a -> Maybe a
     Nothing : Maybe a
@@ -77,28 +73,25 @@ let
           let
             !d : data = d
             !tup : pair integer (list data) = unsafeDataAsConstr d
-            ~indexMatchCase : Maybe a
-              = let
-                !t : list data = snd {integer} {list data} tup
-                !arg : data = head {data} t
-              in
-              Just {a} (`$dUnsafeFromData` arg)
             !index : integer = fst {integer} {list data} tup
-            ~fallthrough : all a. Maybe a
-              = /\a ->
-                  ifThenElse
-                    {unit -> Maybe a}
-                    (equalsInteger index 1)
-                    (\(ds : unit) -> Nothing {a})
-                    (\(ds : unit) -> fallthrough {Maybe a})
-                    unitval
+            !args : list data = snd {integer} {list data} tup
+            !b : bool = equalsInteger 1 index
           in
-          ifThenElse
-            {unit -> Maybe a}
-            (equalsInteger index 0)
-            (\(ds : unit) -> indexMatchCase)
-            (\(ds : unit) -> fallthrough {a})
-            unitval
+          Bool_match
+            (ifThenElse {Bool} b True False)
+            {all dead. Maybe a}
+            (/\dead -> Nothing {a})
+            (/\dead ->
+               let
+                 !b : bool = equalsInteger 0 index
+               in
+               Bool_match
+                 (ifThenElse {Bool} b True False)
+                 {all dead. Maybe a}
+                 (/\dead -> Just {a} (`$dUnsafeFromData` (head {data} args)))
+                 (/\dead -> traceError {Maybe a} reconstructCaseError)
+                 {all dead. dead})
+            {all dead. dead}
   ~`$fUnsafeFromDataMaybe` :
      all a. (\a -> data -> a) a -> (\a -> data -> a) (Maybe a)
     = `$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
