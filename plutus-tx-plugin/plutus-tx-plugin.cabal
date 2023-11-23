@@ -89,6 +89,7 @@ library
     , PyF                                   >=0.11.1.0
     , template-haskell
     , text
+    , uniplate
 
   if flag(use-ghc-stub)
     build-depends: plutus-ghc-stub
@@ -115,7 +116,7 @@ executable gen-plugin-opts-doc
 
   default-language: Haskell2010
 
-test-suite plutus-tx-tests
+test-suite plutus-tx-plugin-tests
   import:             lang, ghc-version-support
 
   if flag(use-ghc-stub)
