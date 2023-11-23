@@ -25,6 +25,7 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 
+import PlutusCore.Builtin.Convert as Convert
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
@@ -42,6 +43,7 @@ import Data.Text.Encoding (decodeUtf8', encodeUtf8)
 import Flat hiding (from, to)
 import Flat.Decoder
 import Flat.Encoder as Flat
+import GHC.ByteOrder (ByteOrder (BigEndian, LittleEndian))
 import Prettyprinter (viaShow)
 
 -- See Note [Pattern matching on built-in types].
@@ -147,6 +149,9 @@ data DefaultFun
     -- Keccak_256, Blake2b_224
     | Keccak_256
     | Blake2b_224
+    -- Conversions
+    | IntegerToByteString
+    | ByteStringToInteger
     deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
     deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
@@ -1803,6 +1808,42 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         in makeBuiltinMeaning
             blake2b_224Denotation
             (runCostingFunOneArgument . paramBlake2b_224)
+    -- Conversions
+    toBuiltinMeaning _semvar IntegerToByteString =
+      let integerToByteStringDenotation :: Bool -> Integer -> Integer -> Emitter (EvaluationResult BS.ByteString)
+          integerToByteStringDenotation endiannessArgument paddingArgument input =
+            let
+              endiannessArgConverted = if endiannessArgument then BigEndian else LittleEndian
+              paddingArgConverted = fromIntegral paddingArgument
+              in case Convert.integerToByteString paddingArgConverted
+                                                   endiannessArgConverted
+                                                   input of
+                  Left err -> case err of
+                    Convert.NegativeInput -> do
+                      emit "builtinIntegerToByteString: cannot convert negative Integer\n"
+                      emit $ "Input: " <> (pack . show $ input)
+                      pure EvaluationFailure
+                    Convert.NotEnoughDigits -> do
+                      emit "builtinIntegerToByteString: cannot represent Integer in given number of digits\n"
+                      emit $ "Input: " <> (pack . show $ input) <> "\n"
+                      emit $ "Digits requested: " <> (pack . show $ paddingArgument)
+                      pure EvaluationFailure
+                  Right res -> pure . pure $ res
+        in makeBuiltinMeaning
+          integerToByteStringDenotation
+          (runCostingFunThreeArguments . const def)
+    toBuiltinMeaning _semvar ByteStringToInteger =
+      let byteStringToIntegerDenotation :: Bool -> BS.ByteString -> Emitter (EvaluationResult Integer)
+          byteStringToIntegerDenotation statedEndiannessArgument input =
+            let seArgConverted = if statedEndiannessArgument then BigEndian else LittleEndian
+              in case Convert.byteStringToInteger seArgConverted input of
+                Nothing -> do
+                  emit "builtinByteStringToInteger: cannot convert empty ByteString"
+                  pure EvaluationFailure
+                Just result -> pure . pure $ result
+        in makeBuiltinMeaning
+            byteStringToIntegerDenotation
+            (runCostingFunTwoArguments . const def)
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}
 
@@ -1911,6 +1952,9 @@ instance Flat DefaultFun where
               Keccak_256                      -> 71
               Blake2b_224                     -> 72
 
+              IntegerToByteString             -> 73
+              ByteStringToInteger             -> 74
+
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
               go 1  = pure SubtractInteger
@@ -1985,6 +2029,8 @@ instance Flat DefaultFun where
               go 70 = pure Bls12_381_finalVerify
               go 71 = pure Keccak_256
               go 72 = pure Blake2b_224
+              go 73 = pure IntegerToByteString
+              go 74 = pure ByteStringToInteger
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth

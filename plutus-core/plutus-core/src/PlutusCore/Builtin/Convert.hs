@@ -18,8 +18,8 @@ import GHC.ByteOrder (ByteOrder (BigEndian, LittleEndian))
 
 -- | Structured type to help indicate conversion errors.
 data IntegerToByteStringError =
-  NegativeInput !Integer |
-  NotEnoughDigits !Integer {-# UNPACK #-} !Int
+  NegativeInput |
+  NotEnoughDigits
   deriving stock (Eq, Show)
 
 -- | Conversion from 'Integer' to 'ByteString', as per
@@ -30,7 +30,7 @@ data IntegerToByteStringError =
 integerToByteString ::
   Int -> ByteOrder -> Integer -> Either IntegerToByteStringError ByteString
 integerToByteString requestedLength requestedByteOrder i = case signum i of
-  (-1) -> Left . NegativeInput $ i
+  (-1) -> Left NegativeInput
   0 -> Right . BS.replicate (max 1 requestedLength) $ 0x00
   _ -> do
       -- We use manual specialization to ensure as few branches in loop bodies
@@ -41,7 +41,7 @@ integerToByteString requestedLength requestedByteOrder i = case signum i of
                       (BigEndian, True)     -> goBELimit mempty i
                       (BigEndian, False)    -> pure $ goBENoLimit mempty i
       case result of
-        Nothing -> Left . NotEnoughDigits i $ requestedLength
+        Nothing -> Left NotEnoughDigits
         Just b  -> pure . Builder.builderBytes $ b
   where
     goLELimit :: Builder -> Integer -> Maybe Builder

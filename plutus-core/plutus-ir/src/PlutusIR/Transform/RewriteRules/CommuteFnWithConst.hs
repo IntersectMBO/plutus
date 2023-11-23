@@ -127,3 +127,5 @@ isCommutative = \case
   MkPairData                      -> False
   MkNilData                       -> False
   MkNilPairData                   -> False
+  IntegerToByteString             -> False
+  ByteStringToInteger             -> False
