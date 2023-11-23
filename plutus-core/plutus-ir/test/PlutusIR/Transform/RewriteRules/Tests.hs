@@ -4,17 +4,19 @@ import PlutusCore.Quote
 import PlutusCore.Test hiding (ppCatch)
 import PlutusIR.Compiler qualified as PIR
 import PlutusIR.Parser
+import PlutusIR.Pass.Test
 import PlutusIR.Test
 import PlutusIR.Transform.RewriteRules as RewriteRules
 import PlutusPrelude
 
+import Test.QuickCheck
 import Test.Tasty
 
-test_RewriteRules :: TestTree
-test_RewriteRules = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
+test_rewriteRules :: TestTree
+test_rewriteRules = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
     testNested "RewriteRules" $
     (fmap
-        (goldenPirDoc (prettyPlcClassicDebug . runQuote . RewriteRules.rewriteWith def)  pTerm)
+        (goldenPir (runQuote . runTestPass (\tc -> rewritePassSC tc def)) pTerm)
         [ "equalsInt.pir" -- this tests that the function works on equalInteger
         , "divideInt.pir" -- this tests that the function excludes not commutative functions
         , "multiplyInt.pir" -- this tests that the function works on multiplyInteger
@@ -35,3 +37,7 @@ test_RewriteRules = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
           -- we need traces to remain for checking the evaluation-order
           tplc <- asIfThrown $ compileWithOpts ( set (PIR.ccOpts . PIR.coPreserveLogging) True) ast
           runUPlcLogs [void tplc]
+
+prop_rewriteRules :: Property
+prop_rewriteRules =
+  withMaxSuccess 3000 $ testPassProp runQuote $ \tc -> rewritePassSC tc def

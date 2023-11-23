@@ -34,7 +34,7 @@
                 ]
               ]
               (lam
-                i
+                j
                 (con integer)
                 [
                   [ { [ match_Bool True ] (con integer) } (con integer 1) ]
@@ -52,7 +52,7 @@
               ]
             ]
             (lam
-              i
+              k
               (con integer)
               [
                 [ { [ match_Bool True ] (con integer) } (con integer 3) ]
@@ -77,7 +77,7 @@
                 ]
               ]
               (lam
-                i
+                j
                 (con integer)
                 [
                   [ { [ match_Bool True ] (con integer) } (con integer 1) ]
@@ -95,7 +95,7 @@
               ]
             ]
             (lam
-              i
+              k
               (con integer)
               [
                 [ { [ match_Bool True ] (con integer) } (con integer 3) ]

@@ -4,22 +4,51 @@
 {-# LANGUAGE TypeOperators     #-}
 module PlutusIR.Transform.RewriteRules
     ( rewriteWith
+    , rewritePass
+    , rewritePassSC
     , RewriteRules (..)
     , defaultUniRewriteRules
     ) where
 
+import PlutusCore qualified as PLC
 import PlutusCore.Core (HasUniques)
-import PlutusCore.Default
 import PlutusCore.Name
 import PlutusCore.Quote
 import PlutusIR as PIR
 import PlutusIR.Analysis.VarInfo
-import PlutusIR.Transform.RewriteRules.CommuteFnWithConst
-import PlutusIR.Transform.RewriteRules.UnConstrConstrData
-import PlutusPrelude
+import PlutusIR.Transform.RewriteRules.Rules
 
 import Control.Lens
+import PlutusIR.Pass
+import PlutusIR.TypeCheck qualified as TC
 
+rewritePassSC ::
+    forall m uni fun a.
+    ( PLC.Typecheckable uni fun, PLC.GEq uni, Ord a
+    , PLC.MonadQuote m, Monoid a
+    ) =>
+    TC.PirTCConfig uni fun ->
+    RewriteRules uni fun ->
+    Pass m TyName Name uni fun a
+rewritePassSC tcconfig rules =
+  CompoundPass
+    "rewrite rules (self-contained)"
+    [renamePass, rewritePass tcconfig rules]
+
+rewritePass ::
+    forall m uni fun a.
+    ( PLC.Typecheckable uni fun, PLC.GEq uni, Ord a
+    , PLC.MonadQuote m, Monoid a
+    ) =>
+    TC.PirTCConfig uni fun ->
+    RewriteRules uni fun ->
+    Pass m TyName Name uni fun a
+rewritePass tcconfig rules =
+  Pass
+    "rewrite rules"
+    (rewriteWith rules)
+    [Typechecks tcconfig, GloballyUniqueNames]
+    [ConstCondition (Typechecks tcconfig)]
 
 {- | Rewrite a `Term` using the given `RewriteRules` (similar to functions of Term -> Term)
 Normally the rewrite rules are configured at entrypoint time of the compiler.
@@ -42,21 +71,3 @@ rewriteWith (RewriteRules rules) t =
     let vinfo = termVarInfo t
     in transformMOf termSubterms (rules vinfo) t
 
--- | A bundle of composed `RewriteRules`, to be passed at entrypoint of the compiler.
-newtype RewriteRules uni fun = RewriteRules {
-    unRewriteRules :: forall tyname m a
-                   . (MonadQuote m, Monoid a)
-                   => VarsInfo tyname Name uni a
-                   -> PIR.Term tyname Name uni fun a
-                   -> m (PIR.Term tyname Name uni fun a)
-    }
-
--- | The rules for the Default Universe/Builtin.
-defaultUniRewriteRules :: RewriteRules DefaultUni DefaultFun
-defaultUniRewriteRules = RewriteRules $ \ vinfo ->
-        -- The rules are composed from left to right.
-        pure . commuteFnWithConst
-        >=> unConstrConstrData def vinfo
-
-instance Default (RewriteRules DefaultUni DefaultFun) where
-  def = defaultUniRewriteRules

@@ -5,9 +5,9 @@ import Test.Tasty.Extras
 
 import PlutusCore.Pretty qualified as PLC
 import PlutusCore.Quote
-import PlutusCore.Rename qualified as PLC
 import PlutusIR.Parser
-import PlutusIR.Properties.Typecheck
+import PlutusIR.Pass
+import PlutusIR.Pass.Test
 import PlutusIR.Test
 import PlutusIR.Transform.Rename ()
 import Test.Tasty.QuickCheck
@@ -16,7 +16,8 @@ test_rename :: TestTree
 test_rename = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
     testNested "Rename" $
         map
-            (goldenPir (PLC.AttachPrettyConfig debugConfig . runQuote . PLC.rename) pTerm)
+            (goldenPir
+             (PLC.AttachPrettyConfig debugConfig . runQuote . runTestPass (const renamePass)) pTerm)
             [ "allShadowedDataNonRec"
             , "allShadowedDataRec"
             , "paramShadowedDataNonRec"
@@ -25,7 +26,6 @@ test_rename = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
   where
     debugConfig = PLC.PrettyConfigClassic PLC.debugPrettyConfigName False
 
--- | Check that a term typechecks after a `PlutusIR.Transform.Rename.rename` pass.
-prop_TypecheckRename :: Property
-prop_TypecheckRename =
-  withMaxSuccess 5000 (nonPureTypecheckProp PLC.rename)
+prop_rename :: Property
+prop_rename =
+  withMaxSuccess 5000 $ testPassProp runQuote (const renamePass)

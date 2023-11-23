@@ -7,6 +7,7 @@
 -- arbitrary builtins.
 module PlutusIR.Transform.EvaluateBuiltins
     ( evaluateBuiltins
+    , evaluateBuiltinsPass
     ) where
 
 import PlutusCore.Builtin
@@ -15,7 +16,24 @@ import PlutusIR.Core
 
 import Control.Lens (transformOf, (^.))
 import Data.Functor (void)
+import PlutusCore qualified as PLC
 import PlutusIR.Analysis.Builtins
+import PlutusIR.Pass
+import PlutusIR.TypeCheck qualified as TC
+
+evaluateBuiltinsPass :: (PLC.Typecheckable uni fun, PLC.GEq uni, Applicative m)
+  => TC.PirTCConfig uni fun
+  -> Bool
+  -- ^ Whether to be conservative and try to retain logging behaviour.
+  -> BuiltinsInfo uni fun
+  -> CostingPart uni fun
+  -> Pass m TyName Name uni fun a
+evaluateBuiltinsPass tcconfig conservative binfo costModel =
+  Pass
+    "evaluate builtins"
+    (pure . evaluateBuiltins conservative binfo costModel)
+    [Typechecks tcconfig]
+    [ConstCondition (Typechecks tcconfig)]
 
 evaluateBuiltins
   :: forall tyname name uni fun a

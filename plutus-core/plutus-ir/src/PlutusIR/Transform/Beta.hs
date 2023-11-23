@@ -4,13 +4,16 @@
 A simple beta-reduction pass.
 -}
 module PlutusIR.Transform.Beta (
-  beta
+  beta,
+  betaPass
   ) where
-
-import PlutusIR
 
 import Control.Lens (over)
 import Data.List.NonEmpty qualified as NE
+import PlutusCore qualified as PLC
+import PlutusIR
+import PlutusIR.Pass
+import PlutusIR.TypeCheck qualified as TC
 
 {- Note [Multi-beta]
 Consider two examples where applying beta should be helpful.
@@ -128,3 +131,9 @@ beta = over termSubterms beta . localTransform
           let b = TypeBind a (TyVarDecl a n k) tyArg
           in Let (termAnn body) NonRec (pure b) body
       t -> t
+
+betaPass
+  :: (PLC.Typecheckable uni fun, PLC.GEq uni, Applicative m)
+  => TC.PirTCConfig uni fun
+  -> Pass m TyName Name uni fun a
+betaPass tcconfig = simplePass "beta" tcconfig beta

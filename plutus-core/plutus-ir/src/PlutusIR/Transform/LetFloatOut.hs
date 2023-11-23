@@ -6,7 +6,7 @@
 {-# LANGUAGE TypeOperators       #-}
 {-# LANGUAGE ViewPatterns        #-}
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
-module PlutusIR.Transform.LetFloatOut (floatTerm) where
+module PlutusIR.Transform.LetFloatOut (floatTerm, floatTermPass, floatTermPassSC) where
 
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
@@ -31,6 +31,8 @@ import Data.Set.Lens (setOf)
 import GHC.Generics
 import PlutusIR.Analysis.Builtins
 import PlutusIR.Analysis.VarInfo
+import PlutusIR.Pass
+import PlutusIR.TypeCheck qualified as TC
 
 {- Note [Let Floating pass]
 
@@ -391,6 +393,34 @@ floatBackLets term fTable =
                 floatableGrps' <- floatableGrps & (traversed.bgBindings.traversed.bindingSubterms) go
                 -- fold the floatable groups into a *single* floatablegroup and combine that with some pir (term or bindings).
                 pure $ fold1 floatableGrps' `placeIntoFn` termOrBindings
+
+floatTermPassSC ::
+    forall m uni fun a.
+    ( PLC.Typecheckable uni fun, PLC.GEq uni, Ord a
+    , Semigroup a, PLC.MonadQuote m
+    ) =>
+    TC.PirTCConfig uni fun ->
+    BuiltinsInfo uni fun ->
+    Pass m TyName Name uni fun a
+floatTermPassSC tcconfig binfo =
+  CompoundPass
+    "let float-out (self-contained)"
+    [renamePass, floatTermPass tcconfig binfo]
+
+floatTermPass ::
+    forall m uni fun a.
+    ( PLC.Typecheckable uni fun, PLC.GEq uni, Ord a
+    , Semigroup a, Applicative m
+    ) =>
+    TC.PirTCConfig uni fun ->
+    BuiltinsInfo uni fun ->
+    Pass m TyName Name uni fun a
+floatTermPass tcconfig binfo =
+  Pass
+    "let float-out"
+    (pure . floatTerm binfo)
+    [Typechecks tcconfig, GloballyUniqueNames]
+    [ConstCondition (Typechecks tcconfig)]
 
 -- | The compiler pass of the algorithm (comprised of 3 connected passes).
 floatTerm :: (PLC.ToBuiltinMeaning uni fun,
