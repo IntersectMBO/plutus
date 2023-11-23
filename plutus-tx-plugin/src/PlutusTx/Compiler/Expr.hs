@@ -70,7 +70,7 @@ import Control.Monad.Reader (ask)
 import Data.Array qualified as Array
 import Data.ByteString qualified as BS
 import Data.Generics.Uniplate.Data (transform, universeBi)
-import Data.List (elemIndex)
+import Data.List (elemIndex, isPrefixOf, isSuffixOf)
 import Data.Map qualified as Map
 import Data.Maybe
 import Data.Set qualified as Set
@@ -230,6 +230,40 @@ isProbablyIntegerEq (GHC.getName -> n)
   , GHC.occNameString (GHC.nameOccName n) == "integerEq" =
       True
 isProbablyIntegerEq _ = False
+
+-- | Check for literal ranges like [1..9] and [1, 5..101].  This will also
+-- return `True` if there's an explicit use of `enumFromTo` or similar.
+isProbablyBoundedRange :: GHC.Id -> Bool
+isProbablyBoundedRange (GHC.getName -> n)
+    | Just m <- GHC.nameModule_maybe n
+    , GHC.moduleNameString (GHC.moduleName m) == "GHC.Enum" =
+        ("$fEnum" `isPrefixOf` methodName &&
+         (  "_$cenumFromTo"     `isSuffixOf` methodName  -- [1..100]
+         || "_$cenumFromThenTo" `isSuffixOf` methodName  -- [1,3..100]
+         )
+        )
+        || "enumDeltaToInteger" `isPrefixOf` methodName
+        -- ^ These are introduced by inlining for Integer ranges in
+        -- GHC.Enum. This also happens for Char, Word, and Int, but those types
+        -- aren't supported in Plutus Core.
+        where methodName = GHC.occNameString (GHC.nameOccName n)
+isProbablyBoundedRange _ = False
+
+-- | Check for literal ranges like [1..] and [1, 5..].  This will also return
+-- `True` if there's an explicit use of `enumFrom` or similar.
+isProbablyUnboundedRange :: GHC.Id -> Bool
+isProbablyUnboundedRange (GHC.getName -> n)
+    | Just m <- GHC.nameModule_maybe n
+    , GHC.moduleNameString (GHC.moduleName m) == "GHC.Enum" =
+        ("$fEnum" `isPrefixOf` methodName &&
+         (  "_$cenumFrom"     `isSuffixOf` methodName  -- [1..]
+         || "_$cenumFromThen" `isSuffixOf` methodName  -- [1,3..]
+         )
+        )
+        || "enumDeltaInteger" `isPrefixOf` methodName  -- Introduced by inlining
+        where methodName = GHC.occNameString (GHC.nameOccName n)
+isProbablyUnboundedRange _ = False
+
 
 {- Note [GHC runtime errors]
 GHC has a number of runtime errors for things like pattern matching failures and so on.
@@ -733,6 +767,18 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     GHC.Var n
       | isProbablyBytestringEq n ->
           throwPlain $ UnsupportedError "Use of Haskell ByteString equality, possibly via the Haskell Eq typeclass"
+    GHC.Var n
+      -- Try to produce a sensible error message if a range like [1..9] is encountered.  This works
+      -- by looking for occurrences of GHC.Enum.enumFromTo and similar functions; the same error
+      -- occurs if these functions are used explicitly.
+      | isProbablyBoundedRange n ->
+          throwPlain $ UnsupportedError $ T.pack ("Use of enumFromTo or enumFromThenTo, possibly via range syntax. " ++
+                                                  "Please use PlutusTx.Enum.enumFromTo or PlutusTx.Enum.enumFromThenTo instead.")
+    -- Throw an error if we find an infinite range like [1..]
+    GHC.Var n
+      | isProbablyUnboundedRange n ->
+          throwPlain $ UnsupportedError $ T.pack ("Use of enumFrom or enumFromThen, possibly via range syntax. " ++
+                                                  "Unbounded ranges are not supported.")
     -- locally bound vars
     GHC.Var (lookupName scope . GHC.getName -> Just var) -> pure $ PIR.mkVar annMayInline var
     -- Special kinds of id
