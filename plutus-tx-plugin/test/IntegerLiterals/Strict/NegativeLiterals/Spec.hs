@@ -14,8 +14,8 @@ module IntegerLiterals.Strict.NegativeLiterals.Spec where
 
 import PlutusTx.Code
 import PlutusTx.Prelude qualified as PlutusTx
-import PlutusTx.Test
 import PlutusTx.TH (compile)
+import PlutusTx.Test
 
 import Test.Tasty.Extras
 

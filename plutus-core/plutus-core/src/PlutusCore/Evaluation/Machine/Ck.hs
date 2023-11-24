@@ -30,8 +30,8 @@ import PlutusPrelude
 
 import PlutusCore.Builtin
 import PlutusCore.Core
-import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
+import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Result
 import PlutusCore.Name
 import PlutusCore.Pretty

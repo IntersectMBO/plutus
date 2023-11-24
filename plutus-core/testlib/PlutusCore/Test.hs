@@ -80,8 +80,8 @@ import Hedgehog
 import Prettyprinter qualified as PP
 import System.IO.Unsafe
 import Test.Tasty hiding (after)
-import Test.Tasty.Hedgehog
 import Test.Tasty.HUnit
+import Test.Tasty.Hedgehog
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 

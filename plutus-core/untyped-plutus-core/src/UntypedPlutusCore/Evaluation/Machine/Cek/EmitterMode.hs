@@ -14,8 +14,8 @@ import Data.Csv.Builder qualified as CSV
 import Data.DList qualified as DList
 import Data.Fixed
 import Data.Functor
-import Data.SatInt
 import Data.STRef (modifySTRef, newSTRef, readSTRef)
+import Data.SatInt
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as T
 import Data.Time.Clock

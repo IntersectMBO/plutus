@@ -15,8 +15,8 @@ module Evaluation.Spec (test_evaluation) where
 import PlutusCore hiding (Term)
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin as PLC
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.ExBudgetStream (ExBudgetStream (..))
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Generators.Hedgehog (GenArbitraryTerm (..), GenTypedTerm (..), forAllNoShow)
 import PlutusCore.Pretty
 import PlutusPrelude

@@ -17,8 +17,8 @@ import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import Test.Tasty
 import Test.Tasty.Extras
-import Test.Tasty.Hedgehog
 import Test.Tasty.HUnit
+import Test.Tasty.Hedgehog
 
 -- test that Natural and Word64 are compatible inside
 -- the (minBound,maxBound) bounds of Word64

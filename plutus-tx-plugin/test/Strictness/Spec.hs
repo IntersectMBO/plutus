@@ -10,8 +10,8 @@ import Test.Tasty.Extras
 import PlutusTx qualified as Tx
 import PlutusTx.Code
 import PlutusTx.Prelude qualified as PlutusTx
-import PlutusTx.Test
 import PlutusTx.TH (compile)
+import PlutusTx.Test
 
 tests :: TestNested
 tests =
