@@ -14,7 +14,6 @@ module PlutusCore.Builtin.HasConstant
 
 import PlutusCore.Core
 import PlutusCore.Evaluation.Machine.Exception
-import PlutusCore.Name
 
 import Universe
 
@@ -54,7 +53,7 @@ fromValue :: (HasConstant term, UniOf term `HasTermLevel` a) => a -> term
 fromValue = fromValueOf knownUni
 {-# INLINE fromValue #-}
 
-instance HasConstant (Term TyName Name uni fun ()) where
+instance HasConstant (Term tyname name uni fun ()) where
     asConstant (Constant _ val) = pure val
     asConstant _                = throwNotAConstant
 

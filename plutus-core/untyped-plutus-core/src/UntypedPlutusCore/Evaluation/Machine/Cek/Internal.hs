@@ -556,6 +556,10 @@ instance HasConstant (CekValue uni fun ann) where
     fromConstant = VCon
     {-# INLINE fromConstant #-}
 
+instance ToConstr (CekValue uni fun ann) where
+    toConstr ix = Opaque . VConstr ix . foldr ConsStack EmptyStack
+    {-# INLINE toConstr #-}
+
 {-|
 The context in which the machine operates.
 

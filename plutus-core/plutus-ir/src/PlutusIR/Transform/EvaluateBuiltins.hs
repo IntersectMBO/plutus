@@ -18,23 +18,22 @@ import Data.Functor (void)
 import PlutusIR.Analysis.Builtins
 
 evaluateBuiltins
-  :: forall tyname name uni fun a
+  :: forall name uni fun a
   . (ToBuiltinMeaning uni fun
-  , Typeable tyname
   , Typeable name)
   => Bool
   -- ^ Whether to be conservative and try to retain logging behaviour.
   -> BuiltinsInfo uni fun
   -> CostingPart uni fun
-  -> Term tyname name uni fun a
-  -> Term tyname name uni fun a
+  -> Term TyName name uni fun a
+  -> Term TyName name uni fun a
 evaluateBuiltins conservative binfo costModel = transformOf termSubterms processTerm
   where
     -- Nothing means "leave the original term as it was"
     eval
-      :: BuiltinRuntime (Term tyname name uni fun ())
-      -> AppContext tyname name uni fun a
-      -> Maybe (Term tyname name uni fun ())
+      :: BuiltinRuntime (Term TyName name uni fun ())
+      -> AppContext TyName name uni fun a
+      -> Maybe (Term TyName name uni fun ())
     eval (BuiltinResult _ getX) AppContextEnd =
         case getX of
             MakeKnownSuccess v           -> Just v
@@ -58,7 +57,7 @@ evaluateBuiltins conservative binfo costModel = transformOf termSubterms process
     -- arg mismatch, including under-application, just leave it alone
     eval _ _ = Nothing
 
-    processTerm :: Term tyname name uni fun a -> Term tyname name uni fun a
+    processTerm :: Term TyName name uni fun a -> Term TyName name uni fun a
     -- See Note [Context splitting in a recursive pass]
     processTerm t@(splitApplication -> (Builtin x bn, argCtx)) =
       let runtime = toBuiltinRuntime costModel (toBuiltinMeaning (binfo ^. biSemanticsVariant) bn)
