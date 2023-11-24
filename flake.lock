@@ -351,11 +351,11 @@
         "stackage": "stackage"
       },
       "locked": {
-        "lastModified": 1700638396,
-        "narHash": "sha256-vQy1p94QFz8Lo+x2zZLb2gmNGtm2CUWk9j/IkuETs1s=",
+        "lastModified": 1700812837,
+        "narHash": "sha256-Cs95HNbwqyVes8GXoJJIHjGmjI0KzEdSNnA9A6g/d7w=",
         "owner": "input-output-hk",
         "repo": "haskell.nix",
-        "rev": "fc060cf2934f7f206a4340ef86f5764b2f95737d",
+        "rev": "9ece6fa217664bf2e2534050e10348ceba0a8825",
         "type": "github"
       },
       "original": {
@@ -501,7 +501,9 @@
         "haskell-nix": [
           "haskell-nix"
         ],
-        "iohk-nix": "iohk-nix",
+        "iohk-nix": [
+          "iohk-nix"
+        ],
         "nixpkgs": [
           "nixpkgs"
         ],
@@ -526,19 +528,16 @@
     "iohk-nix": {
       "inputs": {
         "blst": "blst",
-        "nixpkgs": [
-          "iogx",
-          "nixpkgs"
-        ],
+        "nixpkgs": "nixpkgs_3",
         "secp256k1": "secp256k1",
         "sodium": "sodium"
       },
       "locked": {
-        "lastModified": 1696445248,
-        "narHash": "sha256-2B/fqwyaRAaHVmkf15tKwkFbL5O46TmMw+Rc2viUPEY=",
+        "lastModified": 1698999258,
+        "narHash": "sha256-42D1BMbdyZD+lT+pWUzb5zDQyasNbMJtH/7stuPuPfE=",
         "owner": "input-output-hk",
         "repo": "iohk-nix",
-        "rev": "e32040e84180b3c27c0f13587025f6a17a4da520",
+        "rev": "73dc2bb45af6f20cfe1d962f1334eed5e84ae764",
         "type": "github"
       },
       "original": {
@@ -793,6 +792,22 @@
         "type": "github"
       }
     },
+    "nixpkgs_3": {
+      "locked": {
+        "lastModified": 1684171562,
+        "narHash": "sha256-BMUWjVWAUdyMWKk0ATMC9H0Bv4qAV/TXwwPUvTiC5IQ=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "55af203d468a6f5032a519cba4f41acf5a74b638",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "ref": "release-22.11",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "old-ghc-nix": {
       "flake": false,
       "locked": {
@@ -838,6 +853,7 @@
         "hackage": "hackage",
         "haskell-nix": "haskell-nix",
         "iogx": "iogx",
+        "iohk-nix": "iohk-nix",
         "nixpkgs": [
           "haskell-nix",
           "nixpkgs"
