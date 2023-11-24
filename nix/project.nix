@@ -24,25 +24,13 @@ let
       };
 
       flake.variants = {
-<<<<<<< HEAD
         ghc96 = { }; # Alias for the default project
         ghc96-profiled.modules = [{
-||||||| parent of a6627bb08a (Add 9.8 CI)
-        ghc92 = { }; # Alias for the default project
-        ghc810.compiler-nix-name = "ghc810";
-        ghc96.compiler-nix-name = "ghc96";
-        ghc92-profiled.modules = [{
-=======
-        ghc92 = { }; # Alias for the default project
-        ghc810.compiler-nix-name = "ghc810";
-        ghc96.compiler-nix-name = "ghc96";
-        ghc98.compiler-nix-name = "ghc98";
-        ghc92-profiled.modules = [{
->>>>>>> a6627bb08a (Add 9.8 CI)
           enableProfiling = true;
           enableLibraryProfiling = true;
         }];
         ghc810.compiler-nix-name = "ghc810";
+        ghc98.compiler-nix-name = "ghc98";
       };
 
       inputMap = { "https://input-output-hk.github.io/cardano-haskell-packages" = inputs.iogx.inputs.CHaP; };
