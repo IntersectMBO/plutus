@@ -56,6 +56,12 @@ if impl(ghc < 9.0) || os(windows)
   -- won't actually build it.
   allow-older: plutus-cert:base
 
+-- Recently introduced flag to be clever and use SIMD instructions.
+-- We don't need this and it causes problems in a few settings including
+-- cross-compilation.
+package bitvec
+  flags: -simd
+
 -- See the note on nix/agda-packages.nix for why this is here.
 -- (NOTE this will change to ieee754 in newer versions of nixpkgs).
 extra-packages: ieee, filemanip
