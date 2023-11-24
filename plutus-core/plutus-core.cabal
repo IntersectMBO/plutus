@@ -69,7 +69,7 @@ common lang
     -Wincomplete-record-updates -Wredundant-constraints -Widentities
     -Wunused-packages -Wmissing-deriving-strategies
 
-  if impl(ghc >=9.6)
+  if impl(ghc >=9.8)
     ghc-options: -Wno-x-partial
 
 -- This contains UPLC+TPLC, PIR must be explicitly included by depending
