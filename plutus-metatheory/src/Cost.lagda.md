@@ -18,7 +18,7 @@ open import Data.Bool
 open import Data.List using (List;foldr)
 open import Data.Nat using (ℕ;_+_)
 open import Data.Integer using (ℤ)
-open import Data.Float using (Float;fromℕ;_÷_;_*_;_≤ᵇ_)
+open import Data.Float using (Float;fromℕ;_÷_;_*_;_≤ᵇ_) renaming (show to show𝔽)
 open import Data.Nat.Properties using (+-assoc;+-identityʳ)
 open import Data.Nat.Show using () renaming (show to showℕ)
 open import Data.Maybe using (Maybe;just;nothing;fromMaybe;maybe)
@@ -26,6 +26,7 @@ open import Data.Product using (_×_;_,_)
 open import Data.String using (String;_++_;tail;padLeft;padRight)
 open import Algebra using (IsMonoid)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;trans;isEquivalence;cong₂)
+open import Text.Printf using (printf)
 
 open import Utils.Reflection using (defDec;defShow;defListConstructors)
 
@@ -110,6 +111,10 @@ stepKindList : List StepKind
 unquoteDef stepKindList = defListConstructors (quote StepKind) stepKindList 
 ``` 
 
+## Recording expenditure
+
+The following data structure is use to defines the categories for which we
+record expenditure.
 
 ```
 data ExBudgetCategory : Set where
@@ -147,24 +152,21 @@ builtinCost _ = mkExBudget 1 0
 
 The default machine parameters for `ExBudget`.
 
-TODO : For now we will define fixed costs. Later, we should implement getting these values from the cekMachineCosts.json file.
+TODO : For now we will define fixed costs. Later, we should 
+implement getting these values from the cekMachineCosts.json file.
 Probably, we will do this by reusing Haskell code.
  
 ```
-
-
 defaultCekMachineCost : StepKind → ExBudget
 defaultCekMachineCost s = mkExBudget 23000 100
 
 defaultCekStartupCost : ExBudget 
 defaultCekStartupCost = mkExBudget 100 100
 
- 
 exBudgetCategoryCost : ExBudgetCategory → ExBudget 
 exBudgetCategoryCost (BStep x) = defaultCekMachineCost x
 exBudgetCategoryCost (BBuiltinApp b) = builtinCost b
 exBudgetCategoryCost BStartup = defaultCekStartupCost
-
 
 defaultMachineParameters : MachineParameters ExBudget
 defaultMachineParameters = record {
@@ -176,14 +178,16 @@ defaultMachineParameters = record {
  } 
 
 countingReport : ExBudget → String 
-countingReport (mkExBudget cpu mem) = "\nCPU budget:    " ++ showℕ cpu ++ "\nMemory budget: " ++ showℕ mem
+countingReport (mkExBudget cpu mem) = 
+      "\nCPU budget:    " ++ showℕ cpu 
+   ++ "\nMemory budget: " ++ showℕ mem
 ```
  
  ## Tallying budget 
 
-
 We need a map from `ExBudgetCategory` into `ExBudget`. 
-It's not the most efficient, but the simplest thing to do is to transform `ExBudgetCategory` into a string.
+It's not the most efficient, but the simplest thing to do is to 
+transform `ExBudgetCategory` into a string, ans use that as keys.
 
 ```
 mkKeyFromExBudgetCategory : ExBudgetCategory → String 
@@ -200,22 +204,9 @@ lookup m k with lookupAVL (mkKeyFromExBudgetCategory k) m
 ... | nothing = ε€
 ```
 
+TallyingBudget is a monoid. 
 
 ```
--- record TallyingBudget : Set where
---   constructor mkTB
---   field
---    #Const   : ℕ
---    #Var     : ℕ
---    #LamAbs  : ℕ
---    #Apply   : ℕ
---    #Delay   : ℕ
---    #Force   : ℕ
---    #Builtin : ℕ
---    #Constr  : ℕ 
---    #Case    : ℕ
---    budget   : ExBudget
-
 --unit of TallyingBudget 
 εT : TallyingBudget
 εT = empty , ε€
@@ -227,19 +218,22 @@ _∙T_ : TallyingBudget → TallyingBudget → TallyingBudget
          u x (just y) = x ∙€ y
          u x nothing = x
 
+-- TODO : Prove these postulates.
 postulate TallyingBudget-assoc : Algebra.Associative _≡_ _∙T_
 postulate Tallying-budget-identityʳ : Algebra.RightIdentity _≡_ εT _∙T_
 
 isMonoidTallyingBudget : IsMonoid _≡_ _∙T_ εT
 isMonoidTallyingBudget = record { 
        isSemigroup = record { 
-           isMagma = record { isEquivalence = isEquivalence ; ∙-cong = λ {refl refl → refl }} 
+           isMagma = record { isEquivalence = isEquivalence 
+                            ; ∙-cong = λ {refl refl → refl }} 
            ; assoc = TallyingBudget-assoc } 
      ; identity = (λ x → refl) , Tallying-budget-identityʳ }
 
-
 tallyingCekMachineCost : ExBudgetCategory → TallyingBudget
-tallyingCekMachineCost k = let spent = exBudgetCategoryCost k in singleton (mkKeyFromExBudgetCategory k) spent , spent
+tallyingCekMachineCost k = 
+      let spent = exBudgetCategoryCost k 
+      in singleton (mkKeyFromExBudgetCategory k) spent , spent
 
 tallyingMachineParameters : MachineParameters TallyingBudget
 tallyingMachineParameters = record { 
@@ -249,31 +243,6 @@ tallyingMachineParameters = record {
       ; _∙_ = _∙T_
       ; costMonoid = isMonoidTallyingBudget
       } 
-
-open import Text.Printf
-
-budgetToString : ExBudget → String 
-budgetToString (mkExBudget cpu mem) = padLeft ' ' 15 (showℕ cpu) ++ "  " ++ (padLeft ' ' 15 (showℕ mem))
-
-printStepCost : StepKind → ExBudget → String
-printStepCost sk budget = padRight ' ' 10 (showStepKind sk) ++ " " ++ padLeft ' ' 20 (budgetToString budget) ++ "\n"
-
-printStepReport : Map ExBudget → String 
-printStepReport mp = foldr (λ s xs → printStepCost s (lookup mp (BStep s)) ++ xs) "" stepKindList -- stepKindList
-
-printBuiltinCost : Builtin → ExBudget → String 
-printBuiltinCost b (mkExBudget 0 0) = "" 
-printBuiltinCost b budget = padRight ' ' 22 (showBuiltin b) ++ " " ++ budgetToString budget ++ "\n"
-
-printBuiltinReport : Map ExBudget → String 
-printBuiltinReport mp = foldr (λ b xs → printBuiltinCost b (lookup mp (BBuiltinApp b)) ++ xs) "" builtinList
-
-formatTimePicoseconds : Float → String
-formatTimePicoseconds t = if 1e12 ≤ᵇ t then  (printf "%f s" (t ÷ 1e12)) else
-                          if 1e9 ≤ᵇ t then  (printf "%f ms" (t ÷ 1e9)) else
-                          if 1e6 ≤ᵇ t then  (printf "%f μs" (t ÷ 1e6)) else
-                          if 1e3 ≤ᵇ t then  (printf "%f ns" (t ÷ 1e3)) else
-                           printf "%f ps" t
 
 tallyingReport : TallyingBudget → String
 tallyingReport (mp , budget) =  
@@ -301,7 +270,38 @@ tallyingReport (mp , budget) =
     totalBuiltinCosts = foldr _∙€_ ε€ (Data.List.map (lookup mp ∘ BBuiltinApp) builtinList)
 
     getCPU : ExBudget → Float
-    getCPU n = fromℕ (ExCPU n)                        
+    getCPU n = fromℕ (ExCPU n)   
+
+    budgetToString : ExBudget → String 
+    budgetToString (mkExBudget cpu mem) = padLeft ' ' 15 (showℕ cpu) ++ "  " 
+                                       ++ padLeft ' ' 15 (showℕ mem)
+
+    printStepCost : StepKind → ExBudget → String
+    printStepCost sk budget = padRight ' ' 10 (showStepKind sk) ++ " " 
+                           ++ padLeft ' ' 20 (budgetToString budget) ++ "\n"
+
+    printStepReport : Map ExBudget → String 
+    printStepReport mp = foldr (λ s xs → printStepCost s (lookup mp (BStep s)) ++ xs)
+                               "" 
+                               stepKindList
+
+    printBuiltinCost : Builtin → ExBudget → String 
+    printBuiltinCost b (mkExBudget 0 0) = "" 
+    printBuiltinCost b budget = padRight ' ' 22 (showBuiltin b) ++ " " 
+                             ++ budgetToString budget ++ "\n"
+
+    printBuiltinReport : Map ExBudget → String 
+    printBuiltinReport mp = 
+        foldr (λ b xs → printBuiltinCost b (lookup mp (BBuiltinApp b)) ++ xs) 
+              "" 
+              builtinList     
+    
+    formatTimePicoseconds : Float → String
+    formatTimePicoseconds t = if 1e12 ≤ᵇ t then  (printf "%f s" (t ÷ 1e12)) else
+                              if 1e9 ≤ᵇ t then  (printf "%f ms" (t ÷ 1e9)) else
+                              if 1e6 ≤ᵇ t then  (printf "%f μs" (t ÷ 1e6)) else
+                              if 1e3 ≤ᵇ t then  (printf "%f ns" (t ÷ 1e3)) else
+                              printf "%f ps" t                
 
  ```
 
