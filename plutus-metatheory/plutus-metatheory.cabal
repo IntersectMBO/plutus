@@ -86,6 +86,7 @@ library
     MAlonzo.Code.Agda.Builtin.Nat
     MAlonzo.Code.Agda.Builtin.Reflection
     MAlonzo.Code.Agda.Builtin.Sigma
+    MAlonzo.Code.Agda.Builtin.Strict
     MAlonzo.Code.Agda.Builtin.String
     MAlonzo.Code.Agda.Builtin.Unit
     MAlonzo.Code.Agda.Primitive
@@ -307,6 +308,7 @@ library
     MAlonzo.Code.Agda.Builtin.Nat
     MAlonzo.Code.Agda.Builtin.Reflection
     MAlonzo.Code.Agda.Builtin.Sigma
+    MAlonzo.Code.Agda.Builtin.Strict
     MAlonzo.Code.Agda.Builtin.String
     MAlonzo.Code.Agda.Builtin.Unit
     MAlonzo.Code.Agda.Primitive

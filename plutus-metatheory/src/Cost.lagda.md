@@ -17,12 +17,13 @@ open import Function using (_∘_)
 open import Data.Bool
 open import Data.List using (List;foldr)
 open import Data.Nat using (ℕ;_+_)
-open import Data.Float using (Float;fromℕ;_÷_;_*_;_≤ᵇ_;e^_)
+open import Data.Integer using (ℤ)
+open import Data.Float using (Float;fromℕ;_÷_;_*_;_≤ᵇ_)
 open import Data.Nat.Properties using (+-assoc;+-identityʳ)
 open import Data.Nat.Show using () renaming (show to showℕ)
-open import Data.Maybe using (Maybe;just;nothing)
+open import Data.Maybe using (Maybe;just;nothing;fromMaybe;maybe)
 open import Data.Product using (_×_;_,_)
-open import Data.String using (String;_++_)
+open import Data.String using (String;_++_;tail;padLeft;padRight)
 open import Algebra using (IsMonoid)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;trans;isEquivalence;cong₂)
 
@@ -32,7 +33,7 @@ open import Relation.Binary using (StrictTotalOrder)
 open import Data.Char using (_≈ᵇ_)
 open import Data.String
 open import Data.String.Properties using (<-strictTotalOrder-≈)
-open import Data.Tree.AVL.Map <-strictTotalOrder-≈ using (Map;empty;unionWith;singleton) renaming (lookup to lookupAVL)
+open import Data.Tree.AVL.Map <-strictTotalOrder-≈ as AVL using (Map;empty;unionWith;singleton) renaming (lookup to lookupAVL)
 open import Builtin using (Builtin;showBuiltin;builtinList)
 ``` 
 
@@ -95,8 +96,11 @@ data StepKind : Set where
 We define a show function for StepKinds
 
 ```
+showStepKind' : StepKind → String 
+unquoteDef showStepKind' = defShow (quote StepKind) showStepKind' 
+
 showStepKind : StepKind → String 
-unquoteDef showStepKind = defShow (quote StepKind) showStepKind 
+showStepKind s = fromMaybe "" (tail (showStepKind' s))   
 ```
 
 and a list of constructors names
@@ -134,7 +138,9 @@ TODO
 
 ```
 builtinCost : Builtin → ExBudget
-builtinCost _ = ε€ --TODO implement builtin costs
+--builtinCost _ = ε€ --TODO implement builtin costs
+builtinCost _ = mkExBudget 1 0
+
 ```
 
 ## Default Machine Parameters
@@ -247,16 +253,17 @@ tallyingMachineParameters = record {
 open import Text.Printf
 
 budgetToString : ExBudget → String 
-budgetToString (mkExBudget cpu mem) = printf "%u  %u" cpu mem
+budgetToString (mkExBudget cpu mem) = padLeft ' ' 15 (showℕ cpu) ++ "  " ++ (padLeft ' ' 15 (showℕ mem))
 
 printStepCost : StepKind → ExBudget → String
-printStepCost sk budget = showStepKind sk ++ "  " ++ budgetToString budget ++ "\n"
+printStepCost sk budget = padRight ' ' 10 (showStepKind sk) ++ " " ++ padLeft ' ' 20 (budgetToString budget) ++ "\n"
 
 printStepReport : Map ExBudget → String 
 printStepReport mp = foldr (λ s xs → printStepCost s (lookup mp (BStep s)) ++ xs) "" stepKindList -- stepKindList
 
 printBuiltinCost : Builtin → ExBudget → String 
-printBuiltinCost b budget = showBuiltin b ++ "  " ++ budgetToString budget ++ "\n"
+printBuiltinCost b (mkExBudget 0 0) = "" 
+printBuiltinCost b budget = padRight ' ' 22 (showBuiltin b) ++ " " ++ budgetToString budget ++ "\n"
 
 printBuiltinReport : Map ExBudget → String 
 printBuiltinReport mp = foldr (λ b xs → printBuiltinCost b (lookup mp (BBuiltinApp b)) ++ xs) "" builtinList
@@ -270,15 +277,20 @@ formatTimePicoseconds t = if 1e12 ≤ᵇ t then  (printf "%f s" (t ÷ 1e12)) els
 
 tallyingReport : TallyingBudget → String
 tallyingReport (mp , budget) =  
-       printStepReport mp ++ "\n"
+       countingReport budget
     ++ "\n"
-    ++ "startup    " ++ budgetToString budget ++ "\n"
+    ++ "\n"
+    ++ printStepReport mp
+    ++ "\n"
+    ++ "startup    " ++ budgetToString (lookup mp BStartup) ++ "\n"
     ++ "compute    " ++ budgetToString totalComputeCost ++ "\n"
     -- ++ "AST nodes  " ++ ++ "\n"
     ++ "\n\n"
     ++ printBuiltinReport mp 
     ++ "\n" 
     ++ "Total builtin costs:   " ++ budgetToString totalBuiltinCosts ++ "\n"
+     -- We would like to be ble to print the following  number as "%4.2f" 
+     -- but Agda's printf currently doesn't support it.
     ++ printf "Time spent executing builtins:  %f%%\n" (fromℕ 100 * (getCPU totalBuiltinCosts) ÷ (getCPU budget)) ++ "\n"
     ++ "\n"
     ++ "Total budget spent:    " ++ budgetToString budget ++ "\n"
@@ -287,44 +299,10 @@ tallyingReport (mp , budget) =
     totalComputeCost totalBuiltinCosts : ExBudget 
     totalComputeCost = foldr (λ x acc → (lookup mp (BStep x)) ∙€ acc) ε€ stepKindList
     totalBuiltinCosts = foldr _∙€_ ε€ (Data.List.map (lookup mp ∘ BBuiltinApp) builtinList)
-    getCPU : ExBudget → Float
-    getCPU n = fromℕ (ExCPU n)
 
- ``` 
-    putStrLn $ "AST nodes  " ++ printf "%15d" (UPLC.unSize $ UPLC.termSize term)
-                putStrLn ""
-                traverse_
-                    ( \(b, cost) ->
-                        putStrLn $ printf "%-22s %s" (show b) (budgetToString cost :: String)
-                    )
-                    builtinsAndCosts
-                putStrLn ""
-                putStrLn $ "Total builtin costs:   " ++ budgetToString totalBuiltinCosts
-                printf "Time spent executing builtins:  %4.2f%%\n"
-                        (100 * (ExCPU totalBuiltinCosts) / (ExCPU totalCost))
-                putStrLn ""
-                putStrLn $ "Total budget spent:    " ++ printf (budgetToString totalCost)
-                putStrLn $ "Predicted execution time: "
-                             ++ (formatTimePicoseconds $ getCPU totalCost)
-  where
-    getSpent k =
-        case H.lookup k costs of
-            Just v  -> v
-            Nothing -> ExBudget 0 0
-    totalComputeCost =
-        -- For unitCekCosts this will be the total number of compute steps
-        foldMap (getSpent . Cek.BStep) allStepKinds
-    budgetToString (ExBudget (ExCPU cpu) (ExMemory mem)) =
-        case model of
-            -- Not %d: doesn't work when CostingInteger is SatInt.
-            Default -> printf "%15s  %15s" (show cpu) (show mem) :: String
-            -- Memory usage figures are meaningless in this case
-            Unit    -> printf "%15s" (show cpu) :: String
-    printStepCost constr =
-        printf "%-10s %20s\n" (tail $ show constr) (budgetToString . getSpent $ Cek.BStep constr)
-    getBuiltinCost l e = case e of (Cek.BBuiltinApp b, cost) -> (b, cost) : l; _ -> l
-    builtinsAndCosts = List.foldl getBuiltinCost [] (H.toList costs)
-    totalBuiltinCosts = mconcat (map snd builtinsAndCosts)
-    getCPU b = let ExCPU b' = exBudgetCPU b in fromSatInt b' :: Double
-    totalCost = getSpent Cek.BStartup <> totalComputeCost <> totalBuiltinCosts :: ExBudget
+    getCPU : ExBudget → Float
+    getCPU n = fromℕ (ExCPU n)                        
+
+ ```
+
  

@@ -25,6 +25,7 @@ open _⊢
 open import Utils using (Writer;_>>_;_>>=_;return;maybe;Either;inj₁;inj₂;RuntimeError;gasError;either)
 open Writer
 open import RawU using (tmCon)
+open import Builtin using (Builtin)
 
 open import Untyped.CEK
 ```
@@ -42,6 +43,11 @@ CekM = Writer Budget
 
 spend : StepKind → CekM ⊤
 spend st = tell (cekMachineCost (BStep st))
+
+-- TO DO : Do it properly.
+
+spendBuiltin : Builtin → CekM ⊤
+spendBuiltin b = tell (cekMachineCost (BBuiltinApp b))
 
 spendStartupCost : CekM ⊤
 spendStartupCost = tell startupCost
@@ -113,7 +119,7 @@ stepC ((s , case- ρ ts) ◅ V-I⇒ _ _)         = return ◆ -- case of builtin
 stepC ((s , case- ρ ts) ◅ V-IΠ _ _)         = return ◆ -- case of delayed builtin
 stepC ((s , (V-I⇒ b {am = 0} bapp ·-)) ◅ v) = --fully applied builtin function
           either (BUILTIN' b (app bapp v)) (λ _ → return ◆) (λ V → do 
-              -- TODO: spend cost of executing builtin function
+              spendBuiltin b -- TODO: spend cost of executing builtin function for given arguments
               return (s ◅ V))
 stepC ((s , (V-I⇒ b {am = suc _} bapp ·-)) ◅ v) =  --partially applied builtin function
           return (s ◅ V-I b (app bapp v))
