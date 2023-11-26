@@ -1,11 +1,12 @@
 -- editorconfig-checker-disable-file
 -- | Tests for all kinds of built-in functions.
 
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
-
 
 -- Sure GHC, I'm enabling the extension just so that you can warn me about its usages.
 {-# OPTIONS_GHC -fno-warn-partial-type-signatures #-}
@@ -41,6 +42,7 @@ import PlutusCore.StdLib.Data.Unit
 
 import Evaluation.Builtins.BLS12_381 (test_BLS12_381)
 import Evaluation.Builtins.Common
+import Evaluation.Builtins.Conversion qualified as Conversion
 import Evaluation.Builtins.SignatureVerification (ecdsaSecp256k1Prop, ed25519_Variant1Prop,
                                                   ed25519_Variant2Prop, schnorrSecp256k1Prop)
 
@@ -49,7 +51,7 @@ import Control.Exception
 import Data.ByteString (ByteString, pack)
 import Data.DList qualified as DList
 import Data.Proxy
-import Data.String (fromString)
+import Data.String (IsString (fromString))
 import Data.Text (Text)
 import Hedgehog hiding (Opaque, Size, Var)
 import Hedgehog.Gen qualified as Gen
@@ -814,6 +816,45 @@ test_SignatureVerification =
                       ]
                 ]
 
+-- Test that the Integer <-> ByteString conversion builtins are behaving correctly
+test_Conversion :: TestTree
+test_Conversion =
+    adjustOption (\x -> max x . HedgehogTestLimit . Just $ 8000) .
+    testGroup "Integer <-> ByteString conversions" $ [
+      testGroup "Integer -> ByteString" [
+        testPropertyNamed i2bProp1Name "i2b_prop1" . property $ Conversion.i2bProperty1,
+        testPropertyNamed i2bProp2Name "i2b_prop2" . property $ Conversion.i2bProperty2,
+        testPropertyNamed i2bProp3Name "i2b_prop3" . property $ Conversion.i2bProperty3,
+        testPropertyNamed i2bProp4Name "i2b_prop4" . property $ Conversion.i2bProperty4
+        ],
+      testGroup "ByteString -> Integer" [
+        testPropertyNamed b2iProp1Name "b2i_prop1" . property $ Conversion.b2iProperty1,
+        testPropertyNamed b2iProp2Name "b2i_prop2" . property $ Conversion.b2iProperty2
+        ]
+      ]
+    where
+      i2bProp1Name :: TestName
+      i2bProp1Name = "lengthOfByteString (builtinIntegerToByteString e 0 i) > 0"
+      i2bProp2Name :: TestName
+      i2bProp2Name = "lengthOfByteString (builtinIntegerToByteString e k i) = k"
+      i2bProp3Name :: TestName
+      i2bProp3Name = "indexByteString (builtinIntegerToByteString False d i) 0" <>
+        " = " <>
+        "remainderInteger i 256"
+      i2bProp4Name :: TestName
+      i2bProp4Name = "let result = builtinIntegerToByteString True d i " <>
+        "in indexByteString result (lengthOfByteString result - 1)" <>
+        " = " <>
+        "remainderInteger i 256"
+      b2iProp1Name :: TestName
+      b2iProp1Name = "builtinByteStringToInteger b (builtinIntegerToByteString b d i)" <>
+        " = " <>
+        "i"
+      b2iProp2Name :: TestName
+      b2iProp2Name = "builtinByteStringToInteger b (consByteString w8 emptyByteString)" <>
+        " = " <>
+        "w8"
+
 test_definition :: TestTree
 test_definition =
     testGroup "definition"
@@ -847,4 +888,5 @@ test_definition =
         , test_Other
         , test_Version
         , test_ConsByteString
+        , test_Conversion
         ]
