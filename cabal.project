@@ -14,9 +14,9 @@ repository cardano-haskell-packages
 -- update either of these.
 index-state:
   -- Bump both the following dates if you need newer packages from Hackage
-  , hackage.haskell.org 2023-11-24T01:41:42Z
+  , hackage.haskell.org 2023-11-26T21:52:49Z
   -- Bump this if you need newer packages from CHaP
-  , cardano-haskell-packages 2023-11-23T14:19:04Z
+  , cardano-haskell-packages 2023-11-26T20:12:16Z
 
 packages: doc/read-the-docs-site
           plutus-benchmark
@@ -73,17 +73,16 @@ source-repository-package
 
 if impl(ghc >= 9.8)
   allow-newer:
-    -- https://github.com/qfpl/hedgehog-fn/pull/9
-    , hedgehog-fn:hedgehog
-
-    -- https://github.com/aisamanra/config-ini/pull/47
-    , config-ini:*
+    -- https://github.com/aisamanra/config-ini/pull/50
+    , config-ini:containers
 
     -- https://github.com/haskell-unordered-containers/hashable/pull/289
     , hashable:containers
 
     -- https://github.com/typeclasses/hex-text/pull/8
-    , hex-text:*
+    , hex-text:base
+    , hex-text:bytestring
+    , hex-text:text
 
     -- https://github.com/tweag/HaskellR/pull/420
     , inline-r:singletons-th
