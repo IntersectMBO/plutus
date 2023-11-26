@@ -210,8 +210,7 @@ Supported versions older than the primary development version are deprecated, an
 
 At the moment, our supported GHC versions are:
 - 8.10 (deprecated)
-- 9.2 (primary)
-- 9.6
+- 9.6 (primary)
 
 === Plugin support
 
@@ -223,7 +222,6 @@ The plugin and its dependents should be marked as unbuildable with cabal conditi
 This makes cabal behave reasonably well (it will ignore them and not try and fail to build them).
 
 We currently support the plugin on:
-- 9.2
 - 9.6
 
 === Per-version tooling
