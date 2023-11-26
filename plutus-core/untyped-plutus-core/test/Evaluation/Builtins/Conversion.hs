@@ -9,11 +9,14 @@ module Evaluation.Builtins.Conversion (
   i2bProperty3,
   i2bProperty4,
   b2iProperty1,
-  b2iProperty2
+  b2iProperty2,
+  i2bCipExamples,
+  b2iCipExamples
   ) where
 
 import Data.ByteString (ByteString)
 import Evaluation.Builtins.Common (typecheckEvaluateCek)
+import GHC.Exts (fromList)
 import Hedgehog (Gen, PropertyT, annotateShow, failure, forAllWith, (===))
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
@@ -22,6 +25,8 @@ import PlutusCore (DefaultFun (ByteStringToInteger, ConsByteString, IndexByteStr
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModel)
 import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn)
 import PlutusPrelude (Word8, def)
+import Test.Tasty (TestTree)
+import Test.Tasty.HUnit (assertEqual, assertFailure, testCase)
 import Text.Show.Pretty (ppShow)
 
 -- Properties directly from CIP-0087: https://github.com/mlabs-haskell/CIPs/blob/koz/to-from-bytestring/CIP-0087/CIP-0087.md#builtinintegertobytestring
@@ -172,6 +177,259 @@ b2iProperty2 = do
     Right (res, logs) -> case res of
       EvaluationFailure   -> annotateShow logs >> failure
       EvaluationSuccess x -> x === mkConstant @Integer () w8
+
+i2bCipExamples :: [TestTree]
+i2bCipExamples = [
+  testCase "builtinIntegerToByteString False 0 (-1) ==> failure" $ do
+    let actualExp = mkIterAppNoAnn (builtin () IntegerToByteString) [
+                      mkConstant @Bool () False,
+                      mkConstant @Integer () 0,
+                      mkConstant @Integer () (-1)
+                      ]
+    case typecheckEvaluateCek def defaultBuiltinCostModel actualExp of
+      Left _ -> assertFailure "unexpectedly failed to typecheck"
+      Right (result, _) -> case result of
+        EvaluationFailure   -> pure ()
+        EvaluationSuccess _ -> assertFailure "should have failed, but didn't",
+  testCase "builtinIntegerToByteString True 0 (-1) ==> failure" $ do
+    let actualExp = mkIterAppNoAnn (builtin () IntegerToByteString) [
+                      mkConstant @Bool () True,
+                      mkConstant @Integer () 0,
+                      mkConstant @Integer () (-1)
+                      ]
+    case typecheckEvaluateCek def defaultBuiltinCostModel actualExp of
+      Left _ -> assertFailure "unexpectedly failed to typecheck"
+      Right (result, _) -> case result of
+        EvaluationFailure   -> pure ()
+        EvaluationSuccess _ -> assertFailure "should have failed, but didn't",
+  testCase "builtinIntegerToByteString False 100 (-1) ==> failure" $ do
+    let actualExp = mkIterAppNoAnn (builtin () IntegerToByteString) [
+                      mkConstant @Bool () False,
+                      mkConstant @Integer () 100,
+                      mkConstant @Integer () (-1)
+                      ]
+    case typecheckEvaluateCek def defaultBuiltinCostModel actualExp of
+      Left _ -> assertFailure "unexpectedly failed to typecheck"
+      Right (result, _) -> case result of
+        EvaluationFailure   -> pure ()
+        EvaluationSuccess _ -> assertFailure "should have failed, but didn't",
+  testCase "builtinIntegerToByteString False 0 0 ==> [ 0x00 ]" $ do
+    let actualExp = mkIterAppNoAnn (builtin () IntegerToByteString) [
+                      mkConstant @Bool () False,
+                      mkConstant @Integer () 0,
+                      mkConstant @Integer () 0
+                      ]
+    case typecheckEvaluateCek def defaultBuiltinCostModel actualExp of
+      Left _ -> assertFailure "unexpectedly failed to typecheck"
+      Right (result, _) -> case result of
+        EvaluationFailure   -> assertFailure "unexpectedly failed to evaluate"
+        EvaluationSuccess x -> assertEqual "" x (mkConstant @ByteString () "\NUL"),
+  testCase "builtinIntegerToByteString True 0 0 ==> [ 0x00 ]" $ do
+    let actualExp = mkIterAppNoAnn (builtin () IntegerToByteString) [
+                      mkConstant @Bool () True,
+                      mkConstant @Integer () 0,
+                      mkConstant @Integer () 0
+                      ]
+    case typecheckEvaluateCek def defaultBuiltinCostModel actualExp of
+      Left _ -> assertFailure "unexpectedly failed to typecheck"
+      Right (result, _) -> case result of
+        EvaluationFailure   -> assertFailure "unexpectedly failed to evaluate"
+        EvaluationSuccess x -> assertEqual "" x (mkConstant @ByteString () "\NUL"),
+  testCase "builtinIntegerToByteString False 5 0 ==> [ 0x00, 0x00, 0x00, 0x00, 0x00 ]" $ do
+    let actualExp = mkIterAppNoAnn (builtin () IntegerToByteString) [
+                      mkConstant @Bool () False,
+                      mkConstant @Integer () 5,
+                      mkConstant @Integer () 0
+                      ]
+    case typecheckEvaluateCek def defaultBuiltinCostModel actualExp of
+      Left _ -> assertFailure "unexpectedly failed to typecheck"
+      Right (result, _) -> case result of
+        EvaluationFailure   -> assertFailure "unexpectedly failed to evaluate"
+        EvaluationSuccess x -> assertEqual "" x (mkConstant @ByteString () "\NUL\NUL\NUL\NUL\NUL"),
+  testCase "builtinIntegerToByteString True 5 0 ==> [ 0x00, 0x00, 0x00, 0x00, 0x00 ]" $ do
+    let actualExp = mkIterAppNoAnn (builtin () IntegerToByteString) [
+                      mkConstant @Bool () True,
+                      mkConstant @Integer () 5,
+                      mkConstant @Integer () 0
+                      ]
+    case typecheckEvaluateCek def defaultBuiltinCostModel actualExp of
+      Left _ -> assertFailure "unexpectedly failed to typecheck"
+      Right (result, _) -> case result of
+        EvaluationFailure   -> assertFailure "unexpectedly failed to evaluate"
+        EvaluationSuccess x -> assertEqual "" x (mkConstant @ByteString () "\NUL\NUL\NUL\NUL\NUL"),
+  testCase "builtinIntegerToByteString False 1 404 ==> failure" $ do
+    let actualExp = mkIterAppNoAnn (builtin () IntegerToByteString) [
+                      mkConstant @Bool () False,
+                      mkConstant @Integer () 1,
+                      mkConstant @Integer () 404
+                      ]
+    case typecheckEvaluateCek def defaultBuiltinCostModel actualExp of
+      Left _ -> assertFailure "unexpectedly failed to typecheck"
+      Right (result, _) -> case result of
+        EvaluationFailure   -> pure ()
+        EvaluationSuccess _ -> assertFailure "should have failed, but didn't",
+  testCase "builtinIntegerToByteString True 1 404 ==> failure" $ do
+    let actualExp = mkIterAppNoAnn (builtin () IntegerToByteString) [
+                      mkConstant @Bool () True,
+                      mkConstant @Integer () 1,
+                      mkConstant @Integer () 404
+                      ]
+    case typecheckEvaluateCek def defaultBuiltinCostModel actualExp of
+      Left _ -> assertFailure "unexpectedly failed to typecheck"
+      Right (result, _) -> case result of
+        EvaluationFailure   -> pure ()
+        EvaluationSuccess _ -> assertFailure "should have failed, but didn't",
+  testCase "builtinIntegerToByteString False 2 404 ==> [ 0x94, 0x01 ]" $ do
+    let actualExp = mkIterAppNoAnn (builtin () IntegerToByteString) [
+                      mkConstant @Bool () False,
+                      mkConstant @Integer () 2,
+                      mkConstant @Integer () 404
+                      ]
+    case typecheckEvaluateCek def defaultBuiltinCostModel actualExp of
+      Left _ -> assertFailure "unexpectedly failed to typecheck"
+      Right (result, _) -> case result of
+        EvaluationFailure   -> assertFailure "unexpectedly failed to evaluate"
+        EvaluationSuccess x -> assertEqual "" x (mkConstant @ByteString () (fromList [0x94, 0x01])),
+  testCase "builtinIntegerToByteString False 0 404 ==> [ 0x94, 0x01 ]" $ do
+    let actualExp = mkIterAppNoAnn (builtin () IntegerToByteString) [
+                      mkConstant @Bool () False,
+                      mkConstant @Integer () 0,
+                      mkConstant @Integer () 404
+                      ]
+    case typecheckEvaluateCek def defaultBuiltinCostModel actualExp of
+      Left _ -> assertFailure "unexpectedly failed to typecheck"
+      Right (result, _) -> case result of
+        EvaluationFailure   -> assertFailure "unexpectedly failed to evaluate"
+        EvaluationSuccess x -> assertEqual "" x (mkConstant @ByteString () (fromList [0x94, 0x01])),
+  testCase "builtinIntegerToByteString True 2 404 ==> [ 0x01, 0x94 ]" $ do
+    let actualExp = mkIterAppNoAnn (builtin () IntegerToByteString) [
+                      mkConstant @Bool () True,
+                      mkConstant @Integer () 2,
+                      mkConstant @Integer () 404
+                      ]
+    case typecheckEvaluateCek def defaultBuiltinCostModel actualExp of
+      Left _ -> assertFailure "unexpectedly failed to typecheck"
+      Right (result, _) -> case result of
+        EvaluationFailure   -> assertFailure "unexpectedly failed to evaluate"
+        EvaluationSuccess x -> assertEqual "" x (mkConstant @ByteString () (fromList [0x01, 0x94])),
+  testCase "builtinIntegerToByteString True 0 404 ==> [ 0x01, 0x94 ]" $ do
+    let actualExp = mkIterAppNoAnn (builtin () IntegerToByteString) [
+                      mkConstant @Bool () True,
+                      mkConstant @Integer () 0,
+                      mkConstant @Integer () 404
+                      ]
+    case typecheckEvaluateCek def defaultBuiltinCostModel actualExp of
+      Left _ -> assertFailure "unexpectedly failed to typecheck"
+      Right (result, _) -> case result of
+        EvaluationFailure   -> assertFailure "unexpectedly failed to evaluate"
+        EvaluationSuccess x -> assertEqual "" x (mkConstant @ByteString () (fromList [0x01, 0x94])),
+  testCase "builtinIntegerToByteString False 5 404 ==> [ 0x94, 0x01, 0x00, 0x00, 0x00 ]" $ do
+    let actualExp = mkIterAppNoAnn (builtin () IntegerToByteString) [
+                      mkConstant @Bool () False,
+                      mkConstant @Integer () 5,
+                      mkConstant @Integer () 404
+                      ]
+    case typecheckEvaluateCek def defaultBuiltinCostModel actualExp of
+      Left _ -> assertFailure "unexpectedly failed to typecheck"
+      Right (result, _) -> case result of
+        EvaluationFailure -> assertFailure "unexpectedly failed to evaluate"
+        EvaluationSuccess x -> assertEqual "" x (mkConstant @ByteString () (fromList [0x94, 0x01, 0x00, 0x00, 0x00])),
+  testCase "builtinIntegerToByteString True 5 404 ==> [ 0x00, 0x00, 0x00, 0x01, 0x94 ]" $ do
+    let actualExp = mkIterAppNoAnn (builtin () IntegerToByteString) [
+                      mkConstant @Bool () True,
+                      mkConstant @Integer () 5,
+                      mkConstant @Integer () 404
+                      ]
+    case typecheckEvaluateCek def defaultBuiltinCostModel actualExp of
+      Left _ -> assertFailure "unexpectedly failed to typecheck"
+      Right (result, _) -> case result of
+        EvaluationFailure -> assertFailure "unexpectedly failed to evaluate"
+        EvaluationSuccess x -> assertEqual "" x (mkConstant @ByteString () (fromList [0x00, 0x00, 0x00, 0x01, 0x94]))
+  ]
+
+b2iCipExamples :: [TestTree]
+b2iCipExamples = [
+  testCase "builtinByteStringToInteger False emptyByteString ==> failure" $ do
+    let actualExp = mkIterAppNoAnn (builtin () ByteStringToInteger) [
+                      mkConstant @Bool () False,
+                      mkConstant @ByteString () ""
+                      ]
+    case typecheckEvaluateCek def defaultBuiltinCostModel actualExp of
+      Left _ -> assertFailure "unexpectedly failed to typecheck"
+      Right (result, _) -> case result of
+        EvaluationFailure   -> pure ()
+        EvaluationSuccess _ -> assertFailure "should have failed, but didn't",
+  testCase "builtinByteStringToInteger True emptyByteString ==> failure" $ do
+    let actualExp = mkIterAppNoAnn (builtin () ByteStringToInteger) [
+                      mkConstant @Bool () True,
+                      mkConstant @ByteString () ""
+                      ]
+    case typecheckEvaluateCek def defaultBuiltinCostModel actualExp of
+      Left _ -> assertFailure "unexpectedly failed to typecheck"
+      Right (result, _) -> case result of
+        EvaluationFailure   -> pure ()
+        EvaluationSuccess _ -> assertFailure "should have failed, but didn't",
+  testCase "builtinByteStringToInteger False (consByteString 0x01 (consByteString 0x1 emptyByteString)) ==> 257" $ do
+    let actualExp = mkIterAppNoAnn (builtin () ByteStringToInteger) [
+                      mkConstant @Bool () False,
+                      mkConstant @ByteString () (fromList [0x01, 0x01])
+                      ]
+    case typecheckEvaluateCek def defaultBuiltinCostModel actualExp of
+      Left _ -> assertFailure "unexpectedly failed to typecheck"
+      Right (result, _) -> case result of
+        EvaluationFailure   -> assertFailure "unexpectedly failed to evaluate"
+        EvaluationSuccess x -> assertEqual "" x (mkConstant @Integer () 257),
+  testCase "builtinByteStringToInteger True (consByteString 0x01 (consByteString 0x01 emptyByteString)) ==> 257" $ do
+    let actualExp = mkIterAppNoAnn (builtin () ByteStringToInteger) [
+                      mkConstant @Bool () True,
+                      mkConstant @ByteString () (fromList [0x01, 0x01])
+                      ]
+    case typecheckEvaluateCek def defaultBuiltinCostModel actualExp of
+      Left _ -> assertFailure "unexpectedly failed to typecheck"
+      Right (result, _) -> case result of
+        EvaluationFailure   -> assertFailure "unexpectedly failed to evaluate"
+        EvaluationSuccess x -> assertEqual "" x (mkConstant @Integer () 257),
+  testCase "builtinByteStringToInteger True (consByteString 0x00 (consByteString 0x01 (consByteString 0x01 emptyByteString))) ==> 257" $ do
+    let actualExp = mkIterAppNoAnn (builtin () ByteStringToInteger) [
+                      mkConstant @Bool () True,
+                      mkConstant @ByteString () (fromList [0x00, 0x01, 0x01])
+                      ]
+    case typecheckEvaluateCek def defaultBuiltinCostModel actualExp of
+      Left _ -> assertFailure "unexpectedly failed to typecheck"
+      Right (result, _) -> case result of
+        EvaluationFailure   -> assertFailure "unexpectedly failed to evaluate"
+        EvaluationSuccess x -> assertEqual "" x (mkConstant @Integer () 257),
+  testCase "builtinByteStringToInteger False (consByteString 0x00 (consByteString 0x01 (consByteString 0x01 emptyByteString))) ==> 65792" $ do
+    let actualExp = mkIterAppNoAnn (builtin () ByteStringToInteger) [
+                      mkConstant @Bool () False,
+                      mkConstant @ByteString () (fromList [0x00, 0x01, 0x01])
+                      ]
+    case typecheckEvaluateCek def defaultBuiltinCostModel actualExp of
+      Left _ -> assertFailure "unexpectedly failed to typecheck"
+      Right (result, _) -> case result of
+        EvaluationFailure   -> assertFailure "unexpectedly failed to evaluate"
+        EvaluationSuccess x -> assertEqual "" x (mkConstant @Integer () 65792),
+  testCase "builtinByteStringToInteger False (consByteString 0x01 (consByteString 0x01 (consByteString 0x00 emptyByteString) ==> 257" $ do
+    let actualExp = mkIterAppNoAnn (builtin () ByteStringToInteger) [
+                      mkConstant @Bool () False,
+                      mkConstant @ByteString () (fromList [0x01, 0x01, 0x00])
+                      ]
+    case typecheckEvaluateCek def defaultBuiltinCostModel actualExp of
+      Left _ -> assertFailure "unexpectedly failed to typecheck"
+      Right (result, _) -> case result of
+        EvaluationFailure   -> assertFailure "unexpectedly failed to evaluate"
+        EvaluationSuccess x -> assertEqual "" x (mkConstant @Integer () 257),
+  testCase "builtinByteStringToInteger True (consByteString 0x01 (consByteString 0x01 (consByteString 0x00 emptyByteString) ==> 65792" $ do
+    let actualExp = mkIterAppNoAnn (builtin () ByteStringToInteger) [
+                      mkConstant @Bool () True,
+                      mkConstant @ByteString () (fromList [0x01, 0x01, 0x00])
+                      ]
+    case typecheckEvaluateCek def defaultBuiltinCostModel actualExp of
+      Left _ -> assertFailure "unexpectedly failed to typecheck"
+      Right (result, _) -> case result of
+        EvaluationFailure   -> assertFailure "unexpectedly failed to evaluate"
+        EvaluationSuccess x -> assertEqual "" x (mkConstant @Integer () 65792)
+  ]
 
 -- Generators
 

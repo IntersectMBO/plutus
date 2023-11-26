@@ -825,11 +825,13 @@ test_Conversion =
         testPropertyNamed i2bProp1Name "i2b_prop1" . property $ Conversion.i2bProperty1,
         testPropertyNamed i2bProp2Name "i2b_prop2" . property $ Conversion.i2bProperty2,
         testPropertyNamed i2bProp3Name "i2b_prop3" . property $ Conversion.i2bProperty3,
-        testPropertyNamed i2bProp4Name "i2b_prop4" . property $ Conversion.i2bProperty4
+        testPropertyNamed i2bProp4Name "i2b_prop4" . property $ Conversion.i2bProperty4,
+        testGroup "CIP-0087 examples" Conversion.i2bCipExamples
         ],
       testGroup "ByteString -> Integer" [
         testPropertyNamed b2iProp1Name "b2i_prop1" . property $ Conversion.b2iProperty1,
-        testPropertyNamed b2iProp2Name "b2i_prop2" . property $ Conversion.b2iProperty2
+        testPropertyNamed b2iProp2Name "b2i_prop2" . property $ Conversion.b2iProperty2,
+        testGroup "CIP-0087 examples" Conversion.b2iCipExamples
         ]
       ]
     where
