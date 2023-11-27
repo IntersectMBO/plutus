@@ -28,12 +28,19 @@ import PlutusCore.Evaluation.Result (EvaluationResult (EvaluationFailure))
 -- | Wrapper for 'integerToByteString' to make it more convenient to define as a builtin.
 integerToByteStringWrapper ::
   Bool -> Integer -> Integer -> Emitter (EvaluationResult ByteString)
-integerToByteStringWrapper endiannessArg paddingArg input =
-  let endianness = if endiannessArg then BigEndian else LittleEndian in
+integerToByteStringWrapper endiannessArg paddingArg input
+-- As this builtin hasn't been costed yet, we have to impose a temporary limit of 10KiB on requested
+-- sizes via the padding argument. This shouldn't be necessary long-term, as once this function is
+-- costed, this won't be a problem.
+  | paddingArg > 10240 = do
+      emit "builtinIntegerToByteString: padding argument too large"
+      emit "If you are seeing this, it is a bug: please report this!"
+      pure EvaluationFailure
+  | otherwise = let endianness = if endiannessArg then BigEndian else LittleEndian in
     -- We use fromIntegral here, despite advice to the contrary in general when defining builtin
     -- denotations. For why we do this (and why it's both inevitable and not really a concern
     -- anyway), see Note [fromIntegral and padding arguments].
-    case integerToByteString (fromIntegral paddingArg) endianness input of
+    case integerToByteString (fromIntegral (max 0 paddingArg)) endianness input of
       Left err -> case err of
         NegativeInput -> do
           emit "builtinIntegerToByteString: cannot convert negative Integer"
