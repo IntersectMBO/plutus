@@ -1,7 +1,13 @@
 -- editorconfig-checker-disable-file
 
+{-# LANGUAGE OverloadedStrings #-}
+
 -- | Implementations for conversion primops from 'Integer' to 'ByteString' and back again.
 module PlutusCore.Builtin.Convert (
+  -- Wrappers
+  integerToByteStringWrapper,
+  byteStringToIntegerWrapper,
+  -- Implementation details
   IntegerToByteStringError(..),
   integerToByteString,
   byteStringToInteger
@@ -13,8 +19,40 @@ import Control.Monad (guard)
 import Data.Bits (unsafeShiftL, unsafeShiftR, (.|.))
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
+import Data.Text (pack)
 import Data.Word (Word64)
 import GHC.ByteOrder (ByteOrder (BigEndian, LittleEndian))
+import PlutusCore.Builtin.Emitter (Emitter, emit)
+import PlutusCore.Evaluation.Result (EvaluationResult (EvaluationFailure))
+
+-- | Wrapper for 'integerToByteString' to make it more convenient to define as a builtin.
+integerToByteStringWrapper ::
+  Bool -> Integer -> Integer -> Emitter (EvaluationResult ByteString)
+integerToByteStringWrapper endiannessArg paddingArg input =
+  let endianness = if endiannessArg then BigEndian else LittleEndian in
+    case integerToByteString (fromIntegral paddingArg) endianness input of
+      Left err -> case err of
+        NegativeInput -> do
+          emit "builtinIntegerToByteString: cannot convert negative Integer"
+          emit $ "Input: " <> (pack . show $ input)
+          pure EvaluationFailure
+        NotEnoughDigits -> do
+          emit "builtinIntegerToByteString: cannot represent Integer in given number of digits"
+          emit $ "Input: " <> (pack . show $ input)
+          emit $ "Digits requested: " <> (pack . show $ paddingArg)
+          pure EvaluationFailure
+      Right result -> pure . pure $ result
+
+-- | Wrapper for 'byteStringToInteger' to make it more convenient to define as a builtin.
+byteStringToIntegerWrapper ::
+  Bool -> ByteString -> Emitter (EvaluationResult Integer)
+byteStringToIntegerWrapper statedEndiannessArg input =
+  let endianness = if statedEndiannessArg then BigEndian else LittleEndian in
+    case byteStringToInteger endianness input of
+      Nothing -> do
+        emit "builtinByteStringToInteger: cannot convert empty ByteString"
+        pure EvaluationFailure
+      Just result -> pure . pure $ result
 
 -- | Structured type to help indicate conversion errors.
 data IntegerToByteStringError =

@@ -103,6 +103,8 @@ module PlutusTx.Builtins (
                          -- * Conversions
                          , fromBuiltin
                          , toBuiltin
+                         , builtinIntegerToByteString
+                         , builtinByteStringToInteger
                          ) where
 
 import Data.Maybe
@@ -591,3 +593,17 @@ bls12_381_mulMlResult = BI.bls12_381_mulMlResult
 {-# INLINABLE bls12_381_finalVerify #-}
 bls12_381_finalVerify :: BuiltinBLS12_381_MlResult -> BuiltinBLS12_381_MlResult -> Bool
 bls12_381_finalVerify a b = fromBuiltin (BI.bls12_381_finalVerify a b)
+
+-- Conversions
+
+-- | Convert a 'BuiltinInteger' into a 'BuiltinByteString', as described in
+-- [CIP-0087](https://github.com/mlabs-haskell/CIPs/blob/koz/to-from-bytestring/CIP-0087/CIP-0087.md#builtinintegertobytestring).
+{-# INLINEABLE builtinIntegerToByteString #-}
+builtinIntegerToByteString :: Bool -> Integer -> Integer -> BuiltinByteString
+builtinIntegerToByteString endiannessArg = BI.builtinIntegerToByteString (toBuiltin endiannessArg)
+
+-- | Convert a 'BuiltinByteString' to a 'BuiltinInteger', as described in
+-- [CIP-0087](https://github.com/mlabs-haskell/CIPs/blob/koz/to-from-bytestring/CIP-0087/CIP-0087.md#builtinbytestringtointeger).
+builtinByteStringToInteger :: Bool -> BuiltinByteString -> Integer
+builtinByteStringToInteger statedEndiannessArg =
+  BI.builtinByteStringToInteger (toBuiltin statedEndiannessArg)

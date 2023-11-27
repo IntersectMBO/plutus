@@ -43,7 +43,6 @@ import Data.Text.Encoding (decodeUtf8', encodeUtf8)
 import Flat hiding (from, to)
 import Flat.Decoder
 import Flat.Encoder as Flat
-import GHC.ByteOrder (ByteOrder (BigEndian, LittleEndian))
 import Prettyprinter (viaShow)
 
 -- See Note [Pattern matching on built-in types].
@@ -1808,39 +1807,17 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         in makeBuiltinMeaning
             blake2b_224Denotation
             (runCostingFunOneArgument . paramBlake2b_224)
+
     -- Conversions
     toBuiltinMeaning _semvar IntegerToByteString =
       let integerToByteStringDenotation :: Bool -> Integer -> Integer -> Emitter (EvaluationResult BS.ByteString)
-          integerToByteStringDenotation endiannessArgument paddingArgument input =
-            let
-              endiannessArgConverted = if endiannessArgument then BigEndian else LittleEndian
-              paddingArgConverted = fromIntegral paddingArgument
-              in case Convert.integerToByteString paddingArgConverted
-                                                   endiannessArgConverted
-                                                   input of
-                  Left err -> case err of
-                    Convert.NegativeInput -> do
-                      emit "builtinIntegerToByteString: cannot convert negative Integer\n"
-                      emit $ "Input: " <> (pack . show $ input)
-                      pure EvaluationFailure
-                    Convert.NotEnoughDigits -> do
-                      emit "builtinIntegerToByteString: cannot represent Integer in given number of digits\n"
-                      emit $ "Input: " <> (pack . show $ input) <> "\n"
-                      emit $ "Digits requested: " <> (pack . show $ paddingArgument)
-                      pure EvaluationFailure
-                  Right res -> pure . pure $ res
+          integerToByteStringDenotation = integerToByteStringWrapper
         in makeBuiltinMeaning
           integerToByteStringDenotation
           (runCostingFunThreeArguments . const def)
     toBuiltinMeaning _semvar ByteStringToInteger =
       let byteStringToIntegerDenotation :: Bool -> BS.ByteString -> Emitter (EvaluationResult Integer)
-          byteStringToIntegerDenotation statedEndiannessArgument input =
-            let seArgConverted = if statedEndiannessArgument then BigEndian else LittleEndian
-              in case Convert.byteStringToInteger seArgConverted input of
-                Nothing -> do
-                  emit "builtinByteStringToInteger: cannot convert empty ByteString"
-                  pure EvaluationFailure
-                Just result -> pure . pure $ result
+          byteStringToIntegerDenotation = byteStringToIntegerWrapper
         in makeBuiltinMeaning
             byteStringToIntegerDenotation
             (runCostingFunTwoArguments . const def)
