@@ -7,6 +7,7 @@ let
   ghc96-mingwW64 = project.variants.ghc96.cross.mingwW64;
   ghc96-musl64 = project.variants.ghc96.cross.musl64;
   ghc96-profiled = project.variants.ghc96-profiled;
+  ghc98 = project.variants.ghc98;
   ghc810 = project.variants.ghc810;
 
 in
@@ -19,6 +20,7 @@ in
     devShells.profiled = ghc96-profiled.devShell;
     devShells.ghc96 = ghc96.devShell;
     devShells.ghc810 = ghc810.devShell;
+    devShells.ghc98 = ghc98.devShell;
 
     packages = ghc96.packages;
     apps = ghc96.apps;
@@ -42,6 +44,7 @@ in
 
       hydraJobs.ghc96 = ghc96.hydraJobs;
       hydraJobs.ghc810 = ghc810.hydraJobs;
+      hydraJobs.ghc98 = ghc98.hydraJobs;
     })
 
   (lib.optionalAttrs (system == "x86_64-linux")
@@ -67,11 +70,15 @@ in
       # because of https://github.com/well-typed/cborg/issues/311
       hydraJobs.ghc810.devShell = ghc810.devShell;
       hydraJobs.ghc96.devShell = ghc96.devShell;
+      hydraJobs.ghc98.devShell = ghc98.devShell;
 
       hydraJobs.ghc810.roots = ghc810.hydraJobs.roots;
       hydraJobs.ghc810.plan-nix = ghc810.hydraJobs.plan-nix;
 
       hydraJobs.ghc96.roots = ghc96.hydraJobs.roots;
       hydraJobs.ghc96.plan-nix = ghc96.hydraJobs.plan-nix;
+
+      hydraJobs.ghc98.roots = ghc98.hydraJobs.roots;
+      hydraJobs.ghc98.plan-nix = ghc98.hydraJobs.plan-nix;
     })
 ]

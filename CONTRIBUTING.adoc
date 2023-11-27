@@ -211,6 +211,7 @@ Supported versions older than the primary development version are deprecated, an
 At the moment, our supported GHC versions are:
 - 8.10 (deprecated)
 - 9.6 (primary)
+- 9.8 
 
 === Plugin support
 
