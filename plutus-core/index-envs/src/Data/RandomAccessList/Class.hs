@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP               #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TypeFamilies      #-}
 {-# LANGUAGE TypeOperators     #-}
@@ -10,7 +11,12 @@ module Data.RandomAccessList.Class
 
 import Data.Kind
 import Data.List qualified as List
+#if MIN_VERSION_base(4,19,0)
+-- Avoid a compiler warning about unused package `extra`.
+import Data.List.Extra ()
+#else
 import Data.List.Extra qualified as List
+#endif
 import Data.Maybe (fromJust, fromMaybe)
 import Data.RAList qualified as RAL
 import Data.Vector.NonEmpty qualified as NEV

@@ -30,6 +30,7 @@ let
           enableLibraryProfiling = true;
         }];
         ghc810.compiler-nix-name = "ghc810";
+        ghc98.compiler-nix-name = "ghc98";
       };
 
       inputMap = { "https://input-output-hk.github.io/cardano-haskell-packages" = inputs.iogx.inputs.CHaP; };

@@ -43,7 +43,7 @@ common lang
 
 common ghc-version-support
   -- See the section on GHC versions in CONTRIBUTING
-  if impl(ghc <9.6)
+  if (impl(ghc <9.6) || impl(ghc >9.6))
     buildable: False
 
 flag use-ghc-stub
