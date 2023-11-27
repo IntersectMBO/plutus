@@ -31,8 +31,8 @@ import Hedgehog (annotate, failure, property, tripping, (===))
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import Test.Tasty (TestTree, testGroup)
-import Test.Tasty.HUnit (testCase, (@?=))
 import Test.Tasty.Hedgehog (testPropertyNamed)
+import Test.Tasty.HUnit (testCase, (@?=))
 
 import Flat qualified
 

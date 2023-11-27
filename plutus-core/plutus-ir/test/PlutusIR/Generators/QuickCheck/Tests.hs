@@ -22,8 +22,8 @@ import Data.Bifunctor
 import Data.Char
 import Data.Either
 import Data.Function
-import Data.HashMap.Strict qualified as HashMap
 import Data.Hashable
+import Data.HashMap.Strict qualified as HashMap
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Map.Strict qualified as Map
 import Test.QuickCheck

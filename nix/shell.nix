@@ -5,7 +5,7 @@ cabalProject:
 let
 
   compiler-nix-name = cabalProject.args.compiler-nix-name;
-  isGhc98 = lib.hasPrefix "ghc98" compiler-nix-name;
+  isGhc98 = builtins.trace compiler-nix-name (lib.hasPrefix "ghc98" compiler-nix-name);
 
   # We need some environment variables from the various ocaml and coq pacakges
   # that the certifier code needs.
@@ -58,15 +58,17 @@ in
     pkgs.curl
   ];
 
-  tools = lib.mkIf isGhc98 {
-    # Current HLS doesn't build on 9.8, see https://github.com/input-output-hk/iogx/issues/25
-    # This other stuff all depends on HLS.
-    haskell-language-server-wrapper = lib.mkForce null;
-    haskell-language-server = lib.mkForce null;
-    cabal-install = lib.mkForce null;
-    stylish-haskell = lib.mkForce null;
-    hlint = lib.mkForce null;
-  };
+  # Current HLS doesn't build on 9.8, see https://github.com/input-output-hk/iogx/issues/25
+  # This other stuff all depends on HLS.
+  # FIXME: This is insanely broken somehow. I don't think the module merging is working properly.
+  # There is no way to turn off HLS, so I set it to be git. Nonetheless, we somehow end up with
+  # a HLS in the 9.8 shell... but a HLS compiled for 9.6.
+  tools.haskell-language-server-wrapper =
+    lib.mkIf (builtins.trace isGhc98 isGhc98) (lib.mkForce pkgs.git);
+  tools.haskell-language-server = lib.mkIf isGhc98 (lib.mkForce pkgs.git);
+  tools.cabal-install = lib.mkIf isGhc98 (lib.mkForce pkgs.git);
+  tools.stylish-haskell = lib.mkIf isGhc98 (lib.mkForce pkgs.git);
+  tools.hlint = lib.mkIf isGhc98 (lib.mkForce pkgs.git);
 
   scripts.assemble-changelog = {
     description = "Assembles the changelog for PACKAGE at VERSION";

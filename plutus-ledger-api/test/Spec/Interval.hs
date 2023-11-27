@@ -17,8 +17,8 @@ import Hedgehog.Range qualified as Range
 import PlutusLedgerApi.V1.Interval qualified as Interval
 import PlutusPrelude (reoption)
 import Test.Tasty (TestTree, testGroup)
-import Test.Tasty.HUnit (assertBool, testCase)
 import Test.Tasty.Hedgehog (testProperty)
+import Test.Tasty.HUnit (assertBool, testCase)
 
 -- TODO: maybe bias towards generating non-empty intervals?
 

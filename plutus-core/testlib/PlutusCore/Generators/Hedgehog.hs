@@ -7,6 +7,6 @@ module PlutusCore.Generators.Hedgehog
 import PlutusCore.Generators.Hedgehog.Builtin as Export
 import PlutusCore.Generators.Hedgehog.Denotation as Export
 import PlutusCore.Generators.Hedgehog.Entity as Export
-import PlutusCore.Generators.Hedgehog.TypeEvalCheck as Export
 import PlutusCore.Generators.Hedgehog.TypedBuiltinGen as Export
+import PlutusCore.Generators.Hedgehog.TypeEvalCheck as Export
 import PlutusCore.Generators.Hedgehog.Utils as Export

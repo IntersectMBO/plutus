@@ -5,8 +5,8 @@ module PlutusCore.Generators.QuickCheck.GenerateTypes where
 
 import PlutusCore.Generators.QuickCheck.Builtin
 import PlutusCore.Generators.QuickCheck.Common
-import PlutusCore.Generators.QuickCheck.GenTm
 import PlutusCore.Generators.QuickCheck.GenerateKinds ()
+import PlutusCore.Generators.QuickCheck.GenTm
 
 import PlutusCore.Builtin
 import PlutusCore.Core

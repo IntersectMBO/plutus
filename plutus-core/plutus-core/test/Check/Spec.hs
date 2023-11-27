@@ -16,8 +16,8 @@ import PlutusCore.MkPlc
 import Control.Monad.Except
 import Hedgehog hiding (Var)
 import Test.Tasty
-import Test.Tasty.HUnit
 import Test.Tasty.Hedgehog
+import Test.Tasty.HUnit
 
 tests :: TestTree
 tests = testGroup "checks"

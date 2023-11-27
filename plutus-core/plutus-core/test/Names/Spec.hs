@@ -23,8 +23,8 @@ import GHC.Exts (fromString)
 import Hedgehog hiding (Var)
 import Hedgehog.Gen qualified as Gen
 import Test.Tasty
-import Test.Tasty.HUnit
 import Test.Tasty.Hedgehog
+import Test.Tasty.HUnit
 
 prop_DeBruijn :: Gen (TermOf (Term TyName Name DefaultUni DefaultFun ()) a) -> Property
 prop_DeBruijn gen = property . generalizeT $ do

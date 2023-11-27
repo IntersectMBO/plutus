@@ -47,8 +47,8 @@ import Hedgehog.Range qualified as Range
 import Prelude hiding (readFile)
 import Test.Tasty
 import Test.Tasty.Golden
-import Test.Tasty.HUnit
 import Test.Tasty.Hedgehog
+import Test.Tasty.HUnit
 import Test.Tasty.Options
 
 main :: IO ()

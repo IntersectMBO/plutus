@@ -23,8 +23,8 @@ import PlutusTx.Builtins qualified as Builtins
 import PlutusTx.Code
 import PlutusTx.IsData qualified as IsData
 import PlutusTx.Plugin (plc)
-import PlutusTx.TH (compile)
 import PlutusTx.Test
+import PlutusTx.TH (compile)
 
 AsData.asData [d|
   data MaybeD a = JustD a a | NothingD
