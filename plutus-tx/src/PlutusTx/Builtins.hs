@@ -1,5 +1,7 @@
 -- editorconfig-checker-disable-file
 
+{-# LANGUAGE UnboxedTuples #-}
+
 -- | Primitive names and functions for working with Plutus Core builtins.
 module PlutusTx.Builtins (
                           -- * Bytestring builtins
@@ -106,7 +108,7 @@ module PlutusTx.Builtins (
                          ) where
 
 import Data.Maybe
-import PlutusTx.Base (const, uncurry)
+import PlutusTx.Base (uncurry)
 import PlutusTx.Bool (Bool (..))
 import PlutusTx.Builtins.Class
 import PlutusTx.Builtins.Internal (BuiltinBLS12_381_G1_Element (..),
@@ -380,7 +382,9 @@ encodeUtf8 = BI.encodeUtf8
 
 {-# INLINABLE matchList #-}
 matchList :: forall a r . BI.BuiltinList a -> r -> (a -> BI.BuiltinList a -> r) -> r
-matchList l nilCase consCase = BI.chooseList l (const nilCase) (\_ -> consCase (BI.head l) (BI.tail l)) ()
+matchList l nilCase consCase = case BI.builtinListToSum l of
+    (# (# #) | #)        -> nilCase
+    (# | (# x , xs #) #) -> consCase x (BI.BuiltinList xs)
 
 {-# INLINE uncons #-}
 -- | Uncons a builtin list, failing if the list is empty, useful in patterns.
