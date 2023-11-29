@@ -329,8 +329,8 @@ BUILTIN sndPair = λ
   ; _ -> inj₁ userError
   }
 BUILTIN chooseList = λ
-  { (app (app (app (app⋆ (app⋆ base)) (V-con (list _) [])) (V-con t n)) (V-con _ c)) → inj₂ (V-con t n)
-  ; (app (app (app (app⋆ (app⋆ base)) (V-con (list _) (_ ∷ _))) (V-con _ n)) (V-con t c)) → inj₂ (V-con t c)
+  { (app (app (app (app⋆ (app⋆ base)) (V-con (list _) [])) v) _) → inj₂ v
+  ; (app (app (app (app⋆ (app⋆ base)) (V-con (list _) (_ ∷ _))) _) v) → inj₂ v
   ; _ -> inj₁ userError
   }
 BUILTIN mkCons (app (app (app⋆ base) (V-con t x)) (V-con (list ts) xs)) with decTag t ts 
@@ -351,11 +351,11 @@ BUILTIN nullList = λ
   ; _ -> inj₁ userError
   }
 BUILTIN chooseData = λ
-  { (app (app (app (app (app (app (app⋆ base) (V-con pdata (ConstrDATA x₁ x₂))) (V-con t v)) (V-con _ w)) (V-con _ x)) (V-con _ y)) (V-con _ z)) → inj₂ (V-con t v)
-  ; (app (app (app (app (app (app (app⋆ base) (V-con pdata (MapDATA x₁))) (V-con _ v)) (V-con t w)) (V-con _ x)) (V-con _ y)) (V-con _ z)) → inj₂ (V-con t w)
-  ; (app (app (app (app (app (app (app⋆ base) (V-con pdata (ListDATA x₁))) (V-con _ v)) (V-con _ w)) (V-con t x)) (V-con _ y)) (V-con _ z)) → inj₂ (V-con t x)
-  ; (app (app (app (app (app (app (app⋆ base) (V-con pdata (iDATA x₁))) (V-con _ v)) (V-con _ w)) (V-con _ x)) (V-con t y)) (V-con _ z)) → inj₂ (V-con t y)
-  ; (app (app (app (app (app (app (app⋆ base) (V-con pdata (bDATA x₁))) (V-con _ v)) (V-con _ w)) (V-con _ x)) (V-con _ y)) (V-con t z)) → inj₂ (V-con t z)
+  { (app (app (app (app (app (app (app⋆ base) (V-con pdata (ConstrDATA x₁ x₂))) v) _) _) _) _) → inj₂ v
+  ; (app (app (app (app (app (app (app⋆ base) (V-con pdata (MapDATA x₁))) _) v) _) _) _) → inj₂ v
+  ; (app (app (app (app (app (app (app⋆ base) (V-con pdata (ListDATA x₁))) _) _) v) _) _) → inj₂ v
+  ; (app (app (app (app (app (app (app⋆ base) (V-con pdata (iDATA x₁))) _) _) _) v) _) → inj₂ v
+  ; (app (app (app (app (app (app (app⋆ base) (V-con pdata (bDATA x₁))) _) _) _) _) v) → inj₂ v
   ; _ -> inj₁ userError
   }
 BUILTIN constrData = λ
