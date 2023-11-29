@@ -42,10 +42,10 @@ instance PrettyBy ConstConfig MlResult where
 -- encoding functions just raise errors.
 instance Flat MlResult where
     -- This might happen on the chain, so `fail` rather than `error`.
-    decode = fail "BLS12_381.Pairing.MlResult: flat decoding disallowed"
+    decode = fail "Flat decoding is not supported for objects of type bls12_381_mlresult"
     -- This will be a Haskell runtime error, but encoding doesn't happen on chain,
     -- so it's not too bad.
-    encode = error "BLS12_381.Pairing.MlResult: flat encoding disallowed"
+    encode = error "Flat encoding is not supported for objects of type bls12_381_mlresult"
     size _ = id
 instance NFData MlResult where
     rnf _ = ()
