@@ -6,6 +6,8 @@ module Opts where
 import Data.Semigroup ((<>))
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
+
+import Control.Applicative
 import Options.Applicative
 
 import PlutusCore.Executable.Common
