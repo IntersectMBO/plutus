@@ -1,0 +1,1 @@
+(program 1.0.0 [ [ [ (force (builtin ifThenElse)) (lam x (lam y x)) ] (con integer 0) ] (con integer 1) ])
