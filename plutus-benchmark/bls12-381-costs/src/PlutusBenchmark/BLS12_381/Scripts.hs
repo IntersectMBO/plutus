@@ -319,17 +319,16 @@ simpleVerifyMessage  = "I am a message"
 {-# INLINABLE verifyBlsSimpleScript #-}
 verifyBlsSimpleScript :: Integer -> BuiltinByteString -> Bool
 verifyBlsSimpleScript privKey message =
-  let
-    g1generator () = Tx.bls12_381_G1_uncompress Tx.bls12_381_G1_compressed_generator
+  let g1generator () = Tx.bls12_381_G1_uncompress Tx.bls12_381_G1_compressed_generator
 
-    -- calculate public key
-    pubKey = Tx.bls12_381_G1_scalarMul privKey (g1generator ())
+      -- calculate public key
+      pubKey = Tx.bls12_381_G1_scalarMul privKey (g1generator ())
 
-    -- Hash this msg to the G2
-    msgToG2 = Tx.bls12_381_G2_hashToGroup message Tx.emptyByteString
+      -- Hash this msg to the G2
+      msgToG2 = Tx.bls12_381_G2_hashToGroup message Tx.emptyByteString
 
-    -- Create signature artifact in G2 with private key
-    sigma = Tx.bls12_381_G2_scalarMul privKey msgToG2
+      -- Create signature artifact in G2 with private key
+      sigma = Tx.bls12_381_G2_scalarMul privKey msgToG2
 
   -- verify the msg with signature sigma with the check e(g1,sigma)=e(pub,msgToG2)
   in Tx.bls12_381_finalVerify (Tx.bls12_381_millerLoop (g1generator ()) sigma) (Tx.bls12_381_millerLoop pubKey msgToG2)
@@ -375,67 +374,65 @@ Tx.unstableMakeIsData ''VrfProofWithOutput
 
 {-# INLINABLE vrfBlsScript #-}
 vrfBlsScript :: BuiltinByteString -> BuiltinByteString -> VrfProofWithOutput -> Bool
-vrfBlsScript message pubKey (VrfProofWithOutput beta (VrfProof gamma c s)) = do
+vrfBlsScript message pubKey (VrfProofWithOutput beta (VrfProof gamma c s)) =
   let
-    -- cofactor of G2
-    f = 305502333931268344200999753193121504214466019254188142667664032982267604182971884026507427359259977847832272839041692990889188039904403802465579155252111 :: Integer
+      -- cofactor of G2
+      f = 305502333931268344200999753193121504214466019254188142667664032982267604182971884026507427359259977847832272839041692990889188039904403802465579155252111 :: Integer
 
-    -- The proof of that the VRF hash of input alpha under our priv key is beta
-    -- To verify a VRF hash given an
-    --        input alpha
-    --        output beta
-    --        proof pi (gamma, c, s)
-    --        pubkey pub
-    -- do the following calculation
-    pubKey' = Tx.bls12_381_G2_uncompress pubKey
-    g2generator () = Tx.bls12_381_G2_uncompress bls12_381_G2_compressed_generator
-    u = Tx.bls12_381_G2_add (Tx.bls12_381_G2_scalarMul (byteStringToInteger c) pubKey') (Tx.bls12_381_G2_scalarMul s (g2generator ()))
-    h = Tx.bls12_381_G2_hashToGroup message emptyByteString
-    v = Tx.bls12_381_G2_add (Tx.bls12_381_G2_scalarMul (byteStringToInteger c) (Tx.bls12_381_G2_uncompress gamma)) (Tx.bls12_381_G2_scalarMul s h)
+      -- The proof of that the VRF hash of input alpha under our priv key is beta
+      -- To verify a VRF hash given an
+      --        input alpha
+      --        output beta
+      --        proof pi (gamma, c, s)
+      --        pubkey pub
+      -- do the following calculation
+      pubKey' = Tx.bls12_381_G2_uncompress pubKey
+      g2generator () = Tx.bls12_381_G2_uncompress bls12_381_G2_compressed_generator
+      u = Tx.bls12_381_G2_add (Tx.bls12_381_G2_scalarMul (byteStringToInteger c) pubKey') (Tx.bls12_381_G2_scalarMul s (g2generator ()))
+      h = Tx.bls12_381_G2_hashToGroup message emptyByteString
+      v = Tx.bls12_381_G2_add (Tx.bls12_381_G2_scalarMul (byteStringToInteger c) (Tx.bls12_381_G2_uncompress gamma)) (Tx.bls12_381_G2_scalarMul s h)
     -- and check
 
-  c == (sha2_256 . mconcat $ Tx.bls12_381_G2_compress <$> [g2generator (), h, pubKey', Tx.bls12_381_G2_uncompress gamma, u, v])
-    &&
-      beta == (sha2_256 . Tx.bls12_381_G2_compress $ Tx.bls12_381_G2_scalarMul f (Tx.bls12_381_G2_uncompress gamma))
+  in c == (sha2_256 . mconcat $ Tx.bls12_381_G2_compress <$> [g2generator (), h, pubKey', Tx.bls12_381_G2_uncompress gamma, u, v])
+         &&
+         beta == (sha2_256 . Tx.bls12_381_G2_compress $ Tx.bls12_381_G2_scalarMul f (Tx.bls12_381_G2_uncompress gamma))
 
 -- used offchain to generate the vrf proof output
 generateVrfProof :: Integer -> BuiltinByteString -> VrfProofWithOutput
-generateVrfProof privKey message = do
-  let
-    g2generator () = Tx.bls12_381_G2_uncompress bls12_381_G2_compressed_generator
+generateVrfProof privKey message =
+  let g2generator () = Tx.bls12_381_G2_uncompress bls12_381_G2_compressed_generator
 
-    -- calculate public key
-    pub = Tx.bls12_381_G2_scalarMul privKey (g2generator ())
+      -- calculate public key
+      pub = Tx.bls12_381_G2_scalarMul privKey (g2generator ())
 
-    -- hash this msg to G2
-    h = Tx.bls12_381_G2_hashToGroup message emptyByteString
+      -- hash this msg to G2
+      h = Tx.bls12_381_G2_hashToGroup message emptyByteString
 
-    -- define first element of the proof of correct VRF
-    gamma = Tx.bls12_381_G2_scalarMul privKey h
-    -- gammaComp = Tx.bls12_381_G2_compress gamma
+      -- define first element of the proof of correct VRF
+      gamma = Tx.bls12_381_G2_scalarMul privKey h
+      -- gammaComp = Tx.bls12_381_G2_compress gamma
 
-    -- for this signed hash with preimage alpha, define a ephemeral interger (for each signature take a new one)
-    -- Random 32 byte int
-    k = 108204667002115086588596846168569722098834602153875763359385781912495445631691 :: Integer
+      -- for this signed hash with preimage alpha, define a ephemeral interger (for each signature take a new one)
+      -- Random 32 byte int
+      k = 108204667002115086588596846168569722098834602153875763359385781912495445631691 :: Integer
 
-    -- define second element of the proof of correct VRF
-    -- the paper notes that this can actually be truncated to 128 bits without loss of the 128 bits security.
-    -- truncating this will allow for smaller proof sizes.
-    c =
-      sha2_256 . mconcat $
-        Tx.bls12_381_G2_compress
-          <$> [(g2generator ()), h, pub, gamma, Tx.bls12_381_G2_scalarMul k (g2generator ()), Tx.bls12_381_G2_scalarMul k h]
+      -- define second element of the proof of correct VRF
+      -- the paper notes that this can actually be truncated to 128 bits without loss of the 128 bits security.
+      -- truncating this will allow for smaller proof sizes.
+      c = sha2_256 . mconcat $
+          Tx.bls12_381_G2_compress
+                <$> [(g2generator ()), h, pub, gamma, Tx.bls12_381_G2_scalarMul k (g2generator ()), Tx.bls12_381_G2_scalarMul k h]
 
-    -- define the third and last element of a proof of correct VRF
-    s = (k - (byteStringToInteger c) * privKey) `modulo` 52435875175126190479447740508185965837690552500527637822603658699938581184513
+      -- define the third and last element of a proof of correct VRF
+      s = (k - (byteStringToInteger c) * privKey) `modulo` 52435875175126190479447740508185965837690552500527637822603658699938581184513
 
-    -- cofactor of G2
-    f = 305502333931268344200999753193121504214466019254188142667664032982267604182971884026507427359259977847832272839041692990889188039904403802465579155252111 :: Integer
+      -- cofactor of G2
+      f = 305502333931268344200999753193121504214466019254188142667664032982267604182971884026507427359259977847832272839041692990889188039904403802465579155252111 :: Integer
 
-    -- create our VRF hash output
-    beta = sha2_256 . Tx.bls12_381_G2_compress $ Tx.bls12_381_G2_scalarMul f gamma
+      -- create our VRF hash output
+      beta = sha2_256 . Tx.bls12_381_G2_compress $ Tx.bls12_381_G2_scalarMul f gamma
 
-  VrfProofWithOutput beta (VrfProof (Tx.bls12_381_G2_compress gamma) c s)
+  in VrfProofWithOutput beta (VrfProof (Tx.bls12_381_G2_compress gamma) c s)
 
 checkVrfBlsScript :: Bool
 checkVrfBlsScript = let g2generator = Tx.bls12_381_G2_uncompress Tx.bls12_381_G2_compressed_generator
@@ -540,14 +537,13 @@ g2VerifyScript ::
   -> BuiltinByteString
   -> BuiltinByteString
   -> Bool
-g2VerifyScript g2gen message pubKey signature dst = do
-  let
-    g2generator = Tx.bls12_381_G2_uncompress g2gen   -- *** Can't get this script to work if we embed the generator directly
-    pkDeser = Tx.bls12_381_G2_uncompress pubKey
-    sigDeser = Tx.bls12_381_G1_uncompress signature
-    hashedMsg = Tx.bls12_381_G1_hashToGroup message dst
+g2VerifyScript g2gen message pubKey signature dst =
+  let g2generator = Tx.bls12_381_G2_uncompress g2gen   -- *** Can't get this script to work if we embed the generator directly
+      pkDeser = Tx.bls12_381_G2_uncompress pubKey
+      sigDeser = Tx.bls12_381_G1_uncompress signature
+      hashedMsg = Tx.bls12_381_G1_hashToGroup message dst
 
-  Tx.bls12_381_finalVerify (Tx.bls12_381_millerLoop hashedMsg pkDeser) (Tx.bls12_381_millerLoop sigDeser g2generator)
+  in Tx.bls12_381_finalVerify (Tx.bls12_381_millerLoop hashedMsg pkDeser) (Tx.bls12_381_millerLoop sigDeser g2generator)
 
 checkG2VerifyScript :: Bool
 checkG2VerifyScript =
@@ -732,9 +728,9 @@ aggregateMultiKeyG2Script g2gen message pubKeys aggregateSignature bs16Null dst 
       foldl1 f (x:xs) = Tx.foldl f x xs
 
       calcAggregatedPubkeys :: Integer -> [BuiltinBLS12_381_G2_Element] -> BuiltinBLS12_381_G2_Element
-      calcAggregatedPubkeys dsScalar' pksDeser' = do
-        let dsScalars = calcDsScalars pksDeser' [dsScalar']
-        go 1 (drop 1 pksDeser') (drop 1 dsScalars) (calcAggregatedPubkey (head pksDeser') (head dsScalars))
+      calcAggregatedPubkeys dsScalar' pksDeser' =
+          let dsScalars = calcDsScalars pksDeser' [dsScalar']
+          in go 1 (drop 1 pksDeser') (drop 1 dsScalars) (calcAggregatedPubkey (head pksDeser') (head dsScalars))
 
       calcDsScalars :: [BuiltinBLS12_381_G2_Element] -> [Integer] -> [Integer]
       calcDsScalars [] acc              = acc
@@ -823,23 +819,23 @@ schnorrG1VerifyScript ::
   -> (BuiltinByteString, BuiltinByteString)
   -> BuiltinByteString
   -> Bool
-schnorrG1VerifyScript message pubKey signature bs16Null = do
-  let
-    a = Tx.fst signature
-    r = Tx.snd signature
-    c = byteStringToInteger (Tx.sliceByteString 0 16
-      (Tx.sha2_256 (a `Tx.appendByteString` pubKey `Tx.appendByteString` message)) `Tx.appendByteString` bs16Null)
-    pkDeser = Tx.bls12_381_G1_uncompress pubKey
-    aDeser = Tx.bls12_381_G1_uncompress a
-    rDeser = byteStringToInteger r
+schnorrG1VerifyScript message pubKey signature bs16Null =
+  let a = Tx.fst signature
+      r = Tx.snd signature
+      c = byteStringToInteger (Tx.sliceByteString 0 16
+            (Tx.sha2_256 (a `Tx.appendByteString` pubKey `Tx.appendByteString` message)) `Tx.appendByteString` bs16Null)
+      pkDeser = Tx.bls12_381_G1_uncompress pubKey
+      aDeser = Tx.bls12_381_G1_uncompress a
+      rDeser = byteStringToInteger r
 --    g1generator = Tx.bls12_381_G1_uncompress Tx.bls12_381_G1_compressed_generator
-  (rDeser `Tx.bls12_381_G1_scalarMul` (Tx.bls12_381_G1_uncompress Tx.bls12_381_G1_compressed_generator)) `Tx.bls12_381_G1_equals`
-    (aDeser `Tx.bls12_381_G1_add` (c `Tx.bls12_381_G1_scalarMul` pkDeser))
+  in (rDeser `Tx.bls12_381_G1_scalarMul` (Tx.bls12_381_G1_uncompress Tx.bls12_381_G1_compressed_generator)) `Tx.bls12_381_G1_equals`
+         (aDeser `Tx.bls12_381_G1_add` (c `Tx.bls12_381_G1_scalarMul` pkDeser))
   -- additional check using negation is for testing the function
   -- it can be removed to improve performance
-    &&
-      (rDeser `Tx.bls12_381_G1_scalarMul` (Tx.bls12_381_G1_uncompress Tx.bls12_381_G1_compressed_generator)) `Tx.bls12_381_G1_add` (Tx.bls12_381_G1_neg aDeser)
-        == (c `Tx.bls12_381_G1_scalarMul` pkDeser)
+         &&
+         (rDeser `Tx.bls12_381_G1_scalarMul` (Tx.bls12_381_G1_uncompress Tx.bls12_381_G1_compressed_generator))
+         `Tx.bls12_381_G1_add` (Tx.bls12_381_G1_neg aDeser)
+              == (c `Tx.bls12_381_G1_scalarMul` pkDeser)
 
 checkSchnorrG1VerifyScript :: Bool
 checkSchnorrG1VerifyScript = schnorrG1VerifyScript schnorrG1VerifyMessage schnorrG1VerifyPubKey
@@ -889,23 +885,23 @@ schnorrG2VerifyScript ::
   -> (BuiltinByteString, BuiltinByteString)
   -> BuiltinByteString
   -> Bool
-schnorrG2VerifyScript message pubKey signature bs16Null = do
-  let
-    a = Tx.fst signature
-    r = Tx.snd signature
-    c = byteStringToInteger (Tx.sliceByteString 0 16
-      (Tx.sha2_256 (a `Tx.appendByteString` pubKey `Tx.appendByteString` message)) `Tx.appendByteString` bs16Null)
-    pkDeser = Tx.bls12_381_G2_uncompress pubKey
-    aDeser = Tx.bls12_381_G2_uncompress a
-    rDeser = byteStringToInteger r
-    g2generator () = Tx.bls12_381_G2_uncompress Tx.bls12_381_G2_compressed_generator
-  (rDeser `Tx.bls12_381_G2_scalarMul` g2generator ()) ==
-    (aDeser `Tx.bls12_381_G2_add` (c `Tx.bls12_381_G2_scalarMul` pkDeser))
-  -- additional check using negation is for testing the function
-  -- it can be removed to improve performance
+schnorrG2VerifyScript message pubKey signature bs16Null =
+  let a = Tx.fst signature
+      r = Tx.snd signature
+      c = byteStringToInteger (Tx.sliceByteString 0 16
+          (Tx.sha2_256 (a `Tx.appendByteString` pubKey `Tx.appendByteString` message)) `Tx.appendByteString` bs16Null)
+      pkDeser = Tx.bls12_381_G2_uncompress pubKey
+      aDeser = Tx.bls12_381_G2_uncompress a
+      rDeser = byteStringToInteger r
+      g2generator () = Tx.bls12_381_G2_uncompress Tx.bls12_381_G2_compressed_generator
+  in (rDeser `Tx.bls12_381_G2_scalarMul` g2generator ()) ==
+         (aDeser `Tx.bls12_381_G2_add` (c `Tx.bls12_381_G2_scalarMul` pkDeser))
+    -- additional check using negation is for testing the function
+    -- it can be removed to improve performance
     &&
-      (rDeser `Tx.bls12_381_G2_scalarMul` (g2generator ())) `Tx.bls12_381_G2_add` (Tx.bls12_381_G2_neg aDeser)
-        `Tx.bls12_381_G2_equals` (c `Tx.bls12_381_G2_scalarMul` pkDeser)
+    (rDeser `Tx.bls12_381_G2_scalarMul` (g2generator ()))
+    `Tx.bls12_381_G2_add` (Tx.bls12_381_G2_neg aDeser)
+         `Tx.bls12_381_G2_equals` (c `Tx.bls12_381_G2_scalarMul` pkDeser)
 
 checkSchnorrG2VerifyScript :: Bool
 checkSchnorrG2VerifyScript = schnorrG2VerifyScript schnorrG2VerifyMessage schnorrG2VerifyPubKey
