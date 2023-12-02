@@ -85,6 +85,7 @@ Next, write the ``main`` function in ``Main.hs``, which does two things:
 Here is what ``Main.hs`` may look like:
 
 .. literalinclude:: tutorials/QuickStart.hs
+   :language: haskell
    :start-after: BLOCK1
    :end-before: BLOCK2
 

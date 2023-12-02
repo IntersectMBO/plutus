@@ -73,12 +73,6 @@ source-repository-package
 
 if impl(ghc >= 9.8)
   allow-newer:
-    -- https://github.com/aisamanra/config-ini/pull/50
-    , config-ini:containers
-
-    -- https://github.com/haskell-unordered-containers/hashable/pull/289
-    , hashable:containers
-
     -- https://github.com/typeclasses/hex-text/pull/8
     , hex-text:base
     , hex-text:bytestring
@@ -93,10 +87,3 @@ if impl(ghc >= 9.8)
     , inline-r:bytestring
     , inline-r:containers
     , inline-r:primitive
-
-  constraints:
-    , brick >= 1.10
-    , th-abstraction >= 0.6.0.0
-    , text >= 2.1
-    , foldl >= 1.4
-    , vty >= 6.0
