@@ -88,7 +88,7 @@ runTests h = do
   printSizeStatistics h NoSize mkVrfBlsPolicy
   hPrintf h "\n"
 
-{-
+
   hPrintf h "G1 Verify\n\n"
   printHeader h
   printSizeStatistics h NoSize mkG1VerifyPolicy
@@ -114,11 +114,12 @@ runTests h = do
   printSizeStatistics h NoSize mkSchnorrG1VerifyPolicy
   hPrintf h "\n"
 
+
   hPrintf h "Schnorr Signature G2\n\n"
   printHeader h
   printSizeStatistics h NoSize mkSchnorrG2VerifyPolicy
   hPrintf h "\n"
--}
+
   if checkGroth16Verify_Haskell
   then hPrintf h "Groth16Verify succeeded\n"
   else hPrintf h "Groth16Verify failed\n"
@@ -131,7 +132,6 @@ runTests h = do
   then hPrintf h "VRF succeeded\n"
   else hPrintf h "VRF failed\n"
 
-{-
   if checkG1VerifyScript
   then hPrintf h "G1 Verify succeeded\n"
   else hPrintf h "G1 Verify failed\n"
@@ -155,4 +155,3 @@ runTests h = do
   if checkSchnorrG2VerifyScript
   then hPrintf h "Schnorr G2 Verify succeeded\n"
   else hPrintf h "Schnorr G2 Verify failed\n"
--}

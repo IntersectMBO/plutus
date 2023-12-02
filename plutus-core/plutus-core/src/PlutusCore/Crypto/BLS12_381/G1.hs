@@ -13,6 +13,7 @@ module PlutusCore.Crypto.BLS12_381.G1
     , uncompress
     , zero
     , generator
+    , compressed_generator
     , memSizeBytes
     , compressedSizeBytes
     ) where
@@ -26,7 +27,7 @@ import PlutusCore.Pretty.PrettyConst (ConstConfig)
 import Text.PrettyBy (PrettyBy)
 
 import Control.DeepSeq (NFData, rnf, rwhnf)
-import Data.ByteString (ByteString, length)
+import Data.ByteString (ByteString, length, pack)
 import Data.Coerce (coerce)
 import Data.Hashable
 import Data.Proxy (Proxy (..))
@@ -61,10 +62,10 @@ instance PrettyBy ConstConfig Element
    flat-encoded in the usual way. -}
 instance Flat Element where
     -- This might happen on the chain, so `fail` rather than `error`.
-    decode = fail "Flat decoding is not supported for objects of type bls12_381_G1_element: use bls12_381_G2_uncompress on a bytestring instead."
+    decode = fail "Flat decoding is not supported for objects of type bls12_381_G1_element: use bls12_381_G1_uncompress on a bytestring instead."
     -- This will be a Haskell runtime error, but encoding doesn't happen on chain,
     -- so it's not too bad.
-    encode = error "Flat encoding is not supported for objects of type bls12_381_G1_element: use bls12_381_G2_compress to obtain a bytestring instead."
+    encode = error "Flat encoding is not supported for objects of type bls12_381_G1_element: use bls12_381_G1_compress to obtain a bytestring instead."
     size _ = id
 instance NFData Element where
     rnf (Element x) = rwhnf x  -- Just to be on the safe side.
@@ -151,6 +152,16 @@ zero = coerce BlstBindings.Internal.blsZero
 -- | The standard generator of G1
 generator :: Element
 generator = coerce BlstBindings.Internal.blsGenerator
+
+
+compressed_generator :: ByteString
+compressed_generator =
+    pack [ 0x97, 0xf1, 0xd3, 0xa7, 0x31, 0x97, 0xd7, 0x94
+         , 0x26, 0x95, 0x63, 0x8c, 0x4f, 0xa9, 0xac, 0x0f
+         , 0xc3, 0x68, 0x8c, 0x4f, 0x97, 0x74, 0xb9, 0x05
+         , 0xa1, 0x4e, 0x3a, 0x3f, 0x17, 0x1b, 0xac, 0x58
+         , 0x6c, 0x55, 0xe8, 0x3f, 0xf9, 0x7a, 0x1a, 0xef
+         , 0xfb, 0x3a, 0xf0, 0x0a, 0xdb, 0x22, 0xc6, 0xbb ]
 
 
 -- Utilities (not exposed as builtins)

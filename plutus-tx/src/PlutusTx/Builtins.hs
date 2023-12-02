@@ -85,7 +85,9 @@ module PlutusTx.Builtins (
                          , bls12_381_G1_uncompress
                          , bls12_381_G1_hashToGroup
                          , bls12_381_G1_zero
+                         , bls12_381_G1_compressed_zero
                          , bls12_381_G1_generator
+                         , bls12_381_G1_compressed_generator
                          , BuiltinBLS12_381_G2_Element
                          , bls12_381_G2_equals
                          , bls12_381_G2_add
@@ -95,7 +97,9 @@ module PlutusTx.Builtins (
                          , bls12_381_G2_uncompress
                          , bls12_381_G2_hashToGroup
                          , bls12_381_G2_zero
+                         , bls12_381_G2_compressed_zero
                          , bls12_381_G2_generator
+                         , bls12_381_G2_compressed_generator
                          , BuiltinBLS12_381_MlResult
                          , bls12_381_millerLoop
                          , bls12_381_mulMlResult
@@ -538,9 +542,17 @@ bls12_381_G1_hashToGroup = BI.bls12_381_G1_hashToGroup
 bls12_381_G1_zero :: BuiltinBLS12_381_G1_Element
 bls12_381_G1_zero = BI.bls12_381_G1_zero
 
+{-# INLINABLE bls12_381_G1_compressed_zero #-}
+bls12_381_G1_compressed_zero :: BuiltinByteString
+bls12_381_G1_compressed_zero = BI.bls12_381_G1_compressed_zero
+
 {-# INLINABLE bls12_381_G1_generator #-}
 bls12_381_G1_generator :: BuiltinBLS12_381_G1_Element
 bls12_381_G1_generator = BI.bls12_381_G1_generator
+
+{-# INLINABLE bls12_381_G1_compressed_generator #-}
+bls12_381_G1_compressed_generator :: BuiltinByteString
+bls12_381_G1_compressed_generator = BI.bls12_381_G1_compressed_generator
 
 -- G2 --
 {-# INLINABLE bls12_381_G2_equals #-}
@@ -575,9 +587,17 @@ bls12_381_G2_hashToGroup = BI.bls12_381_G2_hashToGroup
 bls12_381_G2_zero :: BuiltinBLS12_381_G2_Element
 bls12_381_G2_zero = BI.bls12_381_G2_zero
 
+{-# INLINABLE bls12_381_G2_compressed_zero #-}
+bls12_381_G2_compressed_zero :: BuiltinByteString
+bls12_381_G2_compressed_zero = BI.bls12_381_G2_compressed_zero
+
 {-# INLINABLE bls12_381_G2_generator #-}
 bls12_381_G2_generator :: BuiltinBLS12_381_G2_Element
 bls12_381_G2_generator = BI.bls12_381_G2_generator
+
+{-# INLINABLE bls12_381_G2_compressed_generator #-}
+bls12_381_G2_compressed_generator :: BuiltinByteString
+bls12_381_G2_compressed_generator = BI.bls12_381_G2_compressed_generator
 
 -- Pairing --
 {-# INLINABLE bls12_381_millerLoop #-}

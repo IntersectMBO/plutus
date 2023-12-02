@@ -593,9 +593,17 @@ bls12_381_G1_hashToGroup (BuiltinByteString msg) (BuiltinByteString dst) =
 bls12_381_G1_zero ::  BuiltinBLS12_381_G1_Element
 bls12_381_G1_zero = BuiltinBLS12_381_G1_Element BLS12_381.G1.zero
 
+{-# NOINLINE bls12_381_G1_compressed_zero #-}
+bls12_381_G1_compressed_zero :: BuiltinByteString
+bls12_381_G1_compressed_zero = bls12_381_G1_compress bls12_381_G1_zero
+
 {-# NOINLINE bls12_381_G1_generator #-}
 bls12_381_G1_generator ::  BuiltinBLS12_381_G1_Element
 bls12_381_G1_generator = BuiltinBLS12_381_G1_Element BLS12_381.G1.generator
+
+{-# NOINLINE bls12_381_G1_compressed_generator #-}
+bls12_381_G1_compressed_generator :: BuiltinByteString
+bls12_381_G1_compressed_generator = BuiltinByteString BLS12_381.G1.compressed_generator
 
 ---------------- G2 ----------------
 
@@ -645,12 +653,21 @@ bls12_381_G2_hashToGroup (BuiltinByteString msg) (BuiltinByteString dst) =
       Right p  -> BuiltinBLS12_381_G2_Element p
 
 {-# NOINLINE bls12_381_G2_zero #-}
-bls12_381_G2_zero ::  BuiltinBLS12_381_G2_Element
+bls12_381_G2_zero :: BuiltinBLS12_381_G2_Element
 bls12_381_G2_zero = BuiltinBLS12_381_G2_Element BLS12_381.G2.zero
 
+{-# NOINLINE bls12_381_G2_compressed_zero #-}
+bls12_381_G2_compressed_zero :: BuiltinByteString
+bls12_381_G2_compressed_zero = bls12_381_G2_compress bls12_381_G2_zero
+
 {-# NOINLINE bls12_381_G2_generator #-}
-bls12_381_G2_generator ::  BuiltinBLS12_381_G2_Element
+bls12_381_G2_generator :: BuiltinBLS12_381_G2_Element
 bls12_381_G2_generator = BuiltinBLS12_381_G2_Element BLS12_381.G2.generator
+
+{-# NOINLINE bls12_381_G2_compressed_generator #-}
+bls12_381_G2_compressed_generator :: BuiltinByteString
+bls12_381_G2_compressed_generator = BuiltinByteString BLS12_381.G2.compressed_generator
+
 
 ---------------- Pairing ----------------
 
