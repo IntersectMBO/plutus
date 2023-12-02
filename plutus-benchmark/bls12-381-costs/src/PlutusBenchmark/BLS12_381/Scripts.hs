@@ -273,8 +273,7 @@ groth16Verify (Tx.bls12_381_G1_uncompress -> alpha)
               (Tx.bls12_381_G1_uncompress -> a)
               (Tx.bls12_381_G2_uncompress -> b)
               (Tx.bls12_381_G1_uncompress -> c)
-              s =
-                  let l1 = Tx.bls12_381_millerLoop a b
+              s = let l1 = Tx.bls12_381_millerLoop a b
                       l2 = Tx.bls12_381_millerLoop alpha beta
                       l3 = Tx.bls12_381_millerLoop c delta
                       p  = Tx.bls12_381_G1_add  abc1 (Tx.bls12_381_G1_scalarMul s abc2)
