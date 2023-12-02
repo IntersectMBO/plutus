@@ -14,31 +14,32 @@
 
  Some of these test vectors were produced using https://github.com/input-output-hk/bls-e2e-testvectors
  -}
-module PlutusBenchmark.BLS12_381.Scripts ( checkGroth16Verify_Haskell
-                                         , listOfSizedByteStrings
-                                         , mkGroth16VerifyScript
-                                         , mkHashAndAddG1Script
-                                         , mkHashAndAddG2Script
-                                         , mkPairingScript
-                                         , mkUncompressAndAddG1Script
-                                         , mkUncompressAndAddG2Script
-                                         , mkVerifyBlsSimplePolicy
-                                         , checkVerifyBlsSimpleScript
-                                         , mkVrfBlsPolicy
-                                         , checkVrfBlsScript
-                                         , mkG1VerifyPolicy
-                                         , checkG1VerifyScript
-                                         , mkG2VerifyPolicy
-                                         , checkG2VerifyScript
-                                         , mkAggregateSingleKeyG1Policy
-                                         , checkAggregateSingleKeyG1Script
-                                         , mkAggregateMultiKeyG2Policy
-                                         , checkAggregateMultiKeyG2Script
-                                         , mkSchnorrG1VerifyPolicy
-                                         , checkSchnorrG1VerifyScript
-                                         , mkSchnorrG2VerifyPolicy
-                                         , checkSchnorrG2VerifyScript
-                                        )
+module PlutusBenchmark.BLS12_381.Scripts
+    ( checkGroth16Verify_Haskell
+    , listOfSizedByteStrings
+    , mkGroth16VerifyScript
+    , mkHashAndAddG1Script
+    , mkHashAndAddG2Script
+    , mkPairingScript
+    , mkUncompressAndAddG1Script
+    , mkUncompressAndAddG2Script
+    , mkVerifyBlsSimplePolicy
+    , checkVerifyBlsSimpleScript
+    , mkVrfBlsPolicy
+    , checkVrfBlsScript
+    , mkG1VerifyPolicy
+    , checkG1VerifyScript
+    , mkG2VerifyPolicy
+    , checkG2VerifyScript
+    , mkAggregateSingleKeyG1Policy
+    , checkAggregateSingleKeyG1Script
+    , mkAggregateMultiKeyG2Policy
+    , checkAggregateMultiKeyG2Script
+    , mkSchnorrG1VerifyPolicy
+    , checkSchnorrG1VerifyScript
+    , mkSchnorrG2VerifyPolicy
+    , checkSchnorrG2VerifyScript
+    )
 where
 import PlutusCore (DefaultFun, DefaultUni)
 import PlutusLedgerApi.V1.Bytes qualified as P (bytes, fromHex)
