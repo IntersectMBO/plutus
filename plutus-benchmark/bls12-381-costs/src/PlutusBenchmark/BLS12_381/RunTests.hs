@@ -88,7 +88,6 @@ runTests h = do
   printSizeStatistics h NoSize mkVrfBlsPolicy
   hPrintf h "\n"
 
-
   hPrintf h "G1 Verify\n\n"
   printHeader h
   printSizeStatistics h NoSize mkG1VerifyPolicy
@@ -113,7 +112,6 @@ runTests h = do
   printHeader h
   printSizeStatistics h NoSize mkSchnorrG1VerifyPolicy
   hPrintf h "\n"
-
 
   hPrintf h "Schnorr Signature G2\n\n"
   printHeader h
