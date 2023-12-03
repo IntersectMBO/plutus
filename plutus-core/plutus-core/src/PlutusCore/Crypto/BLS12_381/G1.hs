@@ -11,8 +11,8 @@ module PlutusCore.Crypto.BLS12_381.G1
     , hashToGroup
     , compress
     , uncompress
-    , zero
-    , generator
+    , offchain_zero
+    , compressed_zero
     , compressed_generator
     , memSizeBytes
     , compressedSizeBytes
@@ -145,15 +145,24 @@ hashToGroup msg dst =
     then Left HashToCurveDstTooBig
     else Right . Element $ BlstBindings.blsHash msg (Just dst) Nothing
 
--- | The zero element of G1
-zero :: Element
-zero = coerce BlstBindings.Internal.blsZero
+-- | The zero element of G1.  This cannot be flat-serialised and is provided
+-- only for off-chain testing.
+offchain_zero :: Element
+offchain_zero = coerce BlstBindings.Internal.blsZero
 
--- | The standard generator of G1
-generator :: Element
-generator = coerce BlstBindings.Internal.blsGenerator
+-- | The zero element of G1 compressed into a bytestring.  This is provided for
+-- convenience in PlutusTx and is not exported as a builtin.
+compressed_zero :: ByteString
+compressed_zero =
+    pack [ 0xc0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+         , 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+         , 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+         , 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+         , 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+         , 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 ]
 
-
+-- | The standard generator of G1 compressed into a bytestring.  This is
+-- provided for convenience in PlutusTx and is not exported as a builtin.
 compressed_generator :: ByteString
 compressed_generator =
     pack [ 0x97, 0xf1, 0xd3, 0xa7, 0x31, 0x97, 0xd7, 0x94

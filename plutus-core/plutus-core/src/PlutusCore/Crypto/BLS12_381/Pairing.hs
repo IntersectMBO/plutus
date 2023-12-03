@@ -72,4 +72,4 @@ mlResultMemSizeBytes = BlstBindings.Internal.sizePT
 -- | For some of the tests we need a small element of the MlResult type.  We can
 -- get the identity element by pairing the zero elements of G1 and G2.
 identityMlResult :: MlResult
-identityMlResult = millerLoop G1.zero G2.zero
+identityMlResult = millerLoop G1.offchain_zero G2.offchain_zero
