@@ -157,10 +157,10 @@ mkUncompressAndAddG2Script l =
 -- Miller loop to (p1,q1) and (p2,q2), and then call finalVerify on the results.
 {-# INLINABLE runPairingFunctions #-}
 runPairingFunctions
-    :: BuiltinByteString -- Tx.BuiltinBLS12_381_G1_Element
-    -> BuiltinByteString -- Tx.BuiltinBLS12_381_G2_Element
-    -> BuiltinByteString -- Tx.BuiltinBLS12_381_G1_Element
-    -> BuiltinByteString -- Tx.BuiltinBLS12_381_G2_Element
+    :: BuiltinByteString  -- G1
+    -> BuiltinByteString  -- G2
+    -> BuiltinByteString  -- G1
+    -> BuiltinByteString  -- G2
     -> Bool
 runPairingFunctions p1 q1 p2 q2 =
     let r1 = Tx.bls12_381_millerLoop (Tx.bls12_381_G1_uncompress p1) (Tx.bls12_381_G2_uncompress q1)
