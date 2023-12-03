@@ -58,6 +58,12 @@ import System.IO.Unsafe (unsafePerformIO)
 
 import Prelude (fromIntegral)
 
+-- *** A local copy of the serialised G1 geneator.  If we try to apply
+-- Tx.bls12_381_G1_uncompress to this inside a script we get
+--      ""
+g1gen2 :: BuiltinByteString
+g1gen2 = bytesFromHex "0x97f1d3a73197d7942695638c4fa9ac0fc3688c4f9774b905a14e3a3f171bac586c55e83ff97a1aeffb3af00adb22c6bb"
+
 -- Create a list containing n bytestrings of length l.  This could be better.
 {-# NOINLINE listOfSizedByteStrings #-}
 listOfSizedByteStrings :: Integer -> Integer -> [ByteString]
@@ -319,7 +325,7 @@ simpleVerifyMessage  = "I am a message"
 {-# INLINABLE verifyBlsSimpleScript #-}
 verifyBlsSimpleScript :: Integer -> BuiltinByteString -> Bool
 verifyBlsSimpleScript privKey message =
-  let g1generator () = Tx.bls12_381_G1_uncompress Tx.bls12_381_G1_compressed_generator
+  let g1generator () = Tx.bls12_381_G1_uncompress g1gen2
 
       -- calculate public key
       pubKey = Tx.bls12_381_G1_scalarMul privKey (g1generator ())
