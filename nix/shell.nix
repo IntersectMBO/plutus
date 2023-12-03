@@ -5,7 +5,7 @@ cabalProject:
 let
 
   compiler-nix-name = cabalProject.args.compiler-nix-name;
-  isGhc98 = builtins.trace compiler-nix-name (lib.hasPrefix "ghc98" compiler-nix-name);
+  isGhc98 = lib.hasPrefix "ghc98" compiler-nix-name;
 
   # We need some environment variables from the various ocaml and coq pacakges
   # that the certifier code needs.
@@ -64,7 +64,7 @@ in
   # There is no way to turn off HLS, so I set it to be git. Nonetheless, we somehow end up with
   # a HLS in the 9.8 shell... but a HLS compiled for 9.6.
   tools.haskell-language-server-wrapper =
-    lib.mkIf (builtins.trace isGhc98 isGhc98) (lib.mkForce pkgs.git);
+    lib.mkIf isGhc98 (lib.mkForce pkgs.git);
   tools.haskell-language-server = lib.mkIf isGhc98 (lib.mkForce pkgs.git);
   tools.cabal-install = lib.mkIf isGhc98 (lib.mkForce pkgs.git);
   tools.stylish-haskell = lib.mkIf isGhc98 (lib.mkForce pkgs.git);
