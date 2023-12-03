@@ -495,7 +495,10 @@ g1VerifyScript ::
   -> BuiltinByteString
   -> Bool
 g1VerifyScript g1gen message pubKey signature dst =
-  let g1generator = Tx.bls12_381_G1_uncompress g1gen  -- *** Can't get this script to work if we embed the generator directly
+  let g1generator = Tx.bls12_381_G1_uncompress g1gen
+      -- *** ^ Can't get this script to work if we just put the compressed generator here (even with
+      -- a delay) instead of passing it in as a parameter.  It does work if we do that and also lift
+      -- the rhs of the final verification into a local variable.  Other scripts are similar.
       pkDeser = Tx.bls12_381_G1_uncompress pubKey
       sigDeser = Tx.bls12_381_G2_uncompress signature
       hashedMsg = Tx.bls12_381_G2_hashToGroup message dst
