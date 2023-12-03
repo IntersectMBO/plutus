@@ -157,16 +157,16 @@ compressed_zero :: ByteString
 compressed_zero =
     "\xc0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
 
--- ^^^ This is the simplest possible representation (no `pack`, no backslash
--- string continuations) to make sure that it's not causing any unexpected
--- computation.  It may be possible to replace it with something else if we fix
--- the compilation problem.
-
 -- | The standard generator of G1 compressed into a bytestring.  This is
 -- provided for convenience in PlutusTx and is not exported as a builtin.
 compressed_generator :: ByteString
 compressed_generator =
     "\x97\xf1\xd3\xa7\x31\x97\xd7\x94\x26\x95\x63\x8c\x4f\xa9\xac\x0f\xc3\x68\x8c\x4f\x97\x74\xb9\x05\xa1\x4e\x3a\x3f\x17\x1b\xac\x58\x6c\x55\xe8\x3f\xf9\x7a\x1a\xef\xfb\x3a\xf0\x0a\xdb\x22\xc6\xbb"
+
+-- ^^^ This is the simplest possible representation (no `pack`, no backslash
+-- string continuations) to make sure that it's not causing any unexpected
+-- computation.  It may be possible to replace it with something else if we fix
+-- the compilation problem.
 
 -- Utilities (not exposed as builtins)
 
