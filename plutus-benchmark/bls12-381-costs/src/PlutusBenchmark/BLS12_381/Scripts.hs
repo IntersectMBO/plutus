@@ -325,7 +325,12 @@ simpleVerifyMessage  = "I am a message"
 {-# INLINABLE verifyBlsSimpleScript #-}
 verifyBlsSimpleScript :: Integer -> BuiltinByteString -> Bool
 verifyBlsSimpleScript privKey message =
-  let g1generator () = Tx.bls12_381_G1_uncompress g1gen2 -- Tx.bls12_381_G1_compressed_generator
+  let g1generator () = Tx.bls12_381_G1_uncompress Tx.bls12_381_G1_compressed_generator
+                       -- *** This doesn't work without the delay.  It does work if we explicitly write
+                       -- `Tx.bls12_381_G1_uncompress Tx.bls12_381_G1_compressed_generator` in the two places where we
+                       -- use g1generator (), but that's not ideal.  There are other scripts below where delaying
+                       -- doesn't help and we have to pass the serialised generator as an extra argument to the script,
+                       -- even though it's only used once.
 
       -- calculate public key
       pubKey = Tx.bls12_381_G1_scalarMul privKey (g1generator ())
@@ -393,7 +398,7 @@ vrfBlsScript message pubKey (VrfProofWithOutput beta (VrfProof gamma c s)) =
       --        pubkey pub
       -- do the following calculation
       pubKey' = Tx.bls12_381_G2_uncompress pubKey
-      g2generator () = Tx.bls12_381_G2_uncompress bls12_381_G2_compressed_generator
+      g2generator () = Tx.bls12_381_G2_uncompress bls12_381_G2_compressed_generator  -- *** This doesn't work without the delay
       u = Tx.bls12_381_G2_add (Tx.bls12_381_G2_scalarMul (byteStringToInteger c) pubKey') (Tx.bls12_381_G2_scalarMul s (g2generator ()))
       h = Tx.bls12_381_G2_hashToGroup message emptyByteString
       v = Tx.bls12_381_G2_add (Tx.bls12_381_G2_scalarMul (byteStringToInteger c) (Tx.bls12_381_G2_uncompress gamma)) (Tx.bls12_381_G2_scalarMul s h)
@@ -406,7 +411,7 @@ vrfBlsScript message pubKey (VrfProofWithOutput beta (VrfProof gamma c s)) =
 -- used offchain to generate the vrf proof output
 generateVrfProof :: Integer -> BuiltinByteString -> VrfProofWithOutput
 generateVrfProof privKey message =
-  let g2generator () = Tx.bls12_381_G2_uncompress bls12_381_G2_compressed_generator
+  let g2generator () = Tx.bls12_381_G2_uncompress bls12_381_G2_compressed_generator  -- *** This doesn't work without the delay
 
       -- calculate public key
       pub = Tx.bls12_381_G2_scalarMul privKey (g2generator ())
@@ -899,7 +904,7 @@ schnorrG2VerifyScript message pubKey signature bs16Null =
       pkDeser = Tx.bls12_381_G2_uncompress pubKey
       aDeser = Tx.bls12_381_G2_uncompress a
       rDeser = byteStringToInteger r
-      g2generator () = Tx.bls12_381_G2_uncompress Tx.bls12_381_G2_compressed_generator
+      g2generator () = Tx.bls12_381_G2_uncompress Tx.bls12_381_G2_compressed_generator  -- *** This doesn't work without the delay
   in (rDeser `Tx.bls12_381_G2_scalarMul` g2generator ()) ==
          (aDeser `Tx.bls12_381_G2_add` (c `Tx.bls12_381_G2_scalarMul` pkDeser))
     -- additional check using negation is for testing the function
