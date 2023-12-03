@@ -325,7 +325,7 @@ simpleVerifyMessage  = "I am a message"
 {-# INLINABLE verifyBlsSimpleScript #-}
 verifyBlsSimpleScript :: Integer -> BuiltinByteString -> Bool
 verifyBlsSimpleScript privKey message =
-  let g1generator () = Tx.bls12_381_G1_uncompress Tx.bls12_381_G1_compressed_generator
+  let g1generator () = Tx.bls12_381_G1_uncompress g1gen2 -- Tx.bls12_381_G1_compressed_generator
 
       -- calculate public key
       pubKey = Tx.bls12_381_G1_scalarMul privKey (g1generator ())
