@@ -39,7 +39,6 @@ printCosts_UncompressAndAddG2 h n =
     let script = mkUncompressAndAddG2Script (listOfSizedByteStrings n 4)
     in printSizeStatistics h (TestSize n) script
 
-
 printCosts_Pairing :: Handle -> IO ()
 printCosts_Pairing h = do
     let emptyDST = toBuiltin BS.empty
