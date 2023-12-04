@@ -15,15 +15,26 @@ import Test.QuickCheck.Property (Property, withMaxSuccess)
 test_evaluateBuiltins :: TestTree
 test_evaluateBuiltins = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
     testNested "EvaluateBuiltins" $
+      conservative ++ nonConservative
+    where
+      conservative =
         map
             (goldenPir (evaluateBuiltins True def def) pTerm)
             [ "addInteger"
             , "ifThenElse"
-            , "trace"
+            , "traceConservative"
             , "failingBuiltin"
             , "nonConstantArg"
             , "overApplication"
             , "underApplication"
+            , "uncompressBlsConservative"
+            ]
+      nonConservative =
+        map
+            (goldenPir (evaluateBuiltins False def def) pTerm)
+            -- We want to test the case where this would reduce, i.e.
+            [ "traceNonConservative"
+            , "uncompressBlsNonConservative"
             ]
 
 -- | Check that a term typechecks after a `PlutusIR.Transform.EvaluateBuiltins`

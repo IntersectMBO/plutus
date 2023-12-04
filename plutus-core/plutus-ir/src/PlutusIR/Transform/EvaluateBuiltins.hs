@@ -13,7 +13,7 @@ import PlutusCore.Builtin
 import PlutusIR.Contexts
 import PlutusIR.Core
 
-import Control.Lens (transformOf, (^.))
+import Control.Lens (allOf, transformOf, (^.))
 import Data.Functor (void)
 import PlutusIR.Analysis.Builtins
 
@@ -68,6 +68,7 @@ evaluateBuiltins conservative binfo costModel = transformOf termSubterms process
            -- suboptimal, e.g. in `ifThenElse True x y`, we will get back `x`, but
            -- with the annotation that was on the `ifThenElse` node. But we can't
            -- easily do better.
-           Just t' -> x <$ t'
-           Nothing -> t
+           -- See Note [Unserializable constants]
+           Just t' | termIsSerializable binfo t' -> x <$ t'
+           _                                     -> t
     processTerm t = t
