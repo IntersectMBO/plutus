@@ -7,8 +7,8 @@ import Data.Semigroup ((<>))
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
 
-import Control.Applicative
-import Options.Applicative
+import Data.Foldable (asum)
+import Options.Applicative hiding (asum)
 
 import PlutusCore.Executable.Common
 import PlutusCore.Executable.Parsers
