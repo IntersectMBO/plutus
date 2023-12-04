@@ -141,7 +141,7 @@ mkUncompressAndAddG1Script l =
 uncompressAndAddG2 :: [BuiltinByteString] -> BuiltinBLS12_381_G2_Element
 uncompressAndAddG2 [] = error ()
 uncompressAndAddG2 (p:ps) =
-   go ps (Tx.bls12_381_G2_uncompress p)
+    go ps (Tx.bls12_381_G2_uncompress p)
     where go [] acc     = acc
           go (q:qs) acc = go qs $ Tx.bls12_381_G2_add (Tx.bls12_381_G2_uncompress q) acc
 
