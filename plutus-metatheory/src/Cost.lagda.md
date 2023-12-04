@@ -258,7 +258,7 @@ tallyingReport (mp , budget) =
     ++ printBuiltinReport mp 
     ++ "\n" 
     ++ "Total builtin costs:   " ++ budgetToString totalBuiltinCosts ++ "\n"
-     -- We would like to be ble to print the following  number as "%4.2f" 
+     -- We would like to be able to print the following  number as "%4.2f" 
      -- but Agda's printf currently doesn't support it.
     ++ printf "Time spent executing builtins:  %f%%\n" (fromℕ 100 * (getCPU totalBuiltinCosts) ÷ (getCPU budget)) ++ "\n"
     ++ "\n"
