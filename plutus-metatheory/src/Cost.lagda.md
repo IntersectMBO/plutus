@@ -187,7 +187,7 @@ countingReport (mkExBudget cpu mem) =
 
 We need a map from `ExBudgetCategory` into `ExBudget`. 
 It's not the most efficient, but the simplest thing to do is to 
-transform `ExBudgetCategory` into a string, ans use that as keys.
+transform `ExBudgetCategory` into a string, and use that as keys.
 
 ```
 mkKeyFromExBudgetCategory : ExBudgetCategory → String 
