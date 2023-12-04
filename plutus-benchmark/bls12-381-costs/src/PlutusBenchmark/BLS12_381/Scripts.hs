@@ -356,7 +356,7 @@ vrfMessage :: BuiltinByteString
 vrfMessage = "I am a message" :: BuiltinByteString
 
 data VrfProof = VrfProof
-  { vrfProofGamma :: BuiltinByteString -- requires Typeable and ToData instances (TODO: to be added on master before merge)
+  { vrfProofGamma :: BuiltinByteString
   , vrfProofC     :: BuiltinByteString
   , vrfProofS     :: Integer
   }
