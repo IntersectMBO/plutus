@@ -27,7 +27,7 @@ import PlutusCore.Pretty.PrettyConst (ConstConfig)
 import Text.PrettyBy (PrettyBy)
 
 import Control.DeepSeq (NFData, rnf, rwhnf)
-import Data.ByteString (ByteString, length)
+import Data.ByteString (ByteString, length, pack)
 import Data.Coerce (coerce)
 import Data.Hashable
 import Data.Proxy (Proxy (..))
@@ -155,18 +155,23 @@ offchain_zero = coerce BlstBindings.Internal.blsZero
 {-# INLINABLE compressed_zero #-}
 compressed_zero :: ByteString
 compressed_zero =
-    "\xc0\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+    pack [ 0xc0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+         , 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+         , 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+         , 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+         , 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+         , 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 ]
 
 -- | The standard generator of G1 compressed into a bytestring.  This is
 -- provided for convenience in PlutusTx and is not exported as a builtin.
 compressed_generator :: ByteString
 compressed_generator =
-    "\x97\xf1\xd3\xa7\x31\x97\xd7\x94\x26\x95\x63\x8c\x4f\xa9\xac\x0f\xc3\x68\x8c\x4f\x97\x74\xb9\x05\xa1\x4e\x3a\x3f\x17\x1b\xac\x58\x6c\x55\xe8\x3f\xf9\x7a\x1a\xef\xfb\x3a\xf0\x0a\xdb\x22\xc6\xbb"
-
--- ^^^ This is the simplest possible representation (no `pack`, no backslash
--- string continuations) to make sure that it's not causing any unexpected
--- computation.  It may be possible to replace it with something else if we fix
--- the compilation problem.
+    pack [ 0x97, 0xf1, 0xd3, 0xa7, 0x31, 0x97, 0xd7, 0x94
+         , 0x26, 0x95, 0x63, 0x8c, 0x4f, 0xa9, 0xac, 0x0f
+         , 0xc3, 0x68, 0x8c, 0x4f, 0x97, 0x74, 0xb9, 0x05
+         , 0xa1, 0x4e, 0x3a, 0x3f, 0x17, 0x1b, 0xac, 0x58
+         , 0x6c, 0x55, 0xe8, 0x3f, 0xf9, 0x7a, 0x1a, 0xef
+         , 0xfb, 0x3a, 0xf0, 0x0a, 0xdb, 0x22, 0xc6, 0xbb ]
 
 -- Utilities (not exposed as builtins)
 
