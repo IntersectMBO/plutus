@@ -13,7 +13,7 @@ import PlutusCore.Builtin
 import PlutusIR.Contexts
 import PlutusIR.Core
 
-import Control.Lens (allOf, transformOf, (^.))
+import Control.Lens (transformOf, (^.))
 import Data.Functor (void)
 import PlutusIR.Analysis.Builtins
 
