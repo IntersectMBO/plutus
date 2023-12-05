@@ -15,7 +15,6 @@ import PlutusCore.Name qualified as PLC
 import PlutusIR
 import PlutusIR.Analysis.Usages qualified as Usages
 import PlutusIR.Purity
-import PlutusIR.Transform.Rename ()
 
 import Control.Lens hiding (Strict)
 import Control.Monad.Extra
@@ -192,9 +191,8 @@ floatTerm ::
   Bool ->
   Term tyname name uni fun a ->
   m (Term tyname name uni fun a)
-floatTerm binfo relaxed t0 = do
-  t1 <- PLC.rename t0
-  pure . fmap fst $ floatTermInner (Usages.termUsages t1) (termVarInfo t1) t1
+floatTerm binfo relaxed tRen =
+  pure . fmap fst $ floatTermInner (Usages.termUsages tRen) (termVarInfo tRen) tRen
   where
     floatTermInner ::
       Usages.Usages ->

@@ -38,9 +38,8 @@ removeDeadBindings
     -> Term TyName name uni fun a
     -> m (Term TyName name uni fun a)
 removeDeadBindings binfo t = do
-    tRen <- PLC.rename t
-    let vinfo = termVarInfo tRen
-    liftQuote $ runReaderT (transformMOf termSubterms processTerm tRen) (calculateLiveness binfo vinfo tRen)
+    let vinfo = termVarInfo t
+    liftQuote $ runReaderT (transformMOf termSubterms processTerm t) (calculateLiveness binfo vinfo t)
 
 type Liveness = Set.Set Deps.Node
 

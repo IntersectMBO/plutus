@@ -51,10 +51,7 @@ caseOfCase ::
     Term tyname Name uni fun a ->
     m (Term tyname Name uni fun a)
 -- See Note [Case-of-case and conapps]
-caseOfCase binfo conservative newAnn t0 = do
-    -- We are going to record information about variables in a global map, so we
-    -- need global uniqueness
-    t <- PLC.rename t0
+caseOfCase binfo conservative newAnn t = do
     let vinfo = termVarInfo t
     liftQuote $ transformMOf termSubterms (processTerm binfo vinfo conservative newAnn) t
 

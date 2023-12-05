@@ -63,6 +63,8 @@ data InlineInfo tyname name uni fun ann = InlineInfo
     -- ^ have we explicitly been told to inline?
     , _iiBuiltinsInfo :: BuiltinsInfo uni fun
     -- ^ the semantics variant.
+    , _iiTrackElims   :: Bool
+    -- ^ keep track of the eliminated variables, to be dumped for the certifier
     }
 makeLenses ''InlineInfo
 
@@ -115,6 +117,8 @@ data InlinerState tyname name uni fun ann =
     InlinerState { _termSubst  :: TermSubst tyname name uni fun ann
            , _typeSubst        :: TypeSubst tyname uni ann
            , _nonRecInScopeSet :: NonRecInScopeSet tyname name uni fun ann
+           , _eliminated       :: [name]
+           , _eliminatedTy     :: [tyname]
           }
     deriving stock (Generic)
     deriving (Semigroup, Monoid) via
@@ -154,7 +158,7 @@ lookupType tn s = lookupName tn $ s ^. typeSubst . unTypeSubst
 
 -- | Check if the type substitution is empty.
 isTypeSubstEmpty :: InlinerState tyname name uni fun ann -> Bool
-isTypeSubstEmpty (InlinerState _ (TypeSubst tyEnv) _) = isEmpty tyEnv
+isTypeSubstEmpty (InlinerState _ (TypeSubst tyEnv) _ _ _) = isEmpty tyEnv
 
 -- | Insert the unprocessed type variable into the type substitution.
 extendType
@@ -182,6 +186,19 @@ extendVarInfo
     -> InlinerState tyname name uni fun ann
 extendVarInfo n info s = s & nonRecInScopeSet . unNonRecInScopeSet %~ insertByName n info
 
+-- | Record an eliminated term variable
+extendEliminated ::
+       name -- ^ The name of the variable.
+    -> InlinerState tyname name uni fun ann
+    -> InlinerState tyname name uni fun ann
+extendEliminated n s = s & eliminated %~ (n :)
+
+-- | Record an eliminated type variable
+extendEliminatedTy ::
+       tyname -- ^ The name of the variable.
+    -> InlinerState tyname name uni fun ann
+    -> InlinerState tyname name uni fun ann
+extendEliminatedTy n s = s & eliminatedTy %~ (n :)
 
 applyTypeSubstitution :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
     => Type tyname uni ann
