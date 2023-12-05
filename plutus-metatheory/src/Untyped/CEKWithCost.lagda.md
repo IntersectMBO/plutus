@@ -34,6 +34,11 @@ open import Untyped.CEK
 
 We instantiate a Writer Monad with the operations from the machine parameters
 
+As opposed to the production implemention, our `spend` function does not implement slippage.
+Slippage is an optimization that allows the interpreter to only add costs every n steps. 
+Slippage is only semantically relevant in restricting mode (not currently implemented in agda), 
+so we do not need to consider it here.
+
 ```
 open MachineParameters machineParameters renaming (ε to e)
 open Utils.WriterMonad e _∙_
