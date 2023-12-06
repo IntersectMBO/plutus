@@ -1,8 +1,6 @@
 -- editorconfig-checker-disable-file
 -- | Tests for all kinds of built-in functions.
 
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# LANGUAGE TypeApplications      #-}
