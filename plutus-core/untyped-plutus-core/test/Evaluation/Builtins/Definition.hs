@@ -820,40 +820,25 @@ test_Conversion =
     adjustOption (\x -> max x . HedgehogTestLimit . Just $ 8000) .
     testGroup "Integer <-> ByteString conversions" $ [
       testGroup "Integer -> ByteString" [
-        testPropertyNamed i2bProp1Name "i2b_prop1" . property $ Conversion.i2bProperty1,
-        testPropertyNamed i2bProp2Name "i2b_prop2" . property $ Conversion.i2bProperty2,
-        testPropertyNamed i2bProp3Name "i2b_prop3" . property $ Conversion.i2bProperty3,
-        testPropertyNamed i2bProp4Name "i2b_prop4" . property $ Conversion.i2bProperty4,
+        -- lengthOfByteString (builtinIntegerToByteString e 0 i) > 0
+        testPropertyNamed "property 1" "i2b_prop1" . property $ Conversion.i2bProperty1,
+        -- if k > 0, lengthOfByteString (builtinIntegerToByteString e k i) = k
+        testPropertyNamed "property 2" "i2b_prop2" . property $ Conversion.i2bProperty2,
+        -- indexByteString (builtinIntegerToByteString False d i) 0 = remainderInteger i 256
+        testPropertyNamed "property 3" "i2b_prop3" . property $ Conversion.i2bProperty3,
+        -- let result = builtinIntegerToByteString True d i
+        -- in indexByteString result (lengthOfByteString result - 1) = remainderInteger i 256
+        testPropertyNamed "property 4" "i2b_prop4" . property $ Conversion.i2bProperty4,
         testGroup "CIP-0087 examples" Conversion.i2bCipExamples
         ],
       testGroup "ByteString -> Integer" [
-        testPropertyNamed b2iProp1Name "b2i_prop1" . property $ Conversion.b2iProperty1,
-        testPropertyNamed b2iProp2Name "b2i_prop2" . property $ Conversion.b2iProperty2,
+        -- builtinByteStringToInteger b (builtinIntegerToByteString b d i) = i
+        testPropertyNamed "property 1" "b2i_prop1" . property $ Conversion.b2iProperty1,
+        -- builtinByteStringToInteger b (consByteString w8 emptyByteString) = w8
+        testPropertyNamed "property 2" "b2i_prop2" . property $ Conversion.b2iProperty2,
         testGroup "CIP-0087 examples" Conversion.b2iCipExamples
         ]
       ]
-    where
-      i2bProp1Name :: TestName
-      i2bProp1Name = "lengthOfByteString (builtinIntegerToByteString e 0 i) > 0"
-      i2bProp2Name :: TestName
-      i2bProp2Name = "lengthOfByteString (builtinIntegerToByteString e k i) = k"
-      i2bProp3Name :: TestName
-      i2bProp3Name = "indexByteString (builtinIntegerToByteString False d i) 0" <>
-        " = " <>
-        "remainderInteger i 256"
-      i2bProp4Name :: TestName
-      i2bProp4Name = "let result = builtinIntegerToByteString True d i " <>
-        "in indexByteString result (lengthOfByteString result - 1)" <>
-        " = " <>
-        "remainderInteger i 256"
-      b2iProp1Name :: TestName
-      b2iProp1Name = "builtinByteStringToInteger b (builtinIntegerToByteString b d i)" <>
-        " = " <>
-        "i"
-      b2iProp2Name :: TestName
-      b2iProp2Name = "builtinByteStringToInteger b (consByteString w8 emptyByteString)" <>
-        " = " <>
-        "w8"
 
 test_definition :: TestTree
 test_definition =

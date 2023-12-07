@@ -55,7 +55,7 @@ i2bProperty1 = do
       EvaluationFailure   -> annotateShow logs >> failure
       EvaluationSuccess r -> r === mkConstant () True
 
--- lengthOfByteString (builtinIntegerToByteString e k i) = k
+-- if k > 0, lengthOfByteString (builtinIntegerToByteString e k i) = k
 i2bProperty2 :: PropertyT IO ()
 i2bProperty2 = do
   e <- forAllWith ppShow Gen.bool
@@ -180,7 +180,8 @@ b2iProperty2 = do
 
 i2bCipExamples :: [TestTree]
 i2bCipExamples = [
-  testCase "builtinIntegerToByteString False 0 (-1) ==> failure" $ do
+  -- builtinIntegerToByteString False 0 (-1) => failure
+  testCase "example 1" $ do
     let actualExp = mkIterAppNoAnn (builtin () IntegerToByteString) [
                       mkConstant @Bool () False,
                       mkConstant @Integer () 0,
@@ -191,7 +192,8 @@ i2bCipExamples = [
       Right (result, _) -> case result of
         EvaluationFailure   -> pure ()
         EvaluationSuccess _ -> assertFailure "should have failed, but didn't",
-  testCase "builtinIntegerToByteString True 0 (-1) ==> failure" $ do
+  -- builtinIntegerToByteString True 0 (-1) => failure
+  testCase "example 2" $ do
     let actualExp = mkIterAppNoAnn (builtin () IntegerToByteString) [
                       mkConstant @Bool () True,
                       mkConstant @Integer () 0,
@@ -202,7 +204,8 @@ i2bCipExamples = [
       Right (result, _) -> case result of
         EvaluationFailure   -> pure ()
         EvaluationSuccess _ -> assertFailure "should have failed, but didn't",
-  testCase "builtinIntegerToByteString False 100 (-1) ==> failure" $ do
+  -- builtinIntegerToByteString False 100 (-1) => failure
+  testCase "example 3" $ do
     let actualExp = mkIterAppNoAnn (builtin () IntegerToByteString) [
                       mkConstant @Bool () False,
                       mkConstant @Integer () 100,
@@ -213,7 +216,8 @@ i2bCipExamples = [
       Right (result, _) -> case result of
         EvaluationFailure   -> pure ()
         EvaluationSuccess _ -> assertFailure "should have failed, but didn't",
-  testCase "builtinIntegerToByteString False 0 0 ==> [ 0x00 ]" $ do
+  -- builtinIntegerToByteString False 0 0 => [ 0x00 ]
+  testCase "example 4" $ do
     let actualExp = mkIterAppNoAnn (builtin () IntegerToByteString) [
                       mkConstant @Bool () False,
                       mkConstant @Integer () 0,
@@ -224,7 +228,8 @@ i2bCipExamples = [
       Right (result, _) -> case result of
         EvaluationFailure   -> assertFailure "unexpectedly failed to evaluate"
         EvaluationSuccess x -> assertEqual "" x (mkConstant @ByteString () "\NUL"),
-  testCase "builtinIntegerToByteString True 0 0 ==> [ 0x00 ]" $ do
+  -- builtinIntegerToByteString True 0 0 => [ 0x00 ]
+  testCase "example 5" $ do
     let actualExp = mkIterAppNoAnn (builtin () IntegerToByteString) [
                       mkConstant @Bool () True,
                       mkConstant @Integer () 0,
@@ -235,7 +240,8 @@ i2bCipExamples = [
       Right (result, _) -> case result of
         EvaluationFailure   -> assertFailure "unexpectedly failed to evaluate"
         EvaluationSuccess x -> assertEqual "" x (mkConstant @ByteString () "\NUL"),
-  testCase "builtinIntegerToByteString False 5 0 ==> [ 0x00, 0x00, 0x00, 0x00, 0x00 ]" $ do
+  -- builtinIntegerToByteString False 5 0 => [ 0x00, 0x00, 0x00, 0x00, 0x00]
+  testCase "example 6" $ do
     let actualExp = mkIterAppNoAnn (builtin () IntegerToByteString) [
                       mkConstant @Bool () False,
                       mkConstant @Integer () 5,
@@ -246,7 +252,8 @@ i2bCipExamples = [
       Right (result, _) -> case result of
         EvaluationFailure   -> assertFailure "unexpectedly failed to evaluate"
         EvaluationSuccess x -> assertEqual "" x (mkConstant @ByteString () "\NUL\NUL\NUL\NUL\NUL"),
-  testCase "builtinIntegerToByteString True 5 0 ==> [ 0x00, 0x00, 0x00, 0x00, 0x00 ]" $ do
+  -- builtinIntegerToByteString True 5 0 => [ 0x00, 0x00, 0x00, 0x00, 0x00]
+  testCase "example 7" $ do
     let actualExp = mkIterAppNoAnn (builtin () IntegerToByteString) [
                       mkConstant @Bool () True,
                       mkConstant @Integer () 5,
@@ -257,7 +264,8 @@ i2bCipExamples = [
       Right (result, _) -> case result of
         EvaluationFailure   -> assertFailure "unexpectedly failed to evaluate"
         EvaluationSuccess x -> assertEqual "" x (mkConstant @ByteString () "\NUL\NUL\NUL\NUL\NUL"),
-  testCase "builtinIntegerToByteString False 1 404 ==> failure" $ do
+  -- builtinIntegerToByteString False 1 404 => failure
+  testCase "example 8" $ do
     let actualExp = mkIterAppNoAnn (builtin () IntegerToByteString) [
                       mkConstant @Bool () False,
                       mkConstant @Integer () 1,
@@ -268,7 +276,8 @@ i2bCipExamples = [
       Right (result, _) -> case result of
         EvaluationFailure   -> pure ()
         EvaluationSuccess _ -> assertFailure "should have failed, but didn't",
-  testCase "builtinIntegerToByteString True 1 404 ==> failure" $ do
+  -- builtinIntegerToByteString True 1 404 => failure
+  testCase "example 9" $ do
     let actualExp = mkIterAppNoAnn (builtin () IntegerToByteString) [
                       mkConstant @Bool () True,
                       mkConstant @Integer () 1,
@@ -279,7 +288,8 @@ i2bCipExamples = [
       Right (result, _) -> case result of
         EvaluationFailure   -> pure ()
         EvaluationSuccess _ -> assertFailure "should have failed, but didn't",
-  testCase "builtinIntegerToByteString False 2 404 ==> [ 0x94, 0x01 ]" $ do
+  -- builtinIntegerToByteString False 2 404 => [ 0x94, 0x01 ]
+  testCase "example 10" $ do
     let actualExp = mkIterAppNoAnn (builtin () IntegerToByteString) [
                       mkConstant @Bool () False,
                       mkConstant @Integer () 2,
@@ -290,7 +300,8 @@ i2bCipExamples = [
       Right (result, _) -> case result of
         EvaluationFailure   -> assertFailure "unexpectedly failed to evaluate"
         EvaluationSuccess x -> assertEqual "" x (mkConstant @ByteString () (fromList [0x94, 0x01])),
-  testCase "builtinIntegerToByteString False 0 404 ==> [ 0x94, 0x01 ]" $ do
+  -- builtinIntegerToByteString False 0 404 => [ 0x94, 0x01 ]
+  testCase "example 11" $ do
     let actualExp = mkIterAppNoAnn (builtin () IntegerToByteString) [
                       mkConstant @Bool () False,
                       mkConstant @Integer () 0,
@@ -301,7 +312,8 @@ i2bCipExamples = [
       Right (result, _) -> case result of
         EvaluationFailure   -> assertFailure "unexpectedly failed to evaluate"
         EvaluationSuccess x -> assertEqual "" x (mkConstant @ByteString () (fromList [0x94, 0x01])),
-  testCase "builtinIntegerToByteString True 2 404 ==> [ 0x01, 0x94 ]" $ do
+  -- builtinIntegerToByteString True 2 404 => [ 0x01, 0x94 ]
+  testCase "example 12" $ do
     let actualExp = mkIterAppNoAnn (builtin () IntegerToByteString) [
                       mkConstant @Bool () True,
                       mkConstant @Integer () 2,
@@ -312,7 +324,8 @@ i2bCipExamples = [
       Right (result, _) -> case result of
         EvaluationFailure   -> assertFailure "unexpectedly failed to evaluate"
         EvaluationSuccess x -> assertEqual "" x (mkConstant @ByteString () (fromList [0x01, 0x94])),
-  testCase "builtinIntegerToByteString True 0 404 ==> [ 0x01, 0x94 ]" $ do
+  -- builtinIntegerToByteString True 0 404 => [ 0x01, 0x94 ]
+  testCase "example 13" $ do
     let actualExp = mkIterAppNoAnn (builtin () IntegerToByteString) [
                       mkConstant @Bool () True,
                       mkConstant @Integer () 0,
@@ -323,7 +336,8 @@ i2bCipExamples = [
       Right (result, _) -> case result of
         EvaluationFailure   -> assertFailure "unexpectedly failed to evaluate"
         EvaluationSuccess x -> assertEqual "" x (mkConstant @ByteString () (fromList [0x01, 0x94])),
-  testCase "builtinIntegerToByteString False 5 404 ==> [ 0x94, 0x01, 0x00, 0x00, 0x00 ]" $ do
+  -- builtinIntegerToByteString False 5 404 => [ 0x94, 0x01, 0x00, 0x00, 0x00 ]
+  testCase "example 14" $ do
     let actualExp = mkIterAppNoAnn (builtin () IntegerToByteString) [
                       mkConstant @Bool () False,
                       mkConstant @Integer () 5,
@@ -334,7 +348,8 @@ i2bCipExamples = [
       Right (result, _) -> case result of
         EvaluationFailure -> assertFailure "unexpectedly failed to evaluate"
         EvaluationSuccess x -> assertEqual "" x (mkConstant @ByteString () (fromList [0x94, 0x01, 0x00, 0x00, 0x00])),
-  testCase "builtinIntegerToByteString True 5 404 ==> [ 0x00, 0x00, 0x00, 0x01, 0x94 ]" $ do
+  -- builtinIntegerToByteString True 5 404 => [ 0x00, 0x00, 0x00, 0x01, 0x94 ]
+  testCase "example 15" $ do
     let actualExp = mkIterAppNoAnn (builtin () IntegerToByteString) [
                       mkConstant @Bool () True,
                       mkConstant @Integer () 5,
@@ -349,7 +364,8 @@ i2bCipExamples = [
 
 b2iCipExamples :: [TestTree]
 b2iCipExamples = [
-  testCase "builtinByteStringToInteger False emptyByteString ==> failure" $ do
+  -- builtinByteStringToInteger False emptyByteString => failure
+  testCase "example 1" $ do
     let actualExp = mkIterAppNoAnn (builtin () ByteStringToInteger) [
                       mkConstant @Bool () False,
                       mkConstant @ByteString () ""
@@ -359,7 +375,8 @@ b2iCipExamples = [
       Right (result, _) -> case result of
         EvaluationFailure   -> pure ()
         EvaluationSuccess _ -> assertFailure "should have failed, but didn't",
-  testCase "builtinByteStringToInteger True emptyByteString ==> failure" $ do
+  -- builtinByteStringToInteger True emptyByteString => failure
+  testCase "example 2" $ do
     let actualExp = mkIterAppNoAnn (builtin () ByteStringToInteger) [
                       mkConstant @Bool () True,
                       mkConstant @ByteString () ""
@@ -369,7 +386,9 @@ b2iCipExamples = [
       Right (result, _) -> case result of
         EvaluationFailure   -> pure ()
         EvaluationSuccess _ -> assertFailure "should have failed, but didn't",
-  testCase "builtinByteStringToInteger False (consByteString 0x01 (consByteString 0x1 emptyByteString)) ==> 257" $ do
+  -- builtinByteStringToInteger False (consByteString 0x01 (consByteString 0x01 emptyByteString)) =>
+  -- 257
+  testCase "example 3" $ do
     let actualExp = mkIterAppNoAnn (builtin () ByteStringToInteger) [
                       mkConstant @Bool () False,
                       mkConstant @ByteString () (fromList [0x01, 0x01])
@@ -379,7 +398,9 @@ b2iCipExamples = [
       Right (result, _) -> case result of
         EvaluationFailure   -> assertFailure "unexpectedly failed to evaluate"
         EvaluationSuccess x -> assertEqual "" x (mkConstant @Integer () 257),
-  testCase "builtinByteStringToInteger True (consByteString 0x01 (consByteString 0x01 emptyByteString)) ==> 257" $ do
+  -- builtinByteStringToInteger True (consByteString 0x01 (consByteString 0x01 emptyByteString)) =>
+  -- 257
+  testCase "example 4" $ do
     let actualExp = mkIterAppNoAnn (builtin () ByteStringToInteger) [
                       mkConstant @Bool () True,
                       mkConstant @ByteString () (fromList [0x01, 0x01])
@@ -389,7 +410,9 @@ b2iCipExamples = [
       Right (result, _) -> case result of
         EvaluationFailure   -> assertFailure "unexpectedly failed to evaluate"
         EvaluationSuccess x -> assertEqual "" x (mkConstant @Integer () 257),
-  testCase "builtinByteStringToInteger True (consByteString 0x00 (consByteString 0x01 (consByteString 0x01 emptyByteString))) ==> 257" $ do
+  -- builtinByteStringToInteger True (consByteString 0x00 (consByteString 0x01 (consByteString 0x01
+  -- emptyByteString))) => 257
+  testCase "example 5" $ do
     let actualExp = mkIterAppNoAnn (builtin () ByteStringToInteger) [
                       mkConstant @Bool () True,
                       mkConstant @ByteString () (fromList [0x00, 0x01, 0x01])
@@ -399,7 +422,9 @@ b2iCipExamples = [
       Right (result, _) -> case result of
         EvaluationFailure   -> assertFailure "unexpectedly failed to evaluate"
         EvaluationSuccess x -> assertEqual "" x (mkConstant @Integer () 257),
-  testCase "builtinByteStringToInteger False (consByteString 0x00 (consByteString 0x01 (consByteString 0x01 emptyByteString))) ==> 65792" $ do
+  -- builtinByteStringToInteger False (consByteString 0x00 (consByteString 0x01 (consByteString 0x01
+  -- emptyByteString))) => 65792
+  testCase "example 6" $ do
     let actualExp = mkIterAppNoAnn (builtin () ByteStringToInteger) [
                       mkConstant @Bool () False,
                       mkConstant @ByteString () (fromList [0x00, 0x01, 0x01])
@@ -409,7 +434,9 @@ b2iCipExamples = [
       Right (result, _) -> case result of
         EvaluationFailure   -> assertFailure "unexpectedly failed to evaluate"
         EvaluationSuccess x -> assertEqual "" x (mkConstant @Integer () 65792),
-  testCase "builtinByteStringToInteger False (consByteString 0x01 (consByteString 0x01 (consByteString 0x00 emptyByteString) ==> 257" $ do
+  -- builtinByteStringToInteger False (consByteString 0x01 (consByteString 0x01 (consByteString 0x00
+  -- emptyByteString))) => 257
+  testCase "example 7" $ do
     let actualExp = mkIterAppNoAnn (builtin () ByteStringToInteger) [
                       mkConstant @Bool () False,
                       mkConstant @ByteString () (fromList [0x01, 0x01, 0x00])
@@ -419,7 +446,9 @@ b2iCipExamples = [
       Right (result, _) -> case result of
         EvaluationFailure   -> assertFailure "unexpectedly failed to evaluate"
         EvaluationSuccess x -> assertEqual "" x (mkConstant @Integer () 257),
-  testCase "builtinByteStringToInteger True (consByteString 0x01 (consByteString 0x01 (consByteString 0x00 emptyByteString) ==> 65792" $ do
+  -- builtinByteStringToInteger True (consByteString 0x01 (consByteString 0x01 (consByteString 0x00
+  -- emptyByteString))) => 65792
+  testCase "example 8" $ do
     let actualExp = mkIterAppNoAnn (builtin () ByteStringToInteger) [
                       mkConstant @Bool () True,
                       mkConstant @ByteString () (fromList [0x01, 0x01, 0x00])
