@@ -1,4 +1,12 @@
 
+<a id='changelog-1.18.0.0'></a>
+# 1.18.0.0 — 2023-12-06
+
+## Changed
+
+- Added two constructors, `TxCertPoolRegister` and `TxCertPoolRetire`, to
+  `PlutusLedgerApi.V3.Contexts.TxCert`.
+
 <a id='changelog-1.17.0.0'></a>
 # 1.17.0.0 — 2023-11-22
 
