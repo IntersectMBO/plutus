@@ -104,6 +104,14 @@ data TxCert
     TxCertUpdateDRep DRepCredential
   | -- | UnRegister a DRep with mandatory refund value
     TxCertUnRegDRep DRepCredential V2.Value
+  | -- | A digest of the PoolParams
+    TxCertPoolRegister
+      V2.PubKeyHash
+      -- ^ poolId
+      V2.PubKeyHash
+      -- ^ pool VFR
+  | -- | The retirement certificate and the Epoch in which the retirement will take place
+    TxCertPoolRetire V2.PubKeyHash Haskell.Integer
   | -- | Authorize a Hot credential for a specific Committee member's cold credential
     TxCertAuthHotCommittee ColdCommitteeCredential HotCommitteeCredential
   | TxCertResignColdCommittee ColdCommitteeCredential
@@ -443,8 +451,10 @@ PlutusTx.makeIsDataIndexed
   , ('TxCertRegDRep, 4)
   , ('TxCertUpdateDRep, 5)
   , ('TxCertUnRegDRep, 6)
-  , ('TxCertAuthHotCommittee, 7)
-  , ('TxCertResignColdCommittee, 8)
+  , ('TxCertPoolRegister, 7)
+  , ('TxCertPoolRetire, 8)
+  , ('TxCertAuthHotCommittee, 9)
+  , ('TxCertResignColdCommittee, 10)
   ]
 
 PlutusTx.makeLift ''Voter

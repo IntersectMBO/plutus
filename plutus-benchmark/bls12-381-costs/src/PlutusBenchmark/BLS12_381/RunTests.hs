@@ -152,3 +152,4 @@ runTests h = do
   if checkSchnorrG2VerifyScript
   then hPrintf h "Schnorr G2 Verify succeeded\n"
   else hPrintf h "Schnorr G2 Verify failed\n"
+
