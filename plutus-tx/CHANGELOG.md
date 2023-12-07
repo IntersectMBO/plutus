@@ -1,4 +1,12 @@
 
+<a id='changelog-1.18.0.0'></a>
+# 1.18.0.0 — 2023-12-06
+
+## Added
+
+- A more informative error message when the plugin encounters a literal range
+- PlutusTx.enumFromThenTO for ranges like [1,5..101]
+
 <a id='changelog-1.17.0.0'></a>
 # 1.17.0.0 — 2023-11-22
 
