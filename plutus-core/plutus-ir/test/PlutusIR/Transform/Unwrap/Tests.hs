@@ -21,4 +21,4 @@ test_unwrap = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
 
 prop_unwrap :: Property
 prop_unwrap =
-  withMaxSuccess 3000 $ testPassProp runIdentity unwrapCancelPass
+  withMaxSuccess numTestsForPassProp $ testPassProp runIdentity unwrapCancelPass

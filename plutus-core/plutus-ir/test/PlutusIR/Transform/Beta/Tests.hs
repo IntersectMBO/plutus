@@ -23,4 +23,4 @@ test_beta = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
             ]
 
 prop_beta :: Property
-prop_beta = withMaxSuccess 3000 $ testPassProp runIdentity betaPass
+prop_beta = withMaxSuccess numTestsForPassProp $ testPassProp runIdentity betaPass

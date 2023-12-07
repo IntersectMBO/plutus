@@ -26,4 +26,4 @@ test_recSplit = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
 
 prop_recSplit :: Property
 prop_recSplit =
-  withMaxSuccess 3000 $ testPassProp runIdentity recSplitPass
+  withMaxSuccess numTestsForPassProp $ testPassProp runIdentity recSplitPass

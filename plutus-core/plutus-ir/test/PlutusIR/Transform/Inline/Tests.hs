@@ -65,7 +65,7 @@ test_inline = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
 prop_inline ::
     BuiltinSemanticsVariant DefaultFun -> Property
 prop_inline biVariant =
-  withMaxSuccess 20000 $
+  withMaxSuccess (3 * numTestsForPassProp) $
     testPassProp
       runQuote
       $ \tc -> inlinePassSC tc mempty (def {_biSemanticsVariant = biVariant})

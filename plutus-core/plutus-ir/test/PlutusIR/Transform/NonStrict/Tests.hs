@@ -20,6 +20,6 @@ test_nonStrict = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] 
             [ "nonStrict1"
             ]
 
-prop_nonStrict :: Property
-prop_nonStrict = withMaxSuccess 3000 $
-  testPassProp runQuote $ \tc -> NonStrict.compileNonStrictBindingsPassSC tc False
+prop_nonStrict :: Bool -> Property
+prop_nonStrict useUnit = withMaxSuccess (2 * numTestsForPassProp) $
+  testPassProp runQuote $ \tc -> NonStrict.compileNonStrictBindingsPassSC tc useUnit

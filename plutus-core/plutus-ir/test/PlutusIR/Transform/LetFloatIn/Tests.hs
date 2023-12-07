@@ -63,7 +63,8 @@ test_letFloatInRelaxed =
 
 prop_floatIn ::
   BuiltinSemanticsVariant PLC.DefaultFun -> Bool -> Property
-prop_floatIn biVariant conservative = withMaxSuccess 3000 $ testPassProp runQuote testPass
+prop_floatIn biVariant conservative =
+  withMaxSuccess (3 * 2 * numTestsForPassProp) $ testPassProp runQuote testPass
   where
     testPass tcconfig =
       LetFloatIn.floatTermPassSC

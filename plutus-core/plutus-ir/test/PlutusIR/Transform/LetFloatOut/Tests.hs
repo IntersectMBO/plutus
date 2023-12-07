@@ -67,7 +67,7 @@ test_letFloatOut = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"
       ]
 
 prop_floatIn :: BuiltinSemanticsVariant PLC.DefaultFun -> Property
-prop_floatIn biVariant = withMaxSuccess 20000 $ testPassProp runQuote testPass
+prop_floatIn biVariant = withMaxSuccess (3 * numTestsForPassProp) $ testPassProp runQuote testPass
   where
     testPass tcconfig =
       LetFloatOut.floatTermPassSC

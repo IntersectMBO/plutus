@@ -28,4 +28,4 @@ test_rename = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
 
 prop_rename :: Property
 prop_rename =
-  withMaxSuccess 5000 $ testPassProp runQuote (const renamePass)
+  withMaxSuccess numTestsForPassProp $ testPassProp runQuote (const renamePass)

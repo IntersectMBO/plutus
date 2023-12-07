@@ -26,7 +26,7 @@ test_strictifyBindings = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Tran
 
 prop_strictifyBindings :: BuiltinSemanticsVariant DefaultFun -> Property
 prop_strictifyBindings biVariant =
-  withMaxSuccess 5000 $
+  withMaxSuccess numTestsForPassProp $
     testPassProp
       runIdentity
       $ \tc -> strictifyBindingsPass tc (def {_biSemanticsVariant = biVariant})

@@ -41,7 +41,7 @@ test_deadCode = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
 -- FIXME this test sometimes fails so ignoring it to make CI pass.
 typecheckRemoveDeadBindingsProp :: BuiltinSemanticsVariant DefaultFun -> Property
 typecheckRemoveDeadBindingsProp biVariant =
-  withMaxSuccess 50000 $
+  withMaxSuccess (3 * numTestsForPassProp) $
     testPassProp
       runQuote
       $ \tc -> removeDeadBindingsPassSC tc (def {_biSemanticsVariant = biVariant})

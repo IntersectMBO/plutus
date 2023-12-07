@@ -33,6 +33,12 @@ convertToEitherString = \case
 instance Arbitrary (BuiltinSemanticsVariant PLC.DefaultFun) where
     arbitrary = elements [DefaultFunSemanticsVariant1, DefaultFunSemanticsVariant2]
 
+-- | An appropriate number of tests for a compiler pass property, so that we get some decent
+-- exploration of the program space. If you also take other arguments, then consider multiplying
+-- this up in order to account for the larger space.
+numTestsForPassProp :: Int
+numTestsForPassProp = 3000
+
 -- | Run a 'Pass' on a 'Term', setting up the typechecking config and throwing errors.
 runTestPass
   :: (PLC.ThrowableBuiltins uni fun

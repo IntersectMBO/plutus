@@ -40,4 +40,4 @@ test_rewriteRules = runTestNestedIn ["plutus-ir/test/PlutusIR/Transform"] $
 
 prop_rewriteRules :: Property
 prop_rewriteRules =
-  withMaxSuccess 3000 $ testPassProp runQuote $ \tc -> rewritePassSC tc def
+  withMaxSuccess numTestsForPassProp $ testPassProp runQuote $ \tc -> rewritePassSC tc def

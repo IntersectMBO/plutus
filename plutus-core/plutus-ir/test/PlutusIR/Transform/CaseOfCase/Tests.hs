@@ -25,5 +25,5 @@ test_caseOfCase = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"]
 
 prop_caseOfCase :: Property
 prop_caseOfCase =
-  withMaxSuccess 3000 $
+  withMaxSuccess numTestsForPassProp $
     testPassProp runQuote $ \tc -> CaseOfCase.caseOfCasePassSC tc def True mempty

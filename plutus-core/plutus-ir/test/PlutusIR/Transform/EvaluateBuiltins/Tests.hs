@@ -44,7 +44,7 @@ test_evaluateBuiltins = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Trans
 prop_evaluateBuiltins ::
     Bool -> BuiltinSemanticsVariant DefaultFun -> Property
 prop_evaluateBuiltins conservative biVariant =
-  withMaxSuccess 40000 $
+  withMaxSuccess (2 * 3 * numTestsForPassProp) $
     testPassProp
       runIdentity
       $ \tc -> evaluateBuiltinsPass tc conservative (def {_biSemanticsVariant = biVariant}) def

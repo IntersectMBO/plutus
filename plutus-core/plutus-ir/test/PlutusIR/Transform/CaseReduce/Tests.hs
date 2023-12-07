@@ -6,4 +6,4 @@ import PlutusIR.Transform.CaseReduce
 import Test.QuickCheck.Property (Property, withMaxSuccess)
 
 prop_caseReduce :: Property
-prop_caseReduce = withMaxSuccess 3000 $ testPassProp runIdentity caseReducePass
+prop_caseReduce = withMaxSuccess numTestsForPassProp $ testPassProp runIdentity caseReducePass

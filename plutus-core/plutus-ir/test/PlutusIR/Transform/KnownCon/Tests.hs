@@ -25,4 +25,4 @@ test_knownCon = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
             ]
 
 prop_knownCon :: Property
-prop_knownCon = withMaxSuccess 3000 $ testPassProp runQuote KnownCon.knownConPassSC
+prop_knownCon = withMaxSuccess numTestsForPassProp $ testPassProp runQuote KnownCon.knownConPassSC

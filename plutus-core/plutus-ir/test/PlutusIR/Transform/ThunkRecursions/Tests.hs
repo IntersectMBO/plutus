@@ -31,5 +31,5 @@ test_thunkRecursions = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transf
 
 prop_thunkRecursions :: BuiltinSemanticsVariant DefaultFun -> Property
 prop_thunkRecursions biVariant =
-  withMaxSuccess 5000 $
+  withMaxSuccess numTestsForPassProp $
     testPassProp runIdentity $ \tc -> thunkRecursionsPass tc (def {_biSemanticsVariant = biVariant})
