@@ -81,7 +81,6 @@ import PlutusIR.Transform.RewriteRules qualified as RewriteRules
 import PlutusIR.Transform.StrictifyBindings qualified as StrictifyBindings
 import PlutusIR.Transform.ThunkRecursions qualified as ThunkRec
 import PlutusIR.Transform.Unwrap qualified as Unwrap
-import PlutusIR.TypeCheck.Internal
 import PlutusPrelude
 
 isVerbose :: Compiling m e uni fun a => m Bool

@@ -1,4 +1,5 @@
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies     #-}
 {-# LANGUAGE TypeOperators    #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 module PlutusIR.Compiler.Let.Tests where
