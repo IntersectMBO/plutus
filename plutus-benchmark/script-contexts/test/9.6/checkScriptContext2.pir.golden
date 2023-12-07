@@ -309,6 +309,8 @@
     data TxCert | TxCert_match where
       TxCertAuthHotCommittee : Credential -> Credential -> TxCert
       TxCertDelegStaking : Credential -> Delegatee -> TxCert
+      TxCertPoolRegister : bytestring -> bytestring -> TxCert
+      TxCertPoolRetire : bytestring -> integer -> TxCert
       TxCertRegDRep :
         Credential ->
         (\k v -> List (Tuple2 k v))
@@ -459,10 +461,10 @@
                                                {all dead. TxCert}
                                                (equalsInteger 7 index)
                                                (/\dead ->
-                                                  TxCertAuthHotCommittee
-                                                    (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
+                                                  TxCertPoolRegister
+                                                    (unBData
                                                        (headList {data} args))
-                                                    (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
+                                                    (unBData
                                                        (headList
                                                           {data}
                                                           (tailList
@@ -473,15 +475,51 @@
                                                     {all dead. TxCert}
                                                     (equalsInteger 8 index)
                                                     (/\dead ->
-                                                       TxCertResignColdCommittee
-                                                         (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
+                                                       TxCertPoolRetire
+                                                         (unBData
                                                             (headList
                                                                {data}
-                                                               args)))
+                                                               args))
+                                                         (unIData
+                                                            (headList
+                                                               {data}
+                                                               (tailList
+                                                                  {data}
+                                                                  args))))
                                                     (/\dead ->
-                                                       traceError
-                                                         {TxCert}
-                                                         reconstructCaseError)
+                                                       ifThenElse
+                                                         {all dead. TxCert}
+                                                         (equalsInteger 9 index)
+                                                         (/\dead ->
+                                                            TxCertAuthHotCommittee
+                                                              (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
+                                                                 (headList
+                                                                    {data}
+                                                                    args))
+                                                              (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
+                                                                 (headList
+                                                                    {data}
+                                                                    (tailList
+                                                                       {data}
+                                                                       args))))
+                                                         (/\dead ->
+                                                            ifThenElse
+                                                              {all dead. TxCert}
+                                                              (equalsInteger
+                                                                 10
+                                                                 index)
+                                                              (/\dead ->
+                                                                 TxCertResignColdCommittee
+                                                                   (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
+                                                                      (headList
+                                                                         {data}
+                                                                         args)))
+                                                              (/\dead ->
+                                                                 traceError
+                                                                   {TxCert}
+                                                                   reconstructCaseError)
+                                                              {all dead. dead})
+                                                         {all dead. dead})
                                                     {all dead. dead})
                                                {all dead. dead})
                                           {all dead. dead})
