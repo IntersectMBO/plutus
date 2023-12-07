@@ -48,7 +48,6 @@ module PlutusIR.Compiler (
     PirTCConfig(..),
     AllowEscape(..),
     toDefaultCompilationCtx,
-    simplifyTerm
     ) where
 
 import Control.Lens
@@ -104,8 +103,8 @@ runPass mpasses t = do
   res <- runExceptT $ P.runPass logVerbose pedantic passes t
   throwingEither _Error res
 
-simplifierPasses :: Compiling m e uni fun a => m (P.Pass m TyName Name uni fun (Provenance a))
-simplifierPasses = do
+simplifierPasses :: Compiling m e uni fun a => String -> m (P.Pass m TyName Name uni fun (Provenance a))
+simplifierPasses suffix = do
   opts <- view ccOpts
   tcconfig <- view ccTypeCheckConfig
   binfo <- view ccBuiltinsInfo
@@ -126,67 +125,38 @@ simplifierPasses = do
     inline = [Inline.inlinePassSC tcconfig hints binfo  | opts ^. coDoSimplifierInline ]
     rw = [RewriteRules.rewritePassSC tcconfig rules | opts ^. coDoSimplifierRewrite ]
 
-  pure $ P.CompoundPass "simplifier" (uc ++ cr ++ coc ++ cokc ++ beta ++ sb ++ eb ++ inline ++ rw)
+  pure $ P.CompoundPass ("simplifier" ++ suffix) (uc ++ cr ++ coc ++ cokc ++ beta ++ sb ++ eb ++ inline ++ rw)
 
 floatOutPasses :: Compiling m e uni fun a => m (P.Pass m TyName Name uni fun (Provenance a))
 floatOutPasses = do
+  optimize <- view (ccOpts . coOptimize)
   tcconfig <- view ccTypeCheckConfig
   binfo <- view ccBuiltinsInfo
-  pure $ P.CompoundPass
-    "float-out"
-    [ LetFloatOut.floatTermPassSC tcconfig binfo
-    , RecSplit.recSplitPass tcconfig
-    , LetMerge.letMergePass tcconfig
-    ]
+  let passes =
+        [ LetFloatOut.floatTermPassSC tcconfig binfo
+        , RecSplit.recSplitPass tcconfig
+        , LetMerge.letMergePass tcconfig
+        ]
+  pure $ P.CompoundPass "float-out" $ if optimize then passes else []
 
 floatInPasses :: Compiling m e uni fun a => m (P.Pass m TyName Name uni fun (Provenance a))
 floatInPasses = do
+  optimize <- view (ccOpts . coOptimize)
   tcconfig <- view ccTypeCheckConfig
   binfo <- view ccBuiltinsInfo
   relaxed <- view (ccOpts . coRelaxedFloatin)
-  pure $ P.CompoundPass
-    "float-in"
-    [ LetFloatIn.floatTermPassSC tcconfig binfo relaxed
-    , LetMerge.letMergePass tcconfig
-    ]
+  let passes =
+        [ LetFloatIn.floatTermPassSC tcconfig binfo relaxed
+        , LetMerge.letMergePass tcconfig
+        ]
+  pure $ P.CompoundPass "float-in" $ if optimize then passes else []
 
--- | Perform some simplification of a 'Term'.
---
--- NOTE: simplifyTerm requires at least 1 prior dead code elimination pass
-simplifyTerm
-  :: forall m e uni fun a b. (Compiling m e uni fun a, b ~ Provenance a)
-  => Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
-simplifyTerm = runIfOpts simplify'
-    where
-        simplify' :: Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
-        simplify' t = do
-            maxIterations <- view (ccOpts . coMaxSimplifierIterations)
-            simplifyNTimes maxIterations t
-        -- Run the simplifier @n@ times
-        simplifyNTimes :: Int -> Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
-        simplifyNTimes n = foldl' (>=>) pure (map simplifyStep [1 .. n])
-        -- generate simplification step
-        simplifyStep :: Int -> Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
-        simplifyStep i term = do
-          logVerbose $ "simplifier pass " ++ show i
-          runPass simplifierPasses term
-
-
--- | Perform floating out/merging of lets in a 'Term' to their
--- nearest lambda/Lambda/letStrictNonValue.
--- Note: It assumes globally unique names
-floatOut
-    :: (Compiling m e uni fun a, b ~ Provenance a)
-    => Term TyName Name uni fun b
-    -> m (Term TyName Name uni fun b)
-floatOut = runIfOpts $ runPass floatOutPasses
-
--- | Perform floating in/merging of lets in a 'Term'.
-floatIn
-    :: (Compiling m e uni fun a, b ~ Provenance a)
-    => Term TyName Name uni fun b
-    -> m (Term TyName Name uni fun b)
-floatIn = runIfOpts $ runPass floatInPasses
+simplifier :: Compiling m e uni fun a => m (P.Pass m TyName Name uni fun (Provenance a))
+simplifier = do
+  optimize <- view (ccOpts . coOptimize)
+  maxIterations <- view (ccOpts . coMaxSimplifierIterations)
+  iterations <- for [1 .. maxIterations] $ \i -> simplifierPasses (" (pass " ++ show i ++ ")")
+  pure $ P.CompoundPass "simplifier" $ if optimize then iterations else []
 
 -- | Typecheck a PIR Term iff the context demands it.
 -- Note: assumes globally unique names
@@ -211,8 +181,8 @@ compileToReadable (Program a v t) =
         >=> PLC.rename
         >=> through typeCheckTerm
         >=> runPass (DeadCode.removeDeadBindingsPassSC <$> view ccTypeCheckConfig <*> view ccBuiltinsInfo)
-        >=> simplifyTerm
-        >=> floatOut
+        >=> runPass simplifier
+        >=> runPass floatOutPasses
   in validateOpts v >> Program a v <$> pipeline t
 
 -- | The 2nd half of the PIR compiler pipeline.
@@ -221,7 +191,7 @@ compileToReadable (Program a v t) =
 compileReadableToPlc :: (Compiling m e uni fun a, b ~ Provenance a) => Program TyName Name uni fun b -> m (PLCProgram uni fun a)
 compileReadableToPlc (Program a v t) =
   let pipeline =
-        floatIn
+        runPass floatInPasses
         >=> runPass (NonStrict.compileNonStrictBindingsPassSC <$> view ccTypeCheckConfig <*> pure False)
         >=> runPass (ThunkRec.thunkRecursionsPass <$> view ccTypeCheckConfig <*> view ccBuiltinsInfo)
         -- Process only the non-strict bindings created by 'thunkRecursions' with unit delay/forces
@@ -232,7 +202,7 @@ compileReadableToPlc (Program a v t) =
         -- We introduce some non-recursive let bindings while eliminating recursive let-bindings, so we
         -- can eliminate any of them which are unused here.
         >=> runPass (DeadCode.removeDeadBindingsPassSC <$> view ccTypeCheckConfig <*> view ccBuiltinsInfo)
-        >=> simplifyTerm
+        >=> runPass simplifier
         >=> runPass (Let.compileLetsPassSC <$> view ccTypeCheckConfig <*> pure Let.Types)
         >=> runPass (Let.compileLetsPassSC <$> view ccTypeCheckConfig <*> pure Let.NonRecTerms)
         >=> (<$ logVerbose "  !!! lowerTerm")
