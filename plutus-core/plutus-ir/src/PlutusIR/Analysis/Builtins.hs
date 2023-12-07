@@ -218,4 +218,12 @@ constants.
 To deal with this problem we pass around a predicate that tells us which constants are
 bad, so we can just refuse to perform a transformation if it would produce unrepresentable
 constants.
+
+An alternative approach would be to instead add a pass to rewrite the problematic
+constants into a non-problematic form (e.g. conversion from a bytestring instead of a constant).
+This would be better for optimization, since we wouldn't be blocking EvaluateBuiltins
+from working, even if it was good, but it has two problems:
+1. It would fight with EvaluateBuiltins, which each undoing the other.
+2. It can't work generically, since we don't always have a way to do the transformation. In
+particular, there isn't a way to do this for the ML-result BLS type.
 -}

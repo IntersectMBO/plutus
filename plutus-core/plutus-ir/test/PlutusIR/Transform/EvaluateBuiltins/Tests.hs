@@ -35,6 +35,7 @@ test_evaluateBuiltins = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Trans
             -- We want to test the case where this would reduce, i.e.
             [ "traceNonConservative"
             , "uncompressBlsNonConservative"
+            , "uncompressAndEqualBlsNonConservative"
             ]
 
 -- | Check that a term typechecks after a `PlutusIR.Transform.EvaluateBuiltins`
