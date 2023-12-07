@@ -106,10 +106,10 @@ data TxCert
     TxCertUnRegDRep DRepCredential V2.Value
   | -- | A digest of the PoolParams
     TxCertPoolRegister
-      -- | poolId
       V2.PubKeyHash
-      -- | pool VFR
+      -- ^ poolId
       V2.PubKeyHash
+      -- ^ pool VFR
   | -- | The retirement certificate and the Epoch in which the retirement will take place
     TxCertPoolRetire V2.PubKeyHash Haskell.Integer
   | -- | Authorize a Hot credential for a specific Committee member's cold credential
