@@ -118,3 +118,14 @@ simplePass name tcConfig f = Pass name (pure . f) [Typechecks tcConfig] [ConstCo
 -- | A pass that does renaming.
 renamePass :: (HasUnique name TermUnique, HasUnique tyname TypeUnique, MonadQuote m, Ord a) => Pass m tyname name uni fun a
 renamePass = Pass "renaming" PLC.rename [] [ConstCondition GloballyUniqueNames]
+
+-- | A pass that does typechecking, useful when you want to do it explicitly and not as part of a precondition check.
+typecheckPass
+  :: (TC.MonadTypeCheckPir err uni fun a m, Ord a)
+  => TC.PirTCConfig uni fun
+  -> Pass m TyName Name uni fun a
+typecheckPass tcconfig = Pass "typechecking" run [GloballyUniqueNames] []
+  where
+    run t = do
+      _ <- TC.inferType tcconfig t
+      pure t

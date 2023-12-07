@@ -160,12 +160,15 @@ simplifier = do
 
 -- | Typecheck a PIR Term iff the context demands it.
 -- Note: assumes globally unique names
-typeCheckTerm :: (Compiling m e uni fun a, b ~ Provenance a) => Term TyName Name uni fun b -> m ()
+typeCheckTerm :: (Compiling m e uni fun a, b ~ Provenance a) => Term TyName Name uni fun b -> m (Term TyName Name uni fun b)
 typeCheckTerm t = do
-    doTc <- view (ccOpts . coTypecheck)
-    when doTc $ do
-        tcconfig <- view ccTypeCheckConfig
-        void . runTypeCheckM tcconfig $ inferTypeM t
+  doTc <- view (ccOpts . coTypecheck)
+
+  when doTc $ do
+    tcconfig <- view ccTypeCheckConfig
+    void $ runPass (pure $ P.typecheckPass tcconfig) t
+
+  pure t
 
 -- | The 1st half of the PIR compiler pipeline up to floating/merging the lets.
 -- We stop momentarily here to give a chance to the tx-plugin
@@ -178,8 +181,8 @@ compileToReadable (Program a v t) =
   let pipeline =
         -- We need globally unique names for typechecking, floating, and compiling non-strict bindings
         (<$ logVerbose "  !!! rename")
-        >=> PLC.rename
-        >=> through typeCheckTerm
+        >=> runPass (pure P.renamePass)
+        >=> typeCheckTerm
         >=> runPass (DeadCode.removeDeadBindingsPassSC <$> view ccTypeCheckConfig <*> view ccBuiltinsInfo)
         >=> runPass simplifier
         >=> runPass floatOutPasses
