@@ -47,9 +47,9 @@ integerToByteStringWrapper endiannessArg paddingArg input
           emit $ "Input: " <> (pack . show $ input)
           pure EvaluationFailure
         NotEnoughDigits -> do
-          emit "builtinIntegerToByteString: cannot represent Integer in given number of digits"
+          emit "builtinIntegerToByteString: cannot represent Integer in given number of bytes"
           emit $ "Input: " <> (pack . show $ input)
-          emit $ "Digits requested: " <> (pack . show $ paddingArg)
+          emit $ "Bytes requested: " <> (pack . show $ paddingArg)
           pure EvaluationFailure
       Right result -> pure . pure $ result
 
@@ -96,6 +96,7 @@ integerToByteString requestedByteOrder requestedLength i = case signum i of
     goLELimit acc remaining
       | remaining == 0 = pure $ padLE acc
       | otherwise = do
+          -- builderLength is constant time, so we don't track the length ourselves
           guard (Builder.builderLength acc < requestedLength)
           -- This allows extracting eight digits at once. See Note [Loop sectioning] for details on
           -- why we do this. We also duplicate this code in several places: see Note [Manual
@@ -107,6 +108,8 @@ integerToByteString requestedByteOrder requestedLength i = case signum i of
           -- us as much as 15% peformance, and GHC seems unable to eliminate it. Thus, we have to do
           -- it like this instead.
           let newRemaining = remaining `unsafeShiftR` 64
+          -- Given that remaining must be non-negative, fromInteger here effectively truncates to a
+          -- Word64, by retaining only the least-significant 8 bytes.
           let digitGroup = fromInteger remaining
           case newRemaining of
             0 -> finishLELimit acc digitGroup
@@ -528,8 +531,8 @@ the result they received is shorter than what they requested; in the second
 case, it wouldn't matter anyway, as no number that could reasonably fit on-chain
 would even come close to requiring such a number of digits at a minimum. In any
 reasonable situation, the padding argument would be much, _much_ smaller than
-any Int, and in cases where it isn't, the rest of the system prevents anything
-untoward being noticed.
+the positive size limits for Int, and in cases where it isn't, the rest of the
+system prevents anything untoward being noticed.
 
 On the basis of both of these, we consider that this truncating conversion is
 completely safe, and sensible.
