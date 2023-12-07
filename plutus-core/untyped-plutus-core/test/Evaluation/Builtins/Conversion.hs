@@ -29,7 +29,10 @@ import Test.Tasty (TestTree)
 import Test.Tasty.HUnit (assertEqual, assertFailure, testCase)
 import Text.Show.Pretty (ppShow)
 
--- Properties directly from CIP-0087: https://github.com/mlabs-haskell/CIPs/blob/koz/to-from-bytestring/CIP-0087/CIP-0087.md#builtinintegertobytestring
+-- Properties and examples directly from CIP-0087:
+--
+-- - https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-XXXX#builtinintegertobytestring
+-- - https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-XXXX#builtinbytestringtointeger
 
 -- lengthOfByteString (builtinIntegerToByteString e 0 i) > 0
 i2bProperty1 :: PropertyT IO ()

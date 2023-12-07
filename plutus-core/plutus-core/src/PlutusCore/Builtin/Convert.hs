@@ -71,7 +71,7 @@ data IntegerToByteStringError =
   deriving stock (Eq, Show)
 
 -- | Conversion from 'Integer' to 'ByteString', as per
--- [CIP-0087](https://github.com/cardano-foundation/CIPs/pull/624).
+-- [CIP-0087](https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-XXXX).
 --
 -- For performance and clarity, the endianness argument uses
 -- 'ByteOrder', and the padding argument is an 'Int'.
@@ -180,7 +180,7 @@ integerToByteString requestedLength requestedByteOrder i = case signum i of
       Builder.bytes (BS.replicate paddingLength 0x0) <> acc
 
 -- | Conversion from 'ByteString' to 'Integer', as per
--- [CIP-0087](https://github.com/cardano-foundation/CIPs/pull/624).
+-- [CIP-0087](https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-XXXX).
 --
 -- For clarity, the stated endianness argument uses 'ByteOrder'. Since we only have one failure
 -- condition, we work in 'Maybe', and let the wrapper handle the only possible error.

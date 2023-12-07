@@ -597,13 +597,13 @@ bls12_381_finalVerify a b = fromBuiltin (BI.bls12_381_finalVerify a b)
 -- Conversions
 
 -- | Convert a 'BuiltinInteger' into a 'BuiltinByteString', as described in
--- [CIP-0087](https://github.com/mlabs-haskell/CIPs/blob/koz/to-from-bytestring/CIP-0087/CIP-0087.md#builtinintegertobytestring).
+-- [CIP-0087](https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-XXXX).
 {-# INLINEABLE builtinIntegerToByteString #-}
 builtinIntegerToByteString :: Bool -> Integer -> Integer -> BuiltinByteString
 builtinIntegerToByteString endiannessArg = BI.builtinIntegerToByteString (toBuiltin endiannessArg)
 
 -- | Convert a 'BuiltinByteString' to a 'BuiltinInteger', as described in
--- [CIP-0087](https://github.com/mlabs-haskell/CIPs/blob/koz/to-from-bytestring/CIP-0087/CIP-0087.md#builtinbytestringtointeger).
+-- [CIP-0087](https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-XXXX).
 builtinByteStringToInteger :: Bool -> BuiltinByteString -> Integer
 builtinByteStringToInteger statedEndiannessArg =
   BI.builtinByteStringToInteger (toBuiltin statedEndiannessArg)
