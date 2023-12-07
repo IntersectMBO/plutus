@@ -36,11 +36,11 @@ integerToByteStringWrapper endiannessArg paddingArg input
       emit "builtinIntegerToByteString: padding argument too large"
       emit "If you are seeing this, it is a bug: please report this!"
       pure EvaluationFailure
-  | otherwise = let endianness = if endiannessArg then BigEndian else LittleEndian in
+  | otherwise = let endianness = endiannessArgToByteOrder endiannessArg in
     -- We use fromIntegral here, despite advice to the contrary in general when defining builtin
     -- denotations. For why we do this (and why it's both inevitable and not really a concern
     -- anyway), see Note [fromIntegral and padding arguments].
-    case integerToByteString (fromIntegral (max 0 paddingArg)) endianness input of
+    case integerToByteString endianness (fromIntegral (max 0 paddingArg)) input of
       Left err -> case err of
         NegativeInput -> do
           emit "builtinIntegerToByteString: cannot convert negative Integer"
@@ -57,7 +57,7 @@ integerToByteStringWrapper endiannessArg paddingArg input
 byteStringToIntegerWrapper ::
   Bool -> ByteString -> Emitter (EvaluationResult Integer)
 byteStringToIntegerWrapper statedEndiannessArg input =
-  let endianness = if statedEndiannessArg then BigEndian else LittleEndian in
+  let endianness = endiannessArgToByteOrder statedEndiannessArg in
     case byteStringToInteger endianness input of
       Nothing -> do
         emit "builtinByteStringToInteger: cannot convert empty ByteString"
@@ -76,8 +76,8 @@ data IntegerToByteStringError =
 -- For performance and clarity, the endianness argument uses
 -- 'ByteOrder', and the padding argument is an 'Int'.
 integerToByteString ::
-  Int -> ByteOrder -> Integer -> Either IntegerToByteStringError ByteString
-integerToByteString requestedLength requestedByteOrder i = case signum i of
+  ByteOrder -> Int -> Integer -> Either IntegerToByteStringError ByteString
+integerToByteString requestedByteOrder requestedLength i = case signum i of
   (-1) -> Left NegativeInput
   0 -> Right . BS.replicate (max 1 requestedLength) $ 0x00
   _ -> do
@@ -135,7 +135,7 @@ integerToByteString requestedLength requestedByteOrder i = case signum i of
               _ -> goLENoLimit (acc <> Builder.storable digitGroup) newRemaining
     finishLENoLimit :: Builder -> Word64 -> Builder
     finishLENoLimit acc remaining
-      | remaining == 0 = padLE acc
+      | remaining == 0 = acc
       | otherwise = let newRemaining = remaining `unsafeShiftR` 8
                         digit = fromIntegral remaining
                       in finishLENoLimit (acc <> Builder.word8 digit) newRemaining
@@ -171,7 +171,7 @@ integerToByteString requestedLength requestedByteOrder i = case signum i of
                         _ -> goBENoLimit (Builder.word64BE digitGroup <> acc) newRemaining
     finishBENoLimit :: Builder -> Word64 -> Builder
     finishBENoLimit acc remaining
-      | remaining == 0 = padBE acc
+      | remaining == 0 = acc
       | otherwise = let newRemaining = remaining `unsafeShiftR` 8
                         digit = fromIntegral remaining
                       in finishBENoLimit (Builder.word8 digit <> acc) newRemaining
@@ -276,6 +276,9 @@ byteStringToInteger statedByteOrder bs = do
         .|. (fromIntegral (BS.index bs (endIx - 5)) `unsafeShiftL` 40)
         .|. (fromIntegral (BS.index bs (endIx - 6)) `unsafeShiftL` 48)
         .|. (fromIntegral (BS.index bs (endIx - 7)) `unsafeShiftL` 56)
+
+endiannessArgToByteOrder :: Bool -> ByteOrder
+endiannessArgToByteOrder b = if b then BigEndian else LittleEndian
 
 {- Note [Manual specialization]
 For both integerToByteString and byteStringToInteger, we have to perform very
