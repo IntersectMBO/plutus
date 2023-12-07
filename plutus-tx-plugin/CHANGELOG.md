@@ -1,4 +1,16 @@
 
+<a id='changelog-1.18.0.0'></a>
+# 1.18.0.0 — 2023-12-06
+
+## Added
+
+- A more informative error message when the plugin encounters a literal range.
+
+## Changed
+
+- Updated the Plutus Tx compiler to make the "Unsupported feature: Cannot case on a value on type"
+  error happen less often (if not eliminating it entirely).
+
 <a id='changelog-1.13.0.0'></a>
 # 1.13.0.0 — 2023-09-15
 
