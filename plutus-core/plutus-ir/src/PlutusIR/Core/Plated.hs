@@ -28,6 +28,7 @@ module PlutusIR.Core.Plated
     , termUniquesDeep
     , varDeclSubtypes
     , underBinders
+    , _Constant
     ) where
 
 import PlutusCore qualified as PLC
@@ -48,6 +49,10 @@ infixr 6 <^>
 -- | Compose two folds to make them run in parallel. The results are concatenated.
 (<^>) :: Fold s a -> Fold s a -> Fold s a
 (f1 <^> f2) g s = f1 g s *> f2 g s
+
+-- | View a term as a constant.
+_Constant :: Prism' (Term tyname name uni fun a) (a, PLC.Some (PLC.ValueOf uni))
+_Constant = prism' (uncurry Constant) (\case { Constant a v -> Just (a, v); _ -> Nothing })
 
 {-# INLINE bindingSubterms #-}
 -- | Get all the direct child 'Term's of the given 'Binding'.
