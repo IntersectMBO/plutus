@@ -69,6 +69,7 @@ module PlutusTx.Builtins (
                          , pairToPair
                          -- * Lists
                          , matchList
+                         , headMaybe
                          , BI.head
                          , BI.tail
                          , uncons
@@ -381,6 +382,10 @@ encodeUtf8 = BI.encodeUtf8
 {-# INLINABLE matchList #-}
 matchList :: forall a r . BI.BuiltinList a -> r -> (a -> BI.BuiltinList a -> r) -> r
 matchList l nilCase consCase = BI.chooseList l (const nilCase) (\_ -> consCase (BI.head l) (BI.tail l)) ()
+
+{-# INLINE headMaybe #-}
+headMaybe :: BI.BuiltinList a -> Maybe a
+headMaybe l = matchList l Nothing (\h _ -> Just h)
 
 {-# INLINE uncons #-}
 -- | Uncons a builtin list, failing if the list is empty, useful in patterns.

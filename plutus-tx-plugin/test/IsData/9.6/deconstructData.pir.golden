@@ -126,6 +126,9 @@ let
                                ds
                                {Maybe (Tuple2 a b)}
                                (\(ds : data) (ds : list data) ->
+                                  let
+                                    !l : list data = ds
+                                  in
                                   Maybe_match
                                     {a}
                                     (`$dFromData` ds)
@@ -133,14 +136,39 @@ let
                                     (\(arg : a) ->
                                        /\dead ->
                                          Maybe_match
-                                           {b}
-                                           (`$dFromData` (head {data} ds))
+                                           {data}
+                                           (chooseList
+                                              {data}
+                                              {Unit -> Maybe data}
+                                              l
+                                              (\(ds : Unit) -> Nothing {data})
+                                              (\(ds : Unit) ->
+                                                 let
+                                                   !h : data = head {data} l
+                                                   !ds : list data
+                                                     = tail {data} l
+                                                 in
+                                                 Just {data} h)
+                                              Unit)
                                            {all dead. Maybe (Tuple2 a b)}
-                                           (\(arg : b) ->
+                                           (\(ds : data) ->
                                               /\dead ->
-                                                Just
-                                                  {Tuple2 a b}
-                                                  (Tuple2 {a} {b} arg arg))
+                                                Maybe_match
+                                                  {b}
+                                                  (`$dFromData` ds)
+                                                  {all dead. Maybe (Tuple2 a b)}
+                                                  (\(arg : b) ->
+                                                     /\dead ->
+                                                       Just
+                                                         {Tuple2 a b}
+                                                         (Tuple2
+                                                            {a}
+                                                            {b}
+                                                            arg
+                                                            arg))
+                                                  (/\dead ->
+                                                     Nothing {Tuple2 a b})
+                                                  {all dead. dead})
                                            (/\dead -> Nothing {Tuple2 a b})
                                            {all dead. dead})
                                     (/\dead -> Nothing {Tuple2 a b})
