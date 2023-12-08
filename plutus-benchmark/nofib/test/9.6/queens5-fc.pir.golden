@@ -660,9 +660,7 @@
                                                             (/\dead ->
                                                                Bool_match
                                                                  (ds
-                                                                    (`Cons=`
-                                                                       var'
-                                                                       val')
+                                                                    ds
                                                                     (`Cons=`
                                                                        var
                                                                        val))

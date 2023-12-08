@@ -26,8 +26,12 @@ class Enum a where
   toEnum :: Integer -> a
   -- | Convert to an 'Integer'.
   fromEnum :: a -> Integer
-  -- | Construct a list from the given range.
+  -- | Construct a list from the given range (corresponds to [a..b]).
   enumFromTo :: a -> a -> [a]
+  -- | Construct a list from the given range (corresponds to [a,b..c]).  This
+  -- has the same semantics as the Haskell version,so if a==b and c>=b then you
+  -- get an infinite list, which you probably don't want in Plutus Core.
+  enumFromThenTo :: a -> a -> a -> [a]
 
 instance Enum Integer where
   {-# INLINABLE succ #-}
@@ -43,9 +47,24 @@ instance Enum Integer where
   fromEnum x = x
 
   {-# INLINABLE enumFromTo #-}
-  enumFromTo x y
-    | x > y = []
-    | otherwise = x : enumFromTo (succ x) y
+  enumFromTo x lim
+    | x > lim = []
+    | otherwise = x : enumFromTo (succ x) lim
+
+  {-# INLINABLE enumFromThenTo #-}
+  enumFromThenTo x y lim =
+      if delta >= 0
+      then up_list x
+      else dn_list x
+          where delta = subtractInteger y x
+                up_list x1 =
+                    if x1 > lim
+                    then []
+                    else x1 : up_list (addInteger x1 delta)
+                dn_list x1 =
+                    if x1 < lim
+                    then []
+                    else x1 : dn_list (addInteger x1 delta)
 
 instance Enum () where
   {-# INLINABLE succ #-}
@@ -63,6 +82,10 @@ instance Enum () where
 
   {-# INLINABLE enumFromTo #-}
   enumFromTo _ _ = [()]
+
+  {-# INLINABLE enumFromThenTo #-}
+  -- enumFromThenTo () () () is an infinite list of ()'s, so this isn't too useful.
+  enumFromThenTo x y lim = map toEnum (enumFromThenTo (fromEnum x) (fromEnum y) (fromEnum lim))
 
 instance Enum Bool where
   {-# INLINABLE succ #-}
@@ -83,7 +106,10 @@ instance Enum Bool where
   fromEnum True  = 1
 
   {-# INLINABLE enumFromTo #-}
-  enumFromTo x y = map toEnum (enumFromTo (fromEnum x) (fromEnum y))
+  enumFromTo x lim = map toEnum (enumFromTo (fromEnum x) (fromEnum lim))
+
+  {-# INLINABLE enumFromThenTo #-}
+  enumFromThenTo x y lim = map toEnum (enumFromThenTo (fromEnum x) (fromEnum y) (fromEnum lim))
 
 instance Enum Ordering where
   {-# INLINABLE succ #-}
@@ -109,3 +135,7 @@ instance Enum Ordering where
 
   {-# INLINABLE enumFromTo #-}
   enumFromTo x y = map toEnum (enumFromTo (fromEnum x) (fromEnum y))
+
+  {-# INLINABLE enumFromThenTo #-}
+  enumFromThenTo x y lim = map toEnum (enumFromThenTo (fromEnum x) (fromEnum y) (fromEnum lim))
+

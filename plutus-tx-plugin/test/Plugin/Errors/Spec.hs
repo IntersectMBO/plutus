@@ -17,10 +17,10 @@ module Plugin.Errors.Spec where
 
 import Test.Tasty.Extras
 
-import PlutusCore.Test
+import PlutusCore.Test (goldenUPlc)
 import PlutusTx.Builtins qualified as Builtins
-import PlutusTx.Code
-import PlutusTx.Plugin
+import PlutusTx.Code (CompiledCode)
+import PlutusTx.Plugin.Utils (plc)
 import PlutusTx.Test ()
 
 import Data.Proxy
@@ -34,19 +34,23 @@ import GHC.Num.Integer
 {- HLINT ignore -}
 
 errors :: TestNested
-errors = testNestedGhc "Errors" [
-    goldenUPlc "machInt" machInt
-    -- FIXME: This fails differently in nix, possibly due to slightly different optimization settings
-    -- , goldenPlc "negativeInt" negativeInt
-    , goldenUPlc "caseInt" caseInt
-    , goldenUPlc "stringLiteral" stringLiteral
-    , goldenUPlc "recursiveNewtype" recursiveNewtype
-    , goldenUPlc "mutualRecursionUnfoldingsLocal" mutualRecursionUnfoldingsLocal
-    , goldenUPlc "literalCaseInt" literalCaseInt
-    , goldenUPlc "literalCaseBs" literalCaseBs
-    , goldenUPlc "literalAppendBs" literalAppendBs
-    , goldenUPlc "literalCaseOther" literalCaseOther
-  ]
+errors = testNestedGhc "Errors"
+         [ goldenUPlc "machInt" machInt
+         -- FIXME: This fails differently in nix, possibly due to slightly different optimization settings
+         -- , goldenPlc "negativeInt" negativeInt
+         , goldenUPlc "caseInt" caseInt
+         , goldenUPlc "stringLiteral" stringLiteral
+         , goldenUPlc "recursiveNewtype" recursiveNewtype
+         , goldenUPlc "mutualRecursionUnfoldingsLocal" mutualRecursionUnfoldingsLocal
+         , goldenUPlc "literalCaseInt" literalCaseInt
+         , goldenUPlc "literalCaseBs" literalCaseBs
+         , goldenUPlc "literalAppendBs" literalAppendBs
+         , goldenUPlc "literalCaseOther" literalCaseOther
+         , goldenUPlc "rangeEnumFromTo" rangeEnumFromTo
+         , goldenUPlc "rangeEnumFromThenTo" rangeEnumFromThenTo
+         , goldenUPlc "rangeEnumFrom" rangeEnumFrom
+         , goldenUPlc "rangeEnumFromThen" rangeEnumFromThen
+         ]
 
 machInt :: CompiledCode Int
 machInt = plc (Proxy @"machInt") (1::Int)
@@ -96,3 +100,17 @@ instance Eq AType where
 
 literalCaseOther :: CompiledCode (AType -> AType)
 literalCaseOther = plc (Proxy @"literalCaseOther") (\x -> case x of { "abc" -> ""; x -> x})
+
+-- Tests for literal ranges (and the corresponding methods in GHC.Enum). These
+-- should all fail with informative error messages.
+rangeEnumFromTo :: CompiledCode [Integer]
+rangeEnumFromTo = plc (Proxy @"rangeEnumFromTo") [1..50]
+
+rangeEnumFromThenTo :: CompiledCode [Integer]
+rangeEnumFromThenTo = plc (Proxy @"rangeEnumFromThenTo") [1,7..50]
+
+rangeEnumFrom :: CompiledCode [Integer]
+rangeEnumFrom = plc (Proxy @"rangeEnumFrom") [1..]
+
+rangeEnumFromThen :: CompiledCode [Integer]
+rangeEnumFromThen = plc (Proxy @"rangeEnumFromThen") [1,5..]

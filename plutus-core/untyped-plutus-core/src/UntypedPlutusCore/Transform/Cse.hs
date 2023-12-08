@@ -7,7 +7,7 @@
 
 module UntypedPlutusCore.Transform.Cse (cse) where
 
-import PlutusCore (MonadQuote, Name, freshName)
+import PlutusCore (MonadQuote, Name, Rename, freshName, rename)
 import UntypedPlutusCore.Core
 import UntypedPlutusCore.Purity (isWorkFree)
 import UntypedPlutusCore.Size
@@ -205,22 +205,27 @@ data CseCandidate uni fun ann = CseCandidate
   }
 
 cse ::
-  (MonadQuote m, Hashable (Term Name uni fun ()), Hashable fun) =>
+  ( MonadQuote m
+  , Hashable (Term Name uni fun ())
+  , Hashable fun
+  , Rename (Term Name uni fun ann)
+  ) =>
   Term Name uni fun ann ->
   m (Term Name uni fun ann)
-cse t = mkCseTerm commonSubexprs annotated
-  where
-    annotated = annotate t
-    commonSubexprs =
-      -- Processed the common subexpressions in descending order of `termSize`.
-      -- See Note [CSE].
-      sortOn (Down . termSize)
-        . fmap snd3
-        -- A subexpression is common if the count is greater than 1.
-        . filter ((> 1) . thd3)
-        . join
-        . Map.elems
-        $ countOccs (calcBuiltinArity t) annotated
+cse t0 = do
+  t <- rename t0
+  let annotated = annotate t
+      commonSubexprs =
+        -- Processed the common subexpressions in descending order of `termSize`.
+        -- See Note [CSE].
+        sortOn (Down . termSize)
+          . fmap snd3
+          -- A subexpression is common if the count is greater than 1.
+          . filter ((> 1) . thd3)
+          . join
+          . Map.elems
+          $ countOccs (calcBuiltinArity t) annotated
+  mkCseTerm commonSubexprs annotated
 
 -- | The first pass. See Note [CSE].
 calcBuiltinArity ::
@@ -299,7 +304,7 @@ countOccs arityInfo = foldrOf termSubtermsDeep addToMap Map.empty
       | otherwise =
           Map.alter
             ( \case
-                Nothing    -> Just $ [(path, t0, 1)]
+                Nothing -> Just $ [(path, t0, 1)]
                 Just paths -> Just $ combinePaths t0 path paths
             )
             t
@@ -316,7 +321,7 @@ countOccs arityInfo = foldrOf termSubtermsDeep addToMap Map.empty
     isForcingBuiltin = \case
       Builtin{} -> True
       Force _ t -> isForcingBuiltin t
-      _         -> False
+      _ -> False
 
 -- | Combine a new path with a number of existing (path, count) pairs.
 combinePaths ::

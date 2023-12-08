@@ -14,9 +14,9 @@ repository cardano-haskell-packages
 -- update either of these.
 index-state:
   -- Bump both the following dates if you need newer packages from Hackage
-  , hackage.haskell.org 2023-11-08T00:00:00Z
+  , hackage.haskell.org 2023-11-26T21:52:49Z
   -- Bump this if you need newer packages from CHaP
-  , cardano-haskell-packages 2023-11-08T00:00:00Z
+  , cardano-haskell-packages 2023-11-26T20:12:16Z
 
 packages: doc/read-the-docs-site
           plutus-benchmark
@@ -56,6 +56,12 @@ if impl(ghc < 9.0) || os(windows)
   -- won't actually build it.
   allow-older: plutus-cert:base
 
+-- Recently introduced flag to be clever and use SIMD instructions.
+-- We don't need this and it causes problems in a few settings including
+-- cross-compilation.
+package bitvec
+  flags: -simd
+
 -- See the note on nix/agda-packages.nix for why this is here.
 -- (NOTE this will change to ieee754 in newer versions of nixpkgs).
 extra-packages: ieee, filemanip
@@ -64,3 +70,20 @@ source-repository-package
   type: git
   location: https://github.com/jaccokrijnen/plutus-cert
   tag: e814b9171398cbdfecdc6823067156a7e9fc76a3
+
+if impl(ghc >= 9.8)
+  allow-newer:
+    -- https://github.com/typeclasses/hex-text/pull/8
+    , hex-text:base
+    , hex-text:bytestring
+    , hex-text:text
+
+    -- https://github.com/tweag/HaskellR/pull/420
+    , inline-r:singletons-th
+    , inline-r:aeson
+    , inline-r:text
+    , inline-r:template-haskell
+    , inline-r:deepseq
+    , inline-r:bytestring
+    , inline-r:containers
+    , inline-r:primitive

@@ -51,7 +51,7 @@ common lang
 
 common ghc-version-support
   -- See the section on GHC versions in CONTRIBUTING
-  if impl(ghc <9.2)
+  if (impl(ghc <9.6) || impl(ghc >=9.7))
     buildable: False
 
 executable doc-doctests
@@ -77,9 +77,9 @@ executable doc-doctests
     , containers
     , flat               ^>=0.6
     , lens
-    , plutus-core        ^>=1.17
-    , plutus-ledger-api  ^>=1.17
-    , plutus-tx          ^>=1.17
+    , plutus-core        ^>=1.18
+    , plutus-ledger-api  ^>=1.18
+    , plutus-tx          ^>=1.18
     , prettyprinter
     , random
     , serialise
@@ -104,10 +104,10 @@ executable quick-start
     , base               >=4.9   && <5
     , base16-bytestring
     , bytestring
-    , plutus-core        ^>=1.17
-    , plutus-ledger-api  ^>=1.17
-    , plutus-tx          ^>=1.17
-    , plutus-tx-plugin   ^>=1.17
+    , plutus-core        ^>=1.18
+    , plutus-ledger-api  ^>=1.18
+    , plutus-tx          ^>=1.18
+    , plutus-tx-plugin   ^>=1.18
 
   if !(impl(ghcjs) || os(ghcjs))
     build-depends: plutus-tx-plugin
