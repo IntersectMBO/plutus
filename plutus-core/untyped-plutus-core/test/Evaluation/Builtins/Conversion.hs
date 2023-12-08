@@ -10,6 +10,7 @@ module Evaluation.Builtins.Conversion (
   i2bProperty4,
   b2iProperty1,
   b2iProperty2,
+  b2iProperty3,
   i2bCipExamples,
   b2iCipExamples
   ) where
@@ -140,14 +141,14 @@ i2bProperty4 = do
       (_, EvaluationFailure)                                 -> annotateShow aLogs >> failure
       (EvaluationSuccess eResult, EvaluationSuccess aResult) -> eResult === aResult
 
--- builtinByteStringToInteger b (builtinIntegerToByteString b d i) = i
+-- builtinByteStringToInteger b (builtinIntegerToByteString b 0 i) = i
 b2iProperty1 :: PropertyT IO ()
 b2iProperty1 = do
   b <- forAllWith ppShow Gen.bool
-  (d, i) <- forAllWith ppShow genProp3Prop4Data
+  i <- forAllWith ppShow $ Gen.integral (Range.constant 0 (256 ^ (17 :: Int) - 1))
   let actualExp = mkIterAppNoAnn (builtin () IntegerToByteString) [
         mkConstant @Bool () b,
-        mkConstant @Integer () d,
+        mkConstant @Integer () 0,
         mkConstant @Integer () i
         ]
   let convertedExp = mkIterAppNoAnn (builtin () ByteStringToInteger) [
@@ -180,6 +181,31 @@ b2iProperty2 = do
     Right (res, logs) -> case res of
       EvaluationFailure   -> annotateShow logs >> failure
       EvaluationSuccess x -> x === mkConstant @Integer () w8
+
+-- if lengthOfByteString bs > 0,
+-- builtinIntegerToByteString b (lengthOfByteString bs) (builtinByteStringToInteger b bs) = bs
+b2iProperty3 :: PropertyT IO ()
+b2iProperty3 = do
+  b <- forAllWith ppShow Gen.bool
+  bs <- forAllWith ppShow $ Gen.bytes (Range.linear 1 17)
+  let sized = mkIterAppNoAnn (builtin () LengthOfByteString) [
+        mkConstant @ByteString () bs
+        ]
+  let converted = mkIterAppNoAnn (builtin () ByteStringToInteger) [
+        mkConstant @Bool () b,
+        mkConstant @ByteString () bs
+        ]
+  let actualExp = mkIterAppNoAnn (builtin () IntegerToByteString) [
+        mkConstant @Bool () b,
+        sized,
+        converted
+        ]
+  let result = typecheckEvaluateCek def defaultBuiltinCostModel actualExp
+  case result of
+    Left err -> annotateShow err >> failure
+    Right (res, logs) -> case res of
+      EvaluationFailure   -> annotateShow logs >> failure
+      EvaluationSuccess x -> x === mkConstant @ByteString () bs
 
 i2bCipExamples :: [TestTree]
 i2bCipExamples = [

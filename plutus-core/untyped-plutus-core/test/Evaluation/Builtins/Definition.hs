@@ -836,6 +836,9 @@ test_Conversion =
         testPropertyNamed "property 1" "b2i_prop1" . property $ Conversion.b2iProperty1,
         -- builtinByteStringToInteger b (consByteString w8 emptyByteString) = w8
         testPropertyNamed "property 2" "b2i_prop2" . property $ Conversion.b2iProperty2,
+        -- if lengthOfByteString bs > 0,
+        -- builtinIntegerToByteString b (lengthOfByteString bs) (builtinByteStringToInteger b bs) = bs
+        testPropertyNamed "property 3" "b2i_prop3" . property $ Conversion.b2iProperty3,
         testGroup "CIP-0087 examples" Conversion.b2iCipExamples
         ]
       ]
