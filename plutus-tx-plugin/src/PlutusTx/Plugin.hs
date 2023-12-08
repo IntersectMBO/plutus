@@ -58,8 +58,10 @@ import PlutusCore.Version qualified as PLC
 import UntypedPlutusCore qualified as UPLC
 
 import PlutusIR qualified as PIR
+import PlutusIR.Certifier.ToCoq qualified as PIR
 import PlutusIR.Compiler qualified as PIR
 import PlutusIR.Compiler.Definitions qualified as PIR
+import PlutusIR.Compiler.Types qualified as PIR
 import PlutusTx.Options
 
 import Language.Haskell.TH.Syntax as TH hiding (lift)
@@ -85,6 +87,7 @@ import PlutusIR.Transform.RewriteRules
 import Prettyprinter qualified as PP
 import System.IO (openTempFile)
 import System.IO.Unsafe (unsafePerformIO)
+import Text.Printf (printf)
 
 data PluginCtx = PluginCtx
     { pcOpts            :: PluginOptions
@@ -480,6 +483,7 @@ runCompiler moduleName opts expr = do
                  & set (PIR.ccOpts . PIR.coPedantic) (opts ^. posPedantic)
                  & set (PIR.ccOpts . PIR.coVerbose) (opts ^. posVerbosity == Verbose)
                  & set (PIR.ccOpts . PIR.coDebug) (opts ^. posVerbosity == Debug)
+                 & set (PIR.ccOpts . PIR.coDumpCert) (opts ^. posDumpCert)
                  & set (PIR.ccOpts . PIR.coMaxSimplifierIterations)
                     (opts ^. posMaxSimplifierIterationsPir)
                  & set PIR.ccTypeCheckConfig pirTcConfig
@@ -521,14 +525,19 @@ runCompiler moduleName opts expr = do
         dumpFlat (void pirP) "initial PIR program" (moduleName ++ ".pir-initial.flat")
 
     -- Pir -> (Simplified) Pir pass. We can then dump/store a more legible PIR program.
-    spirP <- flip runReaderT pirCtx $ PIR.compileToReadable pirP
-    when (opts ^. posDumpPir) . liftIO $
+    (spirP, scTrace) <- flip runStateT (PIR.CompilationTrace (void pirT) []) $
+                          flip runReaderT pirCtx $ PIR.compileToReadable pirP
+    when (opts ^. posDumpPir) . liftIO $ do
         dumpFlat (void spirP) "simplified PIR program" (moduleName ++ ".pir-simplified.flat")
 
     -- (Simplified) Pir -> Plc translation.
-    plcP <- flip runReaderT pirCtx $ PIR.compileReadableToPlc spirP
+    (plcP, cTrace) <- flip runStateT scTrace $
+                        flip runReaderT pirCtx $ PIR.compileReadableToPlc spirP
     when (opts ^. posDumpPlc) . liftIO $
         dumpFlat (void plcP) "typed PLC program" (moduleName ++ ".plc.flat")
+
+    when (opts ^. posDumpCert) . liftIO $
+      dumpCert cTrace
 
     -- We do this after dumping the programs so that if we fail typechecking we still get the dump.
     when (opts ^. posDoTypecheck) . void $
@@ -559,6 +568,19 @@ runCompiler moduleName opts expr = do
         (tPath, tHandle) <- openTempFile "." fileName
         putStrLn $ "!!! dumping " ++ desc ++ " to " ++ show tPath
         BS.hPut tHandle $ flat t
+
+      dumpCert :: PIR.CompilationTrace uni fun a -> IO ()
+      dumpCert (PIR.CompilationTrace tInit prs) = do
+        dumpPass 0 Nothing tInit
+        forM_ (zip [1..] prs) $ \(n, (meta, t)) -> do
+          dumpPass n (Just meta) t
+
+      dumpPass :: Int -> Maybe PIR.PassMeta -> PIR.Term PIR.TyName PIR.Name uni fun a -> IO ()
+      dumpPass n mMeta t = do
+        let baseName = printf "%03d" n ++ "_" ++ moduleName
+        writeFile (baseName ++ ".pir.ast") (PIR.toCoq t)
+        forM_ mMeta $ \m ->
+          writeFile (baseName ++ ".pir.meta") (PIR.toCoq m)
 
       getSrcSpans :: PIR.Provenance Ann -> SrcSpans
       getSrcSpans = SrcSpans . Set.unions . fmap (unSrcSpans . annSrcSpans) . toList

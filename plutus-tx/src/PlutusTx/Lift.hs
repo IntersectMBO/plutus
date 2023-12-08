@@ -29,6 +29,7 @@ import PlutusIR qualified as PIR
 import PlutusIR.Analysis.Builtins as PIR
 import PlutusIR.Compiler
 import PlutusIR.Compiler.Definitions
+import PlutusIR.Compiler.Types
 import PlutusIR.Error qualified as PIR
 import PlutusIR.MkPir qualified as PIR
 import PlutusIR.Transform.RewriteRules as PIR
@@ -48,6 +49,7 @@ import Control.Lens hiding (lifted)
 import Control.Monad (void)
 import Control.Monad.Except (ExceptT, MonadError, liftEither, runExceptT)
 import Control.Monad.Reader (runReaderT)
+import Control.Monad.State (runStateT)
 import Data.Bifunctor
 import Data.Default.Class
 import Data.Proxy
@@ -80,7 +82,7 @@ safeLift v x = do
           -- that takes all the compilation options and everything.
           & set (ccOpts . coDatatypes . dcoStyle) (if v >= PLC.plcVersion110 then SumsOfProducts else ScottEncoding)
         ucOpts = PLC.defaultCompilationOpts & PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations .~ 0
-    plc <- flip runReaderT ccConfig $ compileProgram (Program () v pir)
+    (plc, _dumps) <- flip runStateT (CompilationTrace pir []) $ flip runReaderT ccConfig $ compileProgram (Program () v pir)
     uplc <- flip runReaderT ucOpts $ PLC.compileProgram plc
     (UPLC.Program _ _ db) <- traverseOf UPLC.progTerm UPLC.deBruijnTerm uplc
     pure $ (void pir, void db)
@@ -223,7 +225,7 @@ typeCheckAgainst p (PLC.Program _ v plcTerm) = do
     -- this instance of only "lifting" it is safe to default to any builtin
     -- semantics variant, since the 'Lift' is impervious to builtins and will
     -- not generate code containing builtins.  See Note [Builtin semantics variants]
-    compiled <- flip runReaderT (toDefaultCompilationCtx tcConfig) $ compileProgram (Program () v applied)
+    (compiled, _dumps) <- flip runStateT (CompilationTrace applied []) $ flip runReaderT (toDefaultCompilationCtx tcConfig) $ compileProgram (Program () v applied)
     -- PLC errors are parameterized over PLC.Terms, whereas PIR errors over PIR.Terms and as such, these prism errors cannot be unified.
     -- We instead run the ExceptT, collect any PLC error and explicitly lift into a PIR error by wrapping with PIR._PLCError
     plcConcrete <- runExceptT $ void $ PLC.inferTypeOfProgram tcConfig compiled

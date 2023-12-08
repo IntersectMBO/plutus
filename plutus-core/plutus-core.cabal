@@ -479,6 +479,7 @@ library plutus-ir
     PlutusIR.Analysis.Dependencies
     PlutusIR.Analysis.RetainedSize
     PlutusIR.Analysis.VarInfo
+    PlutusIR.Certifier.ToCoq
     PlutusIR.Check.Uniques
     PlutusIR.Compiler
     PlutusIR.Compiler.Datatype
@@ -541,6 +542,7 @@ library plutus-ir
   build-depends:
     , algebraic-graphs     >=0.7
     , base                 >=4.9     && <5
+    , bytestring
     , containers
     , dlist
     , dom-lt

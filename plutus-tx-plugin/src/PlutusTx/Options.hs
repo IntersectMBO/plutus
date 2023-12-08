@@ -47,6 +47,7 @@ data PluginOptions = PluginOptions
     , _posDumpPir                        :: Bool
     , _posDumpPlc                        :: Bool
     , _posDumpUPlc                       :: Bool
+    , _posDumpCert                       :: Bool
     , _posOptimize                       :: Bool
     , _posPedantic                       :: Bool
     , _posVerbosity                      :: Verbosity
@@ -182,6 +183,9 @@ pluginOptions =
         , let k = "dump-uplc"
               desc = "Dump Untyped Plutus Core"
            in (k, PluginOption typeRep (setTrue k) posDumpUPlc desc [])
+        , let k = "dump-cert"
+              desc = "Dump all PIR ASTs for the Coq certifier"
+           in (k, PluginOption typeRep (setTrue k) posDumpCert desc [])
         , let k = "optimize"
               desc = "Run optimization passes such as simplification and floating let-bindings."
            in (k, PluginOption typeRep (setTrue k) posOptimize desc [])
@@ -293,6 +297,7 @@ defaultPluginOptions =
         , _posDumpPir = False
         , _posDumpPlc = False
         , _posDumpUPlc = False
+        , _posDumpCert = False
         , _posOptimize = True
         , _posPedantic = False
         , _posVerbosity = Quiet
