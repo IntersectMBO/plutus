@@ -145,6 +145,7 @@ test-suite plutus-ledger-api-test
   hs-source-dirs: test
   other-modules:
     Spec.CBOR.DeserialiseFailureInfo
+    Spec.ContextDecoding
     Spec.CostModelParams
     Spec.Eval
     Spec.Interval
