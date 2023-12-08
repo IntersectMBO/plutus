@@ -2,5 +2,5 @@
    (force
       (ifThenElse
          (lessThanInteger 0 0)
-         (delay ((\cse_1 -> addInteger cse_1 cse_1) (addInteger 1 2)))
+         (delay ((\cse_2 -> addInteger cse_2 cse_2) (addInteger 1 2)))
          (delay (addInteger 1 2)))))
