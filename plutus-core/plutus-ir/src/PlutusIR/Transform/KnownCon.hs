@@ -41,10 +41,7 @@ knownCon ::
     ) =>
     Term tyname name uni fun a ->
     m (Term tyname name uni fun a)
-knownCon t0 = do
-    -- We are going to record information about variables in a global map, so we
-    -- need global uniqueness
-    t <- PLC.rename t0
+knownCon t = do
     let vinfo = termVarInfo t
     pure $ transformOf termSubterms (processTerm vinfo) t
 

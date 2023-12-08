@@ -142,12 +142,17 @@ availablePasses =
                                                                                   -- We are going to record information about variables in a global map, so we
                                                                                   -- need global uniqueness
                                                                                   ( PLC.rename
+                                                                                    >=> updateCertTrace PassRename
                                                                                     >=> CaseOfCase.caseOfCase binfo conservative noProvenance
                                                                                     >=> updateCertTrace PassCaseOfCase) t
                                                                               )
-    , Pass "known constructor"    (onOption coDoSimplifierKnownCon)           (\t -> do
-                                                                                  t' <- KnownCon.knownCon t
-                                                                                  updateCertTrace PassKnownConstructor t'
+    , Pass "known constructor"    (onOption coDoSimplifierKnownCon)           (
+                                                                                  -- We are going to record information about variables in a global map, so we
+                                                                                  -- need global uniqueness
+                                                                                  PLC.rename
+                                                                                  >=> updateCertTrace PassRename
+                                                                                  >=> KnownCon.knownCon
+                                                                                  >=> updateCertTrace PassKnownConstructor
                                                                               )
     , Pass "beta"                 (onOption coDoSimplifierBeta)               (\t -> do
                                                                                   let t' = Beta.beta t
