@@ -52,6 +52,7 @@ data PluginOptions = PluginOptions
     , _posVerbosity                      :: Verbosity
     , _posMaxSimplifierIterationsPir     :: Int
     , _posMaxSimplifierIterationsUPlc    :: Int
+    , _posMaxCseIterations               :: Int
     , _posDoSimplifierUnwrapCancel       :: Bool
     , _posDoSimplifierBeta               :: Bool
     , _posDoSimplifierInline             :: Bool
@@ -208,6 +209,9 @@ pluginOptions =
         , let k = "max-simplifier-iterations-uplc"
               desc = "Set the max iterations for the UPLC simplifier"
            in (k, PluginOption typeRep (readOption k) posMaxSimplifierIterationsUPlc desc [])
+        , let k = "max-cse-iterations"
+              desc = "Set the max iterations for CSE"
+           in (k, PluginOption typeRep (readOption k) posMaxCseIterations desc [])
         , let k = "simplifier-unwrap-cancel"
               desc = "Run a simplification pass that cancels unwrap/wrap pairs"
            in (k, PluginOption typeRep (setTrue k) posDoSimplifierUnwrapCancel desc [])
@@ -298,6 +302,7 @@ defaultPluginOptions =
         , _posVerbosity = Quiet
         , _posMaxSimplifierIterationsPir = view PIR.coMaxSimplifierIterations PIR.defaultCompilationOpts
         , _posMaxSimplifierIterationsUPlc = view UPLC.soMaxSimplifierIterations UPLC.defaultSimplifyOpts
+        , _posMaxCseIterations = view UPLC.soMaxCseIterations UPLC.defaultSimplifyOpts
         , _posDoSimplifierUnwrapCancel = True
         , _posDoSimplifierBeta = True
         , _posDoSimplifierInline = True

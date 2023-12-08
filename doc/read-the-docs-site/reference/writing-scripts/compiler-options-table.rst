@@ -73,6 +73,12 @@
      - Dump Untyped Plutus Core
 
 
+   * - ``max-cse-iterations``
+     - Int
+     - 4
+     - Set the max iterations for CSE
+
+
    * - ``max-simplifier-iterations-pir``
      - Int
      - 12

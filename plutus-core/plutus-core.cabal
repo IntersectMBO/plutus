@@ -253,6 +253,7 @@ library
     UntypedPlutusCore.Subst
     UntypedPlutusCore.Transform.CaseOfCase
     UntypedPlutusCore.Transform.CaseReduce
+    UntypedPlutusCore.Transform.Cse
     UntypedPlutusCore.Transform.FloatDelay
     UntypedPlutusCore.Transform.ForceDelay
     UntypedPlutusCore.Transform.Inline
@@ -546,6 +547,7 @@ library plutus-ir
     , dom-lt
     , extra
     , flat                 ^>=0.6
+    , hashable
     , lens
     , megaparsec
     , mmorph
@@ -724,6 +726,7 @@ library plutus-core-testlib
     , data-default-class
     , dependent-map                         >=0.4.0.0
     , filepath
+    , hashable
     , hedgehog                              >=1.0
     , lazy-search
     , lens

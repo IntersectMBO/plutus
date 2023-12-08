@@ -28,7 +28,7 @@ defaultCompilationOpts = CompilationOpts { _coSimplifyOpts = UPLC.defaultSimplif
 
 -- | Compile a PLC term to UPLC, and optimize it.
 compileTerm
-    :: (Compiling m uni fun name, MonadReader (CompilationOpts name a) m)
+    :: (Compiling m uni fun name a, MonadReader (CompilationOpts name a) m)
     => Term tyname name uni fun a
     -> m (UPLC.Term name uni fun a)
 compileTerm t = do
@@ -39,7 +39,7 @@ compileTerm t = do
 
 -- | Compile a PLC program to UPLC, and optimize it.
 compileProgram
-    :: (Compiling m uni fun name, MonadReader (CompilationOpts name a) m)
+    :: (Compiling m uni fun name a, MonadReader (CompilationOpts name a) m)
     => Program tyname name uni fun a
     -> m (UPLC.Program name uni fun a)
 compileProgram (Program a v t) = UPLC.Program a v <$> compileTerm t
