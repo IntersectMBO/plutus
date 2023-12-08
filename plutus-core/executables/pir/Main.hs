@@ -196,7 +196,7 @@ doOptimisations :: PirTerm PLC.SrcSpan -> Either (PirError UnitProvenance) (PirT
 doOptimisations term = do
   plcTcConfig <- PLC.getDefTypeCheckConfig PIR.noProvenance
   let ctx = getCtx plcTcConfig
-  runExcept $ flip runReaderT ctx $ runQuoteT $ PIR.simplifyTerm =<< PLC.rename (PIR.Original () <$ term)
+  runExcept $ flip runReaderT ctx $ runQuoteT $ PIR.runPass PIR.simplifier (PIR.Original () <$ term)
   where
     getCtx
         :: PLC.TypeCheckConfig PLC.DefaultUni PLC.DefaultFun

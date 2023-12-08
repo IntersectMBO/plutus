@@ -48,6 +48,8 @@ module PlutusIR.Compiler (
     PirTCConfig(..),
     AllowEscape(..),
     toDefaultCompilationCtx,
+    runPass,
+    simplifier
     ) where
 
 import Control.Lens
