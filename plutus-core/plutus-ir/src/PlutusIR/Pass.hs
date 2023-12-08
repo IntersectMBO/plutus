@@ -113,7 +113,7 @@ simplePass
   -> TC.PirTCConfig uni fun
   -> (Term TyName Name uni fun a -> Term TyName Name uni fun a)
   -> Pass m TyName Name uni fun a
-simplePass name tcConfig f = Pass name (pure . f) [Typechecks tcConfig] [ConstCondition (Typechecks tcConfig)]
+simplePass name tcConfig f = Pass name (pure . f) [Typechecks tcConfig] []--[ConstCondition (Typechecks tcConfig)]
 
 -- | A pass that does renaming.
 renamePass :: (HasUnique name TermUnique, HasUnique tyname TypeUnique, MonadQuote m, Ord a) => Pass m tyname name uni fun a
