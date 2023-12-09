@@ -1,3 +1,4 @@
+{-# LANGUAGE BangPatterns     #-}
 {-# LANGUAGE ConstraintKinds  #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs            #-}
@@ -14,25 +15,25 @@ module PlutusIR.Transform.Inline.Inline (inline, InlineHints (..)) where
 import PlutusCore.Annotation
 import PlutusCore.Name
 import PlutusCore.Quote
-import PlutusCore.Rename (dupable)
+import PlutusCore.Rename (dupable, rename)
+import PlutusCore.Rename.Internal (Dupable (Dupable))
 import PlutusIR
+import PlutusIR.Analysis.Builtins
+import PlutusIR.Analysis.Size (Size, termSize)
 import PlutusIR.Analysis.Usages qualified as Usages
+import PlutusIR.Analysis.VarInfo qualified as VarInfo
+import PlutusIR.Contexts (AppContext (..), fillAppContext, splitApplication)
 import PlutusIR.MkPir (mkLet)
+import PlutusIR.Transform.Beta qualified as Beta
 import PlutusIR.Transform.Inline.Utils
 import PlutusIR.Transform.Rename ()
 import PlutusPrelude
 
 import Control.Lens (forMOf, traverseOf)
 import Control.Monad.Extra
-import Control.Monad.Reader (runReaderT)
+import Control.Monad.Reader (ask, runReaderT)
 import Control.Monad.State (evalStateT, modify')
-
 import Control.Monad.State.Class (gets)
-import PlutusIR.Analysis.Builtins
-import PlutusIR.Analysis.Size (termSize)
-import PlutusIR.Analysis.VarInfo qualified as VarInfo
-import PlutusIR.Contexts (AppContext (..), fillAppContext, splitApplication)
-import PlutusIR.Transform.Inline.CallSiteInline (callSiteInline)
 import Witherable (Witherable (wither))
 
 {- Note [Inlining approach and 'Secrets of the GHC Inliner']
@@ -154,6 +155,8 @@ But we don't really care about the costs listed there: it's easy for us to get a
 supply, and the performance cost does not currently seem relevant. So it's fine.
 -}
 
+data InliningStrategy = UnconditionalOnly | UnconditionalAndCallsite
+
 -- | Inline non-recursive bindings. Relies on global uniqueness, and preserves it.
 -- See Note [Inlining and global uniqueness]
 inline
@@ -163,13 +166,27 @@ inline
     -> BuiltinsInfo uni fun
     -> Term tyname name uni fun ann
     -> m (Term tyname name uni fun ann)
-inline hints binfo t = let
+inline hints binfo t = inline' UnconditionalAndCallsite hints binfo (VarInfo.termVarInfo t) t
+
+inline'
+    :: forall tyname name uni fun ann m
+    . ExternalConstraints tyname name uni fun m
+    => InliningStrategy
+    -> InlineHints name ann
+    -> BuiltinsInfo uni fun
+    -- This function must reuse the `VarsInfo` of the entire original term, because it may be
+    -- called by the callsite inliner to process a subterm. The subterm may contain free
+    -- variables, and if we compute `VarsInfo` from scratch, those variables won't have
+    -- entries in `VarsInfo`. On the other hand, `Usages` should be re-computed.
+    -> VarInfo.VarsInfo tyname name uni ann
+    -> Term tyname name uni fun ann
+    -> m (Term tyname name uni fun ann)
+inline' strat hints binfo vinfo t = let
         inlineInfo :: InlineInfo tyname name uni fun ann
         inlineInfo = InlineInfo vinfo usgs hints binfo
-        vinfo = VarInfo.termVarInfo t
         usgs :: Usages.Usages
         usgs = Usages.termUsages t
-    in liftQuote $ flip evalStateT mempty $ flip runReaderT inlineInfo $ processTerm t
+    in liftQuote $ flip evalStateT mempty $ flip runReaderT inlineInfo $ processTerm strat t
 
 {- Note [Removing inlined bindings]
 We *do* remove bindings that we inline *unconditionally*. We *could*
@@ -188,9 +205,12 @@ This might mean reinventing GHC's OccAnal...
 -- | Run the inliner on a `Core.Type.Term`.
 processTerm
     :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
-    => Term tyname name uni fun ann -- ^ Term to be processed.
+    => InliningStrategy
+    -> Term tyname name uni fun ann -- ^ Term to be processed.
     -> InlineM tyname name uni fun ann (Term tyname name uni fun ann)
-processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
+processTerm strat = processTerm'
+  where
+    processTerm' = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution
     handleTerm ::
         Term tyname name uni fun ann
         -> InlineM tyname name uni fun ann (Term tyname name uni fun ann)
@@ -203,46 +223,49 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
             -- Note that we don't *remove* the bindings or scope the state, so the state will carry
             -- over into "sibling" terms. This is fine because we have global uniqueness
             -- (see Note [Inlining and global uniqueness]), if somewhat wasteful.
-            bs' <- wither (processSingleBinding t) (toList bs)
-            t' <- processTerm t
+            bs' <- wither (processSingleBinding strat t) (toList bs)
+            t' <- processTerm' t
             -- Use 'mkLet': we're using lists of bindings rather than NonEmpty since we might
             -- actually have got rid of all of them!
             pure $ mkLet ann NonRec bs' t'
         -- This includes recursive let terms, we don't even consider inlining them at the moment
-        t -> do
-            -- See note [Processing order of call site inlining]
-            let (hd, args) = splitApplication t
-                processArgs ::
-                    AppContext tyname name uni fun ann ->
-                    InlineM tyname name uni fun ann (AppContext tyname name uni fun ann)
-                processArgs (TermAppContext arg ann ctx) = do
-                    processedArg <- processTerm arg
-                    processedArgs <- processArgs ctx
-                    pure $ TermAppContext processedArg ann processedArgs
-                processArgs (TypeAppContext ty ann ctx) = do
-                    processedArgs <- processArgs ctx
-                    ty' <- applyTypeSubstitution ty
-                    pure $ TypeAppContext ty' ann processedArgs
-                processArgs AppContextEnd = pure AppContextEnd
-            case args of
-                -- not really an application, so hd is the term itself. Processing it will loop.
-                AppContextEnd -> forMOf termSubterms t processTerm
-                _ -> do
-                    hd' <- processTerm hd
-                    args' <- processArgs args
-                    let reconstructed = fillAppContext hd' args'
-                    case hd' of
-                        Var _ name -> do
-                            gets (lookupVarInfo name) >>= \case
-                                Just varInfo -> do
-                                    maybeInlined <-
-                                        callSiteInline
-                                            (termSize reconstructed)
-                                            varInfo
-                                            args'
-                                    pure $ fromMaybe reconstructed maybeInlined
-                                Nothing -> pure reconstructed
-                        _ -> pure reconstructed
+        t -> case strat of
+            UnconditionalOnly -> forMOf termSubterms t processTerm'
+            UnconditionalAndCallsite -> do
+                -- See note [Processing order of call site inlining]
+                let (hd, args) = splitApplication t
+                    processArgs ::
+                        AppContext tyname name uni fun ann ->
+                        InlineM tyname name uni fun ann (AppContext tyname name uni fun ann)
+                    processArgs (TermAppContext arg ann ctx) = do
+                        processedArg <- processTerm' arg
+                        processedArgs <- processArgs ctx
+                        pure $ TermAppContext processedArg ann processedArgs
+                    processArgs (TypeAppContext ty ann ctx) = do
+                        processedArgs <- processArgs ctx
+                        ty' <- applyTypeSubstitution ty
+                        pure $ TypeAppContext ty' ann processedArgs
+                    processArgs AppContextEnd = pure AppContextEnd
+                case args of
+                    -- not really an application, so hd is the term itself.
+                    -- Processing it will loop.
+                    AppContextEnd -> forMOf termSubterms t processTerm'
+                    _ -> do
+                        hd' <- processTerm' hd
+                        args' <- processArgs args
+                        let reconstructed = fillAppContext hd' args'
+                        case hd' of
+                            Var _ name -> do
+                                gets (lookupVarInfo name) >>= \case
+                                    Just varInfo -> do
+                                        maybeInlined <-
+                                            callSiteInline
+                                                (termSize reconstructed)
+                                                varInfo
+                                                args'
+                                        pure $ fromMaybe reconstructed maybeInlined
+                                    Nothing -> pure reconstructed
+                            _ -> pure reconstructed
 
 {- Note [Processing order of call site inlining]
 We have two options on how we process terms for the call site inliner:
@@ -326,13 +349,14 @@ term, but with the head (the rhs of the variable) and the arguments already proc
 -- | Run the inliner on a single non-recursive let binding.
 processSingleBinding
     :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
-    => Term tyname name uni fun ann -- ^ The body of the let binding.
+    => InliningStrategy
+    -> Term tyname name uni fun ann -- ^ The body of the let binding.
     -> Binding tyname name uni fun ann -- ^ The binding.
     -> InlineM tyname name uni fun ann (Maybe (Binding tyname name uni fun ann))
-processSingleBinding body = \case
+processSingleBinding strat body = \case
     (TermBind ann s v@(VarDecl _ n _) rhs0) -> do
         -- we want to do unconditional inline if possible
-        maybeAddSubst body ann s n rhs0 >>= \case
+        maybeAddSubst strat body ann s n rhs0 >>= \case
             -- this binding is going to be unconditionally inlined
             Nothing -> pure Nothing
             Just rhs -> do
@@ -355,7 +379,7 @@ processSingleBinding body = \case
         maybeRhs' <- maybeAddTySubst n rhs
         pure $ TypeBind ann v <$> maybeRhs'
     b -> -- Just process all the subterms
-        Just <$> forMOf bindingSubterms b processTerm
+        Just <$> forMOf bindingSubterms b (processTerm strat)
 
 -- | Check against the heuristics we have for inlining and either inline the term binding or not.
 -- The arguments to this function are the fields of the `TermBinding` being processed.
@@ -364,14 +388,15 @@ processSingleBinding body = \case
 --   * we are removing the binding (hence we return Nothing).
 maybeAddSubst
     :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
-    => Term tyname name uni fun ann
+    => InliningStrategy
+    -> Term tyname name uni fun ann
     -> ann
     -> Strictness
     -> name
     -> Term tyname name uni fun ann
     -> InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
-maybeAddSubst body ann s n rhs0 = do
-    rhs <- processTerm rhs0
+maybeAddSubst strat body ann s n rhs0 = do
+    rhs <- processTerm strat rhs0
 
     -- Check whether we've been told specifically to inline this
     hints <- view iiHints
@@ -407,3 +432,124 @@ maybeAddTySubst tn rhs = do
         modify' (extendType tn rhs)
         pure Nothing
     else pure $ Just rhs
+
+applyAndBetaReduce ::
+  forall tyname name uni fun ann.
+  (InliningConstraints tyname name uni fun) =>
+  -- | The rhs of the variable, should have been renamed already
+  Term tyname name uni fun ann ->
+  -- | The arguments, already processed
+  AppContext tyname name uni fun ann ->
+  InlineM tyname name uni fun ann (Term tyname name uni fun ann)
+applyAndBetaReduce rhs args = do
+  info <- ask
+  -- We run the beta and inlining passes for `len args` times, since sometimes the args
+  -- can only be beta-reduced one by one. An example is
+  -- `(\x y -> f x y) arg_x arg_y`, where `arg_x` and `arg_y` are effectful terms.
+  -- It needs two beta+inlining passes to reduce to `f arg_x arg_y`: the first pass
+  -- inlines `y` and the second pass `x`.
+  --
+  -- Note that the inlining passes we run here only run unconditional inlining.
+  -- Technically it can be helpful to also run callsite inlining, but it rarely
+  -- makes a difference and leads to exponential worst-case behavior.
+  foldl'
+    (>=>)
+    pure
+    ( replicate
+        (len args)
+        ( pure . Beta.beta
+            >=> inline'
+              UnconditionalOnly
+              (info ^. iiHints)
+              (info ^. iiBuiltinsInfo)
+              (info ^. iiVarInfo)
+        )
+    )
+    (fillAppContext rhs args)
+  where
+    len :: AppContext tyname name uni fun ann -> Int
+    len = go 0
+      where
+        go !acc = \case
+          TermAppContext _ _ ctx -> go (acc + 1) ctx
+          TypeAppContext _ _ ctx -> go (acc + 1) ctx
+          _ -> acc
+
+-- | Consider inlining a variable. For applications, consider whether to apply and beta reduce.
+callSiteInline ::
+  forall tyname name uni fun ann.
+  (InliningConstraints tyname name uni fun) =>
+  -- | The term size if it were not inlined.
+  Size ->
+  -- | The `Utils.VarInfo` of the variable (the head of the term).
+  InlineVarInfo tyname name uni fun ann ->
+  -- | The application context of the term, already processed.
+  AppContext tyname name uni fun ann ->
+  InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
+callSiteInline processedTSize = go
+  where
+    go varInfo args = do
+      let
+        defAsInlineTerm = varRhs varInfo
+        inlineTermToTerm ::
+          InlineTerm tyname name uni fun ann ->
+          Term tyname name uni fun ann
+        inlineTermToTerm (Done (Dupable var)) = var
+        -- extract out the rhs without renaming, we only rename
+        -- when we know there's substitution
+        headRhs = inlineTermToTerm defAsInlineTerm
+        -- The definition itself will be inlined, so we need to check that the cost
+        -- of that is acceptable. Note that we do _not_ check the cost of the _body_.
+        -- We would have paid that regardless.
+        -- Consider e.g. `let y = \x. f x`. We pay the cost of the `f x` at
+        -- every call site regardless. The work that is being duplicated is
+        -- the work for the lambda.
+        costIsOk = costIsAcceptable headRhs
+      -- check if binding is pure to avoid duplicated effects.
+      -- For strict bindings we can't accidentally make any effects happen less often
+      -- than it would have before, but we can make it happen more often.
+      -- We could potentially do this safely in non-conservative mode.
+      rhsPure <- isTermBindingPure (varStrictness varInfo) headRhs
+      if costIsOk && rhsPure
+        then do
+          -- rename the rhs of the variable before any substitution
+          renamedRhs <- rename headRhs
+          inlined <- applyAndBetaReduce renamedRhs args
+          let sizeIsOk = termSize inlined <= processedTSize
+          pure $ if sizeIsOk then Just inlined else Nothing
+        else pure Nothing
+
+{- Note [Inlining and beta reduction of functions]
+
+We inline if its cost and size are acceptable.
+
+For size, we compare the sizes (in terms of AST nodes before and after the inlining and beta
+reduction), and inline only if it does not increase the size. In the above example, we count
+the number of AST nodes in `f a b` and in `a`. The latter is smaller, which means inlining
+reduces the size.
+
+We care about program size increases primarily because it
+affects the size of the serialized script, which appears on chain and must be paid for.
+This is different to many compilers which care about this also because e.g. larger ASTs
+slow down compilation. We care about this too, but the serialized size is the main driver for us.
+
+The number of AST nodes is an approximate rather than a precise measure. It correlates,
+but doesn't directly map to the size of the serialised script. Different kinds of AST nodes
+may take different number of bits to encode; in particular, a `Constant` node always
+counts as one AST node, but the constant in it can be of arbitrary size. Then, would it be
+better to use the size of the serialised term, instead of the number of AST nodes? Not
+necessarily, because other transformations, such as CSE, may change the size further;
+specifically, if a large constant occurs multiple times in a program, it may get CSE'd.
+
+In general there's no reliable way to precisely predict the size impact of an inlining
+decision, and we believe the number of AST nodes is in fact a good approximation.
+
+For cost, we check whether the RHS (in this example, `\x. \y -> x`) has a small cost.
+If the RHS has a non-zero arity, then the cost is always small (since a lambda or a type
+abstraction is already a value). This may not be the case if the arity is zero.
+
+For effect-safety, we require: (1) the RHS be pure, i.e., evaluating it is guaranteed to
+not have side effects; (2) all arguments be pure, since otherwise it is unsafe to
+perform beta reduction.
+
+-}
