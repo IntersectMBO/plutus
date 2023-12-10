@@ -46,7 +46,6 @@ going to typecheck, and the result is always a 'CompiledCode', so that's also fi
 -- | Compile a quoted Haskell expression into a corresponding Plutus Core program.
 compileUntyped :: TH.Q TH.Exp -> TH.Q TH.Exp
 compileUntyped e = do
-    TH.addCorePlugin "PlutusTx.Plugin"
     loc <- TH.location
     let locStr = TH.pprint loc
     -- See note [Typed TH]
