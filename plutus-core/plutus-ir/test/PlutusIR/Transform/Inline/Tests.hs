@@ -73,6 +73,7 @@ test_inline = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
             , "letNonPure" -- multiple occurrences of a non-pure binding
             , "letNonPureMulti"
             , "letNonPureMultiStrict"
+            , "multilet"
             , "rhs-modified"
             , "partiallyApp"
             , "effectfulBuiltinArg"
