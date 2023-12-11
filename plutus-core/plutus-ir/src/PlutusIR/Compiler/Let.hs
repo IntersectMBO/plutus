@@ -86,7 +86,7 @@ compileRecBindings kind body bs =
     singleGroup :| [] ->
       case NE.head singleGroup of
          TermBind {} -> compileRecTermBindings kind body singleGroup
-         DatatypeBind {} ->  lift $ compileRecDataBindings kind body singleGroup
+         DatatypeBind {} -> lift $ compileRecDataBindings kind body singleGroup
          tb@TypeBind {} ->
             lift $ getEnclosing >>= \p -> throwing _Error $
                 CompilationError p

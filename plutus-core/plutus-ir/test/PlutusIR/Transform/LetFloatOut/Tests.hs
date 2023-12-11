@@ -9,7 +9,6 @@ import PlutusCore.Builtin
 import PlutusCore.Quote
 import PlutusIR.Analysis.Builtins
 import PlutusIR.Parser
-import PlutusIR.Pass
 import PlutusIR.Pass.Test
 import PlutusIR.Test
 import PlutusIR.Transform.LetFloatOut qualified as LetFloatOut
@@ -60,11 +59,10 @@ test_letFloatOut = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"
             , "rhsSqueezeVsNest"
             ]
   where
-    testPass tcconfig = CompoundPass "float-out"
-      [ LetFloatOut.floatTermPassSC tcconfig def
-      , RecSplit.recSplitPass tcconfig
-      , LetMerge.letMergePass tcconfig
-      ]
+    testPass tcconfig =
+      LetFloatOut.floatTermPassSC tcconfig def
+      <> RecSplit.recSplitPass tcconfig
+      <> LetMerge.letMergePass tcconfig
 
 prop_floatIn :: BuiltinSemanticsVariant PLC.DefaultFun -> Property
 prop_floatIn biVariant = withMaxSuccess (3 * numTestsForPassProp) $ testPassProp runQuote testPass

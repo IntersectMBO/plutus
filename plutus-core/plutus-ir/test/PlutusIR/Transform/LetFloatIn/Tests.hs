@@ -27,10 +27,9 @@ test_letFloatInConservative =
             , "avoid-floating-into-tyabs"
             ]
   where
-    testPass tcconfig = CompoundPass "float-in"
-      [ LetFloatIn.floatTermPassSC tcconfig def False
-      , LetMerge.letMergePass tcconfig
-      ]
+    testPass tcconfig =
+      LetFloatIn.floatTermPassSC tcconfig def False
+      <> LetMerge.letMergePass tcconfig
 
 test_letFloatInRelaxed :: TestTree
 test_letFloatInRelaxed =
@@ -56,10 +55,9 @@ test_letFloatInRelaxed =
             , "type"
             ]
   where
-    testPass tcconfig = CompoundPass "float-in"
-      [ LetFloatIn.floatTermPassSC tcconfig def True
-      , LetMerge.letMergePass tcconfig
-      ]
+    testPass tcconfig =
+      LetFloatIn.floatTermPassSC tcconfig def True
+      <> LetMerge.letMergePass tcconfig
 
 prop_floatIn ::
   BuiltinSemanticsVariant PLC.DefaultFun -> Bool -> Property

@@ -27,7 +27,9 @@ test_lets = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Compiler"] $ test
     , goldenPlcFromPir pTermAsProg "letDep"
     ]
 
--- FIXME: unclear why this fails
+-- FIXME: this fails because some of the let passes expect certain things to be
+-- gone, e.g. non-strict bindings. We should a) add pre-/post-conditions for these,
+-- and b) set up the tests to establish what is needed
 test_propLets :: TestTree
 test_propLets =
   ignoreTest $ testProperty "lets" $ \letKind -> withMaxSuccess 40000 $

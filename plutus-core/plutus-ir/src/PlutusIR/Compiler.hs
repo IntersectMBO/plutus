@@ -48,7 +48,7 @@ module PlutusIR.Compiler (
     PirTCConfig(..),
     AllowEscape(..),
     toDefaultCompilationCtx,
-    runPass,
+    runCompilerPass,
     simplifier
     ) where
 
@@ -99,8 +99,8 @@ logVerbose = whenM (orM [isVerbose, isDebug]) . traceM
 logDebug :: Compiling m e uni fun a => String -> m ()
 logDebug = whenM isDebug . traceM
 
-runPass :: (Compiling m e uni fun a, b ~ Provenance a) => m (P.Pass m tyname name uni fun b) -> Term tyname name uni fun b -> m (Term tyname name uni fun b)
-runPass mpasses t = do
+runCompilerPass :: (Compiling m e uni fun a, b ~ Provenance a) => m (P.Pass m tyname name uni fun b) -> Term tyname name uni fun b -> m (Term tyname name uni fun b)
+runCompilerPass mpasses t = do
   passes <- mpasses
   pedantic <- view (ccOpts . coPedantic)
   res <- runExceptT $ P.runPass logVerbose pedantic passes t
@@ -117,18 +117,17 @@ simplifierPasses suffix = do
   cocConservative <- view (ccOpts . coCaseOfCaseConservative)
   rules <- view ccRewriteRules
 
-  let
-    uc = [Unwrap.unwrapCancelPass tcconfig | opts ^. coDoSimplifierUnwrapCancel]
-    cr = [CaseReduce.caseReducePass tcconfig | opts ^. coDoSimplifierCaseReduce]
-    coc = [CaseOfCase.caseOfCasePassSC tcconfig binfo cocConservative noProvenance | opts ^. coDoSimplifierCaseReduce]
-    cokc = [KnownCon.knownConPassSC tcconfig | opts ^. coDoSimplifierKnownCon ]
-    beta = [Beta.betaPassSC tcconfig | opts ^. coDoSimplifierBeta ]
-    sb = [StrictifyBindings.strictifyBindingsPass tcconfig binfo | opts ^. coDoSimplifierStrictifyBindings ]
-    eb = [EvaluateBuiltins.evaluateBuiltinsPass tcconfig preserveLogging binfo costModel | opts ^. coDoSimplifierEvaluateBuiltins ]
-    inline = [Inline.inlinePassSC tcconfig hints binfo  | opts ^. coDoSimplifierInline ]
-    rw = [RewriteRules.rewritePassSC tcconfig rules | opts ^. coDoSimplifierRewrite ]
-
-  pure $ P.NamedPass ("simplifier" ++ suffix) $ fold (uc ++ cr ++ coc ++ cokc ++ beta ++ sb ++ eb ++ inline ++ rw)
+  pure $ P.NamedPass ("simplifier" ++ suffix) $ fold
+      [ mwhen (opts ^. coDoSimplifierUnwrapCancel) $ Unwrap.unwrapCancelPass tcconfig
+      , mwhen (opts ^. coDoSimplifierCaseReduce) $ CaseReduce.caseReducePass tcconfig
+      , mwhen (opts ^. coDoSimplifierCaseReduce) $ CaseOfCase.caseOfCasePassSC tcconfig binfo cocConservative noProvenance
+      , mwhen (opts ^. coDoSimplifierKnownCon) $ KnownCon.knownConPassSC tcconfig
+      , mwhen (opts ^. coDoSimplifierBeta) $ Beta.betaPassSC tcconfig
+      , mwhen (opts ^. coDoSimplifierStrictifyBindings ) $ StrictifyBindings.strictifyBindingsPass tcconfig binfo
+      , mwhen (opts ^. coDoSimplifierEvaluateBuiltins) $ EvaluateBuiltins.evaluateBuiltinsPass tcconfig preserveLogging binfo costModel
+      , mwhen (opts ^. coDoSimplifierInline) $ Inline.inlinePassSC tcconfig hints binfo
+      , mwhen (opts ^. coDoSimplifierRewrite) $ RewriteRules.rewritePassSC tcconfig rules
+      ]
 
 floatOutPasses :: Compiling m e uni fun a => m (P.Pass m TyName Name uni fun (Provenance a))
 floatOutPasses = do
@@ -160,7 +159,6 @@ simplifier = do
   pure $ mwhen optimize $ P.NamedPass "simplifier" (fold passes)
 
 -- | Typecheck a PIR Term iff the context demands it.
--- Note: assumes globally unique names
 typeCheckTerm :: (Compiling m e uni fun a) => m (P.Pass m TyName Name uni fun (Provenance a))
 typeCheckTerm = do
   doTc <- view (ccOpts . coTypecheck)
@@ -180,14 +178,12 @@ compileToReadable (Program a v t) = do
   let
     pipeline :: m (P.Pass m TyName Name uni fun b)
     pipeline = getAp $ foldMap Ap
-        -- We need globally unique names for typechecking, floating, and compiling non-strict bindings
-        [ pure P.renamePass
-        , typeCheckTerm
+        [ typeCheckTerm
         , DeadCode.removeDeadBindingsPassSC <$> view ccTypeCheckConfig <*> view ccBuiltinsInfo
         , simplifier
         , floatOutPasses
         ]
-  Program a v <$> runPass pipeline t
+  Program a v <$> runCompilerPass pipeline t
 
 -- | The 2nd half of the PIR compiler pipeline.
 -- Compiles a 'Term' into a PLC Term, by removing/translating step-by-step the PIR's language constructs to PLC.
@@ -215,7 +211,7 @@ compileReadableToPlc (Program a v t) = do
         ]
 
     go =
-        runPass pipeline
+        runCompilerPass pipeline
         >=> (<$ logVerbose "  !!! lowerTerm")
         >=> lowerTerm
 
