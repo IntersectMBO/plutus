@@ -50,9 +50,7 @@ compileNonStrictBindingsPassSC
   -> Bool
   -> Pass m TyName Name uni fun a
 compileNonStrictBindingsPassSC tcConfig useUnit =
-  CompoundPass
-    "compile non-strict bindings (self-contained)"
-    [renamePass, compileNonStrictBindingsPass tcConfig useUnit]
+    renamePass <> compileNonStrictBindingsPass tcConfig useUnit
 
 compileNonStrictBindingsPass
   :: (PLC.Typecheckable uni fun, PLC.GEq uni, MonadQuote m)
@@ -60,10 +58,10 @@ compileNonStrictBindingsPass
   -> Bool
   -> Pass m TyName Name uni fun a
 compileNonStrictBindingsPass tcConfig useUnit =
-  Pass
-    "compile non-strict bindings"
-    (compileNonStrictBindings useUnit)
-    [Typechecks tcConfig] [ConstCondition (Typechecks tcConfig)]
+  NamedPass "compile non-strict bindings" $
+    Pass
+      (compileNonStrictBindings useUnit)
+      [Typechecks tcConfig] [ConstCondition (Typechecks tcConfig)]
 
 -- | Compile all the non-strict bindings in a term into strict bindings. Note: requires globally
 -- unique names.

@@ -21,10 +21,7 @@ knownConPassSC ::
     )
     => TC.PirTCConfig uni fun
     -> Pass m TyName Name uni fun a
-knownConPassSC tcconfig =
-  CompoundPass
-    "case of known constructor (self-contained)"
-    [renamePass, knownConPass tcconfig]
+knownConPassSC tcconfig = renamePass <> knownConPass tcconfig
 
 knownConPass ::
     forall m uni fun a.
@@ -33,11 +30,11 @@ knownConPass ::
     => TC.PirTCConfig uni fun
     -> Pass m TyName Name uni fun a
 knownConPass tcconfig =
-  Pass
-    "case of known constructor"
-    (pure . knownCon)
-    [Typechecks tcconfig, GloballyUniqueNames]
-    [ConstCondition (Typechecks tcconfig)]
+  NamedPass "case of known constructor" $
+    Pass
+      (pure . knownCon)
+      [Typechecks tcconfig, GloballyUniqueNames]
+      [ConstCondition (Typechecks tcconfig)]
 
 {- | Simplify destructor applications, if the scrutinee is a constructor application.
 

@@ -403,9 +403,7 @@ floatTermPassSC ::
     BuiltinsInfo uni fun ->
     Pass m TyName Name uni fun a
 floatTermPassSC tcconfig binfo =
-  CompoundPass
-    "let float-out (self-contained)"
-    [renamePass, floatTermPass tcconfig binfo]
+    renamePass <> floatTermPass tcconfig binfo
 
 floatTermPass ::
     forall m uni fun a.
@@ -416,11 +414,11 @@ floatTermPass ::
     BuiltinsInfo uni fun ->
     Pass m TyName Name uni fun a
 floatTermPass tcconfig binfo =
-  Pass
-    "let float-out"
-    (pure . floatTerm binfo)
-    [Typechecks tcconfig, GloballyUniqueNames]
-    [ConstCondition (Typechecks tcconfig)]
+  NamedPass "let float-out" $
+    Pass
+      (pure . floatTerm binfo)
+      [Typechecks tcconfig, GloballyUniqueNames]
+      [ConstCondition (Typechecks tcconfig)]
 
 -- | The compiler pass of the algorithm (comprised of 3 connected passes).
 floatTerm :: (PLC.ToBuiltinMeaning uni fun,

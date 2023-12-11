@@ -47,9 +47,7 @@ compileLetsPassSC
   -> LetKind
   -> Pass m TyName Name uni fun (Provenance a)
 compileLetsPassSC tcconfig letKind =
-  CompoundPass
-    "compile lets (self-contained)"
-    [renamePass, compileLetsPass tcconfig letKind]
+    renamePass <> compileLetsPass tcconfig letKind
 
 compileLetsPass
   :: Compiling m e uni fun a
@@ -57,11 +55,11 @@ compileLetsPass
   -> LetKind
   -> Pass m TyName Name uni fun (Provenance a)
 compileLetsPass tcconfig letKind =
-  Pass
-    "compile lets"
-    (compileLets letKind)
-    [Typechecks tcconfig, GloballyUniqueNames]
-    [ConstCondition (Typechecks tcconfig)]
+  NamedPass "compile lets" $
+    Pass
+      (compileLets letKind)
+      [Typechecks tcconfig, GloballyUniqueNames]
+      [ConstCondition (Typechecks tcconfig)]
 
 -- | Compile the let terms out of a 'Term'. Note: the result does *not* have globally unique names.
 compileLets :: Compiling m e uni fun a => LetKind -> PIRTerm uni fun a -> m (PIRTerm uni fun a)

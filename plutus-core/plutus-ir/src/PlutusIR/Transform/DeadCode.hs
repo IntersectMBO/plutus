@@ -38,9 +38,7 @@ removeDeadBindingsPassSC ::
   -> BuiltinsInfo uni fun
   -> Pass m TyName Name uni fun a
 removeDeadBindingsPassSC tcconfig binfo =
-  CompoundPass
-    "dead code elimination (self-contained)"
-    [renamePass, removeDeadBindingsPass tcconfig binfo]
+  renamePass <> removeDeadBindingsPass tcconfig binfo
 
 removeDeadBindingsPass ::
   (PLC.Typecheckable uni fun, PLC.GEq uni, Ord a, MonadQuote m)
@@ -48,11 +46,11 @@ removeDeadBindingsPass ::
   -> BuiltinsInfo uni fun
   -> Pass m TyName Name uni fun a
 removeDeadBindingsPass tcconfig binfo =
-  Pass
-    "dead code elimination"
-    (removeDeadBindings binfo)
-    [Typechecks tcconfig, GloballyUniqueNames]
-    [ConstCondition (Typechecks tcconfig)]
+  NamedPass "dead code elimination" $
+    Pass
+      (removeDeadBindings binfo)
+      [Typechecks tcconfig, GloballyUniqueNames]
+      [ConstCondition (Typechecks tcconfig)]
 
 -- We only need MonadQuote to make new types for bindings
 -- | Remove all the dead let bindings in a term.

@@ -34,9 +34,7 @@ caseOfCasePassSC ::
     a ->
     Pass m TyName Name uni fun a
 caseOfCasePassSC tcconfig binfo conservative newAnn =
-  CompoundPass
-    "case-of-case (self-contained)"
-    [renamePass, caseOfCasePass tcconfig binfo conservative newAnn]
+  renamePass <> caseOfCasePass tcconfig binfo conservative newAnn
 
 caseOfCasePass ::
     forall m uni fun a.
@@ -47,11 +45,11 @@ caseOfCasePass ::
     a ->
     Pass m TyName Name uni fun a
 caseOfCasePass tcconfig binfo conservative newAnn =
-  Pass
-    "case-of-case"
-    (caseOfCase binfo conservative newAnn)
-    [Typechecks tcconfig, GloballyUniqueNames]
-    [ConstCondition (Typechecks tcconfig)]
+  NamedPass "case-of-case" $
+    Pass
+      (caseOfCase binfo conservative newAnn)
+      [Typechecks tcconfig, GloballyUniqueNames]
+      [ConstCondition (Typechecks tcconfig)]
 
 {-|
 Perform the case-of-case transformation. This pushes

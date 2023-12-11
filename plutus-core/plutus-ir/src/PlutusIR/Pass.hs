@@ -75,16 +75,25 @@ data Pass m tyname name uni fun a =
   -- which are run on the input term, and a set of post-conditions which are run on the
   -- input and output terms (so can compare them).
   Pass
-    String
     (Term tyname name uni fun a -> m (Term tyname name uni fun a))
     [Condition tyname name uni fun a]
     [BiCondition tyname name uni fun a]
-  | CompoundPass String [Pass m tyname name uni fun a]
+  | CompoundPass (Pass m tyname name uni fun a) (Pass m tyname name uni fun a)
+  | NoOpPass
+  | NamedPass String (Pass m tyname name uni fun a)
+
+instance Semigroup (Pass m tyname name uni fun a) where
+  p1 <> p2 = CompoundPass p1 p2
+
+instance Monoid (Pass m tyname name uni fun a) where
+  mempty = NoOpPass
 
 hoistPass :: (forall v . m v -> n v) -> Pass m tyname name uni fun a -> Pass n tyname name uni fun a
 hoistPass f p = case p of
-  Pass n mainPass pre post -> Pass n (f . mainPass) pre post
-  CompoundPass n passes    -> CompoundPass n (fmap (hoistPass f) passes)
+  Pass mainPass pre post -> Pass (f . mainPass) pre post
+  CompoundPass p1 p2     -> CompoundPass (hoistPass f p1) (hoistPass f p2)
+  NamedPass n pass       -> NamedPass n (hoistPass f pass)
+  NoOpPass               -> NoOpPass
 
 runPass
   :: Monad m
@@ -93,22 +102,24 @@ runPass
   -> Pass m tyname name uni fun a
   -> Term tyname name uni fun a
   -> ExceptT (Error uni fun a) m (Term tyname name uni fun a)
-runPass logger checkConditions (Pass n mainPass pre post) t = do
+runPass logger checkConditions (Pass mainPass pre post) t = do
   when checkConditions $ do
-    lift $ logger $ n ++ ": checking preconditions"
+    lift $ logger "checking preconditions"
     for_ pre $ \c -> checkCondition c t
-  lift $ logger $ n ++ ": running pass"
   t' <- lift $ mainPass t
-  lift $ logger $ n ++ ": finished pass"
   when checkConditions $ do
-    lift $ logger $ n ++ ": checking postconditions"
+    lift $ logger "checking postconditions"
     for_ post $ \c -> checkBiCondition c t t'
   pure t'
-runPass logger checkConditions (CompoundPass n passes) t = do
-  lift $ logger $ n ++ ": running compound pass"
-  t' <- foldlM (\term pass -> runPass logger checkConditions pass term) t passes
-  lift $ logger $ n ++ ": finished compound pass"
+runPass logger checkConditions (CompoundPass p1 p2) t = do
+  t' <- runPass logger checkConditions p1 t
+  runPass logger checkConditions p2 t'
+runPass logger checkConditions (NamedPass n pass) t = do
+  lift $ logger $ n ++ ": running pass"
+  t' <- runPass logger checkConditions pass t
+  lift $ logger $ n ++ ": finished pass"
   pure t'
+runPass _ _ NoOpPass t = pure t
 
 -- | A simple, non-monadic pass that should typecheck.
 simplePass
@@ -118,13 +129,16 @@ simplePass
   -> (Term TyName Name uni fun a -> Term TyName Name uni fun a)
   -> Pass m TyName Name uni fun a
 simplePass name tcConfig f =
-  Pass name (pure . f) [Typechecks tcConfig] [ConstCondition (Typechecks tcConfig)]
+  NamedPass name $
+    Pass (pure . f) [Typechecks tcConfig] [ConstCondition (Typechecks tcConfig)]
 
 -- | A pass that does renaming.
 renamePass
   :: (HasUnique name TermUnique, HasUnique tyname TypeUnique, MonadQuote m, Ord a)
   => Pass m tyname name uni fun a
-renamePass = Pass "renaming" PLC.rename [] [ConstCondition GloballyUniqueNames]
+renamePass =
+  NamedPass "renaming" $
+    Pass PLC.rename [] [ConstCondition GloballyUniqueNames]
 
 -- | A pass that does typechecking, useful when you want to do it explicitly
 -- and not as part of a precondition check.
@@ -132,7 +146,7 @@ typecheckPass
   :: (TC.MonadTypeCheckPir err uni fun a m, Ord a)
   => TC.PirTCConfig uni fun
   -> Pass m TyName Name uni fun a
-typecheckPass tcconfig = Pass "typechecking" run [GloballyUniqueNames] []
+typecheckPass tcconfig = NamedPass "typechecking" $ Pass run [GloballyUniqueNames] []
   where
     run t = do
       _ <- TC.inferType tcconfig t

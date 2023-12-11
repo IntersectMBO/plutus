@@ -52,8 +52,8 @@ strictifyBindingsPass ::
     BuiltinsInfo uni fun ->
     Pass m TyName Name uni fun a
 strictifyBindingsPass tcconfig binfo =
-  Pass
-    "strictify bindings"
-    (pure . strictifyBindings binfo)
-    [Typechecks tcconfig]
-    [ConstCondition (Typechecks tcconfig)]
+  NamedPass "strictify bindings" $
+    Pass
+      (pure . strictifyBindings binfo)
+      [Typechecks tcconfig]
+      [ConstCondition (Typechecks tcconfig)]

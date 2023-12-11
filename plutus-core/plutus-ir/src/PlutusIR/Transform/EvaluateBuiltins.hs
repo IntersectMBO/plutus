@@ -29,11 +29,11 @@ evaluateBuiltinsPass :: (PLC.Typecheckable uni fun, PLC.GEq uni, Applicative m)
   -> CostingPart uni fun
   -> Pass m TyName Name uni fun a
 evaluateBuiltinsPass tcconfig conservative binfo costModel =
-  Pass
-    "evaluate builtins"
-    (pure . evaluateBuiltins conservative binfo costModel)
-    [Typechecks tcconfig]
-    [ConstCondition (Typechecks tcconfig)]
+  NamedPass "evaluate builtins" $
+    Pass
+      (pure . evaluateBuiltins conservative binfo costModel)
+      [Typechecks tcconfig]
+      [ConstCondition (Typechecks tcconfig)]
 
 evaluateBuiltins
   :: forall tyname name uni fun a

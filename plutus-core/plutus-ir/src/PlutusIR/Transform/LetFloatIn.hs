@@ -191,9 +191,7 @@ floatTermPassSC ::
     Bool ->
     Pass m TyName Name uni fun a
 floatTermPassSC tcconfig binfo relaxed =
-  CompoundPass
-    "let float-in (self-contained)"
-    [renamePass, floatTermPass tcconfig binfo relaxed]
+    renamePass <> floatTermPass tcconfig binfo relaxed
 
 floatTermPass ::
     forall m uni fun a.
@@ -206,11 +204,11 @@ floatTermPass ::
     Bool ->
     Pass m TyName Name uni fun a
 floatTermPass tcconfig binfo relaxed =
-  Pass
-    "let float-in"
-    (pure . floatTerm binfo relaxed)
-    [Typechecks tcconfig, GloballyUniqueNames]
-    [ConstCondition (Typechecks tcconfig)]
+  NamedPass "let float-in" $
+    Pass
+      (pure . floatTerm binfo relaxed)
+      [Typechecks tcconfig, GloballyUniqueNames]
+      [ConstCondition (Typechecks tcconfig)]
 
 -- | Float bindings in the given `Term` inwards.
 floatTerm ::

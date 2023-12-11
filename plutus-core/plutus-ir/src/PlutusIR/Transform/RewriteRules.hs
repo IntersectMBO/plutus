@@ -31,9 +31,7 @@ rewritePassSC ::
     RewriteRules uni fun ->
     Pass m TyName Name uni fun a
 rewritePassSC tcconfig rules =
-  CompoundPass
-    "rewrite rules (self-contained)"
-    [renamePass, rewritePass tcconfig rules]
+    renamePass <> rewritePass tcconfig rules
 
 rewritePass ::
     forall m uni fun a.
@@ -44,11 +42,11 @@ rewritePass ::
     RewriteRules uni fun ->
     Pass m TyName Name uni fun a
 rewritePass tcconfig rules =
-  Pass
-    "rewrite rules"
-    (rewriteWith rules)
-    [Typechecks tcconfig, GloballyUniqueNames]
-    [ConstCondition (Typechecks tcconfig)]
+  NamedPass "rewrite rules" $
+    Pass
+      (rewriteWith rules)
+      [Typechecks tcconfig, GloballyUniqueNames]
+      [ConstCondition (Typechecks tcconfig)]
 
 {- | Rewrite a `Term` using the given `RewriteRules` (similar to functions of Term -> Term)
 Normally the rewrite rules are configured at entrypoint time of the compiler.

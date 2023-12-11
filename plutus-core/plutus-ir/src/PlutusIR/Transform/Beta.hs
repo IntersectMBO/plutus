@@ -141,18 +141,15 @@ betaPassSC
   :: (PLC.Typecheckable uni fun, PLC.GEq uni, PLC.MonadQuote m, Ord a)
   => TC.PirTCConfig uni fun
   -> Pass m TyName Name uni fun a
-betaPassSC tcconfig =
-  CompoundPass
-    "beta (self-contained)"
-    [renamePass, betaPass tcconfig]
+betaPassSC tcconfig = renamePass <> betaPass tcconfig
 
 betaPass
   :: (PLC.Typecheckable uni fun, PLC.GEq uni, Applicative m, Ord a)
   => TC.PirTCConfig uni fun
   -> Pass m TyName Name uni fun a
 betaPass tcconfig =
-  Pass
-   "beta"
-   (pure . beta)
-   [Typechecks tcconfig, GloballyUniqueNames]
-   [ConstCondition (Typechecks tcconfig)]
+  NamedPass "beta" $
+    Pass
+      (pure . beta)
+      [Typechecks tcconfig, GloballyUniqueNames]
+      [ConstCondition (Typechecks tcconfig)]

@@ -164,10 +164,7 @@ inlinePassSC
     -> InlineHints Name ann
     -> BuiltinsInfo uni fun
     -> Pass m TyName Name uni fun ann
-inlinePassSC tcconfig hints binfo =
-  CompoundPass
-    "inline (self-contained)"
-    [renamePass, inlinePass tcconfig hints binfo]
+inlinePassSC tcconfig hints binfo = renamePass <> inlinePass tcconfig hints binfo
 
 inlinePass
     :: forall uni fun ann m
@@ -177,11 +174,11 @@ inlinePass
     -> BuiltinsInfo uni fun
     -> Pass m TyName Name uni fun ann
 inlinePass tcconfig hints binfo =
-  Pass
-    "inline"
-    (inline hints binfo)
-    [GloballyUniqueNames, Typechecks tcconfig]
-    [ConstCondition GloballyUniqueNames, ConstCondition (Typechecks tcconfig)]
+  NamedPass "inline" $
+    Pass
+      (inline hints binfo)
+      [GloballyUniqueNames, Typechecks tcconfig]
+      [ConstCondition GloballyUniqueNames, ConstCondition (Typechecks tcconfig)]
 
 -- | Inline non-recursive bindings. Relies on global uniqueness, and preserves it.
 -- See Note [Inlining and global uniqueness]
