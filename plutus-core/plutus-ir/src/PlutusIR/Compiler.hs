@@ -106,29 +106,6 @@ runCompilerPass mpasses t = do
   res <- runExceptT $ P.runPass logVerbose pedantic passes t
   throwingEither _Error res
 
-simplifierPasses :: Compiling m e uni fun a => String -> m (P.Pass m TyName Name uni fun (Provenance a))
-simplifierPasses suffix = do
-  opts <- view ccOpts
-  tcconfig <- view ccTypeCheckConfig
-  binfo <- view ccBuiltinsInfo
-  costModel <- view ccBuiltinCostModel
-  hints <- view (ccOpts . coInlineHints)
-  preserveLogging <- view (ccOpts . coPreserveLogging)
-  cocConservative <- view (ccOpts . coCaseOfCaseConservative)
-  rules <- view ccRewriteRules
-
-  pure $ P.NamedPass ("simplifier" ++ suffix) $ fold
-      [ mwhen (opts ^. coDoSimplifierUnwrapCancel) $ Unwrap.unwrapCancelPass tcconfig
-      , mwhen (opts ^. coDoSimplifierCaseReduce) $ CaseReduce.caseReducePass tcconfig
-      , mwhen (opts ^. coDoSimplifierCaseReduce) $ CaseOfCase.caseOfCasePassSC tcconfig binfo cocConservative noProvenance
-      , mwhen (opts ^. coDoSimplifierKnownCon) $ KnownCon.knownConPassSC tcconfig
-      , mwhen (opts ^. coDoSimplifierBeta) $ Beta.betaPassSC tcconfig
-      , mwhen (opts ^. coDoSimplifierStrictifyBindings ) $ StrictifyBindings.strictifyBindingsPass tcconfig binfo
-      , mwhen (opts ^. coDoSimplifierEvaluateBuiltins) $ EvaluateBuiltins.evaluateBuiltinsPass tcconfig preserveLogging binfo costModel
-      , mwhen (opts ^. coDoSimplifierInline) $ Inline.inlinePassSC tcconfig hints binfo
-      , mwhen (opts ^. coDoSimplifierRewrite) $ RewriteRules.rewritePassSC tcconfig rules
-      ]
-
 floatOutPasses :: Compiling m e uni fun a => m (P.Pass m TyName Name uni fun (Provenance a))
 floatOutPasses = do
   optimize <- view (ccOpts . coOptimize)
@@ -151,11 +128,35 @@ floatInPasses = do
         , LetMerge.letMergePass tcconfig
         ]
 
+simplifierIteration :: Compiling m e uni fun a => String -> m (P.Pass m TyName Name uni fun (Provenance a))
+simplifierIteration suffix = do
+  opts <- view ccOpts
+  tcconfig <- view ccTypeCheckConfig
+  binfo <- view ccBuiltinsInfo
+  costModel <- view ccBuiltinCostModel
+  hints <- view (ccOpts . coInlineHints)
+  preserveLogging <- view (ccOpts . coPreserveLogging)
+  cocConservative <- view (ccOpts . coCaseOfCaseConservative)
+  rules <- view ccRewriteRules
+
+  pure $ P.NamedPass ("simplifier" ++ suffix) $ fold
+      [ mwhen (opts ^. coDoSimplifierUnwrapCancel) $ Unwrap.unwrapCancelPass tcconfig
+      , mwhen (opts ^. coDoSimplifierCaseReduce) $ CaseReduce.caseReducePass tcconfig
+      , mwhen (opts ^. coDoSimplifierCaseReduce) $ CaseOfCase.caseOfCasePassSC tcconfig binfo cocConservative noProvenance
+      , mwhen (opts ^. coDoSimplifierKnownCon) $ KnownCon.knownConPassSC tcconfig
+      , mwhen (opts ^. coDoSimplifierBeta) $ Beta.betaPassSC tcconfig
+      , mwhen (opts ^. coDoSimplifierStrictifyBindings ) $ StrictifyBindings.strictifyBindingsPass tcconfig binfo
+      , mwhen (opts ^. coDoSimplifierEvaluateBuiltins) $ EvaluateBuiltins.evaluateBuiltinsPass tcconfig preserveLogging binfo costModel
+      , mwhen (opts ^. coDoSimplifierInline) $ Inline.inlinePassSC tcconfig hints binfo
+      , mwhen (opts ^. coDoSimplifierRewrite) $ RewriteRules.rewritePassSC tcconfig rules
+      ]
+
+
 simplifier :: Compiling m e uni fun a => m (P.Pass m TyName Name uni fun (Provenance a))
 simplifier = do
   optimize <- view (ccOpts . coOptimize)
   maxIterations <- view (ccOpts . coMaxSimplifierIterations)
-  passes <- for [1 .. maxIterations] $ \i -> simplifierPasses (" (pass " ++ show i ++ ")")
+  passes <- for [1 .. maxIterations] $ \i -> simplifierIteration (" (pass " ++ show i ++ ")")
   pure $ mwhen optimize $ P.NamedPass "simplifier" (fold passes)
 
 -- | Typecheck a PIR Term iff the context demands it.
