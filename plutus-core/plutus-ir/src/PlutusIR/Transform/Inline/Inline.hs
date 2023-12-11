@@ -22,7 +22,7 @@ import PlutusIR.Analysis.Builtins
 import PlutusIR.Analysis.Size (Size, termSize)
 import PlutusIR.Analysis.Usages qualified as Usages
 import PlutusIR.Analysis.VarInfo qualified as VarInfo
-import PlutusIR.Contexts (AppContext (..), fillAppContext, splitApplication)
+import PlutusIR.Contexts (AppContext (..), fillAppContext, lengthContext, splitApplication)
 import PlutusIR.MkPir (mkLet)
 import PlutusIR.Transform.Beta qualified as Beta
 import PlutusIR.Transform.Inline.Utils
@@ -443,20 +443,20 @@ applyAndBetaReduce ::
   InlineM tyname name uni fun ann (Term tyname name uni fun ann)
 applyAndBetaReduce rhs args = do
   info <- ask
-  -- We run the beta and inlining passes for `len args` times, since sometimes the args
-  -- can only be beta-reduced one by one. An example is
+  -- We run the beta and inlining passes for `lengthContext args` times, since sometimes
+  -- the args can only be beta-reduced one by one. An example is
   -- `(\x y -> f x y) arg_x arg_y`, where `arg_x` and `arg_y` are effectful terms.
   -- It needs two beta+inlining passes to reduce to `f arg_x arg_y`: the first pass
   -- inlines `y` and the second pass `x`.
   --
   -- Note that the inlining passes we run here only run unconditional inlining.
   -- Technically it can be helpful to also run callsite inlining, but it rarely
-  -- makes a difference and leads to exponential worst-case behavior.
+  -- makes a difference.
   foldl'
     (>=>)
     pure
     ( replicate
-        (len args)
+        (lengthContext args)
         ( pure . Beta.beta
             >=> inline'
               UnconditionalOnly
@@ -466,14 +466,6 @@ applyAndBetaReduce rhs args = do
         )
     )
     (fillAppContext rhs args)
-  where
-    len :: AppContext tyname name uni fun ann -> Int
-    len = go 0
-      where
-        go !acc = \case
-          TermAppContext _ _ ctx -> go (acc + 1) ctx
-          TypeAppContext _ _ ctx -> go (acc + 1) ctx
-          _ -> acc
 
 -- | Consider inlining a variable. For applications, consider whether to apply and beta reduce.
 callSiteInline ::
