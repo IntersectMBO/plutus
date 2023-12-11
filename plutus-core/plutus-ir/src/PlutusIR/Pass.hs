@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE GADTs      #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RankNTypes #-}
@@ -29,7 +28,8 @@ data Condition tyname name uni fun a where
   -- | The 'Term' has globally unique names.
   GloballyUniqueNames :: (HasUnique tyname TypeUnique, HasUnique name TermUnique, Ord a)
     => Condition tyname name uni fun a
-  -- | A custom condition.
+  -- | A custom condition. 'Nothing' indicates success, 'Just' indicates a failure at
+  -- a location with a message.
   Custom :: (Term tyname name uni fun a -> Maybe (a, Text))
     -> Condition tyname name uni fun a
 
@@ -37,11 +37,16 @@ data Condition tyname name uni fun a where
 data BiCondition tyname name uni fun a where
   -- | A condition on the second 'Term'.
   ConstCondition :: Condition tyname name uni fun a -> BiCondition tyname name uni fun a
-  -- | A custom condition.
+  -- | A custom condition. 'Nothing' indicates success, 'Just' indicates a failure at
+  -- a location with a message.
   CustomBi :: (Term tyname name uni fun a -> Term tyname name uni fun a -> Maybe (a, Text))
     -> BiCondition tyname name uni fun a
 
-checkCondition :: MonadError (Error uni fun a) m => Condition tyname name uni fun a -> Term tyname name uni fun a -> m ()
+checkCondition
+  :: MonadError (Error uni fun a) m
+  => Condition tyname name uni fun a
+  -> Term tyname name uni fun a
+  -> m ()
 checkCondition c t = case c of
   Typechecks tcconfig -> void $ runQuoteT $ do
     -- Typechecking requires globally unique names
@@ -52,7 +57,12 @@ checkCondition c t = case c of
     Just (a, e) -> throwError $ CompilationError a e
     Nothing     -> pure ()
 
-checkBiCondition :: MonadError (Error uni fun a) m => BiCondition tyname name uni fun a -> Term tyname name uni fun a -> Term tyname name uni fun a -> m ()
+checkBiCondition
+  :: MonadError (Error uni fun a) m
+  => BiCondition tyname name uni fun a
+  -> Term tyname name uni fun a
+  -> Term tyname name uni fun a
+  -> m ()
 checkBiCondition c t1 t2 = case c of
   ConstCondition c' -> checkCondition c' t2
   CustomBi f -> case f t1 t2 of
@@ -61,23 +71,15 @@ checkBiCondition c t1 t2 = case c of
 
 -- | A pass over a term, with pre- and post-conditions.
 data Pass m tyname name uni fun a =
-  Pass String (Term tyname name uni fun a -> m (Term tyname name uni fun a)) [Condition tyname name uni fun a] [BiCondition tyname name uni fun a]
+  -- | A basic pass. Has a function, which is the pass itself, a set of pre-conditions
+  -- which are run on the input term, and a set of post-conditions which are run on the
+  -- input and output terms (so can compare them).
+  Pass
+    String
+    (Term tyname name uni fun a -> m (Term tyname name uni fun a))
+    [Condition tyname name uni fun a]
+    [BiCondition tyname name uni fun a]
   | CompoundPass String [Pass m tyname name uni fun a]
-
-passName :: Pass m tyname name uni fun a -> String
-passName = \case
-  Pass n _ _ _ -> n
-  CompoundPass n _ -> n
-
-preconditions :: Pass m tyname name uni fun a -> Maybe [Condition tyname name uni fun a]
-preconditions = \case
-  Pass _ _ p _ -> Just p
-  CompoundPass{} -> Nothing
-
-postcondtions :: Pass m tyname name uni fun a -> Maybe [BiCondition tyname name uni fun a]
-postcondtions = \case
-  Pass _ _ _ p -> Just p
-  CompoundPass{} -> Nothing
 
 hoistPass :: (forall v . m v -> n v) -> Pass m tyname name uni fun a -> Pass n tyname name uni fun a
 hoistPass f p = case p of
@@ -97,14 +99,16 @@ runPass logger checkConditions (Pass n mainPass pre post) t = do
     for_ pre $ \c -> checkCondition c t
   lift $ logger $ n ++ ": running pass"
   t' <- lift $ mainPass t
+  lift $ logger $ n ++ ": finished pass"
   when checkConditions $ do
     lift $ logger $ n ++ ": checking postconditions"
     for_ post $ \c -> checkBiCondition c t t'
   pure t'
 runPass logger checkConditions (CompoundPass n passes) t = do
   lift $ logger $ n ++ ": running compound pass"
-  let pfuns = map (runPass logger checkConditions) passes
-  foldl' (>=>) pure pfuns t
+  t' <- foldlM (\term pass -> runPass logger checkConditions pass term) t passes
+  lift $ logger $ n ++ ": finished compound pass"
+  pure t'
 
 -- | A simple, non-monadic pass that should typecheck.
 simplePass
@@ -113,13 +117,17 @@ simplePass
   -> TC.PirTCConfig uni fun
   -> (Term TyName Name uni fun a -> Term TyName Name uni fun a)
   -> Pass m TyName Name uni fun a
-simplePass name tcConfig f = Pass name (pure . f) [Typechecks tcConfig] []--[ConstCondition (Typechecks tcConfig)]
+simplePass name tcConfig f =
+  Pass name (pure . f) [Typechecks tcConfig] [ConstCondition (Typechecks tcConfig)]
 
 -- | A pass that does renaming.
-renamePass :: (HasUnique name TermUnique, HasUnique tyname TypeUnique, MonadQuote m, Ord a) => Pass m tyname name uni fun a
+renamePass
+  :: (HasUnique name TermUnique, HasUnique tyname TypeUnique, MonadQuote m, Ord a)
+  => Pass m tyname name uni fun a
 renamePass = Pass "renaming" PLC.rename [] [ConstCondition GloballyUniqueNames]
 
--- | A pass that does typechecking, useful when you want to do it explicitly and not as part of a precondition check.
+-- | A pass that does typechecking, useful when you want to do it explicitly
+-- and not as part of a precondition check.
 typecheckPass
   :: (TC.MonadTypeCheckPir err uni fun a m, Ord a)
   => TC.PirTCConfig uni fun
