@@ -1,5 +1,7 @@
 let
   !a_4 : integer = 10
+in
+let
   !c_6 : integer = addInteger a_4 a_4
 in
 let
