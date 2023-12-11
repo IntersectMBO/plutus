@@ -8,7 +8,6 @@ import PlutusCore.Builtin
 import PlutusCore.Quote
 import PlutusIR.Analysis.Builtins
 import PlutusIR.Parser
-import PlutusIR.Pass
 import PlutusIR.Pass.Test
 import PlutusIR.Test
 import PlutusIR.Transform.LetFloatIn qualified as LetFloatIn
