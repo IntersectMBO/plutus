@@ -57,6 +57,7 @@ library
     , composition-prelude
     , cryptonite
     , extra
+    , ghc-prim
     , ieee754
     , megaparsec
     , memory
@@ -127,6 +128,7 @@ library
     MAlonzo.Code.Category.Monad.Indexed
     MAlonzo.Code.Check
     MAlonzo.Code.Cost
+    MAlonzo.Code.Cost.Base
     MAlonzo.Code.Data.Bool.Base
     MAlonzo.Code.Data.Bool.Properties
     MAlonzo.Code.Data.Char.Base
@@ -349,6 +351,7 @@ library
     MAlonzo.Code.Category.Monad.Indexed
     MAlonzo.Code.Check
     MAlonzo.Code.Cost
+    MAlonzo.Code.Cost.Base
     MAlonzo.Code.Data.Bool.Base
     MAlonzo.Code.Data.Bool.Properties
     MAlonzo.Code.Data.Char.Base

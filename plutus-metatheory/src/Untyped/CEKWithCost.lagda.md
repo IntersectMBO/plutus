@@ -3,7 +3,7 @@
 This module implements a CEK machine for UPLC which computes costs.
 
 ```
-open import Cost using (MachineParameters)
+open import Cost.Base
 
 module Untyped.CEKWithCost {Budget : Set}(machineParameters : MachineParameters Budget) where
 ```
@@ -11,21 +11,23 @@ module Untyped.CEKWithCost {Budget : Set}(machineParameters : MachineParameters 
 ## Imports
 
 ```
-open import Cost using (StepKind;ExBudgetCategory)
-open StepKind
-open ExBudgetCategory
 open import Data.Unit using (⊤;tt)
 open import Data.Nat using (ℕ;zero;suc)
 open import Data.List using (List;[];_∷_)
+open import Data.Vec using (Vec;[];_∷_;reverse)
 open import Data.Product using (_,_)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym)
 
 open import Untyped using (_⊢)
 open _⊢
-open import Utils using (Writer;_>>_;_>>=_;return;maybe;Either;inj₁;inj₂;RuntimeError;gasError;either)
+open import Utils using (Writer;_>>_;_>>=_;return;maybe;Either;inj₁;inj₂;RuntimeError;gasError;either;_∔_≣_)
 open Writer
 open import RawU using (tmCon)
-open import Builtin using (Builtin)
+open import Builtin using (Builtin;arity;signature)
+open import Builtin.Signature using (fv;args♯)
+
+open StepKind
+open ExBudgetCategory
 
 open import Untyped.CEK
 ```
@@ -34,10 +36,6 @@ open import Untyped.CEK
 
 We instantiate a Writer Monad with the operations from the machine parameters
 
-As opposed to the production implemention, our `spend` function does not implement slippage.
-Slippage is an optimization that allows the interpreter to only add costs every n steps. 
-Slippage is only semantically relevant in restricting mode (not currently implemented in agda), 
-so we do not need to consider it here.
 
 ```
 open MachineParameters machineParameters renaming (ε to e)
@@ -45,17 +43,47 @@ open Utils.WriterMonad e _∙_
 
 CekM : Set → Set
 CekM = Writer Budget
+```
 
+### Spending operations
+
+As opposed to the production implemention, our `spend` function does not implement slippage.
+Slippage is an optimization that allows the interpreter to only add costs every n steps. 
+Slippage is only semantically relevant in restricting mode (not currently implemented in agda), 
+so we do not need to consider it here.
+
+```
 spend : StepKind → CekM ⊤
 spend st = tell (cekMachineCost (BStep st))
 
--- TO DO : Do it properly.
-
-spendBuiltin : Builtin → CekM ⊤
-spendBuiltin b = tell (cekMachineCost (BBuiltinApp b))
-
 spendStartupCost : CekM ⊤
 spendStartupCost = tell startupCost
+```
+
+In order to calculate the cost of executing a builting, we obtain a vector with 
+the size of each constant argument using `extractArgSizes`. 
+
+Non-constant argument should only occur in places where the builtin is polymorphic
+and should be ignored by the cost model of the corresponding builtin. Therefore, 
+they are added with a size of 0.
+
+The function `extractArgSizes` get the arguments in inverse order, so we reverse 
+them in the `spendBuiltin` function. 
+
+```
+extractArgSizes : ∀{b}
+          → ∀{tn tm} → {pt : tn ∔ tm ≣ fv (signature b)}
+          → ∀{an am} → {pa : an ∔ am ≣ args♯ (signature b)}
+          → BApp b pt pa → Vec CostingNat an
+extractArgSizes base = []
+extractArgSizes (app bapp (V-con ty x)) = constantMeasure (tmCon ty x) 
+                                        ∷ extractArgSizes bapp
+extractArgSizes (app bapp _) = 0 ∷ extractArgSizes bapp 
+extractArgSizes (app⋆ bapp) = extractArgSizes bapp 
+
+spendBuiltin : (b : Builtin) → fullyAppliedBuiltin b → CekM ⊤
+spendBuiltin b bapp = tell (cekMachineCost (BBuiltinApp b argsizes))
+     where argsizes = reverse (extractArgSizes bapp)
 ```
 
 ## Step with costs
@@ -122,10 +150,10 @@ stepC ((s , case- ρ ts) ◅ V-con _ _)        = return ◆ -- case of constant
 stepC ((s , case- ρ ts) ◅ V-delay _ _)      = return ◆ -- case of delay
 stepC ((s , case- ρ ts) ◅ V-I⇒ _ _)         = return ◆ -- case of builtin value
 stepC ((s , case- ρ ts) ◅ V-IΠ _ _)         = return ◆ -- case of delayed builtin
-stepC ((s , (V-I⇒ b {am = 0} bapp ·-)) ◅ v) = --fully applied builtin function
-          either (BUILTIN' b (app bapp v)) (λ _ → return ◆) (λ V → do 
-              spendBuiltin b -- TODO: spend cost of executing builtin function for given arguments
-              return (s ◅ V))
+stepC ((s , (V-I⇒ b {am = 0} bapp ·-)) ◅ v) = do --fully applied builtin function
+          let bapp' = mkFullyAppliedBuiltin (app bapp v) -- proof that b is fully applied
+          spendBuiltin b bapp' 
+          return (either (BUILTIN b bapp') (λ _ →  ◆) (s ◅_))
 stepC ((s , (V-I⇒ b {am = suc _} bapp ·-)) ◅ v) =  --partially applied builtin function
           return (s ◅ V-I b (app bapp v))
 
@@ -200,4 +228,4 @@ cekStepperEquivalence (suc n) s rewrite sym (cekStepEquivalence s) with step s
 ... | s ◅ v = cekStepperEquivalence n  (s ◅ v)
 ... | □ x = refl
 ... | ◆ = refl
-```
+``` 

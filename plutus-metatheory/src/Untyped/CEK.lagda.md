@@ -135,11 +135,15 @@ V-I : ∀ b
 V-I b {tm = zero}   bt = V-I⇒ b bt
 V-I b {tm = suc tm} bt = V-IΠ b bt
 
+
+fullyAppliedBuiltin : ∀ b → Set
+fullyAppliedBuiltin b = BApp b (alldone (fv (signature b))) (alldone (args♯ (signature b)))
+
 {-
 The BUILTIN function provides the semantics of builtin functions.
 -}
 
-BUILTIN : ∀ b → BApp b (alldone (fv (signature b))) (alldone (args♯ (signature b))) → Either RuntimeError Value
+BUILTIN : ∀ b → fullyAppliedBuiltin b → Either RuntimeError Value
 BUILTIN addInteger = λ
   { (app (app base (V-con integer i)) (V-con integer i')) -> inj₂ (V-con integer (i + i'))
   ; _ -> inj₁ userError
@@ -488,15 +492,22 @@ BUILTIN blake2b-224 = λ
   ; _ -> inj₁ userError
   }
 
--- BUILTIN : ∀ b → BApp b (alldone (fv (signature b))) (alldone (args♯ (signature b))) → Either RuntimeError Value
+-- Take an apparently more general index and show that it is a fully applied builtin.
+mkFullyAppliedBuiltin : ∀ { b }
+  → ∀{tn} → {pt : tn ∔ 0 ≣ fv (signature b)}
+  → ∀{an} → {pa : an ∔ 0 ≣ args♯ (signature b)}
+  → BApp b pt pa
+  → fullyAppliedBuiltin b
+mkFullyAppliedBuiltin {b} {pt = pt} {pa = pa} bt with trans (sym (+-identityʳ _)) (∔2+ pt) | trans (sym (+-identityʳ _)) (∔2+ pa)
+... | refl | refl with unique∔ pt (alldone (fv (signature b))) | unique∔ pa (alldone (args♯ (signature b)))
+... | refl | refl = bt
+
 BUILTIN' : ∀ b
   → ∀{tn} → {pt : tn ∔ 0 ≣ fv (signature b)}
   → ∀{an} → {pa : an ∔ 0 ≣ args♯ (signature b)}
   → BApp b pt pa
   → Either RuntimeError Value
-BUILTIN' b {pt = pt} {pa = pa} bt with trans (sym (+-identityʳ _)) (∔2+ pt) | trans (sym (+-identityʳ _)) (∔2+ pa)
-... | refl | refl with unique∔ pt (alldone (fv (signature b))) | unique∔ pa (alldone (args♯ (signature b)))
-... | refl | refl =  BUILTIN b bt
+BUILTIN' b bt =  BUILTIN b (mkFullyAppliedBuiltin bt)
 
 ival : Builtin → Value
 ival b = V-I b base

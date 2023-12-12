@@ -16,7 +16,7 @@ open import Data.Bool using (Bool;true;false)
 open import Data.List using (List)
 open import Data.Nat using (ℕ;suc)
 open import Data.Fin using (Fin) renaming (zero to Z; suc to S)
-open import Data.List.NonEmpty using (List⁺;_∷⁺_;[_];reverse)
+open import Data.List.NonEmpty using (List⁺;_∷⁺_;[_];reverse;length)
 open import Data.Product using (Σ;proj₁;proj₂)
 open import Relation.Binary using (DecidableEquality)
 
@@ -297,6 +297,10 @@ hence need to be embedded into `n⋆ / n♯ ⊢⋆` using the postfix constructo
     signature bls12-381-finalVerify           = ∙ [ bls12-381-mlresult ↑ , bls12-381-mlresult ↑ ]⟶ bool ↑
 
 open SugaredSignature using (signature) public
+
+-- The arity of a builtin, according to its signature.
+arity : Builtin → ℕ 
+arity b = length (Sig.args (signature b))
 
 ```
 
