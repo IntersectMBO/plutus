@@ -406,8 +406,6 @@ tallyingReport : TallyingBudget → String
 tallyingReport (mp , budget) =  
        countingReport budget
     ++ "\n"
-    ++ " DEBUG : ℕtoWords 1 = " ++ showℕ (ℕtoWords (+ 1)) 
-    ++ " DEBUG : ℕtoWords 2 = " ++ showℕ (ℕtoWords (+ 2))
     ++ "\n"
     ++ printStepReport mp
     ++ "\n"
