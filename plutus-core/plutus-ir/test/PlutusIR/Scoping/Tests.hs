@@ -38,7 +38,7 @@ test_names = testGroup "names"
       -- because the scope checking machinery doesn't create unused bindings, every binding
       -- gets referenced at some point at least once (usually very close to the binding site).
       -- So this test doesn't really test much.
-      T.test_scopingGood "dead code elimination" genTerm T.BindingRemovalNotOk T.PrerenameNo $
+      T.test_scopingGood "dead code elimination" genTerm T.BindingRemovalNotOk T.PrerenameYes $
         removeDeadBindings def
     , T.test_scopingGood "constant folding" genTerm T.BindingRemovalNotOk T.PrerenameYes $
         pure . evaluateBuiltins False def defaultBuiltinCostModel
@@ -51,10 +51,10 @@ test_names = testGroup "names"
         "match-against-known-constructor"
         genTerm
         T.BindingRemovalNotOk
-        T.PrerenameNo $
-        knownCon
-    , T.test_scopingGood "floating bindings inwards" genTerm T.BindingRemovalNotOk T.PrerenameNo $
-        In.floatTerm def True
+        T.PrerenameYes $
+        (pure . knownCon)
+    , T.test_scopingGood "floating bindings inwards" genTerm T.BindingRemovalNotOk T.PrerenameYes $
+        (pure . In.floatTerm def True)
     -- Can't test 'Out.floatTerm', because it requires the type of annotations to implement
     -- 'Semigroup' and it's not clear what that means for 'NameAnn'.
     , T.test_scopingGood "merging lets" genTerm T.BindingRemovalNotOk T.PrerenameYes $

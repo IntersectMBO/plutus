@@ -3,7 +3,7 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 -- | Compile non-strict bindings into strict bindings.
-module PlutusIR.Transform.NonStrict (compileNonStrictBindings) where
+module PlutusIR.Transform.NonStrict (compileNonStrictBindings, compileNonStrictBindingsPass, compileNonStrictBindingsPassSC) where
 
 import PlutusIR
 import PlutusIR.Transform.Rename ()
@@ -16,6 +16,9 @@ import Control.Lens hiding (Strict)
 import Control.Monad.State
 
 import Data.Map qualified as Map
+import PlutusCore qualified as PLC
+import PlutusIR.Pass
+import PlutusIR.TypeCheck qualified as TC
 
 {- Note [Compiling non-strict bindings]
 Given `let x : ty = rhs in body`, we
@@ -40,6 +43,25 @@ function type but `() -> x` is!
 -}
 
 type Substs uni fun a = Map.Map Name (Term TyName Name uni fun a)
+
+compileNonStrictBindingsPassSC
+  :: (PLC.Typecheckable uni fun, PLC.GEq uni, MonadQuote m, Ord a)
+  => TC.PirTCConfig uni fun
+  -> Bool
+  -> Pass m TyName Name uni fun a
+compileNonStrictBindingsPassSC tcConfig useUnit =
+    renamePass <> compileNonStrictBindingsPass tcConfig useUnit
+
+compileNonStrictBindingsPass
+  :: (PLC.Typecheckable uni fun, PLC.GEq uni, MonadQuote m)
+  => TC.PirTCConfig uni fun
+  -> Bool
+  -> Pass m TyName Name uni fun a
+compileNonStrictBindingsPass tcConfig useUnit =
+  NamedPass "compile non-strict bindings" $
+    Pass
+      (compileNonStrictBindings useUnit)
+      [Typechecks tcConfig] [ConstCondition (Typechecks tcConfig)]
 
 -- | Compile all the non-strict bindings in a term into strict bindings. Note: requires globally
 -- unique names.
