@@ -445,14 +445,14 @@ tallyingReport (mp , budget) =
                                "" 
                                stepKindList
 
-    printBuiltinModel : Builtin → ExBudget → String 
-    printBuiltinModel b (mkExBudget 0 0) = "" 
-    printBuiltinModel b budget = padRight ' ' 22 (showBuiltin b) ++ " " 
+    printBuiltinCost : Builtin → ExBudget → String 
+    printBuiltinCost b (mkExBudget 0 0) = "" 
+    printBuiltinCost b budget = padRight ' ' 22 (showBuiltin b) ++ " " 
                              ++ budgetToString budget ++ "\n"
 
     printBuiltinReport : Map ExBudget → String 
     printBuiltinReport mp = 
-        L.foldr (λ b xs → printBuiltinModel b (lookup mp (BBuiltinApp b (replicate 0))) ++ xs) 
+        L.foldr (λ b xs → printBuiltinCost b (lookup mp (BBuiltinApp b (replicate 0))) ++ xs) 
               "" 
               builtinList     
     
