@@ -21,11 +21,11 @@
           lst
           [List (con integer)]
           [
-            [ [ { match_List (con integer) } lst ] Nil ]
+            [ { [ { match_List (con integer) } lst ] [List (con integer)] } { Nil (con integer) } ]
             (lam
               x
               (con integer)
-              (lam xs [List (con integer)] [ [ Cons [ f x ] ] [ [ map f ] xs ] ])
+              (lam xs [List (con integer)] [ { Cons (con integer) } [ f x ] [ map f xs ] ])
             )
           ]
         )

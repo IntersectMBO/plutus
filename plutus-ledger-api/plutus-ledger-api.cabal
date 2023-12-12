@@ -145,6 +145,7 @@ test-suite plutus-ledger-api-test
   hs-source-dirs: test
   other-modules:
     Spec.CBOR.DeserialiseFailureInfo
+    Spec.ContextDecoding
     Spec.CostModelParams
     Spec.Eval
     Spec.Interval
@@ -165,6 +166,7 @@ test-suite plutus-ledger-api-test
     , plutus-core:{plutus-core, plutus-core-testlib}                    ^>=1.18
     , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.18
     , plutus-tx:{plutus-tx, plutus-tx-testlib}                          ^>=1.18
+    , serialise
     , tasty
     , tasty-hedgehog
     , tasty-hunit

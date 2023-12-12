@@ -10,7 +10,7 @@ in the paper 'Secrets of the GHC Inliner'.
 (2) call site inlining of fully applied functions. See `Inline.CallSiteInline.hs`
 -}
 
-module PlutusIR.Transform.Inline.Inline (inline, InlineHints (..)) where
+module PlutusIR.Transform.Inline.Inline (inline, inlinePass, inlinePassSC, InlineHints (..)) where
 import PlutusCore.Annotation
 import PlutusCore.Name
 import PlutusCore.Quote
@@ -18,6 +18,7 @@ import PlutusCore.Rename (dupable)
 import PlutusIR
 import PlutusIR.Analysis.Usages qualified as Usages
 import PlutusIR.MkPir (mkLet)
+import PlutusIR.Pass
 import PlutusIR.Transform.Inline.Utils
 import PlutusIR.Transform.Rename ()
 import PlutusPrelude
@@ -28,11 +29,13 @@ import Control.Monad.Reader (runReaderT)
 import Control.Monad.State (evalStateT, modify')
 
 import Control.Monad.State.Class (gets)
+import PlutusCore qualified as PLC
 import PlutusIR.Analysis.Builtins
 import PlutusIR.Analysis.Size (termSize)
 import PlutusIR.Analysis.VarInfo qualified as VarInfo
 import PlutusIR.Contexts (AppContext (..), fillAppContext, splitApplication)
 import PlutusIR.Transform.Inline.CallSiteInline (callSiteInline)
+import PlutusIR.TypeCheck qualified as TC
 import Witherable (Witherable (wither))
 
 {- Note [Inlining approach and 'Secrets of the GHC Inliner']
@@ -153,6 +156,29 @@ Renaming everything is a bit overkill, it corresponds to 'The sledgehammer' in '
 But we don't really care about the costs listed there: it's easy for us to get a name
 supply, and the performance cost does not currently seem relevant. So it's fine.
 -}
+
+inlinePassSC
+    :: forall uni fun ann m
+    . (PLC.Typecheckable uni fun, PLC.GEq uni, Ord ann, ExternalConstraints TyName Name uni fun m)
+    => TC.PirTCConfig uni fun
+    -> InlineHints Name ann
+    -> BuiltinsInfo uni fun
+    -> Pass m TyName Name uni fun ann
+inlinePassSC tcconfig hints binfo = renamePass <> inlinePass tcconfig hints binfo
+
+inlinePass
+    :: forall uni fun ann m
+    . (PLC.Typecheckable uni fun, PLC.GEq uni, Ord ann, ExternalConstraints TyName Name uni fun m)
+    => TC.PirTCConfig uni fun
+    -> InlineHints Name ann
+    -> BuiltinsInfo uni fun
+    -> Pass m TyName Name uni fun ann
+inlinePass tcconfig hints binfo =
+  NamedPass "inline" $
+    Pass
+      (inline hints binfo)
+      [GloballyUniqueNames, Typechecks tcconfig]
+      [ConstCondition GloballyUniqueNames, ConstCondition (Typechecks tcconfig)]
 
 -- | Inline non-recursive bindings. Relies on global uniqueness, and preserves it.
 -- See Note [Inlining and global uniqueness]

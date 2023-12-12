@@ -179,7 +179,10 @@ member k m = isJust (lookup k m)
 
 {-# INLINEABLE insert #-}
 insert :: forall k v. (Eq k) => k -> v -> Map k v -> Map k v
-insert k v m = unionWith (\_ b -> b) m (fromList [(k, v)])
+insert k v (Map xs) = Map (go xs)
+  where
+    go []                = [(k, v)]
+    go ((k', v') : rest) = if k == k' then (k, v) : rest else (k', v') : go rest
 
 {-# INLINEABLE delete #-}
 delete :: forall k v. (Eq k) => k -> Map k v -> Map k v
@@ -191,12 +194,9 @@ delete key (Map ls) = Map (go ls)
       | otherwise = (k, v) : go rest
 
 {-# INLINEABLE keys #-}
-
 -- | The keys of a 'Map'.
 keys :: Map k v -> [k]
 keys (Map xs) = P.fmap (\(k, _ :: v) -> k) xs
-
-{-# INLINEABLE union #-}
 
 -- | Combine two 'Map's.
 union :: forall k v r. (Eq k) => Map k v -> Map k r -> Map k (These v r)
@@ -222,7 +222,20 @@ union (Map ls) (Map rs) =
 
 -- | Combine two 'Map's with the given combination function.
 unionWith :: forall k a. (Eq k) => (a -> a -> a) -> Map k a -> Map k a -> Map k a
-unionWith merge ls rs = these id id merge <$> union ls rs
+unionWith merge (Map ls) (Map rs) =
+  let
+    f :: a -> Maybe a -> a
+    f a b' = case b' of
+      Nothing -> a
+      Just b  -> merge a b
+
+    ls' :: [(k, a)]
+    ls' = P.fmap (\(c, i) -> (c, f i (lookup c (Map rs)))) ls
+
+    rs' :: [(k, a)]
+    rs' = P.filter (\(c, _) -> not (any (\(c', _) -> c' == c) ls)) rs
+   in
+    Map (ls' ++ rs')
 
 {-# INLINEABLE mapThese #-}
 

@@ -3,7 +3,9 @@
   (termbind
     (strict)
     (vardecl x (con integer))
-    [ [ (builtin trace) (con string "msg2") ] (con integer 1) ]
+    [
+      [ { (builtin trace) (con integer) } (con string "msg2") ] (con integer 1)
+    ]
   )
   [
     [
@@ -12,7 +14,10 @@
         [
           [
             (builtin equalsInteger)
-            [ [ (builtin trace) (con string "msg1") ] (con integer 0) ]
+            [
+              [ { (builtin trace) (con integer) } (con string "msg1") ]
+              (con integer 0)
+            ]
           ]
           x
         ]

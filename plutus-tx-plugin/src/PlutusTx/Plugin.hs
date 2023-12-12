@@ -471,12 +471,11 @@ runCompiler moduleName opts expr = do
             _                                      ->
                 AlwaysInline `elem` fmap annInline (toList ann)
     -- Compilation configuration
-    let pirTcConfig = if _posDoTypecheck opts
-                      -- pir's tc-config is based on plc tcconfig
-                      then Just $ PIR.PirTCConfig plcTcConfig PIR.YesEscape
-                      else Nothing
+    -- pir's tc-config is based on plc tcconfig
+    let pirTcConfig = PIR.PirTCConfig plcTcConfig PIR.YesEscape
         pirCtx = PIR.toDefaultCompilationCtx plcTcConfig
                  & set (PIR.ccOpts . PIR.coOptimize) (opts ^. posOptimize)
+                 & set (PIR.ccOpts . PIR.coTypecheck) (opts ^. posDoTypecheck)
                  & set (PIR.ccOpts . PIR.coPedantic) (opts ^. posPedantic)
                  & set (PIR.ccOpts . PIR.coVerbose) (opts ^. posVerbosity == Verbose)
                  & set (PIR.ccOpts . PIR.coDebug) (opts ^. posVerbosity == Debug)
@@ -512,6 +511,10 @@ runCompiler moduleName opts expr = do
         plcOpts = PLC.defaultCompilationOpts
             & set (PLC.coSimplifyOpts . UPLC.soMaxSimplifierIterations)
                 (opts ^. posMaxSimplifierIterationsUPlc)
+            & set (PLC.coSimplifyOpts . UPLC.soMaxCseIterations)
+                (opts ^. posMaxCseIterations)
+            & set (PLC.coSimplifyOpts . UPLC.soConservativeOpts)
+                (opts ^. posConservativeOpts)
             & set (PLC.coSimplifyOpts . UPLC.soInlineHints) hints
 
     -- GHC.Core -> Pir translation.
