@@ -210,7 +210,12 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
                 pure $ mkLet ann NonRec (maybeToList b') t'
             -- If it is a multi-let, split it and process the bindings one by one, because
             -- the bindings after `b` need to be considered to determine whether `b` can
-            -- be unconditionally inlined.
+            -- be unconditionally inlined. Consider e.g. 
+            -- `let !x = <effectful>; !y = <effectful> in x`, we need to look at the binding for 
+            -- `y` to know that inlining `x` would change the order of effects.
+            -- It's awkward to do this when they are part of the same term, (we would be 
+            -- looking at "the let term but only considering all the bindings after x") and 
+            -- much easier when they are just separate terms.
             b :| rest -> handleTerm (Let ann NonRec (pure b) (mkLet ann NonRec rest t))
         -- This includes recursive let terms, we don't even consider inlining them at the moment
         t -> do
