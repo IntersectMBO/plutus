@@ -3,7 +3,7 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 -- | Functions for compiling PIR let terms.
-module PlutusIR.Compiler.Let (compileLets, LetKind(..)) where
+module PlutusIR.Compiler.Let (compileLets, LetKind(..), compileLetsPass, compileLetsPassSC) where
 
 import PlutusIR
 import PlutusIR.Compiler.Datatype
@@ -24,6 +24,8 @@ import Data.Foldable
 import Data.List.NonEmpty hiding (partition, reverse)
 import Data.List.NonEmpty qualified as NE
 import PlutusCore.Pretty (display)
+import PlutusIR.Pass
+import PlutusIR.TypeCheck qualified as TC
 
 {- Note [Extra definitions while compiling let-bindings]
 The let-compiling passes can generate some additional definitions, so we use the
@@ -37,6 +39,27 @@ Also we should pull out more stuff (e.g. see 'NonStrict' which uses unit).
 -}
 
 data LetKind = RecTerms | NonRecTerms | Types | DataTypes
+  deriving stock (Show, Eq, Ord)
+
+compileLetsPassSC
+  :: Compiling m e uni fun a
+  => TC.PirTCConfig uni fun
+  -> LetKind
+  -> Pass m TyName Name uni fun (Provenance a)
+compileLetsPassSC tcconfig letKind =
+    renamePass <> compileLetsPass tcconfig letKind
+
+compileLetsPass
+  :: Compiling m e uni fun a
+  => TC.PirTCConfig uni fun
+  -> LetKind
+  -> Pass m TyName Name uni fun (Provenance a)
+compileLetsPass tcconfig letKind =
+  NamedPass "compile lets" $
+    Pass
+      (compileLets letKind)
+      [Typechecks tcconfig, GloballyUniqueNames]
+      [ConstCondition (Typechecks tcconfig)]
 
 -- | Compile the let terms out of a 'Term'. Note: the result does *not* have globally unique names.
 compileLets :: Compiling m e uni fun a => LetKind -> PIRTerm uni fun a -> m (PIRTerm uni fun a)
@@ -63,7 +86,7 @@ compileRecBindings kind body bs =
     singleGroup :| [] ->
       case NE.head singleGroup of
          TermBind {} -> compileRecTermBindings kind body singleGroup
-         DatatypeBind {} ->  lift $ compileRecDataBindings kind body singleGroup
+         DatatypeBind {} -> lift $ compileRecDataBindings kind body singleGroup
          tb@TypeBind {} ->
             lift $ getEnclosing >>= \p -> throwing _Error $
                 CompilationError p

@@ -10,7 +10,8 @@ in the paper 'Secrets of the GHC Inliner'.
 (2) call site inlining of fully applied functions. See `Inline.CallSiteInline.hs`
 -}
 
-module PlutusIR.Transform.Inline.Inline (inline, InlineHints (..)) where
+module PlutusIR.Transform.Inline.Inline (inline, inlinePass, inlinePassSC, InlineHints (..)) where
+import PlutusCore qualified as PLC
 import PlutusCore.Annotation
 import PlutusCore.Name
 import PlutusCore.Quote
@@ -22,9 +23,11 @@ import PlutusIR.Analysis.Usages qualified as Usages
 import PlutusIR.Analysis.VarInfo qualified as VarInfo
 import PlutusIR.Contexts (AppContext (..), fillAppContext, splitApplication)
 import PlutusIR.MkPir (mkLet)
+import PlutusIR.Pass
 import PlutusIR.Transform.Inline.CallSiteInline (callSiteInline)
 import PlutusIR.Transform.Inline.Utils
 import PlutusIR.Transform.Rename ()
+import PlutusIR.TypeCheck qualified as TC
 import PlutusPrelude
 
 import Control.Lens (forMOf, traverseOf)
@@ -153,6 +156,29 @@ But we don't really care about the costs listed there: it's easy for us to get a
 supply, and the performance cost does not currently seem relevant. So it's fine.
 -}
 
+inlinePassSC
+    :: forall uni fun ann m
+    . (PLC.Typecheckable uni fun, PLC.GEq uni, Ord ann, ExternalConstraints TyName Name uni fun m)
+    => TC.PirTCConfig uni fun
+    -> InlineHints Name ann
+    -> BuiltinsInfo uni fun
+    -> Pass m TyName Name uni fun ann
+inlinePassSC tcconfig hints binfo = renamePass <> inlinePass tcconfig hints binfo
+
+inlinePass
+    :: forall uni fun ann m
+    . (PLC.Typecheckable uni fun, PLC.GEq uni, Ord ann, ExternalConstraints TyName Name uni fun m)
+    => TC.PirTCConfig uni fun
+    -> InlineHints Name ann
+    -> BuiltinsInfo uni fun
+    -> Pass m TyName Name uni fun ann
+inlinePass tcconfig hints binfo =
+  NamedPass "inline" $
+    Pass
+      (inline hints binfo)
+      [GloballyUniqueNames, Typechecks tcconfig]
+      [ConstCondition GloballyUniqueNames, ConstCondition (Typechecks tcconfig)]
+
 -- | Inline non-recursive bindings. Relies on global uniqueness, and preserves it.
 -- See Note [Inlining and global uniqueness]
 inline
@@ -184,6 +210,18 @@ TODO: merge them or figure out a way to share more work, especially since there'
 This might mean reinventing GHC's OccAnal...
 -}
 
+{- Note [Processing multi-lets]
+
+When we process a term in the inliner, if it is a multi-let, we split it and process the
+bindings one by one, because the bindings after `b` need to be considered to determine
+whether `b` can be unconditionally inlined. Consider e.g.
+`let !x = <effectful>; !y = <effectful> in x`, we need to look at the binding for
+`y` to know that inlining `x` would change the order of effects.
+It's awkward to do this when they are part of the same term, (we would be
+looking at "the let term but only considering all the bindings after x") and
+much easier when they are just separate terms.
+-}
+
 -- | Run the inliner on a `Core.Type.Term`.
 processTerm
     :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
@@ -208,14 +246,7 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
                 -- Use 'mkLet': which takes a possibly empty list of bindings (rather than
                 -- a non-empty list)
                 pure $ mkLet ann NonRec (maybeToList b') t'
-            -- If it is a multi-let, split it and process the bindings one by one, because
-            -- the bindings after `b` need to be considered to determine whether `b` can
-            -- be unconditionally inlined. Consider e.g. 
-            -- `let !x = <effectful>; !y = <effectful> in x`, we need to look at the binding for 
-            -- `y` to know that inlining `x` would change the order of effects.
-            -- It's awkward to do this when they are part of the same term, (we would be 
-            -- looking at "the let term but only considering all the bindings after x") and 
-            -- much easier when they are just separate terms.
+            -- See Note [Processing multi-lets]
             b :| rest -> handleTerm (Let ann NonRec (pure b) (mkLet ann NonRec rest t))
         -- This includes recursive let terms, we don't even consider inlining them at the moment
         t -> do

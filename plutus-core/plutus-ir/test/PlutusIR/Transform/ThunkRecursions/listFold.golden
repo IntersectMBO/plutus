@@ -18,24 +18,38 @@
         (all
           a
           (type)
-          (all b (type) (fun (fun a (fun b a)) (fun a (fun [ List b ] a))))
+          (all b (type) (fun (fun b (fun a b)) (fun b (fun [ List a ] b))))
         )
       )
-      (lam
-        f
-        (fun a (fun b a))
-        (lam
-          acc
-          a
+      (abs
+        a
+        (type)
+        (abs
+          b
+          (type)
           (lam
-            lst
-            [ List b ]
-            [
-              [ [ { match_List a } lst ] acc ]
+            f
+            (fun b (fun a b))
+            (lam
+              acc
+              b
               (lam
-                x b (lam xs [ List b ] [ [ [ foldl f ] [ [ f acc ] x ] ] xs ])
+                lst
+                [ List a ]
+                [
+                  [ { [ { match_List a } lst ] b } acc ]
+                  (lam
+                    x
+                    a
+                    (lam
+                      xs
+                      [ List a ]
+                      [ [ [ { { foldl a } b } f ] [ [ f acc ] x ] ] xs ]
+                    )
+                  )
+                ]
               )
-            ]
+            )
           )
         )
       )
@@ -49,7 +63,7 @@
           (all
             a
             (type)
-            (all b (type) (fun (fun a (fun b a)) (fun a (fun [ List b ] a))))
+            (all b (type) (fun (fun b (fun a b)) (fun b (fun [ List a ] b))))
           )
         )
         foldl

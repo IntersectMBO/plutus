@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 let
   !a_4 : integer = 10
 in
@@ -8,3 +9,15 @@ let
   !a_8 : integer = 7
 in
 addInteger (addInteger a_4 a_8) a_8
+=======
+(let
+  (nonrec)
+  (termbind (strict) (vardecl a (con integer)) (con integer 10))
+  (termbind (strict) (vardecl c (con integer)) [ [ (builtin addInteger) a ] a ])
+  (let
+    (nonrec)
+    (termbind (strict) (vardecl a (con integer)) (con integer 7))
+    [ [ (builtin addInteger) [ [ (builtin addInteger) a ] a ] ] a ]
+  )
+)
+>>>>>>> 9835510209d8fa77f9544bf05432cba5b2779cca

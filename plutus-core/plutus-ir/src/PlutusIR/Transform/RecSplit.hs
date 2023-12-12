@@ -3,7 +3,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
 module PlutusIR.Transform.RecSplit
-    (recSplit) where
+    (recSplit, recSplitPass) where
 
 import PlutusCore.Name qualified as PLC
 import PlutusIR
@@ -22,7 +22,10 @@ import Data.Map qualified as M
 import Data.Semigroup.Foldable
 import Data.Set qualified as S
 import Data.Set.Lens (setOf)
+import PlutusCore qualified as PLC
 import PlutusIR.MkPir (mkLet)
+import PlutusIR.Pass
+import PlutusIR.TypeCheck qualified as TC
 import PlutusPrelude ((<^>))
 
 {- Note [LetRec splitting pass]
@@ -65,6 +68,12 @@ Datatype bindings, however, introduce multiple names and tynames (i.e. type-cons
 and the 'principal' function arbitrarily chooses between one of these introduced names/tynames of the databind
 to represent the "principal" id of the whole datatype binding so it can be used as "the key".
 -}
+
+recSplitPass
+  :: (PLC.Typecheckable uni fun, PLC.GEq uni, Applicative m)
+  => TC.PirTCConfig uni fun
+  -> Pass m TyName Name uni fun a
+recSplitPass tcconfig = simplePass "recursive let split" tcconfig recSplit
 
 {-|
 Apply letrec splitting, recursively in bottom-up fashion.
