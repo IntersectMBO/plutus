@@ -417,17 +417,17 @@ tallyingReport (mp , budget) =
     ++ "\n\n"
     ++ printBuiltinReport mp 
     ++ "\n" 
-    ++ "Total builtin costs:   " ++ budgetToString totalBuiltinModels ++ "\n"
+    ++ "Total builtin costs:   " ++ budgetToString totalBuiltinCosts ++ "\n"
      -- We would like to be able to print the following  number as "%4.2f" 
      -- but Agda's printf currently doesn't support it.
-    ++ printf "Time spent executing builtins:  %f%%\n" (fromℕ 100 *f (getCPU totalBuiltinModels) ÷ (getCPU budget)) ++ "\n"
+    ++ printf "Time spent executing builtins:  %f%%\n" (fromℕ 100 *f (getCPU totalBuiltinCosts) ÷ (getCPU budget)) ++ "\n"
     ++ "\n"
     ++ "Total budget spent:    " ++ budgetToString budget ++ "\n"
     ++  "Predicted execution time: " ++ formatTimePicoseconds (getCPU budget)
   where 
-    totalComputeCost totalBuiltinModels : ExBudget 
+    totalComputeCost totalBuiltinCosts : ExBudget 
     totalComputeCost = L.foldr (λ x acc → (lookup mp (BStep x)) ∙€ acc) ε€ stepKindList
-    totalBuiltinModels = L.foldr _∙€_ ε€ (L.map (lookup mp ∘ (λ b → BBuiltinApp b (replicate 0))) builtinList)
+    totalBuiltinCosts = L.foldr _∙€_ ε€ (L.map (lookup mp ∘ (λ b → BBuiltinApp b (replicate 0))) builtinList)
 
     getCPU : ExBudget → Float
     getCPU n = fromℕ (ExCPU n)   
