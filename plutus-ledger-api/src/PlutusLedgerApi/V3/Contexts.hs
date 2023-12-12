@@ -337,35 +337,15 @@ instance PlutusTx.Eq ScriptPurpose where
     a PlutusTx.== a'
   _ == _ = Haskell.False
 
-newtype Lovelace = Lovelace Haskell.Integer
-  deriving stock (Generic)
-  deriving (Pretty) via (PrettyShow Lovelace)
-  deriving newtype
-    ( Haskell.Eq
-    , Haskell.Ord
-    , Haskell.Show
-    , Haskell.Num
-    , Haskell.Real
-    , Haskell.Enum
-    , PlutusTx.Eq
-    , PlutusTx.Ord
-    , PlutusTx.ToData
-    , PlutusTx.FromData
-    , PlutusTx.UnsafeFromData
-    , PlutusTx.AdditiveSemigroup
-    , PlutusTx.AdditiveMonoid
-    , PlutusTx.AdditiveGroup
-    )
-
 -- | TxInfo for PlutusV3
 data TxInfo = TxInfo
   { txInfoInputs                :: [V2.TxInInfo]
   , txInfoReferenceInputs       :: [V2.TxInInfo]
   , txInfoOutputs               :: [V2.TxOut]
-  , txInfoFee                   :: Lovelace
+  , txInfoFee                   :: V2.Lovelace
   , txInfoMint                  :: V2.Value
   , txInfoTxCerts               :: [TxCert]
-  , txInfoWdrl                  :: Map V2.Credential Lovelace
+  , txInfoWdrl                  :: Map V2.Credential V2.Lovelace
   , txInfoValidRange            :: V2.POSIXTimeRange
   , txInfoSignatories           :: [V2.PubKeyHash]
   , txInfoRedeemers             :: Map ScriptPurpose V2.Redeemer
@@ -373,8 +353,8 @@ data TxInfo = TxInfo
   , txInfoId                    :: V2.TxId
   , txInfoVotes                 :: Map Voter (Map GovernanceActionId Vote)
   , txInfoProposalProcedures    :: [ProposalProcedure]
-  , txInfoCurrentTreasuryAmount :: Haskell.Maybe Lovelace
-  , txInfoTreasuryDonation      :: Haskell.Maybe Lovelace
+  , txInfoCurrentTreasuryAmount :: Haskell.Maybe V2.Lovelace
+  , txInfoTreasuryDonation      :: Haskell.Maybe V2.Lovelace
   }
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
 
@@ -531,8 +511,6 @@ PlutusTx.makeIsDataIndexed
   , ('Voting, 4)
   , ('Proposing, 5)
   ]
-
-PlutusTx.makeLift ''Lovelace
 
 PlutusTx.makeLift ''TxInfo
 PlutusTx.makeIsDataIndexed ''TxInfo [('TxInfo, 0)]
