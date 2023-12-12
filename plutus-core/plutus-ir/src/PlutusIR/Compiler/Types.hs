@@ -27,7 +27,7 @@ import PlutusCore.Quote
 import PlutusCore.StdLib.Type qualified as Types
 import PlutusCore.TypeCheck.Internal qualified as PLC
 import PlutusCore.Version qualified as PLC
-import PlutusIR.Transform.RewriteRules
+import PlutusIR.Transform.RewriteRules.Rules
 import PlutusPrelude
 
 import Control.Monad.Error.Lens (throwing)
@@ -76,6 +76,7 @@ defaultDatatypeCompilationOpts = DatatypeCompilationOpts SumsOfProducts
 
 data CompilationOpts a = CompilationOpts {
     _coOptimize                        :: Bool
+    , _coTypecheck                     :: Bool
     , _coPedantic                      :: Bool
     , _coVerbose                       :: Bool
     , _coDebug                         :: Bool
@@ -105,6 +106,7 @@ makeLenses ''CompilationOpts
 defaultCompilationOpts :: CompilationOpts a
 defaultCompilationOpts = CompilationOpts
   { _coOptimize = True -- synonymous with max-simplifier-iterations=0
+  , _coTypecheck = True
   , _coPedantic = False
   , _coVerbose = False
   , _coDebug = False
@@ -130,7 +132,7 @@ data CompilationCtx uni fun a = CompilationCtx {
     _ccOpts               :: CompilationOpts a
     , _ccEnclosing        :: Provenance a
     -- | Decide to either typecheck (passing a specific tcconfig) or not by passing 'Nothing'.
-    , _ccTypeCheckConfig  :: Maybe (PirTCConfig uni fun)
+    , _ccTypeCheckConfig  :: PirTCConfig uni fun
     , _ccBuiltinsInfo     :: BuiltinsInfo uni fun
     , _ccBuiltinCostModel :: PLC.CostingPart uni fun
     , _ccRewriteRules     :: RewriteRules uni fun
@@ -145,7 +147,7 @@ toDefaultCompilationCtx
 toDefaultCompilationCtx configPlc = CompilationCtx
        { _ccOpts = defaultCompilationOpts
        , _ccEnclosing = noProvenance
-       , _ccTypeCheckConfig = Just $ PirTCConfig configPlc YesEscape
+       , _ccTypeCheckConfig = PirTCConfig configPlc YesEscape
        , _ccBuiltinsInfo = def
        , _ccBuiltinCostModel = def
        , _ccRewriteRules = def

@@ -501,6 +501,7 @@ library plutus-ir
     PlutusIR.Mark
     PlutusIR.MkPir
     PlutusIR.Parser
+    PlutusIR.Pass
     PlutusIR.Purity
     PlutusIR.Subst
     PlutusIR.Transform.Beta
@@ -537,6 +538,7 @@ library plutus-ir
     PlutusIR.Compiler.Recursion
     PlutusIR.Normalize
     PlutusIR.Transform.RewriteRules.Common
+    PlutusIR.Transform.RewriteRules.Rules
     PlutusIR.Transform.RewriteRules.UnConstrConstrData
 
   build-depends:
@@ -712,7 +714,7 @@ library plutus-core-testlib
     PlutusIR.Generators.QuickCheck.Common
     PlutusIR.Generators.QuickCheck.GenerateTerms
     PlutusIR.Generators.QuickCheck.ShrinkTerms
-    PlutusIR.Properties.Typecheck
+    PlutusIR.Pass.Test
     PlutusIR.Test
     Test.Tasty.Extras
     UntypedPlutusCore.Test.DeBruijn.Bad
