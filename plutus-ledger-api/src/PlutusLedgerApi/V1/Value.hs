@@ -321,6 +321,8 @@ isZero (Value xs) = Map.all (Map.all (\i -> 0 == i)) xs
 -- of how operations on 'Value's work.
 geq :: Value -> Value -> Bool
 geq l (Value r) =
+  -- This is more efficient than first flattening the second `Value` with `flattenValue`, because
+  -- the latter traverses the second `Value` and creates the entire intermediate result.
   all
     ( \(currency, tokens) ->
         all (\(token, n) -> valueOf l currency token >= n) (Map.toList tokens)
