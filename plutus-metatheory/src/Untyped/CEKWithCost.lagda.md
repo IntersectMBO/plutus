@@ -60,7 +60,7 @@ spendStartupCost : CekM ⊤
 spendStartupCost = tell startupCost
 ```
 
-In order to calculate the cost of executing a builting, we obtain a vector with 
+In order to calculate the cost of executing a builtin, we obtain a vector with 
 the size of each constant argument using `extractArgSizes`. 
 
 Non-constant argument should only occur in places where the builtin is polymorphic
