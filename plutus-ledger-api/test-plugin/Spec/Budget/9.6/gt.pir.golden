@@ -1,0 +1,532 @@
+let
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+  data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
+    Tuple2 : a -> b -> Tuple2 a b
+in
+letrec
+  data (List :: * -> *) a | List_match where
+    Nil : List a
+    Cons : a -> List a -> List a
+in
+letrec
+  !go : List (Tuple2 bytestring integer) -> Bool
+    = \(ds : List (Tuple2 bytestring integer)) ->
+        List_match
+          {Tuple2 bytestring integer}
+          ds
+          {all dead. Bool}
+          (/\dead -> True)
+          (\(ds : Tuple2 bytestring integer)
+            (xs : List (Tuple2 bytestring integer)) ->
+             /\dead ->
+               Tuple2_match
+                 {bytestring}
+                 {integer}
+                 ds
+                 {Bool}
+                 (\(ds : bytestring) (x : integer) ->
+                    ifThenElse
+                      {all dead. Bool}
+                      (equalsInteger 0 x)
+                      (/\dead -> go xs)
+                      (/\dead -> False)
+                      {all dead. dead}))
+          {all dead. dead}
+in
+let
+  !equalsByteString : bytestring -> bytestring -> Bool
+    = \(x : bytestring) (y : bytestring) ->
+        ifThenElse {Bool} (equalsByteString x y) True False
+  !unordEqWith :
+     all k v.
+       (\a -> a -> a -> Bool) k ->
+       (v -> Bool) ->
+       (v -> v -> Bool) ->
+       List (Tuple2 k v) ->
+       List (Tuple2 k v) ->
+       Bool
+    = /\k v ->
+        \(`$dEq` : (\a -> a -> a -> Bool) k)
+         (is : v -> Bool) ->
+          letrec
+            !go : List (Tuple2 k v) -> Bool
+              = \(ds : List (Tuple2 k v)) ->
+                  List_match
+                    {Tuple2 k v}
+                    ds
+                    {all dead. Bool}
+                    (/\dead -> True)
+                    (\(x : Tuple2 k v) (xs : List (Tuple2 k v)) ->
+                       /\dead ->
+                         Tuple2_match
+                           {k}
+                           {v}
+                           x
+                           {Bool}
+                           (\(ipv : k) (ipv : v) ->
+                              Bool_match
+                                (is ipv)
+                                {all dead. Bool}
+                                (/\dead -> go xs)
+                                (/\dead -> False)
+                                {all dead. dead}))
+                    {all dead. dead}
+          in
+          letrec
+            !go : List (Tuple2 k v) -> Bool
+              = \(ds : List (Tuple2 k v)) ->
+                  List_match
+                    {Tuple2 k v}
+                    ds
+                    {all dead. Bool}
+                    (/\dead -> True)
+                    (\(x : Tuple2 k v) (xs : List (Tuple2 k v)) ->
+                       /\dead ->
+                         Tuple2_match
+                           {k}
+                           {v}
+                           x
+                           {Bool}
+                           (\(ipv : k) (ipv : v) ->
+                              Bool_match
+                                (is ipv)
+                                {all dead. Bool}
+                                (/\dead -> go xs)
+                                (/\dead -> False)
+                                {all dead. dead}))
+                    {all dead. dead}
+          in
+          \(eqV : v -> v -> Bool) ->
+            letrec
+              !goBoth :
+                 List (Tuple2 k v) -> List (Tuple2 k v) -> Bool
+                = \(ds : List (Tuple2 k v))
+                   (kvsR : List (Tuple2 k v)) ->
+                    List_match
+                      {Tuple2 k v}
+                      ds
+                      {all dead. Bool}
+                      (/\dead -> go kvsR)
+                      (\(ipv : Tuple2 k v)
+                        (ipv : List (Tuple2 k v)) ->
+                         /\dead ->
+                           List_match
+                             {Tuple2 k v}
+                             kvsR
+                             {all dead. Bool}
+                             (/\dead -> go ds)
+                             (\(ipv : Tuple2 k v)
+                               (ipv : List (Tuple2 k v)) ->
+                                /\dead ->
+                                  Tuple2_match
+                                    {k}
+                                    {v}
+                                    ipv
+                                    {Bool}
+                                    (\(kL : k)
+                                      (vL : v) ->
+                                       letrec
+                                         !goRight :
+                                            List (Tuple2 k v) ->
+                                            List (Tuple2 k v) ->
+                                            Bool
+                                           = \(ds : List (Tuple2 k v))
+                                              (ds : List (Tuple2 k v)) ->
+                                               List_match
+                                                 {Tuple2 k v}
+                                                 ds
+                                                 {all dead. Bool}
+                                                 (/\dead -> False)
+                                                 (\(kvR : Tuple2 k v)
+                                                   (kvsR' :
+                                                      List (Tuple2 k v)) ->
+                                                    /\dead ->
+                                                      Tuple2_match
+                                                        {k}
+                                                        {v}
+                                                        kvR
+                                                        {Bool}
+                                                        (\(kR : k)
+                                                          (vR : v) ->
+                                                           Bool_match
+                                                             (is vR)
+                                                             {all dead. Bool}
+                                                             (/\dead ->
+                                                                goRight
+                                                                  ds
+                                                                  kvsR')
+                                                             (/\dead ->
+                                                                Bool_match
+                                                                  (`$dEq` kL kR)
+                                                                  {all dead.
+                                                                     Bool}
+                                                                  (/\dead ->
+                                                                     Bool_match
+                                                                       (eqV
+                                                                          vL
+                                                                          vR)
+                                                                       {all dead.
+                                                                          Bool}
+                                                                       (/\dead ->
+                                                                          goBoth
+                                                                            ipv
+                                                                            ((let
+                                                                                 a
+                                                                                   = Tuple2
+                                                                                       k
+                                                                                       v
+                                                                               in
+                                                                               letrec
+                                                                                 !rev :
+                                                                                    List
+                                                                                      a ->
+                                                                                    List
+                                                                                      a ->
+                                                                                    List
+                                                                                      a
+                                                                                   = \(ds :
+                                                                                         List
+                                                                                           a)
+                                                                                      (a :
+                                                                                         List
+                                                                                           a) ->
+                                                                                       List_match
+                                                                                         {a}
+                                                                                         ds
+                                                                                         {all dead.
+                                                                                            List
+                                                                                              a}
+                                                                                         (/\dead ->
+                                                                                            a)
+                                                                                         (\(x :
+                                                                                              a)
+                                                                                           (xs :
+                                                                                              List
+                                                                                                a) ->
+                                                                                            /\dead ->
+                                                                                              rev
+                                                                                                xs
+                                                                                                (Cons
+                                                                                                   {a}
+                                                                                                   x
+                                                                                                   a))
+                                                                                         {all dead.
+                                                                                            dead}
+                                                                               in
+                                                                               \(eta :
+                                                                                   List
+                                                                                     a)
+                                                                                (eta :
+                                                                                   List
+                                                                                     a) ->
+                                                                                 rev
+                                                                                   eta
+                                                                                   eta)
+                                                                               ds
+                                                                               kvsR'))
+                                                                       (/\dead ->
+                                                                          False)
+                                                                       {all dead.
+                                                                          dead})
+                                                                  (/\dead ->
+                                                                     goRight
+                                                                       (Cons
+                                                                          {Tuple2
+                                                                             k
+                                                                             v}
+                                                                          kvR
+                                                                          ds)
+                                                                       kvsR')
+                                                                  {all dead.
+                                                                     dead})
+                                                             {all dead. dead}))
+                                                 {all dead. dead}
+                                       in
+                                       Tuple2_match
+                                         {k}
+                                         {v}
+                                         ipv
+                                         {Bool}
+                                         (\(kR : k) (vR : v) ->
+                                            Bool_match
+                                              (`$dEq` kL kR)
+                                              {all dead. Bool}
+                                              (/\dead ->
+                                                 Bool_match
+                                                   (eqV vL vR)
+                                                   {all dead. Bool}
+                                                   (/\dead -> goBoth ipv ipv)
+                                                   (/\dead -> False)
+                                                   {all dead. dead})
+                                              (/\dead ->
+                                                 Bool_match
+                                                   (is vL)
+                                                   {all dead. Bool}
+                                                   (/\dead -> goBoth ipv kvsR)
+                                                   (/\dead ->
+                                                      goRight
+                                                        ((let
+                                                             a = Tuple2 k v
+                                                           in
+                                                           \(g :
+                                                               all b.
+                                                                 (a ->
+                                                                  b ->
+                                                                  b) ->
+                                                                 b ->
+                                                                 b) ->
+                                                             g
+                                                               {List a}
+                                                               (\(ds : a)
+                                                                 (ds :
+                                                                    List a) ->
+                                                                  Cons
+                                                                    {a}
+                                                                    ds
+                                                                    ds)
+                                                               (Nil {a}))
+                                                           (/\a ->
+                                                              \(c :
+                                                                  Tuple2 k v ->
+                                                                  a ->
+                                                                  a)
+                                                               (n : a) ->
+                                                                Bool_match
+                                                                  (is vR)
+                                                                  {all dead. a}
+                                                                  (/\dead -> n)
+                                                                  (/\dead ->
+                                                                     c ipv n)
+                                                                  {all dead.
+                                                                     dead}))
+                                                        ipv)
+                                                   {all dead. dead})
+                                              {all dead. dead})))
+                             {all dead. dead})
+                      {all dead. dead}
+            in
+            \(eta : List (Tuple2 k v)) (eta : List (Tuple2 k v)) ->
+              goBoth eta eta
+in
+\(l :
+    (\k v -> List (Tuple2 k v))
+      bytestring
+      ((\k v -> List (Tuple2 k v)) bytestring integer)) ->
+  letrec
+    !go :
+       List
+         (Tuple2 bytestring ((\k v -> List (Tuple2 k v)) bytestring integer)) ->
+       Bool
+      = \(ds :
+            List
+              (Tuple2
+                 bytestring
+                 ((\k v -> List (Tuple2 k v)) bytestring integer))) ->
+          List_match
+            {Tuple2 bytestring ((\k v -> List (Tuple2 k v)) bytestring integer)}
+            ds
+            {all dead. Bool}
+            (/\dead -> True)
+            (\(x :
+                 Tuple2
+                   bytestring
+                   ((\k v -> List (Tuple2 k v)) bytestring integer))
+              (xs :
+                 List
+                   (Tuple2
+                      bytestring
+                      ((\k v -> List (Tuple2 k v)) bytestring integer))) ->
+               /\dead ->
+                 Tuple2_match
+                   {bytestring}
+                   {(\k v -> List (Tuple2 k v)) bytestring integer}
+                   x
+                   {Bool}
+                   (\(currency : bytestring) ->
+                      letrec
+                        !go :
+                           List (Tuple2 bytestring integer) -> Bool
+                          = \(ds : List (Tuple2 bytestring integer)) ->
+                              List_match
+                                {Tuple2 bytestring integer}
+                                ds
+                                {all dead. Bool}
+                                (/\dead -> go xs)
+                                (\(x : Tuple2 bytestring integer)
+                                  (xs : List (Tuple2 bytestring integer)) ->
+                                   /\dead ->
+                                     Tuple2_match
+                                       {bytestring}
+                                       {integer}
+                                       x
+                                       {Bool}
+                                       (\(token : bytestring) ->
+                                          letrec
+                                            !go :
+                                               List
+                                                 (Tuple2 bytestring integer) ->
+                                               integer
+                                              = \(ds :
+                                                    List
+                                                      (Tuple2
+                                                         bytestring
+                                                         integer)) ->
+                                                  List_match
+                                                    {Tuple2 bytestring integer}
+                                                    ds
+                                                    {all dead. integer}
+                                                    (/\dead -> 0)
+                                                    (\(ds :
+                                                         Tuple2
+                                                           bytestring
+                                                           integer)
+                                                      (xs' :
+                                                         List
+                                                           (Tuple2
+                                                              bytestring
+                                                              integer)) ->
+                                                       /\dead ->
+                                                         Tuple2_match
+                                                           {bytestring}
+                                                           {integer}
+                                                           ds
+                                                           {integer}
+                                                           (\(c' : bytestring)
+                                                             (i : integer) ->
+                                                              ifThenElse
+                                                                {all dead.
+                                                                   integer}
+                                                                (equalsByteString
+                                                                   c'
+                                                                   token)
+                                                                (/\dead -> i)
+                                                                (/\dead ->
+                                                                   go xs')
+                                                                {all dead.
+                                                                   dead}))
+                                                    {all dead. dead}
+                                          in
+                                          letrec
+                                            !go :
+                                               List
+                                                 (Tuple2
+                                                    bytestring
+                                                    ((\k v -> List (Tuple2 k v))
+                                                       bytestring
+                                                       integer)) ->
+                                               integer
+                                              = \(ds :
+                                                    List
+                                                      (Tuple2
+                                                         bytestring
+                                                         ((\k v ->
+                                                             List (Tuple2 k v))
+                                                            bytestring
+                                                            integer))) ->
+                                                  List_match
+                                                    {Tuple2
+                                                       bytestring
+                                                       ((\k v ->
+                                                           List (Tuple2 k v))
+                                                          bytestring
+                                                          integer)}
+                                                    ds
+                                                    {all dead. integer}
+                                                    (/\dead -> 0)
+                                                    (\(ds :
+                                                         Tuple2
+                                                           bytestring
+                                                           ((\k v ->
+                                                               List
+                                                                 (Tuple2 k v))
+                                                              bytestring
+                                                              integer))
+                                                      (xs' :
+                                                         List
+                                                           (Tuple2
+                                                              bytestring
+                                                              ((\k v ->
+                                                                  List
+                                                                    (Tuple2
+                                                                       k
+                                                                       v))
+                                                                 bytestring
+                                                                 integer))) ->
+                                                       /\dead ->
+                                                         Tuple2_match
+                                                           {bytestring}
+                                                           {(\k v ->
+                                                               List
+                                                                 (Tuple2 k v))
+                                                              bytestring
+                                                              integer}
+                                                           ds
+                                                           {integer}
+                                                           (\(c' : bytestring)
+                                                             (i :
+                                                                (\k v ->
+                                                                   List
+                                                                     (Tuple2
+                                                                        k
+                                                                        v))
+                                                                  bytestring
+                                                                  integer) ->
+                                                              ifThenElse
+                                                                {all dead.
+                                                                   integer}
+                                                                (equalsByteString
+                                                                   c'
+                                                                   currency)
+                                                                (/\dead -> go i)
+                                                                (/\dead ->
+                                                                   go xs')
+                                                                {all dead.
+                                                                   dead}))
+                                                    {all dead. dead}
+                                          in
+                                          \(n : integer) ->
+                                            ifThenElse
+                                              {all dead. Bool}
+                                              (lessThanInteger (go l) n)
+                                              (/\dead -> False)
+                                              (/\dead -> go xs)
+                                              {all dead. dead}))
+                                {all dead. dead}
+                      in
+                      \(tokens :
+                          (\k v -> List (Tuple2 k v)) bytestring integer) ->
+                        go tokens))
+            {all dead. dead}
+  in
+  \(r :
+      (\k v -> List (Tuple2 k v))
+        bytestring
+        ((\k v -> List (Tuple2 k v)) bytestring integer)) ->
+    Bool_match
+      (go r)
+      {all dead. Bool}
+      (/\dead ->
+         Bool_match
+           (unordEqWith
+              {bytestring}
+              {(\k v -> List (Tuple2 k v)) bytestring integer}
+              equalsByteString
+              (\(ds : (\k v -> List (Tuple2 k v)) bytestring integer) -> go ds)
+              (unordEqWith
+                 {bytestring}
+                 {integer}
+                 equalsByteString
+                 (\(v : integer) ->
+                    ifThenElse {Bool} (equalsInteger 0 v) True False)
+                 (\(x : integer) (y : integer) ->
+                    ifThenElse {Bool} (equalsInteger x y) True False))
+              l
+              r)
+           {all dead. Bool}
+           (/\dead -> False)
+           (/\dead -> True)
+           {all dead. dead})
+      (/\dead -> False)
+      {all dead. dead}

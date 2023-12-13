@@ -181,14 +181,17 @@ test-suite plutus-ledger-api-plugin-test
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
   hs-source-dirs: test-plugin
-  other-modules:  Spec.Value
+  other-modules:
+    Spec.Budget
+    Spec.Value
+
   build-depends:
     , base                                            >=4.9   && <5
     , containers
     , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.18
     , plutus-ledger-api                               ^>=1.18
-    , plutus-tx                                       ^>=1.18
     , plutus-tx-plugin                                ^>=1.18
+    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.18
     , prettyprinter
     , tasty
 
