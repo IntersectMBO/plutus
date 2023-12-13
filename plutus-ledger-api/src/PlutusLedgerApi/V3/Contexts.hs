@@ -342,10 +342,10 @@ data TxInfo = TxInfo
   { txInfoInputs                :: [V2.TxInInfo]
   , txInfoReferenceInputs       :: [V2.TxInInfo]
   , txInfoOutputs               :: [V2.TxOut]
-  , txInfoFee                   :: V2.Value
+  , txInfoFee                   :: V2.Lovelace
   , txInfoMint                  :: V2.Value
   , txInfoTxCerts               :: [TxCert]
-  , txInfoWdrl                  :: Map V2.Credential Haskell.Integer
+  , txInfoWdrl                  :: Map V2.Credential V2.Lovelace
   , txInfoValidRange            :: V2.POSIXTimeRange
   , txInfoSignatories           :: [V2.PubKeyHash]
   , txInfoRedeemers             :: Map ScriptPurpose V2.Redeemer
@@ -353,8 +353,8 @@ data TxInfo = TxInfo
   , txInfoId                    :: V2.TxId
   , txInfoVotes                 :: Map Voter (Map GovernanceActionId Vote)
   , txInfoProposalProcedures    :: [ProposalProcedure]
-  , txInfoCurrentTreasuryAmount :: Haskell.Maybe V2.Value
-  , txInfoTreasuryDonation      :: Haskell.Maybe V2.Value
+  , txInfoCurrentTreasuryAmount :: Haskell.Maybe V2.Lovelace
+  , txInfoTreasuryDonation      :: Haskell.Maybe V2.Lovelace
   }
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
 

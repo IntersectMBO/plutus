@@ -81,6 +81,7 @@ module PlutusLedgerApi.V3 (
   V2.unionWith,
   V2.adaSymbol,
   V2.adaToken,
+  V2.Lovelace (..),
 
   -- *** Time
   V2.POSIXTime (..),

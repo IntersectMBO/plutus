@@ -50,6 +50,7 @@ module PlutusLedgerApi.V1.Value (
     , split
     , unionWith
     , flattenValue
+    , Lovelace (..)
     ) where
 
 import Prelude qualified as Haskell
@@ -442,7 +443,28 @@ eqMapWith is0 eqV (Map.toList -> xs1) (Map.toList -> xs2) = unordEqWith is0 eqV 
 eq :: Value -> Value -> Bool
 eq (Value currs1) (Value currs2) = eqMapWith (Map.all (0 ==)) (eqMapWith (0 ==) (==)) currs1 currs2
 
+newtype Lovelace = Lovelace Integer
+  deriving stock (Generic)
+  deriving (Pretty) via (PrettyShow Lovelace)
+  deriving newtype
+    ( Haskell.Eq
+    , Haskell.Ord
+    , Haskell.Show
+    , Haskell.Num
+    , Haskell.Real
+    , Haskell.Enum
+    , PlutusTx.Eq
+    , PlutusTx.Ord
+    , PlutusTx.ToData
+    , PlutusTx.FromData
+    , PlutusTx.UnsafeFromData
+    , PlutusTx.AdditiveSemigroup
+    , PlutusTx.AdditiveMonoid
+    , PlutusTx.AdditiveGroup
+    )
+
 makeLift ''CurrencySymbol
 makeLift ''TokenName
 makeLift ''AssetClass
 makeLift ''Value
+makeLift ''Lovelace
