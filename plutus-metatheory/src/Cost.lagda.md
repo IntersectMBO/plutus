@@ -28,7 +28,8 @@ import Data.List as L
 open import Data.Maybe using (Maybe;just;nothing;maybe)
 open import Data.Product using (_×_;_,_)
 open import Data.String using (String;_++_;padLeft;padRight;length)
-open import Data.Vec using (Vec;replicate;[];_∷_;sum;foldr)
+open import Data.Vec using (Vec;replicate;[];_∷_;sum;foldr) 
+                     renaming (lookup to lookupVec)
 open import Algebra using (IsMonoid)
 open import Relation.Nullary using (yes;no)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;isEquivalence;cong₂)
@@ -186,7 +187,7 @@ TODO: Finish all models.
 data CostingModel : ℕ → Set where 
    -- Any number of variables 
   constantCost       :  ∀{n} → CostingNat → CostingModel n
-  linearCost         : ∀{n} → Fin n → Intercept → Slope → CostingModel n
+  linearCostIn       : ∀{n} → Fin n → Intercept → Slope → CostingModel n
   -- at least two arguments
   addedSizes         : ∀{n} → Intercept → Slope → CostingModel (2 + n) 
   multipliedSizes    : ∀{n} → Intercept → Slope → CostingModel (2 + n)
@@ -262,9 +263,6 @@ assignModel _ = --TODO rest of builtins (or rather implement constructing model 
 Some helper functions.
 
 ```
-scaleLinearly : Intercept → Slope → CostingNat → CostingNat 
-scaleLinearly intercept slope n = intercept + slope * n
-
 prod : ∀ {n} → Vec ℕ n → ℕ
 prod = foldr _ _*_ 1
 
@@ -278,8 +276,7 @@ Given a model and the sizes of the arguments we can compute a cost.
 ```
 runModel : ∀{n} → CostingModel n → Vec CostingNat n → CostingNat 
 runModel (constantCost x) _ = x
-runModel (linearCost zero i s) (a ∷ _) = i + s * a
-runModel (linearCost (suc n) i s) (_ ∷ xs) = runModel (linearCost n i s) xs
+runModel (linearCostIn n i s) xs = i + s * lookupVec xs n
 runModel (addedSizes i s) xs = i + s * (sum xs)
 runModel (multipliedSizes i s) xs = i + s * (prod xs)
 runModel (minSize i s) xs = i + s * minimum xs
