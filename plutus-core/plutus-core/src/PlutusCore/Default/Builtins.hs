@@ -1814,12 +1814,14 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           integerToByteStringDenotation = integerToByteStringWrapper
         in makeBuiltinMeaning
           integerToByteStringDenotation
+          -- FIXME: Cost this function.
           (runCostingFunThreeArguments . const def)
     toBuiltinMeaning _semvar ByteStringToInteger =
-      let byteStringToIntegerDenotation :: Bool -> BS.ByteString -> Emitter (EvaluationResult Integer)
+      let byteStringToIntegerDenotation :: Bool -> BS.ByteString -> Integer
           byteStringToIntegerDenotation = byteStringToIntegerWrapper
         in makeBuiltinMeaning
             byteStringToIntegerDenotation
+            -- FIXME: Cost this function.
             (runCostingFunTwoArguments . const def)
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}

@@ -705,8 +705,4 @@ builtinByteStringToInteger ::
   BuiltinByteString ->
   BuiltinInteger
 builtinByteStringToInteger (BuiltinBool statedEndiannessArg) (BuiltinByteString input) =
-  case Convert.byteStringToIntegerWrapper statedEndiannessArg input of
-    Emitter f -> case runWriter f of
-      (result, logs) -> traceAll logs $ case result of
-        EvaluationFailure   -> mustBeReplaced "ByteString to Integer conversion errored."
-        EvaluationSuccess i -> i
+  Convert.byteStringToIntegerWrapper statedEndiannessArg input

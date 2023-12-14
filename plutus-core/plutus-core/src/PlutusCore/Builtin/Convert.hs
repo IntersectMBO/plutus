@@ -20,7 +20,7 @@ import Data.Bits (unsafeShiftL, unsafeShiftR, (.|.))
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.Text (pack)
-import Data.Word (Word64)
+import Data.Word (Word64, Word8)
 import GHC.ByteOrder (ByteOrder (BigEndian, LittleEndian))
 import PlutusCore.Builtin.Emitter (Emitter, emit)
 import PlutusCore.Evaluation.Result (EvaluationResult (EvaluationFailure))
@@ -28,41 +28,48 @@ import PlutusCore.Evaluation.Result (EvaluationResult (EvaluationFailure))
 -- | Wrapper for 'integerToByteString' to make it more convenient to define as a builtin.
 integerToByteStringWrapper ::
   Bool -> Integer -> Integer -> Emitter (EvaluationResult ByteString)
-integerToByteStringWrapper endiannessArg paddingArg input
--- As this builtin hasn't been costed yet, we have to impose a temporary limit of 10KiB on requested
--- sizes via the padding argument. This shouldn't be necessary long-term, as once this function is
--- costed, this won't be a problem.
-  | paddingArg > 10240 = do
+integerToByteStringWrapper endiannessArg lengthArg input
+  -- Check that we are within the Int range on the non-negative side.
+  | lengthArg < 0 || lengthArg >= 536870912 = do
+      emit "builtinIntegerToByteString: inappropriate length argument"
+      emit $ "Length requested: " <> (pack . show $ input)
+      pure EvaluationFailure
+  -- As this builtin hasn't been costed yet, we have to impose a temporary limit of 10KiB on requested
+  -- sizes via the padding argument. This shouldn't be necessary long-term, as once this function is
+  -- costed, this won't be a problem.
+  --
+  -- TODO: Cost this builtin.
+  | lengthArg > 10240 = do
       emit "builtinIntegerToByteString: padding argument too large"
       emit "If you are seeing this, it is a bug: please report this!"
       pure EvaluationFailure
   | otherwise = let endianness = endiannessArgToByteOrder endiannessArg in
     -- We use fromIntegral here, despite advice to the contrary in general when defining builtin
-    -- denotations. For why we do this (and why it's both inevitable and not really a concern
-    -- anyway), see Note [fromIntegral and padding arguments].
-    case integerToByteString endianness (fromIntegral (max 0 paddingArg)) input of
+    -- denotations. This is because, if we've made it this far, we know that overflow or truncation
+    -- are impossible: we've checked that whatever we got given fits inside a (non-negative) Int.
+    case integerToByteString endianness (fromIntegral lengthArg) input of
       Left err -> case err of
         NegativeInput -> do
           emit "builtinIntegerToByteString: cannot convert negative Integer"
+          -- This does work proportional to the size of input. However, we're in a failing case
+          -- anyway, and the user's paid for work proportional to this size in any case.
           emit $ "Input: " <> (pack . show $ input)
           pure EvaluationFailure
         NotEnoughDigits -> do
           emit "builtinIntegerToByteString: cannot represent Integer in given number of bytes"
+          -- This does work proportional to the size of input. However, we're in a failing case
+          -- anyway, and the user's paid for work proportional to this size in any case.
           emit $ "Input: " <> (pack . show $ input)
-          emit $ "Bytes requested: " <> (pack . show $ paddingArg)
+          emit $ "Bytes requested: " <> (pack . show $ lengthArg)
           pure EvaluationFailure
       Right result -> pure . pure $ result
 
 -- | Wrapper for 'byteStringToInteger' to make it more convenient to define as a builtin.
 byteStringToIntegerWrapper ::
-  Bool -> ByteString -> Emitter (EvaluationResult Integer)
+  Bool -> ByteString -> Integer
 byteStringToIntegerWrapper statedEndiannessArg input =
   let endianness = endiannessArgToByteOrder statedEndiannessArg in
-    case byteStringToInteger endianness input of
-      Nothing -> do
-        emit "builtinByteStringToInteger: cannot convert empty ByteString"
-        pure EvaluationFailure
-      Just result -> pure . pure $ result
+    byteStringToInteger endianness input
 
 -- | Structured type to help indicate conversion errors.
 data IntegerToByteStringError =
@@ -74,23 +81,24 @@ data IntegerToByteStringError =
 -- [CIP-0087](https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-XXXX).
 --
 -- For performance and clarity, the endianness argument uses
--- 'ByteOrder', and the padding argument is an 'Int'.
+-- 'ByteOrder', and the length argument is an 'Int'.
 integerToByteString ::
   ByteOrder -> Int -> Integer -> Either IntegerToByteStringError ByteString
-integerToByteString requestedByteOrder requestedLength i = case signum i of
-  (-1) -> Left NegativeInput
-  0 -> Right . BS.replicate (max 1 requestedLength) $ 0x00
-  _ -> do
-      -- We use manual specialization to ensure as few branches in loop bodies
-      -- as we can. See Note [Manual specialization] for details.
-      let result = case (requestedByteOrder, requestedLength > 0) of
-                      (LittleEndian, True)  -> goLELimit mempty i
-                      (LittleEndian, False) -> pure $ goLENoLimit mempty i
-                      (BigEndian, True)     -> goBELimit mempty i
-                      (BigEndian, False)    -> pure $ goBENoLimit mempty i
+integerToByteString requestedByteOrder requestedLength input
+  | input < 0 = Left NegativeInput
+  | input == 0 = Right . BS.replicate requestedLength $ 0x00
+  -- We use manual specialization to ensure as few branches in loop bodies as
+  -- we can. See Note [Manual specialization] for details.
+  | requestedLength == 0 = Right . Builder.builderBytes $ case requestedByteOrder of
+      LittleEndian -> goLENoLimit mempty input
+      BigEndian    -> goBENoLimit mempty input
+  | otherwise = do
+      let result = case requestedByteOrder of
+                    LittleEndian -> goLELimit mempty input
+                    BigEndian    -> goBELimit mempty input
       case result of
         Nothing -> Left NotEnoughDigits
-        Just b  -> pure . Builder.builderBytes $ b
+        Just b  -> Right . Builder.builderBytes $ b
   where
     goLELimit :: Builder -> Integer -> Maybe Builder
     goLELimit acc remaining
@@ -110,7 +118,7 @@ integerToByteString requestedByteOrder requestedLength i = case signum i of
           let newRemaining = remaining `unsafeShiftR` 64
           -- Given that remaining must be non-negative, fromInteger here effectively truncates to a
           -- Word64, by retaining only the least-significant 8 bytes.
-          let digitGroup = fromInteger remaining
+          let digitGroup :: Word64 = fromInteger remaining
           case newRemaining of
             0 -> finishLELimit acc digitGroup
             _ -> goLELimit (acc <> Builder.storable digitGroup) newRemaining
@@ -123,25 +131,26 @@ integerToByteString requestedByteOrder requestedLength i = case signum i of
           -- remainder, but faster. This is similar to the larger example above, and we do it for
           -- the same reasons.
           let newRemaining = remaining `unsafeShiftR` 8
-          let digit = fromIntegral remaining
+          let digit :: Word8 = fromIntegral remaining
           finishLELimit (acc <> Builder.word8 digit) newRemaining
     -- By separating the case where we don't need to concern ourselves with a user-specified limit,
     -- we can avoid branching needlessly, or doing a complex expression check on every loop. See
     -- Note [Manual specialization] for why this matters.
     goLENoLimit :: Builder -> Integer -> Builder
     goLENoLimit acc remaining
-      | remaining == 0 = padLE acc
+      | remaining == 0 = acc
       | otherwise = let newRemaining = remaining `unsafeShiftR` 64
-                        digitGroup = fromInteger remaining
-          in case newRemaining of
-              0 -> finishLENoLimit acc digitGroup
-              _ -> goLENoLimit (acc <> Builder.storable digitGroup) newRemaining
+                        digitGroup :: Word64 = fromInteger remaining
+                      in case newRemaining of
+                        0 -> finishLENoLimit acc digitGroup
+                        _ -> goLENoLimit (acc <> Builder.storable digitGroup) newRemaining
     finishLENoLimit :: Builder -> Word64 -> Builder
     finishLENoLimit acc remaining
       | remaining == 0 = acc
-      | otherwise = let newRemaining = remaining `unsafeShiftR` 8
-                        digit = fromIntegral remaining
-                      in finishLENoLimit (acc <> Builder.word8 digit) newRemaining
+      | otherwise =
+          let newRemaining = remaining `unsafeShiftR` 8
+              digit :: Word8 = fromIntegral remaining
+           in finishLENoLimit (acc <> Builder.word8 digit) newRemaining
     padLE :: Builder -> Builder
     padLE acc = let paddingLength = requestedLength - Builder.builderLength acc
       in acc <> Builder.bytes (BS.replicate paddingLength 0x0)
@@ -152,7 +161,7 @@ integerToByteString requestedByteOrder requestedLength i = case signum i of
       | otherwise = do
           guard (Builder.builderLength acc < requestedLength)
           let newRemaining = remaining `unsafeShiftR` 64
-          let digitGroup = fromInteger remaining
+          let digitGroup :: Word64 = fromInteger remaining
           case newRemaining of
             0 -> finishBELimit acc digitGroup
             _ -> goBELimit (Builder.word64BE digitGroup <> acc) newRemaining
@@ -166,7 +175,7 @@ integerToByteString requestedByteOrder requestedLength i = case signum i of
           finishBELimit (Builder.word8 digit <> acc) newRemaining
     goBENoLimit :: Builder -> Integer -> Builder
     goBENoLimit acc remaining
-      | remaining == 0 = padBE acc
+      | remaining == 0 = acc
       | otherwise = let newRemaining = remaining `unsafeShiftR` 64
                         digitGroup = fromInteger remaining
                       in case newRemaining of
@@ -185,54 +194,53 @@ integerToByteString requestedByteOrder requestedLength i = case signum i of
 -- | Conversion from 'ByteString' to 'Integer', as per
 -- [CIP-0087](https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-XXXX).
 --
--- For clarity, the stated endianness argument uses 'ByteOrder'. Since we only have one failure
--- condition, we work in 'Maybe', and let the wrapper handle the only possible error.
-byteStringToInteger :: ByteOrder -> ByteString -> Maybe Integer
-byteStringToInteger statedByteOrder bs = do
-  guard (not . BS.null $ bs)
+-- For clarity, the stated endianness argument uses 'ByteOrder'.
+byteStringToInteger :: ByteOrder -> ByteString -> Integer
   -- We use manual specialization to ensure as few branches in loop bodies as we can. See Note
   -- [Manual specialization] for details.
-  pure $ case statedByteOrder of
-    -- Since padding bytes in the most-significant-last representation go at the end of the input,
-    -- we can skip decoding them, as they won't affect the result in any way.
-    LittleEndian -> case BS.findIndexEnd (/= 0x0) bs of
+byteStringToInteger statedByteOrder input = case statedByteOrder of
+    -- Since padding bytes in the most-significant-last representation go at
+    -- the end of the input, we can skip decoding them, as they won't affect
+    -- the result in any way.
+    LittleEndian -> case BS.findIndexEnd (/= 0x00) input of
+      -- If there are no nonzero bytes, it must be zero.
       Nothing  -> 0
-      Just end -> goLE 0 end 0 0
-    -- Since padding bytes in the most-significant-first representation go at the beginning of the
-    -- input, we can skip decoding them, as they won't affect the result in any way.
-    BigEndian -> case BS.findIndex (/= 0x0) bs of
+      Just end -> goLE 0 end 0
+    -- Since padding bytes in the most-significant-first representation go at
+    -- the beginning of the input, we can skip decoding them, as they won't
+    -- affect the result in any way.
+    BigEndian -> case BS.findIndex (/= 0x00) input of
       Nothing  -> 0
-      Just end -> goBE 0 end 0 (BS.length bs - 1)
+      Just end -> goBE 0 end 0 (BS.length input - 1)
   where
     -- Like with toByteString, we use loop sectioning to decode eight digits at once. See Note [Loop
     -- sectioning] for why we do this.
-    goLE :: Integer -> Int -> Int -> Int -> Integer
-    goLE acc limit shift ix
+    goLE :: Integer -> Int -> Int -> Integer
+    goLE acc limit ix
       | ix <= (limit - 7) =
           let digitGroup = read64LE ix
-              newShift = shift + 64
+              -- Same as ix * 8, but faster. GHC might already do this optimization, but we may as
+              -- well be sure.
+              shift = ix `unsafeShiftL` 3
               newIx = ix + 8
-           in if digitGroup == 0
-                then goLE acc limit newShift newIx
-                else
-                  -- We use unsafeShiftL to move a group of eight digits into the right position in
-                  -- the result, then combine with the accumulator. This is equivalent to a
-                  -- multiplication by 2^64*k, but significantly faster, as GHC doesn't optimize
-                  -- such multiplications into shifts for Integers.
-                  goLE (acc + fromIntegral digitGroup `unsafeShiftL` shift) limit newShift newIx
-      | otherwise = finishLE acc limit shift ix
-    finishLE :: Integer -> Int -> Int -> Int -> Integer
-    finishLE acc limit shift ix
+              -- We use unsafeShiftL to move a group of eight digits into the right position in
+              -- the result, then combine with the accumulator. This is equivalent to a
+              -- multiplication by 2^64*k, but significantly faster, as GHC doesn't optimize
+              -- such multiplications into shifts for Integers.
+              newAcc = acc + fromIntegral digitGroup `unsafeShiftL` shift
+            in goLE newAcc limit newIx
+      | otherwise = finishLE acc limit ix
+    finishLE :: Integer -> Int -> Int -> Integer
+    finishLE acc limit ix
       | ix > limit = acc
       | otherwise =
-          let digit = BS.index bs ix
-              newShift = shift + 8
+          let digit = BS.index input ix
+              shift = ix `unsafeShiftL` 3
               newIx = ix + 1
-           in if digit == 0
-                then finishLE acc limit newShift newIx
-                -- Similarly to before, we use unsafeShiftL to move a single digit into the right
-                -- position in the result.
-                else finishLE (acc + fromIntegral digit `unsafeShiftL` shift) limit newShift newIx
+              -- Similarly to before, we use unsafeShiftL to move a single digit into the right
+              -- position in the result.
+              newAcc = acc + fromIntegral digit `unsafeShiftL` shift
+            in finishLE newAcc limit newIx
     -- Technically, ByteString does not allow reading of anything bigger than a single byte.
     -- However, because ByteStrings are counted arrays, caching already brings in adjacent bytes,
     -- which makes fetching them quite cheap. Additionally, GHC appears to optimize this into a
@@ -240,45 +248,49 @@ byteStringToInteger statedByteOrder bs = do
     -- caching] for details of why this matters.
     read64LE :: Int -> Word64
     read64LE startIx =
-      fromIntegral (BS.index bs startIx)
-        .|. (fromIntegral (BS.index bs (startIx + 1)) `unsafeShiftL` 8)
-        .|. (fromIntegral (BS.index bs (startIx + 2)) `unsafeShiftL` 16)
-        .|. (fromIntegral (BS.index bs (startIx + 3)) `unsafeShiftL` 24)
-        .|. (fromIntegral (BS.index bs (startIx + 4)) `unsafeShiftL` 32)
-        .|. (fromIntegral (BS.index bs (startIx + 5)) `unsafeShiftL` 40)
-        .|. (fromIntegral (BS.index bs (startIx + 6)) `unsafeShiftL` 48)
-        .|. (fromIntegral (BS.index bs (startIx + 7)) `unsafeShiftL` 56)
+      fromIntegral (BS.index input startIx)
+        .|. (fromIntegral (BS.index input (startIx + 1)) `unsafeShiftL` 8)
+        .|. (fromIntegral (BS.index input (startIx + 2)) `unsafeShiftL` 16)
+        .|. (fromIntegral (BS.index input (startIx + 3)) `unsafeShiftL` 24)
+        .|. (fromIntegral (BS.index input (startIx + 4)) `unsafeShiftL` 32)
+        .|. (fromIntegral (BS.index input (startIx + 5)) `unsafeShiftL` 40)
+        .|. (fromIntegral (BS.index input (startIx + 6)) `unsafeShiftL` 48)
+        .|. (fromIntegral (BS.index input (startIx + 7)) `unsafeShiftL` 56)
     -- We manually specialize the big-endian cases: see Note [Manual specialization] for why.
+    --
+    -- In the big-endian case, shifts and indexes change in different ways: indexes start _high_
+    -- and _reduce_, but shifts start _low_ and rise. This is different to the little-endian case,
+    -- where both start low and rise. Thus, we track the index and shift separately in the
+    -- big-endian case: it makes the adjustments easier, and doesn't really change anything, as if
+    -- we wanted to compute the shift, we'd have to pass an offset argument anyway.
     goBE :: Integer -> Int -> Int -> Int -> Integer
     goBE acc limit shift ix
       | ix >= (limit + 7) =
           let digitGroup = read64BE ix
               newShift = shift + 64
               newIx = ix - 8
-           in if digitGroup == 0
-                then goBE acc limit newShift newIx
-                else goBE (acc + fromIntegral digitGroup `unsafeShiftL` shift) limit newShift newIx
+              newAcc = acc + fromIntegral digitGroup `unsafeShiftL` shift
+           in goBE newAcc limit newShift newIx
       | otherwise = finishBE acc limit shift ix
     finishBE :: Integer -> Int -> Int -> Int -> Integer
     finishBE acc limit shift ix
       | ix < limit = acc
       | otherwise =
-          let digit = BS.index bs ix
+          let digit = BS.index input ix
               newShift = shift + 8
               newIx = ix - 1
-           in if digit == 0
-                then finishBE acc limit newShift newIx
-                else finishBE (acc + fromIntegral digit `unsafeShiftL` shift) limit newShift newIx
+              newAcc = acc + fromIntegral digit `unsafeShiftL` shift
+           in finishBE newAcc limit newShift newIx
     read64BE :: Int -> Word64
     read64BE endIx =
-      fromIntegral (BS.index bs endIx)
-        .|. (fromIntegral (BS.index bs (endIx - 1)) `unsafeShiftL` 8)
-        .|. (fromIntegral (BS.index bs (endIx - 2)) `unsafeShiftL` 16)
-        .|. (fromIntegral (BS.index bs (endIx - 3)) `unsafeShiftL` 24)
-        .|. (fromIntegral (BS.index bs (endIx - 4)) `unsafeShiftL` 32)
-        .|. (fromIntegral (BS.index bs (endIx - 5)) `unsafeShiftL` 40)
-        .|. (fromIntegral (BS.index bs (endIx - 6)) `unsafeShiftL` 48)
-        .|. (fromIntegral (BS.index bs (endIx - 7)) `unsafeShiftL` 56)
+      fromIntegral (BS.index input endIx)
+        .|. (fromIntegral (BS.index input (endIx - 1)) `unsafeShiftL` 8)
+        .|. (fromIntegral (BS.index input (endIx - 2)) `unsafeShiftL` 16)
+        .|. (fromIntegral (BS.index input (endIx - 3)) `unsafeShiftL` 24)
+        .|. (fromIntegral (BS.index input (endIx - 4)) `unsafeShiftL` 32)
+        .|. (fromIntegral (BS.index input (endIx - 5)) `unsafeShiftL` 40)
+        .|. (fromIntegral (BS.index input (endIx - 6)) `unsafeShiftL` 48)
+        .|. (fromIntegral (BS.index input (endIx - 7)) `unsafeShiftL` 56)
 
 endiannessArgToByteOrder :: Bool -> ByteOrder
 endiannessArgToByteOrder b = if b then BigEndian else LittleEndian
@@ -366,8 +378,8 @@ is adjacent in memory), we thus get two sources of inefficiency:
 * Despite transferring data from memory to registers, we utilize the register
   at only one-eighth capacity.
 
-This essentially means we perform eight times _more_ rotations of the loop
-than we need to!
+This essentially means we perform _eight times_ more rotations of the loop,
+and memory moves, than we need to!
 
 To avoid this inefficiency, we use a technique known as _loop sectioning_.
 Effectively, this turns our homogenous loop (that always operates one byte at
@@ -489,51 +501,4 @@ Further references:
 - Numbers for cache and memory transfers: https://gist.github.com/jboner/2841832
 - Superscalarity: https://en.wikipedia.org/wiki/Superscalar_processor
 - Tomasulo's algorithm: https://en.wikipedia.org/wiki/Tomasulo%27s_algorithm
--}
-
-{- Note [fromIntegral and padding arguments]
-
-As described in Note [How to add a built-in function: simple cases], we should
-not normally use a function like fromIntegral to convert arguments into more
-amenable forms, as it runs the risk of truncation. In the case of the padding
-argument given to integerToByteString (which is an Int) as opposed to how the
-builtin it implements is called (which passes an Integer), we use fromIntegral
-in spite of this. This is for two reasons: we are more-or-less forced to do so
-anyway (for reasons of efficiency if nothing else), and even if truncation
-does occur, we have much bigger issues. We elaborate on these points in this note.
-
-It is a fact that ByteString lengths are measured as Ints: while there are good
-reasons to disagree with this policy, it is forced on us, and can't really be
-changed. Furthermore, certain auxilliary tools we use to define
-integerToByteString (specifically, Builder) also uses Int to track its
-allocation size. As part of integerToByteString, we are in some cases required
-to compare one, or both, of these against the padding argument, possibly as
-often as once _per digit_. If we wanted to avoid fromIntegral, we would have
-to promote either the length of a ByteString, or the size of a Builder, to
-Integer, each time, only to then throw that value away. This would create
-unacceptable inefficiencies, not only due to the needless allocations (which
-would actually exceed the size of what is being generated by the function, as
-each Integer costs a minimum of _four_ machine words!), but also because
-Integer equality is far costlier (and far harder to optimize out) than Int
-equality. As an alternative, we could 'demote' the padding argument to an Int,
-but the only way we can do this is by using fromIntegral: this means that we
-have to do it _somewhere_, and the only real difference is location. By
-placing this conversion in a wrapper, we reduce the work the implementation
-has to do, and avoid cluttering it with yet more code.
-
-Furthermore, if truncation _would_ occur, then we have much bigger problems.
-On all supported platforms (which all use 64-bit Int representations),
-truncation in the padding argument would require passing an argument that is
-either larger than 2^62 - 1, or smaller than 2^63 - 1. In the first case,
-the cost of allocating something even half of that size would blow through any
-and all execution and memory limits long before anyone could even realize that
-the result they received is shorter than what they requested; in the second
-case, it wouldn't matter anyway, as no number that could reasonably fit on-chain
-would even come close to requiring such a number of digits at a minimum. In any
-reasonable situation, the padding argument would be much, _much_ smaller than
-the positive size limits for Int, and in cases where it isn't, the rest of the
-system prevents anything untoward being noticed.
-
-On the basis of both of these, we consider that this truncating conversion is
-completely safe, and sensible.
 -}
