@@ -38,6 +38,8 @@ module PlutusLedgerApi.V1.Value (
     , Value(..)
     , singleton
     , valueOf
+    , lovelaceValue
+    , lovelaceValueOf
     , scale
     , symbols
       -- * Partial order operations
@@ -69,6 +71,7 @@ import PlutusTx.AssocMap qualified as Map
 import PlutusTx.Lift (makeLift)
 import PlutusTx.Ord qualified as Ord
 import PlutusTx.Prelude as PlutusTx hiding (sort)
+import PlutusTx.Show qualified as PlutusTx
 import PlutusTx.These (These (..))
 import Prettyprinter (Pretty, (<>))
 import Prettyprinter.Extras (PrettyShow (PrettyShow))
@@ -176,10 +179,6 @@ quotes and we write the latter with a lower case "v" and without the quotes, i.e
 -- See Note [Value vs value].
 {- | The 'Value' type represents a collection of amounts of different currencies.
 We can think of 'Value' as a vector space whose dimensions are currencies.
-To create a value of 'Value', we need to specify a currency. This can be done
-using 'Ledger.Ada.adaValueOf'. To get the ada dimension of 'Value' we use
-'Ledger.Ada.fromValue'. Plutus contract authors will be able to define modules
-similar to 'Ledger.Ada' for their own currencies.
 
 Operations on currencies are usually implemented /pointwise/. That is,
 we apply the operation to the quantities for each currency in turn. So
@@ -261,6 +260,15 @@ symbols (Value mp) = Map.keys mp
 -- | Make a 'Value' containing only the given quantity of the given currency.
 singleton :: CurrencySymbol -> TokenName -> Integer -> Value
 singleton c tn i = Value (Map.singleton c (Map.singleton tn i))
+
+lovelaceValue :: Lovelace -> Value
+-- | A 'Value' containing the given quantity of Lovelace.
+lovelaceValue = singleton adaSymbol adaToken . getLovelace
+
+{-# INLINABLE lovelaceValueOf #-}
+-- | Get the quantity of Lovelace in the 'Value'.
+lovelaceValueOf :: Value -> Lovelace
+lovelaceValueOf v = Lovelace (valueOf v adaSymbol adaToken)
 
 {-# INLINABLE assetClassValue #-}
 -- | A 'Value' containing the given amount of the asset class.
@@ -443,7 +451,7 @@ eqMapWith is0 eqV (Map.toList -> xs1) (Map.toList -> xs2) = unordEqWith is0 eqV 
 eq :: Value -> Value -> Bool
 eq (Value currs1) (Value currs2) = eqMapWith (Map.all (0 ==)) (eqMapWith (0 ==) (==)) currs1 currs2
 
-newtype Lovelace = Lovelace Integer
+newtype Lovelace = Lovelace { getLovelace :: Integer }
   deriving stock (Generic)
   deriving (Pretty) via (PrettyShow Lovelace)
   deriving newtype
@@ -461,6 +469,7 @@ newtype Lovelace = Lovelace Integer
     , PlutusTx.AdditiveSemigroup
     , PlutusTx.AdditiveMonoid
     , PlutusTx.AdditiveGroup
+    , PlutusTx.Show
     )
 
 makeLift ''CurrencySymbol
