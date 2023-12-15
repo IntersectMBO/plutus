@@ -23,7 +23,7 @@ jobs:
         run: nix --accept-flake-config run .#cost-model-budgeting-bench -- --csv results.csv
 
       - name: Upload results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: results
           path: results.csv
