@@ -17,7 +17,7 @@ open import Function using (_∘_)
 open import Data.Bool using (if_then_else_)
 open import Data.Fin using (Fin;zero;suc)
 open import Data.Integer using (+_)
-open import Data.Nat using (ℕ;zero;suc;_+_;_*_;_∸_;_⊔_;_⊓_;_<?_)
+open import Data.Nat using (ℕ;zero;suc;_+_;_*_;_∸_;_⊔_;_⊓_;_<ᵇ_;_≡ᵇ_)
 open import Data.Nat.DivMod using (_/_)
 open import Data.Nat.Properties using (+-assoc;+-identityʳ)
 open import Data.Nat.Show using () renaming (show to showℕ)
@@ -181,25 +181,22 @@ which is a model for a builtin that takes three arguments.
 For `linearCost` the model takes an index indicating on which argument the cost
 should be calculated.
 
-TODO: Finish all models.
-
 ``` 
 data CostingModel : ℕ → Set where 
-   -- Any number of variables 
-  constantCost       :  ∀{n} → CostingNat → CostingModel n
+   -- Any number of arguments
+  constantCost       : ∀{n} → CostingNat → CostingModel n
   linearCostIn       : ∀{n} → Fin n → Intercept → Slope → CostingModel n
-  -- at least two arguments
-  addedSizes         : ∀{n} → Intercept → Slope → CostingModel (2 + n) 
-  multipliedSizes    : ∀{n} → Intercept → Slope → CostingModel (2 + n)
-  minSize            : ∀{n} → Intercept → Slope → CostingModel (2 + n)
-  maxSize            : ∀{n} → Intercept → Slope → CostingModel (2 + n)
+  addedSizes         : ∀{n} → Intercept → Slope → CostingModel n 
+  multipliedSizes    : ∀{n} → Intercept → Slope → CostingModel n
+  -- at least one argument
+  minSize            : ∀{n} → Intercept → Slope → CostingModel (1 + n)
+  maxSize            : ∀{n} → Intercept → Slope → CostingModel (1 + n)
    -- exactly two arguments 
---  twoArgumentsLinearInXAndY      : Intercept → Slope → Slope → CostingModel 2
+  twoArgumentsLinearInXAndY      : Intercept → Slope → Slope → CostingModel 2
   twoArgumentsSubtractedSizes    : Intercept → Slope → CostingNat → CostingModel 2
-
---  twoArgumentsLinearOnDiagonal   : CostingNat → Intercept → Slope → CostingModel 2
+  twoArgumentsLinearOnDiagonal   : CostingNat → Intercept → Slope → CostingModel 2
   twoArgumentsConstAboveDiagonal : CostingNat → CostingModel 2 → CostingModel 2
---  twoArgumentsConstBelowDiagonal : CostingNat → CostingModel 2 → CostingModel 2
+  twoArgumentsConstBelowDiagonal : CostingNat → CostingModel 2 → CostingModel 2
 ``` 
 
 A model of a builtin consists of a pair of costing models, one for CPU and one for memory.
@@ -212,7 +209,73 @@ record BuiltinModel (b : Builtin) : Set where
 open BuiltinModel 
 ```
 
-For now, we define a static function to assign a model to the arithmetic builtins,
+### Model interpretations
+
+Some helper functions.
+
+```
+prod : ∀ {n} → Vec ℕ n → ℕ
+prod = foldr _ _*_ 1
+
+maximum minimum : ∀ {n} → Vec ℕ (suc n) → ℕ
+maximum (a ∷ xs) = foldr _ _⊔_ a xs
+minimum (a ∷ xs) = foldr _ _⊓_ a xs
+``` 
+
+Given a model and the sizes of the arguments we can compute a cost.
+
+```
+runModel : ∀{n} → CostingModel n → Vec CostingNat n → CostingNat 
+runModel (constantCost x) _ = x
+runModel (linearCostIn n i s) xs = i + s * lookupVec xs n
+runModel (addedSizes i s) xs = i + s * (sum xs)
+runModel (multipliedSizes i s) xs = i + s * (prod xs)
+runModel (minSize i s) xs = i + s * minimum xs
+runModel (maxSize i s) xs = i + s * maximum xs
+runModel (twoArgumentsLinearInXAndY i s₁ s₂) (a ∷ b ∷ []) = i + s₁ * a + s₂ * b 
+runModel (twoArgumentsSubtractedSizes i s min) (a ∷ b ∷ []) = i + s * (min ⊔ (a ∸ b))
+runModel (twoArgumentsLinearOnDiagonal c i s) (a ∷ b ∷ []) = 
+    if a ≡ᵇ b 
+      then i + s * a 
+      else c
+runModel (twoArgumentsConstAboveDiagonal c m) (a ∷ b ∷ []) = 
+    if a <ᵇ b 
+      then c 
+      else runModel m (a ∷ b ∷ [])
+runModel (twoArgumentsConstBelowDiagonal c m) (a ∷ b ∷ []) =
+    if b <ᵇ a 
+      then c 
+      else runModel m (a ∷ b ∷ [])
+```
+
+### Cost of executing a builtin
+
+To calculate the cost of a builtin we obtain the corresponding builtin model, 
+and run the cpu and memory model using the vector of argument sizes.
+
+```
+builtinCost : {b : Builtin} → BuiltinModel b → Vec CostingNat (arity b) → ExBudget
+builtinCost bc cs = mkExBudget (runModel (costingCPU bc) cs) (runModel (costingMem bc) cs)
+``` 
+
+``` 
+costingModelArgs {n : ℕ}(cm : CostingModel n) : Set where
+  field
+
+record recordModel (n : ℕ) : Set where
+  field 
+    name : CostingModel n
+    arguments : CostingModelArgs name
+
+record recordBuiltinModel : Set where 
+   field 
+     builtin : Builtin
+     cputype : recordModel (arity builtin)
+     memtype : recordModel (arity builtin)
+``` 
+
+
+ For now, we define a static function to assign a model to the arithmetic builtins,
 and `ifThenElse`.
 
 TODO: Construct the assignment for all builtins from json file.
@@ -252,52 +315,15 @@ assignModel lessThanEqualsInteger =
 assignModel ifThenElse = 
     record { costingCPU = constantCost 80556 
            ; costingMem = constantCost 1 }
+assignModel appendByteString = 
+    record { costingCPU = addedsizes 
+           ; costingMem = constantCost 1 }
+
 assignModel _ = --TODO rest of builtins (or rather implement constructing model from json)
     record { costingCPU = constantCost 0 
            ; costingMem = constantCost 0 }
 
 ``` 
-
-### Model interpretations
-
-Some helper functions.
-
-```
-prod : ∀ {n} → Vec ℕ n → ℕ
-prod = foldr _ _*_ 1
-
-maximum minimum : ∀ {n} → Vec ℕ (suc n) → ℕ
-maximum (a ∷ xs) = foldr _ _⊔_ a xs
-minimum (a ∷ xs) = foldr _ _⊓_ a xs
-``` 
-
-Given a model and the sizes of the arguments we can compute a cost.
-
-```
-runModel : ∀{n} → CostingModel n → Vec CostingNat n → CostingNat 
-runModel (constantCost x) _ = x
-runModel (linearCostIn n i s) xs = i + s * lookupVec xs n
-runModel (addedSizes i s) xs = i + s * (sum xs)
-runModel (multipliedSizes i s) xs = i + s * (prod xs)
-runModel (minSize i s) xs = i + s * minimum xs
-runModel (maxSize i s) xs = i + s * maximum xs
-runModel (twoArgumentsSubtractedSizes i s min) (a ∷ b ∷ []) = i + s * (min ⊔ (a ∸ b))
-runModel (twoArgumentsConstAboveDiagonal c m) (a ∷ b ∷ [])  with a <? b 
-... | yes _  = c 
-... | no  _  = runModel m (a ∷ b ∷ [])
-```
-
-### Cost of executing a builtin
-
-To calculate the cost of a builtin we obtain the corresponding builtin model, 
-and run the cpu and memory model using the vector of argument sizes.
-
-```
-builtinCost : (b : Builtin) → Vec CostingNat (arity b) → ExBudget
-builtinCost b cs = let bc = assignModel b 
-                   in mkExBudget (runModel (costingCPU bc) cs) (runModel (costingMem bc) cs)
-```
-
 ## Default Machine Parameters
 
 The default machine parameters for `ExBudget`.
@@ -306,16 +332,35 @@ TODO : For now we will define fixed costs. Later, we should
 implement getting these values from the `cekMachineCosts.json` file.
 Probably, we will do this by reusing Haskell code.
  
+
+-----------------------------------
+Idea for generating records from datatypes
+to facilitate the translation from/to JSON.
+
+Given an enumeration datatype 
+ 
+ data A = c1 a11 a22 | c2 a21 | ... | cn an1 an2 an3 
+
+and a parameter prefix "param", I want to automatically construct from A, and 
+ a type of payloads indexed by B : A → Set.
+ 1. A record recordA = { paramc1 : B c1; paramc2 : B c2 ; ... paramcn : B cn}  
+ 2. A function getParam : recordA → (a : A) → B a such that 
+      getParam r c1 = r.paramc1 
+      getParam r c2 = r.paramc2
+      ... 
+      getParam r cn = r.paramcn 
+
+------------------------------------
 ```
 defaultCekMachineCost : StepKind → ExBudget
 defaultCekMachineCost _ = mkExBudget 23000 100
 
-defaultCekStartupCost : ExBudget 
+defaultCekStartupCost : ExBudget
 defaultCekStartupCost = mkExBudget 100 100
 
 exBudgetCategoryCost : ExBudgetCategory → ExBudget 
 exBudgetCategoryCost (BStep x) = defaultCekMachineCost x
-exBudgetCategoryCost (BBuiltinApp b cs) = builtinCost b cs
+exBudgetCategoryCost (BBuiltinApp b cs) = builtinCost (assignModel b) cs
 exBudgetCategoryCost BStartup = defaultCekStartupCost
 
 defaultMachineParameters : MachineParameters ExBudget
@@ -333,7 +378,6 @@ countingReport (mkExBudget cpu mem) =
       "\nCPU budget:    " ++ showℕ cpu 
    ++ "\nMemory budget: " ++ showℕ mem
 ```
- 
  ## Tallying budget 
 
 These functions define a type for Budgets that can record detailed cost information
