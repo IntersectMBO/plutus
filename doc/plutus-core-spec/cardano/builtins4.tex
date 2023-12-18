@@ -398,11 +398,26 @@ digits representing the 48-byte compressed form of the relevant point.
 Similarly, a value of type $\ty{bls12\_381\_G2\_element}$ is denoted by a term
 of the form \texttt{(con bls12\_381\_G2\_element 0x...)}  where \texttt{...}
 consists of 192 hexadecimal digits representing the 96-byte compressed form of
-the relevant point.
+the relevant point.  \textbf{This syntax is provided only for use in textual
+Plutus Core programs}, for example for experimentation and testing.  We do not
+support constants of any of the BLS12-381 types in serialised programs on the
+Cardano blockchain: see Section~\ref{sec:flat-constants}.  However, for
+$\ty{bls12\_381\_G1\_element}$ and $\ty{bls12\_381\_G2\_element}$ one can use
+the appropriate uncompression function on a  bytestring constant at runtime:
+for example, instead of
+$$
+\texttt{(con bls12\_381\_G1\_element 0xa1e9a0...)}
+$$
+write
+$$
+\texttt{[(builtin bls12\_381\_G1\_uncompress) (con bytestring \#a1e9a0...)]}.
+$$
 
-No syntax is provided for values of type $\ty{bls12\_381\_mlresult}$. It is not
-possible to parse such values, and they will appear as \texttt{(con
-bls12\_381\_mlresult <opaque>)} if output by a program.
+\noindent
+No concrete syntax is provided for values of type
+$\ty{bls12\_381\_mlresult}$. It is not possible to parse such values, and they
+will appear as \texttt{(con bls12\_381\_mlresult <opaque>)} if output by a
+program.
 
 
 \note{Pairing operations.}

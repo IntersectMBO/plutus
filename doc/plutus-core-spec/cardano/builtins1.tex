@@ -27,10 +27,10 @@ useful for tools working with Plutus Core.
         \hline
         \texttt{integer} &   $\mathbb{Z}$ & \texttt{-?[0-9]+}\\
         \texttt{bytestring}  & $ \B^*$, the set of sequences of bytes or 8-bit characters. & \texttt{\#([0-9A-Fa-f][0-9A-Fa-f])*}\\
-        \texttt{string} & $\U^*$,  the set of sequences of Unicode characters. & See note below.\\
+        \texttt{string} & $\U^*$,  the set of sequences of Unicode characters. & See note below\\
         \texttt{bool} & \{\texttt{true, false}\} & \texttt{True | False}\\
         \texttt{unit} &  \{()\} & \texttt{()}\\
-        \texttt{data} &  See below. & Not yet supported.\\
+        \texttt{data} &  See below & See below\\
         \hline
     \end{tabular}
     \caption{Atomic Types}
@@ -43,8 +43,8 @@ useful for tools working with Plutus Core.
         \hline
         Operator $\op$ & $\left|\op\right|$  & Denotation & Concrete Syntax\\
         \hline
-        \texttt{list} & 1 & $\denote{\listOf{t}} = \denote{t}^*$ & Not yet supported\\
-        \texttt{pair} & 2 & $\denote{\pairOf{t_1}{t_2}} = \denote{t_1} \times \denote{t_2}$ & Not yet supported\\
+        \texttt{list} & 1 & $\denote{\listOf{t}} = \denote{t}^*$ & See below\\
+        \texttt{pair} & 2 & $\denote{\pairOf{t_1}{t_2}} = \denote{t_1} \times \denote{t_2}$ & See below\\
         \hline
         \end{tabular}
    \caption{Type Operators}
