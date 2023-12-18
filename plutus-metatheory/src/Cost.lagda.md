@@ -258,22 +258,6 @@ builtinCost : {b : Builtin} → BuiltinModel b → Vec CostingNat (arity b) → 
 builtinCost bc cs = mkExBudget (runModel (costingCPU bc) cs) (runModel (costingMem bc) cs)
 ``` 
 
-``` 
-costingModelArgs {n : ℕ}(cm : CostingModel n) : Set where
-  field
-
-record recordModel (n : ℕ) : Set where
-  field 
-    name : CostingModel n
-    arguments : CostingModelArgs name
-
-record recordBuiltinModel : Set where 
-   field 
-     builtin : Builtin
-     cputype : recordModel (arity builtin)
-     memtype : recordModel (arity builtin)
-``` 
-
 
  For now, we define a static function to assign a model to the arithmetic builtins,
 and `ifThenElse`.
