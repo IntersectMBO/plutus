@@ -261,6 +261,7 @@ symbols (Value mp) = Map.keys mp
 singleton :: CurrencySymbol -> TokenName -> Integer -> Value
 singleton c tn i = Value (Map.singleton c (Map.singleton tn i))
 
+{-# INLINABLE lovelaceValue #-}
 lovelaceValue :: Lovelace -> Value
 -- | A 'Value' containing the given quantity of Lovelace.
 lovelaceValue = singleton adaSymbol adaToken . getLovelace
