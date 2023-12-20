@@ -822,13 +822,15 @@
       NewConstitution :
         Maybe GovernanceActionId -> Maybe bytestring -> GovernanceAction
       NoConfidence : Maybe GovernanceActionId -> GovernanceAction
-      ParameterChange : Maybe GovernanceActionId -> data -> GovernanceAction
+      ParameterChange :
+        Maybe GovernanceActionId -> data -> bytestring -> GovernanceAction
       TreasuryWithdrawals :
         (\k v -> List (Tuple2 k v))
           Credential
           ((\k v -> List (Tuple2 k v))
              bytestring
              ((\k v -> List (Tuple2 k v)) bytestring integer)) ->
+        bytestring ->
         GovernanceAction
     data ProposalProcedure | ProposalProcedure_match where
       ProposalProcedure :
@@ -1132,14 +1134,19 @@
                                    {all dead. GovernanceAction}
                                    (equalsInteger 0 index)
                                    (/\dead ->
+                                      let
+                                        !l : list data = tailList {data} args
+                                      in
                                       ParameterChange
                                         (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
                                            {GovernanceActionId}
                                            `$fUnsafeFromDataGovernanceAction_$cunsafeFromBuiltinData`
                                            (headList {data} args))
-                                        (headList
-                                           {data}
-                                           (tailList {data} args)))
+                                        (headList {data} l)
+                                        (unBData
+                                           (headList
+                                              {data}
+                                              (tailList {data} l))))
                                    (/\dead ->
                                       ifThenElse
                                         {all dead. GovernanceAction}
@@ -1202,7 +1209,13 @@
                                                            integer)}
                                                      `$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
                                                      `$fUnsafeFromDataValue`
-                                                     (headList {data} args)))
+                                                     (headList {data} args))
+                                                  (unBData
+                                                     (headList
+                                                        {data}
+                                                        (tailList
+                                                           {data}
+                                                           args))))
                                              (/\dead ->
                                                 ifThenElse
                                                   {all dead. GovernanceAction}

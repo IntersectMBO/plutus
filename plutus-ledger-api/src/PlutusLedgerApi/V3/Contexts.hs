@@ -261,10 +261,15 @@ newtype ChangedParameters = ChangedParameters {getChangedParameters :: PlutusTx.
     )
 
 data GovernanceAction
-  = ParameterChange (Haskell.Maybe GovernanceActionId) ChangedParameters
+  = ParameterChange
+      (Haskell.Maybe GovernanceActionId)
+      ChangedParameters
+      V2.ScriptHash -- ^ Hash of the constitution script
   | -- | proposal to update protocol version
     HardForkInitiation (Haskell.Maybe GovernanceActionId) ProtocolVersion
-  | TreasuryWithdrawals (Map V2.Credential V2.Value)
+  | TreasuryWithdrawals
+      (Map V2.Credential V2.Value)
+      V2.ScriptHash -- ^ Hash of the constitution script
   | NoConfidence (Haskell.Maybe GovernanceActionId)
   | NewCommittee
       (Haskell.Maybe GovernanceActionId)
@@ -277,11 +282,12 @@ data GovernanceAction
 
 instance PlutusTx.Eq GovernanceAction where
   {-# INLINEABLE (==) #-}
-  ParameterChange a b == ParameterChange a' b' =
-    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
+  ParameterChange a b c == ParameterChange a' b' c' =
+    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b' PlutusTx.&& c PlutusTx.== c'
   HardForkInitiation a b == HardForkInitiation a' b' =
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
-  TreasuryWithdrawals a == TreasuryWithdrawals a' = a PlutusTx.== a'
+  TreasuryWithdrawals a b == TreasuryWithdrawals a' b' =
+    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
   NoConfidence a == NoConfidence a' = a PlutusTx.== a'
   NewCommittee a b c == NewCommittee a' b' c' =
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b' PlutusTx.&& c PlutusTx.== c'
