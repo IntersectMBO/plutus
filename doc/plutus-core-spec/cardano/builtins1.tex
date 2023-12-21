@@ -150,7 +150,7 @@ The concrete syntax for $\ty{data}$ is given by
                &  & \texttt{(Map} \ \syn{list(pair(data,data))} \texttt{)}\\
                &  & \texttt{(List} \ \syn{list(data)} \texttt{)}\\
                &  & \texttt{(I} \ \syn{integer} \texttt{)}\\
-               &  & \texttt{(B} \ \syn{bytestring} \texttt{)}\\
+               &  & \texttt{(B} \ \syn{bytestring} \texttt{)}.
     \end{array}\]
     \label{fig:data-concrete-syntax}
 \end{minipage}
@@ -160,14 +160,13 @@ the various $\inj$ functions defined earlier.  Some valid \texttt{data}
 constants are
 
 \begin{verbatim}
-   (con data (Constr 1 [I 2, B #, Map []]) 
-   (con data (Map [(I 0, B #00), (I 1, B #0F)])) 
-   (con data (List [I 0, I 1, B #7FFF, List []])) 
+   (con data (Constr 1 [(I 2), (B #), (Map [])]) 
+   (con data (Map [((I 0), (B #00)), ((I 1), (B #0F))])) 
+   (con data (List [(I 0), (I 1), (B #7FFF), (List []]))) 
    (con data (I -22)) 
    (con data (B #001A))
 \end{verbatim}
-
-\noindent\red{Fix inconsistent parenthesisation.}
+% TODO: be more relaxed about parenthesisation in general
 
 \subsubsection{Built-in functions}
 \label{sec:built-in-functions-1}
