@@ -26,6 +26,9 @@ smallerByteStrings150 seed = makeSizedByteStrings seed $ fmap (10*) [1..150]
 largerByteStrings21 :: H.Seed -> [BS.ByteString]
 largerByteStrings21 seed = makeSizedByteStrings seed $ fmap (250*) [0..20]
 
+smallerIntegers150 :: StdGen -> [Integer]
+smallerIntegers150 gen = fst $ makeSizedIntegers gen $ fmap (10*) [1..150]
+
 benchTwoByteStrings :: DefaultFun -> Benchmark
 benchTwoByteStrings name =
     createTwoTermBuiltinBench name [] (largerByteStrings21 seedA) (largerByteStrings21 seedB)
@@ -95,17 +98,72 @@ benchConsByteString =
         -- the range of [0..255] (Word8). Otherwise
         -- we run the risk of costing also the (fast) failures of the builtin call.
 
-makeBenchmarks :: StdGen -> [Benchmark]
-makeBenchmarks gen =  [ benchTwoByteStrings AppendByteString,
-                        benchConsByteString,
-                        benchLengthOfByteString,
-                        benchIndexByteString gen,
-                        benchSliceByteString
-                      ]
-                      <> [benchDifferentByteStringsElementwise EqualsByteString]
-                      <> (benchSameTwoByteStrings <$>
-                        [ EqualsByteString, LessThanEqualsByteString, LessThanByteString ])
+benchByteStringToIntegerTrue :: Benchmark
+benchByteStringToIntegerTrue =
+    bgroup name $ fmap mkBM (smallerByteStrings150 seedA)
+        where mkBM b = benchDefault (showMemoryUsage b) $ mkApp2 ByteStringToInteger [] True b
+              name = "ByteStringToIntegerTrue"
 
+benchByteStringToIntegerFalse :: Benchmark
+benchByteStringToIntegerFalse =
+    bgroup name $ fmap mkBM (smallerByteStrings150 seedA)
+        where mkBM b = benchDefault (showMemoryUsage b) $ mkApp2 ByteStringToInteger [] False b
+              name = "ByteStringToIntegerFalse"
+
+
+benchIntegerToByteStringTrue0 :: StdGen -> Benchmark
+benchIntegerToByteStringTrue0 gen =
+    bgroup name $ fmap mkBM (smallerIntegers150 gen)
+        where mkBM b = benchDefault (showMemoryUsage b) $
+                       mkApp3 IntegerToByteString [] True (0::Integer) b
+              name = "IntegerToByteStringTrue0"
+
+benchIntegerToByteStringFalse0 :: StdGen -> Benchmark
+benchIntegerToByteStringFalse0 gen =
+    bgroup name $ fmap mkBM (smallerIntegers150 gen)
+        where mkBM b = benchDefault (showMemoryUsage b) $
+                       mkApp3 IntegerToByteString [] False (0::Integer) b
+              name = "IntegerToByteStringFalse0"
+
+mkBmW :: String -> Bool -> [Integer] -> [Integer] -> Benchmark
+mkBmW name flag xs ys =
+    bgroup name $ zipWith (\x y -> bgroup (show x) [mkBM x y]) xs ys
+        where mkBM x y = benchDefault (showMemoryUsage y) $ mkApp3 IntegerToByteString [] flag x y
+
+mkBmW2 :: String -> Bool -> Benchmark
+mkBmW2 name flag =
+    let widths = fmap (80*) [1..150]
+        inputs = fmap (\n -> 256^n - 1) widths
+    in mkBmW name flag widths inputs
+
+benchIntegerToByteStringWTrue :: Benchmark
+benchIntegerToByteStringWTrue =
+    mkBmW2 "IntegerToByteStringWTrue" True
+
+benchIntegerToByteStringWFalse :: Benchmark
+benchIntegerToByteStringWFalse =
+    mkBmW2 "IntegerToByteStringWFalse" False
+
+makeBenchmarks :: StdGen -> [Benchmark]
+makeBenchmarks gen =
+    [ {-
+      benchTwoByteStrings AppendByteString,
+      benchConsByteString,
+      benchLengthOfByteString,
+      benchIndexByteString gen,
+      benchSliceByteString,
+       -}
+      benchByteStringToIntegerFalse,
+      benchByteStringToIntegerTrue,
+      benchIntegerToByteStringFalse0 gen,
+      benchIntegerToByteStringTrue0 gen,
+      benchIntegerToByteStringWFalse,
+      benchIntegerToByteStringWTrue
+    ]
+{-    <> [benchDifferentByteStringsElementwise EqualsByteString]
+      <> (benchSameTwoByteStrings <$>
+                        [ EqualsByteString, LessThanEqualsByteString, LessThanByteString ])
+-}
 
 {- Results for bytestrings of size integerPower 2 <$> [1..20::Integer].  The
    biggest inputs here are of size 1048576, or about 4 megabytes.  That's surely

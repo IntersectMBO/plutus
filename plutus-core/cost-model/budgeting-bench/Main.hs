@@ -45,9 +45,10 @@ main = do
   criterionMainWith
        Start
        defaultConfig $
-            Benchmarks.Bool.makeBenchmarks        gen
-        <>  Benchmarks.ByteStrings.makeBenchmarks gen
-        <>  Benchmarks.Crypto.makeBenchmarks      gen
+--            Benchmarks.Bool.makeBenchmarks        gen
+--        <>
+        Benchmarks.ByteStrings.makeBenchmarks gen
+{-        <>  Benchmarks.Crypto.makeBenchmarks      gen
         <>  Benchmarks.Data.makeBenchmarks        gen
         <>  Benchmarks.Integers.makeBenchmarks    gen
         <>  Benchmarks.Lists.makeBenchmarks       gen
@@ -56,6 +57,7 @@ main = do
         <>  Benchmarks.Strings.makeBenchmarks     gen
         <>  Benchmarks.Tracing.makeBenchmarks     gen
         <>  Benchmarks.Unit.makeBenchmarks        gen
+-}
 
   {- Run the nop benchmarks with a large time limit (30 seconds) in an attempt to
      get accurate results. -}
