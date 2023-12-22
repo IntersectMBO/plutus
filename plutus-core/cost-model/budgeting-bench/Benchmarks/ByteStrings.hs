@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
+
 module Benchmarks.ByteStrings (makeBenchmarks) where
 
 import Common
