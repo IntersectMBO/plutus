@@ -823,14 +823,14 @@
         Maybe GovernanceActionId -> Maybe bytestring -> GovernanceAction
       NoConfidence : Maybe GovernanceActionId -> GovernanceAction
       ParameterChange :
-        Maybe GovernanceActionId -> data -> bytestring -> GovernanceAction
+        Maybe GovernanceActionId -> data -> Maybe bytestring -> GovernanceAction
       TreasuryWithdrawals :
         (\k v -> List (Tuple2 k v))
           Credential
           ((\k v -> List (Tuple2 k v))
              bytestring
              ((\k v -> List (Tuple2 k v)) bytestring integer)) ->
-        bytestring ->
+        Maybe bytestring ->
         GovernanceAction
     data ProposalProcedure | ProposalProcedure_match where
       ProposalProcedure :
@@ -1143,7 +1143,9 @@
                                            `$fUnsafeFromDataGovernanceAction_$cunsafeFromBuiltinData`
                                            (headList {data} args))
                                         (headList {data} l)
-                                        (unBData
+                                        (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
+                                           {bytestring}
+                                           unBData
                                            (headList
                                               {data}
                                               (tailList {data} l))))
@@ -1210,7 +1212,9 @@
                                                      `$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
                                                      `$fUnsafeFromDataValue`
                                                      (headList {data} args))
-                                                  (unBData
+                                                  (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
+                                                     {bytestring}
+                                                     unBData
                                                      (headList
                                                         {data}
                                                         (tailList

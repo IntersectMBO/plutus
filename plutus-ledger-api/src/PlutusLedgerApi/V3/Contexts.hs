@@ -264,12 +264,12 @@ data GovernanceAction
   = ParameterChange
       (Haskell.Maybe GovernanceActionId)
       ChangedParameters
-      V2.ScriptHash -- ^ Hash of the constitution script
+      (Haskell.Maybe V2.ScriptHash) -- ^ Hash of the constitution script
   | -- | proposal to update protocol version
     HardForkInitiation (Haskell.Maybe GovernanceActionId) ProtocolVersion
   | TreasuryWithdrawals
       (Map V2.Credential V2.Value)
-      V2.ScriptHash -- ^ Hash of the constitution script
+      (Haskell.Maybe V2.ScriptHash) -- ^ Hash of the constitution script
   | NoConfidence (Haskell.Maybe GovernanceActionId)
   | NewCommittee
       (Haskell.Maybe GovernanceActionId)
