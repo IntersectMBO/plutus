@@ -1,4 +1,25 @@
 
+<a id='changelog-1.19.0.0'></a>
+# 1.19.0.0 — 2023-12-23
+
+## Added
+
+- Common subexpression elimination for Untyped Plutus Core.
+
+## Changed
+
+- The methoods in the `Flat` instances for `PlutusCore.Crypto.BLS12_381.G1.Element` and `PlutusCore.Crypto.BLS12_381.G2.Element` now cause failures: if a user wishes to use a literal constant in a serialised script then they should use the relevant `uncompress` function on a bytestring.  For convenience in experimentation and testing, literal constants are still allowed in textual Plutus Core programs, but any attempt to convert such a program to `flat` format will fail.
+
+- The `zero` and `generator` constants (for use in `plutus-tx`) have been removed from `PlutusCore.Crypto.BLS12_381.G1.Element` and `PlutusCore.Crypto.BLS12_381.G2.Element` and replaced with bytestrings called `compressed_zero` and `compressed_generator`; the original elements can be recovered by applying the appropriate `uncompress` functions to these.
+-->
+
+## Fixed
+
+- The `EvaluateBuiltins` pass will no longer produce constants that can't be serialized.
+
+- Fixed a bug in the PIR inliner that causes it to change the order of effects
+  in the presence of multi-lets.
+
 <a id='changelog-1.17.0.0'></a>
 # 1.17.0.0 — 2023-11-22
 
