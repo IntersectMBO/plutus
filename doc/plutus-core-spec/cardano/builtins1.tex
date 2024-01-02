@@ -156,7 +156,7 @@ The concrete syntax for $\ty{data}$ is given by
 \end{minipage}
 
 \noindent We interpret these syntactic constants as elements of $\denote{\ty{data}}$ using
-the various $\inj$ functions defined earlier.  Some valid \texttt{data}
+the various `$\inj$' functions defined earlier.  Some valid \texttt{data}
 constants are
 
 \begin{verbatim}
@@ -164,20 +164,27 @@ constants are
    (con data (Map [((I 0), (B #00)), ((I 1), (B #0F))])) 
    (con data (List [(I 0), (I 1), (B #7FFF), (List []]))) 
    (con data (I -22)) 
-   (con data (B #001A))
+   (con data (B #001A)).
 \end{verbatim}
 % TODO: be more relaxed about parenthesisation in general
+
+\paragraph{Note.}  At the time of writing the syntax accepted by IOG's parser for textual Plutus Core
+differs slightly from that above in that subobjects
+of \texttt{Constr}, \texttt{Map} and \texttt{List} objects must \textit{not} be
+parenthesised: for example one must write \verb|(con data (Constr 1 [I 2, B #,Map []])|.
+This discrepancy will be resolved in the near future.
+
 
 \subsubsection{Built-in functions}
 \label{sec:built-in-functions-1}
 The first batch of built-in functions is shown in
-Table~\ref{table:built-in-functions-1}.  The table indicates which
-functions can fail during execution, and conditions causing failure are
-specified either in the denotation given in the table or in a relevant note.
-Recall also that a built-in function will fail if it is given an argument of the
-wrong type: this is checked in conditions involving the $\sim$ relation and the
-$\Eval$ function in Figures~\ref{fig:untyped-term-reduction}
-and~\ref{fig:untyped-cek-machine}.  Note also that some of the functions are
+Table~\ref{table:built-in-functions-1}.  The table indicates which functions can
+fail during execution, and conditions causing failure are specified either in
+the denotation given in the table or in a relevant note.  Recall also that a
+built-in function will fail if it is given an argument of the wrong type: this
+is checked in conditions involving the $\sim$ relation and the $\Eval$ function
+in Figures~\ref{fig:untyped-term-reduction} and~\ref{fig:untyped-cek-machine}.
+Note also that some of the functions are
 \#-polymorphic.  According to Section~\ref{sec:builtin-denotations} we
 require a denotation for every possible monomorphisation of these; however all
 of these functions are parametrically polymorphic so to simplify notation we
