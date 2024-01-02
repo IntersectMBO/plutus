@@ -25,6 +25,7 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty
 
+import PlutusCore.Builtin.Convert as Convert
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
@@ -147,6 +148,9 @@ data DefaultFun
     -- Keccak_256, Blake2b_224
     | Keccak_256
     | Blake2b_224
+    -- Conversions
+    | IntegerToByteString
+    | ByteStringToInteger
     deriving stock (Show, Eq, Ord, Enum, Bounded, Generic, Ix)
     deriving anyclass (NFData, Hashable, PrettyBy PrettyConfigPlc)
 
@@ -1803,6 +1807,22 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         in makeBuiltinMeaning
             blake2b_224Denotation
             (runCostingFunOneArgument . paramBlake2b_224)
+
+    -- Conversions
+    toBuiltinMeaning _semvar IntegerToByteString =
+      let integerToByteStringDenotation :: Bool -> Integer -> Integer -> Emitter (EvaluationResult BS.ByteString)
+          integerToByteStringDenotation = integerToByteStringWrapper
+        in makeBuiltinMeaning
+          integerToByteStringDenotation
+          -- FIXME: Cost this function.
+          (runCostingFunThreeArguments . const def)
+    toBuiltinMeaning _semvar ByteStringToInteger =
+      let byteStringToIntegerDenotation :: Bool -> BS.ByteString -> Integer
+          byteStringToIntegerDenotation = byteStringToIntegerWrapper
+        in makeBuiltinMeaning
+            byteStringToIntegerDenotation
+            -- FIXME: Cost this function.
+            (runCostingFunTwoArguments . const def)
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}
 
@@ -1911,6 +1931,9 @@ instance Flat DefaultFun where
               Keccak_256                      -> 71
               Blake2b_224                     -> 72
 
+              IntegerToByteString             -> 73
+              ByteStringToInteger             -> 74
+
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
               go 1  = pure SubtractInteger
@@ -1985,6 +2008,8 @@ instance Flat DefaultFun where
               go 70 = pure Bls12_381_finalVerify
               go 71 = pure Keccak_256
               go 72 = pure Blake2b_224
+              go 73 = pure IntegerToByteString
+              go 74 = pure ByteStringToInteger
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth
