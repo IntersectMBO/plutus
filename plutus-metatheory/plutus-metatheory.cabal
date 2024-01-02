@@ -52,10 +52,14 @@ library
   import:          lang
   hs-source-dirs:  src
   build-depends:
+    , aeson
     , base
     , bytestring
     , composition-prelude
     , cryptonite
+    , data-default-class
+    , deepseq
+    , deriving-aeson                                  >=0.2.3
     , extra
     , ghc-prim
     , ieee754
@@ -64,6 +68,7 @@ library
     , optparse-applicative
     , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.18
     , process
+    , template-haskell
     , text
     , transformers
 
@@ -71,6 +76,8 @@ library
     build-depends: integer-gmp
 
   exposed-modules:
+    Cost.JSON
+    Cost.JSONModel
     Opts
     Raw
     Untyped

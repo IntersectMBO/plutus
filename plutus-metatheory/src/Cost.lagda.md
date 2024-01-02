@@ -1,4 +1,3 @@
-
 # Costs
 
 
@@ -25,7 +24,7 @@ open import Data.Integer using (ℤ;∣_∣)
 open import Data.Float using (Float;fromℕ;_÷_;_≤ᵇ_) renaming (show to show𝔽;_*_ to _*f_)
 import Data.List as L
 
-open import Data.Maybe using (Maybe;just;nothing;maybe)
+open import Data.Maybe using (Maybe;just;nothing;maybe′;fromMaybe) renaming (map to mapMaybe; _>>=_ to _>>=m_ )
 open import Data.Product using (_×_;_,_)
 open import Data.String using (String;_++_;padLeft;padRight;length)
 open import Data.Vec using (Vec;replicate;[];_∷_;sum;foldr) 
@@ -199,14 +198,100 @@ data CostingModel : ℕ → Set where
   twoArgumentsConstBelowDiagonal : CostingNat → CostingModel 2 → CostingModel 2
 ``` 
 
+```
+data JSONCostingModel : Set where 
+  constantCost       : CostingNat → JSONCostingModel
+  linearCostInX      : Intercept → Slope → JSONCostingModel
+  linearCostInY      : Intercept → Slope → JSONCostingModel
+  linearCostInZ      : Intercept → Slope → JSONCostingModel
+  addedSizes         : Intercept → Slope → JSONCostingModel
+  multipliedSizes    : Intercept → Slope → JSONCostingModel
+  minSize            : Intercept → Slope → JSONCostingModel
+  maxSize            : Intercept → Slope → JSONCostingModel
+  twoArgumentsLinearInXAndY      : Intercept → Slope → Slope → JSONCostingModel
+  twoArgumentsSubtractedSizes    : Intercept → Slope → CostingNat → JSONCostingModel
+  twoArgumentsLinearOnDiagonal   : CostingNat → Intercept → Slope → JSONCostingModel
+  twoArgumentsConstAboveDiagonal : CostingNat → JSONCostingModel → JSONCostingModel
+  twoArgumentsConstBelowDiagonal : CostingNat → JSONCostingModel → JSONCostingModel  
+
+convertModel : ∀{n} → JSONCostingModel → Maybe (CostingModel n)
+convertModel (constantCost c) = just (constantCost c)
+convertModel {suc _} (linearCostInX i s) = just (linearCostIn zero i s)
+convertModel {suc (suc _)} (linearCostInY i s) = just (linearCostIn (suc zero) i s)
+convertModel {suc (suc (suc _))}(linearCostInZ i s) = just (linearCostIn (suc (suc zero)) i s)
+convertModel (addedSizes i s) = just (addedSizes i s)
+convertModel (multipliedSizes i s) = just (multipliedSizes i s)
+convertModel {suc _} (minSize i s) = just (minSize i s)
+convertModel {suc _} (maxSize i s) = just (maxSize i s)
+convertModel {2} (twoArgumentsLinearInXAndY i s₁ s₂) = just (twoArgumentsLinearInXAndY i s₁ s₂)
+convertModel {2} (twoArgumentsSubtractedSizes i s c) = just (twoArgumentsSubtractedSizes i s c)
+convertModel {2} (twoArgumentsLinearOnDiagonal c i s) = just (twoArgumentsLinearOnDiagonal c i s)
+convertModel {2} (twoArgumentsConstAboveDiagonal c m) = mapMaybe (twoArgumentsConstAboveDiagonal c) (convertModel m)
+convertModel {2} (twoArgumentsConstBelowDiagonal c m) = mapMaybe (twoArgumentsConstBelowDiagonal c) (convertModel m)
+convertModel _ = nothing
+
+{-# FOREIGN GHC import Cost.JSON #-}
+
+{-# COMPILE GHC JSONCostingModel = data CostingModel 
+                (ConstantCost | LinearCostIn | AddedSizes 
+                | MultipliedSizes | MinSize | MaxSize 
+                | TwoArgumentsLinearInXAndY | TwoArgumentsSubtractedSizes 
+                | TwoArgumentsLinearOnDiagonal 
+                | TwoArgumentsConstAboveDiagonal 
+                | TwoArgumentsConstBelowDiagonal )  #-}
+
+postulate getJSONCostingModel : String → Maybe (JSONCostingModel × JSONCostingModel)
+{-# COMPILE GHC getJSONCostingModel = getJSONCostingModel #-}
+
+-- getJSONCostingModel : String → Maybe (JSONCostingModel × JSONCostingModel)
+-- getJSONCostingModel _ = just (constantCost 42 , constantCost 1)
+```
+
 A model of a builtin consists of a pair of costing models, one for CPU and one for memory.
 
 ```
-record BuiltinModel (b : Builtin) : Set where 
+record BuiltinModel (ar : ℕ) : Set where 
     field 
-        costingCPU costingMem : CostingModel (arity b)
+        costingCPU costingMem : CostingModel ar
         
 open BuiltinModel 
+
+defaultBuiltinModel : ∀{n} → BuiltinModel n 
+defaultBuiltinModel = record { costingCPU = constantCost 0 ; costingMem = constantCost 0 }
+```
+
+If there is an error in the JSON file (for example, assigning a `TwoArgumentsLinearInXAndY` model 
+to a builtin which arity ≠ 2) we would like this error to be noticed at compile time.
+Hence we write the assignment of the model to each builtin as a meta-program.
+
+```
+open import Agda.Builtin.Reflection using (Name;TC;Clause;clause;con;def;getDefinition;defineFun)
+open import Reflection using (vArg;hArg;_>>=_)
+open import Data.Unit using (⊤)
+open import Utils.Reflection using (constructors)
+
+getModel : ∀{n} → Builtin → BuiltinModel n 
+getModel b with getJSONCostingModel (showBuiltin b) 
+... | nothing = defaultBuiltinModel
+... | just (cpu , mem) with convertModel cpu | convertModel mem 
+... | just c | just m = record { costingCPU = c ; costingMem = m }
+... | _ | _ = defaultBuiltinModel
+
+createClauseforBuiltin : Name → Clause
+createClauseforBuiltin bn = clause L.[] (vArg (con bn L.[]) L.∷ L.[]) 
+                                (def (quote getModel) 
+                                     (hArg (def (quote arity) (vArg (con bn L.[]) L.∷ L.[])) 
+                                       L.∷ vArg (con bn L.[]) L.∷ L.[]))  
+
+metaModelFromJSON :  (fun-name : Name) → TC ⊤ 
+metaModelFromJSON nm = do 
+         builtinDef ← getDefinition (quote Builtin)
+         let clauseList = L.map createClauseforBuiltin (constructors builtinDef)
+         defineFun nm clauseList
+
+metaAssignModel : (b : Builtin) → BuiltinModel (arity b)
+unquoteDef metaAssignModel = metaModelFromJSON metaAssignModel
+
 ```
 
 ### Model interpretations
@@ -254,10 +339,9 @@ To calculate the cost of a builtin we obtain the corresponding builtin model,
 and run the cpu and memory model using the vector of argument sizes.
 
 ```
-builtinCost : {b : Builtin} → BuiltinModel b → Vec CostingNat (arity b) → ExBudget
-builtinCost bc cs = mkExBudget (runModel (costingCPU bc) cs) (runModel (costingMem bc) cs)
+builtinCost : (b : Builtin) → BuiltinModel (arity b) → Vec CostingNat (arity b) → ExBudget
+builtinCost b bc cs = mkExBudget (runModel (costingCPU bc) cs) (runModel (costingMem bc) cs)
 ``` 
-
 
  For now, we define a static function to assign a model to the arithmetic builtins,
 and `ifThenElse`.
@@ -265,7 +349,7 @@ and `ifThenElse`.
 TODO: Construct the assignment for all builtins from json file.
 
 ```
-assignModel : (b : Builtin) → BuiltinModel b
+assignModel : (b : Builtin) → BuiltinModel (arity b)
 assignModel addInteger = 
     record { costingCPU = maxSize 205665 812 
            ; costingMem = maxSize 1 1 }
@@ -300,9 +384,21 @@ assignModel ifThenElse =
     record { costingCPU = constantCost 80556 
            ; costingMem = constantCost 1 }
 assignModel appendByteString = 
-    record { costingCPU = addedsizes 
-           ; costingMem = constantCost 1 }
-
+    record { costingCPU = addedSizes 1000 571
+           ; costingMem = addedSizes 0 1 }
+assignModel appendString = 
+    record { costingCPU = addedSizes 1000 24177
+           ; costingMem = addedSizes 4 1 }
+assignModel bData = 
+    record { costingCPU = constantCost 1000 
+           ; costingMem = constantCost 32 } 
+assignModel consByteString = 
+    record { costingCPU = linearCostIn (suc zero) 221973 511
+           ; costingMem = addedSizes 0 1 } 
+assignModel equalsByteString = 
+    record { costingCPU = twoArgumentsLinearOnDiagonal 245000 216773 62
+           ; costingMem = constantCost 1 } 
+       
 assignModel _ = --TODO rest of builtins (or rather implement constructing model from json)
     record { costingCPU = constantCost 0 
            ; costingMem = constantCost 0 }
@@ -344,7 +440,7 @@ defaultCekStartupCost = mkExBudget 100 100
 
 exBudgetCategoryCost : ExBudgetCategory → ExBudget 
 exBudgetCategoryCost (BStep x) = defaultCekMachineCost x
-exBudgetCategoryCost (BBuiltinApp b cs) = builtinCost (assignModel b) cs
+exBudgetCategoryCost (BBuiltinApp b cs) = builtinCost b (assignModel b) cs
 exBudgetCategoryCost BStartup = defaultCekStartupCost
 
 defaultMachineParameters : MachineParameters ExBudget
