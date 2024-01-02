@@ -1,5 +1,6 @@
 module Main where
 
+import Spec.Budget qualified
 import Spec.Value qualified
 
 import Test.Tasty
@@ -9,5 +10,6 @@ main = defaultMain tests
 
 tests :: TestTree
 tests = testGroup "plutus-ledger-api-plugin-test"
-    [ Spec.Value.test_EqValue
+    [ Spec.Budget.tests
+    , Spec.Value.test_EqValue
     ]

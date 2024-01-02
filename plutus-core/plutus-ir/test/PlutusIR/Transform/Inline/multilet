@@ -6,8 +6,6 @@
 `y` should not be inlined because it occurs twice.
 `x` should not be inlined, because inlining `x` and not inlining `y`
 changes the order of effects.
-
-TODO: the inliner currently inlines `x` which is wrong.
 -}
 
 (lam

@@ -28,9 +28,12 @@ in
          (equalsInteger 0 ds)
          (/\dead ->
             let
-              !ds : integer = unIData (headList {data} (tailList {data} ds))
+              !ds : data = headList {data} ds
+              !ds : list data = tailList {data} ds
+              !a : integer = unIData ds
+              !ds : integer = unIData (headList {data} ds)
             in
-            unIData (headList {data} ds))
+            a)
          (/\dead ->
             Tuple2_match
               {integer}

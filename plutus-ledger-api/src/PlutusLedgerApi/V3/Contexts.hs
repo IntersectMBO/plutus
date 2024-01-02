@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DerivingVia       #-}
+{-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
@@ -243,9 +244,10 @@ instance PlutusTx.Eq ProtocolVersion where
   ProtocolVersion a b == ProtocolVersion a' b' =
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
 
--- | A Plutus Data object containing proposed parameter changes. The Data object contains
--- a @Map@ with one entry per changed parameter, from the parameter name to the new value.
--- Unchanged parameters are not included.
+{- | A Plutus Data object containing proposed parameter changes. The Data object contains
+a @Map@ with one entry per changed parameter, from the parameter name to the new value.
+Unchanged parameters are not included.
+-}
 newtype ChangedParameters = ChangedParameters {getChangedParameters :: PlutusTx.BuiltinData}
   deriving stock (Generic, Haskell.Show)
   deriving newtype
@@ -259,10 +261,15 @@ newtype ChangedParameters = ChangedParameters {getChangedParameters :: PlutusTx.
     )
 
 data GovernanceAction
-  = ParameterChange (Haskell.Maybe GovernanceActionId) ChangedParameters
+  = ParameterChange
+      (Haskell.Maybe GovernanceActionId)
+      ChangedParameters
+      (Haskell.Maybe V2.ScriptHash) -- ^ Hash of the constitution script
   | -- | proposal to update protocol version
     HardForkInitiation (Haskell.Maybe GovernanceActionId) ProtocolVersion
-  | TreasuryWithdrawals (Map V2.Credential V2.Value)
+  | TreasuryWithdrawals
+      (Map V2.Credential V2.Value)
+      (Haskell.Maybe V2.ScriptHash) -- ^ Hash of the constitution script
   | NoConfidence (Haskell.Maybe GovernanceActionId)
   | NewCommittee
       (Haskell.Maybe GovernanceActionId)
@@ -275,11 +282,12 @@ data GovernanceAction
 
 instance PlutusTx.Eq GovernanceAction where
   {-# INLINEABLE (==) #-}
-  ParameterChange a b == ParameterChange a' b' =
-    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
+  ParameterChange a b c == ParameterChange a' b' c' =
+    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b' PlutusTx.&& c PlutusTx.== c'
   HardForkInitiation a b == HardForkInitiation a' b' =
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
-  TreasuryWithdrawals a == TreasuryWithdrawals a' = a PlutusTx.== a'
+  TreasuryWithdrawals a b == TreasuryWithdrawals a' b' =
+    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
   NoConfidence a == NoConfidence a' = a PlutusTx.== a'
   NewCommittee a b c == NewCommittee a' b' c' =
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b' PlutusTx.&& c PlutusTx.== c'
@@ -342,10 +350,10 @@ data TxInfo = TxInfo
   { txInfoInputs                :: [V2.TxInInfo]
   , txInfoReferenceInputs       :: [V2.TxInInfo]
   , txInfoOutputs               :: [V2.TxOut]
-  , txInfoFee                   :: V2.Value
+  , txInfoFee                   :: V2.Lovelace
   , txInfoMint                  :: V2.Value
   , txInfoTxCerts               :: [TxCert]
-  , txInfoWdrl                  :: Map V2.Credential Haskell.Integer
+  , txInfoWdrl                  :: Map V2.Credential V2.Lovelace
   , txInfoValidRange            :: V2.POSIXTimeRange
   , txInfoSignatories           :: [V2.PubKeyHash]
   , txInfoRedeemers             :: Map ScriptPurpose V2.Redeemer
@@ -353,8 +361,8 @@ data TxInfo = TxInfo
   , txInfoId                    :: V2.TxId
   , txInfoVotes                 :: Map Voter (Map GovernanceActionId Vote)
   , txInfoProposalProcedures    :: [ProposalProcedure]
-  , txInfoCurrentTreasuryAmount :: Haskell.Maybe V2.Value
-  , txInfoTreasuryDonation      :: Haskell.Maybe V2.Value
+  , txInfoCurrentTreasuryAmount :: Haskell.Maybe V2.Lovelace
+  , txInfoTreasuryDonation      :: Haskell.Maybe V2.Lovelace
   }
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
 
@@ -420,6 +428,142 @@ instance PlutusTx.Eq ScriptContext where
   {-# INLINEABLE (==) #-}
   ScriptContext a b == ScriptContext a' b' =
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
+
+{-# INLINEABLE findOwnInput #-}
+
+-- | Find the input currently being validated.
+findOwnInput :: ScriptContext -> Haskell.Maybe V2.TxInInfo
+findOwnInput
+  ScriptContext
+    { scriptContextTxInfo = TxInfo{txInfoInputs}
+    , scriptContextPurpose = Spending txOutRef
+    } =
+    PlutusTx.find
+      (\V2.TxInInfo{txInInfoOutRef} -> txInInfoOutRef PlutusTx.== txOutRef)
+      txInfoInputs
+findOwnInput _ = Haskell.Nothing
+
+{-# INLINEABLE findDatum #-}
+
+-- | Find the data corresponding to a data hash, if there is one
+findDatum :: V2.DatumHash -> TxInfo -> Haskell.Maybe V2.Datum
+findDatum dsh TxInfo{txInfoData} = lookup dsh txInfoData
+
+{-# INLINEABLE findDatumHash #-}
+
+{- | Find the hash of a datum, if it is part of the pending transaction's
+hashes
+-}
+findDatumHash :: V2.Datum -> TxInfo -> Haskell.Maybe V2.DatumHash
+findDatumHash ds TxInfo{txInfoData} =
+  PlutusTx.fst PlutusTx.<$> PlutusTx.find f (toList txInfoData)
+  where
+    f (_, ds') = ds' PlutusTx.== ds
+
+{-# INLINEABLE findTxInByTxOutRef #-}
+
+{- | Given a UTXO reference and a transaction (`TxInfo`), resolve it to one of the
+transaction's inputs (`TxInInfo`).
+
+Note: this only searches the true transaction inputs and not the referenced transaction inputs.
+-}
+findTxInByTxOutRef :: V2.TxOutRef -> TxInfo -> Haskell.Maybe V2.TxInInfo
+findTxInByTxOutRef outRef TxInfo{txInfoInputs} =
+  PlutusTx.find
+    (\V2.TxInInfo{txInInfoOutRef} -> txInInfoOutRef PlutusTx.== outRef)
+    txInfoInputs
+
+{-# INLINEABLE findContinuingOutputs #-}
+
+{- | Find the indices of all the outputs that pay to the same script address we are
+currently spending from, if any.
+-}
+findContinuingOutputs :: ScriptContext -> [Haskell.Integer]
+findContinuingOutputs ctx
+  | Haskell.Just V2.TxInInfo{txInInfoResolved = V2.TxOut{txOutAddress}} <-
+      findOwnInput ctx =
+      PlutusTx.findIndices
+        (f txOutAddress)
+        (txInfoOutputs (scriptContextTxInfo ctx))
+  where
+    f addr V2.TxOut{txOutAddress = otherAddress} = addr PlutusTx.== otherAddress
+findContinuingOutputs _ = PlutusTx.traceError "Le" -- "Can't find any continuing outputs"
+
+{-# INLINEABLE getContinuingOutputs #-}
+
+{- | Get all the outputs that pay to the same script address we are currently spending
+from, if any.
+-}
+getContinuingOutputs :: ScriptContext -> [V2.TxOut]
+getContinuingOutputs ctx
+  | Haskell.Just V2.TxInInfo{txInInfoResolved = V2.TxOut{txOutAddress}} <-
+      findOwnInput ctx =
+      PlutusTx.filter (f txOutAddress) (txInfoOutputs (scriptContextTxInfo ctx))
+  where
+    f addr V2.TxOut{txOutAddress = otherAddress} = addr PlutusTx.== otherAddress
+getContinuingOutputs _ = PlutusTx.traceError "Lf" -- "Can't get any continuing outputs"
+
+{-# INLINEABLE txSignedBy #-}
+
+-- | Check if a transaction was signed by the given public key.
+txSignedBy :: TxInfo -> V2.PubKeyHash -> Haskell.Bool
+txSignedBy TxInfo{txInfoSignatories} k = case PlutusTx.find ((PlutusTx.==) k) txInfoSignatories of
+  Haskell.Just _  -> Haskell.True
+  Haskell.Nothing -> Haskell.False
+
+{-# INLINEABLE pubKeyOutputsAt #-}
+
+-- | Get the values paid to a public key address by a pending transaction.
+pubKeyOutputsAt :: V2.PubKeyHash -> TxInfo -> [V2.Value]
+pubKeyOutputsAt pk p =
+  let flt V2.TxOut{txOutAddress = V2.Address (V2.PubKeyCredential pk') _, txOutValue}
+        | pk PlutusTx.== pk' = Haskell.Just txOutValue
+      flt _ = Haskell.Nothing
+   in PlutusTx.mapMaybe flt (txInfoOutputs p)
+
+{-# INLINEABLE valuePaidTo #-}
+
+-- | Get the total value paid to a public key address by a pending transaction.
+valuePaidTo :: TxInfo -> V2.PubKeyHash -> V2.Value
+valuePaidTo ptx pkh = PlutusTx.mconcat (pubKeyOutputsAt pkh ptx)
+
+{-# INLINEABLE valueSpent #-}
+
+-- | Get the total value of inputs spent by this transaction.
+valueSpent :: TxInfo -> V2.Value
+valueSpent =
+  PlutusTx.foldMap
+    (V2.txOutValue PlutusTx.. V2.txInInfoResolved)
+    PlutusTx.. txInfoInputs
+
+{-# INLINEABLE valueProduced #-}
+
+-- | Get the total value of outputs produced by this transaction.
+valueProduced :: TxInfo -> V2.Value
+valueProduced = PlutusTx.foldMap V2.txOutValue PlutusTx.. txInfoOutputs
+
+{-# INLINEABLE ownCurrencySymbol #-}
+
+-- | The 'CurrencySymbol' of the current validator script.
+ownCurrencySymbol :: ScriptContext -> V2.CurrencySymbol
+ownCurrencySymbol ScriptContext{scriptContextPurpose = Minting cs} = cs
+ownCurrencySymbol _ =
+  -- "Can't get currency symbol of the current validator script"
+  PlutusTx.traceError "Lh"
+
+{-# INLINEABLE spendsOutput #-}
+
+{- | Check if the pending transaction spends a specific transaction output
+(identified by the hash of a transaction and an index into that
+transactions' outputs)
+-}
+spendsOutput :: TxInfo -> V2.TxId -> Haskell.Integer -> Haskell.Bool
+spendsOutput p h i =
+  let spendsOutRef inp =
+        let outRef = V2.txInInfoOutRef inp
+         in h PlutusTx.== V2.txOutRefId outRef
+              PlutusTx.&& i PlutusTx.== V2.txOutRefIdx outRef
+   in PlutusTx.any spendsOutRef (txInfoInputs p)
 
 PlutusTx.makeLift ''ColdCommitteeCredential
 PlutusTx.makeLift ''HotCommitteeCredential

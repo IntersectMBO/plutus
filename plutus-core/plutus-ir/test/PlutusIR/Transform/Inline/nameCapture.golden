@@ -1,10 +1,15 @@
 (let
   (nonrec)
   (termbind (strict) (vardecl a (con integer)) (con integer 10))
-  (termbind (strict) (vardecl c (con integer)) [ [ (builtin addInteger) a ] a ])
   (let
     (nonrec)
-    (termbind (strict) (vardecl a (con integer)) (con integer 7))
-    [ [ (builtin addInteger) [ [ (builtin addInteger) a ] a ] ] a ]
+    (termbind
+      (strict) (vardecl c (con integer)) [ [ (builtin addInteger) a ] a ]
+    )
+    (let
+      (nonrec)
+      (termbind (strict) (vardecl a (con integer)) (con integer 7))
+      [ [ (builtin addInteger) [ [ (builtin addInteger) a ] a ] ] a ]
+    )
   )
 )

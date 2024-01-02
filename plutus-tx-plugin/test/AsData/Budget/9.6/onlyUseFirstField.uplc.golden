@@ -11,8 +11,11 @@ program
                        (\l ->
                           (\ds ->
                              (\ds ->
-                                (\ds -> unIData (force headList l))
-                                  (unIData (force headList (force tailList l))))
+                                (\ds ->
+                                   (\ds -> ds)
+                                     (unIData
+                                        (force headList (force tailList l))))
+                                  (unIData (force headList l)))
                                (unIData (force headList l)))
                             (unIData (force headList l)))
                          (force tailList l))

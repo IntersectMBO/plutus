@@ -57,14 +57,18 @@ library
     , composition-prelude
     , cryptonite
     , extra
+    , ghc-prim
     , ieee754
     , megaparsec
     , memory
     , optparse-applicative
-    , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.18
+    , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.19
     , process
     , text
     , transformers
+
+  if impl(ghc <9.0)
+    build-depends: integer-gmp
 
   exposed-modules:
     Opts
@@ -127,6 +131,7 @@ library
     MAlonzo.Code.Category.Monad.Indexed
     MAlonzo.Code.Check
     MAlonzo.Code.Cost
+    MAlonzo.Code.Cost.Base
     MAlonzo.Code.Data.Bool.Base
     MAlonzo.Code.Data.Bool.Properties
     MAlonzo.Code.Data.Char.Base
@@ -349,6 +354,7 @@ library
     MAlonzo.Code.Category.Monad.Indexed
     MAlonzo.Code.Check
     MAlonzo.Code.Cost
+    MAlonzo.Code.Cost.Base
     MAlonzo.Code.Data.Bool.Base
     MAlonzo.Code.Data.Bool.Properties
     MAlonzo.Code.Data.Char.Base
@@ -529,8 +535,8 @@ executable plc-agda
 test-suite test1
   import:             lang
   build-tool-depends:
-    , plutus-core:plc   ^>=1.18
-    , plutus-core:uplc  ^>=1.18
+    , plutus-core:plc   ^>=1.19
+    , plutus-core:uplc  ^>=1.19
 
   hs-source-dirs:     test
   build-depends:
@@ -545,8 +551,8 @@ test-suite test1
 test-suite test2
   import:             lang
   build-tool-depends:
-    , plutus-core:plc   ^>=1.18
-    , plutus-core:uplc  ^>=1.18
+    , plutus-core:plc   ^>=1.19
+    , plutus-core:uplc  ^>=1.19
 
   hs-source-dirs:     test
   type:               detailed-0.9
@@ -570,7 +576,7 @@ test-suite test3
     , base
     , lazy-search
     , mtl
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.18
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.19
     , plutus-metatheory
     , size-based
     , Stream

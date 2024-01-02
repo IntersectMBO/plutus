@@ -20,9 +20,10 @@
 module AuctionValidator where
 
 import PlutusCore.Version (plcVersion100)
-import PlutusLedgerApi.V1 (POSIXTime, PubKeyHash, Value, adaSymbol, adaToken, singleton)
+import PlutusLedgerApi.V1 (Lovelace, POSIXTime, PubKeyHash, Value)
 import PlutusLedgerApi.V1.Address (pubKeyHashAddress)
 import PlutusLedgerApi.V1.Interval (contains)
+import PlutusLedgerApi.V1.Value (lovelaceValue)
 import PlutusLedgerApi.V2 (Datum (..), OutputDatum (..), ScriptContext (..), TxInfo (..),
                            TxOut (..), from, to)
 import PlutusLedgerApi.V2.Contexts (getContinuingOutputs)
@@ -39,7 +40,7 @@ data AuctionParams = AuctionParams
     -- ^ The asset being auctioned. It can be a single token, multiple tokens of the same
     -- kind, or tokens of different kinds, and the token(s) can be fungible or non-fungible.
     -- These can all be encoded as a `Value`.
-    apMinBid  :: Integer,
+    apMinBid  :: Lovelace,
     -- ^ The minimum bid in Lovelace.
     apEndTime :: POSIXTime
     -- ^ The deadline for placing a bid. This is the earliest time the auction can be closed.
@@ -50,8 +51,8 @@ PlutusTx.makeLift ''AuctionParams
 data Bid = Bid
   { bBidder :: PubKeyHash,
     -- ^ Bidder's wallet address.
-    bAmount :: Integer
-    -- ^ Bid amount.
+    bAmount :: Lovelace
+    -- ^ Bid amount in Lovelace.
   }
 
 PlutusTx.deriveShow ''Bid
@@ -126,7 +127,7 @@ auctionTypedValidator params (AuctionDatum highestBid) redeemer ctx@(ScriptConte
       Just (Bid bidder amt) ->
         case PlutusTx.find
           (\o -> txOutAddress o PlutusTx.== pubKeyHashAddress bidder
-            PlutusTx.&& txOutValue o PlutusTx.== singleton adaSymbol adaToken amt)
+            PlutusTx.&& txOutValue o PlutusTx.== lovelaceValue amt)
           (txInfoOutputs txInfo) of
           Just _  -> True
           Nothing -> PlutusTx.traceError ("Not found: refund output")
@@ -168,7 +169,7 @@ auctionTypedValidator params (AuctionDatum highestBid) redeemer ctx@(ScriptConte
         case PlutusTx.find
           ( \o ->
               txOutAddress o PlutusTx.== pubKeyHashAddress (apSeller params)
-                PlutusTx.&& txOutValue o PlutusTx.== singleton adaSymbol adaToken amt
+                PlutusTx.&& txOutValue o PlutusTx.== lovelaceValue amt
           )
           (txInfoOutputs txInfo) of
           Just _  -> True

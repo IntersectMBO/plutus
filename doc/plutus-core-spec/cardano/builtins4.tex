@@ -398,11 +398,26 @@ digits representing the 48-byte compressed form of the relevant point.
 Similarly, a value of type $\ty{bls12\_381\_G2\_element}$ is denoted by a term
 of the form \texttt{(con bls12\_381\_G2\_element 0x...)}  where \texttt{...}
 consists of 192 hexadecimal digits representing the 96-byte compressed form of
-the relevant point.
+the relevant point.  \textbf{This syntax is provided only for use in textual
+Plutus Core programs}, for example for experimentation and testing.  We do not
+support constants of any of the BLS12-381 types in serialised programs on the
+Cardano blockchain: see Section~\ref{sec:flat-constants}.  However, for
+$\ty{bls12\_381\_G1\_element}$ and $\ty{bls12\_381\_G2\_element}$ one can use
+the appropriate uncompression function on a  bytestring constant at runtime:
+for example, instead of
+$$
+\texttt{(con bls12\_381\_G1\_element 0xa1e9a0...)}
+$$
+write
+$$
+\texttt{[(builtin bls12\_381\_G1\_uncompress) (con bytestring \#a1e9a0...)]}.
+$$
 
-No syntax is provided for values of type $\ty{bls12\_381\_mlresult}$. It is not
-possible to parse such values, and they will appear as \texttt{(con
-bls12\_381\_mlresult <opaque>)} if output by a program.
+\noindent
+No concrete syntax is provided for values of type
+$\ty{bls12\_381\_mlresult}$. It is not possible to parse such values, and they
+will appear as \texttt{(con bls12\_381\_mlresult <opaque>)} if output by a
+program.
 
 
 \note{Pairing operations.}
@@ -441,11 +456,11 @@ $$
 We do not mandate specific choices for $\MlResultDenotation, \mu_r, e$, and $\phi$, but a
 plausible choice would be
 \begin{itemize}
-\item $\MlResultDenotation = \FF^*$.
+\item $\MlResultDenotation = \units{\FF}$.
 \item $e$ is the Miller loop associated with the optimal Ate pairing
 for $E_1$ and $E_2$~\cite{Vercauteren}.
-\item $\mu_r = \{x \in \FF^*: x^r=1\}$, the group of $r$th roots of unity in $\FF^*$.
-(There are $r$ distinct $r$th roots of unity in $\FF^*$ because the embedding
+\item $\mu_r = \{x \in \units{\FF}: x^r=1\}$, the group of $r$th roots of unity in $\FF$.
+(There are $r$ distinct $r$th roots of unity in $\FF$ because the embedding
 degree of $E_1$ and $E_2$ with respect to $r$ is 12 (see~\cite[4.1]{Costello-pairings}).)
 \item $\psi(x) = x^{\frac{q-1}{r}}$.
 \end{itemize}
