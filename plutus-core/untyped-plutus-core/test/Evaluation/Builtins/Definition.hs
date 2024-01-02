@@ -6,7 +6,6 @@
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
 
-
 -- Sure GHC, I'm enabling the extension just so that you can warn me about its usages.
 {-# OPTIONS_GHC -fno-warn-partial-type-signatures #-}
 
@@ -41,6 +40,7 @@ import PlutusCore.StdLib.Data.Unit
 
 import Evaluation.Builtins.BLS12_381 (test_BLS12_381)
 import Evaluation.Builtins.Common
+import Evaluation.Builtins.Conversion qualified as Conversion
 import Evaluation.Builtins.SignatureVerification (ecdsaSecp256k1Prop, ed25519_Variant1Prop,
                                                   ed25519_Variant2Prop, schnorrSecp256k1Prop)
 
@@ -49,7 +49,7 @@ import Control.Exception
 import Data.ByteString (ByteString, pack)
 import Data.DList qualified as DList
 import Data.Proxy
-import Data.String (fromString)
+import Data.String (IsString (fromString))
 import Data.Text (Text)
 import Hedgehog hiding (Opaque, Size, Var)
 import Hedgehog.Gen qualified as Gen
@@ -814,6 +814,44 @@ test_SignatureVerification =
                       ]
                 ]
 
+-- Test that the Integer <-> ByteString conversion builtins are behaving correctly
+test_Conversion :: TestTree
+test_Conversion =
+    adjustOption (\x -> max x . HedgehogTestLimit . Just $ 8000) .
+    testGroup "Integer <-> ByteString conversions" $ [
+      testGroup "Integer -> ByteString" [
+        --- lengthOfByteString (builtinIntegerToByteString e d 0) = d
+        testPropertyNamed "property 1" "i2b_prop1" . property $ Conversion.i2bProperty1,
+        -- indexByteString (builtinIntegerToByteString e k 0) j = 0
+        testPropertyNamed "property 2" "i2b_prop2" . property $ Conversion.i2bProperty2,
+        -- lengthOfByteString (builtinIntegerToByteString e 0 p) > 0
+        testPropertyNamed "property 3" "i2b_prop3" . property $ Conversion.i2bProperty3,
+        -- builtinIntegerToByteString False 0 (multiplyInteger p 256) = consByteString
+        -- 0 (builtinIntegerToByteString False 0 p)
+        testPropertyNamed "property 4" "i2b_prop4" . property $ Conversion.i2bProperty4,
+        -- builtinIntegerToByteString True 0 (multiplyInteger p 256) = appendByteString
+        -- (builtinIntegerToByteString True 0 p) (singleton 0)
+        testPropertyNamed "property 5" "i2b_prop5" . property $ Conversion.i2bProperty5,
+        -- builtinIntegerToByteString False 0 (plusInteger (multiplyInteger q 256) r) =
+        -- appendByteString (builtinIntegerToByteString False 0 r) (builtinIntegerToByteString False 0 q)
+        testPropertyNamed "property 6" "i2b_prop6" . property $ Conversion.i2bProperty6,
+        -- builtinIntegerToByteString True 0 (plusInteger (multiplyInteger q 256) r) =
+        -- appendByteString (builtinIntegerToByteString False 0 q)
+        -- (builtinIntegerToByteString False 0 r)
+        testPropertyNamed "property 7" "i2b_prop7" . property $ Conversion.i2bProperty7,
+        testGroup "CIP-0087 examples" Conversion.i2bCipExamples
+        ],
+      testGroup "ByteString -> Integer" [
+        -- builtinByteStringToInteger b (builtinIntegerToByteString b d q) = q
+        testPropertyNamed "property 1" "b2i_prop1" . property $ Conversion.b2iProperty1,
+        -- builtinByteStringToInteger b (consByteString w8 emptyByteString) = w8
+        testPropertyNamed "property 2" "b2i_prop2" . property $ Conversion.b2iProperty2,
+        -- builtinIntegerToByteString b (lengthOfByteString bs) (builtinByteStringToInteger b bs) = bs
+        testPropertyNamed "property 3" "b2i_prop3" . property $ Conversion.b2iProperty3,
+        testGroup "CIP-0087 examples" Conversion.b2iCipExamples
+        ]
+      ]
+
 test_definition :: TestTree
 test_definition =
     testGroup "definition"
@@ -847,4 +885,5 @@ test_definition =
         , test_Other
         , test_Version
         , test_ConsByteString
+        , test_Conversion
         ]
