@@ -1812,6 +1812,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
     toBuiltinMeaning _semvar IntegerToByteString =
       let integerToByteStringDenotation :: Bool -> LiteralByteSize -> Integer -> Emitter (EvaluationResult BS.ByteString)
           integerToByteStringDenotation b (LiteralByteSize w) n = integerToByteStringWrapper b w n
+          -- ^ The second argument is wrapped in a LiteralByteSize to allow us to interpret it as a
+          -- size during costing.  It appears as an integer in UPLC: see Note [Integral types as Integer].
         in makeBuiltinMeaning
           integerToByteStringDenotation
           (runCostingFunThreeArguments . paramIntegerToByteString)

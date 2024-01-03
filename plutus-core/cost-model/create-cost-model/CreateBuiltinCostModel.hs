@@ -964,6 +964,14 @@ bls12_381_finalVerify cpuModelR= do
 
 ---------------- Bitwise operations ----------------
 
+-- FIXME: memory allocation seems to be quite fast, so we base the CPU cost
+-- purely on the size of the integer.  This means that integerToByteString True
+-- 2 123 will have the same CPU cost as integerToByteString True 200000 123
+-- (although a greate rmemory cost).  Check that this is reasonable.  The
+-- budgeting benchmarks use inputs which really do need the specified width.
+-- Maybe we should try with smaller inputs too, like 123 with increasing widths.
+
+
 integerToByteString :: MonadR m => SomeSEXP (Region m) -> m (CostingFun ModelThreeArguments)
 integerToByteString cpuModelR = do
   cpuModel <- readModelQuadraticInZ cpuModelR
