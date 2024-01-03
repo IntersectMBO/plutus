@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 
@@ -115,7 +114,8 @@ instance FromJSON CpuAndMemoryModel where
 
 -- | Print a linear function
 renderLinearFunction :: LinearFunction -> String
-renderLinearFunction (LinearFunction intercept slope) = printf "%d %d" intercept slope
+renderLinearFunction (LinearFunction intercept slope) =
+   printf "%d %d" intercept slope
 
 renderModel :: Model -> String
 renderModel =
@@ -127,12 +127,18 @@ renderModel =
      MaxSize            f   -> printf "maxSize %s" (renderLinearFunction f)
      LinearCost         f   -> printf "linearCostIn zero %s" (renderLinearFunction f)
      LinearInX          f   -> printf "linearCostIn zero %s" (renderLinearFunction f)
-     LinearInY          f   -> printf "linearCostIn (suc zero) %s" (renderLinearFunction f)
-     LinearInZ          f   -> printf "linearCostIn (suc (suc zero)) %s" (renderLinearFunction f)
-     SubtractedSizes    l c -> printf "twoArgumentsSubtractedSizes %s %d" (renderLinearFunction l) c
-     ConstAboveDiagonal c m -> printf "twoArgumentsConstAboveDiagonal %d (%s)" c (renderModel m)
-     ConstBelowDiagonal c m -> printf "twoArgumentsConstBelowDiagonal %d (%s)" c (renderModel m)
-     LinearOnDiagonal   f c -> printf "twoArgumentsLinearOnDiagonal %d %s" c (renderLinearFunction f)
+     LinearInY          f   ->
+      printf "linearCostIn (suc zero) %s" (renderLinearFunction f)
+     LinearInZ          f   ->
+      printf "linearCostIn (suc (suc zero)) %s" (renderLinearFunction f)
+     SubtractedSizes    l c ->
+       printf "twoArgumentsSubtractedSizes %s %d" (renderLinearFunction l) c
+     ConstAboveDiagonal c m ->
+       printf "twoArgumentsConstAboveDiagonal %d (%s)" c (renderModel m)
+     ConstBelowDiagonal c m ->
+       printf "twoArgumentsConstBelowDiagonal %d (%s)" c (renderModel m)
+     LinearOnDiagonal   f c ->
+       printf "twoArgumentsLinearOnDiagonal %d %s" c (renderLinearFunction f)
 
 -- | Take a list of strings and print them line by line.
 printListIndented :: Int -> [String] -> IO ()
