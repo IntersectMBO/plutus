@@ -91,20 +91,20 @@ instance PlutusTx.Eq Delegatee where
 
 data TxCert
   = -- | Register staking credential with an optional deposit amount
-    TxCertRegStaking V2.Credential (Haskell.Maybe V2.Value)
+    TxCertRegStaking V2.Credential (Haskell.Maybe V2.Lovelace)
   | -- | Un-Register staking credential with an optional refund amount
-    TxCertUnRegStaking V2.Credential (Haskell.Maybe V2.Value)
+    TxCertUnRegStaking V2.Credential (Haskell.Maybe V2.Lovelace)
   | -- | Delegate staking credential to a Delegatee
     TxCertDelegStaking V2.Credential Delegatee
   | -- | Register and delegate staking credential to a Delegatee in one certificate. Noter that
     -- deposit is mandatory.
-    TxCertRegDeleg V2.Credential Delegatee V2.Value
+    TxCertRegDeleg V2.Credential Delegatee V2.Lovelace
   | -- | Register a DRep with a deposit value. The optional anchor is omitted.
-    TxCertRegDRep DRepCredential V2.Value
+    TxCertRegDRep DRepCredential V2.Lovelace
   | -- | Update a DRep. The optional anchor is omitted.
     TxCertUpdateDRep DRepCredential
   | -- | UnRegister a DRep with mandatory refund value
-    TxCertUnRegDRep DRepCredential V2.Value
+    TxCertUnRegDRep DRepCredential V2.Lovelace
   | -- | A digest of the PoolParams
     TxCertPoolRegister
       V2.PubKeyHash
@@ -268,7 +268,7 @@ data GovernanceAction
   | -- | proposal to update protocol version
     HardForkInitiation (Haskell.Maybe GovernanceActionId) ProtocolVersion
   | TreasuryWithdrawals
-      (Map V2.Credential V2.Value)
+      (Map V2.Credential V2.Lovelace)
       (Haskell.Maybe V2.ScriptHash) -- ^ Hash of the constitution script
   | NoConfidence (Haskell.Maybe GovernanceActionId)
   | NewCommittee
@@ -298,7 +298,7 @@ instance PlutusTx.Eq GovernanceAction where
 
 -- | A proposal procedure. The optional anchor is omitted.
 data ProposalProcedure = ProposalProcedure
-  { ppDeposit          :: V2.Value
+  { ppDeposit          :: V2.Lovelace
   , ppReturnAddr       :: V2.Credential
   , ppGovernanceAction :: GovernanceAction
   }
