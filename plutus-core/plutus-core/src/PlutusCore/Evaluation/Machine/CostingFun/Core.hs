@@ -12,8 +12,12 @@ module PlutusCore.Evaluation.Machine.CostingFun.Core
     ( CostingFun(..)
     , Intercept(..)
     , Slope(..)
+    , Coefficient0(..)
+    , Coefficient1(..)
+    , Coefficient2(..)
     , OneVariableLinearFunction(..)
     , TwoVariableLinearFunction(..)
+    , OneVariableQuadraticFunction(..)
     , ModelAddedSizes(..)
     , ModelSubtractedSizes(..)
     , ModelConstantOrLinear(..)
@@ -89,6 +93,27 @@ newtype Intercept = Intercept
 -- | A wrapped 'CostingInteger' that is supposed to be used as a slope.
 newtype Slope = Slope
     { unSlope :: CostingInteger
+    } deriving stock (Generic, Lift)
+      deriving newtype (Show, Eq, Num, NFData)
+
+-- | A wrapped 'CostingInteger' that is supposed to be used as the degree 0
+-- coefficient of a polynomial.
+newtype Coefficient0 = Coefficient0
+    { unCoefficient0 :: CostingInteger
+    } deriving stock (Generic, Lift)
+      deriving newtype (Show, Eq, Num, NFData)
+
+-- | A wrapped 'CostingInteger' that is supposed to be used as the degree 1
+-- coefficient of a polynomial.
+newtype Coefficient1 = Coefficient1
+    { unCoefficient1 :: CostingInteger
+    } deriving stock (Generic, Lift)
+      deriving newtype (Show, Eq, Num, NFData)
+
+-- | A wrapped 'CostingInteger' that is supposed to be used as the degree 2
+-- coefficient of a polynomial.
+newtype Coefficient2 = Coefficient2
+    { unCoefficient2 :: CostingInteger
     } deriving stock (Generic, Lift)
       deriving newtype (Show, Eq, Num, NFData)
 
@@ -221,6 +246,20 @@ data TwoVariableLinearFunction = TwoVariableLinearFunction
     } deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 
+-- | c2*x^2 + c1*x + c0
+data OneVariableQuadraticFunction = OneVariableQuadraticFunction
+    { oneVariableQuadraticFunctionC0 :: Coefficient0
+    , oneVariableQuadraticFunctionC1 :: Coefficient1
+    , oneVariableQuadraticFunctionC2 :: Coefficient2
+    } deriving stock (Show, Eq, Generic, Lift)
+    deriving anyclass (NFData)
+
+{-# INLINE evaluateOneVariableQuadraticFunction #-}
+evaluateOneVariableQuadraticFunction :: OneVariableQuadraticFunction -> CostingInteger -> CostingInteger
+evaluateOneVariableQuadraticFunction
+   (OneVariableQuadraticFunction (Coefficient0 c0) (Coefficient1 c1)  (Coefficient2 c2)) x =
+       c0 + c1*x + c2*x*x
+
 -- | s * (x + y) + I
 data ModelAddedSizes = ModelAddedSizes
     { modelAddedSizesIntercept :: Intercept
@@ -286,6 +325,7 @@ data ModelTwoArguments =
   | ModelTwoArgumentsLinearOnDiagonal   ModelConstantOrLinear
   | ModelTwoArgumentsConstAboveDiagonal ModelConstantOrTwoArguments
   | ModelTwoArgumentsConstBelowDiagonal ModelConstantOrTwoArguments
+  | ModelTwoArgumentsQuadraticInY       OneVariableQuadraticFunction
     deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 
@@ -397,17 +437,23 @@ runTwoArgumentModel
                 if size1 < size2
                     then CostLast c
                     else run (CostLast size1) (CostLast size2)
+runTwoArgumentModel
+    (ModelTwoArgumentsQuadraticInY f) =
+        lazy $ \_ costs2 ->
+            CostLast $ evaluateOneVariableQuadraticFunction f $ sumCostStream costs2
 {-# NOINLINE runTwoArgumentModel #-}
 
 
 ---------------- Three-argument costing functions ----------------
 
 data ModelThreeArguments =
-    ModelThreeArgumentsConstantCost CostingInteger
-  | ModelThreeArgumentsAddedSizes   ModelAddedSizes
-  | ModelThreeArgumentsLinearInX    OneVariableLinearFunction
-  | ModelThreeArgumentsLinearInY    OneVariableLinearFunction
-  | ModelThreeArgumentsLinearInZ    OneVariableLinearFunction
+    ModelThreeArgumentsConstantCost          CostingInteger
+  | ModelThreeArgumentsAddedSizes            ModelAddedSizes
+  | ModelThreeArgumentsLinearInX             OneVariableLinearFunction
+  | ModelThreeArgumentsLinearInY             OneVariableLinearFunction
+  | ModelThreeArgumentsLinearInZ             OneVariableLinearFunction
+  | ModelThreeArgumentsQuadraticInZ          OneVariableQuadraticFunction
+  | ModelThreeArgumentsLiteralInYOrLinearInZ OneVariableLinearFunction
     deriving stock (Show, Eq, Generic, Lift)
     deriving anyclass (NFData)
 
@@ -437,6 +483,21 @@ runThreeArgumentModel
     (ModelThreeArgumentsLinearInZ (OneVariableLinearFunction intercept slope)) =
         lazy $ \_ _ costs3 ->
             scaleLinearly intercept slope costs3
+runThreeArgumentModel
+    (ModelThreeArgumentsQuadraticInZ f) =
+        lazy $ \_ _ costs3 -> CostLast $ evaluateOneVariableQuadraticFunction f $ sumCostStream costs3
+{- Either a literal number of bytes or a literal function.  This is for
+   `integerToByteString`, where if the second argument is zero, the output
+   bytestring has the minimum length required to contain the converted integer,
+   but if the second argument is nonzero it specifies the exact length of the
+   output bytestring. -}
+runThreeArgumentModel
+    (ModelThreeArgumentsLiteralInYOrLinearInZ (OneVariableLinearFunction intercept slope)) =
+        lazy $ \_ costs2 costs3 ->
+            let width = sumCostStream costs2
+            in if width == 0
+            then scaleLinearly intercept slope costs3
+            else costs2
 {-# NOINLINE runThreeArgumentModel #-}
 
 -- See Note [runCostingFun* API].

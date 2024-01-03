@@ -50,6 +50,7 @@ import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data
 import PlutusCore.Evaluation.Machine.Exception
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (LiteralByteSize (..))
 import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty.Extra
 
@@ -402,6 +403,24 @@ instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Int where
     {-# INLINE readKnown #-}
 #endif
 
+-- FIX ME: these can probably be better. Fix the comments too.
+instance KnownTypeAst tyname DefaultUni LiteralByteSize where
+    toTypeAst _ = toTypeAst $ Proxy @Integer
+
+instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term LiteralByteSize where
+    -- Convert Int-to-Integer via Int64.  We could go directly `toInteger`, but this way
+    -- is more explicit and it'll turn into the same thing anyway.
+    -- Although this conversion is safe regardless of the CPU arch (unlike the opposite conversion),
+    -- we constrain it to 64-bit for the sake of uniformity.
+    makeKnown = makeKnown . unLiteralByteSize
+    {-# INLINE makeKnown #-}
+
+instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term LiteralByteSize where
+    -- Convert Integer-to-Int via Int64. This instance is safe only for 64-bit architecture
+    -- where Int===Int64 (i.e. no truncation happening).
+    readKnown term = LiteralByteSize <$> readKnown term
+    {-# INLINE readKnown #-}
+
 instance KnownTypeAst tyname DefaultUni Word8 where
     toTypeAst _ = toTypeAst $ Proxy @Integer
 
@@ -417,6 +436,7 @@ instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Word8 wher
                Just w8 -> pure w8
                _       -> throwing_ _EvaluationFailure
     {-# INLINE readKnown #-}
+
 
 {- Note [Stable encoding of tags]
 'encodeUni' and 'decodeUni' are used for serialisation and deserialisation of types from the

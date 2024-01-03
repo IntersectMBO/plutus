@@ -37,6 +37,12 @@ deriving newtype instance FromJSON Intercept
 deriving newtype instance ToJSON   Intercept
 deriving newtype instance FromJSON Slope
 deriving newtype instance ToJSON   Slope
+deriving newtype instance FromJSON Coefficient0
+deriving newtype instance ToJSON   Coefficient0
+deriving newtype instance FromJSON Coefficient1
+deriving newtype instance ToJSON   Coefficient1
+deriving newtype instance FromJSON Coefficient2
+deriving newtype instance ToJSON   Coefficient2
 
 deriving via ModelArgumentJSON "ModelOneArgument" ModelOneArgument
     instance FromJSON ModelOneArgument
@@ -79,6 +85,10 @@ deriving via ModelJSON "twoVariableLinearFunction" TwoVariableLinearFunction
     instance FromJSON TwoVariableLinearFunction
 deriving via ModelJSON "twoVariableLinearFunction" TwoVariableLinearFunction
     instance ToJSON TwoVariableLinearFunction
+deriving via ModelJSON "oneVariableQuadraticFunction" OneVariableQuadraticFunction
+    instance FromJSON OneVariableQuadraticFunction
+deriving via ModelJSON "oneVariableQuadraticFunction" OneVariableQuadraticFunction
+    instance ToJSON OneVariableQuadraticFunction
 deriving via ModelJSON "modelMultipliedSizes" ModelMultipliedSizes
     instance FromJSON ModelMultipliedSizes
 deriving via ModelJSON "modelMultipliedSizes" ModelMultipliedSizes

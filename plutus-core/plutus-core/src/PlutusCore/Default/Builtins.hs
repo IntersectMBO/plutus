@@ -1810,19 +1810,17 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
     -- Conversions
     toBuiltinMeaning _semvar IntegerToByteString =
-      let integerToByteStringDenotation :: Bool -> Integer -> Integer -> Emitter (EvaluationResult BS.ByteString)
-          integerToByteStringDenotation = integerToByteStringWrapper
+      let integerToByteStringDenotation :: Bool -> LiteralByteSize -> Integer -> Emitter (EvaluationResult BS.ByteString)
+          integerToByteStringDenotation b (LiteralByteSize w) n = integerToByteStringWrapper b w n
         in makeBuiltinMeaning
           integerToByteStringDenotation
-          -- FIXME: Cost this function.
-          (runCostingFunThreeArguments . const def)
+          (runCostingFunThreeArguments . paramIntegerToByteString)
     toBuiltinMeaning _semvar ByteStringToInteger =
       let byteStringToIntegerDenotation :: Bool -> BS.ByteString -> Integer
           byteStringToIntegerDenotation = byteStringToIntegerWrapper
         in makeBuiltinMeaning
             byteStringToIntegerDenotation
-            -- FIXME: Cost this function.
-            (runCostingFunTwoArguments . const def)
+            (runCostingFunTwoArguments . paramByteStringToInteger)
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}
 

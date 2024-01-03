@@ -129,7 +129,9 @@ arity <- function(name) {
         "Bls12_381_mulMlResult" = 2,
         "Bls12_381_finalVerify" = 2,
         "Keccak_256" = 1,
-        "Blake2b_224" = 1
+        "Blake2b_224" = 1,
+        "IntegerToByteString" = 3,
+        "ByteStringToInteger" = 2
         )
 }
 
@@ -655,6 +657,24 @@ modelFun <- function(path) {
     bls12_381_mulMlResultModel       <- constantModel ("Bls12_381_mulMlResult")
     bls12_381_finalVerifyModel       <- constantModel ("Bls12_381_finalVerify")
 
+    ##### Bitwise operations #####
+
+## FIXME: enforce positive coefficients.
+
+    integerToByteStringModel <- {
+        fname <- "IntegerToByteStringWTrue"
+        filtered <- data %>%
+            filter.and.check.nonempty(fname)
+        lm(t ~ 0 + I(x_mem) + I(x_mem^2), filtered)
+    }
+
+    byteStringToIntegerModel <- {
+        fname <- "ByteStringToIntegerTrue"
+        filtered <- data %>%
+            filter.and.check.nonempty(fname)
+        lm(t ~ 0 + I(x_mem) + I(x_mem^2), filtered)
+    }
+
     models <- list (
         addIntegerModel                      = addIntegerModel,
         subtractIntegerModel                 = subtractIntegerModel,
@@ -728,7 +748,9 @@ modelFun <- function(path) {
         bls12_381_G2_uncompressModel         = bls12_381_G2_uncompressModel,
         bls12_381_millerLoopModel            = bls12_381_millerLoopModel,
         bls12_381_mulMlResultModel           = bls12_381_mulMlResultModel,
-        bls12_381_finalVerifyModel           = bls12_381_finalVerifyModel
+        bls12_381_finalVerifyModel           = bls12_381_finalVerifyModel,
+        integerToByteStringModel             = integerToByteStringModel,
+        byteStringToIntegerModel             = byteStringToIntegerModel
     )
 
     return(adjustModels(models))

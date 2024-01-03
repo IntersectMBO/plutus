@@ -10,6 +10,7 @@ module PlutusCore.Evaluation.Machine.ExMemoryUsage
     , singletonRose
     , ExMemoryUsage(..)
     , flattenCostRose
+    , LiteralByteSize(..)
     ) where
 
 import PlutusCore.Crypto.BLS12_381.G1 as BLS12_381.G1
@@ -165,6 +166,18 @@ instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (Some (Va
 
 instance ExMemoryUsage () where
     memoryUsage () = singletonRose 1
+    {-# INLINE memoryUsage #-}
+
+-- FIXME: can we make this Integral or something?
+{- | The `integerToByteString` builtin takes an argument `w` specifying the width
+   (in bytes) of the output bytestring (zero-padded to the desired size).  The
+   memory consumed by the function is given by `w`, *not* the size of `w`.  This
+   type wraps an Int `w` in a newtype whose `ExMemoryUsage` is equal to the
+   number of eight-byte words required to contain `w` bytes, allowing the
+   costing function to work properly. -}
+newtype LiteralByteSize = LiteralByteSize { unLiteralByteSize :: Integer }
+instance ExMemoryUsage LiteralByteSize where
+    memoryUsage (LiteralByteSize n) = singletonRose . fromIntegral $ ((n-1) `div` 8) + 1
     {-# INLINE memoryUsage #-}
 
 -- | Calculate a 'CostingInteger' for the given 'Integer'.

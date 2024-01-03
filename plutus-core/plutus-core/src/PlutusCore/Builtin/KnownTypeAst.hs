@@ -230,6 +230,7 @@ instance KnownTypeAst tyname uni a => KnownTypeAst tyname uni (Emitter a) where
     toTypeAst _ = toTypeAst $ Proxy @a
     {-# INLINE toTypeAst #-}
 
+
 instance KnownTypeAst tyname uni rep => KnownTypeAst tyname uni (SomeConstant uni rep) where
     type IsBuiltin _ (SomeConstant uni rep) = 'False
     type ToHoles _ (SomeConstant _ rep) = '[RepHole rep]
