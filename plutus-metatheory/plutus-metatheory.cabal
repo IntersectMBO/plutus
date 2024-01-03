@@ -52,14 +52,10 @@ library
   import:          lang
   hs-source-dirs:  src
   build-depends:
-    , aeson
     , base
     , bytestring
     , composition-prelude
     , cryptonite
-    , data-default-class
-    , deepseq
-    , deriving-aeson                                  >=0.2.3
     , extra
     , ghc-prim
     , ieee754
@@ -68,7 +64,6 @@ library
     , optparse-applicative
     , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.18
     , process
-    , template-haskell
     , text
     , transformers
 
@@ -76,8 +71,6 @@ library
     build-depends: integer-gmp
 
   exposed-modules:
-    Cost.JSON
-    Cost.JSONModel
     Opts
     Raw
     Untyped
@@ -139,6 +132,8 @@ library
     MAlonzo.Code.Check
     MAlonzo.Code.Cost
     MAlonzo.Code.Cost.Base
+    MAlonzo.Code.Cost.BuiltinModelAssignment
+    MAlonzo.Code.Cost.Model
     MAlonzo.Code.Data.Bool.Base
     MAlonzo.Code.Data.Bool.Properties
     MAlonzo.Code.Data.Char.Base
@@ -362,6 +357,8 @@ library
     MAlonzo.Code.Check
     MAlonzo.Code.Cost
     MAlonzo.Code.Cost.Base
+    MAlonzo.Code.Cost.BuiltinModelAssignment
+    MAlonzo.Code.Cost.Model
     MAlonzo.Code.Data.Bool.Base
     MAlonzo.Code.Data.Bool.Properties
     MAlonzo.Code.Data.Char.Base
@@ -538,6 +535,18 @@ executable plc-agda
   build-depends:
     , base
     , plutus-metatheory
+
+executable generate-model-assignment
+  import:         lang
+  main-is:        Main.hs
+  hs-source-dirs: generate-model-assignment
+
+  --other-modules:  Paths_plutus_core
+  build-depends:
+    , aeson
+    , base        >=4.9 && <5
+    , bytestring
+    , text
 
 test-suite test1
   import:             lang
