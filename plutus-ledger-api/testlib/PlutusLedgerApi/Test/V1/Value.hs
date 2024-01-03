@@ -6,8 +6,8 @@
 module PlutusLedgerApi.Test.V1.Value where
 
 import PlutusLedgerApi.V1
-import PlutusTx.AssocMap qualified as AssocMap
 import PlutusTx.List qualified as ListTx
+import PlutusTx.Map qualified as Map
 
 import PlutusCore.Generators.QuickCheck.Utils (multiSplit, uniqueVectorOf)
 
@@ -18,11 +18,11 @@ import Test.QuickCheck
 
 -- | Convert a list representation of a 'Value' to the 'Value'.
 listsToValue :: [(CurrencySymbol, [(TokenName, Integer)])] -> Value
-listsToValue = Value . AssocMap.fromList . ListTx.map (fmap AssocMap.fromList)
+listsToValue = Value . Map.fromList . ListTx.map (fmap Map.fromList)
 
 -- | Convert a 'Value' to its list representation.
 valueToLists :: Value -> [(CurrencySymbol, [(TokenName, Integer)])]
-valueToLists = ListTx.map (fmap AssocMap.toList) . AssocMap.toList . getValue
+valueToLists = ListTx.map (fmap Map.toList) . Map.toList . getValue
 
 -- | Return how many candidates to randomly choose from to fill the given number of cells. For
 -- example, if we only need to fill a single cell, we choose from 6 different candidates, and if we

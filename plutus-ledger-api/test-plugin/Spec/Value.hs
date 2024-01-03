@@ -12,12 +12,12 @@ import Prelude qualified as Haskell
 
 import PlutusLedgerApi.V1.Value
 
-import PlutusTx.AssocMap qualified as AssocMap
 import PlutusTx.Base
 import PlutusTx.Builtins
 import PlutusTx.Code (CompiledCode, getPlc, unsafeApplyCode)
 import PlutusTx.Lift
 import PlutusTx.List qualified as ListTx
+import PlutusTx.Map qualified as PMap
 import PlutusTx.Maybe
 import PlutusTx.Numeric
 import PlutusTx.Prelude
@@ -148,10 +148,10 @@ currencyLongListOptions =
     ListTx.concatMap (maybe longCurrencyChunk pure) currencyListWithHooks
 
 listsToValue :: [(CurrencySymbol, [(TokenName, Integer)])] -> Value
-listsToValue = Value . AssocMap.fromList . ListTx.map (fmap AssocMap.fromList)
+listsToValue = Value . PMap.fromList . ListTx.map (fmap PMap.fromList)
 
 valueToLists :: Value -> [(CurrencySymbol, [(TokenName, Integer)])]
-valueToLists = ListTx.map (fmap AssocMap.toList) . AssocMap.toList . getValue
+valueToLists = ListTx.map (fmap PMap.toList) . PMap.toList . getValue
 
 -- | Check equality of two compiled 'Value's through UPLC evaluation and annotate the result with
 -- the cost of evaluation.

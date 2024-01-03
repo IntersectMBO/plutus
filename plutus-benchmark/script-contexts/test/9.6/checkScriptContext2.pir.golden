@@ -88,6 +88,40 @@
                       Unit
             in
             \(d : data) -> go (unListData d)
+    data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
+      Tuple2 : a -> b -> Tuple2 a b
+    !`$fUnsafeFromDataMap_$cunsafeFromBuiltinData` :
+       all k v.
+         (\a -> data -> a) k ->
+         (\a -> data -> a) v ->
+         data ->
+         (\k v -> List (Tuple2 k v)) k v
+      = /\k v ->
+          \(`$dUnsafeFromData` : (\a -> data -> a) k)
+           (`$dUnsafeFromData` : (\a -> data -> a) v) ->
+            letrec
+              !go : list (pair data data) -> List (Tuple2 k v)
+                = \(l : list (pair data data)) ->
+                    chooseList
+                      {pair data data}
+                      {Unit -> List (Tuple2 k v)}
+                      l
+                      (\(ds : Unit) -> Nil {Tuple2 k v})
+                      (\(ds : Unit) ->
+                         let
+                           !tup : pair data data = headList {pair data data} l
+                         in
+                         Cons
+                           {Tuple2 k v}
+                           (Tuple2
+                              {k}
+                              {v}
+                              (`$dUnsafeFromData` (fstPair {data} {data} tup))
+                              (`$dUnsafeFromData` (sndPair {data} {data} tup)))
+                           (go (tailList {pair data data} l)))
+                      Unit
+            in
+            \(d : data) -> go (unMapData d)
     !`$fUnsafeFromDataTxId_$cunsafeFromBuiltinData` : data -> bytestring
       = \(d : data) ->
           let
@@ -230,55 +264,671 @@
                       {all dead. dead})
                  {all dead. dead})
             {all dead. dead}
-    data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
-      Tuple2 : a -> b -> Tuple2 a b
-    !`$fUnsafeFromDataMap_$cunsafeFromBuiltinData` :
+    data Ordering | Ordering_match where
+      EQ : Ordering
+      GT : Ordering
+      LT : Ordering
+    !`$fOrdBuiltinByteString_$ccompare` : bytestring -> bytestring -> Ordering
+      = \(eta : bytestring) (eta : bytestring) ->
+          ifThenElse
+            {all dead. Ordering}
+            (equalsByteString eta eta)
+            (/\dead -> EQ)
+            (/\dead ->
+               ifThenElse
+                 {all dead. Ordering}
+                 (lessThanEqualsByteString eta eta)
+                 (/\dead -> LT)
+                 (/\dead -> GT)
+                 {all dead. dead})
+            {all dead. dead}
+    !`$fOrdBuiltinByteString_$cmax` : bytestring -> bytestring -> bytestring
+      = \(x : bytestring) (y : bytestring) ->
+          ifThenElse
+            {all dead. bytestring}
+            (lessThanEqualsByteString x y)
+            (/\dead -> y)
+            (/\dead -> x)
+            {all dead. dead}
+    !`$fOrdBuiltinByteString_$cmin` : bytestring -> bytestring -> bytestring
+      = \(x : bytestring) (y : bytestring) ->
+          ifThenElse
+            {all dead. bytestring}
+            (lessThanEqualsByteString x y)
+            (/\dead -> x)
+            (/\dead -> y)
+            {all dead. dead}
+    !equalsByteString : bytestring -> bytestring -> Bool
+      = \(x : bytestring) (y : bytestring) ->
+          ifThenElse {Bool} (equalsByteString x y) True False
+    !greaterThanByteString : bytestring -> bytestring -> Bool
+      = \(x : bytestring) (y : bytestring) ->
+          ifThenElse {Bool} (lessThanEqualsByteString x y) False True
+    !greaterThanEqualsByteString : bytestring -> bytestring -> Bool
+      = \(x : bytestring) (y : bytestring) ->
+          ifThenElse {Bool} (lessThanByteString x y) False True
+    data (Ord :: * -> *) a | Ord_match where
+      CConsOrd :
+        (\a -> a -> a -> Bool) a ->
+        (a -> a -> Ordering) ->
+        (a -> a -> Bool) ->
+        (a -> a -> Bool) ->
+        (a -> a -> Bool) ->
+        (a -> a -> Bool) ->
+        (a -> a -> a) ->
+        (a -> a -> a) ->
+        Ord a
+    !lessThanByteString : bytestring -> bytestring -> Bool
+      = \(x : bytestring) (y : bytestring) ->
+          ifThenElse {Bool} (lessThanByteString x y) True False
+    !lessThanEqualsByteString : bytestring -> bytestring -> Bool
+      = \(x : bytestring) (y : bytestring) ->
+          ifThenElse {Bool} (lessThanEqualsByteString x y) True False
+    !`$fOrdCurrencySymbol` : Ord bytestring
+      = CConsOrd
+          {bytestring}
+          equalsByteString
+          `$fOrdBuiltinByteString_$ccompare`
+          lessThanByteString
+          lessThanEqualsByteString
+          greaterThanByteString
+          greaterThanEqualsByteString
+          `$fOrdBuiltinByteString_$cmax`
+          `$fOrdBuiltinByteString_$cmin`
+    data Color | Color_match where
+      B : Color
+      R : Color
+  in
+  letrec
+    data (RBTree :: * -> * -> *) k v | RBTree_match where
+      Branch :
+        Color -> integer -> RBTree k v -> k -> v -> RBTree k v -> RBTree k v
+      Leaf : RBTree k v
+  in
+  let
+    !compare : all a. Ord a -> a -> a -> Ordering
+      = /\a ->
+          \(v : Ord a) ->
+            Ord_match
+              {a}
+              v
+              {a -> a -> Ordering}
+              (\(v : (\a -> a -> a -> Bool) a)
+                (v : a -> a -> Ordering)
+                (v : a -> a -> Bool)
+                (v : a -> a -> Bool)
+                (v : a -> a -> Bool)
+                (v : a -> a -> Bool)
+                (v : a -> a -> a)
+                (v : a -> a -> a) ->
+                 v)
+    !`$fUnsafeFromDataRBTree_$cunsafeFromBuiltinData` :
        all k v.
+         Ord k ->
          (\a -> data -> a) k ->
          (\a -> data -> a) v ->
          data ->
-         (\k v -> List (Tuple2 k v)) k v
+         RBTree k v
       = /\k v ->
-          \(`$dUnsafeFromData` : (\a -> data -> a) k)
+          \(`$dOrd` : Ord k)
+           (`$dUnsafeFromData` : (\a -> data -> a) k)
            (`$dUnsafeFromData` : (\a -> data -> a) v) ->
             letrec
-              !go : list (pair data data) -> List (Tuple2 k v)
-                = \(l : list (pair data data)) ->
+              !go :
+                 RBTree k v -> list (pair data data) -> RBTree k v
+                = \(acc : RBTree k v)
+                   (l : list (pair data data)) ->
                     chooseList
                       {pair data data}
-                      {Unit -> List (Tuple2 k v)}
+                      {Unit -> RBTree k v}
                       l
-                      (\(ds : Unit) -> Nil {Tuple2 k v})
+                      (\(ds : Unit) -> acc)
                       (\(ds : Unit) ->
                          let
-                           !tup : pair data data = headList {pair data data} l
+                           !h : pair data data = headList {pair data data} l
+                           !t : list (pair data data)
+                             = tailList {pair data data} l
                          in
-                         Cons
-                           {Tuple2 k v}
-                           (Tuple2
-                              {k}
-                              {v}
-                              (`$dUnsafeFromData` (fstPair {data} {data} tup))
-                              (`$dUnsafeFromData` (sndPair {data} {data} tup)))
-                           (go (tailList {pair data data} l)))
+                         go
+                           (let
+                             !k : k
+                               = `$dUnsafeFromData` (fstPair {data} {data} h)
+                             !v : v
+                               = `$dUnsafeFromData` (sndPair {data} {data} h)
+                           in
+                           letrec
+                             !go :
+                                RBTree k v -> RBTree k v
+                               = \(ds : RBTree k v) ->
+                                   RBTree_match
+                                     {k}
+                                     {v}
+                                     ds
+                                     {all dead. RBTree k v}
+                                     (\(ds : Color)
+                                       (h : integer)
+                                       (l : RBTree k v)
+                                       (k' : k)
+                                       (v' : v)
+                                       (r : RBTree k v) ->
+                                        /\dead ->
+                                          Color_match
+                                            ds
+                                            {all dead. RBTree k v}
+                                            (/\dead ->
+                                               Ordering_match
+                                                 (compare {k} `$dOrd` k k')
+                                                 {all dead. RBTree k v}
+                                                 (/\dead ->
+                                                    Branch {k} {v} B h l k' v r)
+                                                 (/\dead ->
+                                                    let
+                                                      !t : RBTree k v
+                                                        = Branch
+                                                            {k}
+                                                            {v}
+                                                            B
+                                                            h
+                                                            l
+                                                            k'
+                                                            v'
+                                                            (go r)
+                                                    in
+                                                    RBTree_match
+                                                      {k}
+                                                      {v}
+                                                      t
+                                                      {all dead. RBTree k v}
+                                                      (\(ds : Color)
+                                                        (h : integer)
+                                                        (t : RBTree k v)
+                                                        (k : k)
+                                                        (v : v)
+                                                        (toSplit :
+                                                           RBTree k v) ->
+                                                         /\dead ->
+                                                           Color_match
+                                                             ds
+                                                             {all dead.
+                                                                RBTree k v}
+                                                             (/\dead ->
+                                                                RBTree_match
+                                                                  {k}
+                                                                  {v}
+                                                                  toSplit
+                                                                  {all dead.
+                                                                     RBTree k v}
+                                                                  (\(ds : Color)
+                                                                    (ds :
+                                                                       integer)
+                                                                    (t :
+                                                                       RBTree
+                                                                         k
+                                                                         v)
+                                                                    (k : k)
+                                                                    (v : v)
+                                                                    (ds :
+                                                                       RBTree
+                                                                         k
+                                                                         v) ->
+                                                                     let
+                                                                       !fail :
+                                                                          unit ->
+                                                                          RBTree
+                                                                            k
+                                                                            v
+                                                                         = \(ds :
+                                                                               unit) ->
+                                                                             RBTree_match
+                                                                               {k}
+                                                                               {v}
+                                                                               t
+                                                                               {all dead.
+                                                                                  RBTree
+                                                                                    k
+                                                                                    v}
+                                                                               (\(ds :
+                                                                                    Color)
+                                                                                 (ds :
+                                                                                    integer)
+                                                                                 (t :
+                                                                                    RBTree
+                                                                                      k
+                                                                                      v)
+                                                                                 (k :
+                                                                                    k)
+                                                                                 (v :
+                                                                                    v)
+                                                                                 (t :
+                                                                                    RBTree
+                                                                                      k
+                                                                                      v) ->
+                                                                                  /\dead ->
+                                                                                    Color_match
+                                                                                      ds
+                                                                                      {all dead.
+                                                                                         RBTree
+                                                                                           k
+                                                                                           v}
+                                                                                      (/\dead ->
+                                                                                         t)
+                                                                                      (/\dead ->
+                                                                                         Branch
+                                                                                           {k}
+                                                                                           {v}
+                                                                                           R
+                                                                                           (addInteger
+                                                                                              1
+                                                                                              h)
+                                                                                           (Branch
+                                                                                              {k}
+                                                                                              {v}
+                                                                                              B
+                                                                                              h
+                                                                                              t
+                                                                                              k
+                                                                                              v
+                                                                                              t)
+                                                                                           k
+                                                                                           v
+                                                                                           (Branch
+                                                                                              {k}
+                                                                                              {v}
+                                                                                              B
+                                                                                              h
+                                                                                              t
+                                                                                              k
+                                                                                              v
+                                                                                              ds))
+                                                                                      {all dead.
+                                                                                         dead})
+                                                                               (/\dead ->
+                                                                                  t)
+                                                                               {all dead.
+                                                                                  dead}
+                                                                     in
+                                                                     /\dead ->
+                                                                       Color_match
+                                                                         ds
+                                                                         {all dead.
+                                                                            RBTree
+                                                                              k
+                                                                              v}
+                                                                         (/\dead ->
+                                                                            t)
+                                                                         (/\dead ->
+                                                                            RBTree_match
+                                                                              {k}
+                                                                              {v}
+                                                                              ds
+                                                                              {all dead.
+                                                                                 RBTree
+                                                                                   k
+                                                                                   v}
+                                                                              (\(ds :
+                                                                                   Color)
+                                                                                (ds :
+                                                                                   integer)
+                                                                                (t :
+                                                                                   RBTree
+                                                                                     k
+                                                                                     v)
+                                                                                (k :
+                                                                                   k)
+                                                                                (v :
+                                                                                   v)
+                                                                                (t :
+                                                                                   RBTree
+                                                                                     k
+                                                                                     v) ->
+                                                                                 /\dead ->
+                                                                                   Color_match
+                                                                                     ds
+                                                                                     {all dead.
+                                                                                        RBTree
+                                                                                          k
+                                                                                          v}
+                                                                                     (/\dead ->
+                                                                                        fail
+                                                                                          ())
+                                                                                     (/\dead ->
+                                                                                        Branch
+                                                                                          {k}
+                                                                                          {v}
+                                                                                          R
+                                                                                          (addInteger
+                                                                                             1
+                                                                                             h)
+                                                                                          (Branch
+                                                                                             {k}
+                                                                                             {v}
+                                                                                             B
+                                                                                             h
+                                                                                             t
+                                                                                             k
+                                                                                             v
+                                                                                             t)
+                                                                                          k
+                                                                                          v
+                                                                                          (Branch
+                                                                                             {k}
+                                                                                             {v}
+                                                                                             B
+                                                                                             h
+                                                                                             t
+                                                                                             k
+                                                                                             v
+                                                                                             t))
+                                                                                     {all dead.
+                                                                                        dead})
+                                                                              (/\dead ->
+                                                                                 fail
+                                                                                   ())
+                                                                              {all dead.
+                                                                                 dead})
+                                                                         {all dead.
+                                                                            dead})
+                                                                  (/\dead -> t)
+                                                                  {all dead.
+                                                                     dead})
+                                                             (/\dead -> t)
+                                                             {all dead. dead})
+                                                      (/\dead -> Leaf {k} {v})
+                                                      {all dead. dead})
+                                                 (/\dead ->
+                                                    let
+                                                      !t : RBTree k v
+                                                        = Branch
+                                                            {k}
+                                                            {v}
+                                                            B
+                                                            h
+                                                            (go l)
+                                                            k'
+                                                            v'
+                                                            r
+                                                    in
+                                                    RBTree_match
+                                                      {k}
+                                                      {v}
+                                                      t
+                                                      {all dead. RBTree k v}
+                                                      (\(ds : Color)
+                                                        (h : integer)
+                                                        (toSplit : RBTree k v)
+                                                        (k : k)
+                                                        (v : v)
+                                                        (t : RBTree k v) ->
+                                                         /\dead ->
+                                                           Color_match
+                                                             ds
+                                                             {all dead.
+                                                                RBTree k v}
+                                                             (/\dead ->
+                                                                RBTree_match
+                                                                  {k}
+                                                                  {v}
+                                                                  toSplit
+                                                                  {all dead.
+                                                                     RBTree k v}
+                                                                  (\(ds : Color)
+                                                                    (ds :
+                                                                       integer)
+                                                                    (ds :
+                                                                       RBTree
+                                                                         k
+                                                                         v)
+                                                                    (k : k)
+                                                                    (v : v)
+                                                                    (t :
+                                                                       RBTree
+                                                                         k
+                                                                         v) ->
+                                                                     let
+                                                                       !fail :
+                                                                          unit ->
+                                                                          RBTree
+                                                                            k
+                                                                            v
+                                                                         = \(ds :
+                                                                               unit) ->
+                                                                             RBTree_match
+                                                                               {k}
+                                                                               {v}
+                                                                               t
+                                                                               {all dead.
+                                                                                  RBTree
+                                                                                    k
+                                                                                    v}
+                                                                               (\(ds :
+                                                                                    Color)
+                                                                                 (ds :
+                                                                                    integer)
+                                                                                 (t :
+                                                                                    RBTree
+                                                                                      k
+                                                                                      v)
+                                                                                 (k :
+                                                                                    k)
+                                                                                 (v :
+                                                                                    v)
+                                                                                 (t :
+                                                                                    RBTree
+                                                                                      k
+                                                                                      v) ->
+                                                                                  /\dead ->
+                                                                                    Color_match
+                                                                                      ds
+                                                                                      {all dead.
+                                                                                         RBTree
+                                                                                           k
+                                                                                           v}
+                                                                                      (/\dead ->
+                                                                                         t)
+                                                                                      (/\dead ->
+                                                                                         Branch
+                                                                                           {k}
+                                                                                           {v}
+                                                                                           R
+                                                                                           (addInteger
+                                                                                              1
+                                                                                              h)
+                                                                                           (Branch
+                                                                                              {k}
+                                                                                              {v}
+                                                                                              B
+                                                                                              h
+                                                                                              ds
+                                                                                              k
+                                                                                              v
+                                                                                              t)
+                                                                                           k
+                                                                                           v
+                                                                                           (Branch
+                                                                                              {k}
+                                                                                              {v}
+                                                                                              B
+                                                                                              h
+                                                                                              t
+                                                                                              k
+                                                                                              v
+                                                                                              t))
+                                                                                      {all dead.
+                                                                                         dead})
+                                                                               (/\dead ->
+                                                                                  t)
+                                                                               {all dead.
+                                                                                  dead}
+                                                                     in
+                                                                     /\dead ->
+                                                                       Color_match
+                                                                         ds
+                                                                         {all dead.
+                                                                            RBTree
+                                                                              k
+                                                                              v}
+                                                                         (/\dead ->
+                                                                            t)
+                                                                         (/\dead ->
+                                                                            RBTree_match
+                                                                              {k}
+                                                                              {v}
+                                                                              ds
+                                                                              {all dead.
+                                                                                 RBTree
+                                                                                   k
+                                                                                   v}
+                                                                              (\(ds :
+                                                                                   Color)
+                                                                                (ds :
+                                                                                   integer)
+                                                                                (t :
+                                                                                   RBTree
+                                                                                     k
+                                                                                     v)
+                                                                                (k :
+                                                                                   k)
+                                                                                (v :
+                                                                                   v)
+                                                                                (t :
+                                                                                   RBTree
+                                                                                     k
+                                                                                     v) ->
+                                                                                 /\dead ->
+                                                                                   Color_match
+                                                                                     ds
+                                                                                     {all dead.
+                                                                                        RBTree
+                                                                                          k
+                                                                                          v}
+                                                                                     (/\dead ->
+                                                                                        fail
+                                                                                          ())
+                                                                                     (/\dead ->
+                                                                                        Branch
+                                                                                          {k}
+                                                                                          {v}
+                                                                                          R
+                                                                                          (addInteger
+                                                                                             1
+                                                                                             h)
+                                                                                          (Branch
+                                                                                             {k}
+                                                                                             {v}
+                                                                                             B
+                                                                                             h
+                                                                                             t
+                                                                                             k
+                                                                                             v
+                                                                                             t)
+                                                                                          k
+                                                                                          v
+                                                                                          (Branch
+                                                                                             {k}
+                                                                                             {v}
+                                                                                             B
+                                                                                             h
+                                                                                             t
+                                                                                             k
+                                                                                             v
+                                                                                             t))
+                                                                                     {all dead.
+                                                                                        dead})
+                                                                              (/\dead ->
+                                                                                 fail
+                                                                                   ())
+                                                                              {all dead.
+                                                                                 dead})
+                                                                         {all dead.
+                                                                            dead})
+                                                                  (/\dead -> t)
+                                                                  {all dead.
+                                                                     dead})
+                                                             (/\dead -> t)
+                                                             {all dead. dead})
+                                                      (/\dead -> Leaf {k} {v})
+                                                      {all dead. dead})
+                                                 {all dead. dead})
+                                            (/\dead ->
+                                               Ordering_match
+                                                 (compare {k} `$dOrd` k k')
+                                                 {all dead. RBTree k v}
+                                                 (/\dead ->
+                                                    Branch {k} {v} R h l k' v r)
+                                                 (/\dead ->
+                                                    Branch
+                                                      {k}
+                                                      {v}
+                                                      R
+                                                      h
+                                                      l
+                                                      k'
+                                                      v'
+                                                      (go r))
+                                                 (/\dead ->
+                                                    Branch
+                                                      {k}
+                                                      {v}
+                                                      R
+                                                      h
+                                                      (go l)
+                                                      k'
+                                                      v'
+                                                      r)
+                                                 {all dead. dead})
+                                            {all dead. dead})
+                                     (/\dead ->
+                                        Branch
+                                          {k}
+                                          {v}
+                                          R
+                                          1
+                                          (Leaf {k} {v})
+                                          k
+                                          v
+                                          (Leaf {k} {v}))
+                                     {all dead. dead}
+                           in
+                           RBTree_match
+                             {k}
+                             {v}
+                             (go acc)
+                             {all dead. RBTree k v}
+                             (\(ds : Color)
+                               (h : integer)
+                               (l : RBTree k v)
+                               (k : k)
+                               (v : v)
+                               (r : RBTree k v) ->
+                                /\dead -> Branch {k} {v} B h l k v r)
+                             (/\dead -> Leaf {k} {v})
+                             {all dead. dead})
+                           t)
                       Unit
             in
-            \(d : data) -> go (unMapData d)
-    ~`$fUnsafeFromDataValue` :
-       data -> (\k v -> List (Tuple2 k v)) bytestring integer
-      = `$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
+            \(d : data) -> go (Leaf {k} {v}) (unMapData d)
+    ~`$fUnsafeFromDataValue` : data -> RBTree bytestring integer
+      = `$fUnsafeFromDataRBTree_$cunsafeFromBuiltinData`
           {bytestring}
           {integer}
+          (CConsOrd
+             {bytestring}
+             equalsByteString
+             `$fOrdBuiltinByteString_$ccompare`
+             lessThanByteString
+             lessThanEqualsByteString
+             greaterThanByteString
+             greaterThanEqualsByteString
+             `$fOrdBuiltinByteString_$cmax`
+             `$fOrdBuiltinByteString_$cmin`)
           unBData
           unIData
     ~`$fUnsafeFromDataValue` :
-       data ->
-       (\k v -> List (Tuple2 k v))
-         bytestring
-         ((\k v -> List (Tuple2 k v)) bytestring integer)
-      = `$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
+       data -> RBTree bytestring (RBTree bytestring integer)
+      = `$fUnsafeFromDataRBTree_$cunsafeFromBuiltinData`
           {bytestring}
-          {(\k v -> List (Tuple2 k v)) bytestring integer}
+          {RBTree bytestring integer}
+          `$fOrdCurrencySymbol`
           unBData
           `$fUnsafeFromDataValue`
     data (Maybe :: * -> *) a | Maybe_match where
@@ -312,38 +962,22 @@
       TxCertPoolRegister : bytestring -> bytestring -> TxCert
       TxCertPoolRetire : bytestring -> integer -> TxCert
       TxCertRegDRep :
-        Credential ->
-        (\k v -> List (Tuple2 k v))
-          bytestring
-          ((\k v -> List (Tuple2 k v)) bytestring integer) ->
-        TxCert
+        Credential -> RBTree bytestring (RBTree bytestring integer) -> TxCert
       TxCertRegDeleg :
         Credential ->
         Delegatee ->
-        (\k v -> List (Tuple2 k v))
-          bytestring
-          ((\k v -> List (Tuple2 k v)) bytestring integer) ->
+        RBTree bytestring (RBTree bytestring integer) ->
         TxCert
       TxCertRegStaking :
         Credential ->
-        Maybe
-          ((\k v -> List (Tuple2 k v))
-             bytestring
-             ((\k v -> List (Tuple2 k v)) bytestring integer)) ->
+        Maybe (RBTree bytestring (RBTree bytestring integer)) ->
         TxCert
       TxCertResignColdCommittee : Credential -> TxCert
       TxCertUnRegDRep :
-        Credential ->
-        (\k v -> List (Tuple2 k v))
-          bytestring
-          ((\k v -> List (Tuple2 k v)) bytestring integer) ->
-        TxCert
+        Credential -> RBTree bytestring (RBTree bytestring integer) -> TxCert
       TxCertUnRegStaking :
         Credential ->
-        Maybe
-          ((\k v -> List (Tuple2 k v))
-             bytestring
-             ((\k v -> List (Tuple2 k v)) bytestring integer)) ->
+        Maybe (RBTree bytestring (RBTree bytestring integer)) ->
         TxCert
       TxCertUpdateDRep : Credential -> TxCert
     !`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData` :
@@ -362,9 +996,7 @@
                  (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
                     (headList {data} args))
                  (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
-                    {(\k v -> List (Tuple2 k v))
-                       bytestring
-                       ((\k v -> List (Tuple2 k v)) bytestring integer)}
+                    {RBTree bytestring (RBTree bytestring integer)}
                     `$fUnsafeFromDataValue`
                     (headList {data} (tailList {data} args))))
             (/\dead ->
@@ -376,9 +1008,7 @@
                       (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
                          (headList {data} args))
                       (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
-                         {(\k v -> List (Tuple2 k v))
-                            bytestring
-                            ((\k v -> List (Tuple2 k v)) bytestring integer)}
+                         {RBTree bytestring (RBTree bytestring integer)}
                          `$fUnsafeFromDataValue`
                          (headList {data} (tailList {data} args))))
                  (/\dead ->
@@ -404,11 +1034,10 @@
                                    (headList {data} args))
                                 (`$fUnsafeFromDataDelegatee_$cunsafeFromBuiltinData`
                                    (headList {data} l))
-                                (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
+                                (`$fUnsafeFromDataRBTree_$cunsafeFromBuiltinData`
                                    {bytestring}
-                                   {(\k v -> List (Tuple2 k v))
-                                      bytestring
-                                      integer}
+                                   {RBTree bytestring integer}
+                                   `$fOrdCurrencySymbol`
                                    unBData
                                    `$fUnsafeFromDataValue`
                                    (headList {data} (tailList {data} l))))
@@ -420,11 +1049,10 @@
                                    TxCertRegDRep
                                      (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
                                         (headList {data} args))
-                                     (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
+                                     (`$fUnsafeFromDataRBTree_$cunsafeFromBuiltinData`
                                         {bytestring}
-                                        {(\k v -> List (Tuple2 k v))
-                                           bytestring
-                                           integer}
+                                        {RBTree bytestring integer}
+                                        `$fOrdCurrencySymbol`
                                         unBData
                                         `$fUnsafeFromDataValue`
                                         (headList
@@ -446,11 +1074,10 @@
                                              TxCertUnRegDRep
                                                (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
                                                   (headList {data} args))
-                                               (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
+                                               (`$fUnsafeFromDataRBTree_$cunsafeFromBuiltinData`
                                                   {bytestring}
-                                                  {(\k v -> List (Tuple2 k v))
-                                                     bytestring
-                                                     integer}
+                                                  {RBTree bytestring integer}
+                                                  `$fOrdCurrencySymbol`
                                                   unBData
                                                   `$fUnsafeFromDataValue`
                                                   (headList
@@ -649,9 +1276,7 @@
     data TxOut | TxOut_match where
       TxOut :
         Address ->
-        (\k v -> List (Tuple2 k v))
-          bytestring
-          ((\k v -> List (Tuple2 k v)) bytestring integer) ->
+        RBTree bytestring (RBTree bytestring integer) ->
         OutputDatum ->
         Maybe bytestring ->
         TxOut
@@ -726,9 +1351,10 @@
                            (headList {data} (tailList {data} args))))
                    (/\dead -> traceError {Address} reconstructCaseError)
                    {all dead. dead})
-                 (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
+                 (`$fUnsafeFromDataRBTree_$cunsafeFromBuiltinData`
                     {bytestring}
-                    {(\k v -> List (Tuple2 k v)) bytestring integer}
+                    {RBTree bytestring integer}
+                    `$fOrdCurrencySymbol`
                     unBData
                     `$fUnsafeFromDataValue`
                     (headList {data} l))
@@ -814,16 +1440,12 @@
       TreasuryWithdrawals :
         (\k v -> List (Tuple2 k v))
           Credential
-          ((\k v -> List (Tuple2 k v))
-             bytestring
-             ((\k v -> List (Tuple2 k v)) bytestring integer)) ->
+          (RBTree bytestring (RBTree bytestring integer)) ->
         Maybe bytestring ->
         GovernanceAction
     data ProposalProcedure | ProposalProcedure_match where
       ProposalProcedure :
-        (\k v -> List (Tuple2 k v))
-          bytestring
-          ((\k v -> List (Tuple2 k v)) bytestring integer) ->
+        RBTree bytestring (RBTree bytestring integer) ->
         Credential ->
         GovernanceAction ->
         ProposalProcedure
@@ -837,9 +1459,7 @@
         List TxInInfo ->
         List TxOut ->
         integer ->
-        (\k v -> List (Tuple2 k v))
-          bytestring
-          ((\k v -> List (Tuple2 k v)) bytestring integer) ->
+        RBTree bytestring (RBTree bytestring integer) ->
         List TxCert ->
         (\k v -> List (Tuple2 k v)) Credential integer ->
         Interval integer ->
@@ -945,9 +1565,10 @@
                          `$fUnsafeFromDataTxOut_$cunsafeFromBuiltinData`
                          (headList {data} l))
                       (unIData (headList {data} l))
-                      (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
+                      (`$fUnsafeFromDataRBTree_$cunsafeFromBuiltinData`
                          {bytestring}
-                         {(\k v -> List (Tuple2 k v)) bytestring integer}
+                         {RBTree bytestring integer}
+                         `$fOrdCurrencySymbol`
                          unBData
                          `$fUnsafeFromDataValue`
                          (headList {data} l))
@@ -1106,11 +1727,10 @@
                                    !l : list data = tailList {data} args
                                  in
                                  ProposalProcedure
-                                   (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
+                                   (`$fUnsafeFromDataRBTree_$cunsafeFromBuiltinData`
                                       {bytestring}
-                                      {(\k v -> List (Tuple2 k v))
-                                         bytestring
-                                         integer}
+                                      {RBTree bytestring integer}
+                                      `$fOrdCurrencySymbol`
                                       unBData
                                       `$fUnsafeFromDataValue`
                                       (headList {data} args))
@@ -1199,11 +1819,9 @@
                                                   TreasuryWithdrawals
                                                     (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
                                                        {Credential}
-                                                       {(\k v ->
-                                                           List (Tuple2 k v))
+                                                       {RBTree
                                                           bytestring
-                                                          ((\k v ->
-                                                              List (Tuple2 k v))
+                                                          (RBTree
                                                              bytestring
                                                              integer)}
                                                        `$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
