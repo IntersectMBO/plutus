@@ -171,7 +171,7 @@ renderModel =
      QuadraticInZ          f   -> [ renderQuadraticFunction f "z" ]
      LiteralInYOrLinearInZ f -> [ "if y==0"
                                   , printf "then %s" $ renderLinearFunction f "z"
-                                  , printf "else literally(y)"
+                                  , printf "else y bytes"
                                 ]
      SubtractedSizes       l c -> [ "if x>y"
                                   , printf "then %s" $ renderLinearFunction l "(x-y)"
@@ -225,7 +225,8 @@ usage defaultCostModelPath = do
   printf "Usage: %s [-c|--cpu|-m|--mem|--memory] [-d|--default] [<filename>]\n" prog
   printf "\n"
   printf "Print a JSON cost model file in readable form.\n"
-  printf "The variables x, y, z, etc. represent the *sizes* of the builtin's arguments.\n"
+  printf "The variables x, y, z, etc. represent the *sizes* of the builtin's arguments\n"
+  printf "unless explicitly specified otherwise (eg \"z bytes\").\n"
   printf "Input is read from stdin if no file is given and --default is not specified.\n"
   printf "\n"
   printf "Options (later options take precedence over earlier ones):\n"
