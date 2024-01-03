@@ -128,14 +128,13 @@ For each constant we return the corresponding size.
 byteStringSize : Utils.ByteString → CostingNat 
 byteStringSize x = let n = ∣ lengthBS x ∣ in ((n ∸ 1) / 8) + 1
 
+-- cost of a Data node
 dataNodeMem : CostingNat 
 dataNodeMem = 4
 
 sizeData : DATA → CostingNat 
 sizeDataList : List DATA → CostingNat 
 sizeDataDataList : List (DATA Utils.× DATA) → CostingNat
-sizeDataDataList [] = 0
-sizeDataDataList ((x , y) ∷ xs) = sizeData x + sizeData y + sizeDataDataList xs
 
 sizeData (ConstrDATA _ xs) = dataNodeMem + sizeDataList xs
 sizeData (MapDATA []) = dataNodeMem
@@ -144,9 +143,15 @@ sizeData (ListDATA xs) = dataNodeMem + sizeDataList xs
 sizeData (iDATA x) = dataNodeMem +  ℕtoWords x
 sizeData (bDATA x) = dataNodeMem + byteStringSize x 
 
+-- The following tow functions are stupid but
+-- they make the termination checker happy
+sizeDataDataList [] = 0
+sizeDataDataList ((x , y) ∷ xs) = sizeData x + sizeData y + sizeDataDataList xs
+
 sizeDataList [] = 0
 sizeDataList (x ∷ xs) = sizeData x + sizeDataList xs
 
+-- This the main sizing function for constants
 defaultConstantMeasure : TmCon → CostingNat
 defaultConstantMeasure (tmCon (atomic aInteger) x) = ℕtoWords x
 defaultConstantMeasure (tmCon (atomic aBytestring) x) = byteStringSize x
@@ -154,23 +159,6 @@ defaultConstantMeasure (tmCon (atomic aString) x) = length x -- each Char costs 
 defaultConstantMeasure (tmCon (atomic aUnit) x) = 1
 defaultConstantMeasure (tmCon (atomic aBool) x) = 1
 defaultConstantMeasure (tmCon (atomic aData) d) = sizeData d
-{-
-defaultConstantMeasure (tmCon (atomic aData) (ConstrDATA _ [])) = 0
-defaultConstantMeasure (tmCon (atomic aData) (ConstrDATA i (x ∷ xs))) = 
-     defaultConstantMeasure (tmCon (atomic aData) x) 
-   + defaultConstantMeasure (tmCon (atomic aData) (ConstrDATA i xs))
-defaultConstantMeasure (tmCon (atomic aData) (MapDATA [])) = 0
-defaultConstantMeasure (tmCon (atomic aData) (MapDATA ((x , y) ∷ xs))) =
-     defaultConstantMeasure (tmCon (atomic aData) x) 
-   + defaultConstantMeasure (tmCon (atomic aData) y) 
-   + defaultConstantMeasure (tmCon (atomic aData) (MapDATA xs)) 
-defaultConstantMeasure (tmCon (atomic aData) (ListDATA [])) = 0
-defaultConstantMeasure (tmCon (atomic aData) (ListDATA (x ∷ xs))) =
-     defaultConstantMeasure (tmCon (atomic aData) x) 
-   + defaultConstantMeasure (tmCon (atomic aData) (ListDATA xs))
-defaultConstantMeasure (tmCon (atomic aData) (iDATA x)) =  ℕtoWords x
-defaultConstantMeasure (tmCon (atomic aData) (bDATA x)) = byteStringSize x
--}
 defaultConstantMeasure (tmCon (atomic aBls12-381-g1-element) x) = g1ElementCost
 defaultConstantMeasure (tmCon (atomic aBls12-381-g2-element) x) = g2ElementCost
 defaultConstantMeasure (tmCon (atomic aBls12-381-mlresult) x) = mlResultElementCost
@@ -181,8 +169,6 @@ defaultConstantMeasure (tmCon (list t) (x ∷ xs)) =
 defaultConstantMeasure (tmCon (pair t u) (x , y)) = 
       1 + defaultConstantMeasure (tmCon t x) 
         + defaultConstantMeasure (tmCon u y)
-
-
 ```
 
 ## Cost of executing a builtin
@@ -203,26 +189,7 @@ The default machine parameters for `ExBudget`.
 TODO : For now we will define fixed costs. Later, we should 
 implement getting these values from the `cekMachineCosts.json` file.
 Probably, we will do this by reusing Haskell code.
- 
 
------------------------------------
-Idea for generating records from datatypes
-to facilitate the translation from/to JSON.
-
-Given an enumeration datatype 
- 
- data A = c1 a11 a22 | c2 a21 | ... | cn an1 an2 an3 
-
-and a parameter prefix "param", I want to automatically construct from A, and 
- a type of payloads indexed by B : A → Set.
- 1. A record recordA = { paramc1 : B c1; paramc2 : B c2 ; ... paramcn : B cn}  
- 2. A function getParam : recordA → (a : A) → B a such that 
-      getParam r c1 = r.paramc1 
-      getParam r c2 = r.paramc2
-      ... 
-      getParam r cn = r.paramcn 
-
-------------------------------------
 ```
 defaultCekMachineCost : StepKind → ExBudget
 defaultCekMachineCost _ = mkExBudget 23000 100
