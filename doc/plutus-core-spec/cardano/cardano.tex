@@ -5,17 +5,22 @@
 \paragraph{Built-in batches.}
 \label{sec:builtin-batches}
 
-The built-in types and functions are defined in batches corresponding to how they were added to ledger languages.
-These batches are given in the following sections.
+The built-in types and functions are defined in batches corresponding to how
+they were added to ledger languages.  These batches are given in the following
+sections.
 
 \paragraph{Built-in semantics variants.}
 \label{sec:builtin-semantics-variants}
 
-In rare cases we can make a mistake or need to change the actual behaviour of a built-in function.
-To handle this we define a series of built-in semantics variants, which indicate which behaviour should be used.
-A fix will typically be deployed by defining a new semantics variant, and then using that variant for future ledger languages (but not existing ones, since this is usually a backwards-incompatible change).
+In rare cases we can make a mistake or need to change the actual behaviour of a
+built-in function.  To handle this we define a series of built-in semantics
+variants, which indicate which behaviour should be used.  A fix will typically
+be deployed by defining a new semantics variant, and then using that variant for
+future ledger languages (but not existing ones, since this is usually a
+backwards-incompatible change).
 
-Changes are listed alongside the original definition of the built-in function in its original batch, and are indexed in the following table.
+Changes are listed alongside the original definition of the built-in function in
+its original batch, and are indexed in the following table.
 
 \begin{table}[H]
   \centering
@@ -31,7 +36,48 @@ Changes are listed alongside the original definition of the built-in function in
     \label{table:bs-variants}
 \end{table}
 
+
+\paragraph{Concrete syntax for built-in types.}
+Recall that in the abstract notation for built-in types introduced in
+Section~\ref{sec:built-in-types}, a built-in type is either an \textit{atomic
+  type} such as \texttt{integer} or \texttt{string} or an application $\op(T_1,
+\ldots, T_n)$ of a \textit{type operator} to a sequence of built-in types.  The
+concrete syntax of built-in types used in textual Plutus Core programs is
+slightly different in that we use a curried form of application for type
+operators: a type is given by
+
+\newcommand{\bitn}{\mathbf{T}} % built-in type name
+\newcommand{\bitc}{\mathbf{C}} % built-in constant syntax
+
+\begin{minipage}{\linewidth}
+    \centering
+    \[\begin{array}{rclr}
+    \bitn & ::= & \textit{atomic-type} & \textrm{Atomic type}\\
+                & & \texttt{(}\op \ \bitn_1 \ldots \bitn_{\valency{\op}}) & \textrm{Type application}\\
+    \end{array}\]
+    \label{fig:built-in-type-concrete-syntax}
+\end{minipage}
+\noindent Note that we again require that all type operators are fully applied.
+We refer to the syntactic objects $\bitn$ above as \textit{concrete built-in
+ types}. There is an obvious bijection between these and the abstract built-in
+types used elsewhere in this document, and given an abstract built-in type $T$
+we will denote the corresponding concrete built-in type by $\bar{T}$.
+
+\paragraph{Concrete syntax for built-in constants.}
+We provide concrete syntax for constants of most (but not all) built-in types.
+For a built-in type $T$ which has a concrete syntax we specify a set $\bitc_T$
+of strings (using either regular expressions or a BNF-style grammar), and a
+constant of type $T$ is then represented in the concrete syntax by an expression
+of the form \texttt{(con $\bar{T}$ $c_T$)} with $c_T \in \bitc_T$.  Each string
+$c_T$ will have an interpretation as a value of type $T$ (ie, an element of
+$\denote{T}$) and since this will generally be the obvious interpretation we
+will not always spell out the details.%%
+\nomenclature[H]{$\bitc_T$}{Set of strings used for the concrete syntax of constants of built-in type $T$}
+
+
 \input{cardano/builtins1.tex}
 \input{cardano/builtins2.tex}
 \input{cardano/builtins3.tex}
 \input{cardano/builtins4.tex}
+
+
