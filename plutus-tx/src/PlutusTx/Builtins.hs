@@ -383,8 +383,8 @@ encodeUtf8 = BI.encodeUtf8
 {-# INLINABLE matchList #-}
 matchList :: forall a r . BI.BuiltinList a -> r -> (a -> BI.BuiltinList a -> r) -> r
 matchList l nilCase consCase = case BI.builtinListToSum l of
-    (# (# #) | #)        -> nilCase
-    (# | (# x , xs #) #) -> consCase x (BI.BuiltinList xs)
+    BI.PlutusSopLeft BI.PlutusSopUnit         -> nilCase
+    BI.PlutusSopRight (BI.PlutusSopPair x xs) -> consCase x (BI.BuiltinList xs)
 
 {-# INLINE uncons #-}
 -- | Uncons a builtin list, failing if the list is empty, useful in patterns.

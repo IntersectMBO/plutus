@@ -466,10 +466,24 @@ chooseData (BuiltinData d) constrCase mapCase listCase iCase bCase = case d of
     PLC.I{}      -> iCase
     PLC.B{}      -> bCase
 
-{-# NOINLINE builtinListToSum #-}
-builtinListToSum :: forall a . BuiltinList a -> (# (# #) | (# a, [a] #) #)
-builtinListToSum (BuiltinList [])     = (# (# #) | #)
-builtinListToSum (BuiltinList (x:xs)) = (# | (# x, xs #) #)
+-- {-# NOINLINE builtinListToSum #-}
+-- builtinListToSum :: forall a . BuiltinList a -> (# (# #) | (# a, [a] #) #)
+-- builtinListToSum (BuiltinList [])     = (# (# #) | #)
+-- builtinListToSum (BuiltinList (x:xs)) = (# | (# x, xs #) #)
+
+data PlutusSopSum a b
+    = PlutusSopLeft a
+    | PlutusSopRight b
+
+data PlutusSopUnit
+    = PlutusSopUnit
+
+data PlutusSopPair a b
+    = PlutusSopPair a b
+
+builtinListToSum :: forall a . BuiltinList a -> PlutusSopSum PlutusSopUnit (PlutusSopPair a [a])
+builtinListToSum (BuiltinList [])     = PlutusSopLeft PlutusSopUnit
+builtinListToSum (BuiltinList (x:xs)) = PlutusSopRight (PlutusSopPair x xs)
 
 {-# NOINLINE mkConstr #-}
 mkConstr :: BuiltinInteger -> BuiltinList BuiltinData -> BuiltinData
