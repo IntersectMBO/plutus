@@ -92,9 +92,9 @@ saltedFunction =
 
 
 tests :: TestTree
-tests = testGroup "plutus-ledger-api" [
+tests = testGroup "plutus-ledger-api"[
     testGroup "basic evaluation tests" [
-        alwaysTrue
+          alwaysTrue
         , alwaysFalse
         , saltedFunction
         , unavailableBuiltins

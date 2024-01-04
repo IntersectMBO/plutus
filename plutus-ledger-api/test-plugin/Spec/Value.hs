@@ -14,13 +14,12 @@ import PlutusLedgerApi.V1.Value
 
 import PlutusTx.AssocMap qualified as AssocMap
 import PlutusTx.Base
-import PlutusTx.Builtins
 import PlutusTx.Code (CompiledCode, getPlc, unsafeApplyCode)
 import PlutusTx.Lift
 import PlutusTx.List qualified as ListTx
 import PlutusTx.Maybe
 import PlutusTx.Numeric
-import PlutusTx.Prelude
+import PlutusTx.Prelude hiding (integerToByteString)
 import PlutusTx.Show (toDigits)
 import PlutusTx.TH (compile)
 import PlutusTx.Traversable qualified as Tx
