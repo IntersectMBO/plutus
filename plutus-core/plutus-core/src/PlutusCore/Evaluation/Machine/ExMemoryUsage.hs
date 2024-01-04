@@ -168,11 +168,10 @@ instance ExMemoryUsage () where
     memoryUsage () = singletonRose 1
     {-# INLINE memoryUsage #-}
 
--- FIXME: can we make this Integral or something?
 {- | The `integerToByteString` builtin takes an argument `w` specifying the width
    (in bytes) of the output bytestring (zero-padded to the desired size).  The
    memory consumed by the function is given by `w`, *not* the size of `w`.  This
-   type wraps an Int `w` in a newtype whose `ExMemoryUsage` is equal to the
+   type wraps an Integer `w` in a newtype whose `ExMemoryUsage` is equal to the
    number of eight-byte words required to contain `w` bytes, allowing the
    costing function to work properly. -}
 newtype LiteralByteSize = LiteralByteSize { unLiteralByteSize :: Integer }
@@ -208,6 +207,17 @@ instance ExMemoryUsage BS.ByteString where
     memoryUsage bs = singletonRose . unsafeToSatInt $ ((n - 1) `quot` 8) + 1 where
         n = BS.length bs
     {-# INLINE memoryUsage #-}
+{- The two preceding comments contradict each other.  The first one says that we
+   should use `div`, but the second one says to use `quot` instead (and that is
+   what is used).  The only difference here is for negative numbers: (-1) `div`
+   8 == -1 and (-1) `quot` 8 == 0.  Thus the current memoryUsage for the empty
+   bytestring is 1: replacing `quot` with `div` would change the memoryUsage of
+   the empty bytestring from 1 to 0 and leave the memoryUsages of all other
+   bytestrings unchanged.  We can probably change this safely since all that it
+   would mean is that programs which use the empty bytestring as a builtin
+   argument would become a little cheaper.  The difference would be very small
+   though, so it's maybe not worth fixing. -}
+
 
 instance ExMemoryUsage T.Text where
     -- This is slow and inaccurate, but matches the version that was originally deployed.

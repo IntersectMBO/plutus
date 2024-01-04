@@ -403,24 +403,6 @@ instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Int where
     {-# INLINE readKnown #-}
 #endif
 
--- FIX ME: these can probably be better. Fix the comments too.
-instance KnownTypeAst tyname DefaultUni LiteralByteSize where
-    toTypeAst _ = toTypeAst $ Proxy @Integer
-
-instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term LiteralByteSize where
-    -- Convert Int-to-Integer via Int64.  We could go directly `toInteger`, but this way
-    -- is more explicit and it'll turn into the same thing anyway.
-    -- Although this conversion is safe regardless of the CPU arch (unlike the opposite conversion),
-    -- we constrain it to 64-bit for the sake of uniformity.
-    makeKnown = makeKnown . unLiteralByteSize
-    {-# INLINE makeKnown #-}
-
-instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term LiteralByteSize where
-    -- Convert Integer-to-Int via Int64. This instance is safe only for 64-bit architecture
-    -- where Int===Int64 (i.e. no truncation happening).
-    readKnown term = LiteralByteSize <$> readKnown term
-    {-# INLINE readKnown #-}
-
 instance KnownTypeAst tyname DefaultUni Word8 where
     toTypeAst _ = toTypeAst $ Proxy @Integer
 
@@ -435,6 +417,20 @@ instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Word8 wher
            case toIntegralSized i of
                Just w8 -> pure w8
                _       -> throwing_ _EvaluationFailure
+    {-# INLINE readKnown #-}
+
+-- | This allows us to transparently use values of type LiteralByteSize as
+-- built-in Integers but with a different size measure.
+instance KnownTypeAst tyname DefaultUni LiteralByteSize where
+    toTypeAst _ = toTypeAst $ Proxy @Integer
+
+-- See Note [Integral types as Integer].
+instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term LiteralByteSize where
+    makeKnown = makeKnown . unLiteralByteSize
+    {-# INLINE makeKnown #-}
+
+instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term LiteralByteSize where
+    readKnown term = LiteralByteSize <$> readKnown term
     {-# INLINE readKnown #-}
 
 
