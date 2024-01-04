@@ -686,23 +686,23 @@ bls12_381_finalVerify (BuiltinBLS12_381_MlResult a) (BuiltinBLS12_381_MlResult b
 CONVERSION
 -}
 
-{-# NOINLINE builtinIntegerToByteString #-}
-builtinIntegerToByteString ::
-  BuiltinBool ->
-  BuiltinInteger ->
-  BuiltinInteger ->
-  BuiltinByteString
-builtinIntegerToByteString (BuiltinBool endiannessArg) paddingArg input =
-  case Convert.integerToByteStringWrapper endiannessArg paddingArg input of
+{-# NOINLINE integerToByteString #-}
+integerToByteString
+    :: BuiltinBool
+    -> BuiltinInteger
+    -> BuiltinInteger
+    -> BuiltinByteString
+integerToByteString (BuiltinBool statedEndianness) paddingArg input =
+  case Convert.integerToByteStringWrapper statedEndianness paddingArg input of
     Emitter f -> case runWriter f of
       (result, logs) -> traceAll logs $ case result of
         EvaluationFailure    -> mustBeReplaced "Integer to ByteString conversion errored."
         EvaluationSuccess bs -> BuiltinByteString bs
 
-{-# NOINLINE builtinByteStringToInteger #-}
-builtinByteStringToInteger ::
-  BuiltinBool ->
-  BuiltinByteString ->
-  BuiltinInteger
-builtinByteStringToInteger (BuiltinBool statedEndiannessArg) (BuiltinByteString input) =
-  Convert.byteStringToIntegerWrapper statedEndiannessArg input
+{-# NOINLINE byteStringToInteger #-}
+byteStringToInteger
+    :: BuiltinBool
+    -> BuiltinByteString
+    -> BuiltinInteger
+byteStringToInteger (BuiltinBool statedEndianness) (BuiltinByteString input) =
+  Convert.byteStringToIntegerWrapper statedEndianness input

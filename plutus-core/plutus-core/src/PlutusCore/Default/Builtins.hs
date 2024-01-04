@@ -1814,12 +1814,14 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           integerToByteStringDenotation b (LiteralByteSize w) n = integerToByteStringWrapper b w n
           -- ^ The second argument is wrapped in a LiteralByteSize to allow us to interpret it as a
           -- size during costing.  It appears as an integer in UPLC: see Note [Integral types as Integer].
+          {-# INLINE integerToByteStringDenotation #-}
         in makeBuiltinMeaning
           integerToByteStringDenotation
           (runCostingFunThreeArguments . paramIntegerToByteString)
     toBuiltinMeaning _semvar ByteStringToInteger =
       let byteStringToIntegerDenotation :: Bool -> BS.ByteString -> Integer
           byteStringToIntegerDenotation = byteStringToIntegerWrapper
+          {-# INLINE byteStringToIntegerDenotation #-}
         in makeBuiltinMeaning
             byteStringToIntegerDenotation
             (runCostingFunTwoArguments . paramByteStringToInteger)

@@ -270,6 +270,9 @@ builtinNames = [
     , 'Builtins.bls12_381_millerLoop
     , 'Builtins.bls12_381_mulMlResult
     , 'Builtins.bls12_381_finalVerify
+
+    , 'Builtins.integerToByteString
+    , 'Builtins.byteStringToInteger
     ]
 
 defineBuiltinTerm :: CompilingDefault uni fun m ann => Ann -> TH.Name -> PIRTerm uni fun -> m ()
@@ -425,6 +428,9 @@ defineBuiltinTerms = do
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_mulMlResult             $ mkBuiltin PLC.Bls12_381_mulMlResult
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_finalVerify             $ mkBuiltin PLC.Bls12_381_finalVerify
 
+    -- Bitwise operations
+    defineBuiltinTerm annMayInline 'Builtins.integerToByteString               $ mkBuiltin PLC.IntegerToByteString
+    defineBuiltinTerm annMayInline 'Builtins.byteStringToInteger               $ mkBuiltin PLC.ByteStringToInteger
 
 defineBuiltinTypes
     :: CompilingDefault uni fun m ann
