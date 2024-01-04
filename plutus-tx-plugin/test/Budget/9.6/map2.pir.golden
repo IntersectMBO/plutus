@@ -1,0 +1,343 @@
+let
+  data Unit | Unit_match where
+    Unit : Unit
+  data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
+    Tuple2 : a -> b -> Tuple2 a b
+in
+letrec
+  data (List :: * -> *) a | List_match where
+    Nil : List a
+    Cons : a -> List a -> List a
+in
+letrec
+  !go : list (pair data data) -> List (Tuple2 integer bytestring)
+    = \(xs : list (pair data data)) ->
+        chooseList
+          {pair data data}
+          {Unit -> List (Tuple2 integer bytestring)}
+          xs
+          (\(ds : Unit) -> Nil {Tuple2 integer bytestring})
+          (\(ds : Unit) ->
+             let
+               !hd : pair data data = headList {pair data data} xs
+               !tl : list (pair data data) = tailList {pair data data} xs
+             in
+             Cons
+               {Tuple2 integer bytestring}
+               (Tuple2
+                  {integer}
+                  {bytestring}
+                  (unIData (fstPair {data} {data} hd))
+                  (unBData (sndPair {data} {data} hd)))
+               (go tl))
+          Unit
+in
+letrec
+  !go : list (pair data data) -> list (pair data data) -> list (pair data data)
+    = \(acc : list (pair data data)) (xs : list (pair data data)) ->
+        chooseList
+          {pair data data}
+          {Unit -> list (pair data data)}
+          xs
+          (\(ds : Unit) -> acc)
+          (\(ds : Unit) ->
+             go
+               (mkCons {pair data data} (headList {pair data data} xs) acc)
+               (tailList {pair data data} xs))
+          Unit
+in
+let
+  data (Maybe :: * -> *) a | Maybe_match where
+    Just : a -> Maybe a
+    Nothing : Maybe a
+  !matchList : all a r. list a -> r -> (a -> list a -> r) -> r
+    = /\a r ->
+        \(l : list a) (nilCase : r) (consCase : a -> list a -> r) ->
+          chooseList
+            {a}
+            {Unit -> r}
+            l
+            (\(ds : Unit) -> nilCase)
+            (\(ds : Unit) -> consCase (headList {a} l) (tailList {a} l))
+            Unit
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
+  !unitval : unit = ()
+  ~nil : list (pair data data) = mkNilPairData unitval
+in
+letrec
+  !`$fToBuiltinListBuiltinList_$ctoBuiltin` :
+     List (Tuple2 data data) -> list (pair data data)
+    = \(ds : List (Tuple2 data data)) ->
+        List_match
+          {Tuple2 data data}
+          ds
+          {all dead. list (pair data data)}
+          (/\dead -> mkNilPairData unitval)
+          (\(d : Tuple2 data data) (ds : List (Tuple2 data data)) ->
+             /\dead ->
+               mkCons
+                 {pair data data}
+                 (Tuple2_match
+                    {data}
+                    {data}
+                    d
+                    {pair data data}
+                    (\(d : data) (d : data) -> mkPairData d d))
+                 (`$fToBuiltinListBuiltinList_$ctoBuiltin` ds))
+          {all dead. dead}
+in
+let
+  !unsafeFromList :
+     all k a.
+       (\a -> a -> data) k ->
+       (\a -> a -> data) a ->
+       List (Tuple2 k a) ->
+       (\k a -> data) k a
+    = /\k a ->
+        \(`$dToData` : (\a -> a -> data) k)
+         (`$dToData` : (\a -> a -> data) a) ->
+          letrec
+            !go : List (Tuple2 k a) -> List (Tuple2 data data)
+              = \(ds : List (Tuple2 k a)) ->
+                  List_match
+                    {Tuple2 k a}
+                    ds
+                    {all dead. List (Tuple2 data data)}
+                    (/\dead -> Nil {Tuple2 data data})
+                    (\(x : Tuple2 k a) (xs : List (Tuple2 k a)) ->
+                       /\dead ->
+                         Cons
+                           {Tuple2 data data}
+                           (Tuple2_match
+                              {k}
+                              {a}
+                              x
+                              {Tuple2 data data}
+                              (\(k : k) (a : a) ->
+                                 Tuple2
+                                   {data}
+                                   {data}
+                                   (`$dToData` k)
+                                   (`$dToData` a)))
+                           (go xs))
+                    {all dead. dead}
+          in
+          \(eta : List (Tuple2 k a)) ->
+            mapData (`$fToBuiltinListBuiltinList_$ctoBuiltin` (go eta))
+in
+\(n : integer) ->
+  let
+    !nt : data
+      = unsafeFromList
+          {integer}
+          {bytestring}
+          (\(i : integer) -> iData i)
+          bData
+          ((let
+               a = Tuple2 integer bytestring
+             in
+             \(g : all b. (a -> b -> b) -> b -> b) ->
+               g {List a} (\(ds : a) (ds : List a) -> Cons {a} ds ds) (Nil {a}))
+             (/\a ->
+                \(c : Tuple2 integer bytestring -> a -> a) (n : a) ->
+                  c
+                    (Tuple2 {integer} {bytestring} (addInteger 3 n) #5448524545)
+                    (c
+                       (Tuple2
+                          {integer}
+                          {bytestring}
+                          (addInteger 4 n)
+                          #464f5552)
+                       (c
+                          (Tuple2
+                             {integer}
+                             {bytestring}
+                             (addInteger 6 n)
+                             #534958)
+                          (c
+                             (Tuple2
+                                {integer}
+                                {bytestring}
+                                (addInteger 7 n)
+                                #534556454e)
+                             n)))))
+    ~rs : list (pair data data) = unMapData nt
+  in
+  letrec
+    !go : list (pair data data) -> list (pair data data)
+      = \(xs : list (pair data data)) ->
+          matchList
+            {pair data data}
+            {list (pair data data)}
+            xs
+            nil
+            (\(hd : pair data data) (tl : list (pair data data)) ->
+               let
+                 !v' : data = sndPair {data} {data} hd
+                 !k' : data = fstPair {data} {data} hd
+               in
+               letrec
+                 !go : list (pair data data) -> Maybe data
+                   = \(xs : list (pair data data)) ->
+                       chooseList
+                         {pair data data}
+                         {Unit -> Maybe data}
+                         xs
+                         (\(ds : Unit) -> Nothing {data})
+                         (\(ds : Unit) ->
+                            let
+                              !hd : pair data data
+                                = headList {pair data data} xs
+                              !tl : list (pair data data)
+                                = tailList {pair data data} xs
+                            in
+                            ifThenElse
+                              {all dead. Maybe data}
+                              (equalsData k' (fstPair {data} {data} hd))
+                              (/\dead -> Just {data} (sndPair {data} {data} hd))
+                              (/\dead -> go tl)
+                              {all dead. dead})
+                         Unit
+               in
+               Maybe_match
+                 {data}
+                 (let
+                   !eta : list (pair data data) = rs
+                 in
+                 go eta)
+                 {all dead. list (pair data data)}
+                 (\(r : data) ->
+                    /\dead ->
+                      mkCons
+                        {pair data data}
+                        (mkPairData
+                           k'
+                           (bData (appendByteString (unBData v') (unBData r))))
+                        (go tl))
+                 (/\dead -> mkCons {pair data data} (mkPairData k' v') (go tl))
+                 {all dead. dead})
+  in
+  let
+    !nt : data
+      = unsafeFromList
+          {integer}
+          {bytestring}
+          (\(i : integer) -> iData i)
+          bData
+          ((let
+               a = Tuple2 integer bytestring
+             in
+             \(g : all b. (a -> b -> b) -> b -> b) ->
+               g {List a} (\(ds : a) (ds : List a) -> Cons {a} ds ds) (Nil {a}))
+             (/\a ->
+                \(c : Tuple2 integer bytestring -> a -> a) (n : a) ->
+                  c
+                    (Tuple2 {integer} {bytestring} (addInteger 1 n) #6f6e65)
+                    (c
+                       (Tuple2 {integer} {bytestring} (addInteger 2 n) #74776f)
+                       (c
+                          (Tuple2
+                             {integer}
+                             {bytestring}
+                             (addInteger 3 n)
+                             #7468726565)
+                          (c
+                             (Tuple2
+                                {integer}
+                                {bytestring}
+                                (addInteger 4 n)
+                                #666f7572)
+                             (c
+                                (Tuple2
+                                   {integer}
+                                   {bytestring}
+                                   (addInteger 5 n)
+                                   #66697665)
+                                n))))))
+    ~ls : list (pair data data) = unMapData nt
+  in
+  letrec
+    !go : list (pair data data) -> list (pair data data)
+      = \(xs : list (pair data data)) ->
+          matchList
+            {pair data data}
+            {list (pair data data)}
+            xs
+            nil
+            (\(hd : pair data data) (tl : list (pair data data)) ->
+               let
+                 !tl' : list (pair data data) = go tl
+               in
+               Bool_match
+                 (let
+                   !k : data = fstPair {data} {data} hd
+                 in
+                 letrec
+                   !go : list (pair data data) -> Bool
+                     = \(xs : list (pair data data)) ->
+                         chooseList
+                           {pair data data}
+                           {Unit -> Bool}
+                           xs
+                           (\(ds : Unit) -> False)
+                           (\(ds : Unit) ->
+                              let
+                                !hd : pair data data
+                                  = headList {pair data data} xs
+                                !tl : list (pair data data)
+                                  = tailList {pair data data} xs
+                              in
+                              ifThenElse
+                                {all dead. Bool}
+                                (equalsData k (fstPair {data} {data} hd))
+                                (/\dead -> True)
+                                (/\dead -> go tl)
+                                {all dead. dead})
+                           Unit
+                 in
+                 let
+                   !eta : list (pair data data) = ls
+                 in
+                 go eta)
+                 {all dead. list (pair data data)}
+                 (/\dead -> tl')
+                 (/\dead -> mkCons {pair data data} hd tl')
+                 {all dead. dead})
+  in
+  let
+    !nt : data
+      = let
+        !rs' : list (pair data data) = go rs
+        !ls' : list (pair data data) = go ls
+      in
+      mapData (go rs' ls')
+  in
+  (let
+      a = Tuple2 integer bytestring
+    in
+    /\b ->
+      \(f : a -> b) ->
+        letrec
+          !go : List a -> List b
+            = \(ds : List a) ->
+                List_match
+                  {a}
+                  ds
+                  {all dead. List b}
+                  (/\dead -> Nil {b})
+                  (\(x : a) (xs : List a) -> /\dead -> Cons {b} (f x) (go xs))
+                  {all dead. dead}
+        in
+        \(eta : List a) -> go eta)
+    {Tuple2 integer string}
+    (\(ds : Tuple2 integer bytestring) ->
+       Tuple2_match
+         {integer}
+         {bytestring}
+         ds
+         {Tuple2 integer string}
+         (\(k : integer) (v : bytestring) ->
+            Tuple2 {integer} {string} k (decodeUtf8 v)))
+    (go (unMapData nt))

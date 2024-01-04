@@ -68,10 +68,9 @@ import PlutusTx.Plugin ()
 import PlutusTx.Prelude as PlutusTxPrelude (AdditiveGroup ((-)), AdditiveMonoid (zero),
                                             AdditiveSemigroup ((+)), Bool (..), BuiltinByteString,
                                             BuiltinData, BuiltinString, Enum (fromEnum), Eq (..),
-                                            Functor (fmap), Integer, Maybe (..), Ord ((>)),
-                                            Semigroup ((<>)), all, any, check, elem, filter, find,
-                                            foldMap, null, otherwise, snd, toBuiltin, ($), (&&),
-                                            (.), (/=), (||))
+                                            Functor (fmap), Maybe (..), Ord ((>)), Semigroup ((<>)),
+                                            all, any, check, filter, find, foldMap, null, otherwise,
+                                            snd, toBuiltin, ($), (&&), (.), (/=), (||))
 
 import Cardano.Crypto.Hash qualified as Hash
 import Data.ByteString qualified as BS
@@ -82,6 +81,7 @@ import PlutusLedgerApi.V1.Value qualified as Val
 import PlutusLedgerApi.V2 qualified as Ledger (Address (Address))
 import PlutusTx qualified
 import PlutusTx.AssocMap qualified as AssocMap
+import PlutusTx.DataMap qualified as Map
 import PlutusTx.Trace (traceError, traceIfFalse)
 import Prelude qualified as Haskell
 
@@ -265,29 +265,16 @@ mkMarloweValidator
     -- Check a state for the correct value, positive accounts, and no duplicates.
     checkState :: BuiltinString -> Val.Value -> State -> Bool
     checkState tag expected State{..} =
-      let
-        positiveBalance :: (a, Integer) -> Bool
-        positiveBalance (_, balance) = balance > 0
-        noDuplicates :: Eq k => AssocMap.Map k v -> Bool
-        noDuplicates am =
-          let
-            test [] = True           -- An empty list has no duplicates.
-            test (x : xs)            -- Look for a duplicate of the head in the tail.
-              | elem x xs = False    -- A duplicate is present.
-              | otherwise = test xs  -- Continue searching for a duplicate.
-          in
-            test $ AssocMap.keys am
-      in
            -- [Marlowe-Cardano Specification: "Constraint 5. Input value from script".]
            -- and/or
            -- [Marlowe-Cardano Specification: "Constraint 18. Final balance."]
            traceIfFalse ("v"  <> tag) (totalBalance accounts == expected)
            -- [Marlowe-Cardano Specification: "Constraint 13. Positive balances".]
-        && traceIfFalse ("b"  <> tag) (all positiveBalance $ AssocMap.toList accounts)
+        && traceIfFalse ("b"  <> tag) (Map.all (> 0) accounts)
            -- [Marlowe-Cardano Specification: "Constraint 19. No duplicates".]
-        && traceIfFalse ("ea" <> tag) (noDuplicates accounts)
-        && traceIfFalse ("ec" <> tag) (noDuplicates choices)
-        && traceIfFalse ("eb" <> tag) (noDuplicates boundValues)
+        && traceIfFalse ("ea" <> tag) (Map.noDuplicateKeys accounts)
+        && traceIfFalse ("ec" <> tag) (Map.noDuplicateKeys choices)
+        && traceIfFalse ("eb" <> tag) (Map.noDuplicateKeys boundValues)
 
     -- Look up the Datum hash for specific data.
     findDatumHash' :: PlutusTx.ToData o => o -> Maybe DatumHash

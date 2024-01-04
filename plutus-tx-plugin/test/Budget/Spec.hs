@@ -17,7 +17,7 @@ module Budget.Spec where
 import Test.Tasty.Extras
 
 import PlutusTx.AsData qualified as AsData
-import PlutusTx.Builtins qualified as PlutusTx
+import PlutusTx.Builtins qualified as PlutusTx hiding (null)
 import PlutusTx.Code
 import PlutusTx.IsData qualified as IsData
 import PlutusTx.Lift (liftCodeDef, makeLift)

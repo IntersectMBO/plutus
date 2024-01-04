@@ -113,8 +113,8 @@ import PlutusTx.Prelude (AdditiveGroup ((-)), AdditiveSemigroup ((+)), Bool (..)
                          not, otherwise, reverse, snd, ($), (&&), (++), (||))
 
 import PlutusLedgerApi.V2 qualified as Val
-import PlutusTx.AssocMap qualified as Map
 import PlutusTx.Builtins qualified as Builtins
+import PlutusTx.DataMap qualified as Map
 import Prelude qualified as Haskell
 
 
@@ -322,19 +322,20 @@ evalObservation env state obs = let
 
 -- | Pick the first account with money in it.
 refundOne :: Accounts -> Maybe ((Party, Token, Integer), Accounts)
-refundOne accounts = case Map.toList accounts of
-    [] -> Nothing
-    -- SCP-5126: The return value of this function differs from
-    -- Isabelle semantics in that it returns the least-recently
-    -- added account-token combination rather than the first
-    -- lexicographically ordered one. Also, the sequence
-    -- `Map.fromList . tail . Map.toList` preserves the
-    -- invariants of order and non-duplication.
-    ((accId, token), balance) : rest ->
-        if balance > 0
-        then Just ((accId, token, balance), Map.fromList rest)
-        else refundOne (Map.fromList rest)
-
+refundOne accounts =
+    if Map.null accounts
+        then Nothing
+        else
+            -- SCP-5126: The return value of this function differs from
+            -- Isabelle semantics in that it returns the least-recently
+            -- added account-token combination rather than the first
+            -- lexicographically ordered one. Also, the sequence
+            -- `Map.fromList . tail . Map.toList` preserves the
+            -- invariants of order and non-duplication.
+            let (((accId, token), balance), rest) = Map.unsafeUncons accounts
+             in if balance > 0
+                    then Just ((accId, token, balance), rest)
+                    else refundOne rest
 
 -- | Obtains the amount of money available an account.
 moneyInAccount :: AccountId -> Token -> Accounts -> Integer
