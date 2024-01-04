@@ -12,6 +12,7 @@ author:             James Chapman
 maintainer:         james.chapman@iohk.io
 category:           Development
 extra-source-files:
+  generate-model-assignment/builtinCostModel.json
   Plutus.agda-lib
   README.md
   src/**/*.lagda
@@ -540,8 +541,7 @@ executable generate-model-assignment
   import:         lang
   main-is:        Main.hs
   hs-source-dirs: generate-model-assignment
-
-  --other-modules:  Paths_plutus_core
+  other-modules:  Paths_plutus_metatheory
   build-depends:
     , aeson
     , base        >=4.9 && <5

@@ -5,7 +5,7 @@
    builtins and print it in readable form. -}
 module Main where
 
---import Paths_plutus_core
+import Paths_plutus_metatheory
 
 import Data.Aeson
 import Data.Aeson.Key as Key (toString)
@@ -185,7 +185,7 @@ usage defaultCostModelPath = do
 
 parseArgs :: [String] -> FilePath -> IO (Maybe String)
 parseArgs args defaultCostModelPath =
-  parse args Nothing
+  parse args (Just defaultCostModelPath)
     where parse [] result = pure result
           parse (arg:rest) input =
               case arg of
@@ -202,8 +202,9 @@ parseArgs args defaultCostModelPath =
 main :: IO ()
 main = do
   args <- getArgs
---  defaultCostModelPath <- getDataFileName "cost-model/data/builtinCostModel.json"
-  let defaultCostModelPath = "cost-model/data/builtinCostModel.json"
+  defaultCostModelPath <- getDataFileName "generate-model-assignment/builtinCostModel.json"
+  putStrLn defaultCostModelPath
+  --let defaultCostModelPath = "cost-model/data/builtinCostModel.json"
   input <- parseArgs args defaultCostModelPath
   bytes <- maybe BSL.getContents BSL.readFile input
   case eitherDecode bytes :: Either String (KeyMap.KeyMap CpuAndMemoryModel) of
