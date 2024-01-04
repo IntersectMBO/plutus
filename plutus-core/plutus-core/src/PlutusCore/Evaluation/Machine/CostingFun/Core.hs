@@ -486,7 +486,7 @@ runThreeArgumentModel
 runThreeArgumentModel
     (ModelThreeArgumentsQuadraticInZ f) =
         lazy $ \_ _ costs3 -> CostLast $ evaluateOneVariableQuadraticFunction f $ sumCostStream costs3
-{- Either a literal number of bytes or a literal function.  This is for
+{- Either a literal number of bytes or a linear function.  This is for
    `integerToByteString`, where if the second argument is zero, the output
    bytestring has the minimum length required to contain the converted integer,
    but if the second argument is nonzero it specifies the exact length of the
