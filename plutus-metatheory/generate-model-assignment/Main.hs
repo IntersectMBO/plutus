@@ -2,7 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 {- | A program to parse a JSON representation of costing functions for Plutus Core
-   builtins and print it in readable form. -}
+   builtins and generate an Agda module with a function that assigns builtins to models -}
 module Main where
 
 import Paths_plutus_metatheory
@@ -157,8 +157,13 @@ printModel (name, CpuAndMemoryModel cpu mem) = do
     printListIndented 4 [ "record { costingCPU = " ++ renderModel cpu
                         , "       ; costingMem = " ++ renderModel mem ++ " }"]
 
-agdaHeader :: String
-agdaHeader = "-- Assignment of models to Builtins\n\n"
+agdaHeader :: Maybe FilePath -> String
+agdaHeader input =
+   let name = case input of
+                  Nothing -> "stdin"
+                  Just f  -> show f
+   in     "-- Assignment of models to Builtins\n"
+         ++ "-- module auto-generated from "++ name ++"\n\n"
          ++ "module Cost.BuiltinModelAssignment where\n\n"
          ++ "open import Data.Fin using (suc;zero)\n"
          ++ "open import Builtin using (Builtin;arity)\n"
@@ -203,11 +208,9 @@ main :: IO ()
 main = do
   args <- getArgs
   defaultCostModelPath <- getDataFileName "generate-model-assignment/builtinCostModel.json"
-  putStrLn defaultCostModelPath
-  --let defaultCostModelPath = "cost-model/data/builtinCostModel.json"
   input <- parseArgs args defaultCostModelPath
   bytes <- maybe BSL.getContents BSL.readFile input
   case eitherDecode bytes :: Either String (KeyMap.KeyMap CpuAndMemoryModel) of
     Left err -> putStrLn err
-    Right m  -> putStrLn agdaHeader >> mapM_ printModel (KeyMap.toList m)
+    Right m  -> putStrLn (agdaHeader input) >> mapM_ printModel (KeyMap.toList m)
 
