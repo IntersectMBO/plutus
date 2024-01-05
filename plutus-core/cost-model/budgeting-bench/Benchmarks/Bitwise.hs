@@ -94,10 +94,10 @@ benchByteStringToIntegerTrueSmall :: Benchmark
 benchByteStringToIntegerTrueSmall = createTwoTermBuiltinBench' ByteStringToInteger "TrueSmall" [] [False, True] (smallerByteStrings150 seedA)
 
 benchByteStringToIntegerFalseBig :: Benchmark
-benchByteStringToIntegerFalseBig = createTwoTermBuiltinBench' ByteStringToInteger "FalseBig" [] [False, True] (smallerByteStrings150 seedA)
+benchByteStringToIntegerFalseBig = createTwoTermBuiltinBench' ByteStringToInteger "FalseBig" [] [False, True] (largerByteStrings150 seedA)
 
 benchByteStringToIntegerTrueBig :: Benchmark
-benchByteStringToIntegerTrueBig = createTwoTermBuiltinBench' ByteStringToInteger "TrueBig" [] [False, True] (smallerByteStrings150 seedA)
+benchByteStringToIntegerTrueBig = createTwoTermBuiltinBench' ByteStringToInteger "TrueBig" [] [False, True] (largerByteStrings150 seedA)
 
 ------------------------- IntegerToByteString -------------------------
 
