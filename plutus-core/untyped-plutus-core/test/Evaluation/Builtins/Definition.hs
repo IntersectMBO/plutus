@@ -18,6 +18,7 @@ import PlutusCore.Builtin
 import PlutusCore.Compiler.Erase (eraseTerm)
 import PlutusCore.Data
 import PlutusCore.Default
+import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults
 import PlutusCore.Evaluation.Machine.MachineParameters
 import PlutusCore.Generators.Hedgehog.Interesting
@@ -415,6 +416,17 @@ test_TrackCostsRetaining =
                         , "The result was: " ++ show res
                         ]
                 assertBool err $ expected > actual
+
+test_SerialiseDataImpossible :: TestTree
+test_SerialiseDataImpossible =
+    testCase "Serialising an impossible 'Data' object finishes" $ do
+        let dataLoop :: Term TyName Name DefaultUni DefaultFun ()
+            dataLoop = Apply () (Builtin () SerialiseData) $ mkConstant () loop where
+                loop = List [loop]
+            budgetMode = restricting . ExRestrictingBudget $ ExBudget 10000000000 10000000
+            evalRestricting params = fst . unsafeRunCekNoEmit params budgetMode
+        typecheckAnd def evalRestricting defaultBuiltinCostModel dataLoop @?=
+            Right EvaluationFailure
 
 -- | Test all integer related builtins
 test_Integer :: TestTree
@@ -874,6 +886,7 @@ test_definition =
         , test_IdBuiltinData
         , test_TrackCostsRestricting
         , test_TrackCostsRetaining
+        , test_SerialiseDataImpossible
         , test_Integer
         , test_String
         , test_List
