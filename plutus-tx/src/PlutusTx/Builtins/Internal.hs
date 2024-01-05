@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE KindSignatures     #-}
+{-# LANGUAGE MagicHash          #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TypeApplications   #-}
 {-# LANGUAGE UnboxedTuples      #-}
@@ -466,24 +467,20 @@ chooseData (BuiltinData d) constrCase mapCase listCase iCase bCase = case d of
     PLC.I{}      -> iCase
     PLC.B{}      -> bCase
 
--- {-# NOINLINE builtinListToSum #-}
--- builtinListToSum :: forall a . BuiltinList a -> (# (# #) | (# a, [a] #) #)
--- builtinListToSum (BuiltinList [])     = (# (# #) | #)
--- builtinListToSum (BuiltinList (x:xs)) = (# | (# x, xs #) #)
+data PlcProd0# = PlcProd0#
+data PlcProd1# a = PlcProd1# a
+data PlcProd2# a b = PlcProd2# a b
+data PlcProd3# a b c = PlcProd3# a b c
 
-data PlutusSopSum a b
-    = PlutusSopLeft a
-    | PlutusSopRight b
+data PlcSum0# = PlcSum0_#
+data PlcSum1# a = PlcSum1_0# a
+data PlcSum2# a b = PlcSum2_0# a | PlcSum2_1# b
+data PlcSum3# a b c = PlcSum3_0# a | PlcSum3_1# b | PlcSum3_2# b
 
-data PlutusSopUnit
-    = PlutusSopUnit
-
-data PlutusSopPair a b
-    = PlutusSopPair a b
-
-builtinListToSum :: forall a . BuiltinList a -> PlutusSopSum PlutusSopUnit (PlutusSopPair a [a])
-builtinListToSum (BuiltinList [])     = PlutusSopLeft PlutusSopUnit
-builtinListToSum (BuiltinList (x:xs)) = PlutusSopRight (PlutusSopPair x xs)
+{-# NOINLINE builtinListToPlcSum #-}
+builtinListToPlcSum :: forall a . BuiltinList a -> PlcSum2# PlcProd0# (PlcProd2# a [a])
+builtinListToPlcSum (BuiltinList [])     = PlcSum2_0# PlcProd0#
+builtinListToPlcSum (BuiltinList (x:xs)) = PlcSum2_1# (PlcProd2# x xs)
 
 {-# NOINLINE mkConstr #-}
 mkConstr :: BuiltinInteger -> BuiltinList BuiltinData -> BuiltinData

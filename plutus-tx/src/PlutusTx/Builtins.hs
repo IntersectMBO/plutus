@@ -1,5 +1,6 @@
 -- editorconfig-checker-disable-file
 
+{-# LANGUAGE MagicHash     #-}
 {-# LANGUAGE UnboxedTuples #-}
 
 -- | Primitive names and functions for working with Plutus Core builtins.
@@ -382,9 +383,9 @@ encodeUtf8 = BI.encodeUtf8
 
 {-# INLINABLE matchList #-}
 matchList :: forall a r . BI.BuiltinList a -> r -> (a -> BI.BuiltinList a -> r) -> r
-matchList l nilCase consCase = case BI.builtinListToSum l of
-    BI.PlutusSopLeft BI.PlutusSopUnit         -> nilCase
-    BI.PlutusSopRight (BI.PlutusSopPair x xs) -> consCase x (BI.BuiltinList xs)
+matchList l nilCase consCase = case BI.builtinListToPlcSum l of
+    BI.PlcSum2_0# BI.PlcProd0#        -> nilCase
+    BI.PlcSum2_1# (BI.PlcProd2# x xs) -> consCase x (BI.BuiltinList xs)
 
 {-# INLINE uncons #-}
 -- | Uncons a builtin list, failing if the list is empty, useful in patterns.
