@@ -859,6 +859,7 @@ executable cost-model-budgeting-bench
   import:         lang
   main-is:        Main.hs
   other-modules:
+    Benchmarks.Bitwise
     Benchmarks.Bool
     Benchmarks.ByteStrings
     Benchmarks.Crypto
