@@ -39,7 +39,7 @@ integerToByteStringWrapper endiannessArg lengthArg input
   -- costed, this won't be a problem.
   --
   -- TODO: Cost this builtin.
-  | lengthArg > 10240 = do
+  | lengthArg > 102400000 = do
       emit "builtinIntegerToByteString: padding argument too large"
       emit "If you are seeing this, it is a bug: please report this!"
       pure EvaluationFailure

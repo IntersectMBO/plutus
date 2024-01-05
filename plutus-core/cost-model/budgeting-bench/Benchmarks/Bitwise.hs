@@ -1,5 +1,9 @@
+-- editorconfig-checker-disable-file
+
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}
+
+{-# LANGUAGE TypeOperators #-}
 
 module Benchmarks.Bitwise (makeBenchmarks) where
 
@@ -13,6 +17,10 @@ import Data.ByteString qualified as BS
 import System.Random (StdGen, randomR)
 
 import Hedgehog qualified as H
+
+
+import Control.DeepSeq (NFData, force)
+import PlutusCore.Evaluation.Machine.ExMemoryUsage
 
 ---------------- ByteString builtins ----------------
 
@@ -29,6 +37,9 @@ smallerByteStrings150 seed = makeSizedByteStrings seed $ fmap (10*) [1..150]
 largerByteStrings21 :: H.Seed -> [BS.ByteString]
 largerByteStrings21 seed = makeSizedByteStrings seed $ fmap (250*) [0..20]
 
+largerByteStrings150 :: H.Seed -> [BS.ByteString]
+largerByteStrings150 seed = makeSizedByteStrings seed $ fmap (100*) [1..150]
+
 smallerIntegers150 :: StdGen -> [Integer]
 smallerIntegers150 gen = fst $ makeSizedIntegers gen $ fmap (10*) [1..150]
 
@@ -36,17 +47,110 @@ benchTwoByteStrings :: DefaultFun -> Benchmark
 benchTwoByteStrings name =
     createTwoTermBuiltinBench name [] (largerByteStrings21 seedA) (largerByteStrings21 seedB)
 
-benchByteStringToIntegerTrue :: Benchmark
-benchByteStringToIntegerTrue =
-    bgroup name $ fmap mkBM (smallerByteStrings150 seedA)
-        where mkBM b = benchDefault (showMemoryUsage b) $ mkApp2 ByteStringToInteger [] True b
-              name = "ByteStringToIntegerTrue"
 
-benchByteStringToIntegerFalse :: Benchmark
-benchByteStringToIntegerFalse =
-    bgroup name $ fmap mkBM (smallerByteStrings150 seedA)
-        where mkBM b = benchDefault (showMemoryUsage b) $ mkApp2 ByteStringToInteger [] False b
-              name = "ByteStringToIntegerFalse"
+createTwoTermBuiltinBench'
+    :: ( fun ~ DefaultFun, uni ~ DefaultUni
+       , uni `HasTermLevel` a, DefaultUni `HasTermLevel` b
+       , ExMemoryUsage a, ExMemoryUsage b
+       , NFData a, NFData b
+       )
+    => fun
+    -> String
+    -> [Type tyname uni ()]
+    -> [a]
+    -> [b]
+    -> Benchmark
+createTwoTermBuiltinBench' name suffix tys xs ys =
+    bgroup (show name ++ suffix) $ [bgroup (showMemoryUsage x) [mkBM x y | y <- ys] | x <- xs]
+        where mkBM x y = benchDefault (showMemoryUsage y) $ mkApp2 name tys x y
+
+createThreeTermBuiltinBenchElementwise'
+    :: ( uni ~ DefaultUni
+       , uni `HasTermLevel` a, uni `HasTermLevel` c
+       , ExMemoryUsage a, ExMemoryUsage c
+       , NFData a, NFData c
+       )
+    => String
+    -> [(a,Int,c)]
+    -> Benchmark
+createThreeTermBuiltinBenchElementwise' suffix inputs =
+    let name = IntegerToByteString
+        mkOneBM (x, width, z) =
+            let width' = 8 * fromIntegral width  -- Widths are in words: we need to convert those to widths in bytes
+            in bgroup (showMemoryUsage x) [
+                    bgroup (showMemoryUsage (LiteralByteSize width')) [mkBM x width' z]
+                   ]
+        mkBM x y z = benchDefault (showMemoryUsage z) $ mkApp3 name [] x y z
+    in bgroup (show name  ++ suffix) $ fmap mkOneBM inputs
+
+
+------------------------- ByteStringToInteger -------------------------
+
+
+benchByteStringToIntegerFalseSmall :: Benchmark
+benchByteStringToIntegerFalseSmall = createTwoTermBuiltinBench' ByteStringToInteger "FalseSmall" [] [False, True] (smallerByteStrings150 seedA)
+
+benchByteStringToIntegerTrueSmall :: Benchmark
+benchByteStringToIntegerTrueSmall = createTwoTermBuiltinBench' ByteStringToInteger "TrueSmall" [] [False, True] (smallerByteStrings150 seedA)
+
+benchByteStringToIntegerFalseBig :: Benchmark
+benchByteStringToIntegerFalseBig = createTwoTermBuiltinBench' ByteStringToInteger "FalseBig" [] [False, True] (smallerByteStrings150 seedA)
+
+benchByteStringToIntegerTrueBig :: Benchmark
+benchByteStringToIntegerTrueBig = createTwoTermBuiltinBench' ByteStringToInteger "TrueBig" [] [False, True] (smallerByteStrings150 seedA)
+
+------------------------- IntegerToByteString -------------------------
+
+-- Width = 1-150 ExMemory (8 times that in bytes)
+-- input = random integer 'width'-bytes integer
+benchIntegerToByteStringBoundedFalseSmall :: StdGen -> Benchmark
+benchIntegerToByteStringBoundedFalseSmall gen =
+    let widths = [1..150]  -- width in words
+        (inputs, _) = makeSizedIntegers gen widths
+    in createThreeTermBuiltinBenchElementwise' "BoundedFalseSmall" $ zip3 (repeat False) widths inputs
+
+benchIntegerToByteStringBoundedTrueSmall :: StdGen -> Benchmark
+benchIntegerToByteStringBoundedTrueSmall gen =
+    let widths = [1..150]
+        (inputs, _) = makeSizedIntegers gen widths
+    in createThreeTermBuiltinBenchElementwise' "BoundedTrueSmall" $ zip3 (repeat True) widths inputs
+
+benchIntegerToByteStringBoundedFalseBig :: StdGen -> Benchmark
+benchIntegerToByteStringBoundedFalseBig gen =
+    let widths = fmap (10*) [1..150]
+        (inputs, _) = makeSizedIntegers gen widths
+    in createThreeTermBuiltinBenchElementwise' "BoundedFalseBig" $ zip3 (repeat False) widths inputs
+
+benchIntegerToByteStringBoundedTrueBig :: StdGen -> Benchmark
+benchIntegerToByteStringBoundedTrueBig gen =
+    let widths = fmap (10*) [1..150]
+        (inputs, _) = makeSizedIntegers gen widths
+    in createThreeTermBuiltinBenchElementwise' "BoundedTrueBig" $ zip3 (repeat True) widths inputs
+
+
+benchIntegerToByteStringUnboundedFalseSmall :: StdGen -> Benchmark
+benchIntegerToByteStringUnboundedFalseSmall gen =
+    let widths = [1..150]  -- width in words
+        (inputs, _) = makeSizedIntegers gen widths
+    in createThreeTermBuiltinBenchElementwise' "UnboundedFalseSmall" $ zip3 (repeat False) (repeat 0) inputs
+
+benchIntegerToByteStringUnboundedTrueSmall :: StdGen -> Benchmark
+benchIntegerToByteStringUnboundedTrueSmall gen =
+    let widths = [1..150]
+        (inputs, _) = makeSizedIntegers gen widths
+    in createThreeTermBuiltinBenchElementwise' "UnboundedTrueSmall" $ zip3 (repeat True) (repeat 0) inputs
+
+benchIntegerToByteStringUnboundedFalseBig :: StdGen -> Benchmark
+benchIntegerToByteStringUnboundedFalseBig gen =
+    let widths = fmap (10*) [1..150]
+        (inputs, _) = makeSizedIntegers gen widths
+    in createThreeTermBuiltinBenchElementwise' "UnboundedFalseBig" $ zip3 (repeat False) (repeat 0) inputs
+
+benchIntegerToByteStringUnboundedTrueBig :: StdGen -> Benchmark
+benchIntegerToByteStringUnboundedTrueBig gen =
+    let widths = fmap (10*) [1..150]
+        (inputs, _) = makeSizedIntegers gen widths
+    in createThreeTermBuiltinBenchElementwise' "UnboundedTrueBig" $ zip3 (repeat True) (repeat 0) inputs
 
 
 benchIntegerToByteStringTrue0 :: StdGen -> Benchmark
@@ -84,49 +188,16 @@ benchIntegerToByteStringWFalse =
 
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks gen =
-    [ benchByteStringToIntegerFalse,
-      benchByteStringToIntegerTrue,
-      benchIntegerToByteStringFalse0 gen,
-      benchIntegerToByteStringTrue0 gen,
-      benchIntegerToByteStringWFalse,
-      benchIntegerToByteStringWTrue
+    [ benchByteStringToIntegerFalseSmall
+    , benchByteStringToIntegerTrueSmall
+    , benchByteStringToIntegerFalseBig
+    , benchByteStringToIntegerTrueBig
+    , benchIntegerToByteStringBoundedFalseSmall   gen
+    , benchIntegerToByteStringBoundedTrueSmall    gen
+    , benchIntegerToByteStringBoundedFalseBig     gen
+    , benchIntegerToByteStringBoundedTrueBig      gen
+    , benchIntegerToByteStringUnboundedFalseSmall gen
+    , benchIntegerToByteStringUnboundedTrueSmall  gen
+    , benchIntegerToByteStringUnboundedFalseBig   gen
+    , benchIntegerToByteStringUnboundedTrueBig    gen
     ]
-{-    <> [benchDifferentByteStringsElementwise EqualsByteString]
-      <> (benchSameTwoByteStrings <$>
-                        [ EqualsByteString, LessThanEqualsByteString, LessThanByteString ])
--}
-
-{- Results for bytestrings of size integerPower 2 <$> [1..20::Integer].  The
-   biggest inputs here are of size 1048576, or about 4 megabytes.  That's surely
-   too big.  Maybe try [1000, 2000, ..., 100000] oor [100, 200, ..., 10000] for
-   one-argument functions and [500, 1000, ..., 10000] for two-argument
-   functions.
-
-
-   AppendByteString : good fit for I(x+y), but underpredicts for reasonably-sized
-   inputs
-
-   EqualsByteString LessThanEqualsByteString, LessThanByteString: these all
-   agree to within 2%, but the plot bends up towards the right.  You get a
-   pretty good linear fit for sizes less than 250000
-
-   ConsByteString: this does appear to be linear in the size of the string, and
-   the size of the thing you're consing is irrelevant.  Again, the inputs are a
-   bit too big.
-
-   LengthOfByteString: this does appear to be pretty much constant, although
-   it's hard to tell over the exponential range of scales we have here.  The
-   time taken varies between 888ns and 1143ns, but randomly.  We could do with
-   more data points here, and more uniformly spaced.
-
-   IndexByteString: again this looks constant.  More uniform spacing would be
-   good.
-
-   SliceByteString: again, pretty constant.
-
-   Overall it looks like we'd get good models with smaller and evenly spaced
-   strings. We should do this but check what happens with larger inputs for
-   AppendByteString.  We should also give more inputs to the single-argument
-   functions.
-
--}
