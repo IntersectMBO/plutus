@@ -4,7 +4,6 @@ let
   data Bool | Bool_match where
     True : Bool
     False : Bool
-  !chooseList : all a b. list a -> b -> b -> b = chooseList
   !equalsInteger : integer -> integer -> bool = equalsInteger
   data (Maybe :: * -> *) a | Maybe_match where
     Just : a -> Maybe a
@@ -71,7 +70,10 @@ let
                       (\(ds : Unit) -> iCase (unsafeDataAsI d))
                       (\(ds : Unit) -> bCase (unsafeDataAsB d))
                       Unit
-  !tail : all a. list a -> list a = tailList
+  !matchList : all a r. list a -> r -> (a -> list a -> r) -> r
+    = /\a r ->
+        \(xs : list a) (nilCase : r) (consCase : a -> list a -> r) ->
+          case r (listToConstr {a} xs) [nilCase, consCase]
   ~`$fFromDataTuple2_$cfromBuiltinData` :
      all a b.
        (\a -> data -> Maybe a) a ->
@@ -103,20 +105,22 @@ let
                    (/\dead ->
                       Maybe_match
                         {Tuple2 data (list data)}
-                        (chooseList
+                        (matchList
                            {data}
-                           {Unit -> Maybe (Tuple2 data (list data))}
+                           {Maybe (Tuple2 data (list data))}
                            args
-                           (\(ds : Unit) -> Nothing {Tuple2 data (list data)})
-                           (\(ds : Unit) ->
+                           (Nothing {Tuple2 data (list data)})
+                           (\(h : data) ->
                               let
-                                !h : data = head {data} args
-                                !t : list data = tail {data} args
+                                !h : data = h
                               in
-                              Just
-                                {Tuple2 data (list data)}
-                                (Tuple2 {data} {list data} h t))
-                           Unit)
+                              \(t : list data) ->
+                                let
+                                  !t : list data = t
+                                in
+                                Just
+                                  {Tuple2 data (list data)}
+                                  (Tuple2 {data} {list data} h t)))
                         {all dead. Maybe (Tuple2 a b)}
                         (\(ds : Tuple2 data (list data)) ->
                            /\dead ->

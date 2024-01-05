@@ -71,7 +71,7 @@ module PlutusTx.Builtins (
                          -- * Pairs
                          , pairToPair
                          -- * Lists
-                         , matchList
+                         , BI.matchList
                          , BI.head
                          , BI.tail
                          , uncons
@@ -381,16 +381,10 @@ trace = BI.trace
 encodeUtf8 :: BuiltinString -> BuiltinByteString
 encodeUtf8 = BI.encodeUtf8
 
-{-# INLINABLE matchList #-}
-matchList :: forall a r . BI.BuiltinList a -> r -> (a -> BI.BuiltinList a -> r) -> r
-matchList l nilCase consCase = case BI.builtinListToPlcSum l of
-    BI.PlcSum2_0# BI.PlcProd0#        -> nilCase
-    BI.PlcSum2_1# (BI.PlcProd2# x xs) -> consCase x (BI.BuiltinList xs)
-
 {-# INLINE uncons #-}
 -- | Uncons a builtin list, failing if the list is empty, useful in patterns.
 uncons :: BI.BuiltinList a -> Maybe (a, BI.BuiltinList a)
-uncons l = matchList l Nothing (\h t -> Just (h, t))
+uncons l = BI.matchList l Nothing (\h t -> Just (h, t))
 
 {-# INLINE unsafeUncons #-}
 -- | Uncons a builtin list, failing if the list is empty, useful in patterns.

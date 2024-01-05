@@ -1,1 +1,26 @@
-(constr 0)
+An error has occurred:  error:
+Could not unlift a value:
+Type mismatch: expected: data; actual: list data
+Caused by: (force chooseData
+              [I 2]
+              (\ds_0 ->
+                 (\tup_1 ->
+                    (\ds_2 ds_3 -> force (delay (constr 1 [])))
+                      (force (force fstPair) tup_1)
+                      (force (force sndPair) tup_1))
+                   (unConstrData [I 2]))
+              (\ds_4 ->
+                 (\ds_5 -> force (delay (constr 1 []))) (unMapData [I 2]))
+              (\ds_6 ->
+                 (\ds_7 -> force (delay (constr 1 []))) (unListData [I 2]))
+              (\ds_8 ->
+                 (\i_9 ->
+                    (\i_10 ->
+                       force (delay (\arg_0_11 -> constr 0 [arg_0_11])) i_10)
+                      i_9)
+                   (unIData [I 2]))
+              (\ds_12 ->
+                 (\ds_13 -> force (delay (constr 1 []))) (unBData [I 2])))
+Final budget: ({cpu: 9708189
+| mem: 40230})
+Logs: 

@@ -2,7 +2,6 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE KindSignatures     #-}
-{-# LANGUAGE MagicHash          #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TypeApplications   #-}
 {-# LANGUAGE UnboxedTuples      #-}
@@ -467,20 +466,10 @@ chooseData (BuiltinData d) constrCase mapCase listCase iCase bCase = case d of
     PLC.I{}      -> iCase
     PLC.B{}      -> bCase
 
-data PlcProd0# = PlcProd0#
-data PlcProd1# a = PlcProd1# a
-data PlcProd2# a b = PlcProd2# a b
-data PlcProd3# a b c = PlcProd3# a b c
-
-data PlcSum0# = PlcSum0_#
-data PlcSum1# a = PlcSum1_0# a
-data PlcSum2# a b = PlcSum2_0# a | PlcSum2_1# b
-data PlcSum3# a b c = PlcSum3_0# a | PlcSum3_1# b | PlcSum3_2# b
-
-{-# NOINLINE builtinListToPlcSum #-}
-builtinListToPlcSum :: forall a . BuiltinList a -> PlcSum2# PlcProd0# (PlcProd2# a [a])
-builtinListToPlcSum (BuiltinList [])     = PlcSum2_0# PlcProd0#
-builtinListToPlcSum (BuiltinList (x:xs)) = PlcSum2_1# (PlcProd2# x xs)
+{-# NOINLINE matchList #-}
+matchList :: forall a r . BuiltinList a -> r -> (a -> BuiltinList a -> r) -> r
+matchList (BuiltinList [])     nilCase _  = nilCase
+matchList (BuiltinList (x:xs)) _ consCase = consCase x (BuiltinList xs)
 
 {-# NOINLINE mkConstr #-}
 mkConstr :: BuiltinInteger -> BuiltinList BuiltinData -> BuiltinData

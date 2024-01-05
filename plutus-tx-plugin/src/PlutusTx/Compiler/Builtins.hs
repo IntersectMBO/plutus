@@ -225,7 +225,7 @@ builtinNames = [
     , 'Builtins.head
     , 'Builtins.tail
     , 'Builtins.chooseList
-    , 'Builtins.builtinListToPlcSum
+    , 'Builtins.matchList
     , 'Builtins.mkNilData
     , 'Builtins.mkNilPairData
     , 'Builtins.mkCons
@@ -354,7 +354,7 @@ defineBuiltinTerms = do
 
     -- Tracing
     -- When `remove-trace` is specified, we define `trace` as `\_ a -> a` instead of the builtin version.
-    (traceTerm, ann) <-
+    (traceTerm, traceAnn) <-
         if coRemoveTrace compileOpts
             then liftQuote $ do
                 ta <- freshTyName "a"
@@ -370,7 +370,7 @@ defineBuiltinTerms = do
                     , annMayInline
                     )
             else pure (mkBuiltin PLC.Trace, annMayInline)
-    defineBuiltinTerm ann 'Builtins.trace traceTerm
+    defineBuiltinTerm traceAnn 'Builtins.trace traceTerm
 
     -- Pairs
     defineBuiltinTerm annMayInline 'Builtins.fst        $ mkBuiltin PLC.FstPair
@@ -382,10 +382,35 @@ defineBuiltinTerms = do
     defineBuiltinTerm annMayInline 'Builtins.head          $ mkBuiltin PLC.HeadList
     defineBuiltinTerm annMayInline 'Builtins.tail          $ mkBuiltin PLC.TailList
     defineBuiltinTerm annMayInline 'Builtins.chooseList    $ mkBuiltin PLC.ChooseList
-    defineBuiltinTerm annMayInline 'Builtins.builtinListToPlcSum $ mkBuiltin PLC.ListToConstr
     defineBuiltinTerm annMayInline 'Builtins.mkNilData     $ mkBuiltin PLC.MkNilData
     defineBuiltinTerm annMayInline 'Builtins.mkNilPairData $ mkBuiltin PLC.MkNilPairData
     defineBuiltinTerm annMayInline 'Builtins.mkCons        $ mkBuiltin PLC.MkCons
+
+    -- /\(a r :: *) -> \(xs :: [a]) (nilCase :: r) (consCase :: a -> [a] -> r) ->
+    --   case {r} (listToConstr {a} xs) [nilCase, consCase]
+    matchListTerm <- do
+        a <- freshTyName "a"
+        r <- freshTyName "r"
+        xs <- freshName "xs"
+        nilCase <- freshName "nilCase"
+        consCase <- freshName "consCase"
+        let ann = annMayInline
+            listOfA = PIR.TyApp ann (PLC.mkTyBuiltin @_ @[] ann) $ PIR.TyVar ann a
+        pure
+            . PIR.tyAbs ann a (PLC.Type ann)
+            . PIR.tyAbs ann r (PLC.Type ann)
+            . PIR.lamAbs ann xs listOfA
+            . PIR.lamAbs ann nilCase (PIR.TyVar ann r)
+            . PIR.lamAbs ann consCase
+                (PIR.mkIterTyFun ann [PIR.TyVar ann a, listOfA] $ PIR.TyVar ann r)
+            $ PIR.Case
+                ann
+                (PIR.TyVar ann r)
+                (PIR.apply ann
+                    (PIR.tyInst ann (PIR.builtin ann PLC.ListToConstr) $ PIR.TyVar ann a)
+                    (PIR.Var ann xs))
+                [PIR.Var ann nilCase, PIR.Var ann consCase]
+    defineBuiltinTerm annMayInline 'Builtins.matchList matchListTerm
 
     -- Data
     defineBuiltinTerm annMayInline 'Builtins.chooseData         $ mkBuiltin PLC.ChooseData
