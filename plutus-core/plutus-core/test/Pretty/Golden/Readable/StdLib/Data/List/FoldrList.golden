@@ -25,16 +25,10 @@
       {r}
       (\(rec : list a -> r) (xs : list a) ->
          (/\a ->
-            \(x : list a) ->
+            \(xs : list a) ->
               /\r ->
-                \(z : r) (f : a -> list a -> r) ->
-                  chooseList
-                    {a}
-                    {unit -> r}
-                    x
-                    (\(u : unit) -> z)
-                    (\(u : unit) -> f (headList {a} x) (tailList {a} x))
-                    ())
+                \(nilCase : r) (consCase : a -> list a -> r) ->
+                  case r (listToConstr {a} xs) [nilCase, consCase])
            {a}
            xs
            {r}
