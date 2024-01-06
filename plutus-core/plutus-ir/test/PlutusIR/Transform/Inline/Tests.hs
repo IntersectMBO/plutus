@@ -1,19 +1,12 @@
-{-# LANGUAGE LambdaCase       #-}
-{-# LANGUAGE TypeApplications #-}
 module PlutusIR.Transform.Inline.Tests where
 
 import Test.Tasty.Extras
 
-import Control.Monad.Except
-import PlutusCore qualified as PLC
 import PlutusCore.Default.Builtins
 import PlutusCore.Quote
-import PlutusIR
 import PlutusIR.Analysis.Builtins
-import PlutusIR.Check.Uniques qualified as Uniques
-import PlutusIR.Core.Instance.Pretty.Readable
 import PlutusIR.Parser
-import PlutusIR.Properties.Typecheck
+import PlutusIR.Pass.Test
 import PlutusIR.Test
 import PlutusIR.Transform.Inline.Inline
 import PlutusPrelude
@@ -23,20 +16,9 @@ import Test.Tasty (TestTree)
 -- | Tests of the inliner, include global uniqueness test.
 test_inline :: TestTree
 test_inline = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
-    let goldenInlineUnique :: Term TyName Name PLC.DefaultUni PLC.DefaultFun PLC.SrcSpan ->
-            IO (Term TyName Name PLC.DefaultUni PLC.DefaultFun PLC.SrcSpan)
-        goldenInlineUnique pir =
-            rethrow . asIfThrown @(PLC.UniqueError PLC.SrcSpan) $ do
-                let pirInlined = runQuote $ do
-                        renamed <- PLC.rename pir
-                        inline mempty def renamed
-                -- Make sure the inlined term is globally unique.
-                _ <- checkUniques pirInlined
-                pure pirInlined
-    in
     testNested "Inline" $
         map
-            (goldenPirM goldenInlineUnique pTerm)
+            (goldenPir (runQuote . runTestPass (\tc -> inlinePassSC tc mempty def)) pTerm)
             [ "var"
             , "builtin"
             , "callsite-non-trivial-body"
@@ -73,37 +55,17 @@ test_inline = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
             , "letNonPure" -- multiple occurrences of a non-pure binding
             , "letNonPureMulti"
             , "letNonPureMultiStrict"
+            , "multilet"
             , "rhs-modified"
             , "partiallyApp"
             , "effectfulBuiltinArg"
+            , "nameCapture"
             ]
 
--- | Tests that the inliner doesn't incorrectly capture variable names.
-test_nameCapture :: TestTree
-test_nameCapture = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
-    let goldenNameCapture :: Term TyName Name PLC.DefaultUni PLC.DefaultFun PLC.SrcSpan ->
-            IO String
-        goldenNameCapture pir =
-            rethrow . asIfThrown @(PLC.UniqueError PLC.SrcSpan) $ do
-                let pirInlined = runQuote $ do
-                        renamed <- PLC.rename pir
-                        inline mempty def renamed
-                -- Make sure the inlined term is globally unique.
-                _ <- checkUniques pirInlined
-                pure . render $ prettyPirReadable pirInlined
-    in
-    testNested "Inline" $
-        map
-            (goldenPirMUnique goldenNameCapture pTerm)
-            [ "nameCapture"]
-
--- | Check whether a term is globally unique.
-checkUniques :: (Ord a, MonadError (PLC.UniqueError a) m) => Term TyName Name uni fun a -> m ()
-checkUniques =
-    Uniques.checkTerm (\case { Uniques.MultiplyDefined{} -> True; _ -> False})
-
--- | Check that a term typechecks after a `PlutusIR.Transform.Inline` pass.
-prop_TypecheckInline :: BuiltinSemanticsVariant DefaultFun -> Property
-prop_TypecheckInline biVariant =
-  withMaxSuccess 20000 $ nonPureTypecheckProp $
-    inline mempty (def {_biSemanticsVariant = biVariant})
+prop_inline ::
+    BuiltinSemanticsVariant DefaultFun -> Property
+prop_inline biVariant =
+  withMaxSuccess (3 * numTestsForPassProp) $
+    testPassProp
+      runQuote
+      $ \tc -> inlinePassSC tc mempty (def {_biSemanticsVariant = biVariant})

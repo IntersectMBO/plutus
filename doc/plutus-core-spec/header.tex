@@ -1,12 +1,3 @@
-\renewcommand{\thefootnote}{\fnsymbol{footnote}}
-
-% correct bad hyphenation here
-\hyphenation{byte-string}
-
-\usepackage[hyphens]{url}
-\usepackage[colorlinks=true,linkcolor=MidnightBlue,citecolor=ForestGreen,urlcolor=Plum,pageanchor]{hyperref}
-% ^ pageanchor is for nomencl
-
 %% Stuff for index of notation
 %% FYI, the nomencl package seems to discard entries containing '@' 
 \usepackage[intoc,refpage]{nomencl}
@@ -21,7 +12,9 @@
           \ifthenelse{\equal{#1}{E}}{\item[\textbf{Built-in functions}]}{%
             \ifthenelse{\equal{#1}{F}}{\item[\textbf{Term reduction}]}{%
               \ifthenelse{\equal{#1}{G}}{\item[\textbf{CEK machine}]}{%
-                \ifthenelse{\equal{#1}{H}}{\item[\textbf{Serialisation and deserialisation}]}{}
+               \ifthenelse{\equal{#1}{H}}{\item[\textbf{Concrete syntax}]}{%
+                 \ifthenelse{\equal{#1}{I}}{\item[\textbf{Serialisation and deserialisation}]}{}
+                }
               }
             }
           }
@@ -31,6 +24,15 @@
   }
 }
 \makenomenclature
+
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+
+% correct bad hyphenation here
+\hyphenation{byte-string}
+
+\usepackage[hyphens]{url}
+\usepackage[colorlinks=true,linkcolor=MidnightBlue,citecolor=ForestGreen,urlcolor=Plum,pageanchor]{hyperref}
+% ^ pageanchor is for nomencl
 
 \usepackage{tocbibind}  % To get the bibiliograpy in the table of contents
 \usepackage{blindtext, graphicx}
@@ -340,6 +342,7 @@
 \DeclareMathOperator{\proj}{proj}
 \DeclareMathOperator{\is}{is}
 \DeclareMathOperator{\dom}{dom}
+\newcommand{\units}[1]{#1^{\times}}  % Group of units of a field
 
 %%% Spacing in tables
 

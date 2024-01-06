@@ -1,4 +1,21 @@
 
+<a id='changelog-1.19.0.0'></a>
+# 1.19.0.0 — 2023-12-23
+
+- The group elements `bls12_381_G1_zero` and `bls12_381_G1_generator` have been replaced with bytestrings called `bls12_381_G1_compressed_zero` and `bls12_381_G1_compressed generator`, and similarly for `bls12_381_G2_zero` and `bls12_381_G2_generator`.  PlutusTx scripts should apply `bls12_381_G2_uncompress` or `bls12_381_G2_uncompress` to the compressed versions to recover the group elements.
+
+<a id='changelog-1.18.0.0'></a>
+# 1.18.0.0 — 2023-12-06
+
+## Added
+
+- A more informative error message when the plugin encounters a literal range.
+
+## Changed
+
+- Updated the Plutus Tx compiler to make the "Unsupported feature: Cannot case on a value on type"
+  error happen less often (if not eliminating it entirely).
+
 <a id='changelog-1.13.0.0'></a>
 # 1.13.0.0 — 2023-09-15
 

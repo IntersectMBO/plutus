@@ -13,9 +13,10 @@ module Builtin where
 
 ```
 open import Data.Bool using (Bool;true;false)
+open import Data.List using (List)
 open import Data.Nat using (ℕ;suc)
 open import Data.Fin using (Fin) renaming (zero to Z; suc to S)
-open import Data.List.NonEmpty using (List⁺;_∷⁺_;[_];reverse)
+open import Data.List.NonEmpty using (List⁺;_∷⁺_;[_];reverse;length)
 open import Data.Product using (Σ;proj₁;proj₂)
 open import Relation.Binary using (DecidableEquality)
 
@@ -30,7 +31,7 @@ open _⊢♯ renaming (pair to bpair; list to blist)
 open _/_⊢⋆
 open import Builtin.Constant.AtomicType 
 
-open import Utils.Reflection using (defDec)
+open import Utils.Reflection using (defDec;defShow;defListConstructors)
 ```
 
 ## Built-in functions
@@ -297,6 +298,10 @@ hence need to be embedded into `n⋆ / n♯ ⊢⋆` using the postfix constructo
 
 open SugaredSignature using (signature) public
 
+-- The arity of a builtin, according to its signature.
+arity : Builtin → ℕ 
+arity b = length (Sig.args (signature b))
+
 ```
 
 ## GHC Mappings
@@ -531,4 +536,18 @@ comparing expected with actual results.
 ```
 decBuiltin : DecidableEquality Builtin
 unquoteDef decBuiltin = defDec (quote Builtin) decBuiltin
+```
+
+We define a show function for Builtins
+
+```
+showBuiltin : Builtin → String 
+unquoteDef showBuiltin = defShow (quote Builtin) showBuiltin 
+```
+
+`builtinList` is a list with all builtins. 
+
+```
+builtinList : List Builtin 
+unquoteDef builtinList = defListConstructors (quote Builtin) builtinList
 ```

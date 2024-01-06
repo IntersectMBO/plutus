@@ -49,7 +49,7 @@ mkConstrPartsMatchPattern conIx extractFieldNames =
     extractArgsPat = go extractArgPats
       where
         go []     = [p| _ |]
-        go [x]    = [p| (BI.head -> $x) |]
+        go [x]    = [p| (Builtins.headMaybe -> Just $x) |]
         go (x:xs) = [p| (Builtins.uncons -> Just ($x, $(go xs))) |]
     pat = [p| ($ixMatchPat, $extractArgsPat) |]
   in pat

@@ -288,92 +288,17 @@
                    (/\dead -> traceError {Maybe a} reconstructCaseError)
                    {all dead. dead})
               {all dead. dead}
-    !`$fUnsafeFromDataMap_$cunsafeFromBuiltinData` :
-       all k v.
-         (\a -> data -> a) k ->
-         (\a -> data -> a) v ->
-         data ->
-         (\k v -> List (Tuple2 k v)) k v
-      = /\k v ->
-          \(`$dUnsafeFromData` : (\a -> data -> a) k)
-           (`$dUnsafeFromData` : (\a -> data -> a) v) ->
-            letrec
-              !go : list (pair data data) -> List (Tuple2 k v)
-                = \(l : list (pair data data)) ->
-                    chooseList
-                      {pair data data}
-                      {Unit -> List (Tuple2 k v)}
-                      l
-                      (\(ds : Unit) -> Nil {Tuple2 k v})
-                      (\(ds : Unit) ->
-                         let
-                           !tup : pair data data = headList {pair data data} l
-                         in
-                         Cons
-                           {Tuple2 k v}
-                           (Tuple2
-                              {k}
-                              {v}
-                              (`$dUnsafeFromData` (fstPair {data} {data} tup))
-                              (`$dUnsafeFromData` (sndPair {data} {data} tup)))
-                           (go (tailList {pair data data} l)))
-                      Unit
-            in
-            \(d : data) -> go (unMapData d)
-    ~`$fUnsafeFromDataValue` :
-       data -> (\k v -> List (Tuple2 k v)) bytestring integer
-      = `$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
-          {bytestring}
-          {integer}
-          unBData
-          unIData
-    ~`$fUnsafeFromDataValue` :
-       data ->
-       (\k v -> List (Tuple2 k v))
-         bytestring
-         ((\k v -> List (Tuple2 k v)) bytestring integer)
-      = `$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
-          {bytestring}
-          {(\k v -> List (Tuple2 k v)) bytestring integer}
-          unBData
-          `$fUnsafeFromDataValue`
     data TxCert | TxCert_match where
       TxCertAuthHotCommittee : Credential -> Credential -> TxCert
       TxCertDelegStaking : Credential -> Delegatee -> TxCert
-      TxCertRegDRep :
-        Credential ->
-        (\k v -> List (Tuple2 k v))
-          bytestring
-          ((\k v -> List (Tuple2 k v)) bytestring integer) ->
-        TxCert
-      TxCertRegDeleg :
-        Credential ->
-        Delegatee ->
-        (\k v -> List (Tuple2 k v))
-          bytestring
-          ((\k v -> List (Tuple2 k v)) bytestring integer) ->
-        TxCert
-      TxCertRegStaking :
-        Credential ->
-        Maybe
-          ((\k v -> List (Tuple2 k v))
-             bytestring
-             ((\k v -> List (Tuple2 k v)) bytestring integer)) ->
-        TxCert
+      TxCertPoolRegister : bytestring -> bytestring -> TxCert
+      TxCertPoolRetire : bytestring -> integer -> TxCert
+      TxCertRegDRep : Credential -> integer -> TxCert
+      TxCertRegDeleg : Credential -> Delegatee -> integer -> TxCert
+      TxCertRegStaking : Credential -> Maybe integer -> TxCert
       TxCertResignColdCommittee : Credential -> TxCert
-      TxCertUnRegDRep :
-        Credential ->
-        (\k v -> List (Tuple2 k v))
-          bytestring
-          ((\k v -> List (Tuple2 k v)) bytestring integer) ->
-        TxCert
-      TxCertUnRegStaking :
-        Credential ->
-        Maybe
-          ((\k v -> List (Tuple2 k v))
-             bytestring
-             ((\k v -> List (Tuple2 k v)) bytestring integer)) ->
-        TxCert
+      TxCertUnRegDRep : Credential -> integer -> TxCert
+      TxCertUnRegStaking : Credential -> Maybe integer -> TxCert
       TxCertUpdateDRep : Credential -> TxCert
     !`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData` :
        data -> TxCert
@@ -391,10 +316,8 @@
                  (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
                     (headList {data} args))
                  (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
-                    {(\k v -> List (Tuple2 k v))
-                       bytestring
-                       ((\k v -> List (Tuple2 k v)) bytestring integer)}
-                    `$fUnsafeFromDataValue`
+                    {integer}
+                    unIData
                     (headList {data} (tailList {data} args))))
             (/\dead ->
                ifThenElse
@@ -405,10 +328,8 @@
                       (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
                          (headList {data} args))
                       (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
-                         {(\k v -> List (Tuple2 k v))
-                            bytestring
-                            ((\k v -> List (Tuple2 k v)) bytestring integer)}
-                         `$fUnsafeFromDataValue`
+                         {integer}
+                         unIData
                          (headList {data} (tailList {data} args))))
                  (/\dead ->
                     ifThenElse
@@ -433,14 +354,7 @@
                                    (headList {data} args))
                                 (`$fUnsafeFromDataDelegatee_$cunsafeFromBuiltinData`
                                    (headList {data} l))
-                                (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
-                                   {bytestring}
-                                   {(\k v -> List (Tuple2 k v))
-                                      bytestring
-                                      integer}
-                                   unBData
-                                   `$fUnsafeFromDataValue`
-                                   (headList {data} (tailList {data} l))))
+                                (unIData (headList {data} (tailList {data} l))))
                            (/\dead ->
                               ifThenElse
                                 {all dead. TxCert}
@@ -449,13 +363,7 @@
                                    TxCertRegDRep
                                      (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
                                         (headList {data} args))
-                                     (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
-                                        {bytestring}
-                                        {(\k v -> List (Tuple2 k v))
-                                           bytestring
-                                           integer}
-                                        unBData
-                                        `$fUnsafeFromDataValue`
+                                     (unIData
                                         (headList
                                            {data}
                                            (tailList {data} args))))
@@ -475,13 +383,7 @@
                                              TxCertUnRegDRep
                                                (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
                                                   (headList {data} args))
-                                               (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
-                                                  {bytestring}
-                                                  {(\k v -> List (Tuple2 k v))
-                                                     bytestring
-                                                     integer}
-                                                  unBData
-                                                  `$fUnsafeFromDataValue`
+                                               (unIData
                                                   (headList
                                                      {data}
                                                      (tailList {data} args))))
@@ -490,10 +392,10 @@
                                                {all dead. TxCert}
                                                (equalsInteger 7 index)
                                                (/\dead ->
-                                                  TxCertAuthHotCommittee
-                                                    (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
+                                                  TxCertPoolRegister
+                                                    (unBData
                                                        (headList {data} args))
-                                                    (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
+                                                    (unBData
                                                        (headList
                                                           {data}
                                                           (tailList
@@ -504,15 +406,51 @@
                                                     {all dead. TxCert}
                                                     (equalsInteger 8 index)
                                                     (/\dead ->
-                                                       TxCertResignColdCommittee
-                                                         (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
+                                                       TxCertPoolRetire
+                                                         (unBData
                                                             (headList
                                                                {data}
-                                                               args)))
+                                                               args))
+                                                         (unIData
+                                                            (headList
+                                                               {data}
+                                                               (tailList
+                                                                  {data}
+                                                                  args))))
                                                     (/\dead ->
-                                                       traceError
-                                                         {TxCert}
-                                                         reconstructCaseError)
+                                                       ifThenElse
+                                                         {all dead. TxCert}
+                                                         (equalsInteger 9 index)
+                                                         (/\dead ->
+                                                            TxCertAuthHotCommittee
+                                                              (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
+                                                                 (headList
+                                                                    {data}
+                                                                    args))
+                                                              (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
+                                                                 (headList
+                                                                    {data}
+                                                                    (tailList
+                                                                       {data}
+                                                                       args))))
+                                                         (/\dead ->
+                                                            ifThenElse
+                                                              {all dead. TxCert}
+                                                              (equalsInteger
+                                                                 10
+                                                                 index)
+                                                              (/\dead ->
+                                                                 TxCertResignColdCommittee
+                                                                   (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
+                                                                      (headList
+                                                                         {data}
+                                                                         args)))
+                                                              (/\dead ->
+                                                                 traceError
+                                                                   {TxCert}
+                                                                   reconstructCaseError)
+                                                              {all dead. dead})
+                                                         {all dead. dead})
                                                     {all dead. dead})
                                                {all dead. dead})
                                           {all dead. dead})
@@ -630,6 +568,45 @@
                       {all dead. dead})
                  {all dead. dead})
             {all dead. dead}
+    !`$fUnsafeFromDataMap_$cunsafeFromBuiltinData` :
+       all k v.
+         (\a -> data -> a) k ->
+         (\a -> data -> a) v ->
+         data ->
+         (\k v -> List (Tuple2 k v)) k v
+      = /\k v ->
+          \(`$dUnsafeFromData` : (\a -> data -> a) k)
+           (`$dUnsafeFromData` : (\a -> data -> a) v) ->
+            letrec
+              !go : list (pair data data) -> List (Tuple2 k v)
+                = \(l : list (pair data data)) ->
+                    chooseList
+                      {pair data data}
+                      {Unit -> List (Tuple2 k v)}
+                      l
+                      (\(ds : Unit) -> Nil {Tuple2 k v})
+                      (\(ds : Unit) ->
+                         let
+                           !tup : pair data data = headList {pair data data} l
+                         in
+                         Cons
+                           {Tuple2 k v}
+                           (Tuple2
+                              {k}
+                              {v}
+                              (`$dUnsafeFromData` (fstPair {data} {data} tup))
+                              (`$dUnsafeFromData` (sndPair {data} {data} tup)))
+                           (go (tailList {pair data data} l)))
+                      Unit
+            in
+            \(d : data) -> go (unMapData d)
+    ~`$fUnsafeFromDataValue` :
+       data -> (\k v -> List (Tuple2 k v)) bytestring integer
+      = `$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
+          {bytestring}
+          {integer}
+          unBData
+          unIData
     !`$fUnsafeFromDataTxOut_$cunsafeFromBuiltinData` :
        data -> TxOut
       = \(eta : data) ->
@@ -784,22 +761,15 @@
       NewConstitution :
         Maybe GovernanceActionId -> Maybe bytestring -> GovernanceAction
       NoConfidence : Maybe GovernanceActionId -> GovernanceAction
-      ParameterChange : Maybe GovernanceActionId -> data -> GovernanceAction
+      ParameterChange :
+        Maybe GovernanceActionId -> data -> Maybe bytestring -> GovernanceAction
       TreasuryWithdrawals :
-        (\k v -> List (Tuple2 k v))
-          Credential
-          ((\k v -> List (Tuple2 k v))
-             bytestring
-             ((\k v -> List (Tuple2 k v)) bytestring integer)) ->
+        (\k v -> List (Tuple2 k v)) Credential integer ->
+        Maybe bytestring ->
         GovernanceAction
     data ProposalProcedure | ProposalProcedure_match where
       ProposalProcedure :
-        (\k v -> List (Tuple2 k v))
-          bytestring
-          ((\k v -> List (Tuple2 k v)) bytestring integer) ->
-        Credential ->
-        GovernanceAction ->
-        ProposalProcedure
+        integer -> Credential -> GovernanceAction -> ProposalProcedure
     data Vote | Vote_match where
       Abstain : Vote
       VoteNo : Vote
@@ -809,9 +779,7 @@
         List TxInInfo ->
         List TxInInfo ->
         List TxOut ->
-        (\k v -> List (Tuple2 k v))
-          bytestring
-          ((\k v -> List (Tuple2 k v)) bytestring integer) ->
+        integer ->
         (\k v -> List (Tuple2 k v))
           bytestring
           ((\k v -> List (Tuple2 k v)) bytestring integer) ->
@@ -826,14 +794,8 @@
           Voter
           ((\k v -> List (Tuple2 k v)) GovernanceActionId Vote) ->
         List ProposalProcedure ->
-        Maybe
-          ((\k v -> List (Tuple2 k v))
-             bytestring
-             ((\k v -> List (Tuple2 k v)) bytestring integer)) ->
-        Maybe
-          ((\k v -> List (Tuple2 k v))
-             bytestring
-             ((\k v -> List (Tuple2 k v)) bytestring integer)) ->
+        Maybe integer ->
+        Maybe integer ->
         TxInfo
     data ScriptContext | ScriptContext_match where
       ScriptContext : TxInfo -> ScriptPurpose -> ScriptContext
@@ -923,12 +885,7 @@
                        {TxOut}
                        `$fUnsafeFromDataTxOut_$cunsafeFromBuiltinData`
                        (headList {data} l))
-                    (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
-                       {bytestring}
-                       {(\k v -> List (Tuple2 k v)) bytestring integer}
-                       unBData
-                       `$fUnsafeFromDataValue`
-                       (headList {data} l))
+                    (unIData (headList {data} l))
                     (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
                        {bytestring}
                        {(\k v -> List (Tuple2 k v)) bytestring integer}
@@ -1084,14 +1041,7 @@
                                  !l : list data = tailList {data} args
                                in
                                ProposalProcedure
-                                 (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
-                                    {bytestring}
-                                    {(\k v -> List (Tuple2 k v))
-                                       bytestring
-                                       integer}
-                                    unBData
-                                    `$fUnsafeFromDataValue`
-                                    (headList {data} args))
+                                 (unIData (headList {data} args))
                                  (`$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
                                     (headList {data} l))
                                  (let
@@ -1107,14 +1057,21 @@
                                    {all dead. GovernanceAction}
                                    (equalsInteger 0 index)
                                    (/\dead ->
+                                      let
+                                        !l : list data = tailList {data} args
+                                      in
                                       ParameterChange
                                         (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
                                            {GovernanceActionId}
                                            `$fUnsafeFromDataGovernanceAction_$cunsafeFromBuiltinData`
                                            (headList {data} args))
-                                        (headList
-                                           {data}
-                                           (tailList {data} args)))
+                                        (headList {data} l)
+                                        (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
+                                           {bytestring}
+                                           unBData
+                                           (headList
+                                              {data}
+                                              (tailList {data} l))))
                                    (/\dead ->
                                       ifThenElse
                                         {all dead. GovernanceAction}
@@ -1168,16 +1125,18 @@
                                                 TreasuryWithdrawals
                                                   (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
                                                      {Credential}
-                                                     {(\k v ->
-                                                         List (Tuple2 k v))
-                                                        bytestring
-                                                        ((\k v ->
-                                                            List (Tuple2 k v))
-                                                           bytestring
-                                                           integer)}
+                                                     {integer}
                                                      `$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                                                     `$fUnsafeFromDataValue`
-                                                     (headList {data} args)))
+                                                     unIData
+                                                     (headList {data} args))
+                                                  (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
+                                                     {bytestring}
+                                                     unBData
+                                                     (headList
+                                                        {data}
+                                                        (tailList
+                                                           {data}
+                                                           args))))
                                              (/\dead ->
                                                 ifThenElse
                                                   {all dead. GovernanceAction}
@@ -1423,16 +1382,12 @@
                             {all dead. dead})
                        (headList {data} l))
                     (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
-                       {(\k v -> List (Tuple2 k v))
-                          bytestring
-                          ((\k v -> List (Tuple2 k v)) bytestring integer)}
-                       `$fUnsafeFromDataValue`
+                       {integer}
+                       unIData
                        (headList {data} l))
                     (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
-                       {(\k v -> List (Tuple2 k v))
-                          bytestring
-                          ((\k v -> List (Tuple2 k v)) bytestring integer)}
-                       `$fUnsafeFromDataValue`
+                       {integer}
+                       unIData
                        (headList {data} (tailList {data} l))))
                (/\dead -> traceError {TxInfo} reconstructCaseError)
                {all dead. dead})
@@ -1454,10 +1409,7 @@
                        (\(ds : List TxInInfo)
                          (ds : List TxInInfo)
                          (ds : List TxOut)
-                         (ds :
-                            (\k v -> List (Tuple2 k v))
-                              bytestring
-                              ((\k v -> List (Tuple2 k v)) bytestring integer))
+                         (ds : integer)
                          (ds :
                             (\k v -> List (Tuple2 k v))
                               bytestring
@@ -1476,20 +1428,8 @@
                                  GovernanceActionId
                                  Vote))
                          (ds : List ProposalProcedure)
-                         (ds :
-                            Maybe
-                              ((\k v -> List (Tuple2 k v))
-                                 bytestring
-                                 ((\k v -> List (Tuple2 k v))
-                                    bytestring
-                                    integer)))
-                         (ds :
-                            Maybe
-                              ((\k v -> List (Tuple2 k v))
-                                 bytestring
-                                 ((\k v -> List (Tuple2 k v))
-                                    bytestring
-                                    integer))) ->
+                         (ds : Maybe integer)
+                         (ds : Maybe integer) ->
                           ds)))
                  2))
            (/\dead -> Unit)
@@ -1505,7 +1445,7 @@
                  , Map [(B #, Map [(B #, I 1)])]
                  , Constr 0 []
                  , Constr 1 [] ] ]
-         , Map []
+         , I 10000
          , Map []
          , List []
          , Map []

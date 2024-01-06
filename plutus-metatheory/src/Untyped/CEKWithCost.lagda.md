@@ -3,7 +3,7 @@
 This module implements a CEK machine for UPLC which computes costs.
 
 ```
-open import Cost
+open import Cost.Base
 
 module Untyped.CEKWithCost {Budget : Set}(machineParameters : MachineParameters Budget) where
 ```
@@ -14,12 +14,20 @@ module Untyped.CEKWithCost {Budget : Set}(machineParameters : MachineParameters 
 open import Data.Unit using (⊤;tt)
 open import Data.Nat using (ℕ;zero;suc)
 open import Data.List using (List;[];_∷_)
+open import Data.Vec using (Vec;[];_∷_;reverse)
 open import Data.Product using (_,_)
+open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym)
 
 open import Untyped using (_⊢)
 open _⊢
-open import Utils using (Writer;_>>_;_>>=_;return;maybe;Either;inj₁;inj₂;RuntimeError;gasError)
+open import Utils using (Writer;_>>_;_>>=_;return;maybe;Either;inj₁;inj₂;RuntimeError;gasError;either;_∔_≣_)
+open Writer
 open import RawU using (tmCon)
+open import Builtin using (Builtin;arity;signature)
+open import Builtin.Signature using (fv;args♯)
+
+open StepKind
+open ExBudgetCategory
 
 open import Untyped.CEK
 ```
@@ -28,15 +36,54 @@ open import Untyped.CEK
 
 We instantiate a Writer Monad with the operations from the machine parameters
 
+
 ```
 open MachineParameters machineParameters renaming (ε to e)
 open Utils.WriterMonad e _∙_
 
 CekM : Set → Set
 CekM = Writer Budget
+```
 
+### Spending operations
+
+As opposed to the production implemention, our `spend` function does not implement slippage.
+Slippage is an optimization that allows the interpreter to only add costs every n steps. 
+Slippage is only semantically relevant in restricting mode (not currently implemented in agda), 
+so we do not need to consider it here.
+
+```
 spend : StepKind → CekM ⊤
-spend st = tell (cekMachineCost st)
+spend st = tell (cekMachineCost (BStep st))
+
+spendStartupCost : CekM ⊤
+spendStartupCost = tell startupCost
+```
+
+In order to calculate the cost of executing a builtin, we obtain a vector with 
+the size of each constant argument using `extractArgSizes`. 
+
+Non-constant argument should only occur in places where the builtin is polymorphic
+and should be ignored by the cost model of the corresponding builtin. Therefore, 
+they are added with a size of 0.
+
+The function `extractArgSizes` get the arguments in inverse order, so we reverse 
+them in the `spendBuiltin` function. 
+
+```
+extractArgSizes : ∀{b}
+          → ∀{tn tm} → {pt : tn ∔ tm ≣ fv (signature b)}
+          → ∀{an am} → {pa : an ∔ am ≣ args♯ (signature b)}
+          → BApp b pt pa → Vec CostingNat an
+extractArgSizes base = []
+extractArgSizes (app bapp (V-con ty x)) = constantMeasure (tmCon ty x) 
+                                        ∷ extractArgSizes bapp
+extractArgSizes (app bapp _) = 0 ∷ extractArgSizes bapp 
+extractArgSizes (app⋆ bapp) = extractArgSizes bapp 
+
+spendBuiltin : (b : Builtin) → fullyAppliedBuiltin b → CekM ⊤
+spendBuiltin b bapp = tell (cekMachineCost (BBuiltinApp b argsizes))
+     where argsizes = reverse (extractArgSizes bapp)
 ```
 
 ## Step with costs
@@ -104,22 +151,81 @@ stepC ((s , case- ρ ts) ◅ V-delay _ _)      = return ◆ -- case of delay
 stepC ((s , case- ρ ts) ◅ V-I⇒ _ _)         = return ◆ -- case of builtin value
 stepC ((s , case- ρ ts) ◅ V-IΠ _ _)         = return ◆ -- case of delayed builtin
 stepC ((s , (V-I⇒ b {am = 0} bapp ·-)) ◅ v) = do --fully applied builtin function
-          -- TODO: spend cost of executing builtin function
-          return (s ; [] ▻ BUILTIN' b (app bapp v))
+          let bapp' = mkFullyAppliedBuiltin (app bapp v) -- proof that b is fully applied
+          spendBuiltin b bapp' 
+          return (either (BUILTIN b bapp') (λ _ →  ◆) (s ◅_))
 stepC ((s , (V-I⇒ b {am = suc _} bapp ·-)) ◅ v) =  --partially applied builtin function
           return (s ◅ V-I b (app bapp v))
 
 stepC (□ v)               = return (□ v)
 stepC ◆                   = return ◆
 
-stepperC : ℕ → (s : State) → CekM (Either RuntimeError State)
-stepperC 0       s = return (inj₁ gasError)
-stepperC (suc n) s = do
+stepperC-internal : ℕ → (s : State) → CekM (Either RuntimeError State)
+stepperC-internal 0       s = return (inj₁ gasError)
+stepperC-internal (suc n) s = do
        s' ← stepC s 
        go s'
     where
        go : (t : State) → CekM (Either RuntimeError State)
        go (□ v) = return (inj₂ (□ v))
        go ◆     = return (inj₂ ◆)
-       go s'    = stepperC n s'
+       go s'    = stepperC-internal n s'
+
+stepperC : ℕ → (s : State) → CekM (Either RuntimeError State)
+stepperC n s = do 
+       spendStartupCost 
+       stepperC-internal n s
 ```
+
+## Proof of equivalence between CEK machine with and without costs
+
+```
+cekStepEquivalence : ∀ (s : State) → step s ≡ wrvalue (stepC s) 
+cekStepEquivalence (s ; ρ ▻ ` _) = refl
+cekStepEquivalence (s ; ρ ▻ ƛ _) = refl
+cekStepEquivalence (s ; ρ ▻ (_ · _)) = refl
+cekStepEquivalence (s ; ρ ▻ force _) = refl
+cekStepEquivalence (s ; ρ ▻ delay _) = refl
+cekStepEquivalence (s ; ρ ▻ con (tmCon _ _)) = refl
+cekStepEquivalence (s ; ρ ▻ constr _ []) = refl
+cekStepEquivalence (s ; ρ ▻ constr _ (_ ∷ _)) = refl
+cekStepEquivalence (s ; ρ ▻ case _ _) = refl
+cekStepEquivalence (s ; ρ ▻ builtin _) = refl
+cekStepEquivalence (s ; ρ ▻ error) = refl
+cekStepEquivalence (ε ◅ _) = refl
+cekStepEquivalence ((s , -· _ _) ◅ _) = refl
+cekStepEquivalence ((s , -·v _) ◅ _) = refl
+cekStepEquivalence ((s , (V-ƛ _ _ ·-)) ◅ _) = refl
+cekStepEquivalence ((s , (V-con _ _ ·-)) ◅ _) = refl
+cekStepEquivalence ((s , (V-delay _ _ ·-)) ◅ _) = refl
+cekStepEquivalence ((s , (V-constr _ _ ·-)) ◅ _) = refl
+cekStepEquivalence ((s , (V-I⇒ b {am = zero} x ·-)) ◅ V) with BUILTIN' b (app x V)
+... | inj₁ _ = refl
+... | inj₂ _ = refl
+cekStepEquivalence ((s , (V-I⇒ _ {am = suc _} _ ·-)) ◅ _) = refl
+cekStepEquivalence ((s , (V-IΠ _ _ ·-)) ◅ _) = refl
+cekStepEquivalence ((s , force-) ◅ V-ƛ _ _) = refl
+cekStepEquivalence ((s , force-) ◅ V-con _ _) = refl
+cekStepEquivalence ((s , force-) ◅ V-delay ρ x) = cekStepEquivalence (s ; ρ ▻ x)
+cekStepEquivalence ((s , force-) ◅ V-constr _ _) = refl
+cekStepEquivalence ((s , force-) ◅ V-I⇒ _ _) = refl
+cekStepEquivalence ((s , force-) ◅ V-IΠ _ _) = refl
+cekStepEquivalence ((s , constr- _ _ _ []) ◅ _) = refl
+cekStepEquivalence ((s , constr- _ _ _ (_ ∷ _)) ◅ _) = refl
+cekStepEquivalence ((s , case- _ _) ◅ V-ƛ _ _) = refl
+cekStepEquivalence ((s , case- _ _) ◅ V-con _ _) = refl
+cekStepEquivalence ((s , case- _ _) ◅ V-delay _ _) = refl
+cekStepEquivalence ((s , case- _ _) ◅ V-constr _ _) = refl
+cekStepEquivalence ((s , case- _ _) ◅ V-I⇒ _ _) = refl
+cekStepEquivalence ((s , case- _ _) ◅ V-IΠ _ _) = refl
+cekStepEquivalence (□ _) = refl
+cekStepEquivalence ◆ = refl
+
+cekStepperEquivalence : ∀ n s → stepper n s ≡ wrvalue (stepperC n s) 
+cekStepperEquivalence zero s = refl 
+cekStepperEquivalence (suc n) s rewrite sym (cekStepEquivalence s) with step s 
+... | s ; ρ ▻ t = cekStepperEquivalence n (s ; ρ ▻ t)
+... | s ◅ v = cekStepperEquivalence n  (s ◅ v)
+... | □ x = refl
+... | ◆ = refl
+``` 

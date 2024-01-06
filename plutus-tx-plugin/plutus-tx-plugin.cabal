@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-tx-plugin
-version:         1.17.0.0
+version:         1.19.0.0
 license:         Apache-2.0
 license-files:
   LICENSE
@@ -43,7 +43,7 @@ common lang
 
 common ghc-version-support
   -- See the section on GHC versions in CONTRIBUTING
-  if impl(ghc <9.2)
+  if (impl(ghc <9.6) || impl(ghc >=9.7))
     buildable: False
 
 flag use-ghc-stub
@@ -83,8 +83,8 @@ library
     , flat                                  ^>=0.6
     , lens
     , mtl
-    , plutus-core:{plutus-core, plutus-ir}  ^>=1.17
-    , plutus-tx                             ^>=1.17
+    , plutus-core:{plutus-core, plutus-ir}  ^>=1.19
+    , plutus-tx                             ^>=1.19
     , prettyprinter
     , PyF                                   >=0.11.1.0
     , template-haskell
@@ -109,7 +109,7 @@ executable gen-plugin-opts-doc
     , containers
     , lens
     , optparse-applicative
-    , plutus-tx-plugin      ^>=1.17
+    , plutus-tx-plugin      ^>=1.19
     , prettyprinter
     , PyF                   >=0.11.1.0
     , text
@@ -168,9 +168,9 @@ test-suite plutus-tx-plugin-tests
     , hedgehog
     , lens
     , mtl
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.17
-    , plutus-tx-plugin                                ^>=1.17
-    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.17
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.19
+    , plutus-tx-plugin                                ^>=1.19
+    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.19
     , tasty
     , tasty-hedgehog
     , tasty-hunit
@@ -188,9 +188,6 @@ test-suite plutus-tx-plugin-tests
 test-suite size
   import:             lang, ghc-version-support
 
-  if impl(ghc <9.0)
-    buildable: False
-
   -- needs plutus-tx-plugin but it looks unused
   ghc-options:        -Wno-unused-packages
   type:               exitcode-stdio-1.0
@@ -198,9 +195,9 @@ test-suite size
   hs-source-dirs:     test/size
   build-depends:
     , base                                            >=4.9   && <5.0
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.17
-    , plutus-tx-plugin                                ^>=1.17
-    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.17
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.19
+    , plutus-tx-plugin                                ^>=1.19
+    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.19
     , tagged
     , tasty
 

@@ -26,6 +26,7 @@ import Control.Monad.Reader as Reader
 
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
+import PlutusCore.Error (ParserErrorBundle)
 import PlutusCore.Pretty
 import PlutusCore.Pretty qualified as PLC
 import PlutusCore.Quote (runQuoteT)
@@ -38,10 +39,9 @@ import PlutusIR.Transform.RewriteRules
 import PlutusIR.TypeCheck
 import System.FilePath (joinPath, (</>))
 
+import Data.Hashable
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
-
-import PlutusCore.Error (ParserErrorBundle)
 
 import Prettyprinter
 import Prettyprinter.Render.Text
@@ -67,6 +67,7 @@ instance
   , PLC.Typecheckable uni fun
   , PLC.PrettyUni uni
   , Pretty fun
+  , Hashable fun
   , Pretty a
   , Typeable a
   , Ord a

@@ -31,6 +31,7 @@ import Data.Kind (Type)
 import Data.Text as Text (Text, empty)
 import Data.Text.Encoding as Text (decodeUtf8, encodeUtf8)
 import GHC.Generics
+import PlutusCore.Builtin.Convert qualified as Convert
 import PlutusCore.Builtin.Emitter (Emitter (Emitter))
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
@@ -595,13 +596,13 @@ bls12_381_G1_hashToGroup (BuiltinByteString msg) (BuiltinByteString dst) =
       Left err -> mustBeReplaced $ show err
       Right p  -> BuiltinBLS12_381_G1_Element p
 
-{-# NOINLINE bls12_381_G1_zero #-}
-bls12_381_G1_zero ::  BuiltinBLS12_381_G1_Element
-bls12_381_G1_zero = BuiltinBLS12_381_G1_Element BLS12_381.G1.zero
+{-# NOINLINE bls12_381_G1_compressed_zero #-}
+bls12_381_G1_compressed_zero :: BuiltinByteString
+bls12_381_G1_compressed_zero = BuiltinByteString BLS12_381.G1.compressed_zero
 
-{-# NOINLINE bls12_381_G1_generator #-}
-bls12_381_G1_generator ::  BuiltinBLS12_381_G1_Element
-bls12_381_G1_generator = BuiltinBLS12_381_G1_Element BLS12_381.G1.generator
+{-# NOINLINE bls12_381_G1_compressed_generator #-}
+bls12_381_G1_compressed_generator :: BuiltinByteString
+bls12_381_G1_compressed_generator = BuiltinByteString BLS12_381.G1.compressed_generator
 
 ---------------- G2 ----------------
 
@@ -650,13 +651,14 @@ bls12_381_G2_hashToGroup (BuiltinByteString msg) (BuiltinByteString dst) =
       Left err -> mustBeReplaced $ show err
       Right p  -> BuiltinBLS12_381_G2_Element p
 
-{-# NOINLINE bls12_381_G2_zero #-}
-bls12_381_G2_zero ::  BuiltinBLS12_381_G2_Element
-bls12_381_G2_zero = BuiltinBLS12_381_G2_Element BLS12_381.G2.zero
+{-# NOINLINE bls12_381_G2_compressed_zero #-}
+bls12_381_G2_compressed_zero :: BuiltinByteString
+bls12_381_G2_compressed_zero = BuiltinByteString BLS12_381.G2.compressed_zero
 
-{-# NOINLINE bls12_381_G2_generator #-}
-bls12_381_G2_generator ::  BuiltinBLS12_381_G2_Element
-bls12_381_G2_generator = BuiltinBLS12_381_G2_Element BLS12_381.G2.generator
+{-# NOINLINE bls12_381_G2_compressed_generator #-}
+bls12_381_G2_compressed_generator :: BuiltinByteString
+bls12_381_G2_compressed_generator = BuiltinByteString BLS12_381.G2.compressed_generator
+
 
 ---------------- Pairing ----------------
 
@@ -685,3 +687,28 @@ bls12_381_mulMlResult (BuiltinBLS12_381_MlResult a) (BuiltinBLS12_381_MlResult b
 bls12_381_finalVerify ::  BuiltinBLS12_381_MlResult ->  BuiltinBLS12_381_MlResult -> BuiltinBool
 bls12_381_finalVerify (BuiltinBLS12_381_MlResult a) (BuiltinBLS12_381_MlResult b)
     = BuiltinBool $ BLS12_381.Pairing.finalVerify a b
+
+{-
+CONVERSION
+-}
+
+{-# NOINLINE builtinIntegerToByteString #-}
+builtinIntegerToByteString ::
+  BuiltinBool ->
+  BuiltinInteger ->
+  BuiltinInteger ->
+  BuiltinByteString
+builtinIntegerToByteString (BuiltinBool endiannessArg) paddingArg input =
+  case Convert.integerToByteStringWrapper endiannessArg paddingArg input of
+    Emitter f -> case runWriter f of
+      (result, logs) -> traceAll logs $ case result of
+        EvaluationFailure    -> mustBeReplaced "Integer to ByteString conversion errored."
+        EvaluationSuccess bs -> BuiltinByteString bs
+
+{-# NOINLINE builtinByteStringToInteger #-}
+builtinByteStringToInteger ::
+  BuiltinBool ->
+  BuiltinByteString ->
+  BuiltinInteger
+builtinByteStringToInteger (BuiltinBool statedEndiannessArg) (BuiltinByteString input) =
+  Convert.byteStringToIntegerWrapper statedEndiannessArg input

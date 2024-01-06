@@ -2,18 +2,18 @@
   (nonrec)
   (datatypebind
     (datatype
-      (tyvardecl MyD_1099_0 (type))
+      (tyvardecl MyD_1099 (type))
 
-      MyD_match_1102_1
-      (vardecl MyD_1100_2 (fun (con integer) MyD_1099_0))
-      (vardecl MyD_1101_3 (fun (con bytestring) MyD_1099_0))
+      MyD_match_1102
+      (vardecl MyD_1100 (fun (con integer) MyD_1099))
+      (vardecl MyD_1101 (fun (con bytestring) MyD_1099))
     )
   )
   (let
     (nonrec)
     (termbind
       (strict)
-      (vardecl generated_0 (con integer))
+      (vardecl generated (con integer))
       [
         [ { (builtin trace) (con integer) } (con string "BEFORE") ]
         (con integer 0)
@@ -23,7 +23,7 @@
       (nonrec)
       (termbind
         (strict)
-        (vardecl generated_1 [ (con list) (con data) ])
+        (vardecl generated [ (con list) (con data) ])
         [
           [ { (builtin trace) [ (con list) (con data) ] } (con string "AFTER") ]
           [
@@ -35,7 +35,7 @@
           ]
         ]
       )
-      generated_0
+      generated
     )
   )
 )

@@ -38,6 +38,8 @@ module PlutusLedgerApi.V1.Value (
     , Value(..)
     , singleton
     , valueOf
+    , lovelaceValue
+    , lovelaceValueOf
     , scale
     , symbols
       -- * Partial order operations
@@ -50,6 +52,7 @@ module PlutusLedgerApi.V1.Value (
     , split
     , unionWith
     , flattenValue
+    , Lovelace (..)
     ) where
 
 import Prelude qualified as Haskell
@@ -68,6 +71,7 @@ import PlutusTx.AssocMap qualified as Map
 import PlutusTx.Lift (makeLift)
 import PlutusTx.Ord qualified as Ord
 import PlutusTx.Prelude as PlutusTx hiding (sort)
+import PlutusTx.Show qualified as PlutusTx
 import PlutusTx.These (These (..))
 import Prettyprinter (Pretty, (<>))
 import Prettyprinter.Extras (PrettyShow (PrettyShow))
@@ -175,10 +179,6 @@ quotes and we write the latter with a lower case "v" and without the quotes, i.e
 -- See Note [Value vs value].
 {- | The 'Value' type represents a collection of amounts of different currencies.
 We can think of 'Value' as a vector space whose dimensions are currencies.
-To create a value of 'Value', we need to specify a currency. This can be done
-using 'Ledger.Ada.adaValueOf'. To get the ada dimension of 'Value' we use
-'Ledger.Ada.fromValue'. Plutus contract authors will be able to define modules
-similar to 'Ledger.Ada' for their own currencies.
 
 Operations on currencies are usually implemented /pointwise/. That is,
 we apply the operation to the quantities for each currency in turn. So
@@ -261,6 +261,16 @@ symbols (Value mp) = Map.keys mp
 singleton :: CurrencySymbol -> TokenName -> Integer -> Value
 singleton c tn i = Value (Map.singleton c (Map.singleton tn i))
 
+{-# INLINABLE lovelaceValue #-}
+lovelaceValue :: Lovelace -> Value
+-- | A 'Value' containing the given quantity of Lovelace.
+lovelaceValue = singleton adaSymbol adaToken . getLovelace
+
+{-# INLINABLE lovelaceValueOf #-}
+-- | Get the quantity of Lovelace in the 'Value'.
+lovelaceValueOf :: Value -> Lovelace
+lovelaceValueOf v = Lovelace (valueOf v adaSymbol adaToken)
+
 {-# INLINABLE assetClassValue #-}
 -- | A 'Value' containing the given amount of the asset class.
 assetClassValue :: AssetClass -> Integer -> Value
@@ -316,40 +326,24 @@ flattenValue v = goOuter [] (Map.toList $ getValue v)
 isZero :: Value -> Bool
 isZero (Value xs) = Map.all (Map.all (\i -> 0 == i)) xs
 
-{-# INLINABLE checkPred #-}
-checkPred :: (These Integer Integer -> Bool) -> Value -> Value -> Bool
-checkPred f l r =
-    let
-      inner :: Map.Map TokenName (These Integer Integer) -> Bool
-      inner = Map.all f
-    in
-      Map.all inner (unionVal l r)
-
-{-# INLINABLE checkBinRel #-}
--- | Check whether a binary relation holds for value pairs of two 'Value' maps,
---   supplying 0 where a key is only present in one of them.
-checkBinRel :: (Integer -> Integer -> Bool) -> Value -> Value -> Bool
-checkBinRel f l r =
-    let
-        unThese k' = case k' of
-            This a    -> f a 0
-            That b    -> f 0 b
-            These a b -> f a b
-    in checkPred unThese l r
-
 {-# INLINABLE geq #-}
 -- | Check whether one 'Value' is greater than or equal to another. See 'Value' for an explanation
 -- of how operations on 'Value's work.
 geq :: Value -> Value -> Bool
--- If both are zero then checkBinRel will be vacuously true, but this is fine.
-geq = checkBinRel (>=)
+geq l (Value r) =
+  -- This is more efficient than first flattening the second `Value` with `flattenValue`, because
+  -- the latter traverses the second `Value` and creates the entire intermediate result.
+  all
+    ( \(currency, tokens) ->
+        all (\(token, n) -> valueOf l currency token >= n) (Map.toList tokens)
+    )
+    (Map.toList r)
 
 {-# INLINABLE leq #-}
 -- | Check whether one 'Value' is less than or equal to another. See 'Value' for an explanation of
 -- how operations on 'Value's work.
 leq :: Value -> Value -> Bool
--- If both are zero then checkBinRel will be vacuously true, but this is fine.
-leq = checkBinRel (<=)
+leq = flip geq
 
 {-# INLINABLE gt #-}
 -- | Check whether one 'Value' is strictly greater than another.
@@ -458,7 +452,29 @@ eqMapWith is0 eqV (Map.toList -> xs1) (Map.toList -> xs2) = unordEqWith is0 eqV 
 eq :: Value -> Value -> Bool
 eq (Value currs1) (Value currs2) = eqMapWith (Map.all (0 ==)) (eqMapWith (0 ==) (==)) currs1 currs2
 
+newtype Lovelace = Lovelace { getLovelace :: Integer }
+  deriving stock (Generic)
+  deriving (Pretty) via (PrettyShow Lovelace)
+  deriving newtype
+    ( Haskell.Eq
+    , Haskell.Ord
+    , Haskell.Show
+    , Haskell.Num
+    , Haskell.Real
+    , Haskell.Enum
+    , PlutusTx.Eq
+    , PlutusTx.Ord
+    , PlutusTx.ToData
+    , PlutusTx.FromData
+    , PlutusTx.UnsafeFromData
+    , PlutusTx.AdditiveSemigroup
+    , PlutusTx.AdditiveMonoid
+    , PlutusTx.AdditiveGroup
+    , PlutusTx.Show
+    )
+
 makeLift ''CurrencySymbol
 makeLift ''TokenName
 makeLift ''AssetClass
 makeLift ''Value
+makeLift ''Lovelace

@@ -16,14 +16,13 @@ binary format described in Appendix~\ref{appendix:flat-serialisation}.
     \centering
     \[\begin{array}{lrclr}
 
-        \textrm{Name}        & n      & ::= & \texttt{[a-zA-Z][a-zA-Z0-9\_\textquotesingle]\textsuperscript{*}}   & \textrm{name}\\
+        \textrm{Name}          & n      & ::= & \texttt{[a-zA-Z][a-zA-Z0-9\_\textquotesingle]\textsuperscript{*}}   & \textrm{name}\\
 
         \textrm{Var}           & x      & ::= & n & \textrm{term variable}\\
         \textrm{BuiltinName}   & bn     & ::= & n & \textrm{built-in function name}\\
         \textrm{Version} & v & ::= & \texttt{[0-9]\textsuperscript{+}.[0-9]\textsuperscript{+}.[0-9]\textsuperscript{+}}& \textrm{version}\\
-
+        \textrm{Natural}  & k      & ::= & \texttt{[0-9]+} & \textrm{a natural number}\\
         \textrm{Constant} & c & ::= & \langle{\textrm{literal constant}}\rangle& \\
-        \textrm{Natural}  & n      & ::= & [0-9]+ & \textrm{A natural}\\
 
     \end{array}\]
     \captionof{figure}{Lexical grammar of Plutus Core}
@@ -31,7 +30,7 @@ binary format described in Appendix~\ref{appendix:flat-serialisation}.
 \end{minipage}%
 \nomenclature[C]{$L,M,N$}{A term}%
 \nomenclature[C]{$n$}{A name}%
-\nomenclature[C]{$n$}{An natural}%
+\nomenclature[C]{$n$}{A natural number}%
 \nomenclature[C]{$x$}{A variable name}%
 \nomenclature[C]{$bn, b$}{The name of a built-in function}%
 \nomenclature[C]{$c$}{A literal constant}%
@@ -73,8 +72,8 @@ binary format described in Appendix~\ref{appendix:flat-serialisation}.
                         &        &     & \appU{M}{N}                     & \textrm{function application}\\
                         &        &     & \delay{M}                       & \textrm{delay execution of a term}\\
                         &        &     & \force{M}                       & \textrm{force execution of a term}\\
-                        &        &     & \constr{n}{M_0 \ldots M_{m-1}}  & \textrm{constructor with tag $n$ and $m$ arguments}\\
-                        &        &     & \kase{M}{N_0 \ldots N_{m-1}}    & \textrm{case analysis with $m$ alternatives}\\
+                        &        &     & \constr{k}{M_0 \ldots M_{m-1}}   & \textrm{constructor with tag $k$ and $m$ arguments}\\
+                        &        &     & \kase{M}{N_0 \ldots N_{m-1}}     & \textrm{case analysis with $m$ alternatives}\\
                         &        &     & \errorU                         & \textrm{error}\\
         \textrm{Program}& P      & ::= & \version{v}{M}                  & \textrm{versioned program}
 
@@ -162,7 +161,7 @@ in Appendix~\ref{appendix:flat-serialisation}) we want to use de Bruijn indices
 (\cite{deBruijn}, \cite[C.3]{Barendregt}), and for this we redefine names to be
 natural numbers.  In de Bruijn terms, $\lambda$-expressions do not need to bind
 a variable, but in order to re-use our existing syntax we arbitrarily use 0 for
-the bound variable, so that all $\lambda$-expresssions are of the form
+the bound variable, so that all $\lambda$-expressions are of the form
 \texttt{(lam 0 $M$)}; other variables (ie, those not appearing immediately after
 a \texttt{lam} binder) are represented by natural number greater than zero.
 

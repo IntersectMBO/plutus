@@ -1,4 +1,5 @@
 -- editorconfig-checker-disable-file
+{-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE InstanceSigs          #-}
 {-# LANGUAGE LambdaCase            #-}
@@ -48,6 +49,9 @@ import PlutusCore.Name qualified as PLC
 
 import Control.Lens.TH
 import Data.Proxy
+import Universe
+
+import Data.Hashable
 import Data.Text qualified as T
 import Data.Word
 import Universe
@@ -82,6 +86,7 @@ datatypeNameString (Datatype _ tn _ _ _) = tyVarDeclNameString tn
 -- thus permitting (mutual) recursion.
 data Recursivity = NonRec | Rec
     deriving stock (Show, Eq, Generic, Ord)
+    deriving anyclass Hashable
 
 -- | Recursivity can form a 'Semigroup' / lattice, where 'NonRec' < 'Rec'.
 -- The lattice is ordered by "power": a non-recursive binding group can be made recursive and it will still work, but not vice versa.

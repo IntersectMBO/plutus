@@ -1,0 +1,2 @@
+-- In non-conservative mode should be removed
+[{(builtin trace) (con integer) } (con string "hello") (con integer 1)]

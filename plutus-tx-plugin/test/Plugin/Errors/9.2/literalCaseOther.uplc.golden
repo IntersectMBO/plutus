@@ -1,1 +1,0 @@
-Error: Unsupported feature: Use of fromString on type other than builtin strings or bytestrings: Plugin.Errors.Spec.AType

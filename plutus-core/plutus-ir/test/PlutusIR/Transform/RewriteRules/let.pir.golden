@@ -1,8 +1,8 @@
 (let
   (nonrec)
-  (termbind (strict) (vardecl x_0 (con integer)) (error (con integer)))
+  (termbind (strict) (vardecl x (con integer)) (error (con integer)))
   [
     [ (builtin equalsInteger) (con integer 5) ]
-    [ [ (builtin addInteger) (con integer 10) ] x_0 ]
+    [ [ (builtin addInteger) (con integer 10) ] x ]
   ]
 )

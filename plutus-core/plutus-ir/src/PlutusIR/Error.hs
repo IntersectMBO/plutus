@@ -54,6 +54,9 @@ instance AsTypeErrorExt (Error uni fun a) uni a where
 instance PLC.AsFreeVariableError (Error uni fun a) where
     _FreeVariableError = _PLCError . PLC._FreeVariableError
 
+instance PLC.AsUniqueError (Error uni fun a) a where
+    _UniqueError = _PLCError . PLC._UniqueError
+
 -- Pretty-printing
 ------------------
 

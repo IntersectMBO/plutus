@@ -135,14 +135,15 @@ V-I : ∀ b
 V-I b {tm = zero}   bt = V-I⇒ b bt
 V-I b {tm = suc tm} bt = V-IΠ b bt
 
+
+fullyAppliedBuiltin : ∀ b → Set
+fullyAppliedBuiltin b = BApp b (alldone (fv (signature b))) (alldone (args♯ (signature b)))
+
 {-
 The BUILTIN function provides the semantics of builtin functions.
-
-WARNING: This untyped BUILTIN function implements all builtin functions, but not all of them have been tested.
-This WARNING will be removed once the tests are done.
 -}
 
-BUILTIN : ∀ b → BApp b (alldone (fv (signature b))) (alldone (args♯ (signature b))) → Either RuntimeError Value
+BUILTIN : ∀ b → fullyAppliedBuiltin b → Either RuntimeError Value
 BUILTIN addInteger = λ
   { (app (app base (V-con integer i)) (V-con integer i')) -> inj₂ (V-con integer (i + i'))
   ; _ -> inj₁ userError
@@ -329,8 +330,8 @@ BUILTIN sndPair = λ
   ; _ -> inj₁ userError
   }
 BUILTIN chooseList = λ
-  { (app (app (app (app⋆ (app⋆ base)) (V-con (list _) [])) (V-con t n)) (V-con _ c)) → inj₂ (V-con t n)
-  ; (app (app (app (app⋆ (app⋆ base)) (V-con (list _) (_ ∷ _))) (V-con _ n)) (V-con t c)) → inj₂ (V-con t c)
+  { (app (app (app (app⋆ (app⋆ base)) (V-con (list _) [])) v) _) → inj₂ v
+  ; (app (app (app (app⋆ (app⋆ base)) (V-con (list _) (_ ∷ _))) _) v) → inj₂ v
   ; _ -> inj₁ userError
   }
 BUILTIN mkCons (app (app (app⋆ base) (V-con t x)) (V-con (list ts) xs)) with decTag t ts 
@@ -351,11 +352,11 @@ BUILTIN nullList = λ
   ; _ -> inj₁ userError
   }
 BUILTIN chooseData = λ
-  { (app (app (app (app (app (app (app⋆ base) (V-con pdata (ConstrDATA x₁ x₂))) (V-con t v)) (V-con _ w)) (V-con _ x)) (V-con _ y)) (V-con _ z)) → inj₂ (V-con t v)
-  ; (app (app (app (app (app (app (app⋆ base) (V-con pdata (MapDATA x₁))) (V-con _ v)) (V-con t w)) (V-con _ x)) (V-con _ y)) (V-con _ z)) → inj₂ (V-con t w)
-  ; (app (app (app (app (app (app (app⋆ base) (V-con pdata (ListDATA x₁))) (V-con _ v)) (V-con _ w)) (V-con t x)) (V-con _ y)) (V-con _ z)) → inj₂ (V-con t x)
-  ; (app (app (app (app (app (app (app⋆ base) (V-con pdata (iDATA x₁))) (V-con _ v)) (V-con _ w)) (V-con _ x)) (V-con t y)) (V-con _ z)) → inj₂ (V-con t y)
-  ; (app (app (app (app (app (app (app⋆ base) (V-con pdata (bDATA x₁))) (V-con _ v)) (V-con _ w)) (V-con _ x)) (V-con _ y)) (V-con t z)) → inj₂ (V-con t z)
+  { (app (app (app (app (app (app (app⋆ base) (V-con pdata (ConstrDATA x₁ x₂))) v) _) _) _) _) → inj₂ v
+  ; (app (app (app (app (app (app (app⋆ base) (V-con pdata (MapDATA x₁))) _) v) _) _) _) → inj₂ v
+  ; (app (app (app (app (app (app (app⋆ base) (V-con pdata (ListDATA x₁))) _) _) v) _) _) → inj₂ v
+  ; (app (app (app (app (app (app (app⋆ base) (V-con pdata (iDATA x₁))) _) _) _) v) _) → inj₂ v
+  ; (app (app (app (app (app (app (app⋆ base) (V-con pdata (bDATA x₁))) _) _) _) _) v) → inj₂ v
   ; _ -> inj₁ userError
   }
 BUILTIN constrData = λ
@@ -491,17 +492,22 @@ BUILTIN blake2b-224 = λ
   ; _ -> inj₁ userError
   }
 
+-- Take an apparently more general index and show that it is a fully applied builtin.
+mkFullyAppliedBuiltin : ∀ { b }
+  → ∀{tn} → {pt : tn ∔ 0 ≣ fv (signature b)}
+  → ∀{an} → {pa : an ∔ 0 ≣ args♯ (signature b)}
+  → BApp b pt pa
+  → fullyAppliedBuiltin b
+mkFullyAppliedBuiltin {b} {pt = pt} {pa = pa} bt with trans (sym (+-identityʳ _)) (∔2+ pt) | trans (sym (+-identityʳ _)) (∔2+ pa)
+... | refl | refl with unique∔ pt (alldone (fv (signature b))) | unique∔ pa (alldone (args♯ (signature b)))
+... | refl | refl = bt
 
 BUILTIN' : ∀ b
   → ∀{tn} → {pt : tn ∔ 0 ≣ fv (signature b)}
   → ∀{an} → {pa : an ∔ 0 ≣ args♯ (signature b)}
   → BApp b pt pa
-  → ⊥ ⊢
-BUILTIN' b {pt = pt} {pa = pa} bt with trans (sym (+-identityʳ _)) (∔2+ pt) | trans (sym (+-identityʳ _)) (∔2+ pa)
-... | refl | refl with unique∔ pt (alldone (fv (signature b))) | unique∔ pa (alldone (args♯ (signature b)))
-... | refl | refl with BUILTIN b bt
-... | inj₁ _ = error
-... | inj₂ V = discharge V
+  → Either RuntimeError Value
+BUILTIN' b bt =  BUILTIN b (mkFullyAppliedBuiltin bt)
 
 ival : Builtin → Value
 ival b = V-I b base
@@ -550,7 +556,7 @@ step ((s , case- ρ ts) ◅ V-con _ _)        = ◆ -- case of constant
 step ((s , case- ρ ts) ◅ V-delay _ _)      = ◆ -- case of delay
 step ((s , case- ρ ts) ◅ V-I⇒ _ _)         = ◆ -- case of builtin value
 step ((s , case- ρ ts) ◅ V-IΠ _ _)         = ◆ -- case of delqyed builtin
-step ((s , (V-I⇒ b {am = 0} bapp ·-)) ◅ v) = s ; [] ▻ BUILTIN' b (app bapp v)
+step ((s , (V-I⇒ b {am = 0} bapp ·-)) ◅ v) = either (BUILTIN' b (app bapp v)) (λ _ → ◆) (s ◅_)
 step ((s , (V-I⇒ b {am = suc _} bapp ·-)) ◅ v) = s ◅ V-I b (app bapp v)
 
 step (□ v)               = □ v

@@ -1,8 +1,15 @@
-let
-  !a_4 : integer = 10
-  !c_6 : integer = addInteger a_4 a_4
-in
-let
-  !a_8 : integer = 7
-in
-addInteger (addInteger a_4 a_8) a_8
+(let
+  (nonrec)
+  (termbind (strict) (vardecl a (con integer)) (con integer 10))
+  (let
+    (nonrec)
+    (termbind
+      (strict) (vardecl c (con integer)) [ [ (builtin addInteger) a ] a ]
+    )
+    (let
+      (nonrec)
+      (termbind (strict) (vardecl a (con integer)) (con integer 7))
+      [ [ (builtin addInteger) [ [ (builtin addInteger) a ] a ] ] a ]
+    )
+  )
+)
