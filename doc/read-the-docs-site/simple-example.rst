@@ -313,7 +313,7 @@ See the `plutus-apps <https://github.com/input-output-hk/plutus-apps>`_ repo and
 Some other alternatives include `cardano-transaction-lib <https://github.com/Plutonomicon/cardano-transaction-lib>`_ and `lucid <https://github.com/spacebudz/lucid>`_.
 All these are based on the `Cardano API <https://github.com/input-output-hk/cardano-node/tree/master/cardano-api>`_, a low-level API that provides the capability to do the off-chain work with a local running node.
 
-See also: `Plutus application development <https://docs.cardano.org/plutus/dapp-development>`_, a high-level overview of resources for building DApps using Plutus.
+See also: `Plutus application development <https://docs.cardano.org/smart-contracts/plutus/dapp-development/>`_, a high-level overview of resources for building DApps using Plutus.
 A DApp is basically a smart contract plus a front end.
 
 Further reading
