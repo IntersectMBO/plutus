@@ -107,6 +107,7 @@ smallWidths = [1..150]
 bigWidths :: [Int]
 bigWidths = fmap (10*) [1..150]
 
+-- Fixed width, small inputs.
 -- Width = 1-150 ExMemory (8 times that in bytes)
 -- input = random integer 'width'-bytes integer
 benchIntegerToByteStringBoundedFalseSmall :: StdGen -> Benchmark
@@ -121,6 +122,7 @@ benchIntegerToByteStringBoundedTrueSmall gen =
         (inputs, _) = makeSizedIntegers gen widths
     in createThreeTermBuiltinBenchElementwise' "BoundedTrueSmall" $ zip3 (repeat True) widths inputs
 
+-- Fixed width, big inputs.
 benchIntegerToByteStringBoundedFalseBig :: StdGen -> Benchmark
 benchIntegerToByteStringBoundedFalseBig gen =
     let widths = bigWidths
@@ -133,7 +135,20 @@ benchIntegerToByteStringBoundedTrueBig gen =
         (inputs, _) = makeSizedIntegers gen widths
     in createThreeTermBuiltinBenchElementwise' "BoundedTrueBig" $ zip3 (repeat True) widths inputs
 
+-- Very small inputs but big widths.
+benchIntegerToByteStringBoundedFalseBig2 :: StdGen -> Benchmark
+benchIntegerToByteStringBoundedFalseBig2 _gen =
+    let widths = bigWidths
+        inputs = take (length widths) $ repeat (189 :: Integer)
+    in createThreeTermBuiltinBenchElementwise' "BoundedFalseBig" $ zip3 (repeat False) widths inputs
 
+benchIntegerToByteStringBoundedTrueBig2 :: StdGen -> Benchmark
+benchIntegerToByteStringBoundedTrueBig2 _gen =
+    let widths = bigWidths
+        inputs = take (length widths) $ repeat (189 :: Integer)
+    in createThreeTermBuiltinBenchElementwise' "BoundedTrueBig" $ zip3 (repeat True) widths inputs
+
+-- Flexible width, small inputs
 benchIntegerToByteStringUnboundedFalseSmall :: StdGen -> Benchmark
 benchIntegerToByteStringUnboundedFalseSmall gen =
     let widths = smallWidths
@@ -146,6 +161,7 @@ benchIntegerToByteStringUnboundedTrueSmall gen =
         (inputs, _) = makeSizedIntegers gen widths
     in createThreeTermBuiltinBenchElementwise' "UnboundedTrueSmall" $ zip3 (repeat True) (repeat 0) inputs
 
+-- Flexible width, big inputs
 benchIntegerToByteStringUnboundedFalseBig :: StdGen -> Benchmark
 benchIntegerToByteStringUnboundedFalseBig gen =
     let widths = bigWidths
@@ -194,7 +210,7 @@ benchIntegerToByteStringWFalse =
 
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks gen =
-    [ benchByteStringToIntegerFalseSmall
+    [ {- benchByteStringToIntegerFalseSmall
     , benchByteStringToIntegerTrueSmall
     , benchByteStringToIntegerFalseBig
     , benchByteStringToIntegerTrueBig
@@ -202,8 +218,11 @@ makeBenchmarks gen =
     , benchIntegerToByteStringBoundedTrueSmall    gen
     , benchIntegerToByteStringBoundedFalseBig     gen
     , benchIntegerToByteStringBoundedTrueBig      gen
-    , benchIntegerToByteStringUnboundedFalseSmall gen
+    , -} benchIntegerToByteStringBoundedFalseBig2    gen
+    , benchIntegerToByteStringBoundedTrueBig2     gen
+{-    , benchIntegerToByteStringUnboundedFalseSmall gen
     , benchIntegerToByteStringUnboundedTrueSmall  gen
     , benchIntegerToByteStringUnboundedFalseBig   gen
     , benchIntegerToByteStringUnboundedTrueBig    gen
+-}
     ]
