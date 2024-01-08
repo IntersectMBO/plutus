@@ -114,17 +114,12 @@
             letrec
               !go : list data -> List a
                 = \(l : list data) ->
-                    chooseList
-                      {data}
-                      {Unit -> List a}
-                      l
-                      (\(ds : Unit) -> Nil {a})
-                      (\(ds : Unit) ->
-                         Cons
-                           {a}
-                           (`$dUnsafeFromData` (headList {data} l))
-                           (go (tailList {data} l)))
-                      Unit
+                    case
+                      (List a)
+                      (listToConstr {data} l)
+                      [ (Nil {a})
+                      , (\(x : data) (xs : list data) ->
+                           Cons {a} (`$dUnsafeFromData` x) (go xs)) ]
             in
             \(d : data) -> go (unListData d)
     !`$fUnsafeFromDataTxId_$cunsafeFromBuiltinData` : data -> bytestring
@@ -580,24 +575,21 @@
             letrec
               !go : list (pair data data) -> List (Tuple2 k v)
                 = \(l : list (pair data data)) ->
-                    chooseList
-                      {pair data data}
-                      {Unit -> List (Tuple2 k v)}
-                      l
-                      (\(ds : Unit) -> Nil {Tuple2 k v})
-                      (\(ds : Unit) ->
-                         let
-                           !tup : pair data data = headList {pair data data} l
-                         in
-                         Cons
-                           {Tuple2 k v}
-                           (Tuple2
-                              {k}
-                              {v}
-                              (`$dUnsafeFromData` (fstPair {data} {data} tup))
-                              (`$dUnsafeFromData` (sndPair {data} {data} tup)))
-                           (go (tailList {pair data data} l)))
-                      Unit
+                    case
+                      (List (Tuple2 k v))
+                      (listToConstr {pair data data} l)
+                      [ (Nil {Tuple2 k v})
+                      , (\(tup : pair data data)
+                          (tups : list (pair data data)) ->
+                           Cons
+                             {Tuple2 k v}
+                             (Tuple2
+                                {k}
+                                {v}
+                                (`$dUnsafeFromData` (fstPair {data} {data} tup))
+                                (`$dUnsafeFromData`
+                                   (sndPair {data} {data} tup)))
+                             (go tups)) ]
             in
             \(d : data) -> go (unMapData d)
     ~`$fUnsafeFromDataValue` :

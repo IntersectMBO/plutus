@@ -20,7 +20,7 @@ import GHC.Magic qualified as Magic
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1 (Element)
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2 (Element)
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing (MlResult)
-import PlutusTx.Base (const, id, ($))
+import PlutusTx.Base (id, ($))
 import PlutusTx.Bool (Bool (..))
 import PlutusTx.Integer (Integer)
 import Prelude qualified as Haskell (String)
@@ -123,9 +123,7 @@ instance FromBuiltin arep a => FromBuiltin (BuiltinList arep) [a] where
           -- actually help quite a bit here.
           {-# INLINABLE go #-}
           go :: BuiltinList arep -> [a]
-          -- Note that we are using builtin chooseList here so this is *strict* application! So we need to do
-          -- the manual laziness ourselves.
-          go l = chooseList l (const []) (\_ -> fromBuiltin (head l):go (tail l)) unitval
+          go l = matchList l [] (\x xs -> fromBuiltin x : go xs)
 
 instance ToBuiltin [BuiltinData] (BuiltinList BuiltinData) where
     {-# INLINABLE toBuiltin #-}
