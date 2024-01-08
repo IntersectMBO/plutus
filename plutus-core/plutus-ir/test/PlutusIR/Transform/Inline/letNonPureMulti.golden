@@ -7,6 +7,9 @@
       [ { (builtin trace) (con integer) } (con string "hello") ] (con integer 1)
     ]
   )
-  (termbind (strict) (vardecl x (con integer)) y)
-  [ [ (builtin addInteger) y ] [ [ (builtin addInteger) x ] x ] ]
+  (let
+    (nonrec)
+    (termbind (strict) (vardecl x (con integer)) y)
+    [ [ (builtin addInteger) y ] [ [ (builtin addInteger) x ] x ] ]
+  )
 )

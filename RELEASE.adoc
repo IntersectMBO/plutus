@@ -78,12 +78,11 @@ This updates versions and version bounds, and assembles the changelogs.open a PR
 +
 [source,bash]
 -------------
-# comment out with-inline-r flag from cabal.project (cannot be overriden in cli)
-nix develop github:input-output-hk/devx#ghc928-static-iog --no-write-lock-file --refresh
-cabal build pir uplc
-# The executables should be under dist-newstyle/, rename them to a convenient name and upload them:
-mv ./dist-newstyle/build/x86_64-linux/ghc-9.2.8/plutus-core-x.y.z.0/x/pir/build/pir/pir ./pir-x86_64-linux-ghc928
-mv ./dist-newstyle/build/x86_64-linux/ghc-9.2.8/plutus-core-x.y.z.0/x/uplc/build/uplc/uplc ./uplc-x86_64-linux-ghc928
+nix build .#hydraJobs.x86_64-linux.musl64.ghc96.pir 
+mv ./result/bin/pir ./pir-x86_64-linux-ghc96
+
+nix build .#hydraJobs.x86_64-linux.musl64.ghc96.uplc
+mv ./result/bin/uplc ./uplc-x86_64-linux-ghc96
 -------------
 7. Open a PR in the https://github.com/input-output-hk/cardano-haskell-packages[CHaP repository] for publishing the new version. Run `./scripts/add-from-github.sh "https://github.com/input-output-hk/plutus" COMMIT-SHA LIST-OF-UPDATED-PACKAGES` (see https://github.com/input-output-hk/cardano-haskell-packages#-from-github[the README on CHaP]). Example: https://github.com/input-output-hk/cardano-haskell-packages/pull/394.
 - If issues are found, create a release branch `release/x.y.z`, fix the issues on master, backport the fixes to `release/x.y.z`, tag `x.y.z.0-rc2`, and go to step 4.

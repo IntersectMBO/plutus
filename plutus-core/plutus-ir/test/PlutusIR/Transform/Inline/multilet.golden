@@ -1,0 +1,27 @@
+(lam
+  n
+  (con integer)
+  (let
+    (nonrec)
+    (termbind
+      (strict)
+      (vardecl x (con integer))
+      [
+        [ { (builtin trace) (con integer) } (con string "effect_x") ]
+        [ [ (builtin addInteger) (con integer 1) ] n ]
+      ]
+    )
+    (let
+      (nonrec)
+      (termbind
+        (strict)
+        (vardecl y (con integer))
+        [
+          [ { (builtin trace) (con integer) } (con string "effect_y") ]
+          [ [ (builtin addInteger) (con integer 2) ] n ]
+        ]
+      )
+      [ [ (builtin addInteger) x ] [ [ (builtin addInteger) y ] y ] ]
+    )
+  )
+)

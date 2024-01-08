@@ -1,22 +1,17 @@
 let
+  data Unit | Unit_match where
+    Unit : Unit
   data (Tuple2 :: * -> * -> *) a b | Tuple2_match where
     Tuple2 : a -> b -> Tuple2 a b
+  data Bool | Bool_match where
+    True : Bool
+    False : Bool
   !equalsInteger : integer -> integer -> bool = equalsInteger
   data (Maybe :: * -> *) a | Maybe_match where
     Just : a -> Maybe a
     Nothing : Maybe a
   !ifThenElse : all a. bool -> a -> a -> a = ifThenElse
-  !chooseData : all a. data -> a -> a -> a -> a -> a -> a = chooseData
-  !fst : all a b. pair a b -> a = fstPair
-  data Unit | Unit_match where
-    Unit : Unit
-  !snd : all a b. pair a b -> b = sndPair
-  !unsafeDataAsB : data -> bytestring = unBData
-  !unsafeDataAsConstr : data -> pair integer (list data) = unConstrData
-  !unsafeDataAsI : data -> integer = unIData
-  !unsafeDataAsList : data -> list data = unListData
-  !unsafeDataAsMap : data -> list (pair data data) = unMapData
-  ~matchData' :
+  !matchData' :
      all r.
        data ->
        (integer -> list data -> r) ->
@@ -25,72 +20,8 @@ let
        (integer -> r) ->
        (bytestring -> r) ->
        r
-    = /\r ->
-        \(d : data) ->
-          let
-            !d : data = d
-          in
-          \(constrCase : integer -> list data -> r) ->
-            let
-              !constrCase : integer -> list data -> r = constrCase
-            in
-            \(mapCase : list (pair data data) -> r) ->
-              let
-                !mapCase : list (pair data data) -> r = mapCase
-              in
-              \(listCase : list data -> r) ->
-                let
-                  !listCase : list data -> r = listCase
-                in
-                \(iCase : integer -> r) ->
-                  let
-                    !iCase : integer -> r = iCase
-                  in
-                  \(bCase : bytestring -> r) ->
-                    let
-                      !bCase : bytestring -> r = bCase
-                    in
-                    chooseData
-                      {Unit -> r}
-                      d
-                      (\(ds : Unit) ->
-                         let
-                           !tup : pair integer (list data)
-                             = unsafeDataAsConstr d
-                         in
-                         constrCase
-                           (fst {integer} {list data} tup)
-                           (snd {integer} {list data} tup))
-                      (\(ds : Unit) -> mapCase (unsafeDataAsMap d))
-                      (\(ds : Unit) -> listCase (unsafeDataAsList d))
-                      (\(ds : Unit) -> iCase (unsafeDataAsI d))
-                      (\(ds : Unit) -> bCase (unsafeDataAsB d))
-                      Unit
-  !chooseList : all a b. list a -> b -> b -> b = chooseList
-  !head : all a. list a -> a = headList
-  !tail : all a. list a -> list a = tailList
-  ~matchList : all a r. list a -> r -> (a -> list a -> r) -> r
-    = /\a r ->
-        \(l : list a) ->
-          let
-            !l : list a = l
-          in
-          \(nilCase : r) ->
-            let
-              !nilCase : r = nilCase
-            in
-            \(consCase : a -> list a -> r) ->
-              let
-                !consCase : a -> list a -> r = consCase
-              in
-              chooseList
-                {a}
-                {Unit -> r}
-                l
-                (\(ds : Unit) -> nilCase)
-                (\(ds : Unit) -> consCase (head {a} l) (tail {a} l))
-                Unit
-  !unitval : unit = ()
+    = caseData
+  !matchList : all a r. list a -> r -> (a -> list a -> r) -> r = caseList
   ~`$fFromDataTuple2_$cfromBuiltinData` :
      all a b.
        (\a -> data -> Maybe a) a ->
@@ -114,65 +45,92 @@ let
                \(args : list data) ->
                  let
                    !args : list data = args
-                   ~indexMatchCase : Maybe (Tuple2 a b)
-                     = chooseList
-                         {data}
-                         {Unit -> Maybe (Tuple2 a b)}
-                         args
-                         (\(ds : Unit) -> Nothing {Tuple2 a b})
-                         (\(ds : Unit) ->
-                            let
-                              !arg : data = head {data} args
-                              !t : list data = tail {data} args
-                            in
-                            chooseList
-                              {data}
-                              {Unit -> Maybe (Tuple2 a b)}
-                              t
-                              (\(ds : Unit) -> Nothing {Tuple2 a b})
-                              (\(ds : Unit) ->
-                                 let
-                                   !arg : data = head {data} t
-                                   !t : list data = tail {data} t
-                                 in
-                                 matchList
-                                   {data}
-                                   {Maybe (Tuple2 a b)}
-                                   t
-                                   (Maybe_match
-                                      {a}
-                                      (`$dFromData` arg)
-                                      {all dead. Maybe (Tuple2 a b)}
-                                      (\(ipv : a) ->
-                                         /\dead ->
-                                           Maybe_match
-                                             {b}
-                                             (`$dFromData` arg)
-                                             {all dead. Maybe (Tuple2 a b)}
-                                             (\(ipv : b) ->
-                                                /\dead ->
-                                                  Just
-                                                    {Tuple2 a b}
-                                                    (Tuple2 {a} {b} ipv ipv))
-                                             (/\dead -> Nothing {Tuple2 a b})
-                                             {all dead. dead})
-                                      (/\dead ->
-                                         let
-                                           !ds : Maybe b = `$dFromData` arg
-                                         in
-                                         Nothing {Tuple2 a b})
-                                      {all dead. dead})
-                                   (\(ds : data) (ds : list data) ->
-                                      Nothing {Tuple2 a b}))
-                              Unit)
-                         Unit
+                   !b : bool = equalsInteger 0 index
                  in
-                 ifThenElse
-                   {unit -> Maybe (Tuple2 a b)}
-                   (equalsInteger index 0)
-                   (\(ds : unit) -> indexMatchCase)
-                   (\(ds : unit) -> Nothing {Tuple2 a b})
-                   unitval)
+                 Bool_match
+                   (ifThenElse {Bool} b True False)
+                   {all dead. Maybe (Tuple2 a b)}
+                   (/\dead ->
+                      Maybe_match
+                        {Tuple2 data (list data)}
+                        (matchList
+                           {data}
+                           {Unit -> Maybe (Tuple2 data (list data))}
+                           args
+                           (\(ds : Unit) -> Nothing {Tuple2 data (list data)})
+                           (\(x : data) ->
+                              let
+                                !x : data = x
+                              in
+                              \(xs : list data) ->
+                                let
+                                  !xs : list data = xs
+                                in
+                                \(ds : Unit) ->
+                                  Just
+                                    {Tuple2 data (list data)}
+                                    (Tuple2 {data} {list data} x xs))
+                           Unit)
+                        {all dead. Maybe (Tuple2 a b)}
+                        (\(ds : Tuple2 data (list data)) ->
+                           /\dead ->
+                             Tuple2_match
+                               {data}
+                               {list data}
+                               ds
+                               {Maybe (Tuple2 a b)}
+                               (\(ds : data) (ds : list data) ->
+                                  let
+                                    !l : list data = ds
+                                  in
+                                  Maybe_match
+                                    {a}
+                                    (`$dFromData` ds)
+                                    {all dead. Maybe (Tuple2 a b)}
+                                    (\(arg : a) ->
+                                       /\dead ->
+                                         Maybe_match
+                                           {data}
+                                           (matchList
+                                              {data}
+                                              {Unit -> Maybe data}
+                                              l
+                                              (\(ds : Unit) -> Nothing {data})
+                                              (\(x : data) ->
+                                                 let
+                                                   !x : data = x
+                                                 in
+                                                 \(xs : list data)
+                                                  (ds : Unit) ->
+                                                   Just {data} x)
+                                              Unit)
+                                           {all dead. Maybe (Tuple2 a b)}
+                                           (\(ds : data) ->
+                                              /\dead ->
+                                                Maybe_match
+                                                  {b}
+                                                  (`$dFromData` ds)
+                                                  {all dead. Maybe (Tuple2 a b)}
+                                                  (\(arg : b) ->
+                                                     /\dead ->
+                                                       Just
+                                                         {Tuple2 a b}
+                                                         (Tuple2
+                                                            {a}
+                                                            {b}
+                                                            arg
+                                                            arg))
+                                                  (/\dead ->
+                                                     Nothing {Tuple2 a b})
+                                                  {all dead. dead})
+                                           (/\dead -> Nothing {Tuple2 a b})
+                                           {all dead. dead})
+                                    (/\dead -> Nothing {Tuple2 a b})
+                                    {all dead. dead}))
+                        (/\dead -> Nothing {Tuple2 a b})
+                        {all dead. dead})
+                   (/\dead -> Nothing {Tuple2 a b})
+                   {all dead. dead})
             (\(ds : list (pair data data)) -> Nothing {Tuple2 a b})
             (\(ds : list data) -> Nothing {Tuple2 a b})
             (\(ds : integer) -> Nothing {Tuple2 a b})

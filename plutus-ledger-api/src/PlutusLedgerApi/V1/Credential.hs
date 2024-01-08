@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE ViewPatterns      #-}
 
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -Wno-simplifiable-class-constraints #-}

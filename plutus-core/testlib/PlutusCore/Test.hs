@@ -29,6 +29,7 @@ module PlutusCore.Test (
   goldenUEval,
   goldenUEvalLogs,
   goldenUEvalProfile,
+  goldenUEvalProfile',
   goldenUEvalBudget,
   goldenSize,
   initialSrcSpan,
@@ -74,6 +75,7 @@ import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State
 import Data.Either.Extras
+import Data.Hashable
 import Data.Text (Text)
 import Hedgehog
 import Prettyprinter qualified as PP
@@ -150,6 +152,7 @@ instance ToUPlc (UPLC.Program TPLC.Name uni fun ()) uni fun where
 
 instance
     ( TPLC.Typecheckable uni fun
+    , Hashable fun
     )
     => ToUPlc (TPLC.Program TPLC.TyName UPLC.Name uni fun ()) uni fun where
     toUPlc =
@@ -276,8 +279,29 @@ runUPlcProfile values = do
     Left err -> throwError (SomeException $ EvaluationExceptionWithLogsAndBudget err budget logs)
     Right _  -> pure logs
 
+runUPlcProfile' ::
+  (ToUPlc a TPLC.DefaultUni UPLC.DefaultFun) =>
+  [a] ->
+  ExceptT
+    SomeException
+    IO
+    [Text]
+-- Can't use runUplcFull here, as with the others, becasue this one actually needs
+-- to set a different logging method
+runUPlcProfile' values = do
+  ps <- traverse toUPlc values
+  let (UPLC.Program _ _ t) = foldl1 (unsafeFromRight .* UPLC.applyProgram) ps
+      (res, UPLC.CountingSt _, logs) =
+        UPLC.runCek TPLC.defaultCekParameters UPLC.counting UPLC.logWithBudgetEmitter t
+  case res of
+    Left err -> throwError (SomeException $ err)
+    Right _  -> pure logs
+
 ppCatch :: (PrettyPlc a) => ExceptT SomeException IO a -> IO (Doc ann)
 ppCatch value = either (PP.pretty . show) prettyPlcClassicDebug <$> runExceptT value
+
+ppCatch' :: ExceptT SomeException IO (Doc ann) -> IO (Doc ann)
+ppCatch' value = either (PP.pretty . show) id <$> runExceptT value
 
 ppCatchReadable :: (PrettyBy (PrettyConfigReadable PrettyConfigName) a)
   => ExceptT SomeException IO a -> IO (Doc ann)
@@ -392,6 +416,18 @@ goldenSize ::
 goldenSize name value =
   nestedGoldenVsDocM name ".size" $
     pure . pretty . UPLC.programSize =<< rethrow (toUPlc value)
+
+-- | This is mostly useful for profiling a test that is normally
+-- tested with one of the other functions, as it's a drop-in
+-- replacement and you can then pass the output into `traceToStacks`.
+goldenUEvalProfile' ::
+  (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun) =>
+  String ->
+  [a] ->
+  TestNested
+goldenUEvalProfile' name values =
+  nestedGoldenVsDocM name ".eval" $ ppCatch' $
+    fmap (\ts -> PP.vsep (fmap pretty ts)) $ runUPlcProfile' values
 
 -- | A made-up `SrcSpan` for testing.
 initialSrcSpan :: FilePath -> SrcSpan

@@ -1,5 +1,6 @@
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE NumericUnderscores  #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 {-# LANGUAGE TypeApplications    #-}
@@ -80,7 +81,7 @@ validatePayment _ _ ctx =
         values = pubKeyOutputsAt myKeyHash txinfo
     -- 'fold' sums up all the values, we assert that there must be more
     -- than 1 Ada (more stuff is fine!)
-    in check $ valueOf (fold values) adaSymbol adaToken >= 1
+    in check $ lovelaceValueOf (fold values) >= 1_000_000
 --- BLOCK5
 -- We can serialize a 'Validator' directly to CBOR
 serialisedDateValidator :: SerialisedScript

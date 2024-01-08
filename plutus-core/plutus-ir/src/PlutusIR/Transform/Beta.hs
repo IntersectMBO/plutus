@@ -4,13 +4,17 @@
 A simple beta-reduction pass.
 -}
 module PlutusIR.Transform.Beta (
-  beta
+  beta,
+  betaPass,
+  betaPassSC
   ) where
-
-import PlutusIR
 
 import Control.Lens (over)
 import Data.List.NonEmpty qualified as NE
+import PlutusCore qualified as PLC
+import PlutusIR
+import PlutusIR.Pass
+import PlutusIR.TypeCheck qualified as TC
 
 {- Note [Multi-beta]
 Consider two examples where applying beta should be helpful.
@@ -57,6 +61,10 @@ applications.
 
 That does mean that we need to do a manual traversal rather than doing standard bottom-up
 processing.
+
+Note that multi-beta requires globally unique names. In the example above, we end up with
+the binding for `x` outside `b`, which means it could shadow an existing `x` binding in the
+environment.
 
 Note that multi-beta cannot be used on TypeBinds. For instance, it is unsound to turn
 
@@ -128,3 +136,20 @@ beta = over termSubterms beta . localTransform
           let b = TypeBind a (TyVarDecl a n k) tyArg
           in Let (termAnn body) NonRec (pure b) body
       t -> t
+
+betaPassSC
+  :: (PLC.Typecheckable uni fun, PLC.GEq uni, PLC.MonadQuote m, Ord a)
+  => TC.PirTCConfig uni fun
+  -> Pass m TyName Name uni fun a
+betaPassSC tcconfig = renamePass <> betaPass tcconfig
+
+betaPass
+  :: (PLC.Typecheckable uni fun, PLC.GEq uni, Applicative m, Ord a)
+  => TC.PirTCConfig uni fun
+  -> Pass m TyName Name uni fun a
+betaPass tcconfig =
+  NamedPass "beta" $
+    Pass
+      (pure . beta)
+      [Typechecks tcconfig, GloballyUniqueNames]
+      [ConstCondition (Typechecks tcconfig)]

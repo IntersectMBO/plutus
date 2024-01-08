@@ -14,6 +14,7 @@ module PlutusIR.TypeCheck (
   checkType,
   inferTypeOfProgram,
   checkTypeOfProgram,
+  MonadTypeCheckPir,
 ) where
 
 import PlutusCore.Rename

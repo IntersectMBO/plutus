@@ -27,10 +27,10 @@ useful for tools working with Plutus Core.
         \hline
         \texttt{integer} &   $\mathbb{Z}$ & \texttt{-?[0-9]+}\\
         \texttt{bytestring}  & $ \B^*$, the set of sequences of bytes or 8-bit characters. & \texttt{\#([0-9A-Fa-f][0-9A-Fa-f])*}\\
-        \texttt{string} & $\U^*$,  the set of sequences of Unicode characters. & See note below.\\
+        \texttt{string} & $\U^*$,  the set of sequences of Unicode characters. & See note below\\
         \texttt{bool} & \{\texttt{true, false}\} & \texttt{True | False}\\
         \texttt{unit} &  \{()\} & \texttt{()}\\
-        \texttt{data} &  See below. & Not yet supported.\\
+        \texttt{data} &  See below & See below\\
         \hline
     \end{tabular}
     \caption{Atomic Types}
@@ -43,8 +43,8 @@ useful for tools working with Plutus Core.
         \hline
         Operator $\op$ & $\left|\op\right|$  & Denotation & Concrete Syntax\\
         \hline
-        \texttt{list} & 1 & $\denote{\listOf{t}} = \denote{t}^*$ & Not yet supported\\
-        \texttt{pair} & 2 & $\denote{\pairOf{t_1}{t_2}} = \denote{t_1} \times \denote{t_2}$ & Not yet supported\\
+        \texttt{list} & 1 & $\denote{\listOf{t}} = \denote{t}^*$ & See below\\
+        \texttt{pair} & 2 & $\denote{\pairOf{t_1}{t_2}} = \denote{t_1} \times \denote{t_2}$ & See below\\
         \hline
         \end{tabular}
    \caption{Type Operators}
@@ -57,31 +57,25 @@ characters in the range \texttt{U+D800}--\texttt{U+DFFF} are replaced with the
 Unicode replacement character \texttt{U+FFFD}.
 
 
-\paragraph{Concrete syntax for higher-order types.} Types such as $\listOf{\ty{integer}}$
-and $\pairOf{\ty{bool}}{\ty{string)}}$ are represented by application at the
-type level, thus: \texttt{[(con list) (con integer)]} and\texttt{[(con pair)
-    (con bool) (con string)]}.  Each higher-order type will need further syntax
-for representing constants of those types.  For example, we might use
-\texttt{[]} for list values and \texttt{(,)} for pairs, so the list $[11,22,33]$
-might be written as
-\begin{verbatim}
-   (con [(con list) (con integer)] 
-        [(con integer 11), (con integer 22), (con integer 33)]
-   )
-\end{verbatim}
-and the pair (True, "Plutus") as
-\begin{verbatim}
-   (con [(con pair) (con bool) (con string)] 
-        ((con bool True), (con string "Plutus"))
-   ).
-\end{verbatim}
-Note however that this syntax is not currently supported by most Plutus Core tools at the time of writing.
+\paragraph{Concrete syntax for lists and pairs.}
+A list of type $\texttt{list}(t)$ is written as a syntactic list
+\texttt{[$c_1, \ldots, c_n$]} where each $c_i$ lies in $\bitc_t$; a pair of type
+$\texttt{pair}(t_1,t_2)$ is written as a syntactic pair $\texttt{(}c_1,c_2\texttt{)}$
+with $c_1 \in \bitc_{t_1}$ and $c_2 \in \bitc_{t_2}$.  Some valid constant expressions
+are thus
 
+\begin{verbatim}
+   (con (list integer) [11, 22, 33])
+   (con (pair bool string) (True, "Plutus")).
+   (con (list (pair bool (list bytestring)))
+      [(True, []), (False, [#,#1F]), (True, [#123456, #AB, #ef2804])])
+\end{verbatim}
 
 
 \paragraph{The $\ty{data}$ type.}
-We provide a built-in type $\ty{data}$ which permits the encoding of simple data structures
-for use as arguments to Plutus Core scripts.  This type is defined in Haskell as 
+We provide a built-in type $\ty{data}$ which permits the encoding of simple data
+structures for use as arguments to Plutus Core scripts.  This type is defined in
+Haskell as
 \begin{alltt}
    data Data =
       Constr Integer [Data]
@@ -144,16 +138,53 @@ Plutus Core itself. Both provide ways of representing structured data, but
 the former is part of a built-in type whereas the latter is part of the language
 itself.
 
+\newcommand{\syn}[1]{c_{\mathtt{{#1}}}}
+
+\paragraph{Concrete syntax for $\ty{data}$.}
+The concrete syntax for $\ty{data}$ is given by
+
+\begin{minipage}{0.6\linewidth}
+    \centering
+    \[\begin{array}{rcl}
+    \syn{data} & ::= & \texttt{(Constr} \ \syn{integer} \ \syn{list(data)} \texttt{)}\\
+               &  & \texttt{(Map} \ \syn{list(pair(data,data))} \texttt{)}\\
+               &  & \texttt{(List} \ \syn{list(data)} \texttt{)}\\
+               &  & \texttt{(I} \ \syn{integer} \texttt{)}\\
+               &  & \texttt{(B} \ \syn{bytestring} \texttt{)}.
+    \end{array}\]
+    \label{fig:data-concrete-syntax}
+\end{minipage}
+
+\noindent We interpret these syntactic constants as elements of $\denote{\ty{data}}$ using
+the various `$\inj$' functions defined earlier.  Some valid \texttt{data}
+constants are
+
+\begin{verbatim}
+   (con data (Constr 1 [(I 2), (B #), (Map [])]) 
+   (con data (Map [((I 0), (B #00)), ((I 1), (B #0F))])) 
+   (con data (List [(I 0), (I 1), (B #7FFF), (List []]))) 
+   (con data (I -22)) 
+   (con data (B #001A)).
+\end{verbatim}
+% TODO: be more relaxed about parenthesisation in general
+
+\paragraph{Note.}  At the time of writing the syntax accepted by IOG's parser for textual Plutus Core
+differs slightly from that above in that subobjects
+of \texttt{Constr}, \texttt{Map} and \texttt{List} objects must \textit{not} be
+parenthesised: for example one must write \verb|(con data (Constr 1 [I 2, B #,Map []])|.
+This discrepancy will be resolved in the near future.
+
+
 \subsubsection{Built-in functions}
 \label{sec:built-in-functions-1}
 The first batch of built-in functions is shown in
-Table~\ref{table:built-in-functions-1}.  The table indicates which
-functions can fail during execution, and conditions causing failure are
-specified either in the denotation given in the table or in a relevant note.
-Recall also that a built-in function will fail if it is given an argument of the
-wrong type: this is checked in conditions involving the $\sim$ relation and the
-$\Eval$ function in Figures~\ref{fig:untyped-term-reduction}
-and~\ref{fig:untyped-cek-machine}.  Note also the some of the functions are
+Table~\ref{table:built-in-functions-1}.  The table indicates which functions can
+fail during execution, and conditions causing failure are specified either in
+the denotation given in the table or in a relevant note.  Recall also that a
+built-in function will fail if it is given an argument of the wrong type: this
+is checked in conditions involving the $\sim$ relation and the $\Eval$ function
+in Figures~\ref{fig:untyped-term-reduction} and~\ref{fig:untyped-cek-machine}.
+Note also that some of the functions are
 \#-polymorphic.  According to Section~\ref{sec:builtin-denotations} we
 require a denotation for every possible monomorphisation of these; however all
 of these functions are parametrically polymorphic so to simplify notation we

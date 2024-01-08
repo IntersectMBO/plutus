@@ -1,4 +1,34 @@
 
+<a id='changelog-1.19.0.0'></a>
+# 1.19.0.0 — 2023-12-23
+
+## Changed
+
+- The group elements `bls12_381_G1_zero` and `bls12_381_G1_generator` have been replaced with bytestrings called `bls12_381_G1_compressed_zero` and `bls12_381_G1_compressed generator`, and similarly for `bls12_381_G2_zero` and `bls12_381_G2_generator`.  PlutusTx scripts should apply `bls12_381_G2_uncompress` or `bls12_381_G2_uncompress` to the compressed versions to recover the group elements.
+
+- Improved the performance of `PlutusTx.AssocMap.insert` and `PlutusTx.AssocMap.unionWith`.
+
+## Fixed
+
+- The "safe" version of `fromData` was using an unsafe `head` function, so would
+  crash on some malformed input instead of returning `Nothing`.
+
+<a id='changelog-1.18.0.0'></a>
+# 1.18.0.0 — 2023-12-06
+
+## Added
+
+- A more informative error message when the plugin encounters a literal range
+- PlutusTx.enumFromThenTO for ranges like [1,5..101]
+
+<a id='changelog-1.17.0.0'></a>
+# 1.17.0.0 — 2023-11-22
+
+## Changed
+
+- Generated instances for `IsData` now have more efficient codegen, but
+  require `ViewPatterns`.
+
 <a id='changelog-1.13.0.0'></a>
 # 1.13.0.0 — 2023-09-15
 

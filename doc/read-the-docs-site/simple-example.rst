@@ -153,7 +153,7 @@ The ``refundsPreviousHighestBid`` condition checks that the transaction pays the
 
 It uses ``PlutusTx.find`` to find the transaction output (a UTXO) that pays to the previous bidder the amount equivalent to the previous highest bid, and verifies that there is at least one such output.
 
-``singleton adaSymbol adaToken amt`` constructs a ``Value`` with ``amt`` Lovelaces (the subunit of the Ada currency).
+``lovelaceValue amt`` constructs a ``Value`` with ``amt`` Lovelaces (the subunit of the Ada currency).
 ``Value`` is a multi-asset type that represents a collection of assets, including Ada.
 An asset is identified by a (symbol, token) pair, where the symbol represents the policy that controls the minting and burning of tokens, and the token represents a particular kind of token manipulated by the policy.
 ``(adaSymbol, adaToken)`` is the special identifier for Ada/Lovelace.
@@ -284,7 +284,7 @@ Libraries for writing Plutus Tx scripts
 This auction example shows a relatively low-level way of writing scripts using Plutus Tx.
 In practice, you may consider using a higher-level library that abstracts away some of the details.
 For example, `plutus-apps <https://github.com/input-output-hk/plutus-apps>`_ provides a constraint library for writing Plutus Tx.
-Using these libraries, writing a validator in Plutus Tx becomes a matter of defining state transactions and the corresponding constraints, e.g., the condition ``refundsPreviousHighestBid`` can simply be written as ``Constraints.mustPayToPubKey bidder (singleton adaSymbol adaToken amt)``.
+Using these libraries, writing a validator in Plutus Tx becomes a matter of defining state transactions and the corresponding constraints, e.g., the condition ``refundsPreviousHighestBid`` can simply be written as ``Constraints.mustPayToPubKey bidder (lovelaceValue amt)``.
 
 Alternatives to Plutus Tx
 -----------------------------
@@ -313,7 +313,7 @@ See the `plutus-apps <https://github.com/input-output-hk/plutus-apps>`_ repo and
 Some other alternatives include `cardano-transaction-lib <https://github.com/Plutonomicon/cardano-transaction-lib>`_ and `lucid <https://github.com/spacebudz/lucid>`_.
 All these are based on the `Cardano API <https://github.com/input-output-hk/cardano-node/tree/master/cardano-api>`_, a low-level API that provides the capability to do the off-chain work with a local running node.
 
-See also: `Plutus application development <https://docs.cardano.org/plutus/dapp-development>`_, a high-level overview of resources for building DApps using Plutus.
+See also: `Plutus application development <https://docs.cardano.org/smart-contracts/plutus/dapp-development/>`_, a high-level overview of resources for building DApps using Plutus.
 A DApp is basically a smart contract plus a front end.
 
 Further reading

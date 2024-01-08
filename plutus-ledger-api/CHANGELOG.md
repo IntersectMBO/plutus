@@ -1,4 +1,39 @@
 
+<a id='changelog-1.19.0.0'></a>
+# 1.19.0.0 — 2023-12-23
+
+## Added
+
+- Added functions for converting between `Lovelace` and `Value`: `lovelaceValue`
+  and `lovelaceValueOf`.
+
+- Added some helper functions for Plutus V3 ScriptContext.
+
+## Changed
+
+- Improved the efficiency of `PlutusLedgerApi.V1.Value.leq` and `PlutusLedgerApi.V1.Value.geq`.
+
+- Use `Lovelace` instead of `Value` in `txInfoFee`, `txInfoCurrentTreasuryAmount`
+  and `txInfoTreasuryDonation` for Plutus V3.
+
+- Added constitution script hash to `ParameterChange` and `TreasuryWithdrawals`
+  in the `ScriptContext` of Plutus V3.
+
+<a id='changelog-1.18.0.0'></a>
+# 1.18.0.0 — 2023-12-06
+
+## Changed
+
+- Added two constructors, `TxCertPoolRegister` and `TxCertPoolRetire`, to
+  `PlutusLedgerApi.V3.Contexts.TxCert`.
+
+<a id='changelog-1.17.0.0'></a>
+# 1.17.0.0 — 2023-11-22
+
+## Added
+
+- Exposed `unSatInt` and `fromSatInt` from `plutus-ledger-api`. Added `NFData` and `NoThunks` for `CostModelApplyError`.
+
 <a id='changelog-1.16.0.0'></a>
 # 1.16.0.0 — 2023-11-10
 

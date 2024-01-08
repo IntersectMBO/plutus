@@ -42,10 +42,10 @@ instance PrettyBy ConstConfig MlResult where
 -- encoding functions just raise errors.
 instance Flat MlResult where
     -- This might happen on the chain, so `fail` rather than `error`.
-    decode = fail "BLS12_381.Pairing.MlResult: flat decoding disallowed"
+    decode = fail "Flat decoding is not supported for objects of type bls12_381_mlresult"
     -- This will be a Haskell runtime error, but encoding doesn't happen on chain,
     -- so it's not too bad.
-    encode = error "BLS12_381.Pairing.MlResult: flat encoding disallowed"
+    encode = error "Flat encoding is not supported for objects of type bls12_381_mlresult"
     size _ = id
 instance NFData MlResult where
     rnf _ = ()
@@ -72,4 +72,4 @@ mlResultMemSizeBytes = BlstBindings.Internal.sizePT
 -- | For some of the tests we need a small element of the MlResult type.  We can
 -- get the identity element by pairing the zero elements of G1 and G2.
 identityMlResult :: MlResult
-identityMlResult = millerLoop G1.zero G2.zero
+identityMlResult = millerLoop G1.offchain_zero G2.offchain_zero

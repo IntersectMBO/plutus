@@ -17,8 +17,9 @@ in
          !l : list data = tailList {data} l
          !ds : integer = unIData (headList {data} l)
          !ds : integer = unIData (headList {data} l)
+         !ds : integer = unIData (headList {data} l)
          !ds : integer = unIData (headList {data} (tailList {data} l))
        in
-       unIData (headList {data} l))
+       ds)
     (/\dead -> error {integer})
     {all dead. dead}

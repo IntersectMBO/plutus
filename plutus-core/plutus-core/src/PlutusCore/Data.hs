@@ -44,7 +44,7 @@ data Data =
     | List [Data]
     | I Integer
     | B BS.ByteString
-    deriving stock (Show, Eq, Ord, Generic, Data.Data.Data)
+    deriving stock (Show, Read, Eq, Ord, Generic, Data.Data.Data)
     deriving anyclass (Hashable, NFData, NoThunks)
 
 instance Pretty Data where

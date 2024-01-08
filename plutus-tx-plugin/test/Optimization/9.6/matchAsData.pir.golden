@@ -26,7 +26,14 @@ in
        ifThenElse
          {all dead. integer}
          (equalsInteger 0 ds)
-         (/\dead -> unIData (headList {data} ds))
+         (/\dead ->
+            let
+              !ds : data = headList {data} ds
+              !ds : list data = tailList {data} ds
+              !a : integer = unIData ds
+              !ds : integer = unIData (headList {data} ds)
+            in
+            a)
          (/\dead ->
             Tuple2_match
               {integer}

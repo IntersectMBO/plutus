@@ -1,0 +1,34 @@
+{-
+  let !x = x_rhs_effectful
+      !y = y_rhs_effectful
+   in x + (y + y)
+
+`y` should not be inlined because it occurs twice.
+`x` should not be inlined, because inlining `x` and not inlining `y`
+changes the order of effects.
+-}
+
+(lam
+  n
+  (con integer)
+  (let
+    (nonrec)
+    (termbind
+      (strict)
+      (vardecl x (con integer))
+      [
+        [ { (builtin trace) (con integer) } (con string "effect_x") ]
+        [ [ (builtin addInteger) (con integer 1) ] n ]
+      ]
+    )
+    (termbind
+      (strict)
+      (vardecl y (con integer))
+      [
+        [ { (builtin trace) (con integer) } (con string "effect_y") ]
+        [ [ (builtin addInteger) (con integer 2) ] n ]
+      ]
+    )
+    [ [ (builtin addInteger) x ] [ [ (builtin addInteger) y ] y ] ]
+  )
+)

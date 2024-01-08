@@ -1,0 +1,60 @@
+program
+  1.1.0
+  (\d ->
+     (\cse ->
+        (\cse ->
+           (\cse ->
+              (\cse ->
+                 (\cse ->
+                    (\lessThanInteger ->
+                       (\addInteger ->
+                          (\cse ->
+                             (\cse ->
+                                addInteger
+                                  (addInteger
+                                     (addInteger
+                                        (addInteger (addInteger cse cse) cse)
+                                        cse)
+                                     (force
+                                        (case
+                                           (lessThanInteger
+                                              (addInteger cse cse)
+                                              (addInteger cse cse))
+                                           [ (delay (addInteger cse cse))
+                                           , (delay (addInteger cse cse)) ])))
+                                  (force
+                                     (case
+                                        (lessThanInteger (cse cse) (cse cse))
+                                        [ (delay (cse cse))
+                                        , (delay (cse cse)) ])))
+                               (addInteger cse))
+                            (addInteger cse))
+                         (\x y -> addInteger x y))
+                      (\x y ->
+                         force ifThenElse
+                           (lessThanInteger x y)
+                           (constr 0 [])
+                           (constr 1 [])))
+                   (cse (\ds ds ds ds -> ds) (\void -> error)))
+                (cse (\ds ds ds ds -> ds) (\void -> error)))
+             (cse (\ds ds ds ds -> ds) (\void -> error)))
+          (cse (\ds ds ds ds -> ds) (\void -> error)))
+       (\cont fail ->
+          (\tup ->
+             force
+               (force ifThenElse
+                  (equalsInteger 0 (force (force fstPair) tup))
+                  (delay
+                     ((\l ->
+                         (\l ->
+                            (\l ->
+                               cont
+                                 (unIData (force headList l))
+                                 (unIData (force headList l))
+                                 (unIData (force headList l))
+                                 (unIData (force headList (force tailList l))))
+                              (force tailList l))
+                           (force tailList l))
+                        (force (force sndPair) tup)))
+                  (delay (fail ()))))
+            (unConstrData d)))

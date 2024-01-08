@@ -1,18 +1,14 @@
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NoImplicitPrelude     #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE ViewPatterns      #-}
+
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=3 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module TH.Spec (tests) where
@@ -40,18 +36,18 @@ someData :: (BuiltinData, BuiltinData, BuiltinData)
 someData = (toBuiltinData (One 1), toBuiltinData Two, toBuiltinData (Three ()))
 
 tests :: TestNested
-tests = testNestedGhc "TH" [
-    goldenPir "simple" simple
-    , goldenPir "power" powerPlc
-    , goldenPir "and" andPlc
-    , goldenEvalCek "all" [allPlc]
-    , goldenEvalCek "convertString" [convertString]
-    , goldenEvalCekLog "traceDirect" [traceDirect]
-    , goldenEvalCekLog "tracePrelude" [tracePrelude]
-    , goldenEvalCekLog "traceRepeatedly" [traceRepeatedly]
-    -- want to see the raw structure, so using Show
-    , nestedGoldenVsDoc "someData" "" (pretty $ Haskell.show someData)
-  ]
+tests = testNestedGhc "TH"
+        [ goldenPir "simple" simple
+        , goldenPir "power" powerPlc
+        , goldenPir "and" andPlc
+        , goldenEvalCek "all" [allPlc]
+        , goldenEvalCek "convertString" [convertString]
+        , goldenEvalCekLog "traceDirect" [traceDirect]
+        , goldenEvalCekLog "tracePrelude" [tracePrelude]
+        , goldenEvalCekLog "traceRepeatedly" [traceRepeatedly]
+        -- want to see the raw structure, so using Show
+        , nestedGoldenVsDoc "someData" "" (pretty $ Haskell.show someData)
+        ]
 
 simple :: CompiledCode (Bool -> Integer)
 simple = $$(compile [|| \(x::Bool) -> if x then (1::Integer) else (2::Integer) ||])

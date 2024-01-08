@@ -42,12 +42,12 @@ by defining families of encoding functions (or \textit{encoders})
 $$
 \E_X : \Bits \times X \rightarrow \Bits
 $$%
-\nomenclature[HF]{$\E_X$}{Flat encoder}
+\nomenclature[IF]{$\E_X$}{Flat encoder}
 and (partial) decoding functions (or \textit{decoders})
 $$
 \D_X : \Bits \rightharpoonup \Bits \times X
 $$%
-\nomenclature[HF]{$\D_X$}{Flat decoder}
+\nomenclature[IF]{$\D_X$}{Flat decoder}
 
 \noindent for various sets $X$, such as the set $\Z$ of integers and the set of
 all Plutus Core terms.  The encoding function $\E_X$ takes a sequence $s \in
@@ -497,6 +497,7 @@ $$
 $$
 
 \subsection{Constants}
+\label{sec:flat-constants}
 Values of built-in types can mostly be encoded quite simply by using encoders
 already defined.  Note that the unit value \texttt{(con unit ())} does not have
 an explicit encoding: the type has only one possible value, so there is no need
@@ -508,16 +509,16 @@ then using $\E_{\B^*}$.  The decoding process is the opposite of this: a
 bytestring is obtained using $\D_{\B^*}$ and this is then decoded from CBOR
 using $\dData$ to obtain a $\ty{data}$ object.
 
-The $\ty{bls12\_381\_G1\_element}$ and $\ty{bls12\_381\_G2\_element}$ types are
-serialised by converting to byestrings using the $\compress_{G_1}$ and
-$\compress_{G_2}$ functions defined in
-Section~\ref{sec:bls-builtins-4}, and decoding is similarly performed
-via bytestrings using the $\uncompress$ functions.  \textbf{We do not provide
-serialisation and deserialisation for constants of the
-$\ty{bls12\_381\_mlresult}$ type}; we have specified a tag for this type, but if
-that tag is encountered during deserialisation then deserialisation fails and
-any subsequent input is ignored.
-
+We do not provide serialisation and deserialisation for constants of type
+$\ty{bls12\_381\_G1\_element}$, $\ty{bls12\_381\_G2\_element}$, or
+$\ty{bls12\_381\_mlresult}$.  We have specified tags for these types, but if one
+of these tags is encountered during deserialisation then deserialisation fails
+and any subsequent input is ignored.  Note however that constants of the first
+two types can be serialised by using the compression functions defined in
+Section~\ref{sec:bls-builtins-4} and serialising the resulting bytestrings.
+Decoding can similarly be performed indirectly by using
+\texttt{bls12\_381\_G1\_uncompress} and \texttt{bls12\_381\_G2\_uncompress} on
+bytestring constants during program execution.
 
 \begin{alignat*}{2}
   & \Econstant{\ty{integer}}(s,n)                  &&= \E_{\Z}(s, n) \\
@@ -528,9 +529,7 @@ any subsequent input is ignored.
   & \Econstant{\ty{bool}}(s, \texttt{True})        &&= s \cdot \bits{1}\\
   & \Econstant{\listOf{\tn}}(s,l)                  &&= \Elist^{\tn}_{\mathsf{constant}}(s, l) \\
   & \Econstant{\pairOf{\tn_1}{\tn_2}}(s,(c_1,c_2))  &&= \Econstant{\tn_2}(\Econstant{\tn_1}(s, c_1), c_2)\\
-  & \Econstant{\ty{data}}(s,d)                     &&= \E_{\B^*}(s, \eData(d))\\
-  & \Econstant{\ty{bls12\_381\_G1\_element}}(s,e)  &&= \E_{\B^*}(s, \compress_{G_1}(e))\\
-  & \Econstant{\ty{bls12\_381\_G2\_element}}(s,e)  &&= \E_{\B^*}(s, \compress_{G_2}(e)).
+  & \Econstant{\ty{data}}(s,d)                     &&= \E_{\B^*}(s, \eData(d))
 \end{alignat*}
 
 \begin{alignat*}{3}
@@ -548,9 +547,7 @@ any subsequent input is ignored.
      \end{cases}\\
   &\dConstant{\ty{data}}(s)                  &&= (s', d) &&
                                            \text{if $\D_{\B*}(s) = (s', t)$
-                                            and $\dData(t) = (t', d)$ for some $t'$}\\
-  & \dConstant{\ty{bls12\_381\_G1\_element}}(s)  &&= (s',e) && \text{if $\D_{\B^*}(s) = (s',b)$ and $\uncompress_{G_1}(b)=e$}\\
-  & \dConstant{\ty{bls12\_381\_G2\_element}}(s)  &&= (s',e) && \text{if $\D_{\B^*}(s) = (s',b)$ and $\uncompress_{G_2}(b)=e$}.
+                                            and $\dData(t) = (t', d)$ for some $t'$}
 \end{alignat*}
 
 \subsection{Built-in functions}

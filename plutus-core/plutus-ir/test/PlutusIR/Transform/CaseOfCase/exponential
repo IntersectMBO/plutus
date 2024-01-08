@@ -42,7 +42,7 @@
                   Bool
                 }
                 False
-                (lam i (con integer) True)
+                (lam j (con integer) True)
             ]
           ]
           (con integer)
@@ -60,7 +60,7 @@
                 Bool
               }
               False
-              (lam i (con integer) True)
+              (lam k (con integer) True)
             ]
           ]
           (con integer)
