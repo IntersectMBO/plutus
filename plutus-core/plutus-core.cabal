@@ -756,14 +756,14 @@ library plutus-ir-cert
   import:           lang
 
   if flag(with-cert)
-    hs-source-dirs: plutus-ir/cert
+    hs-source-dirs: plutus-ir/cert/tests
     build-depends:  plutus-cert
 
   else
-    hs-source-dirs: plutus-ir/cert-stub
+    hs-source-dirs: plutus-ir/cert/tests-stub
 
   default-language: Haskell2010
-  exposed-modules:  PlutusIR.Certifier
+  exposed-modules:  PlutusIR.Certifier.Tests
   build-depends:
     , base
     , plutus-core:{plutus-core, plutus-ir}  ^>=1.18
