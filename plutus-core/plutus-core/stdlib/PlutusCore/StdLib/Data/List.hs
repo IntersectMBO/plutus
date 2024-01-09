@@ -23,50 +23,38 @@ import PlutusCore.Name
 import PlutusCore.Quote
 
 import PlutusCore.StdLib.Data.Function
-import PlutusCore.StdLib.Data.Unit
 
 -- | @[]@ as a built-in PLC type.
 list :: uni `HasTypeLevel` [] => Type tyname uni ()
 list = mkTyBuiltin @_ @[] ()
 
 -- See Note [Pattern matching on built-in types].
--- | Pattern matching on built-in lists. @caseList {a} xs@ on built-in lists is
--- equivalent to @unwrap xs@ on lists defined in PLC itself (hence why we bind @r@ after @xs@).
+-- | Pattern matching on built-in lists.
 --
--- > /\(a :: *) -> \(xs : list a) -> /\(r :: *) -> (z : r) (f : a -> list a -> r) ->
--- >     chooseList
--- >         {a}
--- >         {() -> r}
--- >         xs
--- >         (\(u : ()) -> z)
--- >         (\(u : ()) -> f (head {a} xs) (tail {a} xs))
--- >         ()
+-- > /\(a :: *) -> \(xs :: [a]) -> /\(r :: *) -> (nilCase :: r) (consCase :: a -> [a] -> r) ->
+-- >   case {r} (listToConstr {a} xs) [nilCase, consCase]
 caseList :: TermLike term TyName Name DefaultUni DefaultFun => term ()
 caseList = runQuote $ do
     a <- freshTyName "a"
     r <- freshTyName "r"
-    xs <- freshName "x"
-    z <- freshName "z"
-    f <- freshName "f"
-    u <- freshName "u"
+    xs <- freshName "xs"
+    nilCase <- freshName "nilCase"
+    consCase <- freshName "consCase"
     let listA = TyApp () list $ TyVar () a
-        funAtXs fun = apply () (tyInst () (builtin () fun) $ TyVar () a) $ var () xs
-    return
+    pure
         . tyAbs () a (Type ())
         . lamAbs () xs listA
         . tyAbs () r (Type ())
-        . lamAbs () z (TyVar () r)
-        . lamAbs () f (TyFun () (TyVar () a) . TyFun () listA $ TyVar () r)
-        $ mkIterAppNoAnn
-                (mkIterInstNoAnn (builtin () ChooseList)
-                    [ TyVar () a
-                    , TyFun () unit $ TyVar () r
-                    ])
-            [ var () xs
-            , lamAbs () u unit $ var () z
-            , lamAbs () u unit $ mkIterAppNoAnn (var () f) [funAtXs HeadList, funAtXs TailList]
-            , unitval
-            ]
+        . lamAbs () nilCase (TyVar () r)
+        . lamAbs () consCase
+            (mkIterTyFun () [TyVar () a, listA] $ TyVar () r)
+        $ kase
+            ()
+            (TyVar () r)
+            (apply ()
+                (tyInst () (builtin () ListToConstr) $ TyVar () a)
+                (var () xs))
+            [var () nilCase, var () consCase]
 
 -- |  @foldr@ over built-in lists.
 --

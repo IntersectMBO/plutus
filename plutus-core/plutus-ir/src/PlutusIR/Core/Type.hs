@@ -1,9 +1,11 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE InstanceSigs          #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
@@ -34,22 +36,25 @@ module PlutusIR.Core.Type (
 
 import PlutusPrelude
 
-import Control.Lens.TH
 import PlutusCore (Kind, Name, TyName, Type (..), Version (..))
 import PlutusCore qualified as PLC
-import PlutusCore.Builtin (HasConstant (..), throwNotAConstant)
+import PlutusCore.Builtin (HasConstant (..), KnownTypeAst (..), Opaque (..), ToConstr (..),
+                           throwNotAConstant)
 import PlutusCore.Core (UniOf)
+import PlutusCore.Error (ApplyProgramError (MkApplyProgramError))
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.Flat ()
 import PlutusCore.MkPlc (Def (..), TermLike (..), TyVarDecl (..), VarDecl (..))
 import PlutusCore.Name qualified as PLC
 
+import Control.Lens.TH
+import Data.Proxy
 import Universe
 
 import Data.Hashable
 import Data.Text qualified as T
 import Data.Word
-import PlutusCore.Error (ApplyProgramError (MkApplyProgramError))
+import Universe
 
 -- Datatypes
 
@@ -162,6 +167,12 @@ instance HasConstant (Term tyname name uni fun ()) where
     asConstant _                = throwNotAConstant
 
     fromConstant = Constant ()
+
+instance ToConstr (Term TyName name uni fun ()) where
+    toConstr
+        :: forall rep. KnownTypeAst TyName uni rep
+        => Word64 -> [Term TyName name uni fun ()] -> Opaque (Term TyName name uni fun ()) rep
+    toConstr ix = Opaque . Constr () (toTypeAst $ Proxy @rep) ix
 
 instance TermLike (Term tyname name uni fun) tyname name uni fun where
     var      = Var

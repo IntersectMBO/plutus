@@ -6,6 +6,7 @@
 {-# LANGUAGE FlexibleInstances        #-}
 {-# LANGUAGE MultiParamTypeClasses    #-}
 {-# LANGUAGE PolyKinds                #-}
+{-# LANGUAGE RankNTypes               #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
 {-# LANGUAGE TypeApplications         #-}
 {-# LANGUAGE TypeFamilies             #-}
@@ -296,6 +297,26 @@ instance
             (toTyNameAst $ Proxy @('TyNameRep text uniq))
             (demoteKind $ knownKind @kind)
             (toTypeAst $ Proxy @a)
+    {-# INLINE toTypeAst #-}
+
+type KnownList :: forall a. (a -> GHC.Constraint) -> [a] -> GHC.Constraint
+class KnownList constr xs where
+    knownList :: Proxy xs -> (forall x. constr x => Proxy x -> r) -> [r]
+instance KnownList constr '[] where
+    knownList _ _ = []
+instance (constr x, KnownList constr xs) => KnownList constr (x ': xs) where
+    knownList _ k = k (Proxy @x) : knownList @_ @constr (Proxy @xs) k
+
+instance KnownList (KnownList (KnownTypeAst tyname uni)) sums =>
+        KnownTypeAst tyname uni (TySopRep sums) where
+    type IsBuiltin uni (TySopRep sums) = 'False
+    -- TODO: fix both?
+    type ToHoles _ (TySopRep sums) = '[]
+    type ToBinds uni acc (TySopRep sums) = acc
+    toTypeAst _
+        = TySOP ()
+        $ knownList @_ @(KnownList (KnownTypeAst tyname uni)) (Proxy @sums)
+        $ \proxyProd -> knownList @_ @(KnownTypeAst tyname uni) proxyProd toTypeAst
     {-# INLINE toTypeAst #-}
 
 -- Utils

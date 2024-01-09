@@ -1,5 +1,8 @@
 -- editorconfig-checker-disable-file
 
+{-# LANGUAGE MagicHash     #-}
+{-# LANGUAGE UnboxedTuples #-}
+
 -- | Primitive names and functions for working with Plutus Core builtins.
 module PlutusTx.Builtins (
                           -- * Bytestring builtins
@@ -68,7 +71,7 @@ module PlutusTx.Builtins (
                          -- * Pairs
                          , pairToPair
                          -- * Lists
-                         , matchList
+                         , BI.matchList
                          , headMaybe
                          , BI.head
                          , BI.tail
@@ -109,7 +112,7 @@ module PlutusTx.Builtins (
                          ) where
 
 import Data.Maybe
-import PlutusTx.Base (const, uncurry)
+import PlutusTx.Base (uncurry)
 import PlutusTx.Bool (Bool (..))
 import PlutusTx.Builtins.Class
 import PlutusTx.Builtins.Internal (BuiltinBLS12_381_G1_Element (..),
@@ -381,18 +384,14 @@ trace = BI.trace
 encodeUtf8 :: BuiltinString -> BuiltinByteString
 encodeUtf8 = BI.encodeUtf8
 
-{-# INLINABLE matchList #-}
-matchList :: forall a r . BI.BuiltinList a -> r -> (a -> BI.BuiltinList a -> r) -> r
-matchList l nilCase consCase = BI.chooseList l (const nilCase) (\_ -> consCase (BI.head l) (BI.tail l)) ()
-
 {-# INLINE headMaybe #-}
 headMaybe :: BI.BuiltinList a -> Maybe a
-headMaybe l = matchList l Nothing (\h _ -> Just h)
+headMaybe l = BI.matchList l Nothing (\h _ -> Just h)
 
 {-# INLINE uncons #-}
 -- | Uncons a builtin list, failing if the list is empty, useful in patterns.
 uncons :: BI.BuiltinList a -> Maybe (a, BI.BuiltinList a)
-uncons l = matchList l Nothing (\h t -> Just (h, t))
+uncons l = BI.matchList l Nothing (\h t -> Just (h, t))
 
 {-# INLINE unsafeUncons #-}
 -- | Uncons a builtin list, failing if the list is empty, useful in patterns.

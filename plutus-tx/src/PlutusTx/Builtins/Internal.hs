@@ -4,6 +4,7 @@
 {-# LANGUAGE KindSignatures     #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TypeApplications   #-}
+{-# LANGUAGE UnboxedTuples      #-}
 
 -- This ensures that we don't put *anything* about these functions into the interface
 -- file, otherwise GHC can be clever about the ones that are always error, even though
@@ -465,6 +466,11 @@ chooseData (BuiltinData d) constrCase mapCase listCase iCase bCase = case d of
     PLC.List{}   -> listCase
     PLC.I{}      -> iCase
     PLC.B{}      -> bCase
+
+{-# NOINLINE matchList #-}
+matchList :: forall a r . BuiltinList a -> r -> (a -> BuiltinList a -> r) -> r
+matchList (BuiltinList [])     nilCase _  = nilCase
+matchList (BuiltinList (x:xs)) _ consCase = consCase x (BuiltinList xs)
 
 {-# NOINLINE mkConstr #-}
 mkConstr :: BuiltinInteger -> BuiltinList BuiltinData -> BuiltinData

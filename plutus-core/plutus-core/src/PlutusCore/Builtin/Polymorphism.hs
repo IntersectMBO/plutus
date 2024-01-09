@@ -16,6 +16,7 @@ module PlutusCore.Builtin.Polymorphism
     , TyVarRep
     , TyAppRep
     , TyForallRep
+    , TySopRep
     , BuiltinHead
     , ElaborateBuiltin
     , AllElaboratedArgs
@@ -181,6 +182,8 @@ data family TyAppRep (fun :: dom -> cod) (arg :: dom) :: cod
 
 -- | Representation of of an intrinsically-kinded universal quantifier: a bound name and a body.
 data family TyForallRep (name :: TyNameRep kind) (a :: GHC.Type) :: GHC.Type
+
+data family TySopRep (sums :: [[GHC.Type]]) :: GHC.Type
 
 -- | For annotating an uninstantiated built-in type, so that it gets handled by the right instance
 -- or type family.

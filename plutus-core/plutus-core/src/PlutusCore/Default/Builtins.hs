@@ -23,6 +23,7 @@ import PlutusCore.Evaluation.Machine.BuiltinCostModel
 import PlutusCore.Evaluation.Machine.ExBudgetStream
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.Evaluation.Result
+import PlutusCore.Name
 import PlutusCore.Pretty
 
 import PlutusCore.Builtin.Convert as Convert
@@ -95,6 +96,7 @@ data DefaultFun
     | SndPair
     -- Lists
     | ChooseList
+    | ListToConstr
     | MkCons
     | HeadList
     | TailList
@@ -105,6 +107,7 @@ data DefaultFun
     -- constructors to get pattern matching over it and we may end up having multiple such data
     -- types, hence we include the name of the data type as a suffix.
     | ChooseData
+    | DataToConstr
     | ConstrData
     | MapData
     | ListData
@@ -1436,6 +1439,21 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             chooseListDenotation
             (runCostingFunThreeArguments . paramChooseList)
 
+    toBuiltinMeaning _semvar ListToConstr =
+        let listToConstrDenotation
+                :: KnownTypeAst TyName DefaultUni a
+                => SomeConstant uni [a]
+                -> EvaluationResult (Opaque val (TySopRep '[ '[], '[a, [a]] ]))
+            listToConstrDenotation (SomeConstant (Some (ValueOf uniListA xs0))) = do
+                DefaultUniList uniA <- pure uniListA
+                pure $ case xs0 of
+                    []     -> toConstr 0 []
+                    x : xs -> toConstr 1 [fromValueOf uniA x, fromValueOf uniListA xs]
+            {-# INLINE listToConstrDenotation #-}
+        in makeBuiltinMeaning
+            listToConstrDenotation
+            (\_ _ -> ExBudgetLast mempty)
+
     toBuiltinMeaning _semvar MkCons =
         let mkConsDenotation
                 :: SomeConstant uni a -> SomeConstant uni [a] -> EvaluationResult (Opaque val [a])
@@ -1502,6 +1520,22 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
         in makeBuiltinMeaning
             chooseDataDenotation
             (runCostingFunSixArguments . paramChooseData)
+
+    toBuiltinMeaning _semvar DataToConstr =
+        let dataToConstrDenotation
+                :: Data
+                -> Opaque val (TySopRep
+                    '[ '[Integer, [Data]], '[(Data, Data)], '[Data], '[Integer], '[BS.ByteString]])
+            dataToConstrDenotation = \case
+                Constr i ds -> toConstr 0 [fromValue i, fromValue ds]
+                Map ps      -> toConstr 1 [fromValue ps]
+                List ds     -> toConstr 2 [fromValue ds]
+                I i         -> toConstr 3 [fromValue i]
+                B b         -> toConstr 4 [fromValue b]
+            {-# INLINE dataToConstrDenotation #-}
+        in makeBuiltinMeaning
+            dataToConstrDenotation
+            (\_ _ -> ExBudgetLast mempty)
 
     toBuiltinMeaning _semvar ConstrData =
         let constrDataDenotation :: Integer -> [Data] -> Data
@@ -1888,12 +1922,14 @@ instance Flat DefaultFun where
               SndPair                         -> 30
 
               ChooseList                      -> 31
+              ListToConstr                    -> 75
               MkCons                          -> 32
               HeadList                        -> 33
               TailList                        -> 34
               NullList                        -> 35
 
               ChooseData                      -> 36
+              DataToConstr                    -> 76
               ConstrData                      -> 37
               MapData                         -> 38
               ListData                        -> 39
@@ -2010,6 +2046,8 @@ instance Flat DefaultFun where
               go 72 = pure Blake2b_224
               go 73 = pure IntegerToByteString
               go 74 = pure ByteStringToInteger
+              go 75 = pure ListToConstr
+              go 76 = pure DataToConstr
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth

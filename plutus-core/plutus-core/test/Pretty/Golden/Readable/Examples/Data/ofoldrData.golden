@@ -93,19 +93,13 @@
                       {list a}
                       (\(rec : list a -> list a) (xs : list a) ->
                          (/\a ->
-                            \(x : list a) ->
+                            \(xs : list a) ->
                               /\r ->
-                                \(z : r) (f : a -> list a -> r) ->
-                                  (Left chooseList)
-                                    {a}
-                                    {unit -> r}
-                                    x
-                                    (\(u : unit) -> z)
-                                    (\(u : unit) ->
-                                       f
-                                         ((Left headList) {a} x)
-                                         ((Left tailList) {a} x))
-                                    ())
+                                \(nilCase : r) (consCase : a -> list a -> r) ->
+                                  case
+                                    r
+                                    ((Left listToConstr) {a} xs)
+                                    [nilCase, consCase])
                            {a}
                            xs
                            {list a}
@@ -155,19 +149,13 @@
                       {list a}
                       (\(rec : list a -> list a) (xs : list a) ->
                          (/\a ->
-                            \(x : list a) ->
+                            \(xs : list a) ->
                               /\r ->
-                                \(z : r) (f : a -> list a -> r) ->
-                                  (Left chooseList)
-                                    {a}
-                                    {unit -> r}
-                                    x
-                                    (\(u : unit) -> z)
-                                    (\(u : unit) ->
-                                       f
-                                         ((Left headList) {a} x)
-                                         ((Left tailList) {a} x))
-                                    ())
+                                \(nilCase : r) (consCase : a -> list a -> r) ->
+                                  case
+                                    r
+                                    ((Left listToConstr) {a} xs)
+                                    [nilCase, consCase])
                            {a}
                            xs
                            {list a}
@@ -225,19 +213,13 @@
                       {list a}
                       (\(rec : list a -> list a) (xs : list a) ->
                          (/\a ->
-                            \(x : list a) ->
+                            \(xs : list a) ->
                               /\r ->
-                                \(z : r) (f : a -> list a -> r) ->
-                                  (Left chooseList)
-                                    {a}
-                                    {unit -> r}
-                                    x
-                                    (\(u : unit) -> z)
-                                    (\(u : unit) ->
-                                       f
-                                         ((Left headList) {a} x)
-                                         ((Left tailList) {a} x))
-                                    ())
+                                \(nilCase : r) (consCase : a -> list a -> r) ->
+                                  case
+                                    r
+                                    ((Left listToConstr) {a} xs)
+                                    [nilCase, consCase])
                            {a}
                            xs
                            {list a}
