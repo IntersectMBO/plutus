@@ -119,7 +119,7 @@ runModel (twoArgumentsConstBelowDiagonal c m) (a ∷ b ∷ []) =
 May fail if the model doesn't correspond to the number of arguments.
 
 ```
-convertRawModel : ∀{n} → Model → Maybe (CostingModel n) 
+convertRawModel : ∀{n} → RawModel → Maybe (CostingModel n) 
 convertRawModel (ConstantCost c) = just (constantCost c)
 convertRawModel (AddedSizes (mkLF intercept slope)) = just (addedSizes intercept slope)
 convertRawModel (MultipliedSizes (mkLF intercept slope)) = just (multipliedSizes intercept slope)
@@ -147,18 +147,30 @@ convertCpuAndMemoryModel (mkCpuAndMemoryModel cpuModel memoryModel) with convert
 Creates a function mapping builtins to their corresponding costing models, 
 starting from a `BuiltinCostMap`.
 
+We need to construct a `BuiltinModel (arity b)` for each `b`, and this may fail if
+the model int the map doesn't correspond to the arity. 
+
 ```
 getModel : Builtin → BuiltinCostMap → Maybe (Σ Builtin (λ b → (BuiltinModel (arity b))))
 getModel b [] = nothing
 getModel b ((bn , rm) ∷ xs) with showBuiltin b == bn 
 ... | false = getModel b xs
 ... | true = map (b ,_) (convertCpuAndMemoryModel rm)
+``` 
 
-fallbackModel :  ∀{n} → BuiltinModel n 
-fallbackModel = record { costingCPU = constantCost 0 ; costingMem = constantCost 0 }
+Once we have a list of all the builtins and their corresponding model, 
+we need to turn this into a function.  
+
+However Agda doesn't know 
+that we are providing a model for *every* constructor, so we 
+provide a `dummyModel` to answer in the `[]` case.
+
+``` 
+dummyModel :  ∀{n} → BuiltinModel n 
+dummyModel = record { costingCPU = constantCost 0 ; costingMem = constantCost 0 }
 
 lookupModel : L.List (Σ Builtin (λ b → (BuiltinModel (arity b)))) → (b : Builtin) → BuiltinModel (arity b)
-lookupModel [] _ = fallbackModel  --should not happen if builtinList is complete
+lookupModel [] _ = dummyModel  --should not happen if builtinList is complete
                                   --but Agda doesn't know this (we do).
 lookupModel ((b , bm) ∷ xs) b' with decBuiltin b b'
 ... | false because p = lookupModel xs b'

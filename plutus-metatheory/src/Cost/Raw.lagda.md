@@ -23,22 +23,22 @@ record LinearFunction : Set where
 
 {-# COMPILE GHC LinearFunction = data LinearFunction(LinearFunction) #-}
 
-data Model : Set where 
-    ConstantCost       : CostingNat → Model 
-    AddedSizes         : LinearFunction → Model 
-    MultipliedSizes    : LinearFunction → Model
-    MinSize            : LinearFunction → Model
-    MaxSize            : LinearFunction → Model
-    LinearCost         : LinearFunction → Model
-    LinearInX          : LinearFunction → Model
-    LinearInY          : LinearFunction → Model
-    LinearInZ          : LinearFunction → Model
-    SubtractedSizes    : LinearFunction → CostingNat → Model
-    ConstAboveDiagonal : CostingNat → Model → Model
-    ConstBelowDiagonal : CostingNat → Model → Model
-    LinearOnDiagonal   : LinearFunction → CostingNat → Model
+data RawModel : Set where 
+    ConstantCost       : CostingNat → RawModel 
+    AddedSizes         : LinearFunction → RawModel 
+    MultipliedSizes    : LinearFunction → RawModel
+    MinSize            : LinearFunction → RawModel
+    MaxSize            : LinearFunction → RawModel
+    LinearCost         : LinearFunction → RawModel
+    LinearInX          : LinearFunction → RawModel
+    LinearInY          : LinearFunction → RawModel
+    LinearInZ          : LinearFunction → RawModel
+    SubtractedSizes    : LinearFunction → CostingNat → RawModel
+    ConstAboveDiagonal : CostingNat → RawModel → RawModel
+    ConstBelowDiagonal : CostingNat → RawModel → RawModel
+    LinearOnDiagonal   : LinearFunction → CostingNat → RawModel
 
-{-# COMPILE GHC Model = data Model (ConstantCost | AddedSizes | MultipliedSizes |
+{-# COMPILE GHC RawModel = data Model (ConstantCost | AddedSizes | MultipliedSizes |
                                    MinSize | MaxSize | LinearCost | LinearInX | LinearInY |
                                    LinearInZ | SubtractedSizes | ConstAboveDiagonal |
                                    ConstBelowDiagonal | LinearOnDiagonal)  #-}
@@ -46,8 +46,8 @@ data Model : Set where
 record CpuAndMemoryModel : Set where 
      constructor mkCpuAndMemoryModel 
      field 
-        cpuModel : Model
-        memoryModel : Model  
+        cpuModel : RawModel
+        memoryModel : RawModel  
 
 {-# COMPILE GHC CpuAndMemoryModel = data CpuAndMemoryModel (CpuAndMemoryModel) #-}         
 
