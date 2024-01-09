@@ -4,8 +4,6 @@
    builtins and generate an Agda module with a function that assigns builtins to models -}
 module Cost.JSON where
 
-import Paths_plutus_metatheory (getDataFileName)
-
 import Data.Aeson
 import Data.Aeson.Key as Key (toText)
 import Data.Aeson.KeyMap qualified as KeyMap
@@ -112,10 +110,9 @@ type BuiltinCostMap = [(Text, CpuAndMemoryModel)]
 builtinName :: Text -> Text
 builtinName = replace "_" "-"
 
-getJSONModel :: IO (Maybe BuiltinCostMap)
-getJSONModel = do
-  defaultCostModelPath <- getDataFileName "data/builtinCostModel.json"
-  bytes <- BSL.readFile defaultCostModelPath
+getJSONModel :: FilePath -> IO (Maybe BuiltinCostMap)
+getJSONModel jsonfile = do
+  bytes <- BSL.readFile jsonfile
   case eitherDecode bytes :: Either String (KeyMap.KeyMap CpuAndMemoryModel) of
     Left err -> return Nothing
     Right m  -> return $ Just (map (first (builtinName . toText)) (KeyMap.toList m))

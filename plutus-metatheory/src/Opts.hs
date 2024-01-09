@@ -14,8 +14,13 @@ import PlutusCore.Executable.Common
 import PlutusCore.Executable.Parsers
 
 import Cost.JSON
+import Paths_plutus_metatheory (getDataFileName)
 import System.Exit (exitFailure)
 import System.IO (stderr)
+
+
+defaultBuiltinCostModelPath :: FilePath
+defaultBuiltinCostModelPath = "data/builtinCostModel.json"
 
 -- the different budget modes of plc-agda
 data BudgetMode a = Silent
@@ -82,7 +87,8 @@ commands = hsubparser (
 
 addJSONParameters :: Command a -> IO (Command BuiltinCostMap)
 addJSONParameters c = do
-     mbm <- getJSONModel
+     filepath <- getDataFileName defaultBuiltinCostModelPath
+     mbm <- getJSONModel filepath
      case mbm of
       Just bm -> return (fmap (const bm) c)
       Nothing -> do
