@@ -479,7 +479,6 @@ library plutus-ir
     PlutusIR.Analysis.Dependencies
     PlutusIR.Analysis.RetainedSize
     PlutusIR.Analysis.VarInfo
-    PlutusIR.Certifier.ToCoq
     PlutusIR.Check.Uniques
     PlutusIR.Compiler
     PlutusIR.Compiler.Datatype
@@ -542,7 +541,6 @@ library plutus-ir
   build-depends:
     , algebraic-graphs     >=0.7
     , base                 >=4.9     && <5
-    , bytestring
     , containers
     , dlist
     , dom-lt
@@ -754,6 +752,7 @@ library plutus-core-testlib
 -- that just always says everything is fine.
 library plutus-ir-cert
   import:           lang
+  visibility:       public
 
   if flag(with-cert)
     hs-source-dirs: plutus-ir/cert/tests
@@ -762,11 +761,17 @@ library plutus-ir-cert
   else
     hs-source-dirs: plutus-ir/cert/tests-stub
 
+  hs-source-dirs:   plutus-ir/cert/certifier
   default-language: Haskell2010
-  exposed-modules:  PlutusIR.Certifier.Tests
+  exposed-modules:
+    PlutusIR.Certifier.Tests
+    PlutusIR.Certifier.ToCoq
+
   build-depends:
     , base
+    , bytestring
     , plutus-core:{plutus-core, plutus-ir}  ^>=1.18
+    , text
 
 ----------------------------------------------
 -- debugger
