@@ -52,7 +52,6 @@ common lang
 library
   import:          lang
   hs-source-dirs:  src
-  other-modules:   Paths_plutus_metatheory
   build-depends:
     , aeson
     , base

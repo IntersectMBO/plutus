@@ -14,7 +14,6 @@ import PlutusCore.Executable.Common
 import PlutusCore.Executable.Parsers
 
 import Cost.JSON
-import Paths_plutus_metatheory (getDataFileName)
 import System.Exit (exitFailure)
 import System.IO (stderr)
 
@@ -87,8 +86,7 @@ commands = hsubparser (
 
 addJSONParameters :: Command a -> IO (Command BuiltinCostMap)
 addJSONParameters c = do
-     filepath <- getDataFileName defaultBuiltinCostModelPath
-     mbm <- getJSONModel filepath
+     mbm <- getJSONModel defaultBuiltinCostModelPath
      case mbm of
       Just bm -> return (fmap (const bm) c)
       Nothing -> do
