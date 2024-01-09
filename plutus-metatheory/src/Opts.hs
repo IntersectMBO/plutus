@@ -20,8 +20,8 @@ import System.IO (stderr)
 
 
 defaultBuiltinCostModelPath :: FilePath
-defaultBuiltinCostModelPath = "data/builtinCostModel.json"
-
+--defaultBuiltinCostModelPath = "data/builtinCostModel.json"
+defaultBuiltinCostModelPath = "../plutus-core/cost-model/data/builtinCostModel.json"
 -- the different budget modes of plc-agda
 data BudgetMode a = Silent
                  | Counting a
