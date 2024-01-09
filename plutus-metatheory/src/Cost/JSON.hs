@@ -1,21 +1,18 @@
-{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 {- | A program to parse a JSON representation of costing functions for Plutus Core
    builtins and generate an Agda module with a function that assigns builtins to models -}
-module Main where
+module Cost.JSON where
 
-import Paths_plutus_metatheory
+import Paths_plutus_metatheory (getDataFileName)
 
 import Data.Aeson
-import Data.Aeson.Key as Key (toString)
+import Data.Aeson.Key as Key (toText)
 import Data.Aeson.KeyMap qualified as KeyMap
+import Data.Bifunctor
 import Data.ByteString.Lazy as BSL (getContents, readFile)
 import Data.List (intercalate)
-import Data.Text (Text)
-import System.Environment (getArgs, getProgName)
-import System.Exit
-import Text.Printf (printf)
+import Data.Text (Text, replace)
 
 -------------- Types representing cost mode entries and functions for JSON parsing ----------------
 
@@ -109,108 +106,17 @@ instance FromJSON CpuAndMemoryModel where
     parseJSON = withObject "CpuAndMemoryModel" $ \obj ->
                 CpuAndMemoryModel <$> obj .: "cpu" <*> obj .: "memory"
 
+type BuiltinCostMap = [(Text, CpuAndMemoryModel)]
 
----------------- Printing cost models  ----------------
+-- replace underscores _ by dashes -
+builtinName :: Text -> Text
+builtinName = replace "_" "-"
 
--- | Print a linear function
-renderLinearFunction :: LinearFunction -> String
-renderLinearFunction (LinearFunction intercept slope) =
-   printf "%d %d" intercept slope
-
-renderModel :: Model -> String
-renderModel =
-    \case
-     ConstantCost       n   -> printf "constantCost %d" n
-     AddedSizes         f   -> printf "addedSizes %s" (renderLinearFunction f)
-     MultipliedSizes    f   -> printf "multipliedSizes %s" (renderLinearFunction f)
-     MinSize            f   -> printf "minSize %s" (renderLinearFunction f)
-     MaxSize            f   -> printf "maxSize %s" (renderLinearFunction f)
-     LinearCost         f   -> printf "linearCostIn zero %s" (renderLinearFunction f)
-     LinearInX          f   -> printf "linearCostIn zero %s" (renderLinearFunction f)
-     LinearInY          f   ->
-      printf "linearCostIn (suc zero) %s" (renderLinearFunction f)
-     LinearInZ          f   ->
-      printf "linearCostIn (suc (suc zero)) %s" (renderLinearFunction f)
-     SubtractedSizes    l c ->
-       printf "twoArgumentsSubtractedSizes %s %d" (renderLinearFunction l) c
-     ConstAboveDiagonal c m ->
-       printf "twoArgumentsConstAboveDiagonal %d (%s)" c (renderModel m)
-     ConstBelowDiagonal c m ->
-       printf "twoArgumentsConstBelowDiagonal %d (%s)" c (renderModel m)
-     LinearOnDiagonal   f c ->
-       printf "twoArgumentsLinearOnDiagonal %d %s" c (renderLinearFunction f)
-
--- | Take a list of strings and print them line by line.
-printListIndented :: Int -> [String] -> IO ()
-printListIndented width =  mapM_ (\s -> printf "%s%s\n" spaces s)
-          where spaces = replicate width ' '
-
-{- | Print a Builtin replacing the '_' with '-'
- (underscores in Agda have a different meaning) -}
-printBuiltin :: Key -> String
-printBuiltin = map (\c -> if c == '_' then '-' else c). Key.toString
-
--- | Print the case of a function `assignModel` for a given Builtin (the Key below).
-printModel :: (Key, CpuAndMemoryModel) -> IO ()
-printModel (name, CpuAndMemoryModel cpu mem) = do
-    printf "assignModel %s =\n" (printBuiltin name)
-    printListIndented 4 [ "record { costingCPU = " ++ renderModel cpu
-                        , "       ; costingMem = " ++ renderModel mem ++ " }"]
-
-agdaHeader :: Maybe FilePath -> String
-agdaHeader input =
-   let name = case input of
-                  Nothing -> "stdin"
-                  Just f  -> show f
-   in     "-- Assignment of models to Builtins\n"
-         ++ "-- module auto-generated from "++ name ++"\n\n"
-         ++ "module Cost.BuiltinModelAssignment where\n\n"
-         ++ "open import Data.Fin using (suc;zero)\n"
-         ++ "open import Builtin using (Builtin;arity)\n"
-         ++ "open Builtin.Builtin\n"
-         ++ "open import Cost.Model using (BuiltinModel;CostingModel;costingCPU;costingMem)\n"
-         ++ "open CostingModel\n\n"
-         ++ "assignModel : (b : Builtin) → BuiltinModel (arity b)"
-
----------------- Command line processing ----------------
-
-usage :: FilePath -> IO a
-usage defaultCostModelPath = do
-  prog <- getProgName
-  printf "Usage: %s [<filename>]\n" prog
-  printf "\n"
-  printf "Generate an Agda module defining an assignment of models to builtins.\n"
-  printf "Input is read from stdin if no file is given and --default is not specified.\n"
-  printf "\n"
-  printf "Options (later options take precedence over earlier ones):\n"
-  printf "   -d, --default: print the contents of the default cost model in\n"
-  printf "      %s\n" defaultCostModelPath
-  printf "   <filename>: read and print the cost model in the given file\n"
-  exitSuccess
-
-parseArgs :: [String] -> FilePath -> IO (Maybe String)
-parseArgs args defaultCostModelPath =
-  parse args (Just defaultCostModelPath)
-    where parse [] result = pure result
-          parse (arg:rest) input =
-              case arg of
-                []    -> errorWithoutStackTrace "Empty argument"
-                '-':_ -> parseOption arg rest input
-                _     -> parse rest (Just arg)
-          parseOption arg rest input
-                      | elem arg ["-d", "--default"] =
-                        parse rest (Just defaultCostModelPath)
-                      | elem arg ["-h", "--help"] = usage defaultCostModelPath
-                      | otherwise =
-                        printf "Error: unknown option %s\n" arg >> usage defaultCostModelPath
-
-main :: IO ()
-main = do
-  args <- getArgs
-  defaultCostModelPath <- getDataFileName "generate-model-assignment/builtinCostModel.json"
-  input <- parseArgs args defaultCostModelPath
-  bytes <- maybe BSL.getContents BSL.readFile input
+getJSONModel :: IO (Maybe BuiltinCostMap)
+getJSONModel = do
+  defaultCostModelPath <- getDataFileName "data/builtinCostModel.json"
+  bytes <- BSL.readFile defaultCostModelPath
   case eitherDecode bytes :: Either String (KeyMap.KeyMap CpuAndMemoryModel) of
-    Left err -> putStrLn err
-    Right m  -> putStrLn (agdaHeader input) >> mapM_ printModel (KeyMap.toList m)
+    Left err -> return Nothing
+    Right m  -> return $ Just (map (first (builtinName . toText)) (KeyMap.toList m))
 

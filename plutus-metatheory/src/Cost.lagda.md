@@ -54,7 +54,6 @@ open AtomicTyCon
 
 open import Cost.Base 
 open import Cost.Model
-open import Cost.BuiltinModelAssignment
 ``` 
 
 ## Execution Budget
@@ -194,18 +193,14 @@ Probably, we will do this by reusing Haskell code.
 defaultCekMachineCost : StepKind → ExBudget
 defaultCekMachineCost _ = mkExBudget 23000 100
 
-defaultCekStartupCost : ExBudget
-defaultCekStartupCost = mkExBudget 100 100
+exBudgetCategoryCost : ModelAssignment → ExBudgetCategory → ExBudget 
+exBudgetCategoryCost _ (BStep x) = defaultCekMachineCost x
+exBudgetCategoryCost assignModel (BBuiltinApp b cs) = builtinCost b (assignModel b) cs
+exBudgetCategoryCost _ BStartup = mkExBudget 100 100
 
-exBudgetCategoryCost : ExBudgetCategory → ExBudget 
-exBudgetCategoryCost (BStep x) = defaultCekMachineCost x
-exBudgetCategoryCost (BBuiltinApp b cs) = builtinCost b (assignModel b) cs
-exBudgetCategoryCost BStartup = defaultCekStartupCost
-
-defaultMachineParameters : MachineParameters ExBudget
-defaultMachineParameters = record {
-    startupCost = defaultCekStartupCost 
-  ; cekMachineCost = exBudgetCategoryCost 
+defaultMachineParameters : ModelAssignment → MachineParameters ExBudget
+defaultMachineParameters assignModel = record {
+    cekMachineCost = exBudgetCategoryCost assignModel
   ; ε = ε€
   ; _∙_ = _∙€_
   ; costMonoid = isMonoidExBudget
@@ -267,15 +262,14 @@ isMonoidTallyingBudget = record {
            ; assoc = TallyingBudget-assoc } 
      ; identity = (λ x → refl) , Tallying-budget-identityʳ }
 
-tallyingCekMachineCost : ExBudgetCategory → TallyingBudget
-tallyingCekMachineCost k = 
-      let spent = exBudgetCategoryCost k 
+tallyingCekMachineCost : ModelAssignment → ExBudgetCategory → TallyingBudget
+tallyingCekMachineCost am k = 
+      let spent = exBudgetCategoryCost am k 
       in singleton (mkKeyFromExBudgetCategory k) spent , spent
 
-tallyingMachineParameters : MachineParameters TallyingBudget
-tallyingMachineParameters = record { 
-        startupCost = tallyingCekMachineCost BStartup 
-      ; cekMachineCost = tallyingCekMachineCost
+tallyingMachineParameters : ModelAssignment → MachineParameters TallyingBudget
+tallyingMachineParameters am = record { 
+        cekMachineCost = tallyingCekMachineCost am
       ; ε = εT
       ; _∙_ = _∙T_
       ; costMonoid = isMonoidTallyingBudget

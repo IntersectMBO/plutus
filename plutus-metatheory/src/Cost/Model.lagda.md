@@ -9,12 +9,22 @@ module Cost.Model where
 # Imports
 
 ```
-open import Data.Bool using (if_then_else_)
+open import Data.Bool using (true;false;if_then_else_)
 open import Data.Fin using (Fin;zero;suc)
+open import Data.Maybe using (Maybe;just;nothing;map)
 open import Data.Nat using (ℕ;zero;suc;_+_;_*_;_∸_;_⊔_;_⊓_;_<ᵇ_;_≡ᵇ_)
+open import Data.List using ([];_∷_)
+import Data.List as L 
+open import Data.Product using (Σ;_,_)
+open import Data.String using (_==_)
+open import Relation.Nullary using (_because_;ofʸ)
+open import Relation.Binary.PropositionalEquality using (refl)
 
+open import Utils using (List;_×_;[];_∷_;_,_;length)
 open import Data.Vec using (Vec;[];_∷_;sum;foldr;lookup) 
 open import Cost.Base 
+open import Cost.Raw renaming (mkLinearFunction to mkLF)
+open import Builtin using (Builtin;arity;builtinList;showBuiltin;decBuiltin)
 ```
 
 ## Basic Definitions
@@ -103,3 +113,70 @@ runModel (twoArgumentsConstBelowDiagonal c m) (a ∷ b ∷ []) =
       then c 
       else runModel m (a ∷ b ∷ [])
 ```
+
+## Convert from Raw Model
+
+May fail if the model doesn't correspond to the number of arguments.
+
+```
+convertRawModel : ∀{n} → Model → Maybe (CostingModel n) 
+convertRawModel (ConstantCost c) = just (constantCost c)
+convertRawModel (AddedSizes (mkLF intercept slope)) = just (addedSizes intercept slope)
+convertRawModel (MultipliedSizes (mkLF intercept slope)) = just (multipliedSizes intercept slope)
+convertRawModel {suc n} (MinSize (mkLF intercept slope)) = just (minSize intercept slope)
+convertRawModel {suc n} (MaxSize (mkLF intercept slope)) = just (maxSize intercept slope)
+convertRawModel {suc n} (LinearCost (mkLF intercept slope)) = just (linearCostIn zero intercept slope)
+convertRawModel {suc n} (LinearInX (mkLF intercept slope)) = just (linearCostIn zero intercept slope)
+convertRawModel {suc (suc n)} (LinearInY (mkLF intercept slope)) = just (linearCostIn (suc zero) intercept slope)
+convertRawModel {suc (suc (suc n))}(LinearInZ (mkLF intercept slope)) = just (linearCostIn (suc (suc zero)) intercept slope)
+convertRawModel {2} (SubtractedSizes (mkLF intercept slope) c) = just (twoArgumentsSubtractedSizes intercept slope c)
+convertRawModel {2} (ConstAboveDiagonal c m) = map (twoArgumentsConstAboveDiagonal c) (convertRawModel m)
+convertRawModel {2} (ConstBelowDiagonal c m) = map (twoArgumentsConstBelowDiagonal c) (convertRawModel m)
+convertRawModel {2} (LinearOnDiagonal (mkLF intercept slope) c) = just (twoArgumentsLinearOnDiagonal c intercept slope)
+convertRawModel _ = nothing
+
+convertCpuAndMemoryModel : ∀{n} → CpuAndMemoryModel → Maybe (BuiltinModel n)
+convertCpuAndMemoryModel (mkCpuAndMemoryModel cpuModel memoryModel) with convertRawModel cpuModel | convertRawModel memoryModel 
+... | just cm | just mm = just (record { costingCPU = cm ; costingMem = mm })
+... | just _ | nothing = nothing
+... | nothing | m = nothing
+```
+
+## Creation of mapping function 
+
+Creates a function mapping builtins to their corresponding costing models, 
+starting from a `BuiltinCostMap`.
+
+```
+getModel : Builtin → BuiltinCostMap → Maybe (Σ Builtin (λ b → (BuiltinModel (arity b))))
+getModel b [] = nothing
+getModel b ((bn , rm) ∷ xs) with showBuiltin b == bn 
+... | false = getModel b xs
+... | true = map (b ,_) (convertCpuAndMemoryModel rm)
+
+fallbackModel :  ∀{n} → BuiltinModel n 
+fallbackModel = record { costingCPU = constantCost 0 ; costingMem = constantCost 0 }
+
+lookupModel : L.List (Σ Builtin (λ b → (BuiltinModel (arity b)))) → (b : Builtin) → BuiltinModel (arity b)
+lookupModel [] _ = fallbackModel  --should not happen if builtinList is complete
+                                  --but Agda doesn't know this (we do).
+lookupModel ((b , bm) ∷ xs) b' with decBuiltin b b'
+... | false because p = lookupModel xs b'
+... | true because ofʸ refl = bm
+
+allJust : {A : Set} → (xs : L.List (Maybe A)) → Maybe (L.List A)
+allJust [] = just []
+allJust (just x ∷ xs) with allJust xs 
+... | just xs' = just (x ∷ xs')
+... | nothing = nothing
+allJust (nothing ∷ xs) = nothing
+
+ModelAssignment : Set 
+ModelAssignment = (b : Builtin) → BuiltinModel (arity b)
+
+createMap : BuiltinCostMap → Maybe ModelAssignment
+createMap bmap = 
+      let modelMaybeList = L.map (λ b → getModel b bmap) builtinList 
+          maybeModelList = allJust modelMaybeList
+      in map lookupModel maybeModelList
+``` 
