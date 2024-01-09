@@ -764,6 +764,7 @@ library plutus-ir-cert
   hs-source-dirs:   plutus-ir/cert/certifier
   default-language: Haskell2010
   exposed-modules:
+    PlutusIR.Certifier.DumpCert
     PlutusIR.Certifier.Tests
     PlutusIR.Certifier.ToCoq
 
