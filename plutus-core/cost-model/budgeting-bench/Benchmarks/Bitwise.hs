@@ -107,6 +107,10 @@ smallWidths = [1..150]
 bigWidths :: [Int]
 bigWidths = fmap (10*) [1..150]
 
+-- Make an integer 0xFF...FF of size n.
+allFF :: Int -> Integer
+allFF n = 256^(8*n) - 1
+
 -- Fixed width, small inputs.
 -- Width = 1-150 ExMemory (8 times that in bytes)
 -- input = random integer 'width'-bytes integer
@@ -125,16 +129,14 @@ benchIntegerToByteStringBoundedTrueSmall gen =
 benchIntegerToByteStringBoundedFalseSmallFF :: StdGen -> Benchmark
 benchIntegerToByteStringBoundedFalseSmallFF _gen =
     let widths = smallWidths
-        inputs = fmap (\(n::Int) -> 2^(8*n-1)) widths :: [Integer]
+        inputs = fmap allFF widths
     in createThreeTermBuiltinBenchElementwise' "BoundedFalseSmallFF" $ zip3 (repeat False) widths inputs
 
 benchIntegerToByteStringBoundedTrueSmallFF :: StdGen -> Benchmark
 benchIntegerToByteStringBoundedTrueSmallFF _gen =
     let widths = smallWidths
-        inputs = fmap (\(n::Int) -> 2^(8*n-1)) widths :: [Integer]
+        inputs = fmap allFF widths
     in createThreeTermBuiltinBenchElementwise' "BoundedTrueSmallFF" $ zip3 (repeat True) widths inputs
-
-
 
 -- Fixed width, big inputs.
 benchIntegerToByteStringBoundedFalseBig :: StdGen -> Benchmark
@@ -179,13 +181,13 @@ benchIntegerToByteStringUnboundedTrueSmall gen =
 benchIntegerToByteStringUnboundedFalseSmallFF :: StdGen -> Benchmark
 benchIntegerToByteStringUnboundedFalseSmallFF _gen =
     let widths = smallWidths
-        inputs = fmap (\(n::Int) -> 2^(8*n-1)) widths :: [Integer]
+        inputs = fmap allFF widths
     in createThreeTermBuiltinBenchElementwise' "UnboundedFalseSmallFF" $ zip3 (repeat False) (repeat 0) inputs
 
 benchIntegerToByteStringUnboundedTrueSmallFF :: StdGen -> Benchmark
 benchIntegerToByteStringUnboundedTrueSmallFF _gen =
     let widths = smallWidths
-        inputs = fmap (\(n::Int) -> 2^(8*n-1)) widths :: [Integer]
+        inputs = fmap allFF widths
     in createThreeTermBuiltinBenchElementwise' "UnboundedTrueSmallFF" $ zip3 (repeat True) (repeat 0) inputs
 
 -- Flexible width, big inputs
