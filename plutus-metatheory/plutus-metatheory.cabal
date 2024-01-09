@@ -12,7 +12,7 @@ author:             James Chapman
 maintainer:         james.chapman@iohk.io
 category:           Development
 extra-source-files:
-  generate-model-assignment/builtinCostModel.json
+  data/builtinCostModel.json
   Plutus.agda-lib
   README.md
   src/**/*.lagda
