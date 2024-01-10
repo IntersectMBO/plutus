@@ -30,7 +30,7 @@ integerLength = fromIntegral . BS.length
 -- Arguments for single-argument benchmarks: 150 entries.
 -- Note that the length is eight times the size.
 smallerByteStrings150 :: H.Seed -> [BS.ByteString]
-smallerByteStrings150 seed = makeSizedByteStrings seed $ fmap (10*) [1..150]
+smallerByteStrings150 seed = makeSizedByteStrings seed [1..150]
 
 -- Arguments for two-argument benchmarks: 21 entries.
 -- Note that the length is eight times the size.
@@ -38,7 +38,7 @@ largerByteStrings21 :: H.Seed -> [BS.ByteString]
 largerByteStrings21 seed = makeSizedByteStrings seed $ fmap (250*) [0..20]
 
 largerByteStrings150 :: H.Seed -> [BS.ByteString]
-largerByteStrings150 seed = makeSizedByteStrings seed $ fmap (100*) [1..150]
+largerByteStrings150 seed = makeSizedByteStrings seed $ fmap (10*) [1..150]
 
 smallerIntegers150 :: StdGen -> [Integer]
 smallerIntegers150 gen = fst $ makeSizedIntegers gen $ fmap (10*) [1..150]
@@ -88,16 +88,16 @@ createThreeTermBuiltinBenchElementwise' suffix inputs =
 
 
 benchByteStringToIntegerFalseSmall :: Benchmark
-benchByteStringToIntegerFalseSmall = createTwoTermBuiltinBench' ByteStringToInteger "FalseSmall" [] [False, True] (smallerByteStrings150 seedA)
+benchByteStringToIntegerFalseSmall = createTwoTermBuiltinBench' ByteStringToInteger "FalseSmall" [] [False] (smallerByteStrings150 seedA)
 
 benchByteStringToIntegerTrueSmall :: Benchmark
-benchByteStringToIntegerTrueSmall = createTwoTermBuiltinBench' ByteStringToInteger "TrueSmall" [] [False, True] (smallerByteStrings150 seedA)
+benchByteStringToIntegerTrueSmall =  createTwoTermBuiltinBench' ByteStringToInteger "TrueSmall" [] [True] (smallerByteStrings150 seedA)
 
 benchByteStringToIntegerFalseBig :: Benchmark
-benchByteStringToIntegerFalseBig = createTwoTermBuiltinBench' ByteStringToInteger "FalseBig" [] [False, True] (largerByteStrings150 seedA)
+benchByteStringToIntegerFalseBig =   createTwoTermBuiltinBench' ByteStringToInteger "FalseBig" [] [False] (largerByteStrings150 seedA)
 
 benchByteStringToIntegerTrueBig :: Benchmark
-benchByteStringToIntegerTrueBig = createTwoTermBuiltinBench' ByteStringToInteger "TrueBig" [] [False, True] (largerByteStrings150 seedA)
+benchByteStringToIntegerTrueBig =    createTwoTermBuiltinBench' ByteStringToInteger "TrueBig" [] [True] (largerByteStrings150 seedA)
 
 ------------------------- IntegerToByteString -------------------------
 
@@ -239,24 +239,23 @@ benchIntegerToByteStringWFalse =
 
 makeBenchmarks :: StdGen -> [Benchmark]
 makeBenchmarks gen =
-    [ {- benchByteStringToIntegerFalseSmall
+    [ benchByteStringToIntegerFalseSmall
     , benchByteStringToIntegerTrueSmall
     , benchByteStringToIntegerFalseBig
     , benchByteStringToIntegerTrueBig
-    , -}
-      benchIntegerToByteStringBoundedFalseSmall   gen
+{-    , benchIntegerToByteStringBoundedFalseSmall   gen
     , benchIntegerToByteStringBoundedTrueSmall    gen
     , benchIntegerToByteStringBoundedFalseSmallFF gen
     , benchIntegerToByteStringBoundedTrueSmallFF  gen
-{-    , benchIntegerToByteStringBoundedFalseBig     gen
+    , benchIntegerToByteStringBoundedFalseBig     gen
     , benchIntegerToByteStringBoundedTrueBig      gen
     , benchIntegerToByteStringBoundedFalseBig2    gen
     , benchIntegerToByteStringBoundedTrueBig2     gen
--}
     , benchIntegerToByteStringUnboundedFalseSmall gen
     , benchIntegerToByteStringUnboundedTrueSmall  gen
     , benchIntegerToByteStringUnboundedFalseSmallFF gen
     , benchIntegerToByteStringUnboundedTrueSmallFF  gen
---    , benchIntegerToByteStringUnboundedFalseBig   gen
---    , benchIntegerToByteStringUnboundedTrueBig    gen
+    , benchIntegerToByteStringUnboundedFalseBig   gen
+    , benchIntegerToByteStringUnboundedTrueBig    gen
+-}
     ]
