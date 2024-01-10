@@ -107,26 +107,6 @@
                         {all dead. dead})
                    {all dead. dead})
               {all dead. dead}
-    !`$fUnsafeFromDataList_$cunsafeFromBuiltinData` :
-       all a. (\a -> data -> a) a -> data -> List a
-      = /\a ->
-          \(`$dUnsafeFromData` : (\a -> data -> a) a) ->
-            letrec
-              !go : list data -> List a
-                = \(l : list data) ->
-                    chooseList
-                      {data}
-                      {Unit -> List a}
-                      l
-                      (\(ds : Unit) -> Nil {a})
-                      (\(ds : Unit) ->
-                         Cons
-                           {a}
-                           (`$dUnsafeFromData` (headList {data} l))
-                           (go (tailList {data} l)))
-                      Unit
-            in
-            \(d : data) -> go (unListData d)
     !`$fUnsafeFromDataTxId_$cunsafeFromBuiltinData` : data -> bytestring
       = \(d : data) ->
           let
@@ -160,6 +140,26 @@
                  (unIData (headList {data} (tailList {data} args))))
             (/\dead -> traceError {GovernanceActionId} reconstructCaseError)
             {all dead. dead}
+    !`$fUnsafeFromDataList_$cunsafeFromBuiltinData` :
+       all a. (\a -> data -> a) a -> data -> List a
+      = /\a ->
+          \(`$dUnsafeFromData` : (\a -> data -> a) a) ->
+            letrec
+              !go : list data -> List a
+                = \(l : list data) ->
+                    chooseList
+                      {data}
+                      {Unit -> List a}
+                      l
+                      (\(ds : Unit) -> Nil {a})
+                      (\(ds : Unit) ->
+                         Cons
+                           {a}
+                           (`$dUnsafeFromData` (headList {data} l))
+                           (go (tailList {data} l)))
+                      Unit
+            in
+            \(d : data) -> go (unListData d)
     data TxOutRef | TxOutRef_match where
       TxOutRef : bytestring -> integer -> TxOutRef
     !`$fUnsafeFromDataTxOutRef_$cunsafeFromBuiltinData` : data -> TxOutRef
@@ -502,7 +502,7 @@
       Proposing : integer -> ScriptPurpose
       Rewarding : Credential -> ScriptPurpose
       Spending : TxOutRef -> ScriptPurpose
-      Voting : Voter -> GovernanceActionId -> ScriptPurpose
+      Voting : Voter -> ScriptPurpose
     !`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData` :
        data -> ScriptPurpose
       = \(d : data) ->
@@ -546,11 +546,7 @@
                                 (/\dead ->
                                    Voting
                                      (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
-                                        (headList {data} args))
-                                     (`$fUnsafeFromDataGovernanceAction_$cunsafeFromBuiltinData`
-                                        (headList
-                                           {data}
-                                           (tailList {data} args))))
+                                        (headList {data} args)))
                                 (/\dead ->
                                    ifThenElse
                                      {all dead. ScriptPurpose}

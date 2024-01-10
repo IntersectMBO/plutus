@@ -324,7 +324,7 @@ data ScriptPurpose
   | Spending V2.TxOutRef
   | Rewarding V2.Credential
   | Certifying TxCert
-  | Voting Voter GovernanceActionId
+  | Voting Voter
   | Proposing Haskell.Integer
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
   deriving (Pretty) via (PrettyShow ScriptPurpose)
@@ -339,8 +339,8 @@ instance PlutusTx.Eq ScriptPurpose where
     a PlutusTx.== a'
   Certifying a == Certifying a' =
     a PlutusTx.== a'
-  Voting a b == Voting a' b' =
-    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
+  Voting a == Voting a' =
+    a PlutusTx.== a'
   Proposing a == Proposing a' =
     a PlutusTx.== a'
   _ == _ = Haskell.False
