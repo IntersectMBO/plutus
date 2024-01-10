@@ -225,12 +225,14 @@ builtinNames = [
     , 'Builtins.head
     , 'Builtins.tail
     , 'Builtins.chooseList
+    , 'Builtins.matchList
     , 'Builtins.mkNilData
     , 'Builtins.mkNilPairData
     , 'Builtins.mkCons
 
     , ''Builtins.BuiltinData
     , 'Builtins.chooseData
+    , 'Builtins.matchData'
     , 'Builtins.equalsData
     , 'Builtins.serialiseData
     , 'Builtins.mkConstr
@@ -381,12 +383,14 @@ defineBuiltinTerms = do
     defineBuiltinTerm annMayInline 'Builtins.head          $ mkBuiltin PLC.HeadList
     defineBuiltinTerm annMayInline 'Builtins.tail          $ mkBuiltin PLC.TailList
     defineBuiltinTerm annMayInline 'Builtins.chooseList    $ mkBuiltin PLC.ChooseList
+    defineBuiltinTerm annMayInline 'Builtins.matchList     $ mkBuiltin PLC.CaseList
     defineBuiltinTerm annMayInline 'Builtins.mkNilData     $ mkBuiltin PLC.MkNilData
     defineBuiltinTerm annMayInline 'Builtins.mkNilPairData $ mkBuiltin PLC.MkNilPairData
     defineBuiltinTerm annMayInline 'Builtins.mkCons        $ mkBuiltin PLC.MkCons
 
     -- Data
     defineBuiltinTerm annMayInline 'Builtins.chooseData         $ mkBuiltin PLC.ChooseData
+    defineBuiltinTerm annMayInline 'Builtins.matchData'         $ mkBuiltin PLC.CaseData
     defineBuiltinTerm annMayInline 'Builtins.equalsData         $ mkBuiltin PLC.EqualsData
     defineBuiltinTerm annMayInline 'Builtins.mkConstr           $ mkBuiltin PLC.ConstrData
     defineBuiltinTerm annMayInline 'Builtins.mkMap              $ mkBuiltin PLC.MapData

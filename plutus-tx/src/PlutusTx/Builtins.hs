@@ -44,7 +44,7 @@ module PlutusTx.Builtins (
                          , BuiltinData
                          , chooseData
                          , matchData
-                         , matchData'
+                         , BI.matchData'
                          , equalsData
                          , serialiseData
                          , mkConstr
@@ -109,7 +109,6 @@ module PlutusTx.Builtins (
                          ) where
 
 import Data.Maybe
-import PlutusTx.Base (const, uncurry)
 import PlutusTx.Bool (Bool (..))
 import PlutusTx.Builtins.Class
 import PlutusTx.Builtins.Internal (BuiltinBLS12_381_G1_Element (..),
@@ -383,7 +382,7 @@ encodeUtf8 = BI.encodeUtf8
 
 {-# INLINABLE matchList #-}
 matchList :: forall a r . BI.BuiltinList a -> r -> (a -> BI.BuiltinList a -> r) -> r
-matchList l nilCase consCase = BI.chooseList l (const nilCase) (\_ -> consCase (BI.head l) (BI.tail l)) ()
+matchList l nilCase consCase = BI.matchList l (\_ -> nilCase) (\x xs _ -> consCase x xs) ()
 
 {-# INLINE headMaybe #-}
 headMaybe :: BI.BuiltinList a -> Maybe a
@@ -482,35 +481,12 @@ matchData
     -> (BuiltinByteString -> r)
     -> r
 matchData d constrCase mapCase listCase iCase bCase =
-   chooseData
-   d
-   (\_ -> uncurry constrCase (unsafeDataAsConstr d))
-   (\_ -> mapCase (unsafeDataAsMap d))
-   (\_ -> listCase (unsafeDataAsList d))
-   (\_ -> iCase (unsafeDataAsI d))
-   (\_ -> bCase (unsafeDataAsB d))
-   ()
-
-{-# INLINABLE matchData' #-}
--- | Given a 'BuiltinData' value and matching functions for the five constructors,
--- applies the appropriate matcher to the arguments of the constructor and returns the result.
-matchData'
-    :: BuiltinData
-    -> (Integer -> BI.BuiltinList BuiltinData -> r)
-    -> (BI.BuiltinList (BI.BuiltinPair BuiltinData BuiltinData) -> r)
-    -> (BI.BuiltinList BuiltinData -> r)
-    -> (Integer -> r)
-    -> (BuiltinByteString -> r)
-    -> r
-matchData' d constrCase mapCase listCase iCase bCase =
-   chooseData
-   d
-   (\_ -> let tup = BI.unsafeDataAsConstr d in constrCase (BI.fst tup) (BI.snd tup))
-   (\_ -> mapCase (BI.unsafeDataAsMap d))
-   (\_ -> listCase (BI.unsafeDataAsList d))
-   (\_ -> iCase (unsafeDataAsI d))
-   (\_ -> bCase (unsafeDataAsB d))
-   ()
+   BI.matchData' d
+     (\i ds -> constrCase i (fromBuiltin ds))
+     (\ps -> mapCase (fromBuiltin ps))
+     (\ds -> listCase (fromBuiltin ds))
+     iCase
+     bCase
 
 -- G1 --
 {-# INLINABLE bls12_381_G1_equals #-}

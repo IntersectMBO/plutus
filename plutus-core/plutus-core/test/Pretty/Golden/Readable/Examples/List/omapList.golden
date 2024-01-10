@@ -25,16 +25,15 @@
       {list a}
       (\(rec : list a -> list a) (xs : list a) ->
          (/\a ->
-            \(x : list a) ->
+            \(xs : list a) ->
               /\r ->
                 \(z : r) (f : a -> list a -> r) ->
-                  (Left chooseList)
+                  (Left caseList)
                     {a}
                     {unit -> r}
-                    x
+                    xs
                     (\(u : unit) -> z)
-                    (\(u : unit) ->
-                       f ((Left headList) {a} x) ((Left tailList) {a} x))
+                    (\(x : a) (xs' : list a) (u : unit) -> f x xs')
                     ())
            {a}
            xs

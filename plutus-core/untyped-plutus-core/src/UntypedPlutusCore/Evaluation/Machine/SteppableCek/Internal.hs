@@ -442,8 +442,8 @@ evalBuiltinApp fun term runtime = case runtime of
             MakeKnownFailure logs err       -> do
                 ?cekEmitter logs
                 throwKnownTypeErrorWithCause term err
-            MakeKnownSuccess x              -> pure x
-            MakeKnownSuccessWithLogs logs x -> ?cekEmitter logs $> x
+            MakeKnownSuccess x              -> pure undefined
+            MakeKnownSuccessWithLogs logs x -> ?cekEmitter logs $> undefined
     _ -> pure $ VBuiltin fun term runtime
 {-# INLINE evalBuiltinApp #-}
 

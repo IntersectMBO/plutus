@@ -642,27 +642,6 @@ spendBudgetStreamCek exCat = go where
     go (ExBudgetCons budget budgets) = spendBudgetCek exCat budget *> go budgets
 {-# INLINE spendBudgetStreamCek #-}
 
--- | Take pieces of a possibly partial builtin application and either create a 'CekValue' using
--- 'makeKnown' or a partial builtin application depending on whether the built-in function is
--- fully saturated or not.
-evalBuiltinApp
-    :: (GivenCekReqs uni fun ann s, ThrowableBuiltins uni fun)
-    => fun
-    -> NTerm uni fun ()
-    -> BuiltinRuntime (CekValue uni fun ann)
-    -> CekM uni fun s (CekValue uni fun ann)
-evalBuiltinApp fun term runtime = case runtime of
-    BuiltinResult budgets getX -> do
-        spendBudgetStreamCek (BBuiltinApp fun) budgets
-        case getX of
-            MakeKnownFailure logs err       -> do
-                ?cekEmitter logs
-                throwKnownTypeErrorWithCause term err
-            MakeKnownSuccess x              -> pure x
-            MakeKnownSuccessWithLogs logs x -> ?cekEmitter logs $> x
-    _ -> pure $ VBuiltin fun term runtime
-{-# INLINE evalBuiltinApp #-}
-
 -- See Note [Compilation peculiarities].
 -- | The entering point to the CEK machine's engine.
 enterComputeCek
@@ -773,6 +752,39 @@ enterComputeCek = computeCek
             Nothing -> throwingDischarged _MachineError (MissingCaseBranch i) e
         _ -> throwingDischarged _MachineError NonConstrScrutinized e
 
+    pushArgs :: Spine (CekValue uni fun ann) -> Context uni fun ann -> Context uni fun ann
+    pushArgs args ctx = foldr FrameAwaitFunValue ctx args
+
+    returnCekHeadSpine
+        :: Context uni fun ann
+        -> HeadSpine (CekValue uni fun ann)
+        -> CekM uni fun s (Term NamedDeBruijn uni fun ())
+    returnCekHeadSpine ctx (HeadSpine f xs) = returnCek (pushArgs xs ctx) f
+
+    -- | Take pieces of a possibly partial builtin application and either create a 'CekValue' using
+    -- 'makeKnown' or a partial builtin application depending on whether the built-in function is
+    -- fully saturated or not.
+    evalBuiltinApp
+        :: Context uni fun ann
+        -> fun
+        -> NTerm uni fun ()
+        -> BuiltinRuntime (CekValue uni fun ann)
+        -> CekM uni fun s (Term NamedDeBruijn uni fun ())
+    evalBuiltinApp ctx fun term runtime = case runtime of
+        BuiltinResult budgets getX -> do
+            spendBudgetStreamCek (BBuiltinApp fun) budgets
+            case getX of
+                MakeKnownFailure logs err -> do
+                    ?cekEmitter logs
+                    throwKnownTypeErrorWithCause term err
+                MakeKnownSuccess fXs ->
+                    returnCekHeadSpine ctx fXs
+                MakeKnownSuccessWithLogs logs fXs -> do
+                    ?cekEmitter logs
+                    returnCekHeadSpine ctx fXs
+        _ -> returnCek ctx $ VBuiltin fun term runtime
+    {-# INLINE evalBuiltinApp #-}
+
     -- | @force@ a term and proceed.
     -- If v is a delay then compute the body of v;
     -- if v is a builtin application then check that it's expecting a type argument,
@@ -790,12 +802,11 @@ enterComputeCek = computeCek
         case runtime of
             -- It's only possible to force a builtin application if the builtin expects a type
             -- argument next.
-            BuiltinExpectForce runtime' -> do
+            BuiltinExpectForce runtime' ->
                 -- We allow a type argument to appear last in the type of a built-in function,
                 -- otherwise we could just assemble a 'VBuiltin' without trying to evaluate the
                 -- application.
-                res <- evalBuiltinApp fun term' runtime'
-                returnCek ctx res
+                evalBuiltinApp ctx fun term' runtime'
             _ ->
                 throwingWithCause _MachineError BuiltinTermArgumentExpectedMachineError (Just term')
     forceEvaluate !_ val =
@@ -825,9 +836,8 @@ enterComputeCek = computeCek
         case runtime of
             -- It's only possible to apply a builtin application if the builtin expects a term
             -- argument next.
-            BuiltinExpectArgument f -> do
-                res <- evalBuiltinApp fun term' $ f arg
-                returnCek ctx res
+            BuiltinExpectArgument f ->
+                evalBuiltinApp ctx fun term' $ f arg
             _ ->
                 throwingWithCause _MachineError UnexpectedBuiltinTermArgumentMachineError (Just term')
     applyEvaluate !_ val _ =

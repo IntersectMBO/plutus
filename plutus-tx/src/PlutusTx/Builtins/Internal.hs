@@ -403,6 +403,11 @@ chooseList :: BuiltinList a -> b -> b-> b
 chooseList (BuiltinList [])    b1 _ = b1
 chooseList (BuiltinList (_:_)) _ b2 = b2
 
+{-# NOINLINE matchList #-}
+matchList :: forall a r . BuiltinList a -> r -> (a -> BuiltinList a -> r) -> r
+matchList (BuiltinList [])       nilCase _        = nilCase
+matchList (BuiltinList (x : xs)) _       consCase = consCase x (BuiltinList xs)
+
 {-# NOINLINE mkNilData #-}
 mkNilData :: BuiltinUnit -> BuiltinList BuiltinData
 mkNilData _ = BuiltinList []
@@ -465,6 +470,24 @@ chooseData (BuiltinData d) constrCase mapCase listCase iCase bCase = case d of
     PLC.List{}   -> listCase
     PLC.I{}      -> iCase
     PLC.B{}      -> bCase
+
+{-# NOINLINE matchData' #-}
+matchData'
+    :: BuiltinData
+    -> (Integer -> BuiltinList BuiltinData -> r)
+    -> (BuiltinList (BuiltinPair BuiltinData BuiltinData) -> r)
+    -> (BuiltinList BuiltinData -> r)
+    -> (Integer -> r)
+    -> (BuiltinByteString -> r)
+    -> r
+matchData' (BuiltinData d) constrCase mapCase listCase iCase bCase = case d of
+    PLC.Constr i ds -> constrCase i (BuiltinList (fmap dataToBuiltinData ds))
+    PLC.Map ps      -> mapCase (BuiltinList (fmap p2p ps))
+    PLC.List ds     -> listCase (BuiltinList (fmap dataToBuiltinData ds))
+    PLC.I i         -> iCase i
+    PLC.B b         -> bCase (BuiltinByteString b)
+  where
+    p2p (d1, d2) = BuiltinPair (dataToBuiltinData d1, dataToBuiltinData d2)
 
 {-# NOINLINE mkConstr #-}
 mkConstr :: BuiltinInteger -> BuiltinList BuiltinData -> BuiltinData
