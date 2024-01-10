@@ -238,7 +238,7 @@ benchIntegerToByteStringWFalse =
     mkBmW2 "IntegerToByteStringWFalse" False
 
 makeBenchmarks :: StdGen -> [Benchmark]
-makeBenchmarks gen =
+makeBenchmarks _gen =
     [ benchByteStringToIntegerFalseSmall
     , benchByteStringToIntegerTrueSmall
     , benchByteStringToIntegerFalseBig
