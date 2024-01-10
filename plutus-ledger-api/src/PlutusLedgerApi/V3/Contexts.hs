@@ -325,7 +325,7 @@ data ScriptPurpose
   | Rewarding V2.Credential
   | Certifying TxCert
   | Voting Voter
-  | Proposing Haskell.Integer
+  | Proposing ProposalProcedure
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
   deriving (Pretty) via (PrettyShow ScriptPurpose)
 
