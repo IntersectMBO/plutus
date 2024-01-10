@@ -89,17 +89,15 @@ instance (FromData k, FromData v) => FromData (Map k v) where
         where
           go :: BI.BuiltinList (BI.BuiltinPair BI.BuiltinData BI.BuiltinData) -> Maybe [(k, v)]
           go l =
-            BI.chooseList
+            P.matchList
               l
-              (const (pure []))
-              ( \_ ->
-                  let tup = BI.head l
-                   in liftA2
-                        (:)
-                        (liftA2 (,) (fromBuiltinData $ BI.fst tup) (fromBuiltinData $ BI.snd tup))
-                        (go (BI.tail l))
+              (pure [])
+              ( \tup tups ->
+                   liftA2
+                       (:)
+                       (liftA2 (,) (fromBuiltinData $ BI.fst tup) (fromBuiltinData $ BI.snd tup))
+                       (go tups)
               )
-              ()
 
 instance (UnsafeFromData k, UnsafeFromData v) => UnsafeFromData (Map k v) where
   -- The `~` here enables `BI.unsafeDataAsMap d` to be inlined, which reduces costs slightly.
@@ -114,15 +112,13 @@ instance (UnsafeFromData k, UnsafeFromData v) => UnsafeFromData (Map k v) where
         where
           go :: BI.BuiltinList (BI.BuiltinPair BI.BuiltinData BI.BuiltinData) -> [(k, v)]
           go l =
-            BI.chooseList
+            P.matchList
               l
-              (const [])
-              ( \_ ->
-                  let tup = BI.head l
-                   in (unsafeFromBuiltinData $ BI.fst tup, unsafeFromBuiltinData $ BI.snd tup)
-                        : go (BI.tail l)
+              []
+              ( \tup tups ->
+                   (unsafeFromBuiltinData $ BI.fst tup, unsafeFromBuiltinData $ BI.snd tup)
+                       : go tups
               )
-              ()
 
 instance Functor (Map k) where
   {-# INLINEABLE fmap #-}

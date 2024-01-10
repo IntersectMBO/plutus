@@ -250,22 +250,21 @@
         (termbind
           (strict)
           (vardecl
-            chooseList
+            matchList
             (all
-              a (type) (all b (type) (fun [ (con list) a ] (fun b (fun b b))))
+              a
+              (type)
+              (all
+                r
+                (type)
+                (fun
+                  [ (con list) a ]
+                  (fun r (fun (fun a (fun [ (con list) a ] r)) r))
+                )
+              )
             )
           )
-          (builtin chooseList)
-        )
-        (termbind
-          (strict)
-          (vardecl head (all a (type) (fun [ (con list) a ] a)))
-          (builtin headList)
-        )
-        (termbind
-          (strict)
-          (vardecl tail (all a (type) (fun [ (con list) a ] [ (con list) a ])))
-          (builtin tailList)
+          (builtin caseList)
         )
         (termbind (strict) (vardecl unitval (con unit)) (con unit ()))
         (termbind
@@ -310,23 +309,39 @@
                             [
                               [
                                 {
-                                  { chooseList arep }
-                                  (fun (con unit) [ List a ])
+                                  { matchList arep } (fun (con unit) [ List a ])
                                 }
                                 l
                               ]
                               (lam ds (con unit) { Nil a })
                             ]
                             (lam
-                              ds
-                              (con unit)
-                              [
-                                [
-                                  { Cons a }
-                                  [ `$dFromBuiltin` [ { head arep } l ] ]
-                                ]
-                                [ go [ { tail arep } l ] ]
-                              ]
+                              x
+                              arep
+                              (let
+                                (nonrec)
+                                (termbind (strict) (vardecl x arep) x)
+                                (lam
+                                  xs
+                                  [ (con list) arep ]
+                                  (let
+                                    (nonrec)
+                                    (termbind
+                                      (strict)
+                                      (vardecl xs [ (con list) arep ])
+                                      xs
+                                    )
+                                    (lam
+                                      ds
+                                      (con unit)
+                                      [
+                                        [ { Cons a } [ `$dFromBuiltin` x ] ]
+                                        [ go xs ]
+                                      ]
+                                    )
+                                  )
+                                )
+                              )
                             )
                           ]
                           unitval
