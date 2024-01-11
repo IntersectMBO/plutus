@@ -148,7 +148,7 @@ Creates a function mapping builtins to their corresponding costing models,
 starting from a `BuiltinCostMap`.
 
 We need to construct a `BuiltinModel (arity b)` for each `b`, and this may fail if
-the model int the map doesn't correspond to the arity. 
+the model in the map doesn't correspond to the arity. 
 
 ```
 getModel : Builtin → BuiltinCostMap → Maybe (Σ Builtin (λ b → (BuiltinModel (arity b))))
