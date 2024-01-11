@@ -550,4 +550,28 @@ unquoteDef showBuiltin = defShow (quote Builtin) showBuiltin
 ```
 builtinList : List Builtin 
 unquoteDef builtinList = defListConstructors (quote Builtin) builtinList
+
+
+module _ where
+  open import Relation.Binary.Bundles using (DecTotalOrder)
+  open import Function.Base using (_on_; _∘_)
+  import Relation.Binary.Construct.On as On
+  open import Relation.Binary
+  open import Data.String.Properties using (<-strictTotalOrder-≈)
+  open import Relation.Binary.PropositionalEquality using (_≡_;refl;isEquivalence)
+  
+  strictTotalOrderBuiltin : StrictTotalOrder _ _ _
+  strictTotalOrderBuiltin = On.strictTotalOrder <-strictTotalOrder-≈ showBuiltin
+
+  alphabeticalBuiltinOrder : DecTotalOrder _ _ _ 
+  alphabeticalBuiltinOrder = record { 
+        Carrier = Builtin 
+      ; _≈_ = StrictTotalOrder._≈_ strictTotalOrderBuiltin
+      ; _≤_ = StrictTotalOrder._<_ strictTotalOrderBuiltin
+      ; isDecTotalOrder = On.isDecTotalOrder showBuiltin (record { isTotalOrder = {!   !} ; _≟_ = {!   !} ; _≤?_ = {!   !} })}
+
+  sortedBuiltinList : List Builtin 
+  sortedBuiltinList = {!   !}
 ```
+
+ 

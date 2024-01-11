@@ -138,8 +138,7 @@ convertRawModel _ = nothing
 convertCpuAndMemoryModel : ∀{n} → CpuAndMemoryModel → Maybe (BuiltinModel n)
 convertCpuAndMemoryModel (mkCpuAndMemoryModel cpuModel memoryModel) with convertRawModel cpuModel | convertRawModel memoryModel 
 ... | just cm | just mm = just (record { costingCPU = cm ; costingMem = mm })
-... | just _ | nothing = nothing
-... | nothing | m = nothing
+... | _ | _ = nothing
 ```
 
 ## Creation of mapping function 
@@ -161,9 +160,8 @@ getModel b ((bn , rm) ∷ xs) with showBuiltin b == bn
 Once we have a list of all the builtins and their corresponding model, 
 we need to turn this into a function.  
 
-However Agda doesn't know 
-that we are providing a model for *every* constructor, so we 
-provide a `dummyModel` to answer in the `[]` case.
+However Agda doesn't know that we are providing a model for *every* constructor, 
+so we provide a `dummyModel` to answer in the `[]` case.
 
 ``` 
 dummyModel :  ∀{n} → BuiltinModel n 
