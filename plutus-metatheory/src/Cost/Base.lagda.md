@@ -83,11 +83,14 @@ The CEK machine is parameterised by the following machine parameters.
 
 ```
 record MachineParameters (Cost : Set) : Set where
-    field 
-      startupCost : Cost 
+    field
       cekMachineCost : ExBudgetCategory → Cost
       ε : Cost
       _∙_ : Cost → Cost → Cost
       costMonoid : IsMonoid _≡_ _∙_ ε
       constantMeasure : TmCon → CostingNat
-```
+
+    startupCost : Cost 
+    startupCost = cekMachineCost BStartup
+  
+``` 

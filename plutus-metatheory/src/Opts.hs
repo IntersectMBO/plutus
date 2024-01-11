@@ -1,6 +1,6 @@
-{-# LANGUAGE LambdaCase #-}
-
 -- editorconfig-checker-disable-file
+{-# LANGUAGE OverloadedStrings #-}
+
 module Opts where
 
 import Data.Semigroup ((<>))
@@ -13,24 +13,33 @@ import Options.Applicative hiding (asum)
 import PlutusCore.Executable.Common
 import PlutusCore.Executable.Parsers
 
--- the different budget modes of plc-agda
-data BudgetMode  = Silent
-                 | Counting
-                 | Tallying
+import Cost.JSON
+import System.Exit (exitFailure)
+import System.IO (stderr)
 
-countingbudget :: Parser BudgetMode
-countingbudget = flag' Counting
+
+defaultBuiltinCostModelPath :: FilePath
+defaultBuiltinCostModelPath = "data/builtinCostModel.json"
+
+-- the different budget modes of plc-agda
+data BudgetMode a = Silent
+                 | Counting a
+                 | Tallying a
+      deriving Functor
+
+countingbudget :: Parser (BudgetMode ())
+countingbudget = flag' (Counting ())
                  (  long "counting"
                  <> short 'c'
                  <> help "Run machine in counting mode and report results" )
 
-tallyingbudget :: Parser BudgetMode
-tallyingbudget = flag' Tallying
+tallyingbudget :: Parser (BudgetMode ())
+tallyingbudget = flag' (Tallying ())
                  (  long "tallying"
                  <> short 't'
                  <> help "Run machine in tallying mode and report results" )
 
-budgetmode :: Parser BudgetMode
+budgetmode :: Parser (BudgetMode ())
 budgetmode = asum
     [ countingbudget
     , tallyingbudget
@@ -40,7 +49,8 @@ budgetmode = asum
 -- The different evaluation modes of plc-agda
 data EvalMode = U | TL | TCK | TCEK deriving stock (Show, Read)
 
-data EvalOptions = EvalOpts Input Format EvalMode BudgetMode
+data EvalOptions a = EvalOpts Input Format EvalMode (BudgetMode a)
+  deriving Functor
 
 
 
@@ -53,7 +63,7 @@ evalMode = option auto
   <> showDefault
   <> help "Evaluation mode (U , TL, TCK, TCEK)" )
 
-evalOpts :: Parser EvalOptions
+evalOpts :: Parser (EvalOptions ())
 evalOpts = EvalOpts <$> input <*> inputformat <*> evalMode <*> budgetmode
 
 data TypecheckOptions = TCOpts Input Format
@@ -61,10 +71,11 @@ data TypecheckOptions = TCOpts Input Format
 typecheckOpts :: Parser TypecheckOptions
 typecheckOpts = TCOpts <$> input <*> inputformat
 
-data Command = Eval EvalOptions
+data Command a = Eval (EvalOptions a)
              | Typecheck TypecheckOptions
+          deriving Functor
 
-commands :: Parser Command
+commands :: Parser (Command ())
 commands = hsubparser (
          command "evaluate"
           (info (Eval <$> evalOpts)
@@ -73,8 +84,22 @@ commands = hsubparser (
           (info (Typecheck <$> typecheckOpts)
           (fullDesc <> progDesc "typecheck a Plutus Core program")))
 
-execP :: IO Command
+addJSONParameters :: Command a -> IO (Command BuiltinCostMap)
+addJSONParameters c = do
+     mbm <- getJSONModel defaultBuiltinCostModelPath
+     case mbm of
+      Just bm -> return (fmap (const bm) c)
+      Nothing -> do
+           T.hPutStrLn stderr "Failure to parse file builtins parameters."
+           exitFailure
+
+execP :: IO (Command BuiltinCostMap)
 execP = execParser (info (commands <**> helper)
                     (fullDesc
                      <> progDesc "Plutus Core tool"
                      <> header "plc-agda - a Plutus Core implementation written in Agda"))
+        >>= addJSONParameters
+
+
+
+
