@@ -203,6 +203,8 @@ builtinNames = [
     , 'Builtins.emptyString
     , 'Builtins.equalsString
     , 'Builtins.encodeUtf8
+    , 'Builtins.builtinIntegerToByteString
+    , 'Builtins.builtinByteStringToInteger
     -- This one is special
     , 'Builtins.stringToBuiltinString
 
@@ -351,6 +353,8 @@ defineBuiltinTerms = do
             PLC.LessThanByteString -> defineBuiltinInl 'Builtins.lessThanByteString
             PLC.LessThanEqualsByteString -> defineBuiltinInl 'Builtins.lessThanEqualsByteString
             PLC.DecodeUtf8 -> defineBuiltinInl 'Builtins.decodeUtf8
+            PLC.IntegerToByteString -> defineBuiltinInl 'Builtins.builtinIntegerToByteString
+            PLC.ByteStringToInteger -> defineBuiltinInl 'Builtins.builtinByteStringToInteger
 
             -- Strings and chars
             PLC.AppendString -> defineBuiltinInl 'Builtins.appendString
