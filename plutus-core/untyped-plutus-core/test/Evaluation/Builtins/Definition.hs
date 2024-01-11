@@ -820,33 +820,33 @@ test_Conversion =
     adjustOption (\x -> max x . HedgehogTestLimit . Just $ 8000) .
     testGroup "Integer <-> ByteString conversions" $ [
       testGroup "Integer -> ByteString" [
-        --- lengthOfByteString (builtinIntegerToByteString e d 0) = d
+        --- lengthOfByteString (integerToByteString e d 0) = d
         testPropertyNamed "property 1" "i2b_prop1" . property $ Conversion.i2bProperty1,
-        -- indexByteString (builtinIntegerToByteString e k 0) j = 0
+        -- indexByteString (integerToByteString e k 0) j = 0
         testPropertyNamed "property 2" "i2b_prop2" . property $ Conversion.i2bProperty2,
-        -- lengthOfByteString (builtinIntegerToByteString e 0 p) > 0
+        -- lengthOfByteString (integerToByteString e 0 p) > 0
         testPropertyNamed "property 3" "i2b_prop3" . property $ Conversion.i2bProperty3,
-        -- builtinIntegerToByteString False 0 (multiplyInteger p 256) = consByteString
-        -- 0 (builtinIntegerToByteString False 0 p)
+        -- integerToByteString False 0 (multiplyInteger p 256) = consByteString
+        -- 0 (integerToByteString False 0 p)
         testPropertyNamed "property 4" "i2b_prop4" . property $ Conversion.i2bProperty4,
-        -- builtinIntegerToByteString True 0 (multiplyInteger p 256) = appendByteString
-        -- (builtinIntegerToByteString True 0 p) (singleton 0)
+        -- integerToByteString True 0 (multiplyInteger p 256) = appendByteString
+        -- (integerToByteString True 0 p) (singleton 0)
         testPropertyNamed "property 5" "i2b_prop5" . property $ Conversion.i2bProperty5,
-        -- builtinIntegerToByteString False 0 (plusInteger (multiplyInteger q 256) r) =
-        -- appendByteString (builtinIntegerToByteString False 0 r) (builtinIntegerToByteString False 0 q)
+        -- integerToByteString False 0 (plusInteger (multiplyInteger q 256) r) =
+        -- appendByteString (integerToByteString False 0 r) (integerToByteString False 0 q)
         testPropertyNamed "property 6" "i2b_prop6" . property $ Conversion.i2bProperty6,
-        -- builtinIntegerToByteString True 0 (plusInteger (multiplyInteger q 256) r) =
-        -- appendByteString (builtinIntegerToByteString False 0 q)
-        -- (builtinIntegerToByteString False 0 r)
+        -- integerToByteString True 0 (plusInteger (multiplyInteger q 256) r) =
+        -- appendByteString (integerToByteString False 0 q)
+        -- (integerToByteString False 0 r)
         testPropertyNamed "property 7" "i2b_prop7" . property $ Conversion.i2bProperty7,
         testGroup "CIP-0087 examples" Conversion.i2bCipExamples
         ],
       testGroup "ByteString -> Integer" [
-        -- builtinByteStringToInteger b (builtinIntegerToByteString b d q) = q
+        -- byteStringToInteger b (integerToByteString b d q) = q
         testPropertyNamed "property 1" "b2i_prop1" . property $ Conversion.b2iProperty1,
-        -- builtinByteStringToInteger b (consByteString w8 emptyByteString) = w8
+        -- byteStringToInteger b (consByteString w8 emptyByteString) = w8
         testPropertyNamed "property 2" "b2i_prop2" . property $ Conversion.b2iProperty2,
-        -- builtinIntegerToByteString b (lengthOfByteString bs) (builtinByteStringToInteger b bs) = bs
+        -- integerToByteString b (lengthOfByteString bs) (byteStringToInteger b bs) = bs
         testPropertyNamed "property 3" "b2i_prop3" . property $ Conversion.b2iProperty3,
         testGroup "CIP-0087 examples" Conversion.b2iCipExamples
         ]
