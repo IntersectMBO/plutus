@@ -107,6 +107,9 @@ smallWidths = [1..150]
 bigWidths :: [Int]
 bigWidths = fmap (10*) [1..150]
 
+biggerWidths :: [Int]  -- Size 1010 -- 5000
+biggerWidths = [1010, 1020 .. 5000]
+
 -- Make an integer 0xFF...FF of size n.
 allFF :: Int -> Integer
 allFF n = 256^(8*n) - 1
@@ -150,6 +153,12 @@ benchIntegerToByteStringBoundedTrueBig gen =
     let widths = bigWidths
         (inputs, _) = makeSizedIntegers gen widths
     in createThreeTermBuiltinBenchElementwise' "BoundedTrueBig" $ zip3 (repeat True) widths inputs
+
+benchIntegerToByteStringBoundedTrueBigger :: StdGen -> Benchmark
+benchIntegerToByteStringBoundedTrueBigger gen =
+    let widths = biggerWidths
+        (inputs, _) = makeSizedIntegers gen widths
+    in createThreeTermBuiltinBenchElementwise' "BoundedTrueBigger" $ zip3 (repeat True) widths inputs
 
 -- Very small inputs but big widths.
 benchIntegerToByteStringBoundedFalseBig2 :: StdGen -> Benchmark
@@ -203,6 +212,11 @@ benchIntegerToByteStringUnboundedTrueBig gen =
         (inputs, _) = makeSizedIntegers gen widths
     in createThreeTermBuiltinBenchElementwise' "UnboundedTrueBig" $ zip3 (repeat True) (repeat 0) inputs
 
+benchIntegerToByteStringUnboundedTrueBigger :: StdGen -> Benchmark
+benchIntegerToByteStringUnboundedTrueBigger gen =
+    let widths = biggerWidths
+        (inputs, _) = makeSizedIntegers gen widths
+    in createThreeTermBuiltinBenchElementwise' "UnboundedTrueBigger" $ zip3 (repeat True) (repeat 0) inputs
 
 benchIntegerToByteStringTrue0 :: StdGen -> Benchmark
 benchIntegerToByteStringTrue0 gen =
@@ -238,24 +252,26 @@ benchIntegerToByteStringWFalse =
     mkBmW2 "IntegerToByteStringWFalse" False
 
 makeBenchmarks :: StdGen -> [Benchmark]
-makeBenchmarks _gen =
-    [ benchByteStringToIntegerFalseSmall
-    , benchByteStringToIntegerTrueSmall
-    , benchByteStringToIntegerFalseBig
-    , benchByteStringToIntegerTrueBig
-{-    , benchIntegerToByteStringBoundedFalseSmall   gen
-    , benchIntegerToByteStringBoundedTrueSmall    gen
-    , benchIntegerToByteStringBoundedFalseSmallFF gen
-    , benchIntegerToByteStringBoundedTrueSmallFF  gen
-    , benchIntegerToByteStringBoundedFalseBig     gen
-    , benchIntegerToByteStringBoundedTrueBig      gen
-    , benchIntegerToByteStringBoundedFalseBig2    gen
-    , benchIntegerToByteStringBoundedTrueBig2     gen
-    , benchIntegerToByteStringUnboundedFalseSmall gen
-    , benchIntegerToByteStringUnboundedTrueSmall  gen
-    , benchIntegerToByteStringUnboundedFalseSmallFF gen
-    , benchIntegerToByteStringUnboundedTrueSmallFF  gen
-    , benchIntegerToByteStringUnboundedFalseBig   gen
-    , benchIntegerToByteStringUnboundedTrueBig    gen
--}
+makeBenchmarks gen =
+    [
+      benchIntegerToByteStringUnboundedTrueBigger   gen
+     , benchIntegerToByteStringBoundedTrueBigger   gen
+    --   benchByteStringToIntegerFalseSmall
+    -- , benchByteStringToIntegerTrueSmall
+    -- , benchByteStringToIntegerFalseBig
+    -- , benchByteStringToIntegerTrueBig
+    -- , benchIntegerToByteStringBoundedFalseSmall   gen
+    -- , benchIntegerToByteStringBoundedTrueSmall    gen
+    -- , benchIntegerToByteStringBoundedFalseSmallFF gen
+    -- , benchIntegerToByteStringBoundedTrueSmallFF  gen
+    -- , benchIntegerToByteStringBoundedFalseBig     gen
+    -- , benchIntegerToByteStringBoundedTrueBig      gen
+    -- , benchIntegerToByteStringBoundedFalseBig2    gen
+    -- , benchIntegerToByteStringBoundedTrueBig2     gen
+    -- , benchIntegerToByteStringUnboundedFalseSmall gen
+    -- , benchIntegerToByteStringUnboundedTrueSmall  gen
+    -- , benchIntegerToByteStringUnboundedFalseSmallFF gen
+    -- , benchIntegerToByteStringUnboundedTrueSmallFF  gen
+    -- , benchIntegerToByteStringUnboundedFalseBig   gen
+    -- , benchIntegerToByteStringUnboundedTrueBig    gen
     ]
