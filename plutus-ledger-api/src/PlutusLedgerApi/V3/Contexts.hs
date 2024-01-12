@@ -323,9 +323,15 @@ data ScriptPurpose
   = Minting V2.CurrencySymbol
   | Spending V2.TxOutRef
   | Rewarding V2.Credential
-  | Certifying TxCert
+  | Certifying
+      Haskell.Integer
+      -- ^ 0-based index of the given `TxCert` in `txInfoTxCerts`
+      TxCert
   | Voting Voter
-  | Proposing Haskell.Integer
+  | Proposing
+      Haskell.Integer
+      -- ^ 0-based index of the given `ProposalProcedure` in `txInfoProposalProcedures`
+      ProposalProcedure
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
   deriving (Pretty) via (PrettyShow ScriptPurpose)
 
@@ -337,12 +343,12 @@ instance PlutusTx.Eq ScriptPurpose where
     a PlutusTx.== a'
   Rewarding a == Rewarding a' =
     a PlutusTx.== a'
-  Certifying a == Certifying a' =
-    a PlutusTx.== a'
+  Certifying a b == Certifying a' b' =
+    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
   Voting a == Voting a' =
     a PlutusTx.== a'
-  Proposing a == Proposing a' =
-    a PlutusTx.== a'
+  Proposing a b == Proposing a' b' =
+    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
   _ == _ = Haskell.False
 
 -- | TxInfo for PlutusV3

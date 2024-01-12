@@ -61,7 +61,7 @@ data Name = Name
   -- ^ A 'Unique' assigned to the name, allowing for cheap comparisons in the compiler.
   }
   deriving stock (Show, Generic, Lift)
-  deriving anyclass (NFData, Hashable)
+  deriving anyclass (NFData)
 
 -- | Allowed characters in the starting position of a non-quoted identifier.
 isIdentifierStartingChar :: Char -> Bool
@@ -117,6 +117,10 @@ instance Eq Name where
 
 instance Ord Name where
   (<=) = (<=) `on` _nameUnique
+
+-- Hashable follows Eq and Ord in only depending on the unique
+instance Hashable Name where
+  hashWithSalt s = hashWithSalt s . _nameUnique
 
 -- | A unique identifier
 newtype Unique = Unique {unUnique :: Int}
