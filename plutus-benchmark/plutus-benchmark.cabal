@@ -181,6 +181,7 @@ library lists-internal
   ghc-options:     -Wno-unused-packages
   hs-source-dirs:  lists/src
   exposed-modules:
+    PlutusBenchmark.Lists.Lookup.Compiled
     PlutusBenchmark.Lists.Sort
     PlutusBenchmark.Lists.Sum.Compiled
     PlutusBenchmark.Lists.Sum.HandWritten
@@ -227,6 +228,7 @@ test-suite plutus-benchmark-lists-tests
   main-is:        Spec.hs
   hs-source-dirs: lists/test
   other-modules:
+    Lookup.Spec
     Sort.Spec
     Sum.Spec
 

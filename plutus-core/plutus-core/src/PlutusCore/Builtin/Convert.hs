@@ -31,7 +31,7 @@ integerToByteStringWrapper ::
 integerToByteStringWrapper endiannessArg lengthArg input
   -- Check that we are within the Int range on the non-negative side.
   | lengthArg < 0 || lengthArg >= 536870912 = do
-      emit "builtinIntegerToByteString: inappropriate length argument"
+      emit "integerToByteString: inappropriate length argument"
       emit $ "Length requested: " <> (pack . show $ input)
       pure EvaluationFailure
   -- As this builtin hasn't been costed yet, we have to impose a temporary limit of 10KiB on requested
@@ -40,7 +40,7 @@ integerToByteStringWrapper endiannessArg lengthArg input
   --
   -- TODO: Cost this builtin.
   | lengthArg > 10240 = do
-      emit "builtinIntegerToByteString: padding argument too large"
+      emit "integerToByteString: padding argument too large"
       emit "If you are seeing this, it is a bug: please report this!"
       pure EvaluationFailure
   | otherwise = let endianness = endiannessArgToByteOrder endiannessArg in
@@ -50,13 +50,13 @@ integerToByteStringWrapper endiannessArg lengthArg input
     case integerToByteString endianness (fromIntegral lengthArg) input of
       Left err -> case err of
         NegativeInput -> do
-          emit "builtinIntegerToByteString: cannot convert negative Integer"
+          emit "integerToByteString: cannot convert negative Integer"
           -- This does work proportional to the size of input. However, we're in a failing case
           -- anyway, and the user's paid for work proportional to this size in any case.
           emit $ "Input: " <> (pack . show $ input)
           pure EvaluationFailure
         NotEnoughDigits -> do
-          emit "builtinIntegerToByteString: cannot represent Integer in given number of bytes"
+          emit "integerToByteString: cannot represent Integer in given number of bytes"
           -- This does work proportional to the size of input. However, we're in a failing case
           -- anyway, and the user's paid for work proportional to this size in any case.
           emit $ "Input: " <> (pack . show $ input)

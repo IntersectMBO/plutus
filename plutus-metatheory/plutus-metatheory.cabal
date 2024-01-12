@@ -12,6 +12,7 @@ author:             James Chapman
 maintainer:         james.chapman@iohk.io
 category:           Development
 extra-source-files:
+  data/builtinCostModel.json
   Plutus.agda-lib
   README.md
   src/**/*.lagda
@@ -52,6 +53,7 @@ library
   import:          lang
   hs-source-dirs:  src
   build-depends:
+    , aeson
     , base
     , bytestring
     , composition-prelude
@@ -71,6 +73,7 @@ library
     build-depends: integer-gmp
 
   exposed-modules:
+    Cost.JSON
     Opts
     Raw
     Untyped
@@ -132,6 +135,8 @@ library
     MAlonzo.Code.Check
     MAlonzo.Code.Cost
     MAlonzo.Code.Cost.Base
+    MAlonzo.Code.Cost.Model
+    MAlonzo.Code.Cost.Raw
     MAlonzo.Code.Data.Bool.Base
     MAlonzo.Code.Data.Bool.Properties
     MAlonzo.Code.Data.Char.Base
@@ -355,6 +360,8 @@ library
     MAlonzo.Code.Check
     MAlonzo.Code.Cost
     MAlonzo.Code.Cost.Base
+    MAlonzo.Code.Cost.Model
+    MAlonzo.Code.Cost.Raw
     MAlonzo.Code.Data.Bool.Base
     MAlonzo.Code.Data.Bool.Properties
     MAlonzo.Code.Data.Char.Base
@@ -528,6 +535,7 @@ executable plc-agda
   import:         lang
   hs-source-dirs: exe
   main-is:        Main.hs
+  other-modules:  Paths_plutus_metatheory
   build-depends:
     , base
     , plutus-metatheory

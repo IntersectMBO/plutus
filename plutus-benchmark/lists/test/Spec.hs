@@ -6,6 +6,7 @@ module Main (main) where
 
 import Test.Tasty
 
+import Lookup.Spec qualified as Lookup
 import Sort.Spec qualified as Sort
 import Sum.Spec qualified as Sum
 
@@ -14,6 +15,7 @@ allTests =
   testGroup "plutus-benchmark list tests"
     [ Sort.tests
     , Sum.tests
+    , Lookup.tests
     ]
 
 main :: IO ()

@@ -22,6 +22,7 @@ open import Scoped.Extrication using (extricateNf⋆;extricate)
 open import Type.BetaNormal using (_⊢Nf⋆_)
 import Untyped as U using (_⊢;scopeCheckU0;extricateU0;decUTm)
 import Untyped.CEKWithCost as U using (stepperC)
+open import Cost.Base
 open import Cost using (defaultMachineParameters;tallyingMachineParameters;countingReport;tallyingReport)
 import RawU as U using (Untyped)
 
@@ -194,10 +195,13 @@ postulate
 {-# FOREIGN GHC import qualified Untyped as U #-}
 {-# COMPILE GHC prettyPrintUTm = display @T.Text . U.uconv 0 #-}
 
-data BudgetMode : Set where 
-  Silent   : BudgetMode
-  Counting : BudgetMode
-  Tallying : BudgetMode
+open import Cost.Raw using (BuiltinCostMap)
+open import Cost.Model using (createMap)
+
+data BudgetMode (A : Set) : Set where 
+  Silent   : BudgetMode A
+  Counting : A → BudgetMode A
+  Tallying : A → BudgetMode A
 
 {-# COMPILE GHC BudgetMode = data BudgetMode (Silent | Counting | Tallying) #-}
 
@@ -213,6 +217,7 @@ data ERROR : Set where
   parseError : ParseError → ERROR
   scopeError : ScopeError → ERROR
   runtimeError : RuntimeError → ERROR
+  jsonError : String → ERROR
 
 
 uglyTypeError : TypeError → String
@@ -240,7 +245,7 @@ uglyTypeError TooManyCases = "TooManyCases"
 
 -- the haskell version of Error is defined in Raw
 
-{-# COMPILE GHC ERROR = data ERROR (TypeError | ParseError | ScopeError | RuntimeError) #-}
+{-# COMPILE GHC ERROR = data ERROR (TypeError | ParseError | ScopeError | RuntimeError | JsonError) #-}
 
 parsePLC : ProgramN → Either ERROR (ScopedTm Z)
 parsePLC namedprog = do
@@ -263,6 +268,7 @@ maxsteps = 10000000000
 reportError : ERROR → String
 reportError (parseError _) = "parseError"
 reportError (typeError s) = "typeError: " ++ s
+reportError (jsonError s) = "jsonError: " ++ s
 reportError (scopeError _) = "scopeError"
 reportError (runtimeError gasError)         = "gasError"
 reportError (runtimeError userError)        = "userError"
@@ -277,7 +283,7 @@ checkError : ∀{A} → ∅ ⊢ A → Either ERROR (∅ ⊢ A )
 checkError (error _) = inj₁ (runtimeError userError)
 checkError t         = return t
 
-executePLC : EvalMode → BudgetMode → ScopedTm Z → Either ERROR String
+executePLC : EvalMode → BudgetMode BuiltinCostMap → ScopedTm Z → Either ERROR String
 executePLC U budgetmode t = do
   (A ,, t) ← withE (λ e → typeError (uglyTypeError e)) $ typeCheckPLC t
   □ V ← withE runtimeError $ U.stepper maxsteps (ε ; [] ▻ erase t)
@@ -311,22 +317,28 @@ showUPLCResult (□ V) = return $ prettyPrintUTm (U.extricateU0 (U.discharge V))
 showUPLCResult ◆     = inj₁ (runtimeError userError)
 showUPLCResult _     = inj₁ (runtimeError gasError)
 
-executeUPLC : BudgetMode → ⊥ U.⊢ → Either ERROR String
+executeUPLC : BudgetMode BuiltinCostMap → ⊥ U.⊢ → Either ERROR String
 executeUPLC Silent t = (withE runtimeError $ U.stepper maxsteps (ε ; [] ▻ t)) >>= showUPLCResult
-executeUPLC Counting t = 
-    let (ev , exBudget) = U.stepperC defaultMachineParameters maxsteps (ε ; [] ▻ t)
+executeUPLC (Counting rawmodel) t with createMap rawmodel
+... | just model =
+   let machineParameters = defaultMachineParameters model
+       (ev , exBudget) = U.stepperC machineParameters maxsteps (ε ; [] ▻ t)
     in do 
      x ← withE runtimeError ev
      r ← showUPLCResult x
-     return (r ++  countingReport exBudget)     
-executeUPLC Tallying t = 
-     let (ev , tallying) = U.stepperC tallyingMachineParameters maxsteps (ε ; [] ▻ t)
-     in do
-      x ← withE runtimeError ev
-      r ← showUPLCResult x
-      return (r ++ tallyingReport tallying)
+     return (r ++  countingReport exBudget)  
+... | nothing = inj₁ (jsonError "while processing parameters.")  
+executeUPLC (Tallying rawmodel) t  with createMap rawmodel
+... | just model =
+    let machineParameters = tallyingMachineParameters model
+        (ev , tallying) = U.stepperC machineParameters maxsteps (ε ; [] ▻ t)
+    in do
+    x ← withE runtimeError ev
+    r ← showUPLCResult x
+    return (r ++ tallyingReport tallying)
+... | nothing = inj₁ (jsonError "while processing parameters.")
 
-evalProgramNU : BudgetMode → ProgramNU → Either ERROR String
+evalProgramNU : BudgetMode BuiltinCostMap → ProgramNU → Either ERROR String
 evalProgramNU bm namedprog = do
   t ← parseUPLC namedprog
   executeUPLC bm t
@@ -412,8 +424,8 @@ alphaU plc1 plc2 | _ | _ = Bool.false
 
 -- More Opt Stuff
 
-data EvalOptions : Set where
-  EvalOpts : Input → Format → EvalMode → BudgetMode → EvalOptions
+data EvalOptions (A : Set) : Set where
+  EvalOpts : Input → Format → EvalMode → BudgetMode A → EvalOptions A
 
 {-# COMPILE GHC EvalOptions = data EvalOptions (EvalOpts) #-}
 
@@ -422,24 +434,24 @@ data TypecheckOptions : Set where
 
 {-# COMPILE GHC TypecheckOptions = data TypecheckOptions (TCOpts) #-}
 
-data Command : Set where
-  Eval  : EvalOptions → Command
-  Typecheck : TypecheckOptions → Command
+data Command (A : Set) : Set where
+  Eval  : EvalOptions A → Command A
+  Typecheck : TypecheckOptions → Command A
 
 {-# COMPILE GHC Command = data Command (Eval | Typecheck) #-}
 
-postulate execP : IO Command
+postulate execP : IO (Command BuiltinCostMap)
 
 {-# COMPILE GHC execP = execP #-}
 
-evalInput : EvalMode → BudgetMode → Format → Input → IO (Either ERROR String)
+evalInput : EvalMode →  BudgetMode BuiltinCostMap → Format → Input → IO (Either ERROR String)
 evalInput U bm fmt inp = fmap (evalProgramNU bm) (parseU fmt inp)
 evalInput m _ fmt inp  = fmap (evalProgramN m) (parse fmt inp)
 
 tcInput : Format → Input → IO (Either ERROR String)
 tcInput fmt inp = fmap typeCheckProgramN (parse fmt inp)
 
-main' : Command → IO ⊤
+main' : Command BuiltinCostMap → IO ⊤
 main' (Eval (EvalOpts inp fmt m bm)) = do
   inj₂ s ← evalInput m bm fmt inp
     where
