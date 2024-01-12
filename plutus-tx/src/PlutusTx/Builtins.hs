@@ -161,7 +161,7 @@ sha3_256 = BI.sha3_256
 {-# INLINABLE blake2b_224 #-}
 -- | The BLAKE2B-224 hash of a 'ByteString'
 blake2b_224 :: BuiltinByteString -> BuiltinByteString
-blake2b_224 = BI.blake2b_256
+blake2b_224 = BI.blake2b_224
 
 {-# INLINABLE blake2b_256 #-}
 -- | The BLAKE2B-256 hash of a 'ByteString'
