@@ -72,14 +72,15 @@ library plutus-benchmark-common
 
   other-modules:   Paths_plutus_benchmark
   build-depends:
-    , base          >=4.9   && <5
+    , base               >=4.9   && <5
     , bytestring
     , criterion
     , directory
     , filepath
-    , flat          ^>=0.6
-    , plutus-core   ^>=1.19
-    , plutus-tx     ^>=1.19
+    , flat               ^>=0.6
+    , plutus-core        ^>=1.19
+    , plutus-metatheory
+    , plutus-tx          ^>=1.19
     , tasty
     , tasty-golden
     , temporary
@@ -512,7 +513,8 @@ executable marlowe-validators
 benchmark marlowe
   import:         lang, ghc-version-support
   type:           exitcode-stdio-1.0
-  main-is:        Bench.hs
+  main-is:        BenchCek.hs
+  other-modules:  Shared
   hs-source-dirs: marlowe/bench
   build-depends:
     , base                     >=4.9   && <5
@@ -535,3 +537,52 @@ test-suite plutus-benchmark-marlowe-tests
     , plutus-ledger-api                               ^>=1.19
     , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.19
     , tasty
+
+---------------- agda evaluators ----------------
+
+-- TODO: Add benchmarks for the executable semantics when we have a UPLC version
+
+benchmark validation-agda-cek
+  import:         lang
+  type:           exitcode-stdio-1.0
+  main-is:        BenchAgdaCek.hs
+  hs-source-dirs: validation
+  other-modules:  Common
+  build-depends:
+    , base                     >=4.9     && <5
+    , bytestring
+    , criterion                >=1.5.9.0
+    , deepseq
+    , directory
+    , filepath
+    , flat                     ^>=0.6
+    , optparse-applicative
+    , plutus-benchmark-common
+    , plutus-core              ^>=1.19
+    , plutus-ledger-api        ^>=1.19
+
+benchmark nofib-agda-cek
+  import:         lang, ghc-version-support
+  type:           exitcode-stdio-1.0
+  main-is:        BenchAgdaCek.hs
+  hs-source-dirs: nofib/bench
+  other-modules:  Shared
+  build-depends:
+    , base                     >=4.9     && <5
+    , criterion                >=1.5.9.0
+    , nofib-internal
+    , plutus-benchmark-common
+
+benchmark marlowe-agda-cek
+  import:         lang, ghc-version-support
+  type:           exitcode-stdio-1.0
+  main-is:        BenchAgdaCek.hs
+  other-modules:  Shared
+  hs-source-dirs: marlowe/bench
+  build-depends:
+    , base                     >=4.9   && <5
+    , criterion
+    , marlowe-internal
+    , plutus-benchmark-common
+    , plutus-ledger-api        ^>=1.19
+    , plutus-tx                ^>=1.19

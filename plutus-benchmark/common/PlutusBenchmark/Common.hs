@@ -4,6 +4,7 @@
 {- | Miscellaneous shared code for benchmarking-related things. -}
 module PlutusBenchmark.Common
     ( module Export
+    , Program
     , Term
     , getConfig
     , toAnonDeBruijnTerm
@@ -15,6 +16,8 @@ module PlutusBenchmark.Common
     , unsafeRunTermCek
     , runTermCek
     , cekResultMatchesHaskellValue
+    , benchTermAgdaCek
+    , benchProgramAgdaCek
     , TestSize (..)
     , printHeader
     , printSizeStatistics
@@ -34,6 +37,8 @@ import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 import PlutusTx qualified as Tx
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek as Cek
+
+import MAlonzo.Code.Main (runUAgda)
 
 import Criterion.Main
 import Criterion.Types (Config (..))
@@ -101,15 +106,15 @@ haskellValueToTerm
 haskellValueToTerm = compiledCodeToTerm . Tx.liftCodeDef
 
 
-{- | Convert a de-Bruijn-named UPLC term to a Benchmark -}
+{- | Convert a de-Bruijn-named UPLC term to a CEK Benchmark -}
 benchTermCek :: Term -> Benchmarkable
 benchTermCek term =
-    nf (unsafeRunTermCek) $! term -- Or whnf?
+    nf unsafeRunTermCek $! term -- Or whnf?
 
-{- | Convert a de-Bruijn-named UPLC term to a Benchmark -}
+{- | Convert a de-Bruijn-named UPLC term to a CEK Benchmark -}
 benchProgramCek :: Program -> Benchmarkable
 benchProgramCek (UPLC.Program _ _ term) =
-    nf (unsafeRunTermCek) $! term -- Or whnf?
+    nf unsafeRunTermCek $! term -- Or whnf?
 
 {- | Just run a term to obtain an `EvaluationResult` (used for tests etc.) -}
 unsafeRunTermCek :: Term -> EvaluationResult Term
@@ -150,6 +155,21 @@ cekResultMatchesHaskellValue
     -> b
 cekResultMatchesHaskellValue term matches value =
     (unsafeRunTermCek term) `matches` (unsafeRunTermCek $ haskellValueToTerm value)
+
+
+---------------- Run a term or program using the plutus-metatheory CEK evaluator ----------------
+
+benchTermAgdaCek :: Term -> Benchmarkable
+benchTermAgdaCek term =
+    nf unsafeRunAgdaCek $! term
+
+benchProgramAgdaCek :: Program -> Benchmarkable
+benchProgramAgdaCek (UPLC.Program _ _ term) =
+    nf unsafeRunAgdaCek $! term
+
+unsafeRunAgdaCek :: Term -> EvaluationResult Term
+unsafeRunAgdaCek =
+    either (error . \e -> "Agda evaluation error: " ++ show e) EvaluationSuccess . runUAgda
 
 ---------------- Printing tables of information about costs ----------------
 
