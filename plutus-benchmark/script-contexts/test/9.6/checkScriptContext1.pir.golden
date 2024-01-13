@@ -233,22 +233,14 @@
                       Unit
             in
             \(d : data) -> go (unMapData d)
-    data Rational | Rational_match where
-      Rational : integer -> integer -> Rational
-    data Committee | Committee_match where
-      Committee :
-        (\k v -> List (Tuple2 k v)) Credential integer -> Rational -> Committee
     data ProtocolVersion | ProtocolVersion_match where
       ProtocolVersion : integer -> integer -> ProtocolVersion
+    data Rational | Rational_match where
+      Rational : integer -> integer -> Rational
     data GovernanceAction | GovernanceAction_match where
       HardForkInitiation :
         Maybe GovernanceActionId -> ProtocolVersion -> GovernanceAction
       InfoAction : GovernanceAction
-      NewCommittee :
-        Maybe GovernanceActionId ->
-        List Credential ->
-        Committee ->
-        GovernanceAction
       NewConstitution :
         Maybe GovernanceActionId -> Maybe bytestring -> GovernanceAction
       NoConfidence : Maybe GovernanceActionId -> GovernanceAction
@@ -257,6 +249,12 @@
       TreasuryWithdrawals :
         (\k v -> List (Tuple2 k v)) Credential integer ->
         Maybe bytestring ->
+        GovernanceAction
+      UpdateCommittee :
+        Maybe GovernanceActionId ->
+        List Credential ->
+        (\k v -> List (Tuple2 k v)) Credential integer ->
+        Rational ->
         GovernanceAction
     data ProposalProcedure | ProposalProcedure_match where
       ProposalProcedure :
@@ -407,8 +405,9 @@
                                           let
                                             !l : list data
                                               = tailList {data} args
+                                            !l : list data = tailList {data} l
                                           in
-                                          NewCommittee
+                                          UpdateCommittee
                                             (`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData`
                                                {GovernanceActionId}
                                                `$fUnsafeFromDataGovernanceAction_$cunsafeFromBuiltinData`
@@ -417,98 +416,59 @@
                                                {Credential}
                                                `$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
                                                (headList {data} l))
+                                            (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
+                                               {Credential}
+                                               {integer}
+                                               `$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
+                                               unIData
+                                               (headList {data} l))
                                             (let
-                                              !tup : pair integer (list data)
-                                                = unConstrData
-                                                    (headList
-                                                       {data}
-                                                       (tailList {data} l))
-                                              !index : integer
-                                                = fstPair
-                                                    {integer}
-                                                    {list data}
-                                                    tup
-                                              !args : list data
-                                                = sndPair
-                                                    {integer}
-                                                    {list data}
-                                                    tup
+                                              !x : data
+                                                = headList
+                                                    {data}
+                                                    (tailList {data} l)
                                             in
-                                            ifThenElse
-                                              {all dead. Committee}
-                                              (equalsInteger 0 index)
-                                              (/\dead ->
-                                                 Committee
-                                                   (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
-                                                      {Credential}
+                                            Tuple2_match
+                                              {integer}
+                                              {integer}
+                                              (let
+                                                !tup : pair integer (list data)
+                                                  = unConstrData x
+                                                !index : integer
+                                                  = fstPair
                                                       {integer}
-                                                      `$fUnsafeFromDataCredential_$cunsafeFromBuiltinData`
-                                                      unIData
-                                                      (headList {data} args))
-                                                   (let
-                                                     !x : data
-                                                       = headList
+                                                      {list data}
+                                                      tup
+                                                !args : list data
+                                                  = sndPair
+                                                      {integer}
+                                                      {list data}
+                                                      tup
+                                              in
+                                              ifThenElse
+                                                {all dead.
+                                                   Tuple2 integer integer}
+                                                (equalsInteger 0 index)
+                                                (/\dead ->
+                                                   Tuple2
+                                                     {integer}
+                                                     {integer}
+                                                     (unIData
+                                                        (headList {data} args))
+                                                     (unIData
+                                                        (headList
                                                            {data}
                                                            (tailList
                                                               {data}
-                                                              args)
-                                                   in
-                                                   Tuple2_match
-                                                     {integer}
-                                                     {integer}
-                                                     (let
-                                                       !tup :
-                                                          pair
-                                                            integer
-                                                            (list data)
-                                                         = unConstrData x
-                                                       !index : integer
-                                                         = fstPair
-                                                             {integer}
-                                                             {list data}
-                                                             tup
-                                                       !args : list data
-                                                         = sndPair
-                                                             {integer}
-                                                             {list data}
-                                                             tup
-                                                     in
-                                                     ifThenElse
-                                                       {all dead.
-                                                          Tuple2
-                                                            integer
-                                                            integer}
-                                                       (equalsInteger 0 index)
-                                                       (/\dead ->
-                                                          Tuple2
-                                                            {integer}
-                                                            {integer}
-                                                            (unIData
-                                                               (headList
-                                                                  {data}
-                                                                  args))
-                                                            (unIData
-                                                               (headList
-                                                                  {data}
-                                                                  (tailList
-                                                                     {data}
-                                                                     args))))
-                                                       (/\dead ->
-                                                          traceError
-                                                            {Tuple2
-                                                               integer
-                                                               integer}
-                                                            reconstructCaseError)
-                                                       {all dead. dead})
-                                                     {Rational}
-                                                     (\(a : integer)
-                                                       (b : integer) ->
-                                                        unsafeRatio a b)))
-                                              (/\dead ->
-                                                 traceError
-                                                   {Committee}
-                                                   reconstructCaseError)
-                                              {all dead. dead}))
+                                                              args))))
+                                                (/\dead ->
+                                                   traceError
+                                                     {Tuple2 integer integer}
+                                                     reconstructCaseError)
+                                                {all dead. dead})
+                                              {Rational}
+                                              (\(a : integer) (b : integer) ->
+                                                 unsafeRatio a b)))
                                        (/\dead ->
                                           ifThenElse
                                             {all dead. GovernanceAction}
