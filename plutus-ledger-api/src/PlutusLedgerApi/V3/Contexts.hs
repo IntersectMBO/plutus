@@ -275,7 +275,7 @@ data GovernanceAction
   | UpdateCommittee
       (Haskell.Maybe GovernanceActionId)
       [ColdCommitteeCredential] -- ^ Committee members to be removed
-      Map ColdCommitteeCredential Integer -- ^ Committee members to be added
+      (Map ColdCommitteeCredential Haskell.Integer) -- ^ Committee members to be added
       Rational -- ^ New quorum
   | NewConstitution (Haskell.Maybe GovernanceActionId) Constitution
   | InfoAction
