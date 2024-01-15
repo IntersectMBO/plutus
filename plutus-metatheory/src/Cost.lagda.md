@@ -54,6 +54,54 @@ open AtomicTyCon
 
 open import Cost.Base 
 open import Cost.Model
+```
+
+Interfacing with Haskell Machine Parameters
+
+```
+{-# FOREIGN GHC import Data.SatInt (fromSatInt) #-}
+{-# FOREIGN GHC import Data.Functor.Identity (Identity, runIdentity) #-}
+{-# FOREIGN GHC import PlutusCore.Evaluation.Machine.ExBudget (ExBudget(..))  #-}
+{-# FOREIGN GHC import PlutusCore.Evaluation.Machine.ExMemory (ExCPU(..), ExMemory(..)) #-}
+{-# FOREIGN GHC import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekMachineCosts) #-}
+{-# FOREIGN GHC import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCostsBase(..)) #-}
+
+postulate HCekMachineCosts : Set 
+postulate HExBudget : Set 
+
+postulate getCekStartupCost : HCekMachineCosts →  HExBudget
+postulate getCekVarCost : HCekMachineCosts →  HExBudget
+postulate getCekConstCost : HCekMachineCosts →  HExBudget
+postulate getCekLamCost : HCekMachineCosts →  HExBudget
+postulate getCekDelayCost : HCekMachineCosts →  HExBudget
+postulate getCekForceCost : HCekMachineCosts →  HExBudget
+postulate getCekApplyCost : HCekMachineCosts →  HExBudget
+postulate getCekBuiltinCost : HCekMachineCosts →  HExBudget
+postulate getCekConstrCost : HCekMachineCosts →  HExBudget
+postulate getCekCaseCost : HCekMachineCosts →  HExBudget
+
+postulate getCPUCost : HExBudget → CostingNat
+postulate getMemoryCost : HExBudget → CostingNat
+
+postulate defaultHCekMachineCosts : HCekMachineCosts
+
+{-# COMPILE GHC HCekMachineCosts = type CekMachineCostsBase Identity #-}
+{-# COMPILE GHC HExBudget = type ExBudget #-}
+{-# COMPILE GHC getCekStartupCost = runIdentity . cekStartupCost  #-}
+{-# COMPILE GHC getCekVarCost = runIdentity . cekVarCost  #-}
+{-# COMPILE GHC getCekConstCost = runIdentity . cekConstCost  #-}
+{-# COMPILE GHC getCekLamCost = runIdentity . cekLamCost  #-}
+{-# COMPILE GHC getCekDelayCost = runIdentity . cekDelayCost  #-}
+{-# COMPILE GHC getCekForceCost = runIdentity . cekForceCost  #-}
+{-# COMPILE GHC getCekApplyCost = runIdentity . cekApplyCost  #-}
+{-# COMPILE GHC getCekBuiltinCost = runIdentity . cekBuiltinCost  #-}
+{-# COMPILE GHC getCekConstrCost = runIdentity . cekConstrCost  #-}
+{-# COMPILE GHC getCekCaseCost = runIdentity . cekCaseCost  #-}
+
+{-# COMPILE GHC getCPUCost = fromSatInt . (\(ExCPU x) -> x) . exBudgetCPU  #-}
+{-# COMPILE GHC getMemoryCost = fromSatInt . (\(ExMemory x) -> x) . exBudgetMemory  #-}
+
+{-# COMPILE GHC defaultHCekMachineCosts = defaultCekMachineCosts #-}
 ``` 
 
 ## Execution Budget
@@ -68,6 +116,9 @@ record ExBudget : Set where
     ExMem : CostingNat -- Memory usage
 
 open ExBudget
+
+fromHExBudget : HExBudget → ExBudget 
+fromHExBudget hb = mkExBudget (getCPUCost hb) (getMemoryCost hb)
 ```
 
 The type for execution budget should be a Monoid.
@@ -115,7 +166,7 @@ postulate mlResultElementCost : CostingNat
 {-# FOREIGN GHC import PlutusCore.Crypto.BLS12_381.G2 as BLS12_381.G2 #-}
 {-# FOREIGN GHC import PlutusCore.Crypto.BLS12_381.Pairing as BLS12_381.Pairing #-}
 
-{-# COMPILE GHC  ℕtoWords = \i -> fromIntegral $ I# (integerLog2# (abs i) `quotInt#` integerToInt 64) + 1 #-}
+{-# COMPILE GHC ℕtoWords = \i -> fromIntegral $ I# (integerLog2# (abs i) `quotInt#` integerToInt 64) + 1 #-}
 {-# COMPILE GHC g1ElementCost = toInteger (BLS12_381.G1.memSizeBytes `div` 8) #-}
 {-# COMPILE GHC g2ElementCost = toInteger (BLS12_381.G2.memSizeBytes `div` 8) #-}
 {-# COMPILE GHC mlResultElementCost = toInteger (BLS12_381.Pairing.mlResultMemSizeBytes `div` 8) #-}
@@ -185,18 +236,36 @@ builtinCost b bc cs = mkExBudget (runModel (costingCPU bc) cs) (runModel (costin
 
 The default machine parameters for `ExBudget`.
 
-TODO : For now we will define fixed costs. Later, we should 
-implement getting these values from the `cekMachineCosts.json` file.
-Probably, we will do this by reusing Haskell code.
-
 ```
-defaultCekMachineCost : StepKind → ExBudget
-defaultCekMachineCost _ = mkExBudget 23000 100
+cekMachineCostFunction : HCekMachineCosts → StepKind → ExBudget
+cekMachineCostFunction mc BConst = fromHExBudget (getCekConstCost mc)
+cekMachineCostFunction mc BVar = fromHExBudget (getCekVarCost mc)
+cekMachineCostFunction mc BLamAbs = fromHExBudget (getCekLamCost mc)
+cekMachineCostFunction mc BApply = fromHExBudget (getCekApplyCost mc)
+cekMachineCostFunction mc BDelay = fromHExBudget (getCekDelayCost mc)
+cekMachineCostFunction mc BForce = fromHExBudget (getCekForceCost mc)
+cekMachineCostFunction mc BBuiltin = fromHExBudget (getCekBuiltinCost mc)
+cekMachineCostFunction mc BConstr = fromHExBudget (getCekConstCost mc)
+cekMachineCostFunction mc BCase = fromHExBudget (getCekCaseCost mc)
+
+CostModel = HCekMachineCosts × ModelAssignment
+
+exBudgetCategoryCost' : CostModel → ExBudgetCategory → ExBudget 
+exBudgetCategoryCost' (cekMc , _) (BStep x) = cekMachineCostFunction cekMc x
+exBudgetCategoryCost' (_ , ma) (BBuiltinApp b cs) = builtinCost b (ma b) cs
+exBudgetCategoryCost' (cekMc , _) BStartup = fromHExBudget (getCekStartupCost cekMc)
+
+defaultMachineParameters' : CostModel → MachineParameters ExBudget
+defaultMachineParameters' costmodel = record {
+    cekMachineCost = exBudgetCategoryCost' costmodel
+  ; ε = ε€
+  ; _∙_ = _∙€_
+  ; costMonoid = isMonoidExBudget
+  ; constantMeasure = defaultConstantMeasure 
+ } 
 
 exBudgetCategoryCost : ModelAssignment → ExBudgetCategory → ExBudget 
-exBudgetCategoryCost _ (BStep x) = defaultCekMachineCost x
-exBudgetCategoryCost assignModel (BBuiltinApp b cs) = builtinCost b (assignModel b) cs
-exBudgetCategoryCost _ BStartup = mkExBudget 100 100
+exBudgetCategoryCost ma = exBudgetCategoryCost' (defaultHCekMachineCosts , ma)
 
 defaultMachineParameters : ModelAssignment → MachineParameters ExBudget
 defaultMachineParameters assignModel = record {
@@ -261,6 +330,21 @@ isMonoidTallyingBudget = record {
                             ; ∙-cong = λ {refl refl → refl }} 
            ; assoc = TallyingBudget-assoc } 
      ; identity = (λ x → refl) , Tallying-budget-identityʳ }
+
+
+tallyingCekMachineCost' : CostModel → ExBudgetCategory → TallyingBudget
+tallyingCekMachineCost' cm k = 
+      let spent = exBudgetCategoryCost' cm k 
+      in singleton (mkKeyFromExBudgetCategory k) spent , spent
+
+tallyingMachineParameters' : CostModel → MachineParameters TallyingBudget
+tallyingMachineParameters' cm = record { 
+        cekMachineCost = tallyingCekMachineCost' cm
+      ; ε = εT
+      ; _∙_ = _∙T_
+      ; costMonoid = isMonoidTallyingBudget
+      ; constantMeasure = defaultConstantMeasure
+      } 
 
 tallyingCekMachineCost : ModelAssignment → ExBudgetCategory → TallyingBudget
 tallyingCekMachineCost am k = 
