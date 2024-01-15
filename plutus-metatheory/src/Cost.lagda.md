@@ -25,7 +25,7 @@ open import Data.Float using (Float;fromℕ;_÷_;_≤ᵇ_) renaming (show to sho
 import Data.List as L
 
 open import Data.Maybe using (Maybe;just;nothing;maybe′;fromMaybe) renaming (map to mapMaybe; _>>=_ to _>>=m_ )
-open import Data.Product using (_×_;_,_)
+open import Data.Product using () renaming (_,_ to _,,_)
 open import Data.String using (String;_++_;padLeft;padRight;length)
 open import Data.Vec using (Vec;replicate;[];_∷_;sum;foldr) 
                      renaming (lookup to lookupVec)
@@ -34,7 +34,7 @@ open import Relation.Nullary using (yes;no)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;isEquivalence;cong₂)
 open import Text.Printf using (printf)
 
-open import Utils using (_,_;_∷_;[];DATA;List;map)
+open import Utils using (_×_;_,_;_∷_;[];DATA;List;map;ByteString)
 open DATA
 
 open import Relation.Binary using (StrictTotalOrder)
@@ -56,7 +56,7 @@ open import Cost.Base
 open import Cost.Model
 ```
 
-Interfacing with Haskell Machine Parameters
+## Interface with Haskell Machine Parameters
 
 ```
 {-# FOREIGN GHC import Data.SatInt (fromSatInt) #-}
@@ -69,37 +69,38 @@ Interfacing with Haskell Machine Parameters
 postulate HCekMachineCosts : Set 
 postulate HExBudget : Set 
 
+{-# COMPILE GHC HCekMachineCosts = type CekMachineCostsBase Identity #-}
+{-# COMPILE GHC HExBudget = type ExBudget #-}
+
 postulate getCekStartupCost : HCekMachineCosts →  HExBudget
-postulate getCekVarCost : HCekMachineCosts →  HExBudget
-postulate getCekConstCost : HCekMachineCosts →  HExBudget
-postulate getCekLamCost : HCekMachineCosts →  HExBudget
-postulate getCekDelayCost : HCekMachineCosts →  HExBudget
-postulate getCekForceCost : HCekMachineCosts →  HExBudget
-postulate getCekApplyCost : HCekMachineCosts →  HExBudget
+postulate getCekVarCost     : HCekMachineCosts →  HExBudget
+postulate getCekConstCost   : HCekMachineCosts →  HExBudget
+postulate getCekLamCost     : HCekMachineCosts →  HExBudget
+postulate getCekDelayCost   : HCekMachineCosts →  HExBudget
+postulate getCekForceCost   : HCekMachineCosts →  HExBudget
+postulate getCekApplyCost   : HCekMachineCosts →  HExBudget
 postulate getCekBuiltinCost : HCekMachineCosts →  HExBudget
-postulate getCekConstrCost : HCekMachineCosts →  HExBudget
-postulate getCekCaseCost : HCekMachineCosts →  HExBudget
+postulate getCekConstrCost  : HCekMachineCosts →  HExBudget
+postulate getCekCaseCost    : HCekMachineCosts →  HExBudget
+
+{-# COMPILE GHC getCekStartupCost = runIdentity . cekStartupCost  #-}
+{-# COMPILE GHC getCekVarCost     = runIdentity . cekVarCost      #-}
+{-# COMPILE GHC getCekConstCost   = runIdentity . cekConstCost    #-}
+{-# COMPILE GHC getCekLamCost     = runIdentity . cekLamCost      #-}
+{-# COMPILE GHC getCekDelayCost   = runIdentity . cekDelayCost    #-}
+{-# COMPILE GHC getCekForceCost   = runIdentity . cekForceCost    #-}
+{-# COMPILE GHC getCekApplyCost   = runIdentity . cekApplyCost    #-}
+{-# COMPILE GHC getCekBuiltinCost = runIdentity . cekBuiltinCost  #-}
+{-# COMPILE GHC getCekConstrCost  = runIdentity . cekConstrCost   #-}
+{-# COMPILE GHC getCekCaseCost    = runIdentity . cekCaseCost     #-}
 
 postulate getCPUCost : HExBudget → CostingNat
 postulate getMemoryCost : HExBudget → CostingNat
 
-postulate defaultHCekMachineCosts : HCekMachineCosts
-
-{-# COMPILE GHC HCekMachineCosts = type CekMachineCostsBase Identity #-}
-{-# COMPILE GHC HExBudget = type ExBudget #-}
-{-# COMPILE GHC getCekStartupCost = runIdentity . cekStartupCost  #-}
-{-# COMPILE GHC getCekVarCost = runIdentity . cekVarCost  #-}
-{-# COMPILE GHC getCekConstCost = runIdentity . cekConstCost  #-}
-{-# COMPILE GHC getCekLamCost = runIdentity . cekLamCost  #-}
-{-# COMPILE GHC getCekDelayCost = runIdentity . cekDelayCost  #-}
-{-# COMPILE GHC getCekForceCost = runIdentity . cekForceCost  #-}
-{-# COMPILE GHC getCekApplyCost = runIdentity . cekApplyCost  #-}
-{-# COMPILE GHC getCekBuiltinCost = runIdentity . cekBuiltinCost  #-}
-{-# COMPILE GHC getCekConstrCost = runIdentity . cekConstrCost  #-}
-{-# COMPILE GHC getCekCaseCost = runIdentity . cekCaseCost  #-}
-
 {-# COMPILE GHC getCPUCost = fromSatInt . (\(ExCPU x) -> x) . exBudgetCPU  #-}
 {-# COMPILE GHC getMemoryCost = fromSatInt . (\(ExMemory x) -> x) . exBudgetMemory  #-}
+
+postulate defaultHCekMachineCosts : HCekMachineCosts
 
 {-# COMPILE GHC defaultHCekMachineCosts = defaultCekMachineCosts #-}
 ``` 
@@ -142,7 +143,7 @@ isMonoidExBudget = record {
            isMagma = record { isEquivalence = isEquivalence ; ∙-cong = λ {refl refl → refl }} 
            ; assoc = λ x y z → cong₂ mkExBudget (+-assoc (ExCPU x) (ExCPU y) (ExCPU z)) 
                                                 (+-assoc (ExMem x) (ExMem y) (ExMem z)) } 
-     ; identity = (λ x → refl) , λ x → cong₂ mkExBudget (+-identityʳ (ExCPU x)) (+-identityʳ (ExMem x)) }
+     ; identity = (λ x → refl) ,, λ x → cong₂ mkExBudget (+-identityʳ (ExCPU x)) (+-identityʳ (ExMem x)) }
 ``` 
 
 ## Memory usage of type constants
@@ -175,7 +176,7 @@ postulate mlResultElementCost : CostingNat
 For each constant we return the corresponding size.
 
 ```
-byteStringSize : Utils.ByteString → CostingNat 
+byteStringSize : ByteString → CostingNat 
 byteStringSize x = let n = ∣ lengthBS x ∣ in ((n ∸ 1) / 8) + 1
 
 -- cost of a Data node
@@ -184,7 +185,7 @@ dataNodeMem = 4
 
 sizeData : DATA → CostingNat 
 sizeDataList : List DATA → CostingNat 
-sizeDataDataList : List (DATA Utils.× DATA) → CostingNat
+sizeDataDataList : List (DATA × DATA) → CostingNat
 
 sizeData (ConstrDATA _ xs) = dataNodeMem + sizeDataList xs
 sizeData (MapDATA []) = dataNodeMem
@@ -234,9 +235,11 @@ builtinCost b bc cs = mkExBudget (runModel (costingCPU bc) cs) (runModel (costin
 
 ## Default Machine Parameters
 
-The default machine parameters for `ExBudget`.
+The machine parameters for `ExBudget` for a given Cost Model
 
 ```
+CostModel = HCekMachineCosts × ModelAssignment
+
 cekMachineCostFunction : HCekMachineCosts → StepKind → ExBudget
 cekMachineCostFunction mc BConst = fromHExBudget (getCekConstCost mc)
 cekMachineCostFunction mc BVar = fromHExBudget (getCekVarCost mc)
@@ -248,15 +251,13 @@ cekMachineCostFunction mc BBuiltin = fromHExBudget (getCekBuiltinCost mc)
 cekMachineCostFunction mc BConstr = fromHExBudget (getCekConstCost mc)
 cekMachineCostFunction mc BCase = fromHExBudget (getCekCaseCost mc)
 
-CostModel = HCekMachineCosts × ModelAssignment
-
 exBudgetCategoryCost' : CostModel → ExBudgetCategory → ExBudget 
 exBudgetCategoryCost' (cekMc , _) (BStep x) = cekMachineCostFunction cekMc x
 exBudgetCategoryCost' (_ , ma) (BBuiltinApp b cs) = builtinCost b (ma b) cs
 exBudgetCategoryCost' (cekMc , _) BStartup = fromHExBudget (getCekStartupCost cekMc)
 
-defaultMachineParameters' : CostModel → MachineParameters ExBudget
-defaultMachineParameters' costmodel = record {
+machineParameters : CostModel → MachineParameters ExBudget
+machineParameters costmodel = record {
     cekMachineCost = exBudgetCategoryCost' costmodel
   ; ε = ε€
   ; _∙_ = _∙€_
@@ -314,7 +315,7 @@ As required, `TallyingBudget` is a monoid.
 
 -- adding TallyingBudgets
 _∙T_ : TallyingBudget → TallyingBudget → TallyingBudget
-(m , x) ∙T (n , y) = unionWith u m n , x ∙€ y
+(m , x) ∙T (n , y) = unionWith u m n , (x ∙€ y)
    where u : ExBudget → Maybe (ExBudget) → ExBudget
          u x (just y) = x ∙€ y
          u x nothing = x
@@ -329,7 +330,7 @@ isMonoidTallyingBudget = record {
            isMagma = record { isEquivalence = isEquivalence 
                             ; ∙-cong = λ {refl refl → refl }} 
            ; assoc = TallyingBudget-assoc } 
-     ; identity = (λ x → refl) , Tallying-budget-identityʳ }
+     ; identity = (λ x → refl) ,, Tallying-budget-identityʳ }
 
 
 tallyingCekMachineCost' : CostModel → ExBudgetCategory → TallyingBudget

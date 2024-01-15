@@ -32,7 +32,7 @@ open _⊢_
 open _∋_
 open import Algorithmic.RenamingSubstitution using (Sub;sub;exts;exts⋆;_[_];_[_]⋆)
 open import Builtin
-open import Utils hiding (List;length)
+open import Utils hiding (List;length) renaming (_,_ to _,,_)
 
 open import Builtin.Constant.AtomicType
 open import Builtin.Constant.Type using (TyCon)
@@ -253,7 +253,7 @@ BUILTIN unIData (base $ V-con (iDATA i)) = inj₂ (V-con i)
 BUILTIN unIData (base $ V-con _) = inj₁ (con (ne (^ (atomic aData))))
 BUILTIN unBData (base $ V-con (bDATA b)) = inj₂ (V-con b)
 BUILTIN unBData (base $ V-con _) = inj₁ (con (ne (^ (atomic aData))))
-BUILTIN unConstrData (base $ V-con (ConstrDATA i xs)) = inj₂ (V-con (i , xs)) 
+BUILTIN unConstrData (base $ V-con (ConstrDATA i xs)) = inj₂ (V-con (i ,, xs)) 
 BUILTIN unConstrData (base $ V-con _) = inj₁ (con (ne (^ (atomic aData))))
 BUILTIN unMapData (base $ V-con (MapDATA x)) = inj₂ (V-con x)
 BUILTIN unMapData (base $ V-con _) =  inj₁ (con (ne (^ (atomic aData))))
@@ -264,12 +264,12 @@ BUILTIN mkNilData (base $ V-con _) = inj₂ (V-con [])
 BUILTIN mkNilPairData (base $ V-con _) = inj₂ (V-con [])
 BUILTIN chooseUnit (Λ̂ A $ x $ V-con _) = inj₂ x
 BUILTIN equalsData (base $ V-con d $ V-con d') = inj₂ (V-con (eqDATA d d'))
-BUILTIN mkPairData (base $ V-con x $ V-con y) = inj₂ (V-con (x , y))
+BUILTIN mkPairData (base $ V-con x $ V-con y) = inj₂ (V-con (x ,, y))
 BUILTIN constrData (base $ V-con i $ V-con xs) = inj₂ (V-con (ConstrDATA i xs)) 
 BUILTIN mapData (base $ V-con xs) = inj₂ (V-con (MapDATA xs))
 BUILTIN listData (base $ V-con xs) = inj₂ (V-con (ListDATA xs))
-BUILTIN fstPair (Λ̂ A ● B $ V-con (x , _)) = inj₂ (V-con x)
-BUILTIN sndPair (Λ̂ A ● B $ V-con (_ , y)) = inj₂ (V-con y)
+BUILTIN fstPair (Λ̂ A ● B $ V-con (x ,, _)) = inj₂ (V-con x)
+BUILTIN sndPair (Λ̂ A ● B $ V-con (_ ,, y)) = inj₂ (V-con y)
 BUILTIN chooseList (Λ̂ A ● B $ V-con [] $ n $ c) = inj₂ n
 BUILTIN chooseList (Λ̂ A ● B  $ V-con (x ∷ xs) $ n $ c) = inj₂ c
 BUILTIN chooseList (() $$ _ $$ _ $ _ $ _)
