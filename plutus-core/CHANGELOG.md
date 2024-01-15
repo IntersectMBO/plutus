@@ -1,4 +1,12 @@
 
+<a id='changelog-1.20.0.0'></a>
+# 1.20.0.0 — 2024-01-15
+
+## Added
+
+- Implementations for the primitive operations described in
+  [CIP-0087](https://github.com/mlabs-haskell/CIPs/blob/koz/to-from-bytestring/CIP-0087/CIP-0087.md)
+
 <a id='changelog-1.19.0.0'></a>
 # 1.19.0.0 — 2023-12-23
 

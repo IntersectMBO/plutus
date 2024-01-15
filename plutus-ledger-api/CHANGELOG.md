@@ -1,4 +1,19 @@
 
+<a id='changelog-1.20.0.0'></a>
+# 1.20.0.0 — 2024-01-15
+
+## Changed
+
+- More fields in the V3 script context use `Lovelace`
+
+- Removed `GovernanceActionId` from the `Voting` script purpose. It is not needed because
+  the script for a given voter will be run only once for all votes.
+
+- Updated the `Certifying` and `Proposing` script purposes, whose arguments now consist of
+  both an integer index and the actual argument (`TxCert` and `ProposalProcedure`).
+
+- Updated the `NewCommittee` variant of `GovernanceAction` to `UpdateCommittee`.
+
 <a id='changelog-1.19.0.0'></a>
 # 1.19.0.0 — 2023-12-23
 
