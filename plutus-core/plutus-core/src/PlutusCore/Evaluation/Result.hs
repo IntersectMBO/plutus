@@ -2,6 +2,7 @@
 
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE RankNTypes            #-}
@@ -12,6 +13,7 @@ module PlutusCore.Evaluation.Result
     , evaluationFailure
     , _EvaluationFailureVia
     , EvaluationResult (..)
+    , EvaluationResultT (..)
     , isEvaluationSuccess
     , isEvaluationFailure
     ) where
@@ -71,9 +73,11 @@ instance AsEvaluationFailure () where
 
 instance MonadError () EvaluationResult where
     throwError () = EvaluationFailure
+    {-# INLINE throwError #-}
 
     catchError EvaluationFailure f = f ()
     catchError x                 _ = x
+    {-# INLINE catchError #-}
 
 instance Applicative EvaluationResult where
     pure = EvaluationSuccess
@@ -83,22 +87,63 @@ instance Applicative EvaluationResult where
     EvaluationFailure   <*> _ = EvaluationFailure
     {-# INLINE (<*>) #-}
 
+    EvaluationFailure *> _ = EvaluationFailure
+    _                 *> b = b
+    {-# INLINE (*>) #-}
+
 instance Monad EvaluationResult where
     EvaluationSuccess x >>= f = f x
     EvaluationFailure   >>= _ = EvaluationFailure
     {-# INLINE (>>=) #-}
 
+    (>>) = (*>)
+    {-# INLINE (>>) #-}
+
 instance Alternative EvaluationResult where
     empty = EvaluationFailure
     {-# INLINE empty #-}
 
-    EvaluationSuccess x <|> _ = EvaluationSuccess x
-    EvaluationFailure   <|> a = a
+    EvaluationFailure <|> b = b
+    a                 <|> _ = a
     {-# INLINE (<|>) #-}
 
 instance MonadFail EvaluationResult where
     fail _ = EvaluationFailure
     {-# INLINE fail #-}
+
+newtype EvaluationResultT m a = EvaluationResultT
+    { unEvaluationResultT :: m (EvaluationResult a)
+    } deriving stock (Generic, Functor, Foldable, Traversable)
+
+deriving stock    instance Show   (m (EvaluationResult a)) => Show   (EvaluationResultT m a)
+deriving stock    instance Eq     (m (EvaluationResult a)) => Eq     (EvaluationResultT m a)
+deriving anyclass instance NFData (m (EvaluationResult a)) => NFData (EvaluationResultT m a)
+
+instance Monad m => Applicative (EvaluationResultT m) where
+    pure = EvaluationResultT . pure . EvaluationSuccess
+    {-# INLINE pure #-}
+
+    EvaluationResultT getResF <*> EvaluationResultT getResX =
+        EvaluationResultT $ getResF >>= \case
+            EvaluationSuccess f -> fmap f <$> getResX
+            EvaluationFailure   -> pure EvaluationFailure
+    {-# INLINE (<*>) #-}
+
+    EvaluationResultT getResX *> EvaluationResultT getResY =
+        EvaluationResultT $ getResX >>= \case
+            EvaluationSuccess _ -> getResY
+            EvaluationFailure   -> pure EvaluationFailure
+    {-# INLINE (*>) #-}
+
+instance Monad m => Monad (EvaluationResultT m) where
+    EvaluationResultT getResX >>= f =
+        EvaluationResultT $ getResX >>= \case
+            EvaluationSuccess x -> unEvaluationResultT $ f x
+            EvaluationFailure   -> pure EvaluationFailure
+    {-# INLINE (>>=) #-}
+
+    (>>) = (*>)
+    {-# INLINE (>>) #-}
 
 instance PrettyBy config a => PrettyBy config (EvaluationResult a) where
     prettyBy config (EvaluationSuccess x) = prettyBy config x
