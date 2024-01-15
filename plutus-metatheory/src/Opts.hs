@@ -17,6 +17,8 @@ import Cost.JSON
 import System.Exit (exitFailure)
 import System.IO (stderr)
 
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekMachineCosts)
+import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts)
 
 defaultBuiltinCostModelPath :: FilePath
 defaultBuiltinCostModelPath = "data/builtinCostModel.json"
@@ -84,16 +86,18 @@ commands = hsubparser (
           (info (Typecheck <$> typecheckOpts)
           (fullDesc <> progDesc "typecheck a Plutus Core program")))
 
-addJSONParameters :: Command a -> IO (Command BuiltinCostMap)
+type CostModel = (CekMachineCosts , BuiltinCostMap)
+
+addJSONParameters :: Command a -> IO (Command CostModel)
 addJSONParameters c = do
      mbm <- getJSONModel defaultBuiltinCostModelPath
      case mbm of
-      Just bm -> return (fmap (const bm) c)
+      Just bm -> return (fmap (const (defaultCekMachineCosts, bm)) c)
       Nothing -> do
            T.hPutStrLn stderr "Failure to parse file builtins parameters."
            exitFailure
 
-execP :: IO (Command BuiltinCostMap)
+execP :: IO (Command CostModel)
 execP = execParser (info (commands <**> helper)
                     (fullDesc
                      <> progDesc "Plutus Core tool"
