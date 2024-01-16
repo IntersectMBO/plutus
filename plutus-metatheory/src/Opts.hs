@@ -3,6 +3,8 @@
 
 module Opts where
 
+import Paths_plutus_metatheory (getDataDir)
+
 import Data.Semigroup ((<>))
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
@@ -15,10 +17,12 @@ import PlutusCore.Executable.Parsers
 
 import Cost.JSON
 import System.Exit (exitFailure)
+import System.FilePath ((</>))
 import System.IO (stderr)
 
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekMachineCosts)
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts)
+
 
 defaultBuiltinCostModelPath :: FilePath
 defaultBuiltinCostModelPath = "data/builtinCostModel.json"
@@ -90,7 +94,8 @@ type CostModel = (CekMachineCosts , BuiltinCostMap)
 
 addJSONParameters :: Command a -> IO (Command CostModel)
 addJSONParameters c = do
-     mbm <- getJSONModel defaultBuiltinCostModelPath
+     dataDir <- getDataDir
+     mbm <- getJSONModel (dataDir </> defaultBuiltinCostModelPath)
      case mbm of
       Just bm -> return (fmap (const (defaultCekMachineCosts, bm)) c)
       Nothing -> do

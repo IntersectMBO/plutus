@@ -59,6 +59,7 @@ library
     , composition-prelude
     , cryptonite
     , extra
+    , filepath
     , ghc-prim
     , ieee754
     , megaparsec
@@ -77,6 +78,8 @@ library
     Opts
     Raw
     Untyped
+
+  other-modules:   Paths_plutus_metatheory
 
   -- WARNING: Order is important! MAlonzo modules must be listed last.
   -- But cabal-fmt reorders modules alphabetically, so we use two 
@@ -535,7 +538,6 @@ executable plc-agda
   import:         lang
   hs-source-dirs: exe
   main-is:        Main.hs
-  other-modules:  Paths_plutus_metatheory
   build-depends:
     , base
     , plutus-metatheory
