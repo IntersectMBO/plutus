@@ -178,7 +178,7 @@ pluginOptions =
         , let k = "dump-pir"
               desc = "Dump Plutus IR"
            in (k, PluginOption typeRep (setTrue k) posDumpPir desc [])
-        , let k = "dump-plc"
+        , let k = "dump-tplc"
               desc = "Dump Typed Plutus Core"
            in (k, PluginOption typeRep (setTrue k) posDumpPlc desc [])
         , let k = "dump-uplc"

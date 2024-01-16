@@ -2,9 +2,8 @@
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TemplateHaskell       #-}
-
 -- | Debugger TUI Types.
-module Types where
+module Debugger.TUI.Types where
 
 import PlutusCore.Annotation
 import PlutusCore.Evaluation.Machine.ExBudget

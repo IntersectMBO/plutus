@@ -181,7 +181,7 @@ options = hsubparser
   <> command "run-hs"
      (info (RunHaskell <$> progAndArgs)
       (progDesc "run the program directly as Hs"))
-  <> command "dump-plc"
+  <> command "dump-uplc"
      (info (DumpPLC <$> progAndArgs)
       (progDesc "print the program (applied to arguments) as Plutus Core source on standard output"))
   <> command "dump-flat-named"
