@@ -39,7 +39,7 @@ trap 'rm -f "$TMP1" "$TMP2"' EXIT
 awk '/^bench/ {printf ("%-40s ", $2)}
      /^time/ {printf ("%10s %-2s\n", $2, $3)}' "$INPUT1" > "$TMP1"  # %-2s to get the units properly aligned
 awk '/^time/ {printf ("%10s %-2s\n", $2, $3)}' "$INPUT2" > "$TMP2"
-paste "$TMP1" "$TMP2" |
+paste -d " " "$TMP1" "$TMP2" |
   awk -v hdr1="${3:-Old}" -v hdr2="${4:-New}" 'BEGIN {
        # Initialise array of unit conversion factors
        ps["s"]  = 12  # 1 s = 10^12 ps

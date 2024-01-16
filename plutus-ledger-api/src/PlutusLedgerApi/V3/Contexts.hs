@@ -21,6 +21,7 @@ import PlutusLedgerApi.V2 qualified as V2
 import PlutusTx qualified
 import PlutusTx.AssocMap hiding (filter, mapMaybe)
 import PlutusTx.Prelude qualified as PlutusTx
+import PlutusTx.Ratio (Rational)
 
 import Prelude qualified as Haskell
 
@@ -271,10 +272,11 @@ data GovernanceAction
       (Map V2.Credential V2.Lovelace)
       (Haskell.Maybe V2.ScriptHash) -- ^ Hash of the constitution script
   | NoConfidence (Haskell.Maybe GovernanceActionId)
-  | NewCommittee
+  | UpdateCommittee
       (Haskell.Maybe GovernanceActionId)
-      [ColdCommitteeCredential] -- ^ Old committee
-      Committee -- ^ New Committee
+      [ColdCommitteeCredential] -- ^ Committee members to be removed
+      (Map ColdCommitteeCredential Haskell.Integer) -- ^ Committee members to be added
+      Rational -- ^ New quorum
   | NewConstitution (Haskell.Maybe GovernanceActionId) Constitution
   | InfoAction
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
@@ -289,8 +291,11 @@ instance PlutusTx.Eq GovernanceAction where
   TreasuryWithdrawals a b == TreasuryWithdrawals a' b' =
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
   NoConfidence a == NoConfidence a' = a PlutusTx.== a'
-  NewCommittee a b c == NewCommittee a' b' c' =
-    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b' PlutusTx.&& c PlutusTx.== c'
+  UpdateCommittee a b c d == UpdateCommittee a' b' c' d' =
+    a PlutusTx.== a'
+      PlutusTx.&& b PlutusTx.== b'
+      PlutusTx.&& c PlutusTx.== c'
+      PlutusTx.&& d PlutusTx.== d'
   NewConstitution a b == NewConstitution a' b' =
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
   InfoAction == InfoAction = Haskell.True
@@ -643,7 +648,7 @@ PlutusTx.makeIsDataIndexed
   , ('HardForkInitiation, 1)
   , ('TreasuryWithdrawals, 2)
   , ('NoConfidence, 3)
-  , ('NewCommittee, 4)
+  , ('UpdateCommittee, 4)
   , ('NewConstitution, 5)
   , ('InfoAction, 6)
   ]
