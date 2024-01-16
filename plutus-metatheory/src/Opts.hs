@@ -90,6 +90,8 @@ commands = hsubparser (
           (info (Typecheck <$> typecheckOpts)
           (fullDesc <> progDesc "typecheck a Plutus Core program")))
 
+-- A CostModel has all the information to run the Agda machine
+-- with cost reporting
 type CostModel = (CekMachineCosts , BuiltinCostMap)
 
 addJSONParameters :: Command a -> IO (Command CostModel)
