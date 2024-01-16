@@ -1,7 +1,6 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE LambdaCase            #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 -- | Module handling provenances of terms.
 module PlutusIR.Compiler.Provenance where
@@ -11,7 +10,6 @@ import PlutusIR
 import PlutusCore.Pretty qualified as PLC
 
 import Data.Hashable
-import Data.Set qualified as S
 import GHC.Generics (Generic)
 import Prettyprinter ((<+>))
 import Prettyprinter qualified as PP
@@ -19,7 +17,7 @@ import Prettyprinter qualified as PP
 -- | Indicates where a value comes from.
 --
 -- This is either an original annotation or a pieces of context explaining how the term
--- relates to a previous 'Provenance'. We also provide 'noProvenance' for convenience.
+-- relates to a previous 'Provenance'.
 --
 -- The provenance should always be just the original annotation, if we have one. It should only be another
 -- kind of provenance if we're in the process of generating some term that doesn't correspond directly to a term in
@@ -29,24 +27,25 @@ data Provenance a = Original a
                   | TermBinding String (Provenance a)
                   | TypeBinding String (Provenance a)
                   | DatatypeComponent DatatypeComponent (Provenance a)
-                  -- | Added for accumulating difference provenances when floating lets
-                  | MultipleSources (S.Set (Provenance a))
                   deriving stock (Show, Eq, Ord, Foldable, Generic)
                   deriving anyclass (Hashable)
 
-instance Ord a => Semigroup (Provenance a) where
-    x <> y = MultipleSources (toSet x `S.union` toSet y)
-      where
-        toSet = \case
-            MultipleSources ps -> ps
-            other              -> S.singleton other
+instance Semigroup a => Semigroup (Provenance a) where
+    (<>) = mergeWith (<>)
 
-instance Ord a => Monoid (Provenance a) where
-    mempty = noProvenance
+-- | Combine two Provenances, given a function that combines their Original values
+mergeWith :: (a -> a -> b) -> Provenance a -> Provenance a -> Provenance b
+mergeWith f = go
+  where
+    go (Original v1) (Original v2) = Original $ f v1 v2
+    go (LetBinding a p1) p2 = LetBinding a $ mergeWith f p1 p2
+    go (TermBinding a p1) p2 = TermBinding a $ mergeWith f p1 p2
+    go (TypeBinding a p1) p2 = TypeBinding a $ mergeWith f p1 p2
+    go (DatatypeComponent a p1) p2 = DatatypeComponent a $ mergeWith f p1 p2
+    go p1@(Original _) p2 = mergeWith (flip f) p2 p1
 
--- workaround, use a smart constructor to replace the older NoProvenance data constructor
-noProvenance :: Provenance a
-noProvenance = MultipleSources S.empty
+instance Monoid a => Monoid (Provenance a) where
+    mempty = Original mempty
 
 data DatatypeComponent = Constructor
                        | ConstructorType
@@ -93,6 +92,3 @@ instance PP.Pretty a => PP.Pretty (Provenance a) where
             in "(" <> rstr <> ")" <+> "let binding" <> ";" <+> "from" <+> PLC.pretty p
         TermBinding n p -> "term binding" <+> "of" <+> PLC.pretty n <> ";" <+> "from" <+> PLC.pretty p
         TypeBinding n p -> "type binding" <+> "of" <+> PLC.pretty n <> ";" <+> "from" <+> PLC.pretty p
-        MultipleSources p1 -> case S.toList p1 of
-                                [] -> "<unknown>"
-                                l  -> PLC.prettyList l

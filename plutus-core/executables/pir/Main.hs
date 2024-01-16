@@ -150,12 +150,12 @@ pPirOptions = hsubparser $
 
 compileToPlc :: Bool -> PirProg () -> Either (PirError UnitProvenance) (PlcProg ())
 compileToPlc optimise p = do
-    plcTcConfig <- PLC.getDefTypeCheckConfig PIR.noProvenance
+    plcTcConfig <- PLC.getDefTypeCheckConfig mempty
     let ctx = getCtx plcTcConfig
     plcProg <- runExcept $ flip runReaderT ctx $ runQuoteT $ PIR.compileProgram p
     pure $ () <$ plcProg
   where
-    getCtx :: PLC.TypeCheckConfig PLC.DefaultUni PLC.DefaultFun
+    getCtx :: Monoid a => PLC.TypeCheckConfig PLC.DefaultUni PLC.DefaultFun
       -> PIR.CompilationCtx PLC.DefaultUni PLC.DefaultFun a
     getCtx plcTcConfig =
       PIR.toDefaultCompilationCtx plcTcConfig
@@ -194,12 +194,12 @@ loadPirAndCompile (CompileOptions language optimise test inp ifmt outp ofmt mode
 
 doOptimisations :: PirTerm PLC.SrcSpan -> Either (PirError UnitProvenance) (PirTerm UnitProvenance)
 doOptimisations term = do
-  plcTcConfig <- PLC.getDefTypeCheckConfig PIR.noProvenance
+  plcTcConfig <- PLC.getDefTypeCheckConfig mempty
   let ctx = getCtx plcTcConfig
   runExcept $ flip runReaderT ctx $ runQuoteT $ PIR.runCompilerPass PIR.simplifier (PIR.Original () <$ term)
   where
     getCtx
-        :: PLC.TypeCheckConfig PLC.DefaultUni PLC.DefaultFun
+        :: Monoid a => PLC.TypeCheckConfig PLC.DefaultUni PLC.DefaultFun
         -> PIR.CompilationCtx PLC.DefaultUni PLC.DefaultFun a
     getCtx plcTcConfig =
       PIR.toDefaultCompilationCtx plcTcConfig

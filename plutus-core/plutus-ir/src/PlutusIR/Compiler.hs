@@ -15,7 +15,6 @@ module PlutusIR.Compiler (
     AsTypeErrorExt (..),
     Provenance (..),
     DatatypeComponent (..),
-    noProvenance,
     CompilationOpts (..),
     coOptimize,
     coTypecheck,
@@ -142,7 +141,7 @@ simplifierIteration suffix = do
   pure $ P.NamedPass ("simplifier" ++ suffix) $ fold
       [ mwhen (opts ^. coDoSimplifierUnwrapCancel) $ Unwrap.unwrapCancelPass tcconfig
       , mwhen (opts ^. coDoSimplifierCaseReduce) $ CaseReduce.caseReducePass tcconfig
-      , mwhen (opts ^. coDoSimplifierCaseReduce) $ CaseOfCase.caseOfCasePassSC tcconfig binfo cocConservative noProvenance
+      , mwhen (opts ^. coDoSimplifierCaseReduce) $ CaseOfCase.caseOfCasePassSC tcconfig binfo cocConservative mempty
       , mwhen (opts ^. coDoSimplifierKnownCon) $ KnownCon.knownConPassSC tcconfig
       , mwhen (opts ^. coDoSimplifierBeta) $ Beta.betaPassSC tcconfig
       , mwhen (opts ^. coDoSimplifierStrictifyBindings ) $ StrictifyBindings.strictifyBindingsPass tcconfig binfo

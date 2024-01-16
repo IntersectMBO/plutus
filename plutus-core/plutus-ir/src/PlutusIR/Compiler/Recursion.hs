@@ -97,7 +97,7 @@ mkFixpoint bs = do
     let mkFixByDef = do
           name <- liftQuote $ toProgramName fixByKey
           let (fixByTerm, fixByType) = Function.fixByAndType
-          pure (PLC.Def (PLC.VarDecl noProvenance name (noProvenance <$ fixByType)) (noProvenance <$ fixByTerm, Strict), mempty)
+          pure (PLC.Def (PLC.VarDecl mempty name (mempty <$ fixByType)) (mempty <$ fixByTerm, Strict), mempty)
     fixBy <- lookupOrDefineTerm p0 fixByKey mkFixByDef
 
     let mkFixNDef = do
@@ -107,7 +107,7 @@ mkFixpoint bs = do
                   then (Function.fixAndType, mempty)
                   -- fixN depends on fixBy
                   else (Function.fixNAndType arity (void fixBy), Set.singleton fixByKey)
-          pure (PLC.Def (PLC.VarDecl noProvenance name (noProvenance <$ fixNType)) (noProvenance <$ fixNTerm, Strict), fixNDeps)
+          pure (PLC.Def (PLC.VarDecl mempty name (mempty <$ fixNType)) (mempty <$ fixNTerm, Strict), fixNDeps)
     fixN <- lookupOrDefineTerm p0 fixNKey mkFixNDef
 
     liftQuote $ case funs of

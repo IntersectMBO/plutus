@@ -57,6 +57,7 @@ instance
   , Default (PLC.CostingPart uni fun)
   , Default (BuiltinsInfo uni fun)
   , Default (RewriteRules uni fun)
+  , Monoid a
   ) =>
   ToTPlc (PIR.Program PIR.TyName PIR.Name uni fun a) uni fun
   where
@@ -74,6 +75,7 @@ instance
   , Default (PLC.CostingPart uni fun)
   , Default (BuiltinsInfo uni fun)
   , Default (RewriteRules uni fun)
+  , Monoid a
   ) =>
   ToUPlc (PIR.Program PIR.TyName PIR.Name uni fun a) uni fun
   where
@@ -101,6 +103,7 @@ compileWithOpts ::
   , Default (BuiltinsInfo uni fun)
   , Default (PLC.CostingPart uni fun)
   , Default (RewriteRules uni fun)
+  , Monoid a
   ) =>
   (CompilationCtx uni fun a -> CompilationCtx uni fun a) ->
   PIR.Program PIR.TyName PIR.Name uni fun a ->
@@ -108,7 +111,7 @@ compileWithOpts ::
     (PIR.Error uni fun (PIR.Provenance a))
     (PLC.Program PIR.TyName PIR.Name uni fun (PIR.Provenance a))
 compileWithOpts optsMod pir = do
-  tcConfig <- PLC.getDefTypeCheckConfig noProvenance
+  tcConfig <- PLC.getDefTypeCheckConfig mempty
   let pirCtx = optsMod (toDefaultCompilationCtx tcConfig)
   flip runReaderT pirCtx $ runQuoteT $ do
     compiled <- compileProgram pir
@@ -179,7 +182,7 @@ goldenPlcFromPir = goldenPirM $ \ast -> ppCatch $ do
   withExceptT @_ @PLC.FreeVariableError toException $ traverseOf PLC.progTerm PLC.deBruijnTerm p
 
 goldenPlcFromPirScott ::
-  (Ord a, Typeable a, Pretty a
+  (Ord a, Typeable a, Pretty a, Monoid a
   , prog ~ PIR.Program PIR.TyName PIR.Name PLC.DefaultUni PLC.DefaultFun a) =>
   Parser prog ->
   String ->

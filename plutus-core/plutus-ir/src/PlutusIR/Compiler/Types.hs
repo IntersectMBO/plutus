@@ -141,12 +141,12 @@ data CompilationCtx uni fun a = CompilationCtx {
 makeLenses ''CompilationCtx
 
 toDefaultCompilationCtx
-    :: (Default (BuiltinsInfo uni fun), Default (PLC.CostingPart uni fun), Default (RewriteRules uni fun))
+    :: (Default (BuiltinsInfo uni fun), Default (PLC.CostingPart uni fun), Default (RewriteRules uni fun), Monoid a)
     => PLC.TypeCheckConfig uni fun
     -> CompilationCtx uni fun a
 toDefaultCompilationCtx configPlc = CompilationCtx
        { _ccOpts = defaultCompilationOpts
-       , _ccEnclosing = noProvenance
+       , _ccEnclosing = mempty
        , _ccTypeCheckConfig = PirTCConfig configPlc YesEscape
        , _ccBuiltinsInfo = def
        , _ccBuiltinCostModel = def
@@ -221,6 +221,7 @@ type Compiling m e uni fun a =
     , PLC.PrettyUni uni
     , PLC.Pretty fun
     , PLC.Pretty a
+    , Monoid a
     )
 
 type TermDef tyname name uni fun a = PLC.Def (PLC.VarDecl tyname name uni a) (PIR.Term tyname name uni fun a)
