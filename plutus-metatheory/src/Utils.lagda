@@ -160,8 +160,14 @@ postulate ByteString : Set
 {-# COMPILE GHC ByteString = type BS.ByteString #-}
 
 
-data _×_ (A B : Set) : Set where
- _,_ : A → B → A × B
+record _×_ (A B : Set) : Set where
+    constructor _,_ 
+    field 
+      proj₁ : A
+      proj₂ : B 
+
+infixr 4 _,_
+infixr 2 _×_
 
 {-# FOREIGN GHC type Pair a b = (a , b) #-}
 {-# COMPILE GHC _×_ = data Pair ((,))  #-}
