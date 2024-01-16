@@ -25,7 +25,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts
 
 
 defaultBuiltinCostModelPath :: FilePath
-defaultBuiltinCostModelPath = "data/builtinCostModel.json"
+defaultBuiltinCostModelPath = "data" </> "builtinCostModel.json"
 
 -- the different budget modes of plc-agda
 data BudgetMode a = Silent
