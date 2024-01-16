@@ -104,7 +104,7 @@ test_ForallFortyTwo =
         lhs @?= rhs
 
 -- | Test that a polymorphic built-in function doesn't subvert the CEK machine.
--- See https://github.com/input-output-hk/plutus/issues/1882
+-- See https://github.com/IntersectMBO/plutus/issues/1882
 test_Id :: TestTree
 test_Id =
     testCase "Id" $ do

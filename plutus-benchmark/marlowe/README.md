@@ -28,7 +28,7 @@ The benchmarking portion of the code lives in `marlowe/bench`, which depends on 
 
 (2) Profiling: look at each script in more detail, what functions are taking up the most budget? How can they be optimized?
 
-See [CONTRIBUTING.md](https://github.com/input-output-hk/plutus/blob/master/CONTRIBUTING.adoc#how-to-build-the-code-with-profiling) for profiling instructions.
+See [CONTRIBUTING.md](https://github.com/IntersectMBO/plutus/blob/master/CONTRIBUTING.adoc#how-to-build-the-code-with-profiling) for profiling instructions.
 
 Of the most common Marlowe transactions, input application transactions are the most relevant, as they are complex and can go over the execution limits at times. So there is a priority on examining those contracts.
 
@@ -77,4 +77,4 @@ Note that the off-chain code is evolving. However the on-chain code is very stab
 
 The production version of Marlowe currently uses (PlutusV2, vasilPV, plcVersion100 or 1.0.0). We should use the same combination in the benchmarking. Again we should make sure this is synced up.
 
-For documentation on Plutus vs PLC vs protocol version, see [here](https://github.com/input-output-hk/plutus/blob/master/plutus-ledger-api/src/PlutusLedgerApi/Common/Versions.hs)
+For documentation on Plutus vs PLC vs protocol version, see [here](https://github.com/IntersectMBO/plutus/blob/master/plutus-ledger-api/src/PlutusLedgerApi/Common/Versions.hs)

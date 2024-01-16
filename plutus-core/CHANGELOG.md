@@ -171,7 +171,7 @@ instead of the previous indirection via Natural.
   `PlutusCore.MkPlc.mkIterTyApp` to require an annotation to be provided
   for each argument.
 
-- Updated the parser and the pretty-printers to the new syntax of `Data` in [#5391](https://github.com/input-output-hk/plutus/pull/5391) according to [this](https://github.com/input-output-hk/plutus/issues/4751#issuecomment-1538377273), for example:
+- Updated the parser and the pretty-printers to the new syntax of `Data` in [#5391](https://github.com/IntersectMBO/plutus/pull/5391) according to [this](https://github.com/IntersectMBO/plutus/issues/4751#issuecomment-1538377273), for example:
 
 ```
 Constr 1
@@ -323,7 +323,7 @@ Constr 1
 
 - `Version` no longer has an annotation, as this was entirely unused.
 
-- Made `geq` faster in certain cases, -1% of total validation time. [#5061](https://github.com/input-output-hk/plutus/pull/5061)
+- Made `geq` faster in certain cases, -1% of total validation time. [#5061](https://github.com/IntersectMBO/plutus/pull/5061)
 
 - Made the Haskell-Tx file input to the debugger optional.
 

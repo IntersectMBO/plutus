@@ -234,7 +234,7 @@ built-in function.
 This Note explains how to add a built-in function and how to read definitions of existing built-in
 functions. It does not attempt to explain why things the way they are, that is explained in comments
 in relevant modules, check out the following for an overview of the module structure:
-https://github.com/input-output-hk/plutus/blob/97c2b2c6975e41ce25ee5efa1dff0f1bd891a589/plutus-core/docs/BuiltinsOverview.md
+https://github.com/IntersectMBO/plutus/blob/97c2b2c6975e41ce25ee5efa1dff0f1bd891a589/plutus-core/docs/BuiltinsOverview.md
 
 In order to add a new built-in function one needs to add a constructor to 'DefaultFun' and handle
 it within the @ToBuiltinMeaning uni DefaultFun@ instance. The general pattern is
@@ -983,7 +983,7 @@ built-in functions were allowed, we could define not only matchers, but also fol
 recursion on the Haskell side for conversions from 'Data', which can potentially have a huge
 positive impact on performance.
 
-See https://github.com/input-output-hk/plutus/pull/5486 for how higher-order builtins would look
+See https://github.com/IntersectMBO/plutus/pull/5486 for how higher-order builtins would look
 like.
 
 Read Note [Representable built-in functions over polymorphic built-in types] next.
@@ -1066,7 +1066,7 @@ and then defining
 and then the Plutus Tx compiler can provide a type class or something for constructing singletons
 for built-in types.
 
-This was investigated in https://github.com/input-output-hk/plutus/pull/4337 but we decided not to
+This was investigated in https://github.com/IntersectMBO/plutus/pull/4337 but we decided not to
 do it quite yet, even though it worked (the Plutus Tx part wasn't implemented).
 -}
 
@@ -1448,7 +1448,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                   -- since in UPLC one can create an ill-typed program that attempts to prepend
                   -- a value of the wrong type to a list.
                   -- Should that rather give us an 'UnliftingError'? For that we need
-                  -- https://github.com/input-output-hk/plutus/pull/3035
+                  -- https://github.com/IntersectMBO/plutus/pull/3035
                   Just Refl <- pure $ uniA `geq` uniA'
                   pure . fromValueOf uniListA $ x : xs
             {-# INLINE mkConsDenotation #-}

@@ -27,7 +27,7 @@ We first **abstract out the computation to "steps"** on our current machine. We 
 
 ### Abstracting out the computation to "steps"
 
-This abstraction has been implemented in [PR#4909](https://github.com/input-output-hk/plutus/pull/4909/).
+This abstraction has been implemented in [PR#4909](https://github.com/IntersectMBO/plutus/pull/4909/).
 
 The current machine inlined the steps. We separate each steps into separate functions. They all return a `CekState`:
 

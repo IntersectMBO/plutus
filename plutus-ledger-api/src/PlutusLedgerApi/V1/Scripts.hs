@@ -78,7 +78,7 @@ instance Serialise Redeemer where
 {- | Type representing the /BLAKE2b-224/ hash of a script. 28 bytes.
 This is a simple type without any validation, __use with caution__.
 You may want to add checks for its invariants. See the
- [Shelley ledger specification](https://github.com/input-output-hk/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf).
+ [Shelley ledger specification](https://github.com/IntersectMBO/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf).
 -}
 newtype ScriptHash =
     ScriptHash { getScriptHash :: Builtins.BuiltinByteString }
@@ -94,7 +94,7 @@ newtype ScriptHash =
 {- | Type representing the /BLAKE2b-256/ hash of a datum. 32 bytes.
 This is a simple type without any validation, __use with caution__.
 You may want to add checks for its invariants. See the
- [Shelley ledger specification](https://github.com/input-output-hk/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf).
+ [Shelley ledger specification](https://github.com/IntersectMBO/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf).
 -}
 newtype DatumHash =
     DatumHash Builtins.BuiltinByteString
@@ -111,7 +111,7 @@ newtype DatumHash =
 
 This is a simple type without any validation, __use with caution__.
 You may want to add checks for its invariants. See the
- [Shelley ledger specification](https://github.com/input-output-hk/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf).
+ [Shelley ledger specification](https://github.com/IntersectMBO/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf).
 -}
 newtype RedeemerHash =
     RedeemerHash Builtins.BuiltinByteString

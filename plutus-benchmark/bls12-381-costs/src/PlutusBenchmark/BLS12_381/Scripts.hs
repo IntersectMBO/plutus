@@ -80,7 +80,7 @@ byteString16Null :: BuiltinByteString
 byteString16Null = bytesFromHex "00000000000000000000000000000000"
 
 -- workaround the lack of ByteString to Integer interpretation
--- replace with builtin when available, see https://github.com/input-output-hk/plutus/pull/4733
+-- replace with builtin when available, see https://github.com/IntersectMBO/plutus/pull/4733
 byteStringToInteger  :: BuiltinByteString -> Integer
 byteStringToInteger b =
   go 0

@@ -77,8 +77,8 @@ It has no further implications for other decisions that we know of.
 ## Notes
 
 Relevant PRs:
-- [Support for both versions of unlifting](https://github.com/input-output-hk/plutus/pull/4516)
-- [Choose the unlifting mode based on protocol version](https://github.com/input-output-hk/plutus/pull/4522)
-- [Remove immediate unlifting](https://github.com/input-output-hk/plutus/pull/4879)
-- [Mainnet script dump test](https://github.com/input-output-hk/plutus/pull/4726)
-- [Update PLC specification for deferred unlifting](https://github.com/input-output-hk/plutus/pull/4960)
+- [Support for both versions of unlifting](https://github.com/IntersectMBO/plutus/pull/4516)
+- [Choose the unlifting mode based on protocol version](https://github.com/IntersectMBO/plutus/pull/4522)
+- [Remove immediate unlifting](https://github.com/IntersectMBO/plutus/pull/4879)
+- [Mainnet script dump test](https://github.com/IntersectMBO/plutus/pull/4726)
+- [Update PLC specification for deferred unlifting](https://github.com/IntersectMBO/plutus/pull/4960)

@@ -42,12 +42,12 @@ Some things you can do to fix it:
   - ``{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}``
   - ``{-# OPTIONS_GHC -fobject-code #-}``
 
-  Some more details are in `the plutus-tx readme <https://github.com/input-output-hk/plutus/tree/master/plutus-tx#building-projects-with-plutus-tx>`_.
+  Some more details are in `the plutus-tx readme <https://github.com/IntersectMBO/plutus/tree/master/plutus-tx#building-projects-with-plutus-tx>`_.
 
 Haskell Language Server issues
 ------------------------------
 
-For more advice on using Haskell Language Server (HLS), consult the `CONTRIBUTING guide <https://github.com/input-output-hk/plutus/blob/master/CONTRIBUTING.adoc>`_ in the ``plutus`` repository.
+For more advice on using Haskell Language Server (HLS), consult the `CONTRIBUTING guide <https://github.com/IntersectMBO/plutus/blob/master/CONTRIBUTING.adoc>`_ in the ``plutus`` repository.
 
 Wrong version
 ~~~~~~~~~~~~~

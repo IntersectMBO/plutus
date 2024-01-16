@@ -2,7 +2,7 @@
 
 This document provides a high-level view on the problem of higher-kinded `fix` and possible solutions to it.
 
-For the final solution (and all the implementation details), that we settled on, jump straight to [the docs in the code itself](https://github.com/input-output-hk/plutus/blob/f551aa864df1104b06cb5a0460f751e1b86d2481/language-plutus-core/stdlib/Language/PlutusCore/StdLib/Type.hs) (TODO: change the link once the PR is merged). The docs there are self-contained.
+For the final solution (and all the implementation details), that we settled on, jump straight to [the docs in the code itself](https://github.com/IntersectMBO/plutus/blob/f551aa864df1104b06cb5a0460f751e1b86d2481/language-plutus-core/stdlib/Language/PlutusCore/StdLib/Type.hs) (TODO: change the link once the PR is merged). The docs there are self-contained.
 
 For the story about how we arrived at that solution, see below.
 
@@ -81,4 +81,4 @@ Since no satisfactory solution was proposed, we started to look at alternative s
 
 2. the head-spine form approach. This approach is very similar to the elimination contexts one as an elimination context is just a spine in disguise. Spines do have syntax and thus the problem with elimination contexts mentioned above can be solved by simply storing spines in terms where needed. But this is not trivial to specify as well and in fact it was never specified, because it turned out we do not need this level of genericity in our syntax (see the next item)
 
-3. just add `ifix :: ((k -> *) -> k -> *) -> k -> *` to the language as it's enough for being able to emulate generic `fix :: (k -> k) -> k`. This is elaborated in [this document](https://github.com/input-output-hk/plutus/blob/c9e78465014efe986ce4d4b569fe2b070da2b14c/docs/fomega/mutual-type-level-recursion/IFixIsEnough.agda) (TODO: change the link once the PR is merged) and in the comments in the code. This is the final solution that gets us a simple core language and the required expressiveness.
+3. just add `ifix :: ((k -> *) -> k -> *) -> k -> *` to the language as it's enough for being able to emulate generic `fix :: (k -> k) -> k`. This is elaborated in [this document](https://github.com/IntersectMBO/plutus/blob/c9e78465014efe986ce4d4b569fe2b070da2b14c/docs/fomega/mutual-type-level-recursion/IFixIsEnough.agda) (TODO: change the link once the PR is merged) and in the comments in the code. This is the final solution that gets us a simple core language and the required expressiveness.
