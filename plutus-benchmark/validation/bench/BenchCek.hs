@@ -1,12 +1,15 @@
+{- | Validation benchmarks for the CEK machine. -}
+
 {-# LANGUAGE BangPatterns #-}
 module Main where
 
-import Common
+import Common (benchWith, evaluateCekLikeInProd, mkEvalCtx, unsafeUnflat)
 import Control.DeepSeq (force)
-import Control.Exception
-import Criterion
-import PlutusBenchmark.Common
+import Control.Exception (evaluate)
+import PlutusBenchmark.Common (toNamedDeBruijnTerm)
 import UntypedPlutusCore as UPLC
+
+import Criterion (whnf)
 
 {-|
  Benchmarks only for the CEK execution time of the data/*.flat validation scripts

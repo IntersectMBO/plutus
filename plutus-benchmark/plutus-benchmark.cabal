@@ -72,14 +72,15 @@ library plutus-benchmark-common
 
   other-modules:   Paths_plutus_benchmark
   build-depends:
-    , base          >=4.9   && <5
+    , base               >=4.9   && <5
     , bytestring
     , criterion
     , directory
     , filepath
-    , flat          ^>=0.6
-    , plutus-core   ^>=1.20
-    , plutus-tx     ^>=1.20
+    , flat               ^>=0.6
+    , plutus-core        ^>=1.20
+    , plutus-metatheory
+    , plutus-tx          ^>=1.20
     , tasty
     , tasty-golden
     , temporary
@@ -134,7 +135,7 @@ executable nofib-exe
 benchmark nofib
   import:         lang, ghc-version-support
   type:           exitcode-stdio-1.0
-  main-is:        BenchPlc.hs
+  main-is:        BenchCek.hs
   hs-source-dirs: nofib/bench
   other-modules:  Shared
   build-depends:
@@ -246,7 +247,7 @@ benchmark validation
   import:         lang
   type:           exitcode-stdio-1.0
   main-is:        BenchCek.hs
-  hs-source-dirs: validation
+  hs-source-dirs: validation/bench
   other-modules:  Common
   build-depends:
     , base                     >=4.9     && <5
@@ -267,7 +268,7 @@ benchmark validation-decode
   import:         lang
   type:           exitcode-stdio-1.0
   main-is:        BenchDec.hs
-  hs-source-dirs: validation
+  hs-source-dirs: validation/bench
   other-modules:  Common
   build-depends:
     , base                     >=4.9     && <5
@@ -288,7 +289,7 @@ benchmark validation-full
   import:         lang
   type:           exitcode-stdio-1.0
   main-is:        BenchFull.hs
-  hs-source-dirs: validation
+  hs-source-dirs: validation/bench
   other-modules:  Common
   build-depends:
     , base                     >=4.9     && <5
@@ -514,7 +515,8 @@ executable marlowe-validators
 benchmark marlowe
   import:         lang, ghc-version-support
   type:           exitcode-stdio-1.0
-  main-is:        Bench.hs
+  main-is:        BenchCek.hs
+  other-modules:  Shared
   hs-source-dirs: marlowe/bench
   build-depends:
     , base                     >=4.9   && <5
@@ -537,3 +539,52 @@ test-suite plutus-benchmark-marlowe-tests
     , plutus-ledger-api                               ^>=1.20
     , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.20
     , tasty
+
+---------------- agda evaluators ----------------
+
+-- TODO: Add benchmarks for the executable semantics when we have a UPLC version
+
+benchmark validation-agda-cek
+  import:         lang
+  type:           exitcode-stdio-1.0
+  main-is:        BenchAgdaCek.hs
+  hs-source-dirs: validation/bench
+  other-modules:  Common
+  build-depends:
+    , base                     >=4.9     && <5
+    , bytestring
+    , criterion                >=1.5.9.0
+    , deepseq
+    , directory
+    , filepath
+    , flat                     ^>=0.6
+    , optparse-applicative
+    , plutus-benchmark-common
+    , plutus-core              ^>=1.20
+    , plutus-ledger-api        ^>=1.20
+
+benchmark nofib-agda-cek
+  import:         lang, ghc-version-support
+  type:           exitcode-stdio-1.0
+  main-is:        BenchAgdaCek.hs
+  hs-source-dirs: nofib/bench
+  other-modules:  Shared
+  build-depends:
+    , base                     >=4.9     && <5
+    , criterion                >=1.5.9.0
+    , nofib-internal
+    , plutus-benchmark-common
+
+benchmark marlowe-agda-cek
+  import:         lang, ghc-version-support
+  type:           exitcode-stdio-1.0
+  main-is:        BenchAgdaCek.hs
+  other-modules:  Shared
+  hs-source-dirs: marlowe/bench
+  build-depends:
+    , base                     >=4.9   && <5
+    , criterion
+    , marlowe-internal
+    , plutus-benchmark-common
+    , plutus-ledger-api        ^>=1.20
+    , plutus-tx                ^>=1.20
