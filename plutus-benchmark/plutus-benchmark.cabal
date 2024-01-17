@@ -247,7 +247,7 @@ benchmark validation
   import:         lang
   type:           exitcode-stdio-1.0
   main-is:        BenchCek.hs
-  hs-source-dirs: validation
+  hs-source-dirs: validation/bench
   other-modules:  Common
   build-depends:
     , base                     >=4.9     && <5
@@ -268,7 +268,7 @@ benchmark validation-decode
   import:         lang
   type:           exitcode-stdio-1.0
   main-is:        BenchDec.hs
-  hs-source-dirs: validation
+  hs-source-dirs: validation/bench
   other-modules:  Common
   build-depends:
     , base                     >=4.9     && <5
@@ -289,7 +289,7 @@ benchmark validation-full
   import:         lang
   type:           exitcode-stdio-1.0
   main-is:        BenchFull.hs
-  hs-source-dirs: validation
+  hs-source-dirs: validation/bench
   other-modules:  Common
   build-depends:
     , base                     >=4.9     && <5
@@ -548,7 +548,7 @@ benchmark validation-agda-cek
   import:         lang
   type:           exitcode-stdio-1.0
   main-is:        BenchAgdaCek.hs
-  hs-source-dirs: validation
+  hs-source-dirs: validation/bench
   other-modules:  Common
   build-depends:
     , base                     >=4.9     && <5

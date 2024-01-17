@@ -1,6 +1,4 @@
-{-# LANGUAGE RecordWildCards #-}
-
-{- | Plutus benchmarks based on some Marlowe examples. -}
+{- | Benchmarks for the CEK machine based on some Marlowe examples. -}
 
 module Main where
 

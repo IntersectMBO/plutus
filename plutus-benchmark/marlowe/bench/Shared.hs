@@ -1,6 +1,6 @@
-{-# LANGUAGE RecordWildCards #-}
-
 {- | Plutus benchmarks based on some Marlowe examples. -}
+
+{-# LANGUAGE RecordWildCards #-}
 
 module Shared where
 import Criterion.Main (Benchmark, Benchmarkable, bench, bgroup, defaultMainWith)

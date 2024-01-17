@@ -1,4 +1,4 @@
-{- | Plutus benchmarks based on some nofib examples. -}
+{- | Plutus benchmarks for the CEK machine based on some nofib examples. -}
 module Main where
 
 import PlutusBenchmark.Common (benchTermCek)
