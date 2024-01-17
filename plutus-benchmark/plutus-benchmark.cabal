@@ -135,7 +135,7 @@ executable nofib-exe
 benchmark nofib
   import:         lang, ghc-version-support
   type:           exitcode-stdio-1.0
-  main-is:        BenchPlc.hs
+  main-is:        BenchCek.hs
   hs-source-dirs: nofib/bench
   other-modules:  Shared
   build-depends:
