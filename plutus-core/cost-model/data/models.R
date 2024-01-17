@@ -662,17 +662,17 @@ modelFun <- function(path) {
 ## FIXME: enforce positive coefficients.
 
     integerToByteStringModel <- {
-        fname <- "IntegerToByteStringWTrue"
+        fname <- "IntegerToByteString"
         filtered <- data %>%
             filter.and.check.nonempty(fname)
-        lm(t ~ 0 + I(x_mem) + I(x_mem^2), filtered)
+        lm(t ~ I(z_mem) + I(z_mem^2), filtered)
     }
 
     byteStringToIntegerModel <- {
-        fname <- "ByteStringToIntegerTrue"
+        fname <- "ByteStringToInteger"
         filtered <- data %>%
             filter.and.check.nonempty(fname)
-        lm(t ~ 0 + I(x_mem) + I(x_mem^2), filtered)
+        lm(t ~  I(y_mem) + I(y_mem^2), filtered)
     }
 
     models <- list (
