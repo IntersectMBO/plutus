@@ -4,7 +4,7 @@
 {-# LANGUAGE TypeOperators     #-}
 
 module PlutusCore.Builtin.HasConstant
-    ( KnownTypeError (..)
+    ( BuiltinError (..)
     , throwNotAConstant
     , HasConstant (..)
     , HasConstantIn
@@ -12,8 +12,8 @@ module PlutusCore.Builtin.HasConstant
     , fromValue
     ) where
 
+import PlutusCore.Builtin.Result
 import PlutusCore.Core
-import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Name
 
 import Universe
@@ -35,7 +35,7 @@ class HasConstant term where
     -- Switching from 'MonadError' to 'Either' here gave us a speedup of 2-4%.
     -- | Unwrap from a 'Constant'-like constructor throwing an 'UnliftingError' if the provided
     -- @term@ is not a wrapped Haskell value.
-    asConstant :: term -> Either KnownTypeError (Some (ValueOf (UniOf term)))
+    asConstant :: term -> Either BuiltinError (Some (ValueOf (UniOf term)))
 
     -- | Wrap a Haskell value as a @term@.
     fromConstant :: Some (ValueOf (UniOf term)) -> term

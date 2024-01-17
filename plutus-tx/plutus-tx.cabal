@@ -115,7 +115,6 @@ library
     , text
     , th-abstraction
     , th-compat
-    , transformers
 
   default-extensions: Strict
 

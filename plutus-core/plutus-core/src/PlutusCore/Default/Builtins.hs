@@ -1286,10 +1286,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
     toBuiltinMeaning semvar VerifyEd25519Signature =
         let verifyEd25519SignatureDenotation
-                :: BS.ByteString
-                -> BS.ByteString
-                -> BS.ByteString
-                -> Emitter (EvaluationResult Bool)
+                :: BS.ByteString -> BS.ByteString -> BS.ByteString -> BuiltinResult Bool
             verifyEd25519SignatureDenotation =
                 case semvar of
                   DefaultFunSemanticsVariant1 -> verifyEd25519Signature_V1
@@ -1320,10 +1317,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
     toBuiltinMeaning _semvar VerifyEcdsaSecp256k1Signature =
         let verifyEcdsaSecp256k1SignatureDenotation
-                :: BS.ByteString
-                -> BS.ByteString
-                -> BS.ByteString
-                -> Emitter (EvaluationResult Bool)
+                :: BS.ByteString -> BS.ByteString -> BS.ByteString -> BuiltinResult Bool
             verifyEcdsaSecp256k1SignatureDenotation = verifyEcdsaSecp256k1Signature
             {-# INLINE verifyEcdsaSecp256k1SignatureDenotation #-}
         in makeBuiltinMeaning
@@ -1332,10 +1326,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
     toBuiltinMeaning _semvar VerifySchnorrSecp256k1Signature =
         let verifySchnorrSecp256k1SignatureDenotation
-                :: BS.ByteString
-                -> BS.ByteString
-                -> BS.ByteString
-                -> Emitter (EvaluationResult Bool)
+                :: BS.ByteString -> BS.ByteString -> BS.ByteString -> BuiltinResult Bool
             verifySchnorrSecp256k1SignatureDenotation = verifySchnorrSecp256k1Signature
             {-# INLINE verifySchnorrSecp256k1SignatureDenotation #-}
         in makeBuiltinMeaning
@@ -1810,7 +1801,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
     -- Conversions
     toBuiltinMeaning _semvar IntegerToByteString =
-      let integerToByteStringDenotation :: Bool -> Integer -> Integer -> Emitter (EvaluationResult BS.ByteString)
+      let integerToByteStringDenotation :: Bool -> Integer -> Integer -> BuiltinResult BS.ByteString
           integerToByteStringDenotation = integerToByteStringWrapper
         in makeBuiltinMeaning
           integerToByteStringDenotation

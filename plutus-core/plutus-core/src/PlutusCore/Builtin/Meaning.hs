@@ -229,24 +229,24 @@ instance (Typeable res, KnownTypeAst TyName (UniOf val) res, MakeKnown val res) 
             KnownMonotype val '[] res where
     knownMonotype = TypeSchemeResult
 
-    -- We need to lift the 'ReadKnownM' action into 'MakeKnownM',
+    -- We need to lift the 'ReadKnownM' action into 'BuiltinResult',
     -- hence 'liftReadKnownM'.
     toMonoF =
         either
             -- Unlifting has failed and we don't care about costing at this point, since we're about
             -- to terminate evaluation anyway, hence we put 'mempty' as the cost of the operation.
             --
-            -- Note that putting the cost inside of 'MakeKnownM' is not an option, since forcing
-            -- the 'MakeKnownM' computation is exactly forcing the builtin application, which we
+            -- Note that putting the cost inside of 'BuiltinResult' is not an option, since forcing
+            -- the 'BuiltinResult' computation is exactly forcing the builtin application, which we
             -- can't do before accounting for the cost of the application, i.e. the cost must be
-            -- outside of 'MakeKnownM'.
+            -- outside of 'BuiltinResult'.
             --
-            -- We could introduce a level of indirection and say that a 'BuiltinResult' is either
-            -- a budgeting failure or a budgeting success with a cost and a 'MakeKnownM' computation
-            -- inside, but that would slow things down a bit and the current strategy is
+            -- We could introduce a level of indirection and say that a 'BuiltinCostedResult' is
+            -- either a budgeting failure or a budgeting success with a cost and a 'BuiltinResult'
+            -- computation inside, but that would slow things down a bit and the current strategy is
             -- reasonable enough.
-            (BuiltinResult (ExBudgetLast mempty) . MakeKnownFailure mempty)
-            (\(x, cost) -> BuiltinResult cost $ makeKnown x)
+            (BuiltinCostedResult (ExBudgetLast mempty) . BuiltinFailure mempty)
+            (\(x, cost) -> BuiltinCostedResult cost $ makeKnown x)
     {-# INLINE toMonoF #-}
 
 {- Note [One-shotting runtime denotations]
