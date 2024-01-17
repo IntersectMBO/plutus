@@ -108,7 +108,7 @@ runCek runner params mode emitMode term =
     case runExcept @FreeVariableError $ deBruijnTerm term of
         Left fvError -> throw fvError
         Right dbt -> do
-            -- Don't use 'let': https://github.com/input-output-hk/plutus/issues/3876
+            -- Don't use 'let': https://github.com/IntersectMBO/plutus/issues/3876
             case runner params mode emitMode dbt of
                 -- translating back the output
                 (res, cost', logs) -> (unDeBruijnResult res, cost', logs)
@@ -149,7 +149,7 @@ unsafeRunCekNoEmit
     -> Term Name uni fun ann
     -> (EvaluationResult (Term Name uni fun ()), cost)
 unsafeRunCekNoEmit runner params mode =
-    -- Don't use 'first': https://github.com/input-output-hk/plutus/issues/3876
+    -- Don't use 'first': https://github.com/IntersectMBO/plutus/issues/3876
     (\(e, l) -> (unsafeExtractEvaluationResult e, l)) . runCekNoEmit runner params mode
 
 -- | Evaluate a term using a machine with logging enabled.
@@ -185,7 +185,7 @@ unsafeEvaluateCek
     -> Term Name uni fun ann
     -> (EvaluationResult (Term Name uni fun ()), [Text])
 unsafeEvaluateCek runner emitTime params =
-    -- Don't use 'first': https://github.com/input-output-hk/plutus/issues/3876
+    -- Don't use 'first': https://github.com/IntersectMBO/plutus/issues/3876
     (\(e, l) -> (unsafeExtractEvaluationResult e, l)) . evaluateCek runner emitTime params
 
 -- | Evaluate a term using a machine with logging disabled. May throw a 'CekMachineException'.

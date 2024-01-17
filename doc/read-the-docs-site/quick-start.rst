@@ -17,14 +17,14 @@ Plutus Tx currently supports GHC v9.2.x and v9.6.x.
 Cabal v3.8+ is recommended.
 
 Additionally, some C libraries will need to be installed.
-Plutus Tx depends on `cardano-base <https://github.com/input-output-hk/cardano-base>`_, which in turn depends on a few cryptographic C libraries, including ``libblst``, ``libsecp256k1``, and ``libsodium``.
+Plutus Tx depends on `cardano-base <https://github.com/IntersectMBO/cardano-base>`_, which in turn depends on a few cryptographic C libraries, including ``libblst``, ``libsecp256k1``, and ``libsodium``.
 Cabal is not designed to manage C dependencies, so you need to either install them yourself, or manage them using another tool (such as Nix).
 
-If you are not using Nix, follow the instructions in `cardano-base <https://github.com/input-output-hk/cardano-base>`_ or `cardano-node <https://github.com/input-output-hk/cardano-node-wiki/blob/main/docs/getting-started/install.md>`_ to install these libraries (or install them in your own way if you like).
+If you are not using Nix, follow the instructions in `cardano-base <https://github.com/IntersectMBO/cardano-base>`_ or `cardano-node <https://github.com/input-output-hk/cardano-node-wiki/blob/main/docs/getting-started/install.md>`_ to install these libraries (or install them in your own way if you like).
 
 If you are using Nix, you can use plutus repository's dev shell: ::
 
-  nix develop github:input-output-hk/plutus
+  nix develop github:IntersectMBO/plutus
 
 The dev shell comes with not only the required C libraries, but also GHC and Cabal.
 
@@ -42,9 +42,9 @@ Then, create a new Cabal package that builds an executable, using default settin
 Declare Plutus Tx Dependencies
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Next we have to add some packages as dependencies. The Plutus packages aren't on Hackage (the default repository Cabal looks for packages from), but on the `CHaP <https://github.com/input-output-hk/cardano-haskell-packages>`_ repository.
+Next we have to add some packages as dependencies. The Plutus packages aren't on Hackage (the default repository Cabal looks for packages from), but on the `CHaP <https://github.com/IntersectMBO/cardano-haskell-packages>`_ repository.
 Therefore, we need to tell Cabal to look for packages from CHaP (in addition to Hackage).
-To do so, make a ``cabal.project`` file, and follow the `instructions <https://github.com/input-output-hk/cardano-haskell-packages#using-chap>`_ in the CHaP repository to make Cabal aware of CHaP.
+To do so, make a ``cabal.project`` file, and follow the `instructions <https://github.com/IntersectMBO/cardano-haskell-packages#using-chap>`_ in the CHaP repository to make Cabal aware of CHaP.
 Then, add the following to your ``cabal.project``: ::
 
   packages:
@@ -68,7 +68,7 @@ Write the Validator
 
 Now we are ready to write the on-chain validator using Plutus Tx.
 We showed and explained an auction validator in :ref:`simple_example`, and we'll reuse the same validator here.
-Make a file named ``AuctionValidator.hs`` in the ``app`` directory, and copy the content over from `here <https://github.com/input-output-hk/plutus/blob/master/doc/read-the-docs-site/tutorials/AuctionValidator.hs>`_.
+Make a file named ``AuctionValidator.hs`` in the ``app`` directory, and copy the content over from `here <https://github.com/IntersectMBO/plutus/blob/master/doc/read-the-docs-site/tutorials/AuctionValidator.hs>`_.
 Then, Add the following in ``plutus-quickstart.cabal``: ::
 
   other-modules:

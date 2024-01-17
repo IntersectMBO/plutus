@@ -15,7 +15,7 @@ build-type:    Simple
 
 source-repository head
   type:     git
-  location: https://github.com/input-output-hk/plutus
+  location: https://github.com/IntersectMBO/plutus
 
 flag defer-plugin-errors
   description:

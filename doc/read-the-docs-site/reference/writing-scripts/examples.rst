@@ -3,7 +3,7 @@
 Examples
 ========
 
-Full examples of Plutus Applications can be found in the ``plutus-apps`` `repository <https://github.com/input-output-hk/plutus-apps/tree/master/plutus-use-cases>`_.
+Full examples of Plutus Applications can be found in the ``plutus-apps`` `repository <https://github.com/IntersectMBO/plutus-apps/tree/master/plutus-use-cases>`_.
 The source code can be found in the ``src`` and the tests in the ``test`` folder.
 
 The examples are a mixture of simple examples and more complex ones, including:

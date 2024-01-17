@@ -240,7 +240,7 @@ data CekValue uni fun ann =
       -- 'BuiltinRuntime', so that we don't need to store it here, but somehow doing so was
       -- consistently slowing evaluation down by half a percent. Might be noise, might be not, but
       -- at least we know that removing this @fun@ is not helpful anyway. See this commit reversing
-      -- the change: https://github.com/input-output-hk/plutus/pull/4778/commits/86a3e24ca3c671cc27c6f4344da2bcd14f961706
+      -- the change: https://github.com/IntersectMBO/plutus/pull/4778/commits/86a3e24ca3c671cc27c6f4344da2bcd14f961706
       (NTerm uni fun ())
       -- ^ This must be lazy. It represents the fully discharged partial application of the builtin
       -- function that we're going to run when it's fully saturated.  We need the 'Term' to be able
@@ -343,7 +343,7 @@ Instead of emitting log lines one by one, we have a 'DList' of them in the type 
 (see 'CekEmitter'). That 'DList' comes from 'Emitter' and allows the latter to be an efficient
 monad for logging. We leak this implementation detail in the type of emitters, because it's the
 most efficient way of doing emitting, see
-https://github.com/input-output-hk/plutus/pull/4421#issuecomment-1059186586
+https://github.com/IntersectMBO/plutus/pull/4421#issuecomment-1059186586
 -}
 
 -- See Note [DList-based emitting].

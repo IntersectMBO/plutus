@@ -405,7 +405,7 @@ unfoldIFixOf pat arg k = do
     -- would be less efficient than renaming a subpart of the type explicitly.
     --
     -- Note however that breaking global uniqueness here most likely would not result in buggy
-    -- behavior, see https://github.com/input-output-hk/plutus/pull/2219#issuecomment-672815272
+    -- behavior, see https://github.com/IntersectMBO/plutus/pull/2219#issuecomment-672815272
     -- But breaking global uniqueness is a bad idea regardless.
     vPat' <- rename vPat
     normalizeTypeM $

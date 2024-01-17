@@ -57,7 +57,7 @@ The CEK machine does budgeting in these steps:
 - The memory cost of the initial AST is added to the budget. See Note [Memory
   Usage for Plutus]. This operation currently does not cost any CPU. It
   currently costs as much memory as the AST itself, before aborting. See
-  https://github.com/input-output-hk/plutus/issues/1799 for more discussion.
+  https://github.com/IntersectMBO/plutus/issues/1799 for more discussion.
 - Then each machine reduction step requires a certain amount of memory and CPU.
 - The builtin operations may require different amounts of memory and CPU,
   depending on the input size.

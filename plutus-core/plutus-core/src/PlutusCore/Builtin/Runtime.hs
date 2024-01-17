@@ -55,7 +55,7 @@ instance NFData (BuiltinRuntime val) where
 -- | A @data@ wrapper around a function returning the 'BuiltinRuntime' of a built-in function.
 -- We use @data@ rather than @newtype@, because GHC is able to see through @newtype@s and may break
 -- carefully set up optimizations, see
--- https://github.com/input-output-hk/plutus/pull/4914#issuecomment-1396306606
+-- https://github.com/IntersectMBO/plutus/pull/4914#issuecomment-1396306606
 --
 -- Using @data@ may make things more expensive, however it was verified at the time of writing that
 -- the wrapper is removed before the CEK machine starts, leaving the stored function to be used

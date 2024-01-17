@@ -105,7 +105,7 @@ instance (UnsafeFromData k, UnsafeFromData v) => UnsafeFromData (Map k v) where
   -- The `~` here enables `BI.unsafeDataAsMap d` to be inlined, which reduces costs slightly.
   -- Without the `~`, the inliner would consider it not effect safe to inline.
   -- We can remove the `~` once we make the inliner smart enough to inline them.
-  -- See https://github.com/input-output-hk/plutus/pull/5371#discussion_r1297833685
+  -- See https://github.com/IntersectMBO/plutus/pull/5371#discussion_r1297833685
   unsafeFromBuiltinData d = let ~es = BI.unsafeDataAsMap d in Map $ mapFromBuiltin es
     where
       {-# INLINE mapFromBuiltin #-}

@@ -18,7 +18,7 @@ extra-doc-files: CHANGELOG.md
 
 source-repository head
   type:     git
-  location: https://github.com/input-output-hk/plutus
+  location: https://github.com/IntersectMBO/plutus
 
 common lang
   default-language:   Haskell2010

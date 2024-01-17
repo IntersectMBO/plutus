@@ -151,7 +151,7 @@ Now we can parameterize the AST by different universes of types. Of course, this
 
 There are some technical difficulties on how to provide instances of various type classes for `SomeType` and `SomeValueIn`, how to make deriving work, etc (you can read about those in [source code of Plutus Core](..//src/Universe/Core.hs)), but otherwise this is pretty much the entire encoding.
 
-Implemented in [this PR](https://github.com/input-output-hk/plutus/pull/1849).
+Implemented in [this PR](https://github.com/IntersectMBO/plutus/pull/1849).
 
 ## Extensible functions
 
@@ -197,7 +197,7 @@ In general, differences are minor, so either of the approaches is fine. We use (
 
 ### Built-in function meaning
 
-Even without extensible types and functions it's convenient to encode the type of a built-in function as a GADT to be able to handle all built-in functions uniformly by processing the structure of that GADT during evaluation to statically ensure well-typedness of applications of primitive functions to constants. We have a [separate (and a little outdated) doc](https://github.com/input-output-hk/plutus/blob/f9f81a441e29eeefc16546c4f3bc39e8614569eb/language-plutus-core/docs/Constant%20application.md) elaborating on that point.
+Even without extensible types and functions it's convenient to encode the type of a built-in function as a GADT to be able to handle all built-in functions uniformly by processing the structure of that GADT during evaluation to statically ensure well-typedness of applications of primitive functions to constants. We have a [separate (and a little outdated) doc](https://github.com/IntersectMBO/plutus/blob/f9f81a441e29eeefc16546c4f3bc39e8614569eb/language-plutus-core/docs/Constant%20application.md) elaborating on that point.
 
 With extensible builtins there's no way around having such a generic machinery allowing to describe a type of a primitive function, because much like with extensible types we need to establish a connection between a built-in function and its Haskell denotation, so we resort to juggling GADTs again. The crux of the encoding is as follows:
 

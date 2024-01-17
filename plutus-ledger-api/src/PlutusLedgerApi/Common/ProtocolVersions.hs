@@ -3,7 +3,7 @@
 module PlutusLedgerApi.Common.ProtocolVersions
     ( MajorProtocolVersion (..)
     -- ** Protocol Version aliases
-    -- | Based on https://github.com/input-output-hk/cardano-ledger/wiki/First-Block-of-Each-Era
+    -- | Based on https://github.com/IntersectMBO/cardano-ledger/wiki/First-Block-of-Each-Era
     , shelleyPV
     , allegraPV
     , maryPV
