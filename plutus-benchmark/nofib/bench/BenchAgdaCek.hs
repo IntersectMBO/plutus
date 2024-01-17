@@ -6,4 +6,3 @@ import Shared (benchWith)
 
 main :: IO ()
 main = benchWith benchTermAgdaCek
-
