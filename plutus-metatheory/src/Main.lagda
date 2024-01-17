@@ -23,7 +23,9 @@ open import Type.BetaNormal using (_⊢Nf⋆_)
 import Untyped as U using (_⊢;scopeCheckU0;extricateU0;decUTm)
 import Untyped.CEKWithCost as U using (stepperC)
 open import Cost.Base
-open import Cost using (defaultMachineParameters;tallyingMachineParameters;countingReport;tallyingReport)
+open import Cost using (machineParameters;tallyingMachineParameters;countingReport;tallyingReport)
+open import Cost.Raw using (RawCostModel)
+open import Cost.Model using (createMap)
 import RawU as U using (Untyped)
 
 open import Untyped.CEK as U using (stepper;Stack;ε;Env;[];State)
@@ -195,9 +197,6 @@ postulate
 {-# FOREIGN GHC import qualified Untyped as U #-}
 {-# COMPILE GHC prettyPrintUTm = display @T.Text . U.uconv 0 #-}
 
-open import Cost.Raw using (BuiltinCostMap)
-open import Cost.Model using (createMap)
-
 data BudgetMode (A : Set) : Set where 
   Silent   : BudgetMode A
   Counting : A → BudgetMode A
@@ -283,7 +282,7 @@ checkError : ∀{A} → ∅ ⊢ A → Either ERROR (∅ ⊢ A )
 checkError (error _) = inj₁ (runtimeError userError)
 checkError t         = return t
 
-executePLC : EvalMode → BudgetMode BuiltinCostMap → ScopedTm Z → Either ERROR String
+executePLC : EvalMode → BudgetMode RawCostModel → ScopedTm Z → Either ERROR String
 executePLC U budgetmode t = do
   (A ,, t) ← withE (λ e → typeError (uglyTypeError e)) $ typeCheckPLC t
   □ V ← withE runtimeError $ U.stepper maxsteps (ε ; [] ▻ erase t)
@@ -317,20 +316,20 @@ showUPLCResult (□ V) = return $ prettyPrintUTm (U.extricateU0 (U.discharge V))
 showUPLCResult ◆     = inj₁ (runtimeError userError)
 showUPLCResult _     = inj₁ (runtimeError gasError)
 
-executeUPLC : BudgetMode BuiltinCostMap → ⊥ U.⊢ → Either ERROR String
+executeUPLC : BudgetMode RawCostModel → ⊥ U.⊢ → Either ERROR String
 executeUPLC Silent t = (withE runtimeError $ U.stepper maxsteps (ε ; [] ▻ t)) >>= showUPLCResult
-executeUPLC (Counting rawmodel) t with createMap rawmodel
+executeUPLC (Counting (cekMachineCosts , rawmodel)) t with createMap rawmodel
 ... | just model =
-   let machineParameters = defaultMachineParameters model
+   let machineParameters = machineParameters (cekMachineCosts , model)
        (ev , exBudget) = U.stepperC machineParameters maxsteps (ε ; [] ▻ t)
     in do 
      x ← withE runtimeError ev
      r ← showUPLCResult x
      return (r ++  countingReport exBudget)  
 ... | nothing = inj₁ (jsonError "while processing parameters.")  
-executeUPLC (Tallying rawmodel) t  with createMap rawmodel
+executeUPLC (Tallying (cekMachineCosts , rawmodel)) t  with createMap rawmodel
 ... | just model =
-    let machineParameters = tallyingMachineParameters model
+    let machineParameters = tallyingMachineParameters (cekMachineCosts , model)
         (ev , tallying) = U.stepperC machineParameters maxsteps (ε ; [] ▻ t)
     in do
     x ← withE runtimeError ev
@@ -338,7 +337,7 @@ executeUPLC (Tallying rawmodel) t  with createMap rawmodel
     return (r ++ tallyingReport tallying)
 ... | nothing = inj₁ (jsonError "while processing parameters.")
 
-evalProgramNU : BudgetMode BuiltinCostMap → ProgramNU → Either ERROR String
+evalProgramNU : BudgetMode RawCostModel → ProgramNU → Either ERROR String
 evalProgramNU bm namedprog = do
   t ← parseUPLC namedprog
   executeUPLC bm t
@@ -440,18 +439,18 @@ data Command (A : Set) : Set where
 
 {-# COMPILE GHC Command = data Command (Eval | Typecheck) #-}
 
-postulate execP : IO (Command BuiltinCostMap)
+postulate execP : IO (Command RawCostModel)
 
 {-# COMPILE GHC execP = execP #-}
 
-evalInput : EvalMode →  BudgetMode BuiltinCostMap → Format → Input → IO (Either ERROR String)
+evalInput : EvalMode →  BudgetMode RawCostModel → Format → Input → IO (Either ERROR String)
 evalInput U bm fmt inp = fmap (evalProgramNU bm) (parseU fmt inp)
 evalInput m _ fmt inp  = fmap (evalProgramN m) (parse fmt inp)
 
 tcInput : Format → Input → IO (Either ERROR String)
 tcInput fmt inp = fmap typeCheckProgramN (parse fmt inp)
 
-main' : Command BuiltinCostMap → IO ⊤
+main' : Command RawCostModel → IO ⊤
 main' (Eval (EvalOpts inp fmt m bm)) = do
   inj₂ s ← evalInput m bm fmt inp
     where

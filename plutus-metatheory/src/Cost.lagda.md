@@ -25,7 +25,7 @@ open import Data.Float using (Float;fromℕ;_÷_;_≤ᵇ_) renaming (show to sho
 import Data.List as L
 
 open import Data.Maybe using (Maybe;just;nothing;maybe′;fromMaybe) renaming (map to mapMaybe; _>>=_ to _>>=m_ )
-open import Data.Product using (_×_;_,_)
+open import Data.Product using () renaming (_,_ to _,,_)
 open import Data.String using (String;_++_;padLeft;padRight;length)
 open import Data.Vec using (Vec;replicate;[];_∷_;sum;foldr) 
                      renaming (lookup to lookupVec)
@@ -34,7 +34,7 @@ open import Relation.Nullary using (yes;no)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;isEquivalence;cong₂)
 open import Text.Printf using (printf)
 
-open import Utils using (_,_;_∷_;[];DATA;List;map)
+open import Utils using (_×_;_,_;_∷_;[];DATA;List;map;ByteString)
 open DATA
 
 open import Relation.Binary using (StrictTotalOrder)
@@ -54,7 +54,8 @@ open AtomicTyCon
 
 open import Cost.Base 
 open import Cost.Model
-``` 
+open import Cost.Raw
+```
 
 ## Execution Budget
 
@@ -68,6 +69,9 @@ record ExBudget : Set where
     ExMem : CostingNat -- Memory usage
 
 open ExBudget
+
+fromHExBudget : HExBudget → ExBudget 
+fromHExBudget hb = mkExBudget (getCPUCost hb) (getMemoryCost hb)
 ```
 
 The type for execution budget should be a Monoid.
@@ -91,7 +95,7 @@ isMonoidExBudget = record {
            isMagma = record { isEquivalence = isEquivalence ; ∙-cong = λ {refl refl → refl }} 
            ; assoc = λ x y z → cong₂ mkExBudget (+-assoc (ExCPU x) (ExCPU y) (ExCPU z)) 
                                                 (+-assoc (ExMem x) (ExMem y) (ExMem z)) } 
-     ; identity = (λ x → refl) , λ x → cong₂ mkExBudget (+-identityʳ (ExCPU x)) (+-identityʳ (ExMem x)) }
+     ; identity = (λ x → refl) ,, λ x → cong₂ mkExBudget (+-identityʳ (ExCPU x)) (+-identityʳ (ExMem x)) }
 ``` 
 
 ## Memory usage of type constants
@@ -115,7 +119,7 @@ postulate mlResultElementCost : CostingNat
 {-# FOREIGN GHC import PlutusCore.Crypto.BLS12_381.G2 as BLS12_381.G2 #-}
 {-# FOREIGN GHC import PlutusCore.Crypto.BLS12_381.Pairing as BLS12_381.Pairing #-}
 
-{-# COMPILE GHC  ℕtoWords = \i -> fromIntegral $ I# (integerLog2# (abs i) `quotInt#` integerToInt 64) + 1 #-}
+{-# COMPILE GHC ℕtoWords = \i -> fromIntegral $ I# (integerLog2# (abs i) `quotInt#` integerToInt 64) + 1 #-}
 {-# COMPILE GHC g1ElementCost = toInteger (BLS12_381.G1.memSizeBytes `div` 8) #-}
 {-# COMPILE GHC g2ElementCost = toInteger (BLS12_381.G2.memSizeBytes `div` 8) #-}
 {-# COMPILE GHC mlResultElementCost = toInteger (BLS12_381.Pairing.mlResultMemSizeBytes `div` 8) #-}
@@ -124,7 +128,7 @@ postulate mlResultElementCost : CostingNat
 For each constant we return the corresponding size.
 
 ```
-byteStringSize : Utils.ByteString → CostingNat 
+byteStringSize : ByteString → CostingNat 
 byteStringSize x = let n = ∣ lengthBS x ∣ in ((n ∸ 1) / 8) + 1
 
 -- cost of a Data node
@@ -133,7 +137,7 @@ dataNodeMem = 4
 
 sizeData : DATA → CostingNat 
 sizeDataList : List DATA → CostingNat 
-sizeDataDataList : List (DATA Utils.× DATA) → CostingNat
+sizeDataDataList : List (DATA × DATA) → CostingNat
 
 sizeData (ConstrDATA _ xs) = dataNodeMem + sizeDataList xs
 sizeData (MapDATA []) = dataNodeMem
@@ -183,24 +187,30 @@ builtinCost b bc cs = mkExBudget (runModel (costingCPU bc) cs) (runModel (costin
 
 ## Default Machine Parameters
 
-The default machine parameters for `ExBudget`.
-
-TODO : For now we will define fixed costs. Later, we should 
-implement getting these values from the `cekMachineCosts.json` file.
-Probably, we will do this by reusing Haskell code.
+The machine parameters for `ExBudget` for a given Cost Model
 
 ```
-defaultCekMachineCost : StepKind → ExBudget
-defaultCekMachineCost _ = mkExBudget 23000 100
+CostModel = HCekMachineCosts × ModelAssignment
 
-exBudgetCategoryCost : ModelAssignment → ExBudgetCategory → ExBudget 
-exBudgetCategoryCost _ (BStep x) = defaultCekMachineCost x
-exBudgetCategoryCost assignModel (BBuiltinApp b cs) = builtinCost b (assignModel b) cs
-exBudgetCategoryCost _ BStartup = mkExBudget 100 100
+cekMachineCostFunction : HCekMachineCosts → StepKind → ExBudget
+cekMachineCostFunction mc BConst = fromHExBudget (getCekConstCost mc)
+cekMachineCostFunction mc BVar = fromHExBudget (getCekVarCost mc)
+cekMachineCostFunction mc BLamAbs = fromHExBudget (getCekLamCost mc)
+cekMachineCostFunction mc BApply = fromHExBudget (getCekApplyCost mc)
+cekMachineCostFunction mc BDelay = fromHExBudget (getCekDelayCost mc)
+cekMachineCostFunction mc BForce = fromHExBudget (getCekForceCost mc)
+cekMachineCostFunction mc BBuiltin = fromHExBudget (getCekBuiltinCost mc)
+cekMachineCostFunction mc BConstr = fromHExBudget (getCekConstCost mc)
+cekMachineCostFunction mc BCase = fromHExBudget (getCekCaseCost mc)
 
-defaultMachineParameters : ModelAssignment → MachineParameters ExBudget
-defaultMachineParameters assignModel = record {
-    cekMachineCost = exBudgetCategoryCost assignModel
+exBudgetCategoryCost : CostModel → ExBudgetCategory → ExBudget 
+exBudgetCategoryCost (cekMc , _) (BStep x) = cekMachineCostFunction cekMc x
+exBudgetCategoryCost (_ , ma) (BBuiltinApp b cs) = builtinCost b (ma b) cs
+exBudgetCategoryCost (cekMc , _) BStartup = fromHExBudget (getCekStartupCost cekMc)
+
+machineParameters : CostModel → MachineParameters ExBudget
+machineParameters costmodel = record {
+    cekMachineCost = exBudgetCategoryCost costmodel
   ; ε = ε€
   ; _∙_ = _∙€_
   ; costMonoid = isMonoidExBudget
@@ -245,7 +255,7 @@ As required, `TallyingBudget` is a monoid.
 
 -- adding TallyingBudgets
 _∙T_ : TallyingBudget → TallyingBudget → TallyingBudget
-(m , x) ∙T (n , y) = unionWith u m n , x ∙€ y
+(m , x) ∙T (n , y) = unionWith u m n , (x ∙€ y)
    where u : ExBudget → Maybe (ExBudget) → ExBudget
          u x (just y) = x ∙€ y
          u x nothing = x
@@ -260,16 +270,16 @@ isMonoidTallyingBudget = record {
            isMagma = record { isEquivalence = isEquivalence 
                             ; ∙-cong = λ {refl refl → refl }} 
            ; assoc = TallyingBudget-assoc } 
-     ; identity = (λ x → refl) , Tallying-budget-identityʳ }
+     ; identity = (λ x → refl) ,, Tallying-budget-identityʳ }
 
-tallyingCekMachineCost : ModelAssignment → ExBudgetCategory → TallyingBudget
-tallyingCekMachineCost am k = 
-      let spent = exBudgetCategoryCost am k 
+tallyingCekMachineCost : CostModel → ExBudgetCategory → TallyingBudget
+tallyingCekMachineCost cm k = 
+      let spent = exBudgetCategoryCost cm k 
       in singleton (mkKeyFromExBudgetCategory k) spent , spent
 
-tallyingMachineParameters : ModelAssignment → MachineParameters TallyingBudget
-tallyingMachineParameters am = record { 
-        cekMachineCost = tallyingCekMachineCost am
+tallyingMachineParameters : CostModel → MachineParameters TallyingBudget
+tallyingMachineParameters cm = record { 
+        cekMachineCost = tallyingCekMachineCost cm
       ; ε = εT
       ; _∙_ = _∙T_
       ; costMonoid = isMonoidTallyingBudget
