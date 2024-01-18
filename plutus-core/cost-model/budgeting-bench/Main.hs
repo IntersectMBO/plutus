@@ -47,7 +47,7 @@ main = do
   criterionMainWith
        Start
        defaultConfig $
-           Benchmarks.Bitwise.makeBenchmarks     gen
+           Benchmarks.Bitwise.makeBenchmarks
 {-        <> Benchmarks.Bool.makeBenchmarks        gen
         <> Benchmarks.ByteStrings.makeBenchmarks gen
         <> Benchmarks.Crypto.makeBenchmarks      gen

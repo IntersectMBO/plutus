@@ -282,7 +282,8 @@ unsafeReadModelFromR formula rmodel = do
         model     <- Data.Csv.decode HasHeader $ BSL.fromStrict $ T.encodeUtf8 $ (fromSomeSEXP j :: Text)
         intercept <- linearModelRawEstimate <$> findInRaw "(Intercept)" model
         slope     <- linearModelRawEstimate <$> findInRaw formula model
-        pure (Intercept $ microToPico intercept, Slope $ microToPico slope)
+        pure ( Intercept $ microToPico intercept
+             , Slope $ microToPico slope )
   case m of
     Left err -> throwM (TypeError err)
     Right x  -> pure x
@@ -297,7 +298,9 @@ unsafeReadModelFromR2 formula1 formula2 rmodel = do
         intercept <- linearModelRawEstimate <$> findInRaw "(Intercept)" model
         slope1    <- linearModelRawEstimate <$> findInRaw formula1 model
         slope2    <- linearModelRawEstimate <$> findInRaw formula2 model
-        pure $ (Intercept $ microToPico intercept, Slope $ microToPico slope1, Slope $ microToPico slope2)
+        pure $ ( Intercept $ microToPico intercept
+               , Slope $ microToPico slope1
+               , Slope $ microToPico slope2 )
   case m of
     Left err -> throwM (TypeError err)
     Right x  -> pure x
@@ -313,9 +316,12 @@ unsafeReadQuadraticModelFromR formula1 formula2 rmodel = do
           paste(out, collapse="\n") |]
   let m = do
         model  <- Data.Csv.decode HasHeader $ BSL.fromStrict $ T.encodeUtf8 $ (fromSomeSEXP j :: Text)
+        coeff0 <- linearModelRawEstimate <$> findInRaw "(Intercept)" model
         coeff1 <- linearModelRawEstimate <$> findInRaw formula1 model
         coeff2 <- linearModelRawEstimate <$> findInRaw formula2 model
-        pure $ (Coefficient0 0, Coefficient1 $ microToPico coeff1, Coefficient2 $ microToPico coeff2)
+        pure $ ( Coefficient0 $ microToPico coeff0
+               , Coefficient1 $ microToPico coeff1
+               , Coefficient2 $ microToPico coeff2 )
   case m of
     Left err -> throwM (TypeError err)
     Right x  -> pure x
@@ -353,12 +359,12 @@ readModelLinearInXAndY model = uncurry3 TwoVariableLinearFunction <$> unsafeRead
 
 readModelQuadraticInY :: MonadR m => SomeSEXP (Region m) -> m ModelTwoArguments
 readModelQuadraticInY model = do
-  (c0, c1, c2) <- unsafeReadQuadraticModelFromR  "I(x_mem)" "I(x_mem^2)" model
+  (c0, c1, c2) <- unsafeReadQuadraticModelFromR  "I(y_mem)" "I(y_mem^2)" model
   pure $ ModelTwoArgumentsQuadraticInY $ OneVariableQuadraticFunction c0 c1 c2
 
 readModelQuadraticInZ :: MonadR m => SomeSEXP (Region m) -> m ModelThreeArguments
 readModelQuadraticInZ model = do
-  (c0, c1, c2) <- unsafeReadQuadraticModelFromR  "I(x_mem)" "I(x_mem^2)" model
+  (c0, c1, c2) <- unsafeReadQuadraticModelFromR  "I(z_mem)" "I(z_mem^2)" model
   pure $ ModelThreeArgumentsQuadraticInZ $ OneVariableQuadraticFunction c0 c1 c2
 
 
@@ -964,14 +970,12 @@ bls12_381_finalVerify cpuModelR= do
 
 ---------------- Bitwise operations ----------------
 
--- FIXME: memory allocation seems to be quite fast, so we base the CPU cost
--- purely on the size of the integer.  This means that integerToByteString True
--- 2 123 will have the same CPU cost as integerToByteString True 200000 123
--- (although a greate rmemory cost).  Check that this is reasonable.  The
--- budgeting benchmarks use inputs which really do need the specified width.
--- Maybe we should try with smaller inputs too, like 123 with increasing widths.
-
-
+{-  Note that if we give `integerToByteString` a width argument w > 0 and a small
+integer n to be converted, the cost is based only on the size of n even though w
+could be considerably larger and some work will be required to pad the output to
+width w.  Experiments show that the padding cost is negligible in comparison to
+the conversion cost, so it's safe to base the cost purely on the size of n.
+-}
 integerToByteString :: MonadR m => SomeSEXP (Region m) -> m (CostingFun ModelThreeArguments)
 integerToByteString cpuModelR = do
   cpuModel <- readModelQuadraticInZ cpuModelR

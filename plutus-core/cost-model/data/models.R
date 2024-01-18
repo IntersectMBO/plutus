@@ -647,7 +647,8 @@ modelFun <- function(path) {
     bls12_381_G1_compressModel       <- constantModel ("Bls12_381_G1_compress")
     bls12_381_G1_uncompressModel     <- constantModel ("Bls12_381_G1_uncompress")
     bls12_381_G2_addModel            <- constantModel ("Bls12_381_G2_add")
-    bls12_381_G2_negModel            <- constantModel ("Bls12_381_G2_neg")
+
+bls12_381_G2_negModel            <- constantModel ("Bls12_381_G2_neg")
     bls12_381_G2_scalarMulModel      <- linearInX     ("Bls12_381_G2_scalarMul")
     bls12_381_G2_equalModel          <- constantModel ("Bls12_381_G2_equal")
     bls12_381_G2_hashToGroupModel    <- linearInX     ("Bls12_381_G2_hashToGroup")
@@ -658,8 +659,6 @@ modelFun <- function(path) {
     bls12_381_finalVerifyModel       <- constantModel ("Bls12_381_finalVerify")
 
     ##### Bitwise operations #####
-
-## FIXME: enforce positive coefficients.
 
     integerToByteStringModel <- {
         fname <- "IntegerToByteString"
@@ -674,6 +673,8 @@ modelFun <- function(path) {
             filter.and.check.nonempty(fname)
         lm(t ~  I(y_mem) + I(y_mem^2), filtered)
     }
+
+    ##### Models to be returned to Haskell #####
 
     models <- list (
         addIntegerModel                      = addIntegerModel,
