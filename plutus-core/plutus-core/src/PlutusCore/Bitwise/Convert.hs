@@ -3,7 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 -- | Implementations for conversion primops from 'Integer' to 'ByteString' and back again.
-module PlutusCore.Builtin.Convert (
+module PlutusCore.Bitwise.Convert (
   -- Wrappers
   integerToByteStringWrapper,
   byteStringToIntegerWrapper,

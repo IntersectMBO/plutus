@@ -27,7 +27,7 @@ import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage, LiteralByteSi
 import PlutusCore.Evaluation.Result (EvaluationResult (..), evaluationFailure)
 import PlutusCore.Pretty (PrettyConfigPlc)
 
-import PlutusCore.Builtin.Convert as Convert
+import PlutusCore.Bitwise.Convert as Convert
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing

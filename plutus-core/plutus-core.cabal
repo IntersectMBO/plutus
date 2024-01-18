@@ -86,8 +86,8 @@ library
     PlutusCore.Analysis.Definitions
     PlutusCore.Annotation
     PlutusCore.Arity
+    PlutusCore.Bitwise.Convert
     PlutusCore.Builtin
-    PlutusCore.Builtin.Convert
     PlutusCore.Builtin.Debug
     PlutusCore.Builtin.Elaborate
     PlutusCore.Builtin.Emitter
