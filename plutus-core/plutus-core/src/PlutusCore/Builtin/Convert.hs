@@ -13,6 +13,9 @@ module PlutusCore.Builtin.Convert (
   byteStringToInteger
   ) where
 
+import PlutusCore.Builtin (BuiltinResult, emit)
+import PlutusCore.Evaluation.Result (evaluationFailure)
+
 import ByteString.StrictBuilder (Builder)
 import ByteString.StrictBuilder qualified as Builder
 import Control.Monad (guard)
@@ -22,18 +25,15 @@ import Data.ByteString qualified as BS
 import Data.Text (pack)
 import Data.Word (Word64, Word8)
 import GHC.ByteOrder (ByteOrder (BigEndian, LittleEndian))
-import PlutusCore.Builtin.Emitter (Emitter, emit)
-import PlutusCore.Evaluation.Result (EvaluationResult (EvaluationFailure))
 
 -- | Wrapper for 'integerToByteString' to make it more convenient to define as a builtin.
-integerToByteStringWrapper ::
-  Bool -> Integer -> Integer -> Emitter (EvaluationResult ByteString)
+integerToByteStringWrapper :: Bool -> Integer -> Integer -> BuiltinResult ByteString
 integerToByteStringWrapper endiannessArg lengthArg input
   -- Check that we are within the Int range on the non-negative side.
   | lengthArg < 0 || lengthArg >= 536870912 = do
       emit "integerToByteString: inappropriate length argument"
       emit $ "Length requested: " <> (pack . show $ input)
-      pure EvaluationFailure
+      evaluationFailure
   -- As this builtin hasn't been costed yet, we have to impose a temporary limit of 10KiB on requested
   -- sizes via the padding argument. This shouldn't be necessary long-term, as once this function is
   -- costed, this won't be a problem.
@@ -42,7 +42,7 @@ integerToByteStringWrapper endiannessArg lengthArg input
   | lengthArg > 10240 = do
       emit "integerToByteString: padding argument too large"
       emit "If you are seeing this, it is a bug: please report this!"
-      pure EvaluationFailure
+      evaluationFailure
   | otherwise = let endianness = endiannessArgToByteOrder endiannessArg in
     -- We use fromIntegral here, despite advice to the contrary in general when defining builtin
     -- denotations. This is because, if we've made it this far, we know that overflow or truncation
@@ -54,15 +54,15 @@ integerToByteStringWrapper endiannessArg lengthArg input
           -- This does work proportional to the size of input. However, we're in a failing case
           -- anyway, and the user's paid for work proportional to this size in any case.
           emit $ "Input: " <> (pack . show $ input)
-          pure EvaluationFailure
+          evaluationFailure
         NotEnoughDigits -> do
           emit "integerToByteString: cannot represent Integer in given number of bytes"
           -- This does work proportional to the size of input. However, we're in a failing case
           -- anyway, and the user's paid for work proportional to this size in any case.
           emit $ "Input: " <> (pack . show $ input)
           emit $ "Bytes requested: " <> (pack . show $ lengthArg)
-          pure EvaluationFailure
-      Right result -> pure . pure $ result
+          evaluationFailure
+      Right result -> pure result
 
 -- | Wrapper for 'byteStringToInteger' to make it more convenient to define as a builtin.
 byteStringToIntegerWrapper ::
@@ -82,8 +82,7 @@ data IntegerToByteStringError =
 --
 -- For performance and clarity, the endianness argument uses
 -- 'ByteOrder', and the length argument is an 'Int'.
-integerToByteString ::
-  ByteOrder -> Int -> Integer -> Either IntegerToByteStringError ByteString
+integerToByteString :: ByteOrder -> Int -> Integer -> Either IntegerToByteStringError ByteString
 integerToByteString requestedByteOrder requestedLength input
   | input < 0 = Left NegativeInput
   | input == 0 = Right . BS.replicate requestedLength $ 0x00

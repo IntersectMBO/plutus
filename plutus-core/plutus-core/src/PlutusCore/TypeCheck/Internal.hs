@@ -31,7 +31,6 @@ import PlutusPrelude
 
 import Control.Lens
 import Control.Monad (when)
-import Control.Monad.Error.Lens
 import Control.Monad.Except (MonadError)
 -- Using @transformers@ rather than @mtl@, because the former doesn't impose the 'Monad' constraint
 -- on 'local'.

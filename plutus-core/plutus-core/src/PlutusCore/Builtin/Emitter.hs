@@ -1,7 +1,7 @@
 module PlutusCore.Builtin.Emitter
     ( Emitter (..)
     , runEmitter
-    , emit
+    , MonadEmitter (..)
     ) where
 
 import Control.Monad.Trans.Writer.Strict (Writer, runWriter, tell)
@@ -17,6 +17,10 @@ runEmitter :: Emitter a -> (a, DList Text)
 runEmitter = runWriter . unEmitter
 {-# INLINE runEmitter #-}
 
-emit :: Text -> Emitter ()
-emit = Emitter . tell . pure
-{-# INLINE emit #-}
+-- | A type class for \"this monad supports logging\".
+class MonadEmitter m where
+    emit :: Text -> m ()
+
+instance MonadEmitter Emitter where
+    emit = Emitter . tell . pure
+    {-# INLINE emit #-}
