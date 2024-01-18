@@ -1,5 +1,5 @@
 .. highlight:: haskell
-.. _exporting_a_script:
+.. _asdata:
 
 How to use ``AsData`` to optimize scripts
 =========================================
