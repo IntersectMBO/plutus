@@ -19,9 +19,9 @@ import Test.Tasty.HUnit
 import UntypedPlutusCore qualified as U
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as U
 
-import MAlonzo.Code.Main (checkKindAgda, checkTypeAgda, inferKindAgda, inferTypeAgda,
-                          normalizeTypeAgda, normalizeTypeTermAgda, runTCEKAgda, runTCKAgda,
-                          runTLAgda, runUAgda)
+import MAlonzo.Code.Evaluator.Term (checkKindAgda, checkTypeAgda, inferKindAgda, inferTypeAgda,
+                                    normalizeTypeAgda, normalizeTypeTermAgda, runTCEKAgda,
+                                    runTCKAgda, runTLAgda, runUAgda)
 import PlutusCore.DeBruijn
 import Raw hiding (TypeError, tynames)
 

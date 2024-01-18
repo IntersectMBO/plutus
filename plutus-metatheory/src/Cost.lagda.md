@@ -70,6 +70,9 @@ record ExBudget : Set where
 
 open ExBudget
 
+{-# FOREIGN GHC data ExBudgetAgda = ExBudgetAgda Integer Integer #-}
+{-# COMPILE GHC ExBudget = data ExBudgetAgda (ExBudgetAgda)  #-}
+
 fromHExBudget : HExBudget → ExBudget 
 fromHExBudget hb = mkExBudget (getCPUCost hb) (getMemoryCost hb)
 ```

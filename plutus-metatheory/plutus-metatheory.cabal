@@ -218,6 +218,9 @@ library
     MAlonzo.Code.Data.Vec.Base
     MAlonzo.Code.Data.Vec.Bounded.Base
     MAlonzo.Code.Declarative
+    MAlonzo.Code.Evaluator.Base
+    MAlonzo.Code.Evaluator.Program
+    MAlonzo.Code.Evaluator.Term
     MAlonzo.Code.Function.Base
     MAlonzo.Code.Function.Bijection
     MAlonzo.Code.Function.Bundles
@@ -443,6 +446,9 @@ library
     MAlonzo.Code.Data.Vec.Base
     MAlonzo.Code.Data.Vec.Bounded.Base
     MAlonzo.Code.Declarative
+    MAlonzo.Code.Evaluator.Base
+    MAlonzo.Code.Evaluator.Program
+    MAlonzo.Code.Evaluator.Term
     MAlonzo.Code.Function.Base
     MAlonzo.Code.Function.Bijection
     MAlonzo.Code.Function.Bundles
