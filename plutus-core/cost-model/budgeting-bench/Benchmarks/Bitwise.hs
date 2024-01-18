@@ -35,7 +35,7 @@ allFF n = 256^(8*n) - 1
    fitted to inputs of size up to 150 gives a good fit and extrapolates well to
    larger inputs. -}
 benchByteStringToInteger :: Benchmark
-benchByteStringToInteger =  createTwoTermBuiltinBench ByteStringToInteger []
+benchByteStringToInteger =  createTwoTermBuiltinBenchElementwise ByteStringToInteger []
                             (repeat True) (smallerByteStrings150 seedA)
 
 

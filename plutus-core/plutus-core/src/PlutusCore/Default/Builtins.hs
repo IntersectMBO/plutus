@@ -17,13 +17,15 @@ module PlutusCore.Default.Builtins where
 import PlutusPrelude
 
 import PlutusCore.Builtin
-import PlutusCore.Data
+import PlutusCore.Data (Data (..))
 import PlutusCore.Default.Universe
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
-import PlutusCore.Evaluation.Machine.ExBudgetStream
-import PlutusCore.Evaluation.Machine.ExMemoryUsage
-import PlutusCore.Evaluation.Result
-import PlutusCore.Pretty
+import PlutusCore.Evaluation.Machine.CostStream (sumCostStream)
+import PlutusCore.Evaluation.Machine.ExBudgetStream (ExBudgetStream)
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage, LiteralByteSize (..),
+                                                    flattenCostRose, memoryUsage, singletonRose)
+import PlutusCore.Evaluation.Result (EvaluationResult (..), evaluationFailure)
+import PlutusCore.Pretty (PrettyConfigPlc)
 
 import PlutusCore.Builtin.Convert as Convert
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
@@ -36,13 +38,13 @@ import PlutusCore.Crypto.Secp256k1 (verifyEcdsaSecp256k1Signature, verifySchnorr
 import Codec.Serialise (serialise)
 import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
-import Data.Char
-import Data.Ix
+import Data.Char (toLower)
+import Data.Ix (Ix)
 import Data.Text (Text, pack)
 import Data.Text.Encoding (decodeUtf8', encodeUtf8)
 import Flat hiding (from, to)
-import Flat.Decoder
-import Flat.Encoder as Flat
+import Flat.Decoder (Get, dBEBits8)
+import Flat.Encoder as Flat (Encoding, NumBits, eBits)
 import Prettyprinter (viaShow)
 
 -- See Note [Pattern matching on built-in types].
@@ -1801,10 +1803,17 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
     -- Conversions
     toBuiltinMeaning _semvar IntegerToByteString =
-      let integerToByteStringDenotation :: Bool -> LiteralByteSize -> Integer -> Emitter (EvaluationResult BS.ByteString)
-          integerToByteStringDenotation b (LiteralByteSize w) n = integerToByteStringWrapper b w n
-          -- ^ The second argument is wrapped in a LiteralByteSize to allow us to interpret it as a
-          -- size during costing.  It appears as an integer in UPLC: see Note [Integral types as Integer].
+      let integerToByteStringDenotation :: Bool -> LiteralByteSize -> Integer -> BuiltinResult BS.ByteString
+          {- The second argument is wrapped in a LiteralByteSize to allow us to interpret it as a size during
+             costing.  It appears as an integer in UPLC: see Note [Integral types as Integer]. -}
+          {- We disallow inputs of more than 8000 bytes because the execution time becomes difficult to predict
+             accurately beyond this point.  This restriction will be removed in a later variant. -}
+          integerToByteStringDenotation b (LiteralByteSize w) n =
+              if w > 8000 || (w == 0 && (sumCostStream . flattenCostRose . memoryUsage $ n) > 1000)
+              then do
+                emit "byteStringToInteger result too big"
+                evaluationFailure
+              else integerToByteStringWrapper b w n
           {-# INLINE integerToByteStringDenotation #-}
         in makeBuiltinMeaning
           integerToByteStringDenotation
