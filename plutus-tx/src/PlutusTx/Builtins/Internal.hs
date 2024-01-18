@@ -18,7 +18,6 @@ module PlutusTx.Builtins.Internal where
 
 import Codec.Serialise
 import Control.DeepSeq (NFData (..))
-import Control.Monad.Trans.Writer.Strict (runWriter)
 import Data.ByteArray qualified as BA
 import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
@@ -30,8 +29,8 @@ import Data.Kind (Type)
 import Data.Text as Text (Text, empty)
 import Data.Text.Encoding as Text (decodeUtf8, encodeUtf8)
 import GHC.Generics
+import PlutusCore.Builtin (BuiltinResult (..))
 import PlutusCore.Builtin.Convert qualified as Convert
-import PlutusCore.Builtin.Emitter (Emitter (Emitter))
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
@@ -39,8 +38,7 @@ import PlutusCore.Crypto.Ed25519 qualified
 import PlutusCore.Crypto.Hash qualified as Hash
 import PlutusCore.Crypto.Secp256k1 qualified
 import PlutusCore.Data qualified as PLC
-import PlutusCore.Evaluation.Result (EvaluationResult (EvaluationFailure, EvaluationSuccess))
-import PlutusCore.Pretty (Pretty (..))
+import PlutusCore.Pretty (Pretty (..), display)
 import PlutusTx.Utils (mustBeReplaced)
 import Prettyprinter (viaShow)
 
@@ -258,10 +256,10 @@ keccak_256 (BuiltinByteString b) = BuiltinByteString $ Hash.keccak_256 b
 verifyEd25519Signature :: BuiltinByteString -> BuiltinByteString -> BuiltinByteString -> BuiltinBool
 verifyEd25519Signature (BuiltinByteString vk) (BuiltinByteString msg) (BuiltinByteString sig) =
   case PlutusCore.Crypto.Ed25519.verifyEd25519Signature_V1 vk msg sig of
-    Emitter f -> case runWriter f of
-      (res, logs) -> traceAll logs $ case res of
-        EvaluationFailure   -> mustBeReplaced "Ed25519 signature verification errored."
-        EvaluationSuccess b -> BuiltinBool b
+    BuiltinFailure logs err       -> traceAll (logs <> pure (display err)) $
+        mustBeReplaced "Ed25519 signature verification errored."
+    BuiltinSuccess b              -> BuiltinBool b
+    BuiltinSuccessWithLogs logs b -> traceAll logs $ BuiltinBool b
 
 {-# NOINLINE verifyEcdsaSecp256k1Signature #-}
 verifyEcdsaSecp256k1Signature ::
@@ -271,10 +269,10 @@ verifyEcdsaSecp256k1Signature ::
   BuiltinBool
 verifyEcdsaSecp256k1Signature (BuiltinByteString vk) (BuiltinByteString msg) (BuiltinByteString sig) =
   case PlutusCore.Crypto.Secp256k1.verifyEcdsaSecp256k1Signature vk msg sig of
-    Emitter f -> case runWriter f of
-      (res, logs) -> traceAll logs $ case res of
-        EvaluationFailure   -> mustBeReplaced "ECDSA SECP256k1 signature verification errored."
-        EvaluationSuccess b -> BuiltinBool b
+    BuiltinFailure logs err       -> traceAll (logs <> pure (display err)) $
+        mustBeReplaced "ECDSA SECP256k1 signature verification errored."
+    BuiltinSuccess b              -> BuiltinBool b
+    BuiltinSuccessWithLogs logs b -> traceAll logs $ BuiltinBool b
 
 {-# NOINLINE verifySchnorrSecp256k1Signature #-}
 verifySchnorrSecp256k1Signature ::
@@ -284,10 +282,10 @@ verifySchnorrSecp256k1Signature ::
   BuiltinBool
 verifySchnorrSecp256k1Signature (BuiltinByteString vk) (BuiltinByteString msg) (BuiltinByteString sig) =
   case PlutusCore.Crypto.Secp256k1.verifySchnorrSecp256k1Signature vk msg sig of
-    Emitter f -> case runWriter f of
-      (res, logs) -> traceAll logs $ case res of
-        EvaluationFailure   -> mustBeReplaced "Schnorr SECP256k1 signature verification errored."
-        EvaluationSuccess b -> BuiltinBool b
+    BuiltinFailure logs err       -> traceAll (logs <> pure (display err)) $
+        mustBeReplaced "Schnorr SECP256k1 signature verification errored."
+    BuiltinSuccess b              -> BuiltinBool b
+    BuiltinSuccessWithLogs logs b -> traceAll logs $ BuiltinBool b
 
 traceAll :: forall (a :: Type) (f :: Type -> Type) .
   (Foldable f) => f Text -> a -> a
@@ -692,12 +690,12 @@ integerToByteString
     -> BuiltinInteger
     -> BuiltinInteger
     -> BuiltinByteString
-integerToByteString (BuiltinBool statedEndianness) paddingArg input =
-  case Convert.integerToByteStringWrapper statedEndianness paddingArg input of
-    Emitter f -> case runWriter f of
-      (result, logs) -> traceAll logs $ case result of
-        EvaluationFailure    -> mustBeReplaced "Integer to ByteString conversion errored."
-        EvaluationSuccess bs -> BuiltinByteString bs
+integerToByteString (BuiltinBool endiannessArg) paddingArg input =
+  case Convert.integerToByteStringWrapper endiannessArg paddingArg input of
+    BuiltinFailure logs err        -> traceAll (logs <> pure (display err)) $
+        mustBeReplaced "Integer to ByteString conversion errored."
+    BuiltinSuccess bs              -> BuiltinByteString bs
+    BuiltinSuccessWithLogs logs bs -> traceAll logs $ BuiltinByteString bs
 
 {-# NOINLINE byteStringToInteger #-}
 byteStringToInteger

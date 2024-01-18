@@ -652,14 +652,14 @@ evalBuiltinApp
     -> BuiltinRuntime (CekValue uni fun ann)
     -> CekM uni fun s (CekValue uni fun ann)
 evalBuiltinApp fun term runtime = case runtime of
-    BuiltinResult budgets getX -> do
+    BuiltinCostedResult budgets getX -> do
         spendBudgetStreamCek (BBuiltinApp fun) budgets
         case getX of
-            MakeKnownFailure logs err       -> do
+            BuiltinFailure logs err       -> do
                 ?cekEmitter logs
-                throwKnownTypeErrorWithCause term err
-            MakeKnownSuccess x              -> pure x
-            MakeKnownSuccessWithLogs logs x -> ?cekEmitter logs $> x
+                throwBuiltinErrorWithCause term err
+            BuiltinSuccess x              -> pure x
+            BuiltinSuccessWithLogs logs x -> ?cekEmitter logs $> x
     _ -> pure $ VBuiltin fun term runtime
 {-# INLINE evalBuiltinApp #-}
 
