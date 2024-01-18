@@ -29,8 +29,8 @@ import Data.Kind (Type)
 import Data.Text as Text (Text, empty)
 import Data.Text.Encoding as Text (decodeUtf8, encodeUtf8)
 import GHC.Generics
+import PlutusCore.Bitwise.Convert qualified as Convert
 import PlutusCore.Builtin (BuiltinResult (..))
-import PlutusCore.Builtin.Convert qualified as Convert
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
