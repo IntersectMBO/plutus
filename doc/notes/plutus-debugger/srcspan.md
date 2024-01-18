@@ -67,7 +67,7 @@ The bad thing is that to find out the exact srcspan, we need an extra lookup at 
 ### b. DWARF method
 
 Nothing peculiar to discuss about this method, and it looks like we already make use of it elsewhere in the plugin (for coverage):
-<https://github.com/input-output-hk/plutus/blob/master/plutus-tx-plugin/src/PlutusTx/Compiler/Types.hs#L80-L88>
+<https://github.com/IntersectMBO/plutus/blob/master/plutus-tx-plugin/src/PlutusTx/Compiler/Types.hs#L80-L88>
 This gives us `SourceNote` constructors of the `Tickish` datatype.
 
 ### c. Prof method

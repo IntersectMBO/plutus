@@ -70,8 +70,8 @@ A release branch is only needed if bugs are found in `x.y.z.0-rc1` and we need t
 This updates versions and version bounds, and assembles the changelogs.open a PR for updating the cabal files and the changelog files.
 - `<packages>` should normally be empty, which will prepare the default packages, or can be an explicit list of packages to prepare.
 4. Review the changelogs and edit manually if needed.
-5. Open a PR for updating the cabal files and the changelog files. Example: https://github.com/input-output-hk/plutus/pull/5452.
-6. Once the PR is merged, 'Draft a new Release' with name `x.y.z.0` using https://github.com/input-output-hk/plutus/releases/new[Github's release interface]:
+5. Open a PR for updating the cabal files and the changelog files. Example: https://github.com/IntersectMBO/plutus/pull/5452.
+6. Once the PR is merged, 'Draft a new Release' with name `x.y.z.0` using https://github.com/IntersectMBO/plutus/releases/new[Github's release interface]:
 - Choose as git tag `x.y.z.0`
 - Choose as target the git commit hash which points to the release commit
 - Create and attach pir&uplc executables to the release by running the following commands inside the repository where its HEAD is at the release commit:
@@ -79,21 +79,21 @@ This updates versions and version bounds, and assembles the changelogs.open a PR
 [source,bash]
 -------------
 nix build .#hydraJobs.x86_64-linux.musl64.ghc96.pir 
-mv ./result/bin/pir ./pir-x86_64-linux-ghc96
+cp ./result/bin/pir ./pir-x86_64-linux-ghc96
 
 nix build .#hydraJobs.x86_64-linux.musl64.ghc96.uplc
-mv ./result/bin/uplc ./uplc-x86_64-linux-ghc96
+cp ./result/bin/uplc ./uplc-x86_64-linux-ghc96
 -------------
-7. Open a PR in the https://github.com/input-output-hk/cardano-haskell-packages[CHaP repository] for publishing the new version. Run `./scripts/add-from-github.sh "https://github.com/input-output-hk/plutus" COMMIT-SHA LIST-OF-UPDATED-PACKAGES` (see https://github.com/input-output-hk/cardano-haskell-packages#-from-github[the README on CHaP]). Example: https://github.com/input-output-hk/cardano-haskell-packages/pull/394.
+7. Open a PR in the https://github.com/IntersectMBO/cardano-haskell-packages[CHaP repository] for publishing the new version. Run `./scripts/add-from-github.sh "https://github.com/IntersectMBO/plutus" COMMIT-SHA LIST-OF-UPDATED-PACKAGES` (see https://github.com/IntersectMBO/cardano-haskell-packages#-from-github[the README on CHaP]). Example: https://github.com/IntersectMBO/cardano-haskell-packages/pull/394.
 - If issues are found, create a release branch `release/x.y.z`, fix the issues on master, backport the fixes to `release/x.y.z`, tag `x.y.z.0-rc2`, and go to step 4.
 - Why not just fix the issues on master and tag `x.y.z.0-rc2` from master?
 It is desirable to minimize the amount of change between `rc1` and `rc2`, because it may reduce the tests and checks that need to be performed against `rc2`.
 For instance, if `plutus-ledger-api` is the only package changed, there is no need to re-run tests on `plutus-core` or `plutus-tx`.
 Another example is if a security audit is done on `rc1`, and the changes in `rc2` do not modify the audited code, then the audit does not need to be re-done.
-8. Once the CHaP PR has been merged, make a PR to update the version used in `cardano-ledger`. Example: https://github.com/input-output-hk/cardano-ledger/pull/3563.
+8. Once the CHaP PR has been merged, make a PR to update the version used in `cardano-ledger`. Example: https://github.com/IntersectMBO/cardano-ledger/pull/3563.
 - Update the version bounds in cabal files.
 - Update the CHaP index state in `cabal.project`.
-- Update the CHaP flake input with `nix flake lock --update-input CHaP`.
+- Update the CHaP flake input with `nix flake update CHaP`.
 
 === Patch Releases
 

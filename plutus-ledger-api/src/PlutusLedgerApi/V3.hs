@@ -28,6 +28,7 @@ module PlutusLedgerApi.V3 (
   GovernanceActionId (..),
   Committee (..),
   Constitution (..),
+  ProtocolVersion (..),
   GovernanceAction (..),
   ChangedParameters (..),
   ProposalProcedure (..),
@@ -111,6 +112,12 @@ module PlutusLedgerApi.V3 (
   V2.strictLowerBound,
   V2.strictUpperBound,
 
+  -- *** Ratio
+  Ratio.Rational,
+  Ratio.ratio,
+  Ratio.fromGHC,
+  Ratio.toGHC,
+
   -- *** Association maps
   V2.Map,
   V2.fromList,
@@ -138,6 +145,7 @@ module PlutusLedgerApi.V3 (
   V2.ScriptDecodeError (..),
 ) where
 
+import PlutusCore.Data qualified as PLC
 import PlutusLedgerApi.Common as Common hiding (deserialiseScript, evaluateScriptCounting,
                                          evaluateScriptRestricting)
 import PlutusLedgerApi.Common qualified as Common (deserialiseScript, evaluateScriptCounting,
@@ -147,8 +155,7 @@ import PlutusLedgerApi.V2 qualified as V2 hiding (ScriptContext (..), ScriptPurp
 import PlutusLedgerApi.V3.Contexts
 import PlutusLedgerApi.V3.EvaluationContext
 import PlutusLedgerApi.V3.ParamName
-
-import PlutusCore.Data qualified as PLC
+import PlutusTx.Ratio qualified as Ratio
 
 import Control.Monad.Except (MonadError)
 

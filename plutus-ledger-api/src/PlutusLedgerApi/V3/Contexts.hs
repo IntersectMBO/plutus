@@ -21,6 +21,7 @@ import PlutusLedgerApi.V2 qualified as V2
 import PlutusTx qualified
 import PlutusTx.AssocMap hiding (filter, mapMaybe)
 import PlutusTx.Prelude qualified as PlutusTx
+import PlutusTx.Ratio (Rational)
 
 import Prelude qualified as Haskell
 
@@ -91,20 +92,20 @@ instance PlutusTx.Eq Delegatee where
 
 data TxCert
   = -- | Register staking credential with an optional deposit amount
-    TxCertRegStaking V2.Credential (Haskell.Maybe V2.Value)
+    TxCertRegStaking V2.Credential (Haskell.Maybe V2.Lovelace)
   | -- | Un-Register staking credential with an optional refund amount
-    TxCertUnRegStaking V2.Credential (Haskell.Maybe V2.Value)
+    TxCertUnRegStaking V2.Credential (Haskell.Maybe V2.Lovelace)
   | -- | Delegate staking credential to a Delegatee
     TxCertDelegStaking V2.Credential Delegatee
   | -- | Register and delegate staking credential to a Delegatee in one certificate. Noter that
     -- deposit is mandatory.
-    TxCertRegDeleg V2.Credential Delegatee V2.Value
+    TxCertRegDeleg V2.Credential Delegatee V2.Lovelace
   | -- | Register a DRep with a deposit value. The optional anchor is omitted.
-    TxCertRegDRep DRepCredential V2.Value
+    TxCertRegDRep DRepCredential V2.Lovelace
   | -- | Update a DRep. The optional anchor is omitted.
     TxCertUpdateDRep DRepCredential
   | -- | UnRegister a DRep with mandatory refund value
-    TxCertUnRegDRep DRepCredential V2.Value
+    TxCertUnRegDRep DRepCredential V2.Lovelace
   | -- | A digest of the PoolParams
     TxCertPoolRegister
       V2.PubKeyHash
@@ -268,13 +269,14 @@ data GovernanceAction
   | -- | proposal to update protocol version
     HardForkInitiation (Haskell.Maybe GovernanceActionId) ProtocolVersion
   | TreasuryWithdrawals
-      (Map V2.Credential V2.Value)
+      (Map V2.Credential V2.Lovelace)
       (Haskell.Maybe V2.ScriptHash) -- ^ Hash of the constitution script
   | NoConfidence (Haskell.Maybe GovernanceActionId)
-  | NewCommittee
+  | UpdateCommittee
       (Haskell.Maybe GovernanceActionId)
-      [ColdCommitteeCredential] -- ^ Old committee
-      Committee -- ^ New Committee
+      [ColdCommitteeCredential] -- ^ Committee members to be removed
+      (Map ColdCommitteeCredential Haskell.Integer) -- ^ Committee members to be added
+      Rational -- ^ New quorum
   | NewConstitution (Haskell.Maybe GovernanceActionId) Constitution
   | InfoAction
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
@@ -289,8 +291,11 @@ instance PlutusTx.Eq GovernanceAction where
   TreasuryWithdrawals a b == TreasuryWithdrawals a' b' =
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
   NoConfidence a == NoConfidence a' = a PlutusTx.== a'
-  NewCommittee a b c == NewCommittee a' b' c' =
-    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b' PlutusTx.&& c PlutusTx.== c'
+  UpdateCommittee a b c d == UpdateCommittee a' b' c' d' =
+    a PlutusTx.== a'
+      PlutusTx.&& b PlutusTx.== b'
+      PlutusTx.&& c PlutusTx.== c'
+      PlutusTx.&& d PlutusTx.== d'
   NewConstitution a b == NewConstitution a' b' =
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
   InfoAction == InfoAction = Haskell.True
@@ -298,7 +303,7 @@ instance PlutusTx.Eq GovernanceAction where
 
 -- | A proposal procedure. The optional anchor is omitted.
 data ProposalProcedure = ProposalProcedure
-  { ppDeposit          :: V2.Value
+  { ppDeposit          :: V2.Lovelace
   , ppReturnAddr       :: V2.Credential
   , ppGovernanceAction :: GovernanceAction
   }
@@ -323,9 +328,15 @@ data ScriptPurpose
   = Minting V2.CurrencySymbol
   | Spending V2.TxOutRef
   | Rewarding V2.Credential
-  | Certifying TxCert
-  | Voting Voter GovernanceActionId
-  | Proposing Haskell.Integer
+  | Certifying
+      Haskell.Integer
+      -- ^ 0-based index of the given `TxCert` in `txInfoTxCerts`
+      TxCert
+  | Voting Voter
+  | Proposing
+      Haskell.Integer
+      -- ^ 0-based index of the given `ProposalProcedure` in `txInfoProposalProcedures`
+      ProposalProcedure
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
   deriving (Pretty) via (PrettyShow ScriptPurpose)
 
@@ -337,12 +348,12 @@ instance PlutusTx.Eq ScriptPurpose where
     a PlutusTx.== a'
   Rewarding a == Rewarding a' =
     a PlutusTx.== a'
-  Certifying a == Certifying a' =
-    a PlutusTx.== a'
-  Voting a b == Voting a' b' =
+  Certifying a b == Certifying a' b' =
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
-  Proposing a == Proposing a' =
+  Voting a == Voting a' =
     a PlutusTx.== a'
+  Proposing a b == Proposing a' b' =
+    a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
   _ == _ = Haskell.False
 
 -- | TxInfo for PlutusV3
@@ -637,7 +648,7 @@ PlutusTx.makeIsDataIndexed
   , ('HardForkInitiation, 1)
   , ('TreasuryWithdrawals, 2)
   , ('NoConfidence, 3)
-  , ('NewCommittee, 4)
+  , ('UpdateCommittee, 4)
   , ('NewConstitution, 5)
   , ('InfoAction, 6)
   ]

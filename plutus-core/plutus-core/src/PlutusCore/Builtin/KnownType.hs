@@ -64,13 +64,13 @@ type KnownBuiltinType val a = KnownBuiltinTypeIn (UniOf val) val a
 {- Note [Performance of ReadKnownIn and MakeKnownIn instances]
 It's critically important that 'readKnown' runs in the concrete 'Either' rather than a general
 'MonadError'. Changing from the latter to the former gave us a speedup of up to 19%, see
-https://github.com/input-output-hk/plutus/pull/4307
+https://github.com/IntersectMBO/plutus/pull/4307
 
 Replacing the @AsUnliftingError err, AsEvaluationFailure err@ constraints with the dedicated
 'KnownTypeError' data type gave us a speedup of up to 4%.
 
 All the same considerations apply to 'makeKnown':
-https://github.com/input-output-hk/plutus/pull/4421
+https://github.com/IntersectMBO/plutus/pull/4421
 
 It's beneficial to inline 'readKnown' and 'makeKnown' not only because we use them directly over
 concrete types once 'toBuiltinsRuntime' is inlined, but also because otherwise GHC compiles each of
@@ -143,7 +143,7 @@ deal with polymorphic built-in types (e.g. @id@, @ifThenElse@ etc). That would m
 write a function from a @[a]@ for some arbitrary built-in @a@ to @[Opaque val a]@. Which is really
 easy to do: it's just @map makeKnown@. But the problem is, unlifting is supposed to be cheap and
 that @map@ is O(n), so for example 'MkCons' would become an O(n) operation making perfectly linear
-algorithms quadratic. See https://github.com/input-output-hk/plutus/pull/4215 for how that would
+algorithms quadratic. See https://github.com/IntersectMBO/plutus/pull/4215 for how that would
 look like.
 
 So the problem is that we can't convert in O(1) time a @[a]@ coming from a constant of

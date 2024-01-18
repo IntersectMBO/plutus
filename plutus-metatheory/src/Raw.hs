@@ -181,6 +181,7 @@ data ERROR = TypeError T.Text
            | ParseError ParserErrorBundle
            | ScopeError ScopeError
            | RuntimeError RuntimeError
+           | JsonError T.Text
            deriving Show
 
 data ScopeError = DeBError|FreeVariableError FreeVariableError deriving Show

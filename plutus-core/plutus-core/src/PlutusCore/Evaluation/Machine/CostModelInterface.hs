@@ -270,7 +270,7 @@ applySplitCostModelParams prefix model params =
                  <*> applyParams (_builtinCostModel model) builtinparams
 
 -- | Update a CostModel for the CEK machine with a given set of parameters.
--- Note that this is costly. See [here](https://github.com/input-output-hk/plutus/issues/4962).
+-- Note that this is costly. See [here](https://github.com/IntersectMBO/plutus/issues/4962).
 -- Callers are recommended to call this once and cache the results.
 applyCostModelParams
     :: (FromJSON evaluatorcosts, FromJSON builtincosts, ToJSON evaluatorcosts, ToJSON builtincosts, MonadError CostModelApplyError m)

@@ -28,7 +28,7 @@ way more lets that get in the way preventing the rule from firing.
 Possible solutions: Some more aggressive PIR inlining, rewriting the PlutusTx TH code, or
 introducing specialised pattern-matching builtins as last resort.
 Plutus Tx TH code responsible:
-<https://github.com/input-output-hk/plutus/blob/9364099b38e3aa27fb311af3299d2210e7e33e45/plutus-tx/src/PlutusTx/IsData/TH.hs#L174-L192>
+<https://github.com/IntersectMBO/plutus/blob/9364099b38e3aa27fb311af3299d2210e7e33e45/plutus-tx/src/PlutusTx/IsData/TH.hs#L174-L192>
 -}
 unConstrConstrData :: (MonadQuote m, t ~ Term tyname Name DefaultUni DefaultFun a, Monoid a)
                    => BuiltinsInfo DefaultUni DefaultFun

@@ -104,7 +104,7 @@ You need to do a few things when adding a new package, in the following order:
 
 Our Haskell packages come from two package repositories:
 - Hackage
-- https://github.com/input-output-hk/cardano-haskell-packages[CHaP] (which is essentially another Hackage)
+- https://github.com/IntersectMBO/cardano-haskell-packages[CHaP] (which is essentially another Hackage)
 
 The "index state" of each repository is pinned to a particular time in `cabal.project`.
 This tells Cabal to treat the repository "as if" it was the specified time, ensuring reproducibility.
@@ -117,8 +117,8 @@ Note that `cabal` itself keeps track of what index states it knows about, so whe
 The Nix code which builds our packages also cares about the index state.
 This is represented by some pinned inputs in our flake (see xref:update-nix-pins[here] for more details)
 You can update these by running:
-- `nix flake lock --update-input hackage` for Hackage
-- `nix flake lock --update-input CHaP` for CHaP
+- `nix flake update hackage` for Hackage
+- `nix flake update CHaP` for CHaP
 
 ==== Use of `source-repository-package`s
 
@@ -126,7 +126,7 @@ We *can* use Cabal's `source-repository-package` mechanism to pull in un-release
 However, we should try and avoid this.
 In particular, we should not release our packages while we depend on a `source-repository-package`.
 
-If we are stuck in a situation where we need a long-running fork of a package, we should release it to CHaP instead (see the https://github.com/input-output-hk/cardano-haskell-packages[CHaP README] for more).
+If we are stuck in a situation where we need a long-running fork of a package, we should release it to CHaP instead (see the https://github.com/IntersectMBO/cardano-haskell-packages[CHaP README] for more).
 
 If you do add a `source-repository-package`, you need to update the `sha256` mapping in `nix/project.nix`.
 For the moment you have to do this by hand, using the following command to get the sha: `nix-prefetch-git --quiet <repo-url> <rev> | jq .sha256`, or by just getting it wrong and trying to build it, in which case Nix will give you the right value.
@@ -139,7 +139,7 @@ We pin versions of some git repositories that are used by Nix, for example `nixp
 For documentation see https://nixos.org/manual/nix/unstable/command-ref/new-cli/nix3-flake.html#flake-inputs[the Nix flake inputs documentation]
 and https://nixos.org/manual/nix/unstable/command-ref/new-cli/nix3-flake-lock.html[the Nix flake lock command].
 
-Specifically, you will probably want to say `nix flake lock --update-input <input-name>`.
+Specifically, you will probably want to say `nix flake update <input-name>`.
 
 Do *not* use `nix flake update`, as that will update all the inputs, which we typically don't want to do.
 

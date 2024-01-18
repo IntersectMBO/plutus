@@ -67,21 +67,21 @@ patternOptions =
     , [(1,9), (2,2), (6,10), (2,3), (1,0), (4,10), (3,5), (5,0), (3,6), (2,4), (1,1), (2,7), (4,8)]
     ]
 
-{-# INLINEABLE integerToByteString #-}
-integerToByteString :: Integer -> BuiltinByteString
-integerToByteString n =
+{-# INLINEABLE i2Bs #-}
+i2Bs :: Integer -> BuiltinByteString
+i2Bs n =
     if n < 0
-        then "-" `appendByteString` integerToByteString (negate n)
+        then "-" `appendByteString` i2Bs (negate n)
         -- @48@ is the ASCII code of @0@.
         else ListTx.foldr (consByteString . (48 +)) emptyByteString $ toDigits n
 
 {-# INLINEABLE replicateToByteString #-}
--- | Like 'integerToByteString' but generates longer bytestrings, so that repeated recalculations of
+-- | Like 'i2Bs but generates longer bytestrings, so that repeated recalculations of
 -- currency/token name comparisons get reflected in the budget tests in a visible manner.
 replicateToByteString :: Integer -> BuiltinByteString
 replicateToByteString i =
     ListTx.foldr id emptyByteString $
-        ListTx.replicate iTo6 (appendByteString $ integerToByteString i)
+        ListTx.replicate iTo6 (appendByteString $ i2Bs i)
   where
     iTo2 = i * i
     iTo4 = iTo2 * iTo2

@@ -164,7 +164,7 @@ however adding 'lazy' to all the other clauses too turned out to improve perform
 percent, reasons are unclear.
 
 Alternatively, we could use @-fpedantic-bottoms@, which prevents GHC from moving matching above
-a lambda (see https://github.com/input-output-hk/plutus/pull/4621), however it doesn't make anything
+a lambda (see https://github.com/IntersectMBO/plutus/pull/4621), however it doesn't make anything
 faster, generates more Core and doesn't take much to break, hence we choose the hacky 'lazy'
 version.
 

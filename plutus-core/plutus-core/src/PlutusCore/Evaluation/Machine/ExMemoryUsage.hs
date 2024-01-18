@@ -111,7 +111,7 @@ singletonRose cost = CostRose cost []
 
 -- See Note [Global local functions].
 -- This is one way to define the worker. There are many more, see
--- https://github.com/input-output-hk/plutus/pull/5239#discussion_r1151197471
+-- https://github.com/IntersectMBO/plutus/pull/5239#discussion_r1151197471
 -- We chose this one, because it's the simplest (no CPS shenanigans) among the safest (retrieving
 -- the next element takes O(1) time in the worst case).
 --

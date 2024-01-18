@@ -1,17 +1,19 @@
-cabal-version:      3.0
-name:               plutus-metatheory
-version:            0.1.0.0
-synopsis:           Command line tool for running plutus core programs
-homepage:           https://github.com/input-output-hk/plutus
-license:            Apache-2.0
+cabal-version: 3.0
+name:          plutus-metatheory
+version:       0.1.0.0
+synopsis:      Command line tool for running plutus core programs
+homepage:      https://github.com/input-output-hk/plutus
+homepage:      https://github.com/IntersectMBO/plutus
+license:       Apache-2.0
 license-files:
   LICENSE
   NOTICE
 
-author:             James Chapman
-maintainer:         james.chapman@iohk.io
-category:           Development
-extra-source-files:
+author:        James Chapman
+maintainer:    james.chapman@iohk.io
+category:      Development
+data-files:
+  data/builtinCostModel.json
   Plutus.agda-lib
   README.md
   src/**/*.lagda
@@ -19,7 +21,7 @@ extra-source-files:
 
 -- This makes cabal rebuild if any of these files change, which allow the
 -- custom setup to fire and rebuild the Haskell sources
-build-type:         Custom
+build-type:    Custom
 
 custom-setup
   setup-depends:
@@ -52,17 +54,19 @@ library
   import:          lang
   hs-source-dirs:  src
   build-depends:
+    , aeson
     , base
     , bytestring
     , composition-prelude
     , cryptonite
     , extra
+    , filepath
     , ghc-prim
     , ieee754
     , megaparsec
     , memory
     , optparse-applicative
-    , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.19
+    , plutus-core:{plutus-core, plutus-core-execlib}  ^>=1.20
     , process
     , text
     , transformers
@@ -71,9 +75,12 @@ library
     build-depends: integer-gmp
 
   exposed-modules:
+    Cost.JSON
     Opts
     Raw
     Untyped
+
+  other-modules:   Paths_plutus_metatheory
 
   -- WARNING: Order is important! MAlonzo modules must be listed last.
   -- But cabal-fmt reorders modules alphabetically, so we use two 
@@ -132,6 +139,8 @@ library
     MAlonzo.Code.Check
     MAlonzo.Code.Cost
     MAlonzo.Code.Cost.Base
+    MAlonzo.Code.Cost.Model
+    MAlonzo.Code.Cost.Raw
     MAlonzo.Code.Data.Bool.Base
     MAlonzo.Code.Data.Bool.Properties
     MAlonzo.Code.Data.Char.Base
@@ -355,6 +364,8 @@ library
     MAlonzo.Code.Check
     MAlonzo.Code.Cost
     MAlonzo.Code.Cost.Base
+    MAlonzo.Code.Cost.Model
+    MAlonzo.Code.Cost.Raw
     MAlonzo.Code.Data.Bool.Base
     MAlonzo.Code.Data.Bool.Properties
     MAlonzo.Code.Data.Char.Base
@@ -535,8 +546,8 @@ executable plc-agda
 test-suite test1
   import:             lang
   build-tool-depends:
-    , plutus-core:plc   ^>=1.19
-    , plutus-core:uplc  ^>=1.19
+    , plutus-core:plc   ^>=1.20
+    , plutus-core:uplc  ^>=1.20
 
   hs-source-dirs:     test
   build-depends:
@@ -551,8 +562,8 @@ test-suite test1
 test-suite test2
   import:             lang
   build-tool-depends:
-    , plutus-core:plc   ^>=1.19
-    , plutus-core:uplc  ^>=1.19
+    , plutus-core:plc   ^>=1.20
+    , plutus-core:uplc  ^>=1.20
 
   hs-source-dirs:     test
   type:               detailed-0.9
@@ -576,7 +587,7 @@ test-suite test3
     , base
     , lazy-search
     , mtl
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.19
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.20
     , plutus-metatheory
     , size-based
     , Stream

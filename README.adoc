@@ -1,4 +1,4 @@
-= https://github.com/input-output-hk/plutus[Plutus Core]
+= https://github.com/IntersectMBO/plutus[Plutus Core]
 :email: plutus@iohk.io
 :author: Input Output HK Limited
 :toc: left
@@ -30,7 +30,7 @@ Run `nix develop` to enter the development shell and you will be presented with 
 
 === How to submit an issue
 
-Issues can be filed in the https://github.com/input-output-hk/plutus/issues[GitHub Issue tracker].
+Issues can be filed in the https://github.com/IntersectMBO/plutus/issues[GitHub Issue tracker].
 
 === How to depend on the project from another Haskell project
 

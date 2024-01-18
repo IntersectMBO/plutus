@@ -161,7 +161,7 @@ sha3_256 = BI.sha3_256
 {-# INLINABLE blake2b_224 #-}
 -- | The BLAKE2B-224 hash of a 'ByteString'
 blake2b_224 :: BuiltinByteString -> BuiltinByteString
-blake2b_224 = BI.blake2b_256
+blake2b_224 = BI.blake2b_224
 
 {-# INLINABLE blake2b_256 #-}
 -- | The BLAKE2B-256 hash of a 'ByteString'
@@ -605,10 +605,11 @@ bls12_381_finalVerify a b = fromBuiltin (BI.bls12_381_finalVerify a b)
 -- [CIP-0087](https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-XXXX).
 {-# INLINABLE integerToByteString #-}
 integerToByteString :: Bool -> Integer -> Integer -> BuiltinByteString
-integerToByteString b w n = BI.integerToByteString (toBuiltin b) w n
+integerToByteString endiannessArg = BI.integerToByteString (toBuiltin endiannessArg)
 
 -- | Convert a 'BuiltinByteString' to a 'BuiltinInteger', as described in
 -- [CIP-0087](https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-XXXX).
 {-# INLINABLE byteStringToInteger #-}
 byteStringToInteger :: Bool -> BuiltinByteString -> Integer
-byteStringToInteger b s = BI.byteStringToInteger (toBuiltin b) s
+byteStringToInteger statedEndiannessArg =
+  BI.byteStringToInteger (toBuiltin statedEndiannessArg)

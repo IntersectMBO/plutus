@@ -1,4 +1,19 @@
 
+<a id='changelog-1.20.0.0'></a>
+# 1.20.0.0 — 2024-01-15
+
+## Added
+
+- Entries in `PlutusTx.Builtins` for [CIP-0087
+  primitives](https://github.com/mlabs-haskell/CIPs/blob/koz/to-from-bytestring/CIP-0087/CIP-0087.md)
+- Entries in `PlutusTx.Builtins.Internal` for [CIP-0087
+  primitives](https://github.com/mlabs-haskell/CIPs/blob/koz/to-from-bytestring/CIP-0087/CIP-0087.md)
+
+## Fixed
+
+- The `blake2b_224` function in the plutus-tx plugin was erroneously
+  calling `blake2b_256` instead.  Now fixed.
+
 <a id='changelog-1.19.0.0'></a>
 # 1.19.0.0 — 2023-12-23
 

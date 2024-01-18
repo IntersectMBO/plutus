@@ -253,13 +253,13 @@ instance (Typeable res, KnownTypeAst TyName (UniOf val) res, MakeKnown val res) 
 In @KnownMonotype val (arg ': args) res@ we 'oneShot' the runtime denotations. Otherwise GHC creates
 let-bindings and lifts them out of some of the lambdas in the runtime denotation, which would speed
 up partial applications if they were getting reused, but at some point it was verified that we
-didn't have any reusage of partial applications: https://github.com/input-output-hk/plutus/pull/4629
+didn't have any reusage of partial applications: https://github.com/IntersectMBO/plutus/pull/4629
 
 One-shotting the runtime denotations alone made certain game contracts slower by ~9%. A lot of time
 was spent on the investigation, but we still don't know why that was happening. Plus, basically any
 other change to the builtins machinery would cause the same kind of slowdown, so we just admitted
 defeat and decided it wasn't worth investigating the issue further.
-Relevant thread: https://github.com/input-output-hk/plutus/pull/4620
+Relevant thread: https://github.com/IntersectMBO/plutus/pull/4620
 
 The speedup that adding a call to 'oneShot' gives us, if any, is smaller than our noise threshold,
 however it also makes those confusing allocations disappear from the generated Core, which is enough
