@@ -268,9 +268,9 @@
     "byteStringToInteger": {
         "cpu": {
             "arguments": {
-                "c0": 0,
-                "c1": 79316,
-                "c2": 249
+                "c0": 936157,
+                "c1": 49601,
+                "c2": 237
             },
             "type": "quadratic_in_y"
         },
@@ -500,9 +500,9 @@
     "integerToByteString": {
         "cpu": {
             "arguments": {
-                "c0": 0,
-                "c1": 26002,
-                "c2": 1000
+                "c0": 1292075,
+                "c1": 24469,
+                "c2": 74
             },
             "type": "quadratic_in_z"
         },
