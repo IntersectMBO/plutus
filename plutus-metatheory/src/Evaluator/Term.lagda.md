@@ -10,6 +10,7 @@ module Evaluator.Term where
 ## Imports 
 
 ```
+open import Agda.Builtin.Nat using (Nat)
 open import Agda.Builtin.Unit using (⊤;tt)
 open import Function using (_$_;_∘_)
 open import Data.Bool using (Bool)
@@ -262,10 +263,15 @@ Run an untyped term with costing in Counting mode.
 From Haskell, this function should be called as `runUCountingAgda`
 where the first argument is a `CostModel`, as defined in
 `plutus-metatheory/src/Opts.hs` and the second argument is a
-`Term NamedDeBruijn DefaultUni DefaultFun ()`.
+`Term NamedDeBruijn DefaultUni DefaultFun ()`. 
+
+From Haskell, the return type is either an error or a tuple 
+`(Term NamedDeBruijn DefaultUni DefaultFun (), Integer, Integer)`
+consisting of the result of evalution, the CPU costs, and the memory costs, 
+respectively.
 
 ```
-runUCounting : RawCostModel → TermU → Either ERROR (TermU × ExBudget)
+runUCounting : RawCostModel → TermU → Either ERROR (TermU × Nat × Nat)
 runUCounting (cekMachineCosts , rawmodel) t with createMap rawmodel 
 ... | just model = do 
         tDB ← withE scopeError $ U.scopeCheckU0 (convTmU t)
@@ -275,7 +281,7 @@ runUCounting (cekMachineCosts , rawmodel) t with createMap rawmodel
             where
             ◆ → inj₁ (runtimeError userError) -- ◆ returns a `userError` runtimeError.
             _ → inj₁ (runtimeError gasError)
-        return (unconvTmU (U.extricateU0 (U.discharge V)) , exBudget)
+        return (unconvTmU (U.extricateU0 (U.discharge V)) , ExCPU exBudget , ExMem exBudget)
 ... | nothing = inj₁ (jsonError "while processing parameters.")
 
 {-# COMPILE GHC runUCounting as runUCountingAgda #-}
