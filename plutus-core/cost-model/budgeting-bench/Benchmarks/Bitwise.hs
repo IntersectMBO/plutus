@@ -17,8 +17,8 @@ import Hedgehog qualified as H
 
 ---------------- ByteString builtins ----------------
 
--- Smallish bytestring inputs: 150 entries.  Note that the length is eight times
--- the size.
+-- Smallish bytestring inputs: 150 entries.  Note that the length of a
+-- bytestring is eight times the size.
 smallerByteStrings150 :: H.Seed -> [BS.ByteString]
 smallerByteStrings150 seed = makeSizedByteStrings seed [1..150]
 
