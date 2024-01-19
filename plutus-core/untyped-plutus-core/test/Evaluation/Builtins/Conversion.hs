@@ -20,7 +20,7 @@ module Evaluation.Builtins.Conversion (
 
 import Evaluation.Builtins.Common (typecheckEvaluateCek)
 import PlutusCore qualified as PLC
-import PlutusCore.Default.Builtins (integerToByteStringMaximumInputLength)
+import PlutusCore.Default.Builtins (integerToByteStringMaximumOutputLength)
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModel)
 import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn)
 import PlutusPrelude (Word8, def)
@@ -47,7 +47,7 @@ i2bProperty1 = do
   e <- forAllWith ppShow Gen.bool
   -- We limit this temporarily due to the 10KiB limit imposed on lengths for the conversion
   -- primitive until it is costed.
-  d <- forAllWith ppShow $ Gen.integral (Range.constant 0 integerToByteStringMaximumInputLength)
+  d <- forAllWith ppShow $ Gen.integral (Range.constant 0 integerToByteStringMaximumOutputLength)
   let actualExp = mkIterAppNoAnn (builtin () PLC.IntegerToByteString) [
         mkConstant @Bool () e,
         mkConstant @Integer () d,
@@ -68,7 +68,7 @@ i2bProperty2 = do
   e <- forAllWith ppShow Gen.bool
   -- We limit this temporarily due to the 10KiB limit imposed on lengths for the conversion
   -- primitive until it is costed.
-  k <- forAllWith ppShow $ Gen.integral (Range.constant 1 integerToByteStringMaximumInputLength)
+  k <- forAllWith ppShow $ Gen.integral (Range.constant 1 integerToByteStringMaximumOutputLength)
   j <- forAllWith ppShow $ Gen.integral (Range.constant 0 (k - 1))
   let actualExp = mkIterAppNoAnn (builtin () PLC.IntegerToByteString) [
         mkConstant @Bool () e,

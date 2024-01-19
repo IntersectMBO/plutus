@@ -178,8 +178,8 @@ instance ExMemoryUsage DefaultFun where
    if it is called with arguments which would cause the length of the result to exceed
    8000 bytes because the execution time becomes difficult to predict accurately beyond
    this point.  This restriction will be removed in a later variant. -}
-integerToByteStringMaximumInputLength :: Integer
-integerToByteStringMaximumInputLength = 8000
+integerToByteStringMaximumOutputLength :: Integer
+integerToByteStringMaximumOutputLength = 8000
 
 -- | Turn a function into another function that returns 'EvaluationFailure' when
 -- its second argument is 0 or calls the original function otherwise and wraps
@@ -1818,10 +1818,10 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
           {- The second argument is wrapped in a LiteralByteSize to allow us to interpret it as a size during
              costing.  It appears as an integer in UPLC: see Note [Integral types as Integer]. -}
           integerToByteStringDenotation b (LiteralByteSize w) n =
-              if w > integerToByteStringMaximumInputLength ||
+              if w > integerToByteStringMaximumOutputLength ||
                      (w == 0 &&
                             8 * fromSatInt (sumCostStream . flattenCostRose . memoryUsage $ n)
-                                  > integerToByteStringMaximumInputLength)
+                                  > integerToByteStringMaximumOutputLength)
               then do
                 emit "byteStringToInteger result too big"
                 evaluationFailure
