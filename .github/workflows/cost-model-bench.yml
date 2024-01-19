@@ -3,6 +3,11 @@ name: "Cost model benchmark"
 
 on:
   workflow_dispatch:
+    inputs:
+      extraBenchArgs:
+        description: 'extra argument(s) to pass to the cost-model-budgeting-bench command'
+        default: ''
+        type: string
 
 jobs:
   bench:
@@ -20,7 +25,7 @@ jobs:
             experimental-features = nix-command flakes
 
       - name: Run benchmarks
-        run: nix --accept-flake-config run .#cost-model-budgeting-bench -- --csv results.csv
+        run: nix --accept-flake-config run .#cost-model-budgeting-bench -- --csv results.csv ${{ inputs.extraBenchArgs }}
 
       - name: Upload results
         uses: actions/upload-artifact@v4
