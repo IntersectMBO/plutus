@@ -18,21 +18,19 @@ module Evaluation.Builtins.Conversion (
   b2iCipExamples
   ) where
 
-import Data.ByteString (ByteString)
 import Evaluation.Builtins.Common (typecheckEvaluateCek)
+import PlutusCore qualified as PLC
+import PlutusCore.Default.Builtins (integerToByteStringMaximumInputLength)
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModel)
+import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn)
+import PlutusPrelude (Word8, def)
+import UntypedPlutusCore qualified as UPLC
+
+import Data.ByteString (ByteString)
 import GHC.Exts (fromList)
 import Hedgehog (Gen, PropertyT, annotateShow, failure, forAllWith, (===))
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import PlutusCore qualified as PLC
-import UntypedPlutusCore qualified as UPLC
-{-
-import PlutusCore (DefaultFun (ByteStringToInteger, ConsByteString, IndexByteString, EqualsInteger, IntegerToByteString, LengthOfByteString, LessThanInteger, RemainderInteger, SubtractInteger),
-                   EvaluationResult (EvaluationFailure, EvaluationSuccess))
--}
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModel)
-import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn)
-import PlutusPrelude (Word8, def)
 import Test.Tasty (TestTree)
 import Test.Tasty.HUnit (assertEqual, assertFailure, testCase)
 import Text.Show.Pretty (ppShow)
@@ -42,13 +40,14 @@ import Text.Show.Pretty (ppShow)
 -- - https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-XXXX#builtinintegertobytestring
 -- - https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-XXXX#builtinbytestringtointeger
 
+
 -- lengthOfByteString (integerToByteString e d 0) = d
 i2bProperty1 :: PropertyT IO ()
 i2bProperty1 = do
   e <- forAllWith ppShow Gen.bool
   -- We limit this temporarily due to the 10KiB limit imposed on lengths for the conversion
   -- primitive until it is costed.
-  d <- forAllWith ppShow $ Gen.integral (Range.constant 0 10240)
+  d <- forAllWith ppShow $ Gen.integral (Range.constant 0 integerToByteStringMaximumInputLength)
   let actualExp = mkIterAppNoAnn (builtin () PLC.IntegerToByteString) [
         mkConstant @Bool () e,
         mkConstant @Integer () d,
@@ -69,7 +68,7 @@ i2bProperty2 = do
   e <- forAllWith ppShow Gen.bool
   -- We limit this temporarily due to the 10KiB limit imposed on lengths for the conversion
   -- primitive until it is costed.
-  k <- forAllWith ppShow $ Gen.integral (Range.constant 1 10240)
+  k <- forAllWith ppShow $ Gen.integral (Range.constant 1 integerToByteStringMaximumInputLength)
   j <- forAllWith ppShow $ Gen.integral (Range.constant 0 (k - 1))
   let actualExp = mkIterAppNoAnn (builtin () PLC.IntegerToByteString) [
         mkConstant @Bool () e,

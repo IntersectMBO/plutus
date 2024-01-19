@@ -40,6 +40,7 @@ import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
 import Data.Char (toLower)
 import Data.Ix (Ix)
+import Data.SatInt (fromSatInt)
 import Data.Text (Text, pack)
 import Data.Text.Encoding (decodeUtf8', encodeUtf8)
 import Flat hiding (from, to)
@@ -170,6 +171,15 @@ instance Pretty DefaultFun where
 
 instance ExMemoryUsage DefaultFun where
     memoryUsage _ = singletonRose 1
+
+
+
+{- | Note [Input length limitation for IntegerToByteString].  IntegerToByteString will fail
+   if it is called with arguments which would cause the length of the result to exceed
+   8000 bytes because the execution time becomes difficult to predict accurately beyond
+   this point.  This restriction will be removed in a later variant. -}
+integerToByteStringMaximumInputLength :: Integer
+integerToByteStringMaximumInputLength = 8000
 
 -- | Turn a function into another function that returns 'EvaluationFailure' when
 -- its second argument is 0 or calls the original function otherwise and wraps
@@ -1802,14 +1812,16 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunOneArgument . paramBlake2b_224)
 
     -- Conversions
+    {- See Note [Input length limitation for IntegerToByteString] -}
     toBuiltinMeaning _semvar IntegerToByteString =
       let integerToByteStringDenotation :: Bool -> LiteralByteSize -> Integer -> BuiltinResult BS.ByteString
           {- The second argument is wrapped in a LiteralByteSize to allow us to interpret it as a size during
              costing.  It appears as an integer in UPLC: see Note [Integral types as Integer]. -}
-          {- We disallow inputs of more than 8000 bytes because the execution time becomes difficult to predict
-             accurately beyond this point.  This restriction will be removed in a later variant. -}
           integerToByteStringDenotation b (LiteralByteSize w) n =
-              if w > 8000 || (w == 0 && (sumCostStream . flattenCostRose . memoryUsage $ n) > 1000)
+              if w > integerToByteStringMaximumInputLength ||
+                     (w == 0 &&
+                            8 * fromSatInt (sumCostStream . flattenCostRose . memoryUsage $ n)
+                                  > integerToByteStringMaximumInputLength)
               then do
                 emit "byteStringToInteger result too big"
                 evaluationFailure
