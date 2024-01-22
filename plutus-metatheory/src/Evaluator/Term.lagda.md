@@ -47,6 +47,8 @@ import Untyped.CEKWithCost as U using (stepperC)
 open import Cost.Raw using (RawCostModel)
 open import Cost.Model using (createMap)
 open import Cost using (machineParameters;ExBudget)
+open ExBudget
+
 
 open import Evaluator.Base using (ERROR;uglyTypeError;maxsteps;ParseError)
 open ERROR
