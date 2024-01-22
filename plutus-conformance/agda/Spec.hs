@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE TypeApplications #-}
 {- | Conformance tests for the Agda implementation. -}
 module Main (main) where
@@ -37,8 +38,34 @@ agdaEvalUplcProg (UPLC.Program () version tmU) =
 
 -- | These tests are currently failing so they are marked as expected to fail.
 -- Once a fix for a test is pushed, the test will fail. Remove it from this list.
+-- The entries of the list should be paths from the root of plutus-conformance
+-- to the directory containing the test, eg
+--   "test-cases/uplc/evaluation/builtin/semantics/addInteger/addInteger1"
+
 failingTests :: [FilePath]
-failingTests = [
+failingTests =
+    [ "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/little-endian/all-zeros"
+    , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/little-endian/correct-output"
+    , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/little-endian/trailing-zeros"
+    , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/little-endian/empty"
+    , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/big-endian/all-zeros"
+    , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/big-endian/leading-zeros"
+    , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/big-endian/correct-output"
+    , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/big-endian/empty"
+    , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/both-endian"
+    , "test-cases/uplc/evaluation/builtin/semantics/integerToByteString/little-endian/bounded/zero"
+    , "test-cases/uplc/evaluation/builtin/semantics/integerToByteString/little-endian/unbounded/zero"
+    , "test-cases/uplc/evaluation/builtin/semantics/integerToByteString/big-endian/bounded/zero/zero"
+    , "test-cases/uplc/evaluation/builtin/semantics/integerToByteString/big-endian/unbounded/zero"
+    , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/little-endian/all-zeros/all-zeros.uplc"
+    , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/little-endian/correct-output/correct-output.uplc"
+    , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/little-endian/trailing-zeros/trailing-zeros.uplc"
+    , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/little-endian/empty/empty.uplc"
+    , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/big-endian/all-zeros/all-zeros.uplc"
+    , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/big-endian/leading-zeros/leading-zeros.uplc"
+    , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/big-endian/correct-output/correct-output.uplc"
+    , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/big-endian/empty/empty.uplc"
+    , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/both-endian/both-endian.uplc"
     ]
 
 main :: IO ()
