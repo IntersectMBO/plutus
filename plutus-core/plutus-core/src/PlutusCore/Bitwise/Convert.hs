@@ -34,15 +34,6 @@ integerToByteStringWrapper endiannessArg lengthArg input
       emit "integerToByteString: inappropriate length argument"
       emit $ "Length requested: " <> (pack . show $ input)
       evaluationFailure
-  -- As this builtin hasn't been costed yet, we have to impose a temporary limit of 10KiB on requested
-  -- sizes via the padding argument. This shouldn't be necessary long-term, as once this function is
-  -- costed, this won't be a problem.
-  --
-  -- TODO: Cost this builtin.
-  | lengthArg > 10240 = do
-      emit "integerToByteString: padding argument too large"
-      emit "If you are seeing this, it is a bug: please report this!"
-      evaluationFailure
   | otherwise = let endianness = endiannessArgToByteOrder endiannessArg in
     -- We use fromIntegral here, despite advice to the contrary in general when defining builtin
     -- denotations. This is because, if we've made it this far, we know that overflow or truncation

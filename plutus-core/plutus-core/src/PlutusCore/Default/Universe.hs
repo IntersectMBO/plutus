@@ -432,7 +432,6 @@ instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term LiteralByt
     readKnown term = LiteralByteSize <$> readKnown term
     {-# INLINE readKnown #-}
 
-
 {- Note [Stable encoding of tags]
 'encodeUni' and 'decodeUni' are used for serialisation and deserialisation of types from the
 universe and we need serialised things to be extremely stable, hence the definitions of 'encodeUni'
