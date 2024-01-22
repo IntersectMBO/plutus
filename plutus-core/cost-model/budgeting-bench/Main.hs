@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -fno-warn-unused-imports #-}
 -- See CostModelGeneration.md
 module Main (main) where
 

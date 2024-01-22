@@ -172,7 +172,9 @@ renderModel =
      LiteralInYOrLinearInZ f -> [ "if y==0"
                                   , printf "then %s" $ renderLinearFunction f "z"
                                   , printf "else y bytes"
-                                ]
+                                ]  -- This is only used for the memory usage of
+                                   -- `integerToByteString` at the moment, so
+                                   -- this makes sense.
      SubtractedSizes       l c -> [ "if x>y"
                                   , printf "then %s" $ renderLinearFunction l "(x-y)"
                                   , printf "else %d" c

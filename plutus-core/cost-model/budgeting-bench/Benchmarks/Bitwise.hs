@@ -28,7 +28,7 @@ allFF n = 256^(8*n) - 1
 
 ------------------------- ByteStringToInteger -------------------------
 
-{- Experiments show that the times for big-endian and little-endian convserions
+{- Experiments show that the times for big-endian and little-endian conversions
    are very similar, with big-endian conversion perhaps taking a fraction
    longer.  We just generate a costing function for big-endian conversion and
    use that for the little-endian conversion as well.  A quadratic function
