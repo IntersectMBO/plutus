@@ -28,8 +28,8 @@ import Data.ByteString qualified as BS
 import Data.Text (pack)
 import Data.Word (Word64, Word8)
 import GHC.ByteOrder (ByteOrder (BigEndian, LittleEndian))
-import GHC.Exts (Word (W#))
-import GHC.Num.Integer (integerLog2#)
+import GHC.Exts (Int (I#))
+import GHC.Integer.Logarithms (integerLog2#)
 
 {- | Note [Input length limitation for IntegerToByteString].  We make
    `integerToByteString` fail if it is called with arguments which would cause
@@ -48,10 +48,10 @@ integerToByteStringMaximumOutputLength = 8000
 
 {- Return the base 2 logarithm of an integer, returning 0 for inputs that aren't
    strictly positive.  This is essentially copied from GHC.Num.Integer, which
-   has integerLog2 but only in GHC >= 9.0. We should use the library funciton
+   has integerLog2 but only in GHC >= 9.0. We should use the library function
    instead when we stop supporting 8.10. -}
 integerLog2 :: Integer -> Int
-integerLog2 !i = fromIntegral $ W# (integerLog2# i)
+integerLog2 !i = I# (integerLog2# i)
 
 -- | Wrapper for 'integerToByteString' to make it more convenient to define as a builtin.
 integerToByteStringWrapper :: Bool -> Integer -> Integer -> BuiltinResult ByteString
