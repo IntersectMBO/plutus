@@ -851,7 +851,8 @@ test_Conversion =
         -- appendByteString (integerToByteString False 0 q)
         -- (integerToByteString False 0 r)
         testPropertyNamed "property 7" "i2b_prop7" . property $ Conversion.i2bProperty7,
-        testGroup "CIP-0087 examples" Conversion.i2bCipExamples
+        testGroup "CIP-0087 examples" Conversion.i2bCipExamples,
+        testGroup "Tests for integerToByteString size limit" Conversion.i2bLimitTests
         ],
       testGroup "ByteString -> Integer" [
         -- byteStringToInteger b (integerToByteString b d q) = q

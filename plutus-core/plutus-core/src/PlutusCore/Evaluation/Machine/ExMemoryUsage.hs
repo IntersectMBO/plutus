@@ -42,7 +42,7 @@ import Universe
  *  It is unsafe to increase the memory usage of a type because that may increase   *
  *  the resource usage of existing scripts beyond the limits set (and paid for)     *
  *  when they were uploaded to the chain, but because our costing functions are all *
- *  monotone) it is safe to decrease memory usage, as long it decreases for *all*   *
+ *  monotone it is safe to decrease memory usage, as long it decreases for *all*    *
  *  possible values of the type.                                                    *
  ************************************************************************************
 -}
@@ -181,7 +181,9 @@ instance ExMemoryUsage LiteralByteSize where
 
 -- | Calculate a 'CostingInteger' for the given 'Integer'.
 memoryUsageInteger :: Integer -> CostingInteger
--- integerLog2# is unspecified for 0 (but in practice returns -1)
+-- integerLog2# is unspecified for 0 (but in practice returns -1) ^ This changed
+-- with GHC 9.2: it now returns 0.  It's probably safest if we keep this special
+-- case for the time being though.
 memoryUsageInteger 0 = 1
 -- Assume 64 Int
 memoryUsageInteger i = fromIntegral $ I# (integerLog2# (abs i) `quotInt#` integerToInt 64) + 1
