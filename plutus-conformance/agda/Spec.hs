@@ -44,7 +44,9 @@ agdaEvalUplcProg (UPLC.Program () version tmU) =
 
 failingTests :: [FilePath]
 failingTests =
-    [ "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/little-endian/all-zeros"
+    [
+     --- byteStringToInteger
+      "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/little-endian/all-zeros"
     , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/little-endian/correct-output"
     , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/little-endian/trailing-zeros"
     , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/little-endian/empty"
@@ -53,19 +55,18 @@ failingTests =
     , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/big-endian/correct-output"
     , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/big-endian/empty"
     , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/both-endian"
+
+    -- integerToByteString
     , "test-cases/uplc/evaluation/builtin/semantics/integerToByteString/little-endian/bounded/zero"
+    , "test-cases/uplc/evaluation/builtin/semantics/integerToByteString/little-endian/bounded/negative-input"
+    , "test-cases/uplc/evaluation/builtin/semantics/integerToByteString/little-endian/bounded/negative-length"
     , "test-cases/uplc/evaluation/builtin/semantics/integerToByteString/little-endian/unbounded/zero"
-    , "test-cases/uplc/evaluation/builtin/semantics/integerToByteString/big-endian/bounded/zero/zero"
+    , "test-cases/uplc/evaluation/builtin/semantics/integerToByteString/little-endian/unbounded/negative-input"
+    , "test-cases/uplc/evaluation/builtin/semantics/integerToByteString/big-endian/bounded/zero"
+    , "test-cases/uplc/evaluation/builtin/semantics/integerToByteString/big-endian/bounded/negative-input"
+    , "test-cases/uplc/evaluation/builtin/semantics/integerToByteString/big-endian/bounded/negative-length"
     , "test-cases/uplc/evaluation/builtin/semantics/integerToByteString/big-endian/unbounded/zero"
-    , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/little-endian/all-zeros/all-zeros.uplc"
-    , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/little-endian/correct-output/correct-output.uplc"
-    , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/little-endian/trailing-zeros/trailing-zeros.uplc"
-    , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/little-endian/empty/empty.uplc"
-    , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/big-endian/all-zeros/all-zeros.uplc"
-    , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/big-endian/leading-zeros/leading-zeros.uplc"
-    , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/big-endian/correct-output/correct-output.uplc"
-    , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/big-endian/empty/empty.uplc"
-    , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/both-endian/both-endian.uplc"
+    , "test-cases/uplc/evaluation/builtin/semantics/integerToByteString/big-endian/unbounded/negative-input"
     ]
 
 main :: IO ()
