@@ -1,5 +1,7 @@
 -- editorconfig-checker-disable-file
 
+{-# LANGUAGE BangPatterns      #-}
+{-# LANGUAGE MagicHash         #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 -- | Implementations for conversion primops from 'Integer' to 'ByteString' and back again.
@@ -11,7 +13,8 @@ module PlutusCore.Bitwise.Convert (
   IntegerToByteStringError(..),
   integerToByteStringMaximumOutputLength,
   integerToByteString,
-  byteStringToInteger
+  byteStringToInteger,
+  integerLog2
   ) where
 
 import PlutusCore.Builtin (BuiltinResult, emit)
@@ -26,7 +29,8 @@ import Data.ByteString qualified as BS
 import Data.Text (pack)
 import Data.Word (Word64, Word8)
 import GHC.ByteOrder (ByteOrder (BigEndian, LittleEndian))
-import GHC.Num.Integer (integerLog2)
+import GHC.Exts (Word (W#))
+import GHC.Num.Integer (integerLog2#)
 
 {- | Note [Input length limitation for IntegerToByteString].  We make
    `integerToByteString` fail if it is called with arguments which would cause
@@ -42,6 +46,13 @@ import GHC.Num.Integer (integerLog2)
    current behaviour for old scripts.-}
 integerToByteStringMaximumOutputLength :: Integer
 integerToByteStringMaximumOutputLength = 8000
+
+{- Return the base 2 logarithm of an integer, returning 0 for inputs that aren't
+   strictly positive.  This is essentially copied from GHC.Num.Integer, which
+   has integerLog2 but only in GHC >= 9.0. We should use the library funciton
+   instead when we stop supporting 8.10. -}
+integerLog2 :: Integer -> Int
+integerLog2 !i = fromIntegral $ W# (integerLog2# i)
 
 -- | Wrapper for 'integerToByteString' to make it more convenient to define as a builtin.
 integerToByteStringWrapper :: Bool -> Integer -> Integer -> BuiltinResult ByteString
