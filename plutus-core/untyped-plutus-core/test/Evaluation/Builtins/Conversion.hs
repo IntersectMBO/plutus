@@ -403,6 +403,8 @@ i2bCipExamples = [
                             in evaluateAssertEqual expectedExp actualExp
   ]
 
+-- Unit tests to make sure that `integerToByteString` behaves as expected for
+-- inputs close to the maximum size.
 i2bLimitTests ::[TestTree]
 i2bLimitTests =
     let maxAcceptableInput = 2 ^ (8*integerToByteStringMaximumOutputLength) - 1
@@ -415,16 +417,16 @@ i2bLimitTests =
              -- integerToByteString 0 maxInput = 0xFF...FF
              testCase (prefix ++ "maximum acceptable input, no length specified") $
                       let actualExp = mkIterAppNoAnn (builtin () PLC.IntegerToByteString) [
-                                       mkConstant @Bool () True,
+                                       mkConstant @Bool () endianness,
                                        mkConstant @Integer () 0,
                                        mkConstant @Integer () maxAcceptableInput
                                       ]
                           expectedExp = mkConstant @ByteString () maxOutput
                       in evaluateAssertEqual expectedExp actualExp,
              -- integerToByteString maxLen maxInput = 0xFF...FF
-             testCase (prefix ++ "maximum acceptable input, maximum acceptable length") $
+             testCase (prefix ++ "maximum acceptable input, maximum acceptable length argument") $
                       let actualExp = mkIterAppNoAnn (builtin () PLC.IntegerToByteString) [
-                                       mkConstant @Bool () True,
+                                       mkConstant @Bool () endianness,
                                        mkConstant @Integer () integerToByteStringMaximumOutputLength,
                                        mkConstant @Integer () maxAcceptableInput
                                       ]
@@ -433,24 +435,32 @@ i2bLimitTests =
              -- integerToByteString 0 (maxInput+1) fails
              testCase (prefix ++ "input too big, no length specified") $
                       let actualExp = mkIterAppNoAnn (builtin () PLC.IntegerToByteString) [
-                                       mkConstant @Bool () True,
+                                       mkConstant @Bool () endianness,
                                        mkConstant @Integer () 0,
                                        mkConstant @Integer () (maxAcceptableInput + 1)
                                       ]
                       in evaluateShouldFail actualExp,
              -- integerToByteString maxLen (maxInput+1) fails
-             testCase (prefix ++ "input too big, maximum acceptable length") $
+             testCase (prefix ++ "input too big, maximum acceptable length argument") $
                       let actualExp = mkIterAppNoAnn (builtin () PLC.IntegerToByteString) [
-                                       mkConstant @Bool () True,
+                                       mkConstant @Bool () endianness,
                                        mkConstant @Integer () integerToByteStringMaximumOutputLength,
                                        mkConstant @Integer () (maxAcceptableInput + 1)
                                       ]
                       in evaluateShouldFail actualExp,
-             -- integerToByteString (maxLen+1) (maxInput+1) fails, just to make
-             -- sure we can't go beyond the supposed limit
-             testCase (prefix ++ "input zero, length too big") $
+             -- integerToByteString (maxLen-1) maxInput fails
+             testCase (prefix ++ "maximum acceptable input, length argument not big enough") $
                       let actualExp = mkIterAppNoAnn (builtin () PLC.IntegerToByteString) [
-                                       mkConstant @Bool () True,
+                                       mkConstant @Bool () endianness,
+                                       mkConstant @Integer () (integerToByteStringMaximumOutputLength - 1),
+                                       mkConstant @Integer () maxAcceptableInput
+                                      ]
+                      in evaluateShouldFail actualExp,
+             -- integerToByteString _ (maxLen+1) 0 fails, just to make sure that
+             -- we can't go beyond the supposed limit
+             testCase (prefix ++ "input zero, length argument over limit") $
+                      let actualExp = mkIterAppNoAnn (builtin () PLC.IntegerToByteString) [
+                                       mkConstant @Bool () endianness,
                                        mkConstant @Integer () (integerToByteStringMaximumOutputLength + 1),
                                        mkConstant @Integer () 0
                                       ]
