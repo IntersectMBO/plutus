@@ -9,6 +9,7 @@ module PlutusCore.Bitwise.Convert (
   byteStringToIntegerWrapper,
   -- Implementation details
   IntegerToByteStringError(..),
+  integerToByteStringMaximumOutputLength,
   integerToByteString,
   byteStringToInteger
   ) where
@@ -25,14 +26,54 @@ import Data.ByteString qualified as BS
 import Data.Text (pack)
 import Data.Word (Word64, Word8)
 import GHC.ByteOrder (ByteOrder (BigEndian, LittleEndian))
+import GHC.Num.Integer (integerLog2)
+
+{- | Note [Input length limitation for IntegerToByteString].  We make
+   `integerToByteString` fail if it is called with arguments which would cause
+   the length of the result to exceed about 8K bytes because the execution time
+   becomes difficult to predict accurately beyond this point (benchmarks on a
+   number of different machines show that the CPU time increases smoothly for
+   inputs up to about 8K then increases sharply, becoming chaotic after about
+   14K).  This restriction may be removed once a more efficient implementation
+   becomes available, which may happen when we no longer have to support GHC
+   8.10. -}
+{- NB: if we do relax the length restriction then we will need two variants of
+   integerToByteString in Plutus Core so that we can continue to support the
+   current behaviour for old scripts.-}
+integerToByteStringMaximumOutputLength :: Integer
+integerToByteStringMaximumOutputLength = 8000
 
 -- | Wrapper for 'integerToByteString' to make it more convenient to define as a builtin.
 integerToByteStringWrapper :: Bool -> Integer -> Integer -> BuiltinResult ByteString
 integerToByteStringWrapper endiannessArg lengthArg input
-  -- Check that we are within the Int range on the non-negative side.
-  | lengthArg < 0 || lengthArg >= 536870912 = do
-      emit "integerToByteString: inappropriate length argument"
+  -- Check that the length is non-negative.
+  | lengthArg < 0 = do
+      emit "integerToByteString: negative length argument"
       emit $ "Length requested: " <> (pack . show $ input)
+      evaluationFailure
+  -- Check that the requested length does not exceed the limit.  *NB*: if we
+  -- remove the limit we'll still have to make sure that the length fits into an
+  -- Int (so it should be at most 2^29, which is the largest bound that GHC
+  -- guarantees).
+  | lengthArg > integerToByteStringMaximumOutputLength = do
+      emit . pack $ "integerToByteString: requested length is too long (maximum is "
+               ++ (show $ integerToByteStringMaximumOutputLength)
+               ++ " bytes)"
+      emit $ "Length requested: " <> (pack . show $ lengthArg)
+      evaluationFailure
+  -- If the requested length is zero (ie, an explicit output size is not
+  -- specified) we still have to make sure that the output won't exceed the size
+  -- limit.  If the requested length is nonzero and less than the limit,
+  -- integerToByteString checks that the input fits.
+  | (lengthArg == 0 -- integerLog2 n is one less than the number of significant bits in n
+       && fromIntegral (integerLog2 input) >= 8 * integerToByteStringMaximumOutputLength) =
+    let bytesRequiredFor n = (integerLog2 n) `div` 8 + 1
+        -- ^ This gives 1 instead of 0 for n=0, but we'll never get that.
+    in do
+      emit . pack $ "integerToByteString: input too long (maximum is 2^"
+               ++ (show (8 * integerToByteStringMaximumOutputLength))
+               ++ "-1)"
+      emit $ "Length required: " <> (pack . show $ bytesRequiredFor input)
       evaluationFailure
   | otherwise = let endianness = endiannessArgToByteOrder endiannessArg in
     -- We use fromIntegral here, despite advice to the contrary in general when defining builtin

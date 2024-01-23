@@ -20,11 +20,10 @@ import PlutusCore.Builtin
 import PlutusCore.Data (Data (..))
 import PlutusCore.Default.Universe
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
-import PlutusCore.Evaluation.Machine.CostStream (sumCostStream)
 import PlutusCore.Evaluation.Machine.ExBudgetStream (ExBudgetStream)
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage, LiteralByteSize (..),
-                                                    flattenCostRose, memoryUsage, singletonRose)
-import PlutusCore.Evaluation.Result (EvaluationResult (..), evaluationFailure)
+                                                    memoryUsage, singletonRose)
+import PlutusCore.Evaluation.Result (EvaluationResult (..))
 import PlutusCore.Pretty (PrettyConfigPlc)
 
 import PlutusCore.Bitwise.Convert as Convert
@@ -40,7 +39,6 @@ import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
 import Data.Char (toLower)
 import Data.Ix (Ix)
-import Data.SatInt (fromSatInt)
 import Data.Text (Text, pack)
 import Data.Text.Encoding (decodeUtf8', encodeUtf8)
 import Flat hiding (from, to)
@@ -171,15 +169,6 @@ instance Pretty DefaultFun where
 
 instance ExMemoryUsage DefaultFun where
     memoryUsage _ = singletonRose 1
-
-
-
-{- | Note [Input length limitation for IntegerToByteString].  IntegerToByteString will fail
-   if it is called with arguments which would cause the length of the result to exceed
-   8000 bytes because the execution time becomes difficult to predict accurately beyond
-   this point.  This restriction will be removed in a later variant. -}
-integerToByteStringMaximumOutputLength :: Integer
-integerToByteStringMaximumOutputLength = 8000
 
 -- | Turn a function into another function that returns 'EvaluationFailure' when
 -- its second argument is 0 or calls the original function otherwise and wraps
@@ -1817,15 +1806,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
       let integerToByteStringDenotation :: Bool -> LiteralByteSize -> Integer -> BuiltinResult BS.ByteString
           {- The second argument is wrapped in a LiteralByteSize to allow us to interpret it as a size during
              costing.  It appears as an integer in UPLC: see Note [Integral types as Integer]. -}
-          integerToByteStringDenotation b (LiteralByteSize w) n =
-              if w > integerToByteStringMaximumOutputLength ||
-                     (w == 0 &&
-                            8 * fromSatInt (sumCostStream . flattenCostRose . memoryUsage $ n)
-                                  > integerToByteStringMaximumOutputLength)
-              then do
-                emit "byteStringToInteger result too big"
-                evaluationFailure
-              else integerToByteStringWrapper b w n
+          integerToByteStringDenotation b (LiteralByteSize w) n = integerToByteStringWrapper b w n
           {-# INLINE integerToByteStringDenotation #-}
         in makeBuiltinMeaning
           integerToByteStringDenotation
