@@ -13,8 +13,7 @@ module PlutusCore.Bitwise.Convert (
   IntegerToByteStringError(..),
   integerToByteStringMaximumOutputLength,
   integerToByteString,
-  byteStringToInteger,
-  integerLog2
+  byteStringToInteger
   ) where
 
 import PlutusCore.Builtin (BuiltinResult, emit)
