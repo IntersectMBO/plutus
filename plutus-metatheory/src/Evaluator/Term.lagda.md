@@ -268,12 +268,12 @@ where the first argument is a `CostModel`, as defined in
 `Term NamedDeBruijn DefaultUni DefaultFun ()`. 
 
 From Haskell, the return type is either an error or a tuple 
-`(Term NamedDeBruijn DefaultUni DefaultFun (), Integer, Integer)`
-consisting of the result of evalution, the CPU costs, and the memory costs, 
+`(Term NamedDeBruijn DefaultUni DefaultFun (), (Integer, Integer))` consisting
+of the result of evalution, and a pair of the CPU costs and the memory costs,
 respectively.
 
 ```
-runUCounting : RawCostModel → TermU → Either ERROR (TermU × Nat × Nat)
+runUCounting : RawCostModel → TermU → Either ERROR (TermU × (Nat × Nat))
 runUCounting (cekMachineCosts , rawmodel) t with createMap rawmodel 
 ... | just model = do 
         tDB ← withE scopeError $ U.scopeCheckU0 (convTmU t)
@@ -283,7 +283,7 @@ runUCounting (cekMachineCosts , rawmodel) t with createMap rawmodel
             where
             ◆ → inj₁ (runtimeError userError) -- ◆ returns a `userError` runtimeError.
             _ → inj₁ (runtimeError gasError)
-        return (unconvTmU (U.extricateU0 (U.discharge V)) , ExCPU exBudget , ExMem exBudget)
+        return (unconvTmU (U.extricateU0 (U.discharge V)) , (ExCPU exBudget , ExMem exBudget))
 ... | nothing = inj₁ (jsonError "while processing parameters.")
 
 {-# COMPILE GHC runUCounting as runUCountingAgda #-}
