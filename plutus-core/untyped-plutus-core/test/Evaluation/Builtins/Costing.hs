@@ -12,7 +12,7 @@ import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.ExBudgetStream
 import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
-import PlutusCore.Generators.QuickCheck.Builtin ()
+import PlutusCore.Generators.QuickCheck.Builtin (magnitudesPositive)
 import PlutusCore.Generators.QuickCheck.Utils
 
 import Data.Bifunctor
@@ -53,10 +53,10 @@ toExBudgetList = NonEmpty . go where
 
 -- | A list of ranges: @(0, 10) : (11, 100) : (101, 1000) : ... : [(10^18, maxBound)]@.
 magnitudes :: [(SatInt, SatInt)]
-magnitudes = zipWith (\low high -> (low + 1, high)) borders (tail borders)
-  where
-    borders :: [SatInt]
-    borders = -1 : tail (takeWhile (< maxBound) $ iterate (* 10) 1) ++ [maxBound]
+magnitudes
+    = map (bimap fromInteger fromInteger)
+    . magnitudesPositive 10
+    $ fromSatInt (maxBound :: SatInt)
 
 -- | Return the range (in the sense of 'magnitudes') in which the given 'SatInt' belongs. E.g.
 --

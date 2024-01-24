@@ -10,16 +10,17 @@
 
 module PlutusCore.Generators.QuickCheck.Builtin where
 
+import PlutusPrelude
+
 import PlutusCore hiding (Constr)
 import PlutusCore.Builtin
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data
-import PlutusCore.Generators.QuickCheck.Common (genList)
+import PlutusCore.Generators.QuickCheck.Split (multiSplit0, multiSplit1, multiSplit1In)
 
 import Data.ByteString (ByteString, empty)
-import Data.Coerce
 import Data.Int
 import Data.Kind qualified as GHC
 import Data.Maybe
@@ -27,50 +28,9 @@ import Data.Proxy
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Text.Encoding qualified as Text
-import Data.Word
 import Test.QuickCheck
 import Test.QuickCheck.Instances.ByteString ()
 import Universe
-
-instance Arbitrary Data where
-    arbitrary = sized genData
-    shrink = genericShrink
-
-genData :: Int -> Gen Data
-genData depth =
-    oneof $
-        [genI, genB]
-            <> [ genRec | depth > 1, genRec <-
-                                        [ genListData (depth `div` 2)
-                                        , genMapData (depth `div` 2)
-                                        , genConstrData (depth `div` 2)
-                                        ]
-               ]
-  where
-    genI = I <$> arbitraryBuiltin
-    genB = B <$> arbitraryBuiltin
-
-genListWithMaxDepth :: Int -> (Int -> Gen a) -> Gen [a]
-genListWithMaxDepth depth gen =
-    -- The longer the list, the smaller the elements.
-    frequency
-        [ (100, genList 0 5 (gen depth))
-        , (10, genList 0 50 (gen (depth `div` 2)))
-        , (1, genList 0 500 (gen (depth `div` 4)))
-        ]
-
-genListData :: Int -> Gen Data
-genListData depth = List <$> genListWithMaxDepth depth genData
-
-genMapData :: Int -> Gen Data
-genMapData depth =
-    Map <$> genListWithMaxDepth depth (\d -> (,) <$> genData d <*> genData d)
-
-genConstrData :: Int -> Gen Data
-genConstrData depth =
-    Constr
-        <$> (fromIntegral <$> arbitrary @Word64)
-        <*> genListWithMaxDepth depth genData
 
 -- | Same as 'Arbitrary' but specifically for Plutus built-in types, so that we are not tied to
 -- the default implementation of the methods for a built-in type.
@@ -106,12 +66,63 @@ instance for 'Int64' does:
 For this reason we use 'Int64' when dealing with QuickCheck.
 -}
 
+-- | A list of ranges: @[(0, 10), (11, 100), (101, 1000), ... (10^n + 1, high)]@ when
+-- @base = 10@.
+magnitudesPositive :: Integral a => a -> a -> [(a, a)]
+magnitudesPositive base high =
+    zipWith (\lo hi -> (lo + 1, hi)) borders (tail borders)
+  where
+    preborders = tail . takeWhile (< high `div` base) $ iterate (* base) 1
+    borders = -1 : preborders ++ [last preborders * base, high]
+
+-- | Like 'chooseBoundedIntegral', but doesn't require the 'Bounded' constraint (and hence is slower
+-- for 'Word64' and 'Int64').
+chooseIntegral :: Integral a => (a, a) -> Gen a
+chooseIntegral (lo, hi) = fromInteger <$> chooseInteger (toInteger lo, toInteger hi)
+
+-- | Generate asymptotically greater positive numbers with exponentially lower chance.
+arbitraryPositive :: Integral a => a -> a -> Gen a
+arbitraryPositive base high =
+    frequency . zip freqs . reverse . map chooseIntegral $ magnitudesPositive base high
+  where
+    freqs = map floor $ iterate (* 1.3) (2 :: Double)
+
+-- | Generate asymptotically greater negative numbers with exponentially lower chance.
+arbitraryNegative :: Integral a => a -> a -> Gen a
+arbitraryNegative base high = negate <$> arbitraryPositive base high
+
+-- | Generate asymptotically greater numbers with exponentially lower chance.
+arbitrarySigned :: Integral a => a -> a -> Gen a
+arbitrarySigned base high = oneof [arbitraryPositive base high, arbitraryNegative base high]
+
+-- | Same as 'shrinkIntegral' except includes the square root of the given number (or of its
+-- negative if the number is negative, in which case the square root is negated too). We need the
+-- former because 'shrinkIntegral' at most divides the number by two, which makes the number smaller
+-- way too slow, hence we add square root to speed up the process.
+--
+-- >>> shrinkIntegralFast (0 :: Integer)
+-- []
+-- >>> shrinkIntegralFast (1 :: Integer)
+-- [0]
+-- >>> shrinkIntegralFast (9 :: Integer)
+-- [0,3,5,7,8]
+-- >>> shrinkIntegralFast (-10000 :: Integer)
+-- [0,10000,-100,-5000,-7500,-8750,-9375,-9688,-9844,-9922,-9961,-9981,-9991,-9996,-9998,-9999]
+shrinkIntegralFast :: Integral a => a -> [a]
+shrinkIntegralFast x = concat
+    [ [0 | x /= 0]
+    , [-x | x < 0]
+    , [signum x * floor (sqrt @Double $ fromIntegral xA) | let xA = abs x, xA > 4]
+    , drop 1 . map (x -) . takeWhile (/= 0) $ iterate (`quot` 2) x
+    ]
+
 instance ArbitraryBuiltin Integer where
     arbitraryBuiltin = frequency
         [ (4, arbitrary @Integer)
         -- See Note [QuickCheck and integral types].
-        , (1, fromIntegral <$> arbitrary @Int64)
+        , (1, fromIntegral <$> arbitrarySigned 10 (maxBound :: Int64))
         ]
+    shrinkBuiltin = shrinkIntegralFast
 
 -- |
 --
@@ -124,6 +135,63 @@ instance ArbitraryBuiltin Text where
 instance ArbitraryBuiltin ByteString where
     arbitraryBuiltin = Text.encodeUtf8 <$> arbitraryBuiltin
     shrinkBuiltin = map Text.encodeUtf8 . shrinkBuiltin . Text.decodeUtf8
+
+-- | Generate a tag for the 'Constr' constructor.
+genConstrTag :: Gen Integer
+genConstrTag = frequency
+    [ -- We want to generate most plausible constructor IDs most often.
+      (6, chooseInteger (0, 2))
+    , -- Less plausible -- less often.
+      (3, chooseInteger (3, 5))
+    , -- And some meaningless garbage occasionally just to have good coverage.
+      (1, abs <$> arbitraryBuiltin)
+    ]
+
+-- | Generate a 'Data' object using a @spine :: [()]@ as a hint. It's helpful to make the spine a
+-- list of units rather than a 'Word' or something, because we have useful functions for arbitrary
+-- list splitting.
+genDataFromSpine :: [()] -> Gen Data
+genDataFromSpine [] =
+    oneof
+        [ Constr <$> genConstrTag <*> pure []
+        , pure $ List []
+        , pure $ Map []
+        ]
+genDataFromSpine [()] = oneof [I <$> arbitraryBuiltin, B <$> arbitraryBuiltin]
+genDataFromSpine els = oneof
+    [ Constr <$> genConstrTag <*> (multiSplit0 0.1 els >>= traverse genDataFromSpine)
+    , List <$> (multiSplit0 0.1 els >>= traverse genDataFromSpine)
+    , do
+        elss <- multiSplit1 els
+        Map <$> frequency
+            [ -- Generate maps from 'ByteString's most often.
+              (6, for elss $ \(NonEmpty els') ->
+                (,) . B <$> arbitraryBuiltin <*> genDataFromSpine (drop 1 els'))
+            , -- Generate maps from 'Integer's less often.
+              (3, for elss $ \(NonEmpty els') ->
+                (,) . I <$> arbitraryBuiltin <*> genDataFromSpine (drop 1 els'))
+            , -- Occasionally generate maps with random nonsense in place of keys.
+              (1, for elss $ \(NonEmpty els') -> do
+                splitRes <- multiSplit1In 2 els'
+                case splitRes of
+                    [] ->
+                        (,) <$> genDataFromSpine [] <*> genDataFromSpine []
+                    [NonEmpty elsL'] ->
+                        (,) <$> genDataFromSpine elsL' <*> genDataFromSpine []
+                    [NonEmpty elsL', NonEmpty elsR'] ->
+                        (,) <$> genDataFromSpine elsL' <*> genDataFromSpine elsR'
+                    _ -> error "Panic: 'multiSplit1In 2' returned a list longer than 2 elements")
+            ]
+    ]
+
+instance Arbitrary Data where
+    arbitrary = arbitrary >>= genDataFromSpine
+
+    shrink (Constr i ds) = ds ++ map (Constr i) (shrink ds)
+    shrink (Map ps)      = map fst ps ++ map snd ps ++ map Map (shrink ps)
+    shrink (List ds)     = ds ++ map List (shrink ds)
+    shrink (I i)         = map I (shrink i)
+    shrink (B b)         = I 0 : map B (shrink b)
 
 instance ArbitraryBuiltin BLS12_381.G1.Element where
     arbitraryBuiltin =
@@ -168,11 +236,20 @@ instance ArbitraryBuiltin a => Arbitrary (AsArbitraryBuiltin a) where
 -- We could do this and the next one generically using 'ElaborateBuiltin', but it would be more
 -- code, so we keep it simple.
 instance ArbitraryBuiltin a => ArbitraryBuiltin [a] where
-    arbitraryBuiltin = coerce $ arbitrary @[AsArbitraryBuiltin a]
+    arbitraryBuiltin = do
+        spine <- arbitrary
+        let len = length spine
+        for spine $ \() ->
+            -- Scale the elements, so that generating a list of lists of lists doesn't take
+            -- exponential size (and thus time).
+            scale (`div` len) . coerce $ arbitrary @(AsArbitraryBuiltin a)
     shrinkBuiltin = coerce $ shrink @[AsArbitraryBuiltin a]
 
 instance (ArbitraryBuiltin a, ArbitraryBuiltin b) => ArbitraryBuiltin (a, b) where
-    arbitraryBuiltin = coerce $ arbitrary @(AsArbitraryBuiltin a, AsArbitraryBuiltin b)
+    arbitraryBuiltin = do
+        (,)
+            <$> coerce (scale (`div` 2) $ arbitrary @(AsArbitraryBuiltin a))
+            <*> coerce (scale (`div` 2) $ arbitrary @(AsArbitraryBuiltin b))
     shrinkBuiltin = coerce $ shrink @(AsArbitraryBuiltin a, AsArbitraryBuiltin b)
 
 -- | Either a fail to generate anything or a built-in type of a given kind.
@@ -194,8 +271,12 @@ eraseMaybeSomeTypeOf (JustSomeType uni) = Just $ SomeTypeIn uni
 -- | Generate a 'DefaultUniApply' if possible.
 genDefaultUniApply :: KnownKind k => Gen (MaybeSomeTypeOf k)
 genDefaultUniApply = do
-    mayFun <- scale (`div` 2) arbitrary
-    mayArg <- scale (`div` 2) arbitrary :: Gen (MaybeSomeTypeOf GHC.Type)
+    -- We don't scale the function, because sizes don't matter for application heads anyway, plus
+    -- the function may itself be an application and we certainly don't want type arguments that
+    -- come first to be smaller than those that come latter as that would make no sense.
+    mayFun <- arbitrary
+    -- We don't want to generate deeply nested built-in types, hence the scaling.
+    mayArg <- scale (`div` 5) arbitrary :: Gen (MaybeSomeTypeOf GHC.Type)
     pure $ case (mayFun, mayArg) of
         (JustSomeType fun, JustSomeType arg) -> JustSomeType $ fun `DefaultUniApply` arg
         _                                    -> NothingSomeType

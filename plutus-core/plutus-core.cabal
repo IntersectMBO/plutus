@@ -710,6 +710,7 @@ library plutus-core-testlib
     PlutusCore.Generators.QuickCheck.GenerateTypes
     PlutusCore.Generators.QuickCheck.GenTm
     PlutusCore.Generators.QuickCheck.ShrinkTypes
+    PlutusCore.Generators.QuickCheck.Split
     PlutusCore.Generators.QuickCheck.Substitutions
     PlutusCore.Generators.QuickCheck.Unification
     PlutusCore.Generators.QuickCheck.Utils
