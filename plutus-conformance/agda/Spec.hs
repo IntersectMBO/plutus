@@ -46,14 +46,14 @@ failingTests :: [FilePath]
 failingTests =
     [
      --- byteStringToInteger
-      "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/little-endian/all-zeros"
-    , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/little-endian/correct-output"
-    , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/little-endian/trailing-zeros"
-    , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/little-endian/empty"
-    , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/big-endian/all-zeros"
+      "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/big-endian/all-zeros"
     , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/big-endian/leading-zeros"
     , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/big-endian/correct-output"
     , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/big-endian/empty"
+    , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/little-endian/all-zeros"
+    , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/little-endian/correct-output"
+    , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/little-endian/trailing-zeros"
+    , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/little-endian/empty"
     , "test-cases/uplc/evaluation/builtin/semantics/byteStringToInteger/both-endian"
 
     -- integerToByteString
