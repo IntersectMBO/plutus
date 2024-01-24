@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE OverloadedStrings #-}
 
 {- | A program to parse a JSON representation of costing functions for Plutus Core
@@ -22,6 +23,18 @@ instance FromJSON LinearFunction where
     parseJSON = withObject "Linear function" $ \obj ->
                 LinearFunction <$> obj .: "intercept" <*> obj .: "slope"
 
+data QuadraticFunction =
+    QuadraticFunction
+    { coeff0_ :: Integer
+    , coeff1_ :: Integer
+    , coeff2_ :: Integer
+    }
+    deriving stock Show
+
+instance FromJSON QuadraticFunction where
+    parseJSON = withObject "Quadratic function" $ \obj ->
+                QuadraticFunction <$> obj .: "c0" <*> obj .: "c1" <*> obj .: "c2"
+
 {- | This type reflects what is actually in the JSON.  The stuff in
    CostingFun.Core and CostingFun.JSON is much more rigid, allowing parsing only
    for the model types applicable to the various ModelNArguments types; it also
@@ -30,20 +43,23 @@ instance FromJSON LinearFunction where
    expected in builtinCostModel.json.
 -}
 data Model
-    = ConstantCost       Integer
-    | AddedSizes         LinearFunction
-    | MultipliedSizes    LinearFunction
-    | MinSize            LinearFunction
-    | MaxSize            LinearFunction
-    | LinearCost         LinearFunction
-    | LinearInX          LinearFunction
-    | LinearInY          LinearFunction
-    | LinearInZ          LinearFunction
-    | SubtractedSizes    LinearFunction Integer
+    = ConstantCost          Integer
+    | AddedSizes            LinearFunction
+    | MultipliedSizes       LinearFunction
+    | MinSize               LinearFunction
+    | MaxSize               LinearFunction
+    | LinearCost            LinearFunction
+    | LinearInX             LinearFunction
+    | LinearInY             LinearFunction
+    | LiteralInYOrLinearInZ LinearFunction
+    | QuadraticInY          QuadraticFunction
+    | QuadraticInZ          QuadraticFunction
+    | LinearInZ             LinearFunction
+    | SubtractedSizes       LinearFunction Integer
     -- ^ Linear model in x-y plus minimum value for the case x-y < 0.
-    | ConstAboveDiagonal Integer Model
-    | ConstBelowDiagonal Integer Model
-    | LinearOnDiagonal   LinearFunction Integer
+    | ConstAboveDiagonal    Integer Model
+    | ConstBelowDiagonal    Integer Model
+    | LinearOnDiagonal      LinearFunction Integer
       -- ^ Linear model for x=y together with a constant for the case x!=y; we
       -- should probably allow a general model here.
       deriving stock Show
@@ -72,24 +88,27 @@ instance FromJSON Model where
                 We could do that once here and rely on laziness to save us in the
                 cases when we don't have an Object, but that looks a bit misleading. -}
              case ty of
-               "constant_cost"        -> ConstantCost          <$> parseJSON args
-               "added_sizes"          -> AddedSizes            <$> parseJSON args
-               "min_size"             -> MinSize               <$> parseJSON args
-               "max_size"             -> MaxSize               <$> parseJSON args
-               "multiplied_sizes"     -> MultipliedSizes       <$> parseJSON args
-               "linear_cost"          -> LinearCost            <$> parseJSON args
-               "linear_in_x"          -> LinearInX             <$> parseJSON args
-               "linear_in_y"          -> LinearInY             <$> parseJSON args
-               "linear_in_z"          -> LinearInZ             <$> parseJSON args
-               "subtracted_sizes"     ->
+               "constant_cost"               -> ConstantCost          <$> parseJSON args
+               "added_sizes"                 -> AddedSizes            <$> parseJSON args
+               "min_size"                    -> MinSize               <$> parseJSON args
+               "max_size"                    -> MaxSize               <$> parseJSON args
+               "multiplied_sizes"            -> MultipliedSizes       <$> parseJSON args
+               "linear_cost"                 -> LinearCost            <$> parseJSON args
+               "linear_in_x"                 -> LinearInX             <$> parseJSON args
+               "linear_in_y"                 -> LinearInY             <$> parseJSON args
+               "linear_in_z"                 -> LinearInZ             <$> parseJSON args
+               "quadratic_in_y"              -> QuadraticInY          <$> parseJSON args
+               "quadratic_in_z"              -> QuadraticInZ          <$> parseJSON args
+               "literal_in_y_or_linear_in_z" -> LiteralInYOrLinearInZ <$> parseJSON args
+               "subtracted_sizes"            ->
                   SubtractedSizes       <$> parseJSON args <*> objOf args .: "minimum"
-               "const_above_diagonal" ->
+               "const_above_diagonal"        ->
                   ConstAboveDiagonal    <$> objOf args .: "constant" <*> objOf args .: "model"
-               "const_below_diagonal" ->
+               "const_below_diagonal"        ->
                   ConstBelowDiagonal    <$> objOf args .: "constant" <*> objOf args .: "model"
-               "linear_on_diagonal"   ->
+               "linear_on_diagonal"          ->
                   LinearOnDiagonal      <$> parseJSON args <*> objOf args .: "constant"
-               _                      -> errorWithoutStackTrace $ "Unknown model type " ++ show ty
+               _                             -> errorWithoutStackTrace $ "Unknown model type " ++ show ty
 
                where objOf (Object o) = o
                      objOf _          =
