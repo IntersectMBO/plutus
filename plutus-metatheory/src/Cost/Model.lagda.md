@@ -23,7 +23,7 @@ open import Relation.Binary.PropositionalEquality using (refl)
 open import Utils using (List;_×_;[];_∷_;_,_;length)
 open import Data.Vec using (Vec;[];_∷_;sum;foldr;lookup) 
 open import Cost.Base 
-open import Cost.Raw renaming (mkLinearFunction to mkLF)
+open import Cost.Raw renaming (mkLinearFunction to mkLF; mkQuadraticFunction to mkQF)
 open import Builtin using (Builtin;arity;builtinList;showBuiltin;decBuiltin)
 ```
 
@@ -52,6 +52,7 @@ data CostingModel : ℕ → Set where
    -- Any number of arguments
   constantCost       : ∀{n} → CostingNat → CostingModel n
   linearCostIn       : ∀{n} → Fin n → Intercept → Slope → CostingModel n
+  quadraticCostIn    : ∀{n} → Fin n → CostingNat → CostingNat → CostingNat → CostingModel n
   addedSizes         : ∀{n} → Intercept → Slope → CostingModel n 
   multipliedSizes    : ∀{n} → Intercept → Slope → CostingModel n
   -- at least one argument
@@ -94,7 +95,9 @@ Given a model and the sizes of the arguments we can compute a cost.
 runModel : ∀{n} → CostingModel n → Vec CostingNat n → CostingNat 
 runModel (constantCost x) _ = x
 runModel (linearCostIn n i s) xs = i + s * lookup xs n
+runModel (linearCostIn n i s) xs = i + s * lookup xs n
 runModel (addedSizes i s) xs = i + s * (sum xs)
+runModel (quadraticCostIn n c0 c1 c2) xs = let x = lookup xs n in c0 + c1 * x + c2 * x * x
 runModel (multipliedSizes i s) xs = i + s * (prod xs)
 runModel (minSize i s) xs = i + s * minimum xs
 runModel (maxSize i s) xs = i + s * maximum xs
@@ -129,6 +132,10 @@ convertRawModel {suc n} (LinearCost (mkLF intercept slope)) = just (linearCostIn
 convertRawModel {suc n} (LinearInX (mkLF intercept slope)) = just (linearCostIn zero intercept slope)
 convertRawModel {suc (suc n)} (LinearInY (mkLF intercept slope)) = just (linearCostIn (suc zero) intercept slope)
 convertRawModel {suc (suc (suc n))}(LinearInZ (mkLF intercept slope)) = just (linearCostIn (suc (suc zero)) intercept slope)
+convertRawModel {suc (suc n)} (QuadraticInY (mkQF c0 c1 c2)) = just (quadraticCostIn (suc zero) c0 c1 c2)
+convertRawModel {suc (suc (suc n))} (QuadraticInZ (mkQF c0 c1 c2)) = just (quadraticCostIn (suc (suc zero)) c0 c1 c2)
+convertRawModel {suc (suc (suc n))} (LiteralInYOrLinearInZ (mkLF intercept slope)) = just (linearCostIn (suc (suc zero)) intercept slope)
+-- **** FIXME: for LiteralInYOrLinearInZ, the cost is exactly y if y > 0, and the linear function applied to z if y == 0
 convertRawModel {2} (SubtractedSizes (mkLF intercept slope) c) = just (twoArgumentsSubtractedSizes intercept slope c)
 convertRawModel {2} (ConstAboveDiagonal c m) = map (twoArgumentsConstAboveDiagonal c) (convertRawModel m)
 convertRawModel {2} (ConstBelowDiagonal c m) = map (twoArgumentsConstBelowDiagonal c) (convertRawModel m)

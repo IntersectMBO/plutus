@@ -74,24 +74,37 @@ record LinearFunction : Set where
 
 {-# COMPILE GHC LinearFunction = data LinearFunction(LinearFunction) #-}
 
+record QuadraticFunction : Set where
+    constructor mkQuadraticFunction
+    field 
+        coeff0 : CostingNat 
+        coeff1 : CostingNat
+        coeff2 : CostingNat
+        
+{-# COMPILE GHC QuadraticFunction = data QuadraticFunction(QuadraticFunction) #-}
+
 data RawModel : Set where 
-    ConstantCost       : CostingNat → RawModel 
-    AddedSizes         : LinearFunction → RawModel 
-    MultipliedSizes    : LinearFunction → RawModel
-    MinSize            : LinearFunction → RawModel
-    MaxSize            : LinearFunction → RawModel
-    LinearCost         : LinearFunction → RawModel
-    LinearInX          : LinearFunction → RawModel
-    LinearInY          : LinearFunction → RawModel
-    LinearInZ          : LinearFunction → RawModel
-    SubtractedSizes    : LinearFunction → CostingNat → RawModel
-    ConstAboveDiagonal : CostingNat → RawModel → RawModel
-    ConstBelowDiagonal : CostingNat → RawModel → RawModel
-    LinearOnDiagonal   : LinearFunction → CostingNat → RawModel
+    ConstantCost          : CostingNat → RawModel 
+    AddedSizes            : LinearFunction → RawModel 
+    MultipliedSizes       : LinearFunction → RawModel
+    MinSize               : LinearFunction → RawModel
+    MaxSize               : LinearFunction → RawModel
+    LinearCost            : LinearFunction → RawModel
+    LinearInX             : LinearFunction → RawModel
+    LinearInY             : LinearFunction → RawModel
+    LinearInZ             : LinearFunction → RawModel
+    LiteralInYOrLinearInZ : LinearFunction → RawModel
+    QuadraticInY          : QuadraticFunction → RawModel
+    QuadraticInZ          : QuadraticFunction → RawModel
+    SubtractedSizes       : LinearFunction → CostingNat → RawModel
+    ConstAboveDiagonal    : CostingNat → RawModel → RawModel
+    ConstBelowDiagonal    : CostingNat → RawModel → RawModel
+    LinearOnDiagonal      : LinearFunction → CostingNat → RawModel
 
 {-# COMPILE GHC RawModel = data Model (ConstantCost | AddedSizes | MultipliedSizes |
                                    MinSize | MaxSize | LinearCost | LinearInX | LinearInY |
-                                   LinearInZ | SubtractedSizes | ConstAboveDiagonal |
+                                   LinearInZ | LiteralInYOrLinearInZ | QuadraticInY |
+                                   QuadraticInZ | SubtractedSizes | ConstAboveDiagonal |
                                    ConstBelowDiagonal | LinearOnDiagonal)  #-}
 
 record CpuAndMemoryModel : Set where 
