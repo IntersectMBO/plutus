@@ -196,4 +196,4 @@ createMap bmap =
       let modelMaybeList = L.map (λ b → getModel b bmap) builtinList 
           maybeModelList = allJust modelMaybeList
       in map lookupModel maybeModelList
-``` 
+```

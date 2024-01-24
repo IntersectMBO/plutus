@@ -1,16 +1,16 @@
 # Raw Cost structures to inferface with Haskell
 
 ```
-module Cost.Raw where 
+module Cost.Raw where
 ```
 
-## Imports 
+## Imports
 
-``` 
+```
 open import Cost.Base using (CostingNat)
 open import Data.String
 open import Utils
-``` 
+```
 
 ## Interface with Haskell Machine Parameters
 
@@ -22,8 +22,8 @@ open import Utils
 {-# FOREIGN GHC import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekMachineCosts) #-}
 {-# FOREIGN GHC import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCostsBase(..)) #-}
 
-postulate HCekMachineCosts : Set 
-postulate HExBudget : Set 
+postulate HCekMachineCosts : Set
+postulate HExBudget : Set
 
 {-# COMPILE GHC HCekMachineCosts = type CekMachineCostsBase Identity #-}
 {-# COMPILE GHC HExBudget = type ExBudget #-}
@@ -59,7 +59,7 @@ postulate getMemoryCost : HExBudget → CostingNat
 -- postulate defaultHCekMachineCosts : HCekMachineCosts
 
 -- {-# COMPILE GHC defaultHCekMachineCosts = defaultCekMachineCosts #-}
-``` 
+```
 
 ## Interface with Builtin model from JSON
 
@@ -68,24 +68,24 @@ postulate getMemoryCost : HExBudget → CostingNat
 
 record LinearFunction : Set where
     constructor mkLinearFunction
-    field 
-        intercept : CostingNat 
+    field
+        intercept : CostingNat
         slope : CostingNat
 
 {-# COMPILE GHC LinearFunction = data LinearFunction(LinearFunction) #-}
 
 record QuadraticFunction : Set where
     constructor mkQuadraticFunction
-    field 
-        coeff0 : CostingNat 
+    field
+        coeff0 : CostingNat
         coeff1 : CostingNat
         coeff2 : CostingNat
-        
+
 {-# COMPILE GHC QuadraticFunction = data QuadraticFunction(QuadraticFunction) #-}
 
-data RawModel : Set where 
-    ConstantCost          : CostingNat → RawModel 
-    AddedSizes            : LinearFunction → RawModel 
+data RawModel : Set where
+    ConstantCost          : CostingNat → RawModel
+    AddedSizes            : LinearFunction → RawModel
     MultipliedSizes       : LinearFunction → RawModel
     MinSize               : LinearFunction → RawModel
     MaxSize               : LinearFunction → RawModel
@@ -107,19 +107,19 @@ data RawModel : Set where
                                    QuadraticInZ | SubtractedSizes | ConstAboveDiagonal |
                                    ConstBelowDiagonal | LinearOnDiagonal)  #-}
 
-record CpuAndMemoryModel : Set where 
-     constructor mkCpuAndMemoryModel 
-     field 
+record CpuAndMemoryModel : Set where
+     constructor mkCpuAndMemoryModel
+     field
         cpuModel : RawModel
-        memoryModel : RawModel  
+        memoryModel : RawModel
 
-{-# COMPILE GHC CpuAndMemoryModel = data CpuAndMemoryModel (CpuAndMemoryModel) #-}         
+{-# COMPILE GHC CpuAndMemoryModel = data CpuAndMemoryModel (CpuAndMemoryModel) #-}
 
-BuiltinCostMap : Set                                
+BuiltinCostMap : Set
 BuiltinCostMap = List (String × CpuAndMemoryModel)
 ```
 
 ```
-RawCostModel : Set 
+RawCostModel : Set
 RawCostModel = HCekMachineCosts × BuiltinCostMap
-```  
+```
