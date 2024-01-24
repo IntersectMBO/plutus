@@ -129,6 +129,9 @@ data Builtin : Set where
   -- Keccak-256, Blake2b-224
   keccak-256                      : Builtin
   blake2b-224                     : Builtin
+  -- Bitwise operations
+  byteStringToInteger             : Builtin
+  integerToByteString             : Builtin
 ```
 
 ## Signatures
@@ -295,6 +298,8 @@ hence need to be embedded into `n⋆ / n♯ ⊢⋆` using the postfix constructo
     signature bls12-381-millerLoop            = ∙ [ bls12-381-g1-element ↑ , bls12-381-g2-element ↑ ]⟶ bls12-381-mlresult ↑
     signature bls12-381-mulMlResult           = ∙ [ bls12-381-mlresult ↑ , bls12-381-mlresult ↑ ]⟶ bls12-381-mlresult ↑
     signature bls12-381-finalVerify           = ∙ [ bls12-381-mlresult ↑ , bls12-381-mlresult ↑ ]⟶ bool ↑
+    signature byteStringToInteger             = ∙ [ bool ↑ , bytestring ↑ ]⟶ integer ↑
+    signature integerToByteString             = ∙ [ bool ↑ , integer ↑ , integer ↑ ]⟶  bytestring ↑
 
 open SugaredSignature using (signature) public
 
@@ -383,6 +388,8 @@ Each Agda built-in name must be mapped to a Haskell name.
                                           | Bls12_381_finalVerify
                                           | Keccak_256
                                           | Blake2b_224
+                                          | ByteStringToInteger
+                                          | IntegerToByteString
                                           ) #-}
 ```
 
@@ -436,6 +443,8 @@ postulate
   BLS12-381-finalVerify     : Bls12-381-MlResult → Bls12-381-MlResult → Bool
   KECCAK-256                : ByteString → ByteString
   BLAKE2B-224               : ByteString → ByteString
+  BStoI                     : Bool -> ByteString -> Int
+  ItoBS                     : Bool -> Int -> Int -> Maybe ByteString
 ```
 
 ### What builtin operations should be compiled to if we compile to Haskell
@@ -525,6 +534,10 @@ postulate
 
 {-# COMPILE GHC KECCAK-256 = Hash.keccak_256 #-}
 {-# COMPILE GHC BLAKE2B-224 = Hash.blake2b_224 #-}
+
+{-# FOREIGN GHC import PlutusCore.Bitwise.Convert qualified as Convert #-}
+{-# COMPILE GHC BStoI = Convert.byteStringToIntegerWrapper #-}
+{-# COMPILE GHC ItoBS = \e w n -> builtinResultToMaybe $ Convert.integerToByteStringWrapper e w n #-}
 
 -- no binding needed for appendStr
 -- no binding needed for traceStr
