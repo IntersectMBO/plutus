@@ -155,8 +155,8 @@ convertRawModel {suc n} (MaxSize (mkLF intercept slope)) = just (maxSize interce
 convertRawModel {suc n} (LinearCost (mkLF intercept slope)) = just (linearCostIn zero intercept slope)
 convertRawModel {suc n} (LinearInX (mkLF intercept slope)) = just (linearCostIn zero intercept slope)
 convertRawModel {suc (suc n)} (LinearInY (mkLF intercept slope)) = just (linearCostIn (suc zero) intercept slope)
-convertRawModel {suc (suc (suc n))}(LinearInZ (mkLF intercept slope)) = just (linearCostIn (suc (suc zero)) intercept slope)
 convertRawModel {suc (suc n)} (QuadraticInY (mkQF c0 c1 c2)) = just (quadraticCostIn (suc zero) c0 c1 c2)
+convertRawModel {suc (suc (suc n))}(LinearInZ (mkLF intercept slope)) = just (linearCostIn (suc (suc zero)) intercept slope)
 convertRawModel {suc (suc (suc n))} (QuadraticInZ (mkQF c0 c1 c2)) = just (quadraticCostIn (suc (suc zero)) c0 c1 c2)
 convertRawModel {suc (suc (suc n))} (LiteralInYOrLinearInZ (mkLF intercept slope)) = 
     just (literalCostIn  (suc zero) (linearCostIn (suc (suc zero)) intercept slope))
