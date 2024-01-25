@@ -89,6 +89,7 @@ test-suite haskell-conformance
   import:         lang
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
   hs-source-dirs: haskell test-cases
   other-modules:
   build-depends:
@@ -99,6 +100,7 @@ test-suite haskell-steppable-conformance
   import:         lang
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
   hs-source-dirs: haskell-steppable test-cases
   other-modules:
   build-depends:
@@ -111,6 +113,7 @@ test-suite agda-conformance
   import:         lang
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
   hs-source-dirs: agda test-cases
   other-modules:
   build-depends:

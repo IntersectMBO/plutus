@@ -161,6 +161,7 @@ test-suite plutus-benchmark-nofib-tests
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
   hs-source-dirs: nofib/test
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
   build-depends:
     , base                                            >=4.9   && <5
     , nofib-internal
@@ -226,6 +227,7 @@ test-suite plutus-benchmark-lists-tests
   import:         lang, ghc-version-support
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
   hs-source-dirs: lists/test
   other-modules:
     Lookup.Spec
@@ -352,6 +354,7 @@ test-suite ed25519-costs-test
   import:         lang, ghc-version-support
   type:           exitcode-stdio-1.0
   ghc-options:    -Wno-unused-packages
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
   hs-source-dirs: ed25519-costs/test ed25519-costs/src
   main-is:        Spec.hs
   other-modules:  PlutusBenchmark.Ed25519.Common
@@ -409,6 +412,7 @@ test-suite bls12-381-costs-test
   import:         lang, ghc-version-support
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
   hs-source-dirs: bls12-381-costs/test
   build-depends:
     , base                             >=4.9   && <5
@@ -450,6 +454,7 @@ test-suite plutus-benchmark-script-contexts-tests
   import:         lang, ghc-version-support
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
   hs-source-dirs: script-contexts/test
   other-modules:
   build-depends:
@@ -530,6 +535,7 @@ test-suite plutus-benchmark-marlowe-tests
   import:         lang, ghc-version-support
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
   hs-source-dirs: marlowe/test
   other-modules:
   build-depends:

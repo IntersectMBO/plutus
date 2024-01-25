@@ -178,6 +178,7 @@ test-suite plutus-tx-plugin-tests
     , text
 
   default-extensions: Strict
+  ghc-options:        -threaded -rtsopts -with-rtsopts=-N
 
   -- NOTE: -g makes the plugin give better errors
   -- See Note [-fno-full-laziness in Plutus Tx]
@@ -202,6 +203,7 @@ test-suite size
     , tasty
 
   default-extensions: Strict
+  ghc-options:        -threaded -rtsopts -with-rtsopts=-N
 
   -- See Note [-fno-full-laziness in Plutus Tx]
   ghc-options:

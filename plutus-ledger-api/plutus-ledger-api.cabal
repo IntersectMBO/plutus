@@ -143,6 +143,7 @@ test-suite plutus-ledger-api-test
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
   hs-source-dirs: test
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
   other-modules:
     Spec.CBOR.DeserialiseFailureInfo
     Spec.ContextDecoding
@@ -181,6 +182,7 @@ test-suite plutus-ledger-api-plugin-test
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
   hs-source-dirs: test-plugin
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
   other-modules:
     Spec.Budget
     Spec.Value
