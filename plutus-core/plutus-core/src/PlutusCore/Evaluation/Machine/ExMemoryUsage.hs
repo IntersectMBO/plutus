@@ -181,9 +181,9 @@ instance ExMemoryUsage LiteralByteSize where
 
 -- | Calculate a 'CostingInteger' for the given 'Integer'.
 memoryUsageInteger :: Integer -> CostingInteger
--- integerLog2# is unspecified for 0 (but in practice returns -1) ^ This changed
--- with GHC 9.2: it now returns 0.  It's probably safest if we keep this special
--- case for the time being though.
+-- integerLog2# is unspecified for 0 (but in practice returns -1)
+-- ^ This changed with GHC 9.2: it now returns 0.  It's probably safest if we
+-- keep this special case for the time being though.
 memoryUsageInteger 0 = 1
 -- Assume 64 Int
 memoryUsageInteger i = fromIntegral $ I# (integerLog2# (abs i) `quotInt#` integerToInt 64) + 1
