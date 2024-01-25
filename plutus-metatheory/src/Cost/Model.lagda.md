@@ -135,9 +135,9 @@ convertRawModel {suc (suc n)} (QuadraticInY (mkQF c0 c1 c2)) = just (quadraticCo
 convertRawModel {suc (suc (suc n))}(LinearInZ (mkLF intercept slope)) = just (linearCostIn (suc (suc zero)) intercept slope)
 convertRawModel {suc (suc (suc n))} (QuadraticInZ (mkQF c0 c1 c2)) = just (quadraticCostIn (suc (suc zero)) c0 c1 c2)
 convertRawModel {suc (suc (suc n))} (LiteralInYOrLinearInZ (mkLF intercept slope)) = just (linearCostIn (suc (suc zero)) intercept slope)
--- **** FIXME ****: for LiteralInYOrLinearInZ, the cost should be exactly 8*y (the parameter is a
--- number of bytes, but the size is a number of words) if y > 0, and the linear function applied to
--- z if y == 0.
+-- **** FIXME ****: for LiteralInYOrLinearInZ, the cost should be exactly ((y-1) `div` 8)+1) (the
+-- parameter is a number of bytes, but the size is a number of words) if y > 0, and the linear
+-- function applied to z if y == 0.
 convertRawModel {2} (SubtractedSizes (mkLF intercept slope) c) = just (twoArgumentsSubtractedSizes intercept slope c)
 convertRawModel {2} (ConstAboveDiagonal c m) = map (twoArgumentsConstAboveDiagonal c) (convertRawModel m)
 convertRawModel {2} (ConstBelowDiagonal c m) = map (twoArgumentsConstBelowDiagonal c) (convertRawModel m)
