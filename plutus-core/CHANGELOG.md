@@ -1,4 +1,11 @@
 
+<a id='changelog-1.21.0.0'></a>
+# 1.21.0.0 — 2024-01-25
+
+## Changed
+
+- #5728 added `BuiltinResult` and leveraged in places where we used to use `Emitter (EvaluationResult Smth)`.
+
 <a id='changelog-1.20.0.0'></a>
 # 1.20.0.0 — 2024-01-15
 
