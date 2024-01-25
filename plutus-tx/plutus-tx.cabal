@@ -128,6 +128,7 @@ library plutus-tx-testlib
   import:          lang
   visibility:      public
   hs-source-dirs:  testlib
+  ghc-options:     -threaded -rtsopts -with-rtsopts=-N
   exposed-modules:
     Hedgehog.Laws.Common
     Hedgehog.Laws.Eq
@@ -157,6 +158,7 @@ test-suite plutus-tx-test
 
   type:               exitcode-stdio-1.0
   main-is:            Spec.hs
+  ghc-options:        -threaded -rtsopts -with-rtsopts=-N
   other-modules:
     List.Spec
     Rational.Laws

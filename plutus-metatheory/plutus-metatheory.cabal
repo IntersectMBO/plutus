@@ -583,6 +583,7 @@ test-suite test3
   hs-source-dirs: test
   type:           exitcode-stdio-1.0
   main-is:        TestNEAT.hs
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
   build-depends:
     , base
     , lazy-search

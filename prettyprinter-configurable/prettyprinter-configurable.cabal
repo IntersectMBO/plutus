@@ -71,6 +71,7 @@ test-suite prettyprinter-configurable-test
   import:         lang
   type:           exitcode-stdio-1.0
   main-is:        Main.hs
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
   hs-source-dirs: test
   other-modules:
     Default
