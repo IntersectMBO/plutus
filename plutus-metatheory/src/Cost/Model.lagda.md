@@ -135,7 +135,7 @@ runModel (twoArgumentsConstBelowDiagonal c m) (x ∷ y ∷ []) =
       then c 
       else runModel m (x ∷ y ∷ [])
 runModel (literalCostIn n m) xs with lookup xs n 
-... | V-con (atomic aInteger) (pos s@(suc _)) = s
+... | V-con (atomic aInteger) (pos s@(suc _)) = s --only uses the literal size if positive integer.
 ... | _ = runModel m xs
 ```
 
@@ -156,8 +156,8 @@ convertRawModel {suc (suc n)} (LinearInY (mkLF intercept slope)) = just (linearC
 convertRawModel {suc (suc (suc n))}(LinearInZ (mkLF intercept slope)) = just (linearCostIn (suc (suc zero)) intercept slope)
 convertRawModel {suc (suc n)} (QuadraticInY (mkQF c0 c1 c2)) = just (quadraticCostIn (suc zero) c0 c1 c2)
 convertRawModel {suc (suc (suc n))} (QuadraticInZ (mkQF c0 c1 c2)) = just (quadraticCostIn (suc (suc zero)) c0 c1 c2)
-convertRawModel {suc (suc (suc n))} (LiteralInYOrLinearInZ (mkLF intercept slope)) = just (linearCostIn (suc (suc zero)) intercept slope)
--- **** FIXME: for LiteralInYOrLinearInZ, the cost is exactly y if y > 0, and the linear function applied to z if y == 0
+convertRawModel {suc (suc (suc n))} (LiteralInYOrLinearInZ (mkLF intercept slope)) = 
+    just (literalCostIn  (suc zero) (linearCostIn (suc (suc zero)) intercept slope))
 convertRawModel {2} (SubtractedSizes (mkLF intercept slope) c) = just (twoArgumentsSubtractedSizes intercept slope c)
 convertRawModel {2} (ConstAboveDiagonal c m) = mapMaybe (twoArgumentsConstAboveDiagonal c) (convertRawModel m)
 convertRawModel {2} (ConstBelowDiagonal c m) = mapMaybe (twoArgumentsConstBelowDiagonal c) (convertRawModel m)
