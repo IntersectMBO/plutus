@@ -14,6 +14,7 @@ open import Data.Bool using (true;false;if_then_else_)
 open import Data.Fin using (Fin;zero;suc)
 open import Data.Maybe using (Maybe;just;nothing) renaming (map to mapMaybe)
 open import Data.Nat using (ℕ;zero;suc;_+_;_*_;_∸_;_⊔_;_⊓_;_<ᵇ_;_≡ᵇ_)
+open import Data.Nat.DivMod using (_/_)
 open import Data.List using ([];_∷_)
 import Data.List as L 
 open import Data.Product using (Σ;_,_)
@@ -135,7 +136,8 @@ runModel (twoArgumentsConstBelowDiagonal c m) (x ∷ y ∷ []) =
       then c 
       else runModel m (x ∷ y ∷ [])
 runModel (literalCostIn n m) xs with lookup xs n 
-... | V-con (atomic aInteger) (pos s@(suc _)) = s --only uses the literal size if positive integer.
+... | V-con (atomic aInteger) (pos (suc n)) = (n / 8) + 1
+  --only uses the literal size if positive integer.
 ... | _ = runModel m xs
 ```
 
