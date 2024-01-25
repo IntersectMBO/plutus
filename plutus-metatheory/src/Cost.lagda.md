@@ -12,12 +12,11 @@ module Cost where
 ## Imports
 
 ```
+open import Agda.Builtin.Unit using (tt)
 open import Function using (_∘_)
 open import Data.Bool using (if_then_else_)
 open import Data.Fin using (Fin;zero;suc)
-open import Data.Integer using (+_)
-open import Data.Nat using (ℕ;zero;suc;_+_;_*_;_∸_;_⊔_;_⊓_;_<ᵇ_;_≡ᵇ_)
-open import Data.Nat.DivMod using (_/_)
+open import Data.Nat using (ℕ;zero;suc;_+_)
 open import Data.Nat.Properties using (+-assoc;+-identityʳ)
 open import Data.Nat.Show using () renaming (show to showℕ)
 open import Data.Integer using (ℤ;∣_∣)
@@ -27,34 +26,31 @@ import Data.List as L
 open import Data.Maybe using (Maybe;just;nothing;maybe′;fromMaybe) renaming (map to mapMaybe; _>>=_ to _>>=m_ )
 open import Data.Product using () renaming (_,_ to _,,_)
 open import Data.String using (String;_++_;padLeft;padRight;length)
-open import Data.Vec using (Vec;replicate;[];_∷_;sum;foldr) 
-                     renaming (lookup to lookupVec)
+open import Data.Vec using (Vec;replicate;[];_∷_;foldr)
 open import Algebra using (IsMonoid)
 open import Relation.Nullary using (yes;no)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;isEquivalence;cong₂)
 open import Text.Printf using (printf)
-
-open import Utils using (_×_;_,_;_∷_;[];DATA;List;map;ByteString)
-open DATA
-
 open import Relation.Binary using (StrictTotalOrder)
 open import Data.Char using (_≈ᵇ_)
 open import Data.String.Properties using (<-strictTotalOrder-≈)
 open import Data.Tree.AVL.Map <-strictTotalOrder-≈ as AVL 
           using (Map;empty;unionWith;singleton) 
           renaming (lookup to lookupAVL)
-open import Builtin using (Builtin;showBuiltin;builtinList;lengthBS;arity)
+
+open import Utils using (_×_;_,_)
+open import Builtin using (Builtin;showBuiltin;builtinList;arity)
 open Builtin.Builtin
 open import Builtin.Signature using (_⊢♯)
 open _⊢♯
-open import RawU using (TmCon) 
-open TmCon
 open import Builtin.Constant.AtomicType using (AtomicTyCon)
 open AtomicTyCon
 
-open import Cost.Base 
+open import Cost.Base
+open import Cost.Size using (defaultValueMeasure)
 open import Cost.Model
 open import Cost.Raw
+open import Untyped.CEK using (Value;V-con)
 ```
 
 ## Execution Budget
@@ -98,89 +94,13 @@ isMonoidExBudget = record {
      ; identity = (λ x → refl) ,, λ x → cong₂ mkExBudget (+-identityʳ (ExCPU x)) (+-identityʳ (ExMem x)) }
 ``` 
 
-## Memory usage of type constants
-
-For each type constant we calculate its size, as a measure of memory usage.
-
-First we bring some functions from Haskell world.
-
-```
-postulate ℕtoWords : ℤ → CostingNat 
-postulate g1ElementCost : CostingNat
-postulate g2ElementCost : CostingNat
-postulate mlResultElementCost : CostingNat 
-
-{-# FOREIGN GHC {-# LANGUAGE MagicHash #-} #-}
-{-# FOREIGN GHC import GHC.Exts (Int (I#)) #-}
-{-# FOREIGN GHC import GHC.Integer  #-}
-{-# FOREIGN GHC import GHC.Integer.Logarithms  #-}
-{-# FOREIGN GHC import GHC.Prim #-}
-{-# FOREIGN GHC import PlutusCore.Crypto.BLS12_381.G1 as BLS12_381.G1 #-}
-{-# FOREIGN GHC import PlutusCore.Crypto.BLS12_381.G2 as BLS12_381.G2 #-}
-{-# FOREIGN GHC import PlutusCore.Crypto.BLS12_381.Pairing as BLS12_381.Pairing #-}
-
-{-# COMPILE GHC ℕtoWords = \i -> fromIntegral $ I# (integerLog2# (abs i) `quotInt#` integerToInt 64) + 1 #-}
-{-# COMPILE GHC g1ElementCost = toInteger (BLS12_381.G1.memSizeBytes `div` 8) #-}
-{-# COMPILE GHC g2ElementCost = toInteger (BLS12_381.G2.memSizeBytes `div` 8) #-}
-{-# COMPILE GHC mlResultElementCost = toInteger (BLS12_381.Pairing.mlResultMemSizeBytes `div` 8) #-}
-```
-
-For each constant we return the corresponding size.
-
-```
-byteStringSize : ByteString → CostingNat 
-byteStringSize x = let n = ∣ lengthBS x ∣ in ((n ∸ 1) / 8) + 1
-
--- cost of a Data node
-dataNodeMem : CostingNat 
-dataNodeMem = 4
-
-sizeData : DATA → CostingNat 
-sizeDataList : List DATA → CostingNat 
-sizeDataDataList : List (DATA × DATA) → CostingNat
-
-sizeData (ConstrDATA _ xs) = dataNodeMem + sizeDataList xs
-sizeData (MapDATA []) = dataNodeMem
-sizeData (MapDATA xs) = dataNodeMem + sizeDataDataList xs
-sizeData (ListDATA xs) = dataNodeMem + sizeDataList xs
-sizeData (iDATA x) = dataNodeMem +  ℕtoWords x
-sizeData (bDATA x) = dataNodeMem + byteStringSize x 
-
--- The following tow functions are stupid but
--- they make the termination checker happy
-sizeDataDataList [] = 0
-sizeDataDataList ((x , y) ∷ xs) = sizeData x + sizeData y + sizeDataDataList xs
-
-sizeDataList [] = 0
-sizeDataList (x ∷ xs) = sizeData x + sizeDataList xs
-
--- This the main sizing function for constants
-defaultConstantMeasure : TmCon → CostingNat
-defaultConstantMeasure (tmCon (atomic aInteger) x) = ℕtoWords x
-defaultConstantMeasure (tmCon (atomic aBytestring) x) = byteStringSize x
-defaultConstantMeasure (tmCon (atomic aString) x) = length x -- each Char costs 1
-defaultConstantMeasure (tmCon (atomic aUnit) x) = 1
-defaultConstantMeasure (tmCon (atomic aBool) x) = 1
-defaultConstantMeasure (tmCon (atomic aData) d) = sizeData d
-defaultConstantMeasure (tmCon (atomic aBls12-381-g1-element) x) = g1ElementCost
-defaultConstantMeasure (tmCon (atomic aBls12-381-g2-element) x) = g2ElementCost
-defaultConstantMeasure (tmCon (atomic aBls12-381-mlresult) x) = mlResultElementCost
-defaultConstantMeasure (tmCon (list t) []) = 0
-defaultConstantMeasure (tmCon (list t) (x ∷ xs)) = 
-       defaultConstantMeasure (tmCon t x) 
-     + defaultConstantMeasure (tmCon (list t) xs)
-defaultConstantMeasure (tmCon (pair t u) (x , y)) = 
-      1 + defaultConstantMeasure (tmCon t x) 
-        + defaultConstantMeasure (tmCon u y)
-```
-
 ## Cost of executing a builtin
 
 To calculate the cost of a builtin we obtain the corresponding builtin model, 
 and run the cpu and memory model using the vector of argument sizes.
 
 ```
-builtinCost : (b : Builtin) → BuiltinModel (arity b) → Vec CostingNat (arity b) → ExBudget
+builtinCost : (b : Builtin) → BuiltinModel (arity b) → Vec Value (arity b) → ExBudget
 builtinCost b bc cs = mkExBudget (runModel (costingCPU bc) cs) (runModel (costingMem bc) cs)
 ``` 
 
@@ -214,7 +134,6 @@ machineParameters costmodel = record {
   ; ε = ε€
   ; _∙_ = _∙€_
   ; costMonoid = isMonoidExBudget
-  ; constantMeasure = defaultConstantMeasure 
  } 
 
 countingReport : ExBudget → String 
@@ -283,7 +202,6 @@ tallyingMachineParameters cm = record {
       ; ε = εT
       ; _∙_ = _∙T_
       ; costMonoid = isMonoidTallyingBudget
-      ; constantMeasure = defaultConstantMeasure
       } 
 
 tallyingReport : TallyingBudget → String
@@ -309,7 +227,7 @@ tallyingReport (mp , budget) =
   where 
     totalComputeCost totalBuiltinCosts : ExBudget 
     totalComputeCost = L.foldr (λ x acc → (lookup mp (BStep x)) ∙€ acc) ε€ stepKindList
-    totalBuiltinCosts = L.foldr _∙€_ ε€ (L.map (lookup mp ∘ (λ b → BBuiltinApp b (replicate 0))) builtinList)
+    totalBuiltinCosts = L.foldr _∙€_ ε€ (L.map (lookup mp ∘ (λ b → BBuiltinApp b (replicate (V-con (atomic aUnit) tt)))) builtinList)
 
     getCPU : ExBudget → Float
     getCPU n = fromℕ (ExCPU n)   
@@ -334,7 +252,7 @@ tallyingReport (mp , budget) =
 
     printBuiltinReport : Map ExBudget → String 
     printBuiltinReport mp = 
-        L.foldr (λ b xs → printBuiltinCost b (lookup mp (BBuiltinApp b (replicate 0))) ++ xs) 
+        L.foldr (λ b xs → printBuiltinCost b (lookup mp (BBuiltinApp b (replicate (V-con (atomic aUnit) tt)))) ++ xs) 
               "" 
               builtinList     
     

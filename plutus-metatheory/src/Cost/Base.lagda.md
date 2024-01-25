@@ -18,6 +18,7 @@ open import Relation.Binary.PropositionalEquality using (_≡_)
 open import Utils.Reflection using (defDec;defShow;defListConstructors)
 open import RawU using (TmCon)
 open import Builtin using (Builtin;arity)
+open import Untyped.CEK using (Value)
 ```
 
 We will represent costs with Naturals. In the implementation `SatInt` is used, (integers that don't overflow, but saturate). 
@@ -71,7 +72,7 @@ data ExBudgetCategory : Set where
     BStep       : StepKind → ExBudgetCategory
 
      -- Cost of evaluating a fully applied builtin function
-    BBuiltinApp : (b : Builtin) → Vec CostingNat (arity b) → ExBudgetCategory  
+    BBuiltinApp : (b : Builtin) → Vec Value (arity b) → ExBudgetCategory  
 
     -- Startup Cost
     BStartup    : ExBudgetCategory
@@ -88,9 +89,7 @@ record MachineParameters (Cost : Set) : Set where
       ε : Cost
       _∙_ : Cost → Cost → Cost
       costMonoid : IsMonoid _≡_ _∙_ ε
-      constantMeasure : TmCon → CostingNat
 
     startupCost : Cost 
     startupCost = cekMachineCost BStartup
-  
 ``` 

@@ -140,6 +140,7 @@ library
     MAlonzo.Code.Cost.Base
     MAlonzo.Code.Cost.Model
     MAlonzo.Code.Cost.Raw
+    MAlonzo.Code.Cost.Size
     MAlonzo.Code.Data.Bool.Base
     MAlonzo.Code.Data.Bool.Properties
     MAlonzo.Code.Data.Char.Base
@@ -365,6 +366,7 @@ library
     MAlonzo.Code.Cost.Base
     MAlonzo.Code.Cost.Model
     MAlonzo.Code.Cost.Raw
+    MAlonzo.Code.Cost.Size
     MAlonzo.Code.Data.Bool.Base
     MAlonzo.Code.Data.Bool.Properties
     MAlonzo.Code.Data.Char.Base
