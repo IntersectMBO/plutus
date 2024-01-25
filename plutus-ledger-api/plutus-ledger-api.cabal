@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-ledger-api
-version:         1.20.0.0
+version:         1.21.0.0
 license:         Apache-2.0
 license-files:
   LICENSE
@@ -101,8 +101,8 @@ library
     , lens
     , mtl
     , nothunks
-    , plutus-core        ^>=1.20
-    , plutus-tx          ^>=1.20
+    , plutus-core        ^>=1.21
+    , plutus-tx          ^>=1.21
     , prettyprinter
     , serialise
     , tagged
@@ -129,9 +129,9 @@ library plutus-ledger-api-testlib
     , base64-bytestring
     , bytestring
     , containers
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.20
-    , plutus-ledger-api                               ^>=1.20
-    , plutus-tx                                       ^>=1.20
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.21
+    , plutus-ledger-api                               ^>=1.21
+    , plutus-tx                                       ^>=1.21
     , prettyprinter
     , PyF                                             >=0.11.1.0
     , QuickCheck
@@ -163,9 +163,9 @@ test-suite plutus-ledger-api-test
     , lens
     , mtl
     , nothunks
-    , plutus-core:{plutus-core, plutus-core-testlib}                    ^>=1.20
-    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.20
-    , plutus-tx:{plutus-tx, plutus-tx-testlib}                          ^>=1.20
+    , plutus-core:{plutus-core, plutus-core-testlib}                    ^>=1.21
+    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.21
+    , plutus-tx:{plutus-tx, plutus-tx-testlib}                          ^>=1.21
     , serialise
     , tasty
     , tasty-hedgehog
@@ -188,10 +188,10 @@ test-suite plutus-ledger-api-plugin-test
   build-depends:
     , base                                            >=4.9   && <5
     , containers
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.20
-    , plutus-ledger-api                               ^>=1.20
-    , plutus-tx-plugin                                ^>=1.20
-    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.20
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.21
+    , plutus-ledger-api                               ^>=1.21
+    , plutus-tx-plugin                                ^>=1.21
+    , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.21
     , prettyprinter
     , tasty
 
@@ -209,8 +209,8 @@ executable test-onchain-evaluation
     , extra
     , filepath
     , mtl
-    , plutus-core                                                       ^>=1.20
-    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.20
+    , plutus-core                                                       ^>=1.21
+    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.21
     , serialise
     , tasty
     , tasty-hunit
@@ -229,9 +229,9 @@ executable analyse-script-events
     , filepath
     , lens
     , mtl
-    , plutus-core                                                       ^>=1.20
-    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.20
-    , plutus-tx                                                         ^>=1.20
+    , plutus-core                                                       ^>=1.21
+    , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.21
+    , plutus-tx                                                         ^>=1.21
     , primitive
     , serialise
 
