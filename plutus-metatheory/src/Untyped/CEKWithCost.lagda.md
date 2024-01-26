@@ -22,7 +22,7 @@ open import Untyped using (_⊢)
 open _⊢
 open import Utils using (Writer;_>>_;_>>=_;return;maybe;Either;inj₁;inj₂;RuntimeError;gasError;either;_∔_≣_)
 open Writer
-open import RawU using (tmCon;TmCon)
+open import RawU using (tmCon)
 open import Builtin using (Builtin;arity;signature)
 open import Builtin.Signature using (fv;args♯)
 
