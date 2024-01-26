@@ -4,7 +4,7 @@
 module Main (main) where
 
 import Control.Monad.Trans.Except
-import MAlonzo.Code.Main (runUAgda)
+import MAlonzo.Code.Evaluator.Term (runUAgda)
 import PlutusConformance.Common
 import PlutusCore (Error (..))
 import PlutusCore.Default

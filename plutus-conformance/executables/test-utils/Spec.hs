@@ -13,7 +13,7 @@ import Control.Monad.Trans.Except
 import Data.Foldable (for_)
 import Data.String (fromString)
 import Data.Text.IO qualified as T
-import MAlonzo.Code.Main (runUAgda)
+import MAlonzo.Code.Evaluator.Term (runUAgda)
 import Options.Applicative
 import Options.Applicative.Help.Pretty (Doc)
 import PlutusConformance.Common

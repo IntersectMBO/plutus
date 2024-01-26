@@ -12,6 +12,7 @@ import System.Process
 
 import Distribution.TestSuite
 
+import MAlonzo.Code.Evaluator.Term qualified as M
 import MAlonzo.Code.Main qualified as M
 import MAlonzo.Code.Raw qualified as R
 
