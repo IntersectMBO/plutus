@@ -61,9 +61,8 @@ integerToByteStringWrapper endiannessArg lengthArg input
       emit "integerToByteString: negative length argument"
       emit $ "Length requested: " <> (pack . show $ input)
       evaluationFailure
-  -- Check that the requested length does not exceed the limit.  *NB*: if we
-  -- remove the limit we'll still have to make sure that the length fits into an
-  -- Int.
+  -- Check that the requested length does not exceed the limit.  *NB*: if we remove the limit we'll
+  -- still have to make sure that the length fits into an Int.
   | lengthArg > integerToByteStringMaximumOutputLength = do
       emit . pack $ "integerToByteString: requested length is too long (maximum is "
                ++ (show $ integerToByteStringMaximumOutputLength)

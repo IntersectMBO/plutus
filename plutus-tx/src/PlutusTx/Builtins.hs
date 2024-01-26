@@ -612,7 +612,7 @@ byteOrderToBool LittleEndian = False
 
 -- | Convert a 'BuiltinInteger' into a 'BuiltinByteString', as described in
 -- [CIP-0087](https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-XXXX).
--- The first argument indicated the endianness of the conversion and the third
+-- The first argument indicates the endianness of the conversion and the third
 -- argument is the integer to be converted, which must be non-negative.  The
 -- second argument must also be non-negative and it indicates the required width
 -- of the output.  If the width is zero then the output is the smallest
