@@ -24,12 +24,26 @@ data ModelComponent = Cpu | Memory
 -------------- Types representing cost mode entries and functions for JSON parsing ----------------
 
 data LinearFunction =
-    LinearFunction {intercept_ :: Integer, slope_ :: Integer}
-                   deriving stock Show
+    LinearFunction
+    { intercept_ :: Integer
+    , slope_     :: Integer}
+    deriving stock Show
 
 instance FromJSON LinearFunction where
     parseJSON = withObject "Linear function" $ \obj ->
                 LinearFunction <$> obj .: "intercept" <*> obj .: "slope"
+
+data QuadraticFunction =
+    QuadraticFunction
+    { coeff0_ :: Integer
+    , coeff1_ :: Integer
+    , coeff2_ :: Integer
+    }
+    deriving stock Show
+
+instance FromJSON QuadraticFunction where
+    parseJSON = withObject "Quadratic function" $ \obj ->
+                QuadraticFunction <$> obj .: "c0" <*> obj .: "c1" <*> obj .: "c2"
 
 {- | This type reflects what is actually in the JSON.  The stuff in
    CostingFun.Core and CostingFun.JSON is much more rigid, allowing parsing only
@@ -39,20 +53,23 @@ instance FromJSON LinearFunction where
    expected in builtinCostModel.json.
 -}
 data Model
-    = ConstantCost       Integer
-    | AddedSizes         LinearFunction
-    | MultipliedSizes    LinearFunction
-    | MinSize            LinearFunction
-    | MaxSize            LinearFunction
-    | LinearCost         LinearFunction
-    | LinearInX          LinearFunction
-    | LinearInY          LinearFunction
-    | LinearInZ          LinearFunction
-    | SubtractedSizes    LinearFunction Integer
+    = ConstantCost          Integer
+    | AddedSizes            LinearFunction
+    | MultipliedSizes       LinearFunction
+    | MinSize               LinearFunction
+    | MaxSize               LinearFunction
+    | LinearCost            LinearFunction
+    | LinearInX             LinearFunction
+    | LinearInY             LinearFunction
+    | LinearInZ             LinearFunction
+    | LiteralInYOrLinearInZ LinearFunction
+    | QuadraticInY          QuadraticFunction
+    | QuadraticInZ          QuadraticFunction
+    | SubtractedSizes       LinearFunction Integer
     -- ^ Linear model in x-y plus minimum value for the case x-y < 0.
-    | ConstAboveDiagonal Integer Model
-    | ConstBelowDiagonal Integer Model
-    | LinearOnDiagonal   LinearFunction Integer
+    | ConstAboveDiagonal    Integer Model
+    | ConstBelowDiagonal    Integer Model
+    | LinearOnDiagonal      LinearFunction Integer
       -- ^ Linear model for x=y together with a constant for the case x!=y; we
       -- should probably allow a general model here.
       deriving stock Show
@@ -90,6 +107,9 @@ instance FromJSON Model where
                "linear_in_x"          -> LinearInX             <$> parseJSON args
                "linear_in_y"          -> LinearInY             <$> parseJSON args
                "linear_in_z"          -> LinearInZ             <$> parseJSON args
+               "quadratic_in_y"       -> QuadraticInY          <$> parseJSON args
+               "quadratic_in_z"       -> QuadraticInZ          <$> parseJSON args
+               "literal_in_y_or_linear_in_z" -> LiteralInYOrLinearInZ <$> parseJSON args
                "subtracted_sizes"     ->
                   SubtractedSizes       <$> parseJSON args <*> objOf args .: "minimum"
                "const_above_diagonal" ->
@@ -131,35 +151,46 @@ renderLinearFunction (LinearFunction intercept slope) var =
               unparen v = if v /= "" && head v == '(' && last v == ')'
                           then tail $ init v
                           else v
+renderQuadraticFunction :: QuadraticFunction -> String -> String
+renderQuadraticFunction (QuadraticFunction c0 c1 c2) var =
+    printf "%d + %d*%s + %d*%s^2" c0 c1 var c2 var
 
 renderModel :: Model -> [String]
 renderModel =
     \case
-     ConstantCost       n   -> [ printf "%d" n ]
-     AddedSizes         f   -> [ renderLinearFunction f "(x+y)" ]
-     MultipliedSizes    f   -> [ renderLinearFunction f "(x*y)" ]
-     MinSize            f   -> [ renderLinearFunction f "min(x,y)" ]
-     MaxSize            f   -> [ renderLinearFunction f "max(x,y)" ]
-     LinearCost         f   -> [ renderLinearFunction f "x" ]
-     LinearInX          f   -> [ renderLinearFunction f "x" ]
-     LinearInY          f   -> [ renderLinearFunction f "y" ]
-     LinearInZ          f   -> [ renderLinearFunction f "z" ]
-     SubtractedSizes    l c -> [ "if x>y"
-                               , printf "then %s" $ renderLinearFunction l "(x-y)"
-                               , printf "else %d" c
+     ConstantCost          n   -> [ printf "%d" n ]
+     AddedSizes            f   -> [ renderLinearFunction f "(x+y)" ]
+     MultipliedSizes       f   -> [ renderLinearFunction f "(x*y)" ]
+     MinSize               f   -> [ renderLinearFunction f "min(x,y)" ]
+     MaxSize               f   -> [ renderLinearFunction f "max(x,y)" ]
+     LinearCost            f   -> [ renderLinearFunction f "x" ]
+     LinearInX             f   -> [ renderLinearFunction f "x" ]
+     LinearInY             f   -> [ renderLinearFunction f "y" ]
+     LinearInZ             f   -> [ renderLinearFunction f "z" ]
+     QuadraticInY          f   -> [ renderQuadraticFunction f "y" ]
+     QuadraticInZ          f   -> [ renderQuadraticFunction f "z" ]
+     LiteralInYOrLinearInZ f -> [ "if y==0"
+                                  , printf "then %s" $ renderLinearFunction f "z"
+                                  , printf "else y bytes"
+                                ]  -- This is only used for the memory usage of
+                                   -- `integerToByteString` at the moment, so
+                                   -- this makes sense.
+     SubtractedSizes       l c -> [ "if x>y"
+                                  , printf "then %s" $ renderLinearFunction l "(x-y)"
+                                  , printf "else %d" c
                                ]
-     ConstAboveDiagonal c m -> [ "if x>y"
-                               , printf "then %s" $ intercalate "\n" (renderModel m)
-                               , printf "else %d" c
-                               ]
-     ConstBelowDiagonal c m -> [ "if x<y"
-                               , printf "then %s" $ intercalate "\n" (renderModel m)
-                               , printf "else %d" c
-                               ]
-     LinearOnDiagonal   f c -> [ "if x==y"
-                               , printf "then %s" $ renderLinearFunction f "x"
-                               , printf "else %d" c
-                               ]
+     ConstAboveDiagonal    c m -> [ "if x>y"
+                                  , printf "then %s" $ intercalate "\n" (renderModel m)
+                                  , printf "else %d" c
+                                  ]
+     ConstBelowDiagonal    c m -> [ "if x<y"
+                                  , printf "then %s" $ intercalate "\n" (renderModel m)
+                                  , printf "else %d" c
+                                  ]
+     LinearOnDiagonal      f c -> [ "if x==y"
+                                  , printf "then %s" $ renderLinearFunction f "x"
+                                  , printf "else %d" c
+                                  ]
      -- ^ We're not properly indenting submodels in the above/below diagonal
      -- cases, but at present our submodels all fit on one line (eg, constant or
      -- linear).  It seems improbable that we'd ever have a submodel that
@@ -196,7 +227,8 @@ usage defaultCostModelPath = do
   printf "Usage: %s [-c|--cpu|-m|--mem|--memory] [-d|--default] [<filename>]\n" prog
   printf "\n"
   printf "Print a JSON cost model file in readable form.\n"
-  printf "The variables x, y, z, etc. represent the *sizes* of the builtin's arguments.\n"
+  printf "The variables x, y, z, etc. represent the *sizes* of the builtin's arguments\n"
+  printf "unless explicitly specified otherwise (eg \"z bytes\").\n"
   printf "Input is read from stdin if no file is given and --default is not specified.\n"
   printf "\n"
   printf "Options (later options take precedence over earlier ones):\n"
@@ -241,4 +273,3 @@ main = do
        -- ^ Width for indentation, leaving at least one space after the name of each builtin.
        -- We want all the costing function to be aligned with each other.
        in mapM_ (printModel component width) l
-

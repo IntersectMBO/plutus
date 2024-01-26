@@ -29,8 +29,8 @@ import Data.Kind (Type)
 import Data.Text as Text (Text, empty)
 import Data.Text.Encoding as Text (decodeUtf8, encodeUtf8)
 import GHC.Generics
+import PlutusCore.Bitwise.Convert qualified as Convert
 import PlutusCore.Builtin (BuiltinResult (..))
-import PlutusCore.Builtin.Convert qualified as Convert
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
@@ -685,11 +685,11 @@ CONVERSION
 -}
 
 {-# NOINLINE integerToByteString #-}
-integerToByteString ::
-  BuiltinBool ->
-  BuiltinInteger ->
-  BuiltinInteger ->
-  BuiltinByteString
+integerToByteString
+    :: BuiltinBool
+    -> BuiltinInteger
+    -> BuiltinInteger
+    -> BuiltinByteString
 integerToByteString (BuiltinBool endiannessArg) paddingArg input =
   case Convert.integerToByteStringWrapper endiannessArg paddingArg input of
     BuiltinFailure logs err        -> traceAll (logs <> pure (display err)) $
@@ -698,9 +698,9 @@ integerToByteString (BuiltinBool endiannessArg) paddingArg input =
     BuiltinSuccessWithLogs logs bs -> traceAll logs $ BuiltinByteString bs
 
 {-# NOINLINE byteStringToInteger #-}
-byteStringToInteger ::
-  BuiltinBool ->
-  BuiltinByteString ->
-  BuiltinInteger
-byteStringToInteger (BuiltinBool statedEndiannessArg) (BuiltinByteString input) =
-  Convert.byteStringToIntegerWrapper statedEndiannessArg input
+byteStringToInteger
+    :: BuiltinBool
+    -> BuiltinByteString
+    -> BuiltinInteger
+byteStringToInteger (BuiltinBool statedEndianness) (BuiltinByteString input) =
+  Convert.byteStringToIntegerWrapper statedEndianness input

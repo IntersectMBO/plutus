@@ -10,6 +10,7 @@ module PlutusCore.Evaluation.Machine.ExMemoryUsage
     , singletonRose
     , ExMemoryUsage(..)
     , flattenCostRose
+    , LiteralByteSize(..)
     ) where
 
 import PlutusCore.Crypto.BLS12_381.G1 as BLS12_381.G1
@@ -41,7 +42,7 @@ import Universe
  *  It is unsafe to increase the memory usage of a type because that may increase   *
  *  the resource usage of existing scripts beyond the limits set (and paid for)     *
  *  when they were uploaded to the chain, but because our costing functions are all *
- *  monotone) it is safe to decrease memory usage, as long it decreases for *all*   *
+ *  monotone it is safe to decrease memory usage, as long it decreases for *all*    *
  *  possible values of the type.                                                    *
  ************************************************************************************
 -}
@@ -167,9 +168,26 @@ instance ExMemoryUsage () where
     memoryUsage () = singletonRose 1
     {-# INLINE memoryUsage #-}
 
+{- | When invoking a built-in function, a value of type LiteralByteSize can be
+   used transparently as a built-in Integer but with a different size measure:
+   see Note [Integral types as Integer].  This is required by the
+   `integerToByteString` builtin, which takes an argument `w` specifying the
+   width (in bytes) of the output bytestring (zero-padded to the desired size).
+   The memory consumed by the function is given by `w`, *not* the size of `w`.
+   The `LiteralByteSize` type wraps an Integer `w` in a newtype whose
+   `ExMemoryUsage` is equal to the number of eight-byte words required to
+   contain `w` bytes, allowing its costing function to work properly.
+-}
+newtype LiteralByteSize = LiteralByteSize { unLiteralByteSize :: Integer }
+instance ExMemoryUsage LiteralByteSize where
+    memoryUsage (LiteralByteSize n) = singletonRose . fromIntegral $ ((n-1) `div` 8) + 1
+    {-# INLINE memoryUsage #-}
+
 -- | Calculate a 'CostingInteger' for the given 'Integer'.
 memoryUsageInteger :: Integer -> CostingInteger
 -- integerLog2# is unspecified for 0 (but in practice returns -1)
+-- ^ This changed with GHC 9.2: it now returns 0.  It's probably safest if we
+-- keep this special case for the time being though.
 memoryUsageInteger 0 = 1
 -- Assume 64 Int
 memoryUsageInteger i = fromIntegral $ I# (integerLog2# (abs i) `quotInt#` integerToInt 64) + 1
@@ -195,6 +213,17 @@ instance ExMemoryUsage BS.ByteString where
     memoryUsage bs = singletonRose . unsafeToSatInt $ ((n - 1) `quot` 8) + 1 where
         n = BS.length bs
     {-# INLINE memoryUsage #-}
+{- The two preceding comments contradict each other.  The first one says that we
+   should use `div`, but the second one says to use `quot` instead (and that is
+   what is used).  The only difference here is for negative numbers: (-1) `div`
+   8 == -1 and (-1) `quot` 8 == 0.  Thus the current memoryUsage for the empty
+   bytestring is 1: replacing `quot` with `div` would change the memoryUsage of
+   the empty bytestring from 1 to 0 and leave the memoryUsages of all other
+   bytestrings unchanged.  We can probably change this safely since all that it
+   would mean is that programs which use the empty bytestring as a builtin
+   argument would become a little cheaper.  The difference would be very small
+   though, so it's maybe not worth fixing. -}
+
 
 instance ExMemoryUsage T.Text where
     -- This is slow and inaccurate, but matches the version that was originally deployed.

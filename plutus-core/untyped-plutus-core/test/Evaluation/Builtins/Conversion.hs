@@ -15,24 +15,23 @@ module Evaluation.Builtins.Conversion (
   b2iProperty2,
   b2iProperty3,
   i2bCipExamples,
+  i2bLimitTests,
   b2iCipExamples
   ) where
 
-import Data.ByteString (ByteString)
 import Evaluation.Builtins.Common (typecheckEvaluateCek)
+import PlutusCore qualified as PLC
+import PlutusCore.Bitwise.Convert (integerToByteStringMaximumOutputLength)
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModel)
+import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn)
+import PlutusPrelude (Word8, def)
+import UntypedPlutusCore qualified as UPLC
+
+import Data.ByteString (ByteString)
 import GHC.Exts (fromList)
 import Hedgehog (Gen, PropertyT, annotateShow, failure, forAllWith, (===))
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import PlutusCore qualified as PLC
-import UntypedPlutusCore qualified as UPLC
-{-
-import PlutusCore (DefaultFun (ByteStringToInteger, ConsByteString, IndexByteString, EqualsInteger, IntegerToByteString, LengthOfByteString, LessThanInteger, RemainderInteger, SubtractInteger),
-                   EvaluationResult (EvaluationFailure, EvaluationSuccess))
--}
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModel)
-import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn)
-import PlutusPrelude (Word8, def)
 import Test.Tasty (TestTree)
 import Test.Tasty.HUnit (assertEqual, assertFailure, testCase)
 import Text.Show.Pretty (ppShow)
@@ -42,13 +41,14 @@ import Text.Show.Pretty (ppShow)
 -- - https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-XXXX#builtinintegertobytestring
 -- - https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-XXXX#builtinbytestringtointeger
 
+
 -- lengthOfByteString (integerToByteString e d 0) = d
 i2bProperty1 :: PropertyT IO ()
 i2bProperty1 = do
   e <- forAllWith ppShow Gen.bool
-  -- We limit this temporarily due to the 10KiB limit imposed on lengths for the conversion
-  -- primitive until it is costed.
-  d <- forAllWith ppShow $ Gen.integral (Range.constant 0 10240)
+  -- We limit this temporarily due to the limit imposed on lengths for the
+  -- conversion primitive.
+  d <- forAllWith ppShow $ Gen.integral (Range.constant 0 integerToByteStringMaximumOutputLength)
   let actualExp = mkIterAppNoAnn (builtin () PLC.IntegerToByteString) [
         mkConstant @Bool () e,
         mkConstant @Integer () d,
@@ -67,10 +67,10 @@ i2bProperty1 = do
 i2bProperty2 :: PropertyT IO ()
 i2bProperty2 = do
   e <- forAllWith ppShow Gen.bool
-  -- We limit this temporarily due to the 10KiB limit imposed on lengths for the conversion
-  -- primitive until it is costed.
-  k <- forAllWith ppShow $ Gen.integral (Range.constant 1 10240)
-  j <- forAllWith ppShow $ Gen.integral (Range.constant 0 (k - 1))
+  -- We limit this temporarily due to the limit imposed on lengths for the
+  -- conversion primitive.
+  k <- forAllWith ppShow $ Gen.integral (Range.constant 1 integerToByteStringMaximumOutputLength)
+  j <- forAllWith ppShow $ Gen.integral (Range.constant 0 (k-1))
   let actualExp = mkIterAppNoAnn (builtin () PLC.IntegerToByteString) [
         mkConstant @Bool () e,
         mkConstant @Integer () k,
@@ -101,7 +101,7 @@ i2bProperty3 = do
         ]
   evaluateAndVerify (mkConstant @Bool () True) compareExp
 
--- nntegerToByteString False 0 (multiplyInteger p 256) = consByteString
+-- integerToByteString False 0 (multiplyInteger p 256) = consByteString
 -- 0 (integerToByteString False 0 p)
 i2bProperty4 :: PropertyT IO ()
 i2bProperty4 = do
@@ -402,6 +402,54 @@ i2bCipExamples = [
                               expectedExp = mkConstant @ByteString () (fromList [0x00, 0x00, 0x00, 0x01, 0x94])
                             in evaluateAssertEqual expectedExp actualExp
   ]
+
+-- Unit tests to make sure that `integerToByteString` behaves as expected for
+-- inputs close to the maximum size.
+i2bLimitTests ::[TestTree]
+i2bLimitTests =
+    let maxAcceptableInput = 2 ^ (8*integerToByteStringMaximumOutputLength) - 1
+        maxAcceptableLength = integerToByteStringMaximumOutputLength -- Just for brevity
+        maxOutput = fromList (take (fromIntegral integerToByteStringMaximumOutputLength) $ repeat 0xFF)
+        makeTests endianness =
+            let prefix = if endianness
+                         then "Big-endian, "
+                         else "Little-endian, "
+                mkIntegerToByteStringApp width input =
+                    mkIterAppNoAnn (builtin () PLC.IntegerToByteString) [
+                                        mkConstant @Bool () endianness,
+                                        mkConstant @Integer () width,
+                                        mkConstant @Integer () input
+                                       ]
+            in [
+             -- integerToByteString 0 maxInput = 0xFF...FF
+             testCase (prefix ++ "maximum acceptable input, no length specified") $
+                      let actualExp = mkIntegerToByteStringApp 0 maxAcceptableInput
+                          expectedExp = mkConstant @ByteString () maxOutput
+                      in evaluateAssertEqual expectedExp actualExp,
+             -- integerToByteString maxLen maxInput = 0xFF...FF
+             testCase (prefix ++ "maximum acceptable input, maximum acceptable length argument") $
+                      let actualExp = mkIntegerToByteStringApp maxAcceptableLength maxAcceptableInput
+                          expectedExp = mkConstant @ByteString () maxOutput
+                      in evaluateAssertEqual expectedExp actualExp,
+             -- integerToByteString 0 (maxInput+1) fails
+             testCase (prefix ++ "input too big, no length specified") $
+                      let actualExp = mkIntegerToByteStringApp 0 (maxAcceptableInput + 1)
+                      in evaluateShouldFail actualExp,
+             -- integerToByteString maxLen (maxInput+1) fails
+             testCase (prefix ++ "input too big, maximum acceptable length argument") $
+                      let actualExp = mkIntegerToByteStringApp maxAcceptableLength (maxAcceptableInput + 1)
+                      in evaluateShouldFail actualExp,
+             -- integerToByteString (maxLen-1) maxInput fails
+             testCase (prefix ++ "maximum acceptable input, length argument not big enough") $
+                      let actualExp = mkIntegerToByteStringApp (maxAcceptableLength - 1) maxAcceptableInput
+                      in evaluateShouldFail actualExp,
+             -- integerToByteString _ (maxLen+1) 0 fails, just to make sure that
+             -- we can't go beyond the supposed limit
+             testCase (prefix ++ "input zero, length argument over limit") $
+                      let actualExp = mkIntegerToByteStringApp (maxAcceptableLength + 1) 0
+                      in evaluateShouldFail actualExp
+            ]
+        in makeTests True ++ makeTests False
 
 b2iCipExamples :: [TestTree]
 b2iCipExamples = [

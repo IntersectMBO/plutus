@@ -21,7 +21,7 @@ import NoThunks.Class
 -- 'BuiltinCostedResult' contains the cost (an 'ExBudget') and the result (a @BuiltinResult val@) of
 -- the builtin application. The cost is stored strictly, since the evaluator is going to look at it
 -- and the result is stored lazily, since it's not supposed to be forced before accounting for the
--- cost of the application. If the cost exceeds the available budget, the evaluator discards the the
+-- cost of the application. If the cost exceeds the available budget, the evaluator discards the
 -- result of the builtin application without ever forcing it and terminates with evaluation
 -- failure. Allowing the user to compute something that they don't have the budget for would be a
 -- major bug.

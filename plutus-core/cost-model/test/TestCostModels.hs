@@ -423,5 +423,9 @@ main =
                     -- Keccak_256, Blake2b_224
                     , $(genTest 1 "keccak_256")
                     , $(genTest 1 "blake2b_224")
-                   ]
+
+                    -- Bitwise operations
+                    , $(genTest 3 "integerToByteString")
+                    , $(genTest 2 "byteStringToInteger") Everywhere
+                    ]
 

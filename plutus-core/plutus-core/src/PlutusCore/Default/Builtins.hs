@@ -17,15 +17,16 @@ module PlutusCore.Default.Builtins where
 import PlutusPrelude
 
 import PlutusCore.Builtin
-import PlutusCore.Data
+import PlutusCore.Data (Data (..))
 import PlutusCore.Default.Universe
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
-import PlutusCore.Evaluation.Machine.ExBudgetStream
-import PlutusCore.Evaluation.Machine.ExMemoryUsage
-import PlutusCore.Evaluation.Result
-import PlutusCore.Pretty
+import PlutusCore.Evaluation.Machine.ExBudgetStream (ExBudgetStream)
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage, LiteralByteSize (..),
+                                                    memoryUsage, singletonRose)
+import PlutusCore.Evaluation.Result (EvaluationResult (..))
+import PlutusCore.Pretty (PrettyConfigPlc)
 
-import PlutusCore.Builtin.Convert as Convert
+import PlutusCore.Bitwise.Convert as Convert
 import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
@@ -36,13 +37,13 @@ import PlutusCore.Crypto.Secp256k1 (verifyEcdsaSecp256k1Signature, verifySchnorr
 import Codec.Serialise (serialise)
 import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
-import Data.Char
-import Data.Ix
+import Data.Char (toLower)
+import Data.Ix (Ix)
 import Data.Text (Text, pack)
 import Data.Text.Encoding (decodeUtf8', encodeUtf8)
 import Flat hiding (from, to)
-import Flat.Decoder
-import Flat.Encoder as Flat
+import Flat.Decoder (Get, dBEBits8)
+import Flat.Encoder as Flat (Encoding, NumBits, eBits)
 import Prettyprinter (viaShow)
 
 -- See Note [Pattern matching on built-in types].
@@ -1800,20 +1801,23 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             (runCostingFunOneArgument . paramBlake2b_224)
 
     -- Conversions
+    {- See Note [Input length limitation for IntegerToByteString] -}
     toBuiltinMeaning _semvar IntegerToByteString =
-      let integerToByteStringDenotation :: Bool -> Integer -> Integer -> BuiltinResult BS.ByteString
-          integerToByteStringDenotation = integerToByteStringWrapper
+      let integerToByteStringDenotation :: Bool -> LiteralByteSize -> Integer -> BuiltinResult BS.ByteString
+          {- The second argument is wrapped in a LiteralByteSize to allow us to interpret it as a size during
+             costing.  It appears as an integer in UPLC: see Note [Integral types as Integer]. -}
+          integerToByteStringDenotation b (LiteralByteSize w) n = integerToByteStringWrapper b w n
+          {-# INLINE integerToByteStringDenotation #-}
         in makeBuiltinMeaning
           integerToByteStringDenotation
-          -- FIXME: Cost this function.
-          (runCostingFunThreeArguments . const def)
+          (runCostingFunThreeArguments . paramIntegerToByteString)
     toBuiltinMeaning _semvar ByteStringToInteger =
       let byteStringToIntegerDenotation :: Bool -> BS.ByteString -> Integer
           byteStringToIntegerDenotation = byteStringToIntegerWrapper
+          {-# INLINE byteStringToIntegerDenotation #-}
         in makeBuiltinMeaning
             byteStringToIntegerDenotation
-            -- FIXME: Cost this function.
-            (runCostingFunTwoArguments . const def)
+            (runCostingFunTwoArguments . paramByteStringToInteger)
     -- See Note [Inlining meanings of builtins].
     {-# INLINE toBuiltinMeaning #-}
 

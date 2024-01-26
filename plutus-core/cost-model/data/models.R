@@ -129,7 +129,9 @@ arity <- function(name) {
         "Bls12_381_mulMlResult" = 2,
         "Bls12_381_finalVerify" = 2,
         "Keccak_256" = 1,
-        "Blake2b_224" = 1
+        "Blake2b_224" = 1,
+        "IntegerToByteString" = 3,
+        "ByteStringToInteger" = 2
         )
 }
 
@@ -645,7 +647,8 @@ modelFun <- function(path) {
     bls12_381_G1_compressModel       <- constantModel ("Bls12_381_G1_compress")
     bls12_381_G1_uncompressModel     <- constantModel ("Bls12_381_G1_uncompress")
     bls12_381_G2_addModel            <- constantModel ("Bls12_381_G2_add")
-    bls12_381_G2_negModel            <- constantModel ("Bls12_381_G2_neg")
+
+bls12_381_G2_negModel            <- constantModel ("Bls12_381_G2_neg")
     bls12_381_G2_scalarMulModel      <- linearInX     ("Bls12_381_G2_scalarMul")
     bls12_381_G2_equalModel          <- constantModel ("Bls12_381_G2_equal")
     bls12_381_G2_hashToGroupModel    <- linearInX     ("Bls12_381_G2_hashToGroup")
@@ -654,6 +657,24 @@ modelFun <- function(path) {
     bls12_381_millerLoopModel        <- constantModel ("Bls12_381_millerLoop")
     bls12_381_mulMlResultModel       <- constantModel ("Bls12_381_mulMlResult")
     bls12_381_finalVerifyModel       <- constantModel ("Bls12_381_finalVerify")
+
+    ##### Bitwise operations #####
+
+    integerToByteStringModel <- {
+        fname <- "IntegerToByteString"
+        filtered <- data %>%
+            filter.and.check.nonempty(fname)
+        lm(t ~ I(z_mem) + I(z_mem^2), filtered)
+    }
+
+    byteStringToIntegerModel <- {
+        fname <- "ByteStringToInteger"
+        filtered <- data %>%
+            filter.and.check.nonempty(fname)
+        lm(t ~  I(y_mem) + I(y_mem^2), filtered)
+    }
+
+    ##### Models to be returned to Haskell #####
 
     models <- list (
         addIntegerModel                      = addIntegerModel,
@@ -728,7 +749,9 @@ modelFun <- function(path) {
         bls12_381_G2_uncompressModel         = bls12_381_G2_uncompressModel,
         bls12_381_millerLoopModel            = bls12_381_millerLoopModel,
         bls12_381_mulMlResultModel           = bls12_381_mulMlResultModel,
-        bls12_381_finalVerifyModel           = bls12_381_finalVerifyModel
+        bls12_381_finalVerifyModel           = bls12_381_finalVerifyModel,
+        integerToByteStringModel             = integerToByteStringModel,
+        byteStringToIntegerModel             = byteStringToIntegerModel
     )
 
     return(adjustModels(models))

@@ -49,6 +49,7 @@ import PlutusCore.Crypto.BLS12_381.G1 qualified as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing
 import PlutusCore.Data
+import PlutusCore.Evaluation.Machine.ExMemoryUsage (LiteralByteSize (..))
 import PlutusCore.Evaluation.Result
 import PlutusCore.Pretty.Extra
 
@@ -416,6 +417,13 @@ instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Word8 wher
                Just w8 -> pure w8
                _       -> throwing_ _EvaluationFailure
     {-# INLINE readKnown #-}
+
+-- deriving newtype doesn't work here (or at least not easily), so we have an explicit instance.
+instance KnownTypeAst tyname DefaultUni LiteralByteSize where
+     toTypeAst _ = toTypeAst $ Proxy @Integer
+
+deriving newtype instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term LiteralByteSize
+deriving newtype instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term LiteralByteSize
 
 {- Note [Stable encoding of tags]
 'encodeUni' and 'decodeUni' are used for serialisation and deserialisation of types from the

@@ -32,8 +32,8 @@ tests =
             166 @=? length V1.costModelParamsForTesting
             175 @=? length v2_ParamNames
             175 @=? length V2.costModelParamsForTesting
-            223 @=? length v3_ParamNames
-            223 @=? length V3.costModelParamsForTesting
+            233 @=? length v3_ParamNames
+            233 @=? length V3.costModelParamsForTesting
     , testCase "tripping paramname" $ do
             for_ v1_ParamNames $ \ p ->
                 assertBool "tripping v1 cm params failed" $ Just p == readParamName (showParamName p)

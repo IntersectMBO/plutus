@@ -16,7 +16,11 @@ module PlutusCore.Evaluation.Machine.BuiltinCostModel
     , CostingFun(..)
     , Intercept(..)
     , Slope(..)
+    , Coefficient0(..)
+    , Coefficient1(..)
+    , Coefficient2(..)
     , OneVariableLinearFunction(..)
+    , OneVariableQuadraticFunction(..)
     , TwoVariableLinearFunction(..)
     , ModelAddedSizes(..)
     , ModelSubtractedSizes(..)
@@ -157,6 +161,9 @@ data BuiltinCostModelBase f =
     -- Keccak_256, Blake2b_224
     , paramKeccak_256                      :: f ModelOneArgument
     , paramBlake2b_224                     :: f ModelOneArgument
+    -- Bitwise operations
+    , paramIntegerToByteString             :: f ModelThreeArguments
+    , paramByteStringToInteger             :: f ModelTwoArguments
     }
     deriving stock (Generic)
     deriving anyclass (FunctorB, TraversableB, ConstraintsB)

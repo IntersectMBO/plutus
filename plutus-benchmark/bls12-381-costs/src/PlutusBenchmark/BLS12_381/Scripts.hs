@@ -52,6 +52,7 @@ import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.ByteString.Char8 qualified as C8
 import Data.Semigroup ((<>))
+import GHC.ByteOrder (ByteOrder (LittleEndian))
 import Hedgehog.Internal.Gen qualified as G
 import Hedgehog.Internal.Range qualified as R
 import System.IO.Unsafe (unsafePerformIO)
@@ -79,16 +80,10 @@ blsSigBls12381G2XmdSha256SswuRoNul = toBuiltin $ C8.pack "BLS_SIG_BLS12381G2_XMD
 byteString16Null :: BuiltinByteString
 byteString16Null = bytesFromHex "00000000000000000000000000000000"
 
--- workaround the lack of ByteString to Integer interpretation
--- replace with builtin when available, see https://github.com/IntersectMBO/plutus/pull/4733
-byteStringToInteger  :: BuiltinByteString -> Integer
-byteStringToInteger b =
-  go 0
-    where len = Tx.lengthOfByteString b
-          go i =
-              if i >= len
-              then 0
-              else (Tx.indexByteString b i) + 256 * (go (i + 1))
+-- Little-endian bytestring to integer conversion
+{-# INLINABLE byteStringToIntegerLE #-}
+byteStringToIntegerLE :: BuiltinByteString -> Integer
+byteStringToIntegerLE = Tx.byteStringToInteger LittleEndian
 
 ---------------- Examples ----------------
 
@@ -386,9 +381,9 @@ vrfBlsScript message pubKey (VrfProofWithOutput beta (VrfProof gamma c s)) =
       -- do the following calculation
       pubKey' = Tx.bls12_381_G2_uncompress pubKey
       g2generator = Tx.bls12_381_G2_uncompress bls12_381_G2_compressed_generator
-      u = Tx.bls12_381_G2_add (Tx.bls12_381_G2_scalarMul (byteStringToInteger c) pubKey') (Tx.bls12_381_G2_scalarMul s g2generator)
+      u = Tx.bls12_381_G2_add (Tx.bls12_381_G2_scalarMul (byteStringToIntegerLE c) pubKey') (Tx.bls12_381_G2_scalarMul s g2generator)
       h = Tx.bls12_381_G2_hashToGroup message emptyByteString
-      v = Tx.bls12_381_G2_add (Tx.bls12_381_G2_scalarMul (byteStringToInteger c) (Tx.bls12_381_G2_uncompress gamma)) (Tx.bls12_381_G2_scalarMul s h)
+      v = Tx.bls12_381_G2_add (Tx.bls12_381_G2_scalarMul (byteStringToIntegerLE c) (Tx.bls12_381_G2_uncompress gamma)) (Tx.bls12_381_G2_scalarMul s h)
     -- and check
 
   in c == (sha2_256 . mconcat $ Tx.bls12_381_G2_compress <$> [g2generator, h, pubKey', Tx.bls12_381_G2_uncompress gamma, u, v])
@@ -422,7 +417,7 @@ generateVrfProof privKey message =
                 <$> [g2generator, h, pub, gamma, Tx.bls12_381_G2_scalarMul k g2generator, Tx.bls12_381_G2_scalarMul k h]
 
       -- define the third and last element of a proof of correct VRF
-      s = (k - (byteStringToInteger c) * privKey) `modulo` 52435875175126190479447740508185965837690552500527637822603658699938581184513
+      s = (k - (byteStringToIntegerLE c) * privKey) `modulo` 52435875175126190479447740508185965837690552500527637822603658699938581184513
 
       -- cofactor of G2
       f = 305502333931268344200999753193121504214466019254188142667664032982267604182971884026507427359259977847832272839041692990889188039904403802465579155252111 :: Integer
@@ -704,7 +699,7 @@ aggregateMultiKeyG2Script message pubKeys aggregateSignature bs16Null dst =
       hashedMsg = Tx.bls12_381_G1_hashToGroup message dst
       pksDeser = Tx.map Tx.bls12_381_G2_uncompress pubKeys
       -- scalar calcuates to (142819114285630344964654001480828217341 :: Integer)
-      dsScalar = byteStringToInteger (Tx.sliceByteString 0 16
+      dsScalar = byteStringToIntegerLE (Tx.sliceByteString 0 16
                     (Tx.sha2_256 (foldl1 Tx.appendByteString pubKeys)) `Tx.appendByteString` bs16Null)
       aggrSigDeser = Tx.bls12_381_G1_uncompress aggregateSignature
       aggrPk = calcAggregatedPubkeys dsScalar pksDeser
@@ -810,11 +805,11 @@ schnorrG1VerifyScript ::
 schnorrG1VerifyScript message pubKey signature bs16Null =
   let a = Tx.fst signature
       r = Tx.snd signature
-      c = byteStringToInteger (Tx.sliceByteString 0 16
+      c = byteStringToIntegerLE (Tx.sliceByteString 0 16
             (Tx.sha2_256 (a `Tx.appendByteString` pubKey `Tx.appendByteString` message)) `Tx.appendByteString` bs16Null)
       pkDeser = Tx.bls12_381_G1_uncompress pubKey
       aDeser = Tx.bls12_381_G1_uncompress a
-      rDeser = byteStringToInteger r
+      rDeser = byteStringToIntegerLE r
       g1generator = Tx.bls12_381_G1_uncompress Tx.bls12_381_G1_compressed_generator
   in (rDeser `Tx.bls12_381_G1_scalarMul` g1generator) ==
          (aDeser `Tx.bls12_381_G1_add` (c `Tx.bls12_381_G1_scalarMul` pkDeser))
@@ -876,11 +871,11 @@ schnorrG2VerifyScript ::
 schnorrG2VerifyScript message pubKey signature bs16Null =
   let a = Tx.fst signature
       r = Tx.snd signature
-      c = byteStringToInteger (Tx.sliceByteString 0 16
+      c = byteStringToIntegerLE (Tx.sliceByteString 0 16
           (Tx.sha2_256 (a `Tx.appendByteString` pubKey `Tx.appendByteString` message)) `Tx.appendByteString` bs16Null)
       pkDeser = Tx.bls12_381_G2_uncompress pubKey
       aDeser = Tx.bls12_381_G2_uncompress a
-      rDeser = byteStringToInteger r
+      rDeser = byteStringToIntegerLE r
       g2generator = Tx.bls12_381_G2_uncompress Tx.bls12_381_G2_compressed_generator
   in rDeser `Tx.bls12_381_G2_scalarMul` g2generator ==
          (aDeser `Tx.bls12_381_G2_add` (c `Tx.bls12_381_G2_scalarMul` pkDeser))

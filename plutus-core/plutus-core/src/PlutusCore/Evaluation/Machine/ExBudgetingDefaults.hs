@@ -216,5 +216,8 @@ unitCostBuiltinCostModel = BuiltinCostModelBase
     -- Keccak_256, Blake2b_224
     , paramKeccak_256                      = unitCostOneArgument
     , paramBlake2b_224                     = unitCostOneArgument
+    -- Bitwise operations
+    , paramIntegerToByteString             = unitCostThreeArguments
+    , paramByteStringToInteger             = unitCostTwoArguments
     }
 
