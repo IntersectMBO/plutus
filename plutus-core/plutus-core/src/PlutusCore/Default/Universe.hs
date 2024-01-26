@@ -418,19 +418,12 @@ instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Word8 wher
                _       -> throwing_ _EvaluationFailure
     {-# INLINE readKnown #-}
 
--- | This allows us to transparently use values of type LiteralByteSize as
--- built-in Integers but with a different size measure.
+-- deriving newtype doesn't work here (or at least not easily), so we have an explicit instance.
 instance KnownTypeAst tyname DefaultUni LiteralByteSize where
-    toTypeAst _ = toTypeAst $ Proxy @Integer
+     toTypeAst _ = toTypeAst $ Proxy @Integer
 
--- See Note [Integral types as Integer].
-instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term LiteralByteSize where
-    makeKnown = makeKnown . unLiteralByteSize
-    {-# INLINE makeKnown #-}
-
-instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term LiteralByteSize where
-    readKnown term = LiteralByteSize <$> readKnown term
-    {-# INLINE readKnown #-}
+deriving newtype instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term LiteralByteSize
+deriving newtype instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term LiteralByteSize
 
 {- Note [Stable encoding of tags]
 'encodeUni' and 'decodeUni' are used for serialisation and deserialisation of types from the

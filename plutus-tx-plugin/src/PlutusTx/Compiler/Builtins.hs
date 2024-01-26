@@ -334,10 +334,6 @@ defineBuiltinTerms = do
     defineBuiltinTerm annMayInline 'Builtins.bls12_381_G2_compressed_zero $
         PIR.mkConstant annMayInline BLS12_381.G2.compressed_zero
 
-    -- Bitwise operations
-    defineBuiltinTerm annMayInline 'Builtins.integerToByteString $ mkBuiltin PLC.IntegerToByteString
-    defineBuiltinTerm annMayInline 'Builtins.byteStringToInteger $ mkBuiltin PLC.ByteStringToInteger
-
     -- See Note [Builtin terms and values]
     for_ enumerate $ \fun ->
         let defineBuiltinInl impl = defineBuiltinTerm annMayInline impl $ mkBuiltin fun
@@ -360,8 +356,6 @@ defineBuiltinTerms = do
             PLC.LessThanByteString -> defineBuiltinInl 'Builtins.lessThanByteString
             PLC.LessThanEqualsByteString -> defineBuiltinInl 'Builtins.lessThanEqualsByteString
             PLC.DecodeUtf8 -> defineBuiltinInl 'Builtins.decodeUtf8
-            PLC.IntegerToByteString -> defineBuiltinInl 'Builtins.integerToByteString
-            PLC.ByteStringToInteger -> defineBuiltinInl 'Builtins.byteStringToInteger
 
             -- Strings and chars
             PLC.AppendString -> defineBuiltinInl 'Builtins.appendString
@@ -458,6 +452,10 @@ defineBuiltinTerms = do
             PLC.Bls12_381_millerLoop -> defineBuiltinInl 'Builtins.bls12_381_millerLoop
             PLC.Bls12_381_mulMlResult -> defineBuiltinInl 'Builtins.bls12_381_mulMlResult
             PLC.Bls12_381_finalVerify -> defineBuiltinInl 'Builtins.bls12_381_finalVerify
+
+            -- Bitwise operations
+            PLC.IntegerToByteString -> defineBuiltinInl 'Builtins.integerToByteString
+            PLC.ByteStringToInteger -> defineBuiltinInl 'Builtins.byteStringToInteger
 
 defineBuiltinTypes
     :: CompilingDefault uni fun m ann

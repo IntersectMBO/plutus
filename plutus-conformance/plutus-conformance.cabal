@@ -50,7 +50,7 @@ library
     , directory
     , filepath
     , lens
-    , plutus-core             ^>=1.20
+    , plutus-core             ^>=1.21
     , tasty
     , tasty-expected-failure
     , tasty-golden
@@ -66,7 +66,7 @@ executable test-utils
     , base                  >=4.9   && <5
     , optparse-applicative  >=0.18
     , plutus-conformance
-    , plutus-core           ^>=1.20
+    , plutus-core           ^>=1.21
     , plutus-metatheory
     , tasty-golden
     , text
@@ -89,6 +89,7 @@ test-suite haskell-conformance
   import:         lang
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
   hs-source-dirs: haskell test-cases
   other-modules:
   build-depends:
@@ -99,23 +100,25 @@ test-suite haskell-steppable-conformance
   import:         lang
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
   hs-source-dirs: haskell-steppable test-cases
   other-modules:
   build-depends:
     , base                >=4.9   && <5
     , lens
     , plutus-conformance
-    , plutus-core         ^>=1.20
+    , plutus-core         ^>=1.21
 
 test-suite agda-conformance
   import:         lang
   type:           exitcode-stdio-1.0
   main-is:        Spec.hs
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
   hs-source-dirs: agda test-cases
   other-modules:
   build-depends:
     , base                >=4.9   && <5
     , plutus-conformance
-    , plutus-core         ^>=1.20
+    , plutus-core         ^>=1.21
     , plutus-metatheory
     , transformers

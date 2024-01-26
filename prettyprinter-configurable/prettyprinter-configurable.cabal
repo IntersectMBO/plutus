@@ -1,6 +1,6 @@
 cabal-version:      2.4
 name:               prettyprinter-configurable
-version:            1.20.0.0
+version:            1.21.0.0
 
 -- synopsis:
 -- description:
@@ -71,6 +71,7 @@ test-suite prettyprinter-configurable-test
   import:         lang
   type:           exitcode-stdio-1.0
   main-is:        Main.hs
+  ghc-options:    -threaded -rtsopts -with-rtsopts=-N
   hs-source-dirs: test
   other-modules:
     Default
@@ -82,7 +83,7 @@ test-suite prettyprinter-configurable-test
     , base                        >=4.9   && <5
     , megaparsec
     , parser-combinators
-    , prettyprinter-configurable  ^>=1.20
+    , prettyprinter-configurable  ^>=1.21
     , QuickCheck
     , quickcheck-text
     , tasty

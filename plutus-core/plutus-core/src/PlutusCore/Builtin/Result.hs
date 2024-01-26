@@ -77,6 +77,7 @@ instance AsEvaluationFailure BuiltinError where
     _EvaluationFailure = _EvaluationFailureVia BuiltinEvaluationFailure
     {-# INLINE _EvaluationFailure #-}
 
+-- >>> import PlutusCore.Evaluation.Result
 -- >>> evaluationFailure :: BuiltinResult Bool
 -- BuiltinFailure (fromList []) BuiltinEvaluationFailure
 --
@@ -88,7 +89,7 @@ instance AsEvaluationFailure BuiltinError where
 -- >>> matching _BuiltinFailure $ BuiltinSuccess True
 -- Left (BuiltinSuccess True)
 instance AsEvaluationFailure (BuiltinResult a) where
-    _EvaluationFailure = _BuiltinFailure . prism (\_ -> pure evaluationFailure) (\_ -> Right ())
+    _EvaluationFailure = _BuiltinFailure . iso (\_ -> ()) (\_ -> pure evaluationFailure)
     {-# INLINE _EvaluationFailure #-}
 
 instance MonadEmitter BuiltinResult where
