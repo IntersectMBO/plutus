@@ -168,12 +168,16 @@ instance ExMemoryUsage () where
     memoryUsage () = singletonRose 1
     {-# INLINE memoryUsage #-}
 
-{- | The `integerToByteString` builtin takes an argument `w` specifying the width
-   (in bytes) of the output bytestring (zero-padded to the desired size).  The
-   memory consumed by the function is given by `w`, *not* the size of `w`.  This
-   type wraps an Integer `w` in a newtype whose `ExMemoryUsage` is equal to the
-   number of eight-byte words required to contain `w` bytes, allowing the
-   costing function to work properly. -}
+{- | When invoking a built-in function, a value of type LiteralByteSize can be
+   used transparently as a built-in Integer but with a different size measure:
+   see Note [Integral types as Integer].  This is required by the
+   `integerToByteString` builtin, which takes an argument `w` specifying the
+   width (in bytes) of the output bytestring (zero-padded to the desired size).
+   The memory consumed by the function is given by `w`, *not* the size of `w`.
+   The `LiteralByteSize` type wraps an Integer `w` in a newtype whose
+   `ExMemoryUsage` is equal to the number of eight-byte words required to
+   contain `w` bytes, allowing its costing function to work properly.
+-}
 newtype LiteralByteSize = LiteralByteSize { unLiteralByteSize :: Integer }
 instance ExMemoryUsage LiteralByteSize where
     memoryUsage (LiteralByteSize n) = singletonRose . fromIntegral $ ((n-1) `div` 8) + 1

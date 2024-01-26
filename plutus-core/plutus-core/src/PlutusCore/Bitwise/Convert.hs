@@ -44,7 +44,7 @@ import GHC.Integer.Logarithms (integerLog2#)
    integerToByteString in Plutus Core so that we can continue to support the
    current behaviour for old scripts.-}
 integerToByteStringMaximumOutputLength :: Integer
-integerToByteStringMaximumOutputLength = 8000
+integerToByteStringMaximumOutputLength = 8192
 
 {- Return the base 2 logarithm of an integer, returning 0 for inputs that aren't
    strictly positive.  This is essentially copied from GHC.Num.Integer, which
@@ -63,8 +63,7 @@ integerToByteStringWrapper endiannessArg lengthArg input
       evaluationFailure
   -- Check that the requested length does not exceed the limit.  *NB*: if we
   -- remove the limit we'll still have to make sure that the length fits into an
-  -- Int (so it should be at most 2^29, which is the largest bound that GHC
-  -- guarantees).
+  -- Int.
   | lengthArg > integerToByteStringMaximumOutputLength = do
       emit . pack $ "integerToByteString: requested length is too long (maximum is "
                ++ (show $ integerToByteStringMaximumOutputLength)

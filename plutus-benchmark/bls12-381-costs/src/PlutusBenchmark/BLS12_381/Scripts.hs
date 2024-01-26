@@ -52,6 +52,7 @@ import Data.ByteString (ByteString)
 import Data.ByteString qualified as BS
 import Data.ByteString.Char8 qualified as C8
 import Data.Semigroup ((<>))
+import GHC.ByteOrder (ByteOrder (LittleEndian))
 import Hedgehog.Internal.Gen qualified as G
 import Hedgehog.Internal.Range qualified as R
 import System.IO.Unsafe (unsafePerformIO)
@@ -79,10 +80,10 @@ blsSigBls12381G2XmdSha256SswuRoNul = toBuiltin $ C8.pack "BLS_SIG_BLS12381G2_XMD
 byteString16Null :: BuiltinByteString
 byteString16Null = bytesFromHex "00000000000000000000000000000000"
 
--- Little-endian bytestring to integer conversion #-}
+-- Little-endian bytestring to integer conversion
 {-# INLINABLE byteStringToIntegerLE #-}
 byteStringToIntegerLE :: BuiltinByteString -> Integer
-byteStringToIntegerLE s = Tx.byteStringToInteger False s
+byteStringToIntegerLE = Tx.byteStringToInteger LittleEndian
 
 ---------------- Examples ----------------
 

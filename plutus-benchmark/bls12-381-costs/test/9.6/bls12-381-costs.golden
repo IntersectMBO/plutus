@@ -133,13 +133,13 @@ Schnorr Signature G1
 
     n     Script size             CPU usage               Memory usage
   ----------------------------------------------------------------------
-    -     372   (2.3%)       248182411   (2.5%)           13996   (0.1%) 
+    -     370   (2.3%)       248136411   (2.5%)           13796   (0.1%) 
 
 Schnorr Signature G2
 
     n     Script size             CPU usage               Memory usage
   ----------------------------------------------------------------------
-    -     516   (3.1%)       493258089   (4.9%)           14164   (0.1%) 
+    -     514   (3.1%)       493212089   (4.9%)           13964   (0.1%) 
 
 Groth16Verify succeeded
 Simple Verify succeeded
