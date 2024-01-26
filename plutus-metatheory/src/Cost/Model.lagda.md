@@ -9,10 +9,12 @@ module Cost.Model where
 # Imports
 
 ```
+open import Agda.Builtin.Int using (Int;pos)
 open import Data.Bool using (true;false;if_then_else_)
 open import Data.Fin using (Fin;zero;suc)
-open import Data.Maybe using (Maybe;just;nothing;map)
+open import Data.Maybe using (Maybe;just;nothing) renaming (map to mapMaybe)
 open import Data.Nat using (ℕ;zero;suc;_+_;_*_;_∸_;_⊔_;_⊓_;_<ᵇ_;_≡ᵇ_)
+open import Data.Nat.DivMod using (_/_)
 open import Data.List using ([];_∷_)
 import Data.List as L 
 open import Data.Product using (Σ;_,_)
@@ -21,10 +23,15 @@ open import Relation.Nullary using (_because_;ofʸ)
 open import Relation.Binary.PropositionalEquality using (refl)
 
 open import Utils using (List;_×_;[];_∷_;_,_;length)
-open import Data.Vec using (Vec;[];_∷_;sum;foldr;lookup) 
+open import Data.Vec using (Vec;[];_∷_;sum;foldr;lookup;map) 
 open import Cost.Base 
 open import Cost.Raw renaming (mkLinearFunction to mkLF; mkQuadraticFunction to mkQF)
+open import Cost.Size using () renaming (defaultValueMeasure to sizeOf)
 open import Builtin using (Builtin;arity;builtinList;showBuiltin;decBuiltin)
+open import Builtin.Signature using (_⊢♯)
+open _⊢♯
+open import Builtin.Constant.AtomicType using (AtomicTyCon;aInteger)
+open import Untyped.CEK using (Value;V-con)
 ```
 
 ## Basic Definitions
@@ -53,6 +60,8 @@ data CostingModel : ℕ → Set where
   constantCost       : ∀{n} → CostingNat → CostingModel n
   linearCostIn       : ∀{n} → Fin n → Intercept → Slope → CostingModel n
   quadraticCostIn    : ∀{n} → Fin n → CostingNat → CostingNat → CostingNat → CostingModel n
+   -- take the cost literally if it is a positive integer, or else, use the provided model.
+  literalCostIn      : ∀{n} → Fin n → CostingModel n → CostingModel n
   addedSizes         : ∀{n} → Intercept → Slope → CostingModel n 
   multipliedSizes    : ∀{n} → Intercept → Slope → CostingModel n
   -- at least one argument
@@ -92,29 +101,44 @@ minimum (a ∷ xs) = foldr _ _⊓_ a xs
 Given a model and the sizes of the arguments we can compute a cost.
 
 ```
-runModel : ∀{n} → CostingModel n → Vec CostingNat n → CostingNat 
+runModel : ∀{n} → CostingModel n → Vec Value n → CostingNat 
 runModel (constantCost x) _ = x
-runModel (linearCostIn n i s) xs = i + s * lookup xs n
-runModel (linearCostIn n i s) xs = i + s * lookup xs n
-runModel (addedSizes i s) xs = i + s * (sum xs)
-runModel (quadraticCostIn n c0 c1 c2) xs = let x = lookup xs n in c0 + c1 * x + c2 * x * x
-runModel (multipliedSizes i s) xs = i + s * (prod xs)
-runModel (minSize i s) xs = i + s * minimum xs
-runModel (maxSize i s) xs = i + s * maximum xs
-runModel (twoArgumentsLinearInXAndY i s₁ s₂) (a ∷ b ∷ []) = i + s₁ * a + s₂ * b 
-runModel (twoArgumentsSubtractedSizes i s min) (a ∷ b ∷ []) = i + s * (min ⊔ (a ∸ b))
-runModel (twoArgumentsLinearOnDiagonal c i s) (a ∷ b ∷ []) = 
-    if a ≡ᵇ b 
+runModel (linearCostIn n i s) xs = i + s * sizeOf (lookup xs n)
+runModel (quadraticCostIn n c0 c1 c2) xs = let x = sizeOf (lookup xs n) in c0 + c1 * x + c2 * x * x
+runModel (addedSizes i s) xs = i + s * (sum (map sizeOf xs))
+runModel (multipliedSizes i s) xs = i + s * (prod (map sizeOf xs))
+runModel (minSize i s) xs = i + s * minimum (map sizeOf xs)
+runModel (maxSize i s) xs = i + s * maximum (map sizeOf xs)
+runModel (twoArgumentsLinearInXAndY i s₁ s₂) (x ∷ y ∷ []) = 
+  let a = sizeOf x 
+      b = sizeOf y 
+  in i + s₁ * a + s₂ * b 
+runModel (twoArgumentsSubtractedSizes i s min) (x ∷ y ∷ []) =
+  let a = sizeOf x 
+      b = sizeOf y 
+  in i + s * (min ⊔ (a ∸ b))
+runModel (twoArgumentsLinearOnDiagonal c i s) (x ∷ y ∷ []) = 
+    let a = sizeOf x 
+        b = sizeOf y 
+    in if a ≡ᵇ b 
       then i + s * a 
       else c
-runModel (twoArgumentsConstAboveDiagonal c m) (a ∷ b ∷ []) = 
-    if a <ᵇ b 
+runModel (twoArgumentsConstAboveDiagonal c m) (x ∷ y ∷ []) =
+  let a = sizeOf x 
+      b = sizeOf y 
+  in if a <ᵇ b 
       then c 
-      else runModel m (a ∷ b ∷ [])
-runModel (twoArgumentsConstBelowDiagonal c m) (a ∷ b ∷ []) =
-    if b <ᵇ a 
+      else runModel m (x ∷ y ∷ [])
+runModel (twoArgumentsConstBelowDiagonal c m) (x ∷ y ∷ []) =
+  let a = sizeOf x 
+      b = sizeOf y 
+  in if b <ᵇ a 
       then c 
-      else runModel m (a ∷ b ∷ [])
+      else runModel m (x ∷ y ∷ [])
+runModel (literalCostIn n m) xs with lookup xs n 
+... | V-con (atomic aInteger) (pos (suc n)) = (n / 8) + 1
+  --only uses the literal size if positive integer.
+... | _ = runModel m xs
 ```
 
 ## Convert from Raw Model
@@ -134,13 +158,11 @@ convertRawModel {suc (suc n)} (LinearInY (mkLF intercept slope)) = just (linearC
 convertRawModel {suc (suc n)} (QuadraticInY (mkQF c0 c1 c2)) = just (quadraticCostIn (suc zero) c0 c1 c2)
 convertRawModel {suc (suc (suc n))}(LinearInZ (mkLF intercept slope)) = just (linearCostIn (suc (suc zero)) intercept slope)
 convertRawModel {suc (suc (suc n))} (QuadraticInZ (mkQF c0 c1 c2)) = just (quadraticCostIn (suc (suc zero)) c0 c1 c2)
-convertRawModel {suc (suc (suc n))} (LiteralInYOrLinearInZ (mkLF intercept slope)) = just (linearCostIn (suc (suc zero)) intercept slope)
--- **** FIXME ****: for LiteralInYOrLinearInZ, the cost should be exactly ((y-1) `div` 8)+1) (the
--- parameter is a number of bytes, but the size is a number of words) if y > 0, and the linear
--- function applied to z if y == 0.
+convertRawModel {suc (suc (suc n))} (LiteralInYOrLinearInZ (mkLF intercept slope)) = 
+    just (literalCostIn  (suc zero) (linearCostIn (suc (suc zero)) intercept slope))
 convertRawModel {2} (SubtractedSizes (mkLF intercept slope) c) = just (twoArgumentsSubtractedSizes intercept slope c)
-convertRawModel {2} (ConstAboveDiagonal c m) = map (twoArgumentsConstAboveDiagonal c) (convertRawModel m)
-convertRawModel {2} (ConstBelowDiagonal c m) = map (twoArgumentsConstBelowDiagonal c) (convertRawModel m)
+convertRawModel {2} (ConstAboveDiagonal c m) = mapMaybe (twoArgumentsConstAboveDiagonal c) (convertRawModel m)
+convertRawModel {2} (ConstBelowDiagonal c m) = mapMaybe (twoArgumentsConstBelowDiagonal c) (convertRawModel m)
 convertRawModel {2} (LinearOnDiagonal (mkLF intercept slope) c) = just (twoArgumentsLinearOnDiagonal c intercept slope)
 convertRawModel _ = nothing
 
@@ -163,7 +185,7 @@ getModel : Builtin → BuiltinCostMap → Maybe (Σ Builtin (λ b → (BuiltinMo
 getModel b [] = nothing
 getModel b ((bn , rm) ∷ xs) with showBuiltin b == bn 
 ... | false = getModel b xs
-... | true = map (b ,_) (convertCpuAndMemoryModel rm)
+... | true = mapMaybe (b ,_) (convertCpuAndMemoryModel rm)
 ``` 
 
 Once we have a list of all the builtins and their corresponding model, 
@@ -197,5 +219,5 @@ createMap : BuiltinCostMap → Maybe ModelAssignment
 createMap bmap = 
       let modelMaybeList = L.map (λ b → getModel b bmap) builtinList 
           maybeModelList = allJust modelMaybeList
-      in map lookupModel maybeModelList
-```
+      in mapMaybe lookupModel maybeModelList
+``` 
