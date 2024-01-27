@@ -431,4 +431,3 @@ stepper (suc n) st | (s ; ρ ▻ M) = stepper n (s ; ρ ▻ M)
 stepper (suc n) st | (s ◅ V) = stepper n (s ◅ V)
 stepper (suc n) st | (□ V)   = return (□ V)
 stepper (suc n) st | ◆ A     = return (◆ A)
-
