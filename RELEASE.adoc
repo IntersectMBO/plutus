@@ -86,7 +86,7 @@ cp ./result/bin/pir ./pir-x86_64-linux-ghc96
 nix build .#hydraJobs.x86_64-linux.musl64.ghc96.uplc
 cp ./result/bin/uplc ./uplc-x86_64-linux-ghc96
 -------------
-- Click `Publish release`
+- Click `Publish release`.
 7. Open a PR in the https://github.com/IntersectMBO/cardano-haskell-packages[CHaP repository] for publishing the new version. Run `./scripts/add-from-github.sh "https://github.com/IntersectMBO/plutus" COMMIT-SHA LIST-OF-UPDATED-PACKAGES` (see https://github.com/IntersectMBO/cardano-haskell-packages#-from-github[the README on CHaP]). Example: https://github.com/IntersectMBO/cardano-haskell-packages/pull/394.
 - If issues are found, create a release branch `release/x.y.z`, fix the issues on master, backport the fixes to `release/x.y.z`, tag `x.y.z.0-rc2`, and go to step 4.
 - Why not just fix the issues on master and tag `x.y.z.0-rc2` from master?
