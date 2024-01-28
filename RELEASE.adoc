@@ -71,7 +71,7 @@ This updates versions and version bounds, and assembles the changelogs.open a PR
 - `<packages>` should normally be empty, which will prepare the default packages, or can be an explicit list of packages to prepare.
 4. Review the changelogs and edit manually if needed.
 5. Open a PR for updating the cabal files and the changelog files. Example: https://github.com/IntersectMBO/plutus/pull/5452.
-6. Once the PR is merged, 'Draft a new Release' with name `x.y.z.0` using https://github.com/IntersectMBO/plutus/releases/new[Github's release interface] (under `Tags`/`Releases` on the main `plutus` page):
+6. Once the PR is merged, 'Draft a new Release' with name `x.y.z.0` using https://github.com/IntersectMBO/plutus/releases/new[Github's release interface] (this can also be found under `Tags`/`Releases` on the main `plutus` page):
 - Choose as git tag `x.y.z.0`
 - Choose as target the git commit hash which points to the release commit
 - Click on `Generate release notes` to fill in the details of what's changed
