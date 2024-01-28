@@ -74,7 +74,7 @@ This updates versions and version bounds, and assembles the changelogs.open a PR
 6. Once the PR is merged, 'Draft a new Release' with name `x.y.z.0` using https://github.com/IntersectMBO/plutus/releases/new[Github's release interface] (this can also be found under `Tags`/`Releases` on the main `plutus` page):
 - Choose as git tag `x.y.z.0`
 - Choose as target the git commit hash which points to the release commit
-- Click on `Generate release notes` to fill in the details of what's changed
+- Click `Generate release notes` to fill in the details of what's changed
 - Create and attach pir&uplc executables to the release by running the following commands inside the repository where its HEAD is at the release commit:
 - 
 +
@@ -86,7 +86,7 @@ cp ./result/bin/pir ./pir-x86_64-linux-ghc96
 nix build .#hydraJobs.x86_64-linux.musl64.ghc96.uplc
 cp ./result/bin/uplc ./uplc-x86_64-linux-ghc96
 -------------
-- Click on `Publish release`
+- Click `Publish release`
 7. Open a PR in the https://github.com/IntersectMBO/cardano-haskell-packages[CHaP repository] for publishing the new version. Run `./scripts/add-from-github.sh "https://github.com/IntersectMBO/plutus" COMMIT-SHA LIST-OF-UPDATED-PACKAGES` (see https://github.com/IntersectMBO/cardano-haskell-packages#-from-github[the README on CHaP]). Example: https://github.com/IntersectMBO/cardano-haskell-packages/pull/394.
 - If issues are found, create a release branch `release/x.y.z`, fix the issues on master, backport the fixes to `release/x.y.z`, tag `x.y.z.0-rc2`, and go to step 4.
 - Why not just fix the issues on master and tag `x.y.z.0-rc2` from master?
