@@ -74,7 +74,7 @@ This updates versions and version bounds, and assembles the changelogs.open a PR
 6. Once the PR is merged, 'Draft a new Release' with name `x.y.z.0` using https://github.com/IntersectMBO/plutus/releases/new[Github's release interface] (this can also be found under `Tags`/`Releases` on the main `plutus` page):
 - Choose as git tag `x.y.z.0`
 - Choose as target the git commit hash which points to the release commit
-- Click `Generate release notes` to fill in the details of what's changed
+- Click `Generate release notes` to automatically fill in the details of what's changed
 - Create and attach pir&uplc executables to the release by running the following commands inside the repository where its HEAD is at the release commit:
 - 
 +
