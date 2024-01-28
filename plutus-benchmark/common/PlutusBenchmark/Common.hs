@@ -38,7 +38,7 @@ import PlutusTx qualified as Tx
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek as Cek
 
-import MAlonzo.Code.Main (runUAgda)
+import MAlonzo.Code.Evaluator.Term (runUAgda)
 
 import Criterion.Main
 import Criterion.Types (Config (..))
