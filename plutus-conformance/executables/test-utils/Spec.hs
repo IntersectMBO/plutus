@@ -51,8 +51,7 @@ dir =
         (metavar "DIR" <> help "The directory the input files are in.")
 
 data Feature
-    = GenTestOutput Runner
-    | Debug
+    = Debug
 
 feature :: Parser Feature
 feature =
@@ -66,8 +65,6 @@ feature =
         )
 
 featureReader :: String -> Either String Feature
-featureReader "eval" = Right $ GenTestOutput Eval
-featureReader "typecheck" = Right $ GenTestOutput Typecheck
 -- currently we can only debug the agda implementation, may add others later
 featureReader "debug" = Right Debug
 featureReader inp =
@@ -78,11 +75,6 @@ featureReader inp =
             <> "or typecheck (for generating typechecking test outputs), "
             <> "or debug (for debugging failed tests)."
         )
-
-data Runner
-    = Eval
-    | Typecheck
-    deriving stock (Show)
 
 args :: ParserInfo Args
 args =
@@ -122,22 +114,9 @@ main = do
         case parsed of
             Left (ParseErrorB _) ->
                 case run of
-                    GenTestOutput Eval ->
-                        do
-                            -- specifying parsed to ParserError for the compiler
-                            -- warn the user that the file failed to parse
-                            putStrLn $
-                                inputFile <> " failed to parse. Error written to " <> outFilePath
-                            T.writeFile outFilePath shownParseError
                     _ -> pure () -- for debug mode we don't want to see the failed to parse cases.
             Right pro -> do
                 case run of
-                    GenTestOutput Eval -> undefined
-                    GenTestOutput Typecheck ->
-                        putStrLn $
-                            "typechecking has not been implemented yet."
-                                <> "Only evaluation tests (eval) "
-                                <> "or debugging (debug) are supported."
                     Debug ->
                         case agdaEvalUplcProgDebug (() <$ pro) of
                             (Right _prog) -> pure ()
