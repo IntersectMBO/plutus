@@ -11,19 +11,22 @@ import Data.Text.IO qualified as T
 import PlutusCore.Annotation
 import PlutusCore.Default (DefaultFun, DefaultUni)
 import PlutusCore.Error (ParserErrorBundle)
+import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParameters)
 import PlutusCore.Name (Name)
 import PlutusCore.Quote (runQuoteT)
-import PlutusPrelude (display, void)
+import PlutusPrelude (Pretty (pretty), display, void)
 import System.Directory
 import System.FilePath (takeBaseName, (</>))
 import Test.Tasty (defaultMain, testGroup)
 import Test.Tasty.ExpectedFailure (expectFail)
+import Test.Tasty.Extras (goldenVsDocM)
 import Test.Tasty.Golden (findByExtension)
 import Test.Tasty.Golden.Advanced (goldenTest)
 import Test.Tasty.Providers (TestTree)
 import UntypedPlutusCore qualified as UPLC
-import UntypedPlutusCore.Evaluation.Machine.Cek (evaluateCekNoEmit)
+import UntypedPlutusCore.Evaluation.Machine.Cek (CountingSt (..), counting, evaluateCekNoEmit,
+                                                 runCekNoEmit)
 import UntypedPlutusCore.Parser qualified as UPLC
 import Witherable (Witherable (wither))
 
@@ -50,9 +53,16 @@ type UplcProg = UPLC.Program Name DefaultUni DefaultFun ()
 
 -- UPLC evaluation test functions
 
+type UplcEvaluatorFun res = UplcProg -> Maybe res
+
 -- | The evaluator to be tested. It should either return a program if the evaluation is successful,
 -- or `Nothing` if not.
-type UplcEvaluator = UplcProg -> Maybe UplcProg
+type UplcEvaluatorWithoutCosting = UplcEvaluatorFun UplcProg
+type UplcEvaluatorWithCosting = UplcEvaluatorFun (UplcProg, ExBudget)
+
+data UplcEvaluator =
+  UplcEvaluatorWithoutCosting (UplcEvaluatorFun UplcProg)
+  | UplcEvaluatorWithCosting (UplcEvaluatorFun (UplcProg, ExBudget))
 
 -- | Walk a file tree, making test groups for directories with subdirectories,
 -- and test cases for directories without.
@@ -71,24 +81,43 @@ discoverTests eval expectedFailureFn dir = do
         pure $ if isDir then Just fullPath else Nothing
     if null subdirs
     -- no children, this is a test case directory
-    then do
-            let goldenFilePath = dir </> name <> ".uplc.expected"
-                mkGoldenTest =
-                        goldenTest
-                            name -- test name
-                            -- get the golden test value
-                            (expectedToProg <$> T.readFile goldenFilePath)
-                            -- get the tested value
-                            (getTestedValue eval dir)
-                            (\ x y -> pure $ compareAlphaEq x y) -- comparison function
-                            (updateGoldenFile goldenFilePath) -- update the golden file
+    then
+        let tests = case eval of
+                UplcEvaluatorWithCosting f -> testGroup name
+                     [ testForEval name (fmap fst . f)
+                     , testForBudget name (fmap snd . f)
+                     ]
+                UplcEvaluatorWithoutCosting f -> testForEval name f
+        in
             -- if the test is expected to fail, mark it so.
             if expectedFailureFn dir
-            then pure $ expectFail mkGoldenTest
+            then pure $ expectFail tests
             -- the test isn't expected to fail, make the `TestTree` as usual.
-            else pure mkGoldenTest
+            else pure tests
     -- has children, so it's a grouping directory
     else testGroup name <$> traverse (discoverTests eval expectedFailureFn) subdirs
+  where
+    testForEval :: String -> UplcEvaluatorFun UplcProg -> TestTree
+    testForEval name e =
+        let goldenFilePath = dir </> name <> ".uplc.expected"
+        in goldenTest
+            (name ++ " (evaluation)")
+            -- get the golden test value
+            (expectedToProg <$> T.readFile goldenFilePath)
+            -- get the tested value
+            (getTestedValue e dir)
+            (\ x y -> pure $ compareAlphaEq x y) -- comparison function
+            (updateGoldenFile goldenFilePath) -- update the golden file
+
+    testForBudget :: String -> UplcEvaluatorFun ExBudget -> TestTree
+    testForBudget name e =
+        let goldenFilePath = dir </> name <> ".uplc.budget.expected"
+            prettyEither (Left l)  = pretty l
+            prettyEither (Right r) = pretty r
+        in goldenVsDocM
+            (name ++ " (budget)")
+            goldenFilePath
+            (prettyEither <$> getTestedValue e dir)
 
 -- | Turn the expected file content in text to a `UplcProg` unless the expected result
 -- is a parse or evaluation error.
@@ -106,9 +135,9 @@ expectedToProg txt
 -- | Get the tested value. The tested value is either the shown parse or evaluation error,
 -- or a `UplcProg`.
 getTestedValue ::
-    UplcEvaluator
+    UplcEvaluatorFun res
     -> FilePath
-    -> IO (Either T.Text UplcProg)
+    -> IO (Either T.Text res)
 getTestedValue eval dir = do
     inputFile <- findByExtension [".uplc"] dir
     case inputFile of
@@ -176,17 +205,16 @@ updateGoldenFile goldenPath (Right p)  = T.writeFile goldenPath (display p)
 
 -- | Our `evaluator` for the Haskell UPLC tests is the CEK machine.
 evalUplcProg :: UplcEvaluator
-evalUplcProg = traverseOf UPLC.progTerm eval
-  where
-    eval t = do
+evalUplcProg = UplcEvaluatorWithCosting $ \(UPLC.Program a v t) ->
+    do
         -- runCek-like functions (e.g. evaluateCekNoEmit) are partial on term's with free variables,
         -- that is why we manually check first for any free vars
         case UPLC.deBruijnTerm t of
             Left (_ :: UPLC.FreeVariableError) -> Nothing
             Right _                            -> Just ()
-        case evaluateCekNoEmit defaultCekParameters t of
-            Left _     -> Nothing
-            Right prog -> Just prog
+        case runCekNoEmit defaultCekParameters counting t of
+            (Left _, _)                   -> Nothing
+            (Right prog, CountingSt cost) -> Just (UPLC.Program a v prog, cost)
 
 
 -- | Run the UPLC evaluation tests given an `evaluator` that evaluates UPLC programs.

@@ -50,7 +50,7 @@ library
     , directory
     , filepath
     , lens
-    , plutus-core             ^>=1.21
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.21
     , tasty
     , tasty-expected-failure
     , tasty-golden
