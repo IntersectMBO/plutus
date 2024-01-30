@@ -5,7 +5,6 @@
 {- | Plutus conformance test suite library. -}
 module PlutusConformance.Common where
 
-import Control.Lens (traverseOf)
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
 import PlutusCore.Annotation
@@ -25,8 +24,7 @@ import Test.Tasty.Golden (findByExtension)
 import Test.Tasty.Golden.Advanced (goldenTest)
 import Test.Tasty.Providers (TestTree)
 import UntypedPlutusCore qualified as UPLC
-import UntypedPlutusCore.Evaluation.Machine.Cek (CountingSt (..), counting, evaluateCekNoEmit,
-                                                 runCekNoEmit)
+import UntypedPlutusCore.Evaluation.Machine.Cek (CountingSt (..), counting, runCekNoEmit)
 import UntypedPlutusCore.Parser qualified as UPLC
 import Witherable (Witherable (wither))
 

@@ -18,7 +18,6 @@ import Options.Applicative
 import Options.Applicative.Help.Pretty (Doc)
 import PlutusConformance.Common
 import PlutusCore.Error (Error (..), ParserErrorBundle (ParseErrorB))
-import PlutusCore.Pretty (Pretty (pretty), Render (render))
 import PlutusCore.Quote (Quote, runQuote)
 import Test.Tasty.Golden (findByExtension)
 import UntypedPlutusCore (DefaultFun, DefaultUni)
@@ -110,7 +109,6 @@ main = do
     for_ inputFiles $ \inputFile -> do
         inputTxt <- T.readFile inputFile
         let parsed = parseTxt inputTxt
-            outFilePath = inputFile <> ".expected"
         case parsed of
             Left (ParseErrorB _) ->
                 case run of

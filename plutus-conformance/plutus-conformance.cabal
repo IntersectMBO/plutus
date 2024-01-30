@@ -49,7 +49,6 @@ library
     , base
     , directory
     , filepath
-    , lens
     , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.21
     , tasty
     , tasty-expected-failure
