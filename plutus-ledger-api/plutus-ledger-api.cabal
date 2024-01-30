@@ -151,6 +151,7 @@ test-suite plutus-ledger-api-test
     Spec.Eval
     Spec.Interval
     Spec.NoThunks
+    Spec.ScriptDecodeError
     Spec.V1.Value
     Spec.Versions
 
@@ -167,6 +168,7 @@ test-suite plutus-ledger-api-test
     , plutus-core:{plutus-core, plutus-core-testlib}                    ^>=1.21
     , plutus-ledger-api:{plutus-ledger-api, plutus-ledger-api-testlib}  ^>=1.21
     , plutus-tx:{plutus-tx, plutus-tx-testlib}                          ^>=1.21
+    , prettyprinter
     , serialise
     , tasty
     , tasty-hedgehog

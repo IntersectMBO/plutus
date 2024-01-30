@@ -45,7 +45,6 @@ import Data.Set as Set
 import Data.Text as Text
 import Data.Tuple
 import NoThunks.Class
-import Prettyprinter
 
 -- | Errors that can be thrown when evaluating a Plutus script.
 data EvaluationError =
@@ -63,7 +62,7 @@ instance AsScriptDecodeError EvaluationError where
 instance Pretty EvaluationError where
     pretty (CekError e)               = prettyClassicDef e
     pretty (DeBruijnError e)          = pretty e
-    pretty (CodecError e)             = viaShow e
+    pretty (CodecError e)             = pretty e
     pretty CostModelParameterMismatch = "Cost model parameters were not as we expected"
 
 -- | A simple toggle indicating whether or not we should accumulate logs during script execution.
@@ -100,7 +99,8 @@ mkTermToEvaluate ll pv script args = do
 
     -- check that the Plutus Core language version is available
     -- See Note [Checking the Plutus Core language version]
-    unless (v `Set.member` plcVersionsAvailableIn ll pv) $ throwing _ScriptDecodeError $ PlutusCoreLanguageNotAvailableError v pv
+    unless (v `Set.member` plcVersionsAvailableIn ll pv) $
+      throwing _ScriptDecodeError $ PlutusCoreLanguageNotAvailableError v ll pv
 
     -- make sure that term is closed, i.e. well-scoped
     through (liftEither . first DeBruijnError . UPLC.checkScope) appliedT

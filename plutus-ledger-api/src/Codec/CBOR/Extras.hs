@@ -1,4 +1,5 @@
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Codec.CBOR.Extras (
   SerialiseViaFlat (..),
@@ -14,6 +15,7 @@ import Codec.Serialise (Serialise, decode, encode)
 import Data.Either.Extras (fromRightM)
 import Flat qualified
 import Flat.Decoder qualified as Flat
+import Prettyprinter (Pretty (pretty), (<+>))
 
 {- | Newtype to provide 'Serialise' instances for types with a 'Flat' instance
   that just encodes the flat-serialized value as a CBOR bytestring
@@ -65,6 +67,13 @@ data DeserialiseFailureInfo = DeserialiseFailureInfo
   }
   deriving stock (Eq, Show)
 
+instance Pretty DeserialiseFailureInfo where
+  pretty (DeserialiseFailureInfo offset reason) =
+    "CBOR deserialisation failed at the offset"
+      <+> pretty offset
+      <+> "for the following reason:"
+      <+> pretty reason
+
 -- | The reason of the cbor failure as a datatype, not as a plain string.
 data DeserialiseFailureReason
   = -- | Not enough input provided
@@ -75,3 +84,9 @@ data DeserialiseFailureReason
     -- message that `cborg` returns.
     OtherReason String
   deriving stock (Eq, Show)
+
+instance Pretty DeserialiseFailureReason where
+  pretty = \case
+    EndOfInput -> "reached the end of input while more data was expected."
+    ExpectedBytes -> "the bytes inside the input are malformed."
+    OtherReason msg -> pretty msg

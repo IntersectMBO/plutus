@@ -12,6 +12,7 @@ import Spec.CostModelParams qualified
 import Spec.Eval qualified
 import Spec.Interval qualified
 import Spec.NoThunks qualified
+import Spec.ScriptDecodeError qualified
 import Spec.V1.Value qualified as Value
 import Spec.Versions qualified
 
@@ -106,6 +107,7 @@ tests = testGroup "plutus-ledger-api"[
     , Spec.CostModelParams.tests
     , Spec.NoThunks.tests
     , Spec.CBOR.DeserialiseFailureInfo.tests
+    , Spec.ScriptDecodeError.tests
     , Spec.ContextDecoding.tests
     , Value.test_Value
     ]
