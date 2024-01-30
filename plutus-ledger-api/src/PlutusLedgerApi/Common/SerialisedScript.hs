@@ -39,7 +39,7 @@ import Control.Lens
 import Control.Monad (unless, when)
 import Control.Monad.Error.Lens
 import Control.Monad.Except (MonadError)
-import Data.ByteString.Lazy as BSL (ByteString, fromStrict, toStrict)
+import Data.ByteString.Lazy qualified as BSL
 import Data.ByteString.Short
 import Data.Coerce
 import Data.Set as Set
@@ -217,7 +217,7 @@ deserialiseScript ll pv sScript = do
     deserialiseSScript :: SerialisedScript -> m (BSL.ByteString, ScriptNamedDeBruijn)
     deserialiseSScript =
       fromShort
-        >>> fromStrict
+        >>> BSL.fromStrict
         >>> CBOR.deserialiseFromBytes (scriptCBORDecoder ll pv)
         -- lift the underlying cbor error to our custom error
         >>> either (throwing _ScriptDecodeError . toScripDecodeError) pure
