@@ -447,7 +447,6 @@ executable plc
   build-depends:
     , base                  >=4.9   && <5
     , bytestring
-    , deepseq
     , flat                  ^>=0.6
     , optparse-applicative
     , plutus-core           ^>=1.21
@@ -461,6 +460,7 @@ executable uplc
   build-depends:
     , base                  >=4.9   && <5
     , bytestring
+    , criterion
     , deepseq
     , flat                  ^>=0.6
     , haskeline

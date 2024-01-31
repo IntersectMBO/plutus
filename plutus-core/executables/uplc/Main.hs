@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable
 {-# LANGUAGE BangPatterns              #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE LambdaCase                #-}
@@ -10,8 +11,8 @@
 module Main (main) where
 
 import PlutusCore qualified as PLC
-import PlutusCore.Annotation
-import PlutusCore.Data
+import PlutusCore.Annotation (SrcSpan)
+import PlutusCore.Data (Data)
 import PlutusCore.Default (BuiltinSemanticsVariant (..))
 import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..), ExRestrictingBudget (..))
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as PLC
@@ -22,25 +23,25 @@ import PlutusCore.MkPlc (mkConstant)
 import PlutusPrelude
 
 import PlutusCore.Evaluation.Machine.MachineParameters
-import UntypedPlutusCore.Evaluation.Machine.Cek
 import UntypedPlutusCore.Evaluation.Machine.SteppableCek.DebugDriver qualified as D
 import UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal qualified as D
 
 import UntypedPlutusCore qualified as UPLC
-import UntypedPlutusCore.DeBruijn
+import UntypedPlutusCore.DeBruijn (FreeVariableError)
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
 
-import Control.DeepSeq (rnf)
+import Control.DeepSeq (force)
 import Control.Monad.Except (runExcept)
 import Control.Monad.IO.Class (liftIO)
+import Criterion (benchmarkWith, nf, whnf)
+import Criterion.Main (defaultConfig)
+import Criterion.Types (Config (..))
 import Data.ByteString.Lazy as BSL (readFile)
-import Data.Foldable
-import Data.List (nub)
 import Data.List.Split (splitOn)
 import Data.Text qualified as T
 import Flat (unflat)
 import Options.Applicative
-import Prettyprinter
+import Prettyprinter ((<+>))
 import System.Exit (exitFailure)
 import System.IO (hPrint, stderr)
 import Text.Read (readMaybe)
@@ -69,9 +70,15 @@ data EvalOptions =
       BudgetMode
       TraceMode
       Output
-      TimingMode
       CekModel
       (BuiltinSemanticsVariant PLC.DefaultFun)
+
+data BenchmarkOptions =
+    BenchmarkOptions
+      Input
+      Format
+      (BuiltinSemanticsVariant PLC.DefaultFun)
+      Double
 
 data DbgOptions =
     DbgOptions Input Format CekModel
@@ -80,6 +87,7 @@ data DbgOptions =
 
 data Command = Apply       ApplyOptions
              | ApplyToData ApplyOptions
+             | Benchmark   BenchmarkOptions
              | Convert     ConvertOptions
              | Optimise    OptimiseOptions
              | Print       PrintOptions
@@ -99,6 +107,19 @@ cekmodel =
         <> help "Use unit AST node costs and builtin costs for CEK cost model (tallying mode only)"
         )
 
+benchmarkOpts :: Parser BenchmarkOptions
+benchmarkOpts =
+  BenchmarkOptions
+  <$> input
+  <*> inputformat
+  <*> builtinSemanticsVariant
+  <*> option auto
+          (  long "time-limit"
+          <> short 'l'
+          <> metavar "TIME LIMIT"
+          <> value 5.0
+          <> help "Time limit for benchmarking.")
+
 evalOpts :: Parser EvalOptions
 evalOpts =
   EvalOptions
@@ -108,7 +129,6 @@ evalOpts =
   <*> budgetmode
   <*> tracemode
   <*> output
-  <*> timingmode
   <*> cekmodel
   <*> builtinSemanticsVariant
 
@@ -208,6 +228,9 @@ plutusOpts = hsubparser $
                      ++ "Usage: first request the list of available examples (optional step), "
                      ++ "then request a particular example by the name of a term. "
                      ++ "Note that evaluating a generated example may result in 'Failure'."))
+    <> command "benchmark"
+           (info (Benchmark <$> benchmarkOpts)
+            (progDesc "Benchmark an untyped Plutus Core program on the CEK machine using Criterion."))
     <> command "evaluate"
            (info (Eval <$> evalOpts)
             (progDesc "Evaluate an untyped Plutus Core program using the CEK machine."))
@@ -268,54 +291,59 @@ runApplyToData (ApplyOptions inputfiles ifmt outp ofmt mode) =
                        Right (d :: Data) ->
                            pure $ UPLC.Program () ver $ mkConstant () d
 
+---------------- Benchmarking ----------------
+
+runBenchmark :: BenchmarkOptions -> IO ()
+runBenchmark (BenchmarkOptions inp ifmt semvar timeLim) = do
+  prog <- readProgram ifmt inp
+  let criterionConfig = defaultConfig {reportFile = Nothing, timeLimit = timeLim}
+      cekparams = mkMachineParameters semvar PLC.defaultCekCostModel
+      evaluate = Cek.runCekDeBruijn cekparams Cek.restrictingEnormous Cek.noEmitter
+      -- readProgam throws away De Bruijn indices and returns an AST with Names;
+      -- we have to put them back to get an AST with NamedDeBruijn names.
+      !term = force . fromRight (error "Unexpected open term in runBenchmark.") .
+              runExcept @FreeVariableError $ UPLC.deBruijnTerm (UPLC._progTerm prog)
+      !bm = whnf evaluate term
+  benchmarkWith criterionConfig bm
 
 ---------------- Evaluation ----------------
 
 runEval :: EvalOptions -> IO ()
 runEval (EvalOptions inp ifmt printMode budgetMode traceMode
-                     outputMode timingMode cekModel semvar) = do
+                     outputMode cekModel semvar) = do
     prog <- readProgram ifmt inp
     let term = void $ prog ^. UPLC.progTerm
-        !_ = rnf term
         cekparams = case cekModel of
                     -- AST nodes are charged according to the default cost model
                     Default -> mkMachineParameters semvar PLC.defaultCekCostModel
                     -- AST nodes are charged one unit each, so we can see how many times each node
                     -- type is encountered.  This is useful for calibrating the budgeting code
                     Unit    -> PLC.unitCekParameters
-    let budgetM = case budgetMode of
-            Silent     -> SomeBudgetMode Cek.restrictingEnormous
-            Verbose bm -> bm
     let emitM = case traceMode of
             None               -> Cek.noEmitter
             Logs               -> Cek.logEmitter
             LogsWithTimestamps -> Cek.logWithTimeEmitter
             LogsWithBudgets    -> Cek.logWithBudgetEmitter
     -- Need the existential cost type in scope
+    let budgetM = case budgetMode of
+            Silent     -> SomeBudgetMode Cek.restrictingEnormous
+            Verbose bm -> bm
     case budgetM of
-        SomeBudgetMode bm -> evalWithTiming term >>= handleResults term
-            where
-                evaluate = Cek.runCek cekparams bm emitM
-                evalWithTiming t = case timingMode of
-                        NoTiming -> pure $ evaluate t
-                        Timing n -> do
-                            rs <- timeEval n evaluate t
-                            case nub rs of
-                                [a] -> pure a
-                                _   -> error "Timing evaluations returned inconsistent results"
-                handleResults t (res, budget, logs) = do
-                    case res of
-                        Left err -> hPrint stderr err
-                        Right v  -> writeToFileOrStd outputMode (show (getPrintMethod printMode v))
-                    case budgetMode of
-                        Silent    -> pure ()
-                        Verbose _ -> printBudgetState t cekModel budget
-                    case traceMode of
-                        None -> pure ()
-                        _    -> writeToFileOrStd outputMode (T.unpack (T.intercalate "\n" logs))
-                    case res of
-                        Left _  -> exitFailure
-                        Right _ -> pure ()
+        SomeBudgetMode bm ->
+            do
+              let (res, budget, logs) = Cek.runCek cekparams bm emitM term
+              case res of
+                Left err -> hPrint stderr err
+                Right v  -> writeToFileOrStd outputMode (show (getPrintMethod printMode v))
+              case budgetMode of
+                Silent    -> pure ()
+                Verbose _ -> printBudgetState term cekModel budget
+              case traceMode of
+                None -> pure ()
+                _    -> writeToFileOrStd outputMode (T.unpack (T.intercalate "\n" logs))
+              case res of
+                Left _  -> exitFailure
+                Right _ -> pure ()
 
 ---------------- Debugging ----------------
 
@@ -323,9 +351,8 @@ runDbg :: DbgOptions -> IO ()
 runDbg (DbgOptions inp ifmt cekModel) = do
     prog <- readProgram ifmt inp
     let term = prog ^. UPLC.progTerm
-        !_ = rnf term
         nterm = fromRight (error "Term to debug must be closed.") $
-                   runExcept @FreeVariableError $ deBruijnTerm term
+                   runExcept @FreeVariableError $ UPLC.deBruijnTerm term
     let cekparams = case cekModel of
                     -- AST nodes are charged according to the default cost model
                     Default -> PLC.defaultCekParameters
@@ -337,7 +364,7 @@ runDbg (DbgOptions inp ifmt cekModel) = do
                                      , Repl.autoAddHistory = False
                                      }
     -- nilSlippage is important so as to get correct live up-to-date budget
-    cekTrans <- fst <$> D.mkCekTrans cekparams restrictingEnormous noEmitter D.nilSlippage
+    cekTrans <- fst <$> D.mkCekTrans cekparams Cek.restrictingEnormous Cek.noEmitter D.nilSlippage
     Repl.runInputT replSettings $
         -- MAYBE: use cutoff or partialIterT to prevent runaway
         D.iterTM (handleDbg cekTrans) $ D.runDriverT nterm
@@ -396,6 +423,7 @@ main = do
     case options of
         Apply       opts       -> runApply             opts
         ApplyToData opts       -> runApplyToData       opts
+        Benchmark   opts       -> runBenchmark         opts
         Eval        opts       -> runEval              opts
         Dbg         opts       -> runDbg               opts
         Example     opts       -> runUplcPrintExample  opts
