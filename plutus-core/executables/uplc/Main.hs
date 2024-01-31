@@ -115,10 +115,11 @@ benchmarkOpts =
   <*> builtinSemanticsVariant
   <*> option auto
           (  long "time-limit"
-          <> short 'l'
+          <> short 'T'
           <> metavar "TIME LIMIT"
           <> value 5.0
-          <> help "Time limit for benchmarking.")
+          <> showDefault
+          <> help "Time limit (in seconds) for benchmarking.")
 
 evalOpts :: Parser EvalOptions
 evalOpts =

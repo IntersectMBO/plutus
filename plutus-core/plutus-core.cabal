@@ -673,7 +673,6 @@ library plutus-core-execlib
     , aeson
     , base                                                       >=4.9   && <5
     , bytestring
-    , deepseq
     , flat                                                       ^>=0.6
     , lens
     , megaparsec
