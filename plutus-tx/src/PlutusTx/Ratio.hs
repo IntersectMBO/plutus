@@ -56,6 +56,11 @@ import Prelude qualified as Haskell
 import Prettyprinter (Pretty (..), (<+>))
 
 -- | Represents an arbitrary-precision ratio.
+--
+-- The following two invariants are maintained:
+--
+-- 1. The denominator is greater than zero.
+-- 2. The numerator and denominator are coprime.
 data Rational = Rational Integer Integer
   deriving stock (
     Haskell.Eq,
@@ -65,11 +70,6 @@ data Rational = Rational Integer Integer
 
 instance Pretty Rational where
   pretty (Rational a b) = "Rational:" <+> pretty a <+> pretty b
-
--- We maintain two invariants for Rational:
---
--- 1. The denominator is greater than zero.
--- 2. The numerator and denominator are coprime.
 
 instance P.Eq Rational where
   {-# INLINABLE (==) #-}
