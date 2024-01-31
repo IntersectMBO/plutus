@@ -140,7 +140,7 @@ instance Pretty UnexpectedEvaluationResult where
             nest 2 $
                 vsep
                     [ "ScriptDecodeError"
-                    , viaShow err
+                    , pretty err
                     , "This should never happen at phase 2!"
                     ]
 
