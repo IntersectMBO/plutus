@@ -26,7 +26,7 @@ data QuadraticFunction =
     , coeff1_ :: Integer
     , coeff2_ :: Integer
     }
-    deriving stock Show
+    deriving stock (Show, Lift)
 
 instance FromJSON QuadraticFunction where
     parseJSON = withObject "Quadratic function" $ \obj ->
