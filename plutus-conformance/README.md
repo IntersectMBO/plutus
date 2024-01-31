@@ -23,32 +23,6 @@ To update or add test outputs, use the accept test option of the tests. E.g., to
 
 `cabal test haskell-conformance --test-options=--accept`
 
-There is also an executable (`test-utils`) for adding/updating test output to a specific directory:
-
-E.g., run
-
-`cabal run test-utils .uplc plutus-conformance/test-cases/uplc/evaluation eval`
-
-to have the executable search for files with extension `.uplc` in the /uplc directory. It will evaluate and create/update output files for them.
-
-For the manual, run:
-
-`cabal run test-utils -- -h`
-
-## Debugging mode for Agda's implementation of the UPLC evaluator
-
-One can run the following command to get more detailed error messages on the test cases that fail to evaluate in the Agda implementation:
-
-`cabal run test-utils .uplc [targeted directory/test cases] debug`
-
-For example, to debug the test cases related to builtins, run
-
-`cabal run test-utils .uplc plutus-conformance/test-cases/uplc/evaluation/builtin debug`
-
-## Executable for Haskell implementation
-
-(WIP) `haskell-implementation` is an executable for Haskell implementation CLI testing/usage.
-
 ## The Plutus Conformance Test Suite Library
 
 The library provides functions that users can import and run conformance tests with their own implementation. At the moment the tests can only be run against another Haskell implementation. More support will be added later. Of course, one can wrap an arbitrary executable in Haskell. See an explanation [here](https://www.fpcomplete.com/blog/2017/02/typed-process/) and [the related documentation](https://www.stackage.org/haddock/lts-19.11/typed-process-0.2.10.1/System-Process-Typed.html).
