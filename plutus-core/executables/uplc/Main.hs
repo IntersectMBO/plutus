@@ -33,7 +33,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek qualified as Cek
 import Control.DeepSeq (force)
 import Control.Monad.Except (runExcept)
 import Control.Monad.IO.Class (liftIO)
-import Criterion (benchmarkWith, nf, whnf)
+import Criterion (benchmarkWith, whnf)
 import Criterion.Main (defaultConfig)
 import Criterion.Types (Config (..))
 import Data.ByteString.Lazy as BSL (readFile)
@@ -299,13 +299,17 @@ runBenchmark (BenchmarkOptions inp ifmt semvar timeLim) = do
   prog <- readProgram ifmt inp
   let criterionConfig = defaultConfig {reportFile = Nothing, timeLimit = timeLim}
       cekparams = mkMachineParameters semvar PLC.defaultCekCostModel
-      evaluate = Cek.runCekDeBruijn cekparams Cek.restrictingEnormous Cek.noEmitter
+      getResult (x,_,_) = either (error . show) (\_ -> ()) x  -- Extract an evaluation result
+      evaluate = getResult . Cek.runCekDeBruijn cekparams Cek.restrictingEnormous Cek.noEmitter
       -- readProgam throws away De Bruijn indices and returns an AST with Names;
       -- we have to put them back to get an AST with NamedDeBruijn names.
-      !term = force . fromRight (error "Unexpected open term in runBenchmark.") .
-              runExcept @FreeVariableError $ UPLC.deBruijnTerm (UPLC._progTerm prog)
-      !bm = whnf evaluate term
-  benchmarkWith criterionConfig bm
+      !term = fromRight (error "Unexpected open term in runBenchmark.") .
+                runExcept @FreeVariableError $ UPLC.deBruijnTerm (UPLC._progTerm prog)
+      -- Big names slow things down
+      !anonTerm = UPLC.termMapNames (\(PLC.NamedDeBruijn _ i) -> PLC.NamedDeBruijn "" i) term
+      -- Big annotations slow things down
+      !unitAnnTerm = force (() <$ anonTerm)
+  benchmarkWith criterionConfig $! whnf evaluate unitAnnTerm
 
 ---------------- Evaluation ----------------
 
