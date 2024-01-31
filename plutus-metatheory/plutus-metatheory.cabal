@@ -12,7 +12,6 @@ author:        James Chapman
 maintainer:    james.chapman@iohk.io
 category:      Development
 data-files:
-  data/builtinCostModel.json
   Plutus.agda-lib
   README.md
   src/**/*.lagda
