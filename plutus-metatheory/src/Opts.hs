@@ -3,8 +3,6 @@
 
 module Opts where
 
-import Paths_plutus_metatheory (getDataDir)
-
 import Data.Semigroup ((<>))
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
@@ -15,19 +13,13 @@ import Options.Applicative hiding (asum)
 import PlutusCore.Executable.Common
 import PlutusCore.Executable.Parsers
 
-
 import System.Exit (exitFailure)
-import System.FilePath ((</>))
 import System.IO (stderr)
 
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekMachineCosts)
 import PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts)
 
-
-
-defaultBuiltinCostModelPath :: FilePath
-defaultBuiltinCostModelPath = "data" </> "builtinCostModel.json"
 
 -- the different budget modes of plc-agda
 data BudgetMode a = Silent
@@ -59,8 +51,6 @@ data EvalMode = U | TL | TCK | TCEK deriving stock (Show, Read)
 
 data EvalOptions a = EvalOpts Input Format EvalMode (BudgetMode a)
   deriving Functor
-
-
 
 evalMode :: Parser EvalMode
 evalMode = option auto
