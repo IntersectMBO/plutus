@@ -89,7 +89,7 @@ testPassProp' ::
       -> Pass m tyname name PLC.DefaultUni PLC.DefaultFun a)
   -> Property
 testPassProp' ann before after pass =
-  forAllDoc "ty,tm" genTypeAndTerm_ (const []) $ \ (_ty, tm) ->
+  forAllDoc "ty,tm" genTypeAndTerm_ shrinkClosedTypedTerm $ \ (_ty, tm) ->
     let
       res :: ExceptT (PIR.Error PLC.DefaultUni PLC.DefaultFun a) m ()
       res = do

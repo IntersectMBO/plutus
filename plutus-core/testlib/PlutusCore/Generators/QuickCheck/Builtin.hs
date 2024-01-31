@@ -45,7 +45,6 @@ class ArbitraryBuiltin a where
 
 instance ArbitraryBuiltin ()
 instance ArbitraryBuiltin Bool
-instance ArbitraryBuiltin Data
 
 {- Note [QuickCheck and integral types]
 The 'Arbitrary' instances for 'Integer' and 'Int64' only generate small integers:
@@ -184,14 +183,39 @@ genDataFromSpine els = oneof
             ]
     ]
 
-instance Arbitrary Data where
-    arbitrary = arbitrary >>= genDataFromSpine
+pureIfNull :: (Foldable f, Applicative f) => a -> f a -> f a
+pureIfNull x xs = if null xs then pure x else xs
 
-    shrink (Constr i ds) = ds ++ map (Constr i) (shrink ds)
-    shrink (Map ps)      = map fst ps ++ map snd ps ++ map Map (shrink ps)
-    shrink (List ds)     = ds ++ map List (shrink ds)
-    shrink (I i)         = map I (shrink i)
-    shrink (B b)         = I 0 : map B (shrink b)
+instance ArbitraryBuiltin Data where
+    arbitraryBuiltin = arbitrary >>= genDataFromSpine
+
+    -- We arbitrarily assume that @I 0@ is the smallest 'Data' object just so that anything else in
+    -- a counterexample gives us a clue as to what the culprit may be. Hence @I 0@ needs to be
+    -- reachable from all nodes apart from @I 0@ itself. For all nodes but 'I' we achieve this by
+    -- returning @[I 0]@ if there's no other way to shrink the value, i.e. either shrinking keeps
+    -- going or it's time to return the smallest object. The clause for @I i@ doesn't require
+    -- mentioning @I 0@ explicitly, since we get it through general shrinking of @i@ (unless @i@
+    -- equals @0@, as desired).
+    shrinkBuiltin (Constr i ds) = pureIfNull (I 0) $ concat
+        [ ds
+        , map (Constr i) $ shrinkBuiltin ds
+        , map (flip Constr ds) $ shrinkBuiltin i
+        ]
+    shrinkBuiltin (Map ps) = pureIfNull (I 0) $ concat
+        [ map fst ps
+        , map snd ps
+        , map Map $ shrinkBuiltin ps
+        ]
+    shrinkBuiltin (List ds) = pureIfNull (I 0) $ concat
+        [ ds
+        , map List $ shrinkBuiltin ds
+        ]
+    shrinkBuiltin (B b) = pureIfNull (I 0) . map B $ shrinkBuiltin b
+    shrinkBuiltin (I i) = map I $ shrinkBuiltin i
+
+instance Arbitrary Data where
+    arbitrary = arbitraryBuiltin
+    shrink = shrinkBuiltin
 
 instance ArbitraryBuiltin BLS12_381.G1.Element where
     arbitraryBuiltin =
