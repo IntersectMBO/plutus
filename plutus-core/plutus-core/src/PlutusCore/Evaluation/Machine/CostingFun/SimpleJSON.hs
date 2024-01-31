@@ -1,23 +1,20 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE OverloadedStrings #-}
 
-{- | A program to parse a JSON representation of costing functions for Plutus Core
-   builtins and generate an Agda module with a function that assigns builtins to models -}
-module Cost.JSON where
+{- | A JSON representation of costing functions for Plutus Core
+   builtins which produces a simple cost model which can be used from Agda and other
+   executables -}
+module PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON where
 
 import Data.Aeson
-import Data.Aeson.Key as Key (toText)
-import Data.Aeson.KeyMap qualified as KeyMap
-import Data.Bifunctor
-import Data.ByteString.Lazy as BSL (getContents, readFile)
-import Data.List (intercalate)
-import Data.Text (Text, replace)
+import Data.Text (Text)
+import Language.Haskell.TH.Syntax (Lift)
 
 -------------- Types representing cost mode entries and functions for JSON parsing ----------------
 
 data LinearFunction =
     LinearFunction {intercept_ :: Integer, slope_ :: Integer}
-                   deriving stock Show
+                   deriving stock (Show, Lift)
 
 instance FromJSON LinearFunction where
     parseJSON = withObject "Linear function" $ \obj ->
@@ -62,7 +59,7 @@ data Model
     | LinearOnDiagonal      LinearFunction Integer
       -- ^ Linear model for x=y together with a constant for the case x!=y; we
       -- should probably allow a general model here.
-      deriving stock Show
+      deriving stock (Show, Lift)
 
 {- The JSON representation consists of a list of pairs of (type, arguments)
    values.  The "type" field corresponds to the possible constructors above, the
@@ -117,22 +114,10 @@ instance FromJSON Model where
 {- | A CPU usage modelling function and a memory usage modelling function bundled
    together -}
 data CpuAndMemoryModel = CpuAndMemoryModel {cpuModel :: Model, memoryModel :: Model}
-              deriving stock Show
+              deriving stock (Show, Lift)
 
 instance FromJSON CpuAndMemoryModel where
     parseJSON = withObject "CpuAndMemoryModel" $ \obj ->
                 CpuAndMemoryModel <$> obj .: "cpu" <*> obj .: "memory"
 
-type BuiltinCostMap = [(Text, CpuAndMemoryModel)]
-
--- replace underscores _ by dashes -
-builtinName :: Text -> Text
-builtinName = replace "_" "-"
-
-getJSONModel :: FilePath -> IO (Maybe BuiltinCostMap)
-getJSONModel jsonfile = do
-  bytes <- BSL.readFile jsonfile
-  case eitherDecode bytes :: Either String (KeyMap.KeyMap CpuAndMemoryModel) of
-    Left err -> return Nothing
-    Right m  -> return $ Just (map (first (builtinName . toText)) (KeyMap.toList m))
 

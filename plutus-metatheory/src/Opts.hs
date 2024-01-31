@@ -15,13 +15,15 @@ import Options.Applicative hiding (asum)
 import PlutusCore.Executable.Common
 import PlutusCore.Executable.Parsers
 
-import Cost.JSON
+
 import System.Exit (exitFailure)
 import System.FilePath ((</>))
 import System.IO (stderr)
 
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekMachineCosts)
+import PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel
 import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts)
+
 
 
 defaultBuiltinCostModelPath :: FilePath
@@ -94,22 +96,15 @@ commands = hsubparser (
 -- with cost reporting
 type CostModel = (CekMachineCosts , BuiltinCostMap)
 
-addJSONParameters :: Command a -> IO (Command CostModel)
-addJSONParameters c = do
-     dataDir <- getDataDir
-     mbm <- getJSONModel (dataDir </> defaultBuiltinCostModelPath)
-     case mbm of
-      Just bm -> return (fmap (const (defaultCekMachineCosts, bm)) c)
-      Nothing -> do
-           T.hPutStrLn stderr "Failure to parse file builtins parameters."
-           exitFailure
+addJSONParameters :: Command a -> Command CostModel
+addJSONParameters = fmap (const (defaultCekMachineCosts, defaultSimpleBuiltinCostModel))
 
 execP :: IO (Command CostModel)
-execP = execParser (info (commands <**> helper)
+execP = addJSONParameters <$> execParser (info (commands <**> helper)
                     (fullDesc
                      <> progDesc "Plutus Core tool"
                      <> header "plc-agda - a Plutus Core implementation written in Agda"))
-        >>= addJSONParameters
+
 
 
 

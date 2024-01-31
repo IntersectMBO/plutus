@@ -74,7 +74,6 @@ library
     build-depends: integer-gmp
 
   exposed-modules:
-    Cost.JSON
     Opts
     Raw
     Untyped
