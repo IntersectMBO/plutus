@@ -16,7 +16,7 @@ import PlutusCore.Name (Name)
 import PlutusCore.Quote (runQuoteT)
 import PlutusPrelude (Pretty (pretty), display, void)
 import System.Directory
-import System.FilePath (takeBaseName, (</>))
+import System.FilePath (takeBaseName, (<.>), (</>))
 import Test.Tasty (defaultMain, testGroup)
 import Test.Tasty.ExpectedFailure (expectFail)
 import Test.Tasty.Extras (goldenVsDocM)
@@ -51,15 +51,16 @@ type UplcProg = UPLC.Program Name DefaultUni DefaultFun ()
 
 -- UPLC evaluation test functions
 
+-- convenience type synonym
 type UplcEvaluatorFun res = UplcProg -> Maybe res
 
--- | The evaluator to be tested. It should either return a program if the evaluation is successful,
--- or `Nothing` if not.
-type UplcEvaluatorWithoutCosting = UplcEvaluatorFun UplcProg
-type UplcEvaluatorWithCosting = UplcEvaluatorFun (UplcProg, ExBudget)
-
+-- | The evaluator to be tested.
 data UplcEvaluator =
+  -- | An evaluator that just produces an output program, or fails.
   UplcEvaluatorWithoutCosting (UplcEvaluatorFun UplcProg)
+  -- | An evaluator that produces an output program along with the cost of evaluating it, or fails.
+  -- Note that nothing cares about the cost of failing programs, so we don't test for conformance
+  -- there.
   | UplcEvaluatorWithCosting (UplcEvaluatorFun (UplcProg, ExBudget))
 
 -- | Walk a file tree, making test groups for directories with subdirectories,
@@ -97,7 +98,7 @@ discoverTests eval expectedFailureFn dir = do
   where
     testForEval :: String -> UplcEvaluatorFun UplcProg -> TestTree
     testForEval name e =
-        let goldenFilePath = dir </> name <> ".uplc.expected"
+        let goldenFilePath = dir </> name <.> "uplc.expected"
         in goldenTest
             (name ++ " (evaluation)")
             -- get the golden test value
@@ -109,7 +110,7 @@ discoverTests eval expectedFailureFn dir = do
 
     testForBudget :: String -> UplcEvaluatorFun ExBudget -> TestTree
     testForBudget name e =
-        let goldenFilePath = dir </> name <> ".uplc.budget.expected"
+        let goldenFilePath = dir </> name <.> "uplc.budget.expected"
             prettyEither (Left l)  = pretty l
             prettyEither (Right r) = pretty r
         in goldenVsDocM
