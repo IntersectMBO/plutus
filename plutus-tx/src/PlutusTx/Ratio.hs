@@ -202,9 +202,9 @@ ratio n d
   | d P.< P.zero = P.Just (unsafeRatio (P.negate n) (P.negate d))
   | P.True =
     let gcd' = euclid n d
-     in P.Just P..
-        Rational (n `Builtins.quotientInteger` gcd') P.$
-        d `Builtins.quotientInteger` gcd'
+     in P.Just P.$
+          Rational (n `Builtins.quotientInteger` gcd')
+                   (d `Builtins.quotientInteger` gcd')
 
 -- | Converts a 'Rational' to a GHC 'Ratio.Rational', preserving value. Does not
 -- work on-chain.
