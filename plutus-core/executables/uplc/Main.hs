@@ -38,7 +38,7 @@ import Criterion (benchmarkWith, whnf)
 import Criterion.Main (defaultConfig)
 import Criterion.Types (Config (..))
 import Data.ByteString.Lazy as BSL (readFile)
-import Data.Foldable (asum)
+import Data.Foldable
 import Data.List.Split (splitOn)
 import Data.Text qualified as T
 import Flat (unflat)
