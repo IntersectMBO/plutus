@@ -30,6 +30,7 @@ open StepKind
 open ExBudgetCategory
 
 open import Untyped.CEK
+
 ```
 
 ## Cost Monad
@@ -71,19 +72,17 @@ The function `extractArgSizes` get the arguments in inverse order, so we reverse
 them in the `spendBuiltin` function. 
 
 ```
-extractArgSizes : ∀{b}
+extractConstants : ∀{b}
           → ∀{tn tm} → {pt : tn ∔ tm ≣ fv (signature b)}
           → ∀{an am} → {pa : an ∔ am ≣ args♯ (signature b)}
-          → BApp b pt pa → Vec CostingNat an
-extractArgSizes base = []
-extractArgSizes (app bapp (V-con ty x)) = constantMeasure (tmCon ty x) 
-                                        ∷ extractArgSizes bapp
-extractArgSizes (app bapp _) = 0 ∷ extractArgSizes bapp 
-extractArgSizes (app⋆ bapp) = extractArgSizes bapp 
+          → BApp b pt pa → Vec Value an
+extractConstants base = []
+extractConstants (app bapp v) = v ∷ extractConstants bapp
+extractConstants (app⋆ bapp) = extractConstants bapp 
 
 spendBuiltin : (b : Builtin) → fullyAppliedBuiltin b → CekM ⊤
 spendBuiltin b bapp = tell (cekMachineCost (BBuiltinApp b argsizes))
-     where argsizes = reverse (extractArgSizes bapp)
+     where argsizes = reverse (extractConstants bapp)
 ```
 
 ## Step with costs
