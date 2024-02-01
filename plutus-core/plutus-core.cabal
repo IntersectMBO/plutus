@@ -988,9 +988,9 @@ executable print-cost-model
   other-modules:  Paths_plutus_core
   build-depends:
     , aeson
-    , base        >=4.9 && <5
+    , base         >=4.9 && <5
     , bytestring
-    , text
+    , plutus-core
 
 ----------------------------------------------
 -- satint
