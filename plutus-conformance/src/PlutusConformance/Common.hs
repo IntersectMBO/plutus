@@ -5,16 +5,19 @@
 {- | Plutus conformance test suite library. -}
 module PlutusConformance.Common where
 
+import Data.Maybe (fromJust)
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
 import PlutusCore.Annotation
 import PlutusCore.Default (DefaultFun, DefaultUni)
 import PlutusCore.Error (ParserErrorBundle)
+import PlutusCore.Evaluation.Machine.CostModelInterface
 import PlutusCore.Evaluation.Machine.ExBudget
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekParameters)
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCostModelParams)
+import PlutusCore.Evaluation.Machine.MachineParameters.Default
 import PlutusCore.Name (Name)
 import PlutusCore.Quote (runQuoteT)
-import PlutusPrelude (Pretty (pretty), display, void)
+import PlutusPrelude (Pretty (pretty), def, display, void)
 import System.Directory
 import System.FilePath (takeBaseName, (<.>), (</>))
 import Test.Tasty (defaultMain, testGroup)
@@ -54,6 +57,9 @@ type UplcProg = UPLC.Program Name DefaultUni DefaultFun ()
 -- convenience type synonym
 type UplcEvaluatorFun res = UplcProg -> Maybe res
 
+-- TODO: consider splitting up the evaluator with costing into a part that parses the model
+-- and a part that consumes it. Currently the tests are fast enough regardless so it doesn't
+-- matter.
 -- | The evaluator to be tested.
 data UplcEvaluator =
   -- | An evaluator that just produces an output program, or fails.
@@ -61,43 +67,46 @@ data UplcEvaluator =
   -- | An evaluator that produces an output program along with the cost of evaluating it, or fails.
   -- Note that nothing cares about the cost of failing programs, so we don't test for conformance
   -- there.
-  | UplcEvaluatorWithCosting (UplcEvaluatorFun (UplcProg, ExBudget))
+  | UplcEvaluatorWithCosting (CostModelParams -> UplcEvaluatorFun (UplcProg, ExBudget))
 
 -- | Walk a file tree, making test groups for directories with subdirectories,
 -- and test cases for directories without.
-discoverTests :: UplcEvaluator -- ^ The evaluator to be tested.
-    -> (FilePath -> Bool)
-    -- ^ A function that takes a test name and returns
-    -- whether it should be labelled as `ExpectedFailure`.
-    -> FilePath -- ^ The directory to search for tests.
-    -> IO TestTree
-discoverTests eval expectedFailureFn dir = do
-    let name = takeBaseName dir
-    children <- listDirectory dir
-    subdirs <- flip wither children $ \child -> do
-        let fullPath = dir </> child
-        isDir <- doesDirectoryExist fullPath
-        pure $ if isDir then Just fullPath else Nothing
-    if null subdirs
-    -- no children, this is a test case directory
-    then
-        let tests = case eval of
-                UplcEvaluatorWithCosting f -> testGroup name
-                     [ testForEval name (fmap fst . f)
-                     , testForBudget name (fmap snd . f)
-                     ]
-                UplcEvaluatorWithoutCosting f -> testForEval name f
-        in
-            -- if the test is expected to fail, mark it so.
-            if expectedFailureFn dir
-            then pure $ expectFail tests
-            -- the test isn't expected to fail, make the `TestTree` as usual.
-            else pure tests
-    -- has children, so it's a grouping directory
-    else testGroup name <$> traverse (discoverTests eval expectedFailureFn) subdirs
+discoverTests
+  :: UplcEvaluator -- ^ The evaluator to be tested.
+  -> CostModelParams
+  -> (FilePath -> Bool)
+  -- ^ A function that takes a test name and returns
+  -- whether it should be labelled as `ExpectedFailure`.
+  -> FilePath -- ^ The directory to search for tests.
+  -> IO TestTree
+discoverTests eval modelParams expectedFailureFn = go
   where
-    testForEval :: String -> UplcEvaluatorFun UplcProg -> TestTree
-    testForEval name e =
+    go dir = do
+        let name = takeBaseName dir
+        children <- listDirectory dir
+        subdirs <- flip wither children $ \child -> do
+            let fullPath = dir </> child
+            isDir <- doesDirectoryExist fullPath
+            pure $ if isDir then Just fullPath else Nothing
+        if null subdirs
+        -- no children, this is a test case directory
+        then
+            let tests = case eval of
+                    UplcEvaluatorWithCosting f -> testGroup name
+                        [ testForEval dir name (fmap fst . f modelParams)
+                        , testForBudget dir name (fmap snd . f modelParams)
+                        ]
+                    UplcEvaluatorWithoutCosting f -> testForEval dir name f
+            in
+                -- if the test is expected to fail, mark it so.
+                if expectedFailureFn dir
+                then pure $ expectFail tests
+                -- the test isn't expected to fail, make the `TestTree` as usual.
+                else pure tests
+        -- has children, so it's a grouping directory
+        else testGroup name <$> traverse go subdirs
+    testForEval :: FilePath -> String -> UplcEvaluatorFun UplcProg -> TestTree
+    testForEval dir name e =
         let goldenFilePath = dir </> name <.> "uplc.expected"
         in goldenTest
             (name ++ " (evaluation)")
@@ -108,8 +117,8 @@ discoverTests eval expectedFailureFn dir = do
             (\ x y -> pure $ compareAlphaEq x y) -- comparison function
             (updateGoldenFile goldenFilePath) -- update the golden file
 
-    testForBudget :: String -> UplcEvaluatorFun ExBudget -> TestTree
-    testForBudget name e =
+    testForBudget :: FilePath -> String -> UplcEvaluatorFun ExBudget -> TestTree
+    testForBudget dir name e =
         let goldenFilePath = dir </> name <.> "uplc.budget.expected"
             prettyEither (Left l)  = pretty l
             prettyEither (Right r) = pretty r
@@ -204,14 +213,17 @@ updateGoldenFile goldenPath (Right p)  = T.writeFile goldenPath (display p)
 
 -- | Our `evaluator` for the Haskell UPLC tests is the CEK machine.
 evalUplcProg :: UplcEvaluator
-evalUplcProg = UplcEvaluatorWithCosting $ \(UPLC.Program a v t) ->
+evalUplcProg = UplcEvaluatorWithCosting $ \modelParams (UPLC.Program a v t) ->
     do
+        params <- case mkMachineParametersFor def modelParams of
+          Left _  -> Nothing
+          Right p -> Just p
         -- runCek-like functions (e.g. evaluateCekNoEmit) are partial on term's with free variables,
         -- that is why we manually check first for any free vars
         case UPLC.deBruijnTerm t of
             Left (_ :: UPLC.FreeVariableError) -> Nothing
             Right _                            -> Just ()
-        case runCekNoEmit defaultCekParameters counting t of
+        case runCekNoEmit params counting t of
             (Left _, _)                   -> Nothing
             (Right prog, CountingSt cost) -> Just (UPLC.Program a v prog, cost)
 
@@ -224,9 +236,11 @@ runUplcEvalTests ::
     -- whether it should labelled as `ExpectedFailure`.
     -> IO ()
 runUplcEvalTests eval expectedFailTests = do
+    let params = fromJust defaultCostModelParams
     tests <-
         discoverTests
             eval
+            params
             expectedFailTests
             "test-cases/uplc/evaluation"
     defaultMain $ testGroup "UPLC evaluation tests" [tests]
