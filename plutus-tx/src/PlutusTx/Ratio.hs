@@ -28,7 +28,6 @@ module PlutusTx.Ratio(
     , half
     , fromGHC
     , toGHC
-    , reduce
     , gcd
     ) where
 
@@ -329,18 +328,6 @@ gcd a b = gcd' (P.abs a) (P.abs b) where
     gcd' a' b'
         | b' P.== P.zero = a'
         | P.True         = gcd' b' (a' `Builtins.remainderInteger` b')
-
--- From GHC.Real
--- | Given a numerator and denominator, produces a 'Rational' by dividing both
--- numerator and denominator by their greatest common divisor.
-{-# INLINABLE reduce #-}
-reduce :: Integer -> Integer -> Rational
-reduce x y
-    | y P.== 0 = P.traceError P.ratioHasZeroDenominatorError
-    | P.True     =
-        let d = gcd x y in
-          Rational (x `Builtins.quotientInteger` d)
-                   (y `Builtins.quotientInteger` d)
 
 -- Helpers
 

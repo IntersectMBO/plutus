@@ -24,8 +24,7 @@ constructionLaws = [
   testPropertyNamed "if r = fromInteger x, then numerator r = x" "propFromIntegerNum" propFromIntegerNum,
   testPropertyNamed "if r = fromInteger x, then denominator r = 1" "propFromIntegerDen" propFromIntegerDen,
   testPropertyNamed "ratio x y = ratio (x * z) (y * z) for z /= 0" "propRatioScale" propRatioScale,
-  testPropertyNamed "denominator (unsafeRatio x y) > 0" "propUnsafeRatioDenomPos" propUnsafeRatioDenomPos,
-  testPropertyNamed "denominator (reduce x y) > 0" "propReduceDenomPos" propReduceDenomPos
+  testPropertyNamed "denominator (unsafeRatio x y) > 0" "propUnsafeRatioDenomPos" propUnsafeRatioDenomPos
   ]
 
 propZeroDenom :: Property
@@ -103,9 +102,3 @@ propUnsafeRatioDenomPos = property $ do
   n <- forAllWithPP genInteger
   d <- forAllWithPP $ Gen.filter (/= Plutus.zero) genInteger
   assert $ Ratio.denominator (Ratio.unsafeRatio n d) > 0
-
-propReduceDenomPos :: Property
-propReduceDenomPos = property $ do
-  n <- forAllWithPP genInteger
-  d <- forAllWithPP $ Gen.filter (/= Plutus.zero) genInteger
-  assert $ Ratio.denominator (Ratio.reduce n d) > 0
