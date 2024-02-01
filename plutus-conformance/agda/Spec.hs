@@ -13,8 +13,8 @@ import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.DeBruijn
 
 -- | Our `evaluator` for the Agda UPLC tests is the CEK machine.
-agdaEvalUplcProg :: UplcProg -> Maybe UplcProg
-agdaEvalUplcProg (UPLC.Program () version tmU) =
+agdaEvalUplcProg :: UplcEvaluator
+agdaEvalUplcProg = UplcEvaluatorWithoutCosting $ \(UPLC.Program () version tmU) ->
     let
         -- turn it into an untyped de Bruijn term
         tmUDB :: ExceptT FreeVariableError Quote (UPLC.Term NamedDeBruijn DefaultUni DefaultFun ())

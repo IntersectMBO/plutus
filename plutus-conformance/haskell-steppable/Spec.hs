@@ -14,7 +14,7 @@ failingTests = []
 
 -- | The `evaluator` for the steppable-version of the CEK machine.
 evalSteppableUplcProg :: UplcEvaluator
-evalSteppableUplcProg = traverseOf UPLC.progTerm $ \t -> do
+evalSteppableUplcProg = UplcEvaluatorWithoutCosting $ traverseOf UPLC.progTerm $ \t -> do
     -- runCek-like functions (e.g. evaluateCekNoEmit) are partial on term's with free variables,
     -- that is why we manually check first for any free vars
     case UPLC.deBruijnTerm t of
