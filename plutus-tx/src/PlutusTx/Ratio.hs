@@ -186,7 +186,7 @@ instance FromJSON Rational where
 {-# INLINABLE unsafeRatio #-}
 unsafeRatio :: Integer -> Integer -> Rational
 unsafeRatio n d
-  | d P.== P.zero = Builtins.error ()
+  | d P.== P.zero = P.traceError P.ratioHasZeroDenominatorError
   | d P.< P.zero = unsafeRatio (P.negate n) (P.negate d)
   | P.True =
     let gcd' = euclid n d

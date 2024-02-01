@@ -48,14 +48,14 @@
     !`$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData` : data -> data
       = \(d : data) -> d
     !reconstructCaseError : string = "PT1"
+    data Bool | Bool_match where
+      True : Bool
+      False : Bool
     data Unit | Unit_match where
       Unit : Unit
     !traceError : all a. string -> a
       = /\a ->
           \(str : string) -> let !x : Unit = trace {Unit} str Unit in error {a}
-    data Bool | Bool_match where
-      True : Bool
-      False : Bool
     !`$fUnsafeFromDataBool_$cunsafeFromBuiltinData` : data -> Bool
       = \(d : data) ->
           let
@@ -277,7 +277,7 @@
           ifThenElse
             {all dead. Rational}
             (equalsInteger d `$fAdditiveMonoidInteger_$czero`)
-            (/\dead -> error {Rational})
+            (/\dead -> traceError {Rational} "PT3")
             (/\dead ->
                ifThenElse
                  {all dead. Rational}
