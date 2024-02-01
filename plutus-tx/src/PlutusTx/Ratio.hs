@@ -360,7 +360,7 @@ P.makeLift ''Rational
 An important invariant is that the denominator is always positive. This is
 enforced by
 
-* Construction of 'Rational' numbers with 'unsafeRational' (the constructor
+* Construction of 'Rational' numbers with 'unsafeRatio' (the constructor
   of 'Rational' is not exposed)
 * Normalizing after every numeric operation.
 
