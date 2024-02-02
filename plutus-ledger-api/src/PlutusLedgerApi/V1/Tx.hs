@@ -26,8 +26,8 @@ module PlutusLedgerApi.V1.Tx
     , outAddress
     , outValue
     , txOutPubKey
-    ,txOutDatum
-    ,pubKeyHashTxOut
+    , txOutDatum
+    , pubKeyHashTxOut
     ) where
 
 import Control.DeepSeq (NFData)
