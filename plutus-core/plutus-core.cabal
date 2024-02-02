@@ -465,10 +465,12 @@ executable uplc
     , flat                  ^>=0.6
     , haskeline
     , mtl
+    , nothunks
     , optparse-applicative
     , plutus-core           ^>=1.21
     , plutus-core-execlib   ^>=1.21
     , prettyprinter
+    , serialise
     , split
     , text
 
