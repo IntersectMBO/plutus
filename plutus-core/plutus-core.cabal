@@ -118,6 +118,7 @@ library
     PlutusCore.Evaluation.Machine.Ck
     PlutusCore.Evaluation.Machine.CostingFun.Core
     PlutusCore.Evaluation.Machine.CostingFun.JSON
+    PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON
     PlutusCore.Evaluation.Machine.CostModelInterface
     PlutusCore.Evaluation.Machine.CostStream
     PlutusCore.Evaluation.Machine.ExBudget
@@ -128,6 +129,7 @@ library
     PlutusCore.Evaluation.Machine.ExMemoryUsage
     PlutusCore.Evaluation.Machine.MachineParameters
     PlutusCore.Evaluation.Machine.MachineParameters.Default
+    PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel
     PlutusCore.Evaluation.Result
     PlutusCore.Examples.Builtins
     PlutusCore.Examples.Data.Data
@@ -986,9 +988,9 @@ executable print-cost-model
   other-modules:  Paths_plutus_core
   build-depends:
     , aeson
-    , base        >=4.9 && <5
+    , base         >=4.9 && <5
     , bytestring
-    , text
+    , plutus-core
 
 ----------------------------------------------
 -- satint

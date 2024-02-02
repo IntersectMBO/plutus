@@ -106,6 +106,18 @@ Args n⋆ n♯ = List⁺ (n⋆ / n♯ ⊢⋆)
 
 ```
 
+A Universe for return types.
+
+```
+data _/_⊢r⋆ : ℕ → ℕ → Set where
+  argtype : ∀ {n⋆ n♯} → 
+      n⋆ / n♯ ⊢⋆
+      --------
+    → n⋆ / n♯ ⊢r⋆
+
+```
+
+
 ## Signatures
 
 A signature is given by

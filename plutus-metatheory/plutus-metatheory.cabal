@@ -12,7 +12,6 @@ author:        James Chapman
 maintainer:    james.chapman@iohk.io
 category:      Development
 data-files:
-  data/builtinCostModel.json
   Plutus.agda-lib
   README.md
   src/**/*.lagda
@@ -74,12 +73,9 @@ library
     build-depends: integer-gmp
 
   exposed-modules:
-    Cost.JSON
     Opts
     Raw
     Untyped
-
-  other-modules:   Paths_plutus_metatheory
 
   -- WARNING: Order is important! MAlonzo modules must be listed last.
   -- But cabal-fmt reorders modules alphabetically, so we use two 

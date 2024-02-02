@@ -64,7 +64,7 @@ postulate getMemoryCost : HExBudget → CostingNat
 ## Interface with Builtin model from JSON
 
 ```
-{-# FOREIGN GHC import Cost.JSON #-}
+{-# FOREIGN GHC import PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON  #-}
 
 record LinearFunction : Set where
     constructor mkLinearFunction
