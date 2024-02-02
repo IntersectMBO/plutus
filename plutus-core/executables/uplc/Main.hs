@@ -1,6 +1,5 @@
 -- editorconfig-checker-disable
 {-# LANGUAGE BangPatterns              #-}
-{-# LANGUAGE DeriveAnyClass            #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE LambdaCase                #-}
 {-# LANGUAGE MultiParamTypeClasses     #-}
@@ -50,18 +49,6 @@ import Text.Read (readMaybe)
 
 import Control.Monad.ST (RealWorld)
 import System.Console.Haskeline qualified as Repl
-
--- Extra imports for experimental benchmarking code
-import Codec.Serialise (Serialise)
-import Control.Exception qualified as E
-import Control.Monad.Except (MonadError)
-import Data.ByteString qualified as BS
-import NoThunks.Class
-import PlutusCore.Default qualified as PLC (BuiltinSemanticsVariant (DefaultFunSemanticsVariant1))
-import PlutusCore.Evaluation.Machine.CostModelInterface as Plutus
-import PlutusCore.Evaluation.Machine.ExBudget as Plutus
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults qualified as Plutus
-import PlutusCore.Evaluation.Machine.MachineParameters.Default
 
 uplcHelpText :: String
 uplcHelpText = helpText "Untyped Plutus Core"
@@ -308,117 +295,8 @@ runApplyToData (ApplyOptions inputfiles ifmt outp ofmt mode) =
 
 ---------------- Benchmarking ----------------
 
--- Lots of stuff copied out of plutus-ledger-api and plutus-benchmark to try to
--- reproduce the normal benchmarking behaviour.
-
-newtype MajorProtocolVersion = MajorProtocolVersion { getMajorProtocolVersion :: Int }
-  deriving newtype (Eq, Ord, Show, Serialise)
-  deriving stock (Generic)
-
-toMachineParameters :: MajorProtocolVersion -> EvaluationContext -> DefaultMachineParameters
-toMachineParameters _ = machineParameters
-
-newtype EvaluationContext = EvaluationContext
-    { machineParameters :: DefaultMachineParameters
-    }
-    deriving stock Generic
-    deriving anyclass (NFData, NoThunks)
-
-data VerboseMode =
-    Verbose2 -- ^ accumulate all traces
-    | Quiet -- ^ don't accumulate anything
-    deriving stock (Eq)
-
-
-evaluateTerm
-    :: Cek.ExBudgetMode cost UPLC.DefaultUni UPLC.DefaultFun
-    -> MajorProtocolVersion
-    -> VerboseMode
-    -> EvaluationContext
-    -> UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
-    -> ( Either
-            (Cek.CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
-            (UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ())
-       , cost
-       , [T.Text]
-       )
-
-evaluateTerm budgetMode pv verbose ectx =
-    Cek.runCekDeBruijn
-        (toMachineParameters pv ectx)
-        budgetMode
-        (if verbose == Verbose2 then Cek.logEmitter else Cek.noEmitter)
--- Just replicating the old behavior, probably doesn't matter.
-{-# INLINE evaluateTerm #-}
-
-data PlutusLedgerLanguage =
-      PlutusV1 -- ^ introduced in shelley era
-    | PlutusV2 -- ^ introduced in vasil era
-    | PlutusV3 -- ^ not yet enabled
-   deriving stock (Eq, Ord, Show, Generic, Enum, Bounded)
-
-alonzoPV :: MajorProtocolVersion
-alonzoPV = MajorProtocolVersion 5
-
--- | Vasil era was introduced in protocol version 7.0
-vasilPV :: MajorProtocolVersion
-vasilPV = MajorProtocolVersion 7
-
--- | Conway era was introduced in protocol version 9.0
-conwayPV :: MajorProtocolVersion
-conwayPV = MajorProtocolVersion 9
-
-ledgerLanguageIntroducedIn :: PlutusLedgerLanguage -> MajorProtocolVersion
-ledgerLanguageIntroducedIn = \case
-    PlutusV1 -> alonzoPV
-    PlutusV2 -> vasilPV
-    PlutusV3 -> conwayPV
-
-evaluateCekLikeInProd
-    :: EvaluationContext
-    -> UPLC.Term PLC.NamedDeBruijn PLC.DefaultUni PLC.DefaultFun ()
-    -> Either
-            (Cek.CekEvaluationException UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun)
-            (UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ())
-evaluateCekLikeInProd evalCtx term = do
-    let (getRes, _, _) =
-            -- The validation benchmarks were all created from PlutusV1 scripts
-            evaluateTerm Cek.restrictingEnormous (ledgerLanguageIntroducedIn PlutusV1) Quiet evalCtx term
-    getRes
-
-unsafeUnflat :: String -> BS.ByteString -> UPLC.Program UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
-unsafeUnflat file contents =
-    case unflat contents of
-        Left e     -> errorWithoutStackTrace $ "Flat deserialisation failure for " ++ file ++ ": " ++ show e
-        Right (UPLC.UnrestrictedProgram prog) -> prog
-
-
-toNamedDeBruijnTerm
-    :: UPLC.Term UPLC.DeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
-    -> UPLC.Term UPLC.NamedDeBruijn UPLC.DefaultUni UPLC.DefaultFun ()
-toNamedDeBruijnTerm = UPLC.termMapNames UPLC.fakeNameDeBruijn
-
-mkDynEvaluationContext
-    :: MonadError CostModelApplyError m
-    => BuiltinSemanticsVariant UPLC.DefaultFun
-    -> Plutus.CostModelParams
-    -> m EvaluationContext
-mkDynEvaluationContext semvar newCMP =
-    EvaluationContext <$> mkMachineParametersFor semvar newCMP
-
-
-mkEvalCtx :: EvaluationContext
-mkEvalCtx =
-    case PLC.defaultCostModelParams of
-        -- The validation benchmarks were all created from PlutusV1 scripts
-        Just p -> case mkDynEvaluationContext PLC.DefaultFunSemanticsVariant1 p of
-            Right ec -> ec
-            Left err -> error $ show err
-        Nothing -> error "Couldn't get cost model params"
-
--- The original version of the benchmarking function.
-_runBenchmark :: BenchmarkOptions -> IO ()
-_runBenchmark (BenchmarkOptions inp ifmt semvar timeLim) = do
+runBenchmark :: BenchmarkOptions -> IO ()
+runBenchmark (BenchmarkOptions inp ifmt semvar timeLim) = do
   prog <- readProgram ifmt inp
   let criterionConfig = defaultConfig {reportFile = Nothing, timeLimit = timeLim}
       cekparams = mkMachineParameters semvar PLC.defaultCekCostModel
@@ -433,25 +311,6 @@ _runBenchmark (BenchmarkOptions inp ifmt semvar timeLim) = do
       -- Big annotations slow things down
       !unitAnnTerm = force (() <$ anonTerm)
   benchmarkWith criterionConfig $! whnf evaluate unitAnnTerm
-
--- Try to do the same as plutus-benchmark
-runBenchmark :: BenchmarkOptions -> IO ()
-runBenchmark (BenchmarkOptions inp ifmt semvar timeLim) = do
-  evalCtx <- E.evaluate $ force mkEvalCtx
-  let file = case inp of
-               FileInput path -> path
-               _              -> error "Want a file"
-  contents <- BS.readFile file
-  let criterionConfig = defaultConfig {reportFile = Nothing, timeLimit = timeLim}
-      -- readProgam throws away De Bruijn indices and returns an AST with Names;
-      -- we have to put them back to get an AST with NamedDeBruijn names.
-      mkCekBM  =
-          -- don't count the undebruijn . unflat cost
-          -- `force` to try to ensure that deserialiation is not included in benchmarking time.
-          let !benchTerm = force . toNamedDeBruijnTerm . UPLC._progTerm $  unsafeUnflat file contents
-              eval = either (error . show) (\_ -> ()) . evaluateCekLikeInProd evalCtx
-          in whnf eval benchTerm
-  benchmarkWith criterionConfig $ mkCekBM
 
 ---------------- Evaluation ----------------
 
