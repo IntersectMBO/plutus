@@ -7,8 +7,10 @@ module PlutusBenchmark.ScriptContexts where
 
 import PlutusLedgerApi.V1.Address
 import PlutusLedgerApi.V1.Value
-import PlutusLedgerApi.V3
-import PlutusTx qualified as PlutusTx
+import PlutusLedgerApi.V3 (OutputDatum (NoOutputDatum), PubKeyHash (..), ScriptContext (..),
+                           ScriptPurpose (Spending), TxId (..), TxInfo (..), TxOut (..),
+                           TxOutRef (..), always)
+import PlutusTx qualified
 import PlutusTx.AssocMap qualified as Map
 import PlutusTx.Builtins qualified as PlutusTx
 import PlutusTx.Prelude qualified as PlutusTx

@@ -82,6 +82,7 @@ library
     PlutusLedgerApi.V3.Contexts
     PlutusLedgerApi.V3.EvaluationContext
     PlutusLedgerApi.V3.ParamName
+    PlutusLedgerApi.V3.Tx
 
   other-modules:
     PlutusLedgerApi.Common.Eval

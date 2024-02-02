@@ -107,19 +107,6 @@
                         {all dead. dead})
                    {all dead. dead})
               {all dead. dead}
-    !`$fUnsafeFromDataTxId_$cunsafeFromBuiltinData` : data -> bytestring
-      = \(d : data) ->
-          let
-            !tup : pair integer (list data) = unConstrData d
-            !index : integer = fstPair {integer} {list data} tup
-            !args : list data = sndPair {integer} {list data} tup
-          in
-          ifThenElse
-            {all dead. bytestring}
-            (equalsInteger 0 index)
-            (/\dead -> unBData (headList {data} args))
-            (/\dead -> traceError {bytestring} reconstructCaseError)
-            {all dead. dead}
     data GovernanceActionId | GovernanceActionId_match where
       GovernanceActionId : bytestring -> integer -> GovernanceActionId
     !`$fUnsafeFromDataGovernanceAction_$cunsafeFromBuiltinData` :
@@ -135,8 +122,18 @@
             (equalsInteger 0 index)
             (/\dead ->
                GovernanceActionId
-                 (`$fUnsafeFromDataTxId_$cunsafeFromBuiltinData`
-                    (headList {data} args))
+                 (let
+                   !tup : pair integer (list data)
+                     = unConstrData (headList {data} args)
+                   !index : integer = fstPair {integer} {list data} tup
+                   !args : list data = sndPair {integer} {list data} tup
+                 in
+                 ifThenElse
+                   {all dead. bytestring}
+                   (equalsInteger 0 index)
+                   (/\dead -> unBData (headList {data} args))
+                   (/\dead -> traceError {bytestring} reconstructCaseError)
+                   {all dead. dead})
                  (unIData (headList {data} (tailList {data} args))))
             (/\dead -> traceError {GovernanceActionId} reconstructCaseError)
             {all dead. dead}
@@ -530,25 +527,6 @@
                    {all dead. dead}))
             (/\dead -> traceError {ProposalProcedure} reconstructCaseError)
             {all dead. dead}
-    data TxOutRef | TxOutRef_match where
-      TxOutRef : bytestring -> integer -> TxOutRef
-    !`$fUnsafeFromDataTxOutRef_$cunsafeFromBuiltinData` : data -> TxOutRef
-      = \(d : data) ->
-          let
-            !tup : pair integer (list data) = unConstrData d
-            !index : integer = fstPair {integer} {list data} tup
-            !args : list data = sndPair {integer} {list data} tup
-          in
-          ifThenElse
-            {all dead. TxOutRef}
-            (equalsInteger 0 index)
-            (/\dead ->
-               TxOutRef
-                 (`$fUnsafeFromDataTxId_$cunsafeFromBuiltinData`
-                    (headList {data} args))
-                 (unIData (headList {data} (tailList {data} args))))
-            (/\dead -> traceError {TxOutRef} reconstructCaseError)
-            {all dead. dead}
     data DRep | DRep_match where
       DRep : Credential -> DRep
       DRepAlwaysAbstain : DRep
@@ -824,6 +802,24 @@
                       (/\dead -> traceError {Voter} reconstructCaseError)
                       {all dead. dead})
                  {all dead. dead})
+            {all dead. dead}
+    data TxOutRef | TxOutRef_match where
+      TxOutRef : bytestring -> integer -> TxOutRef
+    !`$fUnsafeFromDataTxOutRef_$cunsafeFromBuiltinData` : data -> TxOutRef
+      = \(d : data) ->
+          let
+            !tup : pair integer (list data) = unConstrData d
+            !index : integer = fstPair {integer} {list data} tup
+            !args : list data = sndPair {integer} {list data} tup
+          in
+          ifThenElse
+            {all dead. TxOutRef}
+            (equalsInteger 0 index)
+            (/\dead ->
+               TxOutRef
+                 (unBData (headList {data} args))
+                 (unIData (headList {data} (tailList {data} args))))
+            (/\dead -> traceError {TxOutRef} reconstructCaseError)
             {all dead. dead}
     data ScriptPurpose | ScriptPurpose_match where
       Certifying : integer -> TxCert -> ScriptPurpose
@@ -1220,8 +1216,7 @@
                        unBData
                        `$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData`
                        (headList {data} l))
-                    (`$fUnsafeFromDataTxId_$cunsafeFromBuiltinData`
-                       (headList {data} l))
+                    (unBData (headList {data} l))
                     (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
                        {Voter}
                        {(\k v -> List (Tuple2 k v)) GovernanceActionId Vote}
@@ -1338,9 +1333,9 @@
          , List []
          , Map []
          , Map []
-         , Constr 0 [B #]
+         , B #
          , Map []
          , List []
          , Constr 1 []
          , Constr 1 [] ]
-     , Constr 1 [Constr 0 [Constr 0 [B #], I 0]] ])
+     , Constr 1 [Constr 0 [B #, I 0]] ])
