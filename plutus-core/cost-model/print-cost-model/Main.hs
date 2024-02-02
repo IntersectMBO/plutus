@@ -138,7 +138,7 @@ parseArgs args defaultCostModelPath =
           parseOption arg rest (component, input)
                       | elem arg ["-d", "--default"] =
                         parse rest (component, Just defaultCostModelPath)
-                      | elem arg ["-c", "--cpu"]     = parse rest (Cpu, input)
+                      | elem arg ["-c", "--cpu"] = parse rest (Cpu, input)
                       | elem arg ["-m", "--mem", "--memory"] = parse rest (Memory, input)
                       | elem arg ["-h", "--help"] = usage defaultCostModelPath
                       | otherwise =
