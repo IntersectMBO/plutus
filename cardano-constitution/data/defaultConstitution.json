@@ -1,0 +1,28 @@
+{
+    "0":
+    {
+         "predicates": { "minValue": 30
+                       , "maxValue": 1000
+                       }
+        , "____comment____": "txFeePerByte"
+        , "____comment____": "Index taken from conway.cddl"
+        , "____comment____": "a.k.a. fee a"
+    },
+    "1":
+    {
+        "predicates": { "minValue": 100000
+                      , "maxValue": 10000000
+                      }
+        , "____comment____": "txFeeFixed"
+        , "____comment____": "Index taken from conway.cddl"
+        , "____comment____": "a.k.a. fee b"
+    },
+    "17":
+    {
+        "predicates": { "minValue": 25000
+                      , "maxValue": 50000
+                      }
+        , "____comment____": "utxoCostPerByte"
+        , "____comment____": "Index taken from conway.cddl"
+    }
+}

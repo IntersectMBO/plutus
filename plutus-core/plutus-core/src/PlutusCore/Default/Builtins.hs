@@ -37,7 +37,6 @@ import PlutusCore.Crypto.Secp256k1 (verifyEcdsaSecp256k1Signature, verifySchnorr
 import Codec.Serialise (serialise)
 import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
-import Data.Char (toLower)
 import Data.Ix (Ix)
 import Data.Text (Text, pack)
 import Data.Text.Encoding (decodeUtf8', encodeUtf8)
@@ -162,10 +161,7 @@ data DefaultFun
  the built-in functions are obtained by applying the function below to the
  constructor names above. -}
 instance Pretty DefaultFun where
-    pretty fun = pretty $ case show fun of
-        ""    -> ""  -- It's really weird to have a function's name displayed as an empty string,
-                     -- but if it's what the 'Show' instance does, the user has asked for it.
-        c : s -> toLower c : s
+    pretty fun = pretty $ lowerInitialChar $ show fun
 
 instance ExMemoryUsage DefaultFun where
     memoryUsage _ = singletonRose 1

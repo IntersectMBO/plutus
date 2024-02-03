@@ -79,6 +79,7 @@ common lang
 library
   import:             lang
   exposed-modules:
+    Data.Aeson.THReader
     Data.Either.Extras
     Data.List.Extras
     Data.MultiSet.Lens
@@ -200,7 +201,6 @@ library
 
   other-modules:
     Data.Aeson.Flatten
-    Data.Aeson.THReader
     Data.Functor.Foldable.Monadic
     PlutusCore.Builtin.HasConstant
     PlutusCore.Builtin.KnownKind

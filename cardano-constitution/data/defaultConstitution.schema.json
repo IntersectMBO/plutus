@@ -1,0 +1,56 @@
+{
+    "$schema": "https://json-schema.org/draft/2019-09/schema",
+    "type": "object",
+    "propertyNames": {
+        "pattern": "^[0-9]+$"
+    },
+    "additionalProperties": {
+        "type": "object",
+        "properties": {
+            "____comment____": { "type": "string" },
+            "predicates": { "type": "object"
+                            , "properties": {
+                                "minValue": { "type": "integer" },
+                                "maxValue": { "type": "integer" }
+                            }
+                          },
+        },
+        "required": ["predicates"],
+        "additionalProperties": false
+    },
+    "examples": [
+             {
+                 "9000": {
+                     "predicates": { "minValue": 0 }
+                     , "____comment____": "The param id is supposed to be a non-negative integer,"
+                     , "____comment____": "but json onl allow strings key names (not integers)."
+                     , "____comment____": "We enforce with a regex (^[0-9]+$) the param id to the non-negative decimal numbers"
+                     , "____comment____": "This restricts the parameter 9000 to be at least 0"
+                 },
+                 "9001": {
+                     "predicates": { "minValue": 0, "maxValue": 0 }
+                     , "____comment____": "The 9001 should be least 0 and at most 0 ==> can only be 0"
+                     , "____comment____": "A hard/frozen restriction on the parameter, because it cannot change as long as constitution remains the same"
+                 },
+                 "9002": {
+                     "predicates": { "minValue": 1, "maxValue": 0 }
+                     , "____comment____": "The 9002 should be least 1 and at most 0. UNSATISFIABLE"
+                     , "____comment____": "A non-sense parameter restriction. A proposal trying to touch this parameter will always fail"
+                     , "____comment____": "Currently, we don't have a guard against configuring a constitution with such non-sense restrictions"
+                 },
+                 "9003": {
+                     "predicates": {  }
+                     , "____comment____": "The 9003 does no contain any restrictions, and thus is allowed to any take integer Value"
+                     , "____comment____": "Any parameter that is not specified in a constitution-config, will make its change-proposal fail."
+                     , "____comment____": "This empty-predicates config, acknowledges the existence of a parameter and allows it to be changed (to any value)."
+                 },
+                 "9003": {
+                     "predicates": { minValue: 1 , minValue: -1 }
+                     , "____comment____": "VERY IMPORTANT: json schema (and JSON) allows duplicate object entries:"
+                     , "____comment____": "e.g. duplicate parameter entries or duplicate predicates."
+                     , "____comment____": "Only one of the duplicates will be *silently* loaded and we don't guarantee the order"
+                     , "____comment____": "SO TAKE CARE OF DUPLICATES"
+                 }
+         }
+    ]
+}

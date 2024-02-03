@@ -62,6 +62,7 @@ let
         (lib.mkIf isCrossCompiling {
           packages = {
             # Things that need plutus-tx-plugin
+            cardano-constitution.package.buildable = false;
             plutus-benchmark.package.buildable = false;
             plutus-tx-plugin.package.buildable = false;
             plutus-ledger-api.components.tests.plutus-ledger-api-plugin-test.buildable = lib.mkForce false;
@@ -81,6 +82,7 @@ let
         {
           packages = {
             # Packages we just don't want docs for
+            cardano-constitution.doHaddock = false;
             plutus-benchmark.doHaddock = false;
 
             # FIXME: Haddock mysteriously gives a spurious missing-home-modules warning
@@ -154,6 +156,7 @@ let
 
             # Werror everything.
             # This is a pain, see https://github.com/input-output-hk/haskell.nix/issues/519
+            cardano-constitution.ghcOptions = [ "-Werror" ];
             plutus-benchmark.ghcOptions = [ "-Werror" ];
             plutus-conformance.ghcOptions = [ "-Werror" ];
             plutus-core.ghcOptions = [ "-Werror" ];
