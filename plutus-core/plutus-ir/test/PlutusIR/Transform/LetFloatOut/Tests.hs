@@ -1,4 +1,5 @@
 {-# LANGUAGE TypeApplications #-}
+
 module PlutusIR.Transform.LetFloatOut.Tests where
 
 import Test.Tasty
@@ -19,50 +20,51 @@ import PlutusPrelude
 import Test.QuickCheck.Property (Property, withMaxSuccess)
 
 test_letFloatOut :: TestTree
-test_letFloatOut = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
+test_letFloatOut =
+  runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
     testNested "LetFloatOut" $
-        map
-            (goldenPir (runQuote . runTestPass testPass) pTerm)
-            [ "letInLet"
-            , "listMatch"
-            , "maybe"
-            , "ifError"
-            , "mutuallyRecursiveTypes"
-            , "mutuallyRecursiveValues"
-            , "nonrec1"
-            , "nonrec2"
-            , "nonrec3"
-            , "nonrec4"
-            , "nonrec6"
-            , "nonrec7"
-            , "nonrec8"
-            , "nonrec9"
-            , "rec1"
-            , "rec2"
-            , "rec3"
-            , "rec4"
-            , "nonrecToRec"
-            , "nonrecToNonrec"
-            , "oldLength"
-            , "strictValue"
-            , "strictNonValue"
-            , "strictNonValue2"
-            , "strictNonValue3"
-            , "strictValueNonValue"
-            , "strictValueValue"
-            , "even3Eval"
-            , "strictNonValueDeep"
-            , "oldFloatBug"
-            , "outRhs"
-            , "outLam"
-            , "inLam"
-            , "rhsSqueezeVsNest"
-            ]
+      map
+        (goldenPir (runQuote . runTestPass testPass) pTerm)
+        [ "letInLet"
+        , "listMatch"
+        , "maybe"
+        , "ifError"
+        , "mutuallyRecursiveTypes"
+        , "mutuallyRecursiveValues"
+        , "nonrec1"
+        , "nonrec2"
+        , "nonrec3"
+        , "nonrec4"
+        , "nonrec6"
+        , "nonrec7"
+        , "nonrec8"
+        , "nonrec9"
+        , "rec1"
+        , "rec2"
+        , "rec3"
+        , "rec4"
+        , "nonrecToRec"
+        , "nonrecToNonrec"
+        , "oldLength"
+        , "strictValue"
+        , "strictNonValue"
+        , "strictNonValue2"
+        , "strictNonValue3"
+        , "strictValueNonValue"
+        , "strictValueValue"
+        , "even3Eval"
+        , "strictNonValueDeep"
+        , "oldFloatBug"
+        , "outRhs"
+        , "outLam"
+        , "inLam"
+        , "rhsSqueezeVsNest"
+        ]
   where
     testPass tcconfig =
       LetFloatOut.floatTermPassSC tcconfig def
-      <> RecSplit.recSplitPass tcconfig
-      <> LetMerge.letMergePass tcconfig
+        <> RecSplit.recSplitPass tcconfig
+        <> LetMerge.letMergePass tcconfig
 
 prop_floatIn :: BuiltinSemanticsVariant PLC.DefaultFun -> Property
 prop_floatIn biVariant = withMaxSuccess (3 * numTestsForPassProp) $ testPassProp runQuote testPass
@@ -70,4 +72,4 @@ prop_floatIn biVariant = withMaxSuccess (3 * numTestsForPassProp) $ testPassProp
     testPass tcconfig =
       LetFloatOut.floatTermPassSC
         tcconfig
-        (def { _biSemanticsVariant = biVariant })
+        (def {_biSemanticsVariant = biVariant})

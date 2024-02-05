@@ -1,18 +1,20 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Evaluation.Regressions (
-  schnorrVerifyRegressions
-  ) where
+  schnorrVerifyRegressions,
+) where
 
 import Data.Bits (zeroBits)
 import Data.ByteString (ByteString)
 import Data.List.Split (chunksOf)
 import Evaluation.Builtins.Common (typecheckEvaluateCek)
 import GHC.Exts (fromListN)
-import PlutusCore (DefaultFun (VerifySchnorrSecp256k1Signature),
-                   EvaluationResult (EvaluationFailure))
+import PlutusCore (
+  DefaultFun (VerifySchnorrSecp256k1Signature),
+  EvaluationResult (EvaluationFailure),
+ )
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultBuiltinCostModel)
 import PlutusCore.MkPlc (builtin, mkConstant, mkIterAppNoAnn)
 import PlutusPrelude
@@ -22,19 +24,22 @@ import Text.Read (readMaybe)
 
 schnorrVerifyRegressions :: TestTree
 schnorrVerifyRegressions =
-  testGroup "Schnorr signature verification regressions" [
-    testCase "malformed verkey should fail" $ do
-      let badVerKey = "m"
-      let message = "\213"
-      let comp = mkIterAppNoAnn (builtin () VerifySchnorrSecp256k1Signature) [
-            mkConstant @ByteString () badVerKey,
-            mkConstant @ByteString () message,
-            mkConstant @ByteString () signature
-            ]
-      let result = typecheckEvaluateCek def defaultBuiltinCostModel comp
-      case result of
-        Left _         -> assertFailure "Failed to type check unexpectedly"
-        Right (res, _) -> assertEqual "" EvaluationFailure res
+  testGroup
+    "Schnorr signature verification regressions"
+    [ testCase "malformed verkey should fail" $ do
+        let badVerKey = "m"
+        let message = "\213"
+        let comp =
+              mkIterAppNoAnn
+                (builtin () VerifySchnorrSecp256k1Signature)
+                [ mkConstant @ByteString () badVerKey
+                , mkConstant @ByteString () message
+                , mkConstant @ByteString () signature
+                ]
+        let result = typecheckEvaluateCek def defaultBuiltinCostModel comp
+        case result of
+          Left _ -> assertFailure "Failed to type check unexpectedly"
+          Right (res, _) -> assertEqual "" EvaluationFailure res
     ]
 
 -- The original reproducing case is a hex string

@@ -1,14 +1,15 @@
-{-# LANGUAGE GADTs           #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE PatternSynonyms #-}
-{-# LANGUAGE TypeOperators   #-}
-module PlutusIR.Transform.RewriteRules.Common
-    ( seqA
-    , seqP
-    , mkFreshTermLet -- from MkPlc
-    , pattern A
-    , pattern B
-    , pattern I
-    ) where
+{-# LANGUAGE TypeOperators #-}
+
+module PlutusIR.Transform.RewriteRules.Common (
+  seqA,
+  seqP,
+  mkFreshTermLet, -- from MkPlc
+  pattern A,
+  pattern B,
+  pattern I,
+) where
 
 import PlutusCore.Builtin
 import PlutusCore.Quote
@@ -22,40 +23,46 @@ import PlutusIR.Purity
 
 e.g. `infixr 5 (***) = seqA binfo vInfo`
 -}
-seqA :: (MonadQuote m, Monoid a, ToBuiltinMeaning uni fun)
-     => BuiltinsInfo uni fun
-     -> VarsInfo tyname Name uni a
-     -> (Type tyname uni a, Term tyname Name uni fun a)
-     ->  m (Term tyname Name uni fun a)
-     -> m (Term tyname Name uni fun a)
-seqA binfo vinfo (a,aT) y = seqOpt binfo vinfo a aT <*> y
-
+seqA ::
+  (MonadQuote m, Monoid a, ToBuiltinMeaning uni fun) =>
+  BuiltinsInfo uni fun ->
+  VarsInfo tyname Name uni a ->
+  (Type tyname uni a, Term tyname Name uni fun a) ->
+  m (Term tyname Name uni fun a) ->
+  m (Term tyname Name uni fun a)
+seqA binfo vinfo (a, aT) y = seqOpt binfo vinfo a aT <*> y
 
 {- | Another "infix" wrapper where second operand is a Haskell pure value.
 
 e.g. `infixr 5 (***) = seqP binfo vInfo`
 -}
-seqP :: (MonadQuote m, Monoid a, ToBuiltinMeaning uni fun)
-     => BuiltinsInfo uni fun
-     -> VarsInfo tyname Name uni a
-     -> (Type tyname uni a, Term tyname Name uni fun a)
-     -> Term tyname Name uni fun a
-     -> m (Term tyname Name uni fun a)
+seqP ::
+  (MonadQuote m, Monoid a, ToBuiltinMeaning uni fun) =>
+  BuiltinsInfo uni fun ->
+  VarsInfo tyname Name uni a ->
+  (Type tyname uni a, Term tyname Name uni fun a) ->
+  Term tyname Name uni fun a ->
+  m (Term tyname Name uni fun a)
 seqP binfo vinfo p y = seqA binfo vinfo p (pure y)
 
 -- | An optimized version to omit call to `seq` if left operand `isPure`.
-seqOpt :: ( MonadQuote m
-       , Monoid a
-       , ToBuiltinMeaning uni fun
-       , t ~ Term tyname Name uni fun a
-       )
-     => BuiltinsInfo uni fun
-     -> VarsInfo tyname Name uni a
-     -> Type tyname uni a -- ^ the type of left operand a
-     -> t -- ^ left operand a
-     -> m (t -> t) -- ^ how to modify right operand b
-seqOpt binfo vinfo aT a | isPure binfo vinfo a = pure id
-                        | otherwise = seqUnOpt aT a
+seqOpt ::
+  ( MonadQuote m
+  , Monoid a
+  , ToBuiltinMeaning uni fun
+  , t ~ Term tyname Name uni fun a
+  ) =>
+  BuiltinsInfo uni fun ->
+  VarsInfo tyname Name uni a ->
+  -- | the type of left operand a
+  Type tyname uni a ->
+  -- | left operand a
+  t ->
+  -- | how to modify right operand b
+  m (t -> t)
+seqOpt binfo vinfo aT a
+  | isPure binfo vinfo a = pure id
+  | otherwise = seqUnOpt aT a
 
 {- | Takes as input a term `a` with its type `aT`,
 and constructs a function that expects another term `b`.
@@ -72,10 +79,14 @@ Unfortunately, unlike Haskell's `seq`, we need the pass the correct `Type` of `a
 so as to apply this `seq` combinator. This is usually not a problem because we are generating
 code and we should have the type of `a` somewhere available.
 -}
-seqUnOpt :: (MonadQuote m, Monoid a, t ~ Term tyname Name uni fun a)
-    => Type tyname uni a -- ^ the type of left operand a
-    -> t  -- ^ left operand a
-    -> m (t -> t) -- ^ how to modify right operand b
+seqUnOpt ::
+  (MonadQuote m, Monoid a, t ~ Term tyname Name uni fun a) =>
+  -- | the type of left operand a
+  Type tyname uni a ->
+  -- | left operand a
+  t ->
+  -- | how to modify right operand b
+  m (t -> t)
 seqUnOpt aT a = snd <$> mkFreshTermLet aT a
 
 -- Some shorthands for easier pattern-matching when creating rewrite rules

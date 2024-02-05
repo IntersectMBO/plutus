@@ -12,17 +12,18 @@ import PlutusIR.Transform.RecSplit
 import Test.Tasty.QuickCheck
 
 test_recSplit :: TestTree
-test_recSplit = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
+test_recSplit =
+  runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
     testNested "RecSplit" $
-        map
-            (goldenPir (runQuote . runTestPass recSplitPass) pTerm)
-            [ "truenonrec"
-            , "mutuallyRecursiveTypes"
-            , "mutuallyRecursiveValues"
-            , "selfrecursive"
-            , "small"
-            , "big"
-            ]
+      map
+        (goldenPir (runQuote . runTestPass recSplitPass) pTerm)
+        [ "truenonrec"
+        , "mutuallyRecursiveTypes"
+        , "mutuallyRecursiveValues"
+        , "selfrecursive"
+        , "small"
+        , "big"
+        ]
 
 prop_recSplit :: Property
 prop_recSplit =

@@ -1,7 +1,8 @@
-{-# LANGUAGE BangPatterns     #-}
-{-# LANGUAGE DataKinds        #-}
-{-# LANGUAGE KindSignatures   #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE TypeApplications #-}
+
 module UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter where
 
 import Control.Monad.Primitive
@@ -15,11 +16,14 @@ import GHC.TypeNats (KnownNat, natVal)
 -- See Note [Step counter data structure]
 -- You might think that since we can store whatever we like in here we might as well
 -- use machine words (i.e. 'Word64'), but that is actually slower.
--- | A set of 'Word8' counters that is used in the CEK machine
--- to count steps.
+
+{- | A set of 'Word8' counters that is used in the CEK machine
+to count steps.
+-}
 newtype StepCounter (n :: Nat) s = StepCounter (P.MutablePrimArray s Word8)
 
 {-# INLINE newCounter #-}
+
 -- | Make a new 'StepCounter' with the given number of counters.
 newCounter :: (KnownNat n, PrimMonad m) => Proxy n -> m (StepCounter n (PrimState m))
 newCounter p = do
@@ -29,44 +33,48 @@ newCounter p = do
   pure c
 
 {-# INLINE resetCounter #-}
+
 -- | Reset all the counters in the given 'StepCounter' to zero.
-resetCounter :: forall n m . (KnownNat n, PrimMonad m) => StepCounter n (PrimState m) -> m ()
+resetCounter :: forall n m. (KnownNat n, PrimMonad m) => StepCounter n (PrimState m) -> m ()
 resetCounter (StepCounter arr) =
   let sz = fromIntegral $ natVal (Proxy @n)
-  in P.setPrimArray arr 0 sz 0
+   in P.setPrimArray arr 0 sz 0
 
 {-# INLINE readCounter #-}
+
 -- | Read the value of a counter.
-readCounter :: forall m n . PrimMonad m => StepCounter n (PrimState m) -> Int -> m Word8
+readCounter :: forall m n. PrimMonad m => StepCounter n (PrimState m) -> Int -> m Word8
 readCounter =
   coerce
-  @(P.MutablePrimArray (PrimState m) Word8 -> Int -> m Word8)
-  @(StepCounter n (PrimState m) -> Int -> m Word8)
-  P.readPrimArray
+    @(P.MutablePrimArray (PrimState m) Word8 -> Int -> m Word8)
+    @(StepCounter n (PrimState m) -> Int -> m Word8)
+    P.readPrimArray
 
 {-# INLINE writeCounter #-}
+
 -- | Write to a counter.
-writeCounter
-  :: forall m n
-  . PrimMonad m
-  => StepCounter n (PrimState m)
-  -> Int
-  -> Word8
-  -> m ()
+writeCounter ::
+  forall m n.
+  PrimMonad m =>
+  StepCounter n (PrimState m) ->
+  Int ->
+  Word8 ->
+  m ()
 writeCounter =
   coerce
-  @(P.MutablePrimArray (PrimState m) Word8 -> Int -> Word8 -> m ())
-  @(StepCounter n (PrimState m) -> Int -> Word8 -> m ())
-  P.writePrimArray
+    @(P.MutablePrimArray (PrimState m) Word8 -> Int -> Word8 -> m ())
+    @(StepCounter n (PrimState m) -> Int -> Word8 -> m ())
+    P.writePrimArray
 
 {-# INLINE modifyCounter #-}
+
 -- | Modify the value of a counter. Returns the modified value.
-modifyCounter
-  :: PrimMonad m
-  => Int
-  -> (Word8 -> Word8)
-  -> StepCounter n (PrimState m)
-  -> m Word8
+modifyCounter ::
+  PrimMonad m =>
+  Int ->
+  (Word8 -> Word8) ->
+  StepCounter n (PrimState m) ->
+  m Word8
 modifyCounter i f c = do
   v <- readCounter c i
   let modified = f v
@@ -76,13 +84,14 @@ modifyCounter i f c = do
 -- I also tried INLINABLE + SPECIALIZE, which just resulted in it getting inlined, so might
 -- as well just go straight for that
 {-# INLINE itraverseCounter_ #-}
+
 -- | Traverse the counters with an effectful function.
-itraverseCounter_
-  :: forall n m
-  . (KnownNat n, PrimMonad m)
-  => (Int -> Word8 -> m ())
-  -> StepCounter n (PrimState m)
-  -> m ()
+itraverseCounter_ ::
+  forall n m.
+  (KnownNat n, PrimMonad m) =>
+  (Int -> Word8 -> m ()) ->
+  StepCounter n (PrimState m) ->
+  m ()
 itraverseCounter_ f (StepCounter arr) = do
   -- The implementation of this function is very performance-sensitive. I believe
   -- it may be possible to do better, but it's time-consuming to experiment more
@@ -100,17 +109,18 @@ itraverseCounter_ f (StepCounter arr) = do
     go !i
       | i < sz = do
           f i (P.indexPrimArray arr' i)
-          go (i+1)
+          go (i + 1)
       | otherwise = pure ()
   go 0
 
 {-# INLINE iforCounter_ #-}
+
 -- | Traverse the counters with an effectful function.
-iforCounter_
-  :: (KnownNat n, PrimMonad m)
-  => StepCounter n (PrimState m)
-  -> (Int -> Word8 -> m ())
-  -> m ()
+iforCounter_ ::
+  (KnownNat n, PrimMonad m) =>
+  StepCounter n (PrimState m) ->
+  (Int -> Word8 -> m ()) ->
+  m ()
 iforCounter_ = flip itraverseCounter_
 
 {- Note [Step counter data structure]

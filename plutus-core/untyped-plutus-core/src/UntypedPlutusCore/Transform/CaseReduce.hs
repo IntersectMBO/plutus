@@ -1,8 +1,9 @@
-{-# LANGUAGE LambdaCase    #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TupleSections #-}
-module UntypedPlutusCore.Transform.CaseReduce
-    ( caseReduce
-    ) where
+
+module UntypedPlutusCore.Transform.CaseReduce (
+  caseReduce,
+) where
 
 import PlutusCore.MkPlc
 import UntypedPlutusCore.Core
@@ -15,5 +16,5 @@ caseReduce = transformOf termSubterms processTerm
 
 processTerm :: Term name uni fun a -> Term name uni fun a
 processTerm = \case
-    Case ann (Constr _ i args) cs | Just c <- cs ^? wix i -> mkIterApp c ((ann,) <$> args)
-    t                                                     -> t
+  Case ann (Constr _ i args) cs | Just c <- cs ^? wix i -> mkIterApp c ((ann,) <$> args)
+  t -> t

@@ -11,18 +11,19 @@ import PlutusIR.Transform.KnownCon qualified as KnownCon
 import Test.QuickCheck
 
 test_knownCon :: TestTree
-test_knownCon = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
+test_knownCon =
+  runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
     testNested "KnownCon" $
-        map
-            (goldenPir (runQuote . runTestPass KnownCon.knownConPassSC) pTerm)
-            [ "applicative"
-            , "bool"
-            , "list"
-            , "maybe-just"
-            , "maybe-just-unsaturated"
-            , "maybe-nothing"
-            , "pair"
-            ]
+      map
+        (goldenPir (runQuote . runTestPass KnownCon.knownConPassSC) pTerm)
+        [ "applicative"
+        , "bool"
+        , "list"
+        , "maybe-just"
+        , "maybe-just-unsaturated"
+        , "maybe-nothing"
+        , "pair"
+        ]
 
 prop_knownCon :: Property
 prop_knownCon = withMaxSuccess numTestsForPassProp $ testPassProp runQuote KnownCon.knownConPassSC

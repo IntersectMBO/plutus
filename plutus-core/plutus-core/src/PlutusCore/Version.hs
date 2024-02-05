@@ -1,17 +1,18 @@
-{-# LANGUAGE DeriveAnyClass    #-}
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module PlutusCore.Version (
-  Version(..)
-  , versionMajor
-  , versionMinor
-  , versionPatch
-  , plcVersion100
-  , plcVersion110
-  , firstVersion
-  , latestVersion
-  , knownVersions) where
+  Version (..),
+  versionMajor,
+  versionMinor,
+  versionPatch,
+  plcVersion100,
+  plcVersion110,
+  firstVersion,
+  latestVersion,
+  knownVersions,
+) where
 
 import PlutusPrelude
 
@@ -41,10 +42,9 @@ Compatibility is about compatibility for specific scripts, not about e.g. tools 
 scripts. Adding a new kind of term does not change how existing scripts behave, but does
 change what tools would need to do to process scripts.
 -}
-data Version
-    = Version { _versionMajor :: Natural, _versionMinor :: Natural, _versionPatch :: Natural }
-    deriving stock (Eq, Show, Generic)
-    deriving anyclass (NFData, Hashable)
+data Version = Version {_versionMajor :: Natural, _versionMinor :: Natural, _versionPatch :: Natural}
+  deriving stock (Eq, Show, Generic)
+  deriving anyclass (NFData, Hashable)
 
 makeLenses ''Version
 
@@ -70,10 +70,11 @@ plcVersion110 = Version 1 1 0
 latestVersion :: Version
 latestVersion = plcVersion110
 
--- | The set of versions that are "known", i.e. that have been released
--- and have actual differences associated with them.
+{- | The set of versions that are "known", i.e. that have been released
+and have actual differences associated with them.
+-}
 knownVersions :: Set.Set Version
-knownVersions = Set.fromList [ plcVersion100, plcVersion110 ]
+knownVersions = Set.fromList [plcVersion100, plcVersion110]
 
 instance Pretty Version where
-    pretty (Version i j k) = pretty i <> "." <> pretty j <> "." <> pretty k
+  pretty (Version i j k) = pretty i <> "." <> pretty j <> "." <> pretty k

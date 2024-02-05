@@ -1,16 +1,16 @@
-{-# LANGUAGE ConstraintKinds  #-}
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE GADTs            #-}
-{-# LANGUAGE LambdaCase       #-}
-{-# LANGUAGE TypeFamilies     #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE TypeFamilies #-}
 
 {- | An inlining pass of *non-recursive* bindings. It includes
 (1) unconditional inlining: similar to `PreInlineUnconditionally` and `PostInlineUnconditionally`
 in the paper 'Secrets of the GHC Inliner'.
 (2) call site inlining of fully applied functions. See `Inline.CallSiteInline.hs`
 -}
-
 module PlutusIR.Transform.Inline.Inline (inline, inlinePass, inlinePassSC, InlineHints (..)) where
+
 import PlutusCore qualified as PLC
 import PlutusCore.Annotation
 import PlutusCore.Name
@@ -103,7 +103,7 @@ look like this (see Note [Abstract data types]). Here's an example with Maybe:
 The definitions of the constructors/destructor don't look like let-bindings because there
 is a type abstraction in between the lambdas and their arguments! And this abstraction
 is important: the bodies of the constructors/destructor only typecheck if they are
-*outside* the type abstraction, because they fundamentally rely on knowing what the
+\*outside* the type abstraction, because they fundamentally rely on knowing what the
 type actually *is* in order to be able to construct/destruct it. e.g. for a Scott-encoded
 type we actually need to know that the datatype is encoded as a matching function,
 not just an abstract type. So we can't just put the definitions of the
@@ -156,22 +156,22 @@ But we don't really care about the costs listed there: it's easy for us to get a
 supply, and the performance cost does not currently seem relevant. So it's fine.
 -}
 
-inlinePassSC
-    :: forall uni fun ann m
-    . (PLC.Typecheckable uni fun, PLC.GEq uni, Ord ann, ExternalConstraints TyName Name uni fun m)
-    => TC.PirTCConfig uni fun
-    -> InlineHints Name ann
-    -> BuiltinsInfo uni fun
-    -> Pass m TyName Name uni fun ann
+inlinePassSC ::
+  forall uni fun ann m.
+  (PLC.Typecheckable uni fun, PLC.GEq uni, Ord ann, ExternalConstraints TyName Name uni fun m) =>
+  TC.PirTCConfig uni fun ->
+  InlineHints Name ann ->
+  BuiltinsInfo uni fun ->
+  Pass m TyName Name uni fun ann
 inlinePassSC tcconfig hints binfo = renamePass <> inlinePass tcconfig hints binfo
 
-inlinePass
-    :: forall uni fun ann m
-    . (PLC.Typecheckable uni fun, PLC.GEq uni, Ord ann, ExternalConstraints TyName Name uni fun m)
-    => TC.PirTCConfig uni fun
-    -> InlineHints Name ann
-    -> BuiltinsInfo uni fun
-    -> Pass m TyName Name uni fun ann
+inlinePass ::
+  forall uni fun ann m.
+  (PLC.Typecheckable uni fun, PLC.GEq uni, Ord ann, ExternalConstraints TyName Name uni fun m) =>
+  TC.PirTCConfig uni fun ->
+  InlineHints Name ann ->
+  BuiltinsInfo uni fun ->
+  Pass m TyName Name uni fun ann
 inlinePass tcconfig hints binfo =
   NamedPass "inline" $
     Pass
@@ -179,22 +179,25 @@ inlinePass tcconfig hints binfo =
       [GloballyUniqueNames, Typechecks tcconfig]
       [ConstCondition GloballyUniqueNames, ConstCondition (Typechecks tcconfig)]
 
--- | Inline non-recursive bindings. Relies on global uniqueness, and preserves it.
--- See Note [Inlining and global uniqueness]
-inline
-    :: forall tyname name uni fun ann m
-    . ExternalConstraints tyname name uni fun m
-    => InlineHints name ann
-    -> BuiltinsInfo uni fun
-    -> Term tyname name uni fun ann
-    -> m (Term tyname name uni fun ann)
-inline hints binfo t = let
-        inlineInfo :: InlineInfo tyname name uni fun ann
-        inlineInfo = InlineInfo vinfo usgs hints binfo
-        vinfo = VarInfo.termVarInfo t
-        usgs :: Usages.Usages
-        usgs = Usages.termUsages t
-    in liftQuote $ flip evalStateT mempty $ flip runReaderT inlineInfo $ processTerm t
+{- | Inline non-recursive bindings. Relies on global uniqueness, and preserves it.
+See Note [Inlining and global uniqueness]
+-}
+inline ::
+  forall tyname name uni fun ann m.
+  ExternalConstraints tyname name uni fun m =>
+  InlineHints name ann ->
+  BuiltinsInfo uni fun ->
+  Term tyname name uni fun ann ->
+  m (Term tyname name uni fun ann)
+inline hints binfo t =
+  let
+    inlineInfo :: InlineInfo tyname name uni fun ann
+    inlineInfo = InlineInfo vinfo usgs hints binfo
+    vinfo = VarInfo.termVarInfo t
+    usgs :: Usages.Usages
+    usgs = Usages.termUsages t
+   in
+    liftQuote $ flip evalStateT mempty $ flip runReaderT inlineInfo $ processTerm t
 
 {- Note [Removing inlined bindings]
 We *do* remove bindings that we inline *unconditionally*. We *could*
@@ -223,66 +226,69 @@ much easier when they are just separate terms.
 -}
 
 -- | Run the inliner on a `Core.Type.Term`.
-processTerm
-    :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
-    => Term tyname name uni fun ann -- ^ Term to be processed.
-    -> InlineM tyname name uni fun ann (Term tyname name uni fun ann)
-processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
+processTerm ::
+  forall tyname name uni fun ann.
+  InliningConstraints tyname name uni fun =>
+  -- | Term to be processed.
+  Term tyname name uni fun ann ->
+  InlineM tyname name uni fun ann (Term tyname name uni fun ann)
+processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution
+  where
     handleTerm ::
-        Term tyname name uni fun ann
-        -> InlineM tyname name uni fun ann (Term tyname name uni fun ann)
+      Term tyname name uni fun ann ->
+      InlineM tyname name uni fun ann (Term tyname name uni fun ann)
     handleTerm = \case
-        v@(Var _ n) -> fromMaybe v <$> substName n
-        Let ann NonRec bs t -> case bs of
-            b :| [] -> do
-                -- Process the binding, eliminating it if it will be inlined unconditionally,
-                -- and accumulating the new substitutions.
-                -- See Note [Removing inlined bindings]
-                -- Note that we don't *remove* the binding or scope the state, so the state will
-                -- carry over into "sibling" terms. This is fine because we have global uniqueness
-                -- (see Note [Inlining and global uniqueness]), if somewhat wasteful.
-                b' <- processSingleBinding t b
-                t' <- processTerm t
-                -- Use 'mkLet': which takes a possibly empty list of bindings (rather than
-                -- a non-empty list)
-                pure $ mkLet ann NonRec (maybeToList b') t'
-            -- See Note [Processing multi-lets]
-            b :| rest -> handleTerm (Let ann NonRec (pure b) (mkLet ann NonRec rest t))
-        -- This includes recursive let terms, we don't even consider inlining them at the moment
-        t -> do
-            -- See note [Processing order of call site inlining]
-            let (hd, args) = splitApplication t
-                processArgs ::
-                    AppContext tyname name uni fun ann ->
-                    InlineM tyname name uni fun ann (AppContext tyname name uni fun ann)
-                processArgs (TermAppContext arg ann ctx) = do
-                    processedArg <- processTerm arg
-                    processedArgs <- processArgs ctx
-                    pure $ TermAppContext processedArg ann processedArgs
-                processArgs (TypeAppContext ty ann ctx) = do
-                    processedArgs <- processArgs ctx
-                    ty' <- applyTypeSubstitution ty
-                    pure $ TypeAppContext ty' ann processedArgs
-                processArgs AppContextEnd = pure AppContextEnd
-            case args of
-                -- not really an application, so hd is the term itself. Processing it will loop.
-                AppContextEnd -> forMOf termSubterms t processTerm
-                _ -> do
-                    hd' <- processTerm hd
-                    args' <- processArgs args
-                    let reconstructed = fillAppContext hd' args'
-                    case hd' of
-                        Var _ name -> do
-                            gets (lookupVarInfo name) >>= \case
-                                Just varInfo -> do
-                                    maybeInlined <-
-                                        callSiteInline
-                                            (termSize reconstructed)
-                                            varInfo
-                                            args'
-                                    pure $ fromMaybe reconstructed maybeInlined
-                                Nothing -> pure reconstructed
-                        _ -> pure reconstructed
+      v@(Var _ n) -> fromMaybe v <$> substName n
+      Let ann NonRec bs t -> case bs of
+        b :| [] -> do
+          -- Process the binding, eliminating it if it will be inlined unconditionally,
+          -- and accumulating the new substitutions.
+          -- See Note [Removing inlined bindings]
+          -- Note that we don't *remove* the binding or scope the state, so the state will
+          -- carry over into "sibling" terms. This is fine because we have global uniqueness
+          -- (see Note [Inlining and global uniqueness]), if somewhat wasteful.
+          b' <- processSingleBinding t b
+          t' <- processTerm t
+          -- Use 'mkLet': which takes a possibly empty list of bindings (rather than
+          -- a non-empty list)
+          pure $ mkLet ann NonRec (maybeToList b') t'
+        -- See Note [Processing multi-lets]
+        b :| rest -> handleTerm (Let ann NonRec (pure b) (mkLet ann NonRec rest t))
+      -- This includes recursive let terms, we don't even consider inlining them at the moment
+      t -> do
+        -- See note [Processing order of call site inlining]
+        let (hd, args) = splitApplication t
+            processArgs ::
+              AppContext tyname name uni fun ann ->
+              InlineM tyname name uni fun ann (AppContext tyname name uni fun ann)
+            processArgs (TermAppContext arg ann ctx) = do
+              processedArg <- processTerm arg
+              processedArgs <- processArgs ctx
+              pure $ TermAppContext processedArg ann processedArgs
+            processArgs (TypeAppContext ty ann ctx) = do
+              processedArgs <- processArgs ctx
+              ty' <- applyTypeSubstitution ty
+              pure $ TypeAppContext ty' ann processedArgs
+            processArgs AppContextEnd = pure AppContextEnd
+        case args of
+          -- not really an application, so hd is the term itself. Processing it will loop.
+          AppContextEnd -> forMOf termSubterms t processTerm
+          _ -> do
+            hd' <- processTerm hd
+            args' <- processArgs args
+            let reconstructed = fillAppContext hd' args'
+            case hd' of
+              Var _ name -> do
+                gets (lookupVarInfo name) >>= \case
+                  Just varInfo -> do
+                    maybeInlined <-
+                      callSiteInline
+                        (termSize reconstructed)
+                        varInfo
+                        args'
+                    pure $ fromMaybe reconstructed maybeInlined
+                  Nothing -> pure reconstructed
+              _ -> pure reconstructed
 
 {- Note [Processing order of call site inlining]
 We have two options on how we process terms for the call site inliner:
@@ -364,86 +370,97 @@ term, but with the head (the rhs of the variable) and the arguments already proc
 -}
 
 -- | Run the inliner on a single non-recursive let binding.
-processSingleBinding
-    :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
-    => Term tyname name uni fun ann -- ^ The body of the let binding.
-    -> Binding tyname name uni fun ann -- ^ The binding.
-    -> InlineM tyname name uni fun ann (Maybe (Binding tyname name uni fun ann))
+processSingleBinding ::
+  forall tyname name uni fun ann.
+  InliningConstraints tyname name uni fun =>
+  -- | The body of the let binding.
+  Term tyname name uni fun ann ->
+  -- | The binding.
+  Binding tyname name uni fun ann ->
+  InlineM tyname name uni fun ann (Maybe (Binding tyname name uni fun ann))
 processSingleBinding body = \case
-    (TermBind ann s v@(VarDecl _ n _) rhs0) -> do
-        -- we want to do unconditional inline if possible
-        maybeAddSubst body ann s n rhs0 >>= \case
-            -- this binding is going to be unconditionally inlined
-            Nothing -> pure Nothing
-            Just rhs -> do
-                -- when we encounter a binding, we add it to
-                -- the global map `Utils.NonRecInScopeSet`.
-                -- The `varRhs` added to the map has been unconditionally inlined.
-                -- When we check the body of the let binding we look in this map for
-                -- call site inlining.
-                -- We don't remove the binding because we decide *at the call site*
-                -- whether we want to inline, and it may be called more than once.
-                modify' $
-                    extendVarInfo
-                        n
-                        -- no need to rename here when we enter the rhs into the map. Renaming needs
-                        -- to be done at each call site, because each substituted instance has to
-                        -- have unique names
-                        (MkVarInfo s (Done (dupable rhs)))
-                pure $ Just $ TermBind ann s v rhs
-    (TypeBind ann v@(TyVarDecl _ n _) rhs) -> do
-        maybeRhs' <- maybeAddTySubst n rhs
-        pure $ TypeBind ann v <$> maybeRhs'
-    b -> -- Just process all the subterms
-        Just <$> forMOf bindingSubterms b processTerm
+  (TermBind ann s v@(VarDecl _ n _) rhs0) -> do
+    -- we want to do unconditional inline if possible
+    maybeAddSubst body ann s n rhs0 >>= \case
+      -- this binding is going to be unconditionally inlined
+      Nothing -> pure Nothing
+      Just rhs -> do
+        -- when we encounter a binding, we add it to
+        -- the global map `Utils.NonRecInScopeSet`.
+        -- The `varRhs` added to the map has been unconditionally inlined.
+        -- When we check the body of the let binding we look in this map for
+        -- call site inlining.
+        -- We don't remove the binding because we decide *at the call site*
+        -- whether we want to inline, and it may be called more than once.
+        modify' $
+          extendVarInfo
+            n
+            -- no need to rename here when we enter the rhs into the map. Renaming needs
+            -- to be done at each call site, because each substituted instance has to
+            -- have unique names
+            (MkVarInfo s (Done (dupable rhs)))
+        pure $ Just $ TermBind ann s v rhs
+  (TypeBind ann v@(TyVarDecl _ n _) rhs) -> do
+    maybeRhs' <- maybeAddTySubst n rhs
+    pure $ TypeBind ann v <$> maybeRhs'
+  b ->
+    -- Just process all the subterms
+    Just <$> forMOf bindingSubterms b processTerm
 
--- | Check against the heuristics we have for inlining and either inline the term binding or not.
--- The arguments to this function are the fields of the `TermBinding` being processed.
--- Nothing means that we are inlining the term:
---   * we have extended the substitution, and
---   * we are removing the binding (hence we return Nothing).
-maybeAddSubst
-    :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
-    => Term tyname name uni fun ann
-    -> ann
-    -> Strictness
-    -> name
-    -> Term tyname name uni fun ann
-    -> InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
+{- | Check against the heuristics we have for inlining and either inline the term binding or not.
+The arguments to this function are the fields of the `TermBinding` being processed.
+Nothing means that we are inlining the term:
+  * we have extended the substitution, and
+  * we are removing the binding (hence we return Nothing).
+-}
+maybeAddSubst ::
+  forall tyname name uni fun ann.
+  InliningConstraints tyname name uni fun =>
+  Term tyname name uni fun ann ->
+  ann ->
+  Strictness ->
+  name ->
+  Term tyname name uni fun ann ->
+  InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
 maybeAddSubst body ann s n rhs0 = do
-    rhs <- processTerm rhs0
+  rhs <- processTerm rhs0
 
-    -- Check whether we've been told specifically to inline this
-    hints <- view iiHints
-    let hinted = shouldInline hints ann n
+  -- Check whether we've been told specifically to inline this
+  hints <- view iiHints
+  let hinted = shouldInline hints ann n
 
-    if hinted -- if we've been told specifically, then do it right away
+  if hinted -- if we've been told specifically, then do it right away
     then extendAndDrop (Done $ dupable rhs)
     else
-        ifM
-            (shouldUnconditionallyInline s n rhs body)
-            (extendAndDrop (Done $ dupable rhs))
-            (pure $ Just rhs)
-    where
-        extendAndDrop ::
-            forall b . InlineTerm tyname name uni fun ann
-            -> InlineM tyname name uni fun ann (Maybe b)
-        extendAndDrop t = modify' (extendTerm n t) >> pure Nothing
+      ifM
+        (shouldUnconditionallyInline s n rhs body)
+        (extendAndDrop (Done $ dupable rhs))
+        (pure $ Just rhs)
+  where
+    extendAndDrop ::
+      forall b.
+      InlineTerm tyname name uni fun ann ->
+      InlineM tyname name uni fun ann (Maybe b)
+    extendAndDrop t = modify' (extendTerm n t) >> pure Nothing
 
--- | Check against the inlining heuristics for types and either inline it, returning Nothing, or
--- just return the type without inlining.
--- We only inline if (1) the type is used at most once OR (2) it's a `trivialType`.
-maybeAddTySubst
-    :: forall tyname name uni fun ann . InliningConstraints tyname name uni fun
-    => tyname -- ^ The type variable
-    -> Type tyname uni ann -- ^  The value of the type variable.
-    -> InlineM tyname name uni fun ann (Maybe (Type tyname uni ann))
+{- | Check against the inlining heuristics for types and either inline it, returning Nothing, or
+just return the type without inlining.
+We only inline if (1) the type is used at most once OR (2) it's a `trivialType`.
+-}
+maybeAddTySubst ::
+  forall tyname name uni fun ann.
+  InliningConstraints tyname name uni fun =>
+  -- | The type variable
+  tyname ->
+  -- |  The value of the type variable.
+  Type tyname uni ann ->
+  InlineM tyname name uni fun ann (Maybe (Type tyname uni ann))
 maybeAddTySubst tn rhs = do
-    usgs <- view iiUsages
-    -- No need for multiple phases here
-    let typeUsedAtMostOnce = Usages.getUsageCount tn usgs <= 1
-    if typeUsedAtMostOnce || trivialType rhs
+  usgs <- view iiUsages
+  -- No need for multiple phases here
+  let typeUsedAtMostOnce = Usages.getUsageCount tn usgs <= 1
+  if typeUsedAtMostOnce || trivialType rhs
     then do
-        modify' (extendType tn rhs)
-        pure Nothing
+      modify' (extendType tn rhs)
+      pure Nothing
     else pure $ Just rhs

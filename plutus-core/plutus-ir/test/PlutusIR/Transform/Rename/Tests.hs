@@ -13,16 +13,19 @@ import PlutusIR.Transform.Rename ()
 import Test.Tasty.QuickCheck
 
 test_rename :: TestTree
-test_rename = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
+test_rename =
+  runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
     testNested "Rename" $
-        map
-            (goldenPir
-             (PLC.AttachPrettyConfig debugConfig . runQuote . runTestPass (const renamePass)) pTerm)
-            [ "allShadowedDataNonRec"
-            , "allShadowedDataRec"
-            , "paramShadowedDataNonRec"
-            , "paramShadowedDataRec"
-            ]
+      map
+        ( goldenPir
+            (PLC.AttachPrettyConfig debugConfig . runQuote . runTestPass (const renamePass))
+            pTerm
+        )
+        [ "allShadowedDataNonRec"
+        , "allShadowedDataRec"
+        , "paramShadowedDataNonRec"
+        , "paramShadowedDataRec"
+        ]
   where
     debugConfig = PLC.PrettyConfigClassic PLC.debugPrettyConfigName False
 

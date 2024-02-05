@@ -12,18 +12,25 @@ import PlutusPrelude
 import Test.QuickCheck.Property (Property, withMaxSuccess)
 
 test_caseOfCase :: TestTree
-test_caseOfCase = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
+test_caseOfCase =
+  runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
     testNested "CaseOfCase" $
-        map
-            (goldenPir (runQuote . runTestPass
-                        (\tc -> CaseOfCase.caseOfCasePassSC tc def True mempty)) pTerm)
-            [ "basic"
-            , "builtinBool"
-            , "largeExpr"
-            , "exponential"
-            ]
+      map
+        ( goldenPir
+            ( runQuote
+                . runTestPass
+                  (\tc -> CaseOfCase.caseOfCasePassSC tc def True mempty)
+            )
+            pTerm
+        )
+        [ "basic"
+        , "builtinBool"
+        , "largeExpr"
+        , "exponential"
+        ]
 
 prop_caseOfCase :: Property
 prop_caseOfCase =
   withMaxSuccess numTestsForPassProp $
-    testPassProp runQuote $ \tc -> CaseOfCase.caseOfCasePassSC tc def True mempty
+    testPassProp runQuote $
+      \tc -> CaseOfCase.caseOfCasePassSC tc def True mempty

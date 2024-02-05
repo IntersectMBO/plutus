@@ -1,10 +1,9 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 {- | Some basic Template Haskell to reduce boilerplate in the cost model tests.
    We have to put this in a separate source file because of staging
    restrictions.
 -}
-
-{-# LANGUAGE TemplateHaskell #-}
-
 module TH (genTest)
 where
 
@@ -12,8 +11,8 @@ import Data.Char (toUpper)
 import Language.Haskell.TH
 
 toUpper1 :: String -> String
-toUpper1 []     = error "empty string in toUpper1"
-toUpper1 (c:cs) = (toUpper c):cs
+toUpper1 [] = error "empty string in toUpper1"
+toUpper1 (c : cs) = (toUpper c) : cs
 
 mkIterApp :: Exp -> [Exp] -> Exp
 mkIterApp = foldl AppE
@@ -30,11 +29,9 @@ mkIterApp = foldl AppE
 -}
 genTest :: Int -> String -> Q Exp
 genTest n s =
-    let makePropN = VarE $ mkName ("makeProp" ++ show n)
-        testname  = LitE $ StringL s
-        fun       = VarE $ mkName s
-        params    = VarE $ mkName ("param" ++ toUpper1 s)
-        models    = VarE $ mkName "models"
-    in pure $ mkIterApp makePropN [testname, fun, params, models]
-
-
+  let makePropN = VarE $ mkName ("makeProp" ++ show n)
+      testname = LitE $ StringL s
+      fun = VarE $ mkName s
+      params = VarE $ mkName ("param" ++ toUpper1 s)
+      models = VarE $ mkName "models"
+   in pure $ mkIterApp makePropN [testname, fun, params, models]

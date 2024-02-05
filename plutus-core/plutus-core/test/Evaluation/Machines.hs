@@ -1,10 +1,10 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE TypeFamilies  #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 
-module Evaluation.Machines
-    ( test_machines
-    )
+module Evaluation.Machines (
+  test_machines,
+)
 where
 
 import GHC.Exts (fromString)
@@ -19,18 +19,20 @@ import PlutusCore.Pretty
 import Test.Tasty
 import Test.Tasty.Hedgehog
 
-testMachine
-    :: (uni ~ DefaultUni, fun ~ DefaultFun, PrettyPlc internal)
-    => String
-    -> (Term TyName Name uni fun () ->
-           Either (EvaluationException user internal (Term TyName Name uni fun ())) (Term TyName Name uni fun ()))
-    -> TestTree
+testMachine ::
+  (uni ~ DefaultUni, fun ~ DefaultFun, PrettyPlc internal) =>
+  String ->
+  ( Term TyName Name uni fun () ->
+    Either (EvaluationException user internal (Term TyName Name uni fun ())) (Term TyName Name uni fun ())
+  ) ->
+  TestTree
 testMachine machine eval =
-    testGroup machine $ fromInterestingTermGens $ \name ->
-        testPropertyNamed name (fromString name) . propEvaluate eval
+  testGroup machine $ fromInterestingTermGens $ \name ->
+    testPropertyNamed name (fromString name) . propEvaluate eval
 
 test_machines :: TestTree
-test_machines = testGroup
+test_machines =
+  testGroup
     "machines"
     [ testMachine "CK" $ evaluateCkNoEmit defaultBuiltinsRuntime
     ]

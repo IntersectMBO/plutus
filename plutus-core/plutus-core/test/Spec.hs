@@ -1,9 +1,9 @@
-{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 
 module Main (
   main,
@@ -44,12 +44,12 @@ import Flat qualified
 import Hedgehog hiding (Var)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
-import Prelude hiding (readFile)
 import Test.Tasty
 import Test.Tasty.Golden
-import Test.Tasty.Hedgehog
 import Test.Tasty.HUnit
+import Test.Tasty.Hedgehog
 import Test.Tasty.Options
+import Prelude hiding (readFile)
 
 main :: IO ()
 main = do
@@ -135,7 +135,7 @@ newtype TextualProgram a = TextualProgram
   {unTextualProgram :: Program TyName Name DefaultUni DefaultFun a}
   deriving stock (Show)
 
-instance (Eq a) => Eq (TextualProgram a) where
+instance Eq a => Eq (TextualProgram a) where
   (TextualProgram p1) == (TextualProgram p2) = compareProgram p1 p2
 
 propFlat :: Property
@@ -241,7 +241,7 @@ type TestFunction = T.Text -> Either DefaultError T.Text
 asIO :: TestFunction -> FilePath -> IO BSL.ByteString
 asIO f = fmap (either errorgen (BSL.fromStrict . encodeUtf8) . f) . readFile
 
-errorgen :: (PrettyPlc a) => a -> BSL.ByteString
+errorgen :: PrettyPlc a => a -> BSL.ByteString
 errorgen = BSL.fromStrict . encodeUtf8 . displayPlcDef
 
 asGolden :: TestFunction -> TestName -> TestTree

@@ -1,36 +1,35 @@
-{-# LANGUAGE BlockArguments         #-}
-{-# LANGUAGE ConstraintKinds        #-}
-{-# LANGUAGE DataKinds              #-}
-{-# LANGUAGE DefaultSignatures      #-}
-{-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DefaultSignatures #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE LambdaCase             #-}
-{-# LANGUAGE MultiParamTypeClasses  #-}
-{-# LANGUAGE OverloadedStrings      #-}
-{-# LANGUAGE TemplateHaskell        #-}
-{-# LANGUAGE TypeApplications       #-}
-{-# LANGUAGE TypeFamilies           #-}
-{-# LANGUAGE TypeOperators          #-}
-{-# LANGUAGE UndecidableInstances   #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE StrictData #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
 
-{-# LANGUAGE StrictData             #-}
-
-module PlutusCore.Builtin.KnownType
-    ( BuiltinError
-    , throwBuiltinErrorWithCause
-    , KnownBuiltinTypeIn
-    , KnownBuiltinType
-    , BuiltinResult (..)
-    , ReadKnownM
-    , MakeKnownIn (..)
-    , liftReadKnownM
-    , readKnownConstant
-    , MakeKnown
-    , ReadKnownIn (..)
-    , ReadKnown
-    , makeKnownOrFail
-    , readKnownSelf
-    ) where
+module PlutusCore.Builtin.KnownType (
+  BuiltinError,
+  throwBuiltinErrorWithCause,
+  KnownBuiltinTypeIn,
+  KnownBuiltinType,
+  BuiltinResult (..),
+  ReadKnownM,
+  MakeKnownIn (..),
+  liftReadKnownM,
+  readKnownConstant,
+  MakeKnown,
+  ReadKnownIn (..),
+  ReadKnown,
+  makeKnownOrFail,
+  readKnownSelf,
+) where
 
 import PlutusPrelude
 
@@ -50,13 +49,15 @@ import GHC.Exts (inline, oneShot)
 import GHC.TypeLits
 import Universe
 
--- | A constraint for \"@a@ is a 'ReadKnownIn' and 'MakeKnownIn' by means of being included
--- in @uni@\".
+{- | A constraint for \"@a@ is a 'ReadKnownIn' and 'MakeKnownIn' by means of being included
+in @uni@\".
+-}
 type KnownBuiltinTypeIn uni val a =
-    (HasConstantIn uni val, PrettyParens (SomeTypeIn uni), GEq uni, uni `HasTermLevel` a)
+  (HasConstantIn uni val, PrettyParens (SomeTypeIn uni), GEq uni, uni `HasTermLevel` a)
 
--- | A constraint for \"@a@ is a 'ReadKnownIn' and 'MakeKnownIn' by means of being included
--- in @UniOf term@\".
+{- | A constraint for \"@a@ is a 'ReadKnownIn' and 'MakeKnownIn' by means of being included
+in @UniOf term@\".
+-}
 type KnownBuiltinType val a = KnownBuiltinTypeIn (UniOf val) val a
 
 {- Note [Performance of ReadKnownIn and MakeKnownIn instances]
@@ -239,27 +240,32 @@ Lifting is allowed to the following classes of types:
    one, and for another example define an instance for 'Void' in tests
 -}
 
--- | Attach a @cause@ to a 'BuiltinError' and throw that.
--- Note that an evaluator might require the cause to be computed lazily for best performance on the
--- happy path, hence this function must not force its first argument.
--- TODO: wrap @cause@ in 'Lazy' once we have it.
-throwBuiltinErrorWithCause
-    :: (MonadError (ErrorWithCause err cause) m, AsUnliftingError err, AsEvaluationFailure err)
-    => cause -> BuiltinError -> m void
+{- | Attach a @cause@ to a 'BuiltinError' and throw that.
+Note that an evaluator might require the cause to be computed lazily for best performance on the
+happy path, hence this function must not force its first argument.
+TODO: wrap @cause@ in 'Lazy' once we have it.
+-}
+throwBuiltinErrorWithCause ::
+  (MonadError (ErrorWithCause err cause) m, AsUnliftingError err, AsEvaluationFailure err) =>
+  cause ->
+  BuiltinError ->
+  m void
 throwBuiltinErrorWithCause cause = \case
-    BuiltinUnliftingError unlErr -> throwingWithCause _UnliftingError unlErr $ Just cause
-    BuiltinEvaluationFailure     -> throwingWithCause _EvaluationFailure () $ Just cause
+  BuiltinUnliftingError unlErr -> throwingWithCause _UnliftingError unlErr $ Just cause
+  BuiltinEvaluationFailure -> throwingWithCause _EvaluationFailure () $ Just cause
 
-typeMismatchError
-    :: PrettyParens (SomeTypeIn uni)
-    => uni (Esc a)
-    -> uni (Esc b)
-    -> UnliftingError
-typeMismatchError uniExp uniAct = fromString $ concat
-    [ "Type mismatch: "
-    , "expected: " ++ render (prettyBy botRenderContext $ SomeTypeIn uniExp)
-    , "; actual: " ++ render (prettyBy botRenderContext $ SomeTypeIn uniAct)
-    ]
+typeMismatchError ::
+  PrettyParens (SomeTypeIn uni) =>
+  uni (Esc a) ->
+  uni (Esc b) ->
+  UnliftingError
+typeMismatchError uniExp uniAct =
+  fromString $
+    concat
+      [ "Type mismatch: "
+      , "expected: " ++ render (prettyBy botRenderContext $ SomeTypeIn uniExp)
+      , "; actual: " ++ render (prettyBy botRenderContext $ SomeTypeIn uniAct)
+      ]
 -- Just for tidier Core to get generated, we don't care about performance here, since it's just a
 -- failure message and evaluation is about to be shut anyway.
 {-# NOINLINE typeMismatchError #-}
@@ -270,86 +276,91 @@ typeMismatchError uniExp uniAct = fromString $ concat
 -- instances (and add new ones whenever we need them), wrap and unwrap all the time (including in
 -- user code), which can be non-trivial for such performance-sensitive code (see e.g. 'coerceVia'
 -- and 'coerceArg') and there is no abstraction barrier anyway.
+
 -- | The monad that 'readKnown' runs in.
 type ReadKnownM = Either BuiltinError
 
 -- | Lift a 'ReadKnownM' computation into 'BuiltinResult'.
 liftReadKnownM :: ReadKnownM a -> BuiltinResult a
 liftReadKnownM (Left err) = BuiltinFailure mempty err
-liftReadKnownM (Right x)  = BuiltinSuccess x
+liftReadKnownM (Right x) = BuiltinSuccess x
 {-# INLINE liftReadKnownM #-}
 
 -- See Note [Unlifting values of built-in types].
+
 -- | Convert a constant embedded into a PLC term to the corresponding Haskell value.
 readKnownConstant :: forall val a. KnownBuiltinType val a => val -> ReadKnownM a
 -- Note [Performance of ReadKnownIn and MakeKnownIn instances]
-readKnownConstant val = asConstant val >>= oneShot \case
+readKnownConstant val =
+  asConstant val >>= oneShot \case
     Some (ValueOf uniAct x) -> do
-        let uniExp = knownUni @_ @(UniOf val) @a
-        -- 'geq' matches on its first argument first, so we make the type tag that will be known
-        -- statically (because this function will be inlined) go first in order for GHC to
-        -- optimize some of the matching away.
-        case uniExp `geq` uniAct of
-            Just Refl -> pure x
-            Nothing   -> throwing _UnliftingError $ typeMismatchError uniExp uniAct
+      let uniExp = knownUni @_ @(UniOf val) @a
+      -- 'geq' matches on its first argument first, so we make the type tag that will be known
+      -- statically (because this function will be inlined) go first in order for GHC to
+      -- optimize some of the matching away.
+      case uniExp `geq` uniAct of
+        Just Refl -> pure x
+        Nothing -> throwing _UnliftingError $ typeMismatchError uniExp uniAct
 {-# INLINE readKnownConstant #-}
 
 -- See Note [Performance of ReadKnownIn and MakeKnownIn instances].
 class uni ~ UniOf val => MakeKnownIn uni val a where
-    -- | Convert a Haskell value to the corresponding PLC value.
-    -- The inverse of 'readKnown'.
-    makeKnown :: a -> BuiltinResult val
-    default makeKnown :: KnownBuiltinType val a => a -> BuiltinResult val
-    -- Everything on evaluation path has to be strict in production, so in theory we don't need to
-    -- force anything here. In practice however all kinds of weird things happen in tests and @val@
-    -- can be non-strict enough to cause trouble here, so we're forcing the argument. Looking at the
-    -- generated Core, the forcing amounts to pulling a @case@ out of the 'fromConstant' call,
-    -- which doesn't affect the overall cost and benchmarking results suggest the same.
-    --
-    -- Note that the value is only forced to WHNF, so care must be taken to ensure that every value
-    -- of a type from the universe gets forced to NF whenever it's forced to WHNF.
-    makeKnown x = pure . fromValue $! x
-    {-# INLINE makeKnown #-}
+  -- | Convert a Haskell value to the corresponding PLC value.
+  -- The inverse of 'readKnown'.
+  makeKnown :: a -> BuiltinResult val
+  default makeKnown :: KnownBuiltinType val a => a -> BuiltinResult val
+  -- Everything on evaluation path has to be strict in production, so in theory we don't need to
+  -- force anything here. In practice however all kinds of weird things happen in tests and @val@
+  -- can be non-strict enough to cause trouble here, so we're forcing the argument. Looking at the
+  -- generated Core, the forcing amounts to pulling a @case@ out of the 'fromConstant' call,
+  -- which doesn't affect the overall cost and benchmarking results suggest the same.
+  --
+  -- Note that the value is only forced to WHNF, so care must be taken to ensure that every value
+  -- of a type from the universe gets forced to NF whenever it's forced to WHNF.
+  makeKnown x = pure . fromValue $! x
+  {-# INLINE makeKnown #-}
 
 type MakeKnown val = MakeKnownIn (UniOf val) val
 
 -- See Note [Performance of ReadKnownIn and MakeKnownIn instances].
 class uni ~ UniOf val => ReadKnownIn uni val a where
-    -- | Convert a PLC value to the corresponding Haskell value.
-    -- The inverse of 'makeKnown'.
-    readKnown :: val -> ReadKnownM a
-    default readKnown :: KnownBuiltinType val a => val -> ReadKnownM a
-    -- If 'inline' is not used, proper inlining does not happen for whatever reason.
-    readKnown = inline readKnownConstant
-    {-# INLINE readKnown #-}
+  -- | Convert a PLC value to the corresponding Haskell value.
+  -- The inverse of 'makeKnown'.
+  readKnown :: val -> ReadKnownM a
+  default readKnown :: KnownBuiltinType val a => val -> ReadKnownM a
+  -- If 'inline' is not used, proper inlining does not happen for whatever reason.
+  readKnown = inline readKnownConstant
+  {-# INLINE readKnown #-}
 
 type ReadKnown val = ReadKnownIn (UniOf val) val
 
 -- | Same as 'makeKnown', but allows for neither emitting nor storing the cause of a failure.
 makeKnownOrFail :: MakeKnownIn uni val a => a -> EvaluationResult val
 makeKnownOrFail x = case makeKnown x of
-    BuiltinFailure _ _           -> EvaluationFailure
-    BuiltinSuccess val           -> EvaluationSuccess val
-    BuiltinSuccessWithLogs _ val -> EvaluationSuccess val
+  BuiltinFailure _ _ -> EvaluationFailure
+  BuiltinSuccess val -> EvaluationSuccess val
+  BuiltinSuccessWithLogs _ val -> EvaluationSuccess val
 {-# INLINE makeKnownOrFail #-}
 
 -- | Same as 'readKnown', but the cause of a potential failure is the provided term itself.
-readKnownSelf
-    :: ( ReadKnown val a
-       , AsUnliftingError err, AsEvaluationFailure err
-       )
-    => val -> Either (ErrorWithCause err val) a
+readKnownSelf ::
+  ( ReadKnown val a
+  , AsUnliftingError err
+  , AsEvaluationFailure err
+  ) =>
+  val ->
+  Either (ErrorWithCause err val) a
 readKnownSelf val = fromRightM (throwBuiltinErrorWithCause val) $ readKnown val
 {-# INLINE readKnownSelf #-}
 
 instance MakeKnownIn uni val a => MakeKnownIn uni val (EvaluationResult a) where
-    makeKnown EvaluationFailure     = evaluationFailure
-    makeKnown (EvaluationSuccess x) = makeKnown x
-    {-# INLINE makeKnown #-}
+  makeKnown EvaluationFailure = evaluationFailure
+  makeKnown (EvaluationSuccess x) = makeKnown x
+  {-# INLINE makeKnown #-}
 
 instance MakeKnownIn uni val a => MakeKnownIn uni val (BuiltinResult a) where
-    makeKnown res = res >>= makeKnown
-    {-# INLINE makeKnown #-}
+  makeKnown res = res >>= makeKnown
+  {-# INLINE makeKnown #-}
 
 -- Catching 'EvaluationFailure' here would allow *not* to short-circuit when 'readKnown' fails
 -- to read a Haskell value of type @a@. Instead, in the denotation of the builtin function
@@ -358,38 +369,42 @@ instance MakeKnownIn uni val a => MakeKnownIn uni val (BuiltinResult a) where
 -- I.e. it would essentially allow us to catch errors and handle them in a programmable way.
 -- We forbid this, because it complicates code and isn't supported by evaluation engines anyway.
 instance
-        ( TypeError ('Text "‘EvaluationResult’ cannot appear in the type of an argument")
-        , uni ~ UniOf val
-        ) => ReadKnownIn uni val (EvaluationResult a) where
-    readKnown _ = throwing _UnliftingError "Panic: 'TypeError' was bypassed"
-    -- Just for 'readKnown' not to appear in the generated Core.
-    {-# INLINE readKnown #-}
+  ( TypeError ('Text "‘EvaluationResult’ cannot appear in the type of an argument")
+  , uni ~ UniOf val
+  ) =>
+  ReadKnownIn uni val (EvaluationResult a)
+  where
+  readKnown _ = throwing _UnliftingError "Panic: 'TypeError' was bypassed"
+  -- Just for 'readKnown' not to appear in the generated Core.
+  {-# INLINE readKnown #-}
 
 instance MakeKnownIn uni val a => MakeKnownIn uni val (Emitter a) where
-    makeKnown a = case runEmitter a of
-        (x, logs) -> withLogs logs $ makeKnown x
-    {-# INLINE makeKnown #-}
+  makeKnown a = case runEmitter a of
+    (x, logs) -> withLogs logs $ makeKnown x
+  {-# INLINE makeKnown #-}
 
 instance
-        ( TypeError ('Text "‘Emitter’ cannot appear in the type of an argument")
-        , uni ~ UniOf val
-        ) => ReadKnownIn uni val (Emitter a) where
-    readKnown _ = throwing _UnliftingError "Panic: 'TypeError' was bypassed"
-    -- Just for 'readKnown' not to appear in the generated Core.
-    {-# INLINE readKnown #-}
+  ( TypeError ('Text "‘Emitter’ cannot appear in the type of an argument")
+  , uni ~ UniOf val
+  ) =>
+  ReadKnownIn uni val (Emitter a)
+  where
+  readKnown _ = throwing _UnliftingError "Panic: 'TypeError' was bypassed"
+  -- Just for 'readKnown' not to appear in the generated Core.
+  {-# INLINE readKnown #-}
 
 instance HasConstantIn uni val => MakeKnownIn uni val (SomeConstant uni rep) where
-    makeKnown = coerceArg $ pure . fromConstant
-    {-# INLINE makeKnown #-}
+  makeKnown = coerceArg $ pure . fromConstant
+  {-# INLINE makeKnown #-}
 
 instance HasConstantIn uni val => ReadKnownIn uni val (SomeConstant uni rep) where
-    readKnown = coerceVia (fmap SomeConstant .) asConstant
-    {-# INLINE readKnown #-}
+  readKnown = coerceVia (fmap SomeConstant .) asConstant
+  {-# INLINE readKnown #-}
 
 instance uni ~ UniOf val => MakeKnownIn uni val (Opaque val rep) where
-    makeKnown = coerceArg pure
-    {-# INLINE makeKnown #-}
+  makeKnown = coerceArg pure
+  {-# INLINE makeKnown #-}
 
 instance uni ~ UniOf val => ReadKnownIn uni val (Opaque val rep) where
-    readKnown = coerceArg pure
-    {-# INLINE readKnown #-}
+  readKnown = coerceArg pure
+  {-# INLINE readKnown #-}

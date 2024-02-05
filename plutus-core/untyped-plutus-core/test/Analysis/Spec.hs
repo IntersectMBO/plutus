@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications  #-}
+{-# LANGUAGE TypeApplications #-}
+
 module Analysis.Spec where
 
 import Test.Tasty.Extras
@@ -32,23 +33,30 @@ letFun :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 letFun = runQuote $ do
   n <- freshName "n"
   let intConst = mkConstant () (1 :: Integer)
-  pure $ Apply ()
-    (LamAbs () n (mkIterAppNoAnn (Var () n) [intConst, intConst]))
-    (Builtin () PLC.AddInteger)
+  pure $
+    Apply
+      ()
+      (LamAbs () n (mkIterAppNoAnn (Var () n) [intConst, intConst]))
+      (Builtin () PLC.AddInteger)
 
 letImpure :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 letImpure = runQuote $ do
   n <- freshName "n"
   m <- freshName "m"
   let intConst = mkConstant () (1 :: Integer)
-  pure $ Apply ()
-    (LamAbs () n (mkIterAppNoAnn (Var () n) [intConst, intConst]))
-    -- don't need this to be well-scoped
-    (Apply () (Var () m) intConst)
+  pure $
+    Apply
+      ()
+      (LamAbs () n (mkIterAppNoAnn (Var () n) [intConst, intConst]))
+      -- don't need this to be well-scoped
+      (Apply () (Var () m) intConst)
 
 evalOrder :: TestTree
-evalOrder = runTestNestedIn ["untyped-plutus-core", "test", "Analysis"] $ testNested "evalOrder"
-  [ goldenEvalOrder "letFun" letFun
-  , goldenEvalOrder "letImpure" letImpure
-  , pure $ testCase "evalOrderLazy" $ 4 @=? length (unEvalOrder $ termEvaluationOrder dangerTerm)
-  ]
+evalOrder =
+  runTestNestedIn ["untyped-plutus-core", "test", "Analysis"] $
+    testNested
+      "evalOrder"
+      [ goldenEvalOrder "letFun" letFun
+      , goldenEvalOrder "letImpure" letImpure
+      , pure $ testCase "evalOrderLazy" $ 4 @=? length (unEvalOrder $ termEvaluationOrder dangerTerm)
+      ]

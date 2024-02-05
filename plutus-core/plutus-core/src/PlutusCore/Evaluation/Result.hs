@@ -1,21 +1,20 @@
--- | This module defines a common type various evaluation machine use to return their results.
-
-{-# LANGUAGE DeriveAnyClass        #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE UndecidableInstances #-}
 
-module PlutusCore.Evaluation.Result
-    ( AsEvaluationFailure (..)
-    , evaluationFailure
-    , _EvaluationFailureVia
-    , EvaluationResult (..)
-    , isEvaluationSuccess
-    , isEvaluationFailure
-    ) where
+-- | This module defines a common type various evaluation machine use to return their results.
+module PlutusCore.Evaluation.Result (
+  AsEvaluationFailure (..),
+  evaluationFailure,
+  _EvaluationFailureVia,
+  EvaluationResult (..),
+  isEvaluationSuccess,
+  isEvaluationFailure,
+) where
 
 import PlutusPrelude
 
@@ -35,31 +34,34 @@ import Control.Monad.Except (MonadError, catchError, throwError)
 -- just for the purpose of using 'makeClassyPrisms' over it, but then it's clearer to write out
 -- the class definition manually than to hide it behind a TH function called over a redundant
 -- data type name-clashing with the useful 'EvaluationResult'.
+
 -- | A class for viewing errors as evaluation failures (in the sense of Plutus).
 class AsEvaluationFailure err where
-    _EvaluationFailure :: Prism' err ()
+  _EvaluationFailure :: Prism' err ()
 
 evaluationFailure :: AsEvaluationFailure err => err
 evaluationFailure = _EvaluationFailure # ()
 {-# INLINE evaluationFailure #-}
 
--- | Construct a 'Prism' focusing on the @*EvaluationFailure@ part of @err@ by taking
--- that @*EvaluationFailure@ and
---
--- 1. returning it for the setter part of the prism
--- 2. checking the error for equality with @*EvaluationFailure@ for the opposite direction.
+{- | Construct a 'Prism' focusing on the @*EvaluationFailure@ part of @err@ by taking
+that @*EvaluationFailure@ and
+
+1. returning it for the setter part of the prism
+2. checking the error for equality with @*EvaluationFailure@ for the opposite direction.
+-}
 _EvaluationFailureVia :: Eq err => err -> Prism' err ()
 _EvaluationFailureVia = only
 {-# INLINE _EvaluationFailureVia #-}
 
--- | The parameterized type of results various evaluation engines return.
--- On the PLC side this becomes (via @makeKnown@) either a call to 'Error' or
--- a value of the PLC counterpart of type @a@.
+{- | The parameterized type of results various evaluation engines return.
+On the PLC side this becomes (via @makeKnown@) either a call to 'Error' or
+a value of the PLC counterpart of type @a@.
+-}
 data EvaluationResult a
-    = EvaluationSuccess !a
-    | EvaluationFailure
-    deriving stock (Show, Eq, Generic, Functor, Foldable, Traversable)
-    deriving anyclass (NFData)
+  = EvaluationSuccess !a
+  | EvaluationFailure
+  deriving stock (Show, Eq, Generic, Functor, Foldable, Traversable)
+  deriving anyclass (NFData)
 
 -- >>> evaluationFailure :: EvaluationResult Bool
 -- EvaluationFailure
@@ -71,9 +73,9 @@ data EvaluationResult a
 -- >>> matching _EvaluationFailure $ EvaluationSuccess True
 -- Left (EvaluationSuccess True)
 instance AsEvaluationFailure (EvaluationResult a) where
-    _EvaluationFailure = prism (const EvaluationFailure) $ \case
-        a@EvaluationSuccess{} -> Left a
-        EvaluationFailure     -> Right ()
+  _EvaluationFailure = prism (const EvaluationFailure) $ \case
+    a@EvaluationSuccess {} -> Left a
+    EvaluationFailure -> Right ()
 
 -- This and the next one are two instances that allow us to write the following:
 --
@@ -81,55 +83,55 @@ instance AsEvaluationFailure (EvaluationResult a) where
 -- >>> throwing_ _EvaluationFailure :: EvaluationResult Bool
 -- EvaluationFailure
 instance AsEvaluationFailure () where
-    _EvaluationFailure = id
-    {-# INLINE _EvaluationFailure #-}
+  _EvaluationFailure = id
+  {-# INLINE _EvaluationFailure #-}
 
 instance MonadError () EvaluationResult where
-    throwError () = EvaluationFailure
-    {-# INLINE throwError #-}
+  throwError () = EvaluationFailure
+  {-# INLINE throwError #-}
 
-    catchError EvaluationFailure f = f ()
-    catchError x                 _ = x
-    {-# INLINE catchError #-}
+  catchError EvaluationFailure f = f ()
+  catchError x _ = x
+  {-# INLINE catchError #-}
 
 instance Applicative EvaluationResult where
-    pure = EvaluationSuccess
-    {-# INLINE pure #-}
+  pure = EvaluationSuccess
+  {-# INLINE pure #-}
 
-    EvaluationSuccess f <*> a = fmap f a
-    EvaluationFailure   <*> _ = EvaluationFailure
-    {-# INLINE (<*>) #-}
+  EvaluationSuccess f <*> a = fmap f a
+  EvaluationFailure <*> _ = EvaluationFailure
+  {-# INLINE (<*>) #-}
 
-    EvaluationSuccess _ *> b = b
-    EvaluationFailure   *> _ = EvaluationFailure
-    {-# INLINE (*>) #-}
+  EvaluationSuccess _ *> b = b
+  EvaluationFailure *> _ = EvaluationFailure
+  {-# INLINE (*>) #-}
 
 instance Monad EvaluationResult where
-    EvaluationSuccess x >>= f = f x
-    EvaluationFailure   >>= _ = EvaluationFailure
-    {-# INLINE (>>=) #-}
+  EvaluationSuccess x >>= f = f x
+  EvaluationFailure >>= _ = EvaluationFailure
+  {-# INLINE (>>=) #-}
 
-    (>>) = (*>)
-    {-# INLINE (>>) #-}
+  (>>) = (*>)
+  {-# INLINE (>>) #-}
 
 instance Alternative EvaluationResult where
-    empty = EvaluationFailure
-    {-# INLINE empty #-}
+  empty = EvaluationFailure
+  {-# INLINE empty #-}
 
-    a@EvaluationSuccess{} <|> _ = a
-    EvaluationFailure     <|> b = b
-    {-# INLINE (<|>) #-}
+  a@EvaluationSuccess {} <|> _ = a
+  EvaluationFailure <|> b = b
+  {-# INLINE (<|>) #-}
 
 instance MonadFail EvaluationResult where
-    fail _ = EvaluationFailure
-    {-# INLINE fail #-}
+  fail _ = EvaluationFailure
+  {-# INLINE fail #-}
 
 instance PrettyBy config a => PrettyBy config (EvaluationResult a) where
-    prettyBy config (EvaluationSuccess x) = prettyBy config x
-    prettyBy _      EvaluationFailure     = "Failure"
+  prettyBy config (EvaluationSuccess x) = prettyBy config x
+  prettyBy _ EvaluationFailure = "Failure"
 
 instance PrettyClassic a => Pretty (EvaluationResult a) where
-    pretty = prettyClassicDef
+  pretty = prettyClassicDef
 
 -- | Check whether an 'EvaluationResult' is an 'EvaluationSuccess'.
 isEvaluationSuccess :: EvaluationResult a -> Bool

@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE GADTs             #-}
-{-# LANGUAGE RankNTypes        #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE RankNTypes #-}
+
 module PlutusIR.Transform.RewriteRules.Rules where
 
 import PlutusCore.Default
@@ -14,19 +15,23 @@ import PlutusPrelude
 
 -- | A bundle of composed `RewriteRules`, to be passed at entrypoint of the compiler.
 newtype RewriteRules uni fun where
-  RewriteRules :: {unRewriteRules :: forall tyname m a.
-                                       (MonadQuote m, Monoid a) =>
-                                       VarsInfo tyname Name uni a
-                                       -> PIR.Term tyname Name uni fun a
-                                          -> m (PIR.Term tyname Name uni fun a)}
-                    -> RewriteRules uni fun
+  RewriteRules ::
+    { unRewriteRules ::
+        forall tyname m a.
+        (MonadQuote m, Monoid a) =>
+        VarsInfo tyname Name uni a ->
+        PIR.Term tyname Name uni fun a ->
+        m (PIR.Term tyname Name uni fun a)
+    } ->
+    RewriteRules uni fun
 
 -- | The rules for the Default Universe/Builtin.
 defaultUniRewriteRules :: RewriteRules DefaultUni DefaultFun
-defaultUniRewriteRules = RewriteRules $ \ vinfo ->
-        -- The rules are composed from left to right.
-        pure . commuteFnWithConst
-        >=> unConstrConstrData def vinfo
+defaultUniRewriteRules = RewriteRules $ \vinfo ->
+  -- The rules are composed from left to right.
+  pure
+    . commuteFnWithConst
+    >=> unConstrConstrData def vinfo
 
 instance Default (RewriteRules DefaultUni DefaultFun) where
   def = defaultUniRewriteRules

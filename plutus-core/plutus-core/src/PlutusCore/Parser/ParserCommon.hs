@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecursiveDo       #-}
+{-# LANGUAGE RecursiveDo #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
 -- | Common functions for parsers of UPLC, PLC, and PIR.
@@ -73,7 +73,7 @@ whenVersion p act = do
   mv <- getVersion
   case mv of
     Nothing -> pure ()
-    Just v  -> when (p v) act
+    Just v -> when (p v) act
 
 parse ::
   (AsParserErrorBundle e, MonadError e m, MonadQuote m) =>
@@ -87,7 +87,7 @@ parse p file str = do
 
 toErrorB :: Either (ParseErrorBundle T.Text ParserError) a -> Either ParserErrorBundle a
 toErrorB (Left err) = Left $ ParseErrorB err
-toErrorB (Right a)  = Right a
+toErrorB (Right a) = Right a
 
 -- | Generic parser function in which the file path is just "test".
 parseGen :: (AsParserErrorBundle e, MonadError e m, MonadQuote m) => Parser a -> T.Text -> m a
@@ -174,5 +174,5 @@ name = try $ parseUnquoted <|> parseQuoted
       Name str <$> intern str
 
 data ExpectParens
-    = ExpectParensYes
-    | ExpectParensNo
+  = ExpectParensYes
+  | ExpectParensNo

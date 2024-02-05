@@ -1,8 +1,8 @@
-{-# LANGUAGE ConstraintKinds  #-}
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE GADTs            #-}
-{-# LANGUAGE LambdaCase       #-}
-{-# LANGUAGE TypeFamilies     #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE TypeFamilies #-}
 
 {- |
 Call site inlining machinery. We inline if the size of the inlined result is not larger.
@@ -59,7 +59,7 @@ the application, if possible.
 -}
 applyAndBetaReduce ::
   forall tyname name uni fun ann.
-  (InliningConstraints tyname name uni fun) =>
+  InliningConstraints tyname name uni fun =>
   -- | The rhs of the variable, should have been renamed already
   Term tyname name uni fun ann ->
   -- | The arguments, already processed
@@ -77,13 +77,13 @@ applyAndBetaReduce rhs args0 = do
             then do
               acc' <- do
                 termSubstNamesM -- substitute the term param with the arg in the function body
-                  -- rename before substitution to ensure global uniqueness (may not be needed but
-                  -- no harm in renaming just to be sure)
+                -- rename before substitution to ensure global uniqueness (may not be needed but
+                -- no harm in renaming just to be sure)
                   (\tmName -> if tmName == n then Just <$> PLC.rename arg else pure Nothing)
                   tm -- drop the beta reduced term lambda
               go acc' args'
-            -- if it is not safe to beta reduce, just return the processed application
-            else pure . Just $ fillAppContext acc args
+            else -- if it is not safe to beta reduce, just return the processed application
+              pure . Just $ fillAppContext acc args
         (TyAbs _ann n _kd tm, TypeAppContext arg _ args') -> do
           acc' <-
             termSubstTyNamesM -- substitute the type param with the arg
@@ -91,8 +91,8 @@ applyAndBetaReduce rhs args0 = do
               tm -- drop the beta reduced type lambda
           go acc' args'
         -- term/type argument mismatch, don't inline
-        (LamAbs{}, TypeAppContext{}) -> pure Nothing
-        (TyAbs{}, TermAppContext{}) -> pure Nothing
+        (LamAbs {}, TypeAppContext {}) -> pure Nothing
+        (TyAbs {}, TermAppContext {}) -> pure Nothing
         -- no more lambda abstraction, just return the processed application
         (_, _) -> pure . Just $ fillAppContext acc args
 
@@ -113,7 +113,7 @@ applyAndBetaReduce rhs args0 = do
 -- | Consider inlining a variable. For applications, consider whether to apply and beta reduce.
 callSiteInline ::
   forall tyname name uni fun ann.
-  (InliningConstraints tyname name uni fun) =>
+  InliningConstraints tyname name uni fun =>
   -- | The term size if it were not inlined.
   Size ->
   -- | The `Utils.VarInfo` of the variable (the head of the term).
@@ -124,33 +124,36 @@ callSiteInline ::
 callSiteInline processedTSize = go
   where
     go varInfo args = do
-        let
-          defAsInlineTerm = varRhs varInfo
-          inlineTermToTerm :: InlineTerm tyname name uni fun ann
-              -> Term tyname name uni fun ann
-          inlineTermToTerm (Done (Dupable var)) = var
-          -- extract out the rhs without renaming, we only rename
-          -- when we know there's substitution
-          headRhs = inlineTermToTerm defAsInlineTerm
-          -- The definition itself will be inlined, so we need to check that the cost
-          -- of that is acceptable. Note that we do _not_ check the cost of the _body_.
-          -- We would have paid that regardless.
-          -- Consider e.g. `let y = \x. f x`. We pay the cost of the `f x` at
-          -- every call site regardless. The work that is being duplicated is
-          -- the work for the lambda.
-          costIsOk = costIsAcceptable headRhs
-        -- check if binding is pure to avoid duplicated effects.
-        -- For strict bindings we can't accidentally make any effects happen less often
-        -- than it would have before, but we can make it happen more often.
-        -- We could potentially do this safely in non-conservative mode.
-        rhsPure <- isTermBindingPure (varStrictness varInfo) headRhs
-        if costIsOk && rhsPure then do
+      let
+        defAsInlineTerm = varRhs varInfo
+        inlineTermToTerm ::
+          InlineTerm tyname name uni fun ann ->
+          Term tyname name uni fun ann
+        inlineTermToTerm (Done (Dupable var)) = var
+        -- extract out the rhs without renaming, we only rename
+        -- when we know there's substitution
+        headRhs = inlineTermToTerm defAsInlineTerm
+        -- The definition itself will be inlined, so we need to check that the cost
+        -- of that is acceptable. Note that we do _not_ check the cost of the _body_.
+        -- We would have paid that regardless.
+        -- Consider e.g. `let y = \x. f x`. We pay the cost of the `f x` at
+        -- every call site regardless. The work that is being duplicated is
+        -- the work for the lambda.
+        costIsOk = costIsAcceptable headRhs
+      -- check if binding is pure to avoid duplicated effects.
+      -- For strict bindings we can't accidentally make any effects happen less often
+      -- than it would have before, but we can make it happen more often.
+      -- We could potentially do this safely in non-conservative mode.
+      rhsPure <- isTermBindingPure (varStrictness varInfo) headRhs
+      if costIsOk && rhsPure
+        then do
           -- rename the rhs of the variable before any substitution
           renamedRhs <- rename headRhs
           applyAndBetaReduce renamedRhs args >>= \case
             Just inlined -> do
-              let -- Inline only if the size is no bigger than not inlining.
-                  sizeIsOk = termSize inlined <= processedTSize
+              let
+                -- Inline only if the size is no bigger than not inlining.
+                sizeIsOk = termSize inlined <= processedTSize
               pure $ if sizeIsOk then Just inlined else Nothing
             Nothing -> pure Nothing
         else pure Nothing

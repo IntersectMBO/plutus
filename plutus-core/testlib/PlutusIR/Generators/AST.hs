@@ -1,24 +1,33 @@
 -- editorconfig-checker-disable-file
--- | This module defines generators for PIR syntax trees for testing purposes.
--- It should only contain those generators that can't be reused from PLC
--- (PIR-exclusive constructs, Term, and Program)
 {-# LANGUAGE OverloadedStrings #-}
-module PlutusIR.Generators.AST
-    ( module Export
-    , genProgram
-    , genTerm
-    , genBinding
-    , genDatatype
-    , genTyVarDecl
-    , genVarDecl
-    , genRecursivity
-    ) where
+
+{- | This module defines generators for PIR syntax trees for testing purposes.
+It should only contain those generators that can't be reused from PLC
+(PIR-exclusive constructs, Term, and Program)
+-}
+module PlutusIR.Generators.AST (
+  module Export,
+  genProgram,
+  genTerm,
+  genBinding,
+  genDatatype,
+  genTyVarDecl,
+  genVarDecl,
+  genRecursivity,
+) where
 
 import PlutusIR
 
 import PlutusCore.Default qualified as PLC
-import PlutusCore.Generators.Hedgehog.AST as Export (AstGen, genBuiltin, genConstant, genKind,
-                                                     genVersion, runAstGen, simpleRecursive)
+import PlutusCore.Generators.Hedgehog.AST as Export (
+  AstGen,
+  genBuiltin,
+  genConstant,
+  genKind,
+  genVersion,
+  runAstGen,
+  simpleRecursive,
+ )
 import PlutusCore.Generators.Hedgehog.AST qualified as PLC
 
 import Hedgehog hiding (Rec, Var)
@@ -26,14 +35,20 @@ import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 
 genName :: PLC.AstGen Name
-genName = Gen.filterT (not . isPirKw . _nameText) PLC.genName where
-    isPirKw name = name `elem`
-        [ "vardecl", "typedecl"
-        , "let"
-        , "nonrec", "rec"
-        , "termbind", "typebind", "datatypebind"
-        , "datatype"
-        ]
+genName = Gen.filterT (not . isPirKw . _nameText) PLC.genName
+  where
+    isPirKw name =
+      name
+        `elem` [ "vardecl"
+               , "typedecl"
+               , "let"
+               , "nonrec"
+               , "rec"
+               , "termbind"
+               , "typebind"
+               , "datatypebind"
+               , "datatype"
+               ]
 
 genTyName :: PLC.AstGen TyName
 genTyName = TyName <$> genName
@@ -52,16 +67,19 @@ genTyVarDecl = TyVarDecl () <$> genTyName <*> genKind
 
 genDatatype :: PLC.AstGen (Datatype TyName Name PLC.DefaultUni ())
 genDatatype = Datatype () <$> genTyVarDecl <*> listOf genTyVarDecl <*> genName <*> listOf genVarDecl
-    where listOf = Gen.list (Range.linear 0 10)
+  where
+    listOf = Gen.list (Range.linear 0 10)
 
 genBinding :: PLC.AstGen (Binding TyName Name PLC.DefaultUni PLC.DefaultFun ())
-genBinding = Gen.choice [genTermBind, genTypeBind, genDatatypeBind] where
+genBinding = Gen.choice [genTermBind, genTypeBind, genDatatypeBind]
+  where
     genTermBind = TermBind () <$> genStrictness <*> genVarDecl <*> genTerm
     genTypeBind = TypeBind () <$> genTyVarDecl <*> genType
     genDatatypeBind = DatatypeBind () <$> genDatatype
 
 genType :: PLC.AstGen (Type TyName PLC.DefaultUni ())
-genType = simpleRecursive nonRecursive recursive where
+genType = simpleRecursive nonRecursive recursive
+  where
     varGen = TyVar () <$> genTyName
     funGen = TyFun () <$> genType <*> genType
     lamGen = TyLam () <$> genTyName <*> genKind <*> genType
@@ -72,7 +90,8 @@ genType = simpleRecursive nonRecursive recursive where
     nonRecursive = [varGen, lamGen, forallGen]
 
 genTerm :: PLC.AstGen (Term TyName Name PLC.DefaultUni PLC.DefaultFun ())
-genTerm = simpleRecursive nonRecursive recursive where
+genTerm = simpleRecursive nonRecursive recursive
+  where
     varGen = Var () <$> genName
     absGen = TyAbs () <$> genTyName <*> genKind <*> genTerm
     instGen = TyInst () <$> genTerm <*> genType

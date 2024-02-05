@@ -1,17 +1,17 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE FlexibleInstances    #-}
-{-# LANGUAGE MagicHash            #-}
-{-# LANGUAGE TypeApplications     #-}
-{-# LANGUAGE TypeOperators        #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MagicHash #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module PlutusCore.Evaluation.Machine.ExMemoryUsage
-    ( CostRose(..)
-    , singletonRose
-    , ExMemoryUsage(..)
-    , flattenCostRose
-    , LiteralByteSize(..)
-    ) where
+module PlutusCore.Evaluation.Machine.ExMemoryUsage (
+  CostRose (..),
+  singletonRose,
+  ExMemoryUsage (..),
+  flattenCostRose,
+  LiteralByteSize (..),
+) where
 
 import PlutusCore.Crypto.BLS12_381.G1 as BLS12_381.G1
 import PlutusCore.Crypto.BLS12_381.G2 as BLS12_381.G2
@@ -94,15 +94,16 @@ have the complexity of O(length_of_the_list) (because computing the 'ExMemory' o
 traversing the list), while we of course want it to be O(1).
 -}
 
--- | A lazy tree of costs. Convenient for calculating the costs of values of built-in types, because
--- they may have arbitrary branching (in particular a 'Data' object can contain a list of 'Data'
--- objects inside of it).
---
--- 'CostRose' gets collapsed to a lazy linear structure down the pipeline, so that we can
--- stream the costs to the outside where, say, the CEK machine picks them up one by one and handles
--- somehow (in particular, subtracts from the remaining budget).
+{- | A lazy tree of costs. Convenient for calculating the costs of values of built-in types, because
+they may have arbitrary branching (in particular a 'Data' object can contain a list of 'Data'
+objects inside of it).
+
+'CostRose' gets collapsed to a lazy linear structure down the pipeline, so that we can
+stream the costs to the outside where, say, the CEK machine picks them up one by one and handles
+somehow (in particular, subtracts from the remaining budget).
+-}
 data CostRose = CostRose {-# UNPACK #-} !CostingInteger ![CostRose]
-    deriving stock (Show)
+  deriving stock (Show)
 
 -- | Create a 'CostRose' containing a single cost.
 singletonRose :: CostingInteger -> CostRose
@@ -121,52 +122,53 @@ singletonRose cost = CostRose cost []
 -- point of the lazy costing approach)
 flattenCostRoseGo :: CostRose -> [CostRose] -> CostStream
 flattenCostRoseGo (CostRose cost1 forest1) forest2 =
-    case forest1 of
-        -- The current subtree doesn't have its own subtrees.
-        [] -> case forest2 of
-            -- No more elements in the entire tree, emit the last cost.
-            []                -> CostLast cost1
-            -- There's at least one unhandled subtree encountered earlier, emit the current cost
-            -- and collapse the unhandled subtree.
-            rose2' : forest2' -> CostCons cost1 $ flattenCostRoseGo rose2' forest2'
-        -- The current subtree has at least one its own subtree.
-        rose1' : forest1' ->
-            -- Emit the current cost and handle the list of subtrees of the current subtree.
-            CostCons cost1 $ case forest1' of
-                -- Same as the case below, except this one avoids creating a chain of
-                -- @[] ++ ([] ++ ([] ++ <...>))@, which would make retrieving the next element an
-                -- O(depth_of_the_tree) operation in the worst case.
-                [] -> flattenCostRoseGo rose1' forest2
-                -- Add the remaining subtrees of the current subtree (@forest1'@) to the stack of
-                -- all other subtrees (@forest2@) and handle the new current subtree (@rose1'@).
-                _  -> flattenCostRoseGo rose1' $ forest1' ++ forest2
+  case forest1 of
+    -- The current subtree doesn't have its own subtrees.
+    [] -> case forest2 of
+      -- No more elements in the entire tree, emit the last cost.
+      [] -> CostLast cost1
+      -- There's at least one unhandled subtree encountered earlier, emit the current cost
+      -- and collapse the unhandled subtree.
+      rose2' : forest2' -> CostCons cost1 $ flattenCostRoseGo rose2' forest2'
+    -- The current subtree has at least one its own subtree.
+    rose1' : forest1' ->
+      -- Emit the current cost and handle the list of subtrees of the current subtree.
+      CostCons cost1 $ case forest1' of
+        -- Same as the case below, except this one avoids creating a chain of
+        -- @[] ++ ([] ++ ([] ++ <...>))@, which would make retrieving the next element an
+        -- O(depth_of_the_tree) operation in the worst case.
+        [] -> flattenCostRoseGo rose1' forest2
+        -- Add the remaining subtrees of the current subtree (@forest1'@) to the stack of
+        -- all other subtrees (@forest2@) and handle the new current subtree (@rose1'@).
+        _ -> flattenCostRoseGo rose1' $ forest1' ++ forest2
 
--- | Collapse a 'CostRose' to a lazy linear stream of costs. Retrieving the next element takes O(1)
--- time in the worst case regardless of the recursion pattern of the given 'CostRose'.
+{- | Collapse a 'CostRose' to a lazy linear stream of costs. Retrieving the next element takes O(1)
+time in the worst case regardless of the recursion pattern of the given 'CostRose'.
+-}
 flattenCostRose :: CostRose -> CostStream
-flattenCostRose (CostRose cost [])              = CostLast cost
+flattenCostRose (CostRose cost []) = CostLast cost
 flattenCostRose (CostRose cost (rose : forest)) = CostCons cost $ flattenCostRoseGo rose forest
 {-# INLINE flattenCostRose #-}
 
 class ExMemoryUsage a where
-    -- Inlining the implementations of this method gave us a 1-2% speedup.
-    memoryUsage :: a -> CostRose
+  -- Inlining the implementations of this method gave us a 1-2% speedup.
+  memoryUsage :: a -> CostRose
 
 instance (ExMemoryUsage a, ExMemoryUsage b) => ExMemoryUsage (a, b) where
-    memoryUsage (a, b) = CostRose 1 [memoryUsage a, memoryUsage b]
-    {-# INLINE memoryUsage #-}
+  memoryUsage (a, b) = CostRose 1 [memoryUsage a, memoryUsage b]
+  {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage (SomeTypeIn uni) where
-    memoryUsage _ = singletonRose 1
-    {-# INLINE memoryUsage #-}
+  memoryUsage _ = singletonRose 1
+  {-# INLINE memoryUsage #-}
 
 instance (Closed uni, uni `Everywhere` ExMemoryUsage) => ExMemoryUsage (Some (ValueOf uni)) where
-    memoryUsage (Some (ValueOf uni x)) = bring (Proxy @ExMemoryUsage) uni (memoryUsage x)
-    {-# INLINE memoryUsage #-}
+  memoryUsage (Some (ValueOf uni x)) = bring (Proxy @ExMemoryUsage) uni (memoryUsage x)
+  {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage () where
-    memoryUsage () = singletonRose 1
-    {-# INLINE memoryUsage #-}
+  memoryUsage () = singletonRose 1
+  {-# INLINE memoryUsage #-}
 
 {- | When invoking a built-in function, a value of type LiteralByteSize can be
    used transparently as a built-in Integer but with a different size measure:
@@ -178,16 +180,19 @@ instance ExMemoryUsage () where
    `ExMemoryUsage` is equal to the number of eight-byte words required to
    contain `w` bytes, allowing its costing function to work properly.
 -}
-newtype LiteralByteSize = LiteralByteSize { unLiteralByteSize :: Integer }
+newtype LiteralByteSize = LiteralByteSize {unLiteralByteSize :: Integer}
+
 instance ExMemoryUsage LiteralByteSize where
-    memoryUsage (LiteralByteSize n) = singletonRose . fromIntegral $ ((n-1) `div` 8) + 1
-    {-# INLINE memoryUsage #-}
+  memoryUsage (LiteralByteSize n) = singletonRose . fromIntegral $ ((n - 1) `div` 8) + 1
+  {-# INLINE memoryUsage #-}
 
 -- | Calculate a 'CostingInteger' for the given 'Integer'.
 memoryUsageInteger :: Integer -> CostingInteger
 -- integerLog2# is unspecified for 0 (but in practice returns -1)
--- ^ This changed with GHC 9.2: it now returns 0.  It's probably safest if we
--- keep this special case for the time being though.
+
+{- ^ This changed with GHC 9.2: it now returns 0.  It's probably safest if we
+keep this special case for the time being though.
+-}
 memoryUsageInteger 0 = 1
 -- Assume 64 Int
 memoryUsageInteger i = fromIntegral $ I# (integerLog2# (abs i) `quotInt#` integerToInt 64) + 1
@@ -196,12 +201,12 @@ memoryUsageInteger i = fromIntegral $ I# (integerLog2# (abs i) `quotInt#` intege
 {-# NOINLINE memoryUsageInteger #-}
 
 instance ExMemoryUsage Integer where
-    memoryUsage i = singletonRose $ memoryUsageInteger i
-    {-# INLINE memoryUsage #-}
+  memoryUsage i = singletonRose $ memoryUsageInteger i
+  {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage Word8 where
-    memoryUsage _ = singletonRose 1
-    {-# INLINE memoryUsage #-}
+  memoryUsage _ = singletonRose 1
+  {-# INLINE memoryUsage #-}
 
 {- Bytestrings: we want things of length 0 to have size 0, 1-8 to have size 1,
    9-16 to have size 2, etc.  Note that (-1) div 8 == -1, so the code below
@@ -209,10 +214,12 @@ instance ExMemoryUsage Word8 where
    1 + (toInteger $ BS.length bs) `div` 8, which would count one extra for
    things whose sizes are multiples of 8. -}
 instance ExMemoryUsage BS.ByteString where
-    -- Don't use `div` here!  That gives 1 instead of 0 for n=0.
-    memoryUsage bs = singletonRose . unsafeToSatInt $ ((n - 1) `quot` 8) + 1 where
-        n = BS.length bs
-    {-# INLINE memoryUsage #-}
+  -- Don't use `div` here!  That gives 1 instead of 0 for n=0.
+  memoryUsage bs = singletonRose . unsafeToSatInt $ ((n - 1) `quot` 8) + 1
+    where
+      n = BS.length bs
+  {-# INLINE memoryUsage #-}
+
 {- The two preceding comments contradict each other.  The first one says that we
    should use `div`, but the second one says to use `quot` instead (and that is
    what is used).  The only difference here is for negative numbers: (-1) `div`
@@ -224,28 +231,27 @@ instance ExMemoryUsage BS.ByteString where
    argument would become a little cheaper.  The difference would be very small
    though, so it's maybe not worth fixing. -}
 
-
 instance ExMemoryUsage T.Text where
-    -- This is slow and inaccurate, but matches the version that was originally deployed.
-    -- We may try and improve this in future so long as the new version matches this exactly.
-    memoryUsage text = memoryUsage $ T.unpack text
-    {-# INLINE memoryUsage #-}
+  -- This is slow and inaccurate, but matches the version that was originally deployed.
+  -- We may try and improve this in future so long as the new version matches this exactly.
+  memoryUsage text = memoryUsage $ T.unpack text
+  {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage Int where
-    memoryUsage _ = singletonRose 1
-    {-# INLINE memoryUsage #-}
+  memoryUsage _ = singletonRose 1
+  {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage Char where
-    memoryUsage _ = singletonRose 1
-    {-# INLINE memoryUsage #-}
+  memoryUsage _ = singletonRose 1
+  {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage Bool where
-    memoryUsage _ = singletonRose 1
-    {-# INLINE memoryUsage #-}
+  memoryUsage _ = singletonRose 1
+  {-# INLINE memoryUsage #-}
 
 instance ExMemoryUsage a => ExMemoryUsage [a] where
-    memoryUsage = CostRose 0 . map memoryUsage
-    {-# INLINE memoryUsage #-}
+  memoryUsage = CostRose 0 . map memoryUsage
+  {-# INLINE memoryUsage #-}
 
 {- Another naive traversal for size.  This accounts for the number of nodes in
    a Data object, and also the sizes of the contents of the nodes.  This is not
@@ -264,29 +270,29 @@ instance ExMemoryUsage a => ExMemoryUsage [a] where
    this after experimentation.
 -}
 instance ExMemoryUsage Data where
-    memoryUsage = sizeData where
-        -- The cost of each node of the 'Data' object (in addition to the cost of its content).
-        nodeMem = singletonRose 4
-        {-# INLINE nodeMem #-}
+  memoryUsage = sizeData
+    where
+      -- The cost of each node of the 'Data' object (in addition to the cost of its content).
+      nodeMem = singletonRose 4
+      {-# INLINE nodeMem #-}
 
-        -- Add two 'CostRose's. We don't make this into a 'Semigroup' instance, because there exist
-        -- different ways to add two 'CostRose's (e.g. we could optimize the case when one of the
-        -- roses contains only one element or we can make the function lazy in the second argument).
-        -- Here we chose the version that is most efficient when the first argument is @nodeMem@ (we
-        -- didn't do any benchmarking though, so it may not be the most efficient one) -- we don't
-        -- have any other cases.
-        combine (CostRose cost1 forest1) (CostRose cost2 forest2) =
-            CostRose (cost1 + cost2) (forest1 ++ forest2)
-        {-# INLINE combine #-}
+      -- Add two 'CostRose's. We don't make this into a 'Semigroup' instance, because there exist
+      -- different ways to add two 'CostRose's (e.g. we could optimize the case when one of the
+      -- roses contains only one element or we can make the function lazy in the second argument).
+      -- Here we chose the version that is most efficient when the first argument is @nodeMem@ (we
+      -- didn't do any benchmarking though, so it may not be the most efficient one) -- we don't
+      -- have any other cases.
+      combine (CostRose cost1 forest1) (CostRose cost2 forest2) =
+        CostRose (cost1 + cost2) (forest1 ++ forest2)
+      {-# INLINE combine #-}
 
-        sizeData d = combine nodeMem $ case d of
-            -- TODO: include the size of the tag, but not just yet.  See SCP-3677.
-            Constr _ l -> CostRose 0 $ l <&> sizeData
-            Map l      -> CostRose 0 $ l >>= \(d1, d2) -> [d1, d2] <&> sizeData
-            List l     -> CostRose 0 $ l <&> sizeData
-            I n        -> memoryUsage n
-            B b        -> memoryUsage b
-
+      sizeData d = combine nodeMem $ case d of
+        -- TODO: include the size of the tag, but not just yet.  See SCP-3677.
+        Constr _ l -> CostRose 0 $ l <&> sizeData
+        Map l -> CostRose 0 $ l >>= \(d1, d2) -> [d1, d2] <&> sizeData
+        List l -> CostRose 0 $ l <&> sizeData
+        I n -> memoryUsage n
+        B b -> memoryUsage b
 
 {- Note [Costing constant-size types]
 The memory usage of each of the BLS12-381 types is constant, so we may be able
@@ -301,21 +307,24 @@ g1ElementCost :: CostRose
 g1ElementCost = singletonRose . unsafeToSatInt $ BLS12_381.G1.memSizeBytes `div` 8
 
 instance ExMemoryUsage BLS12_381.G1.Element where
-    memoryUsage _ = g1ElementCost
-    -- Should be 18
+  memoryUsage _ = g1ElementCost
+
+-- Should be 18
 
 {-# NOINLINE g2ElementCost #-}
 g2ElementCost :: CostRose
 g2ElementCost = singletonRose . unsafeToSatInt $ BLS12_381.G2.memSizeBytes `div` 8
 
 instance ExMemoryUsage BLS12_381.G2.Element where
-    memoryUsage _ = g2ElementCost
-    -- Should be 36
+  memoryUsage _ = g2ElementCost
+
+-- Should be 36
 
 {-# NOINLINE mlResultElementCost #-}
 mlResultElementCost :: CostRose
 mlResultElementCost = singletonRose . unsafeToSatInt $ BLS12_381.Pairing.mlResultMemSizeBytes `div` 8
 
 instance ExMemoryUsage BLS12_381.Pairing.MlResult where
-    memoryUsage _ = mlResultElementCost
-    -- Should be 72
+  memoryUsage _ = mlResultElementCost
+
+-- Should be 72

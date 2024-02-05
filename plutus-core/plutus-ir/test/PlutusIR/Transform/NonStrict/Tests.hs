@@ -12,14 +12,21 @@ import PlutusIR.Transform.Rename ()
 import Test.QuickCheck
 
 test_nonStrict :: TestTree
-test_nonStrict = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
+test_nonStrict =
+  runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
     testNested "NonStrict" $
-        map
-            (goldenPir (runQuote . runTestPass
-                        (\tc -> NonStrict.compileNonStrictBindingsPassSC tc False)) pTerm)
-            [ "nonStrict1"
-            ]
+      map
+        ( goldenPir
+            ( runQuote
+                . runTestPass
+                  (\tc -> NonStrict.compileNonStrictBindingsPassSC tc False)
+            )
+            pTerm
+        )
+        [ "nonStrict1"
+        ]
 
 prop_nonStrict :: Bool -> Property
 prop_nonStrict useUnit = withMaxSuccess (2 * numTestsForPassProp) $
-  testPassProp runQuote $ \tc -> NonStrict.compileNonStrictBindingsPassSC tc useUnit
+  testPassProp runQuote $
+    \tc -> NonStrict.compileNonStrictBindingsPassSC tc useUnit

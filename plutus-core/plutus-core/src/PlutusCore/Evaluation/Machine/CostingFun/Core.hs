@@ -1,44 +1,44 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE BangPatterns          #-}
-{-# LANGUAGE DeriveAnyClass        #-}
-{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE StrictData #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
 
-{-# LANGUAGE StrictData            #-}
-module PlutusCore.Evaluation.Machine.CostingFun.Core
-    ( CostingFun(..)
-    , Intercept(..)
-    , Slope(..)
-    , Coefficient0(..)
-    , Coefficient1(..)
-    , Coefficient2(..)
-    , OneVariableLinearFunction(..)
-    , TwoVariableLinearFunction(..)
-    , OneVariableQuadraticFunction(..)
-    , ModelAddedSizes(..)
-    , ModelSubtractedSizes(..)
-    , ModelConstantOrLinear(..)
-    , ModelConstantOrTwoArguments(..)
-    , ModelMultipliedSizes(..)
-    , ModelMinSize(..)
-    , ModelMaxSize(..)
-    , ModelOneArgument(..)
-    , ModelTwoArguments(..)
-    , ModelThreeArguments(..)
-    , ModelFourArguments(..)
-    , ModelFiveArguments(..)
-    , ModelSixArguments(..)
-    , runCostingFunOneArgument
-    , runCostingFunTwoArguments
-    , runCostingFunThreeArguments
-    , runCostingFunFourArguments
-    , runCostingFunFiveArguments
-    , runCostingFunSixArguments
-    , Hashable
-    )
+module PlutusCore.Evaluation.Machine.CostingFun.Core (
+  CostingFun (..),
+  Intercept (..),
+  Slope (..),
+  Coefficient0 (..),
+  Coefficient1 (..),
+  Coefficient2 (..),
+  OneVariableLinearFunction (..),
+  TwoVariableLinearFunction (..),
+  OneVariableQuadraticFunction (..),
+  ModelAddedSizes (..),
+  ModelSubtractedSizes (..),
+  ModelConstantOrLinear (..),
+  ModelConstantOrTwoArguments (..),
+  ModelMultipliedSizes (..),
+  ModelMinSize (..),
+  ModelMaxSize (..),
+  ModelOneArgument (..),
+  ModelTwoArguments (..),
+  ModelThreeArguments (..),
+  ModelFourArguments (..),
+  ModelFiveArguments (..),
+  ModelSixArguments (..),
+  runCostingFunOneArgument,
+  runCostingFunTwoArguments,
+  runCostingFunThreeArguments,
+  runCostingFunFourArguments,
+  runCostingFunFiveArguments,
+  runCostingFunSixArguments,
+  Hashable,
+)
 where
 
 import PlutusCore.Evaluation.Machine.CostStream
@@ -55,77 +55,87 @@ import Language.Haskell.TH.Syntax hiding (Name, newName)
 
 -- | A class used for convenience in this module, don't export it.
 class OnMemoryUsages c a where
-    -- | Turn
-    --
-    -- > \mem1 ... memN -> f mem1 ... memN
-    --
-    -- into
-    --
-    -- > \arg1 ... argN -> f (memoryUsage arg1) ... (memoryUsage argN)
-    --
-    -- so that we don't need to repeat those 'memoryUsage' calls at every use site, which would also
-    -- require binding @arg*@ explicitly, i.e. require even more boilerplate.
-    onMemoryUsages :: c -> a
+  -- | Turn
+  --
+  -- > \mem1 ... memN -> f mem1 ... memN
+  --
+  -- into
+  --
+  -- > \arg1 ... argN -> f (memoryUsage arg1) ... (memoryUsage argN)
+  --
+  -- so that we don't need to repeat those 'memoryUsage' calls at every use site, which would also
+  -- require binding @arg*@ explicitly, i.e. require even more boilerplate.
+  onMemoryUsages :: c -> a
 
-instance (ab ~ (a -> b), ExMemoryUsage a, OnMemoryUsages c b) =>
-        OnMemoryUsages (CostStream -> c) ab where
-    -- 'inline' is for making sure that 'memoryUsage' does get inlined.
-    onMemoryUsages f = onMemoryUsages . f . flattenCostRose . inline memoryUsage
-    {-# INLINE onMemoryUsages #-}
+instance
+  (ab ~ (a -> b), ExMemoryUsage a, OnMemoryUsages c b) =>
+  OnMemoryUsages (CostStream -> c) ab
+  where
+  -- 'inline' is for making sure that 'memoryUsage' does get inlined.
+  onMemoryUsages f = onMemoryUsages . f . flattenCostRose . inline memoryUsage
+  {-# INLINE onMemoryUsages #-}
 
 instance ab ~ ExBudgetStream => OnMemoryUsages ExBudgetStream ab where
-    onMemoryUsages = id
-    {-# INLINE onMemoryUsages #-}
+  onMemoryUsages = id
+  {-# INLINE onMemoryUsages #-}
 
 data CostingFun model = CostingFun
-    { costingFunCpu    :: model
-    , costingFunMemory :: model
-    }
-    deriving stock (Show, Eq, Generic, Lift)
-    deriving anyclass (Default, NFData)
+  { costingFunCpu :: model
+  , costingFunMemory :: model
+  }
+  deriving stock (Show, Eq, Generic, Lift)
+  deriving anyclass (Default, NFData)
 
 -- | A wrapped 'CostingInteger' that is supposed to be used as an intercept.
 newtype Intercept = Intercept
-    { unIntercept :: CostingInteger
-    } deriving stock (Generic, Lift)
-      deriving newtype (Show, Eq, Num, NFData)
+  { unIntercept :: CostingInteger
+  }
+  deriving stock (Generic, Lift)
+  deriving newtype (Show, Eq, Num, NFData)
 
 -- | A wrapped 'CostingInteger' that is supposed to be used as a slope.
 newtype Slope = Slope
-    { unSlope :: CostingInteger
-    } deriving stock (Generic, Lift)
-      deriving newtype (Show, Eq, Num, NFData)
+  { unSlope :: CostingInteger
+  }
+  deriving stock (Generic, Lift)
+  deriving newtype (Show, Eq, Num, NFData)
 
--- | A wrapped 'CostingInteger' that is supposed to be used as the degree 0
--- coefficient of a polynomial.
+{- | A wrapped 'CostingInteger' that is supposed to be used as the degree 0
+coefficient of a polynomial.
+-}
 newtype Coefficient0 = Coefficient0
-    { unCoefficient0 :: CostingInteger
-    } deriving stock (Generic, Lift)
-      deriving newtype (Show, Eq, Num, NFData)
+  { unCoefficient0 :: CostingInteger
+  }
+  deriving stock (Generic, Lift)
+  deriving newtype (Show, Eq, Num, NFData)
 
--- | A wrapped 'CostingInteger' that is supposed to be used as the degree 1
--- coefficient of a polynomial.
+{- | A wrapped 'CostingInteger' that is supposed to be used as the degree 1
+coefficient of a polynomial.
+-}
 newtype Coefficient1 = Coefficient1
-    { unCoefficient1 :: CostingInteger
-    } deriving stock (Generic, Lift)
-      deriving newtype (Show, Eq, Num, NFData)
+  { unCoefficient1 :: CostingInteger
+  }
+  deriving stock (Generic, Lift)
+  deriving newtype (Show, Eq, Num, NFData)
 
--- | A wrapped 'CostingInteger' that is supposed to be used as the degree 2
--- coefficient of a polynomial.
+{- | A wrapped 'CostingInteger' that is supposed to be used as the degree 2
+coefficient of a polynomial.
+-}
 newtype Coefficient2 = Coefficient2
-    { unCoefficient2 :: CostingInteger
-    } deriving stock (Generic, Lift)
-      deriving newtype (Show, Eq, Num, NFData)
+  { unCoefficient2 :: CostingInteger
+  }
+  deriving stock (Generic, Lift)
+  deriving newtype (Show, Eq, Num, NFData)
 
 ---------------- One-argument costing functions ----------------
 
-data ModelOneArgument =
-    ModelOneArgumentConstantCost CostingInteger
-    | ModelOneArgumentLinearCost OneVariableLinearFunction
-    deriving stock (Show, Eq, Generic, Lift)
-    deriving anyclass (NFData)
+data ModelOneArgument
+  = ModelOneArgumentConstantCost CostingInteger
+  | ModelOneArgumentLinearCost OneVariableLinearFunction
+  deriving stock (Show, Eq, Generic, Lift)
+  deriving anyclass (NFData)
 instance Default ModelOneArgument where
-    def = ModelOneArgumentConstantCost 0
+  def = ModelOneArgumentConstantCost 0
 
 {- Note [runCostingFun* API]
 Costing functions take unlifted values, compute the 'ExMemory' of each of them and then invoke
@@ -185,34 +195,35 @@ These optimizations gave us a ~3.2% speedup at the time this Note was written.
 -}
 
 -- See Note [runCostingFun* API].
-runCostingFunOneArgument
-    :: ExMemoryUsage a1
-    => CostingFun ModelOneArgument
-    -> a1
-    -> ExBudgetStream
+runCostingFunOneArgument ::
+  ExMemoryUsage a1 =>
+  CostingFun ModelOneArgument ->
+  a1 ->
+  ExBudgetStream
 runCostingFunOneArgument (CostingFun cpu mem) =
-    case (runOneArgumentModel cpu, runOneArgumentModel mem) of
-        (!runCpu, !runMem) -> onMemoryUsages $ \mem1 ->
-            zipCostStream
-                (runCpu mem1)
-                (runMem mem1)
+  case (runOneArgumentModel cpu, runOneArgumentModel mem) of
+    (!runCpu, !runMem) -> onMemoryUsages $ \mem1 ->
+      zipCostStream
+        (runCpu mem1)
+        (runMem mem1)
 {-# INLINE runCostingFunOneArgument #-}
 
--- | Take an intercept, a slope and a stream and scale each element of the stream by the slope and
--- cons the intercept to the stream afterwards.
+{- | Take an intercept, a slope and a stream and scale each element of the stream by the slope and
+cons the intercept to the stream afterwards.
+-}
 scaleLinearly :: Intercept -> Slope -> CostStream -> CostStream
 scaleLinearly (Intercept intercept) (Slope slope) =
-    addCostStream (CostLast intercept) . mapCostStream (slope *)
+  addCostStream (CostLast intercept) . mapCostStream (slope *)
 {-# INLINE scaleLinearly #-}
 
-runOneArgumentModel
-    :: ModelOneArgument
-    -> CostStream
-    -> CostStream
+runOneArgumentModel ::
+  ModelOneArgument ->
+  CostStream ->
+  CostStream
 runOneArgumentModel (ModelOneArgumentConstantCost c) =
-    lazy $ \_ -> CostLast c
+  lazy $ \_ -> CostLast c
 runOneArgumentModel (ModelOneArgumentLinearCost (OneVariableLinearFunction intercept slope)) =
-    lazy $ \costs1 -> scaleLinearly intercept slope costs1
+  lazy $ \costs1 -> scaleLinearly intercept slope costs1
 {-# NOINLINE runOneArgumentModel #-}
 
 ---------------- Two-argument costing functions ----------------
@@ -233,422 +244,430 @@ would complicate the JSON encoding and might also impact efficiency.
 
 -- | s * x + I
 data OneVariableLinearFunction = OneVariableLinearFunction
-    { oneVariableLinearFunctionIntercept :: Intercept
-    , oneVariableLinearFunctionSlope     :: Slope
-    } deriving stock (Show, Eq, Generic, Lift)
-    deriving anyclass (NFData)
+  { oneVariableLinearFunctionIntercept :: Intercept
+  , oneVariableLinearFunctionSlope :: Slope
+  }
+  deriving stock (Show, Eq, Generic, Lift)
+  deriving anyclass (NFData)
 
 -- | s1 * x + s2 * y + I
 data TwoVariableLinearFunction = TwoVariableLinearFunction
-    { twoVariableLinearFunctionIntercept :: Intercept
-    , twoVariableLinearFunctionSlopeX    :: Slope
-    , twoVariableLinearFunctionSlopeY    :: Slope
-    } deriving stock (Show, Eq, Generic, Lift)
-    deriving anyclass (NFData)
+  { twoVariableLinearFunctionIntercept :: Intercept
+  , twoVariableLinearFunctionSlopeX :: Slope
+  , twoVariableLinearFunctionSlopeY :: Slope
+  }
+  deriving stock (Show, Eq, Generic, Lift)
+  deriving anyclass (NFData)
 
 -- | c2*x^2 + c1*x + c0
 data OneVariableQuadraticFunction = OneVariableQuadraticFunction
-    { oneVariableQuadraticFunctionC0 :: Coefficient0
-    , oneVariableQuadraticFunctionC1 :: Coefficient1
-    , oneVariableQuadraticFunctionC2 :: Coefficient2
-    } deriving stock (Show, Eq, Generic, Lift)
-    deriving anyclass (NFData)
+  { oneVariableQuadraticFunctionC0 :: Coefficient0
+  , oneVariableQuadraticFunctionC1 :: Coefficient1
+  , oneVariableQuadraticFunctionC2 :: Coefficient2
+  }
+  deriving stock (Show, Eq, Generic, Lift)
+  deriving anyclass (NFData)
 
 {-# INLINE evaluateOneVariableQuadraticFunction #-}
 evaluateOneVariableQuadraticFunction :: OneVariableQuadraticFunction -> CostingInteger -> CostingInteger
 evaluateOneVariableQuadraticFunction
-   (OneVariableQuadraticFunction (Coefficient0 c0) (Coefficient1 c1)  (Coefficient2 c2)) x =
-       c0 + c1*x + c2*x*x
+  (OneVariableQuadraticFunction (Coefficient0 c0) (Coefficient1 c1) (Coefficient2 c2))
+  x =
+    c0 + c1 * x + c2 * x * x
 
 -- | s * (x + y) + I
 data ModelAddedSizes = ModelAddedSizes
-    { modelAddedSizesIntercept :: Intercept
-    , modelAddedSizesSlope     :: Slope
-    } deriving stock (Show, Eq, Generic, Lift)
-    deriving anyclass (NFData)
+  { modelAddedSizesIntercept :: Intercept
+  , modelAddedSizesSlope :: Slope
+  }
+  deriving stock (Show, Eq, Generic, Lift)
+  deriving anyclass (NFData)
 
 -- | s * (x - y) + I
 data ModelSubtractedSizes = ModelSubtractedSizes
-    { modelSubtractedSizesIntercept :: Intercept
-    , modelSubtractedSizesSlope     :: Slope
-    , modelSubtractedSizesMinimum   :: CostingInteger
-    } deriving stock (Show, Eq, Generic, Lift)
-    deriving anyclass (NFData)
+  { modelSubtractedSizesIntercept :: Intercept
+  , modelSubtractedSizesSlope :: Slope
+  , modelSubtractedSizesMinimum :: CostingInteger
+  }
+  deriving stock (Show, Eq, Generic, Lift)
+  deriving anyclass (NFData)
 
 -- | s * (x * y) + I
 data ModelMultipliedSizes = ModelMultipliedSizes
-    { modelMultipliedSizesIntercept :: Intercept
-    , modelMultipliedSizesSlope     :: Slope
-    } deriving stock (Show, Eq, Generic, Lift)
-    deriving anyclass (NFData)
+  { modelMultipliedSizesIntercept :: Intercept
+  , modelMultipliedSizesSlope :: Slope
+  }
+  deriving stock (Show, Eq, Generic, Lift)
+  deriving anyclass (NFData)
 
 -- | s * min(x, y) + I
 data ModelMinSize = ModelMinSize
-    { modelMinSizeIntercept :: Intercept
-    , modelMinSizeSlope     :: Slope
-    } deriving stock (Show, Eq, Generic, Lift)
-    deriving anyclass (NFData)
+  { modelMinSizeIntercept :: Intercept
+  , modelMinSizeSlope :: Slope
+  }
+  deriving stock (Show, Eq, Generic, Lift)
+  deriving anyclass (NFData)
 
 -- | s * max(x, y) + I
 data ModelMaxSize = ModelMaxSize
-    { modelMaxSizeIntercept :: Intercept
-    , modelMaxSizeSlope     :: Slope
-    } deriving stock (Show, Eq, Generic, Lift)
-    deriving anyclass (NFData)
+  { modelMaxSizeIntercept :: Intercept
+  , modelMaxSizeSlope :: Slope
+  }
+  deriving stock (Show, Eq, Generic, Lift)
+  deriving anyclass (NFData)
 
 -- | if p then s*x else c; p depends on usage
 data ModelConstantOrLinear = ModelConstantOrLinear
-    { modelConstantOrLinearConstant  :: CostingInteger
-    , modelConstantOrLinearIntercept :: Intercept
-    , modelConstantOrLinearSlope     :: Slope
-    } deriving stock (Show, Eq, Generic, Lift)
-    deriving anyclass (NFData)
+  { modelConstantOrLinearConstant :: CostingInteger
+  , modelConstantOrLinearIntercept :: Intercept
+  , modelConstantOrLinearSlope :: Slope
+  }
+  deriving stock (Show, Eq, Generic, Lift)
+  deriving anyclass (NFData)
 
 -- | if p then f(x,y) else c; p depends on usage
 data ModelConstantOrTwoArguments = ModelConstantOrTwoArguments
-    { modelConstantOrTwoArgumentsConstant :: CostingInteger
-    , modelConstantOrTwoArgumentsModel    :: ModelTwoArguments
-    } deriving stock (Show, Eq, Generic, Lift)
-    deriving anyclass (NFData)
+  { modelConstantOrTwoArgumentsConstant :: CostingInteger
+  , modelConstantOrTwoArgumentsModel :: ModelTwoArguments
+  }
+  deriving stock (Show, Eq, Generic, Lift)
+  deriving anyclass (NFData)
 
-
-data ModelTwoArguments =
-    ModelTwoArgumentsConstantCost       CostingInteger
-  | ModelTwoArgumentsLinearInX          OneVariableLinearFunction
-  | ModelTwoArgumentsLinearInY          OneVariableLinearFunction
-  | ModelTwoArgumentsLinearInXAndY      TwoVariableLinearFunction
-  | ModelTwoArgumentsAddedSizes         ModelAddedSizes
-  | ModelTwoArgumentsSubtractedSizes    ModelSubtractedSizes
-  | ModelTwoArgumentsMultipliedSizes    ModelMultipliedSizes
-  | ModelTwoArgumentsMinSize            ModelMinSize
-  | ModelTwoArgumentsMaxSize            ModelMaxSize
-  | ModelTwoArgumentsLinearOnDiagonal   ModelConstantOrLinear
+data ModelTwoArguments
+  = ModelTwoArgumentsConstantCost CostingInteger
+  | ModelTwoArgumentsLinearInX OneVariableLinearFunction
+  | ModelTwoArgumentsLinearInY OneVariableLinearFunction
+  | ModelTwoArgumentsLinearInXAndY TwoVariableLinearFunction
+  | ModelTwoArgumentsAddedSizes ModelAddedSizes
+  | ModelTwoArgumentsSubtractedSizes ModelSubtractedSizes
+  | ModelTwoArgumentsMultipliedSizes ModelMultipliedSizes
+  | ModelTwoArgumentsMinSize ModelMinSize
+  | ModelTwoArgumentsMaxSize ModelMaxSize
+  | ModelTwoArgumentsLinearOnDiagonal ModelConstantOrLinear
   | ModelTwoArgumentsConstAboveDiagonal ModelConstantOrTwoArguments
   | ModelTwoArgumentsConstBelowDiagonal ModelConstantOrTwoArguments
-  | ModelTwoArgumentsQuadraticInY       OneVariableQuadraticFunction
-    deriving stock (Show, Eq, Generic, Lift)
-    deriving anyclass (NFData)
+  | ModelTwoArgumentsQuadraticInY OneVariableQuadraticFunction
+  deriving stock (Show, Eq, Generic, Lift)
+  deriving anyclass (NFData)
 
 instance Default ModelTwoArguments where
-    def = ModelTwoArgumentsConstantCost 0
+  def = ModelTwoArgumentsConstantCost 0
 
 -- See Note [runCostingFun* API].
-runCostingFunTwoArguments
-    :: ( ExMemoryUsage a1
-       , ExMemoryUsage a2
-       )
-    => CostingFun ModelTwoArguments
-    -> a1
-    -> a2
-    -> ExBudgetStream
+runCostingFunTwoArguments ::
+  ( ExMemoryUsage a1
+  , ExMemoryUsage a2
+  ) =>
+  CostingFun ModelTwoArguments ->
+  a1 ->
+  a2 ->
+  ExBudgetStream
 runCostingFunTwoArguments (CostingFun cpu mem) =
-    case (runTwoArgumentModel cpu, runTwoArgumentModel mem) of
-        (!runCpu, !runMem) -> onMemoryUsages $ \mem1 mem2 ->
-            zipCostStream
-                (runCpu mem1 mem2)
-                (runMem mem1 mem2)
+  case (runTwoArgumentModel cpu, runTwoArgumentModel mem) of
+    (!runCpu, !runMem) -> onMemoryUsages $ \mem1 mem2 ->
+      zipCostStream
+        (runCpu mem1 mem2)
+        (runMem mem1 mem2)
 {-# INLINE runCostingFunTwoArguments #-}
 
--- | Take an intercept, two slopes and two streams, and scale each element of
--- the first stream by the first slope, each element of the second stream by the
--- second slope, add the two scaled streams together, and cons the intercept to
--- the stream afterwards.
+{- | Take an intercept, two slopes and two streams, and scale each element of
+the first stream by the first slope, each element of the second stream by the
+second slope, add the two scaled streams together, and cons the intercept to
+the stream afterwards.
+-}
 scaleLinearlyTwoVariables :: Intercept -> Slope -> CostStream -> Slope -> CostStream -> CostStream
 scaleLinearlyTwoVariables (Intercept intercept) (Slope slope1) stream1 (Slope slope2) stream2 =
-    addCostStream
+  addCostStream
     (CostLast intercept)
-    (addCostStream
-     (mapCostStream (slope1 *) stream1)
-     (mapCostStream (slope2 *) stream2)
+    ( addCostStream
+        (mapCostStream (slope1 *) stream1)
+        (mapCostStream (slope2 *) stream2)
     )
 {-# INLINE scaleLinearlyTwoVariables #-}
 
+runTwoArgumentModel ::
+  ModelTwoArguments ->
+  CostStream ->
+  CostStream ->
+  CostStream
 runTwoArgumentModel
-    :: ModelTwoArguments
-    -> CostStream
-    -> CostStream
-    -> CostStream
+  (ModelTwoArgumentsConstantCost c) = lazy $ \_ _ -> CostLast c
 runTwoArgumentModel
-    (ModelTwoArgumentsConstantCost c) = lazy $ \_ _ -> CostLast c
+  (ModelTwoArgumentsAddedSizes (ModelAddedSizes intercept slope)) =
+    lazy $ \costs1 costs2 ->
+      scaleLinearly intercept slope $ addCostStream costs1 costs2
 runTwoArgumentModel
-    (ModelTwoArgumentsAddedSizes (ModelAddedSizes intercept slope)) =
-        lazy $ \costs1 costs2 ->
-            scaleLinearly intercept slope $ addCostStream costs1 costs2
+  (ModelTwoArgumentsSubtractedSizes (ModelSubtractedSizes intercept slope minSize)) =
+    lazy $ \costs1 costs2 -> do
+      let !size1 = sumCostStream costs1
+          !size2 = sumCostStream costs2
+      scaleLinearly intercept slope $ CostLast (max minSize $ size1 - size2)
 runTwoArgumentModel
-    (ModelTwoArgumentsSubtractedSizes (ModelSubtractedSizes intercept slope minSize)) =
-        lazy $ \costs1 costs2 -> do
-            let !size1 = sumCostStream costs1
-                !size2 = sumCostStream costs2
-            scaleLinearly intercept slope $ CostLast (max minSize $ size1 - size2)
+  (ModelTwoArgumentsMultipliedSizes (ModelMultipliedSizes intercept slope)) =
+    lazy $ \costs1 costs2 -> do
+      let !size1 = sumCostStream costs1
+          !size2 = sumCostStream costs2
+      scaleLinearly intercept slope $ CostLast (size1 * size2)
 runTwoArgumentModel
-    (ModelTwoArgumentsMultipliedSizes (ModelMultipliedSizes intercept slope)) =
-        lazy $ \costs1 costs2 -> do
-            let !size1 = sumCostStream costs1
-                !size2 = sumCostStream costs2
-            scaleLinearly intercept slope $ CostLast (size1 * size2)
+  (ModelTwoArgumentsMinSize (ModelMinSize intercept slope)) =
+    lazy $ \costs1 costs2 -> do
+      scaleLinearly intercept slope $ minCostStream costs1 costs2
 runTwoArgumentModel
-    (ModelTwoArgumentsMinSize (ModelMinSize intercept slope)) =
-        lazy $ \costs1 costs2 -> do
-            scaleLinearly intercept slope $ minCostStream costs1 costs2
+  (ModelTwoArgumentsMaxSize (ModelMaxSize intercept slope)) =
+    lazy $ \costs1 costs2 -> do
+      let !size1 = sumCostStream costs1
+          !size2 = sumCostStream costs2
+      scaleLinearly intercept slope $ CostLast (max size1 size2)
 runTwoArgumentModel
-    (ModelTwoArgumentsMaxSize (ModelMaxSize intercept slope)) =
-        lazy $ \costs1 costs2 -> do
-            let !size1 = sumCostStream costs1
-                !size2 = sumCostStream costs2
-            scaleLinearly intercept slope $ CostLast (max size1 size2)
+  (ModelTwoArgumentsLinearInX (OneVariableLinearFunction intercept slope)) =
+    lazy $ \costs1 _ ->
+      scaleLinearly intercept slope costs1
 runTwoArgumentModel
-    (ModelTwoArgumentsLinearInX (OneVariableLinearFunction intercept slope)) =
-        lazy $ \costs1 _ ->
-            scaleLinearly intercept slope costs1
+  (ModelTwoArgumentsLinearInY (OneVariableLinearFunction intercept slope)) =
+    lazy $ \_ costs2 ->
+      scaleLinearly intercept slope costs2
 runTwoArgumentModel
-    (ModelTwoArgumentsLinearInY (OneVariableLinearFunction intercept slope)) =
-        lazy $ \_ costs2 ->
-            scaleLinearly intercept slope costs2
+  (ModelTwoArgumentsLinearInXAndY (TwoVariableLinearFunction intercept slope1 slope2)) =
+    lazy $ \costs1 costs2 ->
+      scaleLinearlyTwoVariables intercept slope1 costs1 slope2 costs2
 runTwoArgumentModel
-    (ModelTwoArgumentsLinearInXAndY (TwoVariableLinearFunction intercept slope1 slope2)) =
-        lazy $ \costs1 costs2 ->
-            scaleLinearlyTwoVariables intercept slope1 costs1 slope2 costs2
+  -- Off the diagonal, return the constant.  On the diagonal, run the one-variable linear model.
+  (ModelTwoArgumentsLinearOnDiagonal (ModelConstantOrLinear c intercept slope)) =
+    lazy $ \costs1 costs2 -> do
+      let !size1 = sumCostStream costs1
+          !size2 = sumCostStream costs2
+      if size1 == size2
+        then scaleLinearly intercept slope $ CostLast size1
+        else CostLast c
 runTwoArgumentModel
-    -- Off the diagonal, return the constant.  On the diagonal, run the one-variable linear model.
-    (ModelTwoArgumentsLinearOnDiagonal (ModelConstantOrLinear c intercept slope)) =
-        lazy $ \costs1 costs2 -> do
-            let !size1 = sumCostStream costs1
-                !size2 = sumCostStream costs2
-            if size1 == size2
-                then scaleLinearly intercept slope $ CostLast size1
-                else CostLast c
+  -- Below the diagonal, return the constant. Above the diagonal, run the other model.
+  (ModelTwoArgumentsConstBelowDiagonal (ModelConstantOrTwoArguments c m)) =
+    case runTwoArgumentModel m of
+      !run -> lazy $ \costs1 costs2 -> do
+        let !size1 = sumCostStream costs1
+            !size2 = sumCostStream costs2
+        if size1 > size2
+          then CostLast c
+          else run (CostLast size1) (CostLast size2)
 runTwoArgumentModel
-    -- Below the diagonal, return the constant. Above the diagonal, run the other model.
-    (ModelTwoArgumentsConstBelowDiagonal (ModelConstantOrTwoArguments c m)) =
-        case runTwoArgumentModel m of
-            !run -> lazy $ \costs1 costs2 -> do
-                let !size1 = sumCostStream costs1
-                    !size2 = sumCostStream costs2
-                if size1 > size2
-                    then CostLast c
-                    else run (CostLast size1) (CostLast size2)
+  -- Above the diagonal, return the constant. Below the diagonal, run the other model.
+  (ModelTwoArgumentsConstAboveDiagonal (ModelConstantOrTwoArguments c m)) =
+    case runTwoArgumentModel m of
+      !run -> lazy $ \costs1 costs2 -> do
+        let !size1 = sumCostStream costs1
+            !size2 = sumCostStream costs2
+        if size1 < size2
+          then CostLast c
+          else run (CostLast size1) (CostLast size2)
 runTwoArgumentModel
-    -- Above the diagonal, return the constant. Below the diagonal, run the other model.
-    (ModelTwoArgumentsConstAboveDiagonal (ModelConstantOrTwoArguments c m)) =
-        case runTwoArgumentModel m of
-            !run -> lazy $ \costs1 costs2 -> do
-                let !size1 = sumCostStream costs1
-                    !size2 = sumCostStream costs2
-                if size1 < size2
-                    then CostLast c
-                    else run (CostLast size1) (CostLast size2)
-runTwoArgumentModel
-    (ModelTwoArgumentsQuadraticInY f) =
-        lazy $ \_ costs2 ->
-            CostLast $ evaluateOneVariableQuadraticFunction f $ sumCostStream costs2
+  (ModelTwoArgumentsQuadraticInY f) =
+    lazy $ \_ costs2 ->
+      CostLast $ evaluateOneVariableQuadraticFunction f $ sumCostStream costs2
 {-# NOINLINE runTwoArgumentModel #-}
-
 
 ---------------- Three-argument costing functions ----------------
 
-data ModelThreeArguments =
-    ModelThreeArgumentsConstantCost          CostingInteger
-  | ModelThreeArgumentsAddedSizes            ModelAddedSizes
-  | ModelThreeArgumentsLinearInX             OneVariableLinearFunction
-  | ModelThreeArgumentsLinearInY             OneVariableLinearFunction
-  | ModelThreeArgumentsLinearInZ             OneVariableLinearFunction
-  | ModelThreeArgumentsQuadraticInZ          OneVariableQuadraticFunction
+data ModelThreeArguments
+  = ModelThreeArgumentsConstantCost CostingInteger
+  | ModelThreeArgumentsAddedSizes ModelAddedSizes
+  | ModelThreeArgumentsLinearInX OneVariableLinearFunction
+  | ModelThreeArgumentsLinearInY OneVariableLinearFunction
+  | ModelThreeArgumentsLinearInZ OneVariableLinearFunction
+  | ModelThreeArgumentsQuadraticInZ OneVariableQuadraticFunction
   | ModelThreeArgumentsLiteralInYOrLinearInZ OneVariableLinearFunction
-    deriving stock (Show, Eq, Generic, Lift)
-    deriving anyclass (NFData)
+  deriving stock (Show, Eq, Generic, Lift)
+  deriving anyclass (NFData)
 
 instance Default ModelThreeArguments where
-    def = ModelThreeArgumentsConstantCost 0
+  def = ModelThreeArgumentsConstantCost 0
 
-runThreeArgumentModel
-    :: ModelThreeArguments
-    -> CostStream
-    -> CostStream
-    -> CostStream
-    -> CostStream
+runThreeArgumentModel ::
+  ModelThreeArguments ->
+  CostStream ->
+  CostStream ->
+  CostStream ->
+  CostStream
 runThreeArgumentModel (ModelThreeArgumentsConstantCost c) = lazy $ \_ _ _ -> CostLast c
 runThreeArgumentModel
-    (ModelThreeArgumentsAddedSizes (ModelAddedSizes intercept slope)) =
-        lazy $ \costs1 costs2 costs3 ->
-            scaleLinearly intercept slope . addCostStream costs1 $ addCostStream costs2 costs3
+  (ModelThreeArgumentsAddedSizes (ModelAddedSizes intercept slope)) =
+    lazy $ \costs1 costs2 costs3 ->
+      scaleLinearly intercept slope . addCostStream costs1 $ addCostStream costs2 costs3
 runThreeArgumentModel
-    (ModelThreeArgumentsLinearInX (OneVariableLinearFunction intercept slope)) =
-        lazy $ \costs1 _ _ ->
-            scaleLinearly intercept slope costs1
+  (ModelThreeArgumentsLinearInX (OneVariableLinearFunction intercept slope)) =
+    lazy $ \costs1 _ _ ->
+      scaleLinearly intercept slope costs1
 runThreeArgumentModel
-    (ModelThreeArgumentsLinearInY (OneVariableLinearFunction intercept slope)) =
-        lazy $ \_ costs2 _ ->
-            scaleLinearly intercept slope costs2
+  (ModelThreeArgumentsLinearInY (OneVariableLinearFunction intercept slope)) =
+    lazy $ \_ costs2 _ ->
+      scaleLinearly intercept slope costs2
 runThreeArgumentModel
-    (ModelThreeArgumentsLinearInZ (OneVariableLinearFunction intercept slope)) =
-        lazy $ \_ _ costs3 ->
-            scaleLinearly intercept slope costs3
+  (ModelThreeArgumentsLinearInZ (OneVariableLinearFunction intercept slope)) =
+    lazy $ \_ _ costs3 ->
+      scaleLinearly intercept slope costs3
 runThreeArgumentModel
-    (ModelThreeArgumentsQuadraticInZ f) =
-        lazy $ \_ _ costs3 -> CostLast $ evaluateOneVariableQuadraticFunction f $ sumCostStream costs3
+  (ModelThreeArgumentsQuadraticInZ f) =
+    lazy $ \_ _ costs3 -> CostLast $ evaluateOneVariableQuadraticFunction f $ sumCostStream costs3
 {- Either a literal number of bytes or a linear function.  This is for
    `integerToByteString`, where if the second argument is zero, the output
    bytestring has the minimum length required to contain the converted integer,
    but if the second argument is nonzero it specifies the exact length of the
    output bytestring. -}
 runThreeArgumentModel
-    (ModelThreeArgumentsLiteralInYOrLinearInZ (OneVariableLinearFunction intercept slope)) =
-        lazy $ \_ costs2 costs3 ->
-            let width = sumCostStream costs2
-            in if width == 0
+  (ModelThreeArgumentsLiteralInYOrLinearInZ (OneVariableLinearFunction intercept slope)) =
+    lazy $ \_ costs2 costs3 ->
+      let width = sumCostStream costs2
+       in if width == 0
             then scaleLinearly intercept slope costs3
             else costs2
 {-# NOINLINE runThreeArgumentModel #-}
 
 -- See Note [runCostingFun* API].
-runCostingFunThreeArguments
-    :: ( ExMemoryUsage a1
-       , ExMemoryUsage a2
-       , ExMemoryUsage a3
-       )
-    => CostingFun ModelThreeArguments
-    -> a1
-    -> a2
-    -> a3
-    -> ExBudgetStream
+runCostingFunThreeArguments ::
+  ( ExMemoryUsage a1
+  , ExMemoryUsage a2
+  , ExMemoryUsage a3
+  ) =>
+  CostingFun ModelThreeArguments ->
+  a1 ->
+  a2 ->
+  a3 ->
+  ExBudgetStream
 runCostingFunThreeArguments (CostingFun cpu mem) =
-    case (runThreeArgumentModel cpu, runThreeArgumentModel mem) of
-        (!runCpu, !runMem) -> onMemoryUsages $ \mem1 mem2 mem3 ->
-            zipCostStream
-                (runCpu mem1 mem2 mem3)
-                (runMem mem1 mem2 mem3)
+  case (runThreeArgumentModel cpu, runThreeArgumentModel mem) of
+    (!runCpu, !runMem) -> onMemoryUsages $ \mem1 mem2 mem3 ->
+      zipCostStream
+        (runCpu mem1 mem2 mem3)
+        (runMem mem1 mem2 mem3)
 {-# INLINE runCostingFunThreeArguments #-}
-
 
 ---------------- Four-argument costing functions ----------------
 
-data ModelFourArguments =
-      ModelFourArgumentsConstantCost CostingInteger
-    deriving stock (Show, Eq, Generic, Lift)
-    deriving anyclass (NFData)
+data ModelFourArguments
+  = ModelFourArgumentsConstantCost CostingInteger
+  deriving stock (Show, Eq, Generic, Lift)
+  deriving anyclass (NFData)
 
 instance Default ModelFourArguments where
-    def = ModelFourArgumentsConstantCost 0
+  def = ModelFourArgumentsConstantCost 0
 
-runFourArgumentModel
-    :: ModelFourArguments
-    -> CostStream
-    -> CostStream
-    -> CostStream
-    -> CostStream
-    -> CostStream
+runFourArgumentModel ::
+  ModelFourArguments ->
+  CostStream ->
+  CostStream ->
+  CostStream ->
+  CostStream ->
+  CostStream
 runFourArgumentModel (ModelFourArgumentsConstantCost c) = lazy $ \_ _ _ _ -> CostLast c
 {-# NOINLINE runFourArgumentModel #-}
 
 -- See Note [runCostingFun* API].
-runCostingFunFourArguments
-    :: ( ExMemoryUsage a1
-       , ExMemoryUsage a2
-       , ExMemoryUsage a3
-       , ExMemoryUsage a4
-       )
-    => CostingFun ModelFourArguments
-    -> a1
-    -> a2
-    -> a3
-    -> a4
-    -> ExBudgetStream
+runCostingFunFourArguments ::
+  ( ExMemoryUsage a1
+  , ExMemoryUsage a2
+  , ExMemoryUsage a3
+  , ExMemoryUsage a4
+  ) =>
+  CostingFun ModelFourArguments ->
+  a1 ->
+  a2 ->
+  a3 ->
+  a4 ->
+  ExBudgetStream
 runCostingFunFourArguments (CostingFun cpu mem) =
-    case (runFourArgumentModel cpu, runFourArgumentModel mem) of
-        (!runCpu, !runMem) -> onMemoryUsages $ \mem1 mem2 mem3 mem4 ->
-            zipCostStream
-                (runCpu mem1 mem2 mem3 mem4)
-                (runMem mem1 mem2 mem3 mem4)
+  case (runFourArgumentModel cpu, runFourArgumentModel mem) of
+    (!runCpu, !runMem) -> onMemoryUsages $ \mem1 mem2 mem3 mem4 ->
+      zipCostStream
+        (runCpu mem1 mem2 mem3 mem4)
+        (runMem mem1 mem2 mem3 mem4)
 {-# INLINE runCostingFunFourArguments #-}
-
 
 ---------------- Five-argument costing functions ----------------
 
-data ModelFiveArguments =
-      ModelFiveArgumentsConstantCost CostingInteger
-    deriving stock (Show, Eq, Generic, Lift)
-    deriving anyclass (NFData)
+data ModelFiveArguments
+  = ModelFiveArgumentsConstantCost CostingInteger
+  deriving stock (Show, Eq, Generic, Lift)
+  deriving anyclass (NFData)
 
 instance Default ModelFiveArguments where
-    def = ModelFiveArgumentsConstantCost 0
+  def = ModelFiveArgumentsConstantCost 0
 
-runFiveArgumentModel
-    :: ModelFiveArguments
-    -> CostStream
-    -> CostStream
-    -> CostStream
-    -> CostStream
-    -> CostStream
-    -> CostStream
+runFiveArgumentModel ::
+  ModelFiveArguments ->
+  CostStream ->
+  CostStream ->
+  CostStream ->
+  CostStream ->
+  CostStream ->
+  CostStream
 runFiveArgumentModel (ModelFiveArgumentsConstantCost c) = lazy $ \_ _ _ _ _ -> CostLast c
 {-# NOINLINE runFiveArgumentModel #-}
 
 -- See Note [runCostingFun* API].
-runCostingFunFiveArguments
-    :: ( ExMemoryUsage a1
-       , ExMemoryUsage a2
-       , ExMemoryUsage a3
-       , ExMemoryUsage a4
-       , ExMemoryUsage a5
-       )
-    => CostingFun ModelFiveArguments
-    -> a1
-    -> a2
-    -> a3
-    -> a4
-    -> a5
-    -> ExBudgetStream
+runCostingFunFiveArguments ::
+  ( ExMemoryUsage a1
+  , ExMemoryUsage a2
+  , ExMemoryUsage a3
+  , ExMemoryUsage a4
+  , ExMemoryUsage a5
+  ) =>
+  CostingFun ModelFiveArguments ->
+  a1 ->
+  a2 ->
+  a3 ->
+  a4 ->
+  a5 ->
+  ExBudgetStream
 runCostingFunFiveArguments (CostingFun cpu mem) =
-    case (runFiveArgumentModel cpu, runFiveArgumentModel mem) of
-        (!runCpu, !runMem) -> onMemoryUsages $ \mem1 mem2 mem3 mem4 mem5 ->
-            zipCostStream
-                (runCpu mem1 mem2 mem3 mem4 mem5)
-                (runMem mem1 mem2 mem3 mem4 mem5)
+  case (runFiveArgumentModel cpu, runFiveArgumentModel mem) of
+    (!runCpu, !runMem) -> onMemoryUsages $ \mem1 mem2 mem3 mem4 mem5 ->
+      zipCostStream
+        (runCpu mem1 mem2 mem3 mem4 mem5)
+        (runMem mem1 mem2 mem3 mem4 mem5)
 {-# INLINE runCostingFunFiveArguments #-}
 
 ---------------- Six-argument costing functions ----------------
 
-data ModelSixArguments =
-      ModelSixArgumentsConstantCost CostingInteger
-    deriving stock (Show, Eq, Generic, Lift)
-    deriving anyclass (NFData)
+data ModelSixArguments
+  = ModelSixArgumentsConstantCost CostingInteger
+  deriving stock (Show, Eq, Generic, Lift)
+  deriving anyclass (NFData)
 
 instance Default ModelSixArguments where
-    def = ModelSixArgumentsConstantCost 0
+  def = ModelSixArgumentsConstantCost 0
 
-runSixArgumentModel
-    :: ModelSixArguments
-    -> CostStream
-    -> CostStream
-    -> CostStream
-    -> CostStream
-    -> CostStream
-    -> CostStream
-    -> CostStream
+runSixArgumentModel ::
+  ModelSixArguments ->
+  CostStream ->
+  CostStream ->
+  CostStream ->
+  CostStream ->
+  CostStream ->
+  CostStream ->
+  CostStream
 runSixArgumentModel (ModelSixArgumentsConstantCost c) = lazy $ \_ _ _ _ _ _ -> CostLast c
 {-# NOINLINE runSixArgumentModel #-}
 
 -- See Note [runCostingFun* API].
-runCostingFunSixArguments
-    :: ( ExMemoryUsage a1
-       , ExMemoryUsage a2
-       , ExMemoryUsage a3
-       , ExMemoryUsage a4
-       , ExMemoryUsage a5
-       , ExMemoryUsage a6
-       )
-    => CostingFun ModelSixArguments
-    -> a1
-    -> a2
-    -> a3
-    -> a4
-    -> a5
-    -> a6
-    -> ExBudgetStream
+runCostingFunSixArguments ::
+  ( ExMemoryUsage a1
+  , ExMemoryUsage a2
+  , ExMemoryUsage a3
+  , ExMemoryUsage a4
+  , ExMemoryUsage a5
+  , ExMemoryUsage a6
+  ) =>
+  CostingFun ModelSixArguments ->
+  a1 ->
+  a2 ->
+  a3 ->
+  a4 ->
+  a5 ->
+  a6 ->
+  ExBudgetStream
 runCostingFunSixArguments (CostingFun cpu mem) =
-    case (runSixArgumentModel cpu, runSixArgumentModel mem) of
-        (!runCpu, !runMem) -> onMemoryUsages $ \mem1 mem2 mem3 mem4 mem5 mem6 ->
-            zipCostStream
-                (runCpu mem1 mem2 mem3 mem4 mem5 mem6)
-                (runMem mem1 mem2 mem3 mem4 mem5 mem6)
+  case (runSixArgumentModel cpu, runSixArgumentModel mem) of
+    (!runCpu, !runMem) -> onMemoryUsages $ \mem1 mem2 mem3 mem4 mem5 mem6 ->
+      zipCostStream
+        (runCpu mem1 mem2 mem3 mem4 mem5 mem6)
+        (runMem mem1 mem2 mem3 mem4 mem5 mem6)
 {-# INLINE runCostingFunSixArguments #-}

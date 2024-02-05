@@ -1,13 +1,14 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE TypeFamilies      #-}
-module PlutusCore.Pretty.ConfigName
-    ( PrettyConfigName (..)
-    , HasPrettyConfigName (..)
-    , defPrettyConfigName
-    , debugPrettyConfigName
-    ) where
+{-# LANGUAGE TypeFamilies #-}
+
+module PlutusCore.Pretty.ConfigName (
+  PrettyConfigName (..),
+  HasPrettyConfigName (..),
+  defPrettyConfigName,
+  debugPrettyConfigName,
+) where
 
 import Data.Coerce
 import Text.PrettyBy
@@ -105,17 +106,18 @@ required). This is something that we may try to improve later.
 
 -- | A config that determines how to pretty-print a PLC name.
 newtype PrettyConfigName = PrettyConfigName
-    { _pcnShowsUnique :: Bool -- ^ Whether to show the 'Unique' of a name or not.
-    }
+  { _pcnShowsUnique :: Bool
+  -- ^ Whether to show the 'Unique' of a name or not.
+  }
 
 type instance HasPrettyDefaults PrettyConfigName = 'True
 
 -- | A class of configs from which a 'PrettyConfigName' can be extracted.
 class HasPrettyConfigName config where
-    toPrettyConfigName :: config -> PrettyConfigName
+  toPrettyConfigName :: config -> PrettyConfigName
 
 instance HasPrettyConfigName (Sole PrettyConfigName) where
-    toPrettyConfigName = coerce
+  toPrettyConfigName = coerce
 
 -- | The 'PrettyConfigName' used by default: don't print 'Unique's.
 defPrettyConfigName :: PrettyConfigName

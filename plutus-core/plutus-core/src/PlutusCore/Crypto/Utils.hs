@@ -1,4 +1,4 @@
-{-# LANGUAGE KindSignatures    #-}
+{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module PlutusCore.Crypto.Utils (failWithMessage, byteStringAsHex) where
@@ -23,4 +23,4 @@ failWithMessage location reason = do
   evaluationFailure
 
 byteStringAsHex :: ByteString -> String
-byteStringAsHex bs = "0x" ++ (Prelude.concat $ foldr' (\w s -> (printf "%02x" w):s) [] bs)
+byteStringAsHex bs = "0x" ++ (Prelude.concat $ foldr' (\w s -> (printf "%02x" w) : s) [] bs)

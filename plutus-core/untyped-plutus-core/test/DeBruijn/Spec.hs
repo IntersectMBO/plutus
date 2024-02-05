@@ -1,4 +1,5 @@
 {-# LANGUAGE TypeFamilies #-}
+
 module DeBruijn.Spec (test_debruijn) where
 
 import DeBruijn.FlatNatWord (test_flatNatWord)
@@ -8,9 +9,11 @@ import Test.Tasty
 import Test.Tasty.Extras
 
 test_debruijn :: TestTree
-test_debruijn = runTestNestedIn ["untyped-plutus-core","test"] $
-               testNested "DeBruijn"
-                [ test_undebruijnify
-                , test_scope
-                , test_flatNatWord
-                ]
+test_debruijn =
+  runTestNestedIn ["untyped-plutus-core", "test"] $
+    testNested
+      "DeBruijn"
+      [ test_undebruijnify
+      , test_scope
+      , test_flatNatWord
+      ]

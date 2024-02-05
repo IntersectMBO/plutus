@@ -1,7 +1,8 @@
 {-# LANGUAGE LambdaCase #-}
-module UntypedPlutusCore.Transform.ForceDelay
-    ( forceDelayCancel
-    ) where
+
+module UntypedPlutusCore.Transform.ForceDelay (
+  forceDelayCancel,
+) where
 
 import UntypedPlutusCore.Core
 
@@ -12,5 +13,5 @@ forceDelayCancel = transformOf termSubterms processTerm
 
 processTerm :: Term name uni fun a -> Term name uni fun a
 processTerm = \case
-    Force _ (Delay _ t) -> t
-    t                   -> t
+  Force _ (Delay _ t) -> t
+  t -> t

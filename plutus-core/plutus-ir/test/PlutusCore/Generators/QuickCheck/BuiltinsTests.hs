@@ -1,4 +1,3 @@
-
 module PlutusCore.Generators.QuickCheck.BuiltinsTests where
 
 import PlutusCore.Data

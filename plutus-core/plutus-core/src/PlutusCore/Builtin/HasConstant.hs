@@ -1,16 +1,16 @@
-{-# LANGUAGE ConstraintKinds   #-}
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE TypeFamilies      #-}
-{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 
-module PlutusCore.Builtin.HasConstant
-    ( BuiltinError (..)
-    , throwNotAConstant
-    , HasConstant (..)
-    , HasConstantIn
-    , fromValueOf
-    , fromValue
-    ) where
+module PlutusCore.Builtin.HasConstant (
+  BuiltinError (..),
+  throwNotAConstant,
+  HasConstant (..),
+  HasConstantIn,
+  fromValueOf,
+  fromValue,
+) where
 
 import PlutusCore.Builtin.Result
 import PlutusCore.Core
@@ -30,18 +30,21 @@ see Note [The equality constraint in mkMachineParameters].
 -- See Note [Existence of HasConstant].
 -- We name it @term@ rather than @val@, because various @Term@ (UPLC/TPLC/PIR) data types have
 -- 'Constant'-like constructors too and we lift to / unlift from those in tests.
+
 -- | Ensures that @term@ has a 'Constant'-like constructor to lift values to and unlift values from.
 class HasConstant term where
-    -- Switching from 'MonadError' to 'Either' here gave us a speedup of 2-4%.
-    -- | Unwrap from a 'Constant'-like constructor throwing an 'UnliftingError' if the provided
-    -- @term@ is not a wrapped Haskell value.
-    asConstant :: term -> Either BuiltinError (Some (ValueOf (UniOf term)))
+  -- Switching from 'MonadError' to 'Either' here gave us a speedup of 2-4%.
 
-    -- | Wrap a Haskell value as a @term@.
-    fromConstant :: Some (ValueOf (UniOf term)) -> term
+  -- | Unwrap from a 'Constant'-like constructor throwing an 'UnliftingError' if the provided
+  -- @term@ is not a wrapped Haskell value.
+  asConstant :: term -> Either BuiltinError (Some (ValueOf (UniOf term)))
 
--- | Ensures that @term@ has a 'Constant'-like constructor to lift values to and unlift values from
--- and connects @term@ and its @uni@.
+  -- | Wrap a Haskell value as a @term@.
+  fromConstant :: Some (ValueOf (UniOf term)) -> term
+
+{- | Ensures that @term@ has a 'Constant'-like constructor to lift values to and unlift values from
+and connects @term@ and its @uni@.
+-}
 type HasConstantIn uni term = (UniOf term ~ uni, HasConstant term)
 
 -- | Wrap a Haskell value (given its explicit type tag) as a @term@.
@@ -55,7 +58,7 @@ fromValue = fromValueOf knownUni
 {-# INLINE fromValue #-}
 
 instance HasConstant (Term TyName Name uni fun ()) where
-    asConstant (Constant _ val) = pure val
-    asConstant _                = throwNotAConstant
+  asConstant (Constant _ val) = pure val
+  asConstant _ = throwNotAConstant
 
-    fromConstant = Constant ()
+  fromConstant = Constant ()

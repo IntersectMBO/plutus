@@ -20,7 +20,7 @@ import Data.Set qualified as Set
 type Usages = MSet.MultiSet PLC.Unique
 
 -- | Get the usage count of @n@.
-getUsageCount :: (PLC.HasUnique n unique) => n -> Usages -> Int
+getUsageCount :: PLC.HasUnique n unique => n -> Usages -> Int
 getUsageCount n = MSet.occur (n ^. PLC.unique . coerced)
 
 -- | Get a set of @n@s which are used at least once.
@@ -35,7 +35,7 @@ termUsages = multiSetOf (vTerm . PLC.theUnique <^> tvTerm . PLC.theUnique)
 
 -- TODO: move to plutus-core
 typeUsages ::
-  (PLC.HasUnique tyname PLC.TypeUnique) =>
+  PLC.HasUnique tyname PLC.TypeUnique =>
   Type tyname uni a ->
   Usages
 typeUsages = multiSetOf (tvTy . PLC.theUnique)

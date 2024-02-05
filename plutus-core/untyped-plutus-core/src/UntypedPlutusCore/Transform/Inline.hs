@@ -1,11 +1,11 @@
-{-# LANGUAGE ConstraintKinds  #-}
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE GADTs            #-}
-{-# LANGUAGE LambdaCase       #-}
-{-# LANGUAGE TemplateHaskell  #-}
-{-# LANGUAGE TypeFamilies     #-}
-{-# LANGUAGE TypeOperators    #-}
-{-# LANGUAGE ViewPatterns     #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE ViewPatterns #-}
 
 {- |
 An inlining pass.
@@ -80,7 +80,7 @@ makeLenses ''Subst
 data VarInfo name uni fun ann = VarInfo
   { _varBinders :: [name]
   -- ^ Lambda binders in the RHS (definition) of the variable.
-  , _varRhs     :: Term name uni fun ann
+  , _varRhs :: Term name uni fun ann
   -- ^ The RHS (definition) of the variable.
   , _varRhsBody :: InlineTerm name uni fun ann
   -- ^ The body of the RHS of the variable (i.e., RHS minus the binders). Using `InlineTerm`
@@ -92,7 +92,7 @@ makeLenses ''VarInfo
 -- | UPLC inliner state
 data S name uni fun a = S
   { _subst :: Subst name uni fun a
-  , _vars  :: PLC.UniqueMap TermUnique (VarInfo name uni fun a)
+  , _vars :: PLC.UniqueMap TermUnique (VarInfo name uni fun a)
   }
 
 makeLenses ''S
@@ -127,7 +127,7 @@ type InlineM name uni fun a = ReaderT (InlineInfo name a) (StateT (S name uni fu
 
 -- | Look up the unprocessed variable in the substitution.
 lookupTerm ::
-  (HasUnique name TermUnique) =>
+  HasUnique name TermUnique =>
   name ->
   S name uni fun a ->
   Maybe (InlineTerm name uni fun a)
@@ -135,7 +135,7 @@ lookupTerm n s = lookupName n $ s ^. subst . termEnv . unTermEnv
 
 -- | Insert the unprocessed variable into the substitution.
 extendTerm ::
-  (HasUnique name TermUnique) =>
+  HasUnique name TermUnique =>
   -- | The name of the variable.
   name ->
   -- | The substitution range.
@@ -146,14 +146,14 @@ extendTerm ::
 extendTerm n clos s = s & subst . termEnv . unTermEnv %~ insertByName n clos
 
 lookupVarInfo ::
-  (HasUnique name TermUnique) =>
+  HasUnique name TermUnique =>
   name ->
   S name uni fun a ->
   Maybe (VarInfo name uni fun a)
 lookupVarInfo n s = lookupName n $ s ^. vars
 
 extendVarInfo ::
-  (HasUnique name TermUnique) =>
+  HasUnique name TermUnique =>
   name ->
   VarInfo name uni fun a ->
   S name uni fun a ->
@@ -165,7 +165,7 @@ See Note [Inlining and global uniqueness]
 -}
 inline ::
   forall name uni fun m a.
-  (ExternalConstraints name uni fun m) =>
+  ExternalConstraints name uni fun m =>
   InlineHints name a ->
   Term name uni fun a ->
   m (Term name uni fun a)
@@ -193,7 +193,7 @@ extractApps :: Term name uni fun a -> Maybe ([UTermDef name uni fun a], Term nam
 extractApps = go []
   where
     go argStack (Apply _ f arg) = go (arg : argStack) f
-    go argStack t               = matchArgs argStack [] t
+    go argStack t = matchArgs argStack [] t
     matchArgs (arg : rest) acc (LamAbs a n body) =
       matchArgs rest (Def (UVarDecl a n) arg : acc) body
     matchArgs [] acc t =
@@ -205,15 +205,15 @@ restoreApps :: [UTermDef name uni fun a] -> Term name uni fun a -> Term name uni
 restoreApps defs t = makeLams [] t (reverse defs)
   where
     makeLams args acc (Def (UVarDecl a n) rhs : rest) = makeLams (rhs : args) (LamAbs a n acc) rest
-    makeLams args acc []                              = makeApps args acc
+    makeLams args acc [] = makeApps args acc
     -- This isn't the best annotation, but it will do
     makeApps (arg : args) acc = makeApps args (Apply (termAnn acc) acc arg)
-    makeApps [] acc           = acc
+    makeApps [] acc = acc
 
 -- | Run the inliner on a `UntypedPlutusCore.Core.Type.Term`.
 processTerm ::
   forall name uni fun a.
-  (InliningConstraints name uni fun) =>
+  InliningConstraints name uni fun =>
   Term name uni fun a ->
   InlineM name uni fun a (Term name uni fun a)
 processTerm = handleTerm
@@ -239,7 +239,7 @@ processTerm = handleTerm
       Done t -> liftDupable t
 
 processSingleBinding ::
-  (InliningConstraints name uni fun) =>
+  InliningConstraints name uni fun =>
   Term name uni fun a ->
   UTermDef name uni fun a ->
   InlineM name uni fun a (Maybe (UTermDef name uni fun a))
@@ -264,7 +264,7 @@ Nothing means that we are inlining the term:
 -}
 maybeAddSubst ::
   forall name uni fun a.
-  (InliningConstraints name uni fun) =>
+  InliningConstraints name uni fun =>
   Term name uni fun a ->
   a ->
   name ->
@@ -292,7 +292,7 @@ maybeAddSubst body a n rhs0 = do
     extendAndDrop t = modify' (extendTerm n t) >> pure Nothing
 
 shouldUnconditionallyInline ::
-  (InliningConstraints name uni fun) =>
+  InliningConstraints name uni fun =>
   name ->
   Term name uni fun a ->
   Term name uni fun a ->
@@ -318,7 +318,7 @@ checkPurity t = pure $ isPure t
 
 nameUsedAtMostOnce ::
   forall name uni fun a.
-  (InliningConstraints name uni fun) =>
+  InliningConstraints name uni fun =>
   name ->
   InlineM name uni fun a Bool
 nameUsedAtMostOnce n = do
@@ -326,28 +326,31 @@ nameUsedAtMostOnce n = do
   -- 'inlining' terms used 0 times is a cheap way to remove dead code while we're here
   pure $ Usages.getUsageCount n usgs <= 1
 
-isFirstVarBeforeEffects
-    :: forall name uni fun ann. InliningConstraints name uni fun
-    => name -> Term name uni fun ann -> InlineM name uni fun ann Bool
+isFirstVarBeforeEffects ::
+  forall name uni fun ann.
+  InliningConstraints name uni fun =>
+  name ->
+  Term name uni fun ann ->
+  InlineM name uni fun ann Bool
 isFirstVarBeforeEffects n t = do
-    -- This can in the worst case traverse a lot of the term, which could lead to us
-    -- doing ~quadratic work as we process the program. However in practice most terms
-    -- have a relatively short evaluation order before we hit Unknown, so it's not too bad.
-    pure $ go (unEvalOrder (termEvaluationOrder t))
-    where
-      -- Found the variable we're looking for!
-      go ((EvalTerm _ _ (Var _ n')):_) | n == n' = True
-      -- Found a pure term, ignore it and continue
-      go ((EvalTerm Pure _ _):rest) = go rest
-      -- Found a possibly impure term, our variable is definitely not first
-      go ((EvalTerm MaybeImpure _ _):_) = False
-      -- Don't know, be conservative
-      go (Unknown:_) = False
-      go [] = False
+  -- This can in the worst case traverse a lot of the term, which could lead to us
+  -- doing ~quadratic work as we process the program. However in practice most terms
+  -- have a relatively short evaluation order before we hit Unknown, so it's not too bad.
+  pure $ go (unEvalOrder (termEvaluationOrder t))
+  where
+    -- Found the variable we're looking for!
+    go ((EvalTerm _ _ (Var _ n')) : _) | n == n' = True
+    -- Found a pure term, ignore it and continue
+    go ((EvalTerm Pure _ _) : rest) = go rest
+    -- Found a possibly impure term, our variable is definitely not first
+    go ((EvalTerm MaybeImpure _ _) : _) = False
+    -- Don't know, be conservative
+    go (Unknown : _) = False
+    go [] = False
 
 effectSafe ::
   forall name uni fun a.
-  (InliningConstraints name uni fun) =>
+  InliningConstraints name uni fun =>
   Term name uni fun a ->
   name ->
   -- | is it pure?
@@ -370,53 +373,53 @@ the given term acceptable?
 -}
 costIsAcceptable :: Term name uni fun a -> Bool
 costIsAcceptable = \case
-  Builtin{} -> True
-  Var{} -> True
-  Constant{} -> True
-  Error{} -> True
+  Builtin {} -> True
+  Var {} -> True
+  Constant {} -> True
+  Error {} -> True
   -- This will mean that we create closures at each use site instead of
   -- once, but that's a very low cost which we're okay rounding to 0.
-  LamAbs{} -> True
-  Apply{} -> False
+  LamAbs {} -> True
+  Apply {} -> False
   -- Inlining constructors of size 1 or 0 seems okay, but does result in doing
   -- the work for the elements at each use site.
   Constr _ _ es -> case es of
-    []  -> True
+    [] -> True
     [e] -> costIsAcceptable e
-    _   -> False
+    _ -> False
   -- Inlining a case means redoing the match at each use site
-  Case{} -> False
-  Force{} -> False
-  Delay{} -> True
+  Case {} -> False
+  Force {} -> False
+  Delay {} -> True
 
 {- | Is the size increase (in the AST) of inlining a variable whose RHS is
 the given term acceptable?
 -}
 sizeIsAcceptable :: Term name uni fun a -> Bool
 sizeIsAcceptable = \case
-  Builtin{} -> True
-  Var{} -> True
-  Error{} -> True
+  Builtin {} -> True
+  Var {} -> True
+  Error {} -> True
   -- See Note [Differences from PIR inliner] 4
-  LamAbs{} -> False
+  LamAbs {} -> False
   -- Inlining constructors of size 1 or 0 seems okay
   Constr _ _ es -> case es of
-    []  -> True
+    [] -> True
     [e] -> sizeIsAcceptable e
-    _   -> False
+    _ -> False
   -- Cases are pretty big, due to the case branches
-  Case{} -> False
+  Case {} -> False
   -- Constants can be big! We could check the size here and inline if they're
   -- small, but probably not worth it
-  Constant{} -> False
-  Apply{} -> False
+  Constant {} -> False
+  Apply {} -> False
   Force _ t -> sizeIsAcceptable t
   Delay _ t -> sizeIsAcceptable t
 
 -- | Fully apply and beta reduce.
 fullyApplyAndBetaReduce ::
   forall name uni fun a.
-  (InliningConstraints name uni fun) =>
+  InliningConstraints name uni fun =>
   VarInfo name uni fun a ->
   [(a, Term name uni fun a)] ->
   InlineM name uni fun a (Maybe (Term name uni fun a))
@@ -456,7 +459,7 @@ See Note [Inlining and beta reduction of functions].
 -}
 inlineSaturatedApp ::
   forall name uni fun a.
-  (InliningConstraints name uni fun) =>
+  InliningConstraints name uni fun =>
   Term name uni fun a ->
   InlineM name uni fun a (Term name uni fun a)
 inlineSaturatedApp t
@@ -477,4 +480,3 @@ inlineSaturatedApp t
               rhsPure <- checkPurity rhs
               pure $ if sizeIsOk && costIsOk && rhsPure then fullyApplied else t
   | otherwise = pure t
-

@@ -1,22 +1,21 @@
--- | A "classic" (i.e. as seen in the specification) way to pretty-print PLC entities.
-
 {-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE DataKinds       #-}
-{-# LANGUAGE TypeFamilies    #-}
-{-# LANGUAGE TypeOperators   #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 
-module PlutusCore.Pretty.Classic
-    ( PrettyConfigClassic (..)
-    , PrettyClassicBy
-    , PrettyClassic
-    , PrettyParens
-    , juxtRenderContext
-    , consAnnIf
-    , defPrettyConfigClassic
-    , debugPrettyConfigClassic
-    , prettyClassicDef
-    , prettyClassicDebug
-    ) where
+-- | A "classic" (i.e. as seen in the specification) way to pretty-print PLC entities.
+module PlutusCore.Pretty.Classic (
+  PrettyConfigClassic (..),
+  PrettyClassicBy,
+  PrettyClassic,
+  PrettyParens,
+  juxtRenderContext,
+  consAnnIf,
+  defPrettyConfigClassic,
+  debugPrettyConfigClassic,
+  prettyClassicDef,
+  prettyClassicDebug,
+) where
 
 import PlutusPrelude
 
@@ -27,9 +26,11 @@ import Prettyprinter.Internal (Doc (Empty))
 
 -- | Configuration for the classic pretty-printing.
 data PrettyConfigClassic configName = PrettyConfigClassic
-    { _pccConfigName :: configName  -- ^ How to pretty-print names.
-    , _pccDisplayAnn :: Bool        -- ^ Whether to display annotations.
-    }
+  { _pccConfigName :: configName
+  -- ^ How to pretty-print names.
+  , _pccDisplayAnn :: Bool
+  -- ^ Whether to display annotations.
+  }
 
 type instance HasPrettyDefaults (PrettyConfigClassic _) = 'True
 
@@ -39,14 +40,15 @@ type PrettyClassicBy configName = PrettyBy (PrettyConfigClassic configName)
 type PrettyClassic = PrettyClassicBy PrettyConfigName
 
 instance configName ~ PrettyConfigName => HasPrettyConfigName (PrettyConfigClassic configName) where
-    toPrettyConfigName = _pccConfigName
+  toPrettyConfigName = _pccConfigName
 
 isEmptyDoc :: Doc ann -> Bool
 isEmptyDoc Empty = True
-isEmptyDoc _     = False
+isEmptyDoc _ = False
 
--- | Add a pretty-printed annotation to a list of 'Doc's if the given config enables pretty-printing
--- of annotations.
+{- | Add a pretty-printed annotation to a list of 'Doc's if the given config enables pretty-printing
+of annotations.
+-}
 consAnnIf :: Pretty ann => PrettyConfigClassic configName -> ann -> [Doc dann] -> [Doc dann]
 consAnnIf config ann rest = filter (not . isEmptyDoc) [pretty ann | _pccDisplayAnn config] ++ rest
 

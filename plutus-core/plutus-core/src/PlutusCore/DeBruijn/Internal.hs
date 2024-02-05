@@ -1,9 +1,9 @@
-{-# LANGUAGE DeriveAnyClass        #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
 -- This fires on GHC-9.2.4 for some reason, not entirely sure
 -- what's going on
 {-# OPTIONS_GHC -Wno-identities #-}
@@ -95,7 +95,7 @@ the optimized `Flat DeBruijn` instance. This is ok, because `FND<->D` are
 isomorphic.
 -}
 
-{-| A relative index used for de Bruijn identifiers.
+{- | A relative index used for de Bruijn identifiers.
 
 FIXME: downside of using newtype+Num instead of type-synonym is that `-Woverflowed-literals`
 does not work, e.g.: `DeBruijn (-1)` has no warning. To trigger the warning you have to bypass
@@ -116,14 +116,14 @@ data NamedDeBruijn = NamedDeBruijn {ndbnString :: !T.Text, ndbnIndex :: !Index}
   deriving stock (Show, Generic, Read)
   deriving anyclass (Hashable, NFData)
 
-{-| A wrapper around `NamedDeBruijn` that *must* hold the invariant of name=`fakeName`.
+{- | A wrapper around `NamedDeBruijn` that *must* hold the invariant of name=`fakeName`.
 
 We do not export the `FakeNamedDeBruijn` constructor: the projection `FND->ND` is safe
 but injection `ND->FND` is unsafe, thus they are not isomorphic.
 
 See NOTE: [Why newtype FakeNamedDeBruijn]
 -}
-newtype FakeNamedDeBruijn = FakeNamedDeBruijn { unFakeNamedDeBruijn :: NamedDeBruijn }
+newtype FakeNamedDeBruijn = FakeNamedDeBruijn {unFakeNamedDeBruijn :: NamedDeBruijn}
   deriving newtype (Show, Eq, Hashable, NFData, PrettyBy config)
 
 toFake :: DeBruijn -> FakeNamedDeBruijn
@@ -162,7 +162,7 @@ newtype TyDeBruijn = TyDeBruijn DeBruijn
 
 instance Wrapped TyDeBruijn
 
-instance (HasPrettyConfigName config) => PrettyBy config NamedDeBruijn where
+instance HasPrettyConfigName config => PrettyBy config NamedDeBruijn where
   prettyBy config (NamedDeBruijn txt (Index ix))
     -- See Note [Pretty-printing names with uniques]
     | showsUnique = pretty . toPrintedName $ txt <> "_i" <> render (pretty ix)
@@ -170,7 +170,7 @@ instance (HasPrettyConfigName config) => PrettyBy config NamedDeBruijn where
     where
       PrettyConfigName showsUnique = toPrettyConfigName config
 
-instance (HasPrettyConfigName config) => PrettyBy config DeBruijn where
+instance HasPrettyConfigName config => PrettyBy config DeBruijn where
   prettyBy config (DeBruijn (Index ix))
     | showsUnique = "i" <> pretty ix
     | otherwise = ""
@@ -184,13 +184,13 @@ instance HasIndex NamedDeBruijn where
   index = lens g s
     where
       g = ndbnIndex
-      s n i = n{ndbnIndex = i}
+      s n i = n {ndbnIndex = i}
 
 instance HasIndex DeBruijn where
   index = lens g s
     where
       g = dbnIndex
-      s n i = n{dbnIndex = i}
+      s n i = n {dbnIndex = i}
 
 instance HasIndex NamedTyDeBruijn where
   index = _Wrapped' . index
@@ -251,7 +251,7 @@ declareBinder act = do
 {- | Enter a scope, incrementing the current 'Level' by one
 Maintains invariant-A (that the current level is positive).
 -}
-withScope :: (MonadReader LevelInfo m) => m a -> m a
+withScope :: MonadReader LevelInfo m => m a -> m a
 withScope = local $ \(LevelInfo current ls) -> LevelInfo (current + 1) ls
 
 {- | We cannot do a correct translation to or from de Bruijn indices if the program is
@@ -265,20 +265,20 @@ data FreeVariableError
 
 instance Pretty FreeVariableError where
   pretty (FreeUnique u) = "Free unique:" <+> pretty u
-  pretty (FreeIndex i)  = "Free index:" <+> pretty i
+  pretty (FreeIndex i) = "Free index:" <+> pretty i
 makeClassyPrisms ''FreeVariableError
 
 {- | Get the 'Index' corresponding to a given 'Unique'.
 Uses supplied handler for free names (uniques).
 -}
-getIndex :: (MonadReader LevelInfo m) => Unique -> (Unique -> m Index) -> m Index
+getIndex :: MonadReader LevelInfo m => Unique -> (Unique -> m Index) -> m Index
 getIndex u h = do
   LevelInfo current ls <- ask
   case BM.lookup u ls of
     Just foundlvl -> pure $ levelToIx current foundlvl
     -- This call should return an index greater than the current level,
     -- otherwise it will map unbound variables to bound variables.
-    Nothing       -> h u
+    Nothing -> h u
   where
     -- Compute the relative 'Index' of a absolute 'Level' relative to the current 'Level'.
     levelToIx :: Level -> Level -> Index
@@ -291,7 +291,7 @@ getIndex u h = do
 {- | Get the 'Unique' corresponding to a given 'Index'.
 Uses supplied handler for free debruijn indices.
 -}
-getUnique :: (MonadReader LevelInfo m) => Index -> (Index -> m Unique) -> m Unique
+getUnique :: MonadReader LevelInfo m => Index -> (Index -> m Unique) -> m Unique
 getUnique ix h = do
   LevelInfo current ls <- ask
   case BM.lookupR (ixToLevel current ix) ls of
@@ -319,28 +319,28 @@ fakeTyNameDeBruijn :: TyDeBruijn -> NamedTyDeBruijn
 fakeTyNameDeBruijn (TyDeBruijn n) = NamedTyDeBruijn $ fakeNameDeBruijn n
 
 nameToDeBruijn ::
-  (MonadReader LevelInfo m) =>
+  MonadReader LevelInfo m =>
   (Unique -> m Index) ->
   Name ->
   m NamedDeBruijn
 nameToDeBruijn h (Name str u) = NamedDeBruijn str <$> getIndex u h
 
 tyNameToDeBruijn ::
-  (MonadReader LevelInfo m) =>
+  MonadReader LevelInfo m =>
   (Unique -> m Index) ->
   TyName ->
   m NamedTyDeBruijn
 tyNameToDeBruijn h (TyName n) = NamedTyDeBruijn <$> nameToDeBruijn h n
 
 deBruijnToName ::
-  (MonadReader LevelInfo m) =>
+  MonadReader LevelInfo m =>
   (Index -> m Unique) ->
   NamedDeBruijn ->
   m Name
 deBruijnToName h (NamedDeBruijn str ix) = Name str <$> getUnique ix h
 
 deBruijnToTyName ::
-  (MonadReader LevelInfo m) =>
+  MonadReader LevelInfo m =>
   (Index -> m Unique) ->
   NamedTyDeBruijn ->
   m TyName

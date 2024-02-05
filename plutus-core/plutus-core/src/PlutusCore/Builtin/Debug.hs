@@ -1,16 +1,16 @@
+{-# LANGUAGE DataKinds #-}
 {-# OPTIONS_GHC -fno-warn-redundant-constraints #-}
 {-# OPTIONS_GHC -fno-warn-simplifiable-class-constraints #-}
 
-{-# LANGUAGE DataKinds #-}
-
--- | This module helps to visualize and debug the 'BuiltinMeaning' inference machinery from the
--- @Elaborate@ and @Meaning@ modules.
-module PlutusCore.Builtin.Debug
-  ( elaborateDebug
-  , makeBuiltinMeaningDebug
+{- | This module helps to visualize and debug the 'BuiltinMeaning' inference machinery from the
+@Elaborate@ and @Meaning@ modules.
+-}
+module PlutusCore.Builtin.Debug (
+  elaborateDebug,
+  makeBuiltinMeaningDebug,
   -- Reexporting a bunch of stuff, so that debug output is not littered with module names.
-  , module Export
-  ) where
+  module Export,
+) where
 
 import PlutusCore.Builtin.Elaborate as Export
 import PlutusCore.Builtin.Meaning as Export
@@ -19,17 +19,20 @@ import PlutusCore.Core as Export
 import PlutusCore.Default as Export
 import PlutusCore.Name as Export
 
--- | Instantiate type variables in the type of a value using 'ElaborateFromTo'. Example usages:
---
--- >>> :t elaborateDebug False
--- elaborateDebug False :: Bool
--- >>> :t elaborateDebug fst
--- elaborateDebug fst
---   :: (TyVarRep ('TyNameRep "a" 0), TyVarRep ('TyNameRep "b" 1))
---      -> TyVarRep ('TyNameRep "a" 0)
-elaborateDebug
-    :: forall a j. ElaborateFromTo DefaultUni 0 j (Term TyName Name DefaultUni DefaultFun ()) a
-    => a -> a
+{- | Instantiate type variables in the type of a value using 'ElaborateFromTo'. Example usages:
+
+>>> :t elaborateDebug False
+elaborateDebug False :: Bool
+>>> :t elaborateDebug fst
+elaborateDebug fst
+  :: (TyVarRep ('TyNameRep "a" 0), TyVarRep ('TyNameRep "b" 1))
+     -> TyVarRep ('TyNameRep "a" 0)
+-}
+elaborateDebug ::
+  forall a j.
+  ElaborateFromTo DefaultUni 0 j (Term TyName Name DefaultUni DefaultFun ()) a =>
+  a ->
+  a
 elaborateDebug = id
 
 -- >>> :t makeBuiltinMeaningDebug $ \_ -> ()
@@ -95,7 +98,9 @@ elaborateDebug = id
 --       To fix this error apply type variables via explicit ‘TyAppRep’
 --     • In the expression:
 --         makeBuiltinMeaningDebug (undefined :: Opaque val (f Bool) -> ())
-makeBuiltinMeaningDebug
-    :: forall a. MakeBuiltinMeaning a (Term TyName Name DefaultUni DefaultFun ())
-    => a -> a
+makeBuiltinMeaningDebug ::
+  forall a.
+  MakeBuiltinMeaning a (Term TyName Name DefaultUni DefaultFun ()) =>
+  a ->
+  a
 makeBuiltinMeaningDebug = id

@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeFamilies  #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 
 -- | Kind/type inference/checking, mirroring PlutusCore.TypeCheck
@@ -72,7 +72,7 @@ Note: The "inferred type" can escape its scope if YesEscape config is passed, se
 [PIR vs Paper Escaping Types Difference]
 -}
 inferType ::
-  (MonadTypeCheckPir err uni fun ann m) =>
+  MonadTypeCheckPir err uni fun ann m =>
   PirTCConfig uni fun ->
   Term TyName Name uni fun ann ->
   m (Normalized (Type TyName uni ()))
@@ -85,7 +85,7 @@ Note: this may allow witnessing a type that escapes its scope, see
 [PIR vs Paper Escaping Types Difference]
 -}
 checkType ::
-  (MonadTypeCheckPir err uni fun ann m) =>
+  MonadTypeCheckPir err uni fun ann m =>
   PirTCConfig uni fun ->
   ann ->
   Term TyName Name uni fun ann ->
@@ -100,7 +100,7 @@ Note: The "inferred type" can escape its scope if YesEscape config is passed, se
 [PIR vs Paper Escaping Types Difference]
 -}
 inferTypeOfProgram ::
-  (MonadTypeCheckPir err uni fun ann m) =>
+  MonadTypeCheckPir err uni fun ann m =>
   PirTCConfig uni fun ->
   Program TyName Name uni fun ann ->
   m (Normalized (Type TyName uni ()))
@@ -113,7 +113,7 @@ Note: this may allow witnessing a type that escapes its scope, see
 [PIR vs Paper Escaping Types Difference]
 -}
 checkTypeOfProgram ::
-  (MonadTypeCheckPir err uni fun ann m) =>
+  MonadTypeCheckPir err uni fun ann m =>
   PirTCConfig uni fun ->
   ann ->
   Program TyName Name uni fun ann ->

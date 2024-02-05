@@ -44,20 +44,20 @@ main = do
   gen <- System.Random.getStdGen
 
   criterionMainWith
-       Start
-       defaultConfig $
-           Benchmarks.Bitwise.makeBenchmarks
-        <> Benchmarks.Bool.makeBenchmarks        gen
-        <> Benchmarks.ByteStrings.makeBenchmarks gen
-        <> Benchmarks.Crypto.makeBenchmarks      gen
-        <> Benchmarks.Data.makeBenchmarks        gen
-        <> Benchmarks.Integers.makeBenchmarks    gen
-        <> Benchmarks.Lists.makeBenchmarks       gen
-        <> Benchmarks.Misc.makeBenchmarks        gen
-        <> Benchmarks.Pairs.makeBenchmarks       gen
-        <> Benchmarks.Strings.makeBenchmarks     gen
-        <> Benchmarks.Tracing.makeBenchmarks     gen
-        <> Benchmarks.Unit.makeBenchmarks        gen
+    Start
+    defaultConfig
+    $ Benchmarks.Bitwise.makeBenchmarks
+      <> Benchmarks.Bool.makeBenchmarks gen
+      <> Benchmarks.ByteStrings.makeBenchmarks gen
+      <> Benchmarks.Crypto.makeBenchmarks gen
+      <> Benchmarks.Data.makeBenchmarks gen
+      <> Benchmarks.Integers.makeBenchmarks gen
+      <> Benchmarks.Lists.makeBenchmarks gen
+      <> Benchmarks.Misc.makeBenchmarks gen
+      <> Benchmarks.Pairs.makeBenchmarks gen
+      <> Benchmarks.Strings.makeBenchmarks gen
+      <> Benchmarks.Tracing.makeBenchmarks gen
+      <> Benchmarks.Unit.makeBenchmarks gen
 
   {- Run the nop benchmarks with a large time limit (30 seconds) in an attempt to
      get accurate results. -}
@@ -67,6 +67,6 @@ main = do
   -- data will still be generated and saved in benching.csv).
 
   criterionMainWith
-       Continue
-       (defaultConfig { C.timeLimit = 30 }) $
-       Benchmarks.Nops.makeBenchmarks gen
+    Continue
+    (defaultConfig {C.timeLimit = 30})
+    $ Benchmarks.Nops.makeBenchmarks gen

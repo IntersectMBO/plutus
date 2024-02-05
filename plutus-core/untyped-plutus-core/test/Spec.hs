@@ -1,5 +1,6 @@
-{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE OverloadedStrings #-}
+
 module Main where
 
 import GHC.IO.Encoding (setLocaleEncoding, utf8)
@@ -21,18 +22,20 @@ import Test.Tasty
 main :: IO ()
 main = do
   setLocaleEncoding utf8
-  defaultMain $ testGroup "Untyped Plutus Core"
-    [ test_machines
-    , test_builtins
-    , test_budget
-    , test_golden
-    , test_tallying
-    , test_simplify
-    , test_debruijn
-    , test_freevars
-    , test_parsing
-    , test_debug
-    , test_flat
-    , schnorrVerifyRegressions
-    , evalOrder
-    ]
+  defaultMain $
+    testGroup
+      "Untyped Plutus Core"
+      [ test_machines
+      , test_builtins
+      , test_budget
+      , test_golden
+      , test_tallying
+      , test_simplify
+      , test_debruijn
+      , test_freevars
+      , test_parsing
+      , test_debug
+      , test_flat
+      , schnorrVerifyRegressions
+      , evalOrder
+      ]

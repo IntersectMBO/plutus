@@ -1,19 +1,19 @@
-{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module PlutusIR.Test
-    ( module PlutusIR.Test
-    , initialSrcSpan
-    , topSrcSpan
-    , rethrow
-    , PLC.prettyPlcClassicDebug
-    ) where
+module PlutusIR.Test (
+  module PlutusIR.Test,
+  initialSrcSpan,
+  topSrcSpan,
+  rethrow,
+  PLC.prettyPlcClassicDebug,
+) where
 
 import PlutusPrelude
 import Test.Tasty.Extras
@@ -86,7 +86,7 @@ pTermAsProg = fmap (PIR.Program mempty PLC.latestVersion) pTerm
 it caught them in 'IO'.
 -}
 asIfThrown ::
-  (Exception e) =>
+  Exception e =>
   Except e a ->
   ExceptT SomeException IO a
 asIfThrown = withExceptT SomeException . hoist (pure . runIdentity)
@@ -130,16 +130,16 @@ withGoldenFileM name op = do
     currentDir = joinPath <$> ask
 
 -- TODO: deduplicate with the PlutusuCore one
-ppCatch :: (PrettyPlc a) => ExceptT SomeException IO a -> IO T.Text
+ppCatch :: PrettyPlc a => ExceptT SomeException IO a -> IO T.Text
 ppCatch value = render <$> (either (pretty . show) prettyPlcClassicDebug <$> runExceptT value)
 
-goldenPir :: (Pretty b) => (a -> b) -> Parser a -> String -> TestNested
+goldenPir :: Pretty b => (a -> b) -> Parser a -> String -> TestNested
 goldenPir op = goldenPirM (return . op)
 
 goldenPirDoc :: (a -> Doc ann) -> Parser a -> String -> TestNested
 goldenPirDoc op = goldenPirDocM (return . op)
 
-goldenPirM :: forall a b. (Pretty b) => (a -> IO b) -> Parser a -> String -> TestNested
+goldenPirM :: forall a b. Pretty b => (a -> IO b) -> Parser a -> String -> TestNested
 goldenPirM op parser name = withGoldenFileM name parseOrError
   where
     parseOrError :: T.Text -> IO T.Text
@@ -149,7 +149,7 @@ goldenPirM op parser name = withGoldenFileM name parseOrError
        in either (return . display) (fmap display . op)
             . parseTxt
 
-goldenPirMUnique :: forall a b. (PrettyPlc b) => (a -> IO b) -> Parser a -> String -> TestNested
+goldenPirMUnique :: forall a b. PrettyPlc b => (a -> IO b) -> Parser a -> String -> TestNested
 goldenPirMUnique op parser name = withGoldenFileM name parseOrError
   where
     parseOrError :: T.Text -> IO T.Text
@@ -170,7 +170,7 @@ goldenPirDocM op parser name = withGoldenFileM name parseOrError
             . parseTxt
 
 goldenPlcFromPir ::
-  (ToTPlc a PLC.DefaultUni PLC.DefaultFun) =>
+  ToTPlc a PLC.DefaultUni PLC.DefaultFun =>
   Parser a ->
   String ->
   TestNested
@@ -179,8 +179,11 @@ goldenPlcFromPir = goldenPirM $ \ast -> ppCatch $ do
   withExceptT @_ @PLC.FreeVariableError toException $ traverseOf PLC.progTerm PLC.deBruijnTerm p
 
 goldenPlcFromPirScott ::
-  (Ord a, Typeable a, Pretty a
-  , prog ~ PIR.Program PIR.TyName PIR.Name PLC.DefaultUni PLC.DefaultFun a) =>
+  ( Ord a
+  , Typeable a
+  , Pretty a
+  , prog ~ PIR.Program PIR.TyName PIR.Name PLC.DefaultUni PLC.DefaultFun a
+  ) =>
   Parser prog ->
   String ->
   TestNested
@@ -193,14 +196,14 @@ goldenPlcFromPirScott = goldenPirM $ \ast -> ppCatch $ do
   withExceptT @_ @PLC.FreeVariableError toException $ traverseOf PLC.progTerm PLC.deBruijnTerm p
 
 goldenNamedUPlcFromPir ::
-  (ToUPlc a PLC.DefaultUni PLC.DefaultFun) =>
+  ToUPlc a PLC.DefaultUni PLC.DefaultFun =>
   Parser a ->
   String ->
   TestNested
 goldenNamedUPlcFromPir = goldenPirM $ ppCatch . toUPlc
 
 goldenEvalPir ::
-  (ToUPlc a PLC.DefaultUni PLC.DefaultFun) =>
+  ToUPlc a PLC.DefaultUni PLC.DefaultFun =>
   Parser a ->
   String ->
   TestNested

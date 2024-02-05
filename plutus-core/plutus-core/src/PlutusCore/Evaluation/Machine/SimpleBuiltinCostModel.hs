@@ -1,14 +1,14 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 {- | A program to parse a JSON representation of costing functions for Plutus Core
    builtins and and produce a simple cost model which can be used from Agda and other
-   executables -}
-module PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel
-   ( BuiltinCostMap
-   , defaultSimpleBuiltinCostModel
-   ) where
-
+   executables
+-}
+module PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel (
+  BuiltinCostMap,
+  defaultSimpleBuiltinCostModel,
+) where
 
 import Data.Aeson.Key as Key (toText)
 import Data.Aeson.KeyMap qualified as KeyMap
@@ -23,7 +23,7 @@ type BuiltinCostMap = [(Text, CpuAndMemoryModel)]
 -- | The default builtin cost map.
 builtinCostKeyMap :: KeyMap.KeyMap CpuAndMemoryModel
 builtinCostKeyMap =
-    $$(readJSONFromFile DFP.builtinCostModelFile)
+  $$(readJSONFromFile DFP.builtinCostModelFile)
 
 -- replace underscores _ by dashes -
 builtinName :: Text -> Text

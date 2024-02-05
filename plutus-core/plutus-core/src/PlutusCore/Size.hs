@@ -1,15 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module PlutusCore.Size
-    ( Size (..)
-    , kindSize
-    , typeSize
-    , tyVarDeclSize
-    , termSize
-    , varDeclSize
-    , programSize
-    , serialisedSize
-    ) where
+module PlutusCore.Size (
+  Size (..),
+  kindSize,
+  typeSize,
+  tyVarDeclSize,
+  termSize,
+  varDeclSize,
+  programSize,
+  serialisedSize,
+) where
 
 import PlutusPrelude
 
@@ -21,40 +21,46 @@ import Data.Monoid
 import Flat hiding (to)
 
 newtype Size = Size
-    { unSize :: Integer
-    } deriving stock (Show)
-      deriving newtype (Pretty, Eq, Ord, Num)
-      deriving (Semigroup, Monoid) via Sum Integer
+  { unSize :: Integer
+  }
+  deriving stock (Show)
+  deriving newtype (Pretty, Eq, Ord, Num)
+  deriving (Semigroup, Monoid) via Sum Integer
 
--- | Count the number of AST nodes in a kind.
---
--- >>> kindSize $ Type ()
--- Size {unSize = 1}
--- >>> kindSize $ KindArrow () (KindArrow () (Type ()) (Type ())) (Type ())
--- Size {unSize = 5}
+{- | Count the number of AST nodes in a kind.
+
+>>> kindSize $ Type ()
+Size {unSize = 1}
+>>> kindSize $ KindArrow () (KindArrow () (Type ()) (Type ())) (Type ())
+Size {unSize = 5}
+-}
 kindSize :: Kind a -> Size
-kindSize kind = fold
+kindSize kind =
+  fold
     [ Size 1
     , kind ^. kindSubkinds . to kindSize
     ]
 
 -- | Count the number of AST nodes in a type.
 typeSize :: Type tyname uni ann -> Size
-typeSize ty = fold
+typeSize ty =
+  fold
     [ Size 1
     , ty ^. typeSubkinds . to kindSize
     , ty ^. typeSubtypes . to typeSize
     ]
 
 tyVarDeclSize :: TyVarDecl tyname ann -> Size
-tyVarDeclSize tyVarDecl = fold
+tyVarDeclSize tyVarDecl =
+  fold
     [ Size 1
     , tyVarDecl ^. tyVarDeclSubkinds . to kindSize
     ]
 
 -- | Count the number of AST nodes in a term.
 termSize :: Term tyname name uni fun ann -> Size
-termSize term = fold
+termSize term =
+  fold
     [ Size 1
     , term ^. termSubkinds . to kindSize
     , term ^. termSubtypes . to typeSize
@@ -62,7 +68,8 @@ termSize term = fold
     ]
 
 varDeclSize :: VarDecl tyname name uni ann -> Size
-varDeclSize varDecl = fold
+varDeclSize varDecl =
+  fold
     [ Size 1
     , varDecl ^. varDeclSubtypes . to typeSize
     ]

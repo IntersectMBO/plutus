@@ -1,9 +1,9 @@
-{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TupleSections     #-}
-{-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE TypeFamilies      #-}
-{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 
 module UntypedPlutusCore.Transform.Cse (cse) where
 
@@ -18,9 +18,9 @@ import Control.Monad.Trans.Class
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.State.Strict
 import Data.Foldable
-import Data.Hashable
 import Data.HashMap.Strict (HashMap)
 import Data.HashMap.Strict qualified as Map
+import Data.Hashable
 import Data.List.Extra
 import Data.Ord
 import Data.Traversable
@@ -197,8 +197,8 @@ isAncestorOrSelf :: Path -> Path -> Bool
 isAncestorOrSelf = isSuffixOf
 
 data CseCandidate uni fun ann = CseCandidate
-  { ccFreshName     :: Name
-  , ccTerm          :: Term Name uni fun ()
+  { ccFreshName :: Name
+  , ccTerm :: Term Name uni fun ()
   , ccAnnotatedTerm :: Term Name uni fun (Path, ann)
   -- ^ `ccTerm` is needed for equality comparison, while `ccAnnotatedTerm` is needed
   -- for the actual substitution. They are always the same term barring the annotations.
@@ -230,14 +230,14 @@ cse t0 = do
 -- | The first pass. See Note [CSE].
 calcBuiltinArity ::
   forall name uni fun ann.
-  (Hashable fun) =>
+  Hashable fun =>
   Term name uni fun ann ->
   HashMap fun Int
 calcBuiltinArity = foldrOf termSubtermsDeep go Map.empty
   where
     go :: Term name uni fun ann -> HashMap fun Int -> HashMap fun Int
     go = \case
-      t@Apply{}
+      t@Apply {}
         | (Builtin _ fun, args) <- splitApplication t ->
             Map.insertWith max fun (length args)
       _ -> id
@@ -313,13 +313,13 @@ countOccs arityInfo = foldrOf termSubtermsDeep addToMap Map.empty
         path = fst (termAnn t0)
 
     isBuiltinSaturated = \case
-      t@Apply{}
+      t@Apply {}
         | (Builtin _ fun, args) <- splitApplication t ->
             length args >= Map.findWithDefault 0 fun arityInfo
       _ -> True
 
     isForcingBuiltin = \case
-      Builtin{} -> True
+      Builtin {} -> True
       Force _ t -> isForcingBuiltin t
       _ -> False
 
@@ -362,7 +362,7 @@ mkCseTerm ts t = do
 
 applyCse ::
   forall uni fun ann.
-  (Eq (Term Name uni fun ())) =>
+  Eq (Term Name uni fun ()) =>
   CseCandidate uni fun ann ->
   Term Name uni fun (Path, ann) ->
   Term Name uni fun (Path, ann)
@@ -387,15 +387,15 @@ applyCse c = mkLamApp . transformOf termSubterms substCseVarForTerm
             (LamAbs (termAnn t) (ccFreshName c) t)
             (ccAnnotatedTerm c)
       | currPath `isAncestorOrSelf` candidatePath = case t of
-          Var ann name            -> Var ann name
-          LamAbs ann name body    -> LamAbs ann name (mkLamApp body)
-          Apply ann fun arg       -> Apply ann (mkLamApp fun) (mkLamApp arg)
-          Force ann body          -> Force ann (mkLamApp body)
-          Delay ann body          -> Delay ann (mkLamApp body)
-          Constant ann val        -> Constant ann val
-          Builtin ann fun         -> Builtin ann fun
-          Error ann               -> Error ann
-          Constr ann i ts         -> Constr ann i (mkLamApp <$> ts)
+          Var ann name -> Var ann name
+          LamAbs ann name body -> LamAbs ann name (mkLamApp body)
+          Apply ann fun arg -> Apply ann (mkLamApp fun) (mkLamApp arg)
+          Force ann body -> Force ann (mkLamApp body)
+          Delay ann body -> Delay ann (mkLamApp body)
+          Constant ann val -> Constant ann val
+          Builtin ann fun -> Builtin ann fun
+          Error ann -> Error ann
+          Constr ann i ts -> Constr ann i (mkLamApp <$> ts)
           Case ann scrut branches -> Case ann (mkLamApp scrut) (mkLamApp <$> branches)
       | otherwise = t
       where
@@ -404,7 +404,7 @@ applyCse c = mkLamApp . transformOf termSubterms substCseVarForTerm
 -- | Generate a fresh variable for the common subexpression.
 mkCseCandidate ::
   forall uni fun ann m.
-  (MonadQuote m) =>
+  MonadQuote m =>
   Term Name uni fun (Path, ann) ->
   m (CseCandidate uni fun ann)
 mkCseCandidate t = CseCandidate <$> freshName "cse" <*> pure (void t) <*> pure t

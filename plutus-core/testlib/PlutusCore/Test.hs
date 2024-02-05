@@ -1,12 +1,11 @@
-{-# LANGUAGE DataKinds              #-}
-{-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE OverloadedStrings      #-}
-{-# LANGUAGE RankNTypes             #-}
-{-# LANGUAGE TypeApplications       #-}
-{-# LANGUAGE TypeFamilies           #-}
-{-# LANGUAGE UndecidableInstances   #-}
-
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module PlutusCore.Test (
@@ -47,6 +46,7 @@ module PlutusCore.Test (
   test_scopingGood,
   test_scopingBad,
   test_scopingSpoilRenamer,
+
   -- * Tasty extras
   module TastyExtras,
 ) where
@@ -81,8 +81,8 @@ import Hedgehog
 import Prettyprinter qualified as PP
 import System.IO.Unsafe
 import Test.Tasty hiding (after)
-import Test.Tasty.Hedgehog
 import Test.Tasty.HUnit
+import Test.Tasty.Hedgehog
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
@@ -98,9 +98,9 @@ mapTestLimit f =
   mapConfig $ \config ->
     config
       { propertyTerminationCriteria = case propertyTerminationCriteria config of
-          NoEarlyTermination c tests    -> NoEarlyTermination c $ f tests
+          NoEarlyTermination c tests -> NoEarlyTermination c $ f tests
           NoConfidenceTermination tests -> NoConfidenceTermination $ f tests
-          EarlyTermination c tests      -> EarlyTermination c $ f tests
+          EarlyTermination c tests -> EarlyTermination c $ f tests
       }
 
 {- | Set the number of times a property should be executed before it is considered
@@ -113,7 +113,7 @@ withAtLeastTests = mapTestLimit . max
 also performs shrinking and prints the counterexample and other junk. This function is like
 @check@, but doesn't do any of that.
 -}
-checkQuiet :: (MonadIO m) => Property -> m Bool
+checkQuiet :: MonadIO m => Property -> m Bool
 checkQuiet prop = do
   color <- detectColor
   -- This is what causes @hedgehog@ to shut up.
@@ -135,7 +135,7 @@ from the process should be caught.
 class ToTPlc a uni fun | a -> uni fun where
   toTPlc :: a -> ExceptT SomeException IO (TPLC.Program TPLC.TyName TPLC.Name uni fun ())
 
-instance (ToTPlc a uni fun) => ToTPlc (ExceptT SomeException IO a) uni fun where
+instance ToTPlc a uni fun => ToTPlc (ExceptT SomeException IO a) uni fun where
   toTPlc a = a >>= toTPlc
 
 instance ToTPlc (TPLC.Program TPLC.TyName TPLC.Name uni fun ()) uni fun where
@@ -144,19 +144,20 @@ instance ToTPlc (TPLC.Program TPLC.TyName TPLC.Name uni fun ()) uni fun where
 class ToUPlc a uni fun | a -> uni fun where
   toUPlc :: a -> ExceptT SomeException IO (UPLC.Program TPLC.Name uni fun ())
 
-instance (ToUPlc a uni fun) => ToUPlc (ExceptT SomeException IO a) uni fun where
+instance ToUPlc a uni fun => ToUPlc (ExceptT SomeException IO a) uni fun where
   toUPlc a = a >>= toUPlc
 
 instance ToUPlc (UPLC.Program TPLC.Name uni fun ()) uni fun where
   toUPlc = pure
 
 instance
-    ( TPLC.Typecheckable uni fun
-    , Hashable fun
-    )
-    => ToUPlc (TPLC.Program TPLC.TyName UPLC.Name uni fun ()) uni fun where
-    toUPlc =
-        pure . TPLC.runQuote . flip runReaderT TPLC.defaultCompilationOpts . TPLC.compileProgram
+  ( TPLC.Typecheckable uni fun
+  , Hashable fun
+  ) =>
+  ToUPlc (TPLC.Program TPLC.TyName UPLC.Name uni fun ()) uni fun
+  where
+  toUPlc =
+    pure . TPLC.runQuote . flip runReaderT TPLC.defaultCompilationOpts . TPLC.compileProgram
 
 instance ToUPlc (UPLC.Program UPLC.NamedDeBruijn uni fun ()) uni fun where
   toUPlc p =
@@ -167,7 +168,7 @@ instance ToUPlc (UPLC.Program UPLC.NamedDeBruijn uni fun ()) uni fun where
           UPLC.unDeBruijnTerm
           p
 
-pureTry :: (Exception e) => a -> Either e a
+pureTry :: Exception e => a -> Either e a
 pureTry = unsafePerformIO . try . evaluate
 
 catchAll :: a -> ExceptT SomeException IO a
@@ -177,7 +178,7 @@ rethrow :: ExceptT SomeException IO a -> IO a
 rethrow = fmap unsafeFromEither . runExceptT
 
 runTPlc ::
-  (ToTPlc a TPLC.DefaultUni TPLC.DefaultFun) =>
+  ToTPlc a TPLC.DefaultUni TPLC.DefaultFun =>
   [a] ->
   ExceptT
     SomeException
@@ -193,27 +194,32 @@ runTPlc values = do
     TPLC.evaluateCkNoEmit TPLC.defaultBuiltinsRuntime t
 
 -- | An evaluation failure plus the final budget and logs.
-data EvaluationExceptionWithLogsAndBudget err =
-  EvaluationExceptionWithLogsAndBudget err TPLC.ExBudget [Text]
+data EvaluationExceptionWithLogsAndBudget err
+  = EvaluationExceptionWithLogsAndBudget err TPLC.ExBudget [Text]
 
-instance (PrettyBy config err)
-  => PrettyBy config (EvaluationExceptionWithLogsAndBudget err) where
+instance
+  PrettyBy config err =>
+  PrettyBy config (EvaluationExceptionWithLogsAndBudget err)
+  where
   prettyBy config (EvaluationExceptionWithLogsAndBudget err budget logs) =
     PP.vsep
-    [ prettyBy config err
-    , "Final budget:" PP.<+> PP.pretty budget
-    , "Logs:" PP.<+> PP.vsep (fmap PP.pretty logs)
-    ]
+      [ prettyBy config err
+      , "Final budget:" PP.<+> PP.pretty budget
+      , "Logs:" PP.<+> PP.vsep (fmap PP.pretty logs)
+      ]
 
-instance (PrettyPlc err)
-  => Show (EvaluationExceptionWithLogsAndBudget err) where
-    show = render . prettyPlcReadableDebug
+instance
+  PrettyPlc err =>
+  Show (EvaluationExceptionWithLogsAndBudget err)
+  where
+  show = render . prettyPlcReadableDebug
 
-instance (PrettyPlc err, Exception err)
-  => Exception (EvaluationExceptionWithLogsAndBudget err)
+instance
+  (PrettyPlc err, Exception err) =>
+  Exception (EvaluationExceptionWithLogsAndBudget err)
 
 runUPlcFull ::
-  (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun) =>
+  ToUPlc a TPLC.DefaultUni TPLC.DefaultFun =>
   [a] ->
   ExceptT
     SomeException
@@ -225,11 +231,11 @@ runUPlcFull values = do
       (res, UPLC.CountingSt budget, logs) =
         UPLC.runCek TPLC.defaultCekParameters UPLC.counting UPLC.logEmitter t
   case res of
-    Left err   -> throwError (SomeException $ EvaluationExceptionWithLogsAndBudget err budget logs)
+    Left err -> throwError (SomeException $ EvaluationExceptionWithLogsAndBudget err budget logs)
     Right resT -> pure (resT, budget, logs)
 
 runUPlc ::
-  (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun) =>
+  ToUPlc a TPLC.DefaultUni TPLC.DefaultFun =>
   [a] ->
   ExceptT
     SomeException
@@ -240,7 +246,7 @@ runUPlc values = do
   pure t
 
 runUPlcBudget ::
-  (ToUPlc a TPLC.DefaultUni UPLC.DefaultFun) =>
+  ToUPlc a TPLC.DefaultUni UPLC.DefaultFun =>
   [a] ->
   ExceptT
     SomeException
@@ -251,7 +257,7 @@ runUPlcBudget values = do
   pure budget
 
 runUPlcLogs ::
-  (ToUPlc a TPLC.DefaultUni UPLC.DefaultFun) =>
+  ToUPlc a TPLC.DefaultUni UPLC.DefaultFun =>
   [a] ->
   ExceptT
     SomeException
@@ -262,7 +268,7 @@ runUPlcLogs values = do
   pure logs
 
 runUPlcProfile ::
-  (ToUPlc a TPLC.DefaultUni UPLC.DefaultFun) =>
+  ToUPlc a TPLC.DefaultUni UPLC.DefaultFun =>
   [a] ->
   ExceptT
     SomeException
@@ -277,10 +283,10 @@ runUPlcProfile values = do
         UPLC.runCek TPLC.defaultCekParameters UPLC.counting UPLC.logWithTimeEmitter t
   case res of
     Left err -> throwError (SomeException $ EvaluationExceptionWithLogsAndBudget err budget logs)
-    Right _  -> pure logs
+    Right _ -> pure logs
 
 runUPlcProfile' ::
-  (ToUPlc a TPLC.DefaultUni UPLC.DefaultFun) =>
+  ToUPlc a TPLC.DefaultUni UPLC.DefaultFun =>
   [a] ->
   ExceptT
     SomeException
@@ -295,20 +301,22 @@ runUPlcProfile' values = do
         UPLC.runCek TPLC.defaultCekParameters UPLC.counting UPLC.logWithBudgetEmitter t
   case res of
     Left err -> throwError (SomeException $ err)
-    Right _  -> pure logs
+    Right _ -> pure logs
 
-ppCatch :: (PrettyPlc a) => ExceptT SomeException IO a -> IO (Doc ann)
+ppCatch :: PrettyPlc a => ExceptT SomeException IO a -> IO (Doc ann)
 ppCatch value = either (PP.pretty . show) prettyPlcClassicDebug <$> runExceptT value
 
 ppCatch' :: ExceptT SomeException IO (Doc ann) -> IO (Doc ann)
 ppCatch' value = either (PP.pretty . show) id <$> runExceptT value
 
-ppCatchReadable :: (PrettyBy (PrettyConfigReadable PrettyConfigName) a)
-  => ExceptT SomeException IO a -> IO (Doc ann)
+ppCatchReadable ::
+  PrettyBy (PrettyConfigReadable PrettyConfigName) a =>
+  ExceptT SomeException IO a ->
+  IO (Doc ann)
 ppCatchReadable value = either (PP.pretty . show) (pretty . AsReadable) <$> runExceptT value
 
 goldenTPlcWith ::
-  (ToTPlc a TPLC.DefaultUni TPLC.DefaultFun) =>
+  ToTPlc a TPLC.DefaultUni TPLC.DefaultFun =>
   ( ExceptT
       SomeException
       IO
@@ -323,21 +331,21 @@ goldenTPlcWith pp name value = nestedGoldenVsDocM name ".tplc" $ pp $ do
   withExceptT @_ @FreeVariableError toException $ traverseOf TPLC.progTerm deBruijnTerm p
 
 goldenTPlc ::
-  (ToTPlc a TPLC.DefaultUni TPLC.DefaultFun) =>
+  ToTPlc a TPLC.DefaultUni TPLC.DefaultFun =>
   String ->
   a ->
   TestNested
 goldenTPlc = goldenTPlcWith ppCatch
 
 goldenTPlcReadable ::
-  (ToTPlc a TPLC.DefaultUni TPLC.DefaultFun) =>
+  ToTPlc a TPLC.DefaultUni TPLC.DefaultFun =>
   String ->
   a ->
   TestNested
 goldenTPlcReadable = goldenTPlcWith ppCatchReadable
 
 goldenUPlcWith ::
-  (ToUPlc a UPLC.DefaultUni UPLC.DefaultFun) =>
+  ToUPlc a UPLC.DefaultUni UPLC.DefaultFun =>
   ( ExceptT
       SomeException
       IO
@@ -352,21 +360,21 @@ goldenUPlcWith pp name value = nestedGoldenVsDocM name ".uplc" $ pp $ do
   withExceptT @_ @FreeVariableError toException $ traverseOf UPLC.progTerm UPLC.deBruijnTerm p
 
 goldenUPlc ::
-  (ToUPlc a UPLC.DefaultUni UPLC.DefaultFun) =>
+  ToUPlc a UPLC.DefaultUni UPLC.DefaultFun =>
   String ->
   a ->
   TestNested
 goldenUPlc = goldenUPlcWith ppCatch
 
 goldenUPlcReadable ::
-  (ToUPlc a UPLC.DefaultUni UPLC.DefaultFun) =>
+  ToUPlc a UPLC.DefaultUni UPLC.DefaultFun =>
   String ->
   a ->
   TestNested
 goldenUPlcReadable = goldenUPlcWith ppCatchReadable
 
 goldenTEval ::
-  (ToTPlc a TPLC.DefaultUni TPLC.DefaultFun) =>
+  ToTPlc a TPLC.DefaultUni TPLC.DefaultFun =>
   String ->
   [a] ->
   TestNested
@@ -374,7 +382,7 @@ goldenTEval name values =
   nestedGoldenVsDocM name ".eval" $ ppCatch $ runTPlc values
 
 goldenUEval ::
-  (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun) =>
+  ToUPlc a TPLC.DefaultUni TPLC.DefaultFun =>
   String ->
   [a] ->
   TestNested
@@ -382,18 +390,19 @@ goldenUEval name values =
   nestedGoldenVsDocM name ".eval" $ ppCatch $ runUPlc values
 
 goldenUEvalLogs ::
-  (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun) =>
+  ToUPlc a TPLC.DefaultUni TPLC.DefaultFun =>
   String ->
   [a] ->
   TestNested
 goldenUEvalLogs name values =
   nestedGoldenVsDocM name ".eval" $ ppCatch $ runUPlcLogs values
 
--- | This is mostly useful for profiling a test that is normally
--- tested with one of the other functions, as it's a drop-in
--- replacement and you can then pass the output into `traceToStacks`.
+{- | This is mostly useful for profiling a test that is normally
+tested with one of the other functions, as it's a drop-in
+replacement and you can then pass the output into `traceToStacks`.
+-}
 goldenUEvalProfile ::
-  (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun) =>
+  ToUPlc a TPLC.DefaultUni TPLC.DefaultFun =>
   String ->
   [a] ->
   TestNested
@@ -401,15 +410,15 @@ goldenUEvalProfile name values =
   nestedGoldenVsDocM name ".eval" $ ppCatch $ runUPlcProfile values
 
 goldenUEvalBudget ::
-  (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun)
-  => String
-  -> [a]
-  -> TestNested
+  ToUPlc a TPLC.DefaultUni TPLC.DefaultFun =>
+  String ->
+  [a] ->
+  TestNested
 goldenUEvalBudget name values =
   nestedGoldenVsDocM name ".eval" $ ppCatch $ runUPlcBudget values
 
 goldenSize ::
-  (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun) =>
+  ToUPlc a TPLC.DefaultUni TPLC.DefaultFun =>
   String ->
   a ->
   TestNested
@@ -417,17 +426,20 @@ goldenSize name value =
   nestedGoldenVsDocM name ".size" $
     pure . pretty . UPLC.programSize =<< rethrow (toUPlc value)
 
--- | This is mostly useful for profiling a test that is normally
--- tested with one of the other functions, as it's a drop-in
--- replacement and you can then pass the output into `traceToStacks`.
+{- | This is mostly useful for profiling a test that is normally
+tested with one of the other functions, as it's a drop-in
+replacement and you can then pass the output into `traceToStacks`.
+-}
 goldenUEvalProfile' ::
-  (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun) =>
+  ToUPlc a TPLC.DefaultUni TPLC.DefaultFun =>
   String ->
   [a] ->
   TestNested
 goldenUEvalProfile' name values =
-  nestedGoldenVsDocM name ".eval" $ ppCatch' $
-    fmap (\ts -> PP.vsep (fmap pretty ts)) $ runUPlcProfile' values
+  nestedGoldenVsDocM name ".eval" $
+    ppCatch' $
+      fmap (\ts -> PP.vsep (fmap pretty ts)) $
+        runUPlcProfile' values
 
 -- | A made-up `SrcSpan` for testing.
 initialSrcSpan :: FilePath -> SrcSpan
@@ -440,10 +452,10 @@ topSrcSpan = initialSrcSpan "top"
 -- Normally in the compiler we use Provenance, which adds them, but
 -- we add slightly sketchy instances for SrcSpan here for convenience
 instance Semigroup TPLC.SrcSpan where
-    sp1 <> _ = sp1
+  sp1 <> _ = sp1
 
 instance Monoid TPLC.SrcSpan where
-    mempty = initialSrcSpan ""
+  mempty = initialSrcSpan ""
 
 -- See Note [Marking].
 
@@ -461,7 +473,7 @@ newtype NoMarkRenameT ren m a = NoMarkRenameT
     )
 
 noMarkRename ::
-  (Monoid ren) =>
+  Monoid ren =>
   (t -> NoMarkRenameT ren m t) ->
   t ->
   m t
@@ -484,7 +496,7 @@ instance (Monad m, Monoid ren) => MonadReader ren (NoRenameT ren m) where
   local _ = id
 
 noRename ::
-  (TPLC.MonadQuote m) =>
+  TPLC.MonadQuote m =>
   (t -> m ()) ->
   (t -> NoRenameT ren m t) ->
   t ->
@@ -506,7 +518,7 @@ newtype BrokenRenameT ren m a = BrokenRenameT
     , TPLC.MonadQuote
     )
 
-instance (Monad m) => MonadReader ren (BrokenRenameT ren m) where
+instance Monad m => MonadReader ren (BrokenRenameT ren m) where
   ask = get
   local f a = modify f *> a
 
@@ -564,15 +576,16 @@ Whenever you use 'test_scopingBad' make sure to explain why, so that it's clear 
 something wrong with the pass or it's just a limitation of the scoping tests.
 -}
 
--- | Determines whether to perform renaming before running the scoping tests. Needed for passes that
--- don't perform renaming themselves.
-data Prerename =
-  PrerenameYes |
-  PrerenameNo
+{- | Determines whether to perform renaming before running the scoping tests. Needed for passes that
+don't perform renaming themselves.
+-}
+data Prerename
+  = PrerenameYes
+  | PrerenameNo
 
 runPrerename :: TPLC.Rename a => Prerename -> a -> a
 runPrerename PrerenameYes = TPLC.runQuote . TPLC.rename
-runPrerename PrerenameNo  = id
+runPrerename PrerenameNo = id
 
 -- | Test scoping for a renamer.
 prop_scopingFor ::
@@ -593,7 +606,7 @@ prop_scopingFor gen bindRem preren run = withTests 1000 . property $ do
   let catchEverything = unsafePerformIO . try @SomeException . evaluate
       prep = runPrerename preren
   case catchEverything $ checkRespectsScoping bindRem prep (TPLC.runQuote . run) prog of
-    Left exc         -> fail $ displayException exc
+    Left exc -> fail $ displayException exc
     Right (Left err) -> fail $ displayPlcDef err
     Right (Right ()) -> success
 
@@ -637,8 +650,9 @@ test_scopingBad pass gen bindRem preren run =
   testCase (pass ++ " breaks scoping or global uniqueness") . checkFails $
     prop_scopingFor gen bindRem preren run
 
--- | Test that the scoping machinery fails when the given renamer is spoiled in some way
--- (e.g. marking is removed) to ensure that the machinery does catch bugs.
+{- | Test that the scoping machinery fails when the given renamer is spoiled in some way
+(e.g. marking is removed) to ensure that the machinery does catch bugs.
+-}
 test_scopingSpoilRenamer ::
   (PrettyPlc (t NameAnn), TPLC.Rename (t NameAnn), Scoping t, Monoid ren) =>
   AstGen (t ann) ->

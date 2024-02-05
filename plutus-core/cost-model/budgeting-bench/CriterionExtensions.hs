@@ -1,11 +1,11 @@
 {-# LANGUAGE LambdaCase #-}
 
-module CriterionExtensions (criterionMainWith, BenchmarkingPhase(..)) where
+module CriterionExtensions (criterionMainWith, BenchmarkingPhase (..)) where
 
 import Control.Monad (unless)
 import Control.Monad.Trans (liftIO)
-import Criterion.Internal (runAndAnalyse, runFixedIters)
 import Criterion.IO.Printf (printError, writeCsv)
+import Criterion.Internal (runAndAnalyse, runFixedIters)
 import Criterion.Main (makeMatcher)
 import Criterion.Main.Options (MatchType (..), Mode (..), describe, versionInfo)
 import Criterion.Measurement (initializeTime)
@@ -20,7 +20,6 @@ import System.Environment (getProgName)
 import System.Exit (exitFailure)
 import System.FilePath ((<.>))
 import System.IO (hPutStrLn, stderr)
-
 
 {- | The first time we call criterionMainWith we want to check that the CSV file
    exists and if it does we make a backup and open a new version, writing a
@@ -39,32 +38,32 @@ data BenchmarkingPhase = Start | Continue
 -}
 initCsvFile :: BenchmarkingPhase -> Config -> Criterion ()
 initCsvFile phase cfg =
-    let putStrLnErr = hPutStrLn stderr
-    in case csvFile cfg of
-         Nothing ->
-           liftIO $ do
-             prog <- getProgName
-             putStrLnErr ""
-             putStrLnErr "ERROR: a CSV output file must be specified for the benchmarking results."
-             putStrLnErr "Use"
-             putStrLnErr ""
-             putStrLnErr $ "   cabal run " ++ prog ++ " -- --csv <file>"
-             putStrLnErr ""
-             putStrLnErr "The CSV file location will be relative to the current shell directory."
-             exitFailure
-         Just file  -> do
-           case phase of
-              Start -> do
-                 csvExists <- liftIO $ doesFileExist file
-                 if csvExists
-                 then liftIO $ renameFile file (file <.> "backup")
-                 else pure ()
-                 time <- liftIO getCurrentTime
-                 liftIO $ appendFile file $ "# Plutus Core cost model benchmark results\n"
-                 liftIO $ appendFile file $ "# Started at " ++ show time ++ "\n"
-                 writeCsv ("benchmark","t","t.mean.lb","t.mean.ub","t.sd","t.sd.lb", "t.sd.ub")
-              -- Criterion will append output to the CSV file specified in `cfg`.
-              Continue -> pure ()
+  let putStrLnErr = hPutStrLn stderr
+   in case csvFile cfg of
+        Nothing ->
+          liftIO $ do
+            prog <- getProgName
+            putStrLnErr ""
+            putStrLnErr "ERROR: a CSV output file must be specified for the benchmarking results."
+            putStrLnErr "Use"
+            putStrLnErr ""
+            putStrLnErr $ "   cabal run " ++ prog ++ " -- --csv <file>"
+            putStrLnErr ""
+            putStrLnErr "The CSV file location will be relative to the current shell directory."
+            exitFailure
+        Just file -> do
+          case phase of
+            Start -> do
+              csvExists <- liftIO $ doesFileExist file
+              if csvExists
+                then liftIO $ renameFile file (file <.> "backup")
+                else pure ()
+              time <- liftIO getCurrentTime
+              liftIO $ appendFile file $ "# Plutus Core cost model benchmark results\n"
+              liftIO $ appendFile file $ "# Started at " ++ show time ++ "\n"
+              writeCsv ("benchmark", "t", "t.mean.lb", "t.mean.ub", "t.sd", "t.sd.lb", "t.sd.ub")
+            -- Criterion will append output to the CSV file specified in `cfg`.
+            Continue -> pure ()
 
 {- | A modified version of Criterion's 'defaultMainWith' function. We want to be
    able to run different benchmarks with different time limits, but that doesn't
@@ -72,26 +71,29 @@ initCsvFile phase cfg =
    to a CSV file but writes a header into the file every time it's called.  This
    adds an option to stop it doing that so we only get one header (at the top,
    where it belongs).  This also calls `initCsvFile` to make sure that a CSV
-   output file has been specified. -}
+   output file has been specified.
+-}
+
 -- TODO: bypass Criterion's command line parser altogether.
-criterionMainWith :: BenchmarkingPhase ->  Config -> [Benchmark] -> IO ()
+criterionMainWith :: BenchmarkingPhase -> Config -> [Benchmark] -> IO ()
 criterionMainWith phase defCfg bs =
-  execParser (describe defCfg) >>=
-     \case
+  execParser (describe defCfg)
+    >>= \case
       List -> mapM_ putStrLn . sort . concatMap benchNames $ bs
       Version -> putStrLn versionInfo
       RunIters cfg iters matchType benches ->
-          withConfig cfg $ do
-            () <- initCsvFile phase cfg
-            shouldRun <- liftIO $ selectBenches matchType benches bsgroup
-            runFixedIters iters shouldRun bsgroup
+        withConfig cfg $ do
+          () <- initCsvFile phase cfg
+          shouldRun <- liftIO $ selectBenches matchType benches bsgroup
+          runFixedIters iters shouldRun bsgroup
       Run cfg matchType benches ->
-          withConfig cfg $ do
-            () <- initCsvFile phase cfg
-            shouldRun <- liftIO $ selectBenches matchType benches bsgroup
-            liftIO initializeTime
-            runAndAnalyse shouldRun bsgroup
-      where bsgroup = BenchGroup "" bs
+        withConfig cfg $ do
+          () <- initCsvFile phase cfg
+          shouldRun <- liftIO $ selectBenches matchType benches bsgroup
+          liftIO initializeTime
+          runAndAnalyse shouldRun bsgroup
+  where
+    bsgroup = BenchGroup "" bs
 
 selectBenches :: MatchType -> [String] -> Benchmark -> IO (String -> Bool)
 selectBenches matchType benches bsgroup = do

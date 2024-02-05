@@ -1,36 +1,36 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DeriveAnyClass        #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module PlutusIR.Core.Type (
-    TyName (..),
-    Name (..),
-    VarDecl (..),
-    TyVarDecl (..),
-    varDeclNameString,
-    tyVarDeclNameString,
-    Kind (..),
-    Type (..),
-    Datatype (..),
-    datatypeNameString,
-    Recursivity (..),
-    Strictness (..),
-    Binding (..),
-    Term (..),
-    Program (..),
-    Version (..),
-    applyProgram,
-    termAnn,
-    bindingAnn,
-    progAnn,
-    progVersion,
-    progTerm,
-    ) where
+  TyName (..),
+  Name (..),
+  VarDecl (..),
+  TyVarDecl (..),
+  varDeclNameString,
+  tyVarDeclNameString,
+  Kind (..),
+  Type (..),
+  Datatype (..),
+  datatypeNameString,
+  Recursivity (..),
+  Strictness (..),
+  Binding (..),
+  Term (..),
+  Program (..),
+  Version (..),
+  applyProgram,
+  termAnn,
+  bindingAnn,
+  progAnn,
+  progVersion,
+  progTerm,
+) where
 
 import PlutusPrelude
 
@@ -62,7 +62,7 @@ terms can thus be used as backwards compatibility is not required.
 -}
 
 data Datatype tyname name uni a = Datatype a (TyVarDecl tyname a) [TyVarDecl tyname a] name [VarDecl tyname name uni a]
-    deriving stock (Functor, Show, Generic)
+  deriving stock (Functor, Show, Generic)
 
 varDeclNameString :: VarDecl tyname Name uni a -> String
 varDeclNameString = T.unpack . PLC._nameText . _varDeclName
@@ -75,31 +75,35 @@ datatypeNameString (Datatype _ tn _ _ _) = tyVarDeclNameString tn
 
 -- Bindings
 
--- | Each multi-let-group has to be marked with its scoping:
--- * 'NonRec': the identifiers introduced by this multi-let are only linearly-scoped, i.e. an identifier cannot refer to itself or later-introduced identifiers of the group.
--- * 'Rec': an identifiers introduced by this multi-let group can use all other multi-lets  of the same group (including itself),
--- thus permitting (mutual) recursion.
+{- | Each multi-let-group has to be marked with its scoping:
+* 'NonRec': the identifiers introduced by this multi-let are only linearly-scoped, i.e. an identifier cannot refer to itself or later-introduced identifiers of the group.
+* 'Rec': an identifiers introduced by this multi-let group can use all other multi-lets  of the same group (including itself),
+thus permitting (mutual) recursion.
+-}
 data Recursivity = NonRec | Rec
-    deriving stock (Show, Eq, Generic, Ord)
-    deriving anyclass Hashable
+  deriving stock (Show, Eq, Generic, Ord)
+  deriving anyclass (Hashable)
 
--- | Recursivity can form a 'Semigroup' / lattice, where 'NonRec' < 'Rec'.
--- The lattice is ordered by "power": a non-recursive binding group can be made recursive and it will still work, but not vice versa.
--- The semigroup operation is the "join" of the lattice.
+{- | Recursivity can form a 'Semigroup' / lattice, where 'NonRec' < 'Rec'.
+The lattice is ordered by "power": a non-recursive binding group can be made recursive and it will still work, but not vice versa.
+The semigroup operation is the "join" of the lattice.
+-}
 instance Semigroup Recursivity where
   NonRec <> x = x
-  Rec <> _    = Rec
+  Rec <> _ = Rec
 
 data Strictness = NonStrict | Strict
-    deriving stock (Show, Eq, Generic)
+  deriving stock (Show, Eq, Generic)
 
-data Binding tyname name uni fun a = TermBind a Strictness (VarDecl tyname name uni a) (Term tyname name uni fun a)
-                           | TypeBind a (TyVarDecl tyname a) (Type tyname uni a)
-                           | DatatypeBind a (Datatype tyname name uni a)
-    deriving stock (Functor, Generic)
+data Binding tyname name uni fun a
+  = TermBind a Strictness (VarDecl tyname name uni a) (Term tyname name uni fun a)
+  | TypeBind a (TyVarDecl tyname a) (Type tyname uni a)
+  | DatatypeBind a (Datatype tyname name uni a)
+  deriving stock (Functor, Generic)
 
-deriving stock instance (Show tyname, Show name, GShow uni, Everywhere uni Show, Show fun, Show a, Closed uni)
-    => Show (Binding tyname name uni fun a)
+deriving stock instance
+  (Show tyname, Show name, GShow uni, Everywhere uni Show, Show fun, Show a, Closed uni) =>
+  Show (Binding tyname name uni fun a)
 
 -- Terms
 
@@ -129,104 +133,107 @@ Plutus Core to use reified declarations.
 -}
 
 -- See note [PIR as a PLC extension]
-data Term tyname name uni fun a =
-                        -- Plutus Core (ish) forms, see note [Declarations in Plutus Core]
-                          Let a Recursivity (NonEmpty (Binding tyname name uni fun a)) (Term tyname name uni fun a)
-                        | Var a name
-                        | TyAbs a tyname (Kind a) (Term tyname name uni fun a)
-                        | LamAbs a name (Type tyname uni a) (Term tyname name uni fun a)
-                        | Apply a (Term tyname name uni fun a) (Term tyname name uni fun a)
-                        | Constant a (PLC.Some (PLC.ValueOf uni))
-                        | Builtin a fun
-                        | TyInst a (Term tyname name uni fun a) (Type tyname uni a)
-                        | Error a (Type tyname uni a)
-                        | IWrap a (Type tyname uni a) (Type tyname uni a) (Term tyname name uni fun a)
-                        | Unwrap a (Term tyname name uni fun a)
-                        -- See Note [Constr tag type]
-                        | Constr a (Type tyname uni a) Word64 [Term tyname name uni fun a]
-                        | Case a (Type tyname uni a) (Term tyname name uni fun a) [Term tyname name uni fun a]
-                        deriving stock (Functor, Generic)
+data Term tyname name uni fun a
+  = -- Plutus Core (ish) forms, see note [Declarations in Plutus Core]
+    Let a Recursivity (NonEmpty (Binding tyname name uni fun a)) (Term tyname name uni fun a)
+  | Var a name
+  | TyAbs a tyname (Kind a) (Term tyname name uni fun a)
+  | LamAbs a name (Type tyname uni a) (Term tyname name uni fun a)
+  | Apply a (Term tyname name uni fun a) (Term tyname name uni fun a)
+  | Constant a (PLC.Some (PLC.ValueOf uni))
+  | Builtin a fun
+  | TyInst a (Term tyname name uni fun a) (Type tyname uni a)
+  | Error a (Type tyname uni a)
+  | IWrap a (Type tyname uni a) (Type tyname uni a) (Term tyname name uni fun a)
+  | Unwrap a (Term tyname name uni fun a)
+  | -- See Note [Constr tag type]
+    Constr a (Type tyname uni a) Word64 [Term tyname name uni fun a]
+  | Case a (Type tyname uni a) (Term tyname name uni fun a) [Term tyname name uni fun a]
+  deriving stock (Functor, Generic)
 
-deriving stock instance (Show tyname, Show name, GShow uni, Everywhere uni Show, Show fun, Show a, Closed uni)
-    => Show (Term tyname name uni fun a)
+deriving stock instance
+  (Show tyname, Show name, GShow uni, Everywhere uni Show, Show fun, Show a, Closed uni) =>
+  Show (Term tyname name uni fun a)
 
 -- See Note [ExMemoryUsage instances for non-constants].
 instance ExMemoryUsage (Term tyname name uni fun ann) where
-    memoryUsage =
-        Prelude.error "Internal error: 'memoryUsage' for IR 'Term' is not supposed to be forced"
+  memoryUsage =
+    Prelude.error "Internal error: 'memoryUsage' for IR 'Term' is not supposed to be forced"
 
 type instance UniOf (Term tyname name uni fun ann) = uni
 
 instance HasConstant (Term tyname name uni fun ()) where
-    asConstant (Constant _ val) = pure val
-    asConstant _                = throwNotAConstant
+  asConstant (Constant _ val) = pure val
+  asConstant _ = throwNotAConstant
 
-    fromConstant = Constant ()
+  fromConstant = Constant ()
 
 instance TermLike (Term tyname name uni fun) tyname name uni fun where
-    var      = Var
-    tyAbs    = TyAbs
-    lamAbs   = LamAbs
-    apply    = Apply
-    constant = Constant
-    builtin  = Builtin
-    tyInst   = TyInst
-    unwrap   = Unwrap
-    iWrap    = IWrap
-    error    = Error
-    constr   = Constr
-    kase     = Case
+  var = Var
+  tyAbs = TyAbs
+  lamAbs = LamAbs
+  apply = Apply
+  constant = Constant
+  builtin = Builtin
+  tyInst = TyInst
+  unwrap = Unwrap
+  iWrap = IWrap
+  error = Error
+  constr = Constr
+  kase = Case
 
-    termLet x (Def vd bind) = Let x NonRec (pure $ TermBind x Strict vd bind)
-    typeLet x (Def vd bind) = Let x NonRec (pure $ TypeBind x vd bind)
+  termLet x (Def vd bind) = Let x NonRec (pure $ TermBind x Strict vd bind)
+  typeLet x (Def vd bind) = Let x NonRec (pure $ TypeBind x vd bind)
 
 data Program tyname name uni fun ann = Program
-    { _progAnn     :: ann
-    -- | The version of the program. This corresponds to the underlying
-    -- Plutus Core version.
-    , _progVersion :: Version
-    , _progTerm    :: Term tyname name uni fun ann
-    }
-    deriving stock (Functor, Generic)
+  { _progAnn :: ann
+  , _progVersion :: Version
+  -- ^ The version of the program. This corresponds to the underlying
+  -- Plutus Core version.
+  , _progTerm :: Term tyname name uni fun ann
+  }
+  deriving stock (Functor, Generic)
 makeLenses ''Program
 
-deriving stock instance (Show tyname, Show name, GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni)
-    => Show (Program tyname name uni fun ann)
-
+deriving stock instance
+  (Show tyname, Show name, GShow uni, Everywhere uni Show, Show fun, Show ann, Closed uni) =>
+  Show (Program tyname name uni fun ann)
 
 type instance PLC.HasUniques (Term tyname name uni fun ann) = (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
 type instance PLC.HasUniques (Program tyname name uni fun ann) = PLC.HasUniques (Term tyname name uni fun ann)
 
--- | Applies one program to another. Fails if the versions do not match
--- and tries to merge annotations.
-applyProgram
-    :: Semigroup a
-    => Program tyname name uni fun a
-    -> Program tyname name uni fun a
-    -> Either ApplyProgramError (Program tyname name uni fun a)
-applyProgram (Program a1 v1 t1) (Program a2 v2 t2) | v1 == v2
-  =  Right $ Program (a1 <> a2) v1 (Apply (termAnn t1 <> termAnn t2) t1 t2)
+{- | Applies one program to another. Fails if the versions do not match
+and tries to merge annotations.
+-}
+applyProgram ::
+  Semigroup a =>
+  Program tyname name uni fun a ->
+  Program tyname name uni fun a ->
+  Either ApplyProgramError (Program tyname name uni fun a)
+applyProgram (Program a1 v1 t1) (Program a2 v2 t2)
+  | v1 == v2 =
+      Right $ Program (a1 <> a2) v1 (Apply (termAnn t1 <> termAnn t2) t1 t2)
 applyProgram (Program _a1 v1 _t1) (Program _a2 v2 _t2) =
-    Left $ MkApplyProgramError v1 v2
+  Left $ MkApplyProgramError v1 v2
 
 termAnn :: Term tyname name uni fun a -> a
 termAnn = \case
-    Let a _ _ _    -> a
-    Var a _        -> a
-    TyAbs a _ _ _  -> a
-    LamAbs a _ _ _ -> a
-    Apply a _ _    -> a
-    Constant a _   -> a
-    Builtin a _    -> a
-    TyInst a _ _   -> a
-    Error a _      -> a
-    IWrap a _ _ _  -> a
-    Unwrap a _     -> a
-    Constr a _ _ _ -> a
-    Case a _ _ _   -> a
+  Let a _ _ _ -> a
+  Var a _ -> a
+  TyAbs a _ _ _ -> a
+  LamAbs a _ _ _ -> a
+  Apply a _ _ -> a
+  Constant a _ -> a
+  Builtin a _ -> a
+  TyInst a _ _ -> a
+  Error a _ -> a
+  IWrap a _ _ _ -> a
+  Unwrap a _ -> a
+  Constr a _ _ _ -> a
+  Case a _ _ _ -> a
 
 bindingAnn :: Binding tyname name uni fun a -> a
 bindingAnn = \case
-    TermBind a _ _ _ -> a
-    TypeBind a _ _   -> a
-    DatatypeBind a _ -> a
+  TermBind a _ _ _ -> a
+  TypeBind a _ _ -> a
+  DatatypeBind a _ -> a

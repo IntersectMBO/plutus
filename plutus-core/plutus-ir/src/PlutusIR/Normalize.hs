@@ -1,11 +1,12 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE FlexibleContexts #-}
+
 -- | PlutusIR versions of the functions in PlutusCore.Normalize
-module PlutusIR.Normalize
-    ( Export.normalizeType
-    , normalizeTypesIn
-    , normalizeTypesInProgram
-    ) where
+module PlutusIR.Normalize (
+  Export.normalizeType,
+  normalizeTypesIn,
+  normalizeTypesInProgram,
+) where
 
 import PlutusCore.Core as PLC (Normalized (..))
 import PlutusCore.Name
@@ -21,21 +22,26 @@ import Control.Monad ((>=>))
 import Universe (HasUniApply)
 
 -- | Normalize every 'Type' in a 'Term'.
-normalizeTypesIn
-    :: (HasUnique tyname TypeUnique, HasUnique name TermUnique, MonadQuote m, HasUniApply uni)
-    => Term tyname name uni fun ann -> m (Term tyname name uni fun ann)
+normalizeTypesIn ::
+  (HasUnique tyname TypeUnique, HasUnique name TermUnique, MonadQuote m, HasUniApply uni) =>
+  Term tyname name uni fun ann ->
+  m (Term tyname name uni fun ann)
 normalizeTypesIn = rename >=> runNormalizeTypeT . normalizeTypesInM
 
 -- | Normalize every 'Type' in a 'Program'.
-normalizeTypesInProgram
-    :: (HasUnique tyname TypeUnique, HasUnique name TermUnique, MonadQuote m, HasUniApply uni)
-    => Program tyname name uni fun ann -> m (Program tyname name uni fun ann)
+normalizeTypesInProgram ::
+  (HasUnique tyname TypeUnique, HasUnique name TermUnique, MonadQuote m, HasUniApply uni) =>
+  Program tyname name uni fun ann ->
+  m (Program tyname name uni fun ann)
 normalizeTypesInProgram (Program x v t) = Program x v <$> normalizeTypesIn t
 
--- | Normalize every 'Type' in a 'Term'.
--- Mirrors the `normalizeTypesInM` of 'PlutusCore.Normalize.Internal', working on PIR.Term instead
-normalizeTypesInM
-    :: (HasUnique tyname TypeUnique, MonadQuote m, HasUniApply uni)
-    => Term tyname name uni fun ann -> NormalizeTypeT m tyname uni ann (Term tyname name uni fun ann)
-normalizeTypesInM = transformMOf termSubterms normalizeChildTypes where
+{- | Normalize every 'Type' in a 'Term'.
+Mirrors the `normalizeTypesInM` of 'PlutusCore.Normalize.Internal', working on PIR.Term instead
+-}
+normalizeTypesInM ::
+  (HasUnique tyname TypeUnique, MonadQuote m, HasUniApply uni) =>
+  Term tyname name uni fun ann ->
+  NormalizeTypeT m tyname uni ann (Term tyname name uni fun ann)
+normalizeTypesInM = transformMOf termSubterms normalizeChildTypes
+  where
     normalizeChildTypes = termSubtypes (fmap unNormalized . normalizeTypeM)

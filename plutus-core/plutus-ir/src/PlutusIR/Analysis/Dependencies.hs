@@ -1,9 +1,9 @@
-{-# LANGUAGE ConstraintKinds  #-}
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE GADTs            #-}
-{-# LANGUAGE LambdaCase       #-}
-{-# LANGUAGE TemplateHaskell  #-}
-{-# LANGUAGE TypeOperators    #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeOperators #-}
 
 {- | Functions for computing the dependency graph of variables within a term or type.
 A "dependency" between two nodes "A depends on B" means that B cannot be removed
@@ -42,9 +42,9 @@ we can use to represent it in the graph.
 data Node = Variable PLC.Unique | Root deriving stock (Show, Eq, Ord)
 
 data DepCtx tyname name uni fun a = DepCtx
-  { _depNode         :: Node
+  { _depNode :: Node
   , _depBuiltinsInfo :: BuiltinsInfo uni fun
-  , _depVarInfo      :: VarsInfo tyname name uni a
+  , _depVarInfo :: VarsInfo tyname name uni a
   }
 makeLenses ''DepCtx
 
@@ -160,7 +160,7 @@ bindingDeps b = case b of
     vinfo <- view depVarInfo
     evalDeps <- case strictness of
       Strict | not (isPure binfo vinfo rhs) -> currentDependsOn [n ^. PLC.theUnique]
-      _                                     -> pure G.empty
+      _ -> pure G.empty
 
     pure $ G.overlays [vDeps, tDeps, evalDeps]
   TypeBind _ d@(TyVarDecl _ n _) rhs -> do

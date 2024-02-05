@@ -1,9 +1,9 @@
-module UntypedPlutusCore.Size
-    ( Size (..)
-    , termSize
-    , programSize
-    , serialisedSize
-    ) where
+module UntypedPlutusCore.Size (
+  Size (..),
+  termSize,
+  programSize,
+  serialisedSize,
+) where
 
 import PlutusCore.Size (Size (..))
 import UntypedPlutusCore.Core
@@ -15,7 +15,8 @@ import Flat hiding (to)
 
 -- | Count the number of AST nodes in a term.
 termSize :: Term name uni fun ann -> Size
-termSize term = fold
+termSize term =
+  fold
     [ Size 1
     , term ^. termSubterms . to termSize
     ]

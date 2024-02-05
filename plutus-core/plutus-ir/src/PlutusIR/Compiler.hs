@@ -1,56 +1,57 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE FlexibleContexts    #-}
-{-# LANGUAGE RankNTypes          #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeFamilies        #-}
-{-# LANGUAGE TypeOperators       #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
+
 module PlutusIR.Compiler (
-    compileProgram,
-    compileToReadable,
-    compileReadableToPlc,
-    Compiling,
-    Error (..),
-    AsError (..),
-    AsTypeError (..),
-    AsTypeErrorExt (..),
-    Provenance (..),
-    DatatypeComponent (..),
-    noProvenance,
-    CompilationOpts (..),
-    coOptimize,
-    coTypecheck,
-    coPedantic,
-    coVerbose,
-    coDebug,
-    coMaxSimplifierIterations,
-    coDoSimplifierUnwrapCancel,
-    coDoSimplifierBeta,
-    coDoSimplifierInline,
-    coDoSimplifierEvaluateBuiltins,
-    coDoSimplifierStrictifyBindings,
-    coDoSimplifierRewrite,
-    coDoSimplifierKnownCon,
-    coInlineHints,
-    coProfile,
-    coRelaxedFloatin,
-    coCaseOfCaseConservative,
-    coPreserveLogging,
-    coDatatypes,
-    dcoStyle,
-    DatatypeStyle (..),
-    defaultCompilationOpts,
-    CompilationCtx,
-    ccOpts,
-    ccEnclosing,
-    ccTypeCheckConfig,
-    ccBuiltinsInfo,
-    ccBuiltinCostModel,
-    PirTCConfig(..),
-    AllowEscape(..),
-    toDefaultCompilationCtx,
-    runCompilerPass,
-    simplifier
-    ) where
+  compileProgram,
+  compileToReadable,
+  compileReadableToPlc,
+  Compiling,
+  Error (..),
+  AsError (..),
+  AsTypeError (..),
+  AsTypeErrorExt (..),
+  Provenance (..),
+  DatatypeComponent (..),
+  noProvenance,
+  CompilationOpts (..),
+  coOptimize,
+  coTypecheck,
+  coPedantic,
+  coVerbose,
+  coDebug,
+  coMaxSimplifierIterations,
+  coDoSimplifierUnwrapCancel,
+  coDoSimplifierBeta,
+  coDoSimplifierInline,
+  coDoSimplifierEvaluateBuiltins,
+  coDoSimplifierStrictifyBindings,
+  coDoSimplifierRewrite,
+  coDoSimplifierKnownCon,
+  coInlineHints,
+  coProfile,
+  coRelaxedFloatin,
+  coCaseOfCaseConservative,
+  coPreserveLogging,
+  coDatatypes,
+  dcoStyle,
+  DatatypeStyle (..),
+  defaultCompilationOpts,
+  CompilationCtx,
+  ccOpts,
+  ccEnclosing,
+  ccTypeCheckConfig,
+  ccBuiltinsInfo,
+  ccBuiltinCostModel,
+  PirTCConfig (..),
+  AllowEscape (..),
+  toDefaultCompilationCtx,
+  runCompilerPass,
+  simplifier,
+) where
 
 import Control.Lens
 import Control.Monad
@@ -111,11 +112,14 @@ floatOutPasses = do
   optimize <- view (ccOpts . coOptimize)
   tcconfig <- view ccTypeCheckConfig
   binfo <- view ccBuiltinsInfo
-  pure $ mwhen optimize $ P.NamedPass "float-out" $ fold
-        [ LetFloatOut.floatTermPassSC tcconfig binfo
-        , RecSplit.recSplitPass tcconfig
-        , LetMerge.letMergePass tcconfig
-        ]
+  pure $
+    mwhen optimize $
+      P.NamedPass "float-out" $
+        fold
+          [ LetFloatOut.floatTermPassSC tcconfig binfo
+          , RecSplit.recSplitPass tcconfig
+          , LetMerge.letMergePass tcconfig
+          ]
 
 floatInPasses :: Compiling m e uni fun a => m (P.Pass m TyName Name uni fun (Provenance a))
 floatInPasses = do
@@ -123,10 +127,13 @@ floatInPasses = do
   tcconfig <- view ccTypeCheckConfig
   binfo <- view ccBuiltinsInfo
   relaxed <- view (ccOpts . coRelaxedFloatin)
-  pure $ mwhen optimize $ P.NamedPass "float-in" $ fold
-        [ LetFloatIn.floatTermPassSC tcconfig binfo relaxed
-        , LetMerge.letMergePass tcconfig
-        ]
+  pure $
+    mwhen optimize $
+      P.NamedPass "float-in" $
+        fold
+          [ LetFloatIn.floatTermPassSC tcconfig binfo relaxed
+          , LetMerge.letMergePass tcconfig
+          ]
 
 simplifierIteration :: Compiling m e uni fun a => String -> m (P.Pass m TyName Name uni fun (Provenance a))
 simplifierIteration suffix = do
@@ -139,18 +146,19 @@ simplifierIteration suffix = do
   cocConservative <- view (ccOpts . coCaseOfCaseConservative)
   rules <- view ccRewriteRules
 
-  pure $ P.NamedPass ("simplifier" ++ suffix) $ fold
-      [ mwhen (opts ^. coDoSimplifierUnwrapCancel) $ Unwrap.unwrapCancelPass tcconfig
-      , mwhen (opts ^. coDoSimplifierCaseReduce) $ CaseReduce.caseReducePass tcconfig
-      , mwhen (opts ^. coDoSimplifierCaseReduce) $ CaseOfCase.caseOfCasePassSC tcconfig binfo cocConservative noProvenance
-      , mwhen (opts ^. coDoSimplifierKnownCon) $ KnownCon.knownConPassSC tcconfig
-      , mwhen (opts ^. coDoSimplifierBeta) $ Beta.betaPassSC tcconfig
-      , mwhen (opts ^. coDoSimplifierStrictifyBindings ) $ StrictifyBindings.strictifyBindingsPass tcconfig binfo
-      , mwhen (opts ^. coDoSimplifierEvaluateBuiltins) $ EvaluateBuiltins.evaluateBuiltinsPass tcconfig preserveLogging binfo costModel
-      , mwhen (opts ^. coDoSimplifierInline) $ Inline.inlinePassSC tcconfig hints binfo
-      , mwhen (opts ^. coDoSimplifierRewrite) $ RewriteRules.rewritePassSC tcconfig rules
-      ]
-
+  pure $
+    P.NamedPass ("simplifier" ++ suffix) $
+      fold
+        [ mwhen (opts ^. coDoSimplifierUnwrapCancel) $ Unwrap.unwrapCancelPass tcconfig
+        , mwhen (opts ^. coDoSimplifierCaseReduce) $ CaseReduce.caseReducePass tcconfig
+        , mwhen (opts ^. coDoSimplifierCaseReduce) $ CaseOfCase.caseOfCasePassSC tcconfig binfo cocConservative noProvenance
+        , mwhen (opts ^. coDoSimplifierKnownCon) $ KnownCon.knownConPassSC tcconfig
+        , mwhen (opts ^. coDoSimplifierBeta) $ Beta.betaPassSC tcconfig
+        , mwhen (opts ^. coDoSimplifierStrictifyBindings) $ StrictifyBindings.strictifyBindingsPass tcconfig binfo
+        , mwhen (opts ^. coDoSimplifierEvaluateBuiltins) $ EvaluateBuiltins.evaluateBuiltinsPass tcconfig preserveLogging binfo costModel
+        , mwhen (opts ^. coDoSimplifierInline) $ Inline.inlinePassSC tcconfig hints binfo
+        , mwhen (opts ^. coDoSimplifierRewrite) $ RewriteRules.rewritePassSC tcconfig rules
+        ]
 
 simplifier :: Compiling m e uni fun a => m (P.Pass m TyName Name uni fun (Provenance a))
 simplifier = do
@@ -160,70 +168,79 @@ simplifier = do
   pure $ mwhen optimize $ P.NamedPass "simplifier" (fold passes)
 
 -- | Typecheck a PIR Term iff the context demands it.
-typeCheckTerm :: (Compiling m e uni fun a) => m (P.Pass m TyName Name uni fun (Provenance a))
+typeCheckTerm :: Compiling m e uni fun a => m (P.Pass m TyName Name uni fun (Provenance a))
 typeCheckTerm = do
   doTc <- view (ccOpts . coTypecheck)
   tcconfig <- view ccTypeCheckConfig
   pure $ mwhen doTc $ P.typecheckPass tcconfig
 
--- | The 1st half of the PIR compiler pipeline up to floating/merging the lets.
--- We stop momentarily here to give a chance to the tx-plugin
--- to dump a "readable" version of pir (i.e. floated).
-compileToReadable
-  :: forall m e uni fun a b
-  . (Compiling m e uni fun a, b ~ Provenance a)
-  => Program TyName Name uni fun b
-  -> m (Program TyName Name uni fun b)
+{- | The 1st half of the PIR compiler pipeline up to floating/merging the lets.
+We stop momentarily here to give a chance to the tx-plugin
+to dump a "readable" version of pir (i.e. floated).
+-}
+compileToReadable ::
+  forall m e uni fun a b.
+  (Compiling m e uni fun a, b ~ Provenance a) =>
+  Program TyName Name uni fun b ->
+  m (Program TyName Name uni fun b)
 compileToReadable (Program a v t) = do
   validateOpts v
   let
     pipeline :: m (P.Pass m TyName Name uni fun b)
-    pipeline = getAp $ foldMap Ap
-        [ typeCheckTerm
-        , DeadCode.removeDeadBindingsPassSC <$> view ccTypeCheckConfig <*> view ccBuiltinsInfo
-        , simplifier
-        , floatOutPasses
-        ]
+    pipeline =
+      getAp $
+        foldMap
+          Ap
+          [ typeCheckTerm
+          , DeadCode.removeDeadBindingsPassSC <$> view ccTypeCheckConfig <*> view ccBuiltinsInfo
+          , simplifier
+          , floatOutPasses
+          ]
   Program a v <$> runCompilerPass pipeline t
 
--- | The 2nd half of the PIR compiler pipeline.
--- Compiles a 'Term' into a PLC Term, by removing/translating step-by-step the PIR's language constructs to PLC.
--- Note: the result *does* have globally unique names.
-compileReadableToPlc :: forall m e uni fun a b . (Compiling m e uni fun a, b ~ Provenance a) => Program TyName Name uni fun b -> m (PLCProgram uni fun a)
+{- | The 2nd half of the PIR compiler pipeline.
+Compiles a 'Term' into a PLC Term, by removing/translating step-by-step the PIR's language constructs to PLC.
+Note: the result *does* have globally unique names.
+-}
+compileReadableToPlc :: forall m e uni fun a b. (Compiling m e uni fun a, b ~ Provenance a) => Program TyName Name uni fun b -> m (PLCProgram uni fun a)
 compileReadableToPlc (Program a v t) = do
-
   let
     pipeline :: m (P.Pass m TyName Name uni fun b)
-    pipeline = getAp $ foldMap Ap
-        [ floatInPasses
-        , NonStrict.compileNonStrictBindingsPassSC <$> view ccTypeCheckConfig <*> pure False
-        , ThunkRec.thunkRecursionsPass <$> view ccTypeCheckConfig <*> view ccBuiltinsInfo
-        -- Process only the non-strict bindings created by 'thunkRecursions' with unit delay/forces
-        -- See Note [Using unit versus force/delay]
-        , NonStrict.compileNonStrictBindingsPassSC <$> view ccTypeCheckConfig <*> pure True
-        , Let.compileLetsPassSC <$> view ccTypeCheckConfig <*> pure Let.DataTypes
-        , Let.compileLetsPassSC <$> view ccTypeCheckConfig <*> pure Let.RecTerms
-        -- We introduce some non-recursive let bindings while eliminating recursive let-bindings, so we
-        -- can eliminate any of them which are unused here.
-        , DeadCode.removeDeadBindingsPassSC <$> view ccTypeCheckConfig <*> view ccBuiltinsInfo
-        , simplifier
-        , Let.compileLetsPassSC <$> view ccTypeCheckConfig <*> pure Let.Types
-        , Let.compileLetsPassSC <$> view ccTypeCheckConfig <*> pure Let.NonRecTerms
-        ]
+    pipeline =
+      getAp $
+        foldMap
+          Ap
+          [ floatInPasses
+          , NonStrict.compileNonStrictBindingsPassSC <$> view ccTypeCheckConfig <*> pure False
+          , ThunkRec.thunkRecursionsPass <$> view ccTypeCheckConfig <*> view ccBuiltinsInfo
+          , -- Process only the non-strict bindings created by 'thunkRecursions' with unit delay/forces
+            -- See Note [Using unit versus force/delay]
+            NonStrict.compileNonStrictBindingsPassSC <$> view ccTypeCheckConfig <*> pure True
+          , Let.compileLetsPassSC <$> view ccTypeCheckConfig <*> pure Let.DataTypes
+          , Let.compileLetsPassSC <$> view ccTypeCheckConfig <*> pure Let.RecTerms
+          , -- We introduce some non-recursive let bindings while eliminating recursive let-bindings, so we
+            -- can eliminate any of them which are unused here.
+            DeadCode.removeDeadBindingsPassSC <$> view ccTypeCheckConfig <*> view ccBuiltinsInfo
+          , simplifier
+          , Let.compileLetsPassSC <$> view ccTypeCheckConfig <*> pure Let.Types
+          , Let.compileLetsPassSC <$> view ccTypeCheckConfig <*> pure Let.NonRecTerms
+          ]
 
     go =
-        runCompilerPass pipeline
+      runCompilerPass pipeline
         >=> (<$ logVerbose "  !!! lowerTerm")
         >=> lowerTerm
 
   PLC.Program a v <$> go t
 
 --- | Compile a 'Program' into a PLC Program. Note: the result *does* have globally unique names.
-compileProgram :: Compiling m e uni fun a
-            => Program TyName Name uni fun a -> m (PLCProgram uni fun a)
+compileProgram ::
+  Compiling m e uni fun a =>
+  Program TyName Name uni fun a ->
+  m (PLCProgram uni fun a)
 compileProgram =
   (pure . original)
-  >=> (<$ logDebug "!!! compileToReadable")
-  >=> compileToReadable
-  >=> (<$ logDebug "!!! compileReadableToPlc")
-  >=> compileReadableToPlc
+    >=> (<$ logDebug "!!! compileToReadable")
+    >=> compileToReadable
+    >=> (<$ logDebug "!!! compileReadableToPlc")
+    >=> compileReadableToPlc

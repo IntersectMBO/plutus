@@ -1,5 +1,5 @@
 {-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE PolyKinds       #-}
+{-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 -- | The internals of the normalizer.
@@ -82,6 +82,7 @@ to deal with gas, and could maybe be changed now.)
 -}
 
 -- See Note [NormalizedTypeT].
+
 -- | The monad transformer that type normalization runs in.
 newtype NormalizeTypeT m tyname uni ann a = NormalizeTypeT
   { unNormalizeTypeT :: ReaderT (NormalizeTypeEnv tyname uni ann) m a
@@ -173,7 +174,7 @@ Hence we do the opposite, which is straightforward.
 {- | Normalize a built-in type by replacing each application inside the universe with regular
 type application.
 -}
-normalizeUni :: forall k (a :: k) uni tyname. (HasUniApply uni) => uni (Esc a) -> Type tyname uni ()
+normalizeUni :: forall k (a :: k) uni tyname. HasUniApply uni => uni (Esc a) -> Type tyname uni ()
 normalizeUni uni =
   matchUniApply
     uni
@@ -203,7 +204,7 @@ normalizeTypeM (TyApp ann fun arg) = do
   vArg <- normalizeTypeM arg
   case unNormalized vFun of
     TyLam _ nArg _ body -> substNormalizeTypeM vArg nArg body
-    _                   -> pure $ TyApp ann <$> vFun <*> vArg
+    _ -> pure $ TyApp ann <$> vFun <*> vArg
 normalizeTypeM var@(TyVar _ name) = do
   mayTy <- lookupTyNameM name
   case mayTy of
@@ -224,6 +225,7 @@ normalized types. However we do not enforce this in the type signature, because
 -}
 
 -- See Note [Normalizing substitution].
+
 -- | Substitute a type for a variable in a type and normalize in the 'NormalizeTypeT' monad.
 substNormalizeTypeM ::
   (HasUnique tyname TypeUnique, MonadNormalizeType uni m) =>

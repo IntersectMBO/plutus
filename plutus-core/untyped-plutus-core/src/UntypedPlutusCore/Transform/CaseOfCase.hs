@@ -1,5 +1,5 @@
-{-# LANGUAGE LambdaCase    #-}
-{-# LANGUAGE TypeFamilies  #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 
 {- | A special case of case-of-case optimisation: transforms
@@ -24,11 +24,11 @@ import UntypedPlutusCore.Core
 
 import Control.Lens
 
-caseOfCase :: (fun ~ PLC.DefaultFun) => Term name uni fun a -> Term name uni fun a
+caseOfCase :: fun ~ PLC.DefaultFun => Term name uni fun a -> Term name uni fun a
 caseOfCase = transformOf termSubterms $ \case
   Case ann scrut alts
     | ( ite@(Force _ (Builtin _ PLC.IfThenElse))
-        , [cond, (trueAnn, true@Constr{}), (falseAnn, false@Constr{})]
+        , [cond, (trueAnn, true@Constr {}), (falseAnn, false@Constr {})]
         ) <-
         splitApplication scrut ->
         mkIterApp

@@ -1,7 +1,6 @@
 -- editorconfig-checker-disable-file
-
-{-# LANGUAGE BangPatterns      #-}
-{-# LANGUAGE MagicHash         #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE MagicHash #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 -- | Implementations for conversion primops from 'Integer' to 'ByteString' and back again.
@@ -10,11 +9,11 @@ module PlutusCore.Bitwise.Convert (
   integerToByteStringWrapper,
   byteStringToIntegerWrapper,
   -- Implementation details
-  IntegerToByteStringError(..),
+  IntegerToByteStringError (..),
   integerToByteStringMaximumOutputLength,
   integerToByteString,
-  byteStringToInteger
-  ) where
+  byteStringToInteger,
+) where
 
 import PlutusCore.Builtin (BuiltinResult, emit)
 import PlutusCore.Evaluation.Result (evaluationFailure)
@@ -39,7 +38,9 @@ import GHC.Integer.Logarithms (integerLog2#)
    inputs up to about 8K then increases sharply, becoming chaotic after about
    14K).  This restriction may be removed once a more efficient implementation
    becomes available, which may happen when we no longer have to support GHC
-   8.10. -}
+   8.10.
+-}
+
 {- NB: if we do relax the length restriction then we will need two variants of
    integerToByteString in Plutus Core so that we can continue to support the
    current behaviour for old scripts.-}
@@ -64,64 +65,69 @@ integerToByteStringWrapper endiannessArg lengthArg input
   -- Check that the requested length does not exceed the limit.  *NB*: if we remove the limit we'll
   -- still have to make sure that the length fits into an Int.
   | lengthArg > integerToByteStringMaximumOutputLength = do
-      emit . pack $ "integerToByteString: requested length is too long (maximum is "
-               ++ (show $ integerToByteStringMaximumOutputLength)
-               ++ " bytes)"
+      emit . pack $
+        "integerToByteString: requested length is too long (maximum is "
+          ++ (show $ integerToByteStringMaximumOutputLength)
+          ++ " bytes)"
       emit $ "Length requested: " <> (pack . show $ lengthArg)
       evaluationFailure
   -- If the requested length is zero (ie, an explicit output size is not
   -- specified) we still have to make sure that the output won't exceed the size
   -- limit.  If the requested length is nonzero and less than the limit,
   -- integerToByteString checks that the input fits.
-  | (lengthArg == 0 -- integerLog2 n is one less than the number of significant bits in n
-       && fromIntegral (integerLog2 input) >= 8 * integerToByteStringMaximumOutputLength) =
-    let bytesRequiredFor n = (integerLog2 n) `div` 8 + 1
-        -- ^ This gives 1 instead of 0 for n=0, but we'll never get that.
-    in do
-      emit . pack $ "integerToByteString: input too long (maximum is 2^"
-               ++ (show (8 * integerToByteStringMaximumOutputLength))
-               ++ "-1)"
-      emit $ "Length required: " <> (pack . show $ bytesRequiredFor input)
-      evaluationFailure
-  | otherwise = let endianness = endiannessArgToByteOrder endiannessArg in
-    -- We use fromIntegral here, despite advice to the contrary in general when defining builtin
-    -- denotations. This is because, if we've made it this far, we know that overflow or truncation
-    -- are impossible: we've checked that whatever we got given fits inside a (non-negative) Int.
-    case integerToByteString endianness (fromIntegral lengthArg) input of
-      Left err -> case err of
-        NegativeInput -> do
-          emit "integerToByteString: cannot convert negative Integer"
-          -- This does work proportional to the size of input. However, we're in a failing case
-          -- anyway, and the user's paid for work proportional to this size in any case.
-          emit $ "Input: " <> (pack . show $ input)
-          evaluationFailure
-        NotEnoughDigits -> do
-          emit "integerToByteString: cannot represent Integer in given number of bytes"
-          -- This does work proportional to the size of input. However, we're in a failing case
-          -- anyway, and the user's paid for work proportional to this size in any case.
-          emit $ "Input: " <> (pack . show $ input)
-          emit $ "Bytes requested: " <> (pack . show $ lengthArg)
-          evaluationFailure
-      Right result -> pure result
+  | ( lengthArg == 0 -- integerLog2 n is one less than the number of significant bits in n
+        && fromIntegral (integerLog2 input) >= 8 * integerToByteStringMaximumOutputLength
+    ) =
+      let bytesRequiredFor n = (integerLog2 n) `div` 8 + 1
+       in -- \^ This gives 1 instead of 0 for n=0, but we'll never get that.
+          do
+            emit . pack $
+              "integerToByteString: input too long (maximum is 2^"
+                ++ (show (8 * integerToByteStringMaximumOutputLength))
+                ++ "-1)"
+            emit $ "Length required: " <> (pack . show $ bytesRequiredFor input)
+            evaluationFailure
+  | otherwise =
+      let endianness = endiannessArgToByteOrder endiannessArg
+       in -- We use fromIntegral here, despite advice to the contrary in general when defining builtin
+          -- denotations. This is because, if we've made it this far, we know that overflow or truncation
+          -- are impossible: we've checked that whatever we got given fits inside a (non-negative) Int.
+          case integerToByteString endianness (fromIntegral lengthArg) input of
+            Left err -> case err of
+              NegativeInput -> do
+                emit "integerToByteString: cannot convert negative Integer"
+                -- This does work proportional to the size of input. However, we're in a failing case
+                -- anyway, and the user's paid for work proportional to this size in any case.
+                emit $ "Input: " <> (pack . show $ input)
+                evaluationFailure
+              NotEnoughDigits -> do
+                emit "integerToByteString: cannot represent Integer in given number of bytes"
+                -- This does work proportional to the size of input. However, we're in a failing case
+                -- anyway, and the user's paid for work proportional to this size in any case.
+                emit $ "Input: " <> (pack . show $ input)
+                emit $ "Bytes requested: " <> (pack . show $ lengthArg)
+                evaluationFailure
+            Right result -> pure result
 
 -- | Wrapper for 'byteStringToInteger' to make it more convenient to define as a builtin.
 byteStringToIntegerWrapper ::
   Bool -> ByteString -> Integer
 byteStringToIntegerWrapper statedEndiannessArg input =
-  let endianness = endiannessArgToByteOrder statedEndiannessArg in
-    byteStringToInteger endianness input
+  let endianness = endiannessArgToByteOrder statedEndiannessArg
+   in byteStringToInteger endianness input
 
 -- | Structured type to help indicate conversion errors.
-data IntegerToByteStringError =
-  NegativeInput |
-  NotEnoughDigits
+data IntegerToByteStringError
+  = NegativeInput
+  | NotEnoughDigits
   deriving stock (Eq, Show)
 
--- | Conversion from 'Integer' to 'ByteString', as per
--- [CIP-0087](https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-XXXX).
---
--- For performance and clarity, the endianness argument uses
--- 'ByteOrder', and the length argument is an 'Int'.
+{- | Conversion from 'Integer' to 'ByteString', as per
+[CIP-0087](https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-XXXX).
+
+For performance and clarity, the endianness argument uses
+'ByteOrder', and the length argument is an 'Int'.
+-}
 integerToByteString :: ByteOrder -> Int -> Integer -> Either IntegerToByteStringError ByteString
 integerToByteString requestedByteOrder requestedLength input
   | input < 0 = Left NegativeInput
@@ -130,14 +136,14 @@ integerToByteString requestedByteOrder requestedLength input
   -- we can. See Note [Manual specialization] for details.
   | requestedLength == 0 = Right . Builder.builderBytes $ case requestedByteOrder of
       LittleEndian -> goLENoLimit mempty input
-      BigEndian    -> goBENoLimit mempty input
+      BigEndian -> goBENoLimit mempty input
   | otherwise = do
       let result = case requestedByteOrder of
-                    LittleEndian -> goLELimit mempty input
-                    BigEndian    -> goBELimit mempty input
+            LittleEndian -> goLELimit mempty input
+            BigEndian -> goBELimit mempty input
       case result of
         Nothing -> Left NotEnoughDigits
-        Just b  -> Right . Builder.builderBytes $ b
+        Just b -> Right . Builder.builderBytes $ b
   where
     goLELimit :: Builder -> Integer -> Maybe Builder
     goLELimit acc remaining
@@ -178,11 +184,12 @@ integerToByteString requestedByteOrder requestedLength input
     goLENoLimit :: Builder -> Integer -> Builder
     goLENoLimit acc remaining
       | remaining == 0 = acc
-      | otherwise = let newRemaining = remaining `unsafeShiftR` 64
-                        digitGroup :: Word64 = fromInteger remaining
-                      in case newRemaining of
-                        0 -> finishLENoLimit acc digitGroup
-                        _ -> goLENoLimit (acc <> Builder.storable digitGroup) newRemaining
+      | otherwise =
+          let newRemaining = remaining `unsafeShiftR` 64
+              digitGroup :: Word64 = fromInteger remaining
+           in case newRemaining of
+                0 -> finishLENoLimit acc digitGroup
+                _ -> goLENoLimit (acc <> Builder.storable digitGroup) newRemaining
     finishLENoLimit :: Builder -> Word64 -> Builder
     finishLENoLimit acc remaining
       | remaining == 0 = acc
@@ -191,8 +198,9 @@ integerToByteString requestedByteOrder requestedLength input
               digit :: Word8 = fromIntegral remaining
            in finishLENoLimit (acc <> Builder.word8 digit) newRemaining
     padLE :: Builder -> Builder
-    padLE acc = let paddingLength = requestedLength - Builder.builderLength acc
-      in acc <> Builder.bytes (BS.replicate paddingLength 0x0)
+    padLE acc =
+      let paddingLength = requestedLength - Builder.builderLength acc
+       in acc <> Builder.bytes (BS.replicate paddingLength 0x0)
     -- We manually specialize the big-endian case: see Note [Manual specialization] for why.
     goBELimit :: Builder -> Integer -> Maybe Builder
     goBELimit acc remaining
@@ -215,42 +223,46 @@ integerToByteString requestedByteOrder requestedLength input
     goBENoLimit :: Builder -> Integer -> Builder
     goBENoLimit acc remaining
       | remaining == 0 = acc
-      | otherwise = let newRemaining = remaining `unsafeShiftR` 64
-                        digitGroup = fromInteger remaining
-                      in case newRemaining of
-                        0 -> finishBENoLimit acc digitGroup
-                        _ -> goBENoLimit (Builder.word64BE digitGroup <> acc) newRemaining
+      | otherwise =
+          let newRemaining = remaining `unsafeShiftR` 64
+              digitGroup = fromInteger remaining
+           in case newRemaining of
+                0 -> finishBENoLimit acc digitGroup
+                _ -> goBENoLimit (Builder.word64BE digitGroup <> acc) newRemaining
     finishBENoLimit :: Builder -> Word64 -> Builder
     finishBENoLimit acc remaining
       | remaining == 0 = acc
-      | otherwise = let newRemaining = remaining `unsafeShiftR` 8
-                        digit = fromIntegral remaining
-                      in finishBENoLimit (Builder.word8 digit <> acc) newRemaining
+      | otherwise =
+          let newRemaining = remaining `unsafeShiftR` 8
+              digit = fromIntegral remaining
+           in finishBENoLimit (Builder.word8 digit <> acc) newRemaining
     padBE :: Builder -> Builder
-    padBE acc = let paddingLength = requestedLength - Builder.builderLength acc in
-      Builder.bytes (BS.replicate paddingLength 0x0) <> acc
+    padBE acc =
+      let paddingLength = requestedLength - Builder.builderLength acc
+       in Builder.bytes (BS.replicate paddingLength 0x0) <> acc
 
--- | Conversion from 'ByteString' to 'Integer', as per
--- [CIP-0087](https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-XXXX).
---
--- For clarity, the stated endianness argument uses 'ByteOrder'.
+{- | Conversion from 'ByteString' to 'Integer', as per
+[CIP-0087](https://github.com/mlabs-haskell/CIPs/tree/koz/to-from-bytestring/CIP-XXXX).
+
+For clarity, the stated endianness argument uses 'ByteOrder'.
+-}
 byteStringToInteger :: ByteOrder -> ByteString -> Integer
-  -- We use manual specialization to ensure as few branches in loop bodies as we can. See Note
-  -- [Manual specialization] for details.
+-- We use manual specialization to ensure as few branches in loop bodies as we can. See Note
+-- [Manual specialization] for details.
 byteStringToInteger statedByteOrder input = case statedByteOrder of
-    -- Since padding bytes in the most-significant-last representation go at
-    -- the end of the input, we can skip decoding them, as they won't affect
-    -- the result in any way.
-    LittleEndian -> case BS.findIndexEnd (/= 0x00) input of
-      -- If there are no nonzero bytes, it must be zero.
-      Nothing  -> 0
-      Just end -> goLE 0 end 0
-    -- Since padding bytes in the most-significant-first representation go at
-    -- the beginning of the input, we can skip decoding them, as they won't
-    -- affect the result in any way.
-    BigEndian -> case BS.findIndex (/= 0x00) input of
-      Nothing  -> 0
-      Just end -> goBE 0 end 0 (BS.length input - 1)
+  -- Since padding bytes in the most-significant-last representation go at
+  -- the end of the input, we can skip decoding them, as they won't affect
+  -- the result in any way.
+  LittleEndian -> case BS.findIndexEnd (/= 0x00) input of
+    -- If there are no nonzero bytes, it must be zero.
+    Nothing -> 0
+    Just end -> goLE 0 end 0
+  -- Since padding bytes in the most-significant-first representation go at
+  -- the beginning of the input, we can skip decoding them, as they won't
+  -- affect the result in any way.
+  BigEndian -> case BS.findIndex (/= 0x00) input of
+    Nothing -> 0
+    Just end -> goBE 0 end 0 (BS.length input - 1)
   where
     -- Like with toByteString, we use loop sectioning to decode eight digits at once. See Note [Loop
     -- sectioning] for why we do this.
@@ -267,7 +279,7 @@ byteStringToInteger statedByteOrder input = case statedByteOrder of
               -- multiplication by 2^64*k, but significantly faster, as GHC doesn't optimize
               -- such multiplications into shifts for Integers.
               newAcc = acc + fromIntegral digitGroup `unsafeShiftL` shift
-            in goLE newAcc limit newIx
+           in goLE newAcc limit newIx
       | otherwise = finishLE acc limit ix
     finishLE :: Integer -> Int -> Int -> Integer
     finishLE acc limit ix
@@ -279,7 +291,7 @@ byteStringToInteger statedByteOrder input = case statedByteOrder of
               -- Similarly to before, we use unsafeShiftL to move a single digit into the right
               -- position in the result.
               newAcc = acc + fromIntegral digit `unsafeShiftL` shift
-            in finishLE newAcc limit newIx
+           in finishLE newAcc limit newIx
     -- Technically, ByteString does not allow reading of anything bigger than a single byte.
     -- However, because ByteStrings are counted arrays, caching already brings in adjacent bytes,
     -- which makes fetching them quite cheap. Additionally, GHC appears to optimize this into a
@@ -412,9 +424,9 @@ bytes, the remaining 56 bits of the GPR holding that data are essentially
 'wasted'. In the situation we have (namely, operating over arrays, whose data
 is adjacent in memory), we thus get two sources of inefficiency:
 
-* Despite paying the cost for a memory transfer, we transfer only one-eighth
+\* Despite paying the cost for a memory transfer, we transfer only one-eighth
   the data we could; and
-* Despite transferring data from memory to registers, we utilize the register
+\* Despite transferring data from memory to registers, we utilize the register
   at only one-eighth capacity.
 
 This essentially means we perform _eight times_ more rotations of the loop,

@@ -1,13 +1,14 @@
-{-# LANGUAGE LambdaCase   #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ViewPatterns #-}
-{-|
+
+{- |
 A simple beta-reduction pass.
 -}
 module PlutusIR.Transform.Beta (
   beta,
   betaPass,
-  betaPassSC
-  ) where
+  betaPassSC,
+) where
 
 import Control.Lens (over)
 import Data.List.NonEmpty qualified as NE
@@ -78,7 +79,7 @@ because in order to check that `b` and `y` have the same type, we need to know t
 but we don't - type-lets are opaque inside their bodies.
 -}
 
-{-| Extract the list of bindings from a term, a bit like a "multi-beta" reduction.
+{- | Extract the list of bindings from a term, a bit like a "multi-beta" reduction.
 
 Some examples will help:
 
@@ -89,21 +90,21 @@ Some examples will help:
 [[(\x . t) a] b] -> Nothing
 -}
 extractBindings ::
-  Term tyname name uni fun a
-  -> Maybe (NE.NonEmpty (Binding tyname name uni fun a), Term tyname name uni fun a)
+  Term tyname name uni fun a ->
+  Maybe (NE.NonEmpty (Binding tyname name uni fun a), Term tyname name uni fun a)
 extractBindings = collectArgs []
   where
-      collectArgs argStack (Apply _ f arg) = collectArgs (arg:argStack) f
-      collectArgs argStack t               = matchArgs argStack [] t
-      matchArgs (arg:rest) acc (LamAbs a n ty body) =
-        matchArgs rest (TermBind a Strict (VarDecl a n ty) arg:acc) body
-      matchArgs []         acc t                    =
-          case NE.nonEmpty (reverse acc) of
-              Nothing   -> Nothing
-              Just acc' -> Just (acc', t)
-      matchArgs (_:_)      _   _                    = Nothing
+    collectArgs argStack (Apply _ f arg) = collectArgs (arg : argStack) f
+    collectArgs argStack t = matchArgs argStack [] t
+    matchArgs (arg : rest) acc (LamAbs a n ty body) =
+      matchArgs rest (TermBind a Strict (VarDecl a n ty) arg : acc) body
+    matchArgs [] acc t =
+      case NE.nonEmpty (reverse acc) of
+        Nothing -> Nothing
+        Just acc' -> Just (acc', t)
+    matchArgs (_ : _) _ _ = Nothing
 
-{-|
+{- |
 Recursively apply the beta transformation on the code, both for the terms
 
 @
@@ -120,11 +121,10 @@ and types
     let a : * = A in
     (\ (x : A). x)
 @
-
 -}
-beta
-    :: Term tyname name uni fun a
-    -> Term tyname name uni fun a
+beta ::
+  Term tyname name uni fun a ->
+  Term tyname name uni fun a
 beta = over termSubterms beta . localTransform
   where
     localTransform = \case
@@ -133,20 +133,20 @@ beta = over termSubterms beta . localTransform
       (extractBindings -> Just (bs, t)) -> Let (termAnn t) NonRec bs t
       -- See Note [Multi-beta] for why we don't perform multi-beta on `TyInst`.
       TyInst _ (TyAbs a n k body) tyArg ->
-          let b = TypeBind a (TyVarDecl a n k) tyArg
-          in Let (termAnn body) NonRec (pure b) body
+        let b = TypeBind a (TyVarDecl a n k) tyArg
+         in Let (termAnn body) NonRec (pure b) body
       t -> t
 
-betaPassSC
-  :: (PLC.Typecheckable uni fun, PLC.GEq uni, PLC.MonadQuote m, Ord a)
-  => TC.PirTCConfig uni fun
-  -> Pass m TyName Name uni fun a
+betaPassSC ::
+  (PLC.Typecheckable uni fun, PLC.GEq uni, PLC.MonadQuote m, Ord a) =>
+  TC.PirTCConfig uni fun ->
+  Pass m TyName Name uni fun a
 betaPassSC tcconfig = renamePass <> betaPass tcconfig
 
-betaPass
-  :: (PLC.Typecheckable uni fun, PLC.GEq uni, Applicative m, Ord a)
-  => TC.PirTCConfig uni fun
-  -> Pass m TyName Name uni fun a
+betaPass ::
+  (PLC.Typecheckable uni fun, PLC.GEq uni, Applicative m, Ord a) =>
+  TC.PirTCConfig uni fun ->
+  Pass m TyName Name uni fun a
 betaPass tcconfig =
   NamedPass "beta" $
     Pass

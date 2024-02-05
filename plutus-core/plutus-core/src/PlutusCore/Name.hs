@@ -1,10 +1,10 @@
-{-# LANGUAGE DefaultSignatures      #-}
-{-# LANGUAGE DeriveAnyClass         #-}
-{-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE DefaultSignatures #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE OverloadedStrings      #-}
-{-# LANGUAGE TemplateHaskell        #-}
-{-# LANGUAGE TypeApplications       #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
 
 module PlutusCore.Name (
   -- * Types
@@ -55,7 +55,7 @@ import Language.Haskell.TH.Syntax (Lift)
 
 -- | A 'Name' represents variables/names in Plutus Core.
 data Name = Name
-  { _nameText   :: T.Text
+  { _nameText :: T.Text
   -- ^ The identifier name, for use in error messages.
   , _nameUnique :: Unique
   -- ^ A 'Unique' assigned to the name, allowing for cheap comparisons in the compiler.
@@ -81,7 +81,7 @@ isQuotedIdentifierChar c =
 isValidUnquotedName :: Text -> Bool
 isValidUnquotedName n = case T.uncons n of
   Just (hd, tl) -> isIdentifierStartingChar hd && T.all isIdentifierChar tl
-  Nothing       -> False
+  Nothing -> False
 
 {- | Quote the name with backticks if it is not a valid unquoted name.
 It does not check whether the given name is a valid quoted name.
@@ -100,11 +100,11 @@ instance Wrapped TyName
 
 data Named a = Named
   { _namedString :: Text
-  , _namedValue  :: a
+  , _namedValue :: a
   }
   deriving stock (Functor, Foldable, Traversable)
 
-instance (HasPrettyConfigName config) => PrettyBy config Name where
+instance HasPrettyConfigName config => PrettyBy config Name where
   prettyBy config (Name txt (Unique uniq))
     -- See Note [Pretty-printing names with uniques]
     | showsUnique = pretty . toPrintedName $ txt <> "_" <> render (pretty uniq)
@@ -162,7 +162,7 @@ instance HasText TyName where
   theText = coerced . theText @Name
 
 -- | Types which have a 'Unique' attached to them, mostly names.
-class (Coercible unique Unique) => HasUnique a unique | a -> unique where
+class Coercible unique Unique => HasUnique a unique | a -> unique where
   unique :: Lens' a unique
 
   -- | The default implementation of 'HasUnique' for newtypes.
@@ -180,7 +180,7 @@ instance HasUnique Name TermUnique where
 instance HasUnique TyName TypeUnique
 
 -- | A lens focused on the 'Unique' of a name.
-theUnique :: (HasUnique name unique) => Lens' name Unique
+theUnique :: HasUnique name unique => Lens' name Unique
 theUnique = unique . coerced
 
 -- | A mapping from uniques to values of type @a@.
@@ -191,7 +191,7 @@ newtype UniqueMap unique a = UniqueMap
 
 -- | Insert a value by a unique.
 insertByUnique ::
-  (Coercible unique Unique) =>
+  Coercible unique Unique =>
   unique ->
   a ->
   UniqueMap unique a ->
@@ -199,7 +199,7 @@ insertByUnique ::
 insertByUnique uniq = coerce . IM.insert (coerce uniq)
 
 -- | Insert a value by the unique of a name.
-insertByName :: (HasUnique name unique) => name -> a -> UniqueMap unique a -> UniqueMap unique a
+insertByName :: HasUnique name unique => name -> a -> UniqueMap unique a -> UniqueMap unique a
 insertByName = insertByUnique . view unique
 
 -- | Insert a named value by the index of the unique of the name.
@@ -225,26 +225,26 @@ insertByNameIndex = insertByUnique . coerce . view unique
 
 -- | Convert a 'Foldable' into a 'UniqueMap' using the given insertion function.
 fromFoldable ::
-  (Foldable f) =>
+  Foldable f =>
   (i -> a -> UniqueMap unique a -> UniqueMap unique a) ->
   f (i, a) ->
   UniqueMap unique a
 fromFoldable ins = foldl' (flip $ uncurry ins) mempty
 
 -- | Convert a 'Foldable' with uniques into a 'UniqueMap'.
-fromUniques :: (Foldable f) => (Coercible Unique unique) => f (unique, a) -> UniqueMap unique a
+fromUniques :: Foldable f => Coercible Unique unique => f (unique, a) -> UniqueMap unique a
 fromUniques = fromFoldable insertByUnique
 
 -- | Convert a 'Foldable' with names into a 'UniqueMap'.
-fromNames :: (Foldable f) => (HasUnique name unique) => f (name, a) -> UniqueMap unique a
+fromNames :: Foldable f => HasUnique name unique => f (name, a) -> UniqueMap unique a
 fromNames = fromFoldable insertByName
 
 -- | Look up a value by a unique.
-lookupUnique :: (Coercible unique Unique) => unique -> UniqueMap unique a -> Maybe a
+lookupUnique :: Coercible unique Unique => unique -> UniqueMap unique a -> Maybe a
 lookupUnique uniq = IM.lookup (coerce uniq) . unUniqueMap
 
 -- | Look up a value by the unique of a name.
-lookupName :: (HasUnique name unique) => name -> UniqueMap unique a -> Maybe a
+lookupName :: HasUnique name unique => name -> UniqueMap unique a -> Maybe a
 lookupName = lookupUnique . view unique
 
 {- | Look up a value by the index of the unique of a name.

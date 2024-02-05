@@ -1,13 +1,13 @@
-{-# LANGUAGE ConstraintKinds       #-}
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 -- | A "readable" Agda-like way to pretty-print PLC entities.
 module PlutusCore.Pretty.Readable (
@@ -39,9 +39,9 @@ instance Default ShowKinds where
 
 -- | Configuration for the readable pretty-printing.
 data PrettyConfigReadable configName = PrettyConfigReadable
-  { _pcrConfigName    :: configName
+  { _pcrConfigName :: configName
   , _pcrRenderContext :: RenderContext
-  , _pcrShowKinds     :: ShowKinds
+  , _pcrShowKinds :: ShowKinds
   }
 
 type instance HasPrettyDefaults (PrettyConfigReadable _) = 'True
@@ -51,8 +51,9 @@ type PrettyReadableBy configName = PrettyBy (PrettyConfigReadable configName)
 
 type PrettyReadable = PrettyReadableBy PrettyConfigName
 
--- | A constraint for \"@m@ is a monad that allows for pretty-printing values via a
--- 'PrettyConfigReadable'.
+{- | A constraint for \"@m@ is a monad that allows for pretty-printing values via a
+'PrettyConfigReadable'.
+-}
 type MonadPrettyReadable configName env m = MonadPretty (PrettyConfigReadable configName) env m
 
 type HasPrettyConfigReadable env configName =
@@ -61,7 +62,7 @@ type HasPrettyConfigReadable env configName =
 makeLenses ''PrettyConfigReadable
 
 instance
-  (configName ~ PrettyConfigName) =>
+  configName ~ PrettyConfigName =>
   HasPrettyConfigName (PrettyConfigReadable configName)
   where
   toPrettyConfigName = _pcrConfigName
@@ -89,34 +90,38 @@ instance
   defaultPrettyBy config (AsReadable x) =
     prettyBy (botPrettyConfigReadable (toPrettyConfigName config) def) x
 
-instance (PrettyReadable a) => Show (AsReadable a) where
+instance PrettyReadable a => Show (AsReadable a) where
   show = displayBy $ Sole defPrettyConfigName
 
-instance (PrettyReadable a) => Pretty (AsReadable a) where
+instance PrettyReadable a => Pretty (AsReadable a) where
   pretty = viaShow
 
 deriving via
   PrettyCommon (AsReadable a)
   instance
-    (PrettyDefaultBy config (AsReadable a)) => PrettyBy config (AsReadable a)
+    PrettyDefaultBy config (AsReadable a) => PrettyBy config (AsReadable a)
 
 -- | A value of type @a@ to render in parens using the readable pretty-printer.
 data Parened a = Parened
-    { parenOpening :: String
-    , parenClosing :: String
-    , parenedValue :: a
-    }
+  { parenOpening :: String
+  , parenClosing :: String
+  , parenedValue :: a
+  }
 
-instance PrettyReadableBy configName a =>
-        PrettyBy (PrettyConfigReadable configName) (Parened a) where
-    prettyBy config (Parened opening closing x) = fold
-        [ pretty opening
-        , prettyBy (config & renderContext .~ botRenderContext) x
-        , pretty closing
-        ]
+instance
+  PrettyReadableBy configName a =>
+  PrettyBy (PrettyConfigReadable configName) (Parened a)
+  where
+  prettyBy config (Parened opening closing x) =
+    fold
+      [ pretty opening
+      , prettyBy (config & renderContext .~ botRenderContext) x
+      , pretty closing
+      ]
 
--- | Enclose the given value, so that it's rendered inside of braces with no additional parens
--- regardless of the 'RenderContext'.
+{- | Enclose the given value, so that it's rendered inside of braces with no additional parens
+regardless of the 'RenderContext'.
+-}
 inBraces :: a -> Parened a
 inBraces = Parened "{" "}"
 
@@ -159,7 +164,7 @@ iterBinderPrettyM ::
 iterBinderPrettyM enframe args body =
   infixDocM binderFixity $ \prettyBind prettyBody ->
     let prettyBinds = align . sep $ map prettyBind args
-    in enframe prettyBinds <?> prettyBody body
+     in enframe prettyBinds <?> prettyBody body
 
 -- | Lay out an iterated 'TyForall' via 'iterBinderPrettyM'.
 iterTyForallPrettyM ::
@@ -207,18 +212,19 @@ iterArrowPrettyM args res =
 -- | The type of a 'PrettyConfigReadable'-based pretty-printer, similar to 'AnyToDoc'.
 type ReadableToDoc configName ann = forall a. PrettyReadableBy configName a => a -> Doc ann
 
--- | Lay out an iteration application, providing to the caller a function to render the head of the
--- application and a function to render each of the arguments.
+{- | Lay out an iteration application, providing to the caller a function to render the head of the
+application and a function to render each of the arguments.
+-}
 iterAppDocM ::
-   MonadPrettyContext config env m =>
-   (AnyToDoc config ann -> AnyToDoc config ann -> NonEmpty (Doc ann)) ->
-   m (Doc ann)
+  MonadPrettyContext config env m =>
+  (AnyToDoc config ann -> AnyToDoc config ann -> NonEmpty (Doc ann)) ->
+  m (Doc ann)
 iterAppDocM k =
   infixDocM juxtFixity $ \prettyFun prettyArg ->
     let fun :| args = k prettyFun prettyArg
-    in if null args
-        then fun
-        else fun <?> vsep args
+     in if null args
+          then fun
+          else fun <?> vsep args
 
 {- | Lay out iterated function applications either as
 
@@ -233,7 +239,8 @@ or as
 -}
 iterAppPrettyM ::
   ( MonadPrettyContext config env m
-  , PrettyBy config fun, PrettyBy config term
+  , PrettyBy config fun
+  , PrettyBy config term
   ) =>
   fun ->
   [term] ->
@@ -268,6 +275,6 @@ iterInterAppPrettyM ::
   m (Doc ann)
 iterInterAppPrettyM fun args =
   iterAppDocM $ \prettyFun prettyArg ->
-    let ppArg (Left ty)    = prettyArg $ inBraces ty
+    let ppArg (Left ty) = prettyArg $ inBraces ty
         ppArg (Right term) = prettyArg term
-    in prettyFun fun :| map ppArg args
+     in prettyFun fun :| map ppArg args

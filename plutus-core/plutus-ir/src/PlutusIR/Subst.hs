@@ -1,5 +1,5 @@
-{-# LANGUAGE LambdaCase          #-}
-{-# LANGUAGE RankNTypes          #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module PlutusIR.Subst (
@@ -26,10 +26,10 @@ import Data.Set.Lens (setOf)
 import Data.Traversable (mapAccumL)
 
 -- | Get all the free term variables in a PIR term.
-fvTerm :: (Ord name) => Traversal' (Term tyname name uni fun ann) name
+fvTerm :: Ord name => Traversal' (Term tyname name uni fun ann) name
 fvTerm = fvTermCtx mempty
 
-fvTermCtx :: (Ord name) => S.Set name -> Traversal' (Term tyname name uni fun ann) name
+fvTermCtx :: Ord name => S.Set name -> Traversal' (Term tyname name uni fun ann) name
 fvTermCtx bound f = \case
   Let a r@NonRec bs tIn ->
     let fvLinearScope boundSoFar b =
@@ -44,10 +44,10 @@ fvTermCtx bound f = \case
   t -> (termSubterms . fvTermCtx bound) f t
 
 -- | Get all the free type variables in a PIR term.
-ftvTerm :: (Ord tyname) => Traversal' (Term tyname name uni fun ann) tyname
+ftvTerm :: Ord tyname => Traversal' (Term tyname name uni fun ann) tyname
 ftvTerm = ftvTermCtx mempty
 
-ftvTermCtx :: (Ord tyname) => Set tyname -> Traversal' (Term tyname name uni fun ann) tyname
+ftvTermCtx :: Ord tyname => Set tyname -> Traversal' (Term tyname name uni fun ann) tyname
 ftvTermCtx bound f = \case
   Let a r@NonRec bs tIn ->
     let ftvLinearScope bound' b =
@@ -62,18 +62,18 @@ ftvTermCtx bound f = \case
   t -> ((termSubterms . ftvTermCtx bound) `Unsound.adjoin` (termSubtypes . ftvTyCtx bound)) f t
 
 -- | Get all the free variables in a PIR single let-binding.
-fvBinding :: (Ord name) => Traversal' (Binding tyname name uni fun ann) name
+fvBinding :: Ord name => Traversal' (Binding tyname name uni fun ann) name
 fvBinding = fvBindingCtx mempty
 
-fvBindingCtx :: (Ord name) => Set name -> Traversal' (Binding tyname name uni fun ann) name
+fvBindingCtx :: Ord name => Set name -> Traversal' (Binding tyname name uni fun ann) name
 fvBindingCtx bound = bindingSubterms . fvTermCtx bound
 
 -- | Get all the free type variables in a PIR single let-binding.
-ftvBinding :: (Ord tyname) => Recursivity -> Traversal' (Binding tyname name uni fun ann) tyname
+ftvBinding :: Ord tyname => Recursivity -> Traversal' (Binding tyname name uni fun ann) tyname
 ftvBinding r = ftvBindingCtx r mempty
 
 ftvBindingCtx ::
-  (Ord tyname) =>
+  Ord tyname =>
   Recursivity ->
   Set tyname ->
   Traversal' (Binding tyname name uni fun ann) tyname
@@ -88,7 +88,7 @@ ftvBindingCtx r bound f = \case
       b
 
 ftvDatatypeCtx ::
-  (Ord tyname) =>
+  Ord tyname =>
   Recursivity ->
   Set tyname ->
   Traversal' (Datatype tyname name uni ann) tyname
@@ -119,17 +119,18 @@ ftvDatatypeCtx r bound f d@(Datatype a tyconstr tyvars destr constrs) =
 -- | Traverse the arguments of a function type (nothing if the type is not a function type).
 funArgs :: Traversal' (Type tyname uni a) (Type tyname uni a)
 funArgs f = \case
-  TyFun a dom cod@TyFun{} -> TyFun a <$> f dom <*> funArgs f cod
-  TyFun a dom res         -> TyFun a <$> f dom <*> pure res
-  t                       -> pure t
+  TyFun a dom cod@TyFun {} -> TyFun a <$> f dom <*> funArgs f cod
+  TyFun a dom res -> TyFun a <$> f dom <*> pure res
+  t -> pure t
 
 -- | Traverse the result type of a function type (the type itself if it is not a function type).
 funRes :: Lens' (Type tyname uni a) (Type tyname uni a)
 funRes f = \case
   TyFun a dom cod -> TyFun a dom <$> funRes f cod
-  t               -> f t
+  t -> f t
 
 -- TODO: these could be Traversals
+
 -- | Get all the term variables in a term.
 vTerm :: Fold (Term tyname name uni fun ann) name
 vTerm = termSubtermsDeep . termVars

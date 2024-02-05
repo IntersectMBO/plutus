@@ -1,10 +1,10 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE DeriveAnyClass        #-}
-{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE StrictData            #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE StrictData #-}
 
 {- Note [Strict Data for budgeting]
 
@@ -74,7 +74,7 @@ possible to adjust them at runtime.
 
 -}
 
-{-| Note [Budgeting units]
+{- | Note [Budgeting units]
 
  We use picoseconds for measuring times and words for measuring memory usage.
  Some care is required with time units because different units are used in
@@ -133,15 +133,14 @@ possible to adjust them at runtime.
  random inputs and check that they agree to within one part in 10,000, which
  is well within the accuracy we require for the cost model.
 -}
-
-module PlutusCore.Evaluation.Machine.ExBudget
-    ( ExBudget(..)
-    , minusExBudget
-    , ExBudgetBuiltin(..)
-    , ExRestrictingBudget(..)
-    , LowerIntialCharacter
-    , enormousBudget
-    ) where
+module PlutusCore.Evaluation.Machine.ExBudget (
+  ExBudget (..),
+  minusExBudget,
+  ExBudgetBuiltin (..),
+  ExRestrictingBudget (..),
+  LowerIntialCharacter,
+  enormousBudget,
+) where
 
 import PlutusCore.Evaluation.Machine.ExMemory
 import PlutusPrelude hiding (toList)
@@ -154,61 +153,70 @@ import Language.Haskell.TH.Lift (Lift)
 import NoThunks.Class
 import Prettyprinter
 
-
--- | This is used elsewhere to convert cost models into JSON objects where the
--- names of the fields are exactly the same as the names of the builtins.
+{- | This is used elsewhere to convert cost models into JSON objects where the
+names of the fields are exactly the same as the names of the builtins.
+-}
 data LowerIntialCharacter
+
 instance StringModifier LowerIntialCharacter where
-  getStringModifier ""       = ""
+  getStringModifier "" = ""
   getStringModifier (c : xs) = toLower c : xs
 
--- | A class for injecting a 'Builtin' into an @exBudgetCat@.
--- We need it, because the constant application machinery calls 'spendBudget' before reducing a
--- constant application and we want to be general over @exBudgetCat@ there, but still track the
--- built-in functions category, hence the ad hoc polymorphism.
+{- | A class for injecting a 'Builtin' into an @exBudgetCat@.
+We need it, because the constant application machinery calls 'spendBudget' before reducing a
+constant application and we want to be general over @exBudgetCat@ there, but still track the
+built-in functions category, hence the ad hoc polymorphism.
+-}
 class ExBudgetBuiltin fun exBudgetCat where
-    exBudgetBuiltin :: fun -> exBudgetCat
+  exBudgetBuiltin :: fun -> exBudgetCat
 
 -- | A dummy 'ExBudgetBuiltin' instance to be used in monads where we don't care about costing.
 instance ExBudgetBuiltin fun () where
-    exBudgetBuiltin _ = ()
+  exBudgetBuiltin _ = ()
 
-data ExBudget = ExBudget { exBudgetCPU :: ExCPU, exBudgetMemory :: ExMemory }
-    deriving stock (Eq, Show, Generic, Lift)
-    deriving anyclass (PrettyBy config, NFData, NoThunks, Serialise)
-    deriving (FromJSON, ToJSON) via CustomJSON '[FieldLabelModifier LowerIntialCharacter] ExBudget
-    -- LowerIntialCharacter won't actually do anything here, but let's have it in case we change the field names.
+data ExBudget = ExBudget {exBudgetCPU :: ExCPU, exBudgetMemory :: ExMemory}
+  deriving stock (Eq, Show, Generic, Lift)
+  deriving anyclass (PrettyBy config, NFData, NoThunks, Serialise)
+  deriving (FromJSON, ToJSON) via CustomJSON '[FieldLabelModifier LowerIntialCharacter] ExBudget
+
+-- LowerIntialCharacter won't actually do anything here, but let's have it in case we change the field names.
 
 -- | Subract one 'ExBudget' from another. Does not guarantee that the result is positive.
 minusExBudget :: ExBudget -> ExBudget -> ExBudget
-minusExBudget (ExBudget c1 m1) (ExBudget c2 m2) = ExBudget (c1-c2) (m1-m2)
+minusExBudget (ExBudget c1 m1) (ExBudget c2 m2) = ExBudget (c1 - c2) (m1 - m2)
 {-# INLINE minusExBudget #-}
 
 -- These functions are performance critical, so we can't use GenericSemigroupMonoid, and we insist that they be inlined.
 instance Semigroup ExBudget where
-    {-# INLINE (<>) #-}
-    (ExBudget cpu1 mem1) <> (ExBudget cpu2 mem2) = ExBudget (cpu1 <> cpu2) (mem1 <> mem2)
-    -- This absolutely must be inlined so that the 'fromIntegral' calls can get optimized away, or it destroys performance
-    {-# INLINE stimes #-}
-    stimes r (ExBudget (ExCPU cpu) (ExMemory mem)) = ExBudget (ExCPU (fromIntegral r * cpu)) (ExMemory (fromIntegral r * mem))
+  {-# INLINE (<>) #-}
+  (ExBudget cpu1 mem1) <> (ExBudget cpu2 mem2) = ExBudget (cpu1 <> cpu2) (mem1 <> mem2)
+
+  -- This absolutely must be inlined so that the 'fromIntegral' calls can get optimized away, or it destroys performance
+  {-# INLINE stimes #-}
+  stimes r (ExBudget (ExCPU cpu) (ExMemory mem)) = ExBudget (ExCPU (fromIntegral r * cpu)) (ExMemory (fromIntegral r * mem))
 
 instance Monoid ExBudget where
-    mempty = ExBudget mempty mempty
-    {-# INLINE mempty #-}
+  mempty = ExBudget mempty mempty
+  {-# INLINE mempty #-}
 
 instance Pretty ExBudget where
-    pretty (ExBudget cpu memory) = parens $ braces $ vsep
-        [ "cpu:" <+> pretty cpu
-        , "| mem:" <+> pretty memory
-        ]
+  pretty (ExBudget cpu memory) =
+    parens $
+      braces $
+        vsep
+          [ "cpu:" <+> pretty cpu
+          , "| mem:" <+> pretty memory
+          ]
 
 newtype ExRestrictingBudget = ExRestrictingBudget
-    { unExRestrictingBudget :: ExBudget
-    } deriving stock (Show, Eq)
-      deriving newtype (Semigroup, Monoid)
-      deriving newtype (Pretty, PrettyBy config, NFData)
+  { unExRestrictingBudget :: ExBudget
+  }
+  deriving stock (Show, Eq)
+  deriving newtype (Semigroup, Monoid)
+  deriving newtype (Pretty, PrettyBy config, NFData)
 
--- | When we want to just evaluate the program we use the 'Restricting' mode with an enormous
--- budget, so that evaluation costs of on-chain budgeting are reflected accurately in benchmarks.
+{- | When we want to just evaluate the program we use the 'Restricting' mode with an enormous
+budget, so that evaluation costs of on-chain budgeting are reflected accurately in benchmarks.
+-}
 enormousBudget :: ExRestrictingBudget
 enormousBudget = ExRestrictingBudget $ ExBudget maxBound maxBound

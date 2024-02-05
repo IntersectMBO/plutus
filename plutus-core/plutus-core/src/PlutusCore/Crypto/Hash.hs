@@ -1,12 +1,13 @@
--- | Hash functions for lazy [[Data.ByteString.ByteString]]s
 {-# LANGUAGE TypeApplications #-}
-module PlutusCore.Crypto.Hash
-    ( sha2_256
-    , sha3_256
-    , blake2b_224
-    , blake2b_256
-    , keccak_256
-    ) where
+
+-- | Hash functions for lazy [[Data.ByteString.ByteString]]s
+module PlutusCore.Crypto.Hash (
+  sha2_256,
+  sha3_256,
+  blake2b_224,
+  blake2b_256,
+  keccak_256,
+) where
 
 import Cardano.Crypto.Hash.Blake2b
 import Cardano.Crypto.Hash.Class
