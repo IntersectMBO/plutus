@@ -1,18 +1,18 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE BangPatterns        #-}
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE MagicHash           #-}
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE MagicHash #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeApplications    #-}
-{-# LANGUAGE UnboxedTuples       #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE UnboxedTuples #-}
+{-# OPTIONS_GHC -Wno-name-shadowing #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
-{-# OPTIONS_GHC -Wno-name-shadowing #-}
 
 module Plugin.Functions.Spec where
 
@@ -30,61 +30,76 @@ import PlutusTx.Test
 import Data.Proxy
 
 functions :: TestNested
-functions = testNestedGhc "Functions" [
-    recursiveFunctions
+functions =
+  testNestedGhc
+    "Functions"
+    [ recursiveFunctions
     , unfoldings
-  ]
+    ]
 
 recursiveFunctions :: TestNested
-recursiveFunctions = testNested "recursive" [
-    goldenPir "fib" fib
-    , goldenUEval "fib4" [ toUPlc fib, toUPlc $ plc (Proxy @"4") (4::Integer) ]
+recursiveFunctions =
+  testNested
+    "recursive"
+    [ goldenPir "fib" fib
+    , goldenUEval "fib4" [toUPlc fib, toUPlc $ plc (Proxy @"4") (4 :: Integer)]
     , goldenPir "sum" sumDirect
-    , goldenUEval "sumList" [ toUPlc sumDirect, toUPlc listConstruct3 ]
+    , goldenUEval "sumList" [toUPlc sumDirect, toUPlc listConstruct3]
     , goldenPir "even" evenMutual
-    , goldenUEval "even3" [ toUPlc evenMutual, toUPlc $ plc (Proxy @"3") (3::Integer) ]
-    , goldenUEval "even4" [ toUPlc evenMutual, toUPlc $ plc (Proxy @"4") (4::Integer) ]
+    , goldenUEval "even3" [toUPlc evenMutual, toUPlc $ plc (Proxy @"3") (3 :: Integer)]
+    , goldenUEval "even4" [toUPlc evenMutual, toUPlc $ plc (Proxy @"4") (4 :: Integer)]
     , goldenPir "strictLength" strictLength
     , goldenPir "lazyLength" lazyLength
-  ]
+    ]
 
 fib :: CompiledCode (Integer -> Integer)
 -- not using case to avoid literal cases
-fib = plc (Proxy @"fib") (
-    let fib :: Integer -> Integer
-        fib n = if Builtins.equalsInteger n 0
-            then 0
-            else if Builtins.equalsInteger n 1
-            then 1
-            else Builtins.addInteger (fib(Builtins.subtractInteger n 1)) (fib(Builtins.subtractInteger n 2))
-    in fib)
+fib =
+  plc
+    (Proxy @"fib")
+    ( let fib :: Integer -> Integer
+          fib n =
+            if Builtins.equalsInteger n 0
+              then 0
+              else
+                if Builtins.equalsInteger n 1
+                  then 1
+                  else Builtins.addInteger (fib (Builtins.subtractInteger n 1)) (fib (Builtins.subtractInteger n 2))
+       in fib
+    )
 
 sumDirect :: CompiledCode ([Integer] -> Integer)
-sumDirect = plc (Proxy @"sumDirect") (
-    let sum :: [Integer] -> Integer
-        sum []     = 0
-        sum (x:xs) = Builtins.addInteger x (sum xs)
-    in sum)
+sumDirect =
+  plc
+    (Proxy @"sumDirect")
+    ( let sum :: [Integer] -> Integer
+          sum [] = 0
+          sum (x : xs) = Builtins.addInteger x (sum xs)
+       in sum
+    )
 
 evenMutual :: CompiledCode (Integer -> Bool)
-evenMutual = plc (Proxy @"evenMutual") (
-    let even :: Integer -> Bool
-        even n = if Builtins.equalsInteger n 0 then True else odd (Builtins.subtractInteger n 1)
-        odd :: Integer -> Bool
-        odd n = if Builtins.equalsInteger n 0 then False else even (Builtins.subtractInteger n 1)
-    in even)
+evenMutual =
+  plc
+    (Proxy @"evenMutual")
+    ( let even :: Integer -> Bool
+          even n = if Builtins.equalsInteger n 0 then True else odd (Builtins.subtractInteger n 1)
+          odd :: Integer -> Bool
+          odd n = if Builtins.equalsInteger n 0 then False else even (Builtins.subtractInteger n 1)
+       in even
+    )
 
 lengthStrict :: [a] -> Integer
 lengthStrict l = go 0 l
   where
-    go !acc []      = acc
-    go !acc (_: tl) = go (acc `Builtins.addInteger` 1) tl
+    go !acc [] = acc
+    go !acc (_ : tl) = go (acc `Builtins.addInteger` 1) tl
 
 lengthLazy :: [a] -> Integer
 lengthLazy l = go 0 l
   where
-    go acc []      = acc
-    go acc (_: tl) = go (acc `Builtins.addInteger` 1) tl
+    go acc [] = acc
+    go acc (_ : tl) = go (acc `Builtins.addInteger` 1) tl
 
 strictLength :: CompiledCode ([Integer] -> Integer)
 strictLength = plc (Proxy @"strictLength") (lengthStrict @Integer)
@@ -93,18 +108,20 @@ lazyLength :: CompiledCode ([Integer] -> Integer)
 lazyLength = plc (Proxy @"lazyLength") (lengthLazy @Integer)
 
 unfoldings :: TestNested
-unfoldings = testNested "unfoldings" [
-    goldenPir "nandDirect" nandPlcDirect
+unfoldings =
+  testNested
+    "unfoldings"
+    [ goldenPir "nandDirect" nandPlcDirect
     , goldenPir "andDirect" andPlcDirect
     , goldenPir "andExternal" andPlcExternal
     , goldenPir "allDirect" allPlcDirect
     , goldenPir "mutualRecursionUnfoldings" mutualRecursionUnfoldings
     , goldenPir "recordSelector" recordSelector
     , goldenPir "recordSelectorExternal" recordSelectorExternal
-    -- We used to have problems with polymorphic let bindings where the generalization was
-    -- on the outside of the let, which hit the value restriction. Now we hit the simplifier
-    -- it seems to sometimes float these in, but we should keep an eye on these.
-    , goldenPir "polyMap" polyMap
+    , -- We used to have problems with polymorphic let bindings where the generalization was
+      -- on the outside of the let, which hit the value restriction. Now we hit the simplifier
+      -- it seems to sometimes float these in, but we should keep an eye on these.
+      goldenPir "polyMap" polyMap
     , goldenPir "applicationFunction" applicationFunction
     , goldenPir "unboxedTuples2" unboxedTuples2
     , goldenPir "unboxedTuples3" unboxedTuples3
@@ -112,13 +129,13 @@ unfoldings = testNested "unfoldings" [
     , goldenPir "unboxedTuples5" unboxedTuples5
     , goldenPir "unboxedTuples2Tuples" unboxedTuples2Tuples
     , goldenPir "unboxedTuples3Tuples" unboxedTuples3Tuples
-  ]
+    ]
 
 andDirect :: Bool -> Bool -> Bool
-andDirect = \(a :: Bool) -> \(b::Bool) -> nandDirect (nandDirect a b) (nandDirect a b)
+andDirect = \(a :: Bool) -> \(b :: Bool) -> nandDirect (nandDirect a b) (nandDirect a b)
 
 nandDirect :: Bool -> Bool -> Bool
-nandDirect = \(a :: Bool) -> \(b::Bool) -> if a then False else if b then False else True
+nandDirect = \(a :: Bool) -> \(b :: Bool) -> if a then False else if b then False else True
 
 nandPlcDirect :: CompiledCode Bool
 nandPlcDirect = plc (Proxy @"nandPlcDirect") (nandDirect True False)
@@ -132,11 +149,11 @@ andPlcExternal = plc (Proxy @"andPlcExternal") (andExternal True False)
 -- self-recursion
 allDirect :: (a -> Bool) -> [a] -> Bool
 allDirect p l = case l of
-    []  -> True
-    h:t -> andDirect (p h) (allDirect p t)
+  [] -> True
+  h : t -> andDirect (p h) (allDirect p t)
 
 allPlcDirect :: CompiledCode Bool
-allPlcDirect = plc (Proxy @"andPlcDirect") (allDirect (\(x::Integer) -> Builtins.lessThanInteger x 5) [7, 6])
+allPlcDirect = plc (Proxy @"andPlcDirect") (allDirect (\(x :: Integer) -> Builtins.lessThanInteger x 5) [7, 6])
 
 mutualRecursionUnfoldings :: CompiledCode Bool
 mutualRecursionUnfoldings = plc (Proxy @"mutualRecursionUnfoldings") (evenDirect 4)
@@ -149,8 +166,8 @@ recordSelectorExternal = plc (Proxy @"recordSelectorExternal") (\(x :: MyExterna
 
 mapDirect :: (a -> b) -> [a] -> [b]
 mapDirect f l = case l of
-    []   -> []
-    x:xs -> f x : mapDirect f xs
+  [] -> []
+  x : xs -> f x : mapDirect f xs
 
 polyMap :: CompiledCode ([Integer])
 polyMap = plc (Proxy @"polyMap") (mapDirect (Builtins.addInteger 1) [0, 1])

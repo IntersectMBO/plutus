@@ -1,17 +1,17 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE LambdaCase          #-}
-{-# LANGUAGE MagicHash           #-}
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE MagicHash #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeApplications #-}
+{-# OPTIONS_GHC -Wno-name-shadowing #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-pir=0 #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-simplifier-iterations-uplc=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:max-cse-iterations=0 #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
-{-# OPTIONS_GHC -Wno-name-shadowing #-}
 
 module Plugin.Errors.Spec where
 
@@ -34,46 +34,48 @@ import GHC.Num.Integer
 {- HLINT ignore -}
 
 errors :: TestNested
-errors = testNestedGhc "Errors"
-         [ goldenUPlc "machInt" machInt
-         -- FIXME: This fails differently in nix, possibly due to slightly different optimization settings
-         -- , goldenPlc "negativeInt" negativeInt
-         , goldenUPlc "caseInt" caseInt
-         , goldenUPlc "stringLiteral" stringLiteral
-         , goldenUPlc "recursiveNewtype" recursiveNewtype
-         , goldenUPlc "mutualRecursionUnfoldingsLocal" mutualRecursionUnfoldingsLocal
-         , goldenUPlc "literalCaseInt" literalCaseInt
-         , goldenUPlc "literalCaseBs" literalCaseBs
-         , goldenUPlc "literalAppendBs" literalAppendBs
-         , goldenUPlc "literalCaseOther" literalCaseOther
-         , goldenUPlc "rangeEnumFromTo" rangeEnumFromTo
-         , goldenUPlc "rangeEnumFromThenTo" rangeEnumFromThenTo
-         , goldenUPlc "rangeEnumFrom" rangeEnumFrom
-         , goldenUPlc "rangeEnumFromThen" rangeEnumFromThen
-         ]
+errors =
+  testNestedGhc
+    "Errors"
+    [ goldenUPlc "machInt" machInt
+    , -- FIXME: This fails differently in nix, possibly due to slightly different optimization settings
+      -- , goldenPlc "negativeInt" negativeInt
+      goldenUPlc "caseInt" caseInt
+    , goldenUPlc "stringLiteral" stringLiteral
+    , goldenUPlc "recursiveNewtype" recursiveNewtype
+    , goldenUPlc "mutualRecursionUnfoldingsLocal" mutualRecursionUnfoldingsLocal
+    , goldenUPlc "literalCaseInt" literalCaseInt
+    , goldenUPlc "literalCaseBs" literalCaseBs
+    , goldenUPlc "literalAppendBs" literalAppendBs
+    , goldenUPlc "literalCaseOther" literalCaseOther
+    , goldenUPlc "rangeEnumFromTo" rangeEnumFromTo
+    , goldenUPlc "rangeEnumFromThenTo" rangeEnumFromThenTo
+    , goldenUPlc "rangeEnumFrom" rangeEnumFrom
+    , goldenUPlc "rangeEnumFromThen" rangeEnumFromThen
+    ]
 
 machInt :: CompiledCode Int
-machInt = plc (Proxy @"machInt") (1::Int)
+machInt = plc (Proxy @"machInt") (1 :: Int)
 
 negativeInt :: CompiledCode Integer
 negativeInt = plc (Proxy @"negativeInt") (-1 :: Integer)
 
 caseInt :: CompiledCode (Integer -> Bool)
-caseInt = plc (Proxy @"caseInt") (\(i::Integer) -> case i of { IS _ -> True; _ -> False; } )
+caseInt = plc (Proxy @"caseInt") (\(i :: Integer) -> case i of IS _ -> True; _ -> False)
 
 stringLiteral :: CompiledCode String
-stringLiteral = plc (Proxy @"stringLiteral") ("hello"::String)
+stringLiteral = plc (Proxy @"stringLiteral") ("hello" :: String)
 
 newtype RecursiveNewtype = RecursiveNewtype [RecursiveNewtype]
 
 recursiveNewtype :: CompiledCode (RecursiveNewtype)
 recursiveNewtype = plc (Proxy @"recursiveNewtype") (RecursiveNewtype [])
 
-{-# INLINABLE evenDirectLocal #-}
+{-# INLINEABLE evenDirectLocal #-}
 evenDirectLocal :: Integer -> Bool
 evenDirectLocal n = if Builtins.equalsInteger n 0 then True else oddDirectLocal (Builtins.subtractInteger n 1)
 
-{-# INLINABLE oddDirectLocal #-}
+{-# INLINEABLE oddDirectLocal #-}
 oddDirectLocal :: Integer -> Bool
 oddDirectLocal n = if Builtins.equalsInteger n 0 then False else evenDirectLocal (Builtins.subtractInteger n 1)
 
@@ -82,10 +84,10 @@ mutualRecursionUnfoldingsLocal :: CompiledCode Bool
 mutualRecursionUnfoldingsLocal = plc (Proxy @"mutualRecursionUnfoldingsLocal") (evenDirectLocal 4)
 
 literalCaseInt :: CompiledCode (Integer -> Integer)
-literalCaseInt = plc (Proxy @"literalCaseInt") (\case { 1 -> 2; x -> x})
+literalCaseInt = plc (Proxy @"literalCaseInt") (\case 1 -> 2; x -> x)
 
 literalCaseBs :: CompiledCode (Builtins.BuiltinByteString -> Builtins.BuiltinByteString)
-literalCaseBs = plc (Proxy @"literalCaseBs") (\x -> case x of { "abc" -> ""; x -> x})
+literalCaseBs = plc (Proxy @"literalCaseBs") (\x -> case x of "abc" -> ""; x -> x)
 
 literalAppendBs :: CompiledCode (Builtins.BuiltinByteString -> Builtins.BuiltinByteString)
 literalAppendBs = plc (Proxy @"literalAppendBs") (\x -> Builtins.appendByteString "hello" x)
@@ -93,24 +95,24 @@ literalAppendBs = plc (Proxy @"literalAppendBs") (\x -> Builtins.appendByteStrin
 data AType = AType
 
 instance IsString AType where
-    fromString _ = AType
+  fromString _ = AType
 
 instance Eq AType where
-    AType == AType = True
+  AType == AType = True
 
 literalCaseOther :: CompiledCode (AType -> AType)
-literalCaseOther = plc (Proxy @"literalCaseOther") (\x -> case x of { "abc" -> ""; x -> x})
+literalCaseOther = plc (Proxy @"literalCaseOther") (\x -> case x of "abc" -> ""; x -> x)
 
 -- Tests for literal ranges (and the corresponding methods in GHC.Enum). These
 -- should all fail with informative error messages.
 rangeEnumFromTo :: CompiledCode [Integer]
-rangeEnumFromTo = plc (Proxy @"rangeEnumFromTo") [1..50]
+rangeEnumFromTo = plc (Proxy @"rangeEnumFromTo") [1 .. 50]
 
 rangeEnumFromThenTo :: CompiledCode [Integer]
-rangeEnumFromThenTo = plc (Proxy @"rangeEnumFromThenTo") [1,7..50]
+rangeEnumFromThenTo = plc (Proxy @"rangeEnumFromThenTo") [1, 7 .. 50]
 
 rangeEnumFrom :: CompiledCode [Integer]
-rangeEnumFrom = plc (Proxy @"rangeEnumFrom") [1..]
+rangeEnumFrom = plc (Proxy @"rangeEnumFrom") [1 ..]
 
 rangeEnumFromThen :: CompiledCode [Integer]
-rangeEnumFromThen = plc (Proxy @"rangeEnumFromThen") [1,5..]
+rangeEnumFromThen = plc (Proxy @"rangeEnumFromThen") [1, 5 ..]

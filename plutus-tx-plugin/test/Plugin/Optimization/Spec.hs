@@ -1,9 +1,9 @@
-{-# LANGUAGE DataKinds        #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fplugin PlutusTx.Plugin #-}
-{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:context-level=0 #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:defer-errors #-}
 
 module Plugin.Optimization.Spec where
 
@@ -18,10 +18,12 @@ import PlutusTx.Test ()
 import Data.Proxy
 
 optimization :: TestNested
-optimization = testNestedGhc "Optimization" [
-    goldenUPlc "alwaysSucceeds" alwaysSucceeds
-  , goldenUPlc "alwaysFails" alwaysFails
-  ]
+optimization =
+  testNestedGhc
+    "Optimization"
+    [ goldenUPlc "alwaysSucceeds" alwaysSucceeds
+    , goldenUPlc "alwaysFails" alwaysFails
+    ]
 
 alwaysSucceeds :: CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> ())
 alwaysSucceeds = plc (Proxy @"alwaysSucceeds") (\_ _ _ -> ())

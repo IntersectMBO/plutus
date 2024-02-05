@@ -1,11 +1,11 @@
-{-# LANGUAGE CPP               #-}
-{-# LANGUAGE ConstraintKinds   #-}
-{-# LANGUAGE FlexibleContexts  #-}
-{-# LANGUAGE GADTs             #-}
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GADTs #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TupleSections     #-}
-{-# LANGUAGE TypeApplications  #-}
-{-# LANGUAGE ViewPatterns      #-}
+{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE ViewPatterns #-}
 
 {- | Functions for compiling GHC types into PlutusCore types, as well as compiling constructors,
 matchers, and pattern match alternatives.
@@ -74,6 +74,7 @@ Generally, we need to call this whenever we are compiling a "new" type from the 
 If we are compiling a part of a type we are already processing then it has likely been
 normalized and we can just use 'compileType'
 -}
+{- ORMOLU_DISABLE -}
 compileTypeNorm :: (CompilingDefault uni fun m ann) => GHC.Type -> m (PIRType uni)
 compileTypeNorm ty = do
   CompileContext{ccFamInstEnvs = envs} <- ask
@@ -117,6 +118,7 @@ compileType t = traceCompilation 2 ("Compiling type:" GHC.<+> GHC.ppr t) $ do
     -- I think it's safe to ignore the coercion here
     (GHC.splitCastTy_maybe -> Just (tpe, _)) -> compileType tpe
     _ -> throwSd UnsupportedError $ "Type" GHC.<+> GHC.ppr t
+{- ORMOLU_ENABLE -}
 
 {- Note [Occurrences of recursive names]
 When we compile recursive types/terms, we need to process their definitions before we can produce
@@ -137,7 +139,7 @@ definition, and dying if we see it again.
 
 compileTyCon ::
   forall uni fun m ann.
-  (CompilingDefault uni fun m ann) =>
+  CompilingDefault uni fun m ann =>
   GHC.TyCon ->
   m (PIRType uni)
 compileTyCon tc
@@ -262,7 +264,7 @@ sortConstructors tc cs =
   let sorted = sortBy (\dc1 dc2 -> compare (GHC.getOccName dc1) (GHC.getOccName dc2)) cs
    in if tc == GHC.boolTyCon || tc == GHC.listTyCon then reverse sorted else sorted
 
-getDataCons :: (Compiling uni fun m ann) => GHC.TyCon -> m [GHC.DataCon]
+getDataCons :: Compiling uni fun m ann => GHC.TyCon -> m [GHC.DataCon]
 getDataCons tc' = sortConstructors tc' <$> extractDcs tc'
   where
     extractDcs tc
@@ -270,10 +272,10 @@ getDataCons tc' = sortConstructors tc' <$> extractDcs tc'
           GHC.AbstractTyCon ->
             throwSd UnsupportedError $
               "Abstract type:" GHC.<+> GHC.ppr tc
-          GHC.DataTyCon{GHC.data_cons = dcs} -> pure dcs
-          GHC.TupleTyCon{GHC.data_con = dc} -> pure [dc]
-          GHC.SumTyCon{GHC.data_cons = dcs} -> pure dcs
-          GHC.NewTyCon{GHC.data_con = dc} -> pure [dc]
+          GHC.DataTyCon {GHC.data_cons = dcs} -> pure dcs
+          GHC.TupleTyCon {GHC.data_con = dc} -> pure [dc]
+          GHC.SumTyCon {GHC.data_cons = dcs} -> pure dcs
+          GHC.NewTyCon {GHC.data_con = dc} -> pure [dc]
       | GHC.isFamilyTyCon tc =
           throwSd UnsupportedError $
             "Irreducible type family application:" GHC.<+> GHC.ppr tc
@@ -294,7 +296,7 @@ the type of the original code without that information.
 {- | Makes the type of the constructor corresponding to the given 'DataCon', with the
 type variables free.
 -}
-mkConstructorType :: (CompilingDefault uni fun m ann) => GHC.DataCon -> m (PIRType uni)
+mkConstructorType :: CompilingDefault uni fun m ann => GHC.DataCon -> m (PIRType uni)
 mkConstructorType dc =
   -- see Note [On data constructor workers and wrappers]
   let argTys = GHC.scaledThing <$> GHC.dataConRepArgTys dc
@@ -312,7 +314,7 @@ ghcStrictnessNote =
     GHC.<+> "'-fno-unbox-strict-fields', or '-fno-unbox-small-strict-fields'."
 
 -- | Get the constructors of the given 'TyCon' as PLC terms.
-getConstructors :: (CompilingDefault uni fun m ann) => GHC.TyCon -> m [PIRTerm uni fun]
+getConstructors :: CompilingDefault uni fun m ann => GHC.TyCon -> m [PIRTerm uni fun]
 getConstructors tc = do
   -- make sure the constructors have been created
   _ <- compileTyCon tc
@@ -324,7 +326,7 @@ getConstructors tc = do
         "Cannot construct a value of type:" GHC.<+> GHC.ppr tc GHC.$+$ ghcStrictnessNote
 
 -- | Get the matcher of the given 'TyCon' as a PLC term
-getMatch :: (CompilingDefault uni fun m ann) => GHC.TyCon -> m (PIRTerm uni fun)
+getMatch :: CompilingDefault uni fun m ann => GHC.TyCon -> m (PIRTerm uni fun)
 getMatch tc = do
   -- ensure the tycon has been compiled, which will create the matcher
   _ <- compileTyCon tc
@@ -338,7 +340,7 @@ getMatch tc = do
 {- | Get the matcher of the given 'Type' (which must be equal to a type constructor application)
 as a PLC term instantiated for the type constructor argument types.
 -}
-getMatchInstantiated :: (CompilingDefault uni fun m ann) => GHC.Type -> m (PIRTerm uni fun)
+getMatchInstantiated :: CompilingDefault uni fun m ann => GHC.Type -> m (PIRTerm uni fun)
 getMatchInstantiated t =
   traceCompilation 3 ("Creating instantiated matcher for type:" GHC.<+> GHC.ppr t) $ case t of
     (GHC.splitTyConApp_maybe -> Just (tc, args)) -> do

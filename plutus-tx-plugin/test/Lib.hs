@@ -1,13 +1,13 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DerivingStrategies    #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 
-{-# OPTIONS_GHC -Wno-orphans  #-}
 module Lib where
 
 import Control.Exception
@@ -32,29 +32,31 @@ import PlutusCore.Pretty
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.Evaluation.Machine.Cek
 
-goldenPir
-    :: (PrettyUni uni, Pretty fun, uni `PLC.Everywhere` Flat, Flat fun)
-    => String -> CompiledCodeIn uni fun a -> TestNested
+goldenPir ::
+  (PrettyUni uni, Pretty fun, uni `PLC.Everywhere` Flat, Flat fun) =>
+  String ->
+  CompiledCodeIn uni fun a ->
+  TestNested
 goldenPir name value = nestedGoldenVsDoc name ".pir" $ pretty $ getPirNoAnn value
 
 runPlcCek :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => [a] -> ExceptT SomeException IO (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ())
 runPlcCek values = do
-     ps <- traverse toUPlc values
-     let p =
-          foldl1 (unsafeFromRight .* UPLC.applyProgram) ps
-     fromRightM (throwError . SomeException) $ evaluateCekNoEmit PLC.defaultCekParameters (p ^. UPLC.progTerm)
+  ps <- traverse toUPlc values
+  let p =
+        foldl1 (unsafeFromRight .* UPLC.applyProgram) ps
+  fromRightM (throwError . SomeException) $ evaluateCekNoEmit PLC.defaultCekParameters (p ^. UPLC.progTerm)
 
 runPlcCekTrace ::
-     ToUPlc a PLC.DefaultUni PLC.DefaultFun =>
-     [a] ->
-     ExceptT SomeException IO ([Text], CekExTally PLC.DefaultFun, UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ())
+  ToUPlc a PLC.DefaultUni PLC.DefaultFun =>
+  [a] ->
+  ExceptT SomeException IO ([Text], CekExTally PLC.DefaultFun, UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ())
 runPlcCekTrace values = do
-     ps <- traverse toUPlc values
-     let p =
-          foldl1 (unsafeFromRight .* UPLC.applyProgram) ps
-     let (result, TallyingSt tally _, logOut) = runCek PLC.defaultCekParameters tallying logEmitter (p ^. UPLC.progTerm)
-     res <- fromRightM (throwError . SomeException) result
-     pure (logOut, tally, res)
+  ps <- traverse toUPlc values
+  let p =
+        foldl1 (unsafeFromRight .* UPLC.applyProgram) ps
+  let (result, TallyingSt tally _, logOut) = runCek PLC.defaultCekParameters tallying logEmitter (p ^. UPLC.progTerm)
+  res <- fromRightM (throwError . SomeException) result
+  pure (logOut, tally, res)
 
 goldenEvalCek :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => String -> [a] -> TestNested
 goldenEvalCek name values = nestedGoldenVsDocM name ".eval-cek" $ prettyPlcClassicDebug <$> (rethrow $ runPlcCek values)

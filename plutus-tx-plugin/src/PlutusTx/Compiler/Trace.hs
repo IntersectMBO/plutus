@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module PlutusTx.Compiler.Trace where
@@ -16,16 +16,19 @@ import Data.Text (Text)
 import Debug.Trace
 import GHC.Plugins qualified as GHC
 
--- | A combination of `withContextM` and `traceCompilationStep`.
---
--- `withContextM` emits a stack trace when the compilation fails, and can be
--- turned on via `-fcontext-level=<level>`.
---
--- `traceCompilationStep` dumps the full compilation trace, and can be
--- turned on via `-fdump-compilation-trace`.
+{- | A combination of `withContextM` and `traceCompilationStep`.
+
+`withContextM` emits a stack trace when the compilation fails, and can be
+turned on via `-fcontext-level=<level>`.
+
+`traceCompilationStep` dumps the full compilation trace, and can be
+turned on via `-fdump-compilation-trace`.
+-}
 traceCompilation ::
-  (MonadReader (CompileContext uni fun) m, MonadState CompileState m
-  , MonadError (WithContext Text e) m) =>
+  ( MonadReader (CompileContext uni fun) m
+  , MonadState CompileState m
+  , MonadError (WithContext Text e) m
+  ) =>
   -- | Context level
   Int ->
   -- | The thing (expr, type, kind, etc.) being compiled

@@ -1,11 +1,12 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE DerivingStrategies    #-}
-{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NoImplicitPrelude     #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+
 module Plugin.Lib where
 
 import PlutusTx.Prelude
@@ -16,13 +17,13 @@ import PlutusTx.Builtins qualified as Builtins
 andExternal :: Bool -> Bool -> Bool
 andExternal a b = if a then b else False
 
-data MyExternalRecord = MyExternalRecord { myExternal :: Integer }
+data MyExternalRecord = MyExternalRecord {myExternal :: Integer}
 
-{-# INLINABLE evenDirect #-}
+{-# INLINEABLE evenDirect #-}
 evenDirect :: Integer -> Bool
 evenDirect n = if Builtins.equalsInteger n 0 then True else oddDirect (Builtins.subtractInteger n 1)
 
-{-# INLINABLE oddDirect #-}
+{-# INLINEABLE oddDirect #-}
 oddDirect :: Integer -> Bool
 oddDirect n = if Builtins.equalsInteger n 0 then False else evenDirect (Builtins.subtractInteger n 1)
 

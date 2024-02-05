@@ -1,6 +1,6 @@
-{-# LANGUAGE ConstraintKinds  #-}
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE GADTs            #-}
+{-# LANGUAGE GADTs #-}
 
 -- | Functions for compiling GHC names into Plutus Core names.
 module PlutusTx.Compiler.Names where
@@ -48,10 +48,10 @@ on how it is printed.
 getUntidiedOccString :: GHC.Name -> String
 getUntidiedOccString n = dropWhileEnd isDigit (GHC.getOccString n)
 
-compileNameFresh :: (MonadQuote m) => GHC.Name -> m PLC.Name
+compileNameFresh :: MonadQuote m => GHC.Name -> m PLC.Name
 compileNameFresh n = safeFreshName $ T.pack $ getUntidiedOccString n
 
-compileVarFresh :: (CompilingDefault uni fun m ann) => Ann -> GHC.Var -> m (PLCVar uni)
+compileVarFresh :: CompilingDefault uni fun m ann => Ann -> GHC.Var -> m (PLCVar uni)
 compileVarFresh ann v = do
   t' <- compileTypeNorm $ GHC.varType v
   n' <- compileNameFresh $ GHC.getName v
@@ -61,7 +61,7 @@ compileVarFresh ann v = do
 PIR type from the given `GHC.Var`.
 -}
 compileVarWithTyFresh ::
-  (CompilingDefault uni fun m ann) =>
+  CompilingDefault uni fun m ann =>
   Ann ->
   GHC.Var ->
   PIRType uni ->
@@ -73,16 +73,16 @@ compileVarWithTyFresh ann v t = do
 lookupTyName :: Scope uni -> GHC.Name -> Maybe PLCTyVar
 lookupTyName (Scope _ tyns) n = Map.lookup n tyns
 
-compileTyNameFresh :: (MonadQuote m) => GHC.Name -> m PLC.TyName
+compileTyNameFresh :: MonadQuote m => GHC.Name -> m PLC.TyName
 compileTyNameFresh n = safeFreshTyName $ T.pack $ getUntidiedOccString n
 
-compileTyVarFresh :: (Compiling uni fun m ann) => GHC.TyVar -> m PLCTyVar
+compileTyVarFresh :: Compiling uni fun m ann => GHC.TyVar -> m PLCTyVar
 compileTyVarFresh v = do
   k' <- compileKind $ GHC.tyVarKind v
   t' <- compileTyNameFresh $ GHC.getName v
   pure $ PLC.TyVarDecl annMayInline t' (k' $> annMayInline)
 
-compileTcTyVarFresh :: (Compiling uni fun m ann) => GHC.TyCon -> m PLCTyVar
+compileTcTyVarFresh :: Compiling uni fun m ann => GHC.TyCon -> m PLCTyVar
 compileTcTyVarFresh tc = do
   k' <- compileKind $ GHC.tyConKind tc
   t' <- compileTyNameFresh $ GHC.getName tc

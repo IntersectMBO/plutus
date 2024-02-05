@@ -1,6 +1,6 @@
-{-# LANGUAGE BangPatterns    #-}
-{-# LANGUAGE DataKinds       #-}
-{-# LANGUAGE Strict          #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE Strict #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Strictness.Spec where
@@ -10,8 +10,8 @@ import Test.Tasty.Extras
 import PlutusTx qualified as Tx
 import PlutusTx.Code
 import PlutusTx.Prelude qualified as PlutusTx
-import PlutusTx.Test
 import PlutusTx.TH (compile)
+import PlutusTx.Test
 
 tests :: TestNested
 tests =
@@ -20,27 +20,22 @@ tests =
     [ goldenEvalCekCatch "lambda-default" $ [lambdaDefault `unsafeApplyCode` bot]
     , goldenPirReadable "lambda-default" lambdaDefault
     , goldenUPlcReadable "lambda-default" lambdaDefault
-
-    -- FIXME: This should not crash, but it currently does.
-    , goldenEvalCekCatch "lambda-nonstrict" $ [lambdaNonStrict `unsafeApplyCode` bot]
+    , -- FIXME: This should not crash, but it currently does.
+      goldenEvalCekCatch "lambda-nonstrict" $ [lambdaNonStrict `unsafeApplyCode` bot]
     , goldenPirReadable "lambda-nonstrict" lambdaNonStrict
     , goldenUPlcReadable "lambda-nonstrict" lambdaNonStrict
-
     , goldenEvalCekCatch "lambda-strict" $ [lambdaStrict `unsafeApplyCode` bot]
     , goldenPirReadable "lambda-strict" lambdaStrict
     , goldenUPlcReadable "lambda-strict" lambdaStrict
-
-    -- FIXME: This should crash (because the `Strict` extension is on), but it currently doesn't.
-    , goldenEvalCekCatch "let-default" $ [letDefault `unsafeApplyCode` one]
+    , -- FIXME: This should crash (because the `Strict` extension is on), but it currently doesn't.
+      goldenEvalCekCatch "let-default" $ [letDefault `unsafeApplyCode` one]
     , goldenPirReadable "let-default" letDefault
     , goldenUPlcReadable "let-default" letDefault
-
     , goldenEvalCekCatch "let-nonstrict" $ [letNonStrict `unsafeApplyCode` one]
     , goldenPirReadable "let-nonstrict" letNonStrict
     , goldenUPlcReadable "let-nonstrict" letNonStrict
-
-    -- FIXME: This should crash, but it currently doesn't.
-    , goldenEvalCekCatch "let-strict" $ [letStrict `unsafeApplyCode` one]
+    , -- FIXME: This should crash, but it currently doesn't.
+      goldenEvalCekCatch "let-strict" $ [letStrict `unsafeApplyCode` one]
     , goldenPirReadable "let-strict" letStrict
     , goldenUPlcReadable "let-strict" letStrict
     ]
@@ -100,7 +95,7 @@ letStrict =
     )
 
 bot :: CompiledCode Integer
-bot = $$(compile [|| PlutusTx.error () ||])
+bot = $$(compile [||PlutusTx.error ()||])
 
 one :: CompiledCode Integer
 one = Tx.liftCodeDef 1

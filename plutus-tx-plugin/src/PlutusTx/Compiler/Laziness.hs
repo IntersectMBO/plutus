@@ -1,7 +1,7 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeFamilies      #-}
+{-# LANGUAGE TypeFamilies #-}
 
 -- | Simulating laziness.
 module PlutusTx.Compiler.Laziness where
@@ -33,16 +33,17 @@ delayType orig = PIR.TyForall annMayInline <$> liftQuote (freshTyName "dead") <*
 
 delayVar :: Compiling uni fun m ann => PIRVar uni -> m (PIRVar uni)
 delayVar (PIR.VarDecl ann n ty) = do
-    ty' <- delayType ty
-    pure $ PIR.VarDecl ann n ty'
+  ty' <- delayType ty
+  pure $ PIR.VarDecl ann n ty'
 
-force
-    :: CompilingDefault uni fun m ann
-    => PIRTerm uni fun -> m (PIRTerm uni fun)
+force ::
+  CompilingDefault uni fun m ann =>
+  PIRTerm uni fun ->
+  m (PIRTerm uni fun)
 force thunk = do
-    a <- liftQuote (freshTyName "dead")
-    let fakeTy = PIR.TyForall annMayInline a (PIR.Type annMayInline) (PIR.TyVar annMayInline a)
-    pure $ PIR.TyInst annMayInline thunk fakeTy
+  a <- liftQuote (freshTyName "dead")
+  let fakeTy = PIR.TyForall annMayInline a (PIR.Type annMayInline) (PIR.TyVar annMayInline a)
+  pure $ PIR.TyInst annMayInline thunk fakeTy
 
 maybeDelay :: Compiling uni fun m ann => Bool -> PIRTerm uni fun -> m (PIRTerm uni fun)
 maybeDelay yes t = if yes then delay t else pure t
@@ -53,7 +54,9 @@ maybeDelayVar yes v = if yes then delayVar v else pure v
 maybeDelayType :: Compiling uni fun m ann => Bool -> PIRType uni -> m (PIRType uni)
 maybeDelayType yes t = if yes then delayType t else pure t
 
-maybeForce
-    :: CompilingDefault uni fun m ann
-    => Bool -> PIRTerm uni fun -> m (PIRTerm uni fun)
+maybeForce ::
+  CompilingDefault uni fun m ann =>
+  Bool ->
+  PIRTerm uni fun ->
+  m (PIRTerm uni fun)
 maybeForce yes t = if yes then force t else pure t
