@@ -18,6 +18,7 @@ import Prettyprinter (nest, vsep, (<+>))
 import Prettyprinter.Extras
 
 import PlutusLedgerApi.V2 qualified as V2
+import PlutusLedgerApi.V3.Tx qualified as V3
 import PlutusTx qualified
 import PlutusTx.AssocMap hiding (filter, mapMaybe)
 import PlutusTx.Prelude qualified as PlutusTx
@@ -326,7 +327,7 @@ instance PlutusTx.Eq ProposalProcedure where
 
 data ScriptPurpose
   = Minting V2.CurrencySymbol
-  | Spending V2.TxOutRef
+  | Spending V3.TxOutRef
   | Rewarding V2.Credential
   | Certifying
       Haskell.Integer
@@ -356,10 +357,25 @@ instance PlutusTx.Eq ScriptPurpose where
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
   _ == _ = Haskell.False
 
+-- | An input of a pending transaction.
+data TxInInfo = TxInInfo
+  { txInInfoOutRef   :: V3.TxOutRef
+  , txInInfoResolved :: V2.TxOut
+  }
+  deriving stock (Generic, Haskell.Show, Haskell.Eq)
+
+instance PlutusTx.Eq TxInInfo where
+  TxInInfo ref res == TxInInfo ref' res' =
+    ref PlutusTx.== ref' PlutusTx.&& res PlutusTx.== res'
+
+instance Pretty TxInInfo where
+  pretty TxInInfo{txInInfoOutRef, txInInfoResolved} =
+    pretty txInInfoOutRef <+> "->" <+> pretty txInInfoResolved
+
 -- | TxInfo for PlutusV3
 data TxInfo = TxInfo
-  { txInfoInputs                :: [V2.TxInInfo]
-  , txInfoReferenceInputs       :: [V2.TxInInfo]
+  { txInfoInputs                :: [TxInInfo]
+  , txInfoReferenceInputs       :: [TxInInfo]
   , txInfoOutputs               :: [V2.TxOut]
   , txInfoFee                   :: V2.Lovelace
   , txInfoMint                  :: V2.Value
@@ -369,7 +385,7 @@ data TxInfo = TxInfo
   , txInfoSignatories           :: [V2.PubKeyHash]
   , txInfoRedeemers             :: Map ScriptPurpose V2.Redeemer
   , txInfoData                  :: Map V2.DatumHash V2.Datum
-  , txInfoId                    :: V2.TxId
+  , txInfoId                    :: V3.TxId
   , txInfoVotes                 :: Map Voter (Map GovernanceActionId Vote)
   , txInfoProposalProcedures    :: [ProposalProcedure]
   , txInfoCurrentTreasuryAmount :: Haskell.Maybe V2.Lovelace
@@ -443,14 +459,14 @@ instance PlutusTx.Eq ScriptContext where
 {-# INLINEABLE findOwnInput #-}
 
 -- | Find the input currently being validated.
-findOwnInput :: ScriptContext -> Haskell.Maybe V2.TxInInfo
+findOwnInput :: ScriptContext -> Haskell.Maybe TxInInfo
 findOwnInput
   ScriptContext
     { scriptContextTxInfo = TxInfo{txInfoInputs}
     , scriptContextPurpose = Spending txOutRef
     } =
     PlutusTx.find
-      (\V2.TxInInfo{txInInfoOutRef} -> txInInfoOutRef PlutusTx.== txOutRef)
+      (\TxInInfo{txInInfoOutRef} -> txInInfoOutRef PlutusTx.== txOutRef)
       txInfoInputs
 findOwnInput _ = Haskell.Nothing
 
@@ -478,10 +494,10 @@ transaction's inputs (`TxInInfo`).
 
 Note: this only searches the true transaction inputs and not the referenced transaction inputs.
 -}
-findTxInByTxOutRef :: V2.TxOutRef -> TxInfo -> Haskell.Maybe V2.TxInInfo
+findTxInByTxOutRef :: V3.TxOutRef -> TxInfo -> Haskell.Maybe TxInInfo
 findTxInByTxOutRef outRef TxInfo{txInfoInputs} =
   PlutusTx.find
-    (\V2.TxInInfo{txInInfoOutRef} -> txInInfoOutRef PlutusTx.== outRef)
+    (\TxInInfo{txInInfoOutRef} -> txInInfoOutRef PlutusTx.== outRef)
     txInfoInputs
 
 {-# INLINEABLE findContinuingOutputs #-}
@@ -491,7 +507,7 @@ currently spending from, if any.
 -}
 findContinuingOutputs :: ScriptContext -> [Haskell.Integer]
 findContinuingOutputs ctx
-  | Haskell.Just V2.TxInInfo{txInInfoResolved = V2.TxOut{txOutAddress}} <-
+  | Haskell.Just TxInInfo{txInInfoResolved = V2.TxOut{txOutAddress}} <-
       findOwnInput ctx =
       PlutusTx.findIndices
         (f txOutAddress)
@@ -507,7 +523,7 @@ from, if any.
 -}
 getContinuingOutputs :: ScriptContext -> [V2.TxOut]
 getContinuingOutputs ctx
-  | Haskell.Just V2.TxInInfo{txInInfoResolved = V2.TxOut{txOutAddress}} <-
+  | Haskell.Just TxInInfo{txInInfoResolved = V2.TxOut{txOutAddress}} <-
       findOwnInput ctx =
       PlutusTx.filter (f txOutAddress) (txInfoOutputs (scriptContextTxInfo ctx))
   where
@@ -543,9 +559,7 @@ valuePaidTo ptx pkh = PlutusTx.mconcat (pubKeyOutputsAt pkh ptx)
 -- | Get the total value of inputs spent by this transaction.
 valueSpent :: TxInfo -> V2.Value
 valueSpent =
-  PlutusTx.foldMap
-    (V2.txOutValue PlutusTx.. V2.txInInfoResolved)
-    PlutusTx.. txInfoInputs
+  PlutusTx.foldMap (V2.txOutValue PlutusTx.. txInInfoResolved) PlutusTx.. txInfoInputs
 
 {-# INLINEABLE valueProduced #-}
 
@@ -568,13 +582,13 @@ ownCurrencySymbol _ =
 (identified by the hash of a transaction and an index into that
 transactions' outputs)
 -}
-spendsOutput :: TxInfo -> V2.TxId -> Haskell.Integer -> Haskell.Bool
-spendsOutput p h i =
+spendsOutput :: TxInfo -> V3.TxId -> Haskell.Integer -> Haskell.Bool
+spendsOutput txInfo txId i =
   let spendsOutRef inp =
-        let outRef = V2.txInInfoOutRef inp
-         in h PlutusTx.== V2.txOutRefId outRef
-              PlutusTx.&& i PlutusTx.== V2.txOutRefIdx outRef
-   in PlutusTx.any spendsOutRef (txInfoInputs p)
+        let outRef = txInInfoOutRef inp
+         in txId PlutusTx.== V3.txOutRefId outRef
+              PlutusTx.&& i PlutusTx.== V3.txOutRefIdx outRef
+   in PlutusTx.any spendsOutRef (txInfoInputs txInfo)
 
 PlutusTx.makeLift ''ColdCommitteeCredential
 PlutusTx.makeLift ''HotCommitteeCredential
@@ -666,6 +680,9 @@ PlutusTx.makeIsDataIndexed
   , ('Voting, 4)
   , ('Proposing, 5)
   ]
+
+PlutusTx.makeLift ''TxInInfo
+PlutusTx.makeIsDataIndexed ''TxInInfo [('TxInInfo, 0)]
 
 PlutusTx.makeLift ''TxInfo
 PlutusTx.makeIsDataIndexed ''TxInfo [('TxInfo, 0)]
