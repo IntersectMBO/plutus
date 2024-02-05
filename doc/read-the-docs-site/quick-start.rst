@@ -96,6 +96,10 @@ Now, build it: ::
 
   cabal build plutus-quickstart
 
+Then, run the executable with: ::
+
+  cabal exec plutus-quickstart
+
 This should succeed and will write the serialised validator to ``validator.uplc``.
 Congratulations - you've successfully created a Plutus validator script.
 
