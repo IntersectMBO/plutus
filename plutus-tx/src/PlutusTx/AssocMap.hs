@@ -1,14 +1,14 @@
-{-# LANGUAGE DeriveAnyClass        #-}
-{-# LANGUAGE DeriveDataTypeable    #-}
-{-# LANGUAGE DeriveGeneric         #-}
-{-# LANGUAGE DerivingStrategies    #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE LambdaCase            #-}
-{-# LANGUAGE MonoLocalBinds        #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE MonoLocalBinds #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TupleSections         #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 
 -- | A map represented as an "association list" of key-value pairs.
@@ -68,7 +68,7 @@ instance (ToData k, ToData v) => ToData (Map k v) where
       mapToBuiltin = go
         where
           go :: [(k, v)] -> BI.BuiltinList (BI.BuiltinPair BI.BuiltinData BI.BuiltinData)
-          go []            = BI.mkNilPairData BI.unitval
+          go [] = BI.mkNilPairData BI.unitval
           go ((k, v) : xs) = BI.mkCons (BI.mkPairData (toBuiltinData k) (toBuiltinData v)) (go xs)
 
 instance (FromData k, FromData v) => FromData (Map k v) where
@@ -163,29 +163,30 @@ toList (Map l) = l
 {-# INLINEABLE lookup #-}
 
 -- | Find an entry in a 'Map'.
-lookup :: forall k v. (Eq k) => k -> Map k v -> Maybe v
+lookup :: forall k v. Eq k => k -> Map k v -> Maybe v
 lookup c (Map xs) =
   let
     go :: [(k, v)] -> Maybe v
-    go []              = Nothing
+    go [] = Nothing
     go ((c', i) : xs') = if c' == c then Just i else go xs'
    in
     go xs
 
 {-# INLINEABLE member #-}
+
 -- | Is the key a member of the map?
-member :: forall k v. (Eq k) => k -> Map k v -> Bool
+member :: forall k v. Eq k => k -> Map k v -> Bool
 member k m = isJust (lookup k m)
 
 {-# INLINEABLE insert #-}
-insert :: forall k v. (Eq k) => k -> v -> Map k v -> Map k v
+insert :: forall k v. Eq k => k -> v -> Map k v -> Map k v
 insert k v (Map xs) = Map (go xs)
   where
-    go []                = [(k, v)]
+    go [] = [(k, v)]
     go ((k', v') : rest) = if k == k' then (k, v) : rest else (k', v') : go rest
 
 {-# INLINEABLE delete #-}
-delete :: forall k v. (Eq k) => k -> Map k v -> Map k v
+delete :: forall k v. Eq k => k -> Map k v -> Map k v
 delete key (Map ls) = Map (go ls)
   where
     go [] = []
@@ -194,18 +195,19 @@ delete key (Map ls) = Map (go ls)
       | otherwise = (k, v) : go rest
 
 {-# INLINEABLE keys #-}
+
 -- | The keys of a 'Map'.
 keys :: Map k v -> [k]
 keys (Map xs) = P.fmap (\(k, _ :: v) -> k) xs
 
 -- | Combine two 'Map's.
-union :: forall k v r. (Eq k) => Map k v -> Map k r -> Map k (These v r)
+union :: forall k v r. Eq k => Map k v -> Map k r -> Map k (These v r)
 union (Map ls) (Map rs) =
   let
     f :: v -> Maybe r -> These v r
     f a b' = case b' of
       Nothing -> This a
-      Just b  -> These a b
+      Just b -> These a b
 
     ls' :: [(k, These v r)]
     ls' = P.fmap (\(c, i) -> (c, f i (lookup c (Map rs)))) ls
@@ -221,13 +223,13 @@ union (Map ls) (Map rs) =
 {-# INLINEABLE unionWith #-}
 
 -- | Combine two 'Map's with the given combination function.
-unionWith :: forall k a. (Eq k) => (a -> a -> a) -> Map k a -> Map k a -> Map k a
+unionWith :: forall k a. Eq k => (a -> a -> a) -> Map k a -> Map k a -> Map k a
 unionWith merge (Map ls) (Map rs) =
   let
     f :: a -> Maybe a -> a
     f a b' = case b' of
       Nothing -> a
-      Just b  -> merge a b
+      Just b -> merge a b
 
     ls' :: [(k, a)]
     ls' = P.fmap (\(c, i) -> (c, f i (lookup c (Map rs)))) ls
@@ -246,8 +248,8 @@ mapThese f mps = (Map mpl, Map mpr)
     (mpl, mpr) = P.foldr f' ([], []) mps'
     Map mps' = fmap f mps
     f' (k, v) (as, bs) = case v of
-      This a    -> ((k, a) : as, bs)
-      That b    -> (as, (k, b) : bs)
+      This a -> ((k, a) : as, bs)
+      That b -> (as, (k, b) : bs)
       These a b -> ((k, a) : as, (k, b) : bs)
 
 -- | A singleton map.
@@ -303,7 +305,7 @@ all :: (a -> Bool) -> Map k a -> Bool
 all f (Map m) = go m
   where
     go = \case
-      []          -> True
+      [] -> True
       (_, x) : xs -> if f x then go xs else False
 
 makeLift ''Map

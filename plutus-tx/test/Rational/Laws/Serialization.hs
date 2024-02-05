@@ -6,16 +6,16 @@ module Rational.Laws.Serialization (serializationLaws) where
 import Data.Aeson (decode, encode)
 import Hedgehog (Property, property, tripping, (===))
 import PlutusTx.IsData.Class (fromBuiltinData, toBuiltinData, unsafeFromBuiltinData)
-import Prelude
 import Rational.Laws.Helpers (forAllWithPP, genRational)
 import Test.Tasty (TestTree)
 import Test.Tasty.Hedgehog (testPropertyNamed)
+import Prelude
 
 serializationLaws :: [TestTree]
-serializationLaws = [
-  testPropertyNamed "FromBuiltinData-ToBuiltinData roundtrip" "propIsDataRound" propIsDataRound,
-  testPropertyNamed "unsafeFromBuiltinData . toBuiltinData = id" "propUnsafeIsData" propUnsafeIsData,
-  testPropertyNamed "FromJSON-ToJSON roundtrip" "propIsJSONRound" propIsJSONRound
+serializationLaws =
+  [ testPropertyNamed "FromBuiltinData-ToBuiltinData roundtrip" "propIsDataRound" propIsDataRound
+  , testPropertyNamed "unsafeFromBuiltinData . toBuiltinData = id" "propUnsafeIsData" propUnsafeIsData
+  , testPropertyNamed "FromJSON-ToJSON roundtrip" "propIsJSONRound" propIsJSONRound
   ]
 
 -- Helpers

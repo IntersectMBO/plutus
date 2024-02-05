@@ -1,12 +1,11 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE TypeFamilies           #-}
-{-# LANGUAGE UndecidableInstances   #-}
-
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
-{-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
+{-# OPTIONS_GHC -fno-specialise #-}
 
 module PlutusTx.Builtins.Class where
 
@@ -26,59 +25,61 @@ import PlutusTx.Integer (Integer)
 import Prelude qualified as Haskell (String)
 
 -- See Note [Builtin types and their Haskell versions]
-{-|
+
+{- |
 A class witnessing the ability to convert from the builtin representation to the Haskell representation.
 -}
 class FromBuiltin arep a | arep -> a where
-    fromBuiltin :: arep -> a
+  fromBuiltin :: arep -> a
 
 -- See Note [Builtin types and their Haskell versions]
-{-|
+
+{- |
 A class witnessing the ability to convert from the Haskell representation to the builtin representation.
 -}
 class ToBuiltin a arep | a -> arep where
-    toBuiltin :: a -> arep
+  toBuiltin :: a -> arep
 
 instance FromBuiltin BuiltinInteger Integer where
-    {-# INLINABLE fromBuiltin #-}
-    fromBuiltin = id
+  {-# INLINEABLE fromBuiltin #-}
+  fromBuiltin = id
 instance ToBuiltin Integer BuiltinInteger where
-    {-# INLINABLE toBuiltin #-}
-    toBuiltin = id
+  {-# INLINEABLE toBuiltin #-}
+  toBuiltin = id
 
 instance FromBuiltin BuiltinBool Bool where
-    {-# INLINABLE fromBuiltin #-}
-    fromBuiltin b = ifThenElse b True False
+  {-# INLINEABLE fromBuiltin #-}
+  fromBuiltin b = ifThenElse b True False
 instance ToBuiltin Bool BuiltinBool where
-    {-# INLINABLE toBuiltin #-}
-    toBuiltin b = if b then true else false
+  {-# INLINEABLE toBuiltin #-}
+  toBuiltin b = if b then true else false
 
 instance FromBuiltin BuiltinUnit () where
-    -- See Note [Strict conversions to/from unit]
-    {-# INLINABLE fromBuiltin #-}
-    fromBuiltin u = chooseUnit u ()
+  -- See Note [Strict conversions to/from unit]
+  {-# INLINEABLE fromBuiltin #-}
+  fromBuiltin u = chooseUnit u ()
 instance ToBuiltin () BuiltinUnit where
-    -- See Note [Strict conversions to/from unit]
-    {-# INLINABLE toBuiltin #-}
-    toBuiltin x = case x of () -> unitval
+  -- See Note [Strict conversions to/from unit]
+  {-# INLINEABLE toBuiltin #-}
+  toBuiltin x = case x of () -> unitval
 
 instance FromBuiltin BuiltinByteString ByteString where
-    {-# INLINABLE fromBuiltin #-}
-    fromBuiltin (BuiltinByteString b) = b
+  {-# INLINEABLE fromBuiltin #-}
+  fromBuiltin (BuiltinByteString b) = b
 instance ToBuiltin ByteString BuiltinByteString where
-    {-# INLINABLE toBuiltin #-}
-    toBuiltin = BuiltinByteString
+  {-# INLINEABLE toBuiltin #-}
+  toBuiltin = BuiltinByteString
 
 -- We can't put this in `Builtins.hs`, since that force `O0` deliberately, which prevents
 -- the unfoldings from going in. So we just stick it here. Fiddly.
 instance IsString BuiltinString where
-    -- Try and make sure the dictionary selector goes away, it's simpler to match on
-    -- the application of 'stringToBuiltinString'
-    {-# INLINE fromString #-}
-    -- See Note [noinline hack]
-    fromString = Magic.noinline stringToBuiltinString
+  -- Try and make sure the dictionary selector goes away, it's simpler to match on
+  -- the application of 'stringToBuiltinString'
+  {-# INLINE fromString #-}
+  -- See Note [noinline hack]
+  fromString = Magic.noinline stringToBuiltinString
 
-{-# INLINABLE stringToBuiltinString #-}
+{-# INLINEABLE stringToBuiltinString #-}
 stringToBuiltinString :: Haskell.String -> BuiltinString
 -- To explain why the obfuscatedId is here
 -- See Note [noinline hack]
@@ -89,81 +90,81 @@ obfuscatedId :: a -> a
 obfuscatedId a = a
 
 instance FromBuiltin BuiltinString Text where
-    {-# INLINABLE fromBuiltin #-}
-    fromBuiltin (BuiltinString t) = t
+  {-# INLINEABLE fromBuiltin #-}
+  fromBuiltin (BuiltinString t) = t
 instance ToBuiltin Text BuiltinString where
-    {-# INLINABLE toBuiltin #-}
-    toBuiltin = BuiltinString
+  {-# INLINEABLE toBuiltin #-}
+  toBuiltin = BuiltinString
 
 {- Same noinline hack as with `String` type. -}
 instance IsString BuiltinByteString where
-    -- Try and make sure the dictionary selector goes away, it's simpler to match on
-    -- the application of 'stringToBuiltinByteString'
-    {-# INLINE fromString #-}
-    -- See Note [noinline hack]
-    fromString = Magic.noinline stringToBuiltinByteString
+  -- Try and make sure the dictionary selector goes away, it's simpler to match on
+  -- the application of 'stringToBuiltinByteString'
+  {-# INLINE fromString #-}
+  -- See Note [noinline hack]
+  fromString = Magic.noinline stringToBuiltinByteString
 
-{-# INLINABLE stringToBuiltinByteString #-}
+{-# INLINEABLE stringToBuiltinByteString #-}
 stringToBuiltinByteString :: Haskell.String -> BuiltinByteString
 stringToBuiltinByteString str = encodeUtf8 $ stringToBuiltinString str
 
-instance (FromBuiltin arep a, FromBuiltin brep b) => FromBuiltin (BuiltinPair arep brep) (a,b) where
-    {-# INLINABLE fromBuiltin #-}
-    fromBuiltin p = (fromBuiltin $ fst p, fromBuiltin $ snd p)
+instance (FromBuiltin arep a, FromBuiltin brep b) => FromBuiltin (BuiltinPair arep brep) (a, b) where
+  {-# INLINEABLE fromBuiltin #-}
+  fromBuiltin p = (fromBuiltin $ fst p, fromBuiltin $ snd p)
 instance ToBuiltin (BuiltinData, BuiltinData) (BuiltinPair BuiltinData BuiltinData) where
-    {-# INLINABLE toBuiltin #-}
-    toBuiltin (d1, d2) = mkPairData d1 d2
+  {-# INLINEABLE toBuiltin #-}
+  toBuiltin (d1, d2) = mkPairData d1 d2
 
 instance FromBuiltin arep a => FromBuiltin (BuiltinList arep) [a] where
-    {-# INLINABLE fromBuiltin #-}
-    fromBuiltin = go
-      where
-          -- The combination of both INLINABLE and a type signature seems to stop this getting lifted to the top
-          -- level, which means it gets a proper unfolding, which means that specialization can work, which can
-          -- actually help quite a bit here.
-          {-# INLINABLE go #-}
-          go :: BuiltinList arep -> [a]
-          -- Note that we are using builtin chooseList here so this is *strict* application! So we need to do
-          -- the manual laziness ourselves.
-          go l = chooseList l (const []) (\_ -> fromBuiltin (head l):go (tail l)) unitval
+  {-# INLINEABLE fromBuiltin #-}
+  fromBuiltin = go
+    where
+      -- The combination of both INLINABLE and a type signature seems to stop this getting lifted to the top
+      -- level, which means it gets a proper unfolding, which means that specialization can work, which can
+      -- actually help quite a bit here.
+      {-# INLINEABLE go #-}
+      go :: BuiltinList arep -> [a]
+      -- Note that we are using builtin chooseList here so this is *strict* application! So we need to do
+      -- the manual laziness ourselves.
+      go l = chooseList l (const []) (\_ -> fromBuiltin (head l) : go (tail l)) unitval
 
 instance ToBuiltin [BuiltinData] (BuiltinList BuiltinData) where
-    {-# INLINABLE toBuiltin #-}
-    toBuiltin []     = mkNilData unitval
-    toBuiltin (d:ds) = mkCons d (toBuiltin ds)
+  {-# INLINEABLE toBuiltin #-}
+  toBuiltin [] = mkNilData unitval
+  toBuiltin (d : ds) = mkCons d (toBuiltin ds)
 
 instance ToBuiltin [(BuiltinData, BuiltinData)] (BuiltinList (BuiltinPair BuiltinData BuiltinData)) where
-    {-# INLINABLE toBuiltin #-}
-    toBuiltin []     = mkNilPairData unitval
-    toBuiltin (d:ds) = mkCons (toBuiltin d) (toBuiltin ds)
+  {-# INLINEABLE toBuiltin #-}
+  toBuiltin [] = mkNilPairData unitval
+  toBuiltin (d : ds) = mkCons (toBuiltin d) (toBuiltin ds)
 
 instance FromBuiltin BuiltinData BuiltinData where
-    {-# INLINABLE fromBuiltin #-}
-    fromBuiltin = id
+  {-# INLINEABLE fromBuiltin #-}
+  fromBuiltin = id
 instance ToBuiltin BuiltinData BuiltinData where
-    {-# INLINABLE toBuiltin #-}
-    toBuiltin = id
+  {-# INLINEABLE toBuiltin #-}
+  toBuiltin = id
 
 instance FromBuiltin BuiltinBLS12_381_G1_Element BLS12_381.G1.Element where
-    {-# INLINABLE fromBuiltin #-}
-    fromBuiltin (BuiltinBLS12_381_G1_Element a) = a
+  {-# INLINEABLE fromBuiltin #-}
+  fromBuiltin (BuiltinBLS12_381_G1_Element a) = a
 instance ToBuiltin BLS12_381.G1.Element BuiltinBLS12_381_G1_Element where
-    {-# INLINABLE toBuiltin #-}
-    toBuiltin = BuiltinBLS12_381_G1_Element
+  {-# INLINEABLE toBuiltin #-}
+  toBuiltin = BuiltinBLS12_381_G1_Element
 
 instance FromBuiltin BuiltinBLS12_381_G2_Element BLS12_381.G2.Element where
-    {-# INLINABLE fromBuiltin #-}
-    fromBuiltin (BuiltinBLS12_381_G2_Element a) = a
+  {-# INLINEABLE fromBuiltin #-}
+  fromBuiltin (BuiltinBLS12_381_G2_Element a) = a
 instance ToBuiltin BLS12_381.G2.Element BuiltinBLS12_381_G2_Element where
-    {-# INLINABLE toBuiltin #-}
-    toBuiltin = BuiltinBLS12_381_G2_Element
+  {-# INLINEABLE toBuiltin #-}
+  toBuiltin = BuiltinBLS12_381_G2_Element
 
 instance FromBuiltin BuiltinBLS12_381_MlResult BLS12_381.Pairing.MlResult where
-    {-# INLINABLE fromBuiltin #-}
-    fromBuiltin (BuiltinBLS12_381_MlResult a) = a
+  {-# INLINEABLE fromBuiltin #-}
+  fromBuiltin (BuiltinBLS12_381_MlResult a) = a
 instance ToBuiltin BLS12_381.Pairing.MlResult BuiltinBLS12_381_MlResult where
-    {-# INLINABLE toBuiltin #-}
-    toBuiltin = BuiltinBLS12_381_MlResult
+  {-# INLINEABLE toBuiltin #-}
+  toBuiltin = BuiltinBLS12_381_MlResult
 
 {- Note [Builtin types and their Haskell versions]
 Consider the builtin pair type. In Plutus Tx, we have an (opaque) type for
@@ -205,7 +206,7 @@ have an irreducible type application on a type variable. So fundeps are much nic
 
 {- Note [Strict conversions to/from unit]
 Converting to/from unit *should* be straightforward: just `const ()`.
-*But* GHC is very good at optimizing this, and we sometimes use unit
+\*But* GHC is very good at optimizing this, and we sometimes use unit
 where side effects matter, e.g. as the result of `trace`. So GHC will
 tend to turn `fromBuiltin (trace s)` into `()`, which is wrong.
 

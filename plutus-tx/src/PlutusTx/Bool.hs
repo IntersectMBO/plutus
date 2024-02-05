@@ -1,4 +1,4 @@
-module PlutusTx.Bool (Bool(..), (&&), (||), not, otherwise) where
+module PlutusTx.Bool (Bool (..), (&&), (||), not, otherwise) where
 
 {-
 We export off-chain Haskell's Bool type as on-chain Plutus's Bool type since they are the same.
@@ -9,32 +9,37 @@ import Prelude (Bool (..), otherwise)
 {- HLINT ignore -}
 
 {-# INLINE (&&) #-}
--- | Logical AND
---
---   >>> True && False
---   False
---
+
+{- | Logical AND
+
+  >>> True && False
+  False
+-}
 infixr 3 &&
+
 (&&) :: Bool -> Bool -> Bool
 -- See Note [Lazy patterns on function parameters]
 (&&) l ~r = if l then r else False
 
 {-# INLINE (||) #-}
--- | Logical OR
---
---   >>> True || False
---   True
---
+
+{- | Logical OR
+
+  >>> True || False
+  True
+-}
 infixr 2 ||
+
 (||) :: Bool -> Bool -> Bool
 (||) l ~r = if l then True else r
 
-{-# INLINABLE not #-}
--- | Logical negation
---
---   >>> not True
---   False
---
+{-# INLINEABLE not #-}
+
+{- | Logical negation
+
+  >>> not True
+  False
+-}
 not :: Bool -> Bool
 not a = if a then False else True
 

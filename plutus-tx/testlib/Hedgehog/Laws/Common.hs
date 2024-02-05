@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+
 module Hedgehog.Laws.Common where
 
 import Hedgehog (Property, cover, forAll, property)
@@ -36,7 +37,7 @@ prop_unit g op unit = property $ do
   cover 10 "different" $ x /= unit
   x `op` unit Hedgehog.=== x
 
-prop_reflexive :: (Show a) => Hedgehog.Gen a -> (a -> a -> Bool) -> Property
+prop_reflexive :: Show a => Hedgehog.Gen a -> (a -> a -> Bool) -> Property
 prop_reflexive g op = property $ do
   x <- forAll g
   x `op` x Hedgehog.=== True

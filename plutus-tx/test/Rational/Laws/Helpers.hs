@@ -1,8 +1,9 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE KindSignatures    #-}
-{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE KindSignatures #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# OPTIONS_GHC -Wno-orphans #-} -- We need Arg Rational instance
+-- We need Arg Rational instance
+{-# OPTIONS_GHC -Wno-orphans #-}
 
 module Rational.Laws.Helpers (
   genRational,
@@ -15,23 +16,34 @@ module Rational.Laws.Helpers (
   forAllWithPP,
   normalAndEquivalentTo,
   normalAndEquivalentToMaybe,
-  ) where
+) where
 
 import Data.Functor.Contravariant (contramap)
 import Data.Kind (Type)
 import Data.Maybe (isJust, isNothing)
 import GHC.Exts (fromString)
-import Hedgehog (Gen, MonadTest, Property, PropertyT, assert, cover, failure, forAllWith, property,
-                 success, (===))
+import Hedgehog (
+  Gen,
+  MonadTest,
+  Property,
+  PropertyT,
+  assert,
+  cover,
+  failure,
+  forAllWith,
+  property,
+  success,
+  (===),
+ )
 import Hedgehog.Function (Arg (build), CoGen, vary, via)
 import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import PlutusTx.Prelude qualified as Plutus
 import PlutusTx.Ratio qualified as Ratio
-import Prelude
 import Test.Tasty (TestTree, localOption)
 import Test.Tasty.Hedgehog (HedgehogTestLimit (HedgehogTestLimit), testPropertyNamed)
 import Text.Show.Pretty (ppShow)
+import Prelude
 
 -- This is a hack to avoid coverage issues.
 --
@@ -55,20 +67,21 @@ import Text.Show.Pretty (ppShow)
 -- reflexive, and that the type of the generated values is either large or
 -- infinite. If one or both of these don't hold, use of this function will have
 -- the _opposite_ effect, as it will skew the test outcomes.
-testEntangled :: forall (a :: Type) .
-  (Show a) =>
+testEntangled ::
+  forall (a :: Type).
+  Show a =>
   String ->
   Gen a ->
   (a -> a -> PropertyT IO ()) ->
   TestTree
 testEntangled name gen cb =
   localOption coverLimit . testPropertyNamed name (fromString name) . property $ do
-  (x, my) <- forAllWith ppEntangled ((,) <$> gen <*> maybe' gen)
-  cover 45 "identical" (isNothing my)
-  cover 45 "possibly different" (isJust my)
-  case my of
-    Nothing -> cb x x
-    Just y  -> cb x y
+    (x, my) <- forAllWith ppEntangled ((,) <$> gen <*> maybe' gen)
+    cover 45 "identical" (isNothing my)
+    cover 45 "possibly different" (isJust my)
+    case my of
+      Nothing -> cb x x
+      Just y -> cb x y
 
 -- This is the same as 'testEntangled', but for three values instead of two.
 -- More precisely, this ensures that, given a generator and function argument,
@@ -76,20 +89,21 @@ testEntangled name gen cb =
 -- of the same value, rather than three independently-generated values.
 --
 -- All the caveats of 'testEntangled' also apply to this function.
-testEntangled3 :: forall (a :: Type) .
-  (Show a) =>
+testEntangled3 ::
+  forall (a :: Type).
+  Show a =>
   String ->
   Gen a ->
   (a -> a -> a -> PropertyT IO ()) ->
   TestTree
 testEntangled3 name gen cb =
   localOption coverLimit . testPropertyNamed name (fromString name) . property $ do
-  (x, myz) <- forAllWith ppEntangled3 ((,) <$> gen <*> maybe' ((,) <$> gen <*> gen))
-  cover 45 "identical" (isNothing myz)
-  cover 45 "possibly different" (isJust myz)
-  case myz of
-    Nothing     -> cb x x x
-    Just (y, z) -> cb x y z
+    (x, myz) <- forAllWith ppEntangled3 ((,) <$> gen <*> maybe' ((,) <$> gen <*> gen))
+    cover 45 "identical" (isNothing myz)
+    cover 45 "possibly different" (isJust myz)
+    case myz of
+      Nothing -> cb x x x
+      Just (y, z) -> cb x y z
 
 -- Hedgehog treats coverage as an absolute minimum: more precisely, given N
 -- tests to run and a coverage target of M%, Hedgehog will run N tests, and
@@ -137,9 +151,11 @@ genInteger = Gen.integral . Range.linearFrom 0 (-100) $ 100
 genIntegerPos :: Gen Integer
 genIntegerPos = Gen.integral . Range.linearFrom 100 1 $ 200
 
-forAllWithPP :: forall (a :: Type) (m :: Type -> Type) .
+forAllWithPP ::
+  forall (a :: Type) (m :: Type -> Type).
   (Show a, Monad m) =>
-  Gen a-> PropertyT m a
+  Gen a ->
+  PropertyT m a
 forAllWithPP = forAllWith ppShow
 
 -- Rationals are required to maintain several invariants. We could write code to
@@ -147,9 +163,12 @@ forAllWithPP = forAllWith ppShow
 --
 -- This function is thus equivalent to === for Rationals, but with the added
 -- check that the first argument maintains the invariants it's supposed to.
-normalAndEquivalentTo :: forall (m :: Type -> Type) .
-  (MonadTest m) =>
-  Plutus.Rational -> Plutus.Rational -> m ()
+normalAndEquivalentTo ::
+  forall (m :: Type -> Type).
+  MonadTest m =>
+  Plutus.Rational ->
+  Plutus.Rational ->
+  m ()
 normalAndEquivalentTo actual expected = do
   let num = Ratio.numerator actual
   let den = Ratio.denominator actual
@@ -158,9 +177,12 @@ normalAndEquivalentTo actual expected = do
   actual === expected
 
 -- 'normalAndEquivalentTo' lifted to 'Maybe'.
-normalAndEquivalentToMaybe :: forall (m :: Type -> Type) .
-  (MonadTest m) =>
-  Maybe Plutus.Rational -> Maybe Plutus.Rational -> m ()
+normalAndEquivalentToMaybe ::
+  forall (m :: Type -> Type).
+  MonadTest m =>
+  Maybe Plutus.Rational ->
+  Maybe Plutus.Rational ->
+  m ()
 normalAndEquivalentToMaybe actual expected = case (actual, expected) of
   (Nothing, Nothing) -> success
   (Just actual', Just _) -> do
@@ -180,15 +202,18 @@ normalAndEquivalentToMaybe actual expected = case (actual, expected) of
 coverLimit :: HedgehogTestLimit
 coverLimit = HedgehogTestLimit . Just $ 8000
 
-ppEntangled :: forall (a :: Type) . (Show a) => (a, Maybe a) -> String
+ppEntangled :: forall (a :: Type). Show a => (a, Maybe a) -> String
 ppEntangled = \case
   (x, Nothing) -> ppShow (x, x)
-  (x, Just y)  -> ppShow (x, y)
+  (x, Just y) -> ppShow (x, y)
 
-ppEntangled3 :: forall (a :: Type) . (Show a) =>
-  (a, Maybe (a, a)) -> String
+ppEntangled3 ::
+  forall (a :: Type).
+  Show a =>
+  (a, Maybe (a, a)) ->
+  String
 ppEntangled3 = \case
-  (x, Nothing)     -> ppShow (x, x, x)
+  (x, Nothing) -> ppShow (x, x, x)
   (x, Just (y, z)) -> ppShow (x, y, z)
 
 separate :: Plutus.Rational -> (Integer, Integer)

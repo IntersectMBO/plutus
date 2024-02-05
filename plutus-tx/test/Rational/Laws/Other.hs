@@ -1,6 +1,6 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TupleSections     #-}
+{-# LANGUAGE TupleSections #-}
 
 module Rational.Laws.Other (otherLaws) where
 
@@ -9,28 +9,41 @@ import Hedgehog.Gen qualified as Gen
 import Hedgehog.Range qualified as Range
 import PlutusTx.Prelude qualified as Plutus
 import PlutusTx.Ratio qualified as Ratio
-import Prelude
-import Rational.Laws.Helpers (forAllWithPP, genInteger, genIntegerPos, genRational,
-                              testCoverProperty)
+import Rational.Laws.Helpers (
+  forAllWithPP,
+  genInteger,
+  genIntegerPos,
+  genRational,
+  testCoverProperty,
+ )
 import Test.Tasty (TestTree)
 import Test.Tasty.Hedgehog (testPropertyNamed)
+import Prelude
 
 otherLaws :: [TestTree]
-otherLaws = [
-  testPropertyNamed "numerator r = numerator . scale (denominator r) $ r" "propNumeratorScale" propNumeratorScale,
-  testPropertyNamed "denominator r >= 1" "propPosDen" propPosDen,
-  testPropertyNamed "recip r * r = 1 for r /= 0" "propRecipSelf" propRecipSelf,
-  testPropertyNamed "abs r >= 0" "propAbs" propAbs,
-  testPropertyNamed "abs r * abs r' = abs (r * r')" "probAbsTimes" propAbsTimes,
-  testPropertyNamed "r = n + f, where (n, f) = properFraction r" "propProperFrac" propProperFrac,
-  testCoverProperty "signs of properFraction components match sign of input" propProperFracSigns,
-  testPropertyNamed "abs f < 1, where (_, f) = properFraction r" "propProperFracAbs" propProperFracAbs,
-  testPropertyNamed "abs (round r) >= abs n, where (n, _) = properFraction r" "propAbsRound" propAbsRound,
-  testPropertyNamed "halves round as expected" "propRoundHalf" propRoundHalf,
-  testPropertyNamed ("if abs f < half, then round r = truncate r, " <>
-                "where (_, f) = properFraction r") "propRoundLow" propRoundLow,
-  testPropertyNamed ("if abs f > half, then abs (round r) = abs (truncate r) + 1, " <>
-                "where (_, f) = properFraction r") "propRoundHigh" propRoundHigh
+otherLaws =
+  [ testPropertyNamed "numerator r = numerator . scale (denominator r) $ r" "propNumeratorScale" propNumeratorScale
+  , testPropertyNamed "denominator r >= 1" "propPosDen" propPosDen
+  , testPropertyNamed "recip r * r = 1 for r /= 0" "propRecipSelf" propRecipSelf
+  , testPropertyNamed "abs r >= 0" "propAbs" propAbs
+  , testPropertyNamed "abs r * abs r' = abs (r * r')" "probAbsTimes" propAbsTimes
+  , testPropertyNamed "r = n + f, where (n, f) = properFraction r" "propProperFrac" propProperFrac
+  , testCoverProperty "signs of properFraction components match sign of input" propProperFracSigns
+  , testPropertyNamed "abs f < 1, where (_, f) = properFraction r" "propProperFracAbs" propProperFracAbs
+  , testPropertyNamed "abs (round r) >= abs n, where (n, _) = properFraction r" "propAbsRound" propAbsRound
+  , testPropertyNamed "halves round as expected" "propRoundHalf" propRoundHalf
+  , testPropertyNamed
+      ( "if abs f < half, then round r = truncate r, "
+          <> "where (_, f) = properFraction r"
+      )
+      "propRoundLow"
+      propRoundLow
+  , testPropertyNamed
+      ( "if abs f > half, then abs (round r) = abs (truncate r) + 1, "
+          <> "where (_, f) = properFraction r"
+      )
+      "propRoundHigh"
+      propRoundHigh
   ]
 
 -- Helpers
@@ -95,8 +108,11 @@ propProperFracSigns = property $ do
       Ratio.unsafeRatio <$> gen <*> gen
     diffSign :: Gen Plutus.Rational
     diffSign = do
-      (genN, genD) <- Gen.element [(genIntegerPos, negate <$> genIntegerPos),
-                                   (negate <$> genIntegerPos, genIntegerPos)]
+      (genN, genD) <-
+        Gen.element
+          [ (genIntegerPos, negate <$> genIntegerPos)
+          , (negate <$> genIntegerPos, genIntegerPos)
+          ]
       Ratio.unsafeRatio <$> genN <*> genD
 
 propProperFracAbs :: Property
@@ -119,18 +135,18 @@ propRoundHalf = property $ do
   let rounded = Ratio.round r
   case (signum n, even n) of
     (-1, False) -> rounded === n Plutus.- Plutus.one
-    (-1, True)  -> rounded === n
-    (0, _)      -> rounded === Plutus.zero
-    (1, False)  -> rounded === n Plutus.+ Plutus.one
-    _           -> rounded === n
+    (-1, True) -> rounded === n
+    (0, _) -> rounded === Plutus.zero
+    (1, False) -> rounded === n Plutus.+ Plutus.one
+    _ -> rounded === n
   where
     go :: Gen (Integer, Plutus.Rational)
     go = do
       n <- genInteger
       f <- case signum n of
-            (-1) -> pure . Ratio.negate $ Ratio.half
-            0    -> Gen.element [Ratio.half, Ratio.negate Ratio.half]
-            _    -> pure Ratio.half
+        (-1) -> pure . Ratio.negate $ Ratio.half
+        0 -> Gen.element [Ratio.half, Ratio.negate Ratio.half]
+        _ -> pure Ratio.half
       pure (n, f)
 
 propRoundLow :: Property
@@ -148,8 +164,8 @@ propRoundLow = property $ do
       n <- genInteger
       case signum n of
         (-1) -> pure (n, Ratio.negate f)
-        0    -> (n,) <$> Gen.element [f, Ratio.negate f]
-        _    -> pure (n, f)
+        0 -> (n,) <$> Gen.element [f, Ratio.negate f]
+        _ -> pure (n, f)
 
 propRoundHigh :: Property
 propRoundHigh = property $ do
@@ -166,6 +182,5 @@ propRoundHigh = property $ do
       n <- genInteger
       case signum n of
         (-1) -> pure (n, Ratio.negate f)
-        0    -> (n,) <$> Gen.element [f, Ratio.negate f]
-        _    -> pure (n, f)
-
+        0 -> (n,) <$> Gen.element [f, Ratio.negate f]
+        _ -> pure (n, f)

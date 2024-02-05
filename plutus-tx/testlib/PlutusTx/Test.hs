@@ -1,10 +1,10 @@
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE KindSignatures        #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module PlutusTx.Test (
@@ -26,8 +26,7 @@ module PlutusTx.Test (
   goldenEvalCekLog,
 
   -- * Budget testing
-  goldenBudget
-
+  goldenBudget,
 ) where
 
 import Prelude
@@ -64,7 +63,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek qualified as UPLC
 
 fitsUnder ::
   forall (a :: Type).
-  (Typeable a) =>
+  Typeable a =>
   String ->
   (String, CompiledCode a) ->
   (String, CompiledCode a) ->
@@ -74,15 +73,15 @@ fitsUnder name test target = singleTest name $ SizeComparisonTest test target
 data SizeComparisonTest (a :: Type)
   = SizeComparisonTest (String, CompiledCode a) (String, CompiledCode a)
 
-instance (Typeable a) => IsTest (SizeComparisonTest a) where
+instance Typeable a => IsTest (SizeComparisonTest a) where
   run _ (SizeComparisonTest (mName, mCode) (tName, tCode)) _ = do
     let tEstimate = sizePlc tCode
     let mEstimate = sizePlc mCode
     let diff = tEstimate - mEstimate
     pure $ case signum diff of
       (-1) -> testFailed . renderFailed (tName, tEstimate) (mName, mEstimate) $ diff
-      0    -> testPassed . renderEstimates (tName, tEstimate) $ (mName, mEstimate)
-      _    -> testPassed . renderExcess (tName, tEstimate) (mName, mEstimate) $ diff
+      0 -> testPassed . renderEstimates (tName, tEstimate) $ (mName, mEstimate)
+      _ -> testPassed . renderExcess (tName, tEstimate) (mName, mEstimate) $ diff
   testOptions = Tagged []
 
 renderFailed :: (String, Integer) -> (String, Integer) -> Integer -> String
@@ -150,16 +149,16 @@ goldenPirBy config name value =
 -- Evaluation testing
 
 -- TODO: rationalize with the functions exported from PlcTestUtils
-goldenEvalCek :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun) => String -> [a] -> TestNested
+goldenEvalCek :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => String -> [a] -> TestNested
 goldenEvalCek name values =
   nestedGoldenVsDocM name ".eval" $ prettyPlcClassicDebug <$> (rethrow $ runPlcCek values)
 
-goldenEvalCekCatch :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun) => String -> [a] -> TestNested
+goldenEvalCekCatch :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => String -> [a] -> TestNested
 goldenEvalCekCatch name values =
   nestedGoldenVsDocM name ".eval" $
     either (pretty . show) prettyPlcClassicDebug <$> runExceptT (runPlcCek values)
 
-goldenEvalCekLog :: (ToUPlc a PLC.DefaultUni PLC.DefaultFun) => String -> [a] -> TestNested
+goldenEvalCekLog :: ToUPlc a PLC.DefaultUni PLC.DefaultFun => String -> [a] -> TestNested
 goldenEvalCekLog name values =
   nestedGoldenVsDocM name ".eval" $ pretty . view _1 <$> (rethrow $ runPlcCekTrace values)
 
@@ -195,7 +194,7 @@ instance
       Just v' -> toTPlc v'
 
 runPlcCek ::
-  (ToUPlc a PLC.DefaultUni PLC.DefaultFun) =>
+  ToUPlc a PLC.DefaultUni PLC.DefaultFun =>
   [a] ->
   ExceptT SomeException IO (UPLC.Term PLC.Name PLC.DefaultUni PLC.DefaultFun ())
 runPlcCek values = do
@@ -206,7 +205,7 @@ runPlcCek values = do
     UPLC.evaluateCekNoEmit PLC.defaultCekParameters (p ^. UPLC.progTerm)
 
 runPlcCekTrace ::
-  (ToUPlc a PLC.DefaultUni PLC.DefaultFun) =>
+  ToUPlc a PLC.DefaultUni PLC.DefaultFun =>
   [a] ->
   ExceptT
     SomeException

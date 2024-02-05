@@ -1,10 +1,12 @@
-{-# LANGUAGE DataKinds        #-}
-{-# LANGUAGE TemplateHaskell  #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeApplications #-}
+
 module PlutusTx.TH (
-    compile,
-    compileUntyped,
-    loadFromFile) where
+  compile,
+  compileUntyped,
+  loadFromFile,
+) where
 
 import Data.Proxy
 import Language.Haskell.TH qualified as TH
@@ -26,10 +28,10 @@ compile e = TH.unsafeSpliceCoerce $ compileUntyped $ TH.unType <$> TH.examineSpl
 -- | Load a 'CompiledCode' from a file. Drop-in replacement for 'compile'.
 loadFromFile :: FilePath -> TH.SpliceQ (CompiledCode a)
 loadFromFile fp = TH.liftSplice $ do
-    -- We don't have a 'Lift' instance for 'CompiledCode' (we could but it would be tedious),
-    -- so we lift the bytestring and construct the value in the quote.
-    bs <- liftIO $ BS.readFile fp
-    TH.examineSplice [|| SerializedCode bs Nothing mempty ||]
+  -- We don't have a 'Lift' instance for 'CompiledCode' (we could but it would be tedious),
+  -- so we lift the bytestring and construct the value in the quote.
+  bs <- liftIO $ BS.readFile fp
+  TH.examineSplice [||SerializedCode bs Nothing mempty||]
 
 {- Note [Typed TH]
 It's nice to use typed TH! However, we sadly can't *quite* use it thoroughly, because we
@@ -46,8 +48,8 @@ going to typecheck, and the result is always a 'CompiledCode', so that's also fi
 -- | Compile a quoted Haskell expression into a corresponding Plutus Core program.
 compileUntyped :: TH.Q TH.Exp -> TH.Q TH.Exp
 compileUntyped e = do
-    TH.addCorePlugin "PlutusTx.Plugin"
-    loc <- TH.location
-    let locStr = TH.pprint loc
-    -- See note [Typed TH]
-    [| plc (Proxy :: Proxy $(TH.litT $ TH.strTyLit locStr)) $(e) |]
+  TH.addCorePlugin "PlutusTx.Plugin"
+  loc <- TH.location
+  let locStr = TH.pprint loc
+  -- See note [Typed TH]
+  [|plc (Proxy :: Proxy $(TH.litT $ TH.strTyLit locStr)) $(e)|]

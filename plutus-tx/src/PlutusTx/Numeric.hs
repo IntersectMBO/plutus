@@ -1,8 +1,9 @@
 -- editorconfig-checker-disable-file
-{-# LANGUAGE ConstraintKinds        #-}
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
+{-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
+
 module PlutusTx.Numeric (
   -- * Type classes
   AdditiveSemigroup (..),
@@ -13,21 +14,31 @@ module PlutusTx.Numeric (
   Semiring,
   Ring,
   Module (..),
+
   -- * Helper newtypes
   Additive (..),
   Multiplicative (..),
+
   -- * Helper functions
   negate,
   divMod,
   quotRem,
   abs,
-  ) where
+) where
 
 import Data.Coerce (coerce)
 import Data.Semigroup (Product (Product), Sum (Sum))
 import PlutusTx.Bool (Bool (False, True), (&&), (||))
-import PlutusTx.Builtins (Integer, addInteger, divideInteger, modInteger, multiplyInteger,
-                          quotientInteger, remainderInteger, subtractInteger)
+import PlutusTx.Builtins (
+  Integer,
+  addInteger,
+  divideInteger,
+  modInteger,
+  multiplyInteger,
+  quotientInteger,
+  remainderInteger,
+  subtractInteger,
+ )
 import PlutusTx.Monoid (Group, Monoid (mempty), gsub)
 import PlutusTx.Ord (Ord ((<)))
 import PlutusTx.Semigroup (Semigroup ((<>)))
@@ -37,17 +48,17 @@ infixl 6 +, -
 
 -- | A 'Semigroup' that it is sensible to describe using addition.
 class AdditiveSemigroup a where
-    (+) :: a -> a -> a
+  (+) :: a -> a -> a
 
 -- | A 'Monoid' that it is sensible to describe using addition and zero.
 class AdditiveSemigroup a => AdditiveMonoid a where
-    zero :: a
+  zero :: a
 
 -- | A 'Group' that it is sensible to describe using addition, zero, and subtraction.
 class AdditiveMonoid a => AdditiveGroup a where
-    (-) :: a -> a -> a
+  (-) :: a -> a -> a
 
-{-# INLINABLE negate #-}
+{-# INLINEABLE negate #-}
 negate :: AdditiveGroup a => a -> a
 negate x = zero - x
 
@@ -55,24 +66,24 @@ negate x = zero - x
 newtype Additive a = Additive a
 
 instance Semigroup a => AdditiveSemigroup (Additive a) where
-    {-# INLINABLE (+) #-}
-    (+) = coerce ((<>) :: a -> a -> a)
+  {-# INLINEABLE (+) #-}
+  (+) = coerce ((<>) :: a -> a -> a)
 
 instance Monoid a => AdditiveMonoid (Additive a) where
-    {-# INLINABLE zero #-}
-    zero = Additive mempty
+  {-# INLINEABLE zero #-}
+  zero = Additive mempty
 
 instance Group a => AdditiveGroup (Additive a) where
-    {-# INLINABLE (-) #-}
-    (-) = coerce (gsub :: a -> a -> a)
+  {-# INLINEABLE (-) #-}
+  (-) = coerce (gsub :: a -> a -> a)
 
 -- | A 'Semigroup' that it is sensible to describe using multiplication.
 class MultiplicativeSemigroup a where
-    (*) :: a -> a -> a
+  (*) :: a -> a -> a
 
 -- | A 'Semigroup' that it is sensible to describe using multiplication and one.
 class MultiplicativeSemigroup a => MultiplicativeMonoid a where
-    one :: a
+  one :: a
 
 -- TODO: multiplicative group? I haven't added any since for e.g. integers division
 -- is not a proper inverse, so it's of limited use.
@@ -81,85 +92,86 @@ class MultiplicativeSemigroup a => MultiplicativeMonoid a where
 newtype Multiplicative a = Multiplicative a
 
 instance Semigroup a => MultiplicativeSemigroup (Multiplicative a) where
-    {-# INLINABLE (*) #-}
-    (*) = coerce ((<>) :: a -> a -> a)
+  {-# INLINEABLE (*) #-}
+  (*) = coerce ((<>) :: a -> a -> a)
 
 instance Monoid a => MultiplicativeMonoid (Multiplicative a) where
-    {-# INLINABLE one #-}
-    one = Multiplicative mempty
+  {-# INLINEABLE one #-}
+  one = Multiplicative mempty
 
 -- | A semiring.
 type Semiring a = (AdditiveMonoid a, MultiplicativeMonoid a)
+
 -- | A ring.
 type Ring a = (AdditiveGroup a, MultiplicativeMonoid a)
 
 instance AdditiveSemigroup Integer where
-    {-# INLINABLE (+) #-}
-    (+) = addInteger
+  {-# INLINEABLE (+) #-}
+  (+) = addInteger
 
 instance AdditiveMonoid Integer where
-    {-# INLINABLE zero #-}
-    zero = 0
+  {-# INLINEABLE zero #-}
+  zero = 0
 
 instance AdditiveGroup Integer where
-    {-# INLINABLE (-) #-}
-    (-) = subtractInteger
+  {-# INLINEABLE (-) #-}
+  (-) = subtractInteger
 
 instance MultiplicativeSemigroup Integer where
-    {-# INLINABLE (*) #-}
-    (*) = multiplyInteger
+  {-# INLINEABLE (*) #-}
+  (*) = multiplyInteger
 
 instance MultiplicativeMonoid Integer where
-    {-# INLINABLE one #-}
-    one = 1
+  {-# INLINEABLE one #-}
+  one = 1
 
 instance AdditiveSemigroup Bool where
-    {-# INLINABLE (+) #-}
-    (+) = (||)
+  {-# INLINEABLE (+) #-}
+  (+) = (||)
 
 instance AdditiveMonoid Bool where
-    {-# INLINABLE zero #-}
-    zero = False
+  {-# INLINEABLE zero #-}
+  zero = False
 
 instance MultiplicativeSemigroup Bool where
-    {-# INLINABLE (*) #-}
-    (*) = (&&)
+  {-# INLINEABLE (*) #-}
+  (*) = (&&)
 
 instance MultiplicativeMonoid Bool where
-    {-# INLINABLE one #-}
-    one = True
+  {-# INLINEABLE one #-}
+  one = True
 
 -- | A module, with a type of scalars which can be used to scale the values.
 class (Ring s, AdditiveGroup v) => Module s v | v -> s where
-    scale :: s -> v -> v
+  scale :: s -> v -> v
 
 instance AdditiveSemigroup a => Semigroup (Sum a) where
-    {-# INLINABLE (<>) #-}
-    (<>) = coerce ((+) :: a -> a -> a)
+  {-# INLINEABLE (<>) #-}
+  (<>) = coerce ((+) :: a -> a -> a)
 
 instance AdditiveMonoid a => Monoid (Sum a) where
-    {-# INLINABLE mempty #-}
-    mempty = Sum zero
+  {-# INLINEABLE mempty #-}
+  mempty = Sum zero
 
 instance MultiplicativeSemigroup a => Semigroup (Product a) where
-    {-# INLINABLE (<>) #-}
-    (<>) = coerce ((*) :: a -> a -> a)
+  {-# INLINEABLE (<>) #-}
+  (<>) = coerce ((*) :: a -> a -> a)
 
 instance MultiplicativeMonoid a => Monoid (Product a) where
-    {-# INLINABLE mempty #-}
-    mempty = Product one
+  {-# INLINEABLE mempty #-}
+  mempty = Product one
 
 -- | Simultaneous div and mod.
-{-# INLINABLE divMod #-}
+{-# INLINEABLE divMod #-}
 divMod :: Integer -> Integer -> (Integer, Integer)
-divMod x y = ( x `divideInteger` y, x `modInteger` y)
+divMod x y = (x `divideInteger` y, x `modInteger` y)
 
 -- | Simultaneous quot and rem.
-{-# INLINABLE quotRem #-}
+{-# INLINEABLE quotRem #-}
 quotRem :: Integer -> Integer -> (Integer, Integer)
-quotRem x y = ( x `quotientInteger` y, x `remainderInteger` y)
+quotRem x y = (x `quotientInteger` y, x `remainderInteger` y)
 
 -- | Absolute value for any 'AdditiveGroup'.
-{-# INLINABLE abs #-}
+{-# INLINEABLE abs #-}
 abs :: (Ord n, AdditiveGroup n) => n -> n
 abs x = if x < zero then negate x else x
