@@ -89,12 +89,16 @@ Here is what ``Main.hs`` may look like:
    :start-after: BLOCK1
    :end-before: BLOCK2
 
-Replace ``apSeller`` with the seller's `PubKeyHash <https://input-output-hk.github.io/plutus/master/plutus-ledger-api/html/PlutusLedgerApi-V2.html#t:PubKeyHash>`_, which can be generated using Cardano CLI, Cardano API or an off-chain library for Cardano.
-Replace ``apEndTime`` with your desired `POSIXTime <https://input-output-hk.github.io/plutus/master/plutus-ledger-api/html/PlutusLedgerApi-V2.html#t:POSIXTime>`_.
+Replace ``apSeller`` with the seller's `PubKeyHash <https://intersectmbo.github.io/plutus/master/plutus-ledger-api/html/PlutusLedgerApi-V2.html#t:PubKeyHash>`_, which can be generated using Cardano CLI, Cardano API or an off-chain library for Cardano.
+Replace ``apEndTime`` with your desired `POSIXTime <https://intersectmbo.github.io/plutus/master/plutus-ledger-api/html/PlutusLedgerApi-V2.html#t:POSIXTime>`_.
 
 Now, build it: ::
 
   cabal build plutus-quickstart
+
+Then, run the executable with: ::
+
+  cabal exec plutus-quickstart
 
 This should succeed and will write the serialised validator to ``validator.uplc``.
 Congratulations - you've successfully created a Plutus validator script.

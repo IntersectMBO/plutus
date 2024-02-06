@@ -1,4 +1,6 @@
 -- BLOCK1
+{-# LANGUAGE ImportQualifiedPost #-}
+
 module Main where
 
 import AuctionValidator
