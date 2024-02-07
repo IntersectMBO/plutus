@@ -19,6 +19,16 @@ import Test.Tasty.Golden
 basic :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 basic = Force () $ Delay () $ mkConstant @Integer () 1
 
+forceCaseHappy :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+forceCaseHappy = runQuote $ do
+  x <- freshName "x"
+  pure $
+    Force () $
+      Case ()
+        (Constr () 0 [mkConstant @Integer () 1])
+        [LamAbs () x $ Delay () $ mkConstant @Integer () 1]
+
+
 nested :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 nested = Force () $ Force () $ Delay () $ Delay () $ mkConstant @Integer () 1
 
@@ -340,6 +350,7 @@ test_simplify =
     , goldenVsSimplified "inlineImpure3" inlineImpure3
     , goldenVsSimplified "inlineImpure4" inlineImpure4
     , goldenVsSimplified "multiApp" multiApp
+    , goldenVsSimplified "forceCaseHappy" forceCaseHappy
     , goldenVsCse "cse1" cse1
     , goldenVsCse "cse2" cse2
     , goldenVsCse "cse3" cse3
