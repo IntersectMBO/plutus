@@ -239,7 +239,6 @@ showText = T.pack . show
 -- the same length.
 zipExact :: [a] -> [b] -> Maybe [(a,b)]
 zipExact [] []         = Just []
-zipExact [a] [b]       = Just [(a,b)]
 zipExact (a:as) (b:bs) = (:) (a, b) <$> zipExact as bs
 zipExact _ _           = Nothing
 

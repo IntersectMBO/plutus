@@ -523,11 +523,13 @@ inferTypeM t@(Constr ann resTy i args) = do
 
     -- We don't know exactly what to expect, we only know what the i-th sum should look like, so we
     -- assert that we should have some types in the sum up to there, and then the known product type.
-    let prodPrefix  = map (\j -> "prod_" <> Text.pack (show j)) [0 .. i - 1]
+    let -- 'toInteger' is necessary, because @i@ is a @Word64@ and therefore @i - 1@ would be
+        -- @maxBound :: Word64@ for @i = 0@ if we didn't have 'toInteger'.
+        prodPrefix  = map (\j -> "prod_" <> Text.pack (show j)) [0 .. toInteger i - 1]
         fields      = map (\k -> "field_" <> Text.pack (show k)) [0 .. length args - 1]
         prod_i      = "[" <> Text.intercalate " " fields <> "]"
-        shape       = "sop " <> foldMap (<> " ") prodPrefix <> prod_i <> " ... prod_n"
-        vars        = prodPrefix ++ fields ++ ["prod_n"]
+        shape       = "sop " <> foldMap (<> " ") prodPrefix <> prod_i <> " ..."
+        vars        = prodPrefix ++ fields
         expectedSop = ExpectedShape shape vars
     case unNormalized vResTy of
         TySOP _ vSTys -> case vSTys ^? wix i of
