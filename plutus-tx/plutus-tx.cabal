@@ -54,6 +54,7 @@ library
     PlutusTx.Builtins
     PlutusTx.Builtins.Class
     PlutusTx.Builtins.Internal
+    PlutusTx.ByteStringMap
     PlutusTx.Code
     PlutusTx.Coverage
     PlutusTx.Either
