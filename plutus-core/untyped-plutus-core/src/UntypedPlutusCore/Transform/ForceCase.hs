@@ -167,7 +167,7 @@ toMultiLamAbs
     -> Maybe (MultiLamAbs name uni fun ann)
 toMultiLamAbs = \case
     LamAbs ann name subTerm ->
-        Just $ run (NonEmpty.singleton (ann, name)) subTerm
+        Just $ run ((ann, name) NonEmpty.:| []) subTerm
     _ -> Nothing
   where
     run
