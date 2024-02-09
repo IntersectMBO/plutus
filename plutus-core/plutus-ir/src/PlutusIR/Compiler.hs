@@ -138,6 +138,7 @@ simplifierIteration suffix = do
   preserveLogging <- view (ccOpts . coPreserveLogging)
   cocConservative <- view (ccOpts . coCaseOfCaseConservative)
   rules <- view ccRewriteRules
+  ic <- view (ccOpts . coInlineConstants)
 
   pure $ P.NamedPass ("simplifier" ++ suffix) $ fold
       [ mwhen (opts ^. coDoSimplifierUnwrapCancel) $ Unwrap.unwrapCancelPass tcconfig
@@ -147,7 +148,7 @@ simplifierIteration suffix = do
       , mwhen (opts ^. coDoSimplifierBeta) $ Beta.betaPassSC tcconfig
       , mwhen (opts ^. coDoSimplifierStrictifyBindings ) $ StrictifyBindings.strictifyBindingsPass tcconfig binfo
       , mwhen (opts ^. coDoSimplifierEvaluateBuiltins) $ EvaluateBuiltins.evaluateBuiltinsPass tcconfig preserveLogging binfo costModel
-      , mwhen (opts ^. coDoSimplifierInline) $ Inline.inlinePassSC tcconfig hints binfo
+      , mwhen (opts ^. coDoSimplifierInline) $ Inline.inlinePassSC ic tcconfig hints binfo
       , mwhen (opts ^. coDoSimplifierRewrite) $ RewriteRules.rewritePassSC tcconfig rules
       ]
 

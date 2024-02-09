@@ -352,8 +352,8 @@ costIsAcceptable = \case
 -- See Note [Inlining criteria]
 -- | Is the size increase (in the AST) of inlining a variable whose RHS is
 -- the given term acceptable?
-sizeIsAcceptable :: Term tyname name uni fun ann -> Bool
-sizeIsAcceptable = \case
+sizeIsAcceptable :: Bool -> Term tyname name uni fun ann -> Bool
+sizeIsAcceptable inlineConstants = \case
   Builtin{}  -> True
   Var{}      -> True
   Error{}    -> True
@@ -363,7 +363,7 @@ sizeIsAcceptable = \case
   -- Inlining constructors of size 1 or 0 seems okay
   Constr _ _ _ es  -> case es of
       []  -> True
-      [e] -> sizeIsAcceptable e
+      [e] -> sizeIsAcceptable inlineConstants e
       _   -> False
   -- Cases are pretty big, due to the case branches
   Case{} -> False
@@ -371,9 +371,7 @@ sizeIsAcceptable = \case
   -- Arguably we could allow these two, but they're uncommon anyway
   IWrap{}    -> False
   Unwrap{}   -> False
-  -- Constants can be big! We could check the size here and inline if they're
-  -- small, but probably not worth it
-  Constant{} -> False
+  Constant{} -> inlineConstants
   Apply{}    -> False
   TyInst{}   -> False
   Let{}      -> False
@@ -387,12 +385,13 @@ trivialType = \case
 
 shouldUnconditionallyInline ::
   (InliningConstraints tyname name uni fun) =>
+  Bool ->
   Strictness ->
   name ->
   Term tyname name uni fun ann ->
   Term tyname name uni fun ann ->
   InlineM tyname name uni fun ann Bool
-shouldUnconditionallyInline s n rhs body = preUnconditional ||^ postUnconditional
+shouldUnconditionallyInline inlineConstants s n rhs body = preUnconditional ||^ postUnconditional
   where
     -- similar to the paper, preUnconditional inlining checks that the binder is 'OnceSafe'.
     -- I.e., it's used at most once AND it neither duplicate code or work.
@@ -408,4 +407,4 @@ shouldUnconditionallyInline s n rhs body = preUnconditional ||^ postUnconditiona
     -- exactly one, so there's no point checking if the term is immediately evaluated.
     postUnconditional = do
       isBindingPure <- isTermBindingPure s rhs
-      pure $ isBindingPure && sizeIsAcceptable rhs && costIsAcceptable rhs
+      pure $ isBindingPure && sizeIsAcceptable inlineConstants rhs && costIsAcceptable rhs

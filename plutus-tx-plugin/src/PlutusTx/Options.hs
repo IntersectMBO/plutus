@@ -65,6 +65,7 @@ data PluginOptions = PluginOptions
     , _posCoverageBoolean                :: Bool
     , _posRelaxedFloatin                 :: Bool
     , _posCaseOfCaseConservative         :: Bool
+    , _posInlineConstants                :: Bool
     -- | Whether to try and retain the logging behaviour of the program.
     , _posPreserveLogging                :: Bool
     , -- Setting to `True` defines `trace` as `\_ a -> a` instead of the builtin version.
@@ -169,6 +170,7 @@ pluginOptions =
                     , Implication (== False) posRelaxedFloatin True
                     , Implication (== False) posPreserveLogging False
                     , Implication (== False) posCaseOfCaseConservative False
+                    , Implication (== False) posInlineConstants False
                     ]
               )
         , let k = "context-level"
@@ -315,6 +317,7 @@ defaultPluginOptions =
         , _posCoverageBoolean = False
         , _posRelaxedFloatin = True
         , _posCaseOfCaseConservative = False
+        , _posInlineConstants = True
         , _posPreserveLogging = False
         , _posRemoveTrace = False
         , _posDumpCompilationTrace = False

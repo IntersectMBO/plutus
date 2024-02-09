@@ -107,7 +107,9 @@ applyAndBetaReduce rhs args0 = do
         -- the body `a` will be beta reduced in
         Term tyname name uni fun ann ->
         InlineM tyname name uni fun ann Bool
-      safeToBetaReduce = shouldUnconditionallyInline Strict
+      safeToBetaReduce =
+        -- TODO: fix
+        shouldUnconditionallyInline False Strict
   go rhs args0
 
 -- | Consider inlining a variable. For applications, consider whether to apply and beta reduce.
