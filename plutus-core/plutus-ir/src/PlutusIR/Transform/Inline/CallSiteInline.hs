@@ -10,8 +10,6 @@ See note [Inlining of fully applied functions].
 -}
 module PlutusIR.Transform.Inline.CallSiteInline where
 
-import Control.Lens ((.~))
-import Control.Monad.Reader (local)
 import PlutusCore qualified as PLC
 import PlutusCore.Rename (rename)
 import PlutusCore.Rename.Internal (Dupable (Dupable))
@@ -109,10 +107,7 @@ applyAndBetaReduce rhs args0 = do
         -- the body `a` will be beta reduced in
         Term tyname name uni fun ann ->
         InlineM tyname name uni fun ann Bool
-      safeToBetaReduce arg term =
-        -- Does not inline constants because term size might increase
-        -- and other inlining optimisations will not get applied.
-        local (iiInlineConstants .~ False) . shouldUnconditionallyInline Strict arg term
+      safeToBetaReduce = shouldUnconditionallyInline Strict
   go rhs args0
 
 -- | Consider inlining a variable. For applications, consider whether to apply and beta reduce.
