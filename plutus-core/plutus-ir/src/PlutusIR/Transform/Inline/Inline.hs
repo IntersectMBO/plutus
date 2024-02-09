@@ -194,11 +194,11 @@ inline
     -> m (Term tyname name uni fun ann)
 inline ic hints binfo t = let
         inlineInfo :: InlineInfo tyname name uni fun ann
-        inlineInfo = InlineInfo vinfo usgs hints binfo
+        inlineInfo = InlineInfo vinfo usgs hints binfo ic
         vinfo = VarInfo.termVarInfo t
         usgs :: Usages.Usages
         usgs = Usages.termUsages t
-    in liftQuote $ flip evalStateT mempty $ flip runReaderT inlineInfo $ processTerm ic t
+    in liftQuote $ flip evalStateT mempty $ flip runReaderT inlineInfo $ processTerm t
 
 {- Note [Removing inlined bindings]
 We *do* remove bindings that we inline *unconditionally*. We *could*
@@ -229,10 +229,9 @@ much easier when they are just separate terms.
 -- | Run the inliner on a `Core.Type.Term`.
 processTerm
     :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
-    => Bool
-    -> Term tyname name uni fun ann -- ^ Term to be processed.
+    => Term tyname name uni fun ann -- ^ Term to be processed.
     -> InlineM tyname name uni fun ann (Term tyname name uni fun ann)
-processTerm ic = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
+processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
     handleTerm ::
         Term tyname name uni fun ann
         -> InlineM tyname name uni fun ann (Term tyname name uni fun ann)
@@ -246,8 +245,8 @@ processTerm ic = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution wh
                 -- Note that we don't *remove* the binding or scope the state, so the state will
                 -- carry over into "sibling" terms. This is fine because we have global uniqueness
                 -- (see Note [Inlining and global uniqueness]), if somewhat wasteful.
-                b' <- processSingleBinding ic t b
-                t' <- processTerm ic t
+                b' <- processSingleBinding t b
+                t' <- processTerm t
                 -- Use 'mkLet': which takes a possibly empty list of bindings (rather than
                 -- a non-empty list)
                 pure $ mkLet ann NonRec (maybeToList b') t'
@@ -261,7 +260,7 @@ processTerm ic = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution wh
                     AppContext tyname name uni fun ann ->
                     InlineM tyname name uni fun ann (AppContext tyname name uni fun ann)
                 processArgs (TermAppContext arg ann ctx) = do
-                    processedArg <- processTerm ic arg
+                    processedArg <- processTerm arg
                     processedArgs <- processArgs ctx
                     pure $ TermAppContext processedArg ann processedArgs
                 processArgs (TypeAppContext ty ann ctx) = do
@@ -271,9 +270,9 @@ processTerm ic = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution wh
                 processArgs AppContextEnd = pure AppContextEnd
             case args of
                 -- not really an application, so hd is the term itself. Processing it will loop.
-                AppContextEnd -> forMOf termSubterms t (processTerm ic)
+                AppContextEnd -> forMOf termSubterms t processTerm
                 _ -> do
-                    hd' <- processTerm ic hd
+                    hd' <- processTerm hd
                     args' <- processArgs args
                     let reconstructed = fillAppContext hd' args'
                     case hd' of
@@ -371,14 +370,13 @@ term, but with the head (the rhs of the variable) and the arguments already proc
 -- | Run the inliner on a single non-recursive let binding.
 processSingleBinding
     :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
-    => Bool
-    -> Term tyname name uni fun ann -- ^ The body of the let binding.
+    => Term tyname name uni fun ann -- ^ The body of the let binding.
     -> Binding tyname name uni fun ann -- ^ The binding.
     -> InlineM tyname name uni fun ann (Maybe (Binding tyname name uni fun ann))
-processSingleBinding ic body = \case
+processSingleBinding body = \case
     (TermBind ann s v@(VarDecl _ n _) rhs0) -> do
         -- we want to do unconditional inline if possible
-        maybeAddSubst ic body ann s n rhs0 >>= \case
+        maybeAddSubst body ann s n rhs0 >>= \case
             -- this binding is going to be unconditionally inlined
             Nothing -> pure Nothing
             Just rhs -> do
@@ -401,7 +399,7 @@ processSingleBinding ic body = \case
         maybeRhs' <- maybeAddTySubst n rhs
         pure $ TypeBind ann v <$> maybeRhs'
     b -> -- Just process all the subterms
-        Just <$> forMOf bindingSubterms b (processTerm ic)
+        Just <$> forMOf bindingSubterms b processTerm
 
 -- | Check against the heuristics we have for inlining and either inline the term binding or not.
 -- The arguments to this function are the fields of the `TermBinding` being processed.
@@ -410,15 +408,14 @@ processSingleBinding ic body = \case
 --   * we are removing the binding (hence we return Nothing).
 maybeAddSubst
     :: forall tyname name uni fun ann. InliningConstraints tyname name uni fun
-    => Bool
-    -> Term tyname name uni fun ann
+    => Term tyname name uni fun ann
     -> ann
     -> Strictness
     -> name
     -> Term tyname name uni fun ann
     -> InlineM tyname name uni fun ann (Maybe (Term tyname name uni fun ann))
-maybeAddSubst ic body ann s n rhs0 = do
-    rhs <- processTerm ic rhs0
+maybeAddSubst body ann s n rhs0 = do
+    rhs <- processTerm rhs0
 
     -- Check whether we've been told specifically to inline this
     hints <- view iiHints
@@ -428,7 +425,7 @@ maybeAddSubst ic body ann s n rhs0 = do
     then extendAndDrop (Done $ dupable rhs)
     else
         ifM
-            (shouldUnconditionallyInline ic s n rhs body)
+            (shouldUnconditionallyInline s n rhs body)
             (extendAndDrop (Done $ dupable rhs))
             (pure $ Just rhs)
     where

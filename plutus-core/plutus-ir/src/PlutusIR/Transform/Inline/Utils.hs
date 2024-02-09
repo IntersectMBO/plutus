@@ -55,14 +55,16 @@ type InliningConstraints tyname name uni fun =
 --
 -- See [Inlining and global uniqueness] for caveats about this information.
 data InlineInfo tyname name uni fun ann = InlineInfo
-    { _iiVarInfo      :: VarInfo.VarsInfo tyname name uni ann
+    { _iiVarInfo         :: VarInfo.VarsInfo tyname name uni ann
     -- ^ Is it strict? Only needed for PIR, not UPLC
-    , _iiUsages       :: Usages.Usages
+    , _iiUsages          :: Usages.Usages
     -- ^ how many times is it used?
-    , _iiHints        :: InlineHints name ann
+    , _iiHints           :: InlineHints name ann
     -- ^ have we explicitly been told to inline?
-    , _iiBuiltinsInfo :: BuiltinsInfo uni fun
+    , _iiBuiltinsInfo    :: BuiltinsInfo uni fun
     -- ^ the semantics variant.
+    , _iiInlineConstants :: Bool
+    -- ^ should we inline constants?
     }
 makeLenses ''InlineInfo
 
@@ -371,6 +373,8 @@ sizeIsAcceptable inlineConstants = \case
   -- Arguably we could allow these two, but they're uncommon anyway
   IWrap{}    -> False
   Unwrap{}   -> False
+  -- Inlining constants is deemed acceptable if the 'inlineConstants'
+  -- flag is turned on
   Constant{} -> inlineConstants
   Apply{}    -> False
   TyInst{}   -> False
@@ -385,13 +389,12 @@ trivialType = \case
 
 shouldUnconditionallyInline ::
   (InliningConstraints tyname name uni fun) =>
-  Bool ->
   Strictness ->
   name ->
   Term tyname name uni fun ann ->
   Term tyname name uni fun ann ->
   InlineM tyname name uni fun ann Bool
-shouldUnconditionallyInline inlineConstants s n rhs body = preUnconditional ||^ postUnconditional
+shouldUnconditionallyInline s n rhs body = preUnconditional ||^ postUnconditional
   where
     -- similar to the paper, preUnconditional inlining checks that the binder is 'OnceSafe'.
     -- I.e., it's used at most once AND it neither duplicate code or work.
@@ -407,4 +410,5 @@ shouldUnconditionallyInline inlineConstants s n rhs body = preUnconditional ||^ 
     -- exactly one, so there's no point checking if the term is immediately evaluated.
     postUnconditional = do
       isBindingPure <- isTermBindingPure s rhs
+      inlineConstants <- view iiInlineConstants
       pure $ isBindingPure && sizeIsAcceptable inlineConstants rhs && costIsAcceptable rhs

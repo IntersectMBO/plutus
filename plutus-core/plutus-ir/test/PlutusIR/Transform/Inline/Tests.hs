@@ -14,7 +14,6 @@ import Test.QuickCheck.Property (Property, withMaxSuccess)
 import Test.Tasty (TestTree)
 
 -- | Tests of the inliner, include global uniqueness test.
--- TODO: fix
 test_inline :: TestTree
 test_inline = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
     testNested "Inline" $
@@ -63,7 +62,6 @@ test_inline = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
             , "nameCapture"
             ]
 
--- TODO: fix
 prop_inline ::
     BuiltinSemanticsVariant DefaultFun -> Property
 prop_inline biVariant =
