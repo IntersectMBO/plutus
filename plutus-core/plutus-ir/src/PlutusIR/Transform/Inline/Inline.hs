@@ -160,6 +160,7 @@ inlinePassSC
     :: forall uni fun ann m
     . (PLC.Typecheckable uni fun, PLC.GEq uni, Ord ann, ExternalConstraints TyName Name uni fun m)
     => Bool
+    -- ^ should we inline constants?
     -> TC.PirTCConfig uni fun
     -> InlineHints Name ann
     -> BuiltinsInfo uni fun
@@ -171,6 +172,7 @@ inlinePass
     :: forall uni fun ann m
     . (PLC.Typecheckable uni fun, PLC.GEq uni, Ord ann, ExternalConstraints TyName Name uni fun m)
     => Bool
+    -- ^ should we inline constants?
     -> TC.PirTCConfig uni fun
     -> InlineHints Name ann
     -> BuiltinsInfo uni fun
@@ -188,6 +190,7 @@ inline
     :: forall tyname name uni fun ann m
     . ExternalConstraints tyname name uni fun m
     => Bool
+    -- ^ should we inline constants?
     -> InlineHints name ann
     -> BuiltinsInfo uni fun
     -> Term tyname name uni fun ann
