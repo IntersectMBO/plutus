@@ -243,6 +243,12 @@ tests = testNestedGhc "Budget" [
 
   , goldenBudget "matchAsDataE" matchAsData
   , goldenEvalCekCatch "matchAsDataE-result" [matchAsData]
+
+  -- Demonstrate inconsistent handling of '&&' and '||'
+  , goldenBudget "TESTING" compiledTESTING
+  , goldenUPlcReadable "TESTING" compiledTESTING
+  , goldenPirReadable "TESTING" compiledTESTING
+  , goldenEvalCekCatch "TESTING-result" [compiledTESTING]
   ]
 
 compiledSum :: CompiledCode Integer
@@ -559,3 +565,11 @@ matchAsData = $$(compile [||
     JustD a  -> a
     NothingD -> 1 ||])
     `PlutusTx.Code.unsafeApplyCode` liftCodeDef (JustD 1)
+
+compiledTESTING :: CompiledCode Bool
+compiledTESTING = $$(compile [||
+  -- case False of
+  --   False -> False
+  --   _     -> PlutusTx.error ()
+  False && PlutusTx.error ()
+  ||])
