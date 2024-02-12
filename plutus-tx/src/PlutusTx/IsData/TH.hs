@@ -4,28 +4,29 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE ViewPatterns    #-}
 module PlutusTx.IsData.TH (
-    unstableMakeIsData
-  , makeIsDataIndexed
-  , mkConstrCreateExpr
-  , mkUnsafeConstrMatchPattern
-  , mkConstrPartsMatchPattern
-  , mkUnsafeConstrPartsMatchPattern) where
+  unstableMakeIsData,
+  makeIsDataIndexed,
+  mkConstrCreateExpr,
+  mkUnsafeConstrMatchPattern,
+  mkConstrPartsMatchPattern,
+  mkUnsafeConstrPartsMatchPattern,
+) where
 
-import Data.Foldable
-import Data.Traversable
+import Data.Foldable (foldl')
+import Data.Functor ((<&>))
+import Data.Traversable (for)
 
 import Language.Haskell.TH qualified as TH
 import Language.Haskell.TH.Datatype qualified as TH
-import PlutusTx.ErrorCodes
 
 import PlutusTx.Builtins as Builtins
 import PlutusTx.Builtins.Internal qualified as BI
-import PlutusTx.Eq as PlutusTx
-import PlutusTx.IsData.Class
+import PlutusTx.Eq qualified as PlutusTx
+import PlutusTx.ErrorCodes (reconstructCaseError)
+import PlutusTx.IsData.Class (FromData (..), ToData (..), UnsafeFromData (..))
 import PlutusTx.Trace (traceError)
 
--- We do not use qualified import because the whole module contains off-chain code
-import Prelude as Haskell
+import Prelude
 
 mkConstrCreateExpr :: Integer -> [TH.Name] -> TH.ExpQ
 mkConstrCreateExpr conIx createFieldNames =
@@ -44,7 +45,7 @@ mkConstrPartsMatchPattern conIx extractFieldNames =
     -- (==) i -> True
     ixMatchPat = [p| ((PlutusTx.==) (conIx :: Integer) -> True) |]
     -- [unsafeFromBuiltinData -> arg1, ...]
-    extractArgPats = (flip fmap) extractFieldNames $ \n ->
+    extractArgPats = extractFieldNames <&> \n ->
       [p| (fromBuiltinData -> Just $(TH.varP n)) |]
     extractArgsPat = go extractArgPats
       where
@@ -57,7 +58,8 @@ mkConstrPartsMatchPattern conIx extractFieldNames =
 -- TODO: safe match for the whole thing? not needed atm
 
 mkUnsafeConstrMatchPattern :: Integer -> [TH.Name] -> TH.PatQ
-mkUnsafeConstrMatchPattern conIx extractFieldNames = [p| (BI.unsafeDataAsConstr -> (Builtins.pairToPair -> $(mkUnsafeConstrPartsMatchPattern conIx extractFieldNames))) |]
+mkUnsafeConstrMatchPattern conIx extractFieldNames =
+  [p| (BI.unsafeDataAsConstr -> (Builtins.pairToPair -> $(mkUnsafeConstrPartsMatchPattern conIx extractFieldNames))) |]
 
 mkUnsafeConstrPartsMatchPattern :: Integer -> [TH.Name] -> TH.PatQ
 mkUnsafeConstrPartsMatchPattern conIx extractFieldNames =
@@ -65,7 +67,7 @@ mkUnsafeConstrPartsMatchPattern conIx extractFieldNames =
     -- (==) i -> True
     ixMatchPat = [p| ((PlutusTx.==) (conIx :: Integer) -> True) |]
     -- [unsafeFromBuiltinData -> arg1, ...]
-    extractArgPats = (flip fmap) extractFieldNames $ \n ->
+    extractArgPats = extractFieldNames <&> \n ->
       [p| (unsafeFromBuiltinData -> $(TH.varP n)) |]
     extractArgsPat = go extractArgPats
       where
@@ -85,7 +87,7 @@ toDataClauses :: [(TH.ConstructorInfo, Int)] -> [TH.Q TH.Clause]
 toDataClauses indexedCons = toDataClause <$> indexedCons
 
 reconstructCase :: (TH.ConstructorInfo, Int) -> TH.MatchQ
-reconstructCase (TH.ConstructorInfo{TH.constructorName=name, TH.constructorFields=argTys}, index)  = do
+reconstructCase (TH.ConstructorInfo{TH.constructorName=name, TH.constructorFields=argTys}, index) = do
     argNames <- for argTys $ \_ -> TH.newName "arg"
 
     -- Build the constructor application, assuming that all the arguments are in scope
