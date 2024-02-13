@@ -167,10 +167,11 @@ pluginOptions =
                     [ Implication (== True) posRelaxedFloatin False
                     , Implication (== True) posPreserveLogging True
                     , Implication (== True) posCaseOfCaseConservative True
+                    , Implication (== True) posInlineConstants False
                     , Implication (== False) posRelaxedFloatin True
                     , Implication (== False) posPreserveLogging False
                     , Implication (== False) posCaseOfCaseConservative False
-                    , Implication (== False) posInlineConstants False
+                    , Implication (== False) posInlineConstants True
                     ]
               )
         , let k = "context-level"
