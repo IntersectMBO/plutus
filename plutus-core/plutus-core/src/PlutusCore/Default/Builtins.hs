@@ -20,10 +20,11 @@ import PlutusCore.Builtin
 import PlutusCore.Data (Data (..))
 import PlutusCore.Default.Universe
 import PlutusCore.Evaluation.Machine.BuiltinCostModel
-import PlutusCore.Evaluation.Machine.ExBudgetStream (ExBudgetStream)
+import PlutusCore.Evaluation.Machine.ExBudgetStream (ExBudgetStream (..))
 import PlutusCore.Evaluation.Machine.ExMemoryUsage (ExMemoryUsage, LiteralByteSize (..),
                                                     memoryUsage, singletonRose)
-import PlutusCore.Evaluation.Result (EvaluationResult (..))
+import PlutusCore.Evaluation.Result (EvaluationResult (..), evaluationFailure)
+import PlutusCore.Name (TyName)
 import PlutusCore.Pretty (PrettyConfigPlc)
 
 import PlutusCore.Bitwise.Convert as Convert
@@ -107,6 +108,7 @@ data DefaultFun
     -- types, hence we include the name of the data type as a suffix.
     | ChooseData
     | ConstrData
+    | ConstrTermFromConstrData
     | MapData
     | ListData
     | IData
@@ -1503,6 +1505,20 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             constrDataDenotation
             (runCostingFunTwoArguments . paramConstrData)
 
+    toBuiltinMeaning _semvar ConstrTermFromConstrData =
+        let constrTermFromConstrDataDenotation
+                :: KnownTypeAst TyName DefaultUni sop => Data -> BuiltinResult (Opaque val sop)
+            constrTermFromConstrDataDenotation (Constr iInteger ds) = do
+                -- What? Lol, surely there should exist a better way to do it. Looks like we need
+                -- to separate a big chunk of 'ReadKnown' into 'ReadKnownConstant' or something.
+                iWord64 <- either (BuiltinFailure mempty) pure . readKnown $ fromValue @val iInteger
+                pure . toConstr iWord64 $ map fromValue ds
+            constrTermFromConstrDataDenotation _ = evaluationFailure
+            {-# INLINE constrTermFromConstrDataDenotation #-}
+        in makeBuiltinMeaning
+            constrTermFromConstrDataDenotation
+            (\_ _ -> ExBudgetLast mempty)
+
     toBuiltinMeaning _semvar MapData =
         let mapDataDenotation :: [(Data, Data)] -> Data
             mapDataDenotation = Map
@@ -1928,6 +1944,7 @@ instance Flat DefaultFun where
 
               IntegerToByteString             -> 73
               ByteStringToInteger             -> 74
+              ConstrTermFromConstrData        -> 75
 
     decode = go =<< decodeBuiltin
         where go 0  = pure AddInteger
@@ -2005,6 +2022,7 @@ instance Flat DefaultFun where
               go 72 = pure Blake2b_224
               go 73 = pure IntegerToByteString
               go 74 = pure ByteStringToInteger
+              go 75 = pure ConstrTermFromConstrData
               go t  = fail $ "Failed to decode builtin tag, got: " ++ show t
 
     size _ n = n + builtinTagWidth

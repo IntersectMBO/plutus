@@ -176,7 +176,8 @@ type HasTermLevel :: forall a. (GHC.Type -> GHC.Type) -> a -> GHC.Constraint
 type HasTermLevel uni = Includes uni
 
 -- | Extract the universe from a type.
-type family UniOf a :: GHC.Type -> GHC.Type
+type UniOf :: GHC.Type -> GHC.Type -> GHC.Type
+type family UniOf a
 
 type instance UniOf (Term tyname name uni fun ann) = uni
 

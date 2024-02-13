@@ -418,6 +418,22 @@ instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Word8 wher
                _       -> throwing_ _EvaluationFailure
     {-# INLINE readKnown #-}
 
+instance KnownTypeAst tyname DefaultUni Word64 where
+    toTypeAst _ = toTypeAst $ Proxy @Integer
+
+-- See Note [Integral types as Integer].
+instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Word64 where
+    makeKnown = makeKnown . toInteger
+    {-# INLINE makeKnown #-}
+
+instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Word64 where
+    readKnown term =
+        inline readKnownConstant term >>= oneShot \(i :: Integer) ->
+           case toIntegralSized i of
+               Just w64 -> pure w64
+               _        -> throwing_ _EvaluationFailure
+    {-# INLINE readKnown #-}
+
 -- deriving newtype doesn't work here (or at least not easily), so we have an explicit instance.
 instance KnownTypeAst tyname DefaultUni LiteralByteSize where
      toTypeAst _ = toTypeAst $ Proxy @Integer

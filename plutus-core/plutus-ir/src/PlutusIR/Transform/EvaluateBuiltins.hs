@@ -35,24 +35,39 @@ evaluateBuiltinsPass tcconfig conservative binfo costModel =
       [Typechecks tcconfig]
       [ConstCondition (Typechecks tcconfig)]
 
+-- >>> import PlutusCore.Builtin
+-- >>> import PlutusCore
+-- >>> fromValue (I 42) :: Term Name DefaultUni DefaultFun
+-- <interactive>:47:2: error: [GHC-39999]
+--     • Ambiguous type variable ‘a0’ arising from a use of ‘print’
+--       prevents the constraint ‘(Show a0)’ from being solved.
+--       Probable fix: use a type annotation to specify what ‘a0’ should be.
+--       Potentially matching instances:
+--         instance (Show a, Show b) => Show (Either a b)
+--           -- Defined in ‘Data.Either’
+--         instance Show Ordering -- Defined in ‘GHC.Show’
+--         ...plus 30 others
+--         ...plus 559 instances involving out-of-scope types
+--         (use -fprint-potential-instances to see them all)
+--     • In a stmt of an interactive GHCi command: print it
+
 evaluateBuiltins
-  :: forall tyname name uni fun a
+  :: forall name uni fun a
   . (ToBuiltinMeaning uni fun
-  , Typeable tyname
   , Typeable name)
   => Bool
   -- ^ Whether to be conservative and try to retain logging behaviour.
   -> BuiltinsInfo uni fun
   -> CostingPart uni fun
-  -> Term tyname name uni fun a
-  -> Term tyname name uni fun a
+  -> Term TyName name uni fun a
+  -> Term TyName name uni fun a
 evaluateBuiltins conservative binfo costModel = transformOf termSubterms processTerm
   where
     -- Nothing means "leave the original term as it was"
     eval
-      :: BuiltinRuntime (Term tyname name uni fun ())
-      -> AppContext tyname name uni fun a
-      -> Maybe (Term tyname name uni fun ())
+      :: BuiltinRuntime (Term TyName name uni fun ())
+      -> AppContext TyName name uni fun a
+      -> Maybe (Term TyName name uni fun ())
     eval (BuiltinCostedResult _ getX) AppContextEnd =
         case getX of
             BuiltinSuccess v           -> Just v
@@ -76,7 +91,7 @@ evaluateBuiltins conservative binfo costModel = transformOf termSubterms process
     -- arg mismatch, including under-application, just leave it alone
     eval _ _ = Nothing
 
-    processTerm :: Term tyname name uni fun a -> Term tyname name uni fun a
+    processTerm :: Term TyName name uni fun a -> Term TyName name uni fun a
     -- See Note [Context splitting in a recursive pass]
     processTerm t@(splitApplication -> (Builtin x bn, argCtx)) =
       let runtime = toBuiltinRuntime costModel (toBuiltinMeaning (binfo ^. biSemanticsVariant) bn)

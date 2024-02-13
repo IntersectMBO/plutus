@@ -6,6 +6,7 @@ module PlutusCore.Builtin
 
 import PlutusCore.Builtin.Emitter as Export
 import PlutusCore.Builtin.HasConstant as Export
+import PlutusCore.Builtin.HasConstr as Export
 import PlutusCore.Builtin.KnownKind as Export
 import PlutusCore.Builtin.KnownType as Export
 import PlutusCore.Builtin.KnownTypeAst as Export

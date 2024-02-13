@@ -4,10 +4,12 @@
 {-# LANGUAGE DeriveAnyClass            #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleInstances         #-}
+{-# LANGUAGE InstanceSigs              #-}
 {-# LANGUAGE LambdaCase                #-}
 {-# LANGUAGE MultiParamTypeClasses     #-}
 {-# LANGUAGE OverloadedStrings         #-}
 {-# LANGUAGE RankNTypes                #-}
+{-# LANGUAGE TypeApplications          #-}
 {-# LANGUAGE TypeFamilies              #-}
 {-# LANGUAGE TypeOperators             #-}
 {-# LANGUAGE UndecidableInstances      #-}
@@ -44,6 +46,7 @@ import Control.Monad.ST
 import Data.DList (DList)
 import Data.DList qualified as DList
 import Data.List.Extras (wix)
+import Data.Proxy
 import Data.STRef
 import Data.Text (Text)
 import Data.Word
@@ -134,6 +137,12 @@ instance HasConstant (CkValue uni fun) where
     asConstant _          = throwNotAConstant
 
     fromConstant = VCon
+
+instance ToConstr (CkValue uni fun) where
+    toConstr
+        :: forall rep. KnownTypeAst TyName uni rep
+        => Word64 -> [CkValue uni fun] -> Opaque (CkValue uni fun) rep
+    toConstr ix = Opaque . VConstr (toTypeAst $ Proxy @rep) ix
 
 data Frame uni fun
     = FrameAwaitArg (CkValue uni fun)                       -- ^ @[V _]@

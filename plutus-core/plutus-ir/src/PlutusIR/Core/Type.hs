@@ -1,9 +1,11 @@
 -- editorconfig-checker-disable-file
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE InstanceSigs          #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
@@ -37,19 +39,19 @@ import PlutusPrelude
 import Control.Lens.TH
 import PlutusCore (Kind, Name, TyName, Type (..), Version (..))
 import PlutusCore qualified as PLC
-import PlutusCore.Builtin (HasConstant (..), throwNotAConstant)
+import PlutusCore.Builtin qualified as PLC
 import PlutusCore.Core (UniOf)
+import PlutusCore.Error (ApplyProgramError (MkApplyProgramError))
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.Flat ()
 import PlutusCore.MkPlc (Def (..), TermLike (..), TyVarDecl (..), VarDecl (..))
 import PlutusCore.Name qualified as PLC
 
-import Universe
-
 import Data.Hashable
+import Data.Proxy
 import Data.Text qualified as T
 import Data.Word
-import PlutusCore.Error (ApplyProgramError (MkApplyProgramError))
+import Universe
 
 -- Datatypes
 
@@ -157,11 +159,17 @@ instance ExMemoryUsage (Term tyname name uni fun ann) where
 
 type instance UniOf (Term tyname name uni fun ann) = uni
 
-instance HasConstant (Term tyname name uni fun ()) where
+instance PLC.HasConstant (Term tyname name uni fun ()) where
     asConstant (Constant _ val) = pure val
-    asConstant _                = throwNotAConstant
+    asConstant _                = PLC.throwNotAConstant
 
     fromConstant = Constant ()
+
+instance PLC.ToConstr (Term TyName name uni fun ()) where
+    toConstr
+        :: forall rep. PLC.KnownTypeAst TyName uni rep
+        => Word64 -> [Term TyName name uni fun ()] -> PLC.Opaque (Term TyName name uni fun ()) rep
+    toConstr ix = PLC.Opaque . Constr () (PLC.toTypeAst $ Proxy @rep) ix
 
 instance TermLike (Term tyname name uni fun) tyname name uni fun where
     var      = Var

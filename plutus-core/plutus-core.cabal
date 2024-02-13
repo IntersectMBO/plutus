@@ -203,6 +203,7 @@ library
     Data.Aeson.THReader
     Data.Functor.Foldable.Monadic
     PlutusCore.Builtin.HasConstant
+    PlutusCore.Builtin.HasConstr
     PlutusCore.Builtin.KnownKind
     PlutusCore.Builtin.KnownType
     PlutusCore.Builtin.KnownTypeAst
