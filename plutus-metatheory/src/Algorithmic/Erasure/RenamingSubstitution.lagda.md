@@ -1,8 +1,8 @@
-\begin{code}
+```
 module Algorithmic.Erasure.RenamingSubstitution where
-\end{code}
+```
 
-\begin{code}
+```
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;sym;trans;subst;cong;cong₂)
 open import Function using (id;_∘_)
 open import Data.Vec using (Vec;_∷_;lookup)
@@ -31,9 +31,9 @@ open import Untyped using (_⊢)
 open _⊢
 import Untyped.RenamingSubstitution as U
 open import Builtin.Constant.Type using (TyCon)
-\end{code}
+```
 
-\begin{code}
+```
 backVar⋆ : ∀{Φ}(Γ : Ctx Φ) → len Γ → Φ ⊢Nf⋆ *
 backVar⋆ (Γ ,⋆ J) x        = weakenNf (backVar⋆ Γ x)
 backVar⋆ (Γ , A)  nothing  = A
@@ -326,5 +326,5 @@ lem[] {Γ = Γ}{A = A}{B} N W = trans
            (conv⊢ refl (sym (subNf-id _)) ∘ `)
            (conv⊢ refl (sym (subNf-id A)) W))
          N)))
-\end{code}
+```
  

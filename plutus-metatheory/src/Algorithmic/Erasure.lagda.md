@@ -1,10 +1,10 @@
-\begin{code}
+```
 {-# OPTIONS --injective-type-constructors #-}
 
 module Algorithmic.Erasure where
-\end{code}
+```
 
-\begin{code}
+```
 open import Agda.Primitive using (lzero)
 open import Data.Nat using (ℕ)
 open import Function using (_∘_;id)
@@ -48,9 +48,9 @@ import Declarative as D
 import Declarative.Erasure as D
 open import Algorithmic.Completeness using (nfCtx;nfTyVar;nfType;lemΠ;lem[];stability-μ;btype-lem;nfType-ConstrArgs;nfType-Cases;lemma-mkCaseType)
 open import Algorithmic.Soundness using (embCtx;embVar;emb;emb-ConstrArgs;lema-mkCaseType)
-\end{code}
+```
 
-\begin{code}
+```
 len⋆ : Ctx⋆ → Set
 len⋆ ∅        = ⊥
 len⋆ (Γ ,⋆ K) = Maybe (len⋆ Γ)
@@ -59,9 +59,9 @@ len : ∀{Φ} → Ctx Φ → Set
 len ∅ = ⊥
 len (Γ ,⋆ K) = len Γ
 len (Γ , A)  = Maybe (len Γ)
-\end{code}
+```
 
-\begin{code}
+```
 eraseVar : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ ∋ A → len Γ
 eraseVar Z     = nothing
 eraseVar (S α) = just (eraseVar α)
@@ -98,7 +98,7 @@ erase (builtin b / refl)     = builtin b
 erase (error A)              = error
 erase (constr e Tss p cs)    = constr (toℕ e) (erase-ConstrArgs cs)
 erase (case t cases)         = case (erase t) (erase-Cases cases)
-\end{code}
+```
 
 Porting this from declarative required basically deleting one line but
 I don't think I can fully exploit this by parameterizing the module as
@@ -106,7 +106,7 @@ I need to pattern match on the term constructors
 
 # Erasing decl/alg terms agree
 
-\begin{code}
+```
 lenLemma : ∀ {Φ}(Γ : D.Ctx Φ) → len (nfCtx Γ) ≡ D.len Γ
 lenLemma D.∅        = refl
 lenLemma (Γ D.,⋆ J) = lenLemma Γ
@@ -342,4 +342,4 @@ same' {Γ = Γ} (constr e Tss {ts} refl xs) rewrite lemConstr (toℕ e) (D.erase
             = cong (constr (toℕ e)) (same'ConstrArgs xs) 
 same' {Γ = Γ}(case t cases) rewrite lemCase (D.erase (emb t)) (D.erase-Cases (Algorithmic.Soundness.emb-Cases cases)) (same'Len Γ)
      = cong₂ case (same' t) (same'Case cases)
-\end{code}
+```

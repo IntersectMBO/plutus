@@ -1,8 +1,8 @@
-\begin{code}
+```
 module Type.BetaNBE.Completeness where
-\end{code}
+```
 
-\begin{code}
+```
 open import Data.Empty using (⊥)
 open import Data.Product using (proj₂;_×_;_,_)
 open import Data.Sum using (inj₁;inj₂)
@@ -25,9 +25,9 @@ open _⊢Nf⋆_
 open _⊢Ne⋆_
 open import Type.BetaNBE using (Val;renVal;reflect;reify;Env;_,,⋆_;_·V_;eval;idEnv;nf;exte;eval-List;eval-VecList)
 open import Type.BetaNormal.Equality using (renNe-cong;renNf-id;renNe-id;renNf-comp;renNe-comp)
-\end{code}
+```
 
-\begin{code}
+```
 -- A Partial equivalence relation on values: 'equality' for values
 -- It's also a Kripke Logical Relation
 
@@ -61,13 +61,13 @@ CR (K ⇒ J) (inj₂ f) (inj₂ f') =
       → CR K v v'
         --------————————————————————————————————————————————
       → CR J (renVal ρ' (f ρ v)) (f (ρ' ∘ ρ) (renVal ρ' v'))
-\end{code}
+```
 
 CR is symmetric and transitive, it is not reflexive, but we if we
 have a value that is related to something else by CR then we can
 derive a reflexivity result for it.
 
-\begin{code}
+```
 symCR : ∀{K}{v v' : Val Φ K}
   → CR K v v'
     --------------------------
@@ -103,7 +103,7 @@ reflCR : {v v' : Val Φ K}
     ---------------------------
   → CR K v v
 reflCR p = transCR p (symCR p)
-\end{code}
+```
 
 reify takes two related values and produces to identical normal
 forms. reflectCR works in the other direction for neutral terms. They
@@ -113,7 +113,7 @@ Composing reify with the fundamental theorem of CR defined later and
 using reflectCR to build identify environments will give us the
 completeness result.
 
-\begin{code}
+```
 reflectCR : ∀{K}{n n' : Φ ⊢Ne⋆ K}
   → n ≡ n'
     -----------------------------
@@ -133,18 +133,18 @@ reifyCR {K = K ⇒ J} {inj₁ n} {inj₂ f'} ()
 reifyCR {K = K ⇒ J} {inj₂ f} {inj₁ n'} ()             
 reifyCR {K = K ⇒ J} {inj₂ f} {inj₂ f'} (p , p' , p'') =
   cong ƛ (reifyCR (p'' S (reflectCR refl)))
-\end{code}
+```
 
 'equality' for environments/CR lifted from values to environments
 
-\begin{code}
+```
 EnvCR : ∀ {Φ Ψ} → (η η' : Env Φ Ψ) →  Set
 EnvCR η η' = ∀{K}(α : _ ∋⋆ K) → CR K (η α) (η' α) 
-\end{code}
+```
 
 Closure under environment extension
 
-\begin{code}
+```
 CR,,⋆ : {η η' : Env Φ Ψ}
   → EnvCR η η'
   → {v v' : Val Ψ K}
@@ -153,11 +153,11 @@ CR,,⋆ : {η η' : Env Φ Ψ}
   → EnvCR (η ,,⋆ v) (η' ,,⋆ v')
 CR,,⋆ p q Z     = q
 CR,,⋆ p q (S α) = p α
-\end{code}
+```
 
 Closure under application
 
-\begin{code}
+```
 AppCR : 
     {f f' : Val Φ (K ⇒ J)}
   → CR (K ⇒ J) f f'
@@ -170,11 +170,11 @@ AppCR {f = inj₁ n} {inj₁ n'} p              q =
 AppCR {f = inj₁ n} {inj₂ f'} ()             q
 AppCR {f = inj₂ f} {inj₁ n}  ()             q
 AppCR {f = inj₂ f} {inj₂ f'} (p , p' , p'') q = p'' id q
-\end{code}
+```
 
 renVal commutes with reflect
 
-\begin{code}
+```
 renVal-reflect : ∀{K}
   → (ρ : Ren Φ Ψ)
   → (n : Φ ⊢Ne⋆ K)
@@ -183,11 +183,11 @@ renVal-reflect : ∀{K}
 renVal-reflect {K = *}     ρ n = refl
 renVal-reflect {K = ♯}     ρ n = refl
 renVal-reflect {K = K ⇒ J} ρ n = renNe-cong (λ _ → refl) n
-\end{code}
+```
 
 renaming commutes with reify
 
-\begin{code}
+```
 ren-reify : ∀{K}{v v' : Val Φ K}
   → CR K v v'
   → (ρ : Ren Φ Ψ)
@@ -208,11 +208,11 @@ ren-reify {K = K ⇒ J} {v = inj₂ f} {inj₂ f'} (p , p' , p'') ρ = cong ƛ
                                    ((λ ρ₁ ρ' v → p' (ρ₁ ∘ S ∘ ρ) ρ' v) , (λ ρ₁ ρ' v → p' (ρ₁ ∘ S ∘ ρ) ρ' v) ,  λ ρ' q → proj₂ (proj₂ (reflCR {v = inj₂ f'}{v' = inj₂ f} (symCR {v = inj₂ f}{v' = inj₂ f'}(p , p' , p'')))) 
                                                                                                                                      (ρ' ∘ S ∘ ρ) q) 
                                    (renVal-reflect (ext ρ) (` Z)))))))
-\end{code}
+```
 
 first functor law for renVal
 
-\begin{code}
+```
 renVal-id : ∀{K}{v v' : Val Φ K}
   → CR K v v'
     -------------------------------
@@ -223,11 +223,11 @@ renVal-id {K = K ⇒ J} {v = inj₁ n} {inj₁ n'} p = trans (renNe-id _) p
 renVal-id {K = K ⇒ J} {v = inj₁ n} {inj₂ f'} ()
 renVal-id {K = K ⇒ J} {v = inj₂ f} {inj₁ n'} () 
 renVal-id {K = K ⇒ J} {v = inj₂ f} {inj₂ f'} p = p
-\end{code}
+```
 
 second functor law for renVal
 
-\begin{code}
+```
 renVal-comp : ∀{K}
   → (ρ : Ren Φ Ψ)
   → (ρ' : Ren Ψ Θ)
@@ -249,11 +249,11 @@ renVal-comp {K = K ⇒ K₁} ρ ρ' {inj₂ y} {inj₂ y₁} (p , p' , p'') =
   (λ ρ'' ρ''' v → p' (ρ'' ∘ ρ' ∘ ρ) ρ''' v)
   ,
   λ ρ'' q → p'' (ρ'' ∘ ρ' ∘ ρ) q
-\end{code}
+```
 
 CR is closed under renaming
 
-\begin{code}
+```
 renCR : ∀{K}{v v' : Val Φ K}
   → (ρ : Ren Φ Ψ)
   → CR K v v'
@@ -269,10 +269,10 @@ renCR {K = K ⇒ J} {inj₂ f} {inj₂ f'} ρ (p , p' , p'') =
   (λ ρ' ρ'' v → p' (ρ' ∘ ρ) ρ'' v)
   ,
   λ ρ' q → p'' (ρ' ∘ ρ) q
-\end{code}
+```
 
 CR is closed under application
-\begin{code}
+```
 renVal·V :
     (ρ : Ren Φ Ψ)
   → {f f' : Val Φ (K ⇒ J)}
@@ -292,11 +292,11 @@ renVal·V ρ {inj₁ n} {inj₂ f}  () q
 renVal·V ρ {inj₂ f} {inj₁ n'} () q
 renVal·V ρ {inj₂ f} {inj₂ f'} (p , p' , p'') q =
   transCR (p id ρ _ _ q) (p'' ρ (renCR ρ (reflCR (symCR q))))
-\end{code}
+```
 
 identity extension lemma, (post) renaming commutes with eval, defined mutually
 
-\begin{code}
+```
 idext : ∀{K}{η η' : Env Φ Ψ}
   → EnvCR η η'
   → (t : Φ ⊢⋆ K)
@@ -411,11 +411,11 @@ renVal-eval (μ A B)   p ρ = cong₂ μ
 renVal-eval (^ x)     p ρ = renVal-reflect ρ (^ x)
 renVal-eval (con c)   p ρ = cong con (renVal-eval c p ρ)
 renVal-eval (SOP xss) p ρ = cong SOP (renVal-eval-VecList xss p ρ)
-\end{code}
+```
 
 (pre) renaming commutes with eval
 
-\begin{code}
+```
 ren-eval :
   (t : Θ ⊢⋆ K)
   {η η' : ∀{J} → Ψ ∋⋆ J → Val Φ J}
@@ -479,11 +479,11 @@ ren-eval-List (x ∷ xs) p ρ = cong₂ _∷_ (ren-eval x p ρ) (ren-eval-List x
 
 ren-eval-VecList [] p ρ = refl
 ren-eval-VecList (xs ∷ xss) p ρ = cong₂ _∷_ (ren-eval-List xs p ρ) (ren-eval-VecList xss p ρ)
-\end{code}
+```
 
 Subsitution lemma
 
-\begin{code}
+```
 sub-eval :
   (t : Θ ⊢⋆ K)
   {η η' : ∀{J} → Ψ ∋⋆ J → Val Φ J}
@@ -553,11 +553,11 @@ sub-eval-List [] p σ = refl
 sub-eval-List (x ∷ xs) p σ = cong₂ _∷_ (sub-eval x p σ) (sub-eval-List xs p σ)
 sub-eval-VecList [] p σ = refl
 sub-eval-VecList (xs ∷ xss) p σ = cong₂ _∷_ (sub-eval-List xs p σ) (sub-eval-VecList xss p σ)
-\end{code}
+```
 
 Fundamental Theorem of logical relations for CR
 
-\begin{code}
+```
 fund : {η η' : Env Φ Ψ}
      → EnvCR η η'
      → {t t' : Φ ⊢⋆ K}
@@ -611,26 +611,26 @@ fund-List p (cons[≡]β x q) = cong₂ _∷_ (fund p x) (fund-List p q)
 
 fund-VecList p nil⟨[≡]⟩β = refl
 fund-VecList p (cons⟨[≡]⟩β xs q) = cong₂ _∷_ (fund-List p xs) (fund-VecList p q)
-\end{code}
+```
 
 constructing the identity CR
 
-\begin{code}
+```
 idCR : (x : Φ ∋⋆ K) → CR K (idEnv Φ x) (idEnv Φ x)
 idCR x = reflectCR refl
-\end{code}
+```
 
 Finally, the completeness theorem.
 
-\begin{code}
+```
 completeness : {s t : Φ ⊢⋆ K} → s ≡β t → nf s ≡ nf t
 completeness p = reifyCR (fund idCR p)
-\end{code}
+```
 
 A small lemma relating environments.
 
-\begin{code}
+```
 exte-lem : ∀{Ψ J} → EnvCR (exte (idEnv Ψ)) (idEnv (Ψ ,⋆ J))
 exte-lem Z = idCR Z
 exte-lem (S x) = renVal-reflect S (` x)
-\end{code}
+```

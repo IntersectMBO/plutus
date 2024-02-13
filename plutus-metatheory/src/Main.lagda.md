@@ -1,4 +1,4 @@
-\begin{code}
+```
 module Main where
 
 open import Agda.Builtin.IO using (IO)
@@ -140,4 +140,4 @@ main' (Typecheck (TCOpts inp fmt))    = do
 
 main : IO ⊤
 main = execP >>= main'
-\end{code}
+```

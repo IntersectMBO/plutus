@@ -1,8 +1,8 @@
-\begin{code}
+```
 module Declarative.Examples.StdLib.ChurchNat where
-\end{code}
+```
 
-\begin{code}
+```
 open import Data.Integer using (ℤ)
 open import Relation.Binary.PropositionalEquality using (refl)
 
@@ -19,9 +19,9 @@ open import Builtin.Constant.Type using (TyCon;aInteger)
 open import Type.Equality using (_≡β_)
 open _≡β_
 open TyCon
-\end{code}
+```
 
-\begin{code}
+```
 integer = atomic aInteger
 
 -- all (r :: *). r -> (r -> r) -> r
@@ -54,4 +54,4 @@ Nat2Int = ƛ (Iter
   ·  con0
   ·  inc
   ·  ` Z)
-\end{code}
+```
