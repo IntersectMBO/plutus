@@ -21,6 +21,7 @@ import Data.Aeson.KeyMap qualified as Aeson (toAscList)
 import Data.Map qualified as M
 import Data.Traversable
 import Language.Haskell.TH.Syntax as TH (Lift)
+import Control.Monad (when)
 
 -- | Promised to be a stable identifier (stable at least for a whole cardano era)
 type ParamId = Haskell.Integer
@@ -35,21 +36,26 @@ newtype ParamConfig = ParamConfig { unParamConfig :: AssocMap.Map PredName PredV
     deriving stock (TH.Lift)
     deriving newtype (Eq, Show)
 
+-- MAYBE: use attoparsec-aeson.jsonWith/jsonNoDup to fail on parsing duplicate Keys
 instance FromJSON ConstitutionConfig where
     parseJSON = withObject "ConstitutionConfig" $ \km ->
                    fmap (ConstitutionConfig . SortedMap.fromListSafe) .
                        for (Aeson.toAscList km) $ \(outerKey, outerValue) -> do
                            index <- case fromJSONKey @ParamId of
-                                       FromJSONKeyTextParser parseInteger ->
-                                           parseInteger $ Aeson.toText outerKey
-                                       _   -> error "invalid FromJSONKey parser of ParamId"
+                                       FromJSONKeyTextParser parseInteger -> do
+                                           jsonInteger <- parseInteger $ Aeson.toText outerKey
+                                           when (jsonInteger < 0) $ fail "Negative Integer Param Id given"
+                                           pure jsonInteger
+                                       _   -> fail "invalid FromJSONKey parser of ParamId"
                            (index,) <$> withObject "ParamConfig"
                                         (\innerMap -> innerMap .: predicatesKey) outerValue
 
 instance FromJSON ParamConfig where
     -- it's like `deriving via Data.Map`
-    parseJSON = fmap (ParamConfig . AssocMap.fromListSafe . M.toAscList)
-              . parseJSON @(M.Map PredName PredValue)
+    parseJSON v = do
+        m <- parseJSON @(M.Map PredName PredValue) v
+        when (null m) $ fail "Parameter with empty restrictions"
+        pure $ ParamConfig $ AssocMap.fromListSafe $ M.toAscList m
 
 predicatesKey :: Aeson.Key
 predicatesKey = "predicates"

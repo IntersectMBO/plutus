@@ -2,17 +2,25 @@
     "$schema": "https://json-schema.org/draft/2019-09/schema",
     "type": "object",
     "propertyNames": {
-        "pattern": "^[0-9]+$"
+        "$comment": "The param id is supposed to be a non-negative integer,"
+        , "$comment": "but json only allow strings key names (not integers)."
+        , "$comment": "We enforce with a regex (^(0|[1-9][0-9]*)$) the param id to the non-negative decimal numbers"
+        , "$comment": "The regex also disallows leading zeroes, to avoid silent duplicates"
+        , "pattern": "^(0|[1-9][0-9]*)$"
     },
     "additionalProperties": {
         "type": "object",
         "properties": {
-            "____comment____": { "type": "string" },
+            "$comment": { "type": "string" },
             "predicates": { "type": "object"
                             , "properties": {
                                 "minValue": { "type": "integer" },
                                 "maxValue": { "type": "integer" }
                             }
+                            , "additionalProperties": false
+                            , "$comment": "This disallows disambiguating between parameters with empty predicates and completely missing parameters."
+                            , "$comment": "Unknown Parameters and Parameters with no restrictions are treated the same by excluding them from the configuration."
+                            , "minProperties": 1
                           },
         },
         "required": ["predicates"],
@@ -22,34 +30,33 @@
              {
                  "9000": {
                      "predicates": { "minValue": 0 }
-                     , "____comment____": "The param id is supposed to be a non-negative integer,"
-                     , "____comment____": "but json onl allow strings key names (not integers)."
-                     , "____comment____": "We enforce with a regex (^[0-9]+$) the param id to the non-negative decimal numbers"
-                     , "____comment____": "This restricts the parameter 9000 to be at least 0"
+                     , "$comment": "This restricts the parameter 9000 to be at least 0"
                  },
                  "9001": {
                      "predicates": { "minValue": 0, "maxValue": 0 }
-                     , "____comment____": "The 9001 should be least 0 and at most 0 ==> can only be 0"
-                     , "____comment____": "A hard/frozen restriction on the parameter, because it cannot change as long as constitution remains the same"
+                     , "$comment": "The 9001 should be least 0 and at most 0 ==> can only be 0"
+                     , "$comment": "A hard/frozen restriction on the parameter, because it cannot change as long as constitution remains the same"
                  },
                  "9002": {
                      "predicates": { "minValue": 1, "maxValue": 0 }
-                     , "____comment____": "The 9002 should be least 1 and at most 0. UNSATISFIABLE"
-                     , "____comment____": "A non-sense parameter restriction. A proposal trying to touch this parameter will always fail"
-                     , "____comment____": "Currently, we don't have a guard against configuring a constitution with such non-sense restrictions"
-                 },
-                 "9003": {
-                     "predicates": {  }
-                     , "____comment____": "The 9003 does no contain any restrictions, and thus is allowed to any take integer Value"
-                     , "____comment____": "Any parameter that is not specified in a constitution-config, will make its change-proposal fail."
-                     , "____comment____": "This empty-predicates config, acknowledges the existence of a parameter and allows it to be changed (to any value)."
+                     , "$comment": "The 9002 should be least 1 and at most 0. UNSATISFIABLE"
+                     , "$comment": "A non-sense parameter restriction. A proposal trying to touch this parameter will always fail"
+                     , "$comment": "Currently, we don't have a guard against configuring a constitution with such non-sense restrictions"
                  },
                  "9003": {
                      "predicates": { minValue: 1 , minValue: -1 }
-                     , "____comment____": "VERY IMPORTANT: json schema (and JSON) allows duplicate object entries:"
-                     , "____comment____": "e.g. duplicate parameter entries or duplicate predicates."
-                     , "____comment____": "Only one of the duplicates will be *silently* loaded and we don't guarantee the order"
-                     , "____comment____": "SO TAKE CARE OF DUPLICATES"
+                     , "$comment": "VERY IMPORTANT: json schema (and JSON) allows duplicate object entries:"
+                     , "$comment": "e.g. duplicate parameter entries or duplicate predicates."
+                     , "$comment": "Only one of the duplicates will be *silently* loaded and we don't guarantee the order"
+                     , "$comment": "SO DO NOT ALLOW DUPLICATES in the configuration"
+                 },
+                 "9004": {
+                     "predicates": {  }
+                     , "$comment": "VERY IMPORTANT: do not rely on the order of parsing/checking the parameters & their restrictions"
+                     , "$comment": "We do not provide any guarantee on the parsing/checking order of the parameters,"
+                     , "$comment": "as well as the order of the restrictions inside a single parameter."
+                     , "$comment": "The constitution script should only guarantee that all restrictions that are applicable, have been applied."
+                     , "$comment": "The constitution script's logic should not depend on the order of applying these restrictions."
                  }
          }
     ]

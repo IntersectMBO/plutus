@@ -30,7 +30,8 @@ instance Tx.Eq PredName where
     {-# INLINABLE (==) #-}
     MinValue == MinValue = Haskell.True
     MaxValue == MaxValue = Haskell.True
-    _ == _               = Haskell.False
+    MinValue == _               = Haskell.False
+    MaxValue == _               = Haskell.False
 
 -- NOTE: needs manual instance for some reason;
 -- a `deriving anyclass FromJSONKey` derived a problematic instance

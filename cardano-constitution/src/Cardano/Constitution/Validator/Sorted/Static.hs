@@ -21,7 +21,6 @@ import Cardano.Constitution.Config.Types
 import Cardano.Constitution.Validator.Common
 
 import PlutusTx as Tx
-import PlutusTx.Builtins as Tx
 import PlutusTx.Prelude as Tx
 import PlutusTx.SortedMap qualified as SortedMap
 
@@ -44,7 +43,7 @@ constitutionValidator (ConstitutionConfigStatic cfgSorted) () =
 runRules :: SortedMap.SortedMap ParamId PredValue -- ^ the params sorted above at runtime
          -> SortedMap.SortedMap ParamId [PredMeaningApplied] -- ^ the config (sorted by default)
          -> Bool
-runRules cparams@(SortedMap.minViewWithKey -> cparamsView) (SortedMap.minViewWithKey -> cfgView) =
+runRules cparams@(SortedMap.minViewWithKey -> cparamsView) cfg@(SortedMap.minViewWithKey -> cfgView) =
     case cparamsView of
         Nothing ->
             -- NOTE: this script will succeed on an empty cparams;
@@ -52,17 +51,19 @@ runRules cparams@(SortedMap.minViewWithKey -> cparamsView) (SortedMap.minViewWit
             True
         Just ((actualPid,actualValue), cparamsRest) ->
             case cfgView of
-                Nothing -> False -- UNKNOWNPARAM, we ran out of config
+                Nothing -> True -- ran out of config, ignore the rest of params and accept proposal
                 Just ((expectedPid, predsApplied), cfgRest) ->
-                    -- OPTIMIZE: instead of checking only for equality,
-                    -- we could instead do a `compare` and stop early if actualPid `LT` expectedPid
-                    -- this would fail earlier for the case of UNKNOWNPARAM, but perhaps it
-                    -- would make the happy path slower
-                    if actualPid `Tx.equalsInteger` expectedPid
-                    then all ($ actualValue) predsApplied
-                         && -- continue checking the next changed param
-                         runRules cparamsRest cfgRest
-                    else runRules cparams cfgRest -- skip this config entry and try the next
+                    case actualPid `compare` expectedPid of
+                        EQ -> all ($ actualValue) predsApplied
+                             && -- drop both heads, and continue checking the next changed param
+                             runRules cparamsRest cfgRest
+                        GT -> -- skip configHead pointing to a parameter not being proposed
+                             runRules cparams cfgRest
+                        LT -> -- config does not know anything about this param, or
+                             -- it does not contain restriction on this param.
+                             -- Ignore param, by dropping cparamHead and continue
+                             runRules cparamsRest cfg
+
 
 constitutionValidatorUntyped :: ConstitutionConfigStatic -> (BuiltinData -> BuiltinData -> ())
 constitutionValidatorUntyped = toUntyped . constitutionValidator

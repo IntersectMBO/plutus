@@ -50,7 +50,7 @@ paramValidates (ConstitutionConfig cfg) (pid, actualValue) =
                             -- by failing since the constitution clearly has problems.
                             Nothing          -> False
                 ) paramPreds
-        Nothing -> False -- paramid unknown, the constitution fails for this proposal
+        Nothing -> True -- paramid unknown, the constitution ignores its value and continues
 
 constitutionValidatorUntyped :: ConstitutionConfig -> (BuiltinData -> BuiltinData -> ())
 constitutionValidatorUntyped = toUntyped . constitutionValidator

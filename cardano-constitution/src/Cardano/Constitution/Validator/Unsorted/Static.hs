@@ -44,7 +44,7 @@ paramValidates :: ConstitutionConfigStatic -> (ParamId,PredValue) -> Bool
 paramValidates (ConstitutionConfigStatic cfg) (pid,actualValue) =
     case SortedMap.lookup pid cfg of
         Just predsApplied -> all ($ actualValue) predsApplied
-        Nothing           -> False -- paramid unknown, the constitution fails for this proposal
+        Nothing -> True -- paramid unknown, the constitution ignores its value and continues
 
 constitutionValidatorUntyped :: ConstitutionConfigStatic -> (BuiltinData -> BuiltinData -> ())
 constitutionValidatorUntyped = toUntyped . constitutionValidator

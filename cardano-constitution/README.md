@@ -24,6 +24,9 @@ as a value of the `ConstitutionConfig` ADT.
 You can take a look at the json schema `data/defaultConstitution.schema.json` for the configuration format and some examples.
 The schema is not currently enforced (by some json-schema validator).
 
+Note that if a parameter is not mentioned (restricted) in the Configuration, it is assumed that there are no restrictions on that parameter,
+and the configuration script will simply accept its proposed new value.
+
 Sidenote: writing json to configure the script is not required; it can alternatively be done by directly supplying a `ConstitutionConfig` value.
 We only use json for our convenience.
 
