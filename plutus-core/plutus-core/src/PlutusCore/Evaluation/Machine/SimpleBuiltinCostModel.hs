@@ -6,9 +6,10 @@
    executables -}
 module PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel
    ( BuiltinCostMap
+   , BuiltinCostKeyMap
+   , toSimpleBuiltinCostModel
    , defaultSimpleBuiltinCostModel
    ) where
-
 
 import Data.Aeson.Key as Key (toText)
 import Data.Aeson.KeyMap qualified as KeyMap
@@ -19,15 +20,19 @@ import PlutusCore.DataFilePaths qualified as DFP
 import PlutusCore.Evaluation.Machine.CostingFun.SimpleJSON
 
 type BuiltinCostMap = [(Text, CpuAndMemoryModel)]
+type BuiltinCostKeyMap = KeyMap.KeyMap CpuAndMemoryModel
 
 -- | The default builtin cost map.
-builtinCostKeyMap :: KeyMap.KeyMap CpuAndMemoryModel
-builtinCostKeyMap =
+defaultBuiltinCostKeyMap :: BuiltinCostKeyMap
+defaultBuiltinCostKeyMap =
     $$(readJSONFromFile DFP.builtinCostModelFile)
 
 -- replace underscores _ by dashes -
 builtinName :: Text -> Text
 builtinName = replace "_" "-"
 
+toSimpleBuiltinCostModel :: BuiltinCostKeyMap -> BuiltinCostMap
+toSimpleBuiltinCostModel m = map (first (builtinName . toText)) (KeyMap.toList m)
+
 defaultSimpleBuiltinCostModel :: BuiltinCostMap
-defaultSimpleBuiltinCostModel = map (first (builtinName . toText)) (KeyMap.toList builtinCostKeyMap)
+defaultSimpleBuiltinCostModel = toSimpleBuiltinCostModel defaultBuiltinCostKeyMap

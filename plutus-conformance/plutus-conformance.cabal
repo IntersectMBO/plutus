@@ -70,8 +70,9 @@ test-suite haskell-conformance
   hs-source-dirs: haskell test-cases
   other-modules:
   build-depends:
-    , base                >=4.9 && <5
+    , base                >=4.9   && <5
     , plutus-conformance
+    , plutus-core         ^>=1.21
 
 test-suite haskell-steppable-conformance
   import:         lang
@@ -94,6 +95,7 @@ test-suite agda-conformance
   hs-source-dirs: agda test-cases
   other-modules:
   build-depends:
+    , aeson
     , base                >=4.9   && <5
     , plutus-conformance
     , plutus-core         ^>=1.21

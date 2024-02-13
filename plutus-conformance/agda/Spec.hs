@@ -3,91 +3,89 @@
 {- | Conformance tests for the Agda implementation. -}
 module Main (main) where
 
-import Control.Monad.Trans.Except
+import Control.Monad.Trans.Except (ExceptT, runExceptT, withExceptT)
+
 import MAlonzo.Code.Evaluator.Term (runUCountingAgda)
-import PlutusConformance.Common
+-- import MAlonzo.Code.Cost.Raw (HRawCostModel)
+
+import PlutusConformance.Common (UplcEvaluator (..), runUplcEvalTests)
 import PlutusCore (Error (..))
-import PlutusCore.Default
-import PlutusCore.Evaluation.Machine.CostModelInterface
-import PlutusCore.Evaluation.Machine.ExBudget
-import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekMachineCosts)
-import PlutusCore.Evaluation.Machine.ExMemory
-import PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel
+import PlutusCore.Default (DefaultFun, DefaultUni)
+import PlutusCore.Evaluation.Machine.CostModelInterface (CekMachineCosts, CostModelParams,
+                                                         applyCostModelParams)
+import PlutusCore.Evaluation.Machine.ExBudget (ExBudget (..))
+import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCekCostModel)
+import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
+import PlutusCore.Evaluation.Machine.MachineParameters (CostModel (..))
+import PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel (BuiltinCostKeyMap, BuiltinCostMap,
+                                                             toSimpleBuiltinCostModel)
 
 import PlutusCore.Quote
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.DeBruijn
 
--- -- | Our `evaluator` for the Agda UPLC tests is the CEK machine without costs.
--- agdaEvalUplcProgNoCost :: UplcEvaluator
--- agdaEvalUplcProgNoCost = UplcEvaluatorWithoutCosting $ \(UPLC.Program () version tmU) ->
---     let
---         -- turn it into an untyped de Bruijn term
---         tmUDB :: ExceptT FreeVariableError Quote (UPLC.Term NamedDeBruijn DefaultUni DefaultFun ())
---         tmUDB = deBruijnTerm tmU
---     in
---     case runQuote $ runExceptT $ withExceptT FreeVariableErrorE tmUDB of
---         -- if there's an exception, evaluation failed, should return `Nothing`.
---         Left _ -> Nothing
---         -- evaluate the untyped term with CEK
---         Right tmUDBSuccess ->
---             case runUAgda tmUDBSuccess of
---                 Left _ -> Nothing
---                 Right tmEvaluated ->
---                     let tmNamed = runQuote $ runExceptT $
---                             withExceptT FreeVariableErrorE $ unDeBruijnTerm tmEvaluated
---                     in
---                     -- turn it back into a named term
---                     case tmNamed of
---                         Left _          -> Nothing
---                         Right namedTerm -> Just $ UPLC.Program () version namedTerm
+import Data.Aeson (Result (Error, Success), fromJSON, toJSON)
 
--- | Our `evaluator` for the Agda UPLC tests is the CEK machine with costs.
+-- Corresponds to Cost.Raw.RawCostModel
+-- TODO: can we import this from Agda?
+type RawCostModel = (CekMachineCosts, BuiltinCostMap)
+
+{- We have a set of CostModelParams and we want to convert them into a
+   RawCostModel suitable for use with the Agda CEK machine.  We convert the
+   CostModelParams into a standard CekCostModel, then serialise that to JSON and
+   deserialise the JSON to a SimpleCostModel which is packed together with the
+   machine costs from the CekCostModel.  This is easier than writing an analogue
+   of applyCostModelParams for the SimpleCostModel type and re-uses functions
+   whose correctness we are fairly confident of.
+-}
+toRawCostModel :: CostModelParams -> RawCostModel
+toRawCostModel params =
+    let CostModel machineCosts builtinCosts =
+            case applyCostModelParams defaultCekCostModel params of
+              Left e  -> error $ show e
+              Right p -> p
+
+        costKeyMap =
+            case fromJSON @BuiltinCostKeyMap $ toJSON builtinCosts of
+               Error s   -> error s
+               Success m -> m
+
+    in (machineCosts, toSimpleBuiltinCostModel costKeyMap)
+
+-- Evaluate a UPLC program using the Agda CEK machine
 agdaEvalUplcProg :: UplcEvaluator
-agdaEvalUplcProg = UplcEvaluatorWithCosting $ \ modelParams (UPLC.Program () version tmU) ->
-    let
-        -- turn it into an untyped de Bruijn term
-        tmUDB :: ExceptT FreeVariableError Quote (UPLC.Term NamedDeBruijn DefaultUni DefaultFun ())
-        tmUDB = deBruijnTerm tmU
+agdaEvalUplcProg =
+    UplcEvaluatorWithCosting $ \modelParams (UPLC.Program () version tmU) ->
+        let
+            -- turn the body of the program into an untyped de Bruijn term
+            tmUDB :: ExceptT FreeVariableError Quote (UPLC.Term NamedDeBruijn DefaultUni DefaultFun ())
+            tmUDB = deBruijnTerm tmU
 
-        {- TODO: In processModelParams construct the pair in the result from the argument.
-          Here, we ignore the argument and just return a default set.
-        -}
-        processModelParams  :: CostModelParams -> (CekMachineCosts ,  BuiltinCostMap)
-        processModelParams _ = (defaultCekMachineCosts , defaultSimpleBuiltinCostModel)
+        in case runQuote $ runExceptT $ withExceptT FreeVariableErrorE tmUDB of
+             -- if there's an exception, evaluation failed, should return `Nothing`.
+             Left _ -> Nothing
+             -- evaluate the untyped term with the CEK evaluator
+             Right tmUDBSuccess ->
+                 case runUCountingAgda (toRawCostModel modelParams) tmUDBSuccess of
+                   Left _ -> Nothing
+                   Right (tmEvaluated,(cpuCost,memCost)) ->
+                       let tmNamed = runQuote $ runExceptT $
+                                     withExceptT FreeVariableErrorE $ unDeBruijnTerm tmEvaluated
+                           cost = ExBudget (ExCPU (fromInteger cpuCost)) (ExMemory (fromInteger memCost))
+                       in
+                         -- turn it back into a named term
+                         case tmNamed of
+                           Left _          -> Nothing
+                           Right namedTerm -> Just (UPLC.Program () version namedTerm , cost)
 
-        defaultModelParams :: (CekMachineCosts ,  BuiltinCostMap)
-        defaultModelParams = processModelParams modelParams
-    in
-    case runQuote $ runExceptT $ withExceptT FreeVariableErrorE tmUDB of
-        -- if there's an exception, evaluation failed, should return `Nothing`.
-        Left _ -> Nothing
-        -- evaluate the untyped term with CEK
-        Right tmUDBSuccess ->
-            case runUCountingAgda defaultModelParams tmUDBSuccess of
-                Left _ -> Nothing
-                Right (tmEvaluated,(cpuCost,memCost)) ->
-                    let tmNamed = runQuote $ runExceptT $
-                            withExceptT FreeVariableErrorE $ unDeBruijnTerm tmEvaluated
-                        cost = ExBudget (ExCPU (fromInteger cpuCost)) (ExMemory (fromInteger memCost))
-                    in
-                    -- turn it back into a named term
-                    case tmNamed of
-                        Left _          -> Nothing
-                        Right namedTerm -> Just (UPLC.Program () version namedTerm , cost)
-
--- | These tests are currently failing so they are marked as expected to fail.
--- Once a fix for a test is pushed, the test will fail. Remove it from this list.
--- The entries of the list should be paths from the root of plutus-conformance
--- to the directory containing the test, eg
---   "test-cases/uplc/evaluation/builtin/semantics/addInteger/addInteger1"
+{- | Any tests here currently fail, so they are marked as expected to fail.  Once
+ a fix for a test is pushed, the test will succeed and should be removed from
+ this list.  The entries of the list are paths from the root of
+ plutus-conformance to the directory containing the test, eg
+ "test-cases/uplc/evaluation/builtin/semantics/addInteger/addInteger1"
+-}
 failingTests :: [FilePath]
-failingTests =
-    [
-    ]
+failingTests = []
 
 main :: IO ()
-main =
-    -- UPLC evaluation tests
-    runUplcEvalTests agdaEvalUplcProg (\dir -> elem dir failingTests)
-
+main = runUplcEvalTests agdaEvalUplcProg (\dir -> elem dir failingTests)
