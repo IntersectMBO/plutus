@@ -1,0 +1,132 @@
+{
+  "preamble": {
+    "title": "Acme Contract",
+    "description": "A contract that does something awesome",
+    "version": "1.1.0",
+    "plutusVersion": "v3",
+    "license": "MIT"
+  },
+  "validators": [
+    {
+      "title": "Acme Validator",
+      "description": "A validator that does something awesome",
+      "redeemer": {
+        "title": "Acme Redeemer",
+        "description": "A redeemer that does something awesome",
+        "purpose": {
+          "oneOf": [
+            "spend",
+            "mint"
+          ]
+        },
+        "schema": {
+          "dataType": "integer"
+        }
+      },
+      "datum": {
+        "title": "Acme Datum",
+        "description": "A datum that contains something awesome",
+        "purpose": "spend",
+        "schema": {
+          "oneOf": [
+            {
+              "$comment": "Blueprint.Fixture.AcmeDatumLeft",
+              "constructor": 0,
+              "dataType": "constructor"
+            },
+            {
+              "$comment": "Blueprint.Fixture.AcmeDatumRight",
+              "constructor": 1,
+              "dataType": "constructor",
+              "fields": [
+                {
+                  "$comment": "Blueprint.Fixture.MkAcmeDatumPayload",
+                  "constructor": 0,
+                  "dataType": "constructor",
+                  "fields": [
+                    {
+                      "dataType": "integer"
+                    },
+                    {
+                      "dataType": "integer"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "parameters": [
+        {
+          "title": "Acme Parameter",
+          "description": "A parameter that does something awesome",
+          "purpose": "spend",
+          "schema": {
+            "$comment": "Blueprint.Fixture.MkAcmeParams",
+            "constructor": 0,
+            "dataType": "constructor",
+            "fields": [
+              {
+                "dataType": "integer"
+              },
+              {
+                "dataType": "integer"
+              },
+              {},
+              {
+                "dataType": "#bytes"
+              }
+            ]
+          }
+        }
+      ],
+      "compiledCode": "0101003222232323232300449103505435003232325333573466e1d200000218000a999ab9a3370e90010010c00cc8c8c94ccd5cd19b874800000860026eb4d5d0800cdd69aba13574400213009491035054310035573c0046aae74004dd51aba1001098032481035054310035573c0046aae74004dd50031bad0043232325333573466e1d20000021800098022481035054310035573c0046aae74004dd5001119319ab9c001800199999a89100111114004012007002800884a400a0024800920044c101030048810001",
+      "hash": "d79a031152f3b2c42555f45f454b4b552c10cb9e0da5f13b811c30c7"
+    }
+  ],
+  "definitions": {
+    "AcmeDatum": {
+      "oneOf": [
+        {
+          "$comment": "Blueprint.Fixture.AcmeDatumLeft",
+          "constructor": 0,
+          "dataType": "constructor"
+        },
+        {
+          "$comment": "Blueprint.Fixture.AcmeDatumRight",
+          "constructor": 1,
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$comment": "Blueprint.Fixture.MkAcmeDatumPayload",
+              "constructor": 0,
+              "dataType": "constructor",
+              "fields": [
+                {
+                  "dataType": "integer"
+                },
+                {
+                  "dataType": "integer"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "AcmeDatumPayload": {
+      "$comment": "Blueprint.Fixture.MkAcmeDatumPayload",
+      "constructor": 0,
+      "dataType": "constructor",
+      "fields": [
+        {
+          "dataType": "integer"
+        },
+        {
+          "dataType": "integer"
+        }
+      ]
+    }
+  }
+}

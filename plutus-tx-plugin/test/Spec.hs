@@ -2,6 +2,7 @@
 module Main (main) where
 
 import AsData.Budget.Spec qualified as AsData.Budget
+import Blueprint.Spec qualified
 import Budget.Spec qualified as Budget
 import IntegerLiterals.NoStrict.NegativeLiterals.Spec qualified as IntegerLiterals.NoStrict.NegativeLiterals
 import IntegerLiterals.NoStrict.NoNegativeLiterals.Spec qualified as IntegerLiterals.NoStrict.NoNegativeLiterals
@@ -38,4 +39,5 @@ tests =
       , AsData.Budget.tests
       , Optimization.tests
       , Strictness.tests
+      , Blueprint.Spec.goldenTests
       ]

@@ -128,6 +128,8 @@ test-suite plutus-tx-plugin-tests
   other-modules:
     AsData.Budget.Spec
     AsData.Budget.Types
+    Blueprint.Fixture
+    Blueprint.Spec
     Budget.Spec
     Budget.WithGHCOptimisations
     Budget.WithoutGHCOptimisations
@@ -163,6 +165,7 @@ test-suite plutus-tx-plugin-tests
 
   build-depends:
     , base                                            >=4.9   && <5
+    , bytestring
     , containers
     , deepseq
     , filepath
@@ -174,6 +177,7 @@ test-suite plutus-tx-plugin-tests
     , plutus-tx-plugin                                ^>=1.22
     , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.22
     , tasty
+    , tasty-golden
     , tasty-hedgehog
     , tasty-hunit
     , template-haskell

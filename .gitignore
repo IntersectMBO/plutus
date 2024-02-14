@@ -98,7 +98,9 @@ secrets/*/.gpg-id
 ghcid.txt
 plutus-pab/test-node/testnet/db
 plutus-pab/test-node/alonzo-purple/db
+*.actual.json
 # profiling output files
 *.timelog
 *.stacks
 .nvimrc
+
