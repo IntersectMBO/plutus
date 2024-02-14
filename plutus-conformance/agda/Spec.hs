@@ -26,24 +26,27 @@ import UntypedPlutusCore.DeBruijn
 
 import Data.Aeson (Result (Error, Success), fromJSON, toJSON)
 
--- Corresponds to Cost.Raw.RawCostModel
--- TODO: can we import this from Agda?
+-- This type corresponds to Cost.Raw.RawCostModel from the Agda code.
 type RawCostModel = (CekMachineCosts, BuiltinCostMap)
 
-{- We have a set of CostModelParams and we want to convert them into a
-   RawCostModel suitable for use with the Agda CEK machine.  We convert the
-   CostModelParams into a standard CekCostModel, then serialise that to JSON and
-   deserialise the JSON to a SimpleCostModel which is packed together with the
-   machine costs from the CekCostModel.  This is easier than writing an analogue
-   of applyCostModelParams for the SimpleCostModel type and re-uses functions
-   whose correctness we are fairly confident of.
+{- Convert a set of `CostModelParams` into a `RawCostModel` suitable for use with
+   the Agda CEK machine.  We convert the `CostModelParams` into a standard
+   `CekCostModel`, then convert that to Aeson's `Value` type (its intermediate
+   JSON representation), and then deserialise the `Value` to a `SimpleCostModel`
+   which is packed together with the machine costs from the `CekCostModel`.
+   This approach is similar to the one used by `applyCostModelParams` and is
+   much simpler than trying to convert the parameters directly; also, it re-uses
+   existing functions whose correctness we have a high degree on confidence in.
+   There will be some extra overhead because of the conversion to `Value` and
+   back (which will presumably happen for every test), but the tests still run
+   very quickly.
 -}
 toRawCostModel :: CostModelParams -> RawCostModel
 toRawCostModel params =
     let CostModel machineCosts builtinCosts =
             case applyCostModelParams defaultCekCostModel params of
               Left e  -> error $ show e
-              Right p -> p
+              Right r -> r
 
         costKeyMap =
             case fromJSON @BuiltinCostKeyMap $ toJSON builtinCosts of
