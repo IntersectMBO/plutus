@@ -53,12 +53,12 @@ toRawCostModel params =
 
     in (machineCosts, toSimpleBuiltinCostModel costKeyMap)
 
-{- Note [Evaluation with and without costing] We provide two evaluators, one with
-   costing and one without: normally the tests should be run with costing
-   enabled.  It may occasionally be necessary to turn the costing off, for
-   example if the Haskell costing implementation has changed and the Agda
-   implementation has not yet caught up: to do this, change `WithCosting`
-   to `WithoutCosting` in `main`.
+{- Note [Evaluation with and without costing]
+   We provide two evaluators, one with costing and one without: normally the
+   tests should be run with costing enabled.  It may occasionally be necessary
+   to turn the costing off, for example if the Haskell costing implementation
+   has changed and the Agda implementation has not yet caught up: to do this,
+   change `WithCosting` to `WithoutCosting` in `main`.
 -}
 data CostOrNot = WithCosting | WithoutCosting
 
