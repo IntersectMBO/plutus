@@ -5,8 +5,7 @@ module Main (main) where
 
 import Control.Monad.Trans.Except (ExceptT, runExceptT, withExceptT)
 
-import MAlonzo.Code.Evaluator.Term (runUCountingAgda)
--- import MAlonzo.Code.Cost.Raw (HRawCostModel)
+import MAlonzo.Code.Evaluator.Term (runUAgda, runUCountingAgda)
 
 import PlutusConformance.Common (UplcEvaluator (..), runUplcEvalTests)
 import PlutusCore (Error (..))
@@ -19,14 +18,13 @@ import PlutusCore.Evaluation.Machine.ExMemory (ExCPU (..), ExMemory (..))
 import PlutusCore.Evaluation.Machine.MachineParameters (CostModel (..))
 import PlutusCore.Evaluation.Machine.SimpleBuiltinCostModel (BuiltinCostKeyMap, BuiltinCostMap,
                                                              toSimpleBuiltinCostModel)
-
 import PlutusCore.Quote
 import UntypedPlutusCore qualified as UPLC
 import UntypedPlutusCore.DeBruijn
 
 import Data.Aeson (Result (Error, Success), fromJSON, toJSON)
 
--- This type corresponds to Cost.Raw.RawCostModel from the Agda code.
+-- This type corresponds to Cost.Raw.RawCostModel in plutus-metaheory.
 type RawCostModel = (CekMachineCosts, BuiltinCostMap)
 
 {- Convert a set of `CostModelParams` into a `RawCostModel` suitable for use with
@@ -55,9 +53,18 @@ toRawCostModel params =
 
     in (machineCosts, toSimpleBuiltinCostModel costKeyMap)
 
+{- Note [Evaluation with and without costing] We provide two evaluators, one with
+   costing and one without: normally the tests should be run with costing
+   enabled.  It may occasionally be necessary to turn the costing off, for
+   example if the Haskell costing implementation has changed and the Agda
+   implementation has not yet caught up: to do this, change `WithCosting`
+   to `WithoutCosting` in `main`.
+-}
+data CostOrNot = WithCosting | WithoutCosting
+
 -- Evaluate a UPLC program using the Agda CEK machine
-agdaEvalUplcProg :: UplcEvaluator
-agdaEvalUplcProg =
+agdaEvalUplcProg :: CostOrNot -> UplcEvaluator
+agdaEvalUplcProg WithCosting =
     UplcEvaluatorWithCosting $ \modelParams (UPLC.Program () version tmU) ->
         let
             -- turn the body of the program into an untyped de Bruijn term
@@ -72,14 +79,28 @@ agdaEvalUplcProg =
                  case runUCountingAgda (toRawCostModel modelParams) tmUDBSuccess of
                    Left _ -> Nothing
                    Right (tmEvaluated,(cpuCost,memCost)) ->
-                       let tmNamed = runQuote $ runExceptT $
-                                     withExceptT FreeVariableErrorE $ unDeBruijnTerm tmEvaluated
-                           cost = ExBudget (ExCPU (fromInteger cpuCost)) (ExMemory (fromInteger memCost))
-                       in
-                         -- turn it back into a named term
-                         case tmNamed of
-                           Left _          -> Nothing
-                           Right namedTerm -> Just (UPLC.Program () version namedTerm , cost)
+                       -- turn it back into a named term
+                       case runQuote $ runExceptT $
+                            withExceptT FreeVariableErrorE $ unDeBruijnTerm tmEvaluated of
+                         Left _          -> Nothing
+                         Right namedTerm ->
+                             let  cost = ExBudget (ExCPU (fromInteger cpuCost)) (ExMemory (fromInteger memCost))
+                             in Just (UPLC.Program () version namedTerm , cost)
+
+agdaEvalUplcProg WithoutCosting =
+    UplcEvaluatorWithoutCosting $ \(UPLC.Program () version tmU) ->
+        let tmUDB :: ExceptT FreeVariableError Quote (UPLC.Term NamedDeBruijn DefaultUni DefaultFun ())
+            tmUDB = deBruijnTerm tmU
+        in case runQuote $ runExceptT $ withExceptT FreeVariableErrorE tmUDB of
+             Left _ -> Nothing
+             Right tmUDBSuccess ->
+                 case runUAgda tmUDBSuccess of
+                   Left _ -> Nothing
+                   Right tmEvaluated ->
+                       case runQuote $ runExceptT $
+                            withExceptT FreeVariableErrorE $ unDeBruijnTerm tmEvaluated of
+                         Left _          -> Nothing
+                         Right namedTerm -> Just $ UPLC.Program () version namedTerm
 
 {- | Any tests here currently fail, so they are marked as expected to fail.  Once
  a fix for a test is pushed, the test will succeed and should be removed from
@@ -90,5 +111,6 @@ agdaEvalUplcProg =
 failingTests :: [FilePath]
 failingTests = []
 
+-- Run the tests: see Note [Evaluation with and without costing] above.
 main :: IO ()
-main = runUplcEvalTests agdaEvalUplcProg (\dir -> elem dir failingTests)
+main = runUplcEvalTests (agdaEvalUplcProg WithCosting) (\dir -> elem dir failingTests)
