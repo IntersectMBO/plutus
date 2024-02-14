@@ -129,6 +129,8 @@ test-suite plutus-tx-plugin-tests
     AsData.Budget.Spec
     AsData.Budget.Types
     Budget.Spec
+    Budget.WithGHCOptimisations
+    Budget.WithoutGHCOptimisations
     IntegerLiterals.NoStrict.NegativeLiterals.Spec
     IntegerLiterals.NoStrict.NoNegativeLiterals.Spec
     IntegerLiterals.Strict.NegativeLiterals.Spec

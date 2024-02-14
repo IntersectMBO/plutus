@@ -1,9 +1,0 @@
-let
-  data Bool | Bool_match where
-    True : Bool
-    False : Bool
-  data Unit | Unit_match where
-    Unit : Unit
-  !x : Bool = error {Bool}
-in
-False
