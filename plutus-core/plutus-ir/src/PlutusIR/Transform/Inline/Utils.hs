@@ -55,14 +55,16 @@ type InliningConstraints tyname name uni fun =
 --
 -- See [Inlining and global uniqueness] for caveats about this information.
 data InlineInfo tyname name uni fun ann = InlineInfo
-    { _iiVarInfo      :: VarInfo.VarsInfo tyname name uni ann
+    { _iiVarInfo         :: VarInfo.VarsInfo tyname name uni ann
     -- ^ Is it strict? Only needed for PIR, not UPLC
-    , _iiUsages       :: Usages.Usages
+    , _iiUsages          :: Usages.Usages
     -- ^ how many times is it used?
-    , _iiHints        :: InlineHints name ann
+    , _iiHints           :: InlineHints name ann
     -- ^ have we explicitly been told to inline?
-    , _iiBuiltinsInfo :: BuiltinsInfo uni fun
+    , _iiBuiltinsInfo    :: BuiltinsInfo uni fun
     -- ^ the semantics variant.
+    , _iiInlineConstants :: Bool
+    -- ^ should we inline constants?
     }
 makeLenses ''InlineInfo
 
@@ -352,8 +354,8 @@ costIsAcceptable = \case
 -- See Note [Inlining criteria]
 -- | Is the size increase (in the AST) of inlining a variable whose RHS is
 -- the given term acceptable?
-sizeIsAcceptable :: Term tyname name uni fun ann -> Bool
-sizeIsAcceptable = \case
+sizeIsAcceptable :: Bool -> Term tyname name uni fun ann -> Bool
+sizeIsAcceptable inlineConstants = \case
   Builtin{}  -> True
   Var{}      -> True
   Error{}    -> True
@@ -363,7 +365,7 @@ sizeIsAcceptable = \case
   -- Inlining constructors of size 1 or 0 seems okay
   Constr _ _ _ es  -> case es of
       []  -> True
-      [e] -> sizeIsAcceptable e
+      [e] -> sizeIsAcceptable inlineConstants e
       _   -> False
   -- Cases are pretty big, due to the case branches
   Case{} -> False
@@ -371,9 +373,9 @@ sizeIsAcceptable = \case
   -- Arguably we could allow these two, but they're uncommon anyway
   IWrap{}    -> False
   Unwrap{}   -> False
-  -- Constants can be big! We could check the size here and inline if they're
-  -- small, but probably not worth it
-  Constant{} -> False
+  -- Inlining constants is deemed acceptable if the 'inlineConstants'
+  -- flag is turned on
+  Constant{} -> inlineConstants
   Apply{}    -> False
   TyInst{}   -> False
   Let{}      -> False
@@ -408,4 +410,5 @@ shouldUnconditionallyInline s n rhs body = preUnconditional ||^ postUnconditiona
     -- exactly one, so there's no point checking if the term is immediately evaluated.
     postUnconditional = do
       isBindingPure <- isTermBindingPure s rhs
-      pure $ isBindingPure && sizeIsAcceptable rhs && costIsAcceptable rhs
+      inlineConstants <- view iiInlineConstants
+      pure $ isBindingPure && sizeIsAcceptable inlineConstants rhs && costIsAcceptable rhs
