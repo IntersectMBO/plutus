@@ -156,49 +156,65 @@ defaultIndex name = do
     info <- TH.reifyDatatype name
     pure $ zip (TH.constructorName <$> TH.datatypeCons info) [0..]
 
--- | Generate a 'FromData' and a 'ToData' instance for a type. This may not be stable in the face of constructor additions,
+-- | Generate a 'FromData' and a 'ToData' instance for a type.
+-- This may not be stable in the face of constructor additions,
 -- renamings, etc. Use 'makeIsDataIndexed' if you need stability.
 unstableMakeIsData :: TH.Name -> TH.Q [TH.Dec]
 unstableMakeIsData name = makeIsDataIndexed name =<< defaultIndex name
 
--- | Generate a 'FromData' and a 'ToData' instance for a type, using an explicit mapping of constructor names to indices. Use
--- this for types where you need to keep the representation stable.
+-- | Generate a 'ToData', 'FromData and a 'UnsafeFromData' instances for a type,
+-- using an explicit mapping of constructor names to indices.
+-- Use this for types where you need to keep the representation stable.
 makeIsDataIndexed :: TH.Name -> [(TH.Name, Int)] -> TH.Q [TH.Dec]
-makeIsDataIndexed name indices = do
+makeIsDataIndexed dataTypeName indices = do
+  dataTypeInfo <- TH.reifyDatatype dataTypeName
+  let appliedType = TH.datatypeType dataTypeInfo
+  let nonOverlapInstance = TH.InstanceD Nothing
 
-    info <- TH.reifyDatatype name
-    let appliedType = TH.datatypeType info
+  indexedCons <- for (TH.datatypeCons dataTypeInfo) $ \ctorInfo ->
+    case lookup (TH.constructorName ctorInfo) indices of
+      Just i  -> pure (ctorInfo, i)
+      Nothing -> fail $ "No index given for constructor" ++ show (TH.constructorName ctorInfo)
 
-    indexedCons <- for (TH.datatypeCons info) $ \c -> case lookup (TH.constructorName c) indices of
-            Just i  -> pure (c, i)
-            Nothing -> fail $ "No index given for constructor" ++ show (TH.constructorName c)
+  toDataInst <- do
+    let constraints = TH.datatypeVars dataTypeInfo <&> \tyVarBinder ->
+          TH.classPred ''ToData [TH.VarT (tyvarbndrName tyVarBinder)]
+    toDataDecl <- TH.funD 'toBuiltinData (toDataClauses indexedCons)
+    toDataPrag <- TH.pragInlD 'toBuiltinData TH.Inlinable TH.FunLike TH.AllPhases
+    pure $ nonOverlapInstance
+      constraints
+      (TH.classPred ''ToData [appliedType])
+      [toDataPrag, toDataDecl]
 
-    toDataInst <- do
-        let constraints = fmap (\t -> TH.classPred ''ToData [TH.VarT (tyvarbndrName t)]) (TH.datatypeVars info)
-        toDataDecl <- TH.funD 'toBuiltinData (toDataClauses indexedCons)
-        toDataPrag <- TH.pragInlD 'toBuiltinData TH.Inlinable TH.FunLike TH.AllPhases
-        pure $ TH.InstanceD Nothing constraints (TH.classPred ''ToData [appliedType]) [toDataPrag, toDataDecl]
+  fromDataInst <- do
+    let constraints = TH.datatypeVars dataTypeInfo <&> \tyVarBinder ->
+          TH.classPred ''FromData [TH.VarT (tyvarbndrName tyVarBinder)]
+    fromDataDecl <- TH.funD 'fromBuiltinData [fromDataClause indexedCons]
+    fromDataPrag <- TH.pragInlD 'fromBuiltinData TH.Inlinable TH.FunLike TH.AllPhases
+    pure $ nonOverlapInstance
+      constraints
+      (TH.classPred ''FromData [appliedType])
+      [fromDataPrag, fromDataDecl]
 
-    fromDataInst <- do
-        let constraints = fmap (\t -> TH.classPred ''FromData [TH.VarT (tyvarbndrName t)]) (TH.datatypeVars info)
-        fromDataDecl <- TH.funD 'fromBuiltinData [fromDataClause indexedCons]
-        fromDataPrag <- TH.pragInlD 'fromBuiltinData TH.Inlinable TH.FunLike TH.AllPhases
-        pure $ TH.InstanceD Nothing constraints (TH.classPred ''FromData [appliedType]) [fromDataPrag, fromDataDecl]
+  unsafeFromDataInst <- do
+    let constraints = TH.datatypeVars dataTypeInfo <&> \tyVarBinder ->
+          TH.classPred ''UnsafeFromData [TH.VarT (tyvarbndrName tyVarBinder)]
+    unsafeFromDataDecl <- TH.funD 'unsafeFromBuiltinData [unsafeFromDataClause indexedCons]
+    unsafeFromDataPrag <- TH.pragInlD 'unsafeFromBuiltinData TH.Inlinable TH.FunLike TH.AllPhases
+    pure $ nonOverlapInstance
+      constraints
+      (TH.classPred ''UnsafeFromData [appliedType])
+      [unsafeFromDataPrag, unsafeFromDataDecl]
 
-    unsafeFromDataInst <- do
-        let constraints = fmap (\t -> TH.classPred ''UnsafeFromData [TH.VarT (tyvarbndrName t)]) (TH.datatypeVars info)
-        unsafeFromDataDecl <- TH.funD 'unsafeFromBuiltinData [unsafeFromDataClause indexedCons]
-        unsafeFromDataPrag <- TH.pragInlD 'unsafeFromBuiltinData TH.Inlinable TH.FunLike TH.AllPhases
-        pure $ TH.InstanceD Nothing constraints (TH.classPred ''UnsafeFromData [appliedType]) [unsafeFromDataPrag, unsafeFromDataDecl]
+  pure [toDataInst, fromDataInst, unsafeFromDataInst]
 
-    pure [toDataInst, fromDataInst, unsafeFromDataInst]
     where
 #if MIN_VERSION_template_haskell(2,17,0)
-        tyvarbndrName (TH.PlainTV n _)    = n
-        tyvarbndrName (TH.KindedTV n _ _) = n
+      tyvarbndrName (TH.PlainTV n _)    = n
+      tyvarbndrName (TH.KindedTV n _ _) = n
 #else
-        tyvarbndrName (TH.PlainTV n)      = n
-        tyvarbndrName (TH.KindedTV n _)   = n
+      tyvarbndrName (TH.PlainTV n)      = n
+      tyvarbndrName (TH.KindedTV n _)   = n
 #endif
 
 {- Note [indexMatchCase and fallthrough]
