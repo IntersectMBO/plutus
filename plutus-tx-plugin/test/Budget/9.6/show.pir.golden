@@ -1,6 +1,3 @@
-let
-  !y : integer = 10
-in
 letrec
   data (List :: * -> *) a | List_match where
     Nil : List a
@@ -10,13 +7,13 @@ letrec
   !go : List integer -> integer -> List integer
     = \(acc : List integer) (n : integer) ->
         let
-          !x : integer = quotientInteger n y
+          !x : integer = quotientInteger n 10
         in
         ifThenElse
           {all dead. List integer}
           (equalsInteger 0 x)
-          (/\dead -> Cons {integer} (remainderInteger n y) acc)
-          (/\dead -> go (Cons {integer} (remainderInteger n y) acc) x)
+          (/\dead -> Cons {integer} (remainderInteger n 10) acc)
+          (/\dead -> go (Cons {integer} (remainderInteger n 10) acc) x)
           {all dead. dead}
 in
 letrec
@@ -171,7 +168,6 @@ let
                     {all dead. dead})
                {all dead. dead})
           {all dead. dead}
-  !s : bytestring = #5468697320697320616e206578616d706c65
 in
 letrec
   !go : List integer -> List string -> List string
@@ -188,15 +184,13 @@ letrec
                in
                \(eta : List string) ->
                  (let
-                     !x : integer = indexByteString s x
+                     !x : integer
+                       = indexByteString #5468697320697320616e206578616d706c65 x
                    in
                    \(eta : List string) ->
                      toHex (divideInteger x 16) (toHex (modInteger x 16) eta))
                    (acc eta))
           {all dead. dead}
-in
-let
-  !x : integer = -1234567890
 in
 letrec
   !`$fEnumBool_$cenumFromTo` : integer -> integer -> List integer
@@ -324,16 +318,13 @@ let
   data Bool | Bool_match where
     True : Bool
     False : Bool
-  !a : integer = trace {integer} (`$fShowInteger_$cshow` x) x
+  !a : integer
+    = trace {integer} (`$fShowInteger_$cshow` -1234567890) -1234567890
   !c : integer
     = trace
         {integer}
         (concatBuiltinStrings
-           ((let
-                !len : integer = lengthOfByteString s
-              in
-              go (`$fEnumBool_$cenumFromTo` 0 (subtractInteger len 1)))
-              (Nil {string})))
+           (go (`$fEnumBool_$cenumFromTo` 0 17) (Nil {string})))
         a
   !d : integer
     = trace

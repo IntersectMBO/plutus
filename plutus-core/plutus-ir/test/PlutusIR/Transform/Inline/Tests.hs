@@ -18,7 +18,7 @@ test_inline :: TestTree
 test_inline = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
     testNested "Inline" $
         map
-            (goldenPir (runQuote . runTestPass (\tc -> inlinePassSC tc mempty def)) pTerm)
+            (runTest withConstantInlining)
             [ "var"
             , "builtin"
             , "callsite-non-trivial-body"
@@ -60,7 +60,14 @@ test_inline = runTestNestedIn ["plutus-ir", "test", "PlutusIR", "Transform"] $
             , "partiallyApp"
             , "effectfulBuiltinArg"
             , "nameCapture"
+            , "inlineConstantsOn"
             ]
+        <>  [runTest withoutConstantInlining "inlineConstantsOff"]
+  where
+    runTest constantInlining =
+      goldenPir (runQuote . runTestPass (\tc -> inlinePassSC constantInlining tc mempty def)) pTerm
+    withConstantInlining = True
+    withoutConstantInlining = False
 
 prop_inline ::
     BuiltinSemanticsVariant DefaultFun -> Property
@@ -68,4 +75,4 @@ prop_inline biVariant =
   withMaxSuccess (3 * numTestsForPassProp) $
     testPassProp
       runQuote
-      $ \tc -> inlinePassSC tc mempty (def {_biSemanticsVariant = biVariant})
+      $ \tc -> inlinePassSC True tc mempty (def {_biSemanticsVariant = biVariant})
