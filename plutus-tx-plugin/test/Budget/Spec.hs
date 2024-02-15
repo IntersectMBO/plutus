@@ -16,6 +16,8 @@ module Budget.Spec where
 
 import Test.Tasty.Extras
 
+import Budget.WithGHCOptimisations qualified as WithGHCOptTest
+import Budget.WithoutGHCOptimisations qualified as WithoutGHCOptTest
 import PlutusTx.AsData qualified as AsData
 import PlutusTx.Builtins qualified as PlutusTx
 import PlutusTx.Code
@@ -243,6 +245,23 @@ tests = testNestedGhc "Budget" [
 
   , goldenBudget "matchAsDataE" matchAsData
   , goldenEvalCekCatch "matchAsDataE-result" [matchAsData]
+
+  -- Demonstrate inconsistent handling of '&&' and '||'
+  -- With GHC optimisations turned on
+  , goldenBudget "andWithGHCOpts" compiledAndWithGHCOpts
+  , goldenUPlcReadable "andWithGHCOpts" compiledAndWithGHCOpts
+  , goldenPirReadable "andWithGHCOpts" compiledAndWithGHCOpts
+  , goldenEvalCekCatch "andWithGHCOpts-result" [compiledAndWithGHCOpts]
+  -- With GHC optimisations turned off
+  , goldenBudget "andWithoutGHCOpts" compiledAndWithoutGHCOpts
+  , goldenUPlcReadable "andWithoutGHCOpts" compiledAndWithoutGHCOpts
+  , goldenPirReadable "andWithoutGHCOpts" compiledAndWithoutGHCOpts
+  , goldenEvalCekCatch "andWithoutGHCOpts-result" [compiledAndWithoutGHCOpts]
+  -- With the function definition in the local module
+  , goldenBudget "andWithLocal" compiledAndWithLocal
+  , goldenUPlcReadable "andWithLocal" compiledAndWithLocal
+  , goldenPirReadable "andWithLocal" compiledAndWithLocal
+  , goldenEvalCekCatch "andWithLocal-result" [compiledAndWithLocal]
   ]
 
 compiledSum :: CompiledCode Integer
@@ -559,3 +578,23 @@ matchAsData = $$(compile [||
     JustD a  -> a
     NothingD -> 1 ||])
     `PlutusTx.Code.unsafeApplyCode` liftCodeDef (JustD 1)
+
+compiledAndWithGHCOpts :: CompiledCode Bool
+compiledAndWithGHCOpts =
+  let code = $$(compile [|| WithGHCOptTest.f ||])
+   in flip PlutusTx.Code.unsafeApplyCode (liftCodeDef (4 :: Integer)) $
+        PlutusTx.Code.unsafeApplyCode code (liftCodeDef (4 :: Integer))
+
+compiledAndWithoutGHCOpts :: CompiledCode Bool
+compiledAndWithoutGHCOpts =
+  let code = $$(compile [|| WithoutGHCOptTest.f ||])
+   in flip PlutusTx.Code.unsafeApplyCode (liftCodeDef (4 :: Integer)) $
+        PlutusTx.Code.unsafeApplyCode code (liftCodeDef (4 :: Integer))
+
+compiledAndWithLocal :: CompiledCode Bool
+compiledAndWithLocal =
+  let f :: Integer -> Integer -> Bool
+      f x y = (PlutusTx.&&) (x PlutusTx.< (3 :: Integer)) (y PlutusTx.< (3 :: Integer))
+      code = $$(compile [|| f ||])
+   in flip PlutusTx.Code.unsafeApplyCode (liftCodeDef (4 :: Integer)) $
+        PlutusTx.Code.unsafeApplyCode code (liftCodeDef (4 :: Integer))
