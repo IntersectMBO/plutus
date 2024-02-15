@@ -33,7 +33,8 @@ goldenBlueprint name blueprint = do
 acmeContractBlueprint :: ContractBlueprint
 acmeContractBlueprint =
   MkContractBlueprint
-    { contractPreamble =
+    { contractId = Nothing
+    , contractPreamble =
         MkPreamble
           { preambleTitle = "Acme Contract"
           , preambleDescription = Just "A contract that does something awesome"

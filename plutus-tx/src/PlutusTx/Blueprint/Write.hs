@@ -22,7 +22,10 @@ encodeBlueprint =
       { Pretty.confIndent = Pretty.Spaces 2
       , Pretty.confCompare =
           Pretty.keyOrder
-            [ "preamble"
+            [ "$id"
+            , "$schema"
+            , "$vocabulary"
+            , "preamble"
             , "validators"
             , "definitions"
             , "title"
