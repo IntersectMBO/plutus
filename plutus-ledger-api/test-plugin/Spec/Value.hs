@@ -12,8 +12,8 @@ import Prelude qualified as Haskell
 
 import PlutusLedgerApi.V1.Value
 
-import PlutusTx.AssocMap qualified as AssocMap
 import PlutusTx.Base
+import PlutusTx.ByteStringMap qualified as ByteStringMap
 import PlutusTx.Code (CompiledCode, getPlc, unsafeApplyCode)
 import PlutusTx.Lift
 import PlutusTx.List qualified as ListTx
@@ -91,7 +91,7 @@ replicateToByteString i =
 tokenListOptions :: [[(TokenName, Integer)]]
 tokenListOptions =
     ListTx.map
-        (ListTx.map $ \(i, x) -> (TokenName $ replicateToByteString i, x))
+        (ListTx.map $ \(i, x) -> (replicateToByteString i, x))
         patternOptions
 
 {-# INLINEABLE currencyListOptions #-}
@@ -99,7 +99,7 @@ currencyListOptions :: [[(CurrencySymbol, [(TokenName, Integer)])]]
 currencyListOptions =
     ListTx.map
         (ListTx.map $ \(i, x) ->
-            ( CurrencySymbol $ replicateToByteString i
+            ( replicateToByteString i
             , tokenListOptions ListTx.!! x
             ))
         patternOptions
@@ -110,7 +110,7 @@ currencyListOptions =
 longCurrencyChunk :: [(CurrencySymbol, [(TokenName, Integer)])]
 longCurrencyChunk
     = ListTx.concatMap Tx.sequence
-    . ListTx.zip (ListTx.map (CurrencySymbol . replicateToByteString) [1 .. scalingFactor])
+    . ListTx.zip (ListTx.map replicateToByteString [1 .. scalingFactor])
     $ ListTx.replicate scalingFactor tokenListOptions
 
 {-# INLINEABLE insertHooks #-}
@@ -147,10 +147,10 @@ currencyLongListOptions =
     ListTx.concatMap (maybe longCurrencyChunk pure) currencyListWithHooks
 
 listsToValue :: [(CurrencySymbol, [(TokenName, Integer)])] -> Value
-listsToValue = Value . AssocMap.fromList . ListTx.map (fmap AssocMap.fromList)
+listsToValue = Value . ByteStringMap.fromList . ListTx.map (fmap ByteStringMap.fromList)
 
 valueToLists :: Value -> [(CurrencySymbol, [(TokenName, Integer)])]
-valueToLists = ListTx.map (fmap AssocMap.toList) . AssocMap.toList . getValue
+valueToLists = ListTx.map (fmap ByteStringMap.toList) . ByteStringMap.toList . getValue
 
 -- | Check equality of two compiled 'Value's through UPLC evaluation and annotate the result with
 -- the cost of evaluation.

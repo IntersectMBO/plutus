@@ -24,7 +24,7 @@ import PlutusLedgerApi.Common
 import PlutusLedgerApi.Test.EvaluationEvent
 import PlutusLedgerApi.V1 qualified as V1
 import PlutusLedgerApi.V2 qualified as V2
-import PlutusTx.AssocMap qualified as M
+import PlutusTx.ByteStringMap qualified as M
 import UntypedPlutusCore as UPLC
 
 import Control.Lens hiding (List)

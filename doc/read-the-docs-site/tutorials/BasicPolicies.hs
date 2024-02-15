@@ -13,7 +13,7 @@ import PlutusLedgerApi.V1.Contexts
 import PlutusLedgerApi.V1.Crypto
 import PlutusLedgerApi.V1.Scripts
 import PlutusLedgerApi.V1.Value
-import PlutusTx.AssocMap qualified as Map
+import PlutusTx.ByteStringMap qualified as Map
 
 tname :: TokenName
 tname = error ()

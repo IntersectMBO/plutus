@@ -6,7 +6,7 @@
 module PlutusLedgerApi.Test.V1.Value where
 
 import PlutusLedgerApi.V1
-import PlutusTx.AssocMap qualified as AssocMap
+import PlutusTx.ByteStringMap qualified as Map
 import PlutusTx.List qualified as ListTx
 
 import PlutusCore.Generators.QuickCheck.Utils (multiSplit0, uniqueVectorOf)
@@ -18,11 +18,11 @@ import Test.QuickCheck
 
 -- | Convert a list representation of a 'Value' to the 'Value'.
 listsToValue :: [(CurrencySymbol, [(TokenName, Integer)])] -> Value
-listsToValue = Value . AssocMap.fromList . ListTx.map (fmap AssocMap.fromList)
+listsToValue = Value . Map.fromList . ListTx.map (fmap Map.fromList)
 
 -- | Convert a 'Value' to its list representation.
 valueToLists :: Value -> [(CurrencySymbol, [(TokenName, Integer)])]
-valueToLists = ListTx.map (fmap AssocMap.toList) . AssocMap.toList . getValue
+valueToLists = ListTx.map (fmap Map.toList) . Map.toList . getValue
 
 -- | Return how many candidates to randomly choose from to fill the given number of cells. For
 -- example, if we only need to fill a single cell, we choose from 6 different candidates, and if we
@@ -45,14 +45,14 @@ genShortHex i =
 
 -- | Annotate each element of the give list with a @name@, given a function turning
 -- 'BuiltinByteString' into names.
-uniqueNames :: Eq name => (BuiltinByteString -> name) -> [b] -> Gen [(name, b)]
-uniqueNames wrap ys = do
+uniqueNames :: [b] -> Gen [(BuiltinByteString, b)]
+uniqueNames ys = do
     let len = length ys
     -- We always generate unique 'CurrencySymbol's within a single 'Value' and 'TokenName' within a
     -- single 'CurrencySymbol', because functions over 'Value' don't handle duplicated names anyway.
     -- Note that we can generate the same 'TokenName' within different 'CurrencySymbol's within the
     -- same 'Value'.
-    xs <- uniqueVectorOf len $ wrap <$> genShortHex len
+    xs <- uniqueVectorOf len $ genShortHex len
     pure $ zip xs ys
 
 -- | The value of a 'TokenName' in a 'Value'.
@@ -86,7 +86,7 @@ instance Arbitrary Value where
         -- list of lists.
         faceValues <- multiSplit0 0.2 . map unFaceValue =<< arbitrary
         -- Generate 'TokenName's and 'CurrencySymbol's.
-        currencies <- uniqueNames CurrencySymbol =<< traverse (uniqueNames TokenName) faceValues
+        currencies <- uniqueNames =<< traverse (uniqueNames ) faceValues
         pure $ listsToValue currencies
 
     shrink

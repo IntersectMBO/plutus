@@ -51,7 +51,7 @@ updateInteger i = arbitrary `suchThat` (/= i)
 -- one, being sorted as well.
 freshenTokenNames :: [(TokenName, Integer)] -> Gen [(TokenName, Integer)]
 freshenTokenNames tokens =
-    uniqueNames TokenName (map snd tokens) `suchThat` \tokens' ->
+    uniqueNames (map snd tokens) `suchThat` \tokens' ->
         sort (filter ((/= 0) . snd) tokens) /= sort (filter ((/= 0) . snd) tokens')
 
 onLists

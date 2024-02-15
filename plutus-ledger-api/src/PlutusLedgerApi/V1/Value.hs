@@ -21,11 +21,11 @@
 -- | Functions for working with 'Value'.
 module PlutusLedgerApi.V1.Value (
     -- ** Currency symbols
-      CurrencySymbol(..)
+      CurrencySymbol
     , currencySymbol
     , adaSymbol
     -- ** Token names
-    , TokenName(..)
+    , TokenName
     , tokenName
     , toString
     , adaToken
@@ -60,14 +60,13 @@ import Prelude qualified as Haskell
 import Control.DeepSeq (NFData)
 import Data.ByteString qualified as BS
 import Data.Data (Data)
-import Data.String (IsString (fromString))
 import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Text.Encoding qualified as E
 import GHC.Generics (Generic)
-import PlutusLedgerApi.V1.Bytes (LedgerBytes (LedgerBytes), encodeByteString)
+import PlutusLedgerApi.V1.Bytes (encodeByteString)
 import PlutusTx qualified
-import PlutusTx.AssocMap qualified as Map
+import PlutusTx.ByteStringMap qualified as Map
 import PlutusTx.Lift (makeLift)
 import PlutusTx.Ord qualified as Ord
 import PlutusTx.Prelude as PlutusTx hiding (sort)
@@ -85,20 +84,12 @@ This is a simple type without any validation, __use with caution__.
 You may want to add checks for its invariants. See the
  [Shelley ledger specification](https://github.com/IntersectMBO/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf).
 -}
-newtype CurrencySymbol = CurrencySymbol { unCurrencySymbol :: PlutusTx.BuiltinByteString }
-    deriving
-        (IsString        -- ^ from hex encoding
-        , Haskell.Show   -- ^ using hex encoding
-        , Pretty         -- ^ using hex encoding
-        ) via LedgerBytes
-    deriving stock (Generic, Data)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
-    deriving anyclass (NFData)
+type CurrencySymbol = PlutusTx.BuiltinByteString
 
 {-# INLINABLE currencySymbol #-}
 -- | Creates `CurrencySymbol` from raw `ByteString`.
 currencySymbol :: BS.ByteString -> CurrencySymbol
-currencySymbol = CurrencySymbol . PlutusTx.toBuiltin
+currencySymbol = PlutusTx.toBuiltin
 
 {- | ByteString of a name of a token.
 Shown as UTF-8 string when possible.
@@ -109,34 +100,19 @@ This is a simple type without any validation, __use with caution__.
 You may want to add checks for its invariants. See the
  [Shelley ledger specification](https://github.com/IntersectMBO/cardano-ledger/releases/download/cardano-ledger-spec-2023-04-03/shelley-ledger.pdf).
 -}
-newtype TokenName = TokenName { unTokenName :: PlutusTx.BuiltinByteString }
-    deriving stock (Generic, Data)
-    deriving newtype (Haskell.Eq, Haskell.Ord, Eq, Ord, PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
-    deriving anyclass (NFData)
-    deriving Pretty via (PrettyShow TokenName)
-
--- | UTF-8 encoding. Doesn't verify length.
-instance IsString TokenName where
-    fromString = fromText . Text.pack
+type TokenName = PlutusTx.BuiltinByteString
 
 {-# INLINABLE tokenName #-}
 -- | Creates `TokenName` from raw `BS.ByteString`.
 tokenName :: BS.ByteString -> TokenName
-tokenName = TokenName . PlutusTx.toBuiltin
-
-fromText :: Text -> TokenName
-fromText = tokenName . E.encodeUtf8
+tokenName = PlutusTx.toBuiltin
 
 fromTokenName :: (BS.ByteString -> r) -> (Text -> r) -> TokenName -> r
-fromTokenName handleBytestring handleText (TokenName bs) = either (\_ -> handleBytestring $ PlutusTx.fromBuiltin bs) handleText $ E.decodeUtf8' (PlutusTx.fromBuiltin bs)
+fromTokenName handleBytestring handleText bs = either (\_ -> handleBytestring $ PlutusTx.fromBuiltin bs) handleText $ E.decodeUtf8' (PlutusTx.fromBuiltin bs)
 
 -- | Encode a `ByteString` to a hex `Text`.
 asBase16 :: BS.ByteString -> Text
 asBase16 bs = Text.concat ["0x", encodeByteString bs]
-
--- | Wrap the input `Text` in double quotes.
-quoted :: Text -> Text
-quoted s = Text.concat ["\"", s, "\""]
 
 {- | Turn a TokenName to a hex-encoded 'String'
 
@@ -145,18 +121,15 @@ Compared to `show` , it will not surround the string with double-quotes.
 toString :: TokenName -> Haskell.String
 toString = Text.unpack . fromTokenName asBase16 id
 
-instance Haskell.Show TokenName where
-    show = Text.unpack . fromTokenName asBase16 quoted
-
 {-# INLINABLE adaSymbol #-}
 -- | The 'CurrencySymbol' of the 'Ada' currency.
 adaSymbol :: CurrencySymbol
-adaSymbol = CurrencySymbol emptyByteString
+adaSymbol = emptyByteString
 
 {-# INLINABLE adaToken #-}
 -- | The 'TokenName' of the 'Ada' currency.
 adaToken :: TokenName
-adaToken = TokenName emptyByteString
+adaToken = emptyByteString
 
 -- | An asset class, identified by a `CurrencySymbol` and a `TokenName`.
 newtype AssetClass = AssetClass { unAssetClass :: (CurrencySymbol, TokenName) }
@@ -194,7 +167,7 @@ taken to be zero.
 There is no 'Ord Value' instance since 'Value' is only a partial order, so 'compare' can't
 do the right thing in some cases.
  -}
-newtype Value = Value { getValue :: Map.Map CurrencySymbol (Map.Map TokenName Integer) }
+newtype Value = Value { getValue :: Map.Map (Map.Map Integer) }
     deriving stock (Generic, Data, Haskell.Show)
     deriving anyclass (NFData)
     deriving newtype (PlutusTx.ToData, PlutusTx.FromData, PlutusTx.UnsafeFromData)
@@ -283,7 +256,7 @@ assetClassValueOf v (AssetClass (c, t)) = valueOf v c t
 
 {-# INLINABLE unionVal #-}
 -- | Combine two 'Value' maps
-unionVal :: Value -> Value -> Map.Map CurrencySymbol (Map.Map TokenName (These Integer Integer))
+unionVal :: Value -> Value -> Map.Map (Map.Map (These Integer Integer))
 unionVal (Value l) (Value r) =
     let
         combined = Map.union l r
@@ -368,7 +341,7 @@ split :: Value -> (Value, Value)
 split (Value mp) = (negate (Value neg), Value pos) where
   (neg, pos) = Map.mapThese splitIntl mp
 
-  splitIntl :: Map.Map TokenName Integer -> These (Map.Map TokenName Integer) (Map.Map TokenName Integer)
+  splitIntl :: Map.Map Integer -> These (Map.Map Integer) (Map.Map Integer)
   splitIntl mp' = These l r where
     (l, r) = Map.mapThese (\i -> if i <= 0 then This i else That i) mp'
 
@@ -441,7 +414,7 @@ unordEqWith is0 eqV = goBoth where
 -- | Check equality of two 'Map's given a function checking whether a value is zero and a function
 -- checking equality of values.
 eqMapWith ::
-    forall k v. Eq k => (v -> Bool) -> (v -> v -> Bool) -> Map.Map k v -> Map.Map k v -> Bool
+    forall v. (v -> Bool) -> (v -> v -> Bool) -> Map.Map v -> Map.Map v -> Bool
 eqMapWith is0 eqV (Map.toList -> xs1) (Map.toList -> xs2) = unordEqWith is0 eqV xs1 xs2
 
 {-# INLINABLE eq #-}
@@ -473,8 +446,6 @@ newtype Lovelace = Lovelace { getLovelace :: Integer }
     , PlutusTx.Show
     )
 
-makeLift ''CurrencySymbol
-makeLift ''TokenName
 makeLift ''AssetClass
 makeLift ''Value
 makeLift ''Lovelace
