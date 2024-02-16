@@ -1299,6 +1299,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             -- execution times, so it's safe to use the same costing function for
             -- both.
             (runCostingFunThreeArguments . paramVerifyEd25519Signature)
+
     {- Note [ECDSA secp256k1 signature verification].  An ECDSA signature
        consists of a pair of values (r,s), and for each value of r there are in
        fact two valid values of s, one effectively the negative of the other.
@@ -1315,7 +1316,6 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
           https://github.com/bitcoin-core/secp256k1.
      -}
-
     toBuiltinMeaning _semvar VerifyEcdsaSecp256k1Signature =
         let verifyEcdsaSecp256k1SignatureDenotation
                 :: BS.ByteString -> BS.ByteString -> BS.ByteString -> BuiltinResult Bool
