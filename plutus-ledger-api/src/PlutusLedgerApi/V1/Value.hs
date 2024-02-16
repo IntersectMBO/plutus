@@ -176,7 +176,22 @@ pair. To distinguish between the two we write the former with a capital "V" and 
 quotes and we write the latter with a lower case "v" and without the quotes, i.e. 'Value' vs value.
 -}
 
+{- Note [Optimising Value]
+
+We have attempted to improve the performance of 'Value' by choosing a different representation
+for 'PlutusTx.AssocMap.AssocMap', see https://github.com/IntersectMBO/plutus/pull/5697. This approach
+has been found to not be suitable, as the PR's description mentions.
+
+Another approach was to define a specialised 'ByteStringMap', where the key type was 'ByteString',
+since that is the representation of both 'CurrencySymbol' and 'TokenName'.
+Unfortunately, this approach actually had worse performance in practice. We believe it is worse
+because having two map libraries would make some optimisations less effective.
+We base this on the fact that turning off all optimisations ended up making the code more performant.
+See https://github.com/IntersectMBO/plutus/pull/5779 for details on the experiment done.
+-}
+
 -- See Note [Value vs value].
+-- See Note [Optimising Value].
 {- | The 'Value' type represents a collection of amounts of different currencies.
 We can think of 'Value' as a vector space whose dimensions are currencies.
 
