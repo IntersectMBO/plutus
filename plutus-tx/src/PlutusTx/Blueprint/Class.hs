@@ -5,10 +5,9 @@ module PlutusTx.Blueprint.Class where
 
 import Prelude
 
-import Data.ByteString (ByteString)
 import PlutusTx.Blueprint.Schema (DataSchema, dsBuiltInBoolean, dsBuiltInBytes, dsBuiltInData,
                                   dsBuiltInList, dsBuiltInPair, dsBuiltInString, dsBuiltInUnit,
-                                  dsBytes, dsInteger)
+                                  dsInteger)
 import PlutusTx.Builtins.Internal (BuiltinBool, BuiltinByteString, BuiltinData, BuiltinList,
                                    BuiltinPair, BuiltinString, BuiltinUnit)
 
@@ -20,9 +19,6 @@ instance HasDataSchema () where
 
 instance HasDataSchema Integer where
   dataSchema = dsInteger
-
-instance HasDataSchema ByteString where
-  dataSchema = dsBytes
 
 instance HasDataSchema BuiltinByteString where
   dataSchema = dsBuiltInBytes

@@ -26,23 +26,30 @@ import Flat qualified
 import PlutusCore.Version (plcVersion110)
 import PlutusPrelude (over)
 import PlutusTx
-import PlutusTx.Builtins.Internal (BuiltinByteString, BuiltinInteger, emptyByteString)
+import PlutusTx.Blueprint.Class (HasDataSchema (..))
+import PlutusTx.Blueprint.Schema (dsBytes)
+import PlutusTx.Builtins (BuiltinByteString, BuiltinString, emptyByteString)
 import PlutusTx.Prelude qualified as PlutusTx
 import UntypedPlutusCore qualified as UPLC
 
 data AcmeParams = MkAcmeParams
   { myAwesomeParameter1 :: Integer
-  , myAwesomeParameter2 :: BuiltinInteger
-  , myAwesomeParameter3 :: BuiltinData
-  , myAwesomeParameter4 :: BuiltinByteString
+  , myAwesomeParameter2 :: BuiltinData
+  , myAwesomeParameter3 :: BuiltinByteString
   }
 
 $(PlutusTx.makeLift ''AcmeParams)
 $(makeIsDataSchemaIndexed ''AcmeParams [('MkAcmeParams, 0)])
 
+newtype AcmeBytes = MkAcmeBytes BuiltinByteString
+  deriving newtype (ToData, FromData, UnsafeFromData)
+
+instance HasDataSchema AcmeBytes where
+  dataSchema = dsBytes
+
 data AcmeDatumPayload = MkAcmeDatumPayload
   { myAwesomeDatum1 :: Integer
-  , myAwesomeDatum2 :: Integer
+  , myAwesomeDatum2 :: AcmeBytes
   }
 
 $(makeIsDataSchemaIndexed ''AcmeDatumPayload [('MkAcmeDatumPayload, 0)])
@@ -51,7 +58,7 @@ data AcmeDatum = AcmeDatumLeft | AcmeDatumRight AcmeDatumPayload
 
 $(makeIsDataSchemaIndexed ''AcmeDatum [('AcmeDatumLeft, 0), ('AcmeDatumRight, 1)])
 
-type AcmeRedeemer = Integer
+type AcmeRedeemer = BuiltinString
 
 type ScriptContext = ()
 
@@ -69,22 +76,21 @@ serialisedScript =
   acmeTypedValidator _params _datum _redeemer _context = False
 
   {-# INLINEABLE acmeUntypedValidator #-}
-  acmeUntypedValidator :: AcmeParams -> BuiltinData -> BuiltinData -> BuiltinData -> ()
+  acmeUntypedValidator :: AcmeParams -> BuiltinData -> BuiltinString -> BuiltinData -> ()
   acmeUntypedValidator params datum redeemer ctx =
     PlutusTx.check $ acmeTypedValidator params acmeDatum acmeRedeemer scriptContext
    where
     acmeDatum :: AcmeDatum = PlutusTx.unsafeFromBuiltinData datum
-    acmeRedeemer :: AcmeRedeemer = PlutusTx.unsafeFromBuiltinData redeemer
+    acmeRedeemer :: AcmeRedeemer = redeemer
     scriptContext :: ScriptContext = PlutusTx.unsafeFromBuiltinData ctx
 
-  acmeValidatorScript :: PlutusTx.CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> ())
+  acmeValidatorScript :: PlutusTx.CompiledCode (BuiltinData -> BuiltinString -> BuiltinData -> ())
   acmeValidatorScript =
     $$(PlutusTx.compile [||acmeUntypedValidator||])
       `PlutusTx.unsafeApplyCode` PlutusTx.liftCode
         plcVersion110
         MkAcmeParams
           { myAwesomeParameter1 = 1
-          , myAwesomeParameter2 = 2
-          , myAwesomeParameter3 = PlutusTx.toBuiltinData (3 :: Integer)
-          , myAwesomeParameter4 = emptyByteString
+          , myAwesomeParameter2 = PlutusTx.toBuiltinData (3 :: Integer)
+          , myAwesomeParameter3 = emptyByteString
           }

@@ -17,7 +17,7 @@ import GHC.Natural (Natural, naturalToInteger)
 import Language.Haskell.TH qualified as TH
 import Language.Haskell.TH.Datatype qualified as TH
 import PlutusTx.Blueprint.Class (HasDataSchema (..))
-import PlutusTx.Blueprint.Schema (DataSchema (..), setComment)
+import PlutusTx.Blueprint.Schema (DataSchema (..))
 import PlutusTx.IsData.TH (makeIsDataIndexed)
 
 {- | Generate a 'ToData', 'FromData', 'UnsafeFromData', 'HasDataSchema' instances for a type,
@@ -74,8 +74,5 @@ toDataClause ctorIndexes =
   mkCtor :: (TH.ConstructorInfo, Natural) -> TH.ExpQ
   mkCtor (TH.ConstructorInfo{..}, naturalToInteger -> ctorIndex) = do
     fields <- for constructorFields $ \ty -> [|dataSchema @($(pure ty))|]
-    [|
-      setComment
-        (show constructorName)
-        (DSConstructor Nothing Nothing Nothing ctorIndex $(pure (TH.ListE fields)))
-      |]
+    let name = TH.nameBase constructorName
+    [|DSConstructor Nothing Nothing (Just name) ctorIndex $(pure (TH.ListE fields))|]

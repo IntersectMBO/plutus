@@ -13,7 +13,7 @@ import Data.Maybe (catMaybes)
 import Data.Text (Text)
 import Data.Text.Encoding qualified as Text
 import Numeric.Natural (Natural)
-import Prelude
+import Prelude hiding (max, min)
 
 data DataSchema
   = DSInteger
@@ -23,6 +23,16 @@ data DataSchema
       (Maybe String)
       -- | Comment
       (Maybe String)
+      -- | Multiple of
+      (Maybe Integer)
+      -- | Maximum
+      (Maybe Integer)
+      -- | Exclusive maximum
+      (Maybe Integer)
+      -- | Minimum
+      (Maybe Integer)
+      -- | Exclusive minimum
+      (Maybe Integer)
   | DSBytes
       -- | Title
       (Maybe String)
@@ -49,6 +59,8 @@ data DataSchema
       (Maybe Natural)
       -- | Maximum number of elements
       (Maybe Natural)
+      -- | Unique elements
+      (Maybe Bool)
   | DSMap
       -- | Title
       (Maybe String)
@@ -145,8 +157,19 @@ data DataSchema
 
 instance ToJSON DataSchema where
   toJSON = \case
-    DSInteger title description comment ->
-      dataType title description comment "integer"
+    DSInteger title description comment multiple max eMax min eMin ->
+      Aeson.object
+        $ catMaybes
+          [ Just $ "dataType" .= ("integer" :: String)
+          , fmap ("title" .=) title
+          , fmap ("description" .=) description
+          , fmap ("$comment" .=) comment
+          , fmap ("multipleOf" .=) multiple
+          , fmap ("maximum" .=) max
+          , fmap ("exclusiveMaximum" .=) eMax
+          , fmap ("minimum" .=) min
+          , fmap ("exclusiveMinimum" .=) eMin
+          ]
     DSBytes title description comment enum maxLength minLength ->
       Aeson.object
         $ catMaybes
@@ -163,13 +186,14 @@ instance ToJSON DataSchema where
      where
       toHex :: ByteString -> Text
       toHex = Text.decodeUtf8 . Base16.encode
-    DSList title description comment schema minItems maxItems ->
+    DSList title description comment schema minItems maxItems unique ->
       Aeson.object
         $ catMaybes
           [ Just $ "dataType" .= ("list" :: String)
           , Just $ "items" .= schema
           , fmap ("minItems" .=) minItems
           , fmap ("maxItems" .=) maxItems
+          , fmap ("uniqueItems" .=) unique
           , fmap ("title" .=) title
           , fmap ("description" .=) description
           , fmap ("$comment" .=) comment
@@ -216,7 +240,6 @@ instance ToJSON DataSchema where
     DSBuiltInString title description comment ->
       dataType title description comment "#string"
     DSBuiltInPair title description comment schema1 schema2 ->
-      -- TODO (Yura): double check the encoding of a Pair
       Aeson.object
         $ catMaybes
           [ Just $ "dataType" .= ("#pair" :: String)
@@ -259,6 +282,11 @@ dsInteger =
     Nothing -- Title
     Nothing -- Description
     Nothing -- Comment
+    Nothing -- Multiple of
+    Nothing -- Maximum
+    Nothing -- Exclusive maximum
+    Nothing -- Minimum
+    Nothing -- Exclusive minimum
 
 dsBytes :: DataSchema
 dsBytes =
@@ -279,6 +307,7 @@ dsList itemSchema =
     itemSchema
     Nothing -- Min items
     Nothing -- Max items
+    Nothing -- Unique
 
 dsMap :: DataSchema -> DataSchema -> DataSchema
 dsMap keySchema valueSchema =
@@ -359,9 +388,9 @@ dsBuiltInList =
 
 setTitle :: String -> DataSchema -> DataSchema
 setTitle title = \case
-  DSInteger _ d c -> DSInteger (Just title) d c
+  DSInteger _ d c mlt max eMax min eMin -> DSInteger (Just title) d c mlt max eMax min eMin
   DSBytes _ d c enum minLength maxLength -> DSBytes (Just title) d c enum minLength maxLength
-  DSList _ d c s minItems maxItems -> DSList (Just title) d c s minItems maxItems
+  DSList _ d c s minItems maxItems unique -> DSList (Just title) d c s minItems maxItems unique
   DSMap _ d c k v minItems maxItems -> DSMap (Just title) d c k v minItems maxItems
   DSConstructor _ d c i fs -> DSConstructor (Just title) d c i fs
   DSBuiltInData _ d c -> DSBuiltInData (Just title) d c
@@ -379,10 +408,10 @@ setTitle title = \case
 
 setDescription :: String -> DataSchema -> DataSchema
 setDescription description = \case
-  DSInteger t _ c -> DSInteger t (Just description) c
+  DSInteger t _ c mlt max eMax min eMin -> DSInteger t (Just description) c mlt max eMax min eMin
   DSBytes t _ c enum minLength maxLength -> DSBytes t (Just description) c enum minLength maxLength
-  DSList t _ c s minItems maxItems -> DSList t (Just description) c s minItems maxItems
-  DSMap t _ c k v minItems maxItems -> DSMap t (Just description) c k v minItems maxItems
+  DSList t _ c s min max unique -> DSList t (Just description) c s min max unique
+  DSMap t _ c k v min max -> DSMap t (Just description) c k v min max
   DSConstructor t _ c i fs -> DSConstructor t (Just description) c i fs
   DSBuiltInData t _ c -> DSBuiltInData t (Just description) c
   DSBuiltInUnit t _ c -> DSBuiltInUnit t (Just description) c
@@ -399,10 +428,10 @@ setDescription description = \case
 
 setComment :: String -> DataSchema -> DataSchema
 setComment comment = \case
-  DSInteger t d _ -> DSInteger t d (Just comment)
+  DSInteger t d _ mlt max eMax min eMin -> DSInteger t d (Just comment) mlt max eMax min eMin
   DSBytes t d _ enum minLength maxLength -> DSBytes t d (Just comment) enum minLength maxLength
-  DSList t d _ s minItems maxItems -> DSList t d (Just comment) s minItems maxItems
-  DSMap t d _ k v minItems maxItems -> DSMap t d (Just comment) k v minItems maxItems
+  DSList t d _ s min max unique -> DSList t d (Just comment) s min max unique
+  DSMap t d _ k v min max -> DSMap t d (Just comment) k v min max
   DSConstructor t d _ i fs -> DSConstructor t d (Just comment) i fs
   DSBuiltInData t d _ -> DSBuiltInData t d (Just comment)
   DSBuiltInUnit t d _ -> DSBuiltInUnit t d (Just comment)
