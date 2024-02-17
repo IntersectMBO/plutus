@@ -245,7 +245,7 @@ goldenVsTextualOutput testName goldenFile filename runTest =  do
         resultsFile
         (runTest handle >> hClose handle)
 
-{- | Note [Paths to golden files]
+{- Note [Paths to golden files]
    Some of our tests contain hard-coded relative paths to golden files.  This is
    a little unsatisfactory because if for example we change the name of the
    directory containing the file then it won't be found during the test but the

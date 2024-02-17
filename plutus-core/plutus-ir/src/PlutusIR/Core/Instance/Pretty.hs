@@ -136,7 +136,7 @@ instance ( PLC.PrettyClassicBy configName tyname
     prettyBy config (Program ann v t) =
         sexp "program" (PLC.consAnnIf config ann [pretty v, prettyBy config t])
 
--- See note [Default pretty instances for PLC]
+-- See Note [Default pretty instances for PLC]
 instance (PLC.PrettyClassic tyname, Pretty ann) =>
     Pretty (TyVarDecl tyname ann) where
     pretty = PLC.prettyClassicDef

@@ -31,7 +31,7 @@ import GHC.ByteOrder (ByteOrder (BigEndian, LittleEndian))
 import GHC.Exts (Int (I#))
 import GHC.Integer.Logarithms (integerLog2#)
 
-{- | Note [Input length limitation for IntegerToByteString].  We make
+{- Note [Input length limitation for IntegerToByteString].  We make
    `integerToByteString` fail if it is called with arguments which would cause
    the length of the result to exceed about 8K bytes because the execution time
    becomes difficult to predict accurately beyond this point (benchmarks on a
@@ -172,9 +172,10 @@ integerToByteString requestedByteOrder requestedLength input
           let newRemaining = remaining `unsafeShiftR` 8
           let digit :: Word8 = fromIntegral remaining
           finishLELimit (acc <> Builder.word8 digit) newRemaining
-    -- By separating the case where we don't need to concern ourselves with a user-specified limit,
-    -- we can avoid branching needlessly, or doing a complex expression check on every loop. See
-    -- Note [Manual specialization] for why this matters.
+    -- By separating the case where we don't need to concern ourselves with a
+    -- user-specified limit, we can avoid branching needlessly, or doing a
+    -- complex expression check on every loop. See Note [Manual specialization]
+    -- for why this matters.
     goLENoLimit :: Builder -> Integer -> Builder
     goLENoLimit acc remaining
       | remaining == 0 = acc

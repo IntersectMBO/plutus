@@ -257,7 +257,7 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
             b :| rest -> handleTerm (Let ann NonRec (pure b) (mkLet ann NonRec rest t))
         -- This includes recursive let terms, we don't even consider inlining them at the moment
         t -> do
-            -- See note [Processing order of call site inlining]
+            -- See Note [Processing order of call site inlining]
             let (hd, args) = splitApplication t
                 processArgs ::
                     AppContext tyname name uni fun ann ->

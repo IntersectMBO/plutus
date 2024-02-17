@@ -77,7 +77,7 @@ More importantly, since the type for the PIR data-constructor can be any syntax-
 the PIR user may have placed inside there a non-normalized type there. Currently, the PIR typechecker will
 assume the types of all data-constructors are prior normalized *before* type-checking, otherwise
 the PIR typechecking and PIR compilation will fail.
-See NOTE [Normalization of data-constructors' types] at PlutusIR.Compiler.Datatype
+See Note [Normalization of data-constructors' types] at PlutusIR.Compiler.Datatype
 -}
 
 {- Note [PIR vs Paper Escaping Types Difference]

@@ -58,7 +58,7 @@ Currently the implementation relies on 'Unique's, so there is the assumption of 
 However, the algorithm could be changed to work without this assumption (has not been tested).
 -}
 
-{- NOTE [Principal id]
+{- Note [Principal id]
 The algorihtm identifies & stores bindings and their corresponding rhs'es in some intermediate tables.
 To identify/store each binding to such tables, we need to "key" them by a single unique identifier.
 

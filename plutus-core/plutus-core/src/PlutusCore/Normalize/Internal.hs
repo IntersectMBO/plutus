@@ -81,7 +81,7 @@ separated from implementation-specific details. (This used to be more important 
 to deal with gas, and could maybe be changed now.)
 -}
 
--- See Note [NormalizedTypeT].
+-- See Note [NormalizeTypeT].
 -- | The monad transformer that type normalization runs in.
 newtype NormalizeTypeT m tyname uni ann a = NormalizeTypeT
   { unNormalizeTypeT :: ReaderT (NormalizeTypeEnv tyname uni ann) m a

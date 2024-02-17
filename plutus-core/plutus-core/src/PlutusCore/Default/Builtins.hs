@@ -51,7 +51,7 @@ import Prettyprinter (viaShow)
 -- | Default built-in functions.
 --
 -- When updating these, make sure to add them to the protocol version listing!
--- See Note [New builtins and protocol versions]
+-- See Note [New builtins/language versions and protocol versions]
 data DefaultFun
     -- Integers
     = AddInteger
@@ -121,7 +121,7 @@ data DefaultFun
     -- Misc monomorphized constructors.
     -- We could simply replace those with constants, but we use built-in functions for consistency
     -- with monomorphic built-in types. Polymorphic built-in constructors are generally problematic,
-    -- See note [Representable built-in functions over polymorphic built-in types].
+    -- See Note [Representable built-in functions over polymorphic built-in types].
     | MkPairData
     | MkNilData
     | MkNilPairData
@@ -723,9 +723,10 @@ However it's not always possible to use automatic unlifting, see next.
             nullListDenotation
             <costingFunction>
 
-we'll get an error, saying that a polymorphic built-in type can't be applied to a type variable.
-It's not impossible to make it work, see Note [Unlifting values of built-in types], but not in the
-general case, plus it has to be very inefficient.
+we'll get an error, saying that a polymorphic built-in type can't be applied to
+a type variable.  It's not impossible to make it work, see Note [Unlifting a
+term as a value of a built-in type], but not in the general case, plus it has to
+be very inefficient.
 
 Instead we have to use 'SomeConstant' to automatically unlift the argument as a constant and then
 check that the value inside of it is a list (by matching on the type tag):
