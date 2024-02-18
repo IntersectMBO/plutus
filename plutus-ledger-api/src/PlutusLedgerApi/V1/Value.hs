@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DerivingVia        #-}
+{-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE NoImplicitPrelude  #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TemplateHaskell    #-}
@@ -38,6 +39,7 @@ module PlutusLedgerApi.V1.Value (
     , Value(..)
     , singleton
     , valueOf
+    , currencySymbolValueOf
     , lovelaceValue
     , lovelaceValueOf
     , scale
@@ -69,6 +71,7 @@ import PlutusLedgerApi.V1.Bytes (LedgerBytes (LedgerBytes), encodeByteString)
 import PlutusTx qualified
 import PlutusTx.AssocMap qualified as Map
 import PlutusTx.Lift (makeLift)
+import PlutusTx.List qualified
 import PlutusTx.Ord qualified as Ord
 import PlutusTx.Prelude as PlutusTx hiding (sort)
 import PlutusTx.Show qualified as PlutusTx
@@ -250,6 +253,15 @@ valueOf (Value mp) cur tn =
         Just i  -> case Map.lookup tn i of
             Nothing -> 0
             Just v  -> v
+
+{-# INLINABLE currencySymbolValueOf #-}
+currencySymbolValueOf :: Value -> CurrencySymbol -> Integer
+currencySymbolValueOf (Value mp) cur = case Map.lookup cur mp of
+    Nothing     -> 0
+    Just tokens ->
+        -- This is more efficient than `PlutusTx.sum (Map.elems tokens)`, because
+        -- the latter materializes the intermediate result of `Map.elems tokens`.
+        PlutusTx.List.foldr (\(_, amt) acc -> amt + acc) 0 (Map.toList tokens)
 
 {-# INLINABLE symbols #-}
 -- | The list of 'CurrencySymbol's of a 'Value'.
