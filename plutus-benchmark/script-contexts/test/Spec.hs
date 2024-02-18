@@ -49,11 +49,11 @@ testCheckSc1 = testGroup "checkScriptContext1"
                         mkCheckScriptContext1Code (mkScriptContext 1)
                    , Tx.goldenBudget "checkScriptContext1-4" $
                         mkCheckScriptContext1Code (mkScriptContext 4)
-                   , Tx.goldenEvalCekCatch "checkScriptContext1-4-result" $
+                   , Tx.goldenEvalCekCatch "checkScriptContext1-4" $
                         [mkCheckScriptContext1Code (mkScriptContext 4)]
                    , Tx.goldenBudget "checkScriptContext1-20" $
                         mkCheckScriptContext1Code (mkScriptContext 20)
-                   , Tx.goldenEvalCekCatch "checkScriptContext1-20-result" $
+                   , Tx.goldenEvalCekCatch "checkScriptContext1-20" $
                         [mkCheckScriptContext1Code (mkScriptContext 20)]
           ]
     ]
@@ -70,11 +70,11 @@ testCheckSc2 = testGroup "checkScriptContext2"
                         mkCheckScriptContext2Code (mkScriptContext 1)
                    , Tx.goldenBudget "checkScriptContext2-4" $
                         mkCheckScriptContext2Code (mkScriptContext 4)
-                   , Tx.goldenEvalCekCatch "checkScriptContext2-4-result" $
+                   , Tx.goldenEvalCekCatch "checkScriptContext2-4" $
                         [mkCheckScriptContext2Code (mkScriptContext 4)]
                    , Tx.goldenBudget "checkScriptContext2-20" $
                         mkCheckScriptContext2Code (mkScriptContext 20)
-                   , Tx.goldenEvalCekCatch "checkScriptContext2-20-result" $
+                   , Tx.goldenEvalCekCatch "checkScriptContext2-20" $
                         [mkCheckScriptContext2Code (mkScriptContext 20)]
                    ]
     ]
@@ -83,15 +83,15 @@ testCheckScEquality :: TestTree
 testCheckScEquality = testGroup "checkScriptContextEquality"
     [ testGroupGhc [ Tx.goldenBudget "checkScriptContextEqualityData-20" $
                         mkScriptContextEqualityDataCode (mkScriptContext 20)
-                   , Tx.goldenEvalCekCatch "checkScriptContextEqualityData-20-result" $
+                   , Tx.goldenEvalCekCatch "checkScriptContextEqualityData-20" $
                         [mkScriptContextEqualityDataCode (mkScriptContext 20)]
                    , Tx.goldenBudget "checkScriptContextEqualityTerm-20" $
                         mkScriptContextEqualityTermCode (mkScriptContext 20)
-                   , Tx.goldenEvalCekCatch "checkScriptContextEqualityTerm-20-result" $
+                   , Tx.goldenEvalCekCatch "checkScriptContextEqualityTerm-20" $
                         [mkScriptContextEqualityTermCode (mkScriptContext 20)]
                    , Tx.goldenBudget "checkScriptContextEqualityOverhead-20" $
                         mkScriptContextEqualityOverheadCode (mkScriptContext 20)
-                   , Tx.goldenEvalCekCatch "checkScriptContextEqualityOverhead-20-result" $
+                   , Tx.goldenEvalCekCatch "checkScriptContextEqualityOverhead-20" $
                         [mkScriptContextEqualityOverheadCode (mkScriptContext 20)]
                    ]
     ]
