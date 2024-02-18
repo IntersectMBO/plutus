@@ -168,7 +168,7 @@ data AltCon
 
     | LitAlt  Literal   -- ^ A literal: @case e of { 1 -> ... }@
                         -- Invariant: always an *unlifted* literal
-                        -- See Note GHC:[Literal alternatives]
+                        -- See GHC:Note [Literal alternatives]
 
     | DEFAULT           -- ^ Trivial alternative: @case e of { _ -> ... }@
         deriving (Data, Outputable)
