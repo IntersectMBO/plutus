@@ -45,7 +45,7 @@ import Flat.Decoder (Get, dBEBits8)
 import Flat.Encoder as Flat (Encoding, NumBits, eBits)
 import Prettyprinter (viaShow)
 
--- See Note [Pattern matching on built-in types].
+-- See Note [Pattern  matching on built-in types].
 -- TODO: should we have the commonest built-in functions at the front to have more compact encoding?
 -- | Default built-in functions.
 --
