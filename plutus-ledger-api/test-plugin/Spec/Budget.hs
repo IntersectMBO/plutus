@@ -31,7 +31,7 @@ tests =
       [goldenPirReadable "gt" compiledGt]
         ++ concatMap
           ( \(name, code) ->
-              [ goldenBudget (name <> "-budget") code
+              [ goldenBudget name code
               , goldenEvalCekCatch name [code]
               ]
           )
