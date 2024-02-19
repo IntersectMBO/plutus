@@ -53,6 +53,7 @@ import Prettyprinter (Pretty (..))
 
 {- HLINT ignore "Use newtype instead of data" -}
 
+-- See Note [Optimising Value].
 -- | A 'Map' of key-value pairs.
 newtype Map k v = Map {unMap :: [(k, v)]}
   deriving stock (Generic, Haskell.Eq, Haskell.Show, Data)
