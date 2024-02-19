@@ -178,9 +178,10 @@ quotes and we write the latter with a lower case "v" and without the quotes, i.e
 
 {- Note [Optimising Value]
 
-We have attempted to improve the performance of 'Value' and other usages of `PlutusTx.AssocMap.Map` by choosing a different representation
-for 'PlutusTx.AssocMap.AssocMap', see https://github.com/IntersectMBO/plutus/pull/5697. This approach
-has been found to not be suitable, as the PR's description mentions.
+We have attempted to improve the performance of 'Value' and other usages of
+'PlutusTx.AssocMap.Map' by choosing a different representation for 'PlutusTx.AssocMap.Map',
+see https://github.com/IntersectMBO/plutus/pull/5697.
+This approach has been found to not be suitable, as the PR's description mentions.
 
 Another approach was to define a specialised 'ByteStringMap', where the key type was 'BuiltinByteString',
 since that is the representation of both 'CurrencySymbol' and 'TokenName'.
