@@ -1,6 +1,14 @@
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE LambdaCase         #-}
-{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE AllowAmbiguousTypes      #-}
+{-# LANGUAGE DataKinds                #-}
+{-# LANGUAGE DerivingStrategies       #-}
+{-# LANGUAGE LambdaCase               #-}
+{-# LANGUAGE OverloadedStrings        #-}
+{-# LANGUAGE PolyKinds                #-}
+{-# LANGUAGE StandaloneKindSignatures #-}
+{-# LANGUAGE TypeApplications         #-}
+{-# LANGUAGE TypeFamilies             #-}
+{-# LANGUAGE TypeOperators            #-}
+{-# OPTIONS_GHC -Wno-redundant-constraints #-}
 
 module PlutusTx.Blueprint.Schema where
 
@@ -8,15 +16,20 @@ import Data.Aeson (ToJSON (..), (.=))
 import Data.Aeson qualified as Aeson
 import Data.ByteString (ByteString)
 import Data.ByteString.Base16 qualified as Base16
+import Data.Kind (Constraint)
 import Data.List.NonEmpty (NonEmpty)
 import Data.Maybe (catMaybes)
+import Data.Proxy (Proxy (..))
 import Data.Text (Text)
 import Data.Text.Encoding qualified as Text
+import Data.Typeable (Typeable, typeRep)
+import GHC.TypeLits qualified as GHC
 import Numeric.Natural (Natural)
+import PlutusTx.Builtins (BuiltinByteString, BuiltinData, BuiltinString)
 import Prelude hiding (max, min)
 
-data DataSchema
-  = DSInteger
+data Schema
+  = SchemaInteger
       -- | Title
       (Maybe String)
       -- | Description
@@ -33,7 +46,7 @@ data DataSchema
       (Maybe Integer)
       -- | Exclusive minimum
       (Maybe Integer)
-  | DSBytes
+  | SchemaBytes
       -- | Title
       (Maybe String)
       -- | Description
@@ -46,7 +59,7 @@ data DataSchema
       (Maybe Natural)
       -- | Min length in bytes
       (Maybe Natural)
-  | DSList
+  | SchemaList
       -- | Title
       (Maybe String)
       -- | Description
@@ -54,14 +67,14 @@ data DataSchema
       -- | Comment
       (Maybe String)
       -- | Element schema
-      DataSchema
+      Schema
       -- | Minimum number of elements
       (Maybe Natural)
       -- | Maximum number of elements
       (Maybe Natural)
       -- | Unique elements
       (Maybe Bool)
-  | DSMap
+  | SchemaMap
       -- | Title
       (Maybe String)
       -- | Description
@@ -69,14 +82,14 @@ data DataSchema
       -- | Comment
       (Maybe String)
       -- | Key schema
-      DataSchema
+      Schema
       -- | Value schema
-      DataSchema
+      Schema
       -- | Minimum number of elements
       (Maybe Natural)
       -- | Maximum number of elements
       (Maybe Natural)
-  | DSConstructor
+  | SchemaConstructor
       -- | Title
       (Maybe String)
       -- | Description
@@ -86,50 +99,50 @@ data DataSchema
       -- | Constructor index
       Natural
       -- | Field schemas
-      [DataSchema]
-  | DSBuiltInData
+      [Schema]
+  | SchemaBuiltInData
       -- | Title
       (Maybe String)
       -- | Description
       (Maybe String)
       -- | Comment
       (Maybe String)
-  | DSBuiltInUnit
+  | SchemaBuiltInUnit
       -- | Title
       (Maybe String)
       -- | Description
       (Maybe String)
       -- | Comment
       (Maybe String)
-  | DSBuiltInBoolean
+  | SchemaBuiltInBoolean
       -- | Title
       (Maybe String)
       -- | Description
       (Maybe String)
       -- | Comment
       (Maybe String)
-  | DSBuiltInInteger
+  | SchemaBuiltInInteger
       -- | Title
       (Maybe String)
       -- | Description
       (Maybe String)
       -- | Comment
       (Maybe String)
-  | DSBuiltInBytes
+  | SchemaBuiltInBytes
       -- | Title
       (Maybe String)
       -- | Description
       (Maybe String)
       -- | Comment
       (Maybe String)
-  | DSBuiltInString
+  | SchemaBuiltInString
       -- | Title
       (Maybe String)
       -- | Description
       (Maybe String)
       -- | Comment
       (Maybe String)
-  | DSBuiltInPair
+  | SchemaBuiltInPair
       -- | Title
       (Maybe String)
       -- | Description
@@ -137,10 +150,10 @@ data DataSchema
       -- | Comment
       (Maybe String)
       -- | Schema of the first element
-      DataSchema
+      Schema
       -- | Schema of the second element
-      DataSchema
-  | DSBuiltInList
+      Schema
+  | SchemaBuiltInList
       -- | Title
       (Maybe String)
       -- | Description
@@ -148,16 +161,17 @@ data DataSchema
       -- | Comment
       (Maybe String)
       -- | Element schema
-      DataSchema
-  | DSOneOf (NonEmpty DataSchema)
-  | DSAnyOf (NonEmpty DataSchema)
-  | DSAllOf (NonEmpty DataSchema)
-  | DSNot DataSchema
+      Schema
+  | SchemaOneOf (NonEmpty Schema)
+  | SchemaAnyOf (NonEmpty Schema)
+  | SchemaAllOf (NonEmpty Schema)
+  | SchemaNot Schema
+  | SchemaRef String
   deriving stock (Show)
 
-instance ToJSON DataSchema where
+instance ToJSON Schema where
   toJSON = \case
-    DSInteger title description comment multiple max eMax min eMin ->
+    SchemaInteger title description comment multiple max eMax min eMin ->
       Aeson.object
         $ catMaybes
           [ Just $ "dataType" .= ("integer" :: String)
@@ -170,7 +184,7 @@ instance ToJSON DataSchema where
           , fmap ("minimum" .=) min
           , fmap ("exclusiveMinimum" .=) eMin
           ]
-    DSBytes title description comment enum maxLength minLength ->
+    SchemaBytes title description comment enum maxLength minLength ->
       Aeson.object
         $ catMaybes
           [ Just $ "dataType" .= ("bytes" :: String)
@@ -186,7 +200,7 @@ instance ToJSON DataSchema where
      where
       toHex :: ByteString -> Text
       toHex = Text.decodeUtf8 . Base16.encode
-    DSList title description comment schema minItems maxItems unique ->
+    SchemaList title description comment schema minItems maxItems unique ->
       Aeson.object
         $ catMaybes
           [ Just $ "dataType" .= ("list" :: String)
@@ -198,7 +212,7 @@ instance ToJSON DataSchema where
           , fmap ("description" .=) description
           , fmap ("$comment" .=) comment
           ]
-    DSMap title description comment keySchema valueSchema minItems maxItems ->
+    SchemaMap title description comment keySchema valueSchema minItems maxItems ->
       Aeson.object
         $ catMaybes
           [ Just $ "dataType" .= ("map" :: String)
@@ -210,7 +224,7 @@ instance ToJSON DataSchema where
           , fmap ("description" .=) description
           , fmap ("$comment" .=) comment
           ]
-    DSConstructor title description comment index fieldSchemas ->
+    SchemaConstructor title description comment index fieldSchemas ->
       Aeson.object
         $ catMaybes
           [ Just ("dataType" .= ("constructor" :: String))
@@ -222,24 +236,24 @@ instance ToJSON DataSchema where
           , fmap ("description" .=) description
           , fmap ("$comment" .=) comment
           ]
-    DSBuiltInData title description comment ->
+    SchemaBuiltInData title description comment ->
       Aeson.object
         $ catMaybes
           [ fmap ("title" .=) title
           , fmap ("description" .=) description
           , fmap ("$comment" .=) comment
           ]
-    DSBuiltInUnit title description comment ->
+    SchemaBuiltInUnit title description comment ->
       dataType title description comment "#unit"
-    DSBuiltInBoolean title description comment ->
+    SchemaBuiltInBoolean title description comment ->
       dataType title description comment "#boolean"
-    DSBuiltInInteger title description comment ->
+    SchemaBuiltInInteger title description comment ->
       dataType title description comment "#integer"
-    DSBuiltInBytes title description comment ->
+    SchemaBuiltInBytes title description comment ->
       dataType title description comment "#bytes"
-    DSBuiltInString title description comment ->
+    SchemaBuiltInString title description comment ->
       dataType title description comment "#string"
-    DSBuiltInPair title description comment schema1 schema2 ->
+    SchemaBuiltInPair title description comment schema1 schema2 ->
       Aeson.object
         $ catMaybes
           [ Just $ "dataType" .= ("#pair" :: String)
@@ -249,7 +263,7 @@ instance ToJSON DataSchema where
           , fmap ("description" .=) description
           , fmap ("$comment" .=) comment
           ]
-    DSBuiltInList title description comment schema ->
+    SchemaBuiltInList title description comment schema ->
       Aeson.object
         $ catMaybes
           [ Just $ "dataType" .= ("#list" :: String)
@@ -258,10 +272,11 @@ instance ToJSON DataSchema where
           , fmap ("description" .=) description
           , fmap ("$comment" .=) comment
           ]
-    DSOneOf schemas -> Aeson.object ["oneOf" .= schemas]
-    DSAnyOf schemas -> Aeson.object ["anyOf" .= schemas]
-    DSAllOf schemas -> Aeson.object ["allOf" .= schemas]
-    DSNot schema -> Aeson.object ["not" .= schema]
+    SchemaOneOf schemas -> Aeson.object ["oneOf" .= schemas]
+    SchemaAnyOf schemas -> Aeson.object ["anyOf" .= schemas]
+    SchemaAllOf schemas -> Aeson.object ["allOf" .= schemas]
+    SchemaNot schema -> Aeson.object ["not" .= schema]
+    SchemaRef ref -> Aeson.object ["$ref" .= ("#/definitions/" ++ ref)]
    where
     dataType :: Maybe String -> Maybe String -> Maybe String -> String -> Aeson.Value
     dataType title description comment ty =
@@ -273,185 +288,135 @@ instance ToJSON DataSchema where
           , fmap ("$comment" .=) comment
           ]
 
-----------------------------------------------------------------------------------------------------
--- Convenience constructors ------------------------------------------------------------------------
+type HasSchemaDefinition :: forall a. a -> [a] -> Constraint
+type family HasSchemaDefinition n xs where
+  HasSchemaDefinition n '[] =
+    GHC.TypeError
+      ( GHC.ShowType n
+          GHC.:<>: GHC.Text " schema was not found in the list of schema definitions."
+      )
+  HasSchemaDefinition () _ = ()
+  HasSchemaDefinition Integer _ = ()
+  HasSchemaDefinition BuiltinData _ = ()
+  HasSchemaDefinition BuiltinString _ = ()
+  HasSchemaDefinition BuiltinByteString _ = ()
+  HasSchemaDefinition x (x ': xs) = ()
+  HasSchemaDefinition x (_ ': xs) = HasSchemaDefinition x xs
 
-dsInteger :: DataSchema
-dsInteger =
-  DSInteger
-    Nothing -- Title
-    Nothing -- Description
-    Nothing -- Comment
-    Nothing -- Multiple of
-    Nothing -- Maximum
-    Nothing -- Exclusive maximum
-    Nothing -- Minimum
-    Nothing -- Exclusive minimum
-
-dsBytes :: DataSchema
-dsBytes =
-  DSBytes
-    Nothing -- Title
-    Nothing -- Description
-    Nothing -- Comment
-    [] -- Enum
-    Nothing -- Min length
-    Nothing -- Max length
-
-dsList :: DataSchema -> DataSchema
-dsList itemSchema =
-  DSList
-    Nothing -- Title
-    Nothing -- Description
-    Nothing -- Comment
-    itemSchema
-    Nothing -- Min items
-    Nothing -- Max items
-    Nothing -- Unique
-
-dsMap :: DataSchema -> DataSchema -> DataSchema
-dsMap keySchema valueSchema =
-  DSMap
-    Nothing -- Title
-    Nothing -- Description
-    Nothing -- Comment
-    keySchema
-    valueSchema
-    Nothing -- Min items
-    Nothing -- Max items
-
-dsConstructor :: Natural -> [DataSchema] -> DataSchema
-dsConstructor =
-  DSConstructor
-    Nothing -- Title
-    Nothing -- Description
-    Nothing -- Comment
-
-dsBuiltInData :: DataSchema
-dsBuiltInData =
-  DSBuiltInData
-    Nothing -- Title
-    Nothing -- Description
-    Nothing -- Comment
-
-dsBuiltInUnit :: DataSchema
-dsBuiltInUnit =
-  DSBuiltInUnit
-    Nothing -- Title
-    Nothing -- Description
-    Nothing -- Comment
-
-dsBuiltInBoolean :: DataSchema
-dsBuiltInBoolean =
-  DSBuiltInBoolean
-    Nothing -- Title
-    Nothing -- Description
-    Nothing -- Comment
-
-dsBuiltInInteger :: DataSchema
-dsBuiltInInteger =
-  DSBuiltInInteger
-    Nothing -- Title
-    Nothing -- Description
-    Nothing -- Comment
-
-dsBuiltInBytes :: DataSchema
-dsBuiltInBytes =
-  DSBuiltInBytes
-    Nothing -- Title
-    Nothing -- Description
-    Nothing -- Comment
-
-dsBuiltInString :: DataSchema
-dsBuiltInString =
-  DSBuiltInString
-    Nothing -- Title
-    Nothing -- Description
-    Nothing -- Comment
-
-dsBuiltInPair :: DataSchema -> DataSchema -> DataSchema
-dsBuiltInPair =
-  DSBuiltInPair
-    Nothing -- Title
-    Nothing -- Description
-    Nothing -- Comment
-
-dsBuiltInList :: DataSchema -> DataSchema
-dsBuiltInList =
-  DSBuiltInList
-    Nothing -- Title
-    Nothing -- Description
-    Nothing -- Comment
+schemaRef :: forall typ schemas. (Typeable typ, HasSchemaDefinition typ schemas) => Schema
+schemaRef = SchemaRef $ show $ typeRep $ Proxy @typ
 
 ----------------------------------------------------------------------------------------------------
 -- Modifiers ---------------------------------------------------------------------------------------
 
-setTitle :: String -> DataSchema -> DataSchema
+setTitle :: String -> Schema -> Schema
 setTitle title = \case
-  DSInteger _ d c mlt max eMax min eMin -> DSInteger (Just title) d c mlt max eMax min eMin
-  DSBytes _ d c enum minLength maxLength -> DSBytes (Just title) d c enum minLength maxLength
-  DSList _ d c s minItems maxItems unique -> DSList (Just title) d c s minItems maxItems unique
-  DSMap _ d c k v minItems maxItems -> DSMap (Just title) d c k v minItems maxItems
-  DSConstructor _ d c i fs -> DSConstructor (Just title) d c i fs
-  DSBuiltInData _ d c -> DSBuiltInData (Just title) d c
-  DSBuiltInUnit _ d c -> DSBuiltInUnit (Just title) d c
-  DSBuiltInBoolean _ d c -> DSBuiltInBoolean (Just title) d c
-  DSBuiltInInteger _ d c -> DSBuiltInInteger (Just title) d c
-  DSBuiltInBytes _ d c -> DSBuiltInBytes (Just title) d c
-  DSBuiltInString _ d c -> DSBuiltInString (Just title) d c
-  DSBuiltInPair _ d c s1 s2 -> DSBuiltInPair (Just title) d c s1 s2
-  DSBuiltInList _ d c s -> DSBuiltInList (Just title) d c s
-  x@DSOneOf{} -> x
-  x@DSAnyOf{} -> x
-  x@DSAllOf{} -> x
-  x@DSNot{} -> x
+  SchemaInteger _ d c mlt max eMax min eMin ->
+    SchemaInteger (Just title) d c mlt max eMax min eMin
+  SchemaBytes _ d c enum minLength maxLength ->
+    SchemaBytes (Just title) d c enum minLength maxLength
+  SchemaList _ d c s minItems maxItems unique ->
+    SchemaList (Just title) d c s minItems maxItems unique
+  SchemaMap _ d c k v minItems maxItems ->
+    SchemaMap (Just title) d c k v minItems maxItems
+  SchemaConstructor _ d c i fs ->
+    SchemaConstructor (Just title) d c i fs
+  SchemaBuiltInData _ d c ->
+    SchemaBuiltInData (Just title) d c
+  SchemaBuiltInUnit _ d c ->
+    SchemaBuiltInUnit (Just title) d c
+  SchemaBuiltInBoolean _ d c ->
+    SchemaBuiltInBoolean (Just title) d c
+  SchemaBuiltInInteger _ d c ->
+    SchemaBuiltInInteger (Just title) d c
+  SchemaBuiltInBytes _ d c ->
+    SchemaBuiltInBytes (Just title) d c
+  SchemaBuiltInString _ d c ->
+    SchemaBuiltInString (Just title) d c
+  SchemaBuiltInPair _ d c s1 s2 ->
+    SchemaBuiltInPair (Just title) d c s1 s2
+  SchemaBuiltInList _ d c s ->
+    SchemaBuiltInList (Just title) d c s
+  x@SchemaOneOf{} -> x
+  x@SchemaAnyOf{} -> x
+  x@SchemaAllOf{} -> x
+  x@SchemaNot{} -> x
+  x@SchemaRef{} -> x
 
-setDescription :: String -> DataSchema -> DataSchema
+setDescription :: String -> Schema -> Schema
 setDescription description = \case
-  DSInteger t _ c mlt max eMax min eMin -> DSInteger t (Just description) c mlt max eMax min eMin
-  DSBytes t _ c enum minLength maxLength -> DSBytes t (Just description) c enum minLength maxLength
-  DSList t _ c s min max unique -> DSList t (Just description) c s min max unique
-  DSMap t _ c k v min max -> DSMap t (Just description) c k v min max
-  DSConstructor t _ c i fs -> DSConstructor t (Just description) c i fs
-  DSBuiltInData t _ c -> DSBuiltInData t (Just description) c
-  DSBuiltInUnit t _ c -> DSBuiltInUnit t (Just description) c
-  DSBuiltInBoolean t _ c -> DSBuiltInBoolean t (Just description) c
-  DSBuiltInInteger t _ c -> DSBuiltInInteger t (Just description) c
-  DSBuiltInBytes t _ c -> DSBuiltInBytes t (Just description) c
-  DSBuiltInString t _ c -> DSBuiltInString t (Just description) c
-  DSBuiltInPair t _ c s1 s2 -> DSBuiltInPair t (Just description) c s1 s2
-  DSBuiltInList t _ c s -> DSBuiltInList t (Just description) c s
-  x@DSOneOf{} -> x
-  x@DSAnyOf{} -> x
-  x@DSAllOf{} -> x
-  x@DSNot{} -> x
+  SchemaInteger t _ c mlt max eMax min eMin ->
+    SchemaInteger t (Just description) c mlt max eMax min eMin
+  SchemaBytes t _ c enum minLength maxLength ->
+    SchemaBytes t (Just description) c enum minLength maxLength
+  SchemaList t _ c s min max unique ->
+    SchemaList t (Just description) c s min max unique
+  SchemaMap t _ c k v min max ->
+    SchemaMap t (Just description) c k v min max
+  SchemaConstructor t _ c i fs ->
+    SchemaConstructor t (Just description) c i fs
+  SchemaBuiltInData t _ c ->
+    SchemaBuiltInData t (Just description) c
+  SchemaBuiltInUnit t _ c ->
+    SchemaBuiltInUnit t (Just description) c
+  SchemaBuiltInBoolean t _ c ->
+    SchemaBuiltInBoolean t (Just description) c
+  SchemaBuiltInInteger t _ c ->
+    SchemaBuiltInInteger t (Just description) c
+  SchemaBuiltInBytes t _ c ->
+    SchemaBuiltInBytes t (Just description) c
+  SchemaBuiltInString t _ c ->
+    SchemaBuiltInString t (Just description) c
+  SchemaBuiltInPair t _ c s1 s2 ->
+    SchemaBuiltInPair t (Just description) c s1 s2
+  SchemaBuiltInList t _ c s ->
+    SchemaBuiltInList t (Just description) c s
+  x@SchemaOneOf{} -> x
+  x@SchemaAnyOf{} -> x
+  x@SchemaAllOf{} -> x
+  x@SchemaNot{} -> x
+  x@SchemaRef{} -> x
 
-setComment :: String -> DataSchema -> DataSchema
+setComment :: String -> Schema -> Schema
 setComment comment = \case
-  DSInteger t d _ mlt max eMax min eMin -> DSInteger t d (Just comment) mlt max eMax min eMin
-  DSBytes t d _ enum minLength maxLength -> DSBytes t d (Just comment) enum minLength maxLength
-  DSList t d _ s min max unique -> DSList t d (Just comment) s min max unique
-  DSMap t d _ k v min max -> DSMap t d (Just comment) k v min max
-  DSConstructor t d _ i fs -> DSConstructor t d (Just comment) i fs
-  DSBuiltInData t d _ -> DSBuiltInData t d (Just comment)
-  DSBuiltInUnit t d _ -> DSBuiltInUnit t d (Just comment)
-  DSBuiltInBoolean t d _ -> DSBuiltInBoolean t d (Just comment)
-  DSBuiltInInteger t d _ -> DSBuiltInInteger t d (Just comment)
-  DSBuiltInBytes t d _ -> DSBuiltInBytes t d (Just comment)
-  DSBuiltInString t d _ -> DSBuiltInString t d (Just comment)
-  DSBuiltInPair t d _ s1 s2 -> DSBuiltInPair t d (Just comment) s1 s2
-  DSBuiltInList t d _ s -> DSBuiltInList t d (Just comment) s
-  x@DSOneOf{} -> x
-  x@DSAnyOf{} -> x
-  x@DSAllOf{} -> x
-  x@DSNot{} -> x
+  SchemaInteger t d _ mlt max eMax min eMin ->
+    SchemaInteger t d (Just comment) mlt max eMax min eMin
+  SchemaBytes t d _ enum minLength maxLength ->
+    SchemaBytes t d (Just comment) enum minLength maxLength
+  SchemaList t d _ s min max unique ->
+    SchemaList t d (Just comment) s min max unique
+  SchemaMap t d _ k v min max ->
+    SchemaMap t d (Just comment) k v min max
+  SchemaConstructor t d _ i fs ->
+    SchemaConstructor t d (Just comment) i fs
+  SchemaBuiltInData t d _ ->
+    SchemaBuiltInData t d (Just comment)
+  SchemaBuiltInUnit t d _ ->
+    SchemaBuiltInUnit t d (Just comment)
+  SchemaBuiltInBoolean t d _ ->
+    SchemaBuiltInBoolean t d (Just comment)
+  SchemaBuiltInInteger t d _ ->
+    SchemaBuiltInInteger t d (Just comment)
+  SchemaBuiltInBytes t d _ ->
+    SchemaBuiltInBytes t d (Just comment)
+  SchemaBuiltInString t d _ ->
+    SchemaBuiltInString t d (Just comment)
+  SchemaBuiltInPair t d _ s1 s2 ->
+    SchemaBuiltInPair t d (Just comment) s1 s2
+  SchemaBuiltInList t d _ s ->
+    SchemaBuiltInList t d (Just comment) s
+  x@SchemaOneOf{} -> x
+  x@SchemaAnyOf{} -> x
+  x@SchemaAllOf{} -> x
+  x@SchemaNot{} -> x
+  x@SchemaRef{} -> x
 
-setMinLength :: Natural -> DataSchema -> DataSchema
+setMinLength :: Natural -> Schema -> Schema
 setMinLength minLength = \case
-  DSBytes t d c enum _minLength maxLength -> DSBytes t d c enum (Just minLength) maxLength
+  SchemaBytes t d c enum _minLength maxLength -> SchemaBytes t d c enum (Just minLength) maxLength
   x -> x
 
-setMaxLength :: Natural -> DataSchema -> DataSchema
+setMaxLength :: Natural -> Schema -> Schema
 setMaxLength maxLength = \case
-  DSBytes t d c enum minLen _maxLen -> DSBytes t d c enum minLen (Just maxLength)
+  SchemaBytes t d c enum minLen _maxLen -> SchemaBytes t d c enum minLen (Just maxLength)
   x -> x

@@ -1,10 +1,12 @@
 {-# LANGUAGE BangPatterns          #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DerivingStrategies    #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE UndecidableInstances  #-}
 {-# LANGUAGE ViewPatterns          #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# OPTIONS_GHC -fno-full-laziness #-}
@@ -25,9 +27,9 @@ import Data.ByteString (ByteString)
 import Flat qualified
 import PlutusCore.Version (plcVersion110)
 import PlutusPrelude (over)
-import PlutusTx
+import PlutusTx hiding (Typeable)
 import PlutusTx.Blueprint.Class (HasDataSchema (..))
-import PlutusTx.Blueprint.Schema (dsBytes)
+import PlutusTx.Blueprint.Schema (Schema (..), schemaRef)
 import PlutusTx.Builtins (BuiltinByteString, BuiltinString, emptyByteString)
 import PlutusTx.Prelude qualified as PlutusTx
 import UntypedPlutusCore qualified as UPLC
@@ -44,8 +46,15 @@ $(makeIsDataSchemaIndexed ''AcmeParams [('MkAcmeParams, 0)])
 newtype AcmeBytes = MkAcmeBytes BuiltinByteString
   deriving newtype (ToData, FromData, UnsafeFromData)
 
-instance HasDataSchema AcmeBytes where
-  dataSchema = dsBytes
+instance HasDataSchema AcmeBytes ts where
+  dataSchema =
+    SchemaBytes
+      (Just "SchemaBytes") -- Title
+      Nothing -- Description
+      Nothing -- Comment
+      [] -- Enum
+      Nothing -- Min length
+      Nothing -- Max length
 
 data AcmeDatumPayload = MkAcmeDatumPayload
   { myAwesomeDatum1 :: Integer

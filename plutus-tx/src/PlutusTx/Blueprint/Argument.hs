@@ -13,7 +13,7 @@ import Data.Set (Set)
 import Data.Set qualified as Set
 import Data.Text (Text)
 import PlutusTx.Blueprint.Purpose (Purpose)
-import PlutusTx.Blueprint.Schema (DataSchema (..))
+import PlutusTx.Blueprint.Schema (Schema)
 
 data ArgumentBlueprint = MkArgumentBlueprint
   { argumentTitle       :: Maybe Text
@@ -22,7 +22,7 @@ data ArgumentBlueprint = MkArgumentBlueprint
   -- ^ An informative description of the redeemer or datum.
   , argumentPurpose     :: Set Purpose
   -- ^ A possibly empty set of purposes for the redeemer or datum.
-  , argumentSchema      :: DataSchema
+  , argumentSchema      :: Schema
   -- ^ A Plutus Data Schema using the core vocabulary defined below,
   -- or a oneOf applicator of Plutus Data Schemas
   }

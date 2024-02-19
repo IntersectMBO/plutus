@@ -14,7 +14,7 @@ import Data.Maybe (catMaybes)
 import Data.Text (Text)
 import PlutusTx.Blueprint.Definition (DefinitionId)
 import PlutusTx.Blueprint.Preamble (Preamble)
-import PlutusTx.Blueprint.Schema (DataSchema)
+import PlutusTx.Blueprint.Schema (Schema)
 import PlutusTx.Blueprint.Validator (ValidatorBlueprint)
 
 data ContractBlueprint = MkContractBlueprint
@@ -24,7 +24,7 @@ data ContractBlueprint = MkContractBlueprint
   -- ^ An object with meta-information about the contract
   , contractValidators  :: [ValidatorBlueprint]
   -- ^ An object of named validators
-  , contractDefinitions :: Map DefinitionId DataSchema
+  , contractDefinitions :: Map DefinitionId Schema
   -- ^ A registry of definition re-used across the specification
   }
   deriving stock (Show)

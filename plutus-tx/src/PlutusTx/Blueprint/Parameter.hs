@@ -13,7 +13,7 @@ import Data.Set (Set)
 import Data.Set qualified as Set
 import Data.Text (Text)
 import PlutusTx.Blueprint.Purpose (Purpose)
-import PlutusTx.Blueprint.Schema (DataSchema)
+import PlutusTx.Blueprint.Schema (Schema)
 
 data ParameterBlueprint = MkParameterBlueprint
   { parameterTitle       :: Maybe Text
@@ -22,7 +22,7 @@ data ParameterBlueprint = MkParameterBlueprint
   -- ^ An informative description of the parameter.
   , parameterPurpose     :: Set Purpose
   -- ^ One of "spend", "mint", "withdraw" or "publish", or a oneOf applicator of those.
-  , parameterSchema      :: DataSchema
+  , parameterSchema      :: Schema
   -- ^ A Plutus Data Schema using the core vocabulary defined below,
   -- or a oneOf applicator of Plutus Data Schemas
   }

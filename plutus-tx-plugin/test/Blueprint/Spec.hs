@@ -1,8 +1,12 @@
+{-# LANGUAGE AllowAmbiguousTypes   #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DerivingStrategies    #-}
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE PolyKinds             #-}
 {-# LANGUAGE TypeApplications      #-}
+{-# LANGUAGE TypeFamilies          #-}
 
 module Blueprint.Spec where
 
@@ -11,7 +15,6 @@ import Prelude
 
 import Blueprint.Fixture qualified as Fixture
 import Control.Monad.Reader (asks)
-import Data.Map qualified as Map
 import Data.Set qualified as Set
 import PlutusCore.Crypto.Hash (blake2b_224)
 import PlutusTx.Blueprint.Purpose qualified as Purpose
@@ -29,6 +32,14 @@ goldenBlueprint name blueprint = do
   let actual = goldenPath ++ ".actual.json"
   let golden = goldenPath ++ ".golden.json"
   pure $ goldenVsFile name golden actual (writeBlueprint actual blueprint)
+
+type DataTypes =
+  [ Fixture.AcmeDatum
+  , Fixture.AcmeDatumPayload
+  , Fixture.AcmeParams
+  , Fixture.AcmeRedeemer
+  , Fixture.AcmeBytes
+  ]
 
 acmeContractBlueprint :: ContractBlueprint
 acmeContractBlueprint =
@@ -53,14 +64,14 @@ acmeContractBlueprint =
                       { parameterTitle = Just "Acme Parameter"
                       , parameterDescription = Just "A parameter that does something awesome"
                       , parameterPurpose = Set.singleton Purpose.Spend
-                      , parameterSchema = dataSchema @Fixture.AcmeParams
+                      , parameterSchema = schemaRef @Fixture.AcmeParams @DataTypes
                       }
             , validatorRedeemer =
                 MkArgumentBlueprint
                   { argumentTitle = Just "Acme Redeemer"
                   , argumentDescription = Just "A redeemer that does something awesome"
                   , argumentPurpose = Set.fromList [Purpose.Spend, Purpose.Mint]
-                  , argumentSchema = dataSchema @Fixture.AcmeRedeemer
+                  , argumentSchema = schemaRef @Fixture.AcmeRedeemer @DataTypes
                   }
             , validatorDatum =
                 Just
@@ -68,7 +79,7 @@ acmeContractBlueprint =
                     { argumentTitle = Just "Acme Datum"
                     , argumentDescription = Just "A datum that contains something awesome"
                     , argumentPurpose = Set.singleton Purpose.Spend
-                    , argumentSchema = dataSchema @Fixture.AcmeDatum
+                    , argumentSchema = schemaRef @Fixture.AcmeDatum @DataTypes
                     }
             , validatorCompiledCode =
                 Just
@@ -78,9 +89,5 @@ acmeContractBlueprint =
                     }
             }
         ]
-    , contractDefinitions =
-        Map.fromList
-          [ definitionEntry @Fixture.AcmeDatum
-          , definitionEntry @Fixture.AcmeDatumPayload
-          ]
+    , contractDefinitions = deriveSchemaDefinitions @DataTypes
     }

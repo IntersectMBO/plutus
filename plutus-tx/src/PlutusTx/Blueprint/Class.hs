@@ -1,42 +1,84 @@
-{-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE AllowAmbiguousTypes   #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE KindSignatures        #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeApplications      #-}
 
 module PlutusTx.Blueprint.Class where
 
 import Prelude
 
-import PlutusTx.Blueprint.Schema (DataSchema, dsBuiltInBoolean, dsBuiltInBytes, dsBuiltInData,
-                                  dsBuiltInList, dsBuiltInPair, dsBuiltInString, dsBuiltInUnit,
-                                  dsInteger)
-import PlutusTx.Builtins.Internal (BuiltinBool, BuiltinByteString, BuiltinData, BuiltinList,
-                                   BuiltinPair, BuiltinString, BuiltinUnit)
+import Data.Kind (Type)
+import PlutusTx.Blueprint.Schema (Schema (..))
+import PlutusTx.Builtins (BuiltinByteString, BuiltinData, BuiltinString)
 
-class HasDataSchema a where
-  dataSchema :: DataSchema
+class HasDataSchema (t :: Type) (canReferTypes :: [Type]) where
+  dataSchema :: Schema
 
-instance HasDataSchema () where
-  dataSchema = dsBuiltInUnit
+instance HasDataSchema () ts where
+  dataSchema =
+    SchemaBuiltInUnit
+      Nothing -- Title
+      Nothing -- Description
+      Nothing -- Comment
 
-instance HasDataSchema Integer where
-  dataSchema = dsInteger
+instance HasDataSchema Integer ts where
+  dataSchema =
+    SchemaInteger
+      Nothing -- Title
+      Nothing -- Description
+      Nothing -- Comment
+      Nothing -- Multiple of
+      Nothing -- Maximum
+      Nothing -- Exclusive maximum
+      Nothing -- Minimum
+      Nothing -- Exclusive minimum
 
-instance HasDataSchema BuiltinByteString where
-  dataSchema = dsBuiltInBytes
+instance HasDataSchema BuiltinByteString ts where
+  dataSchema =
+    SchemaBytes
+      Nothing -- Title
+      Nothing -- Description
+      Nothing -- Comment
+      [] -- Enum
+      Nothing -- Min length
+      Nothing -- Max length
 
-instance HasDataSchema BuiltinUnit where
-  dataSchema = dsBuiltInUnit
+instance HasDataSchema Bool ts where
+  dataSchema =
+    SchemaBuiltInBoolean
+      Nothing -- Title
+      Nothing -- Description
+      Nothing -- Comment
 
-instance HasDataSchema BuiltinBool where
-  dataSchema = dsBuiltInBoolean
+instance HasDataSchema BuiltinString ts where
+  dataSchema =
+    SchemaBuiltInString
+      Nothing -- Title
+      Nothing -- Description
+      Nothing -- Comment
 
-instance HasDataSchema BuiltinString where
-  dataSchema = dsBuiltInString
+instance HasDataSchema BuiltinData ts where
+  dataSchema =
+    SchemaBuiltInData
+      Nothing -- Title
+      Nothing -- Description
+      Nothing -- Comment
 
-instance HasDataSchema BuiltinData where
-  dataSchema = dsBuiltInData
+instance (HasDataSchema a ts, HasDataSchema b ts) => HasDataSchema (a, b) ts where
+  dataSchema =
+    SchemaBuiltInPair
+      Nothing -- Title
+      Nothing -- Description
+      Nothing -- Comment
+      (dataSchema @a @ts)
+      (dataSchema @b @ts)
 
-instance (HasDataSchema a, HasDataSchema b) => HasDataSchema (BuiltinPair a b) where
-  dataSchema = dsBuiltInPair (dataSchema @a) (dataSchema @b)
-
-instance (HasDataSchema a) => HasDataSchema (BuiltinList a) where
-  dataSchema = dsBuiltInList (dataSchema @a)
+instance (HasDataSchema a ts) => HasDataSchema [a] ts where
+  dataSchema =
+    SchemaBuiltInList
+      Nothing -- Title
+      Nothing -- Description
+      Nothing -- Comment
+      (dataSchema @a @ts)
