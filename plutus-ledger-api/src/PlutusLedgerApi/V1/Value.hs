@@ -185,7 +185,7 @@ has been found to not be suitable, as the PR's description mentions.
 Another approach was to define a specialised 'ByteStringMap', where the key type was 'BuiltinByteString',
 since that is the representation of both 'CurrencySymbol' and 'TokenName'.
 Unfortunately, this approach actually had worse performance in practice. We believe it is worse
-because having two map libraries would make some optimisations less effective.
+because having two map libraries would make some optimisations, such as CSE, less effective.
 We base this on the fact that turning off all optimisations ended up making the code more performant.
 See https://github.com/IntersectMBO/plutus/pull/5779 for details on the experiment done.
 -}
