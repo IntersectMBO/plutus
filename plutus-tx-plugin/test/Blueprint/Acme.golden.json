@@ -35,7 +35,7 @@
         "description": "A datum that contains something awesome",
         "purpose": "spend",
         "schema": {
-          "$ref": "#/definitions/AcmeDatum"
+          "$ref": "#/definitions/Datum"
         }
       },
       "parameters": [
@@ -44,7 +44,7 @@
           "description": "A parameter that does something awesome",
           "purpose": "spend",
           "schema": {
-            "$ref": "#/definitions/AcmeParams"
+            "$ref": "#/definitions/Params"
           }
         }
       ],
@@ -53,31 +53,34 @@
     }
   ],
   "definitions": {
-    "AcmeBytes": {
+    "BuiltinString": {
+      "dataType": "#string"
+    },
+    "Bytes": {
       "title": "SchemaBytes",
       "dataType": "bytes"
     },
-    "AcmeDatum": {
+    "Datum": {
       "oneOf": [
         {
-          "$comment": "AcmeDatumLeft",
+          "$comment": "DatumLeft",
           "constructor": 0,
           "dataType": "constructor"
         },
         {
-          "$comment": "AcmeDatumRight",
+          "$comment": "DatumRight",
           "constructor": 1,
           "dataType": "constructor",
           "fields": [
             {
-              "$ref": "#/definitions/AcmeDatumPayload"
+              "$ref": "#/definitions/DatumPayload"
             }
           ]
         }
       ]
     },
-    "AcmeDatumPayload": {
-      "$comment": "MkAcmeDatumPayload",
+    "DatumPayload": {
+      "$comment": "MkDatumPayload",
       "constructor": 0,
       "dataType": "constructor",
       "fields": [
@@ -85,12 +88,12 @@
           "$ref": "#/definitions/Integer"
         },
         {
-          "$ref": "#/definitions/AcmeBytes"
+          "$ref": "#/definitions/Bytes"
         }
       ]
     },
-    "AcmeParams": {
-      "$comment": "MkAcmeParams",
+    "Params": {
+      "$comment": "MkParams",
       "constructor": 0,
       "dataType": "constructor",
       "fields": [
@@ -104,9 +107,6 @@
           "$ref": "#/definitions/BuiltinByteString"
         }
       ]
-    },
-    "BuiltinString": {
-      "dataType": "#string"
     }
   }
 }

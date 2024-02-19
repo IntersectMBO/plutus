@@ -33,12 +33,16 @@ goldenBlueprint name blueprint = do
   let golden = goldenPath ++ ".golden.json"
   pure $ goldenVsFile name golden actual (writeBlueprint actual blueprint)
 
-type DataTypes =
-  [ Fixture.AcmeDatum
-  , Fixture.AcmeDatumPayload
-  , Fixture.AcmeParams
-  , Fixture.AcmeRedeemer
-  , Fixture.AcmeBytes
+-- | All the data types exposed (directly or indirectly) by the type signature of the validator
+-- This type level list is used to:
+-- 1. derive the schema definitions for the contract.
+-- 2. make "safe" references to the [derived] schema definitions.
+type SchemaDefinitions =
+  [ Fixture.Datum
+  , Fixture.DatumPayload
+  , Fixture.Params
+  , Fixture.Redeemer
+  , Fixture.Bytes
   ]
 
 acmeContractBlueprint :: ContractBlueprint
@@ -64,14 +68,14 @@ acmeContractBlueprint =
                       { parameterTitle = Just "Acme Parameter"
                       , parameterDescription = Just "A parameter that does something awesome"
                       , parameterPurpose = Set.singleton Purpose.Spend
-                      , parameterSchema = schemaRef @Fixture.AcmeParams @DataTypes
+                      , parameterSchema = schemaRef @Fixture.Params @SchemaDefinitions
                       }
             , validatorRedeemer =
                 MkArgumentBlueprint
                   { argumentTitle = Just "Acme Redeemer"
                   , argumentDescription = Just "A redeemer that does something awesome"
                   , argumentPurpose = Set.fromList [Purpose.Spend, Purpose.Mint]
-                  , argumentSchema = schemaRef @Fixture.AcmeRedeemer @DataTypes
+                  , argumentSchema = schemaRef @Fixture.Redeemer @SchemaDefinitions
                   }
             , validatorDatum =
                 Just
@@ -79,7 +83,7 @@ acmeContractBlueprint =
                     { argumentTitle = Just "Acme Datum"
                     , argumentDescription = Just "A datum that contains something awesome"
                     , argumentPurpose = Set.singleton Purpose.Spend
-                    , argumentSchema = schemaRef @Fixture.AcmeDatum @DataTypes
+                    , argumentSchema = schemaRef @Fixture.Datum @SchemaDefinitions
                     }
             , validatorCompiledCode =
                 Just
@@ -89,5 +93,5 @@ acmeContractBlueprint =
                     }
             }
         ]
-    , contractDefinitions = deriveSchemaDefinitions @DataTypes
+    , contractDefinitions = deriveSchemaDefinitions @SchemaDefinitions
     }
