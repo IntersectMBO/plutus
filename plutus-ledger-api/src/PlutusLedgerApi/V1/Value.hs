@@ -182,7 +182,7 @@ We have attempted to improve the performance of 'Value' by choosing a different 
 for 'PlutusTx.AssocMap.AssocMap', see https://github.com/IntersectMBO/plutus/pull/5697. This approach
 has been found to not be suitable, as the PR's description mentions.
 
-Another approach was to define a specialised 'ByteStringMap', where the key type was 'ByteString',
+Another approach was to define a specialised 'ByteStringMap', where the key type was 'BuiltinByteString',
 since that is the representation of both 'CurrencySymbol' and 'TokenName'.
 Unfortunately, this approach actually had worse performance in practice. We believe it is worse
 because having two map libraries would make some optimisations less effective.
