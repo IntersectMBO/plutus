@@ -53,6 +53,10 @@
     }
   ],
   "definitions": {
+    "BuiltinByteString": {
+      "dataType": "bytes"
+    },
+    "BuiltinData": {},
     "BuiltinString": {
       "dataType": "#string"
     },
@@ -91,6 +95,9 @@
           "$ref": "#/definitions/Bytes"
         }
       ]
+    },
+    "Integer": {
+      "dataType": "integer"
     },
     "Params": {
       "$comment": "MkParams",

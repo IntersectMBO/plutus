@@ -18,6 +18,7 @@ import Control.Monad.Reader (asks)
 import Data.Set qualified as Set
 import PlutusCore.Crypto.Hash (blake2b_224)
 import PlutusTx.Blueprint.Purpose qualified as Purpose
+import PlutusTx.Builtins (BuiltinByteString, BuiltinData)
 import System.FilePath ((</>))
 import Test.Tasty (TestName)
 import Test.Tasty.Extras (TestNested, testNested)
@@ -33,16 +34,20 @@ goldenBlueprint name blueprint = do
   let golden = goldenPath ++ ".golden.json"
   pure $ goldenVsFile name golden actual (writeBlueprint actual blueprint)
 
--- | All the data types exposed (directly or indirectly) by the type signature of the validator
--- This type level list is used to:
--- 1. derive the schema definitions for the contract.
--- 2. make "safe" references to the [derived] schema definitions.
+{- | All the data types exposed (directly or indirectly) by the type signature of the validator
+This type level list is used to:
+1. derive the schema definitions for the contract.
+2. make "safe" references to the [derived] schema definitions.
+-}
 type SchemaDefinitions =
   [ Fixture.Datum
   , Fixture.DatumPayload
   , Fixture.Params
   , Fixture.Redeemer
   , Fixture.Bytes
+  , Integer
+  , BuiltinData
+  , BuiltinByteString
   ]
 
 acmeContractBlueprint :: ContractBlueprint

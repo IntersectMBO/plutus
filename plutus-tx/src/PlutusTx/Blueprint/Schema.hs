@@ -26,7 +26,6 @@ import Data.Text.Encoding qualified as Text
 import Data.Typeable (Typeable, typeRep)
 import GHC.TypeLits qualified as GHC
 import Numeric.Natural (Natural)
-import PlutusTx.Builtins (BuiltinByteString, BuiltinData, BuiltinString)
 import Prelude hiding (max, min)
 
 data Schema
@@ -296,11 +295,6 @@ type family HasSchemaDefinition n xs where
       ( GHC.ShowType n
           GHC.:<>: GHC.Text " schema was not found in the list of schema definitions."
       )
-  HasSchemaDefinition () _ = ()
-  HasSchemaDefinition Integer _ = ()
-  HasSchemaDefinition BuiltinData _ = ()
-  HasSchemaDefinition BuiltinString _ = ()
-  HasSchemaDefinition BuiltinByteString _ = ()
   HasSchemaDefinition x (x ': xs) = ()
   HasSchemaDefinition x (_ ': xs) = HasSchemaDefinition x xs
 
