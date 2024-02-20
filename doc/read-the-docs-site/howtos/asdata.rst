@@ -4,6 +4,48 @@
 How to use ``AsData`` to optimize scripts
 =========================================
 
+The latest Plutus libraries contain a new ``PlutusTx.asData`` module that contains Template Haskell (TH) code for encoding algebraic data types (ADTs) as ``Data`` objects in Plutus Core, as opposed to sums-of-products terms.
+In general, ``asData`` pushes the burden of a computation nearer to where a value is used, in a crude sense making the evaluation less strict and more lazy.
+This is intended for expert Plutus developers.
+
+Purpose
+-------
+
+When writing and optimizing a Plutus script, one of the challenges is finding the right balance for your specific use case between which method to use for handling ``Data`` objects and how expensive that method will be.
+To make an informed decision, you may need to benchmark and profile your smart contract code to measure its actual resource consumption.
+The primary purpose of ``asData`` is to give you more options for how you want to handle ``Data``.
+
+Choice of two pathways
+----------------------
+
+When handling ``Data`` objects, you have a choice of two pathways.
+It is up to you to determine which pathway to use depending on your particular use case.
+There are trade offs in performance and where errors occur.
+
+Method one: proactively do all of the parsing
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The first approach is to parse the object immediately (using ``fromBuiltinData``) into a native Plutus Core datatype, which will also identify any problems with the structuring of the object.
+However, this performs all the work up front.
+
+Method two: only do the parsing if and when necessary
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the second approach, the validator doesn't necessarily do anything. It only does the work when it needs to. In order to work with the data objects, the validator has to call the builtin functions, which is a little bit more expensive. It might be that this saves you a lot of work, because you may never need to parse the entire object. Instead, the validator will just carry the item around as if it were a data object. Some time later, when the validator needs to do an operation with this integer, then the validator will parse it. If it determines that it is not an integer, there will be errors.
+Using this method, every time the validator parses it, it is going to look at the data object to find out if it is an integer. If it is an integer, it will get the integer out and do its processing. The analysis work may be repeated depending on how your script is written. In some cases, you might do less work, in some cases you might do more work, depending on your specific use case.
+
+Using ``asData``
+------------------
+``asData`` works best when you use it for a type and all the types that go into it. The ``asData`` function takes the definition of a data type and replaces it with an equivalent definition whose representation uses ``Data`` directly.
+
+``Data`` objects versus Plutus Tx's datatypes
+---------------------------------------------
+There are tradeoffs relating to the slower processing speed of ``Data`` objects versus Plutus Tx's datatypes.
+
+Values stored in datums or redeemers
+------------------------------------
+
+
 Values stored in datums or redeemers need to be encoded into ``Data`` objects.
 This means that when a script starts to work with its datum or redeemer, it often wants to parse it into a more structured format using Plutus Tx's support for datatypes.
 Usually this is done with the ``fromBuiltinData`` function.
