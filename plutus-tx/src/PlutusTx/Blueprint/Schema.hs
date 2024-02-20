@@ -8,6 +8,7 @@
 {-# LANGUAGE TypeApplications         #-}
 {-# LANGUAGE TypeFamilies             #-}
 {-# LANGUAGE TypeOperators            #-}
+{-# LANGUAGE UndecidableInstances     #-}
 {-# OPTIONS_GHC -Wno-redundant-constraints #-}
 
 module PlutusTx.Blueprint.Schema where
@@ -414,9 +415,9 @@ setComment comment = \case
 setMinLength :: Natural -> Schema -> Schema
 setMinLength minLength = \case
   SchemaBytes t d c enum _minLength maxLength -> SchemaBytes t d c enum (Just minLength) maxLength
-  x -> x
+  x                                           -> x
 
 setMaxLength :: Natural -> Schema -> Schema
 setMaxLength maxLength = \case
   SchemaBytes t d c enum minLen _maxLen -> SchemaBytes t d c enum minLen (Just maxLength)
-  x -> x
+  x                                     -> x
