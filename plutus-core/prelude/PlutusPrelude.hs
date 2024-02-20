@@ -96,6 +96,7 @@ module PlutusPrelude
     , distinct
     , unsafeFromRight
     , tryError
+    , lowerInitialChar
     ) where
 
 import Control.Applicative
@@ -109,6 +110,7 @@ import Control.Monad.Except (MonadError, catchError)
 import Control.Monad.Reader (MonadReader, ask)
 import Data.Array (Array, Ix, listArray)
 import Data.Bifunctor (first, second)
+import Data.Char (toLower)
 import Data.Coerce (Coercible, coerce)
 import Data.Default.Class
 import Data.Either (fromRight, isLeft, isRight)
@@ -265,3 +267,7 @@ allSame (x:xs) = all (x ==) xs
 
 distinct :: Eq a => [a] -> Bool
 distinct = not . allSame
+
+lowerInitialChar :: String -> String
+lowerInitialChar []     = []
+lowerInitialChar (c:cs) = toLower c : cs
