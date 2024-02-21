@@ -107,7 +107,6 @@ genConstant = Gen.choice
     , someValue <$> Gen.utf8 (Range.linear 0 40) Gen.unicode
     ]
 
--- We only generate types that are parsable. See Note [Parsing horribly broken].
 genSomeTypeIn :: AstGen (SomeTypeIn DefaultUni)
 genSomeTypeIn = Gen.frequency
     [ (1, pure $ SomeTypeIn DefaultUniInteger)

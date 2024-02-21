@@ -26,7 +26,7 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Universe
 
-{- Note [Global uniqueness]
+{- Note [Global uniqueness in the normalizer]
 WARNING: everything in this module works under the assumption that the global uniqueness condition
 is satisfied. The invariant is not checked, enforced or automatically fulfilled. So you must ensure
 that the global uniqueness condition is satisfied before calling ANY function from this module.

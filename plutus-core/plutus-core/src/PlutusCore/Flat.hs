@@ -12,7 +12,6 @@
 -- encoding of PLC] before touching anything in this file.  Also see Note
 -- [Serialising unit annotations] and Note [Serialising Scripts] before using
 -- anything in this file.
-
 module PlutusCore.Flat
     ( AsSerialize (..)
     , safeEncodeBits
@@ -31,7 +30,7 @@ import Flat.Encoder
 import PlutusPrelude
 import Universe
 
-{- Note [Stable encoding of PLC]
+{- Note [Stable encoding of TPLC]
 READ THIS BEFORE TOUCHING ANYTHING IN THIS FILE
 
 We need the encoding of PLC on the blockchain to be *extremely* stable. It *must not* change
@@ -52,7 +51,7 @@ However, having this flexibility allows us to encode e.g. PLC with substantial a
 for testing.
 -}
 
-{- Note [Encoding/decoding constructor tags using Flat]
+{- Note [Encoding/decoding TPLC constructor tags using Flat]
 Flat saves space when compared to CBOR by allowing tags to use the minimum
 number of bits required for their encoding.
 

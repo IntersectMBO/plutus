@@ -113,7 +113,8 @@ type MonadTypeCheckPir err uni fun ann m =
 -- ##########################
 --  Taken from `PlutusCore.Typecheck.Internal`
 
--- See the [Global uniqueness] and [Type rules] notes.
+-- See Note [Global uniqueness in the type checker].
+-- See Note [Typing rules].
 -- | Check a 'Term' against a 'NormalizedType'.
 checkTypeM
     :: MonadTypeCheckPir err uni fun ann m
@@ -131,7 +132,8 @@ checkTypeM ann term vTy = do
         let expectedVTy = ExpectedExact $ unNormalized vTy
         throwing _TypeError $ TypeMismatch ann (void term) expectedVTy vTermTy
 
--- See the [Global uniqueness] and [Type rules] notes.
+-- See Note [Global uniqueness in the type checker].
+-- See Note [Typing rules].
 -- | Synthesize the type of a term, returning a normalized type.
 inferTypeM
     :: forall err m uni fun ann.

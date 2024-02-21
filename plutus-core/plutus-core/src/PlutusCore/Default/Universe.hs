@@ -429,7 +429,7 @@ deriving newtype instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUn
 universe and we need serialised things to be extremely stable, hence the definitions of 'encodeUni'
 and 'decodeUni' must be amended only in a backwards compatible manner.
 
-See Note [Stable encoding of PLC]
+See Note [Stable encoding of TPLC]
 -}
 
 instance Closed DefaultUni where

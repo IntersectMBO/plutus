@@ -305,7 +305,7 @@ You can feed 'encodeUtf8' directly to 'makeBuiltinMeaning' without specifying an
 
 This will add the builtin, the only two things that remain are implementing costing for this
 builtin (out of the scope of this Note) and handling it within the @Flat DefaultFun@ instance
-(see Note [Stable encoding of PLC]).
+(see Note [Stable encoding of TPLC]).
 
 2. Unconstrained type variables are fine, you don't need to instantiate them. For example
 
@@ -1841,7 +1841,7 @@ encodeBuiltin = eBits builtinTagWidth
 decodeBuiltin :: Get Word8
 decodeBuiltin = dBEBits8 builtinTagWidth
 
--- See Note [Stable encoding of PLC]
+-- See Note [Stable encoding of TPLC]
 instance Flat DefaultFun where
     encode = encodeBuiltin . \case
               AddInteger                      -> 0
