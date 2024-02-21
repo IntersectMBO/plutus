@@ -1,4 +1,19 @@
 
+<a id='changelog-1.22.0.0'></a>
+# 1.22.0.0 — 2024-02-21
+
+## Added
+
+- PlutusV3 cost model parameter names updated for `ByteStringToInteger` and `IntegerToByteString`.
+
+- `PlutusLedgerApi.V1.Value.currencySymbolValueOf`, which calculates the total amount for
+  the given `CurrencySymbol`.
+
+## Changed
+
+- Changed the `TxId`'s `BuiltingData` representation:
+  removed a newtype constructor wrapping the underlying `BuiltinByteString`.
+
 <a id='changelog-1.20.0.0'></a>
 # 1.20.0.0 — 2024-01-15
 
