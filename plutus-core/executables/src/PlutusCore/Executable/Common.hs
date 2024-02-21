@@ -315,7 +315,8 @@ topSrcSpan = PLC.SrcSpan "top" 1 1 1 2
 writeFlat ::
     (ProgramLike p, Functor p) => Output -> AstNameType -> p ann -> IO ()
 writeFlat outp flatMode prog = do
-    -- Change annotations to (): see Note [Annotation types].
+    -- ASTs are always serialised with unit annotations to save space: `flat`
+    -- does not need any space to serialise ().
     let flatProg = serialiseProgramFlat flatMode (() <$ prog)
     case outp of
         FileOutput file -> BSL.writeFile file flatProg
