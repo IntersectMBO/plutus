@@ -6,6 +6,10 @@ Simple example
 Plutus script for an auction smart contract
 -------------------------------------------------
 
+.. caution:: 
+   This is a simple example that aims to give readers a sense of how Plutus scripts work, 
+   but it is not a production-ready script. 
+
 Overview
 ~~~~~~~~~~~~
 
