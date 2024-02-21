@@ -28,4 +28,11 @@ done
 
 files=$(find . -name "*.hs" | grep -v dist-newstyle)
 
+if [ -z "$files" ]
+then
+    echo "Couldn't find any .hs files in $PWD"
+    exit 1
+fi
+
+
 awk -f $(dirname $0)/check-Notes.awk -v longOutput="$longOutput" $files

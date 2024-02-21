@@ -33,4 +33,10 @@ done
 
 files=$(find . -name "*.hs" | grep -v dist-newstyle)
 
-awk -f $(dirname $0)/find-Notes.awk -v longOutput="$longOutput" -v target="$target" $files | sort
+if [ -z "$files" ]
+then
+    echo "Couldn't find any .hs files in $PWD"
+    exit 1
+fi
+
+awk -f $(dirname $0)/list-Notes.awk -v longOutput="$longOutput" -v target="$target" $files | sort
