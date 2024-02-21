@@ -124,16 +124,15 @@ maybeSplitReference && /^[- \t-]*\[/ {
     exitCode = 1
 }
 
-# Check for invalid characters
-/Note *[^ ] *\[/ { # There is a non-space (eg ":") between "Note" and "["
-    printf ("Invalid note format at %s:%d\n", FILENAME, FNR)
+# Check that we have at least one space after "Note"
+/Note\[/ {
+    printf ("Invalid note format (space expected after \"Note\") at %s:%d\n", FILENAME, FNR)
     printf ("%s\n", $0)
     exitCode = 1
 }
-
-# Check that we have at least one space before "Note"
-/Note\[/ {
-    printf ("Invalid note format (space expected after \"Note\") at %s:%d\n", FILENAME, FNR)
+# Check for invalid characters
+/Note *[^ ] *\[/ { # There is a non-space (eg ":") between "Note" and "["
+    printf ("Invalid note format at %s:%d\n", FILENAME, FNR)
     printf ("%s\n", $0)
     exitCode = 1
 }
@@ -152,7 +151,7 @@ maybeSplitReference && /^[- \t-]*\[/ {
     exitCode = 1
 }
 
-# Make sure there's at least one space before "Note"
+# Make sure there's at least one space before "Note" in a definition
 /(--|{-)Note *\[/ {
     printf ("Invalid note format (space expected before \"Note\") at %s:%d\n", FILENAME, FNR)
     printf ("%s\n", $0)
