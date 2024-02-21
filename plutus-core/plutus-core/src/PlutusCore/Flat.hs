@@ -10,8 +10,7 @@
 
 -- | Flat instances for Plutus Core types. Make sure to read Note [Stable
 -- encoding of TPLC] and Note [Stable encoding of UPLC] before touching anything
--- in this file.  Also see Note [Serialising Scripts] before using anything in
--- this file.
+-- in this file.
 module PlutusCore.Flat
     ( AsSerialize (..)
     , safeEncodeBits
