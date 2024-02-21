@@ -208,7 +208,7 @@ instance ExMemoryUsage Word8 where
    `quot` 8 == 0, so the code below gives the correct answer for the empty
    bytestring.  -}
 instance ExMemoryUsage BS.ByteString where
-    -- Don't use `div` here!  That gives 0 instead of 1 for n=0.
+    -- Don't use `div` here!  That gives 0 instead of 1 for the empty bytestring.
     memoryUsage bs = singletonRose . unsafeToSatInt $ ((n - 1) `quot` 8) + 1 where
         n = BS.length bs
     {-# INLINE memoryUsage #-}
