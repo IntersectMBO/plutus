@@ -82,7 +82,9 @@ fixupTerm_ :: TypeCtx
 fixupTerm_ tyctxOld ctxOld tyctxNew ctxNew tyNew tm0 =
   case inferTypeInContext tyctxNew ctxNew tm0 of
     Left _ -> case tm0 of
-      LamAbs _ x a tm | TyFun () _ b <- tyNew -> bimap (TyFun () a) (LamAbs () x a)
+      -- Make @a@ the new type of @x@. We can't take the old type of @x@, because it may reference
+      -- a removed binding. And we're trying to change the type of @tm0@ to @tyNew@ anyway.
+      LamAbs _ x _ tm | TyFun () a b <- tyNew -> bimap (TyFun () a) (LamAbs () x a)
                                               $ fixupTerm_ tyctxOld (Map.insert x a ctxOld)
                                                            tyctxNew (Map.insert x a ctxNew) b tm
       Apply _ (Apply _ (TyInst _ (Builtin _ Trace) _) s) tm ->
