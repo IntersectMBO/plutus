@@ -519,6 +519,8 @@ runCompiler moduleName opts expr = do
             & set (PLC.coSimplifyOpts . UPLC.soConservativeOpts)
                 (opts ^. posConservativeOpts)
             & set (PLC.coSimplifyOpts . UPLC.soInlineHints) hints
+            & set (PLC.coSimplifyOpts . UPLC.soInlineConstants)
+                (opts ^. posInlineConstants)
 
     -- GHC.Core -> Pir translation.
     pirT <- original <$> (PIR.runDefT annMayInline $ compileExprWithDefs expr)

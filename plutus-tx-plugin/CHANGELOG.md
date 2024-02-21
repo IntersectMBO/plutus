@@ -1,4 +1,17 @@
 
+<a id='changelog-1.22.0.0'></a>
+# 1.22.0.0 — 2024-02-21
+
+## Added
+
+- Added `ByteStringToInteger` and `IntegerToByteString` builtins to the pluugin.
+
+- added constant inlining to inlining optimisation passes
+
+## Changed
+
+- 'conservative-mode' now also turns off constant inlining
+
 <a id='changelog-1.19.0.0'></a>
 # 1.19.0.0 — 2023-12-23
 

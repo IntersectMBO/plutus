@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DeriveDataTypeable    #-}
 {-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE DeriveLift            #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE LambdaCase            #-}
@@ -49,13 +50,15 @@ import PlutusTx.These
 import Control.DeepSeq (NFData)
 import Data.Data
 import GHC.Generics (Generic)
+import Language.Haskell.TH.Syntax as TH (Lift)
 import Prettyprinter (Pretty (..))
 
 {- HLINT ignore "Use newtype instead of data" -}
 
+-- See Note [Optimising Value].
 -- | A 'Map' of key-value pairs.
 newtype Map k v = Map {unMap :: [(k, v)]}
-  deriving stock (Generic, Haskell.Eq, Haskell.Show, Data)
+  deriving stock (Generic, Haskell.Eq, Haskell.Show, Data, TH.Lift)
   deriving newtype (Eq, Ord, NFData)
 
 -- Hand-written instances to use the underlying 'Map' type in 'Data', and

@@ -28,7 +28,6 @@ import UntypedPlutusCore.Evaluation.Machine.Cek
 
 import Criterion.Main (Benchmark, bgroup)
 
-import Data.Char (toLower)
 import Data.Ix (Ix)
 import System.Random (StdGen)
 
@@ -81,9 +80,7 @@ data NopFun
     deriving anyclass (PrettyBy PrettyConfigPlc)
 
 instance Pretty NopFun where
-    pretty fun = pretty $ case show fun of
-        ""    -> ""
-        c : s -> toLower c : s
+    pretty fun = pretty $ lowerInitialChar $ show fun
 
 data NopCostModel =
     NopCostModel

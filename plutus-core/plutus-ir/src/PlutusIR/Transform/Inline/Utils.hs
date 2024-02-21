@@ -320,6 +320,15 @@ and are used more than once, we are at risk of doing more work or making things 
 
 -}
 
+{- Note [Inlining constants]
+
+Constants can in principle be large, and hence inlining them can make the program bigger.
+However, usually they are not large, and inlining them is helpful, in particular it can expose
+more opportunities for evaluating builtins.
+
+Hence we inline constants by default, but refrain from doing so if we are trying to be conservative.
+-}
+
 -- See Note [Inlining criteria]
 -- | Is the cost increase (in terms of evaluation work) of inlining a variable whose RHS is
 -- the given term acceptable?
@@ -374,7 +383,7 @@ sizeIsAcceptable inlineConstants = \case
   IWrap{}    -> False
   Unwrap{}   -> False
   -- Inlining constants is deemed acceptable if the 'inlineConstants'
-  -- flag is turned on
+  -- flag is turned on, see Note [Inlining constants].
   Constant{} -> inlineConstants
   Apply{}    -> False
   TyInst{}   -> False

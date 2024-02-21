@@ -1,4 +1,16 @@
 
+<a id='changelog-1.22.0.0'></a>
+# 1.22.0.0 — 2024-02-21
+
+## Removed
+
+- `PlutusTx.Ratio.reduce` removed in favor of `PlutusTx.Ratio.unsafeRatio` as it
+was violating the "positive denominator" invariant.
+
+## Added
+
+- Builtins updated to include `ByteStringToInteger` and `IntegerToByteString`.
+
 <a id='changelog-1.20.0.0'></a>
 # 1.20.0.0 — 2024-01-15
 
