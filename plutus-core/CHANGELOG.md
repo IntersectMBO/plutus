@@ -1,4 +1,12 @@
 
+<a id='changelog-1.22.0.0'></a>
+# 1.22.0.0 — 2024-02-21
+
+## Added
+
+- Cost modelling code updated for `ByteStringToInteger` and `IntegerToByteString`.
+- Preliminary budgeting for `ByteStringToInteger` and `IntegerToByteString`.
+
 <a id='changelog-1.21.0.0'></a>
 # 1.21.0.0 — 2024-01-25
 

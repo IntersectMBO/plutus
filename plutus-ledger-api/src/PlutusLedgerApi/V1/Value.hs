@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveAnyClass     #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DerivingVia        #-}
+{-# LANGUAGE LambdaCase         #-}
 {-# LANGUAGE NoImplicitPrelude  #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TemplateHaskell    #-}
@@ -38,6 +39,7 @@ module PlutusLedgerApi.V1.Value (
     , Value(..)
     , singleton
     , valueOf
+    , currencySymbolValueOf
     , lovelaceValue
     , lovelaceValueOf
     , scale
@@ -69,6 +71,7 @@ import PlutusLedgerApi.V1.Bytes (LedgerBytes (LedgerBytes), encodeByteString)
 import PlutusTx qualified
 import PlutusTx.AssocMap qualified as Map
 import PlutusTx.Lift (makeLift)
+import PlutusTx.List qualified
 import PlutusTx.Ord qualified as Ord
 import PlutusTx.Prelude as PlutusTx hiding (sort)
 import PlutusTx.Show qualified as PlutusTx
@@ -176,7 +179,23 @@ pair. To distinguish between the two we write the former with a capital "V" and 
 quotes and we write the latter with a lower case "v" and without the quotes, i.e. 'Value' vs value.
 -}
 
+{- Note [Optimising Value]
+
+We have attempted to improve the performance of 'Value' and other usages of
+'PlutusTx.AssocMap.Map' by choosing a different representation for 'PlutusTx.AssocMap.Map',
+see https://github.com/IntersectMBO/plutus/pull/5697.
+This approach has been found to not be suitable, as the PR's description mentions.
+
+Another approach was to define a specialised 'ByteStringMap', where the key type was 'BuiltinByteString',
+since that is the representation of both 'CurrencySymbol' and 'TokenName'.
+Unfortunately, this approach actually had worse performance in practice. We believe it is worse
+because having two map libraries would make some optimisations, such as CSE, less effective.
+We base this on the fact that turning off all optimisations ended up making the code more performant.
+See https://github.com/IntersectMBO/plutus/pull/5779 for details on the experiment done.
+-}
+
 -- See Note [Value vs value].
+-- See Note [Optimising Value].
 {- | The 'Value' type represents a collection of amounts of different currencies.
 We can think of 'Value' as a vector space whose dimensions are currencies.
 
@@ -250,6 +269,15 @@ valueOf (Value mp) cur tn =
         Just i  -> case Map.lookup tn i of
             Nothing -> 0
             Just v  -> v
+
+{-# INLINABLE currencySymbolValueOf #-}
+currencySymbolValueOf :: Value -> CurrencySymbol -> Integer
+currencySymbolValueOf (Value mp) cur = case Map.lookup cur mp of
+    Nothing     -> 0
+    Just tokens ->
+        -- This is more efficient than `PlutusTx.sum (Map.elems tokens)`, because
+        -- the latter materializes the intermediate result of `Map.elems tokens`.
+        PlutusTx.List.foldr (\(_, amt) acc -> amt + acc) 0 (Map.toList tokens)
 
 {-# INLINABLE symbols #-}
 -- | The list of 'CurrencySymbol's of a 'Value'.
