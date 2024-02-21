@@ -2,6 +2,9 @@
 # with the location of their definition.  If `target` is non-null, regard it as
 # a pattern and report only the titles which match it.
 
+# The `check-Notes` script enforces rules which aren't checked here, so this may
+# list Notes which `check-Notes.awk` would complain about.
+
 function getNoteName(        title, linecount, p, t) { # Conventional formatting for local variable names
     match ($0, /Note *\[/)
     if (RSTART == 0) { # Should not happen if getNoteName is called in the right context

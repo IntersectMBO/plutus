@@ -8,10 +8,10 @@
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
 
--- | Flat instances for Plutus Core types. Make sure to read the Note [Stable
--- encoding of PLC] before touching anything in this file.  Also see Note
--- [Serialising unit annotations] and Note [Serialising Scripts] before using
--- anything in this file.
+-- | Flat instances for Plutus Core types. Make sure to read Note [Stable
+-- encoding of TPLC] and Note [Stable encoding of UPLC] before touching anything
+-- in this file.  Also see Note [Serialising unit annotations] and Note
+-- [Serialising Scripts] before using anything in this file.
 module PlutusCore.Flat
     ( AsSerialize (..)
     , safeEncodeBits

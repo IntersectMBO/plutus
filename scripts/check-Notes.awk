@@ -7,15 +7,15 @@
 
 
 # * Notes are comments beginning with `{- Note [<title>]` or `-- Note [<title>]`.  The
-#   `{-` form is preferred.
+#   `{-` form is preferred, and a space is required before "Note".
 #
 # * A reference to a Note is of the form `Note [<title>]`.
 #
 # * The title of a note can be any sequence of printable characters, excluding ']' but
 #  including spaces
 #
-# * In both definitions and references any number of spaces is allowed before "Note" and between
-#  "Note" and "[".
+# * In both definitions and references any (nonzero) number of spaces is allowed
+#   before "Note" and between "Note" and "[".
 #
 # * No characters except spaces are allowed between "Note" and "["; in particular
 #  `Note: [...]` is prohibited.
@@ -124,9 +124,16 @@ maybeSplitReference && /^[- \t-]*\[/ {
     exitCode = 1
 }
 
-# Check for invalid characters;
+# Check for invalid characters
 /Note *[^ ] *\[/ { # There is a non-space (eg ":") between "Note" and "["
     printf ("Invalid note format at %s:%d\n", FILENAME, FNR)
+    printf ("%s\n", $0)
+    exitCode = 1
+}
+
+# Check that we have at least one space before "Note"
+/Note\[/ {
+    printf ("Invalid note format (space expected after \"Note\") at %s:%d\n", FILENAME, FNR)
     printf ("%s\n", $0)
     exitCode = 1
 }
@@ -141,6 +148,13 @@ maybeSplitReference && /^[- \t-]*\[/ {
 # Check for improper capitalisation
 /(NOTE|note) *\[/ {  # We require all references to be of the form `Note [...]`
     printf ("Invalid note format (must say \"Note [...]\") at %s:%d\n", FILENAME, FNR)
+    printf ("%s\n", $0)
+    exitCode = 1
+}
+
+# Make sure there's at least one space before "Note"
+/(--|{-)Note *\[/ {
+    printf ("Invalid note format (space expected before \"Note\") at %s:%d\n", FILENAME, FNR)
     printf ("%s\n", $0)
     exitCode = 1
 }
