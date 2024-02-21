@@ -59,7 +59,8 @@ and error type signatures and `throwError` to accommodate for the new pir type-e
 These modifications are currently necessary since PIR.Term ADT /= PLC.Term ADT.
 We then extend this ported `PIR.inferTypeM` with cases for inferring type of LetRec and LetNonRec.
 
-See Note [Notation] of PlutusCore.TypeCheck.Internal for the notation of inference rules, which appear in the comments.
+See Note [Typing rules] of PlutusCore.TypeCheck.Internal for the notation of
+inference rules, which appear in the comments.
 -}
 
 {- Note [PIR vs Paper Syntax Difference]

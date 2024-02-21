@@ -49,7 +49,7 @@ that the global uniqueness condition is satisfied before calling 'inferTypeM' or
 The invariant is preserved. In future we will enforce the invariant.
 -}
 
-{- Note [Notation]
+{- Note [Typing rules]
 We write type rules in the bidirectional style.
 
 [infer| G !- x : a] -- means that the inferred type of 'x' in the context 'G' is 'a'.
