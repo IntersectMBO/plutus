@@ -41,7 +41,7 @@ import Data.List.Extras (wix)
 import Data.Text qualified as Text
 import Universe (GEq, Some (Some), SomeTypeIn (SomeTypeIn), ValueOf (ValueOf))
 
-{- Note [Global uniqueness]
+{- Note [Global uniqueness in the type checker]
 WARNING: type inference/checking works under the assumption that the global uniqueness condition
 is satisfied. The invariant is not checked, enforced or automatically fulfilled. So you must ensure
 that the global uniqueness condition is satisfied before calling 'inferTypeM' or 'checkTypeM'.
@@ -49,7 +49,7 @@ that the global uniqueness condition is satisfied before calling 'inferTypeM' or
 The invariant is preserved. In future we will enforce the invariant.
 -}
 
-{- Note [Notation]
+{- Note [Typing rules]
 We write type rules in the bidirectional style.
 
 [infer| G !- x : a] -- means that the inferred type of 'x' in the context 'G' is 'a'.
@@ -413,7 +413,8 @@ unfoldIFixOf pat arg k = do
             , vArg
             ]
 
--- See the [Global uniqueness] and [Type rules] notes.
+-- See Note [Global uniqueness in the type checker].
+-- See Note [Typing rules].
 -- | Synthesize the type of a term, returning a normalized type.
 inferTypeM
     :: (MonadTypeCheckPlc err uni fun ann m, HasTypeCheckConfig cfg uni fun)
@@ -576,7 +577,8 @@ inferTypeM (Case ann resTy scrut cases) = do
     -- whole expression.
     pure vResTy
 
--- See the [Global uniqueness] and [Type rules] notes.
+-- See Note [Global uniqueness in the type checker].
+-- See Note [Typing rules].
 -- | Check a 'Term' against a 'NormalizedType'.
 checkTypeM
     :: (MonadTypeCheckPlc err uni fun ann m, HasTypeCheckConfig cfg uni fun)

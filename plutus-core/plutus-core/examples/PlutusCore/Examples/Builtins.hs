@@ -128,8 +128,8 @@ data ExtensionFun
     | ErrorPrime  -- Like 'Error', but a builtin. What do we even need 'Error' for at this point?
                   -- Who knows what machinery a tick could break, hence the @Prime@ part.
     | Comma
-    | BiconstPair  -- A safe version of 'Comma' as discussed in
-                   -- Note [Representable built-in functions over polymorphic built-in types].
+    | BiconstPair  -- A safe version of 'Comma' as discussed in Note [Representable built-in
+                   -- functions over polymorphic built-in types].
     | Swap  -- For checking that permuting type arguments of a polymorphic built-in works correctly.
     | SwapEls  -- For checking that nesting polymorphic built-in types and instantiating them with
                -- a mix of monomorphic types and type variables works correctly.

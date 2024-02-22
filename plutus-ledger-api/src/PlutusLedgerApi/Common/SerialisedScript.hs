@@ -196,7 +196,7 @@ scriptCBORDecoder ::
   MajorProtocolVersion ->
   CBOR.Decoder s ScriptNamedDeBruijn
 scriptCBORDecoder lv pv =
-  -- See Note [New builtins and protocol versions]
+  -- See Note [New builtins/language versions and protocol versions]
   let availableBuiltins = builtinsAvailableIn lv pv
       flatDecoder = UPLC.decodeProgram checkBuiltin
       -- TODO: optimize this by using a better datastructure e.g. 'IntSet'

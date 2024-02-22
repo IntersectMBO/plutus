@@ -115,7 +115,7 @@ for comparison.
 -- costed cheaply).
 {-# INLINABLE scriptContextEqualityData #-}
 scriptContextEqualityData :: ScriptContext -> PlutusTx.BuiltinData -> ()
--- See note [Redundant arguments to equality benchmarks]
+-- See Note [Redundant arguments to equality benchmarks]
 scriptContextEqualityData _ d =
   if PlutusTx.equalsData d d
   then ()
@@ -133,7 +133,7 @@ mkScriptContextEqualityDataCode sc =
 -- functions. This can be quite expensive for a large structure!
 {-# INLINABLE scriptContextEqualityTerm #-}
 scriptContextEqualityTerm :: ScriptContext -> PlutusTx.BuiltinData -> ()
--- See note [Redundant arguments to equality benchmarks]
+-- See Note [Redundant arguments to equality benchmarks]
 scriptContextEqualityTerm sc _ =
   if sc PlutusTx.== sc
   then ()
@@ -147,7 +147,7 @@ mkScriptContextEqualityTermCode sc =
     `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef d
 
 -- This example is just the overhead from the previous two
--- See note [Redundant arguments to equality benchmarks]
+-- See Note [Redundant arguments to equality benchmarks]
 {-# INLINABLE scriptContextEqualityOverhead #-}
 scriptContextEqualityOverhead :: ScriptContext -> PlutusTx.BuiltinData -> ()
 scriptContextEqualityOverhead _ _ = ()

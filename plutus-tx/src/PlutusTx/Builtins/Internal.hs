@@ -526,7 +526,7 @@ serialiseData (BuiltinData b) = BuiltinByteString $ BSL.toStrict $ serialise b
 BLS12_381
 -}
 
-{- | Note [Wrapping the BLS12-381 types in PlutusTx]
+{- Note [Wrapping the BLS12-381 types in PlutusTx]
 
 As explained in Note [Wrapping the BLS12-381 types in Plutus Core], the types
 exported by the Haskell bindings for the `blst` library are ForeignPtrs which

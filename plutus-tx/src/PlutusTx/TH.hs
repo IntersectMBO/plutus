@@ -20,7 +20,7 @@ import Prelude
 
 -- | Compile a quoted Haskell expression into a corresponding Plutus Core program.
 compile :: TH.SpliceQ a -> TH.SpliceQ (CompiledCode a)
--- See note [Typed TH]
+-- See Note [Typed TH]
 compile e = TH.unsafeSpliceCoerce $ compileUntyped $ TH.unType <$> TH.examineSplice e
 
 -- | Load a 'CompiledCode' from a file. Drop-in replacement for 'compile'.
@@ -49,5 +49,5 @@ compileUntyped e = do
     TH.addCorePlugin "PlutusTx.Plugin"
     loc <- TH.location
     let locStr = TH.pprint loc
-    -- See note [Typed TH]
+    -- See Note [Typed TH]
     [| plc (Proxy :: Proxy $(TH.litT $ TH.strTyLit locStr)) $(e) |]

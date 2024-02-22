@@ -149,7 +149,7 @@ However, for simplicity we always act as though we have a local scope, and fall 
 but in the Lift case we will never populate the local scope.
 -}
 
--- | A scope for type variables. See note [Type variables].
+-- | A scope for type variables. See Note [Type variables].
 type LocalVars uni = Map.Map TH.Name (Type TyName uni ())
 type THLocalVars = Set.Set TH.Name
 
@@ -277,7 +277,7 @@ compileType = \case
         t2' <- compileType t2
         pure . TH.examineSplice $ [|| CompileTypeScope (TyApp () <$> unCompileTypeScope ($$(TH.liftSplice t1')) <*> unCompileTypeScope ($$(TH.liftSplice t2'))) ||]
     t@(TH.ConT name) -> compileTypeableType t name
-    -- See note [Type variables]
+    -- See Note [Type variables]
     t@(TH.VarT name) -> do
         isLocal <- asks (Set.member name)
         if isLocal

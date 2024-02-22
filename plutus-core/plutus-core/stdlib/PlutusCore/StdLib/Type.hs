@@ -284,12 +284,13 @@ Read next: Note [Denormalization]
 -}
 
 {- Note [Denormalization]
-Originally, we were binding 'withSpine' and 'patN' (taken from the end of
-Note [Packing n-ary functors]) on the Plutus Core side and this resulted in huge unreadable types
-being produced. Now we bind 'withSpine', 'patN' and what 'withSpine' receives on the Haskell side,
-i.e. we use Haskell lambdas to bind variables and regular function application to eliminate those
-lambdas which allows us to defer type reduction business to Haskell.
-Here is how the definition of 'list' looks like:
+Originally, we were binding 'withSpine' and 'patN' (taken from the end of Note
+[Packing n-ary pattern functors semantically]) on the Plutus Core side and this
+resulted in huge unreadable types being produced. Now we bind 'withSpine',
+'patN' and what 'withSpine' receives on the Haskell side, i.e. we use Haskell
+lambdas to bind variables and regular function application to eliminate those
+lambdas which allows us to defer type reduction business to Haskell.  Here is
+how the definition of 'list' looks like:
 
     \(a :: *) -> ifix
         (\(rec :: ((* -> *) -> *) -> *) -> \(spine :: (* -> *) -> *) ->

@@ -23,7 +23,7 @@ import Control.Monad.Writer
 import Test.Tasty
 import Test.Tasty.HUnit
 
-{- NOTE [Direct UPLC code]
+{- Note [Direct UPLC code]
 For this test-suite we write the programs directly in the UPLC AST,
 bypassing the GHC typechecker & compiler, the PIR typechecker & compiler and the PLC typechecker.
 The reason is that users can submit such hand-crafted code, and we want to test how it behaves.

@@ -142,12 +142,13 @@ n >: k =
 {- | The meanings of the builtins.  Each one takes a number of arguments and
    returns a result without doing any other work.  A builtin can process its
    arguments in several different ways (see Note [How to add a built-in
-   function]), and these have different costs.  We measure all of these here to
-   facilitate exploration of their different contributions to execution costs
-   (which may change if there are changes in the builtin machinery in future).
-   Most of the builtins take Integers since we can easily change the sizes of
-   these to check that the size doesn't influence the cost; we also have some
-   nops over Bool to check that the type doesn't influence the cost either.
+   function: simple cases] etc.), and these have different costs.  We measure
+   all of these here to facilitate exploration of their different contributions
+   to execution costs (which may change if there are changes in the builtin
+   machinery in future).  Most of the builtins take Integers since we can easily
+   change the sizes of these to check that the size doesn't influence the cost;
+   we also have some nops over Bool to check that the type doesn't influence the
+   cost either.
 -}
 instance uni ~ DefaultUni => ToBuiltinMeaning uni NopFun where
     type CostingPart uni NopFun = NopCostModel

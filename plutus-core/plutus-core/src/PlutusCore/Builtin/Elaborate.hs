@@ -109,7 +109,6 @@ type family ThrowNoAppliedVars hole where
         ':$$: 'Text "Internal error: the context is not recognized. Please report"
         )
 
--- See Note [Elaboration of higher-kinded type variables].
 -- | Check that the higher-kinded type does not represent a PLC type variable and if it does.
 type CheckNotAppliedVar :: forall k. (GHC.Type -> GHC.Type) -> k -> GHC.Constraint
 type family CheckNotAppliedVar hole a where

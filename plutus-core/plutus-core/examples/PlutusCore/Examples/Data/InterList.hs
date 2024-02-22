@@ -17,7 +17,7 @@ import PlutusCore.StdLib.Data.Function
 import PlutusCore.StdLib.Data.Unit
 import PlutusCore.StdLib.Type
 
-{- Note [InterList]
+{- Note [Example: InterList]
 We encode the following in this module:
 
     open import Function

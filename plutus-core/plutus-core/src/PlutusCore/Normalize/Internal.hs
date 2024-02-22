@@ -26,7 +26,7 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Universe
 
-{- Note [Global uniqueness]
+{- Note [Global uniqueness in the normalizer]
 WARNING: everything in this module works under the assumption that the global uniqueness condition
 is satisfied. The invariant is not checked, enforced or automatically fulfilled. So you must ensure
 that the global uniqueness condition is satisfied before calling ANY function from this module.
@@ -81,7 +81,7 @@ separated from implementation-specific details. (This used to be more important 
 to deal with gas, and could maybe be changed now.)
 -}
 
--- See Note [NormalizedTypeT].
+-- See Note [NormalizeTypeT].
 -- | The monad transformer that type normalization runs in.
 newtype NormalizeTypeT m tyname uni ann a = NormalizeTypeT
   { unNormalizeTypeT :: ReaderT (NormalizeTypeEnv tyname uni ann) m a

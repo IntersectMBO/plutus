@@ -8,11 +8,9 @@
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
 
--- | Flat instances for Plutus Core types. Make sure to read the
--- Note [Stable encoding of PLC] before touching anything in this
--- file.  Also see the Notes [Serialising unit annotations] and
--- [Serialising Scripts] before using anything in this file.
-
+-- | Flat instances for Plutus Core types. Make sure to read Note [Stable
+-- encoding of TPLC] and Note [Stable encoding of UPLC] before touching anything
+-- in this file.
 module PlutusCore.Flat
     ( AsSerialize (..)
     , safeEncodeBits
@@ -31,7 +29,7 @@ import Flat.Encoder
 import PlutusPrelude
 import Universe
 
-{- Note [Stable encoding of PLC]
+{- Note [Stable encoding of TPLC]
 READ THIS BEFORE TOUCHING ANYTHING IN THIS FILE
 
 We need the encoding of PLC on the blockchain to be *extremely* stable. It *must not* change
@@ -52,7 +50,7 @@ However, having this flexibility allows us to encode e.g. PLC with substantial a
 for testing.
 -}
 
-{- Note [Encoding/decoding constructor tags using Flat]
+{- Note [Encoding/decoding TPLC constructor tags using Flat]
 Flat saves space when compared to CBOR by allowing tags to use the minimum
 number of bits required for their encoding.
 
@@ -385,7 +383,7 @@ deriving newtype instance Flat (Binder NamedTyDeBruijn)
 {- This instance is going via Flat DeBruijn.
 FakeNamedDeBruijn <-> DeBruijn are isomorphic: we could use iso-deriving package,
 but we do not need any other isomorphic Flat deriving for the moment.
-See NOTE: [Why newtype FakeNamedDeBruijn]
+See Note [Why newtype FakeNamedDeBruijn]
 -}
 instance Flat FakeNamedDeBruijn where
     size = size . fromFake
@@ -397,7 +395,7 @@ Binder FakeNamedDeBruijn <-> Binder DeBruijn are isomorphic because
 FakeNamedDeBruijn <-> DeBruijn are isomorphic and Binder is a functor:
 we could use iso-deriving package,
 but  we do not need any other isomorphic Flat deriving for the moment.
-See NOTE: [Why newtype FakeNamedDeBruijn]
+See Note [Why newtype FakeNamedDeBruijn]
 NOTE: the serialization roundtrip holds iff the invariant binder.index==0 holds
 -}
 instance Flat (Binder FakeNamedDeBruijn) where

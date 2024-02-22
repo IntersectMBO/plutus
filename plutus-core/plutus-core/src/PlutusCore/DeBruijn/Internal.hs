@@ -67,7 +67,7 @@ import Control.DeepSeq (NFData)
 import Data.Coerce
 import GHC.Generics
 
-{- NOTE: [Why newtype FakeNamedDeBruijn]
+{- Note [Why newtype FakeNamedDeBruijn]
 We use a newtype wrapper to optimize away the expensive re-traversing of the deserialized Term
 for adding fake names everywhere --- the CEK works on names, but the scripts on ledger
 don't have names for size reduction.
@@ -121,7 +121,7 @@ data NamedDeBruijn = NamedDeBruijn {ndbnString :: !T.Text, ndbnIndex :: !Index}
 We do not export the `FakeNamedDeBruijn` constructor: the projection `FND->ND` is safe
 but injection `ND->FND` is unsafe, thus they are not isomorphic.
 
-See NOTE: [Why newtype FakeNamedDeBruijn]
+See Note [Why newtype FakeNamedDeBruijn]
 -}
 newtype FakeNamedDeBruijn = FakeNamedDeBruijn { unFakeNamedDeBruijn :: NamedDeBruijn }
   deriving newtype (Show, Eq, Hashable, NFData, PrettyBy config)
@@ -241,7 +241,7 @@ declareUnique n =
 {- | Declares a new binder by assigning a fresh unique to the *current level*.
 Maintains invariant-B of 'LevelInfo' (that only positive levels are stored),
 since current level is always positive (invariant-A).
-See NOTE: [DeBruijn indices of Binders]
+See Note [DeBruijn indices of Binders]
 -}
 declareBinder :: (MonadReader LevelInfo m, MonadQuote m) => m a -> m a
 declareBinder act = do

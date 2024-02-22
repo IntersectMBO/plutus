@@ -34,7 +34,7 @@ import Data.Proxy (Proxy (..))
 import Flat
 import Prettyprinter
 
-{- | Note [Wrapping the BLS12-381 types in Plutus Core].  In the Haskell bindings
+{- Note [Wrapping the BLS12-381 types in Plutus Core].  In the Haskell bindings
 to the `blst` library in cardano-crypto-class, points in G1 and G2 are
 represented as ForeignPtrs pointing to C objects, with a phantom type
 determining which group is involved. We have to wrap these in a newtype here
@@ -114,7 +114,7 @@ compress = coerce BlstBindings.blsCompress
 uncompress :: ByteString -> Either BlstBindings.BLSTError Element
 uncompress = coerce BlstBindings.blsUncompress
 
-{- | Note [Hashing and Domain Separation Tags].  The hashToGroup functions take a
+{-  Note [Hashing and Domain Separation Tags].  The hashToGroup functions take a
    bytestring and hash it to obtain an element in the relevant group, as
    described in
 
