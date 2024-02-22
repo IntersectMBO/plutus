@@ -171,8 +171,8 @@ See Note [Inlining and global uniqueness]
 inline ::
   forall name uni fun m a.
   (ExternalConstraints name uni fun m) =>
+  -- | inline constants
   Bool ->
-  -- ^ inline constants
   InlineHints name a ->
   Term name uni fun a ->
   m (Term name uni fun a)
