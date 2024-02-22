@@ -370,8 +370,8 @@ effectSafe body n purity = do
 See Note [Inlining approach and 'Secrets of the GHC Inliner']
 -}
 acceptable ::
+  -- | inline constants
   Bool ->
-  -- ^ inline constants
   Term name uni fun a ->
   InlineM name uni fun a Bool
 acceptable inlineConstants t =
@@ -406,8 +406,8 @@ costIsAcceptable = \case
 the given term acceptable?
 -}
 sizeIsAcceptable ::
+  -- | inline constants
   Bool ->
-  -- ^ inline constants
   Term name uni fun a ->
   Bool
 sizeIsAcceptable inlineConstants = \case
