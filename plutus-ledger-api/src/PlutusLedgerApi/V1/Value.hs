@@ -354,24 +354,40 @@ flattenValue v = goOuter [] (Map.toList $ getValue v)
 isZero :: Value -> Bool
 isZero (Value xs) = Map.all (Map.all (\i -> 0 == i)) xs
 
+{-# INLINABLE checkPred #-}
+checkPred :: (These Integer Integer -> Bool) -> Value -> Value -> Bool
+checkPred f l r =
+    let
+      inner :: Map.Map TokenName (These Integer Integer) -> Bool
+      inner = Map.all f
+    in
+      Map.all inner (unionVal l r)
+
+{-# INLINABLE checkBinRel #-}
+-- | Check whether a binary relation holds for value pairs of two 'Value' maps,
+--   supplying 0 where a key is only present in one of them.
+checkBinRel :: (Integer -> Integer -> Bool) -> Value -> Value -> Bool
+checkBinRel f l r =
+    let
+        unThese k' = case k' of
+            This a    -> f a 0
+            That b    -> f 0 b
+            These a b -> f a b
+    in checkPred unThese l r
+
 {-# INLINABLE geq #-}
 -- | Check whether one 'Value' is greater than or equal to another. See 'Value' for an explanation
 -- of how operations on 'Value's work.
 geq :: Value -> Value -> Bool
-geq l (Value r) =
-  -- This is more efficient than first flattening the second `Value` with `flattenValue`, because
-  -- the latter traverses the second `Value` and creates the entire intermediate result.
-  all
-    ( \(currency, tokens) ->
-        all (\(token, n) -> valueOf l currency token >= n) (Map.toList tokens)
-    )
-    (Map.toList r)
+-- If both are zero then checkBinRel will be vacuously true, but this is fine.
+geq = checkBinRel (>=)
 
 {-# INLINABLE leq #-}
 -- | Check whether one 'Value' is less than or equal to another. See 'Value' for an explanation of
 -- how operations on 'Value's work.
 leq :: Value -> Value -> Bool
-leq = flip geq
+-- If both are zero then checkBinRel will be vacuously true, but this is fine.
+leq = checkBinRel (<=)
 
 {-# INLINABLE gt #-}
 -- | Check whether one 'Value' is strictly greater than another.
