@@ -31,6 +31,7 @@ import Control.Lens.TH
 import Control.Monad
 import Data.List
 import Data.Typeable
+import UntypedPlutusCore.Transform.ForceApply (forceApply)
 
 data SimplifyOpts name a = SimplifyOpts
     { _soMaxSimplifierIterations :: Int
@@ -84,6 +85,7 @@ simplifyTerm opts =
     simplifyStep _ =
         floatDelay
             >=> pure . forceDelayCancel
+            >=> pure . forceApply
             >=> pure . caseOfCase'
             >=> pure . caseReduce
             >=> inline (_soInlineConstants opts) (_soInlineHints opts)

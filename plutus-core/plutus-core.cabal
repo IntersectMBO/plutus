@@ -260,6 +260,7 @@ library
     UntypedPlutusCore.Transform.CaseReduce
     UntypedPlutusCore.Transform.Cse
     UntypedPlutusCore.Transform.FloatDelay
+    UntypedPlutusCore.Transform.ForceApply
     UntypedPlutusCore.Transform.ForceDelay
     UntypedPlutusCore.Transform.Inline
 
