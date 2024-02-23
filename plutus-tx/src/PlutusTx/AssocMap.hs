@@ -156,6 +156,8 @@ fromList :: [(k, v)] -> Map k v
 fromList = Map
 
 {-# INLINEABLE fromListSafe #-}
+-- | In case of duplicates, this function will keep only one entry (the one that precedes).
+-- In other words, this function de-duplicates the input list.
 fromListSafe :: Eq k => [(k, v)] -> Map k v
 fromListSafe = foldr (uncurry insert) empty
 
@@ -181,6 +183,7 @@ member :: forall k v. (Eq k) => k -> Map k v -> Bool
 member k m = isJust (lookup k m)
 
 {-# INLINEABLE insert #-}
+-- | If a key already exists in the map, its entry will be replaced with the new value.
 insert :: forall k v. (Eq k) => k -> v -> Map k v -> Map k v
 insert k v (Map xs) = Map (go xs)
   where
