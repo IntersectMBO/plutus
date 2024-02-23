@@ -12,6 +12,7 @@ import UntypedPlutusCore
 
 import Control.Lens ((&), (.~))
 import Data.ByteString.Lazy qualified as BSL
+import Data.Text (Text)
 import Data.Text.Encoding (encodeUtf8)
 import Test.Tasty
 import Test.Tasty.Golden
@@ -240,6 +241,26 @@ forceApply = runQuote $ do
       app = Apply () (Force () (Apply () (Force () (Apply () (Force () t) one)) two)) three
   pure app
 
+-- | The UPLC term in this test should come from the following TPLC term after erasing its types:
+-- @ (/\(p :: *) -> \(x : p) -> /\(q :: *) -> \(y1 : q) (y2 : String) (y3 : String) -> /\(r :: *) -> \(z : r) -> z) Int 1 Int 2 "foo" "bar" Int 3 @
+-- Note that compared to the 'forceApply' test above, this term has multiple term applications nested inside a single
+-- type abstraction/instantiation.
+forceMultipleApply :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+forceMultipleApply = runQuote $ do
+  x <- freshName "x"
+  y1 <- freshName "y1"
+  y2 <- freshName "y2"
+  y3 <- freshName "y3"
+  z <- freshName "z"
+  let one = mkConstant @Integer () 1
+      two = mkConstant @Integer () 2
+      three = mkConstant @Integer () 3
+      foo = mkConstant @Text () "foo"
+      bar = mkConstant @Text () "bar"
+      t = Delay () (LamAbs () x (Delay () (LamAbs () y1 (LamAbs () y2 (LamAbs () y3 (Delay () (LamAbs () z (Var () z))))))))
+      app = Apply () (Force () (Apply () (Apply () (Apply () (Force () (Apply () (Force () t) one)) two) foo) bar)) three
+  pure app
+
 -- | This is the first example in Note [CSE].
 cse1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 cse1 = runQuote $ do
@@ -355,6 +376,7 @@ test_simplify =
     , goldenVsSimplified "inlineImpure4" inlineImpure4
     , goldenVsSimplified "multiApp" multiApp
     , goldenVsSimplified "forceApply" forceApply
+    , goldenVsSimplified "forceMultipleApply" forceMultipleApply
     , goldenVsCse "cse1" cse1
     , goldenVsCse "cse2" cse2
     , goldenVsCse "cse3" cse3
