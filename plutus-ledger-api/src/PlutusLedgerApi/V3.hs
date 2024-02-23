@@ -93,7 +93,7 @@ module PlutusLedgerApi.V3 (
   TxInfo (..),
   V2.TxOut (..),
   TxOutRef (..),
-  V2.TxInInfo (..),
+  TxInInfo (..),
   V2.OutputDatum (..),
 
   -- *** Intervals
