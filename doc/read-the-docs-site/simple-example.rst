@@ -7,7 +7,7 @@ Plutus script for an auction smart contract
 -------------------------------------------------
 
 .. caution:: 
-   This conceptual guide to an auction smart contract in Plutus introduces fundamentals for educational use. However, it is not optimized for security or efficiency and should not be deployed in production environments. This example simplifies some security aspects, leading to potential vulnerabilities. For detailed insights on developing secure smart contracts, please refer to the `Cardano Plutus Script Volnerability Guide <https://library.mlabs.city/common-plutus-security-vulnerabilities>`_ by MLabs. 
+   This conceptual guide to an auction smart contract in Plutus introduces fundamentals for educational use. However, it is not optimized for security or efficiency and should not be deployed in production environments. This example simplifies some security aspects, leading to potential vulnerabilities. For detailed insights on developing secure smart contracts, please refer to the `Cardano Plutus Script Vulnerability Guide <https://library.mlabs.city/common-plutus-security-vulnerabilities>`_ by MLabs. 
 
 Overview
 ~~~~~~~~~~~~
