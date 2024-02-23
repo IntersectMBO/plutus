@@ -226,6 +226,20 @@ multiApp = runQuote $ do
       app = mkIterAppNoAnn lam [mkConstant @Integer () 1, mkConstant @Integer () 2, mkConstant @Integer () 3]
   pure app
 
+-- | The UPLC term in this test should come from the following TPLC term after erasing its types:
+-- @ (/\(p :: *) -> \(x : p) -> /\(q :: *) -> \(y : q) -> /\(r :: *) -> \(z : r) -> z) Int 1 Int 2 Int 3 @
+forceApply :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+forceApply = runQuote $ do
+  x <- freshName "x"
+  y <- freshName "y"
+  z <- freshName "z"
+  let one = mkConstant @Integer () 1
+      two = mkConstant @Integer () 2
+      three = mkConstant @Integer () 3
+      t = Delay () (LamAbs () x (Delay () (LamAbs () y (Delay () (LamAbs () z (Var () z))))))
+      app = Apply () (Force () (Apply () (Force () (Apply () (Force () t) one)) two)) three
+  pure app
+
 -- | This is the first example in Note [CSE].
 cse1 :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 cse1 = runQuote $ do
@@ -340,6 +354,7 @@ test_simplify =
     , goldenVsSimplified "inlineImpure3" inlineImpure3
     , goldenVsSimplified "inlineImpure4" inlineImpure4
     , goldenVsSimplified "multiApp" multiApp
+    , goldenVsSimplified "forceApply" forceApply
     , goldenVsCse "cse1" cse1
     , goldenVsCse "cse2" cse2
     , goldenVsCse "cse3" cse3
