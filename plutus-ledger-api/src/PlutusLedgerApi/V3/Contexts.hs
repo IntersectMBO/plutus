@@ -12,7 +12,42 @@
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-strictness #-}
 
-module PlutusLedgerApi.V3.Contexts where
+module PlutusLedgerApi.V3.Contexts
+  ( ColdCommitteeCredential (..)
+  , HotCommitteeCredential (..)
+  , DRepCredential (..)
+  , DRep (..)
+  , Delegatee (..)
+  , TxCert (..)
+  , Voter (..)
+  , Vote (..)
+  , GovernanceActionId (..)
+  , Committee (..)
+  , Constitution (..)
+  , ProtocolVersion (..)
+  , ChangedParameters (..)
+  , GovernanceAction (..)
+  , ProposalProcedure (..)
+  , ScriptPurpose (..)
+  , TxInInfo (..)
+  , TxInfo (..)
+  , ScriptContext (..)
+  , findOwnInput
+  , findDatum
+  , findDatumHash
+  , findTxInByTxOutRef
+  , findContinuingOutputs
+  , getContinuingOutputs
+  , txSignedBy
+
+    -- * Validator functions
+  , pubKeyOutputsAt
+  , valuePaidTo
+  , valueSpent
+  , valueProduced
+  , ownCurrencySymbol
+  , spendsOutput
+  ) where
 
 import GHC.Generics (Generic)
 import Prettyprinter (nest, vsep, (<+>))
