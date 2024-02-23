@@ -178,7 +178,7 @@ instance PlutusTx.Eq Vote where
 
 -- | Similar to TxOutRef, but for GovActions
 data GovernanceActionId = GovernanceActionId
-  { gaidTxId        :: V2.TxId
+  { gaidTxId        :: V3.TxId
   , gaidGovActionIx :: Haskell.Integer
   }
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
