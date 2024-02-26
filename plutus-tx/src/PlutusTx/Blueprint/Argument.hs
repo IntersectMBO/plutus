@@ -15,6 +15,7 @@ import Data.Text (Text)
 import PlutusTx.Blueprint.Purpose (Purpose)
 import PlutusTx.Blueprint.Schema (Schema)
 
+-- | Blueprint that defines a validator's runtime argument: datum or redeemer.
 data ArgumentBlueprint = MkArgumentBlueprint
   { argumentTitle       :: Maybe Text
   -- ^ A short and descriptive name for the redeemer or datum.
@@ -23,8 +24,7 @@ data ArgumentBlueprint = MkArgumentBlueprint
   , argumentPurpose     :: Set Purpose
   -- ^ A possibly empty set of purposes for the redeemer or datum.
   , argumentSchema      :: Schema
-  -- ^ A Plutus Data Schema using the core vocabulary defined below,
-  -- or a oneOf applicator of Plutus Data Schemas
+  -- ^ A Plutus Data Schema.
   }
   deriving stock (Show)
 

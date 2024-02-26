@@ -15,6 +15,7 @@ import Data.Text (Text)
 import PlutusTx.Blueprint.Purpose (Purpose)
 import PlutusTx.Blueprint.Schema (Schema)
 
+-- | Blueprint that defines validator's compile-time parameter.
 data ParameterBlueprint = MkParameterBlueprint
   { parameterTitle       :: Maybe Text
   -- ^ A short and descriptive name for the parameter.
@@ -23,8 +24,7 @@ data ParameterBlueprint = MkParameterBlueprint
   , parameterPurpose     :: Set Purpose
   -- ^ One of "spend", "mint", "withdraw" or "publish", or a oneOf applicator of those.
   , parameterSchema      :: Schema
-  -- ^ A Plutus Data Schema using the core vocabulary defined below,
-  -- or a oneOf applicator of Plutus Data Schemas
+  -- ^ A Plutus Data Schema.
   }
   deriving stock (Show)
 
