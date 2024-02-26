@@ -228,7 +228,7 @@ instance ToJSON Schema where
       Aeson.object
         $ catMaybes
           [ Just ("dataType" .= ("constructor" :: String))
-          , Just $ "constructor" .= index
+          , Just $ "index" .= index
           , case fieldSchemas of
               [] -> Nothing
               xs -> Just $ "fields" .= xs

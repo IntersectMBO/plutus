@@ -68,24 +68,23 @@
       "oneOf": [
         {
           "$comment": "DatumLeft",
-          "constructor": 0,
-          "dataType": "constructor"
+          "dataType": "constructor",
+          "index": 0
         },
         {
           "$comment": "DatumRight",
-          "constructor": 1,
           "dataType": "constructor",
           "fields": [
             {
               "$ref": "#/definitions/DatumPayload"
             }
-          ]
+          ],
+          "index": 1
         }
       ]
     },
     "DatumPayload": {
       "$comment": "MkDatumPayload",
-      "constructor": 0,
       "dataType": "constructor",
       "fields": [
         {
@@ -94,14 +93,14 @@
         {
           "$ref": "#/definitions/Bytes"
         }
-      ]
+      ],
+      "index": 0
     },
     "Integer": {
       "dataType": "integer"
     },
     "Params": {
       "$comment": "MkParams",
-      "constructor": 0,
       "dataType": "constructor",
       "fields": [
         {
@@ -113,7 +112,8 @@
         {
           "$ref": "#/definitions/BuiltinByteString"
         }
-      ]
+      ],
+      "index": 0
     }
   }
 }
