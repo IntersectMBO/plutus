@@ -10,6 +10,7 @@
 {-# LANGUAGE TypeApplications          #-}
 {-# LANGUAGE TypeFamilies              #-}
 {-# LANGUAGE TypeOperators             #-}
+{-# LANGUAGE UnboxedTuples             #-}
 {-# LANGUAGE UndecidableInstances      #-}
 
 {-# LANGUAGE StrictData                #-}
@@ -35,7 +36,7 @@ import Data.Array
 import Data.Kind qualified as GHC
 import Data.Proxy
 import Data.Some.GADT
-import GHC.Exts (inline, lazy, oneShot)
+import GHC.Exts (inline, oneShot)
 import GHC.TypeLits
 
 -- | Turn a list of Haskell types @args@ into a functional type ending in @res@.
@@ -64,7 +65,7 @@ data BuiltinMeaning val cost =
     forall args res. BuiltinMeaning
         (TypeScheme val args res)
         ~(FoldArgs args res)
-        (cost -> BuiltinRuntime val)
+        (cost -> (# BuiltinRuntime val #))
 
 -- | Constraints available when defining a built-in function.
 type HasMeaningIn uni val = (Typeable val, ExMemoryUsage val, HasConstantIn uni val)
@@ -380,13 +381,13 @@ instance
             -- Those thunks however require a lot of care to be properly shared rather than
             -- recreated every time a builtin application is evaluated, see 'toBuiltinsRuntime' for
             -- how we sort it out.
-            lazy $ case toExF cost of
+            (# case toExF cost of
                 -- See Note [Optimizations of runCostingFun*] for why we use strict @case@.
-                !exF -> toPolyF @binds @val @args @res $ pure (f, exF)
+                !exF -> toPolyF @binds @val @args @res $ pure (f, exF) #)
     {-# INLINE makeBuiltinMeaning #-}
 
 -- | Convert a 'BuiltinMeaning' to a 'BuiltinRuntime' given a cost model.
-toBuiltinRuntime :: cost -> BuiltinMeaning val cost -> BuiltinRuntime val
+toBuiltinRuntime :: cost -> BuiltinMeaning val cost -> (# BuiltinRuntime val #)
 toBuiltinRuntime cost (BuiltinMeaning _ _ denot) = denot cost
 {-# INLINE toBuiltinRuntime #-}
 
@@ -399,7 +400,8 @@ toBuiltinsRuntime
     -> cost
     -> BuiltinsRuntime fun val
 toBuiltinsRuntime semvar cost =
-    let runtime = BuiltinsRuntime $ toBuiltinRuntime cost . inline toBuiltinMeaning semvar
+    let runtime = BuiltinsRuntime $ \fun ->
+            toBuiltinRuntime cost $ inline toBuiltinMeaning semvar fun
         -- This pragma is very important, removing it destroys the carefully set up optimizations of
         -- of costing functions (see Note [Optimizations of runCostingFun*]). The reason for that is
         -- that if @runtime@ doesn't have a pragma, then GHC sees that it's only referenced once and

@@ -1,6 +1,8 @@
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE BangPatterns  #-}
+{-# LANGUAGE LambdaCase    #-}
+{-# LANGUAGE UnboxedTuples #-}
 
-{-# LANGUAGE StrictData #-}
+{-# LANGUAGE StrictData    #-}
 
 module PlutusCore.Builtin.Runtime where
 
@@ -10,6 +12,7 @@ import PlutusCore.Builtin.KnownType
 import PlutusCore.Evaluation.Machine.ExBudgetStream
 
 import Control.DeepSeq
+import GHC.Magic (noinline)
 import NoThunks.Class
 
 -- | A 'BuiltinRuntime' represents a possibly partial builtin application, including an empty
@@ -64,21 +67,23 @@ instance NFData (BuiltinRuntime val) where
 -- In order for lookups to be efficient the 'BuiltinRuntime's need to be cached, i.e. pulled out
 -- of the function statically. See 'makeBuiltinMeaning' for how we achieve that.
 data BuiltinsRuntime fun val = BuiltinsRuntime
-    { unBuiltinsRuntime :: fun -> BuiltinRuntime val
+    { unBuiltinsRuntime :: fun -> (# BuiltinRuntime val #)
     }
 
 instance (Bounded fun, Enum fun) => NFData (BuiltinsRuntime fun val) where
     -- Force every 'BuiltinRuntime' stored in the environment.
-    rnf (BuiltinsRuntime env) = foldr (\fun res -> env fun `seq` res) () enumerate
+    rnf (BuiltinsRuntime env) =
+        foldr (\fun res -> case noinline env fun of (# runtime #) -> runtime `seq` res) () enumerate
 
 instance (Bounded fun, Enum fun) => NoThunks (BuiltinsRuntime fun val) where
     -- Ensure that every 'BuiltinRuntime' doesn't contain thunks after forcing it initially
     -- (we can't avoid the initial forcing, because we can't lookup the 'BuiltinRuntime' without
     -- forcing it, see https://stackoverflow.com/q/63441862).
-    wNoThunks ctx (BuiltinsRuntime env) = allNoThunks $ map (wNoThunks ctx . env) enumerate
+    wNoThunks ctx (BuiltinsRuntime env) =
+        allNoThunks $ map (\fun -> case env fun of (# runtime #) -> noThunks ctx runtime) enumerate
     showTypeOf = const "PlutusCore.Builtin.Runtime.BuiltinsRuntime"
 
 -- | Look up the runtime info of a built-in function during evaluation.
 lookupBuiltin :: fun -> BuiltinsRuntime fun val -> BuiltinRuntime val
-lookupBuiltin fun (BuiltinsRuntime env) = env fun
+lookupBuiltin fun (BuiltinsRuntime env) = case env fun of (# runtime #) -> runtime
 {-# INLINE lookupBuiltin #-}

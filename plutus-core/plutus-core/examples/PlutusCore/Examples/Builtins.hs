@@ -151,10 +151,10 @@ instance (ToBuiltinMeaning uni fun1, ToBuiltinMeaning uni fun2
         PairV (BuiltinSemanticsVariant fun1) (BuiltinSemanticsVariant fun2)
     toBuiltinMeaning (PairV semvarL _) (Left  fun) = case toBuiltinMeaning semvarL fun of
         BuiltinMeaning tySch toF denot ->
-            BuiltinMeaning tySch toF (denot . fst)
+            BuiltinMeaning tySch toF $ \(cost, _) -> denot cost
     toBuiltinMeaning (PairV _ semvarR) (Right fun) = case toBuiltinMeaning semvarR fun of
         BuiltinMeaning tySch toF denot ->
-            BuiltinMeaning tySch toF (denot . snd)
+            BuiltinMeaning tySch toF $ \(_, cost) -> denot cost
 
 instance (Default (BuiltinSemanticsVariant fun1), Default (BuiltinSemanticsVariant fun2))
          => Default (BuiltinSemanticsVariant (Either fun1 fun2)) where
