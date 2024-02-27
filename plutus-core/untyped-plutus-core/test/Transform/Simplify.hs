@@ -229,8 +229,8 @@ multiApp = runQuote $ do
 
 -- | The UPLC term in this test should come from the following TPLC term after erasing its types:
 -- @ (/\(p :: *) -> \(x : p) -> /\(q :: *) -> \(y : q) -> /\(r :: *) -> \(z : r) -> z) Int 1 Int 2 Int 3 @
-forceApply :: Term Name PLC.DefaultUni PLC.DefaultFun ()
-forceApply = runQuote $ do
+forceApplySimple :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+forceApplySimple = runQuote $ do
   x <- freshName "x"
   y <- freshName "y"
   z <- freshName "z"
@@ -240,6 +240,18 @@ forceApply = runQuote $ do
       t = Delay () (LamAbs () x (Delay () (LamAbs () y (Delay () (LamAbs () z (Var () z))))))
       app = Apply () (Force () (Apply () (Force () (Apply () (Force () t) one)) two)) three
   pure app
+
+forceApplyMulti :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+forceApplyMulti = runQuote $ do
+  x1 <- freshName "x1"
+  x2 <- freshName "x2"
+  x3 <- freshName "x3"
+  f <- freshName "f"
+  let term =
+        Force () $
+          LamAbs () x1 $ LamAbs () x2 $ LamAbs () x3 $ LamAbs () f $
+            Delay () $ mkIterAppNoAnn (Var () f) [Var () x1, Var () x2, Var () x3]
+  pure term
 
 -- | The UPLC term in this test should come from the following TPLC term after erasing its types:
 -- @
@@ -252,10 +264,9 @@ forceApply = runQuote $ do
 -- ) Int Int 1 Int String Int 2 "foo" "bar" Int 3 3 ByteString (funcVar : Int -> Int -> String -> String -> Int -> String)
 --
 -- @
--- Note that compared to the 'forceApply' test above, this term has multiple interleaved type and
--- term instantiations/applications.
-forceMultipleApply :: Term Name PLC.DefaultUni PLC.DefaultFun ()
-forceMultipleApply = runQuote $ do
+-- Note this term has multiple interleaved type and term instantiations/applications.
+forceApplyComplex :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+forceApplyComplex = runQuote $ do
   x <- freshName "x"
   y1 <- freshName "y1"
   y2 <- freshName "y2"
@@ -407,8 +418,9 @@ test_simplify =
     , goldenVsSimplified "inlineImpure3" inlineImpure3
     , goldenVsSimplified "inlineImpure4" inlineImpure4
     , goldenVsSimplified "multiApp" multiApp
-    , goldenVsSimplified "forceApply" forceApply
-    , goldenVsSimplified "forceMultipleApply" forceMultipleApply
+    , goldenVsSimplified "forceApplySimple" forceApplySimple
+    , goldenVsSimplified "forceApplyMulti" forceApplyMulti
+    , goldenVsSimplified "forceApplyComplex" forceApplyComplex
     , goldenVsCse "cse1" cse1
     , goldenVsCse "cse2" cse2
     , goldenVsCse "cse3" cse3
