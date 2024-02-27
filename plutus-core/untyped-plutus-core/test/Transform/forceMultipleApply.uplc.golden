@@ -1,1 +1,1 @@
-(force (delay (\z_9 -> z_9)) 3)
+(force (delay (\z_10 f_11 -> f_11 1 2 "foo" "bar" z_10)) 3)

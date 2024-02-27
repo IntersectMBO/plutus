@@ -242,7 +242,14 @@ forceApply = runQuote $ do
   pure app
 
 -- | The UPLC term in this test should come from the following TPLC term after erasing its types:
--- @ (/\(p :: *) -> \(x : p) -> /\(q :: *) -> \(y1 : q) (y2 : String) (y3 : String) -> /\(r :: *) -> \(z : r) -> z) Int 1 Int 2 "foo" "bar" Int 3 @
+-- @
+--
+-- (/\(p :: *) -> \(x : p) ->
+--   /\(q :: *) -> \(y1 : q) (y2 : String) (y3 : String) ->
+--     /\(r :: *) -> \(z : r) (f : p -> q -> q -> q -> r) -> f x y1 y2 y3 z
+-- ) Int 1 Int 2 "foo" "bar" Int 3
+--
+-- @
 -- Note that compared to the 'forceApply' test above, this term has multiple term applications nested inside a single
 -- type abstraction/instantiation.
 forceMultipleApply :: Term Name PLC.DefaultUni PLC.DefaultFun ()
@@ -252,12 +259,14 @@ forceMultipleApply = runQuote $ do
   y2 <- freshName "y2"
   y3 <- freshName "y3"
   z <- freshName "z"
+  f <- freshName "f"
   let one = mkConstant @Integer () 1
       two = mkConstant @Integer () 2
       three = mkConstant @Integer () 3
       foo = mkConstant @Text () "foo"
       bar = mkConstant @Text () "bar"
-      t = Delay () (LamAbs () x (Delay () (LamAbs () y1 (LamAbs () y2 (LamAbs () y3 (Delay () (LamAbs () z (Var () z))))))))
+      body = mkIterAppNoAnn (Var () f) [Var () x, Var () y1, Var () y2, Var () y3,Var () z]
+      t = Delay () (LamAbs () x (Delay () (LamAbs () y1 (LamAbs () y2 (LamAbs () y3 (Delay () (LamAbs () z (LamAbs () f body))))))))
       app = Apply () (Force () (Apply () (Apply () (Apply () (Force () (Apply () (Force () t) one)) two) foo) bar)) three
   pure app
 
