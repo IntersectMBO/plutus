@@ -15,7 +15,8 @@ forceApply = transformOf termSubterms processTerm
 
 processTerm :: Term name uni fun a -> Term name uni fun a
 processTerm = \case
-    Force _ subTerm -> fromMaybe subTerm (optimisationProcedure subTerm)
+    original@(Force _ subTerm) ->
+        fromMaybe original (optimisationProcedure subTerm)
     t -> t
 
 -- TODO: use NonEmpty
