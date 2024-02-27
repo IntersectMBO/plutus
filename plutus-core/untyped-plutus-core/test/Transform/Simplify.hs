@@ -229,6 +229,7 @@ multiApp = runQuote $ do
 
 -- | The UPLC term in this test should come from the following TPLC term after erasing its types:
 -- @ (/\(p :: *) -> \(x : p) -> /\(q :: *) -> \(y : q) -> /\(r :: *) -> \(z : r) -> z) Int 1 Int 2 Int 3 @
+-- This case is simple in the sense that each type abstraction is followed by a single term abstraction.
 forceApplySimple :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 forceApplySimple = runQuote $ do
   x <- freshName "x"
@@ -241,16 +242,41 @@ forceApplySimple = runQuote $ do
       app = Apply () (Force () (Apply () (Force () (Apply () (Force () t) one)) two)) three
   pure app
 
-forceApplyMulti :: Term Name PLC.DefaultUni PLC.DefaultFun ()
-forceApplyMulti = runQuote $ do
+-- | A test for the case when there are multiple applications between the 'Force' at the top
+-- and the 'Delay' at the top of the term inside the abstractions/applications.
+forceApplyMultiApply :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+forceApplyMultiApply = runQuote $ do
   x1 <- freshName "x1"
   x2 <- freshName "x2"
   x3 <- freshName "x3"
   f <- freshName "f"
-  let term =
+  funcVar <- freshName "funcVar"
+  let one = mkConstant @Integer () 1
+      two = mkConstant @Integer () 2
+      three = mkConstant @Integer () 3
+      term =
         Force () $
-          LamAbs () x1 $ LamAbs () x2 $ LamAbs () x3 $ LamAbs () f $
-            Delay () $ mkIterAppNoAnn (Var () f) [Var () x1, Var () x2, Var () x3]
+          mkIterAppNoAnn
+          ( LamAbs () x1 $ LamAbs () x2 $ LamAbs () x3 $ LamAbs () f $
+              Delay () $ mkIterAppNoAnn (Var () f) [Var () x1, Var () x2, Var () x3]
+          )
+          [one, two, three, Var () funcVar]
+  pure term
+
+-- | A test for the case when there are multiple type abstractions over a single term
+-- abstraction.
+forceApplyMultiForce :: Term Name PLC.DefaultUni PLC.DefaultFun ()
+forceApplyMultiForce = runQuote $ do
+  x <- freshName "x"
+  let one = mkConstant @Integer () 1
+      term =
+        Force () $ Force () $ Force () $
+          Apply ()
+            ( LamAbs () x $
+                Delay () $ Delay () $ Delay () $
+                  Var () x
+            )
+            one
   pure term
 
 -- | The UPLC term in this test should come from the following TPLC term after erasing its types:
@@ -419,7 +445,8 @@ test_simplify =
     , goldenVsSimplified "inlineImpure4" inlineImpure4
     , goldenVsSimplified "multiApp" multiApp
     , goldenVsSimplified "forceApplySimple" forceApplySimple
-    , goldenVsSimplified "forceApplyMulti" forceApplyMulti
+    , goldenVsSimplified "forceApplyMultiApply" forceApplyMultiApply
+    , goldenVsSimplified "forceApplyMultiForce" forceApplyMultiForce
     , goldenVsSimplified "forceApplyComplex" forceApplyComplex
     , goldenVsCse "cse1" cse1
     , goldenVsCse "cse2" cse2
