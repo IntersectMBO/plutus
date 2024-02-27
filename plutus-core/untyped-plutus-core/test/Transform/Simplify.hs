@@ -244,30 +244,53 @@ forceApply = runQuote $ do
 -- | The UPLC term in this test should come from the following TPLC term after erasing its types:
 -- @
 --
--- (/\(p :: *) -> \(x : p) ->
---   /\(q :: *) -> \(y1 : q) (y2 : String) (y3 : String) ->
---     /\(r :: *) -> \(z : r) (f : p -> q -> String -> String -> r -> String) -> f x y1 y2 y3 z
--- ) Int 1 Int 2 "foo" "bar" Int 3
+-- (/\(p1 :: *) (p2 :: *) -> \(x : p2) ->
+--   /\(q1 :: *) (q2 :: *) (q3 :: *) -> \(y1 : q1) (y2 : q2) (y3 : String) ->
+--     /\(r :: *) -> \(z1 : r) -> \(z2 : r) ->
+--       /\(t :: *) -> \(f : p1 -> q1 -> q2 -> String -> r -> r -> String) ->
+--         f x y1 y2 y3 z1 z2
+-- ) Int Int 1 Int String Int 2 "foo" "bar" Int 3 3 ByteString (funcVar : Int -> Int -> String -> String -> Int -> String)
 --
 -- @
--- Note that compared to the 'forceApply' test above, this term has multiple term applications nested inside a single
--- type abstraction/instantiation.
+-- Note that compared to the 'forceApply' test above, this term has multiple interleaved type and
+-- term instantiations/applications.
 forceMultipleApply :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 forceMultipleApply = runQuote $ do
   x <- freshName "x"
   y1 <- freshName "y1"
   y2 <- freshName "y2"
   y3 <- freshName "y3"
-  z <- freshName "z"
+  z1 <- freshName "z1"
+  z2 <- freshName "z2"
   f <- freshName "f"
+  funcVar <- freshName "funcVar"
   let one = mkConstant @Integer () 1
       two = mkConstant @Integer () 2
       three = mkConstant @Integer () 3
       foo = mkConstant @Text () "foo"
       bar = mkConstant @Text () "bar"
-      body = mkIterAppNoAnn (Var () f) [Var () x, Var () y1, Var () y2, Var () y3,Var () z]
-      t = Delay () (LamAbs () x (Delay () (LamAbs () y1 (LamAbs () y2 (LamAbs () y3 (Delay () (LamAbs () z (LamAbs () f body))))))))
-      app = Apply () (Force () (Apply () (Apply () (Apply () (Force () (Apply () (Force () t) one)) two) foo) bar)) three
+      term =
+        Delay () $ Delay () $ LamAbs () x $
+            Delay () $ Delay () $ Delay () $ LamAbs () y1 $ LamAbs () y2 $ LamAbs () y3 $
+              Delay () $ LamAbs () z1 $ LamAbs () z2 $
+                Delay () $ LamAbs () f $
+                  mkIterAppNoAnn (Var () f) [Var () x, Var () y1, Var () y2, Var () y3, Var () z1, Var () z2]
+      app =
+        Apply ()
+          ( Force () $
+              mkIterAppNoAnn
+                ( Force () $
+                  mkIterAppNoAnn
+                    ( Force () $ Force () $ Force () $
+                      Apply ()
+                        (Force () $ Force () term)
+                        one
+                    )
+                    [two, foo, bar]
+                )
+                [three, three]
+          )
+          (Var () funcVar)
   pure app
 
 -- | This is the first example in Note [CSE].
