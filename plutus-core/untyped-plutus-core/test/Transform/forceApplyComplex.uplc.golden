@@ -1,7 +1,1 @@
-(force
-   (force
-      (delay
-         (\z1_12 z2_13 -> delay (\f_14 -> f_14 1 2 "foo" "bar" z1_12 z2_13)))
-      3
-      3)
-   funcVar_7)
+(funcVar_7 1 2 "foo" "bar" 3 3)

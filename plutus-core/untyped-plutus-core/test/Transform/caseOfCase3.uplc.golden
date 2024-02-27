@@ -1,1 +1,1 @@
-(force ifThenElse b_0 (f_3 x_1 xs_2) 2)
+(case (ifThenElse b_0 (constr 0 [x_1, xs_2]) (constr 1 [])) [f_3, 2])

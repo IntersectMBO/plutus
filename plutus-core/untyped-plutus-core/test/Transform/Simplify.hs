@@ -264,7 +264,7 @@ forceApplyMultiApply = runQuote $ do
   pure term
 
 -- | A test for the case when there are multiple type abstractions over a single term
--- abstraction.
+-- abstraction/application.
 forceApplyMultiForce :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 forceApplyMultiForce = runQuote $ do
   x <- freshName "x"
