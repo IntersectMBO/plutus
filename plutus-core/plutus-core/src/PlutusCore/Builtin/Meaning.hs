@@ -31,7 +31,6 @@ import PlutusCore.Evaluation.Machine.ExBudgetStream
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.Name
 
-import Control.DeepSeq
 import Data.Array
 import Data.Kind qualified as GHC
 import Data.Proxy
@@ -418,5 +417,5 @@ toBuiltinsRuntime semvar cost =
         -- Force each 'BuiltinRuntime' to WHNF, so that the thunk is allocated and forced at
         -- initialization time rather than at runtime. Not that we'd lose much by not forcing all
         -- 'BuiltinRuntime's here, but why pay even very little if there's an easy way not to pay.
-        force runtime
+        runtime
 {-# INLINE toBuiltinsRuntime #-}

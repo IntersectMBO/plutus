@@ -1076,9 +1076,11 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
        DefaultFunSemanticsVariant1 etc. do not correspond directly to PlutusV1,
        PlutusV2 etc. in plutus-ledger-api: see Note [Builtin semantics variants]. -}
     data BuiltinSemanticsVariant DefaultFun =
-              DefaultFunSemanticsVariant1
-            | DefaultFunSemanticsVariant2
+        DefaultFunSemanticsVariant0
+      | DefaultFunSemanticsVariant1
+      | DefaultFunSemanticsVariant2
         deriving stock (Enum, Bounded, Show)
+
 
     -- Integers
     toBuiltinMeaning
@@ -1186,25 +1188,28 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             costingFun = runCostingFunTwoArguments . paramConsByteString
             {-# INLINE costingFun #-}
         -- See Note [Builtin semantics variants]
+            originalDenotation =
+              let consByteStringDenotation :: Integer -> BS.ByteString -> BS.ByteString
+                  consByteStringDenotation n xs = BS.cons (fromIntegral n) xs
+                  {-# INLINE consByteStringDenotation #-}
+              in makeBuiltinMeaning
+                 consByteStringDenotation
+                 costingFun
+            newDenotation =
+              let consByteStringDenotation :: Word8 -> BS.ByteString -> BS.ByteString
+                  consByteStringDenotation = BS.cons
+                  {-# INLINE consByteStringDenotation #-}
+              in makeBuiltinMeaning
+                 consByteStringDenotation
+                 costingFun
         in case semvar of
-            DefaultFunSemanticsVariant1 ->
-                let consByteStringDenotation :: Integer -> BS.ByteString -> BS.ByteString
-                    consByteStringDenotation n xs = BS.cons (fromIntegral n) xs
-                    {-# INLINE consByteStringDenotation #-}
-                in makeBuiltinMeaning
-                    consByteStringDenotation
-                    costingFun
-            -- For builtin semantics variants other (i.e. larger) than
+            DefaultFunSemanticsVariant0 -> originalDenotation
+            DefaultFunSemanticsVariant1 -> originalDenotation
+           -- For builtin semantics variants other (i.e. larger) than
             -- DefaultFunSemanticsVariant1, the first input must be in range
             -- [0..255].  See Note [How to add a built-in function: simple
             -- cases]
-            DefaultFunSemanticsVariant2 ->
-                let consByteStringDenotation :: Word8 -> BS.ByteString -> BS.ByteString
-                    consByteStringDenotation = BS.cons
-                    {-# INLINE consByteStringDenotation #-}
-                in makeBuiltinMeaning
-                    consByteStringDenotation
-                    costingFun
+            DefaultFunSemanticsVariant2 -> newDenotation
 
     toBuiltinMeaning _semvar SliceByteString =
         let sliceByteStringDenotation :: Int -> Int -> BS.ByteString -> BS.ByteString
@@ -1287,7 +1292,8 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                 :: BS.ByteString -> BS.ByteString -> BS.ByteString -> BuiltinResult Bool
             verifyEd25519SignatureDenotation =
                 case semvar of
-                  DefaultFunSemanticsVariant1 -> verifyEd25519Signature_V1
+                  DefaultFunSemanticsVariant0 -> verifyEd25519Signature_V1
+                  DefaultFunSemanticsVariant1 -> verifyEd25519Signature_V2
                   DefaultFunSemanticsVariant2 -> verifyEd25519Signature_V2
             {-# INLINE verifyEd25519SignatureDenotation #-}
         in makeBuiltinMeaning

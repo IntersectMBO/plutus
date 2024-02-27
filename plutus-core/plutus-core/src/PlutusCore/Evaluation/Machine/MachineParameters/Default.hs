@@ -57,11 +57,11 @@ inlining).
 -- times.
 mkMachineParametersFor
     :: MonadError CostModelApplyError m
-    => BuiltinSemanticsVariant DefaultFun
+    => (a -> BuiltinSemanticsVariant DefaultFun)
     -> CostModelParams
-    -> m DefaultMachineParameters
-mkMachineParametersFor semvar newCMP =
-    inline mkMachineParameters semvar <$>
+    -> m (a -> DefaultMachineParameters)
+mkMachineParametersFor toSemVar newCMP =
+    (\cost x -> inline mkMachineParameters (toSemVar x) cost) <$>
         applyCostModelParams defaultCekCostModel newCMP
 -- Not marking this function with @INLINE@, since at this point everything we wanted to be inlined
 -- is inlined and there's zero reason to duplicate thousands and thousands of lines of Core down

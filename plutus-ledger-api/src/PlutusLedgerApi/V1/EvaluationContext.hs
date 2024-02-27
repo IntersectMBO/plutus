@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable
 {-# LANGUAGE TypeApplications #-}
 module PlutusLedgerApi.V1.EvaluationContext
     ( EvaluationContext
@@ -9,9 +10,10 @@ module PlutusLedgerApi.V1.EvaluationContext
     ) where
 
 import PlutusLedgerApi.Common
+import PlutusLedgerApi.Common.Versions (conwayPV)
 import PlutusLedgerApi.V1.ParamName as V1
 
-import PlutusCore.Default as Plutus (BuiltinSemanticsVariant (DefaultFunSemanticsVariant1))
+import PlutusCore.Default (BuiltinSemanticsVariant (DefaultFunSemanticsVariant0, DefaultFunSemanticsVariant1))
 
 import Control.Monad
 import Control.Monad.Except
@@ -32,6 +34,10 @@ a protocol update with the updated cost model parameters.
 mkEvaluationContext :: (MonadError CostModelApplyError m, MonadWriter [CostModelApplyWarn] m)
                     => [Integer] -- ^ the (updated) cost model parameters of the protocol
                     -> m EvaluationContext
-mkEvaluationContext = tagWithParamNames @V1.ParamName
-                    >=> pure . toCostModelParams
-                    >=> mkDynEvaluationContext Plutus.DefaultFunSemanticsVariant1
+mkEvaluationContext =
+    tagWithParamNames @V1.ParamName
+    >=> pure . toCostModelParams
+    >=> mkDynEvaluationContext
+        (\pv -> if pv < conwayPV
+            then DefaultFunSemanticsVariant0
+            else DefaultFunSemanticsVariant1)

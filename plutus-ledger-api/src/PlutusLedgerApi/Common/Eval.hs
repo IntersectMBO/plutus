@@ -106,14 +106,14 @@ mkTermToEvaluate ll pv script args = do
     through (liftEither . first DeBruijnError . UPLC.checkScope) appliedT
 
 toMachineParameters :: MajorProtocolVersion -> EvaluationContext -> DefaultMachineParameters
-toMachineParameters _ = machineParameters
+toMachineParameters pv ctx = machineParameters ctx pv
 
 {-| An opaque type that contains all the static parameters that the evaluator needs to evaluate a
 script.  This is so that they can be computed once and cached, rather than being recomputed on every
 evaluation.
 -}
 newtype EvaluationContext = EvaluationContext
-    { machineParameters :: DefaultMachineParameters
+    { machineParameters :: MajorProtocolVersion -> DefaultMachineParameters
     }
     deriving stock Generic
     deriving anyclass (NFData, NoThunks)
@@ -128,11 +128,11 @@ with the updated cost model parameters.
 -}
 mkDynEvaluationContext
     :: MonadError CostModelApplyError m
-    => BuiltinSemanticsVariant DefaultFun
+    => (MajorProtocolVersion -> BuiltinSemanticsVariant DefaultFun)
     -> Plutus.CostModelParams
     -> m EvaluationContext
-mkDynEvaluationContext semvar newCMP =
-    EvaluationContext <$> mkMachineParametersFor semvar newCMP
+mkDynEvaluationContext toSemVar newCMP =
+    EvaluationContext <$> mkMachineParametersFor toSemVar newCMP
 
 -- FIXME: remove this function
 assertWellFormedCostModelParams :: MonadError CostModelApplyError m => Plutus.CostModelParams -> m ()

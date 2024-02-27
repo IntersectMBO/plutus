@@ -75,8 +75,11 @@ ed25519Prop semvar = do
   cover 18 "happy path" . is (_Shouldn'tError . _AllGood) $ testCase
   runTestDataWith semvar testCase id VerifyEd25519Signature
 
+ed25519_Variant0Prop :: PropertyT IO ()
+ed25519_Variant0Prop = ed25519Prop (DefaultFunSemanticsVariant0)
+
 ed25519_Variant1Prop :: PropertyT IO ()
-ed25519_Variant1Prop = ed25519Prop DefaultFunSemanticsVariant1
+ed25519_Variant1Prop = ed25519Prop (DefaultFunSemanticsVariant1)
 
 ed25519_Variant2Prop :: PropertyT IO ()
 ed25519_Variant2Prop = ed25519Prop DefaultFunSemanticsVariant2
