@@ -257,8 +257,8 @@ instance ToJSON Schema where
       Aeson.object
         $ catMaybes
           [ Just $ "dataType" .= ("#pair" :: String)
-          , Just $ "fst" .= schema1
-          , Just $ "snd" .= schema2
+          , Just $ "left" .= schema1
+          , Just $ "right" .= schema2
           , fmap ("title" .=) title
           , fmap ("description" .=) description
           , fmap ("$comment" .=) comment
