@@ -246,7 +246,7 @@ forceApply = runQuote $ do
 --
 -- (/\(p :: *) -> \(x : p) ->
 --   /\(q :: *) -> \(y1 : q) (y2 : String) (y3 : String) ->
---     /\(r :: *) -> \(z : r) (f : p -> q -> q -> q -> r) -> f x y1 y2 y3 z
+--     /\(r :: *) -> \(z : r) (f : p -> q -> String -> String -> r) -> f x y1 y2 y3 z
 -- ) Int 1 Int 2 "foo" "bar" Int 3
 --
 -- @
