@@ -1,6 +1,5 @@
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE UnboxedTuples       #-}
 {-# LANGUAGE ViewPatterns        #-}
 -- | A pass that tries to evaluate builtin applications in the program.
 --
@@ -80,8 +79,7 @@ evaluateBuiltins conservative binfo costModel = transformOf termSubterms process
     processTerm :: Term tyname name uni fun a -> Term tyname name uni fun a
     -- See Note [Context splitting in a recursive pass]
     processTerm t@(splitApplication -> (Builtin x bn, argCtx)) =
-      let (# runtime #) =
-              toBuiltinRuntime costModel (toBuiltinMeaning (binfo ^. biSemanticsVariant) bn)
+      let runtime = toBuiltinRuntime costModel (toBuiltinMeaning (binfo ^. biSemanticsVariant) bn)
       in case eval runtime argCtx of
            -- Builtin evaluation gives us a fresh term with no annotation.
            -- Use the annotation of the builtin node, arbitrarily. This is slightly
