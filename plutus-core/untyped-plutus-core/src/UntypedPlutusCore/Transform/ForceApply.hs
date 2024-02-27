@@ -1,3 +1,101 @@
+{- | The 'ForceApply' optimisation pushes 'Force' inside its direct 'Apply' subterms,
+ removing any 'Delay' at the top of the body of the underlying lambda abstraction.
+ For example, @force ((\x -> delay b) a)@ is transformed into @(\x -> b) a@.
+ In such simple cases, the transformation is obviously correct, the question remains
+ if this approach can be generalised.
+
+ Since UPLC programs are created from erasing the types of TPLC programs (see
+ "PlutusCore.Compiler.Erase") we will consider TPLC terms of the following structure:
+
+ @
+   /\T1 -> \X1 -> /\T2 -> \X2 -> /\T3 -> \X3 -> ... -> /\Tn -> \Xn -> body
+ @
+ where @T1 ... Tn@ are lists of type variables (e.g. @T1@ could be @[t, q, p]@)
+ and @X1 ... Xn@ are lists of term variables. Of course, each @/\@ and @\@ here would
+ desugar to a sequence of type/term abstractions.
+
+ In order to reason about the proposed optimisation we need to consider such terms in
+ the context of them being applied to some sequence of terms.
+
+ One important observation is that this transformation requires that the underlying
+ (term)-lambda abstraction will be fully reduced by the applications.
+ For UPLC, this can happen only when the number of lambda abstracted variables is equal
+ to the number of terms to which it will be applied.
+ For example, @force (\x -> delay b) => (\x -> b)@ is invalid, since the former is @error@.
+ The other case, we can see that applying the optimisation modifies the end result:
+ @
+   force ((\x -> delay b) a1 a2) => (\x -> b) a1 a2 => b[x1/a1] a2
+
+   vs.
+
+   force ((\x -> delay b) a1 a2) => force ((delay b[x1/a1]) a2)
+ @
+ The latter cannot be reduced further according to the reducation semantics of UPLC.
+
+ To generalise, we consider the family of terms above applied to a family of types and
+ terms:
+ @
+   (/\T1 -> \X1 ->  ... -> /\Tn -> \Xn -> body)
+     T1 X1 ... Tn Xn
+ @
+ For brevity, the types and the terms to which the lambda applies are named the same as the
+ bound variables, but of course this isn't necessary. Also note that in general @|Tn| == |Xn|@
+ doesn't necessarily hold for any @n@.
+
+ Translated to UPLC, the original term is:
+ @
+   delay^|T1| (\X1 -> delay^|T2| (\X2 -> delay^|T3| (\X3 -> ... -> delay^|Tn| (\Xn -> body))))
+ @
+ where @delay^|A|@ means "apply delay |A| (the length of A) times".
+ With the applications:
+ @
+   (force^|Tn| (... (force^|T3| ((force^|T2| ((force^|T1| original) X1)) X2)) X3 ...)) Xn
+ @
+ After inlining @original@ we get:
+ @
+   (force^|Tn|
+     (...
+       (force^|T3|
+         ((force^|T2|
+           ((force^|T1|
+             (delay^|T1|
+               (\X1 ->
+                  delay^|T2| (\X2 ->
+                    delay^|T3| (\X3 ->
+                      ... ->
+                        delay^|Tn| (\Xn -> body)))))
+            ) X1)) X2)) X3 ...)) Xn
+ @
+ In the end, after applying the "UntypedPlutusCore.Transform.ForceDelay" optimisation:
+ @
+   (force^|Tn|
+     (...
+       (force^|T3|
+         ((force^|T2|
+           ((\X1 ->
+             delay^|T2| (\X2 ->
+               delay^|T3| (\X3 ->
+                 ... ->
+                   delay^|Tn| (\Xn -> body)))))
+        X1) X2)) X3 ...)) Xn
+ @
+ Notice that the next two reduction steps (applying @X1@ and reducing @force (delay ...)@)
+ produce an equivalent term to applying the transformation and then the reduction rule
+ for application.
+ This is easy to check, so we continue by showing what the "optimised term" looks like:
+ @
+   (force^|Tn|
+     (...
+       (force^|T3|
+         ((\X1 -> \X2 ->
+           delay^|T3| (\X3 ->
+             ... ->
+               delay^|Tn| (\Xn -> body))
+        X1) X2)) X3 ...)) Xn
+ @
+ The term can be optimised further by "erasing" the @force^|T3|@ and @delay^|T3|@ pair,
+ and so on until @Tn@.
+-}
 {-# LANGUAGE LambdaCase #-}
 module UntypedPlutusCore.Transform.ForceApply
     ( forceApply
@@ -10,16 +108,43 @@ import Control.Monad (guard)
 import Data.Foldable (foldl')
 import Data.Maybe (fromMaybe)
 
+{- | Traverses the term, for each node applying the optimisation
+ detailed above. For implementation details see 'optimisationProcedure'.
+
+ Note: this optimisation should be applied after
+ 'UntypedPlutusCore.Transform.ForceDelay.forceDelay' for reasons mentioned
+ above.
+-}
 forceApply :: Term name uni fun a -> Term name uni fun a
 forceApply = transformOf termSubterms processTerm
 
+{- | Checks whether the term is of the right form, and "pushes"
+ the 'Force' down into the underlying lambda abstractions.
+-}
 processTerm :: Term name uni fun a -> Term name uni fun a
 processTerm = \case
     original@(Force _ subTerm) ->
         fromMaybe original (optimisationProcedure subTerm)
     t -> t
 
--- TODO: use NonEmpty
+{- | Converts the subterm of a 'Force' into specialised types for representing
+ multiple applications on top of multiple abstractions. Checks whether the lambda
+ will eventually get "fully reduced" and applies the optimisation.
+ Returns 'Nothing' if the optimisation cannot be applied.
+-}
+optimisationProcedure :: Term name uni fun a -> Maybe (Term name uni fun a)
+optimisationProcedure term = do
+    asMultiApply <- toMultiApply term
+    innerMultiAbs <- toMultiAbs . toApply $ asMultiApply
+    guard $ length (applyToIter asMultiApply) == length (absVars innerMultiAbs)
+    case rhs innerMultiAbs of
+        Delay _ subTerm ->
+            let optimisedInnerMultiAbs = innerMultiAbs { rhs = subTerm}
+                optimisedMultiApply =
+                    asMultiApply { toApply = fromMultiAbs optimisedInnerMultiAbs }
+            in pure . fromMultiApply $ optimisedMultiApply
+        _               -> Nothing
+
 data MultiApply name uni fun a = MultiApply
     { toApply     :: Term name uni fun a
     , applyToIter :: [(a, Term name uni fun a)]
@@ -59,19 +184,3 @@ toMultiAbs term =
 fromMultiAbs :: MultiAbs name uni fun a -> Term name uni fun a
 fromMultiAbs (MultiAbs vars term) =
     foldl' (\acc (ann, name) -> LamAbs ann name acc) term vars
-
-optimisationProcedure :: Term name uni fun a -> Maybe (Term name uni fun a)
-optimisationProcedure term = do
-    asMultiApply <- toMultiApply term
-    innerMultiAbs <- toMultiAbs . toApply $ asMultiApply
-    guard $ length (applyToIter asMultiApply) == length (absVars innerMultiAbs)
-    case rhs innerMultiAbs of
-        Delay _ subTerm ->
-            let optimisedInnerMultiAbs = innerMultiAbs { rhs = subTerm}
-                optimisedMultiApply =
-                    asMultiApply { toApply = fromMultiAbs optimisedInnerMultiAbs }
-            in pure . fromMultiApply $ optimisedMultiApply
-        _               -> Nothing
-
-
-
