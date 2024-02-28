@@ -5,7 +5,8 @@
  if this approach can be generalised.
 
  Since UPLC programs are created from erasing the types of TPLC programs (see
- "PlutusCore.Compiler.Erase") we will consider TPLC terms of the following structure:
+ "PlutusCore.Compiler.Erase") we will consider TPLC terms of the following structure,
+ in pseudo-code (@/\@ is (multi-)type abstraction and @\@ is (multi-)term abstraction):
 
  @
    /\T1 -> \X1 -> /\T2 -> \X2 -> /\T3 -> \X3 -> ... -> /\Tn -> \Xn -> body
@@ -18,19 +19,18 @@
  the context of them being applied to some sequence of terms.
 
  One important observation is that this transformation requires that the underlying
- (term)-lambda abstraction will be fully reduced by the applications.
+ (term)-lambda abstraction will be exactly reduced by the applications.
  For UPLC, this can happen only when the number of lambda abstracted variables is equal
  to the number of terms to which it will be applied.
  For example, @force (\x -> delay b) => (\x -> b)@ is invalid, since the former is @error@.
  The other case, we can see that applying the optimisation modifies the end result:
  @
-   force ((\x -> delay b) a1 a2) => (\x -> b) a1 a2 => b[x1/a1] a2
+   force ((\x -> delay b) a1 a2) => (\x -> b) a1 a2 => b[x1:=a1] a2
 
    vs.
 
-   force ((\x -> delay b) a1 a2) => force ((delay b[x1/a1]) a2)
+   force ((\x -> delay b) a1 a2) => force ((delay b[x1:=a1]) a2) => error
  @
- The latter cannot be reduced further according to the reducation semantics of UPLC.
 
  To generalise, we consider the family of terms above applied to a family of types and
  terms:
@@ -39,8 +39,8 @@
      T1 X1 ... Tn Xn
  @
  For brevity, the types and the terms to which the lambda applies are named the same as the
- bound variables, but of course this isn't necessary. Also note that in general @|Tn| == |Xn|@
- doesn't necessarily hold for any @n@.
+ bound variables, but of course this isn't necessary.
+ Also note that in general @|Ti| == |Xi|@ doesn't necessarily hold for any @i in [1, n]@.
 
  Translated to UPLC, the original term is:
  @
@@ -55,7 +55,7 @@
  @
    (force^|Tn|
      (...
-       (force^|T3|
+       ((force^|T3|
          ((force^|T2|
            ((force^|T1|
              (delay^|T1|
@@ -64,7 +64,7 @@
                     delay^|T3| (\X3 ->
                       ... ->
                         delay^|Tn| (\Xn -> body)))))
-            ) X1)) X2)) X3 ...)) Xn
+            ) X1)) X2)) X3) ...)) Xn
  @
  In the end, after applying the "UntypedPlutusCore.Transform.ForceDelay" optimisation:
  @
@@ -95,6 +95,9 @@
  @
  The term can be optimised further by "erasing" the @force^|T3|@ and @delay^|T3|@ pair,
  and so on until @Tn@.
+
+ For examples of terms we can optimise, see the test cases in the
+ "Transform.Simplify.forceApply*" module of the test suite.
 -}
 {-# LANGUAGE LambdaCase #-}
 module UntypedPlutusCore.Transform.ForceApply
@@ -129,7 +132,7 @@ processTerm = \case
 
 {- | Converts the subterm of a 'Force' into specialised types for representing
  multiple applications on top of multiple abstractions. Checks whether the lambda
- will eventually get "fully reduced" and applies the optimisation.
+ will eventually get "exactly reduced" and applies the optimisation.
  Returns 'Nothing' if the optimisation cannot be applied.
 -}
 optimisationProcedure :: Term name uni fun a -> Maybe (Term name uni fun a)
