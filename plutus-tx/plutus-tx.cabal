@@ -108,7 +108,7 @@ library
     PlutusTx.Lift.THUtils
 
   build-depends:
-    , aeson
+    , aeson                                 >=2.2
     , aeson-pretty
     , base                                  >=4.9      && <5
     , base16-bytestring
