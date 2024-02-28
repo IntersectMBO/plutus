@@ -158,6 +158,8 @@ fromList = Map
 {-# INLINEABLE fromListSafe #-}
 -- | In case of duplicates, this function will keep only one entry (the one that precedes).
 -- In other words, this function de-duplicates the input list.
+--
+-- Note that, under the hood, the order of the entries is reversed compared to the original list.
 fromListSafe :: Eq k => [(k, v)] -> Map k v
 fromListSafe = foldr (uncurry insert) empty
 
