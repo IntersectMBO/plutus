@@ -139,7 +139,7 @@ mkEvalCtx :: EvaluationContext
 mkEvalCtx =
     case PLC.defaultCostModelParams of
         -- The validation benchmarks were all created from PlutusV1 scripts
-        Just p -> case mkDynEvaluationContext PLC.DefaultFunSemanticsVariant1 p of
+        Just p -> case mkDynEvaluationContext (const PLC.DefaultFunSemanticsVariant1) p of
             Right ec -> ec
             Left err -> error $ show err
         Nothing -> error "Couldn't get cost model params"
