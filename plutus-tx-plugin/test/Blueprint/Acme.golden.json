@@ -27,7 +27,7 @@
           ]
         },
         "schema": {
-          "$ref": "#/definitions/BuiltinString"
+          "$ref": "#/definitions/String"
         }
       },
       "datum": {
@@ -48,22 +48,22 @@
           }
         }
       ],
-      "compiledCode": "01010032222323232300349103505435003232325333573466e1d200000218000a999ab9a3370e90010010c00cc8c8c94ccd5cd19b874800000860026eb4d5d0800cdd71aba13574400213008491035054310035573c0046aae74004dd51aba100109802a481035054310035573c0046aae74004dd50029919192999ab9a3370e90000010c0004c0112401035054310035573c0046aae74004dd5001119319ab9c00180019999a891001111400400e00500110948014004900126101030048810001",
-      "hash": "82c3f1e456b3856514af88ec975abe5e105d673ca51bf36101d7bd76"
+      "compiledCode": "01010032222323232300349103505435003232325333573466e1d200000218000a999ab9a3370e90010010c00cc8c8c94ccd5cd19b874800000860026eb4d5d0800cdd71aba13574400213008491035054310035573c0046aae74004dd51aba100109802a481035054310035573c0046aae74004dd50029919192999ab9a3370e90000010c0004c0112401035054310035573c0046aae74004dd5001119319ab9c001800199999a8911199a891199a89100111111400401600900380140044252005001001400084a400a0020038004008848a400e0050012410101010101010101000498101030048810001",
+      "hash": "468cb04f63bb48a3398377b0a72be249ddfbc769ab339d7f34c4d4ce"
     }
   ],
   "definitions": {
-    "BuiltinByteString": {
-      "dataType": "bytes"
+    "Bool": {
+      "dataType": "#boolean"
     },
-    "BuiltinData": {},
-    "BuiltinString": {
-      "dataType": "#string"
+    "ByteString": {
+      "dataType": "bytes"
     },
     "Bytes": {
       "title": "SchemaBytes",
       "dataType": "bytes"
     },
+    "Data": {},
     "Datum": {
       "oneOf": [
         {
@@ -104,16 +104,28 @@
       "dataType": "constructor",
       "fields": [
         {
+          "$ref": "#/definitions/Unit"
+        },
+        {
+          "$ref": "#/definitions/Bool"
+        },
+        {
           "$ref": "#/definitions/Integer"
         },
         {
-          "$ref": "#/definitions/BuiltinData"
+          "$ref": "#/definitions/Data"
         },
         {
-          "$ref": "#/definitions/BuiltinByteString"
+          "$ref": "#/definitions/ByteString"
         }
       ],
       "index": 0
+    },
+    "String": {
+      "dataType": "#string"
+    },
+    "Unit": {
+      "dataType": "#unit"
     }
   }
 }

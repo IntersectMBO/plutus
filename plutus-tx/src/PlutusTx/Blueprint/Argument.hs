@@ -34,9 +34,9 @@ instance ToJSON ArgumentBlueprint where
       $ catMaybes
         [ fmap ("title" .=) argumentTitle
         , fmap ("description" .=) argumentDescription
-        , case Set.size argumentPurpose of
-            0 -> Nothing
-            1 -> Just $ "purpose" .= Set.elemAt 0 argumentPurpose -- safe usage
-            _ -> Just $ "purpose" .= Aeson.object ["oneOf" .= argumentPurpose]
+        , case Set.toList argumentPurpose of
+            []  -> Nothing
+            [x] -> Just $ "purpose" .= x
+            xs  -> Just $ "purpose" .= Aeson.object ["oneOf" .= xs]
         , Just $ "schema" .= argumentSchema
         ]

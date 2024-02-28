@@ -34,9 +34,9 @@ instance ToJSON ParameterBlueprint where
       $ catMaybes
         [ fmap ("title" .=) parameterTitle
         , fmap ("description" .=) parameterDescription
-        , case Set.size parameterPurpose of
-            0 -> Nothing
-            1 -> Just $ "purpose" .= Set.elemAt 0 parameterPurpose -- safe usage
-            _ -> Just $ "purpose" .= Aeson.object ["oneOf" .= parameterPurpose]
+        , case Set.toList parameterPurpose of
+            []  -> Nothing
+            [x] -> Just $ "purpose" .= x
+            xs  -> Just $ "purpose" .= Aeson.object ["oneOf" .= xs]
         , Just $ "schema" .= parameterSchema
         ]

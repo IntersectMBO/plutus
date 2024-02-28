@@ -1,5 +1,6 @@
 {-# LANGUAGE BangPatterns          #-}
 {-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -23,28 +24,33 @@ module Blueprint.Fixture where
 
 import Prelude
 
+import Control.Lens (over)
 import Data.ByteString (ByteString)
 import Flat qualified
 import PlutusCore.Version (plcVersion110)
-import PlutusPrelude (over)
 import PlutusTx hiding (Typeable)
 import PlutusTx.Blueprint.Class (HasDataSchema (..))
-import PlutusTx.Blueprint.Schema (Schema (..), schemaRef)
+import PlutusTx.Blueprint.Definition (AsDefinitionId, definitionRef)
+import PlutusTx.Blueprint.Schema (Schema (..))
 import PlutusTx.Builtins (BuiltinByteString, BuiltinString, emptyByteString)
 import PlutusTx.Prelude qualified as PlutusTx
 import UntypedPlutusCore qualified as UPLC
 
 data Params = MkParams
-  { myAwesomeParameter1 :: Integer
-  , myAwesomeParameter2 :: BuiltinData
-  , myAwesomeParameter3 :: BuiltinByteString
+  { myUnit              :: ()
+  , myBool              :: Bool
+  , myInteger           :: Integer
+  , myBuiltinData       :: BuiltinData
+  , myBuiltinByteString :: BuiltinByteString
   }
+  deriving anyclass (AsDefinitionId)
 
 $(PlutusTx.makeLift ''Params)
 $(makeIsDataSchemaIndexed ''Params [('MkParams, 0)])
 
 newtype Bytes = MkAcmeBytes BuiltinByteString
   deriving newtype (ToData, FromData, UnsafeFromData)
+  deriving anyclass (AsDefinitionId)
 
 instance HasDataSchema Bytes ts where
   dataSchema =
@@ -60,10 +66,12 @@ data DatumPayload = MkDatumPayload
   { myAwesomeDatum1 :: Integer
   , myAwesomeDatum2 :: Bytes
   }
+  deriving anyclass (AsDefinitionId)
 
 $(makeIsDataSchemaIndexed ''DatumPayload [('MkDatumPayload, 0)])
 
 data Datum = DatumLeft | DatumRight DatumPayload
+  deriving anyclass (AsDefinitionId)
 
 $(makeIsDataSchemaIndexed ''Datum [('DatumLeft, 0), ('DatumRight, 1)])
 
@@ -99,7 +107,9 @@ serialisedScript =
       `PlutusTx.unsafeApplyCode` PlutusTx.liftCode
         plcVersion110
         MkParams
-          { myAwesomeParameter1 = 1
-          , myAwesomeParameter2 = PlutusTx.toBuiltinData (3 :: Integer)
-          , myAwesomeParameter3 = emptyByteString
+          { myUnit = ()
+          , myBool = True
+          , myInteger = fromIntegral (maxBound @Int) + 1
+          , myBuiltinData = PlutusTx.toBuiltinData (3 :: Integer)
+          , myBuiltinByteString = emptyByteString
           }

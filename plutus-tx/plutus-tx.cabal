@@ -55,6 +55,7 @@ library
     PlutusTx.Blueprint.Class
     PlutusTx.Blueprint.Contract
     PlutusTx.Blueprint.Definition
+    PlutusTx.Blueprint.Definition.Id
     PlutusTx.Blueprint.Parameter
     PlutusTx.Blueprint.PlutusVersion
     PlutusTx.Blueprint.Preamble
@@ -174,6 +175,8 @@ test-suite plutus-tx-test
   main-is:            Spec.hs
   ghc-options:        -threaded -rtsopts -with-rtsopts=-N
   other-modules:
+    Blueprint.Definition.Fixture
+    Blueprint.Definition.Spec
     List.Spec
     Rational.Laws
     Rational.Laws.Additive
@@ -196,9 +199,11 @@ test-suite plutus-tx-test
     , base16-bytestring
     , bytestring
     , cborg
+    , containers
     , filepath
     , hedgehog
     , hedgehog-fn
+    , lens
     , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.22
     , plutus-tx                                       ^>=1.22
     , pretty-show

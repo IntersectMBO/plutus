@@ -13,6 +13,9 @@ import Data.Kind (Type)
 import PlutusTx.Blueprint.Schema (Schema (..))
 import PlutusTx.Builtins (BuiltinByteString, BuiltinData, BuiltinString)
 
+{- | A class of types that have a Blueprint schema definition
+| and can reference other schema definitions of other types.
+-}
 class HasDataSchema (t :: Type) (canReferTypes :: [Type]) where
   dataSchema :: Schema
 

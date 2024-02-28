@@ -45,6 +45,8 @@ type SchemaDefinitions =
   , Fixture.Params
   , Fixture.Redeemer
   , Fixture.Bytes
+  , ()
+  , Bool
   , Integer
   , BuiltinData
   , BuiltinByteString
@@ -73,14 +75,14 @@ acmeContractBlueprint =
                       { parameterTitle = Just "Acme Parameter"
                       , parameterDescription = Just "A parameter that does something awesome"
                       , parameterPurpose = Set.singleton Purpose.Spend
-                      , parameterSchema = schemaRef @Fixture.Params @SchemaDefinitions
+                      , parameterSchema = definitionRef @Fixture.Params @SchemaDefinitions
                       }
             , validatorRedeemer =
                 MkArgumentBlueprint
                   { argumentTitle = Just "Acme Redeemer"
                   , argumentDescription = Just "A redeemer that does something awesome"
                   , argumentPurpose = Set.fromList [Purpose.Spend, Purpose.Mint]
-                  , argumentSchema = schemaRef @Fixture.Redeemer @SchemaDefinitions
+                  , argumentSchema = definitionRef @Fixture.Redeemer @SchemaDefinitions
                   }
             , validatorDatum =
                 Just
@@ -88,7 +90,7 @@ acmeContractBlueprint =
                     { argumentTitle = Just "Acme Datum"
                     , argumentDescription = Just "A datum that contains something awesome"
                     , argumentPurpose = Set.singleton Purpose.Spend
-                    , argumentSchema = schemaRef @Fixture.Datum @SchemaDefinitions
+                    , argumentSchema = definitionRef @Fixture.Datum @SchemaDefinitions
                     }
             , validatorCompiledCode =
                 Just

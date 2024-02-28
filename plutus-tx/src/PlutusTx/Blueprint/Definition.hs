@@ -1,38 +1,75 @@
-{-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE DataKinds           #-}
-{-# LANGUAGE DerivingStrategies  #-}
-{-# LANGUAGE KindSignatures      #-}
-{-# LANGUAGE TypeApplications    #-}
-{-# LANGUAGE TypeOperators       #-}
+{-# LANGUAGE AllowAmbiguousTypes      #-}
+{-# LANGUAGE DataKinds                #-}
+{-# LANGUAGE FlexibleContexts         #-}
+{-# LANGUAGE FlexibleInstances        #-}
+{-# LANGUAGE MultiParamTypeClasses    #-}
+{-# LANGUAGE PolyKinds                #-}
+{-# LANGUAGE StandaloneKindSignatures #-}
+{-# LANGUAGE TypeApplications         #-}
+{-# LANGUAGE TypeFamilies             #-}
+{-# LANGUAGE TypeOperators            #-}
+{-# LANGUAGE UndecidableInstances     #-}
+{-# OPTIONS_GHC -Wno-redundant-constraints #-}
 
-module PlutusTx.Blueprint.Definition where
+-- | This module provides a functionality to derive and reference schema definitions.
+module PlutusTx.Blueprint.Definition (
+  module DefinitionId,
+  HasSchemaDefinition,
+  definitionRef,
+  deriveSchemaDefinitions,
+) where
 
-import Prelude
-
-import Data.Aeson (ToJSON, ToJSONKey)
-import Data.Kind (Type)
+import Data.Kind (Constraint, Type)
 import Data.Map (Map)
 import Data.Map qualified as Map
-import Data.Text (Text)
-import Data.Text qualified as Text
-import Data.Typeable (Proxy (..), Typeable, typeRep)
+import GHC.TypeLits qualified as GHC
 import PlutusTx.Blueprint.Class (HasDataSchema, dataSchema)
-import PlutusTx.Blueprint.Schema (Schema)
+import PlutusTx.Blueprint.Definition.Id as DefinitionId
+import PlutusTx.Blueprint.Schema (Schema (..))
 
--- | A reference to a Schema definition.
-newtype DefinitionId = MkDefinitionId Text
-  deriving stock (Show)
-  deriving newtype (Eq, Ord, ToJSON, ToJSONKey)
+-- | Construct a schema that is a reference to a schema definition.
+definitionRef ::
+  forall typ schemas.
+  (AsDefinitionId typ, HasSchemaDefinition typ schemas) =>
+  Schema
+definitionRef = SchemaDefinitionRef (definitionId @typ)
 
-definitionId :: forall a. (Typeable a) => DefinitionId
-definitionId = MkDefinitionId . Text.pack . show $ typeRep (Proxy @a)
+{- | A constraint that checks if a schema definition is present in a list of schema definitions.
+| Gives a user-friendly error message if the schema definition is not found.
+-}
+type HasSchemaDefinition :: Type -> k -> Constraint
+type family HasSchemaDefinition n xs where
+  HasSchemaDefinition x (x ': xs) = ()
+  HasSchemaDefinition x (_ ': xs) = HasSchemaDefinition x xs
+  HasSchemaDefinition n xs =
+    GHC.TypeError
+      ( GHC.ShowType n
+          GHC.:<>: GHC.Text " schema was not found in the list of schema definitions."
+      )
 
-deriveSchemaDefinitions :: forall ts. (SchemaDefEntries ts) => Map DefinitionId Schema
-deriveSchemaDefinitions = Map.fromList (schemaDefinitions @ts)
+-- | Derive a map of schema definitions from a list of types.
+deriveSchemaDefinitions ::
+  forall (ts :: [Type]).
+  (AsDefinitionsEntries ts ts) =>
+  Map DefinitionId Schema
+deriveSchemaDefinitions = Map.fromList (definitionEntries @ts @ts)
 
-class SchemaDefEntries (ts :: [Type]) where schemaDefinitions :: [(DefinitionId, Schema)]
+{- | A class of types that can be converted to a list of schema definition entries.
+It is used internally to derive a map of schema definitions from a list of types.
+-}
+class AsDefinitionsEntries (allTypes :: [Type]) (remainingTypes :: [Type]) where
+  definitionEntries :: [(DefinitionId, Schema)]
 
-instance SchemaDefEntries '[] where schemaDefinitions = []
+instance AsDefinitionsEntries allTypes '[] where
+  definitionEntries = []
 
-instance (Typeable t, HasDataSchema t ts, SchemaDefEntries ts) => SchemaDefEntries (t ': ts) where
-  schemaDefinitions = (definitionId @t, dataSchema @t @ts) : schemaDefinitions @ts
+instance
+  ( AsDefinitionId t
+  , HasDataSchema t allTypes
+  , AsDefinitionsEntries allTypes ts
+  ) =>
+  AsDefinitionsEntries allTypes (t ': ts)
+  where
+  definitionEntries =
+    (definitionId @t, dataSchema @t @allTypes)
+      : definitionEntries @allTypes @ts

@@ -11,6 +11,7 @@ module PlutusTx.Blueprint.TH where
 
 import Prelude
 
+import Data.List (nub)
 import Data.List.NonEmpty qualified as NE
 import Data.Traversable (for)
 import Data.Typeable (Typeable)
@@ -18,7 +19,8 @@ import GHC.Natural (Natural, naturalToInteger)
 import Language.Haskell.TH qualified as TH
 import Language.Haskell.TH.Datatype qualified as TH
 import PlutusTx.Blueprint.Class (HasDataSchema (..))
-import PlutusTx.Blueprint.Schema (HasSchemaDefinition, Schema (..))
+import PlutusTx.Blueprint.Definition (HasSchemaDefinition)
+import PlutusTx.Blueprint.Schema (Schema (..))
 import PlutusTx.IsData.TH (makeIsDataIndexed)
 
 {- | Generate a 'ToData', 'FromData', 'UnsafeFromData', 'HasDataSchema' instances for a type,
@@ -39,7 +41,7 @@ makeIsDataSchemaIndexed dataTypeName indices = do
 
   hasDataSchemaInst <- do
     let tsType = TH.VarT (TH.mkName "ts")
-    let constraints =
+    let constraints = nub $
           [ constraint
           | tyVarBinder <- TH.datatypeVars dataTypeInfo
           , let tType = TH.VarT (tyvarbndrName tyVarBinder)
@@ -52,7 +54,7 @@ makeIsDataSchemaIndexed dataTypeName indices = do
                | (TH.ConstructorInfo{constructorFields}, _index) <- indexedCons
                , fieldType <- constructorFields
                ]
-    hasDataSchemaPrag <- TH.funD 'dataSchema [toDataClause tsType indexedCons]
+    hasDataSchemaPrag <- TH.funD 'dataSchema [toClause tsType indexedCons]
     hasDataSchemaDecl <- TH.pragInlD 'dataSchema TH.Inlinable TH.FunLike TH.AllPhases
     pure
       $ nonOverlapInstance
@@ -70,8 +72,8 @@ makeIsDataSchemaIndexed dataTypeName indices = do
   tyvarbndrName (TH.KindedTV n _)   = n
 #endif
 
-toDataClause :: TH.Type -> [(TH.ConstructorInfo, Natural)] -> TH.ClauseQ
-toDataClause ts ctorIndexes =
+toClause :: TH.Type -> [(TH.ConstructorInfo, Natural)] -> TH.ClauseQ
+toClause ts ctorIndexes =
   case ctorIndexes of
     []          -> fail "At least one constructor index must be specified."
     [ctorIndex] -> mkBody (mkCtor ctorIndex)
@@ -85,6 +87,6 @@ toDataClause ts ctorIndexes =
 
   mkCtor :: (TH.ConstructorInfo, Natural) -> TH.ExpQ
   mkCtor (TH.ConstructorInfo{..}, naturalToInteger -> ctorIndex) = do
-    fields <- for constructorFields $ \t -> [|schemaRef @($(pure t)) @($(pure ts))|]
+    fields <- for constructorFields $ \t -> [|definitionRef @($(pure t)) @($(pure ts))|]
     let name = TH.nameBase constructorName
     [|SchemaConstructor Nothing Nothing (Just name) ctorIndex $(pure (TH.ListE fields))|]
