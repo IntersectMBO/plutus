@@ -20,7 +20,7 @@
 {-# OPTIONS_GHC -fno-unbox-strict-fields #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:target-version=1.1.0 #-}
 
-module Blueprint.Fixture where
+module Blueprint.Tests.Lib where
 
 import Prelude
 
@@ -31,7 +31,7 @@ import PlutusCore.Version (plcVersion110)
 import PlutusTx hiding (Typeable)
 import PlutusTx.Blueprint.Class (HasDataSchema (..))
 import PlutusTx.Blueprint.Definition (AsDefinitionId, definitionRef)
-import PlutusTx.Blueprint.Schema (Schema (..))
+import PlutusTx.Blueprint.Schema (Schema (..), SchemaInfo (..), emptyBytesSchema, emptySchemaInfo)
 import PlutusTx.Builtins (BuiltinByteString, BuiltinString, emptyByteString)
 import PlutusTx.Prelude qualified as PlutusTx
 import UntypedPlutusCore qualified as UPLC
@@ -53,14 +53,7 @@ newtype Bytes = MkAcmeBytes BuiltinByteString
   deriving anyclass (AsDefinitionId)
 
 instance HasDataSchema Bytes ts where
-  dataSchema =
-    SchemaBytes
-      (Just "SchemaBytes") -- Title
-      Nothing -- Description
-      Nothing -- Comment
-      [] -- Enum
-      Nothing -- Min length
-      Nothing -- Max length
+  dataSchema = SchemaBytes emptySchemaInfo{title = Just "SchemaBytes"} emptyBytesSchema
 
 data DatumPayload = MkDatumPayload
   { myAwesomeDatum1 :: Integer

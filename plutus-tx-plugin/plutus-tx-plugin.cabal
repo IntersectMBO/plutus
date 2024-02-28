@@ -128,8 +128,8 @@ test-suite plutus-tx-plugin-tests
   other-modules:
     AsData.Budget.Spec
     AsData.Budget.Types
-    Blueprint.Fixture
-    Blueprint.Spec
+    Blueprint.Tests
+    Blueprint.Tests.Lib
     Budget.Spec
     Budget.WithGHCOptimisations
     Budget.WithoutGHCOptimisations

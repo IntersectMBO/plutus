@@ -20,7 +20,7 @@ import Language.Haskell.TH qualified as TH
 import Language.Haskell.TH.Datatype qualified as TH
 import PlutusTx.Blueprint.Class (HasDataSchema (..))
 import PlutusTx.Blueprint.Definition (HasSchemaDefinition)
-import PlutusTx.Blueprint.Schema (Schema (..))
+import PlutusTx.Blueprint.Schema (ConstructorSchema (..), Schema (..), SchemaInfo (..))
 import PlutusTx.IsData.TH (makeIsDataIndexed)
 
 {- | Generate a 'ToData', 'FromData', 'UnsafeFromData', 'HasDataSchema' instances for a type,
@@ -41,15 +41,16 @@ makeIsDataSchemaIndexed dataTypeName indices = do
 
   hasDataSchemaInst <- do
     let tsType = TH.VarT (TH.mkName "ts")
-    let constraints = nub $
-          [ constraint
-          | tyVarBinder <- TH.datatypeVars dataTypeInfo
-          , let tType = TH.VarT (tyvarbndrName tyVarBinder)
-          , constraint <-
-              [ TH.classPred ''Typeable [tType]
-              , TH.classPred ''HasSchemaDefinition [tType, tsType]
+    let constraints =
+          nub
+            $ [ constraint
+              | tyVarBinder <- TH.datatypeVars dataTypeInfo
+              , let tType = TH.VarT (tyvarbndrName tyVarBinder)
+              , constraint <-
+                  [ TH.classPred ''Typeable [tType]
+                  , TH.classPred ''HasSchemaDefinition [tType, tsType]
+                  ]
               ]
-          ]
             ++ [ TH.classPred ''HasSchemaDefinition [fieldType, tsType]
                | (TH.ConstructorInfo{constructorFields}, _index) <- indexedCons
                , fieldType <- constructorFields
@@ -89,4 +90,8 @@ toClause ts ctorIndexes =
   mkCtor (TH.ConstructorInfo{..}, naturalToInteger -> ctorIndex) = do
     fields <- for constructorFields $ \t -> [|definitionRef @($(pure t)) @($(pure ts))|]
     let name = TH.nameBase constructorName
-    [|SchemaConstructor Nothing Nothing (Just name) ctorIndex $(pure (TH.ListE fields))|]
+    [|
+      SchemaConstructor
+        (MkSchemaInfo Nothing Nothing (Just name))
+        (MkConstructorSchema ctorIndex $(pure (TH.ListE fields)))
+      |]

@@ -1,5 +1,6 @@
 {-# LANGUAGE AllowAmbiguousTypes   #-}
 {-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -7,10 +8,11 @@
 
 module PlutusTx.Blueprint.Class where
 
-import Prelude
+import Prelude hiding (maximum, minimum)
 
 import Data.Kind (Type)
-import PlutusTx.Blueprint.Schema (Schema (..))
+import PlutusTx.Blueprint.Schema (PairSchema (..), Schema (..), emptyBytesSchema,
+                                  emptyIntegerSchema, emptySchemaInfo)
 import PlutusTx.Builtins (BuiltinByteString, BuiltinData, BuiltinString)
 
 {- | A class of types that have a Blueprint schema definition
@@ -20,68 +22,28 @@ class HasDataSchema (t :: Type) (canReferTypes :: [Type]) where
   dataSchema :: Schema
 
 instance HasDataSchema () ts where
-  dataSchema =
-    SchemaBuiltInUnit
-      Nothing -- Title
-      Nothing -- Description
-      Nothing -- Comment
+  dataSchema = SchemaBuiltInUnit emptySchemaInfo
 
 instance HasDataSchema Integer ts where
-  dataSchema =
-    SchemaInteger
-      Nothing -- Title
-      Nothing -- Description
-      Nothing -- Comment
-      Nothing -- Multiple of
-      Nothing -- Maximum
-      Nothing -- Exclusive maximum
-      Nothing -- Minimum
-      Nothing -- Exclusive minimum
+  dataSchema = SchemaInteger emptySchemaInfo emptyIntegerSchema
 
 instance HasDataSchema BuiltinByteString ts where
-  dataSchema =
-    SchemaBytes
-      Nothing -- Title
-      Nothing -- Description
-      Nothing -- Comment
-      [] -- Enum
-      Nothing -- Min length
-      Nothing -- Max length
+  dataSchema = SchemaBytes emptySchemaInfo emptyBytesSchema
 
 instance HasDataSchema Bool ts where
-  dataSchema =
-    SchemaBuiltInBoolean
-      Nothing -- Title
-      Nothing -- Description
-      Nothing -- Comment
+  dataSchema = SchemaBuiltInBoolean emptySchemaInfo
 
 instance HasDataSchema BuiltinString ts where
-  dataSchema =
-    SchemaBuiltInString
-      Nothing -- Title
-      Nothing -- Description
-      Nothing -- Comment
+  dataSchema = SchemaBuiltInString emptySchemaInfo
 
 instance HasDataSchema BuiltinData ts where
-  dataSchema =
-    SchemaBuiltInData
-      Nothing -- Title
-      Nothing -- Description
-      Nothing -- Comment
+  dataSchema = SchemaBuiltInData emptySchemaInfo
 
 instance (HasDataSchema a ts, HasDataSchema b ts) => HasDataSchema (a, b) ts where
   dataSchema =
     SchemaBuiltInPair
-      Nothing -- Title
-      Nothing -- Description
-      Nothing -- Comment
-      (dataSchema @a @ts)
-      (dataSchema @b @ts)
+      emptySchemaInfo
+      MkPairSchema{left = dataSchema @a @ts, right = dataSchema @b @ts}
 
 instance (HasDataSchema a ts) => HasDataSchema [a] ts where
-  dataSchema =
-    SchemaBuiltInList
-      Nothing -- Title
-      Nothing -- Description
-      Nothing -- Comment
-      (dataSchema @a @ts)
+  dataSchema = SchemaBuiltInList emptySchemaInfo (dataSchema @a @ts)

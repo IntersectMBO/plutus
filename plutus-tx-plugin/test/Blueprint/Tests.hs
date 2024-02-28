@@ -8,12 +8,12 @@
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeFamilies          #-}
 
-module Blueprint.Spec where
+module Blueprint.Tests where
 
 import PlutusTx.Blueprint
 import Prelude
 
-import Blueprint.Fixture qualified as Fixture
+import Blueprint.Tests.Lib qualified as Fixture
 import Control.Monad.Reader (asks)
 import Data.Set qualified as Set
 import PlutusCore.Crypto.Hash (blake2b_224)
