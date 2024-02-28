@@ -4,6 +4,7 @@
 {-# LANGUAGE MonoLocalBinds        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE UndecidableInstances  #-}
 {-# LANGUAGE ViewPatterns          #-}
@@ -18,6 +19,8 @@ module PlutusTx.SortedMap
     , insert
     , delete
     , lookup
+    , member
+    , null
     , minViewWithKey
     , isSortedDeDuped
     , isValid
@@ -126,14 +129,37 @@ empty :: SortedMap k v
 empty = SortedMap AssocMap.empty
 
 {-# INLINABLE delete #-}
--- OPTIMIZE: Using AssocMap.delete works, but a version that stops earlier would be better
-delete :: (Eq k) => k -> SortedMap k v -> SortedMap k v
-delete k = fromMapUnsafe . AssocMap.delete k . toMap
+delete :: forall k v. (Ord k) => k -> SortedMap k v -> SortedMap k v
+delete c (toList -> alist) = fromListUnsafe (go alist)
+  where
+    go [] = []
+    go ms@(hd@(c', _) : rest) = case c `compare` c' of
+                              LT -> ms
+                              EQ -> rest
+                              GT -> hd : go rest
+
+{-# INLINABLE member #-}
+-- | Is the key a member of the map?
+member :: forall k v. (Ord k) => k -> SortedMap k v -> Bool
+member k m = isJust (lookup k m)
+
+-- | Is the map empty?
+null :: SortedMap k v -> Bool
+null = Tx.null . toList
 
 {-# INLINABLE lookup #-}
--- OPTIMIZE: a manual implementation can stop earlier than AssocMap.lookup, upon missing keys only
-lookup :: (Eq k) => k -> SortedMap k v -> Haskell.Maybe v
-lookup k = AssocMap.lookup k . toMap
+-- | Find an entry in a 'SortedMap'.
+lookup :: forall k v. (Tx.Ord k) => k -> SortedMap k v -> Haskell.Maybe v
+lookup c (toList -> alist) =
+  let
+    go :: [(k, v)] -> Maybe v
+    go []              = Nothing
+    go ((c', i) : xs') = case c `compare` c' of
+        LT -> Nothing
+        EQ -> Just i
+        GT -> go xs'
+   in
+    go alist
 
 {-# INLINABLE minViewWithKey #-}
 -- | Assumes that the SortedMap is valid.
@@ -154,8 +180,8 @@ insertInternal (k,v) = go
       go = \case
         [] -> [(k,v)]
         ms@((k',v'):ms') -> case k `compare` k' of
-            EQ -> (k,v) : ms'
             LT -> (k,v) : ms
+            EQ -> (k,v) : ms'
             GT -> (k',v') : go ms'
 
 {-# INLINABLE isSortedDeDuped #-}

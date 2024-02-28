@@ -40,12 +40,24 @@ mergeSortPreservesDuplicatesPoly alist =
     in before === False .&&.
        after === False
 
+deletesAllPoly :: (Tx.Ord a) => [(a, b)] -> Property
+deletesAllPoly alist =
+    let smap = SortedMap.fromListSafe alist
+    in property $ SortedMap.null $ Tx.foldr (\(k,_) acc -> SortedMap.delete k acc) smap alist
+
+membersAllPoly :: (Tx.Ord a) => [(a, b)] -> Property
+membersAllPoly alist =
+    let smap = SortedMap.fromListSafe alist
+    in property $ Tx.and $ Tx.map ((`SortedMap.member` smap) . fst) alist
+
 -- need to monomorphize to test with QC
-prop_equivSortsNoDupl, prop_insertionSortFixesValidity, prop_mergeSortPreservesDuplicates :: [(Integer, Integer)] -> Property
+prop_equivSortsNoDupl, prop_insertionSortFixesValidity, prop_mergeSortPreservesDuplicates, prop_deletesAll, prop_membersAll :: [(Integer, Integer)] -> Property
 
 prop_equivSortsNoDupl = equivSortsNoDuplPoly
 prop_insertionSortFixesValidity = insertionSortFixesValidityPoly
 prop_mergeSortPreservesDuplicates = mergeSortPreservesDuplicatesPoly
+prop_deletesAll = deletesAllPoly
+prop_membersAll = membersAllPoly
 
 propertyTests :: TestTree
 propertyTests =
@@ -53,4 +65,6 @@ propertyTests =
         [ testProperty "merge-sort is equiv to insertion-sort for non-duplicated maps" prop_equivSortsNoDupl
         , testProperty "insertion-sort turns an invalid assocmap to a valid one" prop_insertionSortFixesValidity
         , testProperty "merge-sort preserves the (in)validity" prop_mergeSortPreservesDuplicates
+        , testProperty "folding delete over all elements should make the Map empty" prop_deletesAll
+        , testProperty "folding member over all elements succeeds" prop_membersAll
         ]
