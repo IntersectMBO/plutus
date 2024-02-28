@@ -22,9 +22,11 @@ Cabal is not designed to manage C dependencies, so you need to either install th
 
 If you are not using Nix, follow the instructions in `cardano-base <https://github.com/IntersectMBO/cardano-base>`_ or `cardano-node <https://github.com/input-output-hk/cardano-node-wiki/blob/main/docs/getting-started/install.md>`_ to install these libraries (or install them in your own way if you like).
 
-If you are using Nix, you can use plutus repository's dev shell: ::
+If you are using Nix, you can bootstrap your project using the flake template provided by iogx: ::
 
-  nix develop github:IntersectMBO/plutus
+  cd your-project-folder
+  nix flake init --template github:input-output-hk/iogx#haskell
+  nix develop 
 
 The dev shell comes with not only the required C libraries, but also GHC and Cabal.
 
