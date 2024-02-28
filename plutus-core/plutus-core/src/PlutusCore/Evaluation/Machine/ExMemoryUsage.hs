@@ -203,27 +203,15 @@ instance ExMemoryUsage Word8 where
     memoryUsage _ = singletonRose 1
     {-# INLINE memoryUsage #-}
 
-{- Bytestrings: we want things of length 0 to have size 0, 1-8 to have size 1,
-   9-16 to have size 2, etc.  Note that (-1) div 8 == -1, so the code below
-   gives the correct answer for the empty bytestring.  Maybe we should just use
-   1 + (toInteger $ BS.length bs) `div` 8, which would count one extra for
-   things whose sizes are multiples of 8. -}
+{- Bytestrings: we want the empty bytestring and bytestrings of length 1-8 to have
+   size 1, bytestrings of length 9-16 to have size 2, etc.  Note that (-1)
+   `quot` 8 == 0, so the code below gives the correct answer for the empty
+   bytestring.  -}
 instance ExMemoryUsage BS.ByteString where
-    -- Don't use `div` here!  That gives 1 instead of 0 for n=0.
+    -- Don't use `div` here!  That gives 0 instead of 1 for the empty bytestring.
     memoryUsage bs = singletonRose . unsafeToSatInt $ ((n - 1) `quot` 8) + 1 where
         n = BS.length bs
     {-# INLINE memoryUsage #-}
-{- The two preceding comments contradict each other.  The first one says that we
-   should use `div`, but the second one says to use `quot` instead (and that is
-   what is used).  The only difference here is for negative numbers: (-1) `div`
-   8 == -1 and (-1) `quot` 8 == 0.  Thus the current memoryUsage for the empty
-   bytestring is 1: replacing `quot` with `div` would change the memoryUsage of
-   the empty bytestring from 1 to 0 and leave the memoryUsages of all other
-   bytestrings unchanged.  We can probably change this safely since all that it
-   would mean is that programs which use the empty bytestring as a builtin
-   argument would become a little cheaper.  The difference would be very small
-   though, so it's maybe not worth fixing. -}
-
 
 instance ExMemoryUsage T.Text where
     -- This is slow and inaccurate, but matches the version that was originally deployed.
