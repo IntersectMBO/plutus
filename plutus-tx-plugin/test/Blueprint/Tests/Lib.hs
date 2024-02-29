@@ -21,7 +21,7 @@ import Data.ByteString.Lazy qualified as LBS
 import Flat qualified
 import PlutusCore.Version (plcVersion110)
 import PlutusTx hiding (Typeable)
-import PlutusTx.Blueprint.Class (HasDataSchema (..))
+import PlutusTx.Blueprint.Class (HasSchema (..))
 import PlutusTx.Blueprint.Definition (AsDefinitionId, definitionRef)
 import PlutusTx.Blueprint.Schema (Schema (..), SchemaInfo (..), emptyBytesSchema, emptySchemaInfo)
 import PlutusTx.Builtins (BuiltinByteString, BuiltinString, emptyByteString)
@@ -44,8 +44,8 @@ newtype Bytes = MkAcmeBytes BuiltinByteString
   deriving newtype (ToData, FromData, UnsafeFromData)
   deriving anyclass (AsDefinitionId)
 
-instance HasDataSchema Bytes ts where
-  dataSchema = SchemaBytes emptySchemaInfo{title = Just "SchemaBytes"} emptyBytesSchema
+instance HasSchema Bytes ts where
+  schema = SchemaBytes emptySchemaInfo{title = Just "SchemaBytes"} emptyBytesSchema
 
 data DatumPayload = MkDatumPayload
   { myAwesomeDatum1 :: Integer

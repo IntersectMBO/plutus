@@ -24,7 +24,7 @@ import Data.Kind (Constraint, Type)
 import Data.Map (Map)
 import Data.Map qualified as Map
 import GHC.TypeLits qualified as GHC
-import PlutusTx.Blueprint.Class (HasDataSchema, dataSchema)
+import PlutusTx.Blueprint.Class (HasSchema, schema)
 import PlutusTx.Blueprint.Definition.Id as DefinitionId
 import PlutusTx.Blueprint.Schema (Schema (..))
 
@@ -68,11 +68,11 @@ instance AsDefinitionsEntries allTypes '[] where
 
 instance
   ( AsDefinitionId t
-  , HasDataSchema t allTypes
+  , HasSchema t allTypes
   , AsDefinitionsEntries allTypes ts
   ) =>
   AsDefinitionsEntries allTypes (t ': ts)
   where
   definitionEntries =
-    (definitionId @t, dataSchema @t @allTypes)
+    (definitionId @t, schema @t @allTypes)
       : definitionEntries @allTypes @ts

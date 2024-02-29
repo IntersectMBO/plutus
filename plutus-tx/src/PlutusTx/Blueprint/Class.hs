@@ -19,32 +19,32 @@ import PlutusTx.Builtins (BuiltinByteString, BuiltinData, BuiltinString)
   A class of types that have a Blueprint schema definition
   and can reference other schema definitions of other types.
 -}
-class HasDataSchema (t :: Type) (referencedTypes :: [Type]) where
-  dataSchema :: Schema referencedTypes
+class HasSchema (t :: Type) (referencedTypes :: [Type]) where
+  schema :: Schema referencedTypes
 
-instance HasDataSchema () ts where
-  dataSchema = SchemaBuiltInUnit emptySchemaInfo
+instance HasSchema () ts where
+  schema = SchemaBuiltInUnit emptySchemaInfo
 
-instance HasDataSchema Integer ts where
-  dataSchema = SchemaInteger emptySchemaInfo emptyIntegerSchema
+instance HasSchema Integer ts where
+  schema = SchemaInteger emptySchemaInfo emptyIntegerSchema
 
-instance HasDataSchema BuiltinByteString ts where
-  dataSchema = SchemaBytes emptySchemaInfo emptyBytesSchema
+instance HasSchema BuiltinByteString ts where
+  schema = SchemaBytes emptySchemaInfo emptyBytesSchema
 
-instance HasDataSchema Bool ts where
-  dataSchema = SchemaBuiltInBoolean emptySchemaInfo
+instance HasSchema Bool ts where
+  schema = SchemaBuiltInBoolean emptySchemaInfo
 
-instance HasDataSchema BuiltinString ts where
-  dataSchema = SchemaBuiltInString emptySchemaInfo
+instance HasSchema BuiltinString ts where
+  schema = SchemaBuiltInString emptySchemaInfo
 
-instance HasDataSchema BuiltinData ts where
-  dataSchema = SchemaBuiltInData emptySchemaInfo
+instance HasSchema BuiltinData ts where
+  schema = SchemaBuiltInData emptySchemaInfo
 
-instance (HasDataSchema a ts, HasDataSchema b ts) => HasDataSchema (a, b) ts where
-  dataSchema =
+instance (HasSchema a ts, HasSchema b ts) => HasSchema (a, b) ts where
+  schema =
     SchemaBuiltInPair
       emptySchemaInfo
-      MkPairSchema{left = dataSchema @a @ts, right = dataSchema @b @ts}
+      MkPairSchema{left = schema @a @ts, right = schema @b @ts}
 
-instance (HasDataSchema a ts) => HasDataSchema [a] ts where
-  dataSchema = SchemaBuiltInList emptySchemaInfo (dataSchema @a @ts)
+instance (HasSchema a ts) => HasSchema [a] ts where
+  schema = SchemaBuiltInList emptySchemaInfo (schema @a @ts)

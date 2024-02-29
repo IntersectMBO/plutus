@@ -18,18 +18,24 @@ import Data.Typeable (Typeable)
 import GHC.Natural (Natural, naturalToInteger)
 import Language.Haskell.TH qualified as TH
 import Language.Haskell.TH.Datatype qualified as TH
-import PlutusTx.Blueprint.Class (HasDataSchema (..))
+import PlutusTx.Blueprint.Class (HasSchema (..))
 import PlutusTx.Blueprint.Definition (HasSchemaDefinition)
 import PlutusTx.Blueprint.Schema (ConstructorSchema (..), Schema (..), SchemaInfo (..))
 import PlutusTx.IsData.TH (makeIsDataIndexed)
 
-{- | Generate a 'ToData', 'FromData', 'UnsafeFromData', 'HasDataSchema' instances for a type,
-using an explicit mapping of constructor names to indices.
-Use this for types where you need to keep the representation stable.
+{- |
+  Generate a 'ToData', 'FromData', 'UnsafeFromData', 'HasSchema' instances for a type,
+  using an explicit mapping of constructor names to indices.
+  Use this for types where you need to keep the representation stable.
 -}
 makeIsDataSchemaIndexed :: TH.Name -> [(TH.Name, Natural)] -> TH.Q [TH.InstanceDec]
 makeIsDataSchemaIndexed dataTypeName indices = do
-  dataInstances <- makeIsDataIndexed dataTypeName (map (fmap fromIntegral) indices)
+  dataInstances <- makeIsDataIndexed dataTypeName (fmap fromIntegral <$> indices)
+  hasSchemaInstance <- makeHasSchemaInstance dataTypeName indices
+  pure $ hasSchemaInstance : dataInstances
+
+makeHasSchemaInstance :: TH.Name -> [(TH.Name, Natural)] -> TH.Q TH.InstanceDec
+makeHasSchemaInstance dataTypeName indices = do
   dataTypeInfo <- TH.reifyDatatype dataTypeName
   let appliedType = TH.datatypeType dataTypeInfo
   let nonOverlapInstance = TH.InstanceD Nothing
@@ -39,31 +45,28 @@ makeIsDataSchemaIndexed dataTypeName indices = do
       Just index -> pure (ctorInfo, index)
       Nothing    -> fail $ "No index given for constructor " ++ show (TH.constructorName ctorInfo)
 
-  hasDataSchemaInst <- do
-    let tsType = TH.VarT (TH.mkName "ts")
-    let constraints =
-          nub
-            $ [ constraint
-              | tyVarBinder <- TH.datatypeVars dataTypeInfo
-              , let tType = TH.VarT (tyvarbndrName tyVarBinder)
-              , constraint <-
-                  [ TH.classPred ''Typeable [tType]
-                  , TH.classPred ''HasSchemaDefinition [tType, tsType]
-                  ]
-              ]
-            ++ [ TH.classPred ''HasSchemaDefinition [fieldType, tsType]
-               | (TH.ConstructorInfo{constructorFields}, _index) <- indexedCons
-               , fieldType <- constructorFields
-               ]
-    hasDataSchemaPrag <- TH.funD 'dataSchema [toClause tsType indexedCons]
-    hasDataSchemaDecl <- TH.pragInlD 'dataSchema TH.Inlinable TH.FunLike TH.AllPhases
-    pure
-      $ nonOverlapInstance
-        constraints
-        (TH.classPred ''HasDataSchema [appliedType, tsType])
-        [hasDataSchemaPrag, hasDataSchemaDecl]
-
-  pure $ hasDataSchemaInst : dataInstances
+  let tsType = TH.VarT (TH.mkName "ts")
+  let constraints =
+        nub
+          $ [ constraint
+            | tyVarBinder <- TH.datatypeVars dataTypeInfo
+            , let tType = TH.VarT (tyvarbndrName tyVarBinder)
+            , constraint <-
+                [ TH.classPred ''Typeable [tType]
+                , TH.classPred ''HasSchemaDefinition [tType, tsType]
+                ]
+            ]
+          ++ [ TH.classPred ''HasSchemaDefinition [fieldType, tsType]
+             | (TH.ConstructorInfo{constructorFields}, _index) <- indexedCons
+             , fieldType <- constructorFields
+             ]
+  hasSchemaPrag <- TH.funD 'schema [toClause tsType indexedCons]
+  hasSchemaDecl <- TH.pragInlD 'schema TH.Inlinable TH.FunLike TH.AllPhases
+  pure
+    $ nonOverlapInstance
+      constraints
+      (TH.classPred ''HasSchema [appliedType, tsType])
+      [hasSchemaPrag, hasSchemaDecl]
  where
 #if MIN_VERSION_template_haskell(2,17,0)
   tyvarbndrName (TH.PlainTV n _)    = n
