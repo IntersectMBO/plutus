@@ -27,7 +27,7 @@ import Test.Tasty.Golden (goldenVsFile)
 goldenTests :: TestNested
 goldenTests = testNested "Blueprint" [goldenBlueprint "Acme" contractBlueprint]
 
-goldenBlueprint :: TestName -> ContractBlueprint -> TestNested
+goldenBlueprint :: TestName -> ContractBlueprint types -> TestNested
 goldenBlueprint name blueprint = do
   goldenPath <- asks $ foldr (</>) name
   let actual = goldenPath ++ ".actual.json"
@@ -52,7 +52,7 @@ type ValidatorTypes =
   , BuiltinByteString
   ]
 
-contractBlueprint :: ContractBlueprint
+contractBlueprint :: ContractBlueprint ValidatorTypes
 contractBlueprint =
   MkContractBlueprint
     { contractId = Nothing
@@ -65,10 +65,10 @@ contractBlueprint =
           , preambleLicense = Just "MIT"
           }
     , contractValidators = Set.singleton validatorBlueprint
-    , contractDefinitions = deriveSchemaDefinitions @ValidatorTypes
+    , contractDefinitions = deriveSchemaDefinitions
     }
 
-validatorBlueprint :: ValidatorBlueprint
+validatorBlueprint :: ValidatorBlueprint ValidatorTypes
 validatorBlueprint =
   MkValidatorBlueprint
     { validatorTitle = "Acme Validator"
@@ -80,14 +80,14 @@ validatorBlueprint =
               { parameterTitle = Just "Acme Parameter"
               , parameterDescription = Just "A parameter that does something awesome"
               , parameterPurpose = Set.singleton Purpose.Spend
-              , parameterSchema = definitionRef @Fixture.Params @ValidatorTypes
+              , parameterSchema = definitionRef @Fixture.Params
               }
     , validatorRedeemer =
         MkArgumentBlueprint
           { argumentTitle = Just "Acme Redeemer"
           , argumentDescription = Just "A redeemer that does something awesome"
           , argumentPurpose = Set.fromList [Purpose.Spend, Purpose.Mint]
-          , argumentSchema = definitionRef @Fixture.Redeemer @ValidatorTypes
+          , argumentSchema = definitionRef @Fixture.Redeemer
           }
     , validatorDatum =
         Just
@@ -95,7 +95,7 @@ validatorBlueprint =
             { argumentTitle = Just "Acme Datum"
             , argumentDescription = Just "A datum that contains something awesome"
             , argumentPurpose = Set.singleton Purpose.Spend
-            , argumentSchema = definitionRef @Fixture.Datum @ValidatorTypes
+            , argumentSchema = definitionRef @Fixture.Datum
             }
     , validatorCompiledCode =
         Just

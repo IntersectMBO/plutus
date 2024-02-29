@@ -30,13 +30,14 @@ import PlutusTx.Blueprint.Schema (Schema (..))
 
 -- | Construct a schema that is a reference to a schema definition.
 definitionRef ::
-  forall typ schemas.
-  (AsDefinitionId typ, HasSchemaDefinition typ schemas) =>
-  Schema
+  forall typ types.
+  (AsDefinitionId typ, HasSchemaDefinition typ types) =>
+  Schema types
 definitionRef = SchemaDefinitionRef (definitionId @typ)
 
-{- | A constraint that checks if a schema definition is present in a list of schema definitions.
-| Gives a user-friendly error message if the schema definition is not found.
+{- |
+  A constraint that checks if a schema definition is present in a list of schema definitions.
+  Gives a user-friendly error message if the schema definition is not found.
 -}
 type HasSchemaDefinition :: Type -> k -> Constraint
 type family HasSchemaDefinition n xs where
@@ -50,16 +51,17 @@ type family HasSchemaDefinition n xs where
 
 -- | Derive a map of schema definitions from a list of types.
 deriveSchemaDefinitions ::
-  forall (ts :: [Type]).
-  (AsDefinitionsEntries ts ts) =>
-  Map DefinitionId Schema
-deriveSchemaDefinitions = Map.fromList (definitionEntries @ts @ts)
+  forall (types :: [Type]).
+  (AsDefinitionsEntries types types) =>
+  Map DefinitionId (Schema types)
+deriveSchemaDefinitions = Map.fromList (definitionEntries @types @types)
 
-{- | A class of types that can be converted to a list of schema definition entries.
-It is used internally to derive a map of schema definitions from a list of types.
+{- |
+  A class of types that can be converted to a list of schema definition entries.
+  It is used internally to derive a map of schema definitions from a list of types.
 -}
 class AsDefinitionsEntries (allTypes :: [Type]) (remainingTypes :: [Type]) where
-  definitionEntries :: [(DefinitionId, Schema)]
+  definitionEntries :: [(DefinitionId, Schema allTypes)]
 
 instance AsDefinitionsEntries allTypes '[] where
   definitionEntries = []

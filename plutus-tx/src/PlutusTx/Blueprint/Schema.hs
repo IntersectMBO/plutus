@@ -21,8 +21,9 @@ import Data.Aeson.Extra (optionalField, requiredField)
 import Data.Aeson.KeyMap qualified as KeyMap
 import Data.ByteString (ByteString)
 import Data.ByteString.Base16 qualified as Base16
-import Data.Data (Data)
+import Data.Data (Data, Typeable)
 import Data.Function ((&))
+import Data.Kind (Type)
 import Data.List.NonEmpty (NonEmpty, nonEmpty)
 import Data.Text (Text)
 import Data.Text.Encoding qualified as Text
@@ -32,32 +33,36 @@ import PlutusTx.Blueprint.Definition.Id (DefinitionId, definitionIdToText)
 import Prelude hiding (max, maximum, min, minimum)
 
 {- | Blueprint schema definition, as defined by the CIP-0057:
-https://github.com/cardano-foundation/CIPs/tree/master/CIP-0057#core-vocabulary
+  https://github.com/cardano-foundation/CIPs/tree/master/CIP-0057#core-vocabulary
+
+  The 'referencedTypes' phantom type parameter is used to track the types used in the contract
+  making sure their schemas are included in the blueprint and that they are referenced
+  in a type-safe way.
 -}
-data Schema
+data Schema (referencedTypes :: [Type])
   = SchemaInteger SchemaInfo IntegerSchema
   | SchemaBytes SchemaInfo BytesSchema
-  | SchemaList SchemaInfo ListSchema
-  | SchemaMap SchemaInfo MapSchema
-  | SchemaConstructor SchemaInfo ConstructorSchema
+  | SchemaList SchemaInfo (ListSchema referencedTypes)
+  | SchemaMap SchemaInfo (MapSchema referencedTypes)
+  | SchemaConstructor SchemaInfo (ConstructorSchema referencedTypes)
   | SchemaBuiltInData SchemaInfo
   | SchemaBuiltInUnit SchemaInfo
   | SchemaBuiltInBoolean SchemaInfo
   | SchemaBuiltInInteger SchemaInfo
   | SchemaBuiltInBytes SchemaInfo
   | SchemaBuiltInString SchemaInfo
-  | SchemaBuiltInPair SchemaInfo PairSchema
-  | SchemaBuiltInList SchemaInfo Schema
-  | SchemaOneOf (NonEmpty Schema)
-  | SchemaAnyOf (NonEmpty Schema)
-  | SchemaAllOf (NonEmpty Schema)
-  | SchemaNot Schema
+  | SchemaBuiltInPair SchemaInfo (PairSchema referencedTypes)
+  | SchemaBuiltInList SchemaInfo (Schema referencedTypes)
+  | SchemaOneOf (NonEmpty (Schema referencedTypes))
+  | SchemaAnyOf (NonEmpty (Schema referencedTypes))
+  | SchemaAllOf (NonEmpty (Schema referencedTypes))
+  | SchemaNot (Schema referencedTypes)
   | SchemaDefinitionRef DefinitionId
   deriving stock (Eq, Show, Generic, Data)
 
-deriving anyclass instance Plated Schema
+deriving anyclass instance (Typeable referencedTypes) => Plated (Schema referencedTypes)
 
-instance ToJSON Schema where
+instance ToJSON (Schema referencedTypes) where
   toJSON = \case
     SchemaInteger info MkIntegerSchema{..} ->
       dataType info "integer"
@@ -186,8 +191,8 @@ data BytesSchema = MkBytesSchema
 emptyBytesSchema :: BytesSchema
 emptyBytesSchema = MkBytesSchema{enum = [], minLength = Nothing, maxLength = Nothing}
 
-data ListSchema = MkListSchema
-  { schema   :: Schema
+data ListSchema (referencedTypes :: [Type]) = MkListSchema
+  { schema   :: Schema referencedTypes
   -- ^ Element schema
   , minItems :: Maybe Natural
   -- ^ An array instance is valid if its size is greater than, or equal to, this value.
@@ -199,13 +204,13 @@ data ListSchema = MkListSchema
   }
   deriving stock (Eq, Show, Generic, Data)
 
-mkListSchema :: Schema -> ListSchema
+mkListSchema :: Schema referencedTypes -> ListSchema referencedTypes
 mkListSchema schema = MkListSchema{schema, minItems = Nothing, maxItems = Nothing, unique = Nothing}
 
-data MapSchema = MkMapSchema
-  { keySchema   :: Schema
+data MapSchema (referencedTypes :: [Type]) = MkMapSchema
+  { keySchema   :: Schema referencedTypes
   -- ^ Key schema
-  , valueSchema :: Schema
+  , valueSchema :: Schema referencedTypes
   -- ^ Value schema
   , minItems    :: Maybe Natural
   -- ^ A map instance is valid if its size is greater than, or equal to, this value.
@@ -214,18 +219,18 @@ data MapSchema = MkMapSchema
   }
   deriving stock (Eq, Show, Generic, Data)
 
-data ConstructorSchema = MkConstructorSchema
+data ConstructorSchema (referencedTypes :: [Type]) = MkConstructorSchema
   { index        :: Natural
   -- ^ Constructor index
-  , fieldSchemas :: [Schema]
+  , fieldSchemas :: [Schema referencedTypes]
   -- ^ Field schemas
   }
   deriving stock (Eq, Show, Generic, Data)
 
-data PairSchema = MkPairSchema
-  { left  :: Schema
+data PairSchema (referencedTypes :: [Type]) = MkPairSchema
+  { left  :: Schema referencedTypes
   -- ^ Schema of the first element
-  , right :: Schema
+  , right :: Schema referencedTypes
   -- ^ Schema of the second element
   }
   deriving stock (Eq, Show, Generic, Data)

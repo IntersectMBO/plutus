@@ -15,11 +15,12 @@ import PlutusTx.Blueprint.Schema (PairSchema (..), Schema (..), emptyBytesSchema
                                   emptyIntegerSchema, emptySchemaInfo)
 import PlutusTx.Builtins (BuiltinByteString, BuiltinData, BuiltinString)
 
-{- | A class of types that have a Blueprint schema definition
-| and can reference other schema definitions of other types.
+{- |
+  A class of types that have a Blueprint schema definition
+  and can reference other schema definitions of other types.
 -}
-class HasDataSchema (t :: Type) (canReferTypes :: [Type]) where
-  dataSchema :: Schema
+class HasDataSchema (t :: Type) (referencedTypes :: [Type]) where
+  dataSchema :: Schema referencedTypes
 
 instance HasDataSchema () ts where
   dataSchema = SchemaBuiltInUnit emptySchemaInfo

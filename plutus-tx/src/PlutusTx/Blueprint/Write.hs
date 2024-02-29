@@ -12,10 +12,10 @@ import Data.ByteString.Lazy qualified as LBS
 import PlutusTx.Blueprint.Contract (ContractBlueprint)
 import Prelude
 
-writeBlueprint :: FilePath -> ContractBlueprint -> IO ()
+writeBlueprint :: FilePath -> ContractBlueprint types -> IO ()
 writeBlueprint f = LBS.writeFile f . encodeBlueprint
 
-encodeBlueprint :: ContractBlueprint -> LBS.ByteString
+encodeBlueprint :: ContractBlueprint types -> LBS.ByteString
 encodeBlueprint =
   encodePretty'
     Pretty.defConfig

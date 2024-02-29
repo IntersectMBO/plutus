@@ -1,4 +1,6 @@
+{-# LANGUAGE DataKinds          #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE KindSignatures     #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE RecordWildCards    #-}
 
@@ -8,6 +10,7 @@ import Prelude
 
 import Data.Aeson (ToJSON (..), (.=))
 import Data.Aeson qualified as Aeson
+import Data.Kind (Type)
 import Data.Map (Map)
 import Data.Map qualified as Map
 import Data.Maybe (catMaybes)
@@ -18,20 +21,25 @@ import PlutusTx.Blueprint.Preamble (Preamble)
 import PlutusTx.Blueprint.Schema (Schema)
 import PlutusTx.Blueprint.Validator (ValidatorBlueprint)
 
--- | A blueprint of a smart contract, as defined by the CIP-0057
-data ContractBlueprint = MkContractBlueprint
+{- | A blueprint of a smart contract, as defined by the CIP-0057
+
+  The 'referencedTypes' phantom type parameter is used to track the types used in the contract
+  making sure their schemas are included in the blueprint and that they are referenced
+  in a type-safe way.
+-}
+data ContractBlueprint (referencedTypes :: [Type]) = MkContractBlueprint
   { contractId          :: Maybe Text
   -- ^ An optional identifier for the contract.
   , contractPreamble    :: Preamble
   -- ^ An object with meta-information about the contract.
-  , contractValidators  :: Set ValidatorBlueprint
+  , contractValidators  :: Set (ValidatorBlueprint referencedTypes)
   -- ^ A set of validator blueprints that are part of the contract.
-  , contractDefinitions :: Map DefinitionId Schema
+  , contractDefinitions :: Map DefinitionId (Schema referencedTypes)
   -- ^ A registry of schema definitions used across the blueprint.
   }
   deriving stock (Show)
 
-instance ToJSON ContractBlueprint where
+instance ToJSON (ContractBlueprint referencedTypes) where
   toJSON MkContractBlueprint{..} =
     Aeson.object
       $ catMaybes
