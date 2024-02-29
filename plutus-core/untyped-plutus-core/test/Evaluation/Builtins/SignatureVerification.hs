@@ -10,6 +10,7 @@
 
 module Evaluation.Builtins.SignatureVerification (
   ecdsaSecp256k1Prop,
+  ed25519_Variant0Prop,
   ed25519_Variant1Prop,
   ed25519_Variant2Prop,
   schnorrSecp256k1Prop,
