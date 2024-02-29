@@ -16,7 +16,6 @@ import Prelude
 import Blueprint.Tests.Lib qualified as Fixture
 import Control.Monad.Reader (asks)
 import Data.Set qualified as Set
-import PlutusCore.Crypto.Hash (blake2b_224)
 import PlutusTx.Blueprint.Purpose qualified as Purpose
 import PlutusTx.Builtins (BuiltinByteString, BuiltinData)
 import System.FilePath ((</>))
@@ -97,10 +96,5 @@ validatorBlueprint =
             , argumentPurpose = Set.singleton Purpose.Spend
             , argumentSchema = definitionRef @Fixture.Datum
             }
-    , validatorCompiledCode =
-        Just
-          MkCompiledCode
-            { compiledCodeBytes = Fixture.serialisedScript
-            , compiledCodeHash = blake2b_224 Fixture.serialisedScript
-            }
+    , validatorCompiledCode = Just Fixture.serialisedScript
     }
