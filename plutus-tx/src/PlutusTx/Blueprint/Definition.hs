@@ -10,6 +10,7 @@
 {-# LANGUAGE TypeOperators            #-}
 {-# LANGUAGE UndecidableInstances     #-}
 {-# OPTIONS_GHC -Wno-redundant-constraints #-}
+{-# OPTIONS_GHC -Wno-unticked-promoted-constructors #-}
 
 -- | This module provides a functionality to derive and reference schema definitions.
 module PlutusTx.Blueprint.Definition (

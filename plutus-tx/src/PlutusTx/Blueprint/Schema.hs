@@ -54,7 +54,8 @@ data Schema
   | SchemaNot Schema
   | SchemaDefinitionRef DefinitionId
   deriving stock (Eq, Show, Generic, Data)
-  deriving anyclass (Plated)
+
+deriving anyclass instance Plated Schema
 
 instance ToJSON Schema where
   toJSON = \case
