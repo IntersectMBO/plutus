@@ -18,15 +18,16 @@ import PlutusTx.Blueprint.Preamble (Preamble)
 import PlutusTx.Blueprint.Schema (Schema)
 import PlutusTx.Blueprint.Validator (ValidatorBlueprint)
 
+-- | A blueprint of a smart contract, as defined by the CIP-0057
 data ContractBlueprint = MkContractBlueprint
   { contractId          :: Maybe Text
-  -- ^ An optional identifier for the contract
+  -- ^ An optional identifier for the contract.
   , contractPreamble    :: Preamble
-  -- ^ An object with meta-information about the contract
+  -- ^ An object with meta-information about the contract.
   , contractValidators  :: Set ValidatorBlueprint
-  -- ^ An object of named validators
+  -- ^ A set of validator blueprints that are part of the contract.
   , contractDefinitions :: Map DefinitionId Schema
-  -- ^ A registry of definition re-used across the specification
+  -- ^ A registry of schema definitions used across the blueprint.
   }
   deriving stock (Show)
 

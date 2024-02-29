@@ -25,7 +25,7 @@ import Test.Tasty.Extras (TestNested, testNested)
 import Test.Tasty.Golden (goldenVsFile)
 
 goldenTests :: TestNested
-goldenTests = testNested "Blueprint" [goldenBlueprint "Acme" acmeContractBlueprint]
+goldenTests = testNested "Blueprint" [goldenBlueprint "Acme" contractBlueprint]
 
 goldenBlueprint :: TestName -> ContractBlueprint -> TestNested
 goldenBlueprint name blueprint = do
@@ -39,7 +39,7 @@ This type level list is used to:
 1. derive the schema definitions for the contract.
 2. make "safe" references to the [derived] schema definitions.
 -}
-type SchemaDefinitions =
+type ValidatorTypes =
   [ Fixture.Datum
   , Fixture.DatumPayload
   , Fixture.Params
@@ -52,8 +52,8 @@ type SchemaDefinitions =
   , BuiltinByteString
   ]
 
-acmeContractBlueprint :: ContractBlueprint
-acmeContractBlueprint =
+contractBlueprint :: ContractBlueprint
+contractBlueprint =
   MkContractBlueprint
     { contractId = Nothing
     , contractPreamble =
@@ -64,41 +64,43 @@ acmeContractBlueprint =
           , preamblePlutusVersion = PlutusV3
           , preambleLicense = Just "MIT"
           }
-    , contractValidators =
-        [ MkValidatorBlueprint
-            { validatorTitle = "Acme Validator"
-            , validatorDescription = Just "A validator that does something awesome"
-            , validatorParameters =
-                Just
-                  $ pure
-                    MkParameterBlueprint
-                      { parameterTitle = Just "Acme Parameter"
-                      , parameterDescription = Just "A parameter that does something awesome"
-                      , parameterPurpose = Set.singleton Purpose.Spend
-                      , parameterSchema = definitionRef @Fixture.Params @SchemaDefinitions
-                      }
-            , validatorRedeemer =
-                MkArgumentBlueprint
-                  { argumentTitle = Just "Acme Redeemer"
-                  , argumentDescription = Just "A redeemer that does something awesome"
-                  , argumentPurpose = Set.fromList [Purpose.Spend, Purpose.Mint]
-                  , argumentSchema = definitionRef @Fixture.Redeemer @SchemaDefinitions
-                  }
-            , validatorDatum =
-                Just
-                  MkArgumentBlueprint
-                    { argumentTitle = Just "Acme Datum"
-                    , argumentDescription = Just "A datum that contains something awesome"
-                    , argumentPurpose = Set.singleton Purpose.Spend
-                    , argumentSchema = definitionRef @Fixture.Datum @SchemaDefinitions
-                    }
-            , validatorCompiledCode =
-                Just
-                  MkCompiledCode
-                    { compiledCodeBytes = Fixture.serialisedScript
-                    , compiledCodeHash = blake2b_224 Fixture.serialisedScript
-                    }
+    , contractValidators = Set.singleton validatorBlueprint
+    , contractDefinitions = deriveSchemaDefinitions @ValidatorTypes
+    }
+
+validatorBlueprint :: ValidatorBlueprint
+validatorBlueprint =
+  MkValidatorBlueprint
+    { validatorTitle = "Acme Validator"
+    , validatorDescription = Just "A validator that does something awesome"
+    , validatorParameters =
+        Just
+          $ pure
+            MkParameterBlueprint
+              { parameterTitle = Just "Acme Parameter"
+              , parameterDescription = Just "A parameter that does something awesome"
+              , parameterPurpose = Set.singleton Purpose.Spend
+              , parameterSchema = definitionRef @Fixture.Params @ValidatorTypes
+              }
+    , validatorRedeemer =
+        MkArgumentBlueprint
+          { argumentTitle = Just "Acme Redeemer"
+          , argumentDescription = Just "A redeemer that does something awesome"
+          , argumentPurpose = Set.fromList [Purpose.Spend, Purpose.Mint]
+          , argumentSchema = definitionRef @Fixture.Redeemer @ValidatorTypes
+          }
+    , validatorDatum =
+        Just
+          MkArgumentBlueprint
+            { argumentTitle = Just "Acme Datum"
+            , argumentDescription = Just "A datum that contains something awesome"
+            , argumentPurpose = Set.singleton Purpose.Spend
+            , argumentSchema = definitionRef @Fixture.Datum @ValidatorTypes
             }
-        ]
-    , contractDefinitions = deriveSchemaDefinitions @SchemaDefinitions
+    , validatorCompiledCode =
+        Just
+          MkCompiledCode
+            { compiledCodeBytes = Fixture.serialisedScript
+            , compiledCodeHash = blake2b_224 Fixture.serialisedScript
+            }
     }

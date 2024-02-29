@@ -17,6 +17,7 @@ import Data.Text.Encoding qualified as Text
 import PlutusTx.Blueprint.Argument (ArgumentBlueprint)
 import PlutusTx.Blueprint.Parameter (ParameterBlueprint)
 
+-- | A blueprint of a validator, as defined by the CIP-0057
 data ValidatorBlueprint = MkValidatorBlueprint
   { validatorTitle        :: Text
   -- ^ A short and descriptive name for the validator.

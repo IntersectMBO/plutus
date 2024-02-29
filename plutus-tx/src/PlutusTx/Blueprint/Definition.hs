@@ -45,7 +45,7 @@ type family HasSchemaDefinition n xs where
   HasSchemaDefinition n xs =
     GHC.TypeError
       ( GHC.ShowType n
-          GHC.:<>: GHC.Text " schema was not found in the list of schema definitions."
+          GHC.:<>: GHC.Text " type was not found in the list of types having schema definitions."
       )
 
 -- | Derive a map of schema definitions from a list of types.
