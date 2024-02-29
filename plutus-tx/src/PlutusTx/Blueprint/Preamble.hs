@@ -1,15 +1,16 @@
 {-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE OverloadedStrings  #-}
-{-# LANGUAGE RecordWildCards    #-}
+{-# LANGUAGE LambdaCase         #-}
+{-# LANGUAGE TemplateHaskell    #-}
 
 module PlutusTx.Blueprint.Preamble where
 
 import Prelude
 
-import Data.Aeson (ToJSON (..), (.=))
-import Data.Aeson qualified as Aeson
-import Data.Maybe (catMaybes)
+import Data.Aeson (Options (..), defaultOptions)
+import Data.Aeson.Extra (stripPrefix)
+import Data.Aeson.TH (deriveToJSON)
 import Data.Text (Text)
+import GHC.Generics (Generic)
 import PlutusTx.Blueprint.PlutusVersion (PlutusVersion)
 
 -- | Meta-information about the contract
@@ -26,15 +27,6 @@ data Preamble = MkPreamble
   -- ^ A license under which the specification
   -- and contract code is distributed
   }
-  deriving stock (Show)
+  deriving stock (Show, Generic)
 
-instance ToJSON Preamble where
-  toJSON MkPreamble{..} =
-    Aeson.object
-      $ catMaybes
-        [ Just $ "title" .= preambleTitle
-        , fmap ("description" .=) preambleDescription
-        , Just $ "version" .= preambleVersion
-        , Just $ "plutusVersion" .= preamblePlutusVersion
-        , fmap ("license" .=) preambleLicense
-        ]
+$(deriveToJSON defaultOptions{fieldLabelModifier = stripPrefix "preamble"} ''Preamble)
