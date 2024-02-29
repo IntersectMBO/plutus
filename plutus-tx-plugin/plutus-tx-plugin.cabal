@@ -176,6 +176,7 @@ test-suite plutus-tx-plugin-tests
     , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.22
     , plutus-tx-plugin                                ^>=1.22
     , plutus-tx:{plutus-tx, plutus-tx-testlib}        ^>=1.22
+    , serialise
     , tasty
     , tasty-golden
     , tasty-hedgehog

@@ -14,8 +14,10 @@ module Blueprint.Tests.Lib where
 
 import Prelude
 
-import Control.Lens (over)
+import Codec.Serialise (serialise)
+import Control.Lens (over, (&))
 import Data.ByteString (ByteString)
+import Data.ByteString.Lazy qualified as LBS
 import Flat qualified
 import PlutusCore.Version (plcVersion110)
 import PlutusTx hiding (Typeable)
@@ -66,10 +68,12 @@ type Validator = Params -> Datum -> Redeemer -> ScriptContext -> Bool
 
 serialisedScript :: ByteString
 serialisedScript =
-  Flat.flat
-    $ UPLC.UnrestrictedProgram
-    $ over UPLC.progTerm (UPLC.termMapNames UPLC.unNameDeBruijn)
-    $ PlutusTx.getPlcNoAnn validatorScript
+  PlutusTx.getPlcNoAnn validatorScript
+    & over UPLC.progTerm (UPLC.termMapNames UPLC.unNameDeBruijn)
+    & UPLC.UnrestrictedProgram
+    & Flat.flat
+    & serialise
+    & LBS.toStrict
  where
   {-# INLINEABLE typedValidator #-}
   typedValidator :: Validator
