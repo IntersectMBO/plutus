@@ -2,6 +2,7 @@
 {-# LANGUAGE DefaultSignatures   #-}
 {-# LANGUAGE DeriveDataTypeable  #-}
 {-# LANGUAGE DerivingStrategies  #-}
+{-# LANGUAGE OverloadedStrings   #-}
 
 module PlutusTx.Blueprint.Definition.Id (
   DefinitionId,
@@ -20,12 +21,9 @@ import GHC.Generics (Generic)
 import PlutusTx.Builtins (BuiltinByteString, BuiltinData, BuiltinString)
 
 -- | A reference to a Schema definition.
-newtype DefinitionId = MkDefinitionId Text
+newtype DefinitionId = MkDefinitionId {definitionIdToText :: Text}
   deriving stock (Show, Generic, Data)
   deriving newtype (Eq, Ord, ToJSON, ToJSONKey)
-
-definitionIdToText :: DefinitionId -> Text
-definitionIdToText (MkDefinitionId t) = t
 
 class AsDefinitionId a where
   definitionId :: DefinitionId
@@ -35,12 +33,12 @@ class AsDefinitionId a where
   definitionId = MkDefinitionId . Text.pack . show $ typeRep (Proxy :: Proxy a)
 
 instance AsDefinitionId () where
-  definitionId = MkDefinitionId (Text.pack "Unit")
+  definitionId = MkDefinitionId "Unit"
 instance AsDefinitionId Bool
 instance AsDefinitionId Integer
 instance AsDefinitionId BuiltinData where
-  definitionId = MkDefinitionId (Text.pack "Data")
+  definitionId = MkDefinitionId "Data"
 instance AsDefinitionId BuiltinString where
-  definitionId = MkDefinitionId (Text.pack "String")
+  definitionId = MkDefinitionId "String"
 instance AsDefinitionId BuiltinByteString where
-  definitionId = MkDefinitionId (Text.pack "ByteString")
+  definitionId = MkDefinitionId "ByteString"
