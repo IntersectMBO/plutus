@@ -11,6 +11,7 @@ import Data.Aeson qualified as Aeson
 import Data.Map (Map)
 import Data.Map qualified as Map
 import Data.Maybe (catMaybes)
+import Data.Set (Set)
 import Data.Text (Text)
 import PlutusTx.Blueprint.Definition (DefinitionId)
 import PlutusTx.Blueprint.Preamble (Preamble)
@@ -22,7 +23,7 @@ data ContractBlueprint = MkContractBlueprint
   -- ^ An optional identifier for the contract
   , contractPreamble    :: Preamble
   -- ^ An object with meta-information about the contract
-  , contractValidators  :: [ValidatorBlueprint]
+  , contractValidators  :: Set ValidatorBlueprint
   -- ^ An object of named validators
   , contractDefinitions :: Map DefinitionId Schema
   -- ^ A registry of definition re-used across the specification

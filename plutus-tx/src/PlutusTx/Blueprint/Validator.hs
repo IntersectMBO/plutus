@@ -31,7 +31,7 @@ data ValidatorBlueprint = MkValidatorBlueprint
   , validatorCompiledCode :: Maybe CompiledCode
   -- ^ A compiled contract code with its hash.
   }
-  deriving stock (Show)
+  deriving stock (Show, Eq)
 
 instance ToJSON ValidatorBlueprint where
   toJSON MkValidatorBlueprint{..} =
@@ -55,4 +55,4 @@ data CompiledCode = MkCompiledCode
   , compiledCodeHash  :: ByteString
   -- ^ A blake2b-224 hash digest of the validator script, as found in addresses.
   }
-  deriving stock (Show)
+  deriving stock (Show, Eq)

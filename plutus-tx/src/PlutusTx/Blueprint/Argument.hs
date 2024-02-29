@@ -28,7 +28,7 @@ data ArgumentBlueprint = MkArgumentBlueprint
   , argumentSchema      :: Schema
   -- ^ A Plutus Data Schema.
   }
-  deriving stock (Show)
+  deriving stock (Show, Eq)
 
 instance ToJSON ArgumentBlueprint where
   toJSON MkArgumentBlueprint{..} =

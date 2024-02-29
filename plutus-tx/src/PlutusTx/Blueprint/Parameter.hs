@@ -28,7 +28,7 @@ data ParameterBlueprint = MkParameterBlueprint
   , parameterSchema      :: Schema
   -- ^ A Plutus Data Schema.
   }
-  deriving stock (Show)
+  deriving stock (Show, Eq)
 
 instance ToJSON ParameterBlueprint where
   toJSON MkParameterBlueprint{..} =
