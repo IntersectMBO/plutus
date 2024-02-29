@@ -98,7 +98,7 @@ instance ToJSON (Schema referencedTypes) where
     SchemaConstructor info MkConstructorSchema{..} ->
       dataType info "constructor"
         & requiredField "index" index
-        & optionalField "fields" (nonEmpty fieldSchemas)
+        & requiredField "fields" fieldSchemas
         & Aeson.Object
     SchemaBuiltInData info ->
       Aeson.Object $ infoFields info
