@@ -17,6 +17,7 @@ module PlutusTx.Blueprint.Schema where
 import Control.Lens.Plated (Plated)
 import Data.Aeson (ToJSON (..), (.=))
 import Data.Aeson qualified as Aeson
+import Data.Aeson.Extra (optionalField, requiredField)
 import Data.Aeson.KeyMap qualified as KeyMap
 import Data.ByteString (ByteString)
 import Data.ByteString.Base16 qualified as Base16
@@ -134,12 +135,6 @@ instance ToJSON Schema where
         & optionalField "title" title
         & optionalField "description" description
         & optionalField "$comment" comment
-
-    optionalField :: (ToJSON a) => Aeson.Key -> Maybe a -> Aeson.Object -> Aeson.Object
-    optionalField = maybe id . requiredField
-
-    requiredField :: (ToJSON a) => Aeson.Key -> a -> Aeson.Object -> Aeson.Object
-    requiredField key value = KeyMap.insert key (toJSON value)
 
 -- | Additional information optionally attached to any datatype schema definition.
 data SchemaInfo = MkSchemaInfo

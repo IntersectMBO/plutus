@@ -45,6 +45,7 @@ library
   import:             lang
   hs-source-dirs:     src
   exposed-modules:
+    Data.Aeson.Extra
     PlutusTx
     PlutusTx.Applicative
     PlutusTx.AsData
