@@ -556,6 +556,12 @@ instance HasConstant (CekValue uni fun ann) where
     fromConstant = VCon
     {-# INLINE fromConstant #-}
 
+instance ToConstr (CekValue uni fun ann) where
+    -- It's critical for this to be defined in terms of 'foldl', so that fusion kicks in and
+    -- the list of arguments gets converted to an 'ArgStack' statically.
+    toConstr ix = Opaque . VConstr ix . foldl (flip ConsStack) EmptyStack
+    {-# INLINE toConstr #-}
+
 {-|
 The context in which the machine operates.
 
