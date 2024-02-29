@@ -86,7 +86,7 @@ instance ToJSON (Schema referencedTypes) where
         & requiredField "items" schema
         & optionalField "minItems" minItems
         & optionalField "maxItems" maxItems
-        & optionalField "uniqueItems" unique
+        & optionalField "uniqueItems" uniqueItems
         & Aeson.Object
     SchemaMap info MkMapSchema{..} ->
       dataType info "map"
@@ -192,20 +192,26 @@ emptyBytesSchema :: BytesSchema
 emptyBytesSchema = MkBytesSchema{enum = [], minLength = Nothing, maxLength = Nothing}
 
 data ListSchema (referencedTypes :: [Type]) = MkListSchema
-  { schema   :: Schema referencedTypes
+  { schema      :: Schema referencedTypes
   -- ^ Element schema
-  , minItems :: Maybe Natural
+  , minItems    :: Maybe Natural
   -- ^ An array instance is valid if its size is greater than, or equal to, this value.
-  , maxItems :: Maybe Natural
+  , maxItems    :: Maybe Natural
   -- ^ An array instance is valid if its size is less than, or equal to, this value.
-  , unique   :: Maybe Bool
+  , uniqueItems :: Maybe Bool
   -- ^ If this value is false, the instance validates successfully.
   -- If it is set to True, the instance validates successfully if all of its elements are unique.
   }
   deriving stock (Eq, Show, Generic, Data)
 
 mkListSchema :: Schema referencedTypes -> ListSchema referencedTypes
-mkListSchema schema = MkListSchema{schema, minItems = Nothing, maxItems = Nothing, unique = Nothing}
+mkListSchema schema =
+  MkListSchema
+    { schema
+    , minItems = Nothing
+    , maxItems = Nothing
+    , uniqueItems = Nothing
+    }
 
 data MapSchema (referencedTypes :: [Type]) = MkMapSchema
   { keySchema   :: Schema referencedTypes
