@@ -43,12 +43,16 @@ instance ToJSON (ParameterBlueprint referencedTypes) where
     KeyMap.empty
       & optionalField "title" parameterTitle
       & optionalField "description" parameterDescription
-      & optionalField "purpose" purpose
+      & optionalField "purpose" (oneOfASet parameterPurpose)
       & requiredField "schema" parameterSchema
       & Aeson.Object
-   where
-    purpose :: Maybe Aeson.Value =
-      case Set.toList parameterPurpose of
-        []  -> Nothing
-        [x] -> Just $ toJSON x
-        xs  -> Just $ Aeson.object ["oneOf" .= xs]
+
+----------------------------------------------------------------------------------------------------
+-- Helper functions --------------------------------------------------------------------------------
+
+oneOfASet :: (ToJSON a) => Set a -> Maybe Aeson.Value
+oneOfASet s =
+  case Set.toList s of
+    []  -> Nothing
+    [x] -> Just $ toJSON x
+    xs  -> Just $ Aeson.object ["oneOf" .= xs]

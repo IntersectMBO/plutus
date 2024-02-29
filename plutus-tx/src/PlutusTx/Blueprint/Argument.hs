@@ -8,15 +8,15 @@ module PlutusTx.Blueprint.Argument where
 
 import Prelude
 
-import Data.Aeson (KeyValue ((.=)), ToJSON (..))
+import Data.Aeson (ToJSON (..))
 import Data.Aeson qualified as Aeson
 import Data.Aeson.Extra
 import Data.Aeson.KeyMap qualified as KeyMap
 import Data.Function ((&))
 import Data.Kind (Type)
 import Data.Set (Set)
-import Data.Set qualified as Set
 import Data.Text (Text)
+import PlutusTx.Blueprint.Parameter (oneOfASet)
 import PlutusTx.Blueprint.Purpose (Purpose)
 import PlutusTx.Blueprint.Schema (Schema)
 
@@ -38,12 +38,6 @@ instance ToJSON (ArgumentBlueprint referencedTypes) where
     KeyMap.empty
       & optionalField "title" argumentTitle
       & optionalField "description" argumentDescription
-      & optionalField "purpose" purpose
+      & optionalField "purpose" (oneOfASet argumentPurpose)
       & requiredField "schema" argumentSchema
       & Aeson.Object
-   where
-    purpose :: Maybe Aeson.Value =
-      case Set.toList argumentPurpose of
-        []  -> Nothing
-        [x] -> Just $ toJSON x
-        xs  -> Just $ Aeson.object ["oneOf" .= xs]
