@@ -30,7 +30,8 @@ class AsDefinitionId a where
 
   -- | Derive a 'DefinitionId' for a type.
   default definitionId :: (Typeable a) => DefinitionId
-  definitionId = MkDefinitionId . Text.pack . show $ typeRep (Proxy :: Proxy a)
+  definitionId =
+    MkDefinitionId . Text.replace " " "_" . Text.pack . show $ typeRep (Proxy :: Proxy a)
 
 instance AsDefinitionId () where
   definitionId = MkDefinitionId "Unit"

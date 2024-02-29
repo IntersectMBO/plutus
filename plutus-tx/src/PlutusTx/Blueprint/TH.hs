@@ -14,7 +14,6 @@ import Prelude
 import Data.List (nub)
 import Data.List.NonEmpty qualified as NE
 import Data.Traversable (for)
-import Data.Typeable (Typeable)
 import GHC.Natural (Natural, naturalToInteger)
 import Language.Haskell.TH qualified as TH
 import Language.Haskell.TH.Datatype qualified as TH
@@ -40,48 +39,43 @@ makeHasSchemaInstance dataTypeName indices = do
   let appliedType = TH.datatypeType dataTypeInfo
   let nonOverlapInstance = TH.InstanceD Nothing
 
+  -- Lookup indices for all constructors of a data type.
   indexedCons <- for (TH.datatypeCons dataTypeInfo) $ \ctorInfo ->
     case lookup (TH.constructorName ctorInfo) indices of
       Just index -> pure (ctorInfo, index)
       Nothing    -> fail $ "No index given for constructor " ++ show (TH.constructorName ctorInfo)
 
-  let tsType = TH.VarT (TH.mkName "ts")
+  let tsType = TH.VarT (TH.mkName "referencedTypes")
+
+  -- Generate constraints for the instance.
   let constraints =
         nub
-          $ [ constraint
-            | tyVarBinder <- TH.datatypeVars dataTypeInfo
-            , let tType = TH.VarT (tyvarbndrName tyVarBinder)
-            , constraint <-
-                [ TH.classPred ''Typeable [tType]
-                , TH.classPred ''HasSchemaDefinition [tType, tsType]
-                ]
-            ]
-          ++ [ TH.classPred ''HasSchemaDefinition [fieldType, tsType]
-             | (TH.ConstructorInfo{constructorFields}, _index) <- indexedCons
-             , fieldType <- constructorFields
-             ]
-  hasSchemaPrag <- TH.funD 'schema [toClause tsType indexedCons]
-  hasSchemaDecl <- TH.pragInlD 'schema TH.Inlinable TH.FunLike TH.AllPhases
+          -- Every type in the constructor fields must have a schema definition.
+          [ TH.classPred ''HasSchemaDefinition [fieldType, tsType]
+          | (TH.ConstructorInfo{constructorFields}, _index) <- indexedCons
+          , fieldType <- constructorFields
+          ]
+  -- Generate a 'schema' function for the instance with one clause.
+  schemaPrag <- TH.funD 'schema [mkSchemaClause tsType indexedCons]
+  -- Generate a pragma for the 'schema' function, making it inlinable.
+  schemaDecl <- TH.pragInlD 'schema TH.Inlinable TH.FunLike TH.AllPhases
   pure
+    -- Generate an instance declaration, e.g.:
+    -- instance (constraints) => HasSchema T referencedTypes where
+    --   {-# INLINE schema #-}
+    --   schema = ...
     $ nonOverlapInstance
       constraints
       (TH.classPred ''HasSchema [appliedType, tsType])
-      [hasSchemaPrag, hasSchemaDecl]
- where
-#if MIN_VERSION_template_haskell(2,17,0)
-  tyvarbndrName (TH.PlainTV n _)    = n
-  tyvarbndrName (TH.KindedTV n _ _) = n
-#else
-  tyvarbndrName (TH.PlainTV n)      = n
-  tyvarbndrName (TH.KindedTV n _)   = n
-#endif
+      [schemaPrag, schemaDecl]
 
-toClause :: TH.Type -> [(TH.ConstructorInfo, Natural)] -> TH.ClauseQ
-toClause ts ctorIndexes =
+-- | Make a clause for the 'schema' function.
+mkSchemaClause :: TH.Type -> [(TH.ConstructorInfo, Natural)] -> TH.ClauseQ
+mkSchemaClause ts ctorIndexes =
   case ctorIndexes of
-    []          -> fail "At least one constructor index must be specified."
-    [ctorIndex] -> mkBody (mkCtor ctorIndex)
-    _           -> mkBody [|SchemaOneOf (NE.fromList $(TH.listE (fmap mkCtor ctorIndexes)))|]
+    [] -> fail "At least one constructor index must be specified."
+    [ctorIndex] -> mkBody (mkSchemaConstructor ctorIndex)
+    _ -> mkBody [|SchemaOneOf (NE.fromList $(TH.listE (fmap mkSchemaConstructor ctorIndexes)))|]
  where
   mkBody :: TH.ExpQ -> TH.ClauseQ
   mkBody body = do
@@ -89,8 +83,8 @@ toClause ts ctorIndexes =
     let whereDecls = []
     TH.clause patterns (TH.normalB body) whereDecls
 
-  mkCtor :: (TH.ConstructorInfo, Natural) -> TH.ExpQ
-  mkCtor (TH.ConstructorInfo{..}, naturalToInteger -> ctorIndex) = do
+  mkSchemaConstructor :: (TH.ConstructorInfo, Natural) -> TH.ExpQ
+  mkSchemaConstructor (TH.ConstructorInfo{..}, naturalToInteger -> ctorIndex) = do
     fields <- for constructorFields $ \t -> [|definitionRef @($(pure t)) @($(pure ts))|]
     let name = TH.nameBase constructorName
     [|

@@ -59,7 +59,7 @@
     "ByteString": {
       "dataType": "bytes"
     },
-    "Bytes": {
+    "Bytes_Void": {
       "title": "SchemaBytes",
       "dataType": "bytes"
     },
@@ -92,7 +92,7 @@
           "$ref": "#/definitions/Integer"
         },
         {
-          "$ref": "#/definitions/Bytes"
+          "$ref": "#/definitions/Bytes_Void"
         }
       ],
       "index": 0

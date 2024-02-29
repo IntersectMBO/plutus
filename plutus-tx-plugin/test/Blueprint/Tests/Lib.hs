@@ -5,6 +5,8 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE PolyKinds             #-}
+{-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE UndecidableInstances  #-}
@@ -18,6 +20,8 @@ import Codec.Serialise (serialise)
 import Control.Lens (over, (&))
 import Data.ByteString (ByteString)
 import Data.ByteString.Lazy qualified as LBS
+import Data.Kind (Type)
+import Data.Void (Void)
 import Flat qualified
 import PlutusCore.Version (plcVersion110)
 import PlutusTx hiding (Typeable)
@@ -40,16 +44,16 @@ data Params = MkParams
 $(PlutusTx.makeLift ''Params)
 $(makeIsDataSchemaIndexed ''Params [('MkParams, 0)])
 
-newtype Bytes = MkAcmeBytes BuiltinByteString
+newtype Bytes (phantom :: Type) = MkAcmeBytes BuiltinByteString
   deriving newtype (ToData, FromData, UnsafeFromData)
   deriving anyclass (AsDefinitionId)
 
-instance HasSchema Bytes ts where
+instance HasSchema (Bytes phantom) ts where
   schema = SchemaBytes emptySchemaInfo{title = Just "SchemaBytes"} emptyBytesSchema
 
 data DatumPayload = MkDatumPayload
   { myAwesomeDatum1 :: Integer
-  , myAwesomeDatum2 :: Bytes
+  , myAwesomeDatum2 :: Bytes Void
   }
   deriving anyclass (AsDefinitionId)
 

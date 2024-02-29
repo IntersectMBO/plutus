@@ -16,6 +16,7 @@ import Prelude
 import Blueprint.Tests.Lib qualified as Fixture
 import Control.Monad.Reader (asks)
 import Data.Set qualified as Set
+import Data.Void (Void)
 import PlutusTx.Blueprint.Purpose qualified as Purpose
 import PlutusTx.Builtins (BuiltinByteString, BuiltinData)
 import System.FilePath ((</>))
@@ -43,7 +44,7 @@ type ValidatorTypes =
   , Fixture.DatumPayload
   , Fixture.Params
   , Fixture.Redeemer
-  , Fixture.Bytes
+  , Fixture.Bytes Void
   , ()
   , Bool
   , Integer
