@@ -22,6 +22,7 @@ import PlutusTx.Enum (Enum (..))
 import PlutusTx.Numeric (negate)
 import PlutusTx.Prelude (dropByteString, one, takeByteString)
 import PlutusTx.Ratio (Rational, denominator, numerator, recip, unsafeRatio)
+import PlutusTx.SortedMap.Tests
 import PlutusTx.Sqrt (Sqrt (Approximately, Exactly, Imaginary), isqrt, rsqrt)
 import Prelude hiding (Enum (..), Rational, negate, recip)
 import Rational.Laws (lawsTests)
@@ -45,6 +46,7 @@ tests = testGroup "plutus-tx" [
     , lawsTests
     , Show.Spec.propertyTests
     , runTestNestedIn ["test"] Show.Spec.goldenTests
+    , PlutusTx.SortedMap.Tests.propertyTests
     ]
 
 sqrtTests :: TestTree

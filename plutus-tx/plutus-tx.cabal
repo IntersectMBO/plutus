@@ -79,6 +79,7 @@ library
     PlutusTx.Semigroup
     PlutusTx.Show
     PlutusTx.Show.TH
+    PlutusTx.SortedMap
     PlutusTx.Sqrt
     PlutusTx.TH
     PlutusTx.These
@@ -160,6 +161,7 @@ test-suite plutus-tx-test
   ghc-options:        -threaded -rtsopts -with-rtsopts=-N
   other-modules:
     List.Spec
+    PlutusTx.SortedMap.Tests
     Rational.Laws
     Rational.Laws.Additive
     Rational.Laws.Construction
@@ -191,5 +193,6 @@ test-suite plutus-tx-test
     , tasty
     , tasty-hedgehog
     , tasty-hunit
+    , tasty-quickcheck
     , text
     , transformers
