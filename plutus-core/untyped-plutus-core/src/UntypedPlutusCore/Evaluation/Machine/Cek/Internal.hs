@@ -12,6 +12,7 @@
 {-# LANGUAGE FlexibleInstances        #-}
 {-# LANGUAGE ImplicitParams           #-}
 {-# LANGUAGE LambdaCase               #-}
+{-# LANGUAGE MagicHash                #-}
 {-# LANGUAGE MultiParamTypeClasses    #-}
 {-# LANGUAGE NPlusKPatterns           #-}
 {-# LANGUAGE NamedFieldPuns           #-}
@@ -85,7 +86,6 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts
                                                                  CekMachineCostsBase (..))
 import UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
 
-import Control.Lens ((^?))
 import Control.Lens.Review
 import Control.Monad (unless, when)
 import Control.Monad.Catch
@@ -97,7 +97,6 @@ import Data.DList qualified as DList
 import Data.Functor.Identity
 import Data.Hashable (Hashable)
 import Data.Kind qualified as GHC
-import Data.List.Extras (wix)
 import Data.Proxy
 import Data.Semigroup (stimes)
 import Data.Text (Text)
@@ -663,6 +662,43 @@ evalBuiltinApp fun term runtime = case runtime of
     _ -> pure $ VBuiltin fun term runtime
 {-# INLINE evalBuiltinApp #-}
 
+lookupInline :: Word64 -> [a] -> Maybe a
+lookupInline !i0 = goStep i0 where
+    goStep :: Word64 -> [a] -> Maybe a
+    goStep 0 = \case
+        x:_ -> Just x
+        _   -> Nothing
+    goStep 1 = \case
+        _:x:_ -> Just x
+        _     -> Nothing
+    goStep 2 = \case
+        _:_:x:_ -> Just x
+        _       -> Nothing
+    goStep 3 = \case
+        _:_:_:x:_ -> Just x
+        _         -> Nothing
+    goStep 4 = \case
+        _:_:_:_:x:_ -> Just x
+        _           -> Nothing
+    goStep 5 = \case
+        _:_:_:_:_:x:_ -> Just x
+        _             -> Nothing
+    goStep 6 = \case
+        _:_:_:_:_:_:x:_ -> Just x
+        _               -> Nothing
+    goStep 7 = \case
+        _:_:_:_:_:_:_:x:_ -> Just x
+        _                 -> Nothing
+    goStep i = \case
+        _:_:_:_:_:_:_:_:xs -> goRec (i - 8) xs
+        _                  -> Nothing
+    {-# INLINE goStep #-}
+
+    goRec :: Word64 -> [a] -> Maybe a
+    goRec !i = goStep i
+    {-# NOINLINE goRec #-}
+{-# INLINE lookupInline #-}
+
 -- See Note [Compilation peculiarities].
 -- | The entering point to the CEK machine's engine.
 enterComputeCek
@@ -768,7 +804,7 @@ enterComputeCek = computeCek
           _              -> returnCek ctx $ VConstr i done'
     -- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci
     returnCek (FrameCases env cs ctx) e = case e of
-        (VConstr i args) -> case cs ^? wix i of
+        VConstr i args -> case lookupInline i cs of
             Just t  -> computeCek (transferArgStack args ctx) env t
             Nothing -> throwingDischarged _MachineError (MissingCaseBranch i) e
         _ -> throwingDischarged _MachineError NonConstrScrutinized e
