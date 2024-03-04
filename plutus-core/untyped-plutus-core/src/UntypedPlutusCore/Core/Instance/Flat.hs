@@ -13,6 +13,7 @@ import PlutusCore.Version qualified as PLC
 import UntypedPlutusCore.Core.Type
 
 import Control.Monad
+import Data.Vector qualified as V
 import Data.Word (Word8)
 import Flat
 import Flat.Decoder
@@ -127,8 +128,8 @@ encodeTerm = \case
     Force    ann t      -> encodeTermTag 5 <> encode ann <> encodeTerm t
     Error    ann        -> encodeTermTag 6 <> encode ann
     Builtin  ann bn     -> encodeTermTag 7 <> encode ann <> encode bn
-    Constr   ann i es   -> encodeTermTag 8 <> encode ann <> encode i <> encodeListWith encodeTerm es
-    Case     ann arg cs -> encodeTermTag 9 <> encode ann <> encodeTerm arg <> encodeListWith encodeTerm cs
+    Constr   ann i es   -> encodeTermTag 8 <> encode ann <> encode i <> encodeListWith encodeTerm (V.toList es)
+    Case     ann arg cs -> encodeTermTag 9 <> encode ann <> encodeTerm arg <> encodeListWith encodeTerm (V.toList cs)
 
 decodeTerm
     :: forall name uni fun ann
@@ -162,10 +163,10 @@ decodeTerm version builtinPred = go
                 Just e  -> fail e
         handleTerm 8 = do
             unless (version >= PLC.plcVersion110) $ fail $ "'constr' is not allowed before version 1.1.0, this program has version: " ++ (show $ pretty version)
-            Constr   <$> decode <*> decode <*> decodeListWith go
+            Constr   <$> decode <*> decode <*> (V.fromList <$> decodeListWith go)
         handleTerm 9 = do
             unless (version >= PLC.plcVersion110) $ fail $ "'case' is not allowed before version 1.1.0, this program has version: " ++ (show $ pretty version)
-            Case     <$> decode <*> go <*> decodeListWith go
+            Case     <$> decode <*> go <*> (V.fromList <$> decodeListWith go)
         handleTerm t = fail $ "Unknown term constructor tag: " ++ show t
 
 sizeTerm
@@ -192,8 +193,8 @@ sizeTerm tm sz =
     Force    ann t      -> size ann $ sizeTerm t sz'
     Error    ann        -> size ann sz'
     Builtin  ann bn     -> size ann $ size bn sz'
-    Constr   ann i es   -> size ann $ size i $ sizeListWith sizeTerm es sz'
-    Case     ann arg cs -> size ann $ sizeTerm arg $ sizeListWith sizeTerm cs sz'
+    Constr   ann i es   -> size ann $ size i $ sizeListWith sizeTerm (V.toList es) sz'
+    Case     ann arg cs -> size ann $ sizeTerm arg $ sizeListWith sizeTerm (V.toList cs) sz'
 
 -- | An encoder for programs.
 --

@@ -10,6 +10,7 @@ import UntypedPlutusCore
 import Data.ByteString as BS hiding (map)
 import Data.Text as T hiding (map)
 import Data.Word (Word64)
+import GHC.Exts (IsList (..))
 import Universe
 
 -- Untyped (Raw) syntax
@@ -41,8 +42,8 @@ conv (Constant _ c)  = UCon c
 conv (Error _)       = UError
 conv (Delay _ t)     = UDelay (conv t)
 conv (Force _ t)     = UForce (conv t)
-conv (Constr _ i es) = UConstr (toInteger i) (fmap conv es)
-conv (Case _ arg cs) = UCase (conv arg) (fmap conv cs)
+conv (Constr _ i es) = UConstr (toInteger i) (toList (fmap conv es))
+conv (Case _ arg cs) = UCase (conv arg) (toList (fmap conv cs))
 
 tmnames = ['a' .. 'z']
 
@@ -62,6 +63,6 @@ uconv i UError         = Error ()
 uconv i (UBuiltin b)   = Builtin () b
 uconv i (UDelay t)     = Delay () (uconv i t)
 uconv i (UForce t)     = Force () (uconv i t)
-uconv i (UConstr j xs) = Constr () (fromInteger j) (fmap (uconv i) xs)
-uconv i (UCase t xs)   = Case () (uconv i t) (fmap (uconv i) xs)
+uconv i (UConstr j xs) = Constr () (fromInteger j) (fromList (fmap (uconv i) xs))
+uconv i (UCase t xs)   = Case () (uconv i t) (fromList (fmap (uconv i) xs))
 

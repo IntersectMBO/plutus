@@ -85,7 +85,6 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.CekMachineCosts (CekMachineCosts
                                                                  CekMachineCostsBase (..))
 import UntypedPlutusCore.Evaluation.Machine.Cek.StepCounter
 
-import Control.Lens ((^?))
 import Control.Lens.Review
 import Control.Monad (unless, when)
 import Control.Monad.Catch
@@ -97,10 +96,10 @@ import Data.DList qualified as DList
 import Data.Functor.Identity
 import Data.Hashable (Hashable)
 import Data.Kind qualified as GHC
-import Data.List.Extras (wix)
 import Data.Proxy
 import Data.Semigroup (stimes)
 import Data.Text (Text)
+import Data.Vector qualified as V
 import Data.Word
 import GHC.TypeLits
 import Prettyprinter
@@ -537,11 +536,11 @@ dischargeCekValue = \case
     -- or (b) it's needed for an error message.
     -- @term@ is fully discharged, so we can return it directly without any further discharging.
     VBuiltin _ term _                    -> term
-    VConstr i es                         -> Constr () i (fmap dischargeCekValue $ stack2list es)
+    VConstr i es                         -> Constr () i (fmap dischargeCekValue $ stack2vec es)
       where
-        stack2list = go []
+        stack2vec = go mempty
         go acc EmptyStack           = acc
-        go acc (ConsStack arg rest) = go (arg : acc) rest
+        go acc (ConsStack arg rest) = go (arg `V.cons` acc) rest
 
 instance (PrettyUni uni, Pretty fun) => PrettyBy PrettyConfigPlc (CekValue uni fun ann) where
     prettyBy cfg = prettyBy cfg . dischargeCekValue
@@ -572,9 +571,9 @@ data Context uni fun ann
     | FrameForce !(Context uni fun ann)
     -- ^ @(force _)@
     -- See Note [Accumulators for terms]
-    | FrameConstr !(CekValEnv uni fun ann) {-# UNPACK #-} !Word64 ![NTerm uni fun ann] !(ArgStack uni fun ann) !(Context uni fun ann)
+    | FrameConstr !(CekValEnv uni fun ann) {-# UNPACK #-} !Word64 !(V.Vector (NTerm uni fun ann)) !(ArgStack uni fun ann) !(Context uni fun ann)
     -- ^ @(constr i V0 ... Vj-1 _ Nj ... Nn)@
-    | FrameCases !(CekValEnv uni fun ann) ![NTerm uni fun ann] !(Context uni fun ann)
+    | FrameCases !(CekValEnv uni fun ann) !(V.Vector (NTerm uni fun ann)) !(Context uni fun ann)
     -- ^ @(case _ C0 .. Cn)@
     | NoFrame
 
@@ -719,9 +718,9 @@ enterComputeCek = computeCek
     -- s ; ρ ▻ constr I T0 .. Tn  ↦  s , constr I _ (T1 ... Tn, ρ) ; ρ ▻ T0
     computeCek !ctx !env (Constr _ i es) = do
         stepAndMaybeSpend BConstr
-        case es of
-          (t : rest) -> computeCek (FrameConstr env i rest EmptyStack ctx) env t
-          []         -> returnCek ctx $ VConstr i EmptyStack
+        case V.uncons es of
+          Just (t, rest) -> computeCek (FrameConstr env i rest EmptyStack ctx) env t
+          Nothing        -> returnCek ctx $ VConstr i EmptyStack
     -- s ; ρ ▻ case S C0 ... Cn  ↦  s , case _ (C0 ... Cn, ρ) ; ρ ▻ S
     computeCek !ctx !env (Case _ scrut cs) = do
         stepAndMaybeSpend BCase
@@ -763,12 +762,13 @@ enterComputeCek = computeCek
     -- s , constr I V0 ... Vj-1 _ (Tj+1 ... Tn, ρ) ◅ Vj  ↦  s , constr i V0 ... Vj _ (Tj+2... Tn, ρ)  ; ρ ▻ Tj+1
     returnCek (FrameConstr env i todo done ctx) e = do
         let done' = ConsStack e done
-        case todo of
-          (next : todo') -> computeCek (FrameConstr env i todo' done' ctx) env next
-          _              -> returnCek ctx $ VConstr i done'
+        case V.uncons todo of
+          Just (next, todo') -> computeCek (FrameConstr env i todo' done' ctx) env next
+          Nothing            -> returnCek ctx $ VConstr i done'
     -- s , case _ (C0 ... CN, ρ) ◅ constr i V1 .. Vm  ↦  s , [_ V1 ... Vm] ; ρ ▻ Ci
     returnCek (FrameCases env cs ctx) e = case e of
-        (VConstr i args) -> case cs ^? wix i of
+        -- TODO: handle word/int conversion better
+        (VConstr i args) -> case (V.!?) cs (fromIntegral i) of
             Just t  -> computeCek (transferArgStack args ctx) env t
             Nothing -> throwingDischarged _MachineError (MissingCaseBranch i) e
         _ -> throwingDischarged _MachineError NonConstrScrutinized e

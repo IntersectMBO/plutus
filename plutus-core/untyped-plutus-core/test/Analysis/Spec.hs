@@ -4,6 +4,7 @@ module Analysis.Spec where
 
 import Test.Tasty.Extras
 
+import Data.Vector qualified as V
 import PlutusCore qualified as PLC
 import PlutusCore.MkPlc
 import PlutusCore.Pretty (prettyPlcReadableDef)
@@ -28,7 +29,7 @@ dangerTerm = runQuote $ do
   -- The UPLC term type is strict, so it's hard to hide an undefined in there
   -- Take advantage of the fact that it's still using lazy lists for constr
   -- arguments for now.
-  pure $ Apply () (Apply () (Var () n) (Var () m)) (Constr () 1 [undefined])
+  pure $ Apply () (Apply () (Var () n) (Var () m)) (Constr () 1 (V.fromList [undefined]))
 
 letFun :: Term Name PLC.DefaultUni PLC.DefaultFun ()
 letFun = runQuote $ do

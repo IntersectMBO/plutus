@@ -50,8 +50,8 @@ instance
     Error _ -> unitDocM "error"
     -- Always rendering the tag on the same line for more compact output, it's just a tiny integer
     -- anyway.
-    Constr _ i es -> iterAppDocM $ \_ prettyArg -> ("constr" <+> prettyArg i) :| [prettyArg es]
-    Case _ arg cs -> iterAppDocM $ \_ prettyArg -> "case" :| [prettyArg arg, prettyArg cs]
+    Constr _ i es -> iterAppDocM $ \_ prettyArg -> ("constr" <+> prettyArg i) :| [prettyArg (toList es)]
+    Case _ arg cs -> iterAppDocM $ \_ prettyArg -> "case" :| [prettyArg arg, prettyArg (toList cs)]
 
 instance
   (PrettyReadableBy configName (Term name uni fun a)) =>
