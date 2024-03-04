@@ -96,25 +96,41 @@ data Term name uni fun ann
 
 data SixList a
     = SixList0
-    | SixList1 !a
-    | SixList2 !a !a
-    | SixList3 !a !a !a
-    | SixList4 !a !a !a !a
-    | SixList5 !a !a !a !a !a
-    | SixList6 !a !a !a !a !a !a !(SixList a)
+    | SixList1  !a
+    | SixList2  !a !a
+    | SixList3  !a !a !a
+    | SixList4  !a !a !a !a
+    | SixList5  !a !a !a !a !a
+    | SixList6  !a !a !a !a !a !a
+    | SixList7  !a !a !a !a !a !a !a
+    | SixList8  !a !a !a !a !a !a !a !a
+    | SixList9  !a !a !a !a !a !a !a !a !a
+    | SixList10 !a !a !a !a !a !a !a !a !a !a
+    | SixList11 !a !a !a !a !a !a !a !a !a !a !a
+    | SixList12 !a !a !a !a !a !a !a !a !a !a !a !a
+    | SixList13 !a !a !a !a !a !a !a !a !a !a !a !a !a
+    | SixList14 !a !a !a !a !a !a !a !a !a !a !a !a !a !a (SixList a)
     deriving stock (Show, Eq, Functor, Foldable, Traversable, Generic)
     deriving anyclass (NFData, Hashable)
 
 instance IsList (SixList a) where
     type Item (SixList a) = a
 
-    fromList []                     = SixList0
-    fromList [x0]                   = SixList1 x0
-    fromList [x0, x1]               = SixList2 x0 x1
-    fromList [x0, x1, x2]           = SixList3 x0 x1 x2
-    fromList [x0, x1, x2, x3]       = SixList4 x0 x1 x2 x3
-    fromList [x0, x1, x2, x3, x4]   = SixList5 x0 x1 x2 x3 x4
-    fromList (x0:x1:x2:x3:x4:x5:xs) = SixList6 x0 x1 x2 x3 x4 x5 (fromList xs)
+    fromList []                                   = SixList0
+    fromList [x0]                                 = SixList1 x0
+    fromList [x0, x1]                             = SixList2 x0 x1
+    fromList [x0, x1, x2]                         = SixList3 x0 x1 x2
+    fromList [x0, x1, x2, x3]                     = SixList4 x0 x1 x2 x3
+    fromList [x0, x1, x2, x3, x4]                 = SixList5 x0 x1 x2 x3 x4
+    fromList [x0, x1, x2, x3, x4, x5]             = SixList6 x0 x1 x2 x3 x4 x5
+    fromList [x0, x1, x2, x3, x4, x5, x6]         = SixList7 x0 x1 x2 x3 x4 x5 x6
+    fromList [x0, x1, x2, x3, x4, x5, x6, x7]     = SixList8 x0 x1 x2 x3 x4 x5 x6 x7
+    fromList [x0, x1, x2, x3, x4, x5, x6, x7, x8] = SixList9 x0 x1 x2 x3 x4 x5 x6 x7 x8
+    fromList [x0, x1, x2, x3, x4, x5, x6, x7, x8, x9] = SixList10 x0 x1 x2 x3 x4 x5 x6 x7 x8 x9
+    fromList [x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10] = SixList11 x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10
+    fromList [x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11] = SixList12 x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11
+    fromList [x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12] = SixList13 x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12
+    fromList (x0:x1:x2:x3:x4:x5:x6:x7:x8:x9:x10:x11:x12:x13:xs) = SixList14 x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 (fromList xs)
 
     toList !xs0 = goStep xs0 where
         goStep :: SixList a -> [a]
@@ -124,7 +140,15 @@ instance IsList (SixList a) where
         goStep (SixList3 x0 x1 x2)             = [x0, x1, x2]
         goStep (SixList4 x0 x1 x2 x3)          = [x0, x1, x2, x3]
         goStep (SixList5 x0 x1 x2 x3 x4)       = [x0, x1, x2, x3, x4]
-        goStep (SixList6 x0 x1 x2 x3 x4 x5 xs) = x0 : x1 : x2 : x3 : x4 : x5 : goRec xs
+        goStep (SixList6 x0 x1 x2 x3 x4 x5)    = [x0, x1, x2, x3, x4, x5]
+        goStep (SixList7 x0 x1 x2 x3 x4 x5 x6) = [x0, x1, x2, x3, x4, x5, x6]
+        goStep (SixList8 x0 x1 x2 x3 x4 x5 x6 x7) = [x0, x1, x2, x3, x4, x5, x6, x7]
+        goStep (SixList9 x0 x1 x2 x3 x4 x5 x6 x7 x8) = [x0, x1, x2, x3, x4, x5, x6, x7, x8]
+        goStep (SixList10 x0 x1 x2 x3 x4 x5 x6 x7 x8 x9) = [x0, x1, x2, x3, x4, x5, x6, x7, x8, x9]
+        goStep (SixList11 x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10) = [x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10]
+        goStep (SixList12 x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11) = [x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11]
+        goStep (SixList13 x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12) = [x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12]
+        goStep (SixList14 x0 x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 xs) = x0 : x1 : x2 : x3 : x4 : x5 : x6 : x7 : x8 : x9 : x10 : x11 : x12 : x13 : goRec xs
         {-# INLINE goStep #-}
 
         goRec :: SixList a -> [a]
@@ -132,6 +156,10 @@ instance IsList (SixList a) where
         {-# NOINLINE goRec #-}
     {-# INLINE toList #-}
 
+-- >>> import GHC.IsList (fromList)
+-- >>> import Data.Maybe
+-- >>> mapMaybe (\i -> lookupSixList i $ fromList [0..20 :: Int]) [0..20]
+-- [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
 lookupSixList :: Word64 -> SixList a -> Maybe a
 lookupSixList !i0 = goStep i0 . inline Exts.toList where
     goStep :: Word64 -> [a] -> Maybe a
@@ -153,9 +181,33 @@ lookupSixList !i0 = goStep i0 . inline Exts.toList where
     goStep 5 = \case
         _:_:_:_:_:x:_ -> Just x
         _             -> Nothing
+    goStep 6 = \case
+        _:_:_:_:_:_:x:_ -> Just x
+        _               -> Nothing
+    goStep 7 = \case
+        _:_:_:_:_:_:_:x:_ -> Just x
+        _                 -> Nothing
+    goStep 8 = \case
+        _:_:_:_:_:_:_:_:x:_ -> Just x
+        _                   -> Nothing
+    goStep 9 = \case
+        _:_:_:_:_:_:_:_:_:x:_ -> Just x
+        _                     -> Nothing
+    goStep 10 = \case
+        _:_:_:_:_:_:_:_:_:_:x:_ -> Just x
+        _                       -> Nothing
+    goStep 11 = \case
+        _:_:_:_:_:_:_:_:_:_:_:x:_ -> Just x
+        _                         -> Nothing
+    goStep 12 = \case
+        _:_:_:_:_:_:_:_:_:_:_:_:x:_ -> Just x
+        _                           -> Nothing
+    goStep 13 = \case
+        _:_:_:_:_:_:_:_:_:_:_:_:_:x:_ -> Just x
+        _                             -> Nothing
     goStep i = \case
-        _:_:_:_:_:_:xs -> goRec (i - 6) xs
-        _              -> Nothing
+        _:_:_:_:_:_:_:_:_:_:_:_:_:_:xs -> goRec (i - 14) xs
+        _                              -> Nothing
     {-# INLINE goStep #-}
 
     goRec :: Word64 -> [a] -> Maybe a
