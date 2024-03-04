@@ -41,6 +41,10 @@ module PlutusCore.Name (
   isEmpty,
   setFromNames,
   setNotMemberName,
+  restrictKeys,
+  setOf',
+  (\\),
+  mFoldr,
 ) where
 
 import PlutusPrelude
@@ -52,6 +56,7 @@ import Data.Char
 import Data.Hashable
 import Data.IntMap.Strict qualified as IM
 import Data.IntSet qualified as IS
+import Data.IntSet.Lens qualified as IS
 import Data.Text (Text)
 import Data.Text qualified as T
 import Instances.TH.Lift ()
@@ -294,6 +299,16 @@ setMemberName = setMemberUnique . view unique
 setNotMemberName :: (HasUnique name unique) => name -> UniqueSet unique -> Bool
 setNotMemberName n = not . setMemberName n
 
+restrictKeys :: UniqueMap unique v -> UniqueSet unique -> UniqueMap unique v
+restrictKeys (UniqueMap m) (UniqueSet s) =
+  UniqueMap $ IM.restrictKeys m s
+
+(\\) :: UniqueSet unique -> UniqueSet unique -> UniqueSet unique
+(\\) (UniqueSet s1) (UniqueSet s2) = UniqueSet $ s1 IS.\\ s2
+
+mFoldr :: (a -> b -> b) -> b -> UniqueMap unique a -> b
+mFoldr f unit (UniqueMap m) = IM.foldr f unit m
+
 {- | Look up a value by the index of the unique of a name.
 Unlike 'lookupUnique' and 'lookupName', this function does not provide any static guarantees,
 so you can for example look up a type-level name in a map from term-level uniques.
@@ -319,3 +334,11 @@ This way, when it is parsed back, the entire @`++_123`@ becomes the name proper.
 a program would be alpha-equivalent after being pretty-printed and then parsed back. But we
 should still fix this and do it properly.
 -}
+
+
+setOf' ::
+  (Coercible unique Unique) =>
+  Getting (UniqueSet unique) s unique ->
+  s ->
+  UniqueSet unique
+setOf' s = UniqueSet <$> IS.setOf (coerce s)
