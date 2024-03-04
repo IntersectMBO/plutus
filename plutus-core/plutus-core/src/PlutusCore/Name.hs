@@ -23,6 +23,7 @@ module PlutusCore.Name (
   HasUnique (..),
   theUnique,
   UniqueMap (..),
+  UniqueSet,
 
   -- * Functions
   insertByUnique,
@@ -38,6 +39,8 @@ module PlutusCore.Name (
   mapNameString,
   mapTyNameString,
   isEmpty,
+  setFromNames,
+  setNotMemberName,
 ) where
 
 import PlutusPrelude
@@ -48,6 +51,7 @@ import Control.Lens
 import Data.Char
 import Data.Hashable
 import Data.IntMap.Strict qualified as IM
+import Data.IntSet qualified as IS
 import Data.Text (Text)
 import Data.Text qualified as T
 import Instances.TH.Lift ()
@@ -189,6 +193,12 @@ newtype UniqueMap unique a = UniqueMap
   }
   deriving newtype (Show, Eq, Semigroup, Monoid, Functor)
 
+-- | A set containing uniques.
+newtype UniqueSet unique = UniqueSet
+  { unUniqueSet :: IS.IntSet
+  }
+  deriving newtype (Show, Eq, Semigroup, Monoid)
+
 -- | Insert a value by a unique.
 insertByUnique ::
   (Coercible unique Unique) =>
@@ -198,9 +208,21 @@ insertByUnique ::
   UniqueMap unique a
 insertByUnique uniq = coerce . IM.insert (coerce uniq)
 
+-- | Insert a value by a unique.
+insertSetByUnique ::
+  (Coercible unique Unique) =>
+  unique ->
+  UniqueSet unique ->
+  UniqueSet unique
+insertSetByUnique = coerce . IS.insert . coerce
+
 -- | Insert a value by the unique of a name.
 insertByName :: (HasUnique name unique) => name -> a -> UniqueMap unique a -> UniqueMap unique a
 insertByName = insertByUnique . view unique
+
+-- | Insert a value by the unique of a name.
+insertSetByName :: (HasUnique name unique) => name -> UniqueSet unique -> UniqueSet unique
+insertSetByName = insertSetByUnique . view unique
 
 -- | Insert a named value by the index of the unique of the name.
 insertNamed ::
@@ -231,13 +253,29 @@ fromFoldable ::
   UniqueMap unique a
 fromFoldable ins = foldl' (flip $ uncurry ins) mempty
 
+-- | Convert a 'Foldable' into a 'UniqueSet' using the given insertion function.
+setFromFoldable ::
+  (Foldable f) =>
+  (i -> UniqueSet unique -> UniqueSet unique) ->
+  f i ->
+  UniqueSet unique
+setFromFoldable ins = foldl' (flip ins) mempty
+
 -- | Convert a 'Foldable' with uniques into a 'UniqueMap'.
 fromUniques :: (Foldable f) => (Coercible Unique unique) => f (unique, a) -> UniqueMap unique a
 fromUniques = fromFoldable insertByUnique
 
+-- | Convert a 'Foldable' with uniques into a 'UniqueMap'.
+setFromUniques :: (Foldable f) => (Coercible Unique unique) => f unique -> UniqueSet unique
+setFromUniques = setFromFoldable insertSetByUnique
+
 -- | Convert a 'Foldable' with names into a 'UniqueMap'.
 fromNames :: (Foldable f) => (HasUnique name unique) => f (name, a) -> UniqueMap unique a
 fromNames = fromFoldable insertByName
+
+-- | Convert a 'Foldable' with names into a 'UniqueMap'.
+setFromNames :: (Foldable f) => (HasUnique name unique) => f name -> UniqueSet unique
+setFromNames = setFromFoldable insertSetByName
 
 -- | Look up a value by a unique.
 lookupUnique :: (Coercible unique Unique) => unique -> UniqueMap unique a -> Maybe a
@@ -246,6 +284,15 @@ lookupUnique uniq = IM.lookup (coerce uniq) . unUniqueMap
 -- | Look up a value by the unique of a name.
 lookupName :: (HasUnique name unique) => name -> UniqueMap unique a -> Maybe a
 lookupName = lookupUnique . view unique
+
+setMemberUnique :: (Coercible unique Unique) => unique -> UniqueSet unique -> Bool
+setMemberUnique uniq = IS.member (coerce uniq) . unUniqueSet
+
+setMemberName :: (HasUnique name unique) => name -> UniqueSet unique -> Bool
+setMemberName = setMemberUnique . view unique
+
+setNotMemberName :: (HasUnique name unique) => name -> UniqueSet unique -> Bool
+setNotMemberName n = not . setMemberName n
 
 {- | Look up a value by the index of the unique of a name.
 Unlike 'lookupUnique' and 'lookupName', this function does not provide any static guarantees,
