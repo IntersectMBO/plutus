@@ -32,7 +32,7 @@ import Data.Word
 import PlutusCore.Builtin qualified as TPLC
 import PlutusCore.Core qualified as TPLC
 import PlutusCore.MkPlc
-import PlutusCore.Name qualified as TPLC
+import PlutusCore.Name.Unique qualified as TPLC
 import Universe
 
 {- Note [Term constructor ordering and numbers]

@@ -6,7 +6,7 @@ module PlutusCore.Mark
 
 import Data.Set.Lens (setOf)
 import PlutusCore.Core
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Quote
 
 -- | Marks all the 'Unique's in a type as used, so they will not be generated in future. Useful if

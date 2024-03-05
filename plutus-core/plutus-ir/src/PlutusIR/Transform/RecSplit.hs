@@ -5,7 +5,7 @@
 module PlutusIR.Transform.RecSplit
     (recSplit, recSplitPass) where
 
-import PlutusCore.Name qualified as PLC
+import PlutusCore.Name.Unique qualified as PLC
 import PlutusIR
 import PlutusIR.Subst
 

@@ -22,7 +22,7 @@ module PlutusCore.Generators.Hedgehog.AST
 import PlutusPrelude
 
 import PlutusCore
-import PlutusCore.Name (isQuotedIdentifierChar)
+import PlutusCore.Name.Unique (isQuotedIdentifierChar)
 import PlutusCore.Subst
 
 import Control.Lens (coerced)

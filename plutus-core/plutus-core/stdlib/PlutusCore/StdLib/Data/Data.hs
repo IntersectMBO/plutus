@@ -16,7 +16,7 @@ import PlutusCore.Core
 import PlutusCore.Data
 import PlutusCore.Default
 import PlutusCore.MkPlc
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Quote
 
 import Data.ByteString (ByteString)

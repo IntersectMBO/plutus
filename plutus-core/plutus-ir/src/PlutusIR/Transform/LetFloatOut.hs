@@ -10,7 +10,7 @@ module PlutusIR.Transform.LetFloatOut (floatTerm, floatTermPass, floatTermPassSC
 
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
-import PlutusCore.Name qualified as PLC
+import PlutusCore.Name.Unique qualified as PLC
 import PlutusIR
 import PlutusIR.Purity
 import PlutusIR.Subst
@@ -26,6 +26,8 @@ import Data.Map.Monoidal qualified as MM
 import Data.Semigroup.Foldable
 import Data.Semigroup.Generic
 import GHC.Generics
+import PlutusCore.Name.UniqueMap qualified as UMap
+import PlutusCore.Name.UniqueSet qualified as USet
 import PlutusIR.Analysis.Builtins
 import PlutusIR.Analysis.VarInfo
 import PlutusIR.Pass
@@ -196,7 +198,7 @@ type FloatTable tyname name uni fun a = MM.MonoidalMap Pos (NE.NonEmpty (Binding
 
 -- | The 1st pass of marking floatable lets
 mark :: forall tyname name uni fun a.
-      (Ord tyname, Ord name, PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique, PLC.ToBuiltinMeaning uni fun)
+      (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique, PLC.ToBuiltinMeaning uni fun)
      => BuiltinsInfo uni fun
      -> Term tyname name uni fun a
      -> Marks
@@ -217,12 +219,12 @@ mark binfo tm = snd $ runWriter $ flip runReaderT (MarkCtx topDepth mempty binfo
             scope <- view markCtxScope
             let freeVars =
                     -- if Rec, remove the here-bindings from free
-                    ifRec r (PLC.\\ PLC.setOf' (traversed.bindingIds) bs) $
+                    ifRec r (USet.\\ USet.setOf (traversed.bindingIds) bs) $
                        calcFreeVars letN
 
             -- The "heart" of the algorithm: the future position to float this let to
             -- is determined as the maximum among its dependencies (free vars).
-            let floatPos@(Pos floatDepth _ _) = maxPos $ scope `PLC.restrictKeys` freeVars
+            let floatPos@(Pos floatDepth _ _) = maxPos $ scope `UMap.restrictKeys` freeVars
 
             -- visit the rhs'es
             -- IMPORTANT: inside the rhs, act like the current depth
@@ -237,7 +239,7 @@ mark binfo tm = snd $ runWriter $ flip runReaderT (MarkCtx topDepth mempty binfo
             withBs bs floatPos $ go tIn
 
             -- collect here the new mark and propagate all
-            tell $ PLC.fromUniques [(letU, floatPos)]
+            tell $ UMap.fromUniques [(letU, floatPos)]
           )
           -- else
           $ do
@@ -258,7 +260,7 @@ mark binfo tm = snd $ runWriter $ flip runReaderT (MarkCtx topDepth mempty binfo
 
 -- | Given a 'BindingGrp', calculate its free vars and free tyvars and collect them in a set.
 calcFreeVars :: forall tyname name uni fun a.
-             (Ord tyname, Ord name, PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
+             (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
              => BindingGrp tyname name uni fun a
              -> PLC.UniqueSet PLC.Unique
 calcFreeVars (BindingGrp _ r bs) = foldMap1 calcBinding bs
@@ -266,8 +268,8 @@ calcFreeVars (BindingGrp _ r bs) = foldMap1 calcBinding bs
     -- given a binding return all its free term *AND* free type variables
     calcBinding :: Binding tyname name uni fun a -> PLC.UniqueSet PLC.Unique
     calcBinding b =
-        PLC.setOf' (fvBinding . PLC.theUnique) b
-        <> PLC.setOf' (ftvBinding r . PLC.theUnique) b
+        USet.setOf (fvBinding . PLC.theUnique) b
+        <> USet.setOf (ftvBinding r . PLC.theUnique) b
 
 -- | The second pass of cleaning the term of the floatable lets, and placing them in a separate map
 -- OPTIMIZE: use State for building the FloatTable, and for reducing the Marks
@@ -288,7 +290,7 @@ removeLets marks term = runWriter $ go term
             bs' <- bs & (traversed . bindingSubterms) go
             -- go to inTerm and collect its floattable + cleanedterm
             tIn' <- go tIn
-            case PLC.lookupUnique letU marks of
+            case UMap.lookupUnique letU marks of
                 -- this is not a floatable let
                 Nothing  -> pure $ Let a r bs' tIn'
                 -- floatable let found.
@@ -417,11 +419,13 @@ floatTermPass tcconfig binfo =
       [ConstCondition (Typechecks tcconfig)]
 
 -- | The compiler pass of the algorithm (comprised of 3 connected passes).
-floatTerm :: (PLC.ToBuiltinMeaning uni fun,
-            PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique,
-            Ord tyname, Ord name, Semigroup a
-            )
-          => BuiltinsInfo uni fun -> Term tyname name uni fun a -> Term tyname name uni fun a
+floatTerm ::
+    (PLC.ToBuiltinMeaning uni fun,
+    PLC.HasUnique tyname PLC.TypeUnique,
+    PLC.HasUnique name PLC.TermUnique,
+    Semigroup a
+    )
+    => BuiltinsInfo uni fun -> Term tyname name uni fun a -> Term tyname name uni fun a
 floatTerm binfo t =
     mark binfo t
     & flip removeLets t
@@ -430,7 +434,7 @@ floatTerm binfo t =
 -- HELPERS
 
 maxPos :: PLC.UniqueMap k Pos -> Pos
-maxPos = PLC.mFoldr max topPos
+maxPos = UMap.foldr max topPos
 
 withDepth :: (r ~ MarkCtx tyname name uni fun a2, MonadReader r m)
           => (Depth -> Depth) -> m a -> m a
@@ -442,7 +446,7 @@ withLam :: (r ~ MarkCtx tyname name uni fun a2, MonadReader r m, PLC.HasUnique n
 withLam (view PLC.theUnique -> u) = local $ \ (MarkCtx d scope binfo vinfo) ->
     let d' = d+1
         pos' = Pos d' u LamBody
-    in MarkCtx d' (PLC.insertByUnique u pos' scope) binfo vinfo
+    in MarkCtx d' (UMap.insertByUnique u pos' scope) binfo vinfo
 
 withAbs :: (r ~ MarkCtx tyname name uni fun a2, MonadReader r m, PLC.HasUnique tyname unique)
         => tyname
@@ -450,14 +454,14 @@ withAbs :: (r ~ MarkCtx tyname name uni fun a2, MonadReader r m, PLC.HasUnique t
 withAbs (view PLC.theUnique -> u) = local $ \ (MarkCtx d scope binfo vinfo) ->
     let d' = d+1
         pos' = Pos d' u LamBody
-    in MarkCtx d' (PLC.insertByUnique u pos' scope) binfo vinfo
+    in MarkCtx d' (UMap.insertByUnique u pos' scope) binfo vinfo
 
 withBs :: (r ~ MarkCtx tyname name uni fun a2, MonadReader r m, PLC.HasUnique name PLC.TermUnique, PLC.HasUnique tyname PLC.TypeUnique)
        => NE.NonEmpty (Binding tyname name uni fun a3)
        -> Pos
        -> m a -> m a
 withBs bs pos = local . over markCtxScope $ \scope ->
-    PLC.fromUniques [(bid, pos) | bid <- bs^..traversed.bindingIds] <> scope
+    UMap.fromUniques [(bid, pos) | bid <- bs^..traversed.bindingIds] <> scope
 
 -- A helper to apply a function iff recursive
 ifRec :: Recursivity -> (a -> a) -> a -> a

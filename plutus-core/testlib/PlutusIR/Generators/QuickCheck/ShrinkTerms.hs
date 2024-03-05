@@ -25,7 +25,7 @@ import PlutusCore.Crypto.BLS12_381.Pairing qualified as BLS12_381.Pairing (ident
 import PlutusCore.Data
 import PlutusCore.Default
 import PlutusCore.MkPlc (mkConstantOf, mkTyBuiltinOf)
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Pretty
 import PlutusCore.Subst (typeSubstClosedType)
 import PlutusIR

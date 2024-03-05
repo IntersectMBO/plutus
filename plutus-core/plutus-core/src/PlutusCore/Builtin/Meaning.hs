@@ -28,7 +28,7 @@ import PlutusCore.Builtin.TypeScheme
 import PlutusCore.Core
 import PlutusCore.Evaluation.Machine.ExBudgetStream
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 
 import Control.DeepSeq
 import Data.Array

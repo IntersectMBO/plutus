@@ -59,7 +59,7 @@ import UntypedPlutusCore.Evaluation.Machine.SteppableCek.Internal as S
 import PlutusCore.Builtin
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Machine.MachineParameters
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 
 import Data.Text (Text)
 

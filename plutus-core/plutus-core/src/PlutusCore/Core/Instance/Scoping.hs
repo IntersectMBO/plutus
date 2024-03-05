@@ -8,7 +8,7 @@ module PlutusCore.Core.Instance.Scoping () where
 
 import PlutusCore.Check.Scoping
 import PlutusCore.Core.Type
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Quote
 
 -- In the three instances below the added variable is always the last field of a constructor.

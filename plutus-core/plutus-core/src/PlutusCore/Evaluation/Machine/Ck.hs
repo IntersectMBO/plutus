@@ -33,7 +33,7 @@ import PlutusCore.Core
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
 import PlutusCore.Evaluation.Result
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Pretty
 import PlutusCore.Subst
 

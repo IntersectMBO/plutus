@@ -16,7 +16,7 @@ import Prelude hiding (fst, snd, uncurry)
 import PlutusCore.Core
 import PlutusCore.Default
 import PlutusCore.MkPlc
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Quote
 
 -- | @(,)@ as a built-in PLC type.

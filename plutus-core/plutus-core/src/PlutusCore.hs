@@ -60,6 +60,7 @@ module PlutusCore
     , TyName (..)
     , Unique (..)
     , UniqueMap (..)
+    , UniqueSet (..)
     , Normalized (..)
     , latestVersion
     , termAnn
@@ -134,7 +135,9 @@ import PlutusCore.Default
 import PlutusCore.Error
 import PlutusCore.Evaluation.Machine.Ck
 import PlutusCore.Flat ()
-import PlutusCore.Name
+import PlutusCore.Name.Unique
+import PlutusCore.Name.UniqueMap
+import PlutusCore.Name.UniqueSet
 import PlutusCore.Normalize
 import PlutusCore.Parser
 import PlutusCore.Quote

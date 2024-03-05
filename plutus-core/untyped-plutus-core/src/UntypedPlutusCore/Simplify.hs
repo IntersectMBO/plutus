@@ -18,7 +18,7 @@ module UntypedPlutusCore.Simplify (
 import PlutusCore.Compiler.Types
 import PlutusCore.Default qualified as PLC
 import PlutusCore.Default.Builtins
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import UntypedPlutusCore.Core.Type
 import UntypedPlutusCore.Transform.CaseOfCase
 import UntypedPlutusCore.Transform.CaseReduce

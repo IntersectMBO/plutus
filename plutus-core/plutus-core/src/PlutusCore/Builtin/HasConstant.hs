@@ -14,7 +14,7 @@ module PlutusCore.Builtin.HasConstant
 
 import PlutusCore.Builtin.Result
 import PlutusCore.Core
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 
 import Universe
 
