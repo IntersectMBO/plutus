@@ -9,12 +9,9 @@ module PlutusTx.Blueprint.Validator where
 import Prelude
 
 import Data.Aeson (ToJSON (..))
-import Data.Aeson qualified as Aeson
-import Data.Aeson.Extra (optionalField, requiredField)
-import Data.Aeson.KeyMap qualified as KeyMap
+import Data.Aeson.Extra (buildObject, optionalField, requiredField)
 import Data.ByteString (ByteString)
 import Data.ByteString.Base16 qualified as Base16
-import Data.Function ((&))
 import Data.Kind (Type)
 import Data.List.NonEmpty (NonEmpty)
 import Data.Text (Text)
@@ -47,15 +44,14 @@ data ValidatorBlueprint (referencedTypes :: [Type]) = MkValidatorBlueprint
 
 instance ToJSON (ValidatorBlueprint referencedTypes) where
   toJSON MkValidatorBlueprint{..} =
-    KeyMap.empty
-      & requiredField "title" validatorTitle
-      & requiredField "redeemer" validatorRedeemer
-      & optionalField "description" validatorDescription
-      & optionalField "datum" validatorDatum
-      & optionalField "parameters" validatorParameters
-      & optionalField "compiledCode" (toHex <$> validatorCompiledCode)
-      & optionalField "hash" (toHex . blake2b_224 <$> validatorCompiledCode)
-      & Aeson.Object
+    buildObject $
+      requiredField "title" validatorTitle
+        . requiredField "redeemer" validatorRedeemer
+        . optionalField "description" validatorDescription
+        . optionalField "datum" validatorDatum
+        . optionalField "parameters" validatorParameters
+        . optionalField "compiledCode" (toHex <$> validatorCompiledCode)
+        . optionalField "hash" (toHex . blake2b_224 <$> validatorCompiledCode)
    where
     toHex :: ByteString -> Text
     toHex = Text.decodeUtf8 . Base16.encode

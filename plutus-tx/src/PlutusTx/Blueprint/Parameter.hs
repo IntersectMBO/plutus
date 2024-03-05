@@ -10,9 +10,7 @@ import Prelude
 
 import Data.Aeson (ToJSON (..), (.=))
 import Data.Aeson qualified as Aeson
-import Data.Aeson.Extra (optionalField, requiredField)
-import Data.Aeson.KeyMap qualified as KeyMap
-import Data.Function ((&))
+import Data.Aeson.Extra (buildObject, optionalField, requiredField)
 import Data.Kind (Type)
 import Data.Set (Set)
 import Data.Set qualified as Set
@@ -40,12 +38,11 @@ data ParameterBlueprint (referencedTypes :: [Type]) = MkParameterBlueprint
 
 instance ToJSON (ParameterBlueprint referencedTypes) where
   toJSON MkParameterBlueprint{..} =
-    KeyMap.empty
-      & optionalField "title" parameterTitle
-      & optionalField "description" parameterDescription
-      & optionalField "purpose" (oneOfASet parameterPurpose)
-      & requiredField "schema" parameterSchema
-      & Aeson.Object
+    buildObject $
+      requiredField "schema" parameterSchema
+        . optionalField "title" parameterTitle
+        . optionalField "description" parameterDescription
+        . optionalField "purpose" (oneOfASet parameterPurpose)
 
 ----------------------------------------------------------------------------------------------------
 -- Helper functions --------------------------------------------------------------------------------

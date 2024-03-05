@@ -9,10 +9,7 @@ module PlutusTx.Blueprint.Argument where
 import Prelude
 
 import Data.Aeson (ToJSON (..))
-import Data.Aeson qualified as Aeson
-import Data.Aeson.Extra
-import Data.Aeson.KeyMap qualified as KeyMap
-import Data.Function ((&))
+import Data.Aeson.Extra (buildObject, optionalField, requiredField)
 import Data.Kind (Type)
 import Data.Set (Set)
 import Data.Text (Text)
@@ -35,9 +32,8 @@ data ArgumentBlueprint (referencedTypes :: [Type]) = MkArgumentBlueprint
 
 instance ToJSON (ArgumentBlueprint referencedTypes) where
   toJSON MkArgumentBlueprint{..} =
-    KeyMap.empty
-      & optionalField "title" argumentTitle
-      & optionalField "description" argumentDescription
-      & optionalField "purpose" (oneOfASet argumentPurpose)
-      & requiredField "schema" argumentSchema
-      & Aeson.Object
+    buildObject $
+      requiredField "schema" argumentSchema
+        . optionalField "title" argumentTitle
+        . optionalField "description" argumentDescription
+        . optionalField "purpose" (oneOfASet argumentPurpose)
