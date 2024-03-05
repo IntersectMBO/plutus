@@ -56,7 +56,7 @@ stack.yaml.lock
 # Python
 __pycache__
 
-# NodeJS
+# NodeJS (used by scripts/blueprints/check-json-schemas.js as it depends on the AJV nodejs lib)
 node_modules
 
 # Nix
