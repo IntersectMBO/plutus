@@ -46,7 +46,7 @@ fvTermCtx bound f = \case
   Let a r@Rec bs tIn ->
     let bound' = bound `USet.union` USet.setOfByName (traversed . bindingNames) bs
      in Let a r <$> traverse (fvBindingCtx bound f) bs <*> fvTermCtx bound' f tIn
-  Var a n -> Var a <$> (if USet.memberName n bound then pure n else f n)
+  Var a n -> Var a <$> (if USet.memberByName n bound then pure n else f n)
   LamAbs a n ty t -> LamAbs a n ty <$> fvTermCtx (USet.insertByName n bound) f t
   t -> (termSubterms . fvTermCtx bound) f t
 

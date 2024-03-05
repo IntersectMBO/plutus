@@ -219,7 +219,7 @@ mark binfo tm = snd $ runWriter $ flip runReaderT (MarkCtx topDepth mempty binfo
             scope <- view markCtxScope
             let freeVars =
                     -- if Rec, remove the here-bindings from free
-                    ifRec r (USet.\\ USet.setOf (traversed.bindingIds) bs) $
+                    ifRec r (USet.\\ USet.setOfByUnique (traversed.bindingIds) bs) $
                        calcFreeVars letN
 
             -- The "heart" of the algorithm: the future position to float this let to
@@ -268,8 +268,8 @@ calcFreeVars (BindingGrp _ r bs) = foldMap1 calcBinding bs
     -- given a binding return all its free term *AND* free type variables
     calcBinding :: Binding tyname name uni fun a -> PLC.UniqueSet PLC.Unique
     calcBinding b =
-        USet.setOf (fvBinding . PLC.theUnique) b
-        <> USet.setOf (ftvBinding r . PLC.theUnique) b
+        USet.setOfByUnique (fvBinding . PLC.theUnique) b
+        <> USet.setOfByUnique (ftvBinding r . PLC.theUnique) b
 
 -- | The second pass of cleaning the term of the floatable lets, and placing them in a separate map
 -- OPTIMIZE: use State for building the FloatTable, and for reducing the Marks

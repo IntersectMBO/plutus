@@ -1,4 +1,20 @@
-module PlutusCore.Name.UniqueMap where
+module PlutusCore.Name.UniqueMap (
+  UniqueMap (..),
+insertByUnique,
+insertByName,
+singletonByName,
+insertNamed,
+insertByNameIndex,
+fromFoldable,
+fromUniques,
+fromNames,
+lookupUnique,
+lookupName,
+restrictKeys,
+foldr,
+lookupNameIndex,
+isEmpty,
+) where
 
 import Control.Lens (view)
 import Control.Lens.Getter ((^.))
@@ -7,6 +23,7 @@ import Data.Foldable (foldl')
 import Data.IntMap.Strict qualified as IM
 import PlutusCore.Name.Unique (HasText (..), HasUnique (..), Named (Named), Unique (Unique))
 import PlutusCore.Name.UniqueSet (UniqueSet (UniqueSet))
+import Prelude hiding (foldr)
 
 -- | A mapping from uniques to values of type @a@.
 newtype UniqueMap unique a = UniqueMap
@@ -27,8 +44,8 @@ insertByUnique uniq = coerce . IM.insert (coerce uniq)
 insertByName :: (HasUnique name unique) => name -> a -> UniqueMap unique a -> UniqueMap unique a
 insertByName = insertByUnique . view unique
 
-singletonName :: (HasUnique name unique) => name -> a -> UniqueMap unique a
-singletonName n a = insertByName n a mempty
+singletonByName :: (HasUnique name unique) => name -> a -> UniqueMap unique a
+singletonByName n a = insertByName n a mempty
 
 -- | Insert a named value by the index of the unique of the name.
 insertNamed ::

@@ -106,8 +106,8 @@ simplifyArgs blacklist = runWriter . go
     go = \case
       Apply appAnn (LamAbs lamAnn n lamBody) (Delay delayAnn arg)
         | isEssentiallyWorkFree arg
-        , n `USet.notMemberName` blacklist -> do
-            tell (UMap.singletonName n delayAnn)
+        , n `USet.notMemberByName` blacklist -> do
+            tell (UMap.singletonByName n delayAnn)
             (Apply appAnn . LamAbs lamAnn n <$> go lamBody) <*> go arg
       t -> forOf termSubterms t go
 

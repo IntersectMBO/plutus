@@ -230,7 +230,7 @@ fvTermCtx
     :: HasUnique name unique
     => UniqueSet unique -> Traversal' (Term tyname name uni fun ann) name
 fvTermCtx bound f = \case
-    Var a n         -> Var a <$> (if USet.memberName n bound then pure n else f n)
+    Var a n         -> Var a <$> (if USet.memberByName n bound then pure n else f n)
     LamAbs a n ty t -> LamAbs a n ty <$> fvTermCtx (USet.insertByName n bound) f t
     t               -> (termSubterms . fvTermCtx bound) f t
 
@@ -259,7 +259,7 @@ ftvTyCtx
     => UniqueSet unique
     -> Traversal' (Type tyname uni ann) tyname
 ftvTyCtx bound f = \case
-    TyVar a ty          -> TyVar a <$> (if USet.memberName ty bound then pure ty else f ty)
+    TyVar a ty          -> TyVar a <$> (if USet.memberByName ty bound then pure ty else f ty)
     TyForall a bnd k ty -> TyForall a bnd k <$> ftvTyCtx (USet.insertByName bnd bound) f ty
     TyLam a bnd k ty    -> TyLam a bnd k <$> ftvTyCtx (USet.insertByName bnd bound) f ty
     t                   -> (typeSubtypes . ftvTyCtx bound) f t

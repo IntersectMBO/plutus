@@ -6,7 +6,27 @@
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE TypeApplications       #-}
 
-module PlutusCore.Name.Unique where
+module PlutusCore.Name.Unique (
+-- * Types
+  Name (..),
+  isIdentifierStartingChar,
+  isIdentifierChar,
+  isQuotedIdentifierChar,
+  isValidUnquotedName,
+  toPrintedName,
+  TyName (..),
+  Named (..),
+  Unique (..),
+  TypeUnique (..),
+  TermUnique (..),
+  HasText (..),
+  HasUnique (..),
+  theUnique,
+
+  -- * Functions
+  mapNameString,
+  mapTyNameString,
+) where
 
 import PlutusPrelude (Coercible, Generic, Lens', NFData, Pretty (pretty), PrettyBy (prettyBy),
                       Render (render), coerce, on, over)

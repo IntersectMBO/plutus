@@ -1,6 +1,21 @@
-module PlutusCore.Name.UniqueSet where
+module PlutusCore.Name.UniqueSet (
+  UniqueSet (..),
+  insertByUnique,
+  insertByName,
+  singletonName,
+  fromFoldable,
+  fromUniques,
+  fromNames,
+  memberByUnique,
+  memberByName,
+  notMemberByName,
+  (\\),
+  union,
+  setOfByUnique,
+  setOfByName,
+) where
 
-import Control.Lens (Const, Getting, view)
+import Control.Lens (Getting, view)
 import Control.Lens.Getter (views)
 import Data.Coerce (Coercible, coerce)
 import Data.Foldable (foldl')
@@ -45,14 +60,14 @@ fromUniques = fromFoldable insertByUnique
 fromNames :: (Foldable f) => (HasUnique name unique) => f name -> UniqueSet unique
 fromNames = fromFoldable insertByName
 
-memberUnique :: (Coercible unique Unique) => unique -> UniqueSet unique -> Bool
-memberUnique uniq = IS.member (coerce uniq) . unUniqueSet
+memberByUnique :: (Coercible unique Unique) => unique -> UniqueSet unique -> Bool
+memberByUnique uniq = IS.member (coerce uniq) . unUniqueSet
 
-memberName :: (HasUnique name unique) => name -> UniqueSet unique -> Bool
-memberName = memberUnique . view unique
+memberByName :: (HasUnique name unique) => name -> UniqueSet unique -> Bool
+memberByName = memberByUnique . view unique
 
-notMemberName :: (HasUnique name unique) => name -> UniqueSet unique -> Bool
-notMemberName n = not . memberName n
+notMemberByName :: (HasUnique name unique) => name -> UniqueSet unique -> Bool
+notMemberByName n = not . memberByName n
 
 (\\) :: UniqueSet unique -> UniqueSet unique -> UniqueSet unique
 (\\) (UniqueSet s1) (UniqueSet s2) = UniqueSet $ s1 IS.\\ s2
@@ -60,12 +75,12 @@ notMemberName n = not . memberName n
 union :: UniqueSet unique -> UniqueSet unique -> UniqueSet unique
 union (UniqueSet s1) (UniqueSet s2) = UniqueSet $ s1 `IS.union` s2
 
-setOf ::
+setOfByUnique ::
   (Coercible unique Unique) =>
   Getting (UniqueSet unique) s unique ->
   s ->
   UniqueSet unique
-setOf g = UniqueSet <$> IS.setOf (coerce g)
+setOfByUnique g = UniqueSet <$> IS.setOf (coerce g)
 
 setOfByName ::
   forall name unique s .
@@ -74,12 +89,3 @@ setOfByName ::
   s ->
   UniqueSet unique
 setOfByName l = views l singletonName
-
---  UniqueSet <$> IS.setOf (process a b) s
---  where
-    -- process ::
-    --   -- (name -> Const (UniqueSet unique) name) ->
-    --   -- s ->
-    --   -- Const (UniqueSet unique) s ->
-    --   Getting IS.IntSet s Int
-    -- process = undefined
