@@ -56,9 +56,46 @@ deriveSchemaDefinitions ::
   Map DefinitionId (Schema types)
 deriveSchemaDefinitions = Map.fromList (definitionEntries @types @types)
 
-{- |
-  A class of types that can be converted to a list of schema definition entries.
-  It is used internally to derive a map of schema definitions from a list of types.
+{- | This class is only used internally to derive schema definition entries from a list of types.
+
+It uses 2 instances to iterate a type-level list:
+  * one instance terminates recursion when the list of [remaining] types to iterate is empty.
+  * another instance does a recursive step:
+      taking a head and tail,
+      adds a schema definition entry if the head is in the `allTypes`
+      and recurses on tail as `remainingTypes`.
+
+This way in the beginning of iteration `allTypes` == `remainingTypes` and then
+`allTypes` stays the same list, while `remainingTypes` is shrinking until empty.
+
+Here is an analogy at the value level, where `remainingTypes` serves a similar purpose:
+
+@
+type Typ = String
+type DefinitionId = String
+type Schema = String
+
+asDefinitionEntries :: [Typ] -> [(DefinitionId, Schema)]
+asDefinitionEntries allTypes = go allTypes allTypes
+  where
+    go :: [Typ] -> [Typ] -> [(DefinitionId, Schema)]
+    go allTypes remainingTypes =
+      case remainingTypes of
+        [] -> []
+        (h : t) ->
+          let defId = lookupDefinitionId h allTypes
+              schema = lookupSchema h allTypes
+          in (defId, schema) : go allTypes t
+
+lookupDefinitionId :: Typ -> [Typ] -> DefinitionId
+lookupDefinitionId t allTypes | t `elem` allTypes = "DefinitionId for " ++ t
+lookupDefinitionId t _ = error $ "Type " ++ show t ++ " not found"
+
+lookupSchema :: Typ -> [Typ] -> Schema
+lookupSchema t allTypes | t `elem` allTypes = "Schema for " ++ t
+lookupSchema t _ = error $ "Type " ++ show t ++ " not found"
+@
+
 -}
 class AsDefinitionsEntries (allTypes :: [Type]) (remainingTypes :: [Type]) where
   definitionEntries :: [(DefinitionId, Schema allTypes)]
