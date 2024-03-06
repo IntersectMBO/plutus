@@ -10,7 +10,7 @@ import PlutusCore.Crypto.BLS12_381.G2 qualified as BLS12_381.G2
 import PlutusCore.Data
 import PlutusCore.Default
 import PlutusCore.Error (ParserError (UnknownBuiltinFunction))
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Parser.ParserCommon
 import PlutusCore.Parser.Type (defaultUni)
 import PlutusCore.Pretty (display)

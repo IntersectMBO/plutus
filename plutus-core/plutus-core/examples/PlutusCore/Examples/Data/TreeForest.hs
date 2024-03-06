@@ -14,7 +14,7 @@ module PlutusCore.Examples.Data.TreeForest
 
 import PlutusCore.Core
 import PlutusCore.MkPlc
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Normalize
 import PlutusCore.Quote
 

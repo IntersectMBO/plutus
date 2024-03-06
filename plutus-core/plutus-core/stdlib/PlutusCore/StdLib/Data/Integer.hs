@@ -12,7 +12,7 @@ module PlutusCore.StdLib.Data.Integer
 import PlutusCore.Core
 import PlutusCore.Default.Builtins
 import PlutusCore.MkPlc
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Quote
 
 integer :: uni `HasTypeLevel` Integer => Type tyname uni ()

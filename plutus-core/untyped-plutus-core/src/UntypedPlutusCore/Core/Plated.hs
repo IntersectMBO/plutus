@@ -11,7 +11,7 @@ module UntypedPlutusCore.Core.Plated
     ) where
 
 import PlutusCore.Core (HasUniques)
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import UntypedPlutusCore.Core.Type
 
 import Control.Lens

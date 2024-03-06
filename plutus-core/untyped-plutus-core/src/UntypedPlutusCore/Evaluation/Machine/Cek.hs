@@ -60,7 +60,7 @@ import UntypedPlutusCore.Evaluation.Machine.CommonAPI qualified as Common
 import PlutusCore.Builtin
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Machine.MachineParameters
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 
 import Data.Text (Text)
 

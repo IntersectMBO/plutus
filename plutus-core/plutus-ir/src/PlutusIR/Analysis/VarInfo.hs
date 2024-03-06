@@ -5,9 +5,11 @@ module PlutusIR.Analysis.VarInfo where
 import Control.Lens hiding (Strict)
 import Data.List.Extra ((!?))
 import Data.Traversable
+import PlutusCore qualified as PLC
 import PlutusCore.Arity
 import PlutusCore.Core (funTyArgs)
-import PlutusCore.Name qualified as PLC
+import PlutusCore.Name.Unique qualified as PLC
+import PlutusCore.Name.UniqueMap qualified as UMap
 import PlutusIR.Core
 
 -- | Information about variables and type variables in the program.
@@ -28,7 +30,7 @@ lookupVarInfo ::
   => name
   -> VarsInfo tyname name uni a
   -> Maybe (VarInfo tyname name uni a)
-lookupVarInfo name (VarsInfo vim _) = PLC.lookupName name vim
+lookupVarInfo name (VarsInfo vim _) = UMap.lookupName name vim
 
 -- | Lookup the 'TyVarInfo' for a 'tyname'.
 lookupTyVarInfo ::
@@ -36,7 +38,7 @@ lookupTyVarInfo ::
   => tyname
   -> VarsInfo tyname name uni a
   -> Maybe (TyVarInfo tyname name uni a)
-lookupTyVarInfo name (VarsInfo _ vim) = PLC.lookupName name vim
+lookupTyVarInfo name (VarsInfo _ vim) = UMap.lookupName name vim
 
 -- | Information about a type variable in the program.
 data TyVarInfo tyname name uni a =
@@ -85,10 +87,10 @@ termVarInfo ::
 termVarInfo = \case
   Let _ _ bs t   -> foldMap bindingVarInfo bs <> termVarInfo t
   LamAbs _ n ty t ->
-    VarsInfo (PLC.insertByName n (NormalVar Strict ty Nothing) mempty) mempty
+    VarsInfo (UMap.insertByName n (NormalVar Strict ty Nothing) mempty) mempty
     <> termVarInfo t
   TyAbs _ n _ t   ->
-    VarsInfo mempty (PLC.insertByName n NormalTyVar mempty)
+    VarsInfo mempty (UMap.insertByName n NormalTyVar mempty)
     <> termVarInfo t
   -- No binders
   t@(Apply{})    -> foldMapOf termSubterms termVarInfo t
@@ -129,21 +131,21 @@ bindingVarInfo ::
 bindingVarInfo = \case
   -- TODO: arity for term bindings
   TermBind _ s (VarDecl _ n ty) t ->
-    VarsInfo (PLC.insertByName n (NormalVar s ty Nothing) mempty) mempty
+    VarsInfo (UMap.insertByName n (NormalVar s ty Nothing) mempty) mempty
     <> termVarInfo t
   TypeBind _ (TyVarDecl _ n _) _ ->
-    VarsInfo mempty (PLC.insertByName n NormalTyVar mempty)
+    VarsInfo mempty (UMap.insertByName n NormalTyVar mempty)
   DatatypeBind _ d@(Datatype _ (TyVarDecl _ tyname _) _ matcher constrs) ->
     let
       dtInfo =
         let info = DatatypeTyVar d
-        in VarsInfo mempty (PLC.insertByName tyname info mempty)
+        in VarsInfo mempty (UMap.insertByName tyname info mempty)
       matcherInfo =
         let info = DatatypeMatcher tyname
-        in VarsInfo (PLC.insertByName matcher info mempty) mempty
+        in VarsInfo (UMap.insertByName matcher info mempty) mempty
       constrInfo i (VarDecl _ n _) =
         let info = DatatypeConstructor i tyname
-        in VarsInfo (PLC.insertByName n info mempty) mempty
+        in VarsInfo (UMap.insertByName n info mempty) mempty
     in dtInfo <> matcherInfo <> ifoldMap constrInfo constrs
 
 -- | Get the arities of the constructors for the given datatype name.

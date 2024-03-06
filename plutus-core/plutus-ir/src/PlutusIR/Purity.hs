@@ -27,7 +27,7 @@ import PlutusIR.Contexts
 import Control.Lens hiding (Strict)
 import Data.DList qualified as DList
 import Data.List.NonEmpty qualified as NE
-import PlutusCore.Name qualified as PLC
+import PlutusCore.Name.Unique qualified as PLC
 import PlutusIR.Analysis.Builtins
 import PlutusIR.Analysis.VarInfo
 import Prettyprinter

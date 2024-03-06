@@ -12,7 +12,7 @@ module PlutusIR.Transform.RewriteRules
 
 import PlutusCore qualified as PLC
 import PlutusCore.Core (HasUniques)
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Quote
 import PlutusIR as PIR
 import PlutusIR.Analysis.VarInfo

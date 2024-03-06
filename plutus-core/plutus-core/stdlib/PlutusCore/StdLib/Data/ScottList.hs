@@ -24,7 +24,7 @@ import Prelude hiding (enumFromTo, map, product, reverse, sum)
 import PlutusCore.Core
 import PlutusCore.Default.Builtins
 import PlutusCore.MkPlc
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Quote
 
 import PlutusCore.StdLib.Data.Bool

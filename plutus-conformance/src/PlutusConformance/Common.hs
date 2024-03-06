@@ -11,7 +11,7 @@ import PlutusCore.Error (ParserErrorBundle)
 import PlutusCore.Evaluation.Machine.CostModelInterface
 import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCostModelParams)
-import PlutusCore.Name (Name)
+import PlutusCore.Name.Unique (Name)
 import PlutusCore.Quote (runQuoteT)
 import PlutusPrelude (Pretty (pretty), display, void)
 import UntypedPlutusCore qualified as UPLC

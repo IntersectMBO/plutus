@@ -6,8 +6,23 @@
 {-# LANGUAGE TemplateHaskell        #-}
 {-# LANGUAGE TypeApplications       #-}
 
-module PlutusCore.Name (
-  -- * Types
+{- | Defines the 'Name' type used for identifiers in Plutus Core together with a technique
+ to minimise the cost of 'Name' comparisons.
+
+ A 'Name' is a piece of text used to identify a variable inside the Plutus Core languages.
+ Name comparisons are a fundamental part of the domain logic, and comparing 'Text' directly
+ is inefficient. As a solution to this problem, we provide the 'Unique' type which is an
+ integer associated to the 'Name', unique to each instantiation of the type. We can,
+ therefore, compare the integers instead, which is obviously much more cost-effective.
+
+ We distinguish between the names of term variables and type variables by defining wrappers
+ over 'Name': 'TermName' and 'TyName'. Since the code we usually write is polymorphic in the
+ name type, we want to be able to define a class of names which have an associated 'Unique'.
+ This class is 'HasUnique', see the definition below.
+-}
+
+module PlutusCore.Name.Unique (
+-- * Types
   Name (..),
   isIdentifierStartingChar,
   isIdentifierChar,
@@ -22,32 +37,20 @@ module PlutusCore.Name (
   HasText (..),
   HasUnique (..),
   theUnique,
-  UniqueMap (..),
 
   -- * Functions
-  insertByUnique,
-  insertByName,
-  insertByNameIndex,
-  insertNamed,
-  fromFoldable,
-  fromUniques,
-  fromNames,
-  lookupUnique,
-  lookupName,
-  lookupNameIndex,
   mapNameString,
   mapTyNameString,
-  isEmpty,
 ) where
 
-import PlutusPrelude
+import PlutusPrelude (Coercible, Generic, Lens', NFData, Pretty (pretty), PrettyBy (prettyBy),
+                      Render (render), coerce, on, over)
 
-import PlutusCore.Pretty.ConfigName
+import PlutusCore.Pretty.ConfigName (HasPrettyConfigName (..), PrettyConfigName (PrettyConfigName))
 
-import Control.Lens
-import Data.Char
-import Data.Hashable
-import Data.IntMap.Strict qualified as IM
+import Control.Lens (Wrapped (..), coerced, makeLenses)
+import Data.Char (isAlpha, isAscii, isDigit, isPunctuation, isSymbol)
+import Data.Hashable (Hashable (hashWithSalt))
 import Data.Text (Text)
 import Data.Text qualified as T
 import Instances.TH.Lift ()
@@ -182,85 +185,6 @@ instance HasUnique TyName TypeUnique
 -- | A lens focused on the 'Unique' of a name.
 theUnique :: (HasUnique name unique) => Lens' name Unique
 theUnique = unique . coerced
-
--- | A mapping from uniques to values of type @a@.
-newtype UniqueMap unique a = UniqueMap
-  { unUniqueMap :: IM.IntMap a
-  }
-  deriving newtype (Show, Eq, Semigroup, Monoid, Functor)
-
--- | Insert a value by a unique.
-insertByUnique ::
-  (Coercible unique Unique) =>
-  unique ->
-  a ->
-  UniqueMap unique a ->
-  UniqueMap unique a
-insertByUnique uniq = coerce . IM.insert (coerce uniq)
-
--- | Insert a value by the unique of a name.
-insertByName :: (HasUnique name unique) => name -> a -> UniqueMap unique a -> UniqueMap unique a
-insertByName = insertByUnique . view unique
-
--- | Insert a named value by the index of the unique of the name.
-insertNamed ::
-  (HasText name, HasUnique name unique) =>
-  name ->
-  a ->
-  UniqueMap unique (Named a) ->
-  UniqueMap unique (Named a)
-insertNamed name = insertByName name . Named (name ^. theText)
-
-{- | Insert a value by the index of the unique of a name.
-Unlike 'insertByUnique' and 'insertByName', this function does not provide any static guarantees,
-so you can for example insert by a type-level name in a map from term-level uniques.
--}
-insertByNameIndex ::
-  (HasUnique name unique1, Coercible unique2 Unique) =>
-  name ->
-  a ->
-  UniqueMap unique2 a ->
-  UniqueMap unique2 a
-insertByNameIndex = insertByUnique . coerce . view unique
-
--- | Convert a 'Foldable' into a 'UniqueMap' using the given insertion function.
-fromFoldable ::
-  (Foldable f) =>
-  (i -> a -> UniqueMap unique a -> UniqueMap unique a) ->
-  f (i, a) ->
-  UniqueMap unique a
-fromFoldable ins = foldl' (flip $ uncurry ins) mempty
-
--- | Convert a 'Foldable' with uniques into a 'UniqueMap'.
-fromUniques :: (Foldable f) => (Coercible Unique unique) => f (unique, a) -> UniqueMap unique a
-fromUniques = fromFoldable insertByUnique
-
--- | Convert a 'Foldable' with names into a 'UniqueMap'.
-fromNames :: (Foldable f) => (HasUnique name unique) => f (name, a) -> UniqueMap unique a
-fromNames = fromFoldable insertByName
-
--- | Look up a value by a unique.
-lookupUnique :: (Coercible unique Unique) => unique -> UniqueMap unique a -> Maybe a
-lookupUnique uniq = IM.lookup (coerce uniq) . unUniqueMap
-
--- | Look up a value by the unique of a name.
-lookupName :: (HasUnique name unique) => name -> UniqueMap unique a -> Maybe a
-lookupName = lookupUnique . view unique
-
-{- | Look up a value by the index of the unique of a name.
-Unlike 'lookupUnique' and 'lookupName', this function does not provide any static guarantees,
-so you can for example look up a type-level name in a map from term-level uniques.
--}
-lookupNameIndex ::
-  (HasUnique name unique1, Coercible unique2 Unique) =>
-  name ->
-  UniqueMap unique2 a ->
-  Maybe a
-lookupNameIndex = lookupUnique . coerce . view unique
-
-{-# INLINE isEmpty #-}
-isEmpty :: UniqueMap unique a -> Bool
-isEmpty (UniqueMap m) = IM.null m
 
 {- Note [Pretty-printing names with uniques]
 

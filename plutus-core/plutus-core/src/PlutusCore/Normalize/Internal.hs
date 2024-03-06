@@ -13,18 +13,20 @@ module PlutusCore.Normalize.Internal (
   normalizeTypesInM,
 ) where
 
-import PlutusCore.Core
+import PlutusCore.Core.Plated (termSubterms, termSubtypes)
+import PlutusCore.Core.Type (Normalized (..), Term, Type (..))
 import PlutusCore.MkPlc (mkTyBuiltinOf)
-import PlutusCore.Name
-import PlutusCore.Quote
-import PlutusCore.Rename
-import PlutusPrelude
+import PlutusCore.Name.Unique (HasUnique, TypeUnique (TypeUnique), Unique (Unique))
+import PlutusCore.Name.UniqueMap (UniqueMap, insertByName, lookupName)
+import PlutusCore.Quote (MonadQuote)
+import PlutusCore.Rename (Dupable, dupable, liftDupable)
+import PlutusPrelude (Alternative, over, (<<$>>), (<<*>>))
 
-import Control.Lens
-import Control.Monad
-import Control.Monad.Reader
-import Control.Monad.State
-import Universe
+import Control.Lens (makeLenses, transformMOf)
+import Control.Monad (MonadPlus)
+import Control.Monad.Reader (MonadReader (local), ReaderT (..), asks)
+import Control.Monad.State (MonadState)
+import Universe.Core (Esc, HasUniApply (matchUniApply), SomeTypeIn (SomeTypeIn))
 
 {- Note [Global uniqueness in the normalizer]
 WARNING: everything in this module works under the assumption that the global uniqueness condition

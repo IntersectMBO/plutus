@@ -5,7 +5,7 @@
 module PlutusIR.Transform.RecSplit
     (recSplit, recSplitPass) where
 
-import PlutusCore.Name qualified as PLC
+import PlutusCore.Name.Unique qualified as PLC
 import PlutusIR
 import PlutusIR.Subst
 
@@ -79,7 +79,7 @@ recSplitPass tcconfig = simplePass "recursive let split" tcconfig recSplit
 Apply letrec splitting, recursively in bottom-up fashion.
 -}
 recSplit :: forall uni fun a name tyname.
-           (Ord name, Ord tyname, PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
+           (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
          => Term tyname name uni fun a
          -> Term tyname name uni fun a
 recSplit = transformOf termSubterms recSplitStep
@@ -88,7 +88,7 @@ recSplit = transformOf termSubterms recSplitStep
 Apply splitting for a single letrec group.
 -}
 recSplitStep :: forall uni fun a name tyname.
-               (Ord name, Ord tyname, PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
+               (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
              => Term tyname name uni fun a -> Term tyname name uni fun a
 recSplitStep = \case
     -- See Note [LetRec splitting pass]
@@ -120,7 +120,7 @@ This local graph may contain loops:
 - Any other loop indicates mutual-recursive bindings.
 -}
 buildLocalDepGraph :: forall uni fun a name tyname.
-                     (Ord name, Ord tyname, PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
+                     (PLC.HasUnique tyname PLC.TypeUnique, PLC.HasUnique name PLC.TermUnique)
                    => NE.NonEmpty (Binding tyname name uni fun a) -> AM.AdjacencyMap PLC.Unique
 buildLocalDepGraph bs =
     -- join together

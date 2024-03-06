@@ -146,7 +146,9 @@ library
     PlutusCore.FsTree
     PlutusCore.Mark
     PlutusCore.MkPlc
-    PlutusCore.Name
+    PlutusCore.Name.Unique
+    PlutusCore.Name.UniqueMap
+    PlutusCore.Name.UniqueSet
     PlutusCore.Normalize
     PlutusCore.Normalize.Internal
     PlutusCore.Parser

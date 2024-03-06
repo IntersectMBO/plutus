@@ -14,7 +14,7 @@ module PlutusCore.Constant.Make
     ) where
 
 import PlutusCore.Constant.Typed
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Quote
 import PlutusCore.StdLib.Data.Bool
 import PlutusCore.Type

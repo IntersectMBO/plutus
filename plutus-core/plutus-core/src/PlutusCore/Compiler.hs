@@ -10,7 +10,7 @@ module PlutusCore.Compiler (
 import PlutusCore.Compiler.Erase
 import PlutusCore.Compiler.Types
 import PlutusCore.Core
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Rename
 import UntypedPlutusCore.Core qualified as UPLC
 import UntypedPlutusCore.Simplify qualified as UPLC
