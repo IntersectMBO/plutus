@@ -11,15 +11,20 @@ module PlutusTx.Blueprint.TH where
 
 import Prelude
 
+import Data.Data (Data)
 import Data.List (nub)
 import Data.List.NonEmpty qualified as NE
-import Data.Traversable (for)
-import GHC.Natural (Natural, naturalToInteger)
+import Data.Set qualified as Set
+import GHC.Natural (naturalToInteger)
 import Language.Haskell.TH qualified as TH
 import Language.Haskell.TH.Datatype qualified as TH
+import Numeric.Natural (Natural)
+import PlutusPrelude (for, (<<$>>))
 import PlutusTx.Blueprint.Class (HasSchema (..))
 import PlutusTx.Blueprint.Definition (HasSchemaDefinition)
-import PlutusTx.Blueprint.Schema (ConstructorSchema (..), Schema (..), SchemaInfo (..))
+import PlutusTx.Blueprint.Schema (ConstructorSchema (..), Schema (..))
+import PlutusTx.Blueprint.Schema.Annotation (SchemaAnn (..), SchemaComment, SchemaDescription,
+                                             SchemaInfo, SchemaTitle)
 import PlutusTx.IsData.TH (makeIsDataIndexed)
 
 {- |
@@ -40,10 +45,15 @@ makeHasSchemaInstance dataTypeName indices = do
   let nonOverlapInstance = TH.InstanceD Nothing
 
   -- Lookup indices for all constructors of a data type.
-  indexedCons <- for (TH.datatypeCons dataTypeInfo) $ \ctorInfo ->
-    case lookup (TH.constructorName ctorInfo) indices of
-      Just index -> pure (ctorInfo, index)
-      Nothing    -> fail $ "No index given for constructor " ++ show (TH.constructorName ctorInfo)
+  indexedCons :: [(TH.ConstructorInfo, SchemaInfo, Natural)] <- do
+    typeSchemaInfo <- lookupSchemaInfo dataTypeName
+    for (TH.datatypeCons dataTypeInfo) $ \ctorInfo -> do
+      let ctorName = TH.constructorName ctorInfo
+      case lookup ctorName indices of
+        Nothing -> fail $ "No index given for constructor " ++ show (TH.constructorName ctorInfo)
+        Just index -> do
+          ctorSchemaInfo <- lookupSchemaInfo ctorName
+          pure (ctorInfo, Set.union ctorSchemaInfo typeSchemaInfo, index)
 
   let tsType = TH.VarT (TH.mkName "referencedTypes")
 
@@ -52,7 +62,7 @@ makeHasSchemaInstance dataTypeName indices = do
         nub
           -- Every type in the constructor fields must have a schema definition.
           [ TH.classPred ''HasSchemaDefinition [fieldType, tsType]
-          | (TH.ConstructorInfo{constructorFields}, _index) <- indexedCons
+          | (TH.ConstructorInfo{constructorFields}, _info, _index) <- indexedCons
           , fieldType <- constructorFields
           ]
   -- Generate a 'schema' function for the instance with one clause.
@@ -68,9 +78,26 @@ makeHasSchemaInstance dataTypeName indices = do
       constraints
       (TH.classPred ''HasSchema [appliedType, tsType])
       [schemaPrag, schemaDecl]
+ where
+  -- Lookup annotations (SchemaTitle, SchemdDescription, SchemaComment) attached to a name.
+  lookupSchemaInfo :: TH.Name -> TH.Q SchemaInfo
+  lookupSchemaInfo name = do
+    title <- MkSchemaAnnTitle <<$>> lookupAnn @SchemaTitle name
+    description <- MkSchemaAnnDescription <<$>> lookupAnn @SchemaDescription name
+    comment <- MkSchemaAnnComment <<$>> lookupAnn @SchemaComment name
+    pure $ Set.fromList $ title ++ description ++ comment
+   where
+    lookupAnn :: (Data a) => TH.Name -> TH.Q [a]
+    lookupAnn = TH.reifyAnnotations . TH.AnnLookupName
 
 -- | Make a clause for the 'schema' function.
-mkSchemaClause :: TH.Type -> [(TH.ConstructorInfo, Natural)] -> TH.ClauseQ
+mkSchemaClause ::
+  -- | The type for the 'HasSchema' instance.
+  TH.Type ->
+  -- | The constructors of the type with their schema infos and indices.
+  [(TH.ConstructorInfo, SchemaInfo, Natural)] ->
+  -- | The clause for the 'schema' function.
+  TH.ClauseQ
 mkSchemaClause ts ctorIndexes =
   case ctorIndexes of
     [] -> fail "At least one constructor index must be specified."
@@ -83,12 +110,7 @@ mkSchemaClause ts ctorIndexes =
     let whereDecls = []
     TH.clause patterns (TH.normalB body) whereDecls
 
-  mkSchemaConstructor :: (TH.ConstructorInfo, Natural) -> TH.ExpQ
-  mkSchemaConstructor (TH.ConstructorInfo{..}, naturalToInteger -> ctorIndex) = do
+  mkSchemaConstructor :: (TH.ConstructorInfo, SchemaInfo, Natural) -> TH.ExpQ
+  mkSchemaConstructor (TH.ConstructorInfo{..}, info, naturalToInteger -> ctorIndex) = do
     fields <- for constructorFields $ \t -> [|definitionRef @($(pure t)) @($(pure ts))|]
-    let name = TH.nameBase constructorName
-    [|
-      SchemaConstructor
-        (MkSchemaInfo Nothing Nothing (Just name))
-        (MkConstructorSchema ctorIndex $(pure (TH.ListE fields)))
-      |]
+    [|SchemaConstructor info (MkConstructorSchema ctorIndex $(pure (TH.ListE fields)))|]

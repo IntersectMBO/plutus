@@ -11,6 +11,7 @@
 {-# LANGUAGE RecordWildCards       #-}
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE ViewPatterns          #-}
 
 module PlutusTx.Blueprint.Schema where
 
@@ -25,11 +26,14 @@ import Data.Data (Data, Typeable)
 import Data.Function ((&))
 import Data.Kind (Type)
 import Data.List.NonEmpty (NonEmpty, nonEmpty)
+import Data.Maybe (listToMaybe)
+import Data.Set qualified as Set
 import Data.Text (Text)
 import Data.Text.Encoding qualified as Text
 import GHC.Generics (Generic)
 import Numeric.Natural (Natural)
 import PlutusTx.Blueprint.Definition.Id (DefinitionId, definitionIdToText)
+import PlutusTx.Blueprint.Schema.Annotation (SchemaAnn (..), SchemaInfo)
 import Prelude hiding (max, maximum, min, minimum)
 
 {- | Blueprint schema definition, as defined by the CIP-0057:
@@ -136,22 +140,11 @@ instance ToJSON (Schema referencedTypes) where
     dataType info ty = requiredField "dataType" ty (infoFields info)
 
     infoFields :: SchemaInfo -> Aeson.Object
-    infoFields MkSchemaInfo{title, description, comment} =
+    infoFields (Set.toList -> info) =
       KeyMap.empty
-        & optionalField "title" title
-        & optionalField "description" description
-        & optionalField "$comment" comment
-
--- | Additional information optionally attached to any datatype schema definition.
-data SchemaInfo = MkSchemaInfo
-  { title       :: Maybe String
-  , description :: Maybe String
-  , comment     :: Maybe String
-  }
-  deriving stock (Eq, Show, Generic, Data)
-
-emptySchemaInfo :: SchemaInfo
-emptySchemaInfo = MkSchemaInfo{title = Nothing, description = Nothing, comment = Nothing}
+        & optionalField "title" (listToMaybe [t | MkSchemaAnnTitle t <- info])
+        & optionalField "description" (listToMaybe [d | MkSchemaAnnDescription d <- info])
+        & optionalField "$comment" (listToMaybe [c | MkSchemaAnnComment c <- info])
 
 data IntegerSchema = MkIntegerSchema
   { multipleOf       :: Maybe Integer
