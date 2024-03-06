@@ -1,3 +1,9 @@
+{- | A type for maps (key-value associations), where the key type can be
+ identified by 'Unique's. In practice, these types are usually names.
+ This approach is preferred when it is more efficient to compare the associated
+ 'Unique's instead of the underlying type.
+-}
+
 module PlutusCore.Name.UniqueMap (
   UniqueMap (..),
 insertByUnique,
@@ -25,13 +31,16 @@ import PlutusCore.Name.Unique (HasText (..), HasUnique (..), Named (Named), Uniq
 import PlutusCore.Name.UniqueSet (UniqueSet (UniqueSet))
 import Prelude hiding (foldr)
 
--- | A mapping from uniques to values of type @a@.
+{- | A mapping from 'Unique's to arbitrary values of type @a@.
+ Since 'Unique' is equivalent to 'Int' (see "PlutusCore.Name.Unique"),
+ we can use an 'IntMap' representation for this type.
+-}
 newtype UniqueMap unique a = UniqueMap
   { unUniqueMap :: IM.IntMap a
   }
   deriving newtype (Show, Eq, Semigroup, Monoid, Functor)
 
--- | Insert a value by a unique.
+-- | Insert a value @a@ by a @unique@.
 insertByUnique ::
   (Coercible unique Unique) =>
   unique ->
@@ -40,14 +49,15 @@ insertByUnique ::
   UniqueMap unique a
 insertByUnique uniq = coerce . IM.insert (coerce uniq)
 
--- | Insert a value by the unique of a name.
+-- | Insert a value @a@ by the @unique@ of a @name@.
 insertByName :: (HasUnique name unique) => name -> a -> UniqueMap unique a -> UniqueMap unique a
 insertByName = insertByUnique . view unique
 
+-- | Create the singleton map of the @unique@ of a @name@ and a value @a@.
 singletonByName :: (HasUnique name unique) => name -> a -> UniqueMap unique a
 singletonByName n a = insertByName n a mempty
 
--- | Insert a named value by the index of the unique of the name.
+-- | Insert a named value @a@ by the index of the @unique@ of the @name@.
 insertNamed ::
   (HasText name, HasUnique name unique) =>
   name ->
