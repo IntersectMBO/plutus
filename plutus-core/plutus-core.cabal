@@ -1,6 +1,6 @@
 cabal-version:      3.0
 name:               plutus-core
-version:            1.22.1.0
+version:            1.23.1.0
 license:            Apache-2.0
 license-files:
   LICENSE
@@ -314,7 +314,7 @@ library
     , nothunks                    ^>=0.1.5
     , parser-combinators          >=0.4.0
     , prettyprinter               >=1.1.0.1
-    , prettyprinter-configurable  ^>=1.22
+    , prettyprinter-configurable  ^>=1.23
     , primitive
     , profunctors
     , recursion-schemes
@@ -374,7 +374,7 @@ test-suite plutus-core-test
     , hex-text
     , mmorph
     , mtl
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.22
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.23
     , prettyprinter
     , serialise
     , tasty
@@ -432,7 +432,7 @@ test-suite untyped-plutus-core-test
     , hedgehog
     , lens
     , mtl
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.22
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.23
     , pretty-show
     , prettyprinter
     , QuickCheck
@@ -453,8 +453,8 @@ executable plc
     , bytestring
     , flat                  ^>=0.6
     , optparse-applicative
-    , plutus-core           ^>=1.22
-    , plutus-core-execlib   ^>=1.22
+    , plutus-core           ^>=1.23
+    , plutus-core-execlib   ^>=1.23
     , text
 
 executable uplc
@@ -470,8 +470,8 @@ executable uplc
     , haskeline
     , mtl
     , optparse-applicative
-    , plutus-core           ^>=1.22
-    , plutus-core-execlib   ^>=1.22
+    , plutus-core           ^>=1.23
+    , plutus-core-execlib   ^>=1.23
     , prettyprinter
     , split
     , text
@@ -566,7 +566,7 @@ library plutus-ir
     , mtl
     , multiset
     , parser-combinators   >=0.4.0
-    , plutus-core          ^>=1.22
+    , plutus-core          ^>=1.23
     , prettyprinter        >=1.1.0.1
     , profunctors
     , semigroupoids
@@ -631,7 +631,7 @@ test-suite plutus-ir-test
     , hedgehog
     , lens
     , mtl
-    , plutus-core:{plutus-core, plutus-core-testlib, plutus-ir}  ^>=1.22
+    , plutus-core:{plutus-core, plutus-core-testlib, plutus-ir}  ^>=1.23
     , QuickCheck
     , serialise
     , tasty
@@ -654,8 +654,8 @@ executable pir
     , lens
     , megaparsec
     , optparse-applicative
-    , plutus-core-execlib                   ^>=1.22
-    , plutus-core:{plutus-core, plutus-ir}  ^>=1.22
+    , plutus-core-execlib                   ^>=1.23
+    , plutus-core:{plutus-core, plutus-ir}  ^>=1.23
     , text
     , transformers
 
@@ -683,7 +683,7 @@ library plutus-core-execlib
     , monoidal-containers
     , mtl
     , optparse-applicative
-    , plutus-core:{plutus-core, plutus-core-testlib, plutus-ir}  ^>=1.22
+    , plutus-core:{plutus-core, plutus-core-testlib, plutus-ir}  ^>=1.23
     , prettyprinter
     , text
 
@@ -745,9 +745,9 @@ library plutus-core-testlib
     , mmorph
     , mtl
     , multiset
-    , plutus-core:{plutus-core, plutus-ir}  ^>=1.22
+    , plutus-core:{plutus-core, plutus-ir}  ^>=1.23
     , prettyprinter                         >=1.1.0.1
-    , prettyprinter-configurable            ^>=1.22
+    , prettyprinter-configurable            ^>=1.23
     , QuickCheck
     , quickcheck-instances
     , quickcheck-transformer
@@ -779,7 +779,7 @@ library plutus-ir-cert
   exposed-modules:  PlutusIR.Certifier
   build-depends:
     , base
-    , plutus-core:{plutus-core, plutus-ir}  ^>=1.22
+    , plutus-core:{plutus-core, plutus-ir}  ^>=1.23
 
 ----------------------------------------------
 -- debugger
@@ -812,8 +812,8 @@ executable debugger
     , mono-traversable
     , mtl
     , optparse-applicative
-    , plutus-core           ^>=1.22
-    , plutus-core-execlib   ^>=1.22
+    , plutus-core           ^>=1.23
+    , plutus-core-execlib   ^>=1.23
     , prettyprinter
     , primitive
     , text
@@ -897,7 +897,7 @@ executable cost-model-budgeting-bench
     , hedgehog
     , mtl
     , optparse-applicative
-    , plutus-core            ^>=1.22
+    , plutus-core            ^>=1.23
     , QuickCheck
     , quickcheck-instances
     , random
@@ -934,7 +934,7 @@ executable generate-cost-model
     , extra
     , inline-r              >=1.0.1
     , optparse-applicative
-    , plutus-core           ^>=1.22
+    , plutus-core           ^>=1.23
     , text
     , vector
 
@@ -975,7 +975,7 @@ benchmark cost-model-test
     , hedgehog
     , inline-r          >=1.0.1
     , mmorph
-    , plutus-core       ^>=1.22
+    , plutus-core       ^>=1.23
     , template-haskell
     , text
     , vector
@@ -991,7 +991,7 @@ executable print-cost-model
     , aeson
     , base         >=4.9   && <5
     , bytestring
-    , plutus-core  ^>=1.22
+    , plutus-core  ^>=1.23
 
 ----------------------------------------------
 -- satint
