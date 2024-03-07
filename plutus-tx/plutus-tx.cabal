@@ -45,11 +45,26 @@ library
   import:             lang
   hs-source-dirs:     src
   exposed-modules:
+    Data.Aeson.Extra
     PlutusTx
     PlutusTx.Applicative
     PlutusTx.AsData
     PlutusTx.AssocMap
     PlutusTx.Base
+    PlutusTx.Blueprint
+    PlutusTx.Blueprint.Argument
+    PlutusTx.Blueprint.Class
+    PlutusTx.Blueprint.Contract
+    PlutusTx.Blueprint.Definition
+    PlutusTx.Blueprint.Definition.Id
+    PlutusTx.Blueprint.Parameter
+    PlutusTx.Blueprint.PlutusVersion
+    PlutusTx.Blueprint.Preamble
+    PlutusTx.Blueprint.Purpose
+    PlutusTx.Blueprint.Schema
+    PlutusTx.Blueprint.TH
+    PlutusTx.Blueprint.Validator
+    PlutusTx.Blueprint.Write
     PlutusTx.Bool
     PlutusTx.Builtins
     PlutusTx.Builtins.Class
@@ -94,8 +109,10 @@ library
     PlutusTx.Lift.THUtils
 
   build-depends:
-    , aeson
+    , aeson                                 >=2.2
+    , aeson-pretty
     , base                                  >=4.9      && <5
+    , base16-bytestring
     , bytestring
     , containers
     , data-default-class
@@ -159,6 +176,8 @@ test-suite plutus-tx-test
   main-is:            Spec.hs
   ghc-options:        -threaded -rtsopts -with-rtsopts=-N
   other-modules:
+    Blueprint.Definition.Fixture
+    Blueprint.Definition.Spec
     List.Spec
     Rational.Laws
     Rational.Laws.Additive
@@ -181,9 +200,11 @@ test-suite plutus-tx-test
     , base16-bytestring
     , bytestring
     , cborg
+    , containers
     , filepath
     , hedgehog
     , hedgehog-fn
+    , lens
     , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.22
     , plutus-tx                                       ^>=1.22
     , pretty-show
