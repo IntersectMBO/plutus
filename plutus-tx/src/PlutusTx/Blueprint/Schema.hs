@@ -30,6 +30,7 @@ import Data.Text.Encoding qualified as Text
 import GHC.Generics (Generic)
 import Numeric.Natural (Natural)
 import PlutusTx.Blueprint.Definition.Id (DefinitionId, definitionIdToText)
+import PlutusTx.Blueprint.Schema.Annotation (SchemaInfo, comment, description, title)
 import Prelude hiding (max, maximum, min, minimum)
 
 {- | Blueprint schema definition, as defined by the CIP-0057:
@@ -136,22 +137,11 @@ instance ToJSON (Schema referencedTypes) where
     dataType info ty = requiredField "dataType" ty (infoFields info)
 
     infoFields :: SchemaInfo -> Aeson.Object
-    infoFields MkSchemaInfo{title, description, comment} =
+    infoFields info =
       KeyMap.empty
-        & optionalField "title" title
-        & optionalField "description" description
-        & optionalField "$comment" comment
-
--- | Additional information optionally attached to any datatype schema definition.
-data SchemaInfo = MkSchemaInfo
-  { title       :: Maybe String
-  , description :: Maybe String
-  , comment     :: Maybe String
-  }
-  deriving stock (Eq, Show, Generic, Data)
-
-emptySchemaInfo :: SchemaInfo
-emptySchemaInfo = MkSchemaInfo{title = Nothing, description = Nothing, comment = Nothing}
+        & optionalField "title" (title info)
+        & optionalField "description" (description info)
+        & optionalField "$comment" (comment info)
 
 data IntegerSchema = MkIntegerSchema
   { multipleOf       :: Maybe Integer

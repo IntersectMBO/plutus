@@ -27,7 +27,9 @@ import PlutusCore.Version (plcVersion110)
 import PlutusTx hiding (Typeable)
 import PlutusTx.Blueprint.Class (HasSchema (..))
 import PlutusTx.Blueprint.Definition (AsDefinitionId, definitionRef)
-import PlutusTx.Blueprint.Schema (Schema (..), SchemaInfo (..), emptyBytesSchema, emptySchemaInfo)
+import PlutusTx.Blueprint.Schema (Schema (SchemaBytes), emptyBytesSchema)
+import PlutusTx.Blueprint.Schema.Annotation (SchemaComment (..), SchemaDescription (..),
+                                             SchemaInfo (..), SchemaTitle (..), emptySchemaInfo)
 import PlutusTx.Builtins (BuiltinByteString, BuiltinString, emptyByteString)
 import PlutusTx.Prelude qualified as PlutusTx
 import UntypedPlutusCore qualified as UPLC
@@ -49,26 +51,32 @@ newtype Bytes (phantom :: Type) = MkAcmeBytes BuiltinByteString
   deriving anyclass (AsDefinitionId)
 
 instance HasSchema (Bytes phantom) ts where
-  schema = SchemaBytes emptySchemaInfo{title = Just "SchemaBytes"} emptyBytesSchema
+  schema = SchemaBytes emptySchemaInfo { title = Just "SchemaBytes" } emptyBytesSchema
 
+{-# ANN MkDatumPayload (SchemaComment "MkDatumPayload") #-}
 data DatumPayload = MkDatumPayload
   { myAwesomeDatum1 :: Integer
   , myAwesomeDatum2 :: Bytes Void
   }
   deriving anyclass (AsDefinitionId)
 
-$(makeIsDataSchemaIndexed ''DatumPayload [('MkDatumPayload, 0)])
-
+{-# ANN DatumLeft (SchemaTitle "Datum") #-}
+{-# ANN DatumLeft (SchemaDescription "DatumLeft") #-}
+{-# ANN DatumLeft (SchemaComment "This constructor is parameterless") #-}
+{-# ANN DatumRight (SchemaTitle "Datum") #-}
+{-# ANN DatumRight (SchemaDescription "DatumRight") #-}
+{-# ANN DatumRight (SchemaComment "This constructor has a payload") #-}
 data Datum = DatumLeft | DatumRight DatumPayload
   deriving anyclass (AsDefinitionId)
-
-$(makeIsDataSchemaIndexed ''Datum [('DatumLeft, 0), ('DatumRight, 1)])
 
 type Redeemer = BuiltinString
 
 type ScriptContext = ()
 
 type Validator = Params -> Datum -> Redeemer -> ScriptContext -> Bool
+
+$(makeIsDataSchemaIndexed ''DatumPayload [('MkDatumPayload, 0)])
+$(makeIsDataSchemaIndexed ''Datum [('DatumLeft, 0), ('DatumRight, 1)])
 
 serialisedScript :: ByteString
 serialisedScript =

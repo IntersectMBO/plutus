@@ -67,13 +67,17 @@
     "Datum": {
       "oneOf": [
         {
-          "$comment": "DatumLeft",
+          "title": "Datum",
+          "description": "DatumLeft",
+          "$comment": "This constructor is parameterless",
           "dataType": "constructor",
           "fields": [],
           "index": 0
         },
         {
-          "$comment": "DatumRight",
+          "title": "Datum",
+          "description": "DatumRight",
+          "$comment": "This constructor has a payload",
           "dataType": "constructor",
           "fields": [
             {
@@ -101,7 +105,6 @@
       "dataType": "integer"
     },
     "Params": {
-      "$comment": "MkParams",
       "dataType": "constructor",
       "fields": [
         {
