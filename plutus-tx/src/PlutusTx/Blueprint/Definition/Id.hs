@@ -1,8 +1,16 @@
-{-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE DefaultSignatures   #-}
-{-# LANGUAGE DeriveDataTypeable  #-}
-{-# LANGUAGE DerivingStrategies  #-}
-{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE AllowAmbiguousTypes  #-}
+{-# LANGUAGE DataKinds            #-}
+{-# LANGUAGE DefaultSignatures    #-}
+{-# LANGUAGE DeriveDataTypeable   #-}
+{-# LANGUAGE DerivingStrategies   #-}
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE PolyKinds            #-}
+{-# LANGUAGE ScopedTypeVariables  #-}
+{-# LANGUAGE TypeApplications     #-}
+{-# LANGUAGE TypeFamilies         #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module PlutusTx.Blueprint.Definition.Id (
   DefinitionId,
@@ -18,7 +26,7 @@ import Data.Text (Text)
 import Data.Text qualified as Text
 import Data.Typeable (Proxy (..), Typeable, typeRep)
 import GHC.Generics (Generic)
-import PlutusTx.Builtins (BuiltinByteString, BuiltinData, BuiltinString)
+import PlutusTx.Builtins.Internal (BuiltinByteString, BuiltinData, BuiltinList, BuiltinString)
 
 -- | A reference to a Schema definition.
 newtype DefinitionId = MkDefinitionId {definitionIdToText :: Text}
@@ -35,11 +43,19 @@ class AsDefinitionId a where
 
 instance AsDefinitionId () where
   definitionId = MkDefinitionId "Unit"
+
 instance AsDefinitionId Bool
+
 instance AsDefinitionId Integer
+
 instance AsDefinitionId BuiltinData where
   definitionId = MkDefinitionId "Data"
+
 instance AsDefinitionId BuiltinString where
   definitionId = MkDefinitionId "String"
+
 instance AsDefinitionId BuiltinByteString where
   definitionId = MkDefinitionId "ByteString"
+
+instance (AsDefinitionId a) => AsDefinitionId (BuiltinList a) where
+  definitionId = MkDefinitionId $ "List_" <> definitionIdToText (definitionId @a)

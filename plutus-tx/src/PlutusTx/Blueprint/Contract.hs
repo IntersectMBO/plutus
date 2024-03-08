@@ -18,7 +18,7 @@ import Data.Map qualified as Map
 import Data.Set (Set)
 import Data.Text (Text)
 import PlutusPrelude (ensure)
-import PlutusTx.Blueprint.Definition (DefinitionId)
+import PlutusTx.Blueprint.Definition (DefinitionId, UnrollAll)
 import PlutusTx.Blueprint.Preamble (Preamble)
 import PlutusTx.Blueprint.Schema (Schema)
 import PlutusTx.Blueprint.Validator (ValidatorBlueprint)
@@ -41,23 +41,26 @@ data ContractBlueprint (referencedTypes :: [Type]) = MkContractBlueprint
   }
   deriving stock (Show)
 
+-- | A contract blueprint with all (nested) types discovered from a list of top-level types.
+type Blueprint topTypes = ContractBlueprint (UnrollAll topTypes)
+
 instance ToJSON (ContractBlueprint referencedTypes) where
   toJSON MkContractBlueprint{..} =
-    Aeson.buildObject
-      $ requiredField "$schema" schemaUrl
-      . requiredField
-        "$vocabulary"
-        ( Aeson.object
-            [ "https://json-schema.org/draft/2020-12/vocab/core" .= True
-            , "https://json-schema.org/draft/2020-12/vocab/applicator" .= True
-            , "https://json-schema.org/draft/2020-12/vocab/validation" .= True
-            , "https://cips.cardano.org/cips/cip57" .= True
-            ]
-        )
-      . requiredField "preamble" contractPreamble
-      . requiredField "validators" contractValidators
-      . optionalField "$id" contractId
-      . optionalField "definitions" (ensure (not . Map.null) contractDefinitions)
+    Aeson.buildObject $
+      requiredField "$schema" schemaUrl
+        . requiredField
+          "$vocabulary"
+          ( Aeson.object
+              [ "https://json-schema.org/draft/2020-12/vocab/core" .= True
+              , "https://json-schema.org/draft/2020-12/vocab/applicator" .= True
+              , "https://json-schema.org/draft/2020-12/vocab/validation" .= True
+              , "https://cips.cardano.org/cips/cip57" .= True
+              ]
+          )
+        . requiredField "preamble" contractPreamble
+        . requiredField "validators" contractValidators
+        . optionalField "$id" contractId
+        . optionalField "definitions" (ensure (not . Map.null) contractDefinitions)
    where
     schemaUrl :: String
     schemaUrl = "https://cips.cardano.org/cips/cip57/schemas/plutus-blueprint.json"
