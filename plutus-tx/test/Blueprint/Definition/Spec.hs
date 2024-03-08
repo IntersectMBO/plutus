@@ -16,7 +16,7 @@ import Control.Lens.Plated (universe)
 import Data.Map qualified as Map
 import Data.Set (isSubsetOf)
 import Data.Set qualified as Set
-import PlutusTx.Blueprint.Definition
+import PlutusTx.Blueprint.Definition (deriveSchemaDefinitions)
 import PlutusTx.Blueprint.Schema (Schema (..))
 import Test.Tasty (TestTree, testGroup)
 import Test.Tasty.HUnit (Assertion, testCase, (@?), (@?=))

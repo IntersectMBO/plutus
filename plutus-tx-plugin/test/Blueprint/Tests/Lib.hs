@@ -14,6 +14,7 @@
 
 module Blueprint.Tests.Lib where
 
+import PlutusTx hiding (Typeable)
 import Prelude
 
 import Codec.Serialise (serialise)
@@ -23,14 +24,14 @@ import Data.ByteString.Lazy qualified as LBS
 import Data.Kind (Type)
 import Data.Void (Void)
 import Flat qualified
+import GHC.Generics (Generic)
 import PlutusCore.Version (plcVersion110)
-import PlutusTx hiding (Typeable)
 import PlutusTx.Blueprint.Class (HasSchema (..))
 import PlutusTx.Blueprint.Definition (AsDefinitionId, definitionRef)
 import PlutusTx.Blueprint.Schema (Schema (SchemaBytes), emptyBytesSchema)
 import PlutusTx.Blueprint.Schema.Annotation (SchemaComment (..), SchemaDescription (..),
                                              SchemaInfo (..), SchemaTitle (..), emptySchemaInfo)
-import PlutusTx.Builtins (BuiltinByteString, BuiltinString, emptyByteString)
+import PlutusTx.Builtins.Internal (BuiltinByteString, BuiltinString, emptyByteString)
 import PlutusTx.Prelude qualified as PlutusTx
 import UntypedPlutusCore qualified as UPLC
 
@@ -41,14 +42,16 @@ data Params = MkParams
   , myBuiltinData       :: BuiltinData
   , myBuiltinByteString :: BuiltinByteString
   }
+  deriving stock (Generic)
   deriving anyclass (AsDefinitionId)
 
 $(PlutusTx.makeLift ''Params)
 $(makeIsDataSchemaIndexed ''Params [('MkParams, 0)])
 
 newtype Bytes (phantom :: Type) = MkAcmeBytes BuiltinByteString
-  deriving newtype (ToData, FromData, UnsafeFromData)
+  deriving stock (Generic)
   deriving anyclass (AsDefinitionId)
+  deriving newtype (ToData, FromData, UnsafeFromData)
 
 instance HasSchema (Bytes phantom) ts where
   schema = SchemaBytes emptySchemaInfo { title = Just "SchemaBytes" } emptyBytesSchema
@@ -58,6 +61,7 @@ data DatumPayload = MkDatumPayload
   { myAwesomeDatum1 :: Integer
   , myAwesomeDatum2 :: Bytes Void
   }
+  deriving stock (Generic)
   deriving anyclass (AsDefinitionId)
 
 {-# ANN DatumLeft (SchemaTitle "Datum") #-}
@@ -67,6 +71,7 @@ data DatumPayload = MkDatumPayload
 {-# ANN DatumRight (SchemaDescription "DatumRight") #-}
 {-# ANN DatumRight (SchemaComment "This constructor has a payload") #-}
 data Datum = DatumLeft | DatumRight DatumPayload
+  deriving stock (Generic)
   deriving anyclass (AsDefinitionId)
 
 type Redeemer = BuiltinString
