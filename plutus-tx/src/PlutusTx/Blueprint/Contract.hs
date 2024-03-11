@@ -25,9 +25,9 @@ import PlutusTx.Blueprint.Validator (ValidatorBlueprint)
 
 {- | A blueprint of a smart contract, as defined by the CIP-0057
 
-  The 'referencedTypes' phantom type parameter is used to track the types used in the contract
-  making sure their schemas are included in the blueprint and that they are referenced
-  in a type-safe way.
+The 'referencedTypes' phantom type parameter is used to track the types used in the contract
+making sure their schemas are included in the blueprint and that they are referenced
+in a type-safe way.
 -}
 data ContractBlueprint (referencedTypes :: [Type]) = MkContractBlueprint
   { contractId          :: Maybe Text
@@ -40,6 +40,45 @@ data ContractBlueprint (referencedTypes :: [Type]) = MkContractBlueprint
   -- ^ A registry of schema definitions used across the blueprint.
   }
   deriving stock (Show)
+
+{- Note ["Unrolling" types]
+
+ContractBlueprint needs to be parameterized by a list of types used in
+a contract's type signature (including nested types) in order to:
+  a) produce a JSON-schema definition for every type used.
+  b) ensure that the schema definitions are referenced in a type-safe way.
+
+Given the following contract validator's type signature:
+
+  typedValidator :: Redeemer -> Datum -> ScriptContext -> Bool
+
+and the following data type definitions:
+
+  data Redeemer = MkRedeemer MyStruct
+  data MyStruct = MkMyStruct { field1 :: Integer, field2 :: Bool }
+  type Datum = ()
+
+The ContractBlueprint type should be:
+
+  ContractBlueprint '[Redeemer, MyStruct, Integer, Bool, ()]
+
+However, for contract blurprints authors specifying all the nested types manually is
+cumbersome and error-prone. To make it easier to work with, we provide the Unroll type family
+that can be used to traverse a type accumulating all types nested within it:
+
+  Unroll Redeemer ~ '[Redeemer, MyStruct, Integer, Bool]
+  UnrollAll '[Redeemer, Datum] ~ '[Redeemer, MyStruct, Integer, Bool, ()]
+
+This way blueprint authors can specify the top-level types used in a contract and the UnrollAll
+type family will take care of discovering all the nested types:
+
+  Blueprint '[Redeemer, Datum]
+
+  is equivalent to
+
+  ContractBlueprint '[Redeemer, MyStruct, Integer, Bool, ()]
+
+-}
 
 -- | A contract blueprint with all (nested) types discovered from a list of top-level types.
 type Blueprint topTypes = ContractBlueprint (UnrollAll topTypes)

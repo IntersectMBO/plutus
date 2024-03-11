@@ -36,6 +36,8 @@ import PlutusTx.Blueprint.Schema (Schema (..))
 import PlutusTx.Builtins.Internal (BuiltinByteString, BuiltinData, BuiltinList, BuiltinString,
                                    BuiltinUnit)
 
+-- For more context see the note ["Unrolling" types]
+
 type family UnrollAll xs :: [Type] where
   UnrollAll '[] = '[]
   UnrollAll (x ': xs) = Unroll x ++ UnrollAll xs
