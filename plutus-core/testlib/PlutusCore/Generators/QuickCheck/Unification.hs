@@ -10,7 +10,7 @@ import PlutusCore.Generators.QuickCheck.Substitutions
 import PlutusCore.Generators.QuickCheck.Utils
 
 import PlutusCore.Default
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusIR
 
 import Control.Monad (when)

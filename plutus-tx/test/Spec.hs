@@ -4,6 +4,7 @@
 {-# LANGUAGE TypeApplications  #-}
 module Main(main) where
 
+import Blueprint.Definition.Spec qualified
 import Codec.CBOR.FlatTerm qualified as FlatTerm
 import Codec.Serialise (deserialiseOrFail, serialise)
 import Codec.Serialise qualified as Serialise
@@ -45,6 +46,7 @@ tests = testGroup "plutus-tx" [
     , lawsTests
     , Show.Spec.propertyTests
     , runTestNestedIn ["test"] Show.Spec.goldenTests
+    , Blueprint.Definition.Spec.tests
     ]
 
 sqrtTests :: TestTree

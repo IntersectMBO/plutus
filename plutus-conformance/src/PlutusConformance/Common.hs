@@ -5,19 +5,22 @@
 {- | Plutus conformance test suite library. -}
 module PlutusConformance.Common where
 
-import Data.Maybe (fromJust)
-import Data.Text qualified as T
-import Data.Text.IO qualified as T
 import PlutusCore.Annotation
 import PlutusCore.Default (DefaultFun, DefaultUni)
 import PlutusCore.Error (ParserErrorBundle)
 import PlutusCore.Evaluation.Machine.CostModelInterface
 import PlutusCore.Evaluation.Machine.ExBudget
 import PlutusCore.Evaluation.Machine.ExBudgetingDefaults (defaultCostModelParams)
-import PlutusCore.Evaluation.Machine.MachineParameters.Default
-import PlutusCore.Name (Name)
+import PlutusCore.Name.Unique (Name)
 import PlutusCore.Quote (runQuoteT)
-import PlutusPrelude (Pretty (pretty), def, display, void)
+import PlutusPrelude (Pretty (pretty), display, void)
+import UntypedPlutusCore qualified as UPLC
+import UntypedPlutusCore.Parser qualified as UPLC
+
+
+import Data.Maybe (fromJust)
+import Data.Text qualified as T
+import Data.Text.IO qualified as T
 import System.Directory
 import System.FilePath (takeBaseName, (<.>), (</>))
 import Test.Tasty (defaultMain, testGroup)
@@ -26,9 +29,6 @@ import Test.Tasty.Extras (goldenVsDocM)
 import Test.Tasty.Golden (findByExtension)
 import Test.Tasty.Golden.Advanced (goldenTest)
 import Test.Tasty.Providers (TestTree)
-import UntypedPlutusCore qualified as UPLC
-import UntypedPlutusCore.Evaluation.Machine.Cek (CountingSt (..), counting, runCekNoEmit)
-import UntypedPlutusCore.Parser qualified as UPLC
 import Witherable (Witherable (wither))
 
 -- Common functions for all tests
@@ -210,23 +210,6 @@ updateGoldenFile ::
     -> Either T.Text UplcProg -> IO ()
 updateGoldenFile goldenPath (Left txt) = T.writeFile goldenPath txt
 updateGoldenFile goldenPath (Right p)  = T.writeFile goldenPath (display p)
-
--- | Our `evaluator` for the Haskell UPLC tests is the CEK machine.
-evalUplcProg :: UplcEvaluator
-evalUplcProg = UplcEvaluatorWithCosting $ \modelParams (UPLC.Program a v t) ->
-    do
-        params <- case mkMachineParametersFor def modelParams of
-          Left _  -> Nothing
-          Right p -> Just p
-        -- runCek-like functions (e.g. evaluateCekNoEmit) are partial on term's with free variables,
-        -- that is why we manually check first for any free vars
-        case UPLC.deBruijnTerm t of
-            Left (_ :: UPLC.FreeVariableError) -> Nothing
-            Right _                            -> Just ()
-        case runCekNoEmit params counting t of
-            (Left _, _)                   -> Nothing
-            (Right prog, CountingSt cost) -> Just (UPLC.Program a v prog, cost)
-
 
 -- | Run the UPLC evaluation tests given an `evaluator` that evaluates UPLC programs.
 runUplcEvalTests ::

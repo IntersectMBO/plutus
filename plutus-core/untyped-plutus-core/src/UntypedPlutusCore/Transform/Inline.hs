@@ -27,7 +27,8 @@ import PlutusCore qualified as PLC
 import PlutusCore.Annotation
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.MkPlc (mkIterApp)
-import PlutusCore.Name
+import PlutusCore.Name.Unique
+import PlutusCore.Name.UniqueMap qualified as UMap
 import PlutusCore.Quote
 import PlutusCore.Rename (Dupable, dupable, liftDupable)
 import PlutusPrelude
@@ -117,7 +118,12 @@ type InliningConstraints name uni fun =
   )
 
 -- See Note [Differences from PIR inliner] 2
-data InlineInfo name a = InlineInfo {_usages :: Usages.Usages, _hints :: InlineHints name a}
+data InlineInfo name a = InlineInfo
+  { _iiUsages          :: Usages.Usages
+  , _iiHints           :: InlineHints name a
+  , _iiInlineConstants :: Bool
+  }
+makeLenses ''InlineInfo
 
 -- Using a concrete monad makes a very large difference to the performance of this module
 -- (determined from profiling)
@@ -131,7 +137,7 @@ lookupTerm ::
   name ->
   S name uni fun a ->
   Maybe (InlineTerm name uni fun a)
-lookupTerm n s = lookupName n $ s ^. subst . termEnv . unTermEnv
+lookupTerm n s = UMap.lookupName n $ s ^. subst . termEnv . unTermEnv
 
 -- | Insert the unprocessed variable into the substitution.
 extendTerm ::
@@ -143,14 +149,14 @@ extendTerm ::
   -- | The substitution.
   S name uni fun a ->
   S name uni fun a
-extendTerm n clos s = s & subst . termEnv . unTermEnv %~ insertByName n clos
+extendTerm n clos s = s & subst . termEnv . unTermEnv %~ UMap.insertByName n clos
 
 lookupVarInfo ::
   (HasUnique name TermUnique) =>
   name ->
   S name uni fun a ->
   Maybe (VarInfo name uni fun a)
-lookupVarInfo n s = lookupName n $ s ^. vars
+lookupVarInfo n s = UMap.lookupName n $ s ^. vars
 
 extendVarInfo ::
   (HasUnique name TermUnique) =>
@@ -158,7 +164,7 @@ extendVarInfo ::
   VarInfo name uni fun a ->
   S name uni fun a ->
   S name uni fun a
-extendVarInfo n info s = s & vars %~ insertByName n info
+extendVarInfo n info s = s & vars %~ UMap.insertByName n info
 
 {- | Inline simple bindings. Relies on global uniqueness, and preserves it.
 See Note [Inlining and global uniqueness]
@@ -166,13 +172,15 @@ See Note [Inlining and global uniqueness]
 inline ::
   forall name uni fun m a.
   (ExternalConstraints name uni fun m) =>
+  -- | inline constants
+  Bool ->
   InlineHints name a ->
   Term name uni fun a ->
   m (Term name uni fun a)
-inline hints t =
+inline inlineConstants hints t =
   let
     inlineInfo :: InlineInfo name a
-    inlineInfo = InlineInfo usgs hints
+    inlineInfo = InlineInfo usgs hints inlineConstants
     usgs :: Usages.Usages
     usgs = Usages.termUsages t
    in
@@ -274,7 +282,7 @@ maybeAddSubst body a n rhs0 = do
   rhs <- processTerm rhs0
 
   -- Check whether we've been told specifically to inline this
-  hints <- asks _hints
+  hints <- view iiHints
   let hinted = shouldInline hints a n
 
   if hinted -- if we've been told specifically, then do it right away
@@ -299,7 +307,8 @@ shouldUnconditionallyInline ::
   InlineM name uni fun a Bool
 shouldUnconditionallyInline n rhs body = do
   isTermPure <- checkPurity rhs
-  preUnconditional isTermPure ||^ postUnconditional isTermPure
+  inlineConstants <- view iiInlineConstants
+  preUnconditional isTermPure ||^ postUnconditional inlineConstants isTermPure
   where
     -- similar to the paper, preUnconditional inlining checks that the binder is 'OnceSafe'.
     -- I.e., it's used at most once AND it neither duplicate code or work.
@@ -310,7 +319,8 @@ shouldUnconditionallyInline n rhs body = do
     -- See Note [Inlining approach and 'Secrets of the GHC Inliner'] and [Inlining and
     -- purity]. This is the case where we don't know that the number of occurrences is
     -- exactly one, so there's no point checking if the term is immediately evaluated.
-    postUnconditional isTermPure = pure isTermPure &&^ acceptable rhs
+    postUnconditional inlineConstants isTermPure =
+      pure isTermPure &&^ acceptable inlineConstants rhs
 
 -- | Check if term is pure. See Note [Inlining and purity]
 checkPurity :: Term name uni fun a -> InlineM name uni fun a Bool
@@ -322,7 +332,7 @@ nameUsedAtMostOnce ::
   name ->
   InlineM name uni fun a Bool
 nameUsedAtMostOnce n = do
-  usgs <- asks _usages
+  usgs <- view iiUsages
   -- 'inlining' terms used 0 times is a cheap way to remove dead code while we're here
   pure $ Usages.getUsageCount n usgs <= 1
 
@@ -360,10 +370,14 @@ effectSafe body n purity = do
 {- | Should we inline? Should only inline things that won't duplicate work or code.
 See Note [Inlining approach and 'Secrets of the GHC Inliner']
 -}
-acceptable :: Term name uni fun a -> InlineM name uni fun a Bool
-acceptable t =
+acceptable ::
+  -- | inline constants
+  Bool ->
+  Term name uni fun a ->
+  InlineM name uni fun a Bool
+acceptable inlineConstants t =
   -- See Note [Inlining criteria]
-  pure $ costIsAcceptable t && sizeIsAcceptable t
+  pure $ costIsAcceptable t && sizeIsAcceptable inlineConstants t
 
 {- | Is the cost increase (in terms of evaluation work) of inlining a variable whose RHS is
 the given term acceptable?
@@ -392,8 +406,12 @@ costIsAcceptable = \case
 {- | Is the size increase (in the AST) of inlining a variable whose RHS is
 the given term acceptable?
 -}
-sizeIsAcceptable :: Term name uni fun a -> Bool
-sizeIsAcceptable = \case
+sizeIsAcceptable ::
+  -- | inline constants
+  Bool ->
+  Term name uni fun a ->
+  Bool
+sizeIsAcceptable inlineConstants = \case
   Builtin{} -> True
   Var{} -> True
   Error{} -> True
@@ -402,16 +420,16 @@ sizeIsAcceptable = \case
   -- Inlining constructors of size 1 or 0 seems okay
   Constr _ _ es -> case es of
     []  -> True
-    [e] -> sizeIsAcceptable e
+    [e] -> sizeIsAcceptable inlineConstants e
     _   -> False
   -- Cases are pretty big, due to the case branches
   Case{} -> False
-  -- Constants can be big! We could check the size here and inline if they're
-  -- small, but probably not worth it
-  Constant{} -> False
+  -- Inlining constants is deemed acceptable if the 'inlineConstants'
+  -- flag is turned on, see Note [Inlining constants].
+  Constant{} -> inlineConstants
   Apply{} -> False
-  Force _ t -> sizeIsAcceptable t
-  Delay _ t -> sizeIsAcceptable t
+  Force _ t -> sizeIsAcceptable inlineConstants t
+  Delay _ t -> sizeIsAcceptable inlineConstants t
 
 -- | Fully apply and beta reduce.
 fullyApplyAndBetaReduce ::

@@ -3,7 +3,7 @@
 module PlutusCore.Compiler.Types where
 
 import PlutusCore.Builtin
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Quote
 
 import Data.Hashable

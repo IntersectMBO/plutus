@@ -28,7 +28,7 @@ module UntypedPlutusCore.DeBruijn
 
 import PlutusCore.DeBruijn.Internal
 
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Quote
 import UntypedPlutusCore.Core
 
@@ -108,7 +108,7 @@ unDeBruijnTermWithM h = go
         Var ann n -> Var ann <$> deBruijnToName h n
         -- binder cases
         LamAbs ann n t ->
-            -- See NOTE: [DeBruijn indices of Binders]
+            -- See Note [DeBruijn indices of Binders]
             declareBinder $ do
               n' <- deBruijnToName h $ set index deBruijnInitIndex n
               withScope $ LamAbs ann n' <$> go t

@@ -47,7 +47,6 @@
   let
     !`$fUnsafeFromDataBuiltinData_$cunsafeFromBuiltinData` : data -> data
       = \(d : data) -> d
-    !reconstructCaseError : string = "PT1"
     data Bool | Bool_match where
       True : Bool
       False : Bool
@@ -72,7 +71,7 @@
                  {all dead. Bool}
                  (equalsInteger 1 index)
                  (/\dead -> True)
-                 (/\dead -> traceError {Bool} reconstructCaseError)
+                 (/\dead -> traceError {Bool} "PT1")
                  {all dead. dead})
             {all dead. dead}
     data (Extended :: * -> *) a | Extended_match where
@@ -103,7 +102,7 @@
                         {all dead. Extended a}
                         (equalsInteger 2 index)
                         (/\dead -> PosInf {a})
-                        (/\dead -> traceError {Extended a} reconstructCaseError)
+                        (/\dead -> traceError {Extended a} "PT1")
                         {all dead. dead})
                    {all dead. dead})
               {all dead. dead}
@@ -122,20 +121,9 @@
             (equalsInteger 0 index)
             (/\dead ->
                GovernanceActionId
-                 (let
-                   !tup : pair integer (list data)
-                     = unConstrData (headList {data} args)
-                   !index : integer = fstPair {integer} {list data} tup
-                   !args : list data = sndPair {integer} {list data} tup
-                 in
-                 ifThenElse
-                   {all dead. bytestring}
-                   (equalsInteger 0 index)
-                   (/\dead -> unBData (headList {data} args))
-                   (/\dead -> traceError {bytestring} reconstructCaseError)
-                   {all dead. dead})
+                 (unBData (headList {data} args))
                  (unIData (headList {data} (tailList {data} args))))
-            (/\dead -> traceError {GovernanceActionId} reconstructCaseError)
+            (/\dead -> traceError {GovernanceActionId} "PT1")
             {all dead. dead}
     !`$fUnsafeFromDataList_$cunsafeFromBuiltinData` :
        all a. (\a -> data -> a) a -> data -> List a
@@ -173,7 +161,7 @@
                  {all dead. Credential}
                  (equalsInteger 1 index)
                  (/\dead -> ScriptCredential (unBData (headList {data} args)))
-                 (/\dead -> traceError {Credential} reconstructCaseError)
+                 (/\dead -> traceError {Credential} "PT1")
                  {all dead. dead})
             {all dead. dead}
     !`$fUnsafeFromDataMaybe_$cunsafeFromBuiltinData` :
@@ -195,7 +183,7 @@
                    (equalsInteger 0 index)
                    (/\dead ->
                       Just {a} (`$dUnsafeFromData` (headList {data} args)))
-                   (/\dead -> traceError {Maybe a} reconstructCaseError)
+                   (/\dead -> traceError {Maybe a} "PT1")
                    {all dead. dead})
               {all dead. dead}
     !`$fUnsafeFromDataMap_$cunsafeFromBuiltinData` :
@@ -256,14 +244,13 @@
     data ProposalProcedure | ProposalProcedure_match where
       ProposalProcedure :
         integer -> Credential -> GovernanceAction -> ProposalProcedure
-    !`$fAdditiveMonoidInteger_$czero` : integer = 0
   in
   letrec
     !euclid : integer -> integer -> integer
       = \(x : integer) (y : integer) ->
           ifThenElse
             {all dead. integer}
-            (equalsInteger y `$fAdditiveMonoidInteger_$czero`)
+            (equalsInteger 0 y)
             (/\dead -> x)
             (/\dead -> euclid y (modInteger x y))
             {all dead. dead}
@@ -273,16 +260,14 @@
       = \(n : integer) (d : integer) ->
           ifThenElse
             {all dead. Rational}
-            (equalsInteger d `$fAdditiveMonoidInteger_$czero`)
+            (equalsInteger 0 d)
             (/\dead -> traceError {Rational} "PT3")
             (/\dead ->
                ifThenElse
                  {all dead. Rational}
-                 (lessThanInteger d `$fAdditiveMonoidInteger_$czero`)
+                 (lessThanInteger d 0)
                  (/\dead ->
-                    unsafeRatio
-                      (subtractInteger `$fAdditiveMonoidInteger_$czero` n)
-                      (subtractInteger `$fAdditiveMonoidInteger_$czero` d))
+                    unsafeRatio (subtractInteger 0 n) (subtractInteger 0 d))
                  (/\dead ->
                     let
                       !gcd' : integer = euclid n d
@@ -363,10 +348,7 @@
                                        (headList
                                           {data}
                                           (tailList {data} args))))
-                               (/\dead ->
-                                  traceError
-                                    {ProtocolVersion}
-                                    reconstructCaseError)
+                               (/\dead -> traceError {ProtocolVersion} "PT1")
                                {all dead. dead}))
                         (/\dead ->
                            ifThenElse
@@ -461,7 +443,7 @@
                                                 (/\dead ->
                                                    traceError
                                                      {Tuple2 integer integer}
-                                                     reconstructCaseError)
+                                                     "PT1")
                                                 {all dead. dead})
                                               {Rational}
                                               (\(a : integer) (b : integer) ->
@@ -507,7 +489,7 @@
                                                    (/\dead ->
                                                       traceError
                                                         {Maybe bytestring}
-                                                        reconstructCaseError)
+                                                        "PT1")
                                                    {all dead. dead}))
                                             (/\dead ->
                                                ifThenElse
@@ -517,7 +499,7 @@
                                                  (/\dead ->
                                                     traceError
                                                       {GovernanceAction}
-                                                      reconstructCaseError)
+                                                      "PT1")
                                                  {all dead. dead})
                                             {all dead. dead})
                                        {all dead. dead})
@@ -525,7 +507,7 @@
                              {all dead. dead})
                         {all dead. dead})
                    {all dead. dead}))
-            (/\dead -> traceError {ProposalProcedure} reconstructCaseError)
+            (/\dead -> traceError {ProposalProcedure} "PT1")
             {all dead. dead}
     data DRep | DRep_match where
       DRep : Credential -> DRep
@@ -555,7 +537,7 @@
                       {all dead. DRep}
                       (equalsInteger 2 index)
                       (/\dead -> DRepAlwaysNoConfidence)
-                      (/\dead -> traceError {DRep} reconstructCaseError)
+                      (/\dead -> traceError {DRep} "PT1")
                       {all dead. dead})
                  {all dead. dead})
             {all dead. dead}
@@ -591,7 +573,7 @@
                            (unBData (headList {data} args))
                            (`$fUnsafeFromDataDRep_$cunsafeFromBuiltinData`
                               (headList {data} (tailList {data} args))))
-                      (/\dead -> traceError {Delegatee} reconstructCaseError)
+                      (/\dead -> traceError {Delegatee} "PT1")
                       {all dead. dead})
                  {all dead. dead})
             {all dead. dead}
@@ -755,7 +737,7 @@
                                                               (/\dead ->
                                                                  traceError
                                                                    {TxCert}
-                                                                   reconstructCaseError)
+                                                                   "PT1")
                                                               {all dead. dead})
                                                          {all dead. dead})
                                                     {all dead. dead})
@@ -799,7 +781,7 @@
                       (equalsInteger 2 index)
                       (/\dead ->
                          StakePoolVoter (unBData (headList {data} args)))
-                      (/\dead -> traceError {Voter} reconstructCaseError)
+                      (/\dead -> traceError {Voter} "PT1")
                       {all dead. dead})
                  {all dead. dead})
             {all dead. dead}
@@ -819,7 +801,7 @@
                TxOutRef
                  (unBData (headList {data} args))
                  (unIData (headList {data} (tailList {data} args))))
-            (/\dead -> traceError {TxOutRef} reconstructCaseError)
+            (/\dead -> traceError {TxOutRef} "PT1")
             {all dead. dead}
     data ScriptPurpose | ScriptPurpose_match where
       Certifying : integer -> TxCert -> ScriptPurpose
@@ -885,9 +867,7 @@
                                                 {data}
                                                 (tailList {data} args))))
                                      (/\dead ->
-                                        traceError
-                                          {ScriptPurpose}
-                                          reconstructCaseError)
+                                        traceError {ScriptPurpose} "PT1")
                                      {all dead. dead})
                                 {all dead. dead})
                            {all dead. dead})
@@ -964,13 +944,11 @@
                                                 {data}
                                                 (tailList {data} l))))
                                      (/\dead ->
-                                        traceError
-                                          {StakingCredential}
-                                          reconstructCaseError)
+                                        traceError {StakingCredential} "PT1")
                                      {all dead. dead})
                                 {all dead. dead})
                            (headList {data} (tailList {data} args))))
-                   (/\dead -> traceError {Address} reconstructCaseError)
+                   (/\dead -> traceError {Address} "PT1")
                    {all dead. dead})
                  (`$fUnsafeFromDataMap_$cunsafeFromBuiltinData`
                     {bytestring}
@@ -999,8 +977,7 @@
                              {all dead. OutputDatum}
                              (equalsInteger 2 index)
                              (/\dead -> OutputDatum (headList {data} args))
-                             (/\dead ->
-                                traceError {OutputDatum} reconstructCaseError)
+                             (/\dead -> traceError {OutputDatum} "PT1")
                              {all dead. dead})
                         {all dead. dead})
                    {all dead. dead})
@@ -1008,7 +985,7 @@
                     {bytestring}
                     unBData
                     (headList {data} (tailList {data} l))))
-            (/\dead -> traceError {TxOut} reconstructCaseError)
+            (/\dead -> traceError {TxOut} "PT1")
             {all dead. dead}
     data TxInInfo | TxInInfo_match where
       TxInInfo : TxOutRef -> TxOut -> TxInInfo
@@ -1028,7 +1005,7 @@
                     (headList {data} args))
                  (`$fUnsafeFromDataTxOut_$cunsafeFromBuiltinData`
                     (headList {data} (tailList {data} args))))
-            (/\dead -> traceError {TxInInfo} reconstructCaseError)
+            (/\dead -> traceError {TxInInfo} "PT1")
             {all dead. dead}
     data (LowerBound :: * -> *) a | LowerBound_match where
       LowerBound : Extended a -> Bool -> LowerBound a
@@ -1166,10 +1143,7 @@
                                      (headList {data} args))
                                   (`$fUnsafeFromDataBool_$cunsafeFromBuiltinData`
                                      (headList {data} (tailList {data} args))))
-                             (/\dead ->
-                                traceError
-                                  {LowerBound integer}
-                                  reconstructCaseError)
+                             (/\dead -> traceError {LowerBound integer} "PT1")
                              {all dead. dead})
                            (let
                              !tup : pair integer (list data)
@@ -1192,13 +1166,9 @@
                                      (headList {data} args))
                                   (`$fUnsafeFromDataBool_$cunsafeFromBuiltinData`
                                      (headList {data} (tailList {data} args))))
-                             (/\dead ->
-                                traceError
-                                  {UpperBound integer}
-                                  reconstructCaseError)
+                             (/\dead -> traceError {UpperBound integer} "PT1")
                              {all dead. dead}))
-                      (/\dead ->
-                         traceError {Interval integer} reconstructCaseError)
+                      (/\dead -> traceError {Interval integer} "PT1")
                       {all dead. dead})
                     (`$fUnsafeFromDataList_$cunsafeFromBuiltinData`
                        {bytestring}
@@ -1247,10 +1217,7 @@
                                          {all dead. Vote}
                                          (equalsInteger 2 index)
                                          (/\dead -> Abstain)
-                                         (/\dead ->
-                                            traceError
-                                              {Vote}
-                                              reconstructCaseError)
+                                         (/\dead -> traceError {Vote} "PT1")
                                          {all dead. dead})
                                     {all dead. dead})
                                {all dead. dead}))
@@ -1267,11 +1234,11 @@
                        {integer}
                        unIData
                        (headList {data} (tailList {data} l))))
-               (/\dead -> traceError {TxInfo} reconstructCaseError)
+               (/\dead -> traceError {TxInfo} "PT1")
                {all dead. dead})
              (`$fUnsafeFromDataScriptContext_$cunsafeFromBuiltinData`
                 (headList {data} (tailList {data} args))))
-        (/\dead -> traceError {ScriptContext} reconstructCaseError)
+        (/\dead -> traceError {ScriptContext} "PT1")
         {all dead. dead})
       {Unit}
       (\(ipv : TxInfo) (ipv : ScriptPurpose) ->

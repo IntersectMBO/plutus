@@ -1,4 +1,3 @@
--- editorconfig-checker-disable-file
 module PlutusTx (
     module Export,
     CompiledCode,
@@ -20,6 +19,7 @@ module PlutusTx (
     dataToBuiltinData,
     unstableMakeIsData,
     makeIsDataIndexed,
+    makeIsDataSchemaIndexed,
     Lift,
     Typeable,
     makeLift,
@@ -28,6 +28,7 @@ module PlutusTx (
     liftCodeDef) where
 
 import PlutusCore.Data (Data (..))
+import PlutusTx.Blueprint.TH (makeIsDataSchemaIndexed)
 import PlutusTx.Builtins (BuiltinData, builtinDataToData, dataToBuiltinData)
 import PlutusTx.Code (CompiledCode, CompiledCodeIn, applyCode, getPir, getPirNoAnn, getPlc,
                       getPlcNoAnn, unsafeApplyCode)

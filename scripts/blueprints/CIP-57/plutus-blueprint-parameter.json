@@ -1,0 +1,77 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://cips.cardano.org/cips/cip57/schemas/plutus-blueprint-parameter.json",
+    "$vocabulary": {
+        "https://json-schema.org/draft/2020-12/vocab/core": true,
+        "https://json-schema.org/draft/2020-12/vocab/applicator": true,
+        "https://json-schema.org/draft/2020-12/vocab/validation": true,
+        "https://cips.cardano.org/cips/cip57": true
+    },
+
+    "type": "object",
+    "required": ["schema"],
+    "properties": {
+        "title": {
+            "type": "string"
+        },
+        "description": {
+            "type": "string"
+        },
+        "purpose": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/purpose"
+                },
+                {
+                    "type": "object",
+                    "required": ["oneOf"],
+                    "properties": {
+                        "oneOf": {
+                            "type": "array",
+                            "minItems": 1,
+                            "items": {
+                                "$ref": "#/$defs/purpose"
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "schema": {
+            "anyOf": [
+                {
+                    "$ref": "plutus-data.json"
+                },
+                {
+                    "$ref": "plutus-builtin.json"
+                },
+                {
+                    "$ref": "#/$defs/applicator"
+                }
+            ]
+        }
+    },
+
+    "$defs": {
+        "purpose": {
+            "type": "string",
+            "enum": ["spend", "mint", "withdraw", "publish"]
+        },
+        "applicator": {
+            "type": "object",
+            "required": ["oneOf"],
+            "properties": {
+                "oneOf": {
+                    "$ref": "#/$defs/schemaArray"
+                }
+            }
+        },
+        "schemaArray": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "$ref": "#"
+            }
+        }
+    }
+}

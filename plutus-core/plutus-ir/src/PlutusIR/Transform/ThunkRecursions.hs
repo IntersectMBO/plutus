@@ -6,7 +6,7 @@
 module PlutusIR.Transform.ThunkRecursions (thunkRecursions, thunkRecursionsPass) where
 
 import PlutusCore.Builtin
-import PlutusCore.Name qualified as PLC
+import PlutusCore.Name.Unique qualified as PLC
 import PlutusIR
 import PlutusIR.Analysis.Builtins
 import PlutusIR.Analysis.VarInfo

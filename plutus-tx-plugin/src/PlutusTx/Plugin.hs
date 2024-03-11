@@ -81,6 +81,7 @@ import Data.Set qualified as Set
 import GHC.Num.Integer qualified
 import PlutusIR.Analysis.Builtins
 import PlutusIR.Compiler.Provenance (noProvenance, original)
+import PlutusIR.Compiler.Types qualified as PIR
 import PlutusIR.Transform.RewriteRules
 import Prettyprinter qualified as PP
 import System.IO (openTempFile)
@@ -493,6 +494,8 @@ runCompiler moduleName opts expr = do
                     (opts ^. posDoSimplifierEvaluateBuiltins)
                  & set (PIR.ccOpts . PIR.coDoSimplifierStrictifyBindings)
                     (opts ^. posDoSimplifierStrictifyBindings)
+                 & set (PIR.ccOpts . PIR.coInlineConstants)
+                    (opts ^. posInlineConstants)
                  & set (PIR.ccOpts . PIR.coInlineHints)                    hints
                  & set (PIR.ccOpts . PIR.coRelaxedFloatin) (opts ^. posRelaxedFloatin)
                  & set (PIR.ccOpts . PIR.coCaseOfCaseConservative)
@@ -516,6 +519,8 @@ runCompiler moduleName opts expr = do
             & set (PLC.coSimplifyOpts . UPLC.soConservativeOpts)
                 (opts ^. posConservativeOpts)
             & set (PLC.coSimplifyOpts . UPLC.soInlineHints) hints
+            & set (PLC.coSimplifyOpts . UPLC.soInlineConstants)
+                (opts ^. posInlineConstants)
 
     -- GHC.Core -> Pir translation.
     pirT <- original <$> (PIR.runDefT annMayInline $ compileExprWithDefs expr)

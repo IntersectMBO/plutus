@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 
-{- | Executable for profiling. See note [Profiling instructions]-}
+{- | Executable for profiling. See Note [Profiling instructions]-}
 
 {- Note [Profiling instructions]
 Workflow for profiling evaluation time:

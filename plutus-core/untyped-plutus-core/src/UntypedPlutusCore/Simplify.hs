@@ -10,6 +10,7 @@ module UntypedPlutusCore.Simplify (
     soMaxCseIterations,
     soInlineHints,
     soConservativeOpts,
+    soInlineConstants,
     defaultSimplifyOpts,
     InlineHints (..),
 ) where
@@ -17,7 +18,7 @@ module UntypedPlutusCore.Simplify (
 import PlutusCore.Compiler.Types
 import PlutusCore.Default qualified as PLC
 import PlutusCore.Default.Builtins
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import UntypedPlutusCore.Core.Type
 import UntypedPlutusCore.Transform.CaseOfCase
 import UntypedPlutusCore.Transform.CaseReduce
@@ -36,6 +37,7 @@ data SimplifyOpts name a = SimplifyOpts
     , _soMaxCseIterations        :: Int
     , _soConservativeOpts        :: Bool
     , _soInlineHints             :: InlineHints name a
+    , _soInlineConstants         :: Bool
     }
     deriving stock (Show)
 
@@ -48,6 +50,7 @@ defaultSimplifyOpts =
         , _soMaxCseIterations = 4
         , _soConservativeOpts = False
         , _soInlineHints = mempty
+        , _soInlineConstants = True
         }
 
 simplifyProgram ::
@@ -83,7 +86,7 @@ simplifyTerm opts =
             >=> pure . forceDelayCancel
             >=> pure . caseOfCase'
             >=> pure . caseReduce
-            >=> inline (_soInlineHints opts)
+            >=> inline (_soInlineConstants opts) (_soInlineHints opts)
 
     caseOfCase' :: Term name uni fun a -> Term name uni fun a
     caseOfCase' = case eqT @fun @DefaultFun of

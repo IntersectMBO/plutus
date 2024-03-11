@@ -36,7 +36,7 @@ import PlutusCore.Builtin.Polymorphism
 import PlutusCore.Builtin.Result
 import PlutusCore.Core
 import PlutusCore.Evaluation.Result
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Subst (typeMapNames)
 
 import Data.Kind qualified as GHC (Constraint, Type)

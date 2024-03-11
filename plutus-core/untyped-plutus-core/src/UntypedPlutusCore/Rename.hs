@@ -15,7 +15,7 @@ import UntypedPlutusCore.Mark
 import UntypedPlutusCore.Rename.Internal
 
 import PlutusCore.Core (HasUniques)
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Rename (Rename (..))
 
 instance HasUniques (Term name uni fun ann) => Rename (Term name uni fun ann) where

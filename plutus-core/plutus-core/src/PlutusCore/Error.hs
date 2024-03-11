@@ -34,7 +34,7 @@ import PlutusPrelude
 
 import PlutusCore.Core
 import PlutusCore.DeBruijn.Internal
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Pretty
 import Prettyprinter.Custom (sexp)
 

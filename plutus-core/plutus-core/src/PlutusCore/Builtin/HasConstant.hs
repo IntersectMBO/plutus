@@ -14,7 +14,7 @@ module PlutusCore.Builtin.HasConstant
 
 import PlutusCore.Builtin.Result
 import PlutusCore.Core
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 
 import Universe
 
@@ -24,7 +24,7 @@ defining the latter directly as a @class@ instead of a type synonym in terms of 
 detrimental to performance, see the comments in https://github.com/IntersectMBO/plutus/pull/4417
 
 This is likely due to the same reason as in 'mkMachineParameters',
-see Note [The equality constraint in mkMachineParameters].
+see Note [The CostingPart constraint in mkMachineParameters].
 -}
 
 -- See Note [Existence of HasConstant].

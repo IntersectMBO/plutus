@@ -13,7 +13,7 @@ in the paper 'Secrets of the GHC Inliner'.
 module PlutusIR.Transform.Inline.Inline (inline, inlinePass, inlinePassSC, InlineHints (..)) where
 import PlutusCore qualified as PLC
 import PlutusCore.Annotation
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Quote
 import PlutusCore.Rename (dupable)
 import PlutusIR
@@ -159,23 +159,28 @@ supply, and the performance cost does not currently seem relevant. So it's fine.
 inlinePassSC
     :: forall uni fun ann m
     . (PLC.Typecheckable uni fun, PLC.GEq uni, Ord ann, ExternalConstraints TyName Name uni fun m)
-    => TC.PirTCConfig uni fun
+    => Bool
+    -- ^ should we inline constants?
+    -> TC.PirTCConfig uni fun
     -> InlineHints Name ann
     -> BuiltinsInfo uni fun
     -> Pass m TyName Name uni fun ann
-inlinePassSC tcconfig hints binfo = renamePass <> inlinePass tcconfig hints binfo
+inlinePassSC ic tcconfig hints binfo =
+    renamePass <> inlinePass ic tcconfig hints binfo
 
 inlinePass
     :: forall uni fun ann m
     . (PLC.Typecheckable uni fun, PLC.GEq uni, Ord ann, ExternalConstraints TyName Name uni fun m)
-    => TC.PirTCConfig uni fun
+    => Bool
+    -- ^ should we inline constants?
+    -> TC.PirTCConfig uni fun
     -> InlineHints Name ann
     -> BuiltinsInfo uni fun
     -> Pass m TyName Name uni fun ann
-inlinePass tcconfig hints binfo =
+inlinePass ic tcconfig hints binfo =
   NamedPass "inline" $
     Pass
-      (inline hints binfo)
+      (inline ic hints binfo )
       [GloballyUniqueNames, Typechecks tcconfig]
       [ConstCondition GloballyUniqueNames, ConstCondition (Typechecks tcconfig)]
 
@@ -184,13 +189,15 @@ inlinePass tcconfig hints binfo =
 inline
     :: forall tyname name uni fun ann m
     . ExternalConstraints tyname name uni fun m
-    => InlineHints name ann
+    => Bool
+    -- ^ should we inline constants?
+    -> InlineHints name ann
     -> BuiltinsInfo uni fun
     -> Term tyname name uni fun ann
     -> m (Term tyname name uni fun ann)
-inline hints binfo t = let
+inline ic hints binfo t = let
         inlineInfo :: InlineInfo tyname name uni fun ann
-        inlineInfo = InlineInfo vinfo usgs hints binfo
+        inlineInfo = InlineInfo vinfo usgs hints binfo ic
         vinfo = VarInfo.termVarInfo t
         usgs :: Usages.Usages
         usgs = Usages.termUsages t
@@ -250,7 +257,7 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
             b :| rest -> handleTerm (Let ann NonRec (pure b) (mkLet ann NonRec rest t))
         -- This includes recursive let terms, we don't even consider inlining them at the moment
         t -> do
-            -- See note [Processing order of call site inlining]
+            -- See Note [Processing order of call site inlining]
             let (hd, args) = splitApplication t
                 processArgs ::
                     AppContext tyname name uni fun ann ->

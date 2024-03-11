@@ -11,7 +11,7 @@ import PlutusCore.Generators.QuickCheck
 import PlutusIR.Generators.QuickCheck
 
 import PlutusCore.Default
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Quote
 import PlutusCore.Rename
 import PlutusIR

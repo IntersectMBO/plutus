@@ -37,7 +37,6 @@ import PlutusCore.Crypto.Secp256k1 (verifyEcdsaSecp256k1Signature, verifySchnorr
 import Codec.Serialise (serialise)
 import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as BSL
-import Data.Char (toLower)
 import Data.Ix (Ix)
 import Data.Text (Text, pack)
 import Data.Text.Encoding (decodeUtf8', encodeUtf8)
@@ -51,7 +50,7 @@ import Prettyprinter (viaShow)
 -- | Default built-in functions.
 --
 -- When updating these, make sure to add them to the protocol version listing!
--- See Note [New builtins and protocol versions]
+-- See Note [New builtins/language versions and protocol versions]
 data DefaultFun
     -- Integers
     = AddInteger
@@ -121,7 +120,7 @@ data DefaultFun
     -- Misc monomorphized constructors.
     -- We could simply replace those with constants, but we use built-in functions for consistency
     -- with monomorphic built-in types. Polymorphic built-in constructors are generally problematic,
-    -- See note [Representable built-in functions over polymorphic built-in types].
+    -- See Note [Representable built-in functions over polymorphic built-in types].
     | MkPairData
     | MkNilData
     | MkNilPairData
@@ -162,10 +161,7 @@ data DefaultFun
  the built-in functions are obtained by applying the function below to the
  constructor names above. -}
 instance Pretty DefaultFun where
-    pretty fun = pretty $ case show fun of
-        ""    -> ""  -- It's really weird to have a function's name displayed as an empty string,
-                     -- but if it's what the 'Show' instance does, the user has asked for it.
-        c : s -> toLower c : s
+    pretty fun = pretty $ lowerInitialChar $ show fun
 
 instance ExMemoryUsage DefaultFun where
     memoryUsage _ = singletonRose 1
@@ -305,7 +301,7 @@ You can feed 'encodeUtf8' directly to 'makeBuiltinMeaning' without specifying an
 
 This will add the builtin, the only two things that remain are implementing costing for this
 builtin (out of the scope of this Note) and handling it within the @Flat DefaultFun@ instance
-(see Note [Stable encoding of PLC]).
+(see Note [Stable encoding of TPLC]).
 
 2. Unconstrained type variables are fine, you don't need to instantiate them. For example
 
@@ -723,9 +719,10 @@ However it's not always possible to use automatic unlifting, see next.
             nullListDenotation
             <costingFunction>
 
-we'll get an error, saying that a polymorphic built-in type can't be applied to a type variable.
-It's not impossible to make it work, see Note [Unlifting values of built-in types], but not in the
-general case, plus it has to be very inefficient.
+we'll get an error, saying that a polymorphic built-in type can't be applied to
+a type variable.  It's not impossible to make it work, see Note [Unlifting a
+term as a value of a built-in type], but not in the general case, plus it has to
+be very inefficient.
 
 Instead we have to use 'SomeConstant' to automatically unlift the argument as a constant and then
 check that the value inside of it is a list (by matching on the type tag):
@@ -1299,6 +1296,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
             -- execution times, so it's safe to use the same costing function for
             -- both.
             (runCostingFunThreeArguments . paramVerifyEd25519Signature)
+
     {- Note [ECDSA secp256k1 signature verification].  An ECDSA signature
        consists of a pair of values (r,s), and for each value of r there are in
        fact two valid values of s, one effectively the negative of the other.
@@ -1315,7 +1313,6 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
 
           https://github.com/bitcoin-core/secp256k1.
      -}
-
     toBuiltinMeaning _semvar VerifyEcdsaSecp256k1Signature =
         let verifyEcdsaSecp256k1SignatureDenotation
                 :: BS.ByteString -> BS.ByteString -> BS.ByteString -> BuiltinResult Bool
@@ -1840,7 +1837,7 @@ encodeBuiltin = eBits builtinTagWidth
 decodeBuiltin :: Get Word8
 decodeBuiltin = dBEBits8 builtinTagWidth
 
--- See Note [Stable encoding of PLC]
+-- See Note [Stable encoding of TPLC]
 instance Flat DefaultFun where
     encode = encodeBuiltin . \case
               AddInteger                      -> 0

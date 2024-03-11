@@ -1,3 +1,4 @@
+-- editorconfig-checker-disable-file
 {-# LANGUAGE DeriveAnyClass    #-}
 {-# LANGUAGE DerivingVia       #-}
 {-# LANGUAGE NamedFieldPuns    #-}
@@ -11,7 +12,42 @@
 {-# OPTIONS_GHC -fno-specialise #-}
 {-# OPTIONS_GHC -fno-strictness #-}
 
-module PlutusLedgerApi.V3.Contexts where
+module PlutusLedgerApi.V3.Contexts
+  ( ColdCommitteeCredential (..)
+  , HotCommitteeCredential (..)
+  , DRepCredential (..)
+  , DRep (..)
+  , Delegatee (..)
+  , TxCert (..)
+  , Voter (..)
+  , Vote (..)
+  , GovernanceActionId (..)
+  , Committee (..)
+  , Constitution (..)
+  , ProtocolVersion (..)
+  , ChangedParameters (..)
+  , GovernanceAction (..)
+  , ProposalProcedure (..)
+  , ScriptPurpose (..)
+  , TxInInfo (..)
+  , TxInfo (..)
+  , ScriptContext (..)
+  , findOwnInput
+  , findDatum
+  , findDatumHash
+  , findTxInByTxOutRef
+  , findContinuingOutputs
+  , getContinuingOutputs
+  , txSignedBy
+
+    -- * Validator functions
+  , pubKeyOutputsAt
+  , valuePaidTo
+  , valueSpent
+  , valueProduced
+  , ownCurrencySymbol
+  , spendsOutput
+  ) where
 
 import GHC.Generics (Generic)
 import Prettyprinter (nest, vsep, (<+>))
@@ -177,7 +213,7 @@ instance PlutusTx.Eq Vote where
 
 -- | Similar to TxOutRef, but for GovActions
 data GovernanceActionId = GovernanceActionId
-  { gaidTxId        :: V2.TxId
+  { gaidTxId        :: V3.TxId
   , gaidGovActionIx :: Haskell.Integer
   }
   deriving stock (Generic, Haskell.Show, Haskell.Eq)
@@ -247,8 +283,13 @@ instance PlutusTx.Eq ProtocolVersion where
     a PlutusTx.== a' PlutusTx.&& b PlutusTx.== b'
 
 {- | A Plutus Data object containing proposed parameter changes. The Data object contains
-a @Map@ with one entry per changed parameter, from the parameter name to the new value.
+a @Map@ with one entry per changed parameter, from the parameter ID to the new value.
 Unchanged parameters are not included.
+
+The mapping from parameter IDs to parameters can be found in
+[conway.cddl](https://github.com/IntersectMBO/cardano-ledger/blob/master/eras/conway/impl/cddl-files/conway.cddl).
+
+/Invariant:/ This map is non-empty, and the keys are stored in ascending order.
 -}
 newtype ChangedParameters = ChangedParameters {getChangedParameters :: PlutusTx.BuiltinData}
   deriving stock (Generic, Haskell.Show)
@@ -379,6 +420,10 @@ data TxInfo = TxInfo
   , txInfoOutputs               :: [V2.TxOut]
   , txInfoFee                   :: V2.Lovelace
   , txInfoMint                  :: V2.Value
+  -- ^ The 'Value' minted by this transaction.
+  --
+  -- /Invariant:/ This field does not contain Ada with zero quantity, unlike
+  -- their namesakes in Plutus V1 and V2's ScriptContexts.
   , txInfoTxCerts               :: [TxCert]
   , txInfoWdrl                  :: Map V2.Credential V2.Lovelace
   , txInfoValidRange            :: V2.POSIXTimeRange

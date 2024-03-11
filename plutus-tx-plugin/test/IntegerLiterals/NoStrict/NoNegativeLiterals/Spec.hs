@@ -8,7 +8,7 @@
 -- | This module tests that integer literals are handled correctly when both @Strict@
 -- and @NegativeLiterals@ are off. These two extensions affect the Core we get.
 --
--- See Note [Running PIR and UPLC Simplifiers in Integer literals Tests].
+-- See Note [Running PIR and UPLC Simplifiers in Integer Literal Tests].
 module IntegerLiterals.NoStrict.NoNegativeLiterals.Spec where
 
 import PlutusTx.Code

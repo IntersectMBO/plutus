@@ -59,7 +59,8 @@ and error type signatures and `throwError` to accommodate for the new pir type-e
 These modifications are currently necessary since PIR.Term ADT /= PLC.Term ADT.
 We then extend this ported `PIR.inferTypeM` with cases for inferring type of LetRec and LetNonRec.
 
-See Note [Notation] of PlutusCore.TypeCheck.Internal for the notation of inference rules, which appear in the comments.
+See Note [Typing rules] of PlutusCore.TypeCheck.Internal for the notation of
+inference rules, which appear in the comments.
 -}
 
 {- Note [PIR vs Paper Syntax Difference]
@@ -77,7 +78,7 @@ More importantly, since the type for the PIR data-constructor can be any syntax-
 the PIR user may have placed inside there a non-normalized type there. Currently, the PIR typechecker will
 assume the types of all data-constructors are prior normalized *before* type-checking, otherwise
 the PIR typechecking and PIR compilation will fail.
-See NOTE [Normalization of data-constructors' types] at PlutusIR.Compiler.Datatype
+See Note [Normalization of data-constructors' types] at PlutusIR.Compiler.Datatype
 -}
 
 {- Note [PIR vs Paper Escaping Types Difference]
@@ -113,7 +114,8 @@ type MonadTypeCheckPir err uni fun ann m =
 -- ##########################
 --  Taken from `PlutusCore.Typecheck.Internal`
 
--- See the [Global uniqueness] and [Type rules] notes.
+-- See Note [Global uniqueness in the type checker].
+-- See Note [Typing rules].
 -- | Check a 'Term' against a 'NormalizedType'.
 checkTypeM
     :: MonadTypeCheckPir err uni fun ann m
@@ -131,7 +133,8 @@ checkTypeM ann term vTy = do
         let expectedVTy = ExpectedExact $ unNormalized vTy
         throwing _TypeError $ TypeMismatch ann (void term) expectedVTy vTermTy
 
--- See the [Global uniqueness] and [Type rules] notes.
+-- See Note [Global uniqueness in the type checker].
+-- See Note [Typing rules].
 -- | Synthesize the type of a term, returning a normalized type.
 inferTypeM
     :: forall err m uni fun ann.

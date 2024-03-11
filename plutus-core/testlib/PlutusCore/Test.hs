@@ -406,7 +406,7 @@ goldenUEvalBudget ::
   -> [a]
   -> TestNested
 goldenUEvalBudget name values =
-  nestedGoldenVsDocM name ".eval" $ ppCatch $ runUPlcBudget values
+  nestedGoldenVsDocM name ".budget" $ ppCatch $ runUPlcBudget values
 
 goldenSize ::
   (ToUPlc a TPLC.DefaultUni TPLC.DefaultFun) =>

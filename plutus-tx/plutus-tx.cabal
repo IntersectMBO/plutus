@@ -1,6 +1,6 @@
 cabal-version:   3.0
 name:            plutus-tx
-version:         1.21.0.0
+version:         1.23.0.0
 license:         Apache-2.0
 license-files:
   LICENSE
@@ -45,11 +45,26 @@ library
   import:             lang
   hs-source-dirs:     src
   exposed-modules:
+    Data.Aeson.Extra
     PlutusTx
     PlutusTx.Applicative
     PlutusTx.AsData
     PlutusTx.AssocMap
     PlutusTx.Base
+    PlutusTx.Blueprint
+    PlutusTx.Blueprint.Argument
+    PlutusTx.Blueprint.Class
+    PlutusTx.Blueprint.Contract
+    PlutusTx.Blueprint.Definition
+    PlutusTx.Blueprint.Definition.Id
+    PlutusTx.Blueprint.Parameter
+    PlutusTx.Blueprint.PlutusVersion
+    PlutusTx.Blueprint.Preamble
+    PlutusTx.Blueprint.Purpose
+    PlutusTx.Blueprint.Schema
+    PlutusTx.Blueprint.TH
+    PlutusTx.Blueprint.Validator
+    PlutusTx.Blueprint.Write
     PlutusTx.Bool
     PlutusTx.Builtins
     PlutusTx.Builtins.Class
@@ -94,8 +109,10 @@ library
     PlutusTx.Lift.THUtils
 
   build-depends:
-    , aeson
+    , aeson                                 >=2.2
+    , aeson-pretty
     , base                                  >=4.9      && <5
+    , base16-bytestring
     , bytestring
     , containers
     , data-default-class
@@ -108,7 +125,7 @@ library
     , lens
     , memory
     , mtl
-    , plutus-core:{plutus-core, plutus-ir}  ^>=1.21
+    , plutus-core:{plutus-core, plutus-ir}  ^>=1.23
     , prettyprinter
     , serialise
     , template-haskell                      >=2.13.0.0
@@ -128,7 +145,6 @@ library plutus-tx-testlib
   import:          lang
   visibility:      public
   hs-source-dirs:  testlib
-  ghc-options:     -threaded -rtsopts -with-rtsopts=-N
   exposed-modules:
     Hedgehog.Laws.Common
     Hedgehog.Laws.Eq
@@ -142,8 +158,8 @@ library plutus-tx-testlib
     , hedgehog
     , lens
     , mtl
-    , plutus-core:{plutus-core, plutus-core-testlib, plutus-ir}  ^>=1.21
-    , plutus-tx                                                  ^>=1.21
+    , plutus-core:{plutus-core, plutus-core-testlib, plutus-ir}  ^>=1.23
+    , plutus-tx                                                  ^>=1.23
     , prettyprinter
     , tagged
     , tasty
@@ -160,6 +176,8 @@ test-suite plutus-tx-test
   main-is:            Spec.hs
   ghc-options:        -threaded -rtsopts -with-rtsopts=-N
   other-modules:
+    Blueprint.Definition.Fixture
+    Blueprint.Definition.Spec
     List.Spec
     Rational.Laws
     Rational.Laws.Additive
@@ -182,11 +200,13 @@ test-suite plutus-tx-test
     , base16-bytestring
     , bytestring
     , cborg
+    , containers
     , filepath
     , hedgehog
     , hedgehog-fn
-    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.21
-    , plutus-tx                                       ^>=1.21
+    , lens
+    , plutus-core:{plutus-core, plutus-core-testlib}  ^>=1.23
+    , plutus-tx                                       ^>=1.23
     , pretty-show
     , serialise
     , tasty

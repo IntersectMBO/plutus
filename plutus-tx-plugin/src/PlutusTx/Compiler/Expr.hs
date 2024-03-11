@@ -304,7 +304,7 @@ In this case we make a strict binding, in all others we make a non-strict bindin
 
 {- Note [Evaluation-only cases]
 GHC sometimes generates case expressions where there is only a single alternative, and where none
-of the variables bound by the alternative are live (see Note [Occurrence analsis] for how we tell
+of the variables bound by the alternative are live (see Note [Occurrence analysis] for how we tell
 that this is the case).
 
 What this amounts to is ensuring the expression is evaluated - hence one place this appears is bang
@@ -747,7 +747,7 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     -- Ignore the magic 'noinline' function, it's the identity but has no unfolding.
     -- See Note [noinline hack]
     GHC.Var n `GHC.App` GHC.Type _ `GHC.App` arg | GHC.getName n == GHC.noinlineIdName -> compileExpr arg
-    -- See note [GHC runtime errors]
+    -- See Note [GHC runtime errors]
     -- <error func> <runtime rep> <overall type> <call stack> <message>
     GHC.Var (isErrorId -> True) `GHC.App` _ `GHC.App` GHC.Type t `GHC.App` _ `GHC.App` _ ->
       PIR.TyInst annMayInline <$> errorFunc <*> compileTypeNorm t
@@ -784,7 +784,7 @@ compileExpr e = traceCompilation 2 ("Compiling expr:" GHC.<+> GHC.ppr e) $ do
     -- Special kinds of id
     GHC.Var (GHC.idDetails -> GHC.DataConWorkId dc) -> compileDataConRef dc
     -- Class ops don't have unfoldings in general (although they do if they're for one-method classes, so we
-    -- want to check the unfoldings case first), see the GHC Note [ClassOp/DFun selection] for why. That
+    -- want to check the unfoldings case first), see GHC:Note [ClassOp/DFun selection] for why. That
     -- means we have to reconstruct the RHS ourselves, though, which is a pain.
     GHC.Var n@(GHC.idDetails -> GHC.ClassOpId cls) -> do
       -- This code (mostly) lifted from MkId.mkDictSelId, which makes unfoldings for those dictionary
@@ -1223,7 +1223,7 @@ a data constructor.
 The easiest way to ensure that we always have a DEFAULT case is just to put one in if it's missing.
 -}
 
-{- Note [Sharing DEFAULT bodes]
+{- Note [Sharing DEFAULT bodies]
 Consider the following program:
 ```
 data A = B | C | D

@@ -10,13 +10,11 @@ let
   data (Maybe :: * -> *) a | Maybe_match where
     Just : a -> Maybe a
     Nothing : Maybe a
-  !reconstructCaseError : string = "PT1"
   data Unit | Unit_match where
     Unit : Unit
   !traceError : all a. string -> a
     = /\a ->
         \(str : string) -> let !x : Unit = trace {Unit} str Unit in error {a}
-  !unitval : unit = ()
   !d : data
     = (let
           b = Maybe (Tuple3 Bool integer Bool)
@@ -30,13 +28,8 @@ let
             ds
             {data}
             (\(arg : integer) ->
-               constrData
-                 0
-                 (mkCons {data} (`$dToData` arg) (mkNilData unitval)))
-            (\(arg : b) ->
-               constrData
-                 1
-                 (mkCons {data} (`$dToData` arg) (mkNilData unitval))))
+               constrData 0 (mkCons {data} (`$dToData` arg) []))
+            (\(arg : b) -> constrData 1 (mkCons {data} (`$dToData` arg) [])))
         (\(i : integer) -> iData i)
         ((let
              a = Tuple3 Bool integer Bool
@@ -47,11 +40,8 @@ let
                ds
                {all dead. data}
                (\(arg : a) ->
-                  /\dead ->
-                    constrData
-                      0
-                      (mkCons {data} (`$dToData` arg) (mkNilData unitval)))
-               (/\dead -> constrData 1 (mkNilData unitval))
+                  /\dead -> constrData 0 (mkCons {data} (`$dToData` arg) []))
+               (/\dead -> Constr 1 [])
                {all dead. dead})
            (\(ds : Tuple3 Bool integer Bool) ->
               Tuple3_match
@@ -68,8 +58,8 @@ let
                         (Bool_match
                            arg
                            {all dead. data}
-                           (/\dead -> constrData 1 (mkNilData unitval))
-                           (/\dead -> constrData 0 (mkNilData unitval))
+                           (/\dead -> Constr 1 [])
+                           (/\dead -> Constr 0 [])
                            {all dead. dead})
                         (mkCons
                            {data}
@@ -79,10 +69,10 @@ let
                               (Bool_match
                                  arg
                                  {all dead. data}
-                                 (/\dead -> constrData 1 (mkNilData unitval))
-                                 (/\dead -> constrData 0 (mkNilData unitval))
+                                 (/\dead -> Constr 1 [])
+                                 (/\dead -> Constr 0 [])
                                  {all dead. dead})
-                              (mkNilData unitval)))))))
+                              []))))))
         (Right
            {integer}
            {Maybe (Tuple3 Bool integer Bool)}
@@ -111,7 +101,7 @@ in
            (equalsInteger 1 index)
            (/\dead ->
               Right {integer} {b} (`$dUnsafeFromData` (headList {data} args)))
-           (/\dead -> traceError {Either integer b} reconstructCaseError)
+           (/\dead -> traceError {Either integer b} "PT1")
            {all dead. dead})
       {all dead. dead})
   unIData
@@ -133,7 +123,7 @@ in
               {all dead. Maybe a}
               (equalsInteger 0 index)
               (/\dead -> Just {a} (`$dUnsafeFromData` (headList {data} args)))
-              (/\dead -> traceError {Maybe a} reconstructCaseError)
+              (/\dead -> traceError {Maybe a} "PT1")
               {all dead. dead})
          {all dead. dead})
      (\(d : data) ->
@@ -168,7 +158,7 @@ in
                       {all dead. Bool}
                       (equalsInteger 1 index)
                       (/\dead -> True)
-                      (/\dead -> traceError {Bool} reconstructCaseError)
+                      (/\dead -> traceError {Bool} "PT1")
                       {all dead. dead})
                  {all dead. dead})
                (unIData (headList {data} l))
@@ -187,9 +177,9 @@ in
                       {all dead. Bool}
                       (equalsInteger 1 index)
                       (/\dead -> True)
-                      (/\dead -> traceError {Bool} reconstructCaseError)
+                      (/\dead -> traceError {Bool} "PT1")
                       {all dead. dead})
                  {all dead. dead}))
-          (/\dead -> traceError {Tuple3 Bool integer Bool} reconstructCaseError)
+          (/\dead -> traceError {Tuple3 Bool integer Bool} "PT1")
           {all dead. dead}))
   d
