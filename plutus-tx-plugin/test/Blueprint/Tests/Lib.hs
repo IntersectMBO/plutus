@@ -1,4 +1,5 @@
 {-# LANGUAGE BangPatterns          #-}
+{-# LANGUAGE BlockArguments        #-}
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DerivingStrategies    #-}
@@ -14,11 +15,9 @@
 
 module Blueprint.Tests.Lib where
 
-import PlutusTx hiding (Typeable)
-import Prelude
-
 import Codec.Serialise (serialise)
 import Control.Lens (over, (&))
+import Control.Monad.Reader (asks)
 import Data.ByteString (ByteString)
 import Data.ByteString.Lazy qualified as LBS
 import Data.Kind (Type)
@@ -26,6 +25,7 @@ import Data.Void (Void)
 import Flat qualified
 import GHC.Generics (Generic)
 import PlutusCore.Version (plcVersion110)
+import PlutusTx hiding (Typeable)
 import PlutusTx.Blueprint.Class (HasSchema (..))
 import PlutusTx.Blueprint.Definition (AsDefinitionId, definitionRef)
 import PlutusTx.Blueprint.Schema (Schema (SchemaBytes), emptyBytesSchema)
@@ -33,14 +33,26 @@ import PlutusTx.Blueprint.Schema.Annotation (SchemaComment (..), SchemaDescripti
                                              SchemaInfo (..), SchemaTitle (..), emptySchemaInfo)
 import PlutusTx.Builtins.Internal (BuiltinByteString, BuiltinString, emptyByteString)
 import PlutusTx.Prelude qualified as PlutusTx
+import Prelude
+import System.FilePath ((</>))
+import Test.Tasty (TestName)
+import Test.Tasty.Extras (TestNested)
+import Test.Tasty.Golden (goldenVsFile)
 import UntypedPlutusCore qualified as UPLC
 
+goldenJson :: TestName -> (FilePath -> IO ()) -> TestNested
+goldenJson name cb = do
+  goldenPath <- asks $ foldr (</>) name
+  let actual = goldenPath ++ ".actual.json"
+  let golden = goldenPath ++ ".golden.json"
+  pure $ goldenVsFile name golden actual (cb actual)
+
 data Params = MkParams
-  { myUnit              :: ()
-  , myBool              :: Bool
-  , myInteger           :: Integer
-  , myBuiltinData       :: BuiltinData
-  , myBuiltinByteString :: BuiltinByteString
+  { myUnit              :: (),
+    myBool              :: Bool,
+    myInteger           :: Integer,
+    myBuiltinData       :: BuiltinData,
+    myBuiltinByteString :: BuiltinByteString
   }
   deriving stock (Generic)
   deriving anyclass (AsDefinitionId)
@@ -54,12 +66,12 @@ newtype Bytes (phantom :: Type) = MkAcmeBytes BuiltinByteString
   deriving newtype (ToData, FromData, UnsafeFromData)
 
 instance HasSchema (Bytes phantom) ts where
-  schema = SchemaBytes emptySchemaInfo { title = Just "SchemaBytes" } emptyBytesSchema
+  schema = SchemaBytes emptySchemaInfo {title = Just "SchemaBytes"} emptyBytesSchema
 
 {-# ANN MkDatumPayload (SchemaComment "MkDatumPayload") #-}
 data DatumPayload = MkDatumPayload
-  { myAwesomeDatum1 :: Integer
-  , myAwesomeDatum2 :: Bytes Void
+  { myAwesomeDatum1 :: Integer,
+    myAwesomeDatum2 :: Bytes Void
   }
   deriving stock (Generic)
   deriving anyclass (AsDefinitionId)
@@ -91,29 +103,29 @@ serialisedScript =
     & Flat.flat
     & serialise
     & LBS.toStrict
- where
-  {-# INLINEABLE typedValidator #-}
-  typedValidator :: Validator
-  typedValidator _params _datum _redeemer _context = False
+  where
+    {-# INLINEABLE typedValidator #-}
+    typedValidator :: Validator
+    typedValidator _params _datum _redeemer _context = False
 
-  {-# INLINEABLE untypedValidator #-}
-  untypedValidator :: Params -> BuiltinData -> BuiltinString -> BuiltinData -> ()
-  untypedValidator params datum redeemer ctx =
-    PlutusTx.check $ typedValidator params acmeDatum acmeRedeemer scriptContext
-   where
-    acmeDatum :: Datum = PlutusTx.unsafeFromBuiltinData datum
-    acmeRedeemer :: Redeemer = redeemer
-    scriptContext :: ScriptContext = PlutusTx.unsafeFromBuiltinData ctx
+    {-# INLINEABLE untypedValidator #-}
+    untypedValidator :: Params -> BuiltinData -> BuiltinString -> BuiltinData -> ()
+    untypedValidator params datum redeemer ctx =
+      PlutusTx.check $ typedValidator params acmeDatum acmeRedeemer scriptContext
+      where
+        acmeDatum :: Datum = PlutusTx.unsafeFromBuiltinData datum
+        acmeRedeemer :: Redeemer = redeemer
+        scriptContext :: ScriptContext = PlutusTx.unsafeFromBuiltinData ctx
 
-  validatorScript :: PlutusTx.CompiledCode (BuiltinData -> BuiltinString -> BuiltinData -> ())
-  validatorScript =
-    $$(PlutusTx.compile [||untypedValidator||])
-      `PlutusTx.unsafeApplyCode` PlutusTx.liftCode
-        plcVersion110
-        MkParams
-          { myUnit = ()
-          , myBool = True
-          , myInteger = fromIntegral (maxBound @Int) + 1
-          , myBuiltinData = PlutusTx.toBuiltinData (3 :: Integer)
-          , myBuiltinByteString = emptyByteString
-          }
+    validatorScript :: PlutusTx.CompiledCode (BuiltinData -> BuiltinString -> BuiltinData -> ())
+    validatorScript =
+      $$(PlutusTx.compile [||untypedValidator||])
+        `PlutusTx.unsafeApplyCode` PlutusTx.liftCode
+          plcVersion110
+          MkParams
+            { myUnit = (),
+              myBool = True,
+              myInteger = fromIntegral (maxBound @Int) + 1,
+              myBuiltinData = PlutusTx.toBuiltinData (3 :: Integer),
+              myBuiltinByteString = emptyByteString
+            }
