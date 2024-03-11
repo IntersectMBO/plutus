@@ -15,7 +15,7 @@ import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import System.IO.Unsafe (unsafePerformIO)
 
 {-
-When we run cabal build, we want cabal to detect changes to the *.lagda files.
+When we run cabal build, we want cabal to detect changes to the *.lagda.md files.
 If there were changes, we want cabal to invoke agda under the hood, and place the
 generated haskell modules inside dist-newstyle. We also want to expose those very
 haskell modules in plutus-metatheory.cabal, so that they are available to the
@@ -78,7 +78,7 @@ main = D.defaultMainWithHooks userHooks
     userHooks = D.simpleUserHooks { D.hookedPreProcessors = preProcessors }
 
     preProcessors :: [D.PPSuffixHandler]
-    preProcessors = [("lagda", agdaPreProcessor)]
+    preProcessors = [("md", agdaPreProcessor)]
 
 
 agdaPreProcessor :: D.BuildInfo -> D.LocalBuildInfo -> D.ComponentLocalBuildInfo -> D.PreProcessor
@@ -107,7 +107,7 @@ agdaPreProcessor _ lbi _ = D.PreProcessor
       , "--compile"
       , "--ghc-dont-call-ghc"
       , "--local-interfaces"
-      , "src/Main.lagda"
+      , "src/Main.lagda.md"
       ]
 
     agdaProgram :: D.ConfiguredProgram
