@@ -6,7 +6,7 @@
 
 {- |
 Call site inlining machinery. We inline if the size of the inlined result is not larger.
-See note [Inlining of fully applied functions].
+See Note [Inlining and beta reduction of functions].
 -}
 module PlutusIR.Transform.Inline.CallSiteInline where
 

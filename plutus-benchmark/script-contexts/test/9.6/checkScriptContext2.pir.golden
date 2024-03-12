@@ -75,18 +75,7 @@
             (equalsInteger 0 index)
             (/\dead ->
                GovernanceActionId
-                 (let
-                   !tup : pair integer (list data)
-                     = unConstrData (headList {data} args)
-                   !index : integer = fstPair {integer} {list data} tup
-                   !args : list data = sndPair {integer} {list data} tup
-                 in
-                 ifThenElse
-                   {all dead. bytestring}
-                   (equalsInteger 0 index)
-                   (/\dead -> unBData (headList {data} args))
-                   (/\dead -> traceError {bytestring} "PT1")
-                   {all dead. dead})
+                 (unBData (headList {data} args))
                  (unIData (headList {data} (tailList {data} args))))
             (/\dead -> traceError {GovernanceActionId} "PT1")
             {all dead. dead}

@@ -18,7 +18,7 @@ import PlutusCore.Core (Program (..), Term (..), Type)
 import PlutusCore.Default
 import PlutusCore.Error (AsParserErrorBundle, ParserError (..))
 import PlutusCore.MkPlc (mkIterApp, mkIterInst)
-import PlutusCore.Name (Name, TyName)
+import PlutusCore.Name.Unique (Name, TyName)
 import PlutusCore.Parser.Builtin as Export
 import PlutusCore.Parser.ParserCommon as Export
 import PlutusCore.Parser.Type as Export

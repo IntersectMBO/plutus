@@ -56,6 +56,9 @@ in
 
     # Needed for the cabal CLI to download under https
     pkgs.curl
+
+    # Node JS
+    pkgs.nodejs_20
   ];
 
   # Current HLS doesn't build on 9.8, see https://github.com/input-output-hk/iogx/issues/25

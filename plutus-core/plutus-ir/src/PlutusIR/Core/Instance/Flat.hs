@@ -11,7 +11,7 @@ import PlutusCore.Flat ()
 
 import Flat (Flat)
 
-{- Note: [Serialization of PIR]
+{- Note [Serialization of PIR]
 The serialized version of Plutus-IR will be included in  the final
 executable for helping debugging and testing and providing better error
 reporting. It is not meant to be stored on the chain, which means that

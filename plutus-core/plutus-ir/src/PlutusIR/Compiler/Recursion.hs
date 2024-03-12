@@ -63,7 +63,7 @@ it directly, we would have to provide the type of the *result* term, which we ma
 Here we merely have to provide it with the types of the f_is, which we *do* know.
 -}
 
- -- See note [Recursive lets]
+ -- See Note [Recursive lets]
 -- | Compile a mutually recursive list of var decls bound in a body.
 compileRecTerms
     :: Compiling m e uni fun a

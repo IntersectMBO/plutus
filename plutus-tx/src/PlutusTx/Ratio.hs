@@ -357,7 +357,7 @@ The 'StdLib.Spec' module has some property tests that check the behaviour of
 
 -}
 
-{- NOTE [Integer division operations]
+{- Note [Integer division operations]
 
 Plutus Core provides built-in functions 'divideInteger', 'modInteger',
 'quotientInteger' and 'remainderInteger' which are implemented as the Haskell

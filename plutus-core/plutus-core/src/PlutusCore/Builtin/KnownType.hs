@@ -279,10 +279,10 @@ liftReadKnownM (Left err) = BuiltinFailure mempty err
 liftReadKnownM (Right x)  = BuiltinSuccess x
 {-# INLINE liftReadKnownM #-}
 
--- See Note [Unlifting values of built-in types].
+-- See Note [Unlifting a term as a value of a built-in type].
 -- | Convert a constant embedded into a PLC term to the corresponding Haskell value.
 readKnownConstant :: forall val a. KnownBuiltinType val a => val -> ReadKnownM a
--- Note [Performance of ReadKnownIn and MakeKnownIn instances]
+-- See Note [Performance of ReadKnownIn and MakeKnownIn instances]
 readKnownConstant val = asConstant val >>= oneShot \case
     Some (ValueOf uniAct x) -> do
         let uniExp = knownUni @_ @(UniOf val) @a

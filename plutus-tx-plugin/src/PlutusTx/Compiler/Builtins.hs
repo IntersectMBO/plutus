@@ -96,7 +96,7 @@ That is, we generate something like this:
 
 We handle this in two different ways:
 - For the types like Bool and Unit which are really algebraic types, and which have constructors etc.
-that we care about elsewhere, we insert adaptor code into the definition of the builtin (see note [Mapping builtins]).
+that we care about elsewhere, we insert adaptor code into the definition of the builtin (see Note [Mapping builtins]).
 - For types like Integer and Bytestring which don't have visible constructors, we can treat them as completely opaque,
 and we use a transparent type alias. (Actually we fake the alias by actually just substituting the definition in
 everywhere until we have aliases in PIR. Bear this in mind for the examples below.)

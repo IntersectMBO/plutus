@@ -8,7 +8,7 @@ import PlutusCore.Generators.QuickCheck.Substitutions
 import PlutusCore.Generators.QuickCheck.Unification
 
 import PlutusCore.Default
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Quote (runQuoteT)
 import PlutusCore.Rename
 import PlutusIR

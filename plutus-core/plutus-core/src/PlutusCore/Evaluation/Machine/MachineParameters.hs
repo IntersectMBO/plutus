@@ -49,7 +49,7 @@ data MachineParameters machinecosts fun val =
 instance (NoThunks machinecosts, Bounded fun, Enum fun) => NoThunks (MachineParameters machinecosts fun val) where
   wNoThunks ctx (MachineParameters costs runtime) = allNoThunks [ noThunks ctx costs, noThunks ctx runtime ]
 
-{- Note [The equality constraint in mkMachineParameters]
+{- Note [The CostingPart constraint in mkMachineParameters]
 Discharging the @CostingPart uni fun ~ builtincosts@ constraint in 'mkMachineParameters' causes GHC
 to fail to inline the function at its call site regardless of the @INLINE@ pragma and an explicit
 'inline' call.

@@ -10,9 +10,12 @@ module PlutusCore.Analysis.Definitions
     , addUsage
     ) where
 
-import PlutusCore.Core
-import PlutusCore.Error
-import PlutusCore.Name
+import PlutusCore.Core.Plated (termSubtermsDeep, termSubtypesDeep)
+import PlutusCore.Core.Type (Term (LamAbs, TyAbs, Var), Type (TyForall, TyLam, TyVar))
+import PlutusCore.Error (UniqueError (..))
+import PlutusCore.Name.Unique (HasUnique, TermUnique (TermUnique), TypeUnique (TypeUnique),
+                               Unique (Unique), theUnique)
+import PlutusCore.Name.UniqueMap (UniqueMap, insertByNameIndex, lookupNameIndex)
 
 
 import Control.Lens (forMOf_, (^.))
@@ -20,7 +23,7 @@ import Control.Monad (when)
 import Control.Monad.State (MonadState, execStateT, gets, modify)
 import Control.Monad.Writer (MonadWriter, runWriterT, tell)
 
-import Data.Foldable
+import Data.Foldable (for_)
 import Data.Set qualified as Set
 
 {- Note [Unique usage errors]

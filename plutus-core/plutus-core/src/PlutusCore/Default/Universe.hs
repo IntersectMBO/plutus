@@ -31,9 +31,8 @@
 {-# LANGUAGE UndecidableInstances     #-}
 #include "MachDeps.h"
 
--- effectfully: to the best of my experimentation, -O2 here improves performance, however by
--- inspecting GHC Core I was only able to see a difference in how the 'KnownTypeIn' instance for
--- 'Int' is compiled (one more call is inlined with -O2). This needs to be investigated.
+-- effectfully: to the best of my experimentation, -O2 here improves
+-- performance, but it's not clear why. This needs to be investigated.
 {-# OPTIONS_GHC -O2 #-}
 
 module PlutusCore.Default.Universe
@@ -369,7 +368,7 @@ instance HasConstantIn DefaultUni term => MakeKnownIn DefaultUni term Int64 wher
 
 instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUni term Int64 where
     readKnown term =
-        -- See Note [Performance of KnownTypeIn instances].
+        -- See Note [Performance of ReadKnownIn and MakeKnownIn instances].
         -- Funnily, we don't need 'inline' here, unlike in the default implementation of 'readKnown'
         -- (go figure why).
         inline readKnownConstant term >>= oneShot \(i :: Integer) ->
@@ -430,7 +429,7 @@ deriving newtype instance HasConstantIn DefaultUni term => ReadKnownIn DefaultUn
 universe and we need serialised things to be extremely stable, hence the definitions of 'encodeUni'
 and 'decodeUni' must be amended only in a backwards compatible manner.
 
-See Note [Stable encoding of PLC]
+See Note [Stable encoding of TPLC]
 -}
 
 instance Closed DefaultUni where

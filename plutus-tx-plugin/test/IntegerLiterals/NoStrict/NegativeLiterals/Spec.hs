@@ -9,7 +9,7 @@
 -- and @NegativeLiterals@ is on. These two extensions affect the Core we get. When
 -- @NegativeLiterals@ is on, we can get @IN@ for negative integers.
 --
--- See Note [Running PIR and UPLC Simplifiers in Integer literals Tests].
+-- See Note [Running PIR and UPLC Simplifiers in Integer Literal Tests].
 module IntegerLiterals.NoStrict.NegativeLiterals.Spec where
 
 import PlutusTx.Code

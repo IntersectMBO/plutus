@@ -27,7 +27,8 @@ import PlutusCore qualified as PLC
 import PlutusCore.Annotation
 import PlutusCore.Builtin qualified as PLC
 import PlutusCore.MkPlc (mkIterApp)
-import PlutusCore.Name
+import PlutusCore.Name.Unique
+import PlutusCore.Name.UniqueMap qualified as UMap
 import PlutusCore.Quote
 import PlutusCore.Rename (Dupable, dupable, liftDupable)
 import PlutusPrelude
@@ -136,7 +137,7 @@ lookupTerm ::
   name ->
   S name uni fun a ->
   Maybe (InlineTerm name uni fun a)
-lookupTerm n s = lookupName n $ s ^. subst . termEnv . unTermEnv
+lookupTerm n s = UMap.lookupName n $ s ^. subst . termEnv . unTermEnv
 
 -- | Insert the unprocessed variable into the substitution.
 extendTerm ::
@@ -148,14 +149,14 @@ extendTerm ::
   -- | The substitution.
   S name uni fun a ->
   S name uni fun a
-extendTerm n clos s = s & subst . termEnv . unTermEnv %~ insertByName n clos
+extendTerm n clos s = s & subst . termEnv . unTermEnv %~ UMap.insertByName n clos
 
 lookupVarInfo ::
   (HasUnique name TermUnique) =>
   name ->
   S name uni fun a ->
   Maybe (VarInfo name uni fun a)
-lookupVarInfo n s = lookupName n $ s ^. vars
+lookupVarInfo n s = UMap.lookupName n $ s ^. vars
 
 extendVarInfo ::
   (HasUnique name TermUnique) =>
@@ -163,7 +164,7 @@ extendVarInfo ::
   VarInfo name uni fun a ->
   S name uni fun a ->
   S name uni fun a
-extendVarInfo n info s = s & vars %~ insertByName n info
+extendVarInfo n info s = s & vars %~ UMap.insertByName n info
 
 {- | Inline simple bindings. Relies on global uniqueness, and preserves it.
 See Note [Inlining and global uniqueness]
@@ -370,8 +371,8 @@ effectSafe body n purity = do
 See Note [Inlining approach and 'Secrets of the GHC Inliner']
 -}
 acceptable ::
+  -- | inline constants
   Bool ->
-  -- ^ inline constants
   Term name uni fun a ->
   InlineM name uni fun a Bool
 acceptable inlineConstants t =
@@ -406,8 +407,8 @@ costIsAcceptable = \case
 the given term acceptable?
 -}
 sizeIsAcceptable ::
+  -- | inline constants
   Bool ->
-  -- ^ inline constants
   Term name uni fun a ->
   Bool
 sizeIsAcceptable inlineConstants = \case

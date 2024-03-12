@@ -28,7 +28,7 @@ import System.Random (StdGen)
  the strings we encounter in practice.
 -}
 
-{- | Note [Unicode encodings and Data.Text] Unicode characters are organised into
+{- Note [Unicode encodings and Data.Text] Unicode characters are organised into
 17 'planes', each containing 65536 'codepoints'.  Only some of the codepoints in
 each plane represent actual characters: some code points are permanently
 unavailable, some are used for non-printing operations like forming ligatures or

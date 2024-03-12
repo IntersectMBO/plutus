@@ -17,7 +17,7 @@ import PlutusIR.Transform.RewriteRules.Common
 
 This rewrite-rule was originally meant to rewrite `unConstrData(constrData(x,y)) => (x,y)`,
 however we do not have a (polymorphic or monomorphic) builtin constructor to create a `BuiltinPair`
-"(x,y)". See note [Representable built-in functions over polymorphic built-in types].
+"(x,y)". See Note [Representable built-in functions over polymorphic built-in types].
 
 So we adapted the original rewrite rule to try to achieve a similar goal.
 Unfortunately, the adapted rule is less applicable and will most likely never fire

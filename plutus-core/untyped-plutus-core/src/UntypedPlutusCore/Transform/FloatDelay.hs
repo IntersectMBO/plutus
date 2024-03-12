@@ -56,18 +56,18 @@ Why is this optimization performed on UPLC, not PIR?
 module UntypedPlutusCore.Transform.FloatDelay (floatDelay) where
 
 import PlutusCore qualified as PLC
-import UntypedPlutusCore.Core
+import PlutusCore.Name.Unique qualified as PLC
+import PlutusCore.Name.UniqueMap qualified as UMap
+import PlutusCore.Name.UniqueSet qualified as USet
+import UntypedPlutusCore.Core.Plated (termSubterms)
+import UntypedPlutusCore.Core.Type (Term (..))
 
-import Control.Lens
-import Control.Monad
-import Control.Monad.Trans.Writer.CPS
-import Data.Map (Map)
-import Data.Map qualified as Map
-import Data.Set (Set)
-import Data.Set qualified as Set
+import Control.Lens (forOf, forOf_, transformOf)
+import Control.Monad ((>=>))
+import Control.Monad.Trans.Writer.CPS (Writer, execWriter, runWriter, tell)
 
 floatDelay ::
-  (PLC.MonadQuote m, PLC.Rename (Term name uni fun a), Ord name) =>
+  (PLC.MonadQuote m, PLC.Rename (Term name uni fun a), PLC.HasUnique name PLC.TermUnique) =>
   Term name uni fun a ->
   m (Term name uni fun a)
 floatDelay =
@@ -77,12 +77,16 @@ floatDelay =
 {- | First pass. Returns the names of all variables, at least one occurrence
 of which is not under `Force`.
 -}
-unforcedVars :: forall name uni fun a. (Ord name) => Term name uni fun a -> Set name
+unforcedVars ::
+  forall name uni fun a
+  . (PLC.HasUnique name PLC.TermUnique)
+  => Term name uni fun a
+  -> PLC.UniqueSet PLC.TermUnique
 unforcedVars = execWriter . go
   where
-    go :: Term name uni fun a -> Writer (Set name) ()
+    go :: Term name uni fun a -> Writer (PLC.UniqueSet PLC.TermUnique) ()
     go = \case
-      Var _ n       -> tell (Set.singleton n)
+      Var _ n       -> tell (USet.singletonName n)
       Force _ Var{} -> pure ()
       t             -> forOf_ termSubterms t go
 
@@ -91,27 +95,31 @@ the names of variables whose corresponding arguments are modified.
 -}
 simplifyArgs ::
   forall name uni fun a.
-  (Ord name) =>
+  (PLC.HasUnique name PLC.TermUnique) =>
   -- | The set of variables returned by `unforcedVars`.
-  Set name ->
+  PLC.UniqueSet PLC.TermUnique ->
   Term name uni fun a ->
-  (Term name uni fun a, Map name a)
+  (Term name uni fun a, PLC.UniqueMap PLC.TermUnique a)
 simplifyArgs blacklist = runWriter . go
   where
-    go :: Term name uni fun ann -> Writer (Map name ann) (Term name uni fun ann)
+    go :: Term name uni fun ann -> Writer (PLC.UniqueMap PLC.TermUnique ann) (Term name uni fun ann)
     go = \case
       Apply appAnn (LamAbs lamAnn n lamBody) (Delay delayAnn arg)
         | isEssentiallyWorkFree arg
-        , n `Set.notMember` blacklist -> do
-            tell (Map.singleton n delayAnn)
-            Apply appAnn <$> (LamAbs lamAnn n <$> go lamBody) <*> go arg
+        , n `USet.notMemberByName` blacklist -> do
+            tell (UMap.singletonByName n delayAnn)
+            (Apply appAnn . LamAbs lamAnn n <$> go lamBody) <*> go arg
       t -> forOf termSubterms t go
 
 -- | Third pass. Turns @Force n@ into @Force (Delay n)@ for all eligibile @n@.
-simplifyBodies :: (Ord name) => Map name a -> Term name uni fun a -> Term name uni fun a
+simplifyBodies
+  :: (PLC.HasUnique name PLC.TermUnique)
+  => PLC.UniqueMap PLC.TermUnique a
+  -> Term name uni fun a
+  -> Term name uni fun a
 simplifyBodies whitelist = transformOf termSubterms $ \case
   var@(Var _ n)
-    | Just ann <- Map.lookup n whitelist -> Delay ann var
+    | Just ann <- UMap.lookupName n whitelist -> Delay ann var
   t -> t
 
 {- | Whether evaluating the given `Term` is pure and essentially work-free

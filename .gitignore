@@ -56,6 +56,9 @@ stack.yaml.lock
 # Python
 __pycache__
 
+# NodeJS (used by scripts/blueprints/check-json-schemas.js as it depends on the AJV nodejs lib)
+node_modules
+
 # Nix
 result*
 pkgs/.cabal
@@ -98,7 +101,9 @@ secrets/*/.gpg-id
 ghcid.txt
 plutus-pab/test-node/testnet/db
 plutus-pab/test-node/alonzo-purple/db
+*.actual.json
 # profiling output files
 *.timelog
 *.stacks
 .nvimrc
+

@@ -10,7 +10,7 @@ module PlutusTx.IsData.Instances where
 
 import PlutusTx.Bool (Bool (..))
 import PlutusTx.Either (Either (..))
-import PlutusTx.IsData.TH
+import PlutusTx.IsData.TH (makeIsDataIndexed, unstableMakeIsData)
 import PlutusTx.Maybe (Maybe (..))
 
 -- While these types should be stable, we really don't want them changing, so index
@@ -19,7 +19,8 @@ makeIsDataIndexed ''Bool [('False,0),('True,1)]
 makeIsDataIndexed ''Maybe [('Just,0),('Nothing,1)]
 makeIsDataIndexed ''Either [('Left,0),('Right,1)]
 
--- Okay to use unstableMakeIsData here since there's only one alternative and we're sure that will never change
+-- Okay to use unstableMakeIsData here since there's only one alternative and we're sure
+-- that will never change.
 unstableMakeIsData ''()
 unstableMakeIsData ''(,)
 unstableMakeIsData ''(,,)

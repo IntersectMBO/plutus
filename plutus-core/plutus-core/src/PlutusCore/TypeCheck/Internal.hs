@@ -18,30 +18,34 @@ module PlutusCore.TypeCheck.Internal
     , MonadNormalizeType
     ) where
 
-import PlutusCore.Builtin
-import PlutusCore.Core
-import PlutusCore.Error
-import PlutusCore.MkPlc
-import PlutusCore.Name
+import PlutusCore.Builtin.KnownKind (ToKind, kindOfBuiltinType)
+import PlutusCore.Builtin.Result (throwing)
+import PlutusCore.Core.Type (Kind (..), Normalized (..), Term (..), Type (..), toPatFuncKind)
+import PlutusCore.Error (AsTypeError (_TypeError), ExpectedShapeOr (ExpectedExact, ExpectedShape),
+                         TypeError (FreeTypeVariableE, FreeVariableE, KindMismatch, NameMismatch, TyNameMismatch, TypeMismatch, UnknownBuiltinFunctionE))
+import PlutusCore.MkPlc (mkIterTyAppNoAnn, mkIterTyFun, mkTyBuiltinOf)
+import PlutusCore.Name.Unique (HasText (theText), Name (Name), Named (Named), TermUnique,
+                               TyName (TyName), TypeUnique, theUnique)
+import PlutusCore.Name.UniqueMap (UniqueMap, insertNamed, lookupName)
 import PlutusCore.Normalize.Internal (MonadNormalizeType)
 import PlutusCore.Normalize.Internal qualified as Norm
-import PlutusCore.Quote
-import PlutusCore.Rename
-import PlutusPrelude
+import PlutusCore.Quote (MonadQuote (liftQuote), freshTyName)
+import PlutusCore.Rename (Dupable, Rename (rename), dupable, liftDupable)
+import PlutusPrelude (Lens', lens, over, view, void, zipExact, (<<$>>), (<<*>>), (^.))
 
-import Control.Lens
+import Control.Lens (Ixed (ix), makeClassy, makeLenses, preview, (^?))
 import Control.Monad (when)
 import Control.Monad.Except (MonadError)
 -- Using @transformers@ rather than @mtl@, because the former doesn't impose the 'Monad' constraint
 -- on 'local'.
-import Control.Monad.Trans.Reader
-import Data.Array
+import Control.Monad.Trans.Reader (ReaderT (runReaderT), ask, local)
+import Data.Array (Array, Ix)
 import Data.Foldable (for_)
 import Data.List.Extras (wix)
 import Data.Text qualified as Text
-import Universe (GEq, Some (Some), SomeTypeIn (SomeTypeIn), ValueOf (ValueOf))
+import Universe.Core (GEq, Some (Some), SomeTypeIn (SomeTypeIn), ValueOf (ValueOf))
 
-{- Note [Global uniqueness]
+{- Note [Global uniqueness in the type checker]
 WARNING: type inference/checking works under the assumption that the global uniqueness condition
 is satisfied. The invariant is not checked, enforced or automatically fulfilled. So you must ensure
 that the global uniqueness condition is satisfied before calling 'inferTypeM' or 'checkTypeM'.
@@ -49,7 +53,7 @@ that the global uniqueness condition is satisfied before calling 'inferTypeM' or
 The invariant is preserved. In future we will enforce the invariant.
 -}
 
-{- Note [Notation]
+{- Note [Typing rules]
 We write type rules in the bidirectional style.
 
 [infer| G !- x : a] -- means that the inferred type of 'x' in the context 'G' is 'a'.
@@ -413,7 +417,8 @@ unfoldIFixOf pat arg k = do
             , vArg
             ]
 
--- See the [Global uniqueness] and [Type rules] notes.
+-- See Note [Global uniqueness in the type checker].
+-- See Note [Typing rules].
 -- | Synthesize the type of a term, returning a normalized type.
 inferTypeM
     :: (MonadTypeCheckPlc err uni fun ann m, HasTypeCheckConfig cfg uni fun)
@@ -576,7 +581,8 @@ inferTypeM (Case ann resTy scrut cases) = do
     -- whole expression.
     pure vResTy
 
--- See the [Global uniqueness] and [Type rules] notes.
+-- See Note [Global uniqueness in the type checker].
+-- See Note [Typing rules].
 -- | Check a 'Term' against a 'NormalizedType'.
 checkTypeM
     :: (MonadTypeCheckPlc err uni fun ann m, HasTypeCheckConfig cfg uni fun)

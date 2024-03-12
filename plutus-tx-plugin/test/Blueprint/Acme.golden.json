@@ -1,0 +1,135 @@
+{
+  "$schema": "https://cips.cardano.org/cips/cip57/schemas/plutus-blueprint.json",
+  "$vocabulary": {
+    "https://cips.cardano.org/cips/cip57": true,
+    "https://json-schema.org/draft/2020-12/vocab/applicator": true,
+    "https://json-schema.org/draft/2020-12/vocab/core": true,
+    "https://json-schema.org/draft/2020-12/vocab/validation": true
+  },
+  "preamble": {
+    "title": "Acme Contract",
+    "description": "A contract that does something awesome",
+    "version": "1.1.0",
+    "plutusVersion": "v3",
+    "license": "MIT"
+  },
+  "validators": [
+    {
+      "title": "Acme Validator",
+      "description": "A validator that does something awesome",
+      "redeemer": {
+        "title": "Acme Redeemer",
+        "description": "A redeemer that does something awesome",
+        "purpose": {
+          "oneOf": [
+            "spend",
+            "mint"
+          ]
+        },
+        "schema": {
+          "$ref": "#/definitions/String"
+        }
+      },
+      "datum": {
+        "title": "Acme Datum",
+        "description": "A datum that contains something awesome",
+        "purpose": "spend",
+        "schema": {
+          "$ref": "#/definitions/Datum"
+        }
+      },
+      "parameters": [
+        {
+          "title": "Acme Parameter",
+          "description": "A parameter that does something awesome",
+          "purpose": "spend",
+          "schema": {
+            "$ref": "#/definitions/Params"
+          }
+        }
+      ],
+      "compiledCode": "58ec01010032222323232300349103505435003232325333573466e1d200000218000a999ab9a3370e90010010c00cc8c8c94ccd5cd19b874800000860026eb4d5d0800cdd71aba13574400213008491035054310035573c0046aae74004dd51aba100109802a481035054310035573c0046aae74004dd50029919192999ab9a3370e90000010c0004c0112401035054310035573c0046aae74004dd5001119319ab9c001800199999a8911199a891199a89100111111400401600900380140044252005001001400084a400a0020038004008848a400e0050012410101010101010101000498101030048810001",
+      "hash": "21a5bbebc42a3d916719c975f622508a2c940ced5cd867cd3d87a019"
+    }
+  ],
+  "definitions": {
+    "Bool": {
+      "dataType": "#boolean"
+    },
+    "ByteString": {
+      "dataType": "bytes"
+    },
+    "Bytes_Void": {
+      "title": "SchemaBytes",
+      "dataType": "bytes"
+    },
+    "Data": {},
+    "Datum": {
+      "oneOf": [
+        {
+          "title": "Datum",
+          "description": "DatumLeft",
+          "$comment": "This constructor is parameterless",
+          "dataType": "constructor",
+          "fields": [],
+          "index": 0
+        },
+        {
+          "title": "Datum",
+          "description": "DatumRight",
+          "$comment": "This constructor has a payload",
+          "dataType": "constructor",
+          "fields": [
+            {
+              "$ref": "#/definitions/DatumPayload"
+            }
+          ],
+          "index": 1
+        }
+      ]
+    },
+    "DatumPayload": {
+      "$comment": "MkDatumPayload",
+      "dataType": "constructor",
+      "fields": [
+        {
+          "$ref": "#/definitions/Integer"
+        },
+        {
+          "$ref": "#/definitions/Bytes_Void"
+        }
+      ],
+      "index": 0
+    },
+    "Integer": {
+      "dataType": "integer"
+    },
+    "Params": {
+      "dataType": "constructor",
+      "fields": [
+        {
+          "$ref": "#/definitions/Unit"
+        },
+        {
+          "$ref": "#/definitions/Bool"
+        },
+        {
+          "$ref": "#/definitions/Integer"
+        },
+        {
+          "$ref": "#/definitions/Data"
+        },
+        {
+          "$ref": "#/definitions/ByteString"
+        }
+      ],
+      "index": 0
+    },
+    "String": {
+      "dataType": "#string"
+    },
+    "Unit": {
+      "dataType": "#unit"
+    }
+  }
+}

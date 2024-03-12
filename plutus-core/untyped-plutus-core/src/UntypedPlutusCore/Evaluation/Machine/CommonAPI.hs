@@ -65,7 +65,7 @@ import UntypedPlutusCore.Evaluation.Machine.Cek.Internal
 import PlutusCore.Builtin
 import PlutusCore.Evaluation.Machine.Exception
 import PlutusCore.Evaluation.Machine.MachineParameters
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Quote
 
 import Control.Monad.Except

@@ -4,7 +4,7 @@
 module PlutusIR.Transform.RewriteRules.Rules where
 
 import PlutusCore.Default
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Quote
 import PlutusIR as PIR
 import PlutusIR.Analysis.VarInfo

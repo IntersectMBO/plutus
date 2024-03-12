@@ -13,7 +13,7 @@ in the paper 'Secrets of the GHC Inliner'.
 module PlutusIR.Transform.Inline.Inline (inline, inlinePass, inlinePassSC, InlineHints (..)) where
 import PlutusCore qualified as PLC
 import PlutusCore.Annotation
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Quote
 import PlutusCore.Rename (dupable)
 import PlutusIR
@@ -257,7 +257,7 @@ processTerm = handleTerm <=< traverseOf termSubtypes applyTypeSubstitution where
             b :| rest -> handleTerm (Let ann NonRec (pure b) (mkLet ann NonRec rest t))
         -- This includes recursive let terms, we don't even consider inlining them at the moment
         t -> do
-            -- See note [Processing order of call site inlining]
+            -- See Note [Processing order of call site inlining]
             let (hd, args) = splitApplication t
                 processArgs ::
                     AppContext tyname name uni fun ann ->

@@ -22,7 +22,7 @@ module PlutusCore.Generators.Hedgehog.AST
 import PlutusPrelude
 
 import PlutusCore
-import PlutusCore.Name (isQuotedIdentifierChar)
+import PlutusCore.Name.Unique (isQuotedIdentifierChar)
 import PlutusCore.Subst
 
 import Control.Lens (coerced)
@@ -107,7 +107,6 @@ genConstant = Gen.choice
     , someValue <$> Gen.utf8 (Range.linear 0 40) Gen.unicode
     ]
 
--- We only generate types that are parsable. See Note [Parsing horribly broken].
 genSomeTypeIn :: AstGen (SomeTypeIn DefaultUni)
 genSomeTypeIn = Gen.frequency
     [ (1, pure $ SomeTypeIn DefaultUniInteger)

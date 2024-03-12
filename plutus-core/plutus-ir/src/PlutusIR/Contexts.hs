@@ -10,7 +10,7 @@ module PlutusIR.Contexts where
 import Control.Lens
 import Data.Functor (void)
 import PlutusCore.Arity
-import PlutusCore.Name qualified as PLC
+import PlutusCore.Name.Unique qualified as PLC
 import PlutusIR.Analysis.VarInfo
 import PlutusIR.Core
 import PlutusIR.MkPir

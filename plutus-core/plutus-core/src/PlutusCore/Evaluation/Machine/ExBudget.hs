@@ -74,7 +74,7 @@ possible to adjust them at runtime.
 
 -}
 
-{-| Note [Budgeting units]
+{- Note [Budgeting units]
 
  We use picoseconds for measuring times and words for measuring memory usage.
  Some care is required with time units because different units are used in
