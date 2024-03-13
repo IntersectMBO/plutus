@@ -94,7 +94,7 @@ main = do
 5. Run the command `stack runghc Main.hs`.
 6. Verify that the output is correct. 
 
-# Core Concepts of Plutus Smart Contracts
+# Core concepts of Plutus smart contracts
 Before we start building our first smart contract, let's go over the following core concepts that underpin Plutus smart contracts.
 
 ## Datum
@@ -103,17 +103,17 @@ A datum is a piece of data attached to a UTxO that represents the state required
 ## Redeemer
 In the EUTxO model, a redeemer is a piece of data that accompanies a transaction input when attempting to spend a UTXO that is locked by a smart contract (also known as a script). The redeemer provides context or arguments that the smart contract needs to validate the transaction. It acts as a witness to satisfy the conditions imposed by the contract's validation script, enabling the contract to determine whether the transaction is permitted to consume the UTXO. 
 
-## Script Context
+## Script context
 The script context is an object that provides information about the current state of the blockchain and the transaction being validated. It includes details such as the current time, the UTxOs being consumed and produced, and the signatories of the transaction. The script context is passed to the validator script, allowing it to make decisions based on the current state of the blockchain.
 
-## Validator Scripts
+## Validator scripts
 Validator scripts are Haskell functions that are the core components of Plutus smart contracts. They are responsible for validating transactions that interact with the contract's UTxOs. A validator script takes three inputs: the datum, the redeemer, and the script context. It uses this information to determine whether the transaction is valid according to the contract's logic. If the transaction is deemed valid, the validator script allows it to consume the contract's UTxOs and produce new ones.
 
 # Writing your first Plutus smart contract
 
 Now that you have a basic understanding of the core concepts, let's create a simple minimum lovelace validator contract. 
 
-## Setting Up a Plutus Project
+## Setting up a Plutus project
 To set up a Plutus project for our minimum lovelace validator contract, follow these steps:
 
 1. Create a new directory for your project and navigate to it in your terminal.
@@ -122,7 +122,7 @@ To set up a Plutus project for our minimum lovelace validator contract, follow t
 
 3. Create a new directory named `src` and a new file named `MinLovelaceValidator.hs` inside it. This is where we'll write our smart contract code using Plutus Tx.
 
-## Writing a Simple Minimum Lovelace Validator Contract
+## Writing a simple minimum lovelace validator contract
 With our project set up, let's walk through the process of writing a simple minimum lovelace validator contract step by step. This example illustrates one approach for implementing simple conditions within a Plutus smart contract. 
 
 This smart contract example demonstrates a basic payment validation scenario where the smart contract enforces a minimum payment amount. A validator checks if a transaction meets a specific condition. The validator ensures that the total value spent in the transaction is at least 1000 lovelace. If the condition is not satisfied, the transaction is considered invalid.
@@ -233,6 +233,6 @@ The contract validates transactions based on a minimum lovelace requirement, usi
 
 The use of `BuiltinData` as the datum and redeemer types allows for flexibility in the data that can be passed to the validator. The `wrap` function is used to convert between the `BuiltinData` types and the actual types expected by the `mkValidator` function.
 
-## Testing and Deploying Your Smart Contract 
+## Testing and deploying your smart contract 
 
 TODO
