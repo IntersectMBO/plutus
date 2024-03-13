@@ -4,6 +4,8 @@ description: "writing validator scripts, writing minting policies, creating and 
 date: 2024-03-12
 ---
 
+# Section 6. Working with scripts
+
 - Writing basic validator scripts
    - Validator arguments
    - The Data type

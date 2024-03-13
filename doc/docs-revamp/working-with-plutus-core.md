@@ -4,4 +4,6 @@ description: "TBD"
 date: 2024-03-12
 ---
 
-TBD
+# Section 7. Working with Plutus Core
+
+- TBD

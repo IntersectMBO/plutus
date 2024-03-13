@@ -4,10 +4,12 @@ description: "A set of definitions of core concepts"
 date: 2024-03-12
 ---
 
-# 2. Resources to inform this section: 
-[An Introduction to Plutus Core](https://blog.hachi.one/post/an-introduction-to-plutus-core/)
+# Section 2. Core concepts
 
-## 2.1 Core concepts
+## Resources to inform this section: 
+- [An Introduction to Plutus Core](https://blog.hachi.one/post/an-introduction-to-plutus-core/)
+
+## Core concepts
 - Names, terminology, ecosystem
 - Ledger
 - Scripts and the EUTXO model
@@ -16,7 +18,7 @@ date: 2024-03-12
 - Plutus Tx
 - Plutus language versions
 
-## 2.2 Understanding the Plutus platform
+## Understanding the Plutus platform
 - What is Plutus?
 	- The relationship between Plutus, Haskell, and Cardano
 - Anatomy of a smart contract

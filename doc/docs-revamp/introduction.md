@@ -6,7 +6,7 @@ date: 2024-03-12
 
 TBD -- outline only
 
-# 1. Introduction
+# Section 1. Introduction
 
 - Welcome to Plutus: A brief introduction to Plutus and its significance in the Cardano ecosystem.
 - Target audience: 
@@ -14,7 +14,7 @@ TBD -- outline only
 	- Identify the variety of primary roles we expect people to have who would be interested in the docs. 
 - Document overview: Briefly outline the key sections and what developers will learn.
 
-## 1.1 Introductory resources
+## Introductory resources
 - Reference to the [Plutus Pioneer Program Gitbook](https://iog-academy.gitbook.io/plutus-pioneers-program-fourth-cohort/) (gitbook.io)
 - Awareness of the Plutus Pioneer Program github page as a valuable resource: 
 	- [https://github.com/input-output-hk/plutus-pioneer-program](https://github.com/input-output-hk/plutus-pioneer-program)

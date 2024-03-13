@@ -4,6 +4,8 @@ description: "TBD"
 date: 2024-03-12
 ---
 
+# Section 8. Reference
+
 - Plutus Tx compiler options
 - Optimization techniques for Plutus scripts
    - Identifying problem areas

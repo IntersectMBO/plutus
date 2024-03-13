@@ -4,9 +4,11 @@ description: "setting up and testing developer environment, writing first smart 
 date: 2024-03-12
 ---
 
+# Section 3. Developer onboarding and quick setup guide
+
 This guide's objective is to help you set up your development environment, test it, and write your first smart contract within half a day. 
 
-# 3. Setting up and testing your development environment
+# Setting up and testing your development environment
 
 ## Prerequisites
 
@@ -107,96 +109,129 @@ The script context is an object that provides information about the current stat
 ## Validator Scripts
 Validator scripts are Haskell functions that are the core components of Plutus smart contracts. They are responsible for validating transactions that interact with the contract's UTxOs. A validator script takes three inputs: the datum, the redeemer, and the script context. It uses this information to determine whether the transaction is valid according to the contract's logic. If the transaction is deemed valid, the validator script allows it to consume the contract's UTxOs and produce new ones.
 
-# Writing your first Plutus smart contract: A simple token transfer
+# Writing your first Plutus smart contract
 
-**NOTE: The following is a placeholder example contract. TBD.** 
-
-Now that you have a basic understanding of the core concepts, let's create a simple token transfer contract. 
+Now that you have a basic understanding of the core concepts, let's create a simple minimum lovelace validator contract. 
 
 ## Setting Up a Plutus Project
-To set up a Plutus project for our token transfer contract, follow these steps:
+To set up a Plutus project for our minimum lovelace validator contract, follow these steps:
 
 1. Create a new directory for your project and navigate to it in your terminal.
 
 2. If you are using Nix, enter a Nix shell that provides the necessary development environment by running `nix develop` in your project directory. If you are not using Nix, make sure that all required C libraries are installed since PlutusTx depends on `cardano-base`, which in turn depends on cryptographic C libraries like `libblst`, `libsecp256k1`, and `libsodium`. 
 
-3. Create a new directory named `src` and a new file named `TokenTransfer.hs` inside it. This is where we'll write our smart contract code using the Plutus Tx.
+3. Create a new directory named `src` and a new file named `MinLovelaceValidator.hs` inside it. This is where we'll write our smart contract code using Plutus Tx.
 
-## Writing a Simple Token Transfer Contract
-With our project set up, let's walk through the process of writing a simple token transfer contract step by step.
+## Writing a Simple Minimum Lovelace Validator Contract
+With our project set up, let's walk through the process of writing a simple minimum lovelace validator contract step by step. This example illustrates one approach for implementing simple conditions within a Plutus smart contract. 
 
-### Step 1: Define the Token Data Type
-First, we need to define a data type that represents the token we want to transfer. Open the `TokenTransfer.hs` file and add the following code:
+This smart contract example demonstrates a basic payment validation scenario where the smart contract enforces a minimum payment amount. A validator checks if a transaction meets a specific condition. The validator ensures that the total value spent in the transaction is at least 1000 lovelace. If the condition is not satisfied, the transaction is considered invalid.
+
+The contract consists of the following conceptual stages:
+
+1. Importing necessary modules and defining language extensions.
+2. Defining the validator function (`mkValidator`) that checks the condition.
+3. Creating a validator script using the compiled `mkValidator` function.
+4. Defining a typed validator and its associated types.
+5. Calculating the validator address based on the typed validator.
+
+Here's a summary of the contract's functionality:
+
+- The contract validates transactions based on a minimum lovelace requirement.
+- It uses the `valueSpent` function to calculate the total value spent in the transaction.
+- The `mkValidator` function checks if the spent value is at least 1000 lovelace.
+- If the condition is not met, the transaction is invalidated.
+- The contract defines a typed validator and its associated types using `BuiltinData`.
+- The validator address is calculated based on the typed validator.
+
+Now, let's go through the code step by step. 
+
+### Step 1: Importing modules and defining language extensions
 
 ```haskell
-data Token = Token
-    { tokenName   :: TokenName
-    , tokenAmount :: Integer
-    } deriving Show
-
-PlutusTx.unstableMakeIsData ''Token
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TypeApplications    #-}
+{-# LANGUAGE TypeFamilies        #-}
+{-# LANGUAGE TypeOperators       #-}
+{-# LANGUAGE OverloadedStrings   #-}
+import           Ledger                  (ValidatorCtx, TxOutTx, valueSpent)
+import qualified Ledger.Typed.Scripts    as Scripts
+import           Ledger.Ada              (lovelaceValueOf, fromValue)
+import           PlutusTx                (compile)
+import           PlutusTx.Prelude        hiding (Semigroup(..), unless)
+import           Plutus.V1.Ledger.Scripts
+import           Plutus.V1.Ledger.Api
 ```
 
-This code defines a `Token` data type with two fields: `tokenName` and `tokenAmount`. The `PlutusTx.unstableMakeIsData` function is used to make the data type serializable, which is required for storing it on the blockchain.
+This section includes the necessary language extensions and imports required for the contract. It brings in modules from the Plutus libraries, such as `Ledger`, `PlutusTx`, and `Plutus.V1.Ledger`.
 
-### Step 2: Define the Redeemer Data Type 
-Next, we need to define a data type for the redeemer, which will contain the information needed to perform the token transfer:
-
-```haskell
-data TransferRedeemer = TransferToken
-    { recipient :: PaymentPubKeyHash
-    , amount    :: Integer
-    } deriving Show
-
-PlutusTx.unstableMakeIsData ''TransferRedeemer
-```
-
-The `TransferRedeemer` data type has two fields: `recipient`, which is the public key hash of the recipient's address, and `amount`, which is the number of tokens to be transferred.
-
-### Step 3: Write the Validator Script 
-The validator script is the heart of our smart contract. It defines the conditions under which a token transfer is considered valid:
+### Step 2: Defining the validator function that checks the condition
 
 ```haskell
 {-# INLINABLE mkValidator #-}
-mkValidator :: Token -> TransferRedeemer -> ScriptContext -> Bool
-mkValidator token redeemer _ =
-    let token' = Token (tokenName token) (amount redeemer)
-    in traceIfFalse "Insufficient funds" (tokenAmount token >= amount redeemer) &&
-       traceIfFalse "Invalid amount" (amount redeemer > 0)
+mkValidator :: BuiltinData -> BuiltinData -> BuiltinData -> ()
+mkValidator _ _ ctx =
+    let
+        info = scriptContextTxInfo ctx
+        val = valueSpent info
+        hasEnoughLovelace = fromValue val >= 1000
+    in
+        unless hasEnoughLovelace $ error ()
 ```
 
-This validator script checks two conditions:
-1. The token balance in the UTxO is greater than or equal to the requested transfer amount.
-2. The requested transfer amount is greater than zero.
+The `mkValidator` function is the core of the contract. It takes three arguments of type `BuiltinData`, but only the third argument `ctx` is used. Inside the function:
+- It extracts the transaction information from the validation context using `scriptContextTxInfo ctx`.
+- It calculates the total value spent by the transaction using `valueSpent info`.
+- It checks if the spent value contains at least 1000 lovelace using `fromValue val >= 1000`.
+- If the condition is not met, it throws an error using `error ()`, which invalidates the transaction.
 
-If both conditions are met, the token transfer is considered valid.
-
-### Step 4: Compile the Validator Script 
-To use the validator script in our smart contract, we need to compile it:
+### Step 3: Creating a validator script using the compiled `mkValidator` function
 
 ```haskell
-validator :: Scripts.Validator
-validator = Scripts.mkValidatorScript $$(PlutusTx.compile [|| mkValidator ||])
+validator :: Validator
+validator = mkValidatorScript $$(compile [|| mkValidator ||])
 ```
 
-This code compiles the `mkValidator` function into a Plutus Core script and wraps it in a `Validator` object.
+The `validator` value is defined as a `Validator` type. It is created using `mkValidatorScript` and the compiled version of the `mkValidator` function using Template Haskell.
 
-### Step 5: Define the Token Transfer Function 
-Finally, we need to define a function that performs the actual token transfer:
+### Step 4: Defining a typed validator and its associated types
 
 ```haskell
-transfer :: Token -> TransferRedeemer -> Contract w s Text ()
-transfer token redeemer = do
-    let val = Value.singleton (tokenName token) (tokenAmount token)
-        r   = Redeemer $ PlutusTx.toData redeemer
-        tx  = Constraints.mustPayToTheScript token val <> 
-              Constraints.mustSpendScriptOutput (scriptAddress validator) r
-    ledgerTx <- submitTxConstraints validator tx
-    void $ awaitTxConfirmed $ txId ledgerTx
-    logInfo @String $ "Transferred " ++ show (amount redeemer) ++ " tokens to " ++ show (recipient redeemer)
+data Typed
+instance Scripts.ValidatorTypes Typed where
+    type instance DatumType Typed = BuiltinData
+    type instance RedeemerType Typed = BuiltinData
 ```
 
-This function takes the `Token` and `TransferRedeemer` as input and constructs a transaction that transfers the specified amount of tokens to the recipient's address. The transaction is then submitted to the blockchain, and a confirmation message is logged.
+The `Typed` data type is defined as a phantom type for the typed validator. An instance of `Scripts.ValidatorTypes` is defined for `Typed`, specifying that both the datum and redeemer types are `BuiltinData`.
+
+```haskell
+typedValidator :: Scripts.TypedValidator Typed
+typedValidator = Scripts.mkTypedValidator @Typed
+    $$(compile [|| mkValidator ||])
+    $$(compile [|| wrap ||])
+  where
+    wrap = Scripts.wrapValidator @BuiltinData @BuiltinData
+```
+
+The `typedValidator` value is defined using `Scripts.mkTypedValidator`. It takes the compiled `mkValidator` function and a `wrap` function as arguments. The `wrap` function is defined using `Scripts.wrapValidator`, which wraps the `mkValidator` function to work with `BuiltinData` types.
+
+### Step 5: Calculating the validator address based on the typed validator
+
+```haskell
+validatorAddress :: Ledger.Address
+validatorAddress = Scripts.validatorAddress typedValidator
+```
+
+The `validatorAddress` value is defined using `Scripts.validatorAddress`. It takes the `typedValidator` as an argument and returns the corresponding validator address.
+
+### Recap
+
+The contract validates transactions based on a minimum lovelace requirement, using the `mkValidator` function. It defines a typed validator and its associated types using `BuiltinData`, and calculates the validator address based on the typed validator.
+
+The use of `BuiltinData` as the datum and redeemer types allows for flexibility in the data that can be passed to the validator. The `wrap` function is used to convert between the `BuiltinData` types and the actual types expected by the `mkValidator` function.
 
 ## Testing and Deploying Your Smart Contract 
 

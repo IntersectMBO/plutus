@@ -4,7 +4,11 @@ description: "Frequently asked questions"
 date: 2024-03-12
 ---
 
+# Section 10. FAQ
+
 Draft FAQ for Plutus Core Plutus Tx
+
+_NOTE: Some comments made in the Google doc are not reflected here yet._ 
 
 Stage 1: Identify and refine the questions
 
@@ -15,8 +19,6 @@ Stage 2: Develop answers to the questions
 Below is a draft list of questions for consideration and review. Please add to the list if you have more suggestions, and edit/comment if a question should be clarified or modified to make more sense. 
 
 Once we have reviewed and more or less settled on the questions, I’ll schedule a meeting inviting anyone who is available and interested to collect your thoughts to help inform the answers. Then I’ll circulate another draft that includes answers for review. 
-
-_NOTE: Some comments made in the Google doc are not reflected here yet._ 
 
 - What are the prerequisites for developing Plutus smart contracts on the Cardano blockchain? 
 - What are the benefits of using Haskell and Plutus for smart contract development on Cardano?
