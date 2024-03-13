@@ -1,8 +1,8 @@
-\begin{code}
+```
 module Type.BetaNBE.Stability where
-\end{code}
+```
 
-\begin{code}
+```
 open import Data.Vec using (Vec;[];_∷_)
 open import Data.List using (List;[];_∷_)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;trans;cong;cong₂)
@@ -14,7 +14,7 @@ open _⊢Nf⋆_
 open _⊢Ne⋆_
 open import Type.BetaNBE using (nf;idEnv;eval;reflect;eval-List;eval-VecList)
 open import Type.BetaNBE.Completeness using (CR;idext;reifyCR;reflectCR;transCR;idCR;AppCR;renVal-reflect)
-\end{code}
+```
 
 If you take a normal form, embed it back into syntax and then
 normalize it again, you get the same result. This is an important
@@ -22,7 +22,7 @@ property for substitution on normal forms: we don't want to eta expand
 variables otherwise substituting in by the identity substitution can
 perturb the expression.
 
-\begin{code}
+```
 stability : ∀{K}(n : Φ ⊢Nf⋆ K) → nf (embNf n) ≡ n
 stabilityNe : (n : Φ ⊢Ne⋆ K) → CR K (eval (embNe n) (idEnv _)) (reflect n)
 
@@ -59,4 +59,4 @@ stability-List [] = refl
 stability-List (x ∷ xs) = cong₂ _∷_ (stability x) (stability-List xs)
 stability-VecList [] = refl
 stability-VecList (xs ∷ xss) = cong₂ _∷_ (stability-List xs) (stability-VecList xss)
-\end{code}
+```

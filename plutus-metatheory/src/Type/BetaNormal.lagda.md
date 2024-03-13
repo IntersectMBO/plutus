@@ -1,18 +1,18 @@
-\begin{code}
+```
 module Type.BetaNormal where
-\end{code}
+```
 
 ## Fixity declarations
 
 To begin, we get all our infix declarations out of the way.
-\begin{code}
+```
 infix  4 _⊢Nf⋆_
 infix 4 _⊢Ne⋆_
-\end{code}
+```
 
 ## Imports
 
-\begin{code}
+```
 open import Data.Nat using (ℕ)
 open import Data.Vec using (Vec;[];_∷_) 
 open import Data.List using (List;[];_∷_)
@@ -25,7 +25,7 @@ open import Type using (Ctx⋆;_,⋆_;Φ;Ψ;_⊢⋆_;_∋⋆_;S)
 open _⊢⋆_
 open import Type.RenamingSubstitution using (Ren;ren;ext;ren-List;ren-VecList)
 import Builtin.Constant.Type as Syn
-\end{code}
+```
 
 ## Type β-normal forms
 
@@ -35,7 +35,7 @@ variables, neutral applications (where the term in the function
 position cannot be a lambda), or recursive types. Normal forms can be
 pi types, function types, lambdas or neutral terms.
 
-\begin{code}
+```
 data _⊢Nf⋆_ : Ctx⋆ → Kind → Set
 
 import Builtin.Constant.Type as Nf
@@ -83,7 +83,7 @@ data _⊢Nf⋆_ where
         ---------------------------------------------
      → Φ ⊢Nf⋆ *
 
-\end{code}
+```
 
 # Renaming
 
@@ -91,7 +91,7 @@ We need to be able to weaken (introduce a new variable into the
 context) in normal forms so we define renaming which subsumes
 weakening.
 
-\begin{code}
+```
 RenNf : Ctx⋆ → Ctx⋆ → Set 
 RenNf Φ Ψ = ∀{J} → Φ ⊢Nf⋆ J → Ψ ⊢Nf⋆ J
 
@@ -124,18 +124,18 @@ renNf-VecList ρ (Ts ∷ Tss) = renNf-List ρ Ts ∷ renNf-VecList ρ Tss
 renNe ρ (` x)   = ` (ρ x)
 renNe ρ (A · x) = renNe ρ A · renNf ρ x
 renNe ρ (^ x)   = ^ x
-\end{code}
+```
 
-\begin{code}
+```
 weakenNf : Φ ⊢Nf⋆ J
            -------------
          → Φ ,⋆ K ⊢Nf⋆ J
 weakenNf = renNf S
-\end{code}
+```
 
 Embedding normal forms back into terms
 
-\begin{code}
+```
 embNf : ∀{Φ K} → Φ ⊢Nf⋆ K → Φ ⊢⋆ K
 embNe : ∀{Φ K} → Φ ⊢Ne⋆ K → Φ ⊢⋆ K
 embNf-List : ∀{Φ K} → List (Φ ⊢Nf⋆ K) → List (Φ ⊢⋆ K)
@@ -158,9 +158,9 @@ embNf-List (x ∷ xs) = embNf x ∷ embNf-List xs
 embNf-VecList [] = []
 embNf-VecList (Ts ∷ Tss) = embNf-List Ts ∷ embNf-VecList Tss
 
-\end{code}
+```
 
-\begin{code}
+```
 ren-embNf : (ρ : Ren Φ Ψ)
           → ∀ {J}
           → (n : Φ ⊢Nf⋆ J)
@@ -198,11 +198,11 @@ ren-embNf-List ρ [] = refl
 ren-embNf-List ρ (x ∷ xs) = cong₂ _∷_ (ren-embNf ρ x) (ren-embNf-List ρ xs)
 ren-embNf-VecList ρ [] = refl
 ren-embNf-VecList ρ (xs ∷ xss) = cong₂ _∷_ (ren-embNf-List ρ xs) (ren-embNf-VecList ρ xss)
-\end{code}
+```
 
 Some properties relating uses of lookup on VecList-functions with List-functions
 
-\begin{code}
+```
 module _ where
 
   open import Data.Fin using (Fin;zero;suc)
@@ -224,5 +224,5 @@ module _ where
               → lookup (embNf-VecList Tss) e ≡ embNf-List (lookup Tss e)
   lookup-embNf-VecList zero (_ ∷ _) = refl
   lookup-embNf-VecList (suc e) (_ ∷ Tss) = lookup-embNf-VecList e Tss
-\end{code}
+```
 

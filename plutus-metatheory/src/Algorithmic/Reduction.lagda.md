@@ -1,10 +1,10 @@
-\begin{code}
+```
 module Algorithmic.Reduction where
-\end{code}
+```
 
 ## Imports
 
-\begin{code}
+```
 open import Data.Fin using (Fin)
 open import Data.Vec as Vec using (Vec;lookup)
 open import Relation.Binary.PropositionalEquality using (_≡_;refl;trans;sym) renaming (subst to substEq)
@@ -50,11 +50,11 @@ open SigTy
 import Algorithmic.ReductionEC as E
 import Algorithmic.ReductionEC.Progress as EP
 import Algorithmic.ReductionEC.Determinism as ED
-\end{code}
+```
 
 ## Intrinsically Type Preserving Reduction
 
-\begin{code}
+```
 infix 2 _—→V_
 
 data _—→V_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set where
@@ -146,9 +146,9 @@ data _—→V_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set wh
     → ∀ {ts' : IList (∅ ⊢_) (Vec.lookup Tss e)} → (IBwd2IList (lemma<>1' _ _ q) ts ≡ ts')
     → (cases : Cases ∅ A Tss)
     → case (constr e Tss refl ts') cases —→V applyCase (lookupCase e cases) ts'
-\end{code}
+```
 
-\begin{code}
+```
 infix 2 _—→E_
 
 data _—→E_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set where
@@ -196,10 +196,10 @@ data _—→E_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set wh
      → L —→E error _
        ----------------------- 
      → case L cases —→E error _
-\end{code}
+```
 
 
-\begin{code}
+```
 infix 2 _—→_
 
 data _—→_ : {A : ∅ ⊢Nf⋆ *} → (∅ ⊢ A) → (∅ ⊢ A) → Set where
@@ -220,9 +220,9 @@ data _—↠_ : {A : ∅ ⊢Nf⋆ *} → ∅ ⊢ A → ∅ ⊢ A → Set
     → M' —↠ M''
       ---------
     → M —↠ M''
-\end{code}
+```
 
-\begin{code}
+```
 lem—→⋆ : ∀{A}{M M' : ∅ ⊢ A} → M —→⋆ M' → M —→V M'
 lem—→⋆ (β-ƛ v) = β-ƛ v
 lem—→⋆ (β-Λ refl) = β-Λ

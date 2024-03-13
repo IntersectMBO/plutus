@@ -1,4 +1,4 @@
-\begin{code}
+```
 module Algorithmic.Soundness where
 
 open import Function using (_∘_)
@@ -34,16 +34,16 @@ open import Type.BetaNBE.RenamingSubstitution using (_[_]Nf;subNf;subNf-cons;sub
 open import Builtin using (Builtin)
 open import Type.BetaNBE.Stability
 open import Algorithmic.Completeness using (btype-lem)
-\end{code}
+```
 
-\begin{code}
+```
 embCtx : ∀{Φ} → Alg.Ctx Φ → Dec.Ctx Φ
 embCtx Alg.∅       = Dec.∅
 embCtx (Γ Alg.,⋆ K) = embCtx Γ Dec.,⋆ K
 embCtx (Γ Alg., A)  = embCtx Γ Dec., embNf A
-\end{code}
+```
 
-\begin{code}
+```
 embVar : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *}
   → Γ Alg.∋ A
   → embCtx Γ Dec.∋ embNf A
@@ -51,9 +51,9 @@ embVar Alg.Z     = Dec.Z
 embVar (Alg.S α) = Dec.S (embVar α)
 embVar (Alg.T {A = A} α) =
   Dec.conv∋ refl (sym (ren-embNf S A)) (Dec.T (embVar α))
-\end{code}
+```
 
-\begin{code}
+```
 emb[] : ∀{Γ K}(A : Γ ⊢Nf⋆ K)(B : Γ ,⋆ K ⊢Nf⋆ *) →
   (embNf B [ embNf A ]) ≡β embNf (B [ A ]Nf)
 emb[] A B = trans≡β
@@ -65,9 +65,9 @@ emb[] A B = trans≡β
         (idext (λ { Z → idext idCR (embNf A)
                   ; (S α) → reflectCR (refl {x = ` α})}) (embNf B)))
       (sym (sub-eval (embNf B) idCR (embNf ∘ subNf-cons (ne ∘ `) A))))))
-\end{code}
+```
 
-\begin{code}
+```
 soundness-μ : ∀{Φ Φ' K}(p : Φ ≡ Φ')(A : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *)(B : Φ ⊢Nf⋆ K) →
   embNf A · ƛ (μ (weaken (embNf A)) (` Z)) · embNf B ≡β
   embNf
@@ -76,9 +76,9 @@ soundness-μ p A B = trans≡β
   (soundness (embNf A · ƛ (μ (weaken (embNf A)) (` Z)) · embNf B))
   (≡2β (cong (λ X → embNf (nf (embNf A · ƛ (μ X (` Z)) · embNf B)))
              (sym (ren-embNf S A))))
-\end{code}
+```
 
-\begin{code}
+```
 lemσ' : ∀{Γ Γ' Δ Δ'}(bn : Builtin)(p : Γ ≡ Γ')
   → (C : Δ ⊢⋆ *)(C' : Δ' ⊢Nf⋆ *) → (q : Δ ≡ Δ')
   → (σ : {J : Kind} → Δ' ∋⋆ J → Γ ⊢Nf⋆ J)
@@ -182,4 +182,4 @@ emb (Alg.case x cases) = Dec.case (emb x) (emb-Cases cases)
 
 soundnessT : ∀{Φ Γ}{A : Φ ⊢Nf⋆ *} → Γ Alg.⊢ A → embCtx Γ Dec.⊢ embNf A
 soundnessT = emb
-\end{code}
+```

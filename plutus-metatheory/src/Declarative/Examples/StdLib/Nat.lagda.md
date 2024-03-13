@@ -1,8 +1,8 @@
-\begin{code}
+```
 module Declarative.Examples.StdLib.Nat where
-\end{code}
+```
 
-\begin{code}
+```
 open import Utils using (Kind;*)
 open import Type using (Ctx⋆;_⊢⋆_;Z;S)
 open Ctx⋆
@@ -14,9 +14,9 @@ open import Declarative using (Ctx;_⊢_;_∋_)
 open _⊢_
 open _∋_
 open import Declarative.Examples.StdLib.Function
-\end{code}
+```
 
-\begin{code}
+```
 G : ∀{Φ} → Φ ,⋆  * ⊢⋆ *
 G = Π (` Z ⇒ (` (S Z) ⇒ ` Z) ⇒ ` Z)
 
@@ -38,4 +38,4 @@ Succ = ƛ (Λ (ƛ (ƛ
 
 --FoldNat : ∀{Φ}{Γ : Ctx Φ} → {!!}
 --FoldNat = {!!}
-\end{code}
+```

@@ -1,4 +1,4 @@
-\begin{code}
+```
 module Algorithmic.Completeness where
 
 open import Data.Nat using (zero;suc)
@@ -109,7 +109,7 @@ nfList : ∀{Δ} → List (Δ ⊢⋆ *) → List (Δ ⊢Nf⋆ *)
 nfList []       = []
 nfList (A ∷ As) = nf A ∷ nfList As
  
-\end{code}
+```
 
 We need to prove that the type of a builtin `b` for the Algorithmic system is the same as normalising the type
 of the Declarative system
@@ -117,7 +117,7 @@ of the Declarative system
            
 This involves doing an analogous proof for every function in the definition of btype
 
-\begin{code}
+```
 subNf-sub∅ : ∀{Φ}{K} (A : ∅ ⊢⋆ K) → nf {Φ} (sub∅ A) ≡ subNf (λ()) (nf A)
 subNf-sub∅ {Φ} A = begin
           nf (sub∅ A)
@@ -182,9 +182,9 @@ btype-lem b = begin
       ≡⟨⟩
        nf (Syn.btype b)
       ∎
-\end{code}
+```
 
-\begin{code}
+```
 nfType : ∀{Φ Γ}
   → {A : Φ ⊢⋆ *}
   → Γ Syn.⊢ A
@@ -237,4 +237,4 @@ nfType (Syn.case t cases) = Norm.case (nfType t) (nfType-Cases cases)
 completenessT : ∀{Φ Γ}{A : Φ ⊢⋆ *} → Γ Syn.⊢ A
   → nfCtx Γ Norm.⊢ nf A × (A ≡β embNf (nf A))
 completenessT {A = A} t = nfType t ,, soundness A
-\end{code}
+```

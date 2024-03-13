@@ -1,10 +1,10 @@
-\begin{code}
+```
 module Algorithmic.RenamingSubstitution where
-\end{code}
+```
 
 ## Imports
 
-\begin{code}
+```
 open import Function using (id; _∘_)
 open import Data.Nat using (suc;zero)
 open import Data.Fin using (Fin;zero;suc)
@@ -28,11 +28,11 @@ open _∋_
 open _⊢_
 
 open import Type.BetaNormal.Equality using (renNf-id)
-\end{code}
+```
 
 ## Renaming
 
-\begin{code}
+```
 Ren : ∀{Φ Ψ} → ⋆.Ren Φ Ψ → Ctx Φ → Ctx Ψ → Set
 Ren ρ⋆ Γ Δ = {A : _ ⊢Nf⋆ *} → Γ ∋ A → Δ ∋ renNf ρ⋆ A
 
@@ -45,9 +45,9 @@ ext : ∀ {Φ Ψ Γ Δ}
 ext ρ⋆ ρ Z     = Z
 ext ρ⋆ ρ (S x) = S (ρ x)
 
-\end{code}
+```
 
-\begin{code}
+```
 ext⋆ : ∀ {Φ Ψ Γ Δ}
   → (ρ⋆ : ⋆.Ren Φ Ψ)
   → (ρ : Ren ρ⋆ Γ Δ)
@@ -58,23 +58,23 @@ ext⋆ ρ⋆ ρ (T {A = A} x) = conv∋
   refl
   (weakenNf-renNf ρ⋆ A)
   (T (ρ x))
-\end{code}
+```
 
 A property showing that renaming and the creating the case type is the same as 
 creating the case type and the renaming.
 
-\begin{code}
+```
 ren-mkCaseType : ∀ {Φ Ψ} 
            → (ρ⋆ : ⋆.Ren Φ Ψ)
            → ∀{A} As 
            → renNf ρ⋆ (Algorithmic.mkCaseType A As) ≡ Algorithmic.mkCaseType (renNf ρ⋆ A) (renNf-List ρ⋆ As)
 ren-mkCaseType ρ⋆ [] = refl
 ren-mkCaseType ρ⋆ (x ∷ As) = cong (renNf ρ⋆ x ⇒_) (ren-mkCaseType ρ⋆ As)
-\end{code}
+```
 
 The actual renaming definition
 
-\begin{code}
+```
 ren : ∀ {Φ Ψ Γ Δ}
   → (ρ⋆ : ⋆.Ren Φ Ψ)
   → (ρ : Ren ρ⋆ Γ Δ)
@@ -140,9 +140,9 @@ ren-Cases {Δ = Δ} ρ⋆ ρ {Tss = As ∷ _} (c ∷ cases) =   subst (Δ ⊢_)
                                                             (ren-mkCaseType ρ⋆ As) 
                                                             (ren ρ⋆ ρ c) 
                                                     ∷ (ren-Cases ρ⋆ ρ cases)
-\end{code}
+```
 
-\begin{code}
+```
 weaken : ∀ {Φ Γ}{A : Φ ⊢Nf⋆ *}{B : Φ ⊢Nf⋆ *}
   → Γ ⊢ A
     ---------
@@ -151,19 +151,19 @@ weaken t = conv⊢
   refl
   (renNf-id _)
   (ren id (conv∋ refl (sym (renNf-id _)) ∘ S) t)
-\end{code}
+```
 
-\begin{code}
+```
 weaken⋆ : ∀ {Φ Γ}{A : Φ ⊢Nf⋆ *}{K}
   → Γ ⊢ A
     ------------------
   → Γ ,⋆ K ⊢ weakenNf A
 weaken⋆ t = ren S (λ α → _∋_.T α) t
-\end{code}
+```
 
 ## Substitution
 
-\begin{code}
+```
 Sub : ∀{Φ Ψ} → SubNf Φ Ψ → Ctx Φ → Ctx Ψ → Set
 Sub σ⋆ Γ Δ = (∀ {A : _ ⊢Nf⋆ *} → Γ ∋ A → Δ ⊢ subNf σ⋆ A)
 
@@ -175,9 +175,9 @@ exts : ∀ {Φ Ψ Γ Δ}
   → Sub σ⋆ (Γ , B) (Δ , subNf σ⋆ B)
 exts σ⋆ σ Z     = ` Z
 exts σ⋆ σ (S α) = weaken (σ α)
-\end{code}
+```
 
-\begin{code}
+```
 exts⋆ : ∀ {Φ Ψ Γ Δ}
   → (σ⋆ : SubNf Φ Ψ)
   → (σ : Sub σ⋆ Γ Δ)
@@ -188,9 +188,9 @@ exts⋆ σ⋆ σ {K}(T {A = A} x) = conv⊢
   refl
   (weakenNf-subNf σ⋆ A)
   (weaken⋆ (σ x))
-\end{code}
+```
 
-\begin{code}
+```
 sub : ∀ {Φ Ψ Γ Δ}
   → (σ⋆ : SubNf Φ Ψ)
   → (σ : Sub σ⋆ Γ Δ)
@@ -263,9 +263,9 @@ sub σ⋆ σ (builtin b / refl) = conv⊢ refl (btype-sub b σ⋆) (builtin b / 
 sub σ⋆ σ (error A) = error (subNf σ⋆ A)
 sub σ⋆ σ (constr e Tss refl x) = constr e _ refl (sub-VecList σ⋆ σ e Tss x)
 sub σ⋆ σ (case x cs)  = case (sub  σ⋆ σ x) (sub-Cases σ⋆ σ cs)
-\end{code}
+```
 
-\begin{code}
+```
 subcons : ∀{Φ Ψ Γ Δ}
   → (σ⋆ : SubNf Φ Ψ)
   → (σ : Sub σ⋆ Γ Δ)
@@ -275,9 +275,9 @@ subcons : ∀{Φ Ψ Γ Δ}
   → (∀ {B : Φ ⊢Nf⋆ *} → Γ , A ∋ B → Δ ⊢ subNf σ⋆ B)
 subcons σ⋆ σ t Z     = t
 subcons σ⋆ σ t (S x) = σ x
-\end{code}
+```
 
-\begin{code}
+```
 _[_] : ∀{Φ Γ}{A B : Φ ⊢Nf⋆ *}
   → Γ , B ⊢ A
   → Γ ⊢ B 
@@ -290,9 +290,9 @@ _[_] {A = A}{B} b a = conv⊢ refl
                     (conv⊢ refl (sym (subNf-id _)) ∘ `)
                     (conv⊢ refl (sym (subNf-id B)) a))
          b)
-\end{code}
+```
 
-\begin{code}
+```
 lem : ∀ {Φ Γ K} {B : Φ ,⋆ K ⊢Nf⋆ *}{A : Φ ⊢Nf⋆ K} → (x : Γ ,⋆ K ∋ B) → 
   Γ ⊢ subNf (subNf-cons (λ x₁ → ne (` x₁)) A) B
 lem (T x) = conv⊢
@@ -309,7 +309,7 @@ _[_]⋆ b A = sub
   (subNf-cons (ne ∘ `) A)
   lem
   b
-\end{code}
+```
 
 # simply typed renaming
 
@@ -320,7 +320,7 @@ gets bogged down with type coercions.
 Note: This doesn't scale to substitution as we need to weaken by a
 type var to go under a Λ.
 
-\begin{code}
+```
 Renˢ : ∀{Φ} → Ctx Φ → Ctx Φ → Set
 Renˢ Γ Δ = ∀{A} → Γ ∋ A → Δ ∋ A
 
@@ -589,6 +589,6 @@ exts⋆ˢ : ∀{Φ}{Γ Δ : Ctx Φ}
     ----------------------
   → Subˢ (Γ ,⋆ K) (Δ ,⋆ K)
 -}
-\end{code}
+```
 
    

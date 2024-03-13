@@ -1,4 +1,4 @@
-\begin{code}
+```
 module Type.BetaNBE.RenamingSubstitution where
 
 
@@ -22,7 +22,7 @@ open import Type.BetaNBE.Soundness using (soundness)
 open import Type.BetaNBE.Completeness 
    using (EnvCR;CR;fund;ren-reify;idext;idCR;reifyCR;renCR;transCR;reflectCR;renVal-eval;renVal-reflect;symCR;ren-eval;sub-eval;completeness)
 open import Type.BetaNBE.Stability using (stability)
-\end{code}
+```
 
 
 Renaming is defined in the file Type.BetaNormal as it used in the
@@ -30,25 +30,25 @@ NBE algorithm.
 
 reify ∘ reflect preserves the neutral term
 
-\begin{code}
+```
 reify-reflect : ∀{K Φ}(n : Φ ⊢Ne⋆ K) → reify (reflect n) ≡ ne n
 reify-reflect {*}     n = refl
 reify-reflect {♯}     n = refl
 reify-reflect {K ⇒ J} n = refl
-\end{code}
+```
 
 eval is closed under propositional equality for terms
 
-\begin{code}
+```
 evalCRSubst : ∀{Φ Ψ K}{η η' : Env Φ Ψ}
   → EnvCR η η'
   → {t t' : Φ ⊢⋆ K}
   → t ≡ t'
   → CR K (eval t η) (eval t' η')
 evalCRSubst p {t = t} q = fund p (≡2β q) 
-\end{code}
+```
 
-\begin{code}
+```
 ren-nf : ∀{ϕ ψ K}(σ : Ren ϕ ψ)(A : ϕ ⊢⋆ K) →
   renNf σ (nf A) ≡ nf (ren σ A)
 ren-nf σ A = trans
@@ -59,9 +59,9 @@ ren-nf σ A = trans
       (transCR
         (idext (renVal-reflect σ ∘ `) A)
         (symCR (ren-eval A idCR σ))  )))
-\end{code}
+```
 
-\begin{code}
+```
 ren-nf-μ : ∀ {Φ Ψ}{K}
   → (ρ⋆ : Ren Φ Ψ)
   → (A  : Φ ⊢Nf⋆ (K ⇒ *) ⇒ K ⇒ *)
@@ -88,41 +88,41 @@ ren-nf-μ ρ⋆ A B = trans
         (trans
           (sym (ren-comp (embNf A)))
           (trans (sym (ren-embNf (S ∘ ρ⋆) A)) (cong embNf (renNf-comp A)))))))
-\end{code}
+```
 
-\begin{code}
+```
 SubNf : Ctx⋆ → Ctx⋆ → Set
 SubNf φ Ψ = ∀ {J} → φ ∋⋆ J → Ψ ⊢Nf⋆ J
-\end{code}
+```
 
 Substitution for normal forms:
 1. embed back into syntax;
 2. perform substitution;
 3. renormalize.
 
-\begin{code}
+```
 subNf : ∀ {Φ Ψ}
   → SubNf Φ Ψ
     -------------------------
   → (∀ {J} → Φ ⊢Nf⋆ J → Ψ ⊢Nf⋆ J)
 subNf ρ n = nf (sub (embNf ∘ ρ) (embNf n))
-\end{code}
+```
 
 First monad law for subNf
 
-\begin{code}
+```
 subNf-id : ∀ {Φ J}
   → (n : Φ ⊢Nf⋆ J)
   → subNf (ne ∘ `) n ≡ n
 subNf-id n = trans
   (reifyCR (fund idCR (≡2β (sub-id (embNf n)))))
   (stability n)
-\end{code}
+```
 
 This version of the first monad law might be η compatible as it doesn't rely
 on sub-id
 
-\begin{code}
+```
 subNf-id' : ∀ {Φ J}
   → (n : Φ ⊢Nf⋆ J)
   → subNf (nf ∘ `) n ≡ n
@@ -134,25 +134,25 @@ subNf-id' n = trans
         (λ α → fund idCR (≡2β (cong embNf (stability (ne (` α))))))
         (embNf n))))
   (stability n)
-\end{code}
+```
 
 Second monad law for subNf
 This is often holds definitionally for substitution (e.g. sub) but not here.
 
-\begin{code}
+```
 subNf-∋ : ∀ {Φ Ψ J}
   → (ρ : SubNf Φ Ψ)
   → (α : Φ ∋⋆ J)
   → subNf ρ (ne (` α)) ≡ ρ α
 subNf-∋ ρ α = stability (ρ α) 
-\end{code}
+```
 
 
 
 Two lemmas that aim to remove a superfluous additional normalisation
 via stability
 
-\begin{code}
+```
 subNf-nf : ∀ {Φ Ψ}
   → (σ : ∀ {J} → Φ ∋⋆ J → Ψ ⊢Nf⋆ J)
   → ∀ {J}
@@ -165,11 +165,11 @@ subNf-nf σ t = trans
     (sym
       (reifyCR (fund (λ x → idext idCR (embNf (σ x))) (sym≡β (soundness t)))))
     (sym (reifyCR (sub-eval (embNf (nf t)) idCR (embNf ∘ σ)))))
-\end{code}
+```
 
 Third Monad Law for subNf
 
-\begin{code}
+```
 subNf-comp : ∀{Φ Ψ Θ}
   (g : SubNf Φ Ψ)
   (f : SubNf Ψ Θ)
@@ -198,43 +198,43 @@ subNf-comp g f A = trans
                    (sub (embNf ∘ f) ∘ embNf ∘ g))))))
     (completeness (≡2β (sub-comp (embNf A)))))
   (subNf-nf f (sub (embNf ∘ g) (embNf A)))
-\end{code}
+```
 
 extending a normal substitution
 
-\begin{code}
+```
 extsNf : ∀ {Φ Ψ}
   → SubNf Φ Ψ
     -------------------------------
   → ∀ {K} → SubNf (Φ ,⋆ K) (Ψ ,⋆ K)
 extsNf σ Z      =  ne (` Z)
 extsNf σ (S α)  =  weakenNf (σ α)
-\end{code}
+```
 
 cons for normal substitutions
 
-\begin{code}
+```
 subNf-cons : ∀{Φ Ψ}
   → (∀{K} → Φ ∋⋆ K → Ψ ⊢Nf⋆ K)
   → ∀{J}(A : Ψ ⊢Nf⋆ J)
   → (∀{K} → Φ ,⋆ J ∋⋆ K → Ψ ⊢Nf⋆ K)
 subNf-cons σ A Z     = A
 subNf-cons σ A (S x) = σ x
-\end{code}
+```
 
 Substitution of one variable
 
-\begin{code}
+```
 _[_]Nf : ∀ {Φ J K}
         → Φ ,⋆ K ⊢Nf⋆ J
         → Φ ⊢Nf⋆ K 
           ------
         → Φ ⊢Nf⋆ J
 A [ B ]Nf = subNf (subNf-cons (ne ∘ `) B) A
-\end{code}
+```
 
 Congruence lemma for sub
-\begin{code}
+```
 subNf-cong : ∀ {Φ Ψ}
   → {f g : ∀{K} → Φ ∋⋆ K → Ψ ⊢Nf⋆ K}
   → (∀ {J}(x : Φ ∋⋆ J) → f x ≡ g x)
@@ -243,9 +243,9 @@ subNf-cong : ∀ {Φ Ψ}
   → subNf f A ≡ subNf g A
 subNf-cong p A =
  reifyCR (fund idCR (≡2β (sub-cong (cong embNf ∘ p ) (embNf A))))
-\end{code}
+```
 
-\begin{code}
+```
 subNf-cong' : ∀ {Φ Ψ}
   → (f : ∀{K} → Φ ∋⋆ K → Ψ ⊢Nf⋆ K)
   → ∀{K}{A A' : Φ ⊢Nf⋆ K}
@@ -253,11 +253,11 @@ subNf-cong' : ∀ {Φ Ψ}
     -------------------------------
   → subNf f A ≡ subNf f A'
 subNf-cong' f p = cong (subNf f) p
-\end{code}
+```
 
 Pushing renaming through normal substitution
 
-\begin{code}
+```
 renNf-subNf : ∀{Φ Ψ Θ}
   → (g : SubNf Φ Ψ)
   → (f : Ren Ψ Θ)
@@ -280,11 +280,11 @@ renNf-subNf g f A = trans
           (symCR (sub-eval (embNf A) (renCR f ∘ idCR) (embNf ∘ g)))))
       (symCR (renVal-eval (sub (embNf ∘ g) (embNf A)) idCR f))))
   (sym (ren-reify (idext idCR (sub (embNf ∘ g) (embNf A))) f))
-\end{code}
+```
 
 Pushing a substitution through a renaming
 
-\begin{code}
+```
 subNf-renNf : ∀{Φ Ψ Θ}
   → (g : Ren Φ Ψ)
   → (f : SubNf Ψ Θ)
@@ -300,11 +300,11 @@ subNf-renNf g f A = reifyCR
         (symCR
           (evalCRSubst (λ α → idext idCR (embNf (f α))) (ren-embNf g A))))
       (symCR (sub-eval (embNf (renNf g A)) idCR (embNf ∘ f)))))
-\end{code}
+```
 
 Pushing renaming through a one variable normal substitution
 
-\begin{code}
+```
 ren[]Nf : ∀ {Φ Θ J K}
         → (ρ : Ren Φ Θ)
         → (t : Φ ,⋆ K ⊢Nf⋆ J)
@@ -320,11 +320,11 @@ ren[]Nf ρ t u = trans
       (λ { Z → refl ; (S α) → refl})
       t)
     (subNf-renNf (ext ρ)(subNf-cons (ne ∘ `) (renNf ρ u)) t))
-\end{code}
+```
 
 Pushing a normal substitution through a one place normal substitution
 
-\begin{code}
+```
 sub[]Nf : ∀{Φ Ψ K J}
   → (ρ : ∀{K} → Φ ∋⋆ K → Ψ ⊢Nf⋆ K)
   → (A : Φ ⊢Nf⋆ K)
@@ -346,30 +346,30 @@ sub[]Nf ρ A B = trans
                 (ρ α))})
       B)
     (subNf-comp  (extsNf ρ) (subNf-cons (ne ∘ `) (subNf ρ A)) B))
-\end{code}
+```
 
 Extending a normal environment and then embedding is the same as
 embedding and then extending.
 
-\begin{code}
+```
 subNf-lemma : ∀{Φ Ψ K J}
   (ρ : ∀{K} → Φ ∋⋆ K → Ψ ⊢Nf⋆ K)
   → (t : Φ ,⋆ K ⊢⋆ J)
   → sub (exts (embNf ∘ ρ)) t ≡ sub (embNf ∘ extsNf ρ) t
 subNf-lemma ρ t =
   sub-cong (λ { Z → refl ; (S x) → sym (ren-embNf S (ρ x))}) t
-\end{code}
+```
 
 Repair a mismatch between two different ways of extending an environment
 
-\begin{code}
+```
 subNf-lemma' : ∀{Φ K J}
   → (B : Φ ,⋆ K ⊢⋆ J)
   → nf B ≡ reify (eval B ((renVal S ∘ idEnv _) ,,⋆ fresh))
 subNf-lemma' B = reifyCR
   (idext (λ { Z     → reflectCR refl
             ; (S x) → symCR (renVal-reflect S (` x))}) B)
-\end{code}
+```
 
 combining the above lemmas
 
@@ -377,7 +377,7 @@ note: there are several mismatches here, one due to two different ways
 of extending a normal substitution and another due to two different
 ways of extending an environment
 
-\begin{code}
+```
 sub[]Nf' : ∀{Φ Ψ K J}
   → (ρ : ∀{K} → Φ ∋⋆ K → Ψ ⊢Nf⋆ K)
   → (A : Φ ⊢Nf⋆ K)
@@ -397,9 +397,9 @@ sub[]Nf' ρ A B =
        ((renVal S ∘ idEnv _) ,,⋆ fresh))}
      (trans (sym (completeness (≡2β (subNf-lemma ρ (embNf B)))))
               (subNf-lemma'  (sub (exts (embNf ∘ ρ)) (embNf B)))))
-\end{code}
+```
 
-\begin{code}
+```
 weakenNf-renNf : ∀ {Φ Ψ}
   → (ρ⋆ : Ren Φ Ψ)
   → ∀{K}
@@ -469,9 +469,9 @@ sub-nf-μ σ⋆ A B = trans
             (≡2β (cong embNf (renNf-subNf σ⋆ S A))))
           (refl≡β (` Z)))))
       (soundness (sub (embNf ∘ σ⋆) (embNf B)))))
-\end{code}
+```
 
-\begin{code}
+```
 subNf-cons-[]Nf : ∀{Φ K Ψ'}{σ : SubNf Ψ' Φ}{A : Φ ⊢Nf⋆ K}(X : Ψ' ,⋆ K ⊢Nf⋆ *) → 
   subNf (subNf-cons σ A) X
   ≡
@@ -483,9 +483,9 @@ subNf-cons-[]Nf {σ = σ}{A} X = trans
                        X))
   (cong (_[ A ]Nf)
         (sub-nf-Π σ X))
-\end{code}
+```
 
-\begin{code}
+```
 -- A version of subNf that is definitionally the identity on the empty context 
 subNf∅ : ∀{Φ K} → ∅ ⊢Nf⋆ K → Φ ⊢Nf⋆ K
 subNf∅ {∅} t = t
@@ -529,4 +529,4 @@ subNf∅-subNf σ A = begin
           ≡⟨ sym subNf∅≡subNf ⟩
            subNf∅ A
           ∎
-\end{code}
+```
