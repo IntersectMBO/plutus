@@ -63,14 +63,20 @@
       },
       "parameters": [
         {
+          "purpose": "spend",
+          "schema": {
+            "$ref": "#/definitions/Param2a"
+          }
+        },
+        {
           "purpose": "mint",
           "schema": {
-            "$ref": "#/definitions/Params2"
+            "$ref": "#/definitions/Param2b"
           }
         }
       ],
-      "compiledCode": "582a01010032222800199a89111999a89100111400400a0022129002800800c00a0010022122900380140041",
-      "hash": "47cd22160187667d6a6c4c71b0587ad1e2877fe741237d23150cfa03"
+      "compiledCode": "58290101003322222800199a89110014002004424520070028008ccd4488800e0010022122900380140041",
+      "hash": "67923a88b5dfccdef62abd8b3f4ff857d7582b52cde4c07b8cd34175"
     }
   ],
   "definitions": {
@@ -125,6 +131,24 @@
     "Integer": {
       "dataType": "integer"
     },
+    "Param2a": {
+      "dataType": "constructor",
+      "fields": [
+        {
+          "$ref": "#/definitions/Bool"
+        }
+      ],
+      "index": 0
+    },
+    "Param2b": {
+      "dataType": "constructor",
+      "fields": [
+        {
+          "$ref": "#/definitions/Bool"
+        }
+      ],
+      "index": 0
+    },
     "Params": {
       "dataType": "constructor",
       "fields": [
@@ -142,18 +166,6 @@
         },
         {
           "$ref": "#/definitions/ByteString"
-        }
-      ],
-      "index": 0
-    },
-    "Params2": {
-      "dataType": "constructor",
-      "fields": [
-        {
-          "$ref": "#/definitions/Bool"
-        },
-        {
-          "$ref": "#/definitions/Bool"
         }
       ],
       "index": 0

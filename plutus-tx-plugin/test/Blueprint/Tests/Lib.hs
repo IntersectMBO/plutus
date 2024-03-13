@@ -48,11 +48,11 @@ import UntypedPlutusCore qualified as UPLC
 {-# ANN type Params (SchemaTitle "Acme Parameter") #-}
 {-# ANN type Params (SchemaDescription "A parameter that does something awesome") #-}
 data Params = MkParams
-  { myUnit              :: ()
-  , myBool              :: Bool
-  , myInteger           :: Integer
-  , myBuiltinData       :: BuiltinData
-  , myBuiltinByteString :: BuiltinByteString
+  { myUnit              :: (),
+    myBool              :: Bool,
+    myInteger           :: Integer,
+    myBuiltinData       :: BuiltinData,
+    myBuiltinByteString :: BuiltinByteString
   }
   deriving stock (Generic)
   deriving anyclass (AsDefinitionId)
@@ -66,30 +66,35 @@ newtype Bytes (phantom :: Type) = MkAcmeBytes BuiltinByteString
   deriving newtype (ToData, FromData, UnsafeFromData)
 
 instance HasSchema (Bytes phantom) ts where
-  schema = SchemaBytes emptySchemaInfo{title = Just "SchemaBytes"} emptyBytesSchema
+  schema = SchemaBytes emptySchemaInfo {title = Just "SchemaBytes"} emptyBytesSchema
 
 {-# ANN MkDatumPayload (SchemaComment "MkDatumPayload") #-}
+
 data DatumPayload = MkDatumPayload
-  { myAwesomeDatum1 :: Integer
-  , myAwesomeDatum2 :: Bytes Void
+  { myAwesomeDatum1 :: Integer,
+    myAwesomeDatum2 :: Bytes Void
   }
   deriving stock (Generic)
   deriving anyclass (AsDefinitionId)
 
 {-# ANN type Datum (SchemaTitle "Acme Datum") #-}
 {-# ANN type Datum (SchemaDescription "A datum that contains something awesome") #-}
+
 {-# ANN DatumLeft (SchemaTitle "Datum") #-}
 {-# ANN DatumLeft (SchemaDescription "DatumLeft") #-}
 {-# ANN DatumLeft (SchemaComment "This constructor is parameterless") #-}
+
 {-# ANN DatumRight (SchemaTitle "Datum") #-}
 {-# ANN DatumRight (SchemaDescription "DatumRight") #-}
 {-# ANN DatumRight (SchemaComment "This constructor has a payload") #-}
+
 data Datum = DatumLeft | DatumRight DatumPayload
   deriving stock (Generic)
   deriving anyclass (AsDefinitionId)
 
 {-# ANN type Redeemer (SchemaTitle "Acme Redeemer") #-}
 {-# ANN type Redeemer (SchemaDescription "A redeemer that does something awesome") #-}
+
 type Redeemer = BuiltinString
 
 type ScriptContext = ()
@@ -106,34 +111,43 @@ validatorScript1 =
   $$(PlutusTx.compile [||typedValidator1||])
     `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef
       MkParams
-        { myUnit = ()
-        , myBool = True
-        , myInteger = fromIntegral (maxBound @Int) + 1
-        , myBuiltinData = toBuiltinData (3 :: Integer)
-        , myBuiltinByteString = emptyByteString
+        { myUnit = (),
+          myBool = True,
+          myInteger = fromIntegral (maxBound @Int) + 1,
+          myBuiltinData = toBuiltinData (3 :: Integer),
+          myBuiltinByteString = emptyByteString
         }
 
 ----------------------------------------------------------------------------------------------------
 -- Validator 2 for testing blueprints --------------------------------------------------------------
 
-data Params2 = MkParams2 Bool Bool
+newtype Param2a = MkParam2a Bool
   deriving stock (Generic)
   deriving anyclass (AsDefinitionId)
 
-$(PlutusTx.makeLift ''Params2)
-$(makeIsDataSchemaIndexed ''Params2 [('MkParams2, 0)])
+$(PlutusTx.makeLift ''Param2a)
+$(makeIsDataSchemaIndexed ''Param2a [('MkParam2a, 0)])
+
+newtype Param2b = MkParam2b Bool
+  deriving stock (Generic)
+  deriving anyclass (AsDefinitionId)
+
+$(PlutusTx.makeLift ''Param2b)
+$(makeIsDataSchemaIndexed ''Param2b [('MkParam2b, 0)])
 
 type Datum2 = Integer
+
 type Redeemer2 = Integer
 
 {-# INLINEABLE typedValidator2 #-}
-typedValidator2 :: Params2 -> Datum2 -> Redeemer2 -> ScriptContext -> Bool
-typedValidator2 _params _datum _redeemer _context = True
+typedValidator2 :: Param2a -> Param2b -> Datum2 -> Redeemer2 -> ScriptContext -> Bool
+typedValidator2 _p1 _p2 _datum _redeemer _context = True
 
 validatorScript2 :: PlutusTx.CompiledCode (Datum2 -> Redeemer2 -> ScriptContext -> Bool)
 validatorScript2 =
   $$(PlutusTx.compile [||typedValidator2||])
-    `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef (MkParams2 True False)
+    `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef (MkParam2a False)
+    `PlutusTx.unsafeApplyCode` PlutusTx.liftCodeDef (MkParam2b True)
 
 ----------------------------------------------------------------------------------------------------
 -- Helper functions --------------------------------------------------------------------------------

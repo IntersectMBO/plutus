@@ -7,8 +7,8 @@ module Blueprint.Tests where
 
 import Prelude
 
-import Blueprint.Tests.Lib (Datum, Datum2, Params, Params2, Redeemer, Redeemer2, goldenJson,
-                            serialisedScript, validatorScript1, validatorScript2)
+import Blueprint.Tests.Lib (Datum, Datum2, Param2a, Param2b, Params, Redeemer, Redeemer2,
+                            goldenJson, serialisedScript, validatorScript1, validatorScript2)
 import Data.Set qualified as Set
 import PlutusTx.Blueprint.Contract (ContractBlueprint (..))
 import PlutusTx.Blueprint.Definition (definitionRef, deriveDefinitions)
@@ -58,7 +58,9 @@ contractBlueprint =
               , validatorDescription =
                   Just "Another validator that does something awesome"
               , validatorParameters =
-                  [$(deriveParameterBlueprint ''Params2 (Set.singleton Purpose.Mint))]
+                  [ $(deriveParameterBlueprint ''Param2a (Set.singleton Purpose.Spend))
+                  , $(deriveParameterBlueprint ''Param2b (Set.singleton Purpose.Mint))
+                  ]
               , validatorRedeemer =
                   $(deriveArgumentBlueprint ''Redeemer2 (Set.singleton Purpose.Mint))
               , validatorDatum =
@@ -68,5 +70,5 @@ contractBlueprint =
               }
           ]
     , contractDefinitions =
-        deriveDefinitions @[Params, Redeemer, Datum, Params2, Redeemer2, Datum2]
+        deriveDefinitions @[Params, Redeemer, Datum, Param2a, Param2b, Redeemer2, Datum2]
     }
