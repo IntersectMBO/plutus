@@ -59,7 +59,7 @@ data Schema (referencedTypes :: [Type])
   | SchemaAllOf (NonEmpty (Schema referencedTypes))
   | SchemaNot (Schema referencedTypes)
   | SchemaDefinitionRef DefinitionId
-  deriving stock (Eq, Show, Generic, Data)
+  deriving stock (Eq, Ord, Show, Generic, Data)
 
 deriving anyclass instance (Typeable referencedTypes) => Plated (Schema referencedTypes)
 
@@ -155,7 +155,7 @@ data IntegerSchema = MkIntegerSchema
   , exclusiveMaximum :: Maybe Integer
   -- ^ An instance is valid only if it is strictly less than "exclusiveMaximum".
   }
-  deriving stock (Eq, Show, Generic, Data)
+  deriving stock (Eq, Ord, Show, Generic, Data)
 
 emptyIntegerSchema :: IntegerSchema
 emptyIntegerSchema =
@@ -176,7 +176,7 @@ data BytesSchema = MkBytesSchema
   , maxLength :: Maybe Natural
   -- ^ An instance is valid if its length is less than, or equal to, this value.
   }
-  deriving stock (Eq, Show, Generic, Data)
+  deriving stock (Eq, Ord, Show, Generic, Data)
 
 emptyBytesSchema :: BytesSchema
 emptyBytesSchema = MkBytesSchema{enum = [], minLength = Nothing, maxLength = Nothing}
@@ -192,7 +192,7 @@ data ListSchema (referencedTypes :: [Type]) = MkListSchema
   -- ^ If this value is false, the instance validates successfully.
   -- If it is set to True, the instance validates successfully if all of its elements are unique.
   }
-  deriving stock (Eq, Show, Generic, Data)
+  deriving stock (Eq, Ord, Show, Generic, Data)
 
 mkListSchema :: Schema referencedTypes -> ListSchema referencedTypes
 mkListSchema schema =
@@ -213,7 +213,7 @@ data MapSchema (referencedTypes :: [Type]) = MkMapSchema
   , maxItems    :: Maybe Natural
   -- ^ A map instance is valid if its size is less than, or equal to, this value.
   }
-  deriving stock (Eq, Show, Generic, Data)
+  deriving stock (Eq, Ord, Show, Generic, Data)
 
 data ConstructorSchema (referencedTypes :: [Type]) = MkConstructorSchema
   { index        :: Natural
@@ -221,7 +221,7 @@ data ConstructorSchema (referencedTypes :: [Type]) = MkConstructorSchema
   , fieldSchemas :: [Schema referencedTypes]
   -- ^ Field schemas
   }
-  deriving stock (Eq, Show, Generic, Data)
+  deriving stock (Eq, Ord, Show, Generic, Data)
 
 data PairSchema (referencedTypes :: [Type]) = MkPairSchema
   { left  :: Schema referencedTypes
@@ -229,4 +229,4 @@ data PairSchema (referencedTypes :: [Type]) = MkPairSchema
   , right :: Schema referencedTypes
   -- ^ Schema of the second element
   }
-  deriving stock (Eq, Show, Generic, Data)
+  deriving stock (Eq, Ord, Show, Generic, Data)

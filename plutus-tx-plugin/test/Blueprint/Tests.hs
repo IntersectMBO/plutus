@@ -1,20 +1,22 @@
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
 {-# LANGUAGE TypeApplications  #-}
 
 module Blueprint.Tests where
 
 import Prelude
 
-import Blueprint.Tests.Lib (Datum, Params, Redeemer, goldenJson, serialisedScript)
+import Blueprint.Tests.Lib (Datum, Datum2, Params, Params2, Redeemer, Redeemer2, goldenJson,
+                            serialisedScript, validatorScript1, validatorScript2)
 import Data.Set qualified as Set
-import PlutusTx.Blueprint.Argument (ArgumentBlueprint (..))
 import PlutusTx.Blueprint.Contract (ContractBlueprint (..))
 import PlutusTx.Blueprint.Definition (definitionRef, deriveDefinitions)
-import PlutusTx.Blueprint.Parameter (ParameterBlueprint (..))
 import PlutusTx.Blueprint.PlutusVersion (PlutusVersion (PlutusV3))
 import PlutusTx.Blueprint.Preamble (Preamble (..))
 import PlutusTx.Blueprint.Purpose qualified as Purpose
+import PlutusTx.Blueprint.Schema.Annotation (SchemaDescription (..), SchemaTitle (..))
+import PlutusTx.Blueprint.TH (deriveArgumentBlueprint, deriveParameterBlueprint)
 import PlutusTx.Blueprint.Validator (ValidatorBlueprint (..))
 import PlutusTx.Blueprint.Write (writeBlueprint)
 import Test.Tasty.Extras (TestNested, testNested)
@@ -35,34 +37,36 @@ contractBlueprint =
           , preambleLicense = Just "MIT"
           }
     , contractValidators =
-        Set.singleton
-          MkValidatorBlueprint
-            { validatorTitle = "Acme Validator"
-            , validatorDescription = Just "A validator that does something awesome"
-            , validatorParameters =
-                [ MkParameterBlueprint
-                    { parameterTitle = Just "Acme Parameter"
-                    , parameterDescription = Just "A parameter that does something awesome"
-                    , parameterPurpose = Set.singleton Purpose.Spend
-                    , parameterSchema = definitionRef @Params
-                    }
-                ]
-            , validatorRedeemer =
-                MkArgumentBlueprint
-                  { argumentTitle = Just "Acme Redeemer"
-                  , argumentDescription = Just "A redeemer that does something awesome"
-                  , argumentPurpose = Set.fromList [Purpose.Spend, Purpose.Mint]
-                  , argumentSchema = definitionRef @Redeemer
-                  }
-            , validatorDatum =
-                Just
-                  MkArgumentBlueprint
-                    { argumentTitle = Just "Acme Datum"
-                    , argumentDescription = Just "A datum that contains something awesome"
-                    , argumentPurpose = Set.singleton Purpose.Spend
-                    , argumentSchema = definitionRef @Datum
-                    }
-            , validatorCompiledCode = Just serialisedScript
-            }
-    , contractDefinitions = deriveDefinitions @[Params, Redeemer, Datum]
+        Set.fromList
+          [ MkValidatorBlueprint
+              { validatorTitle =
+                  "Acme Validator #1"
+              , validatorDescription =
+                  Just "A validator that does something awesome"
+              , validatorParameters =
+                  [$(deriveParameterBlueprint ''Params (Set.singleton Purpose.Spend))]
+              , validatorRedeemer =
+                  $(deriveArgumentBlueprint ''Redeemer (Set.singleton Purpose.Spend))
+              , validatorDatum =
+                  Just $(deriveArgumentBlueprint ''Datum (Set.singleton Purpose.Spend))
+              , validatorCompiledCode =
+                  Just (serialisedScript validatorScript1)
+              }
+          , MkValidatorBlueprint
+              { validatorTitle =
+                  "Acme Validator #2"
+              , validatorDescription =
+                  Just "Another validator that does something awesome"
+              , validatorParameters =
+                  [$(deriveParameterBlueprint ''Params2 (Set.singleton Purpose.Mint))]
+              , validatorRedeemer =
+                  $(deriveArgumentBlueprint ''Redeemer2 (Set.singleton Purpose.Mint))
+              , validatorDatum =
+                  Just $(deriveArgumentBlueprint ''Datum2 (Set.singleton Purpose.Mint))
+              , validatorCompiledCode =
+                  Just (serialisedScript validatorScript2)
+              }
+          ]
+    , contractDefinitions =
+        deriveDefinitions @[Params, Redeemer, Datum, Params2, Redeemer2, Datum2]
     }

@@ -27,7 +27,7 @@ data SchemaInfo = MkSchemaInfo
   , description :: Maybe String
   , comment     :: Maybe String
   }
-  deriving stock (Eq, Show, Generic, Data, Lift)
+  deriving stock (Eq, Ord, Show, Generic, Data, Lift)
 
 emptySchemaInfo :: SchemaInfo
 emptySchemaInfo = MkSchemaInfo Nothing Nothing Nothing
@@ -69,7 +69,7 @@ This annotation could be attached to a type or constructor:
 newtype MyFoo = MkMyFoo Int
 @
 -}
-newtype SchemaTitle = SchemaTitle String
+newtype SchemaTitle = SchemaTitle {schemaTitleToString :: String}
   deriving newtype (Eq, Ord, Show, Typeable, ToJSON)
   deriving stock (Data, Lift)
 
@@ -82,7 +82,7 @@ This annotation could be attached to a type or constructor:
 newtype MyFoo = MkMyFoo Int
 @
 -}
-newtype SchemaDescription = SchemaDescription String
+newtype SchemaDescription = SchemaDescription {schemaDescriptionToString :: String}
   deriving newtype (Eq, Ord, Show, Typeable, ToJSON)
   deriving stock (Data, Lift)
 
@@ -95,6 +95,6 @@ This annotation could be attached to a type or constructor:
 newtype MyFoo = MkMyFoo Int
 @
 -}
-newtype SchemaComment = SchemaComment String
+newtype SchemaComment = SchemaComment {schemaCommentToString :: String}
   deriving newtype (Eq, Ord, Show, Typeable, ToJSON)
   deriving stock (Data, Lift)

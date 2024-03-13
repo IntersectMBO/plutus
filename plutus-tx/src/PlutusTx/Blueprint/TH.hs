@@ -14,13 +14,19 @@ import Prelude
 import Data.Data (Data)
 import Data.List (nub)
 import Data.List.NonEmpty qualified as NE
+import Data.Maybe (listToMaybe)
+import Data.Set (Set)
+import Data.Text qualified as Text
 import GHC.Natural (naturalToInteger)
 import Language.Haskell.TH qualified as TH
 import Language.Haskell.TH.Datatype qualified as TH
 import Numeric.Natural (Natural)
 import PlutusPrelude (for, (<<$>>))
+import PlutusTx.Blueprint.Argument (ArgumentBlueprint (..))
 import PlutusTx.Blueprint.Class (HasSchema (..))
 import PlutusTx.Blueprint.Definition (HasSchemaDefinition)
+import PlutusTx.Blueprint.Parameter (ParameterBlueprint (..))
+import PlutusTx.Blueprint.Purpose (Purpose)
 import PlutusTx.Blueprint.Schema (ConstructorSchema (..), Schema (..))
 import PlutusTx.Blueprint.Schema.Annotation (SchemaAnn (..), SchemaComment, SchemaDescription,
                                              SchemaInfo (..), SchemaTitle, annotationsToSchemaInfo)
@@ -85,9 +91,6 @@ makeHasSchemaInstance dataTypeName indices = do
     description <- MkSchemaAnnDescription <<$>> lookupAnn @SchemaDescription name
     comment <- MkSchemaAnnComment <<$>> lookupAnn @SchemaComment name
     pure $ title ++ description ++ comment
-    where
-      lookupAnn :: (Data a) => TH.Name -> TH.Q [a]
-      lookupAnn = TH.reifyAnnotations . TH.AnnLookupName
 
   -- | Make SchemaInfo from a list of schema annotations, failing in case of ambiguity.
   schemaInfoFromAnns :: [SchemaAnn] -> TH.Q SchemaInfo
@@ -117,3 +120,33 @@ mkSchemaClause ts ctorIndexes =
   mkSchemaConstructor (TH.ConstructorInfo{..}, info, naturalToInteger -> ctorIndex) = do
     fields <- for constructorFields $ \t -> [|definitionRef @($(pure t)) @($(pure ts))|]
     [|SchemaConstructor info (MkConstructorSchema ctorIndex $(pure (TH.ListE fields)))|]
+
+deriveParameterBlueprint :: TH.Name -> Set Purpose -> TH.ExpQ
+deriveParameterBlueprint tyName purpose = do
+  title <- lookupAnn @SchemaTitle tyName
+  description <- lookupAnn @SchemaDescription tyName
+  [| MkParameterBlueprint
+      { parameterTitle = listToMaybe (Text.pack . schemaTitleToString <$> title)
+      , parameterDescription = listToMaybe (Text.pack . schemaDescriptionToString <$> description)
+      , parameterPurpose = purpose
+      , parameterSchema = definitionRef @($(TH.conT tyName))
+      }
+    |]
+
+deriveArgumentBlueprint :: TH.Name -> Set Purpose -> TH.ExpQ
+deriveArgumentBlueprint tyName purpose = do
+  title <- lookupAnn @SchemaTitle tyName
+  description <- lookupAnn @SchemaDescription tyName
+  [| MkArgumentBlueprint
+      { argumentTitle = listToMaybe (Text.pack . schemaTitleToString <$> title)
+      , argumentDescription = listToMaybe (Text.pack . schemaDescriptionToString <$> description)
+      , argumentPurpose = purpose
+      , argumentSchema = definitionRef @($(TH.conT tyName))
+      }
+    |]
+
+----------------------------------------------------------------------------------------------------
+-- TH Utilities ------------------------------------------------------------------------------------
+
+lookupAnn :: (Data a) => TH.Name -> TH.Q [a]
+lookupAnn = TH.reifyAnnotations . TH.AnnLookupName

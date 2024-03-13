@@ -22,9 +22,9 @@ import PlutusTx.Blueprint.Parameter (ParameterBlueprint)
 
 {- | A blueprint of a validator, as defined by the CIP-0057
 
-  The 'referencedTypes' phantom type parameter is used to track the types used in the contract
-  making sure their schemas are included in the blueprint and that they are referenced
-  in a type-safe way.
+The 'referencedTypes' phantom type parameter is used to track the types used in the contract
+making sure their schemas are included in the blueprint and that they are referenced
+in a type-safe way.
 -}
 data ValidatorBlueprint (referencedTypes :: [Type]) = MkValidatorBlueprint
   { validatorTitle        :: Text
@@ -40,7 +40,7 @@ data ValidatorBlueprint (referencedTypes :: [Type]) = MkValidatorBlueprint
   , validatorCompiledCode :: Maybe ByteString
   -- ^ A full compiled and CBOR-encoded serialized flat script.
   }
-  deriving stock (Show, Eq)
+  deriving stock (Show, Eq, Ord)
 
 instance ToJSON (ValidatorBlueprint referencedTypes) where
   toJSON MkValidatorBlueprint{..} =
