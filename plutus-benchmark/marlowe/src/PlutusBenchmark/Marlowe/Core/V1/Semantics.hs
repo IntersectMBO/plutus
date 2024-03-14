@@ -332,8 +332,8 @@ refundOne accounts = case Map.toList accounts of
     -- invariants of order and non-duplication.
     ((accId, token), balance) : rest ->
         if balance > 0
-        then Just ((accId, token, balance), Map.fromList rest)
-        else refundOne (Map.fromList rest)
+        then Just ((accId, token, balance), Map.unsafeFromList rest)
+        else refundOne (Map.unsafeFromList rest)
 
 
 -- | Obtains the amount of money available an account.

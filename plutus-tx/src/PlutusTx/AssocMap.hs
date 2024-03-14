@@ -18,7 +18,7 @@ module PlutusTx.AssocMap (
   singleton,
   empty,
   null,
-  fromList,
+  unsafeFromList,
   fromListSafe,
   toList,
   keys,
@@ -151,9 +151,12 @@ instance (Eq k, Semigroup v) => Monoid (Map k v) where
 instance (Pretty k, Pretty v) => Pretty (Map k v) where
   pretty (Map mp) = pretty mp
 
-{-# INLINEABLE fromList #-}
-fromList :: [(k, v)] -> Map k v
-fromList = Map
+{-# INLINEABLE unsafeFromList #-}
+-- | Unsafely create a 'Map' from a list of pairs. This should _only_ be applied to lists which
+-- have been checked to not contain duplicate pairs or duplicate keys, otherwise the 'Map' invariant
+-- will be broken. As usual, the "keys" are considered to be the first element of the pair.
+unsafeFromList :: [(k, v)] -> Map k v
+unsafeFromList = Map
 
 {-# INLINEABLE fromListSafe #-}
 -- | In case of duplicates, this function will keep only one entry (the one that precedes).

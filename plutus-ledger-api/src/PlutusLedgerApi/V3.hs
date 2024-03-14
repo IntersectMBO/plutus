@@ -118,7 +118,7 @@ module PlutusLedgerApi.V3 (
 
   -- *** Association maps
   V2.Map,
-  V2.fromList,
+  V2.unsafeFromList,
 
   -- *** Newtypes and hash types
   V2.ScriptHash (..),
