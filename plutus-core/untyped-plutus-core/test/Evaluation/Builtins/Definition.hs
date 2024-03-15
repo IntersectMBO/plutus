@@ -772,7 +772,9 @@ test_ConsByteString =
             expr1 = mkIterAppNoAnn (builtin () (Left ConsByteString :: DefaultFunExt))
                     [cons @Integer asciiBangWrapped, cons @ByteString "hello world"]
         Right (EvaluationSuccess $ cons @ByteString "!hello world")  @=?
-              typecheckEvaluateCekNoEmit (PairV (DefaultFunSemanticsVariant0) def) defaultBuiltinCostModelExt expr1
+              typecheckEvaluateCekNoEmit (PairV DefaultFunSemanticsVariant0 def) defaultBuiltinCostModelExt expr1
+        Right (EvaluationSuccess $ cons @ByteString "!hello world")  @=?
+              typecheckEvaluateCekNoEmit (PairV DefaultFunSemanticsVariant1 def) defaultBuiltinCostModelExt expr1
         Right EvaluationFailure @=? typecheckEvaluateCekNoEmit
                   (PairV DefaultFunSemanticsVariant2 def) defaultBuiltinCostModelExt expr1
         Right EvaluationFailure @=?

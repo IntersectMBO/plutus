@@ -1187,7 +1187,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                 :: ExMemoryUsage a => BuiltinCostModel -> a -> BS.ByteString -> ExBudgetStream
             costingFun = runCostingFunTwoArguments . paramConsByteString
             {-# INLINE costingFun #-}
-            consByteStringMeaningV1 =
+            consByteStringMeaning_V1 =
                 let consByteStringDenotation :: Integer -> BS.ByteString -> BS.ByteString
                     consByteStringDenotation n xs = BS.cons (fromIntegral n) xs
                     {-# INLINE consByteStringDenotation #-}
@@ -1196,7 +1196,7 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                     costingFun
             -- For builtin semantics variants larger than 'DefaultFunSemanticsVariant1', the first
             -- input must be in range @[0..255]@.
-            consByteStringMeaningV2 =
+            consByteStringMeaning_V2 =
                 let consByteStringDenotation :: Word8 -> BS.ByteString -> BS.ByteString
                     consByteStringDenotation = BS.cons
                     {-# INLINE consByteStringDenotation #-}
@@ -1204,9 +1204,9 @@ instance uni ~ DefaultUni => ToBuiltinMeaning uni DefaultFun where
                     consByteStringDenotation
                     costingFun
         in case semvar of
-            DefaultFunSemanticsVariant0 -> consByteStringMeaningV1
-            DefaultFunSemanticsVariant1 -> consByteStringMeaningV1
-            DefaultFunSemanticsVariant2 -> consByteStringMeaningV2
+            DefaultFunSemanticsVariant0 -> consByteStringMeaning_V1
+            DefaultFunSemanticsVariant1 -> consByteStringMeaning_V1
+            DefaultFunSemanticsVariant2 -> consByteStringMeaning_V2
 
     toBuiltinMeaning _semvar SliceByteString =
         let sliceByteStringDenotation :: Int -> Int -> BS.ByteString -> BS.ByteString
