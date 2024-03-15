@@ -9,13 +9,13 @@ import Data.Aeson (toJSON)
 import Data.Aeson.Encode.Pretty (encodePretty')
 import Data.Aeson.Encode.Pretty qualified as Pretty
 import Data.ByteString.Lazy qualified as LBS
-import PlutusTx.Blueprint.Contract (Blueprint (..), ContractBlueprint)
+import PlutusTx.Blueprint.Contract (ContractBlueprint)
 import Prelude
 
-writeBlueprint :: FilePath -> Blueprint -> IO ()
-writeBlueprint f (MkBlueprint blueprint) = LBS.writeFile f (encodeBlueprint blueprint)
+writeBlueprint :: FilePath -> ContractBlueprint -> IO ()
+writeBlueprint f blueprint = LBS.writeFile f (encodeBlueprint blueprint)
 
-encodeBlueprint :: ContractBlueprint types -> LBS.ByteString
+encodeBlueprint :: ContractBlueprint -> LBS.ByteString
 encodeBlueprint =
   encodePretty'
     Pretty.defConfig

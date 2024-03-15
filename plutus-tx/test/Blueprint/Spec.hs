@@ -2,53 +2,42 @@
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DerivingStrategies    #-}
 {-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE PartialTypeSignatures #-}
-{-# LANGUAGE PolyKinds             #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeApplications      #-}
 {-# LANGUAGE TypeOperators         #-}
-{-# LANGUAGE UndecidableInstances  #-}
 
 module Blueprint.Spec where
 
 import Prelude
 
+import Data.Typeable ((:~:) (Refl))
 import GHC.Generics (Generic)
 import PlutusTx.Blueprint.Class (HasSchema (..))
-import PlutusTx.Blueprint.Definition (AsDefinitionId, Unroll, UnrollAll)
+import PlutusTx.Blueprint.Definition (AsDefinitionId, Definitions, Unroll, UnrollAll,
+                                      Unrollable (..))
 import PlutusTx.Blueprint.Schema (Schema (..))
 import PlutusTx.Blueprint.Schema.Annotation (emptySchemaInfo)
 
 testUnrollNop :: Unroll Nop :~: '[Nop]
 testUnrollNop = Refl
 
-testUnrollBaz :: Unroll Baz :~: [Integer, Baz]
+testUnrollBaz :: Unroll Baz :~: [Baz, Integer]
 testUnrollBaz = Refl
 
-testUnrollZap :: Unroll Zap :~: [Nop, Integer, Bool, Zap]
+testUnrollZap :: Unroll Zap :~: [Zap, Nop, Integer, Bool]
 testUnrollZap = Refl
 
-testUnrollBar :: Unroll Bar :~: [Nop, Integer, Bool, Zap, Baz, Bar]
+testUnrollBar :: Unroll Bar :~: [Bar, Zap, Nop, Integer, Bool, Baz]
 testUnrollBar = Refl
 
-testUnrollFoo :: Unroll Foo :~: [Nop, Integer, Bool, Zap, Baz, Bar, Foo]
+testUnrollFoo :: Unroll Foo :~: [Foo, Bar, Zap, Nop, Integer, Bool, Baz]
 testUnrollFoo = Refl
 
-testUnrollAll :: UnrollAll [Nop, Baz] :~: [Integer, Baz, Nop]
+testUnrollAll :: UnrollAll [Nop, Baz] :~: [Nop, Baz, Integer]
 testUnrollAll = Refl
 
-----------------------------------------------------------------------------------------------------
--- Helper types/functions --------------------------------------------------------------------------
-
-{- | Evidence that @a@ is the same type as @b@.
-
-  The @'Functor'@, @'Applicative'@, and @'Monad'@ instances of @Maybe@
-  are very useful for working with values of type @Maybe (a :~: b)@.
--}
-data a :~: b where
-  Refl :: (a ~ b) => a :~: b
+definitions :: Definitions [Foo, Bar, Zap, Nop, Integer, Bool, Baz]
+definitions = unroll @(UnrollAll '[Foo])
 
 ----------------------------------------------------------------------------------------------------
 -- Test fixture ------------------------------------------------------------------------------------
