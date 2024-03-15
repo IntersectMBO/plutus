@@ -1,6 +1,7 @@
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ViewPatterns        #-}
 
 module PlutusIR.Subst (
   fvTerm,
@@ -15,67 +16,82 @@ module PlutusIR.Subst (
 
 import PlutusCore.Core (typeTyVars)
 import PlutusCore.Core qualified as PLC
+import PlutusCore.Name.Unique qualified as PLC
+import PlutusCore.Name.UniqueSet qualified as USet
 import PlutusCore.Subst (ftvTy, ftvTyCtx, tvTy)
 
 import PlutusIR.Core
 
 import Control.Lens
 import Control.Lens.Unsound qualified as Unsound
-import Data.Set as S hiding (foldr)
-import Data.Set.Lens (setOf)
 import Data.Traversable (mapAccumL)
+import PlutusCore.Name.Unique (HasUnique, TermUnique, TypeUnique)
+import PlutusCore.Name.UniqueSet (UniqueSet)
 
 -- | Get all the free term variables in a PIR term.
-fvTerm :: (Ord name) => Traversal' (Term tyname name uni fun ann) name
+fvTerm :: (HasUnique name TermUnique) => Traversal' (Term tyname name uni fun ann) name
 fvTerm = fvTermCtx mempty
 
-fvTermCtx :: (Ord name) => S.Set name -> Traversal' (Term tyname name uni fun ann) name
+fvTermCtx
+  :: forall tyname name uni fun ann .
+  (HasUnique name TermUnique) =>
+  UniqueSet TermUnique ->
+  Traversal' (Term tyname name uni fun ann) name
 fvTermCtx bound f = \case
   Let a r@NonRec bs tIn ->
     let fvLinearScope boundSoFar b =
-          (boundSoFar `union` setOf bindingNames b, fvBindingCtx boundSoFar f b)
+          (boundSoFar `USet.union` USet.setOfByName bindingNames b, fvBindingCtx boundSoFar f b)
         (boundAtTheEnd, bs') = mapAccumL fvLinearScope bound bs
      in Let a r <$> sequenceA bs' <*> fvTermCtx boundAtTheEnd f tIn
   Let a r@Rec bs tIn ->
-    let bound' = bound `union` setOf (traversed . bindingNames) bs
+    let bound' = bound `USet.union` USet.setOfByName (traversed . bindingNames) bs
      in Let a r <$> traverse (fvBindingCtx bound f) bs <*> fvTermCtx bound' f tIn
-  Var a n -> Var a <$> (if S.member n bound then pure n else f n)
-  LamAbs a n ty t -> LamAbs a n ty <$> fvTermCtx (S.insert n bound) f t
+  Var a n -> Var a <$> (if USet.memberByName n bound then pure n else f n)
+  LamAbs a n ty t -> LamAbs a n ty <$> fvTermCtx (USet.insertByName n bound) f t
   t -> (termSubterms . fvTermCtx bound) f t
 
 -- | Get all the free type variables in a PIR term.
-ftvTerm :: (Ord tyname) => Traversal' (Term tyname name uni fun ann) tyname
+ftvTerm :: (HasUnique tyname TypeUnique) => Traversal' (Term tyname name uni fun ann) tyname
 ftvTerm = ftvTermCtx mempty
 
-ftvTermCtx :: (Ord tyname) => Set tyname -> Traversal' (Term tyname name uni fun ann) tyname
+ftvTermCtx ::
+  (HasUnique tyname TypeUnique) =>
+  UniqueSet TypeUnique ->
+  Traversal' (Term tyname name uni fun ann) tyname
 ftvTermCtx bound f = \case
   Let a r@NonRec bs tIn ->
     let ftvLinearScope bound' b =
-          (bound' `union` setOf bindingTyNames b, ftvBindingCtx r bound' f b)
+          (bound' `USet.union` USet.setOfByName bindingTyNames b, ftvBindingCtx r bound' f b)
         (bound'', bs') = mapAccumL ftvLinearScope bound bs
      in Let a r <$> sequenceA bs' <*> ftvTermCtx bound'' f tIn
   Let a r@Rec bs tIn ->
-    let bound' = bound `union` setOf (traversed . bindingTyNames) bs
+    let bound' = bound `USet.union` USet.setOfByName (traversed . bindingTyNames) bs
      in Let a r <$> traverse (ftvBindingCtx r bound f) bs <*> ftvTermCtx bound' f tIn
-  TyAbs a tn k t -> TyAbs a tn k <$> ftvTermCtx (S.insert tn bound) f t
+  TyAbs a tn k t -> TyAbs a tn k <$> ftvTermCtx (USet.insertByName tn bound) f t
   -- sound because the subterms and subtypes are disjoint
   t -> ((termSubterms . ftvTermCtx bound) `Unsound.adjoin` (termSubtypes . ftvTyCtx bound)) f t
 
 -- | Get all the free variables in a PIR single let-binding.
-fvBinding :: (Ord name) => Traversal' (Binding tyname name uni fun ann) name
+fvBinding :: (HasUnique name TermUnique) => Traversal' (Binding tyname name uni fun ann) name
 fvBinding = fvBindingCtx mempty
 
-fvBindingCtx :: (Ord name) => Set name -> Traversal' (Binding tyname name uni fun ann) name
+fvBindingCtx ::
+  (HasUnique name TermUnique) =>
+  UniqueSet TermUnique ->
+  Traversal' (Binding tyname name uni fun ann) name
 fvBindingCtx bound = bindingSubterms . fvTermCtx bound
 
 -- | Get all the free type variables in a PIR single let-binding.
-ftvBinding :: (Ord tyname) => Recursivity -> Traversal' (Binding tyname name uni fun ann) tyname
+ftvBinding ::
+  (HasUnique tyname TypeUnique) =>
+  Recursivity ->
+  Traversal' (Binding tyname name uni fun ann) tyname
 ftvBinding r = ftvBindingCtx r mempty
 
 ftvBindingCtx ::
-  (Ord tyname) =>
+  (HasUnique tyname TypeUnique) =>
   Recursivity ->
-  Set tyname ->
+  UniqueSet TypeUnique ->
   Traversal' (Binding tyname name uni fun ann) tyname
 ftvBindingCtx r bound f = \case
   DatatypeBind a d -> DatatypeBind a <$> ftvDatatypeCtx r bound f d
@@ -88,16 +104,16 @@ ftvBindingCtx r bound f = \case
       b
 
 ftvDatatypeCtx ::
-  (Ord tyname) =>
+  (HasUnique tyname TypeUnique) =>
   Recursivity ->
-  Set tyname ->
+  UniqueSet TypeUnique ->
   Traversal' (Datatype tyname name uni ann) tyname
 ftvDatatypeCtx r bound f d@(Datatype a tyconstr tyvars destr constrs) =
   let
-    tyConstr = setOf PLC.tyVarDeclName tyconstr
-    tyVars = setOf (traversed . PLC.tyVarDeclName) tyvars
-    allBound = bound `union` tyConstr `union` tyVars
-    varsBound = bound `union` tyVars
+    tyConstr = USet.setOfByName PLC.tyVarDeclName tyconstr
+    tyVars = USet.setOfByName (traversed . PLC.tyVarDeclName) tyvars
+    allBound = bound `USet.union` tyConstr `USet.union` tyVars
+    varsBound = bound `USet.union` tyVars
    in
     case r of
       -- recursive: introduced names are in scope throughout

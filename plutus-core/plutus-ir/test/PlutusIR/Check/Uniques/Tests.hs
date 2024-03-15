@@ -12,7 +12,7 @@ import Data.List.NonEmpty qualified as NE
 import PlutusCore.Default (DefaultUni)
 import PlutusCore.Error (UniqueError (..))
 import PlutusCore.MkPlc (mkConstant)
-import PlutusCore.Name (Unique (..))
+import PlutusCore.Name.Unique (Unique (..))
 import PlutusCore.Quote (freshTyName, runQuoteT)
 import PlutusIR.Check.Uniques qualified as Uniques
 import PlutusIR.Core.Type

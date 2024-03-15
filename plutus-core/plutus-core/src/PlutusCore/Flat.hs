@@ -19,7 +19,7 @@ module PlutusCore.Flat
 import PlutusCore.Core
 import PlutusCore.Data (Data)
 import PlutusCore.DeBruijn
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 
 import Codec.Serialise (Serialise, deserialiseOrFail, serialise)
 import Data.Proxy

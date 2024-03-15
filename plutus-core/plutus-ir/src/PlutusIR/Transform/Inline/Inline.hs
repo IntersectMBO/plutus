@@ -13,7 +13,7 @@ in the paper 'Secrets of the GHC Inliner'.
 module PlutusIR.Transform.Inline.Inline (inline, inlinePass, inlinePassSC, InlineHints (..)) where
 import PlutusCore qualified as PLC
 import PlutusCore.Annotation
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Quote
 import PlutusCore.Rename (dupable)
 import PlutusIR

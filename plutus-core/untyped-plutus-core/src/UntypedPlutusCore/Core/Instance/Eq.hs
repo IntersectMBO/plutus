@@ -14,7 +14,7 @@ import UntypedPlutusCore.Core.Type
 
 import PlutusCore.DeBruijn
 import PlutusCore.Eq
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Rename.Monad
 
 import Universe

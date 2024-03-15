@@ -13,7 +13,7 @@ import PlutusIR.Purity
 
 import Control.Lens (transformOf)
 import PlutusCore qualified as PLC
-import PlutusCore.Name qualified as PLC
+import PlutusCore.Name.Unique qualified as PLC
 import PlutusIR.Analysis.Builtins
 import PlutusIR.Analysis.VarInfo
 import PlutusIR.Pass

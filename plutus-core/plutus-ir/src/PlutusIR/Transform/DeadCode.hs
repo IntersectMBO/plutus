@@ -13,7 +13,7 @@ import PlutusIR.Transform.Rename ()
 
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin qualified as PLC
-import PlutusCore.Name qualified as PLC
+import PlutusCore.Name.Unique qualified as PLC
 
 import Control.Lens
 import Control.Monad.Reader

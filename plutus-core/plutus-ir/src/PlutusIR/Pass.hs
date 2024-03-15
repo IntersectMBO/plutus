@@ -10,7 +10,7 @@ import PlutusIR.Error
 import PlutusIR.TypeCheck qualified as TC
 
 import PlutusCore qualified as PLC
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 
 import Control.Monad (when)
 import Control.Monad.Except

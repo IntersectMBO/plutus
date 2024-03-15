@@ -59,7 +59,7 @@ where
 import PlutusPrelude
 
 import PlutusCore.Evaluation.Machine.ExMemoryUsage
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Version as Export
 
 import Control.Lens

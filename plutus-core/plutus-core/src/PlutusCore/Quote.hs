@@ -30,7 +30,7 @@ module PlutusCore.Quote
 
 import PlutusPrelude (fromMaybe)
 
-import PlutusCore.Name (Name (Name), TyName (TyName), Unique (..))
+import PlutusCore.Name.Unique (Name (Name), TyName (TyName), Unique (..))
 
 import Control.Monad.Except (ExceptT, MonadError)
 import Control.Monad.Fix (MonadFix)

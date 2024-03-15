@@ -7,7 +7,7 @@ module PlutusCore.Normalize
     ) where
 
 import PlutusCore.Core
-import PlutusCore.Name
+import PlutusCore.Name.Unique
 import PlutusCore.Normalize.Internal
 import PlutusCore.Rename
 

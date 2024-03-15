@@ -5,7 +5,8 @@
 module PlutusIR.Pass.Test where
 
 import Control.Monad.Except
-import Data.Functor
+import Data.Bifunctor (first)
+import Data.Functor (void)
 import Data.Typeable
 import PlutusCore qualified as PLC
 import PlutusCore.Builtin

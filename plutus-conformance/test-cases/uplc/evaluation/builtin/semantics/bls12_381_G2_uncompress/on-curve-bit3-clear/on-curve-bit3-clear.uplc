@@ -1,5 +1,6 @@
--- This value was obtained by hashing 0x0102030405 to G2 but has had the
--- compression bit cleared, so uncompression should fail.
+-- This value was obtained by hashing 0x0102030405 to G2.  The sign bit was set
+-- but has been cleared: this negates the point, so uncompression should still
+-- succeed.
 (program 0.0.0
  [
   (builtin bls12_381_G2_uncompress)

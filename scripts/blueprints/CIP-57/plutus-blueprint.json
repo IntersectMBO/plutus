@@ -1,0 +1,105 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://cips.cardano.org/cips/cip57/schemas/plutus-blueprint.json",
+    "$vocabulary": {
+        "https://json-schema.org/draft/2020-12/vocab/core": true,
+        "https://json-schema.org/draft/2020-12/vocab/applicator": true,
+        "https://json-schema.org/draft/2020-12/vocab/validation": true,
+        "https://cips.cardano.org/cips/cip57": true
+    },
+    "type": "object",
+    "required": [
+        "preamble",
+        "validators"
+    ],
+    "properties": {
+        "preamble": {
+            "$ref": "#/$defs/preamble"
+        },
+        "validators": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/validator"
+            }
+        },
+        "definitions": {
+            "type": "object",
+            "additionalProperties": true
+        }
+    },
+    "$defs": {
+        "preamble": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "title",
+                "version",
+                "plutusVersion"
+            ],
+            "properties": {
+                "title": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "version": {
+                    "type": "string"
+                },
+                "plutusVersion": {
+                    "type": "string",
+                    "enum": [ "v1", "v2", "v3" ]
+                },
+                "license": {
+                    "type": "string"
+                }
+            }
+        },
+        "validator": {
+            "type": "object",
+            "required": [
+              "title",
+              "redeemer"
+            ],
+            "properties": {
+                "title": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "compiledCode": {
+                    "$ref": "#/$defs/compiledCode"
+                },
+                "hash": {
+                    "$ref": "#/$defs/hashDigest"
+                },
+                "datum": {
+                    "$ref": "plutus-blueprint-argument.json"
+                },
+                "redeemer": {
+                    "$ref": "plutus-blueprint-argument.json"
+                },
+                "parameters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "plutus-blueprint-parameter.json"
+                    }
+                }
+            }
+        },
+        "compiledCode": {
+            "type": "string",
+            "contentEncoding": "base16",
+            "description": "A cbor-serialised flat-encoded Plutus script",
+            "example": "01450100002601"
+        },
+        "hashDigest": {
+            "type": "string",
+            "contentEncoding": "base16",
+            "description": "Blake2b-224 hash digest of the serialised Plutus script, with language tag prefix.",
+            "minLength": 56,
+            "maxLength": 56
+        }
+    }
+}

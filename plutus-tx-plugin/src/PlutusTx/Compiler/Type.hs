@@ -41,7 +41,7 @@ import PlutusIR qualified as PIR
 import PlutusIR.Compiler.Definitions qualified as PIR
 import PlutusIR.MkPir qualified as PIR
 
-import PlutusCore.Name qualified as PLC
+import PlutusCore.Name.Unique qualified as PLC
 
 import Control.Monad.Extra
 import Control.Monad.Reader
