@@ -1,9 +1,12 @@
 {-# LANGUAGE AllowAmbiguousTypes      #-}
 {-# LANGUAGE DataKinds                #-}
+{-# LANGUAGE DerivingStrategies       #-}
 {-# LANGUAGE FlexibleContexts         #-}
 {-# LANGUAGE FlexibleInstances        #-}
+{-# LANGUAGE GADTs                    #-}
 {-# LANGUAGE MultiParamTypeClasses    #-}
 {-# LANGUAGE PolyKinds                #-}
+{-# LANGUAGE RankNTypes               #-}
 {-# LANGUAGE StandaloneKindSignatures #-}
 {-# LANGUAGE TypeApplications         #-}
 {-# LANGUAGE TypeFamilies             #-}
@@ -15,11 +18,17 @@
 -- | This module provides a functionality to derive and reference schema definitions.
 module PlutusTx.Blueprint.Definition (
   module DefinitionId,
+  Definitions (..),
+  Definition (..),
+  definition,
+  definitionRef,
+  addDefinition,
+  definitionsToMap,
+  HasSchemaDefinition,
+
+  -- ** Type-level utilities
   Unroll,
   UnrollAll,
-  HasSchemaDefinition,
-  definitionRef,
-  deriveSchemaDefinitions,
 ) where
 
 import Prelude
@@ -36,7 +45,43 @@ import PlutusTx.Blueprint.Schema (Schema (..))
 import PlutusTx.Builtins.Internal (BuiltinByteString, BuiltinData, BuiltinList, BuiltinString,
                                    BuiltinUnit)
 
--- For more context see the note ["Unrolling" types]
+-- | A schema definition of a type @t@ with a list of referenced types @ts@.
+data Definition t ts = MkDefinition DefinitionId (Schema ts)
+  deriving stock (Show)
+
+-- | A registry of schema definitions.
+data Definitions (ts :: [Type]) where
+  NoDefinitions :: Definitions ts
+  DCons :: SomeDefinition -> Definitions ts -> Definitions (t ': ts)
+
+deriving stock instance Show (Definitions ts)
+
+-- | An existential wrapper for schema definitions that allows to store them in a registry.
+data SomeDefinition where
+  SomeDefinition :: Definition t ts -> SomeDefinition
+
+deriving stock instance Show SomeDefinition
+
+-- | Add a schema definition to a registry.
+addDefinition :: Definitions ts -> Definition t ts -> Definitions (t ': ts)
+addDefinition NoDefinitions d = DCons (SomeDefinition d) NoDefinitions
+addDefinition (DCons t s) d   = DCons (SomeDefinition d) (DCons t s)
+
+definitionsToMap :: Definitions ts -> (forall xs. Schema xs -> v) -> Map DefinitionId v
+definitionsToMap NoDefinitions _k = Map.empty
+definitionsToMap (DCons (SomeDefinition (MkDefinition defId v)) s) k =
+  Map.insert defId (k v) (definitionsToMap s k)
+
+-- | Construct a schema definition.
+definition :: forall t ts. (AsDefinitionId t, HasSchema t ts) => Definition t ts
+definition = MkDefinition (definitionId @t) (schema @t)
+
+-- | Construct a schema that is a reference to a schema definition.
+definitionRef :: forall t ts. (AsDefinitionId t, HasSchemaDefinition t ts) => Schema ts
+definitionRef = SchemaDefinitionRef (definitionId @t)
+
+----------------------------------------------------------------------------------------------------
+-- Functionality to "unroll" types. -- For more context see the note ["Unrolling" types] -----------
 
 type family UnrollAll xs :: [Type] where
   UnrollAll '[] = '[]
@@ -96,13 +141,6 @@ type family (as :: [k]) ++ (bs :: [k]) :: [k] where
 
 infixr 5 ++
 
--- | Construct a schema that is a reference to a schema definition.
-definitionRef ::
-  forall typ types.
-  (AsDefinitionId typ, HasSchemaDefinition typ types) =>
-  Schema types
-definitionRef = SchemaDefinitionRef (definitionId @typ)
-
 {- |
   A constraint that checks if a schema definition is present in a list of schema definitions.
   Gives a user-friendly error message if the schema definition is not found.
@@ -116,67 +154,3 @@ type family HasSchemaDefinition n xs where
       ( GHC.ShowType n
           GHC.:<>: GHC.Text " type was not found in the list of types having schema definitions."
       )
-
--- | Derive a map of schema definitions from a list of types.
-deriveSchemaDefinitions ::
-  forall (types :: [Type]).
-  (AsDefinitionsEntries types types) =>
-  Map DefinitionId (Schema types)
-deriveSchemaDefinitions = Map.fromList (definitionEntries @types @types)
-
-{- | This class is only used internally to derive schema definition entries from a list of types.
-
-It uses 2 instances to iterate a type-level list:
-  * one instance terminates recursion when the list of [remaining] types to iterate is empty.
-  * another instance does a recursive step:
-      taking a head and tail,
-      adds a schema definition entry if the head is in the `allTypes`
-      and recurses on tail as `remainingTypes`.
-
-This way in the beginning of iteration `allTypes` == `remainingTypes` and then
-`allTypes` stays the same list, while `remainingTypes` is shrinking until empty.
-
-Here is an analogy at the value level, where `remainingTypes` serves a similar purpose:
-
-@
-type Typ = String
-type DefinitionId = String
-type Schema = String
-
-asDefinitionEntries :: [Typ] -> [(DefinitionId, Schema)]
-asDefinitionEntries allTypes = go allTypes allTypes
-  where
-    go :: [Typ] -> [Typ] -> [(DefinitionId, Schema)]
-    go allTypes remainingTypes =
-      case remainingTypes of
-        [] -> []
-        (h : t) ->
-          let defId = lookupDefinitionId h allTypes
-              schema = lookupSchema h allTypes
-          in (defId, schema) : go allTypes t
-
-lookupDefinitionId :: Typ -> [Typ] -> DefinitionId
-lookupDefinitionId t allTypes | t `elem` allTypes = "DefinitionId for " ++ t
-lookupDefinitionId t _ = error $ "Type " ++ show t ++ " not found"
-
-lookupSchema :: Typ -> [Typ] -> Schema
-lookupSchema t allTypes | t `elem` allTypes = "Schema for " ++ t
-lookupSchema t _ = error $ "Type " ++ show t ++ " not found"
-@
--}
-class AsDefinitionsEntries (allTypes :: [Type]) (remainingTypes :: [Type]) where
-  definitionEntries :: [(DefinitionId, Schema allTypes)]
-
-instance AsDefinitionsEntries allTypes '[] where
-  definitionEntries = []
-
-instance
-  ( AsDefinitionId t
-  , HasSchema t allTypes
-  , AsDefinitionsEntries allTypes ts
-  ) =>
-  AsDefinitionsEntries allTypes (t ': ts)
-  where
-  definitionEntries =
-    (definitionId @t, schema @t @allTypes)
-      : definitionEntries @allTypes @ts

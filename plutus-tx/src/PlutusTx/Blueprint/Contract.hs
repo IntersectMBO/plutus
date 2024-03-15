@@ -1,5 +1,6 @@
 {-# LANGUAGE DataKinds          #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE GADTs              #-}
 {-# LANGUAGE KindSignatures     #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE RecordWildCards    #-}
@@ -18,16 +19,15 @@ import Data.Map qualified as Map
 import Data.Set (Set)
 import Data.Text (Text)
 import PlutusPrelude (ensure)
-import PlutusTx.Blueprint.Definition (DefinitionId, UnrollAll)
+import PlutusTx.Blueprint.Definition (DefinitionId, Definitions, definitionsToMap)
 import PlutusTx.Blueprint.Preamble (Preamble)
-import PlutusTx.Blueprint.Schema (Schema)
 import PlutusTx.Blueprint.Validator (ValidatorBlueprint)
 
 {- | A blueprint of a smart contract, as defined by the CIP-0057
 
 The 'referencedTypes' phantom type parameter is used to track the types used in the contract
 making sure their schemas are included in the blueprint and that they are referenced
-in a type-safe way.
+in a type-safe way. See the note ["Unrolling" types] for more details.
 -}
 data ContractBlueprint (referencedTypes :: [Type]) = MkContractBlueprint
   { contractId          :: Maybe Text
@@ -36,7 +36,7 @@ data ContractBlueprint (referencedTypes :: [Type]) = MkContractBlueprint
   -- ^ An object with meta-information about the contract.
   , contractValidators  :: Set (ValidatorBlueprint referencedTypes)
   -- ^ A set of validator blueprints that are part of the contract.
-  , contractDefinitions :: Map DefinitionId (Schema referencedTypes)
+  , contractDefinitions :: Definitions referencedTypes
   -- ^ A registry of schema definitions used across the blueprint.
   }
   deriving stock (Show)
@@ -81,8 +81,6 @@ type family will take care of discovering all the nested types:
 -}
 
 -- | A contract blueprint with all (nested) types discovered from a list of top-level types.
-type Blueprint topTypes = ContractBlueprint (UnrollAll topTypes)
-
 instance ToJSON (ContractBlueprint referencedTypes) where
   toJSON MkContractBlueprint{..} =
     Aeson.buildObject $
@@ -99,7 +97,14 @@ instance ToJSON (ContractBlueprint referencedTypes) where
         . requiredField "preamble" contractPreamble
         . requiredField "validators" contractValidators
         . optionalField "$id" contractId
-        . optionalField "definitions" (ensure (not . Map.null) contractDefinitions)
+        . optionalField "definitions" definitions
    where
     schemaUrl :: String
     schemaUrl = "https://cips.cardano.org/cips/cip57/schemas/plutus-blueprint.json"
+
+    definitions :: Maybe (Map DefinitionId Aeson.Value)
+    definitions = ensure (not . Map.null) (definitionsToMap contractDefinitions toJSON)
+
+-- | 'Blueprint' wrapper to hide the 'referencedTypes' parameter as an existential type.
+data Blueprint where
+  MkBlueprint :: forall ts. ContractBlueprint ts -> Blueprint

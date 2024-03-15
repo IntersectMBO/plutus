@@ -4,7 +4,6 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# LANGUAGE PolyKinds             #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
@@ -16,24 +15,11 @@ module Blueprint.Spec where
 
 import Prelude
 
-import Data.Set qualified as Set
 import GHC.Generics (Generic)
 import PlutusTx.Blueprint.Class (HasSchema (..))
-import PlutusTx.Blueprint.Contract (Blueprint, ContractBlueprint (..))
-import PlutusTx.Blueprint.Definition (AsDefinitionId, Unroll, UnrollAll, deriveSchemaDefinitions)
-import PlutusTx.Blueprint.PlutusVersion (PlutusVersion (PlutusV3))
-import PlutusTx.Blueprint.Preamble (Preamble (MkPreamble))
+import PlutusTx.Blueprint.Definition (AsDefinitionId, Unroll, UnrollAll)
 import PlutusTx.Blueprint.Schema (Schema (..))
 import PlutusTx.Blueprint.Schema.Annotation (emptySchemaInfo)
-
-contract :: Blueprint [Foo, Bar, Baz]
-contract =
-  MkContractBlueprint
-    { contractId = Nothing
-    , contractPreamble = MkPreamble "" Nothing "" PlutusV3 Nothing
-    , contractValidators = Set.empty
-    , contractDefinitions = deriveSchemaDefinitions
-    }
 
 testUnrollNop :: Unroll Nop :~: '[Nop]
 testUnrollNop = Refl
