@@ -1,10 +1,13 @@
 module PlutusCore.Compiler.Erase (eraseTerm, eraseProgram) where
 
 import PlutusCore.Core
+import PlutusCore.Name
 import UntypedPlutusCore.Core qualified as UPLC
 
 -- | Erase a Typed Plutus Core term to its untyped counterpart.
-eraseTerm :: Term tyname name uni fun ann -> UPLC.Term name uni fun ann
+eraseTerm :: HasUnique name TermUnique
+          => Term tyname name uni fun ann
+          -> UPLC.Term name uni fun ann
 eraseTerm (Var ann name)           = UPLC.Var ann name
 eraseTerm (TyAbs ann _ _ body)     = UPLC.Delay ann (eraseTerm body)
 eraseTerm (LamAbs ann name _ body) = UPLC.LamAbs ann name (eraseTerm body)
@@ -18,5 +21,7 @@ eraseTerm (Error ann _)            = UPLC.Error ann
 eraseTerm (Constr ann _ i args)    = UPLC.Constr ann i (fmap eraseTerm args)
 eraseTerm (Case ann _ arg cs)      = UPLC.Case ann (eraseTerm arg) (fmap eraseTerm cs)
 
-eraseProgram :: Program tyname name uni fun ann -> UPLC.Program name uni fun ann
+eraseProgram :: HasUnique name TermUnique
+             => Program tyname name uni fun ann
+             -> UPLC.Program name uni fun ann
 eraseProgram (Program a v t) = UPLC.Program a v $ eraseTerm t

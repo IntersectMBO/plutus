@@ -659,6 +659,48 @@ executable pir
     , text
     , transformers
 
+executable plutus
+  import:         lang
+  main-is:        Main.hs
+  hs-source-dirs: executables/plutus
+  other-modules:
+    GetOpt
+    Types
+    Common
+
+    Mode.Bench
+    Mode.Compile
+    Mode.Debug
+    Mode.HelpVersion
+    Mode.PrintBuiltins
+    Mode.ListExamples
+    Mode.Run
+
+    AnyProgram.Apply
+    AnyProgram.Compile
+    AnyProgram.IO
+    AnyProgram.Parse
+    AnyProgram.With
+    AnyProgram.Example
+
+  build-depends:
+    , base                                  >=4.9   && <5
+    , bytestring
+    , lens
+    , plutus-core:{plutus-core, plutus-ir}  ^>=1.20
+    , text
+    , flat
+    , prettyprinter
+    , mtl
+    , singletons
+    , singletons-th
+    , filepath
+
+  default-extensions:
+    -- heavy use of GADTs and depedendent matches (which require the GADTs-implied MonoLocalBinds)
+    GADTs
+    ImplicitParams
+
 ----------------------------------------------
 -- support libs
 ----------------------------------------------
