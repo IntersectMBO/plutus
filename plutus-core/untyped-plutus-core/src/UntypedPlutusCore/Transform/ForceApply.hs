@@ -138,19 +138,19 @@ processTerm = \case
 optimisationProcedure :: Term name uni fun a -> Maybe (Term name uni fun a)
 optimisationProcedure term = do
     asMultiApply <- toMultiApply term
-    innerMultiAbs <- toMultiAbs . toApply $ asMultiApply
-    guard $ length (applyToIter asMultiApply) == length (absVars innerMultiAbs)
-    case rhs innerMultiAbs of
+    innerMultiAbs <- toMultiAbs . appHead $ asMultiApply
+    guard $ length (appSpineRev asMultiApply) == length (absVars innerMultiAbs)
+    case absRhs innerMultiAbs of
         Delay _ subTerm ->
-            let optimisedInnerMultiAbs = innerMultiAbs { rhs = subTerm}
+            let optimisedInnerMultiAbs = innerMultiAbs { absRhs = subTerm}
                 optimisedMultiApply =
-                    asMultiApply { toApply = fromMultiAbs optimisedInnerMultiAbs }
+                    asMultiApply { appHead = fromMultiAbs optimisedInnerMultiAbs }
             in pure . fromMultiApply $ optimisedMultiApply
         _               -> Nothing
 
 data MultiApply name uni fun a = MultiApply
-    { toApply     :: Term name uni fun a
-    , applyToIter :: [(a, Term name uni fun a)]
+    { appHead     :: Term name uni fun a
+    , appSpineRev :: [(a, Term name uni fun a)]
     }
 
 toMultiApply :: Term name uni fun a -> Maybe (MultiApply name uni fun a)
@@ -170,7 +170,7 @@ fromMultiApply (MultiApply term ts) =
 
 data MultiAbs name uni fun a = MultiAbs
     { absVars :: [(a, name)]
-    , rhs     :: Term name uni fun a
+    , absRhs  :: Term name uni fun a
     }
 
 toMultiAbs :: Term name uni fun a -> Maybe (MultiAbs name uni fun a)
