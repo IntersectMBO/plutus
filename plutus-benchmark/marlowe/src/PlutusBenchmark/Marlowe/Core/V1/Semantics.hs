@@ -328,7 +328,7 @@ refundOne accounts = case Map.toList accounts of
     -- Isabelle semantics in that it returns the least-recently
     -- added account-token combination rather than the first
     -- lexicographically ordered one. Also, the sequence
-    -- `Map.fromList . tail . Map.toList` preserves the
+    -- `Map.unsafeFromList . tail . Map.toList` preserves the
     -- invariants of order and non-duplication.
     ((accId, token), balance) : rest ->
         if balance > 0
