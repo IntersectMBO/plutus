@@ -1,6 +1,6 @@
 ## Suppress some annoying warnings
 library(MASS,    quietly=TRUE, warn.conflicts=FALSE)
-suppressWarnings(library(stringr, quietly=TRUE, warn.conflicts=FALSE))
+library(stringr, quietly=TRUE, warn.conflicts=FALSE)
 library(dplyr,   quietly=TRUE, warn.conflicts=FALSE)
 library(broom,   quietly=TRUE, warn.conflicts=FALSE)
 
