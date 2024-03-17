@@ -386,6 +386,13 @@ modelFun <- function(path) {
         return (mk.result(m, "linear_in_y"))
    }
 
+   linearInZ <- function (fname) {
+        filtered <- data %>%
+            filter.and.check.nonempty(fname) %>%
+            discard.overhead ()
+        m <- lm(t ~ z_mem, filtered)
+        return (mk.result(m, "linear_in_z"))
+   }
 
     ##### Integers #####
 
@@ -425,8 +432,8 @@ modelFun <- function(path) {
             filter (x_mem > y_mem) %>%
             discard.overhead ()
         m <- lm(t ~ I(x_mem * y_mem), filtered)
-        mk.result(m, "multiplied_sizes", default=196500)
-        ## FIXME.  The constant above is the above-diagonal cost: infer it from the data
+        mk.result(m, "multiplied_sizes", default=0.1965)
+        ## FIXME.  The `default` value above is the above-diagonal cost: infer it from the data.
     }
 
     quotientIntegerModel  <- divideIntegerModel
@@ -485,9 +492,10 @@ modelFun <- function(path) {
     ## Depends on the size of the second argument, which has to be copied into
     ## the destination.
 
-    sliceByteStringModel <- constantModel ("SliceByteString")
-    ## Bytetrings are immutable arrays with a pointer to the start and a length.
-    ## This just adjusts the pointer and length.
+    sliceByteStringModel <- linearInZ ("SliceByteString") ## Bytetrings are
+    immutable arrays with a pointer to the start and a length.
+    ## SliceByteString just adjusts the pointer and length, so should be constant
+    ## cost.  We've kept the linear model for compatibility reasons.
 
     lengthOfByteStringModel <- constantModel ("LengthOfByteString")  ## Just returns a field
     indexByteStringModel    <- constantModel ("IndexByteString")     ## Constant-time array access
@@ -499,8 +507,8 @@ modelFun <- function(path) {
             filter(x_mem == y_mem) %>%
             discard.overhead ()
         m <- lm(t ~ x_mem, filtered)
-        mk.result(m, "linear_on_diagonal", default=245000)
-        ## FIXME.  The constant above is the off-diagonal cost: infer it from the data
+        mk.result(m, "linear_on_diagonal", default=0.245)
+        ## FIXME.  The `default` value above is the above-diagonal cost: infer it from the data.
     }
 
     lessThanByteStringModel <- {
@@ -558,8 +566,8 @@ modelFun <- function(path) {
             filter(x_mem == y_mem) %>%
             discard.overhead ()
         m <- lm(t ~ x_mem, filtered)
-        mk.result(m, "linear_on_diagonal", default=187000)
-        ## FIXME.  The constant above is the off-diagonal cost: infer it from the data
+        mk.result(m, "linear_on_diagonal", default=0.187)
+        ## FIXME.  The `default` value above is the above-diagonal cost: infer it from the data.
     }
 
     decodeUtf8Model <- linearInX ("DecodeUtf8")
