@@ -928,16 +928,13 @@ executable generate-cost-model
     , barbies
     , base                  >=4.9   && <5
     , bytestring
-    , cassava
     , directory
-    , exceptions
-    , extra
     , inline-r              >=1.0.1
     , optparse-applicative
     , plutus-core           ^>=1.23
     , text
-    , vector
 
+  --    , exceptions
   other-modules:  CreateBuiltinCostModel
 
 -- The cost models for builtins are generated using R and converted into a JSON

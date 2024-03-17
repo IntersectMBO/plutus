@@ -317,11 +317,11 @@ data ModelTwoArguments =
   | ModelTwoArgumentsLinearInX          OneVariableLinearFunction
   | ModelTwoArgumentsLinearInY          OneVariableLinearFunction
   | ModelTwoArgumentsLinearInXAndY      TwoVariableLinearFunction
-  | ModelTwoArgumentsAddedSizes         ModelAddedSizes
+  | ModelTwoArgumentsAddedSizes         OneVariableLinearFunction
   | ModelTwoArgumentsSubtractedSizes    ModelSubtractedSizes
-  | ModelTwoArgumentsMultipliedSizes    ModelMultipliedSizes
-  | ModelTwoArgumentsMinSize            ModelMinSize
-  | ModelTwoArgumentsMaxSize            ModelMaxSize
+  | ModelTwoArgumentsMultipliedSizes    OneVariableLinearFunction
+  | ModelTwoArgumentsMinSize            OneVariableLinearFunction
+  | ModelTwoArgumentsMaxSize            OneVariableLinearFunction
   | ModelTwoArgumentsLinearOnDiagonal   ModelConstantOrLinear
   | ModelTwoArgumentsConstAboveDiagonal ModelConstantOrTwoArguments
   | ModelTwoArgumentsConstBelowDiagonal ModelConstantOrTwoArguments
@@ -371,7 +371,7 @@ runTwoArgumentModel
 runTwoArgumentModel
     (ModelTwoArgumentsConstantCost c) = lazy $ \_ _ -> CostLast c
 runTwoArgumentModel
-    (ModelTwoArgumentsAddedSizes (ModelAddedSizes intercept slope)) =
+    (ModelTwoArgumentsAddedSizes (OneVariableLinearFunction intercept slope)) =
         lazy $ \costs1 costs2 ->
             scaleLinearly intercept slope $ addCostStream costs1 costs2
 runTwoArgumentModel
@@ -381,17 +381,17 @@ runTwoArgumentModel
                 !size2 = sumCostStream costs2
             scaleLinearly intercept slope $ CostLast (max minSize $ size1 - size2)
 runTwoArgumentModel
-    (ModelTwoArgumentsMultipliedSizes (ModelMultipliedSizes intercept slope)) =
+    (ModelTwoArgumentsMultipliedSizes (OneVariableLinearFunction intercept slope)) =
         lazy $ \costs1 costs2 -> do
             let !size1 = sumCostStream costs1
                 !size2 = sumCostStream costs2
             scaleLinearly intercept slope $ CostLast (size1 * size2)
 runTwoArgumentModel
-    (ModelTwoArgumentsMinSize (ModelMinSize intercept slope)) =
+    (ModelTwoArgumentsMinSize (OneVariableLinearFunction intercept slope)) =
         lazy $ \costs1 costs2 -> do
             scaleLinearly intercept slope $ minCostStream costs1 costs2
 runTwoArgumentModel
-    (ModelTwoArgumentsMaxSize (ModelMaxSize intercept slope)) =
+    (ModelTwoArgumentsMaxSize (OneVariableLinearFunction intercept slope)) =
         lazy $ \costs1 costs2 -> do
             let !size1 = sumCostStream costs1
                 !size2 = sumCostStream costs2
