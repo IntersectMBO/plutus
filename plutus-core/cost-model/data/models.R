@@ -1,6 +1,6 @@
 ## Suppress some annoying warnings
 library(MASS,    quietly=TRUE, warn.conflicts=FALSE)
-library(stringr, quietly=TRUE, warn.conflicts=FALSE)
+suppressWarnings(library(stringr, quietly=TRUE, warn.conflicts=FALSE))
 library(dplyr,   quietly=TRUE, warn.conflicts=FALSE)
 library(broom,   quietly=TRUE, warn.conflicts=FALSE)
 
@@ -30,7 +30,7 @@ seconds.to.microseconds <- function(x) { x * 1e6 }
 ## interquartile range above the third quartile, as is done in boxplots.  In our
 ## benchmark results we occasionally get atypically large times which throw the
 ## models off and discarding the outliers helps to get a reasonable model
-#
+   #
 ## This should only be used on data which can reasonably be assumed to be
 ## relatively uniformly distributed., and this depends on how the benchmarking
 ## data was generated.  A warning will be issued by discard.upper.outliers if
@@ -177,7 +177,7 @@ get.bench.data <- function(path) {
 }
 
 filter.and.check.nonempty <- function (frame, fname) {
-    ## cat (sprintf ("Reading data for %s\n", fname))
+##    cat (sprintf ("Reading data for %s\n", fname))
     filtered <- filter (frame, name == fname)
     if (nrow(filtered) == 0) {
         stop ("No data found for ", fname)
@@ -295,6 +295,8 @@ fit.fan <- function(f, threshold=0.9, limit=20, do.plot=FALSE) {
 modelFun <- function(path) {
     data <- get.bench.data(path)
 
+    mk.result <- function(model, type, ...) { list(type=type, coefficients = coefficients(model), ...) }
+
     ## Look for a single entry with the given name and return the 't' value
     ## (ie, the mean execution time) for that entry.  If <name> occurs multiple
     ## times, return the mean value, and if it's not present return zero,
@@ -365,7 +367,7 @@ modelFun <- function(path) {
             discard.upper.outliers () %>%
             discard.overhead ()
         m <- lm(t ~ 1, filtered)
-        return (m)
+        return (mk.result(m, "constant_cost"))
     }
 
    linearInX <- function (fname) {
@@ -373,7 +375,7 @@ modelFun <- function(path) {
             filter.and.check.nonempty (fname) %>%
             discard.overhead ()
         m <- lm(t ~ x_mem, filtered)
-        return(m)
+        return (mk.result(m, "linear_in_x"))
    }
 
    linearInY <- function (fname) {
@@ -381,7 +383,7 @@ modelFun <- function(path) {
             filter.and.check.nonempty(fname) %>%
             discard.overhead ()
         m <- lm(t ~ y_mem, filtered)
-        return(m)
+        return (mk.result(m, "linear_in_y"))
    }
 
 
@@ -392,9 +394,9 @@ modelFun <- function(path) {
         filtered <- data %>%
             filter.and.check.nonempty (fname)  %>%
             discard.overhead ()
-        lm(t ~ pmax(x_mem, y_mem), filtered)
+        m <- lm(t ~ pmax(x_mem, y_mem), filtered)
+        mk.result(m, "max_size")
     }
-
     subtractIntegerModel <- addIntegerModel
 
     multiplyIntegerModel <- {
@@ -403,7 +405,8 @@ modelFun <- function(path) {
             filter.and.check.nonempty(fname)  %>%
             filter(x_mem > 0 & y_mem > 0) %>%
             discard.overhead ()
-        lm(t ~ I(x_mem + y_mem), filtered)
+        m <- lm(t ~ I(x_mem + y_mem), filtered)
+        mk.result(m,"added_sizes")
     }
     ## We do want I(x+y) here ^: the cost is linear, but symmetric.
 
@@ -417,11 +420,13 @@ modelFun <- function(path) {
     divideIntegerModel <- {
         fname <- "DivideInteger"
         filtered <- data %>%
-            filter.and.check.nonempty(fname)    %>%
+            filter.and.check.nonempty(fname) %>%
             filter(x_mem > 0 & y_mem > 0) %>%
             filter (x_mem > y_mem) %>%
             discard.overhead ()
-        lm(t ~ I(x_mem * y_mem), filtered)
+        m <- lm(t ~ I(x_mem * y_mem), filtered)
+        mk.result(m, "multiplied_sizes", default=196500)
+        ## FIXME.  The constant above is the above-diagonal cost: infer it from the data
     }
 
     quotientIntegerModel  <- divideIntegerModel
@@ -435,7 +440,8 @@ modelFun <- function(path) {
             filter(x_mem == y_mem) %>%
             filter (x_mem > 0) %>%
             discard.overhead ()
-        lm(t ~ pmin(x_mem, y_mem), filtered)
+        m <- lm(t ~ pmin(x_mem, y_mem), filtered)
+        mk.result(m, "min_size")
     }
 
     lessThanIntegerModel <- {
@@ -445,7 +451,8 @@ modelFun <- function(path) {
             filter(x_mem == y_mem) %>%
             filter (x_mem > 0) %>%
             discard.overhead ()
-        lm(t ~ pmin(x_mem, y_mem), filtered)
+        m <- lm(t ~ pmin(x_mem, y_mem), filtered)
+        mk.result(m, "min_size")
     }
 
     lessThanEqualsIntegerModel <- {
@@ -455,7 +462,8 @@ modelFun <- function(path) {
             filter(x_mem == y_mem) %>%
             filter (x_mem > 0) %>%
             discard.overhead ()
-        lm(t ~ pmin(x_mem, y_mem), filtered)
+        m <- lm(t ~ pmin(x_mem, y_mem), filtered)
+        mk.result(m, "min_size")
     }
 
 
@@ -467,7 +475,8 @@ modelFun <- function(path) {
             filter.and.check.nonempty(fname) %>%
             filter(x_mem > 0 & y_mem > 0) %>%
             discard.overhead ()
-        lm(t ~ I(x_mem + y_mem), filtered)
+        m <- lm(t ~ I(x_mem + y_mem), filtered)
+        mk.result(m, "added_sizes")
     }
     ## Note that this is symmetrical in the arguments: a new bytestring is
     ## created and the contents of both arguments are copied into it.
@@ -489,7 +498,9 @@ modelFun <- function(path) {
             filter.and.check.nonempty(fname) %>%
             filter(x_mem == y_mem) %>%
             discard.overhead ()
-        lm(t ~ x_mem, filtered)
+        m <- lm(t ~ x_mem, filtered)
+        mk.result(m, "linear_on_diagonal", default=245000)
+        ## FIXME.  The constant above is the off-diagonal cost: infer it from the data
     }
 
     lessThanByteStringModel <- {
@@ -497,7 +508,8 @@ modelFun <- function(path) {
         filtered <- data %>%
             filter.and.check.nonempty(fname) %>%
             discard.overhead ()
-        lm(t ~ pmin(x_mem, y_mem), filtered)
+        m <- lm(t ~ pmin(x_mem, y_mem), filtered)
+        mk.result(m, "min_size")
     }
 
     lessThanEqualsByteStringModel <- lessThanByteStringModel  ## Check this!
@@ -520,7 +532,7 @@ modelFun <- function(path) {
 
     ## Similar to VerifyEd25519Signature.
     verifySchnorrSecp256k1SignatureModel <- linearInY ("VerifySchnorrSecp256k1Signature")
-
+    
     ## All of the arguments of VerifyEcdsaSecp256k1Signature are of fixed size.
     ## The "message" (usually a hash of the real message) is always 32 bytes
     ## long.
@@ -535,7 +547,8 @@ modelFun <- function(path) {
             filter.and.check.nonempty(fname) %>%
             filter(x_mem > 0 & y_mem > 0)    %>%
             discard.overhead ()
-        lm(t ~ I(x_mem + y_mem), filtered)  ## Both strings are copied in full
+        m <- lm(t ~ I(x_mem + y_mem), filtered)  ## Both strings are copied in full
+        mk.result(m, "added_sizes")
     }
 
     equalsStringModel <- {
@@ -544,7 +557,9 @@ modelFun <- function(path) {
             filter.and.check.nonempty(fname) %>%
             filter(x_mem == y_mem) %>%
             discard.overhead ()
-        lm(t ~ x_mem, filtered)
+        m <- lm(t ~ x_mem, filtered)
+        mk.result(m, "linear_on_diagonal", default=187000)
+        ## FIXME.  The constant above is the off-diagonal cost: infer it from the data
     }
 
     decodeUtf8Model <- linearInX ("DecodeUtf8")
@@ -620,14 +635,15 @@ modelFun <- function(path) {
         m2$coefficients <- v
         ## ^ The rest of the data in the model now becomes nonsensical, but we don't use it.
         ## FIXME: do something better.
-        m2
+        mk.result(m2, "min_size")
     }
 
     ## Data serialisation times are also non-uniform (as for equalsData).
     serialiseDataModel <- {
         fname <- "SerialiseData"
         filtered <- data %>% filter.and.check.nonempty(fname)
-        fit.fan(filtered)
+        m <- fit.fan(filtered)
+        mk.result(m, "linear_in_x")
     }
 
 
@@ -648,7 +664,7 @@ modelFun <- function(path) {
     bls12_381_G1_uncompressModel     <- constantModel ("Bls12_381_G1_uncompress")
     bls12_381_G2_addModel            <- constantModel ("Bls12_381_G2_add")
 
-bls12_381_G2_negModel            <- constantModel ("Bls12_381_G2_neg")
+    bls12_381_G2_negModel            <- constantModel ("Bls12_381_G2_neg")
     bls12_381_G2_scalarMulModel      <- linearInX     ("Bls12_381_G2_scalarMul")
     bls12_381_G2_equalModel          <- constantModel ("Bls12_381_G2_equal")
     bls12_381_G2_hashToGroupModel    <- linearInX     ("Bls12_381_G2_hashToGroup")
@@ -664,14 +680,16 @@ bls12_381_G2_negModel            <- constantModel ("Bls12_381_G2_neg")
         fname <- "IntegerToByteString"
         filtered <- data %>%
             filter.and.check.nonempty(fname)
-        lm(t ~ I(z_mem) + I(z_mem^2), filtered)
+        m <- lm(t ~ I(z_mem) + I(z_mem^2), filtered)
+        mk.result(m, "quadratic_in_z")
     }
 
     byteStringToIntegerModel <- {
         fname <- "ByteStringToInteger"
         filtered <- data %>%
             filter.and.check.nonempty(fname)
-        lm(t ~  I(y_mem) + I(y_mem^2), filtered)
+        m <- lm(t ~  I(y_mem) + I(y_mem^2), filtered)
+        mk.result(m, "quadratic_in_y")
     }
 
     ##### Models to be returned to Haskell #####
@@ -755,4 +773,8 @@ bls12_381_G2_negModel            <- constantModel ("Bls12_381_G2_neg")
     )
 
     return(adjustModels(models))
+
+    ## Caution!  If we introduce any non-monotonic costing functions they should
+    ## be excluded from adjustModels and make their own adjustments for eg,
+    ## possible negative return values
 }
