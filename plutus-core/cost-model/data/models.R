@@ -29,8 +29,8 @@ seconds.to.microseconds <- function(x) { x * 1e6 }
 ## Discard any datapoints whose execution time is greater than 1.5 times the
 ## interquartile range above the third quartile, as is done in boxplots.  In our
 ## benchmark results we occasionally get atypically large times which throw the
-## models off and discarding the outliers helps to get a reasonable model
-   #
+## models off and discarding the outliers helps to get a reasonable model.
+#
 ## This should only be used on data which can reasonably be assumed to be
 ## relatively uniformly distributed., and this depends on how the benchmarking
 ## data was generated.  A warning will be issued by discard.upper.outliers if
@@ -177,7 +177,7 @@ get.bench.data <- function(path) {
 }
 
 filter.and.check.nonempty <- function (frame, fname) {
-##    cat (sprintf ("Reading data for %s\n", fname))
+    ##    cat (sprintf ("Reading data for %s\n", fname))
     filtered <- filter (frame, name == fname)
     if (nrow(filtered) == 0) {
         stop ("No data found for ", fname)
@@ -540,7 +540,7 @@ modelFun <- function(path) {
 
     ## Similar to VerifyEd25519Signature.
     verifySchnorrSecp256k1SignatureModel <- linearInY ("VerifySchnorrSecp256k1Signature")
-    
+
     ## All of the arguments of VerifyEcdsaSecp256k1Signature are of fixed size.
     ## The "message" (usually a hash of the real message) is always 32 bytes
     ## long.
